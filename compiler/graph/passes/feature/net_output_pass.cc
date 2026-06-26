@@ -31,10 +31,14 @@
 
 namespace ge {
 static std::map<std::string, ge::DataType> output_type_str_to_datatype = {
-    {"FP32", ge::DT_FLOAT},    {"FP16", ge::DT_FLOAT16},  {"INT8", ge::DT_INT8},    {"INT16", ge::DT_INT16},
-    {"UINT16", ge::DT_UINT16}, {"UINT8", ge::DT_UINT8},   {"INT32", ge::DT_INT32},  {"INT64", ge::DT_INT64},
-    {"UINT32", ge::DT_UINT32}, {"UINT64", ge::DT_UINT64}, {"DOUBLE", ge::DT_DOUBLE}, {"BF16", ge::DT_BF16},
-    {"HIF4", ge::DT_HIFLOAT4}, {"HIF8", ge::DT_HIFLOAT8}, {"FP8E5M2", ge::DT_FLOAT8_E5M2}, {"FP8E4M3FN", ge::DT_FLOAT8_E4M3FN},
+    {"FP32", ge::DT_FLOAT},          {"FP16", ge::DT_FLOAT16},
+    {"INT8", ge::DT_INT8},           {"INT16", ge::DT_INT16},
+    {"UINT16", ge::DT_UINT16},       {"UINT8", ge::DT_UINT8},
+    {"INT32", ge::DT_INT32},         {"INT64", ge::DT_INT64},
+    {"UINT32", ge::DT_UINT32},       {"UINT64", ge::DT_UINT64},
+    {"DOUBLE", ge::DT_DOUBLE},       {"BF16", ge::DT_BF16},
+    {"HIF4", ge::DT_HIFLOAT4},       {"HIF8", ge::DT_HIFLOAT8},
+    {"FP8E5M2", ge::DT_FLOAT8_E5M2}, {"FP8E4M3FN", ge::DT_FLOAT8_E4M3FN},
 };
 
 // the size of user defined output datatype or format std::string after split by ":".
@@ -61,7 +65,7 @@ Status NetOutputPass::Run(ge::ComputeGraphPtr graph) {
   auto op_desc = output_node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   bool is_inner_net_output = false;
-  (void) AttrUtils::GetBool(op_desc, "_inner_net_output", is_inner_net_output);
+  (void)AttrUtils::GetBool(op_desc, "_inner_net_output", is_inner_net_output);
   if (is_inner_net_output) {
     GE_ASSERT_SUCCESS(SetNetOutputFormat(output_node));
     GE_ASSERT_SUCCESS(AddCtrlEdgesBetweenLeafAndNetOutput(graph, output_node));
@@ -159,14 +163,14 @@ Status NetOutputPass::SetUserDefDTypeAndFormatFromAtcParams(const NodePtr &outpu
   }
   if (!userdef_dtypes.empty() && !ge::AttrUtils::SetListStr(op_desc, ATTR_ATC_USER_DEFINE_DATATYPE, userdef_dtypes)) {
     REPORT_INNER_ERR_MSG("E19999", "User define datatype is empty or Set Attr:%s to op:%s(%s) failed",
-                       ATTR_ATC_USER_DEFINE_DATATYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_ATC_USER_DEFINE_DATATYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] User define datatype is empty or Set Attr:%s to op:%s(%s) failed",
            ATTR_ATC_USER_DEFINE_DATATYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
   }
   if (!userdef_formats.empty() && !ge::AttrUtils::SetListStr(op_desc, ATTR_ATC_USER_DEFINE_FORMAT, userdef_formats)) {
     REPORT_INNER_ERR_MSG("E19999", "User define format is empty or Set Attr:%s to op:%s(%s) failed",
-                       ATTR_ATC_USER_DEFINE_FORMAT.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_ATC_USER_DEFINE_FORMAT.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] User define format is empty or Set Attr:%s to op:%s(%s) failed",
            ATTR_ATC_USER_DEFINE_FORMAT.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -197,8 +201,8 @@ Status NetOutputPass::TryToSetOutputNodeName(const NodePtr &output_node) const {
     std::string tensor_name;
     bool has_tensor_name = ge::AttrUtils::GetStr(input_desc, ATTR_NAME_ORIGIN_OUTPUT_TENSOR_NAME, tensor_name);
     if (has_tensor_name && !tensor_name.empty()) {
-      std::string output_name = in_node->GetName() + ":" +
-                                std::to_string(peer_out_anchor->GetIdx()) + ":" + tensor_name;
+      std::string output_name =
+          in_node->GetName() + ":" + std::to_string(peer_out_anchor->GetIdx()) + ":" + tensor_name;
       output_names.push_back(output_name);
       GELOGD("Output[%d], name[%s]", in_data_anchor->GetIdx(), output_name.c_str());
     }
@@ -220,8 +224,8 @@ Status NetOutputPass::TryToSetOutputMaxSize(const NodePtr &output_node) const {
     GELOGI("Output max size option[%s] not set.", OUTPUT_MAX_SIZE.c_str());
     return SUCCESS;
   }
-  GELOGI("Get output max size option[%s] success, value = %s.",
-         OUTPUT_MAX_SIZE.c_str(), output_max_size_list_str.c_str());
+  GELOGI("Get output max size option[%s] success, value = %s.", OUTPUT_MAX_SIZE.c_str(),
+         output_max_size_list_str.c_str());
 
   std::vector<int64_t> output_max_size_list;
   auto normalized = StringUtils::ReplaceAll(output_max_size_list_str, " ", "");
@@ -258,14 +262,15 @@ Status NetOutputPass::TryToSetOutputMaxSize(const NodePtr &output_node) const {
     GELOGI("Has output max size:%d.", static_cast<int32_t>(has_max_size));
     if (!has_max_size) {
       AttrUtils::SetInt(input_desc, ATTR_NAME_GRAPH_OUTPUT_MAX_SIZE, output_max_size_list[idx]);
-      GELOGI("Node[%s] set attr max size[%ld] success, index = %d",
-             output_node->GetName().c_str(), output_max_size_list[idx], idx);
+      GELOGI("Node[%s] set attr max size[%ld] success, index = %d", output_node->GetName().c_str(),
+             output_max_size_list[idx], idx);
     }
   }
   return SUCCESS;
 }
 
-Status NetOutputPass::AddCtrlEdgesBetweenLeafAndNetOutput(const ComputeGraphPtr &compute_graph, const ge::NodePtr &net_out_node) const {
+Status NetOutputPass::AddCtrlEdgesBetweenLeafAndNetOutput(const ComputeGraphPtr &compute_graph,
+                                                          const ge::NodePtr &net_out_node) const {
   GE_CHECK_NOTNULL(net_out_node);
   bool is_user_define_output_nodes = false;
   for (const auto &item : compute_graph->GetGraphOutNodesInfo()) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,15 +44,14 @@ Status AttachedResourceAssignHelper::ClassifyNodesByGroup(const ComputeGraphPtr 
         ge::AttrUtils::HasAttr(op_desc, ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST)) {
       std::vector<AttachedResourceInfoV2> attached_resource_info_v2;
       GE_ASSERT_SUCCESS(get_resource_func_v2(op_desc, attached_resource_info_v2),
-                        "op %s get attached stream info v2 failed.", op_desc->GetName().c_str());       //
+                        "op %s get attached stream info v2 failed.", op_desc->GetName().c_str());  //
       const static std::string attached_group_name = DEFAULT_STREAM_INFO_GROUP;  // 使用默认，后续待算子完整整改后删除
-      const static uint32_t attached_resource_num = 1U;  // 使用默认，后续待算子完整整改后删除
+      const static uint32_t attached_resource_num = 1U;                          // 使用默认，后续待算子完整整改后删除
       for (auto &res_info : attached_resource_info_v2) {
         if (!res_info.required) {
           continue;
         }
-        groups_2_nodes[attached_group_name][std::make_pair(res_info.reuse_key, attached_resource_num)].push_back(
-            node);
+        groups_2_nodes[attached_group_name][std::make_pair(res_info.reuse_key, attached_resource_num)].push_back(node);
       }
     } else {
       std::vector<AttachedResourceInfo> attached_resource_info;
@@ -71,9 +70,10 @@ Status AttachedResourceAssignHelper::ClassifyNodesByGroup(const ComputeGraphPtr 
   return SUCCESS;
 }
 
-Status AttachedResourceAssignHelper::AssignAttachedResource(
-    const AttachedReuseKeys2Nodes &attached_reuse_keys_2_nodes, const SetAttachedResourceFunc &set_resource_func,
-    const SetAttachedResourceFuncV2 &set_resource_func_v2, int64_t &resource_cnt) {
+Status AttachedResourceAssignHelper::AssignAttachedResource(const AttachedReuseKeys2Nodes &attached_reuse_keys_2_nodes,
+                                                            const SetAttachedResourceFunc &set_resource_func,
+                                                            const SetAttachedResourceFuncV2 &set_resource_func_v2,
+                                                            int64_t &resource_cnt) {
   for (const auto &attach_reuse_key_2_nodes : attached_reuse_keys_2_nodes) {
     GELOGI(
         "Begin to assign same attached resource for nodes size{%zu} with same attach reuse key{%s}, resource num{%u} "

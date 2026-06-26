@@ -110,4 +110,3 @@
 EsGraphBuilder builder("test_graph");
 auto s1 = builder.CreateScalar(int64_t(42));
 ```
-

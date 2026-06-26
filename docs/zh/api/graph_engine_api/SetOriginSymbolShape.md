@@ -89,4 +89,3 @@ ge::Status SetOriginSymbolShape(const char *const *shape_str, const int64_t shap
 ## 约束说明<a name="section24049039"></a>
 
 无
-

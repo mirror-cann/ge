@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,13 +44,9 @@ std::string GetCseKey(const NodePtr &node) {
     } else {
       const auto &input_desc = node->GetOpDesc()->GetInputDescPtr(in_anchor->GetIdx());
       GE_ASSERT_NOTNULL(input_desc);
-      ss << in_anchor->GetIdx() << "-"
-         << src_anchor->GetOwnerNode()->GetName() << "-"
-         << src_anchor->GetIdx() << "-"
-         << input_desc->GetShape().ToString() << "-"
-         << input_desc->GetOriginShape().ToString() << "-"
-         << input_desc->GetFormat() << "-"
-         << input_desc->GetOriginFormat() << "-";
+      ss << in_anchor->GetIdx() << "-" << src_anchor->GetOwnerNode()->GetName() << "-" << src_anchor->GetIdx() << "-"
+         << input_desc->GetShape().ToString() << "-" << input_desc->GetOriginShape().ToString() << "-"
+         << input_desc->GetFormat() << "-" << input_desc->GetOriginFormat() << "-";
     }
   }
 
@@ -128,7 +124,7 @@ Status CommonSubexpressionEliminationPass::Run(ComputeGraphPtr graph) {
   GELOGD("Begin to run the CSE process on the graph");
   GE_CHECK_NOTNULL(graph);
   // here mark nodes to its topo id, to make sure CSE optimize follow origin node seq
-  std::unordered_map<NodePtr , size_t> nodes_2_topo_idx;
+  std::unordered_map<NodePtr, size_t> nodes_2_topo_idx;
   size_t index = 0U;
   for (const auto &node : graph->GetDirectNode()) {
     nodes_2_topo_idx.emplace(node, index++);
@@ -165,25 +161,24 @@ Status CommonSubexpressionEliminationPass::Run(ComputeGraphPtr graph) {
 
     auto ret = GraphUtils::ReplaceNodeAnchors(iter->second, node, {}, output_map);
     if (ret != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s)'s anchor by node:%s(%s) failed",
-                        node->GetName().c_str(), node->GetType().c_str(),
-                        iter->second->GetName().c_str(), iter->second->GetType().c_str());
-      GELOGE(INTERNAL_ERROR, "[Replace][Node] %s by node %s failed, ret:%u",
-             node->GetName().c_str(), iter->second->GetName().c_str(), ret);
+      REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s)'s anchor by node:%s(%s) failed", node->GetName().c_str(),
+                           node->GetType().c_str(), iter->second->GetName().c_str(), iter->second->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Replace][Node] %s by node %s failed, ret:%u", node->GetName().c_str(),
+             iter->second->GetName().c_str(), ret);
       return INTERNAL_ERROR;
     }
     NodeUtils::UnlinkAll(*node);
     ret = GraphUtils::RemoveNodeWithoutRelink(graph, node);
     if (ret != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                        node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+                           node->GetType().c_str(), graph->GetName().c_str());
       GELOGE(INTERNAL_ERROR, "[Remove][Node] %s from graph:%s failed", node->GetName().c_str(),
              graph->GetName().c_str());
       return INTERNAL_ERROR;
     }
 
-    GELOGI("Remove node %s by the CSE process, replace it with node %s",
-           node->GetName().c_str(), iter->second->GetName().c_str());
+    GELOGI("Remove node %s by the CSE process, replace it with node %s", node->GetName().c_str(),
+           iter->second->GetName().c_str());
     GE_ASSERT_SUCCESS(CollectCandidate(iter->second, nodes_2_topo_idx, candidate_nodes));
   }
   return SUCCESS;

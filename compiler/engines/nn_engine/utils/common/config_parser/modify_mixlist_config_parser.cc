@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,37 +30,33 @@ const std::uint8_t kPrecisionReduceToRemoveShift = 1;
 const std::uint8_t kPrecisionReduceBlackShift = 4;
 const std::uint8_t kPrecisionReduceWhiteShift = 2;
 
-const std::uint8_t kPrecisionReduceToRemoveBlackList = 1 << (kPrecisionReduceBlackShift +
-                                                             kPrecisionReduceToRemoveShift); // 0b00100000
-const std::uint8_t kPrecisionReduceToAddBlackList    = 1 << kPrecisionReduceBlackShift;      // 0b00010000
-const std::uint8_t kPrecisionReduceToRemoveWhiteList = 1 << (kPrecisionReduceWhiteShift +
-                                                             kPrecisionReduceToRemoveShift); // 0b00001000;
-const std::uint8_t kPrecisionReduceToAddWhiteList    = 1 << kPrecisionReduceWhiteShift;      // 0b00000100;
-const std::uint8_t kPrecisionReduceToRemoveGrayList  = 1 << kPrecisionReduceToRemoveShift;   // 0b00000010;
-const std::uint8_t kPrecisionReduceToAddGrayList     = 1;                                    // 0b00000001;
+const std::uint8_t kPrecisionReduceToRemoveBlackList =
+    1 << (kPrecisionReduceBlackShift + kPrecisionReduceToRemoveShift);                // 0b00100000
+const std::uint8_t kPrecisionReduceToAddBlackList = 1 << kPrecisionReduceBlackShift;  // 0b00010000
+const std::uint8_t kPrecisionReduceToRemoveWhiteList =
+    1 << (kPrecisionReduceWhiteShift + kPrecisionReduceToRemoveShift);                     // 0b00001000;
+const std::uint8_t kPrecisionReduceToAddWhiteList = 1 << kPrecisionReduceWhiteShift;       // 0b00000100;
+const std::uint8_t kPrecisionReduceToRemoveGrayList = 1 << kPrecisionReduceToRemoveShift;  // 0b00000010;
+const std::uint8_t kPrecisionReduceToAddGrayList = 1;                                      // 0b00000001;
 const std::map<uint8_t, std::string> kOperListStrMap = {
-    {kPrecisionReduceToRemoveBlackList, "remove black list"},
-    {kPrecisionReduceToAddBlackList, "add black list"},
-    {kPrecisionReduceToRemoveWhiteList, "remove white list"},
-    {kPrecisionReduceToAddWhiteList, "add white list"},
-    {kPrecisionReduceToRemoveGrayList, "remove gray list"},
-    {kPrecisionReduceToAddGrayList, "add gray list"}
-};
+    {kPrecisionReduceToRemoveBlackList, "remove black list"}, {kPrecisionReduceToAddBlackList, "add black list"},
+    {kPrecisionReduceToRemoveWhiteList, "remove white list"}, {kPrecisionReduceToAddWhiteList, "add white list"},
+    {kPrecisionReduceToRemoveGrayList, "remove gray list"},   {kPrecisionReduceToAddGrayList, "add gray list"}};
 
 const std::set<std::uint8_t> kPrecisionReduceUpdateTemplate = {
-        kPrecisionReduceToRemoveBlackList,
-        kPrecisionReduceToRemoveWhiteList,
-        kPrecisionReduceToAddGrayList,
-        kPrecisionReduceToAddGrayList | kPrecisionReduceToRemoveBlackList,
-        kPrecisionReduceToAddGrayList | kPrecisionReduceToRemoveWhiteList,
+    kPrecisionReduceToRemoveBlackList,
+    kPrecisionReduceToRemoveWhiteList,
+    kPrecisionReduceToAddGrayList,
+    kPrecisionReduceToAddGrayList | kPrecisionReduceToRemoveBlackList,
+    kPrecisionReduceToAddGrayList | kPrecisionReduceToRemoveWhiteList,
 
-        kPrecisionReduceToAddWhiteList,
-        kPrecisionReduceToAddWhiteList | kPrecisionReduceToRemoveGrayList,
-        kPrecisionReduceToAddWhiteList | kPrecisionReduceToRemoveBlackList,
+    kPrecisionReduceToAddWhiteList,
+    kPrecisionReduceToAddWhiteList | kPrecisionReduceToRemoveGrayList,
+    kPrecisionReduceToAddWhiteList | kPrecisionReduceToRemoveBlackList,
 
-        kPrecisionReduceToAddBlackList,
-        kPrecisionReduceToAddBlackList | kPrecisionReduceToRemoveGrayList,
-        kPrecisionReduceToAddBlackList | kPrecisionReduceToRemoveWhiteList,
+    kPrecisionReduceToAddBlackList,
+    kPrecisionReduceToAddBlackList | kPrecisionReduceToRemoveGrayList,
+    kPrecisionReduceToAddBlackList | kPrecisionReduceToRemoveWhiteList,
 };
 
 bool IsFileEmpty(const std::string &file_name) {
@@ -78,7 +74,7 @@ bool IsFileEmpty(const std::string &file_name) {
   ifs.close();
   return false;
 }
-}
+}  // namespace
 
 ModifyMixlistConfigParser::ModifyMixlistConfigParser() {}
 ModifyMixlistConfigParser::~ModifyMixlistConfigParser() {}
@@ -126,7 +122,8 @@ Status ModifyMixlistConfigParser::InitializeModifyMixlist() {
   mixlist_map_.clear();
   Status status = LoadModifyMixlistJson(modify_mixlist_path);
   if (status != SUCCESS) {
-    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED,
+    ErrorMessageDetail err_msg(
+        EM_READ_FILE_FAILED,
         {modify_mixlist_path, "The configuration file is not in JSON format or its content is invalid"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[GraphOpt][InitMixList] Failed to load JSON from file: %s.", modify_mixlist_path.c_str());
@@ -151,8 +148,10 @@ Status ModifyMixlistConfigParser::LoadModifyMixlistJson(const std::string &modif
     for (auto &elem : op_json_file.items()) {
       auto list_type = elem.key();
       if (kPrecisionReduceListType.find(list_type) == kPrecisionReduceListType.end()) {
-        FE_LOGE("[GraphOpt][Init][LoadJson] Top level of json [%s] should be 'gray-list' or 'white-list' or "
-                "'black-list'.", list_type.c_str());
+        FE_LOGE(
+            "[GraphOpt][Init][LoadJson] Top level of json [%s] should be 'gray-list' or 'white-list' or "
+            "'black-list'.",
+            list_type.c_str());
         return FAILED;
       }
 
@@ -206,8 +205,8 @@ Status ModifyMixlistConfigParser::ReadMixlistJson(const std::string &file_path, 
   return SUCCESS;
 }
 
-void ModifyMixlistConfigParser::AddMixList(const nlohmann::json &op_json_file,
-                                           const std::string &list_type, const std::string &update_type) {
+void ModifyMixlistConfigParser::AddMixList(const nlohmann::json &op_json_file, const std::string &list_type,
+                                           const std::string &update_type) {
   for (auto &op_type : op_json_file[list_type][update_type]) {
     uint8_t bitmap = 0;
     if (update_type == kUpdateTypeToRemove) {
@@ -293,4 +292,4 @@ PrecisionPolicy ModifyMixlistConfigParser::GetPrecisionPolicy(const std::string 
   }
   return ret_value;
 }
-}
+}  // namespace fe

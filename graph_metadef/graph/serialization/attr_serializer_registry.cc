@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,24 +33,24 @@ REG_GEIR_SERIALIZER(attr_data_type, DataTypeSerializer, GetTypeId<ge::DataType>(
 REG_GEIR_SERIALIZER(attr_float, FloatSerializer, GetTypeId<float>(), proto::AttrDef::kF);
 REG_GEIR_SERIALIZER(attr_graph, GraphSerializer, GetTypeId<proto::GraphDef>(), proto::AttrDef::kG);
 REG_GEIR_SERIALIZER(attr_int, IntSerializer, GetTypeId<int64_t>(), proto::AttrDef::kI);
-REG_GEIR_SERIALIZER(attr_list, ListListFloatSerializer,
-                    GetTypeId<std::vector<std::vector<float>>>(), proto::AttrDef::kListListFloat);
-REG_GEIR_SERIALIZER(attr_list_list_int, ListListIntSerializer,
-                    GetTypeId<std::vector<std::vector<int64_t>>>(), proto::AttrDef::kListListInt);
+REG_GEIR_SERIALIZER(attr_list, ListListFloatSerializer, GetTypeId<std::vector<std::vector<float>>>(),
+                    proto::AttrDef::kListListFloat);
+REG_GEIR_SERIALIZER(attr_list_list_int, ListListIntSerializer, GetTypeId<std::vector<std::vector<int64_t>>>(),
+                    proto::AttrDef::kListListInt);
 REG_GEIR_SERIALIZER(attr_list_int, ListValueSerializer, GetTypeId<std::vector<int64_t>>(), proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_list_str, ListValueSerializer, GetTypeId<std::vector<std::string>>(), proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_list_float, ListValueSerializer, GetTypeId<std::vector<float>>(), proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_list_bool, ListValueSerializer, GetTypeId<std::vector<bool>>(), proto::AttrDef::kList);
-REG_GEIR_SERIALIZER(attr_list_tensor_desc, ListValueSerializer,
-                    GetTypeId<std::vector<GeTensorDesc>>(), proto::AttrDef::kList);
+REG_GEIR_SERIALIZER(attr_list_tensor_desc, ListValueSerializer, GetTypeId<std::vector<GeTensorDesc>>(),
+                    proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_list_tensor, ListValueSerializer, GetTypeId<std::vector<GeTensor>>(), proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_list_buffer, ListValueSerializer, GetTypeId<std::vector<Buffer>>(), proto::AttrDef::kList);
-REG_GEIR_SERIALIZER(attr_list_graph_def, ListValueSerializer,
-                    GetTypeId<std::vector<proto::GraphDef>>(), proto::AttrDef::kList);
-REG_GEIR_SERIALIZER(attr_list_named_attrs, ListValueSerializer,
-                    GetTypeId<std::vector<ge::NamedAttrs>>(), proto::AttrDef::kList);
-REG_GEIR_SERIALIZER(attr_list_data_type, ListValueSerializer,
-                    GetTypeId<std::vector<ge::DataType>>(), proto::AttrDef::kList);
+REG_GEIR_SERIALIZER(attr_list_graph_def, ListValueSerializer, GetTypeId<std::vector<proto::GraphDef>>(),
+                    proto::AttrDef::kList);
+REG_GEIR_SERIALIZER(attr_list_named_attrs, ListValueSerializer, GetTypeId<std::vector<ge::NamedAttrs>>(),
+                    proto::AttrDef::kList);
+REG_GEIR_SERIALIZER(attr_list_data_type, ListValueSerializer, GetTypeId<std::vector<ge::DataType>>(),
+                    proto::AttrDef::kList);
 REG_GEIR_SERIALIZER(attr_named_attrs, NamedAttrsSerializer, GetTypeId<ge::NamedAttrs>(), proto::AttrDef::kFunc);
 REG_GEIR_SERIALIZER(attr_str, StringSerializer, GetTypeId<std::string>(), proto::AttrDef::kS);
 REG_GEIR_SERIALIZER(attr_tensor_desc, TensorDescSerializer, GetTypeId<GeTensorDesc>(), proto::AttrDef::kTd);
@@ -61,8 +61,7 @@ AttrSerializerRegistry &AttrSerializerRegistry::GetInstance() {
   return instance;
 }
 
-void AttrSerializerRegistry::RegisterGeIrAttrSerializer(const GeIrAttrSerializerBuilder& builder,
-                                                        const TypeId obj_type,
+void AttrSerializerRegistry::RegisterGeIrAttrSerializer(const GeIrAttrSerializerBuilder &builder, const TypeId obj_type,
                                                         const proto::AttrDef::ValueCase proto_type) {
   const std::lock_guard<std::mutex> lck_guard(mutex_);
   if (serializer_map_.count(obj_type) > 0U) {
@@ -97,8 +96,7 @@ GeIrAttrSerializer *AttrSerializerRegistry::GetDeserializer(const proto::AttrDef
   return iter->second;
 }
 
-AttrSerializerRegistrar::AttrSerializerRegistrar(const GeIrAttrSerializerBuilder builder,
-                                                 const TypeId obj_type,
+AttrSerializerRegistrar::AttrSerializerRegistrar(const GeIrAttrSerializerBuilder builder, const TypeId obj_type,
                                                  const proto::AttrDef::ValueCase proto_type) noexcept {
   if (builder == nullptr) {
     GELOGE(FAILED, "SerializerBuilder is nullptr.");
@@ -106,4 +104,4 @@ AttrSerializerRegistrar::AttrSerializerRegistrar(const GeIrAttrSerializerBuilder
   }
   AttrSerializerRegistry::GetInstance().RegisterGeIrAttrSerializer(builder, obj_type, proto_type);
 }
-}
+}  // namespace ge

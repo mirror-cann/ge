@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,16 +13,15 @@
 #include "common/fe_context_utils.h"
 
 namespace fe {
-namespace
-{
-Status RunStrategyWithPrecisionMode(const fe::PrecisionMode &precision_mode, 
-                                    const std::vector<OpDtypeSeletionStrategyBasePtr> &dtype_selection_strategies, 
+namespace {
+Status RunStrategyWithPrecisionMode(const fe::PrecisionMode &precision_mode,
+                                    const std::vector<OpDtypeSeletionStrategyBasePtr> &dtype_selection_strategies,
                                     FormatDtypeSelectionBasicInfo &basic_info) {
   switch (precision_mode) {
     case fe::PrecisionMode::ENUM_FORCE_FP16:
     case fe::PrecisionMode::ENUM_FORCE_FP32: {
-      return dtype_selection_strategies[static_cast<size_t>(precision_mode)]->
-        Run(basic_info, ForbiddenDtype::FORBIDDEN_BF16);
+      return dtype_selection_strategies[static_cast<size_t>(precision_mode)]->Run(basic_info,
+                                                                                  ForbiddenDtype::FORBIDDEN_BF16);
     }
     case fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16:
     case fe::PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16: {
@@ -47,16 +46,17 @@ Status RunStrategyWithPrecisionMode(const fe::PrecisionMode &precision_mode,
     case fe::PrecisionMode::ENUM_CUBE_HIF8:
     case fe::PrecisionMode::ENUM_MIXED_HIF8:
     default: {
-      return dtype_selection_strategies[static_cast<size_t>(precision_mode)]->
-        Run(basic_info, ForbiddenDtype::FORBIDDEN_NONE);
+      return dtype_selection_strategies[static_cast<size_t>(precision_mode)]->Run(basic_info,
+                                                                                  ForbiddenDtype::FORBIDDEN_NONE);
     }
   }
 }
-} // namespace
+}  // namespace
 
-OpFormatDtypeStrategyManager::OpFormatDtypeStrategyManager(
-    const std::string& engine_name, FormatDtypeQuerierPtr format_dtype_querier_ptr)
-    : engine_name_(engine_name), precision_mode_(fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16),
+OpFormatDtypeStrategyManager::OpFormatDtypeStrategyManager(const std::string &engine_name,
+                                                           FormatDtypeQuerierPtr format_dtype_querier_ptr)
+    : engine_name_(engine_name),
+      precision_mode_(fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16),
       format_dtype_querier_ptr_(format_dtype_querier_ptr) {}
 
 void OpFormatDtypeStrategyManager::SetPrecisionMode(const fe::PrecisionMode &precision_mode) {
@@ -85,56 +85,61 @@ Status OpFormatDtypeStrategyManager::Initialize() {
   FE_MAKE_SHARED(op_dtype_precise_matcher_ptr = std::make_shared<OpDtypePreciseMatcher>(), return FAILED);
 
   OpDtypeSeletionStrategyBasePtr force_fp16_strategy = nullptr;
-  FE_MAKE_SHARED(force_fp16_strategy =
-    std::make_shared<OpDtypeSelectionStrategyForceFp16>(format_dtype_querier_ptr_,
-                                        op_dtype_rise_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(force_fp16_strategy = std::make_shared<OpDtypeSelectionStrategyForceFp16>(format_dtype_querier_ptr_,
+                                                                                           op_dtype_rise_matcher_ptr),
+                 return FAILED);
 
-    OpDtypeSeletionStrategyBasePtr force_lowerprecision_strategy = nullptr;
-  FE_MAKE_SHARED(force_lowerprecision_strategy =
-    std::make_shared<OpDtypeSelectionStrategyForceLowerPrecision>(format_dtype_querier_ptr_,
-                    op_dtype_rise_matcher_ptr, op_dtype_precise_matcher_ptr), return FAILED);
+  OpDtypeSeletionStrategyBasePtr force_lowerprecision_strategy = nullptr;
+  FE_MAKE_SHARED(force_lowerprecision_strategy = std::make_shared<OpDtypeSelectionStrategyForceLowerPrecision>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_precise_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr allow_fp32_to_fp16 = nullptr;
-  FE_MAKE_SHARED(allow_fp32_to_fp16 =
-    std::make_shared<OpDtypeSelectionStrategyAllowFp32ToFp16>(
-    format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(allow_fp32_to_fp16 = std::make_shared<OpDtypeSelectionStrategyAllowFp32ToFp16>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
-    OpDtypeSeletionStrategyBasePtr allow_fp32_to_bf16 = nullptr;
-  FE_MAKE_SHARED(allow_fp32_to_bf16 =
-    std::make_shared<OpDtypeSelectionStrategyAllowFp32ToBf16>(
-    format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  OpDtypeSeletionStrategyBasePtr allow_fp32_to_bf16 = nullptr;
+  FE_MAKE_SHARED(allow_fp32_to_bf16 = std::make_shared<OpDtypeSelectionStrategyAllowFp32ToBf16>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
-    OpDtypeSeletionStrategyBasePtr allow_fp32_to_lowprecison = nullptr;
-  FE_MAKE_SHARED(allow_fp32_to_lowprecison =
-    std::make_shared<OpDtypeSelectionStrategyAllowFp32ToLowPrecision>(
-    format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  OpDtypeSeletionStrategyBasePtr allow_fp32_to_lowprecison = nullptr;
+  FE_MAKE_SHARED(allow_fp32_to_lowprecison = std::make_shared<OpDtypeSelectionStrategyAllowFp32ToLowPrecision>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr default_mode_strategy = nullptr;
-  FE_MAKE_SHARED(default_mode_strategy =
-    std::make_shared<OpDtypeSelectionStrategyDefaultMode>(format_dtype_querier_ptr_,
-    op_dtype_rise_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(default_mode_strategy = std::make_shared<OpDtypeSelectionStrategyDefaultMode>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr auto_mixed_precision_fp16_strategy = nullptr;
-  FE_MAKE_SHARED(auto_mixed_precision_fp16_strategy =
-    std::make_shared<OpDtypeSelectionStrategyAllowMixPrecisionFp16>(engine_name_, format_dtype_querier_ptr_,
-    op_dtype_mixed_precision_matcher_ptr, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(auto_mixed_precision_fp16_strategy = std::make_shared<OpDtypeSelectionStrategyAllowMixPrecisionFp16>(
+                     engine_name_, format_dtype_querier_ptr_, op_dtype_mixed_precision_matcher_ptr,
+                     op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr auto_mixed_precision_bf16_strategy = nullptr;
-  FE_MAKE_SHARED(auto_mixed_precision_bf16_strategy =
-    std::make_shared<OpDtypeSelectionStrategyAllowMixPrecisionBf16>(engine_name_, format_dtype_querier_ptr_,
-    op_dtype_mixed_precision_matcher_ptr, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(auto_mixed_precision_bf16_strategy = std::make_shared<OpDtypeSelectionStrategyAllowMixPrecisionBf16>(
+                     engine_name_, format_dtype_querier_ptr_, op_dtype_mixed_precision_matcher_ptr,
+                     op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr force_fp32_strategy = nullptr;
-  FE_MAKE_SHARED(force_fp32_strategy = std::make_shared<OpDtypeSelectionStrategyForceFp32>(format_dtype_querier_ptr_,
-    op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(force_fp32_strategy = std::make_shared<OpDtypeSelectionStrategyForceFp32>(
+                     format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr cube_hif8_strategy = nullptr;
   FE_MAKE_SHARED(cube_hif8_strategy = std::make_shared<OpDtypeSelectionStrategyCubeHif8>(format_dtype_querier_ptr_,
-    op_dtype_precise_matcher_ptr), return FAILED);
+                                                                                         op_dtype_precise_matcher_ptr),
+                 return FAILED);
 
   OpDtypeSeletionStrategyBasePtr mixed_hif8_strategy = nullptr;
-  FE_MAKE_SHARED(mixed_hif8_strategy = std::make_shared<OpDtypeSelectionStrategyMixedHif8>(format_dtype_querier_ptr_,
-    op_dtype_precise_matcher_ptr), return FAILED);
+  FE_MAKE_SHARED(mixed_hif8_strategy = std::make_shared<OpDtypeSelectionStrategyMixedHif8>(
+                     format_dtype_querier_ptr_, op_dtype_precise_matcher_ptr),
+                 return FAILED);
 
   /* FORCE_FP16 */
   dtype_selection_strategies_.emplace_back(force_fp16_strategy);
@@ -161,15 +166,18 @@ Status OpFormatDtypeStrategyManager::Initialize() {
   dtype_selection_strategies_.emplace_back(mixed_hif8_strategy);
 
   FE_MAKE_SHARED(format_selection_default_strategy_ =
-    std::make_shared<OpFormatSelectionStrategyDefaultMode>(format_dtype_querier_ptr_), return FAILED);
+                     std::make_shared<OpFormatSelectionStrategyDefaultMode>(format_dtype_querier_ptr_),
+                 return FAILED);
   FE_CHECK_NOTNULL(format_selection_default_strategy_);
   if (format_selection_default_strategy_->Initialize() != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][FmtJdg][Init] Failed to initialize OpFormatSelectionStrategyDefaultMode pointer.");
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][FmtJdg][Init] Failed to initialize OpFormatSelectionStrategyDefaultMode pointer.");
     return FAILED;
   }
 
   FE_MAKE_SHARED(format_selection_prev_strategy_ =
-    std::make_shared<OpFormatSelectionStrategyFollowPredecessor>(format_dtype_querier_ptr_), return FAILED);
+                     std::make_shared<OpFormatSelectionStrategyFollowPredecessor>(format_dtype_querier_ptr_),
+                 return FAILED);
   FE_CHECK_NOTNULL(format_selection_prev_strategy_);
   if (format_selection_prev_strategy_->Initialize() != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgInst][FmtJdg][Init] Failed to initialize FormatSelectionStrategyFollowPredecessor.");
@@ -193,7 +201,7 @@ Status OpFormatDtypeStrategyManager::GenerateInitialMatchedIndexVec(bool &is_mat
 }
 
 Status OpFormatDtypeStrategyManager::MatchByDifferentMode(FormatDtypeSelectionBasicInfo &basic_info) {
-  /* When the precison mode is force fp16, all op will be selected as fp16, for the following case auto
+  /* When the precision mode is force fp16, all op will be selected as fp16, for the following case auto
    * mixed precision is not correct:
    * Const or Variable or Data -> GeOp.
    * Const/Variable/Data will be fp32 commonly. If using auto mixed precision the GeOp will be selected as
@@ -214,30 +222,30 @@ Status OpFormatDtypeStrategyManager::MatchByDifferentMode(FormatDtypeSelectionBa
   (void)ge::AttrUtils::GetBool(basic_info.node->GetOpDesc(), kAttrInheritDtypeFromPredecessor,
                                inherit_dtype_from_predecessor);
   bool auto_mixed_precision_fp16_flag = ((basic_info.op_kernel_info_ptr->GetOpInfo().opFileName == NULL_OP_FILE ||
-                                         basic_info.op_kernel_info_ptr->GetOpInfo().opFileName == AICORE_NULL) &&
+                                          basic_info.op_kernel_info_ptr->GetOpInfo().opFileName == AICORE_NULL) &&
                                          precision_mode_ != fe::PrecisionMode::ENUM_FORCE_FP16) ||
-                                         (tensor_format_continuous == 1 && basic_info.is_input) ||
-                                         inherit_dtype_from_predecessor;
+                                        (tensor_format_continuous == 1 && basic_info.is_input) ||
+                                        inherit_dtype_from_predecessor;
   if (keep_dtype == 1 || IsDtypeSensitiveOp(basic_info.node->GetOpDesc())) {
     /* If user want keep data type of current node, we need to use allow fp32 to fp16 mode.
      * Output does not need to follow the predecessor's data type. */
-    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_FP32_TO_FP16)]
-        ->Run(basic_info, ForbiddenDtype::FORBIDDEN_NONE);
+    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_FP32_TO_FP16)]->Run(
+        basic_info, ForbiddenDtype::FORBIDDEN_NONE);
   } else if (auto_mixed_precision_fp16_flag) {
     if (inherit_dtype_from_predecessor) {
       auto auto_mixed_precision_fp16_strategy =
-        std::dynamic_pointer_cast<OpDtypeSelectionStrategyAllowMixPrecisionFp16>(
-          dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16)]);
+          std::dynamic_pointer_cast<OpDtypeSelectionStrategyAllowMixPrecisionFp16>(
+              dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16)]);
       FE_LOGD("Node[%s] run RunForOpInGrayList", basic_info.node->GetName().c_str());
       return auto_mixed_precision_fp16_strategy->RunForOpInGrayList(basic_info, ForbiddenDtype::FORBIDDEN_NONE);
     }
-    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16)]->
-        Run(basic_info, ForbiddenDtype::FORBIDDEN_NONE);
+    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16)]->Run(
+        basic_info, ForbiddenDtype::FORBIDDEN_NONE);
   } else if (force_fp32_to_fp16 && precision_mode_ == fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16) {
-    FE_LOGD("Node %s has attribute %s, and the following tensors need to select forcefp16.", basic_info.node->GetName().c_str(),
-            kForceFp32ToFp16.c_str());
-    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_FORCE_FP16)]->
-        Run(basic_info, ForbiddenDtype::FORBIDDEN_NONE);
+    FE_LOGD("Node %s has attribute %s, and the following tensors need to select forcefp16.",
+            basic_info.node->GetName().c_str(), kForceFp32ToFp16.c_str());
+    return dtype_selection_strategies_[static_cast<size_t>(PrecisionMode::ENUM_FORCE_FP16)]->Run(
+        basic_info, ForbiddenDtype::FORBIDDEN_NONE);
   } else {
     return RunStrategyWithPrecisionMode(precision_mode_, dtype_selection_strategies_, basic_info);
   }
@@ -262,7 +270,7 @@ Status OpFormatDtypeStrategyManager::GetAllPossibleDtypeIndexByPrecisionMode(
     auto tensor_iter = tensor_index_name_map.find(i);
     if (tensor_iter == tensor_index_name_map.end()) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][SetDtypeFmt][Op %s,type=%s]: the %s %d is not found in the ops store.",
-          op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), IS_INPUT_TO_STRING(is_input), i);
+                      op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), IS_INPUT_TO_STRING(is_input), i);
       return OP_JUDGE_MAP_KEY_FIND_FAILED;
     }
     InputOrOutputInfoPtr tesor_kernel_info_ptr = nullptr;
@@ -275,8 +283,8 @@ Status OpFormatDtypeStrategyManager::GetAllPossibleDtypeIndexByPrecisionMode(
 
     // 4.2 initialize all input format and dtype as supported
     std::vector<ge::Format> format_vec;
-    if (format_dtype_querier_ptr_->GetSupportFormats(op_kernel_info_ptr, tesor_kernel_info_ptr, node_ptr,
-                                                     format_vec) != SUCCESS) {
+    if (format_dtype_querier_ptr_->GetSupportFormats(op_kernel_info_ptr, tesor_kernel_info_ptr, node_ptr, format_vec) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptFmt][Op %s, type=%s]: Failed to retrieve supported formats.",
                       op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
       return FAILED;
@@ -292,9 +300,9 @@ Status OpFormatDtypeStrategyManager::GetAllPossibleDtypeIndexByPrecisionMode(
     ge::ConstGeTensorDescPtr tensor_desc =
         is_input ? op_desc_ptr->GetInputDescPtr(i) : op_desc_ptr->GetOutputDescPtr(i);
     // 4.3 Generate basic information for dtype selection
-    FormatDtypeSelectionBasicInfo basic_info = {
-        op_kernel_info_ptr, tesor_kernel_info_ptr, node_ptr, static_cast<uint32_t>(i),
-        tensor_desc, is_input, matched_index_vec};
+    FormatDtypeSelectionBasicInfo basic_info = {op_kernel_info_ptr,       tesor_kernel_info_ptr, node_ptr,
+                                                static_cast<uint32_t>(i), tensor_desc,           is_input,
+                                                matched_index_vec};
     // 4.4 select the data type by different mode.
     ret = MatchByDifferentMode(basic_info);
     if (ret != SUCCESS) {

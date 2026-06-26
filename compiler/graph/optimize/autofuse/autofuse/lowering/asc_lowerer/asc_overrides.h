@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,37 +41,37 @@ namespace loop {
 #define GET_IR_ATTR_UNIQUE(C, T, obj) GET_IR_ATTR_UNIQUE_(C, T, obj)
 #define GET_IR_ATTR(T, obj) GET_IR_ATTR_UNIQUE(__COUNTER__, T, obj)
 
-#define SET_BATCH_MATMUL_ATTRS(OpType, Obj, Attr) \
-    GE_WARN_ASSERT(Obj.Src() != nullptr); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetAdj_x1(static_cast<int64_t>(Attr.adj_x1)); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetAdj_x2(static_cast<int64_t>(Attr.adj_x2)); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0);
+#define SET_BATCH_MATMUL_ATTRS(OpType, Obj, Attr)                               \
+  GE_WARN_ASSERT(Obj.Src() != nullptr);                                         \
+  GET_IR_ATTR(OpType, Obj.Src())->SetAdj_x1(static_cast<int64_t>(Attr.adj_x1)); \
+  GET_IR_ATTR(OpType, Obj.Src())->SetAdj_x2(static_cast<int64_t>(Attr.adj_x2)); \
+  GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x);                   \
+  GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32);             \
+  GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0);
 
-#define SET_MATMUL_ATTRS(OpType, Obj, Attr) \
-    GE_WARN_ASSERT(Obj.Src() != nullptr); \
-    GET_IR_ATTR(OpType, (Obj).Src())->SetTranspose_x1(static_cast<int64_t>((Attr).transpose_x1)); \
-    GET_IR_ATTR(OpType, (Obj).Src())->SetTranspose_x2(static_cast<int64_t>((Attr).transpose_x2)); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0);
+#define SET_MATMUL_ATTRS(OpType, Obj, Attr)                                                     \
+  GE_WARN_ASSERT(Obj.Src() != nullptr);                                                         \
+  GET_IR_ATTR(OpType, (Obj).Src())->SetTranspose_x1(static_cast<int64_t>((Attr).transpose_x1)); \
+  GET_IR_ATTR(OpType, (Obj).Src())->SetTranspose_x2(static_cast<int64_t>((Attr).transpose_x2)); \
+  GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x);                                   \
+  GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32);                             \
+  GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0);
 
-#define SET_CONV2D_ATTRS(OpType, Obj, Attr) \
-    GE_WARN_ASSERT(Obj.Src() != nullptr); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetStrides(Attr.strides); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetPads(Attr.pads); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetDilations(Attr.dilations); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetGroups(Attr.groups); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetPad_mode(Attr.pad_mode); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetData_format(Attr.data_format); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
-    GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0)
+#define SET_CONV2D_ATTRS(OpType, Obj, Attr)                         \
+  GE_WARN_ASSERT(Obj.Src() != nullptr);                             \
+  GET_IR_ATTR(OpType, Obj.Src())->SetStrides(Attr.strides);         \
+  GET_IR_ATTR(OpType, Obj.Src())->SetPads(Attr.pads);               \
+  GET_IR_ATTR(OpType, Obj.Src())->SetDilations(Attr.dilations);     \
+  GET_IR_ATTR(OpType, Obj.Src())->SetGroups(Attr.groups);           \
+  GET_IR_ATTR(OpType, Obj.Src())->SetPad_mode(Attr.pad_mode);       \
+  GET_IR_ATTR(OpType, Obj.Src())->SetData_format(Attr.data_format); \
+  GET_IR_ATTR(OpType, Obj.Src())->SetOffset_x(Attr.offset_x);       \
+  GET_IR_ATTR(OpType, Obj.Src())->SetEnable_hf32(Attr.enable_hf32); \
+  GET_IR_ATTR(OpType, Obj.Src())->SetHas_relu(0)
 
 template <typename T>
 bool InferAscirDataType(const std::vector<DataType> &input_dtypes, std::vector<DataType> &output_dtypes) {
-  if (ge::AutofuseUtils::CallAscirInferDataType<T>(input_dtypes, output_dtypes)== SUCCESS) {
+  if (ge::AutofuseUtils::CallAscirInferDataType<T>(input_dtypes, output_dtypes) == SUCCESS) {
     return true;
   }
   // fp16,bf16可通过精度提升转成fp32,可以跳过校验推导输出datatype；ascir部分op不支持fp32，仅让部分op进行nocheck推导
@@ -118,7 +118,8 @@ class AscVar : public Var {
     return tensor_ != nullptr && tensor_->attr.dtype != ge::DT_UNDEFINED;
   }
 
-  void SetTensorLoop(std::vector<int64_t> axis, std::vector<Expression> repeats, std::vector<Expression> strides) const {
+  void SetTensorLoop(std::vector<int64_t> axis, std::vector<Expression> repeats,
+                     std::vector<Expression> strides) const {
     if (!IsValid()) {
       return;
     }
@@ -209,7 +210,8 @@ class AscOverrides final : public OpOverrides {
     asc_axis_repeats_.reserve(loop_axis.axis.size());
     for (size_t i = 0U; i < loop_axis.axis.size(); i++) {
       const auto repeat_str = loop_axis.repeats[i].Serialize();
-      const auto axis_id = af::AscGraphCreateAxisBySerializedExpr(*graph_, loop_axis.names[i].c_str(), repeat_str.get());
+      const auto axis_id =
+          af::AscGraphCreateAxisBySerializedExpr(*graph_, loop_axis.names[i].c_str(), repeat_str.get());
       asc_axis_.push_back(axis_id);
       asc_axis_repeats_.push_back(loop_axis.repeats[i]);
     }
@@ -258,9 +260,10 @@ class AscOverrides final : public OpOverrides {
     return Load(buffer, loop_desc, TensorLoopDesc(asc_axis_repeats_, ContiguousStrides(asc_axis_repeats_)), offset);
   }
 
-  CseVar GatherLoad(const std::string &params, const std::string &indices,
-            const TensorLoopDesc &loop_desc_params, const TensorLoopDesc &loop_desc_indices, int64_t axis, bool negative_index_support) override {
-    const auto cse_key = CseKey<ascir_op::Gather>(params, indices, loop_desc_params, loop_desc_indices, axis, negative_index_support); // 所有入参
+  CseVar GatherLoad(const std::string &params, const std::string &indices, const TensorLoopDesc &loop_desc_params,
+                    const TensorLoopDesc &loop_desc_indices, int64_t axis, bool negative_index_support) override {
+    const auto cse_key = CseKey<ascir_op::Gather>(params, indices, loop_desc_params, loop_desc_indices, axis,
+                                                  negative_index_support);  // 所有入参
     auto cached = LookUp(cse_key);
     if (cached.IsValid()) {
       return cached;
@@ -268,14 +271,14 @@ class AscOverrides final : public OpOverrides {
 
     // add data
     std::vector<int64_t> params_axis(loop_desc_params.repeats.size());
-    for (size_t i = 0; i < loop_desc_params.repeats.size(); i ++ ) {
+    for (size_t i = 0; i < loop_desc_params.repeats.size(); i++) {
       params_axis[i] = i;
     }
     auto data_params = AddInput(params);
     data_params.SetTensorLoop(params_axis, loop_desc_params.repeats, loop_desc_params.strides);
 
     std::vector<int64_t> indices_axis(loop_desc_indices.repeats.size());
-    for (size_t i = 0; i < loop_desc_indices.repeats.size(); i ++ ) {
+    for (size_t i = 0; i < loop_desc_indices.repeats.size(); i++) {
       indices_axis[i] = i;
     }
     auto data_indices = AddInput(indices);
@@ -321,29 +324,29 @@ class AscOverrides final : public OpOverrides {
     concat.SetTensorLoop(asc_axis_, loop_desc.repeats, loop_desc.strides);
     return CseVar(AddOutput(buffer, concat, loop_desc.repeats, loop_desc.strides).Shared());
   }
-  CseVar StoreSplit(const std::string &buffer, const CseVar &src,
-                    const TensorLoopDesc &output_loop_desc,
+  CseVar StoreSplit(const std::string &buffer, const CseVar &src, const TensorLoopDesc &output_loop_desc,
                     const Expression &offset, size_t output_idx, size_t global_id) override {
     static_cast<void>(offset);
     CseVar var;
     GE_WARN_ASSERT(src.Get<AscVar>() != nullptr);
-    const auto node = MakeRawNode<ascir_op::Split>(ToVector(src), {},{},{1});
+    const auto node = MakeRawNode<ascir_op::Split>(ToVector(src), {}, {}, {1});
     GET_IR_ATTR(Split, node)->SetIndex(output_idx);
     GET_IR_ATTR(Split, node)->SetGid(global_id);
-    GELOGI("ascir node: %s(%s), output index: %zu, global id: %zu", node->GetType().c_str(),node->GetName().c_str(), output_idx, global_id);
+    GELOGI("ascir node: %s(%s), output index: %zu, global id: %zu", node->GetType().c_str(), node->GetName().c_str(),
+           output_idx, global_id);
     GE_WARN_ASSERT(node != nullptr);
     CseVar ret;
 
     auto split_out = AscVar(node);
     split_out.SetTensorLoop(asc_axis_, output_loop_desc.repeats, output_loop_desc.strides);
-    const auto cse_key = CseKey<ascir_op::Split>(src, output_loop_desc, "Output_idx = " + std::to_string(output_idx), offset);
+    const auto cse_key =
+        CseKey<ascir_op::Split>(src, output_loop_desc, "Output_idx = " + std::to_string(output_idx), offset);
     auto cached = LookUp(cse_key);
     CseVar tmp;
     if (cached.IsValid()) {
       tmp = cached;
-    }
-    else {
-      tmp = MakeCse(cse_key,split_out);
+    } else {
+      tmp = MakeCse(cse_key, split_out);
     }
     ret = CseVar(AddOutput(buffer, split_out, output_loop_desc.repeats, output_loop_desc.strides).Shared());
 
@@ -420,7 +423,8 @@ class AscOverrides final : public OpOverrides {
       }
     } else if (inputs.size() == 4U) {
       if (conv2d_attr.has_bias && conv2d_attr.has_offset_w) {
-        conv = MakeAscVar<ascir_op::Conv2DOffsetBias>(explicit_output_dtypes, inputs[0], inputs[1], inputs[2], inputs[3]);
+        conv =
+            MakeAscVar<ascir_op::Conv2DOffsetBias>(explicit_output_dtypes, inputs[0], inputs[1], inputs[2], inputs[3]);
         SET_CONV2D_ATTRS(Conv2DOffsetBias, conv, conv2d_attr);
       } else {
         GE_WARN_ASSERT(false, "Conv2D attr info not match, input=4, bias or offset is false.");
@@ -1089,7 +1093,7 @@ class AscOverrides final : public OpOverrides {
                          const std::vector<size_t> &dynamic_output_size = {}) {
     GE_WARN_ASSERT(dynamic_input_size.size() <= 1U);
     GE_WARN_ASSERT(dynamic_output_size.size() <= 1U);
-    const size_t dyn_in  = dynamic_input_size.empty()  ? 0U : dynamic_input_size[0];
+    const size_t dyn_in = dynamic_input_size.empty() ? 0U : dynamic_input_size[0];
     const size_t dyn_out = dynamic_output_size.empty() ? 0U : dynamic_output_size[0];
     std::vector<ge::DataType> input_dtypes;
     if (dyn_in > 0U) {
@@ -1102,9 +1106,7 @@ class AscOverrides final : public OpOverrides {
     }
     // ascir_op constructors call AscNodeAttr::Create which lives in libaihac_ir.so.
     // Instantiate the node inside that .so via the bridge to avoid cross-library symbol issues.
-    AscNodePtr node = af::AscGraphAddAscirNodeByType(*graph_, T::Type,
-                                                     NextName(T::Type).c_str(),
-                                                     dyn_in, dyn_out);
+    AscNodePtr node = af::AscGraphAddAscirNodeByType(*graph_, T::Type, NextName(T::Type).c_str(), dyn_in, dyn_out);
     GE_WARN_ASSERT(node != nullptr);
     node->attr.sched.exec_order = NextOrder();
     node->attr.sched.axis = GetLoopAxisIds();

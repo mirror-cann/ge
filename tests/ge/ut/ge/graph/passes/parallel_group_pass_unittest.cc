@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,8 @@ class UtestGraphPassesParallelGgroupPass : public testing::Test {
     default_tensor_desc_->SetDataType(DT_FLOAT);
   }
 
-  NodePtr NewNode(const std::string &name, const std::string &type,
-                  int input_cnt, int output_cnt, bool isSubgraph = false) {
+  NodePtr NewNode(const std::string &name, const std::string &type, int input_cnt, int output_cnt,
+                  bool isSubgraph = false) {
     OpDescPtr op_desc = std::make_shared<OpDesc>(name, type);
     for (int i = 0; i < input_cnt; ++i) {
       op_desc->AddInputDesc(default_tensor_desc_->Clone());
@@ -160,7 +160,6 @@ class UtestGraphPassesParallelGgroupPass : public testing::Test {
     output_false_node_->GetOpDesc()->SetIsInputConst({false});
     output_true_node_->GetOpDesc()->SetIsInputConst({false});
   }
-
 
   void BuildDefaultGraph2() {
     /**
@@ -340,9 +339,7 @@ class UtestGraphPassesParallelGgroupPass : public testing::Test {
     auto &name_index = partition_node->GetOpDesc()->MutableAllInputName();
     name_index.clear();
     name_index["args_0"] = 0;
-    subgraph = gert::SingleNodeGraphBuilder("subgraph", "StaticFoo")
-                   .NumOutputs(1)
-                   .BuildSubGraph(partition_node, 0);
+    subgraph = gert::SingleNodeGraphBuilder("subgraph", "StaticFoo").NumOutputs(1).BuildSubGraph(partition_node, 0);
     ge::AttrUtils::SetBool(subgraph, "_stub_force_known_shape", true);
     return root_graph;
   }
@@ -410,10 +407,9 @@ TEST_F(UtestGraphPassesParallelGgroupPass, normal_subgraph) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
-
 /** 校验超过10层嵌套的图，该pass不报错
     原来实现使用递归，深度限制为10。修改为循环实现解除深度限制。如下为嵌套关系，最上层为根图，最下层为最内层子图
-    
+
                                             test_graph
 
 ┌───────────────────┐  (0,0)   ┌────────────────────────────┐  (0,0)   ┌───────────────────────┐

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ int64_t MemReuseUtils::GetStreamId(const ge::OpDesc *const desc) {
 
 void MemReuseUtils::SetStreamId(ge::OpDesc *const desc, int64_t stream_id) {
   if (desc != nullptr) {
-    (void) ge::AttrUtils::SetInt(desc, ge::ATTR_NAME_SUB_STREAM_ID, stream_id);
+    (void)ge::AttrUtils::SetInt(desc, ge::ATTR_NAME_SUB_STREAM_ID, stream_id);
   }
 }
 
@@ -84,8 +84,7 @@ Status MemReuseUtils::GetNoAlignSize(const GeTensorDesc &tensor, size_t &size) {
   } else {
     graph_status = TensorUtils::CalcTensorMemSize(shape, format, data_type, tensor_size);
   }
-  GE_ASSERT_SUCCESS(graph_status, "[Calculate][TensorSize]shape:%s, format:%s, data_type:%s",
-                    shape.ToString().c_str(),
+  GE_ASSERT_SUCCESS(graph_status, "[Calculate][TensorSize]shape:%s, format:%s, data_type:%s", shape.ToString().c_str(),
                     TypeUtils::FormatToSerialString(format).c_str(),
                     TypeUtils::DataTypeToSerialString(data_type).c_str());
   size = static_cast<size_t>(tensor_size);
@@ -104,11 +103,10 @@ bool MemReuseUtils::IsAllOutRefAllInput(const NodePtr &node) {
   return true;
 }
 
-Status MemReuseUtils::GetTensorSize(const GeTensorDesc &tensor_desc, int64_t &size,
-                                    const bool need_split_size) {
+Status MemReuseUtils::GetTensorSize(const GeTensorDesc &tensor_desc, int64_t &size, const bool need_split_size) {
   int64_t ffts_size = -1;
-  if (need_split_size && AttrUtils::GetInt(&tensor_desc, ATTR_NAME_FFTS_SUB_TASK_TENSOR_SIZE, ffts_size)
-      && (ffts_size != -1)) {
+  if (need_split_size && AttrUtils::GetInt(&tensor_desc, ATTR_NAME_FFTS_SUB_TASK_TENSOR_SIZE, ffts_size) &&
+      (ffts_size != -1)) {
     size = ffts_size;
     GELOGI("Sub task tensor size is:%ld", size);
     return SUCCESS;
@@ -213,8 +211,8 @@ Status MemReuseUtils::GetDstNodeThroughRefNode(const Node *const node, const int
     GE_ASSERT_NOTNULL(out_anchor->GetOwnerNodeBarePtr());
     for (const auto &in_anchor : out_anchor->GetPeerInDataAnchorsPtr()) {
       const auto dst_node = in_anchor->GetOwnerNodeBarePtr();
-      GE_ASSERT_NOTNULL(dst_node, "src node: %s, index: %d",
-                        out_anchor->GetOwnerNodeBarePtr()->GetNamePtr(), out_anchor->GetIdx());
+      GE_ASSERT_NOTNULL(dst_node, "src node: %s, index: %d", out_anchor->GetOwnerNodeBarePtr()->GetNamePtr(),
+                        out_anchor->GetIdx());
       bool is_ref_node = false;
       for (const auto &dst_node_out_anchor : dst_node->GetAllOutDataAnchors()) {
         int32_t reuse_in_index;
@@ -235,7 +233,6 @@ Status MemReuseUtils::GetDstNodeThroughRefNode(const Node *const node, const int
   return SUCCESS;
 }
 
-
 bool GetDiffStreamNodes(const Node *const node, const int64_t stream_id, std::vector<const Node *> &diff_stream_nodes,
                         bool &back_to_same_stream, int64_t &tail_node_id) {
   std::vector<const Node *> nodes_stack;
@@ -249,8 +246,8 @@ bool GetDiffStreamNodes(const Node *const node, const int64_t stream_id, std::ve
       GE_ASSERT_NOTNULL(out_data_node);
       const auto out_node_desc = out_data_node->GetOpDescBarePtr();
       GE_ASSERT_NOTNULL(out_node_desc);
-      const bool no_need_process = (stream_id == kInvalidStreamId) || MemReuseUtils::IsMergeNode(out_data_node)
-          || (MemReuseUtils::GetThreadScopeId(out_node_desc) != ge::kInvalidThreadScopeId);
+      const bool no_need_process = (stream_id == kInvalidStreamId) || MemReuseUtils::IsMergeNode(out_data_node) ||
+                                   (MemReuseUtils::GetThreadScopeId(out_node_desc) != ge::kInvalidThreadScopeId);
       if (no_need_process) {
         return false;
       }
@@ -285,7 +282,7 @@ bool MemReuseStrategy::GetDiffStreamPrior(const Node *const node) {
   bool back_to_same_stream = false;
   int64_t tail_node_id = 0;
   const bool success = GetDiffStreamNodes(node, MemReuseUtils::GetStreamId(node->GetOpDescBarePtr()), diff_stream_nodes,
-                                    back_to_same_stream, tail_node_id);
+                                          back_to_same_stream, tail_node_id);
   if (success && back_to_same_stream && (diff_stream_nodes.size() > 1U)) {
     // 跨流时，大于1个节点才有机会复用
     GELOGI("Node:%s is diff stream prior, diff stream nodes size:%zu", node->GetName().c_str(),

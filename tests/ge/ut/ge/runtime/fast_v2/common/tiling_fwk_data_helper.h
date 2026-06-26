@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ inline std::unique_ptr<uint8_t[]> CreateDefaultArgsInfoDesc(size_t input_num, si
     if (memcpy_s(args_info_desc->MutableArgsInfoBase(), args_info_desc->GetArgsInfoSize(), args_info, args_info_size) !=
         EOK) {
       return nullptr;
-        }
+    }
   }
   args_info_desc->Init(input_num, output_num, input_num, output_num);
   return args_info_desc_holder;
@@ -62,6 +62,6 @@ inline std::unique_ptr<uint8_t[]> CreateLaunchArg(size_t input_num = 1, size_t o
   auto launch_arg_holder = RtKernelLaunchArgsEx::Create(*node_desc, *args_info_desc);
   return launch_arg_holder;
 }
-}
+}  // namespace gert
 
-#endif //TILING_FWK_DATA_HELPER_H
+#endif  // TILING_FWK_DATA_HELPER_H

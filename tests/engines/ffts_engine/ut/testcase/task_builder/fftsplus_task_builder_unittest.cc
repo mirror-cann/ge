@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,22 +36,21 @@ using MixAICAIVTaskBuilderPtr = std::shared_ptr<MixAICAIVTaskBuilder>;
 
 class FFTSPlusTaskBuilderTest : public testing::Test {
  protected:
-  void SetUp(){
+  void SetUp() {
     aic_aiv_task_builder_ptr = make_shared<AICAIVTaskBuilder>();
     mix_aic_aiv_task_builder_ptr = make_shared<MixAICAIVTaskBuilder>();
     slice_info_ptr = make_shared<ThreadSliceMap>();
     slice_info_ptr->thread_mode = 0;
   }
-  void TearDown(){
-  }
+  void TearDown() {}
+
  public:
   AICAIVTaskBuilderPtr aic_aiv_task_builder_ptr = nullptr;
   MixAICAIVTaskBuilderPtr mix_aic_aiv_task_builder_ptr = nullptr;
-  ThreadSliceMapPtr slice_info_ptr  = nullptr;
+  ThreadSliceMapPtr slice_info_ptr = nullptr;
 };
 
-TEST_F(FFTSPlusTaskBuilderTest, FFTSPlusTaskBuilder_failed)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FFTSPlusTaskBuilder_failed) {
   domi::FftsPlusTaskDef *ffts_plus_task_def;
   domi::FftsPlusLabelCtxDef *pred_label_ctx;
   domi::FftsPlusLabelCtxDef **avl_label_context;
@@ -61,8 +60,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FFTSPlusTaskBuilder_failed)
   EXPECT_EQ(ffts::FAILED, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_succ_1)
-{
+TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_succ_1) {
   uint32_t succ_id = 1;
   uint32_t curr_id = 0;
   domi::TaskDef task_def;
@@ -80,8 +78,7 @@ TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_succ_1)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_failed)
-{
+TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_failed) {
   uint32_t succ_id = 1;
   uint32_t curr_id = 0;
   domi::TaskDef task_def;
@@ -99,8 +96,7 @@ TEST_F(FFTSPlusTaskBuilderTest, UpdateSuccList_failed)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, Update_Pre_Cnt)
-{
+TEST_F(FFTSPlusTaskBuilderTest, Update_Pre_Cnt) {
   uint32_t curr_id = 0;
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
@@ -146,8 +142,7 @@ TEST_F(FFTSPlusTaskBuilderTest, Update_Pre_Cnt)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, ReplaceSuccList)
-{
+TEST_F(FFTSPlusTaskBuilderTest, ReplaceSuccList) {
   uint32_t curr_id = 0;
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
@@ -219,8 +214,7 @@ TEST_F(FFTSPlusTaskBuilderTest, ReplaceSuccList)
   EXPECT_EQ(ffts_plus_ctx_def->mutable_aicpu_ctx()->successor_list(0), 3);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillManualCustomersInfo)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillManualCustomersInfo) {
   FftsPlusComCtx_t sub_ffts_plus_context_elem;
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
@@ -250,8 +244,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillManualCustomersInfo)
   EXPECT_EQ(true, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_1)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_1) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 0, 4);
@@ -270,8 +263,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_1)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_2)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_2) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 0, 2);
@@ -298,8 +290,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_2)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_3)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_3) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 0, 2);
@@ -327,8 +318,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_3)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_4)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_4) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 0, 2);
@@ -356,8 +346,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillCustomersInfo_4)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo1)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo1) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 2, 0);
@@ -381,8 +370,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo1)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo2)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo2) {
   FftsPlusComCtx_t sub_ffts_plus_context = {0};
   auto builder = ut::ComputeGraphBuilder("test");
   auto input = builder.AddNode("test", "test", 2, 0);
@@ -408,8 +396,7 @@ TEST_F(FFTSPlusTaskBuilderTest, FillProducersInfo2)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, add_at_end_to_write_back_succ_list_suc)
-{
+TEST_F(FFTSPlusTaskBuilderTest, add_at_end_to_write_back_succ_list_suc) {
   uint32_t at_end_ctx_id = 0;
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
@@ -426,15 +413,13 @@ TEST_F(FFTSPlusTaskBuilderTest, add_at_end_to_write_back_succ_list_suc)
       auto data_ctx = ffts_plus_ctx_def->mutable_data_ctx();
     }
   }
-  domi::FftsPlusCtxDef* ffts_plus_ctx_end = ffts_plus_task_def->mutable_ffts_plus_ctx(0);
-  bool already_add = FFTSPlusTaskBuilder::add_at_end_to_write_back_succ_list(at_end_ctx_id,
-                                                                             ffts_plus_ctx_end->mutable_aic_aiv_ctx(),
-                                                                             ffts_plus_task_def);
+  domi::FftsPlusCtxDef *ffts_plus_ctx_end = ffts_plus_task_def->mutable_ffts_plus_ctx(0);
+  bool already_add = FFTSPlusTaskBuilder::add_at_end_to_write_back_succ_list(
+      at_end_ctx_id, ffts_plus_ctx_end->mutable_aic_aiv_ctx(), ffts_plus_task_def);
   EXPECT_EQ(true, already_add);
 }
 
-TEST_F(FFTSPlusTaskBuilderTest, FillContextData_failed)
-{
+TEST_F(FFTSPlusTaskBuilderTest, FillContextData_failed) {
   domi::FftsPlusAicAivCtxDef *aicore_ctx_def = nullptr;
   domi::FftsPlusAicAivCtxDef *aic_aiv_ctx_def = nullptr;
   domi::FftsPlusMixAicAivCtxDef *mix_aicore_ctx_def = nullptr;

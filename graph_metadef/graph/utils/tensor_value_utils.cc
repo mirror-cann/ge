@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,8 @@ inline float Fp16ToFloat(uint16_t fp16_val) {
   // 处理无穷大和 NaN（exp == 0x1F）
   if (exp == 0x1F) {
     Fp32Bits result_bits{};
-    result_bits.u =
-        (static_cast<uint32_t>(sign) << kFp32Fraction) | (0xFFU << kFp32FractionMove) | ((static_cast<uint32_t>(man) & kFp16ManMask) << kFp16FractionMove);
+    result_bits.u = (static_cast<uint32_t>(sign) << kFp32Fraction) | (0xFFU << kFp32FractionMove) |
+                    ((static_cast<uint32_t>(man) & kFp16ManMask) << kFp16FractionMove);
     return result_bits.f;
   }
 
@@ -63,14 +63,12 @@ inline float Fp16ToFloat(uint16_t fp16_val) {
 }
 
 template <typename T>
-inline typename std::enable_if<std::is_same<T, bool>::value, std::string>::type TensorElementToString(T value)
-{
+inline typename std::enable_if<std::is_same<T, bool>::value, std::string>::type TensorElementToString(T value) {
   return value ? "true" : "false";
 }
 
 template <typename T>
-inline typename std::enable_if<!std::is_same<T, bool>::value, std::string>::type TensorElementToString(T value)
-{
+inline typename std::enable_if<!std::is_same<T, bool>::value, std::string>::type TensorElementToString(T value) {
   return std::to_string(value);
 }
 
@@ -86,8 +84,7 @@ bool GetTensorElementCount(const Tensor &tensor, size_t &data_cnt) {
     return false;
   }
   if ((data_size % sizeof(T)) != 0U) {
-    GELOGW("[Check][Tensor] Tensor byte size %zu is not aligned with element size %zu.",
-           data_size, sizeof(T));
+    GELOGW("[Check][Tensor] Tensor byte size %zu is not aligned with element size %zu.", data_size, sizeof(T));
     return false;
   }
   data_cnt = data_size / sizeof(T);
@@ -104,8 +101,8 @@ bool GetTensorElementCount(const Tensor &tensor, size_t &data_cnt) {
  * @return true 表示数据准备成功，false 表示已输出边界结果到 tensor_value_ss
  */
 template <typename T>
-bool PrepareTensorData(const Tensor &tensor, size_t &data_cnt,
-                       const T *&data_begin, std::stringstream &tensor_value_ss) {
+bool PrepareTensorData(const Tensor &tensor, size_t &data_cnt, const T *&data_begin,
+                       std::stringstream &tensor_value_ss) {
   if (tensor.GetSize() == 0) {
     tensor_value_ss << "<empty>";
     return false;
@@ -131,7 +128,7 @@ bool PrepareTensorData(const Tensor &tensor, size_t &data_cnt,
  */
 template <typename T, typename ConvertFunc>
 std::string ConvertTensorValueImplWithConverterSkipped(const Tensor &tensor, const std::string &sep,
-                                                 ConvertFunc convert_func) {
+                                                       ConvertFunc convert_func) {
   std::stringstream tensor_value_ss;
 
   size_t data_cnt = 0U;
@@ -183,7 +180,7 @@ std::string ConvertTensorValueImplWithConverterSkipped(const Tensor &tensor, con
  */
 template <typename T, typename ConvertFunc>
 std::string ConvertTensorValueImplWithConverterNoSkip(const Tensor &tensor, const std::string &sep,
-                                                 ConvertFunc convert_func) {
+                                                      ConvertFunc convert_func) {
   std::stringstream tensor_value_ss;
 
   size_t data_cnt = 0U;
@@ -215,8 +212,7 @@ std::string ConvertTensorValueImplWithConverterNoSkip(const Tensor &tensor, cons
  * @return 转换后的字符串
  */
 template <typename T, typename ConvertFunc>
-std::string ConvertTensorValueImplWithConverter(const Tensor &tensor, const std::string &sep,
-                                                ConvertFunc convert_func, 
+std::string ConvertTensorValueImplWithConverter(const Tensor &tensor, const std::string &sep, ConvertFunc convert_func,
                                                 bool is_mid_skipped) {
   if (is_mid_skipped) {
     return ConvertTensorValueImplWithConverterSkipped<T>(tensor, sep, convert_func);
@@ -235,7 +231,7 @@ std::string ConvertTensorValueImpl(const Tensor &tensor, const std::string &sep,
   return ConvertTensorValueImplWithConverter<T>(tensor, sep, identity, is_mid_skipped);
 }
 
-namespace{
+namespace {
 /**
  * @brief 专门处理 FP16 类型的 tensor 值转换
  * @param tensor tensor 对象
@@ -246,9 +242,10 @@ std::string ConvertTensorValueFp16(const Tensor &tensor, const std::string &sep,
   // 使用 FP16 到 float 的转换函数
   return ConvertTensorValueImplWithConverter<uint16_t>(tensor, sep, Fp16ToFloat, is_mid_skipped);
 }
-} // namespace
+}  // namespace
 
-std::string TensorValueUtils::ConvertTensorValue(const Tensor &tensor, DataType value_type, const std::string &sep, const bool is_mid_skipped) {
+std::string TensorValueUtils::ConvertTensorValue(const Tensor &tensor, DataType value_type, const std::string &sep,
+                                                 const bool is_mid_skipped) {
   switch (value_type) {
     case DT_FLOAT:
       return ge::ConvertTensorValueImpl<float>(tensor, sep, is_mid_skipped);

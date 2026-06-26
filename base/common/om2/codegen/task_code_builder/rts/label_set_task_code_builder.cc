@@ -19,8 +19,8 @@ Status LabelSetTaskCodeBuilder::Contribute(TaskSemanticContributeContext &contex
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
   GE_ASSERT_NOTNULL(context.op_desc);
-  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num,
-                 "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, header_.stream_id);
+  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
+                 context.runtime->stream_num, header_.stream_id);
   int64_t label_index = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, label_index),
                  "[OM2][Get][Attr] %s attr %s does not exist.", context.op_desc->GetName().c_str(),
@@ -28,27 +28,30 @@ Status LabelSetTaskCodeBuilder::Contribute(TaskSemanticContributeContext &contex
   GE_ASSERT_TRUE(label_index >= 0, "[OM2][Check][Param] label index %" PRId64 " is invalid.", label_index);
   label_index_ = static_cast<uint32_t>(label_index);
   GE_ASSERT_TRUE(label_index_ < context.runtime->label_num,
-                 "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num,
-                 label_index_, context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+                 "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num, label_index_,
+                 context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
   return SUCCESS;
 }
 
 Status LabelSetTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(ChkStatus(ast_.Call("KernelLabelSetDistribute", {
-      label_list_[static_cast<int32_t>(label_index_)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-  })));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ChkStatus(ast_.Call("KernelLabelSetDistribute", {
+                                                          label_list_[static_cast<int32_t>(label_index_)],
+                                                          stream_list_[static_cast<int32_t>(header_.stream_id)],
+                                                      })));
   return SUCCESS;
 }
 
 Status LabelSetTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   auto label = ast_.Var("aclrtLabel", "label");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelLabelSetDistribute", {label, stream}, "aclError", {
-      ChkStatus(AclrtSetLabel(label, stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelLabelSetDistribute", {label, stream}, "aclError",
+                                      {
+                                          ChkStatus(AclrtSetLabel(label, stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

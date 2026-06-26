@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,7 +83,7 @@ void TensorCheckUtils::ConstructGertTensor(gert::Tensor &gert_tensor, const std:
   gert_tensor.SetStorageFormat(format);
   gert_tensor.SetOriginFormat(format);
   const auto tensor_size = GetSizeInBytes(gert_tensor.GetShapeSize(), data_type);
-  const auto buffer_size = (tensor_size + 32U - 1U) / 32U * 32U; // 32B aligned
+  const auto buffer_size = (tensor_size + 32U - 1U) / 32U * 32U;  // 32B aligned
   auto mem_block = g_stub_allocator.Malloc(buffer_size);
   gert::TensorData tensor_data(mem_block, StubMemBlockManager, tensor_size, placement);
   gert_tensor.SetData(std::move(tensor_data));
@@ -106,11 +106,10 @@ void TensorCheckUtils::ConstructGeTensor(ge::GeTensor &ge_tensor, const std::ini
   ge_tensor.MutableTensorDesc().SetFormat(format);
   ge_tensor.MutableTensorDesc().SetOriginFormat(format);
 
-  const auto buffer_size = GetSizeInBytes(ge_tensor.GetTensorDesc().GetShape().GetShapeSize(),
-    data_type);
+  const auto buffer_size = GetSizeInBytes(ge_tensor.GetTensorDesc().GetShape().GetShapeSize(), data_type);
   auto mem_block = g_stub_allocator.Malloc(buffer_size);
 
-  auto deleter = [mem_block] (uint8_t *addr) {
+  auto deleter = [mem_block](uint8_t *addr) {
     (void)addr;
     mem_block->Free();
   };

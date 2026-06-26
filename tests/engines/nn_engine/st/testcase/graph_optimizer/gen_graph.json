@@ -1,6 +1,6 @@
 {
     "Rules":[
-       
+
         {
             "RuleName":"GenGraph",
             "OuterInputs":[

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,6 @@
 #include "common/lxfusion_json_util.h"
 #include "graph/debug/ge_attr_define.h"
 #include "param_calculate/tensor_compute_util.h"
-
 
 using ToOpStructPtr = std::shared_ptr<fe::ToOpStruct_t>;
 namespace fe {
@@ -84,8 +83,8 @@ int32_t StridedReadOptimizer::GetRealSplitDim(const ge::OpDescPtr &op_desc) cons
   size_t shape_size = input_shape.size();
   size_t out_shape_size = output_shape.size();
   if (shape_size != out_shape_size) {
-    FE_LOGW("Cur node [%s], input_shape_size [%zu] does not match output_shape_size [%zu]",
-            op_desc->GetName().c_str(), shape_size, out_shape_size);
+    FE_LOGW("Cur node [%s], input_shape_size [%zu] does not match output_shape_size [%zu]", op_desc->GetName().c_str(),
+            shape_size, out_shape_size);
     return -1;
   }
   for (size_t index = 0; index < shape_size; ++index) {
@@ -127,9 +126,8 @@ Status StridedReadOptimizer::SetStrideReadInfoForOutputs(const ge::NodePtr &spli
   return fe::SUCCESS;
 }
 
-void StridedReadOptimizer::CalSliceOffset(const std::vector<int64_t> &output_shape,
-                                          ge::DataType data_type, int64_t &output_offset_buff,
-                                          const int32_t &concat_dim) const {
+void StridedReadOptimizer::CalSliceOffset(const std::vector<int64_t> &output_shape, ge::DataType data_type,
+                                          int64_t &output_offset_buff, const int32_t &concat_dim) const {
   int32_t shape_size = static_cast<int32_t>(output_shape.size());
   if (shape_size < concat_dim + 1) {
     FE_LOGE("Invalid output_shape size [%d] for concat_dim [%d].", shape_size, concat_dim);
@@ -162,7 +160,7 @@ Status StridedReadOptimizer::FeedToOpStructInfo(ge::NodePtr &node, int64_t &pre_
   return SUCCESS;
 }
 
-Status StridedReadOptimizer::FeedToOpStructInfo(ge::OpDescPtr& op_desc, int64_t &pre_offset, const size_t &idx,
+Status StridedReadOptimizer::FeedToOpStructInfo(ge::OpDescPtr &op_desc, int64_t &pre_offset, const size_t &idx,
                                                 const ge::GeTensorDescPtr &split_in_tensor,
                                                 const int32_t &split_dim) const {
   ge::GeTensorDescPtr tensor_desc = op_desc->MutableInputDesc(idx);
@@ -215,13 +213,13 @@ void StridedReadOptimizer::MoveQuantBeforeSplit(ge::ComputeGraph &graph, const g
   new_move_quant->SetName(new_move_quant->GetName() + "_move");
   ge::NodePtr new_quant_node = graph.AddNode(new_move_quant);
   auto last_node = node->GetInDataNodes().at(0);
-  (void)ge::GraphUtils::InsertNodeBetweenDataAnchors(last_node->GetOutDataAnchor(0),
-                                                     node->GetInDataAnchor(0), new_quant_node);
+  (void)ge::GraphUtils::InsertNodeBetweenDataAnchors(last_node->GetOutDataAnchor(0), node->GetInDataAnchor(0),
+                                                     new_quant_node);
   // update shape&dtype
   ge::OpDescPtr op_desc = node->GetOpDesc();
-  if(op_desc->MutableInputDesc(0) == nullptr || new_move_quant->MutableInputDesc(0) == nullptr ||
-     new_move_quant->MutableOutputDesc(0) == nullptr) {
-       return;
+  if (op_desc->MutableInputDesc(0) == nullptr || new_move_quant->MutableInputDesc(0) == nullptr ||
+      new_move_quant->MutableOutputDesc(0) == nullptr) {
+    return;
   }
   ge::GeShape shape = op_desc->MutableInputDesc(0)->GetShape();
   ge::GeShape origin_shape = op_desc->MutableInputDesc(0)->GetOriginShape();

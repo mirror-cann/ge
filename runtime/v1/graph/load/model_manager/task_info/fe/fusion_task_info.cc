@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,20 +74,19 @@ uint32_t DomiFusionTypeToRtFusionType(const domi::FusionSubTaskInfo::FusionType 
   return rt_fusion_type;
 }
 
-ge::Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc,
-                                const int64_t origin_tiling_data_size,
+ge::Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc, const int64_t origin_tiling_data_size,
                                 int64_t &memcheck_start_size) {
   int64_t ori_param_size = 0LL;
   (void)ge::AttrUtils::GetInt(op_desc, optiling::kOriOpParaSize, ori_param_size);
   if (ori_param_size > 0LL) {
     // tik场景下TilingAppendMem添加的数据需要从偏移为ori_param_size的地址开始添加，此处需要将DataSize设置成ori_param_size
     GE_ASSERT_TRUE(origin_tiling_data_size <= ori_param_size);
-    GELOGI("Current tiling data size: %zu, set ori_para_size to %lld by attr, op_name: %s",
-          origin_tiling_data_size, ori_param_size, op_desc->GetNamePtr());
+    GELOGI("Current tiling data size: %zu, set ori_para_size to %lld by attr, op_name: %s", origin_tiling_data_size,
+           ori_param_size, op_desc->GetNamePtr());
   } else {
     ori_param_size = ((origin_tiling_data_size + sizeof(int64_t) - 1UL) / sizeof(int64_t)) * sizeof(int64_t);
     GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by aligned by %zu, op_name: %s",
-          origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
+           origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
   }
   memcheck_start_size = ori_param_size - origin_tiling_data_size;
   return ge::SUCCESS;
@@ -116,8 +115,8 @@ void FormatArgsException(uint64_t *host_addr, const std::vector<int64_t> &args_s
 
   for (size_t index = 0UL; index < shape_size.size(); index++) {
     *addr = static_cast<uint64_t>(shape_size[index]);
-    GELOGI("[TilingAppendDfxInfo] shape idx[%zu], val[%llu], atomic index[%llu]",
-      args_size.size() + index, *addr, atomic_index);
+    GELOGI("[TilingAppendDfxInfo] shape idx[%zu], val[%llu], atomic index[%llu]", args_size.size() + index, *addr,
+           atomic_index);
     addr++;
   }
 
@@ -126,16 +125,15 @@ void FormatArgsException(uint64_t *host_addr, const std::vector<int64_t> &args_s
 
 ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
                                      const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
-                                     std::vector<int64_t> &args_size_vec,
-                                     std::vector<int64_t> &shape_size_vec) {
+                                     std::vector<int64_t> &args_size_vec, std::vector<int64_t> &shape_size_vec) {
   auto input_descs = op_desc->GetAllInputsDescPtr();
 
- // 更新size以及shape
+  // 更新size以及shape
   for (size_t i = 0U; i < args_idx_to_io_idx_vec.size(); i++) {
     size_t io_index = args_idx_to_io_idx_vec[i].io_index;
     size_t args_index = args_idx_to_io_idx_vec[i].args_index;
-    GE_ASSERT(args_index < args_size_vec.size(),
-      "args index [%zu] not less than args list size [%zu]", args_index, args_size_vec.size());
+    GE_ASSERT(args_index < args_size_vec.size(), "args index [%zu] not less than args list size [%zu]", args_index,
+              args_size_vec.size());
 
     if (args_idx_to_io_idx_vec[i].args_role == optiling::ArgsRole::kInput) {
       const auto tensor = input_descs.at(io_index);
@@ -143,7 +141,7 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
       int64_t tensor_size = 0;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(*tensor, tensor_size));
       GELOGI("Update input tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-        op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       AppendShapeInfo(tensor->GetShape(), shape_size_vec);
@@ -152,7 +150,7 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
       int64_t tensor_size = 0L;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(tensor, tensor_size));
       GELOGI("Update output tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-          op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       shape_size_vec.push_back(0);
@@ -161,10 +159,8 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
   return ge::SUCCESS;
 }
 
-ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
-                            const optiling::OpRunInfoV2 &run_info,
-                            const std::vector<ge::ArgDesc> &arg_descs,
-                            std::string &dfx_info) {
+ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc, const optiling::OpRunInfoV2 &run_info,
+                            const std::vector<ge::ArgDesc> &arg_descs, std::string &dfx_info) {
   GELOGI("Start to construct dfx info for node: %s.", op_desc == nullptr ? "null" : op_desc->GetNamePtr());
   bool is_mem_check_enable = false;
   (void)ge::AttrUtils::GetBool(op_desc, optiling::kMemoryCheck, is_mem_check_enable);
@@ -181,12 +177,12 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
   std::vector<int64_t> args_size_vec;
   std::vector<optiling::ArgsIndexToIoIndex> args_idx_to_io_idx_vec;
   GE_ASSERT_SUCCESS(
-    optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
+      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
 
   std::vector<int64_t> shape_size_vec;
   GE_ASSERT_SUCCESS(UpdateDfxArgsAndShapeSize(op_desc, args_idx_to_io_idx_vec, args_size_vec, shape_size_vec));
-  (void)args_size_vec.insert(args_size_vec.cend(),
-      run_info.GetAllWorkspaces().cbegin(), run_info.GetAllWorkspaces().cend());
+  (void)args_size_vec.insert(args_size_vec.cend(), run_info.GetAllWorkspaces().cbegin(),
+                             run_info.GetAllWorkspaces().cend());
 
   // tiling data为0的场景 或者args Size 为0的场景，直接返回
   const int64_t tiling_data_size = static_cast<int64_t>(run_info.GetAllTilingData().str().size());
@@ -210,7 +206,7 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
     }
 
     const auto memcheck_info_capcity = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
-    GELOGI("Get memcheck info capcity: %zu, op_name: %s", memcheck_info_capcity, op_desc->GetNamePtr());
+    GELOGI("Get memcheck info capacity: %zu, op_name: %s", memcheck_info_capcity, op_desc->GetNamePtr());
     const auto memcheck_data_holder = gert::TilingData::CreateCap(memcheck_info_capcity);
     auto memcheck_data = reinterpret_cast<gert::TilingData *>(memcheck_data_holder.get());
     int64_t memcheck_start_size = 0L;
@@ -222,8 +218,8 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
       GELOGI("[TilingAppendDfxInfo] size idx[%zu], val[%lld]", i, args_size_vec[i]);
     }
     GE_ASSERT_SUCCESS(memcheck_data->Append(args_size_vec.data(), args_size_vec.size()));
-    GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld",
-      op_desc->GetNamePtr(), memcheck_data->GetDataSize(), memcheck_start_size);
+    GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld", op_desc->GetNamePtr(),
+           memcheck_data->GetDataSize(), memcheck_start_size);
     dfx_info = std::string(reinterpret_cast<ge::char_t *>(memcheck_data->GetData()), memcheck_data->GetDataSize());
   }
 
@@ -341,14 +337,15 @@ Status FusionTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
     task_run_param.parsed_workspace_addrs.push_back({workspace_addrs_[i], workspace_mem_types_[i], true, {0}});
   }
 
-  task_run_param.args_descs.push_back({static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_),
-                                                                         static_cast<uint32_t>(sizeof(uintptr_t)))),
-                                       args_placement_});
+  task_run_param.args_descs.push_back(
+      {static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_), static_cast<uint32_t>(sizeof(uintptr_t)))),
+       args_placement_});
 
-  GELOGI("Get args size[%u] of op[%s], is fm refresh[%d], task_type: %d, placement: %d, "
-         "args format: %s, is all kernel: %d.", args_size_, op_desc_->GetName().c_str(),
-         static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()), static_cast<int32_t>(task_type_),
-         args_placement_, task_def.fusion_task().args_format().c_str(), is_all_kernel_);
+  GELOGI(
+      "Get args size[%u] of op[%s], is fm refresh[%d], task_type: %d, placement: %d, "
+      "args format: %s, is all kernel: %d.",
+      args_size_, op_desc_->GetName().c_str(), static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()),
+      static_cast<int32_t>(task_type_), args_placement_, task_def.fusion_task().args_format().c_str(), is_all_kernel_);
 
   return SUCCESS;
 }
@@ -411,8 +408,8 @@ Status FusionTaskInfo::AppendWorkspaceAddr(int32_t ir_idx) {
               workspace_addrs_.size());
     l0_dump_list_.push_back(input_output_size + ir_idx);
     AppendIoAddr(workspace_addrs_[idx], workspace_mem_types_[idx]);
-    GELOGI("op[%s], workspace_addrs_[%zu] = 0x%lx, workspace_mem_types_[%zu] = %" PRIu64 "", op_desc_->GetName().c_str(), idx,
-           workspace_addrs_[idx], idx, workspace_mem_types_[idx]);
+    GELOGI("op[%s], workspace_addrs_[%zu] = 0x%lx, workspace_mem_types_[%zu] = %" PRIu64 "",
+           op_desc_->GetName().c_str(), idx, workspace_addrs_[idx], idx, workspace_mem_types_[idx]);
   }
   return SUCCESS;
 }
@@ -435,8 +432,8 @@ Status FusionTaskInfo::AssembleShapeInfoAddrs(const std::vector<ArgDesc> &dynami
     GE_ASSERT(level2_addr_idx[i] < io_addrs_.size());
     // addr to ptr offset
     io_addrs_[level2_addr_idx[i]] = PtrToValue(args_) + static_cast<uint64_t>(ptr_offset_idx * sizeof(uint64_t));
-    GELOGD("Set ptr_offset idx:[%zu], addr:[%" PRIx64 "] io index:[%zu]",
-      ptr_offset_idx, io_addrs_[level2_addr_idx[i]], level2_addr_idx[i]);
+    GELOGD("Set ptr_offset idx:[%zu], addr:[%" PRIx64 "] io index:[%zu]", ptr_offset_idx, io_addrs_[level2_addr_idx[i]],
+           level2_addr_idx[i]);
     // copy shape_infos
     (void)io_addrs_.insert(io_addrs_.cend(), shape_info.cbegin(), shape_info.cend());
     (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), shape_info.size(), kAbsoluteMemType);
@@ -500,15 +497,16 @@ Status FusionTaskInfo::AssembleIoByArgsFormat(const ArgsFormatInfo &args_format_
         // l0 exception dump处理
         const size_t ir_idx = static_cast<size_t>(arg_format.ir_idx);
         const auto iter = ir_input_2_range.find(ir_idx);
-        GE_ASSERT(iter != ir_input_2_range.end(),
-                  "node[%s] input ir idx[%zu] is not found", op_desc_->GetName().c_str(), ir_idx);
+        GE_ASSERT(iter != ir_input_2_range.end(), "node[%s] input ir idx[%zu] is not found",
+                  op_desc_->GetName().c_str(), ir_idx);
         // level2_addr
         uint64_t level_num = iter->second.second & kBitFlag8;
         level_num |= kLevel2BitFlagWithShape;
         l0_dump_list_.push_back(level_num);
         // level1
         for (size_t i = 0UL; i < iter->second.second; ++i) {
-          l0_dump_list_.push_back(iter->second.first + i);;
+          l0_dump_list_.push_back(iter->second.first + i);
+          ;
         }
 
         level_addr_idx.push_back(io_addrs_.size());
@@ -519,8 +517,8 @@ Status FusionTaskInfo::AssembleIoByArgsFormat(const ArgsFormatInfo &args_format_
       case AddrType::OUTPUT_DESC: {
         const size_t ir_idx = static_cast<size_t>(arg_format.ir_idx);
         const auto iter = ir_output_2_range.find(ir_idx);
-        GE_ASSERT(iter != ir_output_2_range.end(),
-                  "node[%s] input ir idx [%zu] is not found", op_desc_->GetName().c_str(), ir_idx);
+        GE_ASSERT(iter != ir_output_2_range.end(), "node[%s] input ir idx [%zu] is not found",
+                  op_desc_->GetName().c_str(), ir_idx);
         // level2_addr
         uint64_t level_num = iter->second.second & kBitFlag8;
         level_num |= kLevel2BitFlagWithShape;
@@ -652,7 +650,7 @@ Status FusionTaskInfo::SetAicoreTaskStubFunc(rtAicoreFusionInfo_t &aicore_fusion
   const rtError_t rt_ret = rtGetFunctionByName(bin_handle_key.c_str(), &stub_func_);
   if (rt_ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "Call rtGetFunctionByName failed op:%s(%s), bin_file_key:%s, ret:%d",
-                      op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), bin_handle_key.c_str(), rt_ret);
+                         op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), bin_handle_key.c_str(), rt_ret);
     GELOGE(RT_FAILED, "[Execute][RtGetFunctionByName] failed for op:%s(%s), bin_file_key:%s",
            op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), bin_handle_key.c_str());
     return RT_ERROR_TO_GE_STATUS(rt_ret);
@@ -714,8 +712,8 @@ Status FusionTaskInfo::CopyTilingDataIfNeeded() {
   std::shared_ptr<optiling::utils::OpRunInfo> run_info = nullptr;
   run_info = op_desc_->TryGetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, default_tiling);
   if (run_info == nullptr || run_info->GetAllTilingData().str().empty()) {
-      GELOGD("Tiling data of %s is empty.", op_desc_->GetNamePtr());
-      return SUCCESS;
+    GELOGD("Tiling data of %s is empty.", op_desc_->GetNamePtr());
+    return SUCCESS;
   }
 
   has_tiling_ = true;
@@ -724,18 +722,18 @@ Status FusionTaskInfo::CopyTilingDataIfNeeded() {
   if (!skip_append_dfx_info) {
     std::string dfx_info;
     GE_CHK_STATUS_RET(ConstructDfxInfo(op_desc_, *run_info, args_format_info_.arg_descs, dfx_info),
-        "ConstructDfxInfo failed for node: %s, skip append dfx info.", op_desc_->GetNamePtr());
+                      "ConstructDfxInfo failed for node: %s, skip append dfx info.", op_desc_->GetNamePtr());
     tiling_data_host_ += dfx_info;
   }
 
   tiling_data_size_ = tiling_data_host_.size();
   tiling_data_addr_ = davinci_model_->MallocDynamicMemory(tiling_data_size_);
   GE_CHECK_NOTNULL(tiling_data_addr_);
-  GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr_, tiling_data_size_,
-      tiling_data_host_.data(), tiling_data_host_.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr_, tiling_data_size_, tiling_data_host_.data(), tiling_data_host_.size(),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   GELOGI("Success to update tiling data to io_addr of %s, device addr: %p, size: %zu, host tiling data addr: %p",
-          op_desc_->GetNamePtr(), tiling_data_addr_, tiling_data_host_.size(), tiling_data_host_.data());
+         op_desc_->GetNamePtr(), tiling_data_addr_, tiling_data_host_.size(), tiling_data_host_.data());
 
   return SUCCESS;
 }
@@ -748,8 +746,8 @@ Status FusionTaskInfo::InitArgs(const PisToArgs &args) {
                     op_desc_->GetNamePtr());
 
   uint32_t pls = static_cast<uint32_t>(args_placement_);
-  const errno_t sec_ret = memcpy_s(ValueToPtr(PtrToValue(args[pls].host_addr)), args[pls].len ,
-    io_addrs_.data(), sizeof(uint64_t) * io_addrs_.size());
+  const errno_t sec_ret = memcpy_s(ValueToPtr(PtrToValue(args[pls].host_addr)), args[pls].len, io_addrs_.data(),
+                                   sizeof(uint64_t) * io_addrs_.size());
   GE_ASSERT_EOK(sec_ret, "[Call][Memcpy] failed, size:%zu, ret:%d", args[pls].len, sec_ret);
   return SUCCESS;
 }
@@ -759,8 +757,8 @@ Status FusionTaskInfo::InitKernel(const domi::TaskDef &task_def, const PisToArgs
   GE_ASSERT_TRUE((args[pls].dev_addr != 0U), "[Check][Param] Op:%s, dev addr is nullptr.", op_desc_->GetName().c_str());
   args_ = ValueToPtr(args[static_cast<size_t>(args_placement_)].dev_addr);
 
-  if ((davinci_model_->OpNeedDump(op_desc_) || davinci_model_->OpNeedPrint(op_desc_))
-    || davinci_model_->GetOpDugReg()) {
+  if ((davinci_model_->OpNeedDump(op_desc_) || davinci_model_->OpNeedPrint(op_desc_)) ||
+      davinci_model_->GetOpDugReg()) {
     GELOGI("Op %s need dump or print in task info", op_desc_->GetName().c_str());
     dump_args_ = args_;
     dump_flag_ = RT_KERNEL_DUMPFLAG;
@@ -782,7 +780,7 @@ Status FusionTaskInfo::InitKernel(const domi::TaskDef &task_def, const PisToArgs
 
         if (is_all_kernel_) {
           const auto tiling_info =
-            op_desc_->GetExtAttr<std::shared_ptr<optiling::utils::OpRunInfo>>(ge::ATTR_NAME_OP_RUN_INFO);
+              op_desc_->GetExtAttr<std::shared_ptr<optiling::utils::OpRunInfo>>(ge::ATTR_NAME_OP_RUN_INFO);
           if ((tiling_info != nullptr) && (*tiling_info != nullptr)) {
             tiling_key_ = (*tiling_info)->GetTilingKey();
             GELOGI("Op %s tiling key %" PRIu64 "", op_desc_->GetName().c_str(), tiling_key_);
@@ -806,12 +804,12 @@ Status FusionTaskInfo::InitKernel(const domi::TaskDef &task_def, const PisToArgs
         GE_ASSERT(ccu_task_group.group_size() == 1U);
         string hcom_group_attr_name = ccu_task_group.group(0);
         string hcom_group;
-        GE_ASSERT(AttrUtils::GetStr(op_desc_, hcom_group_attr_name, hcom_group),
-          "Op %s get hcom group attr name %s", op_desc_->GetName().c_str(), hcom_group_attr_name.c_str());
-        GE_ASSERT_SUCCESS(HcclDllHcomMgr::GetInstance().HcomGetCcuTaskInfoFunc(
-          hcom_group, tiling_data_host_.data(), &(rt_fusion_task_.subTask[index].task)));
-        GELOGI("Op %s hcom group attr name %s group %s",
-          op_desc_->GetName().c_str(), hcom_group_attr_name.c_str(), hcom_group.c_str());
+        GE_ASSERT(AttrUtils::GetStr(op_desc_, hcom_group_attr_name, hcom_group), "Op %s get hcom group attr name %s",
+                  op_desc_->GetName().c_str(), hcom_group_attr_name.c_str());
+        GE_ASSERT_SUCCESS(HcclDllHcomMgr::GetInstance().HcomGetCcuTaskInfoFunc(hcom_group, tiling_data_host_.data(),
+                                                                               &(rt_fusion_task_.subTask[index].task)));
+        GELOGI("Op %s hcom group attr name %s group %s", op_desc_->GetName().c_str(), hcom_group_attr_name.c_str(),
+               hcom_group.c_str());
         rt_fusion_task_.subTaskNum++;
         break;
       }
@@ -865,7 +863,7 @@ Status FusionTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const d
 void FusionTaskInfo::UpdateTaskId() {
   if (davinci_model_ != nullptr) {
     GE_CHK_RT_EXEC(aclrtGetThreadLastTaskId(&task_id_), return);
-    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)), return);
+    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)), return);
     GELOGD("UpdateTaskId:UpdateTaskId [%u], stream id [%u]:", task_id_, stream_id_);
   }
 }
@@ -880,7 +878,7 @@ Status FusionTaskInfo::Distribute() {
   GELOGI("Start to launch kernel of %s.", op_name.c_str());
   if (davinci_model_ != nullptr && davinci_model_->IsDumpOpWithAdump()) {
     GELOGD("Both overflow detection and persistent stream unlimited enabled, disable dump for op %s",
-            op_desc_ ? op_desc_->GetName().c_str() : "unknown");
+           op_desc_ ? op_desc_->GetName().c_str() : "unknown");
     dump_flag_ &= ~RT_KERNEL_DUMPFLAG;
   }
   SetTaskTag(op_name.c_str());
@@ -894,12 +892,13 @@ Status FusionTaskInfo::Distribute() {
   call_save_dump_ = true;
 
   UpdateTaskId();
-  GELOGI("FusionTaskInfo Distribute Success, op: %s, taskid: %d, stub func: %p, tiling key: %" PRIu64 ", "
+  GELOGI("FusionTaskInfo Distribute Success, op: %s, taskid: %d, stub func: %p, tiling key: %" PRIu64
+         ", "
          "streamid: %u, stream: %p, dump_flag: %u",
          op_desc_->GetName().c_str(), task_id_, stub_func_, tiling_key_, stream_id_, stream_, dump_flag_);
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
   }
 
   return SUCCESS;
@@ -913,7 +912,7 @@ void FusionTaskInfo::GetTilingKeyAndData(uint32_t &tiling_key, std::string &tili
   const auto tiling_data_holder = MakeUnique<uint8_t[]>(static_cast<size_t>(tiling_data_size_));
   GE_CHECK_NOTNULL_JUST_RETURN(tiling_data_holder);
   if (aclrtMemcpy(tiling_data_holder.get(), static_cast<uint64_t>(tiling_data_size_), tiling_data_addr_,
-      static_cast<uint64_t>(tiling_data_size_), ACL_MEMCPY_DEVICE_TO_HOST) != ACL_SUCCESS) {
+                  static_cast<uint64_t>(tiling_data_size_), ACL_MEMCPY_DEVICE_TO_HOST) != ACL_SUCCESS) {
     return;
   }
   std::stringstream ss;

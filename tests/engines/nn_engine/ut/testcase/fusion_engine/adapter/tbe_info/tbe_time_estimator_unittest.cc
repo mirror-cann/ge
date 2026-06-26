@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,7 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-class UTestTbeTimeEstimator : public testing::Test
-{
+class UTestTbeTimeEstimator : public testing::Test {
  protected:
   static void SetUpTestCase() {
     fe::InitPlatformInfo("Ascend310P3", true);
@@ -43,10 +42,11 @@ class UTestTbeTimeEstimator : public testing::Test
 
   void SetUp() {
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(AI_CORE_NAME);
-    FEOpsStoreInfo tbe_builtin {
+    FEOpsStoreInfo tbe_builtin{
         6, "tbe-builtin", EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo", ""
-    };
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_builtin);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -58,6 +58,7 @@ class UTestTbeTimeEstimator : public testing::Test
   }
 
   void TearDown() {}
+
  public:
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   TbeInfoAssemblerPtr tbe_info_assembler_ptr_;
@@ -81,8 +82,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_01) {
   map<std::string, std::string> options;
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 0);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "100");
@@ -106,8 +106,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 479275);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -131,8 +130,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02_1) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 479275);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "40");
@@ -156,8 +154,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02_2) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 34233);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "10");
@@ -181,8 +178,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02_3) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 11411);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "10");
@@ -206,8 +202,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02_4) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 59433962);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "40");
@@ -231,8 +226,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_02_5) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 950);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "10");
@@ -256,8 +250,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_03) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 39939);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -281,8 +274,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_04) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 9509);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -306,8 +298,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_05) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 79879);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, VECTOR_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "7");
@@ -329,8 +320,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_06) {
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(fe::RELU);
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu,
-                                      op_kernel_info_ptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu, op_kernel_info_ptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 950);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*relu, AI_CORE_NAME, op_kernel_info_ptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -352,8 +343,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_07) {
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(fe::RELU);
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu,
-                                      op_kernel_info_ptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu, op_kernel_info_ptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 5705);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*relu, AI_CORE_NAME, op_kernel_info_ptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -374,8 +365,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_07_1) {
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(fe::RELU);
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu,
-                                      op_kernel_info_ptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu, op_kernel_info_ptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 19200);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*relu, AI_CORE_NAME, op_kernel_info_ptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -397,8 +388,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_08) {
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(fe::RELU);
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu,
-                                      op_kernel_info_ptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu, op_kernel_info_ptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 22822);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*relu, AI_CORE_NAME, op_kernel_info_ptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -420,8 +411,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_09) {
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(fe::RELU);
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu,
-                                      op_kernel_info_ptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *relu, op_kernel_info_ptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 2282264150);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*relu, AI_CORE_NAME, op_kernel_info_ptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -441,8 +432,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_09_1) {
   options[ge::AICORE_NUM] = "100";
 
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *pooling,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *pooling, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 228226);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*pooling, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -462,7 +453,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_10) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -470,8 +460,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_10) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 9509);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -491,7 +481,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_11) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -499,8 +488,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_11) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 9509);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -520,7 +509,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_12) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -528,8 +516,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_12) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 166415);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -549,7 +537,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_13) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -557,8 +544,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_13) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 166415);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "8");
@@ -577,7 +564,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_14) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -585,13 +571,12 @@ TEST_F(UTestTbeTimeEstimator, test_case_14) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 0);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "100");
 }
-
 
 TEST_F(UTestTbeTimeEstimator, test_case_14_1) {
   fe::InitPlatformInfo("Ascend310P3", true);
@@ -606,7 +591,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_14_1) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -614,13 +598,12 @@ TEST_F(UTestTbeTimeEstimator, test_case_14_1) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 0);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "100");
 }
-
 
 TEST_F(UTestTbeTimeEstimator, test_case_14_2) {
   fe::InitPlatformInfo("Ascend310P3", true);
@@ -635,7 +618,6 @@ TEST_F(UTestTbeTimeEstimator, test_case_14_2) {
   GeTensorDesc weight_tensor_desc(GeShape(weight_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
   GeTensorDesc output_tensor_desc(GeShape(output_dims), ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16);
 
-
   matmul->AddInputDesc(fm_tensor_desc);
   matmul->AddInputDesc(weight_tensor_desc);
   matmul->AddOutputDesc(output_tensor_desc);
@@ -643,8 +625,8 @@ TEST_F(UTestTbeTimeEstimator, test_case_14_2) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "100";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *matmul, nullptr,
+                                      exec_time);
   EXPECT_EQ(exec_time, 0);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*matmul, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "100");
@@ -668,8 +650,7 @@ TEST_F(UTestTbeTimeEstimator, test_case_no_need_to_calibrate_corenum) {
   options["ge.virtual_type"] = "1";
   options[ge::AICORE_NUM] = "10";
   uint64_t exec_time = 0;
-  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv,
-                                      nullptr, exec_time);
+  ExecutionTimeEstimator::GetExecTime(tbe_info_assembler_ptr_->all_plat_info_.platform_info, *conv, nullptr, exec_time);
   EXPECT_EQ(exec_time, 59433962);
   tbe_info_assembler_ptr_->CalibrateCoreNum(*conv, AI_CORE_NAME, nullptr, options);
   EXPECT_EQ(options[ge::AICORE_NUM], "40");
@@ -704,7 +685,8 @@ TEST_F(UTestTbeTimeEstimator, test_set_impl_mode) {
   Configuration::Instance(AI_CORE_NAME).impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>("");
   EXPECT_NE(Configuration::Instance(AI_CORE_NAME).impl_mode_parser_, nullptr);
   te::TbeOpInfo op_info = te::TbeOpInfo("", "", "", "");
-  auto impl_mode_parser = std::dynamic_pointer_cast<OpImplModeConfigParser>(Configuration::Instance(AI_CORE_NAME).impl_mode_parser_);
+  auto impl_mode_parser =
+      std::dynamic_pointer_cast<OpImplModeConfigParser>(Configuration::Instance(AI_CORE_NAME).impl_mode_parser_);
   EXPECT_NE(impl_mode_parser, nullptr);
 
   impl_mode_parser->op_name_select_impl_mode_map_["conv2d_test_set_impl_mode"] = "enable_float_32_execution";

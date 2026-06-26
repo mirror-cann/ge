@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,8 +68,10 @@ const std::string GE_DUMP_EXCEPTION_AIC_ERR_DETAIL = "aic_err_detail_dump";  // 
 const std::string GE_DUMP_SCENE_WATCHER = "watcher";
 
 const std::set<std::string> geDumpSceneExceptions = {
-    GE_DUMP_LITE_EXCEPTION, GE_DUMP_EXCEPTION_AIC_ERR_BRIEF,
-    GE_DUMP_EXCEPTION_AIC_ERR_NORM, GE_DUMP_EXCEPTION_AIC_ERR_DETAIL,
+    GE_DUMP_LITE_EXCEPTION,
+    GE_DUMP_EXCEPTION_AIC_ERR_BRIEF,
+    GE_DUMP_EXCEPTION_AIC_ERR_NORM,
+    GE_DUMP_EXCEPTION_AIC_ERR_DETAIL,
 };
 
 const std::string GE_DUMP_MODE_DEFAULT = "output";
@@ -88,67 +90,65 @@ void from_json(const nlohmann::json &js, DumpBlacklist &blacklist);
 void from_json(const nlohmann::json &js, ModelDumpConfig &info);
 
 class DumpConfigValidator {
-public:
-    static bool IsValidDumpConfig(const nlohmann::json &js);
-    static bool NeedDump(const DumpConfig &cfg);
-    static bool ParseDumpConfig(const char* dumpData, int32_t size, DumpConfig& dumpConfig);
+ public:
+  static bool IsValidDumpConfig(const nlohmann::json &js);
+  static bool NeedDump(const DumpConfig &cfg);
+  static bool ParseDumpConfig(const char *dumpData, int32_t size, DumpConfig &dumpConfig);
 
-private:
-    static bool CheckDumpSceneSwitch(const nlohmann::json &jsDumpConfig, std::string &dumpScene);
-    static bool CheckDumpPath(const nlohmann::json &jsDumpConfig);
-    static bool CheckDumpStep(const nlohmann::json &jsDumpConfig);
-    static bool CheckDumplist(const nlohmann::json &jsDumpConfig, const std::string& dumpLevel);
-    static bool CheckDumpOpSwitch(const std::string& dumpOpSwitch);
-    static bool CheckDumpOpNameRange(const std::vector<ModelDumpConfig> &dumpConfigList,
-                                   const std::string& dumpLevel);
-    static bool IsValidDirStr(const std::string &dumpPath);
-    static bool CheckIpAddress(const DumpConfig &config);
-    static bool ValidateIpAddress(const std::string& ipAddress);
-    static bool IsDumpPathValid(const std::string& dumpPath);
-    static bool DumpDebugCheck(const nlohmann::json &jsDumpConfig);
-    static bool DumpStatsCheck(const nlohmann::json &jsDumpConfig);
+ private:
+  static bool CheckDumpSceneSwitch(const nlohmann::json &jsDumpConfig, std::string &dumpScene);
+  static bool CheckDumpPath(const nlohmann::json &jsDumpConfig);
+  static bool CheckDumpStep(const nlohmann::json &jsDumpConfig);
+  static bool CheckDumplist(const nlohmann::json &jsDumpConfig, const std::string &dumpLevel);
+  static bool CheckDumpOpSwitch(const std::string &dumpOpSwitch);
+  static bool CheckDumpOpNameRange(const std::vector<ModelDumpConfig> &dumpConfigList, const std::string &dumpLevel);
+  static bool IsValidDirStr(const std::string &dumpPath);
+  static bool CheckIpAddress(const DumpConfig &config);
+  static bool ValidateIpAddress(const std::string &ipAddress);
+  static bool IsDumpPathValid(const std::string &dumpPath);
+  static bool DumpDebugCheck(const nlohmann::json &jsDumpConfig);
+  static bool DumpStatsCheck(const nlohmann::json &jsDumpConfig);
 
-    static bool ParseDumpConfigFromJson(const nlohmann::json& dumpJson, DumpConfig& dumpConfig);
-    static void ParseBasicConfigurations(const nlohmann::json& dumpJson, DumpConfig& dumpConfig);
-    static std::string GetConfigWithDefault(const nlohmann::json& json,
-                                           const std::string& key,
-                                           const std::string& defaultValue);
-    static bool CheckDumpModelConfig(const nlohmann::json& modelJson);
-    static bool ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDumpConfig& modelConfig);
-    static void ParseBlacklist(const nlohmann::json& blacklistJson, DumpBlacklist& blacklist);
-    static bool IsDumpDebugEnabled(const nlohmann::json &jsDumpConfig);
-    static bool ValidateNormalDumpConfig(const nlohmann::json &jsDumpConfig);
-    static bool ValidateDumpPath(const nlohmann::json &jsDumpConfig);
-    static bool ValidateDumpMode(const nlohmann::json &jsDumpConfig);
-    static bool ValidateDumpLevel(const nlohmann::json &jsDumpConfig);
-    static bool ValidateOtherDumpConfigs(const nlohmann::json &jsDumpConfig);
-    static std::string GetDumpLevel(const nlohmann::json &jsDumpConfig);
+  static bool ParseDumpConfigFromJson(const nlohmann::json &dumpJson, DumpConfig &dumpConfig);
+  static void ParseBasicConfigurations(const nlohmann::json &dumpJson, DumpConfig &dumpConfig);
+  static std::string GetConfigWithDefault(const nlohmann::json &json, const std::string &key,
+                                          const std::string &defaultValue);
+  static bool CheckDumpModelConfig(const nlohmann::json &modelJson);
+  static bool ParseModelDumpConfig(const nlohmann::json &modelJson, ModelDumpConfig &modelConfig);
+  static void ParseBlacklist(const nlohmann::json &blacklistJson, DumpBlacklist &blacklist);
+  static bool IsDumpDebugEnabled(const nlohmann::json &jsDumpConfig);
+  static bool ValidateNormalDumpConfig(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpPath(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpMode(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpLevel(const nlohmann::json &jsDumpConfig);
+  static bool ValidateOtherDumpConfigs(const nlohmann::json &jsDumpConfig);
+  static std::string GetDumpLevel(const nlohmann::json &jsDumpConfig);
 
-    static void ParseComplexConfigs(const nlohmann::json& dumpJson, DumpConfig& dumpConfig);
-    static void ParseStringArray(const nlohmann::json& jsonArray, std::vector<std::string>& output);
-    static void ParseModelDumpConfigList(const nlohmann::json& jsonArray, std::vector<ModelDumpConfig>& output);
+  static void ParseComplexConfigs(const nlohmann::json &dumpJson, DumpConfig &dumpConfig);
+  static void ParseStringArray(const nlohmann::json &jsonArray, std::vector<std::string> &output);
+  static void ParseModelDumpConfigList(const nlohmann::json &jsonArray, std::vector<ModelDumpConfig> &output);
 
-    static std::vector<std::string> Split(const std::string &str, const char_t * const delimiter);
+  static std::vector<std::string> Split(const std::string &str, const char_t *const delimiter);
 };
 
 class DumpCallbackManager {
-public:
-    static DumpCallbackManager& GetInstance();
-    bool RegisterDumpCallbacks(uint32_t module_id) const;
+ public:
+  static DumpCallbackManager &GetInstance();
+  bool RegisterDumpCallbacks(uint32_t module_id) const;
 
-private:
-    DumpCallbackManager() = default;
-    ~DumpCallbackManager() = default;
-    static bool IsEnableExceptionDumpBySwitch(uint64_t dumpSwitch);
-    static std::string BuildExceptionDumpJsonBySwitch(uint64_t dumpSwitch);
-    static bool ProcessExceptionDumpBySwitch(uint64_t dumpSwitch);
-    static int32_t EnableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size);
-    static int32_t DisableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size);
+ private:
+  DumpCallbackManager() = default;
+  ~DumpCallbackManager() = default;
+  static bool IsEnableExceptionDumpBySwitch(uint64_t dumpSwitch);
+  static std::string BuildExceptionDumpJsonBySwitch(uint64_t dumpSwitch);
+  static bool ProcessExceptionDumpBySwitch(uint64_t dumpSwitch);
+  static int32_t EnableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size);
+  static int32_t DisableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size);
 
-    static Status HandleEnableDump(const char* dumpData, int32_t size);
-    static Status HandleDisableDump();
+  static Status HandleEnableDump(const char *dumpData, int32_t size);
+  static Status HandleDisableDump();
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // GE_COMMON_DUMP_DUMP_CALLBACK_H_
+#endif  // GE_COMMON_DUMP_DUMP_CALLBACK_H_

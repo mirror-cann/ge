@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ constexpr uint32_t kTransposeOutputY = 0U;
 constexpr uint32_t kSqueezeOutputY = 0U;
 constexpr uint32_t kUnsqueezeInputX = 0U;
 constexpr size_t kCreatedOpNum = 2;
-const int64_t nanoBlockSize = 16; // nona芯片的ubblock_size为16, 用于隔离nano芯片
+const int64_t nanoBlockSize = 16;  // nona芯片的ubblock_size为16, 用于隔离nano芯片
 }  // namespace
 
 Status Dim1TransposeToSqueezePass::Run(NodePtr &node) {
@@ -243,9 +243,7 @@ Status Dim1TransposeToSqueezePass::SetShapeForSymbolic(const GeTensorDescPtr &in
 }
 
 bool IsAllMinusOne(const std::vector<int64_t> &dims) {
-  return std::all_of(dims.begin(), dims.end(),[](int value) {
-    return value == -1;
-  });
+  return std::all_of(dims.begin(), dims.end(), [](int value) { return value == -1; });
 }
 
 bool Dim1TransposeToSqueezePass::ShouldIgnoreOp(const NodePtr &node) const {
@@ -258,7 +256,8 @@ bool Dim1TransposeToSqueezePass::ShouldIgnoreOp(const NodePtr &node) const {
 
   // FE插入的transpose会存在output format和output origin format不一致情况，如NHWC和NCHW
   // 或者input format和input origin format不一致情况
-  // 这两种情况下transpose不直接依赖perm进行转置，而是将输入origin shape透传至输出origin shape，在运行时根据format推导出预期的shape
+  // 这两种情况下transpose不直接依赖perm进行转置，而是将输入origin shape透传至输出origin
+  // shape，在运行时根据format推导出预期的shape
   // 此时若将此类transpose替换为squeeze/unsqueeze并对shape为1的维度进行增删修改会破坏此类tranpose的运行逻辑导致最终shape不符预期，
   // 存在transpose输出全-1的场景，该场景下替换为squeeze/unsqueeze会导致shape不符合预期
   // 这些场景不作处理
@@ -266,9 +265,9 @@ bool Dim1TransposeToSqueezePass::ShouldIgnoreOp(const NodePtr &node) const {
   GE_CHECK_NOTNULL(op_desc);
   auto output_tensor_desc = op_desc->GetOutputDescPtr(kTransposeOutputY);
   GE_CHECK_NOTNULL(output_tensor_desc);
-  GELOGD("Node %s[%s] has output origin format %s and output format %s",
-        node->GetNamePtr(), node->GetTypePtr(), ge::TypeUtils::FormatToSerialString(output_tensor_desc->GetOriginFormat()).c_str(),
-        ge::TypeUtils::FormatToSerialString(output_tensor_desc->GetFormat()).c_str());
+  GELOGD("Node %s[%s] has output origin format %s and output format %s", node->GetNamePtr(), node->GetTypePtr(),
+         ge::TypeUtils::FormatToSerialString(output_tensor_desc->GetOriginFormat()).c_str(),
+         ge::TypeUtils::FormatToSerialString(output_tensor_desc->GetFormat()).c_str());
   const auto dims = output_tensor_desc->GetShape().GetDims();
   int64_t inserted_by_fe = 0;
   // FE插入的transpose是非标transpose，其语义不能用transpose IR解释，此类transpose跳过处理
@@ -287,8 +286,9 @@ int64_t Dim1TransposeToSqueezePass::GetBlockSize() const {
   // get ub size for the current device
   fe::PlatformInfo platform_info;
   fe::OptionalInfo opti_compilation_info;
-  GE_CHK_STATUS_RET(fe::PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(
-                    platform_info, opti_compilation_info), "Get platform_info unsuccessful");
+  GE_CHK_STATUS_RET(
+      fe::PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(platform_info, opti_compilation_info),
+      "Get platform_info unsuccessful");
   GELOGI("UB block size is %ld.", platform_info.ai_core_spec.ubblock_size);
   return platform_info.ai_core_spec.ubblock_size;
 }

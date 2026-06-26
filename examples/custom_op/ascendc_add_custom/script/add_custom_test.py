@@ -6,15 +6,13 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 
-import sys
 import os
+
 import torch
-import torch_npu
-from torch_npu.testing.testcase import TestCase, run_tests
-import torchair
 import torch._dynamo
-from torchair import register_fx_node_ge_converter
-from torchair.ge import Tensor, TensorSpec, DataType
+import torchair
+from torch_npu.testing.testcase import TestCase, run_tests
+from torchair.ge import Tensor, TensorSpec
 
 # 环境校验
 assert torch.npu.is_available(), "NPU is not available!"
@@ -35,7 +33,7 @@ def convert_ascendc_ascendc_add(x: Tensor, y: Tensor, z: Tensor = None, meta_out
             "x": x,
             "y": y,
         },
-        outputs=['z']
+        outputs=["z"],
     )
 
 
@@ -60,8 +58,8 @@ class TestCustomAdd(TestCase):
 
     def test_add_custom_ops(self):
         # 生成CPU输入张量
-        x_cpu = torch.rand(self.shape, device='cpu', dtype=torch.float16)
-        y_cpu = torch.rand(self.shape, device='cpu', dtype=torch.float16)
+        x_cpu = torch.rand(self.shape, device="cpu", dtype=torch.float16)
+        y_cpu = torch.rand(self.shape, device="cpu", dtype=torch.float16)
         # 拷贝到NPU
         x_npu = x_cpu.npu()
         y_npu = y_cpu.npu()
@@ -71,8 +69,13 @@ class TestCustomAdd(TestCase):
         # CPU标准加法作为基准
         z_ref = torch.add(x_cpu, y_cpu)
         # 精度校验（float16允许1e-3的误差）
-        torch.testing.assert_close(z_cpu, z_ref, rtol=self.rtol, atol=self.atol,
-                                   msg="Numerical values do not match within tolerance")
+        torch.testing.assert_close(
+            z_cpu,
+            z_ref,
+            rtol=self.rtol,
+            atol=self.atol,
+            msg="Numerical values do not match within tolerance",
+        )
 
         model = Model().npu()
         # 配置图模式config
@@ -81,15 +84,21 @@ class TestCustomAdd(TestCase):
         # 基于NPU backend编译模型
         opt_model = torch.compile(model, backend=npu_backend)
 
-        x_compile = torch.rand(self.shape, device='cpu', dtype=torch.float16)
-        y_compile = torch.rand(self.shape, device='cpu', dtype=torch.float16)
+        x_compile = torch.rand(self.shape, device="cpu", dtype=torch.float16)
+        y_compile = torch.rand(self.shape, device="cpu", dtype=torch.float16)
         z_compile_npu = opt_model(x_compile.npu(), y_compile.npu())
         z_compile_cpu = z_compile_npu.cpu()
         # 重新计算基准值（与编译测试数据匹配）
         z_compile_ref = torch.add(x_compile.cpu(), y_compile.cpu())
         # 精度校验
-        torch.testing.assert_close(z_compile_cpu, z_compile_ref, rtol=self.rtol, atol=self.atol,
-                                   msg="Numerical values do not match within tolerance")
+        torch.testing.assert_close(
+            z_compile_cpu,
+            z_compile_ref,
+            rtol=self.rtol,
+            atol=self.atol,
+            msg="Numerical values do not match within tolerance",
+        )
+
 
 if __name__ == "__main__":
     # 运行测试

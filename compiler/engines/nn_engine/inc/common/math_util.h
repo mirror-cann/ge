@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,15 +22,15 @@
 #include "register/graph_optimizer/graph_optimize_register_error_codes.h"
 
 namespace fe {
-#define FE_ADD_OVERFLOW(x, y, z)          \
-  if (ge::AddOverflow((x), (y), (z))) {   \
-    return FAILED;                \
-  }                                       \
+#define FE_ADD_OVERFLOW(x, y, z)        \
+  if (ge::AddOverflow((x), (y), (z))) { \
+    return FAILED;                      \
+  }
 
-#define FE_MUL_OVERFLOW(x, y, z)          \
-  if (ge::MulOverflow((x), (y), (z))) {   \
-    return FAILED;                \
-  }                                       \
+#define FE_MUL_OVERFLOW(x, y, z)        \
+  if (ge::MulOverflow((x), (y), (z))) { \
+    return FAILED;                      \
+  }
 
 float Uint16ToFloat(const uint16_t &intVal);
 float Bf16ToFloat(const uint16_t &intVal);
@@ -203,7 +203,7 @@ inline Status CheckInt32DivOverflow(int32_t a, int32_t b) {
 
 inline Status CheckInt32AddOverflow(int32_t a, int32_t b) {
   if (((b > 0) && (a > (INT32_MAX - b))) || ((b < 0) && (a < (INT32_MIN - b)))) {
-      return FAILED;
+    return FAILED;
   }
   return SUCCESS;
 }
@@ -326,44 +326,41 @@ inline Status CheckDoubleZero(double a) {
     return FAILED;                                                         \
   }
 
-#define FE_FLOAT_MULCHECK(a, b)                                                              \
-  if (CheckFloatMulOverflow((a), (b)) != SUCCESS) {                                          \
-    FE_LOGE("Float %f and %f multiplication can result in overflow!", static_cast<float>(a), \
-           static_cast<float>(b));                                                           \
-    return FAILED;                                                                           \
+#define FE_FLOAT_MULCHECK(a, b)                                                                                      \
+  if (CheckFloatMulOverflow((a), (b)) != SUCCESS) {                                                                  \
+    FE_LOGE("Float %f and %f multiplication can result in overflow!", static_cast<float>(a), static_cast<float>(b)); \
+    return FAILED;                                                                                                   \
   }
 
-#define FE_FLOAT_ADDCHECK(a, b)                                                        \
-  if (CheckFloatAddOverflow((a), (b)) != SUCCESS) {                                    \
-    FE_LOGE("Float %f and %f addition can result in overflow!", static_cast<float>(a), \
-           static_cast<float>(b));                                                     \
-    return FAILED;                                                                     \
+#define FE_FLOAT_ADDCHECK(a, b)                                                                                \
+  if (CheckFloatAddOverflow((a), (b)) != SUCCESS) {                                                            \
+    FE_LOGE("Float %f and %f addition can result in overflow!", static_cast<float>(a), static_cast<float>(b)); \
+    return FAILED;                                                                                             \
   }
 
-#define FE_DOUBLE_ADDCHECK(a, b)                                                                         \
-  if (CheckDoubleAddOverflow((a), (b)) != SUCCESS) {                                                     \
-    FE_LOGE("Double %lf and %lf addition can result in overflow!", static_cast<double>(a),               \
-           static_cast<double>(b));                                                                      \
-    return FAILED;                                                                                       \
+#define FE_DOUBLE_ADDCHECK(a, b)                                                                                    \
+  if (CheckDoubleAddOverflow((a), (b)) != SUCCESS) {                                                                \
+    FE_LOGE("Double %lf and %lf addition can result in overflow!", static_cast<double>(a), static_cast<double>(b)); \
+    return FAILED;                                                                                                  \
   }
 
-#define FE_DOUBLE_MULCHECK(a, b)                                                                         \
-  if (CheckDoubleMulOverflow((a), (b)) != SUCCESS) {                                                     \
-    FE_LOGE("Double %lf and %lf multiplication can result in overflow!", static_cast<double>(a),         \
-           static_cast<double>(b));                                                                      \
-    return FAILED;                                                                                       \
+#define FE_DOUBLE_MULCHECK(a, b)                                                                 \
+  if (CheckDoubleMulOverflow((a), (b)) != SUCCESS) {                                             \
+    FE_LOGE("Double %lf and %lf multiplication can result in overflow!", static_cast<double>(a), \
+            static_cast<double>(b));                                                             \
+    return FAILED;                                                                               \
   }
 
-#define FE_DOUBLE_ZEROCHECK(a)                                                                        \
-  if (CheckDoubleZero(a) != SUCCESS) {                                                                \
-    FE_LOGW("Double %lf is zero!", static_cast<double>(a));                                                    \
-    return FAILED;                                                                                    \
+#define FE_DOUBLE_ZEROCHECK(a)                              \
+  if (CheckDoubleZero(a) != SUCCESS) {                      \
+    FE_LOGW("Double %lf is zero!", static_cast<double>(a)); \
+    return FAILED;                                          \
   }
 
-#define FE_INT64_ZEROCHECK(a)                                                                         \
-  if ((a) == 0) {                                                                                     \
-    FE_LOGW("Int64 %ld is zero!", a);                                                                 \
-    return FAILED;                                                                                    \
+#define FE_INT64_ZEROCHECK(a)         \
+  if ((a) == 0) {                     \
+    FE_LOGW("Int64 %ld is zero!", a); \
+    return FAILED;                    \
   }
 
 #define FLT_EPSILON 1.1920929e-07F
@@ -372,10 +369,10 @@ bool inline FloatEqual(float a, float b) {
   return fabs(a - b) < FLT_EPSILON;
 }
 
-#define FE_FLOAT_ZEROCHECK(a)                                                                         \
-  if (fabs(a) < FLT_EPSILON || (a) < 0) {                                                             \
-    FE_LOGE("Float %f is zero!", a);                                                                  \
-    return FAILED;                                                                                    \
+#define FE_FLOAT_ZEROCHECK(a)             \
+  if (fabs(a) < FLT_EPSILON || (a) < 0) { \
+    FE_LOGE("Float %f is zero!", a);      \
+    return FAILED;                        \
   }
 
 inline bool CompareValue(const float &a, const float &b) {

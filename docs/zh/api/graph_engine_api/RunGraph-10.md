@@ -99,4 +99,3 @@ Status RunGraph(uint32_t graph_id, const std::vector<gert::Tensor>& inputs, std:
 ## 约束说明<a name="section24049039"></a>
 
 inputs与图中的data节点相对应，data节点的index属性表征inputs列表中对应数据的位置。即用户需要保证，可以按照data节点的index属性从inputs中获取对应的数据，否则返回错误。如果图中没有data节点，也可以输入的inputs为空。输出的outputs与用户指定的输出节点及输出端口个数与顺序相一致。
-

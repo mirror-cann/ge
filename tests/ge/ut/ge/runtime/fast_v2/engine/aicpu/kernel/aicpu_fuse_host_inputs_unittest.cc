@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@
 #include "kernel/memory/single_stream_l2_allocator.h"
 
 namespace gert {
-class AicpuFuseHostInputsUT: public testing::Test {
+class AicpuFuseHostInputsUT : public testing::Test {
  public:
   memory::CachingMemAllocator caching_mem_allocator{0};
   memory::SingleStreamL2Allocator single_stream_l2_allocator{&caching_mem_allocator};
@@ -43,9 +43,9 @@ TEST_F(AicpuFuseHostInputsUT, TestTfOneInputSuccess) {
   run_context.value_holder[0].Set(&args_handler, nullptr);
 
   std::vector<int32_t> indexes(1, 0);
-  run_context.value_holder[1].Set(indexes.data(), nullptr);  
-  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr); // stream
-  auto allocator = memory::CachingMemAllocator(1, 2);  // 2 = RT_MEMORY_TYPE_DEVICE
+  run_context.value_holder[1].Set(indexes.data(), nullptr);
+  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr);  // stream
+  auto allocator = memory::CachingMemAllocator(1, 2);                        // 2 = RT_MEMORY_TYPE_DEVICE
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&allocator);
 
   run_context.value_holder[3].Set(&single_stream_l2_allocator, nullptr);
@@ -53,7 +53,7 @@ TEST_F(AicpuFuseHostInputsUT, TestTfOneInputSuccess) {
   // for small host input
   auto temp_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[20]);
   GertTensorData temp_buffer = {temp_addr.get(), 20, kOnHost, -1};
-  auto data_type = 1; // DT_FLOAT16
+  auto data_type = 1;  // DT_FLOAT16
   StorageShape shape({1}, {1});
   auto size = 512;
   run_context.value_holder[4].Set(&temp_buffer, nullptr);
@@ -77,7 +77,7 @@ TEST_F(AicpuFuseHostInputsUT, TestTfOneInputSuccess) {
   auto temp_addr2 = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[500]);
   GertTensorData temp_buffer2 = {temp_addr2.get(), 500, kOnHost, -1};
   StorageShape shape2({50}, {50});
-  auto data_type2 = 10; // DT_UINT64
+  auto data_type2 = 10;  // DT_UINT64
   run_context.value_holder[4].Set(&temp_buffer2, nullptr);
   run_context.value_holder[6].Set(&shape2, nullptr);
   run_context.value_holder[7].Set(reinterpret_cast<void *>(data_type2), nullptr);
@@ -103,14 +103,14 @@ TEST_F(AicpuFuseHostInputsUT, TestCcOneInputSuccess) {
   run_context.value_holder[0].Set(&args_handler, nullptr);
 
   std::vector<int32_t> indexes(1, 0);
-  run_context.value_holder[1].Set(indexes.data(), nullptr);  
-  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr); // stream
+  run_context.value_holder[1].Set(indexes.data(), nullptr);
+  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr);  // stream
   run_context.value_holder[3].Set(&single_stream_l2_allocator, nullptr);
 
   // for small host input
   auto temp_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[20]);
   GertTensorData temp_buffer = {temp_addr.get(), 20, kOnHost, -1};
-  auto data_type = 1; // DT_FLOAT16
+  auto data_type = 1;  // DT_FLOAT16
   StorageShape shape({1}, {1});
   auto size = 512;
   run_context.value_holder[4].Set(&temp_buffer, nullptr);
@@ -136,7 +136,7 @@ TEST_F(AicpuFuseHostInputsUT, TestCcOneInputSuccess) {
 
 TEST_F(AicpuFuseHostInputsUT, TestMultiInputSuccess) {
   auto run_context = BuildKernelRunContext(12, 2);
-  AicpuTfArgsHandler args_handler("temp", 3, false); // 3 inputs
+  AicpuTfArgsHandler args_handler("temp", 3, false);  // 3 inputs
   std::string arg_data = "111";
   std::string task_info = "222";
   size_t ext_info_size = 20;
@@ -145,8 +145,8 @@ TEST_F(AicpuFuseHostInputsUT, TestMultiInputSuccess) {
 
   // 0, 1, 2, only fuse 1 & 2
   std::vector<int32_t> indexes{1, 2};
-  run_context.value_holder[1].Set(indexes.data(), nullptr);  
-  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr); // stream
+  run_context.value_holder[1].Set(indexes.data(), nullptr);
+  run_context.value_holder[2].Set(reinterpret_cast<void *>(0x11), nullptr);  // stream
   run_context.value_holder[3].Set(&single_stream_l2_allocator, nullptr);
 
   // input 1 device tensor

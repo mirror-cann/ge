@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,22 +21,18 @@ using namespace std;
 using namespace ge;
 namespace fe {
 class UbPassSliceInfoManagerST : public testing::Test {
-protected:
+ protected:
   static void SetUpTestCase() {
     std::cout << "UbPassSliceInfoManagerST SetUpTestCase" << std::endl;
   }
   static void TearDownTestCase() {
     std::cout << "UbPassSliceInfoManagerST TearDownTestCase" << std::endl;
   }
-  void SetUp() {
+  void SetUp() {}
+  void TearDown() {}
 
-  }
-  void TearDown() {
-
-  }
-
-  ge::ComputeGraphPtr CreateGraphWithOneInput(const std::string &op_type, const std::string &op_pattern, const bool is_dual_output,
-                                              vector<ge::NodePtr> &fusin_nodes) {
+  ge::ComputeGraphPtr CreateGraphWithOneInput(const std::string &op_type, const std::string &op_pattern,
+                                              const bool is_dual_output, vector<ge::NodePtr> &fusin_nodes) {
     vector<int64_t> dims = {3, 4, 5, 6};
     ge::GeShape shape(dims);
     ge::GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -64,7 +60,12 @@ protected:
     AttrUtils::SetListInt(conv_op, "pads", {1, 1, 1, 1});
     AttrUtils::SetListInt(conv_op, "dilations", {1, 1, 1, 1});
 
-    string op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
+    string op_slice_info =
+        "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+        "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": "
+        "[2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], "
+        "\"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
     AttrUtils::SetStr(conv_op, "_op_slice_info", op_slice_info);
     AttrUtils::SetStr(relu_op, "_pattern", op_pattern);
 
@@ -99,8 +100,8 @@ protected:
     return graph;
   }
 
-  ge::ComputeGraphPtr CreateGraphWithTwoInput(const std::string &op_type, const std::string &op_pattern, const bool is_dual_output,
-                                              vector<ge::NodePtr> &fusin_nodes) {
+  ge::ComputeGraphPtr CreateGraphWithTwoInput(const std::string &op_type, const std::string &op_pattern,
+                                              const bool is_dual_output, vector<ge::NodePtr> &fusin_nodes) {
     vector<int64_t> dims = {3, 4, 5, 6};
     ge::GeShape shape(dims);
     ge::GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -138,7 +139,12 @@ protected:
     AttrUtils::SetListInt(conv_op, "pads", {1, 1, 1, 1});
     AttrUtils::SetListInt(conv_op, "dilations", {1, 1, 1, 1});
 
-    string op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
+    string op_slice_info =
+        "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+        "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": "
+        "[2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], "
+        "\"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
     AttrUtils::SetStr(conv_op, "_op_slice_info", op_slice_info);
     AttrUtils::SetStr(relu_op, "_pattern", op_pattern);
 
@@ -233,10 +239,16 @@ TEST_F(UbPassSliceInfoManagerST, set_slice_info_for_fusion_nodes_dequant_3) {
     if (node == nullptr || node->GetType() != "AscendDequant") {
       continue;
     }
-    string op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
+    string op_slice_info =
+        "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+        "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": "
+        "[2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], "
+        "\"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
     AttrUtils::SetStr(node->GetOpDesc(), "_op_slice_info", op_slice_info);
     size_t input_size = 2;
-    UbPassSliceInfoBasePtr slice_info_base_ptr = UbPassSliceInfoManager::SwitchSliceInfoPtrByPattern(UbMatchedType::UBMATCHTYPE_DEQUANT, node, input_size);
+    UbPassSliceInfoBasePtr slice_info_base_ptr =
+        UbPassSliceInfoManager::SwitchSliceInfoPtrByPattern(UbMatchedType::UBMATCHTYPE_DEQUANT, node, input_size);
     EXPECT_NE(slice_info_base_ptr, nullptr);
     EXPECT_EQ(slice_info_base_ptr->ModifySliceInfoByPattern(node), fe::SUCCESS);
   }
@@ -283,4 +295,4 @@ TEST_F(UbPassSliceInfoManagerST, set_slice_info_for_fusion_nodes_requant_s16) {
   EXPECT_NE(graph, nullptr);
   EXPECT_EQ(UbPassSliceInfoManager::SetSliceInfoForFusionNodes(fusin_nodes), fe::SUCCESS);
 }
-}
+}  // namespace fe

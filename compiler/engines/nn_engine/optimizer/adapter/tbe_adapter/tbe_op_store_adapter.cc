@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,22 +53,20 @@ constexpr char const *kJsonFilePath = "json_file_path";
 constexpr char const *kBinFilePath = "bin_file_path";
 constexpr char const *kJsonValuePtr = "json_value_ptr";
 constexpr char const *kBinValuePtr = "bin_value_ptr";
-constexpr const char* kOpDebugConfigTe = "op_debug_config_te";
-constexpr const char* kEnableSuperkernelPlus = "enable_superkernel_plus";
-constexpr const char* kTileFwkOpFlag = "tileFwkOp";
+constexpr const char *kOpDebugConfigTe = "op_debug_config_te";
+constexpr const char *kEnableSuperkernelPlus = "enable_superkernel_plus";
+constexpr const char *kTileFwkOpFlag = "tileFwkOp";
 constexpr int64_t kThreadSleepCost = 25;
 constexpr uint32_t kMaxPathSize = 1024U;
 const std::string kStageGeneralizeGraph = "[GraphOptimizePrepare][ShapeAndValueGeneralize][GeneralizeGraph]";
 
-const std::map<CompileStrategy, std::string> kCompileStrategyStrMap {
-        {CompileStrategy::COMPILE_STRATEGY_KEEP_OPTUNE, "set by fe: keep compiling in op tune"},
-        {CompileStrategy::COMPILE_STRATEGY_NO_TUNE, "NoTune"},
+const std::map<CompileStrategy, std::string> kCompileStrategyStrMap{
+    {CompileStrategy::COMPILE_STRATEGY_KEEP_OPTUNE, "set by fe: keep compiling in op tune"},
+    {CompileStrategy::COMPILE_STRATEGY_NO_TUNE, "NoTune"},
 };
 
-const std::map<RangeLimitType, bool> kRangeLimitBoolMap {
-    {RangeLimitType::LIMITED, true},
-    {RangeLimitType::UNLIMITED, false}
-};
+const std::map<RangeLimitType, bool> kRangeLimitBoolMap{{RangeLimitType::LIMITED, true},
+                                                        {RangeLimitType::UNLIMITED, false}};
 
 std::string GetCoreType(const std::string &engine_name) {
   if (engine_name == VECTOR_CORE_NAME || FEContextUtils::GetCoreType() == VECTOR_CORE_TYPE) {
@@ -78,11 +76,11 @@ std::string GetCoreType(const std::string &engine_name) {
 }
 
 void RestoreDataType(const ge::OpDescPtr &op_desc,
-    std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec) {
+                     std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec) {
   if (!in_out_changed_idx_vec.first.empty()) {
     for (auto &input_idx : in_out_changed_idx_vec.first) {
       auto input_desc = op_desc->MutableInputDesc(input_idx);
-      if(input_desc != nullptr) {
+      if (input_desc != nullptr) {
         input_desc->SetDataType(ge::DT_FLOAT);
       }
     }
@@ -108,7 +106,6 @@ void SetSgtSliceShaeForEachTensor(size_t tensor_idx, int32_t thread_idx, const g
                                   const ge::OpDesc::Vistor<ge::GeTensorDescPtr> &tensors,
                                   const vector<vector<vector<ffts::DimRange>>> &slice_info,
                                   const vector<vector<vector<int64_t>>> &ori_slice_shape, const string &attr_name) {
-
   vector<vector<int64_t>> slice_dims_head_tail;
   /* The shape is an array in which the first one is head slice shape and
    * the second one is the tail slice shape */
@@ -135,8 +132,7 @@ void SetSgtSliceShaeForEachTensor(size_t tensor_idx, int32_t thread_idx, const g
   (void)ge::AttrUtils::SetListListInt(tensor, attr_name, slice_dims_head_tail);
   FE_LOGD("Optype:%s, opname:%s, set thread %d's slice shape %s for tensor %s, tensor index %zu.",
           node->GetType().c_str(), node->GetName().c_str(), thread_idx,
-          StringUtils::IntegerVecToString(slice_shape.GetDims()).c_str(),
-          tensor->GetName().c_str(), tensor_idx);
+          StringUtils::IntegerVecToString(slice_shape.GetDims()).c_str(), tensor->GetName().c_str(), tensor_idx);
   FE_LOGD("Original shape is %s, shape is %s.",
           StringUtils::IntegerVecToString(tensor->GetOriginShape().GetDims()).c_str(),
           StringUtils::IntegerVecToString(tensor->MutableShape().GetDims()).c_str());
@@ -147,7 +143,7 @@ void ClearSgtAttr(std::vector<ge::Node *> &nodes) {
     auto op_desc = node->GetOpDesc();
     size_t input_size = op_desc->GetAllInputsSize();
     for (size_t i = 0; i < input_size; i++) {
-      auto input_desc =  op_desc->MutableInputDesc(i);
+      auto input_desc = op_desc->MutableInputDesc(i);
       if (input_desc == nullptr) {
         continue;
       }
@@ -160,7 +156,7 @@ void ClearSgtAttr(std::vector<ge::Node *> &nodes) {
 
     size_t output_size = op_desc->GetAllOutputsDescSize();
     for (size_t i = 0; i < output_size; i++) {
-      auto output_desc =  op_desc->MutableOutputDesc(i);
+      auto output_desc = op_desc->MutableOutputDesc(i);
       if (output_desc == nullptr) {
         continue;
       }
@@ -180,8 +176,7 @@ void SetThreadNodeName(const std::vector<ge::Node *> &nodes, vector<string> &old
   }
 }
 
-void SetNameForNodes(const vector<ge::Node *> &nodes,
-                     const vector<string> &names) {
+void SetNameForNodes(const vector<ge::Node *> &nodes, const vector<string> &names) {
   for (size_t i = 0; i < nodes.size(); i++) {
     nodes[i]->GetOpDesc()->SetName(names[i]);
   }
@@ -193,15 +188,14 @@ bool CheckIsInnerOpStore(const FEOpsStoreInfo &ops_store) {
   }
   return false;
 }
-} // namespace
+}  // namespace
 
 TbeOpStoreAdapter::TbeOpStoreAdapter(const std::string &engine_name) : engine_name_(engine_name) {}
 
 Status TbeOpStoreAdapter::SerialPreCompileOp(vector<PreCompileNodePara> &compile_para_vec) {
   for (auto &comp_para : compile_para_vec) {
     FE_CHECK(comp_para.node == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][Compile][SerialPreComOp] compPara.node is nullptr."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][Compile][SerialPreComOp] compPara.node is nullptr."), return FAILED);
     FE_LOGD("TbeOpStoreAdapter::PreCompile Op begin, node name: %s, node type %s.",
             comp_para.node->GetOpDesc()->GetName().c_str(), comp_para.node->GetOpDesc()->GetType().c_str());
 
@@ -230,7 +224,7 @@ Status TbeOpStoreAdapter::SerialPreCompileOp(vector<PreCompileNodePara> &compile
     bool result = PreBuildTbeOp(*tbe_op_info_ptr, 0, 0);
     if (!result) {
       ErrorMessageDetail error_msg(EM_COMPILE_FAILED,
-          {comp_para.node->GetOpDesc()->GetName(), comp_para.node->GetOpDesc()->GetType()});
+                                   {comp_para.node->GetOpDesc()->GetName(), comp_para.node->GetOpDesc()->GetType()});
       ReportErrorMessage(error_msg);
       REPORT_FE_ERROR("[SubGraphOpt][Compile][SerialPreComOp] Failed to pre-build Tbe op.");
       return FAILED;
@@ -260,13 +254,12 @@ Status TbeOpStoreAdapter::SetPreCompilePattern(ge::OpDescPtr op_desc, te::TbeOpI
   FE_LOGD("Node[%s]: the pattern after precompile is %s.", op_desc->GetName().c_str(), op_pattern.c_str());
   if (!ge::AttrUtils::SetStr(op_desc, op_desc->GetName() + kOpPattern, op_pattern) ||
       !ge::AttrUtils::SetStr(op_desc, kOpPattern, op_pattern)) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][SetPtn] %s set pattern attr failed.", op_desc->GetName().c_str());
-      return FAILED;
+    REPORT_FE_ERROR("[SubGraphOpt][Compile][SetPtn] %s set pattern attr failed.", op_desc->GetName().c_str());
+    return FAILED;
   }
 
-  FE_LOGD("After pre compile, core type and engine type of op[%s, %s] are [%s] and [%s].",
-          op_desc->GetNamePtr(), op_desc->GetTypePtr(),
-          op_info.GetOpCoreType().c_str(), op_info.GetEngineType().c_str());
+  FE_LOGD("After pre compile, core type and engine type of op[%s, %s] are [%s] and [%s].", op_desc->GetNamePtr(),
+          op_desc->GetTypePtr(), op_info.GetOpCoreType().c_str(), op_info.GetEngineType().c_str());
   if (op_info.GetOpCoreType() == "Default") {
     string core_type_str;
     if (op_info.GetEngineType() == VECTOR_CORE_TYPE) {
@@ -275,20 +268,20 @@ Status TbeOpStoreAdapter::SetPreCompilePattern(ge::OpDescPtr op_desc, te::TbeOpI
       FE_CHECK_NOTNULL(op_kernel_info_ptr);
       if (op_kernel_info_ptr->GetCoreType().empty()) {
         core_type_str = (PlatformUtils::Instance().GetCubeVecState() == CubeVecStateNew::CUBE_VEC_SPLIT)
-                        ? VECTOR_CORE_TYPE : AI_CORE_TYPE;
+                            ? VECTOR_CORE_TYPE
+                            : AI_CORE_TYPE;
       } else {
         core_type_str = op_kernel_info_ptr->GetCoreType();
       }
     }
     op_info.SetOpCoreType(core_type_str);
-    FE_LOGD("Fix core type of op[%s, %s] to [%s] for origin core type is Default.",
-            op_desc->GetNamePtr(), op_desc->GetTypePtr(), core_type_str.c_str());
+    FE_LOGD("Fix core type of op[%s, %s] to [%s] for origin core type is Default.", op_desc->GetNamePtr(),
+            op_desc->GetTypePtr(), core_type_str.c_str());
   }
 
   (void)ge::AttrUtils::SetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, op_info.GetOpCoreType());
-  FE_LOGD("Node[%s, %s]: do pre-compile successfully. Pattern is %s and core type is %s.",
-          op_desc->GetNamePtr(), op_desc->GetTypePtr(), op_pattern.c_str(),
-          op_info.GetOpCoreType().c_str());
+  FE_LOGD("Node[%s, %s]: do pre-compile successfully. Pattern is %s and core type is %s.", op_desc->GetNamePtr(),
+          op_desc->GetTypePtr(), op_pattern.c_str(), op_info.GetOpCoreType().c_str());
   return SUCCESS;
 }
 
@@ -319,8 +312,7 @@ Status TbeOpStoreAdapter::ProcessSuccPreCompTask(CompileTaskPara &task_para) con
     auto task_id = fin_task_pair.first;
     auto task_iter = task_para.task_node_map.find(task_id);
     if (task_iter == task_para.task_node_map.end()) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProSucTask] Thread[%lu], not find task[%lu]", GetCurThreadId(),
-                      task_id);
+      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProSucTask] Thread[%lu], not find task[%lu]", GetCurThreadId(), task_id);
       return FAILED;
     }
 
@@ -370,7 +362,8 @@ TbeOpInfoPtr TbeOpStoreAdapter::PreCompSetTbeOpInfo(PreCompileNodePara &comp_par
   TbeOpInfoPtr tbe_op_info_ptr;
   string engine_name = op_desc->GetOpEngineName();
   FE_MAKE_SHARED(tbe_op_info_ptr = std::make_shared<te::TbeOpInfo>(op_name, comp_para.op_dsl_file_path, opFuncName,
-                                                                   GetCoreType(engine_name)), return nullptr);
+                                                                   GetCoreType(engine_name)),
+                 return nullptr);
   tbe_op_info_ptr->SetRealName(op_desc->GetName());
   GetAndSetOpsPathNamePrefix(comp_para.op_kernel_info_ptr, *tbe_op_info_ptr);
 
@@ -464,8 +457,8 @@ Status TbeOpStoreAdapter::SetTensorDescShape(const ge::OpDescPtr &op_desc,
   (void)ge::AttrUtils::SetListInt(cur_tensor_desc, kSoftSyncDynOriShape, ori_shape_vec);
   (void)ge::AttrUtils::SetListInt(cur_tensor_desc, kSoftSyncDynShape, shape_vec);
   FE_LOGD("Set op[name:%s, type:%s] shape, ori_shape: %s, new shape: %s, old format: %s, new format: %s.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-          GetShapeDims(ori_shape).c_str(), GetShapeDims(new_shape).c_str(),
+          op_desc->GetName().c_str(), op_desc->GetType().c_str(), GetShapeDims(ori_shape).c_str(),
+          GetShapeDims(new_shape).c_str(),
           ge::TypeUtils::FormatToSerialString(shape_and_format_info.old_format).c_str(),
           ge::TypeUtils::FormatToSerialString(shape_and_format_info.new_format).c_str());
   return SUCCESS;
@@ -475,8 +468,8 @@ Status TbeOpStoreAdapter::SetTensorDescRange(const ge::OpDescPtr &op_desc,
                                              const ge::GeTensorDescPtr &cur_tensor_desc) const {
   vector<std::pair<int64_t, int64_t>> new_range_shape;
   vector<std::pair<int64_t, int64_t>> ori_shape_range = GetOriginShapeRange(*cur_tensor_desc.get());
-  vector<std::pair<int64_t, int64_t>> old_shape_range = GetAlignShapeRange(ori_shape_range,
-                                                                           cur_tensor_desc->GetOriginShape());
+  vector<std::pair<int64_t, int64_t>> old_shape_range =
+      GetAlignShapeRange(ori_shape_range, cur_tensor_desc->GetOriginShape());
   RangeAndFormat range_and_format_info = {cur_tensor_desc->GetOriginShape(),
                                           old_shape_range,
                                           new_range_shape,
@@ -502,14 +495,14 @@ Status TbeOpStoreAdapter::SetTensorDescRange(const ge::OpDescPtr &op_desc,
   }
   std::vector<std::pair<int64_t, int64_t>> &new_shape_range = range_and_format_info.new_range;
   if (cur_tensor_desc->SetShapeRange(new_shape_range) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[PreComp][SetShpRange] Set shape range of op[name:%s,type:%s] failed.",
-                    op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_FE_ERROR("[PreComp][SetShpRange] Set shape range of op[name:%s,type:%s] failed.", op_desc->GetName().c_str(),
+                    op_desc->GetType().c_str());
     return FAILED;
   }
   FE_LOGD("Set shape range to op[name:%s,type:%s]. old format: %u, new format: %u. old range: %s, new range: %s.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-          range_and_format_info.old_format, range_and_format_info.new_format,
-          ShapeRangeToStr(range_and_format_info.old_range).c_str(), ShapeRangeToStr(new_shape_range).c_str());
+          op_desc->GetName().c_str(), op_desc->GetType().c_str(), range_and_format_info.old_format,
+          range_and_format_info.new_format, ShapeRangeToStr(range_and_format_info.old_range).c_str(),
+          ShapeRangeToStr(new_shape_range).c_str());
   return SUCCESS;
 }
 
@@ -530,9 +523,9 @@ Status TbeOpStoreAdapter::GenerateSingleOpRange(const PreCompileNodePara &comp_p
     string engine_name = op_desc->GetOpEngineName();
     string op_name = op_desc->GetName();
     string op_func_name = op_desc->GetType();
-    FE_MAKE_SHARED(tbe_op_info_ptr =
-        std::make_shared<te::TbeOpInfo>(op_name, comp_para.op_dsl_file_path, op_func_name, GetCoreType(engine_name)),
-        return FAILED);
+    FE_MAKE_SHARED(tbe_op_info_ptr = std::make_shared<te::TbeOpInfo>(op_name, comp_para.op_dsl_file_path, op_func_name,
+                                                                     GetCoreType(engine_name)),
+                   return FAILED);
     tbe_op_info_ptr->SetRealName(op_name);
 
     bool is_dynamic_impl = IsOpDynamicImpl(op_desc);
@@ -555,8 +548,9 @@ Status TbeOpStoreAdapter::GenerateSingleOpRange(const PreCompileNodePara &comp_p
           return FAILED;
         }
         if (SetTensorDescRange(op_desc, cur_tensor_desc) != SUCCESS) {
-          REPORT_FE_ERROR("[PreComp][SetShpRange] Failed to set input shape range for op[name:%s,type:%s], index: [%zu].",
-                          op_desc->GetName().c_str(), op_desc->GetType().c_str(), i);
+          REPORT_FE_ERROR(
+              "[PreComp][SetShpRange] Failed to set input shape range for op[name:%s,type:%s], index: [%zu].",
+              op_desc->GetName().c_str(), op_desc->GetType().c_str(), i);
           return FAILED;
         }
         cur_tensor_desc->SetOriginShape(all_input_desc_bak.at(i)->GetOriginShape());
@@ -625,8 +619,8 @@ Status TbeOpStoreAdapter::ParallelPreCompileOp(vector<PreCompileNodePara> &compi
     bool result = PreBuildTbeOp(*comp_para.tbe_op_info_ptr, taskId, thread_id);
     if (!result) {
       // op_name,op_type,graph_id,thread_id,task_id
-      ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {comp_para.node->GetOpDesc()->GetName(),
-                                   comp_para.node->GetOpDesc()->GetType()});
+      ErrorMessageDetail error_msg(EM_COMPILE_FAILED,
+                                   {comp_para.node->GetOpDesc()->GetName(), comp_para.node->GetOpDesc()->GetType()});
       ReportErrorMessage(error_msg);
     }
 
@@ -669,12 +663,13 @@ Status TbeOpStoreAdapter::SetTaskFusionTask(const uint64_t thread_id, const int6
   if (ret != te::OP_BUILD_SUCC) {
     ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {first_node->GetName(), first_node->GetType()});
     ReportErrorMessage(error_msg);
-    REPORT_FE_ERROR("[SubGraphOpt][TaskFusion] Failed to do task fusion for nodes[%s, %s], task id[%lu], thread id[%lu].",
-                    first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][TaskFusion] Failed to do task fusion for nodes[%s, %s], task id[%lu], thread id[%lu].",
+        first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
     return FAILED;
   }
-  FE_LOGD("Set task fusion task for nodes[%s], task id[%lu], thread id[%lu].",
-          GetFusionNodesDescStr(nodes).c_str(), taskId, thread_id);
+  FE_LOGD("Set task fusion task for nodes[%s], task id[%lu], thread id[%lu].", GetFusionNodesDescStr(nodes).c_str(),
+          taskId, thread_id);
   task_para.task_num++;
   return SUCCESS;
 }
@@ -740,11 +735,11 @@ Status TbeOpStoreAdapter::SetSuperKernelTask(const uint64_t thread_id, const int
     ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {first_node->GetName(), first_node->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SPK] Failed to do super kernel compile for nodes[%s, %s], task id[%lu], thread id[%lu].",
-    first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
+                    first_node->GetName().c_str(), first_node->GetType().c_str(), taskId, thread_id);
     return FAILED;
   }
-  FE_LOGD("Set SuperKernelTask for nodes[%s], task id[%lu], thread id[%lu].",
-  GetFusionNodesDescStr(nodes).c_str(), taskId, thread_id);
+  FE_LOGD("Set SuperKernelTask for nodes[%s], task id[%lu], thread id[%lu].", GetFusionNodesDescStr(nodes).c_str(),
+          taskId, thread_id);
   task_para.task_num++;
   return SUCCESS;
 }
@@ -766,17 +761,17 @@ Status TbeOpStoreAdapter::SuperKernelCompile(const ScopeNodeIdMap &fusion_nodes_
       return FAILED;
     }
   }
-  
+
   if (WaitTaskFinish(task_para) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][SuperKernelCompile] Thread[%lu] failed to wait task finish.", thread_id);
     return FAILED;
   }
-  
+
   if (!task_para.failed_tasks.empty()) {
     REPORT_FE_ERROR("[SubGraphOpt][SuperKernelCompile] Thread[%lu] failed to wait task finish.", thread_id);
     return FAILED;
   }
-  
+
   for (const auto &task_pair : task_para.succ_tasks) {
     auto task_iter = task_para.task_scope_id_map.find(task_pair.first);
     if (task_iter != task_para.task_scope_id_map.end()) {
@@ -787,7 +782,7 @@ Status TbeOpStoreAdapter::SuperKernelCompile(const ScopeNodeIdMap &fusion_nodes_
       (void)task_pair.second.teNodeOpDesc->DelAttr(kBinFilePath);
     }
   }
-  
+
   FE_TIMECOST_END(SuperKernelCompile, "SuperKernelCompile")
   FE_LOGD("Finish SuperKernelCompile");
   return SUCCESS;
@@ -823,11 +818,12 @@ bool TbeOpStoreAdapter::CheckOpsPathPrefix(const ScopeNodeIdMap &fusion_nodes_ma
       if (!ge::AttrUtils::GetStr(node->GetOpDesc(), OPS_PATH_NAME_PREFIX, ops_path_name_prefix)) {
         FE_LOGW("Node[%s]: Failed to get ops_path_name_prefix", node->GetName().c_str());
         std::string un_supported_reason;
-        if (fe_ops_kernel_info_store_ptr_ == nullptr || !fe_ops_kernel_info_store_ptr_->CheckSupported(
-                                                                node->GetOpDesc(), un_supported_reason)) {
-          FE_LOGE("[ChkSpt][OpChk][Node %s, type %s] This op is not supported inside"
-                  " its implementation. Reason is %s",
-                  node->GetName().c_str(), node->GetType().c_str(), un_supported_reason.c_str());
+        if (fe_ops_kernel_info_store_ptr_ == nullptr ||
+            !fe_ops_kernel_info_store_ptr_->CheckSupported(node->GetOpDesc(), un_supported_reason)) {
+          FE_LOGE(
+              "[ChkSpt][OpChk][Node %s, type %s] This op is not supported inside"
+              " its implementation. Reason is %s",
+              node->GetName().c_str(), node->GetType().c_str(), un_supported_reason.c_str());
           return false;
         }
       }
@@ -937,8 +933,7 @@ inline bool TbeOpStoreAdapter::IsFuzzCompileStrategy(const CompileStrategy &comp
   return compile_strategy == CompileStrategy::COMPILE_STRATEGY_ONLINE_FUZZ;
 }
 
-Status TbeOpStoreAdapter::GetRangeLimit(const NodeGeneralInfoPtr &node_info_ptr,
-                                        const ge::NodePtr &node_ptr) const {
+Status TbeOpStoreAdapter::GetRangeLimit(const NodeGeneralInfoPtr &node_info_ptr, const ge::NodePtr &node_ptr) const {
   auto op_kernel_ptr = node_info_ptr->op_kernel;
   if (op_kernel_ptr == nullptr) {
     return SUCCESS;
@@ -949,8 +944,7 @@ Status TbeOpStoreAdapter::GetRangeLimit(const NodeGeneralInfoPtr &node_info_ptr,
     if (iter != kRangeLimitBoolMap.end()) {
       node_info_ptr->is_limited_range = iter->second;
     } else if (range_limit_type == RangeLimitType::DYNAMIC) {
-      (void)GetRangeLimitType(node_ptr, *(node_info_ptr->op_info.get()),
-                              node_info_ptr->is_limited_range);
+      (void)GetRangeLimitType(node_ptr, *(node_info_ptr->op_info.get()), node_info_ptr->is_limited_range);
     } else {
       FE_LOGW("Invalid limited value for node[%s].", node_ptr->GetName().c_str());
       return FAILED;
@@ -1010,8 +1004,7 @@ Status TbeOpStoreAdapter::ProcessLxFusionFailCompileTasks(CompileTaskPara &task_
     uint64_t task_id = iter->first;
     std::map<uint64_t, int64_t>::const_iterator scope_id_iter = task_para.task_scope_id_map.find(task_id);
     if (scope_id_iter == task_para.task_scope_id_map.end()) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] cannot find scope id by task id[%lu]",
-                      task_id);
+      REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcessLxFusionFailTask] cannot find scope id by task id[%lu]", task_id);
       return FAILED;
     }
 
@@ -1029,18 +1022,20 @@ Status TbeOpStoreAdapter::ProcessLxFusionFailCompileTasks(CompileTaskPara &task_
       for (auto &node : nodes_iter->second) {
         RemoveL1FusionScopeAttr(node->GetOpDesc());
         l1_fusion_failed_nodes.push_back(node->shared_from_this());
-        FE_LOGD("L1 fusion compile unsuccess node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
+        FE_LOGD("L1 fusion compile unsuccessful node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
       }
       continue;
     }
     // other nodes after lxfusion
     if (IsBuffFusOptimizedNodes(nodes_iter->second)) {
-      FE_LOGI("Compile nodes who are optimized by lxfusion not successfully. "
-              "Scope id[%ld], task id[%lu].", scope_id, task_id);
+      FE_LOGI(
+          "Compile nodes who are optimized by lxfusion not successfully. "
+          "Scope id[%ld], task id[%lu].",
+          scope_id, task_id);
       iter = task_para.failed_tasks.erase(iter);
       for (auto &node : nodes_iter->second) {
         buff_fus_failed_nodes.push_back(node->shared_from_this());
-        FE_LOGD("Other lxfusion compile unsuccess node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
+        FE_LOGD("Other lxfusion compile unsuccessful node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
       }
       continue;
     }
@@ -1082,7 +1077,10 @@ void TbeOpStoreAdapter::SaveMsTuneErrorMsg(CompileTaskPara &task_para) const {
 
 Status TbeOpStoreAdapter::RetryCompileFailOp(CompileTaskPara &task_para) {
   if (ProcessFailCompileTask(task_para, CompileStrategy::COMPILE_STRATEGY_OP_SPEC) == FAILED) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][RetryCompFailOp] Thread[%lu] failed when processing the task that had failed to compile.", GetCurThreadId());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][RetryCompFailOp] Thread[%lu] failed when processing the task that had failed to "
+        "compile.",
+        GetCurThreadId());
     return FAILED;
   }
   // wait for finish
@@ -1136,10 +1134,10 @@ Status TbeOpStoreAdapter::ProcessAllFailedCompileTasks(CompileTaskPara &task_par
       // !l1_fusion_failed_nodes.empty() - l1 fusion failed
       // task_para.failed_tasks.empty() - no other fusion failed except l1 and l2
       // buff_fus_compile_failed_nodes.empty() - no l2 fusion failed
-      bool is_only_l1_failed = !l1_fusion_failed_nodes.empty() && task_para.failed_tasks.empty() &&
-                               buff_fus_compile_failed_nodes.empty();
+      bool is_only_l1_failed =
+          !l1_fusion_failed_nodes.empty() && task_para.failed_tasks.empty() && buff_fus_compile_failed_nodes.empty();
       if (is_only_l1_failed) {
-        FE_LOGD("All unsuccess nodes are l1 fusion nodes and they will be backed off to ub fusion later");
+        FE_LOGD("All unsuccessful nodes are l1 fusion nodes and they will be backed off to ub fusion later");
         return SUCCESS;
       }
       return FAILED;
@@ -1167,7 +1165,6 @@ Status TbeOpStoreAdapter::ProcessAllFailedCompileTasks(CompileTaskPara &task_par
       for (auto &fin_task_pair : task_para.failed_tasks) {
         REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcFailedCompTask] Thread[%lu] failed to recompile single op[%s]",
                         GetCurThreadId(), fin_task_pair.second.teNodeOpDesc->GetName().c_str());
-
       }
       return FAILED;
     }
@@ -1200,8 +1197,10 @@ Status TbeOpStoreAdapter::ParallelCompileOp(CompileInfoParam &compile_info) {
   FE_TIMECOST_END(WaitTaskFinish, "ParallelCompileOp.WaitTaskFinish");
   // process success task
   if (ProcessSuccCompileTask(task_para) == FAILED) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had been successfully compiled.",
-                    GetCurThreadId());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had been successfully "
+        "compiled.",
+        GetCurThreadId());
     return FAILED;
   }
   if (compile_info.is_fusion_check) {
@@ -1213,13 +1212,17 @@ Status TbeOpStoreAdapter::ParallelCompileOp(CompileInfoParam &compile_info) {
     // process failed task
     if (ProcessAllFailedCompileTasks(task_para, compile_info.buff_fus_compile_failed_nodes,
                                      compile_info.l1_fusion_failed_nodes, compile_info.compile_strategy) != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had failed to compile.", GetCurThreadId());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had failed to compile.",
+          GetCurThreadId());
       return FAILED;
     }
     // process success task
     if (ProcessSuccCompileTask(task_para) == FAILED) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had been successfully compiled.",
-                      GetCurThreadId());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][ParalCompOp] Thread[%lu] failed when processing the task that had been successfully "
+          "compiled.",
+          GetCurThreadId());
       return FAILED;
     }
     FE_TIMECOST_END(TeFusion, "TeFusion during FEGraphOptimizer::OptimizeFusedGraph");
@@ -1235,12 +1238,12 @@ Status TbeOpStoreAdapter::SetOpCompileResult(const int64_t scope_id, const ge::O
   FE_CHECK_NOTNULL(compile_op_desc);
   CompileResultInfo com_ret_info;
   (void)ge::AttrUtils::GetStr(compile_op_desc, kJsonFilePath, com_ret_info.json_file_path);
-  FE_LOGD("Json path for node %s is %s, scope id is [%ld].",
-          compile_op_desc->GetNamePtr(), com_ret_info.json_file_path.c_str(), scope_id);
+  FE_LOGD("Json path for node %s is %s, scope id is [%ld].", compile_op_desc->GetNamePtr(),
+          com_ret_info.json_file_path.c_str(), scope_id);
 
   (void)ge::AttrUtils::GetStr(compile_op_desc, kBinFilePath, com_ret_info.bin_file_path);
-  FE_LOGD("Bin path for node %s is %s, scope id is [%ld].",
-          compile_op_desc->GetNamePtr(), com_ret_info.bin_file_path.c_str(), scope_id);
+  FE_LOGD("Bin path for node %s is %s, scope id is [%ld].", compile_op_desc->GetNamePtr(),
+          com_ret_info.bin_file_path.c_str(), scope_id);
 
   com_ret_info.json_ptr = compile_op_desc->TryGetExtAttr<TbeJsonPtr>(kJsonValuePtr, nullptr);
   com_ret_info.bin_ptr = compile_op_desc->TryGetExtAttr<ge::OpKernelBinPtr>(kBinValuePtr, nullptr);
@@ -1296,7 +1299,7 @@ Status TbeOpStoreAdapter::DoFuzzBuildTbeOp(std::vector<ge::Node *> &node_vec, ui
     ErrorMessageDetail error_msg(EM_COMPILE_FAILED, {op_desc->GetName(), op_desc->GetType()});
     ReportErrorMessage(error_msg);
     REPORT_FE_ERROR("[SubGraphOpt][Compile][DoFuzzBuild]Failed to fuzz compile te fusion op %s, tid:%lu, taskId:%lu.",
-        op_desc->GetName().c_str(), thread_id, taskId);
+                    op_desc->GetName().c_str(), thread_id, taskId);
     return FAILED;
   }
   FE_LOGD("Set op[%s] successfully, thread[%lu], taskId[%lu].", op_desc->GetName().c_str(), thread_id, taskId);
@@ -1499,16 +1502,16 @@ Status TbeOpStoreAdapter::WaitTaskFinish(CompileTaskPara &task_para) const {
 
 void TbeOpStoreAdapter::SubmitCompileFinishTrace(const uint64_t total_task_num) const {
   TraceMsgBasePtr compile_process_trace = nullptr;
-  FE_MAKE_SHARED(compile_process_trace = std::make_shared<CompileProcessTraceMsg>(total_task_num),
-                 return);
+  FE_MAKE_SHARED(compile_process_trace = std::make_shared<CompileProcessTraceMsg>(total_task_num), return);
   TraceHandleManager::Instance().SubmitGlobalTrace(compile_process_trace);
 }
 
-void TbeOpStoreAdapter::SubmitCompileProcessTrace(const uint64_t total_task_num, const uint64_t wait_task_num,
-  const uint64_t time_interval_threshold, const std::chrono::time_point<std::chrono::high_resolution_clock> &now_time,
-  std::chrono::time_point<std::chrono::high_resolution_clock> &last_trace_time) const {
+void TbeOpStoreAdapter::SubmitCompileProcessTrace(
+    const uint64_t total_task_num, const uint64_t wait_task_num, const uint64_t time_interval_threshold,
+    const std::chrono::time_point<std::chrono::high_resolution_clock> &now_time,
+    std::chrono::time_point<std::chrono::high_resolution_clock> &last_trace_time) const {
   uint64_t time_interval =
-          static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(now_time - last_trace_time).count());
+      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(now_time - last_trace_time).count());
   if (time_interval > time_interval_threshold) {
     TraceMsgBasePtr compile_process_trace = nullptr;
     FE_MAKE_SHARED(compile_process_trace = std::make_shared<CompileProcessTraceMsg>(total_task_num, wait_task_num),
@@ -1518,15 +1521,15 @@ void TbeOpStoreAdapter::SubmitCompileProcessTrace(const uint64_t total_task_num,
   }
 }
 
-void TbeOpStoreAdapter::SubmitLongTimeConstTrace(const vector<te::FinComTask> &fin_com_task,
-  const CompileTaskPara &task_para, const uint64_t time_interval_threshold,
-  const std::chrono::time_point<std::chrono::high_resolution_clock> &now_time,
-  std::chrono::time_point<std::chrono::high_resolution_clock> &last_trace_time) const {
+void TbeOpStoreAdapter::SubmitLongTimeConstTrace(
+    const vector<te::FinComTask> &fin_com_task, const CompileTaskPara &task_para,
+    const uint64_t time_interval_threshold, const std::chrono::time_point<std::chrono::high_resolution_clock> &now_time,
+    std::chrono::time_point<std::chrono::high_resolution_clock> &last_trace_time) const {
   if (fin_com_task.empty() || task_para.fusion_nodes_map == nullptr) {
     return;
   }
   uint64_t op_time_interval =
-          static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(now_time - last_trace_time).count());
+      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(now_time - last_trace_time).count());
   last_trace_time = now_time;
   if (op_time_interval < time_interval_threshold) {
     return;
@@ -1631,7 +1634,7 @@ void TbeOpStoreAdapter::RollBackAttributes(std::vector<ge::Node *> &failed_nodes
   }
 }
 
-Status TbeOpStoreAdapter::SetFailedOpCompileTask(ge::Node* node, CompileTaskPara &task_para,
+Status TbeOpStoreAdapter::SetFailedOpCompileTask(ge::Node *node, CompileTaskPara &task_para,
                                                  const CompileStrategy &compile_strategy) {
   int64_t tmp_imply_type = 0;
   if (!ge::AttrUtils::GetInt(node->GetOpDesc(), FE_IMPLY_TYPE, tmp_imply_type)) {
@@ -1644,8 +1647,7 @@ Status TbeOpStoreAdapter::SetFailedOpCompileTask(ge::Node* node, CompileTaskPara
   int64_t scope_id = ScopeAllocator::Instance().AllocateNegScopeId();
   task_para.fusion_nodes_map->insert(make_pair(scope_id, node_vec));
   if (!(ScopeAllocator::SetScopeAttr(node->GetOpDesc(), scope_id))) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcFailedCompTask] set op[%s] scope id failed.",
-                    node->GetName().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcFailedCompTask] set op[%s] scope id failed.", node->GetName().c_str());
     return FAILED;
   }
   FE_LOGD("Node[%s, %s]: do fusion unsuccessful. Now compile it as single op, which scopeid is %ld.",
@@ -1654,8 +1656,7 @@ Status TbeOpStoreAdapter::SetFailedOpCompileTask(ge::Node* node, CompileTaskPara
   // set compile task
   std::vector<ge::NodePtr> buff_fus_to_del_nodes;
 
-  Status result = SetTaskForOneScope(node_vec, scope_id, buff_fus_to_del_nodes, task_para,
-                                     compile_strategy);
+  Status result = SetTaskForOneScope(node_vec, scope_id, buff_fus_to_del_nodes, task_para, compile_strategy);
   if (result != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcFailedCompTask] failed to re-compile single op %s.",
                     node->GetName().c_str());
@@ -1670,8 +1671,7 @@ void TbeOpStoreAdapter::ClearTaskPara(CompileTaskPara &task_para) const {
   task_para.scope_task_ids_map.clear();
   task_para.failed_task_able_to_delete.clear();
 }
-Status TbeOpStoreAdapter::ProcessFailCompileTask(CompileTaskPara &task_para,
-                                                 const CompileStrategy &compile_strategy) {
+Status TbeOpStoreAdapter::ProcessFailCompileTask(CompileTaskPara &task_para, const CompileStrategy &compile_strategy) {
   if (task_para.failed_tasks.empty()) {
     ClearTaskPara(task_para);
     return SUCCESS;
@@ -1690,8 +1690,7 @@ Status TbeOpStoreAdapter::ProcessFailCompileTask(CompileTaskPara &task_para,
 
     int64_t pre_scope_id = pre_scope_id_map[task_id];
     FE_LOGD("Retry compile %s, taskId[%lu], tid[%lu].",
-            (*task_para.fusion_nodes_map)[pre_scope_id][0]->GetName().c_str(),
-            task_id, GetCurThreadId());
+            (*task_para.fusion_nodes_map)[pre_scope_id][0]->GetName().c_str(), task_id, GetCurThreadId());
 
     std::vector<ge::Node *> &failed_nodes = (*task_para.fusion_nodes_map)[pre_scope_id];
     RollBackAttributes(failed_nodes);
@@ -1719,7 +1718,8 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
   const string TBE_CHECK_SUPPORTED_FUNC_NAME = "CheckOpSupported";
   ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, te::TbeOpInfo &, te::CheckSupportedInfo &>(
       TBE_CHECK_SUPPORTED_FUNC_NAME, CheckTbeSupported);
-  FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_CHECK_SUPPORTED_FUNC_NAME.c_str()), return FAILED);
+  FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_CHECK_SUPPORTED_FUNC_NAME.c_str()),
+           return FAILED);
 
   const string TBE_PRE_COMPILER_FUNC_NAME = "PreBuildTbeOp";
   ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, te::TbeOpInfo &, uint64_t, uint64_t>(
@@ -1732,15 +1732,17 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_GET_OP_INFO_FUNC_NAME.c_str()), return FAILED);
 
   const string TBE_COMPILER_FUNC_NAME = "TeFusion";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, std::vector<ge::Node *>, ge::OpDescPtr,
-      const std::vector<ge::NodePtr> &, uint64_t, uint64_t, const std::string &>(
-      TBE_COMPILER_FUNC_NAME, TeFusion);
+  ret = plugin_manager_ptr_param
+            ->GetFunctionFromTbePlugin<te::OpBuildResCode, std::vector<ge::Node *>, ge::OpDescPtr,
+                                       const std::vector<ge::NodePtr> &, uint64_t, uint64_t, const std::string &>(
+                TBE_COMPILER_FUNC_NAME, TeFusion);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_COMPILER_FUNC_NAME.c_str()), return FAILED);
 
   const string TBE_COMPILER_FUNC_NAME_V = "TeFusionV";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, std::vector<ge::Node *>, ge::OpDescPtr,
-      const std::vector<ge::NodePtr> &, uint64_t, uint64_t, uint64_t, const std::string &>(
-      TBE_COMPILER_FUNC_NAME_V, TeFusionV);
+  ret =
+      plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, std::vector<ge::Node *>, ge::OpDescPtr,
+                                                         const std::vector<ge::NodePtr> &, uint64_t, uint64_t, uint64_t,
+                                                         const std::string &>(TBE_COMPILER_FUNC_NAME_V, TeFusionV);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_COMPILER_FUNC_NAME_V.c_str()), return FAILED);
 
   const string TBE_FUZZ_COMPILER_FUNC_NAME = "FuzzBuildTbeOp";
@@ -1749,8 +1751,9 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_FUZZ_COMPILER_FUNC_NAME.c_str()), return FAILED);
 
   const string TBE_TASK_FUSION_FUNC_NAME = "TaskFusion";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, const std::vector<ge::Node *> &, ge::OpDescPtr,
-      uint64_t, uint64_t>(TBE_TASK_FUSION_FUNC_NAME, TaskFusionFunc);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, const std::vector<ge::Node *> &,
+                                                           ge::OpDescPtr, uint64_t, uint64_t>(TBE_TASK_FUSION_FUNC_NAME,
+                                                                                              TaskFusionFunc);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_TASK_FUSION_FUNC_NAME.c_str()), return FAILED);
 
   const string TBE_WAIT_FINISH_FUNC_NAME = "WaitAllFinished";
@@ -1768,8 +1771,10 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_FINALIZE_FUNC_NAME.c_str()), return FAILED);
 
   const string TBE_FINALIZE_SESSION_INFO_FUNC_NAME = "TbeFinalizeSessionInfo";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const std::string &>(TBE_FINALIZE_SESSION_INFO_FUNC_NAME, TbeFinalizeSessionInfo);
-  FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_FINALIZE_SESSION_INFO_FUNC_NAME.c_str()), return FAILED);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const std::string &>(
+      TBE_FINALIZE_SESSION_INFO_FUNC_NAME, TbeFinalizeSessionInfo);
+  FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TBE_FINALIZE_SESSION_INFO_FUNC_NAME.c_str()),
+           return FAILED);
 
   const string CHECK_IS_TBE_GENERALIZEFUNC_REGISTERED = "CheckIsTbeGeneralizeFuncRegistered";
   ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, bool &>(
@@ -1778,13 +1783,13 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
            return FAILED);
 
   const string TE_GENERALIZE = "TeGeneralize";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, \
-      const te::TE_GENERALIZE_TYPE &, const ge::NodePtr &>(TE_GENERALIZE, TeGeneralize);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, const te::TE_GENERALIZE_TYPE &,
+                                                           const ge::NodePtr &>(TE_GENERALIZE, TeGeneralize);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", TE_GENERALIZE.c_str()), return FAILED);
 
   const string GET_SPECIFIC_INFO = "GetOpSpecificInfo";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, \
-      std::string &>(GET_SPECIFIC_INFO, GetOpSpecificInfo);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, std::string &>(
+      GET_SPECIFIC_INFO, GetOpSpecificInfo);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", GET_SPECIFIC_INFO.c_str()), return FAILED);
 
   const string GET_OP_UNIQUE_KEY_FUNC_NAME = "GetOpUniqueKeys";
@@ -1793,27 +1798,31 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", GET_OP_UNIQUE_KEY_FUNC_NAME.c_str()), return FAILED);
 
   const string DYNAMIC_SHAPE_RANGE_CHECK = "DynamicShapeRangeCheck";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, \
-      bool &, std::vector<size_t> &, std::vector<size_t> &>(DYNAMIC_SHAPE_RANGE_CHECK, DynamicShapeRangeCheck);
+  ret =
+      plugin_manager_ptr_param
+          ->GetFunctionFromTbePlugin<bool, const te::TbeOpInfo &, bool &, std::vector<size_t> &, std::vector<size_t> &>(
+              DYNAMIC_SHAPE_RANGE_CHECK, DynamicShapeRangeCheck);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", DYNAMIC_SHAPE_RANGE_CHECK.c_str()), return FAILED);
 
   const string QUERYOPPATTERN = "QueryOpPattern";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool,
-      std::vector<std::pair<std::string, std::string>> &>(QUERYOPPATTERN, QueryOpPattern);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, std::vector<std::pair<std::string, std::string>> &>(
+      QUERYOPPATTERN, QueryOpPattern);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", QUERYOPPATTERN.c_str()), return FAILED);
 
   const string GET_ALL_COMPILE_STATISTICS = "GetAllCompileStatistics";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<void,
-          std::vector<std::string> &>(GET_ALL_COMPILE_STATISTICS, GetAllCompileStatistics);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<void, std::vector<std::string> &>(GET_ALL_COMPILE_STATISTICS,
+                                                                                             GetAllCompileStatistics);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", GET_ALL_COMPILE_STATISTICS.c_str()), return FAILED);
 
   const string ISOPPKERNELINSTALL = "IsOppKernelInstalled";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, bool, int64_t>(ISOPPKERNELINSTALL, IsOppKernelInstalled);
+  ret =
+      plugin_manager_ptr_param->GetFunctionFromTbePlugin<bool, bool, int64_t>(ISOPPKERNELINSTALL, IsOppKernelInstalled);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", ISOPPKERNELINSTALL.c_str()), return FAILED);
 
   const string BUILD_SUPER_KERNEL_FUNC_NAME = "BuildSuperKernel";
-  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, const std::vector<ge::Node *> &, ge::OpDescPtr,
-        uint64_t, uint64_t>(BUILD_SUPER_KERNEL_FUNC_NAME, BuildSuperKernel);
+  ret = plugin_manager_ptr_param->GetFunctionFromTbePlugin<te::OpBuildResCode, const std::vector<ge::Node *> &,
+                                                           ge::OpDescPtr, uint64_t, uint64_t>(
+      BUILD_SUPER_KERNEL_FUNC_NAME, BuildSuperKernel);
   FE_CHECK(ret != SUCCESS, FE_LOGE("Failed to get function[%s].", BUILD_SUPER_KERNEL_FUNC_NAME.c_str()), return FAILED);
 
   const string GET_KERNEL_META_DIR = "GetKernelMetaDir";
@@ -1823,8 +1832,7 @@ Status TbeOpStoreAdapter::InitTbeFunctions(const PluginManagerPtr &plugin_manage
 }
 
 std::string TbeOpStoreAdapter::GetCurKernelMetaDir() const {
-  FE_CHECK(GetKernelMetaDir == nullptr,
-           REPORT_FE_ERROR("The function GetKernelMetaDir of TeFusion is nullptr."),
+  FE_CHECK(GetKernelMetaDir == nullptr, REPORT_FE_ERROR("The function GetKernelMetaDir of TeFusion is nullptr."),
            return "");
   return GetKernelMetaDir();
 }
@@ -1846,8 +1854,8 @@ void TbeOpStoreAdapter::SetSPKAttr(std::vector<ge::Node *> &nodes, const ge::OpD
   std::string bin_file_path;
   (void)ge::AttrUtils::GetStr(op_desc_ptr, "json_file_path", json_file_path);
   (void)ge::AttrUtils::GetStr(op_desc_ptr, "bin_file_path", bin_file_path);
-  FE_LOGD("[SetSPKAttr] Op[%s, %s] get json file path[%s], bin file path[%s].",
-          node->GetNamePtr(), node->GetTypePtr(), json_file_path.c_str(), bin_file_path.c_str());
+  FE_LOGD("[SetSPKAttr] Op[%s, %s] get json file path[%s], bin file path[%s].", node->GetNamePtr(), node->GetTypePtr(),
+          json_file_path.c_str(), bin_file_path.c_str());
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), "json_file_path", json_file_path);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), "bin_file_path", bin_file_path);
 }
@@ -1855,8 +1863,7 @@ void TbeOpStoreAdapter::SetSPKAttr(std::vector<ge::Node *> &nodes, const ge::OpD
 Status TbeOpStoreAdapter::InitializeInnerHelp() {
   FE_MAKE_SHARED(tbe_info_assembler_ptr_ = std::make_shared<TbeInfoAssembler>(), return FAILED);
   FE_CHECK(tbe_info_assembler_ptr_ == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][InitializeInner][InitTbeFunc] tbeInfoAssemblerPtr_ is null."),
-           return FAILED);
+           REPORT_FE_ERROR("[GraphOpt][InitializeInner][InitTbeFunc] tbeInfoAssemblerPtr_ is null."), return FAILED);
   if (tbe_info_assembler_ptr_->Initialize() != SUCCESS) {
     return FAILED;
   }
@@ -1882,7 +1889,7 @@ void TbeOpStoreAdapter::DealOpDebugDir(std::map<std::string, std::string> &new_o
   FE_LOGD("Start to deal debug dir.");
   auto option_iter = new_options.find(ge::DEBUG_DIR);
   if ((option_iter == new_options.end()) || (option_iter->second == "")) {
-    char *path = new(std::nothrow) char[kMaxPathSize];
+    char *path = new (std::nothrow) char[kMaxPathSize];
     if (path == nullptr) {
       return;
     }
@@ -1923,8 +1930,7 @@ Status TbeOpStoreAdapter::InitializeInner(const std::map<std::string, std::strin
 
   FE_MAKE_SHARED(plugin_manager_ptr = std::make_shared<PluginManager>(plugin_mgr_name), return FAILED);
   FE_CHECK(plugin_manager_ptr == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][InitializeInner][InitTbeFunc]pluginManagerPtr is nullptr."),
-           return FAILED);
+           REPORT_FE_ERROR("[GraphOpt][InitializeInner][InitTbeFunc]pluginManagerPtr is nullptr."), return FAILED);
 
   if (plugin_manager_ptr->OpenPlugin(real_path) != SUCCESS) {
     REPORT_FE_ERROR("[FEInit][OpPluginSo] Failed to open plugin so.");
@@ -2046,7 +2052,7 @@ Status TbeOpStoreAdapter::Finalize() {
   return SUCCESS;
 }
 
-Status TbeOpStoreAdapter::FinalizeSessionInfo(const std::string& session_graph_id) {
+Status TbeOpStoreAdapter::FinalizeSessionInfo(const std::string &session_graph_id) {
   FE_LOGD("Start to finalize tbe session info.");
 
   // release TBE session resources
@@ -2061,7 +2067,7 @@ Status TbeOpStoreAdapter::FinalizeSessionInfo(const std::string& session_graph_i
   return SUCCESS;
 }
 
-// we reset intput or output dtype when precision mode is allow_fp32_tofp16 and intput or
+// we reset input or output dtype when precision mode is allow_fp32_tofp16 and input or
 // output dtype is all supporrted fp16 in op store.
 // input0.dtype=float16,int8,float16   ======>  update input dtype from fp32 to fp16
 // input0.dtype=float,int8,float16   ======>  do not update input dtype from fp32 to fp16
@@ -2071,11 +2077,11 @@ bool TbeOpStoreAdapter::UpdateInputOrOutputDtype(const ge::OpDescPtr &op_desc, c
     return false;
   }
   bool need_update_dtype_when_op_checksupport_flag = false;
-  (void) ge::AttrUtils::GetBool(tensor_desc, NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT,
-                                need_update_dtype_when_op_checksupport_flag);
+  (void)ge::AttrUtils::GetBool(tensor_desc, NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT,
+                               need_update_dtype_when_op_checksupport_flag);
   if (need_update_dtype_when_op_checksupport_flag) {
-    FE_LOGD("Node[%s, %s]: current precision mode is allow_fp32_tofp16.",
-            op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    FE_LOGD("Node[%s, %s]: current precision mode is allow_fp32_tofp16.", op_desc->GetName().c_str(),
+            op_desc->GetType().c_str());
     FE_LOGD("Node[%s, %s]: input_or_output[%zu] dtype only supports fp16. Modify dtype from fp32 to fp16.",
             op_desc->GetName().c_str(), op_desc->GetType().c_str(), input_or_output_index);
     tensor_desc->SetDataType(ge::DT_FLOAT16);
@@ -2084,9 +2090,9 @@ bool TbeOpStoreAdapter::UpdateInputOrOutputDtype(const ge::OpDescPtr &op_desc, c
   return false;
 }
 
-void TbeOpStoreAdapter::UpdateDtypeByAllowFp32ToFp16(const ge::OpDescPtr &op_desc,
-    size_t input_or_output_index, std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec,
-    const bool &isinput) const {
+void TbeOpStoreAdapter::UpdateDtypeByAllowFp32ToFp16(
+    const ge::OpDescPtr &op_desc, size_t input_or_output_index,
+    std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec, const bool &isinput) const {
   FE_LOGD("Current precision mode is allow_fp32_tofp16, update dtype.");
   std::vector<size_t> input_idx_vec;
   std::vector<size_t> output_idx_vec;
@@ -2109,8 +2115,8 @@ void TbeOpStoreAdapter::UpdateDtypeByAllowFp32ToFp16(const ge::OpDescPtr &op_des
     in_out_changed_idx_vec.second = output_idx_vec;
   }
 }
-Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(const ge::NodePtr &node,
-    const OpKernelInfoPtr &op_kernel_info_ptr,
+Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(
+    const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
     std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec) const {
   /* If the Auto Mix precision switch is on, we need to do the
    * checksupport in op by fp16, when the current datatype is fp32 and
@@ -2121,8 +2127,8 @@ Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(const ge::NodePtr &node
     return SUCCESS;
   }
   PrecisionPolicy op_kernel_policy = op_kernel_info_ptr->GetPrecisionPolicy();
-  PrecisionPolicy op_precision_policy = Configuration::Instance(engine_name_).GetPrecisionPolicy(
-      op_desc->GetType(), op_kernel_policy);
+  PrecisionPolicy op_precision_policy =
+      Configuration::Instance(engine_name_).GetPrecisionPolicy(op_desc->GetType(), op_kernel_policy);
   bool white_list_op = op_precision_policy == WHITE;
 
   int64_t keep_dtype = 0;
@@ -2130,7 +2136,7 @@ Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(const ge::NodePtr &node
   fe::PrecisionMode precision_mode = fe::PrecisionMode::ENUM_UNDEFINED;
   FeGraphUtils::GetPrecisionModeFromGraph(*(node->GetOwnerComputeGraph()), precision_mode);
   bool fp16_flag = (precision_mode == fe::PrecisionMode::ENUM_FORCE_FP16 ||
-                   ((precision_mode == fe::PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16) && white_list_op)) &&
+                    ((precision_mode == fe::PrecisionMode::ENUM_ALLOW_MIX_PRECISION_FP16) && white_list_op)) &&
                    (keep_dtype != 1);
   bool bf16_flag = (precision_mode == fe::PrecisionMode::ENUM_ALLOW_MIX_PRECISION_BF16 && white_list_op);
 
@@ -2141,7 +2147,7 @@ Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(const ge::NodePtr &node
     final_dtype = ge::DT_FLOAT16;
   } else if (bf16_flag) {
     FE_LOGI("Node %s is in white list and the mix precision_bf16 switch is on. Change datatype to DT_BF16",
-             op_desc->GetName().c_str());
+            op_desc->GetName().c_str());
     final_dtype = ge::DT_BF16;
   } else if (precision_mode == fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16) {
     UpdateDtypeByAllowFp32ToFp16(op_desc, op_desc->GetAllInputsSize(), in_out_changed_idx_vec, true);
@@ -2182,8 +2188,7 @@ Status TbeOpStoreAdapter::UpdateTensorByMixPrecisionMode(const ge::NodePtr &node
 
 bool TbeOpStoreAdapter::AssembleTbeByMixPrecisionMode(const ge::NodePtr &node,
                                                       const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                      const bool &is_dynamic_impl,
-                                                      te::TbeOpInfo &op_info) const {
+                                                      const bool &is_dynamic_impl, te::TbeOpInfo &op_info) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   string op_name = op_desc_ptr->GetName();
   string op_type = op_desc_ptr->GetType();
@@ -2221,15 +2226,14 @@ bool TbeOpStoreAdapter::CheckSupport(const ge::NodePtr &node, CheckSupportParam 
    * the original dtype is fp32. */
   std::string op_dsl_file_path;
   if (!GetOpDslFilePath(op_desc, check_param.op_kernel_ptr, op_dsl_file_path)) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][CheckSupport][%s, %s] Failed to get op dsl file path.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][CheckSupport][%s, %s] Failed to get op dsl file path.", op_name.c_str(),
+                    op_type.c_str());
     return false;
   }
 
   te::TbeOpInfo op_info(op_name, op_dsl_file_path, op_type, engine_name_);
   GetAndSetOpsPathNamePrefix(check_param.op_kernel_ptr, op_info);
-  if (!AssembleTbeByMixPrecisionMode(node, check_param.op_kernel_ptr,
-      is_dynamic_impl, op_info)) {
+  if (!AssembleTbeByMixPrecisionMode(node, check_param.op_kernel_ptr, is_dynamic_impl, op_info)) {
     return false;
   }
 
@@ -2247,8 +2251,8 @@ bool TbeOpStoreAdapter::CheckSupport(const ge::NodePtr &node, CheckSupportParam 
     check_param.dynamic_compile_static = check_res.dynamicCompileStatic;
     bool result = ConvertCheckSupportResult(node, check_res.reason, check_res.isSupported);
     if (result) {
-      FE_LOGD("[ChkSpt][OpChk] Node[%s, %s]: this op is supported by implementation.",
-              op_name.c_str(), op_type.c_str());
+      FE_LOGD("[ChkSpt][OpChk] Node[%s, %s]: this op is supported by implementation.", op_name.c_str(),
+              op_type.c_str());
     } else {
       reason = check_res.reason;
       FE_LOGI("[ChkSpt][OpChk] Node[%s, %s]: this op is not supported by implementation. Reason is [%s].",
@@ -2271,8 +2275,7 @@ bool TbeOpStoreAdapter::CheckUnsupportReason(const ge::NodePtr &node, const std:
   return false;
 }
 
-bool TbeOpStoreAdapter::ConvertCheckSupportResult(const ge::NodePtr &node,
-                                                  const std::string &reason,
+bool TbeOpStoreAdapter::ConvertCheckSupportResult(const ge::NodePtr &node, const std::string &reason,
                                                   te::CheckSupportedResult &is_supported) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   (void)op_desc_ptr->DelAttr(STR_PARTIALLY_SUPPORTED);
@@ -2302,8 +2305,7 @@ Status TbeOpStoreAdapter::ParseJsonByKey(const std::string &json_str, const std:
 }
 
 template <typename T>
-Status TbeOpStoreAdapter::GetOpSpecificInfoByKey(const te::TbeOpInfo &op_info, const std::string &key,
-                                                 T &value) const {
+Status TbeOpStoreAdapter::GetOpSpecificInfoByKey(const te::TbeOpInfo &op_info, const std::string &key, T &value) const {
   FE_CHECK(GetOpSpecificInfo == nullptr,
            REPORT_FE_ERROR("[AssembleTbeInfo][GetOpSpecificInfoByKey] function GetOpSpecificInfo is nullptr."),
            return FAILED);
@@ -2319,17 +2321,14 @@ bool TbeOpStoreAdapter::GetSelectOpFormat(const ge::NodePtr &node, std::string &
   gert::ExeResGenerationCtxBuilder exe_ctx_builder;
   auto res_ptr_holder = exe_ctx_builder.CreateOpCheckContext(*node.get());
   FE_CHECK(res_ptr_holder == nullptr,
-           FE_LOGW("Node[%s, %s] res_ptr_holder is null.", node->GetNamePtr(), node->GetTypePtr()),
-           return false);
+           FE_LOGW("Node[%s, %s] res_ptr_holder is null.", node->GetNamePtr(), node->GetTypePtr()), return false);
   auto op_check_content = reinterpret_cast<gert::OpCheckContext *>(res_ptr_holder->context_);
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
       static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion()));
   FE_CHECK(space_registry == nullptr,
-           FE_LOGW("Node[%s, %s] space_registry is null.", node->GetNamePtr(), node->GetTypePtr()),
-           return false);
+           FE_LOGW("Node[%s, %s] space_registry is null.", node->GetNamePtr(), node->GetTypePtr()), return false);
   auto funcs = space_registry->GetOpImpl(node->GetType().c_str());
-  FE_CHECK(funcs == nullptr,
-           FE_LOGW("Node[%s, %s] funcs is null.", node->GetNamePtr(), node->GetTypePtr()),
+  FE_CHECK(funcs == nullptr, FE_LOGW("Node[%s, %s] funcs is null.", node->GetNamePtr(), node->GetTypePtr()),
            return false);
   FE_CHECK(funcs->op_select_format == nullptr,
            FE_LOGW("Node[%s, %s] op_select_format func is null.", node->GetNamePtr(), node->GetTypePtr()),
@@ -2368,8 +2367,8 @@ Status TbeOpStoreAdapter::GetLXOpCoreType(const ge::NodePtr &node, const OpKerne
   FE_LOGD("Node[%s, %s]: start to GetLXOpCoreType.", op_name.c_str(), op_type.c_str());
   std::string op_dsl_file_path;
   if (!GetOpDslFilePath(node->GetOpDesc(), op_kernel_info_ptr, op_dsl_file_path)) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetLXOpCoreType][%s, %s] Failed to get op dsl file path.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetLXOpCoreType][%s, %s] Failed to get op dsl file path.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -2377,8 +2376,8 @@ Status TbeOpStoreAdapter::GetLXOpCoreType(const ge::NodePtr &node, const OpKerne
   tbe_op_info.SetDynamicImpl(is_dynamic_impl);
   // 2. assemble the information
   if (tbe_info_assembler_ptr_->AssembleTbeInfo(node, op_kernel_info_ptr, engine_name_, tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetLXOpCoreType][Op %s, type %s] failed to assemble_tbe_info.", op_name.c_str(),
-                    op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetLXOpCoreType][Op %s, type %s] failed to assemble_tbe_info.",
+                    op_name.c_str(), op_type.c_str());
     return FAILED;
   }
   SetOpSpecificInfoToTbeOpInfo(op_kernel_info_ptr, tbe_op_info);
@@ -2390,8 +2389,8 @@ Status TbeOpStoreAdapter::GetLXOpCoreType(const ge::NodePtr &node, const OpKerne
     return FAILED;
   }
 
-  FE_LOGD("Node[%s, %s]: end to GetLXOpCoreType. The lx_op_core_type_str is %s.", op_name.c_str(),
-          op_type.c_str(), lx_op_core_type_str.c_str());
+  FE_LOGD("Node[%s, %s]: end to GetLXOpCoreType. The lx_op_core_type_str is %s.", op_name.c_str(), op_type.c_str(),
+          lx_op_core_type_str.c_str());
   return SUCCESS;
 }
 
@@ -2436,8 +2435,8 @@ Status TbeOpStoreAdapter::SelectOpFormat(const ge::NodePtr &node, const OpKernel
 
   std::string op_dsl_file_path;
   if (!GetOpDslFilePath(op_desc, op_kernel_info_ptr, op_dsl_file_path)) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][SelectOpFormat][%s, %s] Failed to get op dsl file path.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][SelectOpFormat][%s, %s] Failed to get op dsl file path.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -2508,8 +2507,7 @@ void TbeOpStoreAdapter::SetOpTilingKey(std::vector<ge::Node *> &nodes, const ge:
       FE_LOGD("Node[%s,%s] op tiling key is:%s", cur_op_name.c_str(), cur_op_type.c_str(), op_tiling_key.c_str());
       (void)ge::AttrUtils::SetStr(cur_op_desc_ptr, kTilingRemoveDuplicates, op_tiling_key);
     } else {
-      FE_LOGD("Node[%s, %s]: Cannot find op tiling key after compiling.", cur_op_name.c_str(),
-              cur_op_type.c_str());
+      FE_LOGD("Node[%s, %s]: Cannot find op tiling key after compiling.", cur_op_name.c_str(), cur_op_type.c_str());
     }
   }
 }
@@ -2571,8 +2569,7 @@ Status TbeOpStoreAdapter::GetSgtSliceTaskRollbackNode(CompileTaskPara &task_para
     } else {
       //
       auto scope_able_to_del = task_para.failed_task_able_to_delete.find(scope_id);
-      if (scope_able_to_del != task_para.failed_task_able_to_delete.end() &&
-          scope_able_to_del->second) {
+      if (scope_able_to_del != task_para.failed_task_able_to_delete.end() && scope_able_to_del->second) {
         FE_LOGD("Delete task %lu for scope %ld", task_itr->first, scope_id);
         task_itr = failed_tasks.erase(task_itr);
       } else {
@@ -2596,52 +2593,47 @@ Status TbeOpStoreAdapter::GetSgtSliceTaskRollbackNode(CompileTaskPara &task_para
   return SUCCESS;
 }
 
-Status TbeOpStoreAdapter::SetSgtTensorSliceInfoToNodes(std::vector<ge::Node*> &compile_nodes,
+Status TbeOpStoreAdapter::SetSgtTensorSliceInfoToNodes(std::vector<ge::Node *> &compile_nodes,
                                                        int32_t thread_idx) const {
   for (const auto &node : compile_nodes) {
     ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
     slice_info_ptr = node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
     if (slice_info_ptr == nullptr) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][SetSgtTensSliceInfo] This node has no slice info. op_type:%s, op_name:%s.",
-                      node->GetType().c_str(), node->GetName().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][SetSgtTensSliceInfo] This node has no slice info. op_type:%s, op_name:%s.",
+          node->GetType().c_str(), node->GetName().c_str());
       return FAILED;
     }
     // set slice shape to tensor
     auto input_tensors = node->GetOpDesc()->GetAllInputsDescPtr();
     FE_LOGD("Node[%s]: set input slice attribute.", node->GetName().c_str());
     for (size_t i = 0; i < input_tensors.size(); i++) {
-      SetSgtSliceShaeForEachTensor(i, thread_idx, node, input_tensors,
-          slice_info_ptr->input_tensor_slice,
-          slice_info_ptr->ori_input_tensor_shape, ATTR_NAME_SGT_SLICE_SHAPE);
-      SetSgtSliceShaeForEachTensor(i, thread_idx, node, input_tensors,
-          slice_info_ptr->ori_input_tensor_slice,
-          slice_info_ptr->ori_input_tensor_shape, ATTR_NAME_SGT_ORI_SLICE_SHAPE);
+      SetSgtSliceShaeForEachTensor(i, thread_idx, node, input_tensors, slice_info_ptr->input_tensor_slice,
+                                   slice_info_ptr->ori_input_tensor_shape, ATTR_NAME_SGT_SLICE_SHAPE);
+      SetSgtSliceShaeForEachTensor(i, thread_idx, node, input_tensors, slice_info_ptr->ori_input_tensor_slice,
+                                   slice_info_ptr->ori_input_tensor_shape, ATTR_NAME_SGT_ORI_SLICE_SHAPE);
     }
 
     auto output_tensors = node->GetOpDesc()->GetAllOutputsDescPtr();
     FE_LOGD("Node[%s]: set output slice attribute.", node->GetName().c_str());
     for (size_t i = 0; i < output_tensors.size(); i++) {
-      SetSgtSliceShaeForEachTensor(i, thread_idx, node, output_tensors,
-          slice_info_ptr->output_tensor_slice,
-          slice_info_ptr->ori_output_tensor_shape, ATTR_NAME_SGT_SLICE_SHAPE);
-      SetSgtSliceShaeForEachTensor(i, thread_idx, node, output_tensors,
-          slice_info_ptr->ori_output_tensor_slice,
-          slice_info_ptr->ori_output_tensor_shape, ATTR_NAME_SGT_ORI_SLICE_SHAPE);
+      SetSgtSliceShaeForEachTensor(i, thread_idx, node, output_tensors, slice_info_ptr->output_tensor_slice,
+                                   slice_info_ptr->ori_output_tensor_shape, ATTR_NAME_SGT_SLICE_SHAPE);
+      SetSgtSliceShaeForEachTensor(i, thread_idx, node, output_tensors, slice_info_ptr->ori_output_tensor_slice,
+                                   slice_info_ptr->ori_output_tensor_shape, ATTR_NAME_SGT_ORI_SLICE_SHAPE);
     }
   }
   return SUCCESS;
 }
 
-Status TbeOpStoreAdapter::SetTaskForOneScope(std::vector<ge::Node *> &nodes,
-                                             const int64_t scope_id,
-                                             const std::vector<ge::NodePtr> &to_del_nodes,
-                                             CompileTaskPara &task_para,
+Status TbeOpStoreAdapter::SetTaskForOneScope(std::vector<ge::Node *> &nodes, const int64_t scope_id,
+                                             const std::vector<ge::NodePtr> &to_del_nodes, CompileTaskPara &task_para,
                                              const CompileStrategy &compile_strategy) {
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   slice_info_ptr = nodes[0]->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
   string first_node_name = nodes[0]->GetName();
   // normal nodes
-  if (!OpIsAutoThread(slice_info_ptr)) { // normal op or manual mode
+  if (!OpIsAutoThread(slice_info_ptr)) {  // normal op or manual mode
     task_para.task_num++;
     uint64_t taskId = GetAtomicId();
     task_para.task_scope_id_map.insert(std::make_pair(taskId, scope_id));
@@ -2654,7 +2646,7 @@ Status TbeOpStoreAdapter::SetTaskForOneScope(std::vector<ge::Node *> &nodes,
                       first_node_name.c_str());
       return FAILED;
     }
-  } else { // slice nodes
+  } else {  // slice nodes
     // slice nodes need to clear attribute ATTR_NAME_SGT_SLICE_SHAPE
     // and ATTR_NAME_SGT_ORI_SLICE_SHAPE
     ClearSgtAttr(nodes);
@@ -2687,16 +2679,15 @@ Status TbeOpStoreAdapter::SetTaskForOneScope(std::vector<ge::Node *> &nodes,
         task_para.scope_task_ids_map.emplace(scope_id, task_id_vec);
       }
 
-      FE_LOGD("%lu, taskId %lu, scope_id %ld, set slice %d compile %s task.", GetCurThreadId(), taskId,
-              scope_id, i, first_node_name.c_str());
+      FE_LOGD("%lu, taskId %lu, scope_id %ld, set slice %d compile %s task.", GetCurThreadId(), taskId, scope_id, i,
+              first_node_name.c_str());
 
       // Before compilation, we need to give all nodes a thread node
       // name to find all the precomp information.
       vector<string> old_names;
       SetThreadNodeName(nodes, old_names, i);
       // set compile task
-      if (SgtSetTeTask(nodes, taskId, to_del_nodes,
-                       compile_strategy, slice_shape_index) != SUCCESS) {
+      if (SgtSetTeTask(nodes, taskId, to_del_nodes, compile_strategy, slice_shape_index) != SUCCESS) {
         REPORT_FE_ERROR("[SubGraphOpt][Compile][SetSgtSliceTask] The op[%s] set compile task failed.",
                         first_node_name.c_str());
         SetNameForNodes(nodes, old_names);
@@ -2719,8 +2710,8 @@ Status TbeOpStoreAdapter::SetSgtSliceTaskToTeFusion(CompileTaskPara &task_para,
   for (auto &iter : *task_para.fusion_nodes_map) {
     if (SetTaskForOneScope(iter.second, iter.first, to_del_nodes, task_para,
                            CompileStrategy::COMPILE_STRATEGY_OP_SPEC) != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][SetTsk]Failed to set task for scope %ld with first node %s.",
-                      iter.first, iter.second[0]->GetName().c_str());
+      REPORT_FE_ERROR("[SubGraphOpt][Compile][SetTsk]Failed to set task for scope %ld with first node %s.", iter.first,
+                      iter.second[0]->GetName().c_str());
       return FAILED;
     }
   }
@@ -2755,8 +2746,8 @@ Status TbeOpStoreAdapter::ProcessSuccSgtSliceTask(CompileTaskPara &task_para) co
       FE_LOGD("Process sgt task with first node %s.", fin_task_itr->second.teNodeOpDesc->GetName().c_str());
 
       FE_LOGD("tid[%lu], get taskId[%lu], scope_id[%ld]", GetCurThreadId(), task_id, scope_id);
-      if (SetOpCompileResult(scope_id, fin_task_itr->second.teNodeOpDesc, false,
-                             *task_para.compile_ret_map) == FAILED) {
+      if (SetOpCompileResult(scope_id, fin_task_itr->second.teNodeOpDesc, false, *task_para.compile_ret_map) ==
+          FAILED) {
         REPORT_FE_ERROR("[SubGraphOpt][Compile][ProcSucSgtSlcTsk] %s set op json path failed.",
                         (*task_para.fusion_nodes_map)[scope_id][0]->GetName().c_str());
         return FAILED;
@@ -2804,8 +2795,10 @@ Status TbeOpStoreAdapter::CompileMultiKernelSliceOp(ScopeNodeIdMap &fusion_nodes
 
   // process success normal task
   if (ProcessSuccCompileTask(task_para) == FAILED) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][CompSgtSliceOp] Thread[%lu] failed when processing the task that had been successfully compiled.",
-                    GetCurThreadId());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][CompSgtSliceOp] Thread[%lu] failed when processing the task that had been successfully "
+        "compiled.",
+        GetCurThreadId());
     return FAILED;
   }
   // failed tasks with no slicemap need to be recompiled
@@ -2836,8 +2829,8 @@ Status TbeOpStoreAdapter::SetTbeOpSliceInfo(const ge::NodePtr &node_ptr, OpKerne
           op_type.c_str());
   std::string op_dsl_file_path;
   if (!GetOpDslFilePath(op_desc_ptr, op_kernel_info_ptr, op_dsl_file_path)) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][SetTbeOpSliceInfo][%s, %s] Failed to get op dsl file path.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][SetTbeOpSliceInfo][%s, %s] Failed to get op dsl file path.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -2863,8 +2856,7 @@ Status TbeOpStoreAdapter::SetTbeOpSliceInfo(const ge::NodePtr &node_ptr, OpKerne
   Status status = GetOpInfo(op_info, op_slice_info_str);
   if (status == te::LX_QUERY_SUCC) {
     (void)ge::AttrUtils::SetStr(op_desc_ptr, OP_SLICE_INFO, op_slice_info_str);
-    FE_LOGD("Obtain slice info %s from tbe api for node[%s].", op_slice_info_str.c_str(),
-            op_name.c_str());
+    FE_LOGD("Obtain slice info %s from tbe api for node[%s].", op_slice_info_str.c_str(), op_name.c_str());
   } else {
     FE_LOGD("Not obtain slice info from tbe api for node[%s].", op_name.c_str());
   }
@@ -2872,13 +2864,14 @@ Status TbeOpStoreAdapter::SetTbeOpSliceInfo(const ge::NodePtr &node_ptr, OpKerne
 }
 
 Status TbeOpStoreAdapter::GeneralizeNode(const ge::NodePtr &node, const te::TbeOpInfo &op_info,
-    te::TE_GENERALIZE_TYPE generalize_type) {
+                                         te::TE_GENERALIZE_TYPE generalize_type) {
   FE_LOGI("Begin to generalize node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
   auto op_desc = node->GetOpDesc();
-  FE_CHECK(op_desc == nullptr,
-           FE_LOGW("[GraphOptimizePrepare][ShapeAndValueGeneralize][GeneralizeGraph] Thread[%lu]: failed to get op_desc.",
-                   GetCurThreadId()),
-           return FAILED);
+  FE_CHECK(
+      op_desc == nullptr,
+      FE_LOGW("[GraphOptimizePrepare][ShapeAndValueGeneralize][GeneralizeGraph] Thread[%lu]: failed to get op_desc.",
+              GetCurThreadId()),
+      return FAILED);
 
   node->GetOpDesc()->DelAttr(ATTR_NAME_UNKNOWN_SHAPE);
   FE_LOGD("Begin to run function[TeGeneralize], node[%s, %s].", node->GetName().c_str(), node->GetType().c_str());
@@ -2905,15 +2898,16 @@ Status TbeOpStoreAdapter::GetRangeLimitType(const ge::NodePtr &node_ptr, const t
   } else if (limit_type == "unlimited") {
     is_limited = false;
   } else {
-    FE_LOGW("[GraphOptimizePrepare][Generalize] node[%s] rangeLimit[%s] from tbe is invalid.",
-            node_name.c_str(), limit_type.c_str());
+    FE_LOGW("[GraphOptimizePrepare][Generalize] node[%s] rangeLimit[%s] from tbe is invalid.", node_name.c_str(),
+            limit_type.c_str());
     is_limited = false;
   }
   return SUCCESS;
 }
 
 Status TbeOpStoreAdapter::LimitedNodesCheck(bool &is_support, const te::TbeOpInfo &tbe_op_info,
-    std::vector<size_t> &upper_limited_input_indexs, std::vector<size_t> &lower_limited_input_indexs) {
+                                            std::vector<size_t> &upper_limited_input_indexs,
+                                            std::vector<size_t> &lower_limited_input_indexs) {
   if (!DynamicShapeRangeCheck(tbe_op_info, is_support, upper_limited_input_indexs, lower_limited_input_indexs)) {
     return FAILED;
   }
@@ -2950,8 +2944,8 @@ bool TbeOpStoreAdapter::GetOpDslFilePath(const ge::OpDescPtr &op_desc, const OpK
   } else {
     op_dsl_file_path = op_store_info.op_impl_file_path;
   }
-  FE_LOGD("Op dsl file path of op[%s, %s] is [%s].",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_dsl_file_path.c_str());
+  FE_LOGD("Op dsl file path of op[%s, %s] is [%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+          op_dsl_file_path.c_str());
   return true;
 }
 
@@ -2974,8 +2968,8 @@ Status TbeOpStoreAdapter::GetOpUniqueKeys(const ge::NodePtr &node, const OpKerne
   FE_LOGD("Op[name=%s,type=%s]: start to GetOpUniqueKey.", op_name.c_str(), op_type.c_str());
   std::string op_dsl_file_path;
   if (!GetOpDslFilePath(op_desc, op_kernel_info_ptr, op_dsl_file_path)) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey][%s, %s] Failed to get op dsl file path.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey][%s, %s] Failed to get op dsl file path.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -2984,33 +2978,31 @@ Status TbeOpStoreAdapter::GetOpUniqueKeys(const ge::NodePtr &node, const OpKerne
   tbe_op_info.SetDynamicImpl(IsOpDynamicImpl(op_desc));
   // 2. assemble the information
   if (tbe_info_assembler_ptr_->AssembleTbeInfo(node, op_kernel_info_ptr, engine_name_, tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey][%s, %s] Failed to assemble_tbe_info.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey][%s, %s] Failed to assemble_tbe_info.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
   SetOpSpecificInfoToTbeOpInfo(op_kernel_info_ptr, tbe_op_info);
 
   // 3. call the function of TeFusion
   FE_CHECK(GetOpUniqueKeyFunc == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey] Function GetOpUniqueKey is null."),
-           return FAILED);
+           REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOpUniqueKey] Function GetOpUniqueKey is null."), return FAILED);
   if (!GetOpUniqueKeyFunc(tbe_op_info, op_unique_keys)) {
     FE_LOGW("[GraphOpt][Setcheck][GetOpUniqueKey][Op %s, type %s] Failed to call GetOpUniqueKey function.",
             op_name.c_str(), op_type.c_str());
     return FAILED;
   }
 
-  FE_LOGD("End of GetOpUniqueKey, op unique key size of op[%s, %s] is [%zu].",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_unique_keys.size());
+  FE_LOGD("End of GetOpUniqueKey, op unique key size of op[%s, %s] is [%zu].", op_desc->GetName().c_str(),
+          op_desc->GetType().c_str(), op_unique_keys.size());
   return SUCCESS;
 }
 
-Status TbeOpStoreAdapter::FeedNodeGeneralInfo(const ge::NodePtr &node_ptr,
-                                              NodeGeneralInfoPtr &node_info_ptr) const {
+Status TbeOpStoreAdapter::FeedNodeGeneralInfo(const ge::NodePtr &node_ptr, NodeGeneralInfoPtr &node_info_ptr) const {
   Status ret = FeedNodeGeneralInfoFromOpStore(node_ptr, node_info_ptr);
   if (ret != SUCCESS) {
-    FE_LOGD("Node[name:%s, type;%s] get general info unsuccessful",
-            node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+    FE_LOGD("Node[name:%s, type;%s] get general info unsuccessful", node_ptr->GetName().c_str(),
+            node_ptr->GetType().c_str());
     return ret;
   }
   return GetRangeLimit(node_info_ptr, node_ptr);
@@ -3031,7 +3023,7 @@ Status TbeOpStoreAdapter::FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node
     UnSupportedReason sub_store_reason;
     OpStoreAdapterPtr op_store_adapter = nullptr;
     op_kernel_ptr = OpsKernelManager::Instance(engine_name_)
-        .GetOpKernelInfoByOpType(ops_store.fe_ops_store_name, node_ptr->GetType());
+                        .GetOpKernelInfoByOpType(ops_store.fe_ops_store_name, node_ptr->GetType());
     if (op_kernel_ptr == nullptr) {
       continue;
     }
@@ -3049,8 +3041,9 @@ Status TbeOpStoreAdapter::FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node
                                                                  node_ptr->GetType(), GetCoreType(engine_name_)),
                    return OP_STORE_MAKE_SHARED_FAILED);
     if (tbe_info_assembler_ptr_->AssembleTbeInfo(node_ptr, op_kernel_ptr, engine_name_, *op_info_ptr) != SUCCESS) {
-      FE_LOGW("[GraphOpt][ShapeAndValueGeneralize][CheckIsGeneralizableGraph] Node[%s, %s]: failed to assemble tbe info.",
-              node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+      FE_LOGW(
+          "[GraphOpt][ShapeAndValueGeneralize][CheckIsGeneralizableGraph] Node[%s, %s]: failed to assemble tbe info.",
+          node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
       return INTERNAL_ERROR;
     }
     SetOpSpecificInfoToTbeOpInfo(op_kernel_ptr, *op_info_ptr);
@@ -3062,12 +3055,11 @@ Status TbeOpStoreAdapter::FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node
     node_info_ptr->is_support_dynamic_shape = op_kernel_ptr->IsSupportDynamicShape();
     return SUCCESS;
   }
-  FE_MAKE_SHARED(op_info_ptr = std::make_shared<te::TbeOpInfo>(tbe_op_info_bk),
-                 return OP_STORE_MAKE_SHARED_FAILED);
+  FE_MAKE_SHARED(op_info_ptr = std::make_shared<te::TbeOpInfo>(tbe_op_info_bk), return OP_STORE_MAKE_SHARED_FAILED);
   node_info_ptr->is_found_in_opstore = false;
   node_info_ptr->op_info = op_info_ptr;
-  FE_LOGD("Could not found the op in opstores, tbeopinfo is default, node[%s, %s].",
-          node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+  FE_LOGD("Could not found the op in opstores, tbeopinfo is default, node[%s, %s].", node_ptr->GetName().c_str(),
+          node_ptr->GetType().c_str());
   return SUCCESS;
 }
 
@@ -3120,9 +3112,9 @@ bool TbeOpStoreAdapter::IsNeedSkipOpJudge(const ge::NodePtr &node,
     return false;
   }
   std::string tile_fwk_op_flag_str;
-  if (ParseJsonByKey(op_select_format_str,  kTileFwkOpFlag, tile_fwk_op_flag_str) != SUCCESS) {
-    FE_LOGW("Node[%s, %s]: cannot get tileFwkOp from op_select_format_str[%s].",
-            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), op_select_format_str.c_str());
+  if (ParseJsonByKey(op_select_format_str, kTileFwkOpFlag, tile_fwk_op_flag_str) != SUCCESS) {
+    FE_LOGW("Node[%s, %s]: cannot get tileFwkOp from op_select_format_str[%s].", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr(), op_select_format_str.c_str());
     return false;
   }
   FE_LOGD("Node[%s, %s]: tile_fwk_op_flag_str is %s.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(),

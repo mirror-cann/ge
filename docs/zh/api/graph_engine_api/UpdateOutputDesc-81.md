@@ -88,4 +88,3 @@ graphStatus类型：更新TensorDesc成功，返回GRAPH\_SUCCESS，否则，返
 ## 约束说明<a name="section18475057"></a>
 
 无。
-

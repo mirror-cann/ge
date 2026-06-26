@@ -50,7 +50,7 @@ usage()
   echo "    -w Build whole process st"
   echo "    -c Build ut/st with coverage tag"
   echo "    -r Run ut or st after compile ut or st"
-  echo "    -f Filter parameter while runing ut or st"
+  echo "    -f Filter parameter while running ut or st"
   echo "    -p Specify ascend install path"
   echo "    -d Download the baseline libs by specified date, such as -d20220426"
   echo "    -j[n] Set the number of threads used for building AIR, default is 8"
@@ -148,7 +148,7 @@ checkopts()
         exit 1
     esac
   done
-  
+
   if [[ "X$ENABLE_LLT_COV" = "Xon" ]]; then
     ENABLE_GCOV="true"
     echo "[INFO] GCOV compilation enabled (--coverage -fprofile-arcs -ftest-coverage)"

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,8 +17,9 @@
 
 namespace ge {
 namespace {
-std::vector<std::string> view_op_type = {kTransposeType, kBroadcastType, kSliceType, kSplitType, kConcatType, kGatherType, "Sum",
-                                         "Mean",         "Max",          "Min",      "Prod",      "Any",       "All"};
+std::vector<std::string> view_op_type = {kTransposeType, kBroadcastType, kSliceType, kSplitType, kConcatType,
+                                         kGatherType,    "Sum",          "Mean",     "Max",      "Min",
+                                         "Prod",         "Any",          "All"};
 Status GetSingleNextNode(NodePtr &node, NodePtr &peer_in_node) {
   std::vector<NodePtr> peer_in_nodes;
   GE_ASSERT_SUCCESS(asc_adapt::GetPeerInNodes(node, peer_in_nodes, 0));
@@ -329,7 +330,7 @@ bool CanBackwardSimplified(const NodePtr &next_node) {
   if (!CheckBackwardCommon(next_node)) {
     return false;
   }
-  
+
   if (next_node->GetAllOutDataAnchorsSize() > 1U) {
     // 多输出时不在后移
     return false;
@@ -403,7 +404,7 @@ Status CheckNodeSupportsScalarInput(const NodePtr &compute_node, int32_t input_i
  */
 bool CheckScalarInputSupport(const NodePtr &next_node, const std::vector<NodePtr> &bro_nodes) {
   GE_ASSERT_NOTNULL(std::dynamic_pointer_cast<ge::AscNode>(next_node));
-  
+
   auto in_data_anchor_size = next_node->GetAllInDataAnchorsSize();
   for (uint32_t i = 0U; i < in_data_anchor_size; ++i) {
     // 获取当前输入分支的节点
@@ -417,7 +418,7 @@ bool CheckScalarInputSupport(const NodePtr &next_node, const std::vector<NodePtr
       if (!bro_nodes.empty()) {
         GE_ASSERT_SUCCESS(GetBroAxises(bro_nodes, bro_axes));
       }
-      
+
       // 检查计算节点是否支持Scalar输入
       bool is_support = false;
       GE_ASSERT_SUCCESS(CheckNodeSupportsScalarInput(next_node, i, bro_axes, is_support));
@@ -868,7 +869,7 @@ Status CollectCandidateMultiRefNodes(const AscGraph &graph, std::vector<NodePtr>
  */
 Status ExtractBroadcastChainFromNode(const NodePtr &node, std::vector<NodePtr> &bro_nodes) {
   NodePtr cur_node = node;
-  
+
   // 先检查当前节点是否是多引用节点，如果是，继续向上查找Broadcast节点
   if (cur_node != nullptr && cur_node->GetType() != kBroadcastType) {
     NodePtr pre_node;
@@ -879,7 +880,7 @@ Status ExtractBroadcastChainFromNode(const NodePtr &node, std::vector<NodePtr> &
   // 循环收集Broadcast节点
   while (cur_node != nullptr && cur_node->GetType() == kBroadcastType) {
     bro_nodes.push_back(cur_node);
-    
+
     // 获取前驱节点
     NodePtr pre_node;
     if (GetPeerOutNodeSafe(cur_node, pre_node, 0) != SUCCESS) {
@@ -887,7 +888,7 @@ Status ExtractBroadcastChainFromNode(const NodePtr &node, std::vector<NodePtr> &
     }
     cur_node = pre_node;
   }
-  
+
   // 反转顺序，使最前面的Broadcast节点在列表开头
   std::reverse(bro_nodes.begin(), bro_nodes.end());
   return SUCCESS;
@@ -898,7 +899,7 @@ Status ExtractBroadcastChainFromNode(const NodePtr &node, std::vector<NodePtr> &
  */
 Status TraceBranchToMergeNode(const NodePtr &start_node, NodePtr &merge_node, std::vector<NodePtr> &branch_nodes) {
   NodePtr cur_node = start_node;
-  std::unordered_set<NodePtr> visited_nodes; // 记录已经访问过的节点，避免循环依赖
+  std::unordered_set<NodePtr> visited_nodes;  // 记录已经访问过的节点，避免循环依赖
 
   // 循环追踪分支，直到找到回归节点或确定无法找到
   while (cur_node != nullptr) {
@@ -1039,7 +1040,7 @@ Status UpdateTopoIdsForMultiRefBackward(const NodePtr &merge_node, const std::ve
  * 断开分支与Broadcast节点的连接
  */
 Status DisconnectBranchesFromBroadcast(const NodePtr &last_bro_node, std::vector<OutDataAnchorPtr> &branch_out_anchors,
-                                      std::vector<InDataAnchorPtr> &branch_in_anchors) {
+                                       std::vector<InDataAnchorPtr> &branch_in_anchors) {
   auto bro_out_anchor = last_bro_node->GetOutDataAnchor(0);
   auto peer_in_anchors = bro_out_anchor->GetPeerInDataAnchors();
 

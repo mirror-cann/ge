@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -103,7 +103,7 @@ ge::graphStatus StubExpandDimsInferShapeV1(ge::Operator &op) {
     if (!(axis_nums == 0 && axis_desc->MutableShape().GetDims().size() == 0)) {
       string reason = "axis input must be a tensor with a single value, actually rank = " + std::to_string(axis_nums);
       REPORT_INNER_ERR_MSG("E19999", "[Node:%s] Check input axis shape failed, as %s", op.GetName().c_str(),
-                         reason.c_str());
+                           reason.c_str());
       return GRAPH_PARAM_INVALID;
     }
   }
@@ -127,7 +127,7 @@ ge::graphStatus StubExpandDimsInferShapeV1(ge::Operator &op) {
       string reason = "input shape range rank should be same with input shape rank, actually shape_rank=" +
                       std::to_string(x_shape_size) + ", shape_range_rank=" + std::to_string(x_range.size());
       REPORT_INNER_ERR_MSG("E19999", "[Node:%s] Check input x shape range failed, as %s", op.GetName().c_str(),
-                         reason.c_str());
+                           reason.c_str());
       return GRAPH_FAILED;
     }
     int64_t max_range_value = 1;
@@ -145,14 +145,14 @@ ge::graphStatus StubExpandDimsInferShapeV1(ge::Operator &op) {
   auto pbuff = tensor_axis->GetData().GetData();
   if (pbuff == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "[Node:%s] Get attr value from axis input failed, as data buff is null",
-                       op.GetName().c_str());
+                         op.GetName().c_str());
     return GRAPH_FAILED;
   }
   int64_t axis = 0;
   if (axis_type == DT_INT32) {
-    axis = *const_cast<int32_t*>(reinterpret_cast<const int32_t*>(pbuff));
+    axis = *const_cast<int32_t *>(reinterpret_cast<const int32_t *>(pbuff));
   } else if (axis_type == DT_INT64) {
-    axis = *const_cast<int64_t*>(reinterpret_cast<const int64_t*>(pbuff));
+    axis = *const_cast<int64_t *>(reinterpret_cast<const int64_t *>(pbuff));
   }
 
   std::vector<int64_t> vec_dim;
@@ -183,9 +183,10 @@ ge::graphStatus StubExpandDimsInferShapeV1(ge::Operator &op) {
     return GRAPH_SUCCESS;
   }
   if (x_range.size() != x_shape_size) {
-    REPORT_INNER_ERR_MSG("E19999", "[Node:%s] Check input x shape range failed, as input shape range size num should be "
-                       "same with input shape size, actually shape_rank=%zu, shape_range_rank=%zu",
-                       op.GetName().c_str(), x_shape_size, x_range.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[Node:%s] Check input x shape range failed, as input shape range size num should be "
+                         "same with input shape size, actually shape_rank=%zu, shape_range_rank=%zu",
+                         op.GetName().c_str(), x_shape_size, x_range.size());
     return GRAPH_FAILED;
   }
   x_range.emplace(x_range.begin() + axis, std::pair<int64_t, int64_t>{1, 1});
@@ -210,18 +211,19 @@ optiling::CompileInfoPtr StubOpParseFuncV4(const ge::Operator &op, const ge::Asc
   return info;
 }
 
-bool StubOpTilingFuncV4OnRun(const ge::Operator &op, const optiling::CompileInfoPtr compile_info, optiling::OpRunInfoV2 &op_run_info) {
+bool StubOpTilingFuncV4OnRun(const ge::Operator &op, const optiling::CompileInfoPtr compile_info,
+                             optiling::OpRunInfoV2 &op_run_info) {
   op_run_info.SetTilingKey(11);
   op_run_info.SetBlockDim(2);
   op_run_info.SetClearAtomic(true);
-  op_run_info.SetWorkspaces({1,2});
+  op_run_info.SetWorkspaces({1, 2});
   op_run_info.SetTilingCond(1);
   int64_t data1 = 123;
   int64_t data2 = 456;
   op_run_info.AddTilingData(data1);
   op_run_info.AddTilingData(data2);
   // check compile info
-  std::string compile_json = dynamic_cast<StubCompileInfoJson*>(compile_info.get())->GetJsonStr();
+  std::string compile_json = dynamic_cast<StubCompileInfoJson *>(compile_info.get())->GetJsonStr();
   if (compile_json != "testStubOpParseFuncV4") {
     return false;
   }
@@ -237,11 +239,11 @@ bool StubOpTilingFuncV3(const ge::Operator &op, const void *compile_info, optili
   op_run_info.SetTilingKey(12);
   return true;
 }
-} // namespace
+}  // namespace
 
 TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_InferShape_On_Input_Dependency) {
   // mock infer_func
-  auto expanddims_infer_func = [](ge::Operator &v) { return StubExpandDimsInferShapeV1(v);}; // simulate operator_reg
+  auto expanddims_infer_func = [](ge::Operator &v) { return StubExpandDimsInferShapeV1(v); };  // simulate operator_reg
   ge::InferShapeFuncRegister(EXPANDDIMS, expanddims_infer_func);
 
   auto graph = ShareGraph::BuildDataDependencyNodeGraph();
@@ -249,9 +251,9 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_InferShape_
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
-  
+
   // start lowering
-  bg::ValueHolder::PopGraphFrame(); // 不需要BgTest自带的Frame
+  bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "E2E_Expanddims_Graph");
@@ -260,38 +262,41 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_InferShape_
   ASSERT_NE(model_executor, nullptr);
 
   auto allocator = memory::CachingMemAllocator::GetAllocator();
-  auto mem_block = allocator->Malloc(24*4);
+  auto mem_block = allocator->Malloc(24 * 4);
 
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
   auto outputs = FakeTensors({1, 2, 3, 4}, 1);
-  int32_t data_i1[1] = {2}; // axis value
+  int32_t data_i1[1] = {2};  // axis value
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{1, 2, 3, 4}, {1, 2, 3, 4}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_INT32, mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(Tensor{{{1, 2, 3, 4}, {1, 2, 3, 4}},
+                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                     kOnDeviceHbm,
+                                     ge::DT_INT32,
+                                     mem_block->GetAddr()});
   auto i1 = FakeValue<Tensor>(Tensor{{{}, {}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnHost, ge::DT_INT32, &data_i1});
 
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
-                                    
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
-                                    
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
+
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
+
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // input x shape [1, 2, 3, 4]  input_axis value [2]
   // expect output shape[1,2,1,3,4]
-  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape(), gert::Shape({1,2,1,3,4})); // check output shape
+  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape(), gert::Shape({1, 2, 1, 3, 4}));  // check output shape
   aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
-
 TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tiling_v4) {
   // mock infer_func & tiling _func for Add
-  auto add_infer_func = [](ge::Operator &v) { return StubAddInferShapeV1(v);}; // simulate operator_reg
+  auto add_infer_func = [](ge::Operator &v) { return StubAddInferShapeV1(v); };  // simulate operator_reg
   auto node_type = "AddTestCompatibleV4";
   ge::InferShapeFuncRegister(node_type, add_infer_func);
   // mock tiling func
@@ -300,12 +305,12 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   auto graph = ShareGraph::BuildSingleNodeGraph(node_type);
   graph->TopologicalSorting();
   auto add_node = graph->FindFirstNodeMatchType(node_type);
-  ge::AttrUtils::SetStr(add_node->GetOpDesc(), optiling::COMPILE_INFO_KEY, "{}"); // mock for tiling parse
+  ge::AttrUtils::SetStr(add_node->GetOpDesc(), optiling::COMPILE_INFO_KEY, "{}");  // mock for tiling parse
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef(node_type, AiCoreTaskDefFaker(AddStubName).WithHandle()).BuildGeRootModel();
 
-  bg::ValueHolder::PopGraphFrame(); // 不需要BgTest自带的Frame
+  bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "E2EReshapeGraph");
@@ -314,36 +319,38 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   ASSERT_NE(model_executor, nullptr);
 
   auto allocator = memory::CachingMemAllocator::GetAllocator();
-  auto mem_block = allocator->Malloc(2048*4);
+  auto mem_block = allocator->Malloc(2048 * 4);
 
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
   auto outputs = FakeTensors({4096}, 1);
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
-  auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i1 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
 
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
-                                    
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
-                                    
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
+
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
+
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // input_0 shape [2048]  input_1 shape [2048]
   // expect output shape[4096]
-  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048); // check output shape
+  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048);  // check output shape
   aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
 TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tiling_v3) {
   // mock infer_func & tiling _func for Add
-  auto add_infer_func = [](ge::Operator &v) { return StubAddInferShapeV1(v);}; // simulate operator_reg
+  auto add_infer_func = [](ge::Operator &v) { return StubAddInferShapeV1(v); };  // simulate operator_reg
   auto node_type = "AddTestCompatibleV3";
   ge::InferShapeFuncRegister(node_type, add_infer_func);
   // mock tiling func v3
@@ -352,12 +359,12 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   auto graph = ShareGraph::BuildSingleNodeGraph(node_type);
   graph->TopologicalSorting();
   auto add_node = graph->FindFirstNodeMatchType(node_type);
-  ge::AttrUtils::SetStr(add_node->GetOpDesc(), optiling::COMPILE_INFO_KEY, "{}"); // mock for tiling parse
+  ge::AttrUtils::SetStr(add_node->GetOpDesc(), optiling::COMPILE_INFO_KEY, "{}");  // mock for tiling parse
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef(node_type, AiCoreTaskDefFaker(AddStubName).WithHandle()).BuildGeRootModel();
 
-  bg::ValueHolder::PopGraphFrame(); // 不需要BgTest自带的Frame
+  bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
@@ -370,30 +377,33 @@ TEST_F(LowerCompatibleUnitTest, Lowering_Execute_Model_On_Compatible_infer_tilin
   ASSERT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
   auto outputs = FakeTensors({4096}, 1);
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
-  auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i1 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
 
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
-  ASSERT_EQ(model_executor->Execute({i3.value},
-                                    std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
-                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get()}).data(), 2,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // input_0 shape [2048]  input_1 shape [2048]
   // expect output shape[4096]
-  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048); // check output shape
+  ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 2048 + 2048);  // check output shape
 
   aclrtDestroyStream(stream);
   mem_block->Free();
 }
 
-//TEST_F(LowerCompatibleUnitTest, ExecuteModel_BinaryKernel_Optiling) {
-  // todo: 当前这个ST的构图是错误的，会把一个TensorData中的数据指向一个BlockDim传递给NetOutput，这会导致在将NetOutput的数据考出时失败。
-  //   因此这个用例需要重新构造，这里先删掉了
+// TEST_F(LowerCompatibleUnitTest, ExecuteModel_BinaryKernel_Optiling) {
+//  todo:
+//  当前这个ST的构图是错误的，会把一个TensorData中的数据指向一个BlockDim传递给NetOutput，这会导致在将NetOutput的数据考出时失败。
+//    因此这个用例需要重新构造，这里先删掉了
 //}
 
 TEST_F(LowerCompatibleUnitTest, InferShapeRange_ExecuteSuccess) {
@@ -418,22 +428,18 @@ TEST_F(LowerCompatibleUnitTest, InferShapeRange_ExecuteSuccess) {
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
   void *device_block = (void *)0x01;
-  auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT16)
-      .Format(ge::FORMAT_ND)
-      .Shape({2048, 2, 3, 4})
-      .Build();
+  auto output_holder = TensorFaker()
+                           .Placement(kOnDeviceHbm)
+                           .DataType(ge::DT_FLOAT16)
+                           .Format(ge::FORMAT_ND)
+                           .Shape({2048, 2, 3, 4})
+                           .Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{64, 2, 3, 4}, {64, 2, 3, 4}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     device_block});
-  auto i1 = FakeValue<Tensor>(Tensor{{{64, 2, 3, 4}, {64, 2, 3, 4}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     device_block});
+  auto i0 = FakeValue<Tensor>(Tensor{
+      {{64, 2, 3, 4}, {64, 2, 3, 4}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, device_block});
+  auto i1 = FakeValue<Tensor>(Tensor{
+      {{64, 2, 3, 4}, {64, 2, 3, 4}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, device_block});
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
@@ -446,9 +452,10 @@ TEST_F(LowerCompatibleUnitTest, InferShapeRange_ExecuteSuccess) {
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("TestNoInferShapeRange", "CreateTensorRangesAndShapeRanges"), 1);
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("TestNoInferShapeRange", "CreateTensorRangesAndShapeRanges"),
+            1);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   bg::ShapeRangeInferenceResult::ErrorResult();
   aclrtDestroyStream(stream);
 }
-} // namespace gert
+}  // namespace gert

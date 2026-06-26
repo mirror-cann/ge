@@ -114,7 +114,7 @@ using RunAsyncCallbackV2 = std::function&lt;void(Status, std::vector&lt;gert::Te
     ```
     std::map <AscendString, AscendString> options;
     ge::GeSession *session = new GeSession(options);
-    
+
     uint32_t graph_id = 0;
     ge::Graph graph;
     Status ret = session->AddGraph(graph_id, graph);
@@ -136,4 +136,3 @@ using RunAsyncCallbackV2 = std::function&lt;void(Status, std::vector&lt;gert::Te
 
 3.  定义好指定图的输入数据const std::vector\<gert::Tensor\> &inputs。
 4.  调用接口RunGraphAsync\(graph\_id, inputs, CallBack\)。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,7 +14,7 @@
 #include "ge_common/ge_common_api_types.h"
 #include "fusion_base_pass.h"
 #include "fusion_pass_reg.h"
-namespace ge{
+namespace ge {
 namespace fusion {
 using GraphUniqPtr = std::unique_ptr<Graph>;
 /**
@@ -62,7 +62,7 @@ class DecomposePass : public FusionBasePass {
    */
   virtual GraphUniqPtr Replacement(const GNode &matched_node) = 0;
 
-  private:
+ private:
   std::vector<AscendString> op_types_;
 };
 
@@ -128,6 +128,6 @@ class DecomposePassV2 : public FusionBasePass {
       ::ge::fusion::FusionPassRegistrationData((pass_name)).CreatePassFn([]() -> ::ge::fusion::FusionBasePass * { \
         return new (std::nothrow) pass_class(decompose_op_types);                                                 \
       })
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge
 #endif  // INC_EXTERNAL_GE_GRAPH_FUSION_DECOMPOSE_PASS_H

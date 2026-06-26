@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,9 +33,10 @@ const int64_t kInvalidId = -1;
 
 ge::Expression GetMemorySize(const ge::DataType data_type, const ge::Expression &symbol_shape_size) {
   uint32_t data_type_length = 1U;
-  (void) ge::TypeUtils::GetDataTypeLength(data_type, data_type_length);
+  (void)ge::TypeUtils::GetDataTypeLength(data_type, data_type_length);
   data_type_length = (data_type_length > static_cast<uint32_t>(ge::kDataTypeSizeBitOffset))
-      ? (data_type_length - static_cast<uint32_t>(ge::kDataTypeSizeBitOffset)) : data_type_length;
+                         ? (data_type_length - static_cast<uint32_t>(ge::kDataTypeSizeBitOffset))
+                         : data_type_length;
   return symbol_shape_size * ge::Symbol(data_type_length);
 }
 
@@ -54,11 +55,12 @@ ge::Status GetReadsByNode(const ge::NodePtr &node, std::set<ge::MemoryBuffer> &r
     const auto output_tensor_desc = peer_node_desc->MutableOutputDesc(peer_out_anchor->GetIdx());
     GE_ASSERT_NOTNULL(output_tensor_desc);
     const auto attr_group = output_tensor_desc->GetAttrsGroup<ge::SymbolicDescAttr>();
-    if(attr_group == nullptr) {
+    if (attr_group == nullptr) {
       continue;
     }
-    reads.insert({peer_out_anchor.get(), GetMemorySize(output_tensor_desc->GetDataType(),
-        attr_group->symbolic_tensor.GetOriginSymbolShape().GetSymbolShapeSize())});
+    reads.insert({peer_out_anchor.get(),
+                  GetMemorySize(output_tensor_desc->GetDataType(),
+                                attr_group->symbolic_tensor.GetOriginSymbolShape().GetSymbolShapeSize())});
   }
   return ge::SUCCESS;
 }
@@ -75,7 +77,7 @@ ge::Status GetWritesByNode(const ge::NodePtr &node, std::set<ge::MemoryBuffer> &
       continue;
     }
     writes.insert({out_anchor, GetMemorySize(output_tensor_desc->GetDataType(),
-        attr_group->symbolic_tensor.GetOriginSymbolShape().GetSymbolShapeSize())});
+                                             attr_group->symbolic_tensor.GetOriginSymbolShape().GetSymbolShapeSize())});
   }
   return ge::SUCCESS;
 }
@@ -92,10 +94,10 @@ ge::FusionStatistics GetFusionStatisticsByGraph(const ge::ComputeGraphPtr &graph
   fusion_statistics.average_scale = 1.0;
   size_t asc_node_count = 0U;
   size_t asc_node_size = 0U;
-  for (const auto &node: graph->GetAllNodes()) {
+  for (const auto &node : graph->GetAllNodes()) {
     std::set<ge::MemoryBuffer> read_writes;
-    (void) GetReadsByNode(node, read_writes);
-    (void) GetWritesByNode(node, read_writes);
+    (void)GetReadsByNode(node, read_writes);
+    (void)GetWritesByNode(node, read_writes);
     for (const auto &memory_buffer : read_writes) {
       fusion_statistics.rw_memory_size = fusion_statistics.rw_memory_size + memory_buffer.size;
     }
@@ -123,8 +125,7 @@ ge::FusionStatistics GetFusionStatisticsByGraph(const ge::ComputeGraphPtr &graph
 void PrintFusionStatistics(const ge::FusionStatistics &before_fusion, const ge::FusionStatistics &after_fusion) {
   GELOGI("before: nodes size:%zu, rw memory size:%s", before_fusion.nodes_size,
          before_fusion.rw_memory_size.Str().get());
-  GELOGI("after : nodes size:%zu, rw memory size:%s", after_fusion.nodes_size,
-         after_fusion.rw_memory_size.Str().get());
+  GELOGI("after : nodes size:%zu, rw memory size:%s", after_fusion.nodes_size, after_fusion.rw_memory_size.Str().get());
   GELOGI("reduce: nodes size:%zu, rw memory size:%s", before_fusion.nodes_size - after_fusion.nodes_size,
          (before_fusion.rw_memory_size - after_fusion.rw_memory_size).Str().get());
   GELOGI("AscBackend scale:min %zu, max:%zu, average:%.1f", after_fusion.min_scale, after_fusion.max_scale,
@@ -147,7 +148,7 @@ ge::Status CheckCycle(const ge::NodePtr &node) {
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace
 
 namespace ge {
 using namespace autofuse;
@@ -181,12 +182,7 @@ bool MemoryBuffer::operator<(const MemoryBuffer &other) const {
 }
 
 FusingNode::FusingNode(const NodePtr &node)
-    : min_order_(0),
-      max_order_(0),
-      id_(0),
-      node_(node),
-      fusion_nodes_size_(0U) {
-}
+    : min_order_(0), max_order_(0), id_(0), node_(node), fusion_nodes_size_(0U) {}
 
 void FusingNode::UpdateOrder() {
   // 重新拓扑排序后FusingNode的id和对应Node的id保持一致
@@ -291,7 +287,8 @@ Expression ScoreFusion::ScoreFusionMemory(const FusingNode &node1, const FusingN
     const auto it = node1_memory_buffers.find(memory_buffer);
     if (it != node1_memory_buffers.end()) {
       // 减少首次的+运算，提升性能
-      reduced_memory = (BackendUtils::IsEqZero(reduced_memory)) ? memory_buffer.size : (reduced_memory + memory_buffer.size);
+      reduced_memory =
+          (BackendUtils::IsEqZero(reduced_memory)) ? memory_buffer.size : (reduced_memory + memory_buffer.size);
     }
   }
   return reduced_memory;
@@ -321,11 +318,10 @@ bool ScoreFusion::Compare(const NodePair &pair1, const NodePair &pair2) {
   return SymbolicUtils::StaticCheckGt(memory_score1, memory_score2) == ge::TriBool::kTrue;
 }
 
-NodePair::NodePair(const FusingNodePtr &f, const FusingNodePtr &s)
-    : first(f), second(s) {
+NodePair::NodePair(const FusingNodePtr &f, const FusingNodePtr &s) : first(f), second(s) {
   memory_score = std::move(ScoreFusion::ScoreFusionMemory(*first, *second));
-  proximity_score = std::max(abs(first->GetMinOrder() - second->GetMaxOrder()),
-                             abs(second->GetMinOrder() - first->GetMaxOrder()));
+  proximity_score =
+      std::max(abs(first->GetMinOrder() - second->GetMaxOrder()), abs(second->GetMinOrder() - first->GetMaxOrder()));
 }
 
 bool NodePair::operator<(const NodePair &other) const {
@@ -384,7 +380,7 @@ Status FusionStrategySolver::FuseGraph(const ComputeGraphPtr &graph, const uint3
   AutofuseUtils::DumpGraphToOnnx(*graph, kCanFuseDir, "BeforeCanFuse" + suffix);
 
   // 第一轮融合已经判断A，B不能融合，直接保存结果，第二轮不需要重复判断
-  std::set<std::pair<FusingNode*, FusingNode*>> can_not_fuse_nodes;
+  std::set<std::pair<FusingNode *, FusingNode *>> can_not_fuse_nodes;
   for (uint32_t i = 0U; i < max_fuse_rounds; ++i) {
     const size_t old_nodes_size = nodes.size();
     GELOGI("===== attempting fusion, round %u/%u, current nodes num %zu =====", i + 1U, max_fuse_rounds,
@@ -438,8 +434,9 @@ Status FusionStrategySolver::UpdateNodesAndTopoId(const ComputeGraphPtr &graph, 
 }
 
 Status FusionStrategySolver::FuseNodesOnce(const uint32_t round, const ComputeGraphPtr &graph,
-    const CycleDetectorSharedPtr &cycle_detector, std::vector<FusingNodePtr> &nodes, std::set<std::pair<FusingNode*,
-    FusingNode*>> &can_not_fuse_nodes) const {
+                                           const CycleDetectorSharedPtr &cycle_detector,
+                                           std::vector<FusingNodePtr> &nodes,
+                                           std::set<std::pair<FusingNode *, FusingNode *>> &can_not_fuse_nodes) const {
   FusingNodes fusing_nodes;
   std::vector<FusingNodePtr> node_to_fused_node;
   const size_t nodes_size = nodes.size();
@@ -451,7 +448,7 @@ Status FusionStrategySolver::FuseNodesOnce(const uint32_t round, const ComputeGr
     node_to_fused_node[node->GetId()] = node;
   }
 
-  for (const auto &node_pair: GetPossibleFusions(round, graph, nodes, fusing_nodes, can_not_fuse_nodes)) {
+  for (const auto &node_pair : GetPossibleFusions(round, graph, nodes, fusing_nodes, can_not_fuse_nodes)) {
     auto primal_node1 = node_pair.first;
     auto primal_node2 = node_pair.second;
     // 获取到两个pair {node1, node2} {node1, node3},
@@ -467,16 +464,15 @@ Status FusionStrategySolver::FuseNodesOnce(const uint32_t round, const ComputeGr
            fused_node1->GetNamePtr(), primal_node2->GetNamePtr(), fused_node2->GetNamePtr());
 
     // node1, node2如果未被融合不需要重复判断CanFuse，在GetPossibleFusions已经判断过了
-    if (((fused_node1 != primal_node1) || (fused_node2 != primal_node2))
-        && (!CanFuse(graph, fused_node1, fused_node2, can_not_fuse_nodes))) {
+    if (((fused_node1 != primal_node1) || (fused_node2 != primal_node2)) &&
+        (!CanFuse(graph, fused_node1, fused_node2, can_not_fuse_nodes))) {
       continue;
     }
 
     if (WillFusionCreateCycle(cycle_detector, fused_node1, fused_node2)) {
-      GELOGI(
-          "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will create cycle after fuse]",
-          fused_node1->GetNamePtr(), fused_node1->GetOrgNode()->GetType().c_str(), fused_node2->GetNamePtr(),
-          fused_node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kWillCreateCycle));
+      GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will create cycle after fuse]",
+             fused_node1->GetNamePtr(), fused_node1->GetOrgNode()->GetType().c_str(), fused_node2->GetNamePtr(),
+             fused_node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kWillCreateCycle));
       continue;
     }
 
@@ -499,12 +495,12 @@ Status FusionStrategySolver::FuseNodesOnce(const uint32_t round, const ComputeGr
   return SUCCESS;
 }
 
-NodePairList FusionStrategySolver::GetPossibleFusions(const uint32_t round, const ComputeGraphPtr &graph,
-    std::vector<FusingNodePtr> &nodes, const FusingNodes &fusing_nodes,
-    std::set<std::pair<FusingNode*, FusingNode*>> &can_not_fuse_nodes) const {
+NodePairList FusionStrategySolver::GetPossibleFusions(
+    const uint32_t round, const ComputeGraphPtr &graph, std::vector<FusingNodePtr> &nodes,
+    const FusingNodes &fusing_nodes, std::set<std::pair<FusingNode *, FusingNode *>> &can_not_fuse_nodes) const {
   NodePairList possible_fusions;
   // 主要用于减少CanFuse判断，node1，node2有多个输入时会产生多个相同的node1,node2节点对
-  std::set<std::pair<FusingNode*, FusingNode*>> repeat_check;
+  std::set<std::pair<FusingNode *, FusingNode *>> repeat_check;
 
   // 如果是配置了可能融合的node信息，从属性中获取直接返回，并且清空，保证只做一次fuse
   if (graph->GetAttrsGroup<AutoFuseAttrs>() != nullptr) {
@@ -521,8 +517,8 @@ NodePairList FusionStrategySolver::GetPossibleFusions(const uint32_t round, cons
     return possible_fusions;
   }
 
-  auto check_all_pairs =
-      [&graph, &possible_fusions, &repeat_check, &can_not_fuse_nodes, this](const std::vector<FusingNodePtr> &nodes) {
+  auto check_all_pairs = [&graph, &possible_fusions, &repeat_check, &can_not_fuse_nodes,
+                          this](const std::vector<FusingNodePtr> &nodes) {
     for (size_t index1 = 0U; index1 < nodes.size(); ++index1) {
       for (size_t index2 = index1 + 1U; index2 < nodes.size(); ++index2) {
         const auto &node1 = nodes[index1];
@@ -539,7 +535,7 @@ NodePairList FusionStrategySolver::GetPossibleFusions(const uint32_t round, cons
   };
 
   // 先按照读写相同内存把节点进行分组
-  std::map<const MemoryBuffer*, std::vector < FusingNodePtr>, decltype(&CompareBuffer)> buffer_grouping(&CompareBuffer);
+  std::map<const MemoryBuffer *, std::vector<FusingNodePtr>, decltype(&CompareBuffer)> buffer_grouping(&CompareBuffer);
   for (const auto &node : nodes) {
     for (const auto &buf : node->GetReadWrites()) {
       buffer_grouping[&buf].emplace_back(node);
@@ -556,8 +552,9 @@ NodePairList FusionStrategySolver::GetPossibleFusions(const uint32_t round, cons
 }
 
 NodePairList FusionStrategySolver::GetPossibleFusionsWithPrioritySort(const uint32_t round,
-    const ComputeGraphPtr &graph, const NodePairList &possible_fusions) const {
-  (void) round;
+                                                                      const ComputeGraphPtr &graph,
+                                                                      const NodePairList &possible_fusions) const {
+  (void)round;
   NodePairList sorted_possible_fusions;
 
   // 根据backend返回的优先级进行分组，返回最高优先级对应的节点对，Priority值越小优先级越高.
@@ -568,7 +565,8 @@ NodePairList FusionStrategySolver::GetPossibleFusionsWithPrioritySort(const uint
   for (const auto &node_pair : possible_fusions) {
     const auto &node1 = node_pair.first;
     const auto &node2 = node_pair.second;
-    FusionPriority fusion_pair_priority = GetBackEnd(graph)->GetFusionPairPriority(node1->GetOrgNode(), node2->GetOrgNode());
+    FusionPriority fusion_pair_priority =
+        GetBackEnd(graph)->GetFusionPairPriority(node1->GetOrgNode(), node2->GetOrgNode());
     possible_fusions_group_by_priority[fusion_pair_priority].emplace_back(std::move(node_pair));
   }
 
@@ -584,8 +582,8 @@ NodePairList FusionStrategySolver::GetPossibleFusionsWithPrioritySort(const uint
   return sorted_possible_fusions;
 }
 
-bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNodePtr &node1,
-    const FusingNodePtr &node2, std::set<std::pair<FusingNode*, FusingNode*>> &can_not_fuse_nodes) const {
+bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNodePtr &node1, const FusingNodePtr &node2,
+                                   std::set<std::pair<FusingNode *, FusingNode *>> &can_not_fuse_nodes) const {
   // A,B,C融合成A_B_C后，A,B,C获取到的融合节点都是A_B_C，判断{B,C}融合对时可能会出现node1=node2的场景
   if (node1 == node2) {
     return false;
@@ -598,17 +596,16 @@ bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNod
 
   // 融合后节省的内存读写大小为0不做融合
   if (BackendUtils::IsEqZero(ScoreFusion::ScoreFusionMemory(*node1, *node2))) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 have no shared data]",
-        node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
-        node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kNoSharedData));
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 have no shared data]",
+           node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
+           node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kNoSharedData));
     can_not_fuse_nodes.insert({node1.get(), node2.get()});
     return false;
   }
 
   // node1是node2的祖先节点，判断纵向融合，否则判断横向融合
   if (node2->IsAncestor(node1)) {
-    if(!GetBackEnd(graph)->CanFuseVertical(node1->GetOrgNode(), node2->GetOrgNode())) {
+    if (!GetBackEnd(graph)->CanFuseVertical(node1->GetOrgNode(), node2->GetOrgNode())) {
       GELOGI("cannot fuse %s with %s: cannot fuse vertical by backend.", node1->GetNamePtr(), node2->GetNamePtr());
       can_not_fuse_nodes.insert({node1.get(), node2.get()});
       return false;
@@ -616,10 +613,9 @@ bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNod
   } else {
     // 横向融合导致内存峰值增加的不做融合
     if (CanFusionIncreasePeakMemory(node1, node2) || CheckWriteMemoryAfterFusion(node1, node2)) {
-      GELOGI(
-          "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will increase peak memory after fuse]",
-          node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
-          node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kIncreasePeakMemory));
+      GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][it will increase peak memory after fuse]",
+             node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
+             node2->GetOrgNode()->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kIncreasePeakMemory));
       return false;
     }
     if (!GetBackEnd(graph)->CanFuseHorizontal(node1->GetOrgNode(), node2->GetOrgNode())) {
@@ -632,13 +628,12 @@ bool FusionStrategySolver::CanFuse(const ComputeGraphPtr &graph, const FusingNod
 }
 
 bool FusionStrategySolver::WillFusionCreateCycle(const CycleDetectorSharedPtr &cycle_detector,
-                                                 const FusingNodePtr &node1,
-                                                 const FusingNodePtr &node2) const {
+                                                 const FusingNodePtr &node1, const FusingNodePtr &node2) const {
   return cycle_detector->HasDetectedCycle({{node1->GetOrgNode(), node2->GetOrgNode()}});
 }
 
 FusingNodePtr FusionStrategySolver::FuseNode(const ComputeGraphPtr &graph, const FusingNodePtr &node1,
-    const FusingNodePtr &node2, FusingNodes &fusing_nodes) const {
+                                             const FusingNodePtr &node2, FusingNodes &fusing_nodes) const {
   const auto fused_node = GetBackEnd(graph)->Fuse(node1->GetOrgNode(), node2->GetOrgNode(), counter_);
   if (fused_node != nullptr) {
     GE_ASSERT_SUCCESS(CheckCycle(fused_node));
@@ -664,8 +659,8 @@ FusingNodePtr FusionStrategySolver::FuseNode(const ComputeGraphPtr &graph, const
 bool FusionStrategySolver::CanFusionIncreasePeakMemory(const FusingNodePtr &node1, const FusingNodePtr &node2) const {
   const auto &config = AutoFuseConfig::Config().GetFusionStrategySolver();
   // 融合后如果可能导致内存峰值增加就不融合，当前简单用节点间距离判断，距离越大导致内存峰值增加的可能性越大
-  const auto proximity_score = std::max(abs(node1->GetMinOrder() - node2->GetMaxOrder()),
-      abs(node2->GetMinOrder() - node1->GetMaxOrder()));
+  const auto proximity_score =
+      std::max(abs(node1->GetMinOrder() - node2->GetMaxOrder()), abs(node2->GetMinOrder() - node1->GetMaxOrder()));
   const bool can_fusion_increase = proximity_score > config.max_proximity;
   if (can_fusion_increase) {
     GELOGI("proximity:%ld > max proximity:%ld", proximity_score, config.max_proximity);
@@ -673,7 +668,7 @@ bool FusionStrategySolver::CanFusionIncreasePeakMemory(const FusingNodePtr &node
   return can_fusion_increase;
 }
 
-const std::unique_ptr<FusionDecider>& FusionStrategySolver::GetBackEnd(const ComputeGraphPtr &graph) const {
+const std::unique_ptr<FusionDecider> &FusionStrategySolver::GetBackEnd(const ComputeGraphPtr &graph) const {
   if (graph != nullptr) {
     const auto attr = graph->GetAttrsGroup<AutoFuseAttrs>();
     if ((attr != nullptr) && (GetInterAttrs(attr).decider != nullptr)) {
@@ -687,7 +682,7 @@ Status FusionStrategySolver::GetNodes(const ComputeGraphPtr &graph, std::vector<
   // 排序后获取Id
   GE_ASSERT_SUCCESS(graph->TopologicalSorting());
   nodes.reserve(graph->GetAllNodesSize());
-  for (const auto &node: graph->GetAllNodes()) {
+  for (const auto &node : graph->GetAllNodes()) {
     const auto &snode = CreateFusingNode(node);
     GE_ASSERT_NOTNULL(snode);
     const auto attr = node->GetOpDesc()->GetAttrsGroup<AutoFuseAttrs>();
@@ -727,19 +722,22 @@ Status FusionStrategySolver::ComputeAncestors(std::vector<FusingNodePtr> &snodes
 }
 
 Status FusionStrategySolver::PrintAndSetOriginInputAndOutput(const ComputeGraphPtr &graph) const {
-  for (const auto& node : graph->GetAllNodes()) {
+  for (const auto &node : graph->GetAllNodes()) {
     if ((node->GetType() != kAscBackendType) && (node->GetType() != kFusedAscBackendType)) {
       continue;
     }
     const auto origin_output_infos = GetInterAttrs(GetOrCreateAutoFuseAttrs(node->GetOpDesc())).origin_output_names_;
     uint32_t index = 0U;
     const auto output_desc = node->GetOpDesc()->GetAllOutputsDescPtr();
-    GE_ASSERT_TRUE(output_desc.size() == origin_output_infos.size(), "node %s(%s) output desc size:%zu not equal to "
-                   "origin output info size:%zu", node->GetNamePtr(), node->GetType().c_str(), output_desc.size(),
-                   origin_output_infos.size());
-    for (const auto& origin_info : origin_output_infos) {
-      GE_ASSERT_TRUE(static_cast<size_t>(index) < origin_output_infos.size(), "node %s(%s) output index:%zu >= origin "
-                     "output info size:%zu", node->GetNamePtr(), node->GetType().c_str(), static_cast<size_t>(index),
+    GE_ASSERT_TRUE(output_desc.size() == origin_output_infos.size(),
+                   "node %s(%s) output desc size:%zu not equal to "
+                   "origin output info size:%zu",
+                   node->GetNamePtr(), node->GetType().c_str(), output_desc.size(), origin_output_infos.size());
+    for (const auto &origin_info : origin_output_infos) {
+      GE_ASSERT_TRUE(static_cast<size_t>(index) < origin_output_infos.size(),
+                     "node %s(%s) output index:%zu >= origin "
+                     "output info size:%zu",
+                     node->GetNamePtr(), node->GetType().c_str(), static_cast<size_t>(index),
                      origin_output_infos.size());
       GELOGD("ascbc_dfx_log(can_fuse), %s, output_idx: %u, origin_ge_node: %s, output_idx: %d", node->GetNamePtr(),
              index, origin_info.first.c_str(), origin_info.second);
@@ -758,9 +756,8 @@ bool FusionStrategySolver::CheckWriteMemoryAfterFusion(const FusingNodePtr &node
   std::set<ge::MemoryBuffer> node2_write_memory;
   GE_ASSERT_SUCCESS(GetWritesByNode(node2->GetOrgNode(), node2_write_memory));
   std::set<ge::MemoryBuffer> output_memory_set;
-  std::set_union(node1_write_memory.begin(), node1_write_memory.end(),
-                 node2_write_memory.begin(), node2_write_memory.end(),
-                 std::inserter(output_memory_set, output_memory_set.begin()));
+  std::set_union(node1_write_memory.begin(), node1_write_memory.end(), node2_write_memory.begin(),
+                 node2_write_memory.end(), std::inserter(output_memory_set, output_memory_set.begin()));
   Expression output_memory = kSymbolZero;
   for (const auto &memory_buffer : output_memory_set) {
     output_memory = output_memory + memory_buffer.size;
@@ -769,7 +766,8 @@ bool FusionStrategySolver::CheckWriteMemoryAfterFusion(const FusingNodePtr &node
   ge::Expression max_output_memory_size = ge::Symbol(config.max_output_memory_size_after_fusion);
   int64_t const_value1 = 0;
   int64_t const_value2 = 0;
-  if (output_memory.GetConstValue<int64_t>(const_value1) && max_output_memory_size.GetConstValue<int64_t>(const_value2)) {
+  if (output_memory.GetConstValue<int64_t>(const_value1) &&
+      max_output_memory_size.GetConstValue<int64_t>(const_value2)) {
     GELOGD("after node1 %s(%s) and node2 %s(%s) fusion, output memory size(%" PRId64 ") VS threshold(%" PRId64 ")",
            node1->GetNamePtr(), node1->GetOrgNode()->GetType().c_str(), node2->GetNamePtr(),
            node2->GetOrgNode()->GetType().c_str(), const_value1, const_value2);
@@ -777,4 +775,4 @@ bool FusionStrategySolver::CheckWriteMemoryAfterFusion(const FusingNodePtr &node
   }
   return SymbolicUtils::StaticCheckGt(output_memory, max_output_memory_size) == ge::TriBool::kTrue;
 }
-}
+}  // namespace ge

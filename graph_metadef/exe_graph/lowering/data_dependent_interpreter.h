@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,9 +40,10 @@ class DataDependentInterpreter {
    * |7 |true |false| true | true |UB融合算子、编译时2.0、恰好正确             |
    * |8 |true |false| false| true |UB融合算子、编译时2.0、原型标记了数据依赖，但是UB融合子图不需要，打印warning  |
    * |9 |false|true | true | true |UB融合算子、数据依赖、编译时1.0、2.0标记错误，打印Warning                 |
-   * |10|false|true | false| true |UB融合算子、编译时1.0、原型标记了数据依赖，但是UB融合子图不需要，1.0与2.0不一致，打印2 warning |
-   * |11|false|false| true | true |UB融合算子、编译时2.0、UB子图带来了数据依赖   |
-   * |12|false|false| false| false|UB融合算子、没有数据依赖                   |
+   * |10|false|true | false| true
+   * |UB融合算子、编译时1.0、原型标记了数据依赖，但是UB融合子图不需要，1.0与2.0不一致，打印2 warning | |11|false|false|
+   * true | true |UB融合算子、编译时2.0、UB子图带来了数据依赖   | |12|false|false| false| false|UB融合算子、没有数据依赖
+   * |
    *
    * @param is_data_dependent
    * @return
@@ -50,6 +51,7 @@ class DataDependentInterpreter {
   ge::graphStatus IsDataDependent(const int32_t index, bool &is_data_dependent) const;
   ge::graphStatus IsTilingInputDataDependent(const int32_t index, bool &is_tiling_dependent) const;
   ge::graphStatus IsSupportTilingDependPlacement(const uint32_t placement, bool &is_support) const;
+
  private:
   ge::graphStatus IsDataDependentByImplOp(const int32_t input_index, bool &is_data_dependent) const;
   ge::graphStatus IsDataDependentByIr(int32_t index, bool &is_data_dependent) const;
@@ -69,6 +71,6 @@ class DataDependentInterpreter {
   // 兼容上库处理，先合入v2，然后删除V1构造函数
   OpImplSpaceRegistryV2Array space_registries_v2_;
 };
-}
+}  // namespace gert
 
 #endif  // AIR_CXX_RUNTIME_V2_LOWERING_DATA_DEPENDENT_INTERPRETER_H_

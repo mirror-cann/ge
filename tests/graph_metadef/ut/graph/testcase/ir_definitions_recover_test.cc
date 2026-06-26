@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ REG_OP(DataUt)
     .ATTR(index, Int, 0)
     .OP_END_FACTORY_REG(DataUt)
 
-REG_OP(MatMulUt)
+        REG_OP(MatMulUt)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
@@ -47,8 +47,8 @@ REG_OP(MatMulUt)
     .REQUIRED_ATTR(loss_attr, Bool)
     .OP_END_FACTORY_REG(MatMulUt)
 
-class MatMulUtFuture : public op::MatMulUt {
-public:
+        class MatMulUtFuture : public op::MatMulUt {
+ public:
   MatMulUtFuture(const std::string &name) : MatMulUt(name.c_str()) {}
   using Operator::DynamicInputRegister;
   using Operator::InputRegister;
@@ -68,7 +68,7 @@ REG_OP(ConcatV2DUt)
     .ATTR(N, Int, 1)
     .OP_END_FACTORY_REG(ConcatV2DUt)
 
-REG_OP(BNInferenceDUt)
+        REG_OP(BNInferenceDUt)
     .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_BF_16}))
     .INPUT(mean, TensorType({DT_FLOAT, DT_FLOAT16, DT_BF_16}))
     .INPUT(variance, TensorType({DT_FLOAT, DT_FLOAT16, DT_BF_16}))
@@ -81,7 +81,7 @@ REG_OP(BNInferenceDUt)
     .ATTR(mode, Int, 1)
     .OP_END_FACTORY_REG(BNInferenceDUt)
 
-TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_inputs_not_match_failed) {
+        TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_inputs_not_match_failed) {
   auto op_desc = std::make_shared<ge::OpDesc>("matmul", "MatMulUt");
   ASSERT_NE(op_desc, nullptr);
   auto computeGraph = std::make_shared<ge::ComputeGraph>("graph_name");
@@ -110,10 +110,11 @@ TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_inputs_num_check_failed) 
 
   auto op = ge::OperatorFactory::CreateOperator("MatMulUt", "MatMulUt");
   auto op_desc_origin = ge::OpDescUtils::GetOpDescFromOperator(op);
-  op_desc->impl_->meta_data_.ir_meta_.ir_inputs_.ir_inputs.emplace_back(std::pair<std::string, IrInputType>("fake", kIrInputRequired));
+  op_desc->impl_->meta_data_.ir_meta_.ir_inputs_.ir_inputs.emplace_back(
+      std::pair<std::string, IrInputType>("fake", kIrInputRequired));
   auto ret = RecoverIrUtils::RecoverIrDefinitions(computeGraph);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_inputs_.ir_inputs[0].first,  "fake");
+  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_inputs_.ir_inputs[0].first, "fake");
 }
 
 TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_attr_name_not_match_failed) {
@@ -129,7 +130,7 @@ TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_attr_name_not_match_faile
   op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_.emplace_back("fake");
   auto ret = RecoverIrUtils::RecoverIrDefinitions(computeGraph);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_[0],  "fake");
+  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_[0], "fake");
 }
 
 TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_attr_name_num_check_failed) {
@@ -145,7 +146,7 @@ TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_attr_name_num_check_faile
   op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_.emplace_back("fake");
   auto ret = RecoverIrUtils::RecoverIrDefinitions(computeGraph);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_.back(),  "fake");
+  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_attr_names_.back(), "fake");
 }
 
 TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_empty_success) {
@@ -229,7 +230,6 @@ TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_frameworkop_success) {
   EXPECT_EQ(op_desc->GetIrAttrNames().size(), op_desc_origin->GetIrAttrNames().size());
   EXPECT_EQ(op_desc->GetIrInputs().size(), op_desc_origin->GetIrInputs().size());
   EXPECT_EQ(op_desc->GetIrOutputs().size(), op_desc_origin->GetIrOutputs().size());
-
 }
 
 TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_op_loss_not_has_default_value) {
@@ -278,10 +278,11 @@ TEST_F(IrDefinitionsRecoverUT, RecoverIrDefinitions_ir_outputs_num_check_failed)
 
   auto op = ge::OperatorFactory::CreateOperator("MatMulUt", "MatMulUt");
   auto op_desc_origin = ge::OpDescUtils::GetOpDescFromOperator(op);
-  op_desc->impl_->meta_data_.ir_meta_.ir_outputs_.ir_outputs.emplace_back(std::pair<std::string, IrOutputType>("fake", kIrOutputRequired));
+  op_desc->impl_->meta_data_.ir_meta_.ir_outputs_.ir_outputs.emplace_back(
+      std::pair<std::string, IrOutputType>("fake", kIrOutputRequired));
   auto ret = RecoverIrUtils::RecoverIrDefinitions(computeGraph);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_outputs_.ir_outputs[0].first,  "fake");
+  EXPECT_EQ(op_desc->impl_->meta_data_.ir_meta_.ir_outputs_.ir_outputs[0].first, "fake");
 }
 
 // TODO if all depended is replace, this 2 function will be deleted
@@ -637,4 +638,4 @@ TEST_F(IrDefinitionsRecoverUT, DeriveCompatibilityStrategy_backward_input_only) 
   auto strategy = RecoverIrUtils::DeriveCompatibilityStrategy(op_desc, ir_def);
   EXPECT_EQ(strategy, ge::CompatibilityStrategy::kBackward);
 }
-} // namespace gert
+}  // namespace gert

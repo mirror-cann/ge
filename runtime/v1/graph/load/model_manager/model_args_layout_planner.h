@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,18 +18,14 @@
 
 namespace ge {
 enum class UpdateTriggerType : int32_t {
-  kNoNeedUpdate,      // 不需要被刷新
-  kTriggerByFm,       // fm地址变化时，需要被刷新
-  kTriggerByFmAndIo,  // fm、输入输出变化时，需要被刷新
-  KTriggerByHostInput, // 存在host输入随路拷贝时，需要被刷新
+  kNoNeedUpdate,        // 不需要被刷新
+  kTriggerByFm,         // fm地址变化时，需要被刷新
+  kTriggerByFmAndIo,    // fm、输入输出变化时，需要被刷新
+  KTriggerByHostInput,  // 存在host输入随路拷贝时，需要被刷新
   kEnd
 };
 
-enum class AddrUseFor : int32_t {
-  kAddrUseForArgs = 0,
-  kAddrUseForPersistentWorkspace = 1,
-  kEnd = 2
-};
+enum class AddrUseFor : int32_t { kAddrUseForArgs = 0, kAddrUseForPersistentWorkspace = 1, kEnd = 2 };
 
 struct TaskArgsLayoutResult {
   ArgsPlacement placement;
@@ -66,8 +62,7 @@ class ModelArgsLayoutPlanner {
  public:
   ModelArgsLayoutPlanner(
       const std::vector<TaskArgsRefreshTypeClassifier::TaskRefreshType> &task_indexes_to_refresh_type,
-      const std::vector<TaskRunParam> &task_indexes_to_param,
-      uint64_t host_input_size = 0UL);
+      const std::vector<TaskRunParam> &task_indexes_to_param, uint64_t host_input_size = 0UL);
   Status Plan(ModelArgsLayoutPlannedResult &ret, const AddrUseFor &addr_use_for = AddrUseFor::kAddrUseForArgs) const;
 
  private:
@@ -94,8 +89,7 @@ class ModelArgsLayoutPlanner {
 
   Status PlanTasks(const PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
                    const PlacementsToPartitionsToLenType &placements_to_partitions_to_align_offset,
-                   const MergePolicy &merge_policy,
-                   std::vector<OneTaskArgsLayoutResult> &task_indexes_to_arg_results,
+                   const MergePolicy &merge_policy, std::vector<OneTaskArgsLayoutResult> &task_indexes_to_arg_results,
                    const AddrUseFor &addr_use_for = AddrUseFor::kAddrUseForArgs) const;
 
   static Status LogPartitionLengths(const PlacementsToPartitionsToLenType &placements_to_partitions_to_len,

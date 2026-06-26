@@ -77,4 +77,3 @@ inline std::vector<C_DataType> DataTypesToEsCDataTypes(const std::vector<ge::Dat
 ## 约束说明<a name="section24049039"></a>
 
 无
-

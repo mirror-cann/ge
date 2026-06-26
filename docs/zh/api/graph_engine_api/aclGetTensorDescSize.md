@@ -57,4 +57,3 @@ size_t aclGetTensorDescSize(const aclTensorDesc *desc)
 ## 返回值说明<a name="section25151444115613"></a>
 
 返回指定tensor描述占用的空间大小。
-

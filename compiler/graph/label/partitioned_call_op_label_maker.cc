@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,7 @@ Status PartitionedCallOpLabelMaker::Run(uint32_t &label_index) {
   std::string sub_graph_name = call_desc->GetSubgraphInstanceName(kSubGraphIndex);
   if (sub_graph_name.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) subgraph_index:%d name is empty, check invalid",
-                       call_desc->GetName().c_str(), call_desc->GetType().c_str(), kSubGraphIndex);
+                         call_desc->GetName().c_str(), call_desc->GetType().c_str(), kSubGraphIndex);
     GELOGE(INTERNAL_ERROR, "[Check][Param] Node:%s has no subgraph name.", sub_graph_name.c_str());
     return FAILED;
   }
@@ -43,17 +43,15 @@ Status PartitionedCallOpLabelMaker::Run(uint32_t &label_index) {
   ComputeGraphPtr sub_graph = parent_graph_->GetSubgraph(sub_graph_name);
   if (sub_graph == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) subgraph_name:%s does not exist in parent_graph, check invalid",
-                       call_desc->GetName().c_str(), call_desc->GetType().c_str(),
-                       sub_graph_name.c_str());
+                         call_desc->GetName().c_str(), call_desc->GetType().c_str(), sub_graph_name.c_str());
     GELOGE(INTERNAL_ERROR, "[Get][SubGraph] Node:%s has no subgraph.", sub_graph_name.c_str());
     return FAILED;
   }
 
-  const std::string stream_active_name = parent_node_->GetName() + "/StreamActive"; // rtStreamActive
+  const std::string stream_active_name = parent_node_->GetName() + "/StreamActive";  // rtStreamActive
   NodePtr stream_active = AddStreamActive(sub_graph, stream_active_name);
   if (stream_active == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add StreamActive node in graph:%s fail",
-                      sub_graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add StreamActive node in graph:%s fail", sub_graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][StreamActive] in Subgraph:%s failed.", sub_graph->GetName().c_str());
     return FAILED;
   }
@@ -72,4 +70,3 @@ Status PartitionedCallOpLabelMaker::Run(uint32_t &label_index) {
 REGISTER_LABEL_MAKER(PARTITIONEDCALL, PartitionedCallOpLabelMaker);
 REGISTER_LABEL_MAKER(STATEFULPARTITIONEDCALL, PartitionedCallOpLabelMaker);
 }  // namespace ge
-

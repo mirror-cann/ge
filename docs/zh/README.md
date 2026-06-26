@@ -9,7 +9,7 @@
 - [DataFlow开发指南](https://hiascend.com/document/redirect/CannCommunityDataflow)
 
   面向异构和集群的图编译和执行，介绍如何通过DataFlow接口构建、修改、编译和执行计算图。
-  
+
 - [LLM DataDist开发指南](https://hiascend.com/document/redirect/CannCommunityLLMDatadistdev)
 
   面向大模型，介绍如何使用LLM-DataDist接口实现集群间的数据传输，构建大模型推理分离式框架。
@@ -59,4 +59,3 @@
 - [开发指南](./contributions/)
 
   记录开发过程中的关键设计原则、约束汇总和编码红线，指导代码编写和检视。
-

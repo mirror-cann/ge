@@ -1,12 +1,12 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
-* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
-*/
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
 
 #ifndef CANN_GRAPH_ENGINE_INNER_IDENTITY_DELETE_PASS_H
 #define CANN_GRAPH_ENGINE_INNER_IDENTITY_DELETE_PASS_H
@@ -25,7 +25,8 @@ namespace ge {
  * 1. Identity输入节点A是单引用，且Identity输出是单引用，则可以删除
  * 2. Identity输入节点A是单引用，Identity是多引用，Identity除Ref之外的其他所有输出都受Ref控制则可以删除
  * 3. Identity输入节点A是多引用，且Identity输出是单引用，如果A节点除Identity之外的其他所有输出都指向了ref，则可以删除
- * 4. Identity输入节点A是多引用，且Identity输出是多引用，且Identity的其他输出节点都依赖ref，且A节点除Identity之外的其他输出都指向ref，则可以删除
+ * 4.
+ * Identity输入节点A是多引用，且Identity输出是多引用，且Identity的其他输出节点都依赖ref，且A节点除Identity之外的其他输出都指向ref，则可以删除
  */
 class InnerIdentityDeletePass : public GraphPass {
  public:
@@ -41,4 +42,4 @@ class InnerIdentityDeletePass : public GraphPass {
 };
 }  // namespace ge
 
-#endif //CANN_GRAPH_ENGINE_INNER_IDENTITY_DELETE_PASS_H
+#endif  // CANN_GRAPH_ENGINE_INNER_IDENTITY_DELETE_PASS_H

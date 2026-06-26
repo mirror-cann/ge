@@ -17,14 +17,13 @@
 
 namespace ge {
 struct TaskSemanticContributeContext;
-constexpr uint64_t kMemoryVarLogicBase = 34359738368U; // 32UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U; // 64UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryVarLogicBase = 34359738368U;             // 32UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U;  // 64UL * 1024UL * 1024UL * 1024UL;
 constexpr uint64_t kMemoryVarAddressSize = kMemoryHostFeatureMapLogicBase - kMemoryVarLogicBase;
 
 class Om2ModelUtils {
  public:
-  static Status ResolveInputAddrs(const TaskSemanticContributeContext &context,
-                                  std::vector<AddrSemantic> &input_addrs);
+  static Status ResolveInputAddrs(const TaskSemanticContributeContext &context, std::vector<AddrSemantic> &input_addrs);
 
   static Status ResolveOutputAddrs(const TaskSemanticContributeContext &context, const bool has_optional_addr,
                                    std::vector<AddrSemantic> &output_addrs);
@@ -37,7 +36,7 @@ class Om2ModelUtils {
   static Status BuildOutputTensorInfo(const GeTensorDescPtr &tensor_desc, Om2TensorInfo &tensor_info);
 
   static Status GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
-                                    AddrSemantic &addr_node, bool isInput, uint32_t index);
+                             AddrSemantic &addr_node, bool isInput, uint32_t index);
 
   static uint32_t ArgsSizeAlign8(uint32_t args_size);
   static uint64_t ArgsSizeAlign8(uint64_t args_size);
@@ -63,43 +62,36 @@ class Om2ModelUtils {
                                     const ConstOpDescPtr &op_desc, const int64_t op_index, const size_t input_idx,
                                     const size_t non_const_idx, std::string &input_ptr_name,
                                     bool &is_reused_from_upstream);
-  static bool GetFileConstInputVarName(const int64_t input_offset,
-                                       const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
-                                       std::string &input_ptr_name);
-  static Status ConstructAddrSemanticForInputConst(
-                const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
-                const GeTensorDescPtr &tensor_desc, size_t index);
-  static Status ConstructAddrSemanticForCommon(
-                const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
-                const GeTensorDescPtr &tensor_desc, size_t &input_offset_index,
-                const std::vector<int64_t> &input_offsets, size_t index);
-  static Status ConstructOutputAddrForCommon(
-                const TaskSemanticContributeContext &context, AddrSemantic &output_addr,
-                const GeTensorDescPtr &tensor_desc, std::vector<int64_t> &v_memory_type,
-                const std::vector<int64_t> &v_output_offset, size_t index);
-  static Status GetRtInputAddress(const TaskSemanticContributeContext &context,
-                                  const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
-  static Status GetRtOutputAddress(const TaskSemanticContributeContext &context,
-                                   const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index);
-  static Status GetRtFmAddress(const TaskSemanticContributeContext &context,
-                               const int64_t logical_offset,
-                               AddrSemantic &addr_node, bool is_input, uint32_t index);
-  static Status GetRtWeightAddress(const TaskSemanticContributeContext &context,
-                                   const int64_t logical_offset,
+  static bool GetFileConstInputVarName(
+      const int64_t input_offset, const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
+      std::string &input_ptr_name);
+  static Status ConstructAddrSemanticForInputConst(const TaskSemanticContributeContext &context,
+                                                   AddrSemantic &input_addr, const GeTensorDescPtr &tensor_desc,
+                                                   size_t index);
+  static Status ConstructAddrSemanticForCommon(const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
+                                               const GeTensorDescPtr &tensor_desc, size_t &input_offset_index,
+                                               const std::vector<int64_t> &input_offsets, size_t index);
+  static Status ConstructOutputAddrForCommon(const TaskSemanticContributeContext &context, AddrSemantic &output_addr,
+                                             const GeTensorDescPtr &tensor_desc, std::vector<int64_t> &v_memory_type,
+                                             const std::vector<int64_t> &v_output_offset, size_t index);
+  static Status GetRtInputAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
+                                  AddrSemantic &addr_node, uint32_t index);
+  static Status GetRtOutputAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
                                    AddrSemantic &addr_node, uint32_t index);
-  static Status GetRtVarAddress(const TaskSemanticContributeContext &context,
-                                const uintptr_t logic_addr,
+  static Status GetRtFmAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
+                               AddrSemantic &addr_node, bool is_input, uint32_t index);
+  static Status GetRtWeightAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
+                                   AddrSemantic &addr_node, uint32_t index);
+  static Status GetRtVarAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
                                 AddrSemantic &addr_node);
-  static Status GetRtUnknownAddress(const TaskSemanticContributeContext &context,
-                                    const uintptr_t logic_addr);
-  static Status GetRtEmptyAddress(const TaskSemanticContributeContext &context,
-                                  AddrSemantic &addr_node, bool is_input, uint32_t index);
+  static Status GetRtUnknownAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr);
+  static Status GetRtEmptyAddress(const TaskSemanticContributeContext &context, AddrSemantic &addr_node, bool is_input,
+                                  uint32_t index);
   static Status CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, WorkspaceMemAttrs &attrs);
-  static Status ConstructWorkspaceAddr(const TaskSemanticContributeContext &context,
-                                       const WorkspaceMemAttrs &attrs,
+  static Status ConstructWorkspaceAddr(const TaskSemanticContributeContext &context, const WorkspaceMemAttrs &attrs,
                                        const std::vector<int64_t> &v_workspace_offset,
-                                       const std::vector<int64_t> &v_workspace_bytes,
-                                       size_t index, AddrSemantic &workspace_addr);
+                                       const std::vector<int64_t> &v_workspace_bytes, size_t index,
+                                       AddrSemantic &workspace_addr);
 };
 }  // namespace ge
 

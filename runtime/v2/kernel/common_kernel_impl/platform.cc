@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,10 +19,13 @@ namespace gert {
 namespace kernel {
 namespace {
 constexpr char const *kDefaultCoreType = "AiCore";
-const std::map<CoreTypeIndex, std::string> kCoreTypeReflection{
-    {CoreTypeIndex::kAiCore, "AiCore"}, {CoreTypeIndex::kVectorCore, "VectorCore"}, {CoreTypeIndex::kMix, "Mix"},
-    {CoreTypeIndex::kMixAic, "MIX_AIC"}, {CoreTypeIndex::kMixAiv, "MIX_AIV"},
-    {CoreTypeIndex::kMixAiCore, "MIX_AICORE"}, {CoreTypeIndex::kMixAiVector, "MIX_VECTOR_CORE"}};
+const std::map<CoreTypeIndex, std::string> kCoreTypeReflection{{CoreTypeIndex::kAiCore, "AiCore"},
+                                                               {CoreTypeIndex::kVectorCore, "VectorCore"},
+                                                               {CoreTypeIndex::kMix, "Mix"},
+                                                               {CoreTypeIndex::kMixAic, "MIX_AIC"},
+                                                               {CoreTypeIndex::kMixAiv, "MIX_AIV"},
+                                                               {CoreTypeIndex::kMixAiCore, "MIX_AICORE"},
+                                                               {CoreTypeIndex::kMixAiVector, "MIX_VECTOR_CORE"}};
 constexpr char_t const *kAicCntKeyIni = "ai_core_cnt";
 constexpr char_t const *kCubeCntKeyIni = "cube_core_cnt";
 constexpr char_t const *kAivCntKeyIni = "vector_core_cnt";
@@ -80,14 +83,15 @@ ge::graphStatus AppendCoreTypeToPlatform(KernelContext *context) {
   (void)out_platform_holder->GetPlatformResWithLock(kSocInfo, res);
   bool is_op_core_num_set = false;
   if (op_ai_core_num_holder > 0) {
-    GE_ASSERT_SUCCESS(ge::CoreNumUtils::UpdateCoreCountWithOpDesc(kAiCoreNum, std::to_string(op_ai_core_num_holder),
-                                                    core_num_infos_holder->soc_aicore_num, kAicCntKeyIni, res));
+    GE_ASSERT_SUCCESS(ge::CoreNumUtils::UpdateCoreCountWithOpDesc(
+        kAiCoreNum, std::to_string(op_ai_core_num_holder), core_num_infos_holder->soc_aicore_num, kAicCntKeyIni, res));
     // .ini文件中ai_core_cnt和cube_core_cnt是相同的，直接赋值
     res[kCubeCntKeyIni] = res[kAicCntKeyIni];
     is_op_core_num_set = true;
   }
   if (op_vector_core_num_holder > 0) {
-    GE_ASSERT_SUCCESS(ge::CoreNumUtils::UpdateCoreCountWithOpDesc(kVectorCoreNum, std::to_string(op_vector_core_num_holder),
+    GE_ASSERT_SUCCESS(
+        ge::CoreNumUtils::UpdateCoreCountWithOpDesc(kVectorCoreNum, std::to_string(op_vector_core_num_holder),
                                                     core_num_infos_holder->soc_vec_core_num, kAivCntKeyIni, res));
     is_op_core_num_set = true;
   }
@@ -97,7 +101,7 @@ ge::graphStatus AppendCoreTypeToPlatform(KernelContext *context) {
     GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     fe::PlatFormInfos platform_infos_bak;
     GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetRuntimePlatformInfosByDevice(
-                   static_cast<uint32_t>(device_id), platform_infos_bak, true) == 0,
+                       static_cast<uint32_t>(device_id), platform_infos_bak, true) == 0,
                    "Get runtime platformInfos by device failed, deviceId = %d", device_id);
     platform_infos_bak.SetPlatformResWithLock(kSocInfo, res);
     *out_platform_holder = platform_infos_bak;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,8 +24,7 @@ Status L2FusionHandler::GetL2DataAlloc(const uint64_t &mem_base, const ge::Compu
                                        TaskL2InfoMap &l2_info_map) {
   FE_LOGD("We use normal l2 buffer here.");
   FE_CHECK(GetNormalL2DataAlloc(mem_base, graph, l2_info_map) != SUCCESS,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][UpdL2FusIn] GetNormalL2DataAlloc operation failed!"),
-           return FAILED);
+           REPORT_FE_ERROR("[StreamOpt][L2Opt][UpdL2FusIn] GetNormalL2DataAlloc operation failed!"), return FAILED);
   return SUCCESS;
 }
 
@@ -38,8 +37,7 @@ Status L2FusionHandler::GetNormalL2DataAlloc(const uint64_t &mem_base, const ge:
   // get dependect map for alloc
   std::map<uint64_t, size_t> depend_count_map;
   FE_CHECK(L2FusionParser::GetDataDependentCountMap(graph, depend_count_map) != SUCCESS,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetNormalL2DataAlloc] GetDataDependentCountMap failed!"),
-           return FAILED);
+           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetNormalL2DataAlloc] GetDataDependentCountMap failed!"), return FAILED);
 
   OpReferTensorIndexMap refer_tensor_index_map;
   L2FusionParser::GetOpReferTensorIndexMap(graph, refer_tensor_index_map);
@@ -52,8 +50,8 @@ Status L2FusionHandler::GetNormalL2DataAlloc(const uint64_t &mem_base, const ge:
 
   uint64_t max_page_num = 0;
   OpL2AllocMap l2_alloc_map;
-  FE_CHECK(L2FusionAllocation::AllocateData(l2_buffer_info, op_l2_data_vec, depend_count_map,
-                                            l2_alloc_map, max_page_num) != SUCCESS,
+  FE_CHECK(L2FusionAllocation::AllocateData(l2_buffer_info, op_l2_data_vec, depend_count_map, l2_alloc_map,
+                                            max_page_num) != SUCCESS,
            REPORT_FE_ERROR("[StreamOpt][L2Opt][GetNormalL2DataAlloc] Allocate Data failed!"), return FAILED);
   FE_CHECK(L2FusionRtl2ctrl::UpdateRtL2Ctrl(l2_alloc_map, max_page_num, l2_buffer_info.max_data_num) != SUCCESS,
            REPORT_FE_ERROR("[StreamOpt][L2Opt][GetNormalL2DataAlloc] UpdateRtL2Ctrl failed!"), return FAILED);
@@ -64,8 +62,7 @@ Status L2FusionHandler::GetNormalL2DataAlloc(const uint64_t &mem_base, const ge:
   return SUCCESS;
 }
 
-void L2FusionHandler::GenerateL2Data(const uint64_t &mem_base, const TensorL2AllocMap &src_data,
-                                     L2DataMap &dst_data) {
+void L2FusionHandler::GenerateL2Data(const uint64_t &mem_base, const TensorL2AllocMap &src_data, L2DataMap &dst_data) {
   dst_data.clear();
   for (TensorL2AllocMap::const_iterator data_it = src_data.begin(); data_it != src_data.end(); ++data_it) {
     if (CheckUint64AddOverflow(mem_base, data_it->second.data.ddr_addr) != SUCCESS) {
@@ -148,8 +145,8 @@ void L2FusionHandler::DisplayL2Info(const TaskL2InfoMap &l2_info_map) {
   for (TaskL2InfoMap::const_iterator iter = l2_info_map.begin(); iter != l2_info_map.end(); ++iter) {
     const TaskL2Info &l2_info = iter->second;
     rtL2Ctrl_t l2ctrl = iter->second.l2ctrl;
-    FE_LOGD("Node key is %s, node name = %s, l2ctrl.size = %lu.",
-            iter->first.c_str(), l2_info.nodeName.c_str(), l2ctrl.size);
+    FE_LOGD("Node key is %s, node name = %s, l2ctrl.size = %lu.", iter->first.c_str(), l2_info.nodeName.c_str(),
+            l2ctrl.size);
     FE_LOGD("inputNum = %lu, outputNum = %lu.", l2_info.input.size(), l2_info.output.size());
     DisplayL2DataInfo("input", l2_info.input, l2ctrl, l2_info.input);
     DisplayL2DataInfo("output", l2_info.input, l2ctrl, l2_info.output);

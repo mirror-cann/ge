@@ -41,4 +41,3 @@ aclmdlDesc* aclmdlCreateDesc()
 ## 返回值说明<a name="section184151120582"></a>
 
 返回aclmdlDesc类型的指针。
-

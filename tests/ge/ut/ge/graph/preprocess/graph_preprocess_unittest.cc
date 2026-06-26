@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,10 +39,8 @@ using namespace std;
 namespace ge {
 class UtestGraphPreproces : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 namespace {
@@ -54,7 +52,7 @@ bool WriteTextFile(const std::string &file_path, const std::string &content) {
   ofs << content;
   return ofs.good();
 }
-}
+}  // namespace
 
 static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   auto op_desc = std::make_shared<ge::OpDesc>(name, type);
@@ -68,9 +66,9 @@ static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   return op_desc;
 }
 
-ComputeGraphPtr BuildGraph1(){
+ComputeGraphPtr BuildGraph1() {
   auto builder = ut::GraphBuilder("g1");
-  auto data1 = builder.AddNode("data1",DATA,1,1);
+  auto data1 = builder.AddNode("data1", DATA, 1, 1);
   auto data_opdesc = data1->GetOpDesc();
   AttrUtils::SetInt(data_opdesc, ATTR_NAME_INDEX, 0);
   data1->UpdateOpDesc(data_opdesc);
@@ -122,7 +120,7 @@ ComputeGraphPtr BuildGraph5() {
 
   builder.AddDataEdge(data1, 0, add, 0);
   builder.AddDataEdge(data2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -223,7 +221,7 @@ ComputeGraphPtr BuildGraph6() {
 
   builder.AddDataEdge(data1, 0, add, 0);
   builder.AddDataEdge(data2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -238,11 +236,11 @@ ComputeGraphPtr BuildGraph7() {
 
   builder.AddDataEdge(input1, 0, add, 0);
   builder.AddDataEdge(input2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
 
   GeTensorDesc tensor_desc(GeShape({1, 2}));
   GeTensor tensor(tensor_desc);
-  unique_ptr<uint8_t []> data = unique_ptr<uint8_t []>(new uint8_t[8]);
+  unique_ptr<uint8_t[]> data = unique_ptr<uint8_t[]>(new uint8_t[8]);
   tensor.SetData(data.get(), 8);
   AttrUtils::SetTensor(input2->GetOpDesc(), ATTR_NAME_WEIGHTS, tensor);
   (void)AttrUtils::SetBool(add->GetOpDesc(), ATTR_SINGLE_OP_SCENE, true);
@@ -321,30 +319,18 @@ ComputeGraphPtr BuildGraph9() {
  * data1  data2
  */
 Graph BuildGraph10() {
-  const auto const1 = OP_CFG(CONSTANT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {16, 16, 224, 224})
-      .Build("const1");
-  const auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224})
-      .Build("data1");
-  const auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224})
-      .Build("data2");
-  const auto merge = OP_CFG(MERGE)
-      .InCnt(1).OutCnt(2)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("merge1");
-  const auto net_output = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("net_output1");
-  const auto add = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("add");
+  const auto const1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {16, 16, 224, 224}).Build("const1");
+  const auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224}).Build("data1");
+  const auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224}).Build("data2");
+  const auto merge =
+      OP_CFG(MERGE).InCnt(1).OutCnt(2).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("merge1");
+  const auto net_output = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("net_output1");
+  const auto add = OP_CFG(ADD).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("add");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(data1)->EDGE(0, 0)->NODE(add));
-                  CHAIN(NODE(data2)->EDGE(0, 1)->NODE(add)->EDGE(0, 0)->NODE(net_output));
-                };
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(add));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(add)->EDGE(0, 0)->NODE(net_output));
+  };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -364,30 +350,18 @@ Graph BuildGraph10() {
  * const1  data2
  */
 Graph BuildGraph11() {
-  const auto const1 = OP_CFG(CONSTANT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {16, 16, 224, 224})
-      .Build("const1");
-  const auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224})
-      .Build("data1");
-  const auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224})
-      .Build("data2");
-  const auto merge = OP_CFG(MERGE)
-      .InCnt(1).OutCnt(2)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("merge1");
-  const auto net_output = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("net_output1");
-  const auto add = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16})
-      .Build("add");
+  const auto const1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {16, 16, 224, 224}).Build("const1");
+  const auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224}).Build("data1");
+  const auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {16, 16, 224, 224}).Build("data2");
+  const auto merge =
+      OP_CFG(MERGE).InCnt(1).OutCnt(2).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("merge1");
+  const auto net_output = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("net_output1");
+  const auto add = OP_CFG(ADD).TensorDesc(FORMAT_NHWC, DT_FLOAT, {16, 224, 224, 16}).Build("add");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(const1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE(net_output));
-                  CHAIN(NODE(data2)->EDGE(0, 1)->NODE(add));
-                };
+    CHAIN(NODE(const1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE(net_output));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(add));
+  };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -413,7 +387,7 @@ ComputeGraphPtr BuildGraph12() {
 
   GeTensorDesc tensor_desc((GeShape()));
   GeTensor tensor(tensor_desc);
-  unique_ptr<uint8_t []> data = unique_ptr<uint8_t []>(new uint8_t[8]);
+  unique_ptr<uint8_t[]> data = unique_ptr<uint8_t[]>(new uint8_t[8]);
   tensor.SetData(data.get(), 0);
   AttrUtils::SetTensor(input2->GetOpDesc(), ATTR_NAME_WEIGHTS, tensor);
   (void)AttrUtils::SetBool(add->GetOpDesc(), ATTR_SINGLE_OP_SCENE, true);
@@ -438,26 +412,26 @@ TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse) {
   tensor2.SetDataType(ge::DT_FLOAT);
   GeTensor input2(tensor2);
   std::vector<GeTensor> user_input = {input1, input2};
-  std::map<string,string> graph_option = {{"ge.exec.dynamicGraphExecuteMode","dynamic_execute"},
-                                          {"ge.exec.dataInputsShapeRange","[3,1~20,2~10,5],[]"}};
+  std::map<string, string> graph_option = {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
+                                           {"ge.exec.dataInputsShapeRange", "[3,1~20,2~10,5],[]"}};
   auto ret = graph_prepare.UpdateInput(user_input, graph_option);
   EXPECT_EQ(ret, ge::SUCCESS);
   // check data1 node output shape_range and shape
   auto data_node = graph_prepare.compute_graph_->FindNode("input1");
   auto data_output_desc = data_node->GetOpDesc()->GetOutputDescPtr(0);
-  vector<int64_t> input1_expect_shape = {3,-1,-1,5};
-  vector<std::pair<int64_t, int64_t>> intpu1_expect_shape_range = {{3,3},{1,20},{2,10},{5,5}};
+  vector<int64_t> input1_expect_shape = {3, -1, -1, 5};
+  vector<std::pair<int64_t, int64_t>> intpu1_expect_shape_range = {{3, 3}, {1, 20}, {2, 10}, {5, 5}};
   auto input1_result_shape = data_output_desc->GetShape();
   vector<std::pair<int64_t, int64_t>> input1_result_shape_range;
   data_output_desc->GetShapeRange(input1_result_shape_range);
   EXPECT_EQ(input1_result_shape.GetDimNum(), input1_expect_shape.size());
   EXPECT_EQ(input1_result_shape_range.size(), input1_expect_shape.size());
-  for(size_t i =0; i< input1_expect_shape.size(); ++i){
-      EXPECT_EQ(input1_result_shape.GetDim(i), input1_expect_shape.at(i));
+  for (size_t i = 0; i < input1_expect_shape.size(); ++i) {
+    EXPECT_EQ(input1_result_shape.GetDim(i), input1_expect_shape.at(i));
   }
-  for(size_t i =0; i< intpu1_expect_shape_range.size(); ++i){
-     EXPECT_EQ(input1_result_shape_range.at(i).first, intpu1_expect_shape_range.at(i).first);
-     EXPECT_EQ(input1_result_shape_range.at(i).second, intpu1_expect_shape_range.at(i).second);
+  for (size_t i = 0; i < intpu1_expect_shape_range.size(); ++i) {
+    EXPECT_EQ(input1_result_shape_range.at(i).first, intpu1_expect_shape_range.at(i).first);
+    EXPECT_EQ(input1_result_shape_range.at(i).second, intpu1_expect_shape_range.at(i).second);
   }
   // check data2 node output shape_range and shape
   auto data_node_2 = graph_prepare.compute_graph_->FindNode("input2");
@@ -482,8 +456,8 @@ TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse_fail) {
   tensor2.SetDataType(ge::DT_FLOAT);
   GeTensor input2(tensor2);
   std::vector<GeTensor> user_input = {input1, input2};
-  std::map<string,string> graph_option = {{"ge.exec.dynamicGraphExecuteMode","dynamic_execute"},
-                                          {"ge.exec.dataInputsShapeRange","[3,1~20,5],[]"}};
+  std::map<string, string> graph_option = {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
+                                           {"ge.exec.dataInputsShapeRange", "[3,1~20,5],[]"}};
   auto ret = graph_prepare.UpdateInput(user_input, graph_option);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
 
@@ -498,8 +472,8 @@ TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse_fail) {
   tensor4.SetDataType(ge::DT_FLOAT);
   GeTensor input4(tensor4);
   std::vector<GeTensor> user_input1 = {input3, input4};
-  std::map<string,string> graph_option1 = {{"ge.exec.dynamicGraphExecuteMode","dynamic_execute"},
-                                          {"ge.exec.dataInputsShapeRange","[1~10,10,10,10],[]"}};
+  std::map<string, string> graph_option1 = {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
+                                            {"ge.exec.dataInputsShapeRange", "[1~10,10,10,10],[]"}};
   ge::GraphPrepare graph_prepare1;
   graph_prepare1.compute_graph_ = BuildGraph6();
   auto ret1 = graph_prepare.UpdateInput(user_input1, graph_option1);
@@ -516,8 +490,8 @@ TEST_F(UtestGraphPreproces, test_dynamic_input_shape_parse_fail) {
   tensor6.SetDataType(ge::DT_FLOAT);
   GeTensor input6(tensor6);
   std::vector<GeTensor> user_input2 = {input5, input6};
-  std::map<string,string> graph_option2 = {{"ge.exec.dynamicGraphExecuteMode","dynamic_execute"},
-                                          {"ge.exec.dataInputsShapeRange","[10~10,10,10,10],[]"}};
+  std::map<string, string> graph_option2 = {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
+                                            {"ge.exec.dataInputsShapeRange", "[10~10,10,10,10],[]"}};
   ge::GraphPrepare graph_prepare2;
   graph_prepare2.compute_graph_ = BuildGraph6();
   auto ret2 = graph_prepare.UpdateInput(user_input2, graph_option2);
@@ -537,7 +511,7 @@ TEST_F(UtestGraphPreproces, test_update_input_fail) {
   tensor1.SetDataType(ge::DT_UNDEFINED);
   GeTensor input1(tensor1);
   std::vector<GeTensor> user_input = {input1};
-  std::map<string,string> graph_option;
+  std::map<string, string> graph_option;
   auto ret = graph_prepare.UpdateInput(user_input, graph_option);
   EXPECT_EQ(ret, ge::FAILED);
 
@@ -748,7 +722,8 @@ TEST_F(UtestGraphPreproces, test_updar_variable_formats) {
   auto var1 = builder1.AddNode("var1", VARIABLE, 1, 1);
   auto g2 = builder1.GetGraph();
   g2->SetSessionID(0);
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info1 = {.node_type = RESHAPE, .input = input_desc, .output = output_desc};
   VarTransRoad fusion_road1;
@@ -768,7 +743,8 @@ TEST_F(UtestGraphPreproces, RecoverTransRoadForVarRef_TRANSDATA) {
   auto var1 = builder1.AddNode("var1", VARIABLE, 1, 1);
   auto g2 = builder1.GetGraph();
   g2->SetSessionID(0);
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   trans_node_info = {.node_type = TRANSDATA, .input = input_desc, .output = output_desc};
   fusion_road.emplace_back(trans_node_info);
@@ -782,8 +758,9 @@ TEST_F(UtestGraphPreproces, test_updar_variable_formats_insert_transpose) {
   auto builder = ut::GraphBuilder("g1");
   auto var = builder.AddNode("var_transpose", VARIABLE, 1, 1);
   auto g1 = builder.GetGraph();
-  g1->SetSessionID(1); // diffenent from pre test case. cause varmanager is instance
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  g1->SetSessionID(1);  // diffenent from pre test case. cause varmanager is instance
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info = {.node_type = TRANSDATA, .input = input_desc, .output = output_desc};
   TransNodeInfo transpose_node_info = {.node_type = TRANSPOSED, .input = input_desc, .output = output_desc};
@@ -862,7 +839,7 @@ TEST_F(UtestGraphPreproces, test_update_data_netoutput_by_storageFormat) {
   ret = graph_prepare.UpdateDataNetOutputByStorageFormat();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(in_desc->GetFormat(), FORMAT_FRACTAL_NZ);
-  EXPECT_EQ(in_desc->GetShape().GetDims(), vector<int64_t>({ -1, -1, 16, 16 }));
+  EXPECT_EQ(in_desc->GetShape().GetDims(), vector<int64_t>({-1, -1, 16, 16}));
 }
 
 /*
@@ -975,8 +952,9 @@ TEST_F(UtestGraphPreproces, test_updar_variable_formats_insert_transdata) {
   auto builder = ut::GraphBuilder("g1");
   auto var = builder.AddNode("var_transdata", VARIABLE, 1, 1);
   auto g1 = builder.GetGraph();
-  g1->SetSessionID(1); // diffenent from pre test case. cause varmanager is instance
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  g1->SetSessionID(1);  // diffenent from pre test case. cause varmanager is instance
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info = {.node_type = TRANSDATA, .input = input_desc, .output = output_desc};
   VarTransRoad fusion_road;
@@ -1038,7 +1016,7 @@ TEST_F(UtestGraphPreproces, UpdateUninitializedOriginShape) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1063,7 +1041,7 @@ TEST_F(UtestGraphPreproces, SwitchOpOptimize) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1085,7 +1063,7 @@ TEST_F(UtestGraphPreproces, GenerateInfershapeGraph) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1094,7 +1072,7 @@ TEST_F(UtestGraphPreproces, GenerateInfershapeGraph) {
   TensorUtils::SetSize(tensor_desc, 128);
   op_desc->AddOutputDesc(tensor_desc);
   op_desc->SetOutputOffset({0});
-  op_desc->AddInferFunc([](Operator &op) {return GRAPH_SUCCESS;});
+  op_desc->AddInferFunc([](Operator &op) { return GRAPH_SUCCESS; });
   graph->AddNode(op_desc);
 
   graph_prepare.compute_graph_ = graph;
@@ -1128,7 +1106,7 @@ TEST_F(UtestGraphPreproces, CheckConstOpFramwordOpCheckInvalid) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("framework_op", FRAMEWORKOP);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, CONSTANT));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1148,7 +1126,7 @@ TEST_F(UtestGraphPreproces, IsDynamicDimsNoPositive) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("framework_op", FRAMEWORKOP);
-  std::vector<int64_t> shape = {-1,2,2,2};
+  std::vector<int64_t> shape = {-1, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, CONSTANT));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1170,7 +1148,7 @@ TEST_F(UtestGraphPreproces, IsDynamicDimsNoPositiveAndAutofuse) {
 
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
   OpDescPtr op_desc = CreateOpDesc("framework_op", FRAMEWORKOP);
-  std::vector<int64_t> shape = {-1,2,2,2};
+  std::vector<int64_t> shape = {-1, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, CONSTANT));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1193,7 +1171,7 @@ TEST_F(UtestGraphPreproces, CheckUserInputInitFailed) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("data1", DATA);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, -1));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1214,7 +1192,7 @@ TEST_F(UtestGraphPreproces, CheckUserInputInitFaileRefDataAndIoAllocMode) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("data1", REFDATA);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, 0));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1244,7 +1222,7 @@ TEST_F(UtestGraphPreproces, TypeConversionOfConstant) {
   ComputeGraphPtr graph = make_shared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("const1", CONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetBool(op_desc, ATTR_SINGLE_OP_SCENE, false));
   GeTensorDesc tensor_desc(GeShape(shape), FORMAT_ND, DT_FLOAT);
@@ -1262,14 +1240,14 @@ TEST_F(UtestGraphPreproces, TypeConversionOfConstant) {
   EXPECT_EQ(node_ptr->GetOpDesc()->GetType(), CONSTANT);
 }
 
-
 TEST_F(UtestGraphPreproces, test_updar_variable_formats_insert_reshape) {
   auto builder = ut::GraphBuilder("g1");
   auto var = builder.AddNode("var_reshape", VARIABLE, 1, 1);
   (void)AttrUtils::SetStr(var->GetOpDesc(), REF_VAR_SRC_VAR_NAME, "var1");
   auto g1 = builder.GetGraph();
-  g1->SetSessionID(1); // diffenent from pre test case. cause varmanager is instance
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  g1->SetSessionID(1);  // diffenent from pre test case. cause varmanager is instance
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info = {.node_type = RESHAPE, .input = input_desc, .output = output_desc};
   VarTransRoad fusion_road;
@@ -1300,8 +1278,9 @@ TEST_F(UtestGraphPreproces, TryDoAipp) {
   auto builder = ut::GraphBuilder("g1");
   auto var = builder.AddNode("var", VARIABLE, 1, 1);
   auto g1 = builder.GetGraph();
-  g1->SetSessionID(1); // diffenent from pre test case. cause varmanager is instance
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  g1->SetSessionID(1);  // diffenent from pre test case. cause varmanager is instance
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info = {.node_type = RESHAPE, .input = input_desc, .output = output_desc};
   VarTransRoad fusion_road;
@@ -1344,7 +1323,6 @@ TEST_F(UtestGraphPreproces, ProcessInputNC1HWC0DynShapeDynBatch) {
   Status ret = graph_prepare.UpdateInputOutputByOptions();
   EXPECT_EQ(ret, SUCCESS);
 }
-
 
 TEST_F(UtestGraphPreproces, test_update_dtype_mbatch_NeedUpdateDtByOutputTypeParm) {
   ge::GraphPrepare graph_prepare;
@@ -1439,7 +1417,7 @@ void CheckStorageFormatAndShapeOnAttr(ConstGeTensorDescPtr &tensor_desc, Format 
   EXPECT_STREQ(ToString(storage_shape).c_str(), ToString(expect_storage_shape).c_str());
 
   if (!expand_dims_type.empty()) {
-    EXPECT_STREQ( tensor_desc->GetExpandDimsRule().c_str(), expand_dims_type.c_str());
+    EXPECT_STREQ(tensor_desc->GetExpandDimsRule().c_str(), expand_dims_type.c_str());
   }
 }
 
@@ -1459,7 +1437,7 @@ void CheckStorageFormatAndShape(ConstGeTensorDescPtr &tensor_desc, Format expect
     EXPECT_STREQ(target_expand_dims_type.c_str(), expand_dims_type.c_str());
   }
 }
-} // namespace
+}  // namespace
 
 /**
  *   refdata   data
@@ -1548,11 +1526,11 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_for
   auto builder = ut::GraphBuilder("graph1");
   auto data = builder.AddNode("data", DATA, 1, 1, ge::FORMAT_NCHW);
   auto tensor_desc = data->GetOpDesc()->MutableInputDesc(0U);
-  SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_Z, {5,6,7,8,9});
+  SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_Z, {5, 6, 7, 8, 9});
 
   auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1, ge::FORMAT_NCHW);
   auto out_tensor_desc = netoutput->GetOpDesc()->MutableInputDesc(0U);
-  SetStorageFormatAndShape(out_tensor_desc, ge::FORMAT_FRACTAL_Z, {5,6,7,8,9});
+  SetStorageFormatAndShape(out_tensor_desc, ge::FORMAT_FRACTAL_Z, {5, 6, 7, 8, 9});
   builder.AddDataEdge(data, 0, netoutput, 0);
 
   // test PrepareRunningFormatRefiner
@@ -1572,7 +1550,7 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_for
   EXPECT_FALSE(is_out_heavy_op);
   // check storage shape
   auto target_tensor_desc = target_data->GetOpDesc()->GetInputDescPtr(0);
-  CheckStorageFormatAndShape(target_tensor_desc, FORMAT_FRACTAL_Z, {5,6,7,8,9});
+  CheckStorageFormatAndShape(target_tensor_desc, FORMAT_FRACTAL_Z, {5, 6, 7, 8, 9});
 }
 
 /**
@@ -1588,11 +1566,11 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_for
 TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_format_with_expand_dims_rule) {
   // build test graph
   auto builder = ut::GraphBuilder("graph1");
-  auto data = builder.AddNode("data", DATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3,8,8});
+  auto data = builder.AddNode("data", DATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3, 8, 8});
   auto tensor_desc = data->GetOpDesc()->MutableInputDesc(0U);
   SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_Z, {}, "1000");
 
-  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3,8,8});
+  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3, 8, 8});
   auto out_tensor_desc = netoutput->GetOpDesc()->MutableInputDesc(0U);
   SetStorageFormatAndShape(out_tensor_desc, ge::FORMAT_FRACTAL_Z, {}, "1000");
   builder.AddDataEdge(data, 0, netoutput, 0);
@@ -1611,7 +1589,7 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_for
   auto input_desc = target_data->GetOpDesc()->GetInputDescPtr(0);
   auto output_desc = target_data->GetOpDesc()->GetOutputDescPtr(0);
 
-  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
+  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
 
   auto target_output = graph_prepare.compute_graph_->FindNode("netoutput");
   bool is_out_heavy_op = false;
@@ -1632,12 +1610,12 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_output_storage_for
 TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_storage_format_without_spread) {
   // build test graph
   auto builder = ut::GraphBuilder("graph1");
-  auto data = builder.AddNode("data", DATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3,8,8});
+  auto data = builder.AddNode("data", DATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3, 8, 8});
   AttrUtils::SetBool(data->GetOpDesc(), "_enable_storage_format_spread", false);
   auto tensor_desc = data->GetOpDesc()->MutableInputDesc(0U);
   SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_Z, {}, "1000");
 
-  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3,8,8});
+  auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3, 8, 8});
   auto out_tensor_desc = netoutput->GetOpDesc()->MutableInputDesc(0U);
   SetStorageFormatAndShape(out_tensor_desc, ge::FORMAT_FRACTAL_Z, {}, "1000");
   builder.AddDataEdge(data, 0, netoutput, 0);
@@ -1649,14 +1627,14 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_storage_format_wit
 
   // check heavy op attr
   auto target_data = graph_prepare.compute_graph_->FindNode("data");
-  bool is_data_heavy_op= true;
+  bool is_data_heavy_op = true;
   EXPECT_TRUE(AttrUtils::GetBool(target_data->GetOpDesc(), ATTR_NAME_IS_HEAVY_OP, is_data_heavy_op));
   EXPECT_FALSE(is_data_heavy_op);
   // check storage shape / storage format on tensor
   auto input_desc = target_data->GetOpDesc()->GetInputDescPtr(0);
   auto output_desc = target_data->GetOpDesc()->GetOutputDescPtr(0);
 
-  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
+  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
 
   auto target_output = graph_prepare.compute_graph_->FindNode("netoutput");
   bool is_out_heavy_op = false;
@@ -1673,7 +1651,7 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_input_storage_format_wit
 TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_refdata_storage_format) {
   // build graph
   auto builder = ut::GraphBuilder("graph1");
-  auto ref_data = builder.AddNode("refdata", REFDATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3,8,8});
+  auto ref_data = builder.AddNode("refdata", REFDATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {3, 8, 8});
   auto tensor_desc = ref_data->GetOpDesc()->MutableInputDesc(0U);
   auto out_tensor_desc = ref_data->GetOpDesc()->MutableOutputDesc(0U);
   SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_Z, {}, "1000");
@@ -1705,8 +1683,8 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_refdata_storage_format) 
   auto target_data = graph_prepare.compute_graph_->FindNode("refdata");
   auto target_data_input_desc = target_data->GetOpDesc()->GetInputDescPtr(0);
   auto target_data_output_desc = target_data->GetOpDesc()->GetOutputDescPtr(0);
-  CheckStorageFormatAndShape(target_data_input_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
-  CheckStorageFormatAndShape(target_data_output_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
+  CheckStorageFormatAndShape(target_data_input_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
+  CheckStorageFormatAndShape(target_data_output_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
   bool is_heavy_op = false;
   AttrUtils::GetBool(target_data->GetOpDesc(), ATTR_NAME_IS_HEAVY_OP, is_heavy_op);
   EXPECT_TRUE(is_heavy_op);
@@ -1717,12 +1695,12 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_refdata_storage_format) 
   EXPECT_NE(ref_data_ref, nullptr);
   auto input_desc = ref_data_ref->GetOpDesc()->GetInputDescPtr(0);
   auto output_desc = ref_data_ref->GetOpDesc()->GetOutputDescPtr(0);
-  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
-  CheckStorageFormatAndShape(output_desc, FORMAT_FRACTAL_Z, {64,1,16,16}, "CHW");
+  CheckStorageFormatAndShape(input_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
+  CheckStorageFormatAndShape(output_desc, FORMAT_FRACTAL_Z, {64, 1, 16, 16}, "CHW");
 
-  bool is_ref_var_heavy_op =false;
+  bool is_ref_var_heavy_op = false;
   AttrUtils::GetBool(ref_data_ref->GetOpDesc(), ATTR_NAME_IS_HEAVY_OP, is_ref_var_heavy_op);
-  EXPECT_FALSE(is_ref_var_heavy_op); // 回边不需要是重型
+  EXPECT_FALSE(is_ref_var_heavy_op);  // 回边不需要是重型
 }
 /*
  *  refdata   data
@@ -1819,7 +1797,7 @@ TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_OP_NOT_GENERALIZED_refda
 TEST_F(UtestGraphPreproces, PrepareRunningFormatRefiner_OP_NOT_GENERALIZED_unsupport_storage_format) {
   // build graph
   auto builder = ut::GraphBuilder("graph1");
-  auto ref_data = builder.AddNode("refdata", REFDATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {64,2,3,4});
+  auto ref_data = builder.AddNode("refdata", REFDATA, 1, 1, ge::FORMAT_NCHW, DT_FLOAT16, {64, 2, 3, 4});
   auto tensor_desc = ref_data->GetOpDesc()->MutableInputDesc(0U);
   auto out_tensor_desc = ref_data->GetOpDesc()->MutableOutputDesc(0U);
   SetStorageFormatAndShape(tensor_desc, ge::FORMAT_FRACTAL_ZN_RNN, {}, "");
@@ -1904,10 +1882,9 @@ TEST_F(UtestGraphPreproces, test_verify_const_op) {
 TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_success) {
   const std::string logic_topo_config = "./hccl_offline_option_builder_logic_ut.json";
   const std::string hccl_sub_comm_config = "./hccl_offline_option_builder_sub_ut.json";
-  ASSERT_TRUE(WriteTextFile(logic_topo_config,
-                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
-  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
-                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config, R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
 
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
@@ -1931,8 +1908,8 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_success) {
 
 TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_when_sub_comm_config_empty) {
   const std::string logic_topo_config = "./hccl_offline_option_builder_logic_without_sub_ut.json";
-  ASSERT_TRUE(WriteTextFile(logic_topo_config,
-                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
 
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
@@ -1949,8 +1926,7 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_initialize_when_sub_comm
 
 TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_cluster_config_empty) {
   const std::string hccl_sub_comm_config = "./hccl_offline_option_builder_sub_without_logic_ut.json";
-  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
-                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config, R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
 
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
@@ -1967,8 +1943,8 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_cluster_conf
 
 TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_soc_version_empty) {
   const std::string logic_topo_config = "./hccl_offline_option_builder_soc_empty_ut.json";
-  ASSERT_TRUE(WriteTextFile(logic_topo_config,
-                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
   EXPECT_EQ(builder.Initialize("", logic_topo_config, ""), FAILED);
@@ -2003,4 +1979,4 @@ TEST_F(UtestGraphPreproces, hccl_offline_option_builder_failed_when_hccl_comm_co
   (void)std::remove(logic_topo_config.c_str());
 }
 // test storage format end
-}
+}  // namespace ge

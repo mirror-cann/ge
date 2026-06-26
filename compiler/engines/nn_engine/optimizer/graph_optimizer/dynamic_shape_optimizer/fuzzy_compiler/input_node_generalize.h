@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,15 +29,14 @@ void UpdateTensorDesc(const ge::GeTensorDescPtr &src, ge::GeTensorDescPtr &dst);
 using FusionAttrManagerPtr = std::shared_ptr<FusionAttrManager>;
 
 struct GraphType {
-    bool is_limited_graph;
-    bool is_single_op_graph;
+  bool is_limited_graph;
+  bool is_single_op_graph;
 };
 class InputNodeGeneralize {
  public:
   InputNodeGeneralize(const std::unordered_set<ge::NodePtr> &input_nodes, const GraphType &graph_type,
                       const std::map<ge::NodePtr, NodeGeneralInfoPtr> &node_info_map,
-                      const OpStoreAdapterPtr &op_store_adapter,
-                      const FusionAttrManagerPtr &fusion_attr_mgr);
+                      const OpStoreAdapterPtr &op_store_adapter, const FusionAttrManagerPtr &fusion_attr_mgr);
 
   explicit InputNodeGeneralize(const OpStoreAdapterPtr &op_store_adapter);
 
@@ -83,5 +82,5 @@ class InputNodeGeneralize {
   OpStoreAdapterPtr op_store_adapter_;
   FusionAttrManagerPtr fusion_attr_mgr_;
 };
-} // namespace fe
-#endif // COMPILER_GRAPHCOMPILER_ENGINES_NNENG_OPTIMIZER_GRAPH_OPTIMIZER_DYNAMIC_SHAPE_OPTIMIZER_FUZZY_COMPILER_INPUT_NODE_GENERALIZE_H_
+}  // namespace fe
+#endif  // COMPILER_GRAPHCOMPILER_ENGINES_NNENG_OPTIMIZER_GRAPH_OPTIMIZER_DYNAMIC_SHAPE_OPTIMIZER_FUZZY_COMPILER_INPUT_NODE_GENERALIZE_H_

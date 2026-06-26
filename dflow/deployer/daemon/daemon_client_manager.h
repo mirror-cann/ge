@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,11 +65,11 @@ class DaemonClientManager {
   Status CloseClient(const int64_t client_id);
 
   /*
- *  @ingroup ge
- *  @brief   create client
- *  @param   [in]  int64_t
- *  @return  client ptr
- */
+   *  @ingroup ge
+   *  @brief   create client
+   *  @param   [in]  int64_t
+   *  @return  client ptr
+   */
   virtual std::unique_ptr<DeployerDaemonClient> CreateClient(int64_t client_id) {
     return MakeUnique<DeployerDaemonClient>(client_id);
   }
@@ -110,6 +110,6 @@ class DaemonClientManager {
   int32_t dgw_port_offset_gen_ = 0;
   int32_t client_fd_ = -1;
 };
-} // namespace ge
+}  // namespace ge
 
 #endif  // AIR_RUNTIME_HETEROGENEOUS_DAEMON_DAEMON_CLIENT_MANAGER_H_

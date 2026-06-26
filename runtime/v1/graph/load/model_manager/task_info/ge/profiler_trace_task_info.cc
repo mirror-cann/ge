@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@ namespace {
 constexpr uint64_t kProfilingMaxLogid = 5U;  // step trace中tagId的最大值
 constexpr uint64_t kProfilingArStartLogid = 10000U;
 constexpr uint64_t kProfilingArMaxLogid = 29999U;
-} // namespace
+}  // namespace
 
 namespace ge {
 Status ProfilerTraceTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
@@ -44,11 +44,10 @@ Status ProfilerTraceTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *
 }
 
 Status ProfilerTraceTaskInfo::Distribute() {
-  GELOGI("ProfilerTraceTaskInfo Distribute Start. logid = %" PRIu64 ". notify = %d.",
-    log_id_, static_cast<int32_t>(notify_));
+  GELOGI("ProfilerTraceTaskInfo Distribute Start. logid = %" PRIu64 ". notify = %d.", log_id_,
+         static_cast<int32_t>(notify_));
   is_support_redistribute_ = true;
-  if (((log_id_ > kProfilingMaxLogid) && (log_id_ < kProfilingArStartLogid)) ||
-    (log_id_ > kProfilingArMaxLogid)) {
+  if (((log_id_ > kProfilingMaxLogid) && (log_id_ < kProfilingArStartLogid)) || (log_id_ > kProfilingArMaxLogid)) {
     GELOGD("ProfilerTraceTaskInfo logid:%" PRIu64 " is out of range.", log_id_);
     return SUCCESS;
   }
@@ -58,10 +57,7 @@ Status ProfilerTraceTaskInfo::Distribute() {
   }
 
   gert::rtProfTraceUserData userData = {
-    .id = 1UL,
-    .model_id = static_cast<uint64_t>(model_id_),
-    .tag_id = static_cast<uint16_t>(log_id_)
-  };
+      .id = 1UL, .model_id = static_cast<uint64_t>(model_id_), .tag_id = static_cast<uint16_t>(log_id_)};
   const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData), stream_);
   if (rt_ret != ACL_SUCCESS) {
     GELOGE(ge::RT_FAILED, "[Call][aclrtProfTrace]Failed, ret %d", rt_ret);
@@ -75,4 +71,3 @@ Status ProfilerTraceTaskInfo::Distribute() {
 REGISTER_TASK_INFO(MODEL_TASK_PROFILER_TRACE, ProfilerTraceTaskInfo);
 REGISTER_TASK_INFO(MODEL_TASK_PROFILER_TRACE_EX, ProfilerTraceTaskInfo);
 }  // namespace ge
-

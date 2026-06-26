@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,14 +52,14 @@ float Uint16ToFloat(const uint16_t &intVal) {
     mRet = hfMan & kFp16ManMask;
     mRet = mRet << (kFp32ManLen - kFp16ManLen);
   }
-  fVal = ((sRet) << kFp32SignIndex) | ((eRet) << kFp32ManLen) | ((mRet) & kFp32MaxMan);
+  fVal = ((sRet) << kFp32SignIndex) | ((eRet) << kFp32ManLen) | ((mRet)&kFp32MaxMan);
   ret = *(reinterpret_cast<float *>(&fVal));
 
   return ret;
 }
 
 class OpTilingAttrUtilsTest : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -197,7 +197,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_success_1) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const int32_t *data = (const int32_t *)attr_data_ptr->GetData();
   EXPECT_EQ(*data, -123);
-  EXPECT_EQ(*(data+1), 456);
+  EXPECT_EQ(*(data + 1), 456);
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_success_2) {
@@ -210,7 +210,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_success_2) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const int32_t *data = (const int32_t *)attr_data_ptr->GetData();
   EXPECT_EQ(*data, -123);
-  EXPECT_EQ(*(data+1), 456);
+  EXPECT_EQ(*(data + 1), 456);
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_to_list_uint32_success_1) {
@@ -223,7 +223,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_to_list_uint32_success_1) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const int32_t *data = (const int32_t *)attr_data_ptr->GetData();
   EXPECT_EQ(*data, -123);
-  EXPECT_EQ(*(data+1), 456);
+  EXPECT_EQ(*(data + 1), 456);
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_to_list_uint32_success_2) {
@@ -236,7 +236,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_int_attr_to_list_uint32_success_2) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const int32_t *data = (const int32_t *)attr_data_ptr->GetData();
   EXPECT_EQ(*data, -123);
-  EXPECT_EQ(*(data+1), 456);
+  EXPECT_EQ(*(data + 1), 456);
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_float_attr_success_1) {
@@ -273,7 +273,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_success_1) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const float *data = (const float *)attr_data_ptr->GetData();
   cout << *data << endl;
-  cout << *(data+1) << endl;
+  cout << *(data + 1) << endl;
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_success_2) {
@@ -286,7 +286,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_success_2) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const float *data = (const float *)attr_data_ptr->GetData();
   cout << *data << endl;
-  cout << *(data+1) << endl;
+  cout << *(data + 1) << endl;
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_float_attr_to_float16_success_1) {
@@ -323,7 +323,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_float16_success_1) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 4);
   const uint16_t *data = (const uint16_t *)attr_data_ptr->GetData();
   cout << Uint16ToFloat(*data) << endl;
-  cout << Uint16ToFloat(*(data+1)) << endl;
+  cout << Uint16ToFloat(*(data + 1)) << endl;
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_float16_success_2) {
@@ -336,7 +336,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_float16_success_2) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 4);
   const uint16_t *data = (const uint16_t *)attr_data_ptr->GetData();
   cout << Uint16ToFloat(*data) << endl;
-  cout << Uint16ToFloat(*(data+1)) << endl;
+  cout << Uint16ToFloat(*(data + 1)) << endl;
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_float_attr_to_int32_success_1) {
@@ -380,7 +380,7 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_int32_success_1) {
   EXPECT_EQ(attr_data_ptr->GetSize(), 8);
   const int32_t *data = (const int32_t *)attr_data_ptr->GetData();
   EXPECT_EQ(*data, 1);
-  EXPECT_EQ(*(data+1), -2);
+  EXPECT_EQ(*(data + 1), -2);
 }
 
 TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_int32_fail_1) {
@@ -399,4 +399,4 @@ TEST_F(OpTilingAttrUtilsTest, get_list_float_attr_to_int32_fail_2) {
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
-}
+}  // namespace optiling

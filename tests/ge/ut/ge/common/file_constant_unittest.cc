@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ class MockMmpaForFlockFailed : public MmpaStubApiGe {
     return INT32_MAX;
   }
 };
-}
+}  // namespace
 static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   auto op_desc = std::make_shared<ge::OpDesc>(name, type);
   op_desc->SetStreamId(0);
@@ -121,7 +121,7 @@ TEST_F(UtestFileConstantUtilTransfer, GetFilePathOK) {
   std::map<std::string, std::string> file_id_and_path_map;
   FileConstantUtils::GetFileIdToPathMapFromOption(file_id_and_path_map);
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "vector_search_buchet_value_bin"));
   std::string file_path;
   size_t offset = 0U;
@@ -242,7 +242,7 @@ TEST_F(UtestFileConstantUtilTransfer, test_convert_file_const_to_const_success) 
   for (size_t i = 0U; i < value_num; i++) {
     float_buf[i] = static_cast<float>(i);
   }
-  Status ret =  FileSaver::SaveToFile(file_name, float_buf.get(), file_const_size);
+  Status ret = FileSaver::SaveToFile(file_name, float_buf.get(), file_const_size);
   EXPECT_EQ(ret, SUCCESS);
 
   auto builder = ut::GraphBuilder("graph1");
@@ -261,11 +261,11 @@ TEST_F(UtestFileConstantUtilTransfer, test_convert_file_const_to_const_success) 
   const auto &weight = OpDescUtils::MutableWeights(const_node);
   auto const_value_size = weight[0]->GetData().GetSize();
   EXPECT_EQ(const_value_size, 12);
-  auto const_value_data = reinterpret_cast<const float*>(weight[0]->GetData().GetData())[0];
+  auto const_value_data = reinterpret_cast<const float *>(weight[0]->GetData().GetData())[0];
   EXPECT_EQ(const_value_data, 0.0f);
-  const_value_data = reinterpret_cast<const float*>(weight[0]->GetData().GetData())[1];
+  const_value_data = reinterpret_cast<const float *>(weight[0]->GetData().GetData())[1];
   EXPECT_EQ(const_value_data, 1.0f);
-  const_value_data = reinterpret_cast<const float*>(weight[0]->GetData().GetData())[2];
+  const_value_data = reinterpret_cast<const float *>(weight[0]->GetData().GetData())[2];
   EXPECT_EQ(const_value_data, 2.0f);
   (void)mmRmdir("tmp_weight_pid");
 }
@@ -289,7 +289,7 @@ TEST_F(UtestFileConstantUtilTransfer, ConvertConstToFileConst_Ok_MultipleModelSa
   const auto &external_weight_manager = ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
   ASSERT_NE(external_weight_manager, nullptr);
   external_weight_manager->SetWeightPath("./om_temp/weight");
-  auto& meta = external_weight_manager->MutableMetaFile();
+  auto &meta = external_weight_manager->MutableMetaFile();
   meta.hash_to_weight_file.clear();
   // 第一次保存，没有权重
   auto graph_1 = build_graph();
@@ -532,10 +532,15 @@ TEST_F(UtestFileConstantUtilTransfer, test_convert_const_to_file_const_specify_f
   const auto &external_weight_manager = ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
   EXPECT_EQ(external_weight_manager != nullptr, true);
   std::string option_str = ExternalWeightManager::GetWeightPathFromOption();
-  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir GetWeightPathFromOption option_str: " << option_str << "end" << std::endl;
-  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir weightPath begin." << std::endl;
+  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir GetWeightPathFromOption "
+               "option_str: "
+            << option_str << "end" << std::endl;
+  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir weightPath begin."
+            << std::endl;
   std::string weightPath = ExternalWeightManager::GetWeightPathFromOption();
-  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir GetWeightPathFromOption weightPath: " << weightPath << "end" << std::endl;
+  std::cout << "test_convert_const_to_file_const_specify_file_path_reuse_external_weight_dir GetWeightPathFromOption "
+               "weightPath: "
+            << weightPath << "end" << std::endl;
   external_weight_manager->SetWeightPath("ge.externalWeightDir");
   auto ret = FileConstantUtils::ConvertConstToFileConst(graph);
   EXPECT_EQ(ret, SUCCESS);
@@ -594,7 +599,7 @@ TEST_F(UtestFileConstantUtilTransfer, test_change_file_path_success) {
   for (size_t i = 0U; i < value_num; i++) {
     float_buf[i] = static_cast<float>(i);
   }
-  Status ret =  FileSaver::SaveToFile(file_name, float_buf.get(), file_const_size);
+  Status ret = FileSaver::SaveToFile(file_name, float_buf.get(), file_const_size);
   EXPECT_EQ(ret, SUCCESS);
 
   auto builder = ut::GraphBuilder("graph1");
@@ -749,7 +754,6 @@ TEST_F(UtestFileConstantUtilTransfer, test_convert_const_to_file_const_with_DT_S
   const auto &output_desc = const1->GetOpDesc()->MutableOutputDesc(0U);
   output_desc->SetDataType(DT_STRING);
 
-
   builder.AddDataEdge(const1, 0, netoutput, 0);
   auto graph = builder.GetGraph();
   auto ret = FileConstantUtils::ConvertConstToFileConst(graph);
@@ -774,7 +778,7 @@ TEST_F(UtestFileConstantUtilTransfer, ConvertConstToFileConst_ConstNodeNotChange
   EXPECT_EQ(graph->FindFirstNodeMatchType(CONSTANT), const1);
   auto ret = FileConstantUtils::ConvertConstToFileConst(graph);
   EXPECT_EQ(ret, ge::SUCCESS);
-  EXPECT_EQ(graph->FindFirstNodeMatchType(CONSTANT), const1); // 空tensor的Const节点不会被转为FileConstant节点
+  EXPECT_EQ(graph->FindFirstNodeMatchType(CONSTANT), const1);  // 空tensor的Const节点不会被转为FileConstant节点
 }
 
 TEST_F(UtestFileConstantUtilTransfer, test_refresh_relative_file_path_ok) {
@@ -790,5 +794,5 @@ TEST_F(UtestFileConstantUtilTransfer, test_refresh_relative_file_path_ok) {
   EXPECT_TRUE(AttrUtils::GetStr(op_desc, ATTR_NAME_LOCATION, file_name));
   EXPECT_EQ(file_name, "hello.bin");
 }
-}
-}
+}  // namespace fileconstant
+}  // namespace ge

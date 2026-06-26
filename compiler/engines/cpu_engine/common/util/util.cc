@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,39 +40,38 @@ const string kOpNoTiling = "_op_no_tiling";
 const uint64_t kAlignmentValue = 64;
 
 // data type map
-const map<string, DataType> DataTypeMap = {
-    {"DT_BOOL", DataType::DT_BOOL},
-    {"DT_INT8", DataType::DT_INT8},
-    {"DT_UINT8", DataType::DT_UINT8},
-    {"DT_INT16", DataType::DT_INT16},
-    {"DT_UINT16", DataType::DT_UINT16},
-    {"DT_INT32", DataType::DT_INT32},
-    {"DT_UINT32", DataType::DT_UINT32},
-    {"DT_INT64", DataType::DT_INT64},
-    {"DT_UINT64", DataType::DT_UINT64},
-    {"DT_FLOAT16", DataType::DT_FLOAT16},
-    {"DT_BF16", DataType::DT_BF16},
-    {"DT_FLOAT", DataType::DT_FLOAT},
-    {"DT_DOUBLE", DataType::DT_DOUBLE},
-    {"DT_COMPLEX32", DataType::DT_COMPLEX32},
-    {"DT_COMPLEX64", DataType::DT_COMPLEX64},
-    {"DT_COMPLEX128", DataType::DT_COMPLEX128},
-    {"DT_QINT8", DataType::DT_QINT8},
-    {"DT_QUINT8", DataType::DT_QUINT8},
-    {"DT_QINT16", DataType::DT_QINT16},
-    {"DT_QUINT16", DataType::DT_QUINT16},
-    {"DT_QINT32", DataType::DT_QINT32},
-    {"DT_STRING", DataType::DT_STRING},
-    {"DT_STRING_REF", DataType::DT_STRING_REF},
-    {"DT_RESOURCE", DataType::DT_RESOURCE},
-    {"DT_VARIANT", DataType::DT_VARIANT},
-    {"DT_UINT1", DataType::DT_UINT1},
-    {"DT_HIFLOAT8", DataType::DT_HIFLOAT8},
-    {"DT_FLOAT8_E4M3FN", DataType::DT_FLOAT8_E4M3FN},
-    {"DT_FLOAT8_E5M2", DataType::DT_FLOAT8_E5M2},
-    {"DT_FLOAT8_E8M0", DataType::DT_FLOAT8_E8M0},
-    {"DT_FLOAT4_E2M1", DataType::DT_FLOAT4_E2M1},
-    {"DT_FLOAT4_E1M2", DataType::DT_FLOAT4_E1M2}};
+const map<string, DataType> DataTypeMap = {{"DT_BOOL", DataType::DT_BOOL},
+                                           {"DT_INT8", DataType::DT_INT8},
+                                           {"DT_UINT8", DataType::DT_UINT8},
+                                           {"DT_INT16", DataType::DT_INT16},
+                                           {"DT_UINT16", DataType::DT_UINT16},
+                                           {"DT_INT32", DataType::DT_INT32},
+                                           {"DT_UINT32", DataType::DT_UINT32},
+                                           {"DT_INT64", DataType::DT_INT64},
+                                           {"DT_UINT64", DataType::DT_UINT64},
+                                           {"DT_FLOAT16", DataType::DT_FLOAT16},
+                                           {"DT_BF16", DataType::DT_BF16},
+                                           {"DT_FLOAT", DataType::DT_FLOAT},
+                                           {"DT_DOUBLE", DataType::DT_DOUBLE},
+                                           {"DT_COMPLEX32", DataType::DT_COMPLEX32},
+                                           {"DT_COMPLEX64", DataType::DT_COMPLEX64},
+                                           {"DT_COMPLEX128", DataType::DT_COMPLEX128},
+                                           {"DT_QINT8", DataType::DT_QINT8},
+                                           {"DT_QUINT8", DataType::DT_QUINT8},
+                                           {"DT_QINT16", DataType::DT_QINT16},
+                                           {"DT_QUINT16", DataType::DT_QUINT16},
+                                           {"DT_QINT32", DataType::DT_QINT32},
+                                           {"DT_STRING", DataType::DT_STRING},
+                                           {"DT_STRING_REF", DataType::DT_STRING_REF},
+                                           {"DT_RESOURCE", DataType::DT_RESOURCE},
+                                           {"DT_VARIANT", DataType::DT_VARIANT},
+                                           {"DT_UINT1", DataType::DT_UINT1},
+                                           {"DT_HIFLOAT8", DataType::DT_HIFLOAT8},
+                                           {"DT_FLOAT8_E4M3FN", DataType::DT_FLOAT8_E4M3FN},
+                                           {"DT_FLOAT8_E5M2", DataType::DT_FLOAT8_E5M2},
+                                           {"DT_FLOAT8_E8M0", DataType::DT_FLOAT8_E8M0},
+                                           {"DT_FLOAT4_E2M1", DataType::DT_FLOAT4_E2M1},
+                                           {"DT_FLOAT4_E1M2", DataType::DT_FLOAT4_E1M2}};
 
 // need delete when update libgraph.so in blue zone
 const std::string AICPU_ATTR_NAME_TENSOR_MAX_SHAPE = "_tensor_max_shape";
@@ -83,24 +82,19 @@ const string GetSoPath(const void *instance) {
   Dl_info dl_info;
   char resoved_path[PATH_MAX] = {0x00};
   string real_file_path;
-  AICPU_IF_BOOL_EXEC((dladdr(instance, &dl_info) == 0),
-      AICPU_REPORT_INNER_ERR_MSG("Call dladdr failed.");
-      return real_file_path);
+  AICPU_IF_BOOL_EXEC((dladdr(instance, &dl_info) == 0), AICPU_REPORT_INNER_ERR_MSG("Call dladdr failed.");
+                     return real_file_path);
   string so_path = dl_info.dli_fname;
   AICPUE_LOGI("So file path=%s", so_path.c_str());
-  AICPU_IF_BOOL_EXEC(so_path.empty(), AICPUE_LOGI("So file path is empty.");
-                     return real_file_path);
+  AICPU_IF_BOOL_EXEC(so_path.empty(), AICPUE_LOGI("So file path is empty."); return real_file_path);
   AICPU_IF_BOOL_EXEC(realpath(so_path.c_str(), resoved_path) == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("realpath [%s] failed, %s.",
-          so_path.c_str(), strerror(errno));
-      return real_file_path);
+                     AICPU_REPORT_INNER_ERR_MSG("realpath [%s] failed, %s.", so_path.c_str(), strerror(errno));
+                     return real_file_path);
   string so_file_path = resoved_path;
   string::size_type pos_so = so_file_path.rfind('/');
-  AICPU_IF_BOOL_EXEC(
-      pos_so == string::npos,
-      AICPU_REPORT_INNER_ERR_MSG("Invalid path[%s] not contain /.",
-          so_file_path.c_str());
-      return real_file_path);
+  AICPU_IF_BOOL_EXEC(pos_so == string::npos,
+                     AICPU_REPORT_INNER_ERR_MSG("Invalid path[%s] not contain /.", so_file_path.c_str());
+                     return real_file_path);
   real_file_path = so_file_path.substr(0, pos_so + 1);
 
   AICPUE_LOGI("Real config File path is %s", real_file_path.c_str());
@@ -141,9 +135,7 @@ string CurrentTimeInStr() {
 aicpu::State ReadJsonFile(const string &file_path, nlohmann::json &json_read) {
   AICPUE_LOGI("Read %s json file", file_path.c_str());
   ifstream ifs(file_path);
-  AICPU_IF_BOOL_EXEC(
-      !ifs.is_open(),
-      return aicpu::State(ge::FAILED, Stringcat("open [", file_path, "] failed")));
+  AICPU_IF_BOOL_EXEC(!ifs.is_open(), return aicpu::State(ge::FAILED, Stringcat("open [", file_path, "] failed")));
 
   try {
     ifs >> json_read;
@@ -173,8 +165,7 @@ aicpu::State StringToBool(const string &str, bool &result) {
   return aicpu::State(ge::FAILED, "unknown reason");
 }
 
-void SplitSequence(const string &str, const string &pattern,
-                   set<string> &result) {
+void SplitSequence(const string &str, const string &pattern, set<string> &result) {
   // Easy to intercept the last piece of data
   string strs = str + pattern;
 
@@ -191,8 +182,7 @@ void SplitSequence(const string &str, const string &pattern,
   }
 }
 
-void SplitSequence(const string &str, const string &pattern,
-                   vector<string> &result) {
+void SplitSequence(const string &str, const string &pattern, vector<string> &result) {
   // Easy to intercept the last piece of data
   string strs = str + pattern;
 
@@ -209,8 +199,7 @@ void SplitSequence(const string &str, const string &pattern,
   }
 }
 
-void GetDataType(const map<string, string> &data_types,
-                 const string &data_type_name, set<DataType> &data_type) {
+void GetDataType(const map<string, string> &data_types, const string &data_type_name, set<DataType> &data_type) {
   auto type_iter = data_types.find(data_type_name);
   if (type_iter != data_types.end()) {
     string data_type_str = type_iter->second;
@@ -230,8 +219,7 @@ void GetDataType(const map<string, string> &data_types,
   }
 }
 
-void GetDataType(const map<string, string> &data_types,
-                 const string &data_type_name, vector<DataType> &data_type) {
+void GetDataType(const map<string, string> &data_types, const string &data_type_name, vector<DataType> &data_type) {
   auto type_iter = data_types.find(data_type_name);
   if (type_iter != data_types.end()) {
     string data_type_str = type_iter->second;
@@ -250,39 +238,41 @@ void GetDataType(const map<string, string> &data_types,
 }
 
 bool ConvertDataType2String(string &elem, DataType data_type) {
-  static const map<DataType, string> DataTypeConvertMap = {
-      {DataType::DT_FLOAT, "DT_FLOAT"},
-      {DataType::DT_FLOAT16, "DT_FLOAT16"},
-      {DataType::DT_BF16, "DT_BF16"},
-      {DataType::DT_INT8, "DT_INT8"},
-      {DataType::DT_UINT8, "DT_UINT8"},
-      {DataType::DT_INT16, "DT_INT16"},
-      {DataType::DT_UINT16, "DT_UINT16"},
-      {DataType::DT_INT32, "DT_INT32"},
-      {DataType::DT_INT64, "DT_INT64"},
-      {DataType::DT_UINT32, "DT_UINT32"},
-      {DataType::DT_UINT64, "DT_UINT64"},
-      {DataType::DT_BOOL, "DT_BOOL"},
-      {DataType::DT_DOUBLE, "DT_DOUBLE"},
-      {DataType::DT_COMPLEX32, "DT_COMPLEX32"},
-      {DataType::DT_COMPLEX64, "DT_COMPLEX64"},
-      {DataType::DT_COMPLEX128, "DT_COMPLEX128"},
-      {DataType::DT_STRING, "DT_STRING"},
-      {DataType::DT_STRING_REF, "DT_STRING_REF"},
-      {DataType::DT_RESOURCE, "DT_RESOURCE"},
-      {DataType::DT_QINT8, "DT_QINT8"},
-      {DataType::DT_QINT16, "DT_QINT16"},
-      {DataType::DT_QINT32, "DT_QINT32"},
-      {DataType::DT_QUINT8, "DT_QUINT8"},
-      {DataType::DT_QUINT16, "DT_QUINT16"},
-      {DataType::DT_DUAL_SUB_INT8, "DT_DUAL_SUB_INT8"},
-      {DataType::DT_DUAL_SUB_UINT8, "DT_DUAL_SUB_UINT8"},
-      {DataType::DT_DUAL, "DT_DUAL"},
-      {DataType::DT_VARIANT, "DT_VARIANT"},
-      {DataType::DT_UINT1, "DT_UINT1"},
-      {DataType::DT_HIFLOAT8, "DT_HIFLOAT8"}, {DataType::DT_FLOAT8_E4M3FN, "DT_FLOAT8_E4M3FN"}, 
-      {DataType::DT_FLOAT8_E5M2, "DT_FLOAT8_E5M2"}, {DataType::DT_FLOAT8_E8M0, "DT_FLOAT8_E8M0"}, 
-      {DataType::DT_FLOAT4_E2M1, "DT_FLOAT4_E2M1"}, {DataType::DT_FLOAT4_E1M2, "DT_FLOAT4_E1M2"}};
+  static const map<DataType, string> DataTypeConvertMap = {{DataType::DT_FLOAT, "DT_FLOAT"},
+                                                           {DataType::DT_FLOAT16, "DT_FLOAT16"},
+                                                           {DataType::DT_BF16, "DT_BF16"},
+                                                           {DataType::DT_INT8, "DT_INT8"},
+                                                           {DataType::DT_UINT8, "DT_UINT8"},
+                                                           {DataType::DT_INT16, "DT_INT16"},
+                                                           {DataType::DT_UINT16, "DT_UINT16"},
+                                                           {DataType::DT_INT32, "DT_INT32"},
+                                                           {DataType::DT_INT64, "DT_INT64"},
+                                                           {DataType::DT_UINT32, "DT_UINT32"},
+                                                           {DataType::DT_UINT64, "DT_UINT64"},
+                                                           {DataType::DT_BOOL, "DT_BOOL"},
+                                                           {DataType::DT_DOUBLE, "DT_DOUBLE"},
+                                                           {DataType::DT_COMPLEX32, "DT_COMPLEX32"},
+                                                           {DataType::DT_COMPLEX64, "DT_COMPLEX64"},
+                                                           {DataType::DT_COMPLEX128, "DT_COMPLEX128"},
+                                                           {DataType::DT_STRING, "DT_STRING"},
+                                                           {DataType::DT_STRING_REF, "DT_STRING_REF"},
+                                                           {DataType::DT_RESOURCE, "DT_RESOURCE"},
+                                                           {DataType::DT_QINT8, "DT_QINT8"},
+                                                           {DataType::DT_QINT16, "DT_QINT16"},
+                                                           {DataType::DT_QINT32, "DT_QINT32"},
+                                                           {DataType::DT_QUINT8, "DT_QUINT8"},
+                                                           {DataType::DT_QUINT16, "DT_QUINT16"},
+                                                           {DataType::DT_DUAL_SUB_INT8, "DT_DUAL_SUB_INT8"},
+                                                           {DataType::DT_DUAL_SUB_UINT8, "DT_DUAL_SUB_UINT8"},
+                                                           {DataType::DT_DUAL, "DT_DUAL"},
+                                                           {DataType::DT_VARIANT, "DT_VARIANT"},
+                                                           {DataType::DT_UINT1, "DT_UINT1"},
+                                                           {DataType::DT_HIFLOAT8, "DT_HIFLOAT8"},
+                                                           {DataType::DT_FLOAT8_E4M3FN, "DT_FLOAT8_E4M3FN"},
+                                                           {DataType::DT_FLOAT8_E5M2, "DT_FLOAT8_E5M2"},
+                                                           {DataType::DT_FLOAT8_E8M0, "DT_FLOAT8_E8M0"},
+                                                           {DataType::DT_FLOAT4_E2M1, "DT_FLOAT4_E2M1"},
+                                                           {DataType::DT_FLOAT4_E1M2, "DT_FLOAT4_E1M2"}};
   auto it = DataTypeConvertMap.find(data_type);
   // only data_type in configure file exists in DataTypeMap_convert, save it and return
   if (it != DataTypeConvertMap.end()) {
@@ -301,46 +291,45 @@ int32_t GetDataTypeSize(DataType data_type) {
   // store mutex pointer and tensor pointer
   constexpr int32_t kSizeOfStringRef = 16;
   // DT_STRING: ge allocate 8 bytes
-  // store string rawdata pointer on device ddr momery
+  // store string rawdata pointer on device ddr memory
   constexpr int32_t kSizeOfString = 16;
   constexpr int32_t kSizeOfComplex32 = 4;
   constexpr int32_t kSizeOfComplex64 = 8;
   constexpr int32_t kSizeOfComplex128 = 16;
   constexpr int32_t kSizeOfVariant = 8;
 
-  static const map<DataType, int32_t> DataTypeSizeConvertMap = {
-      {DataType::DT_FLOAT16, kSizeOfFloat16},
-      {DataType::DT_BF16, kSizeOfFloat16},
-      {DataType::DT_FLOAT, sizeof(float)},
-      {DataType::DT_DOUBLE, sizeof(double)},
-      {DataType::DT_INT8, sizeof(int8_t)},
-      {DataType::DT_UINT8, sizeof(uint8_t)},
-      {DataType::DT_INT16, sizeof(int16_t)},
-      {DataType::DT_UINT16, sizeof(uint16_t)},
-      {DataType::DT_INT32, sizeof(int32_t)},
-      {DataType::DT_UINT32, sizeof(uint32_t)},
-      {DataType::DT_INT64, sizeof(int64_t)},
-      {DataType::DT_UINT64, sizeof(uint64_t)},
-      {DataType::DT_BOOL, sizeof(bool)},
-      {DataType::DT_RESOURCE, kSizeOfResource},
-      {DataType::DT_STRING, kSizeOfString},
-      {DataType::DT_STRING_REF, kSizeOfStringRef},
-      {DataType::DT_COMPLEX32, kSizeOfComplex32},
-      {DataType::DT_COMPLEX64, kSizeOfComplex64},
-      {DataType::DT_COMPLEX128, kSizeOfComplex128},
-      {DataType::DT_QINT16, sizeof(int16_t)},
-      {DataType::DT_QUINT16, sizeof(uint16_t)},
-      {DataType::DT_QINT8, sizeof(int8_t)},
-      {DataType::DT_QUINT8, sizeof(uint8_t)},
-      {DataType::DT_QINT32, sizeof(int32_t)},
-      {DataType::DT_VARIANT, kSizeOfVariant},
-      {DataType::DT_UINT1, sizeof(uint8_t)},
-      {DataType::DT_HIFLOAT8, sizeof(int8_t)},
-      {DataType::DT_FLOAT8_E4M3FN, sizeof(int8_t)},
-      {DataType::DT_FLOAT8_E5M2, sizeof(int8_t)},
-      {DataType::DT_FLOAT8_E8M0, sizeof(int8_t)},
-      {DataType::DT_FLOAT4_E2M1, sizeof(int8_t)},
-      {DataType::DT_FLOAT4_E1M2, sizeof(int8_t)}};
+  static const map<DataType, int32_t> DataTypeSizeConvertMap = {{DataType::DT_FLOAT16, kSizeOfFloat16},
+                                                                {DataType::DT_BF16, kSizeOfFloat16},
+                                                                {DataType::DT_FLOAT, sizeof(float)},
+                                                                {DataType::DT_DOUBLE, sizeof(double)},
+                                                                {DataType::DT_INT8, sizeof(int8_t)},
+                                                                {DataType::DT_UINT8, sizeof(uint8_t)},
+                                                                {DataType::DT_INT16, sizeof(int16_t)},
+                                                                {DataType::DT_UINT16, sizeof(uint16_t)},
+                                                                {DataType::DT_INT32, sizeof(int32_t)},
+                                                                {DataType::DT_UINT32, sizeof(uint32_t)},
+                                                                {DataType::DT_INT64, sizeof(int64_t)},
+                                                                {DataType::DT_UINT64, sizeof(uint64_t)},
+                                                                {DataType::DT_BOOL, sizeof(bool)},
+                                                                {DataType::DT_RESOURCE, kSizeOfResource},
+                                                                {DataType::DT_STRING, kSizeOfString},
+                                                                {DataType::DT_STRING_REF, kSizeOfStringRef},
+                                                                {DataType::DT_COMPLEX32, kSizeOfComplex32},
+                                                                {DataType::DT_COMPLEX64, kSizeOfComplex64},
+                                                                {DataType::DT_COMPLEX128, kSizeOfComplex128},
+                                                                {DataType::DT_QINT16, sizeof(int16_t)},
+                                                                {DataType::DT_QUINT16, sizeof(uint16_t)},
+                                                                {DataType::DT_QINT8, sizeof(int8_t)},
+                                                                {DataType::DT_QUINT8, sizeof(uint8_t)},
+                                                                {DataType::DT_QINT32, sizeof(int32_t)},
+                                                                {DataType::DT_VARIANT, kSizeOfVariant},
+                                                                {DataType::DT_UINT1, sizeof(uint8_t)},
+                                                                {DataType::DT_HIFLOAT8, sizeof(int8_t)},
+                                                                {DataType::DT_FLOAT8_E4M3FN, sizeof(int8_t)},
+                                                                {DataType::DT_FLOAT8_E5M2, sizeof(int8_t)},
+                                                                {DataType::DT_FLOAT8_E8M0, sizeof(int8_t)},
+                                                                {DataType::DT_FLOAT4_E2M1, sizeof(int8_t)},
+                                                                {DataType::DT_FLOAT4_E1M2, sizeof(int8_t)}};
 
   map<DataType, int32_t>::const_iterator iter = DataTypeSizeConvertMap.find(data_type);
   if (iter != DataTypeSizeConvertMap.end()) {
@@ -385,11 +374,9 @@ bool CheckUint32AddOverflow(uint32_t a, uint32_t b) {
   return true;
 }
 
-NodePtr GenGeNode(const string &name, const string &type, int in_count,
-                  int out_count, Format format, DataType data_type,
-                  vector<int64_t> shape) {
-  ComputeGraphPtr compute_graph_ptr =
-      shared_ptr<ComputeGraph>(new (nothrow) ComputeGraph("ComputeGraph"));
+NodePtr GenGeNode(const string &name, const string &type, int in_count, int out_count, Format format,
+                  DataType data_type, vector<int64_t> shape) {
+  ComputeGraphPtr compute_graph_ptr = shared_ptr<ComputeGraph>(new (nothrow) ComputeGraph("ComputeGraph"));
   AICPU_CHECK_NOTNULL_ERRCODE(compute_graph_ptr, nullptr);
   auto tensor_desc = make_shared<GeTensorDesc>();
   tensor_desc->SetShape(GeShape(move(shape)));
@@ -415,7 +402,7 @@ const string RealPath(const string &path) {
   std::string res = "";
 
   // path not exists or not allowed to read，return nullptr
-  // path exists and readable, return the resoved path
+  // path exists and readable, return the resolved path
   if (realpath(path.c_str(), resoved_path) != nullptr) {
     res = resoved_path;
   } else {
@@ -424,32 +411,25 @@ const string RealPath(const string &path) {
   return res;
 }
 
-bool ReadBytesFromBinaryFile(const std::string &file_name,
-                             std::vector<char> &buffer) {
-  AICPU_IF_BOOL_EXEC(file_name.empty(),
-      AICPU_REPORT_INNER_ERR_MSG("file name is empty.");
-      return false)
+bool ReadBytesFromBinaryFile(const std::string &file_name, std::vector<char> &buffer) {
+  AICPU_IF_BOOL_EXEC(file_name.empty(), AICPU_REPORT_INNER_ERR_MSG("file name is empty."); return false)
 
   std::string real_path = RealPath(file_name);
-  AICPU_IF_BOOL_EXEC(real_path.empty(),
-      AICPU_REPORT_INNER_ERR_MSG("Invalid path[%s].", file_name.c_str());
-      return false);
+  AICPU_IF_BOOL_EXEC(real_path.empty(), AICPU_REPORT_INNER_ERR_MSG("Invalid path[%s].", file_name.c_str());
+                     return false);
 
   std::ifstream file(real_path.c_str(), std::ios::binary | std::ios::ate);
-  AICPU_IF_BOOL_EXEC(!file.is_open(),
-      AICPU_REPORT_INNER_ERR_MSG("open file[%s] failed.", file_name.c_str());
-      return false);
+  AICPU_IF_BOOL_EXEC(!file.is_open(), AICPU_REPORT_INNER_ERR_MSG("open file[%s] failed.", file_name.c_str());
+                     return false);
 
   std::streamsize size = file.tellg();
 
-  AICPU_IF_BOOL_EXEC(size <= 0, file.close();
-      AICPU_REPORT_INNER_ERR_MSG("Empty file[%s].", file_name.c_str());
-      return false);
+  AICPU_IF_BOOL_EXEC(size <= 0, file.close(); AICPU_REPORT_INNER_ERR_MSG("Empty file[%s].", file_name.c_str());
+                     return false);
 
-  AICPU_IF_BOOL_EXEC(size > kMaxFileSizeLimit, file.close();
-      AICPU_REPORT_INNER_ERR_MSG("File[%s] size[%ld] is out of limit[%d].",
-          file_name.c_str(), size, kMaxFileSizeLimit);
-      return false);
+  AICPU_IF_BOOL_EXEC(size > kMaxFileSizeLimit, file.close(); AICPU_REPORT_INNER_ERR_MSG(
+                         "File[%s] size[%ld] is out of limit[%d].", file_name.c_str(), size, kMaxFileSizeLimit);
+                     return false);
 
   file.seekg(0, std::ios::beg);
 
@@ -502,27 +482,22 @@ bool IsUnknowShape(const OpDescPtr &op_desc_ptr) {
   string op_type = op_desc_ptr->GetType();
   // check inputs
   for (const auto &desc : op_desc_ptr->GetAllInputsDescPtr()) {
-    AICPU_IF_BOOL_EXEC(desc == nullptr,
-        AICPUE_LOGW("InputsDescPtr is empty");
-        return true);
+    AICPU_IF_BOOL_EXEC(desc == nullptr, AICPUE_LOGW("InputsDescPtr is empty"); return true);
     auto ge_shape = desc->GetShape();
     for (const auto &dim : ge_shape.GetDims()) {
       if (dim == UNKNOWN_DIM || dim == UNKNOWN_DIM_NUM) {
-        AICPUE_LOGI("Op type[%s]: shape is [%ld], which is unknown.", op_type.c_str(),
-                    dim);
+        AICPUE_LOGI("Op type[%s]: shape is [%ld], which is unknown.", op_type.c_str(), dim);
         return true;
       }
     }
   }
   // check outputs
   for (const auto &desc : op_desc_ptr->GetAllOutputsDescPtr()) {
-    AICPU_IF_BOOL_EXEC(desc == nullptr, AICPUE_LOGW("OutputsDescPtr is empty");
-                       return true);
+    AICPU_IF_BOOL_EXEC(desc == nullptr, AICPUE_LOGW("OutputsDescPtr is empty"); return true);
     auto ge_shape = desc->GetShape();
     for (const auto &dim : ge_shape.GetDims()) {
       if (dim == UNKNOWN_DIM || dim == UNKNOWN_DIM_NUM) {
-        AICPUE_LOGI("Op type[%s]: shape is %ld, which is unknown.", op_type.c_str(),
-                    dim);
+        AICPUE_LOGI("Op type[%s]: shape is %ld, which is unknown.", op_type.c_str(), dim);
         return true;
       }
     }
@@ -536,18 +511,14 @@ Status SetOutPutsSize(shared_ptr<OpDesc> &op_desc_ptr) {
   bool is_no_tiling = IsNotiling(op_desc_ptr);
   int32_t shape_type = 0;
   if (AttrUtils::HasAttr(op_desc_ptr, kAttrNameUnknownShape)) {
-    // unknow shape
-    CHECK_RES_BOOL(
-        AttrUtils::GetInt(op_desc_ptr, ATTR_NAME_UNKNOWN_SHAPE_TYPE, shape_type),
-        INVOKE_GRAPH_ITF_FAILED,
-        AICPU_REPORT_INNER_ERR_MSG(
-            "Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
-            ATTR_NAME_UNKNOWN_SHAPE_TYPE.c_str(), op_desc_ptr->GetName().c_str()))
+    // unknown shape
+    CHECK_RES_BOOL(AttrUtils::GetInt(op_desc_ptr, ATTR_NAME_UNKNOWN_SHAPE_TYPE, shape_type), INVOKE_GRAPH_ITF_FAILED,
+                   AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
+                                              ATTR_NAME_UNKNOWN_SHAPE_TYPE.c_str(), op_desc_ptr->GetName().c_str()))
     if (shape_type == DEPEND_COMPUTE && !is_no_tiling) {
-      // unknow type 4, output is ResultSummary
-      AICPU_CHECK_RES_WITH_LOG(SetOutSizeForSummary(op_desc_ptr),
-          "Call SetOutSizeForSummary function failed, op[%s].",
-          op_desc_ptr->GetName().c_str())
+      // unknown type 4, output is ResultSummary
+      AICPU_CHECK_RES_WITH_LOG(SetOutSizeForSummary(op_desc_ptr), "Call SetOutSizeForSummary function failed, op[%s].",
+                               op_desc_ptr->GetName().c_str())
       return SUCCESS;
     }
   }
@@ -565,8 +536,8 @@ Status SetOutPutsSize(shared_ptr<OpDesc> &op_desc_ptr) {
       aicpu::State state = GetTotalSizeByDimsAndType(output_data_type, dims, output_mem_size);
       AICPU_IF_BOOL_EXEC(state.state != ge::SUCCESS,
                          AICPU_REPORT_INNER_ERR_MSG("Overflow occurred when calculate total "
-                                                  "bytes of output[%zu], %s, op[%s]",
-                                                  i, state.msg.c_str(), op_desc_ptr->GetName().c_str());
+                                                    "bytes of output[%zu], %s, op[%s]",
+                                                    i, state.msg.c_str(), op_desc_ptr->GetName().c_str());
                          return state.state)
       vector<pair<int64_t, int64_t>> shape_range;
       for (size_t dim_index = 0; dim_index < dims.size(); ++dim_index) {
@@ -577,43 +548,39 @@ Status SetOutPutsSize(shared_ptr<OpDesc> &op_desc_ptr) {
       vector<pair<int64_t, int64_t>> shape_range;
       // try get shape range from tensor desc
       AICPU_CHECK_RES_WITH_LOG(output_tensor.GetShapeRange(shape_range),
-          "Call GetShapeRange function failed for %zuth output, op[%s].",
-          i, op_desc_ptr->GetName().c_str())
+                               "Call GetShapeRange function failed for %zuth output, op[%s].", i,
+                               op_desc_ptr->GetName().c_str())
       if (!shape_range.empty()) {
-        // unknow type3, calc outputs size by ShapeRange
-        AICPU_CHECK_RES_WITH_LOG(
-            GetOutSizeByShapeRange(output_data_type, shape_range, output_mem_size),
-            "Call GetOutSizeByShapeRange function failed for %zuth output, op[%s].",
-            i, op_desc_ptr->GetName().c_str())
+        // unknown type3, calc outputs size by ShapeRange
+        AICPU_CHECK_RES_WITH_LOG(GetOutSizeByShapeRange(output_data_type, shape_range, output_mem_size),
+                                 "Call GetOutSizeByShapeRange function failed for %zuth output, op[%s].", i,
+                                 op_desc_ptr->GetName().c_str())
       } else {
         const GeShape &output_shape = output_tensor.GetShape();
-        aicpu::State state = GetTotalSizeByShapeAndType(
-            output_data_type, output_shape, output_mem_size);
+        aicpu::State state = GetTotalSizeByShapeAndType(output_data_type, output_shape, output_mem_size);
         AICPU_IF_BOOL_EXEC(state.state != ge::SUCCESS,
-            AICPU_REPORT_INNER_ERR_MSG("Overflow occurred when calculate total "
-                "bytes of output[%zu], %s, op[%s]", i, state.msg.c_str(),
-                op_desc_ptr->GetName().c_str());
-            return state.state)
+                           AICPU_REPORT_INNER_ERR_MSG("Overflow occurred when calculate total "
+                                                      "bytes of output[%zu], %s, op[%s]",
+                                                      i, state.msg.c_str(), op_desc_ptr->GetName().c_str());
+                           return state.state)
       }
     } else {
       const GeShape &output_shape = output_tensor.GetShape();
-      aicpu::State state = GetTotalSizeByShapeAndType(
-          output_data_type, output_shape, output_mem_size);
+      aicpu::State state = GetTotalSizeByShapeAndType(output_data_type, output_shape, output_mem_size);
       AICPU_IF_BOOL_EXEC(state.state != ge::SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Overflow occurred when calculate total "
-              "bytes of output[%zu], %s, op[%s]", i, state.msg.c_str(),
-              op_desc_ptr->GetName().c_str());
-          return state.state)
+                         AICPU_REPORT_INNER_ERR_MSG("Overflow occurred when calculate total "
+                                                    "bytes of output[%zu], %s, op[%s]",
+                                                    i, state.msg.c_str(), op_desc_ptr->GetName().c_str());
+                         return state.state)
     }
 
-    AICPUE_LOGI("After the output [%zu]'s calc, the total size is [%ld]", i,
-                output_mem_size);
+    AICPUE_LOGI("After the output [%zu]'s calc, the total size is [%ld]", i, output_mem_size);
     if (output_mem_size > LONG_MAX) {
-      AICPU_REPORT_INNER_ERR_MSG("Overflow occured when calculate %zuth output "
-          "total bytes, data type[%s], shape[%s], op[%s].", i,
-          ge::TypeUtils::DataTypeToSerialString(output_data_type).c_str(),
-          DebugString(output_tensor.GetShape().GetDims()).c_str(),
-          op_desc_ptr->GetName().c_str());
+      AICPU_REPORT_INNER_ERR_MSG(
+          "Overflow occurred when calculate %zuth output "
+          "total bytes, data type[%s], shape[%s], op[%s].",
+          i, ge::TypeUtils::DataTypeToSerialString(output_data_type).c_str(),
+          DebugString(output_tensor.GetShape().GetDims()).c_str(), op_desc_ptr->GetName().c_str());
       return DATA_OVERFLOW;
     }
     TensorUtils::SetSize(output_tensor, output_mem_size);
@@ -622,23 +589,17 @@ Status SetOutPutsSize(shared_ptr<OpDesc> &op_desc_ptr) {
     AICPU_CHECK_RES(op_desc_ptr->UpdateOutputDesc(i, output_tensor));
   }
 
-  CHECK_RES_BOOL(
-      AttrUtils::SetListInt(op_desc_ptr, kOutputMemsizeVector, output_memsize_vec),
-      INVOKE_GRAPH_ITF_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
-          kOutputMemsizeVector.c_str(), op_desc_ptr->GetName().c_str()))
-  CHECK_RES_BOOL(
-      AttrUtils::SetListInt(op_desc_ptr, kOutputAlignmentVector,
-                            output_alignment_vec),
-      INVOKE_GRAPH_ITF_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
-          kOutputAlignmentVector.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(AttrUtils::SetListInt(op_desc_ptr, kOutputMemsizeVector, output_memsize_vec), INVOKE_GRAPH_ITF_FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
+                                            kOutputMemsizeVector.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(AttrUtils::SetListInt(op_desc_ptr, kOutputAlignmentVector, output_alignment_vec),
+                 INVOKE_GRAPH_ITF_FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
+                                            kOutputAlignmentVector.c_str(), op_desc_ptr->GetName().c_str()))
   return SUCCESS;
 }
 
-// Set outputs size for unknow type 4 which output is result summary
+// Set outputs size for unknown type 4 which output is result summary
 Status SetOutSizeForSummary(shared_ptr<OpDesc> &op_desc_ptr) {
   vector<int64_t> output_memsize_vec;
   vector<int64_t> output_alignment_vec;
@@ -653,97 +614,81 @@ Status SetOutSizeForSummary(shared_ptr<OpDesc> &op_desc_ptr) {
     (void)output_alignment_vec.emplace_back(kAlignmentValue);
     AICPU_CHECK_RES(op_desc_ptr->UpdateOutputDesc(i, output_tensor));
   }
-  CHECK_RES_BOOL(
-      AttrUtils::SetListInt(op_desc_ptr, kOutputMemsizeVector, output_memsize_vec),
-      INVOKE_GRAPH_ITF_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
-          kOutputMemsizeVector.c_str(), op_desc_ptr->GetName().c_str()))
-  CHECK_RES_BOOL(AttrUtils::SetListInt(op_desc_ptr, kOutputAlignmentVector,
-                                       output_alignment_vec),
-      INVOKE_GRAPH_ITF_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
-          kOutputAlignmentVector.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(AttrUtils::SetListInt(op_desc_ptr, kOutputMemsizeVector, output_memsize_vec), INVOKE_GRAPH_ITF_FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
+                                            kOutputMemsizeVector.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(AttrUtils::SetListInt(op_desc_ptr, kOutputAlignmentVector, output_alignment_vec),
+                 INVOKE_GRAPH_ITF_FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed to set attr[%s], op[%s]",
+                                            kOutputAlignmentVector.c_str(), op_desc_ptr->GetName().c_str()))
 
-  AICPUE_LOGI(
-      "Set output size with ResultSummary for unknow type 4 ok, op: %s.",
-      op_desc_ptr->GetName().c_str());
+  AICPUE_LOGI("Set output size with ResultSummary for unknown type 4 ok, op: %s.", op_desc_ptr->GetName().c_str());
   return SUCCESS;
 }
 
-State GetTotalSizeByShapeAndType(const DataType &data_type, const GeShape &ge_shape,
-                                 int64_t &total_size) {
+State GetTotalSizeByShapeAndType(const DataType &data_type, const GeShape &ge_shape, int64_t &total_size) {
   vector<int64_t> dims = ge_shape.GetDims();
   return GetTotalSizeByDimsAndType(data_type, dims, total_size);
 }
 
-State GetTotalSizeByDimsAndType(const ge::DataType &data_type,
-                                const vector<int64_t> &dims,
-                                int64_t &total_size) {
+State GetTotalSizeByDimsAndType(const ge::DataType &data_type, const vector<int64_t> &dims, int64_t &total_size) {
   int32_t data_size = GetDataTypeSize(data_type);
-  AICPU_CHECK_GREATER_THAN_ZERO(data_size, DATA_TYPE_UNDEFILED,
-      "Invalid data type[%s].",
-      ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
+  AICPU_CHECK_GREATER_THAN_ZERO(data_size, DATA_TYPE_UNDEFILED, "Invalid data type[%s].",
+                                ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
   int64_t total_num = 1;
   size_t dim_size = dims.size();
   for (size_t i = 0; i < dim_size; i++) {
     if (dims[i] == UNKNOWN_DIM || dims[i] == UNKNOWN_DIM_NUM) {
-      AICPUE_LOGW("Unknow output shape [%ld], skip it.", dims[i]);
+      AICPUE_LOGW("Unknown output shape [%ld], skip it.", dims[i]);
       break;
     }
     if (dims[i] < 0) {
-      string err_msg =
-          Stringcat("dim[", i, "] is invalid, shape is ", DebugString(dims));
+      string err_msg = Stringcat("dim[", i, "] is invalid, shape is ", DebugString(dims));
       aicpu::State state(GE_SHAPE_SIZE_INVAILD, err_msg);
       return state;
     }
     CHECK_INT64_MUL_OVERFLOW(total_num, dims[i], aicpu::State(DATA_OVERFLOW),
-        "Overflow when calculate tensor total bytes, shape[%s], data type[%s],",
-        DebugString(dims).c_str(),
-        ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
+                             "Overflow when calculate tensor total bytes, shape[%s], data type[%s],",
+                             DebugString(dims).c_str(), ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
     total_num *= dims[i];
   }
 
   CHECK_INT64_MUL_OVERFLOW(total_num, data_size, aicpu::State(DATA_OVERFLOW),
-      "Overflow when calculate tensor total bytes, shape[%s], data type[%s],",
-      DebugString(dims).c_str(),
-      ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
+                           "Overflow when calculate tensor total bytes, shape[%s], data type[%s],",
+                           DebugString(dims).c_str(), ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
   total_size = total_num * data_size;
   return aicpu::State(SUCCESS);
 }
 
-// calculate output size for unknow type 3 which output shape is range
+// calculate output size for unknown type 3 which output shape is range
 Status GetOutSizeByShapeRange(const DataType &data_type, const vector<pair<int64_t, int64_t>> &shape_range,
                               int64_t &total_size) {
   int32_t data_size = GetDataTypeSize(data_type);
-  AICPU_CHECK_GREATER_THAN_ZERO(data_size, DATA_TYPE_UNDEFILED,
-      "Invalid data type[%s].",
-      ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
+  AICPU_CHECK_GREATER_THAN_ZERO(data_size, DATA_TYPE_UNDEFILED, "Invalid data type[%s].",
+                                ge::TypeUtils::DataTypeToSerialString(data_type).c_str())
 
   int64_t total_num = 1;
   for (size_t index = 0; index < shape_range.size(); ++index) {
     const auto &dim_item = shape_range[index];
-    // unknow shape
+    // unknown shape
     if (dim_item.second == UNKNOWN_DIM || dim_item.second == UNKNOWN_DIM_NUM) {
-      AICPUE_LOGW("Unknow output shape [%ld], skip it.", dim_item.second);
+      AICPUE_LOGW("Unknown output shape [%ld], skip it.", dim_item.second);
       break;
     }
     AICPU_CHECK_SHAPE_RANGE_GREATER_THAN_OR_EQUAL_TO_ZERO(dim_item.second, GE_SHAPE_SIZE_INVAILD,
-        "Invalid value[%ld] of dim[%zu].", dim_item.second, index)
+                                                          "Invalid value[%ld] of dim[%zu].", dim_item.second, index)
     CHECK_INT64_MUL_OVERFLOW(total_num, dim_item.second, DATA_OVERFLOW,
-        "Overflow when calculate tensor shape range total bytes")
+                             "Overflow when calculate tensor shape range total bytes")
     total_num *= dim_item.second;
   }
   CHECK_INT64_MUL_OVERFLOW(total_num, data_size, DATA_OVERFLOW,
-      "Overflow when calculate tensor shape range total bytes")
+                           "Overflow when calculate tensor shape range total bytes")
   total_size = total_num * data_size;
   AICPUE_LOGI("Calc output size by shape range ok, total_size[%ld].", total_size);
   return SUCCESS;
 }
 
-std::vector<std::string> SplitString(const std::string str, const std::string split)
-{
+std::vector<std::string> SplitString(const std::string str, const std::string split) {
   size_t curIndex = 0;
   size_t nextSplit = 0;
   std::vector<std::string> strs;
@@ -780,10 +725,10 @@ ge::Status GetOriginalType(const ge::OpDescPtr &op_desc_ptr, std::string &type) 
   AICPU_IF_BOOL_EXEC(type != kFrameworkOp, return SUCCESS)
   const std::string *type_ptr = ge::AttrUtils::GetStr(op_desc_ptr, kOriginalType);
   if (type_ptr == nullptr) {
-    AICPU_REPORT_INNER_ERR_MSG("Get Attr:%s fail from op:%s(%s)",
-                             kOriginalType.c_str(), op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
-    AICPUE_LOGE("[Get][Attr] %s fail from op:%s(%s)",
-                kOriginalType.c_str(), op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Get Attr:%s fail from op:%s(%s)", kOriginalType.c_str(), op_desc_ptr->GetName().c_str(),
+                               op_desc_ptr->GetType().c_str());
+    AICPUE_LOGE("[Get][Attr] %s fail from op:%s(%s)", kOriginalType.c_str(), op_desc_ptr->GetName().c_str(),
+                op_desc_ptr->GetType().c_str());
     return GET_ATTR_FAILED;
   }
   type = *type_ptr;
@@ -793,7 +738,7 @@ ge::Status GetOriginalType(const ge::OpDescPtr &op_desc_ptr, std::string &type) 
 
 bool IsNotiling(const ge::OpDescPtr &op_desc_ptr) {
   bool is_no_tiling = false;
-  (void) ge::AttrUtils::GetBool(op_desc_ptr, kOpNoTiling, is_no_tiling);
+  (void)ge::AttrUtils::GetBool(op_desc_ptr, kOpNoTiling, is_no_tiling);
   return is_no_tiling;
 }
 
@@ -820,8 +765,7 @@ string Trim(const string &source, const char delims) {
   return result;
 }
 
-void SplitLine(const string &str, const string &pattern,
-               std::vector<string> &result) {
+void SplitLine(const string &str, const string &pattern, std::vector<string> &result) {
   // Easy to intercept the last piece of data
   string strs = str + pattern;
 
@@ -870,4 +814,4 @@ bool ReadConfigFile(const string &file_path, std::vector<string> &result) {
   AICPUE_LOGI("End to load opp custom config.");
   return true;
 }
-}
+}  // namespace aicpu

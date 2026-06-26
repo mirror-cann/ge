@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ const string kOpMaster = "libopmaster_rt2.0.so";
 const string kInner = "built-in";
 const string kOpsProtoPath = "/op_proto/lib/linux/x86_64/";
 const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
-}
+}  // namespace
 
 class UtestGeRootModel : public testing::Test {
  protected:
@@ -155,35 +155,41 @@ TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnTrue_IfNotSetFi
 TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnTrue_NotSetHbmMemType) {
   GeRootModel ge_root_model;
   EXPECT_TRUE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_HBM));
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, true, false, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, true, false, false, 0U, nullptr}});
   EXPECT_TRUE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_P2P_DDR));
 }
 
 TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnFalse_IfSetFixedAddr) {
   GeRootModel ge_root_model;
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, (void *)0x123, 0U, true, false, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, (void *)0x123, 0U, true, false, false, 0U, nullptr}});
   EXPECT_FALSE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_HBM));
   EXPECT_TRUE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_P2P_DDR));
 }
 
 TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnFalse_IfUserSetNullFixedAddr) {
   GeRootModel ge_root_model;
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, true, false, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, true, false, false, 0U, nullptr}});
   EXPECT_FALSE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_HBM));
 
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_P2P_DDR, {RT_MEMORY_P2P_DDR, nullptr, 0U, true, false, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_P2P_DDR, {RT_MEMORY_P2P_DDR, nullptr, 0U, true, false, false, 0U, nullptr}});
   EXPECT_FALSE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_P2P_DDR));
 }
 
 TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnFalseByDefault) {
   GeRootModel ge_root_model;
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, false, true, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, false, true, false, 0U, nullptr}});
   EXPECT_FALSE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_HBM));
 }
 
 TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnTrue_IsGeUseExtendSizeMemory) {
   GeRootModel ge_root_model;
-  ge_root_model.MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, false, true, false, 0U, nullptr}});
+  ge_root_model.MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, nullptr, 0U, false, true, false, 0U, nullptr}});
   mmSetEnv("GE_USE_STATIC_MEMORY", "2", 1);
   EXPECT_TRUE(ge_root_model.IsNeedMallocFixedFeatureMemByType(RT_MEMORY_HBM));
   mmSetEnv("GE_USE_STATIC_MEMORY", "0", 1);
@@ -227,4 +233,4 @@ TEST_F(UtestGeRootModel, IsNeedMallocFixedFeatureMemByType_ReturnFalse_IfUnknow)
   ge_root_model.SetRootGraph(root_graph);
   EXPECT_FALSE(ge_root_model.IsNeedMallocFixedFeatureMem());
 }
-}
+}  // namespace ge

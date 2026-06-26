@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,16 +24,16 @@ namespace gert {
 namespace kernel {
 namespace {
 std::mutex g_bin_hash_to_handles_lock;
-std::unordered_map<std::string, void*> g_bin_hash_to_handles;
+std::unordered_map<std::string, void *> g_bin_hash_to_handles;
 std::string GetComputeNodeName(const KernelContext *context) {
   if ((context == nullptr) ||
-    (reinterpret_cast<const ExtendedKernelContext *>(context)->GetComputeNodeInfo() == nullptr) ||
-    (reinterpret_cast<const ExtendedKernelContext *>(context)->GetComputeNodeInfo()->GetNodeName() == nullptr)) {
+      (reinterpret_cast<const ExtendedKernelContext *>(context)->GetComputeNodeInfo() == nullptr) ||
+      (reinterpret_cast<const ExtendedKernelContext *>(context)->GetComputeNodeInfo()->GetNodeName() == nullptr)) {
     return "unknown";
   }
   return reinterpret_cast<const ExtendedKernelContext *>(context)->GetComputeNodeInfo()->GetNodeName();
 }
-}
+}  // namespace
 UINT32 SinkNodeBinWithoutHandle(KernelContext *context) {
   auto bin_data_holder = context->GetInputValue<kernel::BinData *>(0);
   auto stub_name = context->GetInputValue<char *>(1);
@@ -60,7 +60,7 @@ UINT32 SinkNodeBinWithoutHandle(KernelContext *context) {
     void *kernel_unique_ids_addr;
     {
       std::unique_lock<std::mutex> lk(mtx);
-      kernel_unique_ids.push_back(0U); // store unique id persistent for unique 'stub func' which means kernel id
+      kernel_unique_ids.push_back(0U);  // store unique id persistent for unique 'stub func' which means kernel id
       kernel_unique_ids_addr = &kernel_unique_ids.back();
     }
     GE_ASSERT_RT_OK(rtFunctionRegister(bin_handle, kernel_unique_ids_addr, stub_name, kernel_name, 0U));
@@ -95,14 +95,14 @@ UINT32 SinkNodeBinWithHandle(KernelContext *context) {
   }
 
   std::unique_lock<std::mutex> lk(g_bin_hash_to_handles_lock);
-  const std::unordered_map<std::string, void*>::const_iterator iter = g_bin_hash_to_handles.find(bin_hash);
+  const std::unordered_map<std::string, void *>::const_iterator iter = g_bin_hash_to_handles.find(bin_hash);
   if (iter != g_bin_hash_to_handles.cend()) {
     *bin_handle = iter->second;
     return ge::GRAPH_SUCCESS;
   }
 
-  GELOGI("Register dynamic kernel size %lu, node %s, hash %s",
-         bin_data->length, GetComputeNodeName(context).c_str(), bin_hash.c_str());
+  GELOGI("Register dynamic kernel size %lu, node %s, hash %s", bin_data->length, GetComputeNodeName(context).c_str(),
+         bin_hash.c_str());
   GE_ASSERT_RT_OK(rtRegisterAllKernel(bin_data, bin_handle));
   g_bin_hash_to_handles[bin_hash] = *bin_handle;
 
@@ -145,8 +145,8 @@ UINT32 GetFFTSAICorePcAndPref(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
   if (none_tail_key != tail_key) {
-    if (rtKernelGetAddrAndPrefCnt(bin_handle, tail_key, nullptr, RT_DYNAMIC_SHAPE_KERNEL, &tail_addr,
-                                  &tail_pref) != RT_ERROR_NONE) {
+    if (rtKernelGetAddrAndPrefCnt(bin_handle, tail_key, nullptr, RT_DYNAMIC_SHAPE_KERNEL, &tail_addr, &tail_pref) !=
+        RT_ERROR_NONE) {
       GELOGE(ge::FAILED, "[kernel][SinkFFTSAICoreNodeBin] get tail start pc failed.");
       return ge::GRAPH_FAILED;
     }
@@ -193,14 +193,14 @@ UINT32 SinkFFTSStaManualNodeBin(KernelContext *context) {
   void *kernel_unique_ids_addr;
   {
     std::unique_lock<std::mutex> lk(mtx);
-    kernel_unique_ids.push_back(0U); // store unique id persistent for unique 'stub func' which means kernel id
+    kernel_unique_ids.push_back(0U);  // store unique id persistent for unique 'stub func' which means kernel id
     kernel_unique_ids_addr = &kernel_unique_ids.back();
   }
   GE_ASSERT_RT_OK(rtFunctionRegister(bin_handle, kernel_unique_ids_addr, stub_name, kernel_name, 0U));
   uint32_t prefetch_cnt = 0U;
   void *addr = nullptr;
-  GE_CHK_RT_RET(rtKernelGetAddrAndPrefCnt(bin_handle, 0U, kernel_unique_ids_addr, RT_STATIC_SHAPE_KERNEL, &addr,
-                                          &prefetch_cnt));
+  GE_CHK_RT_RET(
+      rtKernelGetAddrAndPrefCnt(bin_handle, 0U, kernel_unique_ids_addr, RT_STATIC_SHAPE_KERNEL, &addr, &prefetch_cnt));
   GELOGD("Get static pc addr:%lx pre_cnt:%u.", addr, prefetch_cnt);
   sink_ret->aic_icache_prefetch_cnt = prefetch_cnt;
   sink_ret->aic_non_tail_task_start_pc = reinterpret_cast<uintptr_t>(addr);
@@ -208,7 +208,6 @@ UINT32 SinkFFTSStaManualNodeBin(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(SinkFFTSStaManualNodeBin).RunFunc(SinkFFTSStaManualNodeBin).OutputsCreator(CreateSinkRet);
-
 
 UINT32 SinkFFTSStaAutoNodeBin(KernelContext *context) {
   auto sink_ret = context->GetOutputPointer<AICoreSinkRet>(0U);
@@ -237,7 +236,7 @@ UINT32 SinkFFTSStaAutoNodeBin(KernelContext *context) {
     void *kernel_unique_ids_addr;
     {
       std::unique_lock<std::mutex> lk(mtx);
-      kernel_unique_ids.push_back(0U); // store unique id persistent for unique 'stub func' which means kernel id
+      kernel_unique_ids.push_back(0U);  // store unique id persistent for unique 'stub func' which means kernel id
       kernel_unique_ids_addr = &kernel_unique_ids.back();
     }
     GE_ASSERT_RT_OK(rtFunctionRegister(bin_handle, kernel_unique_ids_addr, stub_name, kernel_name, 0U));
@@ -270,7 +269,7 @@ UINT32 SinkMixDyNodeBin(KernelContext *context) {
     GELOGE(ge::FAILED, "[kernel][SinkFFTSAICoreNodeBin] Bin data is nullptr.");
     return ge::GRAPH_FAILED;
   }
-  auto ret_handle = context->GetOutputPointer<void*>(0U);
+  auto ret_handle = context->GetOutputPointer<void *>(0U);
   GE_ASSERT_NOTNULL(ret_handle);
   rtDevBinary_t *bin_data = reinterpret_cast<rtDevBinary_t *>(bin_data_holder);
   bin_data->data = &bin_data_holder->placeholder;
@@ -279,13 +278,13 @@ UINT32 SinkMixDyNodeBin(KernelContext *context) {
   std::string bin_hash(bin_key);
   if (!bin_hash.empty()) {
     std::unique_lock<std::mutex> lk(g_bin_hash_to_handles_lock);
-    const std::unordered_map<std::string, void*>::const_iterator iter = g_bin_hash_to_handles.find(bin_hash);
+    const std::unordered_map<std::string, void *>::const_iterator iter = g_bin_hash_to_handles.find(bin_hash);
     if (iter != g_bin_hash_to_handles.cend()) {
       *ret_handle = iter->second;
       return ge::GRAPH_SUCCESS;
     }
-    GELOGI("Register dynamic kernel size %lu, node %s, hash %s",
-           bin_data->length, GetComputeNodeName(context).c_str(), bin_hash.c_str());
+    GELOGI("Register dynamic kernel size %lu, node %s, hash %s", bin_data->length, GetComputeNodeName(context).c_str(),
+           bin_hash.c_str());
     GE_ASSERT_RT_OK(rtRegisterAllKernel(bin_data, ret_handle));
     g_bin_hash_to_handles[bin_hash] = *ret_handle;
     return ge::GRAPH_SUCCESS;
@@ -324,13 +323,15 @@ UINT32 ParseKernelInfo(const rtKernelDetailInfo_t &kernel_info, const rtKernelDe
     GELOGD("aiv mixType is %u, prefetchCnt is %u pcAddr is Ox%lx", kernel_info.functionInfo[1].mixType,
            kernel_info.functionInfo[1].prefetchCnt, kernel_info.functionInfo[1].pcAddr);
     sink_ret->aic_non_tail_task_start_pc = reinterpret_cast<uintptr_t>(kernel_info.functionInfo[0].pcAddr);
-    sink_ret->aic_icache_prefetch_cnt = std::min(kernel_info.functionInfo[0].prefetchCnt,
-                                                 tail_kernel_info.functionInfo[0].prefetchCnt);;
+    sink_ret->aic_icache_prefetch_cnt =
+        std::min(kernel_info.functionInfo[0].prefetchCnt, tail_kernel_info.functionInfo[0].prefetchCnt);
+    ;
     sink_ret->aic_tail_task_start_pc = reinterpret_cast<uintptr_t>(tail_kernel_info.functionInfo[0].pcAddr);
 
     sink_ret->aiv_non_tail_task_start_pc = reinterpret_cast<uintptr_t>(kernel_info.functionInfo[1].pcAddr);
-    sink_ret->aiv_icache_prefetch_cnt = std::min(kernel_info.functionInfo[1].prefetchCnt,
-                                                 tail_kernel_info.functionInfo[1].prefetchCnt);;
+    sink_ret->aiv_icache_prefetch_cnt =
+        std::min(kernel_info.functionInfo[1].prefetchCnt, tail_kernel_info.functionInfo[1].prefetchCnt);
+    ;
     sink_ret->aiv_tail_task_start_pc = reinterpret_cast<uintptr_t>(tail_kernel_info.functionInfo[1].pcAddr);
     return ge::SUCCESS;
   }
@@ -340,8 +341,8 @@ UINT32 ParseKernelInfo(const rtKernelDetailInfo_t &kernel_info, const rtKernelDe
 ge::graphStatus GetMixDynamicPC(const KernelFunctionCtx &ctx, const std::string &prefix, AICoreSinkRet *sink_ret) {
   uint32_t prefetch_cnt = 0U;
   void *addr = nullptr;
-  GE_CHK_RT_RET(rtKernelGetAddrAndPrefCnt(ctx.bin_handler, ctx.tiling_key, ctx.kernel_unique_ids_addr, ctx.flag,
-                                          &addr, &prefetch_cnt));
+  GE_CHK_RT_RET(rtKernelGetAddrAndPrefCnt(ctx.bin_handler, ctx.tiling_key, ctx.kernel_unique_ids_addr, ctx.flag, &addr,
+                                          &prefetch_cnt));
   uint32_t tail_prefetch_cnt = 0U;
   void *tail_addr = nullptr;
   if (ctx.tail_tiling_key == ctx.tiling_key) {
@@ -351,8 +352,7 @@ ge::graphStatus GetMixDynamicPC(const KernelFunctionCtx &ctx, const std::string 
     GE_CHK_RT_RET(rtKernelGetAddrAndPrefCnt(ctx.bin_handler, ctx.tail_tiling_key, ctx.kernel_unique_ids_addr, ctx.flag,
                                             &tail_addr, &tail_prefetch_cnt));
   }
-  GELOGD("Get mix node with flag: %u prefix:%s pc addr:%p pre_cnt:%u.", ctx.flag, prefix.c_str(), addr,
-         prefetch_cnt);
+  GELOGD("Get mix node with flag: %u prefix:%s pc addr:%p pre_cnt:%u.", ctx.flag, prefix.c_str(), addr, prefetch_cnt);
   if (prefix == kTaskCubeTBEKernelPrefixAic) {
     sink_ret->aic_non_tail_task_start_pc = reinterpret_cast<uintptr_t>(addr);
     sink_ret->aic_tail_task_start_pc = reinterpret_cast<uintptr_t>(tail_addr);
@@ -361,7 +361,7 @@ ge::graphStatus GetMixDynamicPC(const KernelFunctionCtx &ctx, const std::string 
     sink_ret->aiv_non_tail_task_start_pc = reinterpret_cast<uintptr_t>(addr);
     sink_ret->aiv_tail_task_start_pc = reinterpret_cast<uintptr_t>(tail_addr);
     sink_ret->aiv_icache_prefetch_cnt = std::min(prefetch_cnt, tail_prefetch_cnt);
-    }
+  }
   return ge::SUCCESS;
 }
 
@@ -434,7 +434,6 @@ ge::graphStatus CreateMixSinkRet(const ge::FastNode *node, KernelContext *contex
 }
 REGISTER_KERNEL(GetMixAddrAndPrefCnt).RunFunc(GetMixAddrAndPrefCnt).OutputsCreator(CreateMixSinkRet);
 
-
 UINT32 SinkMixStaticNodeBin(KernelContext *context) {
   auto sink_ret = context->GetOutputPointer<AICoreSinkRet>(0U);
   GE_ASSERT_NOTNULL(sink_ret);
@@ -464,7 +463,7 @@ UINT32 SinkMixStaticNodeBin(KernelContext *context) {
     void *kernel_unique_ids_addr;
     {
       std::unique_lock<std::mutex> lk(mtx);
-      kernel_unique_ids.push_back(0U); // store unique id persistent for unique 'stub func' which means kernel id
+      kernel_unique_ids.push_back(0U);  // store unique id persistent for unique 'stub func' which means kernel id
       kernel_unique_ids_addr = &kernel_unique_ids.back();
     }
     GELOGD("register for kernel:%s prefix %s stub_name %s", kernel_name, prefix, stub_name);

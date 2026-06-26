@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,8 +67,7 @@ ge::graphStatus CreateFakeOMAndFileConstantWeightFile(const std::string &om_dir,
 
 void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om_path,
                                 const ge::graphStatus load_status, bool is_weight_dir_concat_expected,
-                                bool is_from_location_attr_expected,
-                                bool use_user_device_mem = false,
+                                bool is_from_location_attr_expected, bool use_user_device_mem = false,
                                 bool size_too_small = false) {
   gert::CreateVersionInfo();
   const std::string weight_file_name = "test_weight_xxxxxx.bin";
@@ -103,7 +102,8 @@ void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om
   auto model_executor = gert::LoadExecutorFromModelData(model_data.Get(), args, error_code);
   gert::DestroyVersionInfo();
   if (use_user_device_mem && size_too_small) {
-    std::string error_log = std::string("[Check][Param] The device memory size set by the user via "
+    std::string error_log = std::string(
+        "[Check][Param] The device memory size set by the user via "
         "aclmdlSetExternalWeightAddress for the external weight file is insufficient. ");
     auto log_inx2 = runtime_stub.GetSlogStub().FindLog(DLOG_ERROR, error_log.c_str());
     EXPECT_NE(log_inx2, -1);
@@ -152,7 +152,7 @@ void TestFileConstantLoadStatus(const std::string &om_dir, const std::string &om
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
-}
+}  // namespace
 class GeLocalTest : public bg::BgTest {
  protected:
   void SetUp() override {
@@ -197,8 +197,8 @@ TEST_F(GeLocalTest, MultiBatchShapesOK) {
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
   ess->Clear();
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
@@ -235,8 +235,7 @@ TEST_F(GeLocalTest, GatherShapesOK) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("GatherShapes", "GatherShapesKernel"), 1);
   ess->Clear();
@@ -357,11 +356,13 @@ TEST_F(GeLocalTest, PartitionedCallLowerInnerData_ExecuteSuccess) {
 
   ess->Clear();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()), ge::GRAPH_SUCCESS);
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
 
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("PartitionedCall", "DavinciModelExecute"), 0);
   ASSERT_EQ(model_executor->ExecuteSync(inputs.GetTensorList(), inputs.size(),
-    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),ge::GRAPH_SUCCESS);
+                                        reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
   aclrtDestroyStream(stream);
@@ -396,8 +397,7 @@ TEST_F(GeLocalTest, SizeOK) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Size", "GetShapeSizeKernel"), 1);
   ess->Clear();
@@ -435,8 +435,7 @@ TEST_F(GeLocalTest, RankOK) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Rank", "RankKernel"), 1);
   ess->Clear();
@@ -457,7 +456,7 @@ TEST_F(GeLocalTest, FileConstantOK) {
   if (!out1.is_open()) {
     return;
   }
-  out1.write(reinterpret_cast<char*>(data), sizeof(data));
+  out1.write(reinterpret_cast<char *>(data), sizeof(data));
   out1.close();
 
   auto graph = ShareGraph::BuildFileConstantGraph();
@@ -491,8 +490,7 @@ TEST_F(GeLocalTest, FileConstantOK) {
 
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
 
   auto tensor_data = output_holder.GetTensor()->GetData<int32_t>();
@@ -650,7 +648,7 @@ TEST_F(GeLocalTest, FileConstant_ModelV2ExecutorLoadFailed_StreamIsNullptr) {
   if (!out1.is_open()) {
     return;
   }
-  out1.write(reinterpret_cast<char*>(data), sizeof(data));
+  out1.write(reinterpret_cast<char *>(data), sizeof(data));
   out1.close();
   auto graph = ShareGraph::BuildFileConstantGraph();
   auto FileConstant = graph->FindNode("FileConstant");
@@ -679,7 +677,7 @@ TEST_F(GeLocalTest, FileConstantLoadSuccess_VarMgrIsExist) {
   // fake var mgr
   UtestRt2VarManager var_mgr;
   string var_id("FileConstant");
-  StorageShape ss{{5,5}, {5,5}};
+  StorageShape ss{{5, 5}, {5, 5}};
   std::unique_ptr<int32_t[]> magic_addr(new int32_t[25U]);
   for (size_t i = 0U; i < 25U; ++i) {
     magic_addr[i] = i;
@@ -792,7 +790,6 @@ TEST_F(GeLocalTest, StaticSubgraphWithFileConstantLinkNetoutput_FileConstantLoad
                                         reinterpret_cast<Tensor **>(outputs.data()), outputs.size()),
             ge::GRAPH_SUCCESS);
 
-
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
   ASSERT_TRUE(mmRmdir(om_dir.c_str()) == 0);
@@ -808,7 +805,7 @@ TEST_F(GeLocalTest, FileConstantLocationAttrOK) {
   if (!out1.is_open()) {
     return;
   }
-  out1.write(reinterpret_cast<char*>(data), sizeof(data));
+  out1.write(reinterpret_cast<char *>(data), sizeof(data));
   out1.close();
   auto graph = ShareGraph::BuildFileConstantGraph();
   auto FileConstant = graph->FindNode("FileConstant");
@@ -838,8 +835,7 @@ TEST_F(GeLocalTest, FileConstantLocationAttrOK) {
 
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
 
   auto tensor_data = output_holder.GetTensor()->GetData<int32_t>();
@@ -853,7 +849,8 @@ TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
   // user set option
   std::map<std::string, std::string> options;
   options["ge.exec.value_bins"] =
-      "{\"value_bins\":[{\"value_bin_id\":\"vector_search_buchet_value_bin\", \"value_bin_file\":\"test_file_id.bin\"}]}";
+      "{\"value_bins\":[{\"value_bin_id\":\"vector_search_buchet_value_bin\", "
+      "\"value_bin_file\":\"test_file_id.bin\"}]}";
   // get file_path_and_file_id
   ge::GetThreadLocalContext().SetGraphOption(options);
   std::string file_name = "test_file_id.bin";
@@ -865,7 +862,7 @@ TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
   if (!out1.is_open()) {
     return;
   }
-  out1.write(reinterpret_cast<char*>(data), sizeof(data));
+  out1.write(reinterpret_cast<char *>(data), sizeof(data));
   out1.close();
   auto graph = ShareGraph::BuildFileConstantGraph();
   auto FileConstant = graph->FindNode("FileConstant");
@@ -896,8 +893,7 @@ TEST_F(GeLocalTest, FileConstantFileIdAttrOK) {
 
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
 
   auto tensor_data = output_holder.GetTensor()->GetData<int32_t>();
@@ -918,14 +914,14 @@ TEST_F(GeLocalTest, FileConstantWithCtrlEdgeConvertOK) {
   if (!out0.is_open()) {
     return;
   }
-  out0.write(reinterpret_cast<char*>(data), sizeof(data));
+  out0.write(reinterpret_cast<char *>(data), sizeof(data));
   out0.close();
 
   std::ofstream out1(file_name_1, std::ios::binary);
   if (!out1.is_open()) {
     return;
   }
-  out1.write(reinterpret_cast<char*>(data), sizeof(data));
+  out1.write(reinterpret_cast<char *>(data), sizeof(data));
   out1.close();
 
   auto graph = ShareGraph::Build2FileConstantWithCtrlEdgeGraph();
@@ -962,8 +958,7 @@ TEST_F(GeLocalTest, FileConstantWithCtrlEdgeConvertOK) {
 
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
 
   auto tensor_data0 = output_holder0.GetTensor()->GetData<int32_t>();
@@ -996,4 +991,4 @@ TEST_F(GeLocalTest, FileConstantFailed) {
   auto exe_graph = graph_convert.ConvertComputeGraphToExecuteGraph(graph, global_data);
   EXPECT_EQ(exe_graph, nullptr);
 }
-}
+}  // namespace gert

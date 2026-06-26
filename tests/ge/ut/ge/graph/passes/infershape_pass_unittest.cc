@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,8 +53,8 @@ ComputeGraphPtr BuildWhileGraph1() {
   auto builder_sub = ut::GraphBuilder("sub");
   auto data_1 = builder_sub.AddNode("data_1", DATA, 0, 1);
   auto data_2 = builder_sub.AddNode("data_2", DATA, 0, 1);
-  auto write2 =  builder_sub.AddNode("write2", "TensorArrayWrite", 2, 1);
-  auto out_0 =  builder_sub.AddNode("out", NETOUTPUT, 1, 1);
+  auto write2 = builder_sub.AddNode("write2", "TensorArrayWrite", 2, 1);
+  auto out_0 = builder_sub.AddNode("out", NETOUTPUT, 1, 1);
   write2->GetOpDesc()->AddInferFunc(write_infer_func);
 
   builder_sub.AddDataEdge(data_1, 0, write2, 0);
@@ -72,7 +72,7 @@ ComputeGraphPtr BuildWhileGraph1() {
   write1->GetOpDesc()->AddInferFunc(write_infer_func);
   // add while op
   auto tensor_desc = std::make_shared<GeTensorDesc>();
-  tensor_desc->SetShape(GeShape({1,1,1,1}));
+  tensor_desc->SetShape(GeShape({1, 1, 1, 1}));
   tensor_desc->SetFormat(FORMAT_ND);
   tensor_desc->SetDataType(DT_INT32);
 
@@ -83,9 +83,9 @@ ComputeGraphPtr BuildWhileGraph1() {
   for (int i = 0; i < 2; ++i) {
     op_desc->AddOutputDesc(tensor_desc->Clone());
   }
-  AttrUtils::SetBool(op_desc,"_need_infer_again", true);
+  AttrUtils::SetBool(op_desc, "_need_infer_again", true);
   op_desc->AddSubgraphName(sub_graph->GetName());
-  op_desc->SetSubgraphInstanceName(0,sub_graph->GetName());
+  op_desc->SetSubgraphInstanceName(0, sub_graph->GetName());
   auto root_graph = builder.GetGraph();
   auto while_op = root_graph->AddNode(op_desc);
 
@@ -117,7 +117,7 @@ ut::GraphBuilder BuildGraphWithShapeLocked() {
   auto netoutput1 = builder.AddNode("netoutput1", "NetOutput", 1, 0);
 
   auto add1_op = OpDescUtils::CreateOperatorFromNode(add1);
-  add1_op.SetAttr(ATTR_NAME_OUT_SHAPE_LOCKED , true);
+  add1_op.SetAttr(ATTR_NAME_OUT_SHAPE_LOCKED, true);
 
   var1->GetOpDescBarePtr()->AddInferFunc(stub_func);
   var2->GetOpDescBarePtr()->AddInferFunc(stub_func);
@@ -131,7 +131,7 @@ ut::GraphBuilder BuildGraphWithShapeLocked() {
 
   return builder;
 }
-}
+}  // namespace
 
 class UtestGraphInfershapePass : public testing::Test {
  protected:
@@ -177,7 +177,7 @@ TEST_F(UtestGraphInfershapePass, infershape_pass_failed) {
   int log_level_backup = dlog_getlevel(GE_MODULE_NAME, &event_log_level);
   dlog_setlevel(GE_MODULE_NAME, 1, event_log_level);
   GeTensorDesc ge_tensor_desc(GeShape({-2, 2, 3, 4}), ge::FORMAT_NCHW, DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> shape_range = {{0,-1},{2,2},{3,3},{4,4}};
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {{0, -1}, {2, 2}, {3, 3}, {4, 4}};
   ge_tensor_desc.SetShapeRange(shape_range);
   ge_tensor_desc.SetOriginShapeRange(shape_range);
   string type = "AddN";
@@ -194,27 +194,27 @@ TEST_F(UtestGraphInfershapePass, infershape_pass_failed) {
 }
 
 TEST_F(UtestGraphInfershapePass, stop_node_for_while_loop) {
-/*******************************************************************************
- *      Exit         Identify
- *        \         /       \.
- *         \       /         \.
- *          Switch           Add
- *         /     |            |
- *        /      |            |
- *       /       |            |
- *  LoopCond     |            |
- *      \        |            |
- *       \       |            |
- *        \      |            |
- *       Less    |            |
- *          \    |       NextIteration
- *           \   |            |
- *            \  |            |
- *            Merge <---------|
- *              |
- *              |
- *            Enter
- ******************************************************************************/
+  /*******************************************************************************
+   *      Exit         Identify
+   *        \         /       \.
+   *         \       /         \.
+   *          Switch           Add
+   *         /     |            |
+   *        /      |            |
+   *       /       |            |
+   *  LoopCond     |            |
+   *      \        |            |
+   *       \       |            |
+   *        \      |            |
+   *       Less    |            |
+   *          \    |       NextIteration
+   *           \   |            |
+   *            \  |            |
+   *            Merge <---------|
+   *              |
+   *              |
+   *            Enter
+   ******************************************************************************/
   auto graph = std::make_shared<ComputeGraph>("test_infer_shape");
   auto data1 = CreateNode(*graph, "data", DATA, 1, 1);
   auto enter1 = CreateNode(*graph, "enter", ENTER, 1, 1);
@@ -294,7 +294,8 @@ TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_failed) {
   GeTensorDescPtr ge_tensor_desc2_ptr = std::make_shared<GeTensorDesc>(ge_tensor_desc2);
   GeTensorDescPtr dst_ge_tensor_desc_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
   InferShapePass infershape_pass;
-  auto ret = infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
+  auto ret =
+      infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
@@ -307,7 +308,8 @@ TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_get_unknown_rank) 
   GeTensorDescPtr ge_tensor_desc2_ptr = std::make_shared<GeTensorDesc>(ge_tensor_desc2);
   GeTensorDescPtr dst_ge_tensor_desc_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
   InferShapePass infershape_pass;
-  auto ret = infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
+  auto ret =
+      infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), UNKNOWN_RANK);
 
@@ -325,9 +327,10 @@ TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_get_unknown_shape)
   GeTensorDescPtr ge_tensor_desc2_ptr = std::make_shared<GeTensorDesc>(ge_tensor_desc2);
   GeTensorDescPtr dst_ge_tensor_desc_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
   InferShapePass infershape_pass;
-  auto ret = infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
+  auto ret =
+      infershape_pass.UpdateOutputFromSubgraphs({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr}, dst_ge_tensor_desc_ptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({-1,2,3,4}));
+  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({-1, 2, 3, 4}));
   // todo shape range?
 }
 
@@ -385,7 +388,7 @@ TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_for_multiDims_succ
   auto ret = infershape_pass.UpdateOutputFromSubgraphsForMultiDims({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr},
                                                                    dst_ge_tensor_desc_ptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({2,2,3,4}));
+  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 4}));
 }
 
 TEST_F(UtestGraphInfershapePass, repass_relied_node_if_resource_changed) {
@@ -451,7 +454,10 @@ TEST_F(UtestGraphInfershapePass, ForbiddenReCompile_WhenAllowMultiGraphParallelC
   EXPECT_NE(write2_node, nullptr);
   gert::GertRuntimeStub stub;
   EXPECT_NE(infershape_pass.Run(write2_node), SUCCESS);
-  auto log_ret = stub.GetSlogStub().FindLog(DLOG_ERROR, "Graph g1 has node read relied on resource 123. Resource changes trigger graph rebuild, which is disabled when ge.AllowMultiGraphParallelCompile is set to \"1\"");
+  auto log_ret =
+      stub.GetSlogStub().FindLog(DLOG_ERROR,
+                                 "Graph g1 has node read relied on resource 123. Resource changes trigger graph "
+                                 "rebuild, which is disabled when ge.AllowMultiGraphParallelCompile is set to \"1\"");
   EXPECT_NE(log_ret, -1);
 }
 
@@ -464,17 +470,15 @@ TEST_F(UtestGraphInfershapePass, update_output_from_subgraphs_for_subgraph_multi
   GeTensorDescPtr ge_tensor_desc2_ptr = std::make_shared<GeTensorDesc>(ge_tensor_desc2);
   GeTensorDescPtr dst_ge_tensor_desc_ptr = std::make_shared<GeTensorDesc>(dst_ge_tensor_desc);
   InferShapePass infershape_pass;
-  auto ret = 
-    infershape_pass.UpdateOutputFromSubgraphsForSubgraphMultiDims({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr},
-                                                                  dst_ge_tensor_desc_ptr);
+  auto ret = infershape_pass.UpdateOutputFromSubgraphsForSubgraphMultiDims({ge_tensor_desc1_ptr, ge_tensor_desc2_ptr},
+                                                                           dst_ge_tensor_desc_ptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({-1,2,3,4}));
+  EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShape().GetDims(), std::vector<int64_t>({-1, 2, 3, 4}));
   std::vector<std::pair<int64_t, int64_t>> range;
   EXPECT_EQ(dst_ge_tensor_desc_ptr->GetShapeRange(range), GRAPH_SUCCESS);
   EXPECT_EQ(range[0].first, 1);
   EXPECT_EQ(range[0].second, 2);
 }
-
 
 TEST_F(UtestGraphInfershapePass, node_with_out_shape_locked) {
   auto builder = BuildGraphWithShapeLocked();
@@ -485,28 +489,28 @@ TEST_F(UtestGraphInfershapePass, node_with_out_shape_locked) {
   auto var1_node = graph->FindNode("var1");
   EXPECT_EQ(infershape_pass.Run(var1_node), SUCCESS);
   auto var_tensor_desc = var1_node->GetOpDesc()->GetOutputDesc(0);
-  EXPECT_EQ(var_tensor_desc.GetShape().GetDims(),  std::vector<int64_t>({1, 1, 28, 28}));
+  EXPECT_EQ(var_tensor_desc.GetShape().GetDims(), std::vector<int64_t>({1, 1, 28, 28}));
 
   auto var2_node = graph->FindNode("var2");
   EXPECT_EQ(infershape_pass.Run(var2_node), SUCCESS);
   var_tensor_desc = var2_node->GetOpDesc()->GetOutputDesc(0);
-  EXPECT_EQ(var_tensor_desc.GetShape().GetDims(),  std::vector<int64_t>({1, 1, 28, 28}));
+  EXPECT_EQ(var_tensor_desc.GetShape().GetDims(), std::vector<int64_t>({1, 1, 28, 28}));
 
   auto add1_node = graph->FindNode("add1");
   EXPECT_EQ(infershape_pass.Run(add1_node), SUCCESS);
   auto add_out_tensor_desc = add1_node->GetOpDesc()->GetOutputDesc(0);
-  EXPECT_EQ(add_out_tensor_desc.GetShape().GetDims(),  std::vector<int64_t>({-1, -1, 28, 28}));
+  EXPECT_EQ(add_out_tensor_desc.GetShape().GetDims(), std::vector<int64_t>({-1, -1, 28, 28}));
   auto add_in_tensor_desc0 = add1_node->GetOpDesc()->GetInputDesc(0);
-  EXPECT_EQ(add_in_tensor_desc0.GetShape().GetDims(),  std::vector<int64_t>({1, 1, 28, 28}));
+  EXPECT_EQ(add_in_tensor_desc0.GetShape().GetDims(), std::vector<int64_t>({1, 1, 28, 28}));
   auto add_in_tensor_desc1 = add1_node->GetOpDesc()->GetInputDesc(1);
-  EXPECT_EQ(add_in_tensor_desc1.GetShape().GetDims(),  std::vector<int64_t>({1, 1, 28, 28}));
+  EXPECT_EQ(add_in_tensor_desc1.GetShape().GetDims(), std::vector<int64_t>({1, 1, 28, 28}));
 
   auto relu1_node = graph->FindNode("relu1");
   auto relu1_in_tensor_desc = relu1_node->GetOpDesc()->GetInputDesc(0);
-  EXPECT_EQ(relu1_in_tensor_desc.GetShape().GetDims(),  std::vector<int64_t>({-1, -1, 28, 28}));
+  EXPECT_EQ(relu1_in_tensor_desc.GetShape().GetDims(), std::vector<int64_t>({-1, -1, 28, 28}));
 
   EXPECT_EQ(infershape_pass.Run(relu1_node), SUCCESS);
-  EXPECT_EQ(relu1_in_tensor_desc.GetShape().GetDims(),  std::vector<int64_t>({-1, -1, 28, 28}));
+  EXPECT_EQ(relu1_in_tensor_desc.GetShape().GetDims(), std::vector<int64_t>({-1, -1, 28, 28}));
 }
 TEST_F(UtestGraphInfershapePass, infershape_pass_infer_shape_and_type1) {
   auto builder = ut::GraphBuilder("graph1");

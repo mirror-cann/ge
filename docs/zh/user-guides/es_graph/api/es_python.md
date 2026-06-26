@@ -26,33 +26,33 @@ graph TB
         AttrScope[attr_scope<br/>属性作用域]
         ControlDepScope[control_dependency_scope<br/>控制依赖作用域]
     end
-    
+
     subgraph "C API Wrapper Layer"
         ESBLib[esb_lib<br/>基础库包装器]
         ESBGenLib[esb_generated_lib<br/>生成的ESAPI库]
         PyESWrapper[pyes_graph_builder_wrapper<br/>Python C API包装]
     end
-    
+
     subgraph "C++ Backend"
         CGraphBuilder[EsCGraphBuilder<br/>C++图构建器]
         CTensorHolder[EsCTensorHolder<br/>C++张量持有者]
         CGraph[EsCGraph<br/>C++图对象]
     end
-    
+
     %% Python层关系
     GraphBuilder -->|"创建多个"| TensorHolder
     GraphBuilder -->|"使用"| InputType
     GraphBuilder -->|"可使用"| AttrScope
     GraphBuilder -->|"可使用"| ControlDepScope
     TensorHolder -->|"引用"| GraphBuilder
-    
+
     %% Python到C API
     GraphBuilder -.->|"通过"| ESBLib
     TensorHolder -.->|"通过"| ESBLib
     TensorHolder -.->|"可选使用"| ESBGenLib
     ESBLib -->|"调用"| PyESWrapper
     ESBGenLib -->|"调用"| PyESWrapper
-    
+
     %% C API到C++
     PyESWrapper -->|"转换为"| CGraphBuilder
     PyESWrapper -->|"转换为"| CTensorHolder
@@ -306,4 +306,3 @@ _lib_loader.py
 参考 [使用es的python api构图sample](../../../../../examples/es/transformer/python/src/make_transformer_graph.py)
 
 更多示例请参考 [examples/es](../../../../../examples/es) 目录下的 Python 用例。
-

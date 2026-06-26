@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ Status GetReshapeSizeAndFirstDim(ge::Format src_out_primary_format, const ge::Ge
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 const int kNewNodeInputSizeLimit = 2;
 
@@ -86,27 +86,26 @@ Status TransNodeReshapeGenerator::AddTransNode(ge::ComputeGraph &fused_graph, Tr
     // get previous out format and next in format
     src_out_primary_format = trans_info_ptr->init_src_out_primary_format;
     auto dst_in_primary_format = trans_info_ptr->init_dst_in_primary_format;
-    bool src_fz_flag = src_out_primary_format == ge::FORMAT_FRACTAL_Z ||
-                       src_out_primary_format == ge::FORMAT_FRACTAL_Z_3D;
+    bool src_fz_flag =
+        src_out_primary_format == ge::FORMAT_FRACTAL_Z || src_out_primary_format == ge::FORMAT_FRACTAL_Z_3D;
 
-    bool dst_fz_flag = dst_in_primary_format == ge::FORMAT_FRACTAL_Z ||
-                       dst_in_primary_format == ge::FORMAT_FRACTAL_Z_3D;
+    bool dst_fz_flag =
+        dst_in_primary_format == ge::FORMAT_FRACTAL_Z || dst_in_primary_format == ge::FORMAT_FRACTAL_Z_3D;
 
     bool src_broadcast_reshape_flag =
-        ((src_op_pattern == OP_PATTERN_BROADCAST || src_op_pattern == OP_PATTERN_BROADCAST_ENHANCED)
-         && IsNeedReshape(trans_info_ptr_->src_op_desc) && src_fz_flag);
+        ((src_op_pattern == OP_PATTERN_BROADCAST || src_op_pattern == OP_PATTERN_BROADCAST_ENHANCED) &&
+         IsNeedReshape(trans_info_ptr_->src_op_desc) && src_fz_flag);
 
     bool dst_broadcast_reshape_flag =
-        ((dst_op_pattern == OP_PATTERN_BROADCAST || dst_op_pattern == OP_PATTERN_BROADCAST_ENHANCED)
-         && IsNeedReshape(trans_info_ptr_->dst_op_desc) && dst_fz_flag);
+        ((dst_op_pattern == OP_PATTERN_BROADCAST || dst_op_pattern == OP_PATTERN_BROADCAST_ENHANCED) &&
+         IsNeedReshape(trans_info_ptr_->dst_op_desc) && dst_fz_flag);
 
     bool src_reduce_reshape_flag = (src_op_pattern == OP_PATTERN_REDUCE && src_fz_flag);
 
     bool dst_reduce_reshape_flag = (dst_op_pattern == OP_PATTERN_REDUCE && dst_fz_flag);
 
-
-    bool reshape_flag = src_broadcast_reshape_flag || dst_broadcast_reshape_flag ||
-                        src_reduce_reshape_flag || dst_reduce_reshape_flag;
+    bool reshape_flag =
+        src_broadcast_reshape_flag || dst_broadcast_reshape_flag || src_reduce_reshape_flag || dst_reduce_reshape_flag;
 
     if (reshape_flag) {
       FE_LOGD(
@@ -140,8 +139,8 @@ Status TransNodeReshapeGenerator::AddNecessaryPeerNodes(ge::ComputeGraph &fused_
   for (auto ele : output_of_reshape->MutableShape().GetDims()) {
     shape_data.emplace_back(static_cast<int32_t>(ele));
   }
-  Status ret = const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(shape_data.data()),
-                                         shape_data.size() * sizeof(int32_t));
+  Status ret =
+      const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(shape_data.data()), shape_data.size() * sizeof(int32_t));
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][Trans][Reshape] Set bias data failed.");
     return ret;
@@ -231,8 +230,9 @@ Status TransNodeReshapeGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, co
   // for data dump
   std::vector<std::string> original_names;
   if (!ge::AttrUtils::SetListStr(op_desc_ptr, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_names)) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][AddOpAndNd] Node[%s]: failed to set attr _datadump_original_op_names.",
-                    op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][ShapeTrans][AddOpAndNd] Node[%s]: failed to set attr _datadump_original_op_names.",
+        op_desc_ptr->GetName().c_str());
     return FAILED;
   }
   SetTensorRealDimCountAndNewShape(op_desc_ptr, {trans_info_ptr_->src_out_shape, const_shape}, shape);
@@ -257,14 +257,19 @@ Status TransNodeReshapeGenerator::ReShapeReduce(ge::ComputeGraph &fused_graph, T
   bool isFz = (src_out_primary_format == ge::FORMAT_FRACTAL_Z && dst_in_primary_format == ge::FORMAT_FRACTAL_Z) ||
               (src_out_primary_format == ge::FORMAT_FRACTAL_Z_3D && dst_in_primary_format == ge::FORMAT_FRACTAL_Z_3D);
   if (src_op_pattern == OP_PATTERN_REDUCE && dst_op_pattern == OP_PATTERN_REDUCE && isFz) {
-    FE_LOGD("Previous ops and the next op are both reduce, with formats being either FRACTAL_Z or FRACTAL_Z_3D; reshaping is not required.");
+    FE_LOGD(
+        "Previous ops and the next op are both reduce, with formats being either FRACTAL_Z or FRACTAL_Z_3D; reshaping "
+        "is not required.");
     return SUCCESS;
   }
 
   ge::GeShape new_shape;
   if ((src_op_pattern == OP_PATTERN_REDUCE || src_op_pattern == OP_PATTERN_BROADCAST ||
-       src_op_pattern == OP_PATTERN_BROADCAST_ENHANCED) && (CheckOriginFormatIdentifiable(dst_in_primary_format))) {
-    FE_LOGD("Reduce or broadcast op from FRACTAL_Z or FRACTAL_Z_3D to ND requires calculating the new shape from 6D or 7D to 4D.");
+       src_op_pattern == OP_PATTERN_BROADCAST_ENHANCED) &&
+      (CheckOriginFormatIdentifiable(dst_in_primary_format))) {
+    FE_LOGD(
+        "Reduce or broadcast op from FRACTAL_Z or FRACTAL_Z_3D to ND requires calculating the new shape from 6D or 7D "
+        "to 4D.");
     auto src_out_shape = trans_info_ptr->src_out_shape;
     size_t reshape_size;
     int64_t first_dim;

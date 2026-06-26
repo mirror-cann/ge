@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -92,9 +92,10 @@ Status DumpAttr(FusionRuleNodePtr node) {
       if (attr.second->IsFusionRuleAttr()) {
         auto fusion_rule_attr = attr.second->GetRuleNodeAttrValue();
         auto refleced_node = attr.second->GetOwnerNode();
-        FE_CHECK(refleced_node == nullptr,
-                  REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][DumpAttr] Get owner node from %s failed",
-                  attr.first.c_str()), return INTERNAL_ERROR);
+        FE_CHECK(
+            refleced_node == nullptr,
+            REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][DumpAttr] Get owner node from %s failed", attr.first.c_str()),
+            return INTERNAL_ERROR);
         if (fusion_rule_attr.node_name != refleced_node->GetNodeName()) {
           REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][DumpAttr] Attr owner node:%s not equal to it should be:%s",
                           refleced_node->GetNodeName().c_str(), fusion_rule_attr.node_name.c_str());
@@ -177,8 +178,7 @@ FusionRuleAnchorPtr FindSrcAnchorByName(const vector<FusionRuleNodePtr> &input_i
              return nullptr);
     for (const auto &output_anchor : node->GetOutputDataAnchors()) {
       FE_CHECK(output_anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][FdSrcAnrByNm] OutputAnchor is null."),
-               return nullptr);
+               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][FdSrcAnrByNm] OutputAnchor is null."), return nullptr);
       if (output_anchor->GetAnchorName() == name) {
         return output_anchor;
       }
@@ -194,8 +194,7 @@ FusionRuleAnchorPtr FindDstAnchorByName(const vector<FusionRuleNodePtr> &output_
              return nullptr);
     for (const auto &input_anchor : node->GetInputDataAnchors()) {
       FE_CHECK(input_anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][FdDstAnrByNm] InputAnchor is null."),
-               return nullptr);
+               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][FdDstAnrByNm] InputAnchor is null."), return nullptr);
       if (input_anchor->GetAnchorName() == name) {
         return input_anchor;
       }
@@ -296,10 +295,10 @@ FusionRuleAnchorPtr CreateInnerOutAnchor(FusionRuleJsonAnchorPtr src, map<string
       // otherwise, the anchor should be from outer input, or return
       // ILLEGAL_RULE
       anchor = FindSrcAnchorByName(input_info, anchor_name);
-      FE_CHECK(anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][CrtInnerOutAnr] Can't find src node %s.",
-                               anchor_name.c_str()),
-               return nullptr);
+      FE_CHECK(
+          anchor == nullptr,
+          REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][CrtInnerOutAnr] Can't find src node %s.", anchor_name.c_str()),
+          return nullptr);
     }
   }
 
@@ -357,10 +356,10 @@ FusionRuleAnchorPtr CreateInnerInAnchor(FusionRuleJsonAnchorPtr dst, map<string,
       // otherwise, the anchor should be from outer input, or return
       // ILLEGAL_RULE
       anchor = FindDstAnchorByName(output_info, anchor_name);
-      FE_CHECK(anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][CrtInnerInAnr] Can't find dst node %s.",
-                               dst->GetName().c_str()),
-               return nullptr);
+      FE_CHECK(
+          anchor == nullptr,
+          REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][CrtInnerInAnr] Can't find dst node %s.", dst->GetName().c_str()),
+          return nullptr);
     }
   }
 
@@ -539,7 +538,7 @@ Status InitBuffer(const set<FusionRuleNodePtr> inner_nodes, const vector<FusionR
 void ProcessReadyNode(const set<FusionRuleNodePtr> &inner_nodes, FusionRuleNodePtr &current_node,
                       vector<FusionRuleNodePtr> &sorted_nodes, map<FusionRuleNodePtr, map<int, int>> &mark_map,
                       set<FusionRuleNodePtr> &buffer, bool &selected_flag) {
-  // if go to this, means current node all input has be recored
+  // if go to this, means current node all input has be recorded
   if (inner_nodes.find(current_node) != inner_nodes.end()) {
     sorted_nodes.push_back(current_node);
   }
@@ -835,7 +834,7 @@ Status FusionRulePatternConstructor::LoadGraph(FusionRulePatternPtr pattern, set
       return in_ret;
     }
   }
-  // at last, if graph has attr assginment expression, add it
+  // at last, if graph has attr assignment expression, add it
   ret = AddAttrAssignmentExpression(nodes, json_graph);
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][LdGph] Add attr to related node failed.");

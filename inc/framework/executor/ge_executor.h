@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,14 +34,14 @@ class GeRootModel;
 struct RunModelData {
   uint32_t index;  // Data index
   uint32_t modelId;
-  std::vector<DataBuffer> blobs;       // All input/output data buffer
-  uint32_t timestamp;                  // Data creation time
-  uint32_t timeout;                    // Processing timeout
-  uint64_t request_id = 0UL;             // Request ID
-  uint64_t dynamic_batch_size = 0UL;     // Dynamic batch size scene, set dynamic size, not supported by default:0
-  uint64_t dynamic_image_height = 0UL;   // Dynamic image size scene, set image height, not supported by default:0
-  uint64_t dynamic_image_width = 0UL;    // Dynamic image size scene, set image width, not supported by default:0
-  std::vector<uint64_t> dynamic_dims;  // Dynamic dims scene, set dynamic dims, not supported by default:empty
+  std::vector<DataBuffer> blobs;        // All input/output data buffer
+  uint32_t timestamp;                   // Data creation time
+  uint32_t timeout;                     // Processing timeout
+  uint64_t request_id = 0UL;            // Request ID
+  uint64_t dynamic_batch_size = 0UL;    // Dynamic batch size scene, set dynamic size, not supported by default:0
+  uint64_t dynamic_image_height = 0UL;  // Dynamic image size scene, set image height, not supported by default:0
+  uint64_t dynamic_image_width = 0UL;   // Dynamic image size scene, set image width, not supported by default:0
+  std::vector<uint64_t> dynamic_dims;   // Dynamic dims scene, set dynamic dims, not supported by default:empty
 };
 
 struct ModelLoadArg {
@@ -163,8 +163,7 @@ class GE_FUNC_VISIBILITY GeExecutor {
   /// @param [out] user_designate_shape_order
   /// @return execute result
   ///
-  Status GetUserDesignateShapeOrder(const uint32_t model_id,
-                                    std::vector<std::string> &user_designate_shape_order);
+  Status GetUserDesignateShapeOrder(const uint32_t model_id, std::vector<std::string> &user_designate_shape_order);
 
   Status GetCurShape(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type);
 
@@ -229,8 +228,8 @@ class GE_FUNC_VISIBILITY GeExecutor {
   /// @param [out] uint32_t &model_id: Corresponding identification after model loading
   /// @return SUCCESS handle successfully / others handle failed
   ///
-  Status LoadModelFromData(uint32_t &model_id, const ModelData &model_data, void *const dev_ptr,
-                           const size_t mem_size, void *const weight_ptr, const size_t weight_size);
+  Status LoadModelFromData(uint32_t &model_id, const ModelData &model_data, void *const dev_ptr, const size_t mem_size,
+                           void *const weight_ptr, const size_t weight_size);
 
   Status LoadModelFromDataWithArgs(uint32_t &model_id, const ModelData &model_data, const ModelLoadArg &load_arg);
 
@@ -258,8 +257,7 @@ class GE_FUNC_VISIBILITY GeExecutor {
   /// @param [in] model_queue_param: params and queue ids and create from user.
   /// @return: 0 for success / others for fail
   ///
-  Status LoadModelWithQ(uint32_t &model_id,
-                        const std::shared_ptr<GeRootModel> &root_model,
+  Status LoadModelWithQ(uint32_t &model_id, const std::shared_ptr<GeRootModel> &root_model,
                         const ModelQueueParam &model_queue_param) const;
 
   ///
@@ -358,13 +356,14 @@ class GE_FUNC_VISIBILITY GeExecutor {
   Status GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id, const uint32_t task_id,
                        OpDescInfo &op_desc_info);
 
- static Status SetAllocator(void *const stream, ge::Allocator *const external_allocator);
+  static Status SetAllocator(void *const stream, ge::Allocator *const external_allocator);
 
- static Status ReleaseResource(const uint32_t device_id);
+  static Status ReleaseResource(const uint32_t device_id);
 
- static Status ReleaseResource();
+  static Status ReleaseResource();
 
- static Status GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id);
+  static Status GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id);
+
  private:
   static std::atomic_bool is_inited_;
 };

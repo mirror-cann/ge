@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,7 +14,7 @@
 #include "graph/compute_graph.h"
 
 namespace fe {
-OpCompilerOpTune::OpCompilerOpTune(const std::string& compiler_name, const std::string& engine_name,
+OpCompilerOpTune::OpCompilerOpTune(const std::string &compiler_name, const std::string &engine_name,
                                    const LxFusionOptimizerPtr &lx_fusion_optimizer,
                                    const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr)
     : OpCompiler(compiler_name, engine_name, false, lx_fusion_optimizer),
@@ -22,7 +22,7 @@ OpCompilerOpTune::OpCompilerOpTune(const std::string& compiler_name, const std::
 
 OpCompilerOpTune::~OpCompilerOpTune() {}
 
-Status OpCompilerOpTune::RunCompileProcess(ge::ComputeGraph& graph) {
+Status OpCompilerOpTune::RunCompileProcess(ge::ComputeGraph &graph) {
   /* Some nodes needs to be re-pre-compiled after Ub fusion matching.
    * Because there format or data type. */
   FE_LOGD("Running compile process graph %s for OpTune.", graph.GetName().c_str());
@@ -100,8 +100,7 @@ Status OpCompilerOpTune::RunCompileProcess(ge::ComputeGraph& graph) {
   compile_info.compile_strategy = CompileStrategy::COMPILE_STRATEGY_OP_SPEC;
   nodes_be_compiled.clear();
 
-  ret = OpCompiler::GetFusionScope(graph, buff_fus_rollback_nodes,
-                                   compile_info.fusion_nodes_map, nodes_be_compiled);
+  ret = OpCompiler::GetFusionScope(graph, buff_fus_rollback_nodes, compile_info.fusion_nodes_map, nodes_be_compiled);
   if (ret != SUCCESS) {
     return FAILED;
   }
@@ -119,8 +118,8 @@ Status OpCompilerOpTune::UpdateNodeCompileParams(const ge::NodePtr &node,
                                                  const OpKernelInfoPtr &op_kernel_info_ptr) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc_ptr);
-  FE_LOGD("[OpTuneCompile] Set compile parameters for node[%s, %s].",
-          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+  FE_LOGD("[OpTuneCompile] Set compile parameters for node[%s, %s].", op_desc_ptr->GetName().c_str(),
+          op_desc_ptr->GetType().c_str());
   bool is_dynamic_impl = false;
   (void)ge::AttrUtils::GetBool(op_desc_ptr, ATTR_NAME_IS_OP_DYNAMIC_IMPL, is_dynamic_impl);
   if (op_kernel_info_ptr->GetDynamicCompileStatic() == DynamicCompileStatic::TUNE) {
@@ -134,4 +133,4 @@ Status OpCompilerOpTune::UpdateNodeCompileParams(const ge::NodePtr &node,
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

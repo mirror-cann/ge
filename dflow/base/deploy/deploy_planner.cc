@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -321,8 +321,7 @@ void DeployPlannerBase::UpdateForInputControlIo() {
     const std::string control_input_queue_name = "__control_input";
     Endpoint queue_def(control_input_queue_name, EndpointType::kQueue);
     auto queue_def_utils =
-        QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").
-        SetNodeAction(kQueueActionControl);
+        QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").SetNodeAction(kQueueActionControl);
 
     model_relation_.endpoints.emplace_back(queue_def);
     model_relation_.root_model_endpoint_info.input_endpoint_names.emplace_back(control_input_queue_name);
@@ -351,9 +350,8 @@ void DeployPlannerBase::UpdateForOutputControlIo() {
                                           [&invoked_inputs](const std::string &endpoint_name) -> bool {
                                             return invoked_inputs.find(endpoint_name) != invoked_inputs.cend();
                                           });
-      if ((!is_invoked) &&
-          (!submodel_endpoint_info.input_endpoint_names.empty() ||
-              !submodel_endpoint_info.external_input_queue_names.empty())) {
+      if ((!is_invoked) && (!submodel_endpoint_info.input_endpoint_names.empty() ||
+                            !submodel_endpoint_info.external_input_queue_names.empty())) {
         GELOGI("Submodel[%s] needs control output", it.first.c_str());
         models_without_output[submodel_endpoint_info.model_name].emplace_back(it.first);
       }
@@ -364,8 +362,7 @@ void DeployPlannerBase::UpdateForOutputControlIo() {
     const auto &model_name = it.first;
     const std::string control_output_queue_name = "__" + model_name + "_control_output";
     Endpoint queue_def(control_output_queue_name, EndpointType::kQueue);
-    QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").
-      SetNodeAction(kQueueActionControl);
+    QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").SetNodeAction(kQueueActionControl);
 
     model_relation_.endpoints.emplace_back(queue_def);
     model_relation_.root_model_endpoint_info.output_endpoint_names.emplace_back(control_output_queue_name);
@@ -443,7 +440,7 @@ Status DeployPlannerBase::GetInvokedModelFusionInputs(const PneModelPtr model,
                                                       std::map<std::string, std::string> &fusion_inputs) {
   std::string invoked_model_fusion_inputs_str;
   if (model != nullptr && model->GetRootGraph() != nullptr) {
-    (void) AttrUtils::GetStr(model->GetRootGraph(), kAttrNameInvokedModelFusionInputs, invoked_model_fusion_inputs_str);
+    (void)AttrUtils::GetStr(model->GetRootGraph(), kAttrNameInvokedModelFusionInputs, invoked_model_fusion_inputs_str);
   }
   if (invoked_model_fusion_inputs_str.empty()) {
     return SUCCESS;
@@ -470,8 +467,8 @@ Status DeployPlannerBase::ResolveInvokedFusion() {
     GE_CHK_STATUS_RET(GetInvokedModelFusionInputs(submodel_info.model, invoked_model_fusion_inputs),
                       "Failed to get invoked model fusion inputs");
     if (invoked_model_fusion_inputs.empty()) {
-      GELOGI("Model[%s] is no need fusion invoked inputs without attr[%s].",
-             model_instance_name.c_str(), kAttrNameInvokedModelFusionInputs);
+      GELOGI("Model[%s] is no need fusion invoked inputs without attr[%s].", model_instance_name.c_str(),
+             kAttrNameInvokedModelFusionInputs);
       continue;
     }
 
@@ -488,10 +485,8 @@ Status DeployPlannerBase::ResolveInvokedFusion() {
       GE_CHECK_NOTNULL(invoked_model_queue_info, ", get invoked model queue info is null, model_name = %s",
                        model_instance_name.c_str());
       // invoked model input is as feed for this model
-      GE_CHK_STATUS_RET(ResolveModelInvokedFusion(model_instance_name,
-                                                  invoked_model_queue_info->input_queue_names,
-                                                  invoke_model_key,
-                                                  fusion_inputs),
+      GE_CHK_STATUS_RET(ResolveModelInvokedFusion(model_instance_name, invoked_model_queue_info->input_queue_names,
+                                                  invoke_model_key, fusion_inputs),
                         "Failed to resolve model invoked fusion");
     }
   }
@@ -542,13 +537,13 @@ Status DeployPlannerBase::ParseInvokedModelFusionInputs(const std::string &fusio
     std::vector<size_t> fusion_input_index_list;
     auto fusion_input_str_list = ge::StringUtils::Split(fusion_input_str_list_str, ',');
     GE_CHK_BOOL_RET_STATUS(fusion_input_str_list.size() != 0UL, PARAM_INVALID,
-                          "Invalid format of fusion inputs:%s to separated by ','", fusion_inputs_str.c_str());
+                           "Invalid format of fusion inputs:%s to separated by ','", fusion_inputs_str.c_str());
     for (const auto &fusion_input_str : fusion_input_str_list) {
       GE_CHK_STATUS_RET(ParseInputIndexWithRange(fusion_input_str, fusion_input_index_list),
                         "Failed to parse input index with range");
     }
-    GELOGI("Parse fusion input string[%s] success, fusion list = %s",
-           fusion_input_str_list_str.c_str(), ToString(fusion_input_index_list).c_str());
+    GELOGI("Parse fusion input string[%s] success, fusion list = %s", fusion_input_str_list_str.c_str(),
+           ToString(fusion_input_index_list).c_str());
     fusion_inputs_list.emplace_back(fusion_input_index_list);
   }
   return SUCCESS;
@@ -556,14 +551,12 @@ Status DeployPlannerBase::ParseInvokedModelFusionInputs(const std::string &fusio
 
 Status DeployPlannerBase::ResolveModelInvokedFusion(const std::string &model_instance_name,
                                                     const std::vector<std::string> &queue_names,
-                                                    const std::string &invoke_key,
-                                                    const std::string &fusion_inputs) {
+                                                    const std::string &invoke_key, const std::string &fusion_inputs) {
   std::vector<const Endpoint *> endpoints;
   GE_CHK_STATUS_RET(relation_reader_->BatchGetEndpoints(queue_names, endpoints), "Failed to batch get endpoints");
   auto &submodel_info = MutableSubmodelInfo(model_instance_name);
   if (endpoints.size() <= 1UL) {
-    GELOGI("Model[%s] input size[%zu] <= 1, no need to fusion.", model_instance_name.c_str(),
-           endpoints.size());
+    GELOGI("Model[%s] input size[%zu] <= 1, no need to fusion.", model_instance_name.c_str(), endpoints.size());
     return SUCCESS;
   }
 
@@ -589,8 +582,8 @@ Status DeployPlannerBase::ResolveModelInvokedFusion(const std::string &model_ins
       auto &endpoint = deploy_plan_.queues_[static_cast<size_t>(index)];
       endpoint.ref_index = fusion_index;
       endpoint.fusion_offset = i;
-      GELOGI("Input[%zu] is fused, index = %d, fusion index = %d, fusion offset = %d.",
-             input_index, index, fusion_index, endpoint.fusion_offset);
+      GELOGI("Input[%zu] is fused, index = %d, fusion index = %d, fusion offset = %d.", input_index, index,
+             fusion_index, endpoint.fusion_offset);
     }
   }
   return SUCCESS;
@@ -685,8 +678,8 @@ void DeployPlannerBase::MarkMultiDeployedModels() {
     const auto &submodel_endpoint_info = it.second;
     model_instances[submodel_endpoint_info.model_name][device_info.GetKey()].emplace_back(model_instance_name);
     instance_to_model_name_[model_instance_name] = submodel_endpoint_info.model_name;
-    model_deploy_locations_[submodel_endpoint_info.model_name].emplace_back(std::make_pair(model_instance_name,
-                                                                                           device_info));
+    model_deploy_locations_[submodel_endpoint_info.model_name].emplace_back(
+        std::make_pair(model_instance_name, device_info));
   }
 
   int32_t model_id = 1;
@@ -702,8 +695,8 @@ void DeployPlannerBase::MarkMultiDeployedModels() {
         for (const auto &model_instance_name : dev_to_model_instance_name.second) {
           auto &submodel_info = MutableSubmodelInfo(model_instance_name);
           submodel_info.process_id = process_id++;
-          GELOGD("Submodel[%s] is deploy to device[%s], instance = %s, process_id = %d.",
-                 model_name.c_str(), device_key.c_str(), model_instance_name.c_str(), submodel_info.process_id);
+          GELOGD("Submodel[%s] is deploy to device[%s], instance = %s, process_id = %d.", model_name.c_str(),
+                 device_key.c_str(), model_instance_name.c_str(), submodel_info.process_id);
         }
       }
     }
@@ -712,8 +705,8 @@ void DeployPlannerBase::MarkMultiDeployedModels() {
 
 bool DeployPlannerBase::CanConnectWithQ(const DeployPlan::DeviceInfo &src_device_info,
                                         const DeployPlan::DeviceInfo &dst_device_info) {
-  GELOGI("Check can connect with queue, src device[%s], dst device[%s].",
-         src_device_info.GetDesc().c_str(), dst_device_info.GetDesc().c_str());
+  GELOGI("Check can connect with queue, src device[%s], dst device[%s].", src_device_info.GetDesc().c_str(),
+         dst_device_info.GetDesc().c_str());
   return (src_device_info.GetNodeId() == dst_device_info.GetNodeId()) &&
          ((src_device_info.GetType() != dst_device_info.GetType()) ||
           (src_device_info.GetDeviceId() == dst_device_info.GetDeviceId()) ||
@@ -723,8 +716,8 @@ bool DeployPlannerBase::CanConnectWithQ(const DeployPlan::DeviceInfo &src_device
 
 bool DeployPlannerBase::CanConnectWithLocalQ(const DeployPlan::DeviceInfo &src_device_info,
                                              const DeployPlan::DeviceInfo &dst_device_info) {
-  GELOGI("Check can directly connect with queue, src device[%s], dst device[%s].",
-         src_device_info.GetDesc().c_str(), dst_device_info.GetDesc().c_str());
+  GELOGI("Check can directly connect with queue, src device[%s], dst device[%s].", src_device_info.GetDesc().c_str(),
+         dst_device_info.GetDesc().c_str());
   return (src_device_info.GetKey() == dst_device_info.GetKey()) ||
          ((src_device_info.GetType() == dst_device_info.GetType()) &&
           (src_device_info.GetOsId() == dst_device_info.GetOsId()) &&
@@ -742,8 +735,8 @@ bool DeployPlannerBase::IsContainInvokedModel(const std::string &src_model_insta
     auto &submodel_info = MutableSubmodelInfo(model_instance_name);
     if (submodel_info.model != nullptr) {
       bool is_invoked_model = false;
-      (void)AttrUtils::GetBool(submodel_info.model->GetRootGraph(),
-                               ATTR_NAME_DATA_FLOW_UDF_INVOKED_NN, is_invoked_model);
+      (void)AttrUtils::GetBool(submodel_info.model->GetRootGraph(), ATTR_NAME_DATA_FLOW_UDF_INVOKED_NN,
+                               is_invoked_model);
       if (is_invoked_model) {
         return true;
       }
@@ -764,8 +757,8 @@ bool DeployPlannerBase::CheckSkipBinding(const std::string &src_model_instance_n
   const auto &src_it = instance_to_model_name_.find(src_model_instance_name);
   const auto &dst_it = instance_to_model_name_.find(dst_model_instance_name);
   if (src_it == instance_to_model_name_.cend() || dst_it == instance_to_model_name_.cend()) {
-    GELOGI("Cannot find model name according instance, src[%s], dst[%s].",
-           src_model_instance_name.c_str(), dst_model_instance_name.c_str());
+    GELOGI("Cannot find model name according instance, src[%s], dst[%s].", src_model_instance_name.c_str(),
+           dst_model_instance_name.c_str());
     return false;
   }
   const auto &src_model_name = src_it->second;
@@ -774,16 +767,16 @@ bool DeployPlannerBase::CheckSkipBinding(const std::string &src_model_instance_n
   const auto &dst_model_location_it = model_deploy_locations_.find(dst_model_name);
   if (src_model_location_it == model_deploy_locations_.cend() ||
       dst_model_location_it == model_deploy_locations_.cend()) {
-    GELOGI("Failed to find model location, src model_name = %s, dst model_name = %s.",
-           src_model_name.c_str(), dst_model_name.c_str());
+    GELOGI("Failed to find model location, src model_name = %s, dst model_name = %s.", src_model_name.c_str(),
+           dst_model_name.c_str());
     return false;
   }
 
   const auto &src_model_location = src_model_location_it->second;
   const auto &dst_model_location = dst_model_location_it->second;
   if (src_model_location.size() != dst_model_location.size()) {
-    GELOGI("Model deployed instance num is different, src[%s] is %zu, dst[%s] is %zu.",
-           src_model_name.c_str(), src_model_location.size(), dst_model_name.c_str(), dst_model_location.size());
+    GELOGI("Model deployed instance num is different, src[%s] is %zu, dst[%s] is %zu.", src_model_name.c_str(),
+           src_model_location.size(), dst_model_name.c_str(), dst_model_location.size());
     return false;
   }
   if (src_model_location.size() <= 1U) {
@@ -811,9 +804,11 @@ bool DeployPlannerBase::CheckSkipBinding(const std::string &src_model_instance_n
     // record model instance name in same device
     AddTrimmingEdgesModelInstance(src_model_instance_name, dst_model_instance_name);
   }
-  GELOGI("Model instances deployed on same devices, skip binding = %d, src instance[%s] index = %zu, "
-         "dst instance[%s] index = %zu.", static_cast<int32_t>(skip_binding), src_model_instance_name.c_str(),
-         src_model_instance_index, dst_model_instance_name.c_str(), dst_model_instance_index);
+  GELOGI(
+      "Model instances deployed on same devices, skip binding = %d, src instance[%s] index = %zu, "
+      "dst instance[%s] index = %zu.",
+      static_cast<int32_t>(skip_binding), src_model_instance_name.c_str(), src_model_instance_index,
+      dst_model_instance_name.c_str(), dst_model_instance_index);
   return skip_binding;
 }
 
@@ -925,11 +920,9 @@ Status DeployPlannerBase::AdjustDequeueDevice(DeployPlan::QueueInfo &dst_endpoin
   }
 
   // The fault recovery scenario relies on overloading devices with multiple instances, use overloaded devices
-  if ((!IsMultiDeployed(dst_endpoint.model_instance_name)) &&
-      (local_device_used.size() == 1U) &&
+  if ((!IsMultiDeployed(dst_endpoint.model_instance_name)) && (local_device_used.size() == 1U) &&
       (local_device_used.begin()->first.GetType() == static_cast<int32_t>(NPU))) {
-    GELOGI("Adjust queue[%s] device from [%s] to [%s]",
-           dst_endpoint.name.c_str(),
+    GELOGI("Adjust queue[%s] device from [%s] to [%s]", dst_endpoint.name.c_str(),
            dst_endpoint.device_info.GetDesc().c_str(), local_device_used.begin()->first.GetDesc().c_str());
     dst_endpoint.device_info = local_device_used.begin()->first;
     return SUCCESS;
@@ -962,11 +955,9 @@ Status DeployPlannerBase::AdjustEnqueueDevice(
   }
 
   // The fault recovery scenario relies on overloading devices with multiple instances, use overloaded devices
-  if ((!IsMultiDeployed(src_endpoint.model_instance_name)) &&
-      (local_device_used.size() == 1U) &&
+  if ((!IsMultiDeployed(src_endpoint.model_instance_name)) && (local_device_used.size() == 1U) &&
       (local_device_used.begin()->first.GetType() == static_cast<int32_t>(NPU))) {
-    GELOGI("Adjust queue[%s] device from [%s] to [%s]",
-           src_endpoint.name.c_str(),
+    GELOGI("Adjust queue[%s] device from [%s] to [%s]", src_endpoint.name.c_str(),
            src_endpoint.device_info.GetDesc().c_str(), local_device_used.begin()->first.GetDesc().c_str());
     src_endpoint.device_info = local_device_used.begin()->first;
     return SUCCESS;
@@ -987,7 +978,8 @@ Status DeployPlannerBase::AdjustEnqueueDevices() {
   for (const auto &endpoint_pair : deploy_plan_.dynamic_sched_plan_.endpoint_pairs_) {
     const auto src_endpoint_idx = endpoint_pair.first;
     auto &src_endpoint = deploy_plan_.queues_[src_endpoint_idx];
-    GE_CHK_STATUS_RET(AdjustEnqueueDevice(src_endpoint, endpoint_pair.second), "Failed to adjust dynamic enqueue device");
+    GE_CHK_STATUS_RET(AdjustEnqueueDevice(src_endpoint, endpoint_pair.second),
+                      "Failed to adjust dynamic enqueue device");
   }
   return SUCCESS;
 }
@@ -1048,8 +1040,8 @@ Status DeployPlannerBase::ResolveReusableQueues() {
 
     const auto &dst_device_info = dst_queue_infos.second.begin()->device_info;
     if (src_endpoint_info.device_info.GetNodeId() != dst_device_info.GetNodeId()) {
-      GELOGD("Queue[%s@%d] has diff node[%d] dest endpoints",
-             queue_name.c_str(), src_endpoint_info.device_info.GetNodeId(), dst_device_info.GetNodeId());
+      GELOGD("Queue[%s@%d] has diff node[%d] dest endpoints", queue_name.c_str(),
+             src_endpoint_info.device_info.GetNodeId(), dst_device_info.GetNodeId());
       continue;
     }
 
@@ -1063,8 +1055,8 @@ Status DeployPlannerBase::ResolveReusableQueues() {
 
     if (src_endpoint_info.device_info.GetType() != dst_device_info.GetType() &&
         dst_device_info.GetType() == static_cast<int32_t>(NPU)) {
-      GELOGI("Queue[%s@%s] reuse npu device[%s] on same node.",
-             queue_name.c_str(), src_endpoint_info.device_info.GetDesc().c_str(), dst_device_info.GetDesc().c_str());
+      GELOGI("Queue[%s@%s] reuse npu device[%s] on same node.", queue_name.c_str(),
+             src_endpoint_info.device_info.GetDesc().c_str(), dst_device_info.GetDesc().c_str());
       src_endpoint_info.device_info = dst_device_info;
     }
     GELOGD("Queue[%s@%s] is reusable, index = %d", queue_name.c_str(), src_endpoint_info.device_info.GetDesc().c_str(),
@@ -1128,15 +1120,12 @@ Status DeployPlannerBase::AssignDequeueQueues() {
           InputGroupAttr input_group_attr = {};
           input_group_attr.instance_num = static_cast<int32_t>(queue_loc_and_queue_infos.second.size());
           input_group_attr.instance_idx = static_cast<int32_t>(i);
-          GE_CHK_STATUS_RET(PrepareRelations(src_endpoint_idx,
-                                             dst_endpoint_idx,
-                                             model_queue_loc,
-                                             queue_info,
-                                             input_group_attr),
-                            "Failed to prepare relations");
+          GE_CHK_STATUS_RET(
+              PrepareRelations(src_endpoint_idx, dst_endpoint_idx, model_queue_loc, queue_info, input_group_attr),
+              "Failed to prepare relations");
           GELOGI("Prepare relation success, src = %s, index = %d, dst = %s, index = %d",
-                 ToEndpointDesc(src_endpoint_idx).c_str(), src_endpoint_idx,
-                 ToEndpointDesc(dst_endpoint_idx).c_str(), dst_endpoint_idx);
+                 ToEndpointDesc(src_endpoint_idx).c_str(), src_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str(),
+                 dst_endpoint_idx);
         }
         deploy_plan_.src_to_dst_endpoints_[src_endpoint_idx][model_queue_loc].emplace_back(dst_endpoint_idx);
         if (queue_info.queue_action == DeployPlan::QueueAction::kControl) {
@@ -1188,8 +1177,7 @@ bool DeployPlannerBase::IsMultiDeployed(const std::string &model_instance_name) 
   return (location_it != model_deploy_locations_.cend()) && (location_it->second.size() > 1U);
 }
 
-void DeployPlannerBase::AddInputGroups(const int32_t dst_endpoint_idx,
-                                       const int32_t src_tag_idx,
+void DeployPlannerBase::AddInputGroups(const int32_t dst_endpoint_idx, const int32_t src_tag_idx,
                                        const InputGroupAttr &input_group_attr) {
   auto &input_group = input_groups_[dst_endpoint_idx];
   auto it = std::find(input_group.begin(), input_group.end(), src_tag_idx);
@@ -1199,22 +1187,20 @@ void DeployPlannerBase::AddInputGroups(const int32_t dst_endpoint_idx,
   }
 }
 
-bool DeployPlannerBase::CheckAndAddRelation(const int32_t src_endpoint_idx,
-                                            const int32_t dst_endpoint_idx,
+bool DeployPlannerBase::CheckAndAddRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                             const std::string &suffix) {
-  const std::string relation_key = std::to_string(src_endpoint_idx) + "_to_" +
-                                   std::to_string(dst_endpoint_idx) + suffix;
+  const std::string relation_key =
+      std::to_string(src_endpoint_idx) + "_to_" + std::to_string(dst_endpoint_idx) + suffix;
   const bool relation_added = relations_.find(relation_key) != relations_.end();
   if (!relation_added) {
-    (void) relations_.emplace(relation_key);
+    (void)relations_.emplace(relation_key);
   }
-  GELOGD("Check and add relation[%s] success, relation added = %d.",
-         relation_key.c_str(), static_cast<int32_t>(relation_added));
+  GELOGD("Check and add relation[%s] success, relation added = %d.", relation_key.c_str(),
+         static_cast<int32_t>(relation_added));
   return relation_added;
 }
 
-void DeployPlannerBase::GenTagEntityPair(int32_t endpoint_idx,
-                                         const DeployPlan::QueueInfo &mapping_queue_info,
+void DeployPlannerBase::GenTagEntityPair(int32_t endpoint_idx, const DeployPlan::QueueInfo &mapping_queue_info,
                                          std::pair<DeployPlan::QueueInfo, DeployPlan::QueueInfo> &entity_pair) {
   auto tag_name = mapping_queue_info.name + "_" + std::to_string(endpoint_idx);
   const auto &queue_info = deploy_plan_.queues_[endpoint_idx];
@@ -1227,8 +1213,7 @@ void DeployPlannerBase::GenTagEntityPair(int32_t endpoint_idx,
 
 Status DeployPlannerBase::GetOrCreateMappingTagPairEntry(const int32_t endpoint_idx,
                                                          const DeployPlan::QueueInfo &mapping_queue_info,
-                                                         std::pair<int32_t, int32_t> &tag_pair,
-                                                         bool use_balanced) {
+                                                         std::pair<int32_t, int32_t> &tag_pair, bool use_balanced) {
   const auto &queue_info = deploy_plan_.queues_[endpoint_idx];
   auto src_is_multi_deployed = IsMultiDeployed(queue_info.model_instance_name);
   auto dst_is_multi_deployed = IsMultiDeployed(mapping_queue_info.model_instance_name);
@@ -1239,7 +1224,7 @@ Status DeployPlannerBase::GetOrCreateMappingTagPairEntry(const int32_t endpoint_
   if (get_from_cache) {
     const auto &it = endpoint_device_tags_mapping_.find(mapping_key);
     if (it != endpoint_device_tags_mapping_.cend()) {
-      tag_pair =  it->second;
+      tag_pair = it->second;
       return SUCCESS;
     }
   }
@@ -1251,8 +1236,8 @@ Status DeployPlannerBase::GetOrCreateMappingTagPairEntry(const int32_t endpoint_
   if (get_from_cache) {
     endpoint_device_tags_mapping_[mapping_key] = tag_pair;
   }
-  GELOGI("Endpoint[%d] add mapping tag pair[%d,%d] success, mapping device = %s",
-         endpoint_idx, tag_pair.first, tag_pair.second, mapping_queue_info.device_info.GetDesc().c_str());
+  GELOGI("Endpoint[%d] add mapping tag pair[%d,%d] success, mapping device = %s", endpoint_idx, tag_pair.first,
+         tag_pair.second, mapping_queue_info.device_info.GetDesc().c_str());
   return SUCCESS;
 }
 
@@ -1268,7 +1253,7 @@ Status DeployPlannerBase::GetOrCreateMappingEntry(const int32_t endpoint_idx,
   if (get_from_cache) {
     const auto &it = endpoint_device_mapping_.find(mapping_key);
     if (it != endpoint_device_mapping_.cend()) {
-      mapping_idx =  it->second;
+      mapping_idx = it->second;
       return SUCCESS;
     }
   }
@@ -1277,18 +1262,16 @@ Status DeployPlannerBase::GetOrCreateMappingEntry(const int32_t endpoint_idx,
   entry_info.device_info = mapping_queue_info.device_info;
   int32_t queue_index = 0;
   auto mapping_desc = mapping_queue_info.device_info.GetDesc();
-  GE_CHK_STATUS_RET(CreateGroupQueueEntry(entry_info, queue_index, mapping_idx),
-                    "Failed to create group entity.");
+  GE_CHK_STATUS_RET(CreateGroupQueueEntry(entry_info, queue_index, mapping_idx), "Failed to create group entity.");
   if (get_from_cache) {
     endpoint_device_mapping_[mapping_key] = mapping_idx;
   }
-  GELOGI("Endpoint[%d] add mapping endpoint[%d] success, mapping device = %s",
-         endpoint_idx, queue_index, mapping_desc.c_str());
+  GELOGI("Endpoint[%d] add mapping endpoint[%d] success, mapping device = %s", endpoint_idx, queue_index,
+         mapping_desc.c_str());
   return SUCCESS;
 }
 
-Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx,
-                                                  const int32_t dst_endpoint_idx,
+Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                                   const ModelQueueIndex &model_queue_loc,
                                                   const DeployPlan::QueueInfo &queue_info,
                                                   const InputGroupAttr &input_group_attr) {
@@ -1306,10 +1289,11 @@ Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx
                       "Failed to create mapping entity.");
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, mapping_index);
     src_queue_index = deploy_plan_.group_entries_[mapping_index].ref_index;
-    GELOGI("Prepare relation, src index = %d, src name = %s, mapping index = %d, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index,
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, mapping index = %d, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index, model_queue_loc.model_name.c_str(),
+        model_queue_loc.id);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[mapping_index] = dst_queue_index;
     GELOGI("DynamicSched, Step1, add group entry index=%d, dest endpoint idx=%d.", mapping_index, dst_queue_index);
   } else if (!src_queue_info.owned) {
@@ -1322,10 +1306,11 @@ Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, mapping_index);
     src_queue_index = deploy_plan_.group_entries_[mapping_index].ref_index;
     deploy_plan_.queues_[src_queue_index].owned = true;
-    GELOGI("Prepare relation, src index = %d, src name = %s, mapping index = %d, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index,
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, mapping index = %d, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index, model_queue_loc.model_name.c_str(),
+        model_queue_loc.id);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[mapping_index] = dst_queue_index;
   }
 
@@ -1339,8 +1324,8 @@ Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx
                     "Failed to create mapping tag pair entity.");
   (void)output_groups_[src_queue_index][model_queue_loc].emplace(deploy_location_key, tag_pair.second);
   GELOGI("Prepare relation, src index = %d, src name = %s, entity index = %d, model name = %s, input index = %d",
-         src_queue_index, ToEndpointDesc(src_queue_index).c_str(), tag_pair.second,
-         model_queue_loc.model_name.c_str(), model_queue_loc.id);
+         src_queue_index, ToEndpointDesc(src_queue_index).c_str(), tag_pair.second, model_queue_loc.model_name.c_str(),
+         model_queue_loc.id);
   deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[tag_pair.second] = dst_queue_index;
   GELOGI("DynamicSched, Step1, add group entry index=%d, dest endpoint idx=%d.", tag_pair.second, dst_queue_index);
   if (queue_info.device_info.WithProxy()) {
@@ -1349,17 +1334,16 @@ Status DeployPlannerBase::PrepareDiffNodeRelation(const int32_t src_endpoint_idx
                       "Failed to create mapping entity.");
     dst_queue_index = deploy_plan_.group_entries_[mapping_index].ref_index;
     AddInputGroups(dst_endpoint_idx, mapping_index, input_group_attr);
-    GELOGI("Prepare relation, mapping index = %d, dst index = %d, dst name = %s",
-           mapping_index, dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str());
+    GELOGI("Prepare relation, mapping index = %d, dst index = %d, dst name = %s", mapping_index, dst_endpoint_idx,
+           ToEndpointDesc(dst_endpoint_idx).c_str());
   }
   AddInputGroups(dst_queue_index, tag_pair.first, input_group_attr);
-  GELOGI("Prepare relation, src tag index = %d, dst index = %d, dst name = %s",
-         tag_pair.first, dst_queue_index, ToEndpointDesc(dst_queue_index).c_str());
+  GELOGI("Prepare relation, src tag index = %d, dst index = %d, dst name = %s", tag_pair.first, dst_queue_index,
+         ToEndpointDesc(dst_queue_index).c_str());
   return SUCCESS;
 }
 
-Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx,
-                                                  const int32_t dst_endpoint_idx,
+Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                                   const ModelQueueIndex &model_queue_loc,
                                                   const DeployPlan::QueueInfo &queue_info,
                                                   const InputGroupAttr &input_group_attr) {
@@ -1367,14 +1351,11 @@ Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx
   // create endpoint may cause vector of deploy_plan_.queues_ memory expansion.
   // As a result, the referenced endpoint becomes invalid, use copy
   const auto src_queue_info = deploy_plan_.queues_[src_endpoint_idx];
-   // Queue -> Queue
+  // Queue -> Queue
   if (CanConnectWithLocalQ(src_queue_info.device_info, queue_info.device_info)) {
-    GE_CHK_STATUS_RET(PrepareQueuesRelation(src_endpoint_idx,
-                                            dst_endpoint_idx,
-                                            model_queue_loc,
-                                            queue_info,
-                                            input_group_attr),
-                      "Failed to prepare relation of queues");
+    GE_CHK_STATUS_RET(
+        PrepareQueuesRelation(src_endpoint_idx, dst_endpoint_idx, model_queue_loc, queue_info, input_group_attr),
+        "Failed to prepare relation of queues");
   } else if (src_queue_info.device_info.WithProxy()) {
     int32_t mapping_index = 0;
     GE_CHK_STATUS_RET(GetOrCreateMappingEntry(src_endpoint_idx, queue_info, mapping_index),
@@ -1382,11 +1363,11 @@ Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, mapping_index);
     AddInputGroups(dst_endpoint_idx, mapping_index, input_group_attr);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[mapping_index] = dst_endpoint_idx;
-    GELOGI("Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index,
-           dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str(),
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index, dst_endpoint_idx,
+        ToEndpointDesc(dst_endpoint_idx).c_str(), model_queue_loc.model_name.c_str(), model_queue_loc.id);
   } else if (queue_info.device_info.WithProxy()) {
     // src in device, route must sched by dev flowgw,
     // because one to multi relationships need to be scheduled by the same flowgw
@@ -1396,11 +1377,11 @@ Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, mapping_index);
     AddInputGroups(dst_endpoint_idx, mapping_index, input_group_attr);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[mapping_index] = dst_endpoint_idx;
-    GELOGI("Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index,
-           dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str(),
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index, dst_endpoint_idx,
+        ToEndpointDesc(dst_endpoint_idx).c_str(), model_queue_loc.model_name.c_str(), model_queue_loc.id);
   } else {
     std::pair<int32_t, int32_t> tag_pair;
     GE_CHK_STATUS_RET(GetOrCreateMappingTagPairEntry(src_endpoint_idx, queue_info, tag_pair),
@@ -1408,18 +1389,18 @@ Status DeployPlannerBase::PrepareSameNodeRelation(const int32_t src_endpoint_idx
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, tag_pair.second);
     AddInputGroups(dst_endpoint_idx, tag_pair.first, input_group_attr);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[tag_pair.second] = dst_endpoint_idx;
-    GELOGI("Prepare relation, src index = %d, src name = %s, src tag index = %d, "
-           "dst index = %d, dst name = %s, dst tag index = %d, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), tag_pair.first,
-           dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str(), tag_pair.second,
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, src tag index = %d, "
+        "dst index = %d, dst name = %s, dst tag index = %d, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), tag_pair.first, dst_endpoint_idx,
+        ToEndpointDesc(dst_endpoint_idx).c_str(), tag_pair.second, model_queue_loc.model_name.c_str(),
+        model_queue_loc.id);
   }
   return SUCCESS;
 }
 
-Status DeployPlannerBase::PrepareQueuesRelation(const int32_t src_endpoint_idx,
-                                                const int32_t dst_endpoint_idx,
+Status DeployPlannerBase::PrepareQueuesRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                                 const ModelQueueIndex &model_queue_loc,
                                                 const DeployPlan::QueueInfo &queue_info,
                                                 const InputGroupAttr &input_group_attr) {
@@ -1432,36 +1413,33 @@ Status DeployPlannerBase::PrepareQueuesRelation(const int32_t src_endpoint_idx,
                       "Failed to create mapping entity.");
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, mapping_index);
     AddInputGroups(dst_endpoint_idx, mapping_index, input_group_attr);
-    GELOGI("Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
-           "model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index,
-           dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str(),
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+    GELOGI(
+        "Prepare relation, src index = %d, src name = %s, mapping index = %d, dst index = %d, dst name = %s, "
+        "model name = %s, input index = %d",
+        src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), mapping_index, dst_endpoint_idx,
+        ToEndpointDesc(dst_endpoint_idx).c_str(), model_queue_loc.model_name.c_str(), model_queue_loc.id);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[mapping_index] = dst_endpoint_idx;
     GELOGI("DynamicSched, Step1, add group entry index=%d, dest endpoint idx=%d.", mapping_index, dst_endpoint_idx);
   } else if (dst_is_multi_connected) {
     int32_t entry_index = 0;
-    GE_CHK_STATUS_RET(CreateGroupRefEntry(queue_info, src_endpoint_idx, entry_index),
-                      "Failed to create group entity.");
+    GE_CHK_STATUS_RET(CreateGroupRefEntry(queue_info, src_endpoint_idx, entry_index), "Failed to create group entity.");
     AddInputGroups(dst_endpoint_idx, entry_index, input_group_attr);
-    GELOGI("Prepare relation, ref entity index = %d, dst index = %d, dst name = %s",
-           entry_index, dst_endpoint_idx, ToEndpointDesc(dst_endpoint_idx).c_str());
+    GELOGI("Prepare relation, ref entity index = %d, dst index = %d, dst name = %s", entry_index, dst_endpoint_idx,
+           ToEndpointDesc(dst_endpoint_idx).c_str());
   } else {
     int32_t entry_index = 0;
-    GE_CHK_STATUS_RET(CreateGroupRefEntry(queue_info, dst_endpoint_idx, entry_index),
-                      "Failed to create group entity.");
+    GE_CHK_STATUS_RET(CreateGroupRefEntry(queue_info, dst_endpoint_idx, entry_index), "Failed to create group entity.");
     (void)output_groups_[src_endpoint_idx][model_queue_loc].emplace(deploy_location_key, entry_index);
     GELOGI("Prepare relation, src index = %d, src name = %s, ref entity index = %d, model name = %s, input index = %d",
-           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), entry_index,
-           model_queue_loc.model_name.c_str(), model_queue_loc.id);
+           src_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), entry_index, model_queue_loc.model_name.c_str(),
+           model_queue_loc.id);
     deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_[entry_index] = dst_endpoint_idx;
     GELOGI("DynamicSched, Step1, add group entry index=%d, dest endpoint idx=%d.", entry_index, dst_endpoint_idx);
   }
   return SUCCESS;
 }
 
-Status DeployPlannerBase::PrepareRelations(const int32_t src_endpoint_idx,
-                                           const int32_t dst_endpoint_idx,
+Status DeployPlannerBase::PrepareRelations(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                            const ModelQueueIndex &model_queue_loc,
                                            const DeployPlan::QueueInfo &queue_info,
                                            const InputGroupAttr &input_group_attr) {
@@ -1476,21 +1454,15 @@ Status DeployPlannerBase::PrepareRelations(const int32_t src_endpoint_idx,
   const auto &src_device_info = deploy_plan_.queues_[src_queue_idx].device_info;
   if (src_device_info.GetNodeId() == queue_info.device_info.GetNodeId()) {
     GELOGI("Begin to prepare relation of same node, node_id = %d", src_device_info.GetNodeId());
-    GE_CHK_STATUS_RET(PrepareSameNodeRelation(src_queue_idx,
-                                              dst_queue_idx,
-                                              model_queue_loc,
-                                              queue_info,
-                                              input_group_attr),
-                      "Failed to prepare relation of same node");
+    GE_CHK_STATUS_RET(
+        PrepareSameNodeRelation(src_queue_idx, dst_queue_idx, model_queue_loc, queue_info, input_group_attr),
+        "Failed to prepare relation of same node");
   } else {
-    GELOGI("Begin to prepare relation of diff node, src node_id = %d, dst node_id = %d",
-           src_device_info.GetNodeId(), queue_info.device_info.GetNodeId());
-    GE_CHK_STATUS_RET(PrepareDiffNodeRelation(src_queue_idx,
-                                              dst_queue_idx,
-                                              model_queue_loc,
-                                              queue_info,
-                                              input_group_attr),
-                      "Failed to prepare relation of diff node");
+    GELOGI("Begin to prepare relation of diff node, src node_id = %d, dst node_id = %d", src_device_info.GetNodeId(),
+           queue_info.device_info.GetNodeId());
+    GE_CHK_STATUS_RET(
+        PrepareDiffNodeRelation(src_queue_idx, dst_queue_idx, model_queue_loc, queue_info, input_group_attr),
+        "Failed to prepare relation of diff node");
   }
   GELOGI("%s add input queue %s", ToEndpointDesc(dst_queue_idx).c_str(), ToEndpointDesc(src_queue_idx).c_str());
   return SUCCESS;
@@ -1565,8 +1537,7 @@ Status DeployPlannerBase::BindRemoteOutputGroupToInput() {
 
 Status DeployPlannerBase::CreateAndBindGroup(const DeployPlan::QueueInfo &group_info,
                                              const std::vector<int32_t> &group_entry_index,
-                                             const int32_t dst_endpoint_index,
-                                             const bool skip_if_dst_exists) {
+                                             const int32_t dst_endpoint_index, const bool skip_if_dst_exists) {
   int32_t group_index = -1;
   GE_CHK_STATUS_RET_NOLOG(CreateGroupInfo(group_info, group_entry_index, group_index));
   AddEndpointBindings(group_index, dst_endpoint_index, skip_if_dst_exists);
@@ -1706,8 +1677,7 @@ Status DeployPlannerBase::CreateEndpointInfo(const DeployPlan::QueueInfo &queue_
   return SUCCESS;
 }
 
-Status DeployPlannerBase::CreateGroupQueueEntry(const DeployPlan::QueueInfo &queue_info,
-                                                int32_t &queue_index,
+Status DeployPlannerBase::CreateGroupQueueEntry(const DeployPlan::QueueInfo &queue_info, int32_t &queue_index,
                                                 int32_t &entry_index) {
   GE_CHK_STATUS_RET(CreateEndpointInfo(queue_info, queue_index), "Failed to create endpoint.");
   auto entry_info = queue_info;
@@ -1716,8 +1686,7 @@ Status DeployPlannerBase::CreateGroupQueueEntry(const DeployPlan::QueueInfo &que
   return SUCCESS;
 }
 
-Status DeployPlannerBase::CreateGroupRefEntry(const DeployPlan::QueueInfo &queue_info,
-                                              int32_t endpoint_index,
+Status DeployPlannerBase::CreateGroupRefEntry(const DeployPlan::QueueInfo &queue_info, int32_t endpoint_index,
                                               int32_t &entry_index) {
   auto entry_info = queue_info;
   entry_info.ref_index = endpoint_index;
@@ -1734,8 +1703,7 @@ Status DeployPlannerBase::CreateGroupEntry(const DeployPlan::QueueInfo &queue_in
 }
 
 Status DeployPlannerBase::CreateGroupInfo(const DeployPlan::QueueInfo &queue_info,
-                                          const std::vector<int32_t> &grouped_indices,
-                                          int32_t &group_index) {
+                                          const std::vector<int32_t> &grouped_indices, int32_t &group_index) {
   // check whether group already exist
   auto group_key = ToString(grouped_indices);
   auto it = deploy_plan_.groups_key_to_idx_.find(group_key);
@@ -2053,7 +2021,7 @@ void DeployPlannerBase::GenerateDynamicSchedModelId() {
   for (const auto &it : model_relation_.submodel_endpoint_infos) {
     const auto &submodel_endpoint_info = it.second;
     deploy_plan_.dynamic_sched_plan_.model_instances_num_[it.first] =
-      model_instances[submodel_endpoint_info.model_name].size();
+        model_instances[submodel_endpoint_info.model_name].size();
     GELOGI("Submodel instance [%s] num=%u.", it.first.c_str(),
            deploy_plan_.dynamic_sched_plan_.model_instances_num_[it.first]);
   }
@@ -2068,8 +2036,7 @@ void DeployPlannerBase::UpdateRelationForDynamicSched() {
          static_cast<int32_t>(deploy_plan_.IsEnableExceptionCatch()));
   const std::string status_queue_name = "__status_output";
   Endpoint queue_def(status_queue_name, EndpointType::kQueue);
-  QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").
-    SetNodeAction(kQueueActionStatus);
+  QueueNodeUtils(queue_def).SetDepth(kDepDefQueDepth).SetEnqueuePolicy("FIFO").SetNodeAction(kQueueActionStatus);
   model_relation_.endpoints.emplace_back(queue_def);
 
   for (const auto &it : model_relation_.submodel_endpoint_infos) {
@@ -2085,23 +2052,19 @@ void DeployPlannerBase::UpdateRelationForDynamicSched() {
 }
 
 Status DeployPlannerBase::AssignDynamicSchedEnqueueQueues() {
-  GE_CHK_STATUS_RET_NOLOG(
-      CreateDynamicSchedOutputQueueDefs(head_model_queue_info_.model_name,
-                                        head_model_queue_info_.sched_output_queue_names));
+  GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedOutputQueueDefs(head_model_queue_info_.model_name,
+                                                            head_model_queue_info_.sched_output_queue_names));
   for (const auto &it : model_relation_.submodel_endpoint_infos) {
     const auto &model_instance_name = it.first;
-    GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedOutputQueueDefs(model_instance_name,
-                                                              it.second.status_output_queue_names));
-    GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedOutputQueueDefs(model_instance_name,
-                                                              it.second.sched_output_queue_names));
+    GE_CHK_STATUS_RET_NOLOG(
+        CreateDynamicSchedOutputQueueDefs(model_instance_name, it.second.status_output_queue_names));
+    GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedOutputQueueDefs(model_instance_name, it.second.sched_output_queue_names));
   }
   return SUCCESS;
 }
 
-void DeployPlannerBase::DynamicSchedGroupFormat(const int32_t &real_entry_index,
-                                                const int32_t &entry_index,
-                                                const DeployPlan::QueueInfo *src_queue_info,
-                                                const int32_t &src_q_idx,
+void DeployPlannerBase::DynamicSchedGroupFormat(const int32_t &real_entry_index, const int32_t &entry_index,
+                                                const DeployPlan::QueueInfo *src_queue_info, const int32_t &src_q_idx,
                                                 const int32_t &dst_q_idx) {
   auto &modelInfo = deploy_plan_.dynamic_sched_plan_.model_index_info_;
   auto iter = deploy_plan_.dynamic_sched_plan_.entry_to_dst_index_.find(entry_index);
@@ -2128,19 +2091,14 @@ void DeployPlannerBase::DynamicSchedGroupFormat(const int32_t &real_entry_index,
     index_info.is_normal = true;
     auto &dst_submodule_info = MutableSubmodelInfo(dst_endpoint_info.model_instance_name);
     const bool is_redundant = dst_submodule_info.is_redundant;
-    DeployPlan::DynamicGroupRouteInfo group_route_info = {
-      real_entry_index,
-      iter->second,
-      index_info,
-      is_redundant
-    };
+    DeployPlan::DynamicGroupRouteInfo group_route_info = {real_entry_index, iter->second, index_info, is_redundant};
     modelInfo[model_id][src_q_idx].second[dst_q_idx].routes.push_back(group_route_info);
-    GELOGI("DynamicSched, Step2, add src index bind info: src endpoint index=%d, logic group id=%d, "
-           "group entry endpoint index=%d, group dst endpoint index=%d, src model instance name=%s, "
-           "model_id=%u, dst model instance name=%s, redundant flag=%d.",
-           src_q_idx, dst_q_idx, real_entry_index, iter->second,
-           src_queue_info->model_instance_name.c_str(), model_id,
-           dst_endpoint_info.model_instance_name.c_str(), static_cast<int32_t>(is_redundant));
+    GELOGI(
+        "DynamicSched, Step2, add src index bind info: src endpoint index=%d, logic group id=%d, "
+        "group entry endpoint index=%d, group dst endpoint index=%d, src model instance name=%s, "
+        "model_id=%u, dst model instance name=%s, redundant flag=%d.",
+        src_q_idx, dst_q_idx, real_entry_index, iter->second, src_queue_info->model_instance_name.c_str(), model_id,
+        dst_endpoint_info.model_instance_name.c_str(), static_cast<int32_t>(is_redundant));
   }
   return;
 }
@@ -2177,8 +2135,8 @@ Status DeployPlannerBase::BuildDynamicSchedInfo() {
       continue;
     }
     auto queue_list_iter = deploy_plan_.GetGroups().find(dst_q_idx);
-    GE_CHK_BOOL_RET_STATUS(queue_list_iter != deploy_plan_.GetGroups().end(),
-                           FAILED, "DynamicSched, Step2, Get group[%d] info failed.", dst_q_idx);
+    GE_CHK_BOOL_RET_STATUS(queue_list_iter != deploy_plan_.GetGroups().end(), FAILED,
+                           "DynamicSched, Step2, Get group[%d] info failed.", dst_q_idx);
     auto group_entries_index_start = static_cast<int32_t>(deploy_plan_.GetQueueInfoList().size());
     for (auto entry_index : queue_list_iter->second) {
       auto &entry_info = deploy_plan_.GetGroupEntryInfoList()[entry_index];
@@ -2217,13 +2175,12 @@ Status DeployPlannerBase::ResolveModelDynamicInputs(const std::string &model_ins
   model_queue_indexs.reserve(model_input_endpoints.size());
 
   for (size_t input_index = 0UL; input_index < model_endpoint_info.sched_input_queue_names.size(); ++input_index) {
-    ModelQueueIndex input_queue_index{model_endpoint_info.model_name + "_sched", "",
-      static_cast<int32_t>(input_index)};
+    ModelQueueIndex input_queue_index{model_endpoint_info.model_name + "_sched", "", static_cast<int32_t>(input_index)};
     model_queue_indexs.emplace_back(std::move(input_queue_index));
   }
   for (size_t input_index = 0UL; input_index < model_endpoint_info.status_input_queue_names.size(); ++input_index) {
     ModelQueueIndex input_queue_index{model_endpoint_info.model_name + "_status", "",
-      static_cast<int32_t>(input_index)};
+                                      static_cast<int32_t>(input_index)};
     model_queue_indexs.emplace_back(std::move(input_queue_index));
   }
 
@@ -2269,9 +2226,7 @@ Status DeployPlannerBase::AssignDynamicSchedDequeueQueue(const DeployPlan::Queue
     dst_endpoint_idx = src_endpoint_idx;
   } else {
     GE_CHK_STATUS_RET_NOLOG(GetOrCreateInputEndpoint(model_queue_loc, queue_info, dst_endpoint_idx));
-    GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedTags(src_endpoint_idx,
-                                                   dst_endpoint_idx,
-                                                   queue_info));
+    GE_CHK_STATUS_RET_NOLOG(CreateDynamicSchedTags(src_endpoint_idx, dst_endpoint_idx, queue_info));
     GELOGI("DynamicSched, Endpoint binding added, src = %s, dst = %s", ToEndpointDesc(src_endpoint_idx).c_str(),
            ToEndpointDesc(dst_endpoint_idx).c_str());
   }
@@ -2286,8 +2241,8 @@ Status DeployPlannerBase::AssignDynamicSchedDequeueQueue(const DeployPlan::Queue
     GELOGI("DynamicSched, add sched input indices, model instance name=%s, input indice=%d.",
            model_instance_name.c_str(), dst_endpoint_idx);
     deploy_plan_.dynamic_sched_plan_.datagw_request_bindings_[src_endpoint_idx] = dst_endpoint_idx;
-    GELOGI("DynamicSched, datagw request bindings, datagw input=%d, sched app output=%d.",
-           dst_endpoint_idx, src_endpoint_idx);
+    GELOGI("DynamicSched, datagw request bindings, datagw input=%d, sched app output=%d.", dst_endpoint_idx,
+           src_endpoint_idx);
   }
   return SUCCESS;
 }
@@ -2300,16 +2255,14 @@ Status DeployPlannerBase::AssignDynamicSchedDequeueQueues() {
       const auto &model_queue_loc = queue_loc_and_queue_infos.first;
       for (size_t i = 0; i < queue_loc_and_queue_infos.second.size(); ++i) {
         const auto &queue_info = queue_loc_and_queue_infos.second[i];
-        GE_CHK_STATUS_RET_NOLOG(AssignDynamicSchedDequeueQueue(queue_info, model_queue_loc,
-                                                               src_endpoint_idx));
+        GE_CHK_STATUS_RET_NOLOG(AssignDynamicSchedDequeueQueue(queue_info, model_queue_loc, src_endpoint_idx));
       }
     }
   }
   return SUCCESS;
 }
 
-Status DeployPlannerBase::DynamicSchedBindGroup2Queue(const int32_t src_idx,
-                                                      const int32_t dst_idx,
+Status DeployPlannerBase::DynamicSchedBindGroup2Queue(const int32_t src_idx, const int32_t dst_idx,
                                                       int32_t &group_index) {
   DeployPlan::QueueInfo group_info{};
   const auto &dst_endpoint_info = deploy_plan_.queues_[src_idx];
@@ -2321,8 +2274,7 @@ Status DeployPlannerBase::DynamicSchedBindGroup2Queue(const int32_t src_idx,
   return SUCCESS;
 }
 
-Status DeployPlannerBase::DynamicSchedBindQueue2Group(const int32_t src_idx,
-                                                      const int32_t dst_idx,
+Status DeployPlannerBase::DynamicSchedBindQueue2Group(const int32_t src_idx, const int32_t dst_idx,
                                                       int32_t &group_index) {
   DeployPlan::QueueInfo group_info{};
   const auto &src_endpoint_info = deploy_plan_.queues_[src_idx];
@@ -2334,27 +2286,24 @@ Status DeployPlannerBase::DynamicSchedBindQueue2Group(const int32_t src_idx,
   return SUCCESS;
 }
 
-void DeployPlannerBase::BindDynamicSchedDevQueue(const int32_t src_endpoint_idx,
-                                                 const int32_t dst_endpoint_idx) {
+void DeployPlannerBase::BindDynamicSchedDevQueue(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx) {
   auto src_is_multi_connected = IsOutputMultiConnected(src_endpoint_idx);
   auto dst_is_multi_connected = IsInputMultiConnected(dst_endpoint_idx);
   GELOGI("DynamicSched, Src endpoint[%s] is one to many = %d, dst endpoint[%s] is many to one = %d",
-          ToEndpointDesc(src_endpoint_idx).c_str(), src_is_multi_connected, ToEndpointDesc(dst_endpoint_idx).c_str(),
-          dst_is_multi_connected);
+         ToEndpointDesc(src_endpoint_idx).c_str(), src_is_multi_connected, ToEndpointDesc(dst_endpoint_idx).c_str(),
+         dst_is_multi_connected);
   if (src_is_multi_connected && dst_is_multi_connected) {
     GELOGW("DynamicSched, shouldn't many to many relation.");
   }
   // 动态调度直接添加绑定关系（host场景）
   deploy_plan_.queue_bindings_.emplace_back(src_endpoint_idx, dst_endpoint_idx);
-  GELOGI("DynamicSched, Add bind relation[%d -> %d] success, src endpoint[%s], dst endpoint[%s].",
-          src_endpoint_idx, dst_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(),
-          ToEndpointDesc(dst_endpoint_idx).c_str());
+  GELOGI("DynamicSched, Add bind relation[%d -> %d] success, src endpoint[%s], dst endpoint[%s].", src_endpoint_idx,
+         dst_endpoint_idx, ToEndpointDesc(src_endpoint_idx).c_str(), ToEndpointDesc(dst_endpoint_idx).c_str());
 }
 
 Status DeployPlannerBase::BindDynamicSchedHostQueue(const DeployPlan::DeviceInfo &src_device_info,
                                                     const DeployPlan::DeviceInfo &dst_device_info,
-                                                    DeployPlan::QueueInfo &entry_info,
-                                                    int32_t &src_endpoint_idx,
+                                                    DeployPlan::QueueInfo &entry_info, int32_t &src_endpoint_idx,
                                                     int32_t &dst_endpoint_idx) {
   if (src_device_info.WithProxy()) {
     auto src_proxy_queue_info = deploy_plan_.queues_[src_endpoint_idx];
@@ -2363,8 +2312,8 @@ Status DeployPlannerBase::BindDynamicSchedHostQueue(const DeployPlan::DeviceInfo
     GE_CHK_STATUS_RET_NOLOG(CreateEndpointInfo(src_proxy_queue_info, proxy_index));
     deploy_plan_.queue_bindings_.emplace_back(src_endpoint_idx, proxy_index);
     GELOGI("DynamicSched, Mul-server add host bind relation[%d -> %d] success, src endpoint[%s], dst endpoint[%s].",
-          src_endpoint_idx, proxy_index, ToEndpointDesc(src_endpoint_idx).c_str(),
-          ToEndpointDesc(proxy_index).c_str());
+           src_endpoint_idx, proxy_index, ToEndpointDesc(src_endpoint_idx).c_str(),
+           ToEndpointDesc(proxy_index).c_str());
     src_endpoint_idx = proxy_index;
   }
   if (dst_device_info.WithProxy()) {
@@ -2375,15 +2324,14 @@ Status DeployPlannerBase::BindDynamicSchedHostQueue(const DeployPlan::DeviceInfo
     GE_CHK_STATUS_RET_NOLOG(CreateEndpointInfo(dst_proxy_queue_info, proxy_index));
     deploy_plan_.queue_bindings_.emplace_back(proxy_index, dst_endpoint_idx);
     GELOGI("DynamicSched, Mul-server add host bind relation[%d -> %d] success, src endpoint[%s], dst endpoint[%s].",
-          proxy_index, dst_endpoint_idx, ToEndpointDesc(proxy_index).c_str(),
-          ToEndpointDesc(dst_endpoint_idx).c_str());
+           proxy_index, dst_endpoint_idx, ToEndpointDesc(proxy_index).c_str(),
+           ToEndpointDesc(dst_endpoint_idx).c_str());
     dst_endpoint_idx = proxy_index;
   }
   return SUCCESS;
 }
 
-Status DeployPlannerBase::CreateDynamicSchedTags(const int32_t src_endpoint_idx,
-                                                 const int32_t dst_endpoint_idx,
+Status DeployPlannerBase::CreateDynamicSchedTags(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                                  const DeployPlan::QueueInfo &queue_info) {
   if (CheckAndAddRelation(src_endpoint_idx, dst_endpoint_idx)) {
     return SUCCESS;
@@ -2407,7 +2355,7 @@ Status DeployPlannerBase::CreateDynamicSchedTags(const int32_t src_endpoint_idx,
   }
 
   // use dst to create tag, to make multi src to one dst use the same tag
-    entry_info = deploy_plan_.queues_[proxy_src_endpoint_idx];
+  entry_info = deploy_plan_.queues_[proxy_src_endpoint_idx];
   // 多对一场景为了保证group中tag id不一样，需要queue name唯一
   if (queue_info.queue_action == DeployPlan::QueueAction::kStatus) {
     entry_info.name += deploy_plan_.queues_[proxy_src_endpoint_idx].model_instance_name;
@@ -2416,10 +2364,12 @@ Status DeployPlannerBase::CreateDynamicSchedTags(const int32_t src_endpoint_idx,
   std::pair<int32_t, int32_t> tag_pair;
   GE_CHK_STATUS_RET(GetOrCreateMappingTagPairEntry(proxy_dst_endpoint_idx, entry_info, tag_pair, false),
                     "Failed to create mapping tag pair entity.");
-  GELOGI("DynamicSched, src endpoint [%d] [%s] add output tag [%d] [%s], dst endpoint [%d] [%s]"
-         " add input tag [%d] [%s].", proxy_src_endpoint_idx, ToEndpointDesc(proxy_src_endpoint_idx).c_str(),
-         tag_pair.first, ToEndpointDesc(tag_pair.first, true).c_str(), proxy_dst_endpoint_idx,
-         ToEndpointDesc(proxy_dst_endpoint_idx).c_str(), tag_pair.second, ToEndpointDesc(tag_pair.second, true).c_str());
+  GELOGI(
+      "DynamicSched, src endpoint [%d] [%s] add output tag [%d] [%s], dst endpoint [%d] [%s]"
+      " add input tag [%d] [%s].",
+      proxy_src_endpoint_idx, ToEndpointDesc(proxy_src_endpoint_idx).c_str(), tag_pair.first,
+      ToEndpointDesc(tag_pair.first, true).c_str(), proxy_dst_endpoint_idx,
+      ToEndpointDesc(proxy_dst_endpoint_idx).c_str(), tag_pair.second, ToEndpointDesc(tag_pair.second, true).c_str());
 
   // 直接创建一个元素的group，然后做绑定，要创建group的原因是目前部署信息加载是根据group做tag资源遍历的
   GE_CHK_STATUS_RET(DynamicSchedBindQueue2Group(proxy_src_endpoint_idx, tag_pair.first, group_index));
@@ -2464,12 +2414,12 @@ Status DeployPlannerBase::CreateDynamicSchedOutputQueueDefs(const std::string &m
 
 void DeployPlannerBase::UpdateDynamicSchedDeployPlan() {
   deploy_plan_.dynamic_sched_plan_.root_model_info_.status_input_queue_indices =
-    std::move(head_model_info_.status_output_queue_indices);
+      std::move(head_model_info_.status_output_queue_indices);
   deploy_plan_.dynamic_sched_plan_.root_model_info_.sched_input_queue_indices =
-    std::move(head_model_info_.sched_output_queue_indices);
+      std::move(head_model_info_.sched_output_queue_indices);
   deploy_plan_.dynamic_sched_plan_.root_model_info_.status_output_queue_indices =
-    std::move(tail_model_info_.status_input_queue_indices);
+      std::move(tail_model_info_.status_input_queue_indices);
   deploy_plan_.dynamic_sched_plan_.root_model_info_.sched_output_queue_indices =
-    std::move(tail_model_info_.sched_input_queue_indices);
+      std::move(tail_model_info_.sched_input_queue_indices);
 }
 }  // namespace ge

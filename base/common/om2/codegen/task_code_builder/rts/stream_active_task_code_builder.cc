@@ -33,34 +33,37 @@ Status StreamActiveTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
   }
 
   GE_ASSERT_TRUE(AttrUtils::GetListInt(context.op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_index_list_),
-                "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
-                context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+                 "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
+                 context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
   GE_ASSERT_TRUE(internal_index < active_stream_index_list_.size(),
-                "[OM2][Check][Param] stream id index invalid. index:%u, list size:%zu, op:%s", internal_index,
-                active_stream_index_list_.size(), context.op_desc->GetName().c_str());
+                 "[OM2][Check][Param] stream id index invalid. index:%u, list size:%zu, op:%s", internal_index,
+                 active_stream_index_list_.size(), context.op_desc->GetName().c_str());
   GE_ASSERT_TRUE(active_stream_index_list_[static_cast<size_t>(internal_index)] < context.runtime->stream_num,
-                "[OM2][Check][Param] active_stream_index:%u in op:%s(%s) >= stream size:%u in model",
-                active_stream_index_list_[static_cast<size_t>(internal_index)], context.op_desc->GetName().c_str(),
-                context.op_desc->GetType().c_str(), context.runtime->stream_num);
+                 "[OM2][Check][Param] active_stream_index:%u in op:%s(%s) >= stream size:%u in model",
+                 active_stream_index_list_[static_cast<size_t>(internal_index)], context.op_desc->GetName().c_str(),
+                 context.op_desc->GetType().c_str(), context.runtime->stream_num);
 
   // stream
   const uint32_t stream_id = context.task_def.stream_id();
-  GE_ASSERT_TRUE(stream_id < context.runtime->stream_num,
-                 "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, stream_id);
+  GE_ASSERT_TRUE(stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
+                 context.runtime->stream_num, stream_id);
 
   GELOGI("Stream Active Task Codegen: op[%s], internal index[%u], active stream id[%u], stream id[%u].",
-        context.op_desc->GetName().c_str(), internal_index, active_stream_index_list_[static_cast<size_t>(internal_index)], stream_id);
+         context.op_desc->GetName().c_str(), internal_index,
+         active_stream_index_list_[static_cast<size_t>(internal_index)], stream_id);
   active_stream_id_ = active_stream_index_list_[static_cast<size_t>(internal_index)];
   return SUCCESS;
 }
 
 Status StreamActiveTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(ChkStatus(ast_.Call("KernelStreamActiveDistribute", {
-      ast_.Str(header_.op_name),
-      stream_list_[static_cast<int32_t>(active_stream_id_)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-  })));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ChkStatus(ast_.Call("KernelStreamActiveDistribute", {
+                                                              ast_.Str(header_.op_name),
+                                                              stream_list_[static_cast<int32_t>(active_stream_id_)],
+                                                              stream_list_[static_cast<int32_t>(header_.stream_id)],
+                                                          })));
   return SUCCESS;
 }
 
@@ -68,11 +71,12 @@ Status StreamActiveTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &it
   auto op_name = ast_.Var("const char_t *const", "op_name");
   auto active_stream = ast_.Var("aclrtStream", "active_stream");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelStreamActiveDistribute", {op_name, active_stream, stream}, "aclError", {
-      ChkRt(RtSetTaskTag(op_name)),
-      ChkStatus(AclrtActiveStream(active_stream, stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelStreamActiveDistribute", {op_name, active_stream, stream}, "aclError",
+                                      {
+                                          ChkRt(RtSetTaskTag(op_name)),
+                                          ChkStatus(AclrtActiveStream(active_stream, stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,8 @@
 
 using namespace ge;
 namespace fe {
-class NanoProcessTest: public testing::Test {
-protected:
+class NanoProcessTest : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     cout << "NanoProcessTest SetUp" << endl;
     InitWithSocVersion("Ascend910B1", "force_fp16");
@@ -103,7 +103,7 @@ protected:
 //   GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(0));
 //   GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(1));
 //   GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
-  
+
 //   FillWeightValue(graph);
 
 //   Status ret = graph_optimizer_ptr->OptimizeGraphInit(*graph);
@@ -118,4 +118,4 @@ protected:
 //   EXPECT_EQ(ret, SUCCESS);
 //   // EXPECT_EQ(graph->GetDirectNodesSize(), 8);
 // }
-}
+}  // namespace fe

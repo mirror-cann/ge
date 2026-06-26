@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,13 +25,13 @@ Status CheckQuantAndConvBeforeConcat(ge::InDataAnchorPtr &quant_in_data_anchor_p
                                      SubGraphStructure &sub_graph_structure) {
   sub_graph_structure.is_quant = (sub_graph_structure.fusion_type == FusionType::Reserved ||
                                   sub_graph_structure.fusion_type == FusionType::HasQuant) &&
-                                  quant_in_data_anchor_ptr != nullptr;
+                                 quant_in_data_anchor_ptr != nullptr;
   sub_graph_structure.is_only_conv = (sub_graph_structure.fusion_type == FusionType::Reserved ||
                                       sub_graph_structure.fusion_type == FusionType::OnlyConv) &&
-                                      concat_prev_node->GetType() == CONV2D;
+                                     concat_prev_node->GetType() == CONV2D;
   sub_graph_structure.is_conv_and_dequant = (sub_graph_structure.fusion_type == FusionType::Reserved ||
                                              sub_graph_structure.fusion_type == FusionType::ConvAndDequant) &&
-                                             concat_prev_node->GetType() == ASCEND_DEQUANT;
+                                            concat_prev_node->GetType() == ASCEND_DEQUANT;
   ge::NodePtr leaky_relu_prev_node;
   if (concat_prev_node->GetType() == LEAKYRELU || concat_prev_node->GetType() == RELU) {
     FE_CHECK_NOTNULL(concat_prev_node->GetInDataAnchor(0));
@@ -39,10 +39,10 @@ Status CheckQuantAndConvBeforeConcat(ge::InDataAnchorPtr &quant_in_data_anchor_p
     leaky_relu_prev_node = concat_prev_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
     sub_graph_structure.is_only_conv = (sub_graph_structure.fusion_type == FusionType::Reserved ||
                                         sub_graph_structure.fusion_type == FusionType::OnlyConv) &&
-                                        leaky_relu_prev_node->GetType() == CONV2D;
+                                       leaky_relu_prev_node->GetType() == CONV2D;
     sub_graph_structure.is_conv_and_dequant = (sub_graph_structure.fusion_type == FusionType::Reserved ||
                                                sub_graph_structure.fusion_type == FusionType::ConvAndDequant) &&
-                                               leaky_relu_prev_node->GetType() == ASCEND_DEQUANT;
+                                              leaky_relu_prev_node->GetType() == ASCEND_DEQUANT;
   }
   if (sub_graph_structure.is_quant) {
     sub_graph_structure.fusion_type = FusionType::HasQuant;
@@ -121,7 +121,7 @@ Status ParseAndCheckSplitNode(ge::InDataAnchorPtr &quant_in_data_anchor_ptr, ge:
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 vector<string> SplitConvConcatFusionPass::GetNodeTypes() {
   vector<string> result;
@@ -152,7 +152,9 @@ bool SplitConvConcatFusionPass::IsSameQuant(const vector<ge::NodePtr> &vector_qu
   return true;
 }
 
-string SplitConvConcatFusionPass::GetPatternName() { return "SplitConvConcatFusionPass"; }
+string SplitConvConcatFusionPass::GetPatternName() {
+  return "SplitConvConcatFusionPass";
+}
 
 Status SplitConvConcatFusionPass::DoFusion(ge::ComputeGraph &graph, ge::NodePtr &concat,
                                            vector<ge::NodePtr> &fusion_nodes) {
@@ -161,8 +163,8 @@ Status SplitConvConcatFusionPass::DoFusion(ge::ComputeGraph &graph, ge::NodePtr 
   MM_SYS_GET_ENV(MM_ENV_OFF_CONV_CONCAT_SPLIT, env_value);
   static const std::string off_conv_concat_split_str = (env_value != nullptr) ? std::string(env_value) : "";
   if (!off_conv_concat_split_str.empty()) {
-    FE_LOGD("Env[%s] is [%s], skip the SplitConvConcatFusionPass.",
-            kOffConvConcatSplit, off_conv_concat_split_str.c_str());
+    FE_LOGD("Env[%s] is [%s], skip the SplitConvConcatFusionPass.", kOffConvConcatSplit,
+            off_conv_concat_split_str.c_str());
     return SUCCESS;
   }
   FE_LOGD("Define SplitConvConcatFusionPass fusion begin");
@@ -323,16 +325,16 @@ Status SplitConvConcatFusionPass::FusionSplit(vector<ge::NodePtr> &vector_quant,
     ge::NodePtr new_move_quant_node = graph.AddNode(new_move_quant);
     FE_CHECK_NOTNULL(new_move_quant_node);
     FE_CHECK_NOTNULL(split_node->GetInDataAnchor(0));
-    InsertNode(split_node->GetInDataAnchor(0)->GetPeerOutAnchor(), split_node->GetInDataAnchor(0),
-               new_move_quant_node, quant_data_type);
+    InsertNode(split_node->GetInDataAnchor(0)->GetPeerOutAnchor(), split_node->GetInDataAnchor(0), new_move_quant_node,
+               quant_data_type);
   }
 
   for (size_t i = 0; i < split_node->GetAllOutDataAnchors().size(); i++) {
     auto quant_data_type = split_node->GetOpDesc()->GetOutputDesc(i).GetOriginDataType();
     ge::NodePtr strided_read_node = nullptr;
     if (!vector_quant.empty() && i < vector_quant.size()) {
-      FE_CHECK(vector_quant[i] == nullptr || vector_quant[i]->GetOpDesc()== nullptr,
-        FE_LOGD("Get quant op desc unsuccessful."), return FAILED);
+      FE_CHECK(vector_quant[i] == nullptr || vector_quant[i]->GetOpDesc() == nullptr,
+               FE_LOGD("Get quant op desc unsuccessful."), return FAILED);
       quant_data_type = vector_quant[i]->GetOpDesc()->GetOutputDesc(0).GetDataType();
       std::shared_ptr<ge::OpDesc> strided_read_opdesc;
       CreateStridedRead(vector_quant[i], strided_read_opdesc);
@@ -381,7 +383,7 @@ Status SplitConvConcatFusionPass::FusionSplit(vector<ge::NodePtr> &vector_quant,
 Status SplitConvConcatFusionPass::FusionConcat(vector<ge::NodePtr> &vector_dequant, ge::ComputeGraph &graph,
                                                ge::NodePtr &concat) {
   FE_CHECK_NOTNULL(concat->GetOutDataAnchor(0));
-  if (concat->GetOutDataAnchor(0)->GetPeerInDataAnchors().size()==0) {
+  if (concat->GetOutDataAnchor(0)->GetPeerInDataAnchors().size() == 0) {
     FE_LOGD("Concat's output node is null");
     return FAILED;
   }
@@ -394,7 +396,7 @@ Status SplitConvConcatFusionPass::FusionConcat(vector<ge::NodePtr> &vector_dequa
       return FAILED;
     }
   } else if (vector_dequant.empty() && (concat_next_node->GetType() == LEAKYRELU ||
-            concat_next_node->GetType() == RELU || concat_next_node->GetType() == QUANT)) {
+                                        concat_next_node->GetType() == RELU || concat_next_node->GetType() == QUANT)) {
     if (graph.RemoveNode(concat_next_node) != SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][SplitConvConcatFus][FusConcat] Failed to remove %s",
                       concat_next_node->GetName().c_str());
@@ -481,8 +483,7 @@ Status SplitConvConcatFusionPass::PatternConcatSplit(ge::NodePtr &concat, ge::No
       vector_quant.push_back(quant);
       vector_dequant.push_back(dequant);
     }
-    Status ret =
-        CheckQuantAndConvBeforeConcat(quant_in_data_anchor_ptr, concat_prev_node, sub_graph_structure);
+    Status ret = CheckQuantAndConvBeforeConcat(quant_in_data_anchor_ptr, concat_prev_node, sub_graph_structure);
     if (ret != SUCCESS) {
       FE_LOGD("The Quant or conv2D operation preceding the concat input link does not match.");
       return ret;
@@ -547,6 +548,5 @@ ge::InDataAnchorPtr SplitConvConcatFusionPass::PatternPrevConv2dWithQuant(ge::Ou
   return quant->GetInDataAnchor(0);
 }
 
-REG_PASS("SplitConvConcatFusionPass", BUILT_IN_GRAPH_PASS,
-         SplitConvConcatFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS("SplitConvConcatFusionPass", BUILT_IN_GRAPH_PASS, SplitConvConcatFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

@@ -57,4 +57,3 @@ void *aclGetTensorDescAddress(const aclTensorDesc *desc)
 ## 返回值说明<a name="section21631444261"></a>
 
 返回指定算子输入/输出的tensor数据的内存地址。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,56 +55,51 @@ using NodePtr = std::shared_ptr<Node>;
 #define SET_SIZE 128
 #define SET_SIZE_2 100352
 
-class UTEST_TbeTaskBuilderAdapter : public testing::Test
-{
-    friend class TbeTaskBuilderAdapter;
+class UTEST_TbeTaskBuilderAdapter : public testing::Test {
+  friend class TbeTaskBuilderAdapter;
 
-protected:
+ protected:
+  static void CheckSizeFuction(ge::GeTensorDesc &tensor) {
+    vector<int64_t> dims = {1, 4, 5, 2, 7};
+    ge::GeShape input1_shape(dims);
+    tensor.SetShape(input1_shape);
+    tensor.SetDataType(ge::DT_DOUBLE);
+    tensor.SetFormat(ge::FORMAT_NC1HWC0_C04);
+  }
 
-    static void CheckSizeFuction(ge::GeTensorDesc& tensor)
-    {
-      vector<int64_t> dims = {1,4,5,2,7};
-      ge::GeShape input1_shape(dims);
-      tensor.SetShape(input1_shape);
-      tensor.SetDataType(ge::DT_DOUBLE);
-      tensor.SetFormat(ge::FORMAT_NC1HWC0_C04);
+  static void SetOpDecSize(NodePtr &node, const int set_size) {
+    OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
+    for (int i = 0; i < tensors.size(); i++) {
+      ge::GeTensorDesc tensor = tensors.at(i);
+      ge::TensorUtils::SetSize(tensor, set_size);
+      node->GetOpDesc()->UpdateInputDesc(i, tensor);
     }
-
-    static void SetOpDecSize(NodePtr& node, const int set_size){
-        OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
-        for (int i = 0; i < tensors.size(); i++){
-            ge::GeTensorDesc tensor = tensors.at(i);
-            ge::TensorUtils::SetSize(tensor, set_size);
-            node->GetOpDesc()->UpdateInputDesc(i, tensor);
-        }
-        OpDesc::Vistor<GeTensorDesc> tensors_output = node->GetOpDesc()->GetAllOutputsDesc();
-        for (int i = 0; i < tensors_output.size(); i++){
-            ge::GeTensorDesc tensor_output = tensors_output.at(i);
-            ge::TensorUtils::SetSize(tensor_output, set_size);
-            node->GetOpDesc()->UpdateOutputDesc(i, tensor_output);
-        }
+    OpDesc::Vistor<GeTensorDesc> tensors_output = node->GetOpDesc()->GetAllOutputsDesc();
+    for (int i = 0; i < tensors_output.size(); i++) {
+      ge::GeTensorDesc tensor_output = tensors_output.at(i);
+      ge::TensorUtils::SetSize(tensor_output, set_size);
+      node->GetOpDesc()->UpdateOutputDesc(i, tensor_output);
     }
-    void SetUp()
-    {
-        aclrtContext rtContext;
-        assert(aclrtCreateContext(&rtContext, 0) == ACL_RT_SUCCESS);
-        assert(aclrtSetCurrentContext(rtContext) == ACL_RT_SUCCESS);
+  }
+  void SetUp() {
+    aclrtContext rtContext;
+    assert(aclrtCreateContext(&rtContext, 0) == ACL_RT_SUCCESS);
+    assert(aclrtSetCurrentContext(rtContext) == ACL_RT_SUCCESS);
 
-        node_ = CreateNode();
-        context_ = CreateContext();
-        SetOpDecSize(node_, SET_SIZE);
-        adapter_ = shared_ptr<TbeTaskBuilderAdapter> (new (nothrow) TbeTaskBuilderAdapter(*node_, context_));
-    }
-    void TearDown()
-    {
-        adapter_.reset();
-        DestroyContext(context_);
-        node_.reset();
+    node_ = CreateNode();
+    context_ = CreateContext();
+    SetOpDecSize(node_, SET_SIZE);
+    adapter_ = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_, context_));
+  }
+  void TearDown() {
+    adapter_.reset();
+    DestroyContext(context_);
+    node_.reset();
 
-        aclrtContext rtContext;
-        assert(aclrtGetCurrentContext(&rtContext) == ACL_RT_SUCCESS);
-        assert(aclrtDestroyContext(rtContext) == ACL_RT_SUCCESS);
-    }
+    aclrtContext rtContext;
+    assert(aclrtGetCurrentContext(&rtContext) == ACL_RT_SUCCESS);
+    assert(aclrtDestroyContext(rtContext) == ACL_RT_SUCCESS);
+  }
   static void CheckGraphReadMode(GeTensorDescPtr tensor_desc, L2CacheReadMode expect) {
     int32_t read_mode;
     bool get_status = ge::AttrUtils::GetInt(tensor_desc, "_fe_l2cache_graph_read_mode", read_mode);
@@ -112,326 +107,307 @@ protected:
     EXPECT_EQ(read_mode, static_cast<int32_t>(expect));
   }
 
-    void InitGraph1(ComputeGraphPtr& graph) {
-      const std::string CONV2D = "Conv2D";
-      const std::string CONCATD = "ConcatD";
-      const std::string CONCAT_DIM = "concat_dim";
-      OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
-      OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
-      OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
-      (void)ge::AttrUtils::SetInt(concat, CONCAT_DIM, 1);
+  void InitGraph1(ComputeGraphPtr &graph) {
+    const std::string CONV2D = "Conv2D";
+    const std::string CONCATD = "ConcatD";
+    const std::string CONCAT_DIM = "concat_dim";
+    OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
+    OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
+    OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
+    (void)ge::AttrUtils::SetInt(concat, CONCAT_DIM, 1);
 
-      // add descriptor
-      ge::GeShape shape1({1, -1, 14, 14});
-      ge::GeShape shape2({1, -1, 14, 14});
-      GeTensorDesc out_desc1(shape1, ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
-      out_desc1.SetOriginFormat(ge::FORMAT_NCHW);
-      out_desc1.SetOriginDataType(ge::DT_FLOAT);
-      out_desc1.SetOriginShape(shape1);
-      GeTensorDesc out_desc2(shape2, ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
-      out_desc2.SetOriginFormat(ge::FORMAT_NCHW);
-      out_desc2.SetOriginDataType(ge::DT_FLOAT);
-      out_desc2.SetOriginShape(shape2);
-      conv1->AddOutputDesc(out_desc1);
-      conv2->AddOutputDesc(out_desc2);
-      concat->AddInputDesc("__input00", out_desc1);
-      concat->AddInputDesc("__input10", out_desc2);
-      std::vector<int64_t> shape_vec;
-      ge::GeShape null_shape(shape_vec);
-      GeTensorDesc out_desc_null(null_shape, ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
-      concat->AddInputDesc("__input2", out_desc_null);
-      // create nodes
-      NodePtr conv1_node = graph->AddNode(conv1);
-      NodePtr conv2_node = graph->AddNode(conv2);
-      NodePtr concat_node = graph->AddNode(concat);
-      ge::NodeUtils::AppendInputAnchor(concat_node, 4);
-      concat->AddInputDesc("__input3", out_desc2);
-      /*
-      *  Conv2d     Conv2d
-      *      \       /
-      *        Concat(concat_dim=0)
-      *          |
-      */
-      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(3));
-    }
-
-    static NodePtr CreateNodeWithoutAttrs(bool has_weight = false)
-    {
-        FeTestOpDescBuilder builder;
-        builder.SetName("test_tvm");
-        builder.SetType("test_tvm");
-        builder.SetInputs({1});
-        builder.SetOutputs({1});
-        builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        if (has_weight) {
-            size_t len = 10;
-            unique_ptr<float[]> buf(new float[len]);
-            auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 },
-                    ge::FORMAT_NCHW, ge::DT_FLOAT);
-            ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-        }
-
-        return builder.Finish();
-    }
-
-    static NodePtr CreateNode(bool has_weight = false)
-    {
-        NodePtr node = CreateNodeWithoutAttrs(has_weight);
-
-        const char tbe_bin[] = "tbe_bin";
-        vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-        OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-        node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-        ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-        SetOpDecSize(node, SET_SIZE);
-        return node;
-    }
-
-    static NodePtr CreateNodeWithoutAttrs3(bool has_weight = false)
-    {
-      FeTestOpDescBuilder builder;
-      builder.SetName("test_tvm");
-      builder.SetType("test_tvm");
-      builder.SetInputs({1});
-      builder.SetOutputs({1});
-      builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-      builder.AddOutputDesc({1, 8, 7, 56, 32}, ge::FORMAT_NC1HWC0, ge::DT_INT8);
-      if (has_weight) {
-        size_t len = 10;
-        unique_ptr<float[]> buf(new float[len]);
-        auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 },
-                                        ge::FORMAT_NCHW, ge::DT_FLOAT);
-        ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-      }
-
-      return builder.Finish();
-    }
-
-    static NodePtr CreateNode3(bool has_weight = false)
-    {
-      NodePtr node = CreateNodeWithoutAttrs3(has_weight);
-
-      const char tbe_bin[] = "tbe_bin";
-      vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-      OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-      node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-      ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-      SetOpDecSize(node, SET_SIZE_2);
-      return node;
-    }
-
-      static NodePtr CreateUnknownShapeNodeWithoutAttrs(bool has_weight = false)
-      {
-          FeTestOpDescBuilder builder;
-          builder.SetName("test_tvm");
-          builder.SetType("test_tvm");
-          builder.SetInputs({1});
-          builder.SetOutputs({1});
-          builder.AddInputDesc({1,-1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-          builder.AddOutputDesc({1,-1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-          if (has_weight) {
-              size_t len = 10;
-              unique_ptr<float[]> buf(new float[len]);
-              auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 },
-                                              ge::FORMAT_NCHW, ge::DT_FLOAT);
-              ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-          }
-
-          return builder.Finish();
-      }
-
-      static NodePtr CreateUnknownShapeNode(bool has_weight = false)
-      {
-          NodePtr node = CreateUnknownShapeNodeWithoutAttrs(has_weight);
-
-          const char tbe_bin[] = "tbe_bin";
-          vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-          OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-          node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-
-          ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-          ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-          ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-          ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-          return node;
-      }
-
-    static NodePtr CreateNodeWithInputNode(string input_op)
-    {
-        FeTestOpDescBuilder builder;
-        builder.SetName("test_tvm");
-        builder.SetType("test_tvm");
-        builder.SetInputs({1});
-        builder.SetOutputs({1});
-        builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        NodePtr node =  builder.Finish();
-        const char tbe_bin[] = "tbe_bin";
-        vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-        OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-        node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-        ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-        FeTestOpDescBuilder builder1;
-        builder1.SetName(input_op);
-        builder1.SetType(input_op);
-        builder1.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        NodePtr input_node =  builder1.Finish();
-        node->AddLinkFrom(input_node);
-        SetOpDecSize(node, SET_SIZE);
-        return node;
-   }
-
-  static NodePtr CreateNodeWithoutAttrsWithLargeWeightOffset(bool has_weight = false)
-  {
-      FeTestOpDescBuilder builder;
-      builder.SetName("test_tvm");
-      builder.SetInputs({1});
-      builder.SetOutputs({1});
-      builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-      builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-      if (has_weight) {
-          size_t len = 10;
-          unique_ptr<float[]> buf(new float[len]);
-          auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 },
-                                          ge::FORMAT_NCHW, ge::DT_FLOAT);
-          ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-          ge::TensorUtils::SetDataOffset(weight->MutableTensorDesc(), 30*1024*1024*1024L + 1L);
-      }
-
-      return builder.Finish();
+    // add descriptor
+    ge::GeShape shape1({1, -1, 14, 14});
+    ge::GeShape shape2({1, -1, 14, 14});
+    GeTensorDesc out_desc1(shape1, ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
+    out_desc1.SetOriginFormat(ge::FORMAT_NCHW);
+    out_desc1.SetOriginDataType(ge::DT_FLOAT);
+    out_desc1.SetOriginShape(shape1);
+    GeTensorDesc out_desc2(shape2, ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
+    out_desc2.SetOriginFormat(ge::FORMAT_NCHW);
+    out_desc2.SetOriginDataType(ge::DT_FLOAT);
+    out_desc2.SetOriginShape(shape2);
+    conv1->AddOutputDesc(out_desc1);
+    conv2->AddOutputDesc(out_desc2);
+    concat->AddInputDesc("__input00", out_desc1);
+    concat->AddInputDesc("__input10", out_desc2);
+    std::vector<int64_t> shape_vec;
+    ge::GeShape null_shape(shape_vec);
+    GeTensorDesc out_desc_null(null_shape, ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
+    concat->AddInputDesc("__input2", out_desc_null);
+    // create nodes
+    NodePtr conv1_node = graph->AddNode(conv1);
+    NodePtr conv2_node = graph->AddNode(conv2);
+    NodePtr concat_node = graph->AddNode(concat);
+    ge::NodeUtils::AppendInputAnchor(concat_node, 4);
+    concat->AddInputDesc("__input3", out_desc2);
+    /*
+     *  Conv2d     Conv2d
+     *      \       /
+     *        Concat(concat_dim=0)
+     *          |
+     */
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(3));
   }
 
-  static NodePtr CreateNodeWithVarInputAttr(bool has_weight = false)
-  {
-      NodePtr node = CreateNodeWithoutAttrsWithLargeWeightOffset(has_weight);
+  static NodePtr CreateNodeWithoutAttrs(bool has_weight = false) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetType("test_tvm");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    if (has_weight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+    }
 
-      const char tbe_bin[] = "tbe_bin";
-      vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-      OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-      node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-      ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-      ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-      vector<bool> input_is_addr_var = {true, true, true};
-
-      ge::AttrUtils::SetListBool(node->GetOpDesc(), "INPUT_IS_VAR", input_is_addr_var);
-      SetOpDecSize(node, SET_SIZE);
-      return node;
+    return builder.Finish();
   }
 
-    static NodePtr CreateNodeWithoutAttrs2(bool has_weight = false)
-    {
-        FeTestOpDescBuilder builder;
-        builder.SetName("test_tvm");
-        builder.SetInputs({0,1});
-        builder.SetOutputs({1});
-        builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        if (has_weight) {
-            size_t len = 10;
-            unique_ptr<float[]> buf(new float[len]);
-            auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 },
-                    ge::FORMAT_NCHW, ge::DT_FLOAT);
-            ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-        }
-
-        return builder.Finish2();
-    }
-
-    static NodePtr CreateNode2(bool has_weight = false)
-    {
-        NodePtr node = CreateNodeWithoutAttrs2(has_weight);
-
-        const char tbe_bin[] = "tbe_bin";
-        vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
-        OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-        node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-        ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-        SetOpDecSize(node, SET_SIZE);
-        return node;
-    }
-
-    static TaskBuilderContext CreateContext()
-    {
-        TaskBuilderContext context;
-        context.dataMemSize = 100;
-        context.dataMemBase = (uint8_t *) (intptr_t) 1000;
-        context.weightMemSize = 200;
-        context.weightMemBase = (uint8_t *) (intptr_t) 1100;
-        context.weightBufferHost = Buffer(20);
-        return context;
-    }
-
-    static void DestroyContext(TaskBuilderContext &context) {
-    }
-
-protected:
-    NodePtr node_ { nullptr };
-    TaskBuilderContext context_;
-    std::shared_ptr<TbeTaskBuilderAdapter> adapter_;
-};
-
-TEST_F(UTEST_TbeTaskBuilderAdapter, case_no_bin_attr_error)
-{
-    NodePtr node = CreateNodeWithoutAttrs();
-    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
-    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
-    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
-
-    TbeTaskBuilderAdapter adapter(*node, context_);
-    EXPECT_NE(adapter.Init(), fe::SUCCESS);
-}
-
-TEST_F(UTEST_TbeTaskBuilderAdapter, case_no_magic_attr_error)
-{
-    NodePtr node = CreateNodeWithoutAttrs();
+  static NodePtr CreateNode(bool has_weight = false) {
+    NodePtr node = CreateNodeWithoutAttrs(has_weight);
 
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
 
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
     ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
     ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
 
-    TbeTaskBuilderAdapter adapter(*node, context_);
-    EXPECT_NE(adapter.Init(), fe::SUCCESS);
+    SetOpDecSize(node, SET_SIZE);
+    return node;
+  }
+
+  static NodePtr CreateNodeWithoutAttrs3(bool has_weight = false) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetType("test_tvm");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 8, 7, 56, 32}, ge::FORMAT_NC1HWC0, ge::DT_INT8);
+    if (has_weight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+    }
+
+    return builder.Finish();
+  }
+
+  static NodePtr CreateNode3(bool has_weight = false) {
+    NodePtr node = CreateNodeWithoutAttrs3(has_weight);
+
+    const char tbe_bin[] = "tbe_bin";
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+    SetOpDecSize(node, SET_SIZE_2);
+    return node;
+  }
+
+  static NodePtr CreateUnknownShapeNodeWithoutAttrs(bool has_weight = false) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetType("test_tvm");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, -1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, -1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    if (has_weight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+    }
+
+    return builder.Finish();
+  }
+
+  static NodePtr CreateUnknownShapeNode(bool has_weight = false) {
+    NodePtr node = CreateUnknownShapeNodeWithoutAttrs(has_weight);
+
+    const char tbe_bin[] = "tbe_bin";
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+    return node;
+  }
+
+  static NodePtr CreateNodeWithInputNode(string input_op) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetType("test_tvm");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    NodePtr node = builder.Finish();
+    const char tbe_bin[] = "tbe_bin";
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+    FeTestOpDescBuilder builder1;
+    builder1.SetName(input_op);
+    builder1.SetType(input_op);
+    builder1.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    NodePtr input_node = builder1.Finish();
+    node->AddLinkFrom(input_node);
+    SetOpDecSize(node, SET_SIZE);
+    return node;
+  }
+
+  static NodePtr CreateNodeWithoutAttrsWithLargeWeightOffset(bool has_weight = false) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    if (has_weight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+      ge::TensorUtils::SetDataOffset(weight->MutableTensorDesc(), 30 * 1024 * 1024 * 1024L + 1L);
+    }
+
+    return builder.Finish();
+  }
+
+  static NodePtr CreateNodeWithVarInputAttr(bool has_weight = false) {
+    NodePtr node = CreateNodeWithoutAttrsWithLargeWeightOffset(has_weight);
+
+    const char tbe_bin[] = "tbe_bin";
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+    vector<bool> input_is_addr_var = {true, true, true};
+
+    ge::AttrUtils::SetListBool(node->GetOpDesc(), "INPUT_IS_VAR", input_is_addr_var);
+    SetOpDecSize(node, SET_SIZE);
+    return node;
+  }
+
+  static NodePtr CreateNodeWithoutAttrs2(bool has_weight = false) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetInputs({0, 1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    if (has_weight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+    }
+
+    return builder.Finish2();
+  }
+
+  static NodePtr CreateNode2(bool has_weight = false) {
+    NodePtr node = CreateNodeWithoutAttrs2(has_weight);
+
+    const char tbe_bin[] = "tbe_bin";
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+    SetOpDecSize(node, SET_SIZE);
+    return node;
+  }
+
+  static TaskBuilderContext CreateContext() {
+    TaskBuilderContext context;
+    context.dataMemSize = 100;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
+    context.weightMemSize = 200;
+    context.weightMemBase = (uint8_t *)(intptr_t)1100;
+    context.weightBufferHost = Buffer(20);
+    return context;
+  }
+
+  static void DestroyContext(TaskBuilderContext &context) {}
+
+ protected:
+  NodePtr node_{nullptr};
+  TaskBuilderContext context_;
+  std::shared_ptr<TbeTaskBuilderAdapter> adapter_;
+};
+
+TEST_F(UTEST_TbeTaskBuilderAdapter, case_no_bin_attr_error) {
+  NodePtr node = CreateNodeWithoutAttrs();
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+  ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+  TbeTaskBuilderAdapter adapter(*node, context_);
+  EXPECT_NE(adapter.Init(), fe::SUCCESS);
 }
 
-TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_input)
-{
+TEST_F(UTEST_TbeTaskBuilderAdapter, case_no_magic_attr_error) {
+  NodePtr node = CreateNodeWithoutAttrs();
+
+  const char tbe_bin[] = "tbe_bin";
+  vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+  OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+  node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
+  ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 10);
+  ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", "my_metadata");
+
+  TbeTaskBuilderAdapter adapter(*node, context_);
+  EXPECT_NE(adapter.Init(), fe::SUCCESS);
+}
+
+TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_input) {
   NodePtr node = CreateNode(true);
   ge::OpDesc::Vistor<ge::GeTensorDesc> tensors_input = node->GetOpDesc()->GetAllInputsDesc();
   for (size_t i = 0; i < tensors_input.size(); i++) {
@@ -443,8 +419,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_input)
   EXPECT_EQ(adapter.Init(), fe::FAILED);
 }
 
-TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output)
-{
+TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output) {
   NodePtr node = CreateNode(true);
   ge::OpDesc::Vistor<ge::GeTensorDesc> tensors_output = node->GetOpDesc()->GetAllOutputsDesc();
   for (size_t i = 0; i < tensors_output.size(); i++) {
@@ -456,8 +431,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output)
   EXPECT_EQ(adapter.Init(), fe::FAILED);
 }
 
-TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_success_change_output_real_calc_flag)
-{
+TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_success_change_output_real_calc_flag) {
   NodePtr node = CreateNode3(true);
   ge::OpDesc op_desc = *(node->GetOpDesc().get());
   ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_GET_TENSOR_ACTUAL_SIZE, 1);
@@ -469,8 +443,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_success_change_output_real_calc_f
   EXPECT_EQ(adapter.Init(), fe::SUCCESS);
 }
 
-TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output_real_calc_flag)
-{
+TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output_real_calc_flag) {
   NodePtr node = CreateNode3(true);
   ge::OpDesc op_desc = *(node->GetOpDesc().get());
   ge::AttrUtils::SetInt(op_desc, ge::ATTR_NAME_GET_TENSOR_ACTUAL_SIZE, 0);
@@ -484,7 +457,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, check_size_failed_change_output_real_calc_fl
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_01_no_args) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::DEFAULT);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::DEFAULT);
   NodePtr node_ptr = CreateNode();
 
   OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -508,7 +482,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_01_no_args) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_01_no_args_02) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::DEFAULT);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::DEFAULT);
   NodePtr node_ptr = CreateNode();
 
   OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -518,7 +493,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_01_no_args_02) {
   vector<int32_t> read_dist_vec = {0, 0};
   ge::AttrUtils::SetListInt(input_desc, ge::ATTR_NAME_DATA_VISIT_DISTANCE, read_dist_vec);
   std::shared_ptr<TbeTaskBuilderAdapter> tbe_task_builder_adapter =
-          shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
+      shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
   tbe_task_builder_adapter->Init();
   domi::TaskDef task_def = {};
   Status ret = tbe_task_builder_adapter->Run(task_def);
@@ -528,7 +503,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_01_no_args_02) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_02_withlifecycle_nnw) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -547,7 +523,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_02_withlifecycle_nnw) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_03_withlifecycle_ri) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -567,7 +544,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_03_withlifecycle_ri) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_04_withlifecycle_distance_notexist) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -584,7 +562,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_04_withlifecycle_distance_n
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_05_withoutlifecycle_rl) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -602,7 +581,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_05_withoutlifecycle_rl) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_06_withoutlifecycle_ri) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -620,7 +600,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_06_withoutlifecycle_ri) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_07_withoutlifecycle_distance_notexist) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node = CreateNode();
   OpDescPtr op = node->GetOpDesc();
@@ -636,7 +617,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_07_withoutlifecycle_distanc
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_08_datainput) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node_ptr = CreateNodeWithInputNode(DATA);
   OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -657,7 +639,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_08_datainput) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_09_constinput) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node_ptr = CreateNodeWithInputNode(CONSTANTOP);
   OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -676,7 +659,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_09_constinput) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, l2cache_rc_cache_10_variableinput) {
   fe::SetFunctionState(FuncParamType::FUSION_L2, false);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] = static_cast<int64_t>(L2CacheMode::RC);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2CacheMode)] =
+      static_cast<int64_t>(L2CacheMode::RC);
 
   NodePtr node_ptr = CreateNodeWithInputNode(VARIABLE);
   OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -733,7 +717,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputWithDdr) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_DataMap_1) {
   NodePtr node_ptr = CreateNodeWithInputNode(VARIABLE);
-  auto tbe_task_builder_adapter = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
+  auto tbe_task_builder_adapter =
+      shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
 
   L2DataMap l2datamap;
   int32_t data_num = 1;
@@ -744,17 +729,17 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_DataMap_1) {
   bool is_input;
 
   tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(),
-                                                     (const void **)y_addrs.data(),
-                                                     cur_ptr, l2_args_size, is_input);
+                                                     (const void **)y_addrs.data(), cur_ptr, l2_args_size, is_input);
   EXPECT_EQ(l2_args_size, 0);
 }
 
-  // L2Data l2_data_ = {1, 2, 3};
-  // l2datamap.emplace(1, l2_data_);
+// L2Data l2_data_ = {1, 2, 3};
+// l2datamap.emplace(1, l2_data_);
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_DataMap_2) {
   NodePtr node_ptr = CreateNodeWithInputNode(VARIABLE);
-  auto tbe_task_builder_adapter = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
+  auto tbe_task_builder_adapter =
+      shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
 
   L2DataMap l2datamap;
   L2Data l2_data_;
@@ -768,14 +753,15 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_DataMap_2) {
   uint64_t cur_ptr = 0;
   uint32_t l2_args_size = 0;
   bool is_input = false;
-  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(), (const void **)y_addrs.data(),
-                                                     cur_ptr, l2_args_size, is_input);
+  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(),
+                                                     (const void **)y_addrs.data(), cur_ptr, l2_args_size, is_input);
   EXPECT_EQ(l2_args_size, 0);
 }
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_FusionDataMap_1) {
   NodePtr node_ptr = CreateNodeWithInputNode(VARIABLE);
-  auto tbe_task_builder_adapter = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
+  auto tbe_task_builder_adapter =
+      shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
 
   L2FusionDataMap_t l2datamap;
   int32_t data_num = 1;
@@ -785,14 +771,15 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_FusionDataMap_1) {
   uint32_t l2_args_size = 0;
   bool is_input;
 
-  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(), (const void **)y_addrs.data(),
-                                                     cur_ptr, l2_args_size, is_input);
+  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(),
+                                                     (const void **)y_addrs.data(), cur_ptr, l2_args_size, is_input);
   EXPECT_EQ(l2_args_size, 0);
 }
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_FusionDataMap_2) {
   NodePtr node_ptr = CreateNodeWithInputNode(VARIABLE);
-  auto tbe_task_builder_adapter = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
+  auto tbe_task_builder_adapter =
+      shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node_ptr, context_));
 
   L2FusionDataMap_t l2datamap;
   L2FusionData_t l2_fusion_data_;
@@ -807,8 +794,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, DealInputOutputL2_FusionDataMap_2) {
   uint32_t l2_args_size = 0;
   bool is_input;
 
-  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(), (const void **)y_addrs.data(),
-                                                     cur_ptr, l2_args_size, is_input);
+  tbe_task_builder_adapter->DealInputOutputL2DataMap(l2datamap, data_num, (const void **)x_addrs.data(),
+                                                     (const void **)y_addrs.data(), cur_ptr, l2_args_size, is_input);
   EXPECT_EQ(l2_args_size, 0);
 }
 
@@ -819,7 +806,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, SaveTeCoreL2FlowDataForL2Fusion_failed1) {
 
   rtSmDesc_t rt_sm_desct;
   rt_sm_desct.data->L2_mirror_addr = 2;
-  
+
   rtStream_t stream_id;
   int32_t input_num;
   int32_t output_num;
@@ -830,10 +817,9 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, SaveTeCoreL2FlowDataForL2Fusion_failed1) {
   uint32_t l2_args_size;
   uint32_t workspace_num;
 
-  Status ret = tbe_task_builder_adapter->SaveTeCoreL2FlowDataForL2Fusion(input_num, output_num,
-                                                                         cur_ptr,(const void **)x_addrs.data(),
-                                                                         (const void **)y_addrs.data(), tel2ctrl, l2_args_size,
-                                                                         workspace_num);
+  Status ret = tbe_task_builder_adapter->SaveTeCoreL2FlowDataForL2Fusion(
+      input_num, output_num, cur_ptr, (const void **)x_addrs.data(), (const void **)y_addrs.data(), tel2ctrl,
+      l2_args_size, workspace_num);
   EXPECT_EQ(ret, fe::PARAM_INVALID);
 }
 
@@ -855,10 +841,9 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, SaveTeCoreL2FlowDataForL2Fusion_failed2) {
   uint32_t l2_args_size;
   uint32_t workspace_num;
 
-  Status ret = tbe_task_builder_adapter->SaveTeCoreL2FlowDataForL2Fusion(input_num, output_num,
-                                                                         cur_ptr,(const void **)x_addrs.data(),
-                                                                         (const void **)y_addrs.data(), tel2ctrl, l2_args_size,
-                                                                         workspace_num);
+  Status ret = tbe_task_builder_adapter->SaveTeCoreL2FlowDataForL2Fusion(
+      input_num, output_num, cur_ptr, (const void **)x_addrs.data(), (const void **)y_addrs.data(), tel2ctrl,
+      l2_args_size, workspace_num);
   EXPECT_EQ(ret, fe::PARAM_INVALID);
 }
 
@@ -881,7 +866,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, display_rt_l2_ctrl_info_succ) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, kernel_lanuch_1) {
   std::string str = "hello...";
-  char* str_p = "hello...";
+  char *str_p = "hello...";
   domi::TaskDef task_def = {};
   rtSmDesc_t sm_desc;
   bool ret = TbeKernelLaunch::KernelLaunch(str, 4, str_p, 8, &sm_desc, task_def);
@@ -890,8 +875,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, kernel_lanuch_1) {
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, kernel_launch_with_handle_1) {
   std::string str = "hello...";
-  const char* const_str_p = str.c_str();
-  char* str_p = "hello...";
+  const char *const_str_p = str.c_str();
+  char *str_p = "hello...";
   domi::TaskDef task_def = {};
   rtSmDesc_t sm_desc;
   bool ret = TbeKernelLaunch::KernelLaunchWithHandle(4, str_p, 8, &sm_desc, task_def);
@@ -911,7 +896,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, coverage_01) {
   uint32_t workspace_num;
 
   adapter_->SaveTeCoreL2FlowDataForL2Fusion(input_num, output_num, cur_ptr, xx, yy, tel2ctrl, l2_args_size,
-      workspace_num);
+                                            workspace_num);
   EXPECT_EQ(input_num, 0);
 }
 
@@ -938,9 +923,9 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, coverage_02) {
   domi::TaskDef task_def;
 
   adapter_->DealKernelLaunchForL2Fusion(input_num, output_num, cur_ptr, xx, yy, tel2ctrl, args_size, l2_args_size,
-      stub_dev_func, core_dim, tmp_buf, workspace_num, task_def);
+                                        stub_dev_func, core_dim, tmp_buf, workspace_num, task_def);
   EXPECT_EQ(l2_args_size, 0);
-  delete []ptr;
+  delete[] ptr;
 }
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, coverage_02_1) {
@@ -967,9 +952,9 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, coverage_02_1) {
 
   ge::AttrUtils::SetStr(adapter_->node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, "test");
   adapter_->DealKernelLaunchForL2Fusion(input_num, output_num, cur_ptr, xx, yy, tel2ctrl, args_size, l2_args_size,
-      stub_dev_func, core_dim, tmp_buf, workspace_num, task_def);
+                                        stub_dev_func, core_dim, tmp_buf, workspace_num, task_def);
   EXPECT_EQ(l2_args_size, 0);
-  delete []ptr;
+  delete[] ptr;
 }
 
 TEST_F(UTEST_TbeTaskBuilderAdapter, set_func_state_test) {
@@ -1028,7 +1013,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, InitInputOnEachMode) {
     if (node->GetType() == "ConcatD") {
       op_desc = node->GetOpDesc();
       adapter_->op_desc_ = op_desc;
-      adapter_ = shared_ptr<TbeTaskBuilderAdapter> (new (nothrow) TbeTaskBuilderAdapter(*node, context_));
+      adapter_ = shared_ptr<TbeTaskBuilderAdapter>(new (nothrow) TbeTaskBuilderAdapter(*node, context_));
       for (auto anchor : node->GetAllInDataAnchors()) {
         ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
       }
@@ -1036,7 +1021,7 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, InitInputOnEachMode) {
   }
   vector<bool> input_is_addr_var = {true, true, true, true};
   (void)ge::AttrUtils::SetListBool(op_desc, ATTR_NAME_INPUT_IS_VAR, input_is_addr_var);
-  op_desc->SetInputOffset({10,20,30,40});
+  op_desc->SetInputOffset({10, 20, 30, 40});
 
   // i0 i1 i2 null i3
   std::vector<uint32_t> input_type_list;
@@ -1074,8 +1059,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, CheckArrayValue) {
   int32_t input_num = 2;
   vector<void *> array(2);
   int32_t array_size = 2;
-  Status ret = tbe_task_builder_adapter->CheckArrayValue(const_cast<const void **>(array.data()),
-                                                         array_size, input_num, name);
+  Status ret =
+      tbe_task_builder_adapter->CheckArrayValue(const_cast<const void **>(array.data()), array_size, input_num, name);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
@@ -1088,8 +1073,8 @@ TEST_F(UTEST_TbeTaskBuilderAdapter, CheckArrayValue_02) {
   int32_t input_num = 3;
   vector<void *> array(2);
   int32_t array_size = 2;
-  Status ret = tbe_task_builder_adapter->CheckArrayValue(const_cast<const void **>(array.data()),
-                                                         array_size, input_num, name);
+  Status ret =
+      tbe_task_builder_adapter->CheckArrayValue(const_cast<const void **>(array.data()), array_size, input_num, name);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 

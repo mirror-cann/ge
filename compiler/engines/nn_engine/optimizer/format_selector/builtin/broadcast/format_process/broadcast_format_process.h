@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,12 +24,11 @@
 namespace fe {
 class BroadcastFormatProcess : public FormatProcessBase {
  public:
-  BroadcastFormatProcess(){};
+  BroadcastFormatProcess() {};
   ~BroadcastFormatProcess() override {};
   Status Process(const ge::OpDesc &op_desc, const FormatProccessArgs &args, FormatProccessResult &result) override;
 
-  virtual bool CheckOriginFormat(const std::vector<ge::Format> &input_formats,
-                                 const vector<ge::GeShape> &input_shapes);
+  virtual bool CheckOriginFormat(const std::vector<ge::Format> &input_formats, const vector<ge::GeShape> &input_shapes);
   virtual bool CheckOriginShape(const std::vector<ge::GeShape> &shapes);
   Status Check6HDShape(const std::vector<ge::GeShape> &shapes, const ge::Format &supprt_format,
                        size_t &dim_value) const;
@@ -48,8 +47,8 @@ class BroadcastFormatProcess : public FormatProcessBase {
   void GenerateOutputFormats(const vector<ge::GeShape> &output_shapes, const ge::Format &format,
                              vector<ge::Format> &output_formats) const;
   void InsertFormatVec(const size_t &size, const ge::Format &format, vector<vector<ge::Format>> &formats) const;
-  void InsertSubformatVec(const ge::Format &format, const uint32_t &sub_format,
-                          vector<uint32_t> &input_subformat_res, vector<uint32_t> &output_subformat_res) const;
+  void InsertSubformatVec(const ge::Format &format, const uint32_t &sub_format, vector<uint32_t> &input_subformat_res,
+                          vector<uint32_t> &output_subformat_res) const;
   ge::GeShape GetNewShapeWithNewFormat(const ge::OpDesc &op_desc, const ge::GeShape &old_shape,
                                        const ge::Format &old_format, const ge::Format &new_format,
                                        const ge::DataType &current_data_type, const int32_t &group) const;

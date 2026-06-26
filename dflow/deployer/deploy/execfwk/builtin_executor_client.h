@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,7 @@ class BuiltinExecutorClient : public PneExecutorClient {
   Status SyncVarManager(deployer::ExecutorRequest_SyncVarManageRequest sync_var_manage_desc) override;
   ProcStatus GetSubProcStat() override;
   void GetAbnormalModelInsName(std::map<uint32_t, std::vector<std::string>> &abnormal_model_instances_name) override {
-    (void) abnormal_model_instances_name;
+    (void)abnormal_model_instances_name;
   }
   Status ClearModelRunningData(uint32_t model_id, int32_t type, const std::set<int32_t> &device_ids) override;
   Status DataFlowExceptionNotify(const deployer::DataFlowExceptionNotifyRequest &req_body) override;
@@ -38,21 +38,21 @@ class BuiltinExecutorClient : public PneExecutorClient {
  protected:
   virtual Status ForAndInit(int32_t device_id, std::unique_ptr<ExecutorMessageClient> &message_client);
   virtual void Shutdown();
-  virtual Status DoForkChildProcess(int32_t device_id,
-                                    uint32_t req_msg_queue_id,
-                                    uint32_t rsp_msg_queue_id,
+  virtual Status DoForkChildProcess(int32_t device_id, uint32_t req_msg_queue_id, uint32_t rsp_msg_queue_id,
                                     const std::string &group_name);
   virtual Status GenerateKvArgs(std::map<std::string, std::string> &kv_args);
   virtual Status GetPidOwningIoQueues(int32_t &pid);
   virtual Status PreLoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc) {
-    (void) load_model_desc;
+    (void)load_model_desc;
     return SUCCESS;
   }
   virtual Status AfterLoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc) {
-    (void) load_model_desc;
+    (void)load_model_desc;
     return SUCCESS;
   }
-  virtual pid_t GetPid() const { return pid_; }
+  virtual pid_t GetPid() const {
+    return pid_;
+  }
   Status DoGrantQueues(int32_t pid, const std::vector<DeployQueueAttr> &queue_attrs) override;
 
   Status DoBindHostPid(const int32_t pid) override;

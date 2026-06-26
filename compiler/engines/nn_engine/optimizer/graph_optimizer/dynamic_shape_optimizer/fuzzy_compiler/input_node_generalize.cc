@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@ InputNodeGeneralize::InputNodeGeneralize(const std::unordered_set<ge::NodePtr> &
       fusion_attr_mgr_(fusion_attr_mgr) {}
 
 InputNodeGeneralize::InputNodeGeneralize(const OpStoreAdapterPtr &op_store_adapter)
-    : graph_type_{false, false},
-      op_store_adapter_(op_store_adapter) {}
+    : graph_type_{false, false}, op_store_adapter_(op_store_adapter) {}
 
 InputNodeGeneralize::~InputNodeGeneralize() {}
 
@@ -76,8 +75,10 @@ std::vector<ge::ComputeGraphPtr> InputNodeGeneralize::GetSubgraphsByCurNode(cons
   }
 
   const auto root_graph = ge::GraphUtils::FindRootGraph(node_ptr->GetOwnerComputeGraph());
-  FE_CHECK(root_graph == nullptr, FE_LOGW("[GraphOpt][Prepare][GetSubgraphsByCurNode]"
-                                          "node[%s] cannot find the root graph"), return cur_node_subgraph);
+  FE_CHECK(root_graph == nullptr,
+           FE_LOGW("[GraphOpt][Prepare][GetSubgraphsByCurNode]"
+                   "node[%s] cannot find the root graph"),
+           return cur_node_subgraph);
   for (const auto &name : sub_graph_names) {
     if (name.empty()) {
       FE_LOGW("[GraphOpt][Prepare][GetSubgraphsByCurNode] Node [%s] contains an empty subgraph instance name.",
@@ -112,9 +113,11 @@ void UpdateTensorDesc(const ge::GeTensorDescPtr &src, ge::GeTensorDescPtr &dst) 
   std::vector<std::pair<int64_t, int64_t>> value_range;
   src->GetValueRange(value_range);
   dst->SetValueRange(value_range);
-  FE_LOGD("[GraphOpt][Prepare][UpdateTensorDesc] Original shape is %s, current shape is %s, range is %s, and value_range is %s.",
-          ShapeToString(ori_shape).c_str(), ShapeToString(shape).c_str(),
-          RangeToString(src_shape_range).c_str(), RangeToString(value_range).c_str());
+  FE_LOGD(
+      "[GraphOpt][Prepare][UpdateTensorDesc] Original shape is %s, current shape is %s, range is %s, and value_range "
+      "is %s.",
+      ShapeToString(ori_shape).c_str(), ShapeToString(shape).c_str(), RangeToString(src_shape_range).c_str(),
+      RangeToString(value_range).c_str());
 }
 
 Status InputNodeGeneralize::MergeRangeWithUpperLimitMax(
@@ -145,8 +148,8 @@ Status InputNodeGeneralize::MergeRange(const std::vector<std::pair<int64_t, int6
   }
 
   if (dst_range.size() != src_range.size()) {
-    FE_LOGW("[GraphOpt][Prepare][Generalize] dst range size[%zu] does not equal src range size[%zu].",
-            dst_range.size(), src_range.size());
+    FE_LOGW("[GraphOpt][Prepare][Generalize] dst range size[%zu] does not equal src range size[%zu].", dst_range.size(),
+            src_range.size());
     return FAILED;
   }
 
@@ -276,8 +279,7 @@ Status InputNodeGeneralize::UnlimitedNodeGeneralize(const ge::NodePtr &unlimited
   if (node_info_ptr->is_found_in_opstore) {
     FE_LOGD("[GraphOpt][Prepare][UnlimitedNodeGeneralize] Node[%s]: not found in op store. The generalize type is %d.",
             op_name.c_str(), te::DEFAULT_LIMITED_TBE_OP_INFO);
-    ret = op_store_adapter_->GeneralizeNode(unlimited_node, *(node_info_ptr->op_info),
-                                            te::DEFAULT_LIMITED_TBE_OP_INFO);
+    ret = op_store_adapter_->GeneralizeNode(unlimited_node, *(node_info_ptr->op_info), te::DEFAULT_LIMITED_TBE_OP_INFO);
     if (ret != SUCCESS) {
       FE_LOGW("[GraphOpt][Prepare][UnlimitedNodeGeneralize] Node [%s] generalization with the default rule failed.",
               op_name.c_str());
@@ -304,8 +306,9 @@ Status InputNodeGeneralize::UpdateSubGraphInputToRootGraph(const std::unordered_
     FE_LOGD("[GraphOpt][Prepare][UpdateSubGraphInputToRootGraph] Begin to update subgraph[%s] node[%s].",
             sub_graph->GetName().c_str(), sub_graph_input_node->GetName().c_str());
     if (GetParentNodeBySubGraphNode(sub_graph_input_node, parent_node) != SUCCESS) {
-      FE_LOGW("[GraphOpt][Prepare][UpdateSubGraphInputToRootGraph] Failed to get parent_node for Subgraph [%s], Node [%s].",
-              sub_graph->GetName().c_str(), sub_graph_input_node->GetName().c_str());
+      FE_LOGW(
+          "[GraphOpt][Prepare][UpdateSubGraphInputToRootGraph] Failed to get parent_node for Subgraph [%s], Node [%s].",
+          sub_graph->GetName().c_str(), sub_graph_input_node->GetName().c_str());
       return FAILED;
     }
 
@@ -401,8 +404,9 @@ Status InputNodeGeneralize::UpdateFirstNodeTensorDescToInputNodes(const ge::Node
       if (fusion_attr_mgr_ != nullptr &&
           fusion_attr_mgr_->IsAlwaysGeneralize(first_node->GetType(), graph_type_.is_single_op_graph)) {
         in_tensor_desc->DelAttr(ge::ATTR_NAME_VALUE);
-        FE_LOGD("[GraphOpt][Prepare][UpdateDataNodes] first node [%s] has optype %s, which always requires generalization.",
-                first_node->GetName().c_str(), first_node->GetType().c_str());
+        FE_LOGD(
+            "[GraphOpt][Prepare][UpdateDataNodes] first node [%s] has optype %s, which always requires generalization.",
+            first_node->GetName().c_str(), first_node->GetType().c_str());
       } else {
         FE_LOGD("[GraphOpt][Prepare][UpdateDataNodes] Peer node[%s] optype is %s, has ATTR_NAME_VALUE.",
                 input_node->GetOpDesc()->GetName().c_str(), input_node->GetType().c_str());
@@ -411,10 +415,11 @@ Status InputNodeGeneralize::UpdateFirstNodeTensorDescToInputNodes(const ge::Node
     }
 
     FE_LOGD("[GraphOpt][Prepare][UpdateDataNodes] Begin to merge [name:%s, index:%d] and [name:%s, index:%d].",
-        first_node->GetName().c_str(), in_index, input_node->GetName().c_str(), out_index);
+            first_node->GetName().c_str(), in_index, input_node->GetName().c_str(), out_index);
     if (MergeTensorDesc(in_tensor_desc, peer_output_desc) != SUCCESS) {
       FE_LOGW(
-          "[GraphOpt][Prepare][UpdateDataNodes] Merging tensor descriptions for nodes [%s, index: %d] and [%s, index: %d] was unsuccessful.",
+          "[GraphOpt][Prepare][UpdateDataNodes] Merging tensor descriptions for nodes [%s, index: %d] and [%s, index: "
+          "%d] was unsuccessful.",
           first_node->GetName().c_str(), in_index, input_node->GetName().c_str(), out_index);
       return FAILED;
     }
@@ -424,7 +429,7 @@ Status InputNodeGeneralize::UpdateFirstNodeTensorDescToInputNodes(const ge::Node
     if (ge::AttrUtils::HasAttr(peer_input_desc, ge::ATTR_NAME_VALUE)) {
       peer_input_desc->DelAttr(ge::ATTR_NAME_VALUE);
       FE_LOGD("[GraphOpt][Prepare][UpdateDataNodes] Peer node[%s] optype is %s, has ATTR_NAME_VALUE.",
-          input_node->GetOpDesc()->GetName().c_str(), input_node->GetType().c_str());
+              input_node->GetOpDesc()->GetName().c_str(), input_node->GetType().c_str());
     }
   }
 
@@ -486,8 +491,9 @@ Status InputNodeGeneralize::GeneralizeFirstNodeOfGraph(ge::NodePtr &first_node) 
   }
   std::map<ge::NodePtr, NodeGeneralInfoPtr>::const_iterator iter = node_info_map_.find(first_node);
   if (iter == node_info_map_.end()) {
-    FE_LOGW("[GraphOpt][Prepare][GeneralizeFirstNodeOfGraph] Failed to find op info for node [%s], generalization failed.",
-            op_name.c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][GeneralizeFirstNodeOfGraph] Failed to find op info for node [%s], generalization failed.",
+        op_name.c_str());
     return FAILED;
   }
   NodeGeneralInfoPtr node_info_ptr = iter->second;
@@ -516,8 +522,9 @@ Status InputNodeGeneralize::GeneralizeFirstNodeOfGraph(ge::NodePtr &first_node) 
 
   ret = SetValueDependFlagToInputNodes(first_node, node_info_ptr);
   if (ret != SUCCESS) {
-    FE_LOGW("[GraphOpt][Prepare][GeneralizeFirstNodeOfGraph] Failed to set valuedepend flag of node[%s] to inpeer node.",
-            op_name.c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][GeneralizeFirstNodeOfGraph] Failed to set valuedepend flag of node[%s] to inpeer node.",
+        op_name.c_str());
     return FAILED;
   }
 
@@ -530,7 +537,8 @@ Status InputNodeGeneralize::GeneralizeAllInputNodesInGraph() {
   for (const auto &input_node : input_nodes_) {
     FE_LOGD("[GraphOpt][Prepare][GeneralizeAllInputNodesInGraph] Input node is %s.", input_node->GetName().c_str());
     for (auto &out_node : input_node->GetOutDataNodes()) {
-      FE_LOGD("[GraphOpt][Prepare][GeneralizeAllInputNodesInGraph] The output node is %s.", out_node->GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][GeneralizeAllInputNodesInGraph] The output node is %s.",
+              out_node->GetName().c_str());
       if (prime_nodes_.count(out_node) != 0) {
         continue;
       }

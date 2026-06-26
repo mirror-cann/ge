@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,6 @@
 #include "graph_optimizer/graph_fusion/fusion_pass_manager/builtin_pass/node_optimize/split_conv_concat_fusion_pass.h"
 #include "ops_store/ops_kernel_manager.h"
 
-
 #undef protected
 #undef private
 
@@ -34,7 +33,7 @@ using namespace fe;
 namespace fe {
 
 class STEST_split_conv_concat_fusion_pass : public testing::Test {
-public:
+ public:
   const string GRAPH_NAME = "test";
   const string SPLITD = "SplitD";
   const string CONCATD = "ConcatD";
@@ -47,7 +46,7 @@ public:
   const string STRIDE_ATTR_STRIDE = "stride";
   const string STRIDE_ATTR_AXIS = "axis";
 
-protected:
+ protected:
   void SetUp() {
     FEOpsStoreInfo feOpsStoreInfo;
     OpKernelInfoPtr opKernelInfoPtr1 = std::make_shared<OpKernelInfo>(STRIDEDWRITE);
@@ -58,7 +57,7 @@ protected:
     OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_[EN_IMPL_HW_TBE] = subOpInfoStorePtr;
   }
   void TearDown() {}
-  void InitGraph(ComputeGraphPtr &graph, bool with_relu, bool asigned_c=false, bool concat_f = false) {
+  void InitGraph(ComputeGraphPtr &graph, bool with_relu, bool asigned_c = false, bool concat_f = false) {
     OpDescPtr data = std::make_shared<OpDesc>("split", RELU);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
@@ -113,30 +112,23 @@ protected:
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr concat_node = graph->AddNode(concat);
 
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv2_node->GetInDataAnchor(0));
 
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
     if (with_relu) {
       OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
       relu->AddInputDesc(out_desc3);
       relu->AddOutputDesc(out_desc3);
       NodePtr relu_node = graph->AddNode(relu);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              relu_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
     } else {
       OpDescPtr split2 = std::make_shared<OpDesc>("split2", SPLITD);
       split2->AddInputDesc(out_desc3);
       NodePtr split2_node = graph->AddNode(split2);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              split2_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), split2_node->GetInDataAnchor(0));
     }
   }
 
@@ -191,7 +183,7 @@ protected:
     NodePtr relu1_node = graph->AddNode(relu1);
     NodePtr relu2_node = graph->AddNode(relu2);
     NodePtr concat_node = graph->AddNode(concat);
-    
+
     /*           split
      *         /       \
      *        /          \
@@ -203,24 +195,16 @@ protected:
      *            Concat
      */
 
-
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            relu1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            relu2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), relu1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), relu2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitNoQuantGraph(ComputeGraphPtr &graph,  bool with_quant) {
+  void InitNoQuantGraph(ComputeGraphPtr &graph, bool with_quant) {
     OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
@@ -291,38 +275,28 @@ protected:
      *            Concat
      */
 
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            dequant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), dequant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
     if (with_quant) {
       OpDescPtr quant3 = std::make_shared<OpDesc>("quant3", QUANT);
       quant3->AddInputDesc(out_desc5);
       quant3->AddOutputDesc(out_desc5);
       NodePtr quant_node3 = graph->AddNode(quant3);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              quant_node3->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), quant_node3->GetInDataAnchor(0));
       OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
       relu->AddInputDesc(out_desc5);
       NodePtr relu_node = graph->AddNode(relu);
-      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0),
-                              relu_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
     } else {
       OpDescPtr split2 = std::make_shared<OpDesc>("split2", SPLITD);
       split2->AddInputDesc(out_desc3);
       NodePtr split2_node = graph->AddNode(split2);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              split2_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), split2_node->GetInDataAnchor(0));
     }
   }
 
@@ -415,43 +389,31 @@ protected:
      *          AcscendQuant
      */
 
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            dequant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), dequant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
 
     if (with_quant) {
       OpDescPtr quant3 = std::make_shared<OpDesc>("quant3", QUANT);
       quant3->AddInputDesc(out_desc5);
       quant3->AddOutputDesc(out_desc5);
       NodePtr quant_node3 = graph->AddNode(quant3);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              quant_node3->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), quant_node3->GetInDataAnchor(0));
       OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
       relu->AddInputDesc(out_desc5);
       NodePtr relu_node = graph->AddNode(relu);
-      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0),
-                              relu_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
     } else {
       OpDescPtr split2 = std::make_shared<OpDesc>("split2", SPLITD);
       split2->AddInputDesc(out_desc3);
       NodePtr split2_node = graph->AddNode(split2);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              split2_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), split2_node->GetInDataAnchor(0));
     }
   }
 
@@ -507,21 +469,14 @@ protected:
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr concat_node = graph->AddNode(concat);
 
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(data1_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(data2_node->GetOutDataAnchor(0),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv2_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data1_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data2_node->GetOutDataAnchor(0), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv2_node->GetInDataAnchor(1));
 
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   void InitConcatWithoutDimCGraph(ComputeGraphPtr &graph) {
@@ -572,15 +527,11 @@ protected:
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr concat_node = graph->AddNode(concat);
 
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv2_node->GetInDataAnchor(0));
 
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
   }
 
   void InitConcatInputWithTwoOutputGraph(ComputeGraphPtr &graph) {
@@ -622,12 +573,9 @@ protected:
     NodePtr conv1_node = graph->AddNode(conv1);
     NodePtr concat_node = graph->AddNode(concat);
 
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), concat_node->GetInDataAnchor(0));
   }
 
   void InitPatternNotMatchGraph(ComputeGraphPtr &graph) {
@@ -716,29 +664,19 @@ protected:
      *             Concat
      */
 
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            dequant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                            quant3_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                            quant3_node->GetInDataAnchor(1));
-  
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), dequant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), quant3_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), quant3_node->GetInDataAnchor(1));
+
     concat->AddInputDesc(out_desc5);
     concat->AddOutputDesc(out_desc5);
-    ge::GraphUtils::AddEdge(quant3_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant3_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
   }
 
   Status CheckGraph(ComputeGraphPtr &graph) {
@@ -751,19 +689,13 @@ protected:
         bool no_padding_continuous_input = false;
         bool no_padding_continuous_output = false;
         int dim_index = -1;
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK,
-                                     no_task);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_OUTPUT_REUSE_INPUT,
-                                     output_reuse_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK, no_task);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, output_reuse_input);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
                                      no_padding_continuous_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
                                      no_padding_continuous_output);
-        (void)ge::AttrUtils::GetInt(
-            concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
+        (void)ge::AttrUtils::GetInt(concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
 
         EXPECT_EQ(no_task, true);
         EXPECT_EQ(output_reuse_input, true);
@@ -795,19 +727,13 @@ protected:
         bool no_padding_continuous_input = false;
         bool no_padding_continuous_output = false;
         int dim_index = -1;
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK,
-                                     no_task);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_OUTPUT_REUSE_INPUT,
-                                     output_reuse_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK, no_task);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, output_reuse_input);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
                                      no_padding_continuous_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
                                      no_padding_continuous_output);
-        (void)ge::AttrUtils::GetInt(
-                concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
+        (void)ge::AttrUtils::GetInt(concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
 
         EXPECT_EQ(no_task, true);
         EXPECT_EQ(output_reuse_input, true);
@@ -828,24 +754,17 @@ protected:
   void DumpGraph(const ge::ComputeGraphPtr graph, string graph_name) {
     printf("start to dump graph %s...\n", graph_name.c_str());
     for (ge::NodePtr node : graph->GetAllNodes()) {
-      printf("node name = %s, node type = %s.\n", node->GetName().c_str(),
-             node->GetType().c_str());
+      printf("node name = %s, node type = %s.\n", node->GetName().c_str(), node->GetType().c_str());
       for (ge::OutDataAnchorPtr anchor : node->GetAllOutDataAnchors()) {
-        for (ge::InDataAnchorPtr peer_in_anchor :
-             anchor->GetPeerInDataAnchors()) {
-          printf("node name = %s[%d], out data node name = %s[%d].\n",
-                 node->GetName().c_str(), anchor->GetIdx(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetIdx());
+        for (ge::InDataAnchorPtr peer_in_anchor : anchor->GetPeerInDataAnchors()) {
+          printf("node name = %s[%d], out data node name = %s[%d].\n", node->GetName().c_str(), anchor->GetIdx(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetIdx());
         }
       }
       if (node->GetOutControlAnchor() != nullptr) {
-        for (ge::InControlAnchorPtr peer_in_anchor :
-             node->GetOutControlAnchor()->GetPeerInControlAnchors()) {
-          printf("node name = %s, out control node name = %s, type = %s.\n",
-                 node->GetName().c_str(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetOwnerNode()->GetType().c_str());
+        for (ge::InControlAnchorPtr peer_in_anchor : node->GetOutControlAnchor()->GetPeerInControlAnchors()) {
+          printf("node name = %s, out control node name = %s, type = %s.\n", node->GetName().c_str(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetOwnerNode()->GetType().c_str());
         }
       }
     }
@@ -1004,4 +923,4 @@ TEST_F(STEST_split_conv_concat_fusion_pass, concat_input_data_type_float) {
   DumpGraph(graph, GRAPH_NAME);
 }
 
-} // namespace fe
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,7 @@
 namespace fe {
 class AutoBufferFusionPassRunner : public BaseBufferFusionPassRunner {
  public:
-  AutoBufferFusionPassRunner(const std::string &pass_name,
-                             BufferFusionPassBase *(*create_fn)(),
+  AutoBufferFusionPassRunner(const std::string &pass_name, BufferFusionPassBase *(*create_fn)(),
                              const FusionCycleDetectorPtr &cycle_detector,
                              const OpStoreAdapterBasePtr &op_store_adapter_ptr);
 
@@ -29,8 +28,8 @@ class AutoBufferFusionPassRunner : public BaseBufferFusionPassRunner {
                           std::map<int64_t, std::vector<ge::NodePtr>> &match_nodes_map) override;
 
  private:
-  static const BufferFusionOpDesc* GetMainPatternDesc(const BufferFusionPattern &pattern,
-                                                      const std::vector<const BufferFusionOpDesc*> &exclude_desc_vec,
+  static const BufferFusionOpDesc *GetMainPatternDesc(const BufferFusionPattern &pattern,
+                                                      const std::vector<const BufferFusionOpDesc *> &exclude_desc_vec,
                                                       bool &need_check_next);
   void GetMainPatternNodes(const BufferFusionPattern &pattern, const ge::ComputeGraph &graph,
                            std::vector<ge::NodePtr> &main_nodes) const;

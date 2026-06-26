@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,9 +24,9 @@ namespace {
 /**
  * 判断node是否为uninfered node, uninfered node会被切到下一张图
  *
- * 1、if/case节点, 符号化暂不支持对子图的推导, 因此if和case的输出必没有符号, 切到下一张图后可以根据上一张图的输出把cond构造成const,
- *    然后对if/case做剪枝, 消除if/case节点, 把子图展平到根图上, 达成对if/case做符号化推导的目的
- * 2、存在没有符号的输入且所有输出都没符号
+ * 1、if/case节点, 符号化暂不支持对子图的推导, 因此if和case的输出必没有符号,
+ * 切到下一张图后可以根据上一张图的输出把cond构造成const, 然后对if/case做剪枝, 消除if/case节点, 把子图展平到根图上,
+ * 达成对if/case做符号化推导的目的 2、存在没有符号的输入且所有输出都没符号
  *
  * @param node
  * @return
@@ -61,7 +61,7 @@ bool IsUnInferedNode(const NodePtr &node) {
   }
   return false;
 }
-}
+}  // namespace
 
 Status JitInferUtils::InferSymbolForGraph(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs,
                                           std::vector<NodePtr> &infered_nodes) {
@@ -94,7 +94,7 @@ static void ClearInferedNodesWithAllDataNodes(std::vector<NodePtr> &infered_node
   for (auto &node : infered_nodes) {
     auto node_type = node->GetType();
     if (OpTypeUtils::IsVariableNode(node_type) || OpTypeUtils::IsConstNode(node_type) ||
-         OpTypeUtils::IsDataNode(node_type)) {
+        OpTypeUtils::IsDataNode(node_type)) {
       data_node_num++;
     }
   }
@@ -108,16 +108,16 @@ static bool ParentNodeInfered(const NodePtr &node, std::vector<NodePtr> &infered
   if (!node->GetInDataNodes().empty()) {
     for (auto &in_data_node : node->GetInDataNodes()) {
       // check parents data nodes
-      if (std::find(infered_nodes.begin(), infered_nodes.end(),in_data_node) == infered_nodes.end()) {
-          return false;
+      if (std::find(infered_nodes.begin(), infered_nodes.end(), in_data_node) == infered_nodes.end()) {
+        return false;
       }
     }
   }
   if (!node->GetInControlNodes().empty()) {
     for (auto &in_control_node : node->GetInControlNodes()) {
       // check parents control nodes
-      if (std::find(infered_nodes.begin(), infered_nodes.end(),in_control_node) == infered_nodes.end()) {
-          return false;
+      if (std::find(infered_nodes.begin(), infered_nodes.end(), in_control_node) == infered_nodes.end()) {
+        return false;
       }
     }
   }
@@ -125,7 +125,7 @@ static bool ParentNodeInfered(const NodePtr &node, std::vector<NodePtr> &infered
 }
 
 static void DeleteNodesWithoutParentNode(std::vector<NodePtr> &infered_nodes) {
-  // delete nodes whose parents node not infered
+  // delete nodes whose parents node not inferred
   for (auto it = infered_nodes.begin(); it != infered_nodes.end();) {
     if (!ParentNodeInfered(*it, infered_nodes)) {
       GELOGD("Infer node:%s. Parent node uninfered", (*it)->GetName().c_str());

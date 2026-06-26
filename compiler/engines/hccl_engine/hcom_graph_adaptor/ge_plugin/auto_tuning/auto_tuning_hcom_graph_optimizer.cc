@@ -150,15 +150,16 @@ HcclResult AutoTuningHcomGraphOptimizer::CheckSupportedOP(const std::string &sCo
   return (it != AUTO_TUNING_HCOM_SUPPORTED_OP_TYPE.end()) ? HCCL_SUCCESS : HCCL_E_PARA;
 }
 
-HcclResult AutoTuningHcomGraphOptimizer::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) {
+HcclResult AutoTuningHcomGraphOptimizer::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize,
+                                                               const ge::GeTensorDesc &desc_temp) {
   HCCL_DEBUG("[HcomGraphOptimizer][CalcHCCLOutputMemSize]Before sCollectiveType[%s] memSize[%lld B]",
-    sCollectiveType.c_str(), memSize);
+             sCollectiveType.c_str(), memSize);
   // 通过ge接口获取32B对齐后的memSize
   CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
-    HCCL_ERROR("[HcomGraphOptimizer][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
+              HCCL_ERROR("[HcomGraphOptimizer][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
 
   HCCL_DEBUG("[HcomGraphOptimizer][CalcHCCLOutputMemSize]After sCollectiveType[%s] memSize[%lld B]",
-    sCollectiveType.c_str(), memSize);
+             sCollectiveType.c_str(), memSize);
   return HCCL_SUCCESS;
 }
 
@@ -335,7 +336,7 @@ HcclResult AutoTuningHcomGraphOptimizer::SetOpOutputMemSize(ge::Node &node, cons
 
     if (memSize == -1) {  // memsize 为-1 时，表示输入的shape不正确
       HCCL_ERROR(
-          "[Set][OpOutputMemSize]In get output mem size, error outputSize because unknow shape,"
+          "[Set][OpOutputMemSize]In get output mem size, error outputSize because unknown shape,"
           "Format[%d], dataType[%d], outputSize[%lld], index[%u]",
           format, dataType, memSize, i);
       return HCCL_E_PARA;
@@ -344,7 +345,7 @@ HcclResult AutoTuningHcomGraphOptimizer::SetOpOutputMemSize(ge::Node &node, cons
     // 根据 规则重新计算内存大小
     HcclResult ret = CalcHCCLOutputMemSize(sCollectiveType, memSize, outputTensor);
     CHK_PRT_RET(ret != HCCL_SUCCESS,
-                HCCL_ERROR("[Calc][OutputMemSize]In calc output mem size, cacl, memsize error, ret[%d],"
+                HCCL_ERROR("[Calc][OutputMemSize]In calc output mem size, calc, memsize error, ret[%d],"
                            "sCollectiveType[%s], memSize[%lld]",
                            ret, sCollectiveType.c_str(), memSize),
                 HCCL_E_PARA);
@@ -387,7 +388,7 @@ HcclResult AutoTuningHcomGraphOptimizer::SetOpMemAttr(ge::Node &node, const std:
                 HCCL_E_PARA);
     HCCL_INFO("node[%s] set attr [reference]: %u", node.GetName().c_str(), true);
 
-    // 算子属性为reference时，为减少GE的内存分配，设置 ouput 复用 input 内存
+    // 算子属性为reference时，为减少GE的内存分配，设置 output 复用 input 内存
     for (uint32_t i = 0; i < static_cast<uint32_t>(node.GetOpDesc()->GetOutputsSize()); i++) {
       auto outDescPtr = node.GetOpDesc()->MutableOutputDesc(i);
       CHK_SMART_PTR_NULL(outDescPtr);

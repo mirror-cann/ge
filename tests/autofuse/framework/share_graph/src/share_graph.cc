@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -217,9 +217,7 @@ static void ConstructVVAscGraphAxisInfo(ge::AscGraph &graph, size_t dims_size, v
   }
 }
 
-static void ConstructVVAscGraphAxisInfo(ge::AscGraph &graph,
-                                        const std::vector<std::string> &dim_sizes,
-                                        bool align) {
+static void ConstructVVAscGraphAxisInfo(ge::AscGraph &graph, const std::vector<std::string> &dim_sizes, bool align) {
   std::vector<int64_t> axis;
   std::vector<ge::Expression> repeats;
   std::vector<ge::Expression> strides;
@@ -262,7 +260,8 @@ static void ConstructVVAscGraphAxisInfo(ge::AscGraph &graph,
   }
 }
 
-static void ConstructVVConstAscGraphAxisInfo(ge::AscGraph &graph, size_t dims_size, vector<size_t> perms, vector<int> dims) {
+static void ConstructVVConstAscGraphAxisInfo(ge::AscGraph &graph, size_t dims_size, vector<size_t> perms,
+                                             vector<int> dims) {
   // 原始轴信息
   std::vector<int64_t> axis;
   std::vector<ge::Expression> repeats;
@@ -312,7 +311,7 @@ static void ConstructVVConstAscGraphAxisInfo(ge::AscGraph &graph, size_t dims_si
     }
   }
 }
-}
+}  // namespace
 
 namespace ascir {
 /**
@@ -2201,27 +2200,27 @@ static void CreateLoadLog10StoreAscGraph(ge::AscGraph &graph, size_t dims_size) 
 }
 
 ge::ComputeGraphPtr ShareGraph::LoadLog10StoreFusedGraph(size_t dims_size) {
-    auto builder = GraphBuilder("log10_float_test");
-    auto data0 = builder.AddNode("data0", "Data", 0, 1);
-    ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+  auto builder = GraphBuilder("log10_float_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
 
-    auto ascbc = builder.AddNode("ascbc", "AscGraph", 1, 1);
-    auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 1, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
 
-    builder.AddDataEdge(data0, 0, ascbc, 0);
-    builder.AddDataEdge(ascbc, 0, netoutput, 0);
-    ComputeGraphPtr compute_graph = builder.GetGraph();
-    if (compute_graph == nullptr) {
-      return nullptr;
-    }
-    auto ascbc_node = compute_graph->FindNode("ascbc");
-    ge::AscGraph sub_graph("log10_float_test");
-    CreateLoadLog10StoreAscGraph(sub_graph, dims_size);
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("log10_float_test");
+  CreateLoadLog10StoreAscGraph(sub_graph, dims_size);
 
-    std::string sub_graph_str;
-    ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
-    ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
-    return compute_graph;
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
 }
 
 static void CreateAbsClipAscGraph(ge::AscGraph &graph, size_t dims_size) {
@@ -2693,7 +2692,7 @@ static void CreateCastAbsAscGraph(ge::AscGraph &graph, size_t dims_size, ge::Dat
  *   data0   Scalar
  */
 static void CreateScalarCastAddAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
-                                  ge::DataType out_dtype) {
+                                        ge::DataType out_dtype) {
   ge::ascir_op::Data data("data0", graph);
   data.ir_attr.SetIndex(0);
   data.y.dtype = out_dtype;
@@ -2765,7 +2764,8 @@ ge::ComputeGraphPtr ShareGraph::CastCastFusedGraph(size_t dims_size, ge::DataTyp
  *        |
  *     NetOutput
  */
-ge::ComputeGraphPtr ShareGraph::ScalarCastAddFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::ScalarCastAddFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                        ge::DataType out_dtype) {
   auto builder = GraphBuilder("scalar_cast_add_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -2801,7 +2801,7 @@ ge::ComputeGraphPtr ShareGraph::ScalarCastAddFusedGraph(size_t dims_size, ge::Da
  *        output0
  */
 static void CreateCastReciprocalAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
-                                  ge::DataType out_dtype) {
+                                         ge::DataType out_dtype) {
   ge::ascir_op::Data data0("data0", graph);
   data0.ir_attr.SetIndex(0);
   data0.y.dtype = in_dtype;
@@ -2833,7 +2833,8 @@ static void CreateCastReciprocalAscGraph(ge::AscGraph &graph, size_t dims_size, 
  *        |
  *     NetOutput
  */
-ge::ComputeGraphPtr ShareGraph::CastCastReciprocalFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::CastCastReciprocalFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                             ge::DataType out_dtype) {
   auto builder = GraphBuilder("cast_reciprocal_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -2869,7 +2870,7 @@ ge::ComputeGraphPtr ShareGraph::CastCastReciprocalFusedGraph(size_t dims_size, g
  *        output0
  */
 static void CreateCastIsNanAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
-                                  ge::DataType out_dtype) {
+                                    ge::DataType out_dtype) {
   ge::ascir_op::Data data0("data0", graph);
   data0.ir_attr.SetIndex(0);
   data0.y.dtype = in_dtype;
@@ -2937,7 +2938,7 @@ ge::ComputeGraphPtr ShareGraph::CastCastNanFusedGraph(size_t dims_size, ge::Data
  *        output0
  */
 static void CreateCastIsFiniteAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
-                                  ge::DataType out_dtype) {
+                                       ge::DataType out_dtype) {
   ge::ascir_op::Data data0("data0", graph);
   data0.ir_attr.SetIndex(0);
   data0.y.dtype = in_dtype;
@@ -2969,7 +2970,8 @@ static void CreateCastIsFiniteAscGraph(ge::AscGraph &graph, size_t dims_size, ge
  *        |
  *     NetOutput
  */
-ge::ComputeGraphPtr ShareGraph::CastCastIsFiniteFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::CastCastIsFiniteFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                           ge::DataType out_dtype) {
   auto builder = GraphBuilder("cast_isfinite_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -3036,7 +3038,7 @@ ge::ComputeGraphPtr ShareGraph::LoadToStoreAndAbsFusedGraph(size_t dims_size) {
  *             /      \
  *           data1   data0
  */
-static void CreateLoadLoopModeFusedGraph(ge::AscGraph& graph, size_t dims_size) { // 4, 8, 16, 64, 32
+static void CreateLoadLoopModeFusedGraph(ge::AscGraph &graph, size_t dims_size) {  // 4, 8, 16, 64, 32
   const Expression s0 = graph.CreateSizeVar(4);
   const Expression s1 = graph.CreateSizeVar(8);
   const Expression s2 = graph.CreateSizeVar(16);
@@ -3147,7 +3149,6 @@ ge::ComputeGraphPtr ShareGraph::LoadNeedLoopModeFusedGraph(size_t dims_size) {
   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
   return compute_graph;
 }
-
 
 /**
  *      data
@@ -3389,7 +3390,8 @@ ge::ComputeGraphPtr ShareGraph::AddGeluFusedGraph(size_t dims_size) {
  *           |
  *         data0
  */
-static void CreateCompareEqAscGraph(ge::AscGraph &graph, size_t dims_size, bool is_second_input_tensor, ge::DataType dtype) {
+static void CreateCompareEqAscGraph(ge::AscGraph &graph, size_t dims_size, bool is_second_input_tensor,
+                                    ge::DataType dtype) {
   ge::ascir_op::Data x1("compare_data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = dtype;
@@ -3414,7 +3416,7 @@ static void CreateCompareEqAscGraph(ge::AscGraph &graph, size_t dims_size, bool 
     eq.x2 = scalar0.y;
   }
 
-  eq.y.dtype =  ge::DT_UINT8;
+  eq.y.dtype = ge::DT_UINT8;
 
   ge::ascir_op::Store x_out("store");
   x_out.x = eq.y;
@@ -3428,7 +3430,8 @@ static void CreateCompareEqAscGraph(ge::AscGraph &graph, size_t dims_size, bool 
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-static void CreateCompareGtAscGraph(ge::AscGraph &graph, size_t dims_size, bool is_second_input_tensor, ge::DataType dtype) {
+static void CreateCompareGtAscGraph(ge::AscGraph &graph, size_t dims_size, bool is_second_input_tensor,
+                                    ge::DataType dtype) {
   ge::ascir_op::Data x1("compare_data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = dtype;
@@ -3453,7 +3456,7 @@ static void CreateCompareGtAscGraph(ge::AscGraph &graph, size_t dims_size, bool 
     gt.x2 = scalar0.y;
   }
 
-  gt.y.dtype =  ge::DT_UINT8;
+  gt.y.dtype = ge::DT_UINT8;
 
   ge::ascir_op::Store x_out("store");
   x_out.x = gt.y;
@@ -3489,11 +3492,11 @@ static void CreateConcatAscGraph(ge::AscGraph &graph, size_t dims_size) {
 
   ge::ascir_op::Load x1Local("load0");
   x1Local.x = x1.y;
-  x1Local.y.dtype =  ge::DT_UINT8;
+  x1Local.y.dtype = ge::DT_UINT8;
 
   ge::ascir_op::Load x2Local("load1");
   x2Local.x = x2.y;
-  x2Local.y.dtype =  ge::DT_UINT8;
+  x2Local.y.dtype = ge::DT_UINT8;
 
   ge::ascir_op::Concat concat("concat");
   concat.x = {x1Local.y, x2Local.y};
@@ -3535,7 +3538,7 @@ static void CreateConcatAscGraph(ge::AscGraph &graph, size_t dims_size) {
  *     |       /    \
  *   data0  scalar  scalar
  */
- static void CreateSubAbsAscGraph(ge::AscGraph &graph, size_t dims_size) {
+static void CreateSubAbsAscGraph(ge::AscGraph &graph, size_t dims_size) {
   ge::ascir_op::Data x0("data0", graph);
   x0.ir_attr.SetIndex(0);
   ge::ascir_op::Load x1Local("load0");
@@ -3571,7 +3574,7 @@ static void CreateConcatAscGraph(ge::AscGraph &graph, size_t dims_size) {
  *         |
  *       data0
  */
- ge::ComputeGraphPtr ShareGraph::SubAbsFusedGraph(size_t dims_size) {
+ge::ComputeGraphPtr ShareGraph::SubAbsFusedGraph(size_t dims_size) {
   auto builder = GraphBuilder("sub_abs_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -3639,7 +3642,8 @@ static void CreateSubTransposeAbsAscGraph(ge::AscGraph &graph, size_t dims_size,
   ConstructVVAscGraphAxisInfo(graph, dims_size, perms);
 }
 
-static void CreateSubTransposeAbsConstAscGraph(ge::AscGraph &graph, size_t dims_size, vector<size_t> perms, std::vector<int> dims) {
+static void CreateSubTransposeAbsConstAscGraph(ge::AscGraph &graph, size_t dims_size, vector<size_t> perms,
+                                               std::vector<int> dims) {
   ge::ascir_op::Data x1("data0", graph);
   x1.ir_attr.SetIndex(0);
   ge::ascir_op::Data x2("data1", graph);
@@ -3877,7 +3881,8 @@ ge::ComputeGraphPtr ShareGraph::IsnanBf16FusedGraph(size_t dims_size) {
  *      |    |
  *   data0  data1
  */
-ge::ComputeGraphPtr ShareGraph::SubTransposeAbsFusedConstGraph(size_t dims_size, vector<size_t> perms, std::vector<int> dims) {
+ge::ComputeGraphPtr ShareGraph::SubTransposeAbsFusedConstGraph(size_t dims_size, vector<size_t> perms,
+                                                               std::vector<int> dims) {
   auto builder = GraphBuilder("sub_transpose_abs_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -4050,7 +4055,7 @@ ge::ComputeGraphPtr ShareGraph::AddNegFusedGraph(size_t dims_size) {
  *            |
  *          data1
  */
-static void CreateBrcInlineAscGraph(ge::AscGraph& graph, size_t dims_size) {
+static void CreateBrcInlineAscGraph(ge::AscGraph &graph, size_t dims_size) {
   const Expression s0 = graph.CreateSizeVar(320);
   const Expression s1 = graph.CreateSizeVar(32);
   auto One = Symbol(1);
@@ -4216,7 +4221,6 @@ static void CreateLoadWhereStoreAscGraph(ge::AscGraph &graph, size_t dims_size) 
   x2.ir_attr.SetIndex(1);
   ge::ascir_op::Data x3("data2", graph);
   x3.ir_attr.SetIndex(2);
-
 
   ge::ascir_op::Load x1Local("load0");
   x1Local.x = x1.y;
@@ -4753,7 +4757,7 @@ ge::ComputeGraphPtr ShareGraph::LoadWhereX2IsUbscalarStoreFusedGraph(size_t dims
  *         |
  *        where
  *     /   |    \
-* load0 load1  scalar0
+ * load0 load1  scalar0
  *    |    |
  * data0  data1
  */
@@ -4925,7 +4929,8 @@ ge::ComputeGraphPtr ShareGraph::LoadLogicalNotStoreFusedGraph(size_t dims_size, 
  *     |       |
  *   data0   data1
  */
-static void CreateLoadBitwiseAndStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+static void CreateLoadBitwiseAndStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
+                                              ge::DataType out_dtype) {
   ge::ascir_op::Data x1("data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = in_dtype;
@@ -4957,7 +4962,8 @@ static void CreateLoadBitwiseAndStoreAscGraph(ge::AscGraph &graph, size_t dims_s
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-ge::ComputeGraphPtr ShareGraph::LoadBitwiseAndStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::LoadBitwiseAndStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                              ge::DataType out_dtype) {
   auto builder = GraphBuilder("load_bitwise_and_store_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -4994,7 +5000,8 @@ ge::ComputeGraphPtr ShareGraph::LoadBitwiseAndStoreFusedGraph(size_t dims_size, 
  *     |       |
  *   data0   data1
  */
-static void CreateLoadBitwiseOrStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+static void CreateLoadBitwiseOrStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
+                                             ge::DataType out_dtype) {
   ge::ascir_op::Data x1("data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = in_dtype;
@@ -5026,7 +5033,8 @@ static void CreateLoadBitwiseOrStoreAscGraph(ge::AscGraph &graph, size_t dims_si
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-ge::ComputeGraphPtr ShareGraph::LoadBitwiseOrStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::LoadBitwiseOrStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                             ge::DataType out_dtype) {
   auto builder = GraphBuilder("load_bitwise_or_store_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -5063,7 +5071,8 @@ ge::ComputeGraphPtr ShareGraph::LoadBitwiseOrStoreFusedGraph(size_t dims_size, g
  *     |       |
  *   data0   data1
  */
-static void CreateLoadBitwiseXorStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+static void CreateLoadBitwiseXorStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
+                                              ge::DataType out_dtype) {
   ge::ascir_op::Data x1("data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = in_dtype;
@@ -5095,7 +5104,8 @@ static void CreateLoadBitwiseXorStoreAscGraph(ge::AscGraph &graph, size_t dims_s
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-ge::ComputeGraphPtr ShareGraph::LoadBitwiseXorStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::LoadBitwiseXorStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                              ge::DataType out_dtype) {
   auto builder = GraphBuilder("load_bitwise_xor_store_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -5132,7 +5142,8 @@ ge::ComputeGraphPtr ShareGraph::LoadBitwiseXorStoreFusedGraph(size_t dims_size, 
  *         |
  *       data0
  */
-static void CreateLoadBitwiseNotStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+static void CreateLoadBitwiseNotStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
+                                              ge::DataType out_dtype) {
   ge::ascir_op::Data x("data", graph);
   x.ir_attr.SetIndex(0);
   x.y.dtype = in_dtype;
@@ -5156,7 +5167,8 @@ static void CreateLoadBitwiseNotStoreAscGraph(ge::AscGraph &graph, size_t dims_s
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-ge::ComputeGraphPtr ShareGraph::LoadBitwiseNotStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::LoadBitwiseNotStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                              ge::DataType out_dtype) {
   auto builder = GraphBuilder("load_bitwise_not_store_test");
   auto data = builder.AddNode("data", "Data", 0, 1);
   ge::AttrUtils::SetInt(data->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -5272,7 +5284,7 @@ ge::ComputeGraphPtr ShareGraph::AddRsqrtFusedGraph(size_t dims_size) {
  *            |
  *          data1
  */
-static void CreateContinuesBrcAscGraph(ge::AscGraph& graph, size_t dims_size) { // 4, 8, 16, 64, 32
+static void CreateContinuesBrcAscGraph(ge::AscGraph &graph, size_t dims_size) {  // 4, 8, 16, 64, 32
   const Expression s0 = graph.CreateSizeVar(4);
   const Expression s1 = graph.CreateSizeVar(8);
   const Expression s2 = graph.CreateSizeVar(16);
@@ -5372,7 +5384,6 @@ static void CreateContinuesBrcAscGraph(ge::AscGraph& graph, size_t dims_size) { 
   y1.y.dtype = ge::DataType::DT_FLOAT;
   y1.ir_attr.SetIndex(1);
 
-
   ge::ascir_op::Add add0("add0");
   add0.x1 = load0.y;
   add0.x2 = brc2.y;
@@ -5457,7 +5468,7 @@ ge::ComputeGraphPtr ShareGraph::ContinuesBrcFusedGraph(size_t dims_size) {
  *            |
  *          data1
  */
-static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size) {
+static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph &graph, size_t dims_size) {
   const Expression s0 = graph.CreateSizeVar(20);
   const Expression s1 = graph.CreateSizeVar(2);
   const Expression s2 = graph.CreateSizeVar(2);
@@ -5474,7 +5485,7 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   auto z4 = graph.CreateAxis("z4", s4);
   auto z5 = graph.CreateAxis("z5", s5);
   auto z6 = graph.CreateAxis("z6", s6);
-  std::vector<Expression> all_size_var = {s0, s1 ,s2, s3, s4, s5, s6};
+  std::vector<Expression> all_size_var = {s0, s1, s2, s3, s4, s5, s6};
   Expression tmp_stride = One;
   std::vector<bool> is_broadcast_axis = {false, true, false, true, false, true, false};
 
@@ -5528,7 +5539,9 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   broadcast0.x = load1.y;
   broadcast0.attr.api.compute_type = ComputeType::kComputeBroadcast;
   broadcast0.attr.api.type = ApiType::kAPITypeCompute;
-  broadcast0.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id,};
+  broadcast0.attr.sched.axis = {
+      z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id,
+  };
   *broadcast0.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *broadcast0.y.repeats = {s0, One, s2, One, s4, s5, s6};
   *broadcast0.y.strides = {s2 * s4 * s5 * s6, Zero, s4 * s5 * s6, Zero, s5 * s6, s6, One};
@@ -5553,7 +5566,8 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   broadcast2.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *broadcast2.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *broadcast2.y.repeats = {s0, s1, s2, s3, s4, s5, s6};
-  *broadcast2.y.strides = {s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
+  *broadcast2.y.strides = {
+      s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
   broadcast2.y.dtype = DT_FLOAT;
   broadcast2.attr.api.unit = ComputeUnit::kUnitVector;
 
@@ -5565,7 +5579,8 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   add0.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *add0.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *add0.y.repeats = {s0, s1, s2, s3, s4, s5, s6};
-  *add0.y.strides = {s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
+  *add0.y.strides = {
+      s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
   add0.y.dtype = DT_FLOAT;
   add0.attr.api.unit = ComputeUnit::kUnitVector;
 
@@ -5582,7 +5597,8 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   load2.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *load2.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *load2.y.repeats = {s0, s1, s2, s3, s4, s5, s6};
-  *load2.y.strides = {s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
+  *load2.y.strides = {
+      s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
   load2.y.dtype = DT_FLOAT;
   load2.attr.api.unit = ComputeUnit::kUnitMTE2;
 
@@ -5594,7 +5610,8 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   mul0.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *mul0.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *mul0.y.repeats = {s0, s1, s2, s3, s4, s5, s6};
-  *mul0.y.strides = {s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
+  *mul0.y.strides = {
+      s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
   mul0.y.dtype = DT_FLOAT;
   mul0.attr.api.unit = ComputeUnit::kUnitVector;
 
@@ -5605,7 +5622,8 @@ static void CreateLoadBrcAscGraphSevenDim(ge::AscGraph& graph, size_t dims_size)
   store.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *store.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id, z5.id, z6.id};
   *store.y.repeats = {s0, s1, s2, s3, s4, s5, s6};
-  *store.y.strides = {s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
+  *store.y.strides = {
+      s1 * s2 * s3 * s4 * s5 * s6, s2 * s3 * s4 * s5 * s6, s3 * s4 * s5 * s6, s4 * s5 * s6, s5 * s6, s6, One};
   store.y.dtype = DT_FLOAT;
   store.attr.api.unit = ComputeUnit::kUnitMTE3;
 
@@ -5701,7 +5719,6 @@ static void CreateScalarBrcAscGraph(ge::AscGraph &graph, size_t dims_size) {
   y1.attr.api.type = ge::ApiType::kAPITypeBuffer;
   y1.y.dtype = ge::DataType::DT_FLOAT;
   y1.ir_attr.SetIndex(0);
-
 }
 
 /**
@@ -5868,7 +5885,6 @@ ge::ComputeGraphPtr ShareGraph::LoadLeakyReluStoreFusedGraph(size_t dims_size) {
   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
   return compute_graph;
 }
-
 
 /**
  *         data0
@@ -6738,7 +6754,7 @@ static void CreateFloorDivMulLessEqualSelectAscGraph(ge::AscGraph &graph, size_t
   exp0.attr.sched.axis = {z0.id, z1.id, z2.id};
   *exp0.y.axis = {z0.id, z1.id, z2.id};
   *exp0.y.repeats = {One, One, One};
-  *exp0.y.strides =  {Zero, Zero, Zero};
+  *exp0.y.strides = {Zero, Zero, Zero};
   exp0.y.dtype = ge::DataType::DT_FLOAT;
   exp0.attr.api.unit = ComputeUnit::kUnitMTE2;
 
@@ -7099,11 +7115,11 @@ void ShareGraph::ConcatAscGraph(AscGraph &graph, const vector<std::string> &dim_
 
   ge::ascir_op::Load x1Local("load0");
   x1Local.x = x1.y;
-  x1Local.y.dtype =  ge::DT_INT32;
+  x1Local.y.dtype = ge::DT_INT32;
 
   ge::ascir_op::Load x2Local("load1");
   x2Local.x = x2.y;
-  x2Local.y.dtype =  ge::DT_INT32;
+  x2Local.y.dtype = ge::DT_INT32;
 
   ge::ascir_op::Concat concat("concat");
   concat.x = {x1Local.y, x2Local.y};
@@ -7134,192 +7150,192 @@ void ShareGraph::ConcatAscGraph(AscGraph &graph, const vector<std::string> &dim_
   store_node->outputs()[0]->attr.repeats = repeats;
 }
 static void LoadGatherAbsStore_BeforeAutofuse(ge::AscGraph &graph, int64_t gather_axis, ge::DataType data_type) {
-   auto s0 = graph.CreateSizeVar("s0");
-   auto s1 = graph.CreateSizeVar("s1");
-   auto s2 = graph.CreateSizeVar("s2");
-   auto s3 = graph.CreateSizeVar("s3");
-   auto s4 = graph.CreateSizeVar("s4");
-   auto s5 = graph.CreateSizeVar("s5");
-   auto s6 = graph.CreateSizeVar("s6");
+  auto s0 = graph.CreateSizeVar("s0");
+  auto s1 = graph.CreateSizeVar("s1");
+  auto s2 = graph.CreateSizeVar("s2");
+  auto s3 = graph.CreateSizeVar("s3");
+  auto s4 = graph.CreateSizeVar("s4");
+  auto s5 = graph.CreateSizeVar("s5");
+  auto s6 = graph.CreateSizeVar("s6");
 
-   auto z0 = graph.CreateAxis("z0", s0);
-   auto z1 = graph.CreateAxis("z1", s1);
-   auto z2 = graph.CreateAxis("z2", s2);
-   auto z3 = graph.CreateAxis("z3", s3);
-   auto z4 = graph.CreateAxis("z4", s4);
-   auto z5 = graph.CreateAxis("z5", s5);
-   auto z6 = graph.CreateAxis("z6", s6);
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+  auto z3 = graph.CreateAxis("z3", s3);
+  auto z4 = graph.CreateAxis("z4", s4);
+  auto z5 = graph.CreateAxis("z5", s5);
+  auto z6 = graph.CreateAxis("z6", s6);
 
-   ge::ascir_op::Data x1("x1");
-   graph.AddNode(x1);
-   x1.y.dtype = data_type;
-   x1.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id};
-   *x1.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id};
-   *x1.y.repeats = {s0, s1, s2, s3, s4};
-   *x1.y.strides = {s1 * s2 * s3 * s4, s2 * s3 * s4, s3 * s4, s4, ge::ops::One};
-   x1.ir_attr.SetIndex(0);
+  ge::ascir_op::Data x1("x1");
+  graph.AddNode(x1);
+  x1.y.dtype = data_type;
+  x1.attr.sched.axis = {z0.id, z1.id, z2.id, z3.id, z4.id};
+  *x1.y.axis = {z0.id, z1.id, z2.id, z3.id, z4.id};
+  *x1.y.repeats = {s0, s1, s2, s3, s4};
+  *x1.y.strides = {s1 * s2 * s3 * s4, s2 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  x1.ir_attr.SetIndex(0);
 
-   ge::ascir_op::Data x2("x2");
-   graph.AddNode(x2);
-   x2.y.dtype = ge::DT_INT32;
-   x2.attr.sched.axis = {z5.id, z6.id};
-   *x2.y.axis = {z5.id, z6.id};
-   *x2.y.repeats = {s5, s6};
-   *x2.y.strides = {s6, ge::ops::One};
-   x2.ir_attr.SetIndex(1);
+  ge::ascir_op::Data x2("x2");
+  graph.AddNode(x2);
+  x2.y.dtype = ge::DT_INT32;
+  x2.attr.sched.axis = {z5.id, z6.id};
+  *x2.y.axis = {z5.id, z6.id};
+  *x2.y.repeats = {s5, s6};
+  *x2.y.strides = {s6, ge::ops::One};
+  x2.ir_attr.SetIndex(1);
 
-   ge::ascir_op::Gather gather("gather");
-   graph.AddNode(gather);
-   gather.x1 = x1.y;
-   gather.x2 = x2.y;
-   gather.ir_attr.SetAxis(gather_axis);
-   gather.ir_attr.SetNegative_index_support(false);
-   gather.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *gather.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *gather.y.repeats = {s0, s1, s5, s6, s3, s4};
-   *gather.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Gather gather("gather");
+  graph.AddNode(gather);
+  gather.x1 = x1.y;
+  gather.x2 = x2.y;
+  gather.ir_attr.SetAxis(gather_axis);
+  gather.ir_attr.SetNegative_index_support(false);
+  gather.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *gather.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *gather.y.repeats = {s0, s1, s5, s6, s3, s4};
+  *gather.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Abs abs("abs");
-   graph.AddNode(abs);
-   abs.x = gather.y;
-   abs.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *abs.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *abs.y.repeats = {s0, s1, s5, s6, s3, s4};
-   *abs.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Abs abs("abs");
+  graph.AddNode(abs);
+  abs.x = gather.y;
+  abs.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *abs.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *abs.y.repeats = {s0, s1, s5, s6, s3, s4};
+  *abs.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Store store("store");
-   graph.AddNode(store);
-   store.x = abs.y;
-   store.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *store.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
-   *store.y.repeats = {s0, s1, s5, s6, s3, s4};
-   *store.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Store store("store");
+  graph.AddNode(store);
+  store.x = abs.y;
+  store.attr.sched.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *store.y.axis = {z0.id, z1.id, z5.id, z6.id, z3.id, z4.id};
+  *store.y.repeats = {s0, s1, s5, s6, s3, s4};
+  *store.y.strides = {s1 * s5 * s6 * s3 * s4, s5 * s6 * s3 * s4, s6 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Output y("y");
-   graph.AddNode(y);
-   y.x = store.y;
-   y.y.dtype = data_type;
-   y.ir_attr.SetIndex(0);
- }
+  ge::ascir_op::Output y("y");
+  graph.AddNode(y);
+  y.x = store.y;
+  y.y.dtype = data_type;
+  y.ir_attr.SetIndex(0);
+}
 
- ge::ComputeGraphPtr ShareGraph::LoadGatherAbsStore(int64_t gather_axis, ge::DataType data_type) {
-   auto builder = GraphBuilder("load_gather_abs_store_store_test");
-   auto data0 = builder.AddNode("data0", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
-   auto data1 = builder.AddNode("data1", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
+ge::ComputeGraphPtr ShareGraph::LoadGatherAbsStore(int64_t gather_axis, ge::DataType data_type) {
+  auto builder = GraphBuilder("load_gather_abs_store_store_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+  auto data1 = builder.AddNode("data1", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
 
-   auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
-   auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
 
-   builder.AddDataEdge(data0, 0, ascbc, 0);
-   builder.AddDataEdge(data1, 0, ascbc, 1);
-   builder.AddDataEdge(ascbc, 0, netoutput, 0);
-   ComputeGraphPtr compute_graph = builder.GetGraph();
-   if (compute_graph == nullptr) {
-     return nullptr;
-   }
-   auto ascbc_node = compute_graph->FindNode("ascbc");
-   ge::AscGraph sub_graph("load_gather_abs_store_store_test");
-   LoadGatherAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(data1, 0, ascbc, 1);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("load_gather_abs_store_store_test");
+  LoadGatherAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
 
-   std::string sub_graph_str;
-   ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
-   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
-   return compute_graph;
- }
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
 
 static void LoadGatherTailAbsStore_BeforeAutofuse(ge::AscGraph &graph, int64_t gather_axis, ge::DataType data_type) {
-   auto s0 = graph.CreateSizeVar("s0");
-   auto s1 = graph.CreateSizeVar("s1");
-   auto s2 = graph.CreateSizeVar("s2");
-   auto s3 = graph.CreateSizeVar("s3");
-   auto s4 = graph.CreateSizeVar("s4");
+  auto s0 = graph.CreateSizeVar("s0");
+  auto s1 = graph.CreateSizeVar("s1");
+  auto s2 = graph.CreateSizeVar("s2");
+  auto s3 = graph.CreateSizeVar("s3");
+  auto s4 = graph.CreateSizeVar("s4");
 
-   auto z0 = graph.CreateAxis("z0", s0);
-   auto z1 = graph.CreateAxis("z1", s1);
-   auto z2 = graph.CreateAxis("z2", s2);
-   auto z3 = graph.CreateAxis("z3", s3);
-   auto z4 = graph.CreateAxis("z4", s4);
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+  auto z3 = graph.CreateAxis("z3", s3);
+  auto z4 = graph.CreateAxis("z4", s4);
 
-   ge::ascir_op::Data x1("x1");
-   graph.AddNode(x1);
-   x1.y.dtype = data_type;
-   x1.attr.sched.axis = {z0.id, z1.id, z2.id};
-   *x1.y.axis = {z0.id, z1.id, z2.id};
-   *x1.y.repeats = {s0, s1, s2};
-   *x1.y.strides = {s1 * s2, s2, ge::ops::One};
-   x1.ir_attr.SetIndex(0);
+  ge::ascir_op::Data x1("x1");
+  graph.AddNode(x1);
+  x1.y.dtype = data_type;
+  x1.attr.sched.axis = {z0.id, z1.id, z2.id};
+  *x1.y.axis = {z0.id, z1.id, z2.id};
+  *x1.y.repeats = {s0, s1, s2};
+  *x1.y.strides = {s1 * s2, s2, ge::ops::One};
+  x1.ir_attr.SetIndex(0);
 
-   ge::ascir_op::Data x2("x2");
-   graph.AddNode(x2);
-   x2.y.dtype = ge::DT_INT32;
-   x2.attr.sched.axis = {z3.id, z4.id};
-   *x2.y.axis = {z3.id, z4.id};
-   *x2.y.repeats = {s3, s4};
-   *x2.y.strides = {s4, ge::ops::One};
-   x2.ir_attr.SetIndex(1);
+  ge::ascir_op::Data x2("x2");
+  graph.AddNode(x2);
+  x2.y.dtype = ge::DT_INT32;
+  x2.attr.sched.axis = {z3.id, z4.id};
+  *x2.y.axis = {z3.id, z4.id};
+  *x2.y.repeats = {s3, s4};
+  *x2.y.strides = {s4, ge::ops::One};
+  x2.ir_attr.SetIndex(1);
 
-   ge::ascir_op::Gather gather("gather");
-   graph.AddNode(gather);
-   gather.x1 = x1.y;
-   gather.x2 = x2.y;
-   gather.ir_attr.SetAxis(gather_axis);
-   gather.ir_attr.SetNegative_index_support(false);
-   gather.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
-   *gather.y.axis = {z0.id, z1.id, z3.id, z4.id};
-   *gather.y.repeats = {s0, s1, s3, s4};
-   *gather.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Gather gather("gather");
+  graph.AddNode(gather);
+  gather.x1 = x1.y;
+  gather.x2 = x2.y;
+  gather.ir_attr.SetAxis(gather_axis);
+  gather.ir_attr.SetNegative_index_support(false);
+  gather.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
+  *gather.y.axis = {z0.id, z1.id, z3.id, z4.id};
+  *gather.y.repeats = {s0, s1, s3, s4};
+  *gather.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Abs abs("abs");
-   graph.AddNode(abs);
-   abs.x = gather.y;
-   abs.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
-   *abs.y.axis = {z0.id, z1.id, z3.id, z4.id};
-   *abs.y.repeats = {s0, s1, s3, s4};
-   *abs.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Abs abs("abs");
+  graph.AddNode(abs);
+  abs.x = gather.y;
+  abs.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
+  *abs.y.axis = {z0.id, z1.id, z3.id, z4.id};
+  *abs.y.repeats = {s0, s1, s3, s4};
+  *abs.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Store store("store");
-   graph.AddNode(store);
-   store.x = abs.y;
-   store.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
-   *store.y.axis = {z0.id, z1.id, z3.id, z4.id};
-   *store.y.repeats = {s0, s1, s3, s4};
-   *store.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
+  ge::ascir_op::Store store("store");
+  graph.AddNode(store);
+  store.x = abs.y;
+  store.attr.sched.axis = {z0.id, z1.id, z3.id, z4.id};
+  *store.y.axis = {z0.id, z1.id, z3.id, z4.id};
+  *store.y.repeats = {s0, s1, s3, s4};
+  *store.y.strides = {s1 * s3 * s4, s3 * s4, s4, ge::ops::One};
 
-   ge::ascir_op::Output y("y");
-   graph.AddNode(y);
-   y.x = store.y;
-   y.y.dtype = data_type;
-   y.ir_attr.SetIndex(0);
- }
+  ge::ascir_op::Output y("y");
+  graph.AddNode(y);
+  y.x = store.y;
+  y.y.dtype = data_type;
+  y.ir_attr.SetIndex(0);
+}
 
- ge::ComputeGraphPtr ShareGraph::LoadGatherTailAbsStore(int64_t gather_axis, ge::DataType data_type) {
-   auto builder = GraphBuilder("load_gather_tail_abs_store_store_test");
-   auto data0 = builder.AddNode("data0", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
-   auto data1 = builder.AddNode("data1", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
+ge::ComputeGraphPtr ShareGraph::LoadGatherTailAbsStore(int64_t gather_axis, ge::DataType data_type) {
+  auto builder = GraphBuilder("load_gather_tail_abs_store_store_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+  auto data1 = builder.AddNode("data1", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
 
-   auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
-   auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
 
-   builder.AddDataEdge(data0, 0, ascbc, 0);
-   builder.AddDataEdge(data1, 0, ascbc, 1);
-   builder.AddDataEdge(ascbc, 0, netoutput, 0);
-   ComputeGraphPtr compute_graph = builder.GetGraph();
-   if (compute_graph == nullptr) {
-     return nullptr;
-   }
-   auto ascbc_node = compute_graph->FindNode("ascbc");
-   ge::AscGraph sub_graph("load_gather_tail_abs_store_store_test");
-   LoadGatherTailAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(data1, 0, ascbc, 1);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("load_gather_tail_abs_store_store_test");
+  LoadGatherTailAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
 
-   std::string sub_graph_str;
-   ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
-   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
-   return compute_graph;
- }
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
 
 static void ConstructVVAscGraphAxisInfoForOneAxisGather(ge::AscGraph &graph, size_t dims_size) {
   std::vector<int64_t> axis;
@@ -7353,19 +7369,19 @@ static void ConstructVVAscGraphAxisInfoForOneAxisGather(ge::AscGraph &graph, siz
       output_attr->attr.strides = strides;
     }
     if (node->GetName() == "data0") {
-      auto node_output= node->outputs()[0];
+      auto node_output = node->outputs()[0];
       node_output->attr.dtype = DT_FLOAT;
     }
     if (node->GetName() == "data1") {
-      auto node_output= node->outputs()[0];
+      auto node_output = node->outputs()[0];
       node_output->attr.dtype = DT_INT32;
     }
     if (node->GetType() == "Gather") {
-      auto gather_output= node->outputs()[0];
+      auto gather_output = node->outputs()[0];
       gather_output->attr.dtype = DT_FLOAT;
-      auto gather_input0= node->inputs()[0];
+      auto gather_input0 = node->inputs()[0];
       gather_input0->attr.dtype = DT_FLOAT;
-      auto gather_input1= node->inputs()[1];
+      auto gather_input1 = node->inputs()[1];
       gather_input1->attr.dtype = DT_INT32;
       const auto &op = node->GetOpDesc();
       const auto &attr = op->GetAttrsGroup<AscNodeAttr>();
@@ -7397,125 +7413,125 @@ static void LoadGatherOneAxisAbsStore_BeforeAutofuse(ge::AscGraph &graph, int64_
   y.ir_attr.SetIndex(0);
 
   ConstructVVAscGraphAxisInfoForOneAxisGather(graph, 1);
- }
+}
 
- ge::ComputeGraphPtr ShareGraph::LoadGatherOneAxisAbsStore(int64_t gather_axis, ge::DataType data_type) {
-   auto builder = GraphBuilder("load_gather_one_axis_abs_store_store_test");
-   auto data0 = builder.AddNode("data0", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
-   auto data1 = builder.AddNode("data1", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
+ge::ComputeGraphPtr ShareGraph::LoadGatherOneAxisAbsStore(int64_t gather_axis, ge::DataType data_type) {
+  auto builder = GraphBuilder("load_gather_one_axis_abs_store_store_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+  auto data1 = builder.AddNode("data1", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
 
-   auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
-   auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
 
-   builder.AddDataEdge(data0, 0, ascbc, 0);
-   builder.AddDataEdge(data1, 0, ascbc, 1);
-   builder.AddDataEdge(ascbc, 0, netoutput, 0);
-   ComputeGraphPtr compute_graph = builder.GetGraph();
-   if (compute_graph == nullptr) {
-     return nullptr;
-   }
-   auto ascbc_node = compute_graph->FindNode("ascbc");
-   ge::AscGraph sub_graph("load_gather_one_axis_abs_store_store_test");
-   LoadGatherOneAxisAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(data1, 0, ascbc, 1);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("load_gather_one_axis_abs_store_store_test");
+  LoadGatherOneAxisAbsStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
 
-   std::string sub_graph_str;
-   ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
-   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
-   return compute_graph;
- }
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
 
 static void GatherReduceStore_BeforeAutofuse(ge::AscGraph &graph, int64_t gather_axis, ge::DataType data_type) {
-   auto s0 = graph.CreateSizeVar("s0");
-   auto s1 = graph.CreateSizeVar("s1");
-   auto s2 = graph.CreateSizeVar("s2");
-   auto s3 = graph.CreateSizeVar("s3");
+  auto s0 = graph.CreateSizeVar("s0");
+  auto s1 = graph.CreateSizeVar("s1");
+  auto s2 = graph.CreateSizeVar("s2");
+  auto s3 = graph.CreateSizeVar("s3");
 
-   auto z0 = graph.CreateAxis("z0", s0);
-   auto z1 = graph.CreateAxis("z1", s1);
-   auto z2 = graph.CreateAxis("z2", s2);
-   auto z3 = graph.CreateAxis("z3", s3);
-   ge::ascir_op::Data x1("x1");
-   graph.AddNode(x1);
-   x1.y.dtype = data_type;
-   x1.attr.sched.axis = {z0.id, z1.id};
-   *x1.y.axis = {z0.id, z1.id};
-   *x1.y.repeats = {s0, s1};
-   *x1.y.strides = {s1, ge::ops::One};
-   x1.ir_attr.SetIndex(0);
+  auto z0 = graph.CreateAxis("z0", s0);
+  auto z1 = graph.CreateAxis("z1", s1);
+  auto z2 = graph.CreateAxis("z2", s2);
+  auto z3 = graph.CreateAxis("z3", s3);
+  ge::ascir_op::Data x1("x1");
+  graph.AddNode(x1);
+  x1.y.dtype = data_type;
+  x1.attr.sched.axis = {z0.id, z1.id};
+  *x1.y.axis = {z0.id, z1.id};
+  *x1.y.repeats = {s0, s1};
+  *x1.y.strides = {s1, ge::ops::One};
+  x1.ir_attr.SetIndex(0);
 
-   ge::ascir_op::Data x2("x2");
-   graph.AddNode(x2);
-   x2.y.dtype = ge::DT_INT32;
-   x2.attr.sched.axis = {z2.id, z3.id};
-   *x2.y.axis = {z2.id, z3.id};
-   *x2.y.repeats = {s2, s3};
-   *x2.y.strides = {s3, ge::ops::One};
-   x2.ir_attr.SetIndex(1);
+  ge::ascir_op::Data x2("x2");
+  graph.AddNode(x2);
+  x2.y.dtype = ge::DT_INT32;
+  x2.attr.sched.axis = {z2.id, z3.id};
+  *x2.y.axis = {z2.id, z3.id};
+  *x2.y.repeats = {s2, s3};
+  *x2.y.strides = {s3, ge::ops::One};
+  x2.ir_attr.SetIndex(1);
 
-   ge::ascir_op::Gather gather("gather");
-   graph.AddNode(gather);
-   gather.x1 = x1.y;
-   gather.x2 = x2.y;
-   gather.ir_attr.SetAxis(0);
-   gather.ir_attr.SetNegative_index_support(false);
-   gather.attr.sched.axis = {z2.id, z3.id, z1.id};
-   *gather.y.axis = {z2.id, z3.id, z1.id};
-   *gather.y.repeats = {s2, s3, s1};
-   *gather.y.strides = {s3 * s1, s1,ge::ops::One};
+  ge::ascir_op::Gather gather("gather");
+  graph.AddNode(gather);
+  gather.x1 = x1.y;
+  gather.x2 = x2.y;
+  gather.ir_attr.SetAxis(0);
+  gather.ir_attr.SetNegative_index_support(false);
+  gather.attr.sched.axis = {z2.id, z3.id, z1.id};
+  *gather.y.axis = {z2.id, z3.id, z1.id};
+  *gather.y.repeats = {s2, s3, s1};
+  *gather.y.strides = {s3 * s1, s1, ge::ops::One};
 
-    ge::ascir_op::Max max("max");
-    graph.AddNode(max);
-    max.x = gather.y;
-    max.attr.sched.axis = {z2.id, z3.id, z1.id};
-    *max.y.axis = {z2.id, z3.id, z1.id};
-    *max.y.repeats = {ops::One, s3, ops::One};
-    *max.y.strides = {ops::Zero, ge::ops::One, ge::ops::Zero};
+  ge::ascir_op::Max max("max");
+  graph.AddNode(max);
+  max.x = gather.y;
+  max.attr.sched.axis = {z2.id, z3.id, z1.id};
+  *max.y.axis = {z2.id, z3.id, z1.id};
+  *max.y.repeats = {ops::One, s3, ops::One};
+  *max.y.strides = {ops::Zero, ge::ops::One, ge::ops::Zero};
 
-   ge::ascir_op::Store store("store");
-   graph.AddNode(store);
-   store.x = max.y;
-   store.attr.sched.axis = {z2.id, z3.id, z1.id};
-   *store.y.axis = {z2.id, z3.id, z1.id};
-   *store.y.repeats = {ops::One, s3, ops::One};
-   *store.y.strides = {ops::Zero, ge::ops::One, ge::ops::Zero};
+  ge::ascir_op::Store store("store");
+  graph.AddNode(store);
+  store.x = max.y;
+  store.attr.sched.axis = {z2.id, z3.id, z1.id};
+  *store.y.axis = {z2.id, z3.id, z1.id};
+  *store.y.repeats = {ops::One, s3, ops::One};
+  *store.y.strides = {ops::Zero, ge::ops::One, ge::ops::Zero};
 
-   ge::ascir_op::Output y("y");
-   graph.AddNode(y);
-   y.x = store.y;
-   y.y.dtype = data_type;
-   y.ir_attr.SetIndex(0);
- }
+  ge::ascir_op::Output y("y");
+  graph.AddNode(y);
+  y.x = store.y;
+  y.y.dtype = data_type;
+  y.ir_attr.SetIndex(0);
+}
 
- ge::ComputeGraphPtr ShareGraph::GatherReduceStore(int64_t gather_axis, ge::DataType data_type) {
-   auto builder = GraphBuilder("gather_reduce_store_store_test");
-   auto data0 = builder.AddNode("data0", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
-   auto data1 = builder.AddNode("data1", "Data", 0, 1);
-   ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
+ge::ComputeGraphPtr ShareGraph::GatherReduceStore(int64_t gather_axis, ge::DataType data_type) {
+  auto builder = GraphBuilder("gather_reduce_store_store_test");
+  auto data0 = builder.AddNode("data0", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
+  auto data1 = builder.AddNode("data1", "Data", 0, 1);
+  ge::AttrUtils::SetInt(data1->GetOpDescBarePtr(), "_parent_node_index", 1);
 
-   auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
-   auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
+  auto ascbc = builder.AddNode("ascbc", "AscGraph", 2, 1);
+  auto netoutput = builder.AddNode("netoutput1", ge::NETOUTPUT, 1, 0);
 
-   builder.AddDataEdge(data0, 0, ascbc, 0);
-   builder.AddDataEdge(data1, 0, ascbc, 1);
-   builder.AddDataEdge(ascbc, 0, netoutput, 0);
-   ComputeGraphPtr compute_graph = builder.GetGraph();
-   if (compute_graph == nullptr) {
-     return nullptr;
-   }
-   auto ascbc_node = compute_graph->FindNode("ascbc");
-   ge::AscGraph sub_graph("gather_reduce_store_store_test");
-   GatherReduceStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
+  builder.AddDataEdge(data0, 0, ascbc, 0);
+  builder.AddDataEdge(data1, 0, ascbc, 1);
+  builder.AddDataEdge(ascbc, 0, netoutput, 0);
+  ComputeGraphPtr compute_graph = builder.GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  auto ascbc_node = compute_graph->FindNode("ascbc");
+  ge::AscGraph sub_graph("gather_reduce_store_store_test");
+  GatherReduceStore_BeforeAutofuse(sub_graph, gather_axis, data_type);
 
-   std::string sub_graph_str;
-   ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
-   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
-   return compute_graph;
- }
+  std::string sub_graph_str;
+  ge::AscGraphUtils::SerializeToReadable(sub_graph, sub_graph_str);
+  ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
+  return compute_graph;
+}
 
- /**
+/**
  *         data0  data1
  *           |      |
  *         load0  load1
@@ -7554,7 +7570,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   x1Local.attr.sched.axis = {z0.id, z1.id, z2.id};
   *x1Local.y.axis = {z0.id, z1.id, z2.id};
   *x1Local.y.repeats = {s0, s1, s2};
-  *x1Local.y.strides = {s1*s2, s2, One};
+  *x1Local.y.strides = {s1 * s2, s2, One};
   x1Local.attr.api.unit = ComputeUnit::kUnitMTE2;
   x1Local.y.dtype = ge::DT_FLOAT;
 
@@ -7565,7 +7581,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   x2Local.attr.sched.axis = {z0.id, z1.id, z2.id};
   *x2Local.y.axis = {z0.id, z1.id, z2.id};
   *x2Local.y.repeats = {s0, s1, s2};
-  *x2Local.y.strides = {s1*s2, s2, One};
+  *x2Local.y.strides = {s1 * s2, s2, One};
   x2Local.attr.api.unit = ComputeUnit::kUnitMTE2;
   x2Local.y.dtype = ge::DT_FLOAT;
 
@@ -7577,7 +7593,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   ge0.attr.sched.axis = {z0.id, z1.id, z2.id};
   *ge0.y.axis = {z0.id, z1.id, z2.id};
   *ge0.y.repeats = {s0, s1, s2};
-  *ge0.y.strides = {s1*s2, s2, One};
+  *ge0.y.strides = {s1 * s2, s2, One};
   ge0.attr.api.unit = ComputeUnit::kUnitVector;
   ge0.y.dtype = ge::DT_UINT8;
 
@@ -7588,7 +7604,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   cast0.attr.sched.axis = {z0.id, z1.id, z2.id};
   *cast0.y.axis = {z0.id, z1.id, z2.id};
   *cast0.y.repeats = {s0, s1, s2};
-  *cast0.y.strides = {s1*s2, s2, One};
+  *cast0.y.strides = {s1 * s2, s2, One};
   cast0.attr.api.unit = ComputeUnit::kUnitVector;
   cast0.y.dtype = ge::DT_INT8;
 
@@ -7599,7 +7615,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   cast1.attr.sched.axis = {z0.id, z1.id, z2.id};
   *cast1.y.axis = {z0.id, z1.id, z2.id};
   *cast1.y.repeats = {s0, s1, s2};
-  *cast1.y.strides = {s1*s2, s2, One};
+  *cast1.y.strides = {s1 * s2, s2, One};
   cast1.attr.api.unit = ComputeUnit::kUnitVector;
   cast1.y.dtype = ge::DT_FLOAT16;
 
@@ -7610,7 +7626,7 @@ static void CreateLoadCompareCastSumStoreAscGraph(ge::AscGraph &graph, size_t di
   cast2.attr.sched.axis = {z0.id, z1.id, z2.id};
   *cast2.y.axis = {z0.id, z1.id, z2.id};
   *cast2.y.repeats = {s0, s1, s2};
-  *cast2.y.strides = {s1*s2, s2, One};
+  *cast2.y.strides = {s1 * s2, s2, One};
   cast2.attr.api.unit = ComputeUnit::kUnitVector;
   cast2.y.dtype = ge::DT_FLOAT;
 
@@ -7812,7 +7828,8 @@ ge::ComputeGraphPtr ShareGraph::ModFusedGraph(size_t dims_size) {
  *     |       |
  *   data0   data1
  */
-static void CreateLoadLShiftStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+static void CreateLoadLShiftStoreAscGraph(ge::AscGraph &graph, size_t dims_size, ge::DataType in_dtype,
+                                          ge::DataType out_dtype) {
   ge::ascir_op::Data x1("data0", graph);
   x1.ir_attr.SetIndex(0);
   x1.y.dtype = in_dtype;
@@ -7844,7 +7861,8 @@ static void CreateLoadLShiftStoreAscGraph(ge::AscGraph &graph, size_t dims_size,
   ConstructVVAscGraphAxisInfo(graph, dims_size);
 }
 
-ge::ComputeGraphPtr ShareGraph::LoadLShiftStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype) {
+ge::ComputeGraphPtr ShareGraph::LoadLShiftStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                          ge::DataType out_dtype) {
   auto builder = GraphBuilder("load_lshift_store_test");
   auto data0 = builder.AddNode("data0", "Data", 0, 1);
   ge::AttrUtils::SetInt(data0->GetOpDescBarePtr(), "_parent_node_index", 0);
@@ -8066,7 +8084,7 @@ static void CreateMatmulElewiseBrcGraph(ge::AscGraph &graph) {
   *store_op.y.axis = {z0.id, z1.id};
   store_op.y.dtype = ge::DT_FLOAT;
   *store_op.y.repeats = {s0, s1};
-  *store_op.y.strides = {s1 ,ge::ops::One};
+  *store_op.y.strides = {s1, ge::ops::One};
 
   ge::ascir_op::Output output_op("output");
   output_op.x = store_op.y;
@@ -8233,7 +8251,7 @@ static void CreateMatmulCompareScalarGraph(ge::AscGraph &graph) {
   store_op.y.dtype = ge::DT_FLOAT;
   *store_op.y.axis = {z0.id, z1.id};
   *store_op.y.repeats = {s0, s1};
-  *store_op.y.strides = {s1 ,ge::ops::One};
+  *store_op.y.strides = {s1, ge::ops::One};
 
   ge::ascir_op::Output output_op("output");
   output_op.x = store_op.y;
@@ -8392,7 +8410,7 @@ static void CreateTruedivAbsAscGraph(ge::AscGraph &graph, size_t dims_size) {
 
   ge::ascir_op::Scalar scalar0("scalar0", graph);
   scalar0.ir_attr.SetValue("1.2");
-  
+
   ge::ascir_op::Scalar scalar1("scalar1", graph);
   scalar1.ir_attr.SetValue("1.8");
 
@@ -8404,12 +8422,12 @@ static void CreateTruedivAbsAscGraph(ge::AscGraph &graph, size_t dims_size) {
   ge::ascir_op::TrueDiv trueDiv1("trueDiv1");
   trueDiv1.x1 = scalar0.y;
   trueDiv1.x2 = scalar1.y;
-  trueDiv1.y.dtype = ge::DataType::DT_FLOAT;  
+  trueDiv1.y.dtype = ge::DataType::DT_FLOAT;
 
   ge::ascir_op::TrueDiv trueDiv2("trueDiv2");
   trueDiv2.x1 = trueDiv0.y;
   trueDiv2.x2 = trueDiv1.y;
-  trueDiv2.y.dtype = ge::DataType::DT_FLOAT;  
+  trueDiv2.y.dtype = ge::DataType::DT_FLOAT;
 
   ge::ascir_op::Store x_out("store");
   x_out.x = trueDiv2.y;
@@ -8620,7 +8638,7 @@ static void CreateCompareScalarWhereGraph(ge::AscGraph &graph) {
   store_op.y.dtype = ge::DT_FLOAT16;
   *store_op.y.axis = {z0.id, z1.id};
   *store_op.y.repeats = {s0, s1};
-  *store_op.y.strides = {s1 ,ge::ops::One};
+  *store_op.y.strides = {s1, ge::ops::One};
 
   ge::ascir_op::Output output_op("output");
   output_op.x = store_op.y;
@@ -8761,7 +8779,7 @@ static void CreateCompareWhereGraph(ge::AscGraph &graph) {
   store_op.y.dtype = ge::DT_FLOAT16;
   *store_op.y.axis = {z0.id, z1.id};
   *store_op.y.repeats = {s0, s1};
-  *store_op.y.strides = {s1 ,ge::ops::One};
+  *store_op.y.strides = {s1, ge::ops::One};
 
   ge::ascir_op::Output output_op("output");
   output_op.x = store_op.y;
@@ -9139,7 +9157,7 @@ static void CreateBinaryApiScalarGraph(ge::AscGraph &graph) {
   store_op.y.dtype = ge::DT_FLOAT16;
   *store_op.y.axis = {z0.id, z1.id};
   *store_op.y.repeats = {s0, s1};
-  *store_op.y.strides = {s1 ,ge::ops::One};
+  *store_op.y.strides = {s1, ge::ops::One};
 
   ge::ascir_op::Output output_op("output");
   output_op.x = store_op.y;
@@ -9937,7 +9955,6 @@ ge::ComputeGraphPtr ShareGraph::SinhBf16FusedGraph(size_t dims_size) {
   ge::AttrUtils::SetStr(ascbc_node->GetOpDescBarePtr(), "ascgraph", sub_graph_str);
   return compute_graph;
 }
-
 
 /**
  *      NetOutput

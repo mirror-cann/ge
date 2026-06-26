@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ void PrintFallbackCfgInfo(const ge::NodePtr &node_ptr, const std::vector<bool> &
     fallback_str << std::boolalpha << fallback_cfg << ", ";
   }
   fallback_str << "]";
-  FE_LOGD("[JudgeInsert][SetAclnnAttr] Node[%s, %s] prints fallback configuration: %s.",
-          node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), fallback_str.str().c_str());
+  FE_LOGD("[JudgeInsert][SetAclnnAttr] Node[%s, %s] prints fallback configuration: %s.", node_ptr->GetNamePtr(),
+          node_ptr->GetTypePtr(), fallback_str.str().c_str());
 }
 
 void SetOppKernelPathForAclnn(const ge::OpDescPtr &op_desc) {
@@ -55,7 +55,7 @@ void SetOppKernelPathForAclnn(const ge::OpDescPtr &op_desc) {
   FE_LOGD("Node[%s, %s]Opp latest path: %s, set [%s] to 1", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
           opp_kernel_path.c_str(), ge::ATTR_NAME_BINARY_SOURCE);
 }
-} // namespace
+}  // namespace
 using OpSliceUtilPtr = std::shared_ptr<OpSliceUtil>;
 
 const std::map<string, string> OpSetter::attr_map_ = {{fe::STR_INPUT_MEM_CONTINUES, fe::ATTR_NAME_CONTINUOUS_INPUT},
@@ -103,8 +103,8 @@ Status OpSetter::MultiThreadSetOpInfo(ge::ComputeGraph &graph, bool only_set_att
   return SUCCESS;
 }
 
-Status OpSetter::SetOpInfo(const ge::ComputeGraph& graph) const {
-  for (auto& node : graph.GetAllNodes()) {
+Status OpSetter::SetOpInfo(const ge::ComputeGraph &graph) const {
+  for (auto &node : graph.GetAllNodes()) {
     Status result = SetOpInfoByNode(node, engine_name_);
     if (result != SUCCESS) {
       return result;
@@ -113,8 +113,8 @@ Status OpSetter::SetOpInfo(const ge::ComputeGraph& graph) const {
   return SUCCESS;
 }
 
-Status OpSetter::OnlySetOpDescAttr(const ge::ComputeGraph& graph) const {
-  for (auto& node : graph.GetAllNodes()) {
+Status OpSetter::OnlySetOpDescAttr(const ge::ComputeGraph &graph) const {
+  for (auto &node : graph.GetAllNodes()) {
     Status result = SetOpInfoByNode(node, engine_name_, true);
     if (result != SUCCESS) {
       return result;
@@ -136,12 +136,10 @@ void OpSetter::GetOpKernelInfoByImplType(const ge::OpDescPtr &op_desc_ptr, const
 
   // 2. get the op_kernel_info_ptr by op_impl_type and op_type
   OpImplType op_impl_type = static_cast<OpImplType>(imply_type);
-  op_kernel_info_ptr =
-      OpsKernelManager::Instance(engine_name).GetOpKernelInfoByOpType(op_impl_type, op_type);
+  op_kernel_info_ptr = OpsKernelManager::Instance(engine_name).GetOpKernelInfoByOpType(op_impl_type, op_type);
 }
 
-Status OpSetter::SetOpDescAttrByNode(const ge::OpDescPtr &op_desc_ptr,
-    const OpKernelInfoPtr &op_kernel_info_ptr) {
+Status OpSetter::SetOpDescAttrByNode(const ge::OpDescPtr &op_desc_ptr, const OpKernelInfoPtr &op_kernel_info_ptr) {
   for (auto &it : attr_map_) {
     if (SetOpDescAttr(op_kernel_info_ptr, it.first, it.second, op_desc_ptr) != SUCCESS) {
       REPORT_FE_ERROR(
@@ -182,8 +180,8 @@ Status OpSetter::SetOpInfoByNode(const ge::NodePtr &node_ptr, const std::string 
   OpKernelInfoPtr op_kernel_info_ptr = nullptr;
   GetOpKernelInfoByImplType(op_desc_ptr, engine_name, op_kernel_info_ptr);
   if (op_kernel_info_ptr == nullptr) {
-    FE_LOGD("Op kernel information for op [%s, %s] was not found.",
-            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+    FE_LOGD("Op kernel information for op [%s, %s] was not found.", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr());
     return SUCCESS;
   }
 
@@ -219,7 +217,8 @@ Status OpSetter::SetTbeOpSliceInfo(const ge::NodePtr &node_ptr, const std::strin
   // set tbe slice info
   Status ret = op_store_adapter->SetTbeOpSliceInfo(node_ptr, op_kernel_info_ptr);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[OrigGraphOpt][OpSetter] SetTbeOpSliceInfo failed for graph [%s].", op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR("[OrigGraphOpt][OpSetter] SetTbeOpSliceInfo failed for graph [%s].",
+                    op_desc_ptr->GetName().c_str());
     return ret;
   }
   return SUCCESS;
@@ -253,14 +252,14 @@ Status OpSetter::SetOpDescAttr(const OpKernelInfoPtr &op_kernel_info_ptr, const 
   return SUCCESS;
 }
 
-void OpSetter::SetOpImplMode(const ge::ComputeGraph& graph) const {
-  for (auto& node : graph.GetAllNodes()) {
+void OpSetter::SetOpImplMode(const ge::ComputeGraph &graph) const {
+  for (auto &node : graph.GetAllNodes()) {
     SetOpImplModeByNode(node);
   }
   if (!Configuration::Instance(engine_name_).IsEnableCustomImplMode()) {
     return;
   }
-  for (auto& node : graph.GetAllNodes()) {
+  for (auto &node : graph.GetAllNodes()) {
     SetOpCustomImplModeByNode(node);
   }
   return;
@@ -273,9 +272,9 @@ void OpSetter::SetOpImplModeByNode(const ge::NodePtr &node_ptr) const {
   ge::OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
   std::string op_impl_mode;
   if (!Configuration::Instance(engine_name_)
-      .GetOpImplMode(op_desc_ptr->GetName(), op_desc_ptr->GetType(), op_impl_mode)) {
-    FE_LOGD("Operation [name=%s, type=%s] cannot obtain op_impl_mode from the configuration.", op_desc_ptr->GetNamePtr(),
-            op_desc_ptr->GetTypePtr());
+           .GetOpImplMode(op_desc_ptr->GetName(), op_desc_ptr->GetType(), op_impl_mode)) {
+    FE_LOGD("Operation [name=%s, type=%s] cannot obtain op_impl_mode from the configuration.",
+            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
     return;
   }
   auto iter = kOpImplStrToInt.find(op_impl_mode);
@@ -293,8 +292,8 @@ void OpSetter::SetOpCustomImplModeByNode(const ge::NodePtr &node_ptr) const {
   ge::OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
   std::string op_impl_mode;
   if (!Configuration::Instance(engine_name_).GetOpImplMode(op_desc_ptr->GetName(), "", op_impl_mode)) {
-    FE_LOGD("Operation [name=%s, type=%s] cannot obtain op_impl_mode from custom configuration.", op_desc_ptr->GetName().c_str(),
-            op_desc_ptr->GetType().c_str());
+    FE_LOGD("Operation [name=%s, type=%s] cannot obtain op_impl_mode from custom configuration.",
+            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return;
   }
   auto iter = kOpImplStrToInt.find(op_impl_mode);
@@ -305,20 +304,19 @@ void OpSetter::SetOpCustomImplModeByNode(const ge::NodePtr &node_ptr) const {
   }
 }
 
-void OpSetter::SetOpDebugAttr(const ge::ComputeGraph& graph) {
+void OpSetter::SetOpDebugAttr(const ge::ComputeGraph &graph) {
   for (auto node : graph.GetDirectNode()) {
     ge::OpDescPtr op_desc = node->GetOpDesc();
     if (fe::Configuration::Instance(fe::AI_CORE_NAME).IsConfigDebugListOp(op_desc)) {
       string op_type = op_desc->GetType().c_str();
       string op_name = op_desc->GetName().c_str();
-      FE_LOGD("graph init op[%s, %s] sets op_debug_compile attr",
-               op_type.c_str(), op_name.c_str());
+      FE_LOGD("graph init op[%s, %s] sets op_debug_compile attr", op_type.c_str(), op_name.c_str());
       ge::AttrUtils::SetBool(node->GetOpDesc(), kOpDebugCompile, true);
     }
   }
 }
 
-void OpSetter::SetQuantDumpableAttr(const ge::ComputeGraph& graph) {
+void OpSetter::SetQuantDumpableAttr(const ge::ComputeGraph &graph) {
   if (!Configuration::Instance(AI_CORE_NAME).IsQuantDumpable()) {
     return;
   }
@@ -374,23 +372,20 @@ bool OpSetter::FallbackConfigured(const ge::NodePtr &node_ptr, const OpKernelInf
 }
 
 void OpSetter::SetFallbackAttr(const ge::ComputeGraph &graph, const fe::PrecisionMode &precision_mode,
-  bool &need_update_stream_core_limit) const {
+                               bool &need_update_stream_core_limit) const {
   for (const auto &node : graph.GetAllNodes()) {
     OpKernelInfoPtr op_kernel_info_ptr = nullptr;
     GetOpKernelInfoByImplType(node->GetOpDesc(), engine_name_, op_kernel_info_ptr);
     if (op_kernel_info_ptr == nullptr) {
-      FE_LOGD("Op kernel information for op [%s, %s] was not found",
-              node->GetNamePtr(), node->GetTypePtr());
+      FE_LOGD("Op kernel information for op [%s, %s] was not found", node->GetNamePtr(), node->GetTypePtr());
       continue;
     }
     int64_t matched_index = -1;
     (void)ge::AttrUtils::GetInt(node->GetOpDesc(), "judge_match_idx", matched_index);
-    FE_LOGD("Got judge_match_idx from node [%s, %s]: [%ld]",
-            node->GetNamePtr(), node->GetTypePtr(), matched_index);
+    FE_LOGD("Got judge_match_idx from node [%s, %s]: [%ld]", node->GetNamePtr(), node->GetTypePtr(), matched_index);
     bool is_aclnn_fallback = SetAclnnAttr(node, matched_index, op_kernel_info_ptr, precision_mode);
     if (matched_index != -1 && !is_aclnn_fallback) {
-      FE_LOGD("Node[%s, %s] will not do fallback.",
-              node->GetNamePtr(), node->GetTypePtr());
+      FE_LOGD("Node[%s, %s] will not do fallback.", node->GetNamePtr(), node->GetTypePtr());
     }
     need_update_stream_core_limit = need_update_stream_core_limit || is_aclnn_fallback;
   }
@@ -398,8 +393,8 @@ void OpSetter::SetFallbackAttr(const ge::ComputeGraph &graph, const fe::Precisio
 
 bool OpSetter::SetAclnnAttr(const ge::NodePtr &node_ptr, const uint32_t &matched_index,
                             const OpKernelInfoPtr &op_kernel_info_ptr, const fe::PrecisionMode &precision_mode) const {
-  FE_LOGD("[JudgeInsert][SetAclnnAttr] Ready to check fallback info for node[%s, %s].",
-          node_ptr->GetNamePtr(), node_ptr->GetTypePtr());
+  FE_LOGD("[JudgeInsert][SetAclnnAttr] Ready to check fallback info for node[%s, %s].", node_ptr->GetNamePtr(),
+          node_ptr->GetTypePtr());
   std::vector<bool> fallback_info;
   if (FallbackConfigured(node_ptr, op_kernel_info_ptr, fallback_info)) {
     PrintFallbackCfgInfo(node_ptr, fallback_info);
@@ -409,8 +404,8 @@ bool OpSetter::SetAclnnAttr(const ge::NodePtr &node_ptr, const uint32_t &matched
       return false;
     }
     if (fallback_info[matched_index]) {
-      FE_LOGD("[JudgeInsert][SetAclnnAttr] Node[%s, %s] set fallback attr",
-              node_ptr->GetNamePtr(), node_ptr->GetTypePtr());
+      FE_LOGD("[JudgeInsert][SetAclnnAttr] Node[%s, %s] set fallback attr", node_ptr->GetNamePtr(),
+              node_ptr->GetTypePtr());
       (void)ge::AttrUtils::SetBool(node_ptr->GetOpDesc(), ge::ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
       (void)ge::AttrUtils::SetBool(node_ptr->GetOpDesc(), ATTR_NAME_FALLBACK_ACLNN, true);
       (void)ge::AttrUtils::SetStr(node_ptr->GetOpDesc(), ge::kAttrLowingFunc, kAclnnLoweringFunc);
@@ -433,8 +428,8 @@ bool OpSetter::SetAclnnAttr(const ge::NodePtr &node_ptr, const uint32_t &matched
     return true;
   }
   bool base_cond = Configuration::Instance(AI_CORE_NAME).IsEnableAclnn() || IsDefaultEnableAclnn(node_ptr);
-  FE_LOGI("Node [%s, %s] has an ACLNN base condition of [%d], and supports type [%d].",
-          node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), base_cond, static_cast<int>(aclnn_support_type));
+  FE_LOGI("Node [%s, %s] has an ACLNN base condition of [%d], and supports type [%d].", node_ptr->GetNamePtr(),
+          node_ptr->GetTypePtr(), base_cond, static_cast<int>(aclnn_support_type));
   if (base_cond && aclnn_support_type == AclnnSupportType::SUPPORT_ACLNN &&
       UnknownShapeUtils::IsUnknownShapeOp(*node_ptr->GetOpDesc()) &&
       SupportFallback(node_ptr, matched_index, op_kernel_info_ptr)) {
@@ -449,7 +444,7 @@ bool OpSetter::SetAclnnAttr(const ge::NodePtr &node_ptr, const uint32_t &matched
   return false;
 }
 
-void OpSetter::DeleteFusionScope(ge::ComputeGraph& graph) const {
+void OpSetter::DeleteFusionScope(ge::ComputeGraph &graph) const {
   for (auto &node : graph.GetAllNodes()) {
     if (node == nullptr) {
       continue;
@@ -473,8 +468,10 @@ bool OpSetter::IsDefaultEnableAclnn(const ge::NodePtr &node_ptr) const {
   auto graph = node_ptr->GetOwnerComputeGraph();
   bool is_single_op_scene = false;
   if (!ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene)) {
-    FE_LOGI("Node [%s, %s] unable to get single_op_scene[%d] flag from owner graph [%s], attempting to get from root graph.",
-            node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), is_single_op_scene, graph->GetName().c_str());
+    FE_LOGI(
+        "Node [%s, %s] unable to get single_op_scene[%d] flag from owner graph [%s], attempting to get from root "
+        "graph.",
+        node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), is_single_op_scene, graph->GetName().c_str());
     ge::ComputeGraphPtr root_graph = nullptr;
     root_graph = ge::GraphUtils::FindRootGraph(graph);
     if (root_graph == nullptr) {
@@ -490,10 +487,10 @@ bool OpSetter::IsDefaultEnableAclnn(const ge::NodePtr &node_ptr) const {
   int64_t imply_type = -1;
   (void)ge::AttrUtils::GetInt(node_ptr->GetOpDesc(), FE_IMPLY_TYPE, imply_type);
   OpStoreAdapterPtr op_store_adapter =
-        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(static_cast<OpImplType>(imply_type));
+      OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(static_cast<OpImplType>(imply_type));
   if (op_store_adapter == nullptr) {
-    FE_LOGI("Node[%s, %s] unable to get tbe adapter, ACLNN will not be enabled by default.",
-            node_ptr->GetNamePtr(), node_ptr->GetTypePtr());
+    FE_LOGI("Node[%s, %s] unable to get tbe adapter, ACLNN will not be enabled by default.", node_ptr->GetNamePtr(),
+            node_ptr->GetTypePtr());
     return false;
   }
   static bool is_oppkernel_installed = op_store_adapter->JudgeBuiltInOppKernelInstalled();

@@ -106,7 +106,9 @@ class ModelBuffer:
         return int(offline_compile_lib.GeApiWrapper_ModelBuffer_GetLength(self._handle))
 
 
-def _normalize_bundle_options(graph_with_options: List[GraphWithOptions]) -> List[GraphWithOptions]:
+def _normalize_bundle_options(
+    graph_with_options: List[GraphWithOptions],
+) -> List[GraphWithOptions]:
     if not isinstance(graph_with_options, list):
         raise TypeError("graph_with_options must be a list")
     if len(graph_with_options) <= 1:
@@ -133,7 +135,9 @@ def _normalize_options(options: Optional[dict], arg_name: str) -> Dict[str, str]
     return normalized
 
 
-def _dict_to_c_arrays(options: Dict[str, str]) -> Tuple[Optional[ctypes.Array], Optional[ctypes.Array], int]:
+def _dict_to_c_arrays(
+    options: Dict[str, str],
+) -> Tuple[Optional[ctypes.Array], Optional[ctypes.Array], int]:
     if not options:
         return None, None, 0
 
@@ -301,9 +305,6 @@ def bundle_save_model(output_file: str, model: ModelBuffer) -> None:
         raise TypeError("output_file must be a string")
     if not isinstance(model, ModelBuffer):
         raise TypeError("model must be a ModelBuffer")
-    ret = offline_compile_lib.GeApiWrapper_OfflineCompile_BundleSaveModel(
-        output_file.encode("utf-8"),
-        model._handle
-    )
+    ret = offline_compile_lib.GeApiWrapper_OfflineCompile_BundleSaveModel(output_file.encode("utf-8"), model._handle)
     if ret != 0:
         raise_ge_error("BundleSaveModel", ret, output_file=output_file)

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -419,8 +419,7 @@ TEST_F(UtestGraphPassesMergePass, const_with_control_input) {
             identity_node->GetOutControlAnchor());
 }
 
-TEST_F(UtestGraphPassesMergePass, IsMergeInputNeedOptimized1)
-{
+TEST_F(UtestGraphPassesMergePass, IsMergeInputNeedOptimized1) {
   NodePtr node = nullptr;
   bool ret = pass_.IsMergeInputNeedOptimized(node);
   EXPECT_EQ(ret, false);
@@ -443,8 +442,7 @@ TEST_F(UtestGraphPassesMergePass, IsMergeInputNeedOptimized1)
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(UtestGraphPassesMergePass, IsMergeInputNeedOptimized2)
-{
+TEST_F(UtestGraphPassesMergePass, IsMergeInputNeedOptimized2) {
   auto merge_node = NewNode("Merge", MEMCPYASYNC, 1, 2);
   auto merge_node2 = NewNode("Merge2", MEMCPYASYNC, 1, 2);
   auto node1 = NewNode("Op1", MEMCPYADDRASYNC, 0, 1);

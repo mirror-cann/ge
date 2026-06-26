@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,12 +55,12 @@ class DumpManager {
   Status SetDumpPath(const DumpConfig &dump_config, DumpProperties &dump_properties) const;
   Status SetNormalDumpConf(const DumpConfig &dump_config, DumpProperties &dump_properties);
   void SetDumpList(const DumpConfig &dump_config, DumpProperties &dump_properties) const;
-  void SetModelDumpBlacklist(ModelOpBlacklist& model_blacklist,
-    const std::vector<DumpBlacklist>& type_blacklists, const std::vector<DumpBlacklist>& name_blacklists) const;
-  uint32_t ExtractNumber(const std::string& s) const;
-  bool IsValidFormat(const std::string& s) const;
-  void ExtractBlacklist(const std::vector<DumpBlacklist>& blacklists,
-    std::map<std::string, OpBlacklist>& op_blacklist) const;
+  void SetModelDumpBlacklist(ModelOpBlacklist &model_blacklist, const std::vector<DumpBlacklist> &type_blacklists,
+                             const std::vector<DumpBlacklist> &name_blacklists) const;
+  uint32_t ExtractNumber(const std::string &s) const;
+  bool IsValidFormat(const std::string &s) const;
+  void ExtractBlacklist(const std::vector<DumpBlacklist> &blacklists,
+                        std::map<std::string, OpBlacklist> &op_blacklist) const;
   Status ReloadDumpInfo(const DumpProperties &dump_properties);
   Status UnloadDumpInfo(const DumpProperties &dump_properties);
   std::mutex mutex_;

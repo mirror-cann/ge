@@ -32,7 +32,7 @@ constexpr int32_t kMemZipOk = 0;
 constexpr int32_t kMemZipError = -1;
 constexpr uint64_t kMemInitialCapacity = 64UL * 1024UL;
 constexpr uint32_t kMemGrowFactor = 2U;
-constexpr int64_t kBufSize = 16384L;  // same as UNZ_BUFSIZE
+constexpr int64_t kBufSize = 16384L;        // same as UNZ_BUFSIZE
 constexpr size_t kBufVectorSize = 16384UL;  // same as UNZ_BUFSIZE
 constexpr uint32_t kMaxWriteSize = std::numeric_limits<uint32_t>::max();
 constexpr uint32_t kMaxFileNameLength = 4096U;  // same as UNZ_MAXFILENAMEINZIP
@@ -60,16 +60,15 @@ int MemGrow(MemoryFile *mem_file, const uint64_t new_size) {
 
   const auto new_buffer = static_cast<uint8_t *>(std::malloc(new_capacity));
   if (new_buffer == nullptr) {
-    GELOGE(FAILED, "[MEMZIP] Failed to allocate memory: target_capacity[%lu bytes], error_msg[%s]",
-           new_capacity, strerror(errno));
+    GELOGE(FAILED, "[MEMZIP] Failed to allocate memory: target_capacity[%lu bytes], error_msg[%s]", new_capacity,
+           strerror(errno));
     return kMemZipError;
   }
 
   if ((mem_file->buffer != nullptr) && (mem_file->length > 0)) {
     const auto ret = GeMemcpy(new_buffer, new_capacity, mem_file->buffer, mem_file->length);
     if (ret != SUCCESS) {
-      GELOGE(FAILED,
-             "[MEMZIP] Failed to copy memory: dest_ptr[%p], dest_max[%lu], src_ptr[%p], src_size[%lu], ret=%d",
+      GELOGE(FAILED, "[MEMZIP] Failed to copy memory: dest_ptr[%p], dest_max[%lu], src_ptr[%p], src_size[%lu], ret=%d",
              new_buffer, new_capacity, mem_file->buffer, mem_file->capacity, ret);
       std::free(new_buffer);
       return kMemZipError;
@@ -569,9 +568,7 @@ bool ZipArchiveWriter::SaveModelDataToBuffer(ModelBufferData &model) {
   GE_ASSERT_NOTNULL(mem_file_.buffer);
   GE_ASSERT_TRUE(mem_file_.length > 0U);
   model.length = mem_file_.length;
-  model.data = std::shared_ptr<uint8_t>(mem_file_.buffer, [](uint8_t *ptr) {
-    std::free(ptr);
-  });
+  model.data = std::shared_ptr<uint8_t>(mem_file_.buffer, [](uint8_t *ptr) { std::free(ptr); });
   mem_file_ = {};
   return true;
 }

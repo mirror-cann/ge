@@ -72,4 +72,3 @@ EsCGraphBuilder *GetOwnerBuilder() const
 EsTensorLike tensor_like(tensor);
 auto *owner_builder = tensor_like.GetOwnerBuilder();
 ```
-

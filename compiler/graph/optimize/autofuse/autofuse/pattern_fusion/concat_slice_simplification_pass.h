@@ -19,6 +19,7 @@ namespace ge {
 class ConcatSliceSimplificationPass {
  public:
   graphStatus Run(const ComputeGraphPtr &graph, const GraphPasses &graph_passes, bool &changed);
+
  private:
   graphStatus HandleSlice(const NodePtr &node);
   static bool FindInput(const NodePtr &concat_node, size_t concat_dim, const std::vector<int64_t> &sizes,

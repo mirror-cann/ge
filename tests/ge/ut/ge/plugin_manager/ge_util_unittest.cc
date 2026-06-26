@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,9 @@ class Foo {
  public:
   int i = 0;
 
-  Foo(int x) { i = x; }
+  Foo(int x) {
+    i = x;
+  }
 
   GE_DELETE_ASSIGN_AND_COPY(Foo);
 };
@@ -70,15 +72,14 @@ TEST_F(UtestGeUtil, NnSet_test) {
   retStatus = ge::NnSet(1, alpha, &output1);
   EXPECT_EQ(retStatus, SUCCESS);
 
-  float *output2 = (float *)malloc(sizeof(float)*SECUREC_MEM_MAX_LEN);
+  float *output2 = (float *)malloc(sizeof(float) * SECUREC_MEM_MAX_LEN);
   ASSERT_NE(output2, nullptr);
   retStatus = ge::NnSet(SECUREC_MEM_MAX_LEN, alpha, output2);
   EXPECT_EQ(retStatus, SUCCESS);
   free(output2);
 }
 
-TEST_F(UtestGeUtil, math_utils_test)
-{
+TEST_F(UtestGeUtil, math_utils_test) {
   Status retStatus;
 
   retStatus = ge::CheckInt8AddOverflow(INT8_MAX, 64);
@@ -111,8 +112,8 @@ TEST_F(UtestGeUtil, math_utils_test)
   EXPECT_EQ(retStatus, FAILED);
   retStatus = ge::CheckInt32SubOverflow(INT32_MIN, 1);
   EXPECT_EQ(retStatus, FAILED);
-  //retStatus = ge::CheckInt64SubOverflow((std::numeric_limits<int64_t>::max()+6), -1);
-  //EXPECT_EQ(retStatus, SUCCESS);
+  // retStatus = ge::CheckInt64SubOverflow((std::numeric_limits<int64_t>::max()+6), -1);
+  // EXPECT_EQ(retStatus, SUCCESS);
 
   retStatus = ge::CheckUint8SubOverflow(0, 1);
   EXPECT_EQ(retStatus, FAILED);
@@ -185,8 +186,8 @@ TEST_F(UtestGeUtil, math_utils_test)
   EXPECT_EQ(retStatus, FAILED);
   retStatus = ge::CheckInt64Int32MulOverflow(-64, 64);
   EXPECT_EQ(retStatus, SUCCESS);
-  //retStatus = ge::CheckInt64Int32MulOverflow(-64, std::numeric_limits<int64_t>::min()+1);
-  //EXPECT_EQ(retStatus, FAILED);
+  // retStatus = ge::CheckInt64Int32MulOverflow(-64, std::numeric_limits<int64_t>::min()+1);
+  // EXPECT_EQ(retStatus, FAILED);
   retStatus = ge::CheckInt64Int32MulOverflow(0, -64);
   EXPECT_EQ(retStatus, SUCCESS);
 
@@ -201,7 +202,7 @@ TEST_F(UtestGeUtil, math_utils_test)
   retStatus = ge::CheckInt64MulOverflow(0, -64);
   EXPECT_EQ(retStatus, SUCCESS);
 
-  retStatus = ge::CheckInt64Uint32MulOverflow(std::numeric_limits<int64_t>::min()+1, 4);
+  retStatus = ge::CheckInt64Uint32MulOverflow(std::numeric_limits<int64_t>::min() + 1, 4);
   EXPECT_EQ(retStatus, FAILED);
 
   retStatus = ge::CheckUint8MulOverflow(UINT8_MAX, 2);
@@ -225,12 +226,11 @@ TEST_F(UtestGeUtil, math_utils_test)
   EXPECT_EQ(retStatus, SUCCESS);
 
   fp16_t c, d;
-  c.val = kFp16ExpMask/2;
+  c.val = kFp16ExpMask / 2;
   d.val = 2;
-  //retStatus = ge::CheckFp16MulOverflow(c, d);
-  //EXPECT_EQ(retStatus, FAILED);
+  // retStatus = ge::CheckFp16MulOverflow(c, d);
+  // EXPECT_EQ(retStatus, FAILED);
   c.val = 6;
   retStatus = ge::CheckFp16MulOverflow(c, d);
   EXPECT_EQ(retStatus, SUCCESS);
-
 }

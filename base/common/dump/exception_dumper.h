@@ -83,7 +83,7 @@ struct ExtraOpInfo {
         }
       });
       rt_ret = aclrtMemcpy(host_addr, static_cast<uint64_t>(args_size), ValueToPtr(args),
-          static_cast<uint64_t>(args_size), ACL_MEMCPY_DEVICE_TO_HOST);
+                           static_cast<uint64_t>(args_size), ACL_MEMCPY_DEVICE_TO_HOST);
       if (rt_ret != ACL_SUCCESS) {
         GELOGW("[Call][aclrtMemcpy] failed, size:%zu, ret:0x%X", args_size, rt_ret);
         return;
@@ -112,25 +112,24 @@ class ExceptionDumper {
   bool GetOpDescInfo(const OpDescInfoId &op_id, OpDescInfo &op_desc_info);
   OpDescInfo *MutableOpDescInfo(const uint32_t task_id, const uint32_t stream_id);
 
-  static Status DumpDevMem(const ge::char_t * const file, const void * const addr, const uint64_t size);
+  static Status DumpDevMem(const ge::char_t *const file, const void *const addr, const uint64_t size);
 
   static void Reset(ExtraOpInfo &extra_op_info);
 
-  Status DumpNodeInfo(const OpDescInfo &op_desc_info, const std::string &file_path,
-                      const bool is_exception, const bool is_ffts_plus,
-                      const ge::DumpProperties &dump_properties) const;
+  Status DumpNodeInfo(const OpDescInfo &op_desc_info, const std::string &file_path, const bool is_exception,
+                      const bool is_ffts_plus, const ge::DumpProperties &dump_properties) const;
 
   void Clear();
 
  private:
   void RefreshAddrs(OpDescInfo &op_desc_info) const;
   void SaveOpDescInfo(const OpDescPtr &op, const OpDescInfoId &id, OpDescInfo &op_desc_info) const;
-  Status DumpExceptionInput(const OpDescInfo &op_desc_info, const std::string &dump_file,
-                            const bool is_exception, const ge::DumpProperties &dump_properties) const;
-  Status DumpExceptionOutput(const OpDescInfo &op_desc_info, const std::string &dump_file,
-                             const bool is_exception, const ge::DumpProperties &dump_properties) const;
-  Status DumpExceptionWorkspace(const OpDescInfo &op_desc_info, const std::string &dump_file,
-                                const bool is_exception, const ge::DumpProperties &dump_properties) const;
+  Status DumpExceptionInput(const OpDescInfo &op_desc_info, const std::string &dump_file, const bool is_exception,
+                            const ge::DumpProperties &dump_properties) const;
+  Status DumpExceptionOutput(const OpDescInfo &op_desc_info, const std::string &dump_file, const bool is_exception,
+                             const ge::DumpProperties &dump_properties) const;
+  Status DumpExceptionWorkspace(const OpDescInfo &op_desc_info, const std::string &dump_file, const bool is_exception,
+                                const ge::DumpProperties &dump_properties) const;
 
   // is_dynamic: dynamic op or single op,
   // if true, OpInfo will be saved in aging mode: the later ones may overwrite the earlier ones.
@@ -149,4 +148,4 @@ class ExceptionDumper {
 };
 }  // namespace ge
 
-#endif // GE_COMMON_DUMP_EXCEPTION_DUMPER_H_
+#endif  // GE_COMMON_DUMP_EXCEPTION_DUMPER_H_

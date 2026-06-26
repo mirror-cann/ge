@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -104,7 +104,7 @@ struct MatchCoordinate {
   MatchCoordinate(const NodePtr &target_node, size_t pattern_output_index)
       : node(target_node), pattern_output_idx(pattern_output_index) {}
   NodePtr node;
-  size_t pattern_output_idx; // 对应在pattern中的第几个输出
+  size_t pattern_output_idx;  // 对应在pattern中的第几个输出
 };
 using MatchCoordinatePtr = std::shared_ptr<MatchCoordinate>;
 
@@ -207,17 +207,18 @@ bool IsValidMatch(const MatchResult &match) {
   return true;
 }
 
-} // namespace
+}  // namespace
 
 class PatternMatcherImpl {
  public:
   PatternMatcherImpl() = delete;
   explicit PatternMatcherImpl(std::unique_ptr<Pattern> pattern, ComputeGraphPtr target_graph)
-      : config_(PatternMatcherConfigBuilder().Build()), pattern_(std::move(pattern)), target_graph_(std::move(target_graph)) {}
-  PatternMatcherImpl(std::unique_ptr<Pattern> pattern, ComputeGraphPtr target_graph, std::unique_ptr<PatternMatcherConfig> matcher_config)
-      : config_(std::move(matcher_config)),
+      : config_(PatternMatcherConfigBuilder().Build()),
         pattern_(std::move(pattern)),
         target_graph_(std::move(target_graph)) {}
+  PatternMatcherImpl(std::unique_ptr<Pattern> pattern, ComputeGraphPtr target_graph,
+                     std::unique_ptr<PatternMatcherConfig> matcher_config)
+      : config_(std::move(matcher_config)), pattern_(std::move(pattern)), target_graph_(std::move(target_graph)) {}
 
   /**
    * init pattern matcher
@@ -294,9 +295,10 @@ class PatternMatcherImpl {
         return match;
       }
       // 关键：当前主坐标找不到一致的完整匹配，回退到下一个主坐标继续，而非中断整个匹配（旧bug即在此中断）
-      GELOGD("[MATCH][BACKTRACK]Main coordinate [%s][%s] matched output0 but no consistent assignment "
-             "for remaining outputs, backtrack to next main coordinate.",
-             main_coordinate->node->GetNamePtr(), main_coordinate->node->GetTypePtr());
+      GELOGD(
+          "[MATCH][BACKTRACK]Main coordinate [%s][%s] matched output0 but no consistent assignment "
+          "for remaining outputs, backtrack to next main coordinate.",
+          main_coordinate->node->GetNamePtr(), main_coordinate->node->GetTypePtr());
     }
     GELOGD("[MATCH]All main coordinates exhausted, no more match.");
     return nullptr;
@@ -306,7 +308,8 @@ class PatternMatcherImpl {
   bool IsNodeMatchWith(const NodePtr &p_node, const NodePtr &t_node) const {
     return GetNodeMatcher(p_node)->IsMatch(p_node, t_node);
   }
-  bool MatchBranchByOutTensor(const NodePtr &t_out_node, const OutDataAnchorPtr &p_out_anchor, MatchResult &match_ret) const;
+  bool MatchBranchByOutTensor(const NodePtr &t_out_node, const OutDataAnchorPtr &p_out_anchor,
+                              MatchResult &match_ret) const;
   // 在输出 0..out_idx-1 已匹配（结果累积在 match 中）的前提下，回溯匹配输出 out_idx..N-1。
   // 每个输出层都先重置自身候选游标再遍历全部候选，并对 match 做快照以支持失败回溯；
   // 所有输出匹配完成且边界合法时返回 true，并将完整匹配结果写回 match。
@@ -343,10 +346,12 @@ Status PatternMatcherImpl::UpdateAllMatchCoordinates(const ComputeGraphPtr &t_gr
     auto p_out_node = p_out_data_anchor->GetOwnerNode();
     if (matched_cor_seq.size() > i) {
       // 已存在主坐标序列，更新
-      GE_ASSERT_SUCCESS(GetMatchCoordinatesByIdx(t_graph, p_out_node, idx_of_output, matched_cor_seq[i]));  // 可以挪到matchbranch里面做
+      GE_ASSERT_SUCCESS(GetMatchCoordinatesByIdx(t_graph, p_out_node, idx_of_output,
+                                                 matched_cor_seq[i]));  // 可以挪到matchbranch里面做
     } else {
       MatchCoordinateSeq cor_seq;
-      GE_ASSERT_SUCCESS(GetMatchCoordinatesByIdx(t_graph, p_out_node, idx_of_output, cor_seq));  // 可以挪到matchbranch里面做
+      GE_ASSERT_SUCCESS(
+          GetMatchCoordinatesByIdx(t_graph, p_out_node, idx_of_output, cor_seq));  // 可以挪到matchbranch里面做
       matched_cor_seq.emplace_back(cor_seq);
     }
   }
@@ -426,7 +431,8 @@ bool PatternMatcherImpl::MatchBranchByOutTensor(const NodePtr &t_out_node, const
     node_pairs_queue.pop();
     const auto p_node = p_anchor_2_t_anchor.first->GetOwnerNode();
     const auto t_node = p_anchor_2_t_anchor.second->GetOwnerNode();
-    // 若pnode已被匹配过，说明pnode为图中汇点，若与当前匹配不一致，说明本次逆序匹配的match与之前的output tensor的逆序匹配match不是同一个
+    // 若pnode已被匹配过，说明pnode为图中汇点，若与当前匹配不一致，说明本次逆序匹配的match与之前的output
+    // tensor的逆序匹配match不是同一个
     GNode matched_node;
     if (tmp_match.GetMatchedNode(NodeAdapter::Node2GNode(p_node), matched_node) == SUCCESS) {
       if (NodeAdapter::GNode2Node(matched_node) != t_node) {
@@ -491,4 +497,4 @@ std::unique_ptr<MatchResult> PatternMatcher::MatchNext() {
   return impl_ == nullptr ? nullptr : impl_->MatchNext();
 }
 }  // namespace fusion
-} // namespace ge
+}  // namespace ge

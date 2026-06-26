@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,15 +30,13 @@ struct DeployQueueAttr {
   int32_t device_type;
   uint32_t global_logic_id;
   std::string DebugString() const {
-    return "queue:" + std::to_string(queue_id) +
-           ", device_id:" + std::to_string(device_id) +
+    return "queue:" + std::to_string(queue_id) + ", device_id:" + std::to_string(device_id) +
            ", device_type:" + std::to_string(device_type);
   }
   std::string GetKey() const {
-    return std::to_string(queue_id) + "_" + std::to_string(device_id) + "_" +
-           std::to_string(device_type);
+    return std::to_string(queue_id) + "_" + std::to_string(device_id) + "_" + std::to_string(device_type);
   }
-  bool operator < (const DeployQueueAttr &other) const {
+  bool operator<(const DeployQueueAttr &other) const {
     return DebugString() < other.DebugString();
   }
 };
@@ -86,10 +84,7 @@ class ExchangeService {
   ExchangeService &operator=(const ExchangeService &) = delete;
   virtual ~ExchangeService() = default;
 
-  Status CreateQueue(const int32_t device_id,
-                     const std::string &name,
-                     const uint32_t depth,
-                     const uint32_t work_mode,
+  Status CreateQueue(const int32_t device_id, const std::string &name, const uint32_t depth, const uint32_t work_mode,
                      uint32_t &queue_id) {
     MemQueueAttr mem_queue_attr{};
     mem_queue_attr.depth = depth;
@@ -98,17 +93,15 @@ class ExchangeService {
     return CreateQueue(device_id, name, mem_queue_attr, queue_id);
   }
 
-  virtual Status CreateQueue(const int32_t device_id,
-                             const std::string &name,
-                             const MemQueueAttr &mem_queue_attr,
+  virtual Status CreateQueue(const int32_t device_id, const std::string &name, const MemQueueAttr &mem_queue_attr,
                              uint32_t &queue_id) = 0;
   virtual Status DestroyQueue(const int32_t device_id, const uint32_t queue_id) = 0;
-  virtual Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data,
-                         const size_t size, const ControlInfo &control_info) = 0;
+  virtual Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data, const size_t size,
+                         const ControlInfo &control_info) = 0;
   virtual Status Enqueue(int32_t device_id, uint32_t queue_id, size_t size, rtMbufPtr_t m_buf,
                          const ControlInfo &control_info) = 0;
-  virtual Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size,
-                         const FillFunc &fill_func, const ControlInfo &control_info) = 0;
+  virtual Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size, const FillFunc &fill_func,
+                         const ControlInfo &control_info) = 0;
   virtual Status Enqueue(const int32_t device_id, const uint32_t queue_id, const std::vector<BuffInfo> &buffs,
                          const ControlInfo &control_info) = 0;
   virtual Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout) = 0;
@@ -122,5 +115,5 @@ class ExchangeService {
   virtual Status DequeueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) = 0;
   virtual void ResetQueueInfo(const int32_t device_id, const uint32_t queue_id) = 0;
 };
-}
+}  // namespace ge
 #endif  // BASE_EXEC_RUNTIME_DEPLOY_EXCHANGE_SERVICE_H_

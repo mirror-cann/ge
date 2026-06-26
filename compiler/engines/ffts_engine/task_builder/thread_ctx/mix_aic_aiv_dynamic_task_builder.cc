@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,7 +13,7 @@
 #include "graph/debug/ge_attr_define.h"
 
 namespace ffts {
-static const vector<std::string> kMixPrefixs = { "_mix_aic", "_mix_aiv" };
+static const vector<std::string> kMixPrefixs = {"_mix_aic", "_mix_aiv"};
 
 MixAICAIVDynamicTaskBuilder::MixAICAIVDynamicTaskBuilder() {}
 
@@ -65,13 +65,12 @@ Status MixAICAIVDynamicTaskBuilder::GenContextDef(const ge::NodePtr &node, domi:
   return SUCCESS;
 }
 
-Status MixAICAIVDynamicTaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc,
-                                                      domi::FftsPlusTaskDef *ffts_plus_task_def,
+Status MixAICAIVDynamicTaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc, domi::FftsPlusTaskDef *ffts_plus_task_def,
                                                       vector<uint32_t> &auto_ctx_id_list) const {
   FFTS_CHECK_NOTNULL(op_desc);
   uint32_t mode = 0;
   uint32_t data_type = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
   bool inter_core_sync = false;
   (void)ge::AttrUtils::GetBool(op_desc, kAttrIntercoreSync, inter_core_sync);
   FFTS_LOGD("Mix node [%s] mode: %u, sync flag: %d.", op_desc->GetName().c_str(), mode, inter_core_sync);

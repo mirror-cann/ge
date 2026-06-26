@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,11 +16,7 @@
 #include "ge/fusion/pass/fusion_pass_reg.h"
 namespace ge {
 namespace fusion {
-enum class PythonPassKind : uint32_t {
-  kFusionBase = 0U,
-  kPatternFusion = 1U,
-  kDecompose = 2U
-};
+enum class PythonPassKind : uint32_t { kFusionBase = 0U, kPatternFusion = 1U, kDecompose = 2U };
 
 struct PythonPassCreateContext {
   // Python pass 目前仍复用 FusionPassRegistrationData 的无参 CreatePassFn。
@@ -79,8 +75,7 @@ inline std::string CustomPassStageToString(CustomPassStage stage) {
       {CustomPassStage::kAfterBuiltinFusionPass, "AfterBuiltinFusionPass"},
       {CustomPassStage::kAfterOriginGraphOptimize, "AfterOriginGraphOptimize"},
       {CustomPassStage::kCompatibleInherited, "CompatibleInherited"},
-      {CustomPassStage::kInvalid, "InvalidStage"}
-  };
+      {CustomPassStage::kInvalid, "InvalidStage"}};
   if (stage > CustomPassStage::kInvalid) {
     return "";
   }
@@ -114,8 +109,7 @@ class PassRegistry {
   std::map<std::string, PythonPassDescriptor> descriptor_key_2_python_pass_descs_;
   std::map<std::string, PythonPassCreateContext> pass_name_2_python_pass_create_contexts_;
 };
-}  // namespace fuison
+}  // namespace fusion
 }  // namespace ge
-
 
 #endif  // CANN_GRAPH_ENGINE_PASS_REGISTRY_H

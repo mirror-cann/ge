@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,32 +28,29 @@ constexpr int32_t kCoreNumPerDevice = 8;
 constexpr size_t kMaxSharedContentSize = 1024 * 1024U;
 constexpr size_t kAlignSize = 512U;
 constexpr size_t kAlignUnit = 2U;
-} // namespace
+}  // namespace
 
-DeployerVarManager::~DeployerVarManager() {
-}
+DeployerVarManager::~DeployerVarManager() {}
 
 Status DeployerVarManager::Initialize(deployer::VarManagerInfo var_manager_info) {
   var_mem_size_ = var_manager_info.use_max_mem_size();
   var_manager_info_ = std::move(var_manager_info);
-  GELOGI("VarManager initialized, session_id = %lu, device_id = %d, size = %lu",
-         var_manager_info_.session_id(), var_manager_info_.device_id(), var_mem_size_);
+  GELOGI("VarManager initialized, session_id = %lu, device_id = %d, size = %lu", var_manager_info_.session_id(),
+         var_manager_info_.device_id(), var_mem_size_);
   return SUCCESS;
 }
 
 void DeployerVarManager::Finalize() {
   for (auto &it_mbuf : var_mbuf_vec_) {
     if (it_mbuf != nullptr) {
-      (void) ProxyEventManager::FreeMbuf(var_manager_info_.device_id(), it_mbuf);
+      (void)ProxyEventManager::FreeMbuf(var_manager_info_.device_id(), it_mbuf);
       it_mbuf = nullptr;
     }
   }
 }
 
 Status DeployerVarManager::ProcessSharedContent(const deployer::SharedContentDescription &shared_content_desc,
-                                                const size_t size,
-                                                const size_t offset,
-                                                const uint32_t queue_id) {
+                                                const size_t size, const size_t offset, const uint32_t queue_id) {
   uint64_t total_length = shared_content_desc.total_length();
   GE_CHECK_LE(shared_content_desc.current_offset(), UINT64_MAX - offset);
   uint64_t current_offset = shared_content_desc.current_offset() + offset;
@@ -64,7 +61,7 @@ Status DeployerVarManager::ProcessSharedContent(const deployer::SharedContentDes
   GE_CHECK_LE(shared_content_desc.current_offset(), UINT64_MAX - var_manager_info_.var_mem_logic_base());
   uint64_t logic_addr = shared_content_desc.current_offset() + var_manager_info_.var_mem_logic_base();
   GE_CHK_STATUS_RET(GetVarMemAddr(logic_addr, total_length, &var_dev_addr),
-      "[GetVarMemAddr]Get or Malloc shared memory failed");
+                    "[GetVarMemAddr]Get or Malloc shared memory failed");
   var_dev_addr = static_cast<void *>(static_cast<uint8_t *>(var_dev_addr) + offset + kAlignSize);
   GELOGD("copy from queue id[%d] to device[%d]", queue_id, var_manager_info_.device_id());
   GE_CHK_STATUS_RET(
@@ -94,9 +91,7 @@ deployer::VarManagerInfo &DeployerVarManager::MutableVarManagerInfo() {
   return var_manager_info_;
 }
 
-Status DeployerVarManager::GetVarMemAddr(const uint64_t &offset,
-                                         const uint64_t &total_length,
-                                         void **dev_addr,
+Status DeployerVarManager::GetVarMemAddr(const uint64_t &offset, const uint64_t &total_length, void **dev_addr,
                                          bool need_malloc) {
   auto iter = offset_and_var_map_.find(offset);
   if (iter != offset_and_var_map_.end()) {
@@ -116,8 +111,7 @@ Status DeployerVarManager::GetVarMemAddr(const uint64_t &offset,
   // 分配内存前后各预留512K
   malloc_length += (kAlignSize * kAlignUnit);
   // do not set var max size, var addr individual malloc
-  GE_CHK_STATUS_RET(MallocVarMem(malloc_length, var_manager_info_.device_id(), dev_addr),
-                    "[Malloc] Var mem failed.");
+  GE_CHK_STATUS_RET(MallocVarMem(malloc_length, var_manager_info_.device_id(), dev_addr), "[Malloc] Var mem failed.");
   offset_and_var_map_.emplace(std::make_pair(offset, *dev_addr));
   return SUCCESS;
 }
@@ -125,8 +119,7 @@ Status DeployerVarManager::GetVarMemAddr(const uint64_t &offset,
 uint8_t *DeployerVarManager::GetVarMemBase() {
   if (var_mem_base_ == nullptr) {
     void *buffer_address = nullptr;
-    if (MallocVarMem(var_manager_info_.var_mem_max_size(), var_manager_info_.device_id(),
-                     &buffer_address) != SUCCESS) {
+    if (MallocVarMem(var_manager_info_.var_mem_max_size(), var_manager_info_.device_id(), &buffer_address) != SUCCESS) {
       return nullptr;
     }
     var_mem_base_ = static_cast<uint8_t *>(buffer_address);

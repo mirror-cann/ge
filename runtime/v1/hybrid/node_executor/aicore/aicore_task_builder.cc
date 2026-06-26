@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,8 @@ Status AiCoreTaskBuilder::InitTaskDef() {
     const domi::TaskDef &task_def = task_defs_[i];
     const auto task_type = static_cast<ModelTaskType>(task_def.type());
     if ((task_type == ModelTaskType::MODEL_TASK_KERNEL) || (task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL)) {
-      const auto &context = (task_type == ModelTaskType::MODEL_TASK_KERNEL) ? task_def.kernel().context() :
-          task_def.kernel_with_handle().context();
+      const auto &context = (task_type == ModelTaskType::MODEL_TASK_KERNEL) ? task_def.kernel().context()
+                                                                            : task_def.kernel_with_handle().context();
       const auto kernel_type = static_cast<ccKernelType>(context.kernel_type());
       if (kernel_type == ccKernelType::TE) {
         aicore_task_defs_.emplace_back(task_def);
@@ -46,8 +46,8 @@ Status AiCoreTaskBuilder::InitTaskDef() {
         GELOGE(ACL_ERROR_GE_OP_KERNEL_TYPE_INVALID,
                "[Check][KernelType]Only TBE, AI_CPU, CUST_AI_CPU kernel are supported, but got %d",
                static_cast<int32_t>(kernel_type));
-        REPORT_INNER_ERR_MSG("E19999",
-            "Init taskdef fail for %d not supported, Only TBE, AI_CPU, CUST_AI_CPU kernel are supported.",
+        REPORT_INNER_ERR_MSG(
+            "E19999", "Init taskdef fail for %d not supported, Only TBE, AI_CPU, CUST_AI_CPU kernel are supported.",
             static_cast<int32_t>(kernel_type));
         return ACL_ERROR_GE_OP_KERNEL_TYPE_INVALID;
       }
@@ -55,10 +55,9 @@ Status AiCoreTaskBuilder::InitTaskDef() {
       aicpu_task_defs_.emplace_back(&task_def);
     } else {
       GELOGE(INTERNAL_ERROR, "Only AI_CORE and AI_CPU kernel for aicore task, but got task_type %d",
-          static_cast<int32_t>(task_type));
-      REPORT_INNER_ERR_MSG("E19999",
-          "Only AI_CORE and AI_CPU kernel for aicore task, but got task_type %d",
-          static_cast<int32_t>(task_type));
+             static_cast<int32_t>(task_type));
+      REPORT_INNER_ERR_MSG("E19999", "Only AI_CORE and AI_CPU kernel for aicore task, but got task_type %d",
+                           static_cast<int32_t>(task_type));
       return INTERNAL_ERROR;
     }
   }
@@ -88,10 +87,10 @@ Status AiCoreTaskBuilder::LoadAtomicWorkspace() {
   }
   workspace_info[op_name] = index_offset;
   if (!op_desc_->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info)) {
-    GELOGE(INTERNAL_ERROR, "[Set][Attr:%s]fail for node:%s.",
-           EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str(), op_desc_->GetName().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for node:%s.",
-                       EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str(), op_desc_->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Set][Attr:%s]fail for node:%s.", EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str(),
+           op_desc_->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for node:%s.", EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str(),
+                         op_desc_->GetName().c_str());
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -100,16 +99,15 @@ Status AiCoreTaskBuilder::LoadAtomicWorkspace() {
 Status AiCoreTaskBuilder::BuildTask() {
   GE_CHECK_NOTNULL(op_desc_);
   GE_CHK_STATUS_RET(InitTaskDef());
-  GE_CHK_STATUS_RET(LoadAtomicWorkspace(),
-                    "[LoadAtomicWorkSpace]failed for [%s(%s)].",
-                    op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+  GE_CHK_STATUS_RET(LoadAtomicWorkspace(), "[LoadAtomicWorkSpace]failed for [%s(%s)].", op_desc_->GetName().c_str(),
+                    op_desc_->GetType().c_str());
   if (aicore_task_defs_.size() > kNumTaskWithAtomicAddrCleanTask) {
     GELOGE(INTERNAL_ERROR, "[Check][Size][%s(%s)] At most %zu task was supported, but got %zu",
-           op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
-           kNumTaskWithAtomicAddrCleanTask, aicore_task_defs_.size());
+           op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), kNumTaskWithAtomicAddrCleanTask,
+           aicore_task_defs_.size());
     REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] At most %zu task was supported, but got %zu, check invalid.",
-                       op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
-                       kNumTaskWithAtomicAddrCleanTask, aicore_task_defs_.size());
+                         op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), kNumTaskWithAtomicAddrCleanTask,
+                         aicore_task_defs_.size());
     return INTERNAL_ERROR;
   }
 
@@ -117,11 +115,11 @@ Status AiCoreTaskBuilder::BuildTask() {
   if (ExpectAtomicAddrCleanTask()) {
     if (aicore_task_defs_.size() != kNumTaskWithAtomicAddrCleanTask) {
       GELOGE(INTERNAL_ERROR, "[Check][Size][%s(%s)] AtomicAddrClean task was expected:%zu, but got %zu task_defs",
-             op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
-             kNumTaskWithAtomicAddrCleanTask, aicore_task_defs_.size());
+             op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), kNumTaskWithAtomicAddrCleanTask,
+             aicore_task_defs_.size());
       REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] AtomicAddrClean task was expected:%zu, but got %zu task_defs,",
-                         op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
-                         kNumTaskWithAtomicAddrCleanTask, aicore_task_defs_.size());
+                           op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), kNumTaskWithAtomicAddrCleanTask,
+                           aicore_task_defs_.size());
       return INTERNAL_ERROR;
     }
 
@@ -135,8 +133,8 @@ Status AiCoreTaskBuilder::BuildTask() {
     GE_CHK_STATUS_RET(atomic_task->SetPlatformInfo(node_, model_.GetPlatformInfo()),
                       "Set platform info to atomic clean task failed.");
     GE_CHK_STATUS_RET(atomic_task->Init(node_, aicore_task_defs_.front()),
-                      "[Invoke][AtomicAddrCleanOpTask::Init] failed for [%s(%s)].",
-                      op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+                      "[Invoke][AtomicAddrCleanOpTask::Init] failed for [%s(%s)].", op_desc_->GetName().c_str(),
+                      op_desc_->GetType().c_str());
     aicore_node_task_.tasks_.emplace_back(std::move(atomic_task));
   }
 
@@ -190,13 +188,13 @@ Status AiCoreTaskBuilder::LoadAicpuTask() {
       aicpu_task = MakeUnique<AicpuNodeTask>(node_item, task_def);
     } else {
       REPORT_INNER_ERR_MSG("E19999", "Node[%s] task type=%u is not supported by aicpu node executor.",
-                         node_->GetName().c_str(), task_def.type());
-      GELOGE(UNSUPPORTED, "Node[%s] task type=%u is not supported by aicpu node executor.",
-             node_->GetName().c_str(), task_def.type());
+                           node_->GetName().c_str(), task_def.type());
+      GELOGE(UNSUPPORTED, "Node[%s] task type=%u is not supported by aicpu node executor.", node_->GetName().c_str(),
+             task_def.type());
       return UNSUPPORTED;
     }
-    GE_CHK_BOOL_RET_STATUS(aicpu_task != nullptr, MEMALLOC_FAILED,
-                           "Load task for node %s failed.", node_->GetName().c_str());
+    GE_CHK_BOOL_RET_STATUS(aicpu_task != nullptr, MEMALLOC_FAILED, "Load task for node %s failed.",
+                           node_->GetName().c_str());
     GE_CHK_STATUS_RET(aicpu_task->Init(model_), "Node[%s] task init failed.", node_->GetName().c_str());
     aicore_node_task_.aicpu_task_ = std::move(aicpu_task);
   }

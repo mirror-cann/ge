@@ -113,7 +113,8 @@ HcclResult HcomOpsKernelInfoStore::GenerateOpTagFromTaskInfo(const ge::GETaskInf
     CHK_RET(HcomGenerateCclOpTag(opType.c_str(), comm, group.c_str(), cTag));
     sTag = cTag;
   } else if (opType == HCCL_KERNEL_OP_TYPE_SEND) {
-    // Send/Receive 算子的 tag 需一致（用于注册获取资源），为 "SendRecv" + srTag + srcRank + destRank + group name hash + op index in group
+    // Send/Receive 算子的 tag 需一致（用于注册获取资源），为 "SendRecv" + srTag + srcRank + destRank + group name hash
+    // + op index in group
     uint32_t srTag = privateDefBuf->srTag;
     std::string sSrTag = std::to_string(srTag);
     destRank = privateDefBuf->destRank;
@@ -124,7 +125,8 @@ HcclResult HcomOpsKernelInfoStore::GenerateOpTagFromTaskInfo(const ge::GETaskInf
       CHK_PRT_RET(ret != HCCL_SUCCESS,
                   HCCL_ERROR("[Generate][OpTag]op[%s]: get rank id failed. ret[%d]", opType.c_str(), ret), ret);
       sSrcRank = std::to_string(srcRank);
-      HCCL_DEBUG("[Generate][OpTag][Send]: group[%s], srTag[%s], srcRank[%s], dstRank[%s]", group.c_str(), sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
+      HCCL_DEBUG("[Generate][OpTag][Send]: group[%s], srTag[%s], srcRank[%s], dstRank[%s]", group.c_str(),
+                 sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
     } else {
       char *groupname = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &groupname));
@@ -133,14 +135,16 @@ HcclResult HcomOpsKernelInfoStore::GenerateOpTagFromTaskInfo(const ge::GETaskInf
                   HCCL_ERROR("[Generate][OpTag]op[%s]: get rank id failed. ret[%d]", opType.c_str(), ret), ret);
       sSrcRank = std::to_string(srcRank);
       identifier = std::string(groupname);
-      HCCL_DEBUG("[Generate][OpTag][Send]: identifier[%s], srTag[%s], srcRank[%s], dstRank[%s]", identifier.c_str(), sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
+      HCCL_DEBUG("[Generate][OpTag][Send]: identifier[%s], srTag[%s], srcRank[%s], dstRank[%s]", identifier.c_str(),
+                 sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
     }
     std::string baseTag = "SendRecv_" + sSrTag + "_" + sSrcRank + "_" + sDestRank;
     char cTag[CCL_OP_TAG_MAX_LEN];
-    CHK_RET(HcomGenerateCclOpTag(baseTag.c_str(), comm, group.c_str(), cTag));  
+    CHK_RET(HcomGenerateCclOpTag(baseTag.c_str(), comm, group.c_str(), cTag));
     sTag = cTag;
   } else if (opType == HCCL_KERNEL_OP_TYPE_RECEIVE) {
-    // Send/Receive 算子的 tag 需一致（用于注册获取资源），为 "SendRecv" + srTag + srcRank + destRank + group name hash + op index in group
+    // Send/Receive 算子的 tag 需一致（用于注册获取资源），为 "SendRecv" + srTag + srcRank + destRank + group name hash
+    // + op index in group
     uint32_t srTag = privateDefBuf->srTag;
     std::string sSrTag = std::to_string(srTag);
     srcRank = privateDefBuf->srcRank;
@@ -151,7 +155,8 @@ HcclResult HcomOpsKernelInfoStore::GenerateOpTagFromTaskInfo(const ge::GETaskInf
       CHK_PRT_RET(ret != HCCL_SUCCESS,
                   HCCL_ERROR("[Generate][OpTag]op[%s]: get rank id failed. ret[%d]", opType.c_str(), ret), ret);
       sDestRank = std::to_string(destRank);
-      HCCL_DEBUG("[Generate][OpTag][Recv]: group[%s], srTag[%s], srcRank[%s], dstRank[%s]", group.c_str(), sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
+      HCCL_DEBUG("[Generate][OpTag][Recv]: group[%s], srTag[%s], srcRank[%s], dstRank[%s]", group.c_str(),
+                 sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
     } else {
       char *groupname = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &groupname));
@@ -160,11 +165,12 @@ HcclResult HcomOpsKernelInfoStore::GenerateOpTagFromTaskInfo(const ge::GETaskInf
                   HCCL_ERROR("[Generate][OpTag]op[%s]: get rank id failed. ret[%d]", opType.c_str(), ret), ret);
       sDestRank = std::to_string(destRank);
       identifier = std::string(groupname);
-      HCCL_DEBUG("[Generate][OpTag][Recv]: identifier[%s], srTag[%s], srcRank[%s], dstRank[%s]", identifier.c_str(), sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
+      HCCL_DEBUG("[Generate][OpTag][Recv]: identifier[%s], srTag[%s], srcRank[%s], dstRank[%s]", identifier.c_str(),
+                 sSrTag.c_str(), sSrcRank.c_str(), sDestRank.c_str());
     }
     std::string baseTag = "SendRecv_" + sSrTag + "_" + sSrcRank + "_" + sDestRank;
     char cTag[CCL_OP_TAG_MAX_LEN];
-    CHK_RET(HcomGenerateCclOpTag(baseTag.c_str(), comm, group.c_str(), cTag));  
+    CHK_RET(HcomGenerateCclOpTag(baseTag.c_str(), comm, group.c_str(), cTag));
     sTag = cTag;
   } else {
     HCCL_ERROR("[Generate][OpTag]errNo[0x%016llx] get tag name failed. op type[%s] is invalid.",
@@ -355,8 +361,9 @@ HcclResult HcomOpsKernelInfoStore::CheckCommunicatorValidity(const char *group, 
   if (!isCommunicatorValid && (HcomGetCommHandleByGroup(group, &commHandle) != HCCL_SUCCESS)) {
     REPORT_PREDEFINED_ERR_MSG(
         "EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
-        std::vector<const char *>({ "The ranktable path configured in the training can be found in the plogs.",
-        "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+        std::vector<const char *>({"The ranktable path configured in the training can be found in the plogs.",
+                                   "The rankTable file path does not exist, the permission is insufficient, or the "
+                                   "JSON format is incorrect."}));
     HCCL_ERROR(
         "[%s][%s]No valid communicator found, please check the RankTable Path or Master Info config or hccl "
         "initialization has been called before call this function",
@@ -430,8 +437,8 @@ void HcomOpsKernelInfoStore::GetAllGatherVParams(const ge::GETaskInfo &task, uin
 }
 
 HcclResult HcomOpsKernelInfoStore::PrepareOpExecutionParams(const std::vector<std::string> &tagVec,
-                                                             const ge::GETaskKernelHcclInfo &hcclInfo,
-                                                             HcclOpExecResParams &resParams) {
+                                                            const ge::GETaskKernelHcclInfo &hcclInfo,
+                                                            HcclOpExecResParams &resParams) {
   resParams.tag = tagVec[0];
 
   CHK_RET(GetStreamsFromTaskInfo(hcclInfo, resParams.streams));
@@ -510,12 +517,11 @@ HcclResult HcomOpsKernelInfoStore::HcomAlltoAllVOpKernel(const ge::GETaskInfo &t
   HCCL_INFO("[HcomAlltoAllVOpKernel] groupName: [%s]", groupName);
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
-  if (openSourceTag) {      
+  if (openSourceTag) {
     HCCL_INFO("[HcomAlltoAllVOpKernel] enter opensource produce, call HcceAlltoAllVGraphMode");
-      CHK_RET(HcceAlltoAllVGraphMode(
-        sendBufPtr, sendCounts, sendDispls, sendType, recvBufPtr, recvCounts, recvDispls, recvType,
-        groupName, stream, resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+    CHK_RET(HcceAlltoAllVGraphMode(sendBufPtr, sendCounts, sendDispls, sendType, recvBufPtr, recvCounts, recvDispls,
+                                   recvType, groupName, stream, resParams.tag.c_str(), resParams.streamArray,
+                                   resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
     HCCL_INFO("[HcomAlltoAllVOpKernel] HcceAlltoAllVGraphMode end");
   } else {
     CHK_RET(HcomAlltoAllV(sendBufPtr, sendCounts, sendDispls, sendType, recvBufPtr, recvCounts, recvDispls, recvType,
@@ -563,23 +569,22 @@ HcclResult HcomOpsKernelInfoStore::HcomAlltoAllOpKernel(const ge::GETaskInfo &ta
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
 
-  HCCL_DEBUG("[AlltoAllOp][Kernel] totalCount[%llu] rankSize[%u] sendCount[%llu] recvCount[%llu]",
-             hcclInfo.count, rankSize, sendCount, recvCount);
-  
-  const char* groupName = group.c_str();
+  HCCL_DEBUG("[AlltoAllOp][Kernel] totalCount[%llu] rankSize[%u] sendCount[%llu] recvCount[%llu]", hcclInfo.count,
+             rankSize, sendCount, recvCount);
+
+  const char *groupName = group.c_str();
   HCCL_INFO("[HcomAlltoAllOpKernel] groupName: [%s]", groupName);
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     HCCL_INFO("[HcomAlltoAllOpKernel] enter opensource produce, call HcceAlltoAllGraphMode");
-    CHK_RET(HcceAlltoAllGraphMode(
-      sendBuf, sendCount, sendType, recvBuf, recvCount, recvType, groupName, stream,
-      resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-      resParams.scratchMemAddr, resParams.scratchMemSize));
+    CHK_RET(HcceAlltoAllGraphMode(sendBuf, sendCount, sendType, recvBuf, recvCount, recvType, groupName, stream,
+                                  resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                  resParams.scratchMemAddr, resParams.scratchMemSize));
     HCCL_INFO("[HcomAlltoAllOpKernel] HcceAlltoAllGraphMode end");
   } else {
-    CHK_RET(HcomAllToAll(sendBuf, sendCount, sendType, recvBuf, recvCount, recvType, groupName, stream,
-                        tagVec[0].c_str()));
+    CHK_RET(
+        HcomAllToAll(sendBuf, sendCount, sendType, recvBuf, recvCount, recvType, groupName, stream, tagVec[0].c_str()));
   }
   return HCCL_SUCCESS;
 }
@@ -631,7 +636,7 @@ HcclResult HcomOpsKernelInfoStore::HcomAlltoAllVCOpKernel(const ge::GETaskInfo &
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
 
-  const char* groupName = nullptr;
+  const char *groupName = nullptr;
   if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
     groupName = group.c_str();
   } else {
@@ -644,14 +649,13 @@ HcclResult HcomOpsKernelInfoStore::HcomAlltoAllVCOpKernel(const ge::GETaskInfo &
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     HCCL_INFO("[HcomAlltoAllVCOpKernel] enter opensource produce, call HcceAlltoAllVCGraphMode");
-    CHK_RET(HcceAlltoAllVCGraphMode(
-      sendBufPtr, sendCountMatrix, sendType, recvBufPtr, recvType,
-      groupName, stream, resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-      resParams.scratchMemAddr, resParams.scratchMemSize));
+    CHK_RET(HcceAlltoAllVCGraphMode(sendBufPtr, sendCountMatrix, sendType, recvBufPtr, recvType, groupName, stream,
+                                    resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                    resParams.scratchMemAddr, resParams.scratchMemSize));
     HCCL_INFO("[HcomAlltoAllVCOpKernel] HcceAlltoAllVCGraphMode end");
   } else {
-    CHK_RET(HcomAlltoAllVC(
-      sendBufPtr, sendCountMatrix, sendType, recvBufPtr, recvType, groupName, stream, tagVec[0].c_str()));
+    CHK_RET(HcomAlltoAllVC(sendBufPtr, sendCountMatrix, sendType, recvBufPtr, recvType, groupName, stream,
+                           tagVec[0].c_str()));
   }
 
   CHK_RET(RefreshOutputAddr(shapeType, comm, group, reinterpret_cast<void *>(recvBuf), outputMemSize, stream));
@@ -699,14 +703,17 @@ HcclResult HcomOpsKernelInfoStore::CleanIntervalMemoryOpKernel(const ge::GETaskI
     bool openSourceTag = false;
     CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
-      CHK_RET(HcceSelectAlgGraphMode(group.c_str(), count, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
+      CHK_RET(
+          HcceSelectAlgGraphMode(group.c_str(), count, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
     } else {
-      #ifdef HCOM_SELECT_ALG_POINTER_MODE
-        CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv, algName));
-      #else
-        // 默认模式：使用旧接口（传引用）
-        CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv, algName));
-      #endif
+#ifdef HCOM_SELECT_ALG_POINTER_MODE
+      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, &ifAiv,
+                            algName));
+#else
+      // 默认模式：使用旧接口（传引用）
+      CHK_RET(HcomSelectAlg(comm, group.c_str(), count, nullptr, dataType, reduceType, opType, MAX_BLOCK_DIM, ifAiv,
+                            algName));
+#endif
     }
     if (crackNum == 0 || (crackNum == 1 && ifAiv)) {
       HCCL_WARNING("[CleanIntervalMemoryOpKernel]The number of tensors to be cleared is 0.");
@@ -866,15 +873,15 @@ HcclResult HcomOpsKernelInfoStore::HcomAllReduceOpKernel(const ge::GETaskInfo &t
     HCCL_INFO("[HcomAllReduceOpKernel] groupName: [%s]", groupName);
     bool openSourceTag = false;
     CHK_RET(IsUsingOpenSource(openSourceTag));
-    if (openSourceTag) {      
+    if (openSourceTag) {
       HCCL_INFO("[HcomAllReduceOpKernel] enter opensource produce, call HcceAllReduceGraphMode");
-      CHK_RET(HcceAllReduceGraphMode(
-        inputDataPtr, outputDataPtr, count, dataType, reduceType, groupName, streamMain,
-        resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceAllReduceGraphMode(inputDataPtr, outputDataPtr, count, dataType, reduceType, groupName, streamMain,
+                                     resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                     resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomAllReduceOpKernel] HcceAllReduceGraphMode end");
     } else {
-      CHK_RET(HcomAllReduce(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, reduceType, groupName, streamMain));
+      CHK_RET(HcomAllReduce(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, reduceType, groupName,
+                            streamMain));
     }
   }
 
@@ -975,12 +982,13 @@ HcclResult HcomOpsKernelInfoStore::HcomAllReduceLoop(const ge::GETaskInfo &task,
     if (openSourceTag) {
       HCCL_INFO("[HcomAllReduceLoop] enter opensource produce, call HcceAllReduceGraphMode");
 
-      CHK_RET(HcceAllReduceGraphMode(
-        commInputPtr, commOutputPtr, curCount, dataType, reduceType, groupName, streamMain, tagVec[loopTime].c_str(),
-        resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceAllReduceGraphMode(commInputPtr, commOutputPtr, curCount, dataType, reduceType, groupName, streamMain,
+                                     tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                     resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomAllReduceLoop] HcceAllReduceGraphMode end");
     } else {
-      CHK_RET(HcomAllReduce(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, reduceType, groupName, streamMain));
+      CHK_RET(HcomAllReduce(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, reduceType,
+                            groupName, streamMain));
     }
 
     // 将结果拷回二级指针上
@@ -1034,13 +1042,13 @@ HcclResult HcomOpsKernelInfoStore::HcomAllGatherOpKernel(const ge::GETaskInfo &t
 
   void *inputDataPtr = reinterpret_cast<void *>(inputAddr);
   void *outputDataPtr = reinterpret_cast<void *>(outputAddr);
-  
+
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
-  
+
   if (task.needRefresh) {
-    CHK_RET(
-        HcomAllGatherLoop(tagVec, shapeType, comm, group, inputDataPtr, outputDataPtr, count, dataType, streamMain, resParams));
+    CHK_RET(HcomAllGatherLoop(tagVec, shapeType, comm, group, inputDataPtr, outputDataPtr, count, dataType, streamMain,
+                              resParams));
   } else {
     const char *groupName = nullptr;
     if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
@@ -1055,10 +1063,9 @@ HcclResult HcomOpsKernelInfoStore::HcomAllGatherOpKernel(const ge::GETaskInfo &t
     CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
       HCCL_INFO("[HcomAllGatherOpKernel] enter opensource produce, call HcceAllGatherGraphMode");
-      CHK_RET(HcceAllGatherGraphMode(
-        inputDataPtr, outputDataPtr, count, dataType, groupName, streamMain,
-        resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceAllGatherGraphMode(inputDataPtr, outputDataPtr, count, dataType, groupName, streamMain,
+                                     resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                     resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomAllGatherOpKernel] HcceAllGatherGraphMode end");
     } else {
       CHK_RET(HcomAllGather(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, groupName, streamMain));
@@ -1103,30 +1110,29 @@ HcclResult HcomOpsKernelInfoStore::HcomAllGatherVOpKernel(const ge::GETaskInfo &
 
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
-  	 
+
   const char *groupName = nullptr;
- 	if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
- 	  groupName = group.c_str();
- 	} else {
- 	  char *tmp = nullptr;
- 	  CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
- 	  groupName = tmp;
- 	}
- 	HCCL_INFO("[HcomAllGatherVOpKernel] groupName: [%s]", groupName);
- 	bool openSourceTag = false;
- 	CHK_RET(IsUsingOpenSource(openSourceTag));
- 	if (openSourceTag) {      
- 	HCCL_INFO("[HcomAllGatherVOpKernel] enter opensource produce, call HcceAllGatherVGraphMode");
- 	CHK_RET(HcceAllGatherVGraphMode(
-       inputDataPtr, outputDataPtr, sendCount, recvCounts, recvDispls, dataType, groupName, streamMain,
-       resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-       resParams.scratchMemAddr, resParams.scratchMemSize));
- 	HCCL_INFO("[HcomAllGatherVOpKernel] HcceAllGatherVGraphMode end");
- 	} else {
- 	  // 执行 hcom 算子
- 	  CHK_RET(HcomAllGatherV(tagVec[0].c_str(), inputDataPtr, sendCount, outputDataPtr, recvCounts, recvDispls, dataType,
- 	                      group.c_str(), streamMain));
- 	}
+  if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
+    groupName = group.c_str();
+  } else {
+    char *tmp = nullptr;
+    CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
+    groupName = tmp;
+  }
+  HCCL_INFO("[HcomAllGatherVOpKernel] groupName: [%s]", groupName);
+  bool openSourceTag = false;
+  CHK_RET(IsUsingOpenSource(openSourceTag));
+  if (openSourceTag) {
+    HCCL_INFO("[HcomAllGatherVOpKernel] enter opensource produce, call HcceAllGatherVGraphMode");
+    CHK_RET(HcceAllGatherVGraphMode(inputDataPtr, outputDataPtr, sendCount, recvCounts, recvDispls, dataType, groupName,
+                                    streamMain, resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                    resParams.scratchMemAddr, resParams.scratchMemSize));
+    HCCL_INFO("[HcomAllGatherVOpKernel] HcceAllGatherVGraphMode end");
+  } else {
+    // 执行 hcom 算子
+    CHK_RET(HcomAllGatherV(tagVec[0].c_str(), inputDataPtr, sendCount, outputDataPtr, recvCounts, recvDispls, dataType,
+                           group.c_str(), streamMain));
+  }
 
   return HCCL_SUCCESS;
 }
@@ -1199,11 +1205,13 @@ HcclResult HcomOpsKernelInfoStore::HcomAllGatherLoop(const std::vector<std::stri
     if (openSourceTag) {
       HCCL_INFO("[HcomAllGatherLoop] enter opensource produce, call HcceAllGatherGraphMode");
       // 准备 streams 参数
-      CHK_RET(HcceAllGatherGraphMode(commInputPtr, commOutputPtr, curCount, dataType, groupName, streamMain, tagVec[loopTime].c_str(), 
-                                     resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceAllGatherGraphMode(commInputPtr, commOutputPtr, curCount, dataType, groupName, streamMain,
+                                     tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                     resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomAllGatherLoop] HcceAllGatherGraphMode end");
     } else {
-      CHK_RET(HcomAllGather(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, groupName, streamMain));
+      CHK_RET(HcomAllGather(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, groupName,
+                            streamMain));
     }
 
     // 将结果拷回二级指针上
@@ -1411,8 +1419,11 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceScatterOpKernel(const ge::GETaskInf
   HcclReduceOp reduceType;
   std::vector<void *> globalWorkSpaceAddr;
   std::vector<ge::GETaskKernelHcclInfo> hcclInfos = task.kernelHcclInfo;
-  CHK_PRT_RET((hcclInfos.size() != 1), HCCL_ERROR("[ReduceScatterOp][Kernel]errNo[0x%016llx] GETaskInfo size"
-                         "in HCOM should be 1", HCOM_ERROR_CODE(HCCL_E_PARA)), HCCL_E_PARA);
+  CHK_PRT_RET((hcclInfos.size() != 1),
+              HCCL_ERROR("[ReduceScatterOp][Kernel]errNo[0x%016llx] GETaskInfo size"
+                         "in HCOM should be 1",
+                         HCOM_ERROR_CODE(HCCL_E_PARA)),
+              HCCL_E_PARA);
   ge::GETaskKernelHcclInfo hcclInfo = hcclInfos[0];  // HCOM场景下只会有一个
 
   // 获取 hcom api 必须的参数
@@ -1460,15 +1471,15 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceScatterOpKernel(const ge::GETaskInf
     HCCL_INFO("[HcomReduceScatterOpKernel] groupName[%s]", groupName);
     bool openSourceTag = false;
     CHK_RET(IsUsingOpenSource(openSourceTag));
-    if (openSourceTag) {      
+    if (openSourceTag) {
       HCCL_INFO("[HcomReduceScatterOpKernel] enter opensource produce, call HcceReduceScatterGraphMode");
-      CHK_RET(HcceReduceScatterGraphMode(inputDataPtr, outputDataPtr, count, dataType, reduceType,
-                                        groupName, streamMain, resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-                                        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceReduceScatterGraphMode(inputDataPtr, outputDataPtr, count, dataType, reduceType, groupName,
+                                         streamMain, resParams.tag.c_str(), resParams.streamArray,
+                                         resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomReduceScatterOpKernel] HcceReduceScatterGraphMode end");
     } else {
       CHK_RET(HcomReduceScatter(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, reduceType,
- 	                              group.c_str(), streamMain));
+                                group.c_str(), streamMain));
     }
   }
 
@@ -1530,17 +1541,16 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceScatterVOpKernel(const ge::GETaskIn
   HCCL_INFO("[HcomReduceScatterVOpKernel] groupName: [%s]", groupName);
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
-  if (openSourceTag) {      
+  if (openSourceTag) {
     HCCL_INFO("[HcomReduceScatterVOpKernel] enter opensource produce, call HcceReduceScatterVGraphMode");
-    CHK_RET(HcceReduceScatterVGraphMode(
-      inputDataPtr, sendCounts, sendDispls, outputDataPtr, recvCount, dataType, reduceType, groupName, streamMain,
-      resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-      resParams.scratchMemAddr, resParams.scratchMemSize));
+    CHK_RET(HcceReduceScatterVGraphMode(inputDataPtr, sendCounts, sendDispls, outputDataPtr, recvCount, dataType,
+                                        reduceType, groupName, streamMain, resParams.tag.c_str(), resParams.streamArray,
+                                        resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
     HCCL_INFO("[HcomReduceScatterVOpKernel] HcceReduceScatterVGraphMode end");
   } else {
-        // 执行 hcom 算子
-      CHK_RET(HcomReduceScatterV(tagVec[0].c_str(), inputDataPtr, sendCounts, sendDispls, outputDataPtr, recvCount,
-                            dataType, reduceType, group.c_str(), streamMain));
+    // 执行 hcom 算子
+    CHK_RET(HcomReduceScatterV(tagVec[0].c_str(), inputDataPtr, sendCounts, sendDispls, outputDataPtr, recvCount,
+                               dataType, reduceType, group.c_str(), streamMain));
   }
 
   return HCCL_SUCCESS;
@@ -1623,21 +1633,21 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceScatterLoop(const ge::GETaskInfo &t
       groupName = group.c_str();
     } else {
       char *tmp = nullptr;
- 	    CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
- 	    groupName = tmp;
- 	  }
- 	  HCCL_INFO("[HcomReduceScatterLoop] groupName[%s]", groupName);
- 	  bool openSourceTag = false;
- 	  CHK_RET(IsUsingOpenSource(openSourceTag));
- 	  if (openSourceTag) {
- 	    HCCL_INFO("[HcomReduceScatterLoop] enter opensource produce, call HcceReduceScatterGraphMode");
- 	    CHK_RET(HcceReduceScatterGraphMode(commInputPtr, commOutputPtr, curCount, dataType, reduceType,
- 	                                       groupName, streamMain, tagVec[loopTime].c_str(), 
- 	                                       resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
- 	    } else {
- 	       CHK_RET(HcomReduceScatter(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType,
-                                   reduceType, groupName, streamMain));
-      }
+      CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
+      groupName = tmp;
+    }
+    HCCL_INFO("[HcomReduceScatterLoop] groupName[%s]", groupName);
+    bool openSourceTag = false;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
+    if (openSourceTag) {
+      HCCL_INFO("[HcomReduceScatterLoop] enter opensource produce, call HcceReduceScatterGraphMode");
+      CHK_RET(HcceReduceScatterGraphMode(commInputPtr, commOutputPtr, curCount, dataType, reduceType, groupName,
+                                         streamMain, tagVec[loopTime].c_str(), resParams.streamArray,
+                                         resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
+    } else {
+      CHK_RET(HcomReduceScatter(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, reduceType,
+                                groupName, streamMain));
+    }
 
     // 将结果拷回二级指针上
     CHK_RET(RefreshOutputAddr(devType, shapeType, comm, group, outputDataPtr, outputOffset, curSize, outputMaxSize,
@@ -1736,9 +1746,10 @@ HcclResult HcomOpsKernelInfoStore::HcomBroadcastOpKernel(const ge::GETaskInfo &t
 
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
-  
+
   if (task.needRefresh) {
-    CHK_RET(HcomBroadcastLoop(tagVec, shapeType, comm, group, inputDataPtr, count, dataType, root, streamMain, resParams));
+    CHK_RET(
+        HcomBroadcastLoop(tagVec, shapeType, comm, group, inputDataPtr, count, dataType, root, streamMain, resParams));
   } else {
     // 执行 hcom 算子
     const char *groupName = nullptr;
@@ -1748,20 +1759,19 @@ HcclResult HcomOpsKernelInfoStore::HcomBroadcastOpKernel(const ge::GETaskInfo &t
       char *tmp = nullptr;
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
       groupName = tmp;
-	  }
- 	  HCCL_INFO("[HcomBroadcastOpKernel] groupName: [%s]", groupName);
- 	  bool openSourceTag = false;
- 	  CHK_RET(IsUsingOpenSource(openSourceTag));
- 	  if (openSourceTag) {
+    }
+    HCCL_INFO("[HcomBroadcastOpKernel] groupName: [%s]", groupName);
+    bool openSourceTag = false;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
+    if (openSourceTag) {
       HCCL_INFO("[HcomBroadcastOpKernel] enter opensource produce, call HcceBroadcastGraphMode");
- 	    CHK_RET(HcceBroadcastGraphMode(
- 	      inputDataPtr, count, dataType, root, groupName, streamMain,
- 	      resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
- 	      resParams.scratchMemAddr, resParams.scratchMemSize));
- 	    HCCL_INFO("[HcomBroadcastOpKernel] HcceBroadcastGraphMode end");
- 	  } else {
+      CHK_RET(HcceBroadcastGraphMode(inputDataPtr, count, dataType, root, groupName, streamMain, resParams.tag.c_str(),
+                                     resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr,
+                                     resParams.scratchMemSize));
+      HCCL_INFO("[HcomBroadcastOpKernel] HcceBroadcastGraphMode end");
+    } else {
       CHK_RET(HcomBroadcast(tagVec[0].c_str(), inputDataPtr, count, dataType, root, groupName, streamMain));
- 	  }
+    }
   }
 
   return HCCL_SUCCESS;
@@ -1769,8 +1779,8 @@ HcclResult HcomOpsKernelInfoStore::HcomBroadcastOpKernel(const ge::GETaskInfo &t
 
 HcclResult HcomOpsKernelInfoStore::HcomBroadcastLoop(const std::vector<std::string> &tagVec, u32 shapeType,
                                                      const int64_t &comm, const std::string &group, void *&inputDataPtr,
-                                                     u64 count, HcclDataType dataType, u32 root,
-                                                     rtStream_t streamMain, HcclOpExecResParams &resParams) {
+                                                     u64 count, HcclDataType dataType, u32 root, rtStream_t streamMain,
+                                                     HcclOpExecResParams &resParams) {
   // 获取 in ccl buf
   u64 commInputSize;
   CHK_RET(GetHcomInCCLbufferSize(commInputSize, shapeType, comm, group));
@@ -1820,17 +1830,17 @@ HcclResult HcomOpsKernelInfoStore::HcomBroadcastLoop(const std::vector<std::stri
       CHK_RET(HcomGetGroupNameByOpBase(comm, &tmp));
       groupName = tmp;
     }
- 	  HCCL_INFO("[HcomBroadcastLoop] groupName: [%s]", groupName);
- 	  bool openSourceTag = false;
- 	  CHK_RET(IsUsingOpenSource(openSourceTag));
+    HCCL_INFO("[HcomBroadcastLoop] groupName: [%s]", groupName);
+    bool openSourceTag = false;
+    CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
       HCCL_INFO("[HcomBroadcastLoop] enter opensource produce, call HcceBroadcastGraphMode");
- 	    CHK_RET(HcceBroadcastGraphMode(
- 	      commInputPtr, curCount, dataType, root, groupName, streamMain, tagVec[loopTime].c_str(),
- 	      resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
- 	    HCCL_INFO("[HcomBroadcastLoop] HcceBroadcastGraphMode end");
- 	    } else {
-        CHK_RET(HcomBroadcast(tagVec[loopTime].c_str(), commInputPtr, curCount, dataType, root, groupName, streamMain));
+      CHK_RET(HcceBroadcastGraphMode(commInputPtr, curCount, dataType, root, groupName, streamMain,
+                                     tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                     resParams.scratchMemAddr, resParams.scratchMemSize));
+      HCCL_INFO("[HcomBroadcastLoop] HcceBroadcastGraphMode end");
+    } else {
+      CHK_RET(HcomBroadcast(tagVec[loopTime].c_str(), commInputPtr, curCount, dataType, root, groupName, streamMain));
     }
 
     // 将结果拷回二级指针上
@@ -1916,14 +1926,13 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceOpKernel(const ge::GETaskInfo &task
     CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
       HCCL_INFO("[HcomReduceOpKernel] enter opensource produce, call HcceReduceGraphMode");
-      CHK_RET(HcceReduceGraphMode(
-        inputDataPtr, outputDataPtr, count, dataType, reduceType, root, groupName, streamMain,
-        resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceReduceGraphMode(inputDataPtr, outputDataPtr, count, dataType, reduceType, root, groupName, streamMain,
+                                  resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                  resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomReduceOpKernel] HcceReduceGraphMode end");
     } else {
-      CHK_RET(HcomReduce(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, reduceType, root,
-              groupName, streamMain));
+      CHK_RET(HcomReduce(tagVec[0].c_str(), inputDataPtr, outputDataPtr, count, dataType, reduceType, root, groupName,
+                         streamMain));
     }
   }
   return HCCL_SUCCESS;
@@ -2013,12 +2022,13 @@ HcclResult HcomOpsKernelInfoStore::HcomReduceLoop(const ge::GETaskInfo &task, co
     CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
       HCCL_INFO("[HcomReduceLoop] enter opensource produce, call HcceReduceGraphMode");
-      CHK_RET(HcceReduceGraphMode(
-        commInputPtr, commOutputPtr, curCount, dataType, reduceType, root, groupName, streamMain, tagVec[loopTime].c_str(),
-        resParams.streamArray, resParams.streamCount, resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceReduceGraphMode(commInputPtr, commOutputPtr, curCount, dataType, reduceType, root, groupName,
+                                  streamMain, tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                  resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomReduceLoop] HcceReduceGraphMode end");
     } else {
-      CHK_RET(HcomReduce(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, reduceType, root, groupName, streamMain));
+      CHK_RET(HcomReduce(tagVec[loopTime].c_str(), commInputPtr, commOutputPtr, curCount, dataType, reduceType, root,
+                         groupName, streamMain));
     }
 
     // 只root rank将结果拷回二级指针上
@@ -2073,7 +2083,7 @@ HcclResult HcomOpsKernelInfoStore::HcomSendOpKernel(const ge::GETaskInfo &task,
   CHK_RET(GetOriginalGraphShapeTypeFromTaskInfo(task, shapeType));
 
   void *inputDataPtr = reinterpret_cast<void *>(inputAddr);
-  
+
   std::string groupName;
   if (comm == static_cast<int64_t>(CommNumHcom::COMM_VALUE_DEFAULT)) {
     groupName = group;
@@ -2083,39 +2093,37 @@ HcclResult HcomOpsKernelInfoStore::HcomSendOpKernel(const ge::GETaskInfo &task,
     groupName = tmp;
   }
   HCCL_INFO("[HcomSendOpKernel] groupName: [%s]", groupName.c_str());
-  
+
   // 准备执行参数
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
 
   if (task.needRefresh) {
-    CHK_RET(HcomSendLoop(
-      tagVec, srTag, shapeType, comm, group, inputDataPtr, count, dataType, destRank,
-      groupName, streamMain, resParams));
+    CHK_RET(HcomSendLoop(tagVec, srTag, shapeType, comm, group, inputDataPtr, count, dataType, destRank, groupName,
+                         streamMain, resParams));
   } else {
     bool openSourceTag = false;
     CHK_RET(IsUsingOpenSource(openSourceTag));
     if (openSourceTag) {
       HCCL_INFO("[HcomSendOpKernel] enter opensource produce, call HcceSendGraphMode");
-      CHK_RET(HcceSendGraphMode(
-        inputDataPtr, count, dataType, destRank, groupName.c_str(), streamMain,
-        resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceSendGraphMode(inputDataPtr, count, dataType, destRank, groupName.c_str(), streamMain,
+                                resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomSendOpKernel] HcceSendGraphMode end");
     } else {
-      CHK_RET(HcomSend(
-        tagVec[0].c_str(), inputDataPtr, count, dataType, destRank, srTag, groupName.c_str(), streamMain));
+      CHK_RET(
+          HcomSend(tagVec[0].c_str(), inputDataPtr, count, dataType, destRank, srTag, groupName.c_str(), streamMain));
     }
   }
 
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::HcomSendLoop(
-  const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm, const std::string &group,
-  void *&inputDataPtr, u64 count, HcclDataType dataType, u32 &destRank,
-  const std::string &groupName, rtStream_t streamMain, HcclOpExecResParams &resParams)
-{
+HcclResult HcomOpsKernelInfoStore::HcomSendLoop(const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType,
+                                                const int64_t &comm, const std::string &group, void *&inputDataPtr,
+                                                u64 count, HcclDataType dataType, u32 &destRank,
+                                                const std::string &groupName, rtStream_t streamMain,
+                                                HcclOpExecResParams &resParams) {
   // 获取 in ccl buf
   u64 commInputSize;
   CHK_RET(GetHcomInCCLbufferSize(commInputSize, shapeType, comm, group));
@@ -2171,13 +2179,12 @@ HcclResult HcomOpsKernelInfoStore::HcomSendLoop(
     }
 
     if (openSourceTag) {
-      CHK_RET(HcceSendGraphMode(
-        commInputPtr, curCount, dataType, destRank, groupName.c_str(), streamMain,
-        tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceSendGraphMode(commInputPtr, curCount, dataType, destRank, groupName.c_str(), streamMain,
+                                tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                resParams.scratchMemAddr, resParams.scratchMemSize));
     } else {
-      CHK_RET(HcomSend(
-        tagVec[loopTime].c_str(), commInputPtr, curCount, dataType, destRank, srTag, groupName.c_str(), streamMain));
+      CHK_RET(HcomSend(tagVec[loopTime].c_str(), commInputPtr, curCount, dataType, destRank, srTag, groupName.c_str(),
+                       streamMain));
     }
 
     // 更新偏移量
@@ -2233,38 +2240,37 @@ HcclResult HcomOpsKernelInfoStore::HcomReceiveOpKernel(const ge::GETaskInfo &tas
     groupName = tmp;
   }
   HCCL_INFO("[HcomReceiveOpKernel] groupName: [%s]", groupName.c_str());
-  
+
   // 准备执行参数
   HcclOpExecResParams resParams;
   CHK_RET(PrepareOpExecutionParams(tagVec, hcclInfo, resParams));
 
   if (task.needRefresh) {
-    CHK_RET(HcomReceiveLoop(
-      tagVec, srTag, shapeType, comm, group, outputDataPtr, count, dataType, srcRank,
-      groupName, streamMain, resParams));
+    CHK_RET(HcomReceiveLoop(tagVec, srTag, shapeType, comm, group, outputDataPtr, count, dataType, srcRank, groupName,
+                            streamMain, resParams));
   } else {
     bool openSourceTag = false;
     CHK_RET(IsUsingOpenSource(openSourceTag));
-    if (openSourceTag) {      
+    if (openSourceTag) {
       HCCL_INFO("[HcomReceiveOpKernel] enter opensource produce, call HcceRecvGraphMode");
-      CHK_RET(HcceRecvGraphMode(
-        outputDataPtr, count, dataType, srcRank, groupName.c_str(), streamMain,
-        resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceRecvGraphMode(outputDataPtr, count, dataType, srcRank, groupName.c_str(), streamMain,
+                                resParams.tag.c_str(), resParams.streamArray, resParams.streamCount,
+                                resParams.scratchMemAddr, resParams.scratchMemSize));
       HCCL_INFO("[HcomReceiveOpKernel] HcceRecvGraphMode end");
     } else {
-      CHK_RET(HcomReceive(tagVec[0].c_str(), outputDataPtr, count, dataType, srcRank, srTag, groupName.c_str(), streamMain));
+      CHK_RET(HcomReceive(tagVec[0].c_str(), outputDataPtr, count, dataType, srcRank, srTag, groupName.c_str(),
+                          streamMain));
     }
   }
 
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelInfoStore::HcomReceiveLoop(
-  const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm, const std::string &group,
-  void *&outputDataPtr, u64 count, HcclDataType dataType, u32 &srcRank,
-  const std::string &groupName, rtStream_t streamMain, HcclOpExecResParams &resParams)
-{
+HcclResult HcomOpsKernelInfoStore::HcomReceiveLoop(const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType,
+                                                   const int64_t &comm, const std::string &group, void *&outputDataPtr,
+                                                   u64 count, HcclDataType dataType, u32 &srcRank,
+                                                   const std::string &groupName, rtStream_t streamMain,
+                                                   HcclOpExecResParams &resParams) {
   // 获取 in ccl buf
   u64 commOutputSize;
   GetHcomOutCCLbufferSize(commOutputSize, shapeType, comm, group);
@@ -2318,13 +2324,12 @@ HcclResult HcomOpsKernelInfoStore::HcomReceiveLoop(
     }
 
     if (openSourceTag) {
-      CHK_RET(HcceRecvGraphMode(
-        commOutputPtr, curCount, dataType, srcRank, groupName.c_str(), streamMain,
-        tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
-        resParams.scratchMemAddr, resParams.scratchMemSize));
+      CHK_RET(HcceRecvGraphMode(commOutputPtr, curCount, dataType, srcRank, groupName.c_str(), streamMain,
+                                tagVec[loopTime].c_str(), resParams.streamArray, resParams.streamCount,
+                                resParams.scratchMemAddr, resParams.scratchMemSize));
     } else {
-      CHK_RET(HcomReceive(
-        tagVec[loopTime].c_str(), commOutputPtr, curCount, dataType, srcRank, srTag, groupName.c_str(), streamMain));
+      CHK_RET(HcomReceive(tagVec[loopTime].c_str(), commOutputPtr, curCount, dataType, srcRank, srTag,
+                          groupName.c_str(), streamMain));
     }
 
     // 将结果拷回二级指针上
@@ -2343,7 +2348,8 @@ HcclResult HcomOpsKernelInfoStore::GetHcomAlltoallVOpMemSize(u32 shapeType, cons
                                                              const int64_t &hcomComm, const std::string &sGroup,
                                                              HcclDataType sendType, HcclDataType recvType,
                                                              void *sendCounts, void *sendDispls, void *recvCounts,
-                                                             void *recvDispls, u64 &inputMemSize, u64 &outputMemSize) const {
+                                                             void *recvDispls, u64 &inputMemSize,
+                                                             u64 &outputMemSize) const {
   HCCL_DEBUG("[GetHcomAlltoallVOpMemSize] sCollectiveType[%s]", sCollectiveType.c_str());
   CHK_PRT_RET((shapeType != ORIGINAL_GRAPH_UNKNOWNSHAPE_TYPE), HCCL_DEBUG("No need to get op MemSize"), HCCL_SUCCESS);
 
@@ -2533,7 +2539,7 @@ HcclResult HcomOpsKernelInfoStore::GetCommCCLBuf(u32 shapeType, const std::strin
 
 HcclResult HcomOpsKernelInfoStore::SetWorkspaceResourceFromtagVec(const ge::GETaskInfo &task, const char *group,
                                                                   const std::vector<std::string> &tagVec, void *memPtr,
-                                                                  u64 maxSize) const{
+                                                                  u64 maxSize) const {
   for (u32 loopTime = 0; loopTime < tagVec.size(); loopTime++) {
     CHK_RET(SetWorkspaceResource(tagVec[loopTime], group, task.kernelHcclInfo[0].hcclStreamList, memPtr, maxSize));
     HCCL_INFO("load task: tag[%s] sub stream size is %u,size is %llu bytes.", (tagVec[loopTime]).c_str(),
@@ -2643,8 +2649,9 @@ HcclResult HcomOpsKernelInfoStore::SetKnownShapeWorkspaceResource(const ge::GETa
               HCCL_E_PARA);
   ge::GETaskKernelHcclInfo hcclInfo = hcclInfos[0];  // HCOM场景下只会有一个
   DevType devType = HcomGetDeviceType();
- 	// A5 单p场景算法返回的workSpaceMemSize可能为0，同时workSpaceAddr也是nullptr，所以不做拦截.A3场景workSpaceMemSize最小值为32k，不能为0.
- 	if (devType != DevType::DEV_TYPE_950 && (hcclInfo.workSpaceAddr == nullptr|| hcclInfo.workSpaceMemSize == 0)) {
+  // A5
+  // 单p场景算法返回的workSpaceMemSize可能为0，同时workSpaceAddr也是nullptr，所以不做拦截.A3场景workSpaceMemSize最小值为32k，不能为0.
+  if (devType != DevType::DEV_TYPE_950 && (hcclInfo.workSpaceAddr == nullptr || hcclInfo.workSpaceMemSize == 0)) {
     HCCL_ERROR(
         "[Set][KnownShapeWorkspaceResource]errNo[0x%016llx] load task failed. "
         "workspace memory ptr is null or size is [%llu]",
@@ -3013,7 +3020,7 @@ HcclResult HcomOpsKernelInfoStore::TransfromRealRankId(const ge::GETaskInfo &tas
       CHK_RET(GetRealRankIdFromMap(privateDefBuf->selfRank, rankMapJsonStr, privateDefBuf->selfRank));
       HCCL_DEBUG("[TransfromRealRankId]srcRank:[%u]", privateDefBuf->selfRank);
     } else {
-      HCCL_ERROR("[Load][Task]errNo[0x%016llx] transfrom real rankid failed. rank map not exist.",
+      HCCL_ERROR("[Load][Task]errNo[0x%016llx] transform real rankid failed. rank map not exist.",
                  HCOM_ERROR_CODE(HCCL_E_PARA));
       return HCCL_E_PARA;
     }
@@ -3073,18 +3080,18 @@ HcclResult HcomOpsKernelInfoStore::ActivateSubStreams(const ge::GETaskInfo &task
   // 检查是否使用开源模式
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
-  
+
   // 非开源模式，返回成功
   if (!openSourceTag) {
     return HCCL_SUCCESS;
   }
-  
+
   // 检查 kernelHcclInfo 是否为空
   CHK_PRT_RET(task.kernelHcclInfo.empty(), HCCL_ERROR("[ActivateSubStreams] kernelHcclInfo is empty"), HCCL_E_PARA);
 
   // 获取需要激活的从流列表
   const std::vector<rtStream_t> &streams = task.kernelHcclInfo[0].hcclStreamList;
-  
+
   // 没有需要激活的从流，返回成功
   if (streams.empty()) {
     return HCCL_SUCCESS;
@@ -3096,7 +3103,7 @@ HcclResult HcomOpsKernelInfoStore::ActivateSubStreams(const ge::GETaskInfo &task
   // 遍历所有需要激活的从流
   for (auto &stream : streams) {
     rtStream_t attachedStream = stream;
-    
+
     // 判断从流是否已经在set中
     auto it = activatedStreams_.find(attachedStream);
     if (it != activatedStreams_.end()) {
@@ -3104,29 +3111,28 @@ HcclResult HcomOpsKernelInfoStore::ActivateSubStreams(const ge::GETaskInfo &task
       HCCL_INFO("[ActivateSubStreams] Attached stream [%p] already activated, skip", attachedStream);
       continue;
     }
-    
+
     // 从流未激活，需要激活
     auto ret = aclrtActiveStream(attachedStream, streamMain);
     if (ret != ACL_SUCCESS) {
-      HCCL_ERROR("[ActivateSubStreams] Activate attached stream [%p] with main stream [%p] failed, ret[%d]", 
-                  attachedStream, streamMain, ret);
+      HCCL_ERROR("[ActivateSubStreams] Activate attached stream [%p] with main stream [%p] failed, ret[%d]",
+                 attachedStream, streamMain, ret);
       return HCCL_E_RUNTIME;
     }
 
     // 激活成功，插入set
     activatedStreams_.insert(attachedStream);
-    HCCL_INFO("[ActivateSubStreams] Activate attached stream [%p] with main stream [%p] success", 
-                attachedStream, streamMain);
+    HCCL_INFO("[ActivateSubStreams] Activate attached stream [%p] with main stream [%p] success", attachedStream,
+              streamMain);
   }
   return HCCL_SUCCESS;
 }
-
 
 HcclResult HcomOpsKernelInfoStore::DeactivateSubStreams(const ge::GETaskInfo &task) {
   // 检查是否使用开源模式
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
-  
+
   // 非开源模式，返回成功
   if (!openSourceTag) {
     return HCCL_SUCCESS;
@@ -3145,7 +3151,7 @@ HcclResult HcomOpsKernelInfoStore::DeactivateSubStreams(const ge::GETaskInfo &ta
   // 遍历所有需要反激活的从流
   for (auto &stream : streams) {
     rtStream_t rtStream = stream;
-    
+
     // 从set中删除，即为反激活
     auto it = activatedStreams_.find(rtStream);
     if (it != activatedStreams_.end()) {
@@ -3155,7 +3161,6 @@ HcclResult HcomOpsKernelInfoStore::DeactivateSubStreams(const ge::GETaskInfo &ta
   }
   return HCCL_SUCCESS;
 }
-
 
 ge::Status HcomOpsKernelInfoStore::LoadTask(ge::GETaskInfo &task) {
   s32 deviceLogicId;  // 防止编译阶段和加载阶段deviceLogicId变更，此处重新刷一下
@@ -3203,7 +3208,7 @@ ge::Status HcomOpsKernelInfoStore::LoadTask(ge::GETaskInfo &task) {
 
   ret = TransfromRealRankId(task);
   CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Load][Task]errNo[0x%016llx] transfrom real rank id failed.", HCOM_ERROR_CODE(ret)),
+              HCCL_ERROR("[Load][Task]errNo[0x%016llx] transform real rank id failed.", HCOM_ERROR_CODE(ret)),
               ge::INTERNAL_ERROR);
 
   ret = GetCollectiveTypeFromTaskInfo(hcclInfo, sCollectiveType);
@@ -3560,7 +3565,7 @@ HcclResult HcomOpsKernelInfoStore::CleanInterMemoryV2(std::vector<std::int64_t> 
                 HCCL_ERROR("[Malloc][Device]rt malloc device fail. return[%d]", ret), HCCL_E_INTERNAL);
     crackMemPtrV2_.reset(crackMem);
     CHK_RET(hrtMemSyncCopy(crackMemPtrV2_.get(), maxCrackMemSizeV2_, crackMemTemp.data(), maxCrackMemSizeV2_,
-                          HcclRtMemcpyKind::HCCL_RT_MEMCPY_KIND_HOST_TO_DEVICE));
+                           HcclRtMemcpyKind::HCCL_RT_MEMCPY_KIND_HOST_TO_DEVICE));
   }
   // 遍历内存块列表
   for (size_t i = 0; i < crackSize.size();) {
@@ -3585,6 +3590,5 @@ HcclResult HcomOpsKernelInfoStore::CleanInterMemoryV2(std::vector<std::int64_t> 
 }
 
 #endif
-
 
 }  // namespace hccl

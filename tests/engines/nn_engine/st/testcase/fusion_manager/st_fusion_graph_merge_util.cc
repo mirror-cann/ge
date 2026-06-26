@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ using namespace fe;
 using namespace ge;
 
 class fusion_graph_merge_util_st : public testing::Test {
-public:
-protected:
+ public:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -48,10 +48,9 @@ protected:
 TEST_F(fusion_graph_merge_util_st, set_l2_task_info_to_fusion_op) {
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-      std::make_shared<FusionGraphMerge>("fusion_scope", graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>("fusion_scope", graph_common);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  ge::OpDescPtr node1_op = std::make_shared<ge::OpDesc>("conv0","conv");
+  ge::OpDescPtr node1_op = std::make_shared<ge::OpDesc>("conv0", "conv");
   ge::NodePtr node1 = std::make_shared<ge::Node>(node1_op, graph);
   Status ret = fusion_graph_merge_ptr->SetL2TaskInfoToFusionOp(node1);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -60,8 +59,8 @@ TEST_F(fusion_graph_merge_util_st, set_l2_task_info_to_fusion_op) {
 TEST_F(fusion_graph_merge_util_st, fuse_two_nodes) {
   std::shared_ptr<AutomaticBufferFusion> auto_buffer_fusion_ptr = std::make_shared<AutomaticBufferFusion>(nullptr);
   ComputeGraphPtr owner_graph = std::make_shared<ComputeGraph>("test");
-  ge::OpDescPtr node1_op = std::make_shared<ge::OpDesc>("conv0","conv");
-  ge::OpDescPtr node2_op = std::make_shared<ge::OpDesc>("conv1","conv");
+  ge::OpDescPtr node1_op = std::make_shared<ge::OpDesc>("conv0", "conv");
+  ge::OpDescPtr node2_op = std::make_shared<ge::OpDesc>("conv1", "conv");
   ge::NodePtr node1 = std::make_shared<ge::Node>(node1_op, owner_graph);
   ge::NodePtr node2 = std::make_shared<ge::Node>(node1_op, owner_graph);
   int64_t producer_scope_id = 0;
@@ -70,22 +69,21 @@ TEST_F(fusion_graph_merge_util_st, fuse_two_nodes) {
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(fusion_graph_merge_util_st, test_allocdata_standing_data_special)
-{
-    L2FusionAllocation l2fusionAlloc;
-    L2BufferInfo l2;
-    std::map<uint64_t, std::size_t> count_map;
-    std::vector<OpL2DataInfo> datas_map;
-    TensorL2AllocMap standing_alloc_data;
-    TensorL2DataMap converge_data;
-    OpL2AllocMap alloc_map;
-    uint64_t max_page = 63;
-    uint32_t data_in_l2_id = 1;
-    int64_t page_size = 1;
-    int32_t page_num_left = 0;
-    Status status = l2fusionAlloc.AllocateStandingDataSpecial(page_size, count_map, standing_alloc_data,
-                                                              data_in_l2_id,  page_num_left);
-    EXPECT_EQ(status, fe::SUCCESS);
+TEST_F(fusion_graph_merge_util_st, test_allocdata_standing_data_special) {
+  L2FusionAllocation l2fusionAlloc;
+  L2BufferInfo l2;
+  std::map<uint64_t, std::size_t> count_map;
+  std::vector<OpL2DataInfo> datas_map;
+  TensorL2AllocMap standing_alloc_data;
+  TensorL2DataMap converge_data;
+  OpL2AllocMap alloc_map;
+  uint64_t max_page = 63;
+  uint32_t data_in_l2_id = 1;
+  int64_t page_size = 1;
+  int32_t page_num_left = 0;
+  Status status = l2fusionAlloc.AllocateStandingDataSpecial(page_size, count_map, standing_alloc_data, data_in_l2_id,
+                                                            page_num_left);
+  EXPECT_EQ(status, fe::SUCCESS);
 }
 
 TEST_F(fusion_graph_merge_util_st, set_multi_kernel_output_offsets) {
@@ -95,20 +93,17 @@ TEST_F(fusion_graph_merge_util_st, set_multi_kernel_output_offsets) {
 
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-      std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   std::int64_t fusion_anchor_idx = 0;
   ge::OpDescPtr op_desc_src = make_shared<OpDesc>("sourceNode", "Conv");
   ge::OpDescPtr op_desc_fus = make_shared<OpDesc>("fusionNode", "Conv2D");
-  ge::GeTensorDesc tensor_desc =
-  ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
-  ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OUTPUT_INDEX,0);
+  ge::GeTensorDesc tensor_desc = ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
+  ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OUTPUT_INDEX, 0);
   ge::AttrUtils::SetListInt(op_desc_fus, ge::ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, buffer_fusion_output_offset);
   op_desc_fus->AddOutputDesc(tensor_desc);
   op_desc_src->AddOutputDesc(tensor_desc);
-  fusion_graph_merge_ptr->SetMultiKernelOutPutOffsets(op_desc_src, 2,
-                                                      op_desc_fus, save_pre_output_offset);
+  fusion_graph_merge_ptr->SetMultiKernelOutPutOffsets(op_desc_src, 2, op_desc_fus, save_pre_output_offset);
   ge::AttrUtils::GetListInt(op_desc_fus, ge::ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, buffer_fusion_output_offset);
   EXPECT_EQ(buffer_fusion_output_offset[1], 0);
 }
@@ -118,16 +113,13 @@ TEST_F(fusion_graph_merge_util_st, update_output_ref_port_index) {
 
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-      std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   std::int64_t fusion_anchor_idx = 0;
   ge::OpDescPtr op_desc_src = make_shared<OpDesc>("sourceNode", "Conv");
   ge::OpDescPtr op_desc_fus = make_shared<OpDesc>("fusionNode", "Conv2D");
-  ge::GeTensorDesc tensor_desc_fus =
-  ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
-  ge::GeTensorDesc tensor_desc_src =
-  ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
+  ge::GeTensorDesc tensor_desc_fus = ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
+  ge::GeTensorDesc tensor_desc_src = ge::GeTensorDesc(ge::GeShape({4, 4}), FORMAT_ND, DT_FLOAT16);
   ge::AttrUtils::SetListInt(tensor_desc_src, "ref_port_index", ref_port_index);
   op_desc_fus->AddInputDesc(tensor_desc_fus);
   op_desc_fus->AddInputDesc(tensor_desc_fus);
@@ -147,8 +139,7 @@ TEST_F(fusion_graph_merge_util_st, update_output_ref_port_index) {
 TEST_F(fusion_graph_merge_util_st, calc_pass_strided_outsize) {
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-          std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   vector<pair<uint32_t, ge::NodePtr>> src_op_out_index_in_fus_op;
   ge::OpDescPtr op_desc_src = make_shared<OpDesc>("sourceNode", "Conv");
@@ -172,8 +163,7 @@ TEST_F(fusion_graph_merge_util_st, calc_pass_strided_outsize) {
 TEST_F(fusion_graph_merge_util_st, calc_pass_strided_outsize2) {
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-          std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   vector<pair<uint32_t, ge::NodePtr>> src_op_out_index_in_fus_op;
   ge::OpDescPtr op_desc_src = make_shared<OpDesc>("sourceNode", "Conv");
@@ -205,8 +195,7 @@ TEST_F(fusion_graph_merge_util_st, calc_pass_strided_outsize2) {
 TEST_F(fusion_graph_merge_util_st, calc_single_op_pass_strided_outsize) {
   auto graph_common = std::make_shared<GraphComm>("engineName");
   graph_common->Initialize();
-  auto fusion_graph_merge_ptr =
-          std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
+  auto fusion_graph_merge_ptr = std::make_shared<FusionGraphMerge>(SCOPE_ID_ATTR, graph_common);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   ge::OpDescPtr op_desc_src = make_shared<OpDesc>("sourceNode", "Conv");
   ge::GeTensorDesc tensor_desc_src = ge::GeTensorDesc(ge::GeShape({1, 32, 17, 17}), FORMAT_NCHW, DT_FLOAT16);

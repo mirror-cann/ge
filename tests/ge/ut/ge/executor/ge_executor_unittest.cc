@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -75,8 +75,7 @@ class UtestGeExecutor : public testing::Test {
 
 class DModelListener : public ge::ModelListener {
  public:
-  DModelListener() {
-  };
+  DModelListener() {};
   Status OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t resultCode,
                        std::vector<gert::Tensor> &outputs) {
     GELOGI("In Call back. OnComputeDone");
@@ -87,11 +86,8 @@ class DModelListener : public ge::ModelListener {
 namespace {
 class MockHybridModelExecutor : public ge::hybrid::HybridDavinciModel {
  public:
-  Status Execute(const vector<DataBuffer> &inputs,
-                 const vector<GeTensorDesc> &input_desc,
-                 vector<DataBuffer> &outputs,
-                 vector<GeTensorDesc> &output_desc,
-                 const rtStream_t stream) override {
+  Status Execute(const vector<DataBuffer> &inputs, const vector<GeTensorDesc> &input_desc, vector<DataBuffer> &outputs,
+                 vector<GeTensorDesc> &output_desc, const rtStream_t stream) override {
     return SUCCESS;
   }
 };
@@ -168,7 +164,7 @@ TEST_F(UtestGeExecutor, load_model_from_data) {
   model_id = std::numeric_limits<uint32_t>::max();
   retStatus = ge_executor.LoadModelFromData(model_id, model_data, nullptr, 0, nullptr, 0);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_PARAM_INVALID);
-  model_data.model_data = (void *) &model_data;
+  model_data.model_data = (void *)&model_data;
   retStatus = ge_executor.LoadModelFromData(model_id, model_data, nullptr, 0, nullptr, 0);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
 }
@@ -199,7 +195,7 @@ TEST_F(UtestGeExecutor, load_model_from_data_with_Arg) {
   model_id = std::numeric_limits<uint32_t>::max();
   retStatus = ge_executor.LoadModelFromDataWithArgs(model_id, model_data, arg);
   EXPECT_NE(retStatus, SUCCESS);
-  model_data.model_data = (void *) &model_data;
+  model_data.model_data = (void *)&model_data;
   retStatus = ge_executor.LoadModelFromDataWithArgs(model_id, model_data, arg);
   EXPECT_NE(retStatus, SUCCESS);
   session.DestroyResources();
@@ -211,8 +207,8 @@ TEST_F(UtestGeExecutor, load_model_with_Q) {
   uint32_t model_id = 0;
   Status retStatus;
 
-  std::vector<uint32_t> input_queue_ids = {0,1,2};
-  std::vector<uint32_t> output_queue_ids = {3,4,5};
+  std::vector<uint32_t> input_queue_ids = {0, 1, 2};
+  std::vector<uint32_t> output_queue_ids = {3, 4, 5};
   QueueAttrs in_queue_0 = {.queue_id = 0, .device_type = NPU, .device_id = 0};
   QueueAttrs in_queue_1 = {.queue_id = 1, .device_type = NPU, .device_id = 0};
   QueueAttrs in_queue_2 = {.queue_id = 2, .device_type = NPU, .device_id = 0};
@@ -274,7 +270,7 @@ TEST_F(UtestGeExecutor, load_model_with_Q) {
   ModelBufferData model_buffer;
   ModelHelper model_helper;
   model_helper.SetSaveMode(false);  // Save to buffer.
-  
+
   ge_model->SetGraph(graph);
   EXPECT_EQ(model_helper.SaveToOmModel(ge_model, "file_name_prefix", model_buffer), SUCCESS);
   model_data = {model_buffer.data.get(), static_cast<uint32_t>(model_buffer.length), 0, "", ""};
@@ -438,7 +434,7 @@ TEST_F(UtestGeExecutor, execute_async1) {
   aclrtCreateStreamWithConfig(&stream, 0, 0);
   SingleOp *single_op = new (std::nothrow) SingleOp(res, &stream_mu, stream);
   SingleOpModelParam model_params;
-  single_op->impl_->model_param_.reset(new (std::nothrow)SingleOpModelParam(model_params));
+  single_op->impl_->model_param_.reset(new (std::nothrow) SingleOpModelParam(model_params));
   retStatus = ge_executor.ExecuteAsync(single_op, inputs, outputs);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_PARAM_INVALID);
   delete single_op;
@@ -476,7 +472,7 @@ TEST_F(UtestGeExecutor, clear_custom_aicpu_so) {
   EXPECT_EQ(mm.LaunchKernelCustAicpuSo("empty_cust_aicpu"), SUCCESS);
 
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
+  uintptr_t resource_id = 1;  // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("deleteCustOp", std::move(kernel_bin)));
@@ -603,7 +599,7 @@ class UtestGeExeWithDavModel : public testing::Test {
     return graph;
   }
 };
-}
+}  // namespace
 
 TEST_F(UtestGeExeWithDavModel, get_cur_shape) {
   GeExecutor ge_executor;
@@ -631,24 +627,20 @@ TEST_F(UtestGeExeWithDavModel, set_synamic_aipp_data) {
   std::vector<kAippDynamicBatchPara> aipp_batch_para;
   kAippDynamicPara aipp_parms;
 
-  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr,
-                                             length, aipp_batch_para, aipp_parms);
+  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr, length, aipp_batch_para, aipp_parms);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID);
 
-  dynamic_input_addr = malloc(sizeof(kAippDynamicBatchPara)*2);
-  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr,
-                                             length, aipp_batch_para, aipp_parms);
+  dynamic_input_addr = malloc(sizeof(kAippDynamicBatchPara) * 2);
+  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr, length, aipp_batch_para, aipp_parms);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_AIPP_BATCH_EMPTY);
 
   kAippDynamicBatchPara data1;
   aipp_batch_para.push_back(data1);
-  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr,
-                                             length, aipp_batch_para, aipp_parms);
+  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr, length, aipp_batch_para, aipp_parms);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID);
 
-  length = sizeof(kAippDynamicBatchPara)*2;
-  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr,
-                                             length, aipp_batch_para, aipp_parms);
+  length = sizeof(kAippDynamicBatchPara) * 2;
+  retStatus = ge_executor.SetDynamicAippData(model_id1, dynamic_input_addr, length, aipp_batch_para, aipp_parms);
   EXPECT_EQ(retStatus, SUCCESS);
 
   free(dynamic_input_addr);
@@ -859,9 +851,9 @@ TEST_F(UtestGeExeWithDavModel, set_dynamic_batch_size) {
   data_desc->SetOutputOffset({1024});
   graph->AddNode(data_desc);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
   std::vector<NodePtr> variable_nodes;
   ASSERT_EQ(model->InitIoNodes(graph, variable_nodes), SUCCESS);
@@ -881,7 +873,7 @@ TEST_F(UtestGeExeWithDavModel, set_dynamic_batch_size) {
   retStatus = ge_executor.SetDynamicBatchSize(model_id1, dynamic_input_addr, length, batch_size);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID);
 
-  length = sizeof(uint64_t)*SIZE;
+  length = sizeof(uint64_t) * SIZE;
   retStatus = ge_executor.SetDynamicBatchSize(-1, dynamic_input_addr, length, batch_size);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
 
@@ -904,9 +896,9 @@ TEST_F(UtestGeExeWithDavModel, set_dynamic_image_size) {
   data_desc->SetOutputOffset({1024});
   graph->AddNode(data_desc);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
   std::vector<NodePtr> variable_nodes;
   ASSERT_EQ(model->InitIoNodes(graph, variable_nodes), SUCCESS);
@@ -926,7 +918,7 @@ TEST_F(UtestGeExeWithDavModel, set_dynamic_image_size) {
   retStatus = ge_executor.SetDynamicImageSize(model_id1, dynamic_input_addr, length, height, width);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID);
 
-  length = sizeof(uint64_t)*SIZE;
+  length = sizeof(uint64_t) * SIZE;
   ge_executor.is_inited_ = false;
   retStatus = ge_executor.SetDynamicImageSize(-1, dynamic_input_addr, length, height, width);
   EXPECT_EQ(retStatus, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
@@ -949,9 +941,9 @@ TEST_F(UtestGeExeWithDavModel, dynamic_dims_test) {
   data_desc->SetOutputOffset({1024});
   graph->AddNode(data_desc);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
   std::vector<NodePtr> variable_nodes;
   ASSERT_EQ(model->InitIoNodes(graph, variable_nodes), SUCCESS);
@@ -999,9 +991,9 @@ TEST_F(UtestGeExeWithDavModel, get_and_set_dims_info) {
   data_desc->SetOutputOffset({1024});
   graph->AddNode(data_desc);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:inputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:outputName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
   std::vector<NodePtr> variable_nodes;
   ASSERT_EQ(model->InitIoNodes(graph, variable_nodes), SUCCESS);
@@ -1022,7 +1014,7 @@ TEST_F(UtestGeExeWithDavModel, get_and_set_dims_info) {
 
   retStatus = ge_executor.GetAllAippInputOutputDims(model_id1, 0, input_dims, output_dims);
   EXPECT_EQ(retStatus, SUCCESS);
-  EXPECT_EQ(input_dims.front().name=="inputName", true);
+  EXPECT_EQ(input_dims.front().name == "inputName", true);
 }
 
 TEST_F(UtestGeExeWithDavModel, get_modelDesc_info) {
@@ -1037,9 +1029,9 @@ TEST_F(UtestGeExeWithDavModel, get_modelDesc_info) {
   data_desc->SetOutputOffset({1024});
   graph->AddNode(data_desc);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(data_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
   std::vector<NodePtr> variable_nodes;
   ASSERT_EQ(model->InitIoNodes(graph, variable_nodes), SUCCESS);
@@ -1215,7 +1207,7 @@ TEST_F(UtestGeExecutor, execute_graph_with_stream) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -1243,7 +1235,7 @@ TEST_F(UtestGeExecutor, execute_graph_with_stream) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -1272,8 +1264,8 @@ TEST_F(UtestGeExecutor, execute_graph_with_stream) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -1302,11 +1294,13 @@ TEST_F(UtestGeExecutor, execute_graph_with_stream) {
   ge_root_model->SetModelId(1001U);
   ModelManager::GetInstance().InsertModel(ge_root_model->GetModelId(), model);
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(1);
-  EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, input_tensor, output_tensor), PARAM_INVALID);
+  EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, input_tensor, output_tensor),
+            PARAM_INVALID);
   std::vector<gert::Tensor> gert_input_tensor;
   std::vector<gert::Tensor> gert_output_tensor;
-  EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, gert_input_tensor,
-            gert_output_tensor), PARAM_INVALID);
+  EXPECT_EQ(
+      graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, gert_input_tensor, gert_output_tensor),
+      PARAM_INVALID);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(ge_root_model->GetModelId()), SUCCESS);
   unsetenv("SKT_ENABLE");
 }
@@ -1335,7 +1329,7 @@ TEST_F(UtestGeExecutor, execute_graph_sync) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -1363,7 +1357,7 @@ TEST_F(UtestGeExecutor, execute_graph_sync) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -1392,8 +1386,8 @@ TEST_F(UtestGeExecutor, execute_graph_sync) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -1484,7 +1478,7 @@ TEST_F(UtestGeExecutor, execute_graph_sync_gert_tensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -1512,7 +1506,7 @@ TEST_F(UtestGeExecutor, execute_graph_sync_gert_tensor) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -1541,8 +1535,8 @@ TEST_F(UtestGeExecutor, execute_graph_sync_gert_tensor) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -1648,7 +1642,7 @@ TEST_F(UtestGeExecutor, execute_graph_async_multi) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -1676,7 +1670,7 @@ TEST_F(UtestGeExecutor, execute_graph_async_multi) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -1705,8 +1699,8 @@ TEST_F(UtestGeExecutor, execute_graph_async_multi) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -1845,11 +1839,10 @@ TEST_F(UtestGeExecutor, finalize_after_reset_device_fail) {
 
 TEST_F(UtestGeExecutor, test_ge_initialize_without_hccl) {
   GeExecutor executor;
-  const std::map<std::string, std::string> options({
-    {OPTION_EXEC_JOB_ID, "1"},
-    {OPTION_EXEC_PROFILING_MODE, ""},
-    {OPTION_EXEC_PROFILING_OPTIONS, ""},
-    {OPTION_EXEC_HCCL_FLAG, "0"}});
+  const std::map<std::string, std::string> options({{OPTION_EXEC_JOB_ID, "1"},
+                                                    {OPTION_EXEC_PROFILING_MODE, ""},
+                                                    {OPTION_EXEC_PROFILING_OPTIONS, ""},
+                                                    {OPTION_EXEC_HCCL_FLAG, "0"}});
   EXPECT_EQ(executor.Initialize(options), SUCCESS);
 }
 
@@ -1868,4 +1861,4 @@ TEST_F(UtestGeExecutor, set_get_model_stream_priority) {
   EXPECT_EQ(priority, 6);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(model_id), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

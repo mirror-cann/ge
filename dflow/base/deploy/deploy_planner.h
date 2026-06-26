@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ struct ModelQueueIndex {
   // if not empty, means model is invoked by others.
   std::string invoke_key;
   int32_t id;
-  bool operator < (const ModelQueueIndex &other) const {
+  bool operator<(const ModelQueueIndex &other) const {
     if (model_name != other.model_name) {
       return model_name < other.model_name;
     } else if (invoke_key != other.invoke_key) {
@@ -70,7 +70,7 @@ class DeployPlan {
       proxy_device_id_ = proxy_device_id;
     }
 
-    bool operator<(const DeviceInfo& other) const {
+    bool operator<(const DeviceInfo &other) const {
       if (node_id_ != other.node_id_) {
         return node_id_ < other.node_id_;
       }
@@ -112,8 +112,8 @@ class DeployPlan {
 
   // model id, src endpoint index (device info, is_normal_state)
   // group id, dst group info
-  using DynamicSchedIndex = std::map<int32_t, std::map<int32_t, std::pair<ExtendedIndexInfo,
-      std::map<int32_t, DstGroupInfo>>>>;
+  using DynamicSchedIndex =
+      std::map<int32_t, std::map<int32_t, std::pair<ExtendedIndexInfo, std::map<int32_t, DstGroupInfo>>>>;
   // node_id、device_id、device_type、is_normal_state
   using DeviceStateList = std::map<DeviceInfo, bool>;
   // model_name model_instance_name device_info
@@ -125,16 +125,11 @@ class DeployPlan {
     std::map<uint32_t, AbnormalStatusCallback> callback_list;
   };
 
-  enum class QueueAction {
-    kDefault,
-    kControl,
-    kStatus,
-    kSched
-  };
+  enum class QueueAction { kDefault, kControl, kStatus, kSched };
 
   struct QueueInfo {
     DeviceInfo device_info;
-    uint32_t depth = 2U; // minimal queue depth
+    uint32_t depth = 2U;  // minimal queue depth
     int32_t ref_index = -1;
     std::string name;
     std::string model_instance_name;
@@ -175,7 +170,7 @@ class DeployPlan {
   };
 
   class DynamicSchedPlan {
-  public:
+   public:
     const std::vector<int32_t> &GetStatusOutputQueueIndices() const;
     const std::vector<int32_t> &GetSchedOutputQueueIndices() const;
     const std::vector<int32_t> &GetSchedInputQueueIndices() const;
@@ -184,10 +179,10 @@ class DeployPlan {
     const DynamicSchedIndex &GetModelIndexInfo() const;
     const std::map<std::string, uint32_t> &GetModelInstanceNum() const;
 
-  private:
+   private:
     friend class DeployPlannerBase;
-    std::map<int32_t, int32_t> datagw_request_bindings_; // sched output-->datagw_input
-    std::map<int32_t, int32_t> entry_to_dst_index_; // group entry-->dst endpoint index
+    std::map<int32_t, int32_t> datagw_request_bindings_;  // sched output-->datagw_input
+    std::map<int32_t, int32_t> entry_to_dst_index_;       // group entry-->dst endpoint index
     DynamicSchedIndex model_index_info_;
     SubmodelInfo root_model_info_;
     std::map<std::string, uint32_t> submodels_id_;
@@ -225,6 +220,7 @@ class DeployPlan {
   const std::vector<int32_t> GetBroadcastIndices(int32_t src_endpoint_index) const;
   void SetEnableExceptionCatch(bool enable_exception_catch);
   bool IsEnableExceptionCatch() const;
+
  private:
   friend class DeployPlannerBase;
   std::string model_name_;
@@ -274,14 +270,9 @@ class DeployPlannerBase {
   Status CreateEndpointInfo(const DeployPlan::QueueInfo &queue_info);
   Status CreateEndpointInfo(const DeployPlan::QueueInfo &queue_info, int32_t &queue_idx);
   Status CreateGroupEntry(const DeployPlan::QueueInfo &queue_info, int32_t &entry_index);
-  Status CreateGroupRefEntry(const DeployPlan::QueueInfo &queue_info,
-                             int32_t endpoint_index,
-                             int32_t &entry_index);
-  Status CreateGroupQueueEntry(const DeployPlan::QueueInfo &queue_info,
-                               int32_t &queue_index,
-                               int32_t &entry_index);
-  Status CreateGroupInfo(const DeployPlan::QueueInfo &queue_info,
-                         const std::vector<int32_t> &grouped_indices,
+  Status CreateGroupRefEntry(const DeployPlan::QueueInfo &queue_info, int32_t endpoint_index, int32_t &entry_index);
+  Status CreateGroupQueueEntry(const DeployPlan::QueueInfo &queue_info, int32_t &queue_index, int32_t &entry_index);
+  Status CreateGroupInfo(const DeployPlan::QueueInfo &queue_info, const std::vector<int32_t> &grouped_indices,
                          int32_t &group_index);
   void AddEndpointBindings(int32_t src_index, int32_t dst_index, bool skip_if_dst_exists = true);
   const bool &GetIsDynamicSched() const;
@@ -306,16 +297,13 @@ class DeployPlannerBase {
   bool CanBeFused(const std::string &fusion_name, const std::string &endpoint_name);
   void UpdateFusionOffset(int32_t src_index, int32_t dst_index);
   Status ResolveInvokedFusion();
-  static Status GetInvokedModelFusionInputs(const PneModelPtr model,
-                                            std::map<std::string, std::string> &fusion_inputs);
+  static Status GetInvokedModelFusionInputs(const PneModelPtr model, std::map<std::string, std::string> &fusion_inputs);
   static Status ParseInputIndexWithRange(const std::string &fusion_input_str,
                                          std::vector<size_t> &fusion_input_index_list);
   static Status ParseInvokedModelFusionInputs(const std::string &fusion_inputs_str,
                                               std::vector<std::vector<size_t>> &fusion_inputs_list);
-  Status ResolveModelInvokedFusion(const std::string &model_instance_name,
-                                   const std::vector<std::string> &queue_names,
-                                   const std::string &invoke_key,
-                                   const std::string &fusion_inputs);
+  Status ResolveModelInvokedFusion(const std::string &model_instance_name, const std::vector<std::string> &queue_names,
+                                   const std::string &invoke_key, const std::string &fusion_inputs);
   void MarkMultiDeployedModels();
   Status AdjustEnqueueDevices();
   Status AdjustEnqueueDevice(DeployPlan::QueueInfo &src_endpoint,
@@ -333,115 +321,80 @@ class DeployPlannerBase {
   Status BindRemoteOutputGroupToInput();
   Status BindOutputToRemoteInputs();
   void UpdateDeployPlan();
-  Status CreateOutputQueueDefs(const std::string &model_instance_name,
-                               const std::vector<std::string> &queue_names,
+  Status CreateOutputQueueDefs(const std::string &model_instance_name, const std::vector<std::string> &queue_names,
                                const bool is_owned = true);
-  Status CreateFeedEndpoints(const std::string &model_instance_name,
-                             const std::vector<std::string> &queue_names,
+  Status CreateFeedEndpoints(const std::string &model_instance_name, const std::vector<std::string> &queue_names,
                              const std::string &invoke_key);
-  Status GetOrCreateInputEndpoint(const ModelQueueIndex &model_queue_index,
-                                  const DeployPlan::QueueInfo &queue_info,
+  Status GetOrCreateInputEndpoint(const ModelQueueIndex &model_queue_index, const DeployPlan::QueueInfo &queue_info,
                                   int32_t &endpoint_index);
-  void AddInputGroups(const int32_t dst_endpoint_idx,
-                      const int32_t src_tag_idx,
+  void AddInputGroups(const int32_t dst_endpoint_idx, const int32_t src_tag_idx,
                       const InputGroupAttr &input_group_attr);
   std::vector<std::string> ToEndpointDescs(const std::vector<int32_t> &endpoint_indices,
                                            const bool is_group_entry = false) const;
   std::string ToEndpointDesc(const int32_t endpoint_indices, const bool is_group_entry = false) const;
-  DeployPlan::QueueInfo BuildQueueInfo(const Endpoint &queue_def,
-                                       const std::string &model_instance_name);
+  DeployPlan::QueueInfo BuildQueueInfo(const Endpoint &queue_def, const std::string &model_instance_name);
   std::string GenShortName(const std::string &name);
   std::string GetEndpointFullName(const DeployPlan::QueueInfo &endpoint_info, const ModelQueueIndex &model_queue_index);
   const std::string &GetSubmodelType(const std::string &name);
-  bool CheckAndAddRelation(const int32_t src_endpoint_idx,
-                           const int32_t dst_endpoint_idx,
+  bool CheckAndAddRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                            const std::string &suffix = "");
   bool IsOutputMultiConnected(const int32_t src_endpoint_idx);
   bool IsInputMultiConnected(const int32_t dst_endpoint_idx);
   bool IsMultiDeployed(const std::string &model_instance_name) const;
-  bool CheckSkipBinding(const std::string &src_model_instance_name,
-                        const std::string &dst_model_instance_name);
+  bool CheckSkipBinding(const std::string &src_model_instance_name, const std::string &dst_model_instance_name);
   static bool CanConnectWithQ(const DeployPlan::DeviceInfo &src_device_info,
                               const DeployPlan::DeviceInfo &dst_device_info);
   static bool CanConnectWithLocalQ(const DeployPlan::DeviceInfo &src_device_info,
                                    const DeployPlan::DeviceInfo &dst_device_info);
-  Status GetOrCreateMappingTagPairEntry(const int32_t endpoint_idx,
-                                        const DeployPlan::QueueInfo &mapping_queue_info,
-                                        std::pair<int32_t, int32_t> &tag_pair,
-                                        bool use_balanced = true);
-  void GenTagEntityPair(int32_t endpoint_idx,
-                        const DeployPlan::QueueInfo &mapping_queue_info,
+  Status GetOrCreateMappingTagPairEntry(const int32_t endpoint_idx, const DeployPlan::QueueInfo &mapping_queue_info,
+                                        std::pair<int32_t, int32_t> &tag_pair, bool use_balanced = true);
+  void GenTagEntityPair(int32_t endpoint_idx, const DeployPlan::QueueInfo &mapping_queue_info,
                         std::pair<DeployPlan::QueueInfo, DeployPlan::QueueInfo> &entity_pair);
-  Status GetOrCreateMappingEntry(const int32_t endpoint_idx,
-                                 const DeployPlan::QueueInfo &mapping_queue_info,
+  Status GetOrCreateMappingEntry(const int32_t endpoint_idx, const DeployPlan::QueueInfo &mapping_queue_info,
                                  int32_t &mapping_idx);
-  Status PrepareDiffNodeRelation(const int32_t src_endpoint_idx,
-                                 const int32_t dst_endpoint_idx,
-                                 const ModelQueueIndex &model_queue_loc,
-                                 const DeployPlan::QueueInfo &queue_info,
+  Status PrepareDiffNodeRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
+                                 const ModelQueueIndex &model_queue_loc, const DeployPlan::QueueInfo &queue_info,
                                  const InputGroupAttr &input_group_attr);
-  Status PrepareSameNodeRelation(const int32_t src_endpoint_idx,
-                                  const int32_t dst_endpoint_idx,
-                                  const ModelQueueIndex &model_queue_loc,
-                                  const DeployPlan::QueueInfo &queue_info,
-                                  const InputGroupAttr &input_group_attr);
-  Status PrepareQueuesRelation(const int32_t src_endpoint_idx,
-                               const int32_t dst_endpoint_idx,
-                               const ModelQueueIndex &model_queue_loc,
-                               const DeployPlan::QueueInfo &queue_info,
+  Status PrepareSameNodeRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
+                                 const ModelQueueIndex &model_queue_loc, const DeployPlan::QueueInfo &queue_info,
+                                 const InputGroupAttr &input_group_attr);
+  Status PrepareQueuesRelation(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
+                               const ModelQueueIndex &model_queue_loc, const DeployPlan::QueueInfo &queue_info,
                                const InputGroupAttr &input_group_attr);
-  Status PrepareRelations(const int32_t src_endpoint_idx,
-                          const int32_t dst_endpoint_idx,
-                          const ModelQueueIndex &model_queue_loc,
-                          const DeployPlan::QueueInfo &queue_info,
+  Status PrepareRelations(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
+                          const ModelQueueIndex &model_queue_loc, const DeployPlan::QueueInfo &queue_info,
                           const InputGroupAttr &input_group_attr);
-  Status CreateAndBindGroup(const DeployPlan::QueueInfo &group_info,
-                            const std::vector<int32_t> &group_entry_index,
-                            const int32_t dst_endpoint_index,
-                            const bool skip_if_dst_exists = true);
+  Status CreateAndBindGroup(const DeployPlan::QueueInfo &group_info, const std::vector<int32_t> &group_entry_index,
+                            const int32_t dst_endpoint_index, const bool skip_if_dst_exists = true);
 
   // dynamic sched deploy build
   Status AssignDynamicSchedDequeueQueues();
-  Status AssignDynamicSchedDequeueQueue(const DeployPlan::QueueInfo &queue_info,
-                                        const ModelQueueIndex &model_queue_loc,
+  Status AssignDynamicSchedDequeueQueue(const DeployPlan::QueueInfo &queue_info, const ModelQueueIndex &model_queue_loc,
                                         const int32_t &src_endpoint_idx);
   Status CreateDynamicSchedOutputQueueDefs(const std::string &model_instance_name,
-                                           const std::vector<std::string> &queue_names,
-                                           const bool is_owned = true);
-  Status CreateDynamicSchedTags(const int32_t src_endpoint_idx,
-                                const int32_t dst_endpoint_idx,
+                                           const std::vector<std::string> &queue_names, const bool is_owned = true);
+  Status CreateDynamicSchedTags(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx,
                                 const DeployPlan::QueueInfo &queue_info);
   void GenerateDynamicSchedModelId();
   Status AssignDynamicSchedEnqueueQueues();
   void UpdateRelationForDynamicSched();
-  Status DynamicSchedBindGroup2Queue(const int32_t src_idx,
-                                     const int32_t dst_idx,
-                                     int32_t &group_index);
-  Status DynamicSchedBindQueue2Group(const int32_t src_idx,
-                                     const int32_t dst_idx,
-                                     int32_t &group_index);
+  Status DynamicSchedBindGroup2Queue(const int32_t src_idx, const int32_t dst_idx, int32_t &group_index);
+  Status DynamicSchedBindQueue2Group(const int32_t src_idx, const int32_t dst_idx, int32_t &group_index);
   void UpdateDynamicSchedDeployPlan();
-  void DynamicSchedGroupFormat(const int32_t &real_entry_index,
-                               const int32_t &entry_index,
-                               const DeployPlan::QueueInfo *src_queue_info,
-                               const int32_t &src_q_idx,
+  void DynamicSchedGroupFormat(const int32_t &real_entry_index, const int32_t &entry_index,
+                               const DeployPlan::QueueInfo *src_queue_info, const int32_t &src_q_idx,
                                const int32_t &dst_q_idx);
-  void AddDependentDevice(std::set<DeployPlan::DeviceInfo> &device_infos,
-                          const std::vector<int32_t> &queue_indexs);
+  void AddDependentDevice(std::set<DeployPlan::DeviceInfo> &device_infos, const std::vector<int32_t> &queue_indexs);
   void BuildModelDeployInfos();
   Status BuildDynamicSchedInfo();
   Status SetHeadNodeInfo();
   void AddTrimmingEdgesModelInstance(const std::string &src_model_instance_name,
                                      const std::string &dst_model_instance_name);
-  bool IsContainInvokedModel(const std::string &src_model_instance_name,
-                            const std::string &dst_model_instance_name);
-  void BindDynamicSchedDevQueue(const int32_t src_endpoint_idx,
-                                const int32_t dst_endpoint_idx);
+  bool IsContainInvokedModel(const std::string &src_model_instance_name, const std::string &dst_model_instance_name);
+  void BindDynamicSchedDevQueue(const int32_t src_endpoint_idx, const int32_t dst_endpoint_idx);
   Status BindDynamicSchedHostQueue(const DeployPlan::DeviceInfo &src_device_info,
-                                   const DeployPlan::DeviceInfo &dst_device_info,
-                                   DeployPlan::QueueInfo &entry_info,
-                                   int32_t &src_endpoint_idx,
-                                   int32_t &dst_endpoint_idx);
+                                   const DeployPlan::DeviceInfo &dst_device_info, DeployPlan::QueueInfo &entry_info,
+                                   int32_t &src_endpoint_idx, int32_t &dst_endpoint_idx);
 
   ModelRelation model_relation_;
   std::unique_ptr<ModelRelationReader> relation_reader_;
@@ -484,12 +437,11 @@ class ModelRelationFlattener {
   explicit ModelRelationFlattener(PneModelPtr root_model);
   Status Flatten(ModelRelation &flattened_model_relation, std::map<std::string, PneModelPtr> &name_to_models);
   static Status Flatten(const PneModelPtr &root_model);
+
  private:
-  Status FlattenSubmodel(const ModelRelation::ModelEndpointInfo &parent_model_queue_info,
-                         const PneModelPtr &pne_model,
+  Status FlattenSubmodel(const ModelRelation::ModelEndpointInfo &parent_model_queue_info, const PneModelPtr &pne_model,
                          const int32_t depth);
-  void MergeEndpoints(const std::map<std::string, std::string> &name_refs,
-                      const std::vector<Endpoint> &endpoints);
+  void MergeEndpoints(const std::map<std::string, std::string> &name_refs, const std::vector<Endpoint> &endpoints);
   static void ReplaceQueueNames(const std::map<std::string, std::string> &name_refs, std::vector<std::string> &names);
   static std::map<std::string, std::string> BuildNameRefs(
       const ModelRelation::ModelEndpointInfo &parent_model_queue_info,

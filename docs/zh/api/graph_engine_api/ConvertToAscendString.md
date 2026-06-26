@@ -78,4 +78,3 @@ template<typename T> ge::AscendString ConvertToAscendString(T str)
 ## 约束说明<a name="zh-cn_topic_0000001836249772_zh-cn_topic_0204328235_zh-cn_topic_0182636384_section62768825"></a>
 
 无。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,12 +46,11 @@ int64_t AlignOutputMemSize(int64_t mem_size) {
   tmp = kMemAlignSize + tmp + kMemAlignSize;
   return tmp;
 }
-} // namespace
+}  // namespace
 class UtestBufferPoolMemAssignerTest : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
-
 };
 
 TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_normal_assign_success) {
@@ -60,20 +59,16 @@ TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_normal_assign_success) {
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   int64_t offset_base = static_cast<int64_t>(kOffsetHBM + kMemAlignSize);
-  std::vector<int64_t> expect_offset = {(offset_base + 0),
-                                        (offset_base + AlignOutputMemSize(500)),
-                                        (offset_base + (AlignOutputMemSize(500) * 2)),
-                                        (offset_base + 0),
+  std::vector<int64_t> expect_offset = {(offset_base + 0), (offset_base + AlignOutputMemSize(500)),
+                                        (offset_base + (AlignOutputMemSize(500) * 2)), (offset_base + 0),
                                         (offset_base + AlignOutputMemSize(1024))};
 
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   ret = buffer_pool_mem_assigner.Assign();
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base +
-                                                     AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
+  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base + AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
 
   {
     auto prefetch = graph->FindNode("prefetch1");
@@ -127,22 +122,18 @@ TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_normal_graph_with_multi_buffe
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   int64_t offset_base_0 = static_cast<int64_t>(kOffsetHBM + kMemAlignSize);
-  int64_t offset_base_1 = static_cast<int64_t>(kOffsetHBM + kMemAlignSize) +
-                          AlignMemSize(5000, kMemAlignSize) + kMemAlignSize;
-  std::vector<int64_t> expect_offset = {(offset_base_0 + 0),
-                                        (offset_base_1 + 0),
-                                        (offset_base_0 + AlignOutputMemSize(500)),
-                                        (offset_base_0 + 0),
+  int64_t offset_base_1 =
+      static_cast<int64_t>(kOffsetHBM + kMemAlignSize) + AlignMemSize(5000, kMemAlignSize) + kMemAlignSize;
+  std::vector<int64_t> expect_offset = {(offset_base_0 + 0), (offset_base_1 + 0),
+                                        (offset_base_0 + AlignOutputMemSize(500)), (offset_base_0 + 0),
                                         (offset_base_1 + AlignOutputMemSize(500))};
 
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   ret = buffer_pool_mem_assigner.Assign();
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base_1 +
-                                                     AlignMemSize(5000, kMemAlignSize) + kMemAlignSize);
+  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base_1 + AlignMemSize(5000, kMemAlignSize) + kMemAlignSize);
 
   {
     auto prefetch = graph->FindNode("prefetch1");
@@ -196,16 +187,14 @@ TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_serial_graph_assign_success) 
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   int64_t offset_base = static_cast<int64_t>(kOffsetHBM + kMemAlignSize);
   std::vector<int64_t> expect_offset = {offset_base, offset_base, offset_base, offset_base, offset_base};
 
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   ret = buffer_pool_mem_assigner.Assign();
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base +
-                                                     AlignMemSize(2048, kMemAlignSize) + kMemAlignSize);
+  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base + AlignMemSize(2048, kMemAlignSize) + kMemAlignSize);
 
   {
     auto prefetch = graph->FindNode("prefetch1");
@@ -263,20 +252,16 @@ TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_subgraph_with_inner_dependenc
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   int64_t offset_base = static_cast<int64_t>(kOffsetHBM + kMemAlignSize);
-  std::vector<int64_t> expect_offset = {(offset_base + 0),
-                                        (offset_base + AlignOutputMemSize(500)),
-                                        (offset_base + (AlignOutputMemSize(500) * 2)),
-                                        (offset_base + 0),
+  std::vector<int64_t> expect_offset = {(offset_base + 0), (offset_base + AlignOutputMemSize(500)),
+                                        (offset_base + (AlignOutputMemSize(500) * 2)), (offset_base + 0),
                                         (offset_base + AlignOutputMemSize(1024))};
 
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   ret = buffer_pool_mem_assigner.Assign();
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base +
-                                                     AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
+  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base + AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
 
   std::map<std::string, NodePtr> all_nodes;
   for (auto node : graph->GetAllNodes()) {
@@ -336,20 +321,16 @@ TEST_F(UtestBufferPoolMemAssignerTest, buffer_pool_graph_with_multi_batch_assign
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   int64_t offset_base = static_cast<int64_t>(kOffsetHBM + kMemAlignSize);
-  std::vector<int64_t> expect_offset = {(offset_base + 0),
-                                        (offset_base + AlignOutputMemSize(500)),
-                                        (offset_base + (AlignOutputMemSize(500) * 2)),
-                                        (offset_base + 0),
+  std::vector<int64_t> expect_offset = {(offset_base + 0), (offset_base + AlignOutputMemSize(500)),
+                                        (offset_base + (AlignOutputMemSize(500) * 2)), (offset_base + 0),
                                         (offset_base + AlignOutputMemSize(1024))};
 
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   ret = buffer_pool_mem_assigner.Assign();
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base +
-                                                     AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
+  EXPECT_EQ(buffer_pool_mem_assigner.GetMemOffset(), offset_base + AlignMemSize(5600, kMemAlignSize) + kMemAlignSize);
 
   {
     auto prefetch = graph->FindNode("batch_label_128/prefetch1");
@@ -536,7 +517,6 @@ TEST_F(UtestBufferPoolMemAssignerTest, test_RefreshEventsWithReuse_success) {
   StreamUtils::AddSendEventId(all_nodes.at("prefetch1"), 37, stream_allocator.node_to_send_events_);
   StreamUtils::AddRecvEventId(all_nodes.at("add5"), 37, stream_allocator.node_to_recv_events_);
 
-
   ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ((stream_allocator.node_to_send_events_.at(all_nodes.at("prefetch1"))).size(), 2);
@@ -561,11 +541,11 @@ TEST_F(UtestBufferPoolMemAssignerTest, test_RefreshEventsWithReuse_fail) {
                                                       {"SendTo;add4;3", "RecvFrom;add2;0"},
                                                       {"SendTo;add5;0", "RecvFrom;add3;1"}};
 
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch2")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[1]);
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch3")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[2]);
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch4")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[3]);
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch5")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[4]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch2")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[1]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch3")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[2]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch4")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[3]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch5")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[4]);
 
   Graph2SubGraphInfoList sub_graphs;
   StreamAllocator stream_allocator(graph, sub_graphs);
@@ -573,31 +553,31 @@ TEST_F(UtestBufferPoolMemAssignerTest, test_RefreshEventsWithReuse_fail) {
 
   // Item num of raw event info is invalid
   event_info[0][0] = "SendTo;add1;0;1";
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
   Status ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, PARAM_INVALID);
 
   // Event id is invalid argument
   event_info[0][0] = "SendTo;add1;event_id";
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
   ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, PARAM_INVALID);
 
   // Event id is out of range
   event_info[0][0] = "SendTo;add1;666666666666666666666666666666666666666";
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
   ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, PARAM_INVALID);
 
   // Event id is negative
   event_info[0][0] = "SendTo;add1;-2";
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
   ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, PARAM_INVALID);
 
   // Key word is not supported
   event_info[0][0] = "SendToKey;add1;2";
-  (void) AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
+  (void)AttrUtils::SetListStr(all_nodes.at("prefetch1")->GetOpDesc(), ATTR_NAME_EVENT_MULTIPLEXING, event_info[0]);
   ret = stream_allocator.RefreshEventsAndNotifiesWithReuse();
   EXPECT_EQ(ret, PARAM_INVALID);
 }
@@ -605,8 +585,7 @@ TEST_F(UtestBufferPoolMemAssignerTest, test_RefreshEventsWithReuse_fail) {
 TEST_F(UtestBufferPoolMemAssignerTest, Assign) {
   ut::BufferPoolGraphBuilder builder("NormalGraphWithMultiBufferPool");
   ge::ComputeGraphPtr graph = builder.BuildNormalGraphWithMultiBufferPool();
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   buffer_pool_mem_assigner.compute_graph_ = nullptr;
   EXPECT_EQ(buffer_pool_mem_assigner.Assign(), PARAM_INVALID);
@@ -615,8 +594,7 @@ TEST_F(UtestBufferPoolMemAssignerTest, Assign) {
 TEST_F(UtestBufferPoolMemAssignerTest, AssignOutput) {
   ut::BufferPoolGraphBuilder builder("NormalGraphWithMultiBufferPool");
   ge::ComputeGraphPtr graph = builder.BuildNormalGraphWithMultiBufferPool();
-  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM},
-                                                  {kMemoryTypeP2P, kOffsetP2P}};
+  std::map<int64_t, size_t> mem_type_to_offset = {{kMemoryTypeHBM, kOffsetHBM}, {kMemoryTypeP2P, kOffsetP2P}};
   BufferPoolMemAssigner buffer_pool_mem_assigner(graph, mem_type_to_offset);
   buffer_pool_mem_assigner.buffer_pool_nodes_["label"] = std::map<int64_t, std::vector<NodePtr>>();
   buffer_pool_mem_assigner.buffer_pool_nodes_["label"][1] = std::vector<NodePtr>();
@@ -626,4 +604,3 @@ TEST_F(UtestBufferPoolMemAssignerTest, AssignOutput) {
   EXPECT_EQ(buffer_pool_mem_assigner.AssignOutput(), INTERNAL_ERROR);
 }
 }  // namespace ge
-

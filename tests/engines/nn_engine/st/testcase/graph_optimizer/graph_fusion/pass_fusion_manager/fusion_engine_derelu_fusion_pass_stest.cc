@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@
 #include "graph/utils/attr_utils.h"
 #include "pass_manager.h"
 #include "common/util/op_info_util.h"
-//#include "graph_optimizer/graph_fusion/fusion_pass_manager/builtin_pass/derelu_fusion_pass.h"
+// #include "graph_optimizer/graph_fusion/fusion_pass_manager/builtin_pass/derelu_fusion_pass.h"
 #undef protected
 #undef private
 
@@ -32,19 +32,14 @@ using namespace fe;
 static const char *RELUGRAD = "ReluGrad";
 
 class STEST_optimizer_fusion_derelu_fusion_pass : public testing::Test {
+ protected:
+  void SetUp() {}
 
+  void TearDown() {}
 
  protected:
-  void SetUp() {
-  }
-
-  void TearDown() {
-
-  }
-
- protected:
-  ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type,
-                  int32_t out_anchors_num = 1, int32_t in_anchors_num = 1) {
+  ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type, int32_t out_anchors_num = 1,
+                      int32_t in_anchors_num = 1) {
     ge::GeTensorDesc tensor_desc;
     ge::OpDescPtr opdesc = std::make_shared<ge::OpDesc>(name, type);
     for (int32_t i = 0; i < out_anchors_num; i++) {
@@ -60,11 +55,10 @@ class STEST_optimizer_fusion_derelu_fusion_pass : public testing::Test {
   void SetWeightsFloat(ge::NodePtr node, float w) {
     float data[] = {w};
     ge::GeTensorDesc tensor_desc(ge::GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
-    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data, sizeof(data));
+    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data, sizeof(data));
     vector<ge::GeTensorPtr> weights = {tensor};
     ge::OpDescUtils::SetWeights(node, weights);
   }
-
 
   ge::ComputeGraphPtr CreateSucessGraph() {
     ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
@@ -102,20 +96,20 @@ class STEST_optimizer_fusion_derelu_fusion_pass : public testing::Test {
   }
 };
 
-//TEST_F(STEST_optimizer_fusion_derelu_fusion_pass, derelu_fusion_success) {
-//  ge::ComputeGraphPtr graph = CreateSucessGraph();
+// TEST_F(STEST_optimizer_fusion_derelu_fusion_pass, derelu_fusion_success) {
+//   ge::ComputeGraphPtr graph = CreateSucessGraph();
 //
-//  fe::DreluFusionPass pass;
-//  vector<fe::GraphPass *> passes = {&pass};
-//  fe::Status status = fe::PassManager::Run(*graph, passes);
-//  EXPECT_EQ(fe::SUCCESS, status);
-//}
+//   fe::DreluFusionPass pass;
+//   vector<fe::GraphPass *> passes = {&pass};
+//   fe::Status status = fe::PassManager::Run(*graph, passes);
+//   EXPECT_EQ(fe::SUCCESS, status);
+// }
 //
-//TEST_F(STEST_optimizer_fusion_derelu_fusion_pass, derelu_fusion_success2) {
-//  ge::ComputeGraphPtr graph = CreateFailedGraph();
+// TEST_F(STEST_optimizer_fusion_derelu_fusion_pass, derelu_fusion_success2) {
+//   ge::ComputeGraphPtr graph = CreateFailedGraph();
 //
-//  fe::DreluFusionPass pass;
-//  vector<fe::GraphPass *> passes = {&pass};
-//  fe::Status status = fe::PassManager::Run(*graph, passes);
-//  EXPECT_EQ(fe::NOT_CHANGED, status);
-//}
+//   fe::DreluFusionPass pass;
+//   vector<fe::GraphPass *> passes = {&pass};
+//   fe::Status status = fe::PassManager::Run(*graph, passes);
+//   EXPECT_EQ(fe::NOT_CHANGED, status);
+// }

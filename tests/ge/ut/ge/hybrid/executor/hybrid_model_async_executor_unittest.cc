@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@
 #include "op_impl/less_important_op_impl.h"
 #include "faker/ge_model_builder.h"
 #include "stub/gert_runtime_stub.h"
-#include "faker/aicore_taskdef_faker.h" 
+#include "faker/aicore_taskdef_faker.h"
 #include "register/op_impl_registry.h"
 #include "attribute_group/attr_group_shape_env.h"
 #include "graph/optimize/symbolic/codegen/guard_codegen.h"
@@ -87,8 +87,7 @@ class UtestHybridModelAsyncExecutor : public testing::Test {
     unsetenv("ENABLE_RUNTIME_V2");
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(UtestHybridModelAsyncExecutor, Test_execute_by_runGraph_with_rtv1) {
@@ -126,7 +125,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_execute_by_runGraph_with_rtv1) {
   executor2.SetModelId(1U);
   ASSERT_EQ(executor2.Init(), SUCCESS);
   // ExecuteWithStreamAsync not support rt1 with dynamic model
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   ASSERT_NE(executor2.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
 }
 
@@ -147,7 +146,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_execute_by_executeGraph_with_rtv1) {
   inputs.resize(1);
   inputs.resize(2);
   // ExecuteWithStreamAsync not support rt1 with dynamic model
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   ASSERT_NE(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
 }
 
@@ -186,15 +185,15 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_execute_by_runGraph_with_rtv1_with_ge
   executor2.SetModelId(1U);
   ASSERT_EQ(executor2.Init(), SUCCESS);
   // ExecuteWithStreamAsync not support rt1 with dynamic model
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   ASSERT_NE(executor2.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
   std::vector<gert::Tensor> gert_inputs;
   gert_inputs.resize(1);
-  gert_inputs[0] = {{{-1, 16, 16, 3}, {-1, 16, 16, 3}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) tensor_data.data()};
+  gert_inputs[0] = {{{-1, 16, 16, 3}, {-1, 16, 16, 3}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)tensor_data.data()};
   std::vector<gert::Tensor> gert_outputs;
   ASSERT_EQ(executor.Execute(gert_inputs, gert_outputs), SUCCESS);
 }
@@ -221,7 +220,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_execute_by_runGraph_with_rtv2) {
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
 
   HybridModelAsyncExecutor executor(&hybrid_model);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(executor.Init(stream), SUCCESS);
   EXPECT_NE(executor.executor_, nullptr);
 
@@ -260,10 +259,10 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
   {
     GeModelBuilder builder(graph);
     auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin"))
-        .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
-        .SetRootModelStreamNum(stream_num)
-        .SetRootModelEventNum(event_num)
-        .BuildGeRootModel();
+                             .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
+                             .SetRootModelStreamNum(stream_num)
+                             .SetRootModelEventNum(event_num)
+                             .BuildGeRootModel();
 
     HybridModel hybrid_model(ge_root_model);
     hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -291,7 +290,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
     std::vector<gert::Tensor> gert_outputs_pro;
     ASSERT_EQ(executor.Execute(gert_inputs_pro, gert_outputs_pro), SUCCESS);
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    ASSERT_EQ(all_rt_streams.size(), stream_num - 1); // // total require 1 sub stream when executing
+    ASSERT_EQ(all_rt_streams.size(), stream_num - 1);  // // total require 1 sub stream when executing
     EXPECT_EQ(executor.Init(stream), SUCCESS);
     ASSERT_EQ(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
   }
@@ -301,7 +300,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
 
 TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_rtv2_rollback_singleStream) {
   setenv("ENABLE_RUNTIME_V2", "1", 0);
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
@@ -315,15 +314,14 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin"))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetKernelStub().StubTiling();
   {
-
     HybridModel hybrid_model(ge_root_model);
     hybrid_model.root_graph_item_.reset(new GraphItem);
     hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
@@ -351,7 +349,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_multiStream_execute_by_runGraph_with_
     ASSERT_EQ(executor.Execute(gert_inputs_pro, gert_outputs_pro), SUCCESS);
     EXPECT_EQ(executor.Init(stream), SUCCESS);
     auto all_rt_streams = runtime_stub.GetAclRuntimeStub().GetAllRtStreams();
-    ASSERT_EQ(all_rt_streams.size(), 0); // execute on 1 streams, use external stream, no need create streams
+    ASSERT_EQ(all_rt_streams.size(), 0);  // execute on 1 streams, use external stream, no need create streams
     ASSERT_EQ(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);
   }
   unsetenv("ENABLE_RUNTIME_V2");
@@ -642,7 +640,7 @@ TEST_F(UtestHybridModelAsyncExecutor, Test_AbnormalMaxGraphParallelModelNum_fail
 
   HybridModelAsyncExecutor executor1(&hybrid_model);
   EXPECT_NE(executor1.Init(), SUCCESS);
-  
+
   domi::GetContext().is_online_model = false;
   options.clear();
   ge::GetThreadLocalContext().SetGraphOption(options);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,22 +21,22 @@
 namespace ge {
 namespace dflow {
 class FlowOperator : public ge::Operator {
-public:
+ public:
   ~FlowOperator() override;
 
-protected:
+ protected:
   FlowOperator(const char *name, const char *type);
 };
 
 class FlowData : public FlowOperator {
-public:
+ public:
   FlowData(const char *name, int64_t index);
   ~FlowData() override;
 };
 
 class FlowNodeImpl;
 class FlowNode : public FlowOperator {
-public:
+ public:
   FlowNode(const char *name, uint32_t input_num, uint32_t output_num);
   ~FlowNode() override;
   FlowNode &SetInput(uint32_t dst_index, const FlowOperator &src_op, uint32_t src_index = 0);
@@ -54,7 +54,7 @@ public:
 class FlowGraphImpl;
 using FlowGraphImplPtr = std::shared_ptr<FlowGraphImpl>;
 class FlowGraph {
-public:
+ public:
   explicit FlowGraph(const char *name);
   ~FlowGraph();
   const ge::Graph &ToGeGraph() const;

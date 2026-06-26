@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,12 +22,12 @@
 
 namespace ge {
 namespace {
-constexpr int32_t kHeartbeatInterval = 5000; // millisconds
+constexpr int32_t kHeartbeatInterval = 5000;  // millisconds
 constexpr int32_t kDataGwPortBase = 16666;
 constexpr int32_t kDataGwPortMaxOffset = 256;
 constexpr int32_t kHeartbeatTryMaxNum = 10;
 constexpr int32_t kInvalidRankId = -1;
-constexpr uint32_t kInitTryWaitInterval = 1000; // millisconds
+constexpr uint32_t kInitTryWaitInterval = 1000;  // millisconds
 }  // namespace
 
 void Deployer::FormatAndAddAbnormalDeviceInfo(int32_t node_id, int32_t device_id, int32_t device_type) {
@@ -75,7 +75,7 @@ void Deployer::ParseRsponse(deployer::DeployerResponse &response) {
   } else if (response.heartbeat_response().abnormal_type() == kAbnormalTypeDevice) {
     for (int32_t i = 0; i < response.heartbeat_response().device_status_size(); ++i) {
       const auto &device_status = response.heartbeat_response().device_status(i);
-      if (device_status.device_id() >= 0) { // flowgw_client进程异常
+      if (device_status.device_id() >= 0) {  // flowgw_client进程异常
         AddAbnormalDeviceInfo(device_status.device_id(), device_status.device_type());
       }
     }
@@ -87,8 +87,8 @@ void Deployer::ParseRsponse(deployer::DeployerResponse &response) {
       for (auto &submodel_instance : submodel_instances.second.submodel_instance_name()) {
         std::lock_guard<std::mutex> lk(deploy_context.GetAbnormalHeartbeatInfoMu());
         deploy_context.AddAbnormalSubmodelInstanceName(submodel_instances.first, submodel_instance.first);
-        GELOGI("ParseRsponse: root model id=%u, anormal model instance is %s",
-            submodel_instances.first, submodel_instance.first.c_str());
+        GELOGI("ParseRsponse: root model id=%u, abnormal model instance is %s", submodel_instances.first,
+               submodel_instance.first.c_str());
       }
     }
   }
@@ -118,13 +118,11 @@ Status LocalDeployer::Initialize() {
     device_info.SetAvailablePorts(node_config.available_ports);
     int32_t port = -1;
     if (device_config.device_type == CPU && node_config.need_port_preemption) {
-      GE_CHK_STATUS_RET(NetworkManager::GetInstance().GetDataPanelPort(port),
-                        "Failed to allocate port");
+      GE_CHK_STATUS_RET(NetworkManager::GetInstance().GetDataPanelPort(port), "Failed to allocate port");
     } else {
-      GE_CHK_STATUS_RET(DeployerPortDistributor::GetInstance().AllocatePort(node_config.ipaddr,
-                                                                            node_config.available_ports,
-                                                                            port),
-                        "Failed to allocate port");
+      GE_CHK_STATUS_RET(
+          DeployerPortDistributor::GetInstance().AllocatePort(node_config.ipaddr, node_config.available_ports, port),
+          "Failed to allocate port");
     }
     device_info.SetDgwPort(port);
     device_info.SetHostIp(node_config.ipaddr);
@@ -153,7 +151,7 @@ void LocalDeployer::Keepalive() {
   GELOGI("Keepalive task started");
   while (is_running_) {
     std::unique_lock<std::mutex> lk(mu_cv_);
-    constexpr int32_t kSleepInterval = 100; // millisconds
+    constexpr int32_t kSleepInterval = 100;  // millisconds
     constexpr int32_t kSleepCnt = kHeartbeatInterval / kSleepInterval;
     for (int32_t i = 0; (i < kSleepCnt) && is_running_; i++) {
       std::this_thread::sleep_for(std::chrono::milliseconds(kSleepInterval));
@@ -188,7 +186,7 @@ Status LocalDeployer::GetDevStat() {
   deployer::DeployerRequest request;
   request.set_type(deployer::kHeartbeat);
   deployer::DeployerResponse response;
-  (void) DeployerServiceImpl::GetInstance().Process(local_context_, request, response);
+  (void)DeployerServiceImpl::GetInstance().Process(local_context_, request, response);
   ParseRsponse(response);
   if (response.error_code() != SUCCESS) {
     return FAILED;
@@ -200,8 +198,7 @@ Status LocalDeployer::Process(deployer::DeployerRequest &request, deployer::Depl
   return DeployerServiceImpl::GetInstance().Process(local_context_, request, response);
 }
 
-RemoteDeployer::RemoteDeployer(NodeConfig node_config)
-    : node_config_(std::move(node_config)), node_info_(false) {}
+RemoteDeployer::RemoteDeployer(NodeConfig node_config) : node_config_(std::move(node_config)), node_info_(false) {}
 
 Status RemoteDeployer::InitNodeInfoByDeviceList() {
   for (size_t i = 0U; i < node_config_.device_list.size(); ++i) {
@@ -218,10 +215,9 @@ Status RemoteDeployer::InitNodeInfoByDeviceList() {
     device_info.SetOsId(device_config.os_id);
     device_info.SetAvailablePorts(node_config_.available_ports);
     int32_t port = -1;
-    GE_CHK_STATUS_RET(DeployerPortDistributor::GetInstance().AllocatePort(node_config_.ipaddr,
-                                                                          node_config_.available_ports,
-                                                                          port),
-                      "Failed to allocate port");
+    GE_CHK_STATUS_RET(
+        DeployerPortDistributor::GetInstance().AllocatePort(node_config_.ipaddr, node_config_.available_ports, port),
+        "Failed to allocate port");
     device_info.SetDgwPort(port);
     device_info.SetHostIp(node_config_.ipaddr);
     device_info.SetNodePort(node_config_.port);
@@ -235,8 +231,7 @@ Status RemoteDeployer::InitNodeInfoByDeviceList() {
 }
 
 Status RemoteDeployer::InitNodeInfoByChipCount() {
-  if ((node_info_.GetDeviceList().size() != 0UL) &&
-      (node_config_.chip_count != 0U)) {
+  if ((node_info_.GetDeviceList().size() != 0UL) && (node_config_.chip_count != 0U)) {
     GELOGE(FAILED, "It is not supported to set chip count when device list detail info is existed.");
     return FAILED;
   }
@@ -252,10 +247,9 @@ Status RemoteDeployer::InitNodeInfoByChipCount() {
     device_info.SetDeviceIndex(i);
     device_info.SetAvailablePorts(node_config_.available_ports);
     int32_t port = -1;
-    GE_CHK_STATUS_RET(DeployerPortDistributor::GetInstance().AllocatePort(node_config_.ipaddr,
-                                                                          node_config_.available_ports,
-                                                                          port),
-                      "Failed to allocate port");
+    GE_CHK_STATUS_RET(
+        DeployerPortDistributor::GetInstance().AllocatePort(node_config_.ipaddr, node_config_.available_ports, port),
+        "Failed to allocate port");
     device_info.SetDgwPort(port);
     device_info.SetNodeMeshIndex(node_config_.node_mesh_index);
     device_info.SetSupportFlowgw(true);
@@ -293,8 +287,7 @@ Status RemoteDeployer::InitRequest(deployer::DeployerRequest &request) {
     std::string sign_data;
     GE_MAKE_GUARD(sign_data, [&sign_data]() { sign_data.replace(sign_data.begin(), sign_data.end(), ""); });
     auto type = std::to_string(request.type());
-    GE_CHK_STATUS_RET(DeployerAuthentication::GetInstance().AuthSign(type, sign_data),
-                     "Failed to auth sign.");
+    GE_CHK_STATUS_RET(DeployerAuthentication::GetInstance().AuthSign(type, sign_data), "Failed to auth sign.");
     init_request->set_sign_data(sign_data);
   }
 
@@ -306,14 +299,13 @@ Status RemoteDeployer::InitRequest(deployer::DeployerRequest &request) {
   return SUCCESS;
 }
 
-Status RemoteDeployer::SendInitRequest(const deployer::DeployerRequest request,
-                                       deployer::DeployerResponse &response) {
+Status RemoteDeployer::SendInitRequest(const deployer::DeployerRequest request, deployer::DeployerResponse &response) {
   Status ret = SUCCESS;
   const int32_t kTryTimes = 61;
   // max wait 60s
   for (int32_t i = 0; i < kTryTimes; ++i) {
     if (i != 0) {
-      (void) mmSleep(kInitTryWaitInterval);  // mmSleep max wait 1s
+      (void)mmSleep(kInitTryWaitInterval);  // mmSleep max wait 1s
     }
     GEEVENT("[Send][Request] send init request, try time = %d, address = %s.", i + 1, node_config_.ipaddr.c_str());
     GE_CHECK_NOTNULL(client_.get());
@@ -341,22 +333,21 @@ Status RemoteDeployer::Connect() {
   auto status = SendInitRequest(request, response);
   if (status != SUCCESS) {
     GELOGE(FAILED, "Failed to send init request");
-    REPORT_PREDEFINED_ERR_MSG("E13027", std::vector<const char_t *>({"address"}),
+    REPORT_PREDEFINED_ERR_MSG(
+        "E13027", std::vector<const char_t *>({"address"}),
         std::vector<const char_t *>({(node_config_.ipaddr + ":" + std::to_string(node_config_.port)).c_str()}));
     return status;
   }
 
   auto error_code = response.error_code();
-  GE_CHK_STATUS_RET(error_code, "[Check][Response]Check response failed. error code =%u, error message=%s",
-                    error_code, response.error_message().c_str());
+  GE_CHK_STATUS_RET(error_code, "[Check][Response]Check response failed. error code =%u, error message=%s", error_code,
+                    response.error_message().c_str());
   client_id_ = response.init_response().client_id();
   UpdateNodeInfo(response.init_response());
-  keepalive_thread_ = std::thread([this]() {
-    Keepalive();
-  });
+  keepalive_thread_ = std::thread([this]() { Keepalive(); });
   connected_status_ = SUCCESS;
-  GEEVENT("[Send][Request] add client succeeded, client_id = %ld, address = %s.",
-          client_id_, node_config_.ipaddr.c_str());
+  GEEVENT("[Send][Request] add client succeeded, client_id = %ld, address = %s.", client_id_,
+          node_config_.ipaddr.c_str());
   return SUCCESS;
 }
 
@@ -385,7 +376,7 @@ void RemoteDeployer::Keepalive() {
   GELOGI("Keepalive task started.");
   while (keep_alive_) {
     std::unique_lock<std::mutex> lk(mu_cv_);
-    constexpr int32_t kSleepInterval = 100; // millisconds
+    constexpr int32_t kSleepInterval = 100;  // millisconds
     constexpr int32_t kSleepCnt = kHeartbeatInterval / kSleepInterval;
     for (int32_t i = 0; (i < kSleepCnt) && keep_alive_; i++) {
       std::this_thread::sleep_for(std::chrono::milliseconds(kSleepInterval));
@@ -401,8 +392,7 @@ Status RemoteDeployer::Finalize() {
   if (!keep_alive_) {
     return SUCCESS;
   }
-  GELOGI("Start to finalize remote deployer, remote address = %s, port = %d.",
-         node_config_.ipaddr.c_str(),
+  GELOGI("Start to finalize remote deployer, remote address = %s, port = %d.", node_config_.ipaddr.c_str(),
          node_config_.port);
   keep_alive_ = false;
   if (keepalive_thread_.joinable()) {
@@ -455,10 +445,8 @@ Status RemoteDeployer::Process(deployer::DeployerRequest &request, deployer::Dep
   return client_->SendRequest(request, response);
 }
 
-Status RemoteDeployer::Process(deployer::DeployerRequest &request,
-                               deployer::DeployerResponse &response,
-                               const int64_t timeout_sec,
-                               const int32_t retry_times) {
+Status RemoteDeployer::Process(deployer::DeployerRequest &request, deployer::DeployerResponse &response,
+                               const int64_t timeout_sec, const int32_t retry_times) {
   GE_IF_BOOL_EXEC(exception_, return SUCCESS);
   GE_CHK_STATUS_RET(Connect(), "Failed to connect to remote deployer.");
   std::future<Status> future = std::async(std::launch::async, [this, &request, &response, timeout_sec, retry_times]() {
@@ -504,8 +492,8 @@ void RemoteDeployer::SendHeartbeat(int32_t max_retry_times) {
     response.mutable_heartbeat_response()->set_abnormal_type(kAbnormalTypeNode);
     GELOGW("Send heartbeat request failed, %s.", node_info_.DebugString().c_str());
   } else if (response.error_code() != SUCCESS) {
-    GELOGW("Process on device is abnormal, %s, response info:%s",
-           node_info_.DebugString().c_str(), response.error_message().c_str());
+    GELOGW("Process on device is abnormal, %s, response info:%s", node_info_.DebugString().c_str(),
+           response.error_message().c_str());
   } else {
     GELOGI("Success to send heartbeat to client_id[%ld], %s.", client_id_, node_info_.DebugString().c_str());
   }

@@ -71,4 +71,3 @@ aclError aclmdlGetInputIndexByName(const aclmdlDesc *modelDesc, const char *name
 ## 返回值说明<a name="section184151120582"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

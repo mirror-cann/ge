@@ -1,15 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include "graph/passes/feature/link_gen_mask_nodes_pass.h"
-
 
 #include <gtest/gtest.h>
 #include <set>
@@ -25,14 +24,14 @@ class UtestLinkGenMaskNodesPass : public testing::Test {
 };
 
 namespace {
-  /*
-   *   do_mask1       do_mask2    do_mask3       do_mask4     do_mask5      do_mask6
-   *      \| \          / |/        |/ \          /  |/         \| \          / |/
-   *       \  \        /  |         |   \        /   |           |  \        /  |
-   *        \  genmask1   |         |    genmask2    |           |   genmask3   |
-   *         \     | |    |         |      |  |      |           |     | |     /
-   *          ----------------------const1 and const2--------------------------
-   */
+/*
+ *   do_mask1       do_mask2    do_mask3       do_mask4     do_mask5      do_mask6
+ *      \| \          / |/        |/ \          /  |/         \| \          / |/
+ *       \  \        /  |         |   \        /   |           |  \        /  |
+ *        \  genmask1   |         |    genmask2    |           |   genmask3   |
+ *         \     | |    |         |      |  |      |           |     | |     /
+ *          ----------------------const1 and const2--------------------------
+ */
 ut::GraphBuilder Graph1Builder() {
   ut::GraphBuilder builder = ut::GraphBuilder("g1");
   auto const1 = builder.AddNode("const1", "Const", 0, 1);
@@ -81,11 +80,10 @@ ut::GraphBuilder Graph1Builder() {
 }
 }  // namespace
 
-
 TEST_F(UtestLinkGenMaskNodesPass, link_gen_mask_nodes_pass_success) {
   auto builder = Graph1Builder();
   auto graph = builder.GetGraph();
-  
+
   std::map<std::string, int> stream_max_parallel_num;
   stream_max_parallel_num["DNN_HCCL"] = 1;
   LinkGenMaskNodesPass link_pass(stream_max_parallel_num);

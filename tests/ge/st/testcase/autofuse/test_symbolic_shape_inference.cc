@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@
 
 namespace ge {
 using ge::es::EsTensorHolder;
-bool EnableSliceSchedule() { // 桩函数
+bool EnableSliceSchedule() {  // 桩函数
   const char_t *auto_fuse_options = nullptr;
   MM_SYS_GET_ENV(MM_ENV_AUTOFUSE_FLAGS, auto_fuse_options);
   if (auto_fuse_options == nullptr) {
@@ -57,22 +57,17 @@ class SymbolicShapeInferenceST : public testing::Test {
       const char *op_name;
       std::vector<size_t> input_indices;
     } kDataDeps[] = {
-      {"UnsqueezeV3", {1}},
-      {"Transpose", {1}},
-      {"BroadcastTo", {1}},
-      {"Expand", {1}},
-      {"MatrixDiagV2", {1, 2, 3}},
-      {"DynamicStitch", {0}},
+        {"UnsqueezeV3", {1}}, {"Transpose", {1}},          {"BroadcastTo", {1}},
+        {"Expand", {1}},      {"MatrixDiagV2", {1, 2, 3}}, {"DynamicStitch", {0}},
     };
-    for (const auto &dep: kDataDeps) {
+    for (const auto &dep : kDataDeps) {
       auto impl = registry->CreateOrGetOpImpl(dep.op_name);
       for (size_t idx : dep.input_indices) {
         impl->SetInputDataDependency(idx);
       }
     }
   }
-  static void TearDownTestSuite() {
-  }
+  static void TearDownTestSuite() {}
   void SetUp() override {
     global_options_ = ge::GetThreadLocalContext().GetAllGlobalOptions();
     graph_options_ = ge::GetThreadLocalContext().GetAllGraphOptions();
@@ -94,6 +89,7 @@ class SymbolicShapeInferenceST : public testing::Test {
     builder_.reset();
   }
   std::unique_ptr<ge::es::EsGraphBuilder> builder_;
+
  private:
   std::map<std::string, std::string> global_options_;
   std::map<std::string, std::string> graph_options_;
@@ -179,7 +175,8 @@ static void SetDataNodeSymbolShapeAndValue(const ge::NodePtr &data_node, const g
   out_desc_attr->symbolic_tensor.SetSymbolicValue(std::move(symbolic_value));
 }
 
-static void SetEinsumDescValid(const ge::OpDescPtr &einsum_op_desc, const size_t in0_dim_num, const size_t in1_dim_num) {
+static void SetEinsumDescValid(const ge::OpDescPtr &einsum_op_desc, const size_t in0_dim_num,
+                               const size_t in1_dim_num) {
   ASSERT_NE(einsum_op_desc, nullptr);
   std::vector<int64_t> in0_dims(in0_dim_num, -1);
   std::vector<int64_t> in1_dims(in1_dim_num, -1);
@@ -239,30 +236,26 @@ static void ExpectConv2DShapeEquals(const ge::OpDescPtr &conv_op_desc, const std
 
 static void CheckConv2DNhwcInferResult(const ge::OpDescPtr &conv_op_desc, const ShapeEnvAttr *shape_env_attr) {
   ASSERT_NE(shape_env_attr, nullptr);
-  ExpectConv2DShapeEquals(conv_op_desc,
-                          {"s0", "Floor((s1 - (-1 + s4)))", "Floor((s2 - (-1 + s5)))", "s7"});
-  const std::set<std::string> expected_guards = {"ExpectNe(0, s7)", "ExpectNe(0, s1)", "ExpectNe(s2, s5)",
-                                                  "ExpectNe(0, s0)", "ExpectNe(0, s3)", "ExpectNe(s1, s4)",
-                                                  "ExpectNe(0, s2)", "ExpectNe((s3 / (s6)), 0)",
-                                                  "ExpectEq(0, Mod(s3, s6))", "ExpectNe(0, s6)",
-                                                  "ExpectNe(0, s5)", "ExpectNe(0, s4)"};
+  ExpectConv2DShapeEquals(conv_op_desc, {"s0", "Floor((s1 - (-1 + s4)))", "Floor((s2 - (-1 + s5)))", "s7"});
+  const std::set<std::string> expected_guards = {
+      "ExpectNe(0, s7)",          "ExpectNe(0, s1)",  "ExpectNe(s2, s5)", "ExpectNe(0, s0)",
+      "ExpectNe(0, s3)",          "ExpectNe(s1, s4)", "ExpectNe(0, s2)",  "ExpectNe((s3 / (s6)), 0)",
+      "ExpectEq(0, Mod(s3, s6))", "ExpectNe(0, s6)",  "ExpectNe(0, s5)",  "ExpectNe(0, s4)"};
   const std::set<std::string> expected_asserts = {"ExpectLt(0, s4)", "ExpectLt(0, s5)", "ExpectLe(s4, s1)",
-                                                   "ExpectEq(0, Mod(s7, (s3 / (s6))))", "ExpectLe(s5, s2)"};
+                                                  "ExpectEq(0, Mod(s7, (s3 / (s6))))", "ExpectLe(s5, s2)"};
   ExpectSymbolCheckInfosInSet(shape_env_attr->GetAllSymbolCheckInfos(), expected_guards);
   ExpectSymbolCheckInfosInSet(shape_env_attr->GetAllSymbolAssertInfos(), expected_asserts);
 }
 
 static void CheckConv2DNchwInferResult(const ge::OpDescPtr &conv_op_desc, const ShapeEnvAttr *shape_env_attr) {
   ASSERT_NE(shape_env_attr, nullptr);
-  ExpectConv2DShapeEquals(conv_op_desc,
-                          {"s0", "s4", "Floor((s2 - (-1 + s6)))", "Floor((s3 - (-1 + s7)))"});
-  const std::set<std::string> expected_guards = {"ExpectNe(0, s4)", "ExpectNe(0, s1)", "ExpectNe(s3, s7)",
-                                                  "ExpectNe(0, s0)", "ExpectNe(0, s3)", "ExpectNe(s2, s6)",
-                                                  "ExpectNe(0, s2)", "ExpectNe((s1 / (s5)), 0)",
-                                                  "ExpectEq(0, Mod(s1, s5))", "ExpectNe(0, s5)",
-                                                  "ExpectNe(0, s6)", "ExpectNe(0, s7)"};
+  ExpectConv2DShapeEquals(conv_op_desc, {"s0", "s4", "Floor((s2 - (-1 + s6)))", "Floor((s3 - (-1 + s7)))"});
+  const std::set<std::string> expected_guards = {
+      "ExpectNe(0, s4)",          "ExpectNe(0, s1)",  "ExpectNe(s3, s7)", "ExpectNe(0, s0)",
+      "ExpectNe(0, s3)",          "ExpectNe(s2, s6)", "ExpectNe(0, s2)",  "ExpectNe((s1 / (s5)), 0)",
+      "ExpectEq(0, Mod(s1, s5))", "ExpectNe(0, s5)",  "ExpectNe(0, s6)",  "ExpectNe(0, s7)"};
   const std::set<std::string> expected_asserts = {"ExpectLt(0, s6)", "ExpectLt(0, s7)", "ExpectLe(s7, s3)",
-                                                   "ExpectEq(0, Mod(s4, (s1 / (s5))))", "ExpectLe(s6, s2)"};
+                                                  "ExpectEq(0, Mod(s4, (s1 / (s5))))", "ExpectLe(s6, s2)"};
   ExpectSymbolCheckInfosInSet(shape_env_attr->GetAllSymbolCheckInfos(), expected_guards);
   ExpectSymbolCheckInfosInSet(shape_env_attr->GetAllSymbolAssertInfos(), expected_asserts);
 }
@@ -326,16 +319,27 @@ IMPL_OP(Exp).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput(
 IMPL_OP(Div).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Cast).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Data).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
-IMPL_OP(BiasAddGrad).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
+IMPL_OP(BiasAddGrad)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
     .PrivateAttr("data_format", "NHWC");
-IMPL_OP(ConcatV2D).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
+IMPL_OP(ConcatV2D)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
     .PrivateAttr("concat_dim", static_cast<int64_t>(0));
-IMPL_OP(Conv2DBackpropInputD).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
+IMPL_OP(Conv2DBackpropInputD)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
     .PrivateAttr("input_size", std::vector<int64_t>({1, 1, 1, 1}));
-IMPL_OP(Conv2DBackpropFilterD).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
+IMPL_OP(Conv2DBackpropFilterD)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
     .PrivateAttr("filter_size", std::vector<int64_t>({1, 1, 1, 1}));
-IMPL_OP(Gather).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
-    .PrivateAttr("validate_indices", true).PrivateAttr("batch_dims", static_cast<int64_t>(0));
+IMPL_OP(Gather)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
+    .PrivateAttr("validate_indices", true)
+    .PrivateAttr("batch_dims", static_cast<int64_t>(0));
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForVariable) {
   auto es_graph = std::unique_ptr<es::EsGraphBuilder>(new es::EsGraphBuilder("cpp_graph"));
@@ -362,8 +366,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForVariable) {
 
   auto attr = var_node->GetOpDescBarePtr()->GetOutputDescPtr(0)->GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  std::cout << SymbolicInferUtil::VectorExpressionToStr(attr->symbolic_tensor.GetOriginSymbolShape().GetDims()) <<
-      std::endl;
+  std::cout << SymbolicInferUtil::VectorExpressionToStr(attr->symbolic_tensor.GetOriginSymbolShape().GetDims())
+            << std::endl;
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(4), Symbol(5), Symbol(6)}));
 }
 
@@ -375,22 +379,22 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForVariable) {
  * */
 namespace {
 auto data = OP_CFG("Data")
-            .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
-            .InCnt(0)
-            .OutCnt(1)
-            .InNames({"x"})
-            .OutNames({"y"})
-            .Build("Data");
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(0)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("Data");
 auto foo1 =
     OP_CFG("foo1").TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4}).InCnt(1).OutCnt(1).OutNames({"y"}).Build("FOO1");
 auto foo2 = OP_CFG("foo2")
-            .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, 3, 4})
-            .InCnt(1)
-            .OutCnt(1)
-            .InNames({"x"})
-            .OutNames({"y"})
-            .Build("FOO2");
-} // namespace
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("FOO2");
+}  // namespace
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForNoInferFunc) {
   DEF_GRAPH(g1) {
@@ -407,9 +411,9 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForNoInferFunc) {
       Symbol("s2"),
   });
   data0->GetOpDescBarePtr()
-       ->MutableOutputDesc(0)
-       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
-       ->symbolic_tensor.SetSymbolShape(symbol_shape);
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symbol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
 
@@ -427,17 +431,9 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForNoInferFunc) {
 }
 
 namespace {
-auto const11 = OP_CFG("Const")
-               .InCnt(0)
-               .OutCnt(1)
-               .OutNames({"y"})
-               .Build("Const");
-auto const22 = OP_CFG("Constant")
-               .InCnt(0)
-               .OutCnt(1)
-               .OutNames({"y"})
-               .Build("Constant");
-} // namespace
+auto const11 = OP_CFG("Const").InCnt(0).OutCnt(1).OutNames({"y"}).Build("Const");
+auto const22 = OP_CFG("Constant").InCnt(0).OutCnt(1).OutNames({"y"}).Build("Constant");
+}  // namespace
 
 // 如果不是按照IR注册的方式造的node，后续造context时拿不到IR属性
 // infer symbol shape时，会尝试从IR中恢复IR属性，这对const\constant节点非常重要，此处添加ut校验
@@ -548,10 +544,10 @@ TEST_F(SymbolicShapeInferenceST, simple_symbolic_kernel_compute) {
   auto data2 = builder_->CreateInput(2, "data_2");
   auto const1 = builder_->CreateScalar(static_cast<int32_t>(0));
 
-  auto shape_1 = es::Shape(data0, 3); // DT_INT32
+  auto shape_1 = es::Shape(data0, 3);  // DT_INT32
   auto gather_1 = es::GatherV2(shape_1, const1, const1, 0, false, false);
 
-  auto shape_2 = es::Shape(data1, 3); // DT_INT32
+  auto shape_2 = es::Shape(data1, 3);  // DT_INT32
   auto gather_2 = es::GatherV2(shape_2, const1, const1, 0, false, false);
 
   std::vector<EsTensorHolder> esb;
@@ -678,7 +674,7 @@ TEST_F(SymbolicShapeInferenceST, test_pad_with_symbols_value_but_error_shape) {
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
 
   std::vector<int32_t> const_data0 = {1, 2, 2, 1, 1, 1, 1, 1};
-  std::vector<int64_t> const_dim = {2, 4}; // // paddings.size != data0.dims * 2 校验报错
+  std::vector<int64_t> const_dim = {2, 4};  // // paddings.size != data0.dims * 2 校验报错
   auto const0 = builder_->CreateConst(const_data0, const_dim);
 
   const auto pad = es::Pad(data0, const0);
@@ -713,7 +709,7 @@ TEST_F(SymbolicShapeInferenceST, test_pad_with_vector) {
 
 TEST_F(SymbolicShapeInferenceST, GatherV2_get_input_failed) {
   std::vector<int32_t> const_data0 = {1, 2, 2, 1, 1, 1};
-  std::vector<int64_t> const_dim = {2, 3}; // error shape， paddings 的shape应该是{3, 2} 对应 {inputDimNum ,2}
+  std::vector<int64_t> const_dim = {2, 3};  // error shape， paddings 的shape应该是{3, 2} 对应 {inputDimNum ,2}
   auto const0 = builder_->CreateConst(const_data0, const_dim);
 
   auto data1 = builder_->CreateInput(0, "data_1");
@@ -927,7 +923,11 @@ TEST_F(SymbolicShapeInferenceST, Slice_get_input_failed_size) {
 TEST_F(SymbolicShapeInferenceST, test_reshape_no_symbolicvalue) {
   auto data0 = builder_->CreateInput(0, "data_0");
   auto data1 = builder_->CreateInput(1, "data_2");
-  data0.SetOriginSymbolShape(std::vector<const char *>({"s3","(s1 * s2)","s0",}));
+  data0.SetOriginSymbolShape(std::vector<const char *>({
+      "s3",
+      "(s1 * s2)",
+      "s0",
+  }));
   data1.SetOriginSymbolShape(std::vector<const char *>({"2"}));
   auto reshape = es::Reshape(data0, data1, 0, -1);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(reshape, 0), 0);
@@ -942,7 +942,11 @@ TEST_F(SymbolicShapeInferenceST, test_reshape_have_not_constvalue) {
   auto data0 = builder_->CreateInput(0, "data_0");
   auto data1 = builder_->CreateInput(1, "data_2");
 
-  data0.SetOriginSymbolShape(std::vector<const char *>({"s3","(s1 * s2)","s0",}));
+  data0.SetOriginSymbolShape(std::vector<const char *>({
+      "s3",
+      "(s1 * s2)",
+      "s0",
+  }));
   data1.SetOriginSymbolShape(std::vector<const char *>({"2"}));
 
   auto data_node = NodeAdapter::GNode2Node(*data1.GetProducer());
@@ -988,7 +992,11 @@ TEST_F(SymbolicShapeInferenceST, test_reshape_constvalue_not_valid) {
   auto data0 = builder_->CreateInput(0, "data_0");
   auto data1 = builder_->CreateInput(1, "data_2");
 
-  data0.SetOriginSymbolShape(std::vector<const char *>({"s3","(s1 * s2)","s0",}));
+  data0.SetOriginSymbolShape(std::vector<const char *>({
+      "s3",
+      "(s1 * s2)",
+      "s0",
+  }));
   data1.SetOriginSymbolShape(std::vector<const char *>({"4"}));
 
   auto data_node = NodeAdapter::GNode2Node(*data1.GetProducer());
@@ -1076,7 +1084,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGraphWithNodeNotSupportSymbolInfer
   ASSERT_NE(squared_difference_node, nullptr);
 
   ASSERT_EQ(GraphUtils::InsertNodeBetweenDataAnchors(tanh_node->GetOutDataAnchor(0),
-              squared_difference_node->GetInDataAnchor(1), foo_node), SUCCESS);
+                                                     squared_difference_node->GetInDataAnchor(1), foo_node),
+            SUCCESS);
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -1111,7 +1120,7 @@ TEST_F(SymbolicShapeInferenceST, test_batchmatmulv2_infershape) {
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2", "s3", "s4"}));
 
   auto data1 = builder_->CreateInput(1, "data_1");
-  data1.SetOriginSymbolShape(std::vector<const char *>({ "s2", "s4", "s3"}));
+  data1.SetOriginSymbolShape(std::vector<const char *>({"s2", "s4", "s3"}));
 
   auto bmmv2 = es::BatchMatMulV2(data0, data1, nullptr, nullptr, false, false, 0);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(bmmv2, 0), 0);
@@ -1147,7 +1156,7 @@ TEST_F(SymbolicShapeInferenceST, test_mul_input_tensor_scalar_infershape) {
   data0.SetOriginSymbolShape(std::vector<const char *>({}));
 
   auto data1 = builder_->CreateInput(1, "data_1");
-  data1.SetOriginSymbolShape(std::vector<const char *>({ "s0", "s1", "s2"}));
+  data1.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
 
   auto mul = es::Mul(data0, data1);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(mul, 0), 0);
@@ -1263,7 +1272,7 @@ TEST_F(SymbolicShapeInferenceST, test_concatv2) {
   auto s2 = ge::Symbol("s2");
   auto s3 = ge::Symbol("s3");
   auto s4 = ge::Symbol("s4");
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s2+s3+s4, s1}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s2 + s3 + s4, s1}));
   dlog_setlevel(0, 3, 0);
 }
 
@@ -1274,7 +1283,8 @@ REG_OP(Concat)
     .ATTR(N, Int, 1)
     .OP_END_FACTORY_REG(Concat)
 
-IMPL_OP(Concat).InputsDataDependency({0});
+        IMPL_OP(Concat)
+    .InputsDataDependency({0});
 
 TEST_F(SymbolicShapeInferenceST, test_concat) {
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
@@ -1327,7 +1337,7 @@ TEST_F(SymbolicShapeInferenceST, test_concat) {
   auto s2 = ge::Symbol("s2");
   auto s3 = ge::Symbol("s3");
   auto s4 = ge::Symbol("s4");
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s2+s3+s4, s1}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s2 + s3 + s4, s1}));
 }
 
 TEST_F(SymbolicShapeInferenceST, test_concat_dim_failed) {
@@ -1379,13 +1389,11 @@ REG_OP(SplitD)
     .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(SplitD)
 
-TEST_F(SymbolicShapeInferenceST, test_splitd) {
+        TEST_F(SymbolicShapeInferenceST, test_splitd) {
   // INPUT
   // ATTR split_dim
   // ATTR num_split
-  auto splitd = OP_CFG("SplitD").InCnt(1).OutCnt(2)
-                                .Attr("split_dim", 0)
-                                .Attr("num_split", 2).Build("splitd1");
+  auto splitd = OP_CFG("SplitD").InCnt(1).OutCnt(2).Attr("split_dim", 0).Attr("num_split", 2).Build("splitd1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(splitd));
     CHAIN(NODE(splitd)->NODE("NetOutput", NETOUTPUT));
@@ -1398,7 +1406,10 @@ TEST_F(SymbolicShapeInferenceST, test_splitd) {
   auto data_node = graph->FindFirstNodeMatchType(DATA);
   ASSERT_NE(data_node, nullptr);
   gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1")});
-  data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   splitd_node = graph->FindFirstNodeMatchType("SplitD");
@@ -1406,10 +1417,10 @@ TEST_F(SymbolicShapeInferenceST, test_splitd) {
   auto op_desc = splitd_node->GetOpDesc();
   auto attr0 = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr0, nullptr);
-  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0")/Symbol(2), Symbol("s1")}));
+  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0") / Symbol(2), Symbol("s1")}));
   auto attr1 = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr1, nullptr);
-  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0")/Symbol(2), Symbol("s1")}));
+  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0") / Symbol(2), Symbol("s1")}));
 }
 
 REG_OP(SplitVD)
@@ -1418,8 +1429,7 @@ REG_OP(SplitVD)
     .REQUIRED_ATTR(size_splits, ListInt)
     .REQUIRED_ATTR(split_dim, Int)
     .REQUIRED_ATTR(num_split, Int)
-    .OP_END_FACTORY_REG(SplitVD)
-REG_OP(Assign)
+    .OP_END_FACTORY_REG(SplitVD) REG_OP(Assign)
     .INPUT(ref, TensorType({BasicType(), DT_BOOL, DT_STRING}))
     .INPUT(value, TensorType({BasicType(), DT_BOOL, DT_STRING}))
     .OUTPUT(ref, TensorType({BasicType(), DT_BOOL, DT_STRING}))
@@ -1427,16 +1437,19 @@ REG_OP(Assign)
     .ATTR(use_locking, Bool, false)
     .OP_END_FACTORY_REG(Assign)
 
-TEST_F(SymbolicShapeInferenceST, test_splitvd) {
+        TEST_F(SymbolicShapeInferenceST, test_splitvd) {
   // INPUT
   // ATTR size_splits
   // ATTR split_dim
   // ATTR num_split
   vector<int64_t> vec = {1, -1, 2};
-  auto splitvd = OP_CFG("SplitVD").InCnt(1).OutCnt(3)
-                                  .Attr("size_splits", vec)
-                                  .Attr("split_dim", 1)
-                                  .Attr("num_split", 3).Build("splitvd1");
+  auto splitvd = OP_CFG("SplitVD")
+                     .InCnt(1)
+                     .OutCnt(3)
+                     .Attr("size_splits", vec)
+                     .Attr("split_dim", 1)
+                     .Attr("num_split", 3)
+                     .Build("splitvd1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(splitvd));
     CHAIN(NODE(splitvd)->NODE("NetOutput", NETOUTPUT));
@@ -1449,8 +1462,10 @@ TEST_F(SymbolicShapeInferenceST, test_splitvd) {
   auto data_node = graph->FindFirstNodeMatchType(DATA);
   ASSERT_NE(data_node, nullptr);
   gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1")});
-  data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.
-             SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   splitvd_node = graph->FindFirstNodeMatchType("SplitVD");
@@ -1461,7 +1476,7 @@ TEST_F(SymbolicShapeInferenceST, test_splitvd) {
   EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol(1)}));
   auto attr1 = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr1, nullptr);
-  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol("s1")-Symbol(3)}));
+  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol("s1") - Symbol(3)}));
   auto attr2 = op_desc->GetOutputDesc(2).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr2, nullptr);
   EXPECT_EQ(attr2->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol(2)}));
@@ -1473,7 +1488,7 @@ REG_OP(PadD)
     .REQUIRED_ATTR(paddings, ListListInt)
     .OP_END_FACTORY_REG(PadD)
 
-TEST_F(SymbolicShapeInferenceST, test_padd) {
+        TEST_F(SymbolicShapeInferenceST, test_padd) {
   std::vector<vector<int64_t>> paddings = {{1, 2}, {2, 1}, {3, 3}};
   auto padd = OP_CFG("PadD").InCnt(1).OutCnt(1).Build("PadD");
   DEF_GRAPH(g1) {
@@ -1485,12 +1500,14 @@ TEST_F(SymbolicShapeInferenceST, test_padd) {
   auto padd_node = graph->FindFirstNodeMatchType("PadD");
   ASSERT_NE(padd_node, nullptr);
   padd_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_ND);
-  padd_node->GetOpDesc()->SetAttr("paddings",GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(paddings));
+  padd_node->GetOpDesc()->SetAttr("paddings", GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(paddings));
   auto data_node = graph->FindFirstNodeMatchType(DATA);
   ASSERT_NE(data_node, nullptr);
   gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1"), Symbol("s2")});
-  data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.
-             SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   padd_node = graph->FindFirstNodeMatchType("PadD");
@@ -1498,10 +1515,10 @@ TEST_F(SymbolicShapeInferenceST, test_padd) {
   auto op_desc = padd_node->GetOpDesc();
   auto attr0 = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr0, nullptr);
-  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(),
-            gert::SymbolShape({ge::Symbol("s0") + ge::Symbol(1) + ge::Symbol(2), Symbol("s1") + ge::Symbol(2) + ge::
-              Symbol(1),
-              Symbol("s2") + ge::Symbol(3) + ge::Symbol(3)}));
+  EXPECT_EQ(
+      attr0->symbolic_tensor.GetOriginSymbolShape(),
+      gert::SymbolShape({ge::Symbol("s0") + ge::Symbol(1) + ge::Symbol(2), Symbol("s1") + ge::Symbol(2) + ge::Symbol(1),
+                         Symbol("s2") + ge::Symbol(3) + ge::Symbol(3)}));
 }
 
 REG_OP(LayerNorm)
@@ -1516,7 +1533,7 @@ REG_OP(LayerNorm)
     .ATTR(epsilon, Float, 0.0000001f)
     .OP_END_FACTORY_REG(LayerNorm)
 
-TEST_F(SymbolicShapeInferenceST, test_layernorm) {
+        TEST_F(SymbolicShapeInferenceST, test_layernorm) {
   // input x
   // input gamma
   // input beta
@@ -1535,7 +1552,7 @@ TEST_F(SymbolicShapeInferenceST, test_layernorm) {
   auto data2 = builder_->CreateInput(2, "data_2");
   data2.SetOriginSymbolShape(std::vector<const char *>({"1", "s3"}));
 
-  auto layer0 = es::LayerNorm(data0,data1,data2,-1,0,0.000001);
+  auto layer0 = es::LayerNorm(data0, data1, data2, -1, 0, 0.000001);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(layer0.y, 0), 0);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(layer0.mean, 1), 0);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(layer0.variance, 2), 0);
@@ -1549,19 +1566,17 @@ TEST_F(SymbolicShapeInferenceST, test_layernorm) {
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
 
-  auto expect_shape1 = gert::SymbolShape({ge::Symbol("s0") , Symbol("s1") ,
-                       Symbol("s2") });
-  auto expect_shape2 = gert::SymbolShape({ge::Symbol("s0") , Symbol("s1") ,
-                       Symbol(1) });
+  auto expect_shape1 = gert::SymbolShape({ge::Symbol("s0"), Symbol("s1"), Symbol("s2")});
+  auto expect_shape2 = gert::SymbolShape({ge::Symbol("s0"), Symbol("s1"), Symbol(1)});
   auto attr0 = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   auto attr1 = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   auto attr2 = op_desc->GetOutputDesc(2).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr0, nullptr);
   ASSERT_NE(attr1, nullptr);
   ASSERT_NE(attr2, nullptr);
-  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(),expect_shape1);
-  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(),expect_shape2);
-  EXPECT_EQ(attr2->symbolic_tensor.GetOriginSymbolShape(),expect_shape2);
+  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), expect_shape1);
+  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), expect_shape2);
+  EXPECT_EQ(attr2->symbolic_tensor.GetOriginSymbolShape(), expect_shape2);
 }
 
 TEST_F(SymbolicShapeInferenceST, test_AddN) {
@@ -1947,7 +1962,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForBroadcastTo_shape_size_ge_input_sz
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
 
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), gert::SymbolShape({sym3, sym2, sym1, sym0}).GetDims());
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape().GetDims(),
+            gert::SymbolShape({sym3, sym2, sym1, sym0}).GetDims());
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForBroadcastTo_shape_size_lt_input_size) {
@@ -2270,12 +2286,9 @@ TEST_F(SymbolicShapeInferenceST, test_stridedsliceD_infershape) {
   // strides
   std::vector<int64_t> data3_value = {1, 1, 1, 1};
 
-  auto strided_sliced = es::StridedSliceD(data0, data1_value, data2_value, data3_value,
-                                        static_cast<int64_t>(0b0010),
-                                        static_cast<int64_t>(0b0010),
-                                        static_cast<int64_t>(0b0100),
-                                        static_cast<int64_t>(0b1101),
-                                        static_cast<int64_t>(0b0111));
+  auto strided_sliced = es::StridedSliceD(data0, data1_value, data2_value, data3_value, static_cast<int64_t>(0b0010),
+                                          static_cast<int64_t>(0b0010), static_cast<int64_t>(0b0100),
+                                          static_cast<int64_t>(0b1101), static_cast<int64_t>(0b0111));
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_sliced, 0), 0);
 
   auto graph = builder_->BuildAndReset();
@@ -2467,12 +2480,9 @@ TEST_F(SymbolicShapeInferenceST, test_stridedsliceD_infershape2) {
   // strides
   std::vector<int64_t> data3_value = {1, 2, 1, 1, 1};
 
-  auto strided_sliced = es::StridedSliceD(data0, data1_value, data2_value, data3_value,
-                                        static_cast<int64_t>(0),
-                                        static_cast<int64_t>(0b10110),
-                                        static_cast<int64_t>(0),
-                                        static_cast<int64_t>(0),
-                                        static_cast<int64_t>(0));
+  auto strided_sliced = es::StridedSliceD(data0, data1_value, data2_value, data3_value, static_cast<int64_t>(0),
+                                          static_cast<int64_t>(0b10110), static_cast<int64_t>(0),
+                                          static_cast<int64_t>(0), static_cast<int64_t>(0));
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_sliced, 0), 0);
 
   auto graph = builder_->BuildAndReset();
@@ -2529,12 +2539,9 @@ TEST_F(SymbolicShapeInferenceST, test_stridedslicev2_infershape) {
   std::vector<int64_t> data4_value = {1, 2, 1, 1, 1};
   auto data4 = builder_->CreateVector(data4_value);
 
-  auto strided_sliced = es::StridedSliceV2(data0, data1, data2, data3, data4,
-                                          static_cast<int64_t>(0b0010),
-                                          static_cast<int64_t>(0b0010),
-                                          static_cast<int64_t>(0b0100),
-                                          static_cast<int64_t>(0b1101),
-                                          static_cast<int64_t>(0b0111));
+  auto strided_sliced =
+      es::StridedSliceV2(data0, data1, data2, data3, data4, static_cast<int64_t>(0b0010), static_cast<int64_t>(0b0010),
+                         static_cast<int64_t>(0b0100), static_cast<int64_t>(0b1101), static_cast<int64_t>(0b0111));
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_sliced, 0), 0);
 
   auto graph = builder_->BuildAndReset();
@@ -2568,7 +2575,8 @@ TEST_F(SymbolicShapeInferenceST, test_stridedslicev2_infershape) {
   ASSERT_EQ(ssi.Infer(cg), SUCCESS);
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   auto out_shape = attr->symbolic_tensor.GetOriginSymbolShape();
-  const std::vector<ge::Expression> expect_shape = {Symbol(1), Symbol("s1"), Symbol("s2"), Symbol("s3"), Symbol(1), Symbol(1)};
+  const std::vector<ge::Expression> expect_shape = {Symbol(1),    Symbol("s1"), Symbol("s2"),
+                                                    Symbol("s3"), Symbol(1),    Symbol(1)};
   ASSERT_EQ(out_shape.GetDims(), expect_shape);
 }
 
@@ -2581,12 +2589,9 @@ TEST_F(SymbolicShapeInferenceST, test_stridedslicev2_infershape_no_optional_inpu
   std::vector<int64_t> data2_value = {5, 5, 5, 5, 5};
   auto data2 = builder_->CreateVector(data2_value);
 
-  auto strided_sliced = es::StridedSliceV2(data0, data1, data2, nullptr, nullptr,
-                                           static_cast<int64_t>(0b0010),
-                                           static_cast<int64_t>(0b0010),
-                                           static_cast<int64_t>(0b0100),
-                                           static_cast<int64_t>(0b1101),
-                                           static_cast<int64_t>(0b0111));
+  auto strided_sliced = es::StridedSliceV2(data0, data1, data2, nullptr, nullptr, static_cast<int64_t>(0b0010),
+                                           static_cast<int64_t>(0b0010), static_cast<int64_t>(0b0100),
+                                           static_cast<int64_t>(0b1101), static_cast<int64_t>(0b0111));
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_sliced, 0), 0);
 
   auto graph = builder_->BuildAndReset();
@@ -2620,7 +2625,8 @@ TEST_F(SymbolicShapeInferenceST, test_stridedslicev2_infershape_no_optional_inpu
   ASSERT_EQ(ssi.Infer(cg), SUCCESS);
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   auto out_shape = attr->symbolic_tensor.GetOriginSymbolShape();
-  const std::vector<ge::Expression> expect_shape = {Symbol(1), Symbol("s1"), Symbol("s2"), Symbol("s3"), Symbol(1), Symbol("s4")};
+  const std::vector<ge::Expression> expect_shape = {Symbol(1),    Symbol("s1"), Symbol("s2"),
+                                                    Symbol("s3"), Symbol(1),    Symbol("s4")};
   ASSERT_EQ(out_shape.GetDims(), expect_shape);
 }
 
@@ -2908,12 +2914,21 @@ TEST_F(SymbolicShapeInferenceST, test_guard_check_graph1) {
 
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 15);
-  const std::set<std::string> expect_guard =
-      {"ExpectNe((Rational(1 , 9) * s5 * s6), 1)", "ExpectNe(1, s1)",
-       "ExpectEq(3, s3)", "ExpectNe(1, s3)", "ExpectNe(1, s0)",
-       "ExpectNe(s1, s4)", "ExpectEq(1, s4)", "ExpectEq(3, s2)", "ExpectNe(0, s0)",
-       "ExpectNe(0, s1)", "ExpectNe(0, s2)", "ExpectNe(0, s3)", "ExpectNe(0, s4)",
-       "ExpectNe(0, s5)", "ExpectNe(0, s6)"};
+  const std::set<std::string> expect_guard = {"ExpectNe((Rational(1 , 9) * s5 * s6), 1)",
+                                              "ExpectNe(1, s1)",
+                                              "ExpectEq(3, s3)",
+                                              "ExpectNe(1, s3)",
+                                              "ExpectNe(1, s0)",
+                                              "ExpectNe(s1, s4)",
+                                              "ExpectEq(1, s4)",
+                                              "ExpectEq(3, s2)",
+                                              "ExpectNe(0, s0)",
+                                              "ExpectNe(0, s1)",
+                                              "ExpectNe(0, s2)",
+                                              "ExpectNe(0, s3)",
+                                              "ExpectNe(0, s4)",
+                                              "ExpectNe(0, s5)",
+                                              "ExpectNe(0, s6)"};
   for (auto &iter : guard_infos) {
     const std::string guard_str = std::string(iter.expr.Serialize().get());
     std::cout << "guard info: " << guard_str << std::endl;
@@ -3197,9 +3212,8 @@ TEST_F(SymbolicShapeInferenceST, test_guard_check_graph2) {
 
   const std::vector<SymbolCheckInfo> assert_guard_infos = shape_env_attr->GetAllSymbolAssertInfos();
   ASSERT_EQ(assert_guard_infos.size(), 6);
-  const std::set<std::string> expect_guard = {"ExpectEq((s1 + s2), 8)", "ExpectLe(0, s0)",
-                                              "ExpectEq(2, s4)", "ExpectEq((s1 + s2), s3)",
-                                              "ExpectLe(s0, 8)", "ExpectEq((s1 + s2), s5)"};
+  const std::set<std::string> expect_guard = {"ExpectEq((s1 + s2), 8)",  "ExpectLe(0, s0)", "ExpectEq(2, s4)",
+                                              "ExpectEq((s1 + s2), s3)", "ExpectLe(s0, 8)", "ExpectEq((s1 + s2), s5)"};
   for (auto &iter : assert_guard_infos) {
     const std::string guard_str = std::string(iter.expr.Serialize().get());
     std::cout << "guard info: " << guard_str << std::endl;
@@ -3377,7 +3391,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForFourSquareErfReciprocalLeakyRelu) 
   auto square = es::Square(data0);
   auto Erf = es::Erf(square);
   auto Reciprocal = es::Reciprocal(Erf);
-  auto LeakyRelu = es::LeakyRelu(Reciprocal,0.01);
+  auto LeakyRelu = es::LeakyRelu(Reciprocal, 0.01);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(LeakyRelu, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -3410,7 +3424,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSimpleBro) {
   auto s2 = ge::Symbol("s2");
   auto one = ge::Symbol(1);
 
-  auto relugrad = es::ReluGrad(data0,data1);
+  auto relugrad = es::ReluGrad(data0, data1);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(relugrad, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -3434,7 +3448,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSimpleEle) {
   auto data0 = builder_->CreateInput(0, "data0");
   auto data1 = builder_->CreateInput(1, "data1");
   data0.SetOriginSymbolShape(std::vector<const char *>({"s2", "s1", "s0", "s0"}));
-  data1.SetOriginSymbolShape(std::vector<const char *>({"s1", "s1", "s0","s0"}));
+  data1.SetOriginSymbolShape(std::vector<const char *>({"s1", "s1", "s0", "s0"}));
   ASSERT_NE(data0.GetCTensorHolder(), nullptr);
   ASSERT_NE(data1.GetCTensorHolder(), nullptr);
 
@@ -3443,8 +3457,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSimpleEle) {
   auto s2 = ge::Symbol("s2");
   auto one = ge::Symbol(1);
 
-  auto rsqrtgrad = es::RsqrtGrad(data0,data1);
-  auto muls = es::Muls(rsqrtgrad,0.01);
+  auto rsqrtgrad = es::RsqrtGrad(data0, data1);
+  auto muls = es::Muls(rsqrtgrad, 0.01);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(muls, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -3507,9 +3521,9 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGreaterequalDivnonanLeakyrelugrad)
   auto s2 = ge::Symbol("s2");
   auto one = ge::Symbol(1);
 
-  auto greaterequal = es::GreaterEqual(data0,data1);
-  auto divnonan = es::DivNoNan(data0,data1);
-  auto leakyrelugrad = es::LeakyReluGrad(greaterequal,divnonan,0.01);
+  auto greaterequal = es::GreaterEqual(data0, data1);
+  auto divnonan = es::DivNoNan(data0, data1);
+  auto leakyrelugrad = es::LeakyReluGrad(greaterequal, divnonan, 0.01);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(leakyrelugrad, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -3543,11 +3557,12 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForConv2DBackpropInputD) {
   auto c2 = ge::Symbol(2);
   auto c3 = ge::Symbol(3);
   auto c4 = ge::Symbol(4);
-  std::vector<int64_t> data1_value = {1,2,3,4};
-  std::vector<int64_t> data2_value = {1,1,1,1};
-  std::vector<int64_t> data3_value = {1,1,1,1};
-  std::vector<int64_t> data4_value = {1,1,1,1};
-  auto conv2dback = es::Conv2DBackpropInputD(data0, data1, data1_value, data2_value, data3_value, data4_value, 1, "NHWC");
+  std::vector<int64_t> data1_value = {1, 2, 3, 4};
+  std::vector<int64_t> data2_value = {1, 1, 1, 1};
+  std::vector<int64_t> data3_value = {1, 1, 1, 1};
+  std::vector<int64_t> data4_value = {1, 1, 1, 1};
+  auto conv2dback =
+      es::Conv2DBackpropInputD(data0, data1, data1_value, data2_value, data3_value, data4_value, 1, "NHWC");
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(conv2dback, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -3598,7 +3613,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSoftmaxV2) {
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
-  std::vector<int64_t> data_value = {1,1,1,1};
+  std::vector<int64_t> data_value = {1, 1, 1, 1};
   auto softmaxV2 = es::SoftmaxV2(data0, data_value, false);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(softmaxV2, 0), 0);
@@ -3650,8 +3665,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForHcomAllReduce) {
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
-  const char* data1_value = "1";
-  const char* data2_value = "sum";
+  const char *data1_value = "1";
+  const char *data2_value = "sum";
   auto hcomAllReduce = es::HcomAllReduce(data0, data1_value, data2_value, 1, 1);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(hcomAllReduce, 0), 0);
@@ -3683,11 +3698,12 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForConv2DBackpropFilterD) {
   auto c2 = ge::Symbol(2);
   auto c3 = ge::Symbol(3);
   auto c4 = ge::Symbol(4);
-  std::vector<int64_t> data1_value = {1,2,3,4};
-  std::vector<int64_t> data2_value = {1,1,1,1};
-  std::vector<int64_t> data3_value = {1,1,1,1};
-  std::vector<int64_t> data4_value = {1,1,1,1};
-  auto conv2dback = es::Conv2DBackpropFilterD(data0, data1, data1_value, data2_value, data3_value, data4_value, 1, "NHWC");
+  std::vector<int64_t> data1_value = {1, 2, 3, 4};
+  std::vector<int64_t> data2_value = {1, 1, 1, 1};
+  std::vector<int64_t> data3_value = {1, 1, 1, 1};
+  std::vector<int64_t> data4_value = {1, 1, 1, 1};
+  auto conv2dback =
+      es::Conv2DBackpropFilterD(data0, data1, data1_value, data2_value, data3_value, data4_value, 1, "NHWC");
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(conv2dback, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -3713,7 +3729,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForLog) {
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
 
-  auto log = es::Log(data0,-1,1,0);
+  auto log = es::Log(data0, -1, 1, 0);
   auto log1p = es::Log1p(log);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(log1p, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -3769,25 +3785,28 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSoftmaxGradExt) {
 }
 
 REG_OP(MultisliceConcat)
-  .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16}))
-  .REQUIRED_ATTR(concat_size, ListInt)
-  .REQUIRED_ATTR(slice_begin, ListInt)
-  .REQUIRED_ATTR(silce_size, ListInt)
-  .REQUIRED_ATTR(concat_num, Int)
-  .REQUIRED_ATTR(max_concat_size, Int)
-  .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16}))
-  .OP_END_FACTORY_REG(MultisliceConcat)
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16}))
+    .REQUIRED_ATTR(concat_size, ListInt)
+    .REQUIRED_ATTR(slice_begin, ListInt)
+    .REQUIRED_ATTR(silce_size, ListInt)
+    .REQUIRED_ATTR(concat_num, Int)
+    .REQUIRED_ATTR(max_concat_size, Int)
+    .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16}))
+    .OP_END_FACTORY_REG(MultisliceConcat)
 
-TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
+        TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
   vector<int64_t> vec_concatsize = {2, 4};
   vector<int64_t> vec_slicebegin = {4, 5, 12, 5, 20, 28};
   vector<int64_t> vec_slicesize = {1, 1, 2, 2, 2, 4};
-  auto multisliceconcat = OP_CFG("MultisliceConcat").InCnt(1).OutCnt(2)
-                                 .Attr("concat_size", vec_concatsize)
-                                 .Attr("slice_begin", vec_slicebegin)
-                                 .Attr("silce_size", vec_slicesize)
-                                 .Attr("concat_num", 2)
-                                 .Attr("max_concat_size", 4).Build("MultisliceConcat1");
+  auto multisliceconcat = OP_CFG("MultisliceConcat")
+                              .InCnt(1)
+                              .OutCnt(2)
+                              .Attr("concat_size", vec_concatsize)
+                              .Attr("slice_begin", vec_slicebegin)
+                              .Attr("silce_size", vec_slicesize)
+                              .Attr("concat_num", 2)
+                              .Attr("max_concat_size", 4)
+                              .Build("MultisliceConcat1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(multisliceconcat));
     CHAIN(NODE(multisliceconcat)->NODE("NetOutput", NETOUTPUT));
@@ -3800,8 +3819,10 @@ TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
   auto data_node = graph->FindFirstNodeMatchType(DATA);
   ASSERT_NE(data_node, nullptr);
   gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1")});
-  data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.
-    SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   multisliceconcat_node = graph->FindFirstNodeMatchType("MultisliceConcat");
@@ -3809,11 +3830,12 @@ TEST_F(SymbolicShapeInferenceST, test_multisliceconcat) {
   auto op_desc = multisliceconcat_node->GetOpDesc();
   auto attr0 = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr0, nullptr);
-  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), (Symbol(1)+Symbol(1))}));
+  EXPECT_EQ(attr0->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), (Symbol(1) + Symbol(1))}));
 
   auto attr1 = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr1, nullptr);
-  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), (Symbol(2)+Symbol(2)+Symbol(2)+Symbol(4))}));
+  EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), (Symbol(2) + Symbol(2) + Symbol(2) + Symbol(4))}));
 
   auto symbol_shape0 = attr0->symbolic_tensor.GetOriginSymbolShape();
   auto outshapeout = std::string((symbol_shape0.GetDim(0).Serialize().get()));
@@ -3943,7 +3965,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSquareSumV1) {
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
   auto kone = ge::Symbol(1);
-  std::vector<int64_t> reduce_axis = {0,1};
+  std::vector<int64_t> reduce_axis = {0, 1};
 
   auto squaresumv1 = es::SquareSumV1(data0, reduce_axis, true);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(squaresumv1, 0), 0);
@@ -3965,26 +3987,26 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSquareSumV1) {
 }
 
 REG_OP(Repeat)
-  .INPUT(x, TensorType::ALL())
-  .INPUT(repeat_times, TensorType::ALL())
-  .OUTPUT(y, TensorType::ALL())
-  .OP_END_FACTORY_REG(Repeat)
+    .INPUT(x, TensorType::ALL())
+    .INPUT(repeat_times, TensorType::ALL())
+    .OUTPUT(y, TensorType::ALL())
+    .OP_END_FACTORY_REG(Repeat)
 
-TEST_F(SymbolicShapeInferenceST, test_repeat_infer) {
+        TEST_F(SymbolicShapeInferenceST, test_repeat_infer) {
   auto data0 = OP_CFG("Data")
-                .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 2, 3, 4})
-                .InCnt(0)
-                .OutCnt(1)
-                .InNames({"x"})
-                .OutNames({"y"})
-                .Build("data0");
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data0");
   auto data1 = OP_CFG("Data")
-              .TensorDesc(FORMAT_ND, DT_FLOAT, {4})
-              .InCnt(0)
-              .OutCnt(1)
-              .InNames({"x"})
-              .OutNames({"y"})
-              .Build("data1");
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
   auto repeat1 = OP_CFG("Repeat").TensorDesc(FORMAT_ND, DT_FLOAT, {-1, 2, 3, 4}).InCnt(2).OutCnt(1).Build("repeat1");
 
   DEF_GRAPH(graph) {
@@ -4000,15 +4022,9 @@ TEST_F(SymbolicShapeInferenceST, test_repeat_infer) {
   auto data_node0 = cg->FindNode("data0");
   ASSERT_NE(data_node0, nullptr);
   auto data_op_desc0 = data_node0->GetOpDescBarePtr();
-  gert::SymbolShape data_symbol_shape0({
-    Symbol(4),
-    Symbol(2),
-    Symbol(3),
-    Symbol(4)
-  });
-  data_op_desc0->MutableOutputDesc(0)
-  ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
-  ->symbolic_tensor.SetSymbolShape(data_symbol_shape0);
+  gert::SymbolShape data_symbol_shape0({Symbol(4), Symbol(2), Symbol(3), Symbol(4)});
+  data_op_desc0->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.SetSymbolShape(
+      data_symbol_shape0);
 
   auto data_node1 = cg->FindNode("data1");
   ASSERT_NE(data_node1, nullptr);
@@ -4023,18 +4039,16 @@ TEST_F(SymbolicShapeInferenceST, test_repeat_infer) {
   ptr->emplace_back(sym2);
   ptr->emplace_back(sym3);
 
-  gert::SymbolShape data_symbol_shape1({
-    Symbol(4)
-  });
+  gert::SymbolShape data_symbol_shape1({Symbol(4)});
 
   data_node1->GetOpDescBarePtr()
       ->MutableOutputDesc(0)
       ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
       ->symbolic_tensor.SetSymbolShape(data_symbol_shape1);
   data_node1->GetOpDescBarePtr()
-    ->MutableOutputDesc(0)
-    ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
-    ->symbolic_tensor.SetSymbolicValue(std::move(ptr));
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolicValue(std::move(ptr));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
@@ -4055,7 +4069,7 @@ TEST_F(SymbolicShapeInferenceST, test_repeat_infer) {
 
 TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_1) {
   auto data0 = builder_->CreateInput(0, "data0");
-  auto es_shape1 = es::Shape(data0, 3); // DT_INT32
+  auto es_shape1 = es::Shape(data0, 3);  // DT_INT32
   auto data1 = builder_->CreateInput(1, "data1");
   auto data2 = builder_->CreateInput(2, "data2");
   auto range = es::Range(es_shape1, data1, data2, false);
@@ -4140,9 +4154,9 @@ TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_1) {
 
 TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_2) {
   auto data0 = builder_->CreateInput(0, "data0");
-  auto es_shape1 = es::Shape(data0, 3); // DT_INT32
+  auto es_shape1 = es::Shape(data0, 3);  // DT_INT32
   auto data1 = builder_->CreateInput(1, "data1");
-  auto es_shape2 = es::Shape(data1, 3); // DT_INT32
+  auto es_shape2 = es::Shape(data1, 3);  // DT_INT32
   auto data2 = builder_->CreateInput(2, "data2");
   auto range = es::Range(es_shape1, es_shape2, data2, false);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(range, 0), 0);
@@ -4226,9 +4240,9 @@ TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_2) {
 
 TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_3) {
   auto data0 = builder_->CreateInput(0, "data0");
-  auto es_shape1 = es::Shape(data0, 3); // DT_INT32
+  auto es_shape1 = es::Shape(data0, 3);  // DT_INT32
   auto data1 = builder_->CreateInput(1, "data1");
-  auto es_shape2 = es::Shape(data1, 3); // DT_INT32
+  auto es_shape2 = es::Shape(data1, 3);  // DT_INT32
   std::vector<int32_t> const0 = {-1};
   std::vector<int64_t> data_dims = {};
   auto delta = builder_->CreateConst(const0, data_dims);
@@ -4293,7 +4307,8 @@ TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_3) {
 
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 4);
-  const std::set<std::string> expect_guard = {"ExpectLt(s1, s0)", "ExpectLe(s1, s0)", "ExpectNe(0, s0)", "ExpectNe(0, s1)"};
+  const std::set<std::string> expect_guard = {"ExpectLt(s1, s0)", "ExpectLe(s1, s0)", "ExpectNe(0, s0)",
+                                              "ExpectNe(0, s1)"};
   for (auto &iter : guard_infos) {
     std::string str = std::string(iter.expr.Serialize().get());
     std::cout << str << std::endl;
@@ -4305,11 +4320,11 @@ TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_3) {
 
 TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_4) {
   auto data0 = builder_->CreateInput(0, "data0");
-  auto es_shape1 = es::Shape(data0, 3); // DT_INT32
+  auto es_shape1 = es::Shape(data0, 3);  // DT_INT32
   auto data1 = builder_->CreateInput(1, "data1");
-  auto es_shape2 = es::Shape(data1, 3); // DT_INT32
+  auto es_shape2 = es::Shape(data1, 3);  // DT_INT32
   auto data2 = builder_->CreateInput(2, "data2");
-  auto es_shape3 = es::Shape(data2, 3); // DT_INT32
+  auto es_shape3 = es::Shape(data2, 3);  // DT_INT32
 
   auto range = es::Range(es_shape1, es_shape2, es_shape3, false);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(range, 0), 0);
@@ -4390,7 +4405,8 @@ TEST_F(SymbolicShapeInferenceST, test_range_with_symbolic_value_4) {
 
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 4);
-  const std::set<std::string> expect_guard = {"ExpectLt(s0, s1)", "ExpectNe(0, s0)", "ExpectNe(0, s1)", "ExpectNe(0, s2)"};
+  const std::set<std::string> expect_guard = {"ExpectLt(s0, s1)", "ExpectNe(0, s0)", "ExpectNe(0, s1)",
+                                              "ExpectNe(0, s2)"};
   for (auto &iter : guard_infos) {
     EXPECT_NE(expect_guard.find(std::string(iter.expr.Serialize().get())), expect_guard.end());
   }
@@ -4528,11 +4544,9 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForBroadCastGraphWithGuard) {
   EXPECT_EQ(std::string(add_symbol_shape.GetDim(2).Serialize().get()), "3");
   EXPECT_EQ(std::string(add_symbol_shape.GetDim(3).Serialize().get()), "s4");
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
-  const std::set<std::string> expect_guard = {"ExpectNe(1, s4)", "ExpectEq(3, s3)",
-                                              "ExpectEq(s0, s2)", "ExpectNe(1, s1)",
-                                              "ExpectNe(0, s0)", "ExpectNe(0, s1)",
-                                              "ExpectNe(0, s2)", "ExpectNe(0, s3)",
-                                              "ExpectNe(0, s4)"};
+  const std::set<std::string> expect_guard = {"ExpectNe(1, s4)", "ExpectEq(3, s3)", "ExpectEq(s0, s2)",
+                                              "ExpectNe(1, s1)", "ExpectNe(0, s0)", "ExpectNe(0, s1)",
+                                              "ExpectNe(0, s2)", "ExpectNe(0, s3)", "ExpectNe(0, s4)"};
   ASSERT_EQ(guard_infos.size(), 9);
   for (auto &iter : guard_infos) {
     EXPECT_NE(expect_guard.find(std::string(iter.expr.Serialize().get())), expect_guard.end());
@@ -4716,7 +4730,8 @@ TEST_F(SymbolicShapeInferenceST, test_conv2dv2_NHWC) {
   std::vector<int64_t> pads = {0, 0, 0, 0};
   std::vector<int64_t> dilations = {1, 1, 1, 1};
 
-  auto conv2dv2 = es::Conv2DV2(data0, data1, nullptr, nullptr, strides, pads, dilations, 1, "NHWC", 0, "SPECIFIC", false);
+  auto conv2dv2 =
+      es::Conv2DV2(data0, data1, nullptr, nullptr, strides, pads, dilations, 1, "NHWC", 0, "SPECIFIC", false);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(conv2dv2, 0), 0);
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
@@ -4755,7 +4770,8 @@ TEST_F(SymbolicShapeInferenceST, test_conv2dv2_pad_mode_same_lower) {
   std::vector<int64_t> pads = {-1, -1, -1, -1};
   std::vector<int64_t> dilations = {1, 1, 1, 1};
 
-  auto conv2dv2 = es::Conv2DV2(data0, data1, nullptr, nullptr, strides, pads, dilations, 1, "NHWC", 0, "SAME_LOWER", false);
+  auto conv2dv2 =
+      es::Conv2DV2(data0, data1, nullptr, nullptr, strides, pads, dilations, 1, "NHWC", 0, "SAME_LOWER", false);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(conv2dv2, 0), 0);
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
@@ -4853,16 +4869,10 @@ TEST_F(SymbolicShapeInferenceST, test_conv2d_zero) {
   EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(3).Serialize().get()), "s7");
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 12);
-  const std::set<std::string> expect_guard = {"ExpectEq(0, s0)",
-                                              "ExpectNe(0, s3)",
-                                              "ExpectNe(s1, s4)",
-                                              "ExpectNe((s3 / (s6)), 0)",
-                                              "ExpectEq(0, Mod(s3, s6))",
-                                              "ExpectNe(0, s6)",
-                                              "ExpectNe(s2, s5)",
-                                              "ExpectNe(0, s1)", "ExpectNe(0, s2)",
-                                              "ExpectNe(0, s4)", "ExpectNe(0, s5)",
-                                              "ExpectNe(0, s7)"};
+  const std::set<std::string> expect_guard = {
+      "ExpectEq(0, s0)",          "ExpectNe(0, s3)", "ExpectNe(s1, s4)", "ExpectNe((s3 / (s6)), 0)",
+      "ExpectEq(0, Mod(s3, s6))", "ExpectNe(0, s6)", "ExpectNe(s2, s5)", "ExpectNe(0, s1)",
+      "ExpectNe(0, s2)",          "ExpectNe(0, s4)", "ExpectNe(0, s5)",  "ExpectNe(0, s7)"};
   for (auto &iter : guard_infos) {
     const std::string guard_str = std::string(iter.expr.Serialize().get());
     std::cout << "guard info: " << guard_str << std::endl;
@@ -4956,19 +4966,22 @@ TEST_F(SymbolicShapeInferenceST, test_conv2d_padding_same) {
   ASSERT_EQ(conv2d_symbol_shape.GetDimNum(), 4);
   EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(0).Serialize().get()), "s0");
   EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(1).Serialize().get()),
-            "(1 + Floor((((2 * Floor(((-2 + s4) * Rational(1 , 2)))) + -1 + Mod((-2 + s4), 2) + s1 - (-1 + s4)) * Rational(1 , 2))))");
+            "(1 + Floor((((2 * Floor(((-2 + s4) * Rational(1 , 2)))) + -1 + Mod((-2 + s4), 2) + s1 - (-1 + s4)) * "
+            "Rational(1 , 2))))");
   EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(2).Serialize().get()),
-            "(1 + Floor((((2 * Floor(((-2 + s5) * Rational(1 , 2)))) + -1 + Mod((-2 + s5), 2) + s2 - (-1 + s5)) * Rational(1 , 2))))");
-  EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(3).Serialize().get()),
-            "s7");
+            "(1 + Floor((((2 * Floor(((-2 + s5) * Rational(1 , 2)))) + -1 + Mod((-2 + s5), 2) + s2 - (-1 + s5)) * "
+            "Rational(1 , 2))))");
+  EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(3).Serialize().get()), "s7");
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 15);
   const std::set<std::string> expect_guard = {"ExpectNe(0, s7)",
                                               "ExpectNe(0, s1)",
-                                              "ExpectNe(((Mod((-2 + s4), 2) * Rational(1 , 2)) + (Rational(1 , 2) * s1) + Floor(((-2 + s4) * Rational(1 , 2)))), (Rational(1 , 2) * s4))",
+                                              "ExpectNe(((Mod((-2 + s4), 2) * Rational(1 , 2)) + (Rational(1 , 2) * "
+                                              "s1) + Floor(((-2 + s4) * Rational(1 , 2)))), (Rational(1 , 2) * s4))",
                                               "ExpectNe(0, s0)",
                                               "ExpectNe(0, s3)",
-                                              "ExpectNe(((Mod((-2 + s5), 2) * Rational(1 , 2)) + (Rational(1 , 2) * s2) + Floor(((-2 + s5) * Rational(1 , 2)))), (Rational(1 , 2) * s5))",
+                                              "ExpectNe(((Mod((-2 + s5), 2) * Rational(1 , 2)) + (Rational(1 , 2) * "
+                                              "s2) + Floor(((-2 + s5) * Rational(1 , 2)))), (Rational(1 , 2) * s5))",
                                               "ExpectNe(0, s2)",
                                               "ExpectNe((s3 / (s6)), 0)",
                                               "ExpectEq(0, Mod(s3, s6))",
@@ -4985,15 +4998,16 @@ TEST_F(SymbolicShapeInferenceST, test_conv2d_padding_same) {
   }
   const std::vector<SymbolCheckInfo> assert_infos = shape_env_attr->GetAllSymbolAssertInfos();
   ASSERT_EQ(assert_infos.size(), 9);
-  const std::set<std::string> assert_guard = {"ExpectLt(0, s4)",
-                                              "ExpectLe(0, Floor(((-2 + s4) * Rational(1 , 2))))",
-                                              "ExpectLt(0, s5)",
-                                              "ExpectLe(0, Floor(((-2 + s5) * Rational(1 , 2))))",
-                                              "ExpectLe(0, (Floor(((-2 + s4) * Rational(1 , 2))) + Mod((-2 + s4), 2)))",
-                                              "ExpectLe(0, (Floor(((-2 + s5) * Rational(1 , 2))) + Mod((-2 + s5), 2)))",
-                                              "ExpectEq(0, Mod(s7, (s3 / (s6))))",
-                                              "ExpectLe(s4, ((2 * Floor(((-2 + s4) * Rational(1 , 2)))) + Mod((-2 + s4), 2) + s1))",
-                                              "ExpectLe(s5, ((2 * Floor(((-2 + s5) * Rational(1 , 2)))) + Mod((-2 + s5), 2) + s2))"};
+  const std::set<std::string> assert_guard = {
+      "ExpectLt(0, s4)",
+      "ExpectLe(0, Floor(((-2 + s4) * Rational(1 , 2))))",
+      "ExpectLt(0, s5)",
+      "ExpectLe(0, Floor(((-2 + s5) * Rational(1 , 2))))",
+      "ExpectLe(0, (Floor(((-2 + s4) * Rational(1 , 2))) + Mod((-2 + s4), 2)))",
+      "ExpectLe(0, (Floor(((-2 + s5) * Rational(1 , 2))) + Mod((-2 + s5), 2)))",
+      "ExpectEq(0, Mod(s7, (s3 / (s6))))",
+      "ExpectLe(s4, ((2 * Floor(((-2 + s4) * Rational(1 , 2)))) + Mod((-2 + s4), 2) + s1))",
+      "ExpectLe(s5, ((2 * Floor(((-2 + s5) * Rational(1 , 2)))) + Mod((-2 + s5), 2) + s2))"};
   for (auto &iter : assert_infos) {
     EXPECT_NE(assert_guard.find(std::string(iter.expr.Serialize().get())), assert_guard.end());
   }
@@ -5076,15 +5090,14 @@ TEST_F(SymbolicShapeInferenceST, test_conv2d_padding_valid) {
             "(1 + Floor(((-1 + s1 - (-1 + s4)) * Rational(1 , 2))))");
   EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(2).Serialize().get()),
             "(1 + Floor(((-1 + s2 - (-1 + s5)) * Rational(1 , 2))))");
-  EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(3).Serialize().get()),
-            "s7");
+  EXPECT_EQ(std::string(conv2d_symbol_shape.GetDim(3).Serialize().get()), "s7");
   const std::vector<SymbolCheckInfo> guard_infos = shape_env_attr->GetAllSymbolCheckInfos();
   ASSERT_EQ(guard_infos.size(), 12);
   const std::set<std::string> expect_guard = {
-    "ExpectNe(0, s7)", "ExpectNe(0, s1)", "ExpectNe((Rational(1 , 2) * s2), (Rational(1 , 2) * s5))",
-    "ExpectNe(0, s0)", "ExpectNe(0, s3)", "ExpectNe((Rational(1 , 2) * s1), (Rational(1 , 2) * s4))",
-    "ExpectNe(0, s2)", "ExpectNe((s3 / (s6)), 0)", "ExpectEq(0, Mod(s3, s6))",
-    "ExpectNe(0, s6)", "ExpectNe(0, s4)", "ExpectNe(0, s5)"};
+      "ExpectNe(0, s7)", "ExpectNe(0, s1)",          "ExpectNe((Rational(1 , 2) * s2), (Rational(1 , 2) * s5))",
+      "ExpectNe(0, s0)", "ExpectNe(0, s3)",          "ExpectNe((Rational(1 , 2) * s1), (Rational(1 , 2) * s4))",
+      "ExpectNe(0, s2)", "ExpectNe((s3 / (s6)), 0)", "ExpectEq(0, Mod(s3, s6))",
+      "ExpectNe(0, s6)", "ExpectNe(0, s4)",          "ExpectNe(0, s5)"};
   for (auto &iter : guard_infos) {
     const std::string guard_str = std::string(iter.expr.Serialize().get());
     std::cout << "guard info: " << guard_str << std::endl;
@@ -5092,11 +5105,8 @@ TEST_F(SymbolicShapeInferenceST, test_conv2d_padding_valid) {
   }
   const std::vector<SymbolCheckInfo> assert_infos = shape_env_attr->GetAllSymbolAssertInfos();
   ASSERT_EQ(assert_infos.size(), 5);
-  const std::set<std::string> assert_guard = {"ExpectLt(0, s4)",
-                                              "ExpectLt(0, s5)",
-                                              "ExpectLe(s4, s1)",
-                                              "ExpectEq(0, Mod(s7, (s3 / (s6))))",
-                                              "ExpectLe(s5, s2)"};
+  const std::set<std::string> assert_guard = {"ExpectLt(0, s4)", "ExpectLt(0, s5)", "ExpectLe(s4, s1)",
+                                              "ExpectEq(0, Mod(s7, (s3 / (s6))))", "ExpectLe(s5, s2)"};
   for (auto &iter : assert_infos) {
     EXPECT_NE(assert_guard.find(std::string(iter.expr.Serialize().get())), assert_guard.end());
   }
@@ -5473,7 +5483,6 @@ TEST_F(SymbolicShapeInferenceST, test_splitv_with_symbolic_value) {
   ge::AttrUtils::SetInt(data_op_desc1, "index", 1);
   ge::AttrUtils::SetInt(data_op_desc2, "index", 2);
 
-
   std::vector<ge::GeTensor> input_vec;
   std::vector<int64_t> dims_vec0 = {4, 7};
   ge::Shape shape0({dims_vec0});
@@ -5615,7 +5624,6 @@ TEST_F(SymbolicShapeInferenceST, test_splitv_with_wrong_size_splits) {
   ge::AttrUtils::SetInt(data_op_desc0, "index", 0);
   ge::AttrUtils::SetInt(data_op_desc1, "index", 1);
   ge::AttrUtils::SetInt(data_op_desc2, "index", 2);
-
 
   std::vector<ge::GeTensor> input_vec;
   std::vector<int64_t> dims_vec0 = {4, 7};
@@ -5836,8 +5844,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForAddLayerNormWithGuard) {
   ASSERT_NE(addlayernorm_op_desc, nullptr);
 
   const std::vector<SymbolCheckInfo> guard_infos1 = shape_env_attr->GetAllSymbolAssertInfos();
-  const std::set<std::string> expect_guard = {"ExpectEq(s4, s8)", "ExpectEq(s5, s9)",
-                                              "ExpectEq(s10, s6)", "ExpectEq(s11, s7)"};
+  const std::set<std::string> expect_guard = {"ExpectEq(s4, s8)", "ExpectEq(s5, s9)", "ExpectEq(s10, s6)",
+                                              "ExpectEq(s11, s7)"};
   ASSERT_EQ(guard_infos1.size(), 4);
   for (auto &iter : guard_infos1) {
     auto tmp = std::string(iter.expr.Serialize().get());
@@ -6195,8 +6203,10 @@ TEST_F(SymbolicShapeInferenceST, test_BNTrainingReduce_NDC1HWC0) {
   ASSERT_NE(bnt_attr, nullptr);
   auto bnt_attr1 = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(bnt_attr1, nullptr);
-  EXPECT_EQ(bnt_attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), gert::SymbolShape({k1, k1, s2, k1, k1, s5}).GetDims());
-  EXPECT_EQ(bnt_attr1->symbolic_tensor.GetOriginSymbolShape().GetDims(), gert::SymbolShape({k1, k1, s2, k1, k1, s5}).GetDims());
+  EXPECT_EQ(bnt_attr->symbolic_tensor.GetOriginSymbolShape().GetDims(),
+            gert::SymbolShape({k1, k1, s2, k1, k1, s5}).GetDims());
+  EXPECT_EQ(bnt_attr1->symbolic_tensor.GetOriginSymbolShape().GetDims(),
+            gert::SymbolShape({k1, k1, s2, k1, k1, s5}).GetDims());
 }
 
 TEST_F(SymbolicShapeInferenceST, test_BNTrainingReduce_NCDHW) {
@@ -6665,23 +6675,25 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForBNTrainingUpdateGrad) {
 }
 
 TEST_F(SymbolicShapeInferenceST, InferSymbolicShapeForGatherShapesSuccess) {
-  std::vector<vector<int64_t>> axes = {{0, 0},{0, 1}};
+  std::vector<vector<int64_t>> axes = {{0, 0}, {0, 1}};
   auto gatherShapes = OP_CFG("GatherShapes").InCnt(1).OutCnt(1).Build("GatherShapes");
   DEF_GRAPH(g1) {
-          CHAIN(NODE(data)->EDGE(0, 0)->NODE(gatherShapes));
-          CHAIN(NODE(gatherShapes)->NODE("NetOutput", NETOUTPUT));
-          CHAIN(NODE(data)->EDGE(0, 0)->NODE(gatherShapes)->EDGE(0, 0)->NODE("NetOutput", NETOUTPUT));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(gatherShapes));
+    CHAIN(NODE(gatherShapes)->NODE("NetOutput", NETOUTPUT));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(gatherShapes)->EDGE(0, 0)->NODE("NetOutput", NETOUTPUT));
   };
   auto graph = ToComputeGraph(g1);
   auto gatherShapes_node = graph->FindFirstNodeMatchType("GatherShapes");
   ASSERT_NE(gatherShapes_node, nullptr);
   gatherShapes_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_ND);
-  gatherShapes_node->GetOpDesc()->SetAttr("axes",GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes));
+  gatherShapes_node->GetOpDesc()->SetAttr("axes", GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes));
   auto data_node = graph->FindFirstNodeMatchType(DATA);
   ASSERT_NE(data_node, nullptr);
   gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1"), Symbol("s2")});
-  data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.
-  SetSymbolShape(symol_shape);
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
   gatherShapes_node = graph->FindFirstNodeMatchType("GatherShapes");
@@ -6725,7 +6737,6 @@ TEST_F(SymbolicShapeInferenceST, InferSymbolicShapeForSparseToDenseSuccess) {
   auto default_value = builder_->CreateInput(3, "default_value");
   default_value.SetOriginSymbolShape(std::vector<const char *>({}));
   ASSERT_NE(default_value.GetCTensorHolder(), nullptr);
-
 
   auto sparseToDense = es::SparseToDense(indices, output_shape, values, default_value, true);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(sparseToDense, 0), 0);
@@ -7031,7 +7042,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Success) {
   std::vector<int32_t> const_data0 = {1, 2, 2, 1, 1, 1};
   std::vector<int64_t> const_dim = {3, 2};
   auto const0 = builder_->CreateConst(const_data0, const_dim);
-  auto padv3 = es::PadV3(data0, const0, nullptr, "edge",true);
+  auto padv3 = es::PadV3(data0, const0, nullptr, "edge", true);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(padv3, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -7046,8 +7057,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Success) {
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  auto expect_shape = gert::SymbolShape({s2 + Symbol(1) + Symbol(2),
-    s1 + Symbol(2) + Symbol(1), s0 + Symbol(1) + Symbol(1)});
+  auto expect_shape =
+      gert::SymbolShape({s2 + Symbol(1) + Symbol(2), s1 + Symbol(2) + Symbol(1), s0 + Symbol(1) + Symbol(1)});
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), expect_shape);
 }
 
@@ -7061,7 +7072,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Fail_padding_type_err) {
   std::vector<int32_t> const_data0 = {1, 2, 2, 1, 1, 1};
   std::vector<int64_t> const_dim = {3, 2};
   auto const0 = builder_->CreateConst(const_data0, const_dim);
-  auto padv3 = es::PadV3(data0, const0, nullptr, "edge",true);
+  auto padv3 = es::PadV3(data0, const0, nullptr, "edge", true);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(padv3, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -7086,7 +7097,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Fail_padding_value_dim_error1
   std::vector<int32_t> const_data0 = {1, 2, 2, 1};
   std::vector<int64_t> const_dim = {2, 2};
   auto const0 = builder_->CreateConst(const_data0, const_dim);
-  auto padv3 = es::PadV3(data0, const0, nullptr, "edge",true);
+  auto padv3 = es::PadV3(data0, const0, nullptr, "edge", true);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(padv3, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -7111,7 +7122,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Fail_padding_value_dim_error2
   std::vector<int32_t> const_data0 = {1, 2, 2};
   std::vector<int64_t> const_dim = {1, 3};
   auto const0 = builder_->CreateConst(const_data0, const_dim);
-  auto padv3 = es::PadV3(data0, const0, nullptr, "edge",true);
+  auto padv3 = es::PadV3(data0, const0, nullptr, "edge", true);
 
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(padv3, 0), 0);
   auto graph = builder_->BuildAndReset();
@@ -7135,35 +7146,37 @@ REG_OP(PadV3)
     .ATTR(paddings_contiguous, Bool, true)
     .OP_END_FACTORY_REG(PadV3)
 
-TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Fail_padding_unsupported) {
-auto data0 = OP_CFG("Data")
-                 .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 2, 3, 4})
-                 .InCnt(0)
-                 .OutCnt(1)
-                 .InNames({"x"})
-                 .OutNames({"y"})
-                 .Build("data0");
-auto padv3 = OP_CFG("PadV3").InCnt(1).OutCnt(1).Build("PadV3");
-DEF_GRAPH(g1) {
-  CHAIN(NODE(data0)->EDGE(0, 0)->NODE(padv3));
-  CHAIN(NODE(padv3)->NODE("NetOutput", NETOUTPUT));
-};
-auto graph = ToComputeGraph(g1);
-graph->TopologicalSorting();
-ASSERT_NE(graph, nullptr);
-auto padd_node = graph->FindFirstNodeMatchType("PadV3");
-ASSERT_NE(padd_node, nullptr);
-padd_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_ND);
-std::string mode = "edge";
-padd_node->GetOpDesc()->SetAttr("mode",GeAttrValue::CreateFrom<std::string>(mode));
-padd_node->GetOpDesc()->SetAttr("paddings_contiguous",GeAttrValue::CreateFrom<bool>(false));
-auto data_node = graph->FindNode("data0");
-ASSERT_NE(data_node, nullptr);
-gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1"), Symbol("s2")});
-data_node->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>()->symbolic_tensor.
-    SetSymbolShape(symol_shape);
-SymbolicShapeInference ssi;
-ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
+        TEST_F(SymbolicShapeInferenceST, InferShapeForPadV3Fail_padding_unsupported) {
+  auto data0 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data0");
+  auto padv3 = OP_CFG("PadV3").InCnt(1).OutCnt(1).Build("PadV3");
+  DEF_GRAPH(g1) {
+    CHAIN(NODE(data0)->EDGE(0, 0)->NODE(padv3));
+    CHAIN(NODE(padv3)->NODE("NetOutput", NETOUTPUT));
+  };
+  auto graph = ToComputeGraph(g1);
+  graph->TopologicalSorting();
+  ASSERT_NE(graph, nullptr);
+  auto padd_node = graph->FindFirstNodeMatchType("PadV3");
+  ASSERT_NE(padd_node, nullptr);
+  padd_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_ND);
+  std::string mode = "edge";
+  padd_node->GetOpDesc()->SetAttr("mode", GeAttrValue::CreateFrom<std::string>(mode));
+  padd_node->GetOpDesc()->SetAttr("paddings_contiguous", GeAttrValue::CreateFrom<bool>(false));
+  auto data_node = graph->FindNode("data0");
+  ASSERT_NE(data_node, nullptr);
+  gert::SymbolShape symol_shape({Symbol("s0"), Symbol("s1"), Symbol("s2")});
+  data_node->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolShape(symol_shape);
+  SymbolicShapeInference ssi;
+  ASSERT_EQ(ssi.Infer(graph), ge::SUCCESS);
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForUnsortedSegmentMinSuccess) {
@@ -7313,7 +7326,6 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForSparseSoftmaxCrossEntropyWithLogit
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForAssign) {
-
   auto data0 = builder_->CreateInput(0, "data0");
   auto data1 = builder_->CreateInput(1, "data1");
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2", "s3"}));
@@ -7362,7 +7374,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGatherV2) {
   auto s2 = ge::Symbol("s2");
   auto s3 = ge::Symbol("s3");
 
-  auto gatherv2 = es::GatherV2(data0, const0, const1, 0,true, true);
+  auto gatherv2 = es::GatherV2(data0, const0, const1, 0, true, true);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(gatherv2, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -7460,8 +7472,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForUnsortedSegmentSum) {
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
-            gert::SymbolShape({Symbol(5), Symbol("s1"), Symbol("s2")}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(5), Symbol("s1"), Symbol("s2")}));
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForRandomLikeConstInput) {
@@ -7520,8 +7531,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForRandomLikeDataInput) {
   ASSERT_NE(op_desc, nullptr);
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
-            gert::SymbolShape({Symbol("s0"), Symbol(1), Symbol(2)}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol(1), Symbol(2)}));
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForDynamicStitch) {
@@ -7550,27 +7560,39 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForDynamicStitch) {
 
   auto ptr0 = std::make_unique<std::vector<ge::Expression>>();
   ptr0->emplace_back(Symbol(6));
-  cg->FindNode("data0")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
-      symbolic_tensor.SetSymbolicValue(std::move(ptr0));
+  cg->FindNode("data0")
+      ->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->template GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolicValue(std::move(ptr0));
 
   auto ptr1 = std::make_unique<std::vector<ge::Expression>>();
   ptr1->emplace_back(Symbol("s1"));
   ptr1->emplace_back(Symbol("s2"));
-  cg->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
-      symbolic_tensor.SetSymbolicValue(std::move(ptr1));
+  cg->FindNode("data1")
+      ->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->template GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolicValue(std::move(ptr1));
 
   auto ptr2 = std::make_unique<std::vector<ge::Expression>>();
   ptr2->emplace_back(Symbol(5));
   ptr2->emplace_back(Symbol(9));
   ptr2->emplace_back(Symbol(0));
   ptr2->emplace_back(Symbol(3));
-  cg->FindNode("data2")->GetOpDesc()->MutableOutputDesc(0)->template GetOrCreateAttrsGroup<SymbolicDescAttr>()->
-      symbolic_tensor.SetSymbolicValue(std::move(ptr2));
+  cg->FindNode("data2")
+      ->GetOpDesc()
+      ->MutableOutputDesc(0)
+      ->template GetOrCreateAttrsGroup<SymbolicDescAttr>()
+      ->symbolic_tensor.SetSymbolicValue(std::move(ptr2));
 
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  EXPECT_EQ(cg->FindFirstNodeMatchType("DynamicStitch")->GetOpDesc()->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>()->
-      symbolic_tensor.GetOriginSymbolShape(),
+  EXPECT_EQ(cg->FindFirstNodeMatchType("DynamicStitch")
+                ->GetOpDesc()
+                ->GetOutputDesc(0)
+                .GetAttrsGroup<SymbolicDescAttr>()
+                ->symbolic_tensor.GetOriginSymbolShape(),
             gert::SymbolShape({sym::Max(Symbol(9), sym::Max(Symbol("s1"), Symbol("s2"))) + Symbol(1), Symbol(2)}));
 }
 
@@ -7583,7 +7605,7 @@ REG_OP(MatMul)
     .ATTR(transpose_x2, Bool, false)
     .OP_END_FACTORY_REG(MatMul)
 
-TEST_F(SymbolicShapeInferenceST, InferShapeForMatMul) {
+        TEST_F(SymbolicShapeInferenceST, InferShapeForMatMul) {
   auto data0 = builder_->CreateInput(0, "data0");
   auto data1 = builder_->CreateInput(1, "data1");
   auto data2 = builder_->CreateInput(2, "data2");
@@ -7759,7 +7781,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForTileDInDimsLtMultiSize) {
 
   const auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({symbol_one, symbol_two * s0, symbol_three * s1, symbol_four * s2}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({symbol_one, symbol_two * s0, symbol_three * s1, symbol_four * s2}));
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForTileDInDimsEqMultiSize) {
@@ -7789,7 +7812,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForTileDInDimsEqMultiSize) {
 
   const auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0 * symbol_one, s1 * symbol_two, s2 * symbol_three}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({s0 * symbol_one, s1 * symbol_two, s2 * symbol_three}));
 }
 
 TEST_F(SymbolicShapeInferenceST, InferShapeForTileDMultiSizeGt8) {
@@ -7892,8 +7916,7 @@ REG_OP(Unpack)
     .DYNAMIC_OUTPUT(y, TensorType::BasicType())
     .REQUIRED_ATTR(num, Int)
     .ATTR(axis, Int, 0)
-    .OP_END_FACTORY_REG(Unpack)
-TEST_F(SymbolicShapeInferenceST, InferShapeForUnpack) {
+    .OP_END_FACTORY_REG(Unpack) TEST_F(SymbolicShapeInferenceST, InferShapeForUnpack) {
   auto data0 = builder_->CreateInput(0, "data0");
   ASSERT_NE(data0.GetCTensorHolder(), nullptr);
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
@@ -7951,7 +7974,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForGather) {
   auto s3 = ge::Symbol("s3");
   auto add = es::Add(data0, data1);
   auto mul = es::Mul(data0, add);
-  auto gather = es::Gather(mul, const0, false, 0,true, true);
+  auto gather = es::Gather(mul, const0, false, 0, true, true);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(gather, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -8050,7 +8073,7 @@ TEST_F(SymbolicShapeInferenceST, NestIfGraphTest) {
   // data
   std::vector<GeTensor> input_vec;
   auto input0 = BuildGeTensor<int32_t, DT_INT32>({}, {1});
-  auto input1 =  BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
+  auto input1 = BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
   input_vec.emplace_back(input0);
   input_vec.emplace_back(input1);
 
@@ -8081,7 +8104,7 @@ TEST_F(SymbolicShapeInferenceST, NestCaseGraphTest) {
   // data
   std::vector<GeTensor> input_vec;
   auto input0 = BuildGeTensor<int32_t, DT_INT32>({}, {1});
-  auto input1 =  BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
+  auto input1 = BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
   input_vec.emplace_back(input0);
   input_vec.emplace_back(input1);
 
@@ -8113,7 +8136,7 @@ TEST_F(SymbolicShapeInferenceST, NestCaseGraphTestNegativeIndex) {
   // data
   std::vector<GeTensor> input_vec;
   auto input0 = BuildGeTensor<int32_t, DT_INT32>({}, {-1});
-  auto input1 =  BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
+  auto input1 = BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
   input_vec.emplace_back(input0);
   input_vec.emplace_back(input1);
 
@@ -8145,12 +8168,11 @@ TEST_F(SymbolicShapeInferenceST, NestIfGraph1Test) {
   DataInfo di2 = {FORMAT_NCHW, DT_INT32, {2, 3}};
   SetNoStorage(root_graph, "data_2", di2, 2);
 
-
   // data
   std::vector<GeTensor> input_vec;
   auto input0 = BuildGeTensor<int32_t, DT_INT32>({}, {1});
   auto input1 = BuildGeTensor<int32_t, DT_INT32>({}, {1});
-  auto input2 =  BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
+  auto input2 = BuildGeTensor<int32_t, DT_INT32>({2, 3}, {});
   input_vec.emplace_back(input0);
   input_vec.emplace_back(input1);
   input_vec.emplace_back(input2);
@@ -8413,7 +8435,7 @@ TEST_F(SymbolicShapeInferenceST, Expand_symbolic_dims_greater_than_input) {
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
-  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(0),s0, s1, Symbol(2)}));
+  EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(0), s0, s1, Symbol(2)}));
 }
 
 TEST_F(SymbolicShapeInferenceST, Expand_target_less_than_input) {
@@ -8516,30 +8538,30 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForExpandSymbolInputException) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_single_diag) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s1, s1}));
@@ -8561,30 +8583,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_single_diag) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_multi_diag) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "3", "s1"}));
-  
+
   auto k = builder_->CreateVector(std::vector<int32_t>{-1, 1});
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
@@ -8607,30 +8629,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_multi_diag) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_with_explicit_dims) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "5"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(5));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(5));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(5), Symbol(5)}));
@@ -8652,30 +8674,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_with_explicit_dims) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_negative_k) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(-2));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(2) + s1, s1}));
@@ -8697,30 +8719,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_negative_k) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_positive_k) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(3));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s1, Symbol(3) + s1}));
@@ -8742,30 +8764,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_positive_k) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_single_element_k) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "1", "s1"}));
-  
+
   auto k = builder_->CreateVector(std::vector<int32_t>{0, 0});
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(1), s1, s1}));
@@ -8787,30 +8809,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_single_element_k) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_larger_diag_range) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "5", "s1"}));
-  
+
   auto k = builder_->CreateVector(std::vector<int32_t>{-2, 2});
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(2) + s1, Symbol(2) + s1}));
@@ -8832,30 +8854,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_larger_diag_range) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_specify_num_rows_only) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "6"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(6));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(6));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, Symbol(6), Symbol(6)}));
@@ -8877,30 +8899,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_specify_num_rows_only) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_3d_input) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
@@ -8923,30 +8945,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_3d_input) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_4d_input_multi_diag) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "3", "s2"}));
-  
+
   auto k = builder_->CreateVector(std::vector<int32_t>{-1, 1});
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
@@ -8969,30 +8991,30 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_4d_input_multi_diag) {
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_zero_num_cols) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
   diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1"}));
-  
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_rows = builder_->CreateScalar(static_cast<int32_t>(-1));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(0));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   auto node = cg->FindFirstNodeMatchType("MatrixDiagV2");
   ASSERT_NE(node, nullptr);
   auto op_desc = node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  
+
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s1, s1}));
@@ -9000,30 +9022,34 @@ TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_zero_num_cols) {
 
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_col_less_than_min) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
-  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1" "3"}));
-  
+  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0",
+                                                           "s1"
+                                                           "3"}));
+
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
-  auto num_rows =  builder_->CreateScalar(static_cast<int32_t>(3));
+  auto num_rows = builder_->CreateScalar(static_cast<int32_t>(3));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(0));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
-  
+
   auto matrix_diag_v2 = es::MatrixDiagV2(diagonal, k, num_rows, num_cols, padding_value);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(matrix_diag_v2, 0), 0);
-  
+
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   ASSERT_NE(cg, nullptr);
-  
+
   SymbolicShapeInference ssi;
   ASSERT_NE(ssi.Infer(cg), ge::SUCCESS);
 }
 
 TEST_F(SymbolicShapeInferenceST, test_matrixdiagv2_row_less_than_min) {
   auto diagonal = builder_->CreateInput(0, "diagonal");
-  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1" "3"}));
+  diagonal.SetOriginSymbolShape(std::vector<const char *>({"s0",
+                                                           "s1"
+                                                           "3"}));
 
   auto k = builder_->CreateScalar(static_cast<int32_t>(0));
-  auto num_rows =  builder_->CreateScalar(static_cast<int32_t>(0));
+  auto num_rows = builder_->CreateScalar(static_cast<int32_t>(0));
   auto num_cols = builder_->CreateScalar(static_cast<int32_t>(3));
   auto padding_value = builder_->CreateScalar(static_cast<float>(0.0f));
 
@@ -9053,9 +9079,13 @@ TEST_F(SymbolicShapeInferenceST, PartitioncallInputAnchorUnlinkedAfterPreProcess
   NodePtr else_partitioncall = nullptr;
   for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
     auto pc = subgraph->FindNode("then_partitioncall");
-    if (pc != nullptr) { then_partitioncall = pc; }
+    if (pc != nullptr) {
+      then_partitioncall = pc;
+    }
     pc = subgraph->FindNode("else_partitioncall");
-    if (pc != nullptr) { else_partitioncall = pc; }
+    if (pc != nullptr) {
+      else_partitioncall = pc;
+    }
   }
   ASSERT_NE(then_partitioncall, nullptr);
   ASSERT_NE(else_partitioncall, nullptr);
@@ -9096,9 +9126,13 @@ TEST_F(SymbolicShapeInferenceST, AllPartitioncallBranchAnchorsUnlinkedAfterPrePr
   NodePtr batch2_partitioncall = nullptr;
   for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
     auto pc = subgraph->FindNode("batch1_partitioncall");
-    if (pc != nullptr) { batch1_partitioncall = pc; }
+    if (pc != nullptr) {
+      batch1_partitioncall = pc;
+    }
     pc = subgraph->FindNode("batch2_partitioncall");
-    if (pc != nullptr) { batch2_partitioncall = pc; }
+    if (pc != nullptr) {
+      batch2_partitioncall = pc;
+    }
   }
   ASSERT_NE(batch1_partitioncall, nullptr);
   ASSERT_NE(batch2_partitioncall, nullptr);
@@ -9123,7 +9157,6 @@ TEST_F(SymbolicShapeInferenceST, AllPartitioncallBranchAnchorsUnlinkedAfterPrePr
   }
 }
 
-
 //         ┌────────┐  (0,0)
 //         │ data_0 │ ────────
 //         └────────┘         |
@@ -9136,7 +9169,7 @@ TEST_F(SymbolicShapeInferenceST, test_batchmatmulv3_infershape) {
   data0.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2", "s3", "s4"}));
 
   auto data1 = builder_->CreateInput(1, "data_1");
-  data1.SetOriginSymbolShape(std::vector<const char *>({ "s2", "s4", "s3"}));
+  data1.SetOriginSymbolShape(std::vector<const char *>({"s2", "s4", "s3"}));
 
   auto bmmv3 = es::BatchMatMulV3(data0, data1, nullptr, nullptr, false, false, 0, false);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(bmmv3, 0), 0);
@@ -9258,7 +9291,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForTopKV2) {
   auto x = builder_->CreateInput(0, "x");
   x.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2", "s3"}));
   ASSERT_NE(x.GetCTensorHolder(), nullptr);
-    
+
   std::vector<int32_t> const_data0 = {2};
   std::vector<int64_t> const_dim = {1};
   auto k = builder_->CreateConst(const_data0, const_dim);
@@ -9295,7 +9328,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForTopKV2) {
   EXPECT_EQ(attr1->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({s0, s1, ge::Symbol(2), s3}));
   dlog_setlevel(0, 3, 0);
 }
-    
+
 TEST_F(SymbolicShapeInferenceST, InferShapeForArgMaxWithValue) {
   dlog_setlevel(0, 0, 0);
   auto x = builder_->CreateInput(0, "x");
@@ -9531,7 +9564,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForViewCopy) {
   auto src_size = builder_->CreateInput(5, "src_size");
   auto src_stride = builder_->CreateInput(6, "src_stride");
   auto src_storage_offset = builder_->CreateInput(7, "src_storage_offset");
-  
+
   dst.SetOriginSymbolShape(std::vector<const char *>({"s0", "s1", "s2"}));
   dst_size.SetOriginSymbolShape(std::vector<const char *>({"3"}));
   dst_stride.SetOriginSymbolShape(std::vector<const char *>({"3"}));
@@ -9554,7 +9587,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForViewCopy) {
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
 
-  auto view_copy = es::ViewCopy(dst, dst_size, dst_stride, dst_storage_offset, src, src_size, src_stride, src_storage_offset);
+  auto view_copy =
+      es::ViewCopy(dst, dst_size, dst_stride, dst_storage_offset, src, src_size, src_stride, src_storage_offset);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(view_copy, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -9724,7 +9758,8 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForIndex) {
   // Verify output shape
   auto attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attr, nullptr);
-  std::vector<Expression> expect_symbolic_shape = { ge::Symbol("s0"), ge::Symbol("s4"), ge::Symbol("s5"), ge::Symbol("s3") };
+  std::vector<Expression> expect_symbolic_shape = {ge::Symbol("s0"), ge::Symbol("s4"), ge::Symbol("s5"),
+                                                   ge::Symbol("s3")};
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_symbolic_shape);
   dlog_setlevel(0, 3, 0);
 }
@@ -9759,7 +9794,7 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForFlashAttentionScore) {
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(flash_attention.softmax_max, 1), 0);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(flash_attention.softmax_sum, 2), 0);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(flash_attention.softmax_out, 3), 0);
-  
+
   // Build graph
   auto graph = builder_->BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
@@ -9768,35 +9803,39 @@ TEST_F(SymbolicShapeInferenceST, InferShapeForFlashAttentionScore) {
   // Run symbolic shape inference
   SymbolicShapeInference ssi;
   ASSERT_EQ(ssi.Infer(cg), ge::SUCCESS);
-  
+
   // Get FlashAttentionScore node
   auto flash_attention_node = cg->FindFirstNodeMatchType("FlashAttentionScore");
   ASSERT_NE(flash_attention_node, nullptr);
-  
+
   // Get op desc
   auto op_desc = flash_attention_node->GetOpDesc();
   ASSERT_NE(op_desc, nullptr);
-  
+
   // Check output shapes
   // Output 0: softmax_max
   auto softmax_max_attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(softmax_max_attr, nullptr);
-  EXPECT_EQ(softmax_max_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol(8), Symbol("s1"), Symbol(8)}));
-  
+  EXPECT_EQ(softmax_max_attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), Symbol(8), Symbol("s1"), Symbol(8)}));
+
   // Output 1: softmax_sum
   auto softmax_sum_attr = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(softmax_sum_attr, nullptr);
-  EXPECT_EQ(softmax_sum_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol(8), Symbol("s1"), Symbol(8)}));
-  
+  EXPECT_EQ(softmax_sum_attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), Symbol(8), Symbol("s1"), Symbol(8)}));
+
   // Output 2: softmax_out (should be [0, 0, 0, 0])
   auto softmax_out_attr = op_desc->GetOutputDesc(2).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(softmax_out_attr, nullptr);
-  EXPECT_EQ(softmax_out_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(0), Symbol(0), Symbol(0), Symbol(0)}));
-  
+  EXPECT_EQ(softmax_out_attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol(0), Symbol(0), Symbol(0), Symbol(0)}));
+
   // Output 3: attention_out
   auto attention_out_attr = op_desc->GetOutputDesc(3).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attention_out_attr, nullptr);
-  EXPECT_EQ(attention_out_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol("s0"), Symbol("s1"), Symbol("s2")}));
+  EXPECT_EQ(attention_out_attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({Symbol("s0"), Symbol("s1"), Symbol("s2")}));
 }
 
 TEST_F(SymbolicShapeInferenceST, InferSymbolicShapeForFusedInferAttentionScore) {
@@ -9851,10 +9890,13 @@ TEST_F(SymbolicShapeInferenceST, InferSymbolicShapeForFusedInferAttentionScore) 
 
   auto attention_out_attr = op_desc->GetOutputDesc(0).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(attention_out_attr, nullptr);
-  EXPECT_EQ(attention_out_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol("head_dim")}));
+  EXPECT_EQ(
+      attention_out_attr->symbolic_tensor.GetOriginSymbolShape(),
+      gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol("head_dim")}));
 
   auto softmax_lse_attr = op_desc->GetOutputDesc(1).GetAttrsGroup<SymbolicDescAttr>();
   ASSERT_NE(softmax_lse_attr, nullptr);
-  EXPECT_EQ(softmax_lse_attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)}));
+  EXPECT_EQ(softmax_lse_attr->symbolic_tensor.GetOriginSymbolShape(),
+            gert::SymbolShape({ge::Symbol("batch"), ge::Symbol("num_heads"), ge::Symbol("seq_len"), ge::Symbol(1)}));
 }
 }  // namespace ge

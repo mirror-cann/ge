@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -125,11 +125,11 @@ void ConstantFuseSamePass::GetFuseConstNodes(ComputeGraphPtr &graph,
     fuse_nodes[map_key].emplace_back(node);
     GELOGD("ConstantFuseSamePass, format %s, datatype %s, data_size %d, shape_size %zu. node name %s",
            TypeUtils::FormatToSerialString(map_key.format).c_str(),
-           TypeUtils::DataTypeToSerialString(map_key.data_type).c_str(),
-           map_key.data_size, map_key.shape.size(), node->GetName().c_str());
+           TypeUtils::DataTypeToSerialString(map_key.data_type).c_str(), map_key.data_size, map_key.shape.size(),
+           node->GetName().c_str());
   }
-  GELOGI("ConstantFuseSamePass, total_const_nums %d, insert_const_nums %d, fuse_nodes size is %zu.",
-         total_const_nums, insert_const_nums, fuse_nodes.size());
+  GELOGI("ConstantFuseSamePass, total_const_nums %d, insert_const_nums %d, fuse_nodes size is %zu.", total_const_nums,
+         insert_const_nums, fuse_nodes.size());
 }
 
 Status ConstantFuseSamePass::MoveOutDataEdges(NodePtr &src_node, NodePtr &dst_node) const {
@@ -155,13 +155,12 @@ Status ConstantFuseSamePass::MoveOutDataEdges(NodePtr &src_node, NodePtr &dst_no
     auto ret = dst_out_data_anchor->LinkTo(it->second);
     if (ret != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) out index:0 link to op:%s(%s) in index:%d failed",
-                        dst_node->GetName().c_str(), dst_node->GetType().c_str(),
-                        it->second->GetOwnerNode()->GetName().c_str(), it->second->GetOwnerNode()->GetType().c_str(),
-                        it->second->GetIdx());
+                           dst_node->GetName().c_str(), dst_node->GetType().c_str(),
+                           it->second->GetOwnerNode()->GetName().c_str(), it->second->GetOwnerNode()->GetType().c_str(),
+                           it->second->GetIdx());
       GELOGE(FAILED, "[Add][Edge] Op:%s(%s) out index:0 link to op:%s(%s) in index:%d failed",
-             dst_node->GetName().c_str(), dst_node->GetType().c_str(),
-             it->second->GetOwnerNode()->GetName().c_str(), it->second->GetOwnerNode()->GetType().c_str(),
-             it->second->GetIdx());
+             dst_node->GetName().c_str(), dst_node->GetType().c_str(), it->second->GetOwnerNode()->GetName().c_str(),
+             it->second->GetOwnerNode()->GetType().c_str(), it->second->GetIdx());
       return FAILED;
     }
   }
@@ -177,7 +176,7 @@ Status ConstantFuseSamePass::FuseConstNodes(ComputeGraphPtr &graph,
     for (size_t i = 1; i < len; ++i) {
       auto node = nodes.at(i);
 
-      GELOGI("Replace redundant const ndoe %s by %s", node->GetName().c_str(), first_node->GetName().c_str());
+      GELOGI("Replace redundant const node %s by %s", node->GetName().c_str(), first_node->GetName().c_str());
       // the const node which can be fused has none input(both data and control in)
       if (GraphUtils::MoveOutCtrlEdges(node, first_node) != SUCCESS) {
         return FAILED;
@@ -186,10 +185,10 @@ Status ConstantFuseSamePass::FuseConstNodes(ComputeGraphPtr &graph,
         return FAILED;
       }
       if (GraphUtils::RemoveNodeWithoutRelink(graph, node) != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                          node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
-        GELOGE(FAILED, "[Remove][Node] %s(%s) Without Relink in graph:%s failed.",
-               node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+                             node->GetType().c_str(), graph->GetName().c_str());
+        GELOGE(FAILED, "[Remove][Node] %s(%s) Without Relink in graph:%s failed.", node->GetName().c_str(),
+               node->GetType().c_str(), graph->GetName().c_str());
         return FAILED;
       }
     }

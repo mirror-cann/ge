@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@ bool IsDimValid(const T1 shape_size, const T2 dim_value) {
 }
 
 template <typename T>
-ge::graphStatus ReduceDimsWithKeepDims(const gert::Shape* x_shape, const T* axes_dims, int32_t axes_size,
-                                       gert::Shape* output_shape) {
+ge::graphStatus ReduceDimsWithKeepDims(const gert::Shape *x_shape, const T *axes_dims, int32_t axes_size,
+                                       gert::Shape *output_shape) {
   T dim_num = x_shape->GetDimNum();
   *output_shape = *x_shape;
   for (int32_t i = 0; i < axes_size; i++) {
@@ -40,8 +40,8 @@ ge::graphStatus ReduceDimsWithKeepDims(const gert::Shape* x_shape, const T* axes
 }
 
 template <typename T>
-ge::graphStatus ReduceDimsWithoutKeepDims(const gert::Shape* x_shape, const T* axes_dims, int32_t axes_size,
-                                          gert::Shape* output_shape) {
+ge::graphStatus ReduceDimsWithoutKeepDims(const gert::Shape *x_shape, const T *axes_dims, int32_t axes_size,
+                                          gert::Shape *output_shape) {
   T dim_num = x_shape->GetDimNum();
   output_shape->SetDimNum(0);
   for (T j = 0; j < dim_num; j++) {
@@ -66,16 +66,16 @@ ge::graphStatus ReduceDimsWithoutKeepDims(const gert::Shape* x_shape, const T* a
 }
 
 template <typename T>
-ge::graphStatus ReduceDims(const gert::Shape* x_shape, const gert::Tensor* axes_tensor, int32_t axes_size,
-                           const bool keep_dims, gert::Shape* output_shape) {
-  const T* axes_dims = axes_tensor->GetData<T>();
+ge::graphStatus ReduceDims(const gert::Shape *x_shape, const gert::Tensor *axes_tensor, int32_t axes_size,
+                           const bool keep_dims, gert::Shape *output_shape) {
+  const T *axes_dims = axes_tensor->GetData<T>();
   if (keep_dims) {
     return ReduceDimsWithKeepDims<T>(x_shape, axes_dims, axes_size, output_shape);
   }
   return ReduceDimsWithoutKeepDims<T>(x_shape, axes_dims, axes_size, output_shape);
 }
 
-ge::graphStatus InferShape4ReduceCommon(InferShapeContext* context) {
+ge::graphStatus InferShape4ReduceCommon(InferShapeContext *context) {
   auto in_shape = context->GetInputShape(0);
   GE_ASSERT_NOTNULL(in_shape);
   auto axes_tensor = context->GetInputTensor(1);
@@ -85,16 +85,16 @@ ge::graphStatus InferShape4ReduceCommon(InferShapeContext* context) {
   auto attrs = context->GetAttrs();
   GE_ASSERT_NOTNULL(attrs);
 
-  const bool* keep_dims = attrs->GetAttrPointer<bool>(0);
+  const bool *keep_dims = attrs->GetAttrPointer<bool>(0);
   GE_ASSERT_NOTNULL(keep_dims);
 
   auto axes_size = static_cast<int32_t>(axes_tensor->GetShapeSize());
-//  GE_ASSERT(axes_size > 0, "axes size = %d must big than 0!", axes_size);
+  //  GE_ASSERT(axes_size > 0, "axes size = %d must big than 0!", axes_size);
 
   auto dtype = axes_tensor->GetDataType();
-//  auto dtype = ge::DT_INT32;
-  GE_ASSERT(dtype == ge::DT_INT32 || dtype == ge::DT_INT64,
-           "axes datatype ", ge::TypeUtils::DataTypeToSerialString(dtype), " must in (int32, int64)");
+  //  auto dtype = ge::DT_INT32;
+  GE_ASSERT(dtype == ge::DT_INT32 || dtype == ge::DT_INT64, "axes datatype ",
+            ge::TypeUtils::DataTypeToSerialString(dtype), " must in (int32, int64)");
   if (dtype == ge::DT_INT32) {
     return ReduceDims<int32_t>(in_shape, axes_tensor, axes_size, *keep_dims, out_shape);
   }
@@ -102,7 +102,7 @@ ge::graphStatus InferShape4ReduceCommon(InferShapeContext* context) {
 }
 
 ge::graphStatus TilingForReduceSum(TilingContext *context) {
-  (void) context;
+  (void)context;
   return ge::GRAPH_SUCCESS;
 }
 struct StubReduceSumTilingData {
@@ -115,5 +115,6 @@ IMPL_OP(ReduceSum)
     .InferShape(InferShape4ReduceCommon)
     .InputsDataDependency({1})
     .Tiling(TilingForReduceSum)
-    .TilingParse<StubReduceSumTilingData>(TilingParseForReduceSum);;
+    .TilingParse<StubReduceSumTilingData>(TilingParseForReduceSum);
+;
 }  // namespace ops

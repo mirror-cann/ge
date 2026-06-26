@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,36 +79,34 @@ Status TransdataKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<C
       "current node %s, format %s, primary format %s, input shape %s, data type %s, weight format %s, shape %s, "
       "data type %s. output format %s, output primary format %s, shape %s, data type %s.",
       op_desc_ptr->GetName().c_str(), TypeUtils::FormatToSerialString(src_format).c_str(),
-      TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-      formats::ShapeToString(src_shape).c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
+      TypeUtils::FormatToSerialString(src_primary_format).c_str(), formats::ShapeToString(src_shape).c_str(),
+      TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
       TypeUtils::FormatToSerialString(const_weight_ptr->GetTensorDesc().GetFormat()).c_str(),
       formats::ShapeToString(const_weight_ptr->GetTensorDesc().GetShape()).c_str(),
       TypeUtils::DataTypeToSerialString(const_weight_ptr->GetTensorDesc().GetDataType()).c_str(),
-      TypeUtils::FormatToSerialString(data_format).c_str(),
-      TypeUtils::FormatToSerialString(dst_primary_format).c_str(), formats::ShapeToString(data_shape).c_str(),
-      TypeUtils::DataTypeToSerialString(data_type).c_str());
+      TypeUtils::FormatToSerialString(data_format).c_str(), TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
+      formats::ShapeToString(data_shape).c_str(), TypeUtils::DataTypeToSerialString(data_type).c_str());
 
   const uint8_t *src_data = const_weight_ptr->GetData().data();
-  const formats::TransArgs trans_args{src_data, src_format, data_format, src_primary_format, dst_primary_format,
-                                      src_sub_format, dst_sub_format, src_c0_format, dts_c0_format, src_shape,
-                                      data_shape, src_data_type};
+  const formats::TransArgs trans_args{src_data,           src_format,     data_format,    src_primary_format,
+                                      dst_primary_format, src_sub_format, dst_sub_format, src_c0_format,
+                                      dts_c0_format,      src_shape,      data_shape,     src_data_type};
   formats::TransResult trans_result;
   GELOGD("Trans formats from %s to %s, primary formats from %s to %s, shape %s to %s, data type %s.",
          TypeUtils::FormatToSerialString(src_format).c_str(), TypeUtils::FormatToSerialString(data_format).c_str(),
          TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-         TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-         formats::ShapeToString(src_shape).c_str(), formats::ShapeToString(data_shape).c_str(),
-         TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+         TypeUtils::FormatToSerialString(dst_primary_format).c_str(), formats::ShapeToString(src_shape).c_str(),
+         formats::ShapeToString(data_shape).c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
 
   if (src_data_type != data_type || data_shape.empty() || !formats::IsTransFormatSupport(trans_args)) {
-    GELOGW("Transfer from format %s to %s, primary formats from %s to %s, shape %s to %s, data type %s to %s "
-           "is not supported", TypeUtils::FormatToSerialString(src_format).c_str(),
-           TypeUtils::FormatToSerialString(data_format).c_str(),
-           TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-           TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-           formats::ShapeToString(src_shape).c_str(), formats::ShapeToString(data_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
-           TypeUtils::DataTypeToSerialString(data_type).c_str());
+    GELOGW(
+        "Transfer from format %s to %s, primary formats from %s to %s, shape %s to %s, data type %s to %s "
+        "is not supported",
+        TypeUtils::FormatToSerialString(src_format).c_str(), TypeUtils::FormatToSerialString(data_format).c_str(),
+        TypeUtils::FormatToSerialString(src_primary_format).c_str(),
+        TypeUtils::FormatToSerialString(dst_primary_format).c_str(), formats::ShapeToString(src_shape).c_str(),
+        formats::ShapeToString(data_shape).c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
+        TypeUtils::DataTypeToSerialString(data_type).c_str());
     return NOT_CHANGED;
   }
   if (!KernelUtils::CheckSizeForTransOp(const_weight_ptr, op_desc_ptr)) {
@@ -119,9 +117,8 @@ Status TransdataKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<C
     GELOGW("Failed to trans formats from %s to %s, primary formats from %s to %s, shape %s to %s, data type %s",
            TypeUtils::FormatToSerialString(src_format).c_str(), TypeUtils::FormatToSerialString(data_format).c_str(),
            TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-           TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-           formats::ShapeToString(src_shape).c_str(), formats::ShapeToString(data_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+           TypeUtils::FormatToSerialString(dst_primary_format).c_str(), formats::ShapeToString(src_shape).c_str(),
+           formats::ShapeToString(data_shape).c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     return NOT_CHANGED;
   }
 

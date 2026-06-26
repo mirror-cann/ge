@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "graph/debug/ge_op_types.h"
 #include "graph/utils/graph_utils_ex.h"
@@ -21,14 +20,11 @@ using namespace std;
 namespace ge {
 
 namespace {
-static void RegisterOpCreatorV2(const std::string &op_type,
-                                const std::vector<std::string> &input_names,
-                                IrInputType input_type,
-                                const std::vector<std::string> &output_names,
-                                IrOutputType output_type,
-                                const std::vector<std::string> &tag_names) {
+static void RegisterOpCreatorV2(const std::string &op_type, const std::vector<std::string> &input_names,
+                                IrInputType input_type, const std::vector<std::string> &output_names,
+                                IrOutputType output_type, const std::vector<std::string> &tag_names) {
   ge::OpCreatorV2 op_creator_v2 = [op_type, input_names, input_type, output_names, output_type,
-      tag_names](const ge::AscendString &name) -> ge::Operator {
+                                   tag_names](const ge::AscendString &name) -> ge::Operator {
     auto op_desc = std::make_shared<ge::OpDesc>(name.GetString(), op_type);
     for (const auto &tensor_name : input_names) {
       op_desc->AppendIrInput(tensor_name, input_type);
@@ -99,7 +95,7 @@ void RegisterAllOpCreator() {
   RegisterOpCreatorV2("StridedSliceD", {"x"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("StridedSlice", {"x1", "x2", "x3", "x4"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("SplitD", {"x"}, ge::kIrInputRequired, {"y"}, kIrOutputDynamic, {});
-  RegisterOpCreatorV2("SplitV", {"x","size_splits", "split_dim"}, ge::kIrInputRequired, {"y"}, kIrOutputDynamic, {});
+  RegisterOpCreatorV2("SplitV", {"x", "size_splits", "split_dim"}, ge::kIrInputRequired, {"y"}, kIrOutputDynamic, {});
   RegisterOpCreatorV2("LeakyRelu", {"x"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("Fill", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("GatherV2", {"x1", "x2", "x3"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
@@ -124,9 +120,10 @@ void RegisterAllOpCreator() {
   RegisterOpCreatorV2("BNTrainingReduce", {"x"}, ge::kIrInputRequired, {"y1", "y2"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("ApplyGradientDescent", {"x1", "x2", "x3"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("ApplyAdagrad", {"x1", "x2", "x3", "x4"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
-  RegisterOpCreatorV2("ApplyAdagradD", {"x1", "x2", "x3", "x4"}, ge::kIrInputRequired, {"y1", "y2"}, kIrOutputRequired, {});
-  RegisterOpCreatorV2("ApplyAdamD", {"x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10"},
-                      ge::kIrInputRequired, {"y1", "y2", "y3"}, kIrOutputRequired, {});
+  RegisterOpCreatorV2("ApplyAdagradD", {"x1", "x2", "x3", "x4"}, ge::kIrInputRequired, {"y1", "y2"}, kIrOutputRequired,
+                      {});
+  RegisterOpCreatorV2("ApplyAdamD", {"x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10"}, ge::kIrInputRequired,
+                      {"y1", "y2", "y3"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("Select", {"x1", "x2", "x3"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("ExpandDims", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("Pack", {"x"}, ge::kIrInputDynamic, {"y"}, kIrOutputRequired, {});
@@ -136,7 +133,8 @@ void RegisterAllOpCreator() {
   RegisterOpCreatorV2("Muls", {"x"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("RsqrtGrad", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("ReluGrad", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
-  RegisterOpCreatorV2("LayerNormBetaGammaBackpropV2", {"x1", "x2"}, ge::kIrInputRequired, {"y1", "y2"}, kIrOutputRequired, {});
+  RegisterOpCreatorV2("LayerNormBetaGammaBackpropV2", {"x1", "x2"}, ge::kIrInputRequired, {"y1", "y2"},
+                      kIrOutputRequired, {});
   RegisterOpCreatorV2("ConfusionSoftmaxGrad", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("BroadcastTo", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});
   RegisterOpCreatorV2("Reshape", {"x1", "x2"}, ge::kIrInputRequired, {"y"}, kIrOutputRequired, {});

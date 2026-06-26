@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,7 @@ inline Status GetGraphAxis(AscGraph &asc_graph, std::vector<int64_t> &graph_axis
   TensorAttrInfo graph_attr;
   GE_ASSERT_SUCCESS(BackendUtils::GetGraphAttrInfo(asc_graph, graph_attr));
   graph_axis = graph_attr.axis;
-  GELOGI("graph axis: %s in graph %s.", AutofuseUtils::VectorToStr(graph_axis).c_str(),
-         asc_graph.GetName().c_str());
+  GELOGI("graph axis: %s in graph %s.", AutofuseUtils::VectorToStr(graph_axis).c_str(), asc_graph.GetName().c_str());
   return SUCCESS;
 }
 
@@ -151,7 +150,8 @@ inline Status CountExpectedTransposesForLoopAxis(AscGraph &asc_graph,
   return SUCCESS;
 }
 
-inline Status FindOptimalTransposeCount(const std::vector<std::pair<int64_t, int64_t>> &load_store_transpose_cnt, size_t &min_index) {
+inline Status FindOptimalTransposeCount(const std::vector<std::pair<int64_t, int64_t>> &load_store_transpose_cnt,
+                                        size_t &min_index) {
   GE_ASSERT_TRUE(!load_store_transpose_cnt.empty());
   int64_t min_sum = std::numeric_limits<int64_t>::max();
   int64_t min_first = std::numeric_limits<int64_t>::max();
@@ -226,7 +226,7 @@ inline Status UpdateAscGraphWithAppliedLoopAxis(AscGraph &asc_graph, std::vector
         std::vector<std::pair<int64_t, int64_t>> output_attr_transpose_info;
         GE_ASSERT_SUCCESS(BackendUtils::MinSwapCount(output_attr->axis, optimal_loop_axes, output_attr_swap_count,
                                                      output_attr_transpose_info));
-        auto sched_axis = node_attr->sched.axis; // ApplySwaps接口会更新sched axis，此处不希望更新
+        auto sched_axis = node_attr->sched.axis;  // ApplySwaps接口会更新sched axis，此处不希望更新
         GE_ASSERT_SUCCESS(BackendUtils::ApplySwaps(output_attr->axis, output_attr->repeats, output_attr->strides,
                                                    sched_axis, output_attr_transpose_info));
         GELOGI("applied transpose info, node %s %s sched_axis:%s, out tensor axis:%s repeats:%s stride:%s.",

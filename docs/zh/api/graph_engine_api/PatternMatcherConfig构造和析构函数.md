@@ -48,4 +48,3 @@ PatternMatcherConfig()
 ## 约束说明<a name="section1679583814442"></a>
 
 使用该构造函数造的对象，其成员默认行为均为不使能。请使用[PatternMatcherConfigBuilder](PatternMatcherConfigBuilder.md)来构造。
-

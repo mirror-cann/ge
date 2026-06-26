@@ -102,4 +102,3 @@ Status SetGraphConstMemoryBase(uint32_t graph_id, const void *const memory, size
 -   每个Graph只支持设置一次，不支持刷新。
 -   该接口只适用于静态编译图，可以通过[GetCompiledGraphSummary](GetCompiledGraphSummary.md)接口中的**IsStatic**接口获取图是否为静态编译。
 -   若使用了本接口，又配置了[RegisterExternalAllocator](RegisterExternalAllocator.md)接口，则RegisterExternalAllocator接口不生效。
-

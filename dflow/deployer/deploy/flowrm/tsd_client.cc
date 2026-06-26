@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,20 +25,16 @@
 
 namespace ge {
 namespace {
-#define LOG_SAVE_MODE_SEP (0xFE736570U)  // LOG_SAVE_MODE_SEP在unified_dlog.so中不再使用，为保持兼容临时宏定义，中间态过渡用，后续需移除
-using TsdFileLoad = uint32_t(*)(const uint32_t device_id,
-                                const char_t *file_path,
-                                const uint64_t path_len,
-                                const char_t *file_name,
-                                const uint64_t name_len);
-using TsdFileUnLoad = uint32_t(*)(const uint32_t device_id,
-                                  const char_t *file_path,
-                                  const uint64_t path_len);
-using TsdGetProcListStatus = uint32_t(*)(const uint32_t device_id, ProcStatusParam *status, const uint32_t num);
-using TsdProcessOpen = uint32_t(*)(const uint32_t device_id, ProcOpenArgs *args);
-using ProcessCloseSubProcList = uint32_t(*)(const uint32_t device_id, const ProcStatusParam *status,
-                                            const uint32_t num);
-using TsdInitFlowGw = uint32_t(*)(const uint32_t device_id, const InitFlowGwInfo * const info);
+#define LOG_SAVE_MODE_SEP \
+  (0xFE736570U)  // LOG_SAVE_MODE_SEP在unified_dlog.so中不再使用，为保持兼容临时宏定义，中间态过渡用，后续需移除
+using TsdFileLoad = uint32_t (*)(const uint32_t device_id, const char_t *file_path, const uint64_t path_len,
+                                 const char_t *file_name, const uint64_t name_len);
+using TsdFileUnLoad = uint32_t (*)(const uint32_t device_id, const char_t *file_path, const uint64_t path_len);
+using TsdGetProcListStatus = uint32_t (*)(const uint32_t device_id, ProcStatusParam *status, const uint32_t num);
+using TsdProcessOpen = uint32_t (*)(const uint32_t device_id, ProcOpenArgs *args);
+using ProcessCloseSubProcList = uint32_t (*)(const uint32_t device_id, const ProcStatusParam *status,
+                                             const uint32_t num);
+using TsdInitFlowGw = uint32_t (*)(const uint32_t device_id, const InitFlowGwInfo *const info);
 
 constexpr const char_t *kTsdClientLibName = "libtsdclient.so";
 constexpr const char_t *kFuncNameTsdFileLoad = "TsdFileLoad";
@@ -106,14 +102,13 @@ Status TsdClient::LoadTsdClientLib() {
   const auto open_flag =
       static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) | static_cast<uint32_t>(MMPA_RTLD_GLOBAL));
   handle_ = mmDlopen(kTsdClientLibName, open_flag);
-  GE_CHK_BOOL_RET_STATUS(handle_ != nullptr, FAILED,
-                         "[Dlopen][So] failed, so name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(handle_ != nullptr, FAILED, "[Dlopen][So] failed, so name = %s, error_msg = %s",
                          kTsdClientLibName, mmDlerror());
   GELOGI("Open %s succeeded", kTsdClientLibName);
   tsd_capability_get_ = reinterpret_cast<TsdCapabilityGet>(mmDlsym(handle_, kFuncNameTsdCapabilityGet));
   GE_CHK_BOOL_RET_STATUS(tsd_capability_get_ != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
-                         kTsdClientLibName, kFuncNameTsdCapabilityGet, mmDlerror());
+                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s", kTsdClientLibName,
+                         kFuncNameTsdCapabilityGet, mmDlerror());
   return SUCCESS;
 }
 
@@ -150,17 +145,15 @@ Status TsdClient::GetProcStatus(int32_t device_id, pid_t pid, ProcStatus &proc_s
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   auto proc = reinterpret_cast<TsdGetProcListStatus>(mmDlsym(handle_, kFuncNameTsdGetProcListStatus));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdGetProcListStatus, mmDlerror());
   ProcStatusParam status = {pid, TransferProcType(proc_type), SUB_PROCESS_STATUS_NORMAL};
   status.pid = pid;
   GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), &status, 1U),
                     "Failed to get proc status, device_id = %d, pid = %d", device_id, pid);
-  static std::map<SubProcessStatus, ProcStatus> transfer = {
-      {SUB_PROCESS_STATUS_NORMAL, ProcStatus::NORMAL},
-      {SUB_PROCESS_STATUS_EXITED, ProcStatus::EXITED},
-      {SUB_PROCESS_STATUS_STOPED, ProcStatus::STOPPED}};
+  static std::map<SubProcessStatus, ProcStatus> transfer = {{SUB_PROCESS_STATUS_NORMAL, ProcStatus::NORMAL},
+                                                            {SUB_PROCESS_STATUS_EXITED, ProcStatus::EXITED},
+                                                            {SUB_PROCESS_STATUS_STOPED, ProcStatus::STOPPED}};
   proc_status = transfer[status.curStat];
   return SUCCESS;
 }
@@ -171,8 +164,7 @@ Status TsdClient::GetProcStatus(int32_t device_id, const std::vector<pid_t> &pid
   // prevent concurrent in the same device.
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   auto proc = reinterpret_cast<TsdGetProcListStatus>(mmDlsym(handle_, kFuncNameTsdGetProcListStatus));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdGetProcListStatus, mmDlerror());
   SubProcType query_proc_type = TransferProcType(proc_type);
   std::vector<ProcStatusParam> query_status;
@@ -186,10 +178,9 @@ Status TsdClient::GetProcStatus(int32_t device_id, const std::vector<pid_t> &pid
     GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), query_status.data(), query_status.size()),
                       "Failed to get proc status, device_id = %d, pid = %s", device_id, ToString(pids).c_str());
   }
-  static std::map<SubProcessStatus, ProcStatus> transfer = {
-      {SUB_PROCESS_STATUS_NORMAL, ProcStatus::NORMAL},
-      {SUB_PROCESS_STATUS_EXITED, ProcStatus::EXITED},
-      {SUB_PROCESS_STATUS_STOPED, ProcStatus::STOPPED}};
+  static std::map<SubProcessStatus, ProcStatus> transfer = {{SUB_PROCESS_STATUS_NORMAL, ProcStatus::NORMAL},
+                                                            {SUB_PROCESS_STATUS_EXITED, ProcStatus::EXITED},
+                                                            {SUB_PROCESS_STATUS_STOPED, ProcStatus::STOPPED}};
   for (const auto &proc_status_info : query_status) {
     proc_status[proc_status_info.pid] = transfer[proc_status_info.curStat];
   }
@@ -204,23 +195,19 @@ SubProcType TsdClient::TransferProcType(const std::string &proc_type) {
   return transfer[proc_type];
 }
 
-Status TsdClient::StartFlowGw(int32_t device_id,
-                              const std::string &group_name,
-                              pid_t &pid) {
-  (void) group_name;
+Status TsdClient::StartFlowGw(int32_t device_id, const std::string &group_name, pid_t &pid) {
+  (void)group_name;
   GELOGI("Start flowgw begin, device_id = %d.", device_id);
   GE_CHK_STATUS_RET(Initialize(), "Failed to init tsd client");
   // prevent concurrent in the same device.
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   auto proc = reinterpret_cast<TsdInitFlowGw>(mmDlsym(handle_, kFuncNameTsdInitFlowGw));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdInitFlowGw, mmDlerror());
   InitFlowGwInfo info = {};
   info.schedPolicy = static_cast<uint64_t>(bqs::SchedPolicy::POLICY_SUB_BUF_EVENT);
-  GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), &info),
-                    "Failed to start flowgw device_id = %d", device_id);
+  GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), &info), "Failed to start flowgw device_id = %d", device_id);
   rtBindHostpidInfo_t pid_info{};
   pid_info.cpType = RT_DEV_PROCESS_QS;
   pid_info.hostPid = mmGetPid();
@@ -230,22 +217,18 @@ Status TsdClient::StartFlowGw(int32_t device_id,
   return SUCCESS;
 }
 
-Status TsdClient::ForkSubprocess(int32_t device_id,
-                                 const SubprocessManager::SubprocessConfig &subprocess_config,
-                                 const std::string &file_path,
-                                 pid_t &pid) {
-  GELOGI("Fork process begin, process_type = %s, device_id = %d.",
-         subprocess_config.process_type.c_str(), device_id);
+Status TsdClient::ForkSubprocess(int32_t device_id, const SubprocessManager::SubprocessConfig &subprocess_config,
+                                 const std::string &file_path, pid_t &pid) {
+  GELOGI("Fork process begin, process_type = %s, device_id = %d.", subprocess_config.process_type.c_str(), device_id);
   GE_CHK_STATUS_RET(Initialize(), "Failed to init tsd client");
   // prevent concurrent in the same device.
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   auto proc = reinterpret_cast<TsdProcessOpen>(mmDlsym(handle_, kFuncNameTsdProcessOpen));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdProcessOpen, mmDlerror());
 
-  SubprocessManager::SubprocessConfig config = subprocess_config; // copy
+  SubprocessManager::SubprocessConfig config = subprocess_config;  // copy
   // need send back log
   constexpr int32_t kLogSaveMode = 2;
   config.envs.emplace("ASCEND_LOG_SAVE_MODE", std::to_string(kLogSaveMode));
@@ -260,7 +243,7 @@ Status TsdClient::ForkSubprocess(int32_t device_id,
 
   for (const auto &it : config.envs) {
     ProcEnvParam param = {};
-    param.envName =  it.first.c_str();
+    param.envName = it.first.c_str();
     param.nameLen = it.first.length();
     param.envValue = it.second.c_str();
     param.valueLen = it.second.length();
@@ -286,21 +269,18 @@ Status TsdClient::ForkSubprocess(int32_t device_id,
     args.pathLen = file_path.length();
   }
   GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), &args),
-                    "Failed to open subprocess, device_id = %d, type = %d",
-                    device_id, config.process_type.c_str());
-  GELOGI("Fork process success, process_type = %s, device_id = %d.",
-         subprocess_config.process_type.c_str(), device_id);
+                    "Failed to open subprocess, device_id = %d, type = %d", device_id, config.process_type.c_str());
+  GELOGI("Fork process success, process_type = %s, device_id = %d.", subprocess_config.process_type.c_str(), device_id);
   return SUCCESS;
 }
 
-Status TsdClient::ForkSubprocess(int32_t device_id,
-                                 const SubprocessManager::SubprocessConfig &subprocess_config,
+Status TsdClient::ForkSubprocess(int32_t device_id, const SubprocessManager::SubprocessConfig &subprocess_config,
                                  pid_t &pid) {
   GE_CHK_STATUS_RET(SetDlogReportStart(device_id), "Failed to dlog report start, device_id = %d,", device_id);
   std::string empty_path;
   GE_CHK_STATUS_RET(ForkSubprocess(device_id, subprocess_config, empty_path, pid),
-                    "Failed to open subprocess, device_id = %d, type = %s",
-                    device_id, subprocess_config.process_type.c_str());
+                    "Failed to open subprocess, device_id = %d, type = %s", device_id,
+                    subprocess_config.process_type.c_str());
   return SUCCESS;
 }
 
@@ -311,8 +291,7 @@ Status TsdClient::ShutdownSubprocess(int32_t device_id, pid_t pid, const std::st
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   auto proc = reinterpret_cast<ProcessCloseSubProcList>(mmDlsym(handle_, kFuncNameTsdProcessCloseSubProcList));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdProcessCloseSubProcList, mmDlerror());
   ProcStatusParam status = {pid, TransferProcType(proc_type), SUB_PROCESS_STATUS_NORMAL};
   GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), &status, 1U),
@@ -322,15 +301,15 @@ Status TsdClient::ShutdownSubprocess(int32_t device_id, pid_t pid, const std::st
 }
 
 Status TsdClient::LoadFile(int32_t device_id, const std::string &file_path, const std::string &file_name) {
-  GELOGI("Load file to device begin, path = %s, name = %s, device_id = %d.",
-         file_path.c_str(), file_name.c_str(), device_id);
+  GELOGI("Load file to device begin, path = %s, name = %s, device_id = %d.", file_path.c_str(), file_name.c_str(),
+         device_id);
   GE_CHK_STATUS_RET(Initialize(), "Failed to init tsd client");
   // prevent concurrent in the same device.
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   GE_CHK_STATUS_RET_NOLOG(LoadFileByTsd(device_id, file_path.c_str(), file_path.length(), file_name));
-  GELOGI("Load file to device success, path = %s, name = %s, device_id = %d.",
-         file_path.c_str(), file_name.c_str(), device_id);
+  GELOGI("Load file to device success, path = %s, name = %s, device_id = %d.", file_path.c_str(), file_name.c_str(),
+         device_id);
   return SUCCESS;
 }
 
@@ -352,14 +331,10 @@ Status TsdClient::UnloadFile(int32_t device_id, const std::string &file_path) {
   GE_CHK_STATUS_RET(SetDevice(device_id), "Failed to set device");
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   auto proc = reinterpret_cast<TsdFileUnLoad>(mmDlsym(handle_, kFuncNameTsdFileUnLoad));
-  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED,
-                         "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
+  GE_CHK_BOOL_RET_STATUS(proc != nullptr, FAILED, "[Dlsym][So] failed, so name = %s, func name = %s, error_msg = %s",
                          kTsdClientLibName, kFuncNameTsdFileUnLoad, mmDlerror());
-  GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id),
-                         file_path.c_str(),
-                         file_path.length()),
-                    "Failed to unload file, device_id = %d, file path = %s.",
-                    device_id, file_path.c_str());
+  GE_CHK_STATUS_RET(proc(static_cast<uint32_t>(device_id), file_path.c_str(), file_path.length()),
+                    "Failed to unload file, device_id = %d, file path = %s.", device_id, file_path.c_str());
   GELOGI("Unload file success, path = %s, device_id = %d.", file_path.c_str(), device_id);
   return SUCCESS;
 }
@@ -383,8 +358,8 @@ Status TsdClient::CheckCapabilitySupport(int32_t device_id, int32_t capability, 
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   uint64_t value = 0UL;
   uint64_t ptr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&value));
-  GE_CHK_STATUS_RET(tsd_capability_get_(device_id, capability, ptr), "tsd capability get failed, type=%d, ptr=%" PRIu64 ".",
-                    capability, ptr);
+  GE_CHK_STATUS_RET(tsd_capability_get_(device_id, capability, ptr),
+                    "tsd capability get failed, type=%d, ptr=%" PRIu64 ".", capability, ptr);
   GELOGI("Tsd capability get success, type=%d, value=%lu, required value=%lu.", capability, value, required);
   is_support = (value >= required);
   return SUCCESS;
@@ -411,7 +386,7 @@ void TsdClient::Finalize() {
     device_mutexs_.clear();
   }
   if (handle_ != nullptr) {
-    (void) mmDlclose(handle_);
+    (void)mmDlclose(handle_);
     tsd_capability_get_ = nullptr;
     handle_ = nullptr;
   }

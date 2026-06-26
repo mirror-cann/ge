@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,13 +54,12 @@ class DsaOpsKernelBuilderTest : public testing::Test {
   }
 
  private:
-  static RunContext CreateContext()
-  {
+  static RunContext CreateContext() {
     RunContext context;
     context.dataMemSize = 100;
-    context.dataMemBase = (uint8_t *) (intptr_t) 1000;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
     context.weightMemSize = 200;
-    context.weightMemBase = (uint8_t *) (intptr_t) 1100;
+    context.weightMemBase = (uint8_t *)(intptr_t)1100;
     context.weightsBuffer = Buffer(20);
 
     return context;
@@ -88,26 +87,26 @@ class DsaOpsKernelBuilderTest : public testing::Test {
     return seed_value;
   }
 
-  bool IsSameAddr(const std::string& addr, int64_t offset) {
-    uint64_t real_addr = *reinterpret_cast<const uint64_t*>(addr.c_str());
+  bool IsSameAddr(const std::string &addr, int64_t offset) {
+    uint64_t real_addr = *reinterpret_cast<const uint64_t *>(addr.c_str());
     uint64_t expect_addr = reinterpret_cast<const uint64_t>(context_.dataMemBase) + offset;
     return real_addr == expect_addr;
   }
 
-  void ExpectSameAddr(const std::string& addr, int64_t offset) {
-    uint64_t real_addr = *reinterpret_cast<const uint64_t*>(addr.c_str());
+  void ExpectSameAddr(const std::string &addr, int64_t offset) {
+    uint64_t real_addr = *reinterpret_cast<const uint64_t *>(addr.c_str());
     uint64_t expect_addr = reinterpret_cast<const uint64_t>(context_.dataMemBase) + offset;
     EXPECT_EQ(real_addr, expect_addr);
   }
 
-  bool IsSameValue(const std::string& addr, float value) {
-    float real_addr = *reinterpret_cast<const float*>(addr.c_str());
+  bool IsSameValue(const std::string &addr, float value) {
+    float real_addr = *reinterpret_cast<const float *>(addr.c_str());
     EXPECT_FLOAT_EQ(real_addr, value);
     return real_addr == value;
   }
 
-  bool IsSameValue(const std::string& addr, int64_t value) {
-    int64_t real_addr = *reinterpret_cast<const int64_t*>(addr.c_str());
+  bool IsSameValue(const std::string &addr, int64_t value) {
+    int64_t real_addr = *reinterpret_cast<const int64_t *>(addr.c_str());
     EXPECT_EQ(real_addr, value);
     return real_addr == value;
   }
@@ -128,7 +127,8 @@ class DsaOpsKernelBuilderTest : public testing::Test {
         value_list.emplace_back(value);
         continue;
       }
-      value.assign(reinterpret_cast<const char *>(const_tensor->GetData().GetData()), const_tensor->GetData().GetSize());
+      value.assign(reinterpret_cast<const char *>(const_tensor->GetData().GetData()),
+                   const_tensor->GetData().GetSize());
       value_list.emplace_back(value);
     }
     (void)ge::AttrUtils::SetListStr(node->GetOpDesc(), kOpConstValueList, value_list);
@@ -136,7 +136,7 @@ class DsaOpsKernelBuilderTest : public testing::Test {
   static void SetWeight(ge::NodePtr node, int index, float w) {
     float data[] = {w};
     ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_FLOAT16);
-    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data, sizeof(data));
+    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data, sizeof(data));
     map<int, ge::GeTensorPtr> weights = {{index, tensor}};
     ge::OpDescUtils::SetWeights(*node, weights);
   }
@@ -144,7 +144,7 @@ class DsaOpsKernelBuilderTest : public testing::Test {
   static void SetWeight(ge::NodePtr node, int index, int64_t w) {
     int64_t data[] = {w};
     ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_INT64);
-    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data, sizeof(data));
+    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data, sizeof(data));
     map<int, ge::GeTensorPtr> weights = {{index, tensor}};
     ge::OpDescUtils::SetWeights(*node, weights);
   }
@@ -195,7 +195,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_normal_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
 
@@ -215,7 +215,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_normal_succ) {
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_ADDR);
 
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().random_count_value_or_addr(), 0));
@@ -235,10 +235,10 @@ TEST_F(DsaOpsKernelBuilderTest, gen_ffts_task_normal_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
-   std::vector<domi::TaskDef> task_defs;
+  std::vector<domi::TaskDef> task_defs;
   (void)ge::AttrUtils::SetBool(src_op, "_ffts_plus", true);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
@@ -257,7 +257,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_truncated_normal_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   src_op->SetAttr("seed0", GeAttrValue::CreateFrom<GeAttrValue::INT>(1));
   src_op->SetAttr("seed1", GeAttrValue::CreateFrom<GeAttrValue::INT>(2));
@@ -278,7 +278,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_truncated_normal_succ) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_ADDR);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().random_count_value_or_addr(), 0));
@@ -299,7 +299,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
 
@@ -318,7 +318,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_succ) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_ADDR);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().random_count_value_or_addr(), 0));
@@ -339,7 +339,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_constant_input0) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   SetWeight(src_node, 0, 512L);
@@ -360,7 +360,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_constant_input0) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_VALUE);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameValue(dsa_task_def.args().random_count_value_or_addr(), 512L));
@@ -396,7 +396,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_constant_input1) {
   high->AddOutputDesc(input_desc);
 
   random_uniform->SetWorkspace({1024, 2048});
-  random_uniform->SetOutputOffset({2048+1024});
+  random_uniform->SetOutputOffset({2048 + 1024});
   random_uniform->SetInputOffset({0, 32, 64, 128});
 
   auto random_uniform_node = graph->AddNode(random_uniform);
@@ -405,14 +405,13 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_constant_input1) {
   auto low_node = graph->AddNode(low);
   auto high_node = graph->AddNode(high);
 
-
   GraphUtils::AddEdge(count_node->GetOutDataAnchor(0), random_uniform_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(seed_node->GetOutDataAnchor(0), random_uniform_node->GetInDataAnchor(1));
   GraphUtils::AddEdge(low_node->GetOutDataAnchor(0), random_uniform_node->GetInDataAnchor(2));
   GraphUtils::AddEdge(high_node->GetOutDataAnchor(0), random_uniform_node->GetInDataAnchor(3));
 
   float low_value = 0.24f;
-  GeTensor const_low(input_desc, (uint8_t*)(&low_value), sizeof(low_value));
+  GeTensor const_low(input_desc, (uint8_t *)(&low_value), sizeof(low_value));
   ge::AttrUtils::SetTensor(low, "value", const_low);
 
   std::vector<domi::TaskDef> task_defs;
@@ -431,7 +430,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_constant_input1) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().random_count_value_or_addr(), 0));
@@ -452,7 +451,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_all_constant_input) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   SetWeight(src_node, 0, 256L);
@@ -476,7 +475,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_uniform_with_all_constant_input) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_VALUE);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_VALUE);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_VALUE);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameValue(dsa_task_def.args().random_count_value_or_addr(), 256L));
@@ -496,7 +495,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_bitmask_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64});
   auto src_node = graph->AddNode(src_op);
 
@@ -515,7 +514,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_bitmask_succ) {
   EXPECT_EQ(dsa_task_def.input2_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.seed_value_or_ptr(), DSA_DATA_ADDR);
   EXPECT_EQ(dsa_task_def.random_count_value_or_ptr(), DSA_DATA_ADDR);
-  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048+1024));
+  EXPECT_TRUE(IsSameAddr(dsa_task_def.args().output_addr(), 2048 + 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_philox_count_addr(), 1024));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().workspace_input_addr(), 2048));
   EXPECT_TRUE(IsSameAddr(dsa_task_def.args().random_count_value_or_addr(), 0));
@@ -534,7 +533,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_unknown_optype) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64});
   src_op->SetAttr("seed0", GeAttrValue::CreateFrom<GeAttrValue::INT>(1));
   src_op->SetAttr("seed1", GeAttrValue::CreateFrom<GeAttrValue::INT>(2));
@@ -556,7 +555,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_unsupported_dtype) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64});
   src_op->SetAttr("seed0", GeAttrValue::CreateFrom<GeAttrValue::INT>(1));
   src_op->SetAttr("seed1", GeAttrValue::CreateFrom<GeAttrValue::INT>(2));
@@ -577,7 +576,7 @@ TEST_F(DsaOpsKernelBuilderTest, gen_task_invalid_input_count) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32});
   src_op->SetAttr("seed0", GeAttrValue::CreateFrom<GeAttrValue::INT>(1));
   src_op->SetAttr("seed1", GeAttrValue::CreateFrom<GeAttrValue::INT>(2));
@@ -608,7 +607,7 @@ TEST_F(DsaOpsKernelBuilderTest, generate_dsa_static_const_as_value_input) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto const1_node = graph->AddNode(const1);
   auto const2_node = graph->AddNode(const2);
@@ -616,14 +615,10 @@ TEST_F(DsaOpsKernelBuilderTest, generate_dsa_static_const_as_value_input) {
   auto const4_node = graph->AddNode(const4);
   auto src_node = graph->AddNode(src_op);
 
-  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(2));
-  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(3));
+  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(2));
+  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(3));
   std::vector<domi::TaskDef> task_defs;
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
   EXPECT_EQ(ret, ge::FAILED);
@@ -649,7 +644,7 @@ TEST_F(DsaOpsKernelBuilderTest, generate_dsa_dynamic_const_as_addr_input) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto const1_node = graph->AddNode(const1);
   auto const2_node = graph->AddNode(const2);
@@ -657,14 +652,10 @@ TEST_F(DsaOpsKernelBuilderTest, generate_dsa_dynamic_const_as_addr_input) {
   auto const4_node = graph->AddNode(const4);
   auto src_node = graph->AddNode(src_op);
 
-  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(2));
-  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(3));
+  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(2));
+  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(3));
   (void)ge::AttrUtils::SetBool(graph, "_graph_unknown_flag", true);
   std::vector<domi::TaskDef> task_defs;
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
@@ -682,10 +673,10 @@ TEST_F(DsaOpsKernelBuilderTest, workspace_size_1_generate_dsa_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
-   std::vector<domi::TaskDef> task_defs;
+  std::vector<domi::TaskDef> task_defs;
   (void)ge::AttrUtils::SetBool(src_op, "_ffts_plus", false);
   src_op->SetWorkspace({1024});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);

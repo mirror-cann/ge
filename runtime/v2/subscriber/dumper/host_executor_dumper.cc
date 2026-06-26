@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -142,7 +142,7 @@ ge::Status HostExecutorDumper::DoHostDataDump(NodeDumpUnit &dump_unit, const ge:
     GE_CHK_RT(aclrtFree(step_id));
     dump_unit.Clear();
   };
-  GE_MAKE_GUARD(dump_release, callback); 
+  GE_MAKE_GUARD(dump_release, callback);
 
   // todo single_op and graph have different switch, which will be normalized
   const std::string model_name = extend_info_->model_name;
@@ -186,8 +186,7 @@ ge::Status HostExecutorDumper::DoHostDataDump(NodeDumpUnit &dump_unit, const ge:
   ge::ExceptionDumper exception_dumper;
   SetOpDescInfo(dump_unit, op_desc_dump, op_desc_info, input_addrs, output_addrs);
   auto iteration_num = GetIterationNum();
-  GE_ASSERT_RT_OK(aclrtMemcpy(step_id, sizeof(uint64_t), &iteration_num,
-      sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_ASSERT_RT_OK(aclrtMemcpy(step_id, sizeof(uint64_t), &iteration_num, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   GELOGD("[Dumper] Is single op %d", static_cast<int32_t>(dump_properties.IsSingleOpNeedDump()));
   const auto &dump_step = dump_properties.GetDumpStep();
   if (!IsInDumpStep(static_cast<int64_t>(iteration_num), dump_step)) {
@@ -208,12 +207,11 @@ ge::Status HostExecutorDumper::DoHostDataDump(NodeDumpUnit &dump_unit, const ge:
     const std::string shared_path = dump_path + "/0/";
     (void)ge::CreateDirectory(shared_path);
     file_path = shared_path + "pid" + std::to_string(mmGetPid()) + "/" + file_name + "/" +
-                std::to_string(extend_info_->model_id) + "/" +
-                worker_id + "/" + std::to_string(iteration_num) + "/";
+                std::to_string(extend_info_->model_id) + "/" + worker_id + "/" + std::to_string(iteration_num) + "/";
     const int32_t directory_ret = ge::CreateDirectory(file_path);
     if (directory_ret != 0) {
-        GELOGW("Cannot create directory[%s].", file_path.c_str());
-        return ge::SUCCESS;
+      GELOGW("Cannot create directory[%s].", file_path.c_str());
+      return ge::SUCCESS;
     }
   }
   GE_CHK_STATUS_RET(exception_dumper.DumpNodeInfo(op_desc_info, file_path, false, false, dump_properties),

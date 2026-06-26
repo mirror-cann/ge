@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,7 @@ using namespace std;
 using CreateFn = ge::OpsKernelBuilder *(*)();
 using OpsKernelBuilderPtr = std::shared_ptr<ge::OpsKernelBuilder>;
 namespace fe {
-class STestFeWholeProcess910A: public testing::Test
-{
+class STestFeWholeProcess910A : public testing::Test {
  protected:
   static void SetUpTestCase() {
     const char *soc_version = "Ascend910A";
@@ -78,7 +77,8 @@ void ConvertToStr(string &task_def_str) {
 //   EXPECT_EQ(graph->GetDirectNode().size(), 661);
 
 //   const auto &ops_kernel_builders_const = ge::OpsKernelBuilderRegistry::GetInstance().GetAll();
-//   std::map<std::string, OpsKernelBuilderPtr> &ops_kernel_builders = const_cast<std::map<std::string, OpsKernelBuilderPtr>&>(ops_kernel_builders_const);
+//   std::map<std::string, OpsKernelBuilderPtr> &ops_kernel_builders = const_cast<std::map<std::string,
+//   OpsKernelBuilderPtr>&>(ops_kernel_builders_const);
 
 //   for (auto &ops_kernel_builder: ops_kernel_builders) {
 //     if (ops_kernel_builder.first == AI_CORE_NAME) {
@@ -154,7 +154,6 @@ void ConvertToStr(string &task_def_str) {
 //     EXPECT_EQ(pooling_size, 14);
 //   };
 
-
 //   CHECK_GRAPH(PreRunAfterBuild) {
 //     //std::cout << "PreRunAfterBuild GetDirectNodesSize = " <<  graph->GetDirectNodesSize() << std::endl;
 //     size_t trans_data_size = 0; //192
@@ -219,8 +218,8 @@ void ConvertToStr(string &task_def_str) {
 //   EXPECT_EQ(graph->GetName(), "20221229201611_online");
 //   EXPECT_EQ(graph->GetDirectNode().size(), 3);
 //   std::map<string, string> session_options;
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_generalized"));
-//   ge::GetThreadLocalContext().SetGlobalOption(session_options);
+//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode",
+//   "shape_generalized")); ge::GetThreadLocalContext().SetGlobalOption(session_options);
 //   DUMP_GRAPH_WHEN("PreRunAfterInitPreparation", "OptimizeGraph_TagNoConstFoldingAfter");
 //   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
 
@@ -273,8 +272,8 @@ void ConvertToStr(string &task_def_str) {
 //   EXPECT_EQ(graph->GetName(), "20230117112206_op_models");
 //   EXPECT_EQ(graph->GetDirectNode().size(), 4);
 //   std::map<string, string> session_options;
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_generalized"));
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
+//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode",
+//   "shape_generalized")); session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
 //   ge::GetThreadLocalContext().SetGlobalOption(session_options);
 //   DUMP_GRAPH_WHEN("PreRunAfterInitPreparation", "OptimizeGraph_TagNoConstFoldingAfter");
 //   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
@@ -339,8 +338,8 @@ void ConvertToStr(string &task_def_str) {
 //   EXPECT_EQ(graph->GetName(), "ge_default_20230118103502");
 //   EXPECT_EQ(graph->GetDirectNode().size(), 6);
 //   std::map<string, string> session_options;
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_generalized"));
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
+//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode",
+//   "shape_generalized")); session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
 //   ge::GetThreadLocalContext().SetGlobalOption(session_options);
 //   DUMP_GRAPH_WHEN("PreRunAfterInitPreparation", "OptimizeGraph_TagNoConstFoldingAfter");
 //   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
@@ -407,8 +406,8 @@ void ConvertToStr(string &task_def_str) {
 //   EXPECT_EQ(graph->GetName(), "20230215183926_online");
 //   EXPECT_EQ(graph->GetDirectNode().size(), 2);
 //   std::map<string, string> session_options;
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_generalized"));
-//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
+//   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode",
+//   "shape_generalized")); session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
 //   ge::GetThreadLocalContext().SetGlobalOption(session_options);
 //   DUMP_GRAPH_WHEN("PreRunAfterInitPreparation", "OptimizeGraph_TagNoConstFoldingAfter");
 //   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
@@ -425,69 +424,69 @@ TEST_F(STestFeWholeProcess910A, test_conv3dbackpropfilter_generalize) {
   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_generalized"));
   session_options.insert(std::pair<std::string, std::string>("ge.shape_generalized", "1"));
   ge::GetThreadLocalContext().SetGlobalOption(session_options);
-//  DUMP_GRAPH_WHEN("OptimizeGraph_TagNoConstFoldingAfter", "BeforeOptimizeOriginalGraphJudgeInsert");
-//  EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
-//  CHECK_GRAPH(OptimizeGraph_TagNoConstFoldingAfter) {
-//    EXPECT_EQ(graph->GetDirectNodesSize(), 5);
-//    for (auto &node : graph->GetDirectNode()) {
-//      if (node->GetName() == "Conv3DBackpropFilter") {
-//        auto op = node->GetOpDesc();
-//        auto input = op->MutableInputDesc(0);
-//        ASSERT_NE(input, nullptr);
-//        EXPECT_EQ(input->GetShape(), ge::GeShape({-1, 512, -1, -1, -1}));
-//        EXPECT_EQ(input->GetOriginShape(), ge::GeShape({-1, 512, -1, -1, -1}));
-//        std::vector<std::pair<int64_t, int64_t>> range({{32, 2147483647}, {512, 512}, {1, 3}, {4, 15}, {4, 15}});
-//        std::vector<std::pair<int64_t, int64_t>> shape_range;
-//        (void)input->GetShapeRange(shape_range);
-//        EXPECT_EQ(range, shape_range);
-//        auto input1 = op->MutableInputDesc(1);
-//        EXPECT_EQ(input1->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        EXPECT_EQ(input1->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        std::vector<std::pair<int64_t, int64_t>> range1;
-//        std::vector<std::pair<int64_t, int64_t>> shape_range1;
-//        (void)input1->GetShapeRange(shape_range1);
-//        EXPECT_EQ(range1, shape_range1);
-//        auto input2 = op->MutableInputDesc(2);
-//        EXPECT_EQ(input2->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        EXPECT_EQ(input2->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        std::vector<std::pair<int64_t, int64_t>> range2;
-//        std::vector<std::pair<int64_t, int64_t>> shape_range2;
-//        (void)input2->GetShapeRange(shape_range);
-//        EXPECT_EQ(range2, shape_range2);
-//      }
-//    }
-//  };
-//
-//  CHECK_GRAPH(BeforeOptimizeOriginalGraphJudgeInsert) {
-//    EXPECT_EQ(graph->GetDirectNodesSize(), 5);
-//    for (auto &node : graph->GetDirectNode()) {
-//      if (node->GetName() == "Conv3DBackpropFilter") {
-//        auto op = node->GetOpDesc();
-//        auto input = op->MutableInputDesc(0);
-//        ASSERT_NE(input, nullptr);
-//        EXPECT_EQ(input->GetShape(), ge::GeShape({-1, 512, -1, -1, -1}));
-//        EXPECT_EQ(input->GetOriginShape(), ge::GeShape({-1, 512, -1, -1, -1}));
-//        std::vector<std::pair<int64_t, int64_t>> range({{32, 2147483647}, {512, 512}, {1, 3}, {4, 15}, {4, 15}});
-//        std::vector<std::pair<int64_t, int64_t>> shape_range;
-//        (void)input->GetShapeRange(shape_range);
-//        EXPECT_EQ(range, shape_range);
-//        auto input1 = op->MutableInputDesc(1);
-//        EXPECT_EQ(input1->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        EXPECT_EQ(input1->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        std::vector<std::pair<int64_t, int64_t>> range1;
-//        std::vector<std::pair<int64_t, int64_t>> shape_range1;
-//        (void)input1->GetShapeRange(shape_range1);
-//        EXPECT_EQ(range1, shape_range1);
-//        auto input2 = op->MutableInputDesc(2);
-//        EXPECT_EQ(input2->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        EXPECT_EQ(input2->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
-//        std::vector<std::pair<int64_t, int64_t>> range2;
-//        std::vector<std::pair<int64_t, int64_t>> shape_range2;
-//        (void)input2->GetShapeRange(shape_range);
-//        EXPECT_EQ(range2, shape_range2);
-//      }
-//    }
-//  };
+  //  DUMP_GRAPH_WHEN("OptimizeGraph_TagNoConstFoldingAfter", "BeforeOptimizeOriginalGraphJudgeInsert");
+  //  EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
+  //  CHECK_GRAPH(OptimizeGraph_TagNoConstFoldingAfter) {
+  //    EXPECT_EQ(graph->GetDirectNodesSize(), 5);
+  //    for (auto &node : graph->GetDirectNode()) {
+  //      if (node->GetName() == "Conv3DBackpropFilter") {
+  //        auto op = node->GetOpDesc();
+  //        auto input = op->MutableInputDesc(0);
+  //        ASSERT_NE(input, nullptr);
+  //        EXPECT_EQ(input->GetShape(), ge::GeShape({-1, 512, -1, -1, -1}));
+  //        EXPECT_EQ(input->GetOriginShape(), ge::GeShape({-1, 512, -1, -1, -1}));
+  //        std::vector<std::pair<int64_t, int64_t>> range({{32, 2147483647}, {512, 512}, {1, 3}, {4, 15}, {4, 15}});
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range;
+  //        (void)input->GetShapeRange(shape_range);
+  //        EXPECT_EQ(range, shape_range);
+  //        auto input1 = op->MutableInputDesc(1);
+  //        EXPECT_EQ(input1->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        EXPECT_EQ(input1->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        std::vector<std::pair<int64_t, int64_t>> range1;
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range1;
+  //        (void)input1->GetShapeRange(shape_range1);
+  //        EXPECT_EQ(range1, shape_range1);
+  //        auto input2 = op->MutableInputDesc(2);
+  //        EXPECT_EQ(input2->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        EXPECT_EQ(input2->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        std::vector<std::pair<int64_t, int64_t>> range2;
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range2;
+  //        (void)input2->GetShapeRange(shape_range);
+  //        EXPECT_EQ(range2, shape_range2);
+  //      }
+  //    }
+  //  };
+  //
+  //  CHECK_GRAPH(BeforeOptimizeOriginalGraphJudgeInsert) {
+  //    EXPECT_EQ(graph->GetDirectNodesSize(), 5);
+  //    for (auto &node : graph->GetDirectNode()) {
+  //      if (node->GetName() == "Conv3DBackpropFilter") {
+  //        auto op = node->GetOpDesc();
+  //        auto input = op->MutableInputDesc(0);
+  //        ASSERT_NE(input, nullptr);
+  //        EXPECT_EQ(input->GetShape(), ge::GeShape({-1, 512, -1, -1, -1}));
+  //        EXPECT_EQ(input->GetOriginShape(), ge::GeShape({-1, 512, -1, -1, -1}));
+  //        std::vector<std::pair<int64_t, int64_t>> range({{32, 2147483647}, {512, 512}, {1, 3}, {4, 15}, {4, 15}});
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range;
+  //        (void)input->GetShapeRange(shape_range);
+  //        EXPECT_EQ(range, shape_range);
+  //        auto input1 = op->MutableInputDesc(1);
+  //        EXPECT_EQ(input1->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        EXPECT_EQ(input1->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        std::vector<std::pair<int64_t, int64_t>> range1;
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range1;
+  //        (void)input1->GetShapeRange(shape_range1);
+  //        EXPECT_EQ(range1, shape_range1);
+  //        auto input2 = op->MutableInputDesc(2);
+  //        EXPECT_EQ(input2->GetShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        EXPECT_EQ(input2->GetOriginShape(), ge::GeShape({64, 512, 2, 7, 7}));
+  //        std::vector<std::pair<int64_t, int64_t>> range2;
+  //        std::vector<std::pair<int64_t, int64_t>> shape_range2;
+  //        (void)input2->GetShapeRange(shape_range);
+  //        EXPECT_EQ(range2, shape_range2);
+  //      }
+  //    }
+  //  };
 }
 
 // TEST_F(STestFeWholeProcess910A, test_dynamic_rnn) {
@@ -570,4 +569,4 @@ TEST_F(STestFeWholeProcess910A, test_conv3dbackpropfilter_generalize) {
 //     EXPECT_EQ(trans_data_size, 4);
 //   };
 // }
-}
+}  // namespace fe

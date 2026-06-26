@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,13 +39,13 @@ const std::string kLogLevelEnvName = "ASCEND_GLOBAL_LOG_LEVEL";
 const std::string kLogModuleLogLevelEnvName = "ASCEND_MODULE_LOG_LEVEL";
 const std::string kLogEventEnableEnvName = "ASCEND_GLOBAL_EVENT_ENABLE";
 const std::string kLogHostFileNumEnvName = "ASCEND_HOST_LOG_FILE_NUM";
-const std::unordered_set<std::string> kLogEnvNames = {kLogLevelEnvName, kLogModuleLogLevelEnvName, kLogEventEnableEnvName,
-                                                 kLogHostFileNumEnvName};
+const std::unordered_set<std::string> kLogEnvNames = {kLogLevelEnvName, kLogModuleLogLevelEnvName,
+                                                      kLogEventEnableEnvName, kLogHostFileNumEnvName};
 // array keys
 constexpr char_t const *kKeyName = "key";
 constexpr char_t const *kValueName = "value";
 constexpr char_t const *kParamTypeName = "param_type";
-}
+}  // namespace
 // init static config
 nlohmann::json DeviceDebugConfig::global_configs_;
 
@@ -57,14 +57,13 @@ void DeviceMaintenanceMasterCfg::InitProfilingConfig() {
   }
   // profiling transfer data/data_len to device
   std::string config_data = ProfilingProperties::Instance().GetDeviceConfigData();
-  std::string is_profiling_on = std::to_string(static_cast<int32_t>(
-      ProfilingProperties::Instance().IsExecuteProfiling()));
+  std::string is_profiling_on =
+      std::to_string(static_cast<int32_t>(ProfilingProperties::Instance().IsExecuteProfiling()));
   nlohmann::json js;
   js[kTypeName] = kProfilingConfName;
   auto js_array = nlohmann::json::array();
-  std::map<std::string, std::string> profiling_param_list = {
-      {kProfilingDeviceConfigData, config_data},
-      {kProfilingIsExecuteOn, is_profiling_on}};
+  std::map<std::string, std::string> profiling_param_list = {{kProfilingDeviceConfigData, config_data},
+                                                             {kProfilingIsExecuteOn, is_profiling_on}};
   for (const auto &profiling_map : profiling_param_list) {
     nlohmann::json js_param;
     const auto &key = profiling_map.first;
@@ -366,7 +365,6 @@ Status DeviceMaintenanceClientCfg::DecodeProfilingConfig(std::map<std::string, s
   return ret;
 }
 
-
 Status DeviceMaintenanceClientCfg::DecodeConfig(std::map<std::string, std::string> &env_option,
                                                 std::map<std::string, std::string> &args_option) const {
   GE_CHK_STATUS_RET(DecodeLogConfig(env_option, args_option), "Decode log failed.");
@@ -426,8 +424,8 @@ void DeviceMaintenanceCfgManager::CloseDevMaintenanceConfig(int32_t device_id) {
     GELOGW("Cannot find device config, device id[%d].", device_id);
     return;
   }
-  
+
   device_configs_.erase(device_id);
   GELOGI("Successfully close device maintenance config, device id[%d]", device_id);
 }
-} // namespace ge
+}  // namespace ge

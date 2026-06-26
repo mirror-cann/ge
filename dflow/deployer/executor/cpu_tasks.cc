@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ Status CpuTasks::ExecuteKernel(const std::string &kernel_name, std::vector<uint8
   rtArgsEx_t args_info = {};
   args_info.args = static_cast<void *>(args.data());
   args_info.argsSize = static_cast<uint32_t>(args.size());
-  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr,
-      kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
+  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr, kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream,
+                                          RT_KERNEL_DEFAULT));
   GELOGD("Launch cpu kernel successfully, kernel name = %s.", kernel_name.c_str());
   DF_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   GELOGD("Stream synchronize successfully, kernel name = %s.", kernel_name.c_str());
@@ -61,8 +61,7 @@ Status CpuTasks::ExecuteModelEschedPriorityTask(int32_t process_priority, int32_
   return ExecuteKernel(kKernelNameModelEschedPriority, task_args);
 }
 
-Status CpuTasks::ExecuteModelClearTask(int32_t clear_type,
-                                       const std::vector<uint32_t> &davinci_model_runtime_ids) {
+Status CpuTasks::ExecuteModelClearTask(int32_t clear_type, const std::vector<uint32_t> &davinci_model_runtime_ids) {
   if (davinci_model_runtime_ids.empty()) {
     return SUCCESS;
   }
@@ -75,12 +74,9 @@ Status CpuTasks::ExecuteModelClearTask(int32_t clear_type,
   void *model_ids_addr = nullptr;
   const uint64_t model_ids_size = davinci_model_runtime_ids.size() * sizeof(uint32_t);
   DF_CHK_ACL_RET(aclrtMalloc(&model_ids_addr, model_ids_size, ACL_MEM_TYPE_HIGH_BAND_WIDTH));
-  GE_MAKE_GUARD(model_ids_addr, [model_ids_addr]() {
-    DF_CHK_ACL(aclrtFree(model_ids_addr));
-  });
-  DF_CHK_ACL_RET(aclrtMemcpy(model_ids_addr, model_ids_size,
-                         davinci_model_runtime_ids.data(), model_ids_size,
-                         ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_MAKE_GUARD(model_ids_addr, [model_ids_addr]() { DF_CHK_ACL(aclrtFree(model_ids_addr)); });
+  DF_CHK_ACL_RET(aclrtMemcpy(model_ids_addr, model_ids_size, davinci_model_runtime_ids.data(), model_ids_size,
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   const auto args_size = sizeof(ReDeployConfig);
   std::vector<uint8_t> task_args(args_size, 0U);
   auto param_re_deploy_config = PtrToPtr<uint8_t, ReDeployConfig>(task_args.data());
@@ -100,7 +96,7 @@ Status CpuTasks::ExceptionNotify(const std::vector<uint32_t> &davinci_model_runt
   DF_CHK_ACL_RET(aclrtMalloc(&model_ids_addr, model_ids_size, ACL_MEM_TYPE_HIGH_BAND_WIDTH));
   GE_MAKE_GUARD(model_ids_addr, [model_ids_addr]() { GE_CHK_RT(aclrtFree(model_ids_addr)); });
   DF_CHK_ACL_RET(aclrtMemcpy(model_ids_addr, model_ids_size, davinci_model_runtime_ids.data(), model_ids_size,
-                         ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   const auto args_size = sizeof(DataFlowExceptionNotify);
   std::vector<uint8_t> task_args(args_size, 0U);
   auto notify_info = PtrToPtr<uint8_t, DataFlowExceptionNotify>(task_args.data());
@@ -136,16 +132,12 @@ Status CpuTasks::ExecuteCheckSupported(const std::string &kernel_name, bool &is_
   void *dev_result_ptr = nullptr;
   void *dev_name_ptr = nullptr;
   DF_CHK_ACL_RET(aclrtMalloc(&dev_result_ptr, sizeof(int32_t), ACL_MEM_TYPE_HIGH_BAND_WIDTH));
-  GE_MAKE_GUARD(dev_result_ptr, ([dev_result_ptr]() {
-    DF_CHK_ACL(aclrtFree(dev_result_ptr));
-  }));
+  GE_MAKE_GUARD(dev_result_ptr, ([dev_result_ptr]() { DF_CHK_ACL(aclrtFree(dev_result_ptr)); }));
   DF_CHK_ACL_RET(aclrtMalloc(&dev_name_ptr, kernel_name.length(), ACL_MEM_TYPE_HIGH_BAND_WIDTH));
-  GE_MAKE_GUARD(dev_name_ptr, ([dev_name_ptr]() {
-    DF_CHK_ACL(aclrtFree(dev_name_ptr));
-  }));
+  GE_MAKE_GUARD(dev_name_ptr, ([dev_name_ptr]() { DF_CHK_ACL(aclrtFree(dev_name_ptr)); }));
   DF_CHK_ACL_RET(aclrtMemcpy(dev_result_ptr, sizeof(int32_t), &result, sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
-  DF_CHK_ACL_RET(aclrtMemcpy(dev_name_ptr, kernel_name.length(), kernel_name.c_str(),
-                         kernel_name.length(), ACL_MEMCPY_HOST_TO_DEVICE));
+  DF_CHK_ACL_RET(aclrtMemcpy(dev_name_ptr, kernel_name.length(), kernel_name.c_str(), kernel_name.length(),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   check_cfg.kernelNameAddr = PtrToValue(dev_name_ptr);
   check_cfg.kernelNameLen = kernel_name.length();

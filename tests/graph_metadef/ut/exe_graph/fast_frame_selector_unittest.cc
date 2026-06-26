@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,9 +79,9 @@ TEST_F(FastFrameSelectorUT, SelectMainRoot_CreateOnRoot_NoMainGraph) {
 
   auto frame = ValueHolder::PopGraphFrame();
 
-  ASSERT_EQ(
-      ExeGraphSummaryChecker(frame->GetExecuteGraph().get()).StrictDirectNodeTypes(
-        {{"Data", 2}, {"Const", 1}, {"Foo1", 1}, {"Bar1", 1}}), "success");
+  ASSERT_EQ(ExeGraphSummaryChecker(frame->GetExecuteGraph().get())
+                .StrictDirectNodeTypes({{"Data", 2}, {"Const", 1}, {"Foo1", 1}, {"Bar1", 1}}),
+            "success");
   ASSERT_EQ(ExeGraphSummaryChecker(foo2_graph->GetExecuteGraph().get())
                 .StrictDirectNodeTypes({{"InnerData", 1}, {"Const", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
             "success");
@@ -109,10 +109,10 @@ TEST_F(FastFrameSelectorUT, SelectMainRoot_CreateOnMainRoot_CurrentFrameIsMainRo
   ASSERT_NE(root_frame, nullptr);
 
   ASSERT_EQ(ExeGraphSummaryChecker(root_frame->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   ASSERT_EQ(ExeGraphSummaryChecker(main_frame->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"Data", 1}, {"Const", 1}, {"Bar1", 1}}),
+                .StrictDirectNodeTypes({{"Data", 1}, {"Const", 1}, {"Bar1", 1}}),
             "success");
 
   ASSERT_EQ(FastNodeTopoChecker(bars[0]).StrictConnectFrom({{"Const"}, {"Data"}}), "success");
@@ -162,12 +162,11 @@ TEST_F(FastFrameSelectorUT, SelectMainRoot_CreateOnMainRoot_CurrentFrameIsMainSu
 
   auto frame = ValueHolder::PopGraphFrame();
 
-  ASSERT_EQ(
-      ExeGraphSummaryChecker(frame->GetExecuteGraph().get())
-      .StrictDirectNodeTypes({{"Data", 2}, {"Const", 1}, {"Foo1", 1}, {"Bar1", 1}}),
-      "success");
+  ASSERT_EQ(ExeGraphSummaryChecker(frame->GetExecuteGraph().get())
+                .StrictDirectNodeTypes({{"Data", 2}, {"Const", 1}, {"Foo1", 1}, {"Bar1", 1}}),
+            "success");
   ASSERT_EQ(ExeGraphSummaryChecker(foo2_graph->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"InnerData", 1}, {"Const", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
+                .StrictDirectNodeTypes({{"InnerData", 1}, {"Const", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
             "success");
 
   ASSERT_EQ(FastNodeTopoChecker(bars[0]).StrictConnectTo(0, {{"Foo1", 2}}), "success");
@@ -233,19 +232,19 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_Success_ReEnter) {
   ASSERT_EQ(ret.size(), 3);
 
   EXPECT_EQ(ExeGraphSummaryChecker(init_frame->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"Const", 4}, {"Foo1", 1}, {"Bar1", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
+                .StrictDirectNodeTypes({{"Const", 4}, {"Foo1", 1}, {"Bar1", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
             "success");
 
   auto inner_netoutput_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
   ASSERT_NE(inner_netoutput_node, nullptr);
-  ASSERT_EQ(FastNodeTopoChecker(inner_netoutput_node).StrictConnectFrom({{"Bar1", 0}, {"Foo1", 0}, {"Foo2", 0}, {"Foo2", 1}}),
-            "success");
+  ASSERT_EQ(
+      FastNodeTopoChecker(inner_netoutput_node).StrictConnectFrom({{"Bar1", 0}, {"Foo1", 0}, {"Foo2", 0}, {"Foo2", 1}}),
+      "success");
 
   auto foo2_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "Foo2");
   ASSERT_NE(foo2_node, nullptr);
-  ASSERT_EQ(FastNodeTopoChecker(foo2_node).StrictConnectFrom({{"Bar1", 0}, {"Foo1", 0}}),
-            "success");
+  ASSERT_EQ(FastNodeTopoChecker(foo2_node).StrictConnectFrom({{"Bar1", 0}, {"Foo1", 0}}), "success");
 }
 TEST_F(FastFrameSelectorUT, SelectInitRoot_TheSameWithInput_ReturnInput) {
   InitTestFrames();
@@ -273,8 +272,7 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_TheSameWithInput_ReturnInput) {
   ASSERT_EQ(ret2[1]->GetOutIndex(), 3);
   ASSERT_EQ(ret2[2]->GetOutIndex(), 1);
 
-  auto netoutput =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
+  auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
   ASSERT_NE(netoutput, nullptr);
   EXPECT_EQ(FastNodeTopoChecker(netoutput).StrictConnectFrom({{"Foo1", 0}, {"Foo2", 0}, {"Foo2", 1}, {"Foo3", 0}}),
             "success");
@@ -311,7 +309,8 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_Success_InitNodeAndInitGraphOut) {
   ASSERT_EQ(init_graph_outputs[2]->GetOutIndex(), 1);
   ASSERT_EQ(init_graph_outputs[1]->GetFastNode(), init_graph_outputs[2]->GetFastNode());
 
-  ASSERT_EQ(FastNodeTopoChecker(init_graph_outputs[0]).StrictConnectTo(0, {{"InnerNetOutput", 0}, {"Foo2", 0}}), "success");
+  ASSERT_EQ(FastNodeTopoChecker(init_graph_outputs[0]).StrictConnectTo(0, {{"InnerNetOutput", 0}, {"Foo2", 0}}),
+            "success");
   ASSERT_EQ(FastNodeTopoChecker(init_graph_outputs[1]).StrictConnectTo(0, {{"InnerNetOutput", 1}}), "success");
   ASSERT_EQ(FastNodeTopoChecker(init_graph_outputs[1]).StrictConnectTo(1, {{"InnerNetOutput", 2}}), "success");
 }
@@ -373,8 +372,9 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_FrameCorrect_AfterSelection) {
   ASSERT_NE(bar1, nullptr);
   auto bar1_graph = ge::FastNodeUtils::GetSubgraphFromNode(bar1->GetFastNode(), 0);
   ASSERT_NE(bar1_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(bar1_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(bar1_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
+      "success");
 }
 TEST_F(FastFrameSelectorUT, SelectInitRoot_ConnectFromResultOk) {
   InitTestFrames();
@@ -433,14 +433,14 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_GuarderInDeInit_OutputHasGuarder) {
   ASSERT_EQ(init_outputs.size(), 2);
 
   ASSERT_EQ(ExeGraphSummaryChecker(init_frame->GetExecuteGraph().get())
-            .StrictAllNodeTypes({{"Const", 2}, {"Foo1", 1}, {"FreeFoo1", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
+                .StrictAllNodeTypes({{"Const", 2}, {"Foo1", 1}, {"FreeFoo1", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
             "success");
   auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
   ASSERT_NE(netoutput, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(netoutput).StrictConnectFrom({{"Foo2", 0}, {"Foo2", 1}}), "success");
 
   ASSERT_EQ(ExeGraphSummaryChecker(de_init_frame->GetExecuteGraph().get())
-            .StrictAllNodeTypes({{"InnerData", 1}, {"FreeFoo2", 1}}),
+                .StrictAllNodeTypes({{"InnerData", 1}, {"FreeFoo2", 1}}),
             "success");
 
   auto foo2 = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "Foo2");
@@ -466,8 +466,7 @@ TEST_F(FastFrameSelectorUT, SelectInitRoot_GuarderInDeInit_MultipleOutputHasGuar
   ASSERT_EQ(ExeGraphSummaryChecker(init_frame->GetExecuteGraph().get())
                 .StrictAllNodeTypes({{"Const", 2}, {"Foo1", 1}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
             "success");
-  auto netoutput =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
+  auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "InnerNetOutput");
   ASSERT_NE(netoutput, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(netoutput).StrictConnectFrom({{"Foo1", 0}, {"Foo2", 0}, {"Foo2", 1}}), "success");
 
@@ -774,15 +773,17 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetLastExecNode_TwoNodeInsideEachLaye
   auto output = ValueHolder::CreateSingleDataOutput("NetOutput", {bar1, bar2});
 
   for (size_t node_size = 0U; node_size < 2; ++node_size) {
-    auto last_node_builder = [&]() -> bg::ValueHolderPtr { return bg::ValueHolder::CreateVoid<ValueHolder>("LastExec", {c0}); };
-    auto last_holder =
-        bg::FrameSelector::OnMainRootLast(last_node_builder);
+    auto last_node_builder = [&]() -> bg::ValueHolderPtr {
+      return bg::ValueHolder::CreateVoid<ValueHolder>("LastExec", {c0});
+    };
+    auto last_holder = bg::FrameSelector::OnMainRootLast(last_node_builder);
     EXPECT_NE(last_holder, nullptr);
   }
   for (size_t node_size = 0U; node_size < 2; ++node_size) {
-    auto last_node_builder = [&]() -> std::vector<bg::ValueHolderPtr> { return {bg::ValueHolder::CreateVoid<ValueHolder>("LastEventExec", {data0})}; };
-    auto last_holders =
-        bg::FrameSelector::OnMainRootLastEventSync(last_node_builder);
+    auto last_node_builder = [&]() -> std::vector<bg::ValueHolderPtr> {
+      return {bg::ValueHolder::CreateVoid<ValueHolder>("LastEventExec", {data0})};
+    };
+    auto last_holders = bg::FrameSelector::OnMainRootLastEventSync(last_node_builder);
     EXPECT_FALSE(last_holders.empty());
   }
 
@@ -790,9 +791,11 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetLastExecNode_TwoNodeInsideEachLaye
   std::vector<ValueHolderPtr> last_exe_nodes = main_frame->GetLastExecNodes();
   EXPECT_EQ(last_exe_nodes.size(), 2);
 
-  auto stage_ids_2_pcalls = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
+  auto stage_ids_2_pcalls =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
   EXPECT_NE(stage_ids_2_pcalls, nullptr);
-  auto last_event_sync_exe_node = stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootLastExecStage::kLastEventSyncStage));
+  auto last_event_sync_exe_node =
+      stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootLastExecStage::kLastEventSyncStage));
   EXPECT_NE(last_event_sync_exe_node, nullptr);
 
   auto sub_exe_graph = ge::FastNodeUtils::GetSubgraphFromNode(last_event_sync_exe_node->GetFastNode(), 0U);
@@ -859,9 +862,11 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetLastExecNode_TwoNodeInsideOneLayer
           .StrictDirectNodeTypes({{"Data", 1}, {"Const", 1}, {"Bar1", 1}, {"PartitionedCall", 1}, {"NetOutput", 1}}),
       "success");
 
-  auto stage_ids_2_pcalls = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
+  auto stage_ids_2_pcalls =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
   EXPECT_NE(stage_ids_2_pcalls, nullptr);
-  auto last_resource_clean_exe_node = stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootLastExecStage::kLastResourceClean));
+  auto last_resource_clean_exe_node =
+      stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootLastExecStage::kLastResourceClean));
   EXPECT_NE(last_resource_clean_exe_node, nullptr);
 
   auto sub_exe_graph = ge::FastNodeUtils::GetSubgraphFromNode(last_resource_clean_exe_node->GetFastNode(), 0U);
@@ -910,9 +915,11 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetFirstExecNode_OneNodeInsideOneLaye
   EXPECT_FALSE(first_holders.empty());
 
   auto main_frame = ValueHolder::PopGraphFrame();
-  auto stage_ids_2_pcalls = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
+  auto stage_ids_2_pcalls =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
   EXPECT_NE(stage_ids_2_pcalls, nullptr);
-  auto first_exec_partitioncall = stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootFirstExecStage::kFirstEventSyncStage));
+  auto first_exec_partitioncall =
+      stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootFirstExecStage::kFirstEventSyncStage));
   EXPECT_NE(first_exec_partitioncall, nullptr);
 
   auto sub_exe_graph = ge::FastNodeUtils::GetSubgraphFromNode(first_exec_partitioncall->GetFastNode(), 0U);
@@ -926,10 +933,10 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetFirstExecNode_OneNodeInsideOneLaye
                 .StrictDirectNodeTypes({{"FirstExecNode", 1}, {"InnerData", 1}, {"InnerNetOutput", 1}}),
             "success");
 
-  ASSERT_EQ(ExeGraphSummaryChecker(main_frame->GetExecuteGraph().get())
-                .StrictDirectNodeTypes(
-                    {{"Data", 1}, {"Const", 1}, {"Bar1", 1}, {"PartitionedCall", 1}, {"NetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(main_frame->GetExecuteGraph().get())
+          .StrictDirectNodeTypes({{"Data", 1}, {"Const", 1}, {"Bar1", 1}, {"PartitionedCall", 1}, {"NetOutput", 1}}),
+      "success");
   ASSERT_EQ(FastNodeTopoChecker(data0).StrictConnectTo(0, {{"Bar1"}}), "success");
   ASSERT_NE(FastNodeTopoChecker(data0).StrictConnectTo(-1, {{"NoOp", -1}}), "success");
 }
@@ -960,7 +967,7 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetFirstExecNode_TwoNodeInsideEachLay
   auto bar2 = ValueHolder::CreateSingleDataOutput("Bar2", {data0, c0});
   auto output = ValueHolder::CreateSingleDataOutput("NetOutput", {bar1, bar2});
 
-  for (size_t node_size=0U; node_size < 2; ++node_size) {
+  for (size_t node_size = 0U; node_size < 2; ++node_size) {
     auto first_node_builder = [&]() -> std::vector<bg::ValueHolderPtr> {
       return {bg::ValueHolder::CreateVoid<ValueHolder>("FirstExec", {c0})};
     };
@@ -970,31 +977,26 @@ TEST_F(FastFrameSelectorUT, OnMainRootLast_SetFirstExecNode_TwoNodeInsideEachLay
 
   auto main_frame = ValueHolder::PopGraphFrame();
 
-  auto stage_ids_2_pcalls = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
+  auto stage_ids_2_pcalls =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
   EXPECT_NE(stage_ids_2_pcalls, nullptr);
-  auto first_exec_partitioncall = stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootFirstExecStage::kFirstEventSyncStage));
+  auto first_exec_partitioncall =
+      stage_ids_2_pcalls->at(static_cast<size_t>(OnMainRootFirstExecStage::kFirstEventSyncStage));
   EXPECT_NE(first_exec_partitioncall, nullptr);
 
   auto sub_exe_graph = ge::FastNodeUtils::GetSubgraphFromNode(first_exec_partitioncall->GetFastNode(), 0U);
   EXPECT_NE(sub_exe_graph, nullptr);
   ASSERT_EQ(ExeGraphSummaryChecker(sub_exe_graph)
-                .StrictDirectNodeTypes({{"InnerData", 1},
-                                        {"FirstExec", 2},
-                                        {"InnerNetOutput", 1}}),
+                .StrictDirectNodeTypes({{"InnerData", 1}, {"FirstExec", 2}, {"InnerNetOutput", 1}}),
             "success");
   auto first_exec_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(sub_exe_graph, "FirstExec");
   EXPECT_NE(first_exec_node, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(first_exec_node).StrictConnectFrom({{"InnerData", 0}}), "success");
   ASSERT_NE(FastNodeTopoChecker(first_exec_node).StrictConnectTo(-1, {{"InnerNetoutput", 0}}), "success");
 
-
   ASSERT_EQ(ExeGraphSummaryChecker(main_frame->GetExecuteGraph().get())
-                .StrictDirectNodeTypes({{"Data", 1},
-                                        {"Const", 1},
-                                        {"Bar1", 1},
-                                        {"Bar2", 1},
-                                        {"PartitionedCall", 1},
-                                        {"NetOutput", 1}}),
+                .StrictDirectNodeTypes(
+                    {{"Data", 1}, {"Const", 1}, {"Bar1", 1}, {"Bar2", 1}, {"PartitionedCall", 1}, {"NetOutput", 1}}),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(output).StrictConnectFrom({{"Bar1"}, {"Bar2"}}), "success");
 }
@@ -1012,7 +1014,7 @@ TEST_F(FastFrameSelectorUT, SelectDeInitRoot_CreateOnDeInitRoot_CurrentFrameIsRo
   ASSERT_NE(bars[0], nullptr);
 
   ASSERT_EQ(ExeGraphSummaryChecker(de_init_frame->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"DavinviModelFinalize", 1}}),
+                .StrictDirectNodeTypes({{"DavinviModelFinalize", 1}}),
             "success");
 
   ASSERT_TRUE(bars[0]->GetFastNode()->GetAllOutNodes().empty());
@@ -1040,7 +1042,7 @@ TEST_F(FastFrameSelectorUT, SelectDeInitRoot_CreateOnDeInitRoot_CurrentFrameIsMa
   ASSERT_NE(bars[0], nullptr);
 
   ASSERT_EQ(ExeGraphSummaryChecker(de_init_frame->GetExecuteGraph().get())
-            .StrictDirectNodeTypes({{"DavinviModelFinalize", 1}}),
+                .StrictDirectNodeTypes({{"DavinviModelFinalize", 1}}),
             "success");
 
   ASSERT_TRUE(bars[0]->GetFastNode()->GetAllOutNodes().empty());

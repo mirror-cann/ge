@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,13 +60,13 @@ inline bool IsNodeNeedExec(const char *const node_type) {
 }
 
 struct GraphNode {
-  std::vector<Node *> nodes; // 所有执行图上节点（不带连边关系）
-  std::unordered_map<const ge::FastNode *, Node *> graph_nodes_to_executor_node; // 执行图节点到执行节点的映射
+  std::vector<Node *> nodes;                                                      // 所有执行图上节点（不带连边关系）
+  std::unordered_map<const ge::FastNode *, Node *> graph_nodes_to_executor_node;  // 执行图节点到执行节点的映射
   std::vector<int64_t> node_indegrees;
-  std::map<int32_t, AsyncAnyValue *> indexes_to_feed_input; // index到输入tensor的索引
-  std::vector<AsyncAnyValue *> indexes_to_output; // 输出tensor
+  std::map<int32_t, AsyncAnyValue *> indexes_to_feed_input;  // index到输入tensor的索引
+  std::vector<AsyncAnyValue *> indexes_to_output;            // 输出tensor
   std::vector<Node *> start_nodes;
-  std::vector<ge::FastNode *> feed_nodes; // 执行图上feed node
+  std::vector<ge::FastNode *> feed_nodes;  // 执行图上feed node
   std::vector<Watcher *> node_watchers;
   std::unordered_map<const ge::FastNode *, std::vector<const ge::FastNode *>> additional_add_info;
   std::unordered_map<const ge::FastNode *, std::vector<const ge::FastNode *>> additional_del_info;
@@ -143,7 +143,7 @@ struct GraphNode {
 
     // todo 新增loader机制解决此类定制问题
     if (IsWaitAnyone(node->GetTypePtr())) {
-      return std::min(indegree, static_cast<int64_t>(1L)); // tiny下编译需要强转
+      return std::min(indegree, static_cast<int64_t>(1L));  // tiny下编译需要强转
     }
     return indegree;
   }
@@ -158,8 +158,8 @@ struct GraphNode {
   ge::graphStatus GetExeNodeId(const ge::FastNode *node, NodeIdentity &node_id) {
     const auto iter = graph_nodes_to_executor_node.find(node);
     GE_ASSERT_TRUE(iter != graph_nodes_to_executor_node.end(),
-                   "Cannot find the executor node from graph node %s(%s) when create watcher",
-                   node->GetName().c_str(), node->GetType().c_str());
+                   "Cannot find the executor node from graph node %s(%s) when create watcher", node->GetName().c_str(),
+                   node->GetType().c_str());
     node_id = iter->second->node_id;
     return ge::GRAPH_SUCCESS;
   }
@@ -176,7 +176,7 @@ struct GraphNode {
 
     auto del_info_it = additional_del_info.find(node);
     if (del_info_it != additional_del_info.end()) {
-      for(auto watch_node : del_info_it->second) {
+      for (auto watch_node : del_info_it->second) {
         GE_ASSERT_GRAPH_SUCCESS(GetExeNodeId(watch_node, node_id));
         const auto it = std::find(watch_nodes.begin(), watch_nodes.end(), node_id);
         if (it != watch_nodes.end()) {

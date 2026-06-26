@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -117,8 +117,10 @@ ValueHolderPtr CreateComputeNodeDescNode(const ge::NodePtr &compute_node, const 
   auto offset = static_cast<size_t>(*(ge::PtrToPtr<const void, const uint16_t>(context.args_offset().data())));
   auto args_size_without_tiling = static_cast<size_t>(kernel_def.args_size());
   if ((offset > args_size_without_tiling) || (kernel_def.args().size() < args_size_without_tiling)) {
-    GELOGE(ge::PARAM_INVALID, "[Check][Offset] Arg offset out of range. offset = %zu, arg_size = %zu, "
-           "kernel def arg size = %zu", offset, args_size_without_tiling, kernel_def.args().size());
+    GELOGE(ge::PARAM_INVALID,
+           "[Check][Offset] Arg offset out of range. offset = %zu, arg_size = %zu, "
+           "kernel def arg size = %zu",
+           offset, args_size_without_tiling, kernel_def.args().size());
     return nullptr;
   }
 
@@ -163,8 +165,8 @@ ValueHolderPtr CreateArgsInfoDesc(const ge::NodePtr &compute_node, const T &kern
   size_t output_args_info_num = 0U;
   size_t input_valid_num = 0U;
   size_t output_valid_num = 0U;
-  GE_ASSERT_SUCCESS(ParseIoNumFromArgsInfo(args_infos, input_args_info_num, output_args_info_num, input_valid_num,
-                                           output_valid_num));
+  GE_ASSERT_SUCCESS(
+      ParseIoNumFromArgsInfo(args_infos, input_args_info_num, output_args_info_num, input_valid_num, output_valid_num));
 
   size_t total_size = 0U;
   const size_t args_info_size = args_infos.size() * sizeof(ArgsInfo);

@@ -2,25 +2,25 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
+import dataflow as df
 import torch
-from torch import nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-import dataflow as df
+from torch import nn
 
-'''模型执行流程
+"""模型执行流程
              ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
   模型输入--->│    preprocess    │--->│   model1 infer   │--->│   model2 infer   │--->│    postprocess   │--->模型输出
              └──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
-'''
+"""
 
 
 ############## 模型定义 ##############
@@ -30,7 +30,7 @@ class FakeModel1(nn.Module):
 
     # 模拟模型推理
     def forward(self, input_image):
-        return F.interpolate(input_image, size=(256, 256), mode='bilinear')
+        return F.interpolate(input_image, size=(256, 256), mode="bilinear")
 
 
 class FakeModel2(nn.Module):
@@ -78,13 +78,11 @@ def postprocess(input_image):
     mean = 0.5
     std = 0.5
     img = input_image * std + mean
-    return F.interpolate(img, size=(512, 512), mode='bilinear')
+    return F.interpolate(img, size=(512, 512), mode="bilinear")
 
 
-if __name__ == '__main__':
-    options = {
-        "ge.experiment.data_flow_deploy_info_path": "./config/sample_pytorch_deploy_info.json"
-    }
+if __name__ == "__main__":
+    options = {"ge.experiment.data_flow_deploy_info_path": "./config/sample_pytorch_deploy_info.json"}
     df.init(options)
 
     ############## FlowGraph构图 ##############

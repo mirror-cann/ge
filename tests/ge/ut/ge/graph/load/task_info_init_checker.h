@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,9 +63,9 @@ class TaskInfoInitChecker {
   bool CheckWsAddrs(std::string &ret, const std::vector<std::pair<MemoryAppType, bool>> &addr_descs) {
     std::stringstream ss;
     ss << "Task index " << task_index_ << " workspace:" << std::endl;
-    auto result = CheckAddrs(ss, task_info_->GetInitCalls().at(0).iow_addrs.workspace_logic_addrs,
-                             task_info_->GetGenWsAddrs(), addr_descs,
-                             iow_types_to_indexes_to_fixed_addr_[TaskArgsRefreshTypeClassifier::kWorkspace]);
+    auto result =
+        CheckAddrs(ss, task_info_->GetInitCalls().at(0).iow_addrs.workspace_logic_addrs, task_info_->GetGenWsAddrs(),
+                   addr_descs, iow_types_to_indexes_to_fixed_addr_[TaskArgsRefreshTypeClassifier::kWorkspace]);
     ret = ss.str();
     return result;
   }
@@ -73,8 +73,8 @@ class TaskInfoInitChecker {
  private:
   bool CheckCallTimes(std::stringstream &ss) const {
     if (task_info_->GetInitCalls().size() != init_call_times_) {
-      ss << "Unexpect TaskInfo::Init call times " << task_info_->GetInitCalls().size() << ", expect " << init_call_times_
-         << std::endl;
+      ss << "Unexpect TaskInfo::Init call times " << task_info_->GetInitCalls().size() << ", expect "
+         << init_call_times_ << std::endl;
       return false;
     }
     return true;
@@ -205,5 +205,5 @@ class TaskInfoInitChecker {
 #define TASK_INFO_CHECKER(task_list, index) \
   TaskInfoInitChecker(index, reinterpret_cast<StubTaskInfo *>(task_list.at(index).get()))
 
-}
+}  // namespace ge
 #endif  // AIR_CXX_TESTS_UT_GE_GRAPH_LOAD_TASK_INFO_INIT_CHECKER_H_

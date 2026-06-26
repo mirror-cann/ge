@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,20 +18,16 @@
 
 namespace fe {
 namespace {
-bool HasPeerOutNode(const ge::Node *node, const int &anchor_index,
-                    ge::NodePtr &peer_out_node) {
+bool HasPeerOutNode(const ge::Node *node, const int &anchor_index, ge::NodePtr &peer_out_node) {
   auto in_anchor = node->GetInDataAnchor(anchor_index);
-  FE_CHECK(in_anchor == nullptr, FE_LOGW("index:%d in_anchor is nullptr",
-           anchor_index), return false);
+  FE_CHECK(in_anchor == nullptr, FE_LOGW("index:%d in_anchor is nullptr", anchor_index), return false);
   auto peer_out_anchor = in_anchor->GetPeerOutAnchor();
-  FE_CHECK(peer_out_anchor == nullptr, FE_LOGW("index:%d peer_out_anchor is nullptr",
-           anchor_index), return false);
+  FE_CHECK(peer_out_anchor == nullptr, FE_LOGW("index:%d peer_out_anchor is nullptr", anchor_index), return false);
   peer_out_node = peer_out_anchor->GetOwnerNode();
-  FE_CHECK(peer_out_node == nullptr, FE_LOGW("index:%d peer_out_anchor is nullptr",
-           anchor_index), return false);
+  FE_CHECK(peer_out_node == nullptr, FE_LOGW("index:%d peer_out_anchor is nullptr", anchor_index), return false);
   return true;
 }
-} // namespace
+}  // namespace
 
 void FeGraphUtils::DumpSubGraphAndOnnx(const ge::ComputeGraph &graph, const std::string &suffix) {
   for (auto subgraph : graph.GetAllSubgraphs()) {
@@ -211,9 +207,8 @@ Status FeGraphUtils::UpdateFormatOfRelatedEdges(const std::unordered_set<ge::Ref
       ge::Format cur_format = desc.GetFormat();
       ge::GeShape cur_shape = desc.GetShape();
       int32_t c0_bit_val = GetC0BitByDataType(desc.GetDataType());
-      auto new_format = static_cast<ge::Format>(
-          ge::GetFormatFromSubAndC0(relation_update_info_a.primary_format, relation_update_info_a.sub_format,
-                                    c0_bit_val));
+      auto new_format = static_cast<ge::Format>(ge::GetFormatFromSubAndC0(
+          relation_update_info_a.primary_format, relation_update_info_a.sub_format, c0_bit_val));
       desc.SetFormat(new_format);
       desc.SetShape(relation_update_info_a.shape);
 
@@ -256,8 +251,8 @@ bool FeGraphUtils::CheckRelatedEdgesOriginShape(const std::unordered_set<ge::Ref
     string node_name = node_ptr->GetName();
 
     string input_output = cell.in_out == ge::NODE_IN ? STR_INPUT_LOWERCASE : STR_OUTPUT_LOWERCASE;
-    FE_LOGD("Relations context: the %s %d of Graph[%s]Op[%s].", input_output.c_str(),
-            cell.in_out_idx, graph_name.c_str(), node_name.c_str());
+    FE_LOGD("Relations context: the %s %d of Graph[%s]Op[%s].", input_output.c_str(), cell.in_out_idx,
+            graph_name.c_str(), node_name.c_str());
 
     auto index = cell.in_out_idx;
     auto desc = (cell.in_out == ge::NODE_IN ? op_desc_ptr->GetInputDescPtr(static_cast<uint32_t>(index))
@@ -294,9 +289,8 @@ void FeGraphUtils::GetGraphIdFromAttr(const ge::ComputeGraph &graph, string &gra
 bool FeGraphUtils::CheckTypeOnRootGraph(const std::unordered_set<string> &types, ge::NodePtr &parent_node) {
   ge::NodePtr really_parent_node = nullptr;
   if (ge::NodeUtils::GetInNodeCrossPartionedCallNode(parent_node, 0, really_parent_node) != SUCCESS) {
-    FE_LOGW(
-        "[SubGraphOpt][PreCompileOp][SetTensorConstVal] Node[%s, %s]: failed to getInNodeCrossPartionedCallNode.",
-        parent_node->GetName().c_str(), parent_node->GetType().c_str());
+    FE_LOGW("[SubGraphOpt][PreCompileOp][SetTensorConstVal] Node[%s, %s]: failed to getInNodeCrossPartionedCallNode.",
+            parent_node->GetName().c_str(), parent_node->GetType().c_str());
     return false;
   }
   if (really_parent_node != nullptr) {
@@ -336,7 +330,10 @@ void FeGraphUtils::ProcessPartitionedCall(const std::string &name, std::string &
         return;
       }
       auto in_node = ge::NodeUtils::GetInDataNodeByIndex(*net_output_node, parent_node_anchor_index);
-      if (in_node == nullptr) { FE_LOGW("in_node is nullptr!"); return; }
+      if (in_node == nullptr) {
+        FE_LOGW("in_node is nullptr!");
+        return;
+      }
       FE_LOGD("[SubGraphOpt][IsNodeSpecType][in_node %s, type %s]", in_node->GetName().c_str(),
               in_node->GetType().c_str());
       type = in_node->GetType();
@@ -347,8 +344,7 @@ void FeGraphUtils::ProcessPartitionedCall(const std::string &name, std::string &
   }
 }
 
-void FeGraphUtils::IsNodeSpecificType(const std::unordered_set<string> &types,
-                                      ge::NodePtr &node, bool &matched) {
+void FeGraphUtils::IsNodeSpecificType(const std::unordered_set<string> &types, ge::NodePtr &node, bool &matched) {
   auto type = node->GetType();
   auto name = node->GetName();
   matched = types.count(type) != 0;
@@ -361,13 +357,12 @@ void FeGraphUtils::IsNodeSpecificType(const std::unordered_set<string> &types,
     parent_node = node->GetOpDesc()->TryGetExtAttr(ATTR_NAME_PARENT_NODE, parent_node);
     if (parent_node != nullptr) {
       type = parent_node->GetType();
-      FE_LOGD("The parent node of place holder[%s] is [%s, %s].", name.c_str(),
-              parent_node->GetName().c_str(), parent_node->GetType().c_str());
+      FE_LOGD("The parent node of place holder[%s] is [%s, %s].", name.c_str(), parent_node->GetName().c_str(),
+              parent_node->GetType().c_str());
       ge::NodePtr really_parent_node = parent_node;
       ProcessPartitionedCall(name, type, parent_node, really_parent_node, node);
-      bool parent_node_invalid = (types.count(type) == 0 &&
-                                  ge::NodeUtils::GetInNodeCrossPartionedCallNode(parent_node, 0,
-                                                                                 really_parent_node) != SUCCESS);
+      bool parent_node_invalid = (types.count(type) == 0 && ge::NodeUtils::GetInNodeCrossPartionedCallNode(
+                                                                parent_node, 0, really_parent_node) != SUCCESS);
       if (parent_node_invalid) {
         FE_LOGW("[SubGraphOpt][IsNodeSpecType][Op %s, type %s]: Failed to getInNodeCrossPartionedCallNode.",
                 name.c_str(), type.c_str());
@@ -389,8 +384,7 @@ void FeGraphUtils::IsNodeSpecificType(const std::unordered_set<string> &types,
   }
 }
 
-bool FeGraphUtils::IsPeerOutConst(const ge::Node *node, const int &anchor_index,
-                                  ge::NodePtr &peer_out_node) {
+bool FeGraphUtils::IsPeerOutConst(const ge::Node *node, const int &anchor_index, ge::NodePtr &peer_out_node) {
   if (node == nullptr) {
     return false;
   }
@@ -405,8 +399,7 @@ bool FeGraphUtils::IsPeerOutConst(const ge::Node *node, const int &anchor_index,
   }
 }
 
-bool FeGraphUtils::IsPeerOutWeight(ge::Node *node, const int &anchor_index,
-                                   ge::NodePtr &peer_out_node) {
+bool FeGraphUtils::IsPeerOutWeight(ge::Node *node, const int &anchor_index, ge::NodePtr &peer_out_node) {
   if (node == nullptr) {
     return false;
   }
@@ -422,7 +415,7 @@ bool FeGraphUtils::IsPeerOutWeight(ge::Node *node, const int &anchor_index,
   }
 }
 
-Status FeGraphUtils::GetAoeTypeFromRootGraph(ge::ComputeGraph& graph, std::string &aoe_type) {
+Status FeGraphUtils::GetAoeTypeFromRootGraph(ge::ComputeGraph &graph, std::string &aoe_type) {
   auto nodes = graph.GetDirectNode();
   ge::ComputeGraphPtr root_graph;
   const auto &func_graph = nodes.at(0)->GetOwnerComputeGraph();
@@ -461,7 +454,7 @@ void FeGraphUtils::FindPeerOpType(const ge::NodePtr &node, const bool is_input, 
   }
 }
 
-void FeGraphUtils::GetPrecisionModeFromGraph(const ge::ComputeGraph& graph, fe::PrecisionMode &precision_mode) {
+void FeGraphUtils::GetPrecisionModeFromGraph(const ge::ComputeGraph &graph, fe::PrecisionMode &precision_mode) {
   int precision_mode_num = -1;
   (void)ge::AttrUtils::GetInt(graph, "graph_precision_mode", precision_mode_num);
   if (precision_mode_num < 0 || precision_mode_num > static_cast<int>(fe::PrecisionMode::ENUM_UNDEFINED)) {

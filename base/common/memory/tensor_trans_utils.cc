@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,10 +52,13 @@ std::string GeTensorDescToString(const GeTensorDesc &tensor_desc) {
 template <class T>
 class TensorWrapper {
   static_assert(std::is_same_v<T, ge::GeTensor>, "T must be ge::GeTensor");
-public:
+
+ public:
   explicit TensorWrapper(std::shared_ptr<T> tensor) : tensor_(std::move(tensor)) {}
 
-  [[nodiscard]] const std::shared_ptr<T> &GetTensor() const { return tensor_; }
+  [[nodiscard]] const std::shared_ptr<T> &GetTensor() const {
+    return tensor_;
+  }
 
   // executor not support multi thread, so same addr cannot exist in different threads
   static graphStatus Manager(gert::TensorAddress const addr, gert::TensorOperateType operate_type, void **out) {
@@ -106,7 +109,8 @@ public:
   size_t GetCount() const {
     return count_;
   }
-private:
+
+ private:
   std::shared_ptr<T> tensor_;
   size_t count_ = 1U;
 };
@@ -144,8 +148,9 @@ TensorDesc GetTensorDescFromGertTensor(const gert::Tensor &gert_tensor) {
 
   tensor_desc.SetOriginFormat(gert_tensor.GetOriginFormat());
   tensor_desc.SetOriginShape(origin_shape);
-  const auto placement = gert::TensorPlacementUtils::IsOnHost(gert_tensor.GetPlacement()) ?
-    ge::Placement::kPlacementHost : ge::Placement::kPlacementDevice;
+  const auto placement = gert::TensorPlacementUtils::IsOnHost(gert_tensor.GetPlacement())
+                             ? ge::Placement::kPlacementHost
+                             : ge::Placement::kPlacementDevice;
   tensor_desc.SetPlacement(placement);
   return tensor_desc;
 }
@@ -158,12 +163,13 @@ ge::GeTensorDesc GetInnerTensorDescFromGertTensor(const gert::Tensor &gert_tenso
   tensor_desc.SetOriginFormat(gert_tensor.GetOriginFormat());
   tensor_desc.SetOriginShape(origin_shape);
   tensor_desc.SetOriginDataType(gert_tensor.GetDataType());
-  const auto placement = gert::TensorPlacementUtils::IsOnHost(gert_tensor.GetPlacement()) ?
-    ge::Placement::kPlacementHost : ge::Placement::kPlacementDevice;
+  const auto placement = gert::TensorPlacementUtils::IsOnHost(gert_tensor.GetPlacement())
+                             ? ge::Placement::kPlacementHost
+                             : ge::Placement::kPlacementDevice;
   tensor_desc.SetPlacement(placement);
   return tensor_desc;
 }
-} // namespace
+}  // namespace
 
 GeShape TensorTransUtils::ContructGeShapeFromRtShape(const gert::Shape &rt_shape) {
   std::vector<int64_t> dims(rt_shape.GetDimNum());
@@ -210,8 +216,10 @@ std::vector<int64_t> TensorTransUtils::GetDimsFromGertShape(const gert::Shape &g
 }
 
 Status TensorTransUtils::TransHostGertTensorsToDevice(Allocator *allocator,
-    const std::vector<gert::Tensor> &src_tensors, std::vector<gert::Tensor> &dst_tensors,
-    std::vector<MemBlock *> &inputs_memblocks, bool enable_input_batch_cpy) {
+                                                      const std::vector<gert::Tensor> &src_tensors,
+                                                      std::vector<gert::Tensor> &dst_tensors,
+                                                      std::vector<MemBlock *> &inputs_memblocks,
+                                                      bool enable_input_batch_cpy) {
   MemcpyBatchParam memcpy_batch_param;
   int32_t device_id = -1;
   (void)aclrtGetDevice(&device_id);
@@ -226,8 +234,8 @@ Status TensorTransUtils::TransHostGertTensorsToDevice(Allocator *allocator,
     dst_tensors[i].MutableStorageShape() = src_tensors[i].GetStorageShape();
     dst_tensors[i].SetDataType(src_tensors[i].GetDataType());
     dst_tensors[i].SetPlacement(gert::TensorPlacement::kOnDeviceHbm);
-    GE_ASSERT_SUCCESS(TensorTransUtils::AllocDeviceMemory(
-        allocator, src_tensors[i].GetSize(), dst_tensors[i], inputs_memblocks[i], aligned_size));
+    GE_ASSERT_SUCCESS(TensorTransUtils::AllocDeviceMemory(allocator, src_tensors[i].GetSize(), dst_tensors[i],
+                                                          inputs_memblocks[i], aligned_size));
 
     const size_t src_size = src_tensors[i].GetSize();
     const void *host_addr = src_tensors[i].GetAddr();
@@ -237,12 +245,12 @@ Status TensorTransUtils::TransHostGertTensorsToDevice(Allocator *allocator,
 
     if (enable_input_batch_cpy) {
       // rts 底层需要 void*, 不会修改，所以 const_cast 是安全的
-      MemcpyParam memcpy_param {dst_tensors[i].GetAddr(), aligned_size,
-          const_cast<void *>(host_addr), src_size, attr_idx++}; // NOLINT(*)
+      MemcpyParam memcpy_param{dst_tensors[i].GetAddr(), aligned_size, const_cast<void *>(host_addr), src_size,
+                               attr_idx++};  // NOLINT(*)
       AddMemcpyBatchParam(memcpy_param, memcpy_batch_param);
     } else {
-      GE_ASSERT_RT_OK(aclrtMemcpy(dst_tensors[i].GetAddr(), aligned_size, host_addr, src_size,
-          ACL_MEMCPY_HOST_TO_DEVICE));
+      GE_ASSERT_RT_OK(
+          aclrtMemcpy(dst_tensors[i].GetAddr(), aligned_size, host_addr, src_size, ACL_MEMCPY_HOST_TO_DEVICE));
       GELOGD("Call aclrtMemcpy success, rt_tensor %p, dst_aligned_size %zu, host_addr %p, src_size %zu",
              dst_tensors[i].GetAddr(), aligned_size, host_addr, src_size);
     }
@@ -255,9 +263,11 @@ Status TensorTransUtils::TransHostGertTensorsToDevice(Allocator *allocator,
 Status TensorTransUtils::TransTensorToGertTensor(const Tensor &tensor, gert::Tensor &rt_tensor) {
   static std::unordered_map<Placement, gert::TensorPlacement> kPlacementToRtPlacement = {
       {Placement::kPlacementDevice, gert::TensorPlacement::kOnDeviceHbm},
-      {Placement::kPlacementHost, gert::TensorPlacement::kOnHost, },
-      {Placement::kPlacementEnd, gert::TensorPlacement::kTensorPlacementEnd}
-  };
+      {
+          Placement::kPlacementHost,
+          gert::TensorPlacement::kOnHost,
+      },
+      {Placement::kPlacementEnd, gert::TensorPlacement::kTensorPlacementEnd}};
   auto tensor_desc = tensor.GetTensorDesc();
   auto origin_shape = ContructRtShapeFromShape(tensor_desc.GetOriginShape());
   auto storage_shape = ContructRtShapeFromShape(tensor_desc.GetShape());
@@ -274,29 +284,29 @@ Status TensorTransUtils::TransTensorToGertTensor(const Tensor &tensor, gert::Ten
          RtTensorDescToString(rt_tensor).c_str());
   return SUCCESS;
 }
-Status TensorTransUtils::HostTensorToDeviceGertTensor(ge::Allocator *allocator, const void *src_tensor_addr, uint64_t src_tensor_length,
-                                                      gert::Tensor &dst_tensor, MemBlock *&mem_block_to_keep) {
+Status TensorTransUtils::HostTensorToDeviceGertTensor(ge::Allocator *allocator, const void *src_tensor_addr,
+                                                      uint64_t src_tensor_length, gert::Tensor &dst_tensor,
+                                                      MemBlock *&mem_block_to_keep) {
   size_t dst_aligned_size = 0;
   GE_ASSERT_SUCCESS(AllocDeviceMemory(allocator, src_tensor_length, dst_tensor, mem_block_to_keep, dst_aligned_size));
 
   if (src_tensor_length <= 0U) {
     return SUCCESS;
   }
-  GE_ASSERT_RT_OK(aclrtMemcpy(dst_tensor.GetAddr(), dst_aligned_size, src_tensor_addr,
-      src_tensor_length, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_ASSERT_RT_OK(aclrtMemcpy(dst_tensor.GetAddr(), dst_aligned_size, src_tensor_addr, src_tensor_length,
+                              ACL_MEMCPY_HOST_TO_DEVICE));
   GELOGD("Call aclrtMemcpy success, dst_tensor %p, dst_aligned_size %zu, src_tensor_addr %p, src_tensor_length %zu",
          dst_tensor.GetAddr(), dst_aligned_size, src_tensor_addr, src_tensor_length);
   return SUCCESS;
 }
 
-GeTensor TensorTransUtils::TransRtTensorToGeTensor(const gert::Tensor &input){
+GeTensor TensorTransUtils::TransRtTensorToGeTensor(const gert::Tensor &input) {
   static std::unordered_map<gert::TensorPlacement, Placement> kRtPlacementToPlacement = {
       {gert::TensorPlacement::kOnDeviceHbm, Placement::kPlacementDevice},
       {gert::TensorPlacement::kOnDeviceP2p, Placement::kPlacementDevice},
       {gert::TensorPlacement::kOnHost, Placement::kPlacementHost},
       {gert::TensorPlacement::kFollowing, Placement::kPlacementHost},
-      {gert::TensorPlacement::kTensorPlacementEnd, Placement::kPlacementEnd}
-  };
+      {gert::TensorPlacement::kTensorPlacementEnd, Placement::kPlacementEnd}};
   auto shape = ContructGeShapeFromRtShape(input.GetShape().GetStorageShape());
   auto origin_shape = ContructGeShapeFromRtShape(input.GetShape().GetOriginShape());
 
@@ -317,8 +327,7 @@ Status TensorTransUtils::TransRtTensorToGeTensor(const gert::Tensor &src, GeTens
       {gert::TensorPlacement::kOnDeviceP2p, Placement::kPlacementDevice},
       {gert::TensorPlacement::kOnHost, Placement::kPlacementHost},
       {gert::TensorPlacement::kFollowing, Placement::kPlacementHost},
-      {gert::TensorPlacement::kTensorPlacementEnd, Placement::kPlacementEnd}
-  };
+      {gert::TensorPlacement::kTensorPlacementEnd, Placement::kPlacementEnd}};
   auto shape = ContructGeShapeFromRtShape(src.GetShape().GetStorageShape());
   auto origin_shape = ContructGeShapeFromRtShape(src.GetShape().GetOriginShape());
   dst.ClearData();
@@ -355,7 +364,7 @@ Status TensorTransUtils::TransRtTensorToTensor(const std::vector<gert::Tensor> &
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
         GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), rt_tensor.GetAddr(),
-            static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
+                                   static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
       } else {
         GE_ASSERT_GRAPH_SUCCESS(ge_tensor.SetData(nullptr, 0));
@@ -377,17 +386,16 @@ Status TensorTransUtils::GertTensor2GeTensor(const gert::Tensor &gert_tensor, Ge
   GE_ASSERT_NOTNULL(tensor_data_holder);
   GE_ASSERT_SUCCESS(tensor_data_holder->ShareFrom(gert_tensor.GetTensorData()));
   const auto deleter = [tensor_data_holder](const uint8_t *data) {
-    (void) data;
+    (void)data;
     tensor_data_holder->Free();
   };
   const uint8_t *const addr = ge::PtrToPtr<void, uint8_t>(gert_tensor.GetAddr());
-  GE_ASSERT_GRAPH_SUCCESS(
-      ge_tensor.SetData(const_cast<uint8_t *>(addr), gert_tensor.GetSize(), deleter));
+  GE_ASSERT_GRAPH_SUCCESS(ge_tensor.SetData(const_cast<uint8_t *>(addr), gert_tensor.GetSize(), deleter));
   return SUCCESS;
 }
 
 Status TensorTransUtils::GertTensors2GeTensors(const std::vector<gert::Tensor> &gert_tensors,
-  std::vector<GeTensor> &ge_tensors) {
+                                               std::vector<GeTensor> &ge_tensors) {
   GE_ASSERT_TRUE(ge_tensors.empty());
   ge_tensors.reserve(gert_tensors.size());
   for (const auto &gert_tensor : gert_tensors) {
@@ -405,17 +413,16 @@ Status TensorTransUtils::GertTensor2Tensor(const gert::Tensor &gert_tensor, Tens
   GE_ASSERT_NOTNULL(output_holder);
   GE_ASSERT_SUCCESS(output_holder->ShareFrom(gert_tensor.GetTensorData()));
   const auto deleter = [output_holder](const uint8_t *const data) {
-    (void) data;
+    (void)data;
     output_holder->Free();
   };
   const uint8_t *const addr = ge::PtrToPtr<void, uint8_t>(gert_tensor.GetAddr());
-  GE_ASSERT_GRAPH_SUCCESS(
-      ge_tensor.SetData(const_cast<uint8_t *>(addr), gert_tensor.GetSize(), deleter));
+  GE_ASSERT_GRAPH_SUCCESS(ge_tensor.SetData(const_cast<uint8_t *>(addr), gert_tensor.GetSize(), deleter));
   return SUCCESS;
 }
 
 Status TensorTransUtils::GertTensors2Tensors(const std::vector<gert::Tensor> &gert_tensors,
-  std::vector<Tensor> &ge_tensors) {
+                                             std::vector<Tensor> &ge_tensors) {
   ge_tensors.resize(gert_tensors.size());
   for (size_t i = 0U; i < gert_tensors.size(); ++i) {
     GE_ASSERT_SUCCESS(GertTensor2Tensor(gert_tensors[i], ge_tensors[i]));
@@ -427,8 +434,7 @@ Status TensorTransUtils::GertTensors2Tensors(const std::vector<gert::Tensor> &ge
 Status TensorTransUtils::GeTensor2GertTensor(const GeTensor &ge_tensor, gert::Tensor &gert_tensor) {
   const GeTensorDesc &tensor_desc = ge_tensor.GetTensorDesc();
   if (tensor_desc.IsOriginShapeInitialized()) {
-    gert_tensor.MutableOriginShape() =
-      GetGertShapeFromDims(tensor_desc.GetOriginShape().GetMutableDims());
+    gert_tensor.MutableOriginShape() = GetGertShapeFromDims(tensor_desc.GetOriginShape().GetMutableDims());
   } else {
     gert_tensor.MutableOriginShape() = GetGertShapeFromDims(tensor_desc.GetShape().GetMutableDims());
   }
@@ -448,16 +454,16 @@ Status TensorTransUtils::GeTensor2GertTensor(const GeTensor &ge_tensor, gert::Te
 
   auto tensor_wrapper = new (std::nothrow) TensorWrapper(tensor_copy);
   GE_ASSERT_NOTNULL(tensor_wrapper);
-  GE_DISMISSABLE_GUARD(free_if_failed, [tensor_wrapper] () { delete tensor_wrapper;});
+  GE_DISMISSABLE_GUARD(free_if_failed, [tensor_wrapper]() { delete tensor_wrapper; });
   GE_ASSERT_GRAPH_SUCCESS(gert_tensor.MutableTensorData().SetAddr(reinterpret_cast<void *>(tensor_wrapper),
-    &TensorWrapper<GeTensor>::Manager));
+                                                                  &TensorWrapper<GeTensor>::Manager));
   gert_tensor.MutableTensorData().SetSize(ge_tensor.GetData().size());
   GE_DISMISS_GUARD(free_if_failed);
   return SUCCESS;
 }
 
 Status TensorTransUtils::GeTensors2GertTensors(const std::vector<GeTensor> &ge_tensors,
-  std::vector<gert::Tensor> &gert_tensors) {
+                                               std::vector<gert::Tensor> &gert_tensors) {
   gert_tensors.resize(ge_tensors.size());
   for (size_t i = 0U; i < ge_tensors.size(); ++i) {
     GE_ASSERT_SUCCESS(GeTensor2GertTensor(ge_tensors[i], gert_tensors[i]));
@@ -471,7 +477,7 @@ Status TensorTransUtils::Tensor2GertTensor(const Tensor &ge_tensor, gert::Tensor
 }
 
 Status TensorTransUtils::Tensors2GertTensors(const std::vector<Tensor> &ge_tensors,
-  std::vector<gert::Tensor> &gert_tensors) {
+                                             std::vector<gert::Tensor> &gert_tensors) {
   gert_tensors.resize(ge_tensors.size());
   for (size_t i = 0U; i < ge_tensors.size(); ++i) {
     GE_ASSERT_SUCCESS(Tensor2GertTensor(ge_tensors[i], gert_tensors[i]));
@@ -496,8 +502,7 @@ Status TensorTransUtils::AsTensorView(const Tensor &ge_tensor, gert::Tensor &ten
   return SUCCESS;
 }
 
-Status TensorTransUtils::AsTensorsView(const std::vector<Tensor> &ge_tensors,
-  std::vector<gert::Tensor> &tensors_view) {
+Status TensorTransUtils::AsTensorsView(const std::vector<Tensor> &ge_tensors, std::vector<gert::Tensor> &tensors_view) {
   tensors_view.resize(ge_tensors.size());
   for (size_t i = 0U; i < ge_tensors.size(); ++i) {
     GE_ASSERT_SUCCESS(AsTensorView(ge_tensors[i], tensors_view[i]));
@@ -519,7 +524,7 @@ Status TensorTransUtils::TransGertTensorToHost(const gert::Tensor &src_tensor, g
     output_size = static_cast<int64_t>(src_tensor.GetSize());
   } else {
     GE_ASSERT_SUCCESS((TensorUtils::CalcTensorMemSize(shape, src_tensor.GetFormat().GetStorageFormat(),
-      src_tensor.GetDataType(), output_size)));
+                                                      src_tensor.GetDataType(), output_size)));
   }
   GE_CHECK_GE(output_size, 0L);
   if (output_size > 0L) {
@@ -528,7 +533,7 @@ Status TensorTransUtils::TransGertTensorToHost(const gert::Tensor &src_tensor, g
     auto data_buf = aligned_ptr->MutableGet();
     GE_CHECK_NOTNULL(data_buf);
     GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), src_tensor.GetAddr(),
-        static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
+                               static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
 
     // 创建 GeTensor 来持有数据，并使用 TensorWrapper 管理生命周期
     auto ge_tensor = ge::MakeShared<GeTensor>();
@@ -539,7 +544,7 @@ Status TensorTransUtils::TransGertTensorToHost(const gert::Tensor &src_tensor, g
     GE_ASSERT_NOTNULL(tensor_wrapper);
     GE_DISMISSABLE_GUARD(free_if_failed, [tensor_wrapper]() { delete tensor_wrapper; });
     GE_ASSERT_GRAPH_SUCCESS(dst_tensor.MutableTensorData().SetAddr(reinterpret_cast<void *>(tensor_wrapper),
-      &TensorWrapper<GeTensor>::Manager));
+                                                                   &TensorWrapper<GeTensor>::Manager));
     dst_tensor.MutableTensorData().SetSize(static_cast<size_t>(output_size));
     GE_DISMISS_GUARD(free_if_failed);
   } else {
@@ -550,7 +555,7 @@ Status TensorTransUtils::TransGertTensorToHost(const gert::Tensor &src_tensor, g
 }
 
 Status TensorTransUtils::TransGertTensorsToHost(const std::vector<gert::Tensor> &device_tensors,
-    std::vector<gert::Tensor> &host_tensors) {
+                                                std::vector<gert::Tensor> &host_tensors) {
   host_tensors.reserve(device_tensors.size());
   for (const auto &src : device_tensors) {
     gert::Tensor dst;
@@ -597,21 +602,19 @@ Status TensorTransUtils::TryBatchMemcpy(MemcpyBatchParam &args) {
   if (args.dsts.size() == 1) {
     GELOGW("The switch of input_batch_cpy is open but only one input remains, not enable batch memcpy");
     GE_ASSERT_TRUE(args.dst_aligned_sizes.size() == 1);
-    return static_cast<Status>(aclrtMemcpy(args.dsts[0],args.dst_aligned_sizes[0], args.srcs[0],
-        args.src_sizes[0], ACL_MEMCPY_HOST_TO_DEVICE));
+    return static_cast<Status>(aclrtMemcpy(args.dsts[0], args.dst_aligned_sizes[0], args.srcs[0], args.src_sizes[0],
+                                           ACL_MEMCPY_HOST_TO_DEVICE));
   }
   size_t fail_idx = std::numeric_limits<size_t>::max();
-  const aclError ret =
-      aclrtMemcpyBatch(const_cast<void **>(args.dsts.data()), const_cast<size_t *>(args.dst_aligned_sizes.data()),
-                       const_cast<void **>(args.srcs.data()),
-                       const_cast<size_t *>(args.src_sizes.data()), args.srcs.size(),
-                       args.attrs.data(),
-                       const_cast<size_t *>(args.attr_idxs.data()), args.attrs.size(), &fail_idx);
+  const aclError ret = aclrtMemcpyBatch(
+      const_cast<void **>(args.dsts.data()), const_cast<size_t *>(args.dst_aligned_sizes.data()),
+      const_cast<void **>(args.srcs.data()), const_cast<size_t *>(args.src_sizes.data()), args.srcs.size(),
+      args.attrs.data(), const_cast<size_t *>(args.attr_idxs.data()), args.attrs.size(), &fail_idx);
   if (ret == ACL_ERROR_RT_FEATURE_NOT_SUPPORT) {
     GELOGW("Batch memcpy not supported, ret=%d, fallback to individual memcpy.", ret);
     for (size_t i = 0; i < args.srcs.size(); ++i) {
-      GE_ASSERT_RT_OK(aclrtMemcpy(args.dsts[i], args.dst_aligned_sizes[i], args.srcs[i],
-        args.src_sizes[i], ACL_MEMCPY_HOST_TO_DEVICE));
+      GE_ASSERT_RT_OK(aclrtMemcpy(args.dsts[i], args.dst_aligned_sizes[i], args.srcs[i], args.src_sizes[i],
+                                  ACL_MEMCPY_HOST_TO_DEVICE));
     }
     GELOGI("Fallback individual memcpy completed successfully for %zu items", args.dsts.size());
     return SUCCESS;
@@ -630,8 +633,7 @@ Status TensorTransUtils::FillRtTensorDesc(const Tensor &src_tensor, gert::Tensor
   static const std::unordered_map<Placement, gert::TensorPlacement> kPlacementToRtPlacement = {
       {Placement::kPlacementDevice, gert::TensorPlacement::kOnDeviceHbm},
       {Placement::kPlacementHost, gert::TensorPlacement::kOnHost},
-      {Placement::kPlacementEnd, gert::TensorPlacement::kTensorPlacementEnd}
-  };
+      {Placement::kPlacementEnd, gert::TensorPlacement::kTensorPlacementEnd}};
 
   auto tensor_desc = src_tensor.GetTensorDesc();
   auto origin_shape = ContructRtShapeFromShape(tensor_desc.GetOriginShape());
@@ -649,8 +651,9 @@ Status TensorTransUtils::FillRtTensorDesc(const Tensor &src_tensor, gert::Tensor
   return SUCCESS;
 }
 
-Status TensorTransUtils::AllocDeviceMemory(ge::Allocator *allocator, uint64_t src_tensor_length, gert::Tensor &dst_tensor,
-                                MemBlock *&mem_block_to_keep, size_t &dst_aligned_size) {
+Status TensorTransUtils::AllocDeviceMemory(ge::Allocator *allocator, uint64_t src_tensor_length,
+                                           gert::Tensor &dst_tensor, MemBlock *&mem_block_to_keep,
+                                           size_t &dst_aligned_size) {
   GE_CHECK_LE(src_tensor_length, std::numeric_limits<uint64_t>::max() - (kMemAlignSize * 2U));
   dst_aligned_size = ((src_tensor_length + (kMemAlignSize * 2U) - 1U) / kMemAlignSize) * kMemAlignSize;
   auto mem_block = allocator->Malloc(dst_aligned_size);
@@ -661,4 +664,4 @@ Status TensorTransUtils::AllocDeviceMemory(ge::Allocator *allocator, uint64_t sr
   dst_tensor.SetData(gert::TensorData{mem_block->GetAddr(), nullptr, mem_block->GetSize(), gert::kOnDeviceHbm});
   return SUCCESS;
 }
-} // ge
+}  // namespace ge

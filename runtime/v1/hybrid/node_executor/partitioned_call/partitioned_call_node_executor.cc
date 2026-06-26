@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,9 +15,8 @@ namespace ge {
 namespace hybrid {
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::DYNAMIC_SUBGRAPH, PartitionedCallNodeExecutor);
 
-PartitionedCallNodeTask::PartitionedCallNodeTask(const GraphItem * const graph_item)
-    : NodeTask(), graph_item_(graph_item) {
-}
+PartitionedCallNodeTask::PartitionedCallNodeTask(const GraphItem *const graph_item)
+    : NodeTask(), graph_item_(graph_item) {}
 
 PartitionedCallNodeTask::~PartitionedCallNodeTask() {
   GELOGD("[%s] PartitionedCallNodeTask destroyed.", graph_item_->GetName().c_str());
@@ -33,15 +32,13 @@ Status PartitionedCallNodeTask::Init(TaskContext &context) {
 }
 
 Status PartitionedCallNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
-  GE_CHK_STATUS_RET(subgraph_executor_->ExecuteAsync(context),
-                    "[Invoke][ExecuteAsync] failed for[%s]", graph_item_->GetName().c_str());
+  GE_CHK_STATUS_RET(subgraph_executor_->ExecuteAsync(context), "[Invoke][ExecuteAsync] failed for[%s]",
+                    graph_item_->GetName().c_str());
 
-  const auto callback = [this, done_callback]() {
-    Callback(done_callback);
-  };
+  const auto callback = [this, done_callback]() { Callback(done_callback); };
 
-  GE_CHK_STATUS_RET(context.RegisterCallback(callback),
-                    "[Register][Callback] failed for [%s]", graph_item_->GetName().c_str());
+  GE_CHK_STATUS_RET(context.RegisterCallback(callback), "[Register][Callback] failed for [%s]",
+                    graph_item_->GetName().c_str());
   GELOGD("[%s] Done executing subgraph successfully.", graph_item_->GetName().c_str());
   return SUCCESS;
 }
@@ -63,8 +60,7 @@ Status PartitionedCallNodeTask::UpdateArgs(TaskContext &context) {
   return SUCCESS;
 }
 
-Status PartitionedCallNodeExecutor::LoadTask(const ge::hybrid::HybridModel &model,
-                                             const ge::NodePtr &node,
+Status PartitionedCallNodeExecutor::LoadTask(const ge::hybrid::HybridModel &model, const ge::NodePtr &node,
                                              std::shared_ptr<NodeTask> &task) const {
   GELOGD("Load dynamic partitioned call: [%s]", node->GetName().c_str());
   const auto &subgraph = NodeUtils::GetSubgraph(*node, 0U);

@@ -41,9 +41,9 @@ struct ResLimit {
   uint32_t resv[10];
 };
 
-using GenerateTopnSolutionsFn = int64_t (*)(const std::vector<std::map<std::string, std::string>> &,
-                                            int64_t, std::vector<AutofuseTilingData> &,
-                                            std::vector<int64_t> &, std::vector<int64_t> &, ResLimit *);
+using GenerateTopnSolutionsFn = int64_t (*)(const std::vector<std::map<std::string, std::string>> &, int64_t,
+                                            std::vector<AutofuseTilingData> &, std::vector<int64_t> &,
+                                            std::vector<int64_t> &, ResLimit *);
 using GetTilingDataReprFn = std::string (*)(const AutofuseTilingData *);
 using GetModeledPerfForTestingFn = double (*)(const AutofuseTilingData *);
 using AutofuseTilingFn = int64_t (*)(AutofuseTilingData *, uint32_t *, uint32_t *, ResLimit *);
@@ -86,23 +86,29 @@ bool FileExists(const std::string &path) {
 #endif
 
 std::string PythonPreamble() {
-  return
-    "import sys, os, traceback\n"
-    "pkg_dir = os.path.join('" + std::string(OUTPUT_DIR) + "', 'autofuse_pkg')\n"
-    "os.makedirs(pkg_dir, exist_ok=True)\n"
-    "autofuse_dir = os.path.join(pkg_dir, 'autofuse')\n"
-    "try:\n"
-    "    os.symlink('" + std::string(AUTOFUSE_PYTHON_DIR) + "', autofuse_dir)\n"
-    "except FileExistsError:\n"
-    "    pass\n"
-    "pyautofuse_dst = os.path.join(autofuse_dir, 'pyautofuse.so')\n"
-    "try:\n"
-    "    os.symlink('" + std::string(PYAUTOFUSE_DIR) + "/pyautofuse.so', pyautofuse_dst)\n"
-    "except FileExistsError:\n"
-    "    pass\n"
-    "sys.path.insert(0, pkg_dir)\n"
-    "import autofuse.ascendc_compile as _ac\n"
-    "_ac.ASCEND_PATH = '" + std::string(ASCEND_HOME_PATH) + "'\n";
+  return "import sys, os, traceback\n"
+         "pkg_dir = os.path.join('" +
+         std::string(OUTPUT_DIR) +
+         "', 'autofuse_pkg')\n"
+         "os.makedirs(pkg_dir, exist_ok=True)\n"
+         "autofuse_dir = os.path.join(pkg_dir, 'autofuse')\n"
+         "try:\n"
+         "    os.symlink('" +
+         std::string(AUTOFUSE_PYTHON_DIR) +
+         "', autofuse_dir)\n"
+         "except FileExistsError:\n"
+         "    pass\n"
+         "pyautofuse_dst = os.path.join(autofuse_dir, 'pyautofuse.so')\n"
+         "try:\n"
+         "    os.symlink('" +
+         std::string(PYAUTOFUSE_DIR) +
+         "/pyautofuse.so', pyautofuse_dst)\n"
+         "except FileExistsError:\n"
+         "    pass\n"
+         "sys.path.insert(0, pkg_dir)\n"
+         "import autofuse.ascendc_compile as _ac\n"
+         "_ac.ASCEND_PATH = '" +
+         std::string(ASCEND_HOME_PATH) + "'\n";
 }
 
 int RunHostCompile(const std::string &tiling_def, const std::string &host_code, const std::string &output_file) {
@@ -110,22 +116,31 @@ int RunHostCompile(const std::string &tiling_def, const std::string &host_code, 
   WriteFile(OUTPUT_DIR "/host_impl.cpp", host_code);
 
   std::string script_path = std::string(OUTPUT_DIR) + "/run_host_compile.py";
-  WriteFile(script_path,
-    PythonPreamble() +
-    "try:\n"
-    "    from autofuse.compile_adapter import host_compile\n"
-    "    import os\n"
-    "    os.makedirs('" + std::string(OUTPUT_DIR) + "/host_out', exist_ok=True)\n"
-    "    td = open('" + std::string(OUTPUT_DIR) + "/host_tiling_def.h').read()\n"
-    "    hc = open('" + std::string(OUTPUT_DIR) + "/host_impl.cpp').read()\n"
-    "    host_compile(td, hc, [\n"
-    "        '--graph_name=pgo_add_abs_inductor_concat',\n"
-    "        '--output_file=" + output_file + "',\n"
-    "        '--output_path=" + std::string(OUTPUT_DIR) + "/host_out',\n"
-    "        '--soc_version=Ascend910B'])\n"
-    "except Exception:\n"
-    "    traceback.print_exc()\n"
-    "    sys.exit(1)\n");
+  WriteFile(script_path, PythonPreamble() +
+                             "try:\n"
+                             "    from autofuse.compile_adapter import host_compile\n"
+                             "    import os\n"
+                             "    os.makedirs('" +
+                             std::string(OUTPUT_DIR) +
+                             "/host_out', exist_ok=True)\n"
+                             "    td = open('" +
+                             std::string(OUTPUT_DIR) +
+                             "/host_tiling_def.h').read()\n"
+                             "    hc = open('" +
+                             std::string(OUTPUT_DIR) +
+                             "/host_impl.cpp').read()\n"
+                             "    host_compile(td, hc, [\n"
+                             "        '--graph_name=pgo_add_abs_inductor_concat',\n"
+                             "        '--output_file=" +
+                             output_file +
+                             "',\n"
+                             "        '--output_path=" +
+                             std::string(OUTPUT_DIR) +
+                             "/host_out',\n"
+                             "        '--soc_version=Ascend910B'])\n"
+                             "except Exception:\n"
+                             "    traceback.print_exc()\n"
+                             "    sys.exit(1)\n");
 
   std::string cmd = "ASCEND_HOME_PATH=" + std::string(ASCEND_HOME_PATH) + " python3 " + script_path + " 2>&1";
   int ret = RunCommand(cmd);
@@ -133,9 +148,8 @@ int RunHostCompile(const std::string &tiling_def, const std::string &host_code, 
   return ret;
 }
 
-int RunKernelCompile(const std::string &tiling_def, const std::string &device_code,
-                     const std::string &output_file, const std::string &work_dir,
-                     const std::string &tiling_repr) {
+int RunKernelCompile(const std::string &tiling_def, const std::string &device_code, const std::string &output_file,
+                     const std::string &work_dir, const std::string &tiling_repr) {
   std::string mkdir_cmd = "mkdir -p " + work_dir;
   RunCommand(mkdir_cmd);
   WriteFile(work_dir + "/device_tiling_def.h", tiling_def);
@@ -148,23 +162,34 @@ int RunKernelCompile(const std::string &tiling_def, const std::string &device_co
   }
 
   std::string script_path = work_dir + "/run_kernel_compile.py";
-  WriteFile(script_path,
-    PythonPreamble() +
-    "try:\n"
-    "    from autofuse.compile_adapter import kernel_compile\n"
-    "    import os\n"
-    "    os.makedirs('" + work_dir + "', exist_ok=True)\n"
-    "    td = open('" + work_dir + "/device_tiling_def.h').read()\n"
-    "    dc = open('" + work_dir + "/device_impl.cpp').read()\n"
-    "    argv = ['--graph_name=pgo_add_abs_inductor_concat',\n"
-    "            '--output_file=" + output_file + "',\n"
-    "            '--output_path=" + work_dir + "',\n"
-    "            '--soc_version=Ascend910B',\n"
-    "            '--compile_options=-D_GLIBCXX_USE_CXX11_ABI=0']\n"
-    "    kernel_compile(td, dc, argv" + repr_arg + ")\n"
-    "except Exception:\n"
-    "    traceback.print_exc()\n"
-    "    sys.exit(1)\n");
+  WriteFile(script_path, PythonPreamble() +
+                             "try:\n"
+                             "    from autofuse.compile_adapter import kernel_compile\n"
+                             "    import os\n"
+                             "    os.makedirs('" +
+                             work_dir +
+                             "', exist_ok=True)\n"
+                             "    td = open('" +
+                             work_dir +
+                             "/device_tiling_def.h').read()\n"
+                             "    dc = open('" +
+                             work_dir +
+                             "/device_impl.cpp').read()\n"
+                             "    argv = ['--graph_name=pgo_add_abs_inductor_concat',\n"
+                             "            '--output_file=" +
+                             output_file +
+                             "',\n"
+                             "            '--output_path=" +
+                             work_dir +
+                             "',\n"
+                             "            '--soc_version=Ascend910B',\n"
+                             "            '--compile_options=-D_GLIBCXX_USE_CXX11_ABI=0']\n"
+                             "    kernel_compile(td, dc, argv" +
+                             repr_arg +
+                             ")\n"
+                             "except Exception:\n"
+                             "    traceback.print_exc()\n"
+                             "    sys.exit(1)\n");
 
   std::string cmd = "ASCEND_HOME_PATH=" + std::string(ASCEND_HOME_PATH) + " python3 " + script_path + " 2>&1";
   int ret = RunCommand(cmd);
@@ -175,13 +200,16 @@ int RunKernelCompile(const std::string &tiling_def, const std::string &device_co
 struct DlHandle {
   void *ptr = nullptr;
   explicit DlHandle(void *p) : ptr(p) {}
-  ~DlHandle() { if (ptr) dlclose(ptr); }
-  operator bool() const { return ptr != nullptr; }
+  ~DlHandle() {
+    if (ptr) dlclose(ptr);
+  }
+  operator bool() const {
+    return ptr != nullptr;
+  }
 };
 
 }  // namespace
-class TestBackendPgoAddAbsInductorConcatSplitCompile : public testing::Test {
-};
+class TestBackendPgoAddAbsInductorConcatSplitCompile : public testing::Test {};
 
 void PrepareInputs(std::string &tiling_def, std::string &host_code, std::string &device_code) {
   tiling_def = ReadFile(TILING_DEF_FILE);
@@ -192,10 +220,9 @@ void PrepareInputs(std::string &tiling_def, std::string &host_code, std::string 
   ASSERT_FALSE(device_code.empty()) << "device_code empty";
 }
 
-void CompileHostAndResolve(const std::string &tiling_def, const std::string &host_code,
-                           std::string &host_bin, DlHandle &host_handle, GenerateTopnSolutionsFn &gen_fn,
-                           GetTilingDataReprFn &repr_fn, GetModeledPerfForTestingFn &perf_fn,
-                           AutofuseTilingFn &autofuse_tiling_fn) {
+void CompileHostAndResolve(const std::string &tiling_def, const std::string &host_code, std::string &host_bin,
+                           DlHandle &host_handle, GenerateTopnSolutionsFn &gen_fn, GetTilingDataReprFn &repr_fn,
+                           GetModeledPerfForTestingFn &perf_fn, AutofuseTilingFn &autofuse_tiling_fn) {
   host_bin = OUTPUT_DIR "/pgo_add_abs_inductor_concat_host.so";
   ASSERT_EQ(RunHostCompile(tiling_def, host_code, host_bin), 0);
   ASSERT_TRUE(FileExists(host_bin)) << "host so not found: " << host_bin;
@@ -212,11 +239,9 @@ void CompileHostAndResolve(const std::string &tiling_def, const std::string &hos
   ASSERT_NE(autofuse_tiling_fn, nullptr) << "AutofuseTiling not found";
 }
 
-std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn gen_fn,
-                                                       GetTilingDataReprFn repr_fn,
+std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn gen_fn, GetTilingDataReprFn repr_fn,
                                                        GetModeledPerfForTestingFn perf_fn,
-                                                       AutofuseTilingFn autofuse_tiling_fn,
-                                                       uint32_t &default_workspace,
+                                                       AutofuseTilingFn autofuse_tiling_fn, uint32_t &default_workspace,
                                                        uint32_t &default_block_dim) {
   std::vector<AutofuseTilingData> tiling_datas;
   std::vector<int64_t> workspaces;
@@ -263,8 +288,8 @@ std::string GenerateTopnAndReprForDefaultConfigRequest(GenerateTopnSolutionsFn g
   EXPECT_EQ(repr_fn(&tiling_datas[0]), default_repr);
   for (size_t i = 2; i < tiling_datas.size(); ++i) {
     EXPECT_LE(perf_fn(&tiling_datas[i - 1]), perf_fn(&tiling_datas[i]))
-        << "perf not ascending: sol[" << (i - 1) << "]=" << perf_fn(&tiling_datas[i - 1])
-        << " > sol[" << i << "]=" << perf_fn(&tiling_datas[i]);
+        << "perf not ascending: sol[" << (i - 1) << "]=" << perf_fn(&tiling_datas[i - 1]) << " > sol[" << i
+        << "]=" << perf_fn(&tiling_datas[i]);
   }
   return default_repr;
 }
@@ -316,8 +341,8 @@ TEST_F(TestBackendPgoAddAbsInductorConcatSplitCompile, SplitCompileChainWorks) {
 
   uint32_t default_workspace = 0;
   uint32_t default_block_dim = 0;
-  std::string tiling_repr = GenerateTopnAndReprForDefaultConfigRequest(
-      gen_fn, repr_fn, perf_fn, autofuse_tiling_fn, default_workspace, default_block_dim);
+  std::string tiling_repr = GenerateTopnAndReprForDefaultConfigRequest(gen_fn, repr_fn, perf_fn, autofuse_tiling_fn,
+                                                                       default_workspace, default_block_dim);
   ASSERT_FALSE(tiling_repr.empty());
 
   // Public empty-config call path: wrapper maps to internal no-config path, still returns default-first result.

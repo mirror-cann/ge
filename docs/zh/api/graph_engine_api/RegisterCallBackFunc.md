@@ -101,4 +101,3 @@ typedef uint32_t session::(*pCallBackFunc)(uint32_t graph_id, const std::map&lt;
 -   回调函数类型仅支持Summary、Save。
 -   如无注册则下发Summary、Checkpoint算子会报错。
 -   目前暂时只支持图执行完后一次性调用回调函数。
-

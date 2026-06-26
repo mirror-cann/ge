@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,6 @@
 #include "compute_graph.h"
 #include "exe_graph/lowering/exe_graph_attrs.h"
 #include "graph/utils/execute_graph_utils.h"
-
 
 namespace gert {
 namespace kernel {
@@ -137,5 +136,5 @@ TEST_F(ConstKernelTest, test_const_create_for_node_const_value_empty) {
   auto constFuncs = registry.FindKernelFuncs("Const");
   ASSERT_EQ(constFuncs->outputs_creator(node, run_context), ge::GRAPH_FAILED);
 }
-}
-}
+}  // namespace kernel
+}  // namespace gert

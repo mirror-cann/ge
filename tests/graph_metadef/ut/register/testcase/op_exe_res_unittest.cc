@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,7 +63,7 @@ TEST_F(OpExeResTest, OpResAPITest) {
   OpDescPtr y = std::make_shared<OpDesc>("y", "NetOutput");
 
   // add descriptor
-  ge::GeShape shape1({2,4,9,16});
+  ge::GeShape shape1({2, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -112,7 +112,7 @@ TEST_F(OpExeResTest, OpResAPITest) {
 
   mm->SetStreamId(12);
   mm->SetId(34);
-  std::vector<int64_t> ori_work_sizes{22,33,44};
+  std::vector<int64_t> ori_work_sizes{22, 33, 44};
   mm->SetWorkspaceBytes(ori_work_sizes);
 
   ExeResGenerationCtxBuilder exe_ctx_builder;
@@ -129,7 +129,7 @@ TEST_F(OpExeResTest, OpResAPITest) {
 
   auto work_sizes = op_exe_res_ctx->GetWorkspaceBytes();
   EXPECT_EQ(work_sizes, ori_work_sizes);
-  std::vector<int64_t> n_work_sizes{02,03,04};
+  std::vector<int64_t> n_work_sizes{02, 03, 04};
   op_exe_res_ctx->SetWorkspaceBytes(n_work_sizes);
   work_sizes = op_exe_res_ctx->GetWorkspaceBytes();
   EXPECT_EQ(work_sizes, n_work_sizes);
@@ -181,7 +181,7 @@ TEST_F(OpExeResTest, OpResAPITest) {
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
   std::vector<ge::GeAttrValue::NAMED_ATTRS> stream_info_attrs;
   (void)ge::AttrUtils::GetListNamedAttrs(mm_node->GetOpDesc(), ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST,
-    stream_info_attrs);
+                                         stream_info_attrs);
   EXPECT_EQ(stream_info_attrs.size(), stream_info_vec.size());
   stream_info_vec.clear();
   stream_info_vec = op_exe_res_ctx->GetAttachedStreamInfos();
@@ -197,7 +197,7 @@ TEST_F(OpExeResTest, OpResAPITest) {
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
   std::vector<ge::GeAttrValue::NAMED_ATTRS> sync_info_attrs;
   (void)ge::AttrUtils::GetListNamedAttrs(node_ptr->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
-      sync_info_attrs);
+                                         sync_info_attrs);
   sync_info_vec.clear();
   sync_info_vec = op_exe_res_ctx->GetSyncResInfos();
   EXPECT_EQ(sync_info_vec.size(), sync_info_attrs.size());
@@ -219,14 +219,14 @@ TEST_F(OpExeResTest, OpResAPITest_1) {
   OpDescPtr y = std::make_shared<OpDesc>("y", "NetOutput");
 
   // add descriptor
-  ge::GeShape shape0({2,4,9,16});
-  ge::GeShape ori_shape0({1,16});
+  ge::GeShape shape0({2, 4, 9, 16});
+  ge::GeShape ori_shape0({1, 16});
   GeTensorDesc tensor_desc1(shape0, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_ND);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
   tensor_desc1.SetOriginShape(ori_shape0);
 
-  ge::GeShape shape1({2,4,9,16});
+  ge::GeShape shape1({2, 4, 9, 16});
   GeTensorDesc tensor_desc2(shape1, ge::FORMAT_NCHW, ge::DT_INT8);
   tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc2.SetOriginDataType(ge::DT_INT8);
@@ -330,14 +330,14 @@ TEST_F(OpExeResTest, SK_Test) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr mm = std::make_shared<OpDesc>("mm", "WeightQuantBatchMatmulV2");
   // add descriptor
-  ge::GeShape shape0({2,4,9,16});
-  ge::GeShape ori_shape0({1,16});
+  ge::GeShape shape0({2, 4, 9, 16});
+  ge::GeShape ori_shape0({1, 16});
   GeTensorDesc tensor_desc1(shape0, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_ND);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
   tensor_desc1.SetOriginShape(ori_shape0);
 
-  ge::GeShape shape1({2,4,9,16});
+  ge::GeShape shape1({2, 4, 9, 16});
   GeTensorDesc tensor_desc2(shape1, ge::FORMAT_NCHW, ge::DT_INT8);
   tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc2.SetOriginDataType(ge::DT_INT8);

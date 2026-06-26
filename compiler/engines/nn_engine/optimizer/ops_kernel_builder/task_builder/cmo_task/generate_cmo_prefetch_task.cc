@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,6 @@ GenerateCMOPrefetchTask::GenerateCMOPrefetchTask(const ge::Node &node, TaskBuild
     : GenerateCMOTaskBase(node, context) {}
 GenerateCMOPrefetchTask::~GenerateCMOPrefetchTask() {}
 
-
 Status GenerateCMOPrefetchTask::GenerateTask(std::vector<domi::TaskDef> &task_defs, const int32_t &stream_id,
                                              const std::vector<CmoAttr> &cmo_attrs) {
   for (auto &cmo_attr : cmo_attrs) {
@@ -30,8 +29,8 @@ Status GenerateCMOPrefetchTask::GenerateTask(std::vector<domi::TaskDef> &task_de
     task_def.set_stream_id(stream_id);
     task_def.set_type(ACL_RT_MODEL_TASK_CMO);
     domi::CmoTaskDef *pf_cmo_task_def = task_def.mutable_cmo_task();
-    FE_CHECK(pf_cmo_task_def == nullptr, FE_LOGW("Failed to create cmo task definition for node [%s].",
-        node_.GetName().c_str()), return FAILED);
+    FE_CHECK(pf_cmo_task_def == nullptr,
+             FE_LOGW("Failed to create cmo task definition for node [%s].", node_.GetName().c_str()), return FAILED);
     pf_cmo_task_def->set_cmo_type(static_cast<uint32_t>(rtCMOType::rtCMOPrefetch));
     ge::DataType data_type = ge::DT_UNDEFINED;
     uint32_t length_inner = 0;
@@ -72,4 +71,4 @@ Status GenerateCMOPrefetchTask::GenerateTask(std::vector<domi::TaskDef> &task_de
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

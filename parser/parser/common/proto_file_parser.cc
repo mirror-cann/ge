@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,15 +26,15 @@
 #include "mmpa/mmpa_api.h"
 
 using std::ifstream;
-using std::vector;
 using std::string;
+using std::vector;
 
 namespace {
 const char kMinNum = '0';
 const char kMaxNum = '9';
 const int kMinLineWordSize = 3;
 const int kMinMessageLineWords = 2;
-const int kMaxIdentifier = 536870912; // 2^29 - 1
+const int kMaxIdentifier = 536870912;  // 2^29 - 1
 const int kTmpFileNameLen = 16;
 const int kMinRandomNum = 0;
 const int kMaxRandomNum = 9;
@@ -105,7 +105,7 @@ void GetName(const std::string &op_info, string &op_name) {
   op_name.assign(op_info);
   auto pos = op_name.find("=");
   if (pos != string::npos) {
-      op_name = op_name.substr(0, pos);
+    op_name = op_name.substr(0, pos);
   }
 }
 
@@ -147,16 +147,16 @@ string CreatTmpName(int len) {
   return tmp_name;
 }
 
-bool SaveIdentifierOpMapInfo(const string &line,  std::map<int, std::pair<string, string>> &identifier_op_map,
+bool SaveIdentifierOpMapInfo(const string &line, std::map<int, std::pair<string, string>> &identifier_op_map,
                              std::map<std::string, std::pair<int, string>> &op_identifier_map) {
   std::vector<std::string> op_param_info;
   GetOpParamInfo(line, op_param_info);
   int info_size = op_param_info.size();
   if (info_size < kMinLineWordSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Words size:%d of line[%s] is less than kMinLineWordSize[%d].",
-                       info_size, line.c_str(), kMinLineWordSize);
-    GELOGE(ge::FAILED, "[Check][Size] Words size:%d of line[%s] is less than kMinLineWordSize[%d].",
-           info_size, line.c_str(), kMinLineWordSize);
+    REPORT_INNER_ERR_MSG("E19999", "Words size:%d of line[%s] is less than kMinLineWordSize[%d].", info_size,
+                         line.c_str(), kMinLineWordSize);
+    GELOGE(ge::FAILED, "[Check][Size] Words size:%d of line[%s] is less than kMinLineWordSize[%d].", info_size,
+           line.c_str(), kMinLineWordSize);
     return false;
   }
 
@@ -191,7 +191,7 @@ bool CheckRealPath(const char *file_path) {
   }
   return true;
 }
-} // namespace
+}  // namespace
 
 namespace ge {
 ProtoFileParser::~ProtoFileParser() {
@@ -233,7 +233,7 @@ Status ProtoFileParser::CreatProtoFile() {
   if (fusion_proto_path.empty()) {
     fusion_proto_path.assign(kTmpPath);
     fusion_proto_path += "/" + CreatTmpName(kTmpFileNameLen);
-    fusion_proto_path_map_[fusion_proto_path] ++;
+    fusion_proto_path_map_[fusion_proto_path]++;
   }
 
   int fd = open(fusion_proto_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
@@ -316,8 +316,8 @@ Status ProtoFileParser::AddCustomAndConflictLayer(const char *custom_proto_file,
     }
     // exclude remark lines
     if (line_custom.find(kRepeated) == std::string::npos && line_custom.find(kOptional) == std::string::npos &&
-          line_custom.find(kRequired) == std::string::npos) {
-        continue;
+        line_custom.find(kRequired) == std::string::npos) {
+      continue;
     }
     // exclude repeated lines
     if (custom_repeat_line_map_.count(line_custom) == 0) {
@@ -384,8 +384,10 @@ Status ProtoFileParser::WriteCaffeProtoFile(const char *custom_proto_file, std::
     }
     if (caffe_in_layer && line_caffe.find(kCloseBrace) != std::string::npos) {
       if (AddCustomAndConflictLayer(custom_proto_file, write_tmp) != SUCCESS) {
-        GELOGE(FAILED, "[Invoke][AddCustomAndConflictLayer] Add conflict and new layer line "
-               "from custom proto to dest proto failed, protofile:%s.", custom_proto_file);
+        GELOGE(FAILED,
+               "[Invoke][AddCustomAndConflictLayer] Add conflict and new layer line "
+               "from custom proto to dest proto failed, protofile:%s.",
+               custom_proto_file);
         return FAILED;
       }
       caffe_in_layer = false;
@@ -401,8 +403,7 @@ Status ProtoFileParser::WriteCaffeProtoFile(const char *custom_proto_file, std::
   return SUCCESS;
 }
 
-Status ProtoFileParser::WriteProtoFile(const char *caffe_proto_file,
-                                       const char *custom_proto_file) {
+Status ProtoFileParser::WriteProtoFile(const char *caffe_proto_file, const char *custom_proto_file) {
   std::ifstream read_caffe;
   std::ofstream write_tmp;
   read_caffe.open(caffe_proto_file, std::ios::in);
@@ -414,8 +415,9 @@ Status ProtoFileParser::WriteProtoFile(const char *caffe_proto_file,
   }
   write_tmp.open(fusion_proto_path, std::ios::out);
   if (write_tmp.fail()) {
-    REPORT_PREDEFINED_ERR_MSG("E13004", std::vector<const char *>({"file", "errmsg"}),
-                              std::vector<const char *>({fusion_proto_path.c_str(), "ofstream open proto file failed"}));
+    REPORT_PREDEFINED_ERR_MSG(
+        "E13004", std::vector<const char *>({"file", "errmsg"}),
+        std::vector<const char *>({fusion_proto_path.c_str(), "ofstream open proto file failed"}));
     GELOGE(FAILED, "[Open][File] ofstream open proto file[%s] failed.", fusion_proto_path.c_str());
     read_caffe.close();
     return FAILED;
@@ -428,8 +430,10 @@ Status ProtoFileParser::WriteProtoFile(const char *caffe_proto_file,
   }
 
   if (AddCustomAndConflictMessage(custom_proto_file, write_tmp) != SUCCESS) {
-    GELOGE(FAILED, "[Invoke][AddCustomAndConflictMessage] Add conflict and new message from custom proto "
-           "to dest proto failed, proto file:%s.", custom_proto_file);
+    GELOGE(FAILED,
+           "[Invoke][AddCustomAndConflictMessage] Add conflict and new message from custom proto "
+           "to dest proto failed, proto file:%s.",
+           custom_proto_file);
     read_caffe.close();
     write_tmp.close();
     return FAILED;
@@ -440,8 +444,7 @@ Status ProtoFileParser::WriteProtoFile(const char *caffe_proto_file,
   return SUCCESS;
 }
 
-Status ProtoFileParser::FindConflictLine(const char *proto_file, int identifier,
-                                         std::string &dest_line) {
+Status ProtoFileParser::FindConflictLine(const char *proto_file, int identifier, std::string &dest_line) {
   ifstream read_file;
   read_file.open(proto_file, std::ios::in);
   if (read_file.fail()) {
@@ -487,8 +490,8 @@ void ProtoFileParser::CheckConflictOp(const char *caffe_proto_file, const char *
       auto custom_pair = custom_op_identifier_map[iter->first];
       if (caffe_pair.first != custom_pair.first || caffe_pair.second != custom_pair.second) {
         // consider conflict op and name and type;
-        GELOGD("Find conflict op: caffe_identifier[%d], custom_identifier[%d], op_name[%s].",
-               caffe_pair.first, custom_pair.first, message_name.c_str());
+        GELOGD("Find conflict op: caffe_identifier[%d], custom_identifier[%d], op_name[%s].", caffe_pair.first,
+               custom_pair.first, message_name.c_str());
         std::string caffe_conflict_line;
         (void)FindConflictLine(caffe_proto_file, caffe_pair.first, caffe_conflict_line);
         GELOGD("conflict: %s", caffe_conflict_line.c_str());
@@ -515,9 +518,8 @@ void ProtoFileParser::CheckConflictIdentifier(const char *caffe_proto_file, cons
       auto custom_pair = custom_identifier_op_map[iter->first];
       if (caffe_pair.first != custom_pair.first || caffe_pair.second != custom_pair.second) {
         // consider conflict op and name and type;
-        GELOGD("Find conflict op: caffe_op[%s], custom_op[%s], identifier[%d].",
-               caffe_pair.first.c_str(), custom_pair.first.c_str(),
-               identifier);
+        GELOGD("Find conflict op: caffe_op[%s], custom_op[%s], identifier[%d].", caffe_pair.first.c_str(),
+               custom_pair.first.c_str(), identifier);
         std::string caffe_conflict_line;
         (void)FindConflictLine(caffe_proto_file, identifier, caffe_conflict_line);
         GELOGD("conflict: %s", caffe_conflict_line.c_str());
@@ -561,10 +563,10 @@ Status ProtoFileParser::CombineProtoFile(const char *caffe_proto_file, const cha
   GE_CHECK_NOTNULL(custom_proto_file);
 
   if (!CheckRealPath(caffe_proto_file) || !CheckRealPath(custom_proto_file)) {
-    REPORT_INNER_ERR_MSG("E19999", "caffe proto[%s] or custom proto[%s] does not exist.",
-                      caffe_proto_file, custom_proto_file);
-    GELOGE(FAILED, "[Check][Param] caffe proto[%s] or custom proto[%s] does not exist.",
-           caffe_proto_file, custom_proto_file);
+    REPORT_INNER_ERR_MSG("E19999", "caffe proto[%s] or custom proto[%s] does not exist.", caffe_proto_file,
+                         custom_proto_file);
+    GELOGE(FAILED, "[Check][Param] caffe proto[%s] or custom proto[%s] does not exist.", caffe_proto_file,
+           custom_proto_file);
     return FAILED;
   }
 
@@ -579,10 +581,8 @@ Status ProtoFileParser::CombineProtoFile(const char *caffe_proto_file, const cha
   (void)RecordProtoMessage(custom_proto_file);
 
   // check identifier or op_type is same
-  CheckConflictIdentifier(caffe_proto_file, custom_proto_file,
-                          caffe_identifier_op_map, custom_identifier_op_map);
-  CheckConflictOp(caffe_proto_file, custom_proto_file,
-                  caffe_op_identifier_map, custom_op_identifier_map);
+  CheckConflictIdentifier(caffe_proto_file, custom_proto_file, caffe_identifier_op_map, custom_identifier_op_map);
+  CheckConflictOp(caffe_proto_file, custom_proto_file, caffe_op_identifier_map, custom_op_identifier_map);
 
   if (CreatProtoFile() != SUCCESS) {
     return FAILED;
@@ -610,23 +610,23 @@ Status ProtoFileParser::CombineProtoFileMultiCustomProto(const char *caffe_proto
 
   std::string fusion_proto_file_bak;
   const std::vector<std::string> custom_paths = StringUtils::Split(custom_proto_paths, ':');
-  if (custom_paths.size() >= 2U && (!fusion_proto_path.empty())) { // if size of vector custom_paths is 0 or 1, then
-    fusion_proto_file_bak = ResetFusionProtoPath();                //  following "for" clause will loop no more than
-  }                                                                //  one time, so no need backup fusion_proto_path
+  if (custom_paths.size() >= 2U && (!fusion_proto_path.empty())) {  // if size of vector custom_paths is 0 or 1, then
+    fusion_proto_file_bak = ResetFusionProtoPath();                 //  following "for" clause will loop no more than
+  }  //  one time, so no need backup fusion_proto_path
   size_t custom_proto_invalid_count = 0U;
   std::string fusion_proto_file = caffe_proto_file;
   for (auto it = custom_paths.rbegin(); it != custom_paths.rend(); ++it) {
     const std::string custom_proto_file = *it + (EndWith(*it, ".proto") ? "" : "custom.proto");
     if (!CheckRealPath(custom_proto_file.c_str())) {
-      custom_proto_invalid_count ++;
+      custom_proto_invalid_count++;
       continue;
     }
     const std::string caffe_proto_path = fusion_proto_file;
     ResetParserStatus(custom_paths.size() >= 2U);
     if (CombineProtoFile(caffe_proto_path.c_str(), custom_proto_file.c_str(), fusion_proto_file) != SUCCESS) {
-      GELOGW("CombineProtoFile failed, caffe_proto_path:%s, custom_proto_file:%s.",
-             caffe_proto_path.c_str(), custom_proto_file.c_str());
-      custom_proto_invalid_count ++;
+      GELOGW("CombineProtoFile failed, caffe_proto_path:%s, custom_proto_file:%s.", caffe_proto_path.c_str(),
+             custom_proto_file.c_str());
+      custom_proto_invalid_count++;
       fusion_proto_file = caffe_proto_path;
     }
   }
@@ -643,4 +643,4 @@ Status ProtoFileParser::CombineProtoFileMultiCustomProto(const char *caffe_proto
   GELOGI("Fusion multi custom and caffe proto to file[%s] success.", dest_proto_file.c_str());
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

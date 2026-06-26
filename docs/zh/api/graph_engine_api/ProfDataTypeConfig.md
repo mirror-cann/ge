@@ -13,4 +13,3 @@ enum ProfDataTypeConfig {
   kProfTaskTimeL0,        = 0x0800,      // 采集算子下发耗时、算子执行耗时数据。与kProfTaskTime相比，由于不采集算子基本信息数据，采集时性能开销较小，可更精准统计相关耗时数据
 };
 ```
-

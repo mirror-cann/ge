@@ -2,18 +2,18 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
+import dataflow as df
 import numpy as np
 import torch
 import torch.nn as nn
-import dataflow as df
 
 
 class SimpleNet(nn.Module):
@@ -21,7 +21,7 @@ class SimpleNet(nn.Module):
         super(SimpleNet, self).__init__()
         self.conv_relu = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=3, stride=1, padding=1),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
     def forward(self, x):
@@ -32,9 +32,7 @@ class SimpleNet(nn.Module):
 class MatMulNetwork(nn.Module):
     def __init__(self, num_matrices):
         super(MatMulNetwork, self).__init__()
-        self.matrices = nn.ModuleList([
-            nn.Linear(32, 32) for _ in range(num_matrices)
-        ])
+        self.matrices = nn.ModuleList([nn.Linear(32, 32) for _ in range(num_matrices)])
 
     def forward(self, x):
         result = x
@@ -71,26 +69,26 @@ def convert_data(data):
 
 
 # 目标构图如下所示
-'''
-     FlowData     FlowData     FlowData 
-       |             |             /       
+r"""
+     FlowData     FlowData     FlowData
+       |             |             /
        |             |            /
-       |             |           / 
-    SimpleNet MatMulNetwork     /  
-       \             /         /   
-        \           /         /    
-         \         /         /     
-          \       /         /      
-         FlowNode(onnx)    /       
-       GraphProcessPoint  /        
+       |             |           /
+    SimpleNet MatMulNetwork     /
+       \             /         /
+        \           /         /
+         \         /         /
+          \       /         /
+         FlowNode(onnx)    /
+       GraphProcessPoint  /
 	            \        /
 			     \      /
 				  \    /
 				   \  /
 				    \/
 				FlowNode(pb)
-              GraphProcessPoint  
-'''
+              GraphProcessPoint
+"""
 
 
 class SampleFlowGraph:
@@ -101,7 +99,7 @@ class SampleFlowGraph:
         self.flow_graph = None
         self.options = {
             "ge.exec.deviceId": "0",
-            "ge.experiment.data_flow_deploy_info_path": "./config/multi_model_deploy.json"
+            "ge.experiment.data_flow_deploy_info_path": "./config/multi_model_deploy.json",
         }
 
     def init(self):
@@ -114,32 +112,42 @@ class SampleFlowGraph:
         self.data1 = df.FlowData()
         self.data2 = df.FlowData()
         # python 类对象直接构造UDF节点
-        conv_node = ConvFunc.fnode().set_alias('conv_model')
-        matmul_node = MatmulFunc.fnode().set_alias('matmul_model')
+        conv_node = ConvFunc.fnode().set_alias("conv_model")
+        matmul_node = MatmulFunc.fnode().set_alias("matmul_model")
         # 构造Graph process point，该节点支持执行onnx模型，运行时将模型下沉到device上执行
-        graph_pp0 = df.GraphProcessPoint(df.Framework.ONNX, "config/simple_model.onnx",
-                                         load_params={"input_data_names": "X1,X2"},
-                                         compile_config_path="config/add_graph.json")
-        onnx_node = df.FlowNode(input_num=2, output_num=1, name='onnx_node')
+        graph_pp0 = df.GraphProcessPoint(
+            df.Framework.ONNX,
+            "config/simple_model.onnx",
+            load_params={"input_data_names": "X1,X2"},
+            compile_config_path="config/add_graph.json",
+        )
+        onnx_node = df.FlowNode(input_num=2, output_num=1, name="onnx_node")
         onnx_node.add_process_point(graph_pp0)
         # 构造Graph process point，该节点支持执行onnx模型，运行时将模型下沉到device上执行
-        graph_pp1 = df.GraphProcessPoint(df.Framework.TENSORFLOW, "config/add.pb",
-                                         load_params={"input_data_names": "Placeholder,Placeholder_1"},
-                                         compile_config_path="config/add_graph.json")
-        pb_node = df.FlowNode(input_num=2, output_num=1, name='pb_node')
+        graph_pp1 = df.GraphProcessPoint(
+            df.Framework.TENSORFLOW,
+            "config/add.pb",
+            load_params={"input_data_names": "Placeholder,Placeholder_1"},
+            compile_config_path="config/add_graph.json",
+        )
+        pb_node = df.FlowNode(input_num=2, output_num=1, name="pb_node")
         pb_node.add_process_point(graph_pp1)
 
         # 构建连边关系
         conv_result = conv_node(self.data0)
         matmul_result = matmul_node(self.data1)
-        convert_data0 = convert_data.fnode().set_alias('convert_data0')(conv_result)
-        convert_data1 = convert_data.fnode().set_alias('convert_data1')(matmul_result)
+        convert_data0 = convert_data.fnode().set_alias("convert_data0")(conv_result)
+        convert_data1 = convert_data.fnode().set_alias("convert_data1")(matmul_result)
         onnx_result = onnx_node(convert_data0, convert_data1)
         pb_result = pb_node(onnx_result, self.data2)
         self.flow_graph = df.FlowGraph([pb_result])
 
     def feed(self, inputs):
-        feed_dict = {self.data0: inputs['data0'], self.data1: inputs['data1'], self.data2: inputs['data2']}
+        feed_dict = {
+            self.data0: inputs["data0"],
+            self.data1: inputs["data1"],
+            self.data2: inputs["data2"],
+        }
         self.flow_graph.feed(feed_dict, timeout=-1)
 
     def fetch(self, indexes=None, timeout=1000 * 6 * 5):
@@ -162,7 +170,7 @@ def main():
     inputs = {"data0": input0_tensor, "data1": input1_tensor, "data2": input2_tensor}
     runner.feed(inputs)
     output = runner.fetch()
-    print(f'Flow graph execute success. result is: {output}', flush=True)
+    print(f"Flow graph execute success. result is: {output}", flush=True)
     runner.finalize()
 
 

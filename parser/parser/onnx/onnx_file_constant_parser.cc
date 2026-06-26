@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,9 +19,9 @@
 #include "framework/common/framework_types_internal.h"
 #include "base/err_msg.h"
 
+using domi::ONNX;
 using ge::onnx::NodeProto;
 using ge::onnx::TensorProto;
-using domi::ONNX;
 using GeShape = ge::GeShape;
 using GeTensorDesc = ge::GeTensorDesc;
 using namespace ge::parser;
@@ -34,7 +34,7 @@ const char *const kLocation = "location";
 const char *const kOffset = "offset";
 const char *const kLength = "length";
 const char *const kFileConstant = "FileConstant";
-}
+}  // namespace
 namespace ge {
 Status OnnxFileConstantParser::ParseParams(const Message *op_src, ge::Operator &op_def) {
   GE_CHECK_NOTNULL(op_src);

@@ -19,7 +19,7 @@ extern "C" {
 #define LOGE(format, ...) printf("[ERROR] %s:%d " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define LOGI(format, ...) printf("[INFO] %s:%d " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define PROTOBUF_MAX_SIZE  (2UL * 1024 * 1024 * 1024)
+#define PROTOBUF_MAX_SIZE (2UL * 1024 * 1024 * 1024)
 
 using namespace domi::tensorflow;
 
@@ -35,7 +35,7 @@ GraphDefLibHandle GraphDefLibCreate() {
  * Destroy GraphDefLibrary instance
  * @param handle GraphDefLibrary instance
  */
-void GraphDefLibDestroy(GraphDefLibHandle* handle) {
+void GraphDefLibDestroy(GraphDefLibHandle *handle) {
   if (handle != nullptr) {
     delete static_cast<GraphDefLibrary *>(*handle);
     *handle = nullptr;
@@ -53,8 +53,8 @@ void GraphDefLibAddGraphDef(GraphDefLibHandle graph_def_lib_handle, GeGraphDefHa
     return;
   }
 
-  auto* library = static_cast<GraphDefLibrary *>(graph_def_lib_handle);
-  auto* graph = static_cast<GeGraphDef *>(graph_def_handle);
+  auto *library = static_cast<GraphDefLibrary *>(graph_def_lib_handle);
+  auto *graph = static_cast<GeGraphDef *>(graph_def_handle);
   library->mutable_graph_def()->AddAllocated(graph);
 }
 
@@ -70,7 +70,7 @@ GeGraphDefHandle GraphDefLibGetGraphDef(GraphDefLibHandle handle, int index) {
     return nullptr;
   }
 
-  auto* library = static_cast<GraphDefLibrary *>(handle);
+  auto *library = static_cast<GraphDefLibrary *>(handle);
   if (index < 0 || index >= library->graph_def_size()) {
     LOGE("index out of range, graph_def_size is %d", library->graph_def_size());
     return nullptr;
@@ -84,7 +84,7 @@ GeGraphDefHandle GraphDefLibGetGraphDef(GraphDefLibHandle handle, int index) {
  * @param handle /
  * @return
  */
-const char* GraphDefLibGetPbtxt(GraphDefLibConstHandle handle) {
+const char *GraphDefLibGetPbtxt(GraphDefLibConstHandle handle) {
   if (handle == nullptr) {
     LOGE("handle is nullptr");
     return nullptr;
@@ -92,7 +92,7 @@ const char* GraphDefLibGetPbtxt(GraphDefLibConstHandle handle) {
 
   static thread_local std::string pbtxt;
 
-  const auto* library = static_cast<const GraphDefLibrary *>(handle);
+  const auto *library = static_cast<const GraphDefLibrary *>(handle);
   google::protobuf::TextFormat::PrintToString(*library, &pbtxt);
   return pbtxt.c_str();
 }
@@ -109,7 +109,7 @@ GeGraphDefHandle GeGraphDefCreate() {
  * Destroy GeGraphDef instance
  * @param handle GeGraphDef instance
  */
-void GeGraphDefDestroy(GeGraphDefHandle* handle) {
+void GeGraphDefDestroy(GeGraphDefHandle *handle) {
   if (handle != nullptr) {
     delete static_cast<GeGraphDef *>(*handle);
     *handle = nullptr;
@@ -121,7 +121,7 @@ void GeGraphDefDestroy(GeGraphDefHandle* handle) {
  * @param handle GeGraphDef instance
  * @param name name value
  */
-void GeGraphDefSetName(GeGraphDefHandle handle, const char* name) {
+void GeGraphDefSetName(GeGraphDefHandle handle, const char *name) {
   if (handle == nullptr) {
     LOGE("handle is nullptr");
     return;
@@ -132,7 +132,7 @@ void GeGraphDefSetName(GeGraphDefHandle handle, const char* name) {
     return;
   }
 
-  auto* graph = static_cast<GeGraphDef *>(handle);
+  auto *graph = static_cast<GeGraphDef *>(handle);
   graph->set_name(name);
 }
 
@@ -142,7 +142,7 @@ void GeGraphDefSetName(GeGraphDefHandle handle, const char* name) {
  * @param data base addr of graph
  * @param len size of graph
  */
-void GeGraphDefSetGraph(GeGraphDefHandle handle, const uint8_t* data, std::size_t len) {
+void GeGraphDefSetGraph(GeGraphDefHandle handle, const uint8_t *data, std::size_t len) {
   if (handle == nullptr) {
     LOGE("handle is nullptr");
     return;
@@ -153,7 +153,7 @@ void GeGraphDefSetGraph(GeGraphDefHandle handle, const uint8_t* data, std::size_
     return;
   }
 
-  auto* graph = static_cast<GeGraphDef *>(handle);
+  auto *graph = static_cast<GeGraphDef *>(handle);
   graph->mutable_graph()->ParseFromArray(data, static_cast<int>(len));
 }
 
@@ -162,14 +162,14 @@ void GeGraphDefSetGraph(GeGraphDefHandle handle, const uint8_t* data, std::size_
  * @param handle GeGraphDef instance
  * @return
  */
-const char* GeGraphDefToString(GeGraphDefConstHandle handle) {
+const char *GeGraphDefToString(GeGraphDefConstHandle handle) {
   if (handle == nullptr) {
     LOGE("handle is nullptr");
     return nullptr;
   }
 
   static thread_local std::string text;
-  const auto* graph = static_cast<const GeGraphDef *>(handle);
+  const auto *graph = static_cast<const GeGraphDef *>(handle);
 
   text = graph->DebugString();
   return text.c_str();

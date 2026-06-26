@@ -64,4 +64,3 @@ graphStatus Mc2GenTaskCallback(const gert::ExeResGenerationContext *context,
 ...
 }
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,15 +50,11 @@ void SetTensorDesc(ge::GeTensorDesc &desc) {
 ComputeGraphPtr BuildGraphWithManyInputs(const std::string &node_type, const size_t input_num) {
   DEF_GRAPH(g1) {
     // 第一个 Data -> Add -> NetOutput
-    CHAIN(NODE("data0", "Data")
-          ->NODE(node_type, node_type)
-          ->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data0", "Data")->NODE(node_type, node_type)->NODE("NetOutput", "NetOutput"));
 
     // data1 ~ data64 全部连到同一个 Add
     for (size_t i = 1; i < input_num; ++i) {
-      CHAIN(NODE(("data" + std::to_string(i)).c_str(), "Data")
-            ->EDGE(0, i)
-            ->NODE(node_type));
+      CHAIN(NODE(("data" + std::to_string(i)).c_str(), "Data")->EDGE(0, i)->NODE(node_type));
     }
   };
 
@@ -159,7 +155,6 @@ class BgTilingUT : public BgTestAutoCreateFrame {
   ValueHolderPtr fake_launch_arg_;
 };
 
-
 TEST_F(BgTilingUT, BgTiling_Ok_CachableTilingUnsupported) {
   // FakeAddN 由于没有 IR，因此在检查 IsDataDependent 时预期会失败
   IMPL_OP(FakeAddN).InputsDataDependency({0});
@@ -220,7 +215,6 @@ TEST_F(BgTilingUT, BgTiling_Ok_CachableTilingUnsupported) {
   TilingTopoCorrect(exe_graph, tiling_rets, io_shapes, platform);
   ASSERT_EQ(tiling_rets.size(), static_cast<size_t>(kernel::TilingExOutputIndex::kNum));
 }
-
 
 }  // namespace bg
 }  // namespace gert

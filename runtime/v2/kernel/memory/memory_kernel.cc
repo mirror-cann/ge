@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,8 +74,8 @@ ge::graphStatus SelectL1Allocator(KernelContext *context) {
       auto caching_mem_allocator = dynamic_cast<memory::CachingMemAllocator *>(allocator);
       if (caching_mem_allocator != nullptr) {
         caching_mem_allocator->SetStream(stream);
-        KERNEL_TRACE("caching_mem_allocator: %p, stream: %p, placement: %s",
-                     caching_mem_allocator, stream, GetPlacementStr(placement));
+        KERNEL_TRACE("caching_mem_allocator: %p, stream: %p, placement: %s", caching_mem_allocator, stream,
+                     GetPlacementStr(placement));
       }
       out_allocator->Set(allocator, nullptr);
       return ge::GRAPH_SUCCESS;
@@ -87,8 +87,8 @@ ge::graphStatus SelectL1Allocator(KernelContext *context) {
   auto caching_mem_allocator = dynamic_cast<memory::CachingMemAllocator *>(created_allocator);
   if (caching_mem_allocator != nullptr) {
     caching_mem_allocator->SetStream(stream);
-    KERNEL_TRACE("created_allocator: %p, stream: %p, placement: %s",
-                 caching_mem_allocator, stream, GetPlacementStr(placement));
+    KERNEL_TRACE("created_allocator: %p, stream: %p, placement: %s", caching_mem_allocator, stream,
+                 GetPlacementStr(placement));
   }
 
   out_allocator->Set(created_allocator, nullptr);
@@ -101,8 +101,7 @@ ge::graphStatus GetExternalL1Allocator(KernelContext *context) {
   GE_ASSERT_NOTNULL(out_allocator);
   auto placement = context->GetInputValue<TensorPlacement>(static_cast<size_t>(GetAllocatorInputs::kPlacement));
   if (placement >= kTensorPlacementEnd) {
-    GELOGE(ge::PARAM_INVALID, "Invalid placement or memory type, placement: %zu",
-           static_cast<size_t>(placement));
+    GELOGE(ge::PARAM_INVALID, "Invalid placement or memory type, placement: %zu", static_cast<size_t>(placement));
     return ge::GRAPH_FAILED;
   }
   auto external_allocator =
@@ -126,11 +125,10 @@ ge::graphStatus CreateInitL2Allocator(const ge::FastNode *node, KernelContext *c
   auto l2_allocators = context->GetInputPointer<TypedContinuousVector<GertAllocator *>>(
       static_cast<size_t>(CreateInitL2AllocatorInputs::kL2Allocators));
   GE_ASSERT_NOTNULL(l2_allocators);
-  GE_ASSERT_NOTNULL(l2_allocators->GetData()[0U]); // init in CreateL2Allocators
+  GE_ASSERT_NOTNULL(l2_allocators->GetData()[0U]);  // init in CreateL2Allocators
   const auto placement = reinterpret_cast<GertAllocator *>(l2_allocators->GetData()[0U])->GetPlacement();
   const auto stream_num = l2_allocators->GetSize();
-  KERNEL_TRACE("[MEM]create init l2 allocator, stream_num: %zu, placement: %s",
-               stream_num, GetPlacementStr(placement));
+  KERNEL_TRACE("[MEM]create init l2 allocator, stream_num: %zu, placement: %s", stream_num, GetPlacementStr(placement));
   if (stream_num > 1U) {
     auto init_l2_allocators_holder = ContinuousVector::Create<memory::MultiStreamL2Allocator *>(stream_num);
     GE_ASSERT_NOTNULL(init_l2_allocators_holder);
@@ -189,9 +187,7 @@ ge::graphStatus BindingL1Allocator(KernelContext *context) {
                l1_allocator);
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(CreateInitL2Allocator)
-    .RunFunc(BindingL1Allocator)
-    .OutputsCreator(CreateInitL2Allocator);
+REGISTER_KERNEL(CreateInitL2Allocator).RunFunc(BindingL1Allocator).OutputsCreator(CreateInitL2Allocator);
 
 static void MultiL2AllocatorsDeleter(void *ptr) {
   auto l2_allocators = reinterpret_cast<TypedContinuousVector<GertAllocator *> *>(ptr);
@@ -215,8 +211,7 @@ static void MultiL2AllocatorsDeleter(void *ptr) {
  */
 ge::graphStatus CreateL2Allocators(const ge::FastNode *node, KernelContext *context) {
   (void)node;
-  auto stream_num =
-      context->GetInputPointer<int64_t>(static_cast<size_t>(CreateL2AllocatorsInputs::kStreamNum));
+  auto stream_num = context->GetInputPointer<int64_t>(static_cast<size_t>(CreateL2AllocatorsInputs::kStreamNum));
   GE_ASSERT_NOTNULL(stream_num);
 
   TensorPlacement placement = kOnDeviceHbm;
@@ -232,8 +227,7 @@ ge::graphStatus CreateL2Allocators(const ge::FastNode *node, KernelContext *cont
 
   auto l2_allocators_holder = ContinuousVector::Create<GertAllocator *>(l2_allocators_size);
   GE_ASSERT_NOTNULL(l2_allocators_holder);
-  auto l2_allocators =
-      reinterpret_cast<TypedContinuousVector<GertAllocator *> *>(l2_allocators_holder.get());
+  auto l2_allocators = reinterpret_cast<TypedContinuousVector<GertAllocator *> *>(l2_allocators_holder.get());
   l2_allocators->SetSize(static_cast<size_t>(l2_allocators_size));
   KERNEL_TRACE("Create l2 allocators, num %zu", l2_allocators_size);
 
@@ -267,8 +261,7 @@ ge::graphStatus CreateL2Allocators(const ge::FastNode *node, KernelContext *cont
   GE_ASSERT_NOTNULL(l2_mem_pools_chain);
   auto deleter = [](void *ptr) { delete[] static_cast<uint8_t *>(ptr); };
   l2_mem_pools_chain->Set(all_l2_mem_pool_holder.release(), deleter);
-  KERNEL_TRACE("[MEM]create l2 allocators, stream_num: %zu, placement: %s",
-               *stream_num, GetPlacementStr(placement));
+  KERNEL_TRACE("[MEM]create l2 allocators, stream_num: %zu, placement: %s", *stream_num, GetPlacementStr(placement));
   return ge::GRAPH_SUCCESS;
 }
 
@@ -316,8 +309,8 @@ ge::graphStatus SelectL2Allocator(KernelContext *context) {
       static_cast<size_t>(SelectL2AllocatorInputs::kL2Allocators));
   GE_ASSERT_NOTNULL(l2_allocators);
   if (l2_allocators->GetSize() <= static_cast<size_t>(stream_id)) {
-    GELOGE(ge::PARAM_INVALID, "Failed to select allocator, invalid stream id %lld, should be less than %zu",
-           stream_id, l2_allocators->GetSize());
+    GELOGE(ge::PARAM_INVALID, "Failed to select allocator, invalid stream id %lld, should be less than %zu", stream_id,
+           l2_allocators->GetSize());
     return ge::PARAM_INVALID;
   }
 
@@ -338,8 +331,7 @@ ge::graphStatus SelectL2Allocator(KernelContext *context) {
   if (l2_allocators->GetSize() > 1U) {
     auto stream = context->GetInputValue<aclrtStream>(static_cast<size_t>(SelectL2AllocatorInputs::kStream));
     (reinterpret_cast<memory::MultiStreamL2Allocator *>(l2_allocator))->SetRtsStream(stream);
-    KERNEL_TRACE("[MEM]select l2 allocator, stream: %p, placement: %s",
-                 stream, GetPlacementStr(placement));
+    KERNEL_TRACE("[MEM]select l2 allocator, stream: %p, placement: %s", stream, GetPlacementStr(placement));
   } else {
     KERNEL_TRACE("[MEM]select l2 allocator, placement: %s", GetPlacementStr(placement));
   }
@@ -383,8 +375,7 @@ ge::graphStatus AllocHbmMem(KernelContext *context) {
     KERNEL_CHECK_NOTNULL(gert_tensor_data);
     auto gert_mem_block = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(tensor_size));
     KERNEL_CHECK((gert_mem_block != nullptr) && (gert_mem_block->GetAddr() != nullptr),
-                 "malloc failed, stream %" PRId64 ", tensor size=%zu, index=%zu",
-                 stream_id, tensor_size, i);
+                 "malloc failed, stream %" PRId64 ", tensor size=%zu, index=%zu", stream_id, tensor_size, i);
     *gert_tensor_data = TensorUtils::ToGertTensorData(gert_mem_block, placement, stream_id);
     KERNEL_TRACE(TRACE_STR_ALLOC_MEM ", tensor size %zu, index %zu", stream_id, gert_mem_block,
                  gert_mem_block->GetAddr(), gert_mem_block->GetSize(), tensor_size, i);
@@ -480,7 +471,7 @@ ge::graphStatus AllocBatchHbm(KernelContext *context) {
   FreeBatchHbm(addrs);
 
   auto sizes_data = sizes->GetData();
-  auto addrs_data = static_cast<GertTensorData**>(addrs->MutableData());
+  auto addrs_data = static_cast<GertTensorData **>(addrs->MutableData());
   KERNEL_CHECK_NOTNULL(sizes_data);
   KERNEL_CHECK_NOTNULL(addrs_data);
   addrs->SetSize(sizes->GetSize());
@@ -519,9 +510,9 @@ ge::graphStatus CreateAllocBatchHbmOutputs(const ge::FastNode *node, KernelConte
   GE_ASSERT_NOTNULL(chain);
   auto addrs = ContinuousVector::Create<GertTensorData *>(kMaxWorkspaceCount);
   GE_ASSERT_NOTNULL(addrs);
-  auto tensor_data_vec = reinterpret_cast<ContinuousVector*>(addrs.get());
+  auto tensor_data_vec = reinterpret_cast<ContinuousVector *>(addrs.get());
   tensor_data_vec->SetSize(kMaxWorkspaceCount);
-  auto tensor_data_addr = static_cast<GertTensorData**>(tensor_data_vec->MutableData());
+  auto tensor_data_addr = static_cast<GertTensorData **>(tensor_data_vec->MutableData());
   for (size_t i = 0; i < static_cast<size_t>(kMaxWorkspaceCount); i++) {
     tensor_data_addr[i] = new (std::nothrow) GertTensorData();
     GE_ASSERT_NOTNULL(tensor_data_addr[i]);
@@ -731,12 +722,10 @@ ge::graphStatus AccessMemCrossStreamOutputCreator(const ge::FastNode *, KernelCo
   chain->SetWithDefaultDeleter(td);
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(AccessMemCrossStream)
-    .RunFunc(AccessMemCrossStream)
-    .OutputsCreator(AccessMemCrossStreamOutputCreator);
+REGISTER_KERNEL(AccessMemCrossStream).RunFunc(AccessMemCrossStream).OutputsCreator(AccessMemCrossStreamOutputCreator);
 
 ge::graphStatus EmptyTensorData(KernelContext *context) {
-  (void) context;
+  (void)context;
   return ge::GRAPH_SUCCESS;
 }
 
@@ -748,11 +737,11 @@ ge::graphStatus GetUserAllocatorOrFixedBaseAllocator(KernelContext *context) {
   const auto placement = context->GetInputValue<TensorPlacement>(
       static_cast<size_t>(GerUserAllocatorOrFixedBaseAllocatorInputs::kPlacement));
   GE_ASSERT_TRUE((placement == kOnDeviceHbm) || (placement == kOnDeviceP2p),
-                 "placement[%s] is invalid, only support %s and %s",
-                 GetPlacementStr(placement), GetPlacementStr(kOnDeviceHbm), GetPlacementStr(kOnDeviceP2p));
+                 "placement[%s] is invalid, only support %s and %s", GetPlacementStr(placement),
+                 GetPlacementStr(kOnDeviceHbm), GetPlacementStr(kOnDeviceP2p));
   const rtMemType_t memory_type = placement == kOnDeviceHbm ? RT_MEMORY_HBM : RT_MEMORY_P2P_DDR;
-  const auto session_id_ptr = context->GetInputPointer<uint64_t>(
-      static_cast<size_t>(GerUserAllocatorOrFixedBaseAllocatorInputs::kSessionId));
+  const auto session_id_ptr =
+      context->GetInputPointer<uint64_t>(static_cast<size_t>(GerUserAllocatorOrFixedBaseAllocatorInputs::kSessionId));
   GE_CHECK_NOTNULL(session_id_ptr);
 
   /*
@@ -761,8 +750,8 @@ ge::graphStatus GetUserAllocatorOrFixedBaseAllocator(KernelContext *context) {
    *
    * 优先使用用户注册的allocator
    */
-  const auto stream = context->GetInputValue<aclrtStream>(static_cast<size_t>(
-      GerUserAllocatorOrFixedBaseAllocatorInputs::kStream));
+  const auto stream =
+      context->GetInputValue<aclrtStream>(static_cast<size_t>(GerUserAllocatorOrFixedBaseAllocatorInputs::kStream));
   if (stream != nullptr) {
     const auto external_allocator = ge::ExternalAllocatorManager::GetExternalAllocator(stream);
     if ((placement == kOnDeviceHbm) && (external_allocator != nullptr)) {
@@ -775,8 +764,9 @@ ge::graphStatus GetUserAllocatorOrFixedBaseAllocator(KernelContext *context) {
   // 使用固定地址，内存大小可扩展的allocator
   int32_t device_id = 0;
   aclrtGetDevice(&device_id);
-  ge::Allocator *allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(
-      *session_id_ptr, device_id, memory_type).get();
+  ge::Allocator *allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance()
+                                 .GetMemAllocator(*session_id_ptr, device_id, memory_type)
+                                 .get();
   GE_ASSERT_NOTNULL(allocator);
   allocator_chain->Set(allocator, nullptr);
   KERNEL_TRACE("[MEM]ger or create fixed base expandable allocator, device_id: %d, session_id: %llu, placement: %s",
@@ -793,16 +783,16 @@ ge::graphStatus AllocFixedFeatureMemory(KernelContext *context) {
   auto gert_tensor_data = context->GetOutputPointer<GertTensorData>(0U);
   KERNEL_CHECK_NOTNULL(gert_tensor_data);
 
-  auto allocator = context->GetInputValue<ge::Allocator *>(
-      static_cast<int32_t>(AllocFixedFeatureMemoryInputs::kAllocator));
+  auto allocator =
+      context->GetInputValue<ge::Allocator *>(static_cast<int32_t>(AllocFixedFeatureMemoryInputs::kAllocator));
   GE_ASSERT_NOTNULL(allocator);
   auto mem_block = allocator->Malloc(tensor_size);
   KERNEL_CHECK((mem_block != nullptr) && (mem_block->GetAddr() != nullptr), "allocator malloc %zu failed.",
                tensor_size);
   auto td = TensorUtils::ToTensorData(mem_block, mem_block->GetSize(), kOnDeviceHbm);
   GE_ASSERT_SUCCESS(TensorUtils::ShareTdToGtd(td, *l2_allocator, *gert_tensor_data));
-  KERNEL_TRACE("[MEM] alloc fixed_feature_memory, block: %p, addr: %p, size %zu",
-               mem_block, mem_block->GetAddr(), tensor_size);
+  KERNEL_TRACE("[MEM] alloc fixed_feature_memory, block: %p, addr: %p, size %zu", mem_block, mem_block->GetAddr(),
+               tensor_size);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -812,16 +802,14 @@ REGISTER_KERNEL(AllocFixedFeatureMemory)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
 ge::graphStatus FreeFixedFeatureMemory(KernelContext *context) {
-  auto gert_tensor_data = context->GetInputValue<GertTensorData *>(
-      static_cast<int32_t>(FreeFixedFeatureMemoryInputs::kGertTensorData));
+  auto gert_tensor_data =
+      context->GetInputValue<GertTensorData *>(static_cast<int32_t>(FreeFixedFeatureMemoryInputs::kGertTensorData));
   GE_ASSERT_NOTNULL(gert_tensor_data);
   KERNEL_TRACE("[MEM] free fixed_feature_memory, addr: %p", gert_tensor_data->GetAddr());
   (void)gert_tensor_data->Free();
   return ge::GRAPH_SUCCESS;
 }
 
-REGISTER_KERNEL(FreeFixedFeatureMemory)
-    .RunFunc(FreeFixedFeatureMemory)
-    .ConcurrentCriticalSectionKey(kKernelUseMemory);
+REGISTER_KERNEL(FreeFixedFeatureMemory).RunFunc(FreeFixedFeatureMemory).ConcurrentCriticalSectionKey(kKernelUseMemory);
 }  // namespace kernel
 }  // namespace gert

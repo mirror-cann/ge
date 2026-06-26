@@ -11,6 +11,7 @@
 # ----------------------------------------------------------------------------
 import argparse
 
+from common import build_add_graph, build_mul_graph
 from ge.offline_compile import (
     GraphWithOptions,
     build_finalize,
@@ -19,13 +20,15 @@ from ge.offline_compile import (
     bundle_save_model,
 )
 
-from common import build_add_graph, build_mul_graph
-
 
 def parse_bundle_args():
     parser = argparse.ArgumentParser(description="Build an offline bundle_model OM model from GE Python Graphs.")
-    parser.add_argument("--soc-version", type=str, default=None,
-                        help="Target soc version, for example Ascend910B1.")
+    parser.add_argument(
+        "--soc-version",
+        type=str,
+        default=None,
+        help="Target soc version, for example Ascend910B1.",
+    )
     return parser.parse_args()
 
 

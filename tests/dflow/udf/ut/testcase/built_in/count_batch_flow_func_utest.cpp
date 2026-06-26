@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -305,7 +305,7 @@ TEST_F(COUNT_BATCH_FLOW_FUNC_UTEST, proc_only_batchsize) {
 
   std::vector<int64_t> expert_shape = {batch_size, 3, 2};
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   for (uint32_t i = 0; i < batch_size; i++) {
@@ -335,7 +335,7 @@ TEST_F(COUNT_BATCH_FLOW_FUNC_UTEST, proc_batchsize_slide_stride) {
   input_msgs.emplace_back(mbuf_flow_msg);
   std::vector<int64_t> expert_shape = {batch_size, 3, 2};
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   for (uint32_t i = 0; i < batch_size * 2; ++i) {
@@ -365,7 +365,7 @@ TEST_F(COUNT_BATCH_FLOW_FUNC_UTEST, set_output_failed) {
   input_msgs.emplace_back(mbuf_flow_msg);
 
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_FAILED));
   for (uint32_t i = 0; i < batch_size + 2; ++i) {
@@ -397,7 +397,7 @@ TEST_F(COUNT_BATCH_FLOW_FUNC_UTEST, proc_batchsize_timeout) {
   input_msgs.emplace_back(mbuf_flow_msg);
 
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   for (uint32_t i = 0; i < batch_size + 2; ++i) {

@@ -29,7 +29,7 @@ cpp/
 
 ```bash
 
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 
 ### 3.2. Compilation and Execution
@@ -94,7 +94,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=0 #Log level is debug level
 During executable program execution, if you need to DUMP graph to assist debugging graph compilation process, you can set the following environment variable before bash run_sample.sh -t sample_and_run to DUMP graph to execution path
 
 ```bash
-export DUMP_GE_GRAPH=2 
+export DUMP_GE_GRAPH=2
 ```
 
 ## 4. Core Concept Introduction
@@ -118,21 +118,21 @@ Dynamic output refers to operators whose output count is not fixed; for example,
 For example, the Split operator prototype is shown below, the ES graph construction generated API is Split (C++) or EsSplit (C)
 
 ```bash
-  REG_OP(Split) 
-    .INPUT(split_dim, TensorType({DT_INT32})) 
-    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16, 
-     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8, 
+  REG_OP(Split)
+    .INPUT(split_dim, TensorType({DT_INT32}))
+    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
+     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
 
-     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, 
+     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
 
-     DT_BF16, DT_BOOL})) 
-    .DYNAMIC_OUTPUT(y, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16, 
-     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8, 
+     DT_BF16, DT_BOOL}))
+    .DYNAMIC_OUTPUT(y, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
+     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
 
-     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, 
+     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
 
-     DT_BF16, DT_BOOL})) 
-    .REQUIRED_ATTR(num_split, Int) 
+     DT_BF16, DT_BOOL}))
+    .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(Split)
 ```
 

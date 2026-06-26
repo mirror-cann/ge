@@ -44,24 +44,27 @@ using namespace ge;
 
 namespace {
 REG_OP(Cast)
-.INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                      DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                      DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* input tensor */
-.OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                       DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                       DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* output tensor */
-.ATTR(dst_type, Int, 0)
-.ATTR(truncate, Bool, false)
-.OP_END_FACTORY_REG(Cast)
+    .INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                          DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                          DT_QUINT16, DT_QINT32})) /* input tensor */
+    .OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                           DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                           DT_QUINT16, DT_QINT32})) /* output tensor */
+    .ATTR(dst_type, Int, 0)
+    .ATTR(truncate, Bool, false)
+    .OP_END_FACTORY_REG(Cast)
 
-REG_OP(TensorMove)
+        REG_OP(TensorMove)
     .INPUT(x, TensorType({DT_DOUBLE, DT_FLOAT16, DT_FLOAT, DT_INT32, DT_UINT32, DT_INT16, DT_UINT16, DT_INT8, DT_UINT8,
-                          DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_COMPLEX32, DT_COMPLEX64}))
+                          DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN,
+                          DT_COMPLEX32, DT_COMPLEX64}))
     .OUTPUT(y, TensorType({DT_DOUBLE, DT_FLOAT16, DT_FLOAT, DT_INT32, DT_UINT32, DT_INT16, DT_UINT16, DT_INT8, DT_UINT8,
-                           DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_COMPLEX32, DT_COMPLEX64}))
+                           DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN,
+                           DT_COMPLEX32, DT_COMPLEX64}))
     .OP_END_FACTORY_REG(TensorMove)
 
-bool SetTransDataTensorDesc(const ComputeGraphPtr &root_graph, const std::vector<std::string> &node_names, Format format = FORMAT_NCL) {
+        bool SetTransDataTensorDesc(const ComputeGraphPtr &root_graph, const std::vector<std::string> &node_names,
+                                    Format format = FORMAT_NCL) {
   GeTensorDesc tensor_desc{GeShape{{2022, 2023}}, format, DT_FLOAT16};
   std::map<std::string, NodePtr> all_transdata_map;
   for (auto &node : root_graph->GetAllNodes()) {
@@ -177,7 +180,7 @@ void SetWeightForConstNode(NodePtr &const_node) {
 const char *AddNYes = "AddNYes";
 const char *ShapeNo = "ShapeNo";
 class TestAddNKernel : public Kernel {
-public:
+ public:
   Status Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge::ConstGeTensorPtr> &input,
                  std::vector<ge::GeTensorPtr> &v_output) override {
     auto output = std::make_shared<GeTensor>();
@@ -192,17 +195,19 @@ public:
 };
 
 REGISTER_COMPUTE_NODE_KERNEL(AddNYes, TestAddNKernel);
-}
+}  // namespace
 
 class TensorMoveTest : public Test {
-  protected:
+ protected:
   void SetUp() {
     dlog_setlevel(0, 0, 0);
     std::map<std::string, std::string> options = {{"ge.oo.level", "O3"}};
     GetThreadLocalContext().SetGraphOption(options);
     GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
 
-    GeRunningEnvFaker().Reset().InstallDefault()
+    GeRunningEnvFaker()
+        .Reset()
+        .InstallDefault()
         .Install(FakeOp(AddNYes).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
         .Install(FakeOp(ShapeNo).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
         .Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("aicpu_ascend_kernel"));
@@ -246,17 +251,17 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_Deleted) {
   // sub_Data 的 ParentNodeIndex(0) 代表它对应父图中 PartitionedCall 的第 0 个 Input
   const auto sub_data_cfg = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("sub_data", sub_data_cfg)
-          ->NODE("sub_tensormove", TENSORMOVE)
-          ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_data", sub_data_cfg)->NODE("sub_tensormove", TENSORMOVE)->NODE("sub_netoutput", NETOUTPUT));
   };
 
   // 3. 构造父图 g1
   const auto data_cfg = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0);
   DEF_GRAPH(g1) {
     CHAIN(NODE("data", data_cfg)
-          ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-          ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   // 4. 将子图挂载到父图
@@ -270,8 +275,7 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_Deleted) {
   // 设置父子图关联属性
   sub_graph_1->SetParentGraph(compute_graph);
   sub_graph_1->SetParentNode(p_call_node);
-  NetoutputParentIndexes indexes{{"netoutput", {0}},
-                                 {"sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"netoutput", {0}}, {"sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   // 6. 执行 Pass
@@ -350,8 +354,7 @@ TEST_F(TensorMoveTest, TensorMove_WrapperSibling_Kept) {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE("Relu", RELU)->NODE("TensorMove", TENSORMOVE)->EDGE(0, 0)->NODE("NetOutput", NETOUTPUT));
-    CHAIN(NODE("Relu")->EDGE(0, 0)->NODE("PartitionedCall", PARTITIONEDCALL, sub)
-              ->EDGE(0, 1)->NODE("NetOutput"));
+    CHAIN(NODE("Relu")->EDGE(0, 0)->NODE("PartitionedCall", PARTITIONEDCALL, sub)->EDGE(0, 1)->NODE("NetOutput"));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -558,11 +561,9 @@ TEST_F(TensorMoveTest, TensorMove_BasicMultiRefWithWritableBranch_Kept) {
  *   arg11_1 ──► TensorMove    ──┐
  *                               ├──► MlaPrologV3[9]/[10]
  *   arg12_1 ──► TensorMove_1  ──┘          │
- *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► TensorMove_2    ─► ScatterNdUpdate[0]
- *                                          │                                               └─► IndexByTensor_2 ─► ScatterNdUpdate[2]
- *                                          │
- *                                          └─:3─► Squeeze_19 ─► Reshape_63 ─┬─► TensorMove_3    ─► ScatterNdUpdate_1[0]
- *                                                                           └─► IndexByTensor_3 ─► ScatterNdUpdate_1[2]
+ *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► TensorMove_2    ─►
+ * ScatterNdUpdate[0] │                                               └─► IndexByTensor_2 ─► ScatterNdUpdate[2] │ └─:3─►
+ * Squeeze_19 ─► Reshape_63 ─┬─► TensorMove_3    ─► ScatterNdUpdate_1[0] └─► IndexByTensor_3 ─► ScatterNdUpdate_1[2]
  *
  *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
  *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
@@ -737,11 +738,10 @@ TEST_F(TensorMoveTest, TensorMove_MlaDump70LeftTmP3P4_Deleted) {
  *   arg11_1 ──► TensorMove    ──┐
  *                               ├──► MlaPrologV3[9]/[10]
  *   arg12_1 ──► TensorMove_1  ──┘          │
- *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► Identity_28     ─► TensorMove_2 ─► ScatterNdUpdate[0]
- *                                          │                                               └─► IndexByTensor_2                  ─► ScatterNdUpdate[2]
- *                                          │
- *                                          └─:3─► Squeeze_19 ─► Reshape_63 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0]
- *                                                                           └─► IndexByTensor_3                  ─► ScatterNdUpdate_1[2]
+ *                                          ├─:2─► Reshape_60 ─► Reshape_61 ─► Reshape_62 ──┬─► Identity_28     ─►
+ * TensorMove_2 ─► ScatterNdUpdate[0] │                                               └─► IndexByTensor_2 ─►
+ * ScatterNdUpdate[2] │ └─:3─► Squeeze_19 ─► Reshape_63 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0] └─►
+ * IndexByTensor_3                  ─► ScatterNdUpdate_1[2]
  *
  *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
  *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
@@ -841,11 +841,10 @@ TEST_F(TensorMoveTest, TensorMove_MlaDump46CtrlIdentityBranches_Deleted) {
  *   arg11_1 ──► TensorMove    ──┐
  *                               ├──► MlaPrologV3[9]/[10]
  *   arg12_1 ──► TensorMove_1  ──┘          │
- *                                          ├─:2─► Reshape_23 ──┬─► Identity_28     ─► TensorMove_2 ─► ScatterNdUpdate[0]
- *                                          │                   └─► IndexByTensor_2                  ─► ScatterNdUpdate[2]
- *                                          │
- *                                          └─:3─► Squeeze_19 ─► Reshape_24 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0]
- *                                                                           └─► IndexByTensor_3                  ─► ScatterNdUpdate_1[2]
+ *                                          ├─:2─► Reshape_23 ──┬─► Identity_28     ─► TensorMove_2 ─►
+ * ScatterNdUpdate[0] │                   └─► IndexByTensor_2                  ─► ScatterNdUpdate[2] │ └─:3─► Squeeze_19
+ * ─► Reshape_24 ─┬─► Identity_29     ─► TensorMove_3 ─► ScatterNdUpdate_1[0] └─► IndexByTensor_3                  ─►
+ * ScatterNdUpdate_1[2]
  *
  *   arg19_1 ──► IndexByTensor_2[1]、IndexByTensor_3[1]
  *   arg25_1 ──► ScatterNdUpdate[1]、ScatterNdUpdate_1[1]
@@ -1069,25 +1068,32 @@ TEST_F(TensorMoveTest, TensorMove_NestedPCall_FromAdd_Deleted) {
   ge::GetThreadLocalContext().SetGraphOption(options);
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->EDGE(0, 0)->NODE("sub_sub_add1", ADD)
-                                   ->NODE("sub_sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("sub_sub_add1", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_tensor_move", TENSORMOVE)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_tensor_move", TENSORMOVE)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)
-                    ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                    ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1160,23 +1166,30 @@ TEST_F(TensorMoveTest, TensorMoveInSub_FromSubSubAdd_Deleted) {
   ge::GetThreadLocalContext().SetGraphOption(options);
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->EDGE(0, 0)->NODE("sub_sub_add1", ADD)
-                                   ->NODE("sub_sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("sub_sub_add1", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_tensor_move", TENSORMOVE)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_tensor_move", TENSORMOVE)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)
-                    ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                    ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1194,8 +1207,7 @@ TEST_F(TensorMoveTest, TensorMoveInSub_FromSubSubAdd_Deleted) {
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub_sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0, 1}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0, 1}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   ge::GEPass pass(compute_graph);
@@ -1257,24 +1269,32 @@ TEST_F(TensorMoveTest, TensorMoveInRootAndSub_FromSubSubAdd_Deleted) {
   ge::GetThreadLocalContext().SetGraphOption(options);
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->EDGE(0, 0)->NODE("sub_sub_add1", ADD)
-                                   ->NODE("sub_sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("sub_sub_add1", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_tensormove", TENSORMOVE)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_tensormove", TENSORMOVE)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)
-                    ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                    ->EDGE(0, 0)->NODE("tensormove", TENSORMOVE)
-                    ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("tensormove", TENSORMOVE)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1293,8 +1313,7 @@ TEST_F(TensorMoveTest, TensorMoveInRootAndSub_FromSubSubAdd_Deleted) {
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub_sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0, 1}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0, 1}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   ge::GEPass pass(compute_graph);
@@ -1352,21 +1371,26 @@ TEST_F(TensorMoveTest, TensorMoveInRootAndIfSub_ViaTransData_Deleted) {
   dlog_setlevel(0, 0, 0);
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)
-              ->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
     CHAIN(NODE("if_sub_data", if_sub_data)
-              ->EDGE(0, 0)->NODE("if_transdata", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("if_transdata", TRANSDATA)
               ->NODE("if_tensormove", TENSORMOVE)
               ->NODE("if_relu", RELU)
-              ->Ctrl()->NODE("if_sub_netoutput", NETOUTPUT));
+              ->Ctrl()
+              ->NODE("if_sub_netoutput", NETOUTPUT));
   };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
     CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
   };
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("relu", RELU)->NODE("if", IF, if_sub, then_sub)->NODE("transdata", TRANSDATA)
-              ->NODE("tensormove", TENSORMOVE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("relu", RELU)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("tensormove", TENSORMOVE)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   auto compute_graph = ToComputeGraph(g1);
@@ -1433,20 +1457,26 @@ TEST_F(TensorMoveTest, TensorMove_RootDeleted_SubKept_DueToSourceBranching) {
   dlog_setlevel(0, 0, 0);
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)
-              ->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
     CHAIN(NODE("if_sub_data", if_sub_data)
-              ->EDGE(0, 0)->NODE("if_tensormove", TENSORMOVE)
-              ->EDGE(0, 0)->NODE("if_relu", RELU)
-              ->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
+              ->EDGE(0, 0)
+              ->NODE("if_tensormove", TENSORMOVE)
+              ->EDGE(0, 0)
+              ->NODE("if_relu", RELU)
+              ->EDGE(0, 0)
+              ->NODE("if_sub_netoutput", NETOUTPUT));
   };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
     CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
   };
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("relu", RELU)->NODE("if", IF, if_sub, then_sub)->NODE("transdata", TRANSDATA)
-              ->NODE("tensormove", TENSORMOVE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("relu", RELU)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("tensormove", TENSORMOVE)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   auto compute_graph = ToComputeGraph(g1);
@@ -1512,16 +1542,23 @@ TEST_F(TensorMoveTest, TensorMove_RootDeleted_SubInIfKept_DueToIfOp) {
   dlog_setlevel(0, 0, 0);
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_tensormove", TENSORMOVE)
-              ->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("if_tensormove", TENSORMOVE)
+              ->EDGE(0, 0)
+              ->NODE("if_sub_netoutput", NETOUTPUT));
   };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
     CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
   };
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("relu", RELU)->NODE("if", IF, if_sub, then_sub)->NODE("transdata", TRANSDATA)
-              ->NODE("tensormove", TENSORMOVE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("relu", RELU)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("tensormove", TENSORMOVE)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   auto compute_graph = ToComputeGraph(g1);
@@ -1586,19 +1623,22 @@ TEST_F(TensorMoveTest, TensorMove_InRootAndSub_ConnectedToIf_Kept) {
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
     CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 1)->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 1)->NODE("if_sub_netoutput", NETOUTPUT));
     CHAIN(NODE("if_sub_data", if_sub_data)
-              ->EDGE(0, 1)->NODE("if_sub_netoutput", NETOUTPUT));
-    CHAIN(NODE("if_sub_data", if_sub_data)
-              ->EDGE(0, 0)->NODE("if_tensormove", TENSORMOVE)
-              ->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
+              ->EDGE(0, 0)
+              ->NODE("if_tensormove", TENSORMOVE)
+              ->EDGE(0, 0)
+              ->NODE("if_sub_netoutput", NETOUTPUT));
   };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
     CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
   };
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("if", IF, if_sub, then_sub)
-              ->NODE("tensormove", TENSORMOVE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("tensormove", TENSORMOVE)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   auto compute_graph = ToComputeGraph(g1);
@@ -1655,17 +1695,17 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_Deleted2) {
   // sub_Data 的 ParentNodeIndex(0) 代表它对应父图中 PartitionedCall 的第 0 个 Input
   const auto sub_data_cfg = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("sub_data", sub_data_cfg)
-          ->NODE("sub_tensormove", TENSORMOVE)
-          ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_data", sub_data_cfg)->NODE("sub_tensormove", TENSORMOVE)->NODE("sub_netoutput", NETOUTPUT));
   };
 
   // 3. 构造父图 g1
   const auto data_cfg = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0);
   DEF_GRAPH(g1) {
     CHAIN(NODE("data", data_cfg)
-          ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-          ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   // 4. 将子图挂载到父图
@@ -1679,8 +1719,7 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_Deleted2) {
   // 设置父子图关联属性
   sub_graph_1->SetParentGraph(compute_graph);
   sub_graph_1->SetParentNode(p_call_node);
-  NetoutputParentIndexes indexes{{"netoutput", {0}},
-                                 {"sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"netoutput", {0}}, {"sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   // 6. 执行 Pass
@@ -1708,17 +1747,17 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_NotDeleted) {
   // sub_Data 的 ParentNodeIndex(0) 代表它对应父图中 PartitionedCall 的第 0 个 Input
   const auto sub_data_cfg = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("sub_data", sub_data_cfg)
-          ->NODE("sub_tensormove", TENSORMOVE)
-          ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_data", sub_data_cfg)->NODE("sub_tensormove", TENSORMOVE)->NODE("sub_netoutput", NETOUTPUT));
   };
 
   // 3. 构造父图 g1
   const auto data_cfg = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0);
   DEF_GRAPH(g1) {
     CHAIN(NODE("data", data_cfg)
-          ->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-          ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->EDGE(0, 0)
+              ->NODE("netoutput", NETOUTPUT));
   };
 
   // 4. 将子图挂载到父图
@@ -1732,8 +1771,7 @@ TEST_F(TensorMoveTest, TensorMoveInSubgraph_FromParentData_NotDeleted) {
   // 设置父子图关联属性
   sub_graph_1->SetParentGraph(compute_graph);
   sub_graph_1->SetParentNode(p_call_node);
-  NetoutputParentIndexes indexes{{"netoutput", {0}},
-                                 {"sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"netoutput", {0}}, {"sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   // 6. 执行 Pass
@@ -1850,20 +1888,20 @@ TEST_F(TensorMoveTest, Add_InnerIdentity2) {
 TEST_F(TensorMoveTest, Add_InnerIdentity3) {
   DEF_GRAPH(g1) {
     auto assign1 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Build("assign1");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Build("assign1");
     auto assign2 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Build("assign2");
-    CHAIN(NODE("data",DATA)->NODE("relu", RELU)->NODE(assign1));
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Build("assign2");
+    CHAIN(NODE("data", DATA)->NODE("relu", RELU)->NODE(assign1));
     CHAIN(NODE("data")->EDGE(0, 1)->NODE(assign1));
     CHAIN(NODE("relu")->EDGE(0, 0)->NODE(assign2));
     CHAIN(NODE("data")->EDGE(0, 1)->NODE(assign2));

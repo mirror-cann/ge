@@ -21,12 +21,9 @@
 
 namespace ge {
 namespace fusion {
-Status RunPatternFusion(GraphPtr &graph,
-                        CustomPassContext &pass_context,
-                        const PatternMatcherConfig &match_config_template,
-                        std::vector<PatternUniqPtr> patterns,
-                        const MeetRequirementsFn &meet_requirements,
-                        const ReplacementFn &replacement) {
+Status RunPatternFusion(GraphPtr &graph, CustomPassContext &pass_context,
+                        const PatternMatcherConfig &match_config_template, std::vector<PatternUniqPtr> patterns,
+                        const MeetRequirementsFn &meet_requirements, const ReplacementFn &replacement) {
   bool is_changed = false;
   std::string pass_name = pass_context.GetPassName().GetString();
   for (auto &pattern : patterns) {
@@ -73,8 +70,8 @@ Status RunPatternFusion(GraphPtr &graph,
     AscendString pattern_name;
     GE_ASSERT_GRAPH_SUCCESS(pattern_graph.GetName(pattern_name));
     auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
-    FusionUtils::RecordFusionStatistic(compute_graph->GetSessionID(), to_string(compute_graph->GetGraphID()),
-                                       pass_name, match_times, effect_times);
+    FusionUtils::RecordFusionStatistic(compute_graph->GetSessionID(), to_string(compute_graph->GetGraphID()), pass_name,
+                                       match_times, effect_times);
     GELOGD("GraphId[%d], GraphFusionPass[%s]: pattern=%s, matched_times=%d, effected_times=%d",
            compute_graph->GetGraphID(), pass_name.c_str(), pattern_name.GetString(), match_times, effect_times);
   }
@@ -90,5 +87,5 @@ Status RunPatternFusion(GraphPtr &graph,
   }
   return is_changed ? SUCCESS : NOT_CHANGED;
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,7 +58,7 @@ std::vector<std::string> SetOutputShapeKernelTrace(const KernelContext *context)
 
 ge::graphStatus SetOutputShapeProforUint32(KernelContext *context, const size_t output_size,
                                            const std::unique_ptr<uint8_t[]> host_shapebuffer) {
-  const auto output_shapes_data = reinterpret_cast<uint32_t(*)[kShapeBufferNum]>(host_shapebuffer.get());
+  const auto output_shapes_data = reinterpret_cast<uint32_t (*)[kShapeBufferNum]>(host_shapebuffer.get());
   for (size_t i = 0U; i < output_size; ++i) {
     auto output_shape = context->GetOutputPointer<StorageShape>(i);
     if (output_shape == nullptr) {
@@ -83,7 +83,7 @@ ge::graphStatus SetOutputShapeProforUint32(KernelContext *context, const size_t 
 
 ge::graphStatus SetOutputShapeProforUint64(KernelContext *context, const size_t output_size,
                                            const std::unique_ptr<uint8_t[]> host_shapebuffer) {
-  const auto output_shapes_data = reinterpret_cast<uint64_t(*)[kShapeBufferNum]>(host_shapebuffer.get());
+  const auto output_shapes_data = reinterpret_cast<uint64_t (*)[kShapeBufferNum]>(host_shapebuffer.get());
   for (size_t i = 0U; i < output_size; ++i) {
     auto output_shape = context->GetOutputPointer<StorageShape>(i);
     if (output_shape == nullptr) {
@@ -122,14 +122,15 @@ ge::graphStatus SetOutputShape(KernelContext *context) {
   }
   KLOGD("The value of shapebuffer_size is %zu, shapebuffer_addr->GetAddr() is %zu", shapebuffer_size,
         shapebuffer_addr->GetSize());
-aclError ret = aclrtMemcpy(host_shapebuffer.get(), static_cast<uint64_t>(shapebuffer_size), shapebuffer_addr->GetAddr(),
-                            static_cast<uint64_t>(shapebuffer_size), ACL_MEMCPY_DEVICE_TO_HOST);
+  aclError ret =
+      aclrtMemcpy(host_shapebuffer.get(), static_cast<uint64_t>(shapebuffer_size), shapebuffer_addr->GetAddr(),
+                  static_cast<uint64_t>(shapebuffer_size), ACL_MEMCPY_DEVICE_TO_HOST);
   if (ret != RT_ERROR_NONE) {
     KLOGE("Failed to copy shape buffer data from device to host for op [%s, %s].", compute_node_info->GetNodeName(),
           compute_node_info->GetNodeType());
     return ge::GRAPH_FAILED;
   }
-  const auto output_shapes_data_check = reinterpret_cast<uint32_t(*)[kShapeBufferNum]>(host_shapebuffer.get());
+  const auto output_shapes_data_check = reinterpret_cast<uint32_t (*)[kShapeBufferNum]>(host_shapebuffer.get());
   if (GetBitStatu(output_shapes_data_check[0][0], kDataTypeFlagBit) == OutputShapeDtype::ISUINT64) {
     return SetOutputShapeProforUint64(context, output_size, std::move(host_shapebuffer));
   } else {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ NodePtr GraphBuilder::AddNode(const std::string &name, const std::string &type, 
 
   int64_t tensor_size = 0;
   TensorUtils::CalcTensorMemSize(tensor_desc->GetShape(), format, data_type, tensor_size);
-  tensor_size = (tensor_size + 32 - 1 ) / 32 * 32;
+  tensor_size = (tensor_size + 32 - 1) / 32 * 32;
   tensor_size += 32;
   TensorUtils::SetSize(*tensor_desc, tensor_size);
 
@@ -63,7 +63,7 @@ NodePtr GraphBuilder::AddNode(const string &name, const string &type, std::initi
   for (auto &input_name : input_names) {
     op_desc->AddInputDesc(input_name, tensor_desc->Clone());
   }
-  for (auto &output_name :output_names) {
+  for (auto &output_name : output_names) {
     op_desc->AddOutputDesc(output_name, tensor_desc->Clone());
   }
 
@@ -194,8 +194,7 @@ ComputeGraphPtr BuildGraphForNetoutputNotReuseData() {
   //     netoutput2
   auto p_sub_builder = block_mem_ut::GraphBuilder("partitioned_call_sub");
 
-  const auto
-      &data2 = p_sub_builder.AddNode("data2", DATA, 1, 1);
+  const auto &data2 = p_sub_builder.AddNode("data2", DATA, 1, 1);
   const auto &b = p_sub_builder.AddNode("b", ADD, 1, 1);
   const auto &c = p_sub_builder.AddNode("c", ADD, 1, 1);
   const auto &netoutput2 = p_sub_builder.AddNode("netoutput2", NETOUTPUT, 1, 0);
@@ -230,27 +229,37 @@ ComputeGraphPtr BuildGraphForNetoutputNotReuseData() {
  *          d
  */
 ComputeGraphPtr BuildRefNodeConnectContinuousInputNode() {
-  auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_CONTINUOUS_INPUT, true).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
-  auto hcombroadcast2 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_CONTINUOUS_INPUT, true).Attr(ATTR_NAME_REFERENCE, true).InNames({"x", "y", "z"}).OutNames({"x", "y", "z"});
+  auto hcombroadcast = OP_CFG(HCOMBROADCAST)
+                           .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                           .Attr(ATTR_NAME_REFERENCE, true)
+                           .InNames({"x"})
+                           .OutNames({"x"});
+  auto hcombroadcast2 = OP_CFG(HCOMBROADCAST)
+                            .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                            .Attr(ATTR_NAME_REFERENCE, true)
+                            .InNames({"x", "y", "z"})
+                            .OutNames({"x", "y", "z"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("hcombroadcast2", hcombroadcast2)->NODE("d", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("hcombroadcast2", hcombroadcast2));
-                  CHAIN(NODE("c", CAST)->NODE("hcombroadcast2", hcombroadcast2));
-                };
+    CHAIN(NODE("a", CAST)->NODE("hcombroadcast2", hcombroadcast2)->NODE("d", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("hcombroadcast2", hcombroadcast2));
+    CHAIN(NODE("c", CAST)->NODE("hcombroadcast2", hcombroadcast2));
+  };
 
   auto graph = ToComputeGraph(g1);
   for (auto &node : graph->GetAllNodes()) {
     for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
       auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
 
     for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
       auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*in_tensor, tensor_size);
     }
   }
@@ -267,11 +276,15 @@ ComputeGraphPtr BuildRefNodeConnectContinuousInputNode() {
  *               c
  */
 ComputeGraphPtr BuildSingleNoPaddingContinuousConnectContinuousInputNode() {
-  auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_CONTINUOUS_INPUT, true).Attr(ATTR_NAME_REFERENCE, true).InNames({"x", "y"}).OutNames({"x", "y"});
+  auto hcombroadcast = OP_CFG(HCOMBROADCAST)
+                           .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                           .Attr(ATTR_NAME_REFERENCE, true)
+                           .InNames({"x", "y"})
+                           .OutNames({"x", "y"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("PhonyConcat", PHONYCONCAT)->NODE("hcombroadcast", hcombroadcast)->NODE("c", CAST));
-                  CHAIN(NODE("b", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("c", CAST)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("PhonyConcat", PHONYCONCAT)->NODE("hcombroadcast", hcombroadcast)->NODE("c", CAST));
+    CHAIN(NODE("b", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("c", CAST)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
 
@@ -284,14 +297,16 @@ ComputeGraphPtr BuildSingleNoPaddingContinuousConnectContinuousInputNode() {
     for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
       auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
 
     for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
       auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*in_tensor, tensor_size);
     }
   }
@@ -315,7 +330,12 @@ ComputeGraphPtr BuildSingleNoPaddingContinuousConnectContinuousInputNode() {
  */
 ComputeGraphPtr BuildNoPaddingContinuousMultiInputDiffStream() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("a", CAST)->NODE("b", CAST)->NODE("d", CAST)->NODE("PhonyConcat", PHONYCONCAT)->NODE("g", CAST));
+    CHAIN(NODE("data", DATA)
+              ->NODE("a", CAST)
+              ->NODE("b", CAST)
+              ->NODE("d", CAST)
+              ->NODE("PhonyConcat", PHONYCONCAT)
+              ->NODE("g", CAST));
     CHAIN(NODE("a", CAST)->Ctrl()->NODE("c", CAST)->NODE("PhonyConcat", PHONYCONCAT));
   };
 
@@ -391,10 +411,10 @@ ComputeGraphPtr BuildNoPaddingContinuousMultiInputDiffStream() {
  */
 ComputeGraphPtr BuildNoPaddingContinuousAndMultiStreamGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("c", CAST)->NODE("d", CAST)->NODE("PhonyConcat", PHONYCONCAT)->NODE("g", CAST));
-                  CHAIN(NODE("b", CAST)->Ctrl()->NODE("c", CAST));
-                  CHAIN(NODE("b", CAST)->NODE("PhonyConcat", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("c", CAST)->NODE("d", CAST)->NODE("PhonyConcat", PHONYCONCAT)->NODE("g", CAST));
+    CHAIN(NODE("b", CAST)->Ctrl()->NODE("c", CAST));
+    CHAIN(NODE("b", CAST)->NODE("PhonyConcat", PHONYCONCAT));
+  };
 
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSortingGraph();
@@ -490,7 +510,8 @@ ComputeGraphPtr BuildSubGraphWithDiffStream() {
   auto p0_sub_builder = block_mem_ut::GraphBuilder("partitioncall0_sub");
   const auto &partitioncall_0_data = p0_sub_builder.AddNode("partitioncall_0_data", DATA, 1, 1, 1, {1, 1, 48, 448});
   const auto &b = p0_sub_builder.AddNode("b", ADD, 1, 1, 1, {1, 1, 448, 448});
-  const auto &partitioncall_0_netoutput = p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
+  const auto &partitioncall_0_netoutput =
+      p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
   AttrUtils::SetInt(partitioncall_0_data->GetOpDesc(), "_parent_node_index", 0);
   AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
   partitioncall_0_data->GetOpDescBarePtr()->SetOpKernelLibName(kEngineNameGeLocal);
@@ -557,7 +578,8 @@ ComputeGraphPtr BuildKnownSubGraph() {
   const auto &b = p0_sub_builder.AddNode("b", ADD, 1, 1, 1, {1, 1, 448, 448});
   const auto &c = p0_sub_builder.AddNode("c", ADD, 1, 1, 1, {1, 1, 448, 448});
   const auto &d = p0_sub_builder.AddNode("d", ADD, 1, 1, 1, {1, 2, 448, 448});
-  const auto &partitioncall_0_netoutput = p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
+  const auto &partitioncall_0_netoutput =
+      p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
   AttrUtils::SetInt(partitioncall_0_data->GetOpDesc(), "_parent_node_index", 0);
   AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
   partitioncall_0_data->GetOpDescBarePtr()->SetOpKernelLibName(kEngineNameGeLocal);
@@ -575,7 +597,7 @@ ComputeGraphPtr BuildKnownSubGraph() {
 
   root_graph->AddSubGraph(sub_graph0);
   root_graph->TopologicalSorting();
-  (void) AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
+  (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   (void)AttrUtils::SetBool(root_graph, ATTR_NAME_GRAPH_UNKNOWN_FLAG, true);
   return root_graph;
 }
@@ -696,7 +718,8 @@ ComputeGraphPtr BuildSingleOutputConnectMultiStreamAndRefNode3() {
   output_name_idx2.insert(std::make_pair(input_name2, 0));
   ref_node2->GetOpDescBarePtr()->UpdateOutputName(output_name_idx2);
 
-  MemConflictShareGraph::TopologicalSortingMock(root_graph, {"data", "a", "b", "RefNode", "c", "d", "RefNode2", "e", "f"});
+  MemConflictShareGraph::TopologicalSortingMock(root_graph,
+                                                {"data", "a", "b", "RefNode", "c", "d", "RefNode2", "e", "f"});
   std::cout << "topo sort: " << std::endl;
   for (auto n : root_graph->GetDirectNode()) {
     std::cout << n->GetName() << "(" << n->GetOpDesc()->GetId() << ") ";
@@ -752,7 +775,7 @@ ComputeGraphPtr BuildSingleOutputConnectMultiStreamAndRefNode2() {
 
   // 为了保证topo排序时，b ref_node ref_nodes2
   root_builder.AddControlEdge(b, ref_node);
-  root_builder.AddControlEdge(d, ref_node2); // 与BuildSingleOutputConnectMultiStreamAndRefNode3的差异就是这个
+  root_builder.AddControlEdge(d, ref_node2);  // 与BuildSingleOutputConnectMultiStreamAndRefNode3的差异就是这个
 
   const auto &root_graph = root_builder.GetGraph();
   for (auto node : root_graph->GetDirectNode()) {
@@ -820,7 +843,8 @@ ComputeGraphPtr BuildDataRefConst() {
   auto p0_sub_builder = block_mem_ut::GraphBuilder("partitioncall0_sub");
   const auto &partitioncall_0_data = p0_sub_builder.AddNode("partitioncall_0_data", DATA, 1, 1, 1, {1, 1, 48, 448});
   const auto &b = p0_sub_builder.AddNode("b", ADD, 1, 1, 1, {1, 1, 448, 448});
-  const auto &partitioncall_0_netoutput = p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
+  const auto &partitioncall_0_netoutput =
+      p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
   AttrUtils::SetInt(partitioncall_0_data->GetOpDesc(), "_parent_node_index", 0);
   AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
 
@@ -921,7 +945,8 @@ ComputeGraphPtr BuildReuseWithOutNodeWrapper() {
   const auto &partitioncall_0_data = p0_sub_builder.AddNode("partitioncall_0_data", DATA, 1, 1, 1, {1, 1, 448, 448});
   const auto &b = p0_sub_builder.AddNode("b", ADD, 1, 1, 1, {1, 1, 448, 448});
   const auto &c = p0_sub_builder.AddNode("c", ADD, 1, 1, 1, {1, 1, 448, 448});
-  const auto &partitioncall_0_netoutput = p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
+  const auto &partitioncall_0_netoutput =
+      p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
   AttrUtils::SetInt(partitioncall_0_data->GetOpDesc(), "_parent_node_index", 0);
   AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
 
@@ -985,10 +1010,11 @@ ComputeGraphPtr BuildAtomicCleanNotReuseSubGraphData() {
   const auto &c = p0_sub_builder.AddNode("c", ADD, 1, 1, 1, {1, 1, 448, 448});
   const auto &memset = p0_sub_builder.AddNode("memset", MEMSET, 0, 0, 1, {1, 1, 448, 448});
   const auto &hcom = p0_sub_builder.AddNode("hcom", HCOMALLREDUCE, 1, 1, 1, {1, 1, 448, 448});
-  const auto &partitioncall_0_netoutput = p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
+  const auto &partitioncall_0_netoutput =
+      p0_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 0, 1, {1, 1, 448, 448});
   AttrUtils::SetInt(partitioncall_0_data->GetOpDesc(), "_parent_node_index", 0);
   AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
-  std::vector<int64_t> atomic_input_index {-1};
+  std::vector<int64_t> atomic_input_index{-1};
   (void)ge::AttrUtils::SetListInt(hcom->GetOpDescBarePtr(), ATOMIC_ATTR_INPUT_INDEX, atomic_input_index);
   // workspace memory size
   p0_sub_builder.AddDataEdge(partitioncall_0_data, 0, b, 0);
@@ -1026,7 +1052,8 @@ ComputeGraphPtr BuildAtomicCleanNotReuseSubGraphData() {
 ComputeGraphPtr BuildGraphWithDtVariant() {
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &data = root_builder.AddNode("data", DATA, 0, 1, 1, {1, 1, 44, 448});
-  const auto &tensor_list_length = root_builder.AddNode("tensor_list_length", "TensorListLenght", 1, 1, 1, {1, 1, 44, 448});
+  const auto &tensor_list_length =
+      root_builder.AddNode("tensor_list_length", "TensorListLenght", 1, 1, 1, {1, 1, 44, 448});
   const auto &add1 = root_builder.AddNode("add1", ADD, 1, 1, 1, {1, 1, 44, 448});
   const auto &add2 = root_builder.AddNode("add2", ADD, 1, 1, 1, {1, 1, 44, 448});
   const auto &add3 = root_builder.AddNode("add3", ADD, 1, 1, 1, {1, 1, 44, 448});
@@ -1325,7 +1352,8 @@ ComputeGraphPtr BuildPhonyConcatCascatedConnectRefNode() {
 
   auto pc3_tensor = pc3->GetOpDescBarePtr()->MutableOutputDesc(0);
   int64_t pc3_out_size;
-  TensorUtils::CalcTensorMemSize(pc3_tensor->GetShape(), pc3_tensor->GetFormat(), pc3_tensor->GetDataType(), pc3_out_size);
+  TensorUtils::CalcTensorMemSize(pc3_tensor->GetShape(), pc3_tensor->GetFormat(), pc3_tensor->GetDataType(),
+                                 pc3_out_size);
   TensorUtils::SetSize(*pc3->GetOpDescBarePtr()->MutableOutputDesc(0), pc3_out_size);
 
   builder.AddDataEdge(a, 0, pc1, 0);
@@ -1566,38 +1594,31 @@ ComputeGraphPtr BuildPhonyConcatWithSameInputThrougRefNode2() {
  */
 ComputeGraphPtr AtomicNodeConnectReShapeConnectNetoutput() {
   DEF_GRAPH(graph) {
-                     auto atomic_memset = OP_CFG(MEMSET)
-                         .InCnt(0)
-                         .OutCnt(0);
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(0).OutCnt(0);
 
-                     auto scatter_nd = OP_CFG("AtomicNode")
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 448});
+    auto scatter_nd = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16, 448});
 
-                     auto reshape = OP_CFG(RESHAPE)
-                         .InCnt(2)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+    auto reshape = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
 
-                     auto net_output = OP_CFG(NETOUTPUT)
-                         .InCnt(1)
-                         .OutCnt(0)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
 
-                     CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("scatter_nd", scatter_nd)->NODE("reshape", reshape)->NODE("netoutput", net_output));
-                     CHAIN(NODE("a", RELU)->NODE("reshape", reshape));
-                     CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("reshape", reshape));
-                   };
+    CHAIN(NODE("mem_set", atomic_memset)
+              ->Ctrl()
+              ->NODE("scatter_nd", scatter_nd)
+              ->NODE("reshape", reshape)
+              ->NODE("netoutput", net_output));
+    CHAIN(NODE("a", RELU)->NODE("reshape", reshape));
+    CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("reshape", reshape));
+  };
   auto root_graph = ToComputeGraph(graph);
 
   auto atomic_node = root_graph->FindNode("scatter_nd");
   std::vector<int32_t> data_list = {ge::DataType::DT_INT16};
   std::vector<int32_t> int_list = {0x1};
   std::vector<float32_t> float_list = {};
-  (void) AttrUtils::SetListInt(atomic_node->GetOpDesc(), "tbe_op_atomic_dtypes", data_list);
-  (void) AttrUtils::SetListInt(atomic_node->GetOpDesc(), "tbe_op_atomic_int64_values", int_list);
-  (void) AttrUtils::SetListFloat(atomic_node->GetOpDesc(), "tbe_op_atomic_float_values", float_list);
+  (void)AttrUtils::SetListInt(atomic_node->GetOpDesc(), "tbe_op_atomic_dtypes", data_list);
+  (void)AttrUtils::SetListInt(atomic_node->GetOpDesc(), "tbe_op_atomic_int64_values", int_list);
+  (void)AttrUtils::SetListFloat(atomic_node->GetOpDesc(), "tbe_op_atomic_float_values", float_list);
 
   EXPECT_EQ(AttrUtils::SetBool(atomic_node->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, {0}), true);
@@ -1632,10 +1653,8 @@ ComputeGraphPtr AtomicNodeConnectReShapeConnectNetoutput() {
 ComputeGraphPtr BuildAtomicCleanInputGraph() {
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int32_t> input_indexes = {-1};
-  auto hcom = OP_CFG(HCOMALLREDUCE).Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
-                  .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
-  auto add1 = OP_CFG(ADD).Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true)
-                  .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+  auto hcom = OP_CFG(HCOMALLREDUCE).Attr(ATTR_NAME_CONTINUOUS_INPUT, true).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+  auto add1 = OP_CFG(ADD).Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
   auto netout = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
@@ -1650,7 +1669,7 @@ ComputeGraphPtr BuildAtomicCleanInputGraph() {
   auto compute_graph = ToComputeGraph(g1);
   auto hcom_1 = compute_graph->FindNode("hcom_1");
   auto op_desc = hcom_1->GetOpDesc();
-  (void) ge::AttrUtils::SetListInt(op_desc, ATOMIC_ATTR_INPUT_INDEX, input_indexes);
+  (void)ge::AttrUtils::SetListInt(op_desc, ATOMIC_ATTR_INPUT_INDEX, input_indexes);
 
   for (auto &node : compute_graph->GetAllNodes()) {
     for (auto &input_name : node->GetOpDesc()->GetAllInputNames()) {
@@ -1683,28 +1702,21 @@ ComputeGraphPtr BuildAtomicCleanInputGraph() {
  */
 ComputeGraphPtr BuildAtomicCleanWorkspaceGraph() {
   DEF_GRAPH(graph) {
-                     auto atomic_memset = OP_CFG(MEMSET)
-                         .InCnt(0)
-                         .OutCnt(0);
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(0).OutCnt(0);
 
-                     auto scatter_nd = OP_CFG("AtomicNode")
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 448});
+    auto scatter_nd = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16, 448});
 
-                     auto add = OP_CFG(ADD)
-                         .InCnt(2)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+    auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
 
-                     auto net_output = OP_CFG(NETOUTPUT)
-                         .InCnt(1)
-                         .OutCnt(0)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
-                     CHAIN(NODE("a", RELU)->NODE("b", add));
-                     CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("scatter_nd", scatter_nd)->NODE("b", add)->NODE("netoutput", net_output));
-                     CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("b", add));
-                   };
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_INT32, {16, 224});
+    CHAIN(NODE("a", RELU)->NODE("b", add));
+    CHAIN(NODE("mem_set", atomic_memset)
+              ->Ctrl()
+              ->NODE("scatter_nd", scatter_nd)
+              ->NODE("b", add)
+              ->NODE("netoutput", net_output));
+    CHAIN(NODE("mem_set", atomic_memset)->Ctrl()->NODE("b", add));
+  };
   auto root_graph = ToComputeGraph(graph);
 
   auto scatter_nd = root_graph->FindNode("scatter_nd");
@@ -2104,11 +2116,18 @@ ComputeGraphPtr BuildGraphWithOutputNotAssign() {
 ComputeGraphPtr BuildPartitionedCallWithAtomicNode() {
   const auto inner_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("inner_data", inner_data)->NODE("atomic_node", CAST)->NODE("reshape", RESHAPE)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("inner_data", inner_data)
+              ->NODE("atomic_node", CAST)
+              ->NODE("reshape", RESHAPE)
+              ->NODE("netoutput2", NETOUTPUT));
     CHAIN(NODE("memset", MEMSET)->Ctrl()->NODE("atomic_node", CAST));
   };
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("a", CAST)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("b", CAST)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("a", CAST)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("b", CAST)
+              ->NODE("netoutput1", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -2136,14 +2155,16 @@ ComputeGraphPtr BuildPartitionedCallWithAtomicNode() {
     for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
       auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
 
     for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
       auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*in_tensor, tensor_size);
     }
   }
@@ -2181,7 +2202,10 @@ ComputeGraphPtr BuildNestingWrapperWithSubgraphNodeDiffStream() {
     CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
   };
   DEF_GRAPH(then_) {
-    CHAIN(NODE("data3", data3)->NODE("cast", CAST)->NODE("partitioned_call1", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data3", data3)
+              ->NODE("cast", CAST)
+              ->NODE("partitioned_call1", PARTITIONEDCALL, sub_1)
+              ->NODE("netoutput1", NETOUTPUT));
   };
 
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(0);
@@ -2190,12 +2214,20 @@ ComputeGraphPtr BuildNestingWrapperWithSubgraphNodeDiffStream() {
     CHAIN(NODE("data6", data6)->NODE("netoutput4", NETOUTPUT));
   };
   DEF_GRAPH(else_) {
-    CHAIN(NODE("data5", data5)->NODE("cast2", CAST)->NODE("partitioned_call2", PARTITIONEDCALL, sub_2)->NODE("netoutput3", NETOUTPUT));
+    CHAIN(NODE("data5", data5)
+              ->NODE("cast2", CAST)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, sub_2)
+              ->NODE("netoutput3", NETOUTPUT));
   };
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_, else_)
-              ->EDGE(0, 0)->NODE("op", CAST)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_, else_)
+              ->EDGE(0, 0)
+              ->NODE("op", CAST)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if"));
   };
   auto graph = ToComputeGraph(g1);
@@ -2239,14 +2271,16 @@ ComputeGraphPtr BuildNestingWrapperWithSubgraphNodeDiffStream() {
     for (size_t i = 0U; i < node->GetOutDataNodesSize(); ++i) {
       auto out_tensor = node->GetOpDescBarePtr()->MutableOutputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
 
     for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
       auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(),
+                                     tensor_size);
       TensorUtils::SetSize(*in_tensor, tensor_size);
     }
   }
@@ -2766,7 +2800,7 @@ ComputeGraphPtr BuildOneNodeConnectTwoPhonyConcat() {
       }
     }
 
-    if (node_name == "e" || node_name == "f" || node_name == "netoutput"|| node_name == "b") {
+    if (node_name == "e" || node_name == "f" || node_name == "netoutput" || node_name == "b") {
       for (size_t i = 0U; i < node->GetInDataNodesSize(); ++i) {
         auto in_tensor = node->GetOpDescBarePtr()->MutableInputDesc(i);
         in_tensor->SetShape(GeShape{{1, 1, 448, 448}});
@@ -2839,4 +2873,4 @@ ComputeGraphPtr BuildPartitionedCallWithPhonyConcatSubgraph() {
   return graph;
 }
 }  // namespace block_mem_ut
-} // namespace ge
+}  // namespace ge

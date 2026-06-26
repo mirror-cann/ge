@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ const char *const kPerm = "perm";
 void GetTransposePerm(const NodePtr &node, std::vector<int64_t> &perm) {
   // The caller guarantees that the pointer is not null
   if (node->GetType() == TRANSPOSED) {
-    (void) AttrUtils::GetListInt(node->GetOpDesc(), kPerm, perm);
+    (void)AttrUtils::GetListInt(node->GetOpDesc(), kPerm, perm);
   } else if (node->GetType() == TRANSPOSE) {
     auto dim_idx = static_cast<uint32_t>(node->GetOpDesc()->GetInputIndexByName(kPerm));
     const GeTensor *weight = OpDescUtils::GetInputConstData(OpDescUtils::CreateOperatorFromNode(node), dim_idx);
@@ -88,9 +88,10 @@ Status CopyInDataEdgeToPeerOutAsCtrlEdge(const NodePtr &src_node) {
 
     const auto ret = GraphUtils::AddEdge(in_node->GetOutControlAnchor(), dst_ctrl);
     if (ret != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E18888", "Add ControlEdge from %s to %s failed, when copy control dependencies from %s to %s",
-                        in_node->GetName().c_str(), dst_node->GetName().c_str(), src_node->GetName().c_str(),
-                        dst_node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E18888",
+                           "Add ControlEdge from %s to %s failed, when copy control dependencies from %s to %s",
+                           in_node->GetName().c_str(), dst_node->GetName().c_str(), src_node->GetName().c_str(),
+                           dst_node->GetName().c_str());
       GELOGE(GRAPH_FAILED, "[Add][ControlEdge] from %s to %s failed, when copy control dependencies from %s to %s",
              in_node->GetName().c_str(), dst_node->GetName().c_str(), src_node->GetName().c_str(),
              dst_node->GetName().c_str());
@@ -111,15 +112,15 @@ bool CanGetNodeIdByShapes(const NodePtr &node) {
     for (size_t index = kDataInputNum; index < in_nodes.size(); ++index) {
       auto in_node = in_nodes.at(index);
       if ((in_node != nullptr) && (!PassUtils::IsConstant(in_node))) {
-        GELOGD("Cannot get node id by shapes for node:%s, as having non const input node:%s.",
-               node->GetName().c_str(), in_node->GetName().c_str());
+        GELOGD("Cannot get node id by shapes for node:%s, as having non const input node:%s.", node->GetName().c_str(),
+               in_node->GetName().c_str());
         return false;
       }
     }
   }
   return true;
 }
-}
+}  // namespace
 Status TransOpBreadthFusionPass::Run(ge::ComputeGraphPtr graph) {
   if (graph == nullptr) {
     return SUCCESS;
@@ -162,8 +163,8 @@ std::string TransOpBreadthFusionPass::GetNodeId(const int32_t anchor_index, cons
                   REPORT_INNER_ERR_MSG("E19999", "Param node or its op_desc is nullptr, check invalid");
                   GELOGE(FAILED, "[Check][Param] Param node or its op_desc is nullptr"); return "");
 
-  std::set<std::string> trans_shapes = { RESHAPE, EXPANDDIMS, SQUEEZE, SQUEEZEV2, SQUEEZEV3, UNSQUEEZEV3};
-  std::set<std::string> trans_shape_and_format_perm = { TRANSPOSE, TRANSPOSED };
+  std::set<std::string> trans_shapes = {RESHAPE, EXPANDDIMS, SQUEEZE, SQUEEZEV2, SQUEEZEV3, UNSQUEEZEV3};
+  std::set<std::string> trans_shape_and_format_perm = {TRANSPOSE, TRANSPOSED};
   if (node->GetType() == CAST) {
     trans_data_type = true;
   } else if (node->GetType() == EXPANDDIMS) {
@@ -172,7 +173,7 @@ std::string TransOpBreadthFusionPass::GetNodeId(const int32_t anchor_index, cons
   } else if (trans_shape_and_format_perm.count(node->GetType()) > 0) {
     trans_format = true;
     trans_shape = true;
-    (void) GetTransposePerm(node, perm);
+    (void)GetTransposePerm(node, perm);
   } else if (node->GetType() == TRANSDATA) {
     trans_data_type = true;
     trans_format = true;

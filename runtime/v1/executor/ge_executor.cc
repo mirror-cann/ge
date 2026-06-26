@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,8 +82,8 @@ void GetDomiInputData(const ge::RunModelData &input_data, ge::InputData &inputs)
   inputs.timeout = input_data.timeout;
   inputs.request_id = input_data.request_id;
   for (const auto &data_item : input_data.blobs) {
-    inputs.blobs.emplace_back(
-        data_item.data, data_item.length, data_item.isDataSupportMemShare, kDefaultOfflinePlacement);
+    inputs.blobs.emplace_back(data_item.data, data_item.length, data_item.isDataSupportMemShare,
+                              kDefaultOfflinePlacement);
   }
 }
 
@@ -91,8 +91,7 @@ void GetDomiOutputData(const ge::RunModelData &output_data, ge::OutputData &outp
   outputs.index = output_data.index;
   outputs.model_id = output_data.modelId;
   for (const auto &data_item : output_data.blobs) {
-    outputs.blobs.emplace_back(
-        data_item.data, data_item.length, data_item.isDataSupportMemShare, data_item.placement);
+    outputs.blobs.emplace_back(data_item.data, data_item.length, data_item.isDataSupportMemShare, data_item.placement);
   }
 }
 
@@ -146,7 +145,7 @@ bool IsDynamicBatchSizeMatchModel(const uint64_t batch_size, const std::vector<s
   for (const auto &batch : batch_info) {
     if (batch.size() != kDynamicBatchSizeVecSize) {
       REPORT_INNER_ERR_MSG("E19999", "Dynamic batch param num is %zu, current batch size is %zu.",
-                         kDynamicBatchSizeVecSize, batch.size());
+                           kDynamicBatchSizeVecSize, batch.size());
       GELOGE(ge::FAILED, "[Check][Param] Dynamic batch param num is %zu, current batch size is %zu.",
              kDynamicBatchSizeVecSize, batch.size());
       return false;
@@ -171,7 +170,7 @@ bool IsDynamicImageSizeMatchModel(const uint64_t image_height, const uint64_t im
   for (const auto &resolution : batch_info) {
     if (resolution.size() != kDynamicImageSizeVecSize) {
       REPORT_INNER_ERR_MSG("E19999", "Dynamic resolution param num is %zu, current resolution size is %zu.",
-                         kDynamicImageSizeVecSize, resolution.size());
+                           kDynamicImageSizeVecSize, resolution.size());
       GELOGE(ge::FAILED, "[Check][Param] Dynamic resolution param num is %zu, current resolution size is %zu.",
              kDynamicImageSizeVecSize, resolution.size());
       return false;
@@ -182,7 +181,7 @@ bool IsDynamicImageSizeMatchModel(const uint64_t image_height, const uint64_t im
     }
   }
   REPORT_INNER_ERR_MSG("E19999", "Dynamic resolution (%" PRIu64 ",%" PRIu64 ") cannot match the gear of model.",
-                     image_height, image_width);
+                       image_height, image_width);
   GELOGE(ge::FAILED, "[Check][Param]Dynamic resolution (%" PRIu64 ",%" PRIu64 ") cannot match the gear of model.",
          image_height, image_width);
   return false;
@@ -200,7 +199,7 @@ bool IsDynmaicDimsSizeMatchModel(const std::vector<uint64_t> &cur_dynamic_dims,
   for (const auto &resolution : batch_info) {
     if (cur_dynamic_dims.size() != resolution.size()) {
       REPORT_INNER_ERR_MSG("E19999", "Cur dynamic dims param num is %zu, current resolution size is %zu.",
-                         cur_dynamic_dims.size(), resolution.size());
+                           cur_dynamic_dims.size(), resolution.size());
       GELOGE(ACL_ERROR_GE_PARAM_INVALID,
              "[Check][Param] Cur dynamic dims param num is %zu, current resolution size is %zu.",
              cur_dynamic_dims.size(), resolution.size());
@@ -227,15 +226,14 @@ bool IsDynmaicDimsSizeMatchModel(const std::vector<uint64_t> &cur_dynamic_dims,
 // With a dynamic-shaped model, a caller cannot allocate the buffer if no valid output size can be calculated.
 // In this case the buffer can be set to NULL and the executor would allocate and cache it till the next invocation.
 // Update output buffer back to run_output_data
-void UpdateOutputBuffer(const bool is_async,
-                        const std::vector<ge::DataBuffer> &execute_outputs,
+void UpdateOutputBuffer(const bool is_async, const std::vector<ge::DataBuffer> &execute_outputs,
                         std::vector<ge::DataBuffer> &user_outputs) {
   if (is_async) {
     return;
   }
   if (execute_outputs.size() != user_outputs.size()) {
-    GELOGW("Output number mismatches, before execute: %zu, after execute: %zu",
-           user_outputs.size(), execute_outputs.size());
+    GELOGW("Output number mismatches, before execute: %zu, after execute: %zu", user_outputs.size(),
+           execute_outputs.size());
     return;
   }
   for (size_t i = 0U; i < execute_outputs.size(); ++i) {
@@ -272,7 +270,7 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
     return SUCCESS;
   }
 
-  //备份并清空注册信息map
+  // 备份并清空注册信息map
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
 
   GELOGI("Init GeExecutor begin.");
@@ -305,7 +303,7 @@ Status GeExecutor::Initialize(const std::map<std::string, std::string> &options)
     return status;
   }
 
-  //注册dump回调
+  // 注册dump回调
   GELOGI("Register dump callbacks.");
   if (!ge::DumpCallbackManager::GetInstance().RegisterDumpCallbacks(GE_MODULE_NAME)) {
     GELOGW("Register dump callbacks failed, but continue initialization.");
@@ -358,9 +356,8 @@ Status GeExecutor::FinalizeEx() {
 
 Status GeExecutor::Initialize() {
   // job id need to be set, the value is meaningless;
-  const std::map<std::string, std::string> options({
-      {OPTION_EXEC_JOB_ID, "1"}, {OPTION_EXEC_PROFILING_MODE, ""}, {OPTION_EXEC_PROFILING_OPTIONS, ""}
-  });
+  const std::map<std::string, std::string> options(
+      {{OPTION_EXEC_JOB_ID, "1"}, {OPTION_EXEC_PROFILING_MODE, ""}, {OPTION_EXEC_PROFILING_OPTIONS, ""}});
 
   rtProfCtrlHandle const callback = &ge::ProfCtrlHandle;
   const int32_t ret = MsprofRegisterCallback(GE, callback);
@@ -380,18 +377,21 @@ Status GeExecutor::SetDynamicBatchSize(const uint32_t model_id, void *const dyna
                                        const uint64_t batch_size) {
   if (dynamic_input_addr == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "param dynamic_input_addr is nullptr, check invalid, model id:%u", model_id);
-    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID,
-           "[Check][Param] Dynamic input addr is nullptr, model id:%u", model_id);
+    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID, "[Check][Param] Dynamic input addr is nullptr, model id:%u",
+           model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID;
   }
 
   uint64_t size = sizeof(uint32_t);
   if (length < size) {
-    REPORT_INNER_ERR_MSG("E19999", "Dynamic input size [%" PRIu64 "] is less than ["
-		       "%" PRIu64 "], check invalid, model id:%u", length, size, model_id);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Dynamic input size [%" PRIu64
+                         "] is less than ["
+                         "%" PRIu64 "], check invalid, model id:%u",
+                         length, size, model_id);
     GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
-           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u",
-           length, size, model_id);
+           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u", length, size,
+           model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID;
   }
   if (length >= sizeof(uint64_t)) {
@@ -425,8 +425,8 @@ Status GeExecutor::SetDynamicBatchSize(const uint32_t model_id, void *const dyna
   const aclError rt_ret = aclrtMemcpy(dynamic_input_addr, length, &batch_size, size, ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy, size:%" PRIu64 " ret:%d", length, rt_ret);
-    GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy dynamic batch input data failed! size:%" PRIu64 " ret:%d",
-      length, rt_ret);
+    GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy dynamic batch input data failed! size:%" PRIu64 " ret:%d", length,
+           rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   return SUCCESS;
@@ -436,18 +436,21 @@ Status GeExecutor::SetDynamicImageSize(const uint32_t model_id, void *const dyna
                                        const uint64_t image_height, const uint64_t image_width) {
   if (dynamic_input_addr == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "param dynamic_input_addr is nullptr, check invalid, model id:%u", model_id);
-    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID,
-           "[Check][Param] Dynamic input addr is nullptr, model id:%u", model_id);
+    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID, "[Check][Param] Dynamic input addr is nullptr, model id:%u",
+           model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID;
   }
 
   constexpr uint64_t dynamic_input_size = kDynamicImageSizeInputSize * sizeof(uint32_t);
   if (length < dynamic_input_size) {
-    REPORT_INNER_ERR_MSG("E19999", "Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], "
-		       "check invalid, model id:%u", length, dynamic_input_size, model_id);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Dynamic input size [%" PRIu64 "] is less than [%" PRIu64
+                         "], "
+                         "check invalid, model id:%u",
+                         length, dynamic_input_size, model_id);
     GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
-           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u",
-           length, dynamic_input_size, model_id);
+           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u", length,
+           dynamic_input_size, model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID;
   }
   uint64_t size = sizeof(uint32_t);
@@ -468,7 +471,8 @@ Status GeExecutor::SetDynamicImageSize(const uint32_t model_id, void *const dyna
   if (!IsDynamicImageSizeMatchModel(image_height, image_width, batch_info)) {
     GELOGE(ACL_ERROR_GE_DYNAMIC_BATCH_SIZE_INVALID,
            "[Check][Param] The current dynamic input does not match the gear of the model, "
-           "image_height:%" PRIu64 ", image_width:%" PRIu64 ".", image_height, image_width);
+           "image_height:%" PRIu64 ", image_width:%" PRIu64 ".",
+           image_height, image_width);
     return ACL_ERROR_GE_DYNAMIC_BATCH_SIZE_INVALID;
   }
 
@@ -480,25 +484,30 @@ Status GeExecutor::SetDynamicImageSize(const uint32_t model_id, void *const dyna
   }
 
   // Memcpy dynamic resolution height from host to device
-  aclError rt_ret =
-      aclrtMemcpy(dynamic_input_addr, size, &image_height, size, ACL_MEMCPY_HOST_TO_DEVICE);
+  aclError rt_ret = aclrtMemcpy(dynamic_input_addr, size, &image_height, size, ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed! size:%" PRIu64 ", ret:%d, model id:%u",
-                      size, rt_ret, model_id);
-    GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy dynamic resolution input data failed! size:%" PRIu64 ", "
-      "ret:%d, model id:%u", size, rt_ret, model_id);
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed! size:%" PRIu64 ", ret:%d, model id:%u", size, rt_ret,
+                         model_id);
+    GELOGE(RT_FAILED,
+           "[Call][aclrtMemcpy] memcpy dynamic resolution input data failed! size:%" PRIu64
+           ", "
+           "ret:%d, model id:%u",
+           size, rt_ret, model_id);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
 
   const uint64_t remain_size = length - size;
   // Memcpy dynamic resolution width from host to device
-  rt_ret = aclrtMemcpy(ValueToPtr(PtrToValue(dynamic_input_addr) + size), remain_size, &image_width,
-      size, ACL_MEMCPY_HOST_TO_DEVICE);
+  rt_ret = aclrtMemcpy(ValueToPtr(PtrToValue(dynamic_input_addr) + size), remain_size, &image_width, size,
+                       ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed! size:%" PRIu64 ", ret:%d, model id:%u",
-                      remain_size, rt_ret, model_id);
-    GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy dynamic resolution input data failed! size:%" PRIu64 ", "
-      "ret:%d, model id:%u", remain_size, rt_ret, model_id);
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed! size:%" PRIu64 ", ret:%d, model id:%u", remain_size,
+                         rt_ret, model_id);
+    GELOGE(RT_FAILED,
+           "[Call][aclrtMemcpy] memcpy dynamic resolution input data failed! size:%" PRIu64
+           ", "
+           "ret:%d, model id:%u",
+           remain_size, rt_ret, model_id);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   return SUCCESS;
@@ -507,10 +516,12 @@ Status GeExecutor::SetDynamicImageSize(const uint32_t model_id, void *const dyna
 Status GeExecutor::SetDynamicDims(const uint32_t model_id, void *const dynamic_input_addr, const uint64_t length,
                                   const std::vector<uint64_t> &dynamic_dims) {
   if (dynamic_input_addr == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Param dynamic_input_addr is nullptr, check invalid, "
-		       "model id:%u", model_id);
-    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID,
-           "[Check][Param] Dynamic input addr is nullptr, model id:%u", model_id);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param dynamic_input_addr is nullptr, check invalid, "
+                         "model id:%u",
+                         model_id);
+    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID, "[Check][Param] Dynamic input addr is nullptr, model id:%u",
+           model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID;
   }
 
@@ -545,11 +556,11 @@ Status GeExecutor::SetDynamicDims(const uint32_t model_id, void *const dynamic_i
   const size_t dynamic_dim_num = cur_dynamic_dims.size();
   const uint64_t dynamic_input_size = static_cast<uint64_t>(dynamic_dim_num * sizeof(uint32_t));
   if (length < dynamic_input_size) {
-    REPORT_INNER_ERR_MSG("E19999", "input dynamic size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u",
-                       length, dynamic_input_size, model_id);
+    REPORT_INNER_ERR_MSG("E19999", "input dynamic size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u", length,
+                         dynamic_input_size, model_id);
     GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
-           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u",
-           length, dynamic_input_size, model_id);
+           "[Check][Param] Dynamic input size [%" PRIu64 "] is less than [%" PRIu64 "], model id:%u", length,
+           dynamic_input_size, model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID;
   }
   uint64_t size = sizeof(uint32_t);
@@ -559,11 +570,11 @@ Status GeExecutor::SetDynamicDims(const uint32_t model_id, void *const dynamic_i
   aclError rt_ret;
   for (size_t i = 0U; i < dynamic_dim_num; ++i) {
     // Memcpy dynamic dim[i] from host to device
-    rt_ret = aclrtMemcpy(ValueToPtr(PtrToValue(dynamic_input_addr) + (size * i)),
-        length - (size * i), &cur_dynamic_dims[i], size, ACL_MEMCPY_HOST_TO_DEVICE);
+    rt_ret = aclrtMemcpy(ValueToPtr(PtrToValue(dynamic_input_addr) + (size * i)), length - (size * i),
+                         &cur_dynamic_dims[i], size, ACL_MEMCPY_HOST_TO_DEVICE);
     if (rt_ret != ACL_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed, size:%" PRIu64 ", ret:%d",
-          (length - (size * i)), rt_ret);
+      REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed, size:%" PRIu64 ", ret:%d", (length - (size * i)),
+                           rt_ret);
       GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy dynamic resolution input data failed! size:%" PRIu64 ", ret:%d",
              (length - (size * i)), rt_ret);
       return RT_ERROR_TO_GE_STATUS(rt_ret);
@@ -592,7 +603,7 @@ Status GeExecutor::GetCurDynamicDims(const uint32_t model_id, const std::vector<
   for (auto &data_name : user_designate_shape_order) {
     for (auto &desc : input_desc) {
       AscendString get_name;
-      (void) desc.GetName(get_name);
+      (void)desc.GetName(get_name);
       if (get_name.GetString() == data_name) {
         const auto dims = desc.GetShape().GetDims();
         (void)std::copy(dims.begin(), dims.end(), std::back_inserter(all_data_dims));
@@ -601,8 +612,9 @@ Status GeExecutor::GetCurDynamicDims(const uint32_t model_id, const std::vector<
     }
   }
   if (dynamic_dims.size() != all_data_dims.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "Dynamic input size [%" PRIu64 "] is not equal with all data dims size [%" PRIu64 "]!",
-                       static_cast<uint64_t>(dynamic_dims.size()), static_cast<uint64_t>(all_data_dims.size()));
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Dynamic input size [%" PRIu64 "] is not equal with all data dims size [%" PRIu64 "]!",
+                         static_cast<uint64_t>(dynamic_dims.size()), static_cast<uint64_t>(all_data_dims.size()));
     GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
            "[Check][Param] Dynamic input size [%" PRIu64 "] is not equal with all data dims size [%" PRIu64 "]!",
            dynamic_dims.size(), all_data_dims.size());
@@ -614,10 +626,10 @@ Status GeExecutor::GetCurDynamicDims(const uint32_t model_id, const std::vector<
     } else {
       if (static_cast<uint64_t>(all_data_dims[i]) != dynamic_dims[i]) {
         REPORT_INNER_ERR_MSG("E19999", "Static dims should be same, index:%zu value:%" PRIu64 " should be %" PRId64 "",
-                           i, dynamic_dims[i], all_data_dims[i]);
+                             i, dynamic_dims[i], all_data_dims[i]);
         GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
-               "[Check][Param] Static dims should be same, index:%zu value:%" PRIu64 " should be %" PRId64,
-               i, dynamic_dims[i], all_data_dims[i]);
+               "[Check][Param] Static dims should be same, index:%zu value:%" PRIu64 " should be %" PRId64, i,
+               dynamic_dims[i], all_data_dims[i]);
         return ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID;
       }
     }
@@ -647,8 +659,8 @@ Status GeExecutor::SetDynamicAippData(const uint32_t model_id, void *const dynam
   GELOGI("Enter to SetDynamicAippData.");
   if (dynamic_input_addr == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Param dynamic_input_addr is nullptr, check invalid, model id:%u", model_id);
-    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID,
-           "[Check][Param] Dynamic aipp input addr is nullptr, model id:%u", model_id);
+    GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID, "[Check][Param] Dynamic aipp input addr is nullptr, model id:%u",
+           model_id);
     return ACL_ERROR_GE_DYNAMIC_INPUT_ADDR_INVALID;
   }
   if (aipp_batch_para.empty()) {
@@ -659,19 +671,21 @@ Status GeExecutor::SetDynamicAippData(const uint32_t model_id, void *const dynam
   const uint64_t batch_num = aipp_batch_para.size();
   constexpr uint64_t real_aippParms_size = sizeof(kAippDynamicPara) - sizeof(kAippDynamicBatchPara);
   const uint64_t struct_len = (batch_num * sizeof(kAippDynamicBatchPara)) + real_aippParms_size;
-  GELOGI("Get acl input dynamic aipp data, model_id is %u, length is %" PRIu64 ", batch num is %" PRIu64 ", "
-    "struct_len is %" PRIu64, model_id, length, batch_num, struct_len);
+  GELOGI("Get acl input dynamic aipp data, model_id is %u, length is %" PRIu64 ", batch num is %" PRIu64
+         ", "
+         "struct_len is %" PRIu64,
+         model_id, length, batch_num, struct_len);
   if (struct_len > length) {
     REPORT_INNER_ERR_MSG("E19999", "input dynamic aipp param len:%" PRIu64 " is larger than aipp_data size:%" PRIu64 "",
-                       struct_len, length);
+                         struct_len, length);
     GELOGE(ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID,
            "[Check][Param] input dynamic aipp param len [%" PRIu64 "] is larger than aipp_data size [%" PRIu64 "]",
            struct_len, length);
     return ACL_ERROR_GE_DYNAMIC_INPUT_LENGTH_INVALID;
   }
   // Memcpy real kAippDynamicBatchPara from host to device
-  aclError rt_ret = aclrtMemcpy(dynamic_input_addr, length, &aipp_parms,
-      real_aippParms_size, ACL_MEMCPY_HOST_TO_DEVICE);
+  aclError rt_ret =
+      aclrtMemcpy(dynamic_input_addr, length, &aipp_parms, real_aippParms_size, ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed, size:%" PRIu64 ", ret:%d", length, rt_ret);
     GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy aipp_parms failed! size:%" PRIu64 ", ret:%d", length, rt_ret);
@@ -682,8 +696,8 @@ Status GeExecutor::SetDynamicAippData(const uint32_t model_id, void *const dynam
 
   for (uint64_t i = 0U; i < batch_num; ++i) {
     rt_ret = aclrtMemcpy(ValueToPtr(aipp_batch_para_dev + (i * sizeof(kAippDynamicBatchPara))),
-        (remain_len - (i * sizeof(kAippDynamicBatchPara))), &(aipp_batch_para[i]),
-        sizeof(kAippDynamicBatchPara), ACL_MEMCPY_HOST_TO_DEVICE);
+                         (remain_len - (i * sizeof(kAippDynamicBatchPara))), &(aipp_batch_para[i]),
+                         sizeof(kAippDynamicBatchPara), ACL_MEMCPY_HOST_TO_DEVICE);
     if (rt_ret != ACL_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed, ret:%d", rt_ret);
       GELOGE(RT_FAILED, "[Call][aclrtMemcpy] memcpy kAippDynamicBatchPara input data failed! ret:%d", rt_ret);
@@ -708,8 +722,7 @@ Status GeExecutor::UnloadModel(const uint32_t model_id) {
     ExternalWeightManagerPool::Instance().RemoveManager(session_id);
     SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().RemoveAllocator(session_id,
                                                                                      GetContext().DeviceId());
-    SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id,
-                                                                                  GetContext().DeviceId());
+    SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
     SessionMemAllocator<ActiveMemoryAllocator>::Instance().RemoveAllocator(session_id, GetContext().DeviceId());
   } else {
     const auto davinci_model = ModelManager::GetInstance().GetModel(model_id);
@@ -736,7 +749,7 @@ Status GeExecutor::UnloadModel(const uint32_t model_id) {
 }
 
 Status GeExecutor::RecoverAllModel(const int32_t device_id) const {
-    return ModelManager::GetInstance().RecoverAllModel(device_id);
+  return ModelManager::GetInstance().RecoverAllModel(device_id);
 }
 
 Status GeExecutor::GetModelDescInfoFromMem(const ModelData &model_data, ModelInOutInfo &info) const {
@@ -759,12 +772,12 @@ Status GeExecutor::GetModelDescInfo(const uint32_t model_id, std::vector<TensorD
 
   const auto ret = GraphExecutor::GetInputOutputDescInfo(model_id, input_desc_infos, output_desc_infos, input_formats,
                                                          output_formats, new_model_desc);
-  GE_CHK_BOOL_RET_STATUS((ret == ge::SUCCESS), ret,
-                         "[Get][InputOutputDescInfo] failed. ret = %u, model id:%u", ret, model_id);
+  GE_CHK_BOOL_RET_STATUS((ret == ge::SUCCESS), ret, "[Get][InputOutputDescInfo] failed. ret = %u, model id:%u", ret,
+                         model_id);
 
   if (input_formats.size() != input_desc_infos.size()) {
     REPORT_INNER_ERR_MSG("E19999", "input_formats size %zu is not equal to input_desc_infos size %zu, model id:%u.",
-                       input_formats.size(), input_desc_infos.size(), model_id);
+                         input_formats.size(), input_desc_infos.size(), model_id);
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
            "[Check][Param] input_formats size %zu is not equal to input_desc_infos size %zu, model id:%u.",
            input_formats.size(), input_desc_infos.size(), model_id);
@@ -773,7 +786,7 @@ Status GeExecutor::GetModelDescInfo(const uint32_t model_id, std::vector<TensorD
 
   if (output_formats.size() != output_desc_infos.size()) {
     REPORT_INNER_ERR_MSG("E19999", "output_formats size %zu is not equal to output_desc_infos size %zu, model id:%u.",
-                       output_formats.size(), output_desc_infos.size(), model_id);
+                         output_formats.size(), output_desc_infos.size(), model_id);
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
            "[Check][Param] output_formats size %zu is not equal to output_desc_infos size %zu, model id:%u.",
            output_formats.size(), output_desc_infos.size(), model_id);
@@ -819,8 +832,7 @@ Status GeExecutor::GetDynamicBatchInfo(const uint32_t model_id, std::vector<std:
 /// @param [out] batch_info
 /// @return execute result
 ///
-Status GeExecutor::GetCombinedDynamicDims(const uint32_t model_id,
-                                          std::vector<std::vector<int64_t>> &batch_info) {
+Status GeExecutor::GetCombinedDynamicDims(const uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info) {
   GELOGI("Begin to get combined dynamic dims info.");
   if (!is_inited_) {
     REPORT_INNER_ERR_MSG("E19999", "GeExecutor has not been initialized!");
@@ -886,8 +898,7 @@ Status GeExecutor::GetAIPPInfo(const uint32_t model_id, const uint32_t index, Ai
   return SUCCESS;
 }
 
-Status GeExecutor::GetAippType(const uint32_t model_id, const uint32_t index, InputAippType &type,
-                               size_t &aipp_index) {
+Status GeExecutor::GetAippType(const uint32_t model_id, const uint32_t index, InputAippType &type, size_t &aipp_index) {
   GELOGI("Begin to get aipp type.");
   if (!is_inited_) {
     REPORT_INNER_ERR_MSG("E19999", "GeExecutor has not been initialized!");
@@ -913,10 +924,9 @@ Status GeExecutor::GetOpAttr(const uint32_t model_id, const std::string &op_name
   }
   const auto ret = GraphExecutor::GetNodeAttr(model_id, op_name, attr_name, attr_value);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Get][OpAttr]Get op:%s attr:%s failed, model id:%u.",
-           op_name.c_str(), attr_name.c_str(), model_id);
-    REPORT_INNER_ERR_MSG("E19999", "Get op:%s attr:%s failed, model id:%u",
-                      op_name.c_str(), attr_name.c_str(), model_id);
+    GELOGE(ret, "[Get][OpAttr]Get op:%s attr:%s failed, model id:%u.", op_name.c_str(), attr_name.c_str(), model_id);
+    REPORT_INNER_ERR_MSG("E19999", "Get op:%s attr:%s failed, model id:%u", op_name.c_str(), attr_name.c_str(),
+                         model_id);
     return ret;
   }
   return SUCCESS;
@@ -1025,7 +1035,7 @@ Status GeExecutor::LoadModelFromData(uint32_t &model_id, const ModelData &model_
 
   const uintptr_t mem_base = PtrToValue(dev_ptr);
   const uintptr_t weight_base = PtrToValue(weight_ptr);
-  const ModelParam model_param { model_data.priority, mem_base, mem_size, weight_base, weight_size };
+  const ModelParam model_param{model_data.priority, mem_base, mem_size, weight_base, weight_size};
   return GraphLoader::LoadModelFromData(model_data, model_param, model_id);
 }
 
@@ -1042,9 +1052,14 @@ Status GeExecutor::LoadModelFromDataWithArgs(uint32_t &model_id, const ModelData
     load_arg.rt_session->GetExternalVar(external_var_addr, external_var_size);
   }
 
-  const ModelParam model_param{model_data.priority, reinterpret_cast<uintptr_t>(load_arg.dev_ptr), load_arg.mem_size,
-                               reinterpret_cast<uintptr_t>(load_arg.weight_ptr), load_arg.weight_size,
-                               &load_arg.file_constant_mems, external_var_addr, external_var_size,
+  const ModelParam model_param{model_data.priority,
+                               reinterpret_cast<uintptr_t>(load_arg.dev_ptr),
+                               load_arg.mem_size,
+                               reinterpret_cast<uintptr_t>(load_arg.weight_ptr),
+                               load_arg.weight_size,
+                               &load_arg.file_constant_mems,
+                               external_var_addr,
+                               external_var_size,
                                load_arg.need_clear_dfx_cache};
   return ModelManager::GetInstance().LoadModelOffline(model_data, model_param, model_id, load_arg.rt_session);
 }
@@ -1067,8 +1082,8 @@ Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const ModelData &model_dat
     GELOGE(ACL_ERROR_GE_EXEC_NOT_INIT, "[Check][Param] GeExecutor has not been initialized!");
     return ACL_ERROR_GE_EXEC_NOT_INIT;
   }
-  ModelQueueArg args{.input_queue_ids = input_queue_ids, .output_queue_ids = output_queue_ids,
-                     .file_constant_mems = {}};
+  ModelQueueArg args{
+      .input_queue_ids = input_queue_ids, .output_queue_ids = output_queue_ids, .file_constant_mems = {}};
   return GraphLoader::LoadModelWithQ(model_id, model_data, args);
 }
 
@@ -1080,8 +1095,7 @@ Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const ModelData &model_dat
  * @param [in] args: input/output queue ids, and file constant mems
  * @return: 0 for success / others for fail
  */
-Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const ModelData &model_data,
-                                  const ModelQueueArg &args) {
+Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const ModelData &model_data, const ModelQueueArg &args) {
   GELOGI("Load model with queue using model queue arg begin.");
   if (!is_inited_) {
     REPORT_INNER_ERR_MSG("E19999", "GeExecutor has not been initialized!");
@@ -1099,8 +1113,7 @@ Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const ModelData &model_dat
  * @param [in] model_queue_param: params and queue ids and create from user.
  * @return: 0 for success / others for fail
  */
-Status GeExecutor::LoadModelWithQ(uint32_t &model_id,
-                                  const shared_ptr<GeRootModel> &root_model,
+Status GeExecutor::LoadModelWithQ(uint32_t &model_id, const shared_ptr<GeRootModel> &root_model,
                                   const ModelQueueParam &model_queue_param) const {
   return GraphLoader::LoadModelWithQueueParam(model_id, root_model, model_queue_param, false);
 }
@@ -1185,13 +1198,8 @@ Status GeExecutor::ExecModel(const uint32_t model_id, void *const stream, const 
     }
   }
 
-  GE_CHK_STATUS_RET_NOLOG(GraphLoader::ExecuteModel(model_id,
-                                                    stream,
-                                                    async_mode,
-                                                    input_data,
-                                                    input_desc,
-                                                    output_data,
-                                                    output_desc));
+  GE_CHK_STATUS_RET_NOLOG(
+      GraphLoader::ExecuteModel(model_id, stream, async_mode, input_data, input_desc, output_data, output_desc));
   UpdateOutputBuffer(async_mode, output_data.blobs, run_output_data.blobs);
   return SUCCESS;
 }
@@ -1327,8 +1335,8 @@ Status GeExecutor::ClearCustomAicpuSo(const uint32_t device_id) {
 Status GeExecutor::GetDeviceIdByModelId(const uint32_t model_id, uint32_t &device_id) {
   const auto davinci_model = ModelManager::GetInstance().GetModel(model_id);
   if (davinci_model == nullptr) {
-    GELOGE(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
-           "[Get][Model] failed, Model id:%u is invaild or model is not loaded.", model_id);
+    GELOGE(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID, "[Get][Model] failed, Model id:%u is invalid or model is not loaded.",
+           model_id);
     return ACL_ERROR_GE_EXEC_MODEL_ID_INVALID;
   }
 
@@ -1395,10 +1403,9 @@ Status GeExecutor::GetOpDescInfo(const uint32_t device_id, const uint32_t stream
   GELOGI("Begin to GetOpDescInfo.");
   const auto ret = GraphExecutor::GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "get opdesc info failed, device_id:%u, stream_id:%u, task_id:%u.",
-                      device_id, stream_id, task_id);
-    GELOGE(ret, "[Get][OpDescInfo] failed, device_id:%u, stream_id:%u, task_id:%u.",
-           device_id, stream_id, task_id);
+    REPORT_INNER_ERR_MSG("E19999", "get opdesc info failed, device_id:%u, stream_id:%u, task_id:%u.", device_id,
+                         stream_id, task_id);
+    GELOGE(ret, "[Get][OpDescInfo] failed, device_id:%u, stream_id:%u, task_id:%u.", device_id, stream_id, task_id);
     return ret;
   }
   GELOGI("GetOpDescInfo succ.");
@@ -1429,8 +1436,7 @@ Status GeExecutor::ReleaseResource() {
   return ReleaseResource(0U);
 }
 
-Status GeExecutor::GetRuntimeModelId(const uint32_t model_id,
-                                     uint32_t &model_runtime_id) {
+Status GeExecutor::GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id) {
   return GraphLoader::GetRuntimeModelId(model_id, model_runtime_id);
 }
 }  // namespace ge

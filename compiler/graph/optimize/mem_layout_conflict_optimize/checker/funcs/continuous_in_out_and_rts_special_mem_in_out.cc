@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,8 @@ Status ContinuousInOutAndRtsSpecailMemTypeInOutChecker(CheckFuncContext &context
   if (MemTypeUtils::IsMemoryTypeSpecial(continuous_mem_type)) {
     return SUCCESS;
   }
-  if ((continuous_node.io_type_ == kIn)
-      && (MemLayoutConflictUtil::IsNodeOutRefFromInput(continuous_node, context.all_nodes))) {
+  if ((continuous_node.io_type_ == kIn) &&
+      (MemLayoutConflictUtil::IsNodeOutRefFromInput(continuous_node, context.all_nodes))) {
     context.result.insert(MemLayoutConflictUtil::GetAnchorFromIndexIo(specail_mem_node));
     GE_MEM_LAYOUT_CONFLICT_LOGI(context, specail_mem_node);
   } else {

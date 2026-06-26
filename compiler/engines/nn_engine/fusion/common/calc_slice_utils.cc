@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ bool TopoSortForFusionNodes(const std::vector<ge::NodePtr> &fusion_nodes,
   std::sort(sorted_fusion_nodes.begin(), sorted_fusion_nodes.end(), CompareByNodeId);
   return true;
 }
-}
+}  // namespace
 void CalcSliceUtils::CalcSliceInfo(const BufferFusionPassBasePtr &buffer_fusion_pass_base_ptr,
                                    std::vector<ge::NodePtr> &fusion_nodes) {
   ge::NodePtr first_node = fusion_nodes.at(0);
@@ -55,7 +55,7 @@ void CalcSliceUtils::CalcSliceInfo(const BufferFusionPassBasePtr &buffer_fusion_
     return;
   }
 
-  // adopt TopologicalSorting first to ensure that input/output indexes for fusionOp can be calculated correctlly
+  // adopt TopologicalSorting first to ensure that input/output indexes for fusionOp can be calculated correctly
   vector<ge::NodePtr> sorted_fusion_nodes;
   bool enable_stratege1 = TopoSortForFusionNodes(fusion_nodes, sorted_fusion_nodes);
   // CalcFusionOpSliceInfo() may be implemented in fusion passes to calculate slice info,
@@ -78,7 +78,7 @@ void CalcSliceUtils::CalcSliceInfo(const BufferFusionPassBasePtr &buffer_fusion_
 
 bool CalcSliceUtils::Stratege1(const BufferFusionPassBasePtr &buffer_fusion_pass_base_ptr,
                                vector<ge::NodePtr> &sorted_fusion_nodes, OpCalcInfo &op_calc_info) {
-  if (buffer_fusion_pass_base_ptr != nullptr  &&
+  if (buffer_fusion_pass_base_ptr != nullptr &&
       buffer_fusion_pass_base_ptr->CalcFusionOpSliceInfo(sorted_fusion_nodes, op_calc_info) != SUCCESS) {
     vector<AxisSplitMap> empty_map;
     op_calc_info.SetAxisSplitMaps(empty_map);
@@ -136,14 +136,14 @@ bool CalcSliceUtils::UpdateOpSliceInfoForSpecificOp(const ge::NodePtr &fusion_no
     // refine op_slice_info for some specified op_pattern
     auto iter = kOpPatternUbMatchedTypeMap.find(op_pattern);
     UbMatchedType matched_pattern =
-            ((iter == kOpPatternUbMatchedTypeMap.end()) ? UbMatchedType::MATCHED_RESERVED : iter->second);
+        ((iter == kOpPatternUbMatchedTypeMap.end()) ? UbMatchedType::MATCHED_RESERVED : iter->second);
     size_t tmp_val = 0;
     auto slice_info_base_ptr =
-            UbPassSliceInfoManager::SwitchSliceInfoPtrByPattern(matched_pattern, fusion_node, tmp_val);
+        UbPassSliceInfoManager::SwitchSliceInfoPtrByPattern(matched_pattern, fusion_node, tmp_val);
     if (slice_info_base_ptr == nullptr || slice_info_base_ptr->ModifySliceInfoByPattern(fusion_node) != SUCCESS) {
       return false;
     }
   }
   return true;
 }
-}
+}  // namespace fe

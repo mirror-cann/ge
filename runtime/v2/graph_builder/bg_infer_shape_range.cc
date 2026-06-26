@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,12 +38,11 @@ bool NeedInferShapeRangeCompatible(const std::string &type, const gert::OpImplSp
   }
   return false;
 }
-}
+}  // namespace
 ShapeRangeInferenceResult::ShapeRangeInferenceResult() : status_(), all_outputs_(0U), compute_node_output_num_() {}
 
-ShapeRangeInferenceResult::ShapeRangeInferenceResult(size_t outputs_num, vector<ValueHolderPtr> &out_holder) :
-    status_(), all_outputs_(out_holder), compute_node_output_num_(outputs_num) {
-}
+ShapeRangeInferenceResult::ShapeRangeInferenceResult(size_t outputs_num, vector<ValueHolderPtr> &out_holder)
+    : status_(), all_outputs_(out_holder), compute_node_output_num_(outputs_num) {}
 
 std::vector<ValueHolderPtr> ShapeRangeInferenceResult::GetAllMaxShapes() {
   std::vector<ValueHolderPtr> max_shapes;
@@ -96,7 +95,7 @@ std::vector<ValueHolderPtr> BuildInferShapeRangeGraph(const ge::NodePtr &node,
   }
   GE_ASSERT_NOTNULL(space_registry);
   auto node_type = ValueHolder::CreateConst(type.c_str(), type.size() + 1, true);
-  auto infer_func = ValueHolder::CreateSingleDataOutput("FindInferShapeRangeFunc",{node_type, space_registry});
+  auto infer_func = ValueHolder::CreateSingleDataOutput("FindInferShapeRangeFunc", {node_type, space_registry});
   auto inputs = input_ranges;
   inputs.emplace_back(infer_func);
   /*
@@ -143,13 +142,14 @@ ShapeRangeInferenceResult InferShapeRange(const ge::NodePtr &node, const std::ve
   }
   auto real_inputs_size = node->GetInDataNodesAndAnchors().size();
   if (input_shapes.size() != real_inputs_size) {
-    GELOGE(ge::FAILED, "Failed to generate InferShapeRange node for node %s, the input shape ranges size %zu,"
-                       " node input size %zu", node->GetName().c_str(), input_shapes.size(), real_inputs_size);
+    GELOGE(ge::FAILED,
+           "Failed to generate InferShapeRange node for node %s, the input shape ranges size %zu,"
+           " node input size %zu",
+           node->GetName().c_str(), input_shapes.size(), real_inputs_size);
     return ShapeRangeInferenceResult::ErrorResult();
   }
 
-  auto ranges = ValueHolder::CreateDataOutput("CreateTensorRangesAndShapeRanges", input_shapes,
-                                              input_shapes.size());
+  auto ranges = ValueHolder::CreateDataOutput("CreateTensorRangesAndShapeRanges", input_shapes, input_shapes.size());
   // To compatible with old version infer_shape_range_fun, build different exe graph for infer_shape_range
   std::string type;
   if (ge::GetOriginalType(node, type) != ge::SUCCESS) {
@@ -165,7 +165,8 @@ ShapeRangeInferenceResult InferShapeRange(const ge::NodePtr &node, const std::ve
     infer_shape_range_ret = BuildCompatibleInferShapeRangeGraph(node, ranges);
   } else {
     auto opp_impl_version = node->GetOpDesc()->GetOppImplVersion();
-    infer_shape_range_ret = BuildInferShapeRangeGraph(node, ranges,bg::GetSpaceRegistry(global_data, opp_impl_version));
+    infer_shape_range_ret =
+        BuildInferShapeRangeGraph(node, ranges, bg::GetSpaceRegistry(global_data, opp_impl_version));
   }
   return ShapeRangeInferenceResult(node->GetAllOutDataAnchorsSize(), infer_shape_range_ret);
 }
@@ -178,8 +179,8 @@ std::vector<ValueHolderPtr> InferMaxShape(const ge::NodePtr &node, const std::ve
   }
   auto result = InferShapeRange(node, input_shapes, global_data);
   if (!result.IsSuccess()) {
-    GELOGE(ge::GRAPH_FAILED, "infer shape range failed. node: %s(%s)",
-           node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(ge::GRAPH_FAILED, "infer shape range failed. node: %s(%s)", node->GetName().c_str(),
+           node->GetType().c_str());
     return {};
   }
   return result.GetAllMaxShapes();

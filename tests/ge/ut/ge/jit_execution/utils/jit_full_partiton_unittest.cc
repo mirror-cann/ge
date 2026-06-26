@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,12 +37,12 @@ class JitFullPartitionUT : public testing::Test {
   void SetUp() override {
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   }
-  void TearDown() override {
-  }
+  void TearDown() override {}
 };
 
 ComputeGraphPtr BuildAddAbsReLuReshapeAbsGraph(const vector<int64_t> &shape) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"), EsDestroyGraphBuilder);
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"),
+                                                                             EsDestroyGraphBuilder);
 
   const auto data0 = EsCreateGraphInput(graph.get(), 0);
   EsSetShape(data0, shape.data(), static_cast<int64_t>(shape.size()));
@@ -54,7 +54,8 @@ ComputeGraphPtr BuildAddAbsReLuReshapeAbsGraph(const vector<int64_t> &shape) {
   const auto abs1 = EsAbs(reshape);
   EsSetGraphOutput(abs1, 0);
 
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   GE_ASSERT_NOTNULL(ge_graph);
   return GraphUtilsEx::GetComputeGraph(*ge_graph);
 }
@@ -89,14 +90,14 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
   td.SetOriginShape((GeShape({4, 5, 6})));
   inputs.emplace_back(td);
   auto abs5 = graph->FindNode("Abs_5");
-  abs5->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1,-1,-1}));
-  abs5->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1,-1,-1}));
-  
+  abs5->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+  abs5->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1, -1, -1}));
+
   std::vector<NodePtr> nodes = getPreviousNodes(graph, 6);
-  
+
   std::vector<NodePtr> infered_nodes;
   ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(graph, inputs, infered_nodes), SUCCESS);
-  ASSERT_EQ(infered_nodes, nodes);  
+  ASSERT_EQ(infered_nodes, nodes);
 
   PartionResult partition_result;
   ASSERT_EQ(BinaryPartitioner::Partition(graph, infered_nodes, partition_result), SUCCESS);
@@ -110,7 +111,8 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
 
   // infer sliced_graph
   infered_nodes.clear();
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes),
+            SUCCESS);
   for (size_t i = 0; i < nodes.size(); ++i) {
     ASSERT_EQ(infered_nodes.at(i)->GetName(), nodes.at(i)->GetName());
   }
@@ -121,7 +123,8 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
   for (auto it : partition_result.remaining_graph->GetAllNodes()) {
     uninfered_nodes.push_back(it);
   }
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.remaining_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.remaining_graph, inputs, infered_nodes),
+            SUCCESS);
   for (size_t i = 0; i < infered_nodes.size(); ++i) {
     ASSERT_EQ(infered_nodes.at(i)->GetName(), uninfered_nodes.at(i)->GetName());
   }
@@ -170,7 +173,8 @@ TEST_F(JitFullPartitionUT, return_partition_one_graph) {
 
   // infer sliced_graph again
   infered_nodes.clear();
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes),
+            SUCCESS);
   std::sort(infered_nodes.begin(), infered_nodes.end());
   ASSERT_EQ(infered_nodes, nodes);
   for (size_t i = 0; i < infered_nodes.size(); ++i) {
@@ -197,7 +201,8 @@ TEST_F(JitFullPartitionUT, return_partition_one_graph) {
  *
  */
 ComputeGraphPtr BuildAddAbsReLuReshapeGraph2(const vector<int64_t> &shape) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"), EsDestroyGraphBuilder);
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"),
+                                                                             EsDestroyGraphBuilder);
 
   const auto data0 = EsCreateGraphInput(graph.get(), 0);
   EsSetShape(data0, shape.data(), static_cast<int64_t>(shape.size()));
@@ -208,7 +213,8 @@ ComputeGraphPtr BuildAddAbsReLuReshapeGraph2(const vector<int64_t> &shape) {
   const auto reshape = EsReshape(relu, data0, 3, 3);
   EsSetGraphOutput(reshape, 0);
 
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   GE_ASSERT_NOTNULL(ge_graph);
   return GraphUtilsEx::GetComputeGraph(*ge_graph);
 }
@@ -243,7 +249,8 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_conatins_uninferable_resha
 
   // infer sliced_graph again
   infered_nodes.clear();
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes),
+            SUCCESS);
   std::sort(infered_nodes.begin(), infered_nodes.end());
   for (size_t i = 0; i < infered_nodes.size(); ++i) {
     ASSERT_EQ(infered_nodes.at(i)->GetName(), nodes.at(i)->GetName());
@@ -270,7 +277,8 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_conatins_uninferable_resha
  *
  */
 TEST_F(JitFullPartitionUT, return_partition_one_graph_can_infer_success_when_origin_graph_infered_full) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"), EsDestroyGraphBuilder);
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"),
+                                                                             EsDestroyGraphBuilder);
   auto data0 = EsCreateGraphInputWithDetails(graph.get(), 0, "data0", nullptr, C_DT_FLOAT, C_FORMAT_ND, nullptr, 0);
   std::vector<int64_t> shape = {-1, -1, -1, -1, -1};
   EsSetShape(data0, shape.data(), static_cast<int64_t>(shape.size()));
@@ -324,7 +332,8 @@ TEST_F(JitFullPartitionUT, return_partition_one_graph_can_infer_success_when_ori
 
   // infer sliced_graph
   infered_nodes.clear();
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes),
+            SUCCESS);
   ASSERT_EQ(infered_nodes, nodes);
 }
 
@@ -347,8 +356,10 @@ TEST_F(JitFullPartitionUT, return_partition_one_graph_can_infer_success_when_ori
  *            |
  *          netout
  */
-TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_origin_graph_uninfernode_output_has_symbol) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"), EsDestroyGraphBuilder);
+TEST_F(JitFullPartitionUT,
+       return_partition_two_graph_can_infer_success_when_origin_graph_uninfernode_output_has_symbol) {
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"),
+                                                                             EsDestroyGraphBuilder);
 
   const auto data0 = EsCreateGraphInput(graph.get(), 0);
   const auto data1 = EsCreateGraphInput(graph.get(), 1);
@@ -363,7 +374,8 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
 
   EsSetGraphOutput(add, 0);
 
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   ASSERT_NE(ge_graph, nullptr);
   const auto computerGraph = GraphUtilsEx::GetComputeGraph(*ge_graph);
   ASSERT_NE(computerGraph, nullptr);
@@ -375,15 +387,16 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
   inputs.emplace_back(td);
   inputs.emplace_back(td);
   auto abs5 = computerGraph->FindNode("Abs_3");
-  abs5->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1,-1,-1}));
-  abs5->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1,-1,-1}));
-  auto attr = abs5->GetOpDesc()->MutableOutputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>(); // 模拟构造abs节点不依赖输入能继续推导
+  abs5->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
+  abs5->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1, -1, -1}));
+  auto attr = abs5->GetOpDesc()
+                  ->MutableOutputDesc(0)
+                  ->GetOrCreateAttrsGroup<SymbolicDescAttr>();  // 模拟构造abs节点不依赖输入能继续推导
   ASSERT_NE(attr, nullptr);
   auto add3 = computerGraph->FindNode("Add_4");
-  add3->GetOpDesc()->MutableInputDesc(1)->SetOriginShape(GeShape({-1,-1,-1}));
-  add3->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({-1,-1,-1}));
-  
-  
+  add3->GetOpDesc()->MutableInputDesc(1)->SetOriginShape(GeShape({-1, -1, -1}));
+  add3->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({-1, -1, -1}));
+
   std::vector<NodePtr> infered_nodes;
   ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(computerGraph, inputs, infered_nodes), SUCCESS);
 
@@ -406,8 +419,10 @@ TEST_F(JitFullPartitionUT, return_partition_two_graph_can_infer_success_when_ori
  *             |
  *           netout
  */
-TEST_F(JitFullPartitionUT, return_partition_second_graph_can_infer_success_when_origin_graph_second_reshape_has_const_input) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"), EsDestroyGraphBuilder);
+TEST_F(JitFullPartitionUT,
+       return_partition_second_graph_can_infer_success_when_origin_graph_second_reshape_has_const_input) {
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("graph"),
+                                                                             EsDestroyGraphBuilder);
 
   const auto data0 = EsCreateGraphInput(graph.get(), 0);
   std::vector<int64_t> shape = {-1, -1, -1, -1, -1};
@@ -423,7 +438,8 @@ TEST_F(JitFullPartitionUT, return_partition_second_graph_can_infer_success_when_
   const auto relu1 = es::Relu(reshape1);
   EsSetGraphOutput(relu1.GetCTensorHolder(), 0);
 
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   ASSERT_NE(ge_graph, nullptr);
   const auto computerGraph = GraphUtilsEx::GetComputeGraph(*ge_graph);
   ASSERT_NE(computerGraph, nullptr);
@@ -434,12 +450,12 @@ TEST_F(JitFullPartitionUT, return_partition_second_graph_can_infer_success_when_
   td.SetOriginShape((GeShape({4, 5, 5, 5, 6})));
   inputs.emplace_back(td);
   auto reshape2 = computerGraph->FindNode("Reshape_3");
-  reshape2->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1,-1,-1,-1,-1}));
-  reshape2->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1,-1,-1,-1,-1}));
+  reshape2->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({-1, -1, -1, -1, -1}));
+  reshape2->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1, -1, -1, -1, -1}));
   auto reshape_op_desc0 = reshape2->GetOpDesc();
   reshape_op_desc0->MutableInputDesc(0)->SetDataType(DT_INT64);
   reshape_op_desc0->MutableInputDesc(1)->SetDataType(DT_INT64);
-  
+
   std::vector<NodePtr> nodes = getPreviousNodes(computerGraph, 4);
   std::vector<NodePtr> infered_nodes;
   ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(computerGraph, inputs, infered_nodes), SUCCESS);
@@ -456,7 +472,8 @@ TEST_F(JitFullPartitionUT, return_partition_second_graph_can_infer_success_when_
 
   // infer sliced_graph
   infered_nodes.clear();
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.sliced_graph, inputs, infered_nodes),
+            SUCCESS);
   for (size_t i = 0; i < nodes.size(); ++i) {
     ASSERT_EQ(infered_nodes.at(i)->GetName(), nodes.at(i)->GetName());
   }
@@ -467,7 +484,8 @@ TEST_F(JitFullPartitionUT, return_partition_second_graph_can_infer_success_when_
   for (auto it : partition_result.remaining_graph->GetAllNodes()) {
     uninfered_nodes.push_back(it);
   }
-  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.remaining_graph, inputs, infered_nodes), SUCCESS);
+  ASSERT_EQ(JitInferUtils::InferGraphAndGetInferredNodes(partition_result.remaining_graph, inputs, infered_nodes),
+            SUCCESS);
   ASSERT_EQ(infered_nodes.size(), 5);
   for (size_t i = 0; i < infered_nodes.size(); ++i) {
     ASSERT_EQ(infered_nodes.at(i)->GetName(), uninfered_nodes.at(i)->GetName());

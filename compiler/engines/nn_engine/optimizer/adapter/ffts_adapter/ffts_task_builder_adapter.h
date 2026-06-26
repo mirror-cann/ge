@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,7 +56,7 @@ class FftsTaskBuilderAdapter : public TaskBuilderAdapter {
   Status ThreadInitInput(vector<vector<vector<ffts::DimRange>>> &tensor_slice);
   Status ThreadInitOutput(vector<vector<vector<ffts::DimRange>>> &tensor_slice);
   Status RegTbeInfo();
-  Status RegisterBinary(void * &bin_handle, std::string& kernel_name);
+  Status RegisterBinary(void *&bin_handle, std::string &kernel_name);
   void DebugThreadArgs() const;
 
  private:

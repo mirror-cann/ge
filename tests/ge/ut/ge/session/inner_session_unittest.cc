@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,8 +62,7 @@ class ExternalAllocatorUtStub : public Allocator {
   MemBlock *Malloc(size_t size) override {
     return nullptr;
   }
-  void Free(MemBlock *block) override {
-  }
+  void Free(MemBlock *block) override {}
 };
 
 class StubExecutor : public Executor {
@@ -81,8 +80,8 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id,
-                  const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
+  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id, const std::vector<gert::Tensor> &inputs,
+                  std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
@@ -91,14 +90,12 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                              rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
-                              std::vector<gert::Tensor> &outputs) override {
+  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, rtStream_t const stream,
+                                const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
-  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
-                            AscendString &json_result) override {
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result) override {
     (void)model_id;
     (void)graph_id;
     (void)flags;
@@ -113,8 +110,8 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa,
-                    const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
+  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                    std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
     return SUCCESS;
   }
 
@@ -132,17 +129,16 @@ class UtestInnerSession : public testing::Test {
   const std::string run_data_path = PathUtils::Join({EnvPath().GetAirBasePath(), "tests/ge/st/st_run_data/"});
 };
 
-Status Callback1(uint32_t, const std::map<std::string, ge::Tensor> &){
+Status Callback1(uint32_t, const std::map<std::string, ge::Tensor> &) {
   return SUCCESS;
 }
 
-Status Callback2(uint32_t, const std::map<AscendString, ge::Tensor> &){
+Status Callback2(uint32_t, const std::map<AscendString, ge::Tensor> &) {
   return SUCCESS;
 }
-
 
 TEST_F(UtestInnerSession, build_graph_success) {
-  std::map <string, string> options;
+  std::map<string, string> options;
   uint64_t session_id = 1;
   InnerSession inner_seesion(session_id, options);
   std::vector<ge::Tensor> inputs;
@@ -161,9 +157,7 @@ TEST_F(UtestInnerSession, initialize) {
 }
 
 TEST_F(UtestInnerSession, check_op_precision_mode) {
-  std::map<std::string, std::string> options = {
-    {ge::OP_PRECISION_MODE, "./op_precision_mode.ini"}
-  };
+  std::map<std::string, std::string> options = {{ge::OP_PRECISION_MODE, "./op_precision_mode.ini"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -228,7 +222,7 @@ TEST_F(UtestInnerSession, InnerLoadGraph_test_with_invalid_frozenInputIndexes) {
   std::map<AscendString, AscendString> options = {};
   // invalid option
   options.emplace("ge.exec.frozenInputIndexes", "a");
-  
+
   EXPECT_NE(inner_session.LoadGraph(graph_id, options, nullptr), SUCCESS);
   EXPECT_EQ(inner_session.Initialize(), SUCCESS);
   ComputeGraphPtr compute_graph = MakeShared<ComputeGraph>("test_graph");
@@ -256,9 +250,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeParamValid_Failed) {
   ge::GetThreadLocalContext().SetGlobalOption({});
   ge::GetThreadLocalContext().SetSessionOption({});
   ge::GetThreadLocalContext().SetGraphOption({});
-  std::map<std::string, std::string> options = {
-    {ge::PRECISION_MODE, "Im am invalid, hahah"}
-  };
+  std::map<std::string, std::string> options = {{ge::PRECISION_MODE, "Im am invalid, hahah"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -271,9 +263,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeV2ParamValid_Failed) {
   ge::GetThreadLocalContext().SetGlobalOption({});
   ge::GetThreadLocalContext().SetSessionOption({});
   ge::GetThreadLocalContext().SetGraphOption({});
-  std::map<std::string, std::string> options = {
-    {ge::PRECISION_MODE_V2, "I am invalid too, hahaha"}
-  };
+  std::map<std::string, std::string> options = {{ge::PRECISION_MODE_V2, "I am invalid too, hahaha"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -286,10 +276,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeV2ParamValid_Failed_WhenConfigPrecis
   ge::GetThreadLocalContext().SetGlobalOption({});
   ge::GetThreadLocalContext().SetSessionOption({});
   ge::GetThreadLocalContext().SetGraphOption({});
-  std::map<std::string, std::string> options = {
-    {ge::PRECISION_MODE_V2, "fp16"},
-    {ge::PRECISION_MODE, "force_fp16"}
-  };
+  std::map<std::string, std::string> options = {{ge::PRECISION_MODE_V2, "fp16"}, {ge::PRECISION_MODE, "force_fp16"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -300,9 +287,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeV2ParamValid_Failed_WhenConfigPrecis
 }
 
 TEST_F(UtestInnerSession, CheckPrecisionModeParamValid_Success) {
-  std::map<std::string, std::string> options = {
-      {ge::PRECISION_MODE, "force_fp16"}
-  };
+  std::map<std::string, std::string> options = {{ge::PRECISION_MODE, "force_fp16"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -314,9 +299,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeParamValid_Success) {
 }
 
 TEST_F(UtestInnerSession, CheckPrecisionModeV2ParamValid_Success) {
-  std::map<std::string, std::string> options = {
-      {ge::PRECISION_MODE_V2, "fp16"}
-  };
+  std::map<std::string, std::string> options = {{ge::PRECISION_MODE_V2, "fp16"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   auto ret = inner_session.Initialize();
@@ -328,9 +311,7 @@ TEST_F(UtestInnerSession, CheckPrecisionModeV2ParamValid_Success) {
 }
 
 TEST_F(UtestInnerSession, set_train_flag) {
-  std::map<std::string, std::string> options = {
-    {ge::OPTION_GRAPH_RUN_MODE, "1"}
-  };
+  std::map<std::string, std::string> options = {{ge::OPTION_GRAPH_RUN_MODE, "1"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   EXPECT_EQ(inner_session.Initialize(), SUCCESS);
@@ -340,9 +321,7 @@ TEST_F(UtestInnerSession, set_train_flag) {
 }
 
 TEST_F(UtestInnerSession, Initialize_01) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "100"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "100"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   inner_session.is_initialized_ = true;
@@ -363,9 +342,7 @@ TEST_F(UtestInnerSession, Initialize_01) {
 }
 
 TEST_F(UtestInnerSession, Initialize_02) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "1"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "1"}};
   options.insert({"ge.exec.modify_mixlist", "0"});
   options.insert({"ge.session_device_id", "1"});
   options.insert({"ge.exec.precision_mode", "allow_mix_precision"});
@@ -380,9 +357,7 @@ TEST_F(UtestInnerSession, Initialize_02) {
 }
 
 TEST_F(UtestInnerSession, Initialize_03) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "1"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "1"}};
   options.insert({"ge.exec.modify_mixlist", "0"});
   options.insert({"ge.session_device_id", "abcdefghijk"});
   options.insert({"ge.exec.precision_mode", "allow_mix_precision"});
@@ -397,9 +372,7 @@ TEST_F(UtestInnerSession, Initialize_03) {
 }
 
 TEST_F(UtestInnerSession, AddGraph) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "100"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "100"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   Graph g("graph");
@@ -409,9 +382,7 @@ TEST_F(UtestInnerSession, AddGraph) {
 }
 
 TEST_F(UtestInnerSession, BuildGraph) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "100"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "100"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   uint32_t graph_id = 0;
@@ -421,9 +392,7 @@ TEST_F(UtestInnerSession, BuildGraph) {
 }
 
 TEST_F(UtestInnerSession, GenCheckPointGraph) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "100"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "100"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   std::map<std::string, GeTensorDesc> all_variables;
@@ -433,9 +402,7 @@ TEST_F(UtestInnerSession, GenCheckPointGraph) {
 }
 
 TEST_F(UtestInnerSession, Finalize) {
-  std::map<std::string, std::string> options = {
-    {"ge.exec.disableReuseMemory", "100"}
-  };
+  std::map<std::string, std::string> options = {{"ge.exec.disableReuseMemory", "100"}};
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   inner_session.is_initialized_ = true;
@@ -507,7 +474,7 @@ TEST_F(UtestInnerSession, AddGraphWithJitCompileFalseOn910A_CheckSuccess) {
 TEST_F(UtestInnerSession, ExternalAllocator_test) {
   uint32_t stream = 10;
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
-  std::map <string, string> options;
+  std::map<string, string> options;
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
   EXPECT_EQ(inner_session.RegisterExternalAllocator(&stream, external_allocator), SUCCESS);
@@ -519,16 +486,14 @@ TEST_F(UtestInnerSession, ExternalAllocator_test) {
 TEST_F(UtestInnerSession, CopyGeOutputsMemToUserOutputs_test) {
   uint32_t stream = 10;
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
-  std::map <string, string> options;
+  std::map<string, string> options;
   uint64_t session_id = 1;
   InnerSession inner_session(session_id, options);
 
   std::vector<ge::Tensor> outputs;
   std::vector<ge::GeTensor> ge_outputs;
 
-  const auto deleter = [](uint8_t *device_data) {
-    (void)device_data;
-  };
+  const auto deleter = [](uint8_t *device_data) { (void)device_data; };
 
   ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_FLOAT16);
   ge::GeTensor ge_tensor(tensor_desc);
@@ -593,11 +558,13 @@ TEST_F(UtestInnerSession, PaRemapped_Match) {
   model->args_manager_.id_to_len_.assign({100, 0xffffffffffff});
   model->args_manager_.allocation_ids_to_iow_pa_remap_infos_.resize(2);
   struct IowPaRemapInfo iow_pa_remap_info = {nullptr, 0U, 0, 60, PaRemapPolicy::KNoSupport};
-  model->args_manager_.allocation_ids_to_iow_pa_remap_infos_[0].insert({nullptr, 0U, 0UL, 60UL, PaRemapPolicy::KNoSupport});
-  model->args_manager_.AllocKernelLaunchArgsHostMem(model->args_manager_.davinci_model_->GetLogicalMemAllocation().size());
+  model->args_manager_.allocation_ids_to_iow_pa_remap_infos_[0].insert(
+      {nullptr, 0U, 0UL, 60UL, PaRemapPolicy::KNoSupport});
+  model->args_manager_.AllocKernelLaunchArgsHostMem(
+      model->args_manager_.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = model->args_manager_.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < model->args_manager_.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  model->args_manager_.last_bases_[i];
+    active_mem_base_ptr[i] = model->args_manager_.last_bases_[i];
   }
   ModelManager::GetInstance().InsertModel(model_id, model);
 
@@ -780,14 +747,14 @@ TEST_F(UtestInnerSession, ForkAndLoadGraph_SUCCESS) {
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(com_graph);
   GraphId origin_graph_id = 1;
   EXPECT_EQ(inner_session.AddGraph(origin_graph_id, graph, options), SUCCESS);
-  EXPECT_NE(inner_session.BuildGraph(origin_graph_id, inputs), SUCCESS); // load fail but compile success
+  EXPECT_NE(inner_session.BuildGraph(origin_graph_id, inputs), SUCCESS);  // load fail but compile success
 
   GraphId forked_graph_id = 2;
   EXPECT_EQ(inner_session.ForkGraph(origin_graph_id, forked_graph_id), SUCCESS);
 
   std::map<AscendString, AscendString> load_options;
   load_options[ge::SOC_VERSION.c_str()] = "Ascend910B";
-  EXPECT_NE(inner_session.LoadGraph(forked_graph_id, load_options, nullptr), SUCCESS); // mock lowering func failed
+  EXPECT_NE(inner_session.LoadGraph(forked_graph_id, load_options, nullptr), SUCCESS);  // mock lowering func failed
 
   // remove origin graph, fork graph will not removed together
   EXPECT_EQ(inner_session.getGraphManagerObj().graph_ids_.size(), 2);

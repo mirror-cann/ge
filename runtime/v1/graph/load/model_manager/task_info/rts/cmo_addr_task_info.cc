@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,7 +80,7 @@ Status CmoAddrTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, Davinci
 
 Status CmoAddrTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
                              const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
-  (void) persistent_workspace;
+  (void)persistent_workspace;
   GE_CHECK_NOTNULL(davinci_model);
   davinci_model_ = davinci_model;
   GE_CHK_STATUS_RET_NOLOG(SetStream(task_def.stream_id(), davinci_model_->GetStreamList()));
@@ -150,7 +150,7 @@ Status CmoAddrTaskInfo::Distribute() {
 
   GE_CHK_RT_RET(rtCmoAddrTaskLaunch(args_, format_args_size_, cmo_op_code_, stream_, 0U));
   GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)));
 
   GE_CHK_ACL_RET(aclrtMemcpy(host_args_, format_args_size_, args_, format_args_size_, ACL_MEMCPY_DEVICE_TO_HOST));
   uintptr_t host_addr = PtrToValue(host_args_);

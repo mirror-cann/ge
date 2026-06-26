@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,20 +61,20 @@ class MockMmpa : public MmpaStubApiGe {
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "TsdFileLoad") {
-      return (void *) &TsdFileLoad;
+      return (void *)&TsdFileLoad;
     } else if (std::string(func_name) == "TsdFileUnLoad") {
-      return (void *) &TsdFileUnLoad;
+      return (void *)&TsdFileUnLoad;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     }
     std::cout << "func name:" << func_name << " not stub\n";
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
 
   void *DlOpen(const char *file_name, int32_t mode) override {
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
   int32_t DlClose(void *handle) override {
     return 0L;
@@ -210,4 +210,3 @@ TEST_F(BuiltinExecutorClientTest, TestUpdateProf) {
   EXPECT_EQ(client.UpdateProfilingFromExecutor(req_body), SUCCESS);
 }
 }  // namespace ge
-

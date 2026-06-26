@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ size_t InnerHashFunc(const uint8_t *const buf, const size_t len) {
 
 namespace gert {
 const int64_t HashBuffer::sep_ = 0x2323232323232323;
-thread_local HashBuffer* HashBuffer::occupier_ = nullptr;
+thread_local HashBuffer *HashBuffer::occupier_ = nullptr;
 thread_local size_t HashBuffer::offset_ = 0UL;
 thread_local uint8_t HashBuffer::hash_buf_[kMaxHashBufSize];
 
@@ -79,7 +79,7 @@ void HashBuffer::AddParamToBuf(const Tensor &tensor) {
   if (occupier_ != this) {
     return;
   }
-  const auto& origin_shape = tensor.GetOriginShape();
+  const auto &origin_shape = tensor.GetOriginShape();
   const auto dim_num = origin_shape.GetDimNum();
   const auto param_size = offset_ + dim_num * sizeof(int64_t) + tensor.GetSize();
   if (param_size > kMaxHashBufSize || tensor.GetAddr() == nullptr ||

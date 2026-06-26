@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,6 @@ static void PrepareGraphForTest(const ComputeGraphPtr &graph) {
 }
 
 static ComputeGraphPtr BuildNormalGraph() {
-
   const auto sub1_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub1_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_1) {
@@ -74,7 +73,6 @@ static ComputeGraphPtr BuildNormalGraph() {
 }
 
 static ComputeGraphPtr BuildGraphMultiMigration() {
-
   const auto sub1_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub1_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_1) {
@@ -104,21 +102,52 @@ static ComputeGraphPtr BuildGraphMultiMigration() {
 }
 
 static ComputeGraphPtr BuildIdentityGraph() {
-
   const auto sub1_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub1_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("sub1_data_0", sub1_data_0)->NODE("sub1/identity1", IDENTITY)->NODE("sub1/identityn", IDENTITYN)->EDGE(0, 0)->NODE("sub1/add", ADD)->NODE("sub1/less", LESS));
-    CHAIN(NODE("sub1_data_1", sub1_data_1)->NODE("sub1/identity2", IDENTITY)->EDGE(0, 1)->NODE("sub1/identityn", IDENTITYN)->EDGE(1, 1)->NODE("sub1/add", ADD));
-    CHAIN(NODE("sub1/variale", VARIABLE)->NODE("sub1/identity3", IDENTITY)->EDGE(0, 2)->NODE("sub1/identityn", IDENTITYN)->EDGE(2, 1)->NODE("sub1/less", LESS)->NODE("sub1/netoutput", NETOUTPUT));
+    CHAIN(NODE("sub1_data_0", sub1_data_0)
+              ->NODE("sub1/identity1", IDENTITY)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(0, 0)
+              ->NODE("sub1/add", ADD)
+              ->NODE("sub1/less", LESS));
+    CHAIN(NODE("sub1_data_1", sub1_data_1)
+              ->NODE("sub1/identity2", IDENTITY)
+              ->EDGE(0, 1)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(1, 1)
+              ->NODE("sub1/add", ADD));
+    CHAIN(NODE("sub1/variale", VARIABLE)
+              ->NODE("sub1/identity3", IDENTITY)
+              ->EDGE(0, 2)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(2, 1)
+              ->NODE("sub1/less", LESS)
+              ->NODE("sub1/netoutput", NETOUTPUT));
   };
 
   const auto sub2_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub2_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_2) {
-    CHAIN(NODE("sub2_data_0", sub2_data_0)->NODE("sub2/identity1", IDENTITY)->NODE("sub2/identityn", IDENTITYN)->EDGE(0, 0)->NODE("sub2/add", ADD)->NODE("sub2/less", LESS));
-    CHAIN(NODE("sub2_data_1", sub2_data_1)->NODE("sub2/identity2", IDENTITY)->EDGE(0, 1)->NODE("sub2/identityn", IDENTITYN)->EDGE(1, 1)->NODE("sub2/add", ADD));
-    CHAIN(NODE("sub2/variale", VARIABLE)->NODE("sub2/identity3", IDENTITY)->EDGE(0, 2)->NODE("sub2/identityn", IDENTITYN)->EDGE(2, 1)->NODE("sub2/less", LESS)->NODE("sub2/netoutput", NETOUTPUT));
+    CHAIN(NODE("sub2_data_0", sub2_data_0)
+              ->NODE("sub2/identity1", IDENTITY)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(0, 0)
+              ->NODE("sub2/add", ADD)
+              ->NODE("sub2/less", LESS));
+    CHAIN(NODE("sub2_data_1", sub2_data_1)
+              ->NODE("sub2/identity2", IDENTITY)
+              ->EDGE(0, 1)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(1, 1)
+              ->NODE("sub2/add", ADD));
+    CHAIN(NODE("sub2/variale", VARIABLE)
+              ->NODE("sub2/identity3", IDENTITY)
+              ->EDGE(0, 2)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(2, 1)
+              ->NODE("sub2/less", LESS)
+              ->NODE("sub2/netoutput", NETOUTPUT));
   };
 
   DEF_GRAPH(g1) {
@@ -134,23 +163,60 @@ static ComputeGraphPtr BuildIdentityGraph() {
 }
 
 static ComputeGraphPtr BuildIdentityGraph2() {
-
   const auto sub1_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub1_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("sub1_data_0", sub1_data_0)->NODE("sub1/identityn", IDENTITYN)->EDGE(0, 0)->NODE("sub1/add", ADD)->NODE("sub1/less", LESS));
-    CHAIN(NODE("sub1_data_1", sub1_data_1)->EDGE(0, 1)->NODE("sub1/identityn", IDENTITYN)->EDGE(1, 1)->NODE("sub1/add", ADD));
-    CHAIN(NODE("sub1_data_1", sub1_data_1)->EDGE(0, 0)->NODE("sub1/add2", ADD)->EDGE(0, 0)->NODE("sub1/add3", ADD)->NODE("sub1/netoutput", NETOUTPUT));
-    CHAIN(NODE("sub1/variale", VARIABLE)->EDGE(0, 2)->NODE("sub1/identityn", IDENTITYN)->EDGE(2, 1)->NODE("sub1/less", LESS)->EDGE(0, 1)->NODE("sub1/add3", ADD));
+    CHAIN(NODE("sub1_data_0", sub1_data_0)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(0, 0)
+              ->NODE("sub1/add", ADD)
+              ->NODE("sub1/less", LESS));
+    CHAIN(NODE("sub1_data_1", sub1_data_1)
+              ->EDGE(0, 1)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(1, 1)
+              ->NODE("sub1/add", ADD));
+    CHAIN(NODE("sub1_data_1", sub1_data_1)
+              ->EDGE(0, 0)
+              ->NODE("sub1/add2", ADD)
+              ->EDGE(0, 0)
+              ->NODE("sub1/add3", ADD)
+              ->NODE("sub1/netoutput", NETOUTPUT));
+    CHAIN(NODE("sub1/variale", VARIABLE)
+              ->EDGE(0, 2)
+              ->NODE("sub1/identityn", IDENTITYN)
+              ->EDGE(2, 1)
+              ->NODE("sub1/less", LESS)
+              ->EDGE(0, 1)
+              ->NODE("sub1/add3", ADD));
   };
 
   const auto sub2_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   const auto sub2_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(sub_2) {
-    CHAIN(NODE("sub2_data_0", sub2_data_0)->NODE("sub2/identityn", IDENTITYN)->EDGE(0, 0)->NODE("sub2/add", ADD)->NODE("sub2/less", LESS));
-    CHAIN(NODE("sub2_data_1", sub2_data_1)->EDGE(0, 1)->NODE("sub2/identityn", IDENTITYN)->EDGE(1, 1)->NODE("sub2/add", ADD));
-    CHAIN(NODE("sub2_data_1", sub1_data_1)->EDGE(0, 0)->NODE("sub2/add2", ADD)->EDGE(0, 0)->NODE("sub2/add3", ADD)->NODE("sub2/netoutput", NETOUTPUT));
-    CHAIN(NODE("sub2/variale", VARIABLE)->EDGE(0, 2)->NODE("sub2/identityn", IDENTITYN)->EDGE(2, 1)->NODE("sub2/less", LESS)->EDGE(0, 1)->NODE("sub2/add3", ADD));
+    CHAIN(NODE("sub2_data_0", sub2_data_0)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(0, 0)
+              ->NODE("sub2/add", ADD)
+              ->NODE("sub2/less", LESS));
+    CHAIN(NODE("sub2_data_1", sub2_data_1)
+              ->EDGE(0, 1)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(1, 1)
+              ->NODE("sub2/add", ADD));
+    CHAIN(NODE("sub2_data_1", sub1_data_1)
+              ->EDGE(0, 0)
+              ->NODE("sub2/add2", ADD)
+              ->EDGE(0, 0)
+              ->NODE("sub2/add3", ADD)
+              ->NODE("sub2/netoutput", NETOUTPUT));
+    CHAIN(NODE("sub2/variale", VARIABLE)
+              ->EDGE(0, 2)
+              ->NODE("sub2/identityn", IDENTITYN)
+              ->EDGE(2, 1)
+              ->NODE("sub2/less", LESS)
+              ->EDGE(0, 1)
+              ->NODE("sub2/add3", ADD));
   };
 
   DEF_GRAPH(g1) {
@@ -166,7 +232,6 @@ static ComputeGraphPtr BuildIdentityGraph2() {
 }
 
 static ComputeGraphPtr BuildGraphNoNeedMigration() {
-
   const auto sub1_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   DEF_GRAPH(sub_1) {
     CHAIN(NODE("sub1_data_0", sub1_data_0)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
@@ -261,7 +326,7 @@ static ComputeGraphPtr BuildGraphNoNeedMigration1() {
 
   auto input_desc0 = sub1_add->GetOpDesc()->MutableInputDesc(0);
   input_desc0->SetFormat(FORMAT_NDC1HWC0);
- 
+
   sub_builder1.AddDataEdge(sub1_data0, 0, sub1_add, 0);
   sub_builder1.AddDataEdge(sub1_data1, 0, sub1_add, 1);
   sub_builder1.AddDataEdge(sub1_data1, 0, sub1_less, 0);
@@ -277,7 +342,7 @@ static ComputeGraphPtr BuildGraphNoNeedMigration1() {
   AttrUtils::SetInt(sub2_data0->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   AttrUtils::SetInt(sub2_data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
   AttrUtils::SetInt(sub2_netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
- 
+
   sub_builder2.AddDataEdge(sub2_data0, 0, sub2_add, 0);
   sub_builder2.AddDataEdge(sub2_data1, 0, sub2_add, 1);
   sub_builder2.AddDataEdge(sub2_add, 0, sub2_cast, 0);
@@ -290,7 +355,6 @@ static ComputeGraphPtr BuildGraphNoNeedMigration1() {
   case_desc1->AddSubgraphName("sub_graph2");
   case_desc1->SetSubgraphInstanceName(0, "sub_graph1");
   case_desc1->SetSubgraphInstanceName(1, "sub_graph2");
-
 
   subgraph1->SetParentNode(case_node1);
   subgraph1->SetParentGraph(root_graph);
@@ -306,8 +370,8 @@ TEST_F(UtestSubexpressionMigrationPass, Run0) {
   Status retStatus;
   SubexpressionMigrationPass csubExpMigPass;
 
-  //string name, string type, int in_cnt, int out_cnt, Format format,
-  //DataType data_type, vector<int64_t> shape
+  // string name, string type, int in_cnt, int out_cnt, Format format,
+  // DataType data_type, vector<int64_t> shape
   DEF_GRAPH(g1) {
     CHAIN(NODE("arg_0", DATA)->NODE("addNode", ADD)->NODE("output", NETOUTPUT));
     CHAIN(NODE("arg_1", DATA)->NODE("addNode"));

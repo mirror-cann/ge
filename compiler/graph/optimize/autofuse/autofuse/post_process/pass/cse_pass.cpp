@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,7 +50,7 @@ Status GetCseKeyOffset(const NodePtr &node, std::stringstream &ss) {
   GE_ASSERT_NOTNULL(attr);
   auto load_attr = dynamic_cast<ascir_op::Load::AscLoadIrAttrDef *>(attr->ir_attr.get());
   GE_ASSERT_NOTNULL(load_attr);
-  Expression  load_offset;
+  Expression load_offset;
   if (ge::GRAPH_SUCCESS == (load_attr->GetOffset(load_offset))) {
     ss << "-offset-" << load_offset.Serialize().get();
   } else {
@@ -65,7 +65,6 @@ Status GetCseKeyGatherAxis(const NodePtr &node, std::stringstream &ss) {
   ss << "-gather-axis-" << axis;
   return SUCCESS;
 }
-
 
 Status GetCseKeyScalarValue(const NodePtr &node, std::stringstream &ss) {
   const auto &attr = node->GetOpDesc()->GetAttrsGroup<AscNodeAttr>();
@@ -217,8 +216,7 @@ Status NodeElimination(const AscGraph &graph, const NodePtr &node_to_replace, co
 }
 
 Status CandidateNodesElimination(const AscGraph &graph, std::unordered_map<NodePtr, size_t> nodes_2_topo_idx,
-                                 CandidateNodes &candidate_nodes,
-                                 std::unordered_set<NodePtr> &removed_output_nodes) {
+                                 CandidateNodes &candidate_nodes, std::unordered_set<NodePtr> &removed_output_nodes) {
   std::unordered_map<std::string, NodePtr> keys_to_node;
   bool has_removed_node = false;
   while (!candidate_nodes.sorted_nodes.empty()) {

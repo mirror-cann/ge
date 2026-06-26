@@ -67,7 +67,9 @@ namespace {
 constexpr const char *kFormatTime = "[2023-08-08-20:08:00.001.001]";
 constexpr const char *kPlatformIrrelevant =
     "This model is irrelevant to the host platform, parameters about host os and host cpu are ignored.";
-graphStatus StubInferFunction(Operator &op) { return GRAPH_SUCCESS; }
+graphStatus StubInferFunction(Operator &op) {
+  return GRAPH_SUCCESS;
+}
 
 std::string WriteDynamicAippConfig() {
   const std::string cfg_path = "om2_dynamic_aipp_build.cfg";
@@ -195,7 +197,7 @@ TEST_F(GeIrBuildTest, TestBuildModel) {
   BenchEnv::Init();
   std::shared_ptr<GELib> ge_lib = GELib::GetInstance();
   if (ge_lib != nullptr) {
-    ge_lib->init_flag_=false;
+    ge_lib->init_flag_ = false;
   }
   std::map<AscendString, AscendString> init_options;
   init_options.emplace(ge::OPTION_EXEC_HCCL_FLAG, "0");
@@ -226,7 +228,7 @@ TEST_F(GeIrBuildTest, TestExternalWeightCombined) {
   BenchEnv::Init();
   std::shared_ptr<GELib> ge_lib = GELib::GetInstance();
   if (ge_lib != nullptr) {
-    ge_lib->init_flag_=false;
+    ge_lib->init_flag_ = false;
   }
   std::map<std::string, std::string> init_options;
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
@@ -262,11 +264,11 @@ TEST_F(GeIrBuildTest, TestBuildModelFailWtihL1OptimizeInVirtual) {
   aclgrphBuildFinalize();
 }
 
-//TEST_F(GeIrBuildTest, TestInferShapePrepare) {
-//  auto graph = GraphFactory::SingeOpGraph2();
-//  auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-//  EXPECT_TRUE(compute_graph != nullptr);
-//}
+// TEST_F(GeIrBuildTest, TestInferShapePrepare) {
+//   auto graph = GraphFactory::SingeOpGraph2();
+//   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+//   EXPECT_TRUE(compute_graph != nullptr);
+// }
 
 TEST_F(GeIrBuildTest, test_build_and_bundlesave_flow_model_pp) {
   std::map<AscendString, AscendString> init_options;
@@ -286,10 +288,11 @@ TEST_F(GeIrBuildTest, test_build_and_bundlesave_flow_model_pp) {
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
 
   ModelBufferData bundle_buffer;
-  EXPECT_EQ(ModelHelper::SaveBundleModelBufferToMem({model_buffer_data, model_buffer_data}, 2048, bundle_buffer), SUCCESS);
+  EXPECT_EQ(ModelHelper::SaveBundleModelBufferToMem({model_buffer_data, model_buffer_data}, 2048, bundle_buffer),
+            SUCCESS);
   EXPECT_NE(aclgrphBundleSaveModel(nullptr, bundle_buffer), SUCCESS);
   EXPECT_EQ(aclgrphBundleSaveModel("bundle_flow_model", bundle_buffer), SUCCESS);
-  EXPECT_NE(aclgrphSaveModel("./test1", bundle_buffer), SUCCESS); // type not support
+  EXPECT_NE(aclgrphSaveModel("./test1", bundle_buffer), SUCCESS);  // type not support
 
   aclgrphBuildFinalize();
   system("rm -f ./bundle_flow_model.om");
@@ -313,7 +316,8 @@ TEST_F(GeIrBuildTest, test_build_and_bundle_save_variable_modle) {
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
 
   ModelBufferData bundle_buffer;
-  EXPECT_EQ(ModelHelper::SaveBundleModelBufferToMem({model_buffer_data, model_buffer_data}, 4096, bundle_buffer), SUCCESS);
+  EXPECT_EQ(ModelHelper::SaveBundleModelBufferToMem({model_buffer_data, model_buffer_data}, 4096, bundle_buffer),
+            SUCCESS);
   EXPECT_NE(aclgrphBundleSaveModel(nullptr, bundle_buffer), SUCCESS);
   EXPECT_EQ(aclgrphBundleSaveModel("bundle_var_model", bundle_buffer), SUCCESS);
 
@@ -339,7 +343,7 @@ TEST_F(GeIrBuildTest, test_build_and_bundle_save_variable_modle) {
   EXPECT_EQ(bundle_header->modeltype, MODEL_TYPE_BUNDLE_MODEL);
   EXPECT_EQ(bundle_header->model_length, len);
   EXPECT_EQ(bundle_header->model_num, 2U);
-  ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable*>(&data_bin[sizeof(ModelFileHeader)]);
+  ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable *>(&data_bin[sizeof(ModelFileHeader)]);
   ASSERT_NE(table, nullptr);
   EXPECT_TRUE(table->num == 3);
   size_t offset = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * table->num;
@@ -356,7 +360,7 @@ TEST_F(GeIrBuildTest, test_build_and_bundle_save_variable_modle) {
   EXPECT_EQ(offset + sizeof(ModelFileHeader), len);
   size_t data_offset = sizeof(ModelFileHeader) + sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * 3;
   EXPECT_EQ(*reinterpret_cast<int64_t *>(data_bin.get() + data_offset), 4096);
-  for (uint32_t i = 1U; i < 3;++i) {
+  for (uint32_t i = 1U; i < 3; ++i) {
     ModelData sub_model;
     sub_model.model_data = data_bin.get() + sizeof(ModelFileHeader) + table->partition[i].mem_offset;
     sub_model.model_len = table->partition[i].mem_size;
@@ -393,7 +397,7 @@ TEST_F(GeIrBuildTest, TestGenerateForOp) {
   TensorDesc input_tensor_desc(shape);
   input_tensor_desc.SetConstData(MakeUnique<uint8_t[]>(64), 64);
   TensorDesc output_tensor_desc(shape);
-  EXPECT_EQ(aclgrphGenerateForOp(NEG, {input_tensor_desc}, {output_tensor_desc},  graph), SUCCESS);
+  EXPECT_EQ(aclgrphGenerateForOp(NEG, {input_tensor_desc}, {output_tensor_desc}, graph), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestGenerateFromJsonForOp) {
@@ -438,7 +442,6 @@ TEST_F(GeIrBuildTest, TestBuildOptions) {
 
   init_options["ge.optionInvalid"] = "invalid";
   aclgrphBuildInitialize(init_options);
-
 }
 
 TEST_F(GeIrBuildTest, TestBuildModelOm2UnsupportedGlobalOption) {
@@ -500,9 +503,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRange) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "1,1,-1,-1"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "1,1,-1,-1"}};
   ModelBufferData model_buffer_data{};
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), GRAPH_FAILED);
 
@@ -521,7 +522,6 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRange) {
   aclgrphBuildFinalize();
 }
 
-
 TEST_F(GeIrBuildTest, TestBuildModelWithShapeRangeInvalidInput) {
   std::map<AscendString, AscendString> init_options;
   init_options[ge::OPTION_HOST_ENV_OS] = "linux";
@@ -529,9 +529,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRangeInvalidInput) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data,1,1,-1,-1"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data,1,1,-1,-1"}};
   ModelBufferData model_buffer_data{};
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -553,9 +551,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithNamedShapeRangeDynamic) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
   std::string range_str = data_node->GetName() + ":1,1,222~226,-1";
-  std::map<string, string> build_options = {
-      {ge::ir_option::INPUT_SHAPE, range_str}
-  };
+  std::map<string, string> build_options = {{ge::ir_option::INPUT_SHAPE, range_str}};
 
   ModelBufferData model_buffer_data{};
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
@@ -570,10 +566,8 @@ TEST_F(GeIrBuildTest, TestBuildModelWithNamedShapeRangeDynamic_InvalidInputShape
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
   std::string range_str = data_node->GetName() + ":1,1,222~226,-1";
-  std::map<string, string> build_options = {
-      {ge::ir_option::INPUT_SHAPE, range_str},
-      {"ge.dynamicBatchSize", "1,1,225,8"}
-  };
+  std::map<string, string> build_options = {{ge::ir_option::INPUT_SHAPE, range_str},
+                                            {"ge.dynamicBatchSize", "1,1,225,8"}};
 
   ModelBufferData model_buffer_data{};
   EXPECT_NE(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
@@ -585,9 +579,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRange_invalid_param1) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape_range", "[1~-1, 1, -1, -1]"}
-  };
+  std::map<string, string> build_options = {{"input_shape_range", "[1~-1, 1, -1, -1]"}};
   ModelBufferData model_buffer_data{};
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -604,9 +596,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRange_invalid_param2) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape_range", "[1~2~3, 1, -1, -1]"}
-  };
+  std::map<string, string> build_options = {{"input_shape_range", "[1~2~3, 1, -1, -1]"}};
   ModelBufferData model_buffer_data{};
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -626,9 +616,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRange_invalid_param3) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape_range", "[1]"}
-  };
+  std::map<string, string> build_options = {{"input_shape_range", "[1]"}};
   ModelBufferData model_buffer_data{};
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -649,10 +637,8 @@ TEST_F(GeIrBuildTest, TestBuildModelWithNamedShapeRange) {
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
   std::string range_str = data_node->GetName() + ":[1, 1, -1, -1]";
   string input_shape_str = data_node->GetName() + ":1,1,244,244";
-  std::map<string, string> build_options = {
-      {ge::ir_option::INPUT_SHAPE_RANGE, range_str},
-      {ge::ir_option::INPUT_SHAPE, input_shape_str}
-  };
+  std::map<string, string> build_options = {{ge::ir_option::INPUT_SHAPE_RANGE, range_str},
+                                            {ge::ir_option::INPUT_SHAPE, input_shape_str}};
 
   ModelBufferData model_buffer_data{};
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
@@ -667,9 +653,7 @@ TEST_F(GeIrBuildTest, TestGetIRVersion) {
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_buffer_optimize_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::BUFFER_OPTIMIZE, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::BUFFER_OPTIMIZE, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
@@ -681,44 +665,32 @@ TEST_F(GeIrBuildTest, TestBuildModel_buffer_optimize_invalid) {
 // }
 
 TEST_F(GeIrBuildTest, TestBuildModel_reuse_memory_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::EXEC_DISABLE_REUSED_MEMORY, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::EXEC_DISABLE_REUSED_MEMORY, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_single_stream_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::ENABLE_SINGLE_STREAM, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::ENABLE_SINGLE_STREAM, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_external_weight_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::EXTERNAL_WEIGHT, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::EXTERNAL_WEIGHT, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_ac_parallel_enable_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::AC_PARALLEL_ENABLE, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::AC_PARALLEL_ENABLE, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_tiling_schedule_optimize_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::TILING_SCHEDULE_OPTIMIZE, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::TILING_SCHEDULE_OPTIMIZE, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
 TEST_F(GeIrBuildTest, TestBuildModel_quant_dumpable_invalid) {
-  std::map<AscendString, AscendString> init_options = {
-      {ge::ir_option::QUANT_DUMPABLE, "invalid"}
-  };
+  std::map<AscendString, AscendString> init_options = {{ge::ir_option::QUANT_DUMPABLE, "invalid"}};
   EXPECT_NE(aclgrphBuildInitialize(init_options), SUCCESS);
 }
 
@@ -727,10 +699,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicBatch) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:-1,3,16,16"},
-      {"ge.dynamicBatchSize", "1,2,4,8,"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:-1,3,16,16"}, {"ge.dynamicBatchSize", "1,2,4,8,"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -746,9 +715,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicBatch_invalid1) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"ge.dynamicBatchSize", "1,2,4,8"}
-  };
+  std::map<string, string> build_options = {{"ge.dynamicBatchSize", "1,2,4,8"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -764,10 +731,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicBatch_invalid2) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,16,16"},
-      {"ge.dynamicBatchSize", "1,2,4,8"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,16,16"}, {"ge.dynamicBatchSize", "1,2,4,8"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -783,10 +747,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicBatch_invalid3) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,16,16"},
-      {"ge.dynamicBatchSize", "a,2,4,8"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,16,16"}, {"ge.dynamicBatchSize", "a,2,4,8"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -802,10 +763,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithInvalidDynamicBatch_Fail) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:-1,3,16,16"},
-      {"ge.dynamicBatchSize", "a,2,4,8"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:-1,3,16,16"}, {"ge.dynamicBatchSize", "a,2,4,8"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -830,7 +788,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithInvalidDynamicBatch_Fail) {
  */
 TEST_F(GeIrBuildTest, TestBuildModelDataToNetoutput) {
   // 设置环境变量
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -862,11 +820,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicImageSize", "16,16;32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,-1,-1"},
+                                            {ge::ir_option::INPUT_FORMAT, "NCHW"},
+                                            {"ge.dynamicImageSize", "16,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -882,10 +838,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage_invalid1) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,-1,-1"},
-      {"ge.dynamicImageSize", "16,16;32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,-1,-1"}, {"ge.dynamicImageSize", "16,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -901,11 +854,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage_invalid2) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,-1,-1, 1"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicImageSize", "16,16;32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,-1,-1, 1"},
+                                            {ge::ir_option::INPUT_FORMAT, "NCHW"},
+                                            {"ge.dynamicImageSize", "16,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -921,11 +872,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage_invalid3) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,16,16"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicImageSize", "16,16;32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,16,16"},
+                                            {ge::ir_option::INPUT_FORMAT, "NCHW"},
+                                            {"ge.dynamicImageSize", "16,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -942,10 +891,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage_invalid4) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicImageSize", "a,16;32,32"}
-  };
+      {"input_shape", "data1:1,3,-1,-1"}, {ge::ir_option::INPUT_FORMAT, "NCHW"}, {"ge.dynamicImageSize", "a,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -961,11 +907,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicImage_invalid5) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicImageSize", "16,16,16;32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,-1,-1"},
+                                            {ge::ir_option::INPUT_FORMAT, "NCHW"},
+                                            {"ge.dynamicImageSize", "16,16,16;32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -982,10 +926,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "3,16,16;3,32,32"}
-  };
+      {"input_shape", "data1:1,-1,-1,-1"}, {ge::ir_option::INPUT_FORMAT, "ND"}, {"ge.dynamicDims", "3,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1001,11 +942,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid1) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "NCHW"},
-      {"ge.dynamicDims", "3,16,16;3,32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,-1,-1,-1"},
+                                            {ge::ir_option::INPUT_FORMAT, "NCHW"},
+                                            {"ge.dynamicDims", "3,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1021,11 +960,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid2) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "3,16,16;3,32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,-1,-1,-1,-1"},
+                                            {ge::ir_option::INPUT_FORMAT, "ND"},
+                                            {"ge.dynamicDims", "3,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1042,10 +979,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid3) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,16,16"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "3,16,16;3,32,32"}
-  };
+      {"input_shape", "data1:1,3,16,16"}, {ge::ir_option::INPUT_FORMAT, "ND"}, {"ge.dynamicDims", "3,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1062,10 +996,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid4) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", ""}
-  };
+      {"input_shape", "data1:1,-1,-1,-1"}, {ge::ir_option::INPUT_FORMAT, "ND"}, {"ge.dynamicDims", ""}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1081,11 +1012,9 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid5) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "3,16,16,16;3,32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,-1,-1,-1"},
+                                            {ge::ir_option::INPUT_FORMAT, "ND"},
+                                            {"ge.dynamicDims", "3,16,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1102,10 +1031,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid6) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<string, string> build_options = {
-      {"input_shape", "data1:1,-1,-1,-1"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "a,16,16;3,32,32"}
-  };
+      {"input_shape", "data1:1,-1,-1,-1"}, {ge::ir_option::INPUT_FORMAT, "ND"}, {"ge.dynamicDims", "a,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1121,10 +1047,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamicDims_invalid7) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicDims", "a,16,16;3,32,32"}
-  };
+  std::map<string, string> build_options = {{ge::ir_option::INPUT_FORMAT, "ND"}, {"ge.dynamicDims", "a,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1140,12 +1063,10 @@ TEST_F(GeIrBuildTest, TestBuildModelWithDynamic_multi_invalid) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape", "data1:1,3,16,16"},
-      {ge::ir_option::INPUT_FORMAT, "ND"},
-      {"ge.dynamicImageSize", "16,16;32,32"},
-      {"ge.dynamicDims", "a,16,16;3,32,32"}
-  };
+  std::map<string, string> build_options = {{"input_shape", "data1:1,3,16,16"},
+                                            {ge::ir_option::INPUT_FORMAT, "ND"},
+                                            {"ge.dynamicImageSize", "16,16;32,32"},
+                                            {"ge.dynamicDims", "a,16,16;3,32,32"}};
   ModelBufferData model_buffer_data{};
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindFirstNodeMatchType(DATA);
@@ -1268,8 +1189,7 @@ TEST_F(GeIrBuildTest, test_build_and_save_big_model) {
   std::map<AscendString, AscendString> init_options;
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
-  auto sub_data_1 = OP_CFG(DATA).Attr("index", 0)
-                                .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024});
+  auto sub_data_1 = OP_CFG(DATA).Attr("index", 0).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024});
   GeTensorDesc data_tensor_desc(GeShape({1, 512, 1024, 1024}), FORMAT_NCHW, DT_FLOAT);
   std::vector<float32_t> data_value_vec1(1 * 512 * 1024 * 1024, 1);
   GeTensorPtr data_tensor1 = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec1.data(),
@@ -1317,11 +1237,11 @@ TEST_F(GeIrBuildTest, evaluate_graph_mode) {
   auto sub_add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024 * 1024});
   auto sub_net_output = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024});
   DEF_GRAPH(g1) {
-      CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
-      CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
+    CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
+    CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
   };
 
   const auto graph = ToGeGraph(g1);
@@ -1343,11 +1263,11 @@ TEST_F(GeIrBuildTest, evaluate_graph_mode_simple) {
   auto sub_add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024 * 1024});
   auto sub_net_output = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024});
   DEF_GRAPH(g1) {
-      CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
-      CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
+    CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
+    CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
   };
 
   const auto graph = ToGeGraph(g1);
@@ -1367,9 +1287,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRangeWithCpuAndOsEmpty) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape_range", "[1, 1, -1, -1]"}
-  };
+  std::map<string, string> build_options = {{"input_shape_range", "[1, 1, -1, -1]"}};
   ModelBufferData model_buffer_data{};
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), GRAPH_FAILED);
 
@@ -1395,9 +1313,7 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRangeWihtOutputFileNameTooLong) {
   EXPECT_EQ(aclgrphBuildInitialize(init_options), SUCCESS);
 
   auto graph = GraphFactory::SingeOpGraph2();
-  std::map<string, string> build_options = {
-      {"input_shape_range", "[1, 1, -1, -1]"}
-  };
+  std::map<string, string> build_options = {{"input_shape_range", "[1, 1, -1, -1]"}};
   ModelBufferData model_buffer_data{};
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), GRAPH_FAILED);
 
@@ -1437,44 +1353,28 @@ TEST_F(GeIrBuildTest, TestBuildModelWithShapeRangeWithCpuNotExist) {
 static Graph ConstructUbFusionGraph() {
   DEF_GRAPH(fused_subgraph) {
     auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Build("data_0");
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
+                      .Build("data_0");
 
-    auto conv2d = OP_CFG(CONV2D)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("conv2d");
+    auto conv2d = OP_CFG(CONV2D).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("conv2d");
 
     auto ret_val = OP_CFG("_RetVal")
-        .InCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Build("ret_val");
+                       .InCnt(1)
+                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                       .Build("ret_val");
     CHAIN(NODE(data_0)->NODE(conv2d)->NODE(ret_val));
   };
 
   DEF_GRAPH(dynamic_graph) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1})
-        .Build("data");
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1}).Build("data");
 
-    auto fused_op = OP_CFG(MATMUL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("fused_op");
+    auto fused_op = OP_CFG(MATMUL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fused_op");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1})
-        .Build("net_output");
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1}).Build("net_output");
 
     CHAIN(NODE(data)->NODE(fused_op)->NODE(net_output));
   };
@@ -1541,7 +1441,7 @@ TEST_F(GeIrBuildTest, RecoverIrDefinition_graph_ub) {
   auto root_graph = root_model->GetRootGraph();
   ASSERT_NE(root_graph, nullptr);
   NodePtr fused_node = nullptr;
-  for (const auto &node : root_graph->GetAllNodes()){
+  for (const auto &node : root_graph->GetAllNodes()) {
     if (node->GetName() == "fused_op") {
       fused_node = node;
       break;
@@ -1549,13 +1449,14 @@ TEST_F(GeIrBuildTest, RecoverIrDefinition_graph_ub) {
   }
   ASSERT_NE(fused_node, nullptr);
   ComputeGraphPtr ub_graph = nullptr;
-  AttrUtils::GetGraph(fused_node->GetOpDesc(),  "_original_fusion_graph", ub_graph);
+  AttrUtils::GetGraph(fused_node->GetOpDesc(), "_original_fusion_graph", ub_graph);
   auto conv2d = ub_graph->FindNode("conv2d");
   ASSERT_NE(conv2d, nullptr);
   auto ir_inputs = conv2d->GetOpDesc()->GetIrInputs();
   auto ir_attr_names = conv2d->GetOpDesc()->GetIrAttrNames();
   const std::vector<std::string> target_ir_input = {"x", "filter", "bias", "offset_w"};
-  const std::vector<std::string> target_ir_attr_name = {"strides", "pads", "dilations", "groups", "data_format", "offset_x"};
+  const std::vector<std::string> target_ir_attr_name = {"strides", "pads",        "dilations",
+                                                        "groups",  "data_format", "offset_x"};
   EXPECT_EQ(ir_inputs.size(), target_ir_input.size());
   for (size_t i = 0U; i < ir_inputs.size(); ++i) {
     EXPECT_EQ(ir_inputs[i].first, target_ir_input[i]);
@@ -1694,7 +1595,6 @@ TEST_F(GeIrBuildTest, recover_op_runinfo_static_graph) {
       EXPECT_EQ(reduce_sum_atomic_run_info->GetBlockDim(), 10U);
       std::vector<int64_t> reduce_workspace{1000, 1000};
       EXPECT_EQ(reduce_sum_atomic_run_info->GetAllWorkspaces(), reduce_workspace);
-
     }
     if (node->GetType() == "Add") {
       // old func
@@ -1735,11 +1635,8 @@ static Graph ConstructDynamicBinReuseGraph() {
                          .Attr(ATTR_NAME_INDEX, 0)
                          .Build("sub_data");
     OpDescPtr reduce = OP_CFG(REDUCESUM).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 1}).Build("reduce");
-    auto sub_output = OP_CFG(ge::NETOUTPUT)
-                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {4, 1})
-                          .InCnt(1)
-                          .OutCnt(1)
-                          .Build("sub_output");
+    auto sub_output =
+        OP_CFG(ge::NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {4, 1}).InCnt(1).OutCnt(1).Build("sub_output");
 
     AttrUtils::SetInt(sub_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
 
@@ -1860,7 +1757,6 @@ TEST_F(GeIrBuildTest, recover_op_runinfo_dyn_graph) {
       EXPECT_NE(add_run_info, nullptr);
     }
   }
-
 
   aclgrphBuildFinalize();
   ReInitGe();
@@ -1998,7 +1894,7 @@ TEST_F(GeIrBuildTest, TestSocVersionCheck_ok_Nano) {
 
   auto graph = GraphFactory::SingeOpGraph2();
   std::map<AscendString, AscendString> build_options;
-  //build_options.emplace(ge::ir_option::INPUT_FORMAT, "NCHW");
+  // build_options.emplace(ge::ir_option::INPUT_FORMAT, "NCHW");
   ModelBufferData model_buffer_data{};
 
   EXPECT_EQ(aclgrphBuildModel(graph, build_options, model_buffer_data), SUCCESS);
@@ -2014,7 +1910,7 @@ TEST_F(GeIrBuildTest, TestSocVersionCheck_ok_Nano) {
   std::string arch_type;
   AttrUtils::GetStr(*ge_model, "soc_version", soc_version);
   AttrUtils::GetStr(*ge_model, "arch_type", arch_type);
-  //EXPECT_EQ(soc_version, "Ascend035");
+  // EXPECT_EQ(soc_version, "Ascend035");
   EXPECT_EQ(arch_type, "0");
   ReInitGe();
 }
@@ -2048,15 +1944,14 @@ TEST_F(GeIrBuildTest, ir_build_so_in_om_multi_customize_priroity) {
 }
 
 void BuildAndCheckSimpleConstCastGraph(bool use_const, DataType dtype) {
-  const std::vector<int64_t> shape = { 2, 3, 4, 5 };
+  const std::vector<int64_t> shape = {2, 3, 4, 5};
   auto tensor = GenerateTensor(dtype, shape);
-  auto const_0 = OP_CFG(use_const ? CONSTANT : CONSTANTOP).OutCnt(1)
-                           .TensorDesc(FORMAT_NCHW, dtype, shape)
-                           .Weight(tensor)
-                           .Build("const_1");
-  auto cast_0 = OP_CFG(CAST).InCnt(1).OutCnt(1)
-                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                            .Build("cast_1");
+  auto const_0 = OP_CFG(use_const ? CONSTANT : CONSTANTOP)
+                     .OutCnt(1)
+                     .TensorDesc(FORMAT_NCHW, dtype, shape)
+                     .Weight(tensor)
+                     .Build("const_1");
+  auto cast_0 = OP_CFG(CAST).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).Build("cast_1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(const_0)->NODE(cast_0));
   };
@@ -2067,7 +1962,7 @@ void BuildAndCheckSimpleConstCastGraph(bool use_const, DataType dtype) {
   EXPECT_EQ(output_nodes.size(), 0U);
 
   std::map<AscendString, AscendString> options = {
-    { OO_CONSTANT_FOLDING, "false" },
+      {OO_CONSTANT_FOLDING, "false"},
   };
   Session session(options);
   std::vector<Tensor> inputs;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,8 @@ std::mutex graph_attr_mutex;
 
 namespace {
 const uint32_t CHECK_WEIGHT_MAX_COUNT = 100;
-const std::unordered_set<std::string> kNonComputeNodeTypeSet {
-        DATA, REFDATA, VARIABLE, NETOUTPUT, CONSTANT, CONSTANTOP, OP_TYPE_PLACE_HOLDER, OP_TYPE_END};
+const std::unordered_set<std::string> kNonComputeNodeTypeSet{
+    DATA, REFDATA, VARIABLE, NETOUTPUT, CONSTANT, CONSTANTOP, OP_TYPE_PLACE_HOLDER, OP_TYPE_END};
 
 const std::unordered_set<ge::Format> kSupportedTransType = {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ,
                                                             ge::FORMAT_ND_RNN_BIAS, ge::FORMAT_FRACTAL_ZN_RNN};
@@ -43,15 +43,15 @@ const std::unordered_set<ge::Format> kSupportedTransType = {ge::FORMAT_ND, ge::F
 const std::unordered_set<ge::DataType> kComplexDtypeSet = {ge::DT_COMPLEX32, ge::DT_COMPLEX64, ge::DT_COMPLEX128};
 
 // {c0_value, bit_value}: c0_value = 2 ^ (bit_value - 1)
-const std::map<int64_t, int32_t> kC0PowerMap = {{1, 1}, {2, 2}, {4, 3}, {8, 4}, {16, 5},
+const std::map<int64_t, int32_t> kC0PowerMap = {{1, 1},  {2, 2},  {4, 3},   {8, 4},  {16, 5},
                                                 {32, 6}, {64, 7}, {128, 8}, {256, 9}};
-}
+}  // namespace
 
 void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, const string &reshape_type,
                      ge::GeShape &shape, const ge::GeTensorDescPtr tensor_desc) {
   int64_t reshape_type_mask = 0;
-  (void)transformer::ExpandDimension::GenerateReshapeType(origin_format, format, shape.GetDimNum(),
-                                                          reshape_type, reshape_type_mask);
+  (void)transformer::ExpandDimension::GenerateReshapeType(origin_format, format, shape.GetDimNum(), reshape_type,
+                                                          reshape_type_mask);
   if (tensor_desc != nullptr) {
     (void)ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type_mask);
   }
@@ -61,8 +61,8 @@ void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, 
 void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, const string &reshape_type,
                      const ge::GeShape &origin_shape, ge::GeShape &shape, const ge::GeTensorDescPtr tensor_desc) {
   int64_t reshape_type_mask = 0;
-  (void)transformer::ExpandDimension::GenerateReshapeType(origin_format, format, origin_shape.GetDimNum(),
-                                                          reshape_type, reshape_type_mask);
+  (void)transformer::ExpandDimension::GenerateReshapeType(origin_format, format, origin_shape.GetDimNum(), reshape_type,
+                                                          reshape_type_mask);
   if (tensor_desc != nullptr) {
     (void)ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type_mask);
   }
@@ -73,16 +73,14 @@ void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, 
   }
 }
 
-void GetReshapeAxisValueByName(const ge::Format &origin_format, const ge::GeShape &shape,
-                               char axic_name, ge::GeTensorDesc &tensor_desc) {
+void GetReshapeAxisValueByName(const ge::Format &origin_format, const ge::GeShape &shape, char axic_name,
+                               ge::GeTensorDesc &tensor_desc) {
   int64_t reshape_type_mask = -1;
   if (!ge::AttrUtils::GetInt(tensor_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type_mask)) {
     return;
   }
-  auto c_dim = transformer::ExpandDimension::GetReshapeAxicValueByName(reshape_type_mask,
-                                                                       axic_name,
-                                                                       shape,
-                                                                       origin_format);
+  auto c_dim =
+      transformer::ExpandDimension::GetReshapeAxicValueByName(reshape_type_mask, axic_name, shape, origin_format);
   FE_LOGD("GetReshapeAxisValueByName get_cdim = %ld.", c_dim);
   (void)ge::AttrUtils::SetInt(tensor_desc, fe::ATTR_NAME_RESHAPE_CXVALUE, c_dim);
 }
@@ -96,7 +94,7 @@ int64_t GetAxisValueByName(char axic_name, ge::GeTensorDesc &tensor_desc) {
   return tensor_desc.GetOriginShape().GetDim(idx);
 }
 
-Status GetDefaultReshapeType(const ge::Format& original_format, size_t old_dims_size, std::string& reshape_type) {
+Status GetDefaultReshapeType(const ge::Format &original_format, size_t old_dims_size, std::string &reshape_type) {
   bool ret = transformer::ExpandDimension::GetDefaultReshapeType(original_format, old_dims_size, reshape_type);
   return ret ? SUCCESS : FAILED;
 }
@@ -118,11 +116,12 @@ Status GetShapeAccordingToFormat(ShapeAndFormat &shape_and_format) {
   }
   ge::Format format = shape_and_format.new_format;
   if (shape_and_format.group_count > GROUPS_DEFAULT_VALUE) {
-    format = static_cast<ge::Format>(ge::GetFormatFromSub(static_cast<int32_t>(format),
-                                                          static_cast<int32_t>(shape_and_format.group_count)));
+    format = static_cast<ge::Format>(
+        ge::GetFormatFromSub(static_cast<int32_t>(format), static_cast<int32_t>(shape_and_format.group_count)));
   }
 
-  transformer::ExtAxisValue ext_axis = {shape_and_format.extra_attr.input_size, shape_and_format.extra_attr.hidden_size,
+  transformer::ExtAxisValue ext_axis = {
+      shape_and_format.extra_attr.input_size, shape_and_format.extra_attr.hidden_size,
       shape_and_format.extra_attr.state_size,
       transformer::TransferShapeUtils::GetM0ByDtype(shape_and_format.current_data_type)};
   int32_t c0_bit = GetC0BitValFromC0(c0_value);
@@ -218,8 +217,8 @@ void CheckStridedReadInConv2d(const vector<ge::NodePtr> &conv_nodes, vector<ge::
  * @return bool: check result
  */
 bool IsTbeOp(ge::NodePtr node) {
-  FE_CHECK((node == nullptr),
-           REPORT_FE_ERROR("[SubGraphOpt][UbFusion][IsTbeOP] null node in judging AICoreOp"), return false);
+  FE_CHECK((node == nullptr), REPORT_FE_ERROR("[SubGraphOpt][UbFusion][IsTbeOP] null node in judging AICoreOp"),
+           return false);
   int64_t type = 0;
   (void)ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_IMPLY_TYPE, type);
   const bool res = (type == static_cast<int64_t>(domi::ImplyType::TVM));
@@ -273,8 +272,8 @@ bool IsThread1Node(const ge::NodePtr &node) {
 
 bool NeedIgnoreOp(const ge::NodePtr &node, const bool use_op_type) {
   (void)use_op_type;
-  FE_CHECK((node == nullptr),
-           REPORT_FE_ERROR("[SubGraphOpt][UbFusion][NeedIgnOp] null node in judging ValidOp"), return false);
+  FE_CHECK((node == nullptr), REPORT_FE_ERROR("[SubGraphOpt][UbFusion][NeedIgnOp] null node in judging ValidOp"),
+           return false);
   auto node_type = node->GetType();
   if (node_type == OP_TYPE_PLACE_HOLDER || node_type == OP_TYPE_END) {
     return true;
@@ -305,7 +304,7 @@ bool NeedIgnoreOp(const ge::NodePtr &node, const bool use_op_type) {
   return false;
 }
 
-bool IsPlaceOrEnd(const std::string& op_type) {
+bool IsPlaceOrEnd(const std::string &op_type) {
   return PLACE_OR_END_SET.count(op_type) > 0 ? true : false;
 }
 
@@ -321,9 +320,11 @@ bool CheckVirtualOp(const ge::OpDescPtr op_desc_ptr) {
   return no_task;
 }
 
-bool IsNd(const ge::Format& format) { return format == ge::FORMAT_ND; }
+bool IsNd(const ge::Format &format) {
+  return format == ge::FORMAT_ND;
+}
 
-bool IsSupportedTransType(const ge::Format& ori_format, const ge::Format& final_format) {
+bool IsSupportedTransType(const ge::Format &ori_format, const ge::Format &final_format) {
   if (kSupportedTransType.count(final_format) != 0 ||
       (ori_format == ge::FORMAT_ND && final_format == ge::FORMAT_FRACTAL_Z)) {
     return true;
@@ -340,7 +341,7 @@ bool CheckOpConstOrVariableInOriGraph(const ge::OpDescPtr &op_desc) {
   return false;
 }
 
-ge::Format GetCurOpOriginFormat(const ge::GeTensorDesc& cur_tensor_desc) {
+ge::Format GetCurOpOriginFormat(const ge::GeTensorDesc &cur_tensor_desc) {
   auto cur_format = static_cast<ge::Format>(ge::GetPrimaryFormat(cur_tensor_desc.GetFormat()));
   if (cur_format == ge::FORMAT_ND) {
     return cur_tensor_desc.GetOriginFormat();
@@ -349,7 +350,7 @@ ge::Format GetCurOpOriginFormat(const ge::GeTensorDesc& cur_tensor_desc) {
   }
 }
 
-ge::GeShape GetCurOpOriginShape(const ge::GeTensorDesc& cur_tensor_desc) {
+ge::GeShape GetCurOpOriginShape(const ge::GeTensorDesc &cur_tensor_desc) {
   ge::Format cur_format = static_cast<ge::Format>(ge::GetPrimaryFormat(cur_tensor_desc.GetFormat()));
   ge::GeShape cur_shape = cur_tensor_desc.GetShape();
   if (cur_format == ge::FORMAT_ND) {
@@ -359,7 +360,7 @@ ge::GeShape GetCurOpOriginShape(const ge::GeTensorDesc& cur_tensor_desc) {
   }
 }
 
-void LogFormatMap(const map<string, vector<ge::Format>>& format_map) {
+void LogFormatMap(const map<string, vector<ge::Format>> &format_map) {
   map<string, vector<ge::Format>>::const_iterator iter;
   for (iter = format_map.begin(); iter != format_map.end(); ++iter) {
     const vector<ge::Format> &format_vec = iter->second;
@@ -368,7 +369,7 @@ void LogFormatMap(const map<string, vector<ge::Format>>& format_map) {
   }
 }
 
-void LogDataTypeMap(const map<string, vector<ge::DataType>>& data_type_map) {
+void LogDataTypeMap(const map<string, vector<ge::DataType>> &data_type_map) {
   map<string, vector<ge::DataType>>::const_iterator iter;
   for (iter = data_type_map.begin(); iter != data_type_map.end(); ++iter) {
     const vector<ge::DataType> &data_type_vec = iter->second;
@@ -377,7 +378,7 @@ void LogDataTypeMap(const map<string, vector<ge::DataType>>& data_type_map) {
   }
 }
 
-void LogSubformatMap(const map<string, vector<uint32_t>>& subformat_map) {
+void LogSubformatMap(const map<string, vector<uint32_t>> &subformat_map) {
   map<string, vector<uint32_t>>::const_iterator iter;
   for (iter = subformat_map.begin(); iter != subformat_map.end(); ++iter) {
     const vector<uint32_t> &subformat_vec = iter->second;
@@ -386,8 +387,8 @@ void LogSubformatMap(const map<string, vector<uint32_t>>& subformat_map) {
   }
 }
 
-Status GenerateUnionFormatDtype(const vector<ge::Format>& old_formats, const vector<ge::DataType>& old_data_types,
-                                vector<ge::Format>& new_formats, vector<ge::DataType>& new_data_types) {
+Status GenerateUnionFormatDtype(const vector<ge::Format> &old_formats, const vector<ge::DataType> &old_data_types,
+                                vector<ge::Format> &new_formats, vector<ge::DataType> &new_data_types) {
   size_t old_formats_size = old_formats.size();
   size_t old_dtypes_size = old_data_types.size();
   if (old_formats.empty() || old_data_types.empty()) {
@@ -419,7 +420,7 @@ Status GenerateUnionFormatDtype(const vector<ge::Format>& old_formats, const vec
 /* Only a FORMAT_ND tensor will be considered as scalar input or output.
  * If shape is [1] and format is NHWC or NCHW, we are still able to
  * transform it to 5HD. */
-bool IsScalarInputOrOutput(const ge::GeShape& shape, ge::Format format) {
+bool IsScalarInputOrOutput(const ge::GeShape &shape, ge::Format format) {
   if (shape.IsScalar()) {
     return true;
   }
@@ -427,11 +428,11 @@ bool IsScalarInputOrOutput(const ge::GeShape& shape, ge::Format format) {
   return shape.GetDimNum() == 1 && shape.GetDims().at(0) == 1 && format == ge::FORMAT_ND;
 }
 
-bool IsScalarShape(const ge::GeShape& shape) {
+bool IsScalarShape(const ge::GeShape &shape) {
   return shape.IsScalar() || (shape.GetDimNum() == 1 && shape.GetDim(0) == 1);
 }
 
-bool IsSameShape(const ge::GeShape& first_shape, const ge::GeShape& second_shape) {
+bool IsSameShape(const ge::GeShape &first_shape, const ge::GeShape &second_shape) {
   if (first_shape.GetDimNum() != second_shape.GetDimNum()) {
     return false;
   }
@@ -447,7 +448,7 @@ bool IsSameShape(const ge::GeShape& first_shape, const ge::GeShape& second_shape
   return true;
 }
 
-bool CheckOriginShapesDimNum(const vector<ge::GeShape>& shapes, const size_t& dim_min) {
+bool CheckOriginShapesDimNum(const vector<ge::GeShape> &shapes, const size_t &dim_min) {
   for (auto shape : shapes) {
     if (!CheckOriginShapeDimNum(shape, dim_min)) {
       return false;
@@ -456,7 +457,7 @@ bool CheckOriginShapesDimNum(const vector<ge::GeShape>& shapes, const size_t& di
   return true;
 }
 
-bool CheckAccuracyOriginShapesDimNum(const vector<ge::GeShape>& shapes, const size_t& dim_size) {
+bool CheckAccuracyOriginShapesDimNum(const vector<ge::GeShape> &shapes, const size_t &dim_size) {
   for (auto shape : shapes) {
     if (shape.GetDimNum() != dim_size) {
       return false;
@@ -465,7 +466,7 @@ bool CheckAccuracyOriginShapesDimNum(const vector<ge::GeShape>& shapes, const si
   return true;
 }
 
-bool CheckOriginShapeDimNum(const ge::GeShape& shape, const size_t& dim_min) {
+bool CheckOriginShapeDimNum(const ge::GeShape &shape, const size_t &dim_min) {
   if (shape.GetDimNum() < dim_min) {
     FE_LOGD("The dim_num [%zu] is less than dim_min[%zu].", shape.GetDimNum(), dim_min);
     return false;
@@ -473,7 +474,7 @@ bool CheckOriginShapeDimNum(const ge::GeShape& shape, const size_t& dim_min) {
   return true;
 }
 
-bool CheckOriginFormatsIdentifiable(const vector<ge::Format>& formats) {
+bool CheckOriginFormatsIdentifiable(const vector<ge::Format> &formats) {
   for (auto format : formats) {
     FE_LOGD("The format %s.", ge::TypeUtils::FormatToSerialString(format).c_str());
     if (!CheckOriginFormatIdentifiable(format)) {
@@ -483,7 +484,7 @@ bool CheckOriginFormatsIdentifiable(const vector<ge::Format>& formats) {
   return true;
 }
 
-bool CheckOriginFormatIdentifiable(const ge::Format& format) {
+bool CheckOriginFormatIdentifiable(const ge::Format &format) {
   if (std::find(FE_IDENTIFIABLE_ORIGIN_FORMAT_VECTOR.begin(), FE_IDENTIFIABLE_ORIGIN_FORMAT_VECTOR.end(), format) ==
       FE_IDENTIFIABLE_ORIGIN_FORMAT_VECTOR.end()) {
     FE_LOGD("The format %s is not identifiable.", ge::TypeUtils::FormatToSerialString(format).c_str());
@@ -496,14 +497,13 @@ bool GetDimValueByFormatAndShape(const ge::Format &format, const ge::GeShape &sh
                                  int64_t &dim_value) {
   int32_t dim_index = GetAxisIndexByFormat(format, axis);
   if (dim_index < 0) {
-    FE_LOGW("Cannot find axis index by format[%s] and axis[%s].",
-            FormatToStr(format).c_str(), axis.c_str());
+    FE_LOGW("Cannot find axis index by format[%s] and axis[%s].", FormatToStr(format).c_str(), axis.c_str());
     return false;
   }
 
   if (static_cast<size_t>(dim_index) >= shape.GetDimNum()) {
-    FE_LOGW("Axis index[%u] of format[%s] and axis[%s] should be larger than shape size[%zu].",
-            dim_index, FormatToStr(format).c_str(), axis.c_str(), shape.GetDimNum());
+    FE_LOGW("Axis index[%u] of format[%s] and axis[%s] should be larger than shape size[%zu].", dim_index,
+            FormatToStr(format).c_str(), axis.c_str(), shape.GetDimNum());
     return false;
   }
 
@@ -511,22 +511,20 @@ bool GetDimValueByFormatAndShape(const ge::Format &format, const ge::GeShape &sh
   return true;
 }
 
-Status GetGroupAttributeWithVerify(ge::OpDescPtr op_desc_ptr, int64_t& group) {
+Status GetGroupAttributeWithVerify(ge::OpDescPtr op_desc_ptr, int64_t &group) {
   if (op_desc_ptr == nullptr) {
     return FAILED;
   }
 
   group = GROUPS_DEFAULT_VALUE;
   if (!ge::AttrUtils::GetInt(op_desc_ptr, ATTR_NAME_GROUPS, group)) {
-    FE_LOGD("Op Desc[%s, %s] does not have groups attribute, take default value [1].",
-            op_desc_ptr->GetName().c_str(),
+    FE_LOGD("Op Desc[%s, %s] does not have groups attribute, take default value [1].", op_desc_ptr->GetName().c_str(),
             op_desc_ptr->GetType().c_str());
     return SUCCESS;
   }
   if (group < GROUPS_DEFAULT_VALUE) {
-    REPORT_FE_ERROR(
-        "[GraphOpt][Setcheck][GetGrpAttr] Node[%s, %s]: The group value %ld should not be less than one.",
-        op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), group);
+    REPORT_FE_ERROR("[GraphOpt][Setcheck][GetGrpAttr] Node[%s, %s]: The group value %ld should not be less than one.",
+                    op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), group);
     return FAILED;
   }
 
@@ -547,8 +545,8 @@ std::string GetRealNodeType(ge::OpDescPtr OpDescPtr) {
   }
 }
 
-bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr& weight_node, const string& expected_type,
-                                       uint32_t& recursion_count) {
+bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr &weight_node, const string &expected_type,
+                                       uint32_t &recursion_count) {
   recursion_count++;
   if (recursion_count > CHECK_WEIGHT_MAX_COUNT) {
     FE_LOGD("The count of CheckWeightTypeQualified recursion has reached %d, now stopping recursion.", recursion_count);
@@ -582,7 +580,7 @@ bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr& weight_node, const str
     }
 
     size_t unsupported_count = 0;
-    for (const auto& in_anchor : input_anchors) {
+    for (const auto &in_anchor : input_anchors) {
       if (in_anchor == nullptr || in_anchor->GetPeerOutAnchor() == nullptr) {
         unsupported_count++;
         continue;
@@ -603,13 +601,13 @@ bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr& weight_node, const str
   }
 }
 
-bool CheckWeightTypeQualified(const ge::NodePtr& weight_node, const string& expected_type) {
+bool CheckWeightTypeQualified(const ge::NodePtr &weight_node, const string &expected_type) {
   uint32_t recursion_count = 0;
   return CheckWeightTypeQualifiedWithCount(weight_node, expected_type, recursion_count);
 }
 
-void CheckHasNoFather(bool is_input, int32_t index, const ge::NodePtr& node, ge::InDataAnchorPtr& in_data_anchor,
-                      bool& has_no_father) {
+void CheckHasNoFather(bool is_input, int32_t index, const ge::NodePtr &node, ge::InDataAnchorPtr &in_data_anchor,
+                      bool &has_no_father) {
   if (is_input) {
     in_data_anchor = node->GetInDataAnchor(index);
     has_no_father = (in_data_anchor == nullptr || in_data_anchor->GetPeerOutAnchor() == nullptr ||
@@ -623,7 +621,7 @@ void CheckHasNoFather(bool is_input, int32_t index, const ge::NodePtr& node, ge:
 // If a subgraph has been optimized by L2fusion, some nodes in the subgraph will have the lx_fusion_pass attribute
 // if a node in the subgraph has attr lx_fusion_pass and the value is true,
 // that means this subgraph should do lxfusion
-bool CheckL2FusionFusionStrategy(const ge::ComputeGraph& graph) {
+bool CheckL2FusionFusionStrategy(const ge::ComputeGraph &graph) {
   bool lx_fusion_pass = false;
   for (auto node : graph.GetDirectNode()) {
     (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_LX_FUSION_PASS, lx_fusion_pass);
@@ -637,7 +635,7 @@ bool CheckL2FusionFusionStrategy(const ge::ComputeGraph& graph) {
 // If a subgraph has been optimized by L2fusion, some nodes in the subgraph will have the lx_fusion_pass attribute
 // if a node in the subgraph has attr lx_fusion_pass and the value is true,
 // that means this subgraph should do lxfusion
-bool CheckL2BufferFusionStrategy(ge::ComputeGraph& graph) {
+bool CheckL2BufferFusionStrategy(ge::ComputeGraph &graph) {
   bool lx_fusion_pass = false;
   for (auto node : graph.GetDirectNode()) {
     (void)ge::AttrUtils::GetBool(node->GetOpDesc(), "lx_fusion_pass", lx_fusion_pass);
@@ -648,7 +646,7 @@ bool CheckL2BufferFusionStrategy(ge::ComputeGraph& graph) {
   return true;
 }
 
-bool IsNeedReshape(const ge::OpDescPtr& op_desc_ptr) {
+bool IsNeedReshape(const ge::OpDescPtr &op_desc_ptr) {
   bool need_reshape = true;
   std::string op_name = op_desc_ptr->GetName();
   std::string op_type = op_desc_ptr->GetType();
@@ -677,7 +675,7 @@ bool IsNeedReshape(const ge::OpDescPtr& op_desc_ptr) {
   return need_reshape;
 }
 
-void CopyWeightAttrToPlaceHolder(ge::NodePtr& node) {
+void CopyWeightAttrToPlaceHolder(ge::NodePtr &node) {
   if (node == nullptr || node->GetOpDesc() == nullptr) {
     return;
   }
@@ -713,7 +711,7 @@ void CopyWeightAttrToPlaceHolder(ge::NodePtr& node) {
   FE_LOGD("Clone ATTR_NAME_WEIGHTS for node:%s success.", node->GetName().c_str());
 }
 
-bool InvalidMemType(const ge::OpDescPtr& node_desc) {
+bool InvalidMemType(const ge::OpDescPtr &node_desc) {
   std::vector<uint32_t> input_mem_type;
   (void)ge::AttrUtils::GetListInt(node_desc, ge::ATTR_NAME_INPUT_MEM_TYPE_LIST, input_mem_type);
   std::vector<uint32_t> output_mem_type;
@@ -822,8 +820,7 @@ bool IsStaticZeroShapeOp(const ge::OpDescPtr &op_desc) {
       continue;
     }
 
-    if (IsZeroShapeTensor(tensor) &&
-        !tensor->MutableShape().IsUnknownShape()) {
+    if (IsZeroShapeTensor(tensor) && !tensor->MutableShape().IsUnknownShape()) {
       return true;
     }
   }
@@ -834,8 +831,7 @@ bool IsStaticZeroShapeOp(const ge::OpDescPtr &op_desc) {
       continue;
     }
 
-    if (IsZeroShapeTensor(tensor) &&
-        !tensor->MutableShape().IsUnknownShape()) {
+    if (IsZeroShapeTensor(tensor) && !tensor->MutableShape().IsUnknownShape()) {
       return true;
     }
   }
@@ -879,8 +875,7 @@ bool IsStaticOrAutoFuseReuseBinaryOp(const ge::NodePtr &node) {
   return op_desc->HasAttr(COMPILE_INFO_JSON);
 }
 
-bool IsLifeCycleEnd(const ge::Node &node, const ge::GeTensorDescPtr &input_desc,
-                    int input_idx) {
+bool IsLifeCycleEnd(const ge::Node &node, const ge::GeTensorDescPtr &input_desc, int input_idx) {
   auto op_desc = node.GetOpDesc();
   auto op_name = op_desc->GetName();
   auto op_type = op_desc->GetType();
@@ -916,7 +911,7 @@ bool IsTbeOp(const ge::OpDescPtr &op_desc) {
   return IsTbe(op_impl_type);
 }
 
-bool IsSingleOpGraph(const ge::ComputeGraph& graph) {
+bool IsSingleOpGraph(const ge::ComputeGraph &graph) {
   size_t node_count = 0;
   for (const ge::NodePtr &node : graph.GetDirectNode()) {
     if (node == nullptr) {
@@ -933,17 +928,17 @@ bool IsSingleOpGraph(const ge::ComputeGraph& graph) {
   return node_count <= 1;
 }
 
-bool GetIsSingleOpFlag(const ge::ComputeGraph& graph, bool &isSingleFlag) {
+bool GetIsSingleOpFlag(const ge::ComputeGraph &graph, bool &isSingleFlag) {
   std::lock_guard<std::mutex> set_graph_attr_lock(graph_attr_mutex);
   return ge::AttrUtils::GetBool(graph, kFESingleOpScene, isSingleFlag);
 }
 
-void SetIsSingleOpFlag(ge::ComputeGraph& graph, const bool &isSingleFlag) {
+void SetIsSingleOpFlag(ge::ComputeGraph &graph, const bool &isSingleFlag) {
   std::lock_guard<std::mutex> set_graph_attr_lock(graph_attr_mutex);
   (void)ge::AttrUtils::SetBool(graph, kFESingleOpScene, isSingleFlag);
 }
 
-bool IsSingleOpGraphWithCache(ge::ComputeGraph& graph) {
+bool IsSingleOpGraphWithCache(ge::ComputeGraph &graph) {
   bool is_single_flag = false;
   if (GetIsSingleOpFlag(graph, is_single_flag)) {
     return is_single_flag;
@@ -988,10 +983,9 @@ bool IsValidOp(const ge::NodePtr &node) {
   const string &op_type = node->GetType();
   string const_op_type;
   bool const_flag = ge::NodeUtils::GetConstOpType(node, const_op_type);
-  const std::unordered_set<string> invalid_types = {
-          OP_TYPE_PLACE_HOLDER, OP_TYPE_END, RESHAPE, REFORMAT, OP_TYPE_PHONY_CONCAT,
-          COMPRESSOP, COMPRESSFCOP, SQUEEZE_V2, UNSQUEEZE_V2
-  };
+  const std::unordered_set<string> invalid_types = {OP_TYPE_PLACE_HOLDER, OP_TYPE_END, RESHAPE,      REFORMAT,
+                                                    OP_TYPE_PHONY_CONCAT, COMPRESSOP,  COMPRESSFCOP, SQUEEZE_V2,
+                                                    UNSQUEEZE_V2};
 
   if ((invalid_types.count(op_type) != 0) || const_flag) {
     return false;
@@ -1020,11 +1014,11 @@ bool IsPrefixOpsPath(const ge::OpDesc &op_desc) {
     size_t pos = ops_path_name_prefix.find("_");
     if (pos != string::npos) {
       ops_path_name_prefix = ops_path_name_prefix.substr(static_cast<size_t>(pos + 1));
-      FE_LOGD("Node[%s, %s] after substr, ops_path_name_prefix:[%s]",
-      op_desc.GetNamePtr(), op_desc.GetTypePtr(), ops_path_name_prefix.c_str());
+      FE_LOGD("Node[%s, %s] after substr, ops_path_name_prefix:[%s]", op_desc.GetNamePtr(), op_desc.GetTypePtr(),
+              ops_path_name_prefix.c_str());
     } else {
-      FE_LOGW("Node[%s, %s] ops_path_name_prefix:[%s] is not in the expected format",
-      ops_path_name_prefix.c_str(), op_desc.GetNamePtr(), op_desc.GetTypePtr());
+      FE_LOGW("Node[%s, %s] ops_path_name_prefix:[%s] is not in the expected format", ops_path_name_prefix.c_str(),
+              op_desc.GetNamePtr(), op_desc.GetTypePtr());
     }
   }
   return ret;
@@ -1056,7 +1050,7 @@ std::string GetFusionNodesDescStr(const std::vector<ge::NodePtr> &fusion_nodes) 
   return desc_str;
 }
 
-std::string GetFusionNodesDescStr(const std::vector<ge::Node*> &fusion_nodes) {
+std::string GetFusionNodesDescStr(const std::vector<ge::Node *> &fusion_nodes) {
   std::string desc_str;
   if (fusion_nodes.empty()) {
     return desc_str;
@@ -1086,9 +1080,9 @@ bool IsSuppoertedFormat(const ge::Format cur_heavy_format, const uint32_t &cur_s
     return false;
   }
   if (std::find(input_sub_formats.begin(), input_sub_formats.end(), SUPPORT_ALL_SUB_FORMAT) ==
-      input_sub_formats.end() && cur_sub_format > DEFAULT_SUB_FORMAT &&
-      std::find(input_sub_formats.begin(), input_sub_formats.end(), cur_sub_format) ==
-      input_sub_formats.end()) {
+          input_sub_formats.end() &&
+      cur_sub_format > DEFAULT_SUB_FORMAT &&
+      std::find(input_sub_formats.begin(), input_sub_formats.end(), cur_sub_format) == input_sub_formats.end()) {
     FE_LOGD("[IsSuppoertedFormat] Cur sub_format not support.");
     return false;
   }
@@ -1104,21 +1098,18 @@ bool IsSuppoertedFormat(const ge::Format cur_heavy_format, const uint32_t &cur_s
 }
 
 bool VerifyCastC0Format(const ge::OpDescPtr op_desc_ptr, ge::Format new_format) {
-  FE_CHECK(op_desc_ptr == nullptr,
-           FE_LOGW("[ChkSpt][FEChk][ChkCastC0] op_desc_ptr is nullptr."), return false);
+  FE_CHECK(op_desc_ptr == nullptr, FE_LOGW("[ChkSpt][FEChk][ChkCastC0] op_desc_ptr is nullptr."), return false);
   // only check C0 for cast node
   // ge may try to swap position of transdata and cast, and check whether they can do it.
   if (op_desc_ptr->GetType() != CAST) {
     return true;
   }
   const auto input_tensor = op_desc_ptr->GetInputDescPtr(0);
-  FE_CHECK(input_tensor == nullptr,
-           FE_LOGW("[ChkSpt][FEChk][ChkCastC0] input_tensor is nullptr."), return false);
+  FE_CHECK(input_tensor == nullptr, FE_LOGW("[ChkSpt][FEChk][ChkCastC0] input_tensor is nullptr."), return false);
   ge::Format check_format = new_format == ge::FORMAT_MAX ? input_tensor->GetFormat() : new_format;
   auto in_type_size = ge::GetSizeByDataType(input_tensor->GetDataType());
   const auto output_tensor = op_desc_ptr->GetOutputDescPtr(0);
-  FE_CHECK(output_tensor == nullptr,
-           FE_LOGW("[ChkSpt][FEChk][ChkCastC0] output_tensor is nullptr."), return false);
+  FE_CHECK(output_tensor == nullptr, FE_LOGW("[ChkSpt][FEChk][ChkCastC0] output_tensor is nullptr."), return false);
   auto out_type_size = ge::GetSizeByDataType(output_tensor->GetDataType());
   FE_LOGD("Cast op[%s] in/out data type size[%d/%d] with format %d.", op_desc_ptr->GetNamePtr(), in_type_size,
           out_type_size, check_format);
@@ -1127,7 +1118,7 @@ bool VerifyCastC0Format(const ge::OpDescPtr op_desc_ptr, ge::Format new_format) 
   }
   auto primary_format = static_cast<ge::Format>(ge::GetPrimaryFormat(check_format));
   if (std::find(FE_HEAVY_FORMAT_VECTOR.begin(), FE_HEAVY_FORMAT_VECTOR.end(), primary_format) ==
-         FE_HEAVY_FORMAT_VECTOR.end()) {
+      FE_HEAVY_FORMAT_VECTOR.end()) {
     FE_LOGW("Cast op[%s] not heavy format.", op_desc_ptr->GetNamePtr());
     return true;
   }

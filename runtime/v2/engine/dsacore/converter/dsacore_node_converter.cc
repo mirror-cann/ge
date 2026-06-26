@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,7 @@ static bg::ValueHolderPtr CreateVectorHolder(const std::vector<int64_t> &workspa
   return bg::ValueHolder::CreateConst(vec, total_size);
 }
 
-void LoweringDsaNodeFillSqeSolidInfo(std::unique_ptr<rtStarsDsaSqe_t> &dsa_sqe,
-                                     const domi::DSATaskDef &dsa_task) {
+void LoweringDsaNodeFillSqeSolidInfo(std::unique_ptr<rtStarsDsaSqe_t> &dsa_sqe, const domi::DSATaskDef &dsa_task) {
   dsa_sqe->sqeHeader.type = static_cast<uint8_t>(dsa_task.sqe_type());
   dsa_sqe->start = dsa_task.start();
   dsa_sqe->functionType = dsa_task.distribution_type();
@@ -76,8 +75,8 @@ void LoweringDsaNodeFillTaskInfo(std::vector<bg::ValueHolderPtr> &inputs,
   auto &seed_type_string = dsa_task.args().seed_value_or_addr();
   auto &random_count_type_string = dsa_task.args().random_count_value_or_addr();
   inputs.emplace_back(bg::ValueHolder::CreateConst(seed_type_string.c_str(), seed_type_string.size() + 1U, true));
-  inputs.emplace_back(bg::ValueHolder::CreateConst(random_count_type_string.c_str(),
-                                                   random_count_type_string.size() + 1U, true));
+  inputs.emplace_back(
+      bg::ValueHolder::CreateConst(random_count_type_string.c_str(), random_count_type_string.size() + 1U, true));
 
   auto input1_type = dsa_task.input1_value_or_ptr();
   inputs.emplace_back(bg::ValueHolder::CreateConst(&input1_type, sizeof(input1_type)));
@@ -95,20 +94,21 @@ void LoweringDsaNodeFillTaskInfo(std::vector<bg::ValueHolderPtr> &inputs,
   inputs.emplace_back(output_num_holder);
   inputs.insert(inputs.cend(), input_addrs.cbegin(), input_addrs.cend());
   inputs.insert(inputs.cend(), output_addrs.cbegin(), output_addrs.cend());
-  GELOGD("LoweringDsaNodeFillTaskInfo dump. seed_type:%u, random_count_type:%u, seed_type_string:%s,"
-         "random_count_type_string:%s, input1_type:%u, input1_value_string:%s, input2_value_string:%s",
-         seed_type, random_count_type, seed_type_string.c_str(), random_count_type_string.c_str(), input1_type,
-         input1_value_string.c_str(), input2_value_string.c_str());
+  GELOGD(
+      "LoweringDsaNodeFillTaskInfo dump. seed_type:%u, random_count_type:%u, seed_type_string:%s,"
+      "random_count_type_string:%s, input1_type:%u, input1_value_string:%s, input2_value_string:%s",
+      seed_type, random_count_type, seed_type_string.c_str(), random_count_type_string.c_str(), input1_type,
+      input1_value_string.c_str(), input2_value_string.c_str());
 }
 
 static LowerResult LoweringDsaCoreNodeCommon(const ge::NodePtr &node, const LowerInput &lower_input,
-                                      const domi::TaskDef *task_def) {
+                                             const domi::TaskDef *task_def) {
   const domi::DSATaskDef &dsa_task = task_def->dsa_task();
   GELOGD("LoweringDsaCoreNodeCommon Enter, node:[%s, %s]", node->GetName().c_str(), node->GetType().c_str());
 
   const auto &op_desc = node->GetOpDesc();
   if (op_desc == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Op desc is null")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Op desc is null")), {}, {}, {}};
   }
   const auto workspaces_size = op_desc->GetWorkspaceBytes();
   const auto &op_type = node->GetType();
@@ -117,22 +117,22 @@ static LowerResult LoweringDsaCoreNodeCommon(const ge::NodePtr &node, const Lowe
   if (is_dsa_stateless_op == 0U) {
     workspace_addr_size = kDSAWorkspaceAddrSize;
   }
-  if (workspaces_size.size() != workspace_addr_size) { // dsa workspace size
+  if (workspaces_size.size() != workspace_addr_size) {  // dsa workspace size
     GELOGE(ge::INTERNAL_ERROR, "Node %s workspace addr size %zu is wrong, expected %zu", node->GetName().c_str(),
            workspaces_size.size(), workspace_addr_size);
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Workspace size is wrong.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Workspace size is wrong.")), {}, {}, {}};
   }
 
   const auto &input_addrs = lower_input.input_addrs;
   if ((input_addrs.size() < kDSAInputAddrSize) || (input_addrs.size() > kDSAStatelessAddrSize)) {
     GELOGE(ge::INTERNAL_ERROR, "Node %s input addr size %zu is wrong, expected between %zu and %zu",
            node->GetName().c_str(), input_addrs.size(), kDSAInputAddrSize, kDSAStatelessAddrSize);
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Input size is wrong.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Input size is wrong.")), {}, {}, {}};
   }
 
   std::unique_ptr<rtStarsDsaSqe_t> dsa_sqe = ge::MakeUnique<rtStarsDsaSqe_t>();
   if (dsa_sqe == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Alloc dsa sqe buff fail")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Alloc dsa sqe buff fail")), {}, {}, {}};
   }
   LoweringDsaNodeFillSqeSolidInfo(dsa_sqe, dsa_task);
   auto sqe_data_holder = bg::ValueHolder::CreateConst(dsa_sqe.get(), sizeof(rtStarsDsaSqe_t));
@@ -147,12 +147,12 @@ static LowerResult LoweringDsaCoreNodeCommon(const ge::NodePtr &node, const Lowe
     output_shapes = CreateOutputShapes(op_desc);
   }
   const auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-  // 2. alloc outout mem
+  // 2. alloc output mem
   const auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, *(lower_input.global_data));
   if (output_addrs.size() != kDSAOutputAddrSize) {
     GELOGE(ge::INTERNAL_ERROR, "Node %s output addr size %zu is wrong, expected %zu", node->GetName().c_str(),
            output_addrs.size(), kDSAOutputAddrSize);
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Output size is wrong.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Output size is wrong.")), {}, {}, {}};
   }
   // 3. alloc workspace mem
   auto addr_vec = bg::FrameSelector::OnInitRoot([&workspaces_size, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
@@ -160,7 +160,7 @@ static LowerResult LoweringDsaCoreNodeCommon(const ge::NodePtr &node, const Lowe
     return {bg::AllocWorkspaceMem(kOnDeviceHbm, workspaces_size_holder, *(lower_input.global_data))};
   });
   if (addr_vec.size() != 1) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Addr size is wrong.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Addr size is wrong.")), {}, {}, {}};
   }
 
   auto workspaces_addr_holder = addr_vec[0];
@@ -212,4 +212,4 @@ LowerResult LoweringDsaCoreNode(const ge::NodePtr &node, const LowerInput &lower
 }
 
 REGISTER_NODE_CONVERTER_PLACEMENT(ge::kEngineNameDsa.c_str(), gert::kOnDeviceHbm, gert::LoweringDsaCoreNode);
-} // namespace gert
+}  // namespace gert

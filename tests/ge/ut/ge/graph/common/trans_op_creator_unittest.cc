@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,12 +31,12 @@ class UtestGraphCreateTransOp : public testing::Test {
 };
 
 TEST(UtestGraphCreateTransOp, create_transdata_with_subformat) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   Format input_format = static_cast<Format>(GetFormatFromSub(FORMAT_FRACTAL_Z, 32));
   GeTensorDesc input_desc(shape, input_format);
   GeTensorDesc output_desc(shape, FORMAT_NCHW);
-  
+
   auto trans_op = TransOpCreator::CreateTransDataOp("test_trans_data", input_desc, output_desc, false);
   EXPECT_NE(trans_op, nullptr);
   int32_t groups = -1;
@@ -58,18 +58,18 @@ TEST(UtestGraphCreateTransOp, create_transdata_with_subformat) {
 
 TEST(UtestGraphCreateTransOp, create_transdata_with_subformat_with_check_failed) {
   // no ge lib init
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   Format input_format = static_cast<Format>(GetFormatFromSub(FORMAT_FRACTAL_Z, 32));
   GeTensorDesc input_desc(shape, input_format);
   GeTensorDesc output_desc(shape, FORMAT_NCHW);
-  
+
   auto trans_op = TransOpCreator::CreateTransDataOp("test_trans_data", input_desc, output_desc);
   EXPECT_EQ(trans_op, nullptr);
 }
 
 TEST(UtestGraphCreateTransOp, create_transdata_noneed_groups) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   Format input_format = static_cast<Format>(GetFormatFromSub(FORMAT_FRACTAL_NZ, 32));
   GeTensorDesc input_desc(shape, input_format);
@@ -94,7 +94,7 @@ TEST(UtestGraphCreateTransOp, create_transdata_noneed_groups) {
 }
 
 TEST(UtestGraphCreateTransOp, create_transposed) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc input_desc(shape, FORMAT_NHWC);
   GeTensorDesc output_desc(shape, FORMAT_NCHW);
@@ -108,7 +108,7 @@ TEST(UtestGraphCreateTransOp, create_transposed) {
 }
 
 TEST(UtestGraphCreateTransOp, create_cast) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc input_desc(shape, FORMAT_NHWC, DT_FLOAT);
   GeTensorDesc output_desc(shape, FORMAT_NCHW, DT_BOOL);
@@ -125,7 +125,7 @@ TEST(UtestGraphCreateTransOp, create_cast) {
 }
 
 TEST(UtestGraphCreateTransOp, create_squeeze) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc input_desc(shape, FORMAT_NHWC, DT_FLOAT);
   GeTensorDesc output_desc(shape, FORMAT_NCHW, DT_BOOL);
@@ -136,12 +136,13 @@ TEST(UtestGraphCreateTransOp, create_squeeze) {
 TEST(UtestGraphCreateTransOp, create_reshape_with_shape_const) {
   auto compute_graph = MakeShared<ComputeGraph>("test_graph");
 
-  vector<int64_t> dims_in = {1,2,3,4};
-  vector<int64_t> dims_out = {2,3,4};
+  vector<int64_t> dims_in = {1, 2, 3, 4};
+  vector<int64_t> dims_out = {2, 3, 4};
   GeTensorDesc input_desc_x(GeShape(dims_in), FORMAT_NHWC, DT_FLOAT);
   GeTensorDesc output_desc_y(GeShape(dims_out), FORMAT_NCHW, DT_FLOAT);
   output_desc_y.SetOriginShape(GeShape(dims_out));
-  auto reshape_node = TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "test_reshape", input_desc_x, output_desc_y);
+  auto reshape_node =
+      TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "test_reshape", input_desc_x, output_desc_y);
   EXPECT_NE(reshape_node, nullptr);
 
   // check shape_const input of reshape node
@@ -171,7 +172,8 @@ TEST(UtestGraphCreateTransOp, create_reshape_with_scaler_shape_const) {
   GeTensorDesc input_desc_x(GeShape(dims_in), FORMAT_NHWC, DT_FLOAT);
   GeTensorDesc output_desc_y(GeShape(dims_out), FORMAT_NCHW, DT_FLOAT);
   output_desc_y.SetOriginShape(GeShape(dims_out));
-  auto reshape_node = TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "test_reshape", input_desc_x, output_desc_y);
+  auto reshape_node =
+      TransOpCreator::CreateReshapeNodeToGraph(compute_graph, "test_reshape", input_desc_x, output_desc_y);
   EXPECT_NE(reshape_node, nullptr);
 
   // check shape_const input of reshape node
@@ -184,7 +186,7 @@ TEST(UtestGraphCreateTransOp, create_reshape_with_scaler_shape_const) {
 }
 
 TEST(UtestGraphCreateTransOp, create_cast_with_check_failed) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc input_desc(shape, FORMAT_NHWC, DT_FLOAT);
   GeTensorDesc output_desc(shape, FORMAT_NCHW, DT_BOOL);

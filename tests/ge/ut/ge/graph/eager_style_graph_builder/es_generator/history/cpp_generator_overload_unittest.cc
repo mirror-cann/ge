@@ -26,11 +26,8 @@
 using namespace ge;
 
 namespace {
-ge::es::history::Param MakeParam(const ge::es::history::ParamCxxKind kind,
-                                 const ge::es::history::ParamRole role,
-                                 const std::string &ir_name,
-                                 const std::string &name,
-                                 const bool has_default = false,
+ge::es::history::Param MakeParam(const ge::es::history::ParamCxxKind kind, const ge::es::history::ParamRole role,
+                                 const std::string &ir_name, const std::string &name, const bool has_default = false,
                                  const std::string &default_expr = "") {
   ge::es::history::Param param;
   param.kind = kind;
@@ -53,14 +50,12 @@ void WriteFile(const std::string &path, const std::string &content) {
   ofs << content;
 }
 
-void WriteSingleVersionRegistry(const std::string &registry_dir,
-                                const std::string &version,
-                                const std::string &date,
+void WriteSingleVersionRegistry(const std::string &registry_dir, const std::string &version, const std::string &date,
                                 const std::string &operators_json) {
   EnsureDir(registry_dir);
   EnsureDir(registry_dir + "registry/" + version + "/");
-  WriteFile(registry_dir + "index.json",
-            R"({"version":"1.0.0","releases":[{"release_version":")" + version + R"(","release_date":")" + date + R"("}]})");
+  WriteFile(registry_dir + "index.json", R"({"version":"1.0.0","releases":[{"release_version":")" + version +
+                                             R"(","release_date":")" + date + R"("}]})");
   WriteFile(registry_dir + "registry/" + version + "/metadata.json",
             R"({"release_version":")" + version + R"(","branch_name":"master"})");
   WriteFile(registry_dir + "registry/" + version + "/operators.json", operators_json);
@@ -649,34 +644,34 @@ inline EsTensorHolder phony_1i1opi_1o(const EsTensorLike & x, const EsTensorLike
 #endif
 )";
 
-} // namespace
+}  // namespace
 class CppGeneratorOverloadTest : public ::testing::Test {
-  protected:
-    void SetUp() override {
-      generator_ = std::make_unique<es::CppGenerator>();
-    }
+ protected:
+  void SetUp() override {
+    generator_ = std::make_unique<es::CppGenerator>();
+  }
 
-    void TearDown() override {
-      for (const auto &dir : temp_dirs_) {
-        (void)std::system(("rm -rf " + dir).c_str());
-      }
-      generator_.reset();
+  void TearDown() override {
+    for (const auto &dir : temp_dirs_) {
+      (void)std::system(("rm -rf " + dir).c_str());
     }
+    generator_.reset();
+  }
 
-    std::string CreateTempRegistryDir(const std::string &tag) {
-      static size_t seq = 0U;
-      std::string dir = "./cpp_generator_overload_registry_" + tag + "_" + std::to_string(getpid()) +
-                        "_" + std::to_string(seq++) + "/";
-      temp_dirs_.emplace_back(dir);
-      return dir;
-    }
+  std::string CreateTempRegistryDir(const std::string &tag) {
+    static size_t seq = 0U;
+    std::string dir =
+        "./cpp_generator_overload_registry_" + tag + "_" + std::to_string(getpid()) + "_" + std::to_string(seq++) + "/";
+    temp_dirs_.emplace_back(dir);
+    return dir;
+  }
 
-    std::unique_ptr<es::CppGenerator> generator_;
-    std::vector<std::string> temp_dirs_;
+  std::unique_ptr<es::CppGenerator> generator_;
+  std::vector<std::string> temp_dirs_;
 };
 TEST_F(CppGeneratorOverloadTest, GenOpKeepsSingleSignature) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
   generator_->GenOp(op_desc);
   const auto &per_ops = generator_->GetPerOpContents();
   auto it = per_ops.find("phony_1i1opi_1o");
@@ -687,28 +682,17 @@ TEST_F(CppGeneratorOverloadTest, GenOpKeepsSingleSignature) {
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithPlanUsesOwnerBuilderFromSignatureOnly) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
   ge::es::history::OverloadPlan plan;
   ge::es::history::Signature sig;
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "x1",
-                                    "x1",
-                                    true,
-                                    "=nullptr"));
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "x2",
-                                    "x2",
-                                    false));
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "x3",
-                                    "x3",
-                                    true,
-                                    "=nullptr"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef, ge::es::history::ParamRole::kInput,
+                                    "x1", "x1", true, "=nullptr"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef, ge::es::history::ParamRole::kInput,
+                                    "x2", "x2", false));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kEsTensorLikeRef, ge::es::history::ParamRole::kInput,
+                                    "x3", "x3", true, "=nullptr"));
   plan.signatures.emplace_back(sig);
 
   std::vector<std::string> warnings;
@@ -722,27 +706,18 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithPlanUsesOwnerBuilderFromSignatureOnly)
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithPlanUsesSignatureNamesForDynamicOutputAndSubgraph) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
   generator_->GenOp(op_desc);
   ge::es::history::OverloadPlan plan;
   ge::es::history::Signature sig;
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "branch_index",
-                                    "branch_index"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef, ge::es::history::ParamRole::kInput,
+                                    "branch_index", "branch_index"));
   sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHoldersVecRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "input",
-                                    "input"));
+                                    ge::es::history::ParamRole::kInput, "input", "input"));
   sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kInt64,
-                                    ge::es::history::ParamRole::kDynamicOutputNum,
-                                    "output",
-                                    "my_output_num"));
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kGraphsVec,
-                                    ge::es::history::ParamRole::kSubgraph,
-                                    "branches",
-                                    "my_branches"));
+                                    ge::es::history::ParamRole::kDynamicOutputNum, "output", "my_output_num"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kGraphsVec, ge::es::history::ParamRole::kSubgraph,
+                                    "branches", "my_branches"));
   plan.signatures.emplace_back(sig);
 
   std::vector<std::string> warnings;
@@ -756,8 +731,8 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithPlanUsesSignatureNamesForDynamicOutput
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithDuplicateInputAndAttrNamesPassesAttrParams) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_dup_name", "phony_dup_name"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_dup_name", "phony_dup_name"));
   generator_->GenOp(op_desc);
   const auto &per_ops = generator_->GetPerOpContents();
   auto it = per_ops.find("phony_dup_name");
@@ -768,22 +743,15 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithDuplicateInputAndAttrNamesPassesAttrPa
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithPlanMissingDynamicOutputParamGeneratesDeletedOverload) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
   ge::es::history::OverloadPlan plan;
   ge::es::history::Signature sig;
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "branch_index",
-                                    "branch_index"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef, ge::es::history::ParamRole::kInput,
+                                    "branch_index", "branch_index"));
   sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHoldersVecRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "input",
-                                    "input"));
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kGraphsVec,
-                                    ge::es::history::ParamRole::kSubgraph,
-                                    "branches",
-                                    "branches"));
+                                    ge::es::history::ParamRole::kInput, "input", "input"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kGraphsVec, ge::es::history::ParamRole::kSubgraph,
+                                    "branches", "branches"));
   plan.signatures.emplace_back(sig);
 
   std::vector<std::string> warnings;
@@ -801,22 +769,15 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithPlanMissingDynamicOutputParamGenerates
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithPlanMissingSubgraphParamGeneratesDeletedOverload) {
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_Case", "phony_Case"));
   ge::es::history::OverloadPlan plan;
   ge::es::history::Signature sig;
-  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "branch_index",
-                                    "branch_index"));
+  sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHolderRef, ge::es::history::ParamRole::kInput,
+                                    "branch_index", "branch_index"));
   sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kTensorHoldersVecRef,
-                                    ge::es::history::ParamRole::kInput,
-                                    "input",
-                                    "input"));
+                                    ge::es::history::ParamRole::kInput, "input", "input"));
   sig.params.emplace_back(MakeParam(ge::es::history::ParamCxxKind::kInt64,
-                                    ge::es::history::ParamRole::kDynamicOutputNum,
-                                    "output",
-                                    "output_num"));
+                                    ge::es::history::ParamRole::kDynamicOutputNum, "output", "output_num"));
   plan.signatures.emplace_back(sig);
 
   std::vector<std::string> warnings;
@@ -836,15 +797,13 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithPlanMissingSubgraphParamGeneratesDelet
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryGeneratesOverloadsForAllOptionalInputs) {
   const std::string registry_dir = CreateTempRegistryDir("phony_3opi_1o");
   WriteSingleVersionRegistry(
-    registry_dir,
-    "9.0.RC1",
-    "2025-01-01",
-    R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})");
+      registry_dir, "9.0.RC1", "2025-01-01",
+      R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})");
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC1");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -858,15 +817,12 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryGeneratesOverloadsForAl
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryAttrOnlyChangeKeepsSingleSignature) {
   const std::string registry_dir = CreateTempRegistryDir("phony_1i_1o");
   WriteSingleVersionRegistry(
-    registry_dir,
-    "9.0.RC1",
-    "2025-01-01",
-    R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})");
+      registry_dir, "9.0.RC1", "2025-01-01",
+      R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})");
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC1");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_1i_1o", "phony_1i_1o"));
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_1i_1o", "phony_1i_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -880,20 +836,15 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryAttrOnlyChangeKeepsSing
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryMultiVersionA0KeepsSingleSignature) {
   const std::string registry_dir = CreateTempRegistryDir("phony_1i_1o_multiversion_a0");
   WriteMultiVersionRegistry(
-    registry_dir,
-    {
-      {"9.0.RC1",
-       "2025-01-01",
-       R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
-      {"9.0.RC2",
-       "2025-06-01",
-       R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"index","type":"Int","required":false,"default_value":"0"}],"subgraphs":[]}]})"}
-    });
+      registry_dir,
+      {{"9.0.RC1", "2025-01-01",
+        R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
+       {"9.0.RC2", "2025-06-01",
+        R"({"operators":[{"op_type":"phony_1i_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"index","type":"Int","required":false,"default_value":"0"}],"subgraphs":[]}]})"}});
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC2");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_1i_1o", "phony_1i_1o"));
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_1i_1o", "phony_1i_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -907,20 +858,16 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryMultiVersionA0KeepsSing
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryMultiVersionA1GeneratesLegacyAndFullSignatures) {
   const std::string registry_dir = CreateTempRegistryDir("phony_3opi_1o_multiversion_a1");
   WriteMultiVersionRegistry(
-    registry_dir,
-    {
-      {"9.0.RC1",
-       "2025-01-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
-      {"9.0.RC2",
-       "2025-06-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}
-    });
+      registry_dir,
+      {{"9.0.RC1", "2025-01-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
+       {"9.0.RC2", "2025-06-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}});
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC2");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -934,47 +881,40 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryMultiVersionA1Generates
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryMultiVersionA2GeneratesTensorHolderAndGuards) {
   const std::string registry_dir = CreateTempRegistryDir("phony_3opi_1o_multiversion_a1");
   WriteMultiVersionRegistry(
-    registry_dir,
-    {
-      {"9.0.RC1",
-       "2025-01-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
-      {"9.0.RC2",
-       "2025-06-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}
-    });
+      registry_dir,
+      {{"9.0.RC1", "2025-01-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
+       {"9.0.RC2", "2025-06-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}});
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC2");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
   auto it = per_ops.find("phony_3opi_1o");
   ASSERT_NE(it, per_ops.end());
   const std::string content = it->second.str();
-  const std::string expected_cpp_content = kExpectedGenOpWithHistoryRegistryMultiVersionA2GeneratesTensorHolderAndGuards;
+  const std::string expected_cpp_content =
+      kExpectedGenOpWithHistoryRegistryMultiVersionA2GeneratesTensorHolderAndGuards;
   EXPECT_EQ(Normalize(content), Normalize(expected_cpp_content));
 }
 
 TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryIncompatibleMiddleVersionFallsBackToA0) {
   const std::string registry_dir = CreateTempRegistryDir("phony_3opi_1o_fallback_a0");
   WriteMultiVersionRegistry(
-    registry_dir,
-    {
-      {"9.0.RC1",
-       "2025-01-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
-      {"9.0.RC2",
-       "2025-06-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"z1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}
-    });
+      registry_dir,
+      {{"9.0.RC1", "2025-01-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
+       {"9.0.RC2", "2025-06-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"z1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}});
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC2");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -991,15 +931,13 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryScenarioAOnlyNewOptiona
   // 该原型含 required attr(flag)，因此不会引入标量字面量二义性，期望生成 legacy + full 两个重载。
   const std::string registry_dir = CreateTempRegistryDir("scenario_a_existing_proto");
   WriteSingleVersionRegistry(
-    registry_dir,
-    "9.0.RC1",
-    "2025-01-01",
-    R"({"operators":[{"op_type":"phony_1i1opi_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"dt","type":"Type","required":false,"default_value":"\"DT_FLOAT\""},{"name":"flag","type":"Bool","required":true}],"subgraphs":[]}]})");
+      registry_dir, "9.0.RC1", "2025-01-01",
+      R"({"operators":[{"op_type":"phony_1i1opi_1o","inputs":[{"name":"x","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"dt","type":"Type","required":false,"default_value":"\"DT_FLOAT\""},{"name":"flag","type":"Bool","required":true}],"subgraphs":[]}]})");
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC1");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
@@ -1016,27 +954,24 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryScenarioBNewOptionalInp
   // 新增可选输入后触发 A2，新增输入改为 TensorHolder 并生成 nullptr 防呆重载。
   const std::string registry_dir = CreateTempRegistryDir("scenario_b_existing_proto_a2");
   WriteMultiVersionRegistry(
-    registry_dir,
-    {
-      {"9.0.RC1",
-       "2025-01-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
-      {"9.0.RC2",
-       "2025-06-01",
-       R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}
-    });
+      registry_dir,
+      {{"9.0.RC1", "2025-01-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"},
+       {"9.0.RC2", "2025-06-01",
+        R"({"operators":[{"op_type":"phony_3opi_1o","inputs":[{"name":"x1","type":"OPTIONAL_INPUT"},{"name":"x2","type":"OPTIONAL_INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[],"subgraphs":[]}]})"}});
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC2");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_3opi_1o", "phony_3opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();
   auto it = per_ops.find("phony_3opi_1o");
   ASSERT_NE(it, per_ops.end());
   const std::string content = it->second.str();
-  const std::string expected_cpp_content = kExpectedGenOpWithHistoryRegistryMultiVersionA2GeneratesTensorHolderAndGuards;
+  const std::string expected_cpp_content =
+      kExpectedGenOpWithHistoryRegistryMultiVersionA2GeneratesTensorHolderAndGuards;
   EXPECT_EQ(Normalize(content), Normalize(expected_cpp_content));
 }
 
@@ -1045,15 +980,13 @@ TEST_F(CppGeneratorOverloadTest, GenOpWithHistoryRegistryScenarioCDeleteRequired
   // 历史版本包含额外必选输入 z，当前版本删除该必选输入，判定为不兼容，回退 A0 单签名。
   const std::string registry_dir = CreateTempRegistryDir("scenario_c_delete_required_input");
   WriteSingleVersionRegistry(
-    registry_dir,
-    "9.0.RC1",
-    "2025-01-01",
-    R"({"operators":[{"op_type":"phony_1i1opi_1o","inputs":[{"name":"x","type":"INPUT"},{"name":"dx","type":"OPTIONAL_INPUT"},{"name":"z","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"dt","type":"Type","required":false,"default_value":"\"DT_FLOAT\""},{"name":"flag","type":"Bool","required":true}],"subgraphs":[]}]})");
+      registry_dir, "9.0.RC1", "2025-01-01",
+      R"({"operators":[{"op_type":"phony_1i1opi_1o","inputs":[{"name":"x","type":"INPUT"},{"name":"dx","type":"OPTIONAL_INPUT"},{"name":"z","type":"INPUT"}],"outputs":[{"name":"y","type":"OUTPUT"}],"attrs":[{"name":"dt","type":"Type","required":false,"default_value":"\"DT_FLOAT\""},{"name":"flag","type":"Bool","required":true}],"subgraphs":[]}]})");
 
   generator_->SetHistoryRegistry(registry_dir);
   generator_->SetReleaseVersion("9.0.RC1");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(
-    ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
+  auto op_desc =
+      OpDescUtils::GetOpDescFromOperator(ge::OperatorFactory::CreateOperator("phony_1i1opi_1o", "phony_1i1opi_1o"));
   generator_->GenOp(op_desc);
 
   const auto &per_ops = generator_->GetPerOpContents();

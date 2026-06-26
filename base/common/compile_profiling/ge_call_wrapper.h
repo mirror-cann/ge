@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,25 +23,25 @@
 #define GE_TIMESTAMP_END(stage, stage_name)                                           \
   do {                                                                                \
     const uint64_t endUsec_##stage = ge::GetCurrentTimestamp();                       \
-    GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name),  \
-            (endUsec_##stage - startUsec_##stage));                                   \
+    GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name), \
+           (endUsec_##stage - startUsec_##stage));                                    \
   } while (false)
 
-#define GE_TIMESTAMP_EVENT_END(stage, stage_name)                                     \
-  do {                                                                                \
-    const uint64_t endUsec_##stage = ge::GetCurrentTimestamp();                       \
+#define GE_TIMESTAMP_EVENT_END(stage, stage_name)                                      \
+  do {                                                                                 \
+    const uint64_t endUsec_##stage = ge::GetCurrentTimestamp();                        \
     GEEVENT("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name), \
-            (endUsec_##stage - startUsec_##stage));                                   \
+            (endUsec_##stage - startUsec_##stage));                                    \
   } while (false)
 
 // flag is used to control whether to print the time cost
-#define GE_TIMESTAMP_EVENT_END_WITH_FLAG(stage, stage_name, flag)                       \
-  do {                                                                                  \
-    if (flag) {                                                                         \
-      const uint64_t endUsec_##stage = ge::GetCurrentTimestamp();                       \
+#define GE_TIMESTAMP_EVENT_END_WITH_FLAG(stage, stage_name, flag)                        \
+  do {                                                                                   \
+    if (flag) {                                                                          \
+      const uint64_t endUsec_##stage = ge::GetCurrentTimestamp();                        \
       GEEVENT("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name), \
-              (endUsec_##stage - startUsec_##stage));                                   \
-    }                                                                                   \
+              (endUsec_##stage - startUsec_##stage));                                    \
+    }                                                                                    \
   } while (false)
 
 #define GE_TIMESTAMP_CALLNUM_START(stage)                 \
@@ -59,7 +59,7 @@
   GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds, call count is %lu", (stage_name), time_of##stage, \
          call_num_of##stage)
 
-#define GE_TIMESTAMP_CALLNUM_EVENT_END(stage, stage_name)                                                           \
+#define GE_TIMESTAMP_CALLNUM_EVENT_END(stage, stage_name)                                                              \
   GEEVENT("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds, call count is %lu", (stage_name), time_of##stage, \
           call_num_of##stage)
 
@@ -92,17 +92,15 @@
   RETURN_IF_ERROR_WITH_TIMESTAMP_NAME(COUNTER_NAME(ge_timestamp_##prefix), prefix, func, __VA_ARGS__)
 #define GE_RUN_PERF(prefix, func, ...) \
   RETURN_IF_ERROR_WITH_PERF_TIMESTAMP_NAME(COUNTER_NAME(ge_timestamp_##prefix), (prefix), (func), __VA_ARGS__)
-#define SET_THREAD_NAME(thread_id, thread_name)       \
-  do {                                                \
+#define SET_THREAD_NAME(thread_id, thread_name)           \
+  do {                                                    \
     (void)pthread_setname_np((thread_id), (thread_name)); \
   } while (false)
-
 
 namespace ge {
 class FuncPerfScope {
  public:
-  FuncPerfScope(const char *const message1, const char *const message2)
-      : message1_(message1), message2_(message2) {
+  FuncPerfScope(const char *const message1, const char *const message2) : message1_(message1), message2_(message2) {
     start_ = std::chrono::high_resolution_clock::now();
   }
   ~FuncPerfScope() {
@@ -116,6 +114,6 @@ class FuncPerfScope {
   const char *const message1_;
   const char *const message2_;
 };
-}
+}  // namespace ge
 
 #endif  // GE_GE_CALL_WRAPPER_H_

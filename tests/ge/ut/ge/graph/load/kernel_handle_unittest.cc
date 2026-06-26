@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,6 @@ class UtestTBEKernelHandle : public testing::Test {
   }
 };
 
-
 // test InitTbeHandleWithFfts
 TEST_F(UtestTBEKernelHandle, init_tbe_handle_with_ffts) {
   TBEKernelHandle kernel_handle;
@@ -57,8 +56,8 @@ TEST_F(UtestTBEKernelHandle, init_tbe_handle_with_ffts) {
   // without _register_stub_func
   EXPECT_EQ(kernel_handle.RegisterAutoThreadHandle(op_desc), INTERNAL_ERROR);
 
-  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                 const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
+  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                 rtKernelDetailInfo_t *kernelInfo) -> int {
     kernelInfo->functionInfoNum = 1;
     kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
     kernelInfo->functionInfo[0].prefetchCnt = 1;
@@ -78,7 +77,7 @@ TEST_F(UtestTBEKernelHandle, init_tbe_handle_with_ffts) {
   vector<string> meta_data_list;
   meta_data_list.emplace_back("meta_data_0");
   meta_data_list.emplace_back("meta_data_1");
-  AttrUtils::SetListStr(op_desc, "_thread_" +TVM_ATTR_NAME_METADATA, meta_data_list);
+  AttrUtils::SetListStr(op_desc, "_thread_" + TVM_ATTR_NAME_METADATA, meta_data_list);
   vector<string> thread_kernel_names = {tbe_kernel_ptr0->GetName(), tbe_kernel_ptr1->GetName()};
   AttrUtils::SetListStr(op_desc, "_thread_kernelname", thread_kernel_names);
   EXPECT_EQ(kernel_handle.RegisterAutoThreadHandle(op_desc), SUCCESS);
@@ -98,8 +97,8 @@ TEST_F(UtestTBEKernelHandle, init_tbe_handle_fail_with_ffts) {
   tbe_kernel.push_back(tbe_kernel_ptr1);
   op_desc->SetExtAttr(OP_EXTATTR_NAME_THREAD_TBE_KERNEL, tbe_kernel);
 
-  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                 const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
+  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                 rtKernelDetailInfo_t *kernelInfo) -> int {
     kernelInfo->functionInfoNum = 3;
     kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
     kernelInfo->functionInfo[0].prefetchCnt = 1;
@@ -121,7 +120,7 @@ TEST_F(UtestTBEKernelHandle, init_tbe_handle_fail_with_ffts) {
   vector<string> meta_data_list;
   meta_data_list.emplace_back("meta_data_0");
   meta_data_list.emplace_back("meta_data_1");
-  AttrUtils::SetListStr(op_desc, "_thread_" +TVM_ATTR_NAME_METADATA, meta_data_list);
+  AttrUtils::SetListStr(op_desc, "_thread_" + TVM_ATTR_NAME_METADATA, meta_data_list);
   vector<string> thread_kernel_names = {tbe_kernel_ptr0->GetName(), tbe_kernel_ptr1->GetName()};
   AttrUtils::SetListStr(op_desc, "_thread_kernelname", thread_kernel_names);
   EXPECT_EQ(kernel_handle.RegisterAutoThreadHandle(op_desc), INTERNAL_ERROR);
@@ -153,7 +152,7 @@ TEST_F(UtestTBEKernelHandle, init_thread_kernel_from_store) {
   vector<string> meta_data_list;
   meta_data_list.emplace_back("meta_data_0");
   meta_data_list.emplace_back("meta_data_1");
-  AttrUtils::SetListStr(op_desc, "_thread_" +TVM_ATTR_NAME_METADATA, meta_data_list);
+  AttrUtils::SetListStr(op_desc, "_thread_" + TVM_ATTR_NAME_METADATA, meta_data_list);
   vector<string> thread_kernel_names = {tbe_kernel_ptr0->GetName(), tbe_kernel_ptr1->GetName()};
   AttrUtils::SetListStr(op_desc, "_thread_kernelname", thread_kernel_names);
   EXPECT_EQ(kernel_handle.RegisterAutoThreadHandle(op_desc, store), SUCCESS);

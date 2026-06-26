@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,15 +28,25 @@ FusionRulePattern::FusionRulePattern()
 
 FusionRulePattern::~FusionRulePattern() {}
 
-string FusionRulePattern::GetRuleName() const { return rule_name_; }
+string FusionRulePattern::GetRuleName() const {
+  return rule_name_;
+}
 
-const vector<FusionRuleNodePtr> &FusionRulePattern::GetInputInfo() const { return input_info_; }
+const vector<FusionRuleNodePtr> &FusionRulePattern::GetInputInfo() const {
+  return input_info_;
+}
 
-const vector<FusionRuleNodePtr> &FusionRulePattern::GetOutputInfo() const { return output_info_; }
+const vector<FusionRuleNodePtr> &FusionRulePattern::GetOutputInfo() const {
+  return output_info_;
+}
 
-const set<FusionRuleNodePtr> &FusionRulePattern::GetOriginRuleNodes() const { return origin_rule_nodes_; }
+const set<FusionRuleNodePtr> &FusionRulePattern::GetOriginRuleNodes() const {
+  return origin_rule_nodes_;
+}
 
-const set<FusionRuleNodePtr> &FusionRulePattern::GetFusionRuleNodes() const { return fusion_rule_nodes_; }
+const set<FusionRuleNodePtr> &FusionRulePattern::GetFusionRuleNodes() const {
+  return fusion_rule_nodes_;
+}
 
 FusionRuleNode::FusionRuleNode()
     : node_name_(),
@@ -49,29 +59,49 @@ FusionRuleNode::FusionRuleNode()
 
 FusionRuleNode::~FusionRuleNode() {}
 
-string FusionRuleNode::GetNodeName() const { return node_name_; }
+string FusionRuleNode::GetNodeName() const {
+  return node_name_;
+}
 
-const vector<string> &FusionRuleNode::GetNodeType() const { return node_type_; }
+const vector<string> &FusionRuleNode::GetNodeType() const {
+  return node_type_;
+}
 
-const vector<FusionRuleAnchorPtr> &FusionRuleNode::GetInputDataAnchors() const { return input_data_anchors_; }
+const vector<FusionRuleAnchorPtr> &FusionRuleNode::GetInputDataAnchors() const {
+  return input_data_anchors_;
+}
 
-const vector<FusionRuleAnchorPtr> &FusionRuleNode::GetOutputDataAnchors() const { return output_data_anchors_; }
+const vector<FusionRuleAnchorPtr> &FusionRuleNode::GetOutputDataAnchors() const {
+  return output_data_anchors_;
+}
 
-const FusionRuleAnchorPtr &FusionRuleNode::GetInputCtrlAnchor() const { return input_ctrl_anchor_; }
+const FusionRuleAnchorPtr &FusionRuleNode::GetInputCtrlAnchor() const {
+  return input_ctrl_anchor_;
+}
 
-const FusionRuleAnchorPtr &FusionRuleNode::GetOutputCtrlAnchor() const { return output_ctrl_anchor_; }
+const FusionRuleAnchorPtr &FusionRuleNode::GetOutputCtrlAnchor() const {
+  return output_ctrl_anchor_;
+}
 
-const map<string, FusionRuleAttrValuePtr> &FusionRuleNode::GetAttributes() const { return attributes_; }
+const map<string, FusionRuleAttrValuePtr> &FusionRuleNode::GetAttributes() const {
+  return attributes_;
+}
 
 FusionRuleAnchor::FusionRuleAnchor() : anchor_idx_(DEFAULT_ANCHOR_INDEX), anchor_name_() {}
 
 FusionRuleAnchor::~FusionRuleAnchor() {}
 
-int FusionRuleAnchor::GetAnchorIdx() const { return anchor_idx_; }
+int FusionRuleAnchor::GetAnchorIdx() const {
+  return anchor_idx_;
+}
 
-string FusionRuleAnchor::GetAnchorName() const { return anchor_name_; }
+string FusionRuleAnchor::GetAnchorName() const {
+  return anchor_name_;
+}
 
-FusionRuleNodePtr FusionRuleAnchor::GetOwnerNode() const { return owner_node_.lock(); }
+FusionRuleNodePtr FusionRuleAnchor::GetOwnerNode() const {
+  return owner_node_.lock();
+}
 
 vector<FusionRuleAnchorPtr> FusionRuleAnchor::GetPeerAnchors() const {
   vector<FusionRuleAnchorPtr> vec;
@@ -85,11 +115,17 @@ FusionRuleAttrValue::FusionRuleAttrValue() : is_fusion_rule_attr_(false), rule_n
 
 FusionRuleAttrValue::~FusionRuleAttrValue() {}
 
-bool FusionRuleAttrValue::IsFusionRuleAttr() const { return is_fusion_rule_attr_; }
+bool FusionRuleAttrValue::IsFusionRuleAttr() const {
+  return is_fusion_rule_attr_;
+}
 
-FusionRuleAttr FusionRuleAttrValue::GetRuleNodeAttrValue() const { return rule_node_attr_; }
+FusionRuleAttr FusionRuleAttrValue::GetRuleNodeAttrValue() const {
+  return rule_node_attr_;
+}
 
-ge::GeAttrValue FusionRuleAttrValue::GetFixAttrValue() const { return fix_value_attr_; }
+ge::GeAttrValue FusionRuleAttrValue::GetFixAttrValue() const {
+  return fix_value_attr_;
+}
 
 Status FusionRuleAttrValue::SetAttrValue(const FusionRuleAttr &rule_node_attr) {
   rule_node_attr_ = rule_node_attr;
@@ -104,5 +140,7 @@ Status FusionRuleAttrValue::SetOwnerNode(const FusionRuleNodePtr node) {
   return SUCCESS;
 }
 
-FusionRuleNodePtr FusionRuleAttrValue::GetOwnerNode() { return owner_node_.lock(); }
+FusionRuleNodePtr FusionRuleAttrValue::GetOwnerNode() {
+  return owner_node_.lock();
+}
 }  // namespace fe

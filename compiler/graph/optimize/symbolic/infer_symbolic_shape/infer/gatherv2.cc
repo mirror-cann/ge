@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,8 @@ bool CheckAndUpdateAxis(int64_t &axis, const int64_t shape_dim_num) {
   return check_res;
 }
 
-graphStatus GatherCommonInfer(gert::InferSymbolShapeContext* context, const gert::SymbolShape* in_shape,
-                              const gert::SymbolShape* indies_shape, const GatherInfo &gather_info) {
+graphStatus GatherCommonInfer(gert::InferSymbolShapeContext *context, const gert::SymbolShape *in_shape,
+                              const gert::SymbolShape *indies_shape, const GatherInfo &gather_info) {
   const auto attrs = context->GetAttrs();
   GE_ASSERT_NOTNULL(attrs);
   const auto batch_dims_ptr = attrs->GetAttrPointer<int64_t>(gather_info.index_batch_dims);
@@ -96,7 +96,8 @@ graphStatus InferShape4GatherV2(gert::InferSymbolShapeContext *context) {
   const auto axes_tensor = context->GetInputSymbolTensor(axes_idx);
   GE_UNSUPPORTED_IF_NULL(axes_tensor);
   if (axes_tensor->GetSymbolicValue() == nullptr) {
-    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
   const auto axes_size = static_cast<int32_t>(axes_tensor->GetSymbolicValue()->size());
@@ -137,7 +138,7 @@ graphStatus InferShape4GatherNd(gert::InferSymbolShapeContext *context) {
   GE_UNSUPPORTED_IF_NULL(indices_shape);
   const int64_t indices_dim = indices_shape->GetDimNum();
   GE_ASSERT_TRUE(indices_dim >= 1, "indices_dim must be >= 1, but got %lld", indices_dim);
-  
+
   const auto k_symbol = indices_shape->GetDim(indices_dim - 1);
   int64_t k_value = -1;
   if (!k_symbol.GetConstValue<int64_t>(k_value)) {
@@ -146,7 +147,7 @@ graphStatus InferShape4GatherNd(gert::InferSymbolShapeContext *context) {
   }
   ASSERT_SYMBOL_GE(k_symbol, Symbol(0));
   ASSERT_SYMBOL_LE(k_symbol, Symbol(data_dim));
-  
+
   const auto out_shape = context->GetOutputSymbolShape(0);
   GE_ASSERT_NOTNULL(out_shape);
   for (int64_t i = 0; i < indices_dim - 1; ++i) {
@@ -155,7 +156,7 @@ graphStatus InferShape4GatherNd(gert::InferSymbolShapeContext *context) {
   for (int64_t i = k_value; i < data_dim; ++i) {
     out_shape->AppendDim(data_shape->GetDim(i));
   }
-  
+
   return GRAPH_SUCCESS;
 }
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(GatherNd).InferSymbolShape(InferShape4GatherNd);

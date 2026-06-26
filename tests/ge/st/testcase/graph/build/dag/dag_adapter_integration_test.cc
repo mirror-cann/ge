@@ -30,8 +30,7 @@
 
 namespace ge {
 namespace {
-graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph,
-                            std::shared_ptr<minidag::DAGGraph> &dag) {
+graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph, std::shared_ptr<minidag::DAGGraph> &dag) {
   bool has_profiled_node_cost = false;
   return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
 }
@@ -93,16 +92,17 @@ class DAGAdapterIntegrationTest : public testing::Test {
 
     ge::GetThreadLocalContext().SetGraphOption(options);
 
-    ge::GeRunningEnvFaker().Reset()
-      .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-      .Install(ge::FakeOp(ge::DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp(ge::NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp("Add").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("Conv").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("Relu").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("Pool").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("Abs").InfoStoreAndBuilder("AIcoreEngine"));
+    ge::GeRunningEnvFaker()
+        .Reset()
+        .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+        .Install(ge::FakeOp(ge::DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp(ge::NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp("Add").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("Conv").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("Relu").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("Pool").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("Abs").InfoStoreAndBuilder("AIcoreEngine"));
 
     ge::EngineConfPtr conf1 = std::make_shared<ge::EngineConf>();
     conf1->id = "AIcoreEngine";
@@ -127,11 +127,11 @@ class DAGAdapterIntegrationTest : public testing::Test {
     ge::GELib::GetInstance()->Finalize();
   }
 
-  static ge::ConstGraphPtr ToConstGraphPtr(const ge::ComputeGraphPtr& compute_graph) {
+  static ge::ConstGraphPtr ToConstGraphPtr(const ge::ComputeGraphPtr &compute_graph) {
     return ge::GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
   }
 
-  static int64_t GetGNodeStreamId(const ge::GNode& gnode) {
+  static int64_t GetGNodeStreamId(const ge::GNode &gnode) {
     ge::NodePtr node = ge::NodeAdapter::GNode2Node(gnode);
     if (node == nullptr || node->GetOpDesc() == nullptr) {
       return ge::INVALID_STREAM_ID;
@@ -271,7 +271,7 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_StreamIdSet) {
 
   auto nodes = dag->GetAllNodes();
   int64_t stream_idx = 0;
-  for (auto& node : nodes) {
+  for (auto &node : nodes) {
     node->SetStreamId(stream_idx++);
   }
 
@@ -367,7 +367,6 @@ TEST_F(DAGAdapterIntegrationTest, RefreshStreamIdsToGE_VariousStreamIds) {
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
 
-
 // --------------------
 // 场景 3：DeviceResourceInfo 测试
 // --------------------
@@ -382,7 +381,7 @@ TEST_F(DAGAdapterIntegrationTest, DeviceResourceInfo_DefaultValues) {
 
   auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->AddNode("node1", "Conv");
-  const auto& default_resource = dag->GetDeviceResource();
+  const auto &default_resource = dag->GetDeviceResource();
   EXPECT_EQ(default_resource.cube_core_num, -1);
   EXPECT_EQ(default_resource.vector_core_num, -1);
 }
@@ -398,7 +397,7 @@ TEST_F(DAGAdapterIntegrationTest, DeviceResourceInfo_SetAndGet) {
   auto dag = std::make_shared<minidag::DAGGraph>("test_dag");
   dag->SetDeviceResource(resource);
 
-  const auto& retrieved = dag->GetDeviceResource();
+  const auto &retrieved = dag->GetDeviceResource();
   EXPECT_EQ(retrieved.cube_core_num, 30);
   EXPECT_EQ(retrieved.vector_core_num, 15);
 }
@@ -418,7 +417,7 @@ TEST_F(DAGAdapterIntegrationTest, FromGEGraph_DeviceResourcePopulated) {
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   ASSERT_NE(dag, nullptr);
 
-  const auto& resource = dag->GetDeviceResource();
+  const auto &resource = dag->GetDeviceResource();
   EXPECT_GT(resource.cube_core_num, 0);
   EXPECT_GT(resource.vector_core_num, 0);
 }
@@ -433,7 +432,7 @@ TEST_F(DAGAdapterIntegrationTest, FillDeviceResource_Success) {
   auto ret = DAGAdapter::FillDeviceResource(*dag);
   EXPECT_EQ(ret, ge::SUCCESS);
 
-  const auto& resource = dag->GetDeviceResource();
+  const auto &resource = dag->GetDeviceResource();
   // stub 实现固定返回 32
   EXPECT_GT(resource.cube_core_num, 0);
   EXPECT_GT(resource.vector_core_num, 0);
@@ -450,14 +449,14 @@ TEST_F(DAGAdapterIntegrationTest, DeviceResourceInfo_FieldVerification) {
   auto dag = std::make_shared<minidag::DAGGraph>("field_test_dag");
   dag->SetDeviceResource(resource);
 
-  const auto& r1 = dag->GetDeviceResource();
+  const auto &r1 = dag->GetDeviceResource();
   EXPECT_EQ(r1.cube_core_num, 32);
   EXPECT_EQ(r1.vector_core_num, 64);
 
   // 覆盖多次设置场景
   resource.cube_core_num = 48;
   dag->SetDeviceResource(resource);
-  const auto& r2 = dag->GetDeviceResource();
+  const auto &r2 = dag->GetDeviceResource();
   EXPECT_EQ(r2.cube_core_num, 48);
 }
 
@@ -474,11 +473,10 @@ TEST_F(DAGAdapterIntegrationTest, FillDeviceResource_ValuesReasonable) {
   auto ret = CallFromGEGraph(ge_graph, dag);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
 
-  const auto& resource = dag->GetDeviceResource();
+  const auto &resource = dag->GetDeviceResource();
   EXPECT_GT(resource.cube_core_num, 0);
   EXPECT_GE(resource.vector_core_num, 0);
 }
-
 
 // --------------------
 // 场景 4：Profiling 集成测试
@@ -499,7 +497,7 @@ TEST_F(DAGAdapterIntegrationTest, FillDeviceResource_ValuesReasonable) {
  *   1. add1 节点的 execution_time、cube_block_num 正确设置
  */
 TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithProfilingData_UsesProfilingCost) {
-  const char* profiling_path = "/tmp/test_minidag_profiling_integration.csv";
+  const char *profiling_path = "/tmp/test_minidag_profiling_integration.csv";
   std::ofstream file(profiling_path);
   file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
        << "add1,AI_CORE,100.0,8,0\n";
@@ -519,7 +517,7 @@ TEST_F(DAGAdapterIntegrationTest, FromGEGraph_WithProfilingData_UsesProfilingCos
 
   auto add_node = dag->FindNode("add1");
   ASSERT_NE(add_node, nullptr);
-  const auto& cost = add_node->GetCost();
+  const auto &cost = add_node->GetCost();
   EXPECT_EQ(cost.execution_time, 100.0f);
   EXPECT_EQ(cost.cube_block_num, 8U);
 
@@ -645,17 +643,17 @@ TEST_F(DAGAdapterIntegrationTest, FromGEGraph_EnvDirectoryIgnored) {
   std::string base_path = "/tmp/test_prof_env_dir_" + std::to_string(getpid());
   std::string prof_dir = "PROF_000001_20260101";
   std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
-  
+
   mkdir(base_path.c_str(), 0755);
   mkdir((base_path + "/" + prof_dir).c_str(), 0755);
   mkdir(output_dir.c_str(), 0755);
-  
+
   std::string csv_path = output_dir + "/op_summary_20260101.csv";
   std::ofstream file(csv_path);
   file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
        << "add1,AI_CORE,150.0,12,0\n";
   file.close();
-  
+
   // 设置环境变量为目录（不是 csv 文件）
   setenv("MINIDAG_PROFILING_PATH", base_path.c_str(), 1);
 
@@ -671,7 +669,7 @@ TEST_F(DAGAdapterIntegrationTest, FromGEGraph_EnvDirectoryIgnored) {
 
   auto add_node = dag->FindNode("add1");
   ASSERT_NE(add_node, nullptr);
-  const auto& cost = add_node->GetCost();
+  const auto &cost = add_node->GetCost();
   EXPECT_EQ(cost.execution_time, -1.0f);
   EXPECT_EQ(cost.cube_block_num, 0U);
 
@@ -704,17 +702,17 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_GEOptionsIgnored) {
   std::string base_path = "/tmp/test_st_ge_options_" + std::to_string(getpid());
   std::string prof_dir = "PROF_000001_20260101";
   std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
-  
+
   mkdir(base_path.c_str(), 0755);
   mkdir((base_path + "/" + prof_dir).c_str(), 0755);
   mkdir(output_dir.c_str(), 0755);
-  
+
   std::string csv_path = output_dir + "/op_summary_20260101.csv";
   std::ofstream file(csv_path);
   file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
        << "add1,AI_CORE,250.0,20,0\n";
   file.close();
-  
+
   std::map<std::string, std::string> options;
   options[ge::SOC_VERSION] = "Ascend910B1";
   options[OPTION_EXEC_PROFILING_MODE] = "1";
@@ -733,7 +731,7 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_GEOptionsIgnored) {
 
   auto add_node = dag->FindNode("add1");
   ASSERT_NE(add_node, nullptr);
-  const auto& cost = add_node->GetCost();
+  const auto &cost = add_node->GetCost();
   EXPECT_EQ(cost.execution_time, -1.0f);
   EXPECT_EQ(cost.cube_block_num, 0U);
 
@@ -765,17 +763,17 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_GEEnvIgnored) {
   std::string base_path = "/tmp/test_st_ge_env_" + std::to_string(getpid());
   std::string prof_dir = "PROF_000001_20260101";
   std::string output_dir = base_path + "/" + prof_dir + "/mindstudio_profiler_output";
-  
+
   mkdir(base_path.c_str(), 0755);
   mkdir((base_path + "/" + prof_dir).c_str(), 0755);
   mkdir(output_dir.c_str(), 0755);
-  
+
   std::string csv_path = output_dir + "/op_summary_20260101.csv";
   std::ofstream file(csv_path);
   file << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
        << "add1,AI_CORE,300.0,25,0\n";
   file.close();
-  
+
   // 不设置 GE profiling options，让系统回退到环境变量
   std::map<std::string, std::string> options;
   options[ge::SOC_VERSION] = "Ascend910B1";
@@ -796,7 +794,7 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_GEEnvIgnored) {
 
   auto add_node = dag->FindNode("add1");
   ASSERT_NE(add_node, nullptr);
-  const auto& cost = add_node->GetCost();
+  const auto &cost = add_node->GetCost();
   EXPECT_EQ(cost.execution_time, -1.0f);
   EXPECT_EQ(cost.cube_block_num, 0U);
 
@@ -828,30 +826,30 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_MinidagWorksIndependentlyOfGEOptions
   std::string option_path = "/tmp/test_st_option_" + std::to_string(getpid());
   std::string prof_dir1 = "PROF_000001_20260101";
   std::string output_dir1 = option_path + "/" + prof_dir1 + "/mindstudio_profiler_output";
-  
+
   mkdir(option_path.c_str(), 0755);
   mkdir((option_path + "/" + prof_dir1).c_str(), 0755);
   mkdir(output_dir1.c_str(), 0755);
-  
+
   std::string csv_path1 = output_dir1 + "/op_summary_1.csv";
   std::ofstream file1(csv_path1);
   file1 << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
         << "add1,AI_CORE,100.0,8,0\n";  // 这个数据不会被使用
   file1.close();
-  
+
   // MINIDAG_PROFILING_PATH 指向的数据（会被使用）
   std::string minidag_path = "/tmp/test_st_minidag_override.csv";
   std::ofstream file2(minidag_path);
   file2 << "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
         << "add1,AI_CORE,350.0,28,0\n";  // 这个数据会被使用
   file2.close();
-  
+
   std::map<std::string, std::string> options;
   options[ge::SOC_VERSION] = "Ascend910B1";
   options[OPTION_EXEC_PROFILING_MODE] = "1";
   options[OPTION_EXEC_PROFILING_OPTIONS] = "{\"output\":\"" + option_path + "\"}";
   ge::GetThreadLocalContext().SetGraphOption(options);
-  
+
   setenv("MINIDAG_PROFILING_PATH", minidag_path.c_str(), 1);
 
   auto compute_graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
@@ -866,7 +864,7 @@ TEST_F(DAGAdapterIntegrationTest, Profiling_MinidagWorksIndependentlyOfGEOptions
 
   auto add_node = dag->FindNode("add1");
   ASSERT_NE(add_node, nullptr);
-  const auto& cost = add_node->GetCost();
+  const auto &cost = add_node->GetCost();
   // MINIDAG_PROFILING_PATH 覆盖，使用 minidag_path 的数据
   EXPECT_EQ(cost.execution_time, 350.0f);
   EXPECT_EQ(cost.cube_block_num, 28U);

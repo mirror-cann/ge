@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,6 +47,7 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
   DSAOpStoreAdapterPtr dsa_adapter_ptr;
   shared_ptr<fe::SubOpInfoStore> sub_ops_kernel_ptr;
   shared_ptr<fe::SubOpsStore> sub_ops_store_ptr;
+
  protected:
   void SetUp() {
     PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::DsaWorkspaceSize)] = 48;
@@ -55,12 +56,8 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
     dsa_graph_optimizer_ = make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, fe::kDsaCoreName);
     FEOpsStoreInfo TBE_OPINFO_STUB = {
-            12,
-            "dsa-builtin",
-            EN_IMPL_HW_DSA,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/dsa_opinfo",
-            ""
-    };
+        12, "dsa-builtin", EN_IMPL_HW_DSA,
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/dsa_opinfo", ""};
     sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::kDsaCoreName);
     sub_ops_store_ptr->SetSubStoreInfo(TBE_OPINFO_STUB);
     sub_ops_store_ptr->InitializeSubStore();
@@ -170,7 +167,7 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
   static void SetWeight(ge::NodePtr node, int index, float w) {
     float data[] = {w};
     ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_FLOAT16);
-    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data, sizeof(data));
+    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data, sizeof(data));
     map<int, ge::GeTensorPtr> weights = {{index, tensor}};
     ge::OpDescUtils::SetWeights(*node, weights);
   }
@@ -178,7 +175,7 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
   static void SetWeight(ge::NodePtr node, int index, int64_t w) {
     int64_t data[] = {w};
     ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_INT64);
-    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data, sizeof(data));
+    ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data, sizeof(data));
     map<int, ge::GeTensorPtr> weights = {{index, tensor}};
     ge::OpDescUtils::SetWeights(*node, weights);
   }
@@ -210,7 +207,7 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
     out_desc2.SetOriginFormat(FORMAT_ND);
     out_desc2.SetDataType(DT_FLOAT16);
     bn_op->AddOutputDesc("out", out_desc2);
-    (void) ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, EN_IMPL_HW_DSA);
+    (void)ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, EN_IMPL_HW_DSA);
     out->AddInputDesc("x", out_desc2);
 
     NodePtr bn_node = graph->AddNode(bn_op);
@@ -223,16 +220,14 @@ class STEST_fusion_engine_dsa_graph_optimizer : public testing::Test {
   }
 };
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, get_attributes_success)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, get_attributes_success) {
   GraphOptimizerAttribute attrs;
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
   Status status = dsa_graph_optimizer_->GetAttributes(attrs);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, initialize_success)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, initialize_success) {
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
   std::map<std::string, std::string> options;
   dsa_graph_optimizer_->init_flag_ = true;
@@ -240,24 +235,21 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, initialize_success)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, finalize_success)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, finalize_success) {
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
   dsa_graph_optimizer_->init_flag_ = true;
   Status status = dsa_graph_optimizer_->Finalize();
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, finalize_success1)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, finalize_success1) {
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
   dsa_graph_optimizer_->init_flag_ = false;
   Status status = dsa_graph_optimizer_->Finalize();
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail) {
   std::map<std::string, std::string> options;
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
@@ -268,8 +260,7 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail)
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail1)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "allow_fp32_to_fp16";
   std::map<std::string, std::string> options;
   auto graph = std::make_shared<ComputeGraph>("test");
@@ -281,8 +272,7 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph_fail1)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "allow_fp32_to_fp16";
   std::map<std::string, std::string> options;
   auto graph = std::make_shared<ComputeGraph>("test");
@@ -304,8 +294,7 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph)
   }
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_whole_graph)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_whole_graph) {
   std::map<std::string, std::string> options;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("DSARandomUniform", "DSARandomUniform");
@@ -321,7 +310,7 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_whole_graph)
   auto src_node = graph->AddNode(src_op);
   SetWeight(src_node, 0, 512L);
   SetWeight(src_node, 2, 0.24f);
-  (void) ge::AttrUtils::SetInt(src_node->GetOpDesc(), FE_IMPLY_TYPE, EN_IMPL_HW_DSA);
+  (void)ge::AttrUtils::SetInt(src_node->GetOpDesc(), FE_IMPLY_TYPE, EN_IMPL_HW_DSA);
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
 
   (void)dsa_graph_optimizer_->Initialize(options, nullptr);
@@ -329,8 +318,7 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_whole_graph)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph1)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "allow_fp32_to_fp16";
   std::map<std::string, std::string> options;
   auto graph = std::make_shared<ComputeGraph>("test");
@@ -352,12 +340,11 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_original_graph1)
   }
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_fused_graph)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_fused_graph) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateDSAGraph(graph);
   auto dsa_graph_optimizer_ = std::make_shared<DSAGraphOptimizer>(ops_kernel_info_store_ptr_, kDsaCoreName);
-  
+
   std::map<std::string, std::string> options;
   (void)dsa_graph_optimizer_->Initialize(options, nullptr);
   Status status = dsa_graph_optimizer_->OptimizeFusedGraph(*(graph.get()));
@@ -365,7 +352,8 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_fused_graph)
   for (auto node : graph->GetAllNodes()) {
     if (node->GetType() == "DSAGenBitMask") {
       std::vector<int32_t> memory_no_reuse;
-      (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ge::ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, memory_no_reuse);
+      (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ge::ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE,
+                                      memory_no_reuse);
       std::vector<int32_t> memory_no_reuse1 = {1, 1};
       EXPECT_EQ(memory_no_reuse1, memory_no_reuse);
       std::vector<int64_t> workspace_bytes = {48, 48};
@@ -374,11 +362,10 @@ TEST_F(STEST_fusion_engine_dsa_graph_optimizer, optimize_fused_graph)
   }
 }
 
-TEST_F(STEST_fusion_engine_dsa_graph_optimizer, check_supported)
-{
+TEST_F(STEST_fusion_engine_dsa_graph_optimizer, check_supported) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
-  
+
   std::map<std::string, std::string> options;
   (void)ops_kernel_info_store_ptr_->Initialize(options);
   for (auto node : graph->GetAllNodes()) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,16 +65,15 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_test) {
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_TRUE(data1_ret.result.IsSuccess());
   ASSERT_TRUE(data2_ret.result.IsSuccess());
-  LowerInput add_input = {
-      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
-  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
   auto custom_op = graph->FindNode("custom_op");
   auto ret = LoweringCustomNode(custom_op, add_input);
   ASSERT_TRUE(ret.result.IsSuccess());
@@ -96,7 +95,8 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_test) {
                                                                   {"SplitRtStreams", 1},
                                                                   {"InnerData", 4},
                                                                   {"MakeSureTensorAtDevice", 3},
-                                                                  {"SplitDataTensor", 4}}), "success");
+                                                                  {"SplitDataTensor", 4}}),
+            "success");
 }
 
 TEST_F(CustomNodeConverterUT, custom_op_convert_with_inference_rule_test) {
@@ -117,16 +117,15 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_inference_rule_test) {
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_TRUE(data1_ret.result.IsSuccess());
   ASSERT_TRUE(data2_ret.result.IsSuccess());
-  LowerInput add_input = {
-      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
-  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
 
   auto ret = LoweringCustomNode(custom_op, add_input);
   ASSERT_TRUE(ret.result.IsSuccess());
@@ -147,10 +146,10 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_test) {
   auto custom_op = graph->FindNode("custom_op");
   ASSERT_NE(custom_op, nullptr);
   custom_op->GetOpDesc()->SetType("Rt2CustomShapeInferOnlyOp");
-  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2CustomShapeInferOnlyOp",
-      []() -> std::unique_ptr<ge::BaseCustomOp> {
-    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
-  }), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator(
+                "Rt2CustomShapeInferOnlyOp",
+                []() -> std::unique_ptr<ge::BaseCustomOp> { return std::make_unique<Rt2CustomShapeInferOnlyOp>(); }),
+            ge::GRAPH_SUCCESS);
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   global_data.SetCustomOpRegistry(ge::CustomOpFactory::GetGlobalRegistryPtr());
@@ -164,16 +163,15 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_test) {
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_TRUE(data1_ret.result.IsSuccess());
   ASSERT_TRUE(data2_ret.result.IsSuccess());
-  LowerInput add_input = {
-      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
-  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
 
   auto ret = LoweringCustomNode(custom_op, add_input);
   ASSERT_TRUE(ret.result.IsSuccess());
@@ -199,10 +197,10 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_model_registry_shape_infer_
   custom_op->GetOpDesc()->SetType("Rt2ModelRegistryShapeInferOnlyOp");
   auto custom_op_registry = std::make_shared<ge::CustomOpRegistry>();
   ASSERT_NE(custom_op_registry, nullptr);
-  ASSERT_EQ(custom_op_registry->RegisterCreator("Rt2ModelRegistryShapeInferOnlyOp",
-      []() -> std::unique_ptr<ge::BaseCustomOp> {
-    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
-  }), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(custom_op_registry->RegisterCreator(
+                "Rt2ModelRegistryShapeInferOnlyOp",
+                []() -> std::unique_ptr<ge::BaseCustomOp> { return std::make_unique<Rt2CustomShapeInferOnlyOp>(); }),
+            ge::GRAPH_SUCCESS);
   ASSERT_NE(custom_op_registry->CreateOrGetCustomOp("Rt2ModelRegistryShapeInferOnlyOp"), nullptr);
 
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
@@ -219,16 +217,15 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_model_registry_shape_infer_
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_TRUE(data1_ret.result.IsSuccess());
   ASSERT_TRUE(data2_ret.result.IsSuccess());
-  LowerInput add_input = {
-      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
-  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
 
   auto ret = LoweringCustomNode(custom_op, add_input);
   ASSERT_TRUE(ret.result.IsSuccess());
@@ -241,8 +238,10 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_model_registry_shape_infer_
   ASSERT_NE(exe_graph, nullptr);
   ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShape"), nullptr);
   ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "ExecuteCustomOpWithInferShape"), nullptr);
-  ASSERT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "FindInferShapeFunc"), nullptr);
-  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "FindCustomOp"), nullptr);
+  ASSERT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "FindInferShapeFunc"),
+            nullptr);
+  ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "FindCustomOp"),
+            nullptr);
 }
 
 TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_and_rule_prefer_shape_infer_op_test) {
@@ -252,10 +251,10 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_and_rule_pre
   ASSERT_NE(custom_op, nullptr);
   custom_op->GetOpDesc()->SetType("Rt2CustomShapeInferWithRuleOp");
   AttrUtils::SetStr(custom_op->GetOpDesc(), ge::ATTR_NAME_INFER_RULE, rule);
-  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator("Rt2CustomShapeInferWithRuleOp",
-      []() -> std::unique_ptr<ge::BaseCustomOp> {
-    return std::make_unique<Rt2CustomShapeInferOnlyOp>();
-  }), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ge::CustomOpFactory::RegisterCustomOpCreator(
+                "Rt2CustomShapeInferWithRuleOp",
+                []() -> std::unique_ptr<ge::BaseCustomOp> { return std::make_unique<Rt2CustomShapeInferOnlyOp>(); }),
+            ge::GRAPH_SUCCESS);
 
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
@@ -270,16 +269,15 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_and_rule_pre
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_TRUE(data1_ret.result.IsSuccess());
   ASSERT_TRUE(data2_ret.result.IsSuccess());
-  LowerInput add_input = {
-      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
-  graph->FindNode("data0")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result",
-      gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
+  graph->FindNode("data0")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data0"), std::move(data0_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
 
   auto ret = LoweringCustomNode(custom_op, add_input);
   ASSERT_TRUE(ret.result.IsSuccess());
@@ -291,4 +289,4 @@ TEST_F(CustomNodeConverterUT, custom_op_convert_with_shape_infer_op_and_rule_pre
   ASSERT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShape"), nullptr);
   ASSERT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShapeByRule"), nullptr);
 }
-}
+}  // namespace gert

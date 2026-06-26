@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -64,8 +64,8 @@ struct FormatProccessInputArg {
 
 class FormatProcessBase {
  public:
-  FormatProcessBase(){};
-  virtual ~FormatProcessBase(){};
+  FormatProcessBase() {};
+  virtual ~FormatProcessBase() {};
   virtual Status Process(const ge::OpDesc &op_desc, const FormatProccessArgs &args, FormatProccessResult &result) = 0;
 };
 
@@ -93,10 +93,12 @@ class FormatProcessRegister {
 FormatProcessBasePtr BuildFormatProcess(const FormatProccessArgs &args);
 bool FormatProcessExists(const FormatProccessArgs &args);
 
-#define REGISTER_FORMAT_PROCESS(clazz, op_pattern, format_str, format)                                                 \
-  FormatProcessBasePtr create_##op_pattern##format_str##_process(); \
-  FormatProcessBasePtr create_##op_pattern##format_str##_process() { return std::make_shared<clazz>(); } \
-  FormatProcessRegister f_##op_pattern##format_str##_register(create_##op_pattern##format_str##_process, op_pattern,   \
+#define REGISTER_FORMAT_PROCESS(clazz, op_pattern, format_str, format)                                               \
+  FormatProcessBasePtr create_##op_pattern##format_str##_process();                                                  \
+  FormatProcessBasePtr create_##op_pattern##format_str##_process() {                                                 \
+    return std::make_shared<clazz>();                                                                                \
+  }                                                                                                                  \
+  FormatProcessRegister f_##op_pattern##format_str##_register(create_##op_pattern##format_str##_process, op_pattern, \
                                                               format)
 }  // namespace fe
 #endif  // FUSION_ENGINE_OPTIMIZER_FORMAT_SELECTOR_BUILTIN_PROCESS_FORMAT_PROCESS_REGISTRY_H_

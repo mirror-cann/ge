@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -104,8 +104,9 @@ void DynamicStitchKernel::ComputeMergedShape(const std::vector<ConstGeTensorPtr>
   int32_t merged_first_dim = 0;
   for (int32_t i = 0; i < n_; i++) {
     // shape is [] means scalar
-    int64_t indices_shape_size =
-      input[i]->GetTensorDesc().GetShape().GetDims().empty() ? 1 : input[i]->GetTensorDesc().GetShape().GetShapeSize();
+    int64_t indices_shape_size = input[i]->GetTensorDesc().GetShape().GetDims().empty()
+                                     ? 1
+                                     : input[i]->GetTensorDesc().GetShape().GetShapeSize();
     const int32_t *input_indices = reinterpret_cast<const int32_t *>(input[i]->GetData().data());
     for (int64_t j = 0; j < indices_shape_size; j++) {
       merged_first_dim = std::max(merged_first_dim, input_indices[j]);
@@ -142,7 +143,7 @@ Status DynamicStitchKernel::GenData(const std::vector<ConstGeTensorPtr> &input, 
   }
   auto allowance = output_size * data_size;
   auto data_unit = step > 0 ? step * data_size : data_size;
-  // 2.allocate memery for output
+  // 2.allocate memory for output
   std::unique_ptr<uint8_t[]> buf(new (std::nothrow) uint8_t[allowance]);
   if (buf == nullptr) {
     GELOGW("new buffer failed");

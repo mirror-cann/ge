@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,12 +20,10 @@
 namespace fe {
 static const size_t kMinTaskSize = 2;
 
-GenerateCMOTypePrefetch::GenerateCMOTypePrefetch()
-    : GenerateCMOTypeBase() {
-}
+GenerateCMOTypePrefetch::GenerateCMOTypePrefetch() : GenerateCMOTypeBase() {}
 
-ge::NodePtr GenerateCMOTypePrefetch::GetLastPreNode(const ge::NodePtr &node,
-    std::map<uint32_t, std::map<int64_t, ge::NodePtr>> &stream_node_map) const {
+ge::NodePtr GenerateCMOTypePrefetch::GetLastPreNode(
+    const ge::NodePtr &node, std::map<uint32_t, std::map<int64_t, ge::NodePtr>> &stream_node_map) const {
   ge::NodePtr nearest_in_node = nullptr;
   uint32_t stream_id = node->GetOpDesc()->GetStreamId();
   int64_t stream_index = -1;
@@ -59,8 +57,8 @@ void GenerateCMOTypePrefetch::LabeledPrefetch(const ge::NodePtr &src_node, const
       bool is_cached = prefetch_cache_map.find(tmp_node) != prefetch_cache_map.end() &&
                        !CheckNeedPretch(prefetch_cache_map[tmp_node], dst_node);
       if (is_cached) {
-        FE_LOGD("Op[name=%s] has just been prefetched by Op[name=%s]; no need to prefetch.", tmp_node->GetName().c_str(),
-                prefetch_cache_map[tmp_node]->GetName().c_str());
+        FE_LOGD("Op[name=%s] has just been prefetched by Op[name=%s]; no need to prefetch.",
+                tmp_node->GetName().c_str(), prefetch_cache_map[tmp_node]->GetName().c_str());
         continue;
       }
       int64_t tensor_size = 0;
@@ -95,9 +93,8 @@ bool GenerateCMOTypePrefetch::CheckNeedPretch(const ge::NodePtr &src_node, const
   (void)ge::AttrUtils::GetInt(dst_node->GetOpDesc(), ge::ATTR_NAME_OP_READ_WRITE_INDEX, dst_index);
   int32_t threshold = Configuration::Instance(AI_CORE_NAME).GetMemReuseDistThreshold();
   FE_LOGD("Op[name=%s, type=%s, index=%d] and Op[name=%s, type=%s, index=%d] has same weight, threshold=%d",
-          src_node->GetName().c_str(), src_node->GetType().c_str(), src_index,
-          dst_node->GetName().c_str(), dst_node->GetType().c_str(), dst_index,
-          threshold);
+          src_node->GetName().c_str(), src_node->GetType().c_str(), src_index, dst_node->GetName().c_str(),
+          dst_node->GetType().c_str(), dst_index, threshold);
   return dst_index - src_index >= threshold;
 }
 
@@ -111,14 +108,13 @@ bool GenerateCMOTypePrefetch::CheckSizeIsAvailable(const ge::NodePtr &src_node, 
   int64_t src_node_workspace_size = GetWorkSpaceSize(src_node->GetOpDesc());
   int64_t cache_size = GetCacheSize();
   FE_LOGD("DstNode[%s], SrcNode[%s]: in_size=%ld, out_size=%ld, workspace_size=%ld, weight_size=%ld, cache_size=%ld",
-          dst_node->GetOpDesc()->GetName().c_str(), src_node->GetOpDesc()->GetName().c_str(),
-          src_node_input_size, src_node_output_size, src_node_workspace_size, cur_node_total_weight_size, cache_size);
-  return (src_node_input_size + src_node_output_size + src_node_workspace_size +
-          cur_node_total_weight_size <= cache_size);
+          dst_node->GetOpDesc()->GetName().c_str(), src_node->GetOpDesc()->GetName().c_str(), src_node_input_size,
+          src_node_output_size, src_node_workspace_size, cur_node_total_weight_size, cache_size);
+  return (src_node_input_size + src_node_output_size + src_node_workspace_size + cur_node_total_weight_size <=
+          cache_size);
 }
 
-void GenerateCMOTypePrefetch::GenerateType(const ge::NodePtr &node,
-                                           const StreamCtrlMap &stream_ctrls,
+void GenerateCMOTypePrefetch::GenerateType(const ge::NodePtr &node, const StreamCtrlMap &stream_ctrls,
                                            std::unordered_map<ge::NodePtr, ge::NodePtr> &prefetch_cache_map,
                                            std::map<uint32_t, std::map<int64_t, ge::NodePtr>> &stream_node_map) {
   (void)stream_ctrls;
@@ -126,8 +122,8 @@ void GenerateCMOTypePrefetch::GenerateType(const ge::NodePtr &node,
    * only prefetch weight input
    * prefetch lable on parent node
    */
-  FE_LOGD("begin to generate prefetch for node:[name=%s, type=%s]",
-          node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str());
+  FE_LOGD("begin to generate prefetch for node:[name=%s, type=%s]", node->GetOpDesc()->GetName().c_str(),
+          node->GetOpDesc()->GetType().c_str());
   ge::NodePtr peer_out_node = GetLastPreNode(node, stream_node_map);
   if (peer_out_node == nullptr) {
     FE_LOGD("Ending generation of prefetch for node: [name=%s, type=%s], reason: no parent node",
@@ -149,8 +145,8 @@ void GenerateCMOTypePrefetch::GenerateType(const ge::NodePtr &node,
   }
 
   LabeledPrefetch(peer_out_node, node, prefetch_cache_map);
-  FE_LOGD("Ending generation of prefetch for node: [name=%s, type=%s]",
-          node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str());
+  FE_LOGD("Ending generation of prefetch for node: [name=%s, type=%s]", node->GetOpDesc()->GetName().c_str(),
+          node->GetOpDesc()->GetType().c_str());
   return;
 }
-} // namespace fe
+}  // namespace fe

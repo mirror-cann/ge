@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,27 +31,27 @@ static int32_t kCurrentExpCode = -1;
 static uint64_t kCurrentUserContextId = 0;
 int32_t GetSizeByDataType(TensorDataType data_type) {
   static const std::map<TensorDataType, int32_t> size_map = {{TensorDataType::DT_FLOAT, 4},
-                                                            {TensorDataType::DT_FLOAT16, 2},
-                                                            {TensorDataType::DT_INT8, 1},
-                                                            {TensorDataType::DT_INT16, 2},
-                                                            {TensorDataType::DT_UINT16, 2},
-                                                            {TensorDataType::DT_UINT8, 1},
-                                                            {TensorDataType::DT_INT32, 4},
-                                                            {TensorDataType::DT_INT64, 8},
-                                                            {TensorDataType::DT_UINT32, 4},
-                                                            {TensorDataType::DT_UINT64, 8},
-                                                            {TensorDataType::DT_BOOL, 1},
-                                                            {TensorDataType::DT_DOUBLE, 8},
-                                                            {TensorDataType::DT_QINT8, 1},
-                                                            {TensorDataType::DT_QINT16, 2},
-                                                            {TensorDataType::DT_QINT32, 4},
-                                                            {TensorDataType::DT_QUINT8, 1},
-                                                            {TensorDataType::DT_QUINT16, 2},
-                                                            {TensorDataType::DT_DUAL, 5},
-                                                            {TensorDataType::DT_INT4, kDataTypeSizeBitOffset + 4},
-                                                            {TensorDataType::DT_UINT1, kDataTypeSizeBitOffset + 1},
-                                                            {TensorDataType::DT_INT2, kDataTypeSizeBitOffset + 2},
-                                                            {TensorDataType::DT_UINT2, kDataTypeSizeBitOffset + 2}};
+                                                             {TensorDataType::DT_FLOAT16, 2},
+                                                             {TensorDataType::DT_INT8, 1},
+                                                             {TensorDataType::DT_INT16, 2},
+                                                             {TensorDataType::DT_UINT16, 2},
+                                                             {TensorDataType::DT_UINT8, 1},
+                                                             {TensorDataType::DT_INT32, 4},
+                                                             {TensorDataType::DT_INT64, 8},
+                                                             {TensorDataType::DT_UINT32, 4},
+                                                             {TensorDataType::DT_UINT64, 8},
+                                                             {TensorDataType::DT_BOOL, 1},
+                                                             {TensorDataType::DT_DOUBLE, 8},
+                                                             {TensorDataType::DT_QINT8, 1},
+                                                             {TensorDataType::DT_QINT16, 2},
+                                                             {TensorDataType::DT_QINT32, 4},
+                                                             {TensorDataType::DT_QUINT8, 1},
+                                                             {TensorDataType::DT_QUINT16, 2},
+                                                             {TensorDataType::DT_DUAL, 5},
+                                                             {TensorDataType::DT_INT4, kDataTypeSizeBitOffset + 4},
+                                                             {TensorDataType::DT_UINT1, kDataTypeSizeBitOffset + 1},
+                                                             {TensorDataType::DT_INT2, kDataTypeSizeBitOffset + 2},
+                                                             {TensorDataType::DT_UINT2, kDataTypeSizeBitOffset + 2}};
   const auto iter = size_map.find(data_type);
   if (iter == size_map.cend()) {
     return -1;

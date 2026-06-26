@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,8 @@ Status SetReluAttr(const NodePtr &node) {
     GE_ASSERT_NOTNULL(mm_attr);
     GE_ASSERT_SUCCESS(mm_attr->SetHas_relu(1));
   } else if (node->GetType() == kBatchMatMulOffsetBias) {
-    auto mm_attr = dynamic_cast<ascir_op::BatchMatMulOffsetBias::AscBatchMatMulOffsetBiasIrAttrDef *>(attr->ir_attr.get());
+    auto mm_attr =
+        dynamic_cast<ascir_op::BatchMatMulOffsetBias::AscBatchMatMulOffsetBiasIrAttrDef *>(attr->ir_attr.get());
     GE_ASSERT_NOTNULL(mm_attr);
     GE_ASSERT_SUCCESS(mm_attr->SetHas_relu(1));
   } else {
@@ -88,7 +89,8 @@ Status CubeFixpip(AscGraph &graph, const NodePtr &asc_node) {
         GELOGI("node:%s(%s) peer node not relu, skip.", node->GetName().c_str(), node->GetType().c_str());
         return SUCCESS;
       }
-      // 当前不需要删除relu节点，以防遇到不支持fixpip的tiling key需要走ub模板 GE_ASSERT_SUCCESS(asc_adapt::DelNode(graph, peer_in_node));
+      // 当前不需要删除relu节点，以防遇到不支持fixpip的tiling key需要走ub模板
+      // GE_ASSERT_SUCCESS(asc_adapt::DelNode(graph, peer_in_node));
       // 后续需要删除relu节点时在此处设置relu标记，不在下方is_relu_only分支设置GE_ASSERT_SUCCESS(SetReluAttr(node));
       is_relu_only = true;
       cube_node = node;
@@ -105,7 +107,7 @@ Status CubeFixpip(AscGraph &graph, const NodePtr &asc_node) {
   // 没有删除节点不需要做topo排序asc_adapt::TopologicalSorting(AscGraphUtils::GetComputeGraph(graph));
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status CubeFixpipPass::Run(const ComputeGraphPtr &graph) const {
   // 代码预埋，act支持所有模板的fixpip能力后，开启此功能,后面要fixpip能力要注意act是否支持fixpip+后融合elemetnwise混合

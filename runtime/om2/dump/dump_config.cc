@@ -34,7 +34,7 @@ std::string GetCurrentTimeStr() {
 }
 }  // namespace
 
-DumpConfig& DumpConfig::Instance() {
+DumpConfig &DumpConfig::Instance() {
   static DumpConfig instance;
   return instance;
 }
@@ -69,52 +69,52 @@ void DumpConfig::SetOverflowDumpEnabled(bool enabled) {
   overflow_dump_enabled_ = enabled;
 }
 
-const std::string& DumpConfig::GetDumpPath() const {
+const std::string &DumpConfig::GetDumpPath() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_path_;
 }
 
-const std::string& DumpConfig::GetDumpStep() const {
+const std::string &DumpConfig::GetDumpStep() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_step_;
 }
 
-const std::string& DumpConfig::GetDumpMode() const {
+const std::string &DumpConfig::GetDumpMode() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_mode_;
 }
 
-const std::string& DumpConfig::GetDumpData() const {
+const std::string &DumpConfig::GetDumpData() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_data_;
 }
 
-const std::unordered_set<std::string>& DumpConfig::GetOpList() const {
+const std::unordered_set<std::string> &DumpConfig::GetOpList() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return op_list_;
 }
 
-void DumpConfig::SetDumpPath(const std::string& path) {
+void DumpConfig::SetDumpPath(const std::string &path) {
   std::lock_guard<std::mutex> lock(mutex_);
   dump_path_ = path;
 }
 
-void DumpConfig::SetDumpStep(const std::string& step) {
+void DumpConfig::SetDumpStep(const std::string &step) {
   std::lock_guard<std::mutex> lock(mutex_);
   dump_step_ = step;
 }
 
-void DumpConfig::SetDumpMode(const std::string& mode) {
+void DumpConfig::SetDumpMode(const std::string &mode) {
   std::lock_guard<std::mutex> lock(mutex_);
   dump_mode_ = mode;
 }
 
-void DumpConfig::SetDumpData(const std::string& data) {
+void DumpConfig::SetDumpData(const std::string &data) {
   std::lock_guard<std::mutex> lock(mutex_);
   dump_data_ = data;
 }
 
-void DumpConfig::SetOpList(const std::unordered_set<std::string>& op_list) {
+void DumpConfig::SetOpList(const std::unordered_set<std::string> &op_list) {
   std::lock_guard<std::mutex> lock(mutex_);
   op_list_ = op_list;
 }
@@ -139,22 +139,22 @@ void DumpConfig::Reset() {
   op_debug_mode_ = 0U;
 }
 
-const std::string& DumpConfig::GetDumpLevel() const {
+const std::string &DumpConfig::GetDumpLevel() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_level_;
 }
 
-const std::string& DumpConfig::GetDumpStatus() const {
+const std::string &DumpConfig::GetDumpStatus() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_status_;
 }
 
-const std::string& DumpConfig::GetDumpOpSwitch() const {
+const std::string &DumpConfig::GetDumpOpSwitch() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_op_switch_;
 }
 
-const std::string& DumpConfig::GetDumpDebug() const {
+const std::string &DumpConfig::GetDumpDebug() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_debug_;
 }
@@ -164,33 +164,31 @@ uint32_t DumpConfig::GetOpDebugMode() const {
   return op_debug_mode_;
 }
 
-const std::vector<std::string>& DumpConfig::GetDumpStats() const {
+const std::vector<std::string> &DumpConfig::GetDumpStats() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_stats_;
 }
 
-const std::string& DumpConfig::GetDumpScene() const {
+const std::string &DumpConfig::GetDumpScene() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return dump_scene_;
 }
 
-const std::vector<ModelDumpConfig>& DumpConfig::GetModelDumpConfigList() const {
+const std::vector<ModelDumpConfig> &DumpConfig::GetModelDumpConfigList() const {
   std::lock_guard<std::mutex> lock(mutex_);
   return model_dump_config_list_;
 }
 
 bool DumpConfig::NeedDump() const {
   std::lock_guard<std::mutex> lock(mutex_);
-  if ((!model_dump_config_list_.empty()) ||
-      (dump_op_switch_ == GE_DUMP_STATUS_ON) ||
-      (dump_debug_ == GE_DUMP_STATUS_ON) ||
-      (!dump_scene_.empty())) {
+  if ((!model_dump_config_list_.empty()) || (dump_op_switch_ == GE_DUMP_STATUS_ON) ||
+      (dump_debug_ == GE_DUMP_STATUS_ON) || (!dump_scene_.empty())) {
     return true;
   }
   return false;
 }
 
-bool DumpConfig::IsOpNeedDump(const std::string& op_name) const {
+bool DumpConfig::IsOpNeedDump(const std::string &op_name) const {
   std::lock_guard<std::mutex> lock(mutex_);
   // 如果没有配置 dump list，默认返回 true（由全局开关控制是否真的 dump）
   if (model_dump_config_list_.empty()) {
@@ -198,21 +196,21 @@ bool DumpConfig::IsOpNeedDump(const std::string& op_name) const {
   }
 
   // 如果配置了 dump list，按照以下逻辑判断
-  for (const auto& model_config : model_dump_config_list_) {
+  for (const auto &model_config : model_dump_config_list_) {
     // layers 为空，表示该模型所有 op 都需要 dump
     if (model_config.layers.empty() && model_config.watcher_nodes.empty()) {
       return true;
     }
 
     // 遍历 layers 匹配（前缀匹配）
-    for (const auto& layer : model_config.layers) {
+    for (const auto &layer : model_config.layers) {
       if (op_name == layer) {
         return true;
       }
     }
 
     // watcher nodes 匹配（精确匹配）
-    for (const auto& node : model_config.watcher_nodes) {
+    for (const auto &node : model_config.watcher_nodes) {
       if (op_name == node) {
         return true;
       }
@@ -223,7 +221,7 @@ bool DumpConfig::IsOpNeedDump(const std::string& op_name) const {
   return false;
 }
 
-Status DumpConfig::ParseAndValidate(const char* dumpData, int32_t size) {
+Status DumpConfig::ParseAndValidate(const char *dumpData, int32_t size) {
   GELOGI("Start to parse and validate dump config, size: %d", size);
   if (dumpData == nullptr || size <= 0) {
     GELOGI("Dump data is null or empty, no dump config to parse");
@@ -252,21 +250,21 @@ Status DumpConfig::ParseAndValidate(const char* dumpData, int32_t size) {
   }
 
   // 检查 OM2 暂不支持的配置项并打印 warning
-  const nlohmann::json& jsDumpConfig = js.contains(GE_DUMP) ? js[GE_DUMP] : js;
+  const nlohmann::json &jsDumpConfig = js.contains(GE_DUMP) ? js[GE_DUMP] : js;
   CheckUnsupportedConfigs(jsDumpConfig);
 
   GELOGI("Parse and validate dump config successfully");
   return SUCCESS;
 }
 
-bool DumpConfig::IsValidDumpConfig(const nlohmann::json& js) const {
+bool DumpConfig::IsValidDumpConfig(const nlohmann::json &js) const {
   GELOGI("Start to execute IsValidDumpConfig.");
   if (!js.contains(GE_DUMP)) {
     GELOGI("no dump item, no need to do dump!");
     return true;
   }
 
-  const nlohmann::json& jsDumpConfig = js[GE_DUMP];
+  const nlohmann::json &jsDumpConfig = js[GE_DUMP];
 
   if (jsDumpConfig.contains(GE_DUMP_SCENE)) {
     std::string dumpScene;
@@ -280,7 +278,7 @@ bool DumpConfig::IsValidDumpConfig(const nlohmann::json& js) const {
   return ValidateNormalDumpConfig(jsDumpConfig);
 }
 
-bool DumpConfig::IsDumpDebugEnabled(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::IsDumpDebugEnabled(const nlohmann::json &jsDumpConfig) {
   std::string dumpDebug = GE_DUMP_DEBUG_DEFAULT;
   if (jsDumpConfig.contains(GE_DUMP_DEBUG)) {
     dumpDebug = jsDumpConfig[GE_DUMP_DEBUG].get<std::string>();
@@ -288,7 +286,7 @@ bool DumpConfig::IsDumpDebugEnabled(const nlohmann::json& jsDumpConfig) {
   return (dumpDebug == GE_DUMP_STATUS_ON);
 }
 
-bool DumpConfig::ValidateNormalDumpConfig(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::ValidateNormalDumpConfig(const nlohmann::json &jsDumpConfig) {
   if (!ValidateDumpPath(jsDumpConfig)) {
     return false;
   }
@@ -304,7 +302,7 @@ bool DumpConfig::ValidateNormalDumpConfig(const nlohmann::json& jsDumpConfig) {
   return ValidateOtherDumpConfigs(jsDumpConfig);
 }
 
-bool DumpConfig::ValidateDumpPath(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::ValidateDumpPath(const nlohmann::json &jsDumpConfig) {
   if (!jsDumpConfig.contains(GE_DUMP_PATH)) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Check][DumpConfig]dump_path field in dump config does not exist");
     REPORT_INNER_ERR_MSG("E19999", "dump_path field in dump config does not exist");
@@ -321,81 +319,77 @@ bool DumpConfig::ValidateDumpPath(const nlohmann::json& jsDumpConfig) {
   return CheckDumpPath(jsDumpConfig);
 }
 
-bool DumpConfig::ValidateDumpMode(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::ValidateDumpMode(const nlohmann::json &jsDumpConfig) {
   std::string dumpMode = GE_DUMP_MODE_DEFAULT;
   if (jsDumpConfig.contains(GE_DUMP_MODE)) {
     dumpMode = jsDumpConfig[GE_DUMP_MODE].get<std::string>();
   }
 
-  const std::vector<std::string> validModes = {
-      GE_DUMP_MODE_INPUT, GE_DUMP_MODE_OUTPUT, GE_DUMP_MODE_ALL
-  };
+  const std::vector<std::string> validModes = {GE_DUMP_MODE_INPUT, GE_DUMP_MODE_OUTPUT, GE_DUMP_MODE_ALL};
 
   if (std::find(validModes.begin(), validModes.end(), dumpMode) == validModes.end()) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG,
-           "[Check][DumpConfig]dump_mode value[%s] error in config, only supports input/output/all",
-           dumpMode.c_str());
-    REPORT_INNER_ERR_MSG("E19999",
-                        "dump_mode value[%s] error in config, only supports input/output/all",
-                        dumpMode.c_str());
+           "[Check][DumpConfig]dump_mode value[%s] error in config, only supports input/output/all", dumpMode.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "dump_mode value[%s] error in config, only supports input/output/all",
+                         dumpMode.c_str());
     return false;
   }
   GELOGD("dump_mode value[%s] is valid", dumpMode.c_str());
   return true;
 }
 
-bool DumpConfig::ValidateDumpLevel(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::ValidateDumpLevel(const nlohmann::json &jsDumpConfig) {
   std::string dumpLevel = GE_DUMP_LEVEL_DEFAULT;
   if (jsDumpConfig.contains(GE_DUMP_LEVEL)) {
     dumpLevel = jsDumpConfig[GE_DUMP_LEVEL].get<std::string>();
   }
 
-  const std::vector<std::string> validLevels = {
-      GE_DUMP_LEVEL_OP, GE_DUMP_LEVEL_KERNEL, GE_DUMP_LEVEL_ALL
-  };
+  const std::vector<std::string> validLevels = {GE_DUMP_LEVEL_OP, GE_DUMP_LEVEL_KERNEL, GE_DUMP_LEVEL_ALL};
 
   if (std::find(validLevels.begin(), validLevels.end(), dumpLevel) == validLevels.end()) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG,
-           "[Check][DumpConfig]dump_level value[%s] error in config, only supports op/kernel/all",
-           dumpLevel.c_str());
-    REPORT_INNER_ERR_MSG("E19999",
-                        "dump_level value[%s] error in config, only supports op/kernel/all",
-                        dumpLevel.c_str());
+           "[Check][DumpConfig]dump_level value[%s] error in config, only supports op/kernel/all", dumpLevel.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "dump_level value[%s] error in config, only supports op/kernel/all",
+                         dumpLevel.c_str());
     return false;
   }
   GELOGD("dump_level value[%s] is valid", dumpLevel.c_str());
   return true;
 }
 
-bool DumpConfig::ValidateOtherDumpConfigs(const nlohmann::json& jsDumpConfig) {
-  return CheckDumpStep(jsDumpConfig) &&
-         CheckDumplist(jsDumpConfig, GetDumpLevel(jsDumpConfig)) &&
+bool DumpConfig::ValidateOtherDumpConfigs(const nlohmann::json &jsDumpConfig) {
+  return CheckDumpStep(jsDumpConfig) && CheckDumplist(jsDumpConfig, GetDumpLevel(jsDumpConfig)) &&
          DumpStatsCheck(jsDumpConfig);
 }
 
-std::string DumpConfig::GetDumpLevel(const nlohmann::json& jsDumpConfig) {
+std::string DumpConfig::GetDumpLevel(const nlohmann::json &jsDumpConfig) {
   if (jsDumpConfig.contains(GE_DUMP_LEVEL)) {
     return jsDumpConfig[GE_DUMP_LEVEL].get<std::string>();
   }
   return GE_DUMP_LEVEL_DEFAULT;
 }
 
-void DumpConfig::CheckUnsupportedConfigs(const nlohmann::json& jsDumpConfig) {
+void DumpConfig::CheckUnsupportedConfigs(const nlohmann::json &jsDumpConfig) {
   if (jsDumpConfig.contains(GE_DUMP_OP_SWITCH)) {
     GELOGW("[OM2 Dump] dump_op_switch is not supported in OM2 dump mode, configuration will be ignored");
   }
   if (jsDumpConfig.contains(GE_DUMP_LIST)) {
-    const auto& dumpList = jsDumpConfig[GE_DUMP_LIST];
+    const auto &dumpList = jsDumpConfig[GE_DUMP_LIST];
     if (dumpList.is_array() && !dumpList.empty()) {
-      for (const auto& modelJson : dumpList) {
+      for (const auto &modelJson : dumpList) {
         if (modelJson.contains(GE_DUMP_OPTYPE_BLACKLIST)) {
-          GELOGW("[OM2 Dump] optype_blacklist in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+          GELOGW(
+              "[OM2 Dump] optype_blacklist in dump_list is not supported in OM2 dump mode, configuration will be "
+              "ignored");
         }
         if (modelJson.contains(GE_DUMP_OPNAME_BLACKLIST)) {
-          GELOGW("[OM2 Dump] opname_blacklist in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+          GELOGW(
+              "[OM2 Dump] opname_blacklist in dump_list is not supported in OM2 dump mode, configuration will be "
+              "ignored");
         }
         if (modelJson.contains(GE_DUMP_OPNAME_RANGE)) {
-          GELOGW("[OM2 Dump] opname_range in dump_list is not supported in OM2 dump mode, configuration will be ignored");
+          GELOGW(
+              "[OM2 Dump] opname_range in dump_list is not supported in OM2 dump mode, configuration will be ignored");
         }
       }
     }
@@ -403,79 +397,79 @@ void DumpConfig::CheckUnsupportedConfigs(const nlohmann::json& jsDumpConfig) {
   if (jsDumpConfig.contains(GE_DUMP_SCENE)) {
     std::string dumpScene = jsDumpConfig[GE_DUMP_SCENE].get<std::string>();
     if ((dumpScene == GE_DUMP_EXCEPTION_AIC_ERR_BRIEF) || (dumpScene == GE_DUMP_LITE_EXCEPTION)) {
-      GELOGW("[OM2 Dump] dump_scene value '%s' (L0 exception dump) is not supported in OM2, only L1 (aic_err_norm_dump) and L2 (aic_err_detail_dump) exception dump are supported", dumpScene.c_str());
+      GELOGW(
+          "[OM2 Dump] dump_scene value '%s' (L0 exception dump) is not supported in OM2, only L1 (aic_err_norm_dump) "
+          "and L2 (aic_err_detail_dump) exception dump are supported",
+          dumpScene.c_str());
     }
   }
 }
 
-bool DumpConfig::CheckDumpSceneSwitch(const nlohmann::json& jsDumpConfig, std::string& dumpScene) {
+bool DumpConfig::CheckDumpSceneSwitch(const nlohmann::json &jsDumpConfig, std::string &dumpScene) {
   if (!jsDumpConfig.contains(GE_DUMP_SCENE)) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Check][DumpConfig]dump_scene field does not exist");
     return false;
   }
 
   dumpScene = jsDumpConfig[GE_DUMP_SCENE].get<std::string>();
-  const std::vector<std::string> validScenes = {
-      GE_DUMP_LITE_EXCEPTION, GE_DUMP_EXCEPTION_AIC_ERR_BRIEF,
-      GE_DUMP_EXCEPTION_AIC_ERR_NORM, GE_DUMP_EXCEPTION_AIC_ERR_DETAIL,
-      GE_DUMP_SCENE_WATCHER
-  };
+  const std::vector<std::string> validScenes = {GE_DUMP_LITE_EXCEPTION, GE_DUMP_EXCEPTION_AIC_ERR_BRIEF,
+                                                GE_DUMP_EXCEPTION_AIC_ERR_NORM, GE_DUMP_EXCEPTION_AIC_ERR_DETAIL,
+                                                GE_DUMP_SCENE_WATCHER};
 
   if (std::find(validScenes.begin(), validScenes.end(), dumpScene) == validScenes.end()) {
-    GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Check][DumpConfig]dump_scene value[%s] is invalid",
-           dumpScene.c_str());
+    GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Check][DumpConfig]dump_scene value[%s] is invalid", dumpScene.c_str());
     return false;
   }
   GELOGD("dump_scene value[%s] is valid", dumpScene.c_str());
   return true;
 }
 
-bool DumpConfig::CheckDumpPath(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::CheckDumpPath(const nlohmann::json &jsDumpConfig) {
   (void)jsDumpConfig;
   return true;
 }
 
-bool DumpConfig::CheckDumpStep(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::CheckDumpStep(const nlohmann::json &jsDumpConfig) {
   (void)jsDumpConfig;
   return true;
 }
 
-bool DumpConfig::CheckDumplist(const nlohmann::json& jsDumpConfig, const std::string& dumpLevel) {
+bool DumpConfig::CheckDumplist(const nlohmann::json &jsDumpConfig, const std::string &dumpLevel) {
   (void)jsDumpConfig;
   (void)dumpLevel;
   return true;
 }
 
-bool DumpConfig::CheckDumpOpSwitch(const std::string& dumpOpSwitch) {
+bool DumpConfig::CheckDumpOpSwitch(const std::string &dumpOpSwitch) {
   const std::vector<std::string> validSwitches = {GE_DUMP_STATUS_ON, GE_DUMP_STATUS_OFF};
   return std::find(validSwitches.begin(), validSwitches.end(), dumpOpSwitch) != validSwitches.end();
 }
 
-bool DumpConfig::CheckIpAddress(const DumpConfig& config) {
+bool DumpConfig::CheckIpAddress(const DumpConfig &config) {
   (void)config;
   return true;
 }
 
-bool DumpConfig::ValidateIpAddress(const std::string& ipAddress) {
+bool DumpConfig::ValidateIpAddress(const std::string &ipAddress) {
   (void)ipAddress;
   return true;
 }
 
-bool DumpConfig::IsDumpPathValid(const std::string& dumpPath) {
+bool DumpConfig::IsDumpPathValid(const std::string &dumpPath) {
   return dumpPath.size() <= MAX_DUMP_PATH_LENGTH;
 }
 
-bool DumpConfig::DumpDebugCheck(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::DumpDebugCheck(const nlohmann::json &jsDumpConfig) {
   (void)jsDumpConfig;
   return true;
 }
 
-bool DumpConfig::DumpStatsCheck(const nlohmann::json& jsDumpConfig) {
+bool DumpConfig::DumpStatsCheck(const nlohmann::json &jsDumpConfig) {
   (void)jsDumpConfig;
   return true;
 }
 
-Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
+Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json &dumpJson) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (!dumpJson.contains(GE_DUMP)) {
@@ -483,7 +477,7 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
     return SUCCESS;
   }
 
-  const nlohmann::json& jsDumpConfig = dumpJson[GE_DUMP];
+  const nlohmann::json &jsDumpConfig = dumpJson[GE_DUMP];
   ParseBasicConfigurations(jsDumpConfig);
   ParseComplexConfigs(jsDumpConfig);
 
@@ -501,8 +495,8 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
   // overflow dump (dump_debug: on) 即使配置了 dump_path，也不开启 data_dump
   if ((dump_status_ == GE_DUMP_STATUS_ON) || !model_dump_config_list_.empty()) {
     data_dump_enabled_ = true;
-    GELOGI("Data dump enabled, dump_status: %s, model config count: %zu",
-           dump_status_.c_str(), model_dump_config_list_.size());
+    GELOGI("Data dump enabled, dump_status: %s, model config count: %zu", dump_status_.c_str(),
+           model_dump_config_list_.size());
   }
   if (!dump_scene_.empty()) {
     exception_dump_enabled_ = true;
@@ -513,12 +507,12 @@ Status DumpConfig::ParseDumpConfigFromJson(const nlohmann::json& dumpJson) {
     GELOGI("Overflow dump enabled, dump_path: %s", dump_path_.c_str());
   }
 
-  GELOGI("Parse dump config from json successfully, dump_mode: %s, dump_level: %s, dump_step: %s",
-         dump_mode_.c_str(), dump_level_.c_str(), dump_step_.c_str());
+  GELOGI("Parse dump config from json successfully, dump_mode: %s, dump_level: %s, dump_step: %s", dump_mode_.c_str(),
+         dump_level_.c_str(), dump_step_.c_str());
   return SUCCESS;
 }
 
-void DumpConfig::ParseBasicConfigurations(const nlohmann::json& dumpJson) {
+void DumpConfig::ParseBasicConfigurations(const nlohmann::json &dumpJson) {
   dump_path_ = GetConfigWithDefault(dumpJson, GE_DUMP_PATH, "");
   dump_mode_ = GetConfigWithDefault(dumpJson, GE_DUMP_MODE, GE_DUMP_MODE_DEFAULT);
   dump_status_ = GetConfigWithDefault(dumpJson, GE_DUMP_STATUS, GE_DUMP_STATUS_DEFAULT);
@@ -540,7 +534,7 @@ void DumpConfig::ParseBasicConfigurations(const nlohmann::json& dumpJson) {
   }
 }
 
-void DumpConfig::ParseComplexConfigs(const nlohmann::json& dumpJson) {
+void DumpConfig::ParseComplexConfigs(const nlohmann::json &dumpJson) {
   if (dumpJson.contains(GE_DUMP_STATS) && dumpJson[GE_DUMP_STATS].is_array()) {
     ParseStringArray(dumpJson[GE_DUMP_STATS], dump_stats_);
   }
@@ -550,25 +544,24 @@ void DumpConfig::ParseComplexConfigs(const nlohmann::json& dumpJson) {
   }
 }
 
-std::string DumpConfig::GetConfigWithDefault(const nlohmann::json& json,
-                                             const std::string& key,
-                                             const std::string& defaultValue) {
+std::string DumpConfig::GetConfigWithDefault(const nlohmann::json &json, const std::string &key,
+                                             const std::string &defaultValue) {
   if (json.contains(key)) {
     return json[key].get<std::string>();
   }
   return defaultValue;
 }
 
-void DumpConfig::ParseStringArray(const nlohmann::json& jsonArray, std::vector<std::string>& output) {
+void DumpConfig::ParseStringArray(const nlohmann::json &jsonArray, std::vector<std::string> &output) {
   output.clear();
-  for (const auto& item : jsonArray) {
+  for (const auto &item : jsonArray) {
     output.push_back(item.get<std::string>());
   }
 }
 
-void DumpConfig::ParseModelDumpConfigList(const nlohmann::json& jsonArray, std::vector<ModelDumpConfig>& output) {
+void DumpConfig::ParseModelDumpConfigList(const nlohmann::json &jsonArray, std::vector<ModelDumpConfig> &output) {
   output.clear();
-  for (const auto& modelJson : jsonArray) {
+  for (const auto &modelJson : jsonArray) {
     ModelDumpConfig modelConfig;
     if (ParseModelDumpConfig(modelJson, modelConfig)) {
       output.push_back(modelConfig);
@@ -576,7 +569,7 @@ void DumpConfig::ParseModelDumpConfigList(const nlohmann::json& jsonArray, std::
   }
 }
 
-bool DumpConfig::ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDumpConfig& modelConfig) {
+bool DumpConfig::ParseModelDumpConfig(const nlohmann::json &modelJson, ModelDumpConfig &modelConfig) {
   if (!CheckDumpModelConfig(modelJson)) {
     return false;
   }
@@ -587,21 +580,21 @@ bool DumpConfig::ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDump
 
   if (modelJson.contains(GE_DUMP_LAYER) && modelJson[GE_DUMP_LAYER].is_array()) {
     modelConfig.layers.clear();
-    for (const auto& layer : modelJson[GE_DUMP_LAYER]) {
+    for (const auto &layer : modelJson[GE_DUMP_LAYER]) {
       modelConfig.layers.push_back(layer.get<std::string>());
     }
   }
 
   if (modelJson.contains(GE_DUMP_WATCHER_NODES) && modelJson[GE_DUMP_WATCHER_NODES].is_array()) {
     modelConfig.watcher_nodes.clear();
-    for (const auto& node : modelJson[GE_DUMP_WATCHER_NODES]) {
+    for (const auto &node : modelJson[GE_DUMP_WATCHER_NODES]) {
       modelConfig.watcher_nodes.push_back(node.get<std::string>());
     }
   }
 
   if (modelJson.contains(GE_DUMP_OPTYPE_BLACKLIST) && modelJson[GE_DUMP_OPTYPE_BLACKLIST].is_array()) {
     modelConfig.optype_blacklist.clear();
-    for (const auto& blacklistJson : modelJson[GE_DUMP_OPTYPE_BLACKLIST]) {
+    for (const auto &blacklistJson : modelJson[GE_DUMP_OPTYPE_BLACKLIST]) {
       DumpBlacklist blacklist;
       ParseBlacklist(blacklistJson, blacklist);
       modelConfig.optype_blacklist.push_back(blacklist);
@@ -610,7 +603,7 @@ bool DumpConfig::ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDump
 
   if (modelJson.contains(GE_DUMP_OPNAME_BLACKLIST) && modelJson[GE_DUMP_OPNAME_BLACKLIST].is_array()) {
     modelConfig.opname_blacklist.clear();
-    for (const auto& blacklistJson : modelJson[GE_DUMP_OPNAME_BLACKLIST]) {
+    for (const auto &blacklistJson : modelJson[GE_DUMP_OPNAME_BLACKLIST]) {
       DumpBlacklist blacklist;
       ParseBlacklist(blacklistJson, blacklist);
       modelConfig.opname_blacklist.push_back(blacklist);
@@ -619,7 +612,7 @@ bool DumpConfig::ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDump
 
   if (modelJson.contains(GE_DUMP_OPNAME_RANGE) && modelJson[GE_DUMP_OPNAME_RANGE].is_array()) {
     modelConfig.dump_op_ranges.clear();
-    for (const auto& rangeJson : modelJson[GE_DUMP_OPNAME_RANGE]) {
+    for (const auto &rangeJson : modelJson[GE_DUMP_OPNAME_RANGE]) {
       if (rangeJson.contains(GE_DUMP_OPNAME_RANGE_BEGIN) && rangeJson.contains(GE_DUMP_OPNAME_RANGE_END)) {
         std::string begin = rangeJson[GE_DUMP_OPNAME_RANGE_BEGIN].get<std::string>();
         std::string end = rangeJson[GE_DUMP_OPNAME_RANGE_END].get<std::string>();
@@ -631,25 +624,25 @@ bool DumpConfig::ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDump
   return true;
 }
 
-bool DumpConfig::CheckDumpModelConfig(const nlohmann::json& modelJson) {
+bool DumpConfig::CheckDumpModelConfig(const nlohmann::json &modelJson) {
   (void)modelJson;
   return true;
 }
 
-void DumpConfig::ParseBlacklist(const nlohmann::json& blacklistJson, DumpBlacklist& blacklist) {
+void DumpConfig::ParseBlacklist(const nlohmann::json &blacklistJson, DumpBlacklist &blacklist) {
   if (blacklistJson.contains(GE_DUMP_BLACKLIST_NAME)) {
     blacklist.name = blacklistJson[GE_DUMP_BLACKLIST_NAME].get<std::string>();
   }
 
   if (blacklistJson.contains(GE_DUMP_BLACKLIST_POS) && blacklistJson[GE_DUMP_BLACKLIST_POS].is_array()) {
     blacklist.pos.clear();
-    for (const auto& pos : blacklistJson[GE_DUMP_BLACKLIST_POS]) {
+    for (const auto &pos : blacklistJson[GE_DUMP_BLACKLIST_POS]) {
       blacklist.pos.push_back(pos.get<std::string>());
     }
   }
 }
 
-std::vector<std::string> DumpConfig::Split(const std::string &str, const char_t * const delimiter) {
+std::vector<std::string> DumpConfig::Split(const std::string &str, const char_t *const delimiter) {
   std::vector<std::string> result;
   size_t start = 0;
   size_t end = str.find(delimiter);

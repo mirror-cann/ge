@@ -19,11 +19,7 @@
 #include "ge/ge_error_codes.h"
 #include "framework/executor_c/ge_executor.h"
 
-enum GeInitStatus {
-  INIT_STATUS_UNINITIALIZED,
-  INIT_STATUS_INTERMEDIATE,
-  INIT_STATUS_INITIALIZED
-};
+enum GeInitStatus { INIT_STATUS_UNINITIALIZED, INIT_STATUS_INTERMEDIATE, INIT_STATUS_INITIALIZED };
 static mmAtomicType g_isInited = INIT_STATUS_UNINITIALIZED;
 
 Status GeInitialize(void) {
@@ -123,8 +119,8 @@ Status UnloadModel(uint32_t modelId) {
   return UnloadOfflineModel(modelId);
 }
 
-Status ExecModel(uint32_t modelId, ExecHandleDesc *execDesc, bool sync,
-                 const InputData *inputData, OutputData *outputData) {
+Status ExecModel(uint32_t modelId, ExecHandleDesc *execDesc, bool sync, const InputData *inputData,
+                 OutputData *outputData) {
   if (g_isInited != INIT_STATUS_INITIALIZED) {
     return ACL_ERROR_GE_EXEC_NOT_INIT;
   }

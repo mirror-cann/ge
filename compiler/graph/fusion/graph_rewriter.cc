@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,7 +72,7 @@ Status CollectIO(const ComputeGraphPtr &replacement, std::map<int32_t, NodePtr> 
       GE_ASSERT_TRUE(index >= 0);
       index_2_data_node[index] = node;
     } else if (strcmp(node->GetTypePtr(), NETOUTPUT) == 0) {
-      for(const auto in_anchor :node->GetAllInDataAnchorsPtr()) {
+      for (const auto in_anchor : node->GetAllInDataAnchorsPtr()) {
         if (in_anchor == nullptr) {
           continue;
         }
@@ -83,14 +83,16 @@ Status CollectIO(const ComputeGraphPtr &replacement, std::map<int32_t, NodePtr> 
   return SUCCESS;
 }
 
-Status RecordOriginOpName(const std::vector<NodePtr> &nodes_before_fusion, const std::vector<NodePtr> &replacement_nodes) {
+Status RecordOriginOpName(const std::vector<NodePtr> &nodes_before_fusion,
+                          const std::vector<NodePtr> &replacement_nodes) {
   for (const auto &node : replacement_nodes) {
     fe::GraphPassUtil::RecordOriginalNames(nodes_before_fusion, node);
   }
   return SUCCESS;
 }
 
-Status InheritedOriginAttrAndOpName(const InnerSubgraphBoundary &subgraph, const std::vector<NodePtr> &replacement_nodes) {
+Status InheritedOriginAttrAndOpName(const InnerSubgraphBoundary &subgraph,
+                                    const std::vector<NodePtr> &replacement_nodes) {
   const auto &nodes_before_fusion = subgraph.GetNodes();
   RecordOriginOpName(nodes_before_fusion, replacement_nodes);
 
@@ -175,7 +177,8 @@ Status PruneUnusedNodes(const ComputeGraphPtr &target_graph, const std::vector<N
         GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(node, {}));
         GE_ASSERT_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(target_graph, node));
         GE_ASSERT_SUCCESS(node->ClearOwnerGraph(nullptr));
-        GELOGI("[REPLACE]Remove node [%s][%s] from graph [%s] success", node->GetNamePtr(), node->GetTypePtr(), target_graph->GetName().c_str());
+        GELOGI("[REPLACE]Remove node [%s][%s] from graph [%s] success", node->GetNamePtr(), node->GetTypePtr(),
+               target_graph->GetName().c_str());
         remove_status = SUCCESS;
       }
     }
@@ -232,8 +235,7 @@ Status RelinkSubgraphIO(const InnerSubgraphBoundary &subgraph, const std::map<in
 }
 
 Status ReplaceSubgraph(const ComputeGraphPtr &target_graph, const InnerSubgraphBoundary &subgraph,
-                       const ComputeGraphPtr &replacement,
-                       const std::vector<GNode> *nodes_before_fuse = nullptr,
+                       const ComputeGraphPtr &replacement, const std::vector<GNode> *nodes_before_fuse = nullptr,
                        CustomPassContext *ctx = nullptr) {
   std::string unsupport_fuse_reason;
   // todo check subgraph is valid
@@ -249,8 +251,7 @@ Status ReplaceSubgraph(const ComputeGraphPtr &target_graph, const InnerSubgraphB
   GE_ASSERT_SUCCESS(CollectIO(replacement, r_index_2_data_node, r_index_2_output_data_anchor));
 
   const auto &subgraph_nodes = subgraph.GetNodes();
-  GE_ASSERT_SUCCESS(GraphUtils::MoveNodesToGraphAfterTargetNode(
-      target_graph, subgraph_nodes.front(), replacement));
+  GE_ASSERT_SUCCESS(GraphUtils::MoveNodesToGraphAfterTargetNode(target_graph, subgraph_nodes.front(), replacement));
 
   // todo cycle search on replacement
   GE_ASSERT_SUCCESS(RelinkSubgraphIO(subgraph, r_index_2_data_node, r_index_2_output_data_anchor));
@@ -268,7 +269,7 @@ Status ReplaceSubgraph(const ComputeGraphPtr &target_graph, const InnerSubgraphB
   GE_ASSERT_SUCCESS(PruneUnusedNodes(target_graph, subgraph_nodes));
   return SUCCESS;
 };
-} // namespace
+}  // namespace
 
 Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, const Graph &replacement) {
   InnerSubgraphBoundary inner_boundary;
@@ -319,7 +320,7 @@ Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, const Graph &
     return FAILED;
   }
 
-  ComputeGraphPtr replacement_backup = MakeShared<ComputeGraph>("replacment");
+  ComputeGraphPtr replacement_backup = MakeShared<ComputeGraph>("replacement");
   GE_ASSERT_NOTNULL(replacement_backup);
   GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(replacement_compute_graph, replacement_backup));
 
@@ -330,5 +331,5 @@ Status SubgraphRewriter::Replace(const SubgraphBoundary &subgraph, Graph &&repla
   return Replace(subgraph, replacement, ctx);
 }
 
-} // namespace fusion
+}  // namespace fusion
 }  // namespace ge

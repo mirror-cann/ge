@@ -47,7 +47,7 @@ enum class Om2MemoryAppType : int32_t {
 };
 
 struct MemInfo {
-  int64_t logic_memory_base ;
+  int64_t logic_memory_base;
   int64_t memory_size;
   uint8_t *memory_base;
   uint64_t memory_type;
@@ -84,22 +84,27 @@ struct MemInfo {
       return nullptr;
     }
     GE_CHK_STATUS_EXEC(CheckInt64SubOverflow(offset, logic_memory_base), return nullptr,
-        "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", logic_memory_base:%" PRId64 ".",
-        memory_size, offset, logic_memory_base);
+                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64
+                       ", logic_memory_base:%" PRId64 ".",
+                       memory_size, offset, logic_memory_base);
     const int64_t real_offset = offset - logic_memory_base;
 
     GE_CHK_STATUS_EXEC(CheckInt64AddOverflow(real_offset, bytes), return nullptr,
-                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
+                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64
+                       ".",
                        memory_size, real_offset, bytes);
 
     if ((real_offset + bytes) <= memory_size) {
       return ValueToPtr(PtrToValue(memory_base) + static_cast<uint64_t>(real_offset));
     }
 
-    REPORT_INNER_ERR_MSG("E19999", "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:"
-		       "%" PRId64 ".", memory_size, real_offset, bytes);
-    GELOGE(OUT_OF_MEMORY, "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
-      memory_size, real_offset, bytes);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Out of range, total size:%" PRId64 ", offset:%" PRId64
+                         ", bytes:"
+                         "%" PRId64 ".",
+                         memory_size, real_offset, bytes);
+    GELOGE(OUT_OF_MEMORY, "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".", memory_size,
+           real_offset, bytes);
     return nullptr;
   }
 };
@@ -309,6 +314,6 @@ struct Om2CodegenModel {
   uint32_t aicpu_task_count{0U};
 };
 
-} // namespace ge
+}  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TYPES_H_

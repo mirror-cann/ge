@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -204,11 +204,9 @@ TEST_F(UTInferDataType, sym_infer_from_optional_input_succeed) {
       .AssertSucceed();
 }
 TEST_F(UTInferDataType, sym_infer_from_optional_input_unfed_opt) {
-  EXPECT_NO_THROW(
-    OpDtypeInfer("Op2")  // 可选不传入，无法推导
-        .Input(DT_UNDEFINED)
-        .AssertFailed();
-  );
+  EXPECT_NO_THROW(OpDtypeInfer("Op2")  // 可选不传入，无法推导
+                      .Input(DT_UNDEFINED)
+                      .AssertFailed(););
 }
 
 /* ---------- 基于动态输入进行推导 ---------- */
@@ -399,12 +397,10 @@ REG_OP(Op14)
     .DATATYPE(T3, Promote({"T1", "T2"}))
     .OP_END_FACTORY_REG(Op14);
 TEST_F(UTInferDataType, sym_infer_for_dtype_promotion_unpromotable_types) {
-  EXPECT_NO_THROW(
-    OpDtypeInfer("Op14")     // 提升失败，无提升规则
-        .Input(DT_VARIANT)   // T1
-        .Input(DT_RESOURCE)  // T2
-        .AssertFailed();
-  );
+  EXPECT_NO_THROW(OpDtypeInfer("Op14")     // 提升失败，无提升规则
+                      .Input(DT_VARIANT)   // T1
+                      .Input(DT_RESOURCE)  // T2
+                      .AssertFailed(););
 }
 // 试图在无提升规则的List类型间提升
 REG_OP(Op15)
@@ -553,24 +549,24 @@ REG_OP(OpLegacy)
 
 TEST_F(UTInferDataType, sym_infer_for_compat_with_legacy_ir) {
   EXPECT_NO_THROW(
-    // 原始OpLegacy不支持类型推导
-    OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).AssertFailed();
-    OpDtypeInfer("OpLegacy").Input(DT_INT32).AssertFailed();
+      // 原始OpLegacy不支持类型推导
+      OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).AssertFailed();
+      OpDtypeInfer("OpLegacy").Input(DT_INT32).AssertFailed();
 
-    // 模拟在老的app中加载新的ops proto，其中的IR相较于Legacy支持了类型推导
-    MockLoadOpsProtoCurrent();
+      // 模拟在老的app中加载新的ops proto，其中的IR相较于Legacy支持了类型推导
+      MockLoadOpsProtoCurrent();
 
-    // 验证新创建的OpLegacy能正常类型推导，但是不支持新增类型DT_INT32
-    OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed();
-    OpDtypeInfer("OpLegacy").Input(DT_INT32).AssertFailed();  // 此时仍不支持DT_INT32
+      // 验证新创建的OpLegacy能正常类型推导，但是不支持新增类型DT_INT32
+      OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed();
+      OpDtypeInfer("OpLegacy").Input(DT_INT32).AssertFailed();  // 此时仍不支持DT_INT32
 
-    // 模拟将来已经支持符号推导编译后，加载未来版本ops proto, IR新增支持类型场景，其中的IR相较于Legacy支持了类型推导及新增类型DT_INT32支持
-    MockLoadOpsProtoFeature();
+      // 模拟将来已经支持符号推导编译后，加载未来版本ops proto,
+      // IR新增支持类型场景，其中的IR相较于Legacy支持了类型推导及新增类型DT_INT32支持
+      MockLoadOpsProtoFeature();
 
-    // 验证新创建的OpLegacy能正常类型推导，同时支持新增类型DT_INT32
-    OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed();
-    OpDtypeInfer("OpLegacy").Input(DT_INT32).Expect(DT_INT32).AssertSucceed();
-  );
+      // 验证新创建的OpLegacy能正常类型推导，同时支持新增类型DT_INT32
+      OpDtypeInfer("OpLegacy").Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed();
+      OpDtypeInfer("OpLegacy").Input(DT_INT32).Expect(DT_INT32).AssertSucceed(););
 }
 
 REG_OP(OpRecover)
@@ -580,21 +576,17 @@ REG_OP(OpRecover)
     .OP_END_FACTORY_REG(OpRecover);
 
 TEST_F(UTInferDataType, sym_infer_after_recover) {
-  EXPECT_NO_THROW(
-    auto desc = std::make_shared<OpDesc>();
-    desc->SetType("OpRecover");
-    desc->AddInputDesc("input1", GeTensorDesc(GeShape(), FORMAT_ND, DT_FLOAT16));
-    desc->AddOutputDesc("output1", GeTensorDesc(GeShape(), FORMAT_ND, DT_FLOAT16));
-    desc->AppendIrInput("input1", IrInputType::kIrInputRequired);
-    desc->AppendIrOutput("output1", IrOutputType::kIrOutputRequired);
+  EXPECT_NO_THROW(auto desc = std::make_shared<OpDesc>(); desc->SetType("OpRecover");
+                  desc->AddInputDesc("input1", GeTensorDesc(GeShape(), FORMAT_ND, DT_FLOAT16));
+                  desc->AddOutputDesc("output1", GeTensorDesc(GeShape(), FORMAT_ND, DT_FLOAT16));
+                  desc->AppendIrInput("input1", IrInputType::kIrInputRequired);
+                  desc->AppendIrOutput("output1", IrOutputType::kIrOutputRequired);
 
-    OpDtypeInfer(desc).Input(DT_FLOAT16).AssertFailed();
+                  OpDtypeInfer(desc).Input(DT_FLOAT16).AssertFailed();
 
-    auto graph = std::make_shared<ComputeGraph>("test");
-    graph->AddNode(desc);
-    RecoverIrUtils::RecoverIrDefinitions(graph);
+                  auto graph = std::make_shared<ComputeGraph>("test"); graph->AddNode(desc);
+                  RecoverIrUtils::RecoverIrDefinitions(graph);
 
-    OpDtypeInfer(desc).Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed();
-  );
+                  OpDtypeInfer(desc).Input(DT_FLOAT16).Expect(DT_FLOAT16).AssertSucceed(););
 }
 }  // namespace ge

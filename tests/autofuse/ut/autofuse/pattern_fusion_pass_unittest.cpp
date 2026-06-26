@@ -57,7 +57,8 @@ class PatternFusionPassTest : public testing::Test {
   std::unique_ptr<es::Graph> es_graph_;
 
   template <typename T>
-  static es::Tensor CreateConst(es::Graph &graph, ge::DataType dtype, const std::vector<int64_t> &dims, std::vector<T> value) {
+  static es::Tensor CreateConst(es::Graph &graph, ge::DataType dtype, const std::vector<int64_t> &dims,
+                                std::vector<T> value) {
     auto result = es::FileConstant(graph, dims, dtype);
     GeTensorDesc desc(GeShape(dims), ge::FORMAT_ND, dtype);
     GeTensorPtr tensor =
@@ -257,7 +258,8 @@ TEST_F(PatternFusionPassTest, CastReshapeCastMatch) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->NODE(cast1)->DATA_EDGE(0, 0)->NODE(reshape)->NODE(cast2)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(
+        NODE(data)->NODE(cast1)->DATA_EDGE(0, 0)->NODE(reshape)->NODE(cast2)->NODE(relu)->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(const1)->DATA_EDGE(0, 1)->NODE(reshape));
   };
 
@@ -354,7 +356,8 @@ TEST_F(PatternFusionPassTest, CastReshapeCastNoMatch2) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->NODE(cast1)->DATA_EDGE(0, 0)->NODE(reshape)->NODE(cast2)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(
+        NODE(data)->NODE(cast1)->DATA_EDGE(0, 0)->NODE(reshape)->NODE(cast2)->NODE(relu)->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(const1)->DATA_EDGE(0, 1)->NODE(reshape));
   };
 
@@ -450,8 +453,13 @@ TEST_F(PatternFusionPassTest, TransposeWithBroadcastMultipleTranspose) {
   auto add = OP_CFG("Add").TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3}).InCnt(2).OutCnt(1).Build("add");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data1)->NODE(zeros1)->NODE(transpose1)->NODE(relu)->DATA_EDGE(0, 0)->NODE(add)->NODE("output_0",
-      NETOUTPUT));
+    CHAIN(NODE(data1)
+              ->NODE(zeros1)
+              ->NODE(transpose1)
+              ->NODE(relu)
+              ->DATA_EDGE(0, 0)
+              ->NODE(add)
+              ->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(data2)->NODE(zeros2)->NODE(transpose2)->DATA_EDGE(0, 1)->NODE(add)->NODE("output_0", NETOUTPUT));
   };
 
@@ -1281,7 +1289,13 @@ TEST_F(PatternFusionPassTest, BroadcastReduceMax_EliminateSingleAxis) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1435,7 +1449,13 @@ TEST_F(PatternFusionPassTest, BroadcastReduceMax_EliminateWithSqueeze) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {10}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1507,7 +1527,13 @@ TEST_F(PatternFusionPassTest, FillReduceMax_EliminateWithKeepDims) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(dims_data)->DATA_EDGE(0, 0)->NODE(fill)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(dims_data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(fill)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(value_data)->DATA_EDGE(0, 1)->NODE(fill));
   };
 
@@ -1567,7 +1593,13 @@ TEST_F(PatternFusionPassTest, FillReduceMax_EliminateWithoutKeepDims) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(dims_data)->DATA_EDGE(0, 0)->NODE(fill)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(dims_data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(fill)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(value_data)->DATA_EDGE(0, 1)->NODE(fill));
   };
 
@@ -1623,7 +1655,13 @@ TEST_F(PatternFusionPassTest, TileReduceMax_EliminateWithKeepDims) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1688,7 +1726,13 @@ TEST_F(PatternFusionPassTest, TileReduceMax_EliminateWithoutKeepDims) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1748,7 +1792,13 @@ TEST_F(PatternFusionPassTest, TileReduce_NoBroadcastWhenInputDimNotOne) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 3}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1797,7 +1847,13 @@ TEST_F(PatternFusionPassTest, BroadcastReduceMax_NegativeAxisEliminate) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1829,7 +1885,6 @@ TEST_F(PatternFusionPassTest, BroadcastReduceMax_NegativeAxisEliminate) {
   EXPECT_EQ(graph->FindNode("reduce_max"), nullptr);
 }
 
-
 // ========== 补充覆盖测试用例 ==========
 
 // Bug 回归：BroadcastTo 链 + ReduceMax，reduce 覆盖了非广播轴
@@ -1843,8 +1898,15 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_NotEliminateWhenReduceCoversNonBro
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {128}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(brc1)->DATA_EDGE(0, 0)->NODE(brc2)->DATA_EDGE(0, 0)->
-          NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(brc1)
+              ->DATA_EDGE(0, 0)
+              ->NODE(brc2)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1880,12 +1942,20 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_NotEliminateWhenReduceCoversNonBro
 // axis 0 不是广播轴，不能消除
 TEST_F(PatternFusionPassTest, BroadcastReduce_NotEliminateWhenReduceIncludesNonBroadcastAxis) {
   auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 1, 5}).InCnt(0).OutCnt(1).Build("data");
-  auto broadcast = OP_CFG("BroadcastTo").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 4, 5}).InCnt(2).OutCnt(1).Build("broadcast");
-  auto reduce_max = OP_CFG("ReduceMax").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 1, 5}).InCnt(1).OutCnt(1).Build("reduce_max");
+  auto broadcast =
+      OP_CFG("BroadcastTo").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 4, 5}).InCnt(2).OutCnt(1).Build("broadcast");
+  auto reduce_max =
+      OP_CFG("ReduceMax").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 1, 5}).InCnt(1).OutCnt(1).Build("reduce_max");
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1912,12 +1982,20 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_NotEliminateWhenReduceIncludesNonB
 // axis 2 是广播轴但未被 reduce，输出仍含广播维度，不能消除
 TEST_F(PatternFusionPassTest, BroadcastReduce_NotEliminateWhenPartialBroadcastCovered) {
   auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 1, 1}).InCnt(0).OutCnt(1).Build("data");
-  auto broadcast = OP_CFG("BroadcastTo").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 4, 5}).InCnt(2).OutCnt(1).Build("broadcast");
-  auto reduce_max = OP_CFG("ReduceMax").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 1, 5}).InCnt(1).OutCnt(1).Build("reduce_max");
+  auto broadcast =
+      OP_CFG("BroadcastTo").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 4, 5}).InCnt(2).OutCnt(1).Build("broadcast");
+  auto reduce_max =
+      OP_CFG("ReduceMax").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 1, 5}).InCnt(1).OutCnt(1).Build("reduce_max");
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {3, 1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -1953,7 +2031,13 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_EliminateWithControlEdges) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(ctrl_data)->NODE("output_1", NETOUTPUT));
   };
 
@@ -1976,7 +2060,8 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_EliminateWithControlEdges) {
   auto ctrl_node = graph->FindNode("ctrl_data");
   ASSERT_NE(ctrl_node, nullptr);
   ASSERT_EQ(GraphUtils::AddEdge(ctrl_node->GetOutControlAnchor(), broadcast_node->GetInControlAnchor()), GRAPH_SUCCESS);
-  ASSERT_EQ(GraphUtils::AddEdge(ctrl_node->GetOutControlAnchor(), reduce_max_node->GetInControlAnchor()), GRAPH_SUCCESS);
+  ASSERT_EQ(GraphUtils::AddEdge(ctrl_node->GetOutControlAnchor(), reduce_max_node->GetInControlAnchor()),
+            GRAPH_SUCCESS);
   EXPECT_EQ(broadcast_node->GetInControlNodesSize(), 1);
   EXPECT_EQ(reduce_max_node->GetInControlNodesSize(), 1);
 
@@ -2004,7 +2089,13 @@ TEST_F(PatternFusionPassTest, BroadcastReduce_DynamicShape_NoOptimize) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {10, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(broadcast)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(broadcast)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -2041,7 +2132,13 @@ TEST_F(PatternFusionPassTest, Tile_DynamicMultiples_NoOptimize) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -2074,7 +2171,13 @@ TEST_F(PatternFusionPassTest, Tile_DynamicInputShape_NoOptimize) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -2112,7 +2215,13 @@ TEST_F(PatternFusionPassTest, Fill_DynamicValueShape_NoOptimize) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 1}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(dims_data)->DATA_EDGE(0, 0)->NODE(fill)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(dims_data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(fill)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(value_data)->DATA_EDGE(0, 1)->NODE(fill));
   };
 
@@ -2147,7 +2256,13 @@ TEST_F(PatternFusionPassTest, Tile_MultiplesSizeMismatch_NoOptimize) {
   auto relu = OP_CFG("ReLU").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 5}).InCnt(1).OutCnt(1).Build("relu");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(data)->DATA_EDGE(0, 0)->NODE(tile)->DATA_EDGE(0, 0)->NODE(reduce_max)->NODE(relu)->NODE("output_0", NETOUTPUT));
+    CHAIN(NODE(data)
+              ->DATA_EDGE(0, 0)
+              ->NODE(tile)
+              ->DATA_EDGE(0, 0)
+              ->NODE(reduce_max)
+              ->NODE(relu)
+              ->NODE("output_0", NETOUTPUT));
   };
 
   auto graph = ToComputeGraph(test_graph);
@@ -2201,7 +2316,6 @@ TEST_F(PatternFusionPassTest, ReduceMax_NonBroadcastInput_NoOptimize) {
   EXPECT_NE(graph->FindNode("relu"), nullptr);
   EXPECT_NE(graph->FindNode("reduce_max"), nullptr);
 }
-
 
 // ========== RedundantControlEdge Remove 测试用例 ==========
 
@@ -2452,10 +2566,10 @@ TEST_F(PatternFusionPassTest, NotRemoveMultiControlEdgeMultiDataOutput) {
   auto node_d = OP_CFG("Add").TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3}).InCnt(2).OutCnt(1).Build("D");
 
   DEF_GRAPH(test_graph) {
-    CHAIN(NODE(node_a)->DATA_EDGE(0, 0)->NODE(node_b)); // A -> B (data)
-    CHAIN(NODE(node_c)->DATA_EDGE(0, 0)->NODE(node_d)); // C -> D (data)
-    CHAIN(NODE(const1)->DATA_EDGE(0, 1)->NODE(node_b)); // const1 -> B (data)
-    CHAIN(NODE(const1)->DATA_EDGE(1, 1)->NODE(node_d)); // const1 -> D (data)
+    CHAIN(NODE(node_a)->DATA_EDGE(0, 0)->NODE(node_b));  // A -> B (data)
+    CHAIN(NODE(node_c)->DATA_EDGE(0, 0)->NODE(node_d));  // C -> D (data)
+    CHAIN(NODE(const1)->DATA_EDGE(0, 1)->NODE(node_b));  // const1 -> B (data)
+    CHAIN(NODE(const1)->DATA_EDGE(1, 1)->NODE(node_d));  // const1 -> D (data)
     CHAIN(NODE(node_b)->NODE("output_0", NETOUTPUT));
     CHAIN(NODE(node_d)->NODE("output_1", NETOUTPUT));
   };

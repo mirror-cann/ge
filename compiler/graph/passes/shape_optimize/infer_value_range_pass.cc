@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -290,8 +290,8 @@ graphStatus InferValueRangePass::UpdateOutputFromSubgraphsForMultiDims(const std
                                                                        const GeTensorDescPtr &dst) {
   (void)src;
   REPORT_INNER_ERR_MSG("E19999",
-                     "Update TensorDesc %s failed. In dynamic multi-dims size scene, there should be no value range.",
-                     dst->GetName().c_str());
+                       "Update TensorDesc %s failed. In dynamic multi-dims size scene, there should be no value range.",
+                       dst->GetName().c_str());
   GELOGE(GRAPH_FAILED,
          "[Update][TensorDesc] %s failed. In dynamic multi-dims size scene, there should be no value range.",
          dst->GetName().c_str());
@@ -433,8 +433,8 @@ vector<ConstGeTensorPtr> InferValueRangePass::ConstructInputTensors(const NodePt
       }
       // const/constant op has only one weight
       if (const_weight.at(0) == nullptr) {
-        GELOGW("MutableWeights failed, weight of constant is null, node name: %s(%s)",
-               peer_node->GetName().c_str(), peer_node->GetType().c_str());
+        GELOGW("MutableWeights failed, weight of constant is null, node name: %s(%s)", peer_node->GetName().c_str(),
+               peer_node->GetType().c_str());
         return std::vector<ConstGeTensorPtr>();
       }
       input_tensors.push_back(const_weight.at(0));
@@ -502,11 +502,11 @@ graphStatus InferValueRangePass::ConstructInputAndInferValueRange(const NodePtr 
     auto upper_boundary_shape = upper_boundary_tensor->GetTensorDesc().GetShape();
     if (lower_boundary_shape.GetShapeSize() != output_shape_size ||
         upper_boundary_shape.GetShapeSize() != output_shape_size) {
-      GELOGD("Cpu kernel result shapes %s, %s and output shape %s do not match, cannot infer value range for "
-             "output %s.", formats::ShapeToString(lower_boundary_shape).c_str(),
-             formats::ShapeToString(upper_boundary_shape).c_str(),
-             formats::ShapeToString(output_tensor_desc->GetShape()).c_str(),
-             output_tensor_desc->GetName().c_str());
+      GELOGD(
+          "Cpu kernel result shapes %s, %s and output shape %s do not match, cannot infer value range for "
+          "output %s.",
+          formats::ShapeToString(lower_boundary_shape).c_str(), formats::ShapeToString(upper_boundary_shape).c_str(),
+          formats::ShapeToString(output_tensor_desc->GetShape()).c_str(), output_tensor_desc->GetName().c_str());
       return GRAPH_PARAM_INVALID;
     }
 

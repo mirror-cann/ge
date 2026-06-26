@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,8 +46,8 @@ class DSAGraphOptimizer : public ge::GraphOptimizer {
    * @ingroup fe
    * @brief prohibit copy and assign construct
    */
-  DSAGraphOptimizer(const DSAGraphOptimizer&) = delete;
-  DSAGraphOptimizer& operator=(const DSAGraphOptimizer&) = delete;
+  DSAGraphOptimizer(const DSAGraphOptimizer &) = delete;
+  DSAGraphOptimizer &operator=(const DSAGraphOptimizer &) = delete;
 
   /*
    *  @ingroup fe
@@ -55,7 +55,7 @@ class DSAGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in] options
    *  @return  SUCCESS or FAILED
    */
-  Status Initialize(const std::map<string, string>& options, ge::OptimizeUtility *const optimize_utility) override;
+  Status Initialize(const std::map<string, string> &options, ge::OptimizeUtility *const optimize_utility) override;
 
   /*
    *  @ingroup fe
@@ -70,7 +70,7 @@ class DSAGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] graph  compute graph
    *  @return  SUCCESS or FAILED
    */
-  Status OptimizeOriginalGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeOriginalGraph(ge::ComputeGraph &graph) override;
 
   /*
    *  @ingroup fe
@@ -78,7 +78,7 @@ class DSAGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] graph   compute graph
    *  @return  SUCCESS or FAILED
    */
-  Status OptimizeFusedGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeFusedGraph(ge::ComputeGraph &graph) override;
 
   /*
    *  @ingroup fe
@@ -86,17 +86,17 @@ class DSAGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] attrs
    *  @return  SUCCESS or FAILED
    */
-  Status GetAttributes(ge::GraphOptimizerAttribute& attrs) const override;
+  Status GetAttributes(ge::GraphOptimizerAttribute &attrs) const override;
 
-  Status OptimizeWholeGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeWholeGraph(ge::ComputeGraph &graph) override;
 
  private:
-  void SetInputSplitInfo(AxisSplitMap& axis_split_map, const int8_t& input_index, const int8_t& input_axis) const;
-  void SetOutputSplitInfo(AxisSplitMap& axis_split_map, const int8_t& output_index, const int8_t& output_axis) const;
+  void SetInputSplitInfo(AxisSplitMap &axis_split_map, const int8_t &input_index, const int8_t &input_axis) const;
+  void SetOutputSplitInfo(AxisSplitMap &axis_split_map, const int8_t &output_index, const int8_t &output_axis) const;
   void SetConstInputsValue(const ge::NodePtr &node) const;
   Status SetDSAOpSliceInfo(const ge::ComputeGraph &graph) const;
   Status SetDSAOpWorkspaces(const ge::ComputeGraph &graph) const;
-  Status OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph& graph) const;
+  Status OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph &graph) const;
 
   // op info mgr
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr_;

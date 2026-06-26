@@ -12,14 +12,14 @@
 
 import os
 import sys
-import numpy as np
 
+import numpy as np
 from ge.es import GraphBuilder
-from ge.graph import Tensor, DumpFormat
-from ge.graph.types import DataType, Format
-from ge.ge_global import GeApi
-from ge.session import Session
 from ge.es.all import *
+from ge.ge_global import GeApi
+from ge.graph import DumpFormat, Tensor
+from ge.graph.types import DataType, Format
+from ge.session import Session
 
 BATCH_SIZE = 2
 SEQ_LEN = 128
@@ -30,7 +30,7 @@ def build_pfa_hcom_graph():
     # 1、创建图构建器
     builder = GraphBuilder("MakePfaHcomGraph")
 
-    # 2、定义输入配置 
+    # 2、定义输入配置
     input_configs = [
         ("query", [BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE]),
         ("key", [BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE]),
@@ -40,47 +40,51 @@ def build_pfa_hcom_graph():
         ("quant_offset2", [1]),
         ("mm_x2", [BATCH_SIZE, HIDDEN_SIZE, HIDDEN_SIZE]),
         ("arn_x1", [BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE]),
-        ("arn_gamma", [HIDDEN_SIZE])
+        ("arn_gamma", [HIDDEN_SIZE]),
     ]
 
     # 3、创建输入节点并转换为FP16
     inputs_fp32 = []
     inputs_fp16 = []
     for idx, (name, shape) in enumerate(input_configs):
-        input_fp32 = builder.create_input(
-            index=idx,
-            name=name,
-            data_type=DataType.DT_FLOAT,
-            shape=shape
-        )
+        input_fp32 = builder.create_input(index=idx, name=name, data_type=DataType.DT_FLOAT, shape=shape)
         inputs_fp32.append(input_fp32)
         inputs_fp16.append(Cast(input_fp32, dst_type=DataType.DT_FLOAT16))
 
-    query_fp16, key_fp16, value_fp16, atten_mask_fp16, quant_scale2_fp16, \
-    quant_offset2_fp16, mm_x2_fp16, arn_x1_fp16, arn_gamma_fp16 = inputs_fp16
+    (
+        query_fp16,
+        key_fp16,
+        value_fp16,
+        atten_mask_fp16,
+        quant_scale2_fp16,
+        quant_offset2_fp16,
+        mm_x2_fp16,
+        arn_x1_fp16,
+        arn_gamma_fp16,
+    ) = inputs_fp16
 
     # 4、构建计算图
     pfa_output = PromptFlashAttention(
-        query_fp16,           # query
-        key_fp16,             # key
-        value_fp16,           # value
-        None,                 # pse_shift（可选）
-        atten_mask_fp16,      # atten_mask
-        None,                 # actual_seq_lengths（可选）
-        None,                 # actual_seq_lengths_kv（可选）
-        None,                 # dequant_scale1（可选）
-        None,                 # quant_scale1（可选）
-        None,                 # dequant_scale2（可选）
-        quant_scale2_fp16,    # quant_scale2
-        quant_offset2_fp16,   # quant_offset2
-        num_heads=8,          # 注意力头数
-        scale_value=1.0,      # 缩放因子
-        pre_tokens=214748647, # 预分配token数
-        next_tokens=0,        # 下一轮token数
-        input_layout="BSH",   # 输入布局：Batch, Sequence, Hidden
-        num_key_value_heads=8,# KV头数
-        sparse_mode=0,        # 稀疏模式
-        inner_precise=1       # 内部精度
+        query_fp16,  # query
+        key_fp16,  # key
+        value_fp16,  # value
+        None,  # pse_shift（可选）
+        atten_mask_fp16,  # atten_mask
+        None,  # actual_seq_lengths（可选）
+        None,  # actual_seq_lengths_kv（可选）
+        None,  # dequant_scale1（可选）
+        None,  # quant_scale1（可选）
+        None,  # dequant_scale2（可选）
+        quant_scale2_fp16,  # quant_scale2
+        quant_offset2_fp16,  # quant_offset2
+        num_heads=8,  # 注意力头数
+        scale_value=1.0,  # 缩放因子
+        pre_tokens=214748647,  # 预分配token数
+        next_tokens=0,  # 下一轮token数
+        input_layout="BSH",  # 输入布局：Batch, Sequence, Hidden
+        num_key_value_heads=8,  # KV头数
+        sparse_mode=0,  # 稀疏模式
+        inner_precise=1,  # 内部精度
     )
 
     # Reshape变换
@@ -91,11 +95,7 @@ def build_pfa_hcom_graph():
     mm_output = BatchMatMul(reshape_output, mm_x2_fp16)
 
     # HcomAllReduce多卡通信
-    hcom_output = HcomAllReduce(
-        mm_output,
-        reduction="sum",           
-        group="hccl_world_group"   
-    )
+    hcom_output = HcomAllReduce(mm_output, reduction="sum", group="hccl_world_group")
 
     # Cast为FP16
     cast_output = Cast(hcom_output, dst_type=DataType.DT_FLOAT16)
@@ -122,18 +122,13 @@ def dump_pfa_hcom_graph(graph):
 
 
 def run_graph(graph, device_id="0") -> int:
-
-
     # 1. 初始化GE环境
     # 获取环境变量
     rank_id = os.environ.get("RANK_ID", None)
     rank_table_file = os.environ.get("RANK_TABLE_FILE", None)
 
     # 构建配置字典
-    config = {
-        "ge.exec.deviceId": str(device_id),
-        "ge.graphRunMode": "0"  
-    }
+    config = {"ge.exec.deviceId": str(device_id), "ge.graphRunMode": "0"}
 
     # 添加HCCL相关配置
     if rank_id is not None and rank_table_file is not None:
@@ -165,15 +160,15 @@ def run_graph(graph, device_id="0") -> int:
 
         # 4. 准备输入数据
         input_data_configs = [
-            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),       # query
-            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),       # key
-            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),       # value
-            ([BATCH_SIZE, SEQ_LEN, SEQ_LEN], 0.0),           # atten_mask
-            ([1], 1.0),                                      # quant_scale2
-            ([1], 0.0),                                      # quant_offset2
-            ([BATCH_SIZE, HIDDEN_SIZE, HIDDEN_SIZE], 1.0),   # mm_x2
-            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),       # arn_x1
-            ([HIDDEN_SIZE], 1.0)                             # arn_gamma
+            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),  # query
+            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),  # key
+            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),  # value
+            ([BATCH_SIZE, SEQ_LEN, SEQ_LEN], 0.0),  # atten_mask
+            ([1], 1.0),  # quant_scale2
+            ([1], 0.0),  # quant_offset2
+            ([BATCH_SIZE, HIDDEN_SIZE, HIDDEN_SIZE], 1.0),  # mm_x2
+            ([BATCH_SIZE, SEQ_LEN, HIDDEN_SIZE], 1.0),  # arn_x1
+            ([HIDDEN_SIZE], 1.0),  # arn_gamma
         ]
 
         # 创建Tensor对象
@@ -185,7 +180,7 @@ def run_graph(graph, device_id="0") -> int:
                 None,
                 DataType.DT_FLOAT,
                 Format.FORMAT_ND,
-                shape
+                shape,
             )
             inputs.append(tensor)
 
@@ -201,6 +196,7 @@ def run_graph(graph, device_id="0") -> int:
     except Exception as e:
         print(f"[Error] 执行过程中出错: {e}")
         import traceback
+
         traceback.print_exc()
         return -1
 

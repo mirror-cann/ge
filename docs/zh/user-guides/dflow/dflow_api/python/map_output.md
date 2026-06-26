@@ -36,13 +36,13 @@ map_output(node_output_index, pp, pp_output_index)
 ```python
 import dataflow as df
 pp = df.FuncProcessPoint(...)
-flow_node = df.FlowNode(input_num=2, output_num=2) 
+flow_node = df.FlowNode(input_num=2, output_num=2)
 flow_node.add_process_point(pp)
-flow_node.map_input(0, pp, 0) 
-flow_node.map_input(1, pp, 1) 
-flow_node.map_output(0, pp, 1)  
-flow_node.map_output(1, pp, 0) 
-# 构建连边关系 
+flow_node.map_input(0, pp, 0)
+flow_node.map_input(1, pp, 1)
+flow_node.map_output(0, pp, 1)
+flow_node.map_output(1, pp, 0)
+# 构建连边关系
 flow_node_out = flow_node(data, data1)
 ```
 

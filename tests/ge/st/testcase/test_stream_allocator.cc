@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,11 @@ Graph BuildGenmaskGraph() {
   auto const1 = OP_CFG(CONSTANT).Weight(data_tensor1);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->EDGE(0, 0)->NODE("domask1", DROPOUTDOMASK)->NODE("output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->NODE("relu1", RELU)
+              ->EDGE(0, 0)
+              ->NODE("domask1", DROPOUTDOMASK)
+              ->NODE("output", NETOUTPUT));
     CHAIN(NODE("const1", const1)->NODE("DropOutGenMask1", DROPOUTGENMASK)->EDGE(0, 1)->NODE("domask1"));
     CHAIN(NODE("const2", const1)->NODE("DropOutGenMask1"));
     CHAIN(NODE("data1")->NODE("relu2", RELU)->EDGE(0, 0)->NODE("domask2", DROPOUTDOMASK)->NODE("output"));
@@ -104,7 +108,7 @@ Status BuildHCCLGraphStreamPass(const ConstGraphPtr &graph, StreamPassContext &c
     return SUCCESS;
   }
   std::cout << "before current max stream id is " << context.GetCurrMaxStreamId() << std::endl;
-  for (auto n: graph->GetDirectNode()) {
+  for (auto n : graph->GetDirectNode()) {
     AscendString name;
     n.GetName(name);
     if (name != "hcom1") {
@@ -123,7 +127,7 @@ Status ReluCustomStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
     return SUCCESS;
   }
   std::cout << "before current max stream id is " << context.GetCurrMaxStreamId() << std::endl;
-  for (auto n: graph->GetDirectNode()) {
+  for (auto n : graph->GetDirectNode()) {
     AscendString name;
     n.GetName(name);
     if (name != "relu1") {
@@ -154,25 +158,36 @@ Graph BuildHCCLGraph() {
 
 Graph BuildHCCLGraphWith5HcclNode() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("hcom1", HCOMALLREDUCE)->NODE("hcom2", HCOMALLREDUCE)
-                            ->NODE("hcom3", HCOMALLREDUCE)->NODE("hcom4", HCOMALLREDUCE)
-                            ->NODE("hcom5", HCOMALLREDUCE)->NODE("relu1", RELU)->NODE("output", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("hcom1")->NODE("hcom2")
-                            ->NODE("hcom3")->NODE("hcom4")->NODE("hcom5")->NODE("relu2", RELU)->NODE("output"));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->NODE("hcom1", HCOMALLREDUCE)
+              ->NODE("hcom2", HCOMALLREDUCE)
+              ->NODE("hcom3", HCOMALLREDUCE)
+              ->NODE("hcom4", HCOMALLREDUCE)
+              ->NODE("hcom5", HCOMALLREDUCE)
+              ->NODE("relu1", RELU)
+              ->NODE("output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)
+              ->NODE("hcom1")
+              ->NODE("hcom2")
+              ->NODE("hcom3")
+              ->NODE("hcom4")
+              ->NODE("hcom5")
+              ->NODE("relu2", RELU)
+              ->NODE("output"));
+  };
   return ToGeGraph(g1);
 }
 
 Graph MakeGraphWithPartitionedCall() {
   DEF_GRAPH(sub) {
-                   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("sub_output1");
-                   CHAIN(NODE("sub_relu", RELU)->NODE(netoutput));
-                 };
+    auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("sub_output1");
+    CHAIN(NODE("sub_relu", RELU)->NODE(netoutput));
+  };
 
   DEF_GRAPH(root_graph) {
-                          auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("relu");
-                          CHAIN(NODE("partitionedcall", PARTITIONEDCALL, sub)->NODE(relu)->NODE("output1", NETOUTPUT));
-                        };
+    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("relu");
+    CHAIN(NODE("partitionedcall", PARTITIONEDCALL, sub)->NODE(relu)->NODE("output1", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(root_graph);
   return graph;
@@ -208,8 +223,12 @@ Graph BuildSwitchMergeBigGraph() {
     }
     CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("switch1", SWITCH)->EDGE(0, 0)->NODE("true_relu1"));
     CHAIN(NODE("data2", pred_node)->EDGE(0, 1)->NODE("switch1")->EDGE(1, 0)->NODE("false_relu1"));
-    CHAIN(NODE("true_relu700", RELU)->EDGE(0, 0)->NODE("merge1", MERGE)->EDGE(0, 0)->NODE("relu1", RELU)
-          ->NODE("output", NETOUTPUT));
+    CHAIN(NODE("true_relu700", RELU)
+              ->EDGE(0, 0)
+              ->NODE("merge1", MERGE)
+              ->EDGE(0, 0)
+              ->NODE("relu1", RELU)
+              ->NODE("output", NETOUTPUT));
     CHAIN(NODE("false_relu700", RELU)->EDGE(0, 1)->NODE("merge1")->EDGE(1, 0)->NODE("relu2", RELU)->NODE("output"));
   };
   return ToGeGraph(g1);
@@ -411,15 +430,13 @@ Graph BuildGraphWithAicoreHcclSerial() {
 Graph BuildGraphWithAicoreHcclSerialAndMultiHcclSerial() {
   DEF_GRAPH(g1) {
     CHAIN(NODE("Data", DATA)
-        ->NODE("relu1", RELU)
-        ->NODE("HcomAllReduce1", HCOMALLREDUCE)
-        ->CTRL_EDGE()
-        ->NODE("relu2", RELU)
-        ->NODE("relu3", RELU)
-        ->NODE("output", NETOUTPUT));
-    CHAIN(NODE("HcomAllReduce1")
-        ->NODE("HcomAllReduce2", HCOMALLREDUCE)
-        ->NODE("output"));
+              ->NODE("relu1", RELU)
+              ->NODE("HcomAllReduce1", HCOMALLREDUCE)
+              ->CTRL_EDGE()
+              ->NODE("relu2", RELU)
+              ->NODE("relu3", RELU)
+              ->NODE("output", NETOUTPUT));
+    CHAIN(NODE("HcomAllReduce1")->NODE("HcomAllReduce2", HCOMALLREDUCE)->NODE("output"));
   };
   return ToGeGraph(g1);
 }
@@ -437,8 +454,11 @@ Graph BuildGraphWithAicoreHcclSerialAndMultiHcclSerial() {
  */
 Graph BuildGraphWithStreamLabelAndIneffectiveMultiStream() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", DATA)->NODE("trans1", TRANSDATA)->NODE("relu", RELU)->NODE("trans2", TRANSDATA)->NODE("output",
-      NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->NODE("trans1", TRANSDATA)
+              ->NODE("relu", RELU)
+              ->NODE("trans2", TRANSDATA)
+              ->NODE("output", NETOUTPUT));
   };
   auto graph = ToGeGraph(g1);
   return graph;
@@ -456,7 +476,10 @@ Graph BuildGraphWithBigSqeNum() {
 ComputeGraphPtr BuildDynamicFftsGraph() {
   DEF_GRAPH(g0) {
     const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-    CHAIN(NODE("sgt0/_arg_0", data_0)->EDGE(0, 0)->NODE("sgt0/trans_TransData_0", TRANSDATA)->EDGE(0, 0)
+    CHAIN(NODE("sgt0/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt0/trans_TransData_0", TRANSDATA)
+              ->EDGE(0, 0)
               ->NODE("sgt0/Node_Output", NETOUTPUT));
   };
   auto sgt0 = ToComputeGraph(g0);
@@ -473,7 +496,8 @@ ComputeGraphPtr BuildDynamicFftsGraph() {
 
 ComputeGraphPtr BuildSimpleDynamicGraph() {
   DEF_GRAPH(root) {
-    const auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    const auto data =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
     const auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
     CHAIN(NODE("data0", data)->NODE("relu0", relu)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
   };
@@ -491,7 +515,7 @@ Graph BuildGraphWithAttachedResources() {
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_stream1, ATTR_NAME_ATTACHED_STREAM_POLICY, "group"));
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_stream1, ATTR_NAME_ATTACHED_STREAM_KEY, "as1"));
 
-  uint32_t notify_type = 1; // on_device
+  uint32_t notify_type = 1;  // on_device
   NamedAttrs named_attr_notify0;
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_notify0, ATTR_NAME_ATTACHED_NOTIFY_POLICY, "group"));
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_notify0, ATTR_NAME_ATTACHED_NOTIFY_KEY, "an0"));
@@ -502,36 +526,35 @@ Graph BuildGraphWithAttachedResources() {
   EXPECT_TRUE(AttrUtils::SetStr(named_attr_notify1, ATTR_NAME_ATTACHED_NOTIFY_KEY, "an1"));
   EXPECT_TRUE(AttrUtils::SetInt(named_attr_notify1, ATTR_NAME_ATTACHED_NOTIFY_TYPE, notify_type));
 
-
   DEF_GRAPH(g0) {
     const auto data_0 = OP_CFG(DATA);
     // g0通信域4个节点, 需要两个attach stream， 两个attach notify
     const auto mc2_0 = OP_CFG(MATMUL)
-        .Attr("group", "g0")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
+                           .Attr("group", "g0")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
     const auto mc2_1 = OP_CFG(MATMUL)
-        .Attr("group", "g0")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
+                           .Attr("group", "g0")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
     const auto mc2_2 = OP_CFG(MATMUL)
-        .Attr("group", "g0")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream1)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify1);
+                           .Attr("group", "g0")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream1)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify1);
     const auto mc2_3 = OP_CFG(MATMUL)
-        .Attr("group", "g0")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream1)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify1);
+                           .Attr("group", "g0")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream1)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify1);
 
     // g1通信域2个节点
     const auto mc2_4 = OP_CFG(MATMUL)
-        .Attr("group", "g1")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
+                           .Attr("group", "g1")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
     const auto mc2_5 = OP_CFG(MATMUL)
-        .Attr("group", "g1")
-        .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
-        .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
+                           .Attr("group", "g1")
+                           .Attr(ATTR_NAME_ATTACHED_STREAM_INFO, named_attr_stream0)
+                           .Attr(ATTR_NAME_ATTACHED_NOTIFY_INFO, named_attr_notify0);
     CHAIN(NODE("data0", data_0)
               ->EDGE(0, 0)
               ->NODE("mc2_0", mc2_0)
@@ -558,10 +581,12 @@ Graph BuildGraphWithAttachedResources() {
  * */
 
 ge::NamedAttrs CreateResourceInfo(const int64_t &group_id = 0, const int64_t &resource_id = -1,
-                                               const int64_t resource_type = -1, const bool required_flag = true, bool force_reuse = false) {
+                                  const int64_t resource_type = -1, const bool required_flag = true,
+                                  bool force_reuse = false) {
   NamedAttrs named_attr;
   EXPECT_TRUE(AttrUtils::SetStr(named_attr, ATTR_NAME_ATTACHED_RESOURCE_NAME, "group_" + std::to_string(group_id)));
-  EXPECT_TRUE(AttrUtils::SetStr(named_attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, "attached_" + std::to_string(resource_id)));
+  EXPECT_TRUE(
+      AttrUtils::SetStr(named_attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, "attached_" + std::to_string(resource_id)));
   EXPECT_TRUE(AttrUtils::SetBool(named_attr, ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, true));
   EXPECT_TRUE(AttrUtils::SetBool(named_attr, ATTR_NAME_ATTACHED_RESOURCE_FORCE_REUSE, force_reuse));
   EXPECT_TRUE(AttrUtils::SetInt(named_attr, ATTR_NAME_ATTACHED_RESOURCE_TYPE, resource_type));
@@ -665,7 +690,7 @@ Graph BuildGraphWithAttachedResourcesWithOpenSource() {
 
 Graph BuildGraphWithDifferentMainStreamWithSameAttachedStream() {
   std::vector<NamedAttrs> named_attrs_gp_0_stream0 = {CreateResourceInfo(0, 0, -1, true, true)};  // gp0 stream0
-  std::vector<NamedAttrs> named_attrs_gp_0_notify0 = {CreateResourceInfo(0, 0, 1)};  // gp0 notify0
+  std::vector<NamedAttrs> named_attrs_gp_0_notify0 = {CreateResourceInfo(0, 0, 1)};               // gp0 notify0
 
   DEF_GRAPH(g1) {
     const auto data_0 = OP_CFG(DATA);
@@ -690,7 +715,7 @@ Graph BuildGraphWithDifferentMainStreamWithSameAttachedStream() {
 
 Graph BuildGraphHcclSplitAttachedStream() {
   std::vector<NamedAttrs> named_attrs_gp_0_stream0 = {CreateResourceInfo(0, 0, -1, true, true)};  // gp0 stream0
-  std::vector<NamedAttrs> named_attrs_gp_0_notify0 = {CreateResourceInfo(0, 0, 1)};  // gp0 notify0
+  std::vector<NamedAttrs> named_attrs_gp_0_notify0 = {CreateResourceInfo(0, 0, 1)};               // gp0 notify0
 
   DEF_GRAPH(g1) {
     int64_t hccl_task_num = 888L;
@@ -722,14 +747,14 @@ REG_OP(Data)
     .ATTR(index, Int, 0)
     .OP_END_FACTORY_REG(Data)
 
-REG_OP(Variable)
+        REG_OP(Variable)
     .INPUT(x, TensorType::ALL())
     .OUTPUT(y, TensorType::ALL())
     .ATTR(index, Int, 0)
     .ATTR(value, Tensor, Tensor())
     .OP_END_FACTORY_REG(Variable)
 
-REG_OP(MatMulV2)
+        REG_OP(MatMulV2)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT8}))
     .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT8}))
     .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
@@ -740,15 +765,15 @@ REG_OP(MatMulV2)
     .ATTR(offset_x, Int, 0)
     .OP_END_FACTORY_REG(MatMulV2)
 
-Graph BuildGraph2WithAttachedResources() {
+        Graph BuildGraph2WithAttachedResources() {
   auto data0 = op::Data("data0");
   auto variable = op::Variable("variable");
   auto matmu0 = op::MatMulV2("matmu0").set_input_x1(data0).set_input_x2(data0);
   auto matmu1 = op::MatMulV2("matmu1").set_input_x1(matmu0).set_input_x2(variable);
 
   Graph graph("test_graph");
-  std::vector<Operator> inputs {data0};
-  std::vector<Operator> outputs {matmu1};
+  std::vector<Operator> inputs{data0};
+  std::vector<Operator> outputs{matmu1};
   graph.SetInputs(inputs).SetOutputs(outputs);
 
   std::vector<NamedAttrs> attrs_stream0;
@@ -804,21 +829,10 @@ Graph BuildGraph2WithAttachedResources() {
 ComputeGraphPtr BuildGraph3WithAttachedResources() {
   auto main_graph = []() {
     DEF_GRAPH(g) {
-      auto index = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("index");
-      auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("data");
-      auto case_node = OP_CFG(CASE)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("case");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1);
+      auto index = OP_CFG(DATA).InCnt(1).OutCnt(1).Build("index");
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Build("data");
+      auto case_node = OP_CFG(CASE).InCnt(1).OutCnt(1).Build("case");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1);
       CHAIN(NODE(index)->NODE(case_node)->NODE("NetOutput", net_output));
       CHAIN(NODE(data)->EDGE(0, 1)->NODE(case_node));
     };
@@ -830,17 +844,9 @@ ComputeGraphPtr BuildGraph3WithAttachedResources() {
 
   auto case1_graph = []() {
     DEF_GRAPH(g) {
-      auto data1 = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("data1");
-      auto relu1 = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("relu1");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1);
+      auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Build("data1");
+      auto relu1 = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("relu1");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1);
       CHAIN(NODE(data1)->NODE(relu1)->NODE("NetOutput", net_output));
     };
     return ToComputeGraph(g);
@@ -869,17 +875,9 @@ ComputeGraphPtr BuildGraph3WithAttachedResources() {
 
   auto case2_graph = []() {
     DEF_GRAPH(g) {
-      auto data2 = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("data2");
-      auto relu2 = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("relu2");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1);
+      auto data2 = OP_CFG(DATA).InCnt(1).OutCnt(1).Build("data2");
+      auto relu2 = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("relu2");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1);
       CHAIN(NODE(data2)->NODE(relu2)->NODE("NetOutput", net_output));
     };
     return ToComputeGraph(g);
@@ -1021,7 +1019,7 @@ void MockGenerateTask() {
   };
   MockForGenerateTask("VectorEngine", vector_core_func);
 }
-}
+}  // namespace
 
 namespace ge {
 class STEST_stream_allocator : public testing::Test {
@@ -1053,11 +1051,10 @@ class STEST_stream_allocator : public testing::Test {
  */
 TEST_F(STEST_stream_allocator, MiniDAGStreamPass_WithSubgraph) {
   REGISTER_CUSTOM_PASS("MiniDAGStreamPass")
-    .CustomAllocateStreamPassFn([](const ge::ConstGraphPtr &graph,
-                                   ge::StreamPassContext &context) -> ge::Status {
-      return ge::RunMiniDAGStreamPass(graph, context);
-    })
-    .Stage(ge::CustomPassStage::kAfterAssignLogicStream);
+      .CustomAllocateStreamPassFn([](const ge::ConstGraphPtr &graph, ge::StreamPassContext &context) -> ge::Status {
+        return ge::RunMiniDAGStreamPass(graph, context);
+      })
+      .Stage(ge::CustomPassStage::kAfterAssignLogicStream);
   DEF_GRAPH(sub) {
     CHAIN(NODE("sub_relu1", RELU)->NODE("sub_relu2", RELU)->NODE("sub_output", NETOUTPUT));
   };
@@ -1328,7 +1325,7 @@ TEST_F(STEST_stream_allocator, hcom_nodes_independent_stream) {
     auto stream_id = hcom1->GetOpDesc()->GetStreamId();
     EXPECT_EQ(stream_id, 0);
     EXPECT_EQ(hcom1->GetInControlNodesSize(), 1);
-    EXPECT_EQ(hcom1->GetInControlNodes().at(0)->GetType(), "Recv"); // hcom的跨流等待节点
+    EXPECT_EQ(hcom1->GetInControlNodes().at(0)->GetType(), "Recv");  // hcom的跨流等待节点
     auto relu1 = graph->FindNode("relu1");
     EXPECT_NE(relu1, nullptr);
     stream_id = relu1->GetOpDesc()->GetStreamId();
@@ -1396,11 +1393,11 @@ TEST_F(STEST_stream_allocator, cv_serial_assign_same_stream) {
   };
 }
 
- /** 纯静态模型，支持自定义流pass接入修改hcom1的stream id，使其随前序节点的流*/
+/** 纯静态模型，支持自定义流pass接入修改hcom1的stream id，使其随前序节点的流*/
 TEST_F(STEST_stream_allocator, hcom_nodes_independent_stream_custom_pass) {
   REGISTER_CUSTOM_PASS("BuildHCCLGraphStreamPass")
-   .CustomAllocateStreamPassFn(BuildHCCLGraphStreamPass)
-   .Stage(CustomPassStage::kAfterAssignLogicStream);
+      .CustomAllocateStreamPassFn(BuildHCCLGraphStreamPass)
+      .Stage(CustomPassStage::kAfterAssignLogicStream);
   auto graph = BuildHCCLGraph();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   compute_graph->SetName("BuildHCCLGraphStreamPass");
@@ -1421,7 +1418,7 @@ TEST_F(STEST_stream_allocator, hcom_nodes_independent_stream_custom_pass) {
     EXPECT_NE(hcom1, nullptr);
     auto stream_id = hcom1->GetOpDesc()->GetStreamId();
     EXPECT_EQ(stream_id, 0);
-    EXPECT_EQ(hcom1->GetInControlNodesSize(), 0); // hcom无跨流等待节点
+    EXPECT_EQ(hcom1->GetInControlNodesSize(), 0);  // hcom无跨流等待节点
   };
 }
 
@@ -1464,7 +1461,7 @@ TEST_F(STEST_stream_allocator, custom_stream_pass_assign_stream) {
   };
 }
 
-  /** 纯静态模型，支持自定义stream label修改hcom1的stream，使其随前序节点的流*/
+/** 纯静态模型，支持自定义stream label修改hcom1的stream，使其随前序节点的流*/
 TEST_F(STEST_stream_allocator, hcom_nodes_independent_stream_user_stream_label) {
   auto graph = BuildHCCLGraph();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -1542,7 +1539,7 @@ TEST_F(STEST_stream_allocator, hcom_nodes_independent_stream_fail) {
 }
 
 TEST_F(STEST_stream_allocator, switch_merge_big_graph_split_stream) {
-  auto graph =  BuildSwitchMergeBigGraph();
+  auto graph = BuildSwitchMergeBigGraph();
   // new session & add graph
   map<string, string> options;
   Session session(options);
@@ -1579,7 +1576,7 @@ TEST_F(STEST_stream_allocator, switch_merge_big_graph_split_stream) {
 }
 
 TEST_F(STEST_stream_allocator, partitionedcall_with_subgraph) {
-  auto graph =  BuildPartitionedCallGraph();
+  auto graph = BuildPartitionedCallGraph();
   // new session & add graph
   map<string, string> options;
   Session session(options);
@@ -1651,7 +1648,7 @@ TEST_F(STEST_stream_allocator, ffts_static_graph_with_diff_stream) {
     EXPECT_NE(stream_id_0, stream_id_1);
 
     bool has_send{false};
-    for(const auto &out_node :partitionedCall0->GetOutControlNodes()) {
+    for (const auto &out_node : partitionedCall0->GetOutControlNodes()) {
       if (out_node == nullptr) {
         continue;
       }
@@ -1661,9 +1658,9 @@ TEST_F(STEST_stream_allocator, ffts_static_graph_with_diff_stream) {
       }
     }
     EXPECT_TRUE(has_send);
-    
+
     bool has_recv{false};
-    for(const auto &in_node :partitionedCall1->GetInControlNodes()) {
+    for (const auto &in_node : partitionedCall1->GetInControlNodes()) {
       if (in_node == nullptr) {
         continue;
       }
@@ -1704,7 +1701,7 @@ TEST_F(STEST_stream_allocator, ffts_dynamic_graph_with_diff_stream) {
 }
 
 TEST_F(STEST_stream_allocator, switch_merge_big_graph_split_stream1) {
-  auto graph =  BuildSwitchMergeBigGraph();
+  auto graph = BuildSwitchMergeBigGraph();
   // new session & add graph
   map<string, string> options;
   Session session(options);
@@ -1742,7 +1739,7 @@ TEST_F(STEST_stream_allocator, switch_merge_big_graph_split_stream1) {
 }
 
 TEST_F(STEST_stream_allocator, PartitionedcallWithSubgraph_Success_EnableNotify) {
-  auto graph =  BuildPartitionedCallGraph();
+  auto graph = BuildPartitionedCallGraph();
   // new session & add graph
   map<string, string> options;
   options[EVENT] = "notify";
@@ -1772,7 +1769,7 @@ TEST_F(STEST_stream_allocator, PartitionedcallWithSubgraph_Success_EnableNotify)
 }
 
 TEST_F(STEST_stream_allocator, AicoreHcclParallel) {
-  auto graph =  BuildGraphWithAicoreHcclParallel();
+  auto graph = BuildGraphWithAicoreHcclParallel();
   std::map<string, string> options;
   Session session(options);
   auto ret = session.AddGraph(0, graph, options);
@@ -1792,7 +1789,7 @@ TEST_F(STEST_stream_allocator, AicoreHcclParallel) {
 }
 
 TEST_F(STEST_stream_allocator, AicoreHcclSerial) {
-  auto graph =  BuildGraphWithAicoreHcclSerial();
+  auto graph = BuildGraphWithAicoreHcclSerial();
   std::map<string, string> options;
   Session session(options);
   auto ret = session.AddGraph(0, graph, options);
@@ -1812,7 +1809,7 @@ TEST_F(STEST_stream_allocator, AicoreHcclSerial) {
 }
 
 TEST_F(STEST_stream_allocator, AicoreHcclSerialAndMultiHcclSerial) {
-  auto graph =  BuildGraphWithAicoreHcclSerialAndMultiHcclSerial();
+  auto graph = BuildGraphWithAicoreHcclSerialAndMultiHcclSerial();
   std::map<string, string> options;
   Session session(options);
   auto ret = session.AddGraph(0, graph, options);
@@ -1836,7 +1833,7 @@ TEST_F(STEST_stream_allocator, AicoreHcclSerialAndMultiHcclSerial) {
 
 TEST_F(STEST_stream_allocator, DisableOptimizeIneffectiveMultiStream) {
   mmSetEnv(kDisableIneffectiveMultiStreamOptimize, "1", 1);
-  auto graph =  BuildGraphWithAicoreHcclSerial();
+  auto graph = BuildGraphWithAicoreHcclSerial();
   std::map<string, string> options;
   Session session(options);
   auto ret = session.AddGraph(0, graph, options);
@@ -1864,7 +1861,6 @@ TEST_F(STEST_stream_allocator, optimize_ineffective_multi_stream_not_move_to_str
   auto trans2 = compute_graph->FindNode("trans2");
   AttrUtils::SetStr(trans1->GetOpDesc(), public_attr::USER_STREAM_LABEL, "stream_label_test");
   AttrUtils::SetStr(trans2->GetOpDesc(), public_attr::USER_STREAM_LABEL, "stream_label_test");
-
 
   map<string, string> options;
   Status ret = ge::GELib::Initialize(options);
@@ -1895,7 +1891,7 @@ TEST_F(STEST_stream_allocator, optimize_ineffective_multi_stream_not_move_to_str
 }
 
 TEST_F(STEST_stream_allocator, ParallelGroupPass_Success_EnableHcomReuseStreamId) {
-  auto graph =  BuildParallelGroupTagGraph();
+  auto graph = BuildParallelGroupTagGraph();
   // new session & add graph
   map<string, string> options;
   Session session(options);
@@ -2043,20 +2039,25 @@ TEST_F(STEST_stream_allocator, AttachedResourceAssign3) {
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   auto ge_env = GeRunningEnvFaker();
   ge_env.Reset()
-         .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine").GraphOptimizer("AIcoreEngine"))
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER"))
-         .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1))
-         .Install(FakeOp(RELU).Inputs({"x"}).InfoStoreAndBuilder("AIcoreEngine"))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CASE).Inputs({"branch_index", "input"}).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("LabelSwitchByIndex").InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp("LabelSet").InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp("LabelGotoEx").InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp("Send").InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp("Recv").InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp(IDENTITY).InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("RTSLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine").GraphOptimizer("AIcoreEngine"))
+      .Install(FakeEngine("DNN_VM_GE_LOCAL")
+                   .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                   .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER"))
+      .Install(FakeEngine("DNN_VM_RTS")
+                   .KernelInfoStore("RTSLib")
+                   .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                   .Priority(PriorityEnum::COST_1))
+      .Install(FakeOp(RELU).Inputs({"x"}).InfoStoreAndBuilder("AIcoreEngine"))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CASE).Inputs({"branch_index", "input"}).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("LabelSwitchByIndex").InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp("LabelSet").InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp("LabelGotoEx").InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp("Send").InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp("Recv").InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp(IDENTITY).InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("RTSLib"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
   // new session & add graph
   map<string, string> options;
   Session session(options);
@@ -2069,7 +2070,7 @@ TEST_F(STEST_stream_allocator, AttachedResourceAssign3) {
   ASSERT_NE(compiled_summary, nullptr);
   std::shared_ptr<StreamAllocationSummary> stream_summary;
   EXPECT_EQ(compiled_summary->GetStreamAllocationSummary(stream_summary), SUCCESS);
-  EXPECT_TRUE(stream_summary->ToStreamGraph().size()>0);
+  EXPECT_TRUE(stream_summary->ToStreamGraph().size() > 0);
 
   CHECK_GRAPH(PreRunAfterBuild) {
     auto case_node = graph->FindNode("case");
@@ -2251,11 +2252,13 @@ TEST_F(STEST_stream_allocator, AttachedResourceAssignWithOpenSource) {
     // 通信域g0内节点按照attached key分配了不同资源
     EXPECT_EQ(mc2_0->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
     EXPECT_EQ(mc2_1->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
-    EXPECT_EQ(mc2_0->GetOpDescBarePtr()->GetAttachedStreamIds()[0], mc2_1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
+    EXPECT_EQ(mc2_0->GetOpDescBarePtr()->GetAttachedStreamIds()[0],
+              mc2_1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
 
     EXPECT_EQ(mc2_2->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
     EXPECT_NE(mc2_2->GetOpDescBarePtr()->GetAttachedStreamIds()[0], -1);
-    EXPECT_NE(mc2_2->GetOpDescBarePtr()->GetAttachedStreamIds()[0], mc2_1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
+    EXPECT_NE(mc2_2->GetOpDescBarePtr()->GetAttachedStreamIds()[0],
+              mc2_1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
     EXPECT_EQ(mc2_1->GetOutControlNodes().size(), 1U);
     EXPECT_EQ(mc2_3->GetOutControlNodes().size(), 1U);
     EXPECT_EQ(mc2_5->GetOutControlNodes().size(), 1U);
@@ -2463,7 +2466,7 @@ TEST_F(STEST_stream_allocator, single_stream_with_partitionedcall) {
       if (node->GetType() == ge::STREAMACTIVE) {
         has_stream_active = true;
         std::vector<int64_t> stream_ids;
-        (void) AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, stream_ids);
+        (void)AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, stream_ids);
         for (auto stream_id : stream_ids) {
           ASSERT_NE(stream_id, op_desc->GetStreamId());
         }
@@ -2526,16 +2529,16 @@ TEST_F(STEST_stream_allocator, user_defined_stream_label_success) {
 }
 
 /**
-  *  *          data
-   *         /    \
-   *    trans1    cast
-   *  (test_label)  |
-   *        \      /
-   *        netoutput
-   * 测试场景：构图指定stream label,同时开启单流选项
-   * 校验点：
-   *    （1）编译接口失败
-   *     (2) 打屏错误码提示两个配置冲突
+ *  *          data
+ *         /    \
+ *    trans1    cast
+ *  (test_label)  |
+ *        \      /
+ *        netoutput
+ * 测试场景：构图指定stream label,同时开启单流选项
+ * 校验点：
+ *    （1）编译接口失败
+ *     (2) 打屏错误码提示两个配置冲突
  */
 TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_failed) {
   auto graph = MultiStreamShareGraph::TwoNodeGraphWithUserStreamLabel();
@@ -2552,7 +2555,7 @@ TEST_F(STEST_stream_allocator, UserDefinedStreamLabel_with_SingleStreamOption_fa
   std::vector<InputTensorInfo> inputs;
   // build_graph through session
   ret = session.BuildGraph(0, inputs);
-  EXPECT_EQ(ret, FAILED); // stream label conflicts with single stream option
+  EXPECT_EQ(ret, FAILED);  // stream label conflicts with single stream option
   // Check ErrorMsg Print in Screen
   auto error_msg = std::string(error_message::GetErrMgrErrorMessage().get());
   EXPECT_TRUE(error_msg.find("conflicts with stream label") != std::string::npos);

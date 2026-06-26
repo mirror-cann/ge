@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,13 +51,19 @@ using OpImplTypeJudgePtr = std::shared_ptr<OpImplTypeJudge>;
 
 class FormatSelectorReduceNzUTest : public testing::Test {
  protected:
-  static void SetUpTestCase() { cout << "FEOpsKernelInfoStoreTest SetUP" << endl; }
-  static void TearDownTestCase() { cout << "FEOpsKernelInfoStoreTest SetUP" << endl; }
+  static void SetUpTestCase() {
+    cout << "FEOpsKernelInfoStoreTest SetUP" << endl;
+  }
+  static void TearDownTestCase() {
+    cout << "FEOpsKernelInfoStoreTest SetUP" << endl;
+  }
   // Some expensive resource shared by all tests.
   virtual void SetUp() {
     FEOpsStoreInfo tbe_builtin{
         6, "tbe-builtin", EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo", ""};
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_builtin);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -71,7 +77,9 @@ class FormatSelectorReduceNzUTest : public testing::Test {
   }
 
  protected:
-  static void CreateOneOpGraph(ComputeGraphPtr graph, OpDescPtr op_desc_ptr) { graph->AddNode(op_desc_ptr); }
+  static void CreateOneOpGraph(ComputeGraphPtr graph, OpDescPtr op_desc_ptr) {
+    graph->AddNode(op_desc_ptr);
+  }
   static GeTensorDesc CreateTensorDesc(vector<int64_t> dim_data, ge::Format format, ge::DataType data_type) {
     GeShape shape_data(dim_data);
     GeTensorDesc data_desc(shape_data, format, data_type);
@@ -106,8 +114,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nz_success) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
 
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
   EXPECT_EQ(fe::SUCCESS, result);
 
   // 3. check result
@@ -141,8 +148,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_success_1) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);
@@ -175,8 +181,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_success_2) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);
@@ -208,8 +213,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_last_checkfailed_1) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);
@@ -241,8 +245,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_last_checkfailed_2) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);
@@ -274,8 +277,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_lastbutone_checkfailed_1) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);
@@ -308,8 +310,7 @@ TEST_F(FormatSelectorReduceNzUTest, nz2nd_lastbutone_checkfailed_2) {
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
   FormatDtypeInfo format_dtype_info;
-  Status result =
-      format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
 
   // 3. check result
   EXPECT_EQ(fe::SUCCESS, result);

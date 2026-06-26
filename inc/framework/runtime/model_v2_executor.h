@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,7 +69,8 @@ struct ModelExecuteArg {
 
   /**
    * 是否使用外部的stream allocator来申请辅流。如果本成员指针为空，那么执行器会自行创建一个默认的stream allocator使用。
-   * 该stream allocator与ModelExecuteArg的第一个参数stream（外部主流）生命周期一致。若切换主流，也需要对应切换该allocator
+   * 该stream
+   * allocator与ModelExecuteArg的第一个参数stream（外部主流）生命周期一致。若切换主流，也需要对应切换该allocator
    */
   StreamAllocator *external_stream_allocator;
   /**
@@ -104,8 +105,7 @@ struct ModelLoadArg {
   OuterWeightMem outer_weight_mem;
   ModelLoadArg() : rt_session(nullptr), outer_weight_mem({nullptr, 0U}) {}
   ModelLoadArg(RtSession *rt_session_tmp = nullptr, OuterWeightMem outer_weight_mem_tmp = {nullptr, 0U})
-      : rt_session(rt_session_tmp),
-        outer_weight_mem(outer_weight_mem_tmp) {}
+      : rt_session(rt_session_tmp), outer_weight_mem(outer_weight_mem_tmp) {}
 };
 
 static_assert(std::is_standard_layout<ModelLoadArg>::value, "The class ModelLoadArg must be a POD");
@@ -217,7 +217,7 @@ class VISIBILITY_EXPORT ModelV2Executor {
   ge::Status GetOriginAippInputInfo(const uint32_t index, ge::OriginInputInfo &orig_aipp_input_info) const;
 
   ge::Status GetAllAippInputOutputDims(const uint32_t index, std::vector<ge::InputOutputDims> &input_dims,
-      std::vector<ge::InputOutputDims> &output_dims) const;
+                                       std::vector<ge::InputOutputDims> &output_dims) const;
 
   ge::Status InitAipp(const ge::ComputeGraphPtr &root_graph);
 
@@ -259,7 +259,7 @@ class VISIBILITY_EXPORT ModelV2Executor {
   std::map<uint32_t, std::pair<std::vector<ge::InputOutputDims>, std::vector<ge::InputOutputDims>>> aipp_dims_info_;
 
   EventAllocator builtin_event_allocator_;
-  StreamAllocator builtin_stream_allocator_; // insure stream destroy before event
+  StreamAllocator builtin_stream_allocator_;  // insure stream destroy before event
   NotifyAllocator builtin_notify_allocator_;
   uint64_t load_session_id_{std::numeric_limits<uint64_t>::max()};
   RtSession default_rt_session_{load_session_id_};

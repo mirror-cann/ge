@@ -1,16 +1,15 @@
 # aclmdlDataset<a name="ZH-CN_TOPIC_0000001312641341"></a>
 
--   **[aclmdlCreateDataset](aclmdlCreateDataset.md)**  
+-   **[aclmdlCreateDataset](aclmdlCreateDataset.md)**
 
--   **[aclmdlDestroyDataset](aclmdlDestroyDataset.md)**  
+-   **[aclmdlDestroyDataset](aclmdlDestroyDataset.md)**
 
--   **[aclmdlAddDatasetBuffer](aclmdlAddDatasetBuffer.md)**  
+-   **[aclmdlAddDatasetBuffer](aclmdlAddDatasetBuffer.md)**
 
--   **[aclmdlGetDatasetNumBuffers](aclmdlGetDatasetNumBuffers.md)**  
+-   **[aclmdlGetDatasetNumBuffers](aclmdlGetDatasetNumBuffers.md)**
 
--   **[aclmdlGetDatasetBuffer](aclmdlGetDatasetBuffer.md)**  
+-   **[aclmdlGetDatasetBuffer](aclmdlGetDatasetBuffer.md)**
 
--   **[aclmdlSetDatasetTensorDesc](aclmdlSetDatasetTensorDesc.md)**  
+-   **[aclmdlSetDatasetTensorDesc](aclmdlSetDatasetTensorDesc.md)**
 
--   **[aclmdlGetDatasetTensorDesc](aclmdlGetDatasetTensorDesc.md)**  
-
+-   **[aclmdlGetDatasetTensorDesc](aclmdlGetDatasetTensorDesc.md)**

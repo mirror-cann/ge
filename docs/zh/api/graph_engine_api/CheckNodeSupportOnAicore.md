@@ -98,4 +98,3 @@ static Status CheckNodeSupportOnAicore(const GNode &node, bool &is_supported, As
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 在调用此接口之前，请确保节点的shape已被推导过。因为校验过程需要结合shape信息进行判断。
-

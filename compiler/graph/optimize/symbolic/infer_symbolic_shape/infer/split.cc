@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ namespace {
  */
 template <typename T>
 graphStatus GetInputSymbolTensorValue(gert::InferSymbolShapeContext *context, const size_t tensor_index,
-                               const size_t expr_index, T &value) {
+                                      const size_t expr_index, T &value) {
   auto tensor = context->GetInputSymbolTensor(tensor_index);
   if (tensor == nullptr) {
     GELOGW("Symbol Infer unsupported, get tensor index[%zu] is nullptr, node %s[%s]", tensor_index,
@@ -48,13 +48,17 @@ graphStatus GetInputSymbolTensorValue(gert::InferSymbolShapeContext *context, co
   }
   auto exprs = *tensor->GetSymbolicValue();
   if (exprs.size() <= expr_index) {
-    GELOGW("Symbol Infer unsupported, get symbolic value failed at expression index %zu, the vector expression size is %zu, node %s[%s]", expr_index, exprs.size(),
-       context->GetNodeName(), context->GetNodeType());
+    GELOGW(
+        "Symbol Infer unsupported, get symbolic value failed at expression index %zu, the vector expression size is "
+        "%zu, node %s[%s]",
+        expr_index, exprs.size(), context->GetNodeName(), context->GetNodeType());
     return UNSUPPORTED;
   }
   if (exprs[expr_index].GetConstValue<T>(value) == false) {
-    GELOGW("Symbol Infer unsupported, get symbolic value failed at expr_index %zu, the value is not const value, node %s[%s]", expr_index, context->GetNodeName(),
-       context->GetNodeType());
+    GELOGW(
+        "Symbol Infer unsupported, get symbolic value failed at expr_index %zu, the value is not const value, node "
+        "%s[%s]",
+        expr_index, context->GetNodeName(), context->GetNodeType());
     return UNSUPPORTED;
   }
   return SUCCESS;

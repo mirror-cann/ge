@@ -12,15 +12,15 @@
 ```
 ├── README.md                     // C++ 样例说明
 ├── src
-│   ├──addcustom_zero_pass.cpp   // pass实现文件 
+│   ├──addcustom_zero_pass.cpp   // pass实现文件
 ├── CMakeLists.txt               // 编译脚本
-├── data         
+├── data
 |   ├──torch_forward.py          // torch脚本用于在线推理
 |—— gen_es_api
 |   |——CMakeLists.txt            // 生成eager style api的编译脚本
 |—— proto                        // 存放自定义算子的算子原型
-|   |——add_custom_proto.cc            
-|   |——add_custom_proto.h            
+|   |——add_custom_proto.cc
+|   |——add_custom_proto.h
 ```
 
 ## 环境要求
@@ -67,7 +67,7 @@
    mkdir build && cd build
    cmake ..
    ```
-   
+
 5. 完成pass的编写后，执行如下命令编译自定义pass so，并将编译后的动态库文件libadd_zero_pass.so拷贝到自定义融合pass目录下，其中“xxx”为用户自定义目录。
    可以在make后增加可选参数`-j$(nproc)`用于并行执行构建任务，`$(nproc)`动态获取CPU核心数。
    ```
@@ -109,7 +109,7 @@
    - 进入data目录执行.py文件进行在线推理：
       ```
       python torch_forward.py
-      ```  
+      ```
    - 日志中出现如下打印：
      ```
      Define pattern for AddCustomZeroPass
@@ -123,7 +123,7 @@
       对比以下dump图：
      - `ge_onnx_xxxxx_PreRunBegin.pdtxt`执行前dump图
      - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pdtxt`执行InferShape前的自定义pass dump图
-     
+
       可以发现模型已按预期优化，即加零节点被删除。
 
    - 若未获得预期结果，可设置如下环境变量（如使用atc命令，还需添加参数`--log=debug`）让日志打印到屏幕，来定位原因。

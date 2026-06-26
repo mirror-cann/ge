@@ -14,10 +14,10 @@
 #include "ge_common/ge_common_api_types.h"
 #include "graph/any_value.h"
 
-namespace ge{
+namespace ge {
 class SymbolicInfoPreProcessor {
  public:
   static Status Run(const ComputeGraphPtr &graph, const std::vector<GeTensor> &graph_inputs);
 };
-} // namespace ge
-#endif // AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_SYMBOLIC_INFER_SYMBOLIC_SHAPE_SYMBOLIC_INFO_PRE_PROCESSOR_H_
+}  // namespace ge
+#endif  // AIR_CXX_COMPILER_GRAPH_OPTIMIZE_AUTOFUSE_SYMBOLIC_INFER_SYMBOLIC_SHAPE_SYMBOLIC_INFO_PRE_PROCESSOR_H_

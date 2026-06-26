@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,8 @@ namespace ge {
 namespace asc_adapt {
 // 根据axis在找到做过broadcast后的repeat作为当前broadcast节点的repeat，适配transpose并存场景
 inline Status UpdateToAfterBroadcastRepeats(const std::vector<int64_t> &axis1, std::vector<ge::Expression> &repeats1,
-                                     const std::vector<int64_t> &axis2, const std::vector<ge::Expression> &repeats2) {
+                                            const std::vector<int64_t> &axis2,
+                                            const std::vector<ge::Expression> &repeats2) {
   std::unordered_map<int64_t, ge::Expression> axis2_to_repeats2;
   for (size_t i = 0; i < axis2.size(); ++i) {
     axis2_to_repeats2[axis2[i]] = repeats2[i];
@@ -80,7 +81,8 @@ inline Status UpdateReduceNodeRepeats(const NodePtr &asc_node, TensorAttrInfo &t
   const auto &original_axis = reduce_attrs->GetReduceOriginalAxis();
   const auto &original_repeats = reduce_attrs->GetReduceOriginalRepeats();
 
-  if (original_axis.empty() || original_repeats.empty()) { // 如果为空，说明前面是lowering出来不需要反推broadcast（load后或者融合点）的计算节点
+  if (original_axis.empty() ||
+      original_repeats.empty()) {  // 如果为空，说明前面是lowering出来不需要反推broadcast（load后或者融合点）的计算节点
     return SUCCESS;
   }
 

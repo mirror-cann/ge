@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,8 +21,8 @@
 namespace ge {
 namespace {
 bool IsCalcType(const std::string &node_type) {
-  return !OpTypeUtils::IsVarLikeNode(node_type) && !OpTypeUtils::IsDataNode(node_type) &&
-         (node_type != CONSTANTOP) && (node_type != CONSTANT);
+  return !OpTypeUtils::IsVarLikeNode(node_type) && !OpTypeUtils::IsDataNode(node_type) && (node_type != CONSTANTOP) &&
+         (node_type != CONSTANT);
 }
 }  // namespace
 /**
@@ -57,7 +57,7 @@ void LabelMaker::LinkToGraphHead(const ComputeGraphPtr &graph, const NodePtr &no
 
     if (GraphUtils::AddEdge(node->GetOutControlAnchor(), n->GetInControlAnchor()) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add ctrl edge from %s to %s in graph:%s fail", node->GetName().c_str(),
-                        n->GetName().c_str(), graph->GetName().c_str());
+                           n->GetName().c_str(), graph->GetName().c_str());
       GELOGE(INTERNAL_ERROR, "[Add][CtrlEdge] from %s to %s failed.", node->GetName().c_str(), n->GetName().c_str());
     }
   }
@@ -81,7 +81,7 @@ void LabelMaker::LinkToGraphTail(const ComputeGraphPtr &graph, const NodePtr &no
 
     if (GraphUtils::AddEdge(tail->GetOutControlAnchor(), node->GetInControlAnchor()) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add ctrl edge from %s to %s in graph:%s fail", tail->GetName().c_str(),
-                        node->GetName().c_str(), graph->GetName().c_str());
+                           node->GetName().c_str(), graph->GetName().c_str());
       GELOGE(INTERNAL_ERROR, "[Add][CtrlEdge] from %s to %s failed.", tail->GetName().c_str(), node->GetName().c_str());
     }
     return;
@@ -191,7 +191,7 @@ NodePtr LabelMaker::AddLabelSetEnter(const ComputeGraphPtr &graph, const std::st
 
   if (GraphUtils::AddEdge(label_set->GetOutControlAnchor(), stream_active->GetInControlAnchor()) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add ctrl edge from %s to %s in graph:%s fail", label_set->GetName().c_str(),
-                      stream_active->GetName().c_str(), graph->GetName().c_str());
+                         stream_active->GetName().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][CtrlEdge] from %s to %s failed.", label_set->GetName().c_str(),
            stream_active->GetName().c_str());
     return nullptr;
@@ -253,8 +253,8 @@ NodePtr LabelMaker::AddLabelGotoEnter(const ComputeGraphPtr &graph, const std::s
   (void)AttrUtils::SetInt(op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, index);
   NodePtr label_goto = graph->AddNodeFront(op_desc);
   if (label_goto == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][Node] to graph %s failed.", graph->GetName().c_str());
     return nullptr;
   }
@@ -314,23 +314,23 @@ NodePtr LabelMaker::AddLabelSwitchEnter(const ComputeGraphPtr &graph, const std:
 
   GELOGI("LabelSwitchByIndex: Create node %s.", op_desc->GetName().c_str());
   if (op_desc->AddInputDesc(desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][InputDesc] failed.");
     return nullptr;
   }
 
   if (!AttrUtils::SetListInt(op_desc, ATTR_NAME_LABEL_SWITCH_LIST, labels)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for op:%s(%s)", ATTR_NAME_LABEL_SWITCH_LIST.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Set][Attr] %s failed.", ATTR_NAME_LABEL_SWITCH_INDEX.c_str());
     return nullptr;
   }
 
   NodePtr label_switch = graph->AddNodeFront(op_desc);
   if (label_switch == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s ahead fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s ahead fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][Node] to graph %s failed.", graph->GetName().c_str());
     return nullptr;
   }
@@ -357,16 +357,16 @@ NodePtr LabelMaker::AddLabelSwitchLeave(const ComputeGraphPtr &graph, const std:
 
   GELOGI("LabelSwitchByIndex: Create node %s.", op_desc->GetName().c_str());
   if (op_desc->AddInputDesc(desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][InputDesc] into node:%s(%s) in graph:%s fail",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][InputDesc] into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
 
   if (!AttrUtils::SetListInt(op_desc, ATTR_NAME_LABEL_SWITCH_LIST, labels)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for op:%s(%s)", ATTR_NAME_LABEL_SWITCH_LIST.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Set][Attr] %s failed.", ATTR_NAME_LABEL_SWITCH_INDEX.c_str());
     return nullptr;
   }
@@ -398,23 +398,23 @@ NodePtr LabelMaker::AddLabelSwitchIndex(const ComputeGraphPtr &graph, const std:
 
   GELOGI("Data: Create node %s.", op_desc->GetName().c_str());
   if (op_desc->AddInputDesc(desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][InputDesc] into node:%s(%s) in graph:%s fail",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input desc into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][InputDesc] into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
   if (op_desc->AddOutputDesc(desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add output desc into node:%s(%s) in graph:%s fail",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][OutputDesc] into node:%s(%s) in graph:%s fail",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][OutputDesc] into node:%s(%s) in graph:%s fail", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
 
   if (!AttrUtils::SetInt(op_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for op:%s(%s)", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Set][Attr] %s fail for op:%s(%s)", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return nullptr;
@@ -426,7 +426,7 @@ NodePtr LabelMaker::AddLabelSwitchIndex(const ComputeGraphPtr &graph, const std:
   // Link control edge to graph head.
   if (GraphUtils::AddEdge(op_data->GetOutDataAnchor(0), sw_node->GetInDataAnchor(0)) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add ctrl edge from %s to %s in graph:%s fail", op_data->GetName().c_str(),
-                      sw_node->GetName().c_str(), graph->GetName().c_str());
+                         sw_node->GetName().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][CtrlEdge] to %s failed.", op_data->GetName().c_str());
     return nullptr;
   }

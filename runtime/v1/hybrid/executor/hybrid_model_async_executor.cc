@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,9 +60,7 @@ ge::graphStatus GetGraphMaxParallelModeNum(int32_t &max_parallel_num) {
 std::map<std::pair<uint32_t, uint32_t>, HybridModelAsyncExecutor::DefaultStreamGuarder>
     HybridModelAsyncExecutor::default_stream_by_dev_;
 std::mutex HybridModelAsyncExecutor::mu_for_guarder_;
-HybridModelAsyncExecutor::HybridModelAsyncExecutor(HybridModel *const model)
-    : model_(model), run_flag_(false) {
-}
+HybridModelAsyncExecutor::HybridModelAsyncExecutor(HybridModel *const model) : model_(model), run_flag_(false) {}
 
 HybridModelAsyncExecutor::~HybridModelAsyncExecutor() {
   auto &default_stream_guarder = GetDefaultStreamGuarder();
@@ -98,8 +96,8 @@ void HybridModelAsyncExecutor::SetModelId(const uint32_t model_id) {
 Status HybridModelAsyncExecutor::EnqueueData(const shared_ptr<RunArgs> &args) {
   if (data_inputer_->Push(args) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Data queue is full, please call again later, model_id %u.", model_id_);
-    GELOGE(domi::DATA_QUEUE_ISFULL,
-        "[Push][Data] Data queue is full, please call again later, model_id %u ", model_id_);
+    GELOGE(domi::DATA_QUEUE_ISFULL, "[Push][Data] Data queue is full, please call again later, model_id %u ",
+           model_id_);
     return domi::DATA_QUEUE_ISFULL;
   }
   return SUCCESS;
@@ -116,21 +114,23 @@ Status HybridModelAsyncExecutor::Start(const std::shared_ptr<ModelListener> &lis
   run_flag_ = true;
   listener_ = listener;
 
-  future_ = std::async(std::launch::async, [this, context_copy = *executor_->GetContext()->ge_context]
-    (const struct error_message::ErrorManagerContext &error_context) -> Status {
-    error_message::SetErrMgrContext(error_context);
-    // rt1 return non-nullptr, rt2 and pipeline will return nullptr
-    if (executor_->GetContext() != nullptr) {
-      // context_copy使用值捕获，为了避免主线程中销毁executor_->GetContext()->ge_context后导致访问野指针
-      GetThreadLocalContext() = context_copy;
-      GetContext().SetSessionId(executor_->GetContext()->session_id);
-      GetContext().SetContextId(executor_->GetContext()->context_id);
-    }
-    return RunInternal();
-  }, error_message::GetErrMgrContext());
+  future_ = std::async(
+      std::launch::async,
+      [this, context_copy = *executor_->GetContext()->ge_context](
+          const struct error_message::ErrorManagerContext &error_context) -> Status {
+        error_message::SetErrMgrContext(error_context);
+        // rt1 return non-nullptr, rt2 and pipeline will return nullptr
+        if (executor_->GetContext() != nullptr) {
+          // context_copy使用值捕获，为了避免主线程中销毁executor_->GetContext()->ge_context后导致访问野指针
+          GetThreadLocalContext() = context_copy;
+          GetContext().SetSessionId(executor_->GetContext()->session_id);
+          GetContext().SetContextId(executor_->GetContext()->context_id);
+        }
+        return RunInternal();
+      },
+      error_message::GetErrMgrContext());
 
-  GE_CHK_BOOL_RET_STATUS(future_.valid(), INTERNAL_ERROR,
-                         "[Check][RunState] Failed to start, model_id:%u.", model_id_);
+  GE_CHK_BOOL_RET_STATUS(future_.valid(), INTERNAL_ERROR, "[Check][RunState] Failed to start, model_id:%u.", model_id_);
   GELOGD("HybridModelExecutor::Start successfully.");
   return SUCCESS;
 }
@@ -204,9 +204,8 @@ Status HybridModelAsyncExecutor::Init(const aclrtStream stream) {
     const bool use_new_stream_for_parallel = (max_parallel_num > 1);
     const bool use_second_stream =
         ((!domi::GetContext().is_online_model) || has_blocking_op || use_new_stream_for_parallel);
-    const uint32_t stream_flags =
-        (GetContext().IsOverflowDetectionOpen() ? RT_STREAM_OVERFLOW : RT_STREAM_DEFAULT) | RT_STREAM_FAST_LAUNCH |
-        RT_STREAM_FAST_SYNC;
+    const uint32_t stream_flags = (GetContext().IsOverflowDetectionOpen() ? RT_STREAM_OVERFLOW : RT_STREAM_DEFAULT) |
+                                  RT_STREAM_FAST_LAUNCH | RT_STREAM_FAST_SYNC;
     if (!use_second_stream) {
       auto &default_stream_guarder = GetDefaultStreamGuarder();
       const std::lock_guard<std::mutex> lk(default_stream_guarder.mu);
@@ -243,8 +242,7 @@ Status HybridModelAsyncExecutor::RunInternal() {
     std::shared_ptr<RunArgs> args = nullptr;
     Status ret = data_inputer_->Pop(args);
     // Model indeedly start running
-    GE_IF_BOOL_EXEC((args == nullptr) || (ret != SUCCESS),
-      GELOGI("data_wrapper is null!, ret = %u", ret); continue);
+    GE_IF_BOOL_EXEC((args == nullptr) || (ret != SUCCESS), GELOGI("data_wrapper is null!, ret = %u", ret); continue);
 
     GELOGI("Getting the input data, model_id:[%u]", model_id_);
     GE_IF_BOOL_EXEC(!run_flag_, break);
@@ -263,10 +261,8 @@ Status HybridModelAsyncExecutor::RunInternal() {
 }
 
 Status HybridModelAsyncExecutor::Execute(const std::vector<DataBuffer> &inputs,
-                                         const std::vector<GeTensorDesc> &input_desc,
-                                         std::vector<DataBuffer> &outputs,
-                                         std::vector<GeTensorDesc> &output_desc,
-                                         aclrtStream stream) {
+                                         const std::vector<GeTensorDesc> &input_desc, std::vector<DataBuffer> &outputs,
+                                         std::vector<GeTensorDesc> &output_desc, aclrtStream stream) {
   GELOGI("Start to execute model.");
   output_cache_.clear();
   HybridModelExecutor::ExecuteArgs args;
@@ -285,8 +281,7 @@ Status HybridModelAsyncExecutor::Execute(const std::vector<DataBuffer> &inputs,
     if (outputs[i].data == nullptr) {
       allocate_by_executor.emplace_back(i);
     } else {
-      const auto mem_type = (outputs[i].placement == kPlacementDevice) ?
-                            MemStorageType::HBM : MemStorageType::HOST_DDR;
+      const auto mem_type = (outputs[i].placement == kPlacementDevice) ? MemStorageType::HBM : MemStorageType::HOST_DDR;
       args.outputs[i] = TensorValue(outputs[i].data, outputs[i].length, mem_type);
     }
   }
@@ -299,7 +294,7 @@ Status HybridModelAsyncExecutor::Execute(const std::vector<DataBuffer> &inputs,
 
   GE_CHK_STATUS_RET(executor_->Execute(args), "[Invoke][Execute] Failed, model_id = %u.", model_id_);
   for (const size_t output_index : allocate_by_executor) {
-    output_cache_.emplace_back(args.outputs[output_index]); // hold till next iteration
+    output_cache_.emplace_back(args.outputs[output_index]);  // hold till next iteration
     outputs[output_index].length = args.outputs[output_index].GetSize();
     outputs[output_index].data = args.outputs[output_index].MutableData();
     outputs[output_index].placement = kPlacementDevice;
@@ -312,15 +307,13 @@ Status HybridModelAsyncExecutor::Execute(const std::vector<DataBuffer> &inputs,
 }
 
 Status HybridModelAsyncExecutor::ExecuteWithStreamAsync(const std::vector<GeTensor> &inputs,
-                                                        std::vector<GeTensor> &outputs,
-                                                        aclrtStream stream) {
-    return executor_->ExecuteWithStreamAsync(inputs, outputs, stream);
+                                                        std::vector<GeTensor> &outputs, aclrtStream stream) {
+  return executor_->ExecuteWithStreamAsync(inputs, outputs, stream);
 }
 
 Status HybridModelAsyncExecutor::ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                                        std::vector<gert::Tensor> &outputs,
-                                                        aclrtStream stream) {
-    return executor_->ExecuteWithStreamAsync(inputs, outputs, stream);
+                                                        std::vector<gert::Tensor> &outputs, aclrtStream stream) {
+  return executor_->ExecuteWithStreamAsync(inputs, outputs, stream);
 }
 
 /*
@@ -333,11 +326,11 @@ Status HybridModelAsyncExecutor::Execute(const std::vector<gert::Tensor> &inputs
   GE_CHECK_NOTNULL(executor_);
   std::vector<gert::Tensor> executor_outputs;
   HybridModelExecutor::CtrlArgs ctrl_args;
-  GE_CHK_STATUS_RET(executor_->Execute(inputs, executor_outputs, ctrl_args),
-    "[Invoke][Execute] Failed, model_id = %u.", model_id_);
+  GE_CHK_STATUS_RET(executor_->Execute(inputs, executor_outputs, ctrl_args), "[Invoke][Execute] Failed, model_id = %u.",
+                    model_id_);
 
   GE_CHK_STATUS_RET(executor_->CopyOutputs(executor_outputs, outputs),
-      "[Invoke][CopyOutputs]Failed to copy outputs, model_id = %u.", model_id_);
+                    "[Invoke][CopyOutputs]Failed to copy outputs, model_id = %u.", model_id_);
   GELOGD("Done copying output data successfully. output count = %zu", outputs.size());
   return SUCCESS;
 }

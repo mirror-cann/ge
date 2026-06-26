@@ -31,26 +31,25 @@ constexpr size_t kShapeMaxDims = 8U;
 
 // OpArgType 枚举 - 与 generated code 中的 OpArgType 保持一致
 enum OpArgType : int32_t {
-    OP_ARG_INPUT = 0,
-    OP_ARG_OUTPUT = 1,
-    OP_ARG_WORKSPACE = 2,
-    OP_ARG_CONST_TENSOR = 3,
-    OP_ARG_LEVEL1_DESC = 4,
-    OP_ARG_SHAPE_INFO = 5,
-    OP_ARG_CUSTOM_VALUE = 6,
-    OP_ARG_PLACEHOLDER = 7,
-    OP_ARG_OPTIONAL_EMPTY = 8,
-    OP_ARG_FFTS_ADDR = 9,
-    OP_ARG_EVENT_ADDR = 10,
-    OP_ARG_OVERFLOW_ADDR = 11,
-    OP_ARG_TILING = 12,
-    OP_ARG_RAW_ADDR = 13,
+  OP_ARG_INPUT = 0,
+  OP_ARG_OUTPUT = 1,
+  OP_ARG_WORKSPACE = 2,
+  OP_ARG_CONST_TENSOR = 3,
+  OP_ARG_LEVEL1_DESC = 4,
+  OP_ARG_SHAPE_INFO = 5,
+  OP_ARG_CUSTOM_VALUE = 6,
+  OP_ARG_PLACEHOLDER = 7,
+  OP_ARG_OPTIONAL_EMPTY = 8,
+  OP_ARG_FFTS_ADDR = 9,
+  OP_ARG_EVENT_ADDR = 10,
+  OP_ARG_OVERFLOW_ADDR = 11,
+  OP_ARG_TILING = 12,
+  OP_ARG_RAW_ADDR = 13,
 };
-
 
 struct OpArgBuildData {
   int32_t type{0};
-  uint32_t mem_src{0U};              // 内存来源（0=设备内存，0xFFFFFFFF=session，≥1=常量数组索引）
+  uint32_t mem_src{0U};  // 内存来源（0=设备内存，0xFFFFFFFF=session，≥1=常量数组索引）
   uint64_t offset{0U};
   uint64_t size{0U};
   int32_t data_type{0};
@@ -77,16 +76,16 @@ struct AicoreTaskData {
   uint32_t task_type{0U};
   uint32_t need_assert_or_printf{0U};
   std::vector<AddrSemantic> ordered_arg_values;  // 供 BuildL0ArgSlotEntries 使用
-  uint32_t num_io_addrs{0U};  // ordered_args 中地址条目数（blob 条目紧随其后）
+  uint32_t num_io_addrs{0U};                     // ordered_args 中地址条目数（blob 条目紧随其后）
 };
 
 // OpDefBuildData 只持有一个 variant，零公共字段
 struct OpDefBuildData {
   std::vector<OpArgBuildData> ordered_args;  // 参数列表（多个 task 类型需要地址解析）
-  std::variant<
-    std::monostate,
-    AicoreTaskData            // KERNEL (AICORE)
-  > task_specific;
+  std::variant<std::monostate,
+               AicoreTaskData  // KERNEL (AICORE)
+               >
+      task_specific;
 };
 
 struct IoAddrRefreshRecord {
@@ -153,8 +152,7 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
 
   // 生成完整的 OpDef 表项（公共顶层字段 + task_data union）
   // 默认实现生成公共顶层字段（NOP 类型用此即可），各 builder 重写后调用基类再加 task_data
-  virtual Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields,
-                                        uint32_t dispatch_type) {
+  virtual Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields, uint32_t dispatch_type) {
     const auto &header = GetHeader();
     const auto &opdef_data = GetOpDefBuildData();
     fields.push_back({"dispatch_type", ast_.StaticCast("OpDispatchType", static_cast<int64_t>(dispatch_type))});
@@ -211,15 +209,15 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
 
     using DataBuilder = Arg (TaskCodeBuilder::*)(const OpArgBuildData &) const;
     static const std::unordered_map<int32_t, DataBuilder> kDataBuilders = {
-      {OP_ARG_INPUT,        &TaskCodeBuilder::BuildTensorDataField},
-      {OP_ARG_OUTPUT,       &TaskCodeBuilder::BuildTensorDataField},
-      {OP_ARG_WORKSPACE,    &TaskCodeBuilder::BuildWorkspaceDataField},
-      {OP_ARG_CONST_TENSOR, &TaskCodeBuilder::BuildTensorDataField},
-      {OP_ARG_LEVEL1_DESC,  &TaskCodeBuilder::BuildCustomValueDataField},
-      {OP_ARG_SHAPE_INFO,   &TaskCodeBuilder::BuildCustomValueDataField},
-      {OP_ARG_CUSTOM_VALUE, &TaskCodeBuilder::BuildCustomValueDataField},
-      {OP_ARG_EVENT_ADDR,   &TaskCodeBuilder::BuildCustomValueDataField},
-      {OP_ARG_TILING,       &TaskCodeBuilder::BuildTilingDataField},
+        {OP_ARG_INPUT, &TaskCodeBuilder::BuildTensorDataField},
+        {OP_ARG_OUTPUT, &TaskCodeBuilder::BuildTensorDataField},
+        {OP_ARG_WORKSPACE, &TaskCodeBuilder::BuildWorkspaceDataField},
+        {OP_ARG_CONST_TENSOR, &TaskCodeBuilder::BuildTensorDataField},
+        {OP_ARG_LEVEL1_DESC, &TaskCodeBuilder::BuildCustomValueDataField},
+        {OP_ARG_SHAPE_INFO, &TaskCodeBuilder::BuildCustomValueDataField},
+        {OP_ARG_CUSTOM_VALUE, &TaskCodeBuilder::BuildCustomValueDataField},
+        {OP_ARG_EVENT_ADDR, &TaskCodeBuilder::BuildCustomValueDataField},
+        {OP_ARG_TILING, &TaskCodeBuilder::BuildTilingDataField},
     };
 
     std::vector<Arg> arg_entries;
@@ -228,8 +226,8 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
       std::vector<std::pair<std::string, Arg>> fields;
       fields.push_back({"type", a.type});
 
-      const bool needs_addr = (a.type == OP_ARG_INPUT || a.type == OP_ARG_OUTPUT ||
-                               a.type == OP_ARG_WORKSPACE || a.type == OP_ARG_CONST_TENSOR);
+      const bool needs_addr = (a.type == OP_ARG_INPUT || a.type == OP_ARG_OUTPUT || a.type == OP_ARG_WORKSPACE ||
+                               a.type == OP_ARG_CONST_TENSOR);
       if (needs_addr) {
         fields.push_back({"addr", BuildAddrField(a)});
       }
@@ -247,10 +245,12 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
  private:
   // addr 子结构：{mem_src, offset}
   Arg BuildAddrField(const OpArgBuildData &a) const {
-    return ast_.InitListWithDesignators(std::vector<std::pair<std::string, Arg>>{
-        {"mem_src", a.mem_src},
-        {"offset", static_cast<int64_t>(a.offset)},
-    }, true);
+    return ast_.InitListWithDesignators(
+        std::vector<std::pair<std::string, Arg>>{
+            {"mem_src", a.mem_src},
+            {"offset", static_cast<int64_t>(a.offset)},
+        },
+        true);
   }
 
   // data.tensor（INPUT/OUTPUT/CONST_TENSOR）：{size, data_type, format, shape, num_shape_dims, args_offset}
@@ -262,15 +262,17 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     return ast_.InitListWithDesignators(
         std::vector<std::pair<std::string, Arg>>{
             {"tensor", ast_.InitListWithDesignators(
-                std::vector<std::pair<std::string, Arg>>{
-                    {"size", static_cast<int64_t>(a.size)},
-                    {"data_type", a.data_type},
-                    {"format", a.format},
-                    {"shape", ast_.InitList(std::vector<Arg>(padded_shape.begin(), padded_shape.end()))},
-                    {"num_shape_dims", static_cast<int64_t>(a.shape_dims.size())},
-                    {"args_offset", static_cast<int64_t>(a.args_offset)},
-                }, true)},
-        }, true);
+                           std::vector<std::pair<std::string, Arg>>{
+                               {"size", static_cast<int64_t>(a.size)},
+                               {"data_type", a.data_type},
+                               {"format", a.format},
+                               {"shape", ast_.InitList(std::vector<Arg>(padded_shape.begin(), padded_shape.end()))},
+                               {"num_shape_dims", static_cast<int64_t>(a.shape_dims.size())},
+                               {"args_offset", static_cast<int64_t>(a.args_offset)},
+                           },
+                           true)},
+        },
+        true);
   }
 
   // data.tensor（WORKSPACE）：{size}
@@ -278,10 +280,12 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     return ast_.InitListWithDesignators(
         std::vector<std::pair<std::string, Arg>>{
             {"tensor", ast_.InitListWithDesignators(
-                std::vector<std::pair<std::string, Arg>>{
-                    {"size", static_cast<int64_t>(a.size)},
-                }, true)},
-        }, true);
+                           std::vector<std::pair<std::string, Arg>>{
+                               {"size", static_cast<int64_t>(a.size)},
+                           },
+                           true)},
+        },
+        true);
   }
 
   // data.custom_value（LEVEL1_DESC / SHAPE_INFO / CUSTOM_VALUE / EVENT_ADDR）：{custom_value}
@@ -289,7 +293,8 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     return ast_.InitListWithDesignators(
         std::vector<std::pair<std::string, Arg>>{
             {"custom_value", static_cast<int64_t>(a.custom_value)},
-        }, true);
+        },
+        true);
   }
 
   // data.tiling（TILING）：{raw_data, raw_data_len}
@@ -307,11 +312,13 @@ class TaskCodeBuilder : public Om2ModelClassGeneratorBase {
     return ast_.InitListWithDesignators(
         std::vector<std::pair<std::string, Arg>>{
             {"tiling", ast_.InitListWithDesignators(
-                std::vector<std::pair<std::string, Arg>>{
-                    {"raw_data", raw_data_arg},
-                    {"raw_data_len", static_cast<int64_t>(raw_data_len)},
-                }, true)},
-        }, true);
+                           std::vector<std::pair<std::string, Arg>>{
+                               {"raw_data", raw_data_arg},
+                               {"raw_data_len", static_cast<int64_t>(raw_data_len)},
+                           },
+                           true)},
+        },
+        true);
   }
 
  protected:

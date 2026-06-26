@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -117,58 +117,57 @@ TEST_F(InferShapeContextUT, GetOptionalInputTensorFailed_NotSetOptionalInput) {
 }
 
 TEST_F(InferShapeContextUT, GetOptionalInputTensorOK_SetOptionalInput) {
-gert::StorageShape in_shape1 = {{8, 3, 224, 224}, {8, 1, 224, 224, 16}};
-gert::Tensor in_tensor_2 = {{{1, 16, 256}, {1, 16, 256}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            kOnDeviceHbm,                                // placement
-                            ge::DT_FLOAT16,                              // data type
-                            (void *) 0xabc};
-auto infer_shape_func_addr = reinterpret_cast<void *>(0x11);
+  gert::StorageShape in_shape1 = {{8, 3, 224, 224}, {8, 1, 224, 224, 16}};
+  gert::Tensor in_tensor_2 = {{{1, 16, 256}, {1, 16, 256}},                // shape
+                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                              kOnDeviceHbm,                                // placement
+                              ge::DT_FLOAT16,                              // data type
+                              (void *)0xabc};
+  auto infer_shape_func_addr = reinterpret_cast<void *>(0x11);
 
-auto context_holder = KernelRunContextFaker()
-    .IrInputNum(2)
-    .IrInstanceNum({1, 1})
-    .KernelIONum(3, 0)
-    .NodeIoNum(2, 0)
-    .Inputs({&in_shape1, &in_tensor_2, infer_shape_func_addr})
-    .Build();
-auto context = context_holder.GetContext<InferShapeContext>();
-ASSERT_NE(context, nullptr);
+  auto context_holder = KernelRunContextFaker()
+                            .IrInputNum(2)
+                            .IrInstanceNum({1, 1})
+                            .KernelIONum(3, 0)
+                            .NodeIoNum(2, 0)
+                            .Inputs({&in_shape1, &in_tensor_2, infer_shape_func_addr})
+                            .Build();
+  auto context = context_holder.GetContext<InferShapeContext>();
+  ASSERT_NE(context, nullptr);
 
-ASSERT_NE(context->GetInputShape(0), nullptr);
-EXPECT_EQ(*context->GetInputShape(0), in_shape1.GetOriginShape());
+  ASSERT_NE(context->GetInputShape(0), nullptr);
+  EXPECT_EQ(*context->GetInputShape(0), in_shape1.GetOriginShape());
 
-EXPECT_NE(context->GetOptionalInputTensor(1), nullptr);
-EXPECT_NE(context->GetInputTensor(2), nullptr);
+  EXPECT_NE(context->GetOptionalInputTensor(1), nullptr);
+  EXPECT_NE(context->GetInputTensor(2), nullptr);
 }
 
-
 TEST_F(InferShapeContextUT, GetRequiredInputTensorOk) {
-  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
+  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},   // shape
                               {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
-                              kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
+                              kOnDeviceHbm,                               // placement
+                              ge::DT_FLOAT16,                             // data type
                               (void *)0x0};
-  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x0};
-  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x0};
-  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x12345};
   gert::Tensor out_tensor = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *)0x0};
+                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                             kOnDeviceHbm,                                // placement
+                             ge::DT_FLOAT16,                              // data type
+                             (void *)0x0};
 
   auto context_holder = InferShapeContextFaker()
                             .IrInstanceNum({1, 2, 0, 1})

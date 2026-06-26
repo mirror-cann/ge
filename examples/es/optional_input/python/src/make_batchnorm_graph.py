@@ -2,54 +2,48 @@
 # -*- coding: UTF-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-import os
-import sys
 import numpy as np
-
-from ge.es.graph_builder import GraphBuilder, TensorHolder
-from ge.graph import Tensor
-from ge.graph.types import DataType, Format
-from ge.graph import Graph, DumpFormat
-from ge.ge_global import GeApi
-from ge.session import Session
 from ge.es.all import BatchNorm
+from ge.es.graph_builder import GraphBuilder
+from ge.ge_global import GeApi
+from ge.graph import DumpFormat, Tensor
+from ge.graph.types import DataType, Format
+from ge.session import Session
 
 
 def build_batch_norm_graph():
     # 1、创建图构建器
     builder = GraphBuilder("MakeBatchNormGraph")
-    # 2、创建图输入节点 
+    # 2、创建图输入节点
     input_tensor_holder = builder.create_input(
         index=0,
         name="input",
         data_type=DataType.DT_FLOAT,
         format=Format.FORMAT_NCHW,
-        shape=[1, 3, 1, 2]
+        shape=[1, 3, 1, 2],
     )
-    mean = builder.create_input(
-        index=1,
-        name="mean",
-        data_type=DataType.DT_FLOAT,
-        shape=[3]
-    )
-    variance = builder.create_input(
-        index=2,
-        name="variance",
-        data_type=DataType.DT_FLOAT,
-        shape=[3]
-    )
+    mean = builder.create_input(index=1, name="mean", data_type=DataType.DT_FLOAT, shape=[3])
+    variance = builder.create_input(index=2, name="variance", data_type=DataType.DT_FLOAT, shape=[3])
     scale = builder.create_const_float([1.0, 1.0, 1.0], shape=[3])
     offset = builder.create_const_float([0.0, 0.0, 0.0], shape=[3])
-    batchNorm_tensor_holder = BatchNorm(input_tensor_holder, scale, offset, mean, variance,
-                                        epsilon=1e-4, data_format="NCHW", is_training=False)
+    batchNorm_tensor_holder = BatchNorm(
+        input_tensor_holder,
+        scale,
+        offset,
+        mean,
+        variance,
+        epsilon=1e-4,
+        data_format="NCHW",
+        is_training=False,
+    )
     # 3、设置图输出节点
     builder.set_graph_output(batchNorm_tensor_holder.y, 0)
     # 4、构建图
@@ -62,10 +56,7 @@ def dump_batch_norm_graph(graph):
 
 def run_graph(graph, device_id="0") -> int:
     # 1. 初始化GE环境
-    config = {
-        "ge.exec.deviceId": str(device_id),
-        "ge.graphRunMode": "0"
-    }
+    config = {"ge.exec.deviceId": str(device_id), "ge.graphRunMode": "0"}
 
     ge_api = GeApi()
     ret = ge_api.ge_initialize(config)
@@ -97,22 +88,10 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_NCHW,
-            [1, 3, 1, 2]
+            [1, 3, 1, 2],
         )
-        mean_tensor = Tensor(
-            mean_data.tolist(),
-            None,
-            DataType.DT_FLOAT,
-            Format.FORMAT_ND,
-            [3]
-        )
-        variance_tensor = Tensor(
-            variance_data.tolist(),
-            None,
-            DataType.DT_FLOAT,
-            Format.FORMAT_ND,
-            [3]
-        )
+        mean_tensor = Tensor(mean_data.tolist(), None, DataType.DT_FLOAT, Format.FORMAT_ND, [3])
+        variance_tensor = Tensor(variance_data.tolist(), None, DataType.DT_FLOAT, Format.FORMAT_ND, [3])
 
         inputs = [input_tensor, mean_tensor, variance_tensor]
         print(f"[Info] 输入数据已准备，共{len(inputs)}个输入tensor (input, mean, variance)")
@@ -127,6 +106,7 @@ def run_graph(graph, device_id="0") -> int:
     except Exception as e:
         print(f"[Error] 执行过程中出错: {e}")
         import traceback
+
         traceback.print_exc()
         return -1
 

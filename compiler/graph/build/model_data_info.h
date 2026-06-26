@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,14 +26,26 @@ class ModelDataInfo : public AttrHolder {
   ~ModelDataInfo() override = default;
   ModelDataInfo(const ModelDataInfo &) = delete;
   ModelDataInfo &operator=(const ModelDataInfo &) = delete;
-  size_t GetGraphMemorySize() const { return graph_memory_size_; }
-  size_t GetVarMemorySize() const { return var_memory_size_; }
-  void SetGraphMemorySize(const size_t graph_memory_size) { graph_memory_size_ = graph_memory_size; }
-  void SetVarMemorySize(const size_t var_memory_size) { var_memory_size_ = var_memory_size; }
+  size_t GetGraphMemorySize() const {
+    return graph_memory_size_;
+  }
+  size_t GetVarMemorySize() const {
+    return var_memory_size_;
+  }
+  void SetGraphMemorySize(const size_t graph_memory_size) {
+    graph_memory_size_ = graph_memory_size;
+  }
+  void SetVarMemorySize(const size_t var_memory_size) {
+    var_memory_size_ = var_memory_size;
+  }
 
  protected:
-  ProtoAttrMap &MutableAttrMap() override { return attrs_; }
-  ConstProtoAttrMap &GetAttrMap() const override { return attrs_; }
+  ProtoAttrMap &MutableAttrMap() override {
+    return attrs_;
+  }
+  ConstProtoAttrMap &GetAttrMap() const override {
+    return attrs_;
+  }
 
  private:
   size_t graph_memory_size_;
@@ -51,7 +63,7 @@ class ModelDataInfo : public AttrHolder {
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-graphStatus EvaluateGraphResource(const std::map<std::string, std::string> &options,
-    ge::ComputeGraphPtr &compute_graph, ModelDataInfo &model);
-};      // namespace ge
+graphStatus EvaluateGraphResource(const std::map<std::string, std::string> &options, ge::ComputeGraphPtr &compute_graph,
+                                  ModelDataInfo &model);
+};  // namespace ge
 #endif  // INC_MODEL_DATA_INFO_H_

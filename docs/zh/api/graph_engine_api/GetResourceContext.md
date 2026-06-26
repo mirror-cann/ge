@@ -72,4 +72,3 @@ struct ResourceContext {  virtual ~ResourceContext() {}};
 ## 约束说明<a name="zh-cn_topic_0000001312403729_section1286618413401"></a>
 
 若使用[Create](Create.md)接口创建InferenceContext时未传入resource context管理器指针，则该接口返回空指针，因此使用其返回值之前需要判空。
-

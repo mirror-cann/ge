@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,7 +82,7 @@ TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndRtsSpecailOut_Inser
 }
 
 /*
- *  unknow root graph               know subgraph
+ *  unknown root graph               know subgraph
  *   ref_data1   partitioned_call1  +-----------------+
  *         \     / /                | var   constant1 |
  *         partitioned_call2        |   \    /        |
@@ -128,7 +128,8 @@ TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndNoPaddingContinuous
   auto graph = MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousInput();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat", 0}, {"phony_concat", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat", 0}, {"phony_concat", 1}}),
+            GRAPH_SUCCESS);
 }
 /*
  *   const           const
@@ -171,7 +172,8 @@ TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndNoPaddingContinuous
  *                                                       a    b
  * 关注点：不能在var后面，而是在phony_split前面。var-ApplyMomentum中间不能有identity
  */
-TEST_F(UtestMemLayoutConflictImmutableOutput, BuildVarAndNoPaddingContinuousOutputWithMultiReference_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictImmutableOutput,
+       BuildVarAndNoPaddingContinuousOutputWithMultiReference_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildVarAndNoPaddingContinuousOutputWithMultiReference();
   MemLayoutConflictOptimizer mem_check_pass;
 
@@ -197,8 +199,7 @@ TEST_F(UtestMemLayoutConflictImmutableOutput, BuildVarAndNoPaddingContinuousOutp
  *                        |   |
  *                       netoutput
  */
-TEST_F(UtestMemLayoutConflictImmutableOutput,
-       ImmutableOutAndContinuousByAssign_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndContinuousByAssign_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildImmutableOutAndContinuousByAssignOutput();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
@@ -219,8 +220,7 @@ TEST_F(UtestMemLayoutConflictImmutableOutput,
  *                       |   |
  *                      netoutput
  */
-TEST_F(UtestMemLayoutConflictImmutableOutput,
-       ImmutableOutAndRtsSpecailOutByAssign_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndRtsSpecailOutByAssign_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildImmutableOutAnRtsSpecailOutByAssignOutput();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
@@ -241,8 +241,7 @@ TEST_F(UtestMemLayoutConflictImmutableOutput,
  *                              |
  *                           netoutput
  */
-TEST_F(UtestMemLayoutConflictImmutableOutput,
-       ImmutableOutAndNoPaddingContinuousInByAssign_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictImmutableOutput, ImmutableOutAndNoPaddingContinuousInByAssign_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousInByAssignOutput();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
@@ -250,5 +249,4 @@ TEST_F(UtestMemLayoutConflictImmutableOutput,
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"pc", 0}}), GRAPH_SUCCESS);
 }
 
-
-} // namespace ge
+}  // namespace ge

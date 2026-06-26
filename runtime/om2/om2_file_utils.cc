@@ -91,9 +91,8 @@ int32_t CreateDir(const std::string &directory_path) {
 
   std::string current_path;
   current_path.reserve(dir_path_len);
-  constexpr uint32_t mkdir_mode = static_cast<uint32_t>(M_IRUSR) |
-                                  static_cast<uint32_t>(M_IWUSR) |
-                                  static_cast<uint32_t>(M_IXUSR);
+  constexpr uint32_t mkdir_mode =
+      static_cast<uint32_t>(M_IRUSR) | static_cast<uint32_t>(M_IWUSR) | static_cast<uint32_t>(M_IXUSR);
   const auto mode = static_cast<mmMode_t>(mkdir_mode);
   for (const char c : directory_path) {
     current_path += c;

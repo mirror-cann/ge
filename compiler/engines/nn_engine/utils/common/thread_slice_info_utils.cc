@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,21 +50,18 @@ void to_json(nlohmann::json &json_value, const ThreadSliceMap &struct_value) {
                               {"outputCutList", struct_value.output_cut_list}};
 }
 
-void from_json(const nlohmann::json &j, OpCut &d)
-{
+void from_json(const nlohmann::json &j, OpCut &d) {
   j.at("splitCutIndex").get_to(d.split_cut_idx);
   j.at("reduceCutIndex").get_to(d.reduce_cut_idx);
   j.at("cutId").get_to(d.cut_id);
 }
 
-void from_json(const nlohmann::json &json_value, DimRange &struct_value)
-{
+void from_json(const nlohmann::json &json_value, DimRange &struct_value) {
   json_value.at("lower").get_to(struct_value.lower);
   json_value.at("higher").get_to(struct_value.higher);
 }
 
-void from_json(const nlohmann::json &json_value, ThreadSliceMap &struct_value)
-{
+void from_json(const nlohmann::json &json_value, ThreadSliceMap &struct_value) {
   json_value.at("is_input_node_of_thread_scope").get_to(struct_value.is_input_node_of_thread_scope);
   json_value.at("is_output_node_of_thread_scope").get_to(struct_value.is_output_node_of_thread_scope);
   json_value.at("oriInputTensorShape").get_to(struct_value.ori_input_tensor_shape);

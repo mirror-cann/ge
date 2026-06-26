@@ -58,4 +58,3 @@ ge::graphStatus InferShapeForXXX(CtInferShapeContext *context) {
   // ...
 }
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@
 using namespace ge;
 namespace fe {
 class CompileWithLxFusionProcessTest : public testing::Test {
-protected:
+ protected:
   static void SetUpTestCase() {
     cout << "CompileWithLxFusionProcessTest TearDown" << endl;
     string stub_cann_path = fe::GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann";
@@ -258,16 +258,19 @@ TEST_F(CompileWithLxFusionProcessTest, l2_fusion_process_case2) {
 
 TEST_F(CompileWithLxFusionProcessTest, l2_fusion_process_case3) {
   ge::ComputeGraphPtr graph_ptr = CreateGraphWithType(3);
-  FusionInfo info1{graph_ptr->GetGraphID(), std::to_string(graph_ptr->GetSessionID()), "TbeConvStridedwriteFusionPass", 8};
+  FusionInfo info1{graph_ptr->GetGraphID(), std::to_string(graph_ptr->GetSessionID()), "TbeConvStridedwriteFusionPass",
+                   8};
   FusionStatisticRecorder::Instance().UpdateBufferFusionMatchTimes(info1);
-  FusionInfo info2{graph_ptr->GetGraphID(), std::to_string(graph_ptr->GetSessionID()), "MatmulConfusiontransposeUbFusion", 2};
+  FusionInfo info2{graph_ptr->GetGraphID(), std::to_string(graph_ptr->GetSessionID()),
+                   "MatmulConfusiontransposeUbFusion", 2};
   FusionStatisticRecorder::Instance().UpdateBufferFusionMatchTimes(info2);
   FEGraphOptimizerPtr graph_optimizer = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
   EXPECT_NE(graph_optimizer, nullptr);
   Status ret = graph_optimizer->OptimizeFusedGraph(*graph_ptr);
   // EXPECT_EQ(ret, SUCCESS);
   // EXPECT_EQ(graph_ptr->GetDirectNodesSize(), 11);
-  std::string session_and_graph_id = std::to_string(graph_ptr->GetSessionID()) + "_" + std::to_string(graph_ptr->GetGraphID());
+  std::string session_and_graph_id =
+      std::to_string(graph_ptr->GetSessionID()) + "_" + std::to_string(graph_ptr->GetGraphID());
   auto iter = FusionStatisticRecorder::Instance().buffer_fusion_info_map_.find(session_and_graph_id);
   if (iter != FusionStatisticRecorder::Instance().buffer_fusion_info_map_.end()) {
     for (auto iter1 = iter->second.begin(); iter1 != iter->second.end(); iter1++) {
@@ -287,7 +290,7 @@ TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case1) {
   // L1 optimize effect and L1 Fusion will be success
   BufferOptimize buffer_optimize = Configuration::Instance(fe::AI_CORE_NAME).GetBufferOptimize();
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   FEGraphOptimizerPtr graph_optimizer = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
   EXPECT_NE(graph_optimizer, nullptr);
   ComputeGraphPtr graph = CreateTwoCubeGraph(1);
@@ -310,13 +313,13 @@ TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case1) {
   // EXPECT_EQ(conv_count, 1);
   // EXPECT_EQ(relu_count, 0);
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(buffer_optimize);
+      static_cast<int64_t>(buffer_optimize);
 }
 
 TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case2) {
   BufferOptimize buffer_optimize = Configuration::Instance(fe::AI_CORE_NAME).GetBufferOptimize();
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   FEGraphOptimizerPtr graph_optimizer = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
   EXPECT_NE(graph_optimizer, nullptr);
   ComputeGraphPtr graph = CreateTwoCubeGraph(2);
@@ -340,13 +343,13 @@ TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case2) {
   EXPECT_EQ(conv_count, 2);
   // EXPECT_EQ(relu_count, 0);
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(buffer_optimize);
+      static_cast<int64_t>(buffer_optimize);
 }
 
 TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case3) {
   BufferOptimize buffer_optimize = Configuration::Instance(fe::AI_CORE_NAME).GetBufferOptimize();
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   FEGraphOptimizerPtr graph_optimizer = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
   EXPECT_NE(graph_optimizer, nullptr);
   ComputeGraphPtr graph = CreateTwoCubeGraph(3);
@@ -370,6 +373,6 @@ TEST_F(CompileWithLxFusionProcessTest, l1_fusion_process_case3) {
   EXPECT_EQ(conv_count, 2);
   EXPECT_EQ(relu_count, 2);
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(buffer_optimize);
+      static_cast<int64_t>(buffer_optimize);
 }
-}
+}  // namespace fe

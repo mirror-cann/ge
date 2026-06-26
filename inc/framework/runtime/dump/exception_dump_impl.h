@@ -31,30 +31,28 @@ class ExceptionDumpImpl {
   explicit ExceptionDumpImpl(uint32_t device_id = 0U);
   ~ExceptionDumpImpl();
 
-  Status SaveOpInfo(const Om2TaskInfo& task_info);
+  Status SaveOpInfo(const Om2TaskInfo &task_info);
 
-  Status ReportL0ExceptionDumpInfo(const Om2TaskInfo& task_info) const;
+  Status ReportL0ExceptionDumpInfo(const Om2TaskInfo &task_info) const;
 
-  bool GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const;
+  bool GetOpDescInfo(const OpDescInfoId &op_id, OpDescInfo &op_info) const;
 
   void Clear();
 
-  void SetDeviceId(uint32_t device_id) { device_id_ = device_id; }
+  void SetDeviceId(uint32_t device_id) {
+    device_id_ = device_id;
+  }
 
  private:
-  Status ReportL1ExceptionDumpInfo(const Om2TaskInfo& task_info, const OpDescInfo& op_info) const;
+  Status ReportL1ExceptionDumpInfo(const Om2TaskInfo &task_info, const OpDescInfo &op_info) const;
 
-  void FillAdumpOpInfoBuilder(const OpDescInfo& op_info,
-                              std::vector<Adx::TensorInfoV2>& input_infos,
-                              std::vector<Adx::TensorInfoV2>& output_infos,
-                              std::vector<Adx::TensorInfoV2>& workspace_infos,
-                              AdumpOpInfoBuilder& builder) const;
+  void FillAdumpOpInfoBuilder(const OpDescInfo &op_info, std::vector<Adx::TensorInfoV2> &input_infos,
+                              std::vector<Adx::TensorInfoV2> &output_infos,
+                              std::vector<Adx::TensorInfoV2> &workspace_infos, AdumpOpInfoBuilder &builder) const;
 
-  Status SubmitToAdump(const char* op_name, const Om2TaskInfo& task_info, const OpDescInfo& op_info,
-                       std::vector<Adx::TensorInfoV2>& input_infos,
-                       std::vector<Adx::TensorInfoV2>& output_infos,
-                       std::vector<Adx::TensorInfoV2>& workspace_infos,
-                       const AdumpOpInfoBuilder& builder) const;
+  Status SubmitToAdump(const char *op_name, const Om2TaskInfo &task_info, const OpDescInfo &op_info,
+                       std::vector<Adx::TensorInfoV2> &input_infos, std::vector<Adx::TensorInfoV2> &output_infos,
+                       std::vector<Adx::TensorInfoV2> &workspace_infos, const AdumpOpInfoBuilder &builder) const;
 
   uint32_t device_id_{0U};
   std::vector<OpDescInfo> op_info_list_;

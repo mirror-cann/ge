@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -140,7 +140,7 @@ Status FusionRuleNodeConstructor::CheckNodeValidity(FusionRuleNodePtr node) {
   FE_CHECK(node == nullptr, REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][ChkNdValid] Input node is null."),
            return ILLEGAL_RULE);
 
-  // check node's intput anchor or output anchor is empty,
+  // check node's input anchor or output anchor is empty,
   // otherwise it's a isolated node
   if (node->input_data_anchors_.empty() && node->output_data_anchors_.empty() && node->input_ctrl_anchor_ == nullptr &&
       node->output_ctrl_anchor_ == nullptr) {
@@ -236,12 +236,10 @@ Status FusionRuleNodeConstructor::CheckOuterOutputUniqueInput(FusionRuleNodePtr 
            return ILLEGAL_RULE);
   for (const auto &input_anchor : node->input_data_anchors_) {
     FE_CHECK(input_anchor == nullptr,
-             REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][ChkOutOutUnqIn] Input anchor is null."),
-             return ILLEGAL_RULE);
+             REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][ChkOutOutUnqIn] Input anchor is null."), return ILLEGAL_RULE);
     for (const auto &peer_output_anchor : input_anchor->GetPeerAnchors()) {
       FE_CHECK(peer_output_anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][ChkOutOutUnqIn] Peer anchor is null."),
-               return ILLEGAL_RULE);
+               REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][ChkOutOutUnqIn] Peer anchor is null."), return ILLEGAL_RULE);
 
       if (record_map.find(peer_output_anchor) != record_map.end()) {
         REPORT_FE_ERROR(
@@ -352,9 +350,8 @@ Status FusionRuleAnchorConstructor::AddEdge(FusionRuleAnchorPtr src, FusionRuleA
         FE_CHECK(node == nullptr, REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][AddEdge] Geted peer node is null."),
                  return ILLEGAL_RULE);
         if (rule_nodes.find(node) != rule_nodes.end()) {
-          REPORT_FE_ERROR(
-              "[GraphOpt][FusionRuleInit][AddEdge] Failed to add peer anchor of node %s %d.",
-              dst->GetOwnerNode()->GetNodeName().c_str(), dst->GetAnchorIdx());
+          REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][AddEdge] Failed to add peer anchor of node %s %d.",
+                          dst->GetOwnerNode()->GetNodeName().c_str(), dst->GetAnchorIdx());
           return ILLEGAL_RULE;
         }
       }

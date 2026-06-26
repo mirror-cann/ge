@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,8 @@ class NodeOptimizePassBase : public PatternFusionBasePass {
 
  protected:
   int64_t GetDimAttrValue(const ge::OpDescPtr &op_desc_ptr, const string &dim_attr, const bool &is_input) const;
-  Status InsertNode(const ge::OutDataAnchorPtr &src, const ge::InDataAnchorPtr &dst,
-                    ge::NodePtr &new_node, ge::DataType quant_data_type=ge::DT_FLOAT);
+  Status InsertNode(const ge::OutDataAnchorPtr &src, const ge::InDataAnchorPtr &dst, ge::NodePtr &new_node,
+                    ge::DataType quant_data_type = ge::DT_FLOAT);
   Status CreateStridedRead(ge::NodePtr next_node, std::shared_ptr<ge::OpDesc> &strided_read_opdesc);
   Status CreateStridedWrite(ge::NodePtr prev_node, std::shared_ptr<ge::OpDesc> &strided_write_opdesc);
   void SetGeAttrForConcat(const ge::OpDescPtr &concat_op_desc_ptr, const size_t &dim_index) const;

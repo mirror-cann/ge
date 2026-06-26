@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,18 +22,18 @@
 
 namespace gert {
 /*
-  * FFTSPlus AICore args组成：
-  *   |tiling_data|
-  *   |tail_tiling_data|
-  *   |args_addr|
-  *   |atomic_tiling_data|
-  *   |atomic_tail_tiling_data|
-  *   |atomic_args_addr|
-  *   |dynamic inputs desc|   save DynDesc using in runtime
-  *   |dynamic inputs addr|
-  *   |dynamic outputs desc|  save DynDesc using in runtime
-  *   |dynamic outputs addr|
-  */
+ * FFTSPlus AICore args组成：
+ *   |tiling_data|
+ *   |tail_tiling_data|
+ *   |args_addr|
+ *   |atomic_tiling_data|
+ *   |atomic_tail_tiling_data|
+ *   |atomic_args_addr|
+ *   |dynamic inputs desc|   save DynDesc using in runtime
+ *   |dynamic inputs addr|
+ *   |dynamic outputs desc|  save DynDesc using in runtime
+ *   |dynamic outputs addr|
+ */
 struct RtFFTSKernelLaunchArgs {
  public:
   enum FFTSArgsType {
@@ -51,7 +51,7 @@ struct RtFFTSKernelLaunchArgs {
   };
   struct ComputeNodeDesc {
     static std::unique_ptr<uint8_t[]> Create(size_t &total_size);
-    size_t addr_num{0U}; // for mixl2
+    size_t addr_num{0U};  // for mixl2
     size_t input_num{0U};
     size_t output_num{0U};
     size_t workspace_cap{0U};
@@ -81,7 +81,7 @@ struct RtFFTSKernelLaunchArgs {
   };
   static_assert(std::is_standard_layout<ArgsDesc>::value, "The class ArgsDesc must be a POD");
 
-  template<typename T>
+  template <typename T>
   T *GetArgsPointer(FFTSArgsType args_type) {
     if (args_type > kArgsTypeEnd) {
       return nullptr;
@@ -96,7 +96,7 @@ struct RtFFTSKernelLaunchArgs {
     return args_;
   }
 
-  TilingData& GetTilingData() {
+  TilingData &GetTilingData() {
     return tiling_data_;
   }
   size_t GetTilingAbsPos() const {
@@ -105,13 +105,13 @@ struct RtFFTSKernelLaunchArgs {
   size_t GetAtomTilingAbsPos() const {
     return atom_tiling_abs_pos_;
   }
-  TilingData& GetTailTilingData() {
+  TilingData &GetTailTilingData() {
     return tail_tiling_data_;
   }
-  TilingData& GetAtomTilingData() {
+  TilingData &GetAtomTilingData() {
     return atom_tiling_data_;
   }
-  TilingData& GetAtomTailTilingData() {
+  TilingData &GetAtomTailTilingData() {
     return atom_tail_tiling_data_;
   }
   size_t GetArgsSize() const {
@@ -143,19 +143,24 @@ struct RtFFTSKernelLaunchArgs {
   }
   static std::unique_ptr<uint8_t[]> Create(const ge::NodePtr &node, ComputeNodeDesc &node_desc, size_t &size);
   ge::graphStatus RedirectTilingAddr();
-  ge::graphStatus SetIoAddr(size_t io_index, size_t &arg_index, uintptr_t data_base,
-                            const Shape &shape, void *args_dev_base);
+  ge::graphStatus SetIoAddr(size_t io_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
+                            void *args_dev_base);
   const DynDesc *GetDyDescByIoIndex(size_t io_index);
+
  private:
   static ge::graphStatus CalcDynamicArgsSize(const ge::NodePtr &node, RtFFTSKernelLaunchArgs::ArgsDesc &args_desc,
-      std::vector<std::vector<int64_t>> &dyn_io_vv, bool is_input, DynDescInfo &dyn_desc_v);
+                                             std::vector<std::vector<int64_t>> &dyn_io_vv, bool is_input,
+                                             DynDescInfo &dyn_desc_v);
   static ge::graphStatus CalcAtomicArgsSize(const RtFFTSKernelLaunchArgs::ComputeNodeDesc &node_desc,
                                             RtFFTSKernelLaunchArgs::ArgsDesc &args_desc);
   static ge::graphStatus CalcTotalSize(const ge::NodePtr &node, ComputeNodeDesc &node_desc, ArgsDesc &args_desc,
                                        size_t &total_size, DynDescInfo &dyn_desc_v);
   ge::graphStatus Init(const ComputeNodeDesc &node_desc, const ArgsDesc &args_desc, DynDescInfo &dyn_desc_v);
-  ge::graphStatus SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
-  ge::graphStatus SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape, void *args_dev_base);
+  ge::graphStatus SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
+                               void *args_dev_base);
+  ge::graphStatus SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
+                                void *args_dev_base);
+
  private:
   ComputeNodeDesc node_desc_;
   ArgsDesc args_desc_;
@@ -175,7 +180,8 @@ struct RtFFTSKernelLaunchArgs {
   size_t dyn_in_num_{0U};
   size_t dyn_out_num_{0U};
   size_t shape_offset_{0U};  // record dynamic io every group shape offset
-  uint8_t args_[1];  // todo : warning！！！！！！！！！！！ this addr need to be align in 64byte ！！！！！！！！！！！！！！
+  uint8_t args_[1];          // todo : warning！！！！！！！！！！！ this addr need to be align in 64byte
+                             // ！！！！！！！！！！！！！！
 };
 static_assert(std::is_standard_layout<RtFFTSKernelLaunchArgs>::value, "The class RtFFTSKernelLaunchArgs must be a POD");
 

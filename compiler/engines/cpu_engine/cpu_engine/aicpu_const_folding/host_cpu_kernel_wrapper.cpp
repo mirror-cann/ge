@@ -23,12 +23,11 @@
 #include "util/log.h"
 
 extern "C" {
-  FMK_FUNC_HOST_VISIBILITY ge::graphStatus Initialize(const ge::HostCpuContext &ctx) {
+FMK_FUNC_HOST_VISIBILITY ge::graphStatus Initialize(const ge::HostCpuContext &ctx) {
   (void)ctx;
   AICPUE_LOGI("Enter host CPU kernel wrapper initialize");
-  int32_t ret = InitCpuConstantFoldingNew([]() -> ge::HostCpuOp* {
-    return new (std::nothrow) ge::HostCpuKernelWrapperOpV2();
-  });
+  int32_t ret =
+      InitCpuConstantFoldingNew([]() -> ge::HostCpuOp * { return new (std::nothrow) ge::HostCpuKernelWrapperOpV2(); });
   if (ret != 0) {
     AICPUE_LOGW("InitCpuConstantFoldingNew run failed, ret: %d", ret);
     return ge::GRAPH_FAILED;
@@ -42,10 +41,8 @@ extern "C" {
 namespace ge {
 HostCpuKernelWrapperOpV2::HostCpuKernelWrapperOpV2() = default;
 
-graphStatus HostCpuKernelWrapperOpV2::Compute(
-    ge::Operator &op,
-    const std::map<std::string, const ge::Tensor> &inputs,
-    std::map<std::string, ge::Tensor> &outputs) {
+graphStatus HostCpuKernelWrapperOpV2::Compute(ge::Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
+                                              std::map<std::string, ge::Tensor> &outputs) {
   AICPUE_LOGI("Enter host CPU kernel wrapper compute");
 
   int32_t ret = CpuConstantFoldingComputeNew(op, inputs, outputs);
@@ -59,4 +56,4 @@ graphStatus HostCpuKernelWrapperOpV2::Compute(
 }
 
 REGISTER_HOST_CPU_OP_BUILDER("HostCpuKernelWrapperOpV2", ge::HostCpuKernelWrapperOpV2);
-}
+}  // namespace ge

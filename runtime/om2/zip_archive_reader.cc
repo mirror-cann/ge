@@ -204,7 +204,8 @@ uint64_t ReadLE64(const uint8_t *p) {
   return static_cast<uint64_t>(ReadLE32(p)) | (static_cast<uint64_t>(ReadLE32(p + kBytesPerUint32)) << kBitsPerUint32);
 }
 
-bool ParseCentralDirEntry(const MemoryFileReadonly &buffer, const uint64_t pos_in_central_dir, ZipEntryInfo &entry_info) {
+bool ParseCentralDirEntry(const MemoryFileReadonly &buffer, const uint64_t pos_in_central_dir,
+                          ZipEntryInfo &entry_info) {
   GE_ASSERT_TRUE(pos_in_central_dir + kCdHeaderFixedSize <= buffer.length, "Invalid central directory position");
   const uint8_t *entry_buff = buffer.buffer + pos_in_central_dir;
 
@@ -314,8 +315,8 @@ bool RAIIZipArchive::BuildEntryCache() {
   do {
     std::vector<char_t> name_buff(kMaxFileNameLength, '\0');
     unz_file_info64 file_info{};
-    uz_ret = unzGetCurrentFileInfo64(zip_handle_, &file_info, name_buff.data(), name_buff.size(), nullptr, 0, nullptr,
-                                     0);
+    uz_ret =
+        unzGetCurrentFileInfo64(zip_handle_, &file_info, name_buff.data(), name_buff.size(), nullptr, 0, nullptr, 0);
     GE_ASSERT_TRUE(uz_ret == UNZ_OK, "Failed to get the current file information, ret = %d", uz_ret);
     const std::string file_name(name_buff.data());
     if (!file_name.empty() && file_name.back() != '/') {
@@ -339,8 +340,8 @@ bool RAIIZipArchive::CacheCurrentEntry(const std::string &entry_name, const unz_
   cached_entry.file_pos = file_pos;
   cached_entry.uncompressed_size = file_info.uncompressed_size;
   if (file_info.compression_method == Z_NO_COMPRESSION) {
-    GE_ASSERT_TRUE(GetRawDataOffset(file_pos.pos_in_zip_directory, file_info.uncompressed_size,
-                                    cached_entry.raw_data_offset));
+    GE_ASSERT_TRUE(
+        GetRawDataOffset(file_pos.pos_in_zip_directory, file_info.uncompressed_size, cached_entry.raw_data_offset));
     cached_entry.raw_data_ready = true;
   }
   const auto emplace_ret = entry_cache_.emplace(entry_name, cached_entry);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ void ArgsFormatConstructor::AddDynamicDesc(const std::pair<size_t, size_t> &rang
   dyn_io_vv_.emplace_back(dyn_io_v_);
 }
 bool GetInIrIndexByName(const std::vector<std::pair<std::string, ge::IrInputType>> &ir_inputs, const std::string &name,
-                   size_t &ir_index) {
+                        size_t &ir_index) {
   size_t ir_size = ir_inputs.size();
   for (size_t i = 0UL; i < ir_size; ++i) {
     if (ir_inputs[i].first == name) {
@@ -67,7 +67,7 @@ bool GetOutIrIndexByName(const std::vector<std::pair<std::string, ge::IrOutputTy
   return false;
 }
 
-bool FindInputInGraph(size_t idx, const std::vector<InputOrOutputInfoPtr>& input_infos,
+bool FindInputInGraph(size_t idx, const std::vector<InputOrOutputInfoPtr> &input_infos,
                       std::vector<std::string> &input_name_list) {
   auto &input_name = input_infos[idx]->GetName();
   auto paramType = input_infos[idx]->GetParamType();
@@ -85,8 +85,8 @@ bool FindInputInGraph(size_t idx, const std::vector<InputOrOutputInfoPtr>& input
   return false;
 }
 
-bool ArgsFormatConstructor::FindOptInsertPos(size_t ir_idx, const std::vector<InputOrOutputInfoPtr>& input_infos,
-    std::vector<std::string> &input_name_list, size_t &insert_pos) const {
+bool ArgsFormatConstructor::FindOptInsertPos(size_t ir_idx, const std::vector<InputOrOutputInfoPtr> &input_infos,
+                                             std::vector<std::string> &input_name_list, size_t &insert_pos) const {
   insert_pos = 0;
   if (ir_idx == 0) {
     return true;
@@ -107,11 +107,13 @@ bool ArgsFormatConstructor::FindOptInsertPos(size_t ir_idx, const std::vector<In
 }
 
 bool ArgsFormatConstructor::InsertMissOptInput(std::vector<uint32_t> &input_type_list,
-    std::vector<int32_t> &input_graph_idx, std::vector<std::string> &input_name_list, size_t exp_num) const {
+                                               std::vector<int32_t> &input_graph_idx,
+                                               std::vector<std::string> &input_name_list, size_t exp_num) const {
   int64_t imply_type = -1;
   (void)ge::AttrUtils::GetInt(op_desc_, FE_IMPLY_TYPE, imply_type);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(op_desc_->GetOpEngineName())
-      .GetOpKernelInfoByOpType(static_cast<OpImplType>(imply_type), op_desc_->GetType());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(op_desc_->GetOpEngineName())
+          .GetOpKernelInfoByOpType(static_cast<OpImplType>(imply_type), op_desc_->GetType());
   if (op_kernel_info_ptr == nullptr) {
     REPORT_FE_ERROR("[ArgsFormatConstructor] Op[name=%s,type=%s] Failed to get kernel info.",
                     op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
@@ -149,12 +151,13 @@ bool ArgsFormatConstructor::InsertMissOptInput(std::vector<uint32_t> &input_type
 }
 
 bool ArgsFormatConstructor::GetOpInputInfo(std::vector<uint32_t> &input_type_list,
-    std::vector<int32_t> &input_graph_idx, std::vector<std::string> &input_name_list,
-    std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range) {
+                                           std::vector<int32_t> &input_graph_idx,
+                                           std::vector<std::string> &input_name_list,
+                                           std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range) {
   (void)ge::AttrUtils::GetListInt(op_desc_, kInputParaTypeList, input_type_list);
   (void)ge::AttrUtils::GetListStr(op_desc_, kInputNameList, input_name_list);
   // (ir index, (input index on graph, range))
-  if(ge::OpDescUtils::GetIrInputInstanceDescRange(op_desc_, ir_input_2_range) != ge::GRAPH_SUCCESS) {
+  if (ge::OpDescUtils::GetIrInputInstanceDescRange(op_desc_, ir_input_2_range) != ge::GRAPH_SUCCESS) {
     FE_LOGW("Get ir input range failed.");
     return false;
   }
@@ -191,8 +194,8 @@ bool ArgsFormatConstructor::GetOpInputInfo(std::vector<uint32_t> &input_type_lis
   return InsertMissOptInput(input_type_list, input_graph_idx, input_name_list, exp_num);
 }
 
-Status ArgsFormatConstructor::ConstructInArgsDescByOps(const std::vector<std::pair<std::string, ge::IrInputType>>
-                                                      &ir_inputs) {
+Status ArgsFormatConstructor::ConstructInArgsDescByOps(
+    const std::vector<std::pair<std::string, ge::IrInputType>> &ir_inputs) {
   std::vector<uint32_t> input_type_list;
   std::vector<int32_t> input_graph_idx;
   std::vector<std::string> input_name_list;
@@ -212,8 +215,8 @@ Status ArgsFormatConstructor::ConstructInArgsDescByOps(const std::vector<std::pa
     }
     FE_CHECK(ir_index >= ir_input_2_range.size(), FE_LOGW("Index [%zu] is out of range.", ir_index), return FAILED);
     auto &range = ir_input_2_range[ir_index];
-    FE_LOGD("Input[%zu]/IR_idx[%zu] with name[%s]/type[%u] and range[%zu/%zu].", in_idx, ir_index,
-            input_name.c_str(), input_type, range.first, range.second);
+    FE_LOGD("Input[%zu]/IR_idx[%zu] with name[%s]/type[%u] and range[%zu/%zu].", in_idx, ir_index, input_name.c_str(),
+            input_type, range.first, range.second);
     if (input_type == static_cast<uint32_t>(OpParamType::REQUIRED)) {
       if (range.second == 0) {
         FE_LOGW("The required input size for Op [%s, %s] is 0.", op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
@@ -268,7 +271,8 @@ void ArgsFormatConstructor::ConstructOptOutputArgs(size_t ir_index) {
 }
 
 bool ArgsFormatConstructor::GetOpOutputInfo(std::vector<uint32_t> &output_type_list,
-    std::vector<std::string> &output_name_list, std::map<size_t, std::pair<size_t, size_t>> &ir_out_2_range) {
+                                            std::vector<std::string> &output_name_list,
+                                            std::map<size_t, std::pair<size_t, size_t>> &ir_out_2_range) {
   (void)ge::AttrUtils::GetListInt(op_desc_, kOutputParaTypeList, output_type_list);
   (void)ge::AttrUtils::GetListStr(op_desc_, kOutputNameList, output_name_list);
   if (ge::OpDescUtils::GetIrOutputDescRange(op_desc_, ir_out_2_range) != ge::GRAPH_SUCCESS) {
@@ -290,8 +294,8 @@ bool ArgsFormatConstructor::GetOpOutputInfo(std::vector<uint32_t> &output_type_l
   return true;
 }
 
-Status ArgsFormatConstructor::ConstructOutArgsDescByOps(const std::vector<std::pair<std::string, ge::IrOutputType>>
-                                                       &ir_outputs) {
+Status ArgsFormatConstructor::ConstructOutArgsDescByOps(
+    const std::vector<std::pair<std::string, ge::IrOutputType>> &ir_outputs) {
   std::vector<uint32_t> output_type_list;
   std::vector<std::string> output_name_list;
   // (ir index, (input index on graph, range))
@@ -402,8 +406,8 @@ Status ArgsFormatConstructor::ConstructInArgsDesc() {
     by_ir_ = false;
   }
   if (is_dy_folded_) {
-    REPORT_FE_ERROR("Node[%s][%s] needs to be dynamically folded but does not have IR.",
-                    op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    REPORT_FE_ERROR("Node[%s][%s] needs to be dynamically folded but does not have IR.", op_desc_->GetNamePtr(),
+                    op_desc_->GetTypePtr());
     return FAILED;
   }
   return SUCCESS;
@@ -418,8 +422,8 @@ Status ArgsFormatConstructor::ConstructOutArgsDesc() {
     FE_LOGW("Op[%s][%s] cannot be constructed by IR.", op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
   }
   if (is_dy_folded_) {
-    REPORT_FE_ERROR("Node [%s][%s] needs to be dynamically folded but does not have output IR.",
-                    op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    REPORT_FE_ERROR("Node [%s][%s] needs to be dynamically folded but does not have output IR.", op_desc_->GetNamePtr(),
+                    op_desc_->GetTypePtr());
     return FAILED;
   }
   ConstructArgsDescByGraph();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,15 +22,16 @@ GeDeletedOp::GeDeletedOp(const Node &node, RunContext &run_context) : Op(node, r
 
 Status GeDeletedOp::Run() {
   static const std::map<std::string, std::string> kOpToExpectedOptimization = {
-    {"Size", OO_CONSTANT_FOLDING},
-    {"Shape", OO_CONSTANT_FOLDING},
-    {"ShapeN", OO_CONSTANT_FOLDING},
-    {"Rank", OO_CONSTANT_FOLDING}
-    // 可以继续扩展
+      {"Size", OO_CONSTANT_FOLDING},
+      {"Shape", OO_CONSTANT_FOLDING},
+      {"ShapeN", OO_CONSTANT_FOLDING},
+      {"Rank", OO_CONSTANT_FOLDING}
+      // 可以继续扩展
   };
 
   // 默认提示信息
-  std::string reason = "Node:" + name_ + " type is " + type_ + ", should be deleted by ge. Please check your "
+  std::string reason = "Node:" + name_ + " type is " + type_ +
+                       ", should be deleted by ge. Please check your "
                        "graph optimization settings.";
 
   auto it = kOpToExpectedOptimization.find(type_);
@@ -41,12 +42,15 @@ Status GeDeletedOp::Run() {
     // 定制提示信息
     std::string opt_value;
     if (GetThreadLocalContext().GetOption(ge_option_key, opt_value) != GRAPH_SUCCESS || opt_value != "true") {
-      reason = "Node:" + name_ + " type is " + type_ +  ", should be deleted ge. But the [" + option_name +  "] "
-           "optimization option is disabled, please enable it to remove redundant nodes.";
+      reason = "Node:" + name_ + " type is " + type_ + ", should be deleted ge. But the [" + option_name +
+               "] "
+               "optimization option is disabled, please enable it to remove redundant nodes.";
     } else {
       // Option开启了但节点还存在，提示可能是关联的Pass未生效或通过optimization_switch关闭了
-      reason = "Node:" + name_ + " type is " + type_ +  ", should be deleted by ge. But it still exists, "
-           "Please check if the [" + option_name + "] optimization option relevant passes are working correctly.";
+      reason = "Node:" + name_ + " type is " + type_ +
+               ", should be deleted by ge. But it still exists, "
+               "Please check if the [" +
+               option_name + "] optimization option relevant passes are working correctly.";
     }
   }
   REPORT_INNER_ERR_MSG("E19999", "%s", reason.c_str());

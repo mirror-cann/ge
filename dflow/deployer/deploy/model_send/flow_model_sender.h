@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,14 +32,11 @@ class FlowModelSender {
 
   static Status TransferSubmodels(DeployState &deploy_state);
 
-  static Status TransferModel(int32_t node_id,
-                              const DeployState &deploy_state,
-                              const PneModelPtr &model,
+  static Status TransferModel(int32_t node_id, const DeployState &deploy_state, const PneModelPtr &model,
                               const ModelBufferData model_buff);
 
   Status DeployRemoteVarManager(DeployState &deploy_state);
-  Status DeployRemoteVarManager(const std::map<std::string,
-                                               std::vector<const DeployPlan::SubmodelInfo *>> &models);
+  Status DeployRemoteVarManager(const std::map<std::string, std::vector<const DeployPlan::SubmodelInfo *>> &models);
   static Status TransferDataGwDeployPlan(DeployState &deploy_state);
 
  private:
@@ -52,8 +49,7 @@ class FlowModelSender {
   static Status GetDeviceInfo(int32_t node_id, int32_t device_id, int32_t device_type,
                               DeployPlan::DeviceInfo &deploy_device_info);
 
-  Status TransferPreDeploy(const SendInfo &send_info,
-                           ExchangeRoute &local_route,
+  Status TransferPreDeploy(const SendInfo &send_info, ExchangeRoute &local_route,
                            deployer::FlowRoutePlan &remote_plan) const;
   static Status TransferFile(int32_t target_node_id, const std::string &path, const void *content, size_t size);
 
@@ -69,14 +65,10 @@ class FlowModelSender {
       const std::map<int32_t, std::set<int32_t>> &device_ids,
       const std::map<int32_t, std::map<uint64_t, std::map<OpDescPtr, std::set<int32_t>>>> &node_need_transfer_memory);
 
-  Status CopyOneWeightToTransfer(const SendInfo &send_info,
-                                 std::istream &input_stream,
-                                 int64_t file_constant_size,
-                                 const OpDescPtr &op_desc,
-                                 const std::set<int32_t> &devices);
+  Status CopyOneWeightToTransfer(const SendInfo &send_info, std::istream &input_stream, int64_t file_constant_size,
+                                 const OpDescPtr &op_desc, const std::set<int32_t> &devices);
 
-  Status TransferWeightWithQ(std::istream &input_stream,
-                             int64_t file_constant_size,
+  Status TransferWeightWithQ(std::istream &input_stream, int64_t file_constant_size,
                              const DeployQueueAttr &queue_attr) const;
 
   static Status CreateInputStream(const std::string &constant_file_path, size_t offset,
@@ -87,13 +79,11 @@ class FlowModelSender {
   static std::string GetModelFilePath(const DeployState &deploy_state, const std::string &model_name);
   static Status GetSavedFilePath(const DeployPlan::SubmodelInfo &submodel_info, const std::string &model_file_path,
                                  std::string &saved_model_path);
-  static void BuildDeployPlanOptions(const DeployState &deploy_state,
-                                     deployer::UpdateDeployPlanRequest &request);
-  static Status BuildUpdateDeployPlanRequest(
-      const DeployState &deploy_state,
-      const DeployPlan::DeviceInfo &target_device,
-      std::vector<deployer::SubmodelDesc> &submodel_descs,
-      deployer::DeployerRequest &request);
+  static void BuildDeployPlanOptions(const DeployState &deploy_state, deployer::UpdateDeployPlanRequest &request);
+  static Status BuildUpdateDeployPlanRequest(const DeployState &deploy_state,
+                                             const DeployPlan::DeviceInfo &target_device,
+                                             std::vector<deployer::SubmodelDesc> &submodel_descs,
+                                             deployer::DeployerRequest &request);
   static void AddDynamicSchedInfo(const DeployState &deploy_state, const std::string &model_instance_name,
                                   deployer::SubmodelDesc &submodel_desc);
   static Status BuildSubmodelDescs(const DeployState &deploy_state,
@@ -104,11 +94,8 @@ class FlowModelSender {
 
   static bool CacheLocalModel(const DeployPlan::SubmodelInfo &submodel);
 
-  static Status GetOpFileInfo(const OpDescPtr &op_desc,
-                              const std::map<std::string, std::string> &file_id_to_path,
-                              std::string &file_path,
-                              size_t &offset,
-                              size_t &length);
+  static Status GetOpFileInfo(const OpDescPtr &op_desc, const std::map<std::string, std::string> &file_id_to_path,
+                              std::string &file_path, size_t &offset, size_t &length);
   static Status SendDatagwSchedInfo(std::map<std::string, const DeployPlan::DeviceInfo *> &datagw_devices_used,
                                     std::map<std::string, deployer::DeployerRequest> &datagw_sched_infos);
   std::map<int32_t, deployer::FlowRoutePlan> node_id_to_plan_;

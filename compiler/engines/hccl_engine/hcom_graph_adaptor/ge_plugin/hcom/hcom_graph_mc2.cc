@@ -84,9 +84,10 @@ void DestroyA5AicpuGraphNotify(const A5AicpuGraphSyncResource &resource) {
 
   const aclError aclRet = aclrtDestroyNotify(resource.notify);
   if (aclRet != ACL_SUCCESS) {
-    HCCL_WARNING("GE_MC2_A5_RESOURCE destroy graph notify failed, group %s, devId[%d], notify[%p], "
-                 "aclRet[%d].",
-                 resource.groupName.c_str(), resource.devId, resource.notify, aclRet);
+    HCCL_WARNING(
+        "GE_MC2_A5_RESOURCE destroy graph notify failed, group %s, devId[%d], notify[%p], "
+        "aclRet[%d].",
+        resource.groupName.c_str(), resource.devId, resource.notify, aclRet);
   } else {
     HCCL_INFO("GE_MC2_A5_RESOURCE release graph sync resource success, group %s, devId[%d], notify[%p].",
               resource.groupName.c_str(), resource.devId, resource.notify);
@@ -158,9 +159,10 @@ HcclResult GetOrCreateA5AicpuGraphNotify(s32 devId, const char *groupName, void 
 
   if (notify != nullptr) {
     const aclError destroyRet = aclrtDestroyNotify(notify);
-    HCCL_INFO("GE_MC2_A5_RESOURCE destroy duplicated graph notify, group %s, devId[%d], "
-              "notify[%p], aclRet[%d].",
-              groupName, devId, notify, destroyRet);
+    HCCL_INFO(
+        "GE_MC2_A5_RESOURCE destroy duplicated graph notify, group %s, devId[%d], "
+        "notify[%p], aclRet[%d].",
+        groupName, devId, notify, destroyRet);
   }
   return HCCL_SUCCESS;
 }
@@ -290,19 +292,20 @@ bool NeedUseA5AicpuMc2Resource(const DevType devType, const u32 tilingVersion, c
   }
 
   const bool useNewFlow = isA5 && parsed && allAicpu;
-  HCCL_INFO("GE_MC2_A5_RESOURCE dispatch devType[%d], tilingVersion[%u], ccTilingCnt[%zu], commEngines[%s], "
-            "selected[%s].", devType, tilingVersion, commEngines.size(), FormatCommEngines(commEngines).c_str(),
-            (useNewFlow ? "new/asc-devkit-aicpu" : "old/hcomm"));
+  HCCL_INFO(
+      "GE_MC2_A5_RESOURCE dispatch devType[%d], tilingVersion[%u], ccTilingCnt[%zu], commEngines[%s], "
+      "selected[%s].",
+      devType, tilingVersion, commEngines.size(), FormatCommEngines(commEngines).c_str(),
+      (useNewFlow ? "new/asc-devkit-aicpu" : "old/hcomm"));
   if (isA5 && parsed && !allAicpu) {
-    HCCL_INFO("GE_MC2_A5_RESOURCE A5 CCU keep old flow, commEngines[%s].",
-              FormatCommEngines(commEngines).c_str());
+    HCCL_INFO("GE_MC2_A5_RESOURCE A5 CCU keep old flow, commEngines[%s].", FormatCommEngines(commEngines).c_str());
   }
   return useNewFlow;
 }
 
 bool HcomGetGroupsByOpDesc(const ge::OpDescPtr &opdesc, std::vector<std::string> &groups) {
   std::string group;
-  for (const auto& groupName : opdesc->GetAllAttrNames()) {
+  for (const auto &groupName : opdesc->GetAllAttrNames()) {
     HCCL_DEBUG("Get attr Name [%s]", groupName.c_str());
     if (groupName.substr(0, GROUP_NAME_OFFSET) == "group" && ge::AttrUtils::GetStr(opdesc, groupName, group)) {
       HCCL_INFO("Get group %s:%s of op %s.", groupName.c_str(), group.c_str(), opdesc->GetName().c_str());
@@ -442,8 +445,8 @@ void *HcomGetA5AicpuContext(const rtStream_t stream, const void *tilingData, con
     if (graphNotifyCreated) {
       ReleaseA5AicpuGraphSyncResourceByKey(devId, groupName);
     }
-    HCCL_ERROR("GE_MC2_A5_RESOURCE failed to set ordered stream for group %s, devId[%d], opstream[%p].",
-               groupName, devId, opstream);
+    HCCL_ERROR("GE_MC2_A5_RESOURCE failed to set ordered stream for group %s, devId[%d], opstream[%p].", groupName,
+               devId, opstream);
     return nullptr;
   }
 
@@ -459,9 +462,10 @@ void *HcomGetA5AicpuContext(const rtStream_t stream, const void *tilingData, con
   topoInfo.notify_handle = graphNotify;
   ge::HcomTopoInfo::Instance().SetGroupTopoInfo(groupName, topoInfo);
 
-  HCCL_INFO("GE_MC2_A5_RESOURCE prepare graph aicpu stream notify success, group %s, streamMode[%llu], "
-            "opstream %p, notify %p, context %p.",
-            groupName, static_cast<unsigned long long>(streamMode), opstream, graphNotify, context);
+  HCCL_INFO(
+      "GE_MC2_A5_RESOURCE prepare graph aicpu stream notify success, group %s, streamMode[%llu], "
+      "opstream %p, notify %p, context %p.",
+      groupName, static_cast<unsigned long long>(streamMode), opstream, graphNotify, context);
   return context;
 }
 
@@ -553,7 +557,7 @@ ge::graphStatus HcomCreateComResourceMC2(const ge::OpDescPtr &opdesc, std::vecto
   const bool useA5AicpuResource = false;
 #endif
 
-  for (const auto& group : groups) {
+  for (const auto &group : groups) {
     HCCL_INFO("HcomCreateComResourceMC2 group is %s.", group.c_str());
     if (group.empty()) {
       HCCL_RUN_INFO("[HcomCreateComResourceMC2] group is empty, push nullptr to context.");
@@ -561,9 +565,10 @@ ge::graphStatus HcomCreateComResourceMC2(const ge::OpDescPtr &opdesc, std::vecto
       continue;
     }
 #ifndef OPEN_BUILD_PROJECT
-    void *context = useA5AicpuResource ?
-        HcomGetA5AicpuContext(stream, reinterpret_cast<const void *>(tilingData.c_str()), group.c_str()) :
-        HcomGetContext(stream, reinterpret_cast<const void *>(tilingData.c_str()), group.c_str());
+    void *context =
+        useA5AicpuResource
+            ? HcomGetA5AicpuContext(stream, reinterpret_cast<const void *>(tilingData.c_str()), group.c_str())
+            : HcomGetContext(stream, reinterpret_cast<const void *>(tilingData.c_str()), group.c_str());
 #else
     void *context = HcomGetContext(stream, reinterpret_cast<const void *>(tilingData.c_str()), group.c_str());
 #endif

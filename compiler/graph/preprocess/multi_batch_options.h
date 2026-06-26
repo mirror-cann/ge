@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@ using DimsVector = std::vector<std::vector<std::string>>;
 /// @param [in] ComputeGraphPtr &graph: the train graph
 /// @return SUCCESS: valid / PARAM_INVALID: invalid.
 Status CheckSequenceOfOptions(const ComputeGraphPtr &graph, std::vector<NodePtr> &data_nodes,
-                              std::vector<NodePtr> &getnext_nosink_nodes,
-                              std::vector<NodePtr> &getnext_sink_nodes,
+                              std::vector<NodePtr> &getnext_nosink_nodes, std::vector<NodePtr> &getnext_sink_nodes,
                               bool &need_multi_batch);
 
 Status UpdateNameOfData(const ComputeGraphPtr &graph, const std::vector<NodePtr> &data_nodes);
@@ -137,4 +136,4 @@ Status ParseMaxShapeRange(const std::vector<std::pair<std::string, std::vector<i
 std::vector<int32_t> GetDataNodesUnknownDimIndex(const ge::NodePtr &data_nodes);
 }  // namespace multibatch
 }  // namespace ge
-#endif // GE_GRAPH_PREPROCESS_MULTI_BATCH_OPTIONS_H_
+#endif  // GE_GRAPH_PREPROCESS_MULTI_BATCH_OPTIONS_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,9 +21,7 @@ namespace {
 constexpr int64_t kAlignment = 32;
 constexpr uint32_t kMaxOutputNum = 63U;
 }  // namespace
-LowerSplitHelper::LowerSplitHelper(NodePtr asc_backend_node) :
-    asc_backend_node_(std::move(asc_backend_node)) {
-}
+LowerSplitHelper::LowerSplitHelper(NodePtr asc_backend_node) : asc_backend_node_(std::move(asc_backend_node)) {}
 
 graphStatus LowerSplitHelper::InitAndCheck() {
   GE_ASSERT_NOTNULL(asc_backend_node_->GetOpDescBarePtr());
@@ -62,10 +60,8 @@ graphStatus LowerSplitHelper::ParseSplitNode(bool &found) {
     }
   }
   if (!found) {
-    GELOGI("[%s] split dim not found, input_shape = %s, output_shapes[0] = %s",
-           asc_backend_node_->GetNamePtr(),
-           ToString(input_shape_).c_str(),
-           ToString(output_shapes_.front()).c_str());
+    GELOGI("[%s] split dim not found, input_shape = %s, output_shapes[0] = %s", asc_backend_node_->GetNamePtr(),
+           ToString(input_shape_).c_str(), ToString(output_shapes_.front()).c_str());
   }
   return GRAPH_SUCCESS;
 }
@@ -86,28 +82,28 @@ graphStatus LowerSplitHelper::ParseSplitCase() {
   size_t num_aligned = 0;
   GE_ASSERT_NOTNULL(asc_backend_node_);
   GELOGD("node: %s(%s), in anchor size: %d, out anchor size: %d", asc_backend_node_->GetNamePtr(),
-         asc_backend_node_->GetTypePtr(), asc_backend_node_->GetAllInDataAnchorsSize(), asc_backend_node_->GetAllOutDataAnchorsSize());
+         asc_backend_node_->GetTypePtr(), asc_backend_node_->GetAllInDataAnchorsSize(),
+         asc_backend_node_->GetAllOutDataAnchorsSize());
   for (const auto &split_node : split_nodes_) {
     auto out_anchor = split_node->GetOutDataAnchor(0);
     if (out_anchor != nullptr) {
       GE_ASSERT_TRUE(static_cast<size_t>(out_anchor->GetIdx()) < output_shapes_.size());
       auto &output_shape = output_shapes_[out_anchor->GetIdx()];
       GE_ASSERT_EQ(output_shape.size(), input_shape_.size());
-      GE_ASSERT_TRUE(split_dim_< output_shape.size());
+      GE_ASSERT_TRUE(split_dim_ < output_shape.size());
       const auto dim_size = output_shape[split_dim_];
-      GE_CHK_BOOL_RET_SPECIAL_STATUS((!dim_size.IsConstExpr()),
-                                     ge::SUCCESS,
-                                     "contains non-const dim: %s",
+      GE_CHK_BOOL_RET_SPECIAL_STATUS((!dim_size.IsConstExpr()), ge::SUCCESS, "contains non-const dim: %s",
                                      SymbolicUtils::ToString(dim_size).c_str());
       int64_t split_dim_size_val = -1;
-      (void) dim_size.GetConstValue(split_dim_size_val);
-      GE_CHK_BOOL_RET_SPECIAL_STATUS(split_dim_size_val < 0, ge::SUCCESS,
-                                     "output[%zu] contains %ld dim", out_anchor->GetIdx(), split_dim_size_val);
+      (void)dim_size.GetConstValue(split_dim_size_val);
+      GE_CHK_BOOL_RET_SPECIAL_STATUS(split_dim_size_val < 0, ge::SUCCESS, "output[%zu] contains %ld dim",
+                                     out_anchor->GetIdx(), split_dim_size_val);
       GE_ASSERT_TRUE(!out_anchor->GetPeerInDataAnchors().empty());
-      for (auto peer_in_anchor: out_anchor->GetPeerInDataAnchors()) {
+      for (auto peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
         const auto peer_node = peer_in_anchor->GetOwnerNodeBarePtr();
         GE_ASSERT_NOTNULL(peer_node);
-        GELOGI("output[%d] connected to %s(%s)", out_anchor->GetIdx(), peer_node->GetNamePtr(), peer_node->GetTypePtr());
+        GELOGI("output[%d] connected to %s(%s)", out_anchor->GetIdx(), peer_node->GetNamePtr(),
+               peer_node->GetTypePtr());
         if (peer_node->GetType() != kStoreType) {
           total_fused_dim_size_ += split_dim_size_val;
         }
@@ -115,9 +111,9 @@ graphStatus LowerSplitHelper::ParseSplitCase() {
       }
     }
   }
-  case_ = split_dim_ == 0 ? SplitCase::kFirstDim :
-          (num_aligned == asc_backend_node_->GetOutDataNodesSize() ? SplitCase::kAllAligned
-                                                                         : SplitCase::kOther);
+  case_ = split_dim_ == 0
+              ? SplitCase::kFirstDim
+              : (num_aligned == asc_backend_node_->GetOutDataNodesSize() ? SplitCase::kAllAligned : SplitCase::kOther);
   return GRAPH_SUCCESS;
 }
 
@@ -154,28 +150,23 @@ graphStatus LowerSplitHelper::CheckFuseOtherNodes(bool &need_lifting) {
 }
 
 graphStatus LowerSplitHelper::CheckFuseRatio(bool &need_lifting) {
-  static const std::map<SplitCase, std::string> kCaseToName
-      {{SplitCase::kFirstDim, "first_dim"}, {SplitCase::kAllAligned, "aligned"}, {SplitCase::kOther, "other"}};
+  static const std::map<SplitCase, std::string> kCaseToName{
+      {SplitCase::kFirstDim, "first_dim"}, {SplitCase::kAllAligned, "aligned"}, {SplitCase::kOther, "other"}};
   static const std::map<SplitCase, ge::float64_t> kCaseToRatio{
       {SplitCase::kFirstDim, 0.0},
       {SplitCase::kAllAligned, 0.3333},
       {SplitCase::kOther, 0.3333},
   };
   GE_CHK_BOOL_RET_SPECIAL_STATUS(asc_backend_node_->GetAllOutDataAnchorsSize() > kMaxOutputNum, GRAPH_SUCCESS,
-                                 "num_outputs = %zu, do not lifting",
-                                 asc_backend_node_->GetAllOutDataAnchorsSize());
+                                 "num_outputs = %zu, do not lifting", asc_backend_node_->GetAllOutDataAnchorsSize());
   bool found_split_dim = false;
   GE_ASSERT_SUCCESS(ParseSplitNode(found_split_dim));
   GE_CHK_BOOL_RET_SPECIAL_STATUS(!found_split_dim, GRAPH_SUCCESS, "split dim not found");
   // 暂不处理split_dim后为动态shape的场景
-  GE_ASSERT_TRUE(split_dim_< input_shape_.size());
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(!input_shape_[split_dim_].IsConstExpr(),
-                                 GRAPH_SUCCESS,
-                                 "split dim size is non-const");
-  (void) input_shape_[split_dim_].GetConstValue(input_dim_size_);
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(input_dim_size_ <= 0,
-                                 GRAPH_SUCCESS,
-                                 "split dim size is not positive");
+  GE_ASSERT_TRUE(split_dim_ < input_shape_.size());
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(!input_shape_[split_dim_].IsConstExpr(), GRAPH_SUCCESS, "split dim size is non-const");
+  (void)input_shape_[split_dim_].GetConstValue(input_dim_size_);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(input_dim_size_ <= 0, GRAPH_SUCCESS, "split dim size is not positive");
   GE_ASSERT_SUCCESS(ParseSplitCase());
   GE_CHK_BOOL_RET_SPECIAL_STATUS(case_ == SplitCase::kNoLifting, GRAPH_SUCCESS, "No need for lifting");
   auto buffer_ratio = static_cast<float64_t>(total_fused_dim_size_) / static_cast<float64_t>(input_dim_size_);

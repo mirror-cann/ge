@@ -2,28 +2,27 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 import functools
 import inspect
-import traceback
 import threading
-from typing import Union, List
+import traceback
+from typing import List, Union
+
 import dataflow.data_type as dt
 import dataflow.dataflow as df
 import dataflow.flow_func as ff
 import dataflow.utils.utils as utils
-import dataflow.utils.log as log
 from dataflow.flow_func import flowfunc_wrapper as fw
-from dataflow.utils.msg_type_register import msg_type_register
 from dataflow.pyflow import PyActorProcessPoint, PyFunctionProcessPoint
-
+from dataflow.utils.msg_type_register import msg_type_register
 
 _npu_model_support_args_ = [
     "num_returns",
@@ -97,15 +96,12 @@ def _convert_torch_to_df_tensor_dtype(torch_dtype):
 
 def _prepare_inputs(inputs: Union[List[fw.FlowMsg]], input_num):
     import torch
-    import torch_npu
     import torchair
 
     # make sure device is running device
     torch.npu.set_device(utils.get_running_device_id())
     input_list = []
-    ret, runtime_tensor_descs = (
-        fw.RuntimeTensorDescMsgProcessor.get_runtime_tensor_descs(inputs[0], input_num)
-    )
+    ret, runtime_tensor_descs = fw.RuntimeTensorDescMsgProcessor.get_runtime_tensor_descs(inputs[0], input_num)
     if ret != ff.FLOW_FUNC_SUCCESS:
         ff.logger.error("get_runtime_tensor_descs failed, ret=%d", ret)
         return ret, input_list
@@ -183,28 +179,19 @@ def _prepare_outputs(runtime_context, outputs, output_num):
 
 def _dynamo_export(class_ins, input_descs, workspace_dir):
     import torch
-    import torch_npu
     import torchair
 
-    model = class_ins._decorated_class(
-        *class_ins._saved_args[0], **class_ins._saved_args[1]
-    )
+    model = class_ins._decorated_class(*class_ins._saved_args[0], **class_ins._saved_args[1])
     input_list = []
     is_dynamic = False
     for input_desc in input_descs:
         desc_shape = [1 if item < 0 else item for item in input_desc._shape]
         print(f"input_desc._dtype={input_desc._dtype}")
-        input_list.append(
-            torch.ones(
-                *desc_shape, dtype=_convert_df_to_torch_tensor_dtype(input_desc._dtype)
-            )
-        )
+        input_list.append(torch.ones(*desc_shape, dtype=_convert_df_to_torch_tensor_dtype(input_desc._dtype)))
         if input_desc._shape != desc_shape:
             is_dynamic = True
 
-    torchair.dynamo_export(
-        *input_list, model=model, export_path=workspace_dir, dynamic=is_dynamic
-    )
+    torchair.dynamo_export(*input_list, model=model, export_path=workspace_dir, dynamic=is_dynamic)
 
 
 def _serialize_with_torch_tensor(torch_tensor):
@@ -230,9 +217,7 @@ def _deserialize_with_torch_tensor(buffer):
     import torch
 
     desc = fw.RuntimeTensorDesc.from_memory(buffer)
-    dtype = _convert_df_to_torch_tensor_dtype(
-        dt.get_python_dtype_from_dwrapper_dtype(desc.dtype)
-    )
+    dtype = _convert_df_to_torch_tensor_dtype(dt.get_python_dtype_from_dwrapper_dtype(desc.dtype))
     return torch.frombuffer(buffer=buffer, dtype=dtype, offset=1024).reshape(desc.shape)
 
 
@@ -261,25 +246,17 @@ class NpuActorProcessPoint(PyActorProcessPoint):
         if "optimize_level" in class_ins._default_options:
             optimize_level = class_ins._default_options["optimize_level"]
             if not isinstance(optimize_level, int):
-                raise TypeError(
-                    f"optimize_level must be a number, but got {type(optimize_level)}."
-                )
+                raise TypeError(f"optimize_level must be a number, but got {type(optimize_level)}.")
         if optimize_level == 1:
             pp = df.FuncProcessPoint(py_func=class_ins, workspace_dir=workspace_dir)
         elif optimize_level == 2:
             input_descs = class_ins._default_options.get("input_descs")
             if input_descs is None:
-                raise TypeError(
-                    f"optimize_level is {optimize_level}, but input_descs is None."
-                )
+                raise TypeError(f"optimize_level is {optimize_level}, but input_descs is None.")
             _dynamo_export(class_ins, input_descs, workspace_dir)
-            pp = df.GraphProcessPoint(
-                df.Framework.MINDSPORE, workspace_dir + "/export.air"
-            )
+            pp = df.GraphProcessPoint(df.Framework.MINDSPORE, workspace_dir + "/export.air")
         else:
-            raise TypeError(
-                f"optimize_level:{optimize_level} is not support in @npu_model."
-            )
+            raise TypeError(f"optimize_level:{optimize_level} is not support in @npu_model.")
         flow_node.add_process_point(pp)
         flow_node.set_attr("_npu_sched_model", 1)
 
@@ -318,9 +295,7 @@ class NpuActorProcessPoint(PyActorProcessPoint):
                 try:
                     prepare_ret, input_list = _prepare_inputs(inputs, self._input_num)
                     if prepare_ret != ff.FLOW_FUNC_SUCCESS:
-                        ff.logger.error(
-                            "failed to prepare input, ret = %d", prepare_ret
-                        )
+                        ff.logger.error("failed to prepare input, ret = %d", prepare_ret)
                         return prepare_ret
 
                     runtime_context = ff.MetaRunContext(run_context)
@@ -345,17 +320,12 @@ class NpuActorProcessPoint(PyActorProcessPoint):
                     ff.logger.error("failed to prepare output, ret = %d", ret[0])
                     return ret[0]
                 result_list = ret[1]
-                if (
-                    runtime_context.set_output(0, result_list[0])
-                    != ff.FLOW_FUNC_SUCCESS
-                ):
+                if runtime_context.set_output(0, result_list[0]) != ff.FLOW_FUNC_SUCCESS:
                     ff.logger.error("failed to set output")
                     return ff.FLOW_FUNC_FAILED
                 return ff.FLOW_FUNC_SUCCESS
 
-        return MethodClass(
-            class_ins, method_name, method_def, input_num, output_idx_offset, output_num
-        )
+        return MethodClass(class_ins, method_name, method_def, input_num, output_idx_offset, output_num)
 
 
 class NpuFunctionProcessPoint(PyFunctionProcessPoint):
@@ -371,14 +341,10 @@ class NpuFunctionProcessPoint(PyFunctionProcessPoint):
     def check_options_supported(cls, node_options):
         for key in node_options.keys():
             if key not in _npu_model_support_args_:
-                raise TypeError(
-                    f"param:{key} is not support in @npu_model when applied to a function."
-                )
+                raise TypeError(f"param:{key} is not support in @npu_model when applied to a function.")
 
     def add_process_point(self, flow_node):
-        pp = df.FuncProcessPoint(
-            py_func=self, workspace_dir="./" + flow_node.name + "_ws"
-        )
+        pp = df.FuncProcessPoint(py_func=self, workspace_dir="./" + flow_node.name + "_ws")
         flow_node.add_process_point(pp)
         flow_node.set_attr("_npu_sched_model", 1)
 
@@ -395,10 +361,6 @@ class NpuFunctionProcessPoint(PyFunctionProcessPoint):
 
 
 def _make_npu_model(function_or_class, options):
-    import torch
-    import torch_npu
-    import torchair
-
     _register_torch_tensor()
     if inspect.isfunction(function_or_class):
         return NpuFunctionProcessPoint(function_or_class, options)
@@ -406,9 +368,7 @@ def _make_npu_model(function_or_class, options):
     if inspect.isclass(function_or_class):
         return NpuActorProcessPoint._df_from_class(function_or_class, options)
 
-    raise TypeError(
-        f"The @npu_model decorator must be applied to either a function or a class."
-    )
+    raise TypeError("The @npu_model decorator must be applied to either a function or a class.")
 
 
 def npu_model(*args, **kwargs) -> Union[NpuFunctionProcessPoint]:

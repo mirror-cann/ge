@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -131,8 +131,8 @@ REGISTER_LOWERING(LogAddExpStub) {
 }  // namespace
 
 class LoopLoweringToAscBackendUTV2 : public testing::Test {
-public:
-protected:
+ public:
+ protected:
   void SetUp() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
     ge::PlatformContext::GetInstance().Reset();
@@ -151,35 +151,26 @@ protected:
 
 TEST_F(LoopLoweringToAscBackendUTV2, TestSplitDLoweringDynamicSuccess) {
   dlog_setlevel(0, 0, 1);
-  setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1" , 1);
+  setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1", 1);
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"o0", "(3 * o1)", "o2"});
   }();
-  auto desc = ge::CompliantOpDescBuilder().OpType("SplitD")
-  .Name("SplitD")
-  .IrDefInputs({
-  {"x", ge::kIrInputRequired, ""},
-  })
-  .IrDefOutputs({
-  {"y", ge::kIrOutputDynamic, ""},
-  })
-  .InstanceDynamicOutputNum("y", 3)
-  .IrDefAttrs({
-    {
-    "split_dim",
-    ge::kAttrRequired,
-    "VT_INT",
-    ge::AnyValue::CreateFrom(static_cast<int64_t>(1))
-    },
-  {
-  "num_split",
-  ge::kAttrRequired,
-  "VT_INT",
-  ge::AnyValue::CreateFrom(static_cast<int64_t>(3))
-  },
-  })
-  .Build();
+  auto desc = ge::CompliantOpDescBuilder()
+                  .OpType("SplitD")
+                  .Name("SplitD")
+                  .IrDefInputs({
+                      {"x", ge::kIrInputRequired, ""},
+                  })
+                  .IrDefOutputs({
+                      {"y", ge::kIrOutputDynamic, ""},
+                  })
+                  .InstanceDynamicOutputNum("y", 3)
+                  .IrDefAttrs({
+                      {"split_dim", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(1))},
+                      {"num_split", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(3))},
+                  })
+                  .Build();
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto node = cg->AddNode(desc);
@@ -227,30 +218,21 @@ TEST_F(LoopLoweringToAscBackendUTV2, TestSplitDLoweringStaticSuccess) {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"192", "64", "30"});
   }();
-  auto desc = ge::CompliantOpDescBuilder().OpType("SplitD")
-  .Name("SplitD")
-  .IrDefInputs({
-  {"x", ge::kIrInputRequired, ""},
-  })
-  .IrDefOutputs({
-  {"y", ge::kIrOutputDynamic, ""},
-  })
-  .InstanceDynamicOutputNum("y", 3)
-  .IrDefAttrs({
-    {
-    "split_dim",
-    ge::kAttrRequired,
-    "VT_INT",
-    ge::AnyValue::CreateFrom(static_cast<int64_t>(2))
-    },
-  {
-  "num_split",
-  ge::kAttrRequired,
-  "VT_INT",
-  ge::AnyValue::CreateFrom(static_cast<int64_t>(3))
-  },
-  })
-  .Build();
+  auto desc = ge::CompliantOpDescBuilder()
+                  .OpType("SplitD")
+                  .Name("SplitD")
+                  .IrDefInputs({
+                      {"x", ge::kIrInputRequired, ""},
+                  })
+                  .IrDefOutputs({
+                      {"y", ge::kIrOutputDynamic, ""},
+                  })
+                  .InstanceDynamicOutputNum("y", 3)
+                  .IrDefAttrs({
+                      {"split_dim", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(2))},
+                      {"num_split", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(3))},
+                  })
+                  .Build();
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto node = cg->AddNode(desc);
@@ -274,7 +256,7 @@ TEST_F(LoopLoweringToAscBackendUTV2, TestSplitDLoweringStaticSuccess) {
   ASSERT_EQ(LoweringManager::FusedLoopToAscBackendOp(cg), GRAPH_SUCCESS);
   auto range_out = split->GetAllOutDataAnchors();
   std::vector<OutDataAnchorPtr> node_outputs;
-  for (const auto e: range_out) {
+  for (const auto e : range_out) {
     node_outputs.emplace_back(e);
   }
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(node_outputs[0]);
@@ -304,6 +286,5 @@ tmp4 = ascir.Output(Output_0, [tmp3])
   const auto res2 = ReadableAscGraph(asc_graph->Graph());
   EXPECT_EQ(res2, expected);
 }
-
 
 }  // namespace ge

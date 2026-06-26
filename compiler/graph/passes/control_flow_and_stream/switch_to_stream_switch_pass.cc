@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,14 +22,13 @@ namespace ge {
 Status SwitchToStreamSwitchPass::Run(ComputeGraphPtr graph) {
   GELOGD("SwitchToStreamSwitchPass Enter");
 
-  GE_CHK_STATUS_RET(CheckCycleDependence(graph),
-                    "[Check][CycleDependence] in graph:%s failed.", graph->GetName().c_str());
+  GE_CHK_STATUS_RET(CheckCycleDependence(graph), "[Check][CycleDependence] in graph:%s failed.",
+                    graph->GetName().c_str());
   for (const auto &switch_node : switch_nodes_) {
-    GE_CHK_STATUS_RET(ReplaceSwitchNode(graph, switch_node),
-                      "[Replace][Switch] by StreamSwitch in graph:%s failed.", graph->GetName().c_str());
+    GE_CHK_STATUS_RET(ReplaceSwitchNode(graph, switch_node), "[Replace][Switch] by StreamSwitch in graph:%s failed.",
+                      graph->GetName().c_str());
   }
-  GE_CHK_STATUS_RET(CombineSwitchNode(graph),
-                    "[Combine][SwitchNode] in graph:%s failed.", graph->GetName().c_str());
+  GE_CHK_STATUS_RET(CombineSwitchNode(graph), "[Combine][SwitchNode] in graph:%s failed.", graph->GetName().c_str());
 
   for (const auto &node : graph->GetDirectNode()) {
     // MEMCPYASYNC may be inner node between switch and cond node.
@@ -40,17 +39,15 @@ Status SwitchToStreamSwitchPass::Run(ComputeGraphPtr graph) {
 
   for (const auto &node : bypass_nodes_) {
     GE_CHK_BOOL_EXEC(graph->IsolateNode(node) == GRAPH_SUCCESS,
-                     REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) in graph:%s failed",
-                                       node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
-                     return FAILED,
-                     "[Isolate][Node] %s(%s) in graph:%s failed.",
-                     node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+                     REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) in graph:%s failed", node->GetName().c_str(),
+                                          node->GetType().c_str(), graph->GetName().c_str());
+                     return FAILED, "[Isolate][Node] %s(%s) in graph:%s failed.", node->GetName().c_str(),
+                            node->GetType().c_str(), graph->GetName().c_str());
     GE_CHK_BOOL_EXEC(GraphUtils::RemoveNodeWithoutRelink(graph, node) == GRAPH_SUCCESS,
                      REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                                       node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
-                     return FAILED,
-                     "[Remove][Node] %s(%s) without relink in graph:%s failed",
-                     node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+                                          node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+                     return FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+                            node->GetType().c_str(), graph->GetName().c_str());
   }
 
   return UpdateControlFlowGroup(graph);
@@ -80,8 +77,7 @@ Status SwitchToStreamSwitchPass::CheckCycleDependence(const ComputeGraphPtr &gra
   std::string type;
   std::unordered_map<NodePtr, std::vector<NodePtr>> cond_switch_map;
   for (const NodePtr &node : graph->GetDirectNode()) {
-    GE_CHK_STATUS_RET(GetOriginalType(node, type),
-                      "[Get][OriginalType] failed, graph:%s.", graph->GetName().c_str());
+    GE_CHK_STATUS_RET(GetOriginalType(node, type), "[Get][OriginalType] failed, graph:%s.", graph->GetName().c_str());
     if ((type != SWITCH) && (type != REFSWITCH)) {
       continue;
     }
@@ -98,7 +94,7 @@ Status SwitchToStreamSwitchPass::CheckCycleDependence(const ComputeGraphPtr &gra
     GELOGD("Switch node[%s]'s real cond node is %s.", node->GetName().c_str(), cond_node->GetName().c_str());
     auto iter = cond_switch_map.find(cond_node);
     if (iter == cond_switch_map.end()) {
-      cond_switch_map[cond_node] = { node };
+      cond_switch_map[cond_node] = {node};
     } else {
       iter->second.emplace_back(node);
     }
@@ -141,10 +137,10 @@ void SwitchToStreamSwitchPass::MarkCycleDependence(
           out_nodes.push(out_node);
           continue;
         }
-        GELOGD("MarkCycleDependence: tmp_node=%s, switch_node=%s.",
-               tmp_node->GetName().c_str(), out_node->GetName().c_str());
-        GE_IF_BOOL_EXEC(SetCyclicDependenceFlag(out_node) != SUCCESS,
-                        GELOGW("set cyclic dependence attr failed."); return);
+        GELOGD("MarkCycleDependence: tmp_node=%s, switch_node=%s.", tmp_node->GetName().c_str(),
+               out_node->GetName().c_str());
+        GE_IF_BOOL_EXEC(SetCyclicDependenceFlag(out_node) != SUCCESS, GELOGW("set cyclic dependence attr failed.");
+                        return);
         auto map_iter = switch_cyclic_map_.find(out_node);
         if (map_iter == switch_cyclic_map_.end()) {
           switch_cyclic_map_[out_node] = {tmp_node->GetName()};
@@ -175,14 +171,16 @@ Status SwitchToStreamSwitchPass::ReplaceSwitchNode(const ComputeGraphPtr &graph,
   OpDescPtr cond_desc = peer_cond_anchor->GetOwnerNode()->GetOpDesc();
   GE_CHECK_NOTNULL(cond_desc);
   DataType cond_data_type = cond_desc->GetOutputDesc(peer_cond_anchor->GetIdx()).GetDataType();
-  GE_CHK_BOOL_EXEC(cond_data_type == DT_BOOL,
-                   REPORT_INNER_ERR_MSG("E19999", "Pred_input of Switch node:%s(%s) only support DT_BOOL data_type, "
-                                      "but %s exactly", switch_node->GetName().c_str(), switch_node->GetType().c_str(),
-                                      TypeUtils::DataTypeToSerialString(cond_data_type).c_str());
-                   return FAILED,
-                   "[Check][Param] Pred_input of Switch node:%s(%s) only support DT_BOOL data_type, but %s exactly",
-                   switch_node->GetName().c_str(), switch_node->GetType().c_str(),
-                   TypeUtils::DataTypeToSerialString(cond_data_type).c_str());
+  GE_CHK_BOOL_EXEC(
+      cond_data_type == DT_BOOL,
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Pred_input of Switch node:%s(%s) only support DT_BOOL data_type, "
+                           "but %s exactly",
+                           switch_node->GetName().c_str(), switch_node->GetType().c_str(),
+                           TypeUtils::DataTypeToSerialString(cond_data_type).c_str());
+      return FAILED, "[Check][Param] Pred_input of Switch node:%s(%s) only support DT_BOOL data_type, but %s exactly",
+             switch_node->GetName().c_str(), switch_node->GetType().c_str(),
+             TypeUtils::DataTypeToSerialString(cond_data_type).c_str());
 
   OpDescPtr switch_desc = switch_node->GetOpDesc();
   GE_CHECK_NOTNULL(switch_desc);
@@ -215,17 +213,15 @@ Status SwitchToStreamSwitchPass::ReplaceSwitchNode(const ComputeGraphPtr &graph,
         }
       });
 
-      GE_CHK_STATUS(GraphUtils::RemoveEdge(out_data_anchor, peer_in_anchor),
-                    "[Remove][Edge] between %s and %s failed.",
+      GE_CHK_STATUS(GraphUtils::RemoveEdge(out_data_anchor, peer_in_anchor), "[Remove][Edge] between %s and %s failed.",
                     switch_node->GetName().c_str(), peer_in_anchor->GetOwnerNode()->GetName().c_str());
 
       NodePtr out_node = peer_in_anchor->GetOwnerNode();
-      GE_CHK_STATUS(GraphUtils::AddEdge(peer_data_anchor, peer_in_anchor),
-                    "[Add][Edge] between %s and %s failed.",
+      GE_CHK_STATUS(GraphUtils::AddEdge(peer_data_anchor, peer_in_anchor), "[Add][Edge] between %s and %s failed.",
                     peer_data_anchor->GetOwnerNode()->GetName().c_str(), out_node->GetName().c_str());
       GE_CHK_STATUS(GraphUtils::AddEdge(stream_switch->GetOutControlAnchor(), out_node->GetInControlAnchor()),
-                    "[Add][ControlEdge] between %s and %s failed.",
-                    stream_switch->GetName().c_str(), out_node->GetName().c_str());
+                    "[Add][ControlEdge] between %s and %s failed.", stream_switch->GetName().c_str(),
+                    out_node->GetName().c_str());
       out_node_list.insert(out_node->GetName());
     }
 
@@ -260,13 +256,12 @@ Status SwitchToStreamSwitchPass::BypassSwitchNode(const NodePtr &switch_node, Ou
     // Remove Switch data input.
     if (GraphUtils::RemoveEdge(peer_out_anchor, in_data_anchor) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Remove edge between op:%s(%s)(index:%d) and op:%s(%s)(index:%u) failed",
-                        peer_out_anchor->GetOwnerNode()->GetName().c_str(),
-                        peer_out_anchor->GetOwnerNode()->GetType().c_str(), peer_out_anchor->GetIdx(),
-                        switch_node->GetName().c_str(), switch_node->GetType().c_str(), idx);
+                           peer_out_anchor->GetOwnerNode()->GetName().c_str(),
+                           peer_out_anchor->GetOwnerNode()->GetType().c_str(), peer_out_anchor->GetIdx(),
+                           switch_node->GetName().c_str(), switch_node->GetType().c_str(), idx);
       GELOGE(FAILED, "[Remove][Edge] between op:%s(%s)(index:%d) and op:%s(%s)(index:%u) failed",
-             peer_out_anchor->GetOwnerNode()->GetName().c_str(),
-             peer_out_anchor->GetOwnerNode()->GetType().c_str(), peer_out_anchor->GetIdx(),
-             switch_node->GetName().c_str(), switch_node->GetType().c_str(), idx);
+             peer_out_anchor->GetOwnerNode()->GetName().c_str(), peer_out_anchor->GetOwnerNode()->GetType().c_str(),
+             peer_out_anchor->GetIdx(), switch_node->GetName().c_str(), switch_node->GetType().c_str(), idx);
       return FAILED;
     }
 
@@ -328,8 +323,8 @@ NodePtr SwitchToStreamSwitchPass::CreateStreamSwitchNode(const ComputeGraphPtr &
                    return nullptr, "[Get][OpDesc] failed, OpDesc of Switch node is invalid.");
   GE_IF_BOOL_EXEC(switch_op_desc->GetInputsSize() != SWITCH_INPUT_NUM, {
     REPORT_INNER_ERR_MSG("E19999", "Input desc size:%zu of node:%s(%s) not equal to %u, check invalid",
-                       switch_op_desc->GetInputsSize(),
-                       switch_op_desc->GetName().c_str(), switch_op_desc->GetType().c_str(), SWITCH_INPUT_NUM);
+                         switch_op_desc->GetInputsSize(), switch_op_desc->GetName().c_str(),
+                         switch_op_desc->GetType().c_str(), SWITCH_INPUT_NUM);
     GELOGE(FAILED, "[Check][Param] Switch input param invalid, input_size=%lu, should be %u.",
            switch_op_desc->GetInputsSize(), SWITCH_INPUT_NUM);
     return nullptr;
@@ -361,12 +356,10 @@ NodePtr SwitchToStreamSwitchPass::CreateStreamSwitchNode(const ComputeGraphPtr &
 
   if (!AttrUtils::SetInt(op_desc, ATTR_NAME_SWITCH_DATA_TYPE, RT_SWITCH_INT32) ||
       !AttrUtils::SetInt(op_desc, ATTR_NAME_STREAM_SWITCH_COND, static_cast<int64_t>(RT_EQUAL))) {
-    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s or Attr:%s to op:%s(%s) failed",
-                      ATTR_NAME_SWITCH_DATA_TYPE.c_str(), ATTR_NAME_STREAM_SWITCH_COND.c_str(),
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Set][Attr] %s or Attr:%s to op:%s(%s) failed",
-           ATTR_NAME_SWITCH_DATA_TYPE.c_str(), ATTR_NAME_STREAM_SWITCH_COND.c_str(),
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s or Attr:%s to op:%s(%s) failed", ATTR_NAME_SWITCH_DATA_TYPE.c_str(),
+                         ATTR_NAME_STREAM_SWITCH_COND.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Set][Attr] %s or Attr:%s to op:%s(%s) failed", ATTR_NAME_SWITCH_DATA_TYPE.c_str(),
+           ATTR_NAME_STREAM_SWITCH_COND.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return nullptr;
   }
 
@@ -374,29 +367,26 @@ NodePtr SwitchToStreamSwitchPass::CreateStreamSwitchNode(const ComputeGraphPtr &
   GeTensorDesc cond_input_desc = switch_op_desc->GetInputDesc(SWITCH_PRED_INPUT);
   GeTensorDesc input_desc(GeShape(cond_input_desc.GetShape().GetDims()), cond_input_desc.GetFormat(), DT_INT32);
   GE_CHK_BOOL_EXEC(op_desc->AddInputDesc(input_desc) == GRAPH_SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed",
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                   return nullptr,
-                   "[Add][InputDesc] to op:%s(%s) failed",
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed", op_desc->GetName().c_str(),
+                                        op_desc->GetType().c_str());
+                   return nullptr, "[Add][InputDesc] to op:%s(%s) failed", op_desc->GetName().c_str(),
+                          op_desc->GetType().c_str());
   GeTensorDesc const_input_desc(GeShape(vector<int64_t>{}), cond_input_desc.GetFormat(), DT_INT32);
   GE_CHK_BOOL_EXEC(op_desc->AddInputDesc(const_input_desc) == GRAPH_SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed",
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                   return nullptr,
-                   "[Add][InputDesc] to op:%s(%s) failed",
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed", op_desc->GetName().c_str(),
+                                        op_desc->GetType().c_str());
+                   return nullptr, "[Add][InputDesc] to op:%s(%s) failed", op_desc->GetName().c_str(),
+                          op_desc->GetType().c_str());
 
   NodePtr stream_switch = graph->InsertNode(peer_cond_anchor->GetOwnerNode(), op_desc);
   GE_CHK_BOOL_EXEC(stream_switch != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-                   return nullptr,
-                   "[Add][Node] %s(%s) to graph:%s failed",
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                                        op_desc->GetType().c_str(), graph->GetName().c_str());
+                   return nullptr, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                          op_desc->GetType().c_str(), graph->GetName().c_str());
   GE_CHK_STATUS(GraphUtils::AddEdge(peer_cond_anchor, stream_switch->GetInDataAnchor(0)),
-                "[Add][Edge] between %s and %s failed.",
-                peer_cond_anchor->GetOwnerNode()->GetName().c_str(), stream_switch->GetName().c_str());
+                "[Add][Edge] between %s and %s failed.", peer_cond_anchor->GetOwnerNode()->GetName().c_str(),
+                stream_switch->GetName().c_str());
 
   int64_t group_index = -1;
   if (AttrUtils::GetInt(switch_node->GetOpDesc(), ATTR_NAME_CONTROL_FLOW_GROUP, group_index)) {
@@ -431,7 +421,7 @@ Status SwitchToStreamSwitchPass::MarkBranches(const OutDataAnchorPtr &peer_cond_
     } else {
       GE_IF_BOOL_EXEC(switch_group_it->second.size() != SWITCH_OUTPUT_NUM, {
         REPORT_INNER_ERR_MSG("E19999", "switch group size:%zu not equal to %u, group_id:%" PRId64 ", check invalid",
-                           switch_group_it->second.size(), SWITCH_OUTPUT_NUM, switch_group_id);
+                             switch_group_it->second.size(), SWITCH_OUTPUT_NUM, switch_group_id);
         GELOGE(INTERNAL_ERROR, "[Check][Param] switch group size:%zu not equal to %u, group_id:%" PRId64 "",
                switch_group_it->second.size(), SWITCH_OUTPUT_NUM, switch_group_id);
         return FAILED;
@@ -508,20 +498,20 @@ Status SwitchToStreamSwitchPass::CombineSwitchNode(const ComputeGraphPtr &graph)
       GELOGI("CombineSwitchNode: cond_node=%s.", cond_node->GetName().c_str());
 
       NodePtr cast_node = CreateCastOp(graph, peer_cond_anchor);
-      GE_CHK_BOOL_EXEC(cast_node != nullptr, return FAILED,
-                       "[Create][CastOp] for cond_node:%s failed.", cond_node->GetName().c_str());
+      GE_CHK_BOOL_EXEC(cast_node != nullptr, return FAILED, "[Create][CastOp] for cond_node:%s failed.",
+                       cond_node->GetName().c_str());
 
       NodePtr active_node = CreateActiveNode(graph, cond_node, cast_node);
-      GE_CHK_BOOL_EXEC(active_node != nullptr, return FAILED,
-                       "[Create][StreamActiveNode] for cond node:%s failed.", cond_node->GetName().c_str());
+      GE_CHK_BOOL_EXEC(active_node != nullptr, return FAILED, "[Create][StreamActiveNode] for cond node:%s failed.",
+                       cond_node->GetName().c_str());
       GE_CHK_STATUS(GraphUtils::AddEdge(cast_node->GetOutControlAnchor(), active_node->GetInControlAnchor()),
-                    "[Add][ControlEdge] between %s and %s failed.",
-                    cond_node->GetName().c_str(), active_node->GetName().c_str());
-      if (SetActiveLabelList(active_node, { cast_node->GetName() }) != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Set active label list:%s to op:%s(%s) failed",
-                          cast_node->GetName().c_str(), active_node->GetName().c_str(), active_node->GetType().c_str());
-        GELOGE(FAILED, "[Set][ActiveLabelList] %s to op:%s(%s) failed.",
-               cast_node->GetName().c_str(), active_node->GetName().c_str(), active_node->GetType().c_str());
+                    "[Add][ControlEdge] between %s and %s failed.", cond_node->GetName().c_str(),
+                    active_node->GetName().c_str());
+      if (SetActiveLabelList(active_node, {cast_node->GetName()}) != SUCCESS) {
+        REPORT_INNER_ERR_MSG("E19999", "Set active label list:%s to op:%s(%s) failed", cast_node->GetName().c_str(),
+                             active_node->GetName().c_str(), active_node->GetType().c_str());
+        GELOGE(FAILED, "[Set][ActiveLabelList] %s to op:%s(%s) failed.", cast_node->GetName().c_str(),
+               active_node->GetName().c_str(), active_node->GetType().c_str());
         return FAILED;
       }
 
@@ -552,14 +542,14 @@ Status SwitchToStreamSwitchPass::CombineSwitchNode(const ComputeGraphPtr &graph)
         stream_switch_nodes_.emplace_back(stream_switch);
 
         // 0_input: original pred input, 1_input: constant node
-        GE_CHK_STATUS_RET(AddConstNode(graph, stream_switch),
-                          "[Add][ConstNode] failed, stream_switch:%s.", stream_switch->GetName().c_str());
+        GE_CHK_STATUS_RET(AddConstNode(graph, stream_switch), "[Add][ConstNode] failed, stream_switch:%s.",
+                          stream_switch->GetName().c_str());
         GE_CHK_STATUS(GraphUtils::RemoveEdge(peer_cond_anchor, stream_switch->GetInDataAnchor(0)),
-                      "[Remove][Edge] between %s and %s failed.",
-                      peer_cond_anchor->GetOwnerNode()->GetName().c_str(), stream_switch->GetName().c_str());
+                      "[Remove][Edge] between %s and %s failed.", peer_cond_anchor->GetOwnerNode()->GetName().c_str(),
+                      stream_switch->GetName().c_str());
         GE_CHK_STATUS(GraphUtils::AddEdge(cast_node->GetOutDataAnchor(0), stream_switch->GetInDataAnchor(0)),
-                      "[Add][Edge] between %s and %s failed.",
-                      cast_node->GetName().c_str(), stream_switch->GetName().c_str());
+                      "[Add][Edge] between %s and %s failed.", cast_node->GetName().c_str(),
+                      stream_switch->GetName().c_str());
 
         int64_t old_group_index = -1;
         if (AttrUtils::GetInt(switch_desc, ATTR_NAME_CONTROL_FLOW_GROUP, old_group_index) &&
@@ -581,16 +571,16 @@ Status SwitchToStreamSwitchPass::CombineSwitchNode(const ComputeGraphPtr &graph)
             }
           }
           GE_CHK_STATUS(ModifySwitchInCtlEdges(node, cast_node, same_cond_switch),
-                        "[Modify][SwitchInCtlEdges] failed, switch node:%s, cast node:%s.",
-                        node->GetName().c_str(), cast_node->GetName().c_str());
+                        "[Modify][SwitchInCtlEdges] failed, switch node:%s, cast node:%s.", node->GetName().c_str(),
+                        cast_node->GetName().c_str());
           GE_CHK_STATUS(ModifySwitchOutCtlEdges(node, stream_switch, active_node),
-                        "[Modify][SwitchOutCtlEdges] failed, node:%s, stream_switch:%s.",
-                        node->GetName().c_str(), stream_switch->GetName().c_str());
+                        "[Modify][SwitchOutCtlEdges] failed, node:%s, stream_switch:%s.", node->GetName().c_str(),
+                        stream_switch->GetName().c_str());
         }
 
         GE_CHK_STATUS(GraphUtils::AddEdge(active_node->GetOutControlAnchor(), stream_switch->GetInControlAnchor()),
-                      "[Add][ControlEdge] between %s and %s failed.",
-                      active_node->GetName().c_str(), stream_switch->GetName().c_str());
+                      "[Add][ControlEdge] between %s and %s failed.", active_node->GetName().c_str(),
+                      stream_switch->GetName().c_str());
       }
     }
   }
@@ -616,18 +606,18 @@ NodePtr SwitchToStreamSwitchPass::CreateActiveNode(const ComputeGraphPtr &graph,
 
   NodePtr active_node = graph->InsertNode(pre_node, op_desc);
   GE_CHK_BOOL_EXEC(active_node != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-                   return nullptr,
-                   "[Add][Node] %s(%s) to graph:%s failed",
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                                        op_desc->GetType().c_str(), graph->GetName().c_str());
+                   return nullptr, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                          op_desc->GetType().c_str(), graph->GetName().c_str());
 
-  GE_IF_BOOL_EXEC(SetSwitchBranchNodeLabel(active_node, node_name) != SUCCESS,
-                  REPORT_INNER_ERR_MSG("E19999", "Set switch branch node label:%s to node:%s(%s) failed",
-                                    node_name.c_str(), active_node->GetName().c_str(), active_node->GetType().c_str());
-                  GELOGE(INTERNAL_ERROR, "[Set][SwitchBranchNodeLabel] %s to node:%s(%s) failed",
-                         node_name.c_str(), active_node->GetName().c_str(), active_node->GetType().c_str());
-                  return nullptr);
+  GE_IF_BOOL_EXEC(
+      SetSwitchBranchNodeLabel(active_node, node_name) != SUCCESS,
+      REPORT_INNER_ERR_MSG("E19999", "Set switch branch node label:%s to node:%s(%s) failed", node_name.c_str(),
+                           active_node->GetName().c_str(), active_node->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Set][SwitchBranchNodeLabel] %s to node:%s(%s) failed", node_name.c_str(),
+             active_node->GetName().c_str(), active_node->GetType().c_str());
+      return nullptr);
 
   return active_node;
 }
@@ -655,14 +645,12 @@ NodePtr SwitchToStreamSwitchPass::CreateCastOp(const ComputeGraphPtr &graph, con
         AttrUtils::SetInt(cast_desc, CAST_ATTR_DSTT, static_cast<int64_t>(DT_INT32)) &&
         AttrUtils::SetInt(cast_desc, CAST_ATTR_DST_TYPE, static_cast<int64_t>(DT_INT32)) &&
         AttrUtils::SetBool(cast_desc, CAST_ATTR_TRUNCATE, false))) {
-    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s or %s or %s or %s to op:%s(%s) failed",
-                      CAST_ATTR_SRCT.c_str(), CAST_ATTR_DSTT.c_str(),
-                      CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
-                      cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
-    GELOGE(FAILED, "[Set][Attr] %s or %s or %s or %s to op:%s(%s) failed",
-           CAST_ATTR_SRCT.c_str(), CAST_ATTR_DSTT.c_str(),
-           CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
-           cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s or %s or %s or %s to op:%s(%s) failed", CAST_ATTR_SRCT.c_str(),
+                         CAST_ATTR_DSTT.c_str(), CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
+                         cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+    GELOGE(FAILED, "[Set][Attr] %s or %s or %s or %s to op:%s(%s) failed", CAST_ATTR_SRCT.c_str(),
+           CAST_ATTR_DSTT.c_str(), CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(), cast_desc->GetName().c_str(),
+           cast_desc->GetType().c_str());
     return nullptr;
   }
 
@@ -672,32 +660,26 @@ NodePtr SwitchToStreamSwitchPass::CreateCastOp(const ComputeGraphPtr &graph, con
   GeTensorDesc tensor_desc = cond_desc->GetOutputDesc(peer_cond_anchor->GetIdx());
   tensor_desc.SetDataType(DT_BOOL);
   GE_CHK_BOOL_EXEC(cast_desc->AddInputDesc(tensor_desc) == SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed",
-                                     cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
-                   return nullptr,
-                   "[Add][InputDesc] to op:%s(%s) failed",
-                   cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed", cast_desc->GetName().c_str(),
+                                        cast_desc->GetType().c_str());
+                   return nullptr, "[Add][InputDesc] to op:%s(%s) failed", cast_desc->GetName().c_str(),
+                          cast_desc->GetType().c_str());
   tensor_desc.SetDataType(DT_INT32);
   GE_CHK_BOOL_EXEC(cast_desc->AddOutputDesc(tensor_desc) == SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed",
-                                     cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
-                   return nullptr,
-                   "[Add][OutputDesc] to op:%s(%s) failed",
-                   cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed", cast_desc->GetName().c_str(),
+                                        cast_desc->GetType().c_str());
+                   return nullptr, "[Add][OutputDesc] to op:%s(%s) failed", cast_desc->GetName().c_str(),
+                          cast_desc->GetType().c_str());
 
   NodePtr cast_node = graph->InsertNode(peer_cond_anchor->GetOwnerNode(), cast_desc);
   GE_CHK_BOOL_EXEC(cast_node != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                                     cast_desc->GetName().c_str(), cast_desc->GetType().c_str(),
-                                     graph->GetName().c_str());
-                   return nullptr,
-                   "[Add][Node] %s(%s) to graph:%s failed",
-                   cast_desc->GetName().c_str(), cast_desc->GetType().c_str(),
-                   graph->GetName().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", cast_desc->GetName().c_str(),
+                                        cast_desc->GetType().c_str(), graph->GetName().c_str());
+                   return nullptr, "[Add][Node] %s(%s) to graph:%s failed", cast_desc->GetName().c_str(),
+                          cast_desc->GetType().c_str(), graph->GetName().c_str());
   // Cast node has and only has one input
   GE_CHK_STATUS(GraphUtils::AddEdge(peer_cond_anchor, cast_node->GetInDataAnchor(0)),
-                "[Add][Edge] between %s and %s failed.",
-                cond_desc->GetName().c_str(), cast_node->GetName().c_str());
+                "[Add][Edge] between %s and %s failed.", cond_desc->GetName().c_str(), cast_node->GetName().c_str());
 
   return cast_node;
 }
@@ -712,13 +694,12 @@ Status SwitchToStreamSwitchPass::AddConstNode(const ComputeGraphPtr &graph, cons
   OpDescPtr op_desc = stream_switch->GetOpDesc();
   GE_CHECK_NOTNULL(op_desc);
   bool value = false;
-  GE_CHK_BOOL_EXEC(AttrUtils::GetBool(op_desc, ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG, value),
-                   REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed",
-                                     ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                   return FAILED,
-                   "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  GE_CHK_BOOL_EXEC(
+      AttrUtils::GetBool(op_desc, ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG, value),
+      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
+                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      return FAILED, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
+             op_desc->GetName().c_str(), op_desc->GetType().c_str());
 
   const std::string &const_node_name = op_desc->GetName() + "_Constant_" + (value ? "t" : "f");
   GELOGI("Create const op: %s", const_node_name.c_str());
@@ -732,7 +713,7 @@ Status SwitchToStreamSwitchPass::AddConstNode(const ComputeGraphPtr &graph, cons
   auto resize_value = static_cast<int32_t>(value);
   GeTensorDesc data_desc = op_desc->GetInputDesc(1);
   GeTensorPtr const_value =
-          MakeShared<GeTensor>(data_desc, reinterpret_cast<uint8_t *>(&resize_value), sizeof(int32_t));
+      MakeShared<GeTensor>(data_desc, reinterpret_cast<uint8_t *>(&resize_value), sizeof(int32_t));
   if (const_value == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "New GeTensor failed");
     GELOGE(FAILED, "[New][GeTensor] failed.");
@@ -740,29 +721,25 @@ Status SwitchToStreamSwitchPass::AddConstNode(const ComputeGraphPtr &graph, cons
   }
   GE_CHK_BOOL_EXEC(AttrUtils::SetTensor(const_op_desc, ATTR_NAME_WEIGHTS, const_value),
                    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                                     const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
-                   return FAILED,
-                   "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                   const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
+                                        const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
+                   return FAILED, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
+                          const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
   GE_CHK_BOOL_EXEC(const_op_desc->AddOutputDesc(data_desc) == GRAPH_SUCCESS,
                    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed",
-                                     const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
-                   return FAILED,
-                   "[Add][OutputDesc] to op:%s(%s) failed",
-                   const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
+                                        const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str());
+                   return FAILED, "[Add][OutputDesc] to op:%s(%s) failed", const_op_desc->GetName().c_str(),
+                          const_op_desc->GetType().c_str());
 
   NodePtr const_node = graph->AddNode(const_op_desc);
-  GE_CHK_BOOL_EXEC(const_node != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                                     const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str(),
-                                     graph->GetName().c_str());
-                   return FAILED,
-                   "[Add][Node] %s(%s) to graph:%s failed",
-                   const_op_desc->GetName().c_str(), const_op_desc->GetType().c_str(),
-                   graph->GetName().c_str());
+  GE_CHK_BOOL_EXEC(
+      const_node != nullptr,
+      REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", const_op_desc->GetName().c_str(),
+                           const_op_desc->GetType().c_str(), graph->GetName().c_str());
+      return FAILED, "[Add][Node] %s(%s) to graph:%s failed", const_op_desc->GetName().c_str(),
+             const_op_desc->GetType().c_str(), graph->GetName().c_str());
   GE_CHK_STATUS(GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), stream_switch->GetInDataAnchor(1)),
-                "[Add][Edge] between %s and %s failed.",
-                const_node->GetName().c_str(), stream_switch->GetName().c_str());
+                "[Add][Edge] between %s and %s failed.", const_node->GetName().c_str(),
+                stream_switch->GetName().c_str());
 
   return SUCCESS;
 }
@@ -783,7 +760,7 @@ Status SwitchToStreamSwitchPass::ModifySwitchInCtlEdges(const NodePtr &switch_no
   GE_CHECK_NOTNULL(switch_desc);
   if (!AttrUtils::GetStr(switch_desc, ATTR_NAME_ORIG_NODE_NAME, orig_switch_name) || orig_switch_name.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_ORIG_NODE_NAME.c_str(),
-                      switch_desc->GetName().c_str(), switch_desc->GetType().c_str());
+                         switch_desc->GetName().c_str(), switch_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_ORIG_NODE_NAME.c_str(),
            switch_desc->GetName().c_str(), switch_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -791,26 +768,26 @@ Status SwitchToStreamSwitchPass::ModifySwitchInCtlEdges(const NodePtr &switch_no
 
   for (const NodePtr &in_ctrl_node : switch_node->GetInControlNodes()) {
     GE_CHK_STATUS(GraphUtils::RemoveEdge(in_ctrl_node->GetOutControlAnchor(), switch_node->GetInControlAnchor()),
-                  "[Remove][ControlEdge] between %s and %s failed.",
-                  in_ctrl_node->GetName().c_str(), switch_node->GetName().c_str());
+                  "[Remove][ControlEdge] between %s and %s failed.", in_ctrl_node->GetName().c_str(),
+                  switch_node->GetName().c_str());
     GE_IF_BOOL_EXEC(!in_ctrl_node->GetOutControlAnchor()->IsLinkedWith(cast_node->GetInControlAnchor()), {
       GE_CHK_STATUS(GraphUtils::AddEdge(in_ctrl_node->GetOutControlAnchor(), cast_node->GetInControlAnchor()),
-                    "[Add][ControlEdge] between %s and %s failed.",
-                    in_ctrl_node->GetName().c_str(), cast_node->GetName().c_str());
+                    "[Add][ControlEdge] between %s and %s failed.", in_ctrl_node->GetName().c_str(),
+                    cast_node->GetName().c_str());
     });
 
     GE_IF_BOOL_EXEC(in_ctrl_node->GetType() != STREAMSWITCH, continue);
     if (same_cond_switch.count(in_ctrl_node) > 0) {
       GE_CHK_STATUS(GraphUtils::RemoveEdge(in_ctrl_node->GetOutControlAnchor(), cast_node->GetInControlAnchor()),
-                    "[Remove][ControlEdge] between %s and %s failed.",
-                    in_ctrl_node->GetName().c_str(), cast_node->GetName().c_str());
+                    "[Remove][ControlEdge] between %s and %s failed.", in_ctrl_node->GetName().c_str(),
+                    cast_node->GetName().c_str());
       continue;
     }
 
     auto find_res1 = switch_node_map_.find(in_ctrl_node);
     GE_IF_BOOL_EXEC(find_res1 == switch_node_map_.end(), {
       REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) can't find in switch_node_map_, check invalid",
-                         in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str());
+                           in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Check][Param] StreamSwitch node %s not found in switch_node_map_.",
              in_ctrl_node->GetName().c_str());
       return INTERNAL_ERROR;
@@ -841,14 +818,14 @@ Status SwitchToStreamSwitchPass::ModifySwitchOutCtlEdges(const NodePtr &switch_n
   auto find_res = switch_node_map_.find(switch_node);
   GE_IF_BOOL_EXEC(find_res == switch_node_map_.end(), {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) can't find in switch_node_map_, check invalid",
-                       switch_node->GetName().c_str(), switch_node->GetType().c_str());
+                         switch_node->GetName().c_str(), switch_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] StreamSwitch node %s not found in switch_node_map_.",
            switch_node->GetName().c_str());
     return INTERNAL_ERROR;
   });
   GE_IF_BOOL_EXEC(find_res->second.empty(), {
     REPORT_INNER_ERR_MSG("E19999", "True_nodes of StreamSwitch node:%s(%s) is empty, check invalid",
-                       switch_node->GetName().c_str(), switch_node->GetType().c_str());
+                         switch_node->GetName().c_str(), switch_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] true_nodes of StreamSwitch node %s is empty.",
            switch_node->GetName().c_str());
     return INTERNAL_ERROR;
@@ -858,13 +835,13 @@ Status SwitchToStreamSwitchPass::ModifySwitchOutCtlEdges(const NodePtr &switch_n
     OpDescPtr op_desc = node->GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
     GE_CHK_STATUS(GraphUtils::RemoveEdge(switch_node->GetOutControlAnchor(), node->GetInControlAnchor()),
-                  "[Remove][ControlEdge] between %s and %s failed.",
-                  switch_node->GetName().c_str(), node->GetName().c_str());
+                  "[Remove][ControlEdge] between %s and %s failed.", switch_node->GetName().c_str(),
+                  node->GetName().c_str());
     std::string orig_name = op_desc->GetName();
     GE_IF_BOOL_EXEC(op_desc->HasAttr(ATTR_NAME_ORIG_NODE_NAME), {
       if (!AttrUtils::GetStr(op_desc, ATTR_NAME_ORIG_NODE_NAME, orig_name) || orig_name.empty()) {
         REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_ORIG_NODE_NAME.c_str(),
-                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_ORIG_NODE_NAME.c_str(),
                op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return INTERNAL_ERROR;
@@ -875,16 +852,16 @@ Status SwitchToStreamSwitchPass::ModifySwitchOutCtlEdges(const NodePtr &switch_n
       GE_CHECK_NOTNULL(active_out_ctrl_anchor);
       GE_IF_BOOL_EXEC(!active_out_ctrl_anchor->IsLinkedWith(node->GetInControlAnchor()), {
         GE_CHK_STATUS(GraphUtils::AddEdge(active_out_ctrl_anchor, node->GetInControlAnchor()),
-                      "[Add][ControlEdge] between %s and %s failed.",
-                      active_node->GetName().c_str(), node->GetName().c_str());
+                      "[Add][ControlEdge] between %s and %s failed.", active_node->GetName().c_str(),
+                      node->GetName().c_str());
       });
     } else {
       auto switch_out_ctrl_anchor = stream_switch->GetOutControlAnchor();
       GE_CHECK_NOTNULL(switch_out_ctrl_anchor);
       GE_IF_BOOL_EXEC(!switch_out_ctrl_anchor->IsLinkedWith(node->GetInControlAnchor()), {
         GE_CHK_STATUS(GraphUtils::AddEdge(switch_out_ctrl_anchor, node->GetInControlAnchor()),
-                      "[Add][ControlEdge] between %s and %s failed.",
-                      stream_switch->GetName().c_str(), node->GetName().c_str());
+                      "[Add][ControlEdge] between %s and %s failed.", stream_switch->GetName().c_str(),
+                      node->GetName().c_str());
       });
     }
   }
@@ -927,31 +904,31 @@ void SwitchToStreamSwitchPass::MoveCtrlEdges(const NodePtr &old_node, const Node
       for (const auto &out_node : old_node->GetOutAllNodes()) {
         GE_IF_BOOL_EXEC(!out_ctrl_anchor->IsLinkedWith(out_node->GetInControlAnchor()), {
           GE_CHK_STATUS(GraphUtils::AddEdge(out_ctrl_anchor, out_node->GetInControlAnchor()),
-                        "[Add][ControlEdge] between %s and %s failed.",
-                        in_node->GetName().c_str(), out_node->GetName().c_str());
+                        "[Add][ControlEdge] between %s and %s failed.", in_node->GetName().c_str(),
+                        out_node->GetName().c_str());
         });
       }
     } else {
       GE_IF_BOOL_EXEC(!out_ctrl_anchor->IsLinkedWith(new_node->GetInControlAnchor()), {
         GE_CHK_STATUS(GraphUtils::AddEdge(out_ctrl_anchor, new_node->GetInControlAnchor()),
-                      "[Add][ControlEdge] between %s and %s failed.",
-                      in_node->GetName().c_str(), new_node->GetName().c_str());
+                      "[Add][ControlEdge] between %s and %s failed.", in_node->GetName().c_str(),
+                      new_node->GetName().c_str());
       });
     }
     GE_CHK_STATUS(GraphUtils::RemoveEdge(out_ctrl_anchor, old_node->GetInControlAnchor()),
-                  "[Remove][ControlEdge] between %s and %s failed.",
-                  in_node->GetName().c_str(), old_node->GetName().c_str());
+                  "[Remove][ControlEdge] between %s and %s failed.", in_node->GetName().c_str(),
+                  old_node->GetName().c_str());
   }
 
   for (const NodePtr &out_node : old_node->GetOutControlNodes()) {
     GE_IF_BOOL_EXEC(!new_node->GetOutControlAnchor()->IsLinkedWith(out_node->GetInControlAnchor()), {
       GE_CHK_STATUS(GraphUtils::AddEdge(new_node->GetOutControlAnchor(), out_node->GetInControlAnchor()),
-                    "[Add][ControlEdge] between %s and %s failed.",
-                    new_node->GetName().c_str(), out_node->GetName().c_str());
+                    "[Add][ControlEdge] between %s and %s failed.", new_node->GetName().c_str(),
+                    out_node->GetName().c_str());
     });
     GE_CHK_STATUS(GraphUtils::RemoveEdge(old_node->GetOutControlAnchor(), out_node->GetInControlAnchor()),
-                  "[Remove][ControlEdge] between %s and %s failed.",
-                  old_node->GetName().c_str(), out_node->GetName().c_str());
+                  "[Remove][ControlEdge] between %s and %s failed.", old_node->GetName().c_str(),
+                  out_node->GetName().c_str());
   }
 }
 
@@ -971,8 +948,8 @@ Status SwitchToStreamSwitchPass::UpdateControlFlowGroup(const ComputeGraphPtr &g
       if (iter != old_2_new_group_index_.end()) {
         int64_t new_group_index = iter->second;
         SetControlFlowGroup(node, new_group_index);
-        GELOGD("Change control flow group of node[type: %s, name: %s] from %" PRId64 " to %" PRId64 ".", node->GetType().c_str(),
-               node->GetName().c_str(), old_group_index, new_group_index);
+        GELOGD("Change control flow group of node[type: %s, name: %s] from %" PRId64 " to %" PRId64 ".",
+               node->GetType().c_str(), node->GetName().c_str(), old_group_index, new_group_index);
       }
     }
   }

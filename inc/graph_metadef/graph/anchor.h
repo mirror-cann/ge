@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY Anchor : public std::enable
   template <class T>
   using Vistor = RangeVistor<T, std::shared_ptr<ConstAnchor>>;
 
-  Anchor(const NodePtr& owner_node, const int32_t idx);
+  Anchor(const NodePtr &owner_node, const int32_t idx);
   Anchor(const Anchor &) = delete;
   Anchor(Anchor &&) = delete;
   Anchor &operator=(const Anchor &) = delete;
@@ -48,14 +48,14 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY Anchor : public std::enable
   // Whether the two anchor is equal
   virtual bool Equal(const AnchorPtr anchor) const = 0;
   virtual bool IsTypeOf(const TYPE type) const;
-  virtual bool IsTypeIdOf(const TypeId& type) const;
+  virtual bool IsTypeIdOf(const TypeId &type) const;
   virtual TYPE GetSelfType() const;
 
  public:
   // Get all peer anchors connected to current anchor
   Vistor<AnchorPtr> GetPeerAnchors() const;
   // Get all peer anchors bare ptr connected to current anchor
-  std::vector<Anchor*> GetPeerAnchorsPtr() const;
+  std::vector<Anchor *> GetPeerAnchorsPtr() const;
   // Get peer anchor size
   size_t GetPeerAnchorsSize() const;
   // Get first peer anchor
@@ -107,7 +107,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY Anchor : public std::enable
     return std::static_pointer_cast<T>(anchorPtr);
   }
 
-  template<class T>
+  template <class T>
   static T *DynamicAnchorPtrCast(Anchor *const anchor) {
     static_assert(std::is_base_of<Anchor, T>::value, "T must be a Anchor!");
     if ((anchor == nullptr) || (!anchor->IsTypeIdOf<T>())) {
@@ -126,7 +126,6 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY Anchor : public std::enable
     return IsTypeIdOf(GetTypeId<T>());
   }
 
-
  protected:
   AnchorImplPtr impl_;
 };
@@ -144,7 +143,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY DataAnchor : public Anchor 
 
  protected:
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
 
  private:
@@ -171,7 +170,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY InDataAnchor : public DataA
  protected:
   bool Equal(const AnchorPtr anchor) const override;
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
 };
 
@@ -204,7 +203,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OutDataAnchor : public Data
  protected:
   bool Equal(const AnchorPtr anchor) const override;
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
 };
 
@@ -217,7 +216,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY ControlAnchor : public Anch
 
  protected:
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
   ControlAnchor(const ControlAnchor &) = delete;
   ControlAnchor &operator=(const ControlAnchor &) = delete;
@@ -251,7 +250,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY InControlAnchor : public Co
  protected:
   bool Equal(const AnchorPtr anchor) const override;
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
 };
 
@@ -282,28 +281,28 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OutControlAnchor : public C
  protected:
   bool Equal(const AnchorPtr anchor) const override;
   bool IsTypeOf(const TYPE type) const override;
-  bool IsTypeIdOf(const TypeId& type) const override;
+  bool IsTypeIdOf(const TypeId &type) const override;
   Anchor::TYPE GetSelfType() const override;
 };
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<Anchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<DataAnchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<ControlAnchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<InDataAnchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<OutDataAnchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<InControlAnchor>();
 
-template<>
+template <>
 GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY TypeId GetTypeId<OutControlAnchor>();
 }  // namespace ge
 #endif  // INC_GRAPH_ANCHOR_H_

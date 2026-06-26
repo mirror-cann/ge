@@ -74,7 +74,8 @@ std::vector<fusion::PatternUniqPtr> UselessBinaryOpRemovePass::Patterns() {
   return patterns;
 }
 
-NodePtr UselessBinaryOpRemovePass::AddBroadcastNode(const ComputeGraphPtr &graph, const NodePtr &node, int32_t data_index) {
+NodePtr UselessBinaryOpRemovePass::AddBroadcastNode(const ComputeGraphPtr &graph, const NodePtr &node,
+                                                    int32_t data_index) {
   const auto &shape = node->GetOpDesc()->GetOutputDesc(0).GetShape().GetDims();
   const auto shape_tensor = MakeShared<GeTensor>();
   GE_ASSERT_NOTNULL(shape_tensor);
@@ -127,8 +128,9 @@ fusion::GraphUniqPtr UselessBinaryOpRemovePass::Replacement(const std::unique_pt
   const auto &data_shape = op_desc->GetInputDesc(data_index).GetShape().GetDims();
   const auto &output_shape = op_desc->GetOutputDesc(0).GetShape().GetDims();
   auto parent_node = x1_node;
-  if (data_shape != output_shape) { // need broadcast
-    GELOGD("node: %s need broadcast, in_shape = %s, out_shape = %s", target_node->GetNamePtr(), ToString(data_shape).c_str(), ToString(output_shape).c_str());
+  if (data_shape != output_shape) {  // need broadcast
+    GELOGD("node: %s need broadcast, in_shape = %s, out_shape = %s", target_node->GetNamePtr(),
+           ToString(data_shape).c_str(), ToString(output_shape).c_str());
     parent_node = AddBroadcastNode(compute_graph, target_node, data_index);
     GE_ASSERT_NOTNULL(parent_node);
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(x1_node->GetOutDataAnchor(0), parent_node->GetInDataAnchor(0)));
@@ -289,7 +291,7 @@ graphStatus AlgebraicSimplificationPass::Run(const ComputeGraphPtr &compute_grap
   const auto ret = used_binary_op_remove_pass.Run(graph_ptr, context);
   GE_WARN_ASSERT(ret == SUCCESS || ret == NOT_CHANGED, "Failed to run UselessBinaryOpRemovePass");
   if (ret == SUCCESS) {
-    (void) PrunePass().Run(compute_graph);
+    (void)PrunePass().Run(compute_graph);
   }
   GELOGD("Run UselessBinaryOpRemovePass end");
   return GRAPH_SUCCESS;

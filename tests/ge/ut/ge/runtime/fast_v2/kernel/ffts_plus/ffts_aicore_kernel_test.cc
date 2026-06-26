@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,7 @@
 #include "subscriber/profiler/cann_profiler_v2.h"
 #include "macro_utils/dt_public_unscope.h"
 namespace gert {
-namespace kernel {
-}
+namespace kernel {}
 using namespace kernel;
 using namespace ge;
 
@@ -56,9 +55,8 @@ TEST_F(FFTSAICoreKernelTestUT, test_ffts_args_memory_success) {
   node_para.host_addr = rt_arg.get();
   auto run_context1 = BuildKernelRunContext(1, static_cast<size_t>(AllocFFTSArgOutputs::kNum));
   run_context1.value_holder[0].Set(&node_para, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("RedirectLaunchArgs")->run_func(run_context1),
-      ge::GRAPH_SUCCESS);
-  //ASSERT_EQ(run_context1.value_holder[4].GetValue<size_t>(), 3264);
+  ASSERT_EQ(registry.FindKernelFuncs("RedirectLaunchArgs")->run_func(run_context1), ge::GRAPH_SUCCESS);
+  // ASSERT_EQ(run_context1.value_holder[4].GetValue<size_t>(), 3264);
 }
 
 TEST_F(FFTSAICoreKernelTestUT, test_ffts_update_auto_args) {
@@ -80,23 +78,26 @@ TEST_F(FFTSAICoreKernelTestUT, test_ffts_update_auto_args) {
   gert::GertTensorData data;
   AICoreSinkRet sink_ret;
 
-  auto run_context = BuildKernelRunContext(static_cast<size_t>(AutoArgsInKey::kNUM) + 3, static_cast<size_t>(kernel::ArgsOutKey::kNUM));
+  auto run_context = BuildKernelRunContext(static_cast<size_t>(AutoArgsInKey::kNUM) + 3,
+                                           static_cast<size_t>(kernel::ArgsOutKey::kNUM));
   run_context.value_holder[static_cast<size_t>(AutoArgsInKey::WORKSPACE)].Set(work_space_vector, nullptr);
   run_context.value_holder[static_cast<size_t>(AutoArgsInKey::SINK_RET)].Set(&sink_ret, nullptr);
-  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
-  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size), nullptr);
+  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim),
+                                                                               nullptr);
+  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size),
+                                                                                nullptr);
 
   auto offset = ContinuousVector::Create<uint64_t>(6);
   auto offset_vector = reinterpret_cast<ContinuousVector *>(offset.get());
   offset_vector->SetSize(5);
-  auto offset_vector_ptr = reinterpret_cast<uint64_t*>(offset_vector->MutableData());
+  auto offset_vector_ptr = reinterpret_cast<uint64_t *>(offset_vector->MutableData());
   for (size_t i = 0; i < offset_vector->GetSize(); i++) {
     offset_vector_ptr[i] = i;
   }
-  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::THREAD_OFFSET)].Set((void*)offset_vector, nullptr);
+  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::THREAD_OFFSET)].Set((void *)offset_vector, nullptr);
   size_t io_num = 1;
-  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::IN_NUM)].Set((void*)io_num, nullptr);
-  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::OUT_NUM)].Set((void*)io_num, nullptr);
+  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::IN_NUM)].Set((void *)io_num, nullptr);
+  run_context.value_holder[static_cast<size_t>(AutoArgsInKey::OUT_NUM)].Set((void *)io_num, nullptr);
   auto device_data = std::vector<int8_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   GertTensorData tensor_data = {(uint8_t *)device_data.data(), 0U, kTensorPlacementEnd, -1};
   GertTensorData out_data = {(uint8_t *)device_data.data(), 0U, kTensorPlacementEnd, -1};
@@ -117,14 +118,13 @@ TEST_F(FFTSAICoreKernelTestUT, test_ffts_update_auto_args) {
   auto rt_arg = RtFFTSKernelLaunchArgs::Create(tmp_node, node_desc, total_size);
   node_para.host_addr = rt_arg.get();
   char *mem_2 = new char[total_size];
-  node_para.dev_addr = (void*)mem_2;
+  node_para.dev_addr = (void *)mem_2;
   AICoreSubTaskFlush flush_data;
   run_context.value_holder[static_cast<size_t>(AutoArgsInKey::IO_START) + 2].Set(&flush_data, nullptr);
   run_context.value_holder[static_cast<size_t>(AutoArgsInKey::ARGS_PARA)].Set(&node_para, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAutoAICoreArgs")->outputs_creator(nullptr, run_context),
-  ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAutoAICoreArgs")->run_func(run_context),
-      ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAutoAICoreArgs")->run_func(run_context), ge::GRAPH_SUCCESS);
   EXPECT_FALSE(registry.FindKernelFuncs("FFTSUpdateAutoAICoreArgs")->trace_printer(run_context).empty());
   delete[] mem_2;
   for (size_t i = 0; i < work_space_vector->GetSize(); i++) {
@@ -187,13 +187,15 @@ TEST_F(FFTSAICoreKernelTestUT, test_auto_aicore_update_context) {
   for (size_t i = 0; i < invalid_ctx_vec->GetSize(); i++) {
     invalid_ctx_ptr[i] = i + 8;
   }
-  auto run_context = KernelRunContextFaker().KernelIONum(static_cast<size_t>(AutoUpdateKey::RESERVED), 0).
-      NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(static_cast<size_t>(AutoUpdateKey::RESERVED), 0)
+                         .NodeIoNum(2, 2)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
   run_context.value_holder[static_cast<size_t>(AutoUpdateKey::FLUSH_DATA)].Set(&flush_data, nullptr);
   run_context.value_holder[static_cast<size_t>(AutoUpdateKey::AICORE_CTX)].Set(ctx_ids_vec, nullptr);
   run_context.value_holder[static_cast<size_t>(AutoUpdateKey::PREFETCH_IDX)].Set(prefetch_idx_vec, nullptr);
@@ -204,31 +206,31 @@ TEST_F(FFTSAICoreKernelTestUT, test_auto_aicore_update_context) {
   run_context.value_holder[static_cast<size_t>(AutoUpdateKey::INVALID_CTX)].Set(invalid_ctx_vec, nullptr);
 
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(16);
-  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t) ;
+  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_AICORE;
   }
   for (int i = 0; i < 2; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_FLUSH_DATA;
   }
   for (int i = 0; i < 2; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_WRITEBACK_DATA;
   }
   for (int i = 0; i < 2; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_INVALIDATE_DATA;
   }
   rtFftsPlusTaskInfo_t task_inf;

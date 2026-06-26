@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@
 
 namespace ge {
 class GuardCodeGenUT : public testing::Test {
-public:
+ public:
   void SetUp() override {
     const auto env_ptr = getenv("LD_PRELOAD");
     if (env_ptr != nullptr) {
@@ -96,17 +96,17 @@ TEST_F(GuardCodeGenUT, GenGuardCodeAndSimpleTest) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
 
   gert::Tensor tensor0 = {{{3, 4, 5}, {3, 4, 5}},                      // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                      // shape
+  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
@@ -165,10 +165,10 @@ TEST_F(GuardCodeGenUT, GenGuardCodeWithValue) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
   std::vector<int32_t> data_value0{3, 4, 5};
   std::vector<int32_t> data_value1{4, 5, 6};
   std::vector<int32_t> data_value2{5, 6, 7};
@@ -177,23 +177,27 @@ TEST_F(GuardCodeGenUT, GenGuardCodeWithValue) {
                           {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
                           gert::kOnHost,                       // placement
                           ge::DT_INT32,                        // data type
-                          reinterpret_cast<void *>(data_value0.data()), nullptr};
+                          reinterpret_cast<void *>(data_value0.data()),
+                          nullptr};
   gert::Tensor tensor1 = {{{3}, {3}},                          // shape
                           {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
                           gert::kOnHost,                       // placement
                           ge::DT_INT32,                        // data type
-                          reinterpret_cast<void *>(data_value1.data()), nullptr};
+                          reinterpret_cast<void *>(data_value1.data()),
+                          nullptr};
   gert::Tensor tensor2 = {{{3}, {3}},                          // shape
                           {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
                           gert::kOnHost,                       // placement
                           ge::DT_INT32,                        // data type
-                          reinterpret_cast<void *>(data_value2.data()), nullptr};
-  gert::Tensor tensor3 = {{{7, 12, 4, 20}, {7, 12, 4, 20}},                // shape
+                          reinterpret_cast<void *>(data_value2.data()),
+                          nullptr};
+  gert::Tensor tensor3 = {{{7, 12, 4, 20}, {7, 12, 4, 20}},            // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
-                          (void *)0x0, nullptr};
-  std::vector<gert::Tensor*> inputs;
+                          (void *)0x0,
+                          nullptr};
+  std::vector<gert::Tensor *> inputs;
   inputs.emplace_back(&tensor0);
   inputs.emplace_back(&tensor1);
   inputs.emplace_back(&tensor2);
@@ -238,19 +242,20 @@ TEST_F(GuardCodeGenUT, GenGuardCodeFloat) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
   std::vector<int32_t> data_value0{3, 4, 5};
 
   gert::Tensor tensor0 = {{{3}, {3}},                          // shape
                           {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
                           gert::kOnHost,                       // placement
                           ge::DT_INT32,                        // data type
-                          reinterpret_cast<void *>(data_value0.data()), nullptr};
+                          reinterpret_cast<void *>(data_value0.data()),
+                          nullptr};
 
-  std::vector<gert::Tensor*> inputs;
+  std::vector<gert::Tensor *> inputs;
   inputs.emplace_back(&tensor0);
   char_t reason[1024];
   bool ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 4, reason, 1024);
@@ -268,11 +273,11 @@ TEST_F(GuardCodeGenUT, GenGuardCodeWithInvalidIncludePath) {
   ShapeEnvGuarder guard(attr);
 
   class MockMmpaRealPath : public ge::MmpaStubApiGe {
-  public:
+   public:
     int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
       // 1. 检查输入参数合法性
       if (path == nullptr || realPath == nullptr || realPathLen <= 0) {
-        return EN_INVALID_PARAM; // 假设 EN_INVALID_PARAM 是预定义错误码
+        return EN_INVALID_PARAM;  // 假设 EN_INVALID_PARAM 是预定义错误码
       }
 
       // 2. 计算 path 的长度（不含终止符）
@@ -280,12 +285,12 @@ TEST_F(GuardCodeGenUT, GenGuardCodeWithInvalidIncludePath) {
 
       // 3. 检查目标缓冲区是否足够容纳路径（含终止符）
       if (static_cast<size_t>(realPathLen) < path_len + 1) {
-        return EN_ERROR; // 缓冲区不足
+        return EN_ERROR;  // 缓冲区不足
       }
 
       // 4. 直接拷贝 path 到 realPath
       strncpy(realPath, path, realPathLen);
-      realPath[realPathLen - 1] = '\0'; // 确保终止符
+      realPath[realPathLen - 1] = '\0';  // 确保终止符
 
       return EN_OK;
     };
@@ -350,17 +355,17 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_Dfx_Info_When_Set_Guard_Context) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
 
   gert::Tensor tensor0 = {{{2, 4, 5}, {2, 4, 5}},                      // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                      // shape
+  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
@@ -372,7 +377,7 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_Dfx_Info_When_Set_Guard_Context) {
   setenv("ASCEND_GLOBAL_LOG_LEVEL", "0", 1);
   bool ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason, 1024);
   unsetenv("ASCEND_GLOBAL_LOG_LEVEL");
-  
+
   EXPECT_EQ(ret, false);
   std::string reason1(reason);
   EXPECT_NE(reason1.find("Check Symbol Check Expression: ExpectEq(s0, s4)"), std::string::npos);
@@ -415,17 +420,17 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_No_Dfx_Info_When_Clear_Guard_Context) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
 
   gert::Tensor tensor0 = {{{3, 4, 5}, {3, 4, 5}},                      // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{7, 3, 3, 5}, {7, 3, 3, 5}},                      // shape
+  gert::Tensor tensor1 = {{{7, 3, 3, 5}, {7, 3, 3, 5}},                // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
@@ -437,13 +442,13 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_No_Dfx_Info_When_Clear_Guard_Context) {
   setenv("ASCEND_GLOBAL_LOG_LEVEL", "0", 1);
   bool ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason, 1024);
   unsetenv("ASCEND_GLOBAL_LOG_LEVEL");
-  
+
   EXPECT_EQ(ret, false);
   std::string reason1(reason);
   EXPECT_NE(reason1.find("Check Symbol Check Expression: ExpectEq(s1, s5)"), std::string::npos);
   EXPECT_EQ(reason1.find("Context Info: Test Dfx For UT missed"), std::string::npos);
 
-  inputs[0]->MutableOriginShape().SetDim(0, 81); // 构造第一个guard失败，仍然有dfx
+  inputs[0]->MutableOriginShape().SetDim(0, 81);  // 构造第一个guard失败，仍然有dfx
   char_t reason0[1024];
   setenv("ASCEND_GLOBAL_LOG_LEVEL", "0", 1);
   ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason0, 1024);
@@ -491,17 +496,17 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_New_Dfx_Info_When_Set_Guard_Context_Twice)
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
 
   gert::Tensor tensor0 = {{{2, 4, 5}, {2, 4, 5}},                      // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                      // shape
+  gert::Tensor tensor1 = {{{7, 3, 4, 5}, {7, 3, 4, 5}},                // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                           gert::kOnDeviceHbm,                          // placement
                           ge::DT_FLOAT16,                              // data type
@@ -513,14 +518,14 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_New_Dfx_Info_When_Set_Guard_Context_Twice)
   setenv("ASCEND_GLOBAL_LOG_LEVEL", "0", 1);
   bool ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason, 1024);
   unsetenv("ASCEND_GLOBAL_LOG_LEVEL");
-  
+
   EXPECT_EQ(ret, false);
   std::string reason1(reason);
   EXPECT_NE(reason1.find("Check Symbol Check Expression: ExpectEq(s0, s4)"), std::string::npos);
   EXPECT_NE(reason1.find("Context Info: Test Dfx For UT missed"), std::string::npos);
 
   inputs[0]->MutableOriginShape().SetDim(0, 3);
-  inputs[0]->MutableOriginShape().SetDim(1, 3); // 构造第二个guard miss
+  inputs[0]->MutableOriginShape().SetDim(1, 3);  // 构造第二个guard miss
   char_t reason0[1024];
   setenv("ASCEND_GLOBAL_LOG_LEVEL", "0", 1);
   ret = reinterpret_cast<GuardCheckFunc>(func)(inputs.data(), 2, reason0, 1024);
@@ -533,4 +538,4 @@ TEST_F(GuardCodeGenUT, Guard_Miss_Has_New_Dfx_Info_When_Set_Guard_Context_Twice)
   close(so_fd);
   dlclose(handle);
 }
-}
+}  // namespace ge

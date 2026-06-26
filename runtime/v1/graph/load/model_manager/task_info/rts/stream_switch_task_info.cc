@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,9 +40,9 @@ Status StreamSwitchTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   uint32_t cond = 0U;
   if (!AttrUtils::GetInt(op_desc, ATTR_NAME_STREAM_SWITCH_COND, cond)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", ATTR_NAME_STREAM_SWITCH_COND.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s in op:%s(%s) fail",
-           ATTR_NAME_STREAM_SWITCH_COND.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_STREAM_SWITCH_COND.c_str(),
+           op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
   }
   cond_ = static_cast<aclrtCondition>(cond);
@@ -51,7 +51,7 @@ Status StreamSwitchTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   if ((!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list)) ||
       (active_stream_list.size() != kTrueBranchStreamNum_1)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s fail, active_stream_list.size():%zu",
-                       ATTR_NAME_ACTIVE_STREAM_LIST.c_str(), op_desc->GetName().c_str(), active_stream_list.size());
+                         ATTR_NAME_ACTIVE_STREAM_LIST.c_str(), op_desc->GetName().c_str(), active_stream_list.size());
     GELOGE(INTERNAL_ERROR, "[Get][Attr] %s in op:%s fail, active_stream_list.size():%zu",
            ATTR_NAME_ACTIVE_STREAM_LIST.c_str(), op_desc->GetName().c_str(), active_stream_list.size());
     return INTERNAL_ERROR;
@@ -60,8 +60,9 @@ Status StreamSwitchTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   const auto &stream_list = davinci_model_->GetStreamList();
   const size_t true_stream_index = static_cast<size_t>(active_stream_list.front());
   if (true_stream_index >= stream_list.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "active_stream_index:%zu in op:%s(%s) >= stream list size:%zu in model, check invalid",
-                       true_stream_index, op_desc->GetName().c_str(), op_desc->GetType().c_str(), stream_list.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "active_stream_index:%zu in op:%s(%s) >= stream list size:%zu in model, check invalid",
+                         true_stream_index, op_desc->GetName().c_str(), op_desc->GetType().c_str(), stream_list.size());
     GELOGE(INTERNAL_ERROR, "[Check][Param] active_stream_index:%zu in op:%s(%s) >= stream list size:%zu in model",
            true_stream_index, op_desc->GetName().c_str(), op_desc->GetType().c_str(), stream_list.size());
     return INTERNAL_ERROR;
@@ -72,9 +73,10 @@ Status StreamSwitchTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   GE_ASSERT_SUCCESS(davinci_model_->DisableZeroCopy(input_ptr_));
   GE_ASSERT_SUCCESS(davinci_model_->DisableZeroCopy(value_ptr_));
 
-  GELOGI("InitStreamSwitchTaskInfo %s Init Success, cond:%d, trueStream:%p, trueStreamID:%u, datatype:%d, "
-         "logic stream id: %u, stream: %p.",
-         op_desc->GetNamePtr(), cond_, true_stream_, true_stream_id_, data_type_, task_def.stream_id(), stream_);
+  GELOGI(
+      "InitStreamSwitchTaskInfo %s Init Success, cond:%d, trueStream:%p, trueStreamID:%u, datatype:%d, "
+      "logic stream id: %u, stream: %p.",
+      op_desc->GetNamePtr(), cond_, true_stream_, true_stream_id_, data_type_, task_def.stream_id(), stream_);
 
   return SUCCESS;
 }
@@ -83,8 +85,7 @@ Status StreamSwitchTaskInfo::Distribute() {
   GE_ASSERT_NOTNULL(op_desc_);
   GELOGI("StreamSwitchTaskInfo Distribute Start.");
   SetTaskTag(op_desc_->GetName().c_str());
-  const aclError acl_ret = aclrtSwitchStream(input_ptr_, cond_, value_ptr_, data_type_,
-                                             true_stream_, nullptr, stream_);
+  const aclError acl_ret = aclrtSwitchStream(input_ptr_, cond_, value_ptr_, data_type_, true_stream_, nullptr, stream_);
   if (acl_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtSwitchStream fail, ret:%d", acl_ret);
     GELOGE(RT_FAILED, "[Call][AclrtSwitchStream] failed, ret:%d", acl_ret);
@@ -92,11 +93,11 @@ Status StreamSwitchTaskInfo::Distribute() {
   }
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
   }
   is_support_redistribute_ = true;
-  GELOGI("StreamSwitchTaskInfo Distribute Success. cond: %d, true stream: %p, datatype: %d, stream: %p.",
-    cond_, true_stream_, data_type_, stream_);
+  GELOGI("StreamSwitchTaskInfo Distribute Success. cond: %d, true stream: %p, datatype: %d, stream: %p.", cond_,
+         true_stream_, data_type_, stream_);
   return SUCCESS;
 }
 
@@ -114,7 +115,7 @@ Status StreamSwitchTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, Da
   const auto input_data_addrs = ModelUtils::GetInputAddrsValue(davinci_model->GetRuntimeParam(), op_desc, mem_types);
   if ((input_data_addrs.size() != STREAM_SWITCH_INPUT_NUM) || (input_size != STREAM_SWITCH_INPUT_NUM)) {
     REPORT_INNER_ERR_MSG("E19999", "Op:%s, input_data_addrs.size():%zu or input size:%zu != %u, check invalid",
-                       op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
+                         op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
     GELOGE(FAILED, "[Check][Param] Op:%s, input_data_addrs.size():%zu, input size:%zu != %u.",
            op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
     return FAILED;
@@ -136,9 +137,9 @@ Status StreamSwitchTaskInfo::InitInputValueAndType(const OpDescPtr &op_desc, con
     int64_t data_type = 0;
     if (!AttrUtils::GetInt(op_desc, ATTR_NAME_SWITCH_DATA_TYPE, data_type)) {
       REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail, attribute value not int",
-                         ATTR_NAME_SWITCH_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail, attribute value not int",
-             ATTR_NAME_SWITCH_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                           ATTR_NAME_SWITCH_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail, attribute value not int", ATTR_NAME_SWITCH_DATA_TYPE.c_str(),
+             op_desc->GetName().c_str(), op_desc->GetType().c_str());
       return FAILED;
     }
     data_type_ = static_cast<aclrtCompareDataType>(data_type);

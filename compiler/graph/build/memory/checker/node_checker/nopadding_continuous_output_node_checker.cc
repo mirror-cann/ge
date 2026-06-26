@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -105,18 +105,22 @@ Status NoPaddingContinuousOutputNodeOffsetChecker(const NodeCheckerParam &param)
         continue;
       }
       int64_t continuous_offset = 0;
-      GE_ASSERT_SUCCESS(GetInputOffsetForContinuous(out_data_anchor, continuous_offset), "node: %s, out_index: "
-                        "%" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), out_index);
+      GE_ASSERT_SUCCESS(GetInputOffsetForContinuous(out_data_anchor, continuous_offset),
+                        "node: %s, out_index: "
+                        "%" PRId64 "",
+                        NodeCheckerUtils::NodeName(param.node).c_str(), out_index);
       GE_ASSERT_TRUE(!AddOverflow(base_offset, continuous_offset, expect_offset),
                      "offset: %" PRId64 ", len: %" PRId64 "", base_offset, continuous_offset);
     }
     if (expect_offset != offset) {
-      REPORT_INNER_ERR_MSG("E19999", "nopadding continuous output node memory check failed. node: %s, out_index: "
-                         "%d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
-                         NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset, expect_offset);
-      GELOGE(FAILED, "nopadding continuous output node memory check failed. node: %s, out_index: %d,"
-          " offset: %" PRId64 ", expect_offset: %" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), out_index,
-          offset, expect_offset);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "nopadding continuous output node memory check failed. node: %s, out_index: "
+                           "%d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
+                           NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset, expect_offset);
+      GELOGE(FAILED,
+             "nopadding continuous output node memory check failed. node: %s, out_index: %d,"
+             " offset: %" PRId64 ", expect_offset: %" PRId64 "",
+             NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset, expect_offset);
       GE_ASSERT_SUCCESS(NodeCheckerUtils::ErrorLogAllOutputs(param));
       return FAILED;
     }
@@ -215,10 +219,9 @@ Status NoPaddingContinuousOutputNodeSizeChecker(const NodeCheckerParam &param) {
   GE_ASSERT_NOTNULL(last_ps_out_anchor);
   int64_t out_offset = 0;
   int64_t out_offset_end = 0;
-  GE_ASSERT_SUCCESS(GetNoPaddingOutputOffsetRange(last_ps_out_anchor, out_offset, out_offset_end),
-                    "node: %s, out_index: %d",
-                    NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(),
-                    last_ps_out_anchor->GetIdx());
+  GE_ASSERT_SUCCESS(
+      GetNoPaddingOutputOffsetRange(last_ps_out_anchor, out_offset, out_offset_end), "node: %s, out_index: %d",
+      NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(), last_ps_out_anchor->GetIdx());
 
   int64_t continuous_mem_start = 0;
   int64_t continuous_mem_end = 0;
@@ -231,20 +234,27 @@ Status NoPaddingContinuousOutputNodeSizeChecker(const NodeCheckerParam &param) {
       "node: %s", NodeCheckerUtils::NodeName(param.node).c_str());
 
   if (out_offset_end > continuous_mem_end) {
-    REPORT_INNER_ERR_MSG("E19999", "nopadding continuous output node memory size check failed. valid memory range: "
-        "[%" PRId64 ", %" PRId64 "), last PhonySplit: %s, out_index: %d, out_offset: %" PRId64 ", out_offset_end: "
-        "%" PRId64 ", first PhonySplit input node: %s,  out_index: %d", continuous_mem_start, continuous_mem_end,
-        NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(), last_ps_out_anchor->GetIdx(),
-        out_offset, out_offset_end,
-        NodeCheckerUtils::NodeName(in_data_anchor->GetPeerOutAnchor()->GetOwnerNodeBarePtr()).c_str(),
-        in_data_anchor->GetPeerOutAnchor()->GetIdx());
-    GELOGE(FAILED, "nopadding continuous output node memory size check failed. valid memory range: [%" PRId64 ", "
-        "%" PRId64 "), last  PhonySplit: %s, out_index: %d, out_offset: %" PRId64 ", out_offset_end: %" PRId64 ","
-        " first PhonySplit input node: %s,  out_index: %d", continuous_mem_start, continuous_mem_end,
-        NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(), last_ps_out_anchor->GetIdx(),
-        out_offset, out_offset_end,
-        NodeCheckerUtils::NodeName(in_data_anchor->GetPeerOutAnchor()->GetOwnerNodeBarePtr()).c_str(),
-        in_data_anchor->GetPeerOutAnchor()->GetIdx());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "nopadding continuous output node memory size check failed. valid memory range: "
+                         "[%" PRId64 ", %" PRId64 "), last PhonySplit: %s, out_index: %d, out_offset: %" PRId64
+                         ", out_offset_end: "
+                         "%" PRId64 ", first PhonySplit input node: %s,  out_index: %d",
+                         continuous_mem_start, continuous_mem_end,
+                         NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(),
+                         last_ps_out_anchor->GetIdx(), out_offset, out_offset_end,
+                         NodeCheckerUtils::NodeName(in_data_anchor->GetPeerOutAnchor()->GetOwnerNodeBarePtr()).c_str(),
+                         in_data_anchor->GetPeerOutAnchor()->GetIdx());
+    GELOGE(FAILED,
+           "nopadding continuous output node memory size check failed. valid memory range: [%" PRId64
+           ", "
+           "%" PRId64 "), last  PhonySplit: %s, out_index: %d, out_offset: %" PRId64 ", out_offset_end: %" PRId64
+           ","
+           " first PhonySplit input node: %s,  out_index: %d",
+           continuous_mem_start, continuous_mem_end,
+           NodeCheckerUtils::NodeName(last_ps_out_anchor->GetOwnerNodeBarePtr()).c_str(), last_ps_out_anchor->GetIdx(),
+           out_offset, out_offset_end,
+           NodeCheckerUtils::NodeName(in_data_anchor->GetPeerOutAnchor()->GetOwnerNodeBarePtr()).c_str(),
+           in_data_anchor->GetPeerOutAnchor()->GetIdx());
     GE_ASSERT_SUCCESS(ErrorLogPhonySplitNode(param.node));
     return FAILED;
   }

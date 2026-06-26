@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,6 @@ class ModelRelationTest : public testing::Test {
   void TearDown() {}
 
  protected:
-
   void SetSubGraph(ComputeGraphPtr graph, OpDesc &op_desc, const std::string &name) {
     auto subgraph = std::make_shared<ComputeGraph>(name);
     subgraph->SetParentGraph(graph);
@@ -81,32 +80,17 @@ class ModelRelationTest : public testing::Test {
 
   static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, const NodePtr &if_parent) {
     DEF_GRAPH(then_branch) {
-      auto data = OP_CFG(DATA)
-          .InCnt(1)
-          .OutCnt(1)
-          .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
-      auto net_output = OP_CFG(NETOUTPUT)
-          .InCnt(1)
-          .OutCnt(1)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto data =
+          OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
       CHAIN(NODE("then_arg_0", data)->NODE("then_Node_Output", net_output));
     };
 
     DEF_GRAPH(else_branch) {
-      auto data = OP_CFG(DATA)
-          .InCnt(1)
-          .OutCnt(1)
-          .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
-      auto neg_op = OP_CFG("Neg")
-          .InCnt(1)
-          .OutCnt(2)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
-      auto net_output = OP_CFG(NETOUTPUT)
-          .InCnt(1)
-          .OutCnt(1)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto data =
+          OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto neg_op = OP_CFG("Neg").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
       CHAIN(NODE("else_arg_0", data)->NODE("neg", neg_op)->NODE("else_Node_Output", net_output));
     };
 
@@ -114,23 +98,12 @@ class ModelRelationTest : public testing::Test {
     auto else_graph = ToComputeGraph(else_branch);
 
     DEF_GRAPH(if_graph) {
-      auto pred_data = OP_CFG(DATA)
-          .InCnt(1)
-          .OutCnt(1)
-          .Attr(ATTR_NAME_INDEX, 0)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto pred_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
 
-      auto value_data = OP_CFG(DATA)
-          .InCnt(1)
-          .OutCnt(1)
-          .Attr(ATTR_NAME_INDEX, 1)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto value_data =
+          OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
 
-      auto if_op = OP_CFG(IF)
-          .InCnt(2)
-          .OutCnt(1)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8})
-          .Build("if");
+      auto if_op = OP_CFG(IF).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8}).Build("if");
 
       if_op->MutableOutputDesc(0)->SetShape(GeShape({4, 8}));
       if_op->RegisterSubgraphIrName("then_branch", SubgraphType::kStatic);
@@ -140,10 +113,7 @@ class ModelRelationTest : public testing::Test {
       if_op->AddSubgraphName(else_graph->GetName());
       if_op->SetSubgraphInstanceName(1, else_graph->GetName());
 
-      auto net_output = OP_CFG(NETOUTPUT)
-          .InCnt(1)
-          .OutCnt(1)
-          .TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {4, 8});
 
       CHAIN(NODE("arg_pred", pred_data)->NODE(if_op)->NODE("Node_Output", net_output));
       CHAIN(NODE("arg_value", value_data)->NODE(if_op));

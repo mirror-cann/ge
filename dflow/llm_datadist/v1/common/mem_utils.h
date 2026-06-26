@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@
 
 namespace llm {
 template <typename _Tp, typename... _Args>
-static inline std::shared_ptr<_Tp> MakeShared(_Args &&... __args) {
+static inline std::shared_ptr<_Tp> MakeShared(_Args &&...__args) {
   using _Tp_nc = typename std::remove_const<_Tp>::type;
   const std::shared_ptr<_Tp> ret(new (std::nothrow) _Tp_nc(std::forward<_Args>(__args)...));
   return ret;
@@ -34,11 +34,11 @@ struct MakeUniq<T[]> {
 
 template <typename T, size_t B>
 struct MakeUniq<T[B]> {
-  struct invalid_type { };
+  struct invalid_type {};
 };
 
 template <typename T, typename... Args>
-static inline typename MakeUniq<T>::unique_object MakeUnique(Args &&... args) {
+static inline typename MakeUniq<T>::unique_object MakeUnique(Args &&...args) {
   using T_nc = typename std::remove_const<T>::type;
   return std::unique_ptr<T>(new (std::nothrow) T_nc(std::forward<Args>(args)...));
 }
@@ -50,6 +50,6 @@ static inline typename MakeUniq<T>::unique_array MakeUnique(const size_t num) {
 
 template <typename T, typename... Args>
 static inline typename MakeUniq<T>::invalid_type MakeUnique(Args &&...) = delete;
-}
+}  // namespace llm
 
 #endif  // AIR_RUNTIME_LLM_ENGINE_COMMON_MEM_UTILS_H_

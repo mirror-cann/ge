@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ Status StreamActiveTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   std::vector<uint32_t> active_stream_index_list;
   if (!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_index_list)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -45,28 +45,29 @@ Status StreamActiveTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
 
   if (internal_index >= active_stream_index_list.size()) {
     REPORT_INNER_ERR_MSG("E19999", "flowctrl index:%zu >= active_stream_list size:%zu in op:%s, check invalid",
-                       internal_index, active_stream_index_list.size(), op_desc->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Check][Param] stream id index invalid. index:%zu, list size:%zu, op:%s",
-           internal_index, active_stream_index_list.size(), op_desc->GetName().c_str());
+                         internal_index, active_stream_index_list.size(), op_desc->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Check][Param] stream id index invalid. index:%zu, list size:%zu, op:%s", internal_index,
+           active_stream_index_list.size(), op_desc->GetName().c_str());
     return INTERNAL_ERROR;
   }
 
   if (active_stream_index_list[internal_index] >= davinci_model_->GetStreamList().size()) {
     REPORT_INNER_ERR_MSG("E19999", "active_stream_index:%u in op:%s(%s) >= stream size:%zu in model, check invalid",
-                       active_stream_index_list[internal_index], op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str(), davinci_model_->GetStreamList().size());
+                         active_stream_index_list[internal_index], op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), davinci_model_->GetStreamList().size());
     GELOGE(INTERNAL_ERROR, "[Check][Param] active_stream_index:%u in op:%s(%s) >= stream size:%zu in model",
-           active_stream_index_list[internal_index], op_desc->GetName().c_str(),
-           op_desc->GetType().c_str(), davinci_model_->GetStreamList().size());
+           active_stream_index_list[internal_index], op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+           davinci_model_->GetStreamList().size());
     return INTERNAL_ERROR;
   }
 
   active_stream_ = davinci_model_->GetStreamList()[static_cast<size_t>(active_stream_index_list[internal_index])];
   active_stream_id_ = stream_active_def.active_stream_id();
 
-  GELOGI("InitStreamActiveTaskInfo Init Success, index:%zu, active stream: %p, active stream id: %u, "
-         "logic stream id: %u, stream: %p.",
-         internal_index, active_stream_, active_stream_id_, task_def.stream_id(), stream_);
+  GELOGI(
+      "InitStreamActiveTaskInfo Init Success, index:%zu, active stream: %p, active stream id: %u, "
+      "logic stream id: %u, stream: %p.",
+      internal_index, active_stream_, active_stream_id_, task_def.stream_id(), stream_);
 
   return SUCCESS;
 }
@@ -83,7 +84,7 @@ Status StreamActiveTaskInfo::Distribute() {
   }
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
   }
   is_support_redistribute_ = true;
   GELOGI("StreamActiveTaskInfo Distribute Success, stream: %p.", stream_);

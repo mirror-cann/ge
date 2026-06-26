@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ TEST_F(UtestModelManagerModelManagerAicpu, DestroyAicpuKernel) {
   aicpu_tf_list.emplace_back("FrameworkOp");
   aicpu_tf_list.emplace_back("Unique");
 
-  EXPECT_EQ(model_manager.DestroyAicpuKernel(0,0,0), SUCCESS);
+  EXPECT_EQ(model_manager.DestroyAicpuKernel(0, 0, 0), SUCCESS);
   // Load allow listener is null
   // EXPECT_EQ(ge::FAILED, mm.LoadModelOffline(model_id, data, nullptr, nullptr));
 }
@@ -72,9 +72,9 @@ TEST_F(UtestModelManagerModelManagerAicpu, SetStaticModelShapeConfig_AclrtMalloc
   std::vector<InputOutputDescInfo> input_desc_list;
 
   class MockAclRuntime : public ge::AclRuntimeStub {
-  public:
+   public:
     aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
-      static void* mock_addr = reinterpret_cast<void*>(0x3000);
+      static void *mock_addr = reinterpret_cast<void *>(0x3000);
       *devPtr = mock_addr;
       return ACL_SUCCESS;
     }

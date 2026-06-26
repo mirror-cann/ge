@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ struct DeployResult {
   std::vector<std::vector<DeployQueueAttr>> broadcast_input_queue_attrs;
   std::function<Status(void)> dev_abnormal_callback;
   // exception notify function.
-  std::function<void(const UserExceptionNotify&)> exception_notify_callback;
+  std::function<void(const UserExceptionNotify &)> exception_notify_callback;
   size_t replica_num = 1U;
   std::string input_model_name;
   std::vector<DeployQueueAttr> status_output_queue_attrs;
@@ -78,14 +78,20 @@ class ModelDeployer {
   /// @return                     SUCCESS if undeployed successfully, otherwise returns appropriate error code
   virtual Status Undeploy(const uint32_t model_id) = 0;
 
-  virtual Status UpdateProfilingInfo(const bool) {return SUCCESS; };
+  virtual Status UpdateProfilingInfo(const bool) {
+    return SUCCESS;
+  };
 
   /// Get local device node mesh index
   /// @return                     empty means not support
-  virtual Status GetDeviceMeshIndex(const int32_t, std::vector<int32_t> &)  { return UNSUPPORTED; };
+  virtual Status GetDeviceMeshIndex(const int32_t, std::vector<int32_t> &) {
+    return UNSUPPORTED;
+  };
 
   /// Get valid logic device id str
-  virtual Status GetValidLogicDeviceId(std::string &) { return UNSUPPORTED; };
+  virtual Status GetValidLogicDeviceId(std::string &) {
+    return UNSUPPORTED;
+  };
 };
 }  // namespace ge
 

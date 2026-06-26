@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,12 +37,12 @@ constexpr int32_t kAdxErrorNone = 0;
 constexpr uint32_t kModelExeErr = 507018U;
 constexpr char_t kDumpoff[] = "off";
 constexpr char_t kProfilingPath[] = "/var/log/npu/profiling/";
-const char_t * const kArgsKeyBaseDir = "--base_dir";
-const char_t * const kArgsKeyDeviceId = "--device_id";
-const char_t * const kArgsKeyMsgQueueDeviceId = "--msg_queue_device_id";
+const char_t *const kArgsKeyBaseDir = "--base_dir";
+const char_t *const kArgsKeyDeviceId = "--device_id";
+const char_t *const kArgsKeyMsgQueueDeviceId = "--msg_queue_device_id";
 std::atomic<bool> kLoopFlag(true);
 std::atomic<bool> acl_initialized{false};
-}
+}  // namespace
 
 EngineDaemon::EngineDaemon(bool is_host_cpu) : is_host_cpu_(is_host_cpu) {}
 
@@ -53,7 +53,7 @@ void EngineDaemon::PrintLogLevel() {
 }
 
 void EngineDaemon::SignalHandler(int32_t sig_num) {
-  (void) sig_num;
+  (void)sig_num;
   kLoopFlag.store(false);
 }
 
@@ -67,7 +67,7 @@ Status EngineDaemon::InitializeWithArgs(int32_t argc, char_t **argv) {
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::EschedAttachDevice(msg_queue_device_id_));
   GE_CHK_STATUS_RET_NOLOG(InitializeExecutor());
   rtMemQueueSetInputPara para = {};
-  (void) rtMemQueueSet(msg_queue_device_id_, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
+  (void)rtMemQueueSet(msg_queue_device_id_, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
   executor_message_server_ = MakeShared<MessageServer>(msg_queue_device_id_, req_msg_queue_id_, rsp_msg_queue_id_);
   GE_CHECK_NOTNULL(executor_message_server_);
   GE_CHK_STATUS_RET_NOLOG(executor_message_server_->Initialize());
@@ -75,7 +75,7 @@ Status EngineDaemon::InitializeWithArgs(int32_t argc, char_t **argv) {
   GE_CHK_STATUS_RET_NOLOG(event_handler_.Initialize());
   GE_CHK_STATUS_RET_NOLOG(NotifyInitialized());
   MemoryStatisticManager::Instance().Initialize(mem_group_name_);
-    if (!acl_initialized) {
+  if (!acl_initialized) {
     aclError ret = aclInit(nullptr);
     if (ret != ACL_SUCCESS) {
       GELOGE(FAILED, "ACL init failed.");
@@ -102,7 +102,7 @@ Status EngineDaemon::InitializeExecutor() {
     if (excpt_info != nullptr) {
       uint32_t retcode = excpt_info->retcode;
       if (retcode == ACL_ERROR_RT_SOCKET_CLOSE) {
-        GELOGI("Aicpu sd dosen't exist, npu exe will exit.");
+        GELOGI("Aicpu sd doesn't exist, npu exe will exit.");
         kLoopFlag.store(false);
       } else if (retcode == kModelExeErr) {
         GELOGW("Model execute failed.");
@@ -191,14 +191,14 @@ Status EngineDaemon::InitProfilingFromOption(const std::map<std::string, std::st
     }
     prof_conf.pathLen = strlen(prof_conf.path);
     prof_conf.storageLimit = UINT32_MAX;
-    uint32_t data_type = is_host_cpu_ ? static_cast<uint32_t>(MSPROF_CTRL_INIT_PURE_CPU) :
-                                        static_cast<uint32_t>(MSPROF_CTRL_INIT_HELPER);
+    uint32_t data_type = is_host_cpu_ ? static_cast<uint32_t>(MSPROF_CTRL_INIT_PURE_CPU)
+                                      : static_cast<uint32_t>(MSPROF_CTRL_INIT_HELPER);
     const auto df_ret = MsprofInit(data_type, &prof_conf, sizeof(prof_conf));
-     if (df_ret != 0) {
-       GELOGE(INTERNAL_ERROR, "[Call][msprofCtrlCallback]Failed, type %u, return %d", data_type, df_ret);
-       REPORT_INNER_ERR_MSG("E19999", "Call msprofCtrlCallback failed, type %u, return %d", data_type, df_ret);
-       return INTERNAL_ERROR;
-     }
+    if (df_ret != 0) {
+      GELOGE(INTERNAL_ERROR, "[Call][msprofCtrlCallback]Failed, type %u, return %d", data_type, df_ret);
+      REPORT_INNER_ERR_MSG("E19999", "Call msprofCtrlCallback failed, type %u, return %d", data_type, df_ret);
+      return INTERNAL_ERROR;
+    }
     GELOGI("Profiling init in binary, return %d.", df_ret);
   } else {
     const auto df_ret = MsprofInit(MSPROF_CTRL_INIT_DYNA, nullptr, 0);
@@ -366,10 +366,10 @@ Status EngineDaemon::ParseCmdLineArgs(int32_t argc, char_t **argv) {
     const auto &val = env_it.second;
     GELOGI("Get global env options, env=%s, env_val=%s.", key.c_str(), val.c_str());
   }
-  GELOGD("[Parse][Args] succeeded, get env_option size=%zu, mem_grp_name = %s, req_msg_queue_id = %s, "
-         "rsp_msg_queue_id = %s, device_id = %d, msg_queue_device_id = %d",
-         env_option.size(), mem_group_name_.c_str(),
-         req_msg_queue_id, rsp_msg_queue_id, device_id_, msg_queue_device_id_);
+  GELOGD(
+      "[Parse][Args] succeeded, get env_option size=%zu, mem_grp_name = %s, req_msg_queue_id = %s, "
+      "rsp_msg_queue_id = %s, device_id = %d, msg_queue_device_id = %d",
+      env_option.size(), mem_group_name_.c_str(), req_msg_queue_id, rsp_msg_queue_id, device_id_, msg_queue_device_id_);
   return SUCCESS;
 }
 
@@ -394,8 +394,8 @@ Status EngineDaemon::InitializeGeExecutor() {
   args_option_.emplace(OPTION_EXEC_HCCL_FLAG, hccl_flag);
   GE_CHK_STATUS_RET(ge_executor_.Initialize(args_option_), "Failed to init ge executor");
   if (is_host_cpu_) {
-    std::map<std::string, std::string> options {
-      {"ge.exec.placement", "HOST"},
+    std::map<std::string, std::string> options{
+        {"ge.exec.placement", "HOST"},
     };
     ge::GetThreadLocalContext().SetGlobalOption(options);
     GetContext().SetCtxDeviceId(static_cast<uint32_t>(-1));

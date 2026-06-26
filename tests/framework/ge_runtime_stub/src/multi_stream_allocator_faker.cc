@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,12 +29,14 @@ MultiStreamAllocatorFaker::Holder MultiStreamAllocatorFaker::Build() const {
   }
 
   holder.l2_allocators_holder = ContinuousVector::Create<memory::MultiStreamL2Allocator *>(stream_num_);
-  auto l2_allocators = reinterpret_cast<TypedContinuousVector<memory::MultiStreamL2Allocator *> *>(holder.l2_allocators_holder.get());
+  auto l2_allocators =
+      reinterpret_cast<TypedContinuousVector<memory::MultiStreamL2Allocator *> *>(holder.l2_allocators_holder.get());
   l2_allocators->SetSize(static_cast<size_t>(stream_num_));
   auto l2_allocators_vec = l2_allocators->MutableData();
 
   holder.all_l2_mem_pool_holder = ContinuousVector::Create<memory::L2MemPool *>(stream_num_);
-  auto all_l2_mem_pool = reinterpret_cast<TypedContinuousVector<memory::L2MemPool *> *>(holder.all_l2_mem_pool_holder.get());
+  auto all_l2_mem_pool =
+      reinterpret_cast<TypedContinuousVector<memory::L2MemPool *> *>(holder.all_l2_mem_pool_holder.get());
   all_l2_mem_pool->SetSize(static_cast<size_t>(stream_num_));
   auto all_l2_mem_pool_vec = all_l2_mem_pool->MutableData();
 
@@ -64,9 +66,7 @@ MultiStreamAllocatorFaker::Holder::~Holder() {
   for (auto stream : streams) {
     aclrtDestroyStream(stream);
   }
-  auto deleter = [](void *ptr) {
-    delete [] static_cast<uint8_t *>(ptr);
-  };
+  auto deleter = [](void *ptr) { delete[] static_cast<uint8_t *>(ptr); };
   deleter(l2_allocators_holder.release());
 }
 MultiStreamAllocatorFaker::MultiStreamMemBlockPtr MultiStreamAllocatorFaker::Holder::AllocBlock(int64_t stream_id,

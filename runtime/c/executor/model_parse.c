@@ -29,8 +29,8 @@ Status ReadDataFromFd(mmFileHandle *fd, size_t offset, size_t len, void *dst) {
   return SUCCESS;
 }
 
-static Status ParseModelDesc(const ModelData *modelData, size_t offset,
-                             uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseModelDesc(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                             GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.modelDescPtr;
   if ((modelData->part.modelDescPtr == NULL) || (modelData->part.modelDescSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -54,8 +54,8 @@ static Status ParseModelDesc(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseWeightData(const ModelData *modelData, size_t offset,
-                              uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseWeightData(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                              GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.weightPtr;
   if ((modelData->part.weightPtr == NULL) || (modelData->part.weightSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -79,8 +79,8 @@ static Status ParseWeightData(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseTbeKernels(const ModelData *modelData, size_t offset,
-                              uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseTbeKernels(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                              GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.kernelPtr;
   if ((modelData->part.kernelPtr == NULL) || (modelData->part.kernelSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -104,8 +104,8 @@ static Status ParseTbeKernels(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseStaticTaskDesc(const ModelData *modelData, size_t offset,
-                                  uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseStaticTaskDesc(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                                  GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.taskPtr;
   if ((modelData->part.taskPtr == NULL) || (modelData->part.taskSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -130,8 +130,8 @@ static Status ParseStaticTaskDesc(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseDynamicTaskDesc(const ModelData *modelData, size_t offset,
-                                   uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseDynamicTaskDesc(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                                   GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.dynTaskPtr;
   if ((modelData->part.dynTaskPtr == NULL) || (modelData->part.dynTaskSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -155,8 +155,8 @@ static Status ParseDynamicTaskDesc(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseTaskParam(const ModelData *modelData, size_t offset,
-                             uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseTaskParam(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                             GeModelDesc *mdlDesc) {
   void *dstAddr = modelData->part.paramPtr;
   if ((modelData->part.paramPtr == NULL) || (modelData->part.paramSize < size)) {
     aclError rtRet = aclrtMalloc((void **)&dstAddr, size, mdlDesc->memType);
@@ -237,7 +237,7 @@ static Status GetModelInOutDesc(uint8_t *data, size_t size, bool is_input, Model
   if (!CheckLenValid(size, offset, sizeof(uint32_t))) {
     return ACL_ERROR_GE_INTERNAL_ERROR;
   }
-  uint32_t desc_num = 0; // save desc_num in first 4 bytes as uint32_t, same to .om
+  uint32_t desc_num = 0;  // save desc_num in first 4 bytes as uint32_t, same to .om
   (void)memcpy_s((char *)(&desc_num), sizeof(uint32_t), (char *)data, sizeof(uint32_t));
   GELOGD("desc num is %u, is_input is %d.", desc_num, is_input);
   offset += sizeof(uint32_t);
@@ -253,12 +253,13 @@ static Status GetModelInOutDesc(uint8_t *data, size_t size, bool is_input, Model
       ret = ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
       break;
     }
-    (void)memcpy_s((char *)(&base_info), sizeof(ModelTensorDescBaseInfo),
-                   (char *)(data + offset), sizeof(ModelTensorDescBaseInfo));
-    GELOGD("current index %u, format %d, dataType %d, name len %u,"
-           "dims len %u, dimsV2 %u, shapeRange %u.",
-           i, base_info.format, base_info.dt, base_info.name_len,
-           base_info.dims_len, base_info.dimsV2_len, base_info.shape_range_len);
+    (void)memcpy_s((char *)(&base_info), sizeof(ModelTensorDescBaseInfo), (char *)(data + offset),
+                   sizeof(ModelTensorDescBaseInfo));
+    GELOGD(
+        "current index %u, format %d, dataType %d, name len %u,"
+        "dims len %u, dimsV2 %u, shapeRange %u.",
+        i, base_info.format, base_info.dt, base_info.name_len, base_info.dims_len, base_info.dimsV2_len,
+        base_info.shape_range_len);
     offset += sizeof(ModelTensorDescBaseInfo);
     ModelInOutTensorDesc *desc = VectorAt(descVector, i);
     desc->size = base_info.size;
@@ -288,8 +289,7 @@ static Status GetModelInOutDesc(uint8_t *data, size_t size, bool is_input, Model
     }
 
     for (uint32_t index = 0UL; index < dims_size; ++index) {
-      (void)memcpy_s((char *)(VectorAt(&desc->dims, index)), sizeof(int64_t),
-                     (char *)(data + offset), sizeof(int64_t));
+      (void)memcpy_s((char *)(VectorAt(&desc->dims, index)), sizeof(int64_t), (char *)(data + offset), sizeof(int64_t));
       offset += sizeof(int64_t);
     }
     offset += base_info.dimsV2_len + base_info.shape_range_len;
@@ -355,8 +355,8 @@ Status ParseModelIoDescInfo(const ModelData *modelData, uint8_t *data, size_t si
   return SUCCESS;
 }
 
-static Status ParserPartionFromFd(const ModelData *modelData, size_t offset,
-                                  size_t size, void *appInfo, ParseFromFd parserFunc) {
+static Status ParserPartionFromFd(const ModelData *modelData, size_t offset, size_t size, void *appInfo,
+                                  ParseFromFd parserFunc) {
   uint8_t *data = (uint8_t *)mmMalloc(size * sizeof(uint8_t));
   if (data == NULL) {
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
@@ -378,12 +378,10 @@ static Status ParserPartionFromFd(const ModelData *modelData, size_t offset,
   return SUCCESS;
 }
 
-static Status ParseModelIoDesc(const ModelData *modelData, size_t offset, uint8_t *data,
-                               size_t size, GeModelDesc *mdlDesc) {
+static Status ParseModelIoDesc(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                               GeModelDesc *mdlDesc) {
   if (modelData->flag == NEED_READ_FROM_FD) {
-    return ParserPartionFromFd(modelData, offset, size,
-                               (void *)&mdlDesc->ioInfo,
-                               (ParseFromFd)ParseModelIoDescInfo);
+    return ParserPartionFromFd(modelData, offset, size, (void *)&mdlDesc->ioInfo, (ParseFromFd)ParseModelIoDescInfo);
   }
   return ParseModelIoDescInfo(modelData, data, size, &mdlDesc->ioInfo);
 }
@@ -398,7 +396,8 @@ Status ParsePartitionPreProcess(const ModelData *modelData, uint32_t *partitionN
   size_t offset = sizeof(ModelFileHeader);
   size_t tableLen = sizeof(ModelPartitionTable);
   if (!CheckLenValid(modelData->modelLen, offset, tableLen)) {
-    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "parse model partition table failed. model_len[%zu],"
+    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR,
+           "parse model partition table failed. model_len[%zu],"
            " offset[%zu], sizeof(table)[%zu]",
            (size_t)modelData->modelLen, offset, tableLen);
     return ACL_ERROR_GE_LOAD_MODEL;
@@ -410,7 +409,8 @@ Status ParsePartitionPreProcess(const ModelData *modelData, uint32_t *partitionN
   offset += tableLen;
   if (((*partitionNum) > MAX_PARTITION_NUM) ||
       (!CheckLenValid(modelData->modelLen, offset, sizeof(ModelPartitionMemInfo) * (*partitionNum)))) {
-    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "parse partition table failed. model_len[%zu],"
+    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR,
+           "parse partition table failed. model_len[%zu],"
            " offset[%zu], sizeof(table)[%zu], num[%u]",
            (size_t)modelData->modelLen, offset, tableLen, *partitionNum);
     return ACL_ERROR_GE_EXEC_LOAD_MODEL_PARTITION_FAILED;
@@ -430,8 +430,7 @@ static Status ProcFifoInfo(const ModelData *modelData, uint8_t *tlvValue, uint32
   geFifoInfo->totalSize = tlvFifoInfo->total_size;
   geFifoInfo->fifoNum = tlvFifoInfo->num;
   uint64_t memTlvSize = sizeof(uint64_t);
-  GELOGI("fifoNum[%u] totalSize[%lu] offset[%lu].", tlvFifoInfo->num,
-          tlvFifoInfo->total_size, offset);
+  GELOGI("fifoNum[%u] totalSize[%lu] offset[%lu].", tlvFifoInfo->num, tlvFifoInfo->total_size, offset);
   if ((geFifoInfo->fifoNum > 0) && (CheckLenValid(len, offset, geFifoInfo->fifoNum * memTlvSize))) {
     geFifoInfo->fifoAllAddr = (uint64_t *)mmMalloc(geFifoInfo->fifoNum * sizeof(uint64_t));
     if (geFifoInfo->fifoAllAddr == NULL) {
@@ -471,8 +470,7 @@ static Status ParseTlvList(const ModelData *modelData, uint8_t *tlvList, uint64_
   while (CheckLenValid(tlvListLen, offset, sizeof(struct TlvHead))) {
     struct TlvHead *tlv = (struct TlvHead *)(tlvList + offset);
     offset += sizeof(struct TlvHead);
-    GELOGI("total len[%lu] tlv len[%u] type[%u] offset[%lu].", tlvListLen,
-           tlv->len, tlv->type, offset);
+    GELOGI("total len[%lu] tlv len[%u] type[%u] offset[%lu].", tlvListLen, tlv->len, tlv->type, offset);
     if (!CheckLenValid(tlvListLen, offset, tlv->len)) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID, "tlv len invalid.");
       return ACL_ERROR_GE_LOAD_MODEL;
@@ -491,8 +489,7 @@ static Status ParseTlvList(const ModelData *modelData, uint8_t *tlvList, uint64_
 
 Status ParseModelDescExtend(const ModelData *modelData, uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
   if (!CheckLenValid(size, 0, sizeof(struct ModelExtendHead))) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-           "part size[%zu] < sizeof(ModelExtendHead)[%zu].", size,
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "part size[%zu] < sizeof(ModelExtendHead)[%zu].", size,
            sizeof(struct ModelExtendHead));
     return ACL_ERROR_GE_LOAD_MODEL;
   }
@@ -504,11 +501,10 @@ Status ParseModelDescExtend(const ModelData *modelData, uint8_t *data, size_t si
   return ParseTlvList(modelData, data + sizeof(struct ModelExtendHead), extendDesc->len, mdlDesc);
 }
 
-static Status ParseModelDescExtendInfo(const ModelData *modelData, size_t offset,
-                                       uint8_t *data, size_t size, GeModelDesc *mdlDesc) {
+static Status ParseModelDescExtendInfo(const ModelData *modelData, size_t offset, uint8_t *data, size_t size,
+                                       GeModelDesc *mdlDesc) {
   if (modelData->flag == NEED_READ_FROM_FD) {
-    return ParserPartionFromFd(modelData, offset, size, (void *)mdlDesc,
-                               (ParseFromFd)ParseModelDescExtend);
+    return ParserPartionFromFd(modelData, offset, size, (void *)mdlDesc, (ParseFromFd)ParseModelDescExtend);
   }
   return ParseModelDescExtend(modelData, data, size, mdlDesc);
 }
@@ -532,16 +528,15 @@ Status MdlPartitionParse(const ModelData *modelData, GeModelDesc *mdlDesc) {
     ModelPartitionMemInfo *partitionInfo = (ModelPartitionMemInfo *)(baseAddr + offset);
     size_t size = partitionInfo->mem_size;
     uint8_t *data = partBaseAddr + partitionInfo->mem_offset;
-    if ((partitionInfo->mem_offset > validLen) || (size == 0) ||
-        (size > validLen - partitionInfo->mem_offset)) {
-      GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "partition type %d, mem_size is %zu offset is %zu,"
+    if ((partitionInfo->mem_offset > validLen) || (size == 0) || (size > validLen - partitionInfo->mem_offset)) {
+      GELOGE(ACL_ERROR_GE_INTERNAL_ERROR,
+             "partition type %d, mem_size is %zu offset is %zu,"
              " model_len is %zu, invalid",
-          partitionInfo->type, size, (size_t)partitionInfo->mem_offset,
-          (size_t)modelData->modelLen);
+             partitionInfo->type, size, (size_t)partitionInfo->mem_offset, (size_t)modelData->modelLen);
       return ACL_ERROR_GE_EXEC_LOAD_MODEL_PARTITION_FAILED;
     }
-    GELOGD("partition type %d, mem_size is %zu mem_offset is %zu",
-           partitionInfo->type, size, (size_t)partitionInfo->mem_offset);
+    GELOGD("partition type %d, mem_size is %zu mem_offset is %zu", partitionInfo->type, size,
+           (size_t)partitionInfo->mem_offset);
     size_t dataOffset = baseOffset + partitionInfo->mem_offset;
     switch (partitionInfo->type) {
       case PRE_MODEL_DESC: {

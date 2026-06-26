@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,11 +15,11 @@
 #include "graph/compute_graph.h"
 #include "graph_builder_utils.h"
 
-namespace ge{
-  class UtestDataPass : public testing::Test {
-   protected:
-    void SetUp() {}
-    void TearDown() {}
+namespace ge {
+class UtestDataPass : public testing::Test {
+ protected:
+  void SetUp() {}
+  void TearDown() {}
 };
 
 ComputeGraphPtr MakeGraph_PartitionedCall() {
@@ -307,7 +307,6 @@ ComputeGraphPtr MakeGraph() {
 }
 
 TEST_F(UtestDataPass, datapassRun) {
-
   auto graph1 = MakeGraph_PartitionedCall();
   auto sub_graph1 = graph1->GetSubgraph("sub_graph1");
   auto sub_graph2 = graph1->GetSubgraph("sub_graph2");
@@ -338,4 +337,4 @@ TEST_F(UtestDataPass, datapassRun) {
   EXPECT_EQ(pass.Run(sub_graph1_For), SUCCESS);
   EXPECT_EQ(pass.Run(sub), FAILED);
 }
-}
+}  // namespace ge

@@ -103,4 +103,3 @@ Status AddGraph(uint32_t graph_id, const Graph &graph, const std::map<AscendStri
 -   相同对象的Graph调用此接口注册，会导致不同的Graph ID实际共享同一个Graph对象，导致后续操作相互影响而出错。
 -   不同的Graph对象请不要使用相同的Graph ID来添加，该情况下，只保留第一次添加的Graph对象，后续的Graph对象不会添加成功。
 -   使用该接口，GeSession会直接修改添加的Graph对象。如果AddGraph后需要保持原有的Graph对象不受影响，应使用[AddGraphClone](AddGraphClone.md)接口，AddGraphClone会在Session中拷贝一份Graph对象，仅对Graph对象的拷贝进行修改。
-

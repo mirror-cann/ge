@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ echo "PROJECT_HOME=$PROJECT_HOME"
 # print usage message
 function usage()
 {
-  echo "Check whether the specified source files were well formated"
+  echo "Check whether the specified source files were well formatted"
   echo "Usage:"
   echo "bash $0 [-a] [-c] [-l] [-h]"
   echo "e.g. $0 -a"
@@ -93,7 +93,7 @@ pushd "${CURRENT_PATH}"
     CHECK_RESULT_FILE=__code_format_check_result__
     echo "0" > "$CHECK_RESULT_FILE"
 
-    # check format of files modified in the lastest commit 
+    # check format of files modified in the latest commit
     while read line; do
       BASE_NAME=$(basename "${line}")
       TEMP_FILE="__TEMP__${BASE_NAME}"
@@ -105,7 +105,7 @@ pushd "${CURRENT_PATH}"
       set -e
       rm "${TEMP_FILE}"
       if [[ "${ret}" -ne 0 ]]; then
-        echo "File ${line} is not formated, please format it."
+        echo "File ${line} is not formatted, please format it."
         echo "1" > "${CHECK_RESULT_FILE}"
         break
       fi
@@ -117,6 +117,6 @@ pushd "${CURRENT_PATH}"
 popd
 
 if [[ "X${result}" == "X0" ]]; then
-  echo "Check PASS: specified files are well formated!"
+  echo "Check PASS: specified files are well formatted!"
 fi
 exit "${result}"

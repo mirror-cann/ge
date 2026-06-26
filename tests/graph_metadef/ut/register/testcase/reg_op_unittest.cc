@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@ const std::string kStr1 = "abc";
 const std::string kStr2 = "abcd";
 const std::vector<std::string> kStrs = {"a", "bc"};
 const std::vector<ge::AscendString> kAscendStrs = {ge::AscendString("a"), ge::AscendString("b")};
-}
+}  // namespace
 
 namespace ge {
 class RegisterOpUnittest : public testing::Test {};
@@ -83,46 +83,45 @@ TEST_F(RegisterOpUnittest, AttrIrNameRegSuccess) {
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
   const auto &ir_names = op_desc->GetIrAttrNames();
-  EXPECT_EQ(ir_names,
-            std::vector<std::string>({"AttrInt",
-                                      "AttrFloat",
-                                      "AttrBool",
-                                      "AttrTensor",
-                                      "AttrType",
-                                      "AttrString",
-                                      "AttrString1",
-                                      "AttrString2",
-                                      "AttrAscendString",
-                                      "AttrAscendString1",
-                                      "AttrListInt",
-                                      "AttrListFloat",
-                                      "AttrListBool",
-                                      "AttrListTensor",
-                                      "AttrListType",
-                                      "AttrListString",
-                                      "AttrListString1",
-                                      "AttrListString2",
-                                      "AttrListString3",
-                                      "AttrListAscendString",
-                                      "AttrListAscendString1",
-                                      "AttrBytes",
-                                      "AttrListListInt",
-                                      "ReqAttrInt",
-                                      "ReqAttrFloat",
-                                      "ReqAttrBool",
-                                      "ReqAttrTensor",
-                                      "ReqAttrType",
-                                      "ReqAttrString",
-                                      "ReqAttrAscendString",
-                                      "ReqAttrListInt",
-                                      "ReqAttrListFloat",
-                                      "ReqAttrListBool",
-                                      "ReqAttrListTensor",
-                                      "ReqAttrListType",
-                                      "ReqAttrListString",
-                                      "ReqAttrListAscendString",
-                                      "ReqAttrBytes",
-                                      "ReqAttrListListInt"}));
+  EXPECT_EQ(ir_names, std::vector<std::string>({"AttrInt",
+                                                "AttrFloat",
+                                                "AttrBool",
+                                                "AttrTensor",
+                                                "AttrType",
+                                                "AttrString",
+                                                "AttrString1",
+                                                "AttrString2",
+                                                "AttrAscendString",
+                                                "AttrAscendString1",
+                                                "AttrListInt",
+                                                "AttrListFloat",
+                                                "AttrListBool",
+                                                "AttrListTensor",
+                                                "AttrListType",
+                                                "AttrListString",
+                                                "AttrListString1",
+                                                "AttrListString2",
+                                                "AttrListString3",
+                                                "AttrListAscendString",
+                                                "AttrListAscendString1",
+                                                "AttrBytes",
+                                                "AttrListListInt",
+                                                "ReqAttrInt",
+                                                "ReqAttrFloat",
+                                                "ReqAttrBool",
+                                                "ReqAttrTensor",
+                                                "ReqAttrType",
+                                                "ReqAttrString",
+                                                "ReqAttrAscendString",
+                                                "ReqAttrListInt",
+                                                "ReqAttrListFloat",
+                                                "ReqAttrListBool",
+                                                "ReqAttrListTensor",
+                                                "ReqAttrListType",
+                                                "ReqAttrListString",
+                                                "ReqAttrListAscendString",
+                                                "ReqAttrBytes",
+                                                "ReqAttrListListInt"}));
 }
 
 TEST_F(RegisterOpUnittest, InputIrNameRegSuccess) {

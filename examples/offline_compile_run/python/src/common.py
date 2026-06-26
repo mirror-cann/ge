@@ -98,7 +98,7 @@ def collect_acl_model_outputs(model_desc, output_data):
 
         dims, ret = acl.mdl.get_output_dims(model_desc, index)
         check_ret(f"acl.mdl.get_output_dims(output_{index})", ret)
-        shape = tuple(dims["dims"][:dims["dimCount"]])
+        shape = tuple(dims["dims"][: dims["dimCount"]])
         outputs.append(np.frombuffer(output_bytes, dtype=np.float32).reshape(shape))
     return outputs
 

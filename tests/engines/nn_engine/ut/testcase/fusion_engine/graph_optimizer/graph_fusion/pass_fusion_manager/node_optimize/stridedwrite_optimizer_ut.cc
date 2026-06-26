@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ class UTEST_stridedwrite_optimize : public testing::Test {
   void SetUp() {}
   void TearDown() {}
 
-  void InitGraph1(ComputeGraphPtr& graph) {
+  void InitGraph1(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -91,13 +91,11 @@ class UTEST_stridedwrite_optimize : public testing::Test {
      *        Concat(concat_dim=0)
      *          |
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitGraph2(ComputeGraphPtr& graph) {
+  void InitGraph2(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr sw1 = std::make_shared<OpDesc>("sw1", STRIDEDWRITE);
@@ -153,18 +151,13 @@ class UTEST_stridedwrite_optimize : public testing::Test {
      *          |
      *       netoutput
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            sw1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            sw2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(sw1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(sw2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                            output_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), sw1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), sw2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(sw1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(sw2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0));
   }
-  void InitGraph3(ComputeGraphPtr& graph) {
+  void InitGraph3(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr conv3 = std::make_shared<OpDesc>("conv3", CONV2D);
@@ -213,14 +206,10 @@ class UTEST_stridedwrite_optimize : public testing::Test {
      *        Concat(concat_dim=0)
      *          |
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            pconcat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv3_node->GetOutDataAnchor(0),
-                            pconcat_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(pconcat_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), pconcat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv3_node->GetOutDataAnchor(0), pconcat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(pconcat_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 };
 
@@ -286,4 +275,4 @@ TEST_F(UTEST_stridedwrite_optimize, stridedwrite_optimize_04) {
   stridedWriteOptimizer.FeedToOpStructInfo(op_desc, idx, concat_out_shape, is_last_input, concat_dim,
                                            phony_concat_offset, set_offset);
 }
-}
+}  // namespace fe

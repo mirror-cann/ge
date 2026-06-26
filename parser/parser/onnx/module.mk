@@ -53,7 +53,7 @@ LOCAL_SHARED_LIBRARIES := \
     libregister \
     liberror_manager \
 
-LOCAL_STATIC_LIBRARIES += libmmpa   
+LOCAL_STATIC_LIBRARIES += libmmpa
 
 LOCAL_LDFLAGS := -lrt -ldl
 
@@ -89,4 +89,3 @@ LOCAL_SHARED_LIBRARIES :=
 LOCAL_LDFLAGS := -lrt -ldl
 
 include $(BUILD_HOST_SHARED_LIBRARY)
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@ class UtestMemLayoutConflictWhileBody : public testing::Test {
 };
 
 namespace {
-void AddSubgraphInstance(ge::ComputeGraphPtr parent_graph, ge::ComputeGraphPtr sub_graph,
-                         const int parent_node_index, const std::string &parent_node_name) {
+void AddSubgraphInstance(ge::ComputeGraphPtr parent_graph, ge::ComputeGraphPtr sub_graph, const int parent_node_index,
+                         const std::string &parent_node_name) {
   auto sub_graph_name = sub_graph->GetName();
   sub_graph->SetParentGraph(parent_graph);
   sub_graph->SetParentNode(parent_graph->FindNode(parent_node_name));
@@ -72,7 +72,7 @@ void AddWhileBodyWithNNode(ge::ComputeGraphPtr parent_graph, const std::string &
   AddSubgraphInstance(parent_graph, sub_graph, 1, parent_node_name);
 }
 
-}
+}  // namespace
 
 /*
  *        data
@@ -202,7 +202,7 @@ TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyOneNodeInside_InsertIdentityN_C
   }
   std::string batch_label;
   EXPECT_EQ(AttrUtils::GetStr(identityn_node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label), true);
-  EXPECT_EQ(batch_label, "batch_label"); 
+  EXPECT_EQ(batch_label, "batch_label");
 }
 
 void AddWhileBodyTwoInputSwap(ge::ComputeGraphPtr parent_graph, const std::string &parent_node_name,
@@ -268,7 +268,7 @@ TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyOneRefInside_NotInsertIdentityN
  *                     |   netoutput1        |     |      | |
  *                     |                     | netoutput2 | |
  *                     |                     +------------+ |
- *                     +------------------------------------+                      
+ *                     +------------------------------------+
  *
  */
 TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyOnePartitionedCallInside_NotInsertIdentityN_Success) {
@@ -290,7 +290,7 @@ TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyOnePartitionedCallInside_NotIns
  * subgraph cond             subgraph body
  * +-------------------+     +-------------------------+
  * | data3             |     | data4--\ /---netoutput1 |
- * +-------------------+     | data5--/ \--+           |  
+ * +-------------------+     | data5--/ \--+           |
  *                           +-------------------------+
  *
  */
@@ -345,4 +345,4 @@ TEST_F(UtestMemLayoutConflictWhileBody, WhileBodyTwoDataToNetoutputWithNoExchang
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 0U), GRAPH_SUCCESS);
 }
 
-}
+}  // namespace ge

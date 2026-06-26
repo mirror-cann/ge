@@ -48,4 +48,3 @@ int64\_t类型的向量，包含附属逻辑从流ID。
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 无
-

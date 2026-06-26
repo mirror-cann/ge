@@ -1,16 +1,15 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
-
 
 #define private public
 #define protected public
@@ -24,26 +23,18 @@
 using namespace ge;
 using namespace fe;
 
-class UTTEST_scope_allocator : public testing::Test
-{
-protected:
-    static void SetUpTestCase()
-    {
-        std::cout << "fusion engine scope allocator UT SetUp" << std::endl;
-    }
-    static void TearDownTestCase()
-    {
-        std::cout << "fusion engine scope allocator UT TearDown" << std::endl;
-    }
+class UTTEST_scope_allocator : public testing::Test {
+ protected:
+  static void SetUpTestCase() {
+    std::cout << "fusion engine scope allocator UT SetUp" << std::endl;
+  }
+  static void TearDownTestCase() {
+    std::cout << "fusion engine scope allocator UT TearDown" << std::endl;
+  }
 
-    virtual void SetUp()
-    {
-    }
+  virtual void SetUp() {}
 
-    virtual void TearDown()
-    {
-
-    }
+  virtual void TearDown() {}
 };
 
 TEST_F(UTTEST_scope_allocator, alloc_scope_id) {
@@ -81,8 +72,7 @@ TEST_F(UTTEST_scope_allocator, alloc_scope_id) {
   EXPECT_EQ(fixpipe_scope_id, 5);
 }
 
-TEST_F(UTTEST_scope_allocator, ub_scope_id)
-{
+TEST_F(UTTEST_scope_allocator, ub_scope_id) {
   int64_t scope_id = ScopeAllocator::Instance().AllocateScopeId();
   ge::OpDescPtr op_desc = nullptr;
   bool ret = ScopeAllocator::HasScopeAttr(op_desc);
@@ -105,8 +95,7 @@ TEST_F(UTTEST_scope_allocator, ub_scope_id)
   EXPECT_EQ(scope_id, temp_scope_id);
 }
 
-TEST_F(UTTEST_scope_allocator, l1_scope_id)
-{
+TEST_F(UTTEST_scope_allocator, l1_scope_id) {
   int64_t scope_id = ScopeAllocator::Instance().AllocateScopeId();
   ge::OpDescPtr op_desc = nullptr;
   bool ret = ScopeAllocator::HasL1ScopeAttr(op_desc);

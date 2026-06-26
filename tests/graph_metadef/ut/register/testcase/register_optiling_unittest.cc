@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,12 +27,8 @@ class RegisterOpTilingUT : public testing::Test {
 };
 
 TEST_F(RegisterOpTilingUT, byte_buffer_test) {
-  EXPECT_NO_THROW(
-    ByteBuffer stream;
-    char *dest = nullptr;
-    size_t size = ByteBufferGetAll(stream, dest, 2);
-    cout << size << endl;
-  );
+  EXPECT_NO_THROW(ByteBuffer stream; char *dest = nullptr; size_t size = ByteBufferGetAll(stream, dest, 2);
+                  cout << size << endl;);
 }
 
 TEST_F(RegisterOpTilingUT, op_run_info_test) {
@@ -48,7 +44,6 @@ TEST_F(RegisterOpTilingUT, op_run_info_test) {
   EXPECT_EQ(run_info->GetWorkspaceNum(), 4);
   string str = "test";
   run_info->AddTilingData(str);
-
 
   std::shared_ptr<utils::OpRunInfo> run_info_2 = make_shared<utils::OpRunInfo>(*run_info);
   ret = run_info_2->GetWorkspace(2, work_space);
@@ -98,7 +93,7 @@ TEST_F(RegisterOpTilingUT, op_compile_info_test) {
 
 TEST_F(RegisterOpTilingUT, te_op_paras_test) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
-  GeShape shape({1,4,1,1});
+  GeShape shape({1, 4, 1, 1});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -111,11 +106,9 @@ TEST_F(RegisterOpTilingUT, te_op_paras_test) {
   op_param.op_type = op_desc->GetType();
   VarAttrHelper::InitTeOpVarAttr(op_desc, op_param.var_attrs);
   size_t size = 0;
-  EXPECT_NO_THROW(
-    op_param.var_attrs.GetData("some_int_attr", "xxx", size);
-    op_param.var_attrs.GetData("some_int_attr", "Int32", size);
-    op_param.var_attrs.GetData("some_int_vec", "ListInt32", size);
-  );
+  EXPECT_NO_THROW(op_param.var_attrs.GetData("some_int_attr", "xxx", size);
+                  op_param.var_attrs.GetData("some_int_attr", "Int32", size);
+                  op_param.var_attrs.GetData("some_int_vec", "ListInt32", size););
 }
 
 bool op_tiling_stub(const Operator &op, const utils::OpCompileInfo &compile_info, utils::OpRunInfo &run_info) {
@@ -144,7 +137,7 @@ TEST_F(RegisterOpTilingUT, OpFftsPlusCalculate_1) {
   slice_info_ptr->output_tensor_slice.push_back(vec_2);
 
   (void)op_desc->SetExtAttr(ffts::kAttrSgtStructInfoDy, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddOutputDesc("y", tensor_desc);
@@ -182,7 +175,7 @@ TEST_F(RegisterOpTilingUT, OpFftsPlusCalculate_2) {
   slice_info_ptr->input_tensor_indexes.push_back(0);
   slice_info_ptr->output_tensor_indexes.push_back(0);
   (void)op_desc->SetExtAttr(ffts::kAttrSgtStructInfoDy, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddOutputDesc("y", tensor_desc);
@@ -200,7 +193,7 @@ TEST_F(RegisterOpTilingUT, PostProcCalculateV2_SUCCESS) {
   Operator op = OpDescUtils::CreateOperatorFromNode(node);
   OpDescPtr op_desc = node->GetOpDesc();
   (void)ge::AttrUtils::SetStr(op_desc, "_alias_engine_name", "TEST");
-  std::vector<int64_t> workspaces = { 1, 2, 3};
+  std::vector<int64_t> workspaces = {1, 2, 3};
   OpRunInfoV2 run_info;
   run_info.SetWorkspaces(workspaces);
   workspaces.emplace_back(5);
@@ -212,14 +205,14 @@ TEST_F(RegisterOpTilingUT, PostProcCalculateV2_SUCCESS) {
 TEST_F(RegisterOpTilingUT, PostProcMemoryCheck1) {
   auto root_builder = ut::GraphBuilder("root");
   const auto &node = root_builder.AddNode("relu", "ReluV2", 2, 1);
-  GeShape shape({3,4,2,1});
+  GeShape shape({3, 4, 2, 1});
   GeTensorDesc tensor_desc(shape);
   OpDescPtr op_desc = node->GetOpDesc();
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
   op_desc->AddOutputDesc("z", tensor_desc);
   Operator op = OpDescUtils::CreateOperatorFromNode(node);
-  std::vector<int64_t> workspaces = { 1, 2, 3};
+  std::vector<int64_t> workspaces = {1, 2, 3};
   OpRunInfoV2 run_info;
   run_info.SetWorkspaces(workspaces);
   (void)ge::AttrUtils::SetBool(op_desc, kMemoryCheck, false);
@@ -261,7 +254,7 @@ TEST_F(RegisterOpTilingUT, UpDateNodeShapeBySliceInfo1) {
   slice_info_ptr->input_tensor_indexes.push_back(0);
   slice_info_ptr->output_tensor_indexes.push_back(0);
   (void)node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   vector<int64_t> ori_shape;
@@ -295,7 +288,7 @@ TEST_F(RegisterOpTilingUT, UpDateNodeShapeBySliceInfo2) {
   slice_info_ptr->input_tensor_indexes.push_back(2);
   slice_info_ptr->output_tensor_indexes.push_back(0);
   slice_info_ptr->output_tensor_indexes.push_back(2);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddOutputDesc("y", tensor_desc);
@@ -317,19 +310,13 @@ TEST_F(RegisterOpTilingUT, UpDateNodeShapeBySliceInfo2) {
 TEST_F(RegisterOpTilingUT, op_run_info_test_new_tiling_interface1) {
   utils::OpRunInfo run_info;
   uint64_t max_size = 0;
-  void * base = run_info.GetAddrBase(max_size);
+  void *base = run_info.GetAddrBase(max_size);
   run_info.SetAddrBaseOffset(10);
   EXPECT_TRUE(base == NULL);
 }
 
 TEST_F(RegisterOpTilingUT, op_run_info_test_new_tiling_interface2) {
-  EXPECT_NO_THROW(
-    utils::OpRunInfo run_info;
-    int v1 = 1;
-    int64_t  v2 = 2;
-    run_info << v1;
-    run_info << v2;
-  );
+  EXPECT_NO_THROW(utils::OpRunInfo run_info; int v1 = 1; int64_t v2 = 2; run_info << v1; run_info << v2;);
 }
 
 TEST_F(RegisterOpTilingUT, op_run_info_test_local_memory_size) {
@@ -350,4 +337,4 @@ TEST_F(RegisterOpTilingUT, op_run_info_test_local_memory_size) {
   local_memory_size = run_info3.GetLocalMemorySize();
   EXPECT_EQ(local_memory_size, 0U);  // default value
 }
-}  // namespace ge
+}  // namespace optiling

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,13 +22,13 @@ using namespace ge;
 
 namespace fe {
 class GraphPassUtilUT : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
 };
 
-bool CheckOriginAttr(const std::vector<ge::NodePtr> &nodes, std::string pass_name,  
+bool CheckOriginAttr(const std::vector<ge::NodePtr> &nodes, std::string pass_name,
                      GraphPassUtil::OriginOpAttrsVec origin_attrs) {
   for (auto node : nodes) {
     auto op_desc = node->GetOpDesc();
@@ -59,11 +59,8 @@ bool CheckOriginAttr(const std::vector<ge::NodePtr> &nodes, std::string pass_nam
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case1) {
-  EXPECT_NO_THROW(
-    NodePtr origin_node = nullptr;
-    NodePtr fusion_node = nullptr;
-    GraphPassUtil::SetOutputDescAttr(0, 0, origin_node, fusion_node);
-  );
+  EXPECT_NO_THROW(NodePtr origin_node = nullptr; NodePtr fusion_node = nullptr;
+                  GraphPassUtil::SetOutputDescAttr(0, 0, origin_node, fusion_node););
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case2) {
@@ -164,7 +161,7 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case4) {
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case5) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   std::string origin_data_type_str = "RESERVED";
   GeShape shape(dims);
   GeTensorDescPtr tensor_desc_ptr = std::make_shared<GeTensorDesc>(shape, FORMAT_NCHW, DT_FLOAT);
@@ -219,7 +216,7 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case8) {
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case9) {
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   std::string origin_data_type_str = "RESERVED";
   GeShape shape(dims);
   GeTensorDescPtr tensor_desc_ptr = std::make_shared<GeTensorDesc>(shape, FORMAT_NCHW, DT_FLOAT);
@@ -231,7 +228,7 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case9) {
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case10) {
-  putenv(const_cast<char*>("DUMP_GE_GRAPH=2"));
+  putenv(const_cast<char *>("DUMP_GE_GRAPH=2"));
   OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "Relu");
   OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "Relu");
   vector<int64_t> dim = {4, 4, 1, 4};
@@ -259,7 +256,7 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case10) {
 }
 
 TEST_F(GraphPassUtilUT, set_original_op_names_and_types) {
-  putenv(const_cast<char*>("DUMP_GE_GRAPH=2"));
+  putenv(const_cast<char *>("DUMP_GE_GRAPH=2"));
   OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "Relu");
   OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "Relu");
   vector<int64_t> dim = {4, 4, 1, 4};
@@ -298,7 +295,7 @@ TEST_F(GraphPassUtilUT, set_original_op_names_and_types) {
 }
 
 TEST_F(GraphPassUtilUT, set_output_desc_attr_case11) {
-  putenv(const_cast<char*>("DUMP_GE_GRAPH=2"));
+  putenv(const_cast<char *>("DUMP_GE_GRAPH=2"));
   OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "Relu");
   OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "Relu");
   vector<int64_t> dim = {4, 4, 1, 4};
@@ -312,8 +309,7 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case11) {
   std::shared_ptr<GraphPassUtil::UnorderedMapping> op_attrs_maps_tmp =
       std::make_shared<GraphPassUtil::UnorderedMapping>();
   GraphPassUtil::OriginOpAttrsVec origin_op_attrs_vec = {{"nodeA", "typeA"}, {"nodeB", "typeB"}};
-  op_attrs_maps_tmp->insert(std::pair<std::string, 
-                            GraphPassUtil::OriginOpAttrsVec>("pass_test", origin_op_attrs_vec));
+  op_attrs_maps_tmp->insert(std::pair<std::string, GraphPassUtil::OriginOpAttrsVec>("pass_test", origin_op_attrs_vec));
   (void)relu1->SetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp);
   vector<std::string> pass_names = {"pass_test"};
   (void)AttrUtils::SetListStr(relu1, "pass_name", pass_names);
@@ -333,7 +329,6 @@ TEST_F(GraphPassUtilUT, set_output_desc_attr_case11) {
   EXPECT_EQ(oringin_attr_check, true);
 }
 
-
 void CreateGraph(ComputeGraphPtr &graph, std::vector<ge::NodePtr> &original_nodes,
                  std::vector<ge::NodePtr> &fus_nodes) {
   OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "Relu");
@@ -348,7 +343,6 @@ void CreateGraph(ComputeGraphPtr &graph, std::vector<ge::NodePtr> &original_node
   relu1->AddInputDesc(tenosr_desc);
   relu1->AddOutputDesc(tenosr_desc);
 
-
   relu2->AddInputDesc(tenosr_desc);
   relu2->AddOutputDesc(tenosr_desc);
 
@@ -357,7 +351,6 @@ void CreateGraph(ComputeGraphPtr &graph, std::vector<ge::NodePtr> &original_node
 
   fusion_op->AddInputDesc(tenosr_desc);
   fusion_op->AddOutputDesc(tenosr_desc);
-
 
   NodePtr relu1_node = graph->AddNode(relu1);
   NodePtr relu2_node = graph->AddNode(relu2);
@@ -473,7 +466,6 @@ TEST_F(GraphPassUtilUT, test_inherit_attrs_01) {
   EXPECT_EQ(strategy, "test");
 }
 
-
 TEST_F(GraphPassUtilUT, test_inherit_attrs_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   std::vector<ge::NodePtr> original_nodes;
@@ -490,13 +482,11 @@ TEST_F(GraphPassUtilUT, test_inherit_attrs_02) {
   ge::AttrUtils::GetBool(fus_op, "_backward", backward);
   EXPECT_TRUE(backward == false);
 
-
   EXPECT_EQ(fus_op->HasAttr("_recompute"), false);
   EXPECT_EQ(fus_op->HasAttr("_optimizer"), false);
   EXPECT_EQ(fus_op->HasAttr(ge::ATTR_NAME_KEEP_DTYPE), false);
   EXPECT_EQ(fus_op->HasAttr(ge::ATTR_NAME_OP_COMPILE_STRATEGY), false);
 }
-
 
 TEST_F(GraphPassUtilUT, test_inherit_attrs_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -532,7 +522,7 @@ TEST_F(GraphPassUtilUT, test_inherit_attrs_03) {
   EXPECT_EQ(fus_op->HasAttr(ge::ATTR_NAME_OP_COMPILE_STRATEGY), false);
 }
 
-  // N -> 1
+// N -> 1
 TEST_F(GraphPassUtilUT, test_inherit_attrs_04) {
   auto graph = std::make_shared<ComputeGraph>("test");
   ge::OpDescPtr ori_op_desc1 = std::make_shared<ge::OpDesc>("node1", "Relu");
@@ -555,7 +545,6 @@ TEST_F(GraphPassUtilUT, test_inherit_attrs_04) {
   ge::AttrUtils::GetInt(fus_op_desc, "_op_custom_impl_mode_enum", op_impl_mode);
   EXPECT_EQ(op_impl_mode, 0x40);
 }
-
 
 // 1 -> N
 TEST_F(GraphPassUtilUT, test_inherit_attrs_05) {
@@ -787,4 +776,4 @@ TEST_F(GraphPassUtilUT, test_set_pair_tensor_attr_with_ge_local) {
   EXPECT_EQ(scope_3, 2);
   EXPECT_EQ(scope_4, 2);
 }
-}
+}  // namespace fe

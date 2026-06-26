@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -323,9 +323,7 @@ TEST_F(GraphNodeUT, EnsureNodeExeInOrder_Prioirty_With_Subgraph2) {
         ge::AttrUtils::SetInt(bg::ValueHolderUtils::GetNodeOpDescBarePtr(node3), "priority", 4);
         return {node3};
       },
-      [&]() -> std::vector<bg::ValueHolderPtr> {
-        return {node1};
-      });
+      [&]() -> std::vector<bg::ValueHolderPtr> { return {node1}; });
   ge::AttrUtils::SetInt(bg::ValueHolderUtils::GetNodeOpDescBarePtr(if_outputs[0]), "priority", 3);
   auto node4 = bg::ValueHolder::CreateSingleDataOutput("LaunchKernelWithFlag", {node2});
   ge::AttrUtils::SetInt(bg::ValueHolderUtils::GetNodeOpDescBarePtr(node4), "priority", 5);
@@ -367,4 +365,4 @@ TEST_F(GraphNodeUT, EnsureNodeExeInOrder_Prioirty_With_Subgraph2) {
   EXPECT_EQ(graph_node.additional_add_info[node4->GetFastNode()].size(), 0);
   EXPECT_EQ(graph_node.additional_add_info[node5->GetFastNode()].size(), 0);
 }
-}
+}  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,8 +25,8 @@ namespace fe {
 vector<FusionPattern *> NodeOptimizePassBase::DefinePatterns() {
   vector<FusionPattern *> patterns;
   FusionPattern *pattern = new (std::nothrow) FusionPattern(GetPatternName());
-  FE_CHECK(pattern == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."), return patterns);
+  FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."),
+           return patterns);
   vector<string> node_types = GetNodeTypes();
   pattern->AddOpDesc(GetPatternName(), node_types).SetOutput(GetPatternName());
   patterns.push_back(pattern);
@@ -140,8 +140,7 @@ Status NodeOptimizePassBase::CreateStridedWrite(ge::NodePtr prev_node,
   return SUCCESS;
 }
 
-void NodeOptimizePassBase::SetGeAttrForConcat(const ge::OpDescPtr &concat_op_desc_ptr,
-                                              const size_t &dim_index) const {
+void NodeOptimizePassBase::SetGeAttrForConcat(const ge::OpDescPtr &concat_op_desc_ptr, const size_t &dim_index) const {
   (void)ge::AttrUtils::SetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK, true);
   (void)ge::AttrUtils::SetBool(concat_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, true);
   (void)ge::AttrUtils::SetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
@@ -176,8 +175,7 @@ Status NodeOptimizePassBase::JudgeOp(ge::NodePtr node) const {
   return SUCCESS;
 }
 
-void NodeOptimizePassBase::SetGeAttrForSplit(const ge::OpDescPtr &split_op_desc_ptr,
-                                             const size_t &dim_index) const {
+void NodeOptimizePassBase::SetGeAttrForSplit(const ge::OpDescPtr &split_op_desc_ptr, const size_t &dim_index) const {
   (void)ge::AttrUtils::SetBool(split_op_desc_ptr, ge::ATTR_NAME_NOTASK, true);
   (void)ge::AttrUtils::SetBool(split_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, true);
   (void)ge::AttrUtils::SetBool(split_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
@@ -199,8 +197,8 @@ Status NodeOptimizePassBase::GetNC1HWC0Shape(ge::GeTensorDescPtr tensor_desc,
     data_type = quant_data_type;
     tensor_desc->SetDataType(quant_data_type);
   }
-  ge::Format new_format = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0,
-      GetC0BitByDataType(tensor_desc->GetDataType())));
+  ge::Format new_format =
+      static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, GetC0BitByDataType(tensor_desc->GetDataType())));
   tensor_desc->SetFormat(new_format);
   ge::GeShape new_shape;
   ShapeAndFormat output_shape_and_format_info = {origin_shape, new_shape, origin_format, new_format, data_type};
@@ -216,15 +214,12 @@ Status NodeOptimizePassBase::GetNC1HWC0Shape(ge::GeTensorDescPtr tensor_desc,
 
 bool NodeOptimizePassBase::is_single_out_and_ref(const ge::NodePtr &node_ptr) const {
   ge::Node::Vistor<ge::OutDataAnchorPtr> all_out_data_anchors = node_ptr->GetAllOutDataAnchors();
-  FE_LOGD("Node[%s]: all_out_data_anchors.size=[%zu].",
-          node_ptr->GetName().c_str(),
-          all_out_data_anchors.size());
+  FE_LOGD("Node[%s]: all_out_data_anchors.size=[%zu].", node_ptr->GetName().c_str(), all_out_data_anchors.size());
 
   if (all_out_data_anchors.size() == 1) {
     ge::OutDataAnchorPtr out_data_anchor = node_ptr->GetOutDataAnchor(0);
     FE_CHECK_NOTNULL(out_data_anchor);
-    FE_LOGD("Node[%s]: out_data_anchor->GetPeerInDataAnchors().size=[%zu].",
-            node_ptr->GetName().c_str(),
+    FE_LOGD("Node[%s]: out_data_anchor->GetPeerInDataAnchors().size=[%zu].", node_ptr->GetName().c_str(),
             out_data_anchor->GetPeerInDataAnchors().size());
     return out_data_anchor->GetPeerInDataAnchors().size() == 1;
   }

@@ -23,9 +23,9 @@
 
 namespace ge {
 namespace {
-  // A5上没有sqe的限制，此处后续要打开限制
-  constexpr uint32_t kMaxCustomOpSqeNum = 5;
-}
+// A5上没有sqe的限制，此处后续要打开限制
+constexpr uint32_t kMaxCustomOpSqeNum = 5;
+}  // namespace
 namespace custom {
 REGISTER_OPS_KERNEL_BUILDER(kCustomOpKernelLibName, CustomOpsKernelBuilder);
 
@@ -51,15 +51,15 @@ Status CustomOpsKernelBuilder::CalcOpRunningParam(Node &node) {
       continue;
     }
     int64_t tensor_size = 0;
-    GE_ASSERT_SUCCESS(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*op_desc->MutableOutputDesc(i), tensor_size));
+    GE_ASSERT_SUCCESS(
+        TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*op_desc->MutableOutputDesc(i), tensor_size));
     TensorUtils::SetSize(*op_desc->MutableOutputDesc(i), tensor_size);
   }
   (void)node;
   return SUCCESS;
 }
 
-Status CustomOpsKernelBuilder::GenerateTask(const Node &node,
-    RunContext &context, std::vector<domi::TaskDef> &tasks) {
+Status CustomOpsKernelBuilder::GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) {
   (void)node;
   (void)context;
   (void)tasks;

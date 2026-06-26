@@ -17,7 +17,7 @@
 
 namespace ge {
 class Om2Codegen {
-public:
+ public:
   Status Om2CodegenAndCompile(const GeModelPtr &ge_model, Om2CodegenArtifacts &artifacts,
                               Om2ConstMetas &const_metas) const;
 };

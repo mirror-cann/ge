@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,7 +13,6 @@
 """
 elemwise trans shape fusion pass
 """
-
 
 from tbe.common.register import register_pass_for_fusion
 
@@ -34,7 +33,12 @@ def trans_shape_by_pattern(graph_info, pattern):
         return
 
     for op_info in graph_info.get_op_list():
-        if op_info.get_pattern() in ("QuantConvolution", "Convolution", "Conv2d_backprop_input", 'Conv3D'):
+        if op_info.get_pattern() in (
+            "QuantConvolution",
+            "Convolution",
+            "Conv2d_backprop_input",
+            "Conv3D",
+        ):
             return
 
     for op_info in graph_info.get_op_list():
@@ -54,12 +58,12 @@ def trans_shape_by_pattern(graph_info, pattern):
                     peer_data_output_info.set_shape(new_shape)
 
 
-@register_pass_for_fusion(match_condition={"op_pattern":"ElemWise"})
+@register_pass_for_fusion(match_condition={"op_pattern": "ElemWise"})
 def trans_shape_for_elemwise(graph_info):
     trans_shape_by_pattern(graph_info, "ElemWise")
 
 
-@register_pass_for_fusion(match_condition={"op_pattern":"Broadcast"})
+@register_pass_for_fusion(match_condition={"op_pattern": "Broadcast"})
 def trans_shape_for_broadcast(graph_info):
     trans_shape_by_pattern(graph_info, "Broadcast")
 
@@ -91,7 +95,10 @@ def trans_shape_input_bias(op_info, graph_info):
     elif format_x is not None and format_x == "NDC1HWC0":
         shape_bias = (1, 1, shape_x[2], 1, 1, shape_x[5])
     elif data_format == "NCHW":
-        shape_bias = (1, shape_x[1],)
+        shape_bias = (
+            1,
+            shape_x[1],
+        )
         for _ in range(2, len(shape_x)):
             shape_bias = shape_bias + (1,)
     else:
@@ -103,7 +110,7 @@ def trans_shape_input_bias(op_info, graph_info):
     peer_output_bias.set_shape(shape_bias)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"BiasAdd"})
+@register_pass_for_fusion(match_condition={"op_type": "BiasAdd"})
 def trans_shape_of_biasadd(graph_info):
     """
     broadcast elemwise input shape if necessary
@@ -121,7 +128,11 @@ def trans_shape_of_biasadd(graph_info):
 
     # all nodes must be elemwise
     for op_info in graph_info.get_op_list():
-        if op_info.get_op_type() != "Data" and op_info.get_pattern() not in ["ElemWise", "Broadcast", "quant"]:
+        if op_info.get_op_type() != "Data" and op_info.get_pattern() not in [
+            "ElemWise",
+            "Broadcast",
+            "quant",
+        ]:
             return
 
     for op_info in graph_info.get_op_list():
@@ -132,7 +143,7 @@ def trans_shape_of_biasadd(graph_info):
         trans_shape_input_bias(op_info, graph_info)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"AscendRequantS16"})
+@register_pass_for_fusion(match_condition={"op_type": "AscendRequantS16"})
 def trans_shape_of_requant_s16(graph_info):
     """
     transform AscendRequantS16 shape
@@ -160,11 +171,16 @@ def trans_shape_of_requant_s16(graph_info):
                     continue
                 peer_shape = peer_output_info.get_shape()
                 if len(peer_shape) == 5:
-                    new_shape = [peer_shape[0], peer_shape[1], peer_shape[2] * peer_shape[3], peer_shape[4]]
+                    new_shape = [
+                        peer_shape[0],
+                        peer_shape[1],
+                        peer_shape[2] * peer_shape[3],
+                        peer_shape[4],
+                    ]
                     peer_output_info.set_shape(new_shape)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"BNInferenceD"})
+@register_pass_for_fusion(match_condition={"op_type": "BNInferenceD"})
 def trans_shape_of_bninference(graph_info):
     """
     transform AscendRequantS16 shape
@@ -199,4 +215,3 @@ def trans_shape_of_bninference(graph_info):
                 if peer_output_info.get_format() == "NCHW" and len(peer_shape) == 3:
                     new_shape = peer_shape + [1]
                     peer_output_info.set_shape(new_shape)
-

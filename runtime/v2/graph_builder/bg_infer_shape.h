@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,11 +24,10 @@ namespace bg {
 // 使用新接口后，对于相同optype的infershape节点，不必产生多个infershape函数，只需产生一个infershape函数即可,存储与global_data中
 std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
                                               LoweringGlobalData &global_data);
-std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
-                                                const std::vector<ValueHolderPtr> &input_shapes,
-                                                LoweringGlobalData &global_data);
+std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
+                                               LoweringGlobalData &global_data);
 ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_type,
-                                              const LoweringGlobalData &global_data);
+                                                     const LoweringGlobalData &global_data);
 std::vector<ValueHolderPtr> InferUbGraphShape(const ge::ComputeGraphPtr &compute_graph,
                                               const std::vector<ValueHolderPtr> &input_shapes,
                                               LoweringGlobalData &global_data);
@@ -40,6 +39,6 @@ inline int64_t GetParentNodeInputIndex(const ge::NodePtr &node) {
   ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, index);
   return index;
 }
-}
-}
-#endif // AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_INFER_SHAPE_H_
+}  // namespace bg
+}  // namespace gert
+#endif  // AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_INFER_SHAPE_H_

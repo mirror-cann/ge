@@ -61,4 +61,3 @@ EsTensorHolder构造函数返回EsTensorHolder类型的对象。
 ## 约束说明<a name="section24049039"></a>
 
 无
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,43 +55,39 @@ std::string CurrentTimeFormatStr() {
   constexpr size_t kMaxTimeLen = 128U;
   constexpr int64_t kOneThousandMs = 1000L;
   error_message::char_t format_time[kMaxTimeLen] = {};
-  (void) snprintf_s(format_time, kMaxTimeLen, kMaxTimeLen - 1U, "%04d-%02d-%02d-%02d:%02d:%02d.%03ld.%03ld",
-                    tm_now->tm_year + year_base, tm_now->tm_mon + 1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min,
-                    tm_now->tm_sec, milli_seconds.time_since_epoch().count() % kOneThousandMs,
-                    micro_seconds.time_since_epoch().count() % kOneThousandMs);
+  (void)snprintf_s(format_time, kMaxTimeLen, kMaxTimeLen - 1U, "%04d-%02d-%02d-%02d:%02d:%02d.%03ld.%03ld",
+                   tm_now->tm_year + year_base, tm_now->tm_mon + 1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min,
+                   tm_now->tm_sec, milli_seconds.time_since_epoch().count() % kOneThousandMs,
+                   micro_seconds.time_since_epoch().count() % kOneThousandMs);
   time_str = format_time;
   return time_str;
 }
-}
+}  // namespace
 
-#define GELOGE(fmt, ...) \
-  do {                                                                                            \
-    dlog_error(GE_MODULE_NAME, "%" PRIu64 " %s" fmt, GeLog::GetTid(), &__FUNCTION__[0],       \
-               ##__VA_ARGS__);                \
+#define GELOGE(fmt, ...)                                                                                \
+  do {                                                                                                  \
+    dlog_error(GE_MODULE_NAME, "%" PRIu64 " %s" fmt, GeLog::GetTid(), &__FUNCTION__[0], ##__VA_ARGS__); \
   } while (false)
 
-#define GELOGW(fmt, ...)                                                                          \
-  do {                                                                                            \
-    if (IsLogEnable(GE_MODULE_NAME, DLOG_WARN)) {                                                 \
-      dlog_warn(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0],         \
-                ##__VA_ARGS__);                                                                   \
-    }                                                                                             \
+#define GELOGW(fmt, ...)                                                                                  \
+  do {                                                                                                    \
+    if (IsLogEnable(GE_MODULE_NAME, DLOG_WARN)) {                                                         \
+      dlog_warn(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0], ##__VA_ARGS__); \
+    }                                                                                                     \
   } while (false)
 
-#define GELOGI(fmt, ...)                                                                          \
-  do {                                                                                            \
-    if (IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {                                                 \
-      dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0],         \
-                ##__VA_ARGS__);                                                                   \
-    }                                                                                             \
+#define GELOGI(fmt, ...)                                                                                  \
+  do {                                                                                                    \
+    if (IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {                                                         \
+      dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0], ##__VA_ARGS__); \
+    }                                                                                                     \
   } while (false)
 
-#define GELOGD(fmt, ...)                                                                           \
-  do {                                                                                             \
-    if (IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {                                                 \
-      dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0],         \
-                 ##__VA_ARGS__);                                                                   \
-    }                                                                                              \
+#define GELOGD(fmt, ...)                                                                                   \
+  do {                                                                                                     \
+    if (IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {                                                         \
+      dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), &__FUNCTION__[0], ##__VA_ARGS__); \
+    }                                                                                                      \
   } while (false)
 
 namespace {
@@ -103,8 +99,8 @@ int32_t ReportInnerErrorMessage(const char *file_name, const char *func, uint32_
     GELOGE("[Check][Param] FormatErrorMessage failed, ret:%d, file:%s, line:%u", ret, file_name, line);
     return -1;
   }
-  ret = sprintf_s(buf.data() + ret, LIMIT_PER_MESSAGE - static_cast<size_t>(ret), "[FUNC:%s][FILE:%s][LINE:%u]",
-                  func, error_message::TrimPath(std::string(file_name)).c_str(), line);
+  ret = sprintf_s(buf.data() + ret, LIMIT_PER_MESSAGE - static_cast<size_t>(ret), "[FUNC:%s][FILE:%s][LINE:%u]", func,
+                  error_message::TrimPath(std::string(file_name)).c_str(), line);
   if (ret < 0) {
     GELOGE("[Check][Param] FormatErrorMessage failed, ret:%d, file:%s, line:%u", ret, file_name, line);
     return -1;
@@ -132,32 +128,31 @@ std::unique_ptr<error_message::char_t[]> CreateUniquePtrFromString(const std::st
 }
 }  // namespace
 
-
 namespace error_message {
 // first stage
-const std::string kInitialize   = "INIT";
+const std::string kInitialize = "INIT";
 const std::string kModelCompile = "COMP";
-const std::string kModelLoad    = "LOAD";
+const std::string kModelLoad = "LOAD";
 const std::string kModelExecute = "EXEC";
-const std::string kFinalize     = "FINAL";
+const std::string kFinalize = "FINAL";
 
 // SecondStage
 // INITIALIZE
-const std::string kParser               = "PARSER";
-const std::string kOpsProtoInit         = "OPS_PRO";
-const std::string kSystemInit           = "SYS";
-const std::string kEngineInit           = "ENGINE";
-const std::string kOpsKernelInit        = "OPS_KER";
+const std::string kParser = "PARSER";
+const std::string kOpsProtoInit = "OPS_PRO";
+const std::string kSystemInit = "SYS";
+const std::string kEngineInit = "ENGINE";
+const std::string kOpsKernelInit = "OPS_KER";
 const std::string kOpsKernelBuilderInit = "OPS_KER_BLD";
 // MODEL_COMPILE
-const std::string kPrepareOptimize    = "PRE_OPT";
-const std::string kOriginOptimize     = "ORI_OPT";
-const std::string kSubGraphOptimize   = "SUB_OPT";
+const std::string kPrepareOptimize = "PRE_OPT";
+const std::string kOriginOptimize = "ORI_OPT";
+const std::string kSubGraphOptimize = "SUB_OPT";
 const std::string kMergeGraphOptimize = "MERGE_OPT";
-const std::string kPreBuild           = "PRE_BLD";
-const std::string kStreamAlloc        = "STM_ALLOC";
-const std::string kMemoryAlloc        = "MEM_ALLOC";
-const std::string kTaskGenerate       = "TASK_GEN";
+const std::string kPreBuild = "PRE_BLD";
+const std::string kStreamAlloc = "STM_ALLOC";
+const std::string kMemoryAlloc = "MEM_ALLOC";
+const std::string kTaskGenerate = "TASK_GEN";
 // COMMON
 const std::string kOther = "DEFAULT";
 
@@ -199,7 +194,7 @@ void ReportInnerError(const char_t *file_name, const char_t *func, uint32_t line
   va_end(arg_list);
   return;
 }
-}
+}  // namespace error_message
 
 namespace {
 #ifdef __GNUC__
@@ -213,21 +208,18 @@ const error_message::char_t *const kSeparator = "\\";
 constexpr uint64_t kLength = 2UL;
 
 void Ltrim(std::string &s) {
-  (void) s.erase(s.begin(),
-                 std::find_if(s.begin(),
-                              s.end(),
-                              [](const error_message::char_t c) -> bool {
-                                return static_cast<bool>(std::isspace(static_cast<uint8_t>(c)) == 0);
-                              }));
+  (void)s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const error_message::char_t c) -> bool {
+                  return static_cast<bool>(std::isspace(static_cast<uint8_t>(c)) == 0);
+                }));
 }
 
 void Rtrim(std::string &s) {
-  (void) s.erase(std::find_if(s.rbegin(),
-                              s.rend(),
-                              [](const error_message::char_t c) -> bool {
-                                return static_cast<bool>(std::isspace(static_cast<uint8_t>(c)) == 0);
-                              }).base(),
-                 s.end());
+  (void)s.erase(std::find_if(s.rbegin(), s.rend(),
+                             [](const error_message::char_t c) -> bool {
+                               return static_cast<bool>(std::isspace(static_cast<uint8_t>(c)) == 0);
+                             })
+                    .base(),
+                s.end());
 }
 
 /// @ingroup domi_common
@@ -273,7 +265,7 @@ struct StubErrorItem {
 
   friend bool operator==(const StubErrorItem &lhs, const StubErrorItem &rhs) noexcept {
     return (lhs.error_id == rhs.error_id) && (lhs.error_message == rhs.error_message) &&
-        (lhs.possible_cause == rhs.possible_cause) && (lhs.solution == rhs.solution);
+           (lhs.possible_cause == rhs.possible_cause) && (lhs.solution == rhs.solution);
   }
 };
 

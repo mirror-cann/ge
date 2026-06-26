@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@ class Params : public Singleton<Params> {
  public:
   DECLARE_SINGLETON_CLASS(Params);
 
-  void SetTarget(const char* target) {
+  void SetTarget(const char *target) {
     std::string tmp_target = (target != nullptr) ? target : "";
 
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -40,9 +40,13 @@ class Params : public Singleton<Params> {
     }
   }
 
-  std::string GetTarget() const { return target_; }
+  std::string GetTarget() const {
+    return target_;
+  }
 
-  uint8_t GetTarget_8bit() const { return target_8bit_; }
+  uint8_t GetTarget_8bit() const {
+    return target_8bit_;
+  }
   ~Params() override = default;
 
  private:

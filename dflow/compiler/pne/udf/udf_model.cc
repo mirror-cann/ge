@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,23 +18,23 @@
 #include "graph_metadef/common/ge_common/util.h"
 
 namespace ge {
-UdfModel::UdfModel(const ComputeGraphPtr &root_graph) : PneModel(root_graph){};
+UdfModel::UdfModel(const ComputeGraphPtr &root_graph) : PneModel(root_graph) {};
 
 Status UdfModel::SerializeModel(ModelBufferData &model_buff) {
   if (GetIsBuiltinModel()) {
     return SerializeModelDef(model_buff);
-    } else {
-      uint32_t data_len = 0U;
-      std::string saved_model_path = GetSavedModelPath();
-      auto buff = GetBinFromFile(saved_model_path, data_len);
-      GE_CHECK_NOTNULL(buff, ". Open file fail, path=%s", saved_model_path.c_str());
-      model_buff.data.reset(reinterpret_cast<uint8_t *>(buff.release()), std::default_delete<uint8_t[]>());
-      model_buff.length = static_cast<uint64_t>(data_len);
+  } else {
+    uint32_t data_len = 0U;
+    std::string saved_model_path = GetSavedModelPath();
+    auto buff = GetBinFromFile(saved_model_path, data_len);
+    GE_CHECK_NOTNULL(buff, ". Open file fail, path=%s", saved_model_path.c_str());
+    model_buff.data.reset(reinterpret_cast<uint8_t *>(buff.release()), std::default_delete<uint8_t[]>());
+    model_buff.length = static_cast<uint64_t>(data_len);
   }
   return SUCCESS;
 }
 
-Status UdfModel::SerializeModelDef(ModelBufferData &model_buff) const{
+Status UdfModel::SerializeModelDef(ModelBufferData &model_buff) const {
   const size_t size = udf_model_def_.ByteSizeLong();
   GELOGI("Serialize model def size is %zu.", size);
   GE_CHK_BOOL_RET_STATUS(size != 0, FAILED, "Model is empty.");
@@ -80,8 +80,8 @@ std::string UdfModel::GetLogicDeviceId(bool is_redundant) const {
   std::string logic_device_id;
   const auto attr_name = is_redundant ? ATTR_NAME_REDUNDANT_LOGIC_DEV_ID : ATTR_NAME_LOGIC_DEV_ID;
   if ((!AttrUtils::GetStr(graph, attr_name, logic_device_id))) {
-    GELOGD("graph[%s] has not set logic device id, redundant flag[%d].",
-           graph->GetName().c_str(), static_cast<int32_t>(is_redundant));
+    GELOGD("graph[%s] has not set logic device id, redundant flag[%d].", graph->GetName().c_str(),
+           static_cast<int32_t>(is_redundant));
     return "";
   }
   return logic_device_id;

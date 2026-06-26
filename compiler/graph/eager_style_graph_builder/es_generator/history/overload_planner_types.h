@@ -40,14 +40,7 @@ enum class ParamCxxKind {
   kNullptrT
 };
 
-enum class ParamRole {
-  kUnknown,
-  kInput,
-  kDynamicOutputNum,
-  kSubgraph,
-  kOwnerBuilder,
-  kAttr
-};
+enum class ParamRole { kUnknown, kInput, kDynamicOutputNum, kSubgraph, kOwnerBuilder, kAttr };
 
 struct Param {
   ParamCxxKind kind;
@@ -65,13 +58,7 @@ struct Signature {
   std::string deprecate_msg;
 };
 
-enum class WarningCode {
-  kFallbackToA0,
-  kUpgradeToA1,
-  kUpgradeToA2,
-  kUnsupportedAttrType,
-  kInvalidAttrDefaultValue
-};
+enum class WarningCode { kFallbackToA0, kUpgradeToA1, kUpgradeToA2, kUnsupportedAttrType, kInvalidAttrDefaultValue };
 
 struct Warning {
   WarningCode code = WarningCode::kFallbackToA0;

@@ -57,4 +57,3 @@ size_t aclGetTensorDescNumDims(const aclTensorDesc *desc)
 ## 返回值说明<a name="section25151444115613"></a>
 
 返回tensor描述中shape的维度个数。若返回ACL\_UNKNOWN\_RANK（\#define ACL\_UNKNOWN\_RANK 0xFFFFFFFFFFFFFFFE）表示动态Shape场景下维度个数未知。
-

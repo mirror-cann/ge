@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ class HybridModelRtV1Executor : public HybridModelExecutor {
 
   Status Init(CallbackManager *const callback_manager = nullptr) override;
 
-  GraphExecutionContext* GetContext() override {
+  GraphExecutionContext *GetContext() override {
     return &context_;
   }
 
@@ -40,14 +40,14 @@ class HybridModelRtV1Executor : public HybridModelExecutor {
 
   Status Execute(ExecuteArgs &args) override;
   Status Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) override;
+                 CtrlArgs &ctrl_args) override;
 
   Status Execute(const InputData &input_data, ExecuteArgs &args);
 
   Status ExecuteForSingleOp(const HybridModelExecutor::ExecuteArgs &args);
 
-  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs,
-    std::shared_ptr<ModelListener> listener) override;
+  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs, std::shared_ptr<ModelListener> listener) override;
+
  private:
   Status ProcessOnlineModel(const InputData &input_data, HybridModelExecutor::ExecuteArgs &args);
   Status ExecuteGraphInternal(SubgraphExecutor &executor, ExecuteArgs &args);
@@ -68,4 +68,4 @@ class HybridModelRtV1Executor : public HybridModelExecutor {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_EXECUTOR_HYBRID_MODEL_RTV1_EXECUTOR_H_
+#endif  // GE_HYBRID_EXECUTOR_HYBRID_MODEL_RTV1_EXECUTOR_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,9 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
   if ((file_path == nullptr) || (CheckPathValid(file_path) != SUCCESS)) {
     const char_t *const safe_path = (file_path == nullptr) ? "null" : file_path;
     GELOGE(FAILED, "[Check][OutputFile]Failed, file %s", safe_path);
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"value", "parameter", "reason"}),
-                              std::vector<const char *>({safe_path, "output_file", "the output file path is invalid"}));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"value", "parameter", "reason"}),
+        std::vector<const char *>({safe_path, "output_file", "the output file path is invalid"}));
     return FAILED;
   }
   std::string model_str;
@@ -44,8 +45,7 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
     model_str = model.dump(kInteval, ' ', false, Json::error_handler_t::ignore);
   } catch (std::exception &e) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to convert JSON to string, reason: %s, savefile:%s.", e.what(), file_path);
-    GELOGE(FAILED, "[Convert][File]Failed to convert JSON to string, file %s, reason %s",
-           file_path, e.what());
+    GELOGE(FAILED, "[Convert][File]Failed to convert JSON to string, file %s, reason %s", file_path, e.what());
     return FAILED;
   } catch (...) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to convert JSON to string, savefile:%s.", file_path);
@@ -58,18 +58,17 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
                   GELOGI("File %s does not exit, it will be created.", file_path));
 
   // Open file
-  constexpr mmMode_t open_mode =
-      static_cast<mmMode_t>(static_cast<uint32_t>(M_IRUSR) | static_cast<uint32_t>(M_IWUSR));
+  constexpr mmMode_t open_mode = static_cast<mmMode_t>(static_cast<uint32_t>(M_IRUSR) | static_cast<uint32_t>(M_IWUSR));
   std::array<char_t, kMaxErrStrLength + 1UL> err_buf = {};
   const int32_t fd = mmOpen2(&file_real_path[0],
-                             static_cast<int32_t>(static_cast<uint32_t>(M_RDWR) |
-                                                  static_cast<uint32_t>(M_CREAT) |
-                                                  static_cast<uint32_t>(O_TRUNC)), open_mode);
+                             static_cast<int32_t>(static_cast<uint32_t>(M_RDWR) | static_cast<uint32_t>(M_CREAT) |
+                                                  static_cast<uint32_t>(O_TRUNC)),
+                             open_mode);
   if ((fd == EN_ERROR) || (fd == EN_INVALID_PARAM)) {
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLength);
     std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
-                              std::vector<const char *>({file_path, reason.c_str()}));
+                                    std::vector<const char *>({file_path, reason.c_str()}));
     GELOGE(FAILED, "[Open][File]Failed, file %s, errmsg %s", file_path, reason.c_str());
     return FAILED;
   }
@@ -81,10 +80,9 @@ Status ModelSaver::SaveJsonToFile(const char_t *const file_path, const Json &mod
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrStrLength);
     std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG("E13004", std::vector<const char *>({"file", "errmsg"}),
-                              std::vector<const char *>({file_path, reason.c_str()}));
+                                    std::vector<const char *>({file_path, reason.c_str()}));
     // Need to both print the error info of mmWrite and mmClose, so return ret after mmClose
-    GELOGE(FAILED, "[Write][Data]To file %s failed. errno %ld, errmsg %s",
-           file_path, mmpa_ret, reason.c_str());
+    GELOGE(FAILED, "[Write][Data]To file %s failed. errno %ld, errmsg %s", file_path, mmpa_ret, reason.c_str());
     ret = FAILED;
   }
   // Close file

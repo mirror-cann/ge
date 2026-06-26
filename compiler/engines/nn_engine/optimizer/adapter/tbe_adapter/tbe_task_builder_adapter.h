@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,17 +59,16 @@ class TbeTaskBuilderAdapter : public TaskBuilderAdapter {
 
  private:
   uint32_t block_dim_;
-  Status TbeForward(const uint32_t core_dim, const void *args, uint32_t args_size,
-                    int32_t input_num, const void *x[], int32_t x_array_size,
-                    int32_t output_num,const void *y[], int32_t workspace_num,
+  Status TbeForward(const uint32_t core_dim, const void *args, uint32_t args_size, int32_t input_num, const void *x[],
+                    int32_t x_array_size, int32_t output_num, const void *y[], int32_t workspace_num,
                     domi::TaskDef &task_def);
 
-  Status SaveTeCoreL2FlowDataForL2Buffer(int32_t input_num, int32_t output_num, uint64_t cur_ptr,
-                                         const void *x[], const void *y[],
-                                         rtL2Ctrl_t &tel2ctrl, uint32_t l2_args_size, uint32_t workspace_num);
-  Status SaveTeCoreL2FlowDataForL2Fusion(int32_t input_num, int32_t output_num, uint64_t cur_ptr,
-                                         const void *x[], const void *y[],
-                                         rtL2Ctrl_t &tel2ctrl, uint32_t l2_args_size, uint32_t workspace_num);
+  Status SaveTeCoreL2FlowDataForL2Buffer(int32_t input_num, int32_t output_num, uint64_t cur_ptr, const void *x[],
+                                         const void *y[], rtL2Ctrl_t &tel2ctrl, uint32_t l2_args_size,
+                                         uint32_t workspace_num);
+  Status SaveTeCoreL2FlowDataForL2Fusion(int32_t input_num, int32_t output_num, uint64_t cur_ptr, const void *x[],
+                                         const void *y[], rtL2Ctrl_t &tel2ctrl, uint32_t l2_args_size,
+                                         uint32_t workspace_num);
 
   std::string GetUniqueGraphIdForNode() const;
 
@@ -81,25 +80,23 @@ class TbeTaskBuilderAdapter : public TaskBuilderAdapter {
 
   void SetInputAddrFromDataBase(const size_t input_index, const int64_t &input_offset);
 
-  Status CheckArrayValue(const void *array[], int32_t array_size, int32_t num, const string& name) const;
+  Status CheckArrayValue(const void *array[], int32_t array_size, int32_t num, const string &name) const;
 
-  Status CheckForForward(const void *args, const void *x[], int32_t x_array_size, const void *y[],
-                         int32_t input_num, int32_t output_num) const;
+  Status CheckForForward(const void *args, const void *x[], int32_t x_array_size, const void *y[], int32_t input_num,
+                         int32_t output_num) const;
 
   Status CheckTensorSize(const ge::GeTensorDesc &tensor_desc, uint32_t i, bool is_input,
                          int32_t output_real_calc_flag) const;
 
-  Status DealKernelLaunchForL2Buffer(int32_t input_num, int32_t output_num, uint64_t cur_ptr,
-                                     const void *x[], const void *y[], rtL2Ctrl_t &tel2ctrl,
-                                     uint32_t args_size, uint32_t l2_args_size, const std::string &stub_func,
-                                     const uint32_t core_dim, const void *tmp_buf, int32_t workspace_num,
-                                     domi::TaskDef &task_def);
+  Status DealKernelLaunchForL2Buffer(int32_t input_num, int32_t output_num, uint64_t cur_ptr, const void *x[],
+                                     const void *y[], rtL2Ctrl_t &tel2ctrl, uint32_t args_size, uint32_t l2_args_size,
+                                     const std::string &stub_func, const uint32_t core_dim, const void *tmp_buf,
+                                     int32_t workspace_num, domi::TaskDef &task_def);
 
-  Status DealKernelLaunchForL2Fusion(int32_t input_num, int32_t output_num,
-                                     uint64_t cur_ptr, const void *x[], const void *y[], rtL2Ctrl_t &tel2ctrl,
-                                     uint32_t args_size, uint32_t l2_args_size, const std::string &stub_func,
-                                     const uint32_t core_dim, const void *tmp_buf, int32_t workspace_num,
-                                     domi::TaskDef &task_def);
+  Status DealKernelLaunchForL2Fusion(int32_t input_num, int32_t output_num, uint64_t cur_ptr, const void *x[],
+                                     const void *y[], rtL2Ctrl_t &tel2ctrl, uint32_t args_size, uint32_t l2_args_size,
+                                     const std::string &stub_func, const uint32_t core_dim, const void *tmp_buf,
+                                     int32_t workspace_num, domi::TaskDef &task_def);
   template <typename T>
   void DealInputOutputL2DataMap(const T &l2datamap, int32_t data_num, const void *x[], const void *y[],
                                 uint64_t &cur_ptr, uint32_t &l2_args_size, bool is_input) const;

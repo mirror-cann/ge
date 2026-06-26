@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,8 @@ Status ModelDescPartition::GenModelDescInfo(const GeModelPtr &ge_model, ModelDes
   model_desc_info.profile_enable = false;
   model_desc_info.model_interrupt = false;
 
-  GELOGD("task_num:%u, workspace_size:%llu, weight_size:%llu",
-         model_desc_info.task_num, model_desc_info.workspace_size, model_desc_info.weight_size);
+  GELOGD("task_num:%u, workspace_size:%llu, weight_size:%llu", model_desc_info.task_num, model_desc_info.workspace_size,
+         model_desc_info.weight_size);
   return SUCCESS;
 }
 

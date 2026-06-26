@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ class UTestFusionConfigParser : public testing::Test {
  protected:
   static void SetUpTestCase() {
     Configuration::Instance(fe::AI_CORE_NAME).ascend_ops_path_ =
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
   }
   static void TearDownTestCase() {
     Configuration::Instance(fe::AI_CORE_NAME).InitLibPath();
@@ -55,8 +55,10 @@ class UTestFusionConfigParser : public testing::Test {
 TEST_F(UTestFusionConfigParser, fusion_switch_01) {
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config.json";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config.json";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   fusionConfigParserPtr->ParseFusionConfigFile();
   bool ret = fusionConfigParserPtr->GetFusionSwitchByName("PassThroughFusionPass", "GraphFusion");
@@ -68,14 +70,17 @@ TEST_F(UTestFusionConfigParser, fusion_switch_01) {
   bool ret3 = fusionConfigParserPtr->GetFusionSwitchByName("CUSTOM_PASS2", "GraphFusion");
   bool ret4 = fusionConfigParserPtr->GetFusionSwitchByName("TbeCommonRules2FusionPass", "UBFusion");
   EXPECT_EQ(ret4, true);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_02) {
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config2.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config1.json";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config1.json";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
 
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   fusionConfigParserPtr->ParseFusionConfigFile();
@@ -93,15 +98,18 @@ TEST_F(UTestFusionConfigParser, fusion_switch_02) {
   EXPECT_EQ(ret4, false);
   ret4 = fusionConfigParserPtr->GetFusionSwitchByName("UB_FUSION_PASS2", "UBFusion");
   EXPECT_EQ(ret4, true);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_03) {
-  std::string  allStr = "ALL";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  std::string allStr = "ALL";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config3.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   fusionConfigParserPtr->ParseFusionConfigFile();
   bool ret = fusionConfigParserPtr->GetFusionSwitchByName("PassThroughFusionPass", "GraphFusion");
@@ -119,14 +127,17 @@ TEST_F(UTestFusionConfigParser, fusion_switch_03) {
   EXPECT_EQ(ret, true);
   ret = fusionConfigParserPtr->GetFusionSwitchByName("UB_PASS3", "UBFusion");
   EXPECT_EQ(ret, false);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_04) {
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config3.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   fusionConfigParserPtr->ParseFusionConfigFile();
   bool ret = fusionConfigParserPtr->GetFusionSwitchByName("PassThroughFusionPass", "GraphFusion");
@@ -138,7 +149,7 @@ TEST_F(UTestFusionConfigParser, fusion_switch_04) {
   ret = fusionConfigParserPtr->GetFusionSwitchByName("CUSTOM_PASS2", "GraphFusion");
   ret = fusionConfigParserPtr->GetFusionSwitchByName("LayerNormV4FusionPass", "GraphFusion");
   EXPECT_EQ(ret, true);
-  
+
   ret = fusionConfigParserPtr->GetFusionSwitchByName("TbeCommonRules2FusionPass", "UBFusion");
   EXPECT_EQ(ret, true);
   ret = fusionConfigParserPtr->GetFusionSwitchByName("UB_PASS1", "UBFusion");
@@ -152,21 +163,25 @@ TEST_F(UTestFusionConfigParser, fusion_switch_04) {
   EXPECT_EQ(ret, true);
   ret = fusionConfigParserPtr->GetFusionSwitchByName("OneHotFusionPass", "UBFusion");
   EXPECT_EQ(ret, true);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = "3:5";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = "3:5";
   Configuration::Instance(fe::AI_CORE_NAME).ParseFusionLicense(true);
   ret = fusionConfigParserPtr->GetFusionSwitchByName("MatMulBiasAddFusionPass", "UBFusion");
   EXPECT_EQ(ret, true);
   ret = fusionConfigParserPtr->GetFusionSwitchByName("OneHotFusionPass", "UBFusion");
   EXPECT_EQ(ret, false);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = "";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = "";
   Configuration::Instance(fe::AI_CORE_NAME).ParseFusionLicense(true);
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_05) {
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config3.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config2.json";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   fusionConfigParserPtr->ParseFusionConfigFile();
 
@@ -231,23 +246,26 @@ TEST_F(UTestFusionConfigParser, fusion_switch_05) {
 
 TEST_F(UTestFusionConfigParser, fusion_switch_fail1) {
   Configuration::Instance(fe::AI_CORE_NAME).lib_path_ =
-    GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-    GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_switch.cfg";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_switch.cfg";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   EXPECT_EQ(fusionConfigParserPtr->ParseFusionConfigFile(), FAILED);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_fail2) {
   Configuration::Instance(fe::AI_CORE_NAME).lib_path_ =
-    GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-    GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_switch1.cfg";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_switch1.cfg";
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   EXPECT_EQ(fusionConfigParserPtr->ParseFusionConfigFile(), FAILED);
   nlohmann::json custom_fusion_config_json;
@@ -255,14 +273,17 @@ TEST_F(UTestFusionConfigParser, fusion_switch_fail2) {
   std::map<string, bool> old_fusion_switch_map;
   fusionConfigParserPtr->VerifyAndParserCustomFile("./::test", custom_fusion_config_json, old_fusion_switch_map);
   fusionConfigParserPtr->VerifyAndParserCustomFile("test", custom_fusion_config_json, old_fusion_switch_map);
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = nullStr;
 }
 
 TEST_F(UTestFusionConfigParser, fusion_switch_fail3) {
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config3.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config4.json";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config4.json";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   EXPECT_EQ(fusionConfigParserPtr->ParseFusionConfigFile(), FAILED);
 }
@@ -270,7 +291,8 @@ TEST_F(UTestFusionConfigParser, fusion_switch_fail3) {
 TEST_F(UTestFusionConfigParser, fusion_switch_06) {
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-  GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_switch.cfg";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_switch.cfg";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   Status status = fusionConfigParserPtr->ParseFusionConfigFile();
   EXPECT_EQ(status, SUCCESS);
@@ -283,7 +305,8 @@ TEST_F(UTestFusionConfigParser, fusion_switch_06) {
 TEST_F(UTestFusionConfigParser, fusion_switch_07) {
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config.json";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-  GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_switch.json";
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_switch.json";
   FusionConfigParserPtr fusionConfigParserPtr = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
   Status status = fusionConfigParserPtr->ParseFusionConfigFile();
   EXPECT_EQ(status, SUCCESS);
@@ -298,9 +321,8 @@ class TestCompileLevelPass : public PatternFusionBasePass {
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
     FusionPattern *pattern1 = new (std::nothrow) FusionPattern("TestGenPattern1");
-    FE_CHECK(pattern1 == nullptr, FE_LOGE("New a pattern1 object failed."),  return patterns);
-    pattern1->AddOpDesc("TestGen", {"TestGen"})
-        .SetOutput("TestGen");
+    FE_CHECK(pattern1 == nullptr, FE_LOGE("New a pattern1 object failed."), return patterns);
+    pattern1->AddOpDesc("TestGen", {"TestGen"}).SetOutput("TestGen");
     patterns.push_back(pattern1);
   };
 
@@ -315,7 +337,8 @@ TEST_F(UTestFusionConfigParser, fusion_switch_case) {
   const std::string json_path = current_dir + "plugin/opskernel/fusion_pass/config/";
   CreateDir(json_path);
   const std::string fileName = json_path + "fusion_config.json";
-  std::string ori_json_path = GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/fusion_config.json";
+  std::string ori_json_path =
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/fusion_config.json";
   std::ifstream ifs(ori_json_path);
   if (!ifs.is_open()) {
     printf("open json[%s] failed, %s", ori_json_path.c_str(), strerror(errno));

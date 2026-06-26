@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ void RegisterPassOption(const std::string &pass_name) {
   ge::OptionRegistry::GetInstance().Register(opt);
   ge::PassOptionRegistry::GetInstance().Register(pass_name, {{ge::OoHierarchy::kH1, opt.name}});
 }
-} // namespace
+}  // namespace
 
 PythonPassCreateScope::PythonPassCreateScope(const PythonPassCreateContext &create_context) {
   has_previous_ = GetCurrentPythonPassCreateContext(previous_context_);
@@ -86,7 +86,8 @@ bool PassRegistry::RegisterPythonPass(const PythonPassDescriptor &pass_desc,
     return false;
   }
 
-  if (descriptor_key_2_python_pass_descs_.find(pass_desc.descriptor_key) != descriptor_key_2_python_pass_descs_.cend()) {
+  if (descriptor_key_2_python_pass_descs_.find(pass_desc.descriptor_key) !=
+      descriptor_key_2_python_pass_descs_.cend()) {
     GELOGI("Python pass descriptor key [%s] has already registered.", pass_desc.descriptor_key.c_str());
     return false;
   }
@@ -100,8 +101,8 @@ bool PassRegistry::RegisterPythonPass(const PythonPassDescriptor &pass_desc,
   RegisterFusionPass(reg_data);
   descriptor_key_2_python_pass_descs_.emplace(pass_desc.descriptor_key, pass_desc);
   pass_name_2_python_pass_create_contexts_.emplace(pass_desc.pass_name, pass_desc.ToCreateContext());
-  GELOGI("Python pass descriptor registered success, pass name[%s], descriptor key[%s].",
-         pass_desc.pass_name.c_str(), pass_desc.descriptor_key.c_str());
+  GELOGI("Python pass descriptor registered success, pass name[%s], descriptor key[%s].", pass_desc.pass_name.c_str(),
+         pass_desc.descriptor_key.c_str());
   return true;
 }
 

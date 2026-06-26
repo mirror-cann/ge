@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -42,16 +42,21 @@ def check_type(obj, cls):
 def check_dict(arg_name, arg_value: dict, k_class, v_class, v_inner_class=None):
     for k, v in arg_value.items():
         if not check_type(k, k_class):
-            raise TypeError(
-                f"{arg_name} dict key only support {k_class}, but got {format(type(k))}.")
+            raise TypeError(f"{arg_name} dict key only support {k_class}, but got {format(type(k))}.")
         if not check_type(v, v_class):
-            raise TypeError(
-                f"{arg_name} dict value only support {v_class}, but got {format(type(v))}.")
+            raise TypeError(f"{arg_name} dict value only support {v_class}, but got {format(type(v))}.")
         elif v_inner_class is not None:
             check_inner("dict value", v, v_inner_class)
 
 
-def check_isinstance(arg_name, arg_value, classes, inner_class=None, extra_fmt="", allow_none: bool = True):
+def check_isinstance(
+    arg_name,
+    arg_value,
+    classes,
+    inner_class=None,
+    extra_fmt="",
+    allow_none: bool = True,
+):
     if allow_none and arg_value is None:
         return arg_value
     if not check_type(classes, list):
@@ -64,8 +69,10 @@ def check_isinstance(arg_name, arg_value, classes, inner_class=None, extra_fmt="
             check = True
             break
     if not check:
-        raise TypeError(f"{extra_fmt}{arg_name} only support {[clazz.__name__ for clazz in classes]}, "
-                        f"but got {format(type(arg_value))}.")
+        raise TypeError(
+            f"{extra_fmt}{arg_name} only support {[clazz.__name__ for clazz in classes]}, "
+            f"but got {format(type(arg_value))}."
+        )
     return arg_value
 
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,14 +55,14 @@ class ConditionUT : public BgTestAutoCreateFrame {
   }
   void ConnectFromOuter(ge::FastNode *node, int32_t dst_index, const ge::FastNode *outer, int32_t src_index) {
     while (true) {
-        auto in_edge = node->GetInDataEdgeByIndex(dst_index);
-        ASSERT_NE(in_edge, nullptr);
-        auto src_node = in_edge->src;
-        ASSERT_NE(src_node, nullptr);
-        if (src_node == outer) {
-          return;
-        }
-        if (src_node->GetType() == "InnerData" || src_node->GetType() == "Data") {
+      auto in_edge = node->GetInDataEdgeByIndex(dst_index);
+      ASSERT_NE(in_edge, nullptr);
+      auto src_node = in_edge->src;
+      ASSERT_NE(src_node, nullptr);
+      if (src_node == outer) {
+        return;
+      }
+      if (src_node->GetType() == "InnerData" || src_node->GetType() == "Data") {
         int32_t parent_index;
         ASSERT_TRUE(ge::AttrUtils::GetInt(src_node->GetOpDescBarePtr(), "index", parent_index));
         auto parent_graph = src_node->GetExtendInfo()->GetOwnerGraphBarePtr();
@@ -303,8 +303,9 @@ TEST_F(ConditionUT, If_ThenElseGraphCorrect) {
 
   auto else_graph = FindSubgraph({if_node}, ge::kElseGraph);
   ASSERT_NE(else_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo2", 1}, {"InnerNetOutput", 1}}),
+      "success");
   netoutput_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(else_graph, "InnerNetOutput");
   ASSERT_NE(netoutput_node, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(netoutput_node).StrictConnectFrom({{"Foo2"}, {"Foo2"}}), "success");
@@ -430,13 +431,13 @@ TEST_F(ConditionUT, Case_Failed_IndexIsNullptr) {
   auto data2 = ValueHolder::CreateFeed(2);
 
   auto holder = Case<ValueHolder>(nullptr, {[&]() -> std::vector<ValueHolderPtr> {
-                                 auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
-                                 return {foo1, data1};
-                               },
-                               [&]() -> std::vector<ValueHolderPtr> {
-                                 auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data1});
-                                 return {data0, foo2};
-                               }});
+                                              auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
+                                              return {foo1, data1};
+                                            },
+                                            [&]() -> std::vector<ValueHolderPtr> {
+                                              auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data1});
+                                              return {data0, foo2};
+                                            }});
 
   ASSERT_EQ(holder.size(), 0);
 }
@@ -446,14 +447,14 @@ TEST_F(ConditionUT, Case_Failed_SubgraphBuilderIsNullptr) {
   auto data2 = ValueHolder::CreateFeed(2);
 
   auto holder = Case<ValueHolder>(data0, {[&]() -> std::vector<ValueHolderPtr> {
-                               auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
-                               return {foo1, data1};
-                             },
-                             nullptr,
-                             [&]() -> std::vector<ValueHolderPtr> {
-                               auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data1});
-                               return {data0, foo2};
-                             }});
+                                            auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
+                                            return {foo1, data1};
+                                          },
+                                          nullptr,
+                                          [&]() -> std::vector<ValueHolderPtr> {
+                                            auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data1});
+                                            return {data0, foo2};
+                                          }});
 
   ASSERT_EQ(holder.size(), 0);
 }
@@ -462,20 +463,21 @@ TEST_F(ConditionUT, Case_CondGraphCorrect_ThreeBranch) {
   auto data1 = ValueHolder::CreateFeed(1);
   auto data2 = ValueHolder::CreateFeed(2);
 
-  auto case_holder = Case<ValueHolder>(data0, {[&]() -> std::vector<ValueHolderPtr> {
-                                    auto bar1 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
-                                    auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
-                                    auto foo3 = ValueHolder::CreateSingleDataOutput("Foo1", {bar1, foo2});
-                                    return {foo3, data1};
-                                  },
-                                  [&]() -> std::vector<ValueHolderPtr> {
-                                    auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data2});
-                                    return {data0, foo2};
-                                  },
-                                  [&]() -> std::vector<ValueHolderPtr> {
-                                    auto foo3 = ValueHolder::CreateSingleDataOutput("Foo3", {data0, data2});
-                                    return {data0, foo3};
-                                  }});
+  auto case_holder =
+      Case<ValueHolder>(data0, {[&]() -> std::vector<ValueHolderPtr> {
+                                  auto bar1 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
+                                  auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
+                                  auto foo3 = ValueHolder::CreateSingleDataOutput("Foo1", {bar1, foo2});
+                                  return {foo3, data1};
+                                },
+                                [&]() -> std::vector<ValueHolderPtr> {
+                                  auto foo2 = ValueHolder::CreateSingleDataOutput("Foo2", {data0, data2});
+                                  return {data0, foo2};
+                                },
+                                [&]() -> std::vector<ValueHolderPtr> {
+                                  auto foo3 = ValueHolder::CreateSingleDataOutput("Foo3", {data0, data2});
+                                  return {data0, foo3};
+                                }});
 
   auto frame = ValueHolder::PopGraphFrame(case_holder, {});
   ASSERT_NE(frame, nullptr);
@@ -590,11 +592,11 @@ TEST_F(ConditionUT, If_ElsePlusAndThenMoveOut_OnlyThenHaveGuarder) {
                 .StrictConnectTo(0, {{"IdentityAddr", 0}}),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(ge::ExecuteGraphUtils::FindFirstNodeMatchType(
-                                ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2), "InnerNetOutput"))
+                                    ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2), "InnerNetOutput"))
                 .StrictConnectFrom({{"InnerData", 0}, {"IdentityAddr", 0}}),
             "success");
   ASSERT_EQ(FastNodeTopoChecker(ge::ExecuteGraphUtils::FindFirstNodeMatchType(
-                                ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2), "InnerNetOutput"))
+                                    ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2), "InnerNetOutput"))
                 .InChecker()
                 .DataFromByType("IdentityAddr")
                 .DataFromByType("Foo1")
@@ -656,8 +658,9 @@ TEST_F(ConditionUT, If_ThenPlusAndElseMoveOut_OnlyElseHaveMultipleGuarders) {
   // else graph
   auto else_graph = ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2);
   ASSERT_NE(else_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 3}, {"Bar", 4}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 3}, {"Bar", 4}, {"InnerNetOutput", 1}}),
+      "success");
   ASSERT_EQ(FastNodeTopoChecker(ge::ExecuteGraphUtils::FindFirstNodeMatchType(else_graph, "InnerNetOutput"))
                 .StrictConnectFrom({{"Bar", 0}, {"Bar", 0}, {"Bar", 0}, {"Bar", 0}}),
             "success");
@@ -768,7 +771,7 @@ TEST_F(ConditionUT, If_InnerDataWithGuarderOutside) {
             "success");
   auto inner_data = ge::ExecuteGraphUtils::FindFirstNodeMatchType(else_graph, "InnerData");
   std::string guarder_type_outside;
-  (void) ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
+  (void)ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
   EXPECT_EQ(guarder_type_outside, "FreeMemory");
 }
 
@@ -816,7 +819,7 @@ TEST_F(ConditionUT, If_InnerDataWithGuarderOutside_FreeFixedFeatureMemory) {
             "success");
   auto inner_data = ge::ExecuteGraphUtils::FindFirstNodeMatchType(else_graph, "InnerData");
   std::string guarder_type_outside;
-  (void) ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
+  (void)ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
   EXPECT_EQ(guarder_type_outside, "FreeFixedFeatureMemory");
 }
 
@@ -880,7 +883,7 @@ TEST_F(ConditionUT, If_InnerDataWithGuarderOutside_With_Subgraph_Nesting) {
             "success");
   auto inner_data = ge::ExecuteGraphUtils::FindFirstNodeMatchType(sub_then_graph, "InnerData");
   std::string guarder_type_outside;
-  (void) ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
+  (void)ge::AttrUtils::GetStr(inner_data->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
   EXPECT_EQ(guarder_type_outside, "FreeMemory");
 }
 
@@ -1078,8 +1081,9 @@ TEST_F(ConditionUT, If_DoNothing_SameDataOut) {
   // then graph
   auto then_graph = ge::FastNodeUtils::GetSubgraphFromNode(if_node, 1);
   ASSERT_NE(then_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(then_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(then_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
+      "success");
   ASSERT_EQ(FastNodeTopoChecker(ge::ExecuteGraphUtils::FindFirstNodeMatchType(then_graph, "InnerNetOutput"))
                 .StrictConnectFrom({{"InnerData"}, {"Foo1"}}),
             "success");
@@ -1093,8 +1097,9 @@ TEST_F(ConditionUT, If_DoNothing_SameDataOut) {
   // else graph
   auto else_graph = ge::FastNodeUtils::GetSubgraphFromNode(if_node, 2);
   ASSERT_NE(else_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(else_graph).StrictAllNodeTypes({{"InnerData", 2}, {"Foo1", 1}, {"InnerNetOutput", 1}}),
+      "success");
   ASSERT_EQ(FastNodeTopoChecker(ge::ExecuteGraphUtils::FindFirstNodeMatchType(else_graph, "InnerNetOutput"))
                 .StrictConnectFrom({{"InnerData"}, {"Foo1"}}),
             "success");
@@ -1112,17 +1117,17 @@ TEST_F(ConditionUT, Case_AddPointFrom_OneDataOut) {
 
   std::string foo1_name, foo2_name;
   auto holder = Case<ValueHolder>(data0, {[&]() -> std::vector<ValueHolderPtr> {
-                               auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
-                               return {foo1, foo1};
-                             },
-                             [&]() -> std::vector<ValueHolderPtr> {
-                               auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
-                               return {data1, foo2};
-                             },
-                             [&]() -> std::vector<ValueHolderPtr> {
-                               auto foo2 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
-                               return {foo2, foo2};
-                             }});
+                                            auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
+                                            return {foo1, foo1};
+                                          },
+                                          [&]() -> std::vector<ValueHolderPtr> {
+                                            auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
+                                            return {data1, foo2};
+                                          },
+                                          [&]() -> std::vector<ValueHolderPtr> {
+                                            auto foo2 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
+                                            return {foo2, foo2};
+                                          }});
 
   auto frame = ValueHolder::PopGraphFrame(holder, {});
   ASSERT_NE(frame, nullptr);
@@ -1261,13 +1266,8 @@ TEST_F(ConditionUT, Case_OutputPlacementsSameWithSubgraphs) {
   data1->SetPlacement(kOnHost);
   data2->SetPlacement(kOnDeviceHbm);
   auto holder = If<ValueHolder>(
-      data0,
-      [&]() -> std::vector<ValueHolderPtr> {
-        return {data1, data2};
-      },
-      [&]() -> std::vector<ValueHolderPtr> {
-        return {data1, data2};
-      });
+      data0, [&]() -> std::vector<ValueHolderPtr> { return {data1, data2}; },
+      [&]() -> std::vector<ValueHolderPtr> { return {data1, data2}; });
 
   ASSERT_EQ(holder.size(), 2);
   EXPECT_EQ(holder.at(0)->GetPlacement(), kOnHost);
@@ -1285,20 +1285,20 @@ TEST_F(ConditionUT, Case_OutputPlacementsUnknown_SubgraphsDiff) {
 
   std::string foo1_name, foo2_name;
   auto holder = Case<ValueHolder>(data0, {[&]() -> std::vector<ValueHolderPtr> {
-                               auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
-                               foo1->SetPlacement(kOnDeviceHbm);
-                               return {data1, foo1, data2};
-                             },
-                             [&]() -> std::vector<ValueHolderPtr> {
-                               auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
-                               foo2->SetPlacement(kOnDeviceHbm);
-                               return {data1, foo2, data2};
-                             },
-                             [&]() -> std::vector<ValueHolderPtr> {
-                               auto foo2 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
-                               foo2->SetPlacement(kOnHost);
-                               return {foo2, foo2, foo2};
-                             }});
+                                            auto foo1 = ValueHolder::CreateSingleDataOutput("Foo1", {data1, data2});
+                                            foo1->SetPlacement(kOnDeviceHbm);
+                                            return {data1, foo1, data2};
+                                          },
+                                          [&]() -> std::vector<ValueHolderPtr> {
+                                            auto foo2 = ValueHolder::CreateSingleDataOutput("Foo1", {data0, data1});
+                                            foo2->SetPlacement(kOnDeviceHbm);
+                                            return {data1, foo2, data2};
+                                          },
+                                          [&]() -> std::vector<ValueHolderPtr> {
+                                            auto foo2 = ValueHolder::CreateSingleDataOutput("Bar1", {data0, data1});
+                                            foo2->SetPlacement(kOnHost);
+                                            return {foo2, foo2, foo2};
+                                          }});
 
   ASSERT_EQ(holder.size(), 3);
   EXPECT_EQ(holder.at(0)->GetPlacement(), kTensorPlacementEnd);

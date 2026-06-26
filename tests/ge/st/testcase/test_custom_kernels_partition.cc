@@ -67,8 +67,7 @@ class TestPortableDeserializeFailOpForPartition : public EagerExecuteOp, public 
 };
 
 std::vector<uint8_t> BuildCustomKernelPartitionWithHeader(const CustomKernelItemHeader &header,
-                                                          const std::string &op_type,
-                                                          const std::vector<uint8_t> &bin) {
+                                                          const std::string &op_type, const std::vector<uint8_t> &bin) {
   std::vector<uint8_t> payload(sizeof(CustomKernelItemHeader) + op_type.size() + bin.size(), 0U);
   (void)memcpy_s(payload.data(), payload.size(), &header, sizeof(CustomKernelItemHeader));
   if (!op_type.empty()) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ ge::graphStatus InferShapeForFakeNode(InferShapeContext *context) {
   auto input_tensor1 = context->GetInputTensor(1UL);
   EXPECT_EQ(input_tensor1->GetDataType(), ge::DT_FLOAT);
   ShapeChecker::CheckShape(input_tensor1->GetStorageShape(), expect_shape);
-  ShapeChecker::CheckShape(input_tensor1->GetOriginShape(), expect_shape);  
+  ShapeChecker::CheckShape(input_tensor1->GetOriginShape(), expect_shape);
   EXPECT_EQ(input_tensor1->GetStorageFormat(), ge::FORMAT_NCHW);
   EXPECT_EQ(input_tensor1->GetOriginFormat(), ge::FORMAT_NCHW);
   EXPECT_EQ(input_tensor1->GetAddr(), nullptr);
@@ -70,7 +70,7 @@ ge::graphStatus TilingForFakeNode(TilingContext *context) {
   auto input_tensor1 = context->GetInputTensor(1UL);
   EXPECT_EQ(input_tensor1->GetDataType(), ge::DT_FLOAT);
   ShapeChecker::CheckShape(input_tensor1->GetStorageShape(), expect_shape);
-  ShapeChecker::CheckShape(input_tensor1->GetOriginShape(), expect_shape);  
+  ShapeChecker::CheckShape(input_tensor1->GetOriginShape(), expect_shape);
   EXPECT_EQ(input_tensor1->GetStorageFormat(), ge::FORMAT_NCHW);
   EXPECT_EQ(input_tensor1->GetOriginFormat(), ge::FORMAT_NCHW);
   EXPECT_EQ(input_tensor1->GetAddr(), nullptr);
@@ -139,17 +139,18 @@ ge::graphStatus InferShapeRangeForFakeNode(InferShapeRangeContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-IMPL_OP(FakeAicoreNode).InferShape(InferShapeForFakeNode)
-                       .Tiling(TilingForFakeNode)
-                       .TilingParse<FakeNodeCompileInfo>(TilingParseForFakeNode);
+IMPL_OP(FakeAicoreNode)
+    .InferShape(InferShapeForFakeNode)
+    .Tiling(TilingForFakeNode)
+    .TilingParse<FakeNodeCompileInfo>(TilingParseForFakeNode);
 
-IMPL_OP(FakeAicoreNodeWithDeterministc).InferShape(InferShapeForFakeNode)
-                                       .Tiling(TilingForFakeNodeWithDeterminic)
-                                       .TilingParse<FakeNodeCompileInfo>(TilingParseForFakeNode);
+IMPL_OP(FakeAicoreNodeWithDeterministc)
+    .InferShape(InferShapeForFakeNode)
+    .Tiling(TilingForFakeNodeWithDeterminic)
+    .TilingParse<FakeNodeCompileInfo>(TilingParseForFakeNode);
 
-IMPL_OP(FakeShapeRangeNode).InferShape(InferShapeForFakeNode)
-                           .InferShapeRange(InferShapeRangeForFakeNode);
-}
+IMPL_OP(FakeShapeRangeNode).InferShape(InferShapeForFakeNode).InferShapeRange(InferShapeRangeForFakeNode);
+}  // namespace
 
 class Runtime2GetTensorKernelSystemTest : public bg::BgTest {
   void SetUp() {
@@ -168,11 +169,13 @@ class Runtime2GetTensorKernelSystemTest : public bg::BgTest {
  * 测试步骤：
  * 1. 按照预制条件构造好两张图
  * 2. lowering、加载计算图
- * 3. 执行计算图，并在fake算子的Tiling，Infershape，InfershapeRange函数中，对GetInputTensor接口获取到的Tensor对象里面的内容进行校验
+ * 3.
+ * 执行计算图，并在fake算子的Tiling，Infershape，InfershapeRange函数中，对GetInputTensor接口获取到的Tensor对象里面的内容进行校验
  *
  * 预期结果：
  * 1. 图执行成功
- * 2. 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的Shape信息，Format信息，DataType信息均为实际值且符合预期
+ * 2.
+ * 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的Shape信息，Format信息，DataType信息均为实际值且符合预期
  * 3. 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的地址信息，Size信息为空
  */
 TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTest) {
@@ -181,8 +184,8 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTest) {
   GeModelBuilder builder(graph);
   AiCpuTfTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("FakeAicoreNode", AiCoreTaskDefFaker("FakeAicoreNodeStubBin").WithHandle())
-                       .AddTaskDef("FakeShapeRangeNode", aicpu_task_def_faker.SetNeedMemcpy(true))
-                       .BuildGeRootModel();
+                           .AddTaskDef("FakeShapeRangeNode", aicpu_task_def_faker.SetNeedMemcpy(true))
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -202,12 +205,12 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTest) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
@@ -234,8 +237,9 @@ TEST_F(Runtime2GetTensorKernelSystemTest, DeterministicSystemTest) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   AiCpuTfTaskDefFaker aicpu_task_def_faker;
-  auto ge_root_model = builder.AddTaskDef("FakeAicoreNodeWithDeterministc", AiCoreTaskDefFaker("FakeAicoreNodeStubBin").WithHandle())
-                       .BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("FakeAicoreNodeWithDeterministc", AiCoreTaskDefFaker("FakeAicoreNodeStubBin").WithHandle())
+          .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -255,12 +259,12 @@ TEST_F(Runtime2GetTensorKernelSystemTest, DeterministicSystemTest) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
@@ -279,11 +283,13 @@ TEST_F(Runtime2GetTensorKernelSystemTest, DeterministicSystemTest) {
  * 1. 按照预制条件构造好两张图
  * 2. 打开always_zero_copy开关
  * 3. lowering、加载计算图
- * 4. 执行计算图，并在fake算子的Tiling，Infershape，InfershapeRange函数中，对GetInputTensor接口获取到的Tensor对象里面的内容进行校验
+ * 4.
+ * 执行计算图，并在fake算子的Tiling，Infershape，InfershapeRange函数中，对GetInputTensor接口获取到的Tensor对象里面的内容进行校验
  *
  * 预期结果：
  * 1. 图执行成功
- * 2. 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的Shape信息，Format信息，DataType信息均为实际值且符合预期
+ * 2.
+ * 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的Shape信息，Format信息，DataType信息均为实际值且符合预期
  * 3. 算子交付件中从GetInputTensor接口中获取到Tensor对象，且从Tensor对象中获取到的地址信息，Size信息为空
  */
 TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTestAlwaysZeroCopy) {
@@ -292,8 +298,8 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTestAlwaysZeroCop
   GeModelBuilder builder(graph);
   AiCpuTfTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("FakeAicoreNode", AiCoreTaskDefFaker("FakeAicoreNodeStubBin").WithHandle())
-                       .AddTaskDef("FakeShapeRangeNode", aicpu_task_def_faker.SetNeedMemcpy(true))
-                       .BuildGeRootModel();
+                           .AddTaskDef("FakeShapeRangeNode", aicpu_task_def_faker.SetNeedMemcpy(true))
+                           .BuildGeRootModel();
   LoweringOption option{.trust_shape_on_out_tensor = false, .always_zero_copy = true};
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   ModelConverter::Args args{option, nullptr, nullptr, nullptr, nullptr};
@@ -315,14 +321,12 @@ TEST_F(Runtime2GetTensorKernelSystemTest, GetTensorKernelSystemTestAlwaysZeroCop
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
-}
+}  // namespace gert

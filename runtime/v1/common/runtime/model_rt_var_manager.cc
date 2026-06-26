@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ std::shared_ptr<ModelRtVarManager> ModelRtVarManager::Instance(const uint64_t se
 }
 
 ge::Status ModelRtVarManager::Init(const uint64_t device_id, const uint64_t logic_var_base,
-                                   const int64_t total_var_size, void* external_var_addr, uint64_t external_var_size) {
+                                   const int64_t total_var_size, void *external_var_addr, uint64_t external_var_size) {
   if (inited) {
     return ge::SUCCESS;
   }
@@ -43,9 +43,10 @@ ge::Status ModelRtVarManager::Init(const uint64_t device_id, const uint64_t logi
     var_manager->SetVarMemLogicBase(logic_var_base);
     var_manager->SetVarMemMaxSize(total_var_size);
     var_manager->SetExternalVar(external_var_addr, external_var_size);
-    GELOGI("Reinit var manager in session:[%" PRIu64 "], logic_base:[%" PRIu64 "], total_size:[%" PRId64 "], "
+    GELOGI("Reinit var manager in session:[%" PRIu64 "], logic_base:[%" PRIu64 "], total_size:[%" PRId64
+           "], "
            "external_var_addr %p, external_var_size %lu",
-      session_id_, logic_var_base, total_var_size, external_var_addr, external_var_size);
+           session_id_, logic_var_base, total_var_size, external_var_addr, external_var_size);
   }
   if (!var_manager->HasMemoryManager()) {
     var_manager->SetMemManager(&ge::MemManager::Instance());
@@ -93,7 +94,7 @@ ge::Status ModelRtVarManager::RestoreDeviceVariables(const std::vector<ge::NodeP
     GE_ASSERT_TRUE(tensor_size > 0);
     var_info.var_size = static_cast<uint64_t>(tensor_size);
     GELOGD("Variable [%s] has been collected in session [%u], addr:[%" PRIx64 "], size:[%" PRId64 "]",
-      op_desc->GetNamePtr(), session_id_, var_info.var_addr, var_info.var_size);
+           op_desc->GetNamePtr(), session_id_, var_info.var_addr, var_info.var_size);
   }
   return ge::SUCCESS;
 }

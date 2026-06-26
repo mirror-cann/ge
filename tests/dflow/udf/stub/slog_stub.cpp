@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,22 +21,21 @@ static int g_runlog_level = DLOG_INFO;
 static int g_debuglog_level = DLOG_WARN;
 static int g_enableEvent = 1;
 
-#define __DO_PRINT(log_level)                        \
-  do {                                               \
-    const int FMT_BUFF_SIZE = 1024;                  \
-    char fmt_buff[FMT_BUFF_SIZE] = {0};              \
-    va_list valist;                                  \
-    va_start(valist, fmt);                           \
-    vsnprintf(fmt_buff, FMT_BUFF_SIZE, fmt, valist); \
-    va_end(valist);                                  \
-    struct timeval ts;                               \
-    gettimeofday(&ts, 0);                            \
-    time_t t = time(NULL);                           \
-    struct tm *lt = localtime(&t);                   \
-    printf("[%s]%04d-%02d-%02d-%02d:%02d:%02d.%03d.%03d %s \n", #log_level,  \
-            (lt->tm_year + 1900), (lt->tm_mon + 1), lt->tm_mday, lt->tm_hour, \
-            lt->tm_min, lt->tm_sec, static_cast<int>(ts.tv_usec / 1000),      \
-            static_cast<int>(ts.tv_usec % 1000), fmt_buff); \
+#define __DO_PRINT(log_level)                                                                                       \
+  do {                                                                                                              \
+    const int FMT_BUFF_SIZE = 1024;                                                                                 \
+    char fmt_buff[FMT_BUFF_SIZE] = {0};                                                                             \
+    va_list valist;                                                                                                 \
+    va_start(valist, fmt);                                                                                          \
+    vsnprintf(fmt_buff, FMT_BUFF_SIZE, fmt, valist);                                                                \
+    va_end(valist);                                                                                                 \
+    struct timeval ts;                                                                                              \
+    gettimeofday(&ts, 0);                                                                                           \
+    time_t t = time(NULL);                                                                                          \
+    struct tm *lt = localtime(&t);                                                                                  \
+    printf("[%s]%04d-%02d-%02d-%02d:%02d:%02d.%03d.%03d %s \n", #log_level, (lt->tm_year + 1900), (lt->tm_mon + 1), \
+           lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, static_cast<int>(ts.tv_usec / 1000),                   \
+           static_cast<int>(ts.tv_usec % 1000), fmt_buff);                                                          \
   } while (0)
 
 void DlogRecord(int module_id, int level, const char *fmt, ...) {

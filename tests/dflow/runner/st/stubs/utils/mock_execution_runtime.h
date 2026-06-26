@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,8 +18,8 @@ using namespace testing;
 namespace ge {
 class ExchangeServiceStub : public ExchangeService {
  public:
-  MOCK_METHOD4(CreateQueue, Status(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
-                                   uint32_t &queue_id));
+  MOCK_METHOD4(CreateQueue,
+               Status(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr, uint32_t &queue_id));
   MOCK_METHOD5(Enqueue, Status(int32_t device_id, uint32_t queue_id, size_t size, rtMbufPtr_t m_buf,
                                const ControlInfo &control_info));
   MOCK_METHOD5(Enqueue, Status(int32_t device_id, uint32_t queue_id, size_t size, const FillFunc &fill_func,
@@ -30,12 +30,12 @@ class ExchangeServiceStub : public ExchangeService {
   MOCK_METHOD5(Enqueue, Status(int32_t device_id, uint32_t queue_id, const void *data, size_t size,
                                const ControlInfo &control_info));
   MOCK_METHOD4(EnqueueMbuf, Status(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout));
-  MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor & , ExchangeService::ControlInfo &));
+  MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor &, ExchangeService::ControlInfo &));
   MOCK_METHOD4(DequeueMbuf, Status(int32_t, uint32_t, rtMbufPtr_t *, int32_t));
   MOCK_METHOD2(ResetQueueInfo, void(const int32_t device_id, const uint32_t queue_id));
-  MOCK_METHOD5(DequeueMbufTensor, Status(const int32_t device_id, const uint32_t queue_id,
-                                         std::shared_ptr<AlignedPtr> &aligned_ptr,
-                                         const size_t size, ControlInfo &control_info));
+  MOCK_METHOD5(DequeueMbufTensor,
+               Status(const int32_t device_id, const uint32_t queue_id, std::shared_ptr<AlignedPtr> &aligned_ptr,
+                      const size_t size, ControlInfo &control_info));
   MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void *, size_t, ExchangeService::ControlInfo &));
 };
 
@@ -50,7 +50,7 @@ class ModelDeployerStub : public ModelDeployer {
 class ExecutionRuntimeStub : public ExecutionRuntime {
  public:
   ExecutionRuntimeStub()
-      :ExecutionRuntimeStub(std::make_shared<ExchangeServiceStub>(), std::make_shared<ModelDeployerStub>()) {}
+      : ExecutionRuntimeStub(std::make_shared<ExchangeServiceStub>(), std::make_shared<ModelDeployerStub>()) {}
 
   explicit ExecutionRuntimeStub(std::shared_ptr<ExchangeService> exchange_service)
       : ExecutionRuntimeStub(exchange_service, std::make_shared<ModelDeployerStub>()) {}
@@ -58,8 +58,7 @@ class ExecutionRuntimeStub : public ExecutionRuntime {
   explicit ExecutionRuntimeStub(std::shared_ptr<ModelDeployer> model_deployer)
       : ExecutionRuntimeStub(std::make_shared<ExchangeServiceStub>(), model_deployer) {}
 
-  ExecutionRuntimeStub(std::shared_ptr<ExchangeService> exchange_service,
-                       std::shared_ptr<ModelDeployer> model_deployer)
+  ExecutionRuntimeStub(std::shared_ptr<ExchangeService> exchange_service, std::shared_ptr<ModelDeployer> model_deployer)
       : exchange_service_(exchange_service), model_deployer_(model_deployer) {}
 
   Status Initialize(const map<std::string, std::string> &options) override {

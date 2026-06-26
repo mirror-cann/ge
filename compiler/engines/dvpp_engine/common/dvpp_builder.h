@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,16 +28,16 @@ class DvppBuilder {
   virtual ~DvppBuilder() = default;
 
   // Copy constructor prohibited
-  DvppBuilder(const DvppBuilder& dvpp_builder) = delete;
+  DvppBuilder(const DvppBuilder &dvpp_builder) = delete;
 
   // Move constructor prohibited
-  DvppBuilder(const DvppBuilder&& dvpp_builder) = delete;
+  DvppBuilder(const DvppBuilder &&dvpp_builder) = delete;
 
   // Copy assignment prohibited
-  DvppBuilder& operator=(const DvppBuilder& dvpp_builder) = delete;
+  DvppBuilder &operator=(const DvppBuilder &dvpp_builder) = delete;
 
   // Move assignment prohibited
-  DvppBuilder& operator=(DvppBuilder&& dvpp_builder) = delete;
+  DvppBuilder &operator=(DvppBuilder &&dvpp_builder) = delete;
 
   /**
    * @brief calculate running size of op
@@ -45,7 +45,7 @@ class DvppBuilder {
    * @param node node info, return task memory size in node attr
    * @return status whether success
    */
-  DvppErrorCode CalcOpRunningParam(ge::Node& node) const;
+  DvppErrorCode CalcOpRunningParam(ge::Node &node) const;
 
   /**
    * @brief make the task info details
@@ -55,11 +55,11 @@ class DvppBuilder {
    * @param tasks make the task return to GE
    * @return status whether success
    */
-  virtual DvppErrorCode GenerateTask(const ge::Node& node,
-      ge::RunContext& context, std::vector<domi::TaskDef>& tasks) = 0;
+  virtual DvppErrorCode GenerateTask(const ge::Node &node, ge::RunContext &context,
+                                     std::vector<domi::TaskDef> &tasks) = 0;
 
  private:
-  DvppErrorCode SetOutPutMemorySize(ge::OpDescPtr& op_desc_ptr) const;
+  DvppErrorCode SetOutPutMemorySize(ge::OpDescPtr &op_desc_ptr) const;
 
   /**
    * @brief calculate output memory size
@@ -67,19 +67,18 @@ class DvppBuilder {
    * @param output_memory_size output memory size
    * @return status whether success
    */
-  DvppErrorCode CalcOutputMemorySize(
-      ge::GeTensorDesc& output_desc, int64_t& output_memory_size) const;
+  DvppErrorCode CalcOutputMemorySize(ge::GeTensorDesc &output_desc, int64_t &output_memory_size) const;
 
-  DvppErrorCode CalcTotalSizeByDimsAndType(const std::vector<int64_t>& dims,
-      const ge::DataType& data_type, int64_t& total_size) const;
+  DvppErrorCode CalcTotalSizeByDimsAndType(const std::vector<int64_t> &dims, const ge::DataType &data_type,
+                                           int64_t &total_size) const;
 
   /**
    * @brief set op channel resource
    * @param op_desc_ptr OpDesc pointer
    * @return status whether success
    */
-  virtual DvppErrorCode SetAttrResource(ge::OpDescPtr& op_desc_ptr) const = 0;
-}; // class DvppBuilder
-} // namespace dvpp
+  virtual DvppErrorCode SetAttrResource(ge::OpDescPtr &op_desc_ptr) const = 0;
+};  // class DvppBuilder
+}  // namespace dvpp
 
-#endif // DVPP_ENGINE_COMMON_DVPP_BUILDER_H_
+#endif  // DVPP_ENGINE_COMMON_DVPP_BUILDER_H_

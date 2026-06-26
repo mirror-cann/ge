@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@ using namespace fusion;
 using namespace ge::es;
 
 namespace {
-constexpr int64_t kInputADimNum = 3;  // input A dimension count: 3D tensor [b, m, k]
-constexpr int64_t kInputBDimNum = 2;  // input B dimension count: 2D tensor [k, n]
+constexpr int64_t kInputADimNum = 3;      // input A dimension count: 3D tensor [b, m, k]
+constexpr int64_t kInputBDimNum = 2;      // input B dimension count: 2D tensor [k, n]
 constexpr size_t kSupportedInputNum = 2;  // only x1 and x2 are supported in this sample
 constexpr int64_t kDefaultOffsetX = 0;
 
@@ -41,11 +41,8 @@ bool GetBoolAttrOrDefault(const GNode &node, const char *attr_name, bool default
   return attr_value;
 }
 
-bool HasTransposeAttr(const GNode &node,
-                      const char *transpose_attr_name,
-                      const char *adj_attr_name) {
-  return GetBoolAttrOrDefault(node, transpose_attr_name, false) ||
-         GetBoolAttrOrDefault(node, adj_attr_name, false);
+bool HasTransposeAttr(const GNode &node, const char *transpose_attr_name, const char *adj_attr_name) {
+  return GetBoolAttrOrDefault(node, transpose_attr_name, false) || GetBoolAttrOrDefault(node, adj_attr_name, false);
 }
 
 int64_t GetIntAttrOrDefault(const GNode &node, const char *attr_name, int64_t default_value) {
@@ -55,7 +52,7 @@ int64_t GetIntAttrOrDefault(const GNode &node, const char *attr_name, int64_t de
   }
   return attr_value;
 }
-}
+}  // namespace
 
 // |o>-------------------------------------------
 // |o>  Before:                    After:
@@ -115,8 +112,7 @@ class BatchMatmulFlattenPass : public PatternFusionPass {
 
     TensorDesc input0_desc;
     TensorDesc input1_desc;
-    if (bmm_node.GetInputDesc(0, input0_desc) != SUCCESS ||
-        bmm_node.GetInputDesc(1, input1_desc) != SUCCESS) {
+    if (bmm_node.GetInputDesc(0, input0_desc) != SUCCESS || bmm_node.GetInputDesc(1, input1_desc) != SUCCESS) {
       return false;
     }
 
@@ -165,8 +161,7 @@ class BatchMatmulFlattenPass : public PatternFusionPass {
 
     TensorDesc input0_desc;
     TensorDesc input1_desc;
-    if (bmm_node.GetInputDesc(0, input0_desc) != SUCCESS ||
-        bmm_node.GetInputDesc(1, input1_desc) != SUCCESS) {
+    if (bmm_node.GetInputDesc(0, input0_desc) != SUCCESS || bmm_node.GetInputDesc(1, input1_desc) != SUCCESS) {
       return nullptr;
     }
 
@@ -179,35 +174,31 @@ class BatchMatmulFlattenPass : public PatternFusionPass {
     int64_t n_size = shape1.GetDim(1);      // dim 1: n dimension of B
 
     if (m_size > 0 && batch_size > std::numeric_limits<int64_t>::max() / m_size) {
-        std::cout << "batch_size * m_size overflow" << std::endl;
-        return nullptr;
+      std::cout << "batch_size * m_size overflow" << std::endl;
+      return nullptr;
     }
 
     auto replace_graph_builder = es::EsGraphBuilder("replacement_flatten");
     auto [input_a, input_b] = replace_graph_builder.CreateInputs<2>();
 
-    return BuildReplacement(replace_graph_builder, input_a, input_b,
-                            batch_size, m_size, k_size, n_size, bmm_node);
+    return BuildReplacement(replace_graph_builder, input_a, input_b, batch_size, m_size, k_size, n_size, bmm_node);
   }
 
-  es::EsTensorHolder GetDimValue(es::EsGraphBuilder &builder,
-                                  int dim_index,
-                                  int64_t static_value,
-                                  es::EsTensorHolder &shape_tensor) {
+  es::EsTensorHolder GetDimValue(es::EsGraphBuilder &builder, int dim_index, int64_t static_value,
+                                 es::EsTensorHolder &shape_tensor) {
     if (IsDynamicDim(static_value)) {
-      auto offset = builder.CreateConst(std::vector<int64_t>{dim_index}, std::vector<int64_t>{1});  // {1}: 1-element shape
-      auto size = builder.CreateConst(std::vector<int64_t>{1}, std::vector<int64_t>{1});              // {1}: 1-element shape for slice size
+      auto offset =
+          builder.CreateConst(std::vector<int64_t>{dim_index}, std::vector<int64_t>{1});  // {1}: 1-element shape
+      auto size =
+          builder.CreateConst(std::vector<int64_t>{1}, std::vector<int64_t>{1});  // {1}: 1-element shape for slice size
       return es::Slice(shape_tensor, offset, size);
     } else {
       return builder.CreateConst(std::vector<int64_t>{static_value}, std::vector<int64_t>{1});  // {1}: 1-element shape
     }
   }
 
-  GraphUniqPtr BuildReplacement(es::EsGraphBuilder &builder,
-                                es::EsTensorHolder &input_a,
-                                es::EsTensorHolder &input_b,
-                                int64_t batch_size, int64_t m_size,
-                                int64_t k_size, int64_t n_size,
+  GraphUniqPtr BuildReplacement(es::EsGraphBuilder &builder, es::EsTensorHolder &input_a, es::EsTensorHolder &input_b,
+                                int64_t batch_size, int64_t m_size, int64_t k_size, int64_t n_size,
                                 const GNode &matched_node) {
     bool b_static = !IsDynamicDim(batch_size);
     bool m_static = !IsDynamicDim(m_size);
@@ -226,31 +217,35 @@ class BatchMatmulFlattenPass : public PatternFusionPass {
     es::EsTensorHolder n_dim;
 
     if (reshape1_static) {
-      reshape1_shape_tensor = builder.CreateConst(
-          std::vector<int64_t>{batch_size * m_size, k_size},
-          std::vector<int64_t>{2}  // {2}: reshape1 target shape has 2 dims: [b*m, k]
-      );
-      b_dim = builder.CreateConst(std::vector<int64_t>{batch_size}, std::vector<int64_t>{1});  // {1}: 1-element shape for batch dim
-      m_dim = builder.CreateConst(std::vector<int64_t>{m_size}, std::vector<int64_t>{1});      // {1}: 1-element shape for m dim
+      reshape1_shape_tensor =
+          builder.CreateConst(std::vector<int64_t>{batch_size * m_size, k_size}, std::vector<int64_t>{2}
+                              // {2}: reshape1 target shape has 2 dims: [b*m, k]
+          );
+      b_dim = builder.CreateConst(std::vector<int64_t>{batch_size},
+                                  std::vector<int64_t>{1});  // {1}: 1-element shape for batch dim
+      m_dim =
+          builder.CreateConst(std::vector<int64_t>{m_size}, std::vector<int64_t>{1});  // {1}: 1-element shape for m dim
     } else {
       auto shape_a = es::Shape(input_a, ge::DT_INT64);
       b_dim = GetDimValue(builder, 0, batch_size, shape_a);  // dim 0: batch dimension of A
-      m_dim = GetDimValue(builder, 1, m_size, shape_a);    // dim 1: m dimension of A
-      k_dim = GetDimValue(builder, 2, k_size, shape_a);    // dim 2: k dimension of A
+      m_dim = GetDimValue(builder, 1, m_size, shape_a);      // dim 1: m dimension of A
+      k_dim = GetDimValue(builder, 2, k_size, shape_a);      // dim 2: k dimension of A
 
       auto batch_m = es::Mul(b_dim, m_dim);
-      reshape1_shape_tensor = es::Concat(concat_axis, {batch_m, k_dim}, 2);  // 2: concat 2 dims for 2D reshape target [b*m, k]
+      reshape1_shape_tensor =
+          es::Concat(concat_axis, {batch_m, k_dim}, 2);  // 2: concat 2 dims for 2D reshape target [b*m, k]
     }
 
     if (reshape2_static) {
-      reshape2_shape_tensor = builder.CreateConst(
-          std::vector<int64_t>{batch_size, m_size, n_size},
-          std::vector<int64_t>{3}  // {3}: reshape2 target shape has 3 dims: [b, m, n]
-      );
+      reshape2_shape_tensor =
+          builder.CreateConst(std::vector<int64_t>{batch_size, m_size, n_size}, std::vector<int64_t>{3}
+                              // {3}: reshape2 target shape has 3 dims: [b, m, n]
+          );
     } else {
       auto shape_b = es::Shape(input_b, ge::DT_INT64);
       n_dim = GetDimValue(builder, 1, n_size, shape_b);  // dim 1: n dimension of B
-      reshape2_shape_tensor = es::Concat(concat_axis, {b_dim, m_dim, n_dim}, 3);  // 3: concat 3 dims for 3D reshape target [b, m, n]
+      reshape2_shape_tensor =
+          es::Concat(concat_axis, {b_dim, m_dim, n_dim}, 3);  // 3: concat 3 dims for 3D reshape target [b, m, n]
     }
 
     auto reshape1 = es::Reshape(input_a, reshape1_shape_tensor);

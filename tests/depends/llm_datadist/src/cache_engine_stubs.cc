@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,14 +29,16 @@ Status GEFinalize() {
   LLMLOGI("Stub GEFinalize");
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge
 
 namespace llm {
 namespace {
 struct FlowMsg {
-  int32_t* data;
+  int32_t *data;
   FlowMsg(int64_t size) : data(new int32_t[size]) {}
-  ~FlowMsg() { delete[] data; }
+  ~FlowMsg() {
+    delete[] data;
+  }
 };
 
 using CacheIndex = std::pair<int64_t, uint32_t>;
@@ -95,7 +97,7 @@ class CacheEngineGeApi::MockFlowNode {
 };
 
 ge::Status MyCacheManager::AllocateCache(const AllocateCacheReqInfo &req_info,
-                                       std::back_insert_iterator<std::vector<uint64_t>> address_inserter) {
+                                         std::back_insert_iterator<std::vector<uint64_t>> address_inserter) {
   // do allocate
   std::vector<int64_t> shape(req_info.dims, req_info.dims + req_info.num_dims);
   auto dtype = static_cast<ge::DataType>(req_info.dtype);
@@ -136,7 +138,7 @@ ge::Status MyCacheManager::DeallocateCache(int64_t cache_id) {
   auto &cache_entry = it->second;
   cache_entry.ref_count -= 1;
   if ((cache_entry.ref_count == 0) && cache_entry.id_to_offset_and_size.empty()) {
-    (void) cache_id_to_entry_.erase(it);
+    (void)cache_id_to_entry_.erase(it);
   }
   return ge::SUCCESS;
 }
@@ -164,7 +166,7 @@ ge::Status MyCacheManager::ReleaseCache(const CacheIndex &cache_index, bool is_p
   const auto cache_id = cache_id_it->second;
   // 保证cache index指向的cache entry必然存在
   auto &cache_entry = cache_id_to_entry_.at(cache_id);
-  (void) cache_entry.id_to_offset_and_size.erase(cache_index.first);
+  (void)cache_entry.id_to_offset_and_size.erase(cache_index.first);
   if (cache_entry.id_to_offset_and_size.empty() && (cache_entry.ref_count == 0)) {
     DeallocateCache(cache_id);
   } else {
@@ -182,9 +184,8 @@ ge::Status CacheEngineGeApi::MockFlowNode::AllocateCache(const std::vector<ge::T
   LLM_ASSERT_TRUE(tensor.GetSize() >= sizeof(AllocateCacheReqInfo));
   const auto *req_info = reinterpret_cast<const AllocateCacheReqInfo *>(tensor.GetData());
   LLM_ASSERT_TRUE(tensor.GetSize() == (sizeof(AllocateCacheReqInfo) + (sizeof(int64_t) * req_info->num_requests)),
-                 "Expect tensor size = %zu, but only %zu",
-                 sizeof(AllocateCacheReqInfo) + (sizeof(int64_t) * req_info->num_requests),
-                 tensor.GetSize());
+                  "Expect tensor size = %zu, but only %zu",
+                  sizeof(AllocateCacheReqInfo) + (sizeof(int64_t) * req_info->num_requests), tensor.GetSize());
   // do allocate
   output_data.reserve(output_data.size() + req_info->num_tensors);
   auto ret = cache_manager_.AllocateCache(*req_info, std::back_inserter(output_data));
@@ -210,7 +211,8 @@ ge::Status CacheEngineGeApi::MockFlowNode::DeallocateCache(const std::vector<ge:
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::MockFlowNode::GetCache(const std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs) {
+ge::Status CacheEngineGeApi::MockFlowNode::GetCache(const std::vector<ge::Tensor> &inputs,
+                                                    std::vector<ge::Tensor> &outputs) {
   {
     ge::TensorDesc output_desc(ge::Shape({2L}), ge::FORMAT_ND, ge::DT_UINT32);
     ge::Tensor output_tensor(output_desc);
@@ -224,7 +226,8 @@ ge::Status CacheEngineGeApi::MockFlowNode::GetCache(const std::vector<ge::Tensor
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::MockFlowNode::PullCache(const std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs) {
+ge::Status CacheEngineGeApi::MockFlowNode::PullCache(const std::vector<ge::Tensor> &inputs,
+                                                     std::vector<ge::Tensor> &outputs) {
   const auto &tensor = inputs[0];
   LLM_ASSERT_TRUE(tensor.GetSize() == sizeof(PullKvReqInfo));
   const auto *req_info = reinterpret_cast<const PullKvReqInfo *>(tensor.GetData());
@@ -277,15 +280,13 @@ ge::Status CacheEngineGeApi::MockFlowNode::PullCache(const std::vector<ge::Tenso
   for (size_t i = 0U; i < src_cache_entry->tensors.size(); ++i) {
     const auto &src_tensor = src_cache_entry->tensors[i];
     const auto cpy_ret = memcpy_s(reinterpret_cast<uint8_t *>(src_tensor->data) + src_offset_and_size.first,
-                                  src_offset_and_size.second,
-                                  dst_cache_entry->tensors[i]->data,
-                                  copy_size);
+                                  src_offset_and_size.second, dst_cache_entry->tensors[i]->data, copy_size);
     LLM_ASSERT_TRUE(cpy_ret == EOK);
   }
 
   // prompt发送成功后删除
   if (req_info->prompt_cache_id == -1) {
-    (void) cache_manager_.ReleaseCache(cache_index, is_prefix);
+    (void)cache_manager_.ReleaseCache(cache_index, is_prefix);
   }
 
   auto ret = ge::SUCCESS;
@@ -294,7 +295,8 @@ ge::Status CacheEngineGeApi::MockFlowNode::PullCache(const std::vector<ge::Tenso
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::MockFlowNode::CopyCache(const std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs) {
+ge::Status CacheEngineGeApi::MockFlowNode::CopyCache(const std::vector<ge::Tensor> &inputs,
+                                                     std::vector<ge::Tensor> &outputs) {
   ge::TensorDesc output_desc(ge::Shape({1L}), ge::FORMAT_ND, ge::DT_UINT32);
   ge::Tensor output_tensor(output_desc);
   const auto &tensor = inputs[0];
@@ -322,10 +324,8 @@ ge::Status CacheEngineGeApi::MockFlowNode::CopyCache(const std::vector<ge::Tenso
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::FeedDataFlowGraph(uint32_t graph_id,
-                                               const std::vector<uint32_t> &indices,
-                                               const std::vector<ge::Tensor> &inputs,
-                                               const ge::DataFlowInfo &info,
+ge::Status CacheEngineGeApi::FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indices,
+                                               const std::vector<ge::Tensor> &inputs, const ge::DataFlowInfo &info,
                                                int32_t timeout) {
   auto index = indices[0];
   std::vector<ge::Tensor> outputs;
@@ -366,10 +366,8 @@ ge::Status CacheEngineGeApi::FeedDataFlowGraph(uint32_t graph_id,
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::FetchDataFlowGraph(uint32_t graph_id,
-                                                const std::vector<uint32_t> &indexes,
-                                                std::vector<ge::Tensor> &outputs,
-                                                ge::DataFlowInfo &info,
+ge::Status CacheEngineGeApi::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
+                                                std::vector<ge::Tensor> &outputs, ge::DataFlowInfo &info,
                                                 int32_t timeout) {
   auto index = indexes[0];
   if (index == 3) {
@@ -393,8 +391,7 @@ ge::Status CacheEngineGeApi::Finalize() {
   return ge::SUCCESS;
 }
 
-ge::Status CacheEngineGeApi::AddGraph(uint32_t graph_id,
-                                      const ge::Graph &graph,
+ge::Status CacheEngineGeApi::AddGraph(uint32_t graph_id, const ge::Graph &graph,
                                       const std::map<ge::AscendString, ge::AscendString> &options) {
   LLMLOGI("Stub AddGraph");
   return ge::SUCCESS;

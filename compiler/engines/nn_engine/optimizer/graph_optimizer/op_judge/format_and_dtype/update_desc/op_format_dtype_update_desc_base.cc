@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,37 +28,39 @@
 
 namespace fe {
 namespace {
-Status CheckMatchedIndexValid(const std::vector<ge::Format>& op_kernel_format_vec,
-                              const std::vector<ge::DataType>& op_kernel_data_type_vec, const uint32_t& matched_index,
-                              const ge::OpDescPtr& op_desc_ptr, const uint32_t& index, const bool& is_input) {
+Status CheckMatchedIndexValid(const std::vector<ge::Format> &op_kernel_format_vec,
+                              const std::vector<ge::DataType> &op_kernel_data_type_vec, const uint32_t &matched_index,
+                              const ge::OpDescPtr &op_desc_ptr, const uint32_t &index, const bool &is_input) {
   FE_CHECK_NOTNULL(op_desc_ptr);
   uint32_t op_kernel_format_vec_size = op_kernel_format_vec.size();
   uint32_t op_kernel_data_type_vec_size = op_kernel_data_type_vec.size();
   if (op_kernel_format_vec.empty() || matched_index >= op_kernel_format_vec_size) {
-    REPORT_FE_ERROR("[GraphOpt][FmtJdg][ChkMtcIdxValid] Op[%s,type=%s]: update the %s [%u], "
-                    "the matched index [%u] is larger than or equals to the size of op_kernel_format_vec [%u].",
-                    op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), IS_INPUT_TO_STRING(is_input), index,
-                    matched_index, op_kernel_format_vec_size);
+    REPORT_FE_ERROR(
+        "[GraphOpt][FmtJdg][ChkMtcIdxValid] Op[%s,type=%s]: update the %s [%u], "
+        "the matched index [%u] is larger than or equals to the size of op_kernel_format_vec [%u].",
+        op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), IS_INPUT_TO_STRING(is_input), index,
+        matched_index, op_kernel_format_vec_size);
     return FAILED;
   }
 
   if (op_kernel_data_type_vec.empty() || matched_index >= op_kernel_data_type_vec_size) {
-    REPORT_FE_ERROR("[GraphOpt][FmtJdg][ChkMtcIdxValid] Op[%s,type=%s]: update the %s [%u], the matched "
-                    "index [%u] is larger than or equals to the size of opKernelDataTypeVecSize [%u].",
-                    op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), IS_INPUT_TO_STRING(is_input), index,
-                    matched_index, op_kernel_data_type_vec_size);
+    REPORT_FE_ERROR(
+        "[GraphOpt][FmtJdg][ChkMtcIdxValid] Op[%s,type=%s]: update the %s [%u], the matched "
+        "index [%u] is larger than or equals to the size of opKernelDataTypeVecSize [%u].",
+        op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), IS_INPUT_TO_STRING(is_input), index,
+        matched_index, op_kernel_data_type_vec_size);
     return FAILED;
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 OpFormatDtypeUpdateDescBase::OpFormatDtypeUpdateDescBase(const FormatDtypeQuerierPtr format_dtype_querier_ptr)
     : format_dtype_querier_ptr_(format_dtype_querier_ptr) {}
 OpFormatDtypeUpdateDescBase::~OpFormatDtypeUpdateDescBase() {}
 
-Status OpFormatDtypeUpdateDescBase::GetAndCheckSupportedDtype(const UpdateInfo& update_info,
-                                                              ge::DataType& op_kernel_data_type) const {
+Status OpFormatDtypeUpdateDescBase::GetAndCheckSupportedDtype(const UpdateInfo &update_info,
+                                                              ge::DataType &op_kernel_data_type) const {
   ge::OpDescPtr op_desc_ptr = update_info.node_ptr->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc_ptr);
   string op_type = op_desc_ptr->GetType();
@@ -87,7 +89,7 @@ Status OpFormatDtypeUpdateDescBase::GetAndCheckSupportedDtype(const UpdateInfo& 
   return SUCCESS;
 }
 
-Status OpFormatDtypeUpdateDescBase::UpdateDtype(const UpdateInfo& update_info) const {
+Status OpFormatDtypeUpdateDescBase::UpdateDtype(const UpdateInfo &update_info) const {
   ge::OpDescPtr op_desc_ptr = update_info.node_ptr->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc_ptr);
   const string &op_type = op_desc_ptr->GetType();
@@ -111,11 +113,11 @@ Status OpFormatDtypeUpdateDescBase::UpdateDtype(const UpdateInfo& update_info) c
   return SUCCESS;
 }
 
-Status OpFormatDtypeUpdateDescBase::GetFormatAndDtypeVec(const OpKernelInfoPtr& op_kernel_info_ptr,
-                                                         const InputOrOutputInfoPtr& input_or_output_info_ptr,
+Status OpFormatDtypeUpdateDescBase::GetFormatAndDtypeVec(const OpKernelInfoPtr &op_kernel_info_ptr,
+                                                         const InputOrOutputInfoPtr &input_or_output_info_ptr,
                                                          const ge::NodePtr &node,
-                                                         std::vector<ge::Format>& op_kernel_format_vec,
-                                                         std::vector<ge::DataType>& op_kernel_data_type_vec) const {
+                                                         std::vector<ge::Format> &op_kernel_format_vec,
+                                                         std::vector<ge::DataType> &op_kernel_data_type_vec) const {
   if (format_dtype_querier_ptr_->GetSupportFormats(op_kernel_info_ptr, input_or_output_info_ptr, node,
                                                    op_kernel_format_vec) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgInst][UpdFmtAndDtype][GetFmtDtypeVec] Failed to get the support formats.");
@@ -130,7 +132,7 @@ Status OpFormatDtypeUpdateDescBase::GetFormatAndDtypeVec(const OpKernelInfoPtr& 
   return SUCCESS;
 }
 
-Status OpFormatDtypeUpdateDescBase::UpdateFormat(const UpdateInfo& update_info) const {
+Status OpFormatDtypeUpdateDescBase::UpdateFormat(const UpdateInfo &update_info) const {
   ge::OpDescPtr op_desc_ptr = update_info.node_ptr->GetOpDesc();
   const string &op_name = op_desc_ptr->GetName();
   std::vector<ge::Format> op_kernel_format_vec;

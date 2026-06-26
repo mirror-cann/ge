@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,8 @@
 
 namespace ge {
 namespace {
-  std::mutex cust_op_mutex;
-} // namespace
+std::mutex cust_op_mutex;
+}  // namespace
 
 AiCpuCCTaskBuilder::AiCpuCCTaskBuilder(const OpDescPtr &op_desc, const domi::KernelDef &kernel_def)
     : op_desc_(op_desc), kernel_def_(kernel_def) {}
@@ -38,7 +38,7 @@ Status AiCpuCCTaskBuilder::SetKernelArgs(AiCpuCCTask &task, const SingleOpModelP
   if (task.extend_args_for_host_input_) {
     task.host_mem_input_data_offset_ = aicpu_arg_size - sizeof(aicpu::AicpuParamHead);
     GE_ASSERT_TRUE(!ge::AddOverflow(aicpu_arg_size, kMaxHostMemInputLen, aicpu_arg_size));
-    GELOGD("%s has host memory input, args size is extened %zu, args_size = %zu, host_mem_input_data_offset = %zu.",
+    GELOGD("%s has host memory input, args size is extended %zu, args_size = %zu, host_mem_input_data_offset = %zu.",
            op_desc_->GetName().c_str(), kMaxHostMemInputLen, aicpu_arg_size, task.host_mem_input_data_offset_);
   }
   std::unique_ptr<uint8_t[]> aicpu_args = MakeUnique<uint8_t[]>(aicpu_arg_size);
@@ -56,8 +56,7 @@ Status AiCpuCCTaskBuilder::SetKernelArgs(AiCpuCCTask &task, const SingleOpModelP
     return ACL_ERROR_GE_INTERNAL_ERROR;
   }
 
-  task.SetIoAddr(PtrToPtr<void, uintptr_t>(ValueToPtr(PtrToValue(aicpu_args.get()) +
-                                                      sizeof(aicpu::AicpuParamHead))));
+  task.SetIoAddr(PtrToPtr<void, uintptr_t>(ValueToPtr(PtrToValue(aicpu_args.get()) + sizeof(aicpu::AicpuParamHead))));
   task.SetKernelArgs(std::move(aicpu_args), aicpu_arg_size);
 
   const auto addresses = BuildTaskUtils::GetKernelArgs(op_desc_, param);

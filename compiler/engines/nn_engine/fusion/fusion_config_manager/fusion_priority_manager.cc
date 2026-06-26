@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,11 +29,10 @@ bool BufferFusionPrioritySort(const BufferFusionInfo &buffer_fusion_info1,
                               const BufferFusionInfo &buffer_fusion_info2) {
   return buffer_fusion_info1.priority < buffer_fusion_info2.priority;
 }
-}
+}  // namespace
 
 FusionPriorityManager::FusionPriorityManager(std::string engine_name, FusionRuleManagerPtr fusion_rule_mgr_ptr)
-    : engine_name_(std::move(engine_name)),
-      rule_manager_ptr_(std::move(fusion_rule_mgr_ptr)) {
+    : engine_name_(std::move(engine_name)), rule_manager_ptr_(std::move(fusion_rule_mgr_ptr)) {
   fusion_config_parser_ptr_ = std::unique_ptr<FusionConfigParser>(new (std::nothrow) FusionConfigParser(engine_name_));
 }
 
@@ -45,7 +44,7 @@ Status FusionPriorityManager::Initialize() {
   return fusion_config_parser_ptr_->ParseFusionConfigFile();
 }
 
-const std::vector<FusionPassOrRule>& FusionPriorityManager::GetSortedGraphFusionList(const bool is_single_scene) {
+const std::vector<FusionPassOrRule> &FusionPriorityManager::GetSortedGraphFusionList(const bool is_single_scene) {
   size_t hash_key = GetCurrentHashedKey();
   std::lock_guard<std::mutex> lock(fusion_pass_lock_);
 
@@ -60,13 +59,12 @@ const std::vector<FusionPassOrRule>& FusionPriorityManager::GetSortedGraphFusion
       return itor->second;
     }
   }
-  
+
   static const std::vector<FusionPassOrRule> empty_result;
   return empty_result;
 }
 
-const std::vector<BufferFusionInfo>& FusionPriorityManager::GetSortedBufferFusionList(
-                                                            const ge::ComputeGraph &graph) {
+const std::vector<BufferFusionInfo> &FusionPriorityManager::GetSortedBufferFusionList(const ge::ComputeGraph &graph) {
   size_t hash_key = GetCurrentHashedKey();
   std::lock_guard<std::mutex> lock(fusion_pass_lock_);
 
@@ -81,7 +79,7 @@ const std::vector<BufferFusionInfo>& FusionPriorityManager::GetSortedBufferFusio
       return itor->second;
     }
   }
-  
+
   static std::vector<BufferFusionInfo> empty_result;
   return empty_result;
 }
@@ -92,8 +90,8 @@ Status FusionPriorityManager::SortGraphFusion() {
   size_t hash_key = GetCurrentHashedKey();
   std::lock_guard<std::mutex> lock(fusion_pass_lock_);
 
-  if (sorted_graph_fusion_map_.find(hash_key) != sorted_graph_fusion_map_.end()
-        && sorted_graph_fusion_single_scene_map_.find(hash_key) != sorted_graph_fusion_single_scene_map_.end()) {
+  if (sorted_graph_fusion_map_.find(hash_key) != sorted_graph_fusion_map_.end() &&
+      sorted_graph_fusion_single_scene_map_.find(hash_key) != sorted_graph_fusion_single_scene_map_.end()) {
     FE_LOGD("SortGraphFusion has been inited.");
     return SUCCESS;
   }
@@ -116,7 +114,7 @@ Status FusionPriorityManager::SortGraphFusion() {
     REPORT_FE_ERROR("[GraphOpt][FusionConfig][SortGphFus] Failed to sort graph fusion pass for single op scene.");
     return FAILED;
   }
-  
+
   sorted_graph_fusion_map_.emplace(hash_key, sorted_graph_fusion_vec);
   sorted_graph_fusion_single_scene_map_.emplace(hash_key, sorted_graph_fusion_single_scene_vec);
   FE_LOGD("SortGraphFusion success.");
@@ -130,8 +128,7 @@ Status FusionPriorityManager::SortGraphFusionForScene(const bool &is_single_op_s
   // 1.init sorted_custom_pass_or_rule_vector_ and sorted_built_in_pass_or_rule_vector_
   std::vector<FusionPassOrRule> custom_pass_or_rule_vec;
   std::vector<FusionPassOrRule> built_in_pass_or_rule_vec;
-  if (GetGraphFusionPassesAndRules(is_single_op_scene, custom_pass_or_rule_vec, 
-                                    built_in_pass_or_rule_vec) != SUCCESS) {
+  if (GetGraphFusionPassesAndRules(is_single_op_scene, custom_pass_or_rule_vec, built_in_pass_or_rule_vec) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FusionConfig][SortGphFus] Failed to init passes and rules for engine:%s.",
                     engine_name_.c_str());
     return FAILED;
@@ -140,8 +137,8 @@ Status FusionPriorityManager::SortGraphFusionForScene(const bool &is_single_op_s
   // 2.find the configured fusion in sorted_custom_pass_or_rule_vector_ and sorted_built_in_pass_or_rule_vector_
   // then change the priority
   bool has_configured_custom_priority = false;
-  ModifyGraphFusionPriority(graph_fusion_priority_map, has_configured_custom_priority,
-                            custom_pass_or_rule_vec, built_in_pass_or_rule_vec);
+  ModifyGraphFusionPriority(graph_fusion_priority_map, has_configured_custom_priority, custom_pass_or_rule_vec,
+                            built_in_pass_or_rule_vec);
 
   // 3.sort sorted_custom_pass_or_rule_vector_ and sorted_built_in_pass_or_rule_vector_ by priority,
   // then combine them to init sorted_graph_fusion_map_
@@ -155,16 +152,17 @@ Status FusionPriorityManager::SortBufferFusion() {
   size_t hash_key = GetCurrentHashedKey();
   std::lock_guard<std::mutex> lock(fusion_pass_lock_);
 
-  if (sorted_buffer_fusion_map_.find(hash_key) != sorted_buffer_fusion_map_.end()
-        && sorted_buffer_fusion_single_scene_map_.find(hash_key) != sorted_buffer_fusion_single_scene_map_.end()) {
+  if (sorted_buffer_fusion_map_.find(hash_key) != sorted_buffer_fusion_map_.end() &&
+      sorted_buffer_fusion_single_scene_map_.find(hash_key) != sorted_buffer_fusion_single_scene_map_.end()) {
     FE_LOGD("SortBufferFusion has been inited.");
     return SUCCESS;
   }
   // 1.Load ub priority config
   std::map<std::string, int32_t> buffer_fusion_priority_map;
   if (LoadBufferPriorityCfg(buffer_fusion_priority_map) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][FusionConfig][SortBufFus] Failed to load configured buffer fusion priority in engine %s.",
-                    engine_name_.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][FusionConfig][SortBufFus] Failed to load configured buffer fusion priority in engine %s.",
+        engine_name_.c_str());
     return FAILED;
   }
   // 2. sort non single op scene buffer fusion pass
@@ -212,8 +210,8 @@ Status FusionPriorityManager::SortBufferFusionForScene(const bool &can_close_buf
   // 2.Find the configured fusion in sorted_buffer_fusion_info_vector_ and configured_buffer_fusion_priority_map_
   // then change the priority
   for (const auto &iter : buffer_fusion_priority_map) {
-    auto buffer_fusion_iter = find_if(sorted_buffer_fusion_vec.begin(), sorted_buffer_fusion_vec.end(),
-                                      BufferFusionFinder(iter.first));
+    auto buffer_fusion_iter =
+        find_if(sorted_buffer_fusion_vec.begin(), sorted_buffer_fusion_vec.end(), BufferFusionFinder(iter.first));
     if (buffer_fusion_iter != sorted_buffer_fusion_vec.end()) {
       buffer_fusion_iter->priority = AdjustDownStagePriority(iter.second);
       FE_LOGD("The priority of fusion:%s has been set to %d", iter.first.c_str(), iter.second);
@@ -235,7 +233,7 @@ Status FusionPriorityManager::LoadBufferPriorityCfg(std::map<std::string, int32_
 }
 
 Status FusionPriorityManager::InitCustomPasses(const bool &is_single_op_scene,
-                                                vector<FusionPassOrRule> &custom_pass_or_rule_vec) const {
+                                               vector<FusionPassOrRule> &custom_pass_or_rule_vec) const {
   FE_LOGD("InitCustomPasses start.");
   GraphFusionPassType pass_type;
   if (engine_name_ == fe::AI_CORE_NAME) {
@@ -243,9 +241,8 @@ Status FusionPriorityManager::InitCustomPasses(const bool &is_single_op_scene,
   } else if (engine_name_ == fe::VECTOR_CORE_NAME) {
     pass_type = CUSTOM_VECTOR_CORE_GRAPH_PASS;
   } else {
-    REPORT_FE_ERROR(
-        "[GraphOpt][FusionConfig][InitPassRule] Invalid engine name:%s, expected AI_CORE or VECTOR_CORE",
-        engine_name_.c_str());
+    REPORT_FE_ERROR("[GraphOpt][FusionConfig][InitPassRule] Invalid engine name:%s, expected AI_CORE or VECTOR_CORE",
+                    engine_name_.c_str());
     return FAILED;
   }
 
@@ -264,13 +261,13 @@ Status FusionPriorityManager::InitCustomRules(vector<FusionPassOrRule> &custom_p
         engine_name_.c_str());
     return FAILED;
   }
-  custom_pass_or_rule_vec.insert(custom_pass_or_rule_vec.cend(),
-                                 custom_graph_fusion_rule_infos.cbegin(), custom_graph_fusion_rule_infos.cend());
+  custom_pass_or_rule_vec.insert(custom_pass_or_rule_vec.cend(), custom_graph_fusion_rule_infos.cbegin(),
+                                 custom_graph_fusion_rule_infos.cend());
   return SUCCESS;
 }
 
 Status FusionPriorityManager::InitBuiltInPasses(const bool &is_single_op_scene,
-                                                 vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
+                                                vector<FusionPassOrRule> &built_in_pass_or_rule_vec) const {
   FE_LOGD("InitBuiltInPasses start.");
   vector<GraphFusionPassType> pass_type_vec;
   if (engine_name_ == fe::AI_CORE_NAME) {
@@ -299,8 +296,8 @@ Status FusionPriorityManager::InitBuiltInRules(vector<FusionPassOrRule> &built_i
         engine_name_.c_str());
     return FAILED;
   }
-  built_in_pass_or_rule_vec.insert(built_in_pass_or_rule_vec.cend(),
-                                   built_in_graph_fusion_rule_infos.cbegin(), built_in_graph_fusion_rule_infos.cend());
+  built_in_pass_or_rule_vec.insert(built_in_pass_or_rule_vec.cend(), built_in_graph_fusion_rule_infos.cbegin(),
+                                   built_in_graph_fusion_rule_infos.cend());
   return SUCCESS;
 }
 
@@ -326,7 +323,7 @@ Status FusionPriorityManager::GetGraphFusionPassInfosByType(const GraphFusionPas
                                                             const bool &is_single_op_scene,
                                                             vector<FusionPassOrRule> &graph_fusion_pass_vector) const {
   std::map<std::string, FusionPassRegistry::PassDesc> graph_fusion_descs =
-          FusionPassRegistry::GetInstance().GetPassDesc(pass_type);
+      FusionPassRegistry::GetInstance().GetPassDesc(pass_type);
   if (graph_fusion_descs.empty()) {
     FE_LOGD("No registered graph fusion pass was found, type[%s], engine[%s].", GetPassTypeString(pass_type).c_str(),
             engine_name_.c_str());
@@ -375,15 +372,15 @@ Status FusionPriorityManager::GetGraphFusionPassInfosByType(const GraphFusionPas
 
     if (!fusion_config_parser_ptr_->GetFusionSwitchByName(iter.first, GRAPH_FUSION, iter.second.attr,
                                                           is_single_op_scene)) {
-      FE_LOGD("The graph fusion pass[%s] switch is off, single op scene value is %d.", iter.first.c_str(), is_single_op_scene);
+      FE_LOGD("The graph fusion pass[%s] switch is off, single op scene value is %d.", iter.first.c_str(),
+              is_single_op_scene);
       continue;
     }
     FE_LOGD("Load registered graph fusion pass(switch on): %s", iter.first.c_str());
-    graph_fusion_pass_vector.emplace_back(iter.first, static_cast<int32_t>(pass_type), method, priority,
-                                          iter.second);
+    graph_fusion_pass_vector.emplace_back(iter.first, static_cast<int32_t>(pass_type), method, priority, iter.second);
     priority++;
   }
-  
+
   FE_LOGI("The total number of pass(switch on) for type[%s] is %zu.", GetPassTypeString(pass_type).c_str(),
           graph_fusion_pass_vector.size());
   return SUCCESS;
@@ -439,7 +436,7 @@ Status FusionPriorityManager::GetBufferFusionPassInfosByType(const BufferFusionP
                                                              const bool &can_close_buffer_fusion,
                                                              vector<BufferFusionInfo> &buffer_fusion_pass_infos) const {
   std::map<std::string, BufferFusionPassRegistry::PassDesc> buffer_fusion_descs =
-          BufferFusionPassRegistry::GetInstance().GetPassDesc(pass_type);
+      BufferFusionPassRegistry::GetInstance().GetPassDesc(pass_type);
   if (buffer_fusion_descs.empty()) {
     FE_LOGD("GetUbFusion-PassType[%s]: registered buffer fusion passes are empty.",
             GetBufferFusionPassTypeString(pass_type).c_str());
@@ -449,7 +446,8 @@ Status FusionPriorityManager::GetBufferFusionPassInfosByType(const BufferFusionP
   for (const auto &iter : buffer_fusion_descs) {
     if (!fusion_config_parser_ptr_->GetFusionSwitchByName(iter.first, UB_FUSION, iter.second.attr,
                                                           can_close_buffer_fusion)) {
-      FE_LOGD("The ub fusion pass [%s] switch is off, single op scene value is %d.", iter.first.c_str(), can_close_buffer_fusion);
+      FE_LOGD("The ub fusion pass [%s] switch is off, single op scene value is %d.", iter.first.c_str(),
+              can_close_buffer_fusion);
       continue;
     }
     bool is_auto_fusion = IsPassAttrTypeOn(iter.second.attr, PassAttrType::AUTO_FUSION_FLAG);
@@ -459,8 +457,7 @@ Status FusionPriorityManager::GetBufferFusionPassInfosByType(const BufferFusionP
     buffer_fusion_pass_infos.emplace_back(iter.first, priority, is_auto_fusion, is_fusion_check, iter.second.create_fn);
     priority++;
   }
-  FE_LOGD("GetUbFusion-PassType[%s]: end to get BufferFusionPass.",
-          GetBufferFusionPassTypeString(pass_type).c_str());
+  FE_LOGD("GetUbFusion-PassType[%s]: end to get BufferFusionPass.", GetBufferFusionPassTypeString(pass_type).c_str());
   return SUCCESS;
 }
 
@@ -472,8 +469,8 @@ void FusionPriorityManager::ModifyGraphFusionPriority(const std::map<std::string
     return;
   }
   for (auto iter = graph_fusion_priority_map.cbegin(); iter != graph_fusion_priority_map.cend(); iter++) {
-    auto fusion_info_iter = find_if(custom_pass_or_rule_vec.begin(),
-                                    custom_pass_or_rule_vec.end(), FusionPassOrRuleFinder(iter->first));
+    auto fusion_info_iter =
+        find_if(custom_pass_or_rule_vec.begin(), custom_pass_or_rule_vec.end(), FusionPassOrRuleFinder(iter->first));
     if (fusion_info_iter != custom_pass_or_rule_vec.end()) {
       has_configured_custom_priority = true;
       fusion_info_iter->priority = AdjustDownStagePriority(iter->second);
@@ -542,10 +539,10 @@ void FusionPriorityManager::GetFusionPassNameBySwitch(const std::string &pass_ty
 }
 
 BufferFusionPassBasePtr FusionPriorityManager::GetBufferFusionByPassName(const std::string &pass_name) const {
-  BufferFusionPassType pass_type = engine_name_ == fe::AI_CORE_NAME ? BUILT_IN_AI_CORE_BUFFER_FUSION_PASS :
-                                                                      BUILT_IN_VECTOR_CORE_BUFFER_FUSION_PASS;
+  BufferFusionPassType pass_type =
+      engine_name_ == fe::AI_CORE_NAME ? BUILT_IN_AI_CORE_BUFFER_FUSION_PASS : BUILT_IN_VECTOR_CORE_BUFFER_FUSION_PASS;
   std::map<string, BufferFusionPassRegistry::CreateFn> create_fns =
-          BufferFusionPassRegistry::GetInstance().GetCreateFnByType(pass_type);
+      BufferFusionPassRegistry::GetInstance().GetCreateFnByType(pass_type);
   const std::map<string, BufferFusionPassRegistry::CreateFn>::const_iterator iter = create_fns.find(pass_name);
   if (iter == create_fns.cend()) {
     FE_LOGD("Buffer fusion pass[%s] is not found in registered fusion passes.", pass_name.c_str());
@@ -555,13 +552,13 @@ BufferFusionPassBasePtr FusionPriorityManager::GetBufferFusionByPassName(const s
   return buffer_fusion_pass_ptr;
 }
 
-bool FusionPriorityManager::CanCloseBufferFusion(const ge::ComputeGraph& graph) const {
+bool FusionPriorityManager::CanCloseBufferFusion(const ge::ComputeGraph &graph) const {
   if (IsSingleOpGraph(graph)) {
     return true;
   }
 
   return (graph.GetGraphUnknownFlag() &&
-      Configuration::Instance(engine_name_).GetJitCompileCfg() == JitCompileCfg::CFG_FALSE);
+          Configuration::Instance(engine_name_).GetJitCompileCfg() == JitCompileCfg::CFG_FALSE);
 }
 
 size_t FusionPriorityManager::GetCurrentHashedKey() {
@@ -576,7 +573,7 @@ size_t FusionPriorityManager::GetCurrentHashedKey() {
 
   std::hash<std::string> hasher;
   size_t res = hasher(opt_val + opt_oolevel_val + custom_fusion_config_json_file);
-  FE_LOGI("Get optimization switch: [%s], O3 level: [%s], custom fusion config file: [%s], hashed value: [%zu]", 
+  FE_LOGI("Get optimization switch: [%s], O3 level: [%s], custom fusion config file: [%s], hashed value: [%zu]",
           opt_val.c_str(), opt_oolevel_val.c_str(), custom_fusion_config_json_file.c_str(), res);
   return res;
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,11 +38,10 @@ using namespace ge;
 using namespace fe;
 using namespace te;
 
-class UTEST_TbeInfoAssembler : public testing::Test
-{
-protected:
+class UTEST_TbeInfoAssembler : public testing::Test {
+ protected:
   static NodePtr CreateConstDependNode(ComputeGraphPtr graph, ge::DataType dType) {
-    vector<int64_t> dim = {1,2,3,4};
+    vector<int64_t> dim = {1, 2, 3, 4};
     ge::GeShape shape(dim);
     ge::GeTensorDesc tensorDesc(shape, ge::FORMAT_NCHW, dType);
     OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
@@ -73,11 +72,11 @@ protected:
   }
 };
 
-TEST_F(UTEST_TbeInfoAssembler, Test_FeedFlagInt64ToTbeOpInfo){
-  std::string op_name    = "conv";
-  std::string op_module   = "";
-  std::string op_type     = "tbe";
-  std::string core_type   = "AIcoreEngine";
+TEST_F(UTEST_TbeInfoAssembler, Test_FeedFlagInt64ToTbeOpInfo) {
+  std::string op_name = "conv";
+  std::string op_module = "";
+  std::string op_type = "tbe";
+  std::string core_type = "AIcoreEngine";
 
   vector<int64_t> dim_data = {1024, 2, 1024, 1024};
   GeShape shape_data(dim_data);
@@ -97,7 +96,7 @@ TEST_F(UTEST_TbeInfoAssembler, Test_FeedFlagInt64ToTbeOpInfo){
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   NodePtr node_ptr = graph->AddNode(conv_op);
-  Node* node = node_ptr.get();
+  Node *node = node_ptr.get();
 
   TbeInfoAssembler tbe;
   TbeOpInfo op_info(op_name, op_module, op_type, core_type);
@@ -163,7 +162,7 @@ TEST_F(UTEST_TbeInfoAssembler, GetAllOptions_SOFTSYNC_OP) {
 
   std::map<string, string> geOptions;
   geOptions.emplace(ge::VIRTUAL_TYPE, "1");
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   config.InitConfigParamFromOptions(geOptions);
   config.hardware_info_map_.clear();
   auto options = tbe_info_assembler.GetAllOptionsForTBE(*node->GetOpDesc(), "AiCoreEngine", op_kernel_ptr);
@@ -186,7 +185,7 @@ TEST_F(UTEST_TbeInfoAssembler, GetAllOptions_SOFTSYNC_OP_RNN) {
 
   std::map<string, string> geOptions;
   geOptions.emplace(ge::VIRTUAL_TYPE, "1");
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   config.InitConfigParamFromOptions(geOptions);
   config.hardware_info_map_.clear();
   auto options = tbe_info_assembler.GetAllOptionsForTBE(*node->GetOpDesc(), "AiCoreEngine", op_kernel_ptr);
@@ -198,7 +197,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_1) {
   NodePtr node = CreateConstDependNode(graph, ge::DT_FLOAT);
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> shape = {1,2,3,4};
+  std::vector<int64_t> shape = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", shape, "float", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 0, tensor_info_ptr, op_tensor);
@@ -210,7 +209,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_2) {
   NodePtr node = CreateConstDependNode(graph, ge::DT_FLOAT);
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_OPTIONAL;
-  std::vector<int64_t> shape = {1,2,3,4};
+  std::vector<int64_t> shape = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", shape, "float", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 0, tensor_info_ptr, op_tensor);
@@ -222,7 +221,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_3) {
   NodePtr node = CreateConstDependNode(graph, ge::DT_FLOAT);
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> shape = {1,2,3,4};
+  std::vector<int64_t> shape = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", shape, "float", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 1, tensor_info_ptr, op_tensor);
@@ -234,7 +233,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_4) {
   NodePtr node = CreateConstDependNode(graph, ge::DT_FLOAT16);
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> shape = {1,2,3,4};
+  std::vector<int64_t> shape = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", shape, "float16", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 1, tensor_info_ptr, op_tensor);
@@ -246,7 +245,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_5) {
   NodePtr node = CreateConstDependNode(graph, ge::DT_INT32);
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> shape = {1,2,3,4};
+  std::vector<int64_t> shape = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", shape, "int32", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 1, tensor_info_ptr, op_tensor);
@@ -255,7 +254,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_5) {
 
 TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_6) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   ge::GeTensorDesc tensorDesc(shape, ge::FORMAT_NCHW, ge::DT_INT64);
   op_desc->AddInputDesc(tensorDesc);
@@ -271,7 +270,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_6) {
 
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> dim_vec = {1,2,3,4};
+  std::vector<int64_t> dim_vec = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", dim_vec, "int64", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 0, tensor_info_ptr, op_tensor);
@@ -280,7 +279,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_6) {
 
 TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_7) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   ge::GeTensorDesc tensorDesc(shape, ge::FORMAT_NCHW, ge::DT_BOOL);
   op_desc->AddInputDesc(tensorDesc);
@@ -296,7 +295,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_7) {
 
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> dim_vec = {1,2,3,4};
+  std::vector<int64_t> dim_vec = {1, 2, 3, 4};
   te::TbeOpTensor op_tensor("x", dim_vec, "int64", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 0, tensor_info_ptr, op_tensor);
@@ -305,7 +304,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_7) {
 
 TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_8) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,1};
+  vector<int64_t> dim = {1, 2, 3, 1};
   ge::GeShape shape(dim);
   ge::GeTensorDesc tensorDesc(shape, ge::FORMAT_NCHW, ge::DT_BF16);
   op_desc->AddInputDesc(tensorDesc);
@@ -332,7 +331,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_8) {
 
   InputOrOutputInfoPtr tensor_info_ptr = std::make_shared<InputOrOutputInfo>("input");
   tensor_info_ptr->op_const_value_depend_ = CONST_REQUIRED;
-  std::vector<int64_t> dim_vec = {1,2,3,1};
+  std::vector<int64_t> dim_vec = {1, 2, 3, 1};
   te::TbeOpTensor op_tensor("x", dim_vec, "int16", "NCHW");
   TbeInfoAssembler tbe_info_assembler;
   Status ret = tbe_info_assembler.SetTensorConstValue(node.get(), 0, tensor_info_ptr, op_tensor);
@@ -341,11 +340,11 @@ TEST_F(UTEST_TbeInfoAssembler, set_tensor_constvalue_8) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor1) {
   ToOpStructPtr l1_info = std::make_shared<ToOpStruct>();
-  l1_info->slice_output_shape = {{2,2,2,2}};
-  l1_info->slice_input_offset = {{2,2,2,2}};
-  l1_info->slice_output_offset = {{2,2,2,2}};
+  l1_info->slice_output_shape = {{2, 2, 2, 2}};
+  l1_info->slice_input_offset = {{2, 2, 2, 2}};
+  l1_info->slice_output_offset = {{2, 2, 2, 2}};
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -361,11 +360,11 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor1) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor2) {
   ToOpStructPtr l1_info = std::make_shared<ToOpStruct>();
-  l1_info->slice_input_shape = {{2,2,2,2}};
-  l1_info->slice_output_shape = {{2,2,2,2}};
-  l1_info->slice_output_offset = {{2,2,2,2}};
+  l1_info->slice_input_shape = {{2, 2, 2, 2}};
+  l1_info->slice_output_shape = {{2, 2, 2, 2}};
+  l1_info->slice_output_offset = {{2, 2, 2, 2}};
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -380,12 +379,12 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor2) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor3) {
   ToOpStructPtr l1_info = std::make_shared<ToOpStruct>();
-  l1_info->slice_input_shape = {{2,2,2,2}};
-  l1_info->slice_output_shape = {{2,2,2,2}};
-  l1_info->slice_input_offset = {{2,2,2,2}};
-  l1_info->slice_output_offset = {{2,2,2,2}};
+  l1_info->slice_input_shape = {{2, 2, 2, 2}};
+  l1_info->slice_output_shape = {{2, 2, 2, 2}};
+  l1_info->slice_input_offset = {{2, 2, 2, 2}};
+  l1_info->slice_output_offset = {{2, 2, 2, 2}};
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -402,9 +401,9 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l1_input_tensor3) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor1) {
   ToOpStructPtr l2_info = std::make_shared<ToOpStruct>();
-  l2_info->slice_output_shape = {{2,2,2,2}};
-  l2_info->slice_input_offset = {{2,2,2,2}};
-  l2_info->slice_output_offset = {{2,2,2,2}};
+  l2_info->slice_output_shape = {{2, 2, 2, 2}};
+  l2_info->slice_input_offset = {{2, 2, 2, 2}};
+  l2_info->slice_output_offset = {{2, 2, 2, 2}};
   ge::OpDescPtr op_desc;
   IndexNameMap input_idx_name_map;
   uint32_t index_in_opdesc;
@@ -415,10 +414,10 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor1) {
 }
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor2) {
- ToOpStructPtr l2_info = std::make_shared<ToOpStruct>();
-  l2_info->slice_input_shape = {{2,2,2,2}};
-  l2_info->slice_output_shape = {{2,2,2,2}};
-  l2_info->slice_output_offset = {{2,2,2,2}};
+  ToOpStructPtr l2_info = std::make_shared<ToOpStruct>();
+  l2_info->slice_input_shape = {{2, 2, 2, 2}};
+  l2_info->slice_output_shape = {{2, 2, 2, 2}};
+  l2_info->slice_output_offset = {{2, 2, 2, 2}};
   ge::OpDescPtr op_desc;
   IndexNameMap input_idx_name_map;
   uint32_t index_in_opdesc;
@@ -430,12 +429,12 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor2) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor3) {
   ToOpStructPtr l2_info = std::make_shared<ToOpStruct>();
-  l2_info->slice_input_shape = {{2,2,2,2}};
-  l2_info->slice_output_shape = {{2,2,2,2}};
-  l2_info->slice_input_offset = {{2,2,2,2}};
-  l2_info->slice_output_offset = {{2,2,2,2}};
+  l2_info->slice_input_shape = {{2, 2, 2, 2}};
+  l2_info->slice_output_shape = {{2, 2, 2, 2}};
+  l2_info->slice_input_offset = {{2, 2, 2, 2}};
+  l2_info->slice_output_offset = {{2, 2, 2, 2}};
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -452,12 +451,12 @@ TEST_F(UTEST_TbeInfoAssembler, feed_l2_input_tensor3) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor1) {
   ToOpStructPtr fusion_info = std::make_shared<ToOpStruct>();
-  fusion_info->slice_input_shape = {{2,2,2,2}};
-  fusion_info->slice_input_offset = {{2,2,2,2}};
-  fusion_info->slice_output_offset = {{2,2,2,2}};
+  fusion_info->slice_input_shape = {{2, 2, 2, 2}};
+  fusion_info->slice_input_offset = {{2, 2, 2, 2}};
+  fusion_info->slice_output_offset = {{2, 2, 2, 2}};
   uint32_t index_in_opdesc;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -473,12 +472,12 @@ TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor1) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor2) {
   ToOpStructPtr fusion_info = std::make_shared<ToOpStruct>();
-  fusion_info->slice_input_shape = {{2,2,2,2}};
-  fusion_info->slice_output_shape = {{2,2,2,2}};
-  fusion_info->slice_input_offset = {{2,2,2,2}};
+  fusion_info->slice_input_shape = {{2, 2, 2, 2}};
+  fusion_info->slice_output_shape = {{2, 2, 2, 2}};
+  fusion_info->slice_input_offset = {{2, 2, 2, 2}};
   uint32_t index_in_opdesc;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -494,13 +493,13 @@ TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor2) {
 
 TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor3) {
   ToOpStructPtr fusion_info = std::make_shared<ToOpStruct>();
-  fusion_info->slice_input_shape = {{2,2,2,2}};
-  fusion_info->slice_output_shape = {{2,2,2,2}};
-  fusion_info->slice_input_offset = {{2,2,2,2}};
-  fusion_info->slice_output_offset = {{2,2,2,2}};
+  fusion_info->slice_input_shape = {{2, 2, 2, 2}};
+  fusion_info->slice_output_shape = {{2, 2, 2, 2}};
+  fusion_info->slice_input_offset = {{2, 2, 2, 2}};
+  fusion_info->slice_output_offset = {{2, 2, 2, 2}};
   uint32_t index_in_opdesc = 1;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW);
   op_desc->AddInputDesc(out_desc);
@@ -516,26 +515,29 @@ TEST_F(UTEST_TbeInfoAssembler, feed_fusion_output_tensor3) {
 
 TEST_F(UTEST_TbeInfoAssembler, getOutputInplaceAttr) {
   TbeInfoAssembler tbe_info_assembler;
-  vector<vector<int64_t>> output_inplace ={{0, 0}, {0,1}};
-  std::map<size_t, std::pair<size_t, size_t>> output_ir_real_index = {{0, {0,1}}};
-  std::map<size_t, std::pair<size_t, size_t>> input_ir_real_index = {{0, {0,1}}, {1, {1, 1}}};
-  vector<vector<int64_t>> real_output_inplace={};
-  bool ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index, real_output_inplace);
+  vector<vector<int64_t>> output_inplace = {{0, 0}, {0, 1}};
+  std::map<size_t, std::pair<size_t, size_t>> output_ir_real_index = {{0, {0, 1}}};
+  std::map<size_t, std::pair<size_t, size_t>> input_ir_real_index = {{0, {0, 1}}, {1, {1, 1}}};
+  vector<vector<int64_t>> real_output_inplace = {};
+  bool ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index,
+                                                              real_output_inplace);
   EXPECT_EQ(ret, true);
   EXPECT_EQ(real_output_inplace, output_inplace);
-  output_ir_real_index = {{1, {0,1}}};
-  ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index, real_output_inplace);
+  output_ir_real_index = {{1, {0, 1}}};
+  ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index,
+                                                         real_output_inplace);
   EXPECT_EQ(ret, false);
-  output_ir_real_index = {{0, {0,1}}};
-  input_ir_real_index = {{2, {0,1}}};
-  ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index, real_output_inplace);
+  output_ir_real_index = {{0, {0, 1}}};
+  input_ir_real_index = {{2, {0, 1}}};
+  ret = tbe_info_assembler.SetOutputRealIndexInplaceAttr(output_inplace, input_ir_real_index, output_ir_real_index,
+                                                         real_output_inplace);
   EXPECT_EQ(ret, false);
 }
 
 TEST_F(UTEST_TbeInfoAssembler, set_input_tensor_base_info) {
   TbeInfoAssembler tbe_info_assembler;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW, ge::DT_BF16);
   op_desc->AddInputDesc(out_desc);
@@ -546,7 +548,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_input_tensor_base_info) {
 TEST_F(UTEST_TbeInfoAssembler, set_input_tensor_base_info01) {
   TbeInfoAssembler tbe_info_assembler;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
   op_desc->AddInputDesc(out_desc);
@@ -557,7 +559,7 @@ TEST_F(UTEST_TbeInfoAssembler, set_input_tensor_base_info01) {
 TEST_F(UTEST_TbeInfoAssembler, test_get_op_input_l1_attr) {
   TbeInfoAssembler tbe_info_assembler;
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
-  vector<int64_t> dim = {1,2,3,4};
+  vector<int64_t> dim = {1, 2, 3, 4};
   ge::GeShape shape(dim);
   GeTensorDesc out_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
   op_desc->AddInputDesc(out_desc);

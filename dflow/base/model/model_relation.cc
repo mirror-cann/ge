@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,22 +41,20 @@ Status ModelRelationBuilder::CreateQueueForDataNode(const Node &node, const std:
                                                     std::string &queue_name, const bool inner_node_flag) {
   queue_name = prefix + ":" + node.GetName();
   if (inner_node_flag) {
-    GELOGD("Node:%s is inner data node, no need add to model relation, queue name is %s.",
-           node.GetName().c_str(), queue_name.c_str());
+    GELOGD("Node:%s is inner data node, no need add to model relation, queue name is %s.", node.GetName().c_str(),
+           queue_name.c_str());
     return SUCCESS;
   }
   bool is_dummy = false;
   (void)AttrUtils::GetBool(node.GetOpDesc(), kAttrIsolatedData, is_dummy);
   GELOGD("queue name is %s, is dummy %d.", queue_name.c_str(), static_cast<int32_t>(is_dummy));
 
-  GE_CHK_STATUS_RET_NOLOG(
-      CreateQueueDef(node.GetOpDesc()->GetOutputDesc(static_cast<uint32_t>(kDataOutputAnchorIndex)),
-                     queue_name, node, is_dummy));
+  GE_CHK_STATUS_RET_NOLOG(CreateQueueDef(node.GetOpDesc()->GetOutputDesc(static_cast<uint32_t>(kDataOutputAnchorIndex)),
+                                         queue_name, node, is_dummy));
   int64_t data_index = -1;
-  (void) AttrUtils::GetInt(node.GetOpDesc(), ATTR_NAME_INDEX, data_index);
+  (void)AttrUtils::GetInt(node.GetOpDesc(), ATTR_NAME_INDEX, data_index);
   if ((data_index < 0) || (data_index >= INT32_MAX)) {
-    GELOGE(PARAM_INVALID, "[%s] Data index out of range, data index = %ld",
-           node.GetName().c_str(), data_index);
+    GELOGE(PARAM_INVALID, "[%s] Data index out of range, data index = %ld", node.GetName().c_str(), data_index);
     return PARAM_INVALID;
   }
   if (static_cast<size_t>(data_index) >= model_relation_.root_model_endpoint_info.input_endpoint_names.size()) {
@@ -146,9 +144,8 @@ Status ModelRelationBuilder::DoBuildForData(const NodePtr &node,
   return SUCCESS;
 }
 
-Status ModelRelationBuilder::DoBuildForPartitionedCall(const NodePtr &node,
-                                                       std::map<NodePtr, std::map<int32_t,
-                                                       std::string>> &paired_inputs) {
+Status ModelRelationBuilder::DoBuildForPartitionedCall(
+    const NodePtr &node, std::map<NodePtr, std::map<int32_t, std::string>> &paired_inputs) {
   // check all input are valid
   std::vector<std::string> unused;
   GE_CHK_STATUS_RET_NOLOG(GetInputQueueNames(node, paired_inputs, unused));
@@ -170,9 +167,8 @@ Status ModelRelationBuilder::DoBuildForPartitionedCall(const NodePtr &node,
       GE_CHECK_NOTNULL(dequeue_node->GetOpDesc());
       const bool inner_node_flag = CheckInnerNode(dequeue_node);
       all_output_inner_nodes_flag = !inner_node_flag ? false : all_output_inner_nodes_flag;
-      GELOGD("Dequeue node:%s, inner_node_flag:%d, all_output_inner_nodes_flag:%d.",
-             dequeue_node->GetName().c_str(), static_cast<int32_t>(inner_node_flag),
-             static_cast<int32_t>(all_output_inner_nodes_flag));
+      GELOGD("Dequeue node:%s, inner_node_flag:%d, all_output_inner_nodes_flag:%d.", dequeue_node->GetName().c_str(),
+             static_cast<int32_t>(inner_node_flag), static_cast<int32_t>(all_output_inner_nodes_flag));
       if ((dequeue_node->GetType() == PARTITIONEDCALL) && (!inner_node_flag)) {
         ModelRelation::ModelEndpointInfo *dst_model_queues = nullptr;
         GE_CHK_STATUS_RET_NOLOG(GetOrCreateModelEndpointInfo(*dequeue_node->GetOpDesc(), dst_model_queues));
@@ -181,8 +177,8 @@ Status ModelRelationBuilder::DoBuildForPartitionedCall(const NodePtr &node,
           dst_model_queues->input_endpoint_names.resize(input_idx + 1UL);
         }
         dst_model_queues->input_endpoint_names[input_idx] = queue_name;
-        GELOGD("Save input queue_name:%s for node:%s, index:%d.",
-               queue_name.c_str(), dequeue_node->GetName().c_str(), input_idx);
+        GELOGD("Save input queue_name:%s for node:%s, index:%d.", queue_name.c_str(), dequeue_node->GetName().c_str(),
+               input_idx);
       }
       (void)paired_inputs[dequeue_node].emplace(in_data_anchor->GetIdx(), queue_name);
     }
@@ -194,22 +190,21 @@ Status ModelRelationBuilder::DoBuildForPartitionedCall(const NodePtr &node,
         model_queues->output_endpoint_names.resize(output_idx + 1UL);
       }
       model_queues->output_endpoint_names[output_idx] = queue_name;
-      GELOGD("Save output queue_name:%s for node:%s, index:%zu.",
-             queue_name.c_str(), node->GetName().c_str(), output_idx);
+      GELOGD("Save output queue_name:%s for node:%s, index:%zu.", queue_name.c_str(), node->GetName().c_str(),
+             output_idx);
     }
   }
   return SUCCESS;
 }
 
-Status ModelRelationBuilder::DoBuildForNetOutput(const NodePtr &node,
-                                                 const std::map<NodePtr, std::map<int32_t, std::string>>
-                                                 &paired_inputs) {
+Status ModelRelationBuilder::DoBuildForNetOutput(
+    const NodePtr &node, const std::map<NodePtr, std::map<int32_t, std::string>> &paired_inputs) {
   GE_CHECK_NOTNULL(node);
   GELOGD("Begin to build model relation for netoutput node:%s.", node->GetName().c_str());
   GE_CHK_STATUS_RET_NOLOG(CheckNetOutputNode(node));
   std::vector<std::string> unused;
-  std::vector<std::string> &input_endpoint_names = CheckInnerNode(node) ? unused :
-                                                model_relation_.root_model_endpoint_info.output_endpoint_names;
+  std::vector<std::string> &input_endpoint_names =
+      CheckInnerNode(node) ? unused : model_relation_.root_model_endpoint_info.output_endpoint_names;
   GE_CHK_STATUS_RET_NOLOG(GetInputQueueNames(node, paired_inputs, input_endpoint_names));
   return SUCCESS;
 }
@@ -231,9 +226,7 @@ Status ModelRelationBuilder::DoBuild(const ComputeGraph &root_graph) {
     } else if (op_type == NETOUTPUT) {
       GE_CHK_STATUS_RET_NOLOG(DoBuildForNetOutput(node, paired_inputs));
     } else {
-      GELOGW("Unexpected node in root graph, name = %s, type = %s",
-             node->GetName().c_str(),
-             op_type.c_str());
+      GELOGW("Unexpected node in root graph, name = %s, type = %s", node->GetName().c_str(), op_type.c_str());
     }
   }
   return SUCCESS;
@@ -256,8 +249,8 @@ bool ModelRelationBuilder::GetFlowAttr(const AttrHolder *obj, const std::string 
   return false;
 }
 
-void ModelRelationBuilder::GetFlowAttr(const std::string &queue_name, const GeTensorDesc &tensor_desc,
-                                       const Node &node, int64_t &depth, std::string &enqueue_policy) {
+void ModelRelationBuilder::GetFlowAttr(const std::string &queue_name, const GeTensorDesc &tensor_desc, const Node &node,
+                                       int64_t &depth, std::string &enqueue_policy) {
   if (GetFlowAttr(&tensor_desc, queue_name, depth, enqueue_policy)) {
     GELOGD("[%s] Got flow attr from tensor desc flow attr", queue_name.c_str());
     return;
@@ -292,12 +285,9 @@ Status ModelRelationBuilder::CreateQueueDef(const GeTensorDesc &tensor_desc, con
   GetFlowAttr(queue_name, tensor_desc, node, depth, enqueue_policy);
   const EndpointType endpoint_type = is_dummy ? EndpointType::kDummyQueue : EndpointType::kQueue;
   Endpoint queue_def(queue_name, endpoint_type);
-  (void)QueueNodeUtils(queue_def).SetDepth(depth).SetEnqueuePolicy(enqueue_policy).
-    SetNodeAction(kQueueActionDefault);
+  (void)QueueNodeUtils(queue_def).SetDepth(depth).SetEnqueuePolicy(enqueue_policy).SetNodeAction(kQueueActionDefault);
 
-  GE_CHK_BOOL_RET_STATUS(endpoints_.emplace(queue_name, queue_def).second,
-                         PARAM_INVALID,
-                         "Duplicate queue name: %s",
+  GE_CHK_BOOL_RET_STATUS(endpoints_.emplace(queue_name, queue_def).second, PARAM_INVALID, "Duplicate queue name: %s",
                          queue_name.c_str());
   model_relation_.endpoints.emplace_back(std::move(queue_def));
   return SUCCESS;
@@ -379,8 +369,7 @@ const Endpoint *ModelRelationReader::GetEndpoint(const std::string &queue_name) 
 
 void ModelRelationReader::LogDebugString(const ModelRelation &model_relation) {
   GELOGD("endpoints.size: %zu.", model_relation.endpoints.size());
-  GELOGD("root_model_endpoint_info.model_name: %s.",
-         model_relation.root_model_endpoint_info.model_name.c_str());
+  GELOGD("root_model_endpoint_info.model_name: %s.", model_relation.root_model_endpoint_info.model_name.c_str());
   GELOGD("root_model_endpoint_info.input_endpoint_names.size: %zu.",
          model_relation.root_model_endpoint_info.input_endpoint_names.size());
   GELOGD("root_model_endpoint_info.output_endpoint_names.size: %zu.",
@@ -391,10 +380,10 @@ Status ModelRelationReader::Initialize() {
   for (const auto &endpoint : model_relation_.endpoints) {
     (void)endpoints_.emplace(endpoint.GetName(), &endpoint);
   }
-  GE_CHK_STATUS_RET_NOLOG(BatchGetEndpoints(model_relation_.root_model_endpoint_info.input_endpoint_names,
-                                            input_endpoints_));
-  GE_CHK_STATUS_RET_NOLOG(BatchGetEndpoints(model_relation_.root_model_endpoint_info.output_endpoint_names,
-                                            output_endpoints_));
+  GE_CHK_STATUS_RET_NOLOG(
+      BatchGetEndpoints(model_relation_.root_model_endpoint_info.input_endpoint_names, input_endpoints_));
+  GE_CHK_STATUS_RET_NOLOG(
+      BatchGetEndpoints(model_relation_.root_model_endpoint_info.output_endpoint_names, output_endpoints_));
   return SUCCESS;
 }
 
@@ -418,8 +407,7 @@ const ModelRelation::InvokedModelQueueInfo *ModelRelationReader::GetInvokedModel
   return &(find_ret->second);
 }
 
-ModelRelationReader::ModelRelationReader(const ModelRelation &model_relation) : model_relation_(model_relation) {
-}
+ModelRelationReader::ModelRelationReader(const ModelRelation &model_relation) : model_relation_(model_relation) {}
 
 const ModelRelation::ModelEndpointInfo *ModelRelationReader::GetSubmodelQueueInfo(const string &model_name) const {
   const auto &it = model_relation_.submodel_endpoint_infos.find(model_name);

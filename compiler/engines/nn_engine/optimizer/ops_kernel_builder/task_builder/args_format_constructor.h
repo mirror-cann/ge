@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,23 +23,25 @@
 namespace fe {
 class ArgsFormatConstructor {
  public:
-  ArgsFormatConstructor(const ge::OpDescPtr &op_desc, bool is_ffts_plus) :
-      op_desc_(op_desc), is_ffts_plus_(is_ffts_plus) {};
+  ArgsFormatConstructor(const ge::OpDescPtr &op_desc, bool is_ffts_plus)
+      : op_desc_(op_desc), is_ffts_plus_(is_ffts_plus) {};
   ~ArgsFormatConstructor() {};
   Status ConstructNodeArgsDesc();
   Status GetArgsSize(size_t &args_size);
   std::string GetArgsFormatString();
+
  private:
   Status ConstructOutArgsDesc();
   Status ConstructInArgsDesc();
   void ConstructArgsDescByGraph();
   void AddDynamicDesc(const std::pair<size_t, size_t> &range, size_t ir_index, bool is_input);
-  bool FindOptInsertPos(size_t ir_idx, const std::vector<InputOrOutputInfoPtr>& input_infos,
-      std::vector<std::string> &input_name_list, size_t &insert_pos) const;
+  bool FindOptInsertPos(size_t ir_idx, const std::vector<InputOrOutputInfoPtr> &input_infos,
+                        std::vector<std::string> &input_name_list, size_t &insert_pos) const;
   bool InsertMissOptInput(std::vector<uint32_t> &input_type_list, std::vector<int32_t> &input_graph_idx,
                           std::vector<std::string> &input_name_list, size_t exp_num) const;
   bool GetOpInputInfo(std::vector<uint32_t> &input_type_list, std::vector<int32_t> &input_graph_idx,
-      std::vector<std::string> &input_name_list, std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range);
+                      std::vector<std::string> &input_name_list,
+                      std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range);
   bool GetOpOutputInfo(std::vector<uint32_t> &output_type_list, std::vector<std::string> &output_name_list,
                        std::map<size_t, std::pair<size_t, size_t>> &ir_out_2_range);
   void ConstructOptOutputArgs(size_t ir_index);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,14 +42,15 @@ TEST_F(UtestPreModelUtils, GetWorkspaceDataAddrs_tensor_mem_type) {
   AttrUtils::SetListInt(op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, v_memory_type);
   vector<uint64_t> args_offset_values;
   vector<KernelArgsParam> args_param;
-  EXPECT_EQ(PreModelUtils::GetWorkspaceDataAddrOffset(runtime_param, op_desc, args_param, args_offset_values).size(), 0);
+  EXPECT_EQ(PreModelUtils::GetWorkspaceDataAddrOffset(runtime_param, op_desc, args_param, args_offset_values).size(),
+            0);
   v_memory_type.assign({RT_MEMORY_L1, RT_MEMORY_P2P_DDR, RT_MEMORY_HBM, RT_MEMORY_HBM, RT_MEMORY_HBM, kRtMemoryUB});
   AttrUtils::SetListInt(op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, v_memory_type);
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, v_memory_type);
   const vector<int32_t> workspace_no_reuse_scope{1, 1, 1, 1};
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
   uint8_t p2p_mem_base_addr = 0;
-  { // RT_MEMORY_P2P_DDR
+  {  // RT_MEMORY_P2P_DDR
     PreMemInfo &mem_info = runtime_param.memory_infos[RT_MEMORY_P2P_DDR];
     mem_info.memory_size = 0x20002000u;
     mem_info.logic_memory_base = 0u;
@@ -58,13 +59,14 @@ TEST_F(UtestPreModelUtils, GetWorkspaceDataAddrs_tensor_mem_type) {
   }
 
   uint8_t session_scope_mem_base_addr = 0;
-  { // kSessionScopeMemory
+  {  // kSessionScopeMemory
     PreMemInfo &mem_info = runtime_param.memory_infos[0x100000000u | RT_MEMORY_HBM];
     mem_info.memory_size = 0x20002000u;
     mem_info.logic_memory_base = 0u;
     mem_info.memory_base = &session_scope_mem_base_addr;
   }
-  auto workspace_addr = PreModelUtils::GetWorkspaceDataAddrOffset(runtime_param, op_desc, args_param, args_offset_values);
+  auto workspace_addr =
+      PreModelUtils::GetWorkspaceDataAddrOffset(runtime_param, op_desc, args_param, args_offset_values);
   EXPECT_EQ(workspace_addr.size(), 6);
 }
 
@@ -148,7 +150,7 @@ TEST_F(UtestPreModelUtils, GetInputDataAddrOffset) {
   vector<KernelArgsParam> args_param;
   vector<uint64_t> args_offset_values;
   auto result = PreModelUtils::GetInputDataAddrOffset(runtime_param, op_desc, args_param, args_offset_values);
-  //EXPECT_EQ(result, false);
+  // EXPECT_EQ(result, false);
 }
 
 TEST_F(UtestPreModelUtils, GetInputDataAddrOffset_tensor_mem_type) {

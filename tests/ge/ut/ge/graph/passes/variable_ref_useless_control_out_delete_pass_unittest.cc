@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,16 +12,11 @@
 #include "graph/passes/variable_optimize/variable_ref_useless_control_out_delete_pass.h"
 #include "graph_builder_utils.h"
 namespace ge {
-class UtestVariableRefUselessControlOutDeletePass : public testing::Test
-{
+class UtestVariableRefUselessControlOutDeletePass : public testing::Test {
  protected:
-  void SetUp()
-  {
-  }
+  void SetUp() {}
 
-  void TearDown()
-  {
-  }
+  void TearDown() {}
 };
 
 namespace {
@@ -99,7 +94,7 @@ ComputeGraphPtr BuildGraph3() {
 
   return builder.GetGraph();
 }
-}
+}  // namespace
 
 TEST_F(UtestVariableRefUselessControlOutDeletePass, DeleteControlOutSuccess) {
   auto graph = BuildGraph1();
@@ -133,4 +128,4 @@ TEST_F(UtestVariableRefUselessControlOutDeletePass, NothingChanged) {
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
   EXPECT_EQ(var1->GetOutNodes().size(), 1);
 }
-}
+}  // namespace ge

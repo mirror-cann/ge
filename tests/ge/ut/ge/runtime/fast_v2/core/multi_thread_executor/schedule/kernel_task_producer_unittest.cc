@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,27 +41,28 @@ ge::graphStatus CalcTensorSizeFromStorageFailedFake(gert::KernelContext *context
   }
   return ge::GRAPH_SUCCESS;
 }
-}
+}  // namespace
 class KernelTaskProducerUnitTest : public testing::Test {
   void SetUp() override {
     constexpr int32_t kEnvNoOverwrite = 0;
     int32_t mmRet = 0;
     MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-    (void) mmRet;
+    (void)mmRet;
     KernelSpy::GetInstance().Clear();
   }
   void TearDown() override {
     Test::TearDown();
     int32_t mmRet = 0;
     MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
-    (void) mmRet;
+    (void)mmRet;
   }
 };
 
 TEST_F(KernelTaskProducerUnitTest, should_run_all_kernel_for_two_nodes) {
   FakeExecutionData executionData(10);
   executionData.Chain({0, 1}).StartNodes({0});
-  auto producer = TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
+  auto producer =
+      TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
   producer->Prepare(executionData.Data());
   producer->StartUp();
   TaskPackage package = producer->Produce();
@@ -77,7 +78,8 @@ TEST_F(KernelTaskProducerUnitTest, should_run_all_kernel_for_two_nodes_failed) {
   FakeExecutionData executionData(10);
   executionData.Chain({0, 1}).StartNodes({0});
   executionData.FuncFailed(1, kStatusFailed);
-  auto producer = TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
+  auto producer =
+      TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
   producer->Prepare(executionData.Data());
   producer->StartUp();
   TaskPackage package = producer->Produce();
@@ -92,7 +94,8 @@ TEST_F(KernelTaskProducerUnitTest, run_two_node_end_of_sequence) {
   FakeExecutionData executionData(10);
   executionData.Chain({0, 1, 2}).StartNodes({0});
   executionData.FuncEndOfSequence(1, ge::END_OF_SEQUENCE);
-  auto producer = TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
+  auto producer =
+      TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
   producer->Prepare(executionData.Data());
   producer->StartUp();
   TaskPackage package = producer->Produce();
@@ -109,7 +112,8 @@ TEST_F(KernelTaskProducerUnitTest, run_two_node_end_of_sequence) {
 TEST_F(KernelTaskProducerUnitTest, should_run_all_kernel_for_two_chains) {
   FakeExecutionData executionData(10);
   executionData.Chain({3, 7, 6}).Chain({5, 8, 9}).StartNodes({3, 5});
-  auto producer = TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
+  auto producer =
+      TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
   producer->Prepare(executionData.Data());
   producer->StartUp();
   TaskPackage package = producer->Produce();
@@ -133,7 +137,8 @@ TEST_F(KernelTaskProducerUnitTest, should_run_all_kernel_but_one_kernel_failed_f
   FakeExecutionData executionData(10);
   executionData.Chain({1, 4, 7}).Chain({2, 5, 8}).Chain({3, 6, 9}).StartNodes({1, 2, 3});
   executionData.FuncFailed(4, kStatusFailed);
-  auto producer = TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
+  auto producer =
+      TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount});
   producer->Prepare(executionData.Data());
   producer->StartUp();
   TaskPackage package = producer->Produce();
@@ -185,7 +190,8 @@ TEST_F(KernelTaskProducerUnitTest, kernel_while_graph_success) {
     auto outputs = FakeTensors({}, 1, &output);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U),
+              RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto inputs = FakeTensors({}, 1);
@@ -224,9 +230,8 @@ TEST_F(KernelTaskProducerUnitTest, kerne_Lstmp_graph_success) {
           .Build();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-  auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(graph, global_data);
+  auto exe_graph =
+      GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
 
   ASSERT_NE(exe_graph, nullptr);
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
@@ -286,9 +291,8 @@ TEST_F(KernelTaskProducerUnitTest, kerne_fail_then_success_graph_success) {
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
-  auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(graph, global_data);
+  auto exe_graph =
+      GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
 
@@ -322,7 +326,6 @@ TEST_F(KernelTaskProducerUnitTest, kerne_fail_then_success_graph_success) {
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
-
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
@@ -372,7 +375,7 @@ TEST_F(KernelTaskProducerUnitTest, SwitchNotify_in_start_task) {
                    {7, {"transdata", "Tiling"}},
                    {8, {"transdata", "Launch"}},
                    {9, {"Netoutput", "Output"}}})
-      .Chain({1, 2, 3, 4, 5, 6, 7, 8 ,9})
+      .Chain({1, 2, 3, 4, 5, 6, 7, 8, 9})
       .StartNodes({1});
   auto producer = reinterpret_cast<KernelTaskProducer *>(
       TaskProducerFactory::GetInstance().Create(TaskProducerConfig{TaskProducerType::KERNEL, 10, kMaxProduceCount}));

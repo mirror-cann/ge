@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,19 +30,18 @@ using namespace ge;
 using TransNodeReformatGeneratorPtr = shared_ptr<TransNodeReformatGenerator>;
 using TransNodeInsertionPtr = shared_ptr<TransNodeInsertion>;
 using TransNodeTransDataGeneratorPtr = shared_ptr<TransNodeTransdataGenerator>;
-class TRANS_NODE_REFORMAT_GENERATOR_STEST: public testing::Test {
+class TRANS_NODE_REFORMAT_GENERATOR_STEST : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, AddTransNode_suc) {
   FEOpsKernelInfoStorePtr fe_ops_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   TransInfoPtr trans_info_ptr = make_shared<TransInfo>();
-  TransNodeReformatGeneratorPtr trans_node_reformat_generator = make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
+  TransNodeReformatGeneratorPtr trans_node_reformat_generator =
+      make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("add", "Add");
@@ -71,7 +70,8 @@ TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, AddTransNode_suc) {
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, AddTransNode_suc1) {
   FEOpsKernelInfoStorePtr fe_ops_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   TransInfoPtr trans_info_ptr = make_shared<TransInfo>();
-  TransNodeTransDataGeneratorPtr trans_node_transdata_generator = make_shared<TransNodeTransdataGenerator>(fe_ops_store_ptr, trans_info_ptr);
+  TransNodeTransDataGeneratorPtr trans_node_transdata_generator =
+      make_shared<TransNodeTransdataGenerator>(fe_ops_store_ptr, trans_info_ptr);
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_ref0 = std::make_shared<OpDesc>("ref0", "RefData");
@@ -116,7 +116,8 @@ TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, AddTransNode_suc1) {
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, AddTransNode_suc2) {
   FEOpsKernelInfoStorePtr fe_ops_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   TransInfoPtr trans_info_ptr = make_shared<TransInfo>();
-  TransNodeTransDataGeneratorPtr trans_node_transdata_generator = make_shared<TransNodeTransdataGenerator>(fe_ops_store_ptr, trans_info_ptr);
+  TransNodeTransDataGeneratorPtr trans_node_transdata_generator =
+      make_shared<TransNodeTransdataGenerator>(fe_ops_store_ptr, trans_info_ptr);
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_var0 = std::make_shared<OpDesc>("var0", "Variable");
@@ -179,14 +180,14 @@ TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, generate_strategy_by_orignal_format_
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, InsertTransDataNode)
-{
+TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, InsertTransDataNode) {
   // src:cce op, dst:cce op
-  std::vector<std::pair<int64_t, int64_t>> new_range = {{0,1}};
+  std::vector<std::pair<int64_t, int64_t>> new_range = {{0, 1}};
   const int64_t impl_type = 1;
   std::vector<std::pair<int64_t, int64_t>> range_value = {{1, 1}, {2, 2}, {3, 5}, {6, 8}, {1, 7}, {32, 32}};
   std::vector<std::pair<int64_t, int64_t>> nd_value = {{1, 1}, {2, 2}, {3, 5}, {6, 8}, {1, 7}, {32, 32}};
-  EXPECT_EQ(RangeTransferAccordingToFormat ::GetFzWinoRangeByAxisValue(new_range, impl_type, range_value, nd_value), fe::SUCCESS);
+  EXPECT_EQ(RangeTransferAccordingToFormat ::GetFzWinoRangeByAxisValue(new_range, impl_type, range_value, nd_value),
+            fe::SUCCESS);
 }
 
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_STEST, trans_node_instertion_test) {

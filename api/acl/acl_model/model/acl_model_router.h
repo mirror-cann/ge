@@ -73,4 +73,4 @@ ACL_FUNC_VISIBILITY aclError AclIsOm2BundleById(uint32_t bundleId, bool *isOm2);
 }
 #endif
 
-#endif // ASCEND_ACL_MODEL_ROUTER_H
+#endif  // ASCEND_ACL_MODEL_ROUTER_H

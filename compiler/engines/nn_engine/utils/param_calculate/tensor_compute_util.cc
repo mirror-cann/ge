@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,8 +25,8 @@ Status TensorComputeUtil::VerifyTensor(const ge::GeTensorDesc &tensor_desc) {
     REPORT_FE_ERROR("[SubGraphOpt][CalcTensorSize][VerifyTensor] The format of this tensor is invalid.");
     return INVALID_TENSOR_FORMAT;
   }
-  if (tensor_desc.GetDataType() < ge::DT_FLOAT || tensor_desc.GetDataType() == ge::DT_UNDEFINED
-      || tensor_desc.GetDataType() >= ge::DT_MAX) {
+  if (tensor_desc.GetDataType() < ge::DT_FLOAT || tensor_desc.GetDataType() == ge::DT_UNDEFINED ||
+      tensor_desc.GetDataType() >= ge::DT_MAX) {
     REPORT_FE_ERROR("[SubGraphOpt][CalcTensorSize][VerifyTensor] The data type of this tensor is invalid.");
     return INVALID_TENSOR_DATATYPE;
   }
@@ -47,7 +47,8 @@ Status TensorComputeUtil::VerifyTensor(const ge::GeTensorDesc &tensor_desc) {
 Status TensorComputeUtil::GetElementCountByMultiply(const ge::GeTensorDesc &tensor_desc, int64_t &element_cnt) {
   const ge::GeShape &shape = tensor_desc.GetShape();
   if (GetElementCountByMultiply(shape, element_cnt) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][CalcTensorSize][GetElemCount] Failed to obtain element count by multiplying all dimensions.");
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][CalcTensorSize][GetElemCount] Failed to obtain element count by multiplying all dimensions.");
     return FAILED;
   }
   return SUCCESS;

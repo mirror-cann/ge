@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,7 @@ Status ConvConcatFusionPass::DoFusion(ge::ComputeGraph &graph, ge::NodePtr &node
       break;
     }
   }
-  vector <ge::OpDescPtr> stride_write_op_desc_ptr_vec = {};
+  vector<ge::OpDescPtr> stride_write_op_desc_ptr_vec = {};
   bool sw_dtype_qualified = IsSwDataTypeQualified(node_ptr);
   if (op_kernel_info_ptr != nullptr && sw_dtype_qualified &&
       InsertStrideWrite(graph, node_ptr, stride_write_op_desc_ptr_vec) != SUCCESS) {
@@ -125,10 +125,11 @@ Status ConvConcatFusionPass::DoMishFusion(ge::ComputeGraph &graph, ge::NodePtr &
   auto concat_out_peer_in_anchors = concat_out_anchor->GetPeerInDataAnchors();
   for (size_t i = 0; i < concat_out_peer_in_anchors.size(); ++i) {
     FE_CHECK_NOTNULL(concat_out_peer_in_anchors.at(i));
-    if (InsertNode(concat_out_anchor, concat_out_peer_in_anchors.at(i), new_mish_node, ge::DataType::DT_UNDEFINED)
-        != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][ConvConcatFus][DoMishFus] Failed to add node [%s] from node [%s] to peer in anchor %zu.",
-                      new_mish_node->GetType().c_str(), concat_node->GetName().c_str(), i);
+    if (InsertNode(concat_out_anchor, concat_out_peer_in_anchors.at(i), new_mish_node, ge::DataType::DT_UNDEFINED) !=
+        SUCCESS) {
+      REPORT_FE_ERROR(
+          "[GraphOpt][ConvConcatFus][DoMishFus] Failed to add node [%s] from node [%s] to peer in anchor %zu.",
+          new_mish_node->GetType().c_str(), concat_node->GetName().c_str(), i);
       return FAILED;
     }
   }
@@ -183,9 +184,7 @@ Status ConvConcatFusionPass::IsQuantNodeSame(const ge::NodePtr quant_node,
       REPORT_FE_ERROR("Failed to get offset attribute for quantization node!");
       return FAILED;
     }
-    if (!FloatEqual(current_scale, scale) ||
-        !FloatEqual(current_offset, offset) ||
-        data_type != current_data_type) {
+    if (!FloatEqual(current_scale, scale) || !FloatEqual(current_offset, offset) || data_type != current_data_type) {
       FE_LOGW(
           "current quant sale or offset attr is different with the "
           "other quant, do not fuse quant.");
@@ -194,7 +193,6 @@ Status ConvConcatFusionPass::IsQuantNodeSame(const ge::NodePtr quant_node,
   }
   return SUCCESS;
 }
-
 
 Status ConvConcatFusionPass::InsertStrideWrite(ge::ComputeGraph &graph, const ge::NodePtr &node_ptr,
                                                vector<ge::OpDescPtr> &stride_write_op_desc_ptr_vec) {
@@ -248,8 +246,8 @@ Status ConvConcatFusionPass::InsertStrideWrite(ge::ComputeGraph &graph, const ge
     auto peer_out_node = peer_out_data_anchor->GetOwnerNode();
     FE_CHECK_NOTNULL(peer_out_node);
     if (kMaxPoolType.count(peer_out_node->GetType()) > 0) {
-      FE_LOGD("peer out node[%s, %s] is maxpool, do not set pre_node attr.",
-              peer_out_node->GetName().c_str(), peer_out_node->GetType().c_str());
+      FE_LOGD("peer out node[%s, %s] is maxpool, do not set pre_node attr.", peer_out_node->GetName().c_str(),
+              peer_out_node->GetType().c_str());
     } else {
       (void)SetPreNodeAttr(stride_write_node);
     }
@@ -278,7 +276,8 @@ Status ConvConcatFusionPass::SetPreNodeAttr(const ge::NodePtr &node_ptr) const {
   FE_LOGD("Node[%s] start to set attr inherit dtype from predecessor.", node_ptr->GetName().c_str());
   if ((node_ptr->GetType() != CONV2D) && (node_ptr->GetType() != CONV2D_COMPRESS)) {
     if (!ge::AttrUtils::SetBool(node_ptr->GetOpDesc(), kAttrInheritDtypeFromPredecessor, true)) {
-      FE_LOGW("Failed to set the inherit dtype attribute for node [%s] from its predecessor.", node_ptr->GetName().c_str());
+      FE_LOGW("Failed to set the inherit dtype attribute for node [%s] from its predecessor.",
+              node_ptr->GetName().c_str());
     } else {
       FE_LOGD("Node[%s] set attr inherit dtype from predecessor successfully.", node_ptr->GetName().c_str());
     }
@@ -300,8 +299,8 @@ Status ConvConcatFusionPass::SetPreNodeAttr(const ge::NodePtr &node_ptr) const {
 Status ConvConcatFusionPass::DoQuantFusionByNode(ge::ComputeGraph &graph, ge::NodePtr concat_node,
                                                  ge::NodePtr quant_node) {
   // create new quant op and add to graph
-  FE_CHECK(quant_node == nullptr || quant_node->GetOpDesc()== nullptr,
-    FE_LOGD("Get quant op desc unsuccessful."), return FAILED);
+  FE_CHECK(quant_node == nullptr || quant_node->GetOpDesc() == nullptr, FE_LOGD("Get quant op desc unsuccessful."),
+           return FAILED);
   ge::DataType quant_data_type = quant_node->GetOpDesc()->GetOutputDesc(0).GetDataType();
   for (size_t i = 0; i < concat_node->GetAllInDataAnchors().size(); ++i) {
     auto in_anchor = concat_node->GetInDataAnchor(i);
@@ -320,11 +319,12 @@ Status ConvConcatFusionPass::DoQuantFusionByNode(ge::ComputeGraph &graph, ge::No
       ret = InsertNode(in_anchor->GetPeerOutAnchor(), in_anchor, new_quant_node, quant_data_type);
     } else {
       FE_CHECK_NOTNULL(pre_node->GetInDataAnchor(0));
-      ret = InsertNode(pre_node->GetInDataAnchor(0)->GetPeerOutAnchor(), pre_node->GetInDataAnchor(0),
-                       new_quant_node, quant_data_type);
+      ret = InsertNode(pre_node->GetInDataAnchor(0)->GetPeerOutAnchor(), pre_node->GetInDataAnchor(0), new_quant_node,
+                       quant_data_type);
     }
     if (ret != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][ConvConcatFus][DoQuantFus] Failed to add node: %s.", new_quant_node->GetName().c_str());
+      REPORT_FE_ERROR("[GraphOpt][ConvConcatFus][DoQuantFus] Failed to add node: %s.",
+                      new_quant_node->GetName().c_str());
       return FAILED;
     }
     auto input_desc_ptr = concat_node->GetOpDesc()->MutableInputDesc(i);
@@ -366,7 +366,7 @@ Status ConvConcatFusionPass::DoQuantFusion(ge::ComputeGraph &graph, ge::NodePtr 
       auto in_anchors = out_data_anchor->GetPeerInDataAnchors();
       if (in_anchors.size() < 1) {
         FE_LOGW("[GraphOpt][ConvConcatFus][DoQuantFus] node[%s]'s peer_in_anchor size less than one.",
-                        concat_node->GetName().c_str());
+                concat_node->GetName().c_str());
         return NOT_CHANGED;
       }
       FE_CHECK_NOTNULL(in_anchors.at(0));
@@ -380,7 +380,8 @@ Status ConvConcatFusionPass::DoQuantFusion(ge::ComputeGraph &graph, ge::NodePtr 
       // fusion quant ,move quant before stridewrite
       ret = DoQuantFusionByNode(graph, concat_node, quant_node);
       if (ret != SUCCESS) {
-        REPORT_FE_ERROR("[GraphOpt][ConvConcatFus][DoQuantFus] Failed to fuse node: %s.", quant_node->GetName().c_str());
+        REPORT_FE_ERROR("[GraphOpt][ConvConcatFus][DoQuantFus] Failed to fuse node: %s.",
+                        quant_node->GetName().c_str());
         return FAILED;
       }
     }
@@ -533,14 +534,12 @@ Status ConvConcatFusionPass::IsMaxPool(const ge::NodePtr &pre_node_ptr) const {
       return FAILED;
     }
   }
-  bool is_pool = pre_node_ptr->GetType() == MAXPOOL ||
-                 pre_node_ptr->GetType() == MAXPOOLV3 ||
-                 pre_node_ptr->GetType() == POOLING;
+  bool is_pool =
+      pre_node_ptr->GetType() == MAXPOOL || pre_node_ptr->GetType() == MAXPOOLV3 || pre_node_ptr->GetType() == POOLING;
   return (is_pool) && is_single_out_and_ref(pre_node_ptr) ? SUCCESS : FAILED;
 }
 
-Status ConvConcatFusionPass::IsConvAndExpcetOp(const ge::NodePtr &pre_node_ptr,
-                                               const string &expect_op_type) const {
+Status ConvConcatFusionPass::IsConvAndExpcetOp(const ge::NodePtr &pre_node_ptr, const string &expect_op_type) const {
   if (pre_node_ptr->GetType() == expect_op_type && is_single_out_and_ref(pre_node_ptr)) {
     ge::NodePtr conv2d_node_ptr;
     Status status = NodeOptimizeUtils::GetPreNode(pre_node_ptr, 0, conv2d_node_ptr);
@@ -557,9 +556,8 @@ Status ConvConcatFusionPass::IsConvAndExpcetOp(const ge::NodePtr &pre_node_ptr,
 }
 
 Status ConvConcatFusionPass::IsDequantElemwise(const ge::NodePtr &pre_node_ptr) const {
-  bool support_elemwise = pre_node_ptr->GetType() == LEAKYRELU ||
-                          pre_node_ptr->GetType() == RELU ||
-                          (pre_node_ptr->GetType() == MISH);
+  bool support_elemwise =
+      pre_node_ptr->GetType() == LEAKYRELU || pre_node_ptr->GetType() == RELU || (pre_node_ptr->GetType() == MISH);
   if (support_elemwise && is_single_out_and_ref(pre_node_ptr)) {
     ge::NodePtr dequant_node_ptr;
     Status status = NodeOptimizeUtils::GetPreNode(pre_node_ptr, 0, dequant_node_ptr);
@@ -592,8 +590,9 @@ vector<string> ConvConcatFusionPass::GetNodeTypes() {
   return result;
 }
 
-string ConvConcatFusionPass::GetPatternName() { return "ConvConcatDPass"; }
+string ConvConcatFusionPass::GetPatternName() {
+  return "ConvConcatDPass";
+}
 
-REG_PASS("ConvConcatFusionPass", BUILT_IN_GRAPH_PASS,
-         ConvConcatFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS("ConvConcatFusionPass", BUILT_IN_GRAPH_PASS, ConvConcatFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

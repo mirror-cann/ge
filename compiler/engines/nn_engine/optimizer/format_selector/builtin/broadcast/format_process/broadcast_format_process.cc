@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ bool IsFormatValid(ge::Format &first_idtf_format, const ge::Format &current_form
     }
   }
 }
-} // namespace
+}  // namespace
 
 Status BroadcastFormatProcess::Process(const ge::OpDesc &op_desc, const FormatProccessArgs &args,
                                        FormatProccessResult &result) {
@@ -78,10 +78,10 @@ Status BroadcastFormatProcess::Process(const ge::OpDesc &op_desc, const FormatPr
   }
 
   bool is_need_check_flag = propagat_sub_format > GROUPS_DEFAULT_VALUE &&
-      std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(), support_format) !=
-      FE_GROUP_RELA_FORMAT_VECTOR.end();
+                            std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(),
+                                      support_format) != FE_GROUP_RELA_FORMAT_VECTOR.end();
   if (is_need_check_flag && CheckNewShapeSupportBroadcast(op_desc, input_formats, input_dtypes, input_shapes,
-        support_format, propagat_sub_format)) {
+                                                          support_format, propagat_sub_format)) {
     FE_LOGD("Op[name=%s,type=%s]: new shape with sub_format[%u] support broadcast.", op_name.c_str(), op_type.c_str(),
             propagat_sub_format);
     result.input_subformat_res.emplace_back(propagat_sub_format);
@@ -101,7 +101,8 @@ Status BroadcastFormatProcess::Process(const ge::OpDesc &op_desc, const FormatPr
       FormatProccessInputArg input_arg(input_formats[i], input_dtypes[i], input_shapes[i], propagat_primary_format,
                                        propagat_sub_format);
       if (!CheckPartNonScalarInputs(input_arg)) {
-        FE_LOGD("Op[name=%s,type=%s]: check non-scalar input [%zu] not successfully.", op_name.c_str(), op_type.c_str(), i);
+        FE_LOGD("Op[name=%s,type=%s]: check non-scalar input [%zu] not successfully.", op_name.c_str(), op_type.c_str(),
+                i);
         return FAILED;
       }
       FE_LOGD("Op[name=%s,type=%s]: input %zu is non-scalar.", op_name.c_str(), op_type.c_str(), i);
@@ -273,17 +274,18 @@ void BroadcastFormatProcess::InsertFormatVec(const size_t &size, const ge::Forma
 void BroadcastFormatProcess::InsertSubformatVec(const ge::Format &format, const uint32_t &sub_format,
                                                 vector<uint32_t> &input_subformat_res,
                                                 vector<uint32_t> &output_subformat_res) const {
-    if (sub_format <= 1 && std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(),
-        format) == FE_GROUP_RELA_FORMAT_VECTOR.end()) {
-      return;
-    }
-    input_subformat_res.emplace_back(sub_format);
-    output_subformat_res.emplace_back(sub_format);
+  if (sub_format <= 1 && std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(), format) ==
+                             FE_GROUP_RELA_FORMAT_VECTOR.end()) {
+    return;
+  }
+  input_subformat_res.emplace_back(sub_format);
+  output_subformat_res.emplace_back(sub_format);
 }
 
 ge::GeShape BroadcastFormatProcess::GetNewShapeWithNewFormat(const ge::OpDesc &op_desc, const ge::GeShape &old_shape,
-    const ge::Format &old_format, const ge::Format &new_format,
-    const ge::DataType &current_data_type, const int32_t &group) const {
+                                                             const ge::Format &old_format, const ge::Format &new_format,
+                                                             const ge::DataType &current_data_type,
+                                                             const int32_t &group) const {
   ge::GeShape new_shape;
   int64_t hidden_size = 1;
   int64_t input_size = 1;
@@ -292,8 +294,8 @@ ge::GeShape BroadcastFormatProcess::GetNewShapeWithNewFormat(const ge::OpDesc &o
   (void)ge::AttrUtils::GetInt(op_desc, "input_size", input_size);
   (void)ge::AttrUtils::GetInt(op_desc, "state_size", state_size);
   CalcShapeExtraAttr extra_attr = {hidden_size, input_size, state_size};
-  ShapeAndFormat shape_and_format_info = {old_shape, new_shape, old_format, new_format,
-                                          current_data_type, group, extra_attr};
+  ShapeAndFormat shape_and_format_info = {old_shape,         new_shape, old_format, new_format,
+                                          current_data_type, group,     extra_attr};
   Status ret = GetShapeAccordingToFormat(shape_and_format_info);
   if (ret != SUCCESS) {
     FE_LOGW("[GraphOpt][ChkShpWithSubfmtSupBrdcst] Old format is %s, new format is %s, old dimension is %ld.",
@@ -326,8 +328,7 @@ bool BroadcastFormatProcess::CheckNewShapeSupportBroadcast(const ge::OpDesc &op_
                                                            const vector<ge::Format> &input_formats,
                                                            const vector<ge::DataType> &input_dtypes,
                                                            const vector<ge::GeShape> &input_shapes,
-                                                           const ge::Format &new_format,
-                                                           uint32_t sub_format) const {
+                                                           const ge::Format &new_format, uint32_t sub_format) const {
   vector<ge::GeShape> new_shapes;
   bool is_no_need_check_flag = input_formats.empty() || input_dtypes.empty() || input_shapes.empty();
   if (is_no_need_check_flag) {
@@ -347,8 +348,8 @@ bool BroadcastFormatProcess::CheckNewShapeSupportBroadcast(const ge::OpDesc &op_
       new_shapes.emplace_back(ge::GeShape({1}));
       continue;
     }
-    ge::GeShape new_shape = GetNewShapeWithNewFormat(op_desc, input_shapes[i], input_formats[i], new_format,
-                                                     input_dtypes[i], sub_format);
+    ge::GeShape new_shape =
+        GetNewShapeWithNewFormat(op_desc, input_shapes[i], input_formats[i], new_format, input_dtypes[i], sub_format);
     new_shapes.emplace_back(new_shape);
   }
   if (!CheckShapeWithSubformatSupportBroadcast(new_shapes)) {

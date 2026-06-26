@@ -18,9 +18,16 @@ offline_compile 模块功能测试 - 使用 pytest 框架
 
 import copy
 import ctypes
+
 import pytest
 
 try:
+    from ge._capi.pyoffline_compile_wrapper import (
+        get_offline_compile_lib,
+        is_offline_compile_lib_loaded,
+    )
+    from ge.graph import Graph
+    from ge.graph.types import DataType
     from ge.offline_compile import (
         GraphWithOptions,
         ModelBuffer,
@@ -31,9 +38,6 @@ try:
         bundle_save_model,
         save_model,
     )
-    from ge._capi.pyoffline_compile_wrapper import get_offline_compile_lib, is_offline_compile_lib_loaded
-    from ge.graph import Graph
-    from ge.graph.types import DataType
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -238,20 +242,33 @@ class TestBundleBuildModel:
 
     @staticmethod
     def test_invalid_item_type_graph():
-        with pytest.raises(TypeError, match="Each item in graph_with_options must be a GraphWithOptions"):
+        with pytest.raises(
+            TypeError,
+            match="Each item in graph_with_options must be a GraphWithOptions",
+        ):
             bundle_build_model([Graph("test_graph"), {}])
 
     @staticmethod
     def test_invalid_item_type_string():
-        with pytest.raises(TypeError, match="Each item in graph_with_options must be a GraphWithOptions"):
+        with pytest.raises(
+            TypeError,
+            match="Each item in graph_with_options must be a GraphWithOptions",
+        ):
             bundle_build_model(["bad", {}])
 
     @staticmethod
     def test_invalid_options_size():
         with pytest.raises(ValueError, match="graph_with_options size must be larger than 1"):
-            bundle_build_model([
-                GraphWithOptions(Graph("g1"), {"input_format": "ND", }),
-            ])
+            bundle_build_model(
+                [
+                    GraphWithOptions(
+                        Graph("g1"),
+                        {
+                            "input_format": "ND",
+                        },
+                    ),
+                ]
+            )
 
 
 class TestBundleSaveModel:

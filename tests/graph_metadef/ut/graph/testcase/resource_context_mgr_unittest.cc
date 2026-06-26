@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,11 +14,11 @@
 
 namespace ge {
 namespace {
-  struct TestResourceContext : ResourceContext {
-    std::vector<GeShape> shapes;
-    std::string resource_type;
-  };
-}
+struct TestResourceContext : ResourceContext {
+  std::vector<GeShape> shapes;
+  std::string resource_type;
+};
+}  // namespace
 
 class ResourceInferenceContextMgrTest : public testing::Test {
  protected:
@@ -30,7 +30,7 @@ class ResourceInferenceContextMgrTest : public testing::Test {
 TEST_F(ResourceInferenceContextMgrTest, TestSetAndGetResourceContext) {
   // prepare resource_context
   string resource_key = "123";
-  std::vector<GeShape> resource_shapes = {GeShape({1,1,2,3})};
+  std::vector<GeShape> resource_shapes = {GeShape({1, 1, 2, 3})};
   TestResourceContext *resource_context = new TestResourceContext();
   resource_context->shapes = resource_shapes;
   resource_context->resource_type = "normal";
@@ -82,4 +82,4 @@ TEST_F(ResourceInferenceContextMgrTest, TestRegsiterDuplicateNodeReliedOnResourc
   auto read_nodes = resource_context_mgr.MutableNodesReliedOnResource(resource_key);
   ASSERT_EQ(read_nodes.size(), 1);
 }
-} // namespace ge
+}  // namespace ge

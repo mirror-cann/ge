@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,18 +38,31 @@ class HybridMemAssigner : public MemAssigner {
 
   Status Assign() override;
 
-  const std::map<uint64_t, size_t> &GetMemOffsets() const { return mem_offsets_; }
+  const std::map<uint64_t, size_t> &GetMemOffsets() const {
+    return mem_offsets_;
+  }
 
-  const std::map<uint64_t, MemoryStat> &GetMemoryStat() const { return memory_stat_; }
+  const std::map<uint64_t, MemoryStat> &GetMemoryStat() const {
+    return memory_stat_;
+  }
 
-  BlockMemAssignerPtr GetPriorityAssinger() const { return priority_assigner_; }
+  BlockMemAssignerPtr GetPriorityAssinger() const {
+    return priority_assigner_;
+  }
 
-  const AnchorToSymbol &GetAnchorToSymbol() const { return mem_assist_info_.anchor_to_symbol; }
+  const AnchorToSymbol &GetAnchorToSymbol() const {
+    return mem_assist_info_.anchor_to_symbol;
+  }
 
-  const SymbolToAnchors &GetSymbolToAnchors() const { return mem_assist_info_.symbol_to_anchors; }
+  const SymbolToAnchors &GetSymbolToAnchors() const {
+    return mem_assist_info_.symbol_to_anchors;
+  }
 
-  ReuseChecker *GetReuseChecker() { return reuse_checker_.get(); }
+  ReuseChecker *GetReuseChecker() {
+    return reuse_checker_.get();
+  }
   void ReuseCheckerDeInit();
+
  private:
   static Status AssignMemory(BlockMemAssigner *block_assigner, size_t &mem_size, const GEThreadLocalContext &context);
   Status ReuseCheckerInit();

@@ -17,14 +17,11 @@
 
 using namespace std;
 
-#define INFO_LOG(fmt, ...)  fprintf(stdout, "[INFO]  " fmt "\n", ##__VA_ARGS__)
-#define WARN_LOG(fmt, ...)  fprintf(stdout, "[WARN]  " fmt "\n", ##__VA_ARGS__)
+#define INFO_LOG(fmt, ...) fprintf(stdout, "[INFO]  " fmt "\n", ##__VA_ARGS__)
+#define WARN_LOG(fmt, ...) fprintf(stdout, "[WARN]  " fmt "\n", ##__VA_ARGS__)
 #define ERROR_LOG(fmt, ...) fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__)
 
-enum Result {
-    SUCCESS = 0,
-    FAILED = 1
-};
+enum Result { SUCCESS = 0, FAILED = 1 };
 
 // read bin file to the allocated memory
 Result ReadBinFile(const string &fileName, void *inputData, uint32_t &picDataSize);
@@ -32,27 +29,26 @@ Result ReadBinFile(const string &fileName, void *inputData, uint32_t &picDataSiz
 Result LoadDataFromFile(const vector<string> &binFiles, const std::initializer_list<int64_t> &dims,
                         vector<gert::Tensor> &inputs);
 
-
 class SampleDynamicBatch {
-public:
-    explicit SampleDynamicBatch(const map<ge::AscendString, ge::AscendString> &options);
-    ~SampleDynamicBatch();
+ public:
+  explicit SampleDynamicBatch(const map<ge::AscendString, ge::AscendString> &options);
+  ~SampleDynamicBatch();
 
-    Result ParseModelAndBuildGraph(const string &modelPath);
+  Result ParseModelAndBuildGraph(const string &modelPath);
 
-    Result CompileGraph(const map<ge::AscendString, ge::AscendString> &options, const vector<ge::Tensor> &inputs);
+  Result CompileGraph(const map<ge::AscendString, ge::AscendString> &options, const vector<ge::Tensor> &inputs);
 
-    Result Process(const vector<string> &binFiles, const std::initializer_list<int64_t> &dims);
+  Result Process(const vector<string> &binFiles, const std::initializer_list<int64_t> &dims);
 
-    void OutputModelResult();
+  void OutputModelResult();
 
-private:
-    int32_t deviceId_{0};
-    uint32_t graphId_{0};
-    ge::GeSession session_{{}};
-    ge::Graph graph_{"resnet50_dynamic_batch"};
-    std::vector<gert::Tensor> inputs_;
-    std::vector<gert::Tensor> outputs_;
+ private:
+  int32_t deviceId_{0};
+  uint32_t graphId_{0};
+  ge::GeSession session_{{}};
+  ge::Graph graph_{"resnet50_dynamic_batch"};
+  std::vector<gert::Tensor> inputs_;
+  std::vector<gert::Tensor> outputs_;
 };
 
-#endif // CANN_GRAPH_ENGINE_SAMPLE_DYNAMIC_BATCH_H_
+#endif  // CANN_GRAPH_ENGINE_SAMPLE_DYNAMIC_BATCH_H_

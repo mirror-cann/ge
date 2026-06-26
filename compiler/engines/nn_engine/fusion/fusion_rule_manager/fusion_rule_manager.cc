@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,10 +26,8 @@ using std::string;
 using std::vector;
 
 namespace fe {
-const std::unordered_set<std::string> rules_need_cycle_detection = {
-    "LayerNormGradFusionRule",
-    "LayerNormGradFusionRule2"
-};
+const std::unordered_set<std::string> rules_need_cycle_detection = {"LayerNormGradFusionRule",
+                                                                    "LayerNormGradFusionRule2"};
 
 namespace {
 /* compare the priority of fusion rules based on the number of nodes */
@@ -53,7 +51,8 @@ void CheckDtypeNotExpected(vector<GraphMatchResult> &match_results) {
         auto input_tensor_desc = node.second->GetOpDesc()->MutableInputDesc(index);
         if (input_tensor_desc == nullptr) {
           REPORT_FE_ERROR("input_tensor_desc is nullptr.");
-          return;}
+          return;
+        }
         auto dtype = input_tensor_desc->GetDataType();
         if (dtype == ge::DT_INT64 || dtype == ge::DT_UINT64) {
           matched_graph.valid_flag = false;
@@ -73,11 +72,9 @@ void CheckDtypeNotExpected(vector<GraphMatchResult> &match_results) {
 }
 
 /* If one matched graph will lead to loop, just erase it. */
-void CorrectMatchedResult(const string& rule_name,
-                          const ge::ComputeGraph &graph,
+void CorrectMatchedResult(const string &rule_name, const ge::ComputeGraph &graph,
                           const std::shared_ptr<FusionCycleDetector> &detector,
-                          vector<GraphMatchResult> &matched_graphs,
-                          size_t &invalid_count) {
+                          vector<GraphMatchResult> &matched_graphs, size_t &invalid_count) {
   CheckDtypeNotExpected(matched_graphs);
   if (rules_need_cycle_detection.count(rule_name) == 0) {
     return;
@@ -90,8 +87,7 @@ void CorrectMatchedResult(const string& rule_name,
       one_scope_nodes.emplace_back(node.second);
     }
     if (!one_scope_nodes.empty()) {
-      FE_LOGD("Correct %s with first node %s.", rule_name.c_str(),
-              one_scope_nodes[0]->GetName().c_str());
+      FE_LOGD("Correct %s with first node %s.", rule_name.c_str(), one_scope_nodes[0]->GetName().c_str());
     }
 
     all_scope_nodes.emplace_back(one_scope_nodes);
@@ -233,8 +229,8 @@ Status FusionRuleManager::LoadFusionRule(const string &file_path, vector<FusionR
   vector<nlohmann::json> fusion_rule_json_objects;
   Status ret = OpenJsonFileToItems(file_path, fusion_rule_json_objects);
   if (ret != SUCCESS) {
-    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED, {file_path,
-                               "The configuration file is not in JSON format or its content is invalid"});
+    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED,
+                               {file_path, "The configuration file is not in JSON format or its content is invalid"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[GraphOpt][FusionRuleInit][LdFusRule] Open json file [%s] to json fusion rule objects failed.",
             file_path.c_str());
@@ -255,8 +251,8 @@ Status FusionRuleManager::LoadFusionRule(const string &file_path, vector<FusionR
           fusion_rule_json_pattern->GetName().c_str());
       continue;
     } else if (ret != SUCCESS) {
-      ErrorMessageDetail err_msg(EM_READ_FILE_FAILED, {file_path,
-                                 "The configuration file is not in JSON format or its content is invalid"});
+      ErrorMessageDetail err_msg(EM_READ_FILE_FAILED,
+                                 {file_path, "The configuration file is not in JSON format or its content is invalid"});
       ReportErrorMessage(err_msg);
       FE_LOGE("[GraphOpt][FusionRuleInit][LdFusRule] Parse json type fusion rule to c++ struct failed.");
       return ret;
@@ -266,8 +262,9 @@ Status FusionRuleManager::LoadFusionRule(const string &file_path, vector<FusionR
     FE_MAKE_SHARED(fusion_rule_pattern = make_shared<FusionRulePattern>(), return INTERNAL_ERROR);
     ret = FusionRulePatternConstructor::Construct(fusion_rule_pattern, fusion_rule_json_pattern);
     if (ret != SUCCESS) {
-      ErrorMessageDetail err_msg(EM_INVALID_CONTENT, {"fusion_rule", file_path,
-                                 "Invalid pattern of fusion rule: " + fusion_rule_json_pattern->GetName() + ""});
+      ErrorMessageDetail err_msg(
+          EM_INVALID_CONTENT,
+          {"fusion_rule", file_path, "Invalid pattern of fusion rule: " + fusion_rule_json_pattern->GetName() + ""});
       ReportErrorMessage(err_msg);
       FE_LOGE("[GraphOpt][FusionRuleInit][LdFusRule] Check and load fusion rule:[%s] to FusionRulePattern failed.",
               fusion_rule_json_pattern->GetName().c_str());
@@ -287,8 +284,8 @@ Status FusionRuleManager::OpenJsonFileToItems(const string &file_path,
   // Try open json file
   nlohmann::json input_json;
   if (ReadJsonFile(file_path, input_json) != SUCCESS) {
-    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED, {file_path,
-                               "The configuration file is not in JSON format or its content is invalid"});
+    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED,
+                               {file_path, "The configuration file is not in JSON format or its content is invalid"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[GraphOpt][FusionRuleInit][OpenJsFileToItem] ReadJsonFile in %s failed.", file_path.c_str());
     return FAILED;
@@ -372,9 +369,8 @@ Status FusionRuleManager::MatchAndReplaceByRules(ge::ComputeGraph &graph, const 
     }
   } while (false);
 
-  FE_LOGD("GraphFusion: GraphName:%s, Rule Name:%s, MatchedGraphs:%zu, invalid count %zu.",
-          graph.GetName().c_str(), rule_name.c_str(),
-          rule_matched_graphs, invalid_count);
+  FE_LOGD("GraphFusion: GraphName:%s, Rule Name:%s, MatchedGraphs:%zu, invalid count %zu.", graph.GetName().c_str(),
+          rule_name.c_str(), rule_matched_graphs, invalid_count);
   return SUCCESS;
 }
 

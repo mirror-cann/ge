@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,7 @@ class AclGraphParserUtil {
   domi::Status SetOutputNodeInfo(ge::Graph &graph, const std::map<AscendString, AscendString> &parser_params) const;
   domi::Status ParseParamsBeforeGraph(const std::map<AscendString, AscendString> &parser_params,
                                       std::string &graph_name) const;
-  domi::Status ParseParamsAfterGraph(ge::Graph &graph, const std::map<AscendString,
-                                     AscendString> &parser_params) const;
+  domi::Status ParseParamsAfterGraph(ge::Graph &graph, const std::map<AscendString, AscendString> &parser_params) const;
 
  private:
   bool parser_initialized = false;
@@ -130,7 +129,7 @@ std::string CurrentTimeInStr();
 ge::ParserContext &GetParserContextInstance();
 
 template <typename T, typename... Args>
-inline std::shared_ptr<T> MakeShared(Args &&... args) {
+inline std::shared_ptr<T> MakeShared(Args &&...args) {
   using T_nc = typename std::remove_const<T>::type;
   std::shared_ptr<T> ret(new (std::nothrow) T_nc(std::forward<Args>(args)...));
   return ret;
@@ -187,22 +186,22 @@ inline domi::Status CheckInt64Uint32MulOverflow(int64_t a, uint32_t b) {
   return domi::SUCCESS;
 }
 
-#define PARSER_INT64_MULCHECK(a, b)                                                                               \
-  do {                                                                                                            \
-    if (ge::parser::Int64MulCheckOverflow((a), (b)) != SUCCESS) {                                                 \
-      GELOGW("Int64 %ld and %ld multiplication can result in overflow!", static_cast<int64_t>(a),                 \
-             static_cast<int64_t>(b));                                                                            \
-      return INTERNAL_ERROR;                                                                                      \
-    }                                                                                                             \
+#define PARSER_INT64_MULCHECK(a, b)                                                               \
+  do {                                                                                            \
+    if (ge::parser::Int64MulCheckOverflow((a), (b)) != SUCCESS) {                                 \
+      GELOGW("Int64 %ld and %ld multiplication can result in overflow!", static_cast<int64_t>(a), \
+             static_cast<int64_t>(b));                                                            \
+      return INTERNAL_ERROR;                                                                      \
+    }                                                                                             \
   } while (0)
 
-#define PARSER_INT64_UINT32_MULCHECK(a, b)                                                                           \
-  do {                                                                                                               \
-    if (ge::parser::CheckInt64Uint32MulOverflow((a), (b)) != SUCCESS) {                                              \
-      GELOGW("Int64 %ld and Uint32 %u multiplication can result in overflow!", static_cast<uint64_t>(a),             \
-             static_cast<uint32_t>(b));                                                                              \
-      return INTERNAL_ERROR;                                                                                         \
-    }                                                                                                                \
+#define PARSER_INT64_UINT32_MULCHECK(a, b)                                                               \
+  do {                                                                                                   \
+    if (ge::parser::CheckInt64Uint32MulOverflow((a), (b)) != SUCCESS) {                                  \
+      GELOGW("Int64 %ld and Uint32 %u multiplication can result in overflow!", static_cast<uint64_t>(a), \
+             static_cast<uint32_t>(b));                                                                  \
+      return INTERNAL_ERROR;                                                                             \
+    }                                                                                                    \
   } while (0)
 }  // namespace parser
 }  // namespace ge
@@ -214,15 +213,15 @@ inline domi::Status CheckInt64Uint32MulOverflow(int64_t a, uint32_t b) {
 #define PARSER_TIMESTAMP_END(stage, stage_name)                                       \
   do {                                                                                \
     uint64_t endUsec_##stage = ge::parser::GetCurrentTimestamp();                     \
-    GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name),  \
-            (endUsec_##stage - startUsec_##stage));                                   \
+    GELOGI("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name), \
+           (endUsec_##stage - startUsec_##stage));                                    \
   } while (0)
 
-#define PARSER_TIMESTAMP_EVENT_END(stage, stage_name)                                 \
-  do {                                                                                \
-    uint64_t endUsec_##stage = ge::parser::GetCurrentTimestamp();                     \
+#define PARSER_TIMESTAMP_EVENT_END(stage, stage_name)                                  \
+  do {                                                                                 \
+    uint64_t endUsec_##stage = ge::parser::GetCurrentTimestamp();                      \
     GEEVENT("[GEPERFTRACE] The time cost of %s is [%lu] micro seconds.", (stage_name), \
-            (endUsec_##stage - startUsec_##stage));                                   \
+            (endUsec_##stage - startUsec_##stage));                                    \
   } while (0)
 
 #endif  // ACL_GRAPH_PARSE_UTIL_

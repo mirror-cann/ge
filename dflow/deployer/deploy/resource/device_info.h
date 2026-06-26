@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,12 +27,12 @@ class DeviceInfo {
 
   int32_t GetNodeId() const;
   inline void SetNodeId(int32_t node_id) {
-    node_id_ =  node_id;
+    node_id_ = node_id;
   }
 
   int32_t GetDeviceId() const;
   inline void SetDeviceId(int32_t device_id) {
-    device_id_ =  device_id;
+    device_id_ = device_id;
   }
 
   int32_t GetPhyDeviceId() const {
@@ -40,7 +40,7 @@ class DeviceInfo {
   }
 
   inline void SetPhyDeviceId(int32_t phy_device_id) {
-    phy_device_id_ =  phy_device_id;
+    phy_device_id_ = phy_device_id;
   }
 
   int32_t GetHcomDeviceId() const {
@@ -48,7 +48,7 @@ class DeviceInfo {
   }
 
   inline void SetHcomDeviceId(int32_t hcom_device_id) {
-    hcom_device_id_ =  hcom_device_id;
+    hcom_device_id_ = hcom_device_id;
   }
 
   int32_t GetOsId() const {
@@ -56,7 +56,7 @@ class DeviceInfo {
   }
 
   inline void SetOsId(int32_t os_id) {
-    os_id_ =  os_id;
+    os_id_ = os_id;
   }
 
   int32_t GetDeviceIndex() const {
@@ -64,7 +64,7 @@ class DeviceInfo {
   }
 
   inline void SetDeviceIndex(int32_t device_index) {
-    device_index_ =  device_index;
+    device_index_ = device_index;
   }
 
   const std::string &GetHostIp() const;
@@ -132,8 +132,8 @@ class DeviceInfo {
   }
 
   inline std::string GetKey() const {
-    return std::to_string(static_cast<int32_t>(device_type_)) + "_" +
-           std::to_string(node_id_) + "_" + std::to_string(device_id_);
+    return std::to_string(static_cast<int32_t>(device_type_)) + "_" + std::to_string(node_id_) + "_" +
+           std::to_string(device_id_);
   }
 
   inline bool SupportFlowgw() const {
@@ -157,19 +157,15 @@ class DeviceInfo {
   }
 
   inline std::string DebugString() const {
-    auto debug_string = "node_id = " + std::to_string(node_id_) + ", " +
-                        "device_id = " + std::to_string(device_id_) + ", " +
-                        "device_type = " + std::to_string(static_cast<int32_t>(device_type_)) + ", " +
-                        "node_ip = " + host_ip_ + ", " +
-                        "device_ip = " + device_ip_ + ", " +
-                        "resource_type = " + resource_type_ + ", " +
-                        "phy_device_id = " + std::to_string(phy_device_id_) + ", " +
-                        "hcom_device_id = " + std::to_string(hcom_device_id_) + ", " +
-                        "device_index = " + std::to_string(device_index_) + ", " +
-                        "node_mesh_index = " + ToString(node_mesh_index_) + ", " +
-                        "os_id = " + std::to_string(os_id_) + ", " +
-                        "node_port = " + std::to_string(node_port_) + ", " +
-                        "available_ports = " + available_ports_;
+    auto debug_string =
+        "node_id = " + std::to_string(node_id_) + ", " + "device_id = " + std::to_string(device_id_) + ", " +
+        "device_type = " + std::to_string(static_cast<int32_t>(device_type_)) + ", " + "node_ip = " + host_ip_ + ", " +
+        "device_ip = " + device_ip_ + ", " + "resource_type = " + resource_type_ + ", " +
+        "phy_device_id = " + std::to_string(phy_device_id_) + ", " +
+        "hcom_device_id = " + std::to_string(hcom_device_id_) + ", " +
+        "device_index = " + std::to_string(device_index_) + ", " + "node_mesh_index = " + ToString(node_mesh_index_) +
+        ", " + "os_id = " + std::to_string(os_id_) + ", " + "node_port = " + std::to_string(node_port_) + ", " +
+        "available_ports = " + available_ports_;
     return debug_string;
   }
 

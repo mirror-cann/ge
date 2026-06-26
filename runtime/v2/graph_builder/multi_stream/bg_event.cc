@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ void CollectLastResourceCleanEventsInfo(int64_t stream_num, std::vector<EventInf
 
 ge::graphStatus CollectAllEventInfos(const ge::ComputeGraphPtr &compute_graph, int64_t event_num,
                                      std::vector<EventInfo> &event_infos) {
-  event_infos.resize(event_num); // todo safe
+  event_infos.resize(event_num);  // todo safe
   std::unordered_set<int64_t> event_ids;
   std::unordered_set<int64_t> send_event_ids;
   std::unordered_set<int64_t> recive_event_ids;
@@ -96,7 +96,7 @@ ge::graphStatus CollectAllEventInfos(const ge::ComputeGraphPtr &compute_graph, i
       GE_ASSERT_TRUE(recive_event_ids.insert(recive_event_id).second, "Found duplicated send event id %ld on node %s.",
                      recive_event_id, node->GetNamePtr());
 
-      GE_ASSERT_TRUE(recive_event_id < event_num, "Found recive event id %ld out of range %ld.", recive_event_id,
+      GE_ASSERT_TRUE(recive_event_id < event_num, "Found receive event id %ld out of range %ld.", recive_event_id,
                      event_num);
       event_infos[recive_event_id].dst_logic_stream_id = stream_id;
     }
@@ -137,7 +137,7 @@ ValueHolderPtr CreateConstOfAllEventInfos(const std::vector<EventInfo> &model_ev
                    model_event_info.size() + first_sync_event_info.size() + last_sync_event_info.size());
   return ValueHolder::CreateConst(all_event_infos.get(), total_size);
 }
-} // namespace
+}  // namespace
 
 ValueHolderPtr CollectAndCreateGertEvents(const ge::ComputeGraphPtr &compute_graph, const ModelDesc &model_desc,
                                           LoweringGlobalData &global_data,
@@ -158,16 +158,13 @@ ValueHolderPtr CollectAndCreateGertEvents(const ge::ComputeGraphPtr &compute_gra
     return nullptr;
   }
 
-  auto init_out = FrameSelector::OnInitRoot(
-      [&model_event_info, &stage_2_sync_events]() -> std::vector<ValueHolderPtr> {
-        auto all_events_info = CreateConstOfAllEventInfos(model_event_info, stage_2_sync_events);
-        GE_ASSERT_NOTNULL(all_events_info);
-        return {ValueHolder::CreateSingleDataOutput("CreateGertEvents", {all_events_info})};
-      });
+  auto init_out = FrameSelector::OnInitRoot([&model_event_info, &stage_2_sync_events]() -> std::vector<ValueHolderPtr> {
+    auto all_events_info = CreateConstOfAllEventInfos(model_event_info, stage_2_sync_events);
+    GE_ASSERT_NOTNULL(all_events_info);
+    return {ValueHolder::CreateSingleDataOutput("CreateGertEvents", {all_events_info})};
+  });
   GE_ASSERT_TRUE(!init_out.empty());
-  auto builder = [&init_out]() -> ValueHolderPtr {
-    return init_out[0];
-  };
+  auto builder = [&init_out]() -> ValueHolderPtr { return init_out[0]; };
   return global_data.GetOrCreateUniqueValueHolder(bg::kGlobalDataGertEvents, builder);
 }
 
@@ -265,10 +262,9 @@ void LoweringLastResourceCleanEvents(const std::vector<EventInfo> &last_sync_eve
   }
   auto last_event_sync_builder = [&]() -> std::vector<bg::ValueHolderPtr> {
     auto inputs = PrepareEventInputs(kDefaultMainStreamId, logic_event_ids, global_data);
-    // last wait events requiered all l2 allocators
+    // last wait events required all l2 allocators
     inputs[static_cast<size_t>(SendEventsInput::kAllocator)] = global_data.GetOrCreateAllL2Allocators();
-    auto wait_holder = ValueHolder::CreateVoid<bg::ValueHolder>(
-        "LastWaitEvents", inputs);
+    auto wait_holder = ValueHolder::CreateVoid<bg::ValueHolder>("LastWaitEvents", inputs);
 
     std::vector<bg::ValueHolderPtr> send_holders;
     for (size_t i = 0U; i < last_sync_events.size(); ++i) {
@@ -321,4 +317,3 @@ HyperStatus LoweringAccessMemCrossStream(const ge::NodePtr &curr_compute_node,
 }
 }  // namespace bg
 }  // namespace gert
-

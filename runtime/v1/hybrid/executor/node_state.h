@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,12 +39,12 @@ struct FrameState {
   int64_t frame_id_{0};
   uint64_t active_count_{0U};
   uint64_t iteration_count_{0U};
-  FrameState* parent_frame_{nullptr};
+  FrameState *parent_frame_{nullptr};
 };
 
 // saving sth. dynamic during execution
-struct NodeState  {
-public:
+struct NodeState {
+ public:
   NodeState(const NodeItem &node_item, SubgraphContext *const subgraph_context, FrameState &frame_state);
   ~NodeState();
 
@@ -120,25 +120,43 @@ public:
 
   std::shared_ptr<TaskContext> GetTaskContext() const;
 
-  void SetSkipInferShape(const bool skip_infershape) { skip_infershape_ = skip_infershape; }
+  void SetSkipInferShape(const bool skip_infershape) {
+    skip_infershape_ = skip_infershape;
+  }
 
-  bool MaySkipShapeInference() const { return skip_infershape_; }
+  bool MaySkipShapeInference() const {
+    return skip_infershape_;
+  }
 
-  void SetSkipSchedule(const bool skip_schedule) { skip_schedule_ = skip_schedule; }
+  void SetSkipSchedule(const bool skip_schedule) {
+    skip_schedule_ = skip_schedule;
+  }
 
-  bool MaySkipSchedule() const { return skip_schedule_; }
+  bool MaySkipSchedule() const {
+    return skip_schedule_;
+  }
 
-  void SetUserAllocated(const bool user_allocated) { user_allocated_ = user_allocated; }
+  void SetUserAllocated(const bool user_allocated) {
+    user_allocated_ = user_allocated;
+  }
 
-  bool IsUserAllocated() const { return user_allocated_; }
+  bool IsUserAllocated() const {
+    return user_allocated_;
+  }
 
   Operator *GetOperator(const int32_t stage_id) const;
 
-  uint32_t GetDataScheduledNum() const { return data_scheduled_; }
+  uint32_t GetDataScheduledNum() const {
+    return data_scheduled_;
+  }
 
-  uint32_t GetCtrlScheduledNum() const { return ctrl_scheduled_; }
+  uint32_t GetCtrlScheduledNum() const {
+    return ctrl_scheduled_;
+  }
 
-  uint64_t GetIterationCount() const { return iteration_count_; }
+  uint64_t GetIterationCount() const {
+    return iteration_count_;
+  }
 
  private:
   bool IsScheduleReady() const;
@@ -164,8 +182,8 @@ public:
   uint64_t iteration_count_ = 0U;
   uint32_t ctrl_scheduled_ = 0U;
   uint32_t data_scheduled_ = 0U;
-  int32_t merge_index_ = -1; // Use for Execute (Reset after Executed).
-  int32_t switch_index_ = -1; // Use for Schedule (Reset after Prepared).
+  int32_t merge_index_ = -1;           // Use for Execute (Reset after Executed).
+  int32_t switch_index_ = -1;          // Use for Schedule (Reset after Prepared).
   int64_t name_profiling_index_ = -1;  // for performance consideration, profiling use a pre-registered index to name
   bool skip_infershape_ = false;
   bool skip_schedule_ = false;
@@ -174,4 +192,4 @@ public:
 }  // namespace hybrid
 }  // namespace ge
 
-#endif // GE_HYBRID_EXECUTOR_NODE_STATE_H_
+#endif  // GE_HYBRID_EXECUTOR_NODE_STATE_H_

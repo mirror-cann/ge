@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,8 +55,8 @@ void SetDefaultAttr(const ge::NodePtr &file_constant, const std::string &file_pa
 ComputeGraphPtr BuildFileConstantGraph(const std::vector<std::string> &file_path_config = {"test_weight_convert.bin"}) {
   (void)file_path_config;
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("FileConstant", "FileConstant")->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("FileConstant", "FileConstant")->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
   auto file_constant = graph->FindNode("FileConstant");
   SetDefaultOutputTensorDesc(file_constant);
@@ -75,9 +75,9 @@ ComputeGraphPtr BuildFileConstantGraph(const std::vector<std::string> &file_path
  */
 ComputeGraphPtr Build2FileConstantGraph(const std::vector<std::string> &file_path_config) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("file_constant_0", "FileConstant")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("file_constant_1", "FileConstant")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("file_constant_0", "FileConstant")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("file_constant_1", "FileConstant")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
   GE_ASSERT_TRUE(file_path_config.size() == 2U);
   auto file_constant_0 = graph->FindNode("file_constant_0");
@@ -101,7 +101,7 @@ ComputeGraphPtr Build2FileConstantGraphWithDiffShape(const std::vector<std::stri
   return compute_graph;
 }
 
-struct GraphBuilderWrapper{
+struct GraphBuilderWrapper {
   using GraphBuilderFunc = std::function<ComputeGraphPtr(const std::vector<std::string> &file_path_config)>;
   using GraphBuilderParam = const std::vector<std::string>;
   GraphBuilderFunc graph_builder_func;
@@ -132,25 +132,26 @@ class FileConstantConverterUT : public bg::BgTestAutoCreate3StageFrame {
         EXPECT_EQ(ret.out_shapes.size(), 1);
 
         const auto &main_graph = bg::ValueHolder::GetCurrentFrame()->GetExecuteGraph();
-        EXPECT_EQ(main_graph->GetDirectNodesSize(), 4U); // data*2, const, splitRtTensor
+        EXPECT_EQ(main_graph->GetDirectNodesSize(), 4U);  // data*2, const, splitRtTensor
 
         ASSERT_TRUE(k_file_constant_cnt < init_graph_node_types_to_counts.size());
         ASSERT_TRUE(k_file_constant_cnt < deinit_graph_node_types_to_counts.size());
         EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), GetExecuteGraphTypeStr(ExecuteGraphType::kInit));
         const auto init_graph = ge::FastNodeUtils::GetSubgraphFromNode(ret.out_addrs[0]->GetFastNode(), 0U);
-        EXPECT_EQ(
-            ExeGraphSummaryChecker(init_graph).StrictDirectNodeTypes(init_graph_node_types_to_counts[k_file_constant_cnt]),
-            "success");
+        EXPECT_EQ(ExeGraphSummaryChecker(init_graph)
+                      .StrictDirectNodeTypes(init_graph_node_types_to_counts[k_file_constant_cnt]),
+                  "success");
 
         const auto &root_graph = ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
         ASSERT_NE(root_graph, nullptr);
-        const auto &deinit_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
+        const auto &deinit_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(
+            root_graph, GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
         ASSERT_NE(deinit_node, nullptr);
         const auto &deinit_graph = ge::FastNodeUtils::GetSubgraphFromNode(deinit_node, 0U);
         ASSERT_NE(deinit_graph, nullptr);
-        EXPECT_EQ(
-            ExeGraphSummaryChecker(deinit_graph).StrictDirectNodeTypes(deinit_graph_node_types_to_counts[k_file_constant_cnt]),
-            "success");
+        EXPECT_EQ(ExeGraphSummaryChecker(deinit_graph)
+                      .StrictDirectNodeTypes(deinit_graph_node_types_to_counts[k_file_constant_cnt]),
+                  "success");
         ++k_file_constant_cnt;
       }
     }

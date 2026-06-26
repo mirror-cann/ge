@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,7 @@ class FusionUtils {
   static bool WillCauseCycleIfFuse(const std::vector<NodePtr> &nodes);
 
   static void RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,
-                                              const int match_times, const int effect_times);
+                                    const int match_times, const int effect_times);
 
   // 以单节点为边界构造 SubgraphBoundary：节点的每个入边对应一个 SubgraphInput
   // （多个 in_anchor 共享同一 peer out_anchor 时合并为一个 input），每个出边对应一个 SubgraphOutput。
@@ -131,8 +131,8 @@ struct InnerSubgraphBoundary {
         GE_ASSERT_NOTNULL(inner_node, "Failed to convert GNode to NodePtr for subgraph input index[%d].",
                           node_input.index);
         const auto in_data_anchor = inner_node->GetInDataAnchor(static_cast<int32_t>(node_input.index));
-        GE_ASSERT_NOTNULL(in_data_anchor, "Node[%s][%s] has no in_data_anchor at index[%d].",
-                          inner_node->GetNamePtr(), inner_node->GetTypePtr(), node_input.index);
+        GE_ASSERT_NOTNULL(in_data_anchor, "Node[%s][%s] has no in_data_anchor at index[%d].", inner_node->GetNamePtr(),
+                          inner_node->GetTypePtr(), node_input.index);
         if (producer_out_anchor == nullptr) {
           producer_out_anchor = in_data_anchor->GetPeerOutAnchor();
           GE_ASSERT_NOTNULL(producer_out_anchor,
@@ -153,8 +153,8 @@ struct InnerSubgraphBoundary {
       GE_ASSERT_NOTNULL(out_node, "Failed to convert GNode to NodePtr for subgraph output index[%d].",
                         node_output.index);
       const auto out_data_anchor = out_node->GetOutDataAnchor(static_cast<int32_t>(node_output.index));
-      GE_ASSERT_NOTNULL(out_data_anchor, "Node[%s][%s] has no out_data_anchor at index[%d].",
-                        out_node->GetNamePtr(), out_node->GetTypePtr(), node_output.index);
+      GE_ASSERT_NOTNULL(out_data_anchor, "Node[%s][%s] has no out_data_anchor at index[%d].", out_node->GetNamePtr(),
+                        out_node->GetTypePtr(), node_output.index);
       outputs_out_anchor_.emplace_back(out_data_anchor);
     }
     return SUCCESS;
@@ -210,7 +210,7 @@ struct InnerSubgraphBoundary {
     }
 
     std::set<NodePtr> nodes_set;
-    while(!node_queue.empty()) {
+    while (!node_queue.empty()) {
       auto cur_node = node_queue.front();
       node_queue.pop();
 

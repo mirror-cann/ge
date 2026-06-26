@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,9 +50,10 @@ int32_t CheckAndMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
                            "Cannot create directory %s. Make sure the directory "
                            "exists and writable. errmsg:%s",
                            tmp_dir_path, strerror(errno));
-      GELOGW("[Util][mkdir] Create directory %s failed, reason:%s. Make sure the "
-             "directory exists and writable.",
-             tmp_dir_path, strerror(errno));
+      GELOGW(
+          "[Util][mkdir] Create directory %s failed, reason:%s. Make sure the "
+          "directory exists and writable.",
+          tmp_dir_path, strerror(errno));
       return ret;
     }
   }
@@ -61,7 +62,7 @@ int32_t CheckAndMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
 
 int32_t CreateDir(const std::string &directory_path, uint32_t mode) {
   GE_CHK_BOOL_EXEC(!directory_path.empty(), REPORT_INNER_ERR_MSG("E18888", "directory path is empty, check invalid");
-  return -1, "[Check][Param] directory path is empty.");
+                   return -1, "[Check][Param] directory path is empty.");
   const auto dir_path_len = directory_path.length();
   if (dir_path_len >= static_cast<size_t>(MMPA_MAX_PATH)) {
     REPORT_PREDEFINED_ERR_MSG(

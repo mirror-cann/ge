@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,14 +28,11 @@ class CONV_REQUANTS16_SLICE_INFO_UTEST : public testing::Test {
     conv_requant_s16_slice_info_ptr = std::make_shared<ConvRequantS16SliceInfo>();
   }
 
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
 
   void BuildGraph_1(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-        original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     test.AddOpDesc(EN_IMPL_HW_TBE, "strided_read", "stridedRead", "StridedRead", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "dequant", "dequant", "AscendDequant", 2, 1)
@@ -53,7 +50,6 @@ class CONV_REQUANTS16_SLICE_INFO_UTEST : public testing::Test {
  public:
   std::shared_ptr<ConvRequantS16SliceInfo> conv_requant_s16_slice_info_ptr;
 };
-
 
 TEST_F(CONV_REQUANTS16_SLICE_INFO_UTEST, modify_slice_info_by_pattern_suc) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");

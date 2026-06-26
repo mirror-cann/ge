@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,21 +22,19 @@ namespace ge {
 namespace hybrid {
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::GE_LOCAL, GeLocalNodeExecutor);
 
-const std::map<std::string, std::vector<uint32_t>>
-    RefInputTask::out_ref_input_index_ = {{DATA, {}},
-                                          {REFDATA, {}},
-                                          {AIPPDATA, {}},
-                                          {RESHAPE, {}},
-                                          {EXPANDDIMS, {}},
-                                          {SQUEEZE, {}},
-                                          {UNSQUEEZE, {}},
-                                          {SQUEEZEV2, {}},
-                                          {UNSQUEEZEV2, {}},
-                                          {FLATTENV2, {}},
-                                          {BROADCASTGRADIENTARGS, {}},
-                                          {SQUEEZEV3, {}},
-                                          {UNSQUEEZEV3, {}}
-                                         };
+const std::map<std::string, std::vector<uint32_t>> RefInputTask::out_ref_input_index_ = {{DATA, {}},
+                                                                                         {REFDATA, {}},
+                                                                                         {AIPPDATA, {}},
+                                                                                         {RESHAPE, {}},
+                                                                                         {EXPANDDIMS, {}},
+                                                                                         {SQUEEZE, {}},
+                                                                                         {UNSQUEEZE, {}},
+                                                                                         {SQUEEZEV2, {}},
+                                                                                         {UNSQUEEZEV2, {}},
+                                                                                         {FLATTENV2, {}},
+                                                                                         {BROADCASTGRADIENTARGS, {}},
+                                                                                         {SQUEEZEV3, {}},
+                                                                                         {UNSQUEEZEV3, {}}};
 
 const std::set<std::string> DependInputShapeTask::depend_input_shape_ops_ = {SHAPE, SHAPEN, RANK, SIZE, GATHERSHAPES};
 
@@ -55,10 +53,8 @@ Status RefInputTask::UpdateArgs(TaskContext &context) {
 Status RefInputTask::Execute(const TaskContext &context) const {
   const auto iter = out_ref_input_index_.find(node_type_);
   if (iter == out_ref_input_index_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "node %s type %s cannot use RefInputTask.",
-                       node_name_.c_str(), node_type_.c_str());
-    GELOGE(UNSUPPORTED, "[Find][Node]node %s type %s cannot use RefInputTask.",
-           node_name_.c_str(), node_type_.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "node %s type %s cannot use RefInputTask.", node_name_.c_str(), node_type_.c_str());
+    GELOGE(UNSUPPORTED, "[Find][Node]node %s type %s cannot use RefInputTask.", node_name_.c_str(), node_type_.c_str());
     return UNSUPPORTED;
   }
 
@@ -76,7 +72,7 @@ Status RefInputTask::RefOneByOne(const TaskContext &context) const {
   const int32_t output_num = context.NumOutputs();
   if (output_num > input_num) {
     REPORT_INNER_ERR_MSG("E19999", "node %s type %s has %d outputs but only %d inputs, can't ref one by one.",
-                       node_name_.c_str(), node_type_.c_str(), output_num, input_num);
+                         node_name_.c_str(), node_type_.c_str(), output_num, input_num);
     GELOGE(INTERNAL_ERROR, "[Check][Size]node %s type %s has %d outputs but only %d inputs, can't ref one by one.",
            node_name_.c_str(), node_type_.c_str(), output_num, input_num);
     return INTERNAL_ERROR;
@@ -102,20 +98,21 @@ Status RefInputTask::RefOneByOne(const TaskContext &context) const {
                "[Check][Size] %s(%s) index[%d] mem size out of range! Expected size: %ld, but given input size: %ld.",
                node_name_.c_str(), node_type_.c_str(), out_index, expected_size, output->GetSize());
 
-        std::string reason = "The memory " + std::to_string(expected_size) + " required by the output " + std::to_string(out_index) +
-                             " of the node " + node_name_ + "(" + node_type_ + ") is greater than the allocated memory " +
-                             std::to_string(output->GetSize());
+        std::string reason = "The memory " + std::to_string(expected_size) + " required by the output " +
+                             std::to_string(out_index) + " of the node " + node_name_ + "(" + node_type_ +
+                             ") is greater than the allocated memory " + std::to_string(output->GetSize());
         REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char_t *>({"reason"}),
                                   std::vector<const char_t *>({reason.c_str()}));
         return GRAPH_PARAM_INVALID;
       }
       GE_CHK_ACL_RET(aclrtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
-          static_cast<uint64_t>(expected_size), ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
+                                      static_cast<uint64_t>(expected_size), ACL_MEMCPY_DEVICE_TO_DEVICE,
+                                      context.GetStream()));
     } else {
       GE_CHK_STATUS_RET(context.SetOutput(out_index, *input));
     }
-    GELOGD("node %s type %s output[%d] ref input[%d] addr=%p.",
-           node_name_.c_str(), node_type_.c_str(), out_index, out_index, input->GetData());
+    GELOGD("node %s type %s output[%d] ref input[%d] addr=%p.", node_name_.c_str(), node_type_.c_str(), out_index,
+           out_index, input->GetData());
   }
   GELOGI("node %s type %s ref input one by one end.", node_name_.c_str(), node_type_.c_str());
   return SUCCESS;
@@ -125,8 +122,8 @@ Status RefInputTask::RefByOrder(const std::vector<uint32_t> &ref_order, const Ta
   GELOGI("node %s type %s ref input by order begin.", node_name_.c_str(), node_type_.c_str());
   const int32_t output_num = context.NumOutputs();
   if (ref_order.size() != static_cast<size_t>(output_num)) {
-    REPORT_INNER_ERR_MSG("E19999", "node %s type %s has %d outputs but only has %zu out ref index.",
-                       node_name_.c_str(), node_type_.c_str(), output_num, ref_order.size());
+    REPORT_INNER_ERR_MSG("E19999", "node %s type %s has %d outputs but only has %zu out ref index.", node_name_.c_str(),
+                         node_type_.c_str(), output_num, ref_order.size());
     GELOGE(INTERNAL_ERROR, "[Check][Size]node %s type %s has %d outputs but only has %zu out ref index.",
            node_name_.c_str(), node_type_.c_str(), output_num, ref_order.size());
     return INTERNAL_ERROR;
@@ -136,8 +133,8 @@ Status RefInputTask::RefByOrder(const std::vector<uint32_t> &ref_order, const Ta
     const auto input = context.GetInput(static_cast<int32_t>(ref_input_index));
     GE_CHECK_NOTNULL(input);
     GE_CHK_STATUS_RET(context.SetOutput(out_index, *input));
-    GELOGD("node %s type %s output[%d] ref input[%u] addr=%p.",
-           node_name_.c_str(), node_type_.c_str(), out_index, ref_input_index, input->GetData());
+    GELOGD("node %s type %s output[%d] ref input[%u] addr=%p.", node_name_.c_str(), node_type_.c_str(), out_index,
+           ref_input_index, input->GetData());
   }
   GELOGI("node %s type %s ref input by order end.", node_name_.c_str(), node_type_.c_str());
   return SUCCESS;
@@ -165,10 +162,8 @@ Status DependInputShapeTask::UpdateArgs(TaskContext &context) {
   return SUCCESS;
 }
 
-Status DependInputShapeTask::CopyDataToOutput(const size_t output_num,
-                                              std::vector<GeTensorPtr> &outputs,
-                                              const std::string &node_type,
-                                              const TaskContext &context) const {
+Status DependInputShapeTask::CopyDataToOutput(const size_t output_num, std::vector<GeTensorPtr> &outputs,
+                                              const std::string &node_type, const TaskContext &context) const {
   // copy data to output
   for (size_t i = 0U; i < output_num; ++i) {
     GeTensorPtr &tensor_out = outputs[i];
@@ -177,29 +172,27 @@ Status DependInputShapeTask::CopyDataToOutput(const size_t output_num,
     const auto tensor_value_out = context.MutableOutput(static_cast<int32_t>(i));
     GE_CHECK_NOTNULL(tensor_value_out);
     if (tensor_data_out.GetSize() > tensor_value_out->GetSize()) {
-      REPORT_INNER_ERR_MSG("E19999", "node:%s type:%s [%" PRIu64 "]th compute data size=%zu, but context data size=%zu."
-                                   "check invalid",
-                         node_->GetName().c_str(), node_type.c_str(), static_cast<uint64_t>(i),
-                         tensor_data_out.GetSize(), tensor_value_out->GetSize());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "node:%s type:%s [%" PRIu64
+                           "]th compute data size=%zu, but context data size=%zu."
+                           "check invalid",
+                           node_->GetName().c_str(), node_type.c_str(), static_cast<uint64_t>(i),
+                           tensor_data_out.GetSize(), tensor_value_out->GetSize());
       GELOGE(INTERNAL_ERROR, "[Check][Size]node:%s type:%s [%lu]th compute data size=%zu, but context data size=%zu.",
              node_->GetName().c_str(), node_type.c_str(), i, tensor_data_out.GetSize(), tensor_value_out->GetSize());
       return INTERNAL_ERROR;
     }
 
-    GELOGI("node:%s type:%s [%lu]th output data=%p, out size=%zu, data size=%zu.",
-           node_->GetName().c_str(), node_type.c_str(), i,
-           tensor_value_out->GetData(), tensor_value_out->GetSize(), tensor_data_out.GetSize());
+    GELOGI("node:%s type:%s [%lu]th output data=%p, out size=%zu, data size=%zu.", node_->GetName().c_str(),
+           node_type.c_str(), i, tensor_value_out->GetData(), tensor_value_out->GetSize(), tensor_data_out.GetSize());
 
     if (tensor_data_out.GetSize() > 0UL) {
-      GE_CHK_ACL_RET(aclrtMemcpyAsync(tensor_value_out->MutableData(),
-                                  tensor_value_out->GetSize(),
-                                  tensor_data_out.GetData(),
-                                  tensor_data_out.GetSize(),
-                                  ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
-                                  context.GetStream()));
+      GE_CHK_ACL_RET(aclrtMemcpyAsync(tensor_value_out->MutableData(), tensor_value_out->GetSize(),
+                                      tensor_data_out.GetData(), tensor_data_out.GetSize(),
+                                      ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, context.GetStream()));
     }
-    GELOGI("node:%s type:%s [%lu]th set data success, data size=%zu.",
-           node_->GetName().c_str(), node_type.c_str(), i, tensor_data_out.GetSize());
+    GELOGI("node:%s type:%s [%lu]th set data success, data size=%zu.", node_->GetName().c_str(), node_type.c_str(), i,
+           tensor_data_out.GetSize());
   }
   return SUCCESS;
 }
@@ -210,24 +203,25 @@ Status DependInputShapeTask::Execute(const TaskContext &context) const {
   const auto compute_kernel = factory.Create(node_type);
   if (compute_kernel == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "create failed for node %s type %s is not supported by host kernel.",
-                      node_->GetName().c_str(), node_type.c_str());
-    GELOGE(UNSUPPORTED, "[Invoke][Create]node %s type %s is not supported by host kernel.",
-           node_->GetName().c_str(), node_type.c_str());
+                         node_->GetName().c_str(), node_type.c_str());
+    GELOGE(UNSUPPORTED, "[Invoke][Create]node %s type %s is not supported by host kernel.", node_->GetName().c_str(),
+           node_type.c_str());
     return UNSUPPORTED;
   }
   std::vector<GeTensorPtr> outputs;
   const Status compute_ret = compute_kernel->Compute(node_, outputs);
   if (compute_ret != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "node %s type %s compute failed.", node_->GetName().c_str(), node_type.c_str());
-    GELOGE(compute_ret, "[Invoke][Compute]node %s type %s compute failed or not imply.",
-           node_->GetName().c_str(), node_type.c_str());
+    GELOGE(compute_ret, "[Invoke][Compute]node %s type %s compute failed or not imply.", node_->GetName().c_str(),
+           node_type.c_str());
     return compute_ret;
   }
   const auto output_num = static_cast<uint32_t>(context.NumOutputs());
   if (static_cast<size_t>(output_num) != outputs.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "node %s type %s has %u output,"
-                       "but kernel compute only has %zu output. check invalid",
-                       node_->GetName().c_str(), node_type.c_str(), output_num, outputs.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "node %s type %s has %u output,"
+                         "but kernel compute only has %zu output. check invalid",
+                         node_->GetName().c_str(), node_type.c_str(), output_num, outputs.size());
     GELOGE(INTERNAL_ERROR, "[Check][Size]node %s type %s has %u output, but kernel compute only has %zu output.",
            node_->GetName().c_str(), node_type.c_str(), output_num, outputs.size());
     return INTERNAL_ERROR;
@@ -265,31 +259,29 @@ Status GeLocalNodeExecutor::PrepareTask(NodeTask &task, TaskContext &context) co
   return status1;
 }
 
-Status GeLocalNodeExecutor::LoadTask(const HybridModel &model,
-                                     const NodePtr &node,
+Status GeLocalNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node,
                                      std::shared_ptr<NodeTask> &task) const {
   GE_CHECK_NOTNULL(node);
   const std::string node_type = node->GetType();
   if (RefInputTask::IsBelong(node_type)) {
-    GELOGI("node %s type %s is ref input task, use RefInputTask.",
-           node->GetName().c_str(), node_type.c_str());
+    GELOGI("node %s type %s is ref input task, use RefInputTask.", node->GetName().c_str(), node_type.c_str());
     task = MakeShared<RefInputTask>(node);
     if (task == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Create RefInputTask failed for node %s(%s).",
-                        node->GetName().c_str(), node_type.c_str());
-      GELOGE(MEMALLOC_FAILED, "[Create][RefInputTask] failed for node %s(%s).",
-             node->GetName().c_str(), node_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Create RefInputTask failed for node %s(%s).", node->GetName().c_str(),
+                           node_type.c_str());
+      GELOGE(MEMALLOC_FAILED, "[Create][RefInputTask] failed for node %s(%s).", node->GetName().c_str(),
+             node_type.c_str());
       return MEMALLOC_FAILED;
     }
   } else if (DependInputShapeTask::IsBelong(node_type)) {
-    GELOGI("node %s type %s is depend input shape task, use DependInputShapeTask.",
-           node->GetName().c_str(), node_type.c_str());
+    GELOGI("node %s type %s is depend input shape task, use DependInputShapeTask.", node->GetName().c_str(),
+           node_type.c_str());
     task = MakeShared<DependInputShapeTask>(node);
     if (task == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Create DependInputShapeTask failed for node %s type %s.",
-                        node->GetName().c_str(), node_type.c_str());
-      GELOGE(MEMALLOC_FAILED, "[Create][DependInputShapeTask]failed for node %s type %s.",
-             node->GetName().c_str(), node_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Create DependInputShapeTask failed for node %s type %s.", node->GetName().c_str(),
+                           node_type.c_str());
+      GELOGE(MEMALLOC_FAILED, "[Create][DependInputShapeTask]failed for node %s type %s.", node->GetName().c_str(),
+             node_type.c_str());
       return MEMALLOC_FAILED;
     }
   } else if (ConstantNodeTask::IsBelong(node_type)) {
@@ -306,34 +298,33 @@ Status GeLocalNodeExecutor::LoadTask(const HybridModel &model,
     GELOGI("node %s type %s , use NoOpNodeTask.", node->GetName().c_str(), node_type.c_str());
     task = MakeShared<NoOpNodeTask>();
     if (task == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Create NoOpNodeTask failed for NoOp node %s(%s).",
-                        node->GetName().c_str(), node_type.c_str());
-      GELOGE(MEMALLOC_FAILED, "[Create][NoOpNodeTask]failed for NoOp node %s(%s).",
-             node->GetName().c_str(), node_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Create NoOpNodeTask failed for NoOp node %s(%s).", node->GetName().c_str(),
+                           node_type.c_str());
+      GELOGE(MEMALLOC_FAILED, "[Create][NoOpNodeTask]failed for NoOp node %s(%s).", node->GetName().c_str(),
+             node_type.c_str());
       return MEMALLOC_FAILED;
     }
   } else if (DataFlowNodeTask::IsBelong(node_type)) {
-    GELOGI("node %s type %s is data flow task, use DataFlowNodeTask.",
-           node->GetName().c_str(), node_type.c_str());
+    GELOGI("node %s type %s is data flow task, use DataFlowNodeTask.", node->GetName().c_str(), node_type.c_str());
     task = MakeShared<DataFlowNodeTask>(node_type);
     if (task == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Create DataFlowNodeTask failed for node %s type %s.",
-                        node->GetName().c_str(), node_type.c_str());
-      GELOGE(MEMALLOC_FAILED, "[Create][DataFlowNodeTask]failed for node %s type %s.",
-             node->GetName().c_str(), node_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Create DataFlowNodeTask failed for node %s type %s.", node->GetName().c_str(),
+                           node_type.c_str());
+      GELOGE(MEMALLOC_FAILED, "[Create][DataFlowNodeTask]failed for node %s type %s.", node->GetName().c_str(),
+             node_type.c_str());
       return MEMALLOC_FAILED;
     }
-    GE_CHK_STATUS_RET(task->InitTaskBasicInfo(node), "[Init][TaskBasicInfo]node:%s type:%s",
-                      node->GetName().c_str(), node_type.c_str());
+    GE_CHK_STATUS_RET(task->InitTaskBasicInfo(node), "[Init][TaskBasicInfo]node:%s type:%s", node->GetName().c_str(),
+                      node_type.c_str());
   } else {
     GELOGE(UNSUPPORTED, "[Check][Param] node %s type %s is not supported in GeLocalNodeExecutor now.",
-        node->GetName().c_str(), node_type.c_str());
+           node->GetName().c_str(), node_type.c_str());
     return UNSUPPORTED;
   }
   return SUCCESS;
 }
 
-ConstantNodeTask::ConstantNodeTask(const TensorValue * const tensor_in) : NodeTask(), tensor_(tensor_in) {}
+ConstantNodeTask::ConstantNodeTask(const TensorValue *const tensor_in) : NodeTask(), tensor_(tensor_in) {}
 
 Status ConstantNodeTask::UpdateArgs(TaskContext &context) {
   (void)context;
@@ -342,8 +333,8 @@ Status ConstantNodeTask::UpdateArgs(TaskContext &context) {
 
 Status ConstantNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
   GELOGD("[%s] Start execute.", context.GetNodeName());
-  GE_CHK_STATUS_RET(context.SetOutput(0, *tensor_), "[Set][Output] failed for [%s(%s)].",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+  GE_CHK_STATUS_RET(context.SetOutput(0, *tensor_), "[Set][Output] failed for [%s(%s)].", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
   if (done_callback) {
     GELOGD("[%s] Start invoke callback.", context.GetNodeName());
     done_callback();
@@ -393,8 +384,8 @@ Status DataFlowNodeTask::UpdateArgs(TaskContext &context) {
 
 Status DataFlowNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
   RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[DataFlowNodeTask] Start");
-  GE_CHK_STATUS_RET(Execute(context), "[Invoke][Execute]node:%s type:%s execute failed",
-                    context.GetNodeName(), node_type_.c_str());
+  GE_CHK_STATUS_RET(Execute(context), "[Invoke][Execute]node:%s type:%s execute failed", context.GetNodeName(),
+                    node_type_.c_str());
   if (done_callback) {
     GELOGD("[%s] Start invoke callback.", context.GetNodeName());
     done_callback();
@@ -412,8 +403,8 @@ Status DataFlowNodeTask::Execute(TaskContext &context) const {
   const auto kernel = context.GetExecutionContext()->res_manager.GetDataFlowKernel(node_type_);
   if (kernel == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Get kernel failed for node %s type %s.", context.GetNodeName(), node_type_.c_str());
-    GELOGE(INTERNAL_ERROR, "[Invoke][Get]node %s type %s kernel is nullptr.",
-           context.GetNodeName(), node_type_.c_str());
+    GELOGE(INTERNAL_ERROR, "[Invoke][Get]node %s type %s kernel is nullptr.", context.GetNodeName(),
+           node_type_.c_str());
     return INTERNAL_ERROR;
   }
   const Status ret = kernel->Compute(context, handle_);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,7 +58,7 @@ void DataFlowInfo::SetTransactionId(uint64_t transaction_id) {
   }
 }
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 static inline std::shared_ptr<T> ComGraphMakeShared(Args &&...args) {
   using T_nc = typename std::remove_const<T>::type;
   std::shared_ptr<T> ret = nullptr;
@@ -98,13 +98,13 @@ graphStatus Operator::UpdateOutputDesc(const char_t *name, const ge::TensorDesc 
 
 // mock for graph
 class GraphImpl {
-public:
-explicit GraphImpl(const std::string &name) : name_(name) {
-  LLMLOGI("stub GraphImpl::GraphImpl");
-}
-~GraphImpl() {
-  LLMLOGI("stub GraphImpl::~GraphImpl");
-};
+ public:
+  explicit GraphImpl(const std::string &name) : name_(name) {
+    LLMLOGI("stub GraphImpl::GraphImpl");
+  }
+  ~GraphImpl() {
+    LLMLOGI("stub GraphImpl::~GraphImpl");
+  };
 
  private:
   std::string name_;
@@ -147,12 +147,12 @@ FlowData::FlowData(const char *name, int64_t index) : FlowOperator(name, "Data")
 FlowData::~FlowData() = default;
 
 class ProcessPointImpl {
-public:
+ public:
   ProcessPointImpl(const char_t *pp_name, ProcessPointType pp_type)
       : pp_name_(pp_name), pp_type_(pp_type), json_file_path_() {}
   ~ProcessPointImpl() = default;
 
-private:
+ private:
   std::string pp_name_;
   const ProcessPointType pp_type_;
   std::string json_file_path_;
@@ -205,7 +205,7 @@ void FunctionPp::Serialize(ge::AscendString &str) const {
 }
 
 // mock for FlowNode
-FlowNode::FlowNode(const char *name, uint32_t input_num, uint32_t output_num) : FlowOperator(name, "FlowNode")  {
+FlowNode::FlowNode(const char *name, uint32_t input_num, uint32_t output_num) : FlowOperator(name, "FlowNode") {
   LLMLOGI("stub FlowNode::FlowNode");
 }
 FlowNode::~FlowNode() = default;
@@ -222,14 +222,13 @@ FlowNode &FlowNode::AddPp(const ProcessPoint &pp) {
 
 // mock for FlowGraph
 class FlowGraphImpl {
-public:
+ public:
   explicit FlowGraphImpl(const char *name) : name_(name), graph_(Graph(name)) {
     LLMLOGI("stub FlowGraphImpl::FlowGraphImpl");
   }
   ~FlowGraphImpl() = default;
 
   const ge::Graph &ToGeGraph() const {
-
     return graph_;
   }
 
@@ -238,7 +237,7 @@ public:
     return name_.c_str();
   }
 
-private:
+ private:
   const std::string name_;
   ge::Graph graph_;
 };
@@ -292,5 +291,5 @@ const char *FlowGraph::GetName() const {
   return impl_->GetName();
 }
 
-} // namespace dflow
-} // namespace ge
+}  // namespace dflow
+}  // namespace ge

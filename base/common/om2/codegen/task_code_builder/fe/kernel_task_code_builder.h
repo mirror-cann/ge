@@ -30,15 +30,16 @@ constexpr uint64_t kMaxTilingDataSize = 16UL * 1024UL;
 
 class KernelTaskCodeBuilder : public TaskCodeBuilder {
  public:
-  explicit KernelTaskCodeBuilder(AstBuildContext &ast)
-      : TaskCodeBuilder(ast) {}
+  explicit KernelTaskCodeBuilder(AstBuildContext &ast) : TaskCodeBuilder(ast) {}
   Status RenderDistHelper(std::vector<DeclNode *> &items) override;
   Status RenderDistribution(std::vector<BodyItem> &items) override;
   Status Contribute(TaskSemanticContributeContext &context) override;
   const KernelTaskSemantic &GetTaskSemantic() const {
     return semantic_;
   }
-  ModelTaskType GetTaskType() const override { return semantic_.task_type; }
+  ModelTaskType GetTaskType() const override {
+    return semantic_.task_type;
+  }
   OpDefBuildData GetOpDefBuildData() const override;
   Status RenderDispatchOpCaseBody(std::vector<BodyItem> &items) override;
   Status RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields, uint32_t dispatch_type) override;
@@ -78,17 +79,15 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildLaunchConfigSemantic(const TaskSemanticContributeContext &context);
   Status BuildLaunchFuncHandleSemantic(const TaskSemanticContributeContext &context);
   static Status ResolveKernelName(const KernelTaskSemantic &semantic, const OpDescPtr &op_desc,
-                                   const domi::TaskDef &task_def, std::string &kernel_name);
-  std::string ResolveFuncHandleKey(const TaskSemanticContributeContext &context,
-                                 const std::string &kernel_name) const;
+                                  const domi::TaskDef &task_def, std::string &kernel_name);
+  std::string ResolveFuncHandleKey(const TaskSemanticContributeContext &context, const std::string &kernel_name) const;
   Status ResolveTaskAddrs(TaskSemanticContributeContext &context);
   Status CopyTilingDataIfNeeded(const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder);
   Status ConstructDfxInfo(const ge::OpDescPtr &op_desc, const optiling::OpRunInfoV2 &run_info,
                           const std::vector<ge::ArgDesc> &arg_descs, std::string &dfx_info) const;
   Status UpdateDfxArgsAndShapeSize(const OpDescPtr &op_desc,
                                    const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
-                                   std::vector<int64_t> &args_size_vec,
-                                   std::vector<int64_t> &shape_size_vec) const;
+                                   std::vector<int64_t> &args_size_vec, std::vector<int64_t> &shape_size_vec) const;
   void AppendShapeInfo(const ge::GeShape &shape, std::vector<int64_t> &shape_info_vec) const;
   Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc, const int64_t origin_tiling_data_size,
                               int64_t &memcheck_start_size) const;
@@ -111,14 +110,14 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status AppendOrderedInputOutputRange(const ArgDesc &arg_format, const ArgsFormatInfo &args_format_holder,
                                        const TaskSemanticContributeContext &context);
   Status AppendOrderedWorkspace(const ArgDesc &arg_format);
-  Status AppendOrderedArgsByFormat(const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-                                   std::vector<ArgDesc> &dynamic_args_desc,
+  Status AppendOrderedArgsByFormat(const TaskSemanticContributeContext &context,
+                                   const ArgsFormatInfo &args_format_holder, std::vector<ArgDesc> &dynamic_args_desc,
                                    std::vector<size_t> &level1_desc_indices);
   void AppendOrderedDescArg(const TaskSemanticContributeContext &context, const ArgDesc &arg_format,
                             std::vector<ArgDesc> &dynamic_args_desc, std::vector<size_t> &level1_desc_indices);
   void AppendOrderedFftsAddrArg(const TaskSemanticContributeContext &context);
-  void AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context,
-                                 const ArgDesc &arg_format, uint32_t &event_addr_index);
+  void AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context, const ArgDesc &arg_format,
+                                 uint32_t &event_addr_index);
   void AppendOrderedOverflowAddrArg(const TaskSemanticContributeContext &context);
   void AppendOrderedTilingArg(const TaskSemanticContributeContext &context);
   Status AppendShapeInfoOrderedArgs(const TaskSemanticContributeContext &context,
@@ -135,8 +134,7 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
   Status BuildAddrGenInfoForConstTensor(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForIoTensor(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForShapeInfoBuffer(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
-  Status BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic,
-                                                           RenderedAddrInfo &addr_gen_info) const;
+  Status BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForInstance(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForFftsAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
   Status BuildAddrGenInfoForEventAddr(const AddrSemantic &semantic, RenderedAddrInfo &addr_gen_info) const;
@@ -162,19 +160,19 @@ class KernelTaskCodeBuilder : public TaskCodeBuilder {
 
   void AssignTaskLocalIoNames();
   Status CheckTaskSupport() const;
-  Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
-                           uint32_t &args_size, uint32_t &kernel_type) const;
+  Status GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context, uint32_t &args_size,
+                           uint32_t &kernel_type) const;
   Expr *BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump = {}) const;
   VarRef AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items, Arg is_data_dump = {}) const;
   std::string SerializeBytesToOctalString(const std::vector<uint8_t> &buffer) const;
-  Status ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor,
-    const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc) const;
+  Status ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor, const std::string &node_name,
+                       const bool all_shape, const OpDescPtr &op_desc) const;
   Status ParseExtBitmap(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const;
   Status ParseExtInfo(uint8_t *ext_info, const size_t ext_info_len, const OpDescPtr &op_desc,
-    int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
-    const bool all_shape) const;
+                      int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs,
+                      const std::string &node_name, const bool all_shape) const;
   Status AppendDistributionForAicpu(const std::vector<Arg> &args_vars, std::vector<BodyItem> &items) const;
 
   // GetOpDefBuildData 子构建器（表驱动）

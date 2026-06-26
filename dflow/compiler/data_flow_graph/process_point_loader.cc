@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,9 +51,8 @@ constexpr const char *ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE = "_dflow_visibl
 constexpr const char *ATTR_NAME_DATA_FLOW_DATA_FLOW_SCOPE = "_dflow_data_flow_scope";
 constexpr const char_t *ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES = "_dflow_data_flow_invoked_scopes";
 
-
-Status ProcessPointLoader::LoadProcessPoint(const dataflow::ProcessPoint &process_point,
-                                            DataFlowGraph &data_flow_graph, const NodePtr &node) {
+Status ProcessPointLoader::LoadProcessPoint(const dataflow::ProcessPoint &process_point, DataFlowGraph &data_flow_graph,
+                                            const NodePtr &node) {
   GE_CHECK_NOTNULL(data_flow_graph.root_graph_);
   GE_CHECK_NOTNULL(node);
   GELOGI("load process point[%s] on node[%s], type=%d", process_point.name().c_str(), node->GetNamePtr(),
@@ -253,13 +252,11 @@ Status ProcessPointLoader::AddOutputsForFlowFunc(NodePtr &flow_func_node, Comput
 }
 
 Status ProcessPointLoader::LoadInvokedProcessPoint(const dataflow::ProcessPoint &process_point,
-                                                   DataFlowGraph &data_flow_graph,
-                                                   OpDescPtr &flow_func_desc,
-                                                   const NodePtr &node,
-                                                   bool is_built_in_flow_func) {
+                                                   DataFlowGraph &data_flow_graph, OpDescPtr &flow_func_desc,
+                                                   const NodePtr &node, bool is_built_in_flow_func) {
   auto invoke_pps = process_point.invoke_pps();
   const auto graph_name = data_flow_graph.IsRootDataFlow() ? process_point.name()
-                              : data_flow_graph.GetDataFlowScope() + process_point.name();
+                                                           : data_flow_graph.GetDataFlowScope() + process_point.name();
   std::vector<std::string> invoked_scopes;
   for (const auto &it : invoke_pps) {
     const auto &invoke_key = it.first;
@@ -268,16 +265,17 @@ Status ProcessPointLoader::LoadInvokedProcessPoint(const dataflow::ProcessPoint 
         (invoke_process_point.type() == dataflow::ProcessPoint_ProcessPointType_INNER) ||
         (invoke_process_point.type() == dataflow::ProcessPoint_ProcessPointType_FLOW_GRAPH)) {
       GE_CHK_STATUS_RET(LoadProcessPoint(it.second, data_flow_graph, node),
-                        "Failed to load invoked process point[%s] for process point[%s].",
-                        it.second.name().c_str(), process_point.name().c_str());
+                        "Failed to load invoked process point[%s] for process point[%s].", it.second.name().c_str(),
+                        process_point.name().c_str());
     } else {
       GELOGE(FAILED, "process point[%s] type[%d] does not support to be invoked,invoke key=%s.",
              invoke_process_point.name().c_str(), invoke_process_point.type(), invoke_key.c_str());
       return FAILED;
     }
     if (invoke_process_point.type() == dataflow::ProcessPoint_ProcessPointType_FLOW_GRAPH) {
-      const std::string invoked_scope = data_flow_graph.IsRootDataFlow() ? it.second.name() + "/" + it.first
-                                       : data_flow_graph.GetDataFlowScope() + it.second.name() + "/" + it.first;
+      const std::string invoked_scope = data_flow_graph.IsRootDataFlow()
+                                            ? it.second.name() + "/" + it.first
+                                            : data_flow_graph.GetDataFlowScope() + it.second.name() + "/" + it.first;
       invoked_scopes.emplace_back(invoked_scope);
     }
     std::map<std::string, std::string>::const_iterator find_ret = data_flow_graph.invoked_graphs_.find(it.first);
@@ -286,8 +284,8 @@ Status ProcessPointLoader::LoadInvokedProcessPoint(const dataflow::ProcessPoint 
              find_ret->second.c_str(), it.second.name().c_str());
       return FAILED;
     }
-    const auto invoke_name = data_flow_graph.IsRootDataFlow() ? it.first
-                                                              : data_flow_graph.GetDataFlowScope() + it.first;
+    const auto invoke_name =
+        data_flow_graph.IsRootDataFlow() ? it.first : data_flow_graph.GetDataFlowScope() + it.first;
     data_flow_graph.invokes_[graph_name].emplace_back(invoke_name);
     data_flow_graph.invoked_keys_[it.second.name()] = invoke_name;
     data_flow_graph.invoked_graphs_[invoke_name] = it.second.name();
@@ -308,8 +306,7 @@ Status ProcessPointLoader::LoadInvokedProcessPoint(const dataflow::ProcessPoint 
 }
 
 Status ProcessPointLoader::SetCompileResultToNode(const std::string &pp_name,
-                                                  const FunctionCompile::CompileResult &result,
-                                                  const NodePtr &node) {
+                                                  const FunctionCompile::CompileResult &result, const NodePtr &node) {
   const auto &node_name = node->GetName();
   const auto &op_desc = node->GetOpDesc();
   if ((result.running_resources_info.empty()) || (result.compile_bin_info.empty())) {
@@ -323,8 +320,7 @@ Status ProcessPointLoader::SetCompileResultToNode(const std::string &pp_name,
   ge::NamedAttrs current_compile_result;
   ge::NamedAttrs running_res_info;
   for (const auto &resource_info : result.running_resources_info) {
-    running_res_info.SetAttr(resource_info.resource_type,
-                             GeAttrValue::CreateFrom<int64_t>(resource_info.resource_num));
+    running_res_info.SetAttr(resource_info.resource_type, GeAttrValue::CreateFrom<int64_t>(resource_info.resource_num));
   }
   GE_CHK_BOOL_RET_STATUS(
       ge::AttrUtils::SetNamedAttrs(current_compile_result, ATTR_NAME_DATA_FLOW_RUNNING_RESOURCE_INFO, running_res_info),
@@ -343,8 +339,7 @@ Status ProcessPointLoader::SetCompileResultToNode(const std::string &pp_name,
                          ATTR_NAME_DATA_FLOW_RUNNABLE_RESOURCE);
   compile_results.SetAttr(pp_name, GeAttrValue::CreateFrom<ge::NamedAttrs>(current_compile_result));
   GE_CHK_BOOL_RET_STATUS(ge::AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_DATA_FLOW_COMPILER_RESULT, compile_results),
-                         FAILED, "Set pp[%s]'s attr[%s] failed.",
-                         pp_name.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
+                         FAILED, "Set pp[%s]'s attr[%s] failed.", pp_name.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
   GELOGI("Set pp[%s]'s attr[%s] success.", pp_name.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
   return SUCCESS;
 }
@@ -372,8 +367,7 @@ Status ProcessPointLoader::CompileFunctionProcessPoint(const std::string &pp_nam
                     pp_name.c_str());
   const auto &compile_result = compile.GetCompileResult();
   GE_CHK_STATUS_RET(SetCompileResultToNode(pp_name, compile_result, node),
-                    "Failed to set pp[%s]'s compile result to node[%s]",
-                    pp_name.c_str(), node->GetName().c_str());
+                    "Failed to set pp[%s]'s compile result to node[%s]", pp_name.c_str(), node->GetName().c_str());
   const std::string trace_log = "loading func point [" + pp_name + "] in compiling stage";
   GE_COMPILE_TRACE_TIMESTAMP_END(CompileFunctionProcessPoint, trace_log.c_str());
   return SUCCESS;
@@ -384,12 +378,15 @@ Status ProcessPointLoader::CheckBufConfigIsValid(const std::vector<CompileConfig
     GELOGD("User buf config is not set.");
     return SUCCESS;
   }
-  GE_ASSERT_TRUE(user_buf_cfg.size() <= kMaxBufCfgNum, "The user buf config num[%zu] is out of range. "
-                 "Valid range is (0, %u]", user_buf_cfg.size(), kMaxBufCfgNum);
+  GE_ASSERT_TRUE(user_buf_cfg.size() <= kMaxBufCfgNum,
+                 "The user buf config num[%zu] is out of range. "
+                 "Valid range is (0, %u]",
+                 user_buf_cfg.size(), kMaxBufCfgNum);
   uint32_t last_normal_max_buf_size = 0U;
   uint32_t last_huge_max_buf_size = 0U;
   for (const auto &item : user_buf_cfg) {
-    GE_ASSERT_TRUE((item.total_size > item.max_buf_size) && (item.max_buf_size >= item.blk_size),
+    GE_ASSERT_TRUE(
+        (item.total_size > item.max_buf_size) && (item.max_buf_size >= item.blk_size),
         "The following three params not meet the requirement: total_size[%u] > max_buf_size[%u] >= blk_size[%u]",
         item.total_size, item.max_buf_size, item.blk_size);
     GE_ASSERT_TRUE(item.blk_size != 0, "The blk_size[%u] should not be 0.", item.blk_size);
@@ -404,8 +401,8 @@ Status ProcessPointLoader::CheckBufConfigIsValid(const std::vector<CompileConfig
         return FAILED;
       }
       last_normal_max_buf_size = item.max_buf_size;
-      GE_ASSERT_TRUE(item.total_size % kNormalPageAtomicValue == 0UL, "The normal page size[%u] should be multiple of %u",
-                     item.total_size, kNormalPageAtomicValue);
+      GE_ASSERT_TRUE(item.total_size % kNormalPageAtomicValue == 0UL,
+                     "The normal page size[%u] should be multiple of %u", item.total_size, kNormalPageAtomicValue);
     } else if (item.page_type == kPageTypeHuge) {
       if (item.max_buf_size <= last_huge_max_buf_size) {
         GELOGE(FAILED, "Huge page type should be sorted. But current size[%zu] is less or equal to last gear[%zu].",
@@ -443,8 +440,8 @@ Status ProcessPointLoader::CheckFunctionPpConfigIsValid(const CompileConfigJson:
         return FAILED;
       }
       if (inputs_set.count(input_index) > 0) {
-        GELOGE(FAILED, "The input index[%u] of pp name[%s]'s func name[%s] is used by multi funcs",
-               input_index, pp_name.c_str(), function_desc.func_name.c_str());
+        GELOGE(FAILED, "The input index[%u] of pp name[%s]'s func name[%s] is used by multi funcs", input_index,
+               pp_name.c_str(), function_desc.func_name.c_str());
         return FAILED;
       }
       inputs_set.insert(input_index);
@@ -501,8 +498,10 @@ Status ProcessPointLoader::AddFlowFuncToComputeGraph(const OpDescPtr &flow_func_
 }
 
 Status ProcessPointLoader::CompileUserFunctionProcessPoint(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
-    const std::string &pp_name, const ComputeGraphPtr &compute_graph, const NodePtr &node, DataFlowGraph &data_flow_graph) {
-    GE_CHECK_NOTNULL(node);
+                                                           const std::string &pp_name,
+                                                           const ComputeGraphPtr &compute_graph, const NodePtr &node,
+                                                           DataFlowGraph &data_flow_graph) {
+  GE_CHECK_NOTNULL(node);
 
   if (func_pp_cfg.built_in_flow_func) {
     FunctionCompile::CompileResult result;
@@ -521,8 +520,8 @@ Status ProcessPointLoader::CompileUserFunctionProcessPoint(const CompileConfigJs
     bool match_cache = false;
     CacheCompileResult cache_compile_result = {};
     GELOGI("Set compile result to node, cache enable = %d, cache manual check = %d",
-          static_cast<int32_t>(sub_flow_model_cache.EnableCache()),
-          static_cast<int32_t>(sub_flow_model_cache.ManualCheck()));
+           static_cast<int32_t>(sub_flow_model_cache.EnableCache()),
+           static_cast<int32_t>(sub_flow_model_cache.ManualCheck()));
     if (sub_flow_model_cache.EnableCache() && sub_flow_model_cache.ManualCheck()) {
       match_cache = sub_flow_model_cache.TryLoadCompileResultFromCache(cache_compile_result);
     }
@@ -531,14 +530,12 @@ Status ProcessPointLoader::CompileUserFunctionProcessPoint(const CompileConfigJs
       FunctionCompile::CompileResult compile_result = {};
       LoadCompileResultFromCache(cache_compile_result, compile_result);
       GE_CHK_STATUS_RET(SetCompileResultToNode(pp_name, compile_result, node),
-                        "Failed to set pp[%s]'s compile result to node[%s]",
-                        pp_name.c_str(), node->GetName().c_str());
+                        "Failed to set pp[%s]'s compile result to node[%s]", pp_name.c_str(), node->GetName().c_str());
       GELOGI("Set compile result to node from cache success");
     } else {
       std::function<Status()> compile_task = [pp_name, func_pp_cfg, node, &sub_flow_model_cache]() {
-      GE_CHK_STATUS_RET(CompileFunctionProcessPoint(pp_name, func_pp_cfg, node),
-                        "Failed to compile function pp[%s].",
-                        pp_name.c_str());
+        GE_CHK_STATUS_RET(CompileFunctionProcessPoint(pp_name, func_pp_cfg, node), "Failed to compile function pp[%s].",
+                          pp_name.c_str());
         return SUCCESS;
       };
       GE_CHK_STATUS_RET(data_flow_graph.CommitPreprocessTask(pp_name, compile_task),
@@ -549,17 +546,18 @@ Status ProcessPointLoader::CompileUserFunctionProcessPoint(const CompileConfigJs
 }
 
 Status ProcessPointLoader::SetUserFunctionProcessPointAttrs(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
-    const ComputeGraphPtr &compute_graph, const NodePtr &node, const OpDescPtr &flow_func_desc) {
-    GE_CHECK_NOTNULL(compute_graph);
-    GE_CHECK_NOTNULL(node);
+                                                            const ComputeGraphPtr &compute_graph, const NodePtr &node,
+                                                            const OpDescPtr &flow_func_desc) {
+  GE_CHECK_NOTNULL(compute_graph);
+  GE_CHECK_NOTNULL(node);
 
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_HEAVY_LOAD, func_pp_cfg.heavy_load), FAILED,
-                         "Failed to set attr[%s] for graph[%s], value=%d.", ATTR_NAME_DATA_FLOW_HEAVY_LOAD,
+  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_HEAVY_LOAD, func_pp_cfg.heavy_load),
+                         FAILED, "Failed to set attr[%s] for graph[%s], value=%d.", ATTR_NAME_DATA_FLOW_HEAVY_LOAD,
                          compute_graph->GetName().c_str(), static_cast<int32_t>(func_pp_cfg.heavy_load));
   const auto &op_desc = node->GetOpDesc();
   GE_CHECK_NOTNULL(op_desc);
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetBool(op_desc, ATTR_NAME_DATA_FLOW_HEAVY_LOAD, func_pp_cfg.heavy_load),
-                         FAILED, "Failed to set attr[%s] for node[%s].", ATTR_NAME_DATA_FLOW_HEAVY_LOAD,
+  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetBool(op_desc, ATTR_NAME_DATA_FLOW_HEAVY_LOAD, func_pp_cfg.heavy_load), FAILED,
+                         "Failed to set attr[%s] for node[%s].", ATTR_NAME_DATA_FLOW_HEAVY_LOAD,
                          node->GetName().c_str());
   GELOGD("node[%s] attr[%s] is set to %d", node->GetName().c_str(), ATTR_NAME_DATA_FLOW_HEAVY_LOAD,
          static_cast<int32_t>(func_pp_cfg.heavy_load));
@@ -577,10 +575,10 @@ Status ProcessPointLoader::SetUserFunctionProcessPointAttrs(const CompileConfigJ
                          "The attr[%s] and attr[%s] cannot be set on the same node[%s]",
                          dflow::ATTR_NAME_BALANCE_SCATTER, dflow::ATTR_NAME_BALANCE_GATHER, node->GetName().c_str());
   GE_CHECK_NOTNULL(flow_func_desc);
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetBool(flow_func_desc, ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE,
-                         func_pp_cfg.visible_device_enable),
-                         FAILED, "Failed to set attr[%s] for func[%s].", ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE,
-                         flow_func_desc->GetNamePtr());
+  GE_CHK_BOOL_RET_STATUS(
+      AttrUtils::SetBool(flow_func_desc, ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE, func_pp_cfg.visible_device_enable),
+      FAILED, "Failed to set attr[%s] for func[%s].", ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE,
+      flow_func_desc->GetNamePtr());
   GELOGD("func[%s] attr[%s] is set to %d", flow_func_desc->GetNamePtr(), ATTR_NAME_DATA_FLOW_VISIBLE_DEVICE_ENABLE,
          static_cast<int32_t>(func_pp_cfg.visible_device_enable));
   if (is_balance_scatter) {
@@ -646,8 +644,9 @@ Status ProcessPointLoader::LoadUserFunctionProcessPoint(const dataflow::ProcessP
                     "Failed to set user function process point attrs.");
   GE_CHK_STATUS_RET(SetDataFlowScope(flow_func_desc, data_flow_graph.GetDataFlowScope()),
                     "Failed to set data flow scope attr.");
-  GE_CHK_STATUS_RET(LoadInvokedProcessPoint(process_point, data_flow_graph, flow_func_desc, node, func_pp_cfg.built_in_flow_func),
-                    "Failed to load invoked graph process point for process point[%s].", process_point.name().c_str());
+  GE_CHK_STATUS_RET(
+      LoadInvokedProcessPoint(process_point, data_flow_graph, flow_func_desc, node, func_pp_cfg.built_in_flow_func),
+      "Failed to load invoked graph process point for process point[%s].", process_point.name().c_str());
   data_flow_graph.subgraphs_[process_point.name()] = temp_graph;
   data_flow_graph.node_subgraphs_[node->GetName()].emplace_back(temp_graph);
   GE_DUMP(temp_graph, "LoadFunctionProcessPoint");
@@ -657,8 +656,7 @@ Status ProcessPointLoader::LoadUserFunctionProcessPoint(const dataflow::ProcessP
 Status ProcessPointLoader::CreateFunctionProcessPointComputeGraph(const DataFlowGraph &data_flow_graph,
                                                                   const std::string &graph_name, uint32_t input_num,
                                                                   uint32_t output_num, ComputeGraphPtr &compute_graph) {
-  const auto name = data_flow_graph.IsRootDataFlow() ? graph_name
-                                                     : data_flow_graph.GetDataFlowScope() + graph_name;
+  const auto name = data_flow_graph.IsRootDataFlow() ? graph_name : data_flow_graph.GetDataFlowScope() + graph_name;
   compute_graph = MakeShared<ComputeGraph>(name);
   GE_CHECK_NOTNULL(compute_graph);
   compute_graph->SetInputSize(input_num);
@@ -807,8 +805,8 @@ Status ProcessPointLoader::SetFlowAttrToGraph(const NodePtr &node, const Compute
     int64_t depth = 0L;
     GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(op_desc, ATTR_NAME_FLOW_ATTR_DEPTH, depth), FAILED,
                            "Failed to get attr[%s]", ATTR_NAME_FLOW_ATTR_DEPTH.c_str());
-    GE_CHK_BOOL_RET_STATUS(AttrUtils::SetInt(graph, ATTR_NAME_FLOW_ATTR_DEPTH, depth), FAILED,
-                           "Failed to set attr[%s]", ATTR_NAME_FLOW_ATTR_DEPTH.c_str());
+    GE_CHK_BOOL_RET_STATUS(AttrUtils::SetInt(graph, ATTR_NAME_FLOW_ATTR_DEPTH, depth), FAILED, "Failed to set attr[%s]",
+                           ATTR_NAME_FLOW_ATTR_DEPTH.c_str());
     GELOGD("Set attr[%s]=%d to graph[%s] success", ATTR_NAME_FLOW_ATTR_DEPTH.c_str(), depth, graph->GetName().c_str());
   }
   if (op_desc->HasAttr(ATTR_NAME_FLOW_ATTR_ENQUEUE_POLICY)) {
@@ -828,8 +826,8 @@ Status ProcessPointLoader::PreProcessSubgraphAttrs(const ComputeGraphPtr &subgra
     if (node->GetType() == DATA) {
       int64_t parent_node_index = 0;
       if (AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_node_index)) {
-        (void) node->GetOpDesc()->DelAttr(ATTR_NAME_PARENT_NODE_INDEX);
-        (void) AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_INDEX, parent_node_index);
+        (void)node->GetOpDesc()->DelAttr(ATTR_NAME_PARENT_NODE_INDEX);
+        (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_INDEX, parent_node_index);
       }
       continue;
     }
@@ -839,7 +837,7 @@ Status ProcessPointLoader::PreProcessSubgraphAttrs(const ComputeGraphPtr &subgra
         GE_CHECK_NOTNULL(in_tensor);
         size_t parent_node_index = 0;
         if (AttrUtils::GetInt(in_tensor, ATTR_NAME_PARENT_NODE_INDEX, parent_node_index)) {
-          (void) in_tensor->DelAttr(ATTR_NAME_PARENT_NODE_INDEX);
+          (void)in_tensor->DelAttr(ATTR_NAME_PARENT_NODE_INDEX);
         }
       }
       continue;
@@ -861,8 +859,8 @@ Status ProcessPointLoader::RemoveGraphFromParent(const ComputeGraphPtr &root_gra
     GELOGI("Remove subgraph[%s] from node[%s] success.", sub_graph->GetName().c_str(), parent_node->GetNamePtr());
   }
   root_graph->RemoveSubgraph(sub_graph->GetName());
-  GE_CHK_STATUS_RET(PreProcessSubgraphAttrs(sub_graph),
-                    "Failed to PreProcessSubGraphAttrs failed, graph[%s].", sub_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(PreProcessSubgraphAttrs(sub_graph), "Failed to PreProcessSubGraphAttrs failed, graph[%s].",
+                    sub_graph->GetName().c_str());
   return SUCCESS;
 }
 
@@ -940,7 +938,7 @@ Status ProcessPointLoader::LoadGraphProcessPoint(const dataflow::ProcessPoint &p
 }
 
 Status ProcessPointLoader::TransferInputShapeToRange(const ComputeGraphPtr &graph,
-    std::map<std::string, std::string> &build_options) {
+                                                     std::map<std::string, std::string> &build_options) {
   const auto option_iter = build_options.find(INPUT_SHAPE);
   if ((option_iter == build_options.cend()) || (option_iter->second.empty())) {
     return SUCCESS;
@@ -948,8 +946,9 @@ Status ProcessPointLoader::TransferInputShapeToRange(const ComputeGraphPtr &grap
   std::string empty_string;
   std::string input_shape = option_iter->second;
   std::string input_shape_range;
-  GE_CHK_STATUS_RET(CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-    empty_string, empty_string, empty_string), "Check and transfer input shape to range failed.");
+  GE_CHK_STATUS_RET(
+      CheckAndTransferInputShapeToRange(input_shape, input_shape_range, empty_string, empty_string, empty_string),
+      "Check and transfer input shape to range failed.");
   GELOGI("Transfer to input shape to range string success. ShapeRange=%s", input_shape_range.c_str());
 
   build_options[OPTION_EXEC_DYNAMIC_EXECUTE_MODE] = "dynamic_execute";
@@ -975,8 +974,8 @@ Status ProcessPointLoader::TransferInputShapeToRange(const ComputeGraphPtr &grap
       if (OpTypeUtils::IsDataNode(node->GetType())) {
         const auto iter = name_to_range.find(node->GetName());
         if (iter == name_to_range.cend()) {
-          GELOGE(FAILED, "Cannot find node %s in input range config %s",
-                 node->GetName().c_str(), input_shape_range.c_str());
+          GELOGE(FAILED, "Cannot find node %s in input range config %s", node->GetName().c_str(),
+                 input_shape_range.c_str());
           return FAILED;
         }
         temp_shape_range += iter->second + ",";
@@ -1077,10 +1076,10 @@ Status ProcessPointLoader::SetDataFlowScope(const OpDescPtr &flow_func_desc, con
 Status ProcessPointLoader::SetDataFlowInvokedScopes(const OpDescPtr &flow_func_desc,
                                                     const std::vector<std::string> &invoked_scopes) {
   GE_CHECK_NOTNULL(flow_func_desc);
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetListStr(flow_func_desc,
-                         ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES, invoked_scopes),
-                         FAILED, "Failed to set attr[%s] for func[%s].", ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES,
-                         flow_func_desc->GetNamePtr());
+  GE_CHK_BOOL_RET_STATUS(
+      AttrUtils::SetListStr(flow_func_desc, ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES, invoked_scopes), FAILED,
+      "Failed to set attr[%s] for func[%s].", ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES,
+      flow_func_desc->GetNamePtr());
   GELOGD("func[%s] attr[%s] is set, size %zu", flow_func_desc->GetNamePtr(),
          ATTR_NAME_DATA_FLOW_DATA_FLOW_INVOKED_SCOPES, invoked_scopes.size());
   return SUCCESS;

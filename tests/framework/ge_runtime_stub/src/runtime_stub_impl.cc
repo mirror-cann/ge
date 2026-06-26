@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ uint64_t last_stream_{0UL};
 std::list<ge::GeFakeLaunchArgs> all_launch_args_;
 std::map<const void *, HandleArgsPtrList> launch_with_handle_args_;
 std::map<uint64_t, uint32_t> stream_to_task_id_;
-}
+}  // namespace
 void RuntimeStubImpl::Clear() {
   all_switch_args_.clear();
   cpu_launch_args_.clear();
@@ -256,9 +256,9 @@ rtError_t RuntimeStubImpl::rtMemcpyAsyncPtr(void *memcpy_addr_info, uint64_t dst
   }
 
   // Simulate what RTS does.
-  constexpr uint64_t magic = 0xdeadbeef'deadbeef; // See MemcpyAddrAsyncArgsParser.
-  const auto u64 = strcmp(soc_version, "Ascend910D") == 0 ? std::vector<uint64_t>(8, magic)
-                                                          : std::vector<uint64_t>(4, magic);
+  constexpr uint64_t magic = 0xdeadbeef'deadbeef;  // See MemcpyAddrAsyncArgsParser.
+  const auto u64 =
+      strcmp(soc_version, "Ascend910D") == 0 ? std::vector<uint64_t>(8, magic) : std::vector<uint64_t>(4, magic);
   memcpy(memcpy_addr_info, u64.data(), u64.size() * sizeof(uint64_t));
 
   all_launch_args_.emplace_back(memcpy_addr_info, std::move(last_tag_));
@@ -323,7 +323,7 @@ const std::list<ge::GeFakeLaunchArgs> &RuntimeStubImpl::GetAllLaunchArgs() const
   return all_launch_args_;
 }
 
-rtError_t RuntimeStubImpl::rtSetExceptionExtInfo(const rtArgsSizeInfo_t * const sizeInfo) {
+rtError_t RuntimeStubImpl::rtSetExceptionExtInfo(const rtArgsSizeInfo_t *const sizeInfo) {
   lite_exception_args_.emplace_back(reinterpret_cast<uintptr_t>(sizeInfo->infoAddr));
   return RT_ERROR_NONE;
 }
@@ -335,8 +335,8 @@ rtError_t RuntimeStubImpl::rtEventRecord(rtEvent_t event, rtStream_t stream) {
 }
 rtError_t RuntimeStubImpl::rtStreamWaitEvent(rtStream_t stream, rtEvent_t event) {
   stream_stub_.LaunchTaskToStream(TaskTypeOnStream::rtStreamWaitEvent, stream);
-   event_stub_.LaunchEventWaitToStream(event, stream);
-   return RT_ERROR_NONE;
+  event_stub_.LaunchEventWaitToStream(event, stream);
+  return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags) {
   stream_stub_.CreateStream(stream);
@@ -359,8 +359,8 @@ rtError_t RuntimeStubImpl::rtGetAvailStreamNum(uint32_t streamType, uint32_t *co
   return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtStreamDestroyForce(rtStream_t stream) {
-   stream_stub_.DestoryStream(stream);
-   return RT_ERROR_NONE;
+  stream_stub_.DestoryStream(stream);
+  return RT_ERROR_NONE;
 }
 rtError_t RuntimeStubImpl::rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) {
   return RuntimeStub::rtEventCreateWithFlag(event, flag);
@@ -485,7 +485,7 @@ const std::list<ge::GetAllSwitchArgs> &AclRuntimeStubImpl::GetAllSwitchArgs() co
 
 aclError AclRuntimeStubImpl::aclrtStreamGetId(aclrtStream stream, int32_t *streamId) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
-  (void) stream;
+  (void)stream;
 
   *streamId = static_cast<uint32_t>(last_stream_);
 
@@ -528,8 +528,8 @@ aclError AclRuntimeStubImpl::aclrtCreateStreamWithConfig(aclrtStream *stream, ui
 }
 
 aclError AclRuntimeStubImpl::aclrtSwitchStream(void *leftValue, aclrtCondition cond, void *rightValue,
-  aclrtCompareDataType dataType, aclrtStream trueStream, aclrtStream falseStream,
-  aclrtStream stream) {
+                                               aclrtCompareDataType dataType, aclrtStream trueStream,
+                                               aclrtStream falseStream, aclrtStream stream) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
   all_switch_args_.emplace_back(leftValue, rightValue, std::move(last_tag_));
   return AclRuntimeStub::aclrtSwitchStream(leftValue, cond, rightValue, dataType, trueStream, falseStream, stream);
@@ -601,22 +601,22 @@ aclError AclRuntimeStubImpl::aclrtBinaryUnLoad(aclrtBinHandle binHandle) {
   return ACL_SUCCESS;
 }
 
-aclError AclRuntimeStubImpl::aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options,
-    aclrtBinHandle *binHandle) {
+aclError AclRuntimeStubImpl::aclrtBinaryLoadFromFile(const char *binPath, aclrtBinaryLoadOptions *options,
+                                                     aclrtBinHandle *binHandle) {
   uint64_t stub_bin_addr = 0x1200;
   *binHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
   return ACL_SUCCESS;
 }
 
 aclError AclRuntimeStubImpl::aclrtBinaryLoadFromData(const void *data, size_t length,
-    const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle) {
+                                                     const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle) {
   uint64_t stub_bin_addr = 0x1200;
   *binHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_bin_addr));
   return ACL_SUCCESS;
 }
 
-aclError AclRuntimeStubImpl::aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-    const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream) {
+aclError AclRuntimeStubImpl::aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData,
+                                                 size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
   all_launch_args_.emplace_back(funcHandle, numBlocks, argsData, argsSize, cfg, stream, std::move(last_tag_));
   cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
@@ -630,25 +630,27 @@ aclError AclRuntimeStubImpl::aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uin
 }
 
 aclError AclRuntimeStubImpl::aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName,
-    const char *kernelName, aclrtFuncHandle *funcHandle) {
+                                                  const char *kernelName, aclrtFuncHandle *funcHandle) {
   uint64_t stub_func_addr = 0x1600;
   *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
   return ACL_SUCCESS;
 }
 
 aclError AclRuntimeStubImpl::aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
-    aclrtFuncHandle *funcHandle) {
+                                                    aclrtFuncHandle *funcHandle) {
   uint64_t stub_func_addr = 0x1600;
   *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
   return ACL_SUCCESS;
 }
 
 aclError AclRuntimeStubImpl::aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-    aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-    aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
+                                                           aclrtStream stream, aclrtLaunchKernelCfg *cfg,
+                                                           void *hostArgs, size_t argsSize,
+                                                           aclrtPlaceHolderInfo *placeHolderArray,
+                                                           size_t placeHolderNum) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
-  all_launch_args_.emplace_back(funcHandle, numBlocks, stream, cfg, hostArgs, argsSize,
-                                placeHolderArray, placeHolderNum, std::move(last_tag_));
+  all_launch_args_.emplace_back(funcHandle, numBlocks, stream, cfg, hostArgs, argsSize, placeHolderArray,
+                                placeHolderNum, std::move(last_tag_));
   cpu_launch_args_["cpu_new_args_launch_with_place_holder"].emplace_back(&all_launch_args_.back());
   last_stream_ = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(stream));
   if (stream_to_task_id_.find(last_stream_) != stream_to_task_id_.end()) {
@@ -659,7 +661,8 @@ aclError AclRuntimeStubImpl::aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcH
   return ACL_SUCCESS;
 }
 
-aclError AclRuntimeStubImpl::aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) {
+aclError AclRuntimeStubImpl::aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count,
+                                         aclrtMemcpyKind kind) {
   if (dst != nullptr && src != nullptr) {
     memcpy_s(dst, destMax, src, count);
   }
@@ -669,7 +672,8 @@ aclError AclRuntimeStubImpl::aclrtMemcpy(void *dst, size_t destMax, const void *
   return RT_ERROR_NONE;
 }
 
-aclError AclRuntimeStubImpl::aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t src_count, aclrtMemcpyKind kind, aclrtStream stream) {
+aclError AclRuntimeStubImpl::aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t src_count,
+                                              aclrtMemcpyKind kind, aclrtStream stream) {
   const std::lock_guard<std::mutex> lk(global_mtx_);
   rt_memcpy_args_.emplace_back(ge::GeFakeRtMemcpyArgs::RtMemcpyAsync(dst, dest_max, src, src_count, stream));
   stream_stub_.LaunchTaskToStream(TaskTypeOnStream::rtMemcpyAsync, stream);
@@ -704,4 +708,4 @@ aclError AclRuntimeStubImpl::aclrtTaskUpdateAsync(aclrtStream taskStream, uint32
                                                   aclrtStream execStream) {
   return ACL_SUCCESS;
 }
-}
+}  // namespace gert

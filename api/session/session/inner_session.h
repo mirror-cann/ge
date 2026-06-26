@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,8 +45,7 @@ class InnerSession {
 
   Status AddGraphWithCopy(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
 
-  Status LoadGraph(const uint32_t graph_id,
-                   const std::map<AscendString, AscendString> &options, void *stream);
+  Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream);
 
   Status RunGraph(uint32_t graph_id, const std::vector<Tensor> &inputs, std::vector<Tensor> &outputs);
 
@@ -80,12 +79,12 @@ class InnerSession {
       const std::function<Status(uint32_t, const std::map<std::string, ge::Tensor> &)> &callback);
 
   Status RegisterCallBackFunc(
-    const std::string &key,
-    const std::function<Status(uint32_t, const std::map<AscendString, ge::Tensor> &)> &callback);
+      const std::string &key,
+      const std::function<Status(uint32_t, const std::map<AscendString, ge::Tensor> &)> &callback);
 
   Status RegisterCallBackFunc(
-    const std::string &key,
-    const std::function<Status(uint32_t, const std::map<AscendString, gert::Tensor> &)> &callback);
+      const std::string &key,
+      const std::function<Status(uint32_t, const std::map<AscendString, gert::Tensor> &)> &callback);
 
   const GraphManager &getGraphManagerObj() const;
 
@@ -113,7 +112,7 @@ class InnerSession {
 
   Status RegisterExternalAllocator(const void *const stream, AllocatorPtr allocator) const;
 
-  Status UnregisterExternalAllocator(const void * const stream) const;
+  Status UnregisterExternalAllocator(const void *const stream) const;
 
   Status PaRemapped(const uint64_t va, const uint64_t new_pa, const uint64_t len) const;
 
@@ -157,7 +156,8 @@ class InnerSession {
   static void SetTrainFlagOption();
   static Status InitializeExecutionRuntime(const std::map<std::string, std::string> &options);
 
-  // 仅用于防重复初始化，若初始化失败，inner session对象不应被获取到，其成员方法也不会被调用, 因此初始化成功后成员方法内不必再判断
+  // 仅用于防重复初始化，若初始化失败，inner session对象不应被获取到，其成员方法也不会被调用,
+  // 因此初始化成功后成员方法内不必再判断
   bool is_initialized_{false};
   uint64_t session_id_;
   uint8_t logLevel_ = DLOG_DEBUG;

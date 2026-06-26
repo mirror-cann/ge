@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -181,7 +181,7 @@ void CreateDir(const std::string &path) {
   std::string real_path = RealPath(path);
   if (real_path.empty()) {
     std::string command = "mkdir -p " + path;
-    system((char*) command.c_str());
+    system((char *)command.c_str());
   }
   return;
 }
@@ -189,7 +189,7 @@ void CreateDir(const std::string &path) {
 void CreateFileAndFillContent(const std::string fileName, nlohmann::json json_obj, const bool flag) {
   std::ofstream outfile(fileName, std::ios::out);
   if (!outfile.is_open()) {
-        return;
+    return;
   }
   if (flag && !json_obj.empty()) {
     outfile << json_obj.dump(4);
@@ -202,9 +202,10 @@ void CreateAndCopyJsonFile() {
   std::string ascend_opp_path = getenv("ASCEND_OPP_PATH");
   std::string fusion_config_path = ascend_opp_path + "/lib64/plugin/opskernel/fusion_pass/config/fusion_config.json";
   std::cout << "fusion_config_path is " << fusion_config_path.c_str() << std::endl;
-  std::string graph_rule_path = ascend_opp_path + "/lib64/plugin/opskernel/fusion_rules/ai_core/built_in_graph_rules.json";
+  std::string graph_rule_path =
+      ascend_opp_path + "/lib64/plugin/opskernel/fusion_rules/ai_core/built_in_graph_rules.json";
   std::cout << "graph_rule_path is " << graph_rule_path.c_str() << std::endl;
-  char *current_path = new(std::nothrow) char[1024];
+  char *current_path = new (std::nothrow) char[1024];
   getcwd(current_path, 1024);
   std::string cur_path(current_path);
   std::string cur_air_path = cur_path + "/air";
@@ -219,7 +220,7 @@ void CreateAndCopyJsonFile() {
   system(("mkdir -p " + new_config_path).c_str());
   system(("mkdir -p " + new_rule_path).c_str());
   std::string cmd = "cp -r " + fusion_config_path + " " + new_config_path;
-  std::string cmd1= "cp -r " + graph_rule_path + " " + new_rule_path;
+  std::string cmd1 = "cp -r " + graph_rule_path + " " + new_rule_path;
   system(cmd.c_str());
   system(cmd1.c_str());
   delete[] current_path;
@@ -227,7 +228,7 @@ void CreateAndCopyJsonFile() {
 
 void DelJsonFile() {
   cout << "Begin to rm fusion_pass and fusion_rules directory" << endl;
-  char *current_path = new(std::nothrow) char[1024];
+  char *current_path = new (std::nothrow) char[1024];
   getcwd(current_path, 1024);
   std::string cur_path(current_path);
   std::string cur_air_path = cur_path + "/air";
@@ -241,4 +242,4 @@ void DelJsonFile() {
   system(("rm -rf " + fusion_rules_path).c_str());
   delete[] current_path;
 }
-}
+}  // namespace fe

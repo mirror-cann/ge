@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -136,7 +136,7 @@ using overload_cast_ = pybind11::detail::overload_cast_impl<Args...>;
 class PyFlowMsg : public ge::FlowMsg {
  public:
   ge::MsgType GetMsgType() const override {
-    PYBIND11_OVERRIDE_PURE(ge::MsgType, ge::FlowMsg, GetMsgType,);
+    PYBIND11_OVERRIDE_PURE(ge::MsgType, ge::FlowMsg, GetMsgType, );
   }
 
   void SetMsgType(ge::MsgType msg_type) override {
@@ -144,17 +144,17 @@ class PyFlowMsg : public ge::FlowMsg {
   }
 
   ge::Tensor *GetTensor() const override {
-    PYBIND11_OVERRIDE_PURE(ge::Tensor *, ge::FlowMsg, GetTensor,);
+    PYBIND11_OVERRIDE_PURE(ge::Tensor *, ge::FlowMsg, GetTensor, );
   }
 
   ge::Status GetRawData(void *&data_ptr, uint64_t &data_size) const override {
     (void)data_ptr;
     (void)data_size;
-    PYBIND11_OVERRIDE_PURE(ge::Status, ge::FlowMsg, GetRawData,);
+    PYBIND11_OVERRIDE_PURE(ge::Status, ge::FlowMsg, GetRawData, );
   }
 
   int32_t GetRetCode() const override {
-    PYBIND11_OVERRIDE_PURE(int32_t, FlowMsg, GetRetCode,);
+    PYBIND11_OVERRIDE_PURE(int32_t, FlowMsg, GetRetCode, );
   }
 
   void SetRetCode(int32_t ret_code) override {
@@ -166,7 +166,7 @@ class PyFlowMsg : public ge::FlowMsg {
   }
 
   uint64_t GetStartTime() const override {
-    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetStartTime,);
+    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetStartTime, );
   }
 
   void SetEndTime(uint64_t end_time) override {
@@ -174,7 +174,7 @@ class PyFlowMsg : public ge::FlowMsg {
   }
 
   uint64_t GetEndTime() const override {
-    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetEndTime,);
+    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetEndTime, );
   }
 
   void SetFlowFlags(uint32_t flags) override {
@@ -182,7 +182,7 @@ class PyFlowMsg : public ge::FlowMsg {
   }
 
   uint32_t GetFlowFlags() const override {
-    PYBIND11_OVERRIDE_PURE(uint32_t, ge::FlowMsg, GetFlowFlags,);
+    PYBIND11_OVERRIDE_PURE(uint32_t, ge::FlowMsg, GetFlowFlags, );
   }
 
   void SetTransactionId(uint64_t transaction_id) override {
@@ -190,14 +190,14 @@ class PyFlowMsg : public ge::FlowMsg {
   }
 
   uint64_t GetTransactionId() const override {
-    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetTransactionId,);
+    PYBIND11_OVERRIDE_PURE(uint64_t, ge::FlowMsg, GetTransactionId, );
   }
 
   ge::Status GetUserData(void *data, size_t size, size_t offset = 0U) const override {
     (void)data;
     (void)size;
     (void)offset;
-    PYBIND11_OVERRIDE_PURE(ge::Status, FlowMsg, GetUserData,);
+    PYBIND11_OVERRIDE_PURE(ge::Status, FlowMsg, GetUserData, );
   }
 
   ge::Status SetUserData(const void *data, size_t size, size_t offset = 0U) override {
@@ -255,36 +255,40 @@ void BindDflowEnum(py::module &m) {
 }
 
 void BindDflowInitAndFinalize(py::module &m) {
-  m.def("ge_initialize", [](const std::map<std::string, std::string> &options) {
-          auto options_ascend_string = ConvertToAscendString(options);
-          auto ret = ge::GEInitializeV2(options_ascend_string);
-          if (ret != ge::SUCCESS) {
-            DFLOW_LOGE("GEInitialize failed, ret=%u.", ret);
-            return ret;
-          }
-          ret = dflow::DFlowInitialize(options_ascend_string);
-          if (ret != ge::SUCCESS) {
-            DFLOW_LOGE("DFlowInitialize failed, ret=%u.", ret);
-            return ret;
-          }
+  m.def(
+      "ge_initialize",
+      [](const std::map<std::string, std::string> &options) {
+        auto options_ascend_string = ConvertToAscendString(options);
+        auto ret = ge::GEInitializeV2(options_ascend_string);
+        if (ret != ge::SUCCESS) {
+          DFLOW_LOGE("GEInitialize failed, ret=%u.", ret);
           return ret;
-        },
-        py::call_guard<py::gil_scoped_release>());
+        }
+        ret = dflow::DFlowInitialize(options_ascend_string);
+        if (ret != ge::SUCCESS) {
+          DFLOW_LOGE("DFlowInitialize failed, ret=%u.", ret);
+          return ret;
+        }
+        return ret;
+      },
+      py::call_guard<py::gil_scoped_release>());
 
-  m.def("ge_finalize", []() {
-          auto ret = dflow::DFlowFinalize();
-          if (ret != ge::SUCCESS) {
-            DFLOW_LOGE("DFlowFinalize failed, ret=%u.", ret);
-            return ret;
-          }
-          ret = ge::GEFinalizeV2();
-          if (ret != ge::SUCCESS) {
-            DFLOW_LOGE("GEFinalize failed, ret=%u.", ret);
-            return ret;
-          }
+  m.def(
+      "ge_finalize",
+      []() {
+        auto ret = dflow::DFlowFinalize();
+        if (ret != ge::SUCCESS) {
+          DFLOW_LOGE("DFlowFinalize failed, ret=%u.", ret);
           return ret;
-        },
-        py::call_guard<py::gil_scoped_release>());
+        }
+        ret = ge::GEFinalizeV2();
+        if (ret != ge::SUCCESS) {
+          DFLOW_LOGE("GEFinalize failed, ret=%u.", ret);
+          return ret;
+        }
+        return ret;
+      },
+      py::call_guard<py::gil_scoped_release>());
 }
 
 void BindReturnMessage(py::module &m) {
@@ -343,9 +347,7 @@ void BindLoadPp(py::module &m) {
                             const std::map<std::string, std::string> &load_params,
                             const std::string &compile_config_path, const std::string &name) {
     std::map<ge::AscendString, ge::AscendString> params = ConvertToAscendString(load_params);
-    dflow::GraphPp err_graph_pp{name.data(), []() {
-      return ge::Graph();
-    }};
+    dflow::GraphPp err_graph_pp{name.data(), []() { return ge::Graph(); }};
 
     static const std::set<std::string> support_frameworks = {"tensorflow", "onnx", "mindspore"};
     if (support_frameworks.find(framework) == support_frameworks.cend()) {
@@ -384,9 +386,7 @@ void BindLoadPp(py::module &m) {
 
   m.def("load_flow_graph_pp",
         [](dflow::FlowGraph &flow_graph, const std::string &compile_config_path, const std::string &name) {
-          dflow::FlowGraphPp flow_graph_pp{name.data(), [flow_graph]() {
-            return flow_graph;
-          }};
+          dflow::FlowGraphPp flow_graph_pp{name.data(), [flow_graph]() { return flow_graph; }};
           (void)flow_graph_pp.SetCompileConfig(compile_config_path.data());
           ReturnMessage return_msg = {.ret_code = ge::SUCCESS, .error_msg = "success"};
           return std::make_tuple(return_msg, flow_graph_pp);
@@ -417,7 +417,7 @@ void BindFlowGraph(py::module &m) {
       .def("set_inputs", &dflow::FlowGraph::SetInputs)
       .def("set_outputs", overload_cast_<const std::vector<dflow::FlowOperator> &>()(&dflow::FlowGraph::SetOutputs))
       .def("set_outputs", overload_cast_<const std::vector<std::pair<dflow::FlowOperator, std::vector<size_t>>> &>()(
-               &dflow::FlowGraph::SetOutputs))
+                              &dflow::FlowGraph::SetOutputs))
       .def("set_contains_n_mapping_node", &dflow::FlowGraph::SetContainsNMappingNode)
       .def("set_inputs_align_attrs", &dflow::FlowGraph::SetInputsAlignAttrs)
       .def("set_exception_catch", &dflow::FlowGraph::SetExceptionCatch)
@@ -480,14 +480,13 @@ std::vector<std::string> DflowGetTensorStringData(const ge::Tensor &tensor) {
   const int64_t shape_size = tensor.GetTensorDesc().GetShape().GetShapeSize();
   const size_t element_number = shape_size <= 0L ? 1UL : static_cast<size_t>(shape_size);
   if (wrapper::CheckInt64MulOverflow(element_number, static_cast<int64_t>(sizeof(DflowStringHead)))) {
-    throw std::runtime_error("element number " + std::to_string(element_number) +
-                             " mul DflowStringHead size " + std::to_string(sizeof(DflowStringHead)) +
-                             " is overflow.");
+    throw std::runtime_error("element number " + std::to_string(element_number) + " mul DflowStringHead size " +
+                             std::to_string(sizeof(DflowStringHead)) + " is overflow.");
   }
   uint64_t total_header_size = element_number * sizeof(DflowStringHead);
   if (total_header_size > tensor.GetSize()) {
-    throw std::runtime_error("Total ptr size " + std::to_string(total_header_size) +
-                             " is greater than data size " + std::to_string(tensor.GetSize()));
+    throw std::runtime_error("Total ptr size " + std::to_string(total_header_size) + " is greater than data size " +
+                             std::to_string(tensor.GetSize()));
   }
   if (tensor.GetData() == nullptr) {
     throw std::runtime_error("Data tensor nullptr is invalid.");
@@ -503,15 +502,9 @@ std::vector<std::string> DflowGetTensorStringData(const ge::Tensor &tensor) {
 void BindGeTensor(py::module &m) {
   py::class_<ge::Tensor>(m, "Tensor", py::buffer_protocol())
       .def(py::init(&CreateTensorFromNumpyArray))
-      .def("get_dtype", [](const ge::Tensor &self) {
-        return self.GetTensorDesc().GetDataType();
-      })
-      .def("get_shape", [](const ge::Tensor &self) {
-        return self.GetTensorDesc().GetShape().GetDims();
-      })
-      .def("clone", [](const ge::Tensor &self) {
-        return self.Clone();
-      })
+      .def("get_dtype", [](const ge::Tensor &self) { return self.GetTensorDesc().GetDataType(); })
+      .def("get_shape", [](const ge::Tensor &self) { return self.GetTensorDesc().GetShape().GetDims(); })
+      .def("clone", [](const ge::Tensor &self) { return self.Clone(); })
       .def("get_string_tensor", &DflowGetTensorStringData)
       .def_buffer([](ge::Tensor &tensor) -> py::buffer_info {
         const auto tensor_desc = tensor.GetTensorDesc();
@@ -538,16 +531,16 @@ void BindFlowMsg(py::module &m) {
   py::class_<ge::FlowMsg, std::shared_ptr<ge::FlowMsg>, PyFlowMsg>(m, "FlowMsg")
       .def(py::init<>())
       .def("get_msg_type", &ge::FlowMsg::GetMsgType)
-      .def("set_msg_type", [](ge::FlowMsg &self, uint16_t msg_type) {
-        return self.SetMsgType(static_cast<ge::MsgType>(msg_type));
-      })
+      .def("set_msg_type",
+           [](ge::FlowMsg &self, uint16_t msg_type) { return self.SetMsgType(static_cast<ge::MsgType>(msg_type)); })
       .def("get_tensor", &ge::FlowMsg::GetTensor, py::return_value_policy::reference)
-      .def("get_raw_data", [](const ge::FlowMsg &self) {
-        void *data = nullptr;
-        uint64_t data_size = 0U;
-        (void)self.GetRawData(data, data_size);
-        return py::memoryview::from_memory(data, static_cast<ssize_t>(data_size), false);
-      })
+      .def("get_raw_data",
+           [](const ge::FlowMsg &self) {
+             void *data = nullptr;
+             uint64_t data_size = 0U;
+             (void)self.GetRawData(data, data_size);
+             return py::memoryview::from_memory(data, static_cast<ssize_t>(data_size), false);
+           })
       .def("get_ret_code", &ge::FlowMsg::GetRetCode)
       .def("set_ret_code", &ge::FlowMsg::SetRetCode)
       .def("get_start_time", &ge::FlowMsg::GetStartTime)
@@ -576,9 +569,8 @@ void BindFlowBufferFactory(py::module &m) {
       .def_static("alloc_tensor_msg", &ge::FlowBufferFactory::AllocTensorMsg)
       .def_static("alloc_raw_data_msg", &ge::FlowBufferFactory::AllocRawDataMsg)
       .def_static("alloc_empty_data_msg", &ge::FlowBufferFactory::AllocEmptyDataMsg)
-      .def_static("to_tensor_flow_msg", [](const ge::Tensor &tensor) {
-        return ge::FlowBufferFactory::ToFlowMsg(tensor);
-      })
+      .def_static("to_tensor_flow_msg",
+                  [](const ge::Tensor &tensor) { return ge::FlowBufferFactory::ToFlowMsg(tensor); })
       .def_static("to_raw_data_flow_msg", [](const py::buffer &buffer) {
         py::buffer_info info = buffer.request();
         ge::RawData raw_data{};
@@ -631,8 +623,7 @@ auto DflowFeedData(dflow::DFlowSession &self, uint32_t graph_id, const std::vect
   return return_msg;
 }
 
-auto DflowAddFlowGraph(dflow::DFlowSession &self, uint32_t graph_id,
-                       const dflow::FlowGraph &flow_graph,
+auto DflowAddFlowGraph(dflow::DFlowSession &self, uint32_t graph_id, const dflow::FlowGraph &flow_graph,
                        const std::map<std::string, std::string> &options) {
   auto options_ascend_string = ConvertToAscendString(options);
   const auto ret = self.AddGraph(graph_id, flow_graph, options_ascend_string);
@@ -690,17 +681,18 @@ auto DflowFetchFlowMsg(dflow::DFlowSession &self, uint32_t graph_id, const std::
 void BindDFlowSession(py::module &m) {
   py::class_<dflow::DFlowSession>(m, "DFlowSession")
       .def(py::init([](const std::map<std::string, std::string> &options) {
-        auto options_ascend_string = ConvertToAscendString(options);
-        // no need add std::nothrow, as it need raise exception to python
-        return new dflow::DFlowSession(options_ascend_string);
-      }), py::return_value_policy::take_ownership)
+             auto options_ascend_string = ConvertToAscendString(options);
+             // no need add std::nothrow, as it need raise exception to python
+             return new dflow::DFlowSession(options_ascend_string);
+           }),
+           py::return_value_policy::take_ownership)
       .def("add_flow_graph", &DflowAddFlowGraph, py::call_guard<py::gil_scoped_release>())
       .def("feed_data", &DflowFeedData, py::call_guard<py::gil_scoped_release>())
       .def("feed_flow_msg", &DflowFeedFlowMsg, py::call_guard<py::gil_scoped_release>())
       .def("fetch_data", &DflowFetchData, py::call_guard<py::gil_scoped_release>())
       .def("fetch_flow_msg", &DflowFetchFlowMsg, py::call_guard<py::gil_scoped_release>());
 }
-} // namespace
+}  // namespace
 
 PYBIND11_MODULE(dflow_wrapper, m) {
   BindDflowAttr(m);
@@ -717,9 +709,7 @@ PYBIND11_MODULE(dflow_wrapper, m) {
   BindDFlowSession(m);
 
   m.def("init_datatype_manager",
-        [](const std::map<ge::DataType, py::array> &type_map) {
-          DFlowDataTypeManager::GetInstance().Init(type_map);
-        });
+        [](const std::map<ge::DataType, py::array> &type_map) { DFlowDataTypeManager::GetInstance().Init(type_map); });
 
   m.def("get_dflow_pybind11_build_abi", []() {
 #ifdef PYBIND11_BUILD_ABI
@@ -729,4 +719,4 @@ PYBIND11_MODULE(dflow_wrapper, m) {
 #endif
   });
 }
-}
+}  // namespace ge

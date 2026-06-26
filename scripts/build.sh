@@ -206,7 +206,7 @@ install_python_stub_file()
     echo "Both files exist."
   fi
 
-  # 2. substitue keywords
+  # 2. substitute keywords
 #  real_parallel_tbe=$TE_PARALLEL_COMPILER
 #  if [ "$real_parallel_tbe" = "-1" ]
 #  then
@@ -234,36 +234,36 @@ restore_python_stub_file()
   done
 }
 
-download_mockcpp() 
+download_mockcpp()
 {
     if [ -d "${MOCKCPP_DIR}/mockcpp" ];then
         rm -rf ${MOCKCPP_DIR}/mockcpp
         echo "Info: delete ${MOCKCPP_DIR}/mockcpp"
     fi
- 
+
     if [ -d "${MOCKCPP_BUILD_DIR}" ]; then
         echo "Info: mockcpp already built, skipping download and compilation."
         return
     fi
- 
+
     # 下载mockcpp
     echo "Info: Downloading mockcpp..."
- 
+
     cd ${MOCKCPP_DIR}
     git clone https://gitcode.com/cann-src-third-party/mockcpp.git || {
         echo "ERROR: Failed to download mockcpp."
         echo "ERROR: Please execute separately [git clone https://gitcode.com/cann-src-third-party/mockcpp.git]"
         exit 1
     }
- 
+
     cd ${MOCKCPP_DIR}/mockcpp
     tar -zxvf mockcpp-2.7.tar.gz
     cd ${MOCKCPP_DIR}/mockcpp/mockcpp-2.7
     patch -p1 < ../mockcpp-2.7.patch
 }
- 
-build_mockcpp() 
-{   
+
+build_mockcpp()
+{
     cd "${MOCKCPP_BUILD_DIR}"
     echo "Info compiler mockcpp"
 
@@ -281,7 +281,7 @@ build_mockcpp()
         echo "ERROR: Build failed"
         exit 1
     }
- 
+
     chmod 775 libmockcpp.a
 }
 
@@ -743,7 +743,7 @@ run_llt_with_cov()
         echo "---------------- Finish the generating coverage of hcce ut ----------------"
       fi
     fi
- 
+
     if [ "X$ENABLE_ST" = "Xon" ]
     then
       echo "---------------- Begin to run hcce st ----------------"
@@ -784,7 +784,7 @@ generate_package()
 
   COMMON_LIB=("libaicore_utils.so" "libopskernel.so" "libaicpu_engine_common.so" "libfusion_pass.so" "libop_compile_adapter.so")
   OPSKERNEL_LIB=("libfe.so" "libffts.so" "libaicpu_ascend_engine.so"
-                 "libaicpu_tf_engine.so" "libdvpp_engine.so" "librts_engine.so" "libhost_cpu_opskernel_builder.so" "libhost_cpu_engine.so" 
+                 "libaicpu_tf_engine.so" "libdvpp_engine.so" "librts_engine.so" "libhost_cpu_opskernel_builder.so" "libhost_cpu_engine.so"
                  "libhcom_graph_adaptor.so" "libhcom_opskernel_builder.so" "libhcom_gradtune_opskernel_builder.so" "libhcom_gradient_split_tune.so" "libhcom_executor.so")
   PLUGIN_OPSKERNEL_FE=("fe.ini")
   PLUGIN_OPSKERNEL_FFTS=("ffts.ini")

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,11 +41,16 @@ class OpDefUT : public testing::Test {
 
 TEST_F(OpDefUT, Construct) {
   OpDef opDef("Test");
-  opDef.Input("x1").DataType({ge::DT_FLOAT16}).InitValue({ScalarType::UINT64, 1u})
-                   .InitValue({{ScalarType::FLOAT16, 1.1}});
+  opDef.Input("x1")
+      .DataType({ge::DT_FLOAT16})
+      .InitValue({ScalarType::UINT64, 1u})
+      .InitValue({{ScalarType::FLOAT16, 1.1}});
   opDef.Input("x2").DataType({ge::DT_FLOAT16}).Scalar().To("x3");
-  opDef.Input("x3").DataType({ge::DT_FLOAT}).Version(1).InitValue({{ScalarType::FLOAT32, 1.1}})
-                   .InitValue({ScalarType::UINT32, 1u});
+  opDef.Input("x3")
+      .DataType({ge::DT_FLOAT})
+      .Version(1)
+      .InitValue({{ScalarType::FLOAT32, 1.1}})
+      .InitValue({ScalarType::UINT32, 1u});
   opDef.Input("x4").DataType({ge::DT_FLOAT}).ScalarList().To(ge::DT_INT32);
   opDef.Output("y").DataType({ge::DT_FLOAT16}).InitValue({ScalarType::INT64, 1});
   opDef.SetInferShape(ge::InferShape4AddAscendC);
@@ -86,9 +91,7 @@ TEST_F(OpDefUT, Construct) {
   EXPECT_EQ(paramOut.GetParamType(), Option::REQUIRED);
   EXPECT_EQ(paramOut.GetDataTypes()[0], ge::DT_FLOAT16);
   EXPECT_EQ(paramOut.GetFormats()[0], ge::FORMAT_ND);
-  aicConfig.Input("x1")
-      .DataType({ge::DT_FLOAT})
-      .Format({ge::FORMAT_NCHW});
+  aicConfig.Input("x1").DataType({ge::DT_FLOAT}).Format({ge::FORMAT_NCHW});
   inputs = opDef.GetMergeInputs(aicConfig);
   EXPECT_EQ(inputs.size(), 4);
   param = inputs[0];
@@ -258,9 +261,8 @@ TEST_F(OpDefUT, ForBinQueryTest) {
       .Format({ge::FORMAT_NC, ge::FORMAT_ND})
       .FormatForBinQuery({ge::FORMAT_ND, ge::FORMAT_ND})
       .Follow("x");
-  opDef.AICore()
-      .AddConfig("ascend910");
-  
+  opDef.AICore().AddConfig("ascend910");
+
   auto aicoreMap = opDef.AICore().GetAICoreConfigs();
   auto aicore = aicoreMap["ascend910"];
   std::vector<OpParamDef> inputs = opDef.GetMergeInputs(aicore);
@@ -271,16 +273,10 @@ TEST_F(OpDefUT, ForBinQueryTest) {
 
 TEST_F(OpDefUT, ParamUnalignTest) {
   OpDef opDef("Test");
-  opDef.Input("x")
-      .ParamType(Option::REQUIRED)
-      .DataType({ge::DT_FLOAT16, ge::DT_FLOAT})
-      .Format({ge::FORMAT_NC});
-  opDef.Output("z")
-      .ParamType(Option::REQUIRED)
-      .Follow("x");
-  opDef.AICore()
-      .AddConfig("ascend910");
-  
+  opDef.Input("x").ParamType(Option::REQUIRED).DataType({ge::DT_FLOAT16, ge::DT_FLOAT}).Format({ge::FORMAT_NC});
+  opDef.Output("z").ParamType(Option::REQUIRED).Follow("x");
+  opDef.AICore().AddConfig("ascend910");
+
   auto aicoreMap = opDef.AICore().GetAICoreConfigs();
   auto aicore = aicoreMap["ascend910"];
   std::vector<OpParamDef> inputs = opDef.GetMergeInputs(aicore);

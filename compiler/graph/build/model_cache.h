@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ struct CacheConfig {
 
 class ModelCache {
  public:
-   ModelCache() = default;
-   ~ModelCache();
+  ModelCache() = default;
+  ~ModelCache();
 
   /**
    * @brief Init root model cache.
@@ -87,9 +87,7 @@ class ModelCache {
   Status RefreshVariableDesc(const ComputeGraphPtr &root_graph, const VarDescCache &update_var_desc);
   static void InitVarDescFromProto(const deployer::VarDescInfo &desc_proto, VarDescCache &var_desc);
   static bool CompareVarDesc(uint64_t session_id, const VarDescCache &var_descs);
-  static Status MatchVariableDesc(uint64_t session_id,
-                                  const std::string &var_desc_file_name,
-                                  bool &matched,
+  static Status MatchVariableDesc(uint64_t session_id, const std::string &var_desc_file_name, bool &matched,
                                   VarDescCache &update_var_desc);
   Status SaveVarDescToFile();
   Status TryMatchVarDescWithCache(bool &is_matched, VarDescCache &update_var_desc);
@@ -98,8 +96,8 @@ class ModelCache {
   static std::string NormalizeDirPath(const std::string &dir_path);
   static Status CreateDir(const std::string &dir_path);
   static Status LoadToGeRootModel(const std::string &model_path, GeRootModelPtr &ge_root_model);
-  static Status AssignConstantVarMem(const GeRootModelPtr &ge_root_model,
-      const std::string &model_path, const uint64_t session_id, const uint32_t graph_id);
+  static Status AssignConstantVarMem(const GeRootModelPtr &ge_root_model, const std::string &model_path,
+                                     const uint64_t session_id, const uint32_t graph_id);
   static Status UpdateGeModelSessionId(const GeRootModelPtr &ge_root_model, const uint64_t session_id);
   static Status UpdateSessionGraphId(const GeRootModelPtr &ge_root_model, const std::string &session_graph_id);
   Status CheckCacheFile(const ComputeGraphPtr &root_graph, bool &need_load);

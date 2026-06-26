@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 #include "graph/manager/mem_manager.h"
 #include "common/math/math_util.h"
 #include "graph_metadef/common/ge_common/util.h"
- #include "acl/acl_rt.h"
+#include "acl/acl_rt.h"
 
 namespace {
 constexpr size_t kAlignedSize = 512U;
@@ -39,7 +39,9 @@ inline bool ShouldSplit(const ge::Block &block, const size_t size) {
   return static_cast<ge::float64_t>(size) <= (static_cast<ge::float64_t>(block.size) * kSplitBlockThreshold);
 }
 
-inline bool CanMergeBlock(const ge::Block &block) { return !block.allocated; }
+inline bool CanMergeBlock(const ge::Block &block) {
+  return !block.allocated;
+}
 
 bool BlockComp(const ge::Block *const left, const ge::Block *const right) {
   if (left->size != right->size) {
@@ -126,17 +128,16 @@ uint8_t *RdmaPoolAllocator::Malloc(const size_t size, const uint32_t device_id) 
     (void)block_bin_.erase(it);
     block->allocated = true;
     if (block->ptr == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Rdmapool memory address is nullptr, device_id:%u, check invalid",
-                         device_id);
+      REPORT_INNER_ERR_MSG("E19999", "Rdmapool memory address is nullptr, device_id:%u, check invalid", device_id);
       GELOGE(INTERNAL_ERROR, "[Check][Param] Rdmapool memory address is nullptr, device_id:%u", device_id);
       return nullptr;
     }
     (void)allocated_blocks_.emplace(block->ptr, block);
 
     if (ShouldSplit(*block, aligned_size)) {
-      GELOGD("Block will be splited block size = %zu, aligned_size:%zu.", block->size, aligned_size);
-      auto *const new_block = new (std::nothrow) Block(device_id, block->size - aligned_size, nullptr,
-                                                       PtrAdd(block->ptr, block->size, aligned_size));
+      GELOGD("Block will be split block size = %zu, aligned_size:%zu.", block->size, aligned_size);
+      auto *const new_block = new (std::nothrow)
+          Block(device_id, block->size - aligned_size, nullptr, PtrAdd(block->ptr, block->size, aligned_size));
       if (new_block == nullptr) {
         GELOGW("Block split failed");
         return block->ptr;
@@ -168,8 +169,10 @@ Status RdmaPoolAllocator::Free(uint8_t *const memory_addr, const uint32_t device
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
   const auto it = allocated_blocks_.find(memory_addr);
   if (it == allocated_blocks_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Param memory_addr is not allocated before, device_id:%u, "
-                       "check invalid", device_id);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param memory_addr is not allocated before, device_id:%u, "
+                         "check invalid",
+                         device_id);
     GELOGE(PARAM_INVALID, "[Check][Param] Invalid memory pointer, device id:%u", device_id);
     return PARAM_INVALID;
   }

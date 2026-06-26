@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -139,7 +139,7 @@ INT32 mmRmdir(const CHAR *lp_path_name) {
   }
 
   const struct dirent *entry = NULL;
-  size_t bufSize = strlen(lp_path_name) + (size_t)(PATH_SIZE + 2); // make sure the length is large enough
+  size_t bufSize = strlen(lp_path_name) + (size_t)(PATH_SIZE + 2);  // make sure the length is large enough
   while ((entry = readdir(dir)) != NULL) {
     if ((strcmp(".", entry->d_name) == MMPA_ZERO) || (strcmp("..", entry->d_name) == MMPA_ZERO)) {
       continue;
@@ -163,8 +163,8 @@ INT32 mmRmdir(const CHAR *lp_path_name) {
 
     childDir = opendir(buf);
     if (childDir != NULL) {
-      (VOID)closedir(childDir);
-      (VOID)mmRmdir(buf);
+      (VOID) closedir(childDir);
+      (VOID) mmRmdir(buf);
       free(buf);
       buf = NULL;
       continue;
@@ -178,7 +178,7 @@ INT32 mmRmdir(const CHAR *lp_path_name) {
     free(buf);
     buf = NULL;
   }
-  (VOID)closedir(dir);
+  (VOID) closedir(dir);
 
   ret = rmdir(lp_path_name);
   if (ret == EN_ERROR) {
@@ -236,8 +236,7 @@ INT32 mmGetFileSize(const CHAR *file_name, ULONGLONG *length) {
   return EN_OK;
 }
 
-INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc,  mmSort sort)
-{
+INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc, mmSort sort) {
   if ((path == NULL) || (entryList == NULL)) {
     return EN_INVALID_PARAM;
   }
@@ -248,8 +247,7 @@ INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc,  m
   return count;
 }
 
-VOID mmScandirFree(mmDirent **entryList, INT32 count)
-{
+VOID mmScandirFree(mmDirent **entryList, INT32 count) {
   if (entryList == NULL) {
     return;
   }
@@ -263,8 +261,7 @@ VOID mmScandirFree(mmDirent **entryList, INT32 count)
   free(entryList);
 }
 
-INT32 mmAccess2(const CHAR *pathName, INT32 mode)
-{
+INT32 mmAccess2(const CHAR *pathName, INT32 mode) {
   return ge::MmpaStub::GetInstance().GetImpl()->mmAccess2(pathName, mode);
 }
 
@@ -272,8 +269,7 @@ INT32 mmGetTimeOfDay(mmTimeval *timeVal, mmTimezone *timeZone) {
   return ge::MmpaStub::GetInstance().GetImpl()->mmGetTimeOfDay(timeVal, timeZone);
 }
 
-INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen)
-{
+INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) {
   if (path == nullptr || realPath == nullptr || realPathLen < MMPA_MAX_PATH) {
     return EN_INVALID_PARAM;
   }
@@ -287,8 +283,7 @@ INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen)
   return ge::MmpaStub::GetInstance().GetImpl()->RealPath(path, realPath, realPathLen);
 }
 
-INT32 mmRWLockInit(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockInit(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -301,8 +296,7 @@ INT32 mmRWLockInit(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockRDLock(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockRDLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -315,8 +309,7 @@ INT32 mmRWLockRDLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockWRLock(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockWRLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -329,8 +322,7 @@ INT32 mmRWLockWRLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRDLockUnLock(mmRWLock_t *rwLock)
-{
+INT32 mmRDLockUnLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -343,8 +335,7 @@ INT32 mmRDLockUnLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmWRLockUnLock(mmRWLock_t *rwLock)
-{
+INT32 mmWRLockUnLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -357,8 +348,7 @@ INT32 mmWRLockUnLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockDestroy(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockDestroy(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -371,27 +361,24 @@ INT32 mmRWLockDestroy(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmGetErrorCode()
-{
+INT32 mmGetErrorCode() {
   return errno;
 }
 
-INT32 mmIsDir(const CHAR *fileName)
-{
+INT32 mmIsDir(const CHAR *fileName) {
   if (fileName == nullptr) {
     return EN_ERR;
   }
 
-  DIR *pDir = opendir (fileName);
+  DIR *pDir = opendir(fileName);
   if (pDir != nullptr) {
-    (void) closedir (pDir);
+    (void)closedir(pDir);
     return EN_OK;
   }
   return EN_ERR;
 }
 
-INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len)
-{
+INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len) {
   const char *env = getenv(name);
   if (env == nullptr) {
     return EN_ERROR;
@@ -407,7 +394,7 @@ CHAR *mmDlerror() {
 
 INT32 mmDladdr(VOID *addr, mmDlInfo *info) {
   int ret = dladdr(addr, (Dl_info *)info);
-  if (ret != -1){
+  if (ret != -1) {
     return 0;
   }
   return -1;
@@ -460,12 +447,12 @@ VOID *mmDlopen(const CHAR *fileName, INT32 mode) {
     return (void *)(libruntime_name.data());
   }
 
- if (so_name.find("libopmaster_success_rt2.0.so") != std::string::npos) {
-   return (void *)(libopmaster_rt2_name.data());
- }
- if (so_name.find("libopmaster_error_rt2.0.so") != std::string::npos) {
-   return (void *)(libopmaster_error_rt2_name.data());
- }
+  if (so_name.find("libopmaster_success_rt2.0.so") != std::string::npos) {
+    return (void *)(libopmaster_rt2_name.data());
+  }
+  if (so_name.find("libopmaster_error_rt2.0.so") != std::string::npos) {
+    return (void *)(libopmaster_error_rt2_name.data());
+  }
 
   return ge::MmpaStub::GetInstance().GetImpl()->DlOpen(fileName, mode);
 }
@@ -486,7 +473,7 @@ INT32 mmDlclose(VOID *handle) {
   if (libruntime_name.data() == handle) {
     return 0;
   }
-  if (handle == nullptr){
+  if (handle == nullptr) {
     return 1;
   }
   if (handle == (void *)0x8888) {
@@ -498,7 +485,7 @@ INT32 mmDlclose(VOID *handle) {
 
 VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
   if (std::string(funcName) == "rtGetSocSpec") {
-    return (void *) &MockRtGetSocSpec;
+    return (void *)&MockRtGetSocSpec;
   }
 
   if ((handle == libcce_name.data()) && (funcName == std::string("ccUpdateKernelArgs"))) {
@@ -521,10 +508,10 @@ VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
     return nullptr;
   }
   if ((handle == libmdat_name.data()) && (funcName == std::string("MdeTopoSort"))) {
-    return (void *) &MockMdeTopoOptimizeGraph;
+    return (void *)&MockMdeTopoOptimizeGraph;
   }
   if ((handle == libmdat_name.data()) && (funcName == std::string("IsEnableMdeTopoSortV2"))) {
-    return (void *) &MockIsEnableMdeTopoSort;
+    return (void *)&MockIsEnableMdeTopoSort;
   }
 
   if (reinterpret_cast<uintptr_t>(handle) < 0x8000 && handle != nullptr) {
@@ -534,23 +521,19 @@ VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
   return ge::MmpaStub::GetInstance().GetImpl()->DlSym(handle, funcName);
 }
 
-INT32 mmGetPid()
-{
+INT32 mmGetPid() {
   return (INT32)getpid();
 }
 
-INT32 mmSetCurrentThreadName(const CHAR *name)
-{
+INT32 mmSetCurrentThreadName(const CHAR *name) {
   return EN_OK;
 }
 
-INT32 mmGetCwd(CHAR *buffer, INT32 maxLen)
-{
+INT32 mmGetCwd(CHAR *buffer, INT32 maxLen) {
   return EN_OK;
 }
 
-CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size)
-{
+CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size) {
   if ((buf == NULL) || (size <= 0)) {
     return NULL;
   }
@@ -633,9 +616,7 @@ INT32 mmSetEnv(const CHAR *name, const CHAR *value, INT32 overwrite) {
   if ((name == nullptr) || (value == nullptr)) {
     return EN_INVALID_PARAM;
   }
-  const std::set<std::string> ignore_env_set = {"ASCEND_LOG_SAVE_MODE",
-                                                "ASCEND_HOSTPID",
-                                                "LD_LIBRARY_PATH"};
+  const std::set<std::string> ignore_env_set = {"ASCEND_LOG_SAVE_MODE", "ASCEND_HOSTPID", "LD_LIBRARY_PATH"};
   if (ignore_env_set.find(name) != ignore_env_set.end()) {
     return EN_OK;
   }
@@ -650,11 +631,11 @@ VOID mmSetOptErr(INT32 mmOptErr) {
   opterr = mmOptErr;
 }
 
-INT32 mmGetOptLong(INT32 argc, CHAR * const * argv, const CHAR *opts, const mmStructOption *longOpts, INT32 *longIndex) {
+INT32 mmGetOptLong(INT32 argc, CHAR *const *argv, const CHAR *opts, const mmStructOption *longOpts, INT32 *longIndex) {
   return getopt_long(argc, argv, opts, longOpts, longIndex);
 }
 
-CHAR* mmGetOptArg(VOID) {
+CHAR *mmGetOptArg(VOID) {
   return optarg;
 }
 
@@ -682,7 +663,7 @@ INT32 mmDup(INT32 fd) {
   return 0;
 }
 
-ge::MmpaStub& ge::MmpaStub::GetInstance() {
+ge::MmpaStub &ge::MmpaStub::GetInstance() {
   static auto *instance = new ge::MmpaStub();
   return *instance;
 }
@@ -691,7 +672,7 @@ void ge::MmpaStub::SetImpl(const std::shared_ptr<ge::MmpaStubApiGe> &impl) {
   impl_ = impl;
 }
 
-ge::MmpaStubApiGe* ge::MmpaStub::GetImpl() {
+ge::MmpaStubApiGe *ge::MmpaStub::GetImpl() {
   return impl_.get();
 }
 

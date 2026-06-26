@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -15,12 +15,18 @@ import socket
 from enum import IntEnum
 from typing import List, Tuple, Union
 
-from .data_type import DataType
-from .utils.utils import (check_isinstance, check_dict, check_uint64, check_int32, 
-                          check_uint32, check_uint16, check_type)
 from .status import raise_if_false
+from .utils.utils import (
+    check_dict,
+    check_int32,
+    check_isinstance,
+    check_type,
+    check_uint16,
+    check_uint32,
+    check_uint64,
+)
 
-_INVALID_ID = 2 ** 64 - 1
+_INVALID_ID = 2**64 - 1
 
 
 class LLMRole(IntEnum):
@@ -34,7 +40,7 @@ def trans_str_ip(ip):
         try:
             ip_bytes = socket.inet_aton(ip)
             return int.from_bytes(ip_bytes, byteorder="little")
-        except:
+        except Exception:
             raise RuntimeError(f"Can not parse ip str:{ip}")
     return ip
 
@@ -193,11 +199,11 @@ class LlmConfig(object):
         if check_type(device_id, list) or check_type(device_id, tuple):
             check_isinstance("device_id", device_id, [list, tuple], int)
             [raise_if_false(dev_id >= 0, "device_id should be greater than or equal to zero.") for dev_id in device_id]
-            [check_int32('device_id', dev_id) for dev_id in device_id]
+            [check_int32("device_id", dev_id) for dev_id in device_id]
         else:
             check_isinstance("device_id", device_id, int)
             raise_if_false(device_id >= 0, "device_id should be greater than or equal to zero.")
-            check_int32('device_id', device_id)
+            check_int32("device_id", device_id)
         self._device_id = device_id
 
     @property
@@ -243,8 +249,10 @@ class LlmConfig(object):
     @mem_utilization.setter
     def mem_utilization(self, mem_utilization):
         check_isinstance("mem_utilization", mem_utilization, float)
-        raise_if_false(((mem_utilization >= 0.0) and (mem_utilization <= 1.0)),
-                       f"mem_utilization must be in range [0,1], current:{mem_utilization}")
+        raise_if_false(
+            ((mem_utilization >= 0.0) and (mem_utilization <= 1.0)),
+            f"mem_utilization must be in range [0,1], current:{mem_utilization}",
+        )
         self._mem_utilization = mem_utilization
 
     @property
@@ -274,7 +282,7 @@ class LlmConfig(object):
         if check_type(sync_kv_timeout, str):
             raise_if_false(sync_kv_timeout.isdigit(), "sync_kv_timeout must be digit.")
         raise_if_false(int(sync_kv_timeout) > 0, "sync_kv_timeout should be greater than zero.")
-        check_int32('sync_kv_timeout', int(sync_kv_timeout))
+        check_int32("sync_kv_timeout", int(sync_kv_timeout))
         self._sync_kv_timeout = sync_kv_timeout
 
     @property
@@ -348,4 +356,3 @@ class LlmConfig(object):
     def local_comm_res(self, local_comm_res):
         check_isinstance("local_comm_res", local_comm_res, str)
         self._local_comm_res = local_comm_res
-

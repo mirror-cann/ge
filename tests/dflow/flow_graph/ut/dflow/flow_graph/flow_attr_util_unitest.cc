@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,7 +91,7 @@ TEST_F(FlowAttrUtilUTest, SetAttrsToTensorDescTest_Failed) {
   FlowAttrUtil flow_attr_util;
   CountBatch invalid_batch_size;
   invalid_batch_size.batch_size = 0;
-  DataFlowInputAttr invalid_batch_size_attr{DataFlowAttrType::COUNT_BATCH, (void *) &invalid_batch_size};
+  DataFlowInputAttr invalid_batch_size_attr{DataFlowAttrType::COUNT_BATCH, (void *)&invalid_batch_size};
   std::vector<DataFlowInputAttr> vec_input_attrs0;
   vec_input_attrs0.emplace_back(invalid_batch_size_attr);
   auto node0 = FlowNode("node0", 3, 2);
@@ -102,16 +102,16 @@ TEST_F(FlowAttrUtilUTest, SetAttrsToTensorDescTest_Failed) {
   CountBatch invalid_slide_stride;
   invalid_slide_stride.batch_size = 10;
   invalid_slide_stride.slide_stride = 20;
-  DataFlowInputAttr invalid_slide_stride_attr{DataFlowAttrType::COUNT_BATCH, (void *) &invalid_slide_stride};
+  DataFlowInputAttr invalid_slide_stride_attr{DataFlowAttrType::COUNT_BATCH, (void *)&invalid_slide_stride};
   std::vector<DataFlowInputAttr> vec_input_attrs1;
   vec_input_attrs1.emplace_back(invalid_slide_stride_attr);
   ASSERT_NE(flow_attr_util.SetAttrsToTensorDesc(vec_input_attrs1, input_tensor_desc0), ge::GRAPH_SUCCESS);
 
   TimeBatch invalid_batch_dim;
   invalid_batch_dim.batch_dim = -2;
-  DataFlowInputAttr invalid_batch_dim_attr{DataFlowAttrType::TIME_BATCH, (void *) &invalid_batch_dim};
+  DataFlowInputAttr invalid_batch_dim_attr{DataFlowAttrType::TIME_BATCH, (void *)&invalid_batch_dim};
   std::vector<DataFlowInputAttr> vec_input_attrs2;
   vec_input_attrs2.emplace_back(invalid_batch_dim_attr);
   ASSERT_NE(flow_attr_util.SetAttrsToTensorDesc(vec_input_attrs2, input_tensor_desc0), ge::GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

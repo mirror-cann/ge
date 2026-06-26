@@ -26,9 +26,9 @@ Status InitDumpThread(void) {
 }
 
 void DeInitDumpThread(void) {
-    return;
+  return;
 }
 
 void StopDumpThread(void) {
-    StopDataDump();
+  StopDataDump();
 }

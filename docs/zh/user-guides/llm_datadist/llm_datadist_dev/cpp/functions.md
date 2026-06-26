@@ -245,7 +245,7 @@ KV Cache管理涉及的主要接口及功能如下：
         printf("[ERROR] DeallocateCache failed, ret = %u\n", ret);
     } else {
         printf("[INFO] DeallocateCache success\n");
-    } 
+    }
     ```
 
 5. 业务退出时，P侧和D侧根据[断链](functions.md#断链)章节的示例进行断链和调用finalize接口释放资源。

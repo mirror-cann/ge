@@ -99,4 +99,3 @@ EsCGraphBuilder *builder = EsCreateGraphBuilder("graph_name");
 EsCTensorHolder *data0 = EsCreateInput(builder, 0); // 添加第 0 个输入节点
 EsCTensorHolder *data1 = EsCreateInput(builder, 1); // 添加第 1 个输入节点
 ```
-

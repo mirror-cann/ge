@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,9 +30,9 @@ namespace {
 class TilingSymbolEvalContext;
 class SymbolTilingParseContext;
 
-using GetTilingCacheKey = ge::graphStatus(*)(TilingSymbolEvalContext *);
-using TilingParse = ge::graphStatus(*)(SymbolTilingParseContext *);
-}
+using GetTilingCacheKey = ge::graphStatus (*)(TilingSymbolEvalContext *);
+using TilingParse = ge::graphStatus (*)(SymbolTilingParseContext *);
+}  // namespace
 
 ge::graphStatus DlcloseSoHandles(KernelContext *context) {
   auto so_handle = context->GetInputValue<void *>(0);
@@ -56,11 +56,9 @@ ge::graphStatus GetAutofuseFuncsKernel(KernelContext *context) {
   GE_ASSERT_NOTNULL(so_path);
   auto so_handle_av = context->GetOutput(static_cast<size_t>(GetAutofuseFuncsOutput::kAutofuseSo));
   GE_ASSERT_NOTNULL(so_handle_av);
-  auto tiling_func_handle =
-      context->GetOutputPointer<void *>(static_cast<size_t>(GetAutofuseFuncsOutput::kTilingFunc));
+  auto tiling_func_handle = context->GetOutputPointer<void *>(static_cast<size_t>(GetAutofuseFuncsOutput::kTilingFunc));
   GE_ASSERT_NOTNULL(tiling_func_handle);
-  auto infer_sahpe_handle =
-      context->GetOutputPointer<void *>(static_cast<size_t>(GetAutofuseFuncsOutput::kInferShape));
+  auto infer_sahpe_handle = context->GetOutputPointer<void *>(static_cast<size_t>(GetAutofuseFuncsOutput::kInferShape));
   GE_ASSERT_NOTNULL(infer_sahpe_handle);
   auto get_tiling_cache_key_handle =
       context->GetOutputPointer<void *>(static_cast<size_t>(GetAutofuseFuncsOutput::kGetTilingCacheKey));
@@ -77,9 +75,7 @@ ge::graphStatus GetAutofuseFuncsKernel(KernelContext *context) {
   KLOGI("Get so path: %s", real_path);
   auto handle = mmDlopen(real_path, static_cast<int32_t>(MMPA_RTLD_NOW));
   GE_ASSERT_NOTNULL(handle);
-  so_handle_av->Set(handle, [](void* h) {
-    (void)mmDlclose(h);
-  });
+  so_handle_av->Set(handle, [](void *h) { (void)mmDlclose(h); });
 
   auto tiling_func = mmDlsym(handle, "TilingFunc");
   GE_ASSERT_NOTNULL(tiling_func);
@@ -116,8 +112,8 @@ ge::graphStatus GetSymbolTilingCacheKeyKernel(KernelContext *context) {
 ge::graphStatus BuildSymbolTilingCacheKeyOutputs(const ge::FastNode *node, KernelContext *context) {
   (void)node;
   auto input_data_num = context->GetInputValue<size_t>(0U);
-  auto all_symbol_num = context->GetInputValue<size_t>(
-      input_data_num + static_cast<size_t>(GetSymbolTilingCacheKeyInput::kAllSymbolNum));
+  auto all_symbol_num =
+      context->GetInputValue<size_t>(input_data_num + static_cast<size_t>(GetSymbolTilingCacheKeyInput::kAllSymbolNum));
   auto used_sym_src_av = context->GetOutput(0U);
   GE_ASSERT_NOTNULL(used_sym_src_av);
   auto used_sym_src_holder = ContinuousVector::Create<int64_t>(all_symbol_num);
@@ -132,5 +128,5 @@ REGISTER_KERNEL(GetAutofuseFuncs).RunFunc(GetAutofuseFuncsKernel);
 REGISTER_KERNEL(GetSymbolTilingCacheKey)
     .RunFunc(GetSymbolTilingCacheKeyKernel)
     .OutputsCreator(BuildSymbolTilingCacheKeyOutputs);
-}
-}
+}  // namespace kernel
+}  // namespace gert

@@ -25,11 +25,11 @@ using namespace ge::es;
 
 namespace {
 // Core graph building function
-std::vector<es::EsTensorHolder> MakePfaHcomGraph(
-    es::EsTensorHolder query, es::EsTensorHolder key, es::EsTensorHolder value,
-    es::EsTensorHolder atten_mask, es::EsTensorHolder quant_scale2, es::EsTensorHolder quant_offset2,
-    es::EsTensorHolder mm_x2, es::EsTensorHolder arn_x1, es::EsTensorHolder arn_gamma,
-    EsGraphBuilder &graph_builder) {
+std::vector<es::EsTensorHolder> MakePfaHcomGraph(es::EsTensorHolder query, es::EsTensorHolder key,
+                                                 es::EsTensorHolder value, es::EsTensorHolder atten_mask,
+                                                 es::EsTensorHolder quant_scale2, es::EsTensorHolder quant_offset2,
+                                                 es::EsTensorHolder mm_x2, es::EsTensorHolder arn_x1,
+                                                 es::EsTensorHolder arn_gamma, EsGraphBuilder &graph_builder) {
   auto query_fp16 = Cast(query, DT_FLOAT16);
   auto key_fp16 = Cast(key, DT_FLOAT16);
   auto value_fp16 = Cast(value, DT_FLOAT16);
@@ -39,13 +39,9 @@ std::vector<es::EsTensorHolder> MakePfaHcomGraph(
   auto mm_x2_fp16 = Cast(mm_x2, DT_FLOAT16);
   auto arn_x1_fp16 = Cast(arn_x1, DT_FLOAT16);
   auto arn_gamma_fp16 = Cast(arn_gamma, DT_FLOAT16);
-  auto pfa_output = PromptFlashAttention(
-    query_fp16, key_fp16, value_fp16,
-    nullptr, atten_mask_fp16, nullptr, nullptr,
-    nullptr, nullptr, nullptr,
-    quant_scale2_fp16, quant_offset2_fp16,
-    8, 1.0f, 214748647, 0, "BSH", 8, 0, 1
-  );
+  auto pfa_output = PromptFlashAttention(query_fp16, key_fp16, value_fp16, nullptr, atten_mask_fp16, nullptr, nullptr,
+                                         nullptr, nullptr, nullptr, quant_scale2_fp16, quant_offset2_fp16, 8, 1.0f,
+                                         214748647, 0, "BSH", 8, 0, 1);
 
   auto reshape_output = Reshape(pfa_output, std::vector<int64_t>{2, 128, 512});
   auto mm_output = BatchMatMul(reshape_output, mm_x2_fp16);
@@ -59,12 +55,11 @@ std::vector<es::EsTensorHolder> MakePfaHcomGraph(
 
   return {mm_output_fp32, hcom_output_fp32, arn_output_fp32};
 }
-}
+}  // namespace
 
 namespace es_showcase {
 
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -115,12 +110,12 @@ std::unique_ptr<ge::Graph> MakePfaHcomGraphByEs() {
   auto arn_gamma = graph_builder->CreateInput(8, "arn_gamma", ge::DT_FLOAT, ge::FORMAT_ND, {512});
 
   // 3. 构建图
-  auto outputs = MakePfaHcomGraph(query, key, value, atten_mask, quant_scale2, quant_offset2,
-                                   mm_x2, arn_x1, arn_gamma, *graph_builder);
+  auto outputs = MakePfaHcomGraph(query, key, value, atten_mask, quant_scale2, quant_offset2, mm_x2, arn_x1, arn_gamma,
+                                  *graph_builder);
 
   // 4. 设置输出
   for (size_t i = 0; i < outputs.size(); ++i) {
-    (void) graph_builder->SetOutput(outputs[i], i);
+    (void)graph_builder->SetOutput(outputs[i], i);
   }
 
   // 5. 构建图

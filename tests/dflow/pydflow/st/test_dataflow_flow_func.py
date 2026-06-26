@@ -2,25 +2,25 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-import unittest
 import os.path
-import shutil
 import queue
-import numpy as np
+import shutil
+import unittest
+
 import dataflow as df
-import dataflow.flow_func as ff
 import dataflow.data_type as dt
+import dataflow.flow_func as ff
 import dataflow.flow_func.flowfunc_wrapper as fw
-import dataflow.utils.log as df_log
 import dataflow.utils.utils as utils
+import numpy as np
 
 
 class AssignFunc:
@@ -61,7 +61,6 @@ class AssignFuncOutputNotContinuous:
 
 
 class TestDataflowFlowFunc(unittest.TestCase):
-
     def test_create_ws(self):
         ws_dir = "./py_assign_ws"
         func_pp = df.FuncProcessPoint(py_func=AssignFunc, workspace_dir=ws_dir)
@@ -141,12 +140,8 @@ class TestFlowFunc(unittest.TestCase):
         self.assertEqual(context.set_output(0, out, cfg), ff.FLOW_FUNC_SUCCESS)
 
         cfg.set_data_pos([(0, 0), (1, 2)])
-        self.assertEqual(
-            context.set_multi_outputs(0, [msg1, out], cfg), ff.FLOW_FUNC_SUCCESS
-        )
-        self.assertRaises(
-            TypeError, context.set_multi_outputs, 0, [msg1, out, cfg], cfg
-        )
+        self.assertEqual(context.set_multi_outputs(0, [msg1, out], cfg), ff.FLOW_FUNC_SUCCESS)
+        self.assertRaises(TypeError, context.set_multi_outputs, 0, [msg1, out, cfg], cfg)
 
     def test_raise_and_get_exception(self):
         wrapper_context = fw.MetaRunContext()

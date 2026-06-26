@@ -1,14 +1,14 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
- 
+
 default_root_dir="/usr/local/Ascend"
 default_normal_dir="${HOME}/Ascend"
 username=$(id -un)
@@ -22,26 +22,26 @@ ge_compiler_func_path="${curpath}/ge-compiler_func.sh"
 pkg_version_path="${curpath}/../version.info"
 install_info_old="/etc/ascend_install.info"
 run_dir="$(echo "$2" | cut -d'-' -f 3-)"
- 
+
 . "${common_func_path}"
 . "${version_compat_func_path}"
 . "${common_func_v2_path}"
 . "${version_cfg_path}"
 . "${ge_compiler_func_path}"
- 
+
 if [ "$(id -u)" != "0" ]; then
     log_dir="${HOME}/var/log/ascend_seclog"
 else
     log_dir="/var/log/ascend_seclog"
 fi
- 
+
 if [ ! -d "$log_dir" ]; then
     mkdir -p "$log_dir"
 fi
- 
+
 operation_logfile="${log_dir}/operation.log"
 logfile="${log_dir}/ascend_install.log"
- 
+
 # 递归授权
 chmod_recur() {
     local file_path="${1}"
@@ -54,7 +54,7 @@ chmod_recur() {
         find "$file_path" -type f -exec chmod "$permission" {} \; 2> /dev/null
     fi
 }
- 
+
 # 单目录授权
 chmod_single_dir() {
     local file_path="${1}"
@@ -67,7 +67,7 @@ chmod_single_dir() {
         chmod "$permission" "$file_path"
     fi
 }
- 
+
 # 设置权限
 set_file_chmod() {
     local permission="${1}"
@@ -79,7 +79,7 @@ set_file_chmod() {
         echo "$permission"
     fi
 }
- 
+
 # 运行前授权
 chmod_start() {
     local tmpdir="$1"
@@ -87,18 +87,18 @@ chmod_start() {
     chmod_recur "$tmpdir" 750 dir 2> /dev/null
     chmod_recur "$tmpdir/python" 750 dir 2> /dev/null
 }
- 
+
 # 运行结束授权
 chmod_end() {
     local current_install_path="$pkg_install_path"
     if [ "$pkg_is_multi_version" = "true" ]; then
         current_install_path="$current_install_path/$pkg_version_dir"
     fi
- 
+
     # data dir/file permission
     chmod_recur "$default_dir/python" 750 dir
     chmod_recur "$current_install_path/python" 750 dir
- 
+
     if [ "$pylocal" = "y" ]; then
         local ge_python_pass_artifacts="$current_install_path/python/site-packages/ge/passes/python_pass_artifacts"
         mkdir -p "$ge_python_pass_artifacts" 2> /dev/null
@@ -120,7 +120,7 @@ chmod_end() {
         chmod_recur "$current_install_path/python/site-packages/ge_py_pass_bridge-0.0.1.dist-info" 550 file
         chmod_recur "$current_install_path/python/site-packages/LICENSE" 440 file
     fi
- 
+
     chmod_single_dir "$default_dir/ascend_install.info" 640 file 2> /dev/null
     chmod_single_dir "$default_dir/version.info" 440 file 2> /dev/null
     chmod_single_dir "$default_dir/scene.info" 640 file 2> /dev/null
@@ -134,7 +134,7 @@ chmod_end() {
         chown -R "root:root" "$default_dir/script" 2> /dev/null
     fi
 }
- 
+
 ver_check() {
     local version_info_file=""
     if [ -f "${install_info_old}" ] && [ $(grep -c -i driver_install_path_param "$install_info_old") -ne 0 ]; then
@@ -174,11 +174,11 @@ ver_check() {
         log "WARNING" "Cannot find the install path of driver."
     fi
 }
- 
+
 param_usage() {
     log "INFO" "Please input this command for help: ./${runfilename} --help"
 }
- 
+
 # 修改日志文件的权限
 change_log_mode() {
     if [ ! -f "$logfile" ]; then
@@ -186,7 +186,7 @@ change_log_mode() {
     fi
     chmod 640 "$logfile"
 }
- 
+
 # 创建日志文件夹
 create_log_folder() {
     if [ ! -d "$log_dir" ]; then
@@ -198,7 +198,7 @@ create_log_folder() {
         chmod 750 "$log_dir"
     fi
 }
- 
+
 # 写日志
 log() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -218,7 +218,7 @@ log() {
         echo "$log_format" >> "$logfile"
     fi
 }
- 
+
 # 静默模式日志打印
 new_echo() {
     local log_type="$1"
@@ -227,7 +227,7 @@ new_echo() {
         echo "${log_type}" "${log_msg}" 1> /dev/null
     fi
 }
- 
+
 # 开始安装前打印开始信息
 start_install_log() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -237,7 +237,7 @@ start_install_log() {
     log "INFO" "InputParams:$all_parma"
     log "INFO" "OperationLogFile:${operation_logfile}"
 }
- 
+
 # 开始卸载前打印开始信息
 start_uninstall_log() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -247,7 +247,7 @@ start_uninstall_log() {
     log "INFO" "InputParams:$all_parma"
     log "INFO" "OperationLogFile:${operation_logfile}"
 }
- 
+
 # 安装结束退出前打印结束信息
 exit_install_log() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -255,7 +255,7 @@ exit_install_log() {
     log "INFO" "End time:${cur_date}"
     exit "$1"
 }
- 
+
 # 安装结束退出前打印结束信息
 exit_uninstall_log() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -263,7 +263,7 @@ exit_uninstall_log() {
     log "INFO" "End time:${cur_date}"
     exit "$1"
 }
- 
+
 # 安全日志
 log_operation() {
     local cur_date="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -277,15 +277,15 @@ log_operation() {
     else
         level="UNKNOWN"
     fi
- 
+
     if [ ! -f "${operation_logfile}" ]; then
         touch "${operation_logfile}"
         chmod 640 "${operation_logfile}"
     fi
- 
+
     echo "$1 $level root $cur_date 127.0.0.1 $runfilename $2 installmode=$installmode; cmdlist=$all_parma" >> "$operation_logfile"
 }
- 
+
 # 相对路径转化绝对路径
 relative_path_to_absolute_path() {
     local relative_path_="${1}"
@@ -300,7 +300,7 @@ relative_path_to_absolute_path() {
     fi
     echo "$relative_path_"
 }
- 
+
 # 获取安装路径
 get_install_path() {
     local ppath=""
@@ -322,12 +322,12 @@ get_install_path() {
         fi
     fi
 }
- 
+
 create_install_dir() {
     local path="$1"
     local user_and_group="$2"
     local permission=""
- 
+
     if [ $(id -u) -eq 0 ]; then
         user_and_group="root:root"
         permission=755
@@ -338,7 +338,7 @@ create_install_dir() {
             permission=750
         fi
     fi
- 
+
     if [ "x${path}" = "x" ]; then
         log "WARNING" "dir path is empty"
         return 1
@@ -359,7 +359,7 @@ create_install_dir() {
         return 1
     fi
 }
- 
+
 create_file() {
     local _file="$1"
     if [ -d "${_file}" ]; then
@@ -373,7 +373,7 @@ create_file() {
     fi
     return 0
 }
- 
+
 # 判断输入的指定路径是否存在
 is_valid_path() {
     if [ "x${pkg_install_path}" != "x" ]; then
@@ -393,7 +393,7 @@ is_valid_path() {
                     exit 1
                 fi
                 if [ "${ret}" -ne 0 ]; then
-                    log "WARNING" "You are going to put run-files on a unsecure install-path, do you want to continue? [y/n]"
+                    log "WARNING" "You are going to put run-files on a insecure install-path, do you want to continue? [y/n]"
                     while true
                     do
                         read yn
@@ -419,7 +419,7 @@ is_valid_path() {
         fi
     fi
 }
- 
+
 # 递归判断安装路的属组和权限
 parent_dirs_permission_check() {
     local current_dir="$1"
@@ -427,11 +427,11 @@ parent_dirs_permission_check() {
     local short_install_dir=""
     local owner=""
     local mod_num=""
- 
+
     parent_dir=$(dirname "${current_dir}")
     short_install_dir=$(basename "${current_dir}")
     log "INFO" "parent_dir value is [${parent_dir}] and children_dir value is [${short_install_dir}]"
- 
+
     if [ "x${current_dir}" = "x/" ]; then
         log "INFO" "parent_dirs_permission_check succeeded"
         return 0
@@ -442,7 +442,7 @@ parent_dirs_permission_check() {
             return 1
         fi
         log "INFO" "[${short_install_dir}] belongs to root."
- 
+
         mod_num=$(stat -c %a "${parent_dir}/${short_install_dir}")
         mod_num=$(check_chmod_length "$mod_num")
         if [ "${mod_num}" -lt 755 ]; then
@@ -457,7 +457,7 @@ parent_dirs_permission_check() {
         parent_dirs_permission_check "${parent_dir}"
     fi
 }
- 
+
 check_chmod_length() {
     local mod_num="$1"
     local new_mod_num=""
@@ -470,7 +470,7 @@ check_chmod_length() {
         echo "$new_mod_num"
     fi
 }
- 
+
 # 校验用户和组的关联关系
 check_group() {
     local group_user_related=""
@@ -486,7 +486,7 @@ check_group() {
         return 1
     fi
 }
- 
+
 # 解锁
 unchattr_files() {
     if [ -f "$install_info" ]; then
@@ -501,7 +501,7 @@ unchattr_files() {
         fi
     fi
 }
- 
+
 # 创建普通用户的默认安装目录
 create_default_install_dir_for_common_user() {
     if [ "$full_install" = "y" ] || [ "$run_install" = "y" ] || [ "$devel_install" = "y" ]; then
@@ -510,7 +510,7 @@ create_default_install_dir_for_common_user() {
         fi
     fi
 }
- 
+
 # 创建子包安装目录
 create_default_dir() {
     if [ ! -d "$default_dir" ]; then
@@ -522,7 +522,7 @@ create_default_dir() {
     [ -d "$default_dir" ] && return 0
     return 1
 }
- 
+
 # 获取安装目录下的完整版本号
 get_version_installed() {
     local installed_version="none"
@@ -531,7 +531,7 @@ get_version_installed() {
     fi
     echo "$installed_version"
 }
- 
+
 # 获取本包中的完整版本号
 get_version_in_runpkg() {
     local version_in_runpkg="none"
@@ -540,7 +540,7 @@ get_version_in_runpkg() {
     fi
     echo "$version_in_runpkg"
 }
- 
+
 # 更新基础版本号
 update_version_info_version() {
     if [ -f "$default_dir/version.info" ]; then
@@ -553,7 +553,7 @@ update_version_info_version() {
     fi
     chmod_single_dir "$default_dir/version.info" 440 file >> /dev/null 2>&1
 }
- 
+
 log_base_version() {
     if [ -f "$install_info" ]; then
         local installed_version="$(get_version_installed)"
@@ -568,14 +568,14 @@ log_base_version() {
         log "WARNING" "base version was destroyed or not exist."
     fi
 }
- 
+
 update_install_path() {
     if [ ! -d "$pkg_install_path" ]; then
         log "ERROR" "ERR_NO:0x0003;ERR_DES:The $pkg_install_path dose not exist, please retry a right path."
         exit_install_log 1
     fi
 }
- 
+
 update_install_param() {
     local _key="$1"
     local _val="$2"
@@ -597,12 +597,12 @@ update_install_param() {
         fi
     done
 }
- 
+
 get_install_param() {
     local _key="$1"
     local _file="$2"
     local _param=""
- 
+
     if [ ! -f "${_file}" ]; then
         exit 1
     fi
@@ -615,7 +615,7 @@ get_install_param() {
     done
     echo "${_param}"
 }
- 
+
 update_install_info() {
     chmod_start
     if [ ! -f "$install_info" ]; then
@@ -626,7 +626,7 @@ update_install_info() {
     update_install_param "GE-COMPILER_UserGroup" "$usergroup" "$install_info"
     update_install_param "GE-COMPILER_Install_Path_Param" "$install_path_param" "$install_info"
 }
- 
+
 prompt_set_env() {
     local install_path="$1"
     if [ -n "$pkg_version_dir" ]; then
@@ -636,7 +636,7 @@ prompt_set_env() {
         - PATH includes ${install_path}/bin
         - LD_LIBRARY_PATH includes ${install_path}/lib64"
 }
- 
+
 check_docker_path() {
     local docker_path="$1"
     if [ $(expr substr "${docker_path}" 1 1) != "/" ]; then
@@ -649,7 +649,7 @@ check_docker_path() {
         exit 1
     fi
 }
- 
+
 concat_docker_install_path() {
     local docker_path="$1"
     local install_path=""
@@ -660,7 +660,7 @@ concat_docker_install_path() {
     install_path="${docker_path}$2"
     echo "${install_path}"
 }
- 
+
 #######################################################
 # 安装调用子脚本
 install_run() {
@@ -697,7 +697,7 @@ install_run() {
     fi
     return $?
 }
- 
+
 # 升级调用子脚本
 upgrade_run() {
     local operation="Upgrade"
@@ -738,7 +738,7 @@ upgrade_run() {
     fi
     return $?
 }
- 
+
 # 卸载调用子脚本
 uninstall_run() {
     local is_recreate_softlink="$2"
@@ -796,7 +796,7 @@ uninstall_run() {
     fi
     return $?
 }
- 
+
 save_user_files_to_log() {
     if [ "$1" = "${default_dir}" ] && [ -s "$1" ]; then
         local filenum=$(ls -lR "$1"|grep "^-"|wc -l)
@@ -827,7 +827,7 @@ save_user_files_to_log() {
         done
     fi
 }
- 
+
 judgmentpath() {
     . "${common_func_path}"
     check_install_path_valid "${1}"
@@ -836,14 +836,14 @@ judgmentpath() {
         exit 1
     fi
 }
- 
+
 unique_mode() {
     if [ ! -z "$g_param_check_flag" ]; then
         log "ERROR" "ERR_NO:0x0004;ERR_DES:only support one type: full/run/docker/devel/upgrade/uninstall, operation failed!"
         exit 1
     fi
 }
- 
+
 check_install_for_all() {
     local mod_num=""
     local other_mod_num=""
@@ -857,7 +857,7 @@ check_install_for_all() {
         fi
     fi
 }
- 
+
 migrate_user_assets_v2() {
     if [ "$pkg_is_multi_version" = "true" ]; then
         get_package_last_installed_version_dir "last_installed_dir" "$pkg_install_path" "ge-compiler"
@@ -873,10 +873,10 @@ migrate_user_assets_v2() {
         fi
     fi
 }
- 
+
 ####################################################################################################
 runfilename=$(expr substr "$1" 5 $(expr ${#1} - 4))
- 
+
 full_install=n
 run_install=n
 docker_install=n
@@ -900,7 +900,7 @@ is_quiet=n
 check=n
 install_path_param=""
 g_param_check_flag=""
- 
+
 if [ $(id -u) -eq 0 ]; then
     input_install_for_all=y
     input_install_path="$default_root_dir"
@@ -910,16 +910,16 @@ else
     input_install_path="$default_normal_dir"
     install_path_param="$default_normal_dir"
 fi
- 
+
 create_log_folder
 change_log_mode
- 
+
 ####################################################################################################
 if [ "$#" = "1" ] || [ "$#" = "2" ]; then
     log "ERROR" "ERR_NO:0x0004;ERR_DES:Unrecognized parameters. Try './xxx.run --help for more information.'"
     exit 1
 fi
- 
+
 i=0
 while true
 do
@@ -934,9 +934,9 @@ do
     fi
     shift 1
 done
- 
+
 all_parma="$*"
- 
+
 #################################################################################
 while true
 do
@@ -1048,7 +1048,7 @@ do
         ;;
     esac
 done
- 
+
 ###################### 检查参数冲突 ###################
 if [ "${is_quiet}" = "y" ]; then
     if [ "${upgrade}" = "y" ] || [ "${full_install}" = "y" ] || [ "${run_install}" = "y" ] || [ "${devel_install}" = "y" ] || [ "${uninstall}" = "y" ]; then
@@ -1060,14 +1060,14 @@ if [ "${is_quiet}" = "y" ]; then
         exit 1
     fi
 fi
- 
+
 if [ "${pylocal}" = "y" ]; then
     if [ "${upgrade}" != "y" ] && [ "${full_install}" != "y" ] && [ "${run_install}" != "y" ] && [ "${devel_install}" != "y" ]; then
         log "ERROR" "'--pylocal' is not supported to used by this way, please use with '--full', '--devel', '--run' or '--upgrade'."
         exit 1
     fi
 fi
- 
+
 # 卸载参数只支持单独使用
 if [ "$uninstall" = "y" ]; then
     if [ "$upgrade" = "y" ] || [ "$full_install" = "y" ] || [ "$run_install" = "y" ] || [ "$devel_install" = "y" ] || [ "$docker_install" = "y" ] || [ "$check" = "y" ]; then
@@ -1075,50 +1075,50 @@ if [ "$uninstall" = "y" ]; then
         exit 1
     fi
 fi
- 
+
 if [ "$docker_install" = "y" ]; then
     log "ERROR" "ERR_NO:0x0004;ERR_DES:Unsupported parameters, operation failed."
-    log "INFO" "--docker not uesd in ge-compiler"
+    log "INFO" "--docker not used in ge-compiler"
     exit 1
 fi
- 
+
 # 检查必选参数
 if [ "${upgrade}" = "n" ] && [ "${full_install}" = "n" ] && [ "${run_install}" = "n" ] && [ "${devel_install}" = "n" ] && [ "${uninstall}" = "n" ] && [ "${check}" = "n" ]; then
     log "ERROR" "ERR_NO:0x0004;One of parameters '--full', '--devel', '--run', '--upgrade', '--uninstall' or '--check' must be used."
     exit 1
 fi
- 
+
 #######################################################
 is_multi_version_pkg "pkg_is_multi_version" "$pkg_version_path"
 get_version_dir "pkg_version_dir" "$pkg_version_path"
- 
+
 if [ "$full_install" = "y" ] || [ "$run_install" = "y" ] || [ "$devel_install" = "y" ] || [ "$upgrade" = "y" ] || [ "$uninstall" = "y" ] || [ "$check" = "y" ]; then
     input_install_path=$(relative_path_to_absolute_path "${input_install_path}")
     get_install_path
- 
+
     install_top_path="$(dirname $input_install_path)"
     install_path_param="${input_install_path}"
 fi
- 
+
 if [ "$is_docker_install" = "y" ]; then
     pkg_install_path=$(concat_docker_install_path "${docker_root}" "${install_path_param}")
 else
     pkg_install_path="${install_path_param}"
 fi
- 
+
 if [ "$pkg_is_multi_version" = "true" ]; then
     default_dir="${pkg_install_path}/$pkg_version_dir/share/info/ge-compiler"
 else
     default_dir="${pkg_install_path}/ge-compiler"
 fi
 install_info="${default_dir}/ascend_install.info"
- 
+
 if [ "$uninstall" = "y" ]; then
     start_uninstall_log
 else
     start_install_log
 fi
- 
+
 # 执行预检查
 if [ "$input_pre_check" = "y" ]; then
     log "INFO" "ge-compiler do pre check started."
@@ -1132,7 +1132,7 @@ if [ "$input_pre_check" = "y" ]; then
         exit_install_log 0
     fi
 fi
- 
+
 # 版本兼容性检查
 if [ "$check" = "y" ]; then
     ver_check
@@ -1154,7 +1154,7 @@ elif [ "$full_install" = "y" ] || [ "$run_install" = "y" ] || [ "$devel_install"
         log "INFO" "version compatibility check successfully!"
     fi
 fi
- 
+
 ##################################################################
 # 安装升级运行态时, 1/2包必须已安装, 且指定的用户必须存在且与1/2包同属组
 if [ "$input_install_for_all" = "n" ]; then
@@ -1173,7 +1173,7 @@ if [ "$input_install_for_all" = "n" ]; then
             usergroup_base=$(grep -i usergroup= "${install_info_old}" | cut -d"=" -f2-)
             check_group "${usergroup_base}" "${username}"
             if [ $? -ne 0 ]; then
-                log "ERROR" "ERR_NO:0x0093;ERR_DES:User is not belong to the dirver or firmware's installed usergroup! Please add the user (${username}) to the group (${usergroup_base})."
+                log "ERROR" "ERR_NO:0x0093;ERR_DES:User is not belong to the driver or firmware's installed usergroup! Please add the user (${username}) to the group (${usergroup_base})."
                 confirm=y
                 exit_install_log 1
             fi
@@ -1187,11 +1187,11 @@ log_base_version
 if [ "$upgrade" != "y" ]; then
     is_valid_path
 fi
- 
+
 if [ "$full_install" = "y" ] || [ "$run_install" = "y" ] || [ "$devel_install" = "y" ]; then
     create_default_dir
 fi
- 
+
 # 环境上是否已安装过本包
 version_installed="$(get_version_installed)"
 if [ "x$version_installed" != "x" -a "$version_installed" != "none" ] || [ -f "${install_info}" ]; then

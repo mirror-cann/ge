@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,21 +32,17 @@ class PlatformInfoManager {
   uint32_t InitializePlatformInfo();
   uint32_t Finalize();
 
-  uint32_t GetPlatformInfo(const std::string SoCVersion,
-                           PlatformInfo &platform_info,
+  uint32_t GetPlatformInfo(const std::string SoCVersion, PlatformInfo &platform_info,
                            OptionalInfo &opti_compilation_info);
 
-  uint32_t GetPlatformInfoWithOutSocVersion(PlatformInfo &platform_info,
-                                            OptionalInfo &opti_compilation_info);
+  uint32_t GetPlatformInfoWithOutSocVersion(PlatformInfo &platform_info, OptionalInfo &opti_compilation_info);
 
   void SetOptionalCompilationInfo(OptionalInfo &opti_compilation_info);
 
-  uint32_t GetPlatformInfos(const std::string SoCVersion,
-                            PlatFormInfos &platform_info,
+  uint32_t GetPlatformInfos(const std::string SoCVersion, PlatFormInfos &platform_info,
                             OptionalInfos &opti_compilation_info);
 
-  uint32_t GetPlatformInfoWithOutSocVersion(PlatFormInfos &platform_info,
-                                            OptionalInfos &opti_compilation_info);
+  uint32_t GetPlatformInfoWithOutSocVersion(PlatFormInfos &platform_info, OptionalInfos &opti_compilation_info);
 
   void SetOptionalCompilationInfo(OptionalInfos &opti_compilation_info);
 
@@ -57,7 +53,7 @@ class PlatformInfoManager {
   uint32_t GetPlatformInstanceByDevice(const uint32_t &device_id, PlatFormInfos &platform_infos);
 
   uint32_t GetRuntimePlatformInfosByDevice(const uint32_t &device_id, PlatFormInfos &platform_infos,
-    bool need_deep_copy = false);
+                                           bool need_deep_copy = false);
 
   uint32_t UpdateRuntimePlatformInfosByDevice(const uint32_t &device_id, PlatFormInfos &platform_infos);
 
@@ -77,27 +73,20 @@ class PlatformInfoManager {
 
   std::string GetSoFilePath();
 
-  void ParseVersion(std::map<std::string, std::string> &version_map,
-                    std::string &soc_version,
+  void ParseVersion(std::map<std::string, std::string> &version_map, std::string &soc_version,
                     PlatformInfo &platform_info_temp);
 
-  void ParseSocInfo(std::map<std::string, std::string> &soc_info_map,
-                    PlatformInfo &platform_info_temp);
+  void ParseSocInfo(std::map<std::string, std::string> &soc_info_map, PlatformInfo &platform_info_temp);
 
-  void ParseCubeOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map,
-                             PlatformInfo &platform_info_temp);
+  void ParseCubeOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map, PlatformInfo &platform_info_temp);
 
-  void ParseBufferOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map,
-                               PlatformInfo &platform_info_temp);
+  void ParseBufferOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map, PlatformInfo &platform_info_temp);
 
-  void ParseUBOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map,
-                           PlatformInfo &platform_info_temp);
+  void ParseUBOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map, PlatformInfo &platform_info_temp);
 
-  void ParseUnzipOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map,
-                              PlatformInfo &platform_info_temp);
+  void ParseUnzipOfAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map, PlatformInfo &platform_info_temp);
 
-  void ParseAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map,
-                       PlatformInfo &platform_info_temp);
+  void ParseAICoreSpec(std::map<std::string, std::string> &ai_core_spec_map, PlatformInfo &platform_info_temp);
 
   void ParseBufferOfAICoreMemoryRates(std::map<std::string, std::string> &ai_core_memory_rates_map,
                                       PlatformInfo &platform_info_temp);
@@ -111,21 +100,18 @@ class PlatformInfoManager {
   void ParseAICoreintrinsicDtypeMap(std::map<std::string, std::string> &ai_coreintrinsic_dtype_map,
                                     PlatformInfo &platform_info_temp);
 
-  void ParseVectorCoreSpec(std::map<std::string, std::string> &vector_core_spec_map,
-                           PlatformInfo &platform_info_temp);
+  void ParseVectorCoreSpec(std::map<std::string, std::string> &vector_core_spec_map, PlatformInfo &platform_info_temp);
 
   void ParseVectorCoreMemoryRates(std::map<std::string, std::string> &vector_core_memory_rates_map,
                                   PlatformInfo &platform_info_temp);
 
-  void ParseCPUCache(std::map<std::string, std::string> &CPUCacheMap,
-                     PlatformInfo &platform_info_temp);
+  void ParseCPUCache(std::map<std::string, std::string> &CPUCacheMap, PlatformInfo &platform_info_temp);
 
   void ParseVectorCoreintrinsicDtypeMap(std::map<std::string, std::string> &vector_coreintrinsic_dtype_map,
                                         PlatformInfo &platform_info_temp);
 
   uint32_t ParsePlatformInfoFromStrToStruct(std::map<std::string, std::map<std::string, std::string>> &content_info_map,
-                                            std::string &soc_version,
-                                            PlatformInfo &platform_info_temp);
+                                            std::string &soc_version, PlatformInfo &platform_info_temp);
 
   void ParseAICoreintrinsicDtypeMap(std::map<std::string, std::string> &ai_coreintrinsic_dtype_map,
                                     PlatFormInfos &platform_info_temp);
@@ -135,13 +121,11 @@ class PlatformInfoManager {
 
   void ParseSoftwareSpec(map<string, string> &software_spec_map, PlatformInfo &platform_info_temp);
 
-  void ParsePlatformRes(const std::string &label,
-                        std::map<std::string, std::string> &platform_res_map,
+  void ParsePlatformRes(const std::string &label, std::map<std::string, std::string> &platform_res_map,
                         PlatFormInfos &platform_info_temp);
 
   uint32_t ParsePlatformInfo(std::map<std::string, std::map<std::string, std::string>> &content_info_map,
-                             std::string &soc_version,
-                             PlatFormInfos &platform_info_temp);
+                             std::string &soc_version, PlatFormInfos &platform_info_temp);
 
   uint32_t AssemblePlatformInfoVector(std::map<std::string, std::map<std::string, std::string>> &content_info_map);
   void FillupFixPipeInfo(PlatFormInfos &platform_infos);
@@ -161,7 +145,6 @@ class PlatformInfoManager {
   PlatFormInfos runtime_platform_infos_;
 
   std::map<uint32_t, PlatFormInfos> runtime_device_platform_infos_map_;
-
 };
 }  // namespace fe
 

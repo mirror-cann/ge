@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ static NodePtr CreateFileConstantNode(const ComputeGraphPtr &graph, const string
   op_desc->AddOutputDesc(GeTensorDesc());
   GeTensorPtr value = std::make_shared<GeTensor>(GeTensorDesc(), 64);
   (void)AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, name);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "shape", shape));
   return graph->AddNode(op_desc);
@@ -87,8 +87,7 @@ void SetSubGraph(const NodePtr &node, const string &name) {
 Status BuildForPipelinePartitionedGraph(const ComputeGraphPtr &root_graph, const PneModelPtr &root_model) {
   std::unique_ptr<ModelRelation> model_relation;
   GE_CHK_STATUS_RET(ModelRelationBuilder().BuildFromRootGraph(*root_graph, model_relation),
-                    "Failed to build ModelRelation from root graph: %s",
-                    root_graph->GetName().c_str());
+                    "Failed to build ModelRelation from root graph: %s", root_graph->GetName().c_str());
   root_model->SetModelRelation(std::shared_ptr<ModelRelation>(model_relation.release()));
   std::vector<GeRootModelPtr> submodels;
   for (const auto &node : root_graph->GetDirectNode()) {
@@ -113,18 +112,18 @@ Status BuildForPipelinePartitionedGraph(const ComputeGraphPtr &root_graph, const
 }
 }  // namespace
 
-Status StubModels::SaveGeRootModelToModelData(const GeRootModelPtr &ge_root_model, ModelData &model_data, ModelBufferData &model_buffer_data) {
+Status StubModels::SaveGeRootModelToModelData(const GeRootModelPtr &ge_root_model, ModelData &model_data,
+                                              ModelBufferData &model_buffer_data) {
   bool is_unknown_shape = false;
   GE_ASSERT_SUCCESS(ge_root_model->CheckIsUnknownShape(is_unknown_shape),
                     "root model(id:%u) CheckIsUnknownShape failed", ge_root_model->GetModelId());
-  const auto model_save_helper =
-    ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   EXPECT_NE(model_save_helper, nullptr);
   model_save_helper->SetSaveMode(false);
-  GE_ASSERT_SUCCESS(model_save_helper->SaveToOmRootModel(ge_root_model, "NoUse", 
-                          model_buffer_data, is_unknown_shape), "SaveToOmRootModel failed, model id:%u", ge_root_model->GetModelId());
+  GE_ASSERT_SUCCESS(model_save_helper->SaveToOmRootModel(ge_root_model, "NoUse", model_buffer_data, is_unknown_shape),
+                    "SaveToOmRootModel failed, model id:%u", ge_root_model->GetModelId());
   model_data.model_data = model_buffer_data.data.get();
-	model_data.model_len = model_buffer_data.length;
+  model_data.model_len = model_buffer_data.length;
   return SUCCESS;
 }
 
@@ -303,13 +302,13 @@ PneModelPtr StubModels::BuildRootModel(ComputeGraphPtr root_graph, bool pipeline
 DeployPlan StubModels::BuildSimpleDeployPlan(int32_t remote_node_id) {
   DeployPlan deploy_plan;
   deploy_plan.group_entries_.resize(4);
-  deploy_plan.group_entries_[0].device_info = DeployPlan::DeviceInfo(0, remote_node_id, 0); // data1->[PC_1:0]
+  deploy_plan.group_entries_[0].device_info = DeployPlan::DeviceInfo(0, remote_node_id, 0);  // data1->[PC_1:0]
   deploy_plan.group_entries_[0].name = "data1@PC_1:0";
   deploy_plan.group_entries_[1].device_info = DeployPlan::DeviceInfo(0, 0, 0);  // [data1] -> PC_1:0
   deploy_plan.group_entries_[1].name = "data1@PC_1:0";
-  deploy_plan.group_entries_[2].device_info = DeployPlan::DeviceInfo(0, 0, 0); // PC_2 -> [NetOutput:0]
+  deploy_plan.group_entries_[2].device_info = DeployPlan::DeviceInfo(0, 0, 0);  // PC_2 -> [NetOutput:0]
   deploy_plan.group_entries_[2].name = "PC_2:0@__tail:0";
-  deploy_plan.group_entries_[3].device_info = DeployPlan::DeviceInfo(0, remote_node_id, 0); // [PC_2] -> NetOutput:0
+  deploy_plan.group_entries_[3].device_info = DeployPlan::DeviceInfo(0, remote_node_id, 0);  // [PC_2] -> NetOutput:0
   deploy_plan.group_entries_[3].name = "PC_2:0@__tail:0";
 
   deploy_plan.queues_.resize(9);

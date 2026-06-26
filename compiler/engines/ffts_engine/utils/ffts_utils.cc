@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,6 @@
 #include "framework/common/framework_types_internal.h"
 #include "common/sgt_slice_type.h"
 
-
 namespace ffts {
 std::mutex g_report_error_msg_mutex;
 
@@ -34,8 +33,7 @@ FFTSMode GetPlatformFFTSMode() {
   string soc_version = EngineManager::Instance(kFFTSPlusCoreName).GetSocVersion();
   fe::PlatFormInfos platform_infos;
   fe::OptionalInfos opti_compilation_infos;
-  auto ret = fe::PlatformInfoManager::Instance().GetPlatformInfos(soc_version, platform_infos,
-                                                                  opti_compilation_infos);
+  auto ret = fe::PlatformInfoManager::Instance().GetPlatformInfos(soc_version, platform_infos, opti_compilation_infos);
   if (ret != SUCCESS) {
     FFTS_LOGW("Failed to retrieve platform information using SOC version [%s].", soc_version.c_str());
     return FFTSMode::FFTS_MODE_NO_FFTS;
@@ -68,17 +66,16 @@ int64_t GetMicroSecondTime() {
   return second_to_micro + tv.tv_usec;
 }
 
-
 void LogErrorMessage(std::string error_code, const std::map<std::string, std::string> &args_map) {
-  std::vector<const char*> args_keys;
-  std::vector<const char*> args_values;
+  std::vector<const char *> args_keys;
+  std::vector<const char *> args_values;
   for (const auto &item : args_map) {
     args_keys.push_back(item.first.c_str());
     args_values.push_back(item.second.c_str());
   }
   int result = REPORT_PREDEFINED_ERR_MSG(error_code.c_str(), args_keys, args_values);
 
-  FFTS_LOGE_IF(result != 0, "Faild to call ReportErrMessage.");
+  FFTS_LOGE_IF(result != 0, "Failed to call ReportErrMessage.");
 }
 
 std::string RealPath(const std::string &path) {
@@ -98,7 +95,7 @@ std::string RealPath(const std::string &path) {
   std::string res;
 
   // path not exists or not allowed to read return nullptr
-  // path exists and readable, return the resoved path
+  // path exists and readable, return the resolved path
   if (realpath(path.c_str(), resoved_path) != nullptr) {
     res = resoved_path;
   } else {
@@ -177,8 +174,8 @@ bool IsPhonyOp(const ge::OpDescPtr &op_desc_ptr) {
 Status IsNoEdge(const ge::NodePtr &parant_node, const ge::NodePtr &child_node) {
   for (auto &out_node : parant_node->GetOutAllNodes()) {
     if (out_node == child_node) {
-       FFTS_LOGD("out_node: %s, child_node: %s.",
-                 out_node->GetOpDesc()->GetName().c_str(), child_node->GetOpDesc()->GetName().c_str());
+      FFTS_LOGD("out_node: %s, child_node: %s.", out_node->GetOpDesc()->GetName().c_str(),
+                child_node->GetOpDesc()->GetName().c_str());
       return false;
     }
   }
@@ -197,8 +194,7 @@ bool IsSubGraphNetOutput(const ge::OpDescPtr &op_desc_ptr) {
   return false;
 }
 
-void GenerateSameAtomicNodesMap(std::vector<ge::NodePtr> &graph_nodes,
-                                SameAtomicNodeMap &same_memset_nodes_map) {
+void GenerateSameAtomicNodesMap(std::vector<ge::NodePtr> &graph_nodes, SameAtomicNodeMap &same_memset_nodes_map) {
   for (auto &node : graph_nodes) {
     ThreadSliceMapPtr slice_info_ptr = nullptr;
     FFTS_CHECK(node == nullptr, FFTS_LOGW("node is null"), return);
@@ -289,12 +285,12 @@ void PrintNodeAttrExtNodes(const ge::NodePtr &node, std::string attrname) {
       PrintNode(attr_node);
     }
   } else {
-     FFTS_LOGD("Node does not have dst attr nodes");
+    FFTS_LOGD("Node does not have dst attr nodes");
   }
   FFTS_LOGD("===============================printnodeattrext end=================================");
 }
 
-Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph& graph, const std::string &node_type) {
+Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph &graph, const std::string &node_type) {
   FFTS_LOGD("UnfoldPartionCallOnlyOneDepth graphname = %s node_type = %s", graph.GetName().c_str(), node_type.c_str());
   for (auto &node : graph.GetDirectNode()) {
     FFTS_CHECK_NOTNULL(node);

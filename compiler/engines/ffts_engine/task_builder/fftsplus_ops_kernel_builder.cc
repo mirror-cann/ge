@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,33 +26,30 @@
 #include "register/graph_optimizer/fusion_common/unknown_shape_utils.h"
 #include "register/op_ext_gentask_registry.h"
 namespace ffts {
-namespace{
+namespace {
 void PrintCtxPathContent(uint32_t type, FftsPlusContextPath &ctx_path) {
-  FFTS_LOGD("Ctx_path content: ctx_id:%u, type:%u, pre_cnt:%u, policy_pri:%hu, max_pre_index:%d,"
-            "pre_list size:%zu, cmo_list size:%zu, label_list size:%zu, succ_list size:%zu.",
-            ctx_path.ctx_id, type, ctx_path.pre_cnt, ctx_path.policy_pri, ctx_path.max_pre_index,
-            ctx_path.pre_list.size(), ctx_path.cmo_list.size(), ctx_path.label_list.size(), ctx_path.succ_list.size());
-  LoopPrintIntergerVec(ctx_path.pre_list, "PrintCtxPathContent Ctx_path content: ctx_id:%u, pre_list:",
-                       ctx_path.ctx_id);
-  LoopPrintIntergerVec(ctx_path.cmo_list, "PrintCtxPathContent Ctx_path content: ctx_id:%u, cmo_list:",
-                       ctx_path.ctx_id);
-  LoopPrintIntergerVec(ctx_path.label_list, "PrintCtxPathContent Ctx_path content: ctx_id:%u, label_list:",
-                       ctx_path.ctx_id);
-  LoopPrintIntergerVec(ctx_path.succ_list, "PrintCtxPathContent Ctx_path content: ctx_id:%u, succ_list:",
-                       ctx_path.ctx_id);
+  FFTS_LOGD(
+      "Ctx_path content: ctx_id:%u, type:%u, pre_cnt:%u, policy_pri:%hu, max_pre_index:%d,"
+      "pre_list size:%zu, cmo_list size:%zu, label_list size:%zu, succ_list size:%zu.",
+      ctx_path.ctx_id, type, ctx_path.pre_cnt, ctx_path.policy_pri, ctx_path.max_pre_index, ctx_path.pre_list.size(),
+      ctx_path.cmo_list.size(), ctx_path.label_list.size(), ctx_path.succ_list.size());
+  LoopPrintIntergerVec(ctx_path.pre_list,
+                       "PrintCtxPathContent Ctx_path content: ctx_id:%u, pre_list:", ctx_path.ctx_id);
+  LoopPrintIntergerVec(ctx_path.cmo_list,
+                       "PrintCtxPathContent Ctx_path content: ctx_id:%u, cmo_list:", ctx_path.ctx_id);
+  LoopPrintIntergerVec(ctx_path.label_list,
+                       "PrintCtxPathContent Ctx_path content: ctx_id:%u, label_list:", ctx_path.ctx_id);
+  LoopPrintIntergerVec(ctx_path.succ_list,
+                       "PrintCtxPathContent Ctx_path content: ctx_id:%u, succ_list:", ctx_path.ctx_id);
 }
-} // namespace
+}  // namespace
 
 const std::string kFFTSPlusCoreName = "ffts_plus";
 const uint64_t max_preload_context_num = 1000;
 constexpr uint32_t kUInt8Max = 255;
 
-const std::unordered_set<uint32_t> SUPPORT_CTX_PATH_TYPE {
-  RT_CTX_TYPE_AICORE,
-  RT_CTX_TYPE_AIV,
-  RT_CTX_TYPE_MIX_AIC,
-  RT_CTX_TYPE_MIX_AIV
-};
+const std::unordered_set<uint32_t> SUPPORT_CTX_PATH_TYPE{RT_CTX_TYPE_AICORE, RT_CTX_TYPE_AIV, RT_CTX_TYPE_MIX_AIC,
+                                                         RT_CTX_TYPE_MIX_AIV};
 
 static const std::unordered_map<rtFftsPlusContextType_t, std::string> kCtxTypeStrMap = {
     {RT_CTX_TYPE_AICORE, "aicore"},
@@ -73,8 +70,7 @@ static const std::unordered_map<rtFftsPlusContextType_t, std::string> kCtxTypeSt
     {RT_CTX_TYPE_AT_END, "at_end"},
     {RT_CTX_TYPE_LABEL, "label"},
     {RT_CTX_TYPE_PERSISTENT_CACHE, "persistent_cache"},
-    {RT_CTX_TYPE_DSA, "dsa"}
-};
+    {RT_CTX_TYPE_DSA, "dsa"}};
 
 REGISTER_OPS_KERNEL_BUILDER(kFFTSPlusCoreName, FFTSPlusOpsKernelBuilder);
 
@@ -104,15 +100,16 @@ Status FFTSPlusOpsKernelBuilder::Initialize(const std::map<std::string, std::str
 
   string plugin_path = lib_path_ + SCHECULE_POLICY_PASS_PLUGIN;
   FFTS_MAKE_SHARED(sch_policy_pass_plugin_ = std::make_shared<PluginManager>(plugin_path), return FAILED);
-  FFTS_CHECK(sch_policy_pass_plugin_ == nullptr, REPORT_FFTS_ERROR(
-      "[FFTSPlusOpsKernelBuilder][Init] [InitSchPolicyPassPlg] Failed to create schedule policy pass plugin manager pointer."),
-  return FAILED);
+  FFTS_CHECK(sch_policy_pass_plugin_ == nullptr,
+             REPORT_FFTS_ERROR("[FFTSPlusOpsKernelBuilder][Init] [InitSchPolicyPassPlg] Failed to create schedule "
+                               "policy pass plugin manager pointer."),
+             return FAILED);
   if (sch_policy_pass_plugin_->OpenPlugin(plugin_path) != SUCCESS) {
     skip_schecule_policy_pass_ = true;
     FFTS_LOGW("Failed to open %s.", plugin_path.c_str());
   } else {
     ret = sch_policy_pass_plugin_->GetFunction<Status, domi::TaskDef &, std::vector<ffts::FftsPlusContextPath> &>(
-    SCHECULE_POLICY_PASS_FUNC_NAME, schecule_policy_pass_);
+        SCHECULE_POLICY_PASS_FUNC_NAME, schecule_policy_pass_);
     if (ret != SUCCESS) {
       FFTS_LOGW("Failed to get the function %s in the plugin %s.", SCHECULE_POLICY_PASS_FUNC_NAME.c_str(),
                 plugin_path.c_str());
@@ -191,9 +188,8 @@ Status FFTSPlusOpsKernelBuilder::SetSingleCtxPolicyPri(uint32_t type, domi::Ffts
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::SetCtxsPolicyPri(
-    uint64_t ready_context_num, domi::TaskDef &task_def, TimeLineOptimizerContext &timeCtx) const
-{
+Status FFTSPlusOpsKernelBuilder::SetCtxsPolicyPri(uint64_t ready_context_num, domi::TaskDef &task_def,
+                                                  TimeLineOptimizerContext &timeCtx) const {
   FFTS_LOGD("Set policy priority in context.");
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
   FFTS_CHECK_NOTNULL(ffts_plus_task_def);
@@ -217,7 +213,8 @@ Status FFTSPlusOpsKernelBuilder::SetCtxsPolicyPri(
 
     // check precnt is 0 ctx invalid after ctx created, citx id must smaller than ready_context_num
     if (ctx_path.pre_list.empty() && ctx_path.ctx_id >= ready_context_num) {
-      FFTS_LOGW("Precnt is 0 ctx %u invalid not successfully, ready_context_num: %lu.", ctx_path.ctx_id, ready_context_num);
+      FFTS_LOGW("Precnt is 0 ctx %u invalid not successfully, ready_context_num: %lu.", ctx_path.ctx_id,
+                ready_context_num);
     }
 
     if (SUPPORT_CTX_PATH_TYPE.count(type) == 0) {
@@ -306,8 +303,8 @@ inline Status SetSuccList(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t ct
       return FFTSPlusTaskBuilder::UpdateSuccList(ffts_plus_task_def, ffts_plus_ctx->mutable_case_switch_ctx(),
                                                  reserve_ctx_list, label_list);
     case RT_CTX_TYPE_DSA:
-      return FFTSPlusTaskBuilder::UpdateSuccList(ffts_plus_task_def, ffts_plus_ctx->mutable_dsa_ctx(),
-                                                 reserve_ctx_list, label_list);
+      return FFTSPlusTaskBuilder::UpdateSuccList(ffts_plus_task_def, ffts_plus_ctx->mutable_dsa_ctx(), reserve_ctx_list,
+                                                 label_list);
     case RT_CTX_TYPE_LABEL:
       return FFTSPlusTaskBuilder::UpdateSuccList(ffts_plus_task_def, ffts_plus_ctx->mutable_label_ctx(),
                                                  reserve_ctx_list, label_list);
@@ -360,10 +357,9 @@ Status FFTSPlusOpsKernelBuilder::RemoveFromPreList(const uint32_t ctx_id, const 
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::UpdateContextForRemoveDuplicate(domi::FftsPlusTaskDef *ffts_plus_task_def,
-    const ContextParam &ctx_param,
-    const std::unordered_map<uint32_t, size_t> &ctx_index_map,
-    TimeLineOptimizerContext &timeCtx) const {
+Status FFTSPlusOpsKernelBuilder::UpdateContextForRemoveDuplicate(
+    domi::FftsPlusTaskDef *ffts_plus_task_def, const ContextParam &ctx_param,
+    const std::unordered_map<uint32_t, size_t> &ctx_index_map, TimeLineOptimizerContext &timeCtx) const {
   FFTS_LOGD("UpdateContext ctx_id: %u, label_list size: %zu, remove_ctx_list size: %u, reserve_ctx_list size: %zu.",
             ctx_param.ctx_id_, ctx_param.context_path_.label_list.size(), ctx_param.remove_ctx_list_.size(),
             ctx_param.reserve_ctx_list_.size());
@@ -376,14 +372,14 @@ Status FFTSPlusOpsKernelBuilder::UpdateContextForRemoveDuplicate(domi::FftsPlusT
     if (SubStractPrecnt(ctx_param.remove_ctx_list_[i], ffts_plus_task_def) != SUCCESS) {
       return FAILED;
     }
-    if (RemoveFromPreList(ctx_param.ctx_id_, ctx_param.remove_ctx_list_[i], ffts_plus_task_def,
-        timeCtx, ctx_index_map) != SUCCESS) {
+    if (RemoveFromPreList(ctx_param.ctx_id_, ctx_param.remove_ctx_list_[i], ffts_plus_task_def, timeCtx,
+                          ctx_index_map) != SUCCESS) {
       return FAILED;
     }
   }
 
-  if (SetSuccList(ffts_plus_task_def, ctx_param.ctx_id_,
-      ctx_param.reserve_ctx_list_, ctx_param.context_path_.label_list) != SUCCESS) {
+  if (SetSuccList(ffts_plus_task_def, ctx_param.ctx_id_, ctx_param.reserve_ctx_list_,
+                  ctx_param.context_path_.label_list) != SUCCESS) {
     return FAILED;
   }
   FFTS_LOGD("After updateContextForRemoveDuplicate context:%s.", ffts_plus_ctx->DebugString().c_str());
@@ -462,8 +458,8 @@ void FFTSPlusOpsKernelBuilder::SortContextPathByMaxPreIndex(const vector<FftsPlu
   size_t idx = 0;
   for (auto it : ctx_id_sort) {
     sort_context_paths.emplace_back(context_paths[it]);
-    FFTS_LOGD("Sort_context_paths: i=%zu, ctx_id=%u, max_pre_index=%d.", idx,
-              sort_context_paths[idx].ctx_id, sort_context_paths[idx].max_pre_index);
+    FFTS_LOGD("Sort_context_paths: i=%zu, ctx_id=%u, max_pre_index=%d.", idx, sort_context_paths[idx].ctx_id,
+              sort_context_paths[idx].max_pre_index);
     ++idx;
   }
 }
@@ -500,9 +496,8 @@ inline bool IsConnected(const FftsPlusContextPath &i_path, uint32_t j_ctx_id) {
   return false;
 }
 
-void FFTSPlusOpsKernelBuilder::TransitiveReductionContextPath(const vector<FftsPlusContextPath> &sort_context_paths,
-                                                              map<uint32_t, vector<uint32_t>> &real_ctx_succ_list)
-                                                              const {
+void FFTSPlusOpsKernelBuilder::TransitiveReductionContextPath(
+    const vector<FftsPlusContextPath> &sort_context_paths, map<uint32_t, vector<uint32_t>> &real_ctx_succ_list) const {
   if (sort_context_paths.empty()) {
     return;
   }
@@ -562,8 +557,8 @@ inline void RemoveDuplicate(vector<uint32_t> &reserve_ctx_list, vector<uint32_t>
   }
 }
 
-Status FFTSPlusOpsKernelBuilder::InsertCxtListByPriority(const vector<FftsPlusContextPath> &context_paths,
-    uint32_t insert_ctx_id, vector<uint32_t> &ctx_list,
+Status FFTSPlusOpsKernelBuilder::InsertCxtListByPriority(
+    const vector<FftsPlusContextPath> &context_paths, uint32_t insert_ctx_id, vector<uint32_t> &ctx_list,
     const std::unordered_map<uint32_t, size_t> &ctx_index_map) const {
   if (ctx_list.empty()) {
     ctx_list.emplace_back(insert_ctx_id);
@@ -591,8 +586,8 @@ Status FFTSPlusOpsKernelBuilder::InsertCxtListByPriority(const vector<FftsPlusCo
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::InsertCmoCtxToSucclist(domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                                        uint32_t cmo_id, ContextParam &ctx_param,
+Status FFTSPlusOpsKernelBuilder::InsertCmoCtxToSucclist(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t cmo_id,
+                                                        ContextParam &ctx_param,
                                                         std::unordered_map<uint32_t, size_t> &ctx_index_map) const {
   domi::FftsPlusCtxDef *ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(cmo_id));
   FFTS_CHECK_NOTNULL(ffts_plus_ctx);
@@ -632,19 +627,19 @@ Status FFTSPlusOpsKernelBuilder::UpdateContexts(domi::FftsPlusTaskDef *ffts_plus
       if (find(iter_ctx_succ->second.begin(), iter_ctx_succ->second.end(), ctx_param.context_path_.succ_list[i]) !=
           iter_ctx_succ->second.end()) {
         // sort reserve_ctx_list by priority
-        (void)InsertCxtListByPriority(context_paths, ctx_param.context_path_.succ_list[i],
-                                      ctx_param.reserve_ctx_list_, ctx_index_map);
+        (void)InsertCxtListByPriority(context_paths, ctx_param.context_path_.succ_list[i], ctx_param.reserve_ctx_list_,
+                                      ctx_index_map);
       } else {
         ctx_param.remove_ctx_list_.emplace_back(ctx_param.context_path_.succ_list[i]);
       }
     }
 
     FFTS_LOGD("Ctx_id: %u, before CMO reserve_ctx_list size: %zu, remove_ctx_list size: %zu.",
-        ctx_param.context_path_.ctx_id, ctx_param.reserve_ctx_list_.size(), ctx_param.remove_ctx_list_.size());
-    LoopPrintIntergerVec(ctx_param.remove_ctx_list_, "Ctx_id:%u, before cmo remove_ctx_list:",
-                         ctx_param.context_path_.ctx_id);
-    LoopPrintIntergerVec(ctx_param.reserve_ctx_list_, "Ctx_id:%u, before cmo reserve_ctx_list:",
-                         ctx_param.context_path_.ctx_id);
+              ctx_param.context_path_.ctx_id, ctx_param.reserve_ctx_list_.size(), ctx_param.remove_ctx_list_.size());
+    LoopPrintIntergerVec(ctx_param.remove_ctx_list_,
+                         "Ctx_id:%u, before cmo remove_ctx_list:", ctx_param.context_path_.ctx_id);
+    LoopPrintIntergerVec(ctx_param.reserve_ctx_list_,
+                         "Ctx_id:%u, before cmo reserve_ctx_list:", ctx_param.context_path_.ctx_id);
 
     for (auto cmo : ctx_param.context_path_.cmo_list) {
       // support invalid data ctx for memory reuse
@@ -654,11 +649,11 @@ Status FFTSPlusOpsKernelBuilder::UpdateContexts(domi::FftsPlusTaskDef *ffts_plus
     RemoveDuplicate(ctx_param.reserve_ctx_list_, ctx_param.remove_ctx_list_);
 
     FFTS_LOGD("Ctx_id: %u, after CMO and removing duplicates, reservectxlist size: %zu, remove_ctx_list size: %zu.",
-        ctx_param.context_path_.ctx_id, ctx_param.reserve_ctx_list_.size(), ctx_param.remove_ctx_list_.size());
-    LoopPrintIntergerVec(ctx_param.remove_ctx_list_, "Ctx_id:%u, after cmo and remove same remove_ctx_list:",
-                         ctx_param.context_path_.ctx_id);
-    LoopPrintIntergerVec(ctx_param.reserve_ctx_list_, "Ctx_id:%u, after cmo and remove same reserve_ctx_list:",
-                         ctx_param.context_path_.ctx_id);
+              ctx_param.context_path_.ctx_id, ctx_param.reserve_ctx_list_.size(), ctx_param.remove_ctx_list_.size());
+    LoopPrintIntergerVec(ctx_param.remove_ctx_list_,
+                         "Ctx_id:%u, after cmo and remove same remove_ctx_list:", ctx_param.context_path_.ctx_id);
+    LoopPrintIntergerVec(ctx_param.reserve_ctx_list_,
+                         "Ctx_id:%u, after cmo and remove same reserve_ctx_list:", ctx_param.context_path_.ctx_id);
 
     FFTS_LOGD("Before update content ctx_id:%u, succlist size:%zu.", ctx_param.context_path_.ctx_id,
               ctx_param.context_path_.succ_list.size());
@@ -671,10 +666,9 @@ Status FFTSPlusOpsKernelBuilder::UpdateContexts(domi::FftsPlusTaskDef *ffts_plus
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::UpdateContextsPreList(domi::TaskDef &task_def,
-                                                       const vector<FftsPlusContextPath> &context_paths,
-                                                       std::unordered_map<uint32_t, vector<uint32_t>> &cmo_id_map)
-                                                       const {
+Status FFTSPlusOpsKernelBuilder::UpdateContextsPreList(
+    domi::TaskDef &task_def, const vector<FftsPlusContextPath> &context_paths,
+    std::unordered_map<uint32_t, vector<uint32_t>> &cmo_id_map) const {
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
   FFTS_CHECK_NOTNULL(ffts_plus_task_def);
   for (const auto &context_path : context_paths) {
@@ -691,9 +685,8 @@ Status FFTSPlusOpsKernelBuilder::UpdateContextsPreList(domi::TaskDef &task_def,
   return SUCCESS;
 }
 
-Status FFTSPlusOpsKernelBuilder::RemoveDuplicateDependencies(
-    domi::TaskDef &task_def, TimeLineOptimizerContext &timeCtx) const
-{
+Status FFTSPlusOpsKernelBuilder::RemoveDuplicateDependencies(domi::TaskDef &task_def,
+                                                             TimeLineOptimizerContext &timeCtx) const {
   auto &context_paths = timeCtx.ctx_path_vector_;
   FFTS_LOGD("Start removing duplicate dependencies, context path size is %zu.", context_paths.size());
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
@@ -715,12 +708,12 @@ Status FFTSPlusOpsKernelBuilder::RemoveDuplicateDependencies(
   return UpdateContexts(ffts_plus_task_def, real_ctx_succ_list, timeCtx);
 }
 
-Status FFTSPlusOpsKernelBuilder::TimelineLayoutOptimize(uint64_t ready_context_num,
-                                                        const ge::Node &node, domi::TaskDef &task_def) const {
+Status FFTSPlusOpsKernelBuilder::TimelineLayoutOptimize(uint64_t ready_context_num, const ge::Node &node,
+                                                        domi::TaskDef &task_def) const {
   if (skip_schecule_policy_pass_) {
     FFTS_LOGD("Node[%s] skip_schecule_policy_pass_ is true", node.GetNamePtr());
     return SUCCESS;
-  }                                                      
+  }
   // scan ctx to compute index and inverse_index, the order ctx insert to vector is important, must be correct
   FFTS_CHECK_NOTNULL(schecule_policy_pass_);
   FFTS_TIMECOST_START(schecule_policy_pass);
@@ -728,15 +721,15 @@ Status FFTSPlusOpsKernelBuilder::TimelineLayoutOptimize(uint64_t ready_context_n
   Status status = schecule_policy_pass_(task_def, timeCtx.ctx_path_vector_);
   FFTS_TIMECOST_END_LOGI(schecule_policy_pass, "SGT.schecule_policy_pass");
   if (status != SUCCESS) {
-    FFTS_LOGI("SchedulePolicyPass did not succeed, node name: %s, node type: %s.",
-              node.GetName().c_str(), node.GetType().c_str());
-    return SUCCESS; // continue to execute task run without TimelineLayoutOptimize
+    FFTS_LOGI("SchedulePolicyPass did not succeed, node name: %s, node type: %s.", node.GetName().c_str(),
+              node.GetType().c_str());
+    return SUCCESS;  // continue to execute task run without TimelineLayoutOptimize
   }
 
   status = SetCtxsPolicyPri(ready_context_num, task_def, timeCtx);
   if (status != SUCCESS) {
-    FFTS_LOGI("SetCtxsPolicyPri not successfully, node name:%s, node type:%s",
-              node.GetName().c_str(), node.GetType().c_str());
+    FFTS_LOGI("SetCtxsPolicyPri not successfully, node name:%s, node type:%s", node.GetName().c_str(),
+              node.GetType().c_str());
     return status;
   }
   bool is_dynamic = false;
@@ -804,8 +797,7 @@ Status FFTSPlusOpsKernelBuilder::ReBuildCtxIdsRelation(domi::TaskDef &task_def,
   return FAILED;
 }
 
-Status FFTSPlusOpsKernelBuilder::UpdateCtxSuccList(domi::FftsPlusCtxDef *ctx_def_old,
-                                                   domi::FftsPlusCtxDef *ctx_def_new,
+Status FFTSPlusOpsKernelBuilder::UpdateCtxSuccList(domi::FftsPlusCtxDef *ctx_def_old, domi::FftsPlusCtxDef *ctx_def_new,
                                                    std::unordered_map<uint32_t, uint32_t> &old_new_map) const {
   if (ctx_def_old->context_type() == RT_CTX_TYPE_AT_START) {
     return UpdateNewCtxSuccList(ctx_def_old->mutable_at_start_ctx(), ctx_def_new->mutable_at_start_ctx(), old_new_map);
@@ -814,8 +806,8 @@ Status FFTSPlusOpsKernelBuilder::UpdateCtxSuccList(domi::FftsPlusCtxDef *ctx_def
     return UpdateNewCtxSuccList(ctx_def_old->mutable_aic_aiv_ctx(), ctx_def_new->mutable_aic_aiv_ctx(), old_new_map);
   }
   if (ctx_def_old->context_type() == RT_CTX_TYPE_MIX_AIC || ctx_def_old->context_type() == RT_CTX_TYPE_MIX_AIV) {
-    return UpdateNewCtxSuccList(ctx_def_old->mutable_mix_aic_aiv_ctx(),
-                                ctx_def_new->mutable_mix_aic_aiv_ctx(), old_new_map);
+    return UpdateNewCtxSuccList(ctx_def_old->mutable_mix_aic_aiv_ctx(), ctx_def_new->mutable_mix_aic_aiv_ctx(),
+                                old_new_map);
   }
   if (ctx_def_old->context_type() == RT_CTX_TYPE_AICPU) {
     return UpdateNewCtxSuccList(ctx_def_old->mutable_aicpu_ctx(), ctx_def_new->mutable_aicpu_ctx(), old_new_map);
@@ -828,12 +820,12 @@ Status FFTSPlusOpsKernelBuilder::UpdateCtxSuccList(domi::FftsPlusCtxDef *ctx_def
     return UpdateNewCtxSuccList(ctx_def_old->mutable_notify_ctx(), ctx_def_new->mutable_notify_ctx(), old_new_map);
   }
   if (ctx_def_old->context_type() == RT_CTX_TYPE_WRITE_VALUE) {
-    return UpdateNewCtxSuccList(ctx_def_old->mutable_write_value_ctx(),
-                                ctx_def_new->mutable_write_value_ctx(), old_new_map);
+    return UpdateNewCtxSuccList(ctx_def_old->mutable_write_value_ctx(), ctx_def_new->mutable_write_value_ctx(),
+                                old_new_map);
   }
   if (ctx_def_old->context_type() == RT_CTX_TYPE_CASE_SWITCH) {
-    return UpdateNewCtxSuccList(ctx_def_old->mutable_case_switch_ctx(),
-                                ctx_def_new->mutable_case_switch_ctx(), old_new_map);
+    return UpdateNewCtxSuccList(ctx_def_old->mutable_case_switch_ctx(), ctx_def_new->mutable_case_switch_ctx(),
+                                old_new_map);
   }
   if (ctx_def_old->context_type() == RT_CTX_TYPE_LABEL) {
     return UpdateNewCtxSuccList(ctx_def_old->mutable_label_ctx(), ctx_def_new->mutable_label_ctx(), old_new_map);
@@ -877,8 +869,7 @@ Status FFTSPlusOpsKernelBuilder::ConvertOldCtxInfoToNewCtx(domi::FftsPlusCtxDef 
   return ret;
 }
 
-Status FFTSPlusOpsKernelBuilder::GenNewSubGraphTaskDef(const ge::Node &node,
-                                                       domi::TaskDef &task_def,
+Status FFTSPlusOpsKernelBuilder::GenNewSubGraphTaskDef(const ge::Node &node, domi::TaskDef &task_def,
                                                        domi::TaskDef &task_def_new,
                                                        std::unordered_map<uint32_t, uint32_t> &new_old_map,
                                                        std::unordered_map<uint32_t, uint32_t> &old_new_map) const {
@@ -900,8 +891,7 @@ Status FFTSPlusOpsKernelBuilder::GenNewSubGraphTaskDef(const ge::Node &node,
     }
     domi::FftsPlusCtxDef *ffts_plus_ctx_def_new = ffts_plus_task_def_new->add_ffts_plus_ctx();
     auto old_ctxid = new_old_map[i];
-    domi::FftsPlusCtxDef *ffts_plus_ctx_def =
-        ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(old_ctxid));
+    domi::FftsPlusCtxDef *ffts_plus_ctx_def = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(old_ctxid));
     FFTS_CHECK_NOTNULL(ffts_plus_ctx_def);
     FFTS_LOGD("FFTSPlusOpsKernelBuilder GenNewSubGraphTaskDef node name:%s, node type:%s, old ctxid:%u, new ctxid:%zu.",
               node.GetName().c_str(), node.GetType().c_str(), old_ctxid, i);
@@ -922,7 +912,7 @@ Status FFTSPlusOpsKernelBuilder::GenerateExtTask(const ge::Node &node, ge::RunCo
   FFTS_TIMECOST_START(GenerateOpExtTask);
   if (fe::GenerateOpExtTask(node, fe::CheckTilingSink(node), task_defs, reg_flag) != SUCCESS) {
     REPORT_FFTS_ERROR("[FFTSPlusOpsKernelBuilder][GenerateExtTask] Op [%s][%s] failed to generate extra task.",
-                    node.GetNamePtr(), node.GetTypePtr());
+                      node.GetNamePtr(), node.GetTypePtr());
     return FAILED;
   }
   if (reg_flag) {
@@ -945,8 +935,8 @@ Status FFTSPlusOpsKernelBuilder::GenerateExtTask(const ge::Node &node, ge::RunCo
 
 Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunContext &context,
                                               std::vector<domi::TaskDef> &task_defs) {
-  FFTS_LOGD("FFTSPlusOpsKernelBuilder GenerateTask node name:%s, node type:%s",
-            node.GetName().c_str(), node.GetType().c_str());
+  FFTS_LOGD("FFTSPlusOpsKernelBuilder GenerateTask node name:%s, node type:%s", node.GetName().c_str(),
+            node.GetType().c_str());
   ge::OpDescPtr op_desc = node.GetOpDesc();
   Status status;
   uint64_t ready_context_num = 0;
@@ -954,12 +944,12 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
   domi::TaskDef task_def;
   std::vector<ge::NodePtr> sub_graph_nodes;
   ge::ComputeGraphPtr sgt_graph = nullptr;
-  TheadTaskBuilderPtr  base_mode_ptr = nullptr;
+  TheadTaskBuilderPtr base_mode_ptr = nullptr;
   if (op_desc->HasAttr(ATTR_NAME_ALIAS_ENGINE_NAME)) {
     FFTS_LOGI("[GenerateTask][MIXL2Task] GenerateTask for node [%s].", node.GetName().c_str());
     (void)ge::AttrUtils::SetStr(op_desc, "_ge_attr_lowering_func", "ffts_mix_l2_lower_func");
     (void)ge::AttrUtils::SetStr(op_desc, "_ge_attr_calculate_func", "ffts_mix_l2_calc_func");
-    ge::Node &temp_node = const_cast<ge::Node&>(node);
+    ge::Node &temp_node = const_cast<ge::Node &>(node);
     ge::NodePtr node_ptr = temp_node.shared_from_this();
     sub_graph_nodes.emplace_back(node_ptr);
     FFTS_MAKE_SHARED(sgt_graph = std::make_shared<ge::ComputeGraph>("MIX_L2"), return FAILED);
@@ -991,17 +981,19 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
             node.GetName().c_str(), node.GetType().c_str(), ready_context_num, total_context_number);
   status = base_mode_ptr->GenSubGraphTaskDef(memset_nodes, sub_graph_nodes, task_def);
   if (status != SUCCESS) {
-    FFTS_LOGD("GenSubGraphTaskDef unsuccess, node name:%s, node type:%s, errno:%u.",
-              node.GetName().c_str(), node.GetType().c_str(), status);
+    FFTS_LOGD("GenSubGraphTaskDef unsuccessful, node name:%s, node type:%s, errno:%u.", node.GetName().c_str(),
+              node.GetType().c_str(), status);
     return status;
   }
-  FFTS_LOGD("FFTSPlusOpsKernelBuilder After GenSubGraphTaskDef node name:%s, node type:%s, readynum:%lu, "
-      "totalnumber:%lu.", node.GetName().c_str(), node.GetType().c_str(), ready_context_num, total_context_number);
+  FFTS_LOGD(
+      "FFTSPlusOpsKernelBuilder After GenSubGraphTaskDef node name:%s, node type:%s, readynum:%lu, "
+      "totalnumber:%lu.",
+      node.GetName().c_str(), node.GetType().c_str(), ready_context_num, total_context_number);
 
   status = TimelineLayoutOptimize(ready_context_num, node, task_def);
   if (status != SUCCESS) {
-    FFTS_LOGD("TimelineLayoutOptimize failed, node name: %s, node type: %s, error code: %u.",
-              node.GetName().c_str(), node.GetType().c_str(), status);
+    FFTS_LOGD("TimelineLayoutOptimize failed, node name: %s, node type: %s, error code: %u.", node.GetName().c_str(),
+              node.GetType().c_str(), status);
     return status;
   }
   domi::TaskDef task_def_new;
@@ -1022,8 +1014,8 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
   }
 
   if (GenSubGraphSqeDef(*task_def_real, ready_context_num, *sgt_graph) != SUCCESS) {
-    FFTS_LOGD("GenSubGraphSqeDef unsuccess, node name:%s, node type:%s, errno:%u.",
-              node.GetName().c_str(), node.GetType().c_str(), status);
+    FFTS_LOGD("GenSubGraphSqeDef unsuccessful, node name:%s, node type:%s, errno:%u.", node.GetName().c_str(),
+              node.GetType().c_str(), status);
     return FAILED;
   }
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def_real->mutable_ffts_plus_task();
@@ -1032,7 +1024,8 @@ Status FFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunConte
   task_def_real->set_stream_id(op_desc->GetStreamId());
   task_defs.push_back(*task_def_real);
   FFTS_LOGD("FFTSPlusOpsKernelBuilder GenerateTask node name:%s, type:%s, id:%ld, readynum:%lu, stream:%ld success.",
-      node.GetName().c_str(), node.GetType().c_str(), op_desc->GetId(), ready_context_num, op_desc->GetStreamId());
+            node.GetName().c_str(), node.GetType().c_str(), op_desc->GetId(), ready_context_num,
+            op_desc->GetStreamId());
   if (GenerateExtTask(node, context, task_defs) != SUCCESS) {
     return FAILED;
   }
@@ -1054,12 +1047,12 @@ Status FFTSPlusOpsKernelBuilder::GenSubGraphSqeDef(domi::TaskDef &task_def, cons
   uint64_t gen_ctx_size = ffts_plus_task_def->ffts_plus_ctx_size();
   FFTS_LOGD("This SGT subgraph named %s has %lu tasks.", sgt_graph.GetName().c_str(), gen_ctx_size);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def->mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def->mutable_ffts_plus_sqe();
   FFTS_CHECK_NOTNULL(ffts_plus_sqe);
   for (size_t i = 0; i < gen_ctx_size; i++) {
     FFTS_LOGD("Gen subGraph [%s] sqe def, context_id: %zu, context: %s.",
-        ConvSqeTypeToStr(ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(i))->context_type()).c_str(),
-        i, ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(i))->DebugString().c_str());
+              ConvSqeTypeToStr(ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(i))->context_type()).c_str(),
+              i, ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(i))->DebugString().c_str());
   }
 
   uint64_t preload_context_num;
@@ -1082,8 +1075,8 @@ Status FFTSPlusOpsKernelBuilder::GenSubGraphSqeDef(domi::TaskDef &task_def, cons
   return SUCCESS;
 }
 
-const std::unordered_set<std::string> FFTS_NO_NEED_GEN_TASK_OP_TYPE = {"Data", "NetOutput", "Variable", "Const",
-                                                                  "Constant", "PhonyConcat"};
+const std::unordered_set<std::string> FFTS_NO_NEED_GEN_TASK_OP_TYPE = {"Data",  "NetOutput", "Variable",
+                                                                       "Const", "Constant",  "PhonyConcat"};
 const std::unordered_set<std::string> FFTS_CONTROL_OP_V2_TYPE = {"If", "While", "Case"};
 
 bool FFTSPlusOpsKernelBuilder::IsNoCtx(const ge::NodePtr &node) const {

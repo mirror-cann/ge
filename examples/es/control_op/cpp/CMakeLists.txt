@@ -38,4 +38,3 @@ target_link_libraries(sample PRIVATE
         ${GE_RUNNER}
         ${GE_COMPILE}
 )
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,7 @@ namespace {
 const std::string kAttrHasDoneSkp = "_has_done_skp";
 const std::string kAttrTaskArgs = "_task_args";
 const std::string SPK_REUSED_BINARY = "super_kernel_reuse_binary";
-void AddFusionNodes(std::vector<ge::NodePtr> &nodes_vec,
-                    std::vector<std::vector<ge::NodePtr>> &fusion_nodes) {
+void AddFusionNodes(std::vector<ge::NodePtr> &nodes_vec, std::vector<std::vector<ge::NodePtr>> &fusion_nodes) {
   if (!nodes_vec.empty()) {
     fusion_nodes.push_back(nodes_vec);
     nodes_vec.clear();
@@ -67,34 +66,32 @@ void SetFirstOrLastNodeAttr(const ge::OpDescPtr &src_op_desc, const ge::OpDescPt
 bool CheckTilingSinkForSK(const ge::Node &node, const bool is_tiling_sink) {
   bool is_superkernel_reuse_binary = false;
   (void)ge::AttrUtils::GetBool(node.GetOpDesc(), SPK_REUSED_BINARY, is_superkernel_reuse_binary);
-  FE_LOGD("Node[%s, %s] got attribute super_kernel_reuse_binary[%d].", node.GetNamePtr(), node.GetTypePtr(), is_superkernel_reuse_binary);
-  if(is_superkernel_reuse_binary && !is_tiling_sink) {
+  FE_LOGD("Node[%s, %s] got attribute super_kernel_reuse_binary[%d].", node.GetNamePtr(), node.GetTypePtr(),
+          is_superkernel_reuse_binary);
+  if (is_superkernel_reuse_binary && !is_tiling_sink) {
     return false;
   }
   return true;
 }
-}
+}  // namespace
 
 Status SuperkernelTaskBuilder::GenerateKernelTask(const ge::Node &node, const ge::RunContext &context,
                                                   std::vector<domi::TaskDef> &task_defs) {
   int64_t scope_id = 0;
   if (!ScopeAllocator::GetSkpScopeAttr(node.GetOpDesc(), scope_id)) {
-    FE_LOGE("Failed to get superkernel plus scope from node[%s, %s].",
-            node.GetName().c_str(), node.GetType().c_str());
+    FE_LOGE("Failed to get superkernel plus scope from node[%s, %s].", node.GetName().c_str(), node.GetType().c_str());
     return FAILED;
   }
   bool has_skp = false;
   if (ge::AttrUtils::GetBool(node.GetOpDesc(), kAttrHasDoneSkp, has_skp) && has_skp) {
-    FE_LOGD("Task has been generated for node[%s, %s].",
-            node.GetName().c_str(), node.GetType().c_str());
+    FE_LOGD("Task has been generated for node[%s, %s].", node.GetName().c_str(), node.GetType().c_str());
     return SUCCESS;
   }
-  FE_LOGD("Begin to generate superkernel task for node[%s, %s], scope id[%ld].",
-          node.GetName().c_str(), node.GetType().c_str(), scope_id);
+  FE_LOGD("Begin to generate superkernel task for node[%s, %s], scope id[%ld].", node.GetName().c_str(),
+          node.GetType().c_str(), scope_id);
   std::vector<std::vector<ge::NodePtr>> fusion_nodes;
   if (GetTaskFusionNodes(node, scope_id, fusion_nodes) != SUCCESS) {
-    FE_LOGE("Failed to get fusion nodes by node[%s, %s].",
-            node.GetName().c_str(), node.GetType().c_str());
+    FE_LOGE("Failed to get fusion nodes by node[%s, %s].", node.GetName().c_str(), node.GetType().c_str());
     return FAILED;
   }
 
@@ -212,19 +209,19 @@ Status SuperkernelTaskBuilder::SetTaskArgsAttr(const ge::NodePtr &node, TaskBuil
     domi::KernelDefWithHandle *kernel_def_with_handle = task_def.mutable_kernel_with_handle();
     FE_CHECK_NOTNULL(kernel_def_with_handle);
     uint32_t args_size = kernel_def_with_handle->args_size();
-    const void *args = reinterpret_cast<const void*>(kernel_def_with_handle->args().data());
+    const void *args = reinterpret_cast<const void *>(kernel_def_with_handle->args().data());
     FE_CHECK_NOTNULL(args);
     ConvertArgsToVec(args, args_size, task_args_vec);
   } else if (task_def.type() == static_cast<uint32_t>(ACL_RT_MODEL_TASK_KERNEL)) {
     domi::KernelDef *kernel_def = task_def.mutable_kernel();
     FE_CHECK_NOTNULL(kernel_def);
     uint32_t args_size = kernel_def->args_size();
-    const void *args = reinterpret_cast<const void*>(kernel_def->args().data());
+    const void *args = reinterpret_cast<const void *>(kernel_def->args().data());
     FE_CHECK_NOTNULL(args);
     ConvertArgsToVec(args, args_size, task_args_vec);
   } else {
-    FE_LOGE("The task type[%u] of node[%s, %s] is invalid.", task_def.type(),
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGE("The task type[%u] of node[%s, %s] is invalid.", task_def.type(), node->GetName().c_str(),
+            node->GetType().c_str());
     return FAILED;
   }
 
@@ -237,8 +234,7 @@ Status SuperkernelTaskBuilder::SetTaskArgsAttr(const ge::NodePtr &node, TaskBuil
 Status SuperkernelTaskBuilder::DoTaskFusion(const ScopeNodeIdMap &fusion_nodes_map,
                                             const std::map<int64_t, std::vector<domi::TaskDef>> &scope_task_defs_map,
                                             std::vector<domi::TaskDef> &task_defs) {
-  OpStoreAdapterPtr op_store_adapter =
-          OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
   CompileResultMap compile_ret_map;
   Status status = op_store_adapter->TaskFusion(fusion_nodes_map, compile_ret_map);
@@ -250,8 +246,8 @@ Status SuperkernelTaskBuilder::DoTaskFusion(const ScopeNodeIdMap &fusion_nodes_m
     ge::Node *first_node = nodes_pair.second[0];
     auto iter = compile_ret_map.find(nodes_pair.first);
     if (iter == compile_ret_map.end() || iter->second.empty()) {
-      FE_LOGE("Failed to find json file after task fusion for node[%s, %s].",
-              first_node->GetName().c_str(), first_node->GetType().c_str());
+      FE_LOGE("Failed to find json file after task fusion for node[%s, %s].", first_node->GetName().c_str(),
+              first_node->GetType().c_str());
       return FAILED;
     }
 
@@ -264,11 +260,11 @@ Status SuperkernelTaskBuilder::DoTaskFusion(const ScopeNodeIdMap &fusion_nodes_m
       (void)node->GetOpDesc()->DelAttr(ge::ATTR_NAME_TBE_KERNEL_NAME);
       (void)node->GetOpDesc()->DelExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL);
     }
-    FE_LOGD("Task fusion json file of node[%s, %s] is [%s]",
-            first_node->GetName().c_str(), first_node->GetType().c_str(), iter->second[0].json_file_path.c_str());
+    FE_LOGD("Task fusion json file of node[%s, %s] is [%s]", first_node->GetName().c_str(),
+            first_node->GetType().c_str(), iter->second[0].json_file_path.c_str());
     TbeJsonFileParsePtr parse_ptr = nullptr;
     FE_MAKE_SHARED(parse_ptr = std::make_shared<TbeJsonFileParse>(*first_node),
-            return fe::OP_COMPILER_MAKE_SHARED_FAILED);
+                   return fe::OP_COMPILER_MAKE_SHARED_FAILED);
     FE_CHECK_NOTNULL(parse_ptr);
     if (parse_ptr->PackageTvmJsonInfo(iter->second[0]) != SUCCESS) {
       FE_LOGE("PackageTvmJsonInfo failed for node[%s, %s].", first_node->GetName().c_str(),
@@ -278,8 +274,8 @@ Status SuperkernelTaskBuilder::DoTaskFusion(const ScopeNodeIdMap &fusion_nodes_m
 
     auto task_iter = scope_task_defs_map.find(nodes_pair.first);
     if (task_iter == scope_task_defs_map.end()) {
-      FE_LOGE("Failed to find task definition after task fusion for node[%s, %s].",
-              first_node->GetNamePtr(), first_node->GetTypePtr());
+      FE_LOGE("Failed to find task definition after task fusion for node[%s, %s].", first_node->GetNamePtr(),
+              first_node->GetTypePtr());
       return FAILED;
     }
 
@@ -301,8 +297,8 @@ Status SuperkernelTaskBuilder::FillupFusionTask(const ge::OpDescPtr &op_desc, do
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   FE_CHECK_NOTNULL(kernel_def);
   kernel_def->set_kernel_name(attr_val_kernel_name);
-  FE_LOGD("Set kernel_name[%s] for the kernel_def of node[%s, %s]",
-          attr_val_kernel_name.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  FE_LOGD("Set kernel_name[%s] for the kernel_def of node[%s, %s]", attr_val_kernel_name.c_str(),
+          op_desc->GetName().c_str(), op_desc->GetType().c_str());
   kernel_def->clear_args();
   kernel_def->clear_args_size();
   return SUCCESS;
@@ -319,8 +315,7 @@ bool IsHcclOp(const ge::NodePtr &node) {
 Status SuperkernelTaskBuilder::DoSubKernelCompile(ge::ComputeGraphPtr &sub_graph) {
   std::vector<ge::NodePtr> buff_fus_compile_failed_nodes;
   CompileInfoParam compile_info(buff_fus_compile_failed_nodes);
-  OpStoreAdapterPtr op_store_adapter =
-        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
   auto sub_nodes = sub_graph->GetAllNodes();
   FE_LOGI("Start DoSubKernelCompile, sub node size[%zu]", sub_nodes.size());
@@ -335,8 +330,8 @@ Status SuperkernelTaskBuilder::DoSubKernelCompile(ge::ComputeGraphPtr &sub_graph
     }
     int64_t imply_type = -1;
     if (!ge::AttrUtils::GetInt(sub_op_desc, FE_IMPLY_TYPE, imply_type)) {
-      FE_LOGD("Node[%s, %s] is not aicore op, imply_type[%ld], will be skipped.",
-              sub_node->GetNamePtr(), sub_node->GetTypePtr(), imply_type);
+      FE_LOGD("Node[%s, %s] is not aicore op, imply_type[%ld], will be skipped.", sub_node->GetNamePtr(),
+              sub_node->GetTypePtr(), imply_type);
       continue;
     }
     FE_LOGD("Node[%s, %s] need compile as sub kernel.", sub_node->GetNamePtr(), sub_node->GetTypePtr());
@@ -383,16 +378,17 @@ Status SuperkernelTaskBuilder::DoSubKernelCompile(ge::ComputeGraphPtr &sub_graph
     if (stored_workspaces.count(op_desc_ptr) > 0) {
       op_desc_ptr->SetWorkspaceBytes(stored_workspaces[op_desc_ptr]);
     }
-    if(stored_tvm_workspaces_types.count(op_desc_ptr) > 0) {
-        ge::AttrUtils::SetListInt(op_desc_ptr, ge::TVM_ATTR_NAME_WORKSPACE_TYPE, stored_tvm_workspaces_types[op_desc_ptr]);
+    if (stored_tvm_workspaces_types.count(op_desc_ptr) > 0) {
+      ge::AttrUtils::SetListInt(op_desc_ptr, ge::TVM_ATTR_NAME_WORKSPACE_TYPE,
+                                stored_tvm_workspaces_types[op_desc_ptr]);
     }
   }
   return SUCCESS;
 }
 
-Status SuperkernelTaskBuilder::DoSuperKernelCompile(const ge::Node &parent_node, const ScopeNodeIdMap &fusion_nodes_map) {
-  OpStoreAdapterPtr op_store_adapter =
-          OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+Status SuperkernelTaskBuilder::DoSuperKernelCompile(const ge::Node &parent_node,
+                                                    const ScopeNodeIdMap &fusion_nodes_map) {
+  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
   FE_LOGD("Start to DoSuperKernelCompile.");
   CompileResultMap compile_ret_map;
@@ -406,8 +402,8 @@ Status SuperkernelTaskBuilder::DoSuperKernelCompile(const ge::Node &parent_node,
   for (const std::pair<const int64_t, std::vector<ge::Node *>> &nodes_pair : fusion_nodes_map) {
     auto iter = compile_ret_map.find(nodes_pair.first);
     if (iter == compile_ret_map.end() || iter->second.empty()) {
-      FE_LOGE("Failed to find json file after task fusion for node[%s, %s].",
-              parent_node.GetName().c_str(), parent_node.GetType().c_str());
+      FE_LOGE("Failed to find json file after task fusion for node[%s, %s].", parent_node.GetName().c_str(),
+              parent_node.GetType().c_str());
       return FAILED;
     }
 
@@ -421,8 +417,8 @@ Status SuperkernelTaskBuilder::DoSuperKernelCompile(const ge::Node &parent_node,
       (void)node->GetOpDesc()->DelExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL);
     }
     GEEVENT("[FE] Begin to parse json file for sk %s.", parent_node.GetName().c_str());
-    FE_LOGD("Super kernel json file of node[%s, %s] is [%s].",
-            parent_node.GetName().c_str(), parent_node.GetType().c_str(), iter->second[0].json_file_path.c_str());
+    FE_LOGD("Super kernel json file of node[%s, %s] is [%s].", parent_node.GetName().c_str(),
+            parent_node.GetType().c_str(), iter->second[0].json_file_path.c_str());
     TbeJsonFileParsePtr parse_ptr = nullptr;
     ge::Node *parent_node_ptr = const_cast<ge::Node *>(&parent_node);
     FE_MAKE_SHARED(parse_ptr = std::make_shared<TbeJsonFileParse>(*parent_node_ptr), return FAILED);
@@ -471,14 +467,16 @@ Status GenerateSubKernelExtTask(const ge::Node &node, ge::RunContext &context, s
   bool is_tiling_sink = CheckTilingSink(node);
   // For it's designed that all those superkernel ops that has reused binary info must go to the tiling sink step,
   // So here add a block when sk op that has reused binary not going into the tiling sink.
-  if(!CheckTilingSinkForSK(node, is_tiling_sink)) {
-    FE_LOGE("SuperKernel node[%s, %s] that has reused binary is not going into the tiling sink procedure, SK procedure failed.",
-       node.GetNamePtr(), node.GetTypePtr());
+  if (!CheckTilingSinkForSK(node, is_tiling_sink)) {
+    FE_LOGE(
+        "SuperKernel node[%s, %s] that has reused binary is not going into the tiling sink procedure, SK procedure "
+        "failed.",
+        node.GetNamePtr(), node.GetTypePtr());
     return FAILED;
   }
   if (GenerateOpExtTask(node, is_tiling_sink, task_defs, reg_flag) != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][GenerateOpExtTask] Op[%s][%s] failed gen extra task.", 
-                    node.GetNamePtr(), node.GetTypePtr());
+    REPORT_FE_ERROR("[GenTask][GenerateOpExtTask] Op[%s][%s] failed gen extra task.", node.GetNamePtr(),
+                    node.GetTypePtr());
     return FAILED;
   }
   if (reg_flag) {
@@ -520,7 +518,8 @@ bool IsTilingSinkTask(std::vector<domi::TaskDef> &sub_tasks, const std::string &
 }
 
 Status SuperkernelTaskBuilder::GenerateSubKernelTask(const ge::ComputeGraphPtr &sub_graph, ge::RunContext &context,
-    std::vector<ge::Node *> &sub_nodes, std::vector<std::vector<domi::TaskDef>> &sub_tasks) {
+                                                     std::vector<ge::Node *> &sub_nodes,
+                                                     std::vector<std::vector<domi::TaskDef>> &sub_tasks) {
   TaskBuilderContext task_context;
   if (TaskBuilder::InitTaskContext(context, task_context) != SUCCESS) {
     REPORT_FE_ERROR("[GenSubTask] Failed to init context for superkernel.");
@@ -530,27 +529,29 @@ Status SuperkernelTaskBuilder::GenerateSubKernelTask(const ge::ComputeGraphPtr &
     std::vector<domi::TaskDef> tmp_tasks;
     int64_t imply_type = -1;
     if (ge::AttrUtils::GetInt(sub_node->GetOpDesc(), FE_IMPLY_TYPE, imply_type)) {
-      FE_LOGD("Node[%s, %s] is aicore op, imply_type[%ld], do aicore generate task.",
-              sub_node->GetNamePtr(), sub_node->GetTypePtr(), imply_type);
+      FE_LOGD("Node[%s, %s] is aicore op, imply_type[%ld], do aicore generate task.", sub_node->GetNamePtr(),
+              sub_node->GetTypePtr(), imply_type);
       GEEVENT("[FE] Begin to gentask for aicore node[%s, %s].", sub_node->GetNamePtr(), sub_node->GetTypePtr());
       if (TaskBuilder::GenerateKernelTask(*(sub_node.get()), task_context, tmp_tasks) != SUCCESS) {
-        REPORT_FE_ERROR("[GenSubTask] Op[%s, %s] failed to generate task.", sub_node->GetNamePtr(), sub_node->GetTypePtr());
+        REPORT_FE_ERROR("[GenSubTask] Op[%s, %s] failed to generate task.", sub_node->GetNamePtr(),
+                        sub_node->GetTypePtr());
         return FAILED;
       }
       GEEVENT("[FE] End to gentask for aicore node[%s, %s].", sub_node->GetNamePtr(), sub_node->GetTypePtr());
     } else if (!IsHcclOp(sub_node)) {
-      FE_LOGD("Node [%s, %s] is neither an aicore op nor an hccl op, skip aicore gentask.",
-              sub_node->GetNamePtr(), sub_node->GetTypePtr());
+      FE_LOGD("Node [%s, %s] is neither an aicore op nor an hccl op, skip aicore gentask.", sub_node->GetNamePtr(),
+              sub_node->GetTypePtr());
       continue;
     }
     if (GenerateSubKernelExtTask(*(sub_node.get()), context, tmp_tasks) != SUCCESS) {
-      REPORT_FE_ERROR("[GenSubTask] Op[%s, %s] failed to generate sub kernel ext task.", sub_node->GetNamePtr(), sub_node->GetTypePtr());
+      REPORT_FE_ERROR("[GenSubTask] Op[%s, %s] failed to generate sub kernel ext task.", sub_node->GetNamePtr(),
+                      sub_node->GetTypePtr());
       return FAILED;
     }
     std::string sub_arg_format;
     GetArgFormat(tmp_tasks, sub_arg_format);
-    FE_LOGI("Sub node[%s, %s] finish to gen sub tasks %zu, args_format %s.",
-            sub_node->GetNamePtr(), sub_node->GetTypePtr(), tmp_tasks.size(), sub_arg_format.c_str());
+    FE_LOGI("Sub node[%s, %s] finish to gen sub tasks %zu, args_format %s.", sub_node->GetNamePtr(),
+            sub_node->GetTypePtr(), tmp_tasks.size(), sub_arg_format.c_str());
     sub_tasks.emplace_back(tmp_tasks);
     sub_nodes.emplace_back(sub_node.get());
     if (IsTilingSinkTask(tmp_tasks, sub_arg_format)) {
@@ -561,16 +562,15 @@ Status SuperkernelTaskBuilder::GenerateSubKernelTask(const ge::ComputeGraphPtr &
   return SUCCESS;
 }
 
-Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node,
-  ge::RunContext &context, std::vector<domi::TaskDef> &tasks) {
+Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node, ge::RunContext &context,
+                                                       std::vector<domi::TaskDef> &tasks) {
   std::string soc_version = PlatformUtils::Instance().GetShortSocVersion();
   GEEVENT("[FE] Begin to compile and gentask for superkernel node[%s, %s].", node.GetNamePtr(), node.GetTypePtr());
-  FE_LOGI("Node[%s, %s] begin generate superkernel task for parentnode in soc version[%s].",
-          node.GetNamePtr(), node.GetTypePtr(), soc_version.c_str());
+  FE_LOGI("Node[%s, %s] begin generate superkernel task for parentnode in soc version[%s].", node.GetNamePtr(),
+          node.GetTypePtr(), soc_version.c_str());
   ge::ComputeGraphPtr sub_graph = nullptr;
   if (!GetSubGraphByNode(node, sub_graph)) {
-    FE_LOGE("Superkernel node[%s, %s] has no invalid subgraph.",
-            node.GetNamePtr(), node.GetTypePtr());
+    FE_LOGE("Superkernel node[%s, %s] has no invalid subgraph.", node.GetNamePtr(), node.GetTypePtr());
     return FAILED;
   }
   std::vector<ge::Node *> super_kernel_nodes;
@@ -580,15 +580,15 @@ Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node,
     int64_t imply_type = -1;
     auto op_desc = sub_node->GetOpDesc();
     if (!ge::AttrUtils::GetInt(op_desc, FE_IMPLY_TYPE, imply_type) && !IsHcclOp(sub_node)) {
-      FE_LOGD("[Node %s type %s] is not aicore op, imply_type[%ld], will be skipped.",
-        sub_node->GetName().c_str(), sub_node->GetType().c_str(), imply_type);
+      FE_LOGD("[Node %s type %s] is not aicore op, imply_type[%ld], will be skipped.", sub_node->GetName().c_str(),
+              sub_node->GetType().c_str(), imply_type);
       continue;
     }
     int64_t spk_scope = static_cast<int64_t>(GetAtomicId());
     (void)ge::AttrUtils::SetInt(op_desc, kAscendcSuperKernelScope, spk_scope);
     (void)ge::AttrUtils::SetInt(op_desc, kAscendcSuperKernelSubId, spk_id);
-    FE_LOGW("Node[%s, %s] set attr _ascendc_superkernel_scope[%ld] and _ascendc_sp_sub_id[%ld].",
-            op_desc->GetNamePtr(), op_desc->GetTypePtr(), spk_scope, spk_id);
+    FE_LOGW("Node[%s, %s] set attr _ascendc_superkernel_scope[%ld] and _ascendc_sp_sub_id[%ld].", op_desc->GetNamePtr(),
+            op_desc->GetTypePtr(), spk_scope, spk_id);
     super_kernel_nodes.emplace_back(sub_node.get());
     ++spk_id;
   }
@@ -598,8 +598,8 @@ Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node,
   }
   GEEVENT("[FE] Begin to compile sub node.");
   if (DoSubKernelCompile(sub_graph) != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][GenerateTask] Op[%s][%s] compile subkernel failed.",
-                    node.GetNamePtr(), node.GetTypePtr());
+    REPORT_FE_ERROR("[GenTask][GenerateTask] Op[%s][%s] compile subkernel failed.", node.GetNamePtr(),
+                    node.GetTypePtr());
     return FAILED;
   }
   GEEVENT("[FE] Finish to compile sub node.");
@@ -617,8 +617,8 @@ Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node,
   fusion_nodes_map.emplace(spk_scope, sub_nodes);
   GEEVENT("[FE] Begin to compile for sk node.");
   if (DoSuperKernelCompile(node, fusion_nodes_map) != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][GenerateTask] Op[%s][%s] compile superkernel failed.",
-                    node.GetNamePtr(), node.GetTypePtr());
+    REPORT_FE_ERROR("[GenTask][GenerateTask] Op[%s][%s] compile superkernel failed.", node.GetNamePtr(),
+                    node.GetTypePtr());
     return FAILED;
   }
   GEEVENT("[FE] End to compile for sk node, begin to gentask for sk node.");
@@ -631,4 +631,4 @@ Status SuperkernelTaskBuilder::GenerateSuperKernelTask(const ge::Node &node,
   GEEVENT("[FE] Finish to compile and gentask for superkernel node[%s, %s].", node.GetNamePtr(), node.GetTypePtr());
   return SUCCESS;
 }
-}
+}  // namespace fe

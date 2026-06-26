@@ -58,16 +58,15 @@ Status PropagateConstValueToPeers(const NodePtr &node, const GeTensor &weight) {
   for (const auto &out_anchor : node->GetAllOutDataAnchors()) {
     for (const auto &peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
       const auto peer_node = peer_in_anchor->GetOwnerNode();
-      auto peer_input_desc = peer_node->GetOpDesc()->MutableInputDesc(
-          static_cast<uint32_t>(peer_in_anchor->GetIdx()));
+      auto peer_input_desc = peer_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(peer_in_anchor->GetIdx()));
       if (peer_input_desc == nullptr) {
         continue;
       }
       GE_ASSERT_TRUE(AttrUtils::SetShareTensor(peer_input_desc, ATTR_NAME_VALUE, weight),
-                     "Failed to set ATTR_NAME_VALUE on node[%s][%s] input[%d]",
-                     peer_node->GetNamePtr(), peer_node->GetTypePtr(), peer_in_anchor->GetIdx());
-      GELOGI("Set ATTR_NAME_VALUE on node[%s][%s] input[%d] for value-dependent infershape",
-             peer_node->GetNamePtr(), peer_node->GetTypePtr(), peer_in_anchor->GetIdx());
+                     "Failed to set ATTR_NAME_VALUE on node[%s][%s] input[%d]", peer_node->GetNamePtr(),
+                     peer_node->GetTypePtr(), peer_in_anchor->GetIdx());
+      GELOGI("Set ATTR_NAME_VALUE on node[%s][%s] input[%d] for value-dependent infershape", peer_node->GetNamePtr(),
+             peer_node->GetTypePtr(), peer_in_anchor->GetIdx());
     }
   }
   return SUCCESS;
@@ -81,11 +80,10 @@ Status RefreshReplacementInputDescs(ComputeGraphPtr &compute_graph,
       continue;
     }
     int64_t input_index = 0;
-    GE_ASSERT_TRUE(IsGraphInput(node, input_index),
-                   "Data node[%s][%s] missing index attr", node->GetNamePtr(), node->GetTypePtr());
+    GE_ASSERT_TRUE(IsGraphInput(node, input_index), "Data node[%s][%s] missing index attr", node->GetNamePtr(),
+                   node->GetTypePtr());
     const auto iter = index_2_input_desc.find(input_index);
-    GE_ASSERT_TRUE(iter != index_2_input_desc.cend(),
-                   "Data node[%s][%s] index[%ld] not found in boundary inputs",
+    GE_ASSERT_TRUE(iter != index_2_input_desc.cend(), "Data node[%s][%s] index[%ld] not found in boundary inputs",
                    node->GetNamePtr(), node->GetTypePtr(), input_index);
     const auto &tensor_desc = iter->second;
     auto input_desc = node->GetOpDesc()->MutableInputDesc(0U);
@@ -94,11 +92,9 @@ Status RefreshReplacementInputDescs(ComputeGraphPtr &compute_graph,
     GE_ASSERT_NOTNULL(output_desc);
     CopyTensorDescMeta(tensor_desc, input_desc);
     CopyTensorDescMeta(tensor_desc, output_desc);
-    GELOGI("Update replacement Data node[%s][%s] index[%ld]: shape[%s] dtype[%d] format[%d]",
-           node->GetNamePtr(), node->GetTypePtr(), input_index,
-           tensor_desc.GetShape().ToString().c_str(),
-           static_cast<int32_t>(tensor_desc.GetDataType()),
-           static_cast<int32_t>(tensor_desc.GetFormat()));
+    GELOGI("Update replacement Data node[%s][%s] index[%ld]: shape[%s] dtype[%d] format[%d]", node->GetNamePtr(),
+           node->GetTypePtr(), input_index, tensor_desc.GetShape().ToString().c_str(),
+           static_cast<int32_t>(tensor_desc.GetDataType()), static_cast<int32_t>(tensor_desc.GetFormat()));
 
     const auto weight_iter = index_2_const_weight.find(input_index);
     if (weight_iter == index_2_const_weight.cend() || weight_iter->second == nullptr) {
@@ -131,11 +127,9 @@ Status InferShapeUtil::InferShape(const Graph &replacement_graph, const Subgraph
     GE_ASSERT_NOTNULL(producer_anchor, "Boundary input[%ld] has no tensor producer", i);
     const auto producer_node = producer_anchor->GetOwnerNode();
     GE_ASSERT_NOTNULL(producer_node);
-    index_2_input_desc[i] = producer_node->GetOpDesc()->GetOutputDesc(
-        static_cast<uint32_t>(producer_anchor->GetIdx()));
+    index_2_input_desc[i] = producer_node->GetOpDesc()->GetOutputDesc(static_cast<uint32_t>(producer_anchor->GetIdx()));
     Operator boundary_op = OpDescUtils::CreateOperatorFromNode(node_ptr);
-    const auto weight = OpDescUtils::GetInputConstData(
-        boundary_op, static_cast<uint32_t>(node_inputs[0U].index));
+    const auto weight = OpDescUtils::GetInputConstData(boundary_op, static_cast<uint32_t>(node_inputs[0U].index));
     if (weight != nullptr) {
       index_2_const_weight[i] = weight;
     }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,15 +30,15 @@
 using namespace testing;
 
 namespace ge {
-bool EnableSliceSchedule() { // 桩函数
+bool EnableSliceSchedule() {  // 桩函数
   return true;
 }
 class RuntimeMock : public RuntimeStub {
-public:
-  rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint32_t maxLen) override {
+ public:
+  rtError_t rtGetSocSpec(const char *label, const char *key, char *val, const uint32_t maxLen) override {
     (void)label;
     (void)key;
-    (void)strcpy_s(val, maxLen, "fake"); // 用例不应该走自动融合
+    (void)strcpy_s(val, maxLen, "fake");  // 用例不应该走自动融合
     return RT_ERROR_NONE;
   }
 };
@@ -48,7 +48,7 @@ class UserGraphsManagerlUT : public testing::Test {
   void SetUp() override {
     CommonSetupUtil::CommonSetup();
     gert_stub_.GetKernelStub().StubTiling();
-    RuntimeStub::Install(nullptr); // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
+    RuntimeStub::Install(nullptr);  // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
     AclRuntimeStub::Install(nullptr);
     RuntimeStub::SetInstance(std::make_shared<RuntimeMock>());
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
@@ -205,7 +205,7 @@ TEST_F(UserGraphsManagerlUT, IsGraphNeedRebuild_False) {
   EXPECT_FALSE(user_graph_manager.IsGraphNeedRebuild(user_graph_id));
 
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
-  
+
   // graph is not exist, need rebuild
   EXPECT_TRUE(user_graph_manager.IsGraphNeedRebuild(user_graph_id));
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
@@ -235,9 +235,10 @@ TEST_F(UserGraphsManagerlUT, ExecuteGraphWithStreamAsync_Success) {
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0), SUCCESS);
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -262,10 +263,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -290,9 +291,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}}, {}, {}, {}, nullptr};
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0), SUCCESS);
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -305,7 +307,8 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
-TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_success_when_input_static_graph_contain_partition) {
+TEST_F(UserGraphsManagerlUT,
+       return_compile_load_summary_not_null_execute_success_when_input_static_graph_contain_partition) {
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);
   GraphManager graph_manager;
@@ -319,9 +322,9 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
   const std::map<std::string, std::string> options = {{ge::INPUT_HINT_SHAPE, "0:[2,3,4,5]; 1:[4]"}};
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -343,20 +346,22 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   std::vector<int64_t> input_data_2{1, 2, 3, 4, 0, 0, 0, 0};
   gert_inputs[1] = {{{4}, {4}},                                  // shape
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT64,                                // data type
-                    (void *) input_data_2.data()};
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0), SUCCESS);
+                    (void *)input_data_2.data()};
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
   gert_outputs.clear();
   gert_outputs.resize(1);
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0), SUCCESS); // hint guard no compile
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, nullptr, gert_inputs, gert_outputs, 0),
+            SUCCESS);  // hint guard no compile
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -381,9 +386,9 @@ TEST_F(UserGraphsManagerlUT, return_load_fail_when_input_static_graph_not_partit
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_EQ(summary, nullptr);
@@ -410,9 +415,9 @@ TEST_F(UserGraphsManagerlUT, return_load_succ_when_input_dynamic_graph_partition
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_EQ(summary, nullptr);
@@ -427,7 +432,8 @@ TEST_F(UserGraphsManagerlUT, return_load_succ_when_input_dynamic_graph_partition
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
-TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_success_when_input_static_graph_contain_partition_extern_stream) {
+TEST_F(UserGraphsManagerlUT,
+       return_compile_load_summary_not_null_execute_success_when_input_static_graph_contain_partition_extern_stream) {
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);
   GraphManager graph_manager;
@@ -443,9 +449,9 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
   const std::map<std::string, std::string> options;
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -467,20 +473,22 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   std::vector<int64_t> input_data_2{1, 2, 3, 4, 0, 0, 0, 0};
   gert_inputs[1] = {{{4}, {4}},                                  // shape
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT64,                                // data type
-                    (void *) input_data_2.data()};
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0), SUCCESS);
+                    (void *)input_data_2.data()};
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
   gert_outputs.clear();
   gert_outputs.resize(1);
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0), SUCCESS); // hint guard no compile
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0),
+            SUCCESS);  // hint guard no compile
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -494,7 +502,8 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_not_null_execute_succes
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
-TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_input_static_graph_not_partition_extern_stream) {
+TEST_F(UserGraphsManagerlUT,
+       return_compile_load_summary_execute_success_when_input_static_graph_not_partition_extern_stream) {
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);
   GraphManager graph_manager;
@@ -508,10 +517,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -536,9 +545,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}}, {}, {}, {}, nullptr};
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0), SUCCESS);
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -552,7 +562,9 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
-TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_input_static_graph_not_partition_extern_stream_external_output) {
+TEST_F(
+    UserGraphsManagerlUT,
+    return_compile_load_summary_execute_success_when_input_static_graph_not_partition_extern_stream_external_output) {
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);
   GraphManager graph_manager;
@@ -569,10 +581,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   compute_graph->SetGraphOutNodesInfo(output_nodes);
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -597,15 +609,16 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   std::vector<uint8_t> output_data_1(96, 0xFF);
   gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                     gert::kOnDeviceHbm,                                // placement
-                     ge::DT_INT32,                              // data type
-                     (void *) output_data_1.data()};
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_1.data()};
   EXPECT_EQ(gert_outputs.size(), 1);
-  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0), SUCCESS);
+  EXPECT_EQ(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0),
+            SUCCESS);
   EXPECT_EQ(gert_outputs.size(), 1);
   EXPECT_EQ(gert_outputs[0].GetOriginShape(), gert::Shape({1, 2, 3, 4}));
 
@@ -620,7 +633,8 @@ TEST_F(UserGraphsManagerlUT, return_compile_load_summary_execute_success_when_in
   dlog_setlevel(GE_MODULE_NAME, 3, 1);
 }
 
-TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_static_graph_not_partition_extern_stream) {
+TEST_F(UserGraphsManagerlUT,
+       return_compile_summary_execute_success_when_input_static_graph_not_partition_extern_stream) {
   ModelExecutor model_executor;
   model_executor.Initialize({}, 0);
   GraphManager graph_manager;
@@ -634,10 +648,10 @@ TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_s
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
   const std::map<std::string, std::string> options;
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
-  
+
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(user_graph_manager.CompileGraph(user_graph_id, 0, {}), SUCCESS);
-  
+
   CompiledGraphSummaryPtr summary;
   EXPECT_EQ(user_graph_manager.GetCompiledGraphSummary(user_graph_id, summary), SUCCESS);
   EXPECT_NE(summary, nullptr);
@@ -659,10 +673,11 @@ TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_s
                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                     gert::kOnDeviceHbm,                          // placement
                     ge::DT_INT32,                                // data type
-                    (void *) input_data_1.data()};
+                    (void *)input_data_1.data()};
   gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}}, {}, {}, {}, nullptr};
-  EXPECT_NE(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0), SUCCESS); // 未load报错
- 
+  EXPECT_NE(user_graph_manager.ExecuteGraphWithStreamAsync(user_graph_id, new_stream, gert_inputs, gert_outputs, 0),
+            SUCCESS);  // 未load报错
+
   gert_inputs.clear();
   gert_outputs.clear();
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
@@ -674,7 +689,7 @@ TEST_F(UserGraphsManagerlUT, return_compile_summary_execute_success_when_input_s
 }
 
 TEST_F(UserGraphsManagerlUT, set_memory_skip_by_slice_scheduler_enable) {
-  mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v2=true", 1); // 开启自动融合
+  mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v2=true", 1);  // 开启自动融合
   uint32_t graph_id = 1;
   std::map<AscendString, AscendString> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
@@ -682,15 +697,15 @@ TEST_F(UserGraphsManagerlUT, set_memory_skip_by_slice_scheduler_enable) {
   dlog_setlevel(GE_MODULE_NAME, 0, 1);
   EXPECT_EQ(UNSUPPORTED, session.SetGraphConstMemoryBase(graph_id, nullptr, 0));
   EXPECT_EQ(UNSUPPORTED, session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0));
-  EXPECT_EQ(UNSUPPORTED, session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0));
+  EXPECT_EQ(UNSUPPORTED,
+            session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0));
   EXPECT_EQ(UNSUPPORTED, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0));
 
   std::vector<std::string> expect_log_list = {
-    "SetGraphConstMemoryBase does not support the slice scheduler currently",
-    "UpdateGraphFeatureMemoryBase does not support the slice scheduler currently",
-    "SetGraphFixedFeatureMemoryBaseWithType does not support the slice scheduler currently",
-    "UpdateGraphRefreshableFeatureMemoryBase does not support the slice scheduler currently"
-  };
+      "SetGraphConstMemoryBase does not support the slice scheduler currently",
+      "UpdateGraphFeatureMemoryBase does not support the slice scheduler currently",
+      "SetGraphFixedFeatureMemoryBaseWithType does not support the slice scheduler currently",
+      "UpdateGraphRefreshableFeatureMemoryBase does not support the slice scheduler currently"};
   for (auto &it : expect_log_list) {
     EXPECT_NE(gert_stub_.GetSlogStub().FindLog(-1, it.c_str()), -1);
   }
@@ -719,7 +734,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_dynamic_batch) {
   options["ge.dynamicDims"] = "1,1,1;2,2,2;3,3,3";
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
   aclrtDestroyStream(new_stream);
@@ -745,7 +760,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_aoe_mode) {
   options["ge.buildMode"] = "tuning";
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
   aclrtDestroyStream(new_stream);
@@ -766,7 +781,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_unsupported_op) {
   uint32_t user_graph_id = 2u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
-  
+
   // 添加不支持算子（Switch）到图中
   auto switch_op = std::make_shared<OpDesc>("switch_node", "Switch");
   GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), FORMAT_ND, DT_FLOAT);
@@ -775,12 +790,12 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_unsupported_op) {
   switch_op->AddOutputDesc(input_desc);
   switch_op->AddOutputDesc(input_desc);
   compute_graph->AddNode(switch_op);
-  
+
   std::map<std::string, std::string> options;
   // 包含不支持算子 - 不支持 slice schedule，降级到传统模式
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
   aclrtDestroyStream(new_stream);
@@ -801,7 +816,7 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_resource_op) {
   uint32_t user_graph_id = 3u;
   auto graph = JitShareGraph::AllNormalNodes({1, 2, 3, 4});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
-  
+
   // 添加资源算子（输出类型为 DT_RESOURCE）到图中
   auto resource_op = std::make_shared<OpDesc>("resource_node", "ResourceOp");
   GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), FORMAT_ND, DT_FLOAT);
@@ -810,12 +825,12 @@ TEST_F(UserGraphsManagerlUT, graph_skip_slice_schedule_resource_op) {
   resource_op->AddInputDesc(input_desc);
   resource_op->AddOutputDesc(output_desc);
   compute_graph->AddNode(resource_op);
-  
+
   std::map<std::string, std::string> options;
   // 包含资源算子 - 不支持 slice schedule，降级到传统模式
   EXPECT_EQ(user_graph_manager.AddGraph(user_graph_id, *graph, options), SUCCESS);
   EXPECT_EQ(user_graph_manager.RemoveGraph(user_graph_id), SUCCESS);
-  
+
   EXPECT_EQ(user_graph_manager.Finalize(), SUCCESS);
   EXPECT_EQ(graph_manager.Finalize(), SUCCESS);
   aclrtDestroyStream(new_stream);
@@ -947,10 +962,13 @@ TEST_F(UserGraphsManagerlUT, add_graph_verify_multi_ep_options_seperation) {
   std::vector<float> data0(2 * 3 * 3 * 2, 0.0f);
   std::vector<int64_t> shape_data{2, 3, 3, 2};
   std::vector<gert::Tensor> inputs(2);
-  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-               gert::kOnDeviceHbm, ge::DT_FLOAT, data0.data()};
-  inputs[1] = {{{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-               gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
+  inputs[0] = {{{2, 3, 3, 2}, {2, 3, 3, 2}},
+               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+               gert::kOnDeviceHbm,
+               ge::DT_FLOAT,
+               data0.data()};
+  inputs[1] = {
+      {{4}, {4}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, gert::kOnDeviceHbm, ge::DT_INT64, shape_data.data()};
 
   std::promise<Status> promise;
   auto future = promise.get_future();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,17 +57,17 @@ struct ReuseNode {
 
   std::string ToString() {
     std::stringstream ss;
-    ss << "Node:" << name <<" type:" << mem_type << " index:" << index << " offset:" << offset <<" size:"<<size;
+    ss << "Node:" << name << " type:" << mem_type << " index:" << index << " offset:" << offset << " size:" << size;
     return ss.str();
   }
 };
-}
+}  // namespace
 
 class UtestMemoryAssignerTest : public testing::Test {
  public:
-  ge::OpDescPtr CreateOpWithWsSize(const string &name, int64_t wsByte, const string &type = "some",
-                                   int64_t size = 1024, std::vector<int64_t> shape = {1, 1, 16, 8},
-                                   Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT) {
+  ge::OpDescPtr CreateOpWithWsSize(const string &name, int64_t wsByte, const string &type = "some", int64_t size = 1024,
+                                   std::vector<int64_t> shape = {1, 1, 16, 8}, Format format = FORMAT_NCHW,
+                                   DataType data_type = DT_FLOAT) {
     ge::OpDescPtr op_def = std::make_shared<ge::OpDesc>(name, type);
     auto desc_temp_ptr = std::make_shared<ge::GeTensorDesc>();
     desc_temp_ptr->SetShape(GeShape(shape));
@@ -129,10 +129,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     return MemReuseUtils::GetStreamId(call_desc.get());
   }
 
-  void SetTensorSize(const GeShape &shape,
-                     const Format format,
-                     const DataType data_type,
-                     GeTensorDesc &tensor_desc) {
+  void SetTensorSize(const GeShape &shape, const Format format, const DataType data_type, GeTensorDesc &tensor_desc) {
     int64_t tensor_size = 0;
     TensorUtils::CalcTensorMemSize(shape, format, data_type, tensor_size);
     TensorUtils::SetSize(tensor_desc, tensor_size);
@@ -362,7 +359,8 @@ class UtestMemoryAssignerTest : public testing::Test {
    *           f:1
    *  b and f可能并发执行，f不能复用b，而b和c使用统一块内存，所以f不能复用c
    */
-  void MakeDiffStreamSameOutGraphWithNoPaddingContinousInput(ge::ComputeGraphPtr &graph, const string &type = "some", bool d_before_f = false) {
+  void MakeDiffStreamSameOutGraphWithNoPaddingContinousInput(ge::ComputeGraphPtr &graph, const string &type = "some",
+                                                             bool d_before_f = false) {
     ge::OpDescPtr op_def_a = CreateOpWithWsSize("A", 0, type, 2048);
     op_def_a->SetStreamId(1);
     ge::OpDescPtr op_def_b = CreateOpWithWsSize("B", 0, type, 2048);
@@ -511,7 +509,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
     ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_d->GetInDataAnchor(0));
     ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_d->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(node_a->GetOutControlAnchor(), node_c->GetInControlAnchor() );
+    ge::GraphUtils::AddEdge(node_a->GetOutControlAnchor(), node_c->GetInControlAnchor());
 
     graph->TopologicalSorting();
   }
@@ -582,7 +580,6 @@ class UtestMemoryAssignerTest : public testing::Test {
 
     graph->TopologicalSorting();
   }
-
 
   /**     a:1
    *    |       \
@@ -829,7 +826,6 @@ class UtestMemoryAssignerTest : public testing::Test {
     ge::OpDescPtr op_def_j = CreateOpWithWsSize("J", 1024, type, 2048);
     op_def_j->SetStreamId(1);
 
-
     // add node
     ge::NodePtr node_a = graph->AddNode(op_def_a);
     ge::NodePtr node_b = graph->AddNode(op_def_b);
@@ -1039,7 +1035,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     graph->TopologicalSorting();
   }
 
-  void MakeDiffStreamRefMemGraph(ge::ComputeGraphPtr &graph, const string &type = "some", bool diff_stream=true) {
+  void MakeDiffStreamRefMemGraph(ge::ComputeGraphPtr &graph, const string &type = "some", bool diff_stream = true) {
     auto desc_temp_ptr = std::make_shared<ge::GeTensorDesc>();
     auto desc_temp = *desc_temp_ptr;
     TensorUtils::SetSize(desc_temp, 2048);
@@ -1236,7 +1232,6 @@ class UtestMemoryAssignerTest : public testing::Test {
       (void)ge::AttrUtils::SetListInt(op_def_d, ATOMIC_ATTR_INPUT_INDEX, input_indexes);
     }
 
-
     ge::OpDescPtr op_def_e = CreateOpWithWsSize("E", 1024, type, 2048);
     int64_t stream_id = diff_stream ? 0 : 1;
     op_def_e->SetStreamId(stream_id);
@@ -1268,7 +1263,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     // add edge
     ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
     ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
-    if (muti_ref){
+    if (muti_ref) {
       if (!is_first_input_muti_ref) {
         ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_f->GetInDataAnchor(1));
       } else {
@@ -1370,7 +1365,6 @@ class UtestMemoryAssignerTest : public testing::Test {
     ge::AttrUtils::SetListInt(concat1->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, {200});
     ge::AttrUtils::SetListInt(concat2->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, {300});
 
-
     builder.AddDataEdge(data, 0, addn1, 0);
     builder.AddDataEdge(data, 0, addn2, 0);
     builder.AddDataEdge(addn1, 0, concat1, 0);
@@ -1385,8 +1379,8 @@ class UtestMemoryAssignerTest : public testing::Test {
     ge::ut::GraphBuilder builder("graph");
     auto var_input = builder.AddNode("var", "Variable", 1, 1);
     auto const_input = builder.AddNode("const", "Const", 1, 1);
-    auto assign = builder.AddNode("assgin", "Assign", 2, 1);
-     // add link
+    auto assign = builder.AddNode("assign", "Assign", 2, 1);
+    // add link
     builder.AddDataEdge(var_input, 0, assign, 0);
     builder.AddDataEdge(const_input, 0, assign, 1);
     // set offset
@@ -1422,7 +1416,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     addn1->GetOpDesc()->SetOutputOffset(output_list);
 
     auto addn2_output_desc = addn2->GetOpDesc()->GetOutputDesc(0);
-    //8*3*224*224*3
+    // 8*3*224*224*3
     int64_t addn2_output_size = 4816896;
     ge::TensorUtils::SetSize(addn2_output_desc, addn2_output_size);
     addn2->GetOpDesc()->UpdateOutputDesc(0, addn2_output_desc);
@@ -1435,8 +1429,8 @@ class UtestMemoryAssignerTest : public testing::Test {
     builder.AddDataEdge(merge, 0, netouput, 0);
 
     vector<int> atomic_output_index = {0};
-    (void) ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
-    (void) ge::AttrUtils::SetListInt(addn1->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+    (void)ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
+    (void)ge::AttrUtils::SetListInt(addn1->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
     auto atomic_clean = builder.AddNode("atomic_clean", "AtomicAddrClean", 0, 0);
     builder.AddControlEdge(atomic_clean, addn1);
     auto graph = builder.GetGraph();
@@ -1463,7 +1457,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     addn1->GetOpDesc()->SetOutputOffset(output_list);
 
     auto addn2_output_desc = addn2->GetOpDesc()->GetOutputDesc(0);
-    //8*3*224*224*3
+    // 8*3*224*224*3
     int64_t addn2_output_size = 4816896;
     ge::TensorUtils::SetSize(addn2_output_desc, addn2_output_size);
     addn2->GetOpDesc()->UpdateOutputDesc(0, addn2_output_desc);
@@ -1476,9 +1470,9 @@ class UtestMemoryAssignerTest : public testing::Test {
     builder.AddDataEdge(merge, 0, netouput, 0);
 
     vector<int> atomic_output_index = {0};
-    (void) ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
-    (void) ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATTR_NAME_REFERENCE, true);
-    (void) ge::AttrUtils::SetListInt(addn1->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+    (void)ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
+    (void)ge::AttrUtils::SetBool(addn1->GetOpDesc(), ATTR_NAME_REFERENCE, true);
+    (void)ge::AttrUtils::SetListInt(addn1->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
     auto atomic_clean = builder.AddNode("atomic_clean", "AtomicAddrClean", 0, 0);
     builder.AddControlEdge(atomic_clean, addn1);
     auto graph = builder.GetGraph();
@@ -1501,10 +1495,10 @@ class UtestMemoryAssignerTest : public testing::Test {
     workspace_bytes.push_back(1024);
     workspace_bytes.push_back(512);
     op_def_c->SetWorkspaceBytes(workspace_bytes);
-    vector<int32_t> workspace_no_reuse_scope = { 0 , 1 };
+    vector<int32_t> workspace_no_reuse_scope = {0, 1};
     (void)ge::AttrUtils::SetListInt(op_def_c, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
 
-    vector<int32_t> workspace_no_reuse_scope_e = { 1 };
+    vector<int32_t> workspace_no_reuse_scope_e = {1};
     (void)ge::AttrUtils::SetListInt(op_def_e, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope_e);
 
     ge::NodePtr node_a = graph->AddNode(op_def_a);
@@ -1524,7 +1518,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     graph->TopologicalSorting();
   }
 
- void MakeContinuousReuseGraph(ge::ComputeGraphPtr graph, bool nopading = false) {
+  void MakeContinuousReuseGraph(ge::ComputeGraphPtr graph, bool nopading = false) {
     ge::OpDescPtr op_def_a = CreateOpWithWsSize("A", 512);
     ge::OpDescPtr op_def_b = CreateOpWithWsSize("B", 0);
     ge::OpDescPtr op_def_c = CreateOpWithWsSize("C", 512);
@@ -1564,7 +1558,7 @@ class UtestMemoryAssignerTest : public testing::Test {
     graph->TopologicalSorting();
   }
 
-void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
+  void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     ge::OpDescPtr op_def_a = CreateOpWithWsSize("A", 512);
     ge::OpDescPtr op_def_b = CreateOpWithWsSize("B", 0);
     ge::OpDescPtr op_def_c = CreateOpWithWsSize("C", 512);
@@ -1622,37 +1616,37 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     op_def_f1->AddInputDesc(desc_temp);
     op_def_f2->AddInputDesc(desc_temp);
 
-    (void) ge::AttrUtils::SetBool(op_def_f, ATTR_NAME_CONTINUOUS_OUTPUT, true);
-    (void) ge::AttrUtils::SetBool(op_def_f1, ATTR_NAME_CONTINUOUS_OUTPUT, true);
-    (void) ge::AttrUtils::SetBool(op_def_f2, ATTR_NAME_CONTINUOUS_OUTPUT, true);
-    (void) ge::AttrUtils::SetListInt(op_def_f, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
-    (void) ge::AttrUtils::SetListInt(op_def_f1, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
-    (void) ge::AttrUtils::SetListInt(op_def_f2, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
+    (void)ge::AttrUtils::SetBool(op_def_f, ATTR_NAME_CONTINUOUS_OUTPUT, true);
+    (void)ge::AttrUtils::SetBool(op_def_f1, ATTR_NAME_CONTINUOUS_OUTPUT, true);
+    (void)ge::AttrUtils::SetBool(op_def_f2, ATTR_NAME_CONTINUOUS_OUTPUT, true);
+    (void)ge::AttrUtils::SetListInt(op_def_f, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
+    (void)ge::AttrUtils::SetListInt(op_def_f1, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
+    (void)ge::AttrUtils::SetListInt(op_def_f2, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_P2P_DDR});
     if (continuous) {
-      (void) ge::AttrUtils::SetBool(op_def_f, ATTR_NAME_CONTINUOUS_INPUT, true);
-      (void) ge::AttrUtils::SetBool(op_def_f1, ATTR_NAME_CONTINUOUS_INPUT, true);
-      (void) ge::AttrUtils::SetBool(op_def_f2, ATTR_NAME_CONTINUOUS_INPUT, true);
+      (void)ge::AttrUtils::SetBool(op_def_f, ATTR_NAME_CONTINUOUS_INPUT, true);
+      (void)ge::AttrUtils::SetBool(op_def_f1, ATTR_NAME_CONTINUOUS_INPUT, true);
+      (void)ge::AttrUtils::SetBool(op_def_f2, ATTR_NAME_CONTINUOUS_INPUT, true);
     }
 
-   (void)ge::AttrUtils::SetStr(op_def_b, ATTR_NAME_BATCH_LABEL, "Batch_0");
-   (void)ge::AttrUtils::SetStr(op_def_c, ATTR_NAME_BATCH_LABEL, "Batch_0");
-   (void)ge::AttrUtils::SetStr(op_def_d, ATTR_NAME_BATCH_LABEL, "Batch_0");
-   (void)ge::AttrUtils::SetStr(op_def_e, ATTR_NAME_BATCH_LABEL, "Batch_0");
-   (void)ge::AttrUtils::SetStr(op_def_f, ATTR_NAME_BATCH_LABEL, "Batch_0");
-   (void)ge::AttrUtils::SetStr(op_def_b1, ATTR_NAME_BATCH_LABEL, "Batch_1");
-   (void)ge::AttrUtils::SetStr(op_def_c1, ATTR_NAME_BATCH_LABEL, "Batch_1");
-   (void)ge::AttrUtils::SetStr(op_def_d1, ATTR_NAME_BATCH_LABEL, "Batch_1");
-   (void)ge::AttrUtils::SetStr(op_def_e1, ATTR_NAME_BATCH_LABEL, "Batch_1");
-   (void)ge::AttrUtils::SetStr(op_def_f1, ATTR_NAME_BATCH_LABEL, "Batch_1");
-   (void)ge::AttrUtils::SetStr(op_def_b2, ATTR_NAME_BATCH_LABEL, "Batch_2");
-   (void)ge::AttrUtils::SetStr(op_def_c2, ATTR_NAME_BATCH_LABEL, "Batch_2");
-   (void)ge::AttrUtils::SetStr(op_def_d2, ATTR_NAME_BATCH_LABEL, "Batch_2");
-   (void)ge::AttrUtils::SetStr(op_def_e2, ATTR_NAME_BATCH_LABEL, "Batch_2");
-   (void)ge::AttrUtils::SetStr(op_def_f2, ATTR_NAME_BATCH_LABEL, "Batch_2");
-   vector<int32_t> workspace_no_reuse_scope = { 1 };
-   (void)ge::AttrUtils::SetListInt(op_def_c, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
-   (void)ge::AttrUtils::SetListInt(op_def_c1, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
-   (void)ge::AttrUtils::SetListInt(op_def_c2, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
+    (void)ge::AttrUtils::SetStr(op_def_b, ATTR_NAME_BATCH_LABEL, "Batch_0");
+    (void)ge::AttrUtils::SetStr(op_def_c, ATTR_NAME_BATCH_LABEL, "Batch_0");
+    (void)ge::AttrUtils::SetStr(op_def_d, ATTR_NAME_BATCH_LABEL, "Batch_0");
+    (void)ge::AttrUtils::SetStr(op_def_e, ATTR_NAME_BATCH_LABEL, "Batch_0");
+    (void)ge::AttrUtils::SetStr(op_def_f, ATTR_NAME_BATCH_LABEL, "Batch_0");
+    (void)ge::AttrUtils::SetStr(op_def_b1, ATTR_NAME_BATCH_LABEL, "Batch_1");
+    (void)ge::AttrUtils::SetStr(op_def_c1, ATTR_NAME_BATCH_LABEL, "Batch_1");
+    (void)ge::AttrUtils::SetStr(op_def_d1, ATTR_NAME_BATCH_LABEL, "Batch_1");
+    (void)ge::AttrUtils::SetStr(op_def_e1, ATTR_NAME_BATCH_LABEL, "Batch_1");
+    (void)ge::AttrUtils::SetStr(op_def_f1, ATTR_NAME_BATCH_LABEL, "Batch_1");
+    (void)ge::AttrUtils::SetStr(op_def_b2, ATTR_NAME_BATCH_LABEL, "Batch_2");
+    (void)ge::AttrUtils::SetStr(op_def_c2, ATTR_NAME_BATCH_LABEL, "Batch_2");
+    (void)ge::AttrUtils::SetStr(op_def_d2, ATTR_NAME_BATCH_LABEL, "Batch_2");
+    (void)ge::AttrUtils::SetStr(op_def_e2, ATTR_NAME_BATCH_LABEL, "Batch_2");
+    (void)ge::AttrUtils::SetStr(op_def_f2, ATTR_NAME_BATCH_LABEL, "Batch_2");
+    vector<int32_t> workspace_no_reuse_scope = {1};
+    (void)ge::AttrUtils::SetListInt(op_def_c, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
+    (void)ge::AttrUtils::SetListInt(op_def_c1, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
+    (void)ge::AttrUtils::SetListInt(op_def_c2, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
 
     ge::NodePtr node_a = graph->AddNode(op_def_a);
     ge::NodePtr node_b = graph->AddNode(op_def_b);
@@ -1751,7 +1745,6 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     op_def_o->SetStreamId(2);
     op_def_o->AddInputDesc(desc_temp);
     op_def_o->AddInputDesc(desc_temp);
-
 
     // add node
     ge::NodePtr node_a = graph->AddNode(op_def_a);
@@ -2045,17 +2038,17 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
   bool Match(const MemoryBlock *const block, const ReuseNode &reuse_node) {
     if (block != nullptr) {
       for (const auto &node : block->node_type_index_list_) {
-        if ((reuse_node.name == node.node_->GetName()) && (node.mem_type_ == reuse_node.mem_type)
-            && (reuse_node.index == node.index_)) {
-           return true;
+        if ((reuse_node.name == node.node_->GetName()) && (node.mem_type_ == reuse_node.mem_type) &&
+            (reuse_node.index == node.index_)) {
+          return true;
         }
       }
     }
     return false;
   }
 
-  Status GetReuseBlock(const BlockMemAssignerPtr &assigner, ge::ComputeGraphPtr &graph,
-                       ReuseNode reuse_node, MemoryBlock **reuse_block) {
+  Status GetReuseBlock(const BlockMemAssignerPtr &assigner, ge::ComputeGraphPtr &graph, ReuseNode reuse_node,
+                       MemoryBlock **reuse_block) {
     EXPECT_TRUE(assigner != nullptr);
     const auto blocks = assigner->GetMemoryBlocks();
     EXPECT_TRUE(blocks.size() > 1U);
@@ -2070,7 +2063,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
   }
 
   Status CheckReuse(const BlockMemAssignerPtr &assigner, ge::ComputeGraphPtr &graph,
-      std::vector<ReuseNode> check_reuse_nodes, bool reuse = true) {
+                    std::vector<ReuseNode> check_reuse_nodes, bool reuse = true) {
     EXPECT_TRUE(assigner != nullptr);
     const auto blocks = assigner->GetMemoryBlocks();
     EXPECT_TRUE(blocks.size() > 1U);
@@ -2081,7 +2074,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
       for (const auto block : blocks) {
         if (Match(block, reuse_node)) {
           offsets.emplace_back(reuse_node.name, reuse_node.mem_type, reuse_node.index, block->HeadOffset(),
-              block->Size());
+                               block->Size());
           GELOGI("Match block is %s.", offsets.back().ToString().c_str());
           match = true;
         }
@@ -2104,7 +2097,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
       } else {
         size = sizeof(RuntimeTensorDesc);
         (void)AttrUtils::GetInt(node->GetOpDesc()->MutableOutputDesc(reuse_node.index),
-            ATTR_NAME_TENSOR_DESC_MEM_OFFSET, offset);
+                                ATTR_NAME_TENSOR_DESC_MEM_OFFSET, offset);
       }
       AlignMemOffset(size);
       offsets.emplace_back(reuse_node.name, reuse_node.mem_type, reuse_node.index, offset, size);
@@ -2129,7 +2122,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
   }
 
   bool GetOffsetAndSize(const std::map<std::string, const ge::Node *> &name_to_node_map, const std::string node_name,
-      uint32_t out_index, int64_t &offset, int64_t &size) {
+                        uint32_t out_index, int64_t &offset, int64_t &size) {
     auto node_iter = name_to_node_map.find(node_name);
     ge::Node *node = nullptr;
     if (node_iter == name_to_node_map.end()) {
@@ -2140,7 +2133,7 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     auto a_offsets = node->GetOpDescBarePtr()->GetOutputOffset();
     TensorUtils::GetSize(node->GetOpDescBarePtr()->GetOutputDesc(out_index), size);
     if (out_index >= a_offsets.size()) {
-      std::cerr <<  node->GetName() << " output index[" << out_index << "] >= output offsets size[" << a_offsets.size()
+      std::cerr << node->GetName() << " output index[" << out_index << "] >= output offsets size[" << a_offsets.size()
                 << "]" << std::endl;
       return false;
     }
@@ -2148,8 +2141,8 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
     return true;
   }
 
-  bool CheckNotReuse(const ge::ComputeGraphPtr &graph, const std::string &a, uint32_t a_out_index,
-                     const std::string &b, uint32_t b_out_index) {
+  bool CheckNotReuse(const ge::ComputeGraphPtr &graph, const std::string &a, uint32_t a_out_index, const std::string &b,
+                     uint32_t b_out_index) {
     int64_t a_offset;
     int64_t a_size;
     std::map<std::string, const ge::Node *> name_to_node_map;
@@ -2187,7 +2180,9 @@ void MakeContinuousReuseGraphDiffStream(ge::ComputeGraphPtr graph) {
  protected:
   void SetUp() {}
 
-  void TearDown() { domi::GetContext().out_nodes_map.clear(); }
+  void TearDown() {
+    domi::GetContext().out_nodes_map.clear();
+  }
   ReuseStrategy reuse_strategy_{};
 };
 
@@ -2197,9 +2192,11 @@ class MockBlockMemAssigner : public BlockMemAssigner {
  public:
   explicit MockBlockMemAssigner(const MemAssistInfo &mem_assist_info) : BlockMemAssigner(mem_assist_info) {};
 
-  virtual ~MockBlockMemAssigner(){};
+  virtual ~MockBlockMemAssigner() {};
 
-  Status GetMemoryRanges(std::vector<int64_t> &ranges) override { return FAILED; }
+  Status GetMemoryRanges(std::vector<int64_t> &ranges) override {
+    return FAILED;
+  }
 };
 }  // namespace ge
 
@@ -2325,8 +2322,7 @@ TEST_F(UtestMemoryAssignerTest, block_memory_assign_continuous_memory_out_diff_s
   MakeContinuousReuseGraphDiffStream(graph);
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -2370,7 +2366,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_set_last_used_attr) {
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
 
   bool flag = 0;
-  (void) ge::AttrUtils::GetBool(node_f->GetOpDesc()->GetInputDesc(0), ATTR_NAME_IS_END_OF_INPUTMEM_LIFECYCLE, flag);
+  (void)ge::AttrUtils::GetBool(node_f->GetOpDesc()->GetInputDesc(0), ATTR_NAME_IS_END_OF_INPUTMEM_LIFECYCLE, flag);
   EXPECT_EQ(flag, true);
 }
 
@@ -2380,7 +2376,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_ref_var) {
   auto node_a = graph->FindNode("A");
   auto node_b = graph->FindNode("B");
   std::string value = "A";
-  (void) ge::AttrUtils::SetStr(node_b->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, value);
+  (void)ge::AttrUtils::SetStr(node_b->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, value);
   MemoryAssigner memory_assigner(graph);
   map<uint64_t, size_t> mem_offset;
   size_t zero_memory_size = 0;
@@ -2401,7 +2397,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_ref_var_not_found) {
   auto node_a = graph->FindNode("A");
   auto node_b = graph->FindNode("B");
   std::string value = "M";
-  (void) ge::AttrUtils::SetStr(node_b->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, value);
+  (void)ge::AttrUtils::SetStr(node_b->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, value);
   MemoryAssigner memory_assigner(graph);
   map<uint64_t, size_t> mem_offset;
   size_t zero_memory_size = 0;
@@ -2414,7 +2410,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_src_const) {
   MakeGraph(graph, CONSTANTOP);
 
   auto node_a = graph->FindNode("A");
-  (void) ge::AttrUtils::SetStr(node_a->GetOpDesc(), ATTR_NAME_SRC_CONST_NAME, "src_const");
+  (void)ge::AttrUtils::SetStr(node_a->GetOpDesc(), ATTR_NAME_SRC_CONST_NAME, "src_const");
   MemoryAssigner memory_assigner(graph);
   map<uint64_t, size_t> mem_offset;
   size_t zero_memory_size = 0;
@@ -2424,12 +2420,12 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_src_const) {
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_set_input_offset) {
   ge::ComputeGraphPtr graph = MakeRefNodeGraph();
-  auto assgin = graph->FindNode("assgin");
+  auto assgin = graph->FindNode("assign");
   EXPECT_EQ(assgin->GetOpDesc()->GetOutputOffset()[0], 10000);
   EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[0], 100);
   EXPECT_EQ(assgin->GetOpDesc()->GetInputOffset()[1], 0);
   GraphMemoryAssigner memory_assigner(graph);
-  memory_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  memory_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0);
   memory_assigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   EXPECT_EQ(memory_assigner.SetInputOffset(), GRAPH_SUCCESS);
@@ -2441,7 +2437,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_set_input_offset) {
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_check_inner_offset) {
   ge::ComputeGraphPtr graph = MakeRefNodeGraph();
-  auto assign = graph->FindNode("assgin");
+  auto assign = graph->FindNode("assign");
   auto op_desc = assign->GetOpDesc();
   int64_t inner_offset = 0;
   EXPECT_EQ(ge::AttrUtils::GetInt(op_desc->MutableInputDesc(0), ATTR_NAME_INNER_OFFSET, inner_offset), false);
@@ -2458,25 +2454,25 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_check_inner_offset) {
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_update_ref_op_offset_reverse) {
-    ge::ut::GraphBuilder builder("graph");
-    auto data_input = builder.AddNode("data", "Data", 1, 1);
-    auto const_input = builder.AddNode("const", "Const", 1, 1);
-    auto add = builder.AddNode("add", "Add", 2, 1);
-     // add link
-    builder.AddDataEdge(data_input, 0, add, 0);
-    builder.AddDataEdge(const_input, 0, add, 1);
-    // set ref
-    uint32_t reuse_input_index = 0;
-    auto output_tensordesc = data_input->GetOpDesc()->MutableOutputDesc(0);
-    ge::TensorUtils::SetReuseInput(*output_tensordesc, true);
-    ge::TensorUtils::SetReuseInputIndex(*output_tensordesc, reuse_input_index);
-    auto output_tensordesc1 = add->GetOpDesc()->MutableOutputDesc(0);
-    ge::TensorUtils::SetReuseInput(*output_tensordesc1, true);
-    ge::TensorUtils::SetReuseInputIndex(*output_tensordesc1, reuse_input_index);
-    ge::ComputeGraphPtr graph = builder.GetGraph();
+  ge::ut::GraphBuilder builder("graph");
+  auto data_input = builder.AddNode("data", "Data", 1, 1);
+  auto const_input = builder.AddNode("const", "Const", 1, 1);
+  auto add = builder.AddNode("add", "Add", 2, 1);
+  // add link
+  builder.AddDataEdge(data_input, 0, add, 0);
+  builder.AddDataEdge(const_input, 0, add, 1);
+  // set ref
+  uint32_t reuse_input_index = 0;
+  auto output_tensordesc = data_input->GetOpDesc()->MutableOutputDesc(0);
+  ge::TensorUtils::SetReuseInput(*output_tensordesc, true);
+  ge::TensorUtils::SetReuseInputIndex(*output_tensordesc, reuse_input_index);
+  auto output_tensordesc1 = add->GetOpDesc()->MutableOutputDesc(0);
+  ge::TensorUtils::SetReuseInput(*output_tensordesc1, true);
+  ge::TensorUtils::SetReuseInputIndex(*output_tensordesc1, reuse_input_index);
+  ge::ComputeGraphPtr graph = builder.GetGraph();
 
-    GraphMemoryAssigner memoryAssigner(graph);
-    EXPECT_EQ(memoryAssigner.UpdateRefOpOffsetReverse(add), SUCCESS);
+  GraphMemoryAssigner memoryAssigner(graph);
+  EXPECT_EQ(memoryAssigner.UpdateRefOpOffsetReverse(add), SUCCESS);
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_var_input_ref_cascade_false) {
@@ -2540,7 +2536,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_output_and_workspace)
     EXPECT_EQ(set_attr, true);
 
     GraphMemoryAssigner graph_memory_assigner(graph);
-    graph_memory_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+    graph_memory_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
     graph_memory_assigner.memory_offset_.insert({RT_MEMORY_HBM, MemoryOffset(RT_MEMORY_HBM, 0)});
     std::map<int64_t, std::vector<int64_t>> mem_type_to_offset_end;
     std::map<int64_t, std::vector<int64_t>> mem_type_to_real_atomic_sizes;
@@ -2558,7 +2554,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_output_and_workspace)
     EXPECT_EQ(set_attr, true);
 
     GraphMemoryAssigner graph_memory_assigner(graph);
-    graph_memory_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+    graph_memory_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
     graph_memory_assigner.memory_offset_.insert({RT_MEMORY_HBM, MemoryOffset(RT_MEMORY_HBM, 0)});
     std::map<int64_t, std::vector<int64_t>> mem_type_to_offset_end;
     std::map<int64_t, std::vector<int64_t>> mem_type_to_real_atomic_sizes;
@@ -2664,8 +2660,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_node_assign_success) 
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0);
   memoryAssigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   map<string, map<NodePtr, vector<NodePtr>>> normal_atomic_nodes_map;
-  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map),
-            SUCCESS);
+  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map), SUCCESS);
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_ref_node_assign_success) {
@@ -2674,8 +2669,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_ref_node_assign_succe
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0);
   memoryAssigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   map<string, map<NodePtr, vector<NodePtr>>> normal_atomic_nodes_map;
-  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map),
-            SUCCESS);
+  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map), SUCCESS);
 }
 
 TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_ref_node_assign_failed) {
@@ -2687,8 +2681,7 @@ TEST_F(UtestMemoryAssignerTest, graph_memory_assign_atomic_ref_node_assign_faile
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0);
   memoryAssigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   map<string, map<NodePtr, vector<NodePtr>>> normal_atomic_nodes_map;
-  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map),
-            PARAM_INVALID);
+  EXPECT_EQ(memoryAssigner.FilterAtomicNodes(normal_atomic_nodes_map), PARAM_INVALID);
 }
 
 /**
@@ -2710,7 +2703,6 @@ TEST_F(UtestMemoryAssignerTest, AtomicClean_Success_CleanOutAndWorkspace_FusionN
     CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("add_1", add));
     CHAIN(NODE("add_1", data2)->EDGE(0, 0)->NODE("out_1", netout));
     CHAIN(NODE("memset", MEMSET)->Ctrl()->NODE("add_1", add));
-
   };
 
   auto compute_graph = ToComputeGraph(g1);
@@ -2872,11 +2864,11 @@ TEST_F(UtestMemoryAssignerTest, graph_ref_memory_reuse) {
 TEST_F(UtestMemoryAssignerTest, MemoryBlockTest1) {
   MemoryBlock *block = new MemoryBlock(reuse_strategy_, 512);
   MemoryBlock *block2 = new MemoryBlock(reuse_strategy_, 1024);
-  block->no_align_size_list_ = {1,2,3};
-  block2->no_align_size_list_ = {1,2,3};
+  block->no_align_size_list_ = {1, 2, 3};
+  block2->no_align_size_list_ = {1, 2, 3};
   EXPECT_NO_THROW(block->AddContinuousLifeReuseBlock(*block2));
-  block->real_size_list_ = {1,2,3};
-  block2->real_size_list_ = {1,2,3};
+  block->real_size_list_ = {1, 2, 3};
+  block2->real_size_list_ = {1, 2, 3};
   block2->is_zero_copy_ = true;
   block->is_zero_copy_ = true;
   EXPECT_NO_THROW(block->AddZeroCopyLifeReuseBlock(*block2));
@@ -2894,8 +2886,8 @@ TEST_F(UtestMemoryAssignerTest, MemoryBlockTest1) {
 TEST_F(UtestMemoryAssignerTest, MemoryBlockTest2) {
   MemoryBlock *block = new MemoryBlock(reuse_strategy_, 512);
   MemoryBlock *block2 = new MemoryBlock(reuse_strategy_, 1024);
-  block->no_align_size_list_ = {1,2,3};
-  block2->no_align_size_list_ = {1,2,3};
+  block->no_align_size_list_ = {1, 2, 3};
+  block2->no_align_size_list_ = {1, 2, 3};
   block2->continuous_block_ = true;
   block->AddContinuousLifeReuseBlock(*block2);
   EXPECT_EQ(block->child_block_, true);
@@ -2927,8 +2919,8 @@ TEST_F(UtestMemoryAssignerTest, AddContinuousLifeReuseBlock_HasChildCannotBeChil
   MemoryBlock *block2 = new MemoryBlock(reuse_strategy_, 1024);
   MemoryBlock *block3 = new MemoryBlock(reuse_strategy_, 512);
   block->child_blocks_.emplace_back(block3);
-  block->no_align_size_list_ = {1,2,3};
-  block2->no_align_size_list_ = {1,2,3};
+  block->no_align_size_list_ = {1, 2, 3};
+  block2->no_align_size_list_ = {1, 2, 3};
   block2->continuous_block_ = true;
   block->AddContinuousLifeReuseBlock(*block2);
   EXPECT_FALSE(block->child_block_);
@@ -2973,8 +2965,9 @@ TEST_F(UtestMemoryAssignerTest, graph_hccl_ws_no_reuse_io) {
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
 
   MemoryBlock *reuse_block = nullptr;
-  EXPECT_EQ(GetReuseBlock(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-    {"B", kWorkspace, 0}, &reuse_block), GRAPH_SUCCESS);
+  EXPECT_EQ(GetReuseBlock(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph, {"B", kWorkspace, 0},
+                          &reuse_block),
+            GRAPH_SUCCESS);
 
   EXPECT_NE(reuse_block, nullptr);
   EXPECT_EQ(reuse_block->is_reuse_zero_copy_, false);
@@ -3035,7 +3028,8 @@ TEST_F(UtestMemoryAssignerTest, DiffMergeInputNodesNotReuse) {
 //          D:4(s:0) (nopadding continuous input)
 //
 // 输出使用同一个memory_block的当成一组，在进行复用时，要么同时复用某个节点，要么同时不复用某个节点，共同进退
-// B C输出同符号，B的block是流0，因此life begin得是流0上的id。由于c是流1，因此找in_stream_edge，由于没有stream1<-stream0的边，因此life_begin_为默认最小值1
+// B C输出同符号，B的block是流0，因此life
+// begin得是流0上的id。由于c是流1，因此找in_stream_edge，由于没有stream1<-stream0的边，因此life_begin_为默认最小值1
 //
 TEST_F(UtestMemoryAssignerTest, DiffStreamNoPaddingContinuousInputNotReuse) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("");
@@ -3056,7 +3050,8 @@ TEST_F(UtestMemoryAssignerTest, DiffStreamNoPaddingContinuousInputNotReuse) {
 //          D:4(s:0) (nopadding continuous input)
 //
 // 输出使用同一个memory_block的当成一组，在进行复用时，要么同时复用某个节点，要么同时不复用某个节点，共同进退
-// B C输出同符号，B的block是流0，因此life begin得是流0上的id。由于c是流1，因此找in_stream_edge，找到了A. 因此life_begin_为A(1)
+// B C输出同符号，B的block是流0，因此life begin得是流0上的id。由于c是流1，因此找in_stream_edge，找到了A.
+// 因此life_begin_为A(1)
 //
 TEST_F(UtestMemoryAssignerTest, DiffStreamNoPaddingContinuousInputHasEdgeCanReuse) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("");
@@ -3066,8 +3061,8 @@ TEST_F(UtestMemoryAssignerTest, DiffStreamNoPaddingContinuousInputHasEdgeCanReus
   size_t zero_memory_size = 0;
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"E", kOutput, 1},
-                        {"B", kOutput, 0}}), GRAPH_SUCCESS);
+                       {{"E", kOutput, 1}, {"B", kOutput, 0}}),
+            GRAPH_SUCCESS);
 }
 
 //        G:0(s:0)(two out data anchor, but only has one output node)
@@ -3093,8 +3088,8 @@ TEST_F(UtestMemoryAssignerTest, DiffStreamNoPaddingContinuousInput_CanNotReuse_H
   size_t zero_memory_size = 0;
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"G", kOutput, 1},
-                        {"C", kOutput, 0}}), GRAPH_SUCCESS);
+                       {{"G", kOutput, 1}, {"C", kOutput, 0}}),
+            GRAPH_SUCCESS);
 }
 
 /**     a:1
@@ -3115,8 +3110,8 @@ TEST_F(UtestMemoryAssignerTest, graph_diff_stream_memory_reuse) {
   size_t zero_memory_size = 0;
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"C", kOutput, 0},
-                        {"F", kOutput, 0}}), GRAPH_SUCCESS);
+                       {{"C", kOutput, 0}, {"F", kOutput, 0}}),
+            GRAPH_SUCCESS);
 }
 
 /**     a:1
@@ -3588,7 +3583,7 @@ TEST_F(UtestMemoryAssignerTest, graph_not_first_continuous_input_as_symbol_reuse
  *               |
  *               h
  */
-// d need continuous input and seperate clean input
+// d need continuous input and separate clean input
 // b and c output ref input
 TEST_F(UtestMemoryAssignerTest, graph_not_first_continuous_input_as_symbol_reuse7) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_not_first_continuous_input_as_symbol_reuse7");
@@ -3663,9 +3658,8 @@ TEST_F(UtestMemoryAssignerTest, graph_continuous_input_memory_reuse) {
     offset = it->second;
   }
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-      {{"A", kOutput, 0},
-       {"D", kOutput, 0}
-      }), GRAPH_SUCCESS);
+                       {{"A", kOutput, 0}, {"D", kOutput, 0}}),
+            GRAPH_SUCCESS);
   EXPECT_EQ(offset, 9216);
 }
 
@@ -3684,11 +3678,8 @@ TEST_F(UtestMemoryAssignerTest, graph_continuous_input_memory_reuse_multi_ref) {
     offset = it->second;
   }
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-      {{"A", kOutput, 0},
-       {"B", kOutput, 0},
-       {"F", kOutput, 0},
-       {"I", kOutput, 0}
-       }), GRAPH_SUCCESS);
+                       {{"A", kOutput, 0}, {"B", kOutput, 0}, {"F", kOutput, 0}, {"I", kOutput, 0}}),
+            GRAPH_SUCCESS);
   EXPECT_EQ(offset, 17408);
 }
 
@@ -3772,7 +3763,7 @@ TEST_F(UtestMemoryAssignerTest, test_p2p_memory_type) {
 
   it = mem_offset.find(RT_MEMORY_P2P_DDR);
   if (it != mem_offset.end()) {
-   offset = it->second;
+    offset = it->second;
   }
   EXPECT_EQ(offset, 1024);
 }
@@ -3798,7 +3789,7 @@ TEST_F(UtestMemoryAssignerTest, graph_option_test) {
 
 TEST_F(UtestMemoryAssignerTest, InputOutputNodeReuseMemFlagTest) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("");
-  MemAssistInfo mem_assist_info {.compute_graph = graph};
+  MemAssistInfo mem_assist_info{.compute_graph = graph};
   MockBlockMemAssigner block_mem_assigner(mem_assist_info);
 
   block_mem_assigner.output_index_to_reuse_mem_flag_ = {true, false, true};
@@ -3831,7 +3822,7 @@ TEST_F(UtestMemoryAssignerTest, ParseIoReuseMemOptionTest) {
   auto graph1 = gert::ShareGraph::BuildSwitchMergeGraph();
   auto compute_graph1 = GraphUtilsEx::GetComputeGraph(graph1);
 
-  MemAssistInfo mem_assist_info {.compute_graph = compute_graph1};
+  MemAssistInfo mem_assist_info{.compute_graph = compute_graph1};
   MockBlockMemAssigner block_mem_assigner(mem_assist_info);
 
   std::map<std::string, std::string> options;
@@ -3921,14 +3912,14 @@ TEST_F(UtestMemoryAssignerTest, PartitionedCallSuspendOut_WithPhonyConcatSubgrap
 }
 
 TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamOptimize) {
-  map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"},
-                              {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};
+  map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"}, {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};
 
   options.emplace(ge::OPTION_OUTPUT_REUSE_MEM_INDEXES, "0,1");
   options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "0,1,2");
   GetThreadLocalContext().SetGraphOption({});
   OptionSetter temp_option(options);
-  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});;
+  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});
+  ;
   auto e = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 512, 512});
   DEF_GRAPH(g1) {
     CHAIN(NODE("_arg_0", DATA)
@@ -3963,10 +3954,8 @@ TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamOptimize) {
 
   // A,C,E可以复用
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"A", kOutput, 0},
-                        {"C", kOutput, 0},
-                        {"E", kOutput, 0}
-                       }), GRAPH_SUCCESS);
+                       {{"A", kOutput, 0}, {"C", kOutput, 0}, {"E", kOutput, 0}}),
+            GRAPH_SUCCESS);
   EXPECT_EQ(offset, 1250304);
 }
 /*
@@ -3993,19 +3982,19 @@ TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamOptimize) {
  * 为什么要放在内存优先option控制下？是因为优先流间复用无法保证最优。
  * 更优方案是：为B设置sub stream id，设置为0，使得流间关系更近。
  *
- * 与SingleOutDiffStreamOptimize用例的区别在与，C-D-E都是数据边，所以MemReuseStrategy::OptimizeDiffStream中会都标记成stream 0
- * 而本用例中，E有两个输入，C和D 是控制边，所以MemReuseStrategy::OptimizeDiffStream函数没有处理。
+ * 与SingleOutDiffStreamOptimize用例的区别在与，C-D-E都是数据边，所以MemReuseStrategy::OptimizeDiffStream中会都标记成stream
+ * 0 而本用例中，E有两个输入，C和D 是控制边，所以MemReuseStrategy::OptimizeDiffStream函数没有处理。
  * 期望有一个更为通用的算法，将符合条件的串行关系，都标记上sub_stream id.
  */
 TEST_F(UtestMemoryAssignerTest, SingleOutDiffStream) {
-  map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"},
-                              {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};
+  map<string, string> options{{"ge.hardwareInfo", "memory_size:102400"}, {MEMORY_OPTIMIZATION_POLICY, kMemoryPriority}};
 
   options.emplace(ge::OPTION_OUTPUT_REUSE_MEM_INDEXES, "0,1");
   options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "0,1,2");
   GetThreadLocalContext().SetGraphOption({});
   OptionSetter temp_option(options);
-  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});;
+  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});
+  ;
   auto e = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 512, 512});
   auto f = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 512, 512});
   DEF_GRAPH(g1) {
@@ -4045,22 +4034,24 @@ TEST_F(UtestMemoryAssignerTest, SingleOutDiffStream) {
 
   // A,C,F可以复用
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"A", kOutput, 0},
+                       {
+                           {"A", kOutput, 0},
                            {"C", kOutput, 0},
                            {"F", kOutput, 0},
-                       }), GRAPH_SUCCESS);
+                       }),
+            GRAPH_SUCCESS);
   EXPECT_EQ(offset, 3346944);
 }
 // stream 0->1->2->0 ,遇到STREAMMERGE，不能复用
 TEST_F(UtestMemoryAssignerTest, SingleOutDiffStreamWithMerge) {
   DEF_GRAPH(g1) {
-      CHAIN(NODE("_arg_0", DATA)
-      ->NODE("A", "some")
-      ->NODE("B", "some")
-      ->NODE("C", STREAMMERGE)
-      ->NODE("D", "some")
-      ->NODE("E", "some")
-      ->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_0", DATA)
+              ->NODE("A", "some")
+              ->NODE("B", "some")
+              ->NODE("C", STREAMMERGE)
+              ->NODE("D", "some")
+              ->NODE("E", "some")
+              ->NODE("Node_Output", NETOUTPUT));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   UpdateGraphTensorSize(graph);
@@ -4123,9 +4114,8 @@ TEST_F(UtestMemoryAssignerTest, AtomicCleanNotReuseWithSubGraphData) {
   EXPECT_EQ(memory_assigner.AssignMemory(mem_offset, zero_memory_size), GRAPH_SUCCESS);
   // a c 不复用
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"a", kOutput, 0},
-                        {"c", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"a", kOutput, 0}, {"c", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 
 //   Data
@@ -4134,22 +4124,15 @@ TEST_F(UtestMemoryAssignerTest, AtomicCleanNotReuseWithSubGraphData) {
 //  D stream 0   E stream 1
 //  Data不是实际执行节点，产生stream 1->stream 0的依赖会导致错误结果
 TEST_F(UtestMemoryAssignerTest, DiffStreamEdgeExcludeData) {
-  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});;
+  auto b = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 32, 32});
+  ;
   auto e = OP_CFG("some").InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 512, 512});
   DEF_GRAPH(g1) {
-      CHAIN(NODE("_arg_0", DATA)
-          ->NODE("A", "some")
-          ->NODE("B", b)
-          ->NODE("C", "some")
-          ->NODE("Node_Output", NETOUTPUT));
-      CHAIN(NODE("_arg_1", DATA)
-          ->NODE("D", "some")
-          ->NODE("Node_Output", NETOUTPUT));
-      CHAIN(NODE("E", e)
-          ->NODE("F", "some")
-          ->NODE("Node_Output", NETOUTPUT));
-      CHAIN(NODE("C", "some")->CTRL_EDGE()->NODE("_arg_1", DATA));
-      CHAIN(NODE("_arg_1", DATA)->CTRL_EDGE()->NODE("E", e));
+    CHAIN(NODE("_arg_0", DATA)->NODE("A", "some")->NODE("B", b)->NODE("C", "some")->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_1", DATA)->NODE("D", "some")->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("E", e)->NODE("F", "some")->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("C", "some")->CTRL_EDGE()->NODE("_arg_1", DATA));
+    CHAIN(NODE("_arg_1", DATA)->CTRL_EDGE()->NODE("E", e));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   UpdateGraphTensorSize(graph);
@@ -4173,9 +4156,8 @@ TEST_F(UtestMemoryAssignerTest, DiffStreamEdgeExcludeData) {
   }
   // A,E不复用
   EXPECT_EQ(CheckReuse(memory_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                     {{"A", kOutput, 0},
-                      {"E", kOutput, 0}
-                     }, false), GRAPH_SUCCESS);
+                       {{"A", kOutput, 0}, {"E", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 
   EXPECT_EQ(offset, 1456128);
 }
@@ -4221,11 +4203,8 @@ TEST_F(UtestMemoryAssignerTest, PartitionedCallWithAtomicNode_CheckOffsetSuccess
 
 TEST_F(UtestMemoryAssignerTest, InvalidWorkSpace) {
   DEF_GRAPH(g1) {
-      CHAIN(NODE("_arg_0", DATA)
-                ->NODE("A", "some")
-                ->NODE("B", "some")
-                ->NODE("C", "some")
-                ->NODE("Node_Output", NETOUTPUT));
+    CHAIN(
+        NODE("_arg_0", DATA)->NODE("A", "some")->NODE("B", "some")->NODE("C", "some")->NODE("Node_Output", NETOUTPUT));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   const auto call_node = graph->FindNode("B");
@@ -4283,9 +4262,8 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_OutAsHeader_SeparateClea
   MemoryAssigner mem_assigner(graph);
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"hcom1", kOutput, 0},
-                        {"c", kOutput, 0}
-                       }, true), GRAPH_SUCCESS);
+                       {{"hcom1", kOutput, 0}, {"c", kOutput, 0}}, true),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -4308,9 +4286,8 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_OutAsHeaderAndTail_Separ
   MemoryAssigner mem_assigner(graph);
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"hcom1", kOutput, 0},
-                        {"c", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"hcom1", kOutput, 0}, {"c", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -4333,13 +4310,11 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_InAsHeader_SeparateClean
   MemoryAssigner mem_assigner(graph);
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"hcom1", kOutput, 0},
-                        {"c", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"hcom1", kOutput, 0}, {"c", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"a", kOutput, 0},
-                        {"c", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"a", kOutput, 0}, {"c", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -4377,17 +4352,14 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_InAsHeaderAndTail_Separa
   MemoryAssigner mem_assigner(graph);
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"c", kOutput, 0},
-                        {"b", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"c", kOutput, 0}, {"b", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"c", kOutput, 0},
-                        {"hcom1", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"c", kOutput, 0}, {"hcom1", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"c", kOutput, 0},
-                        {"a", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"c", kOutput, 0}, {"a", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -4425,9 +4397,8 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_TwoContinuousInNode_Sepa
   MemoryAssigner mem_assigner(graph);
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"c", kOutput, 0},
-                        {"hcom1", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"c", kOutput, 0}, {"hcom1", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -4448,12 +4419,11 @@ TEST_F(UtestMemoryAssignerTest, ContinuousOutIn_SUCCESS_TwoContinuousInNodeAndRe
   size_t zero_copy_mem_size;
   VarManager::Instance(graph->GetSessionID())->Init(0, graph->GetSessionID(), 0, 0);
   MemoryAssigner mem_assigner(graph);
-  InfoLog log; // 打印info日志才能覆盖到一些分支
+  InfoLog log;  // 打印info日志才能覆盖到一些分支
   EXPECT_EQ(mem_assigner.AssignMemory(mem_type_to_mem_offset, zero_copy_mem_size), SUCCESS);
   EXPECT_EQ(CheckReuse(mem_assigner.GetGraphMemoryAssigner()->GetMemAssignerPtr(), graph,
-                       {{"e", kOutput, 0},
-                        {"hcom1", kOutput, 0}
-                       }, false), GRAPH_SUCCESS);
+                       {{"e", kOutput, 0}, {"hcom1", kOutput, 0}}, false),
+            GRAPH_SUCCESS);
 }
 /*
  *    a hcom1 b hcom2 c
@@ -4537,15 +4507,22 @@ TEST_F(UtestMemoryAssignerTest, AtomicCleanMerge_Sucess_ConsiderSpltMemory) {
   auto new_options = old_options;
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
-  auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(3).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
+  auto hcom1 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(3)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
                    .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
   auto cast3 = OP_CFG(CAST).InCnt(3).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32});
   auto hcom3 = OP_CFG(HCOMALLREDUCE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32});
 
   std::vector<uint32_t> value{0};
-  auto cast0 = OP_CFG(CAST).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
+  auto cast0 = OP_CFG(CAST)
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
                    .Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
-  auto cast1 = OP_CFG(CAST).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
+  auto cast1 = OP_CFG(CAST)
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32})
                    .Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
   auto data1 = OP_CFG(RELU).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32});
   auto data6 = OP_CFG(RELU).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 256, 1024, 32});
@@ -4584,7 +4561,7 @@ TEST_F(UtestMemoryAssignerTest, AtomicCleanMerge_Sucess_ConsiderSpltMemory) {
   UpdateGraphTensorSize(graph);
   graph->TopologicalSorting();
   bool dynamic_shape_partition = true;
-  (void) ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
+  (void)ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
 
   std::map<std::string, std::string> option;
   Graph2SubGraphInfoList subgraphs;
@@ -4640,11 +4617,8 @@ TEST_F(UtestMemoryAssignerTest, OneNodeConnectTwoPhonyConcat) {
 
 TEST_F(UtestMemoryAssignerTest, ValidWorkSpaceNeg1) {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)
-              ->NODE("A", "some")
-              ->NODE("B", "some")
-              ->NODE("C", "some")
-              ->NODE("Node_Output", NETOUTPUT));
+    CHAIN(
+        NODE("_arg_0", DATA)->NODE("A", "some")->NODE("B", "some")->NODE("C", "some")->NODE("Node_Output", NETOUTPUT));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   const auto call_node = graph->FindNode("B");

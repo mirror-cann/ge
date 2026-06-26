@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,8 @@
 #include "parser/common/parser_utils.h"
 #include "base/err_msg.h"
 
-using domi::ParseParamFunc;
 using domi::ParseParamByOpFunc;
+using domi::ParseParamFunc;
 
 namespace ge {
 Status TensorFlowCustomParserAdapter::ParseParams(const Message *op_src, ge::OpDescPtr &op_dest) {
@@ -27,8 +27,7 @@ Status TensorFlowCustomParserAdapter::ParseParams(const Message *op_src, ge::OpD
   GELOGD("TF op node name = %s, op type= %s, parse params", node_src->name().c_str(), node_src->op().c_str());
   GE_CHECK_NOTNULL(op_dest);
 
-  ParseParamFunc custom_op_parser = domi::OpRegistry::Instance()->GetParseParamFunc(
-      op_dest->GetType(), node_src->op());
+  ParseParamFunc custom_op_parser = domi::OpRegistry::Instance()->GetParseParamFunc(op_dest->GetType(), node_src->op());
   if (custom_op_parser == nullptr) {
     REPORT_PREDEFINED_ERR_MSG("E13010", std::vector<const char *>({"opname", "optype"}),
                               std::vector<const char *>({node_src->name().c_str(), node_src->op().c_str()}));
@@ -48,8 +47,8 @@ Status TensorFlowCustomParserAdapter::ParseParams(const Operator &op_src, ge::Op
          ParserUtils::GetOperatorName(op_src).c_str(), ParserUtils::GetOperatorType(op_src).c_str());
   GE_CHECK_NOTNULL(op_dest);
 
-  ParseParamByOpFunc custom_op_parser = domi::OpRegistry::Instance()->GetParseParamByOperatorFunc(
-      ParserUtils::GetOperatorType(op_src));
+  ParseParamByOpFunc custom_op_parser =
+      domi::OpRegistry::Instance()->GetParseParamByOperatorFunc(ParserUtils::GetOperatorType(op_src));
   if (custom_op_parser == nullptr) {
     const std::string op_name = ParserUtils::GetOperatorName(op_src);
     const std::string op_type = ParserUtils::GetOperatorType(op_src);

@@ -89,4 +89,3 @@ EsCGraphBuilder *EsGetOwnerBuilder(EsCTensorHolder *tensor)
 auto *tensor = EsCreateGraphInput(graph, 0);
 auto *builder = EsGetOwnerBuilder(tensor);
 ```
-

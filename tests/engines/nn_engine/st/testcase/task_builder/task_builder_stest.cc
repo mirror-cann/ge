@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -98,75 +98,41 @@ using namespace domi;
 using namespace fe;
 using namespace ffts;
 
-using AICoreOpsKernelBuilderPtr =  shared_ptr<fe::AICoreOpsKernelBuilder>;
+using AICoreOpsKernelBuilderPtr = shared_ptr<fe::AICoreOpsKernelBuilder>;
 using DsaOpsKernelBuilderPtr = shared_ptr<DsaOpsKernelBuilder>;
-FEOpsStoreInfo cce_custom_opinfo_adapter {
-      0,
-      "cce-custom",
-      fe::EN_IMPL_CUSTOM_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_custom_opinfo",
-      ""
-};
-FEOpsStoreInfo tik_custom_opinfo_adapter  {
-      1,
-      "tik-custom",
-      fe::EN_IMPL_CUSTOM_TIK,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tik_custom_opinfo",
-      ""
-};
-FEOpsStoreInfo tbe_custom_opinfo_adapter  {
-      2,
-      "tbe-custom",
-      fe::EN_IMPL_CUSTOM_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-      ""
-};
-FEOpsStoreInfo cce_constant_opinfo_adapter  {
-      3,
-      "cce-constant",
-      fe::EN_IMPL_CUSTOM_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_constant_opinfo",
-      ""
-};
-FEOpsStoreInfo cce_general_opinfo_adapter  {
-      4,
-      "cce-general",
-      fe::EN_IMPL_CUSTOM_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_general_opinfo",
-      ""
-};
-FEOpsStoreInfo tik_opinfo_adapter  {
-      5,
-      "tik-builtin",
-      fe::EN_IMPL_HW_TIK,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tik_opinfo",
-      ""
-};
-FEOpsStoreInfo tbe_opinfo_adapter  {
-      6,
-      "tbe-builtin",
-      fe::EN_IMPL_HW_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo",
-      ""
-};
-FEOpsStoreInfo rl_opinfo_adapter  {
-      7,
-      "rl-builtin",
-      fe::EN_IMPL_RL,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/rl_opinfo",
-      ""
-};
+FEOpsStoreInfo cce_custom_opinfo_adapter{
+    0, "cce-custom", fe::EN_IMPL_CUSTOM_TBE,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_custom_opinfo",
+    ""};
+FEOpsStoreInfo tik_custom_opinfo_adapter{
+    1, "tik-custom", fe::EN_IMPL_CUSTOM_TIK,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tik_custom_opinfo",
+    ""};
+FEOpsStoreInfo tbe_custom_opinfo_adapter{
+    2, "tbe-custom", fe::EN_IMPL_CUSTOM_TBE,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    ""};
+FEOpsStoreInfo cce_constant_opinfo_adapter{
+    3, "cce-constant", fe::EN_IMPL_CUSTOM_TBE,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_constant_opinfo",
+    ""};
+FEOpsStoreInfo cce_general_opinfo_adapter{
+    4, "cce-general", fe::EN_IMPL_CUSTOM_TBE,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_general_opinfo",
+    ""};
+FEOpsStoreInfo tik_opinfo_adapter{
+    5, "tik-builtin", fe::EN_IMPL_HW_TIK,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tik_opinfo", ""};
+FEOpsStoreInfo tbe_opinfo_adapter{
+    6, "tbe-builtin", fe::EN_IMPL_HW_TBE,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo", ""};
+FEOpsStoreInfo rl_opinfo_adapter{
+    7, "rl-builtin", fe::EN_IMPL_RL,
+    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/rl_opinfo", ""};
 
 std::vector<FEOpsStoreInfo> all_fe_ops_store_info_adapter{
-      cce_custom_opinfo_adapter ,
-      tik_custom_opinfo_adapter ,
-      tbe_custom_opinfo_adapter ,
-      cce_constant_opinfo_adapter ,
-      cce_general_opinfo_adapter ,
-      tik_opinfo_adapter ,
-      tbe_opinfo_adapter ,
-      rl_opinfo_adapter
-};
+    cce_custom_opinfo_adapter,  tik_custom_opinfo_adapter, tbe_custom_opinfo_adapter, cce_constant_opinfo_adapter,
+    cce_general_opinfo_adapter, tik_opinfo_adapter,        tbe_opinfo_adapter,        rl_opinfo_adapter};
 
 ge::Status tilingSinkSuc(const ge::Node &node) {
   return ge::SUCCESS;
@@ -187,154 +153,150 @@ ge::graphStatus GenTaskKernelFunc(const gert::ExeResGenerationContext *context,
   return ge::GRAPH_SUCCESS;
 }
 
-class STEST_TaskBuilder: public testing::Test {
-protected:
-
-    static void SetOpDecSize(NodePtr& node){
-        OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
-        for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++){
-            ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
-            ge::TensorUtils::SetSize(tensor, SET_SIZE);
-            node->GetOpDesc()->UpdateInputDesc(i, tensor);
-        }
-        OpDesc::Vistor<GeTensorDesc> tensors_output = node->GetOpDesc()->GetAllOutputsDesc();
-        for (int i = 0; i < tensors_output.size(); i++){
-            ge::GeTensorDesc tensor_output = tensors_output.at(i);
-            ge::TensorUtils::SetSize(tensor_output, SET_SIZE);
-            node->GetOpDesc()->UpdateOutputDesc(i, tensor_output);
-        }
+class STEST_TaskBuilder : public testing::Test {
+ protected:
+  static void SetOpDecSize(NodePtr &node) {
+    OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
+    for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++) {
+      ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
+      ge::TensorUtils::SetSize(tensor, SET_SIZE);
+      node->GetOpDesc()->UpdateInputDesc(i, tensor);
     }
-
-    static void SetFFTSOpDecSize(NodePtr& node) {
-      OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
-      for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++) {
-        ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
-        ge::TensorUtils::SetSize(tensor, 10000);
-        node->GetOpDesc()->UpdateInputDesc(i, tensor);
-      }
-      OpDesc::Vistor<GeTensorDesc> tensorsOutput = node->GetOpDesc()->GetAllOutputsDesc();
-      for (int i = 0; i < tensorsOutput.size(); i++) {
-        ge::GeTensorDesc tensorOutput = tensorsOutput.at(i);
-        ge::TensorUtils::SetSize(tensorOutput, 10000);
-        node->GetOpDesc()->UpdateOutputDesc(i, tensorOutput);
-      }
-      for (auto const &anchor : node->GetAllInDataAnchors()) {
-        (void)ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
-      }
+    OpDesc::Vistor<GeTensorDesc> tensors_output = node->GetOpDesc()->GetAllOutputsDesc();
+    for (int i = 0; i < tensors_output.size(); i++) {
+      ge::GeTensorDesc tensor_output = tensors_output.at(i);
+      ge::TensorUtils::SetSize(tensor_output, SET_SIZE);
+      node->GetOpDesc()->UpdateOutputDesc(i, tensor_output);
     }
+  }
 
-    void SetUp()
-    {
-        aclrtContext rt_context;
-        assert(aclrtCreateContext(&rt_context, 0) == ACL_RT_SUCCESS);
-        assert(aclrtSetCurrentContext(rt_context) == ACL_RT_SUCCESS);
-        //cce::cceSysInit();
-
-        Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (all_fe_ops_store_info_adapter);
-        context_ = CreateContext();
-        task_builder_ = shared_ptr <TaskBuilder> (new (nothrow) TaskBuilder());
-        FusionManager::Instance(fe::AI_CORE_NAME).ops_kernel_info_store_ = make_shared<fe::FEOpsKernelInfoStore>();
-        FusionManager::Instance(fe::AI_CORE_NAME).graph_opt_ = make_shared<fe::FEGraphOptimizer>(FusionManager::Instance(fe::AI_CORE_NAME).ops_kernel_info_store_);
-        TbeOpStoreAdapter tbe_adapter(AI_CORE_NAME);
-        std:: map<string, string> options;
-
-        aicore_ops_kernel_builder_ptr = make_shared<AICoreOpsKernelBuilder>();
-        aicore_ops_kernel_builder_ptr->Initialize(options);
-        dsa_ops_kernel_builder_ptr_ = std::shared_ptr<DsaOpsKernelBuilder>(new DsaOpsKernelBuilder());
-        dsa_ops_kernel_builder_ptr_->Initialize(options);
-        auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
-        gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
-        OpsKernelManager::Instance(fe::AI_CORE_NAME).Finalize();
-        OpsKernelManager::Instance(fe::AI_CORE_NAME).Initialize();
+  static void SetFFTSOpDecSize(NodePtr &node) {
+    OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
+    for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++) {
+      ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
+      ge::TensorUtils::SetSize(tensor, 10000);
+      node->GetOpDesc()->UpdateInputDesc(i, tensor);
     }
-
-    void TearDown()
-    {
-        task_builder_.reset();
-        DestroyContext(context_);
-
-        aclrtContext rt_context;
-        assert(aclrtGetCurrentContext(&rt_context) == ACL_RT_SUCCESS);
-        assert(aclrtDestroyContext(rt_context) == ACL_RT_SUCCESS);
-        aicore_ops_kernel_builder_ptr->Finalize();
-        dsa_ops_kernel_builder_ptr_->Finalize();
+    OpDesc::Vistor<GeTensorDesc> tensorsOutput = node->GetOpDesc()->GetAllOutputsDesc();
+    for (int i = 0; i < tensorsOutput.size(); i++) {
+      ge::GeTensorDesc tensorOutput = tensorsOutput.at(i);
+      ge::TensorUtils::SetSize(tensorOutput, 10000);
+      node->GetOpDesc()->UpdateOutputDesc(i, tensorOutput);
     }
-
-    static NodePtr CreateNodeWithoutAttrs(bool hasWeight = false)
-    {
-        FeTestOpDescBuilder builder;
-        builder.SetName("test_tvm");
-        builder.SetType("conv");
-        builder.SetInputs( { 1 });
-        builder.SetOutputs( { 1 });
-        builder.AddInputDesc( { 1, 1, 1, 1 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        builder.AddOutputDesc( { 1, 1, 1, 1 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-        if (hasWeight) {
-            size_t len = 10;
-            unique_ptr<float[]> buf(new float[len]);
-            auto weight = builder.AddWeight((uint8_t*) buf.get(), len * sizeof(float), { 1, 1, 2, 5 }, ge::FORMAT_NCHW,
-                    ge::DT_FLOAT);
-            ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
-        }
-
-        return builder.Finish();
+    for (auto const &anchor : node->GetAllInDataAnchors()) {
+      (void)ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
     }
+  }
 
-    static NodePtr CreateNode(bool hasWeight = false)
-    {
-        NodePtr node = CreateNodeWithoutAttrs(hasWeight);
+  void SetUp() {
+    aclrtContext rt_context;
+    assert(aclrtCreateContext(&rt_context, 0) == ACL_RT_SUCCESS);
+    assert(aclrtSetCurrentContext(rt_context) == ACL_RT_SUCCESS);
+    // cce::cceSysInit();
 
-        std::string bin_file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
-        vector<char> buffer;
-        assert(ReadBytesFromBinaryFile(bin_file.c_str(), buffer));
-        OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
-        node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (all_fe_ops_store_info_adapter);
+    context_ = CreateContext();
+    task_builder_ = shared_ptr<TaskBuilder>(new (nothrow) TaskBuilder());
+    FusionManager::Instance(fe::AI_CORE_NAME).ops_kernel_info_store_ = make_shared<fe::FEOpsKernelInfoStore>();
+    FusionManager::Instance(fe::AI_CORE_NAME).graph_opt_ =
+        make_shared<fe::FEGraphOptimizer>(FusionManager::Instance(fe::AI_CORE_NAME).ops_kernel_info_store_);
+    TbeOpStoreAdapter tbe_adapter(AI_CORE_NAME);
+    std::map<string, string> options;
 
-        ge::AttrUtils::SetInt(node->GetOpDesc(), "_fe_imply_type", (int64_t)fe::EN_IMPL_CUSTOM_TBE);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "cce_reductionLayer_1_10_float16__1_SUMSQ_1_0__kernel0");
-        ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 1);
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-        ge::AttrUtils::SetBool(node->GetOpDesc(), "is_first_node", true);
-        ge::AttrUtils::SetBool(node->GetOpDesc(), "is_last_node", true);
-        std::string meta_data = "";
-        meta_data.append("cce_reductionLayer_1_10_float16__1_SUMSQ_1_0"); // binFileName
-        meta_data.append(".o");  // binFileSuffix
-        meta_data.append(",version,");
-        meta_data.append("c53fcf5403daaf993a95a4aeea228eae30196565d8b287bae9a4ca6a52e58c2b");    // sha256
-        meta_data.append(",shared");
-        ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", meta_data);
-        SetOpDecSize(node);
-        return node;
-    }
-  static NodePtr CreateNormalNode(const int &type)
-  {
+    aicore_ops_kernel_builder_ptr = make_shared<AICoreOpsKernelBuilder>();
+    aicore_ops_kernel_builder_ptr->Initialize(options);
+    dsa_ops_kernel_builder_ptr_ = std::shared_ptr<DsaOpsKernelBuilder>(new DsaOpsKernelBuilder());
+    dsa_ops_kernel_builder_ptr_->Initialize(options);
+    auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
+    gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
+    OpsKernelManager::Instance(fe::AI_CORE_NAME).Finalize();
+    OpsKernelManager::Instance(fe::AI_CORE_NAME).Initialize();
+  }
+
+  void TearDown() {
+    task_builder_.reset();
+    DestroyContext(context_);
+
+    aclrtContext rt_context;
+    assert(aclrtGetCurrentContext(&rt_context) == ACL_RT_SUCCESS);
+    assert(aclrtDestroyContext(rt_context) == ACL_RT_SUCCESS);
+    aicore_ops_kernel_builder_ptr->Finalize();
+    dsa_ops_kernel_builder_ptr_->Finalize();
+  }
+
+  static NodePtr CreateNodeWithoutAttrs(bool hasWeight = false) {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("conv");
     builder.SetInputs({1});
     builder.SetOutputs({1});
-    builder.AddInputDesc({1,2,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-    builder.AddOutputDesc({1,2,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    if (hasWeight) {
+      size_t len = 10;
+      unique_ptr<float[]> buf(new float[len]);
+      auto weight =
+          builder.AddWeight((uint8_t *)buf.get(), len * sizeof(float), {1, 1, 2, 5}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+      ge::TensorUtils::SetWeightSize(weight->MutableTensorDesc(), len * sizeof(float));
+    }
+
+    return builder.Finish();
+  }
+
+  static NodePtr CreateNode(bool hasWeight = false) {
+    NodePtr node = CreateNodeWithoutAttrs(hasWeight);
+
+    std::string bin_file =
+        GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
+    vector<char> buffer;
+    assert(ReadBytesFromBinaryFile(bin_file.c_str(), buffer));
+    OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
+    node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "_fe_imply_type", (int64_t)fe::EN_IMPL_CUSTOM_TBE);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "cce_reductionLayer_1_10_float16__1_SUMSQ_1_0__kernel0");
+    ge::AttrUtils::SetInt(node->GetOpDesc(), "tvm_blockdim", 1);
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetBool(node->GetOpDesc(), "is_first_node", true);
+    ge::AttrUtils::SetBool(node->GetOpDesc(), "is_last_node", true);
+    std::string meta_data = "";
+    meta_data.append("cce_reductionLayer_1_10_float16__1_SUMSQ_1_0");  // binFileName
+    meta_data.append(".o");                                            // binFileSuffix
+    meta_data.append(",version,");
+    meta_data.append("c53fcf5403daaf993a95a4aeea228eae30196565d8b287bae9a4ca6a52e58c2b");  // sha256
+    meta_data.append(",shared");
+    ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_metadata", meta_data);
+    SetOpDecSize(node);
+    return node;
+  }
+  static NodePtr CreateNormalNode(const int &type) {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm");
+    builder.SetType("conv");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({1, 2, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 2, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
     auto node = builder.Finish();
 
     const char tbeBin[] = "tbe_bin";
-    vector<char> buffer(tbeBin, tbeBin+strlen(tbeBin));
+    vector<char> buffer(tbeBin, tbeBin + strlen(tbeBin));
     OpKernelBinPtr tbeKernelPtr = std::make_shared<OpKernelBin>("test_tvm", std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbeKernelPtr);
 
     ge::AttrUtils::SetInt(node->GetOpDesc(), "_fe_imply_type", (int64_t)fe::EN_IMPL_CUSTOM_TBE);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-    if (type == 1 || type ==3) {
+    if (type == 1 || type == 3) {
       ge::AttrUtils::SetBool(node->GetOpDesc(), "is_first_node", true);
     }
-    if (type == 2 || type ==3) {
+    if (type == 2 || type == 3) {
       ge::AttrUtils::SetBool(node->GetOpDesc(), "is_last_node", true);
     }
     if (type == 4) {
       ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_KERNEL_LIST_FIRST_NAME, node->GetName());
     }
     if (type == 5) {
-      ge::AttrUtils::SetListInt(node->GetOpDesc(), ge::ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {1<<16});
+      ge::AttrUtils::SetListInt(node->GetOpDesc(), ge::ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {1 << 16});
     }
     ge::AttrUtils::SetBool(node->GetOpDesc(), "support_dynamicshape", false);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "kernelname");
@@ -342,29 +304,28 @@ protected:
     SetOpDecSize(node);
     return node;
   }
-  static NodePtr CreateIFANode()
-  {
+  static NodePtr CreateIFANode() {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("IncreFlashAttention");
     builder.SetInputs({1, 2, 3, 6});
     builder.SetOutputs({1});
-    builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "a");
-    builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
-    builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b1");
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "a");
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b1");
     // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "c");
     // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "d");
     // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "e");
     // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "f");
-    builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "g");
-    builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "out");
+    builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "g");
+    builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "out");
     auto node = builder.Finish();
     auto op_desc = node->GetOpDesc();
     (void)ge::AttrUtils::SetInt(op_desc, kOpKernelAllInputSize, 7);
     ge::AttrUtils::SetInt(op_desc, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
     std::vector<uint32_t> input_type_list = {0, 2, 2, 1};
     (void)ge::AttrUtils::SetListInt(op_desc, kInputParaTypeList, input_type_list);
-    std::vector<std::string> input_name_list = {"a", "b", "b","g"};
+    std::vector<std::string> input_name_list = {"a", "b", "b", "g"};
     (void)ge::AttrUtils::SetListStr(op_desc, kInputNameList, input_name_list);
     std::vector<uint32_t> output_type_list = {0};
     (void)ge::AttrUtils::SetListInt(op_desc, kOutputParaTypeList, output_type_list);
@@ -385,7 +346,7 @@ protected:
     pure_op_desc->AppendIrOutput("out", ge::kIrOutputRequired);
 
     const char tbeBin[] = "tbe_bin";
-    vector<char> buffer(tbeBin, tbeBin+strlen(tbeBin));
+    vector<char> buffer(tbeBin, tbeBin + strlen(tbeBin));
     OpKernelBinPtr tbeKernelPtr = std::make_shared<OpKernelBin>("test_tvm", std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbeKernelPtr);
 
@@ -396,28 +357,27 @@ protected:
     SetOpDecSize(node);
     return node;
   }
-  static NodePtr CreateDynamicNode(const int &type)
-  {
+  static NodePtr CreateDynamicNode(const int &type) {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("conv");
     builder.SetInputs({1});
     builder.SetOutputs({1});
-    builder.AddInputDesc({1,2,-1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-    builder.AddOutputDesc({1,2,-1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddInputDesc({1, 2, -1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({1, 2, -1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
     auto node = builder.Finish();
 
     const char tbeBin[] = "tbe_bin";
-    vector<char> buffer(tbeBin, tbeBin+strlen(tbeBin));
+    vector<char> buffer(tbeBin, tbeBin + strlen(tbeBin));
     OpKernelBinPtr tbeKernelPtr = std::make_shared<OpKernelBin>("test_tvm", std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbeKernelPtr);
 
     ge::AttrUtils::SetInt(node->GetOpDesc(), "_fe_imply_type", (int64_t)fe::EN_IMPL_CUSTOM_TBE);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "tvm_magic", "RT_DEV_BINARY_MAGIC_ELF");
-    if (type == 1 || type ==3) {
+    if (type == 1 || type == 3) {
       ge::AttrUtils::SetBool(node->GetOpDesc(), "is_first_node", true);
     }
-    if (type == 2 || type ==3) {
+    if (type == 2 || type == 3) {
       ge::AttrUtils::SetBool(node->GetOpDesc(), "is_last_node", true);
     }
     if (type == 4) {
@@ -430,68 +390,61 @@ protected:
     return node;
   }
 
-    static RunContext CreateContext()
-    {
-        RunContext context;
-        context.dataMemSize = 100;
-        context.dataMemBase = (uint8_t *) (intptr_t) 1000;
-        context.weightMemSize = 200;
-        context.weightMemBase = (uint8_t *) (intptr_t) 1100;
-        context.weightsBuffer = Buffer(20);
+  static RunContext CreateContext() {
+    RunContext context;
+    context.dataMemSize = 100;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
+    context.weightMemSize = 200;
+    context.weightMemBase = (uint8_t *)(intptr_t)1100;
+    context.weightsBuffer = Buffer(20);
 
-        return context;
+    return context;
+  }
+
+  static void DestroyContext(RunContext &context) {}
+
+  static bool ReadBytesFromBinaryFile(const char *path, std::vector<char> &buffer) {
+    if (path == nullptr) return false;
+
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) return false;
+
+    std::streamsize size = file.tellg();
+
+    if (size <= 0) {
+      file.close();
+      return false;
     }
 
-    static void DestroyContext(RunContext &context) {
+    if (size > INT_MAX) {
+      file.close();
+      return false;
     }
 
-    static bool ReadBytesFromBinaryFile(const char* path, std::vector<char>& buffer)
-    {
-        if (path == nullptr)
-            return false;
+    file.seekg(0, std::ios::beg);
 
-        std::ifstream file(path, std::ios::binary | std::ios::ate);
-        if(!file.is_open())
-            return false;
+    buffer.resize(size);
+    file.read(buffer.data(), size);
+    file.close();
 
-        std::streamsize size = file.tellg();
+    return true;
+  }
 
-        if(size <= 0) {
-            file.close();
-            return false;
-        }
-
-        if (size > INT_MAX) {
-            file.close();
-            return false;
-        }
-
-        file.seekg(0, std::ios::beg);
-
-        buffer.resize(size);
-        file.read(buffer.data(), size);
-        file.close();
-
-        return true;
-    }
-
-protected:
-    RunContext context_;
-    std::shared_ptr<TaskBuilder> task_builder_;
-    AICoreOpsKernelBuilderPtr aicore_ops_kernel_builder_ptr;
-    DsaOpsKernelBuilderPtr dsa_ops_kernel_builder_ptr_;
+ protected:
+  RunContext context_;
+  std::shared_ptr<TaskBuilder> task_builder_;
+  AICoreOpsKernelBuilderPtr aicore_ops_kernel_builder_ptr;
+  DsaOpsKernelBuilderPtr dsa_ops_kernel_builder_ptr_;
 };
 
-TEST_F(STEST_TaskBuilder, case_all_success_01)
-{
-    NodePtr node = CreateNode();
-    FillNodeParaType(node);
-    std::vector<TaskDef> task_defs;
-    EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
+TEST_F(STEST_TaskBuilder, case_all_success_01) {
+  NodePtr node = CreateNode();
+  FillNodeParaType(node);
+  std::vector<TaskDef> task_defs;
+  EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_02)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_02) {
   NodePtr node = CreateNode();
   FillNodeParaType(node);
   ge::AttrUtils::SetStr(node->GetOpDesc(), fe::ATTR_NAME_KERNEL_LIST_FIRST_NAME, node->GetName());
@@ -499,8 +452,7 @@ TEST_F(STEST_TaskBuilder, case_all_success_02)
   EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_03)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_03) {
   SetFunctionState(FuncParamType::FUSION_L2, false);
   NodePtr node = CreateNode();
   FillNodeParaType(node);
@@ -509,8 +461,7 @@ TEST_F(STEST_TaskBuilder, case_all_success_03)
   EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_cust_log)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_cust_log) {
   SetFunctionState(FuncParamType::FUSION_L2, false);
   NodePtr node = CreateNode();
   FillNodeParaType(node);
@@ -523,8 +474,7 @@ TEST_F(STEST_TaskBuilder, case_all_success_cust_log)
   EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_04)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_04) {
   SetFunctionState(FuncParamType::FUSION_L2, false);
   NodePtr node = CreateNode();
   FillNodeParaType(node);
@@ -534,8 +484,7 @@ TEST_F(STEST_TaskBuilder, case_all_success_04)
   EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_05)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_05) {
   NodePtr node = CreateNode();
   FillNodeParaType(node);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::ContextSwitch)] = 1;
@@ -550,11 +499,10 @@ TEST_F(STEST_TaskBuilder, case_all_success_05)
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::ContextSwitch)] = 0;
 }
 
-TEST_F(STEST_TaskBuilder, case_all_success_06)
-{
+TEST_F(STEST_TaskBuilder, case_all_success_06) {
   NodePtr node = CreateNode();
   FillNodeParaType(node);
-  ge::AttrUtils::SetListInt(node->GetOpDesc(), ge::ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {1<<16});
+  ge::AttrUtils::SetListInt(node->GetOpDesc(), ge::ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {1 << 16});
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::ContextSwitch)] = 1;
   std::vector<TaskDef> task_defs;
   EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
@@ -567,53 +515,49 @@ TEST_F(STEST_TaskBuilder, case_all_success_06)
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::ContextSwitch)] = 0;
 }
 
-TEST_F(STEST_TaskBuilder, read_binary_file_success)
-{
-    std::string bin_file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
-    vector<char> buffer;
-    TbeJsonFileParseImpl tbe_json_file_parse_impl;
-    EXPECT_EQ(tbe_json_file_parse_impl.ReadBytesFromBinaryFile(bin_file, buffer), fe::SUCCESS);
+TEST_F(STEST_TaskBuilder, read_binary_file_success) {
+  std::string bin_file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
+  vector<char> buffer;
+  TbeJsonFileParseImpl tbe_json_file_parse_impl;
+  EXPECT_EQ(tbe_json_file_parse_impl.ReadBytesFromBinaryFile(bin_file, buffer), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, read_binary_file_lock_fail)
-{
-    std::string bin_file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
-    vector<char> buffer;
+TEST_F(STEST_TaskBuilder, read_binary_file_lock_fail) {
+  std::string bin_file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
+  vector<char> buffer;
 
-    // manually lock first
-    std::string file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
-    FILE *fp = fopen(file.c_str(), "r");
-    if (fp == nullptr) {
-        EXPECT_EQ(true, false);
-    }
-    if (FcntlLockFile(file, fileno(fp), F_RDLCK, 0) != fe::SUCCESS) {
-        EXPECT_EQ(true, false);
-    }
+  // manually lock first
+  std::string file = GetCodeDir() + "/tests/engines/nn_engine/stub/cce_reductionLayer_1_10_float16__1_SUMSQ_1_0.o";
+  FILE *fp = fopen(file.c_str(), "r");
+  if (fp == nullptr) {
+    EXPECT_EQ(true, false);
+  }
+  if (FcntlLockFile(file, fileno(fp), F_RDLCK, 0) != fe::SUCCESS) {
+    EXPECT_EQ(true, false);
+  }
 
-    TbeJsonFileParseImpl tbe_json_file_parse_impl;
-    EXPECT_EQ(tbe_json_file_parse_impl.ReadBytesFromBinaryFile(bin_file, buffer), fe::SUCCESS);
-    (void)FcntlLockFile(file, fileno(fp), F_UNLCK, 0);
-    fclose(fp);
+  TbeJsonFileParseImpl tbe_json_file_parse_impl;
+  EXPECT_EQ(tbe_json_file_parse_impl.ReadBytesFromBinaryFile(bin_file, buffer), fe::SUCCESS);
+  (void)FcntlLockFile(file, fileno(fp), F_UNLCK, 0);
+  fclose(fp);
 }
 
-TEST_F(STEST_TaskBuilder, l2with_confirm)
-{
-    TaskL2Info ll;
-    ll.nodeName = "1";
-    //TaskL2Info *l2Data = &ll;
-    TaskL2InfoMap hh;
-    hh["0"] = ll;
+TEST_F(STEST_TaskBuilder, l2with_confirm) {
+  TaskL2Info ll;
+  ll.nodeName = "1";
+  // TaskL2Info *l2Data = &ll;
+  TaskL2InfoMap hh;
+  hh["0"] = ll;
 
-    StreamL2Info::Instance().SetStreamL2Info(0, hh, "Batch_-1");
-    SetFunctionState(FuncParamType::FUSION_L2, true);
-    NodePtr node = CreateNode();
-    FillNodeParaType(node);
-    std::vector<TaskDef> task_defs;
-    EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
+  StreamL2Info::Instance().SetStreamL2Info(0, hh, "Batch_-1");
+  SetFunctionState(FuncParamType::FUSION_L2, true);
+  NodePtr node = CreateNode();
+  FillNodeParaType(node);
+  std::vector<TaskDef> task_defs;
+  EXPECT_EQ(task_builder_->GenerateKernelTask(*node, context_, task_defs), fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_1)
-{
+TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_1) {
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateDynamicNode(0);
   FillNodeParaType(node);
@@ -625,8 +569,7 @@ TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_1)
   EXPECT_STREQ(args_str.c_str(), "{i_instance0*}{o_instance0*}{ws*}{t}");
 }
 
-TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_2)
-{
+TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_2) {
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateDynamicNode(1);
   FillNodeParaType(node);
@@ -634,8 +577,7 @@ TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_2)
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_3)
-{
+TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_3) {
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateDynamicNode(2);
   FillNodeParaType(node);
@@ -643,8 +585,7 @@ TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_3)
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_4)
-{
+TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_4) {
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateDynamicNode(3);
   FillNodeParaType(node);
@@ -652,8 +593,7 @@ TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_4)
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_5)
-{
+TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_5) {
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateDynamicNode(4);
   FillNodeParaType(node);
@@ -661,10 +601,10 @@ TEST_F(STEST_TaskBuilder, dynamic_node_generate_task_5)
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_1)
-{
+TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_1) {
   string soc_version = "Ascend310P3";
-  string path = GetCodeDir() + "/tests/engines/nn_engine/config/data/platform_config/" + soc_version + ".ini";;
+  string path = GetCodeDir() + "/tests/engines/nn_engine/config/data/platform_config/" + soc_version + ".ini";
+  ;
   string real_path = fe::RealPath(path);
   fe::PlatformInfoManager::Instance().platform_info_map_.clear();
   fe::PlatformInfoManager::Instance().platform_infos_map_.clear();
@@ -693,8 +633,7 @@ TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_1)
   EXPECT_EQ(task_defs.size(), 2);
 }
 
-TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_2)
-{
+TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_2) {
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
@@ -711,8 +650,7 @@ TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_2)
   EXPECT_EQ(task_defs.size(), 7);
 }
 
-TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_3)
-{
+TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_3) {
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
@@ -729,8 +667,7 @@ TEST_F(STEST_TaskBuilder, mix_static_node_generate_task_3)
   EXPECT_EQ(task_defs.size(), 2);
 }
 
-TEST_F(STEST_TaskBuilder, mix_dynamic_node_generate_task_1)
-{
+TEST_F(STEST_TaskBuilder, mix_dynamic_node_generate_task_1) {
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateNormalNode(1);
@@ -745,8 +682,7 @@ TEST_F(STEST_TaskBuilder, mix_dynamic_node_generate_task_1)
   EXPECT_EQ(ge::AttrUtils::HasAttr(node->GetOpDesc(), ATTR_NAME_MIX_CORE_NUM_VEC), true);
 }
 
-TEST_F(STEST_TaskBuilder, test_op_args_format_1)
-{
+TEST_F(STEST_TaskBuilder, test_op_args_format_1) {
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310P3");
   std::vector<domi::TaskDef> task_defs;
   ge::NodePtr node = CreateIFANode();
@@ -764,7 +700,6 @@ TEST_F(STEST_TaskBuilder, test_op_args_format_1)
 }
 
 ComputeGraphPtr BuildGraph_Readonly_ScopeWrite1() {
-
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_cast1 = std::make_shared<OpDesc>("cast", "Cast");
   OpDescPtr op_desc_relu = std::make_shared<OpDesc>("relu", "Relu");
@@ -783,7 +718,6 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite1() {
   op_desc_relu->AddInputDesc(tensor_desc_a);
   op_desc_relu->AddOutputDesc(tensor_desc_a);
   op_desc_output->AddInputDesc(tensor_desc_a);
-
 
   NodePtr node_cast1 = graph->AddNode(op_desc_cast1);
   NodePtr node_relu = graph->AddNode(op_desc_relu);
@@ -812,8 +746,9 @@ NodePtr MakeNode(const ComputeGraphPtr &graph, uint32_t in_num, uint32_t out_num
   return graph->AddNode(op_desc);
 }
 
-NodePtr CreateNode1(OpDescPtr op, ComputeGraphPtr owner_graph)
-{ return owner_graph->AddNode(op); }
+NodePtr CreateNode1(OpDescPtr op, ComputeGraphPtr owner_graph) {
+  return owner_graph->AddNode(op);
+}
 
 TEST_F(STEST_TaskBuilder, generate_auto_aic_aiv_ctx_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -837,8 +772,9 @@ TEST_F(STEST_TaskBuilder, generate_auto_aic_aiv_ctx_succ) {
   slice_info_ptr->thread_mode = static_cast<uint32_t>(ThreadMode::AUTO_THREAD);
   slice_info_ptr->input_tensor_slice = {{{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}},
                                         {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
-slice_info_ptr->output_tensor_slice = {{{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}, {{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}},
-                                       {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}, {{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
+  slice_info_ptr->output_tensor_slice = {
+      {{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}, {{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}},
+      {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}, {{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
   src_op->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
   (void)ge::AttrUtils::SetListStr(src_op, fe::ATTR_NAME_THREAD_CUBE_VECTOR_CORE_TYPE, {"AIC"});
   (void)ge::AttrUtils::SetBool(src_op, fe::kTypeFFTSPlus, true);
@@ -846,7 +782,7 @@ slice_info_ptr->output_tensor_slice = {{{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}
   SetFFTSOpDecSize(src_node);
   std::vector<domi::TaskDef> tasks;
   ge::ComputeGraphPtr tmp_graph = std::make_shared<ge::ComputeGraph>("OpCompileGraph");
-  ge::OpDescPtr memset_op_desc_ptr =  make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
+  ge::OpDescPtr memset_op_desc_ptr = make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
   ge::NodePtr memset_node = tmp_graph->AddNode(memset_op_desc_ptr, src_op->GetId());
   std::vector<int64_t> output_index = {0, 1};
   (void)ge::AttrUtils::SetListInt(memset_op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, output_index);
@@ -919,7 +855,7 @@ TEST_F(STEST_TaskBuilder, generate_auto_mix_aic_aiv_ctx_succ) {
   slice_info_ptr->input_tensor_slice = {{{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}},
                                         {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
   slice_info_ptr->output_tensor_slice = {{{{0, 3}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}},
-                                        {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
+                                         {{{3, 6}, {0, 2}, {0, 3}, {0, 3}, {0, 2}}}};
   src_op->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
   (void)ge::AttrUtils::SetBool(src_op, kStaticToDynamicSoftSyncOp, true);
   (void)ge::AttrUtils::SetListStr(src_op, fe::ATTR_NAME_THREAD_CUBE_VECTOR_CORE_TYPE, {"MIX_AIC"});
@@ -943,10 +879,10 @@ TEST_F(STEST_TaskBuilder, generate_ffts_dsa_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
-   std::vector<domi::TaskDef> task_defs;
+  std::vector<domi::TaskDef> task_defs;
   (void)ge::AttrUtils::SetBool(src_op, "_ffts_plus", true);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
@@ -964,10 +900,10 @@ TEST_F(STEST_TaskBuilder, generate_dsa_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
-   std::vector<domi::TaskDef> task_defs;
+  std::vector<domi::TaskDef> task_defs;
   (void)ge::AttrUtils::SetBool(src_op, "_ffts_plus", false);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
@@ -985,10 +921,10 @@ TEST_F(STEST_TaskBuilder, workspace_size_1_generate_dsa_succ) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
-   std::vector<domi::TaskDef> task_defs;
+  std::vector<domi::TaskDef> task_defs;
   (void)ge::AttrUtils::SetBool(src_op, "_ffts_plus", false);
   src_op->SetWorkspace({1024});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto src_node = graph->AddNode(src_op);
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
@@ -1015,7 +951,7 @@ TEST_F(STEST_TaskBuilder, generate_dsa_static_const_as_value_input) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto const1_node = graph->AddNode(const1);
   auto const2_node = graph->AddNode(const2);
@@ -1023,14 +959,10 @@ TEST_F(STEST_TaskBuilder, generate_dsa_static_const_as_value_input) {
   auto const4_node = graph->AddNode(const4);
   auto src_node = graph->AddNode(src_op);
 
-  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(2));
-  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(3));
+  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(2));
+  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(3));
   std::vector<domi::TaskDef> task_defs;
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
   EXPECT_EQ(ret, ge::FAILED);
@@ -1056,7 +988,7 @@ TEST_F(STEST_TaskBuilder, generate_dsa_dynamic_const_as_addr_input) {
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->SetWorkspace({1024, 2048});
-  src_op->SetOutputOffset({2048+1024});
+  src_op->SetOutputOffset({2048 + 1024});
   src_op->SetInputOffset({0, 32, 64, 128});
   auto const1_node = graph->AddNode(const1);
   auto const2_node = graph->AddNode(const2);
@@ -1064,35 +996,30 @@ TEST_F(STEST_TaskBuilder, generate_dsa_dynamic_const_as_addr_input) {
   auto const4_node = graph->AddNode(const4);
   auto src_node = graph->AddNode(src_op);
 
-  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(2));
-  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0),
-                          src_node->GetInDataAnchor(3));
+  ge::GraphUtils::AddEdge(const1_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(const2_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(const3_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(2));
+  ge::GraphUtils::AddEdge(const4_node->GetOutDataAnchor(0), src_node->GetInDataAnchor(3));
   (void)ge::AttrUtils::SetBool(graph, "_graph_unknown_flag", true);
   std::vector<domi::TaskDef> task_defs;
   Status ret = dsa_ops_kernel_builder_ptr_->GenerateTask(*src_node, context_, task_defs);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-TEST_F(STEST_TaskBuilder, CalcSingleTensorSize)
-{
+TEST_F(STEST_TaskBuilder, CalcSingleTensorSize) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   auto node = MakeNode(graph, 1, 1, "node", "Test");
-  GeTensorDesc tensor_desc(GeShape({1,-1,-1,224}), FORMAT_NCHW, DT_UNDEFINED);
+  GeTensorDesc tensor_desc(GeShape({1, -1, -1, 224}), FORMAT_NCHW, DT_UNDEFINED);
   node->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
   int64_t tensor_size = 0;
   GeTensorDescPtr input_desc = node->GetOpDesc()->MutableInputDesc(0);
   (void)ge::AttrUtils::SetBool(input_desc, ge::ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
-  Status status = TensorSizeCalculator::CalcSingleTensorSize(*node->GetOpDesc(), input_desc, "TEST", 1, true, tensor_size);
+  Status status =
+      TensorSizeCalculator::CalcSingleTensorSize(*node->GetOpDesc(), input_desc, "TEST", 1, true, tensor_size);
   EXPECT_EQ(status, fe::FAILED);
 }
 
-TEST_F(STEST_TaskBuilder, generate_dynamic_mix_aic_aiv_ctx_succ)
-{
+TEST_F(STEST_TaskBuilder, generate_dynamic_mix_aic_aiv_ctx_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({6, -1, 3, -1, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1159,8 +1086,7 @@ TEST_F(STEST_TaskBuilder, generate_memset_ctx_succ) {
   EXPECT_EQ(zero_workspace_size, 1);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_suc)
-{
+TEST_F(STEST_TaskBuilder, tiling_sink_suc) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({6, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1188,8 +1114,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_suc)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_fail)
-{
+TEST_F(STEST_TaskBuilder, tiling_sink_fail) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({6, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1257,10 +1182,12 @@ TEST_F(STEST_TaskBuilder, op_open_interface_test) {
 }
 
 namespace {
-  ge::graphStatus InferShapeStub(gert::InferShapeContext *context) { return fe::SUCCESS;}
-} // namespace
+ge::graphStatus InferShapeStub(gert::InferShapeContext *context) {
+  return fe::SUCCESS;
+}
+}  // namespace
 
-TEST_F(STEST_TaskBuilder, tiling_sink_calc_param){
+TEST_F(STEST_TaskBuilder, tiling_sink_calc_param) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1290,7 +1217,8 @@ TEST_F(STEST_TaskBuilder, tiling_sink_calc_param){
   Status ret = aicore_ops_kernel_builder_ptr->CalcTilingSinkRunningParam(true, *src_node, proc_flag);
   proc_flag = false;
   IMPL_OP(FIA).InferShape(InferShapeStub);
-  IMPL_OP(FIA).TilingInputsDataDependency({1}, {gert::TilingPlacement::TILING_ON_HOST, gert::TilingPlacement::TILING_ON_AICPU});
+  IMPL_OP(FIA).TilingInputsDataDependency(
+      {1}, {gert::TilingPlacement::TILING_ON_HOST, gert::TilingPlacement::TILING_ON_AICPU});
   ret = aicore_ops_kernel_builder_ptr->CalcTilingSinkRunningParam(true, *src_node, proc_flag);
   proc_flag = false;
   ge::AttrUtils::SetInt(src_op, fe::FE_IMPLY_TYPE, 2);
@@ -1302,7 +1230,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_calc_param){
   ret = aicore_ops_kernel_builder_ptr->CalcTilingSinkRunningParam(true, *src_node, proc_flag);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_fail){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_fail) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1369,7 +1297,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_fail){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, op_gentask_success){
+TEST_F(STEST_TaskBuilder, op_gentask_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1415,7 +1343,7 @@ TEST_F(STEST_TaskBuilder, op_gentask_success){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_suc){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_suc) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1482,7 +1410,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_suc){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path_fail){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path_fail) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1550,7 +1478,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path_fail){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1628,7 +1556,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_oppkernel_path){
   unsetenv(kAscendHomePath);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_add_tiling){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_add_tiling) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1695,7 +1623,7 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_310p_add_tiling){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_multi_ops_path){
+TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_multi_ops_path) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -1770,46 +1698,46 @@ TEST_F(STEST_TaskBuilder, tiling_sink_gen_task_multi_ops_path){
   EXPECT_NE(tasks.size(), 0);
 }
 
-TEST_F(STEST_TaskBuilder, parse_impl_failed)
-{
-    string json_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_failed_2.json";
-    TbeJsonFileParseImpl tbe_json_file_parse_impl;
-    Status ret = tbe_json_file_parse_impl.Initialize(json_file_path);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    int32_t block_dim = 0;
-    ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyBlockDim, block_dim, block_dim);
-    EXPECT_EQ(fe::FAILED, ret);
-    string magic;
-    ret = tbe_json_file_parse_impl.ParseJsonAttr(true, kKeyMagic, magic, magic);
-    EXPECT_EQ(fe::FAILED, ret);
-    uint32_t task_ratio = 0;
-    ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyTaskRation, task_ratio, task_ratio);
-    EXPECT_EQ(fe::FAILED, ret);
-    vector<int64_t> compress_param_vec;
-    ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyCompressParameters, compress_param_vec, compress_param_vec);
-    EXPECT_EQ(fe::FAILED, ret);
-    int64_t weight_repeat = 0;
-    ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyWeightRepeat, weight_repeat, weight_repeat);
-    EXPECT_EQ(fe::FAILED, ret);
-    string file_name;
-    std::vector<char> buffer;
-    ret = tbe_json_file_parse_impl.ReadBytesFromBinaryFile(file_name, buffer);
-    EXPECT_EQ(fe::FAILED, ret);
-    string kernel_list_first;
-    ret = tbe_json_file_parse_impl.ParseTvmKernelList(kernel_list_first);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    vector<int64_t> tvm_workspace_sizes;
-    vector<int64_t> tvm_workspace_types;
-    ret = tbe_json_file_parse_impl.ParseTvmWorkSpace(tvm_workspace_sizes, tvm_workspace_types);
-    EXPECT_EQ(fe::FAILED, ret);
-    string meta_data;
-    ret = tbe_json_file_parse_impl.ParseTvmMetaData(meta_data);
-    EXPECT_EQ(fe::SUCCESS, ret);
+TEST_F(STEST_TaskBuilder, parse_impl_failed) {
+  string json_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_failed_2.json";
+  TbeJsonFileParseImpl tbe_json_file_parse_impl;
+  Status ret = tbe_json_file_parse_impl.Initialize(json_file_path);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  int32_t block_dim = 0;
+  ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyBlockDim, block_dim, block_dim);
+  EXPECT_EQ(fe::FAILED, ret);
+  string magic;
+  ret = tbe_json_file_parse_impl.ParseJsonAttr(true, kKeyMagic, magic, magic);
+  EXPECT_EQ(fe::FAILED, ret);
+  uint32_t task_ratio = 0;
+  ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyTaskRation, task_ratio, task_ratio);
+  EXPECT_EQ(fe::FAILED, ret);
+  vector<int64_t> compress_param_vec;
+  ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyCompressParameters, compress_param_vec, compress_param_vec);
+  EXPECT_EQ(fe::FAILED, ret);
+  int64_t weight_repeat = 0;
+  ret = tbe_json_file_parse_impl.ParseJsonAttr(false, kKeyWeightRepeat, weight_repeat, weight_repeat);
+  EXPECT_EQ(fe::FAILED, ret);
+  string file_name;
+  std::vector<char> buffer;
+  ret = tbe_json_file_parse_impl.ReadBytesFromBinaryFile(file_name, buffer);
+  EXPECT_EQ(fe::FAILED, ret);
+  string kernel_list_first;
+  ret = tbe_json_file_parse_impl.ParseTvmKernelList(kernel_list_first);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  vector<int64_t> tvm_workspace_sizes;
+  vector<int64_t> tvm_workspace_types;
+  ret = tbe_json_file_parse_impl.ParseTvmWorkSpace(tvm_workspace_sizes, tvm_workspace_types);
+  EXPECT_EQ(fe::FAILED, ret);
+  string meta_data;
+  ret = tbe_json_file_parse_impl.ParseTvmMetaData(meta_data);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_TaskBuilder, parse_mix_impl_suc)
-{
-  string json_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_mix_ratio.json";
+TEST_F(STEST_TaskBuilder, parse_mix_impl_suc) {
+  string json_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_mix_ratio.json";
   TbeJsonFileParseImpl tbe_json_file_parse_impl;
   Status ret = tbe_json_file_parse_impl.Initialize(json_file_path);
   EXPECT_EQ(fe::SUCCESS, ret);
@@ -1826,26 +1754,27 @@ TEST_F(STEST_TaskBuilder, parse_mix_impl_suc)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_TaskBuilder, parse_vector_core_mix_impl_suc)
-{
-    string json_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_vector_core_mix_ratio.json";
-    TbeJsonFileParseImpl tbe_json_file_parse_impl;
-    Status ret = tbe_json_file_parse_impl.Initialize(json_file_path);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    int32_t cube_ratio;
-    int32_t vector_ratio;
-    bool dyn_ratio;
-    ret = tbe_json_file_parse_impl.ParseTvmTaskRatio(cube_ratio, vector_ratio, dyn_ratio);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    string kernel_list_first;
-    TilingWithRatio tiling_ratio;
-    ret = tbe_json_file_parse_impl.ParseTvmKernelList(kernel_list_first);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    ret = tbe_json_file_parse_impl.ParseListTilingRatio(tiling_ratio);
-    EXPECT_EQ(fe::SUCCESS, ret);
+TEST_F(STEST_TaskBuilder, parse_vector_core_mix_impl_suc) {
+  string json_file_path =
+      GetCodeDir() +
+      "/tests/engines/nn_engine/ut/testcase/fusion_engine/ffts/json/te_sigmoid_vector_core_mix_ratio.json";
+  TbeJsonFileParseImpl tbe_json_file_parse_impl;
+  Status ret = tbe_json_file_parse_impl.Initialize(json_file_path);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  int32_t cube_ratio;
+  int32_t vector_ratio;
+  bool dyn_ratio;
+  ret = tbe_json_file_parse_impl.ParseTvmTaskRatio(cube_ratio, vector_ratio, dyn_ratio);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  string kernel_list_first;
+  TilingWithRatio tiling_ratio;
+  ret = tbe_json_file_parse_impl.ParseTvmKernelList(kernel_list_first);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  ret = tbe_json_file_parse_impl.ParseListTilingRatio(tiling_ratio);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_TaskBuilder, tiling_sink_for_sk){
+TEST_F(STEST_TaskBuilder, tiling_sink_for_sk) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr src_op = std::make_shared<OpDesc>("FIA", "FIA");
   GeTensorDesc src_tensor_desc(GeShape({1, 2, 3, 3, 2}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);

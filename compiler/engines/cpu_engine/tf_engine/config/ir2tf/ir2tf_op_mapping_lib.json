@@ -6530,7 +6530,7 @@
             }
         ]
       },
-      {   
+      {
 	    "srcOpType":"LeakyRelu",
         "dstOpType":"LeakyRelu",
         "attrsMapDesc":[

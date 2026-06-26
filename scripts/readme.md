@@ -38,10 +38,10 @@ $ cd ./scripts
 2.执行`ge env`自动下载容器环境，并登陆到环境中
 
 ```sh
-$ ./ge.sh env 
+$ ./ge.sh env
 ```
 
-3.下载和安装构建所依赖的外部库 
+3.下载和安装构建所依赖的外部库
     ```sh
     $ ge update
     ```
@@ -133,7 +133,7 @@ Options:
     -p, --password     Config password
     -h, --help
 
-Example: ge config -i=<ip-adress> -u=<username> -p=<password> (Need add escape character \ before special charactor $、#、!)
+Example: ge config -i=<ip-adress> -u=<username> -p=<password> (Need add escape character \ before special character $、#、!)
 ```
 
 参数详细解释：
@@ -184,7 +184,7 @@ Options:
     -c format of the files changed compared to last commit, default case
     -l format of the files changed in last commit
     -h Print usage
-``` 
+```
 
 参数详细解释：
 
@@ -247,7 +247,7 @@ Options:
 下面的命令演示了如何检查ge目录下所有代码的增量覆盖率：
 
 ```sh
-$ ge cov -d=ge 
+$ ge cov -d=ge
 ```
 
 ### `ge docs`
@@ -284,7 +284,7 @@ Usage: ge clean [OPTIONS]
 Options:
     -b, --build         Clean build dir
     -d, --docs          Clean generate docs
-    -i, --install       Clean dependenices
+    -i, --install       Clean dependencies
     -a, --all           Clean all
     -h, --help
 ```

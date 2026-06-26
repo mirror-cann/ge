@@ -14,14 +14,14 @@
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from functools import wraps
-import inspect
-from typing import Callable, Dict, Iterator, List, Type, Union, overload, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Type, Union, overload
 
-from ge.graph import Graph, Node
 from ge.es.graph_builder import GraphBuilder
 from ge.es.tensor_holder import TensorHolder
+from ge.graph import Graph, Node
 
 if TYPE_CHECKING:
     from ._native import Pattern
@@ -33,6 +33,7 @@ _PATTERN_METHOD_MARK = "__ge_expression_pattern_method__"
 def __getattr__(name: str):
     if name == "Pattern":
         from ._native import Pattern
+
         globals()["Pattern"] = Pattern
         return Pattern
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -60,12 +61,10 @@ class PatternInputs:
         self._inputs: Dict[int, TensorHolder] = {}
 
     @overload
-    def __getitem__(self, index: int) -> TensorHolder:
-        ...
+    def __getitem__(self, index: int) -> TensorHolder: ...
 
     @overload
-    def __getitem__(self, index: slice) -> List[TensorHolder]:
-        ...
+    def __getitem__(self, index: slice) -> List[TensorHolder]: ...
 
     def __getitem__(self, index: Union[int, slice]) -> Union[TensorHolder, List[TensorHolder]]:
         if isinstance(index, slice):
@@ -106,6 +105,7 @@ class PatternInputs:
 def create_pattern(graph: Graph) -> "Pattern":
     """Build a native Pattern from a pattern graph."""
     from ._native import Pattern
+
     return Pattern(graph)
 
 
@@ -136,8 +136,12 @@ def _adapt_decorated_pattern_methods(cls: Type[object]) -> Callable[..., object]
 
     methods = _get_decorated_pattern_methods(cls)
     for method in methods:
-        _check_required_arg_count(method, min_count=2, max_count=2,
-                                  message="@pattern methods only support method(self, inputs)")
+        _check_required_arg_count(
+            method,
+            min_count=2,
+            max_count=2,
+            message="@pattern methods only support method(self, inputs)",
+        )
 
     def wrapper(self) -> List["Pattern"]:
         patterns = []
@@ -151,7 +155,9 @@ def _adapt_decorated_pattern_methods(cls: Type[object]) -> Callable[..., object]
     return wrapper
 
 
-def _adapt_expression_replacement(method: Callable[..., object]) -> Callable[..., object]:
+def _adapt_expression_replacement(
+    method: Callable[..., object],
+) -> Callable[..., object]:
     """Wrap ``replacement(self, inputs[, match_result])`` into the legacy hook."""
 
     positional_params = _positional_params(method)
@@ -162,7 +168,7 @@ def _adapt_expression_replacement(method: Callable[..., object]) -> Callable[...
         min_count=2,
         max_count=3,
         message="Expression-style replacement only supports "
-                "replacement(self, inputs) or replacement(self, inputs, match_result)",
+        "replacement(self, inputs) or replacement(self, inputs, match_result)",
     )
     accepts_match_result = _positional_arg_count(method) == 3
 
@@ -179,8 +185,7 @@ def _adapt_expression_replacement(method: Callable[..., object]) -> Callable[...
     return wrapper
 
 
-def _check_required_arg_count(method: Callable[..., object], *, min_count: int,
-                              max_count: int, message: str) -> None:
+def _check_required_arg_count(method: Callable[..., object], *, min_count: int, max_count: int, message: str) -> None:
     count = _positional_arg_count(method)
     if count < min_count or count > max_count or _has_required_keyword_only_args(method):
         raise TypeError(message)
@@ -193,7 +198,8 @@ def _positional_arg_count(method: Callable[..., object]) -> int:
 def _positional_params(method: Callable[..., object]) -> List[inspect.Parameter]:
     signature = inspect.signature(method)
     return [
-        param for param in signature.parameters.values()
+        param
+        for param in signature.parameters.values()
         if param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
     ]
 
@@ -208,8 +214,7 @@ def _has_required_keyword_only_args(method: Callable[..., object]) -> bool:
 
 def _get_decorated_pattern_methods(cls: Type[object]) -> List[Callable[..., object]]:
     return [
-        method for method in cls.__dict__.values()
-        if callable(method) and getattr(method, _PATTERN_METHOD_MARK, False)
+        method for method in cls.__dict__.values() if callable(method) and getattr(method, _PATTERN_METHOD_MARK, False)
     ]
 
 
@@ -221,8 +226,9 @@ def _decorated_pattern_graph_name(instance: object, method: Callable[..., object
     return f"{instance.__class__.__name__}_{method.__name__}_pattern"
 
 
-def _build_patterns_from_expression_result(builder: GraphBuilder, inputs: PatternInputs,
-                                           result: object) -> List["Pattern"]:
+def _build_patterns_from_expression_result(
+    builder: GraphBuilder, inputs: PatternInputs, result: object
+) -> List["Pattern"]:
     if _is_pattern_or_graph(result):
         return [ensure_pattern(result)]
     if isinstance(result, (list, tuple)) and result and all(_is_pattern_or_graph(item) for item in result):

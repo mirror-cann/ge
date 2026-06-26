@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -180,7 +180,7 @@ ge::Status LLMDataDistWrapper::Init(uint64_t cluster_id, const std::map<std::str
   LLM_CHECK_NOTNULL(instance);
   std::map<ge::AscendString, ge::AscendString> engine_options;
   for (const auto &option : options) {
-    (void) engine_options.emplace(option.first.c_str(), option.second.c_str());
+    (void)engine_options.emplace(option.first.c_str(), option.second.c_str());
   }
   LLM_CHK_STATUS_RET(instance->LLMDataDistInitialize(engine_options));
   llm_data_dist = std::move(instance);
@@ -237,8 +237,7 @@ ge::Status LLMDataDistWrapper::DeallocateCache(int64_t cache_id) {
   return llm_data_dist->DeallocateCache(cache_id);
 }
 
-ge::Status LLMDataDistWrapper::PullCache(int64_t cache_id,
-                                         const CacheKeyTuple &cache_key,
+ge::Status LLMDataDistWrapper::PullCache(int64_t cache_id, const CacheKeyTuple &cache_key,
                                          const PullCacheParamTuple &pull_cache_param) {
   LLM_CHECK_NOTNULL(llm_data_dist);
   return llm_data_dist->PullCache(cache_id, UnpackCacheKey(cache_key), UnpackPullCacheParam(pull_cache_param));
@@ -250,8 +249,7 @@ ge::Status LLMDataDistWrapper::TransferCache(uint64_t task_id,
   LLM_CHECK_NOTNULL(llm_data_dist);
   auto config = UnpackTransferCacheConfig(transfer_cache_config_tuple);
   config.type = 0U;
-  return llm_data_dist->TransferCache(task_id, config,
-                                      UnpackTransferBlockConfig(transfer_block_config_tuple));
+  return llm_data_dist->TransferCache(task_id, config, UnpackTransferBlockConfig(transfer_block_config_tuple));
 }
 
 ge::Status LLMDataDistWrapper::CopyCache(CopyCacheParamTuple copy_cache_param) {
@@ -276,7 +274,6 @@ ge::Status LLMDataDistWrapper::SwitchRole(const std::string &role, std::map<std:
   return llm_data_dist->SwitchRole(role, options);
 }
 
-
 std::pair<ge::Status, std::vector<TensorIdAndDesc>> LLMDataDistWrapper::GetCachedTensor(int64_t cache_id,
                                                                                         int32_t tensor_index) {
   ge::Status ret = ge::FAILED;
@@ -287,8 +284,7 @@ std::pair<ge::Status, std::vector<TensorIdAndDesc>> LLMDataDistWrapper::GetCache
     if (ret == ge::SUCCESS) {
       for (auto &tensor : tensors) {
         auto tensor_id = LLMTensor::AddTensor(tensor);
-        auto tensor_tuple = std::make_tuple(tensor_id,
-                                            static_cast<int32_t>(tensor.GetDataType()),
+        auto tensor_tuple = std::make_tuple(tensor_id, static_cast<int32_t>(tensor.GetDataType()),
                                             tensor.GetTensorDesc().GetShape().GetDims());
         results.emplace_back(std::move(tensor_tuple));
       }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,12 +39,12 @@ class UtestCmoAddrTaskInfo : public testing::Test {
   uint8_t dev_ptr_[static_cast<size_t>(ArgsPlacement::kEnd)][128];
   uint8_t host_ptr_[static_cast<size_t>(ArgsPlacement::kEnd)][128];
 
-private:
+ private:
   void ModelInit() {
     rtStream_t stream = nullptr;
     davinci_model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     davinci_model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    davinci_model.stream_list_= {stream};
+    davinci_model.stream_list_ = {stream};
 
     davinci_model.runtime_param_.logic_mem_base = 0x8003000;
     davinci_model.runtime_param_.logic_weight_base = 0x8008000;
@@ -54,7 +54,7 @@ private:
     davinci_model.runtime_param_.var_size = 0x1000;
     davinci_model.logical_mem_allocations_.push_back({0, 0x1000UL, 64, ge::MemAllocation::Type::FEATURE_MAP, 0U});
 
-    op_desc = MakeShared<OpDesc>("cmo","Cmo");
+    op_desc = MakeShared<OpDesc>("cmo", "Cmo");
     op_desc->SetId(0);
     davinci_model.op_list_[op_desc->GetId()] = op_desc;
     GeTensorDesc tensor(GeShape({4, 4, 4, 4}), FORMAT_ND, DT_INT64);
@@ -190,7 +190,7 @@ TEST_F(UtestCmoAddrTaskInfo, kernel_task_info_update_args_aicpu) {
   uint8_t device_args[1024];
   task_info.args_ = device_args;
   task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({0, 0});
-   uint64_t* active_base_addr = (uint64_t*)malloc(8);
+  uint64_t *active_base_addr = (uint64_t *)malloc(8);
   davinci_model.allocation_ids_to_active_base_addr_ = active_base_addr;
   std::vector<uint64_t> allocation_ids_to_active_base_addr;
   allocation_ids_to_active_base_addr.emplace_back(100);

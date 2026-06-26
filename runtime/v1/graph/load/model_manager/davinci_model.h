@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,12 +95,11 @@ struct DataCopyInfo {
   uint64_t src_length;  // 实际传入的数据大小
 };
 
-
 enum DavinciModelExecuteStage : size_t {
-    kStageBeforeH2D = 0,
-    kStageBeforeRtExecute = 1,
-    kStageAfterRtExecute = 2,
-    kStageEnd = 3,
+  kStageBeforeH2D = 0,
+  kStageBeforeRtExecute = 1,
+  kStageAfterRtExecute = 2,
+  kStageEnd = 3,
 };
 
 enum class ExecuteMode : uint32_t {
@@ -139,7 +138,7 @@ struct CopyHostInputInfo {
   void *host_addr;
   uint64_t device_addr;
   uint64_t tensor_size;
-  CopyHostInputInfo() :input_index(0), host_addr(nullptr), device_addr(0u), tensor_size(0U) {}
+  CopyHostInputInfo() : input_index(0), host_addr(nullptr), device_addr(0u), tensor_size(0U) {}
 };
 
 // comments
@@ -187,8 +186,7 @@ class DavinciModel {
   /// @param [in] input_queue_attrs: input queue ids from user, nums equal Data Op.
   /// @param [in] output_queue_attrs: input queue ids from user, nums equal NetOutput Op.
   /// @return: 0 for success / others for fail
-  Status SetQueIds(const std::vector<QueueAttrs> &input_queue_attrs,
-                   const std::vector<QueueAttrs> &output_queue_attrs);
+  Status SetQueIds(const std::vector<QueueAttrs> &input_queue_attrs, const std::vector<QueueAttrs> &output_queue_attrs);
 
   Status SetQueueType();
 
@@ -212,7 +210,9 @@ class DavinciModel {
   /// @ingroup ge
   /// @brief get model id
   /// @return model ID
-  uint32_t Id() const { return model_id_; }
+  uint32_t Id() const {
+    return model_id_;
+  }
 
   /// @ingroup ge
   /// @brief set model id
@@ -222,14 +222,20 @@ class DavinciModel {
   /// @ingroup ge
   /// @brief Get SubModelId
   /// @return sub model ID
-  uint32_t SubModelId() const { return sub_model_id_; }
+  uint32_t SubModelId() const {
+    return sub_model_id_;
+  }
 
   /// @ingroup ge
   /// @brief Get SubModelId
   /// @return sub model ID
-  void SetSubModelId(const uint32_t sub_model_id) { sub_model_id_ = sub_model_id; }
+  void SetSubModelId(const uint32_t sub_model_id) {
+    sub_model_id_ = sub_model_id;
+  }
 
-  void SetRunContext(const OmeContext &context) { run_context_ = context; }
+  void SetRunContext(const OmeContext &context) {
+    run_context_ = context;
+  }
 
   void Run();
 
@@ -247,9 +253,8 @@ class DavinciModel {
   /// @param [in] async_mode  is asynchronize mode.
   /// @param [in] input_data  model input data
   /// @param [out] output_data  model output data
-  Status NnExecute(aclrtStream const stream, const bool async_mode,
-                   const InputData &input_data, OutputData &output_data,
-                   const std::vector<GeTensor> &input_tensor,
+  Status NnExecute(aclrtStream const stream, const bool async_mode, const InputData &input_data,
+                   OutputData &output_data, const std::vector<GeTensor> &input_tensor,
                    const std::vector<GeTensor> &output_tensor);
 
   /// @ingroup ge
@@ -258,8 +263,7 @@ class DavinciModel {
   /// @param [in] async_mode  is asynchronize mode.
   /// @param [in] input_data  model input data
   /// @param [out] output_data  model output data
-  Status NnExecute(aclrtStream const stream, const bool async_mode,
-                   const std::vector<gert::Tensor> &input_tensor,
+  Status NnExecute(aclrtStream const stream, const bool async_mode, const std::vector<gert::Tensor> &input_tensor,
                    std::vector<gert::Tensor> &output_tensor);
 
   Status CheckRtStreamSynchronize(rtError_t rt_ret);
@@ -271,21 +275,18 @@ class DavinciModel {
   /// @param [in] const InputData &input_data: user input data info.
   /// @param [in/out] OutputData &output_data: user output data info.
   /// @return SUCCESS handle successfully / others handle failed
-  Status CopyModelData(const std::vector<gert::Tensor> &input_tensor,
-                       const std::vector<gert::Tensor> &output_tensor);
+  Status CopyModelData(const std::vector<gert::Tensor> &input_tensor, const std::vector<gert::Tensor> &output_tensor);
 
-  void GetGeTensorBlobs(InputData &input_data,
-                        const std::vector<gert::Tensor> &input_tensor) const;
+  void GetGeTensorBlobs(InputData &input_data, const std::vector<gert::Tensor> &input_tensor) const;
 
   Status UpdateAllNodeArgs(const InputData &input_data, const OutputData &output_data,
                            const std::vector<gert::Tensor> &input_tensor,
                            const std::vector<gert::Tensor> &output_tensor);
 
-  Status ConstructZeroCopyIoActiveBaseAddrs(const std::vector<std::pair<uint32_t, uint32_t>> &refreshable_index_to_allocation_ids,
-                                            const std::vector<DataBuffer> &blobs,
-                                            const std::vector<gert::Tensor> &tensors,
-                                            bool is_input, uint32_t &ret_up,
-                                            std::vector<uint32_t>& id_to_plicy);
+  Status ConstructZeroCopyIoActiveBaseAddrs(
+      const std::vector<std::pair<uint32_t, uint32_t>> &refreshable_index_to_allocation_ids,
+      const std::vector<DataBuffer> &blobs, const std::vector<gert::Tensor> &tensors, bool is_input, uint32_t &ret_up,
+      std::vector<uint32_t> &id_to_plicy);
 
   Status CopyInputForNoZeroCopy(const std::vector<DataBuffer> &blobs,
                                 const std::map<uint32_t, MemAllocationSlice> &copy_infos,
@@ -332,7 +333,9 @@ class DavinciModel {
   }
 
   // get total mem size
-  size_t TotalMemSize() const { return runtime_param_.mem_size; }
+  size_t TotalMemSize() const {
+    return runtime_param_.mem_size;
+  }
 
   /// @ingroup ge
   /// @brief Get total useful size, in known subgraph, no need to allocate zero copy memory during initialization.
@@ -340,18 +343,28 @@ class DavinciModel {
   /// @return Status
   Status GetTotalMemSizeExcludeZeroCopy(int64_t &total_useful_size);
 
-  size_t TotalVarMemSize() const { return runtime_param_.var_size; }
+  size_t TotalVarMemSize() const {
+    return runtime_param_.var_size;
+  }
 
   // get base memory address
-  uintptr_t FeatureMapBase() const { return mem_base_; }
+  uintptr_t FeatureMapBase() const {
+    return mem_base_;
+  }
 
   // get Notify list
-  const std::vector<rtEvent_t> &GetNotifyList() const { return notify_list_; }
+  const std::vector<rtEvent_t> &GetNotifyList() const {
+    return notify_list_;
+  }
 
   // get Event list
-  const std::vector<aclrtEvent> &GetEventList() const { return event_list_; }
+  const std::vector<aclrtEvent> &GetEventList() const {
+    return event_list_;
+  }
 
-  const std::vector<aclrtStream> &GetStreamList() const { return stream_list_; }
+  const std::vector<aclrtStream> &GetStreamList() const {
+    return stream_list_;
+  }
 
   Status SetStreamPriority(const uint32_t priority);
   Status GetStreamPriority(uint32_t &priority) const;
@@ -361,7 +374,9 @@ class DavinciModel {
     reusable_stream_allocator_ = reusable_stream_allocator;
     is_outer_allocator_ = true;
   }
-  ReusableStreamAllocator *GetReusableStreamAllocator() const { return reusable_stream_allocator_; }
+  ReusableStreamAllocator *GetReusableStreamAllocator() const {
+    return reusable_stream_allocator_;
+  }
 
   Status InitStreamInfoOfTask(const ComputeGraphPtr &compute_graph);
   Status GetTaskNumOfTaskdef(const domi::TaskDef &task_def, int32_t &task_num,
@@ -372,13 +387,19 @@ class DavinciModel {
     return active_stream_indication_.find(stream_id) != active_stream_indication_.end();
   }
 
-  const std::vector<aclrtLabel> &GetLabelList() const { return label_list_; }
+  const std::vector<aclrtLabel> &GetLabelList() const {
+    return label_list_;
+  }
 
-  uint64_t GetAllStreamNum() const { return stream_list_.size() + all_hccl_stream_list_.size(); }
+  uint64_t GetAllStreamNum() const {
+    return stream_list_.size() + all_hccl_stream_list_.size();
+  }
 
   Status GetLabelGotoAddr(const uint32_t label_index, const rtMemType_t mem_type, void *&arg_addr, uint32_t &arg_size);
 
-  uint32_t GetRuntimeModelId() const { return runtime_model_id_; }
+  uint32_t GetRuntimeModelId() const {
+    return runtime_model_id_;
+  }
 
   Status DestroyThread();
 
@@ -405,22 +426,34 @@ class DavinciModel {
   void SetModelQueueParam(const ModelQueueParam &model_queue_param);
 
   void SetGlobalStep(const uintptr_t step_addr, const uint64_t step_size);
-  uintptr_t GetGlobalStep() const { return global_step_addr_; }
-  uintptr_t GetLoopPerIter() const { return loop_per_iter_addr_; }
-  uintptr_t GetLoopCond() const { return loop_cond_addr_; }
+  uintptr_t GetGlobalStep() const {
+    return global_step_addr_;
+  }
+  uintptr_t GetLoopPerIter() const {
+    return loop_per_iter_addr_;
+  }
+  uintptr_t GetLoopCond() const {
+    return loop_cond_addr_;
+  }
   // get updated task info list
-  const std::vector<TaskInfoPtr> &GetTaskList() const { return task_list_; }
+  const std::vector<TaskInfoPtr> &GetTaskList() const {
+    return task_list_;
+  }
 
   Status AllocateArgsBuffer(size_t size, ArgsPlacement placement, ArgsAllocationResult &result) {
     return args_manager_.AllocateArgsBuffer(size, placement, result);
   }
 
-    // MDC特定形态下多单流模型加载保证串行，需要加锁保证不同流之间不串
+  // MDC特定形态下多单流模型加载保证串行，需要加锁保证不同流之间不串
   Status SetStreamLockOrUnlocK(aclrtStream stm, const bool is_lock) const;
 
-  rtModel_t GetRtModelHandle() const { return rt_model_handle_; }
+  rtModel_t GetRtModelHandle() const {
+    return rt_model_handle_;
+  }
 
-  uint64_t GetRtBaseAddr() const { return runtime_param_.logic_mem_base; }
+  uint64_t GetRtBaseAddr() const {
+    return runtime_param_.logic_mem_base;
+  }
 
   uint32_t GetFlowctrlIndex(const uint32_t op_index);
 
@@ -442,9 +475,8 @@ class DavinciModel {
                                 std::vector<InputOutputDescInfo> &output_desc) const;
 
   Status GetInputOutputDescInfo(std::vector<InputOutputDescInfo> &input_desc,
-                                std::vector<InputOutputDescInfo> &output_desc,
-                                std::vector<uint32_t> &input_formats, std::vector<uint32_t> &output_formats,
-                                const bool by_dims) const;
+                                std::vector<InputOutputDescInfo> &output_desc, std::vector<uint32_t> &input_formats,
+                                std::vector<uint32_t> &output_formats, const bool by_dims) const;
 
   /// @ingroup ge
   /// @brief Get dynamic batch_info
@@ -479,7 +511,9 @@ class DavinciModel {
   /// @ingroup ge
   /// @brief Get model_id.
   /// @return model_id
-  uint32_t GetModelId() const { return model_id_; }
+  uint32_t GetModelId() const {
+    return model_id_;
+  }
 
   /// @ingroup ge
   /// @brief get unique identification for op when load two or more models
@@ -494,8 +528,7 @@ class DavinciModel {
   void OnComputeDoneWithResult(const uint32_t data_id, uint32_t result, std::vector<gert::Tensor> &outputs);
   void OnComputeDoneWithResultCallback(const std::shared_ptr<RunArgs> &args, const uint32_t data_id, uint32_t result,
                                        std::vector<gert::Tensor> &outputs);
-  Status UpdateHbmFmMemBasesWithInnerMemory(uint8_t *mem_base, const size_t mem_size,
-                                            const size_t data_size);
+  Status UpdateHbmFmMemBasesWithInnerMemory(uint8_t *mem_base, const size_t mem_size, const size_t data_size);
   void ReturnSequenceResult(const std::shared_ptr<RunArgs> &args, const uint32_t data_id, bool seq_end_flag);
 
   Status ModelRunStart();
@@ -508,14 +541,20 @@ class DavinciModel {
   /// @ingroup ge
   /// @brief Get Session Id
   /// @return sessionID
-  uint64_t GetSessionId() const { return session_id_; }
+  uint64_t GetSessionId() const {
+    return session_id_;
+  }
 
-  const error_message::ErrorManagerContext &GetErrorContext() const { return error_context_; }
+  const error_message::ErrorManagerContext &GetErrorContext() const {
+    return error_context_;
+  }
 
   /// @ingroup ge
   /// @brief SetDeviceId
   /// @return void
-  void SetDeviceId(const uint32_t device_id) { device_id_ = device_id; }
+  void SetDeviceId(const uint32_t device_id) {
+    device_id_ = device_id;
+  }
 
   /// @ingroup ge
   /// @brief Get device Id
@@ -526,9 +565,13 @@ class DavinciModel {
 
   Status UpdateSessionId(const uint64_t session_id);
 
-  const RuntimeParam &GetRuntimeParam() const { return runtime_param_; }
+  const RuntimeParam &GetRuntimeParam() const {
+    return runtime_param_;
+  }
 
-  fe::PlatFormInfos &MutablePlatformInfo() { return platform_infos_; }
+  fe::PlatFormInfos &MutablePlatformInfo() {
+    return platform_infos_;
+  }
 
   Status DisableZeroCopy(const void *const addr, const bool fusion_flag = false);
 
@@ -536,7 +579,9 @@ class DavinciModel {
 
   void DelDependentHcclStreams(const ComputeGraphPtr &compute_graph);
 
-  bool GetOpDugReg() const { return is_op_debug_reg_; }
+  bool GetOpDugReg() const {
+    return is_op_debug_reg_;
+  }
 
   Status ReportFusionOpInfo();
 
@@ -553,8 +598,7 @@ class DavinciModel {
                        const size_t offset, const std::vector<bool> &io_tiling_list);
 
   void SetLogicalOutsideAddrs(const std::map<uintptr_t, std::set<size_t>> &args_offset,
-                              const std::vector<bool> &tiling_list,
-                              const uintptr_t args_device_addr);
+                              const std::vector<bool> &tiling_list, const uintptr_t args_device_addr);
 
   std::set<size_t> GetZeroCopyArgsIndex(const std::vector<uint64_t> &arg_logical_addrs) const;
 
@@ -590,14 +634,16 @@ class DavinciModel {
   void SaveDumpTask(const OpDescInfoId &id, const shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                     const FirstLevelAddressInfo &first_level_address_info = {false, {}},
                     const std::map<uint64_t, uint64_t> &cust_to_relevant_offset = {},
-                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, const rtStream_t stream = nullptr) {
+                    const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL,
+                    const rtStream_t stream = nullptr) {
     data_dumper_.SaveDumpTask(id, op_desc, args, first_level_address_info, cust_to_relevant_offset, task_type,
                               is_op_debug_reg_, stream);
   }
 
   void SavePrintDumpTask(const OpDescInfoId &id, const shared_ptr<OpDesc> &op_desc, const uintptr_t args,
                          const FirstLevelAddressInfo &first_level_address_info = {false, {}},
-                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL, const rtStream_t stream = nullptr) {
+                         const ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL,
+                         const rtStream_t stream = nullptr) {
     data_dumper_.SavePrintDumpTask(id, op_desc, args, first_level_address_info, task_type, stream);
   }
 
@@ -629,7 +675,9 @@ class DavinciModel {
     OpDebugUnRegister();
   }
 
-  bool IsDumpOpWithAdump() const { return data_dumper_.IsDumpOpWithAdump(); }
+  bool IsDumpOpWithAdump() const {
+    return data_dumper_.IsDumpOpWithAdump();
+  }
 
   void ResetDumpFsmState() {
     dump_fsm_state_.clear();
@@ -650,11 +698,11 @@ class DavinciModel {
     bool is_update_dump_op_range = true;
     if (task_type == ModelTaskType::MODEL_TASK_FFTS_PLUS) {
       is_update_dump_op_range = false;
-      GELOGW("op[%s] task type[%d] no support dump with opname range",
-        op_name.c_str(), static_cast<int32_t>(task_type));
+      GELOGW("op[%s] task type[%d] no support dump with opname range", op_name.c_str(),
+             static_cast<int32_t>(task_type));
     }
-    return GetDumpProperties().SetDumpFsmState(
-      dump_model_name_, om_name_, op_name, dump_fsm_state_, dump_op_in_range_, is_update_dump_op_range);
+    return GetDumpProperties().SetDumpFsmState(dump_model_name_, om_name_, op_name, dump_fsm_state_, dump_op_in_range_,
+                                               is_update_dump_op_range);
   }
 
   bool IsInDumpOpRange(const std::string &op_name) {
@@ -682,8 +730,7 @@ class DavinciModel {
   }
 
   bool OpNoNeedDumpOnWatcherModel(const std::string &op_name) const {
-    return (GetDumpProperties().IsLayerOpOnWatcherMode(op_name) &&
-      (!GetDumpProperties().IsWatcherNode(op_name)));
+    return (GetDumpProperties().IsLayerOpOnWatcherMode(op_name) && (!GetDumpProperties().IsWatcherNode(op_name)));
   }
 
   bool IsDumpWatcherModelEnable() const {
@@ -691,7 +738,7 @@ class DavinciModel {
   }
 
   bool OpNeedDump(const OpDescPtr &op_desc);
-  
+
   bool IsRootGraphNeedDump(const std::string &op_name) const;
 
   std::string GetRootGraphName() const;
@@ -720,12 +767,12 @@ class DavinciModel {
   Status UpdateRuntimeParamBase();
 
   // 使用整段内存更新多段fm
-  Status UpdateHbmFmMemBases(const uintptr_t mem_base, const size_t size,
-                             size_t &used_size, const bool is_init = false);
+  Status UpdateHbmFmMemBases(const uintptr_t mem_base, const size_t size, size_t &used_size,
+                             const bool is_init = false);
 
   // 动态shape静态子图刷新场景或者静态图可刷新场景1
-  Status UpdateHbmFmMemBases(const std::vector<uint8_t *> &hbm_fm_mem_bases,
-                             const size_t size = SIZE_MAX, const bool is_init = false);
+  Status UpdateHbmFmMemBases(const std::vector<uint8_t *> &hbm_fm_mem_bases, const size_t size = SIZE_MAX,
+                             const bool is_init = false);
 
   Status UpdateExMemBase(const uint64_t memory_type, uint8_t *const mem_base) {
     const auto iter = runtime_param_.memory_infos.find(memory_type);
@@ -747,10 +794,11 @@ class DavinciModel {
   }
   bool IsFeatureBaseRefreshable() const;
   bool IsKnownNode() const;
-  bool NeedUpdateCoreCountWithOpDesc(const NodePtr &node, fe::PlatFormInfos &platform_infos, std::string &addr_key_out) const;
+  bool NeedUpdateCoreCountWithOpDesc(const NodePtr &node, fe::PlatFormInfos &platform_infos,
+                                     std::string &addr_key_out) const;
   bool UpdateCoreCountWithOpDesc(const NodePtr &node, fe::PlatFormInfos &platform_infos) const;
   Status UpdatePlatformInfos(const NodePtr &node, fe::PlatFormInfos &platform_infos) const;
-  void* AllocPlatformInfosMem(size_t total_size, bool need_update_op_desc, bool is_custom);
+  void *AllocPlatformInfosMem(size_t total_size, bool need_update_op_desc, bool is_custom);
   Status SerializeAndCopyToDevice(fe::PlatFormInfos &platform_infos, void *dev_addr, size_t copy_size,
                                   size_t total_size) const;
   // todo 临时方案
@@ -763,8 +811,12 @@ class DavinciModel {
                                    std::vector<InputOutputDims> &output_dims) const;
 
   // om file name
-  void SetOmName(const std::string &om_name) { om_name_ = om_name; }
-  void SetDumpModelName(const std::string &dump_model_name) { dump_model_name_ = dump_model_name; }
+  void SetOmName(const std::string &om_name) {
+    om_name_ = om_name;
+  }
+  void SetDumpModelName(const std::string &dump_model_name) {
+    dump_model_name_ = dump_model_name;
+  }
   void SetFileConstantWeightDir(const std::string &file_constant_weight_dir) {
     file_constant_weight_dir_ = file_constant_weight_dir;
   }
@@ -774,7 +826,7 @@ class DavinciModel {
     }
   }
   void SetFileConstantDeviceMem(const std::string &file_name, const void *device_mem, size_t mem_size) {
-      file_constant_user_device_mems_[file_name] = {file_name, device_mem, mem_size};
+    file_constant_user_device_mems_[file_name] = {file_name, device_mem, mem_size};
   }
   const FileConstantMem *GetFileConstantUserDeviceMem(const std::string &file_name) const {
     const auto iter = file_constant_user_device_mems_.find(file_name);
@@ -791,11 +843,19 @@ class DavinciModel {
     }
     return false;
   }
-  string GetOmName() { return om_name_; }
-  string GetDumpModelName() { return dump_model_name_; }
+  string GetOmName() {
+    return om_name_;
+  }
+  string GetDumpModelName() {
+    return dump_model_name_;
+  }
   uint32_t GetDumpModelId() const;
-  void SetDumpProperties(const DumpProperties &dump_properties) { data_dumper_.SetDumpProperties(dump_properties); }
-  const DumpProperties &GetDumpProperties() const { return data_dumper_.GetDumpProperties(); }
+  void SetDumpProperties(const DumpProperties &dump_properties) {
+    data_dumper_.SetDumpProperties(dump_properties);
+  }
+  const DumpProperties &GetDumpProperties() const {
+    return data_dumper_.GetDumpProperties();
+  }
 
   bool GetOpDescInfo(const uint32_t stream_id, const uint32_t task_id, OpDescInfo &op_desc_info) {
     return exception_dumper_.GetOpDescInfo(OpDescInfoId(task_id, stream_id, static_cast<int32_t>(GetDeviceId())),
@@ -803,11 +863,19 @@ class DavinciModel {
   }
   void UpdateOpIOAddrs(const uint32_t task_id, const uint32_t stream_id, const std::vector<uint64_t> &io_addrs);
 
-  bool GetRunningFlag() const { return running_flg_; }
-  void SetRunningFlag(const bool flag) { running_flg_ = flag; }
+  bool GetRunningFlag() const {
+    return running_flg_;
+  }
+  void SetRunningFlag(const bool flag) {
+    running_flg_ = flag;
+  }
 
-  bool GetAiCpuCustFlag() const { return aicpu_flg_; }
-  void SetAiCpuCustFlag(const bool flag) { aicpu_flg_ = flag; }
+  bool GetAiCpuCustFlag() const {
+    return aicpu_flg_;
+  }
+  void SetAiCpuCustFlag(const bool flag) {
+    aicpu_flg_ = flag;
+  }
 
   // for blocking aicpu op
   Status GetEventByStream(aclrtStream const stream, aclrtEvent &rt_event);
@@ -819,7 +887,9 @@ class DavinciModel {
   Status GetAddrAndPrefCnt(const OpDescPtr &op_desc, const std::string &kernel_name, const std::string &prefix,
                            std::vector<std::pair<void *, uint32_t>> &addr_pref_cnt) const;
 
-  void SetRootGraphId(const uint32_t root_graph_id) { runtime_param_.root_graph_id = root_graph_id; }
+  void SetRootGraphId(const uint32_t root_graph_id) {
+    runtime_param_.root_graph_id = root_graph_id;
+  }
 
   Status ReportProfilingData(const uint32_t graph_id);
 
@@ -946,9 +1016,9 @@ class DavinciModel {
 
   void SetTilingSinkTaskArgDescs(uint32_t op_index, std::vector<ArgDesc> &arg_descs) {
     tiling_sink_task_arg_descs_list_[op_index] = arg_descs;
-    for (size_t i = 0 ; i < arg_descs.size(); i++) {
-      GELOGI("set op index: %u, arg desc index: %zu, arg desc type: %d",
-        op_index, i, static_cast<int32_t>(arg_descs[i].addr_type));
+    for (size_t i = 0; i < arg_descs.size(); i++) {
+      GELOGI("set op index: %u, arg desc index: %zu, arg desc type: %d", op_index, i,
+             static_cast<int32_t>(arg_descs[i].addr_type));
     }
   }
 
@@ -959,12 +1029,12 @@ class DavinciModel {
     }
 
     arg_descs = std::move(it->second);
-    for (size_t i = 0 ; i < arg_descs.size(); i++) {
-      GELOGI("get op index: %u, arg desc index: %zu, arg desc type: %d",
-        op_index, i, static_cast<int32_t>(arg_descs[i].addr_type));
+    for (size_t i = 0; i < arg_descs.size(); i++) {
+      GELOGI("get op index: %u, arg desc index: %zu, arg desc type: %d", op_index, i,
+             static_cast<int32_t>(arg_descs[i].addr_type));
     }
 
-    (void) tiling_sink_task_arg_descs_list_.erase(it); // 每个op_index只调用一次, 使用后释放
+    (void)tiling_sink_task_arg_descs_list_.erase(it);  // 每个op_index只调用一次, 使用后释放
     return SUCCESS;
   }
 
@@ -974,7 +1044,7 @@ class DavinciModel {
   uintptr_t weights_mem_base_{0U};
   uintptr_t var_mem_base_{0U};
   // memory address of model
-  uintptr_t fixed_mem_base_ {0U};  // Initial of mem_base_, keep forever.
+  uintptr_t fixed_mem_base_{0U};  // Initial of mem_base_, keep forever.
   // refresh fm地址，分段场景为首个refresh fm段的地址
   uintptr_t mem_base_{0U};
   // fm段的总长度(fix fm和refresh fm), 用来判断分配fm内存时是否包含io段内存
@@ -1027,33 +1097,29 @@ class DavinciModel {
   /// @param [in] const InputData &input_data: user input data info.
   /// @param [in/out] OutputData &output_data: user output data info.
   /// @return SUCCESS handle successfully / others handle failed
-  Status CopyModelData(InputData &input_data, OutputData &output_data,
-      const std::vector<GeTensor> &input_tensor, const std::vector<GeTensor> &output_tensor);
+  Status CopyModelData(InputData &input_data, OutputData &output_data, const std::vector<GeTensor> &input_tensor,
+                       const std::vector<GeTensor> &output_tensor);
 
-  Status ConstructZeroCopyIoActiveBaseAddrs(std::vector<std::pair<uint32_t, uint32_t>> &refreshable_index_to_allocation_ids,
-                                            const std::vector<DataBuffer> &blobs,
-                                            const std::vector<GeTensor> &tensors,
-                                            bool is_input, uint32_t &ret_up,
-                                            std::vector<uint32_t>& id_to_plicy);
+  Status ConstructZeroCopyIoActiveBaseAddrs(
+      std::vector<std::pair<uint32_t, uint32_t>> &refreshable_index_to_allocation_ids,
+      const std::vector<DataBuffer> &blobs, const std::vector<GeTensor> &tensors, bool is_input, uint32_t &ret_up,
+      std::vector<uint32_t> &id_to_plicy);
 
   Status UpdateAllNodeArgs(const InputData &input_data, const OutputData &output_data,
                            const std::vector<GeTensor> &input_tensor, const std::vector<GeTensor> &output_tensor);
-  Status CheckIoReuseAddrs(const std::vector<DataBuffer> &input_blobs,
-                           const std::vector<DataBuffer> &output_blobs,
+  Status CheckIoReuseAddrs(const std::vector<DataBuffer> &input_blobs, const std::vector<DataBuffer> &output_blobs,
                            const std::vector<gert::Tensor> &input_tensors,
                            const std::vector<gert::Tensor> &output_tensors) const;
-  Status CheckIoReuseAddrs(const std::vector<DataBuffer> &input_blobs,
-                           const std::vector<DataBuffer> &output_blobs,
+  Status CheckIoReuseAddrs(const std::vector<DataBuffer> &input_blobs, const std::vector<DataBuffer> &output_blobs,
                            const std::vector<GeTensor> &input_tensors,
                            const std::vector<GeTensor> &output_tensors) const;
   Status CopyInputForNoZeroCopy(const std::vector<DataBuffer> &blobs,
                                 const std::map<uint32_t, MemAllocationSlice> &copy_infos,
                                 const std::vector<GeTensor> &tensors);
-  Status CopyOutputForNoZeroCopy(const std::vector<GeTensor> &output_tensor,
-                                 const std::vector<DataBuffer> &blobs,
+  Status CopyOutputForNoZeroCopy(const std::vector<GeTensor> &output_tensor, const std::vector<DataBuffer> &blobs,
                                  const std::map<uint32_t, MemAllocationSlice> &copy_infos);
-  Status ConstructActiveMemBaseAddrsForKnownNode(uint32_t &ret_up,
-    const std::vector<uint64_t> &inputs, const std::vector<uint64_t> &outputs);
+  Status ConstructActiveMemBaseAddrsForKnownNode(uint32_t &ret_up, const std::vector<uint64_t> &inputs,
+                                                 const std::vector<uint64_t> &outputs);
 
   void ConstructActiveMemBaseAddrs();
 
@@ -1085,8 +1151,8 @@ class DavinciModel {
   void SetInputDimsInfo(const std::vector<int64_t> &input_dims, const Format format,
                         ShapeDescription &shape_info) const;
 
-  Status GetInputDescInfo(std::vector<InputOutputDescInfo> &input_desc,
-                          std::vector<uint32_t> &input_format, const bool by_dims) const;
+  Status GetInputDescInfo(std::vector<InputOutputDescInfo> &input_desc, std::vector<uint32_t> &input_format,
+                          const bool by_dims) const;
   Status GetOutputDescInfo(std::vector<InputOutputDescInfo> &output_desc, std::vector<uint32_t> &output_format) const;
 
   // todo 临时方案
@@ -1137,14 +1203,10 @@ class DavinciModel {
   Status ProcessFileConstantNode(const NodePtr &node, const ModelParam &param, bool &var_resource_inited,
                                  bool &is_weight_combined, std::string &combined_weight_file,
                                  std::map<NodePtr, std::pair<size_t, int64_t>> &node_to_offset_and_size);
-  Status AllocateCombinedWeightMemory(const std::string &combined_weight_file,
-                                      const void *&real_dev_addr,
-                                      int64_t &file_size,
-                                      bool &is_user_mem);
+  Status AllocateCombinedWeightMemory(const std::string &combined_weight_file, const void *&real_dev_addr,
+                                      int64_t &file_size, bool &is_user_mem);
   Status MapNodeAddressesToCombinedWeight(const std::map<NodePtr, std::pair<size_t, int64_t>> &node_to_offset_and_size,
-                                         const void *base_addr,
-                                         int64_t file_size,
-                                         const std::string &file_path);
+                                          const void *base_addr, int64_t file_size, const std::string &file_path);
 
   Status HandleCombinedWeights(const std::map<NodePtr, std::pair<size_t, int64_t>> &node_to_offset_and_size,
                                const std::string &combined_weight_file);
@@ -1242,7 +1304,7 @@ class DavinciModel {
   /// @return: 0 for success / others for fail
   Status LoadWithQueue();
 
-  Status LaunchDqsTask(rtDqsTaskType task_type, void* cfg = nullptr);
+  Status LaunchDqsTask(rtDqsTaskType task_type, void *cfg = nullptr);
 
   Status LoadWithHardwareQueue();
 
@@ -1262,8 +1324,7 @@ class DavinciModel {
 
   Status CpuTaskModelZeroCopy(std::vector<uintptr_t> &mbuf_list,
                               const std::map<uint32_t, ZeroCopyOffset> &outside_addrs,
-                              const std::vector<bool> &is_no_tiling_list,
-                              ZeroCpyArgs &cpy_args);
+                              const std::vector<bool> &is_no_tiling_list, ZeroCpyArgs &cpy_args);
 
   /// @ingroup ge
   /// @brief ACL, Bind NetOutput Op addr to output queue.
@@ -1291,9 +1352,7 @@ class DavinciModel {
   /// @ingroup ge
   /// @brief definiteness queue schedule, mark dump step info.
   /// @return: 0 for success / others for fail
-  Status CpuMarkStep(const uint32_t group_total_count,
-                     const uint32_t group_index,
-                     const uint32_t group_policy,
+  Status CpuMarkStep(const uint32_t group_total_count, const uint32_t group_index, const uint32_t group_policy,
                      const std::string &dump_step);
 
   /// @ingroup ge
@@ -1408,8 +1467,7 @@ class DavinciModel {
 
   Status InitFileConstant(const NodePtr &node);
 
-  Status InitQueueDataNodes(const std::vector<NodePtr> &queue_data_nodes,
-                            const uint32_t data_index,
+  Status InitQueueDataNodes(const std::vector<NodePtr> &queue_data_nodes, const uint32_t data_index,
                             std::set<uint64_t> &input_outside_addrs);
 
   Status InitInputZeroCopy(const OpDescPtr &op_desc, const uint32_t data_index,
@@ -1458,9 +1516,9 @@ class DavinciModel {
   std::string GetWeightsMemId() const;
   Status ParseHostInputIndexOption(const size_t input_num);
 
-  std::string FindAddrRefreshKernelFile(const std::string& npu_arch) const;
-  Status LoadAndRegisterAddrRefreshKernel(const std::string& file_path);
-  std::string FindKernelInPath(const std::string& path, const std::string& npu_arch) const;
+  std::string FindAddrRefreshKernelFile(const std::string &npu_arch) const;
+  Status LoadAndRegisterAddrRefreshKernel(const std::string &file_path);
+  std::string FindKernelInPath(const std::string &path, const std::string &npu_arch) const;
 
   bool is_weight_mem_has_inited_{false};
   bool is_feature_map_mem_has_inited_{false};
@@ -1481,14 +1539,14 @@ class DavinciModel {
 
   // 使用智能指针管理外置权重的归一内存，通过自定义deleter实现自动释放
   // 若用户提供了内存，则deleter为空操作；否则deleter调用MemManager::FreeMemory
-  std::unique_ptr<void, std::function<void(void*)>> external_weight_combined_mem_addr_;
+  std::unique_ptr<void, std::function<void(void *)>> external_weight_combined_mem_addr_;
 
   uint32_t version_{0U};
   GeModelPtr ge_model_;  // release after DavinciModel::Init
 
   std::map<int64_t, OpDescPtr> op_list_;  // release after DavinciModel::Init
   std::map<int64_t, std::shared_ptr<Operator>> operator_list_;
-  bool need_clear_dfx_cache_{false}; // clear profiling and dump cache after DavinciModel::Init
+  bool need_clear_dfx_cache_{false};  // clear profiling and dump cache after DavinciModel::Init
 
   uintptr_t global_step_addr_{0U};
   uintptr_t loop_per_iter_addr_{0U};
@@ -1529,7 +1587,7 @@ class DavinciModel {
   std::vector<uint32_t> stream_flag_list_;
 
   std::mutex all_hccl_stream_list_mutex_;
-  std::vector<aclrtStream> all_hccl_stream_list_; // hccl 从流
+  std::vector<aclrtStream> all_hccl_stream_list_;  // hccl 从流
 
   // for reuse hccl_follow_stream
   std::mutex capacity_of_stream_mutex_;
@@ -1540,10 +1598,10 @@ class DavinciModel {
 
   std::unordered_set<std::string> hccl_group_id_set_;
   std::vector<aclrtEvent> hccl_group_ordered_event_list_;
-  std::vector<aclrtStream> hccl_group_ordered_stream_list_; // 流资源为hccl管理
+  std::vector<aclrtStream> hccl_group_ordered_stream_list_;  // 流资源为hccl管理
 
   std::mutex hccl_task_stream_set_mutex_;
-  std::unordered_set<uint64_t> hccl_task_stream_set_; // hccl task所在的流
+  std::unordered_set<uint64_t> hccl_task_stream_set_;  // hccl task所在的流
   std::map<uint64_t, std::vector<size_t>> stream_to_task_index_list_;
   std::map<int64_t, int64_t> split_logic_stream_2_origin_logic_stream_;
 
@@ -1573,7 +1631,7 @@ class DavinciModel {
     }
   };
 
-  CopyOnlyAddrs copy_only_addrs_;     // Address need copy to original place.
+  CopyOnlyAddrs copy_only_addrs_;  // Address need copy to original place.
 
   std::vector<TaskInfoPtr> task_list_;
   // rt_model_handle
@@ -1599,11 +1657,11 @@ class DavinciModel {
   // ACL queue schedule, save queue ids for Init.
   std::unordered_map<uint32_t, bool> is_queue_data_;  // key:data_index
   std::vector<TaskInfoPtr> cpu_task_list_;
-  std::vector<QueueAttrs> input_queue_attrs_;    // input queue created by caller.
-  std::vector<QueueAttrs> output_queue_attrs_;   // output queue created by caller.
-  std::vector<uintptr_t> input_mbuf_list_;   // input mbuf created by dequeue task.
-  std::vector<uintptr_t> output_mbuf_list_;  // output mbuf created by dequeue task.
-  std::vector<int32_t> input_fusion_offsets_; // input fusion offsets set up by caller.
+  std::vector<QueueAttrs> input_queue_attrs_;   // input queue created by caller.
+  std::vector<QueueAttrs> output_queue_attrs_;  // output queue created by caller.
+  std::vector<uintptr_t> input_mbuf_list_;      // input mbuf created by dequeue task.
+  std::vector<uintptr_t> output_mbuf_list_;     // output mbuf created by dequeue task.
+  std::vector<int32_t> input_fusion_offsets_;   // input fusion offsets set up by caller.
 
   uint64_t session_id_{0U};
   error_message::ErrorManagerContext error_context_{};
@@ -1733,13 +1791,14 @@ class DavinciModel {
   std::vector<std::pair<uint32_t, uint32_t>> fixed_fm_index_and_allocation_ids_;
   std::map<uint32_t, MemAllocationSlice> input_indexes_to_copy_info_;
   std::map<uint32_t, MemAllocationSlice> output_indexes_to_copy_info_;
-  std::vector<uint32_t> input_index_to_allocation_ids_;  // 保存零拷贝的input index和allocation id的关系
-  std::vector<uint32_t> output_index_to_allocation_ids_; // 保存零拷贝的output index和allocation id的关系
+  std::vector<uint32_t> input_index_to_allocation_ids_;         // 保存零拷贝的input index和allocation id的关系
+  std::vector<uint32_t> output_index_to_allocation_ids_;        // 保存零拷贝的output index和allocation id的关系
   std::vector<uint64_t> input_index_to_active_mem_base_addrs_;  // 保存零拷贝的input index和对应的active mem base的关系
-  std::vector<uint64_t> output_index_to_active_mem_base_addrs_; // 保存零拷贝的output index和对应的active mem base的关系
-  std::vector<uint32_t> zero_copy_input_indexes_;               // 保存零拷贝的input indexes
-  std::vector<uint32_t> zero_copy_output_indexes_;              // 保存零拷贝的output indexes
-  std::vector<uint32_t> zero_copy_input_indexes_no_frozen_;    // 保存执行时需要零拷贝的output indexes
+  std::vector<uint64_t>
+      output_index_to_active_mem_base_addrs_;                // 保存零拷贝的output index和对应的active mem base的关系
+  std::vector<uint32_t> zero_copy_input_indexes_;            // 保存零拷贝的input indexes
+  std::vector<uint32_t> zero_copy_output_indexes_;           // 保存零拷贝的output indexes
+  std::vector<uint32_t> zero_copy_input_indexes_no_frozen_;  // 保存执行时需要零拷贝的output indexes
   bool is_first_time_model_execute_ = false;
 
   // for input fusion h2d copy
@@ -1771,8 +1830,8 @@ class DavinciModel {
   void SaveTaskProfInfo(const std::string &op_name, const OpDescPtr &op_desc, const TaskProfInfo &prof_api);
   Status SaveProfilingInfoByContext(const domi::FftsPlusCtxDef &ctx_def, const OpDescPtr &sgt_node,
                                     const TaskProfInfo &prof_api, bool ffts_flag);
-  void SaveProfilingInfoByPartitionCall(const domi::FftsPlusTaskDef &ffts_plus_task_def,
-                                        const OpDescPtr &sgt_node, const TaskProfInfo &prof_api);
+  void SaveProfilingInfoByPartitionCall(const domi::FftsPlusTaskDef &ffts_plus_task_def, const OpDescPtr &sgt_node,
+                                        const TaskProfInfo &prof_api);
   Status MallocPhysicalMemory();
   Status InitCopyHostInputInfos();
   size_t fm_mem_allocations_start_id_{0U};
@@ -1781,7 +1840,7 @@ class DavinciModel {
   std::atomic<uint64_t> prof_count_{0UL};
 
   // dynamic sched info
-  bool need_model_config_ {false};
+  bool need_model_config_{false};
   uint32_t model_uuid_ = 0U;
   uint8_t logLevel_ = DLOG_DEBUG;
   QueueAttrs status_output_queue_{};
@@ -1792,8 +1851,8 @@ class DavinciModel {
   size_t logical_fixed_fm_mem_allocations_size_{0U};
 
   std::map<std::string, void *> platform_infos_addr_;
-  std::map<std::string, void *> cust_platform_infos_addr_; // 已经launch的缓存
-  std::map<std::string, std::pair<void *, size_t>> cust_platform_infos_addr_to_launch_; // 已申请内存，待launch的缓存
+  std::map<std::string, void *> cust_platform_infos_addr_;                               // 已经launch的缓存
+  std::map<std::string, std::pair<void *, size_t>> cust_platform_infos_addr_to_launch_;  // 已申请内存，待launch的缓存
   bool is_dump_to_std_enable_ = false;
   std::unordered_set<uint32_t> frozen_input_indexes_;
 

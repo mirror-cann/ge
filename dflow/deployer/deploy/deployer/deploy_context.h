@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -90,12 +90,11 @@ class DeployContext {
   Status ProcessSharedContent(const deployer::SharedContentDescRequest &request,
                               const deployer::DeployerResponse &response);
 
-  Status ProcessHeartbeat(const deployer::DeployerRequest &request,
-                          deployer::DeployerResponse &response);
+  Status ProcessHeartbeat(const deployer::DeployerRequest &request, deployer::DeployerResponse &response);
 
   void DestroyDeployState(uint32_t model_id);
 
-  RankTableBuilder& GetRankTableBuilder();
+  RankTableBuilder &GetRankTableBuilder();
 
   FlowGwClientManager &GetFlowGwClientManager();
 
@@ -129,8 +128,7 @@ class DeployContext {
   Status UpdateLocalProfiling(const bool is_prof_start, const std::string &prof_data,
                               const std::vector<uint32_t> &model_ids);
 
-  Status UpdateLocalProfilingInfo(const bool is_prof_start, const std::string &prof_data,
-                                  const uint32_t model_id);
+  Status UpdateLocalProfilingInfo(const bool is_prof_start, const std::string &prof_data, const uint32_t model_id);
 
   Status UpdateProfiling(const bool is_prof_start, const std::string &prof_data,
                          const ExecutorManager::ExecutorKey &key);
@@ -140,28 +138,20 @@ class DeployContext {
 
   void Clear() const;
 
-  static Status GetQueues(const ExchangeRoute &flow_route,
-                          const deployer::SubmodelDesc &submodel_desc,
-                          std::vector<DeployQueueAttr> &input_queues,
-                          std::vector<DeployQueueAttr> &output_queues);
+  static Status GetQueues(const ExchangeRoute &flow_route, const deployer::SubmodelDesc &submodel_desc,
+                          std::vector<DeployQueueAttr> &input_queues, std::vector<DeployQueueAttr> &output_queues);
 
-  static Status GetQueues(const ExchangeRoute &flow_route,
-                          std::vector<int32_t> &input_indices,
-                          std::vector<int32_t> &output_indices,
-                          std::vector<uint32_t> &input_queues,
+  static Status GetQueues(const ExchangeRoute &flow_route, std::vector<int32_t> &input_indices,
+                          std::vector<int32_t> &output_indices, std::vector<uint32_t> &input_queues,
                           std::vector<uint32_t> &output_queues);
 
-  static Status GetSchedQueues(const ExchangeRoute &flow_route,
-                               const deployer::SubmodelDesc &submodel_desc,
-                               std::vector<DeployQueueAttr> &input_queues,
-                               std::vector<DeployQueueAttr> &output_queues);
+  static Status GetSchedQueues(const ExchangeRoute &flow_route, const deployer::SubmodelDesc &submodel_desc,
+                               std::vector<DeployQueueAttr> &input_queues, std::vector<DeployQueueAttr> &output_queues);
 
-  static Status GetInputFusionOffsets(const ExchangeRoute &flow_route,
-                                     const deployer::SubmodelDesc &submodel_desc,
-                                     std::vector<int32_t> &fusion_offsets);
+  static Status GetInputFusionOffsets(const ExchangeRoute &flow_route, const deployer::SubmodelDesc &submodel_desc,
+                                      std::vector<int32_t> &fusion_offsets);
 
-  static Status GetFlowRoute(const DeployState &deploy_state,
-                             const ExchangeRoute *&flow_route);
+  static Status GetFlowRoute(const DeployState &deploy_state, const ExchangeRoute *&flow_route);
 
   Status InitProcessResource(const deployer::InitProcessResourceRequest &request, deployer::DeployerResponse &response);
 
@@ -170,29 +160,24 @@ class DeployContext {
   Status UnloadSubmodelsFromExecutor(const ExecutorManager::ExecutorKey &executor_key, uint32_t root_model_id);
   Status PrepareExecutors(const DeployState &deploy_state);
 
-  void SetVarMemoryInfo(int32_t device_id,
-                        uint64_t session_id,
+  void SetVarMemoryInfo(int32_t device_id, uint64_t session_id,
                         deployer::ExecutorRequest_BatchLoadModelMessage &request);
 
-  Status SetModelInfo(const DeployState &deploy_state,
-                      const ExecutorManager::ExecutorKey &key,
+  Status SetModelInfo(const DeployState &deploy_state, const ExecutorManager::ExecutorKey &key,
                       deployer::ExecutorRequest_BatchLoadModelMessage &request);
   Status VarManagersPreAlloc(DeployState &deploy_state);
   Status VarManagerPreAlloc(DeployerVarManager &var_manager) const;
   Status PrepareStateWorkingDir(const DeployState &deploy_state) const;
   Status SyncVarManagers(PneExecutorClient &executor_client, const DeployState &deploy_state);
-  Status DoLoadSubmodels(const DeployState &deploy_state,
-                         const ExecutorManager::ExecutorKey &key);
+  Status DoLoadSubmodels(const DeployState &deploy_state, const ExecutorManager::ExecutorKey &key);
   Status GetOrCreateTransferQueue(int32_t device_id, uint32_t &queue_id);
   static void SetOptions(const DeployState &deploy_state, deployer::ExecutorRequest_BatchLoadModelMessage &request);
 
   Status SetDynamicSchedModelInfo(deployer::ExecutorRequest_LoadModelRequest *&model_info,
-                                  const deployer::SubmodelDesc &submodel_desc,
-                                  const ExchangeRoute *flow_route,
+                                  const deployer::SubmodelDesc &submodel_desc, const ExchangeRoute *flow_route,
                                   const DeployState &deploy_state) const;
 
-  void SetModelQueuesAttrs(const std::string &model_name,
-                           const std::vector<DeployQueueAttr> &model_input_queues,
+  void SetModelQueuesAttrs(const std::string &model_name, const std::vector<DeployQueueAttr> &model_input_queues,
                            const std::vector<DeployQueueAttr> &model_output_queues,
                            deployer::ExecutorRequest_ModelQueuesAttrs &model_queues_attrs_def,
                            bool is_invoked = false) const;
@@ -202,25 +187,23 @@ class DeployContext {
                          std::set<uint32_t> &model_ids);
 
   Status SyncSubmitClearModelTasks(std::map<uint32_t, std::set<ExecutorManager::ExecutorKey>> &models_info,
-                                   uint32_t parallel_num, int32_t type,
-                                   const std::set<int32_t> &device_ids);
+                                   uint32_t parallel_num, int32_t type, const std::set<int32_t> &device_ids);
 
   Status SyncSubmitClearFlowgwTasks(const std::set<uint32_t> &model_ids, int32_t type);
 
   bool CheckExecutorKeyIsException(const deployer::ClearModelDataRequest &req_body,
                                    const ExecutorManager::ExecutorKey &executor_key) const;
   void AddAbnormalSubmodelInstance(deployer::DeployerResponse &response,
-      const std::map<uint32_t, std::vector<std::string>> &model_instance_name);
+                                   const std::map<uint32_t, std::vector<std::string>> &model_instance_name);
   void AbnormalPidsToSubmodelInstance(deployer::DeployerResponse &response,
-      std::map<ExecutorManager::ExecutorKey, bool> &abnormal_pids);
+                                      std::map<ExecutorManager::ExecutorKey, bool> &abnormal_pids);
   void GetExceptionDevices(const deployer::ClearModelDataRequest &req_body,
                            std::vector<FlowGwClient::ExceptionDeviceInfo> &devices);
 
   Status SyncUpdateExceptionRoutes(const std::set<uint32_t> &model_ids,
                                    const std::vector<FlowGwClient::ExceptionDeviceInfo> &devices);
-  
-  void GetExceptionDevId(const deployer::ClearModelDataRequest &req_body,
-                         std::set<int32_t> &device_ids);
+
+  void GetExceptionDevId(const deployer::ClearModelDataRequest &req_body, std::set<int32_t> &device_ids);
 
   std::mutex mu_;
   std::string name_ = "unnamed";

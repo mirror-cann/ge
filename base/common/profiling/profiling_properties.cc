@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ const std::string kProfStop = "prof_stop";
 const std::string kProfModelSubscribe = "prof_model_subscribe";
 const std::string kProfModelUnsubscribe = "prof_model_cancel_subscribe";
 }  // namespace
-ProfilingProperties& ProfilingProperties::Instance() {
+ProfilingProperties &ProfilingProperties::Instance() {
   static ProfilingProperties profiling_properties;
   return profiling_properties;
 }
@@ -85,7 +85,7 @@ bool ProfilingProperties::IsDynamicShapeProfiling() const {
   return is_op_detail_profiling_.load();
 }
 void ProfilingProperties::GetFpBpPoint(std::string &fp_point, std::string &bp_point) {
-  // Env or options mode, fp_point_/bp_point_ have initiliazed on profiling init
+  // Env or options mode, fp_point_/bp_point_ have initialized on profiling init
   const std::lock_guard<std::mutex> lock(mutex_);
   if ((!fp_point_.empty()) && (!bp_point_.empty())) {
     fp_point = fp_point_;

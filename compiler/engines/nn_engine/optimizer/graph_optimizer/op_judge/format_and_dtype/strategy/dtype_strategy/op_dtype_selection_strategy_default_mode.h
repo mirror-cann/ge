@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,11 +18,11 @@ namespace fe {
 using OpDtypeRiseMatcherPtr = std::shared_ptr<OpDtypeRiseMatcher>;
 
 /** @brief This class is created for selecting data type in default mode.
-* Default mode is described as:
-* we must select the original data type and if the original data type is not
-* supported in the ops kernel, we will try it's higher precision version and if
-* the higher precision version is not supported, we will just return ERROR and
-* stop the program. */
+ * Default mode is described as:
+ * we must select the original data type and if the original data type is not
+ * supported in the ops kernel, we will try it's higher precision version and if
+ * the higher precision version is not supported, we will just return ERROR and
+ * stop the program. */
 class OpDtypeSelectionStrategyDefaultMode : public OpDtypeSeletionStrategyBase {
  public:
   explicit OpDtypeSelectionStrategyDefaultMode(FormatDtypeQuerierPtr format_dtype_querier_ptr,
@@ -32,10 +32,10 @@ class OpDtypeSelectionStrategyDefaultMode : public OpDtypeSeletionStrategyBase {
 
   /* In this mode we will match the original dtype first. The matching function
    * allows using higher precision. */
-  Status Run(FormatDtypeSelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype) override;
+  Status Run(FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype) override;
 
  private:
   OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr_;
 };
-}
+}  // namespace fe
 #endif  // AIR_COMPILER_ENGINES_NNENG_OPTIMIZER_GRAPH_OPTIMIZER_OP_JUDGE_FORMAT_AND_DTYPE_STRATEGY_DTYPE_STRATEGY_OP_DTYPE_SELECTION_STRATEGY_DEFAULT_MODE_H_

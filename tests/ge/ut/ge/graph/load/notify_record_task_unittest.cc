@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,11 +37,11 @@ TEST_F(UtestNotifyRecordTask, init_and_distribute_notify_record_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   rtNotify_t notify = nullptr;
   aclrtCreateNotify(&notify, 0U);
-  model.notify_list_ = { notify };
+  model.notify_list_ = {notify};
 
   model.op_list_[0] = CreateOpDesc("op_name", "op_type");
 
@@ -74,13 +74,13 @@ TEST_F(UtestNotifyRecordTask, init_and_distribute_engine_notify_record_task_info
 
   REG_HIDDEN_INPUTS_FUNC(
       ge::HiddenInputsType::HCOM, [](const ge::OpDescPtr &op_desc, std::vector<void *> &addr) -> ge::graphStatus {
-    HcomTopoInfo::TopoInfo topo_info;
-    topo_info.rank_size = 8;
-    topo_info.notify_handle = reinterpret_cast<void *>(0x800);
-    EXPECT_EQ(HcomTopoInfo::Instance().SetGroupTopoInfo("hccl_world_group", topo_info), GRAPH_SUCCESS);
-    EXPECT_EQ(HcomTopoInfo::Instance().SetGroupTopoInfo("test_group", topo_info), GRAPH_SUCCESS);
-    return ge::GRAPH_SUCCESS;
-  });
+        HcomTopoInfo::TopoInfo topo_info;
+        topo_info.rank_size = 8;
+        topo_info.notify_handle = reinterpret_cast<void *>(0x800);
+        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupTopoInfo("hccl_world_group", topo_info), GRAPH_SUCCESS);
+        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupTopoInfo("test_group", topo_info), GRAPH_SUCCESS);
+        return ge::GRAPH_SUCCESS;
+      });
 
   NotifyRecordTaskInfo task_info;
   EXPECT_EQ(task_info.Init(task_def, &model), SUCCESS);

@@ -12,7 +12,7 @@
 ## 函数原型
 
 ```cpp
-int32_t GetRunningInstanceId() const 
+int32_t GetRunningInstanceId() const
 ```
 
 ## 参数说明

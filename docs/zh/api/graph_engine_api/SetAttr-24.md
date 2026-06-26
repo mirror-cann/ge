@@ -100,4 +100,3 @@ Status SetAttr(const char *attr_name, bool value)
   auto tensor0 = builder->CreateInput(0);
   (void) tensor0.SetAttr("attr_int64", int64_t(123)); // 设置输入节点输出tensor的私有属性，属性名"attr_int64"，属性值123
 ```
-

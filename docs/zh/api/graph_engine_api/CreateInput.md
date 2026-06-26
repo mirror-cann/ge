@@ -162,4 +162,3 @@
     EsGraphBuilder builder("graph_name");
     auto tensor = builder.CreateInput(3, "input3", ge::DT_INT32, ge::FORMAT_NCHW, {2, 2});
     ```
-

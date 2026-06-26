@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@ constexpr size_t kDefaultThreadNum = 12U;
 HeterogeneousModelIoHelper::HeterogeneousModelIoHelper(
     const std::vector<DeployQueueAttr> &input_queue_attrs,
     const std::vector<std::vector<DeployQueueAttr>> &broadcast_input_queue_attrs)
-    : input_queue_attrs_(input_queue_attrs),
-      broadcast_input_queue_attrs_(broadcast_input_queue_attrs) {}
+    : input_queue_attrs_(input_queue_attrs), broadcast_input_queue_attrs_(broadcast_input_queue_attrs) {}
 
 Status HeterogeneousModelIoHelper::Initialize() {
   size_t thread_num = 0U;
@@ -64,8 +63,7 @@ Status HeterogeneousModelIoHelper::ExecuteEnqueueTask(const EnqueueTask &enqueue
   return SUCCESS;
 }
 
-Status HeterogeneousModelIoHelper::FillBuffInfos(const GeTensor &tensor,
-                                                 RuntimeTensorDesc &tensor_desc,
+Status HeterogeneousModelIoHelper::FillBuffInfos(const GeTensor &tensor, RuntimeTensorDesc &tensor_desc,
                                                  std::vector<ExchangeService::BuffInfo> &buffs) {
   ExchangeService::BuffInfo desc = {};
   GE_CHK_STATUS_RET(DataFlowExecutorUtils::FillRuntimeTensorDesc(tensor.GetTensorDesc(), tensor_desc, false),
@@ -81,8 +79,7 @@ Status HeterogeneousModelIoHelper::FillBuffInfos(const GeTensor &tensor,
   return SUCCESS;
 }
 
-Status HeterogeneousModelIoHelper::Feed(const std::map<size_t, size_t> &indexes,
-                                        const std::vector<GeTensor> &inputs,
+Status HeterogeneousModelIoHelper::Feed(const std::map<size_t, size_t> &indexes, const std::vector<GeTensor> &inputs,
                                         const ExchangeService::ControlInfo &control_info) {
   std::map<size_t, std::vector<size_t>> input_idx_to_tensor_list_idx;
   Status ret = SUCCESS;
@@ -90,13 +87,13 @@ Status HeterogeneousModelIoHelper::Feed(const std::map<size_t, size_t> &indexes,
     std::vector<std::future<Status>> fut_rets;
     // make sure all thread execute end
     GE_MAKE_GUARD(future_ret, ([&fut_rets, &ret]() {
-      for (auto &fut : fut_rets) {
-        auto fut_ret = fut.get();
-        if (fut_ret != SUCCESS) {
-          ret = fut_ret;
-        }
-      }
-    }));
+                    for (auto &fut : fut_rets) {
+                      auto fut_ret = fut.get();
+                      if (fut_ret != SUCCESS) {
+                        ret = fut_ret;
+                      }
+                    }
+                  }));
 
     // input_idx: input index; tensor_list_idx:feed tensor index
     for (const auto &it : indexes) {
@@ -104,21 +101,19 @@ Status HeterogeneousModelIoHelper::Feed(const std::map<size_t, size_t> &indexes,
     }
     for (const auto &it : input_idx_to_tensor_list_idx) {
       const auto &tensor_list_idx = it.second;
-      const size_t i = it.first; // input index
-      GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()),
-                            FAILED,
-                            "idx must be less than input num, idx=%zu, "
-                            "input queue attr size = %zu, broadcast input attr size = %zu.",
-                            i, input_queue_attrs_.size(), broadcast_input_queue_attrs_.size());
-      EnqueueTask enqueue_task = [this, &tensor_list_idx, &inputs, &control_info, i](
-          const DeployQueueAttr &queue_attr) -> Status {
+      const size_t i = it.first;  // input index
+      GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()), FAILED,
+                             "idx must be less than input num, idx=%zu, "
+                             "input queue attr size = %zu, broadcast input attr size = %zu.",
+                             i, input_queue_attrs_.size(), broadcast_input_queue_attrs_.size());
+      EnqueueTask enqueue_task = [this, &tensor_list_idx, &inputs, &control_info,
+                                  i](const DeployQueueAttr &queue_attr) -> Status {
         DF_CHK_ACL_RET(aclrtSetDevice(queue_attr.device_id));
         for (const size_t tensor_index : tensor_list_idx) {
           const auto &input = inputs[tensor_index];
-          std::vector<ExchangeService::BuffInfo> buffs; // tensor desc and data
+          std::vector<ExchangeService::BuffInfo> buffs;  // tensor desc and data
           RuntimeTensorDesc runtime_tensor_desc{};
-          GE_CHK_STATUS_RET(FillBuffInfos(input, runtime_tensor_desc, buffs),
-                            "Failed to fill buff infos from tensor");
+          GE_CHK_STATUS_RET(FillBuffInfos(input, runtime_tensor_desc, buffs), "Failed to fill buff infos from tensor");
           GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id, buffs, control_info),
                             "Failed to enqueue input, queue id=%u", queue_attr.queue_id);
           GELOGI("Enqueue input[%zu] successfully, queue attr=[%s]", i, queue_attr.DebugString().c_str());
@@ -148,56 +143,53 @@ Status HeterogeneousModelIoHelper::FeedRawData(const std::vector<RawData> &raw_d
     std::vector<std::future<Status>> fut_rets;
     // make sure all thread execute end
     GE_MAKE_GUARD(future_ret, ([&fut_rets, &ret]() {
-      for (auto &fut : fut_rets) {
-        auto fut_ret = fut.get();
-        if (fut_ret != SUCCESS) {
-          ret = fut_ret;
-        }
-      }
-    }));
+                    for (auto &fut : fut_rets) {
+                      auto fut_ret = fut.get();
+                      if (fut_ret != SUCCESS) {
+                        ret = fut_ret;
+                      }
+                    }
+                  }));
     GE_CHK_BOOL_RET_STATUS((index < input_queue_attrs_.size()), FAILED,
                            "idx must be less than input num, idx=%u, "
                            "input queue attr size = %zu, broadcast input attr size = %zu.",
                            index, input_queue_attrs_.size(), broadcast_input_queue_attrs_.size());
-      EnqueueTask enqueue_task = [this, &control_info, &raw_data_list, index](
-          const DeployQueueAttr &queue_attr) -> Status {
-        std::vector<ExchangeService::BuffInfo> fusion_buffs;
-        for (const auto raw_data : raw_data_list) {
-          ExchangeService::BuffInfo buff_info = {.addr = const_cast<void *>(raw_data.addr),
-                                                 .len = raw_data.len};
-          fusion_buffs.push_back(buff_info);
-        }
-        GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id,
-            fusion_buffs, control_info), "Failed to enqueue input, queue id=%u", queue_attr.queue_id);
-        GELOGI("Enqueue input[%u] successfully, queue id=%u, size=%zu",
-               index, queue_attr.queue_id, fusion_buffs.size());
-        return SUCCESS;
-      };
-      if ((index < broadcast_input_queue_attrs_.size()) && (!broadcast_input_queue_attrs_[index].empty())) {
-        for (const auto &broadcast_input : broadcast_input_queue_attrs_[index]) {
-          GE_CHK_STATUS_RET(ExecuteEnqueueTask(enqueue_task, broadcast_input, fut_rets, true),
-                            "Failed to execute enqueue task, input index = %zu", index);
-        }
-      } else {
-        GE_CHK_STATUS_RET(ExecuteEnqueueTask(enqueue_task, input_queue_attrs_[index], fut_rets),
+    EnqueueTask enqueue_task = [this, &control_info, &raw_data_list,
+                                index](const DeployQueueAttr &queue_attr) -> Status {
+      std::vector<ExchangeService::BuffInfo> fusion_buffs;
+      for (const auto raw_data : raw_data_list) {
+        ExchangeService::BuffInfo buff_info = {.addr = const_cast<void *>(raw_data.addr), .len = raw_data.len};
+        fusion_buffs.push_back(buff_info);
+      }
+      GE_CHK_STATUS_RET(
+          exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id, fusion_buffs, control_info),
+          "Failed to enqueue input, queue id=%u", queue_attr.queue_id);
+      GELOGI("Enqueue input[%u] successfully, queue id=%u, size=%zu", index, queue_attr.queue_id, fusion_buffs.size());
+      return SUCCESS;
+    };
+    if ((index < broadcast_input_queue_attrs_.size()) && (!broadcast_input_queue_attrs_[index].empty())) {
+      for (const auto &broadcast_input : broadcast_input_queue_attrs_[index]) {
+        GE_CHK_STATUS_RET(ExecuteEnqueueTask(enqueue_task, broadcast_input, fut_rets, true),
                           "Failed to execute enqueue task, input index = %zu", index);
       }
+    } else {
+      GE_CHK_STATUS_RET(ExecuteEnqueueTask(enqueue_task, input_queue_attrs_[index], fut_rets),
+                        "Failed to execute enqueue task, input index = %zu", index);
+    }
   }
   GE_CHK_STATUS(ret, "Failed to execute multi-thread enqueue task.");
   return ret;
 }
 
-Status HeterogeneousModelIoHelper::EnqueueFlowMsg(const FlowMsgBasePtr &flow_msg,
-                                                  const DeployQueueAttr &queue_attr,
+Status HeterogeneousModelIoHelper::EnqueueFlowMsg(const FlowMsgBasePtr &flow_msg, const DeployQueueAttr &queue_attr,
                                                   const ExchangeService::ControlInfo &control_info) const {
   auto mbuf = flow_msg->MbufCopyRef();
   GE_DISMISSABLE_GUARD(mbuf, ([mbuf]() { GE_CHK_RT(rtMbufFree(mbuf)); }));
-  GE_CHK_STATUS_RET(exchange_service_->EnqueueMbuf(queue_attr.device_id, queue_attr.queue_id,
-                                                   mbuf, control_info.timeout),
-                    "Failed to enqueue mbuf flow msg, device_id = %u, queue_id = %u",
-                    queue_attr.device_id, queue_attr.queue_id);
-  GELOGD("Enqueue flow msg successfully, queue attr=[%s], msg_type = %d",
-         queue_attr.DebugString().c_str(), static_cast<int32_t>(flow_msg->GetMsgType()));
+  GE_CHK_STATUS_RET(
+      exchange_service_->EnqueueMbuf(queue_attr.device_id, queue_attr.queue_id, mbuf, control_info.timeout),
+      "Failed to enqueue mbuf flow msg, device_id = %u, queue_id = %u", queue_attr.device_id, queue_attr.queue_id);
+  GELOGD("Enqueue flow msg successfully, queue attr=[%s], msg_type = %d", queue_attr.DebugString().c_str(),
+         static_cast<int32_t>(flow_msg->GetMsgType()));
   GE_DISMISS_GUARD(mbuf);
   return SUCCESS;
 }
@@ -211,13 +203,13 @@ Status HeterogeneousModelIoHelper::FeedFlowMsg(const std::map<size_t, size_t> &i
     std::vector<std::future<Status>> fut_rets;
     // make sure all thread execute end
     GE_MAKE_GUARD(future, ([&fut_rets, &ret]() {
-      for (auto &fut : fut_rets) {
-        auto fut_ret = fut.get();
-        if (fut_ret != SUCCESS) {
-          ret = fut_ret;
-        }
-      }
-    }));
+                    for (auto &fut : fut_rets) {
+                      auto fut_ret = fut.get();
+                      if (fut_ret != SUCCESS) {
+                        ret = fut_ret;
+                      }
+                    }
+                  }));
 
     // input_idx: input index; flow_msg_list_idx:feed tensor index
     for (const auto &it : indexes) {
@@ -225,20 +217,19 @@ Status HeterogeneousModelIoHelper::FeedFlowMsg(const std::map<size_t, size_t> &i
     }
     for (const auto &it : input_idx_to_msg_list_idx) {
       const auto &msg_list_idx = it.second;
-      const size_t i = it.first; // input index
-      GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()),
-                            FAILED,
-                            "idx must be less than input num, idx=%zu, "
-                            "input queue attr size = %zu, broadcast input attr size = %zu.",
-                            i, input_queue_attrs_.size(), broadcast_input_queue_attrs_.size());
-      EnqueueTask enqueue_task = [this, &msg_list_idx, &inputs, &control_info, i](
-          const DeployQueueAttr &queue_attr) -> Status {
+      const size_t i = it.first;  // input index
+      GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()), FAILED,
+                             "idx must be less than input num, idx=%zu, "
+                             "input queue attr size = %zu, broadcast input attr size = %zu.",
+                             i, input_queue_attrs_.size(), broadcast_input_queue_attrs_.size());
+      EnqueueTask enqueue_task = [this, &msg_list_idx, &inputs, &control_info,
+                                  i](const DeployQueueAttr &queue_attr) -> Status {
         for (const size_t msg_index : msg_list_idx) {
           GE_CHK_STATUS_RET(EnqueueFlowMsg(inputs[msg_index], queue_attr, control_info),
-                            "Failed to enqueue input[%zu] flow msg, device_id = %u, queue id=%u",
-                            i, queue_attr.device_id, queue_attr.queue_id);
-          GELOGI("Enqueue input[%zu] successfully, device_id = %u, queue id=%u",
-                 i, queue_attr.device_id, queue_attr.queue_id);
+                            "Failed to enqueue input[%zu] flow msg, device_id = %u, queue id=%u", i,
+                            queue_attr.device_id, queue_attr.queue_id);
+          GELOGI("Enqueue input[%zu] successfully, device_id = %u, queue id=%u", i, queue_attr.device_id,
+                 queue_attr.queue_id);
         }
         return SUCCESS;
       };
@@ -259,12 +250,11 @@ Status HeterogeneousModelIoHelper::FeedFlowMsg(const std::map<size_t, size_t> &i
 
 Status HeterogeneousModelIoHelper::FetchFlowMsg(const DeployQueueAttr &queue_attr,
                                                 const ExchangeService::ControlInfo &control_info,
-                                                const GeTensorDescPtr &output_desc,
-                                                FlowMsgBasePtr &flow_msg) const {
+                                                const GeTensorDescPtr &output_desc, FlowMsgBasePtr &flow_msg) const {
   rtMbufPtr_t mbuf = nullptr;
   // queue empty is normal, cannot print error
-  GE_CHK_STATUS_RET_NOLOG(exchange_service_->DequeueMbuf(queue_attr.device_id, queue_attr.queue_id,
-                                                         &mbuf, control_info.timeout));
+  GE_CHK_STATUS_RET_NOLOG(
+      exchange_service_->DequeueMbuf(queue_attr.device_id, queue_attr.queue_id, &mbuf, control_info.timeout));
   GE_DISMISSABLE_GUARD(mbuf, ([mbuf]() { GE_CHK_RT(rtMbufFree(mbuf)); }));
   MsgType msg_type;
   bool is_null_data = false;
@@ -287,8 +277,8 @@ Status HeterogeneousModelIoHelper::FetchFlowMsg(const DeployQueueAttr &queue_att
     GE_CHK_STATUS_RET(raw_data_flow_msg->BuildRawData(mbuf), "Failed to build raw data");
     flow_msg = raw_data_flow_msg;
   }
-  GELOGD("Fetch flow msg successfully, queue attr=[%s], msg_type = %d",
-         queue_attr.DebugString().c_str(), static_cast<int32_t>(flow_msg->GetMsgType()));
+  GELOGD("Fetch flow msg successfully, queue attr=[%s], msg_type = %d", queue_attr.DebugString().c_str(),
+         static_cast<int32_t>(flow_msg->GetMsgType()));
   // mbuf will be freed by consumer
   GE_DISMISS_GUARD(mbuf);
   return SUCCESS;

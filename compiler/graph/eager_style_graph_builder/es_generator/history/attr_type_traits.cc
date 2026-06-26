@@ -32,7 +32,7 @@ std::string JoinStrings(const std::vector<std::string> &items) {
   return ss.str();
 }
 
-template<typename T>
+template <typename T>
 std::string JoinNumbers(const std::vector<T> &items) {
   std::stringstream ss;
   bool first = true;
@@ -59,7 +59,7 @@ std::string JoinBools(const std::vector<bool> &items) {
   return ss.str();
 }
 
-template<typename T>
+template <typename T>
 bool TryGetJsonValue(const nlohmann::json &j, T &value) {
   try {
     value = j.get<T>();
@@ -186,62 +186,50 @@ AttrDefaultParseResult ParseListStringDefault(const nlohmann::json &j) {
 using DefaultExprParser = AttrDefaultParseResult (*)(const nlohmann::json &);
 
 const std::map<std::string, ParamCxxKind> &GetHistoryTypeParamKindTable() {
-  static const std::map<std::string, ParamCxxKind> kTable = {
-    {"Int", ParamCxxKind::kInt64},
-    {"Float", ParamCxxKind::kFloat},
-    {"Bool", ParamCxxKind::kBool},
-    {"String", ParamCxxKind::kCString},
-    {"Type", ParamCxxKind::kDataType},
-    {"Tensor", ParamCxxKind::kTensorUniquePtr},
-    {"ListInt", ParamCxxKind::kListIntRef},
-    {"ListFloat", ParamCxxKind::kListFloatRef},
-    {"ListBool", ParamCxxKind::kListBoolRef},
-    {"ListType", ParamCxxKind::kListTypeRef},
-    {"ListListInt", ParamCxxKind::kListListIntRef},
-    {"ListString", ParamCxxKind::kListStringRef}
-  };
+  static const std::map<std::string, ParamCxxKind> kTable = {{"Int", ParamCxxKind::kInt64},
+                                                             {"Float", ParamCxxKind::kFloat},
+                                                             {"Bool", ParamCxxKind::kBool},
+                                                             {"String", ParamCxxKind::kCString},
+                                                             {"Type", ParamCxxKind::kDataType},
+                                                             {"Tensor", ParamCxxKind::kTensorUniquePtr},
+                                                             {"ListInt", ParamCxxKind::kListIntRef},
+                                                             {"ListFloat", ParamCxxKind::kListFloatRef},
+                                                             {"ListBool", ParamCxxKind::kListBoolRef},
+                                                             {"ListType", ParamCxxKind::kListTypeRef},
+                                                             {"ListListInt", ParamCxxKind::kListListIntRef},
+                                                             {"ListString", ParamCxxKind::kListStringRef}};
   return kTable;
 }
 
 const std::map<std::string, DefaultExprParser> &GetDefaultExprParserTable() {
-  static const std::map<std::string, DefaultExprParser> kTable = {
-    {"Int", &ParseIntDefault},
-    {"Float", &ParseFloatDefault},
-    {"Bool", &ParseBoolDefault},
-    {"String", &ParseStringDefault},
-    {"Type", &ParseTypeDefault},
-    {"Tensor", &ParseTensorDefault},
-    {"ListInt", &ParseListIntDefault},
-    {"ListFloat", &ParseListFloatDefault},
-    {"ListBool", &ParseListBoolDefault},
-    {"ListType", &ParseListTypeDefault},
-    {"ListListInt", &ParseListListIntDefault},
-    {"ListString", &ParseListStringDefault}
-  };
+  static const std::map<std::string, DefaultExprParser> kTable = {{"Int", &ParseIntDefault},
+                                                                  {"Float", &ParseFloatDefault},
+                                                                  {"Bool", &ParseBoolDefault},
+                                                                  {"String", &ParseStringDefault},
+                                                                  {"Type", &ParseTypeDefault},
+                                                                  {"Tensor", &ParseTensorDefault},
+                                                                  {"ListInt", &ParseListIntDefault},
+                                                                  {"ListFloat", &ParseListFloatDefault},
+                                                                  {"ListBool", &ParseListBoolDefault},
+                                                                  {"ListType", &ParseListTypeDefault},
+                                                                  {"ListListInt", &ParseListListIntDefault},
+                                                                  {"ListString", &ParseListStringDefault}};
   return kTable;
 }
 
 const std::map<std::string, ParamCxxKind> &GetIrScalarTypeParamKindTable() {
   static const std::map<std::string, ParamCxxKind> kTable = {
-    {"VT_INT", ParamCxxKind::kInt64},
-    {"VT_FLOAT", ParamCxxKind::kFloat},
-    {"VT_BOOL", ParamCxxKind::kBool},
-    {"VT_STRING", ParamCxxKind::kCString},
-    {"VT_DATA_TYPE", ParamCxxKind::kDataType},
-    {"VT_TENSOR", ParamCxxKind::kTensorUniquePtr}
-  };
+      {"VT_INT", ParamCxxKind::kInt64},          {"VT_FLOAT", ParamCxxKind::kFloat},
+      {"VT_BOOL", ParamCxxKind::kBool},          {"VT_STRING", ParamCxxKind::kCString},
+      {"VT_DATA_TYPE", ParamCxxKind::kDataType}, {"VT_TENSOR", ParamCxxKind::kTensorUniquePtr}};
   return kTable;
 }
 
 const std::map<std::string, ParamCxxKind> &GetIrListTypeParamKindTable() {
   static const std::map<std::string, ParamCxxKind> kTable = {
-    {"VT_LIST_INT", ParamCxxKind::kListIntRef},
-    {"VT_LIST_FLOAT", ParamCxxKind::kListFloatRef},
-    {"VT_LIST_BOOL", ParamCxxKind::kListBoolRef},
-    {"VT_LIST_DATA_TYPE", ParamCxxKind::kListTypeRef},
-    {"VT_LIST_LIST_INT", ParamCxxKind::kListListIntRef},
-    {"VT_LIST_STRING", ParamCxxKind::kListStringRef}
-  };
+      {"VT_LIST_INT", ParamCxxKind::kListIntRef},          {"VT_LIST_FLOAT", ParamCxxKind::kListFloatRef},
+      {"VT_LIST_BOOL", ParamCxxKind::kListBoolRef},        {"VT_LIST_DATA_TYPE", ParamCxxKind::kListTypeRef},
+      {"VT_LIST_LIST_INT", ParamCxxKind::kListListIntRef}, {"VT_LIST_STRING", ParamCxxKind::kListStringRef}};
   return kTable;
 }
 }  // namespace

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ bool SplitCToNOptimizer::CheckSplitDim(const ge::OpDescPtr &op_desc) const {
   int64_t split_dim = -1;
   (void)ge::AttrUtils::GetInt(op_desc, SPLIT_DIM, split_dim);
   ge::GeTensorDescPtr input_tensor = op_desc->MutableInputDesc(0);
-  if(input_tensor == nullptr){
+  if (input_tensor == nullptr) {
     return false;
   }
   ge::GeShape input_orinal_shape_shape = input_tensor->GetOriginShape();
@@ -45,8 +45,7 @@ bool SplitCToNOptimizer::MeetAlignmentConditionFromNCHWTo5HD(const ge::OpDescPtr
     auto origin_c = cur_desc_ptr->GetOriginShape().GetDim(1);
     ge::DataType data_type = cur_desc_ptr->GetDataType();
     bool cond = (data_type == ge::DT_FLOAT16 && origin_c % 16 == 0) ||
-                (data_type == ge::DT_INT8 && origin_c % 32 == 0) ||
-                (data_type == ge::DT_INT4 && origin_c % 64 == 0);
+                (data_type == ge::DT_INT8 && origin_c % 32 == 0) || (data_type == ge::DT_INT4 && origin_c % 64 == 0);
     if (!cond) {
       FE_LOGD("[Op:%s] Does not meet the condition_nchw_to_nc1hwc0 requirement.", op_desc->GetName().c_str());
       return false;
@@ -58,7 +57,7 @@ bool SplitCToNOptimizer::MeetAlignmentConditionFromNCHWTo5HD(const ge::OpDescPtr
 
 bool SplitCToNOptimizer::MeetDimNumConditionFromNDToNZ(const ge::OpDescPtr &op_desc) const {
   ge::GeTensorDescPtr input_tensor = op_desc->MutableInputDesc(0);
-  if(input_tensor == nullptr){
+  if (input_tensor == nullptr) {
     return false;
   }
   ge::GeShape input_orinal_shape_shape = input_tensor->GetOriginShape();
@@ -111,7 +110,7 @@ bool SplitCToNOptimizer::CheckCommonCondition(const ge::ComputeGraph &graph, con
   }
 
   if (InvalidMemType(op_desc)) {
-    FE_LOGD("Split mem type check unsuccess, %s cannot optimize.", node_name.c_str());
+    FE_LOGD("Split mem type check unsuccessful, %s cannot optimize.", node_name.c_str());
     return false;
   }
 
@@ -135,10 +134,10 @@ bool SplitCToNOptimizer::NeedSkip(const ge::ComputeGraph &graph, const ge::NodeP
   bool condition_nd_nz = (input_orinal_format == ge::FORMAT_ND && input_format == ge::FORMAT_FRACTAL_NZ);
   bool condition_nchw_5hd = (input_orinal_format == ge::FORMAT_NCHW && input_format == ge::FORMAT_NC1HWC0);
 
-  if (CheckSplitDim(op_desc) && CheckAxis(op_desc) && ((input_orinal_format == input_format) ||
-     (condition_nd_nz && MeetDimNumConditionFromNDToNZ(op_desc)) ||
-     (condition_nchw_5hd && MeetAlignmentConditionFromNCHWTo5HD(op_desc))) &&
-     CheckCommonCondition(graph, node, op_desc)) {
+  if (CheckSplitDim(op_desc) && CheckAxis(op_desc) &&
+      ((input_orinal_format == input_format) || (condition_nd_nz && MeetDimNumConditionFromNDToNZ(op_desc)) ||
+       (condition_nchw_5hd && MeetAlignmentConditionFromNCHWTo5HD(op_desc))) &&
+      CheckCommonCondition(graph, node, op_desc)) {
     return false;
   } else {
     return true;
@@ -171,4 +170,4 @@ Status SplitCToNOptimizer::SetFusionVirtualOp(const ge::ComputeGraph &graph) con
   FE_LOGD("Finished executing SplitCToNOptimizer.");
   return fe::SUCCESS;
 }
-}
+}  // namespace fe

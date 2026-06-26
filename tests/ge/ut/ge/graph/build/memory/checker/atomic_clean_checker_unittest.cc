@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -110,7 +110,7 @@ TEST_F(UtestAtomicCleanChecker, AtomicCleanOutputCheckFailed) {
   TensorUtils::SetSize(*tensor_desc, origin_mem_size);
 
   // 找不到memset节点
-  mem_set_node->GetOpDescBarePtr()->SetType("Unknow");
+  mem_set_node->GetOpDescBarePtr()->SetType("Unknown");
   AtomicCleanChecker checker5(mem_assigner.GetGraphMemoryAssigner().get());
   ret = checker5.Check(root_graph);
   EXPECT_NE(ret, SUCCESS);
@@ -184,7 +184,7 @@ TEST_F(UtestAtomicCleanChecker, AtomicCleanInputCheckFailed) {
   TensorUtils::SetSize(*tensor_desc, origin_mem_size);
 
   // 找不到memset节点
-  mem_set_node->GetOpDescBarePtr()->SetType("Unknow");
+  mem_set_node->GetOpDescBarePtr()->SetType("Unknown");
   AtomicCleanChecker checker5(mem_assigner.GetGraphMemoryAssigner().get());
   ret = checker5.Check(root_graph);
   EXPECT_NE(ret, SUCCESS);
@@ -269,7 +269,7 @@ TEST_F(UtestAtomicCleanChecker, AtomicCleanWorkspaceCheckFailed) {
   mem_set_node->GetOpDescBarePtr()->SetWorkspaceBytes(memset_origin_size);
 
   // 找不到memset节点
-  mem_set_node->GetOpDescBarePtr()->SetType("Unknow");
+  mem_set_node->GetOpDescBarePtr()->SetType("Unknown");
   AtomicCleanChecker checker5(mem_assigner.GetGraphMemoryAssigner().get());
   ret = checker5.Check(root_graph);
   EXPECT_NE(ret, SUCCESS);
@@ -310,9 +310,9 @@ TEST_F(UtestAtomicCleanChecker, AtomicCleanOutput_MemsetOffsetOverlap) {
   mem_set_node->GetOpDescBarePtr()->SetWorkspaceBytes(fake_sizes);
 
   std::vector<int32_t> data_type_list{ge::DataType::DT_INT16, ge::DataType::DT_INT16, ge::DataType::DT_INT16};
-  (void) AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
+  (void)AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
   std::vector<int32_t> int_list = {0x1, 2, 3};
-  (void) AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ge::ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
+  (void)AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ge::ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
 
   AtomicCleanChecker checker1(mem_assigner.GetGraphMemoryAssigner().get());
   auto ret = checker1.Check(root_graph);
@@ -328,14 +328,12 @@ TEST_F(UtestAtomicCleanChecker, AtomicCleanOutput_MemsetOffsetOverlap) {
   mem_set_node->GetOpDescBarePtr()->SetWorkspaceBytes(fake_sizes2);
 
   std::vector<int32_t> data_type_list2{ge::DataType::DT_INT16, ge::DataType::DT_INT16};
-  (void) AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list2);
+  (void)AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list2);
   std::vector<int32_t> int_list3 = {0x1, 2};
-  (void) AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ge::ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list3);
+  (void)AttrUtils::SetListInt(mem_set_node->GetOpDesc(), ge::ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list3);
 
   AtomicCleanChecker checker2(mem_assigner.GetGraphMemoryAssigner().get());
   auto ret2 = checker2.Check(root_graph);
   EXPECT_EQ(ret2, SUCCESS);
-
-
 }
-} // namespace ge
+}  // namespace ge

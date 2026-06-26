@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,11 +17,12 @@
 
 namespace ge {
 class ModelTensorDesc {
-public:
+ public:
   friend class ModelIntroduction;
   size_t Size();
-  bool Serilize(uint8_t ** const addr, size_t &left_size);
-private:
+  bool Serilize(uint8_t **const addr, size_t &left_size);
+
+ private:
   ModelTensorDescBaseInfo base_info;
   std::string name;
   std::vector<int64_t> dims;
@@ -30,15 +31,16 @@ private:
 };
 
 class ModelTensorDescsValue : public BaseTlvBlock {
-public:
+ public:
   friend class ModelIntroduction;
   size_t Size() override;
-  bool Serilize(uint8_t ** const addr, size_t &left_size) override;
+  bool Serilize(uint8_t **const addr, size_t &left_size) override;
   bool NeedSave() override;
   virtual ~ModelTensorDescsValue() = default;
-private:
+
+ private:
   uint32_t tensor_desc_size = 0U;
   std::vector<ModelTensorDesc> descs;
 };
-}
+}  // namespace ge
 #endif

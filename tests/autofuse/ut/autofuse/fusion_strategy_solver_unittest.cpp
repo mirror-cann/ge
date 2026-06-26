@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,18 +38,38 @@ using namespace testing;
 
 namespace ge {
 using namespace autofuse;
-auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-    .OutNames({"y"}).Build("Data");
-auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(1).OutCnt(1).OutNames({"y"})
-    .Build("A");
-auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-    .OutNames({"y"}).Build("E");
-auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-    .OutNames({"y"}).Build("D");
-auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"ref", "value"})
-    .OutNames({"ref"}).Build("C");
+auto data = OP_CFG("Data")
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(0)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("Data");
+auto a =
+    OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4}).InCnt(1).OutCnt(1).OutNames({"y"}).Build("A");
+auto e = OP_CFG(kAscBackendType)
+             .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+             .InCnt(2)
+             .OutCnt(1)
+             .InNames({"x"})
+             .OutNames({"y"})
+             .Build("E");
+auto d = OP_CFG(kAscBackendType)
+             .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+             .InCnt(1)
+             .OutCnt(1)
+             .InNames({"x"})
+             .OutNames({"y"})
+             .Build("D");
+auto c = OP_CFG(kAscBackendType)
+             .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+             .InCnt(2)
+             .OutCnt(1)
+             .InNames({"ref", "value"})
+             .OutNames({"ref"})
+             .Build("C");
 vector<int32_t> data_value(1 * 2 * 3 * 4, 0);
-GeTensorDesc data_tensor_desc(GeShape({1,2,3,4}), FORMAT_NCHW, DT_INT32);
+GeTensorDesc data_tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_INT32);
 GeTensorPtr tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
 auto b = OP_CFG("Data").InCnt(0).OutCnt(1).Weight(tensor).Build("B");
 
@@ -151,7 +171,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -233,8 +253,8 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    std::vector<std::vector<ge::Expression>> output_dim_sizes (split_dims.size(), {A, B, C, D, E});
-    std::vector<ge::Expression> input_dim_sizes {A, B, C, D, E};
+    std::vector<std::vector<ge::Expression>> output_dim_sizes(split_dims.size(), {A, B, C, D, E});
+    std::vector<ge::Expression> input_dim_sizes{A, B, C, D, E};
     int64_t total_size = 0;
     for (size_t i = 0U; i < split_dims.size(); ++i) {
       auto e_size = graph.CreateSizeVar(split_dims[i]);
@@ -250,7 +270,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1.y.repeats = input_dim_sizes;
     *x1.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -268,7 +288,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *split.y[0].axis = {a.id, b.id, c.id, d.id, e.id};
     *split.y[0].repeats = output_dim_sizes[0];
     *split.y[0].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
-    af::ascir_op::Store x_store((graph.GetName() + "_store0" ).c_str());
+    af::ascir_op::Store x_store((graph.GetName() + "_store0").c_str());
     x_store.x = split.y[0];
     x_store.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store.attr.sched.loop_axis = c.id;
@@ -276,7 +296,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x_store.y.repeats = output_dim_sizes[0];
     *x_store.y.strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    af::ascir_op::Output x_out((graph.GetName() + "_out0" ).c_str());
+    af::ascir_op::Output x_out((graph.GetName() + "_out0").c_str());
     x_out.x = x_store.y;
     x_out.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_out.attr.sched.loop_axis = c.id;
@@ -290,7 +310,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *split.y[1].repeats = output_dim_sizes[1];
     *split.y[1].strides = {B * C * D * E, C * D * E, D * E, E, ONE};
 
-    af::ascir_op::Store x_store1((graph.GetName() + "_store1" ).c_str());
+    af::ascir_op::Store x_store1((graph.GetName() + "_store1").c_str());
     x_store1.x = split.y[1];
     x_store1.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     x_store1.attr.sched.loop_axis = c.id;
@@ -330,16 +350,16 @@ class UtestFusionStrategySolver : public testing::Test {
     // }
 
     auto x_out_node = graph.FindNode((graph.GetName() + "_out0").c_str());
-    auto x_out_node1= graph.FindNode((graph.GetName() + "_out1").c_str());
+    auto x_out_node1 = graph.FindNode((graph.GetName() + "_out1").c_str());
     auto compute_graph = x_out_node->GetOwnerComputeGraph();
 
-    std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0},{x_out_node1,1}};
+    std::vector<std::pair<NodePtr, int32_t>> output_nodes{{x_out_node, 0}, {x_out_node1, 1}};
     compute_graph->SetOutputSize(2U);
     compute_graph->SetGraphOutNodesInfo(output_nodes);
     return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
   }
 
-    static std::shared_ptr<ge::AscGraph> CreatSplitAscGraphSame(ge::AscGraph &graph) {
+  static std::shared_ptr<ge::AscGraph> CreatSplitAscGraphSame(ge::AscGraph &graph) {
     auto ONE = Symbol(1);
     const Expression A = graph.CreateSizeVar("A");
     const Expression B = graph.CreateSizeVar("B");
@@ -360,7 +380,7 @@ class UtestFusionStrategySolver : public testing::Test {
     *x1.y.repeats = {A, B, C, D, E};
     *x1.y.strides = {B * C * D * E, Symbol(2) * C * D * E, D * E, E, ONE};
 
-    af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+    af::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
     x1Local.x = x1.y;
     x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
     *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -726,8 +746,7 @@ class UtestFusionStrategySolver : public testing::Test {
     return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
   }
 
-  static std::shared_ptr<ge::AscGraph> CreatConcatAscGraph(ge::AscGraph &graph,
-                                                           const std::vector<int64_t> &concat_dims,
+  static std::shared_ptr<ge::AscGraph> CreatConcatAscGraph(ge::AscGraph &graph, const std::vector<int64_t> &concat_dims,
                                                            size_t concat_dim) {
     auto ONE = Symbol(1);
     const Expression A = graph.CreateSizeVar("A");
@@ -742,8 +761,8 @@ class UtestFusionStrategySolver : public testing::Test {
     auto d = graph.CreateAxis("D", D);
     auto e = graph.CreateAxis("E", E);
 
-    std::vector<std::vector<ge::Expression>> input_dim_sizes (concat_dims.size(), {A, B, C, D, E});
-    std::vector<ge::Expression> output_dim_sizes {A, B, C, D, E};
+    std::vector<std::vector<ge::Expression>> input_dim_sizes(concat_dims.size(), {A, B, C, D, E});
+    std::vector<ge::Expression> output_dim_sizes{A, B, C, D, E};
     int64_t total_size = 0;
     for (size_t i = 0U; i < concat_dims.size(); ++i) {
       auto e_size = graph.CreateSizeVar(concat_dims[i]);
@@ -1035,7 +1054,7 @@ class UtestFusionStrategySolver : public testing::Test {
     compute_graph->SetGraphOutNodesInfo(output_nodes);
     return std::shared_ptr<ge::AscGraph>(new ge::AscGraph(graph));
   }
-  
+
   static std::shared_ptr<ge::AscGraph> CreatGatherAscGraphWithInvlaidAxis(ge::AscGraph &graph) {
     auto ONE = Symbol(1);
     auto ZERO = Symbol(0);
@@ -1106,7 +1125,8 @@ class UtestFusionStrategySolver : public testing::Test {
     GE_ASSERT_NOTNULL(attr);
 
     ge::AscGraph add_graph(node->GetName().c_str());
-    if (node->GetName() == "D" || node->GetName() == "A" || node->GetName() == "R" || node->GetName() == "R1" || node->GetName() == "E1") {
+    if (node->GetName() == "D" || node->GetName() == "A" || node->GetName() == "R" || node->GetName() == "R1" ||
+        node->GetName() == "E1") {
       attr->SetAscGraph(CreatAbsAscGraph(add_graph), loop::FuseType::kPointwise);
     } else if (node->GetName() == "E" || node->GetName() == "C") {
       attr->SetAscGraph(CreatAdd2InputsAscGraph(add_graph), loop::FuseType::kPointwise);
@@ -1144,11 +1164,11 @@ class UtestFusionStrategySolver : public testing::Test {
       attr->SetAscGraph(CreatAddAscGraph(add_graph, 2, 2));
     } else if (node->GetName().find("SliceNode") != std::string::npos) {
       attr->SetAscGraph(CreatSplitAscGraph(add_graph), loop::FuseType::kSliceSplit);
-    } else if (node->GetName().find("Slice") != std::string::npos ) {
+    } else if (node->GetName().find("Slice") != std::string::npos) {
       attr->SetAscGraph(CreatAddAscGraph(add_graph), loop::FuseType::kSliceSplit);
-    } else if (node->GetName().find("SplitFirstDim") != std::string::npos){
+    } else if (node->GetName().find("SplitFirstDim") != std::string::npos) {
       attr->SetAscGraph(CreatSplitDoubleOutPutsAscGraph(add_graph, {3, 3}, 0), loop::FuseType::kSplit);
-    } else if (node->GetName().find("Split") != std::string::npos){
+    } else if (node->GetName().find("Split") != std::string::npos) {
       attr->SetAscGraph(CreatSplitDoubleOutPutsAscGraph(add_graph, {3, 3}, 4), loop::FuseType::kSplit);
     } else if (node->GetName().find("Broadcast") != std::string::npos) {
       attr->SetAscGraph(CreatBroadcastAscGraph(add_graph), loop::FuseType::kPointwise);
@@ -1281,8 +1301,8 @@ class UtestFusionStrategySolver : public testing::Test {
         ComputeGraphPtr asc_graph;
         EXPECT_EQ(BackendUtils::GetNodeFusedGraph(fused_node, asc_graph), SUCCESS);
         for (const auto &asc_node : asc_graph->GetAllNodes()) {
-          if ((asc_node->GetType() != "Data") && (asc_node->GetType() != "Load") && (asc_node->GetType() != "Store")
-              && (asc_node->GetType() != "Output")) {
+          if ((asc_node->GetType() != "Data") && (asc_node->GetType() != "Load") && (asc_node->GetType() != "Store") &&
+              (asc_node->GetType() != "Output")) {
             check_nodes[count].insert(asc_node->GetName());
           }
         }
@@ -1332,17 +1352,17 @@ TEST_F(UtestFusionStrategySolver, Fuse_none) {
   };
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->Ctrl()->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->Ctrl()->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
     SetAttrsGroup(node);
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new NoneMockFusionDecider()));
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
@@ -1370,10 +1390,10 @@ TEST_F(UtestFusionStrategySolver, Fuse_all) {
     }
   };
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1381,7 +1401,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_all) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AllMockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 3U, post_nodes_size);
@@ -1429,21 +1449,46 @@ TEST_F(UtestFusionStrategySolver, Fuse_cycle) {
       return CanFuseVertical(node1, node2);
     }
   };
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("F");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto h = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("H");
-  auto k = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("K");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto h = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H");
+  auto k = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("K");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(g)->NODE(h)->NODE(k)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(g)->NODE(h)->NODE(k)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1451,11 +1496,11 @@ TEST_F(UtestFusionStrategySolver, Fuse_cycle) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new CycleMockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   // {A,C} {H,K} {E,F} can fuse, {AC, EF} will create cycle
-  EXPECT_EQ(pre_nodes_size - 3 , post_nodes_size);
+  EXPECT_EQ(pre_nodes_size - 3, post_nodes_size);
 }
 
 TEST_F(UtestFusionStrategySolver, Fuse_failed_dump_cache_graph) {
@@ -1517,21 +1562,46 @@ TEST_F(UtestFusionStrategySolver, Fuse_failed_dump_cache_graph) {
       }
     }
   };
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("F");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto h = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("H");
-  auto k = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("K");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto h = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H");
+  auto k = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("K");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(g)->NODE(h)->NODE(k)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(g)->NODE(h)->NODE(k)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1539,7 +1609,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_failed_dump_cache_graph) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new FuseMockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   ASSERT_NE(fusion_strategy_solver.Fuse(graph), SUCCESS);
 
   auto &manager = FusionGraphManager::GetInstance();
@@ -1567,22 +1637,46 @@ TEST_F(UtestFusionStrategySolver, Fuse_failed_dump_cache_graph) {
  *     netoutput
  */
 TEST_F(UtestFusionStrategySolver, Fuse_exceed_max_fusion_size_16) {
-auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-    .OutNames({"y"}).Build("Data");
-auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(1).OutCnt(1).OutNames({"y"})
-    .Build("A");
-auto b = OP_CFG("Data").InCnt(0).OutCnt(1).Weight(tensor).Build("B");
-auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-    .OutNames({"y"}).Build("D");
-auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"ref", "value"})
-    .OutNames({"ref"}).Build("C");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("Data");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG("Data").InCnt(0).OutCnt(1).Weight(tensor).Build("B");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"ref", "value"})
+               .OutNames({"ref"})
+               .Build("C");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1591,7 +1685,7 @@ auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCn
 
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fusion_size = 16U;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
@@ -1599,22 +1693,46 @@ auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCn
 }
 
 TEST_F(UtestFusionStrategySolver, Fuse_exceed_max_fusion_size_22) {
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Data");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(1).OutCnt(1).OutNames({"y"})
-      .Build("A");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("Data");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .OutNames({"y"})
+               .Build("A");
   auto b = OP_CFG("Data").InCnt(0).OutCnt(1).Weight(tensor).Build("B");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1)
-      .InNames({"ref", "value"}).OutNames({"ref"}).Build("C");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"ref", "value"})
+               .OutNames({"ref"})
+               .Build("C");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
   DEF_GRAPH(g) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1622,7 +1740,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_exceed_max_fusion_size_22) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fusion_size = 21U;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
@@ -1656,26 +1774,61 @@ TEST_F(UtestFusionStrategySolver, Fuse_increase_peak_emory) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                  .OutNames({"y"}).Build("data");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto h = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(4).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("H");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto h = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(4)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(b)->EDGE(0, 0)->NODE(h)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->EDGE(0, 1)->NODE(h));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(d)->EDGE(0, 2)->NODE(h));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 3)->NODE(h));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(b)->EDGE(0, 0)->NODE(h)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->EDGE(0, 1)->NODE(h));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(d)->EDGE(0, 2)->NODE(h));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->EDGE(0, 3)->NODE(h));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1683,7 +1836,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_increase_peak_emory) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new MockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   int64_t old_max_proximity = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_proximity;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_proximity = 2U;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
@@ -1700,10 +1853,10 @@ TEST_F(UtestFusionStrategySolver, Fuse_fail) {
   };
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1712,16 +1865,16 @@ TEST_F(UtestFusionStrategySolver, Fuse_fail) {
 
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fusion_size = 64U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new FailMockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_NE(fusion_strategy_solver.Fuse(graph), SUCCESS);
 }
 
 TEST_F(UtestFusionStrategySolver, Fuse_graph_has_group_attr) {
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d)->EDGE(0, 1)->NODE(e));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1730,7 +1883,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_graph_has_group_attr) {
   auto attr = GetOrCreateAutoFuseAttrs(graph);
   GetInterAttrs(attr).possible_fusion_nodes.insert(std::make_pair(graph->FindNode("A"), graph->FindNode("C")));
   GetInterAttrs(attr).decider = std::move(std::unique_ptr<FusionDecider>(new MockFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
 }
 
@@ -1742,7 +1895,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_graph_has_group_attr) {
  *    D  E  F
  *   /\  |  /
  *  H  concat
-*    \    |  |
+ *    \    |  |
  *    \   G  P
  *     \  | /
  *    netoutput
@@ -1754,36 +1907,91 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("B");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("C");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
-  auto h = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("H");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto p = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("P");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Reduce");
+  auto h = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto p = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("P");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(h));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(data)->EDGE(1, 0)->NODE(b)->EDGE(0, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
-      CHAIN(NODE(data)->EDGE(2, 0)->NODE(c)->EDGE(0, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(h)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE(p)->EDGE(0, 2)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(h));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(data)->EDGE(1, 0)->NODE(b)->EDGE(0, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
+    CHAIN(NODE(data)->EDGE(2, 0)->NODE(c)->EDGE(0, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(h)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE(p)->EDGE(0, 2)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1791,7 +1999,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_INFO, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
@@ -1826,28 +2034,63 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_other) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
-  auto h = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("H");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Reduce");
+  auto h = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(h));
-      CHAIN(NODE(concat)->CTRL_EDGE()->NODE(h));
-      CHAIN(NODE(data)->EDGE(1, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
-      CHAIN(NODE(data)->EDGE(2, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(h)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(h));
+    CHAIN(NODE(concat)->CTRL_EDGE()->NODE(h));
+    CHAIN(NODE(data)->EDGE(1, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
+    CHAIN(NODE(data)->EDGE(2, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(h)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1857,7 +2100,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_other) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 1U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 2U, post_nodes_size);
@@ -1889,23 +2132,53 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_concat_and_concat) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
-  auto concat1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat1");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
+  auto concat1 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("Concat1");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat1));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(concat1)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat1));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(concat1)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1913,7 +2186,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_concat_and_concat) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_ERROR, 0);
@@ -1948,23 +2221,53 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_concat_and_reduce) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Reduce");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(f));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(f));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1972,7 +2275,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_concat_and_reduce) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   // 预期D,E，Concat融合在一起, G，Reduce融合在一起
@@ -1997,24 +2300,54 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_reduce_and_concat) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Reduce");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(f)->CTRL_EDGE()->NODE(concat));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(f)->CTRL_EDGE()->NODE(concat));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2022,7 +2355,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_reduce_and_concat) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
 
@@ -2048,23 +2381,53 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_no_limit) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT16, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT16, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("F");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(data)->EDGE(1, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
-      CHAIN(NODE(data)->EDGE(2, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(data)->EDGE(1, 0)->NODE(e)->EDGE(0, 1)->NODE(concat));
+    CHAIN(NODE(data)->EDGE(2, 0)->NODE(f)->EDGE(0, 2)->NODE(concat));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2079,7 +2442,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_no_limit) {
   cfg.max_fusion_size = 2U;
   cfg.max_input_nums_after_fuse = 2U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 3U, post_nodes_size);
@@ -2111,27 +2474,57 @@ TEST_F(UtestFusionStrategySolver, Fuse_change_order) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto h = OP_CFG("H").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("H2");
-  auto e = OP_CFG("E1").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,1}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E1");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("F2");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G2");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("Data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(2)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto h = OP_CFG("H")
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("H2");
+  auto e = OP_CFG("E1")
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 1})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E1");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F2");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G2");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d));
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(e));
-      CHAIN(NODE(e)->EDGE(0, 0)->NODE(f));
-      CHAIN(NODE(e)->EDGE(0, 0)->NODE(g));
-      CHAIN(NODE(d)->EDGE(0, 1)->NODE(f)->EDGE(0, 0)->NODE(h));
-      CHAIN(NODE(d)->EDGE(1, 1)->NODE(g)->EDGE(0, 1)->NODE(h));
-      CHAIN(NODE(h)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(e));
+    CHAIN(NODE(e)->EDGE(0, 0)->NODE(f));
+    CHAIN(NODE(e)->EDGE(0, 0)->NODE(g));
+    CHAIN(NODE(d)->EDGE(0, 1)->NODE(f)->EDGE(0, 0)->NODE(h));
+    CHAIN(NODE(d)->EDGE(1, 1)->NODE(g)->EDGE(0, 1)->NODE(h));
+    CHAIN(NODE(h)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2154,7 +2547,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_change_order) {
   auto pre_nodes_size = graph->GetAllNodesSize();
 
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -2173,14 +2566,34 @@ TEST_F(UtestFusionStrategySolver, Fuse_change_order) {
  *  节点A1有2个输出anchor，但是只有1个anchor连接了下游节点，另一个anchor没有连接其他节点
  */
 TEST_F(UtestFusionStrategySolver, Fuse_OutputAnchorNoPeerIn) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto a1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(2).InNames({"x"})
-               .OutNames({"y"}).Build("A1");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT16, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto a1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(2)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("A1");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(a1));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(a1));
@@ -2191,7 +2604,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_OutputAnchorNoPeerIn) {
     SetAttrsGroup(node);
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -2217,14 +2630,34 @@ TEST_F(UtestFusionStrategySolver, Fuse_slice_split) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto stridedslice0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("StridedSlice0");
-  auto stridedslice1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("StridedSlice1");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto stridedslice0 = OP_CFG(kAscBackendType)
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("StridedSlice0");
+  auto stridedslice1 = OP_CFG(kAscBackendType)
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("StridedSlice1");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(stridedslice0)->EDGE(0, 0)->NODE(stridedslice1));
     CHAIN(NODE(stridedslice1)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
@@ -2235,7 +2668,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_slice_split) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SliceSplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2250,14 +2683,34 @@ TEST_F(UtestFusionStrategySolver, Fuse_slice_split_2) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto stridedslice0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,1}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("StridedKSlice0");
-  auto stridedslice1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,1}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("StridedKSlice1");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,1}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto stridedslice0 = OP_CFG(kAscBackendType)
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 1})
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("StridedKSlice0");
+  auto stridedslice1 = OP_CFG(kAscBackendType)
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 1})
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("StridedKSlice1");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 1})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(stridedslice0)->EDGE(0, 0)->NODE(stridedslice1));
     CHAIN(NODE(stridedslice1)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
@@ -2267,12 +2720,11 @@ TEST_F(UtestFusionStrategySolver, Fuse_slice_split_2) {
     SetAttrsGroup(node);
   }
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SliceSplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
 }
-
 
 /*
  *     data
@@ -2294,14 +2746,34 @@ TEST_F(UtestFusionStrategySolver, Fuse_split) {
   setenv("DUMP_GE_GRAPH", "1", 1);
   setenv("DUMP_GRAPH_LEVEL", "1", 1);
   setenv("DUMP_GRAPH_PATH", "./", 1);
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto split0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y0","y1"}).Build("Split0");
-  auto abs0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto abs1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("R");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto split0 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(2)
+                    .InNames({"x"})
+                    .OutNames({"y0", "y1"})
+                    .Build("Split0");
+  auto abs0 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("A");
+  auto abs1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("R");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
     CHAIN(NODE(split0)->EDGE(1, 0)->NODE(abs1)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
@@ -2312,7 +2784,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_split) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2341,16 +2813,37 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_nok) {
   setenv("DUMP_GE_GRAPH", "1", 1);
   setenv("DUMP_GRAPH_LEVEL", "1", 1);
   setenv("DUMP_GRAPH_PATH", "./", 1);
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto abs0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto split0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y0","y1"}).Build("Split0");
-  auto concat0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(2).OutCnt(1).InNames({"x1", "x2"})
-    .OutNames({"y"}).Build("Concat2Inputs");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto abs0 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("A");
+  auto split0 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(2)
+                    .InNames({"x"})
+                    .OutNames({"y0", "y1"})
+                    .Build("Split0");
+  auto concat0 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x1", "x2"})
+                     .OutNames({"y"})
+                     .Build("Concat2Inputs");
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(concat0)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(concat0)->EDGE(0, 0)->NODE(
+        "NetOutput", kNetOutputType));
     CHAIN(NODE(split0)->EDGE(1, 1)->NODE(concat0));
   };
   auto graph = ToComputeGraph(g1);
@@ -2359,7 +2852,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_nok) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2385,16 +2878,41 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_concat_nok) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto split0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y0","y1"}).Build("Split0");
-  auto abs0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto abs1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("R");
-  auto concat0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(2).OutCnt(1).InNames({"x1", "x2"})
-    .OutNames({"y"}).Build("Concat2Inputs");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto split0 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(2)
+                    .InNames({"x"})
+                    .OutNames({"y0", "y1"})
+                    .Build("Split0");
+  auto abs0 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("A");
+  auto abs1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("R");
+  auto concat0 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x1", "x2"})
+                     .OutNames({"y"})
+                     .Build("Concat2Inputs");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE(concat0)->EDGE(0, 0)->NODE(
         "NetOutput", kNetOutputType));
@@ -2406,7 +2924,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_concat_nok) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2432,16 +2950,41 @@ TEST_F(UtestFusionStrategySolver, Fuse_first_dim_split_concat_ok) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto split0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y0","y1"}).Build("SplitFirstDim");
-  auto abs0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto abs1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("R");
-  auto concat0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(2).OutCnt(1).InNames({"x1", "x2"})
-    .OutNames({"y"}).Build("Concat2Inputs");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto split0 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(2)
+                    .InNames({"x"})
+                    .OutNames({"y0", "y1"})
+                    .Build("SplitFirstDim");
+  auto abs0 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("A");
+  auto abs1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("R");
+  auto concat0 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x1", "x2"})
+                     .OutNames({"y"})
+                     .Build("Concat2Inputs");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE(concat0)->EDGE(0, 0)->NODE(
         "NetOutput", kNetOutputType));
@@ -2453,7 +2996,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_first_dim_split_concat_ok) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2479,16 +3022,41 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_first_dim_concat_ok) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto split0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(2).InNames({"x"})
-      .OutNames({"y0","y1"}).Build("Split0");
-  auto abs0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
-  auto abs1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("R");
-  auto concat0 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(2).OutCnt(1).InNames({"x1", "x2"})
-    .OutNames({"y"}).Build("Concat2InputsFirstDim");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto split0 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(2)
+                    .InNames({"x"})
+                    .OutNames({"y0", "y1"})
+                    .Build("Split0");
+  auto abs0 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("A");
+  auto abs1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("R");
+  auto concat0 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x1", "x2"})
+                     .OutNames({"y"})
+                     .Build("Concat2InputsFirstDim");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(split0)->EDGE(0, 0)->NODE(abs0)->EDGE(0, 0)->NODE(concat0)->EDGE(0, 0)->NODE(
         "NetOutput", kNetOutputType));
@@ -2500,7 +3068,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_first_dim_concat_ok) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new SplitFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
@@ -2509,7 +3077,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_split_first_dim_concat_ok) {
 }
 
 /*
- *    data1  data2   data3  
+ *    data1  data2   data3
  *      \\     |     //
  *       \   gather  /
  *        \    |    /
@@ -2524,24 +3092,49 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_concat) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Gather");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(data1)->EDGE(1, 0)->NODE(concat));
-      CHAIN(NODE(data3)->EDGE(1, 2)->NODE(concat));
-      CHAIN(NODE(gather)->EDGE(0, 1)->NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(data1)->EDGE(1, 0)->NODE(concat));
+    CHAIN(NODE(data3)->EDGE(1, 2)->NODE(concat));
+    CHAIN(NODE(gather)->EDGE(0, 1)->NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2551,7 +3144,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_concat) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 0U, post_nodes_size);
@@ -2564,7 +3157,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_concat) {
 }
 
 /*
- *    data1 data2 data3  
+ *    data1 data2 data3
  *      \     |     /
  *          gather
  *            |
@@ -2579,22 +3172,47 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_other) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Gather");
-  auto abs = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("EletAbs");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto abs = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("EletAbs");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2604,7 +3222,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_other) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -2624,22 +3242,47 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed0) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("GatherWithInvaildAxis");
-  auto abs = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("BroadcastWith5Axis");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("GatherWithInvaildAxis");
+  auto abs = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("BroadcastWith5Axis");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2649,7 +3292,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed0) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size, post_nodes_size);
@@ -2669,22 +3312,47 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed1) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("GatherWithInvaildAxis");
-  auto abs = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("BroadcastWith6Axis");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("GatherWithInvaildAxis");
+  auto abs = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("BroadcastWith6Axis");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2694,7 +3362,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed1) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size, post_nodes_size);
@@ -2707,7 +3375,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_Broadcast_Failed1) {
 }
 
 /*
- *    data1 data2 data3  
+ *    data1 data2 data3
  *      \ \   |   /  /
  *       \  gather  /
  *        \   |    /
@@ -2724,26 +3392,57 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_gather) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Gather");
-  auto gather1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5,6}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Gather1");
-  auto add = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4,5,6}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("EletAbs");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto gather1 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5, 6})
+                     .InCnt(3)
+                     .OutCnt(1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("Gather1");
+  auto add = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4, 5, 6})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("EletAbs");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(1, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather1));
-      CHAIN(NODE(data3)->EDGE(1, 2)->NODE(gather1));
-      CHAIN(NODE(gather)->EDGE(0, 1)->NODE(gather1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data1)->EDGE(1, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather1));
+    CHAIN(NODE(data3)->EDGE(1, 2)->NODE(gather1));
+    CHAIN(
+        NODE(gather)->EDGE(0, 1)->NODE(gather1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2753,7 +3452,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_gather) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -2772,10 +3471,10 @@ TEST_F(UtestFusionStrategySolver, Fuse_gather_and_gather) {
  *        \   |   /       |
  *          gather        |
  *          /    \        /
- *       reduce  abs1    / 
+ *       reduce  abs1    /
  *        \        \    /
- *         \        add   
- *          \       / 
+ *         \        add
+ *          \       /
  *          netoutput
  */
 TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_reduce) {
@@ -2785,36 +3484,91 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_reduce) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data1");\
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data3");
-  auto abs = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("EletAbs");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Gather");
-  auto abs1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("EletAbs1");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
-  auto data4 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data4");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto log = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Log");
-  auto add = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("EletAdd");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto abs = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("EletAbs");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto abs1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("EletAbs1");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto data4 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data4");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto log = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("Log");
+  auto add = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("EletAdd");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
-      CHAIN(NODE(data2)->EDGE(0, 0)->NODE(abs)->EDGE(0, 1)->NODE(gather));
-      CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
-      CHAIN(NODE(gather)->EDGE(0, 0)->NODE(reduce)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs1)->EDGE(0, 0)->NODE(add)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(data4)->EDGE(0, 1)->NODE(add));
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
+    CHAIN(NODE(data2)->EDGE(0, 0)->NODE(abs)->EDGE(0, 1)->NODE(gather));
+    CHAIN(NODE(data3)->EDGE(0, 2)->NODE(gather));
+    CHAIN(NODE(gather)->EDGE(0, 0)->NODE(reduce)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(gather)->EDGE(0, 0)->NODE(abs1)->EDGE(0, 0)->NODE(add)->EDGE(0, 1)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data4)->EDGE(0, 1)->NODE(add));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2824,7 +3578,7 @@ TEST_F(UtestFusionStrategySolver, Not_Fuse_gather_and_reduce) {
   auto rounds = AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds;
   AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fuse_rounds = 10U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new GatherFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 2U, post_nodes_size);
@@ -2857,14 +3611,19 @@ TEST_F(UtestFusionStrategySolver, FuseTorch) {
     }
   };
 
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
-      CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d));
-      CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
+    CHAIN(NODE(a)->NODE(e)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(a)->EDGE(0, 0)->NODE(c)->NODE(d));
+    CHAIN(NODE(b)->EDGE(0, 1)->NODE(c));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -2872,7 +3631,7 @@ TEST_F(UtestFusionStrategySolver, FuseTorch) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kTorch);
+                                             AutoFuseFwkType::kTorch);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kTorch;
@@ -2903,20 +3662,45 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_lifting_above_threshold) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   std::vector<ge::OpDescPtr> data_ops;
   for (int i = 0; i < 2; ++i) {
-    auto data_i = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-        .OutNames({"y"}).Build("Data-" + std::to_string(i));
+    auto data_i = OP_CFG("Data")
+                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("Data-" + std::to_string(i));
     data_ops.emplace_back(data_i);
   }
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat3Inputs");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat3Inputs");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
     CHAIN(NODE(data_ops[0])->EDGE(0, 1)->NODE(concat));
@@ -2936,7 +3720,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_lifting_above_threshold) {
   cfg.max_fusion_size = 2U;
   cfg.max_input_nums_after_fuse = 2U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -2961,20 +3745,45 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_lifting_below_threshold) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   std::vector<ge::OpDescPtr> data_ops;
   for (int i = 0; i < 3; ++i) {
-    auto data_i = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-        .OutNames({"y"}).Build("Data-" + std::to_string(i));
+    auto data_i = OP_CFG("Data")
+                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("Data-" + std::to_string(i));
     data_ops.emplace_back(data_i);
   }
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat4Inputs");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat4Inputs");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
     CHAIN(NODE(data_ops[0])->EDGE(0, 1)->NODE(concat));
@@ -2995,7 +3804,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_lifting_below_threshold) {
   cfg.max_fusion_size = 2U;
   cfg.max_input_nums_after_fuse = 2U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -3019,20 +3828,45 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_no_lifting_first_dim_concat) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(3).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(3)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   std::vector<ge::OpDescPtr> data_ops;
   for (int i = 0; i < 3; ++i) {
-    auto data_i = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-        .OutNames({"y"}).Build("Data-" + std::to_string(i));
+    auto data_i = OP_CFG("Data")
+                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 3, 4})
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("Data-" + std::to_string(i));
     data_ops.emplace_back(data_i);
   }
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(3).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("ConcatFirstDim");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("ConcatFirstDim");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(concat));
     CHAIN(NODE(data_ops[0])->EDGE(0, 1)->NODE(concat));
@@ -3053,7 +3887,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_no_lifting_first_dim_concat) {
   cfg.max_fusion_size = 2U;
   cfg.max_input_nums_after_fuse = 2U;
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
   EXPECT_EQ(pre_nodes_size - 1U, post_nodes_size);
@@ -3092,27 +3926,62 @@ TEST_F(UtestFusionStrategySolver, Fuse_reduce_after_concat_not_fuse) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("E");
-  auto e1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("StridedSlice0");
-  auto g = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("G");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Concat");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reduce");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto e1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("StridedSlice0");
+  auto g = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("G");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Reduce");
   DEF_GRAPH(g1) {
-      CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f));
-      CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat));
-      CHAIN(NODE(g)->EDGE(0, 0)->NODE(e1)->EDGE(0, 1)->NODE(concat));
-      CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
-      CHAIN(NODE(f)->CTRL_EDGE()->NODE(concat));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(e)->EDGE(0, 0)->NODE(f));
+    CHAIN(NODE(d)->EDGE(0, 0)->NODE(g)->EDGE(0, 0)->NODE(concat));
+    CHAIN(NODE(g)->EDGE(0, 0)->NODE(e1)->EDGE(0, 1)->NODE(concat));
+    CHAIN(NODE(f)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(concat)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(f)->CTRL_EDGE()->NODE(concat));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -3120,7 +3989,7 @@ TEST_F(UtestFusionStrategySolver, Fuse_reduce_after_concat_not_fuse) {
   }
   auto pre_nodes_size = graph->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new ConcatFusionDecider()));
-  FusionStrategySolver  fusion_strategy_solver;
+  FusionStrategySolver fusion_strategy_solver;
   EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
   auto post_nodes_size = graph->GetAllNodesSize();
 
@@ -3129,16 +3998,41 @@ TEST_F(UtestFusionStrategySolver, Fuse_reduce_after_concat_not_fuse) {
 }
 
 TEST_F(UtestFusionStrategySolver, Slice_Horizontal_Has_Multi_Same_Input_Fuse_ok) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto slice1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNode1");
-  auto slice2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNode2");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto slice1 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNode1");
+  auto slice2 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNode2");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(slice1));
     CHAIN(NODE(data1)->EDGE(0, 1)->NODE(slice1));
@@ -3162,20 +4056,45 @@ TEST_F(UtestFusionStrategySolver, Slice_Horizontal_Has_Multi_Same_Input_Fuse_ok)
 }
 
 TEST_F(UtestFusionStrategySolver, Slice_Horizontal_Has_Same_Load_Fuse_ok) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
   // auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
   //                  .OutNames({"y"}).Build("data2");
   // auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
   //                  .OutNames({"y"}).Build("data3");
-  auto slice1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame1");
-  auto slice2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame2");
-  auto slice3 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame3");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("ConcatNode");
+  auto slice1 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame1");
+  auto slice2 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame2");
+  auto slice3 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame3");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("ConcatNode");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(slice1));
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(slice2));
@@ -3198,20 +4117,55 @@ TEST_F(UtestFusionStrategySolver, Slice_Horizontal_Has_Same_Load_Fuse_ok) {
 }
 
 TEST_F(UtestFusionStrategySolver, Fuse_concat_has_vertical_and_horizontal_fuse) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto f2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("F2");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(4).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat4Inputs");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto f2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("F2");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(4)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat4Inputs");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(f2));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(f2));
@@ -3241,24 +4195,69 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_has_vertical_and_horizontal_fuse) 
 }
 
 TEST_F(UtestFusionStrategySolver, Concat_Can_Not_Fuse_By_Only_Horizontal) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("F");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(reduce));
     CHAIN(NODE(data2)->EDGE(0, 0)->NODE(f));
@@ -3297,30 +4296,90 @@ TEST_F(UtestFusionStrategySolver, Concat_Fuse_For_CacheGraph) {
   setenv("DUMP_GRAPH_LEVEL", "1", 1);
   setenv("DUMP_GRAPH_PATH", "./", 1);
   dlog_setlevel(ASCGEN_MODULE_NAME, DLOG_DEBUG, 0);
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto r = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("R");
-  auto r1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("R1");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto b1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B1");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("F");
-  auto e1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E1");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto r = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("R");
+  auto r1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("R1");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto b1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("B1");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto e1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("E1");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(r1));
     CHAIN(NODE(r1)->EDGE(0, 0)->NODE(r));
@@ -3372,24 +4431,69 @@ TEST_F(UtestFusionStrategySolver, Concat_Fuse_For_CacheGraph) {
 }
 
 TEST_F(UtestFusionStrategySolver, Concat_Can_Fuse_By_Same_Sched_Info_Both_Horizontal_And_Vertical) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto f2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("F2");
-  auto f = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("F");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto f2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("F2");
+  auto f = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("F");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(reduce));
     CHAIN(NODE(data2)->EDGE(0, 0)->NODE(f));
@@ -3424,16 +4528,41 @@ TEST_F(UtestFusionStrategySolver, Concat_Can_Fuse_By_Same_Sched_Info_Both_Horizo
 }
 
 TEST_F(UtestFusionStrategySolver, Concat_Can_Fuse_By_Different_Sched_Info_Both_Horizontal_And_Vertical) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("BroadcastWith6Axis1");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("BroadcastWith6Axis1");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(reduce));
     CHAIN(NODE(data2)->EDGE(0, 2)->NODE(concat));
@@ -3454,18 +4583,39 @@ TEST_F(UtestFusionStrategySolver, Concat_Can_Fuse_By_Different_Sched_Info_Both_H
   NodeFuseInfo node_fuse_info;
   EXPECT_EQ(node_fuse_info.UpdateNodeFuseInfo(node1, node2), SUCCESS);
   EXPECT_EQ(BackendUtils::CheckSameSchedAxis(node1, node2, graph_axis_map.GetNode1AxisMap(),
-                                             graph_axis_map.GetNode2AxisMap(), node_fuse_info), true);
+                                             graph_axis_map.GetNode2AxisMap(), node_fuse_info),
+            true);
 }
 
 TEST_F(UtestFusionStrategySolver, Node_PeerIn_Anchor_Has_No_PeerOut_Anchor_Link) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto f2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("F2");
-  auto g2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("G2");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto f2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("F2");
+  auto g2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("G2");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(reduce));
     CHAIN(NODE(reduce)->EDGE(0, 1)->NODE(f2));
@@ -3486,14 +4636,34 @@ TEST_F(UtestFusionStrategySolver, Node_PeerIn_Anchor_Has_No_PeerOut_Anchor_Link)
 
 // 两个节点没有共用的内存不能融合
 TEST_F(UtestFusionStrategySolver, Can_Not_Fuse_By_No_Shared_Data) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(reduce)->NODE(a));
     CHAIN(NODE(a)->EDGE(0, 0)->NODE(b)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
@@ -3510,22 +4680,62 @@ TEST_F(UtestFusionStrategySolver, Can_Not_Fuse_By_No_Shared_Data) {
 
 // Concat融合场景--调度轴个数不同不能融合Case
 TEST_F(UtestFusionStrategySolver, Can_Not_Fuse_By_Sched_Axis_Size_Not_Equal) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("BroadcastWith6Axis1");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("BroadcastWith6Axis2");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("BroadcastWith6Axis1");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("BroadcastWith6Axis2");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(a));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(concat));
@@ -3572,14 +4782,34 @@ TEST_F(UtestFusionStrategySolver, Fuse_output_memory_size_exceed_threshold) {
       return false;
     }
   };
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                  .OutNames({"y"}).Build("data");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto b = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("B");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto b = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("B");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(a));
     CHAIN(NODE(a)->EDGE(0, 0)->NODE(b)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
@@ -3609,26 +4839,76 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_mulreference_node_1) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto data4 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data4");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto f2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("Broadcast");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Gather");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto data4 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data4");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("Broadcast");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(f2));
     CHAIN(NODE(d)->EDGE(0, 1)->NODE(gather));
@@ -3658,24 +4938,69 @@ TEST_F(UtestFusionStrategySolver, Fuse_concat_and_mulreference_node_2) {
     }
   };
 
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto data4 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(3).InNames({"x"})
-                   .OutNames({"y"}).Build("data4");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("D");
-  auto e = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("E");
-  auto f2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("Broadcast");
-  auto g2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("G2");
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Concat");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto data4 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(3)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data4");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto e = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("E");
+  auto f2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("Broadcast");
+  auto g2 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(2)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("G2");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Concat");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(d)->EDGE(0, 0)->NODE(f2));
     CHAIN(NODE(d)->EDGE(0, 1)->NODE(g2));
@@ -3757,7 +5082,8 @@ std::string ReadableComputeGraph(const ComputeGraphPtr &graph) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseMatmul) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   data0.SetSymbolShape({"s1", "s2"});
@@ -3793,7 +5119,7 @@ TEST_F(UtestFusionStrategySolver, FuseMatmul) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -3805,7 +5131,8 @@ TEST_F(UtestFusionStrategySolver, FuseMatmul) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseMatmulOffsetRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto offset_w = es_graph->CreateInput(2, "offset_w", nullptr);
@@ -3847,7 +5174,7 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulOffsetRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -3859,7 +5186,8 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulOffsetRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseMatmulBaisOffsetRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph1"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph1"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -3900,7 +5228,7 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulBaisOffsetRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -3912,7 +5240,8 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulBaisOffsetRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseMatmulBaisRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -3954,7 +5283,7 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulBaisRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -3966,7 +5295,8 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulBaisRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseMatmulMulReferenceWithBaisRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -4010,7 +5340,7 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulMulReferenceWithBaisRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4022,7 +5352,8 @@ TEST_F(UtestFusionStrategySolver, FuseMatmulMulReferenceWithBaisRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseBatchMatmul) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto offset_w = es_graph->CreateInput(2, "offset_w", nullptr);
@@ -4064,7 +5395,7 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmul) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4076,7 +5407,8 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmul) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseBatchMatmulOffsetRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto offset_w = es_graph->CreateInput(2, "offset_w", nullptr);
@@ -4118,7 +5450,7 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulOffsetRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4130,7 +5462,8 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulOffsetRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisOffsetRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -4178,7 +5511,7 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisOffsetRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4190,7 +5523,8 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisOffsetRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -4232,7 +5566,7 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4244,7 +5578,8 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisRelu) {
 }
 
 TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisMulRelu) {
-  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));;
+  std::unique_ptr<es::Graph> es_graph = std::unique_ptr<es::Graph>(new es::Graph("graph"));
+  ;
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
   auto data1 = es_graph->CreateInput(1, "data1", nullptr);
   auto bais = es_graph->CreateInput(2, "bais", nullptr);
@@ -4289,7 +5624,7 @@ TEST_F(UtestFusionStrategySolver, FuseBatchMatmulBaisMulRelu) {
 
   auto pre_nodes_size = cg->GetAllNodesSize();
   FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new AscBackendFusionDecider()),
-      AutoFuseFwkType::kGe);
+                                             AutoFuseFwkType::kGe);
 
   AutofuserOptions options;
   options.fwk_type = AutoFuseFwkType::kGe;
@@ -4305,24 +5640,69 @@ TEST_F(UtestFusionStrategySolver, Reduce_Can_Only_Fuse_At_Most_3_Elementwise) {
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Gather");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("D");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("A");
-  auto r = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("R");
-  auto r1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("R1");
-  auto e1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                .OutNames({"y"}).Build("E1");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
+  auto r = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("R");
+  auto r1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("R1");
+  auto e1 = OP_CFG(kAscBackendType)
+                .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                .InCnt(1)
+                .OutCnt(1)
+                .InNames({"x"})
+                .OutNames({"y"})
+                .Build("E1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
@@ -4344,16 +5724,41 @@ TEST_F(UtestFusionStrategySolver, Reduce_Can_Only_Fuse_At_Most_3_Elementwise) {
 }
 
 TEST_F(UtestFusionStrategySolver, Reduce_Can_Not_Fuse_With_Elementwise_Which_Has_More_Than_3_Compute_Nodes) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Gather");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto d = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("D");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto d = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("D");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
@@ -4382,18 +5787,48 @@ TEST_F(UtestFusionStrategySolver, Reduce_Can_Not_Fuse_With_Elementwise_Has_More_
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data3");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Gather");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("C");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data3");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(2)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("C");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
@@ -4419,16 +5854,41 @@ TEST_F(UtestFusionStrategySolver, Reduce_Can_Not_Fuse_With_Elementwise_Has_Scala
       return AscBackendFusionDecider::Fuse(node1, node2, counter);
     }
   };
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data2");
-  auto gather = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Gather");
-  auto reduce = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("Reduce");
-  auto c = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-               .OutNames({"y"}).Build("Mul");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data2");
+  auto gather = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Gather");
+  auto reduce = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Reduce");
+  auto c = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("Mul");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(gather));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(gather));
@@ -4447,4 +5907,4 @@ TEST_F(UtestFusionStrategySolver, Reduce_Can_Not_Fuse_With_Elementwise_Has_Scala
   EXPECT_EQ(pre_nodes_size - 1, post_nodes_size);
 }
 
-} // namespace ge
+}  // namespace ge

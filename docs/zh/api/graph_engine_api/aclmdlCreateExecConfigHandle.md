@@ -42,4 +42,3 @@ aclmdlExecConfigHandle *aclmdlCreateExecConfigHandle()
 
 -   返回aclmdlExecConfigHandle类型的指针，表示成功。
 -   返回NULL，表示失败。
-

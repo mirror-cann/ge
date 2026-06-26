@@ -22,17 +22,16 @@ namespace ge {
 class AlgebraicSimplificationPassTest : public testing::Test {
  protected:
   template <typename T>
-  static EsCTensorHolder* CreateConst(es::EsGraphBuilder &graph_builder, ge::DataType dtype, const std::vector<int64_t> &dims,
-                                const std::vector<T> &value) {
-    EsCGraphBuilder* esb_graph = graph_builder.GetCGraphBuilder();
-    return ge::es::EsCreateConst<T>(esb_graph, value.data(), dims.data(), static_cast<int64_t>(dims.size()), dtype, FORMAT_ND);
+  static EsCTensorHolder *CreateConst(es::EsGraphBuilder &graph_builder, ge::DataType dtype,
+                                      const std::vector<int64_t> &dims, const std::vector<T> &value) {
+    EsCGraphBuilder *esb_graph = graph_builder.GetCGraphBuilder();
+    return ge::es::EsCreateConst<T>(esb_graph, value.data(), dims.data(), static_cast<int64_t>(dims.size()), dtype,
+                                    FORMAT_ND);
   }
 
   template <typename T>
-  static ComputeGraphPtr BuildGraph(const std::string &op_type, DataType dtype,
-                                    T value, bool lhs_is_data,
-                                    bool ref_const = false,
-                                    const std::vector<int64_t> &const_shape = {8, 16},
+  static ComputeGraphPtr BuildGraph(const std::string &op_type, DataType dtype, T value, bool lhs_is_data,
+                                    bool ref_const = false, const std::vector<int64_t> &const_shape = {8, 16},
                                     const std::vector<int64_t> &data_shape = {8, 16}) {
     GeTensorDesc const_desc(GeShape(const_shape), FORMAT_ND, dtype);
     std::vector<T> buffer(GeShape(const_shape).GetShapeSize(), value);
@@ -89,7 +88,7 @@ REG_OP(Mul)
                            DT_COMPLEX64, DT_COMPLEX128}))
     .OP_END_FACTORY_REG(Mul)
 
-REG_OP(Add)
+        REG_OP(Add)
     .INPUT(x1, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
                            DT_COMPLEX64, DT_COMPLEX128}))
     .INPUT(x2, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
@@ -98,7 +97,7 @@ REG_OP(Add)
                            DT_COMPLEX64, DT_COMPLEX128}))
     .OP_END_FACTORY_REG(Add)
 
-REG_OP(Div)
+        REG_OP(Div)
     .INPUT(x1, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
                            DT_COMPLEX64, DT_COMPLEX128}))
     .INPUT(x2, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
@@ -107,7 +106,7 @@ REG_OP(Div)
                            DT_COMPLEX64, DT_COMPLEX128}))
     .OP_END_FACTORY_REG(Div)
 
-REG_OP(Sub)
+        REG_OP(Sub)
     .INPUT(x1, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
                            DT_COMPLEX64, DT_COMPLEX128}))
     .INPUT(x2, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
@@ -116,15 +115,15 @@ REG_OP(Sub)
                            DT_COMPLEX64, DT_COMPLEX128}))
     .OP_END_FACTORY_REG(Sub)
 
-REG_OP(Constant)
+        REG_OP(Constant)
     .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
                            DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(value, Tensor, Tensor())
     .OP_END_FACTORY_REG(Constant)
 
-REG_OP(BroadcastTo)
+        REG_OP(BroadcastTo)
     .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
-                      DT_COMPLEX64, DT_COMPLEX128}))
+                          DT_COMPLEX64, DT_COMPLEX128}))
     .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
     .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
                            DT_UINT64, DT_BOOL, DT_DOUBLE}))

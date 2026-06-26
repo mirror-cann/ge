@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,15 +67,17 @@ Status CpuTaskModelDequeue::Init(const uint32_t queue_id, uintptr_t &in_mbuf) {
   queue_info.queue_id = queue_id;
   queue_info.in_mbuf = in_mbuf;  // Placeholder, input mbuf addr will save to this place.
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &queue_info, sizeof(MbufQueueInfo),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskModelDequeue::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -86,8 +88,7 @@ Status CpuTaskModelDequeue::Distribute() {
 
 Status CpuTaskZeroCopy::InitAddrs(std::vector<uintptr_t> &mbuf_list,
                                   const std::map<uint32_t, ZeroCopyOffset> &outside_addrs,
-                                  const vector_bit_t &is_no_tiling_list,
-                                  const ZeroCpyArgs &cpy_args) {
+                                  const vector_bit_t &is_no_tiling_list, const ZeroCpyArgs &cpy_args) {
   // init src_addrs/dst_addrs/no_tilings_
   for (const auto &addrs : outside_addrs) {
     const size_t data_idx = addrs.first;
@@ -105,14 +106,11 @@ Status CpuTaskZeroCopy::InitAddrs(std::vector<uintptr_t> &mbuf_list,
           const bool is_no_tiling = is_no_tiling_list.at(data_idx);
           const bool dest_is_tiling = outside_addrs_is_tiling_map[virtual_addr];
           const int32_t fusion_offset = cpy_args.fusion_offsets.at(data_idx);
-          GELOGI("Init addr, index:[%zu], cpy_type:[%d], is notiling:[%d], dest is tiling[%d], fusion offset = %d, "
-                 "addr[%p] will be replaced.",
-                 data_idx,
-                 static_cast<int32_t>(cpy_args.cpy_type),
-                 static_cast<int32_t>(is_no_tiling),
-                 static_cast<int32_t>(dest_is_tiling),
-                 fusion_offset,
-                 reinterpret_cast<void *>(virtual_addr));
+          GELOGI(
+              "Init addr, index:[%zu], cpy_type:[%d], is notiling:[%d], dest is tiling[%d], fusion offset = %d, "
+              "addr[%p] will be replaced.",
+              data_idx, static_cast<int32_t>(cpy_args.cpy_type), static_cast<int32_t>(is_no_tiling),
+              static_cast<int32_t>(dest_is_tiling), fusion_offset, reinterpret_cast<void *>(virtual_addr));
           SetAddrs(mbuf_list.at(data_idx), cpy_args, is_no_tiling, virtual_addr, dest_is_tiling, fusion_offset);
         }
       }
@@ -160,10 +158,8 @@ void CpuTaskZeroCopy::SetAddrs(uintptr_t src_addr, const ZeroCpyArgs &cpy_args, 
 /// @param [out] cpy_args: cpy args
 /// @return: 0 for success / others for failed
 ///
-Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
-                             const std::map<uint32_t, ZeroCopyOffset> &outside_addrs,
-                             const std::vector<bool> &is_no_tiling_list,
-                             ZeroCpyArgs &cpy_args) {
+Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list, const std::map<uint32_t, ZeroCopyOffset> &outside_addrs,
+                             const std::vector<bool> &is_no_tiling_list, ZeroCpyArgs &cpy_args) {
   if ((args_ != nullptr) || (args_size_ > 0U)) {
     REPORT_INNER_ERR_MSG("E19999", "Param args_ is not nullptr or args_size_:%u > 0, check invalid", args_size_);
     GELOGE(FAILED, "[Check][Param] Task already initialized, size:%u", args_size_);
@@ -173,8 +169,8 @@ Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
   has_tensor_desc_ = cpy_args.has_tensor_desc;
   cpy_args.need_distribute = true;
   GE_CHK_STATUS_RET_NOLOG(InitAddrs(mbuf_list, outside_addrs, is_no_tiling_list, cpy_args));
-  GELOGI("addr_num is %u, outside_addrs size is %zu, is_no_tiling_list size is %zu",
-         addr_num_, outside_addrs.size(), is_no_tiling_list.size());
+  GELOGI("addr_num is %u, outside_addrs size is %zu, is_no_tiling_list size is %zu", addr_num_, outside_addrs.size(),
+         is_no_tiling_list.size());
   if (addr_num_ == 0U) {
     cpy_args.need_distribute = false;
     GELOGI("addr_num is 0, no need to distribute task");
@@ -184,11 +180,11 @@ Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
   // malloc mem for src_addrs/dst_addrs, and copy data of src_addrs/dst_addrs
   GE_CHK_ACL_RET(ge::AclrtMalloc(&src_addr_, src_addrs_.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(src_addr_, src_addrs_.size() * sizeof(uint64_t), src_addrs_.data(),
-      src_addrs_.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                             src_addrs_.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
 
   GE_CHK_ACL_RET(ge::AclrtMalloc(&dst_addr_, dst_addrs_.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(dst_addr_, dst_addrs_.size() * sizeof(uint64_t), dst_addrs_.data(),
-      dst_addrs_.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                             dst_addrs_.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
 
   // src_addr_list is init to src_addr, which is the point to src_addrs
   const void *args = nullptr;
@@ -202,19 +198,22 @@ Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
     addr_map_info.dst_addr_list = PtrToValue(dst_addr_);
     args = &addr_map_info;
     args_size_ = static_cast<uint32_t>(sizeof(AddrMapInfo));
-    GELOGI("src_addr_list is %" PRIu64 ", dst_addr_list is %" PRIu64,
-      addr_map_info.src_addr_list, addr_map_info.dst_addr_list);
+    GELOGI("src_addr_list is %" PRIu64 ", dst_addr_list is %" PRIu64, addr_map_info.src_addr_list,
+           addr_map_info.dst_addr_list);
   } else {
     AddrMapInfoV2 *const addr_map_info_v2 = PtrToPtr<uint8_t, AddrMapInfoV2>(&buff[0]);
-    GE_CHK_ACL_RET(ge::AclrtMalloc(&no_tiling_addr_, no_tilings_.size() * sizeof(int32_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(
+        ge::AclrtMalloc(&no_tiling_addr_, no_tilings_.size() * sizeof(int32_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     GE_CHK_ACL_RET(aclrtMemcpy(no_tiling_addr_, no_tilings_.size() * sizeof(int32_t), no_tilings_.data(),
-        no_tilings_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
-    GE_CHK_ACL_RET(ge::AclrtMalloc(&dest_is_tiling_addr_, dest_is_tilings_.size() * sizeof(int32_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-    GE_CHK_ACL_RET(aclrtMemcpy(dest_is_tiling_addr_, dest_is_tilings_.size() * sizeof(int32_t),
-        dest_is_tilings_.data(), dest_is_tilings_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
-    GE_CHK_ACL_RET(ge::AclrtMalloc(&fusion_offsets_addr_, fusion_offsets_.size() * sizeof(int32_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+                               no_tilings_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&dest_is_tiling_addr_, dest_is_tilings_.size() * sizeof(int32_t), RT_MEMORY_HBM,
+                                   GE_MODULE_NAME_U16));
+    GE_CHK_ACL_RET(aclrtMemcpy(dest_is_tiling_addr_, dest_is_tilings_.size() * sizeof(int32_t), dest_is_tilings_.data(),
+                               dest_is_tilings_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_ACL_RET(ge::AclrtMalloc(&fusion_offsets_addr_, fusion_offsets_.size() * sizeof(int32_t), RT_MEMORY_HBM,
+                                   GE_MODULE_NAME_U16));
     GE_CHK_ACL_RET(aclrtMemcpy(fusion_offsets_addr_, fusion_offsets_.size() * sizeof(int32_t), fusion_offsets_.data(),
-        fusion_offsets_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                               fusion_offsets_.size() * sizeof(int32_t), ACL_MEMCPY_HOST_TO_DEVICE));
     addr_map_info_v2->addr_num = addr_num_;
     addr_map_info_v2->src_addr_list = PtrToValue(src_addr_);
     addr_map_info_v2->dst_addr_list = PtrToValue(dst_addr_);
@@ -224,16 +223,15 @@ Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
     uint32_t *const skip_size = PtrToPtr<char, uint32_t>(&addr_map_info_v2->extend_info[0]);
     *skip_size = static_cast<uint32_t>(sizeof(RuntimeTensorDesc));
     extend_offset += sizeof(uint32_t);
-    uint64_t *const dest_is_tiling_list =
-        PtrToPtr<char, uint64_t>(&addr_map_info_v2->extend_info[0] + extend_offset);
+    uint64_t *const dest_is_tiling_list = PtrToPtr<char, uint64_t>(&addr_map_info_v2->extend_info[0] + extend_offset);
     *dest_is_tiling_list = PtrToValue(dest_is_tiling_addr_);
     extend_offset += sizeof(uint64_t);
-    uint64_t *const fusion_offsets =
-        PtrToPtr<char, uint64_t>(&addr_map_info_v2->extend_info[0] + extend_offset);
+    uint64_t *const fusion_offsets = PtrToPtr<char, uint64_t>(&addr_map_info_v2->extend_info[0] + extend_offset);
     *fusion_offsets = PtrToValue(fusion_offsets_addr_);
     args = PtrToPtr<uint8_t, void>(&buff[0]);
     args_size_ = static_cast<uint32_t>(sizeof(AddrMapInfoV2) + addr_map_info_v2->len);
-    GELOGI("src_addr_list is %" PRIu64 ", dst_addr_list is %" PRIu64 ", "
+    GELOGI("src_addr_list is %" PRIu64 ", dst_addr_list is %" PRIu64
+           ", "
            "is_no_tiling_list is %" PRIu64 ", len %u, args_size_ is %u",
            addr_map_info_v2->src_addr_list, addr_map_info_v2->dst_addr_list, addr_map_info_v2->is_no_tiling_list,
            addr_map_info_v2->len, args_size_);
@@ -242,14 +240,16 @@ Status CpuTaskZeroCopy::Init(std::vector<uintptr_t> &mbuf_list,
   GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, static_cast<uint64_t>(args_size_), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), args, static_cast<uint64_t>(args_size_),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
 Status CpuTaskZeroCopy::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -308,8 +308,9 @@ Status CpuTaskProcessOutput::Init(const uintptr_t addr, const uint32_t size, con
     GELOGD("Tensordesc type = %d, shape = original shape = %s, data size = %u", static_cast<int32_t>(tensor_desc.dtype),
            ToString(output_desc->shape_info.dims).c_str(), size);
     GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(PtrToValue(args_) + sizeof(ProcessOutputInfo)),
-        (static_cast<uint64_t>(args_size_) - static_cast<uint64_t>(sizeof(ProcessOutputInfo))),
-        &tensor_desc, static_cast<uint64_t>(sizeof(RuntimeTensorDesc)), ACL_MEMCPY_HOST_TO_DEVICE));
+                               (static_cast<uint64_t>(args_size_) - static_cast<uint64_t>(sizeof(ProcessOutputInfo))),
+                               &tensor_desc, static_cast<uint64_t>(sizeof(RuntimeTensorDesc)),
+                               ACL_MEMCPY_HOST_TO_DEVICE));
   } else {
     GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, static_cast<uint64_t>(args_size_), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
     out_mbuf = PtrToValue(args_) + sizeof(ProcessOutputInfo);
@@ -323,15 +324,17 @@ Status CpuTaskProcessOutput::Init(const uintptr_t addr, const uint32_t size, con
   process.in_mbuf = in_mbuf;
   process.out_mbuf = out_mbuf;  // Placeholder, output mbuf addr will save to this place.
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &process, sizeof(ProcessOutputInfo),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskProcessOutput::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -378,15 +381,17 @@ Status CpuTaskModelEnqueue::Init(const uint32_t queue_id, const uintptr_t out_mb
   queue_info.queue_id = queue_id;
   queue_info.in_mbuf = out_mbuf;
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &queue_info, static_cast<uint64_t>(args_size_),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskModelEnqueue::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_ is 0 or stream_ is nullptr, arg_size:%u,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_ is 0 or stream_ is nullptr, arg_size:%u,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -426,8 +431,8 @@ Status CpuTaskActiveEntry::Distribute() {
   return SUCCESS;
 }
 
-Status CpuTaskMarkStep::Init(const GroupInfo &group_info, const std::string &dump_step,
-                             const uintptr_t step_id_addr, bool is_head) {
+Status CpuTaskMarkStep::Init(const GroupInfo &group_info, const std::string &dump_step, const uintptr_t step_id_addr,
+                             bool is_head) {
   if ((args_ != nullptr) || (args_size_ > 0U)) {
     REPORT_INNER_ERR_MSG("E19999", "Param args_ is not nullptr or args_size_:%u > 0, check invalid", args_size_);
     GELOGE(FAILED, "[Check][Param] Task already initialized, size:%u", args_size_);
@@ -445,14 +450,13 @@ Status CpuTaskMarkStep::Init(const GroupInfo &group_info, const std::string &dum
   mark_step_info.is_head = is_head ? 0U : 1U;
   const auto ret = strcpy_s(mark_step_info.dump_step, sizeof(mark_step_info.dump_step), dump_step.c_str());
   if (ret != EOK) {
-    REPORT_PREDEFINED_ERR_MSG(
-        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-        std::vector<const char *>({"dump_step", dump_step.c_str(), "Dump step is too long."}));
+    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                              std::vector<const char *>({"dump_step", dump_step.c_str(), "Dump step is too long."}));
     GELOGE(FAILED, "[Call][strcpy_s] strcpy failed, result: %d, dump_step: %s", ret, dump_step.c_str());
     return FAILED;
   }
 
-  void * const step_id = reinterpret_cast<void *>(step_id_addr);
+  void *const step_id = reinterpret_cast<void *>(step_id_addr);
   if (step_id != nullptr) {
     GE_CHK_ACL_RET(aclrtMemset(step_id, sizeof(uint64_t), 0U, sizeof(uint64_t)));
   }
@@ -462,14 +466,14 @@ Status CpuTaskMarkStep::Init(const GroupInfo &group_info, const std::string &dum
          mark_step_info.dump_step, static_cast<int32_t>(mark_step_info.is_head));
 
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &mark_step_info, sizeof(MarkStepInfo),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskMarkStep::Distribute() {
-  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr),
-                         FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
+  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr), FAILED,
+                         "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
   GE_CHK_RT_RET(LaunchCpuKernel(kCpuTaskMarkStep));
   GELOGI("Cpu kernel launch mark dump step task success.");
   return SUCCESS;
@@ -493,15 +497,17 @@ Status CpuTaskWaitEndGraph::Init(const uint32_t model_id) {
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
 
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &model_id, static_cast<uint64_t>(args_size_),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskWaitEndGraph::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -510,8 +516,7 @@ Status CpuTaskWaitEndGraph::Distribute() {
   return SUCCESS;
 }
 
-Status CpuTaskModelReportStatus::Init(const uint32_t model_uuid,
-                                      const QueueAttrs &status_output_queue,
+Status CpuTaskModelReportStatus::Init(const uint32_t model_uuid, const QueueAttrs &status_output_queue,
                                       const std::vector<QueueAttrs> &input_queues) {
   if ((args_ != nullptr) || (args_size_ > 0U)) {
     REPORT_INNER_ERR_MSG("E19999", "Param args_ is not nullptr or args_size_:%u > 0, check invalid", args_size_);
@@ -526,19 +531,21 @@ Status CpuTaskModelReportStatus::Init(const uint32_t model_uuid,
   report_status_info.model_uuid = model_uuid;
   report_status_info.status_output_queue = status_output_queue;
   report_status_info.input_num = static_cast<uint32_t>(input_queues.size());
-  GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_),
-      &report_status_info, sizeof(ReportStatusInfo), ACL_MEMCPY_HOST_TO_DEVICE));
-  QueueAttrs * const input_queues_ptr = PtrToPtr<void, QueueAttrs>(ValueToPtr(PtrToValue(args_) +
-    sizeof(ReportStatusInfo)));
+  GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &report_status_info, sizeof(ReportStatusInfo),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
+  QueueAttrs *const input_queues_ptr =
+      PtrToPtr<void, QueueAttrs>(ValueToPtr(PtrToValue(args_) + sizeof(ReportStatusInfo)));
   GE_CHK_ACL_RET(aclrtMemcpy(input_queues_ptr, static_cast<uint64_t>(args_size_ - sizeof(ReportStatusInfo)),
-      input_queues.data(), sizeof(QueueAttrs) * input_queues.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+                             input_queues.data(), sizeof(QueueAttrs) * input_queues.size(), ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
 Status CpuTaskModelReportStatus::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -565,15 +572,17 @@ Status CpuTaskModelRepeat::Init(const uint32_t model_id) {
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
 
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &model_id, static_cast<uint64_t>(args_size_),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
 Status CpuTaskModelRepeat::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -582,14 +591,11 @@ Status CpuTaskModelRepeat::Distribute() {
   return SUCCESS;
 }
 
-Status CpuTaskModelBatchDequeue::Init(const uint32_t align_interval,
-                                      const std::vector<uint32_t> &queue_ids,
-                                      const std::vector<uint32_t> &align_offsets,
-                                      std::vector<uintptr_t> &in_mbufs) {
-  GE_CHK_BOOL_RET_STATUS(args_ == nullptr,
-                         FAILED, "[Check][Param] Task already initialized, size:%u", args_size_);
-  GE_CHK_BOOL_RET_STATUS(queue_ids.size() == align_offsets.size(),
-                         FAILED, "number of align_offsets mismatches that of queue ids ");
+Status CpuTaskModelBatchDequeue::Init(const uint32_t align_interval, const std::vector<uint32_t> &queue_ids,
+                                      const std::vector<uint32_t> &align_offsets, std::vector<uintptr_t> &in_mbufs) {
+  GE_CHK_BOOL_RET_STATUS(args_ == nullptr, FAILED, "[Check][Param] Task already initialized, size:%u", args_size_);
+  GE_CHK_BOOL_RET_STATUS(queue_ids.size() == align_offsets.size(), FAILED,
+                         "number of align_offsets mismatches that of queue ids ");
   const uint32_t num_inputs = static_cast<uint32_t>(queue_ids.size());
   // kernel_args|mbuf_addr_buffer|queue_ids_buffer|align_offsets_buffer
   BatchEnqueueKernelArgs kernel_args{};
@@ -598,13 +604,13 @@ Status CpuTaskModelBatchDequeue::Init(const uint32_t align_interval,
   args_size_ = static_cast<uint32_t>(sizeof(kernel_args));
   const uint32_t mbuf_addrs_offset = args_size_;
   const size_t mbuf_addrs_size = sizeof(uint64_t) * num_inputs;
-  args_size_+= static_cast<uint32_t>(mbuf_addrs_size);
+  args_size_ += static_cast<uint32_t>(mbuf_addrs_size);
   const uint32_t queue_ids_offset = args_size_;
   const size_t queue_ids_size = sizeof(uint32_t) * num_inputs;
-  args_size_+= static_cast<uint32_t>(queue_ids_size);
+  args_size_ += static_cast<uint32_t>(queue_ids_size);
   const uint32_t align_offsets_offset = args_size_;
   const size_t align_offsets_size = sizeof(uint32_t) * num_inputs;
-  args_size_+= static_cast<uint32_t>(sizeof(uint32_t) * align_offsets_size);
+  args_size_ += static_cast<uint32_t>(sizeof(uint32_t) * align_offsets_size);
   GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, static_cast<uint64_t>(args_size_), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   kernel_args.align_offsets_addr = PtrToValue(args_) + align_offsets_offset;
   kernel_args.queue_ids_addr = PtrToValue(args_) + queue_ids_offset;
@@ -614,27 +620,25 @@ Status CpuTaskModelBatchDequeue::Init(const uint32_t align_interval,
   }
 
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
-  GE_CHK_ACL_RET(aclrtMemcpy(args_, args_size_,
-      &kernel_args, sizeof(kernel_args), ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.align_offsets_addr), align_offsets_size,
-      align_offsets.data(), align_offsets_size, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_ids_addr), queue_ids_size,
-      queue_ids.data(), queue_ids_size, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.mbuf_addrs_addr), mbuf_addrs_size,
-      in_mbufs.data(), mbuf_addrs_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(args_, args_size_, &kernel_args, sizeof(kernel_args), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.align_offsets_addr), align_offsets_size, align_offsets.data(),
+                             align_offsets_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_ids_addr), queue_ids_size, queue_ids.data(), queue_ids_size,
+                             ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.mbuf_addrs_addr), mbuf_addrs_size, in_mbufs.data(), mbuf_addrs_size,
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
 Status CpuTaskModelBatchDequeue::Distribute() {
-  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr),
-                         FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
+  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr), FAILED,
+                         "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
   GE_CHK_RT_RET(LaunchCpuKernel(kCpuTaskModelBatchDequeue));
   GELOGI("Cpu kernel launch model batch dequeue task success.");
   return SUCCESS;
 }
 
-Status CpuTaskModelGatherDequeue::Init(const std::vector<QueueAttrs> &queues,
-                                       const InputAlignAttrs &align_attrs,
+Status CpuTaskModelGatherDequeue::Init(const std::vector<QueueAttrs> &queues, const InputAlignAttrs &align_attrs,
                                        std::vector<uintptr_t> &in_mbufs) {
   GE_CHK_BOOL_RET_STATUS(args_ == nullptr, FAILED, "[Check][Param] Task already initialized, size:%u", args_size_);
   const auto queue_num = queues.size();
@@ -677,29 +681,29 @@ Status CpuTaskModelGatherDequeue::Init(const std::vector<QueueAttrs> &queues,
   std::vector<uint32_t> queue_ids;
   std::vector<uint32_t> device_ids;
   std::vector<uint32_t> device_types;
-  
+
   for (size_t i = 0UL; i < queue_num; ++i) {
     in_mbufs.emplace_back(mbufs_addr + static_cast<uint64_t>(sizeof(uint64_t)) * static_cast<uint64_t>(i));
     queue_ids.emplace_back(queues[i].queue_id);
     device_ids.emplace_back(queues[i].device_id);
     device_types.emplace_back(queues[i].device_type);
   }
-  GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_),
-      &kernel_args, sizeof(kernel_args), ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_ids_addr), queue_id_addrs_size,
-      queue_ids.data(), queue_id_addrs_size, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.mbuf_addrs_addr), mbuf_addrs_size,
-      in_mbufs.data(), in_mbufs.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_device_ids_addr), device_ids_size,
-      device_ids.data(), device_ids_size, ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_device_type_addr), device_type_size,
-      device_types.data(), device_type_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &kernel_args, sizeof(kernel_args),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_ids_addr), queue_id_addrs_size, queue_ids.data(),
+                             queue_id_addrs_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.mbuf_addrs_addr), mbuf_addrs_size, in_mbufs.data(),
+                             in_mbufs.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_device_ids_addr), device_ids_size, device_ids.data(),
+                             device_ids_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(kernel_args.queue_device_type_addr), device_type_size, device_types.data(),
+                             device_type_size, ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
 Status CpuTaskModelGatherDequeue::Distribute() {
-  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr),
-                         FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
+  GE_CHK_BOOL_RET_STATUS((args_ != nullptr) && (args_size_ != 0U) && (stream_ != nullptr), FAILED,
+                         "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
   GE_CHK_RT_RET(LaunchCpuKernel(kCpuTaskModelGatherDequeue));
   GELOGI("Cpu kernel launch model gather dequeue task success.");
   return SUCCESS;
@@ -716,13 +720,13 @@ Status CpuTaskProcessInputsMemCopy::Init(const std::vector<uintptr_t> &mbuf_list
     return FAILED;
   }
   if (mbuf_list.empty() || data_addr_list.empty() || length_list.empty()) {
-    GELOGI("[Check][Param] Params of CpuTaskProcessInputsMemCopy task is emtpy.");
+    GELOGI("[Check][Param] Params of CpuTaskProcessInputsMemCopy task is empty.");
     return SUCCESS;
   }
-  if ((mbuf_list.size() != data_addr_list.size()) ||
-      (length_list.size() != data_addr_list.size()) ||
+  if ((mbuf_list.size() != data_addr_list.size()) || (length_list.size() != data_addr_list.size()) ||
       (input_fusion_offset_list.size() != data_addr_list.size())) {
-    GELOGE(FAILED, "[Check][Param] The size of mubf list:%zu, data addr list:%zu, "
+    GELOGE(FAILED,
+           "[Check][Param] The size of mubf list:%zu, data addr list:%zu, "
            "length list:%zu and input fusion offset list:%zu should be same",
            mbuf_list.size(), data_addr_list.size(), length_list.size(), input_fusion_offset_list.size());
     return FAILED;
@@ -731,19 +735,21 @@ Status CpuTaskProcessInputsMemCopy::Init(const std::vector<uintptr_t> &mbuf_list
   // construct InputCopyAddrMapInfo and copy data to device
   GE_CHK_ACL_RET(ge::AclrtMalloc(&src_addr_, mbuf_list.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(src_addr_, mbuf_list.size() * sizeof(uint64_t), mbuf_list.data(),
-      mbuf_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                             mbuf_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
 
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&dst_addr_, data_addr_list.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(
+      ge::AclrtMalloc(&dst_addr_, data_addr_list.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(dst_addr_, data_addr_list.size() * sizeof(uint64_t), data_addr_list.data(),
-      data_addr_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                             data_addr_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
 
   GE_CHK_ACL_RET(ge::AclrtMalloc(&len_list_, length_list.size() * sizeof(uint64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(len_list_, length_list.size() * sizeof(uint64_t), length_list.data(),
-      length_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&input_fusion_offset_list_, input_fusion_offset_list.size() * sizeof(int32_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+                             length_list.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&input_fusion_offset_list_, input_fusion_offset_list.size() * sizeof(int32_t),
+                                 RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(input_fusion_offset_list_, input_fusion_offset_list.size() * sizeof(int32_t),
-      input_fusion_offset_list.data(), input_fusion_offset_list.size() * sizeof(int32_t),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             input_fusion_offset_list.data(), input_fusion_offset_list.size() * sizeof(int32_t),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   InputCopyAddrMapInfo addr_map_info;
   addr_map_info.addr_num = static_cast<uint32_t>(mbuf_list.size());
   addr_map_info.src_addr_list = PtrToValue(src_addr_);
@@ -756,14 +762,16 @@ Status CpuTaskProcessInputsMemCopy::Init(const std::vector<uintptr_t> &mbuf_list
   GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, static_cast<uint64_t>(args_size_), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, "args data.", args_size_);
   GE_CHK_ACL_RET(aclrtMemcpy(args_, static_cast<uint64_t>(args_size_), &addr_map_info,
-      static_cast<uint64_t>(args_size_), ACL_MEMCPY_HOST_TO_DEVICE));
+                             static_cast<uint64_t>(args_size_), ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
 Status CpuTaskProcessInputsMemCopy::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid", args_size_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -788,7 +796,7 @@ Status CpuTaskProcessInputsShapeCheck::Init(const std::vector<uintptr_t> &mbuf_l
     return FAILED;
   }
   if (mbuf_list.empty()) {
-    GELOGI("[Check][Param] Params of CpuTaskProcessInputsMemCopy task is emtpy.");
+    GELOGI("[Check][Param] Params of CpuTaskProcessInputsMemCopy task is empty.");
     return SUCCESS;
   }
   GE_CHK_BOOL_RET_STATUS((mbuf_list.size() == input_fusion_offset_list.size()), FAILED,
@@ -801,16 +809,18 @@ Status CpuTaskProcessInputsShapeCheck::Init(const std::vector<uintptr_t> &mbuf_l
     validation.offset = static_cast<uint64_t>(input_fusion_offset_list[i]);
     shape_validation.emplace_back(validation);
   }
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&shape_validation_addr_, sizeof(ShapeValidation) * shape_validation.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&shape_validation_addr_, sizeof(ShapeValidation) * shape_validation.size(),
+                                 RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(shape_validation_addr_, sizeof(ShapeValidation) * shape_validation.size(),
-      shape_validation.data(), sizeof(ShapeValidation) * shape_validation.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+                             shape_validation.data(), sizeof(ShapeValidation) * shape_validation.size(),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   ShapeValidationInfo shape_validation_info = {};
   shape_validation_info.validation_num = shape_validation.size();
   shape_validation_info.validation_info_device_addr = PtrToValue(shape_validation_addr_);
   GELOGI("Addr of shape validation info is 0x%" PRIx64 ".", shape_validation_addr_);
   GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, sizeof(ShapeValidationInfo), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_ACL_RET(aclrtMemcpy(args_, sizeof(ShapeValidationInfo),
-      &shape_validation_info, sizeof(ShapeValidationInfo), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(args_, sizeof(ShapeValidationInfo), &shape_validation_info, sizeof(ShapeValidationInfo),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   args_size_ = static_cast<uint32_t>(sizeof(ShapeValidationInfo));
   return SUCCESS;
 }
@@ -818,9 +828,9 @@ Status CpuTaskProcessInputsShapeCheck::Init(const std::vector<uintptr_t> &mbuf_l
 Status CpuTaskProcessInputsShapeCheck::Distribute() {
   if ((args_ == nullptr) || (args_size_ == 0U) || (stream_ == nullptr)) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
-                       "check invalid",
-                       args_size_);
+                         "Param args_ is nullptr or args_size_:%u is 0 or stream_ is nullptr,"
+                         "check invalid",
+                         args_size_);
     GELOGE(FAILED, "[Check][Param] Task not initialized, distribute failed, size:%u", args_size_);
     return FAILED;
   }
@@ -838,8 +848,8 @@ Status CpuTaskInfo::LaunchCpuKernel(const std::string &kernel_name) const {
   args_info.args = args_;
   args_info.argsSize = args_size_;
   args_info.isNoNeedH2DCopy = 1U;
-  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr,
-      kernel_name.data(), kCoreDim, &args_info, nullptr, stream_, RT_KERNEL_DEFAULT));
+  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr, kernel_name.data(), kCoreDim, &args_info, nullptr, stream_,
+                                          RT_KERNEL_DEFAULT));
   return SUCCESS;
 }
 }  // namespace ge

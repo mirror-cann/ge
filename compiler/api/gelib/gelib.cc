@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -263,9 +263,7 @@ Status GELib::InnerInitialize(std::map<std::string, std::string> &options) {
 
 Status GELib::SystemInitialize(const std::map<std::string, std::string> &options) {
   std::lock_guard<std::mutex> lock(status_mutex_);
-  GE_IF_BOOL_EXEC(is_system_inited,
-                  GELOGW("System is already inited.");
-                  return SUCCESS);
+  GE_IF_BOOL_EXEC(is_system_inited, GELOGW("System is already inited."); return SUCCESS);
 
   std::string mode = "Infer";
   auto iter = options.find(OPTION_GRAPH_RUN_MODE);
@@ -302,9 +300,7 @@ Status GELib::SystemInitialize(const std::map<std::string, std::string> &options
 
 Status GELib::SystemFinalize() {
   std::lock_guard<std::mutex> lock(status_mutex_);
-  GE_IF_BOOL_EXEC(!is_system_inited,
-                  GELOGW("System is not inited.");
-                  return SUCCESS);
+  GE_IF_BOOL_EXEC(!is_system_inited, GELOGW("System is not inited."); return SUCCESS);
 
   std::string mode = "Infer";
   if (is_train_mode_ || (device_id_ != kDefaultDeviceIdForInfer)) {
@@ -324,10 +320,8 @@ Status GELib::SetRTSocVersion(std::map<std::string, std::string> &new_options) c
     GELOGI("Succeeded in setting SOC_VERSION[%s] to runtime.", it->second.c_str());
   } else {
     const char *version = aclrtGetSocName();
-    GE_IF_BOOL_EXEC(version == nullptr,
-        REPORT_INNER_ERR_MSG("E19999", "aclrtGetSocName failed.");
-        GELOGE(FAILED, "[Get][SocVersion]aclrtGetSocName failed");
-        return FAILED;)
+    GE_IF_BOOL_EXEC(version == nullptr, REPORT_INNER_ERR_MSG("E19999", "aclrtGetSocName failed.");
+                    GELOGE(FAILED, "[Get][SocVersion]aclrtGetSocName failed"); return FAILED;)
     GELOGI("Succeeded in getting SOC_VERSION[%s] from runtime.", version);
     new_options.insert(std::make_pair(ge::SOC_VERSION, version));
   }
@@ -405,7 +399,9 @@ Status GELib::Finalize() {
 }
 
 // Get Singleton Instance
-std::shared_ptr<GELib> GELib::GetInstance() { return instancePtr_; }
+std::shared_ptr<GELib> GELib::GetInstance() {
+  return instancePtr_;
+}
 
 void GELib::RollbackInit() {
   if (DNNEngineManager::GetInstance().init_flag_) {

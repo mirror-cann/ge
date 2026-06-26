@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-#include "es_showcase.h"// es构图方式
+#include "es_showcase.h"  // es构图方式
 #include "es_ConcatV2.h"
 #include "utils.h"
 #include <memory>
@@ -16,13 +16,12 @@ using namespace ge;
 using namespace ge::es;
 namespace {
 es::EsTensorHolder MakeConcatV2Graph(es::EsTensorHolder tensor1, es::EsTensorHolder tensor2, es::EsTensorHolder tensor3,
-                                         es::EsTensorHolder concat_dim) {
+                                     es::EsTensorHolder concat_dim) {
   return ConcatV2({tensor1, tensor2, tensor3}, concat_dim, 3);
 }
-}
+}  // namespace
 namespace es_showcase {
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -30,7 +29,7 @@ int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
     std::cout << "Global session not ready" << std::endl;
     return -1;
   }
-  static uint32_t next =0;
+  static uint32_t next = 0;
   const uint32_t graph_id = next++;
   auto ret = s->AddGraph(graph_id, graph);
   if (ret != ge::SUCCESS) {
@@ -74,7 +73,7 @@ std::unique_ptr<ge::Graph> MakeConcatV2GraphByEs() {
   */
   auto result = MakeConcatV2Graph(tensor1, tensor2, tensor3, concat_dim);
   // 3、设置输出
-  (void) graph_builder->SetOutput(result, 0);
+  (void)graph_builder->SetOutput(result, 0);
   // 4、构建图
   auto graph = graph_builder->BuildAndReset();
   return graph;
@@ -90,5 +89,4 @@ int MakeConcatV2GraphByEsAndRun() {
   inputs.push_back(*ge::Utils::StubTensor<float>(tensor3_data, {6, 64, 128}));
   return RunGraph(*graph, inputs, "ConcatV2");
 }
-}
-
+}  // namespace es_showcase

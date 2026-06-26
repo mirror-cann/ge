@@ -38,7 +38,8 @@ std::map<std::string, std::string> &GetRawAppliedFlagOptions();
 std::string StripCliOptionPrefix(const std::string &cli_name);
 bool IsRawNonReplaceableCliOption(const std::string &flag_name);
 std::map<std::string, std::string> BuildRawGeOptionToCliNameMap();
-bool IsCliOptionExplicitlySet(const std::string &ge_option, const std::map<std::string, std::string> &option_to_cli_name,
+bool IsCliOptionExplicitlySet(const std::string &ge_option,
+                              const std::map<std::string, std::string> &option_to_cli_name,
                               const std::unordered_map<std::string, std::string> &user_options);
 std::string GetRawCliName(const std::string &ge_option, const std::map<std::string, std::string> &option_to_cli_name);
 Status ReadRawGeOptionsFile(const std::string &file_path, nlohmann::json &raw_json);
@@ -126,8 +127,8 @@ class AtcRawOptionsUTest : public AtcTest {
   }
 
   std::string WriteTempFile(const std::string &name, const std::string &content) {
-    const std::string path = "/tmp/" + name + "_" + std::to_string(getpid()) + "_" +
-                             std::to_string(temp_files_.size()) + ".json";
+    const std::string path =
+        "/tmp/" + name + "_" + std::to_string(getpid()) + "_" + std::to_string(temp_files_.size()) + ".json";
     std::ofstream file(path);
     file << content;
     temp_files_.push_back(path);
@@ -179,11 +180,10 @@ TEST_F(AtcRawOptionsUTest, RawFileReaderRejectsMissingInvalidAndNonObjectJson) {
 TEST_F(AtcRawOptionsUTest, RawCompileOptionsMergeByLevelPriorityAndRejectInvalidShapes) {
   std::map<std::string, std::string> raw_options;
   std::map<std::string, std::string> raw_option_levels;
-  const nlohmann::json raw_json = {
-      {"compile options",
-       {{"global", {{"log", "info"}, {OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "1"}}},
-        {"session", {{"log", "warning"}}},
-        {"graph", {{"log", "error"}, {"deterministic", "1"}}}}}};
+  const nlohmann::json raw_json = {{"compile options",
+                                    {{"global", {{"log", "info"}, {OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "1"}}},
+                                     {"session", {{"log", "warning"}}},
+                                     {"graph", {{"log", "error"}, {"deterministic", "1"}}}}}};
 
   EXPECT_EQ(ParseRawCompileOptions(raw_json, raw_options, raw_option_levels), ge::SUCCESS);
   EXPECT_EQ(raw_options["log"], "error");
@@ -197,14 +197,11 @@ TEST_F(AtcRawOptionsUTest, RawCompileOptionsMergeByLevelPriorityAndRejectInvalid
             ge::FAILED);
   EXPECT_NE(ParseRawCompileOptions({{"compile options", {{"global", "bad"}}}}, raw_options, raw_option_levels),
             ge::SUCCESS);
-  EXPECT_NE(ParseRawCompileOptions({{"compile options", {{"global", {{"", "1"}}}}}}, raw_options,
-                                   raw_option_levels),
+  EXPECT_NE(ParseRawCompileOptions({{"compile options", {{"global", {{"", "1"}}}}}}, raw_options, raw_option_levels),
             ge::SUCCESS);
-  EXPECT_NE(ParseRawCompileOptions({{"compile options", {{"global", {{"log", 1}}}}}}, raw_options,
-                                   raw_option_levels),
+  EXPECT_NE(ParseRawCompileOptions({{"compile options", {{"global", {{"log", 1}}}}}}, raw_options, raw_option_levels),
             ge::SUCCESS);
-  EXPECT_EQ(ParseRawCompileOptionLevel(nlohmann::json::object(), "graph", raw_options, raw_option_levels),
-            ge::SUCCESS);
+  EXPECT_EQ(ParseRawCompileOptionLevel(nlohmann::json::object(), "graph", raw_options, raw_option_levels), ge::SUCCESS);
 }
 
 TEST_F(AtcRawOptionsUTest, RawOptionNameHelpersMapCliAndUserOptions) {
@@ -226,11 +223,9 @@ TEST_F(AtcRawOptionsUTest, RawOptionValueValidationUsesCliAndRegisteredCheckers)
   EXPECT_EQ(ValidateRawGeOptionByCliParser("log", "info", "--log"), ge::SUCCESS);
   EXPECT_EQ(ValidateRawGeOptionByCliParser("log", "verbose", "--log"), ge::FAILED);
 
-  EXPECT_EQ(ValidateRawGeOptionValue(OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "-1",
-                                     "--static_model_ops_lower_limit"),
+  EXPECT_EQ(ValidateRawGeOptionValue(OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "-1", "--static_model_ops_lower_limit"),
             ge::SUCCESS);
-  EXPECT_NE(ValidateRawGeOptionValue(OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "bad",
-                                     "--static_model_ops_lower_limit"),
+  EXPECT_NE(ValidateRawGeOptionValue(OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "bad", "--static_model_ops_lower_limit"),
             ge::SUCCESS);
 
   EXPECT_EQ(CheckRawRegisteredOptimizationOptionValue(kRawUtNoCheckerOption, "any"), ge::SUCCESS);
@@ -254,8 +249,7 @@ TEST_F(AtcRawOptionsUTest, FilterRawGeOptionsRejectsOrIgnoresUnsupportedAndValid
   EXPECT_EQ(FilterAndValidateRawGeOptions(raw_options, raw_option_levels), ge::FAILED);
 
   raw_options = {{OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "3"}, {"log", "info"}, {"not.supported", "value"}};
-  raw_option_levels = {{OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "graph"}, {"log", "session"},
-                       {"not.supported", "global"}};
+  raw_option_levels = {{OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "graph"}, {"log", "session"}, {"not.supported", "global"}};
   FLAGS_raw_ge_options_ignore_unsupported = true;
   EXPECT_EQ(FilterAndValidateRawGeOptions(raw_options, raw_option_levels), ge::SUCCESS);
   EXPECT_EQ(raw_options.count("not.supported"), 0U);
@@ -273,8 +267,7 @@ TEST_F(AtcRawOptionsUTest, ApplyRawGeOptionsSetsFlagsAndRecordsAppliedRawFlags) 
   EXPECT_NE(ApplyRawGeOptionsToFlags({{"log", "verbose"}}), ge::SUCCESS);
 
   ResetRawState();
-  EXPECT_EQ(ApplyRawGeOptionsToFlags({{OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "5"}, {"log", "info"}}),
-            ge::SUCCESS);
+  EXPECT_EQ(ApplyRawGeOptionsToFlags({{OPTION_STATIC_MODEL_OPS_LOWER_LIMIT, "5"}, {"log", "info"}}), ge::SUCCESS);
   EXPECT_EQ(FLAGS_static_model_ops_lower_limit, "5");
   EXPECT_EQ(FLAGS_log, "info");
   EXPECT_EQ(GetRawAppliedFlagNames().count("static_model_ops_lower_limit"), 1U);

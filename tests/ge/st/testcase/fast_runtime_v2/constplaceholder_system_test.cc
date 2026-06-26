@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,7 +58,7 @@ TEST_F(ConstPlaceHolderST, ConstPlaceHolderSTOK) {
 
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
-  auto output = TensorFaker().StorageShape({5 ,5}).OriginShape({5, 5}).Build();
+  auto output = TensorFaker().StorageShape({5, 5}).OriginShape({5, 5}).Build();
   output.GetTensor()->SetPlacement(kOnDeviceHbm);
   std::vector<Tensor *> outputs = {output.GetTensor()};
 
@@ -67,8 +67,7 @@ TEST_F(ConstPlaceHolderST, ConstPlaceHolderSTOK) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   runtime_stub.Clear();
-  ASSERT_EQ(model_executor->Execute({i3.value}, {}, 0, outputs.data(), outputs.size()),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute({i3.value}, {}, 0, outputs.data(), outputs.size()), ge::GRAPH_SUCCESS);
 
   auto &launch_args = runtime_stub.GetRtsRuntimeStub().GetLaunchWithHandleArgs();
   ASSERT_EQ(launch_args.size(), 0U);

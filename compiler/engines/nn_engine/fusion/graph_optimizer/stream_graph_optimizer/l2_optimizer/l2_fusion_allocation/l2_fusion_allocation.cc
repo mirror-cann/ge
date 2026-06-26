@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,30 +18,28 @@ namespace fe {
 Status L2FusionAllocation::AllocateStandingDataByTaskNum(const uint32_t &node_task_num, const uint64_t &page_size,
                                                          const std::map<uint64_t, size_t> &count_map,
                                                          const TensorL2DataMap &output_data_map,
-                                                         TensorL2AllocMap &tensor_l2_alloc_map,
-                                                         uint32_t &data_in_l2_id,
+                                                         TensorL2AllocMap &tensor_l2_alloc_map, uint32_t &data_in_l2_id,
                                                          int32_t &page_num_left) {
   FE_LOGD("nodeTaskNum is %u.", node_task_num);
   if (node_task_num > 1) {
     // kernel with multi tasks (fc & spatial transfprmer) should deal with the standing specially,
-    FE_CHECK(AllocateStandingDataSpecial(page_size, count_map, tensor_l2_alloc_map, data_in_l2_id,
-                                         page_num_left) != SUCCESS,
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] AllocateStandingDataSpecial failed!"),
-             return FAILED);
+    FE_CHECK(
+        AllocateStandingDataSpecial(page_size, count_map, tensor_l2_alloc_map, data_in_l2_id, page_num_left) != SUCCESS,
+        REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] AllocateStandingDataSpecial failed!"), return FAILED);
   } else {
     FE_CHECK(AllocateStandingData(page_size, count_map, output_data_map, tensor_l2_alloc_map, data_in_l2_id,
                                   page_num_left) != SUCCESS,
              FE_LOGW("AllocateStandingData failed!"), return FAILED);
   }
-  FE_CHECK(page_num_left < 0,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] Page Number left less than zero!"), return FAILED);
+  FE_CHECK(page_num_left < 0, REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] Page Number left less than zero!"),
+           return FAILED);
   return SUCCESS;
 }
 
 Status L2FusionAllocation::AllocateData(const L2BufferInfo &l2_buffer_info,
                                         const std::vector<OpL2DataInfo> &op_l2_data_vec,
-                                        std::map<uint64_t, size_t> &count_map,
-                                        OpL2AllocMap &op_l2_alloc_map, uint64_t &max_page_num) {
+                                        std::map<uint64_t, size_t> &count_map, OpL2AllocMap &op_l2_alloc_map,
+                                        uint64_t &max_page_num) {
   if (op_l2_data_vec.empty()) {
     FE_LOGW("The op l2 data need to be allocated is empty.");
     return SUCCESS;
@@ -58,8 +56,8 @@ Status L2FusionAllocation::AllocateData(const L2BufferInfo &l2_buffer_info,
     int32_t data_numleft = static_cast<int32_t>(l2_buffer_info.max_data_num);
     const TensorL2DataMap &input_data_map = op_l2_data.input;
     const TensorL2DataMap &output_data_map = op_l2_data.output;
-    FE_LOGD("pageNumLeft is %d, l2.page_num is %lu, data_numleft is %d.",
-            page_num_left, l2_buffer_info.page_num, data_numleft);
+    FE_LOGD("pageNumLeft is %d, l2.page_num is %lu, data_numleft is %d.", page_num_left, l2_buffer_info.page_num,
+            data_numleft);
     uint32_t data_in_l2_id = 0;
     FE_CHECK(AllocateStandingDataByTaskNum(op_l2_data.node_task_num, page_size, count_map, output_data_map,
                                            tensor_l2_alloc_map, data_in_l2_id, page_num_left) != SUCCESS,
@@ -72,7 +70,8 @@ Status L2FusionAllocation::AllocateData(const L2BufferInfo &l2_buffer_info,
     op_alloc_info.standing_data = tensor_l2_alloc_map;
     FE_CHECK(AllocateInputData(tensor_l2_alloc_map, input_data_map, count_map, op_alloc_info.input) != SUCCESS,
              REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocData] AllocateInputData for node:%s failed!",
-                             op_l2_data.node_name.c_str()), return FAILED);
+                             op_l2_data.node_name.c_str()),
+             return FAILED);
     data_numleft = data_numleft - static_cast<int32_t>(tensor_l2_alloc_map.size());
     FE_CHECK(AllocateOutputData(page_size, l2_buffer_info.page_num, output_data_map, data_in_l2_id, data_numleft,
                                 page_num_left, tensor_l2_alloc_map, op_alloc_info.output) != SUCCESS,
@@ -94,13 +93,12 @@ void L2FusionAllocation::EraseStandingDataAllocCountMapZero(const std::map<uint6
                                                             TensorL2AllocMap &tensor_l2_alloc_map) {
   for (auto it = tensor_l2_alloc_map.cbegin(); it != tensor_l2_alloc_map.cend();) {
     const auto iter = count_map.find(it->first);
-    if(iter != count_map.cend()) {
-      if(iter->second == 0) {
+    if (iter != count_map.cend()) {
+      if (iter->second == 0) {
         FE_LOGD("countMap[%lu] is 0; need to remove it.", it->first);
         it = tensor_l2_alloc_map.erase(it);
         continue;
-      }
-      else{
+      } else {
         FE_LOGD("countMap[%lu] is %zu, no need to erase it.", it->first, iter->second);
       }
     }
@@ -125,25 +123,26 @@ Status L2FusionAllocation::AllocateStandingData(const int64_t &page_size, const 
     cur_l2_data.priority = 0;
 
     FE_INT64_MULCHECK(static_cast<int64_t>(cur_l2_data.L2_page_offset_base), static_cast<int64_t>(page_size));
-    cur_l2_data.data_in_l2_addr = static_cast<uint64_t>(static_cast<int64_t>(cur_l2_data.L2_page_offset_base) *
-                                                        static_cast<int64_t>(page_size));
+    cur_l2_data.data_in_l2_addr =
+        static_cast<uint64_t>(static_cast<int64_t>(cur_l2_data.L2_page_offset_base) * static_cast<int64_t>(page_size));
 
     FE_UINT8_ADDCHECK(cur_page_offset_base, static_cast<uint8_t>(cur_l2_data.l2PageNum));
     cur_page_offset_base += static_cast<uint8_t>(cur_l2_data.l2PageNum);
   }
   for (auto it = tensor_l2_alloc_map.cbegin(); it != tensor_l2_alloc_map.cend(); ++it) {
     page_num_left -= it->second.l2PageNum;
-    FE_CHECK((page_num_left < 0),
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] Left page number %d is less than zero.", page_num_left),
-             return FAILED);
+    FE_CHECK(
+        (page_num_left < 0),
+        REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandData] Left page number %d is less than zero.", page_num_left),
+        return FAILED);
   }
   return SUCCESS;
 }
 
 Status L2FusionAllocation::AllocateStandingDataSpecial(const int64_t &page_size,
                                                        const std::map<uint64_t, size_t> &count_map,
-                                                       TensorL2AllocMap &tensor_l2_alloc_map,
-                                                       uint32_t &data_in_l2_id, int32_t &page_num_left) {
+                                                       TensorL2AllocMap &tensor_l2_alloc_map, uint32_t &data_in_l2_id,
+                                                       int32_t &page_num_left) {
   EraseStandingDataAllocCountMapZero(count_map, tensor_l2_alloc_map);
   int32_t max_page_num = page_num_left;
   for (TensorL2AllocMap::iterator it = tensor_l2_alloc_map.begin(); it != tensor_l2_alloc_map.end(); ++it) {
@@ -154,16 +153,15 @@ Status L2FusionAllocation::AllocateStandingDataSpecial(const int64_t &page_size,
     cur_l2_data.priority = 0;
 
     FE_INT64_MULCHECK(static_cast<int64_t>(cur_l2_data.L2_page_offset_base), page_size);
-    cur_l2_data.data_in_l2_addr = static_cast<uint64_t>(static_cast<int64_t>(cur_l2_data.L2_page_offset_base) *
-                                                        page_size);
+    cur_l2_data.data_in_l2_addr =
+        static_cast<uint64_t>(static_cast<int64_t>(cur_l2_data.L2_page_offset_base) * page_size);
 
     FE_INT32_SUBCHECK(max_page_num, static_cast<int32_t>(cur_l2_data.L2_page_offset_base));
     int32_t tmp = max_page_num - static_cast<int32_t>(cur_l2_data.L2_page_offset_base);
     FE_INT32_SUBCHECK(tmp, static_cast<int32_t>(cur_l2_data.l2PageNum));
 
-    page_num_left =
-        std::min(page_num_left, max_page_num - static_cast<int32_t>(cur_l2_data.L2_page_offset_base) -
-                 static_cast<int32_t>(cur_l2_data.l2PageNum));
+    page_num_left = std::min(page_num_left, max_page_num - static_cast<int32_t>(cur_l2_data.L2_page_offset_base) -
+                                                static_cast<int32_t>(cur_l2_data.l2PageNum));
     FE_CHECK((page_num_left < static_cast<int32_t>(0)),
              REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocStandDataSpec] Left page number is %d, less than zero.",
                              page_num_left),
@@ -174,8 +172,7 @@ Status L2FusionAllocation::AllocateStandingDataSpecial(const int64_t &page_size,
 
 Status L2FusionAllocation::AllocateInputData(const TensorL2AllocMap &tensor_l2_alloc_map,
                                              const TensorL2DataMap &input_data_map,
-                                             std::map<uint64_t, size_t> &count_map,
-                                             TensorL2AllocMap &input_alloc_map) {
+                                             std::map<uint64_t, size_t> &count_map, TensorL2AllocMap &input_alloc_map) {
   input_alloc_map.clear();
   for (auto it = input_data_map.cbegin(); it != input_data_map.cend(); ++it) {
     auto count_iter = count_map.find(it->first);
@@ -209,15 +206,16 @@ Status L2FusionAllocation::InitDataAlloc(const TensorL2DataInfo &l2_data, const 
   tensor_alloc_info.pre_L2_page_offset_base = -1;
   if ((static_cast<int64_t>(max_page_num) - static_cast<int64_t>(page_num_left) < 0) ||
       (static_cast<int64_t>(max_page_num) - static_cast<int64_t>(page_num_left) > UINT8_MAX)) {
-    REPORT_FE_ERROR("[StreamOpt][L2Opt][InitDataAlloc] Failed to initialize L2 allocation information, max_page_num: %u, page_num_left: %d.",
-                    max_page_num, page_num_left);
+    REPORT_FE_ERROR(
+        "[StreamOpt][L2Opt][InitDataAlloc] Failed to initialize L2 allocation information, max_page_num: %u, "
+        "page_num_left: %d.",
+        max_page_num, page_num_left);
     return FAILED;
   }
-  tensor_alloc_info.L2_page_offset_base =
-          static_cast<uint8_t>(static_cast<uint16_t>(static_cast<int64_t>(max_page_num) -
-                                                     static_cast<int64_t>(page_num_left)));
-  tensor_alloc_info.data_in_l2_addr = static_cast<uint64_t>(tensor_alloc_info.L2_page_offset_base) *
-                                      static_cast<uint64_t>(page_size);
+  tensor_alloc_info.L2_page_offset_base = static_cast<uint8_t>(
+      static_cast<uint16_t>(static_cast<int64_t>(max_page_num) - static_cast<int64_t>(page_num_left)));
+  tensor_alloc_info.data_in_l2_addr =
+      static_cast<uint64_t>(tensor_alloc_info.L2_page_offset_base) * static_cast<uint64_t>(page_size);
   tensor_alloc_info.modified = 1;
   tensor_alloc_info.L2_preload = 0;
   tensor_alloc_info.priority = priority;
@@ -240,8 +238,10 @@ Status L2FusionAllocation::AllocateOutputData(const int64_t &page_size, const ui
   for (auto it = output_data_map.cbegin(); it != output_data_map.cend(); ++it) {
     FE_LOGD("Begin to allocate L2 info for output data with ID [%lu].", it->first);
     if (it->second.refer_data_id > 0) {
-      FE_LOGD("The reference data ID for output ID [%lu] is [%lu]. The reference L2 allocation information will be utilized.",
-              it->first, it->second.refer_data_id);
+      FE_LOGD(
+          "The reference data ID for output ID [%lu] is [%lu]. The reference L2 allocation information will be "
+          "utilized.",
+          it->first, it->second.refer_data_id);
       TensorL2AllocMap::const_iterator iter = tensor_l2_alloc_map.find(it->second.refer_data_id);
       if (iter != tensor_l2_alloc_map.cend()) {
         output_alloc_map.insert(TensorL2AllocPair(it->first, iter->second));
@@ -262,8 +262,8 @@ Status L2FusionAllocation::AllocateOutputData(const int64_t &page_size, const ui
       FE_LOGD("is_has_left_space is %d", is_has_left_space);
       if (is_has_left_space) {
         TensorL2AllocInfo tensor_l2_alloc_info;
-        FE_CHECK(InitDataAlloc(it->second, 1, page, max_page_num, page_num_left, page_size,
-                               data_in_l2_id, tensor_l2_alloc_info) != SUCCESS,
+        FE_CHECK(InitDataAlloc(it->second, 1, page, max_page_num, page_num_left, page_size, data_in_l2_id,
+                               tensor_l2_alloc_info) != SUCCESS,
                  REPORT_FE_ERROR("[StreamOpt][L2Opt][AllocOutData] InitDataAlloc failed!"), return FAILED);
         output_alloc_map.insert(TensorL2AllocPair(it->first, tensor_l2_alloc_info));
         tensor_l2_alloc_map.insert(TensorL2AllocPair(it->first, tensor_l2_alloc_info));
@@ -273,7 +273,7 @@ Status L2FusionAllocation::AllocateOutputData(const int64_t &page_size, const ui
       }
     } else {
       FE_LOGD("StandingAlloc ID is %lu. Its ID is %lu.", alloc_iter->first, it->first);
-      // the output is already allocted
+      // the output is already allocated
       // converge data, make sure standing space is enough for output data
       FE_CHECK(alloc_iter->second.data.data_size < it->second.data_size,
                FE_LOGW("Standing data size %ld is less than output size %ld.", alloc_iter->second.data.data_size,
@@ -289,8 +289,8 @@ Status L2FusionAllocation::UpdateStandingDataSizeWithOutputSet(const int64_t &pa
                                                                const TensorL2DataMap &output_data_map,
                                                                TensorL2AllocMap &tensor_l2_alloc_map,
                                                                int32_t page_num_left) {
-  FE_CHECK(page_size == 0,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][UpdStandDataSize] The pageSize is set to zero."), return FAILED);
+  FE_CHECK(page_size == 0, REPORT_FE_ERROR("[StreamOpt][L2Opt][UpdStandDataSize] The pageSize is set to zero."),
+           return FAILED);
   for (TensorL2AllocMap::iterator it = tensor_l2_alloc_map.begin(); it != tensor_l2_alloc_map.end(); ++it) {
     TensorL2DataMap::const_iterator data_iterator = output_data_map.find(it->first);
     // output batch

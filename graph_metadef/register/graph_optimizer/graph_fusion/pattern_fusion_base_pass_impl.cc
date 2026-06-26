@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,17 +32,25 @@ PatternFusionBasePassImpl::~PatternFusionBasePassImpl() {
   }
 }
 
-const std::vector<FusionPattern *> &PatternFusionBasePassImpl::GetPatterns() { return patterns_; }
+const std::vector<FusionPattern *> &PatternFusionBasePassImpl::GetPatterns() {
+  return patterns_;
+}
 
-void PatternFusionBasePassImpl::GetPatterns(std::vector<FusionPattern *> &patterns) { patterns = patterns_; }
+void PatternFusionBasePassImpl::GetPatterns(std::vector<FusionPattern *> &patterns) {
+  patterns = patterns_;
+}
 
-const std::vector<FusionPattern *> &PatternFusionBasePassImpl::GetInnerPatterns() { return inner_patterns_; }
+const std::vector<FusionPattern *> &PatternFusionBasePassImpl::GetInnerPatterns() {
+  return inner_patterns_;
+}
 
 void PatternFusionBasePassImpl::GetInnerPatterns(std::vector<FusionPattern *> &inner_patterns) {
   inner_patterns = inner_patterns_;
 }
 
-void PatternFusionBasePassImpl::SetPatterns(const std::vector<FusionPattern *> &patterns) { patterns_ = patterns; }
+void PatternFusionBasePassImpl::SetPatterns(const std::vector<FusionPattern *> &patterns) {
+  patterns_ = patterns;
+}
 
 void PatternFusionBasePassImpl::SetInnerPatterns(const std::vector<FusionPattern *> &inner_patterns) {
   inner_patterns_ = inner_patterns;
@@ -85,8 +93,8 @@ bool PatternFusionBasePassImpl::CheckAccuracySupported(const ge::NodePtr &node) 
   }
   std::string un_supported_reason;
   const bool ret = ops_kernel_info_store_ptr_->CheckAccuracySupported(node, un_supported_reason, true);
-  GELOGD("Check result for op[%s, %s] is [%d], reason is [%s].",
-         node->GetName().c_str(), node->GetType().c_str(), ret, un_supported_reason.c_str());
+  GELOGD("Check result for op[%s, %s] is [%d], reason is [%s].", node->GetName().c_str(), node->GetType().c_str(), ret,
+         un_supported_reason.c_str());
   return ret;
 }
 
@@ -129,7 +137,7 @@ bool PatternFusionBasePassImpl::IsOpTypeExist(const std::string &type, const std
   return find(types.begin(), types.end(), type) != types.end();
 }
 
-bool PatternFusionBasePassImpl::GetSortedInAnchors(const ge::NodePtr &node, const std::string&op_id,
+bool PatternFusionBasePassImpl::GetSortedInAnchors(const ge::NodePtr &node, const std::string &op_id,
                                                    std::vector<ge::InDataAnchorPtr> &in_anchors) const {
   if (node->GetInDataNodes().empty()) {
     GELOGW("[Match][Output] in data nodes of op %s is empty, pattern matching failed.", op_id.c_str());
@@ -139,7 +147,8 @@ bool PatternFusionBasePassImpl::GetSortedInAnchors(const ge::NodePtr &node, cons
   /* Input anchors should have an order. */
   GetInDataAnchors(node, in_anchors);
   if (in_anchors.empty()) {
-    GELOGW("[Match][Output] The data anchor for op %s is empty, leading to a failure in pattern matching.", op_id.c_str());
+    GELOGW("[Match][Output] The data anchor for op %s is empty, leading to a failure in pattern matching.",
+           op_id.c_str());
     return false;
   }
 
@@ -209,14 +218,16 @@ bool PatternFusionBasePassImpl::VerifyInputDescNodes(const ge::NodePtr &input_no
 
 bool PatternFusionBasePassImpl::MatchFromOutput(CandidateAndMapping &cand) const {
   if (cand.candidate_nodes.empty() || cand.candidate_op_descs.empty()) {
-    GELOGW("[Match][Output] Either candidate_nodes or candidate_op_descs is empty, resulting in pattern matching failure.");
+    GELOGW(
+        "[Match][Output] Either candidate_nodes or candidate_op_descs is empty, resulting in pattern matching "
+        "failure.");
     return false;
   }
   const ge::NodePtr node = cand.candidate_nodes.front();
   std::shared_ptr<OpDesc> op_desc = cand.candidate_op_descs.front();
   const std::string op_id = op_desc->id;
   // add the input nodes into candidate list
-  const std::vector<std::shared_ptr<OpDesc>> * const inputs_desc = FusionPattern::GetInputs(op_desc);
+  const std::vector<std::shared_ptr<OpDesc>> *const inputs_desc = FusionPattern::GetInputs(op_desc);
   if (inputs_desc == nullptr) {
     GELOGW("[Match][Output] Failed to get input_desc for op %s, pattern matching failed.", op_id.c_str());
     return false;
@@ -270,8 +281,7 @@ bool PatternFusionBasePassImpl::MatchFromOutput(CandidateAndMapping &cand) const
   return true;
 }
 
-void PatternFusionBasePassImpl::AddCandidateQueue(const FusionPattern::OpDescPtr &op_desc,
-                                                  const ge::NodePtr &node,
+void PatternFusionBasePassImpl::AddCandidateQueue(const FusionPattern::OpDescPtr &op_desc, const ge::NodePtr &node,
                                                   CandidateAndMapping &cand) const {
   if (IsMatched(op_desc, node, cand.mapping)) {
     return;
@@ -323,8 +333,8 @@ void PatternFusionBasePassImpl::MatchFuzzyOutputs(const ge::NodePtr &node, const
   }
 }
 
-void PatternFusionBasePassImpl::UpdateCandidates(
-    const CandidateAndMapping &temp_cand, CandidateAndMapping &cand) const {
+void PatternFusionBasePassImpl::UpdateCandidates(const CandidateAndMapping &temp_cand,
+                                                 CandidateAndMapping &cand) const {
   if (temp_cand.candidate_op_descs.size() != temp_cand.candidate_nodes.size()) {
     return;
   }
@@ -344,12 +354,12 @@ bool PatternFusionBasePassImpl::MatchOutputs(CandidateAndMapping &cand) const {
   }
   const size_t outputs_desc_size = FusionPattern::GetOutputSize(op_desc);
   if (op_desc->is_output_fullmatch && node->GetOutDataNodesSize() != outputs_desc_size) {
-    GELOGW("[Match][Input] Full match mode: op %s description size (%zu) does not match output data node size (%u)", op_id.c_str(),
-           outputs_desc_size, node->GetOutDataNodesSize());
+    GELOGW("[Match][Input] Full match mode: op %s description size (%zu) does not match output data node size (%u)",
+           op_id.c_str(), outputs_desc_size, node->GetOutDataNodesSize());
     return false;
   }
 
-  const std::unique_ptr<bool[]> usage_flags(new (std::nothrow) bool[outputs_desc_size] {});
+  const std::unique_ptr<bool[]> usage_flags(new (std::nothrow) bool[outputs_desc_size]{});
   std::vector<ge::OutDataAnchorPtr> out_anchors;
   GetOutDataAnchors(node, out_anchors);
 
@@ -447,7 +457,7 @@ bool PatternFusionBasePassImpl::GetMatchOutputNodes(const ge::ComputeGraph &grap
   return true;
 }
 
-const std::vector<ge::NodePtr>& PatternFusionBasePassImpl::GetActualFusedNodes() const {
+const std::vector<ge::NodePtr> &PatternFusionBasePassImpl::GetActualFusedNodes() const {
   return actual_fused_nodes_;
 }
 
@@ -455,8 +465,8 @@ void PatternFusionBasePassImpl::SetActualFusedNodes(const std::vector<ge::NodePt
   actual_fused_nodes_ = fused_nodes;
 }
 
-bool PatternFusionBasePassImpl::IsOpFusible(const ge::OpDescPtr &op_desc, const FusionPattern::OpDescPtr &pattern_desc)
-{
+bool PatternFusionBasePassImpl::IsOpFusible(const ge::OpDescPtr &op_desc,
+                                            const FusionPattern::OpDescPtr &pattern_desc) {
   if (op_desc == nullptr || pattern_desc == nullptr) {
     return false;
   }
@@ -467,4 +477,4 @@ bool PatternFusionBasePassImpl::IsOpFusible(const ge::OpDescPtr &op_desc, const 
   (void)ge::AttrUtils::GetBool(op_desc, kAttrDumpAble, is_dump_able);
   return !is_dump_able;
 }
-}
+}  // namespace fe

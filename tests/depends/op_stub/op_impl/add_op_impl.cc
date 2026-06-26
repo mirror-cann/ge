@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,8 @@ ge::graphStatus InferShapeForAdd(InferShapeContext *context) {
     auto min_num = std::min(input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     auto max_num = std::max(input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     if (min_num != 1) {
-      GELOGE(ge::PARAM_INVALID, "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+      GELOGE(ge::PARAM_INVALID,
+             "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
              input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     } else {
       if (input_shape_1.GetDimNum() > 1) {
@@ -79,8 +80,11 @@ ge::graphStatus TilingParseForAdd(TilingParseContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-IMPL_OP(Add).InferShape(InferShapeForAdd).Tiling(TilingForAdd).TilingParse<AddCompileInfo>(TilingParseForAdd)
-            .OpExecuteFunc(OpExecuteDoNothing);
+IMPL_OP(Add)
+    .InferShape(InferShapeForAdd)
+    .Tiling(TilingForAdd)
+    .TilingParse<AddCompileInfo>(TilingParseForAdd)
+    .OpExecuteFunc(OpExecuteDoNothing);
 
 ge::graphStatus InferShapeForCast(InferShapeContext *context) {
   auto input_shape_0 = *context->GetInputShape(0);
@@ -140,7 +144,6 @@ ge::graphStatus InferShapeForIdentityN(InferShapeContext *context) {
 IMPL_OP(Identity).InferShape(InferShapeForIdentityN);
 IMPL_OP(MemcpyAsync).InferShape(InferShapeForIdentityN);
 IMPL_OP(IdentityN).InferShape(InferShapeForIdentityN);
-
 
 ge::graphStatus InferShapeForMinimumGrad(InferShapeContext *context) {
   if (context->GetAttrs()->GetBool(0)) {  // grad_x

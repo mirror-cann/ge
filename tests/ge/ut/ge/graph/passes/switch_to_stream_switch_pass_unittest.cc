@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,20 +28,21 @@ class UtestSwitch2StreamSwitchPass : public testing::Test {
   void TearDown() {}
 };
 
-//string name, string type, int in_cnt, int out_cnt, Format format,
-//DataType data_type, vector<int64_t> shape
+// string name, string type, int in_cnt, int out_cnt, Format format,
+// DataType data_type, vector<int64_t> shape
 static ComputeGraphPtr BuildGraph() {
   DEF_GRAPH(switchGraph) {
-                           CHAIN(NODE("arg_0", DATA)->NODE("addNode", ADD)->NODE("output", NETOUTPUT));
-                           CHAIN(NODE("arg_1", DATA)->NODE("addNode"));
+    CHAIN(NODE("arg_0", DATA)->NODE("addNode", ADD)->NODE("output", NETOUTPUT));
+    CHAIN(NODE("arg_1", DATA)->NODE("addNode"));
 
-                           CHAIN(NODE("cast0", CAST)->EDGE(0U, 0U)->NODE("switch1", SWITCH));
-                           CHAIN(NODE("switch1", SWITCH)->EDGE(0U, 0U)->NODE("switch2", SWITCH));
+    CHAIN(NODE("cast0", CAST)->EDGE(0U, 0U)->NODE("switch1", SWITCH));
+    CHAIN(NODE("switch1", SWITCH)->EDGE(0U, 0U)->NODE("switch2", SWITCH));
 
-                           CHAIN(NODE("data0", DATA)->EDGE(0U, 0U)->NODE("switch3", SWITCH));
-                          };
+    CHAIN(NODE("data0", DATA)->EDGE(0U, 0U)->NODE("switch3", SWITCH));
+  };
 
-  return ToComputeGraph(switchGraph);;
+  return ToComputeGraph(switchGraph);
+  ;
 }
 
 TEST_F(UtestSwitch2StreamSwitchPass, Run0) {
@@ -77,7 +78,6 @@ TEST_F(UtestSwitch2StreamSwitchPass, MarkBranchesSuccess) {
 }
 
 TEST_F(UtestSwitch2StreamSwitchPass, GetGroupIdSuccess) {
-
   SwitchToStreamSwitchPass switch2StrPass;
   ComputeGraphPtr graph = BuildGraph();
   auto node = graph->FindNode("cast0");
@@ -95,7 +95,6 @@ TEST_F(UtestSwitch2StreamSwitchPass, GetGroupIdSuccess) {
 }
 
 TEST_F(UtestSwitch2StreamSwitchPass, ModifySwitchInCtlEdgesFailed) {
-
   SwitchToStreamSwitchPass switch2StrPass;
   ComputeGraphPtr graph = BuildGraph();
   auto switch1 = graph->FindNode("switch1");
@@ -106,7 +105,6 @@ TEST_F(UtestSwitch2StreamSwitchPass, ModifySwitchInCtlEdgesFailed) {
 }
 
 TEST_F(UtestSwitch2StreamSwitchPass, MoveCtrlEdgesFailed) {
-
   SwitchToStreamSwitchPass switch2StrPass;
   ComputeGraphPtr graph = BuildGraph();
   auto switch3 = graph->FindNode("switch3");
@@ -119,4 +117,3 @@ TEST_F(UtestSwitch2StreamSwitchPass, MoveCtrlEdgesFailed) {
   GraphUtils::AddEdge(data0->GetOutControlAnchor(), cast0->GetInControlAnchor());
   EXPECT_NO_THROW(switch2StrPass.MoveCtrlEdges(data0, switch3));
 }
-

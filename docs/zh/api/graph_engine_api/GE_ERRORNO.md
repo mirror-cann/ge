@@ -19,4 +19,3 @@
     错误码及其错误描述信息宏，name是uint32\_t类型，desc是std::string类型：
 
     GE\_ERRORNO\_EXTERNAL\(ACL\_ERROR\_GE\_PARAM\_INVALID, "Parameter invalid."\);
-

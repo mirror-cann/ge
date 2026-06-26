@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,7 +60,7 @@ uint64_t GenerateHashKey(const ge::OpDescPtr &op_desc_ptr) {
    * (bit 24 to 31), 8 bits of attribute src_format (bit 32 to 39) and 8 bits
    * attribute dst_format (bbit 40 to 47). The last 16 bits is reserved. */
 
-  if(op_desc_ptr->GetInputDescPtr(0) == nullptr || op_desc_ptr->GetOutputDescPtr(0) == nullptr){
+  if (op_desc_ptr->GetInputDescPtr(0) == nullptr || op_desc_ptr->GetOutputDescPtr(0) == nullptr) {
     FE_LOGE("op_desc_ptr's input desc ptr or output desc ptr is nullptr.");
     return -1;
   }
@@ -86,22 +86,22 @@ bool IsGeOp(const ge::NodePtr &node) {
   }
   return false;
 }
-} // namespace
+}  // namespace
 
 using fe::StringUtils;
 using ScopeJsonMap_t = std::map<int64_t, std::string>;
 const std::string kAttrNameOriginalFusionGraph = "_original_fusion_graph";
 const std::string kDnnVmDvpp = "DNN_VM_DVPP";
 const std::string kDvppOpsKernel = "dvpp_ops_kernel";
-const std::map<std::string, std::string> ATOMIC_ATTR_MAP {
-  {OP_PARA_SIZE, "atomic_op_para_size"},
-  {ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "_atomic_cube_vector_core_type"},
-  {COMPILE_INFO_JSON, "_atomic_compile_info_json"},
-  {COMPILE_INFO_KEY, "_atomic_compile_info_key"},
-  {kGlobalworkspaceSize, "_atomic_globalworkspace_size"},
-  {kGlobalworkspaceType, "_atomic_globalworkspace_type"},
-  {kKernelName, "_atomic_kernelname"},
-  {TBE_OP_ATOMIC_WSP_MODE, "wspMode"}};
+const std::map<std::string, std::string> ATOMIC_ATTR_MAP{
+    {OP_PARA_SIZE, "atomic_op_para_size"},
+    {ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "_atomic_cube_vector_core_type"},
+    {COMPILE_INFO_JSON, "_atomic_compile_info_json"},
+    {COMPILE_INFO_KEY, "_atomic_compile_info_key"},
+    {kGlobalworkspaceSize, "_atomic_globalworkspace_size"},
+    {kGlobalworkspaceType, "_atomic_globalworkspace_type"},
+    {kKernelName, "_atomic_kernelname"},
+    {TBE_OP_ATOMIC_WSP_MODE, "wspMode"}};
 /*
  *  @ingroup fe
  *  @brief   check specified GeAttrValue::ValueType of op_desc_attr.Value() is in
@@ -149,8 +149,7 @@ Status FEOpsKernelInfoStore::Initialize(const map<string, string> &options) {
     FE_MAKE_SHARED(sub_ops_kernel_info_store_ptr = std::make_shared<SubOpsStore>(engine_name_),
                    return OP_STORE_MAKE_SHARED_FAILED);
     FE_CHECK(sub_ops_kernel_info_store_ptr == nullptr,
-             REPORT_FE_ERROR("[GraphOpt][SetCheck][Init] subOpsKernelInfoStorePtr is nullptr."),
-             return PARAM_INVALID);
+             REPORT_FE_ERROR("[GraphOpt][SetCheck][Init] subOpsKernelInfoStorePtr is nullptr."), return PARAM_INVALID);
     sub_ops_kernel_info_store_ptr->SetSubStoreInfo(ops_sub_store_info);
     Status result = sub_ops_kernel_info_store_ptr->InitializeSubStore();
     if (result == SUCCESS) {
@@ -187,14 +186,16 @@ Status FEOpsKernelInfoStore::DestroySession(const std::map<std::string, std::str
   return SUCCESS;
 }
 
-const std::string& FEOpsKernelInfoStore::GetFEOpsKernelInfoStoreName() const { return engine_name_; }
+const std::string &FEOpsKernelInfoStore::GetFEOpsKernelInfoStoreName() const {
+  return engine_name_;
+}
 
 void FEOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, ge::OpInfo> &infos) const {
   OpsKernelManager::Instance(engine_name_).GetAllOpsKernelInfo(infos);
 }
 
-Status FEOpsKernelInfoStore::GetSubOpsStore(const std::string &op_store_name,
-                                            SubOpsStorePtr &sub_ops_store, std::ostringstream &reason_oss) const {
+Status FEOpsKernelInfoStore::GetSubOpsStore(const std::string &op_store_name, SubOpsStorePtr &sub_ops_store,
+                                            std::ostringstream &reason_oss) const {
   auto sub_ops_store_iter = map_all_sub_store_info_.find(op_store_name);
   if (sub_ops_store_iter == map_all_sub_store_info_.end() || sub_ops_store_iter->second == nullptr) {
     reason_oss << "op store[" << op_store_name << "] is not found.";
@@ -221,8 +222,8 @@ SubOpsStorePtr FEOpsKernelInfoStore::GetSubOpsStore(const OpImplType &impe_type)
 Status FEOpsKernelInfoStore::GetOpKernel(const std::string &op_type, const FEOpsStoreInfo &ops_store,
                                          OpKernelInfoPtr &op_kernel_ptr, std::ostringstream &reason_oss,
                                          uint64_t &not_support_reason_id) const {
-  op_kernel_ptr = OpsKernelManager::Instance(engine_name_)
-                      .GetOpKernelInfoByOpType(ops_store.fe_ops_store_name, op_type);
+  op_kernel_ptr =
+      OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(ops_store.fe_ops_store_name, op_type);
   if (op_kernel_ptr == nullptr) {
     reason_oss << "[" << ops_store.fe_ops_store_name << "]:"
                << "op type " << op_type << " is not found in this op store.";
@@ -234,16 +235,14 @@ Status FEOpsKernelInfoStore::GetOpKernel(const std::string &op_type, const FEOps
 }
 
 void FEOpsKernelInfoStore::GetOpKernelInfoPtr(const ge::NodePtr &node_ptr, OpKernelInfoPtr &op_kernel_ptr) const {
-  FE_LOGD("Node[%s, %s] begin to get kernel info by op store.",
-          node_ptr->GetNamePtr(), node_ptr->GetTypePtr());
+  FE_LOGD("Node[%s, %s] begin to get kernel info by op store.", node_ptr->GetNamePtr(), node_ptr->GetTypePtr());
   const std::vector<FEOpsStoreInfo> &fe_ops_store_info_vec = Configuration::Instance(engine_name_).GetOpsStoreInfo();
   std::ostringstream reason_oss;
   for (auto &ops_store : fe_ops_store_info_vec) {
     UnSupportedReason sub_store_reason;
     OpStoreAdapterPtr op_store_adapter = nullptr;
     SubOpsStorePtr sub_ops_store = nullptr;
-    if (GetOpKernel(node_ptr->GetType(), ops_store, op_kernel_ptr,
-        reason_oss, sub_store_reason.reason_id) != SUCCESS) {
+    if (GetOpKernel(node_ptr->GetType(), ops_store, op_kernel_ptr, reason_oss, sub_store_reason.reason_id) != SUCCESS) {
       continue;
     }
     FE_LOGD("GetOpKernel successfully, OpType[%s].", node_ptr->GetTypePtr());
@@ -252,13 +251,14 @@ void FEOpsKernelInfoStore::GetOpKernelInfoPtr(const ge::NodePtr &node_ptr, OpKer
 }
 
 bool FEOpsKernelInfoStore::CheckIsDynamicShape(const SubOpsStorePtr &sub_ops_store_ptr, const ge::NodePtr &node,
-    const CheckSupportMode &check_mode, CheckSupportParam &check_param) const {
+                                               const CheckSupportMode &check_mode,
+                                               CheckSupportParam &check_param) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   bool is_dynamic_shape = UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr);
   bool is_support_dynamic = is_dynamic_shape && check_param.op_kernel_ptr->IsSupportDynamicShape();
   bool is_static_to_dynamic_softsync_op = CheckVirtualSoftsyncOp(check_param.op_kernel_ptr, op_desc_ptr);
-  bool is_support_dim = check_param.op_kernel_ptr->IsSupportDynamicRank() ||
-                        !UnknownShapeUtils::IsContainUnknownDimNum(*op_desc_ptr);
+  bool is_support_dim =
+      check_param.op_kernel_ptr->IsSupportDynamicRank() || !UnknownShapeUtils::IsContainUnknownDimNum(*op_desc_ptr);
   bool is_support_dim_and_dynamic = is_support_dynamic && is_support_dim;
   bool is_support_dynamic_compile_static = !is_dynamic_shape && check_param.op_kernel_ptr->IsDynamicCompileStatic();
   bool is_check_dynamic_shape = is_support_dim_and_dynamic || is_support_dynamic_compile_static;
@@ -284,7 +284,8 @@ bool FEOpsKernelInfoStore::CheckIsDynamicShape(const SubOpsStorePtr &sub_ops_sto
       }
       FE_LOGD("[CheckSupp][CheckDynamic] Node[%s, %s]: check support success.", node->GetNamePtr(), node->GetTypePtr());
       FE_LOGD("[CheckSupp][CheckDynamic] Node[%s, %s]: is_dynamic=%d, is_all_impl_checked=%d, is_dynamic_impl=%d.",
-          node->GetNamePtr(), node->GetTypePtr(), is_support_dynamic, check_param.all_impl_checked, is_dynamic_impl);
+              node->GetNamePtr(), node->GetTypePtr(), is_support_dynamic, check_param.all_impl_checked,
+              is_dynamic_impl);
       return true;
     }
   }
@@ -305,8 +306,8 @@ bool FEOpsKernelInfoStore::CheckIsDynamicShape(const SubOpsStorePtr &sub_ops_sto
   return false;
 }
 
-bool FEOpsKernelInfoStore::CheckIsStaticShape(const SubOpsStorePtr &sub_ops_store_ptr,
-                                              const ge::NodePtr &node, const CheckSupportMode &check_mode,
+bool FEOpsKernelInfoStore::CheckIsStaticShape(const SubOpsStorePtr &sub_ops_store_ptr, const ge::NodePtr &node,
+                                              const CheckSupportMode &check_mode,
                                               CheckSupportParam &check_param) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   bool is_dynamic_shape = UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr);
@@ -320,12 +321,12 @@ bool FEOpsKernelInfoStore::CheckIsStaticShape(const SubOpsStorePtr &sub_ops_stor
   return false;
 }
 
-void FEOpsKernelInfoStore::JoinNotSupportDynamicReason(const OpKernelInfoPtr &op_kernel_ptr,
-                                                       const ge::NodePtr &node,
+void FEOpsKernelInfoStore::JoinNotSupportDynamicReason(const OpKernelInfoPtr &op_kernel_ptr, const ge::NodePtr &node,
                                                        UnSupportedReason &reason) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   bool is_dynamic_shape = UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr);
-  bool is_not_support_dynamic = is_dynamic_shape &&
+  bool is_not_support_dynamic =
+      is_dynamic_shape &&
       (!op_kernel_ptr->IsSupportDynamicShape() ||
        (!op_kernel_ptr->IsSupportDynamicRank() && UnknownShapeUtils::IsContainUnknownDimNum(*op_desc_ptr)));
   if (is_not_support_dynamic) {
@@ -345,7 +346,8 @@ void FEOpsKernelInfoStore::GetAndSetCustomOpFilePath(const ge::NodePtr &node, co
     }
     std::string custom_op_file_path = ops_store.cfg_file_path.substr(0, pos);
     (void)ge::AttrUtils::SetStr(node->GetOpDesc(), CUSTOM_OP_FILE_PATH, custom_op_file_path);
-    FE_LOGD("Node[%s] set custom_op_file_path attribute to [%s].", node->GetName().c_str(), custom_op_file_path.c_str());
+    FE_LOGD("Node[%s] set custom_op_file_path attribute to [%s].", node->GetName().c_str(),
+            custom_op_file_path.c_str());
   }
 }
 
@@ -379,16 +381,15 @@ bool FEOpsKernelInfoStore::CheckSupportedByOpsStore(const ge::NodePtr &node, con
      */
     bool is_custom_op = CheckCustomOp(node, ops_store);
     if (is_custom_op) {
-      FE_LOGD("This node [%s, %s] is custom op while op store is not custom store.",
-              node->GetName().c_str(), node->GetType().c_str());
+      FE_LOGD("This node [%s, %s] is custom op while op store is not custom store.", node->GetName().c_str(),
+              node->GetType().c_str());
       continue;
     }
 
     SubOpsStorePtr sub_ops_store_ptr = nullptr;
-    bool skip_check =
-        GetSubOpsStore(ops_store.fe_ops_store_name, sub_ops_store_ptr, reason_oss) != SUCCESS ||
-        GetOpKernel(node->GetType(), ops_store, check_param.op_kernel_ptr, reason_oss,
-                    check_param.unsupport_reason.reason_id) != SUCCESS;
+    bool skip_check = GetSubOpsStore(ops_store.fe_ops_store_name, sub_ops_store_ptr, reason_oss) != SUCCESS ||
+                      GetOpKernel(node->GetType(), ops_store, check_param.op_kernel_ptr, reason_oss,
+                                  check_param.unsupport_reason.reason_id) != SUCCESS;
     if (skip_check) {
       check_param.unsupport_reason.reason = reason_oss.str();
       continue;
@@ -424,7 +425,7 @@ bool FEOpsKernelInfoStore::CheckSupportedByOpsStore(const ge::NodePtr &node, con
     JoinNotSupportDynamicReason(check_param.op_kernel_ptr, node, check_param.unsupport_reason);
     uint64_t offset_num = ops_store.op_impl_type * NOT_SUPPORTED_REASON_OFFSET_BIT_NUM;
     FE_UINT64_ADDCHECK(check_param.unsupport_reason.reason_id,
-        (static_cast<uint64_t>(check_param.unsupport_reason.reason_id) << offset_num));
+                       (static_cast<uint64_t>(check_param.unsupport_reason.reason_id) << offset_num));
     check_param.unsupport_reason.reason_id +=
         (static_cast<uint64_t>(check_param.unsupport_reason.reason_id) << offset_num);
     check_param.unsupport_reason.reason = reason_oss.str() + check_param.unsupport_reason.reason;
@@ -454,7 +455,9 @@ Status FEOpsKernelInfoStore::GetNotSupportedReasonByAttr(const uint64_t &reason,
   return SUCCESS;
 }
 
-void FEOpsKernelInfoStore::SetCheckSupportedStaticFlag(bool stat_flag) { check_support_static_flag_ = stat_flag; }
+void FEOpsKernelInfoStore::SetCheckSupportedStaticFlag(bool stat_flag) {
+  check_support_static_flag_ = stat_flag;
+}
 
 bool FEOpsKernelInfoStore::CheckSupported(const ge::OpDescPtr &op_desc_ptr, std::string &un_supported_reason) const {
   ge::ComputeGraphPtr graph = nullptr;
@@ -481,8 +484,8 @@ bool FEOpsKernelInfoStore::CheckSupported(const ge::NodePtr &node, std::string &
   try {
     bres = CheckSupported(node, un_supported_reason);
   } catch (const std::exception &exp) {
-    FE_LOGE("Node[%s, %s] check support failed, exception message is [%s].",
-            node->GetNamePtr(), node->GetTypePtr(), exp.what());
+    FE_LOGE("Node[%s, %s] check support failed, exception message is [%s].", node->GetNamePtr(), node->GetTypePtr(),
+            exp.what());
     bres = false;
   }
   return bres;
@@ -505,8 +508,8 @@ bool FEOpsKernelInfoStore::CheckSupported(const ge::NodePtr &node, std::string &
 bool FEOpsKernelInfoStore::CheckAccuracySupported(const ge::NodePtr &node, std::string &un_supported_reason,
                                                   bool real_query) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
-  FE_CHECK(op_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][SetDynmCustomOpStoreInfo] op_desc_ptr is null."), return false);
+  FE_CHECK(op_desc_ptr == nullptr, REPORT_FE_ERROR("[GraphOpt][SetDynmCustomOpStoreInfo] op_desc_ptr is null."),
+           return false);
   FE_LOGD("Node[%s, %s] begin CheckAccuracySupported.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
   bool ret = CheckSupportedBase(node, un_supported_reason, CheckSupportMode::ACCURACY_MODE, real_query);
   if (!VerifyCastC0Format(op_desc_ptr)) {
@@ -605,8 +608,8 @@ bool FEOpsKernelInfoStore::CheckSupportedBase(const ge::NodePtr &node, std::stri
   FE_LOGI_IF(GetNotSupportedReasonByAttr(check_param.unsupport_reason.reason_id, ge_reason_oss) != SUCCESS,
              "Get Node %s not supported reason not success.", op_desc_ptr->GetNamePtr());
   un_supported_reason = check_param.unsupport_reason.reason;
-  FE_LOGW("This Op [%s, %s] is not supported in all op information libraries.",
-          op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+  FE_LOGW("This Op [%s, %s] is not supported in all op information libraries.", op_desc_ptr->GetNamePtr(),
+          op_desc_ptr->GetTypePtr());
   return false;
 }
 
@@ -624,15 +627,15 @@ Status FEOpsKernelInfoStore::QueryHighPrioOpImplType(const ge::NodePtr &node, Op
    * be matched correspondingly */
   if (IsDtypeSensitiveOp(op_desc_ptr->GetType()) || IsFormatSensitiveOp(op_desc_ptr->GetType())) {
     if (!CheckSupportedByOpsStore(node, CheckSupportMode::ACCURACY_MODE, check_param, impl_type)) {
-      FE_LOGW("Op[%s, %s] is not supported in all op information librarys by accurate mode.",
-              op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+      FE_LOGW("Op[%s, %s] is not supported in all op information librarys by accurate mode.", op_desc_ptr->GetNamePtr(),
+              op_desc_ptr->GetTypePtr());
       op_kernel_ptr = check_param.op_kernel_ptr;
       return OP_NOT_FOUND_IN_QUERY_HIGH_PRIO_IMPL;
     }
   } else {
     if (!CheckSupportedByOpsStore(node, CheckSupportMode::DTYPE_FORMAT_MODE, check_param, impl_type)) {
-      FE_LOGW("Op[%s, %s] is not supported in all op information librarys.",
-              op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+      FE_LOGW("Op[%s, %s] is not supported in all op information librarys.", op_desc_ptr->GetNamePtr(),
+              op_desc_ptr->GetTypePtr());
       op_kernel_ptr = check_param.op_kernel_ptr;
       return OP_NOT_FOUND_IN_QUERY_HIGH_PRIO_IMPL;
     }
@@ -700,8 +703,7 @@ Status FEOpsKernelInfoStore::CompileOpGetTvmJsonInfo(ScopeNodeIdMap &fusion_node
 
     // package tvm json info
     TbeJsonFileParsePtr parse_ptr = nullptr;
-    FE_MAKE_SHARED(parse_ptr = std::make_shared<TbeJsonFileParse>(node),
-                   return fe::OP_COMPILER_MAKE_SHARED_FAILED);
+    FE_MAKE_SHARED(parse_ptr = std::make_shared<TbeJsonFileParse>(node), return fe::OP_COMPILER_MAKE_SHARED_FAILED);
     if (parse_ptr->PackageTvmJsonInfo(json_iter->second[0]) != SUCCESS) {
       REPORT_FE_ERROR("[SubGraphOpt][Compile][CompOpGetTvmJsInfo] Node[%s, %s]: Failed to package tvm json.",
                       op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
@@ -752,11 +754,11 @@ Status FEOpsKernelInfoStore::CompileSetAtomicMemSetWorkSpace(ge::NodePtr &node_p
   }
 
   std::map<string, std::map<int64_t, int64_t>> sub_node_workspace_info;
-  sub_node_workspace_info = node_ptr->GetOpDesc()->TryGetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO,
-      sub_node_workspace_info);
+  sub_node_workspace_info =
+      node_ptr->GetOpDesc()->TryGetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, sub_node_workspace_info);
   if (!sub_node_workspace_info.empty()) {
     std::map<string, std::map<int64_t, int64_t>>::const_iterator sub_node_workspace_value =
-      sub_node_workspace_info.find(node_ptr->GetOpDesc()->GetName());
+        sub_node_workspace_info.find(node_ptr->GetOpDesc()->GetName());
     if (sub_node_workspace_value != sub_node_workspace_info.cend()) {
       std::map<int64_t, int64_t> workspace_bytes_map = sub_node_workspace_value->second;
       for (auto workspace_size : workspace_bytes_map) {
@@ -813,19 +815,17 @@ Status FEOpsKernelInfoStore::GetAllAtomicCleanNode(ge::NodePtr &node_ptr, vector
 }
 
 Status FEOpsKernelInfoStore::SetWorkSpaceForAtomicMemSet(const MemsetWorkspaceInfo &memset_workspace_info,
-                                                         const ge::NodePtr &node,
-                                                         const ge::ComputeGraphPtr &tmp_graph,
+                                                         const ge::NodePtr &node, const ge::ComputeGraphPtr &tmp_graph,
                                                          vector<ge::NodePtr> &memset_nodes) const {
   FE_CHECK_NOTNULL(tmp_graph);
   if (!memset_workspace_info.work_space.empty()) {
     ge::OpDescPtr memset_op_desc_ptr = nullptr;
-    FE_MAKE_SHARED(memset_op_desc_ptr = make_shared<ge::OpDesc>("memset_node", MEMSET_OP_TYPE),
-                   return FAILED);
+    FE_MAKE_SHARED(memset_op_desc_ptr = make_shared<ge::OpDesc>("memset_node", MEMSET_OP_TYPE), return FAILED);
     FE_CHECK_NOTNULL(memset_op_desc_ptr);
     auto op_desc_ptr = node->GetOpDesc();
     bool is_unknown_shape_op = UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr);
-    FE_LOGD("Node[%s, %s]: unknown shape flag is %d.", op_desc_ptr->GetNamePtr(),
-            op_desc_ptr->GetTypePtr(), is_unknown_shape_op);
+    FE_LOGD("Node[%s, %s]: unknown shape flag is %d.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(),
+            is_unknown_shape_op);
     if (is_unknown_shape_op) {
       (void)ge::AttrUtils::SetBool(memset_op_desc_ptr, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, true);
       (void)ge::AttrUtils::SetBool(memset_op_desc_ptr, ATTR_NAME_IS_OP_DYNAMIC_IMPL, true);
@@ -851,8 +851,8 @@ Status FEOpsKernelInfoStore::SetWorkSpaceForAtomicMemSet(const MemsetWorkspaceIn
     FE_CHECK_NOTNULL(memset_node);
     memset_nodes.push_back(memset_node);
     op_desc_ptr->SetExtAttr(ATTR_NAME_MEMSET_NODE, memset_node);
-    FE_LOGD("Create memset op:%s for op:%s, work_space_vec_num:%zu.",
-            name.c_str(), node->GetNamePtr(), memset_workspace_info.work_space.size());
+    FE_LOGD("Create memset op:%s for op:%s, work_space_vec_num:%zu.", name.c_str(), node->GetNamePtr(),
+            memset_workspace_info.work_space.size());
     ge::ComputeGraphPtr owner_graph = node->GetOwnerComputeGraph();
     if (owner_graph == nullptr) {
       FE_LOGW("Node[%s] cannot get owner graph, memset op %s, set single op scene flag unsuccessful.",
@@ -975,8 +975,7 @@ Status FEOpsKernelInfoStore::CompileMemSet(vector<ge::NodePtr> &node_vec) {
     }
 
     // set atomic memset op work_space_info
-    if (SetWorkSpaceForAtomicMemSet(memset_workspace_info, node_ptr, tmp_graph, memset_nodes) !=
-        SUCCESS) {
+    if (SetWorkSpaceForAtomicMemSet(memset_workspace_info, node_ptr, tmp_graph, memset_nodes) != SUCCESS) {
       return FAILED;
     }
   }
@@ -986,14 +985,14 @@ Status FEOpsKernelInfoStore::CompileMemSet(vector<ge::NodePtr> &node_vec) {
     return FAILED;
   }
   return SUCCESS;
- }
+}
 
 Status FEOpsKernelInfoStore::PrePareCompileParameter(
     const ge::NodePtr &node, const string &op_type, OpImplType &impl_type,
     std::unordered_map<OpStoreAdapterPtr, vector<PreCompileNodePara>> &node_map) {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
 
-  // caculate input output size
+  // calculate input output size
   OpStoreAdapterPtr op_store_adapter;
   if (OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(impl_type, op_store_adapter) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][Compile][PrepCompParm] Failed to get op store adapter by impl type %s.",
@@ -1037,8 +1036,8 @@ Status FEOpsKernelInfoStore::PrePareCompileParameter(
       FE_LOGW("%s get session_graph_id failed.", node->GetNamePtr());
     }
 
-    PreCompileNodePara pre_comp_node_para = {node.get(), op_kernel_info_ptr, op_store_info.fe_ops_store_name,
-                                             op_dsl_file_path, session_graph_id, nullptr};
+    PreCompileNodePara pre_comp_node_para = {node.get(),       op_kernel_info_ptr, op_store_info.fe_ops_store_name,
+                                             op_dsl_file_path, session_graph_id,   nullptr};
     if (node_map.find(op_store_adapter) == node_map.end()) {
       vector<PreCompileNodePara> pre_comp_node_para_vec;
       pre_comp_node_para_vec.push_back(pre_comp_node_para);
@@ -1050,8 +1049,7 @@ Status FEOpsKernelInfoStore::PrePareCompileParameter(
   return SUCCESS;
 }
 
-Status FEOpsKernelInfoStore::FuzzCompileAndGetResult(const ge::NodePtr &node,
-                                                     const OpStoreAdapterPtr &op_store_adapter,
+Status FEOpsKernelInfoStore::FuzzCompileAndGetResult(const ge::NodePtr &node, const OpStoreAdapterPtr &op_store_adapter,
                                                      ScopeNodeIdMap &fusion_node_map) const {
   std::vector<ge::NodePtr> buff_fus_compile_failed_nodes;
   CompileInfoParam compile_info_param{buff_fus_compile_failed_nodes};
@@ -1167,7 +1165,7 @@ Status FEOpsKernelInfoStore::CompileSingleOp(const ge::NodePtr &node_ptr, const 
 }
 
 static void FillFusionNodeMapForTbeOp(ge::Node &node, OpImplType impl_type, ScopeNodeIdMap &fusion_node_map,
-                               int64_t &scope_id) {
+                                      int64_t &scope_id) {
   auto op_desc = node.GetOpDesc();
   bool impl_type_check = IsTbe(impl_type);
   int64_t tmp_scope_id = -1;
@@ -1343,8 +1341,7 @@ Status FEOpsKernelInfoStore::SetAtomicOpAttr(ge::OpDescPtr &op_desc, bool &atomi
     atomic_node_flag = true;
   }
   if (SetMemSetOpWorkspaceInfo(op_desc, atomic_node_flag) != SUCCESS) {
-    FE_LOGE("Op[name:%s, type:%s] set workspace info failed.", op_desc->GetName().c_str(),
-            op_desc->GetType().c_str());
+    FE_LOGE("Op[name:%s, type:%s] set workspace info failed.", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
   FE_LOGD("Set op[name:%s, type:%s] output index and workspace info, outputsize:%zu.", op_desc->GetNamePtr(),
@@ -1461,7 +1458,7 @@ bool FEOpsKernelInfoStore::IsExistInTBECustom(const ge::NodePtr &node_ptr) {
   const std::vector<FEOpsStoreInfo> &ops_store_info_vec = Configuration::Instance(engine_name_).GetOpsStoreInfo();
   for (auto &op_store_info : ops_store_info_vec) {
     OpImplType impl_type = op_store_info.op_impl_type;
-    if (impl_type != EN_IMPL_CUSTOM_TBE &&  impl_type < EN_RESERVED) {
+    if (impl_type != EN_IMPL_CUSTOM_TBE && impl_type < EN_RESERVED) {
       FE_LOGI("Not custom impl:%ld continue.", impl_type);
       continue;
     }
@@ -1573,13 +1570,13 @@ Status FEOpsKernelInfoStore::SetDynaCustomOpStoreToAllStore(FEOpsStoreInfo &fe_o
 
   Configuration::Instance(engine_name_).SetOpsStoreInfo(fe_ops_store);
   SubOpsStorePtr sub_dyna_custom_ops_store_ptr = nullptr;
-  FE_MAKE_SHARED(sub_dyna_custom_ops_store_ptr = std::make_shared<SubOpsStore>(engine_name_),
-                 return FAILED);
+  FE_MAKE_SHARED(sub_dyna_custom_ops_store_ptr = std::make_shared<SubOpsStore>(engine_name_), return FAILED);
   FE_CHECK(sub_dyna_custom_ops_store_ptr == nullptr,
            REPORT_FE_ERROR("[GraphOpt][SetDynmCustomOpStoreInfo] subDynaCustomOpsStorePtr is nullptr."), return FAILED);
 
-  FE_MAKE_SHARED(sub_dyna_custom_ops_store_ptr->format_dtype_querier_ptr_ =
-      std::make_shared<FormatDtypeQuerier>(engine_name_), return FAILED);
+  FE_MAKE_SHARED(
+      sub_dyna_custom_ops_store_ptr->format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(engine_name_),
+      return FAILED);
   FE_CHECK_NOTNULL(sub_dyna_custom_ops_store_ptr->format_dtype_querier_ptr_);
 
   sub_dyna_custom_ops_store_ptr->SetSubStoreInfo(fe_ops_store);
@@ -1651,8 +1648,7 @@ bool FEOpsKernelInfoStore::IsNeededCompile(ge::OpDescPtr &op_desc_ptr) const {
   std::string magic;
   (void)ge::AttrUtils::GetStr(op_desc_ptr, ge::TVM_ATTR_NAME_MAGIC, magic);
   if (magic.empty()) {
-    FE_LOGD("Op[name:%s, type:%s] magic is empty, need compile.", op_desc_ptr->GetNamePtr(),
-            op_desc_ptr->GetTypePtr());
+    FE_LOGD("Op[name:%s, type:%s] magic is empty, need compile.", op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
     return true;
   }
   if (op_desc_ptr->HasAttr(TBE_OP_ATOMIC_OUTPUT_INDEX) || op_desc_ptr->HasAttr(TBE_OP_ATOMIC_WORKSPACE_INDEX)) {
@@ -1862,8 +1858,7 @@ void FEOpsKernelInfoStore::RollbackGraphParentNodeAndIndex(const ge::ComputeGrap
 
 void FEOpsKernelInfoStore::SetConstValueAttr(ge::ConstNodePtr &const_node_ptr, const ge::OpDescPtr &op_desc_ptr) const {
   for (ge::InDataAnchorPtr &in_data_anchor : const_node_ptr->GetAllInDataAnchors()) {
-    if (in_data_anchor == nullptr ||
-        in_data_anchor->GetPeerOutAnchor() == nullptr ||
+    if (in_data_anchor == nullptr || in_data_anchor->GetPeerOutAnchor() == nullptr ||
         in_data_anchor->GetPeerOutAnchor()->GetOwnerNode() == nullptr) {
       continue;
     }
@@ -1897,8 +1892,8 @@ bool FEOpsKernelInfoStore::GetNodeSupportInfo(const ge::OperatorPtr &op, std::st
   // 2. check support
   std::string unsupport_reason;
   if (!CheckSupported(node_ptr, unsupport_reason)) {
-    FE_LOGD("The op[%s, %s] is not supported, reason is [%s].",
-            node_ptr->GetName().c_str(), node_ptr->GetType().c_str(), unsupport_reason.c_str());
+    FE_LOGD("The op[%s, %s] is not supported, reason is [%s].", node_ptr->GetName().c_str(),
+            node_ptr->GetType().c_str(), unsupport_reason.c_str());
     return false;
   }
   // 3. generate support info json
@@ -1906,29 +1901,28 @@ bool FEOpsKernelInfoStore::GetNodeSupportInfo(const ge::OperatorPtr &op, std::st
   (void)ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, op_impl_type);
   OpImplType impl_type = static_cast<OpImplType>(op_impl_type);
   OpKernelInfoPtr op_kernel_info_ptr =
-          OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(impl_type, op_desc_ptr->GetType());
+      OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(impl_type, op_desc_ptr->GetType());
   FE_CHECK(op_kernel_info_ptr == nullptr,
-           FE_LOGD("Op kernel info of op[%s, %s] is not found.",
-                   op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str()),
+           FE_LOGD("Op kernel info of op[%s, %s] is not found.", op_desc_ptr->GetName().c_str(),
+                   op_desc_ptr->GetType().c_str()),
            return false);
   SubOpsStorePtr sub_ops_store_ptr = GetSubOpsStore(impl_type);
   FE_CHECK(sub_ops_store_ptr == nullptr,
-           FE_LOGD("Sub op store[%s] is not found.", GetImplTypeString(impl_type).c_str()),
-           return false);
+           FE_LOGD("Sub op store[%s] is not found.", GetImplTypeString(impl_type).c_str()), return false);
   FormatDtypeInfo format_dtype_info;
   bool is_dynamic_impl = false;
   (void)ge::AttrUtils::GetBool(op_desc_ptr, ATTR_NAME_IS_OP_DYNAMIC_IMPL, is_dynamic_impl);
-  Status ret = sub_ops_store_ptr->GetSupportFormatAndDtype(node_ptr, op_kernel_info_ptr, is_dynamic_impl,
-                                                           format_dtype_info);
+  Status ret =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(node_ptr, op_kernel_info_ptr, is_dynamic_impl, format_dtype_info);
   if (ret != SUCCESS) {
-    FE_LOGD("Format and data type info of op[%s, %s] is not found.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    FE_LOGD("Format and data type info of op[%s, %s] is not found.", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return false;
   }
   GenerateOpSupportInfo(op_kernel_info_ptr, is_dynamic_impl, format_dtype_info.format_map,
                         format_dtype_info.data_type_map, support_info);
-  FE_LOGD("The support info of op[%s, %s] is [%s].",
-          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), support_info.c_str());
+  FE_LOGD("The support info of op[%s, %s] is [%s].", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(),
+          support_info.c_str());
   return true;
 }
 
@@ -1965,9 +1959,9 @@ void FEOpsKernelInfoStore::CopyTensorDesc(const ge::GeTensorDescPtr &src, const 
   src->GetShapeRange(src_shape_range);
   dst->SetOriginShapeRange(ori_src_shape_range);
   dst->SetShapeRange(src_shape_range);
-  FE_LOGD("Ori Shape is:%s, shape is:%s, Ori Range is %s, range is %s.",
-          ShapeToString(ori_src_shape.GetDims()).c_str(), ShapeToString(src_shape.GetDims()).c_str(),
-          RangeToString(ori_src_shape_range).c_str(), RangeToString(src_shape_range).c_str());
+  FE_LOGD("Ori Shape is:%s, shape is:%s, Ori Range is %s, range is %s.", ShapeToString(ori_src_shape.GetDims()).c_str(),
+          ShapeToString(src_shape.GetDims()).c_str(), RangeToString(ori_src_shape_range).c_str(),
+          RangeToString(src_shape_range).c_str());
 }
 
 Status FEOpsKernelInfoStore::CompareTensorDescAndSubgraphData(const ge::ComputeGraphPtr &graph,
@@ -2029,8 +2023,7 @@ Status FEOpsKernelInfoStore::FuzzGeneralAndCompileFusionOp(const ge::NodePtr &no
   FusionParenNodeAndIndex node_map{};
   BackupGraphParentNodeAndIndex(graph_ptr, node_map);
 
-  FuzzyGeneralize fusionop_fuzzy_generalize(optimize_utility_, shared_from_this(),
-                                            fusion_priority_mgr_ptr_);
+  FuzzyGeneralize fusionop_fuzzy_generalize(optimize_utility_, shared_from_this(), fusion_priority_mgr_ptr_);
   ret = fusionop_fuzzy_generalize.GeneralizeGraph(*graph_ptr);
   if (ret != SUCCESS) {
     FE_LOGW("Op[name:%s] generalize graph failed", op_desc->GetName().c_str());

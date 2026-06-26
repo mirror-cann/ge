@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,7 @@ Status MergeFinalStatus(Status final_status, Status cur_pass_status) {
   }
   return cur_pass_status == NOT_CHANGED ? final_status : cur_pass_status;
 }
-} // namespace
+}  // namespace
 
 Status FusionPassExecutor::RunPasses(const ComputeGraphPtr &compute_graph, CustomPassStage stage) {
   GE_ASSERT_SUCCESS(InitPassesIfNeed(stage));
@@ -70,15 +70,15 @@ Status FusionPassExecutor::RunPasses(const ComputeGraphPtr &compute_graph, Custo
       return final_status;
     }
 
-    for (const auto &sub_compute_graph :compute_graph->GetAllSubgraphs()) {
+    for (const auto &sub_compute_graph : compute_graph->GetAllSubgraphs()) {
       GE_CHECK_NOTNULL(sub_compute_graph);
       // 顶层 pass 可能 Replace 掉了某个 PartitionedCall 节点，使其子图变成孤儿：
       // sub_graph_ 列表里还在，但 parent_node 已经悬空（owner_graph 为 null），其 nodes_ 也可能
       // 被 inline 进父图。直接给 PatternMatcher 喂这种半死的子图会触发 GetDirectNodePtr SEGV。
       const auto parent_node = sub_compute_graph->GetParentNode();
       if (parent_node == nullptr || parent_node->GetOwnerComputeGraph() == nullptr) {
-        GELOGI("[FusionPassExec] Skip orphan subgraph[%s] for pass[%s].",
-               sub_compute_graph->GetName().c_str(), pass_name.c_str());
+        GELOGI("[FusionPassExec] Skip orphan subgraph[%s] for pass[%s].", sub_compute_graph->GetName().c_str(),
+               pass_name.c_str());
         continue;
       }
       std::string subgraph_pass_name = pass_name + "::" + compute_graph->GetName();
@@ -107,8 +107,8 @@ FusionPassExecutor::~FusionPassExecutor() {
 Status FusionPassExecutor::RunPassesWithLegacyCustom(const ComputeGraphPtr &compute_graph, CustomPassStage stage) {
   CustomPassContext context;
   auto graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(compute_graph);
-  GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Run(graph, context, stage),
-                    "Run custom pass for graph [%s] failed.", compute_graph->GetName().c_str());
+  GE_ASSERT_SUCCESS(CustomPassHelper::Instance().Run(graph, context, stage), "Run custom pass for graph [%s] failed.",
+                    compute_graph->GetName().c_str());
   GE_ASSERT_SUCCESS(RunPasses(compute_graph, stage));
   return SUCCESS;
 }
@@ -136,5 +136,5 @@ Status FusionPassExecutor::InitPassesIfNeed(CustomPassStage stage) {
   }
   return SUCCESS;
 }
-} // namespace fusion
+}  // namespace fusion
 }  // namespace ge

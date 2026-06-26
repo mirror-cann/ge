@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ Status KernelUtils::ConstructTensorDescWithData(const GeTensorDesc &out_desc, co
     ret = ConstructTensorDescWithData(out_desc, buf.data(), dim_size, v_output, scalar_output);
   } else {
     REPORT_INNER_ERR_MSG("E19999", "Only DT_INT32 and DT_INT64 are supported. Input data_type:%s is not supported",
-                      ToString(data).c_str());
+                         ToString(data).c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Only support DT_INT32 and DT_INT64. data_type:%s not support",
            TypeUtils::DataTypeToSerialString(data_type).c_str());
     return PARAM_INVALID;
@@ -75,8 +75,8 @@ Status KernelUtils::ConstructTensorDescWithData(const GeTensorDesc &out_desc, co
   output_tensor_desc.SetShape(out_shape);
   output_tensor_desc.SetOriginShape(out_shape);
 
-  const GeTensorPtr output_tensor_ptr = MakeShared<GeTensor>(
-      output_tensor_desc, reinterpret_cast<const uint8_t *const>(buf), sizeof(T) * len);
+  const GeTensorPtr output_tensor_ptr =
+      MakeShared<GeTensor>(output_tensor_desc, reinterpret_cast<const uint8_t *const>(buf), sizeof(T) * len);
   if (output_tensor_ptr == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "New GeTensor failed");
     GELOGE(MEMALLOC_FAILED, "[New][GeTensor] failed");
@@ -157,8 +157,7 @@ bool KernelUtils::CheckFormatSupported(const NodePtr &node_ptr) {
   return true;
 }
 
-bool KernelUtils::CheckSizeForTransOp(const ge::ConstGeTensorPtr &const_weight_ptr,
-                                      const ge::OpDescPtr &op_desc_ptr) {
+bool KernelUtils::CheckSizeForTransOp(const ge::ConstGeTensorPtr &const_weight_ptr, const ge::OpDescPtr &op_desc_ptr) {
   if ((const_weight_ptr == nullptr) || (op_desc_ptr == nullptr)) {
     GELOGE(FAILED, "parameter invalid");
     return false;

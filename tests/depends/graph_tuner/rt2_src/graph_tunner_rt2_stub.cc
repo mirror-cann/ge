@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,13 +20,13 @@
 
 namespace tune {
 ge::graphStatus FFTSNodeThreadRT2(gert::KernelContext *context) {
-  (void) context;
+  (void)context;
   GELOGD("FFTSNodeThreadRT2");
   return ge::GRAPH_SUCCESS;
 }
 
 ge::graphStatus BuildNodeThreadOutputs(const ge::FastNode *node, gert::KernelContext *context) {
-  (void) node;
+  (void)node;
   auto extend_context = reinterpret_cast<gert::ExtendedKernelContext *>(context);
   auto compute_node_info = extend_context->GetComputeNodeInfo();
   auto in_num = compute_node_info->GetInputsNum();
@@ -36,7 +36,7 @@ ge::graphStatus BuildNodeThreadOutputs(const ge::FastNode *node, gert::KernelCon
   for (size_t i = 0; i < 4; ++i) {
     auto in_vec_holder = gert::ContinuousVector::Create<gert::Shape>(in_num);
     auto in_vec_p = reinterpret_cast<gert::ContinuousVector *>(in_vec_holder.get());
-    auto shape_vec = reinterpret_cast<gert::Shape *>(const_cast<void*>(in_vec_p->GetData()));
+    auto shape_vec = reinterpret_cast<gert::Shape *>(const_cast<void *>(in_vec_p->GetData()));
     in_vec_p->SetSize(in_num);
     for (size_t j = 0; j < in_num; ++j) {
       shape_vec[j] = shape;
@@ -47,7 +47,7 @@ ge::graphStatus BuildNodeThreadOutputs(const ge::FastNode *node, gert::KernelCon
   for (size_t i = 0; i < 4; ++i) {
     auto in_vec_holder = gert::ContinuousVector::Create<gert::Shape>(out_num);
     auto in_vec_p = reinterpret_cast<gert::ContinuousVector *>(in_vec_holder.get());
-    auto shape_vec = reinterpret_cast<gert::Shape *>(const_cast<void*>(in_vec_p->GetData()));
+    auto shape_vec = reinterpret_cast<gert::Shape *>(const_cast<void *>(in_vec_p->GetData()));
     in_vec_p->SetSize(out_num);
     for (size_t j = 0; j < out_num; ++j) {
       shape_vec[j] = shape;
@@ -59,7 +59,6 @@ ge::graphStatus BuildNodeThreadOutputs(const ge::FastNode *node, gert::KernelCon
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(FFTSNodeThread).RunFunc(FFTSNodeThreadRT2).OutputsCreator(BuildNodeThreadOutputs);
-
 
 ge::graphStatus FFTSGraphPreThreadRT2(gert::KernelContext *context) {
   auto thread_dim = context->GetOutputPointer<uint32_t>(0);
@@ -77,7 +76,8 @@ constexpr char const *kParamK = "param_k";
 constexpr char const *kParamB = "param_b";
 constexpr char const *kUnknownAxisIndex = "unknown_axis_index";
 ge::graphStatus FFTSGraphPreThreadV2(const ge::ComputeGraphPtr sub_graph,
-    const std::vector<bg::ValueHolderPtr> &input_shapes, std::vector<bg::ValueHolderPtr> &output) {
+                                     const std::vector<bg::ValueHolderPtr> &input_shapes,
+                                     std::vector<bg::ValueHolderPtr> &output) {
   GELOGD("FFTSGraphPreThreadV2 begin.");
   ge::NodePtr data_node = nullptr;
   int64_t param_k = 0;
@@ -117,14 +117,15 @@ ge::graphStatus FFTSGraphPreThreadV2(const ge::ComputeGraphPtr sub_graph,
 }
 
 ge::graphStatus FFTSGraphPreThreadV2New(const ge::ComputeGraphPtr &sub_graph,
-    const std::vector<bg::ValueHolderPtr> &input_shapes, const std::vector<bg::ValueHolderPtr> &input_addrs,
-    std::vector<bg::ValueHolderPtr> &output) {
+                                        const std::vector<bg::ValueHolderPtr> &input_shapes,
+                                        const std::vector<bg::ValueHolderPtr> &input_addrs,
+                                        std::vector<bg::ValueHolderPtr> &output) {
   return FFTSGraphPreThreadV2(sub_graph, input_shapes, output);
 }
 
 ge::graphStatus FFTSNodeThreadV2(const ge::NodePtr &node, const std::vector<bg::ValueHolderPtr> &input_shapes,
-    const std::vector<bg::ValueHolderPtr> &output_shapes, const bg::ValueHolderPtr thread_dim,
-    std::vector<bg::ValueHolderPtr> &output) {
+                                 const std::vector<bg::ValueHolderPtr> &output_shapes,
+                                 const bg::ValueHolderPtr thread_dim, std::vector<bg::ValueHolderPtr> &output) {
   GELOGD("FFTSNodeThreadV2 BEGIN.");
   std::vector<bg::ValueHolderPtr> inputs;
   inputs.emplace_back(thread_dim);
@@ -148,4 +149,4 @@ ge::graphStatus FFTSNodeThreadV2(const ge::NodePtr &node, const std::vector<bg::
   return ge::GRAPH_SUCCESS;
 }
 
-} // namespace tune
+}  // namespace tune

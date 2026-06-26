@@ -13,12 +13,12 @@
 #include "debug/ge_log.h"
 
 namespace ge {
-GeAmctRegistry& GeAmctRegistry::GetInstance() {
+GeAmctRegistry &GeAmctRegistry::GetInstance() {
   static GeAmctRegistry instance;
   return instance;
 }
 
-void GeAmctRegistry::Register(const IAmctCalibrationPtr& calibration) {
+void GeAmctRegistry::Register(const IAmctCalibrationPtr &calibration) {
   if (calibration_ == nullptr) {
     calibration_ = calibration;
     GELOGI("IAmctCalibration register success");
@@ -41,7 +41,7 @@ void GeAmctRegistry::Unregister() {
   }
 }
 
-GeAmctRegistrar::GeAmctRegistrar(const IAmctCalibrationPtr& calibration) {
+GeAmctRegistrar::GeAmctRegistrar(const IAmctCalibrationPtr &calibration) {
   GeAmctRegistry::GetInstance().Register(calibration);
 }
-} // namespace ge
+}  // namespace ge

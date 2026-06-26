@@ -64,4 +64,3 @@ virtual MemBlock *Malloc(size_t size) = 0
 ## 约束说明<a name="section2021419196520"></a>
 
 纯虚函数用户必须实现。
-

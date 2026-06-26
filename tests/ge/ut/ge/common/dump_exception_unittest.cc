@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -320,7 +320,8 @@ TEST_F(UTEST_dump_exception, dump_node_info_wrong) {
 
   // exception dump logs for tools analysis, don't modify!!!
   EXPECT_EQ(exception_dumper.DumpNodeInfo(op_desc_info, temp_dump_path_, true, false, dump_properties), ge::SUCCESS);
-  EXPECT_TRUE(CheckLogExpected(runtime_stub.GetSlogStub().GetLogs(), "[Dump][Exception] dump exception to file, file:"));
+  EXPECT_TRUE(
+      CheckLogExpected(runtime_stub.GetSlogStub().GetLogs(), "[Dump][Exception] dump exception to file, file:"));
 }
 
 TEST_F(UTEST_dump_exception, SaveLiteException_mc2) {
@@ -403,7 +404,7 @@ TEST_F(UTEST_dump_exception, SaveLiteException_need_assert) {
   GeShape shape2(dim2);
   GeTensorDesc tensor_desc2(shape2, FORMAT_NCHW, DT_INT32);
   op_desc->AddOutputDesc(tensor_desc2);  // out
-  op_desc->SetWorkspaceBytes({1000});   // ws
+  op_desc->SetWorkspaceBytes({1000});    // ws
 
   const std::string kOpDfxOptions = "_op_dfx_options";
   const std::string kOpDfxAssert = "assert";
@@ -431,10 +432,10 @@ TEST_F(UTEST_dump_exception, SaveLiteException_need_print) {
   GeShape shape2(dim2);
   GeTensorDesc tensor_desc2(shape2, FORMAT_NCHW, DT_INT32);
   op_desc->AddOutputDesc(tensor_desc2);  // out
-  op_desc->SetWorkspaceBytes({1000});   // ws
+  op_desc->SetWorkspaceBytes({1000});    // ws
 
   const std::string kOpDfxOptions = "_op_dfx_options";
-  const std::string kOpDfxPrintf= "printf";
+  const std::string kOpDfxPrintf = "printf";
   std::vector<std::string> dfx_opts{kOpDfxPrintf};
   ge::AttrUtils::SetListStr(op_desc, kOpDfxOptions, dfx_opts);
 

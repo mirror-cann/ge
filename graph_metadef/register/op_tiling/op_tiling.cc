@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,41 +32,41 @@ using Status = domi::Status;
 using DataBuf = std::tuple<const uint8_t *, size_t>;
 
 class AnyValueBase {
-public:
+ public:
   virtual ~AnyValueBase() = default;
   virtual DataBuf GetDataBuf() const = 0;
 };
 
-template<typename VT>
+template <typename VT>
 class AnyValue : public AnyValueBase {
-public:
+ public:
   explicit AnyValue(const VT &value) : value_(value) {}
   virtual ~AnyValue() override = default;
   virtual DataBuf GetDataBuf() const override {
     return DataBuf(reinterpret_cast<const uint8_t *>(&value_), sizeof(value_));
   }
 
-private:
+ private:
   VT value_;
 };
 
-template<typename VT>
+template <typename VT>
 class AnyVecValue : public AnyValueBase {
-public:
+ public:
   explicit AnyVecValue(const std::vector<VT> &value) : value_(std::move(value)) {}
   virtual ~AnyVecValue() override = default;
   virtual DataBuf GetDataBuf() const override {
     return DataBuf(reinterpret_cast<const uint8_t *>(value_.data()), sizeof(VT) * value_.size());
   }
 
-private:
+ private:
   std::vector<VT> value_;
 };
 
-template<typename T, typename Enabled = void>
+template <typename T, typename Enabled = void>
 struct Getter;
 
-template<typename T>
+template <typename T>
 struct Getter<T, typename std::enable_if<std::is_integral<T>::value>::type> {
   using ST = int64_t;
   static constexpr bool (*func)(ge::AttrUtils::ConstAttrHolderAdapter &&, const string &,
@@ -74,7 +74,7 @@ struct Getter<T, typename std::enable_if<std::is_integral<T>::value>::type> {
   static constexpr bool (*list_func)(ge::AttrUtils::ConstAttrHolderAdapter &&, const string &,
                                      vector<int64_t> &) = ge::AttrUtils::GetListInt;
 };
-template<typename T>
+template <typename T>
 struct Getter<T, typename std::enable_if<std::is_floating_point<T>::value>::type> {
   using ST = float;
   static constexpr bool (*func)(ge::AttrUtils::ConstAttrHolderAdapter &&, const string &,
@@ -84,14 +84,14 @@ struct Getter<T, typename std::enable_if<std::is_floating_point<T>::value>::type
 };
 
 class TeOpVarAttrArgsImpl {
-public:
-  explicit TeOpVarAttrArgsImpl(const ge::OpDescPtr &op_desc) : op_desc_(op_desc){};
+ public:
+  explicit TeOpVarAttrArgsImpl(const ge::OpDescPtr &op_desc) : op_desc_(op_desc) {};
   ~TeOpVarAttrArgsImpl() = default;
 
   Status GetDataByName(const string &name, const string &dtype, DataBuf &data);
 
-private:
-  template<typename T>
+ private:
+  template <typename T>
   Status GetNodeAttrDataIntListList(const std::string &name, DataBuf &data) {
     std::vector<std::vector<int64_t>> value;
     const bool res = ge::AttrUtils::GetListListInt(op_desc_, name, value);
@@ -113,7 +113,7 @@ private:
     return domi::SUCCESS;
   }
 
-  template<typename T, bool IsList = false, typename std::enable_if<!IsList, bool>::type = true>
+  template <typename T, bool IsList = false, typename std::enable_if<!IsList, bool>::type = true>
   Status GetNodeAttrDataTmpl(const std::string &name, DataBuf &data) {
     const auto func = Getter<T>::func;
     typename Getter<T>::ST value;
@@ -130,7 +130,7 @@ private:
     return domi::SUCCESS;
   }
 
-  template<typename T, bool IsList = false, typename std::enable_if<IsList, bool>::type = true>
+  template <typename T, bool IsList = false, typename std::enable_if<IsList, bool>::type = true>
   Status GetNodeAttrDataTmpl(const std::string &name, DataBuf &data) {
     const auto func = Getter<T>::list_func;
     std::vector<typename Getter<T>::ST> value;
@@ -142,7 +142,7 @@ private:
 
     std::vector<T> dest;
     for (const auto elem : value) {
-      (void) dest.emplace_back(static_cast<T>(elem));
+      (void)dest.emplace_back(static_cast<T>(elem));
     }
     const auto dest_ptr = std::make_shared<AnyVecValue<T>>(dest);
     (void)data_map_.emplace(name + '_' + typeid(T).name(), dest_ptr);
@@ -151,32 +151,32 @@ private:
     return domi::SUCCESS;
   }
 
-private:
+ private:
   static std::map<std::string, std::function<Status(TeOpVarAttrArgsImpl *, const std::string &, DataBuf &)>>
-          data_getter_;
+      data_getter_;
   ge::OpDescPtr op_desc_;
   std::map<std::string, std::shared_ptr<AnyValueBase>> data_map_;
 };
 
 std::map<std::string, std::function<Status(TeOpVarAttrArgsImpl *, const std::string &, DataBuf &)>>
-        TeOpVarAttrArgsImpl::data_getter_ = {{"Int8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int8_t>},
-                                             {"Int16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int16_t>},
-                                             {"Int32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int32_t>},
-                                             {"Int64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int64_t>},
-                                             {"UInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint8_t>},
-                                             {"UInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint16_t>},
-                                             {"UInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint32_t>},
-                                             {"UInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint64_t>},
-                                             {"Float", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<float>},
-                                             {"ListInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int8_t, true>},
-                                             {"ListInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int16_t, true>},
-                                             {"ListInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int32_t, true>},
-                                             {"ListInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int64_t, true>},
-                                             {"ListUInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint8_t, true>},
-                                             {"ListUInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint16_t, true>},
-                                             {"ListUInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint32_t, true>},
-                                             {"ListUInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint64_t, true>},
-                                             {"ListFloat", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<float, true>}};
+    TeOpVarAttrArgsImpl::data_getter_ = {{"Int8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int8_t>},
+                                         {"Int16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int16_t>},
+                                         {"Int32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int32_t>},
+                                         {"Int64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int64_t>},
+                                         {"UInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint8_t>},
+                                         {"UInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint16_t>},
+                                         {"UInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint32_t>},
+                                         {"UInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint64_t>},
+                                         {"Float", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<float>},
+                                         {"ListInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int8_t, true>},
+                                         {"ListInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int16_t, true>},
+                                         {"ListInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int32_t, true>},
+                                         {"ListInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<int64_t, true>},
+                                         {"ListUInt8", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint8_t, true>},
+                                         {"ListUInt16", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint16_t, true>},
+                                         {"ListUInt32", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint32_t, true>},
+                                         {"ListUInt64", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<uint64_t, true>},
+                                         {"ListFloat", &TeOpVarAttrArgsImpl::GetNodeAttrDataTmpl<float, true>}};
 
 Status TeOpVarAttrArgsImpl::GetDataByName(const std::string &name, const std::string &dtype, DataBuf &data) {
   const auto iter = data_getter_.find(dtype);
@@ -199,15 +199,15 @@ const uint8_t *TeOpVarAttrArgs::GetData(const std::string &name, const std::stri
 }
 
 class VarAttrHelper {
-public:
+ public:
   static bool InitTeOpVarAttr(const ge::OpDescPtr &op_desc_ptr, TeOpVarAttrArgs &attr) {
     OP_TILING_MAKE_SHARED(attr.impl_ = std::make_shared<TeOpVarAttrArgsImpl>(op_desc_ptr), return false);
     return true;
   }
 };
 
-bool FeedTeOpTensorArg(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &tensor_desc_vec,
-                       std::vector<TeOpTensorArg> &tensor_arg, const ge::OpDescPtr &op_desc) {
+bool FeedTeOpTensorArg(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &tensor_desc_vec, std::vector<TeOpTensorArg> &tensor_arg,
+                       const ge::OpDescPtr &op_desc) {
   size_t index = 0U;
   for (ge::GeTensorDescPtr &tensor_desc_ptr : tensor_desc_vec) {
     TeOpTensorArg arg_tensor;
@@ -247,8 +247,8 @@ bool FeedTeOpTensorArg(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &tensor_desc_vec,
       GELOGI("calling optiling shape info: %s", shapestr.str().c_str());
     }
 
-    (void) arg_tensor.tensor.emplace_back(tensor);
-    (void) tensor_arg.emplace_back(arg_tensor);
+    (void)arg_tensor.tensor.emplace_back(tensor);
+    (void)tensor_arg.emplace_back(arg_tensor);
     index++;
   }
   return true;
@@ -266,7 +266,7 @@ void FeedTeOpConstTensor(const ge::Operator &op, const ge::OpDescPtr &op_desc,
       continue;
     }
 
-    const uint8_t * const pbuf = data.GetData();
+    const uint8_t *const pbuf = data.GetData();
     const size_t buflen = data.GetSize();
 
     GELOGI("Const input tensor data: %s, %p %zu", depend.c_str(), pbuf, buflen);
@@ -304,11 +304,9 @@ ge::graphStatus OpParaCalculate(const ge::Operator &op, OpRunInfo &run_info, con
 
   const bool ret = (tiling_func)(op_param, op_compile_info, run_info);
   if (ret) {
-    GELOGI("Do optiling succeed. op_type:%s, op_name:%s",
-           op_desc->GetType().c_str(), op_desc->GetName().c_str());
+    GELOGI("Do optiling succeed. op_type:%s, op_name:%s", op_desc->GetType().c_str(), op_desc->GetName().c_str());
   } else {
-    GELOGW("Failed to call tiling function v1 of op [%s, %s].",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Failed to call tiling function v1 of op [%s, %s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
   }
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
 }
@@ -362,11 +360,10 @@ ge::graphStatus TurnToOpParaCalculateV2(const ge::Operator &op_param, OpRunInfoV
 
   const bool ret = (tiling_func)(op_param, op_compile_info, run_info);
   if (ret) {
-    GELOGI("Do optiling v2 succeed. op_type: %s, op_name: %s",
-           op_desc->GetType().c_str(), op_desc->GetName().c_str());
+    GELOGI("Do optiling v2 succeed. op_type: %s, op_name: %s", op_desc->GetType().c_str(), op_desc->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling function v2 for op [%s, %s].",
-           op_desc->GetType().c_str(), op_desc->GetName().c_str());
+    GELOGW("Failed to call the tiling function v2 for op [%s, %s].", op_desc->GetType().c_str(),
+           op_desc->GetName().c_str());
   }
   RecoveryEmptyShapeOfTensorDesc(op_desc, indexes);
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
@@ -381,7 +378,7 @@ ge::graphStatus TurnToOpParaCalculateV3(const ge::Operator &op_param, OpRunInfoV
     GE_LOGE("Op [%s] does not have attribute [%s].", op_desc->GetName().c_str(), COMPILE_INFO_KEY.c_str());
     return ge::GRAPH_FAILED;
   }
-  void* op_compile_json_ptr = CompileInfoCache::Instance().GetCompileInfo(*op_compile_info_key);
+  void *op_compile_json_ptr = CompileInfoCache::Instance().GetCompileInfo(*op_compile_info_key);
   if (op_compile_json_ptr == nullptr) {
     const std::string *op_compile_info_json = ge::AttrUtils::GetStr(op_desc, COMPILE_INFO_JSON);
     if (op_compile_info_json == nullptr) {
@@ -405,11 +402,10 @@ ge::graphStatus TurnToOpParaCalculateV3(const ge::Operator &op_param, OpRunInfoV
 
   const bool ret = (tiling_func)(op_param, op_compile_json_ptr, run_info);
   if (ret) {
-    GELOGI("Do optiling v3 succeed. op_type: %s, op_name: %s",
-           op_desc->GetType().c_str(), op_desc->GetName().c_str());
+    GELOGI("Do optiling v3 succeed. op_type: %s, op_name: %s", op_desc->GetType().c_str(), op_desc->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling function v3 for op [%s, %s].",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Failed to call the tiling function v3 for op [%s, %s].", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
   }
   RecoveryEmptyShapeOfTensorDesc(op_desc, indexes);
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
@@ -448,18 +444,16 @@ ge::graphStatus TurnToOpParaCalculateV4(const ge::Operator &op_param, OpRunInfoV
 
   const bool ret = (tiling_func)(op_param, op_compile_info_ptr, run_info);
   if (ret) {
-    GELOGI("Do optiling v4 succeed. op_type:%s, op_name:%s",
-           op_desc->GetType().c_str(), op_desc->GetName().c_str());
+    GELOGI("Do optiling v4 succeed. op_type:%s, op_name:%s", op_desc->GetType().c_str(), op_desc->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling function v4 of op [%s, %s].",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Failed to call the tiling function v4 of op [%s, %s].", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
   }
   RecoveryEmptyShapeOfTensorDesc(op_desc, indexes);
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
 }
 
-ge::graphStatus PostProcCalculateV2(const ge::Operator &op, OpRunInfoV2 &run_info)
-{
+ge::graphStatus PostProcCalculateV2(const ge::Operator &op, OpRunInfoV2 &run_info) {
   const ge::OpDescPtr op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   GE_CHECK_NOTNULL(op_desc);
   const std::vector<int64_t> all_workspaces = op_desc->GetWorkspaceBytes();
@@ -481,7 +475,7 @@ ge::graphStatus PostProcCalculateV2(const ge::Operator &op, OpRunInfoV2 &run_inf
 
   // mixl2--pass will add additional works after op_workspaces
   for (size_t i = op_work_size; i < all_workspaces.size(); ++i) {
-    (void) op_workspaces.emplace_back(all_workspaces[i]);
+    (void)op_workspaces.emplace_back(all_workspaces[i]);
   }
   for (size_t i = 0; i < op_workspaces.size(); ++i) {
     GELOGD("Op's workspace: %zu, value: %ld.", i, op_workspaces[i]);
@@ -515,10 +509,10 @@ OpTilingFuncInfo *GetOpTilingInfo(const ge::OpDescPtr &op_desc) {
   return ::ge::PtrToPtr<void, OpTilingFuncInfo>(op_desc->GetTilingFuncInfo());
 }
 
-void parse_tiling_data(const void* base, const size_t max_size) {
+void parse_tiling_data(const void *base, const size_t max_size) {
   std::stringstream result;
   int32_t tmp = 0;
-  const char* base_addr = static_cast<const char*>(base);
+  const char *base_addr = static_cast<const char *>(base);
   for (size_t i = 0U; i < max_size; i += sizeof(int32_t)) {
     if ((max_size - i) < sizeof(tmp)) {
       return;
@@ -533,8 +527,7 @@ void parse_tiling_data(const void* base, const size_t max_size) {
   return;
 }
 
-ge::graphStatus PostProcMemoryCheck(const ge::Operator &op, OpRunInfoV2 &run_info)
-{
+ge::graphStatus PostProcMemoryCheck(const ge::Operator &op, OpRunInfoV2 &run_info) {
   const ge::OpDescPtr op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   bool value = false;
   if (!ge::AttrUtils::GetBool(op_desc, kMemoryCheck, value) || !value) {
@@ -591,7 +584,7 @@ ge::graphStatus PostProcMemoryCheck(const ge::Operator &op, OpRunInfoV2 &run_inf
   run_info.AddTilingData(cur_size);
 
   uint64_t max_size = 0U;
-  const void* base = run_info.GetAddrBase(max_size);
+  const void *base = run_info.GetAddrBase(max_size);
   parse_tiling_data(base, static_cast<size_t>(max_size));
   return ge::GRAPH_SUCCESS;
 }
@@ -614,10 +607,10 @@ extern "C" ge::graphStatus OpParaCalculateV2(const ge::Operator &op, OpRunInfoV2
     const OpParseFuncV3 &parse_func = op_func_info->GetOpParseFuncV3();
     ret = TurnToOpParaCalculateV3(op, run_info, tiling_func, parse_func);
   } else if (op_func_info->IsFunctionV2()) {
-    const OpTilingFuncV2  &tiling_func = op_func_info->GetOpTilingFuncV2();
+    const OpTilingFuncV2 &tiling_func = op_func_info->GetOpTilingFuncV2();
     ret = TurnToOpParaCalculateV2(op, run_info, tiling_func);
   } else if (op_func_info->IsFunctionV1()) {
-    const OpTilingFunc  &tiling_func = op_func_info->GetOpTilingFunc();
+    const OpTilingFunc &tiling_func = op_func_info->GetOpTilingFunc();
     ret = TurnToOpParaCalculateV1(op, run_info, tiling_func);
   } else {
     GE_LOGE("Optiling function for op type [%s] is entirely empty.", op_desc->GetType().c_str());
@@ -644,7 +637,7 @@ ge::graphStatus AssembleCompileInfoJson(const ge::OpDescPtr &op_desc_ptr,
   nlohmann::json compile_info_json;
   try {
     compile_info_json = nlohmann::json::parse(op_compile_info_json);
-  } catch (nlohmann::json::parse_error& ex) {
+  } catch (nlohmann::json::parse_error &ex) {
     REPORT_INNER_ERR_MSG("E19999",
                          "Failed to set compile_info_value to the json format for op[%s]. op_compile_info_json: %s",
                          op_desc_ptr->GetName().c_str(), op_compile_info_json.c_str());
@@ -659,11 +652,10 @@ ge::graphStatus AssembleCompileInfoJson(const ge::OpDescPtr &op_desc_ptr,
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr,
-                                      int64_t &first_clean_size,
+ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr, int64_t &first_clean_size,
                                       std::vector<int64_t> &workspace_size_list) {
   std::vector<int64_t> atomic_output_indices;
-  (void) ge::AttrUtils::GetListInt(op_desc_ptr, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::GetListInt(op_desc_ptr, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
   std::map<string, std::map<int64_t, int64_t>> atomic_workspace_info;
   atomic_workspace_info = op_desc_ptr->TryGetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
   const bool atomic_flag = atomic_output_indices.empty() && atomic_workspace_info.empty();
@@ -704,8 +696,7 @@ ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr,
     const std::map<int64_t, int64_t> workspace_bytes_map = atomic_workspace_info[op_desc_ptr->GetName()];
     for (auto &workspace_idxs : workspace_bytes_map) {
       if (workspace_idxs.first < static_cast<int64_t>(workspace_bytes.size())) {
-        workspace_size_list.push_back(static_cast<int64_t>(
-            workspace_bytes[static_cast<size_t>(workspace_idxs.first)]));
+        workspace_size_list.push_back(static_cast<int64_t>(workspace_bytes[static_cast<size_t>(workspace_idxs.first)]));
       }
     }
   }
@@ -714,8 +705,8 @@ ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr,
 
 ge::graphStatus OpAtomicCalculateV1(const ge::OpDescPtr &op_desc_ptr, OpRunInfo &run_info,
                                     const OpTilingFunc &tiling_func) {
-  GELOGI("Begin to perform atomic optiling. op_type: %s, op_name: %s",
-         OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN.c_str(), op_desc_ptr->GetName().c_str());
+  GELOGI("Begin to perform atomic optiling. op_type: %s, op_name: %s", OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN.c_str(),
+         op_desc_ptr->GetName().c_str());
   OpCompileInfo op_compile_info;
   if (!ge::AttrUtils::GetStr(op_desc_ptr, ATOMIC_COMPILE_INFO_KEY, op_compile_info.key)) {
     GE_LOGE("Op [%s] does not have attribute [%s].", op_desc_ptr->GetName().c_str(), ATOMIC_COMPILE_INFO_KEY.c_str());
@@ -729,8 +720,8 @@ ge::graphStatus OpAtomicCalculateV1(const ge::OpDescPtr &op_desc_ptr, OpRunInfo 
   int64_t first_clean_size = 0;
   std::vector<int64_t> workspace_size_list;
   if (AssembleWorkspaceList(op_desc_ptr, first_clean_size, workspace_size_list) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to retrieve the workspace size list from op[%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to retrieve the workspace size list from op[%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
 
@@ -741,24 +732,24 @@ ge::graphStatus OpAtomicCalculateV1(const ge::OpDescPtr &op_desc_ptr, OpRunInfo 
 
   GenerateCompileInfoKey(workspace_size_list, op_compile_info.key);
   if (AssembleCompileInfoJson(op_desc_ptr, workspace_size_list, op_compile_info.str) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to assemble compile info json for op [%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to assemble compile info json for op [%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
 
   const bool ret = (tiling_func)(op_param, op_compile_info, run_info);
   if (ret) {
-    GELOGI("Atomic optiling v1 operation succeeded. op_type: %s, op_name: %s.",
-           op_desc_ptr->GetType().c_str(), op_desc_ptr->GetName().c_str());
+    GELOGI("Atomic optiling v1 operation succeeded. op_type: %s, op_name: %s.", op_desc_ptr->GetType().c_str(),
+           op_desc_ptr->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling v1 function of atomic op [%s, %s].",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GELOGW("Failed to call the tiling v1 function of atomic op [%s, %s].", op_desc_ptr->GetName().c_str(),
+           op_desc_ptr->GetType().c_str());
   }
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
 }
 
 static ge::graphStatus TurnToOpAtomicCalculateV1(const ge::OpDescPtr &op_desc_ptr, OpRunInfoV2 &run_info,
-                                          const OpTilingFunc &tiling_func) {
+                                                 const OpTilingFunc &tiling_func) {
   OpRunInfo run_info_struct;
   run_info_struct.block_dim = run_info.GetBlockDim();
   run_info_struct.clear_atomic = run_info.GetClearAtomic();
@@ -780,11 +771,10 @@ static ge::graphStatus TurnToOpAtomicCalculateV1(const ge::OpDescPtr &op_desc_pt
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr,
-                                      std::vector<int64_t> &workspace_list,
+ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr, std::vector<int64_t> &workspace_list,
                                       std::vector<int64_t> &workspace_size_list) {
   std::vector<int64_t> atomic_output_indices;
-  (void) ge::AttrUtils::GetListInt(op_desc_ptr, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::GetListInt(op_desc_ptr, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
   std::map<string, std::map<int64_t, int64_t>> atomic_workspace_info;
   atomic_workspace_info = op_desc_ptr->TryGetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
   const bool atomic_flag = atomic_output_indices.empty() && atomic_workspace_info.empty();
@@ -833,14 +823,13 @@ ge::graphStatus AssembleWorkspaceList(const ge::OpDescPtr &op_desc_ptr,
 }
 
 static ge::graphStatus TurnToOpAtomicCalculateV2(const ge::OpDescPtr &op_desc_ptr, OpRunInfoV2 &run_info,
-                                          const OpTilingFuncV2 &tiling_func) {
-  GELOGI("Begin atomic optiling V2 for op [%s, %s].",
-         op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+                                                 const OpTilingFuncV2 &tiling_func) {
+  GELOGI("Begin atomic optiling V2 for op [%s, %s].", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
   std::vector<int64_t> workspace_list;
   std::vector<int64_t> workspace_size_list;
   if (AssembleWorkspaceList(op_desc_ptr, workspace_list, workspace_size_list) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to retrieve the workspace size list from op[%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to retrieve the workspace size list from op[%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
   ge::Operator op_param(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN.c_str());
@@ -858,32 +847,31 @@ static ge::graphStatus TurnToOpAtomicCalculateV2(const ge::OpDescPtr &op_desc_pt
   }
   GenerateCompileInfoKey(workspace_size_list, op_compile_info_key);
   if (AssembleCompileInfoJson(op_desc_ptr, workspace_size_list, op_compile_info_json) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to assemble compile info json for op [%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to assemble compile info json for op [%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
   const OpCompileInfoV2 op_compile_info(op_compile_info_key, op_compile_info_json);
   const bool ret = (tiling_func)(op_param, op_compile_info, run_info);
   if (ret) {
-    GELOGI("Atomic optiling v2 operation succeeded. op_type: %s, op_name: %s.",
-           op_desc_ptr->GetType().c_str(), op_desc_ptr->GetName().c_str());
+    GELOGI("Atomic optiling v2 operation succeeded. op_type: %s, op_name: %s.", op_desc_ptr->GetType().c_str(),
+           op_desc_ptr->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling v2 function of atomic op [%s, %s].",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GELOGW("Failed to call the tiling v2 function of atomic op [%s, %s].", op_desc_ptr->GetName().c_str(),
+           op_desc_ptr->GetType().c_str());
   }
   op_param.BreakConnect();
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
 }
 
 static ge::graphStatus TurnToOpAtomicCalculateV3(const ge::OpDescPtr &op_desc_ptr, OpRunInfoV2 &run_info,
-                                          const OpTilingFuncV3 &tiling_func, const OpParseFuncV3 &parse_func) {
-  GELOGI("Begin Atomic optiling V3 for op [%s, %s].",
-         op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+                                                 const OpTilingFuncV3 &tiling_func, const OpParseFuncV3 &parse_func) {
+  GELOGI("Begin Atomic optiling V3 for op [%s, %s].", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
   std::vector<int64_t> workspace_list;
   std::vector<int64_t> workspace_size_list;
   if (AssembleWorkspaceList(op_desc_ptr, workspace_list, workspace_size_list) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to retrieve workspace list from op[%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to retrieve workspace list from op[%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
   ge::Operator op_param(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN.c_str());
@@ -895,16 +883,17 @@ static ge::graphStatus TurnToOpAtomicCalculateV3(const ge::OpDescPtr &op_desc_pt
     return ge::GRAPH_FAILED;
   }
   GenerateCompileInfoKey(workspace_size_list, op_compile_info_key);
-  void* op_compile_json_ptr = CompileInfoCache::Instance().GetCompileInfo(op_compile_info_key);
+  void *op_compile_json_ptr = CompileInfoCache::Instance().GetCompileInfo(op_compile_info_key);
   if (op_compile_json_ptr == nullptr) {
     std::string op_compile_info_json;
     if (!ge::AttrUtils::GetStr(op_desc_ptr, ATOMIC_COMPILE_INFO_JSON, op_compile_info_json)) {
-      GE_LOGE("Op [%s] does not have attribute [%s].", op_desc_ptr->GetName().c_str(), ATOMIC_COMPILE_INFO_JSON.c_str());
+      GE_LOGE("Op [%s] does not have attribute [%s].", op_desc_ptr->GetName().c_str(),
+              ATOMIC_COMPILE_INFO_JSON.c_str());
       return ge::GRAPH_FAILED;
     }
     if (AssembleCompileInfoJson(op_desc_ptr, workspace_size_list, op_compile_info_json) != ge::GRAPH_SUCCESS) {
-      GE_LOGE("Failed to assemble compile info json for op [%s, %s].",
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+      GE_LOGE("Failed to assemble compile info json for op [%s, %s].", op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str());
       return ge::GRAPH_FAILED;
     }
 
@@ -920,25 +909,24 @@ static ge::graphStatus TurnToOpAtomicCalculateV3(const ge::OpDescPtr &op_desc_pt
 
   const bool ret = (tiling_func)(op_param, op_compile_json_ptr, run_info);
   if (ret) {
-    GELOGI("Atomic optiling v3 succeeded. op_type: %s, op_name: %s.",
-           op_desc_ptr->GetType().c_str(), op_desc_ptr->GetName().c_str());
+    GELOGI("Atomic optiling v3 succeeded. op_type: %s, op_name: %s.", op_desc_ptr->GetType().c_str(),
+           op_desc_ptr->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling v3 function for atomic op [%s, %s].",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GELOGW("Failed to call the tiling v3 function for atomic op [%s, %s].", op_desc_ptr->GetName().c_str(),
+           op_desc_ptr->GetType().c_str());
   }
   op_param.BreakConnect();
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
 }
 
 static ge::graphStatus TurnToOpAtomicCalculateV4(const ge::OpDescPtr &op_desc_ptr, OpRunInfoV2 &run_info,
-                                          const OpTilingFuncV4 &tiling_func, const OpParseFuncV4 &parse_func) {
-  GELOGI("Begin Atomic optiling V4 for op [%s, %s].",
-         op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+                                                 const OpTilingFuncV4 &tiling_func, const OpParseFuncV4 &parse_func) {
+  GELOGI("Begin Atomic optiling V4 for op [%s, %s].", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
   std::vector<int64_t> workspace_list;
   std::vector<int64_t> workspace_size_list;
   if (AssembleWorkspaceList(op_desc_ptr, workspace_list, workspace_size_list) != ge::GRAPH_SUCCESS) {
-    GE_LOGE("Failed to retrieve workspace list from op[%s, %s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GE_LOGE("Failed to retrieve workspace list from op[%s, %s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return ge::GRAPH_FAILED;
   }
   ge::Operator op_param(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN.c_str());
@@ -954,12 +942,13 @@ static ge::graphStatus TurnToOpAtomicCalculateV4(const ge::OpDescPtr &op_desc_pt
   if (op_compile_info_ptr == nullptr) {
     std::string op_compile_info_json;
     if (!ge::AttrUtils::GetStr(op_desc_ptr, ATOMIC_COMPILE_INFO_JSON, op_compile_info_json)) {
-      GE_LOGE("Op [%s] does not have attribute [%s].", op_desc_ptr->GetName().c_str(), ATOMIC_COMPILE_INFO_JSON.c_str());
+      GE_LOGE("Op [%s] does not have attribute [%s].", op_desc_ptr->GetName().c_str(),
+              ATOMIC_COMPILE_INFO_JSON.c_str());
       return ge::GRAPH_FAILED;
     }
     if (AssembleCompileInfoJson(op_desc_ptr, workspace_size_list, op_compile_info_json) != ge::GRAPH_SUCCESS) {
-      GE_LOGE("Failed to assemble compile info json for op [%s, %s].",
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+      GE_LOGE("Failed to assemble compile info json for op [%s, %s].", op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str());
       return ge::GRAPH_FAILED;
     }
 
@@ -975,11 +964,11 @@ static ge::graphStatus TurnToOpAtomicCalculateV4(const ge::OpDescPtr &op_desc_pt
 
   const bool ret = (tiling_func)(op_param, op_compile_info_ptr, run_info);
   if (ret) {
-    GELOGI("Atomic optiling v4 succeeded. op_type: %s, op_name: %s.",
-           op_desc_ptr->GetType().c_str(), op_desc_ptr->GetName().c_str());
+    GELOGI("Atomic optiling v4 succeeded. op_type: %s, op_name: %s.", op_desc_ptr->GetType().c_str(),
+           op_desc_ptr->GetName().c_str());
   } else {
-    GELOGW("Failed to call the tiling v4 function of atomic op[%s, %s].",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    GELOGW("Failed to call the tiling v4 function of atomic op[%s, %s].", op_desc_ptr->GetName().c_str(),
+           op_desc_ptr->GetType().c_str());
   }
   op_param.BreakConnect();
   return ret ? ge::GRAPH_SUCCESS : ge::GRAPH_FAILED;
@@ -993,8 +982,7 @@ OpTilingFuncInfo *GetOpAtomicTilingInfo(const ge::OpDescPtr &op_desc) {
     auto &op_func_map = OpTilingFuncRegistry::RegisteredOpFuncInfo();
     const auto iter = op_func_map.find(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
     if (iter == op_func_map.end()) {
-      GE_LOGE("Atomic optiling func not found of op[%s, %s].",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      GE_LOGE("Atomic optiling func not found of op[%s, %s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
       return nullptr;
     }
     op_desc->SetAtomicTilingFuncInfo(::ge::PtrToPtr<OpTilingFuncInfo, void>(&(iter->second)));
@@ -1029,11 +1017,9 @@ extern "C" ge::graphStatus OpAtomicCalculateV2(const ge::Node &node, OpRunInfoV2
 }
 
 ge::graphStatus UpDateNodeShapeBySliceInfo(const ffts::ThreadSliceMapDyPtr slice_info_ptr, const ge::OpDescPtr op_desc,
-                                           const uint32_t thread_id, vector<int64_t> &ori_shape,
-                                           bool &same_shape)
-{
-  if ((thread_id >= slice_info_ptr->input_tensor_slice.size())
-      || (thread_id >= slice_info_ptr->output_tensor_slice.size())) {
+                                           const uint32_t thread_id, vector<int64_t> &ori_shape, bool &same_shape) {
+  if ((thread_id >= slice_info_ptr->input_tensor_slice.size()) ||
+      (thread_id >= slice_info_ptr->output_tensor_slice.size())) {
     REPORT_INNER_ERR_MSG("E19999", "Update node shape thread id(%u) err.", thread_id);
     return ge::GRAPH_FAILED;
   }
@@ -1041,13 +1027,13 @@ ge::graphStatus UpDateNodeShapeBySliceInfo(const ffts::ThreadSliceMapDyPtr slice
   for (auto &index : slice_info_ptr->input_tensor_indexes) {
     tensor_ptr = op_desc->MutableInputDesc(index);
     GE_CHECK_NOTNULL(tensor_ptr);
-    ge::GeShape& shape = tensor_ptr->MutableShape();
+    ge::GeShape &shape = tensor_ptr->MutableShape();
     auto &tmp_dim = slice_info_ptr->input_tensor_slice[static_cast<size_t>(thread_id)][index];
     if (tmp_dim.empty()) {
       return ge::GRAPH_FAILED;
     }
     if (thread_id == 0U) {
-      (void) ori_shape.emplace_back(shape.GetDim(0));
+      (void)ori_shape.emplace_back(shape.GetDim(0));
       auto &tail_dim = slice_info_ptr->input_tensor_slice[slice_info_ptr->slice_instance_num - 1][index];
       if (tail_dim.empty()) {
         return ge::GRAPH_FAILED;
@@ -1061,9 +1047,9 @@ ge::graphStatus UpDateNodeShapeBySliceInfo(const ffts::ThreadSliceMapDyPtr slice
   for (auto &index : slice_info_ptr->output_tensor_indexes) {
     tensor_ptr = op_desc->MutableOutputDesc(index);
     GE_CHECK_NOTNULL(tensor_ptr);
-    ge::GeShape& shape = tensor_ptr->MutableShape();
+    ge::GeShape &shape = tensor_ptr->MutableShape();
     if (thread_id == 0U) {
-      (void) ori_shape.emplace_back(shape.GetDim(0));
+      (void)ori_shape.emplace_back(shape.GetDim(0));
     }
     auto &tmp_dim = slice_info_ptr->output_tensor_slice[static_cast<size_t>(thread_id)][index];
     if (tmp_dim.empty()) {
@@ -1076,11 +1062,9 @@ ge::graphStatus UpDateNodeShapeBySliceInfo(const ffts::ThreadSliceMapDyPtr slice
 }
 
 ge::graphStatus UpDateNodeShapeBack(const ge::OpDescPtr op_desc, const ffts::ThreadSliceMapDyPtr slice_info_ptr,
-                                    vector<int64_t> &ori_shape)
-{
-  if (slice_info_ptr == nullptr ||
-      ori_shape.size() != (slice_info_ptr->input_tensor_indexes.size() +
-                           slice_info_ptr->output_tensor_indexes.size())) {
+                                    vector<int64_t> &ori_shape) {
+  if (slice_info_ptr == nullptr || ori_shape.size() != (slice_info_ptr->input_tensor_indexes.size() +
+                                                        slice_info_ptr->output_tensor_indexes.size())) {
     REPORT_INNER_ERR_MSG("E19999", "Update back node shape size err.");
     return ge::GRAPH_FAILED;
   }
@@ -1088,13 +1072,13 @@ ge::graphStatus UpDateNodeShapeBack(const ge::OpDescPtr op_desc, const ffts::Thr
   for (auto &index : slice_info_ptr->input_tensor_indexes) {
     ge::GeTensorDescPtr tensor_ptr = op_desc->MutableInputDesc(index);
     GE_CHECK_NOTNULL(tensor_ptr);
-    ge::GeShape& shape = tensor_ptr->MutableShape();
+    ge::GeShape &shape = tensor_ptr->MutableShape();
     (void)shape.SetDim(0, ori_shape[idx++]);
   }
   for (auto &index : slice_info_ptr->output_tensor_indexes) {
     ge::GeTensorDescPtr tensor_ptr = op_desc->MutableOutputDesc(index);
     GE_CHECK_NOTNULL(tensor_ptr);
-    ge::GeShape& shape = tensor_ptr->MutableShape();
+    ge::GeShape &shape = tensor_ptr->MutableShape();
     (void)shape.SetDim(0, ori_shape[idx++]);
   }
   GELOGD("Node shape update reverted successfully.");
@@ -1102,8 +1086,7 @@ ge::graphStatus UpDateNodeShapeBack(const ge::OpDescPtr op_desc, const ffts::Thr
 }
 
 // For FFTS+ dynamic shape
-extern "C" ge::graphStatus OpFftsPlusCalculate(const ge::Operator &op, std::vector<OpRunInfoV2> &op_run_info)
-{
+extern "C" ge::graphStatus OpFftsPlusCalculate(const ge::Operator &op, std::vector<OpRunInfoV2> &op_run_info) {
   const auto node = ge::NodeUtilsEx::GetNodeFromOperator(op);
   GE_CHECK_NOTNULL(node);
   const auto op_desc = node->GetOpDesc();
@@ -1117,7 +1100,7 @@ extern "C" ge::graphStatus OpFftsPlusCalculate(const ge::Operator &op, std::vect
     REPORT_INNER_ERR_MSG("E19999", "Slice num not equal.");
     return ge::GRAPH_FAILED;
   }
-  vector<int64_t> ori_shape; // save original shape
+  vector<int64_t> ori_shape;  // save original shape
   uint32_t thread_id = 0U;
   op_run_info.resize(ffts::kSgtTillingNum);
   bool same_shape = true;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,18 +34,18 @@ bool NeedAtomicCleanConcentratively(const Node *const node) {
 
   // 在集中清零的策略下，有些场景的算子也会使用单独清零
   bool is_clean_separately = false;
-  (void) ge::AttrUtils::GetBool(op_desc, "need_gentask_atomic", is_clean_separately);
+  (void)ge::AttrUtils::GetBool(op_desc, "need_gentask_atomic", is_clean_separately);
   if (is_clean_separately) {
     return false;
   }
 
   const auto has_atomic_input = op_desc->HasAttr(ATOMIC_ATTR_INPUT_INDEX);
   const auto has_atomic_output = op_desc->HasAttr(ATOMIC_ATTR_OUTPUT_INDEX);
-  const auto atomic_workspace_index_size = op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO,
-                                                                  std::map<std::string, std::map<int64_t, int64_t>>{});
+  const auto atomic_workspace_index_size =
+      op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, std::map<std::string, std::map<int64_t, int64_t>>{});
   bool is_atomic_node = false;
   // If GetBool fail, is_atomic_node is false.
-  (void) ge::AttrUtils::GetBool(op_desc, ATOMIC_ATTR_IS_ATOMIC_NODE, is_atomic_node);
+  (void)ge::AttrUtils::GetBool(op_desc, ATOMIC_ATTR_IS_ATOMIC_NODE, is_atomic_node);
   if (is_atomic_node || (has_atomic_input || has_atomic_output || (!atomic_workspace_index_size.empty()))) {
     return true;
   }
@@ -56,7 +56,7 @@ bool NeedAtomicCleanConcentratively(const Node *const node) {
 std::string GetAtomicCleanAttr(const Node *const node) {
   std::stringstream ss;
   std::vector<int64_t> atomic_input_index;
-  (void) ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_INPUT_INDEX, atomic_input_index);
+  (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_INPUT_INDEX, atomic_input_index);
   ss << "atomic_input_index[";
   for (size_t i = 0U; i < atomic_input_index.size(); ++i) {
     ss << atomic_input_index.at(i);
@@ -66,31 +66,31 @@ std::string GetAtomicCleanAttr(const Node *const node) {
   }
   ss << "], atomic_output_index[";
   std::vector<int64_t> atomic_output_index;
-  (void) ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
   for (size_t i = 0U; i < atomic_output_index.size(); ++i) {
     ss << atomic_output_index.at(i);
     if (i + 1U != atomic_output_index.size()) {
       ss << ", ";
     }
   }
-  ss <<  "], sub_node_workspace_info[";
+  ss << "], sub_node_workspace_info[";
   const auto atomic_workspace_info = node->GetOpDescBarePtr()->TryGetExtAttr(
       EXT_ATTR_ATOMIC_WORKSPACE_INFO, std::map<std::string, std::map<int64_t, int64_t>>{});
   for (const auto &info : atomic_workspace_info) {
     for (const auto &index_size_pair : info.second) {
-      ss << "[index: " <<index_size_pair.first << ", size: " << index_size_pair.second << "]";
+      ss << "[index: " << index_size_pair.first << ", size: " << index_size_pair.second << "]";
     }
   }
   ss << "]";
   return ss.str();
 }
 
-Status GetWorkspaceCleanAddrs(const Node *const node,  AtomicNodeCleanTypeVals &type_vals,
+Status GetWorkspaceCleanAddrs(const Node *const node, AtomicNodeCleanTypeVals &type_vals,
                               std::vector<CleanAddrSizeType> &clean_addrs) {
   const auto op_desc = node->GetOpDescBarePtr();
   // 融合算子的workspace清零，没有将地址写到MemSet中
   bool is_fusion_node = false;
-  (void) ge::AttrUtils::GetBool(op_desc, ATOMIC_ATTR_IS_FUSION_NODE, is_fusion_node);
+  (void)ge::AttrUtils::GetBool(op_desc, ATOMIC_ATTR_IS_FUSION_NODE, is_fusion_node);
   const auto workspace_offsets = op_desc->GetWorkspace();
   if (workspace_offsets.empty() || is_fusion_node) {
     return SUCCESS;
@@ -98,8 +98,8 @@ Status GetWorkspaceCleanAddrs(const Node *const node,  AtomicNodeCleanTypeVals &
 
   const auto workspace_size = node->GetOpDescBarePtr()->GetWorkspaceBytes();
   GE_ASSERT_TRUE(workspace_offsets.size() == workspace_size.size(),
-                 "node %s workspace_offsets.size[%zu] != workspace_size.size[%zu]",
-                 workspace_offsets.size(), workspace_size.size());
+                 "node %s workspace_offsets.size[%zu] != workspace_size.size[%zu]", workspace_offsets.size(),
+                 workspace_size.size());
 
   std::vector<int64_t> tvm_workspace_types;
   const bool has_tvm_workspace_mem_type_attr =
@@ -109,8 +109,8 @@ Status GetWorkspaceCleanAddrs(const Node *const node,  AtomicNodeCleanTypeVals &
   const bool has_workspace_type_list_attr =
       ge::AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, workspace_type_list);
 
-  const auto atomic_workspace_index_size = op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO,
-                                                                  std::map<std::string, std::map<int64_t, int64_t>>{});
+  const auto atomic_workspace_index_size =
+      op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, std::map<std::string, std::map<int64_t, int64_t>>{});
   for (const auto &workspace_info : atomic_workspace_index_size) {
     for (const auto &index_size_pair : workspace_info.second) {
       const auto index = static_cast<size_t>(index_size_pair.first);
@@ -140,24 +140,24 @@ Status GetWorkspaceCleanAddrs(const Node *const node,  AtomicNodeCleanTypeVals &
 
 std::vector<int32_t> GetMemsetDataTypeList(const Node *atomic_node) {
   std::vector<int32_t> data_type_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
   return data_type_list;
 }
 std::vector<int64_t> GetMemsetWorkspaceTypeList(const Node *atomic_node) {
   std::vector<int64_t> type_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_WORKSPACE_TYPE_LIST, type_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_WORKSPACE_TYPE_LIST, type_list);
   return type_list;
 }
 
 std::vector<float32_t> GetMemsetFloatValList(const Node *atomic_node) {
   std::vector<float32_t> float_list;
-  (void) AttrUtils::GetListFloat(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_FLOAT, float_list);
+  (void)AttrUtils::GetListFloat(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_FLOAT, float_list);
   return float_list;
 }
 
 std::vector<int64_t> GetMemsetIntValList(const Node *atomic_node) {
   std::vector<int64_t> int_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
   return int_list;
 }
 
@@ -180,12 +180,13 @@ Status GetMemsetNodeAddrAndAttr(const Node *node, MemsetNodeAddrAndAttr &addr_at
   addr_attr.data_type_list = GetMemsetDataTypeList(node);
   GE_ASSERT_TRUE(addr_attr.data_type_list.size() == addr_attr.offsets.size(),
                  "memset %s data_type_list.size[%zu] is not equal to workspace.size[%zu], data_type_list:%s,"
-                 " workspace:%s", node->GetNamePtr(), addr_attr.data_type_list.size(), addr_attr.offsets.size(),
+                 " workspace:%s",
+                 node->GetNamePtr(), addr_attr.data_type_list.size(), addr_attr.offsets.size(),
                  ToString(addr_attr.data_type_list).c_str(), ToString(addr_attr.offsets).c_str());
   GE_ASSERT_TRUE((float_list.size() + int_list.size()) == addr_attr.data_type_list.size(),
                  "memset %s float value list size[%zu] + int value list size[%zu] is not equal to data_type_list"
-                 " size[%zu]", node->GetNamePtr(), float_list.size(), int_list.size(),
-                 addr_attr.data_type_list.size());
+                 " size[%zu]",
+                 node->GetNamePtr(), float_list.size(), int_list.size(), addr_attr.data_type_list.size());
   size_t float_index = 0U;
   size_t int_index = 0U;
   // 这里把float_list/int_list的长度和data_type_list长度填充成一样，方便使用index索引
@@ -194,12 +195,12 @@ Status GetMemsetNodeAddrAndAttr(const Node *node, MemsetNodeAddrAndAttr &addr_at
   for (size_t i = 0U; i < addr_attr.data_type_list.size(); ++i) {
     const auto data_type = addr_attr.data_type_list.at(i);
     if (IsFloatType(static_cast<ge::DataType>(data_type))) {
-      GE_ASSERT_TRUE(float_index < float_list.size(), "float_index[%zu] >= float_list size[%zu], i:%zu",
-                     float_index, float_list.size(), i);
+      GE_ASSERT_TRUE(float_index < float_list.size(), "float_index[%zu] >= float_list size[%zu], i:%zu", float_index,
+                     float_list.size(), i);
       addr_attr.float_list[i] = float_list.at(float_index++);
     } else {
-      GE_ASSERT_TRUE(int_index < int_list.size(), "int_index[%zu] >= int_list size[%zu], i:%zu",
-                     int_index, int_list.size(), i);
+      GE_ASSERT_TRUE(int_index < int_list.size(), "int_index[%zu] >= int_list size[%zu], i:%zu", int_index,
+                     int_list.size(), i);
       addr_attr.int_list[i] = int_list.at(int_index++);
     }
   }
@@ -213,13 +214,14 @@ void FindMemSets(const Node *atomic_node, std::vector<Node *> &memset_nodes) {
     }
   }
 }
-}
+}  // namespace
 
 Status AtomicCleanChecker::Check(const ge::ComputeGraphPtr &graph) {
   // 只检查集中清零
   std::string atomic_clean_policy;
-  const bool need_clean_separately = (GetContext().GetOption(ge::ATOMIC_CLEAN_POLICY, atomic_clean_policy) == SUCCESS)
-      && (atomic_clean_policy == kCleanSeparately);
+  const bool need_clean_separately =
+      (GetContext().GetOption(ge::ATOMIC_CLEAN_POLICY, atomic_clean_policy) == SUCCESS) &&
+      (atomic_clean_policy == kCleanSeparately);
   if (need_clean_separately) {
     GELOGI("atomic clean separately, no need to check, graph: %s", graph->GetName().c_str());
     return SUCCESS;
@@ -245,9 +247,9 @@ Status AtomicCleanChecker::Check(const ge::ComputeGraphPtr &graph) {
         PrintMemSet(memset_nodes);
         (void)FindInMemSetOffsets(memset_nodes, clean_addr, true);
         REPORT_INNER_ERR_MSG("E19999", "graph %s node %s check atomic clean address failed, need to clean %s",
-                           graph->GetName().c_str(), node->GetNamePtr(), clean_addr.ToString().c_str());
-        GELOGE(FAILED, "graph %s node %s check atomic clean address failed, need to clean %s",
-               graph->GetName().c_str(), node->GetNamePtr(), clean_addr.ToString().c_str());
+                             graph->GetName().c_str(), node->GetNamePtr(), clean_addr.ToString().c_str());
+        GELOGE(FAILED, "graph %s node %s check atomic clean address failed, need to clean %s", graph->GetName().c_str(),
+               node->GetNamePtr(), clean_addr.ToString().c_str());
         const auto attrs = GetAtomicCleanAttr(node);
         GELOGE(FAILED, "node: %s attrs: %s", node->GetNamePtr(), attrs.c_str());
         return FAILED;
@@ -262,8 +264,8 @@ Status AtomicCleanChecker::GetMemSetAddrs(const Node *const node) {
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(node->GetOpDescBarePtr());
   MemsetNodeAddrAndAttr addr_attr(node->GetOpDescBarePtr()->GetWorkspace().size());
-  GE_ASSERT_SUCCESS(GetMemsetNodeAddrAndAttr(node, addr_attr),
-                    "get memset node address and attrs failed, node: %s", node->GetNamePtr());
+  GE_ASSERT_SUCCESS(GetMemsetNodeAddrAndAttr(node, addr_attr), "get memset node address and attrs failed, node: %s",
+                    node->GetNamePtr());
   auto &clean_mem_infos = memset_to_clean_infos_[node];
   for (size_t i = 0U; i < addr_attr.offsets.size(); ++i) {
     CleanMemInfo mem_info;
@@ -281,10 +283,10 @@ Status AtomicCleanChecker::GetMemSetAddrs(const Node *const node) {
 Status AtomicCleanChecker::GetCleanAddrs(const Node *const node, std::vector<CleanAddrSizeType> &clean_addrs) const {
   GE_ASSERT_SUCCESS(GetInputCleanAddrs(node, clean_addrs), "node: %s get input clean addrs failed", node->GetNamePtr());
   AtomicNodeCleanTypeVals type_vals;
-  GE_ASSERT_SUCCESS(type_vals.Init(node), "data type and value attrs init failed, node: %s(%s)",
-                    node->GetNamePtr(), node->GetTypePtr());
-  GE_ASSERT_SUCCESS(GetOutputCleanAddrs(node, type_vals, clean_addrs),
-                    "node: %s get out clean addrs failed", node->GetNamePtr());
+  GE_ASSERT_SUCCESS(type_vals.Init(node), "data type and value attrs init failed, node: %s(%s)", node->GetNamePtr(),
+                    node->GetTypePtr());
+  GE_ASSERT_SUCCESS(GetOutputCleanAddrs(node, type_vals, clean_addrs), "node: %s get out clean addrs failed",
+                    node->GetNamePtr());
   GE_ASSERT_SUCCESS(GetWorkspaceCleanAddrs(node, type_vals, clean_addrs), "node: %s get workspace clean addrs failed.",
                     node->GetNamePtr());
   return SUCCESS;
@@ -296,7 +298,7 @@ Status AtomicCleanChecker::GetInputCleanAddrs(const Node *const node,
   const auto input_offsets = op_desc->GetInputOffset();
 
   std::vector<int64_t> atomic_input_index;
-  (void) ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_INPUT_INDEX, atomic_input_index);
+  (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_INPUT_INDEX, atomic_input_index);
   GE_ASSERT_TRUE(input_offsets.size() >= atomic_input_index.size(),
                  "node %s input_offsets.size[%zu] < atomic_input_index.size[%zu]", node->GetNamePtr(),
                  input_offsets.size(), atomic_input_index.size());
@@ -308,8 +310,8 @@ Status AtomicCleanChecker::GetInputCleanAddrs(const Node *const node,
   }
   for (const auto index : atomic_input_index) {
     GE_ASSERT_TRUE(static_cast<size_t>(index) < input_offsets.size(),
-                   "node %s atomic_input_index[%lld] >= input_offsets.size[%zu]",
-                   node->GetNamePtr(), index, input_offsets.size());
+                   "node %s atomic_input_index[%lld] >= input_offsets.size[%zu]", node->GetNamePtr(), index,
+                   input_offsets.size());
     CleanMemInfo clean_mem;
     clean_mem.offset = input_offsets.at(index);
     GE_ASSERT_SUCCESS(NodeCheckerUtils::GetInputSize(node, index, clean_mem.size));
@@ -326,14 +328,14 @@ Status AtomicCleanChecker::GetOutputCleanAddrs(const Node *const node, AtomicNod
   const auto output_offsets = op_desc->GetOutputOffset();
 
   std::vector<int64_t> atomic_output_index;
-  (void) ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
   GE_ASSERT_TRUE(output_offsets.size() >= atomic_output_index.size(),
                  "node %s output_offsets.size[%zu] < atomic_output_index.size[%zu]", node->GetNamePtr(),
                  output_offsets.size(), atomic_output_index.size());
   for (const auto index : atomic_output_index) {
     GE_ASSERT_TRUE(static_cast<size_t>(index) < output_offsets.size(),
-                   "node %s atomic_output_index[%lld] >= output_offsets.size[%zu]",
-                   node->GetNamePtr(), index, output_offsets.size());
+                   "node %s atomic_output_index[%lld] >= output_offsets.size[%zu]", node->GetNamePtr(), index,
+                   output_offsets.size());
     CleanMemInfo mem_info;
     mem_info.offset = output_offsets.at(index);
     GE_ASSERT_SUCCESS(NodeCheckerUtils::GetOutputSize(node, index, mem_info.size));
@@ -351,20 +353,20 @@ Status AtomicCleanChecker::GetMemType(const Node *const node, const IOType &io_t
 }
 
 bool AtomicCleanChecker::FindInMemSetOffsets(const std::vector<Node *> &memset_nodes,
-                                             const CleanAddrSizeType &addr_size_type,
-                                             const bool error_mode) const {
+                                             const CleanAddrSizeType &addr_size_type, const bool error_mode) const {
   for (const auto memset_node : memset_nodes) {
     const auto &memset_iter = memset_to_clean_infos_.find(memset_node);
-    GE_ASSERT_TRUE(memset_iter != memset_to_clean_infos_.end(),
-                   "cannot find %s in memset_to_clean_infos_", memset_node->GetNamePtr());
+    GE_ASSERT_TRUE(memset_iter != memset_to_clean_infos_.end(), "cannot find %s in memset_to_clean_infos_",
+                   memset_node->GetNamePtr());
     const auto &memset_clean_infos = memset_iter->second;
     // 找到第一个大于等于被清理的offset的
     auto mem_info_iter = memset_clean_infos.lower_bound(addr_size_type.mem_info);
     if ((mem_info_iter != memset_clean_infos.end()) && (mem_info_iter->Contain(addr_size_type.mem_info))) {
       return true;
     } else if (error_mode) {
-      GELOGE(FAILED, "%s", mem_info_iter != memset_clean_infos.end() ? mem_info_iter->ToStr().c_str() :
-                                                                     "mem_info_iter == memset_clean_infos.end()");
+      GELOGE(FAILED, "%s",
+             mem_info_iter != memset_clean_infos.end() ? mem_info_iter->ToStr().c_str()
+                                                       : "mem_info_iter == memset_clean_infos.end()");
     }
     while (mem_info_iter != memset_clean_infos.begin()) {
       --mem_info_iter;

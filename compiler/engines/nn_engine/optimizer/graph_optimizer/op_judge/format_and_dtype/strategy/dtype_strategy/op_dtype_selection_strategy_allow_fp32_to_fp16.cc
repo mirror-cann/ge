@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,8 @@ void OpDtypeSelectionStrategyAllowFp32ToFp16::ProcessReduceMatch(const vector<ge
   std::string cur_op_desc_type = cur_op_desc_ptr->GetType();
 
   if (origin_dtype == ge::DT_FLOAT) {
-    match_origin_dtype_res =
-        op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, origin_dtype, basic_info.matched_index_vec,
-                                            forbidden_dtype);
+    match_origin_dtype_res = op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, origin_dtype,
+                                                                 basic_info.matched_index_vec, forbidden_dtype);
     if (match_origin_dtype_res == SUCCESS) {
       FE_LOGD("Op[name=%s,type=%s]: set the attr %s in AllowFp32ToFp16 mode.", cur_op_desc_name.c_str(),
               cur_op_desc_type.c_str(), kForceFp32ToFp16.c_str());
@@ -60,8 +59,9 @@ Status OpDtypeSelectionStrategyAllowFp32ToFp16::Run(SelectionBasicInfo &basic_in
   vector<ge::DataType> input_or_output_dtype_vec;
   if (format_dtype_querier_ptr_->GetSupportDataTypes(basic_info.op_kernel_info_ptr, basic_info.tensor_kernel_info_ptr,
                                                      basic_info.node, input_or_output_dtype_vec) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][DtypeJdg][AllowFp32ToFp16] Failed to get the supported data_types for Op %s with type %s.",
-                    cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][DtypeJdg][AllowFp32ToFp16] Failed to get the supported data_types for Op %s with type %s.",
+        cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
     return FAILED;
   }
   std::string op_type = cur_op_desc_ptr->GetType();
@@ -81,8 +81,7 @@ Status OpDtypeSelectionStrategyAllowFp32ToFp16::Run(SelectionBasicInfo &basic_in
     // 1.match datatype with origin datatype using reducing mode, in this mode
     // we will allow the precision reduce from fp32 to fp16 or bf16 to fp16
     FE_LOGD("Precision loss is allowed, try to match low precision dtype.");
-    ProcessReduceMatch(input_or_output_dtype_vec, origin_dtype, basic_info, forbidden_dtype,
-                       match_origin_dtype_res);
+    ProcessReduceMatch(input_or_output_dtype_vec, origin_dtype, basic_info, forbidden_dtype, match_origin_dtype_res);
   }
 
   if (match_origin_dtype_res == SUCCESS) {

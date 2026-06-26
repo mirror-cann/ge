@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@ uint32_t GenTaskId() {
   static std::atomic<uint32_t> next_task_id{500};
   return next_task_id++;
 }
-}
+}  // namespace
 struct InitCall {
   PisToArgs args;
   PisToPersistentWorkspace persistent_workspace;
@@ -83,7 +83,7 @@ class StubTaskInfo : public TaskInfo {
   Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
               const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) override {
     std::vector<MemAllocation> logical_mem_allocations = davinci_model->GetLogicalMemAllocation();
-    const auto match_id = [&logical_mem_allocations] (const uint64_t addr) -> size_t {
+    const auto match_id = [&logical_mem_allocations](const uint64_t addr) -> size_t {
       for (auto &item : logical_mem_allocations) {
         if ((addr >= item.logical_addr) && (addr < (item.logical_addr + item.data_size))) {
           return static_cast<size_t>(item.id);
@@ -98,8 +98,8 @@ class StubTaskInfo : public TaskInfo {
     addr_desc.insert(addr_desc.end(), iow_addrs.workspace_logic_addrs.begin(), iow_addrs.workspace_logic_addrs.end());
     for (const auto &addr : addr_desc) {
       const uint64_t id = match_id(addr.logic_addr);
-      MemAllocationAndOffset id_and_offset =
-      {id, (addr.logic_addr - logical_mem_allocations[id].logical_addr), logical_mem_allocations[id].type};
+      MemAllocationAndOffset id_and_offset = {id, (addr.logic_addr - logical_mem_allocations[id].logical_addr),
+                                              logical_mem_allocations[id].type};
       v_mem_allocation_id_and_offset_.emplace_back(std::move(id_and_offset));
     }
 
@@ -183,7 +183,7 @@ class AicoreStubTaskInfo : public StubTaskInfo {
   }
 
   Status GetTaskIowPaRemapInfos(std::vector<IowPaRemapInfo> &infos) override {
-    for (size_t i = 0U; i < v_mem_allocation_id_and_offset_.size(); i++ ) {
+    for (size_t i = 0U; i < v_mem_allocation_id_and_offset_.size(); i++) {
       IowPaRemapInfo iow_pa_remap_info;
       iow_pa_remap_info.allocation_id = v_mem_allocation_id_and_offset_[i].id;
       iow_pa_remap_info.allocation_offset = v_mem_allocation_id_and_offset_[i].offset;
@@ -251,5 +251,5 @@ class CustomReserveArgsStubTaskInfo : public AicoreStubTaskInfo {
     return true;
   }
 };
-}
+}  // namespace ge
 #endif  // AIR_CXX_TESTS_UT_GE_GRAPH_LOAD_TASK_INFO_STUBS_H_

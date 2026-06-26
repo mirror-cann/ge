@@ -12,21 +12,21 @@
 
 import os
 import sys
-import numpy as np
 
+import numpy as np
 from ge.es import GraphBuilder
-from ge.graph import Tensor, DumpFormat
-from ge.graph.types import DataType, Format
-from ge.ge_global import GeApi
-from ge.session import Session
 from ge.es.all import *
+from ge.ge_global import GeApi
+from ge.graph import DumpFormat, Tensor
+from ge.graph.types import DataType, Format
+from ge.session import Session
 
 # 定义常量
-LOCAL_BATCH = 4      # 本地batch size
-HIDDEN_SIZE = 512    # 隐藏层大小
-NUM_EXPERTS = 8      # 专家数量
-TOP_K = 2            # top-k专家
-RANK_SIZE = 2        # 双卡并行
+LOCAL_BATCH = 4  # 本地batch size
+HIDDEN_SIZE = 512  # 隐藏层大小
+NUM_EXPERTS = 8  # 专家数量
+TOP_K = 2  # top-k专家
+RANK_SIZE = 2  # 双卡并行
 
 
 def build_ep_graph():
@@ -40,29 +40,19 @@ def build_ep_graph():
         ("finished", [LOCAL_BATCH], DataType.DT_BOOL),
         ("shared_output", [LOCAL_BATCH, HIDDEN_SIZE], DataType.DT_FLOAT),
         ("expert_weight", [NUM_EXPERTS, HIDDEN_SIZE, HIDDEN_SIZE], DataType.DT_INT8),
-        ("group_list", [NUM_EXPERTS], DataType.DT_INT32)
+        ("group_list", [NUM_EXPERTS], DataType.DT_INT32),
     ]
 
     # 3、创建输入节点
     inputs = []
     for idx, (name, shape, dtype) in enumerate(input_configs):
-        input_node = builder.create_input(
-            index=idx,
-            name=name,
-            data_type=dtype,
-            shape=shape
-        )
+        input_node = builder.create_input(index=idx, name=name, data_type=dtype, shape=shape)
         inputs.append(input_node)
 
     hidden_states, gate_weight, finished, shared_output, expert_weight, group_list = inputs
 
     # 4、构建计算图
-    quant_result = DynamicQuant(
-        hidden_states,
-        smooth_scales=None,
-        group_index=None,
-        dst_type=DataType.DT_INT8
-    )
+    quant_result = DynamicQuant(hidden_states, smooth_scales=None, group_index=None, dst_type=DataType.DT_INT8)
     hidden_states_int8 = quant_result.y
     pertoken_scale = quant_result.scale
 
@@ -71,7 +61,7 @@ def build_ep_graph():
         rank_size=RANK_SIZE,
         group="hccl_world_group",
         fusion=0,
-        fusion_id=-1
+        fusion_id=-1,
     )
 
     router_logits = MatMul(hidden_states, gate_weight)
@@ -83,15 +73,13 @@ def build_ep_graph():
     topk_ids_float = Cast(topk_ids, dst_type=DataType.DT_FLOAT)
     row_idx_float = Cast(row_idx, dst_type=DataType.DT_FLOAT)
     pertoken_scale_unsqueezed = Unsqueeze(pertoken_scale, axes=[-1])
-    topk_cat = ConcatV2([topk_weights, topk_ids_float, row_idx_float, pertoken_scale_unsqueezed], concat_dim=-1, N=4)
-
-    topk_all = HcomAllGather(
-        topk_cat,
-        rank_size=RANK_SIZE,
-        group="hccl_world_group",
-        fusion=0,
-        fusion_id=-1
+    topk_cat = ConcatV2(
+        [topk_weights, topk_ids_float, row_idx_float, pertoken_scale_unsqueezed],
+        concat_dim=-1,
+        N=4,
     )
+
+    topk_all = HcomAllGather(topk_cat, rank_size=RANK_SIZE, group="hccl_world_group", fusion=0, fusion_id=-1)
 
     size_splits = builder.create_vector_int64([TOP_K, TOP_K, TOP_K, 1])
     split_results = SplitV(topk_all, size_splits, -1, 4, num_split=4)
@@ -115,19 +103,19 @@ def build_ep_graph():
     weight_scale = builder.create_const_float(scale_data.flatten().tolist(), [NUM_EXPERTS, HIDDEN_SIZE])
 
     moe_output = GroupedMatmulFinalizeRouting(
-        dispatched_hidden_states,        # x (int8)
-        expert_weight,                   # w (int8)
-        scale=weight_scale,              # scale
-        bias=None,                       # bias（可选）
+        dispatched_hidden_states,  # x (int8)
+        expert_weight,  # w (int8)
+        scale=weight_scale,  # scale
+        bias=None,  # bias（可选）
         pertoken_scale=dispatched_pertoken_scale,  # pertoken_scale
-        group_list=group_list_int64,     # group_list
-        shared_input=None,               # shared_input（可选）
+        group_list=group_list_int64,  # group_list
+        shared_input=None,  # shared_input（可选）
         logit=global_topk_weights_flat,  # logit
-        row_index=global_row_idx_flat,   # row_index
-        offset=None,                     # offset（可选）
-        dtype=DataType.DT_FLOAT,         # 输出数据类型
-        shared_input_weight=0.0,         # 共享输入权重
-        output_bs=LOCAL_BATCH * RANK_SIZE  # 输出batch size
+        row_index=global_row_idx_flat,  # row_index
+        offset=None,  # offset（可选）
+        dtype=DataType.DT_FLOAT,  # 输出数据类型
+        shared_input_weight=0.0,  # 共享输入权重
+        output_bs=LOCAL_BATCH * RANK_SIZE,  # 输出batch size
     )
 
     final_hidden_states = HcomReduceScatter(
@@ -136,7 +124,7 @@ def build_ep_graph():
         group="hccl_world_group",
         rank_size=RANK_SIZE,
         fusion=0,
-        fusion_id=-1
+        fusion_id=-1,
     )
 
     # Add shared_output
@@ -160,10 +148,7 @@ def run_graph(graph, device_id="0") -> int:
     rank_table_file = os.environ.get("RANK_TABLE_FILE", None)
 
     # 构建配置字典
-    config = {
-        "ge.exec.deviceId": str(device_id),
-        "ge.graphRunMode": "0"  
-    }
+    config = {"ge.exec.deviceId": str(device_id), "ge.graphRunMode": "0"}
 
     if rank_id is not None and rank_table_file is not None:
         config["ge.exec.rankTableFile"] = rank_table_file
@@ -200,7 +185,7 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_ND,
-            [LOCAL_BATCH, HIDDEN_SIZE]
+            [LOCAL_BATCH, HIDDEN_SIZE],
         )
 
         # gate_weight
@@ -210,18 +195,12 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_ND,
-            [HIDDEN_SIZE, NUM_EXPERTS]
+            [HIDDEN_SIZE, NUM_EXPERTS],
         )
 
         # finished (BOOL 类型)
         finished_data = [False] * LOCAL_BATCH
-        finished_tensor = Tensor(
-            finished_data,
-            None,
-            DataType.DT_BOOL,
-            Format.FORMAT_ND,
-            [LOCAL_BATCH]
-        )
+        finished_tensor = Tensor(finished_data, None, DataType.DT_BOOL, Format.FORMAT_ND, [LOCAL_BATCH])
 
         # shared_output
         shared_output_data = np.full([LOCAL_BATCH, HIDDEN_SIZE], 0.5, dtype=np.float32)
@@ -230,7 +209,7 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_ND,
-            [LOCAL_BATCH, HIDDEN_SIZE]
+            [LOCAL_BATCH, HIDDEN_SIZE],
         )
 
         # expert_weight
@@ -240,7 +219,7 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_INT8,
             Format.FORMAT_ND,
-            [NUM_EXPERTS, HIDDEN_SIZE, HIDDEN_SIZE]
+            [NUM_EXPERTS, HIDDEN_SIZE, HIDDEN_SIZE],
         )
 
         # group_list
@@ -250,7 +229,7 @@ def run_graph(graph, device_id="0") -> int:
             None,
             DataType.DT_INT32,
             Format.FORMAT_ND,
-            [NUM_EXPERTS]
+            [NUM_EXPERTS],
         )
 
         inputs = [
@@ -259,7 +238,7 @@ def run_graph(graph, device_id="0") -> int:
             finished_tensor,
             shared_output_tensor,
             expert_weight_tensor,
-            group_list_tensor
+            group_list_tensor,
         ]
 
         print(f"[Info] 输入数据已准备，共{len(inputs)}个输入tensor")
@@ -274,6 +253,7 @@ def run_graph(graph, device_id="0") -> int:
     except Exception as e:
         print(f"[Error] 执行过程中出错: {e}")
         import traceback
+
         traceback.print_exc()
         return -1
 

@@ -29,8 +29,8 @@ using ge::FAILED;
 
 // Memory type dispatch table entry.
 struct MemTypeInfo {
-    aclrtMemMallocPolicy policy;
-    aclError (*handler)(void**, size_t, uint16_t, aclrtMemMallocPolicy);
+  aclrtMemMallocPolicy policy;
+  aclError (*handler)(void **, size_t, uint16_t, aclrtMemMallocPolicy);
 };
 
 // Validate input parameters for shared memory allocation.
@@ -39,8 +39,8 @@ bool ShouldEarlyExit(const char *name, uint64_t size, const int32_t *fd, void **
                      aclError *err) {
   if ((name == nullptr) || (fd == nullptr) || (host_ptr == nullptr) || (dev_ptr == nullptr)) {
     GELOGE(FAILED, "[Call][AclrtMallocHostSharedMemory] invalid param, name: %p, fd: %p, host_ptr: %p, dev_ptr: %p",
-           static_cast<const void *>(name), static_cast<const void *>(fd),
-           static_cast<const void *>(host_ptr), static_cast<const void *>(dev_ptr));
+           static_cast<const void *>(name), static_cast<const void *>(fd), static_cast<const void *>(host_ptr),
+           static_cast<const void *>(dev_ptr));
     *err = ACL_ERROR_INVALID_PARAM;
     return true;
   }
@@ -73,14 +73,14 @@ aclError PrepareShmFd(const char *name, uint64_t size, int32_t *fd, void **host_
     }
   } else if (static_cast<uint64_t>(st.st_size) != size) {
     // Existing file: verify size matches.
-    GELOGE(FAILED, "[Call][AclrtMallocHostSharedMemory] size mismatch, name: %s, existing: %ld, requested: %lu",
-           name, st.st_size, size);
+    GELOGE(FAILED, "[Call][AclrtMallocHostSharedMemory] size mismatch, name: %s, existing: %ld, requested: %lu", name,
+           st.st_size, size);
     return ACL_ERROR_FAILURE;
   } else {
     // do nothing
   }
-  *host_ptr = mmap(nullptr, size, static_cast<uint16_t>(PROT_READ) | static_cast<uint16_t>(PROT_WRITE),
-                   MAP_SHARED, *fd, 0);
+  *host_ptr =
+      mmap(nullptr, size, static_cast<uint16_t>(PROT_READ) | static_cast<uint16_t>(PROT_WRITE), MAP_SHARED, *fd, 0);
   if (*host_ptr == MAP_FAILED) {
     GELOGE(FAILED, "[Call][mmap] failed, name: %s, size: %lu, errno: %d", name, size, errno);
     return ACL_ERROR_FAILURE;
@@ -170,8 +170,7 @@ aclError AclrtMallocForTaskScheduler(void **ptr, size_t size, aclrtMemMallocPoli
   return ret;
 }
 
-aclError AclrtMallocHostSharedMemory(const char *name, uint64_t size, int32_t *fd, void **host_ptr,
-                                     void **dev_ptr) {
+aclError AclrtMallocHostSharedMemory(const char *name, uint64_t size, int32_t *fd, void **host_ptr, void **dev_ptr) {
   aclError early_err = ACL_SUCCESS;
   if (ShouldEarlyExit(name, size, fd, host_ptr, dev_ptr, &early_err)) {
     return early_err;
@@ -201,8 +200,7 @@ aclError AclrtFreeHostSharedMemory(const char *name, uint64_t size, int32_t fd, 
   // Unregister from device mapping before releasing memory.
   const aclError ret = aclrtHostUnregister(host_ptr);
   if (ret != ACL_SUCCESS) {
-    GELOGE(FAILED, "[Call][aclrtHostUnregister] failed, name: %s, ret: %d",
-           (name != nullptr) ? name : "", ret);
+    GELOGE(FAILED, "[Call][aclrtHostUnregister] failed, name: %s, ret: %d", (name != nullptr) ? name : "", ret);
     return ret;
   }
   (void)munmap(host_ptr, size);

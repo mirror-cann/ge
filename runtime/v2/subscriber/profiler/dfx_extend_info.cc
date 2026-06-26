@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,7 @@ constexpr uint32_t kCtxIdAddrOffset = 4U;
 constexpr uint32_t pre_cmo_index = 0U;
 constexpr uint32_t inval_cmo_index = 1U;
 constexpr uint32_t wback_cmo_index = 2U;
-ge::graphStatus DfxExtendInfo::CalcSize(const size_t ctx_id_num,
-                                        std::vector<std::vector<uint32_t>> &cmo_context_ids,
+ge::graphStatus DfxExtendInfo::CalcSize(const size_t ctx_id_num, std::vector<std::vector<uint32_t>> &cmo_context_ids,
                                         size_t &total_size) {
   size_t ctx_id_size;
   size_t cmo_context_size = 0U;
@@ -66,20 +65,20 @@ ge::graphStatus DfxExtendInfo::Init(const ge::char_t *node_name, std::vector<std
 
 // 设置CMO相关信息
 void DfxExtendInfo::SetCmoInfo(std::vector<uint32_t> &cmo_context_types,
-                                     std::vector<std::vector<uint32_t>> &cmo_context_ids) {
-    // Set cmo ctx size
+                               std::vector<std::vector<uint32_t>> &cmo_context_ids) {
+  // Set cmo ctx size
   const auto mutable_pre_cmo_ctx_size = GetPreCmoCtxSizeAddr();
   if (mutable_pre_cmo_ctx_size != nullptr) {
     *(const_cast<uint32_t *>(mutable_pre_cmo_ctx_size)) = cmo_context_num_[pre_cmo_index];
   }
-   
+
   if (cmo_context_num_[pre_cmo_index] > 0U) {
     // SetPreCmoCtxType
     const auto mutable_pre_cmo_ctx_type = GetPreCmoCtxTypeAddr();
     if (mutable_pre_cmo_ctx_type != nullptr) {
       *(const_cast<uint32_t *>(mutable_pre_cmo_ctx_type)) = cmo_context_types.at(pre_cmo_index);
     }
-        
+
     // set cmo ctx ids
     for (size_t i = 0U; i < cmo_context_num_[pre_cmo_index]; i++) {
       const auto mutable_pre_ctx_id = GetPreCmoCtxIdAddr(i);
@@ -93,14 +92,14 @@ void DfxExtendInfo::SetCmoInfo(std::vector<uint32_t> &cmo_context_types,
   if (mutable_inval_cmo_ctx_size != nullptr) {
     *(const_cast<uint32_t *>(mutable_inval_cmo_ctx_size)) = cmo_context_num_[inval_cmo_index];
   }
-    
+
   if (cmo_context_num_[inval_cmo_index] > 0U) {
     // SetPreCmoCtxType
     const auto mutable_inval_cmo_ctx_type = GetInvalCmoCtxTypeAddr();
     if (mutable_inval_cmo_ctx_type != nullptr) {
       *(const_cast<uint32_t *>(mutable_inval_cmo_ctx_type)) = cmo_context_types.at(1);
     }
-        
+
     // set cmo ctx ids
     for (size_t i = 0U; i < cmo_context_num_[inval_cmo_index]; i++) {
       const auto mutable_inval_ctx_id = GetInvalCmoCtxIdAddr(i);
@@ -121,7 +120,7 @@ void DfxExtendInfo::SetCmoInfo(std::vector<uint32_t> &cmo_context_types,
     if (mutable_wback_cmo_ctx_type != nullptr) {
       *(const_cast<uint32_t *>(mutable_wback_cmo_ctx_type)) = cmo_context_types.at(wback_cmo_index);
     }
-        
+
     // set cmo ctx ids
     for (size_t i = 0U; i < cmo_context_num_[wback_cmo_index]; i++) {
       const auto mutable_wback_ctx_id = GetWbackCmoCtxIdAddr(i);
@@ -135,30 +134,30 @@ void DfxExtendInfo::SetCmoInfo(std::vector<uint32_t> &cmo_context_types,
 // 设置CTX相关信息
 void DfxExtendInfo::SetCtxInfo(const size_t task_type, const size_t ctx_type, const size_t op_impl_mode,
                                const std::vector<uint32_t> ctx_id_vec) {
-    // set op impl mode
-    const auto mutable_op_impl_mode = GetOpImplModeAddr();
-    *(const_cast<uint32_t *>(mutable_op_impl_mode)) = op_impl_mode;
+  // set op impl mode
+  const auto mutable_op_impl_mode = GetOpImplModeAddr();
+  *(const_cast<uint32_t *>(mutable_op_impl_mode)) = op_impl_mode;
 
-    // set task type
-    const auto mutable_task_type = GetTaskTypeAddr();
-    *(const_cast<uint32_t *>(mutable_task_type)) = task_type;
+  // set task type
+  const auto mutable_task_type = GetTaskTypeAddr();
+  *(const_cast<uint32_t *>(mutable_task_type)) = task_type;
 
-    // SetCtxType
-    const auto mutable_ctx_type = GetCtxTypeAddr();
-    *(const_cast<uint32_t *>(mutable_ctx_type)) = ctx_type;
+  // SetCtxType
+  const auto mutable_ctx_type = GetCtxTypeAddr();
+  *(const_cast<uint32_t *>(mutable_ctx_type)) = ctx_type;
 
-    // Set ctx size
-    ctx_id_num_ += ctx_id_vec.size();
-    const auto mutable_ctx_size = GetCtxSizeAddr();
-    *(const_cast<uint32_t *>(mutable_ctx_size)) = ctx_id_num_;
+  // Set ctx size
+  ctx_id_num_ += ctx_id_vec.size();
+  const auto mutable_ctx_size = GetCtxSizeAddr();
+  *(const_cast<uint32_t *>(mutable_ctx_size)) = ctx_id_num_;
 
-    // SetCtxIds
-    for (size_t i = 0U; i < ctx_id_vec.size(); i++) {
-        const auto mutable_ctx_id = GetCtxIdAddr(i);
-        if (mutable_ctx_id != nullptr) {
-            *(const_cast<uint32_t *>(mutable_ctx_id)) = ctx_id_vec.at(i);
-        }
+  // SetCtxIds
+  for (size_t i = 0U; i < ctx_id_vec.size(); i++) {
+    const auto mutable_ctx_id = GetCtxIdAddr(i);
+    if (mutable_ctx_id != nullptr) {
+      *(const_cast<uint32_t *>(mutable_ctx_id)) = ctx_id_vec.at(i);
     }
+  }
 }
 
 // 依次获取各字段的地址
@@ -171,135 +170,135 @@ const uint32_t *DfxExtendInfo::GetTaskTypeAddr() const {
 }
 
 const uint32_t *DfxExtendInfo::GetCtxTypeAddr() {
-    return reinterpret_cast<const uint32_t *>(&place_holder_ + kCtxTypeAddrOffset * sizeof(uint32_t));
+  return reinterpret_cast<const uint32_t *>(&place_holder_ + kCtxTypeAddrOffset * sizeof(uint32_t));
 }
 
 const uint32_t *DfxExtendInfo::GetCtxSizeAddr() {
-    return reinterpret_cast<const uint32_t *>(&place_holder_ + kCtxSizeAddrOffset * sizeof(uint32_t));
+  return reinterpret_cast<const uint32_t *>(&place_holder_ + kCtxSizeAddrOffset * sizeof(uint32_t));
 }
 
 const uint32_t *DfxExtendInfo::GetCtxIdAddr(size_t index) {
-    if (*(GetCtxSizeAddr()) == 0U) {
-        return nullptr;
-    }
-    return reinterpret_cast<const uint32_t *>(&place_holder_ + (kCtxIdAddrOffset + index)*sizeof(uint32_t));
+  if (*(GetCtxSizeAddr()) == 0U) {
+    return nullptr;
+  }
+  return reinterpret_cast<const uint32_t *>(&place_holder_ + (kCtxIdAddrOffset + index) * sizeof(uint32_t));
 }
 
 const uint32_t *DfxExtendInfo::GetCmoBaseAddr() {
-    return reinterpret_cast<const uint32_t *>(&place_holder_ + (kCtxIdAddrOffset + ctx_id_num_)*sizeof(uint32_t));
+  return reinterpret_cast<const uint32_t *>(&place_holder_ + (kCtxIdAddrOffset + ctx_id_num_) * sizeof(uint32_t));
 }
 
 // 使用字段时，先对地址指针判空，如果返回空指针，则该属性不存在
 const uint32_t *DfxExtendInfo::GetPreCmoCtxSizeAddr() {
-    if (cmo_context_num_[pre_cmo_index] == 0U) {
-        return nullptr;
-    } else {
-        return GetCmoBaseAddr();
-    }
+  if (cmo_context_num_[pre_cmo_index] == 0U) {
+    return nullptr;
+  } else {
+    return GetCmoBaseAddr();
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetPreCmoCtxTypeAddr() {
-    if (cmo_context_num_[pre_cmo_index] == 0U) {
-        return nullptr;
-    } else {
-        return GetPreCmoCtxSizeAddr() + kStepOffset;
-    }
+  if (cmo_context_num_[pre_cmo_index] == 0U) {
+    return nullptr;
+  } else {
+    return GetPreCmoCtxSizeAddr() + kStepOffset;
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetPreCmoCtxIdAddr(size_t index) {
-    if (GetPreCmoCtxSizeAddr() == nullptr) {
-        return nullptr;
-    } else {
-        return GetPreCmoCtxTypeAddr() + kStepOffset + index;
-    }
+  if (GetPreCmoCtxSizeAddr() == nullptr) {
+    return nullptr;
+  } else {
+    return GetPreCmoCtxTypeAddr() + kStepOffset + index;
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetInvalCmoCtxSizeAddr() {
-    if (cmo_context_num_[inval_cmo_index] == 0U) {
-        return nullptr;
-    }
+  if (cmo_context_num_[inval_cmo_index] == 0U) {
+    return nullptr;
+  }
 
-    if (cmo_context_num_[pre_cmo_index] == 0U) {
-        return GetCmoBaseAddr();
-    } else {
-        return GetCmoBaseAddr() + kCmoStepOffset + cmo_context_num_[pre_cmo_index];
-    }
+  if (cmo_context_num_[pre_cmo_index] == 0U) {
+    return GetCmoBaseAddr();
+  } else {
+    return GetCmoBaseAddr() + kCmoStepOffset + cmo_context_num_[pre_cmo_index];
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetInvalCmoCtxTypeAddr() {
-    if (cmo_context_num_[inval_cmo_index] == 0U) {
-        return nullptr;
-    } else {
-        return GetInvalCmoCtxSizeAddr() + kStepOffset;
-    }
+  if (cmo_context_num_[inval_cmo_index] == 0U) {
+    return nullptr;
+  } else {
+    return GetInvalCmoCtxSizeAddr() + kStepOffset;
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetInvalCmoCtxIdAddr(size_t index) {
-    if (GetInvalCmoCtxSizeAddr() == nullptr) {
-        return nullptr;
-    } else {
-        return GetInvalCmoCtxTypeAddr() + kStepOffset + index;
-    }
+  if (GetInvalCmoCtxSizeAddr() == nullptr) {
+    return nullptr;
+  } else {
+    return GetInvalCmoCtxTypeAddr() + kStepOffset + index;
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetWbackCmoCtxSizeAddr() {
-    if (cmo_context_num_[wback_cmo_index] == 0U) {
-        return nullptr;
-    }
-    auto cmo_base_addr = GetCmoBaseAddr();
-    if (cmo_context_num_[pre_cmo_index] != 0U) {
-        cmo_base_addr += kCmoStepOffset + cmo_context_num_[pre_cmo_index];
-    }
+  if (cmo_context_num_[wback_cmo_index] == 0U) {
+    return nullptr;
+  }
+  auto cmo_base_addr = GetCmoBaseAddr();
+  if (cmo_context_num_[pre_cmo_index] != 0U) {
+    cmo_base_addr += kCmoStepOffset + cmo_context_num_[pre_cmo_index];
+  }
 
-    if (cmo_context_num_[inval_cmo_index] != 0U) {
-        cmo_base_addr += kCmoStepOffset + cmo_context_num_[inval_cmo_index];
-    }
+  if (cmo_context_num_[inval_cmo_index] != 0U) {
+    cmo_base_addr += kCmoStepOffset + cmo_context_num_[inval_cmo_index];
+  }
 
-    return cmo_base_addr;
+  return cmo_base_addr;
 }
 
 const uint32_t *DfxExtendInfo::GetWbackCmoCtxTypeAddr() {
-    if (cmo_context_num_[wback_cmo_index] == 0U) {
-        return nullptr;
-    } else {
-        return GetWbackCmoCtxSizeAddr() + kStepOffset;
-    }
+  if (cmo_context_num_[wback_cmo_index] == 0U) {
+    return nullptr;
+  } else {
+    return GetWbackCmoCtxSizeAddr() + kStepOffset;
+  }
 }
 
 const uint32_t *DfxExtendInfo::GetWbackCmoCtxIdAddr(size_t index) {
-    if (GetInvalCmoCtxSizeAddr() == nullptr) {
-        return nullptr;
-    } else {
-        return GetWbackCmoCtxTypeAddr() + kStepOffset + index;
-    }
+  if (GetInvalCmoCtxSizeAddr() == nullptr) {
+    return nullptr;
+  } else {
+    return GetWbackCmoCtxTypeAddr() + kStepOffset + index;
+  }
 }
 
 //  获取集合的尺寸，后续根据尺寸获取属性值, 对空集合，返回0
 size_t DfxExtendInfo::GetCtxIdsNum() {
-    if (GetCtxSizeAddr() == nullptr) {
-        return 0U;
-    }
-    return *(GetCtxSizeAddr());
+  if (GetCtxSizeAddr() == nullptr) {
+    return 0U;
+  }
+  return *(GetCtxSizeAddr());
 }
 
 size_t DfxExtendInfo::GetPreCmoCtxNum() {
-    if (GetPreCmoCtxSizeAddr() == nullptr) {
-        return 0U;
-    }
-    return *(GetPreCmoCtxSizeAddr());
+  if (GetPreCmoCtxSizeAddr() == nullptr) {
+    return 0U;
+  }
+  return *(GetPreCmoCtxSizeAddr());
 }
 
 size_t DfxExtendInfo::GetInvalCmoCtxNum() {
-    if (GetInvalCmoCtxSizeAddr() == nullptr) {
-        return 0U;
-    }
-    return *(GetInvalCmoCtxSizeAddr());
+  if (GetInvalCmoCtxSizeAddr() == nullptr) {
+    return 0U;
+  }
+  return *(GetInvalCmoCtxSizeAddr());
 }
 
 size_t DfxExtendInfo::GetWbackCmoCtxNum() {
-    if (GetWbackCmoCtxSizeAddr() == nullptr) {
-        return 0U;
-    }
-    return *(GetWbackCmoCtxSizeAddr());
+  if (GetWbackCmoCtxSizeAddr() == nullptr) {
+    return 0U;
+  }
+  return *(GetWbackCmoCtxSizeAddr());
 }
-}
+}  // namespace gert

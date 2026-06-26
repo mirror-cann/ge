@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 #include "utils.h"
- #include <cstring>
+#include <cstring>
 #include "graph/utils/attr_utils.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/default_attr_utils.h"
@@ -28,8 +28,10 @@ std::unordered_map<std::string, TypeInfo> kAvToTypesInfo{
     {"VT_LIST_INT", {true, "VT_LIST_INT", "ListInt", "const int64_t *", "const std::vector<int64_t> &"}},
     {"VT_LIST_FLOAT", {true, "VT_LIST_FLOAT", "ListFloat", "const float *", "const std::vector<float> &"}},
     {"VT_LIST_BOOL", {true, "VT_LIST_BOOL", "ListBool", "const bool *", "const std::vector<uint8_t> &"}},
-    {"VT_LIST_DATA_TYPE", {true, "VT_LIST_DATA_TYPE", "ListType", "const C_DataType *", "const std::vector<ge::DataType> &"}},
-    {"VT_LIST_LIST_INT", {true, "VT_LIST_LIST_INT", "ListListInt", "const int64_t **", "const std::vector<std::vector<int64_t>> &"}},
+    {"VT_LIST_DATA_TYPE",
+     {true, "VT_LIST_DATA_TYPE", "ListType", "const C_DataType *", "const std::vector<ge::DataType> &"}},
+    {"VT_LIST_LIST_INT",
+     {true, "VT_LIST_LIST_INT", "ListListInt", "const int64_t **", "const std::vector<std::vector<int64_t>> &"}},
     {"VT_LIST_STRING", {true, "VT_LIST_STRING", "ListString", "const char **", "const std::vector<const char *> &"}},
 };
 template <typename T>
@@ -62,9 +64,8 @@ bool IsOpExclude(const string &op_type, vector<std::string> &exlude_ops) {
 }
 bool IsOpSupport(const OpDescPtr &op, const char **reason) {
   static const std::unordered_set<std::string> unsupported_v1_control_op_names{
-    "Switch", "StreamSwitch", "Merge", "StreamMerge", "Enter", "Exit", "LoopCond", "NextIteration"};
-  static const std::unordered_set<std::string> already_provided_creation_functions{
-    "Variable"};
+      "Switch", "StreamSwitch", "Merge", "StreamMerge", "Enter", "Exit", "LoopCond", "NextIteration"};
+  static const std::unordered_set<std::string> already_provided_creation_functions{"Variable"};
   if (unsupported_v1_control_op_names.count(op->GetName()) > 0) {
     *reason = "Does not support V1 control Operators";
     return false;
@@ -106,13 +107,13 @@ void GenCommentsIfNeeded(const OpDescPtr &op, std::stringstream &h_stream, bool 
     subgraphs_name.emplace_back(ir_subgraph.first);
   }
   std::vector<std::string> tensor_attr_names;
-  for (const auto &ir_attr: GetAllIrAttrsNamesAndTypeInOrder(op)) {
+  for (const auto &ir_attr : GetAllIrAttrsNamesAndTypeInOrder(op)) {
     if (std::strcmp(ir_attr.type_info.c_api_type, "EsCTensor *") == 0) {
       tensor_attr_names.emplace_back(ir_attr.name);
     }
   }
   std::vector<std::string> dynamic_output_names;
-  for (const auto &ir_out: op->GetIrOutputs()) {
+  for (const auto &ir_out : op->GetIrOutputs()) {
     if (ir_out.second == kIrOutputDynamic) {
       dynamic_output_names.emplace_back(ir_out.first);
     }
@@ -160,10 +161,9 @@ void GenTensorLikeInputComments(const OpDescPtr &op, std::stringstream &h_stream
   }
   if (IsOpInputsAllOptional(op->GetIrInputs())) {
     h_stream << " * @note at least one of the following input arguments should be EsTensorHolder object"
-                   << " or owner_builder should be provided:" << std::endl;
+             << " or owner_builder should be provided:" << std::endl;
   } else {
-    h_stream << " * @note at least one of the following input arguments should be EsTensorHolder object:"
-                   << std::endl;
+    h_stream << " * @note at least one of the following input arguments should be EsTensorHolder object:" << std::endl;
   }
   for (const auto &in : op->GetIrInputs()) {
     h_stream << " *   " << InName(in.first) << std::endl;

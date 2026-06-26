@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ PreTaskResult GenerateAiCoreTask(const domi::TaskDef &task_def, const OpDescPtr 
   pre_task_desc_info.seq_info.streamId = static_cast<uint16_t>(task_def.stream_id());
   pre_task_desc_info.seq_info.u.aicoreTask.argsOffset = 0U;
   pre_task_desc_info.seq_info.u.aicoreTask.blockDim =
-          (kernel_def.block_dim() == 0U) ? 1U : static_cast<uint16_t>(kernel_def.block_dim());
+      (kernel_def.block_dim() == 0U) ? 1U : static_cast<uint16_t>(kernel_def.block_dim());
   (void)result.pre_task_desc_infos.emplace_back(pre_task_desc_info);
 
   result.status = PreTaskStatus::Success();

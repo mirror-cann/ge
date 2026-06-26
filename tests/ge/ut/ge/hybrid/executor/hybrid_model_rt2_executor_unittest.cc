@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,7 +48,8 @@ LowerResult LoweringFooWithStreamSync(const ge::NodePtr &node, const LowerInput 
   gert::StorageShape shape;
   auto size_holder = bg::ValueHolder::CreateConst(&output_size, sizeof(output_size));
   auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, {size_holder}, *(lower_input.global_data));
-  auto compute_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {lower_input.global_data->GetStream()});
+  auto compute_holder =
+      bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {lower_input.global_data->GetStream()});
 
   return {HyperStatus::Success(), {compute_holder}, {lower_input.input_shapes[0]}, output_addrs};
 }
@@ -205,9 +206,11 @@ std::shared_ptr<HybridModel> FakeHybridModel(const bool is_exec_on_host,
   GE_ASSERT_NOTNULL(file_constant_0);
   GE_ASSERT_NOTNULL(file_constant_1);
   int64_t aligned_mem_size = 0U;
-  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_0->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_0->GetOpDesc()->GetOutputDesc(0U),
+                                                               aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant_0->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
-  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_1->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant_1->GetOpDesc()->GetOutputDesc(0U),
+                                                               aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant_1->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
   for (const auto &location : location_config) {
     GE_ASSERT_SUCCESS(CreateFileConstantFile("", location, 5 * 5 * sizeof(int32_t)));
@@ -261,13 +264,13 @@ class ExternalAllocatorUtStub : public Allocator {
   uint32_t GetFreeCnt() {
     return free_cnt;
   }
+
  private:
   uint32_t malloc_cnt = 0;
   uint32_t malloc_advise_cnt = 0;
   uint32_t free_cnt = 0;
-
 };
-}
+}  // namespace
 class UtestHybridRt2Executor : public testing::Test {
  protected:
   void SetUp() {
@@ -276,6 +279,7 @@ class UtestHybridRt2Executor : public testing::Test {
   void TearDown() {
     RTS_STUB_TEARDOWN();
   }
+
  public:
   static void TestRunCtxInitWithTwoFileConstants(const std::vector<std::string> &location_config,
                                                  const bool is_exec_on_host, const uint64_t session_id = 0U,
@@ -411,7 +415,7 @@ template <>
 struct GeType<float> {
   static ge::DataType type;
 };
-ge::DataType GeType<float >::type = ge::DT_FLOAT;
+ge::DataType GeType<float>::type = ge::DT_FLOAT;
 
 template <>
 struct GeType<int32_t> {
@@ -421,9 +425,9 @@ struct GeType<int32_t> {
 template <typename T>
 GeTensorPtr MakeScalarTensor(const T &v) {
   auto desc = ge::GeTensorDesc(GeShape(), ge::FORMAT_ND, GeType<T>::type);
-  return std::make_shared<GeTensor>(desc, reinterpret_cast<const uint8_t*>(&v), sizeof(T));
+  return std::make_shared<GeTensor>(desc, reinterpret_cast<const uint8_t *>(&v), sizeof(T));
 }
-}
+}  // namespace
 
 TEST_F(UtestHybridRt2Executor, context_init_with_device_variable_success) {
   auto graph = ShareGraph::SimpleVariableGraph();
@@ -575,7 +579,7 @@ TEST_F(UtestHybridRt2Executor, context_init_with_host_constant_share_in_session_
   ASSERT_NE(memory.GetAddr(), nullptr);
   auto constant_addr = memory.GetAddr();
 
-   // build model2
+  // build model2
   GeModelBuilder builder2(graph);
   auto ge_root_model2 = builder2.BuildGeRootModel();
   for (const auto &it : ge_root_model2->GetSubgraphInstanceNameToModel()) {
@@ -602,7 +606,6 @@ TEST_F(UtestHybridRt2Executor, context_init_with_host_constant_share_in_session_
   ge::GetThreadLocalContext().SetGraphOption({});
 }
 
-
 TEST_F(UtestHybridRt2Executor, context_init_with_empty_host_constant_success) {
   // make option as host exec
   std::map<std::string, std::string> options;
@@ -614,7 +617,7 @@ TEST_F(UtestHybridRt2Executor, context_init_with_empty_host_constant_success) {
   auto graph = ShareGraph::SimpleVariableGraph();
   GeTensorPtr weight = MakeScalarTensor(2.0f);
   ASSERT_NE(weight, nullptr);
-  weight->ClearData(); // make weight size is 0
+  weight->ClearData();  // make weight size is 0
 
   auto constant = graph->FindFirstNodeMatchType("Constant");
   auto variable = graph->FindFirstNodeMatchType("Variable");
@@ -913,10 +916,10 @@ TEST_F(UtestHybridRt2Executor, SyncExecute_GertTensor) {
   unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[3072]);
   std::vector<gert::Tensor> inputs(1);
   inputs[0] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},    // shape
-                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
-                     gert::kOnHost,                       // placement
-                     ge::DT_FLOAT16,                      // data type
-                     (void *) data_buf.get()};
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
+               gert::kOnHost,                       // placement
+               ge::DT_FLOAT16,                      // data type
+               (void *)data_buf.get()};
 
   std::vector<gert::Tensor> outputs;
   HybridModelExecutor::CtrlArgs ctrl_args;
@@ -1011,7 +1014,7 @@ rtError_t MockRtMemcpy2(void *dst, uint64_t dest_max, const void *src, uint64_t 
   }
   return 0;
 }
-}
+}  // namespace
 
 TEST_F(UtestHybridRt2Executor, Execute_Success_CheckInputMallocSize) {
   auto graph = ShareGraph::SimpleFooGraph();
@@ -1280,10 +1283,12 @@ TEST_F(UtestHybridRt2Executor, RunCtxInitWithHostFileConstants_TensorDataNotShar
 }
 
 // 用例描述: 1个进程，2个session，session间权重文件相同，加载2次
-TEST_F(UtestHybridRt2Executor, RunCtxInitWithDeviceFileConstants_TensorNotSharedBetweenSession_FileConstantHasSameLocation) {
+TEST_F(UtestHybridRt2Executor,
+       RunCtxInitWithDeviceFileConstants_TensorNotSharedBetweenSession_FileConstantHasSameLocation) {
   // session 0
   {
-    const std::vector<std::string> location_config = {"tmp_weight_xj_fileconstant1.bin", "tmp_weight_xj_fileconstant1.bin"};
+    const std::vector<std::string> location_config = {"tmp_weight_xj_fileconstant1.bin",
+                                                      "tmp_weight_xj_fileconstant1.bin"};
     const bool is_exec_on_host = false;
     uint64_t session_id = 0U;
     bool is_test_two_session = true;
@@ -1291,7 +1296,8 @@ TEST_F(UtestHybridRt2Executor, RunCtxInitWithDeviceFileConstants_TensorNotShared
   }
   // session 1
   {
-    const std::vector<std::string> location_config = {"tmp_weight_xj_fileconstant1.bin", "tmp_weight_xj_fileconstant1.bin"};
+    const std::vector<std::string> location_config = {"tmp_weight_xj_fileconstant1.bin",
+                                                      "tmp_weight_xj_fileconstant1.bin"};
     const bool is_exec_on_host = false;
     uint64_t session_id = 1U;
     bool is_test_two_session = false;
@@ -1335,14 +1341,14 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
   auto ret = executor_rt_v2.Init();
   EXPECT_TRUE(executor_rt_v2.run_ctx_.aicore_num_str_ == "1");
   EXPECT_TRUE(executor_rt_v2.run_ctx_.vectorcore_num_str_ == "1");
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<uint8_t[]> data_buf(new(std::nothrow) uint8_t[512]);
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[512]);
   std::vector<GeTensor> input_tensors(2U);
   std::vector<GeTensor> output_tensors(1U);
 
@@ -1378,7 +1384,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
     EXPECT_NE(output_tensors[i].GetData().GetData(), nullptr);
     EXPECT_EQ(output_tensors[i].GetData().GetSize(), 512);
   }
-  std::vector<int64_t>shape({1, 1, 1, 128});
+  std::vector<int64_t> shape({1, 1, 1, 128});
   for (size_t i = 0; i < output_tensors.size(); ++i) {
     EXPECT_EQ(output_tensors[i].MutableTensorDesc().GetOriginShape().GetDims(), shape);
     EXPECT_EQ(output_tensors[i].MutableTensorDesc().GetShape().GetDims(), shape);
@@ -1413,7 +1419,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
   auto ret = executor_rt_v2.Init();
   EXPECT_EQ(ret, SUCCESS);
@@ -1422,16 +1428,16 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId0) {
   unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[3072]);
   std::vector<gert::Tensor> inputs(2);
   inputs[0] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},    // shape
-                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
-                     gert::kOnHost,                       // placement
-                     ge::DT_FLOAT16,                      // data type
-                     (void *) data_buf.get()};
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
+               gert::kOnHost,                       // placement
+               ge::DT_FLOAT16,                      // data type
+               (void *)data_buf.get()};
 
   inputs[1] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},    // shape
-                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
-                     gert::kOnHost,                       // placement
-                     ge::DT_FLOAT16,                      // data type
-                     (void *) data_buf.get()};
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
+               gert::kOnHost,                       // placement
+               ge::DT_FLOAT16,                      // data type
+               (void *)data_buf.get()};
 
   std::vector<gert::Tensor> outputs;
   HybridModelExecutor::CtrlArgs ctrl_args;
@@ -1472,7 +1478,7 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
   auto ret = executor_rt_v2.Init();
   EXPECT_EQ(ret, SUCCESS);
@@ -1481,16 +1487,16 @@ TEST_F(UtestHybridRt2Executor, TfExecuteDynamicShapeWithBatchH2dDeviceId1) {
   unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[3072]);
   std::vector<gert::Tensor> inputs(2);
   inputs[0] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},    // shape
-                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
-                     gert::kOnHost,                       // placement
-                     ge::DT_FLOAT16,                      // data type
-                     (void *) data_buf.get()};
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
+               gert::kOnHost,                       // placement
+               ge::DT_FLOAT16,                      // data type
+               (void *)data_buf.get()};
 
   inputs[1] = {{{1, 16, 16, 3}, {1, 16, 16, 3}},    // shape
-                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
-                     gert::kOnHost,                       // placement
-                     ge::DT_FLOAT16,                      // data type
-                     (void *) data_buf.get()};
+               {ge::FORMAT_ND, ge::FORMAT_ND, {}},  // format
+               gert::kOnHost,                       // placement
+               ge::DT_FLOAT16,                      // data type
+               (void *)data_buf.get()};
 
   std::vector<gert::Tensor> outputs;
   HybridModelExecutor::CtrlArgs ctrl_args;
@@ -1537,7 +1543,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
 
@@ -1546,7 +1552,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   EXPECT_EQ(ret, SUCCESS);
   std::vector<GeTensor> input_tensors(2U);
   std::vector<GeTensor> output_tensors(1U);
-  unique_ptr<uint8_t[]> data_buf(new(std::nothrow) uint8_t[512]);
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[512]);
   {
     for (size_t i = 0U; i < input_tensors.size(); ++i) {
       input_tensors[i].MutableTensorDesc() = GeTensorDesc(GeShape({1, 1, 1, 128}), FORMAT_NCHW, DT_FLOAT);
@@ -1565,16 +1571,16 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
     std::vector<gert::Tensor> output_tensor;
     input_tensor.resize(2);
     output_tensor.resize(1);
-    input_tensor[0] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf.get()};
-    input_tensor[1] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf.get()};
+    input_tensor[0] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},            // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf.get()};
+    input_tensor[1] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},            // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf.get()};
     ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensor, output_tensor, stream);
     EXPECT_EQ(ret, SUCCESS);
 
@@ -1584,32 +1590,32 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
     EXPECT_FALSE(outputs.empty());
 
     executor_rt_v2.run_ctx_.host_exec_flag_ = true;
-    input_tensor[0] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnHost,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf.get()};
-    input_tensor[1] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnHost,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf.get()};
+    input_tensor[0] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},            // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnHost,                               // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf.get()};
+    input_tensor[1] = {{{1, 1, 1, 128}, {1, 1, 1, 128}},            // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnHost,                               // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf.get()};
     ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensor, output_tensor, stream);
     EXPECT_EQ(ret, SUCCESS);
-    
-    executor_rt_v2.run_ctx_.host_exec_flag_ = false;
-    unique_ptr<uint8_t[]> data_buf1(new(std::nothrow) uint8_t[4]);
 
-    input_tensor[0] = {{{1}, {1}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnHost,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf1.get()};
-    input_tensor[1] = {{{1}, {1}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnHost,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf1.get()};
+    executor_rt_v2.run_ctx_.host_exec_flag_ = false;
+    unique_ptr<uint8_t[]> data_buf1(new (std::nothrow) uint8_t[4]);
+
+    input_tensor[0] = {{{1}, {1}},                                  // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnHost,                               // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf1.get()};
+    input_tensor[1] = {{{1}, {1}},                                  // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnHost,                               // placement
+                       ge::DT_FLOAT16,                              // data type
+                       (void *)data_buf1.get()};
     gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(1);
     ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensor, output_tensor, stream);
     EXPECT_EQ(ret, SUCCESS);
@@ -1646,7 +1652,8 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
  * 1. 模型执行成功
  * 2. 不会使用外置Allocator申请内存
  */
-TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynamic_shape_with_external_allocator_gived_output) {
+TEST_F(UtestHybridRt2Executor,
+       ExecuteWithStreamAsync_execute_model_online_dynamic_shape_with_external_allocator_gived_output) {
   auto graph = ShareGraph::AicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
@@ -1657,7 +1664,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
 
@@ -1666,7 +1673,7 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_dynam
   EXPECT_EQ(ret, SUCCESS);
   std::vector<GeTensor> input_tensors(2U);
   std::vector<GeTensor> output_tensors(1U);
-  unique_ptr<uint8_t[]> data_buf(new(std::nothrow) uint8_t[512]);
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[512]);
   {
     for (size_t i = 0U; i < input_tensors.size(); ++i) {
       input_tensors[i].MutableTensorDesc() = GeTensorDesc(GeShape({1, 1, 1, 128}), FORMAT_NCHW, DT_FLOAT);
@@ -1704,11 +1711,11 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
   hybrid_model.root_graph_ = ge_root_model->GetRootGraph();
   EXPECT_EQ(hybrid_model.Init(), SUCCESS);
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   HybridModelRtV2Executor executor_rt_v2(&hybrid_model, 0, stream);
   auto ret = executor_rt_v2.Init();
   EXPECT_EQ(ret, SUCCESS);
-  unique_ptr<uint8_t[]> data_buf(new(std::nothrow) uint8_t[512]);
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[512]);
   std::vector<GeTensor> input_tensors(2U);
   std::vector<GeTensor> output_tensors(1U);
 
@@ -1761,7 +1768,6 @@ TEST_F(UtestHybridRt2Executor, ExecuteWithStreamAsync_execute_model_online_host_
   auto nd_host_tensor = GeTensor(GeTensorDesc(GeShape({1, 1, 1, 128}), FORMAT_NCHW, DT_FLOAT), data_buf.get(), 512);
   nd_host_tensor.MutableTensorDesc().SetOriginShape(GeShape({1, 1, 1, 128}));
   nd_host_tensor.MutableTensorDesc().SetPlacement(Placement::kPlacementHost);
-
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
@@ -1816,7 +1822,8 @@ TEST_F(UtestHybridRt2Executor, ExecuteOnlineModel_RecycleAfterExecute_GertTensor
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   ret = executor_rt_v2.ExecuteOnlineModel(inputs, nullptr);
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("rts_allocator_.* Free:Free block device_id:0 theory_size_:0 theory_min_size_");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "rts_allocator_.* Free:Free block device_id:0 theory_size_:0 theory_min_size_");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   EXPECT_EQ(ret, SUCCESS);
@@ -1986,7 +1993,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButNotSupport_RecycleWhenEOS
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
     aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
-                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
       return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
     }
   };
@@ -2059,7 +2066,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dButFailed_RecycleWhenEOS) {
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
     aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
-                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
       return -1;
     }
   };
@@ -2168,7 +2175,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dFallbackButFailed_RecycleWhe
 
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
-  class MockAclRuntime: public AclRuntimeStub {
+  class MockAclRuntime : public AclRuntimeStub {
     aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {
       return -1;
     }
@@ -2260,7 +2267,7 @@ TEST_F(UtestHybridRt2Executor, HandleResult_BatchH2dOneInputFallbackFailed_Recyc
 
   RTS_STUB_RETURN_VALUE(rtMemcpy, rtError_t, -1);
   RTS_STUB_RETURN_VALUE(rtMemcpy, rtError_t, -1);
-  class MockAclRuntime: public AclRuntimeStub {
+  class MockAclRuntime : public AclRuntimeStub {
     aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind) {
       return -1;
     }
@@ -2380,4 +2387,3 @@ TEST_F(UtestHybridRt2Executor, HandleResult_RecycleWhenCopyOutputsError) {
   EXPECT_EQ(ret, INTERNAL_ERROR);
   RuntimeStub::Reset();
 }
-

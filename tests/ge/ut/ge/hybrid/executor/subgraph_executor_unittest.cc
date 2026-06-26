@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,8 @@ class UtestSubgraphExecutor : public testing::Test {
     NodeExecutorManager::GetInstance().executors_.clear();
     auto &task_executor = NodeExecutorManager::GetInstance().executors_;
     task_executor.emplace(NodeExecutorManager::ExecutorType::RTS, std::unique_ptr<NodeExecutor>(new RtsNodeExecutor()));
-    task_executor.emplace(NodeExecutorManager::ExecutorType::GE_LOCAL, std::unique_ptr<NodeExecutor>(new GeLocalNodeExecutor()));
+    task_executor.emplace(NodeExecutorManager::ExecutorType::GE_LOCAL,
+                          std::unique_ptr<NodeExecutor>(new GeLocalNodeExecutor()));
   }
   void TearDown() {
     NodeExecutorManager::GetInstance().engine_mapping_.clear();
@@ -48,27 +49,27 @@ class UtestSubgraphExecutor : public testing::Test {
 };
 
 static void CreateSimpleCondGraph(ComputeGraph &graph, NodePtr &switch_t, NodePtr &switch_f) {
-/*******************************************************************************
- *             |
- *           Merge
- *          /     \.
- *  Active /       \ Active
- *        /         \.
- *       Add       Sub
- *      |   \     /   |
- *      |    \ _ /    |
- *      |    /   \    |
- *      |   /     \   |
- *    Switch       Switch
- *     |   \       /   |
- *     |    \     /    |
- *     |    Active     |
- *     |     \  /      |
- *     |     Less      |
- *     |     /   \     |
- *     |    /     \    |
- *      Data       Data
- ******************************************************************************/
+  /*******************************************************************************
+   *             |
+   *           Merge
+   *          /     \.
+   *  Active /       \ Active
+   *        /         \.
+   *       Add       Sub
+   *      |   \     /   |
+   *      |    \ _ /    |
+   *      |    /   \    |
+   *      |   /     \   |
+   *    Switch       Switch
+   *     |   \       /   |
+   *     |    \     /    |
+   *     |    Active     |
+   *     |     \  /      |
+   *     |     Less      |
+   *     |     /   \     |
+   *     |    /     \    |
+   *      Data       Data
+   ******************************************************************************/
   const auto data0 = CreateNode(graph, "data", DATA, 1, 1);
   const auto data1 = CreateNode(graph, "data1", DATA, 1, 1);
   data0->GetOpDesc()->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
@@ -98,7 +99,7 @@ static void CreateSimpleCondGraph(ComputeGraph &graph, NodePtr &switch_t, NodePt
   const auto active1 = CreateNode(graph, "active1", STREAMACTIVE, 0, 0);
   switch_t = CreateNode(graph, "switch_t", STREAMSWITCH, 2, 0);
   switch_f = CreateNode(graph, "switch_f", STREAMSWITCH, 2, 0);
-  AttrUtils::SetInt(switch_t->GetOpDesc(), ATTR_NAME_STREAM_SWITCH_COND, RT_EQUAL); // 101 for true.
+  AttrUtils::SetInt(switch_t->GetOpDesc(), ATTR_NAME_STREAM_SWITCH_COND, RT_EQUAL);  // 101 for true.
   AttrUtils::SetInt(switch_f->GetOpDesc(), ATTR_NAME_STREAM_SWITCH_COND, RT_NOT_EQUAL);
 
   const auto add1 = CreateNode(graph, "add", IDENTITY, 2, 1);  // Mock for add, just pass input0.
@@ -160,18 +161,18 @@ TEST_F(UtestSubgraphExecutor, cond_graph_schedule_tasks) {
   HybridModelBuilder hybrid_model_builder(hybrid_model);
   ASSERT_EQ(hybrid_model_builder.Build(), SUCCESS);
 
-  uint64_t value_0 = 101; // Enter used for Less, will pass this value to switch.
+  uint64_t value_0 = 101;  // Enter used for Less, will pass this value to switch.
   TensorValue in_tensor0(&value_0, sizeof(value_0));
   uint64_t value_1 = 110;
   TensorValue in_tensor1(&value_1, sizeof(value_1));
-  const std::vector<TensorValue> inputs{ in_tensor0, in_tensor1 };
+  const std::vector<TensorValue> inputs{in_tensor0, in_tensor1};
   uint64_t value_2 = 123;
   TensorValue out_tensor0(&value_2, sizeof(value_2));
-  const std::vector<TensorValue> outputs{ out_tensor0 };
+  const std::vector<TensorValue> outputs{out_tensor0};
 
   GeTensorDescPtr tensor_desc = make_shared<GeTensorDesc>(GeShape(), FORMAT_ND, DT_INT64);
   TensorUtils::SetSize(*tensor_desc, 64);
-  const std::vector<ConstGeTensorDescPtr> input_desc{ tensor_desc, tensor_desc };
+  const std::vector<ConstGeTensorDescPtr> input_desc{tensor_desc, tensor_desc};
 
   GraphExecutionContext graph_context;
   graph_context.model = &hybrid_model;
@@ -230,21 +231,21 @@ TEST_F(UtestSubgraphExecutor, simple_schedule_tasks) {
 
   uint64_t value_0 = 110;
   TensorValue in_tensor0(&value_0, sizeof(value_0));
-  const std::vector<TensorValue> inputs{ in_tensor0 };
+  const std::vector<TensorValue> inputs{in_tensor0};
 
   uint64_t value_1 = 123;
   TensorValue out_tensor0(&value_1, sizeof(value_1));
-  const std::vector<TensorValue> outputs{ out_tensor0 };
+  const std::vector<TensorValue> outputs{out_tensor0};
 
   auto input_desc = output0->GetOpDesc()->GetInputDescPtr(0);
-  const std::vector<ConstGeTensorDescPtr> input_descs{ input_desc };
+  const std::vector<ConstGeTensorDescPtr> input_descs{input_desc};
 
   GraphExecutionContext graph_context;
   graph_context.model = &hybrid_model;
   graph_context.callback_manager = new (std::nothrow) RtCallbackManager();
   graph_context.own_callback_manager = true;
 
-  const char_t * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
+  const char_t *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
   char_t record_path[MMPA_MAX_PATH] = "mock_fail";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
@@ -263,7 +264,7 @@ TEST_F(UtestSubgraphExecutor, partial_execution_init) {
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   ASSERT_NE(ge_root_model, nullptr);
   HybridModel hybrid_model(ge_root_model);
-  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new(std::nothrow)GraphItem());
+  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new (std::nothrow) GraphItem());
   hybrid_model.root_graph_item_->is_dynamic_ = false;
   GraphExecutionContext graph_context;
   SubgraphExecutor executor(hybrid_model.GetRootGraphItem(), &graph_context);
@@ -281,7 +282,7 @@ TEST_F(UtestSubgraphExecutor, test_prepare_node_success) {
   node_item->input_start = 0;
   node_item->output_start = 0;
   node_item->is_dynamic = true;
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   aicore_task->op_type_ = "Enter";
   std::vector<std::unique_ptr<AiCoreOpTask>> tasks;
   tasks.emplace_back(std::move(aicore_task));
@@ -396,4 +397,4 @@ TEST_F(UtestSubgraphExecutor, test_callback) {
   ASSERT_EQ(executor.HasOnNodeDoneCallback(data2_state), true);
   ASSERT_NE(executor.ReportTimeoutInfo(&data2_state), 0);
 }
-} // namespace ge
+}  // namespace ge

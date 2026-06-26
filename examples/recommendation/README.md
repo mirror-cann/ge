@@ -21,7 +21,7 @@
 1. 图构建：使用aclgrphParseTensorFlow解析模型文件，构建GE计算图。
 2. 图编译与加载：通过GE API(ge::Graph, ge::Session)进行图的编译(Compile)和加载(Load)。
 3. 数据准备与执行：根据模型输入结构构造随机数据，使用GE API进行推理。
-4. 性能优化： 
+4. 性能优化：
    - 多实例：通过多线程创建多个推理实例，提升系统并发处理能力。
    - 控核：在创建ge::Session时，通过options参数指定单算子可使用的AI Core数量。
    - 批量H2D：使用aclrtMemcpyBatch接口合并多次内存拷贝操作，减少开销。

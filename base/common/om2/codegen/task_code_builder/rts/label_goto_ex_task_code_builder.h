@@ -31,4 +31,3 @@ class LabelGotoExTaskCodeBuilder : public TaskCodeBuilder {
 }  // namespace ge
 
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_TASK_CODE_BUILDER_RTS_LABEL_GOTO_EX_TASK_CODE_BUILDER_H_
-

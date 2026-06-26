@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,8 +24,7 @@ namespace gert {
 namespace bg {
 namespace {
 const int64_t kControlAnchorIdx = -1;
-ge::EdgeSrcEndpoint CreateInnerData(ge::ExecuteGraph *graph, const GraphFrame &graph_frame,
-                                    const size_t index) {
+ge::EdgeSrcEndpoint CreateInnerData(ge::ExecuteGraph *graph, const GraphFrame &graph_frame, const size_t index) {
   auto op_desc = ge::ComGraphMakeShared<ge::OpDesc>(ValueHolder::GenerateNodeName(kInnerData, graph_frame), kInnerData);
   GE_ASSERT_NOTNULL(op_desc);
   GE_ASSERT_SUCCESS(op_desc->AddOutputDesc(ge::GeTensorDesc()));
@@ -45,9 +44,8 @@ ge::FastNode *GetOrCreateInnerNetOutput(const GraphFrame &frame) {
 
 ge::graphStatus MoveGuardersToDeInit(ge::FastNode *init_node, const GraphFrame &root_frame,
                                      const std::vector<std::pair<ValueHolderPtr, size_t>> &guarders_and_out_index) {
-  const auto de_init_node =
-      ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_frame.GetExecuteGraph().get(),
-                                                    GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
+  const auto de_init_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(
+      root_frame.GetExecuteGraph().get(), GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
   GE_ASSERT_NOTNULL(de_init_node);
   auto de_init_graph = ge::FastNodeUtils::GetSubgraphFromNode(de_init_node, 0U);
   GE_ASSERT_NOTNULL(de_init_graph);
@@ -60,11 +58,9 @@ ge::graphStatus MoveGuardersToDeInit(ge::FastNode *init_node, const GraphFrame &
   for (size_t i = 0U; i < guarders_and_out_index.size(); ++i) {
     auto guarder_node = guarders_and_out_index[i].first->GetFastNode();
     GE_ASSERT_NOTNULL(guarder_node);
-    GE_ASSERT_SUCCESS(
-        ge::ExecuteGraphUtils::MoveNodeToGraph(guarder_node, de_init_graph));
-    GE_ASSERT_NOTNULL(init_graph->AddEdge(init_node,
-                                          static_cast<int32_t>(guarders_and_out_index[i].second), de_init_node,
-                                          static_cast<int32_t>(index + i)));
+    GE_ASSERT_SUCCESS(ge::ExecuteGraphUtils::MoveNodeToGraph(guarder_node, de_init_graph));
+    GE_ASSERT_NOTNULL(init_graph->AddEdge(init_node, static_cast<int32_t>(guarders_and_out_index[i].second),
+                                          de_init_node, static_cast<int32_t>(index + i)));
     auto src_end_point = CreateInnerData(de_init_graph, root_frame, index + i);
     GE_ASSERT_NOTNULL(src_end_point.node);
     GE_ASSERT_NOTNULL(de_init_graph->AddEdge(src_end_point.node, src_end_point.index,
@@ -131,8 +127,7 @@ ge::graphStatus ConnectSubGraphOut(ge::FastNode *parent_node, GraphFrame &sub_fr
     if (out_index >= static_cast<int64_t>(index)) {
       GE_ASSERT_NOTNULL(graph->AddEdge(node, holder->GetOutIndex(), netoutput, out_index));
     } else if (out_index == kControlAnchorIdx) {
-      GE_ASSERT_NOTNULL(graph->AddEdge(node, ge::kControlEdgeIndex,
-                                       netoutput, ge::kControlEdgeIndex));
+      GE_ASSERT_NOTNULL(graph->AddEdge(node, ge::kControlEdgeIndex, netoutput, ge::kControlEdgeIndex));
     }
 
     auto guarder = holder->GetGuarder();
@@ -265,8 +260,8 @@ ge::graphStatus OnDeInitGraph(const std::function<std::vector<ValueHolderPtr>()>
   // check if the main_frame is correct
   const auto root_graph = root_frame->GetExecuteGraph();
   GE_ASSERT_NOTNULL(root_graph, "Failed to find the root graph");
-  const auto de_init_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_graph.get(), GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
+  const auto de_init_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(
+      root_graph.get(), GetExecuteGraphTypeStr(ExecuteGraphType::kDeInit));
   GE_ASSERT_NOTNULL(de_init_node, "Failed to find the de_init node");
   const auto de_init_graph = ge::FastNodeUtils::GetSubgraphFromNode(de_init_node, 0U);
   GE_ASSERT_NOTNULL(de_init_graph, "Failed to find the DeInit graph from de_init node %s",
@@ -312,7 +307,7 @@ ge::graphStatus FrameSelector::OnMainRoot(const std::function<std::vector<ValueH
   const auto root_graph = root_frame->GetExecuteGraph();
   GE_ASSERT_NOTNULL(root_graph, "Failed to find the root graph");
   const auto main_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_graph.get(), GetExecuteGraphTypeStr(ExecuteGraphType::kMain));
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_graph.get(), GetExecuteGraphTypeStr(ExecuteGraphType::kMain));
   GE_ASSERT_NOTNULL(main_node, "Failed to find the main node");
   const auto main_graph = ge::FastNodeUtils::GetSubgraphFromNode(main_node, 0U);
   GE_ASSERT_TRUE(main_graph == main_frame->GetExecuteGraph().get(), "Failed to find the main frame");
@@ -358,9 +353,8 @@ ge::graphStatus FrameSelector::OnInitRoot(const std::function<std::vector<ValueH
   const auto root_frame = GetGraphFrames().begin()->get();
   GE_ASSERT_NOTNULL(root_frame, "Failed to find the root frame");
 
-  const auto init_node =
-      ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_frame->GetExecuteGraph().get(),
-                                                    GetExecuteGraphTypeStr(ExecuteGraphType::kInit));
+  const auto init_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(root_frame->GetExecuteGraph().get(),
+                                                                       GetExecuteGraphTypeStr(ExecuteGraphType::kInit));
   GE_ASSERT_NOTNULL(init_node, "Failed to find the Init node from root graph");
   auto init_graph = ge::FastNodeUtils::GetSubgraphFromNode(init_node, 0U);
   GE_ASSERT_NOTNULL(init_graph, "Failed to find the Init graph from init node %s", init_node->GetNamePtr());
@@ -418,7 +412,7 @@ ValueHolderPtr HolderOnInit(const ValueHolderPtr &holder) {
     GE_ASSERT_NOTNULL(init_graph);
     const auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, kInnerNetOutput);
     GE_ASSERT_NOTNULL(netoutput, "Cannot find the InnerNetOutput node on the Init graph");
-    
+
     auto edge = netoutput->GetInDataEdgeByIndex(index);
     GE_ASSERT_NOTNULL(edge, "The InnerNetOutput does not have the in edge %d", index);
     auto src_node = edge->src;

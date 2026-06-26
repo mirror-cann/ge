@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,14 +46,16 @@ Status ContinuousInputNodeChecker(const NodeCheckerParam &param) {
     }
 
     if (expect_offset != offset) {
-      REPORT_INNER_ERR_MSG("E19999", "continuous input node memory check failed. node: %s, input_index: %d,"
-          " input node %s, out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
-          NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
-          NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset);
-      GELOGE(FAILED, "continuous input node memory check failed. node: %s, input_index: %d, input node %s,"
-          " out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
-          NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
-          NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "continuous input node memory check failed. node: %s, input_index: %d,"
+                           " input node %s, out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
+                           NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
+                           NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset);
+      GELOGE(FAILED,
+             "continuous input node memory check failed. node: %s, input_index: %d, input node %s,"
+             " out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 "",
+             NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
+             NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset);
       GE_ASSERT_SUCCESS(NodeCheckerUtils::ErrorLogAllInputs(param));
       return FAILED;
     }

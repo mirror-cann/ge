@@ -22,8 +22,7 @@ namespace ge {
 namespace fusion {
 namespace python_pass_fallback_codegen {
 
-using ProbePythonRuntimeFn = bool (*)(const char *python_command,
-                                      python_pass_artifact::PythonRuntimeKey &runtime_key);
+using ProbePythonRuntimeFn = bool (*)(const char *python_command, python_pass_artifact::PythonRuntimeKey &runtime_key);
 
 constexpr const char *kPyGILStateEnsureSymbol = "PyGILState_Ensure";
 constexpr const char *kPyGILStateReleaseSymbol = "PyGILState_Release";
@@ -86,8 +85,7 @@ struct InProcessPythonApi {
     object_str = reinterpret_cast<PyObjectStrFn>(dlsym(RTLD_DEFAULT, kPyObjectStrSymbol));
     return (gil_ensure != nullptr) && (gil_release != nullptr) && (import_add_module != nullptr) &&
            (module_get_dict != nullptr) && (run_string != nullptr) && (unicode_as_utf8 != nullptr) &&
-           (dec_ref != nullptr) && (err_occurred != nullptr) && (err_fetch != nullptr) &&
-           (object_str != nullptr);
+           (dec_ref != nullptr) && (err_occurred != nullptr) && (err_fetch != nullptr) && (object_str != nullptr);
   }
 
   std::string FormatActivePythonError() const {
@@ -149,8 +147,7 @@ inline std::string FetchLineByPrefix(const std::string &content, const std::stri
   while (line_start <= content.size()) {
     const auto line_end = content.find('\n', line_start);
     size_t value_end = (line_end == std::string::npos) ? content.size() : line_end;
-    if ((value_end >= (line_start + prefix.size())) &&
-        (content.compare(line_start, prefix.size(), prefix) == 0)) {
+    if ((value_end >= (line_start + prefix.size())) && (content.compare(line_start, prefix.size(), prefix) == 0)) {
       if ((value_end > (line_start + prefix.size())) && (content[value_end - 1U] == '\r')) {
         --value_end;
       }
@@ -202,11 +199,9 @@ inline bool RunEvalExpressionInProcess(const char *expression, std::string &resu
 
   const PyGilGuard gil_guard(py_api);
   InProcessPythonApi::PyObjectPtr main_module = py_api.import_add_module("__main__");
-  InProcessPythonApi::PyObjectPtr globals =
-      (main_module != nullptr) ? py_api.module_get_dict(main_module) : nullptr;
-  InProcessPythonApi::PyObjectPtr result = (globals != nullptr)
-      ? py_api.run_string(expression, kPyEvalInput, globals, globals)
-      : nullptr;
+  InProcessPythonApi::PyObjectPtr globals = (main_module != nullptr) ? py_api.module_get_dict(main_module) : nullptr;
+  InProcessPythonApi::PyObjectPtr result =
+      (globals != nullptr) ? py_api.run_string(expression, kPyEvalInput, globals, globals) : nullptr;
   if (result == nullptr) {
     const auto error_message = py_api.FormatActivePythonError();
     if (error_message.empty()) {
@@ -228,8 +223,7 @@ inline bool RunEvalExpressionInProcess(const char *expression, std::string &resu
 }
 
 inline bool RunFallbackCodegenViaSubprocess(const python_pass_artifact::PythonRuntimeKey &runtime_key,
-                                            const FallbackCodegenDependencies &deps,
-                                            std::string &gen_artifact_root) {
+                                            const FallbackCodegenDependencies &deps, std::string &gen_artifact_root) {
   if ((deps.read_command_output == nullptr) || (deps.probe_runtime == nullptr)) {
     return false;
   }
@@ -245,13 +239,14 @@ inline bool RunFallbackCodegenViaSubprocess(const python_pass_artifact::PythonRu
 
   std::string output;
   if (!deps.read_command_output(std::string(python_command) + kSubProcessFallbackScript, output)) {
-    GELOGE(FAILED, "Subprocess python pass fallback codegen failed, command[%s], output[%s].",
-           python_command.c_str(), output.c_str());
+    GELOGE(FAILED, "Subprocess python pass fallback codegen failed, command[%s], output[%s].", python_command.c_str(),
+           output.c_str());
     return false;
   }
   gen_artifact_root = FetchLineByPrefix(output, kSubProcessFallbackRootPrefix);
   if (gen_artifact_root.empty()) {
-    GELOGE(FAILED, "Subprocess python pass fallback codegen failed, command[%s], "
+    GELOGE(FAILED,
+           "Subprocess python pass fallback codegen failed, command[%s], "
            "missing artifact root marker in output[%s].",
            python_command.c_str(), output.c_str());
     return false;
@@ -269,8 +264,7 @@ inline bool RunFallbackCodegenInProcess(std::string &gen_artifact_root) {
 }
 
 inline bool RunFallbackCodegen(const python_pass_artifact::PythonRuntimeKey &runtime_key,
-                               const FallbackCodegenDependencies &deps,
-                               std::string &gen_artifact_root) {
+                               const FallbackCodegenDependencies &deps, std::string &gen_artifact_root) {
   gen_artifact_root.clear();
   if (runtime_key.python_tag.empty() || !IsFallbackCodegenDependenciesValid(deps)) {
     return false;

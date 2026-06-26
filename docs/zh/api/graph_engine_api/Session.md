@@ -1,72 +1,71 @@
 # Session<a name="ZH-CN_TOPIC_0000001265404746"></a>
 
--   **[简介](简介.md)**  
+-   **[简介](简介.md)**
 
--   **[Session构造函数和析构函数](Session构造函数和析构函数.md)**  
+-   **[Session构造函数和析构函数](Session构造函数和析构函数.md)**
 
--   **[AddGraph](AddGraph.md)**  
+-   **[AddGraph](AddGraph.md)**
 
--   **[AddGraphWithCopy](AddGraphWithCopy.md)**  
+-   **[AddGraphWithCopy](AddGraphWithCopy.md)**
 
--   **[BuildGraph](BuildGraph.md)**  
+-   **[BuildGraph](BuildGraph.md)**
 
--   **[CompileGraph](CompileGraph.md)**  
+-   **[CompileGraph](CompileGraph.md)**
 
--   **[ExecuteGraphWithStreamAsync](ExecuteGraphWithStreamAsync.md)**  
+-   **[ExecuteGraphWithStreamAsync](ExecuteGraphWithStreamAsync.md)**
 
--   **[GEInitialize](GEInitialize.md)**  
+-   **[GEInitialize](GEInitialize.md)**
 
--   **[GetCompiledGraphSummary](GetCompiledGraphSummary.md)**  
+-   **[GetCompiledGraphSummary](GetCompiledGraphSummary.md)**
 
--   **[GEFinalize](GEFinalize.md)**  
+-   **[GEFinalize](GEFinalize.md)**
 
--   **[GEGetErrorMsg](GEGetErrorMsg.md)**  
+-   **[GEGetErrorMsg](GEGetErrorMsg.md)**
 
--   **[GEGetErrorMsgV2](GEGetErrorMsgV2.md)**  
+-   **[GEGetErrorMsgV2](GEGetErrorMsgV2.md)**
 
--   **[GEGetWarningMsg](GEGetWarningMsg.md)**  
+-   **[GEGetWarningMsg](GEGetWarningMsg.md)**
 
--   **[GEGetWarningMsgV2](GEGetWarningMsgV2.md)**  
+-   **[GEGetWarningMsgV2](GEGetWarningMsgV2.md)**
 
--   **[GetSessionId](GetSessionId.md)**  
+-   **[GetSessionId](GetSessionId.md)**
 
--   **[GetVariables](GetVariables.md)**  
+-   **[GetVariables](GetVariables.md)**
 
--   **[IsGraphNeedRebuild](IsGraphNeedRebuild.md)**  
+-   **[IsGraphNeedRebuild](IsGraphNeedRebuild.md)**
 
--   **[LoadGraph](LoadGraph.md)**  
+-   **[LoadGraph](LoadGraph.md)**
 
--   **[PaRemapped](PaRemapped.md)**  
+-   **[PaRemapped](PaRemapped.md)**
 
--   **[RegisterCallBackFunc](RegisterCallBackFunc.md)**  
+-   **[RegisterCallBackFunc](RegisterCallBackFunc.md)**
 
--   **[RegisterExternalAllocator](RegisterExternalAllocator.md)**  
+-   **[RegisterExternalAllocator](RegisterExternalAllocator.md)**
 
--   **[RemoveGraph](RemoveGraph.md)**  
+-   **[RemoveGraph](RemoveGraph.md)**
 
--   **[RunGraph](RunGraph.md)**  
+-   **[RunGraph](RunGraph.md)**
 
--   **[RunGraphAsync](RunGraphAsync.md)**  
+-   **[RunGraphAsync](RunGraphAsync.md)**
 
--   **[RunGraphDistribute](RunGraphDistribute.md)**  
+-   **[RunGraphDistribute](RunGraphDistribute.md)**
 
--   **[RunGraphWithStreamAsync](RunGraphWithStreamAsync.md)**  
+-   **[RunGraphWithStreamAsync](RunGraphWithStreamAsync.md)**
 
--   **[SaveGraphsToPb](SaveGraphsToPb.md)**  
+-   **[SaveGraphsToPb](SaveGraphsToPb.md)**
 
--   **[SetGraphConstMemoryBase](SetGraphConstMemoryBase.md)**  
+-   **[SetGraphConstMemoryBase](SetGraphConstMemoryBase.md)**
 
--   **[SetGraphFixedFeatureMemoryBase](SetGraphFixedFeatureMemoryBase.md)**  
+-   **[SetGraphFixedFeatureMemoryBase](SetGraphFixedFeatureMemoryBase.md)**
 
--   **[SetGraphFixedFeatureMemoryBaseWithType](SetGraphFixedFeatureMemoryBaseWithType.md)**  
+-   **[SetGraphFixedFeatureMemoryBaseWithType](SetGraphFixedFeatureMemoryBaseWithType.md)**
 
--   **[ShardGraphs](ShardGraphs.md)**  
+-   **[ShardGraphs](ShardGraphs.md)**
 
--   **[ShardGraphsToFile](ShardGraphsToFile.md)**  
+-   **[ShardGraphsToFile](ShardGraphsToFile.md)**
 
--   **[UpdateGraphFeatureMemoryBase](UpdateGraphFeatureMemoryBase.md)**  
+-   **[UpdateGraphFeatureMemoryBase](UpdateGraphFeatureMemoryBase.md)**
 
--   **[UpdateGraphRefreshableFeatureMemoryBase](UpdateGraphRefreshableFeatureMemoryBase.md)**  
+-   **[UpdateGraphRefreshableFeatureMemoryBase](UpdateGraphRefreshableFeatureMemoryBase.md)**
 
--   **[UnregisterExternalAllocator](UnregisterExternalAllocator.md)**  
-
+-   **[UnregisterExternalAllocator](UnregisterExternalAllocator.md)**

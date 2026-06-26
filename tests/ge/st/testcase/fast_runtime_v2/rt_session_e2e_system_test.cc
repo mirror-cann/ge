@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,7 +54,8 @@ namespace gert {
 namespace {
 LowerResult LoweringFoo(const ge::NodePtr &node, const LowerInput &lower_input) {
   auto rt_session = bg::GetRtSession(*lower_input.global_data);
-  auto ret = bg::DevMemValueHolder::CreateSingleDataOutput("GetTestSessionId", {rt_session}, node->GetOpDesc()->GetStreamId());
+  auto ret =
+      bg::DevMemValueHolder::CreateSingleDataOutput("GetTestSessionId", {rt_session}, node->GetOpDesc()->GetStreamId());
   LowerResult result;
   result.out_shapes.push_back(lower_input.input_shapes[0]);
   result.out_addrs.push_back(ret);
@@ -81,7 +82,7 @@ ge::graphStatus CreateGetSessionIdTensorDataAtHost(const ge::FastNode *node, Ker
   session_id_chain->SetWithDefaultDeleter<uint8_t[]>(out_data.release());
   return ge::GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 class RtSessionSystemTest : public bg::BgTest {
  protected:
@@ -91,24 +92,25 @@ class RtSessionSystemTest : public bg::BgTest {
   }
   void TearDown() override {
     Test::TearDown();
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 };
 const std::string TransDataStubName = "TransDataStubBin";
 const std::string MulStubName = "MulStubBin";
 /*
-* Lowering简单图，输出加载时传入的SessionId
-*  计算图：
-*       Data->Foo->NetOutput
-*  执行图：
-*    init图：                  main图:
-*        ConstData                InnerData
-*           |                        |
-*        GetSessionId           EnsureTensorAtOutMemory
-*           |                         |
-*        InnerNetoutput           NetOutput
-*/
-TEST_F(RtSessionSystemTest,  OneConstData_Load_Execute_Success) {
+ * Lowering简单图，输出加载时传入的SessionId
+ *  计算图：
+ *       Data->Foo->NetOutput
+ *  执行图：
+ *    init图：                  main图:
+ *        ConstData                InnerData
+ *           |                        |
+ *        GetSessionId           EnsureTensorAtOutMemory
+ *           |                         |
+ *        InnerNetoutput           NetOutput
+ */
+TEST_F(RtSessionSystemTest, OneConstData_Load_Execute_Success) {
   // 1.为Foo算子的converter和相关kernel打桩
   // 注册Foo算子的node converter
   // 注册GetSessionId kernel的实现
@@ -151,13 +153,12 @@ TEST_F(RtSessionSystemTest,  OneConstData_Load_Execute_Success) {
 
   // 6. 执行main图
   auto mem_block = std::unique_ptr<uint8_t[]>(new uint8_t[8]);
-  auto outputs = FakeTensors({2}, 1, mem_block.get(), kOnHost); // fake value内部写死了tensor size为4，不好
+  auto outputs = FakeTensors({2}, 1, mem_block.get(), kOnHost);  // fake value内部写死了tensor size为4，不好
   auto input0 =
       FakeValue<Tensor>(Tensor{{{1}, {1}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_UINT64, 0});
-  ASSERT_EQ(
-      model_executor->Execute(&arg, std::vector<Tensor *>({input0.holder.get()}).data(),
-                              1, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute(&arg, std::vector<Tensor *>({input0.holder.get()}).data(), 1,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   // 7. 校验main图输出value为GetSessionId，即100U.
   auto ret_session_id = outputs.at(0).GetData<uint64_t>();
@@ -168,10 +169,9 @@ TEST_F(RtSessionSystemTest,  OneConstData_Load_Execute_Success) {
   ASSERT_EQ(model_executor->Load(&arg), ge::GRAPH_SUCCESS);
 
   // 2. 执行main图
-  ASSERT_EQ(
-      model_executor->Execute(&arg, std::vector<Tensor *>({input0.holder.get()}).data(),
-                              1, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute(&arg, std::vector<Tensor *>({input0.holder.get()}).data(), 1,
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 }
 }  // namespace gert

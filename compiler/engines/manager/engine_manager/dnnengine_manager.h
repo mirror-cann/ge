@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,20 +32,20 @@ using nlohmann::json;
 
 // Engine configuration
 struct EngineConf {
-  std::string id;                       // engine ID
-  std::string name;                     // engine name
+  std::string id;                  // engine ID
+  std::string name;                // engine name
   bool independent{false};         // independent stream
   bool attach{false};              // attach stream
   bool skip_assign_stream{false};  // not assign stream
-  std::string scheduler_id;             // scheduler ID
+  std::string scheduler_id;        // scheduler ID
 };
 using EngineConfPtr = std::shared_ptr<EngineConf>;
 
 // Configuration information of schedule unit
 struct SchedulerConf {
-  std::string id;                               // scheduler ID
-  std::string name;                             // scheduler name
-  std::string ex_attrs;                         // extra information
+  std::string id;                                    // scheduler ID
+  std::string name;                                  // scheduler name
+  std::string ex_attrs;                              // extra information
   std::map<std::string, EngineConfPtr> cal_engines;  // engine information
 };
 
@@ -56,7 +56,9 @@ class DNNEngineManager {
   friend class GELib;
   static DNNEngineManager &GetInstance();
   std::shared_ptr<ge::DNNEngine> GetEngine(const std::string &name) const;
-  const std::map<std::string, DNNEnginePtr> &GetAllEngines() const { return engines_map_; }
+  const std::map<std::string, DNNEnginePtr> &GetAllEngines() const {
+    return engines_map_;
+  }
   bool IsEngineRegistered(const std::string &name);
   // If can't find appropriate engine name, return "", report error
   static void GetExcludeEngines(std::set<std::string> &exclude_engines);
@@ -88,8 +90,7 @@ class DNNEngineManager {
   Status CheckJsonFile() const;
   std::string GetHostCpuEngineName(const std::vector<OpInfo> &op_infos, const OpDescPtr &op_desc,
                                    OpInfo &matched_op_info) const;
-  void GetOpInfos(std::vector<OpInfo> &op_infos, const OpDescPtr &op_desc,
-		  bool &is_op_specified_engine) const;
+  void GetOpInfos(std::vector<OpInfo> &op_infos, const OpDescPtr &op_desc, bool &is_op_specified_engine) const;
   void InitAtomicCompositeMapping();
   std::string GetCompositeEngine(const NodePtr &node);
   std::string GetCompositeEngine(const NodePtr &func_node, uint32_t recursive_depth);

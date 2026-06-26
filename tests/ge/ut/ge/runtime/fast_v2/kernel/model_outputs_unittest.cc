@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,7 +60,8 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_UseAddressOutside_ModelOutputsAllocdOu
   auto addr = tensor_holder.GetAddr();
   auto placement = tensor_holder.GetPlacement();
   GertTensorData data;
-  auto run_context = KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, &tensor_holder}).Outputs({&data}).Build();
+  auto run_context =
+      KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, &tensor_holder}).Outputs({&data}).Build();
   ASSERT_EQ(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
 
   auto tensor_data = run_context.GetContext<KernelContext>()->GetOutputPointer<GertTensorData>(0);
@@ -86,8 +87,10 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_AllocMemory_PlacementOfOutSideIsWrong)
   auto host_mem_allocator = std::make_shared<memory::HostMemAllocator>();
   memory::HostGertMemAllocator host_gert_mem_allocator(host_mem_allocator.get());
   GertTensorData data;
-  auto run_context = KernelRunContextFaker().Inputs({&host_gert_mem_allocator, (void *)8, &outside_tensor_holder})
-      .Outputs({&data}).Build();
+  auto run_context = KernelRunContextFaker()
+                         .Inputs({&host_gert_mem_allocator, (void *)8, &outside_tensor_holder})
+                         .Outputs({&data})
+                         .Build();
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
   ASSERT_EQ(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
@@ -116,8 +119,10 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_AllocMemory_OutTensorIsNull) {
   auto l2_allocators_holder = ContinuousVector::Create<GertAllocator *>(1UL);
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&allocator);
   GertTensorData data;
-  auto run_context = KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, &outside_tensor_holder})
-      .Outputs({&data}).Build();
+  auto run_context = KernelRunContextFaker()
+                         .Inputs({&single_stream_l2_allocator, (void *)8, &outside_tensor_holder})
+                         .Outputs({&data})
+                         .Build();
   ASSERT_EQ(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
 
   auto tensor_data = run_context.GetContext<KernelContext>()->GetOutputPointer<GertTensorData>(0);
@@ -137,7 +142,8 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_AllOk_NotAllocAddr) {
   Tensor tensor_holder{storage_shape, attr.storage_format, attr.placement, attr.data_type, nullptr};
   GertTensorData data;
 
-  auto run_context = KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, &tensor_holder}).Outputs({&data}).Build();
+  auto run_context =
+      KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, &tensor_holder}).Outputs({&data}).Build();
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
   ASSERT_EQ(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
@@ -155,7 +161,8 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_AllOk_NotAllocTensor) {
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&allocator);
   GertTensorData data;
 
-  auto run_context = KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, nullptr}).Outputs({&data}).Build();
+  auto run_context =
+      KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, nullptr}).Outputs({&data}).Build();
   ASSERT_EQ(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
 
   CheckTensorData(run_context);
@@ -183,7 +190,8 @@ TEST_F(ModelOutpusUT, AllocModelOutTensor_Failed_OutputsInvalid) {
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&allocator);
   GertTensorData data;
 
-  auto run_context = KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, nullptr}).Outputs({nullptr}).Build();
+  auto run_context =
+      KernelRunContextFaker().Inputs({&single_stream_l2_allocator, (void *)8, nullptr}).Outputs({nullptr}).Build();
   ASSERT_NE(kernel::AllocModelOutTensor(run_context.GetContext<KernelContext>()), ge::GRAPH_SUCCESS);
 
   allocator.Finalize();

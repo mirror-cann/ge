@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,9 @@ class GE_FUNC_VISIBILITY GeGenerator {
   }
   GeGenerator() = default;
 
-  ~GeGenerator() { (void)Finalize(); }
+  ~GeGenerator() {
+    (void)Finalize();
+  }
 
   GeGenerator(const GeGenerator &) = delete;
 
@@ -81,15 +83,14 @@ class GE_FUNC_VISIBILITY GeGenerator {
   /// @param [out] model_buff: model buff of op.
   /// @return SUCCESS or FAILED
   Status BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
-                            const std::vector<GeTensor> &outputs,
-                            OpEngineType engine_type, ModelBufferData &model_buff);
-  Status BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
-                            const std::vector<GeTensor> &outputs,
-                            OpEngineType engine_type, int32_t compile_flag, ModelBufferData &model_buff);
-  Status BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
                             const std::vector<GeTensor> &outputs, OpEngineType engine_type,
-                            int32_t compile_flag, ModelBufferData &model_buff,
-                            GraphStage graph_stage, ComputeGraphPtr &compute_graph);
+                            ModelBufferData &model_buff);
+  Status BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
+                            const std::vector<GeTensor> &outputs, OpEngineType engine_type, int32_t compile_flag,
+                            ModelBufferData &model_buff);
+  Status BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
+                            const std::vector<GeTensor> &outputs, OpEngineType engine_type, int32_t compile_flag,
+                            ModelBufferData &model_buff, GraphStage graph_stage, ComputeGraphPtr &compute_graph);
 
   ///
   /// @ingroup ge
@@ -100,9 +101,8 @@ class GE_FUNC_VISIBILITY GeGenerator {
   /// @param [in] graph_name: graph name.
   /// @param [out] graph: graph of single op.
   /// @return SUCCESS or FAILED
-  Status BuildSingleOpGraph(const OpDescPtr &op_desc, const InOutTensorRef &inputs_outputs,
-                            std::string graph_name, Graph &graph,
-                            std::vector<std::pair<std::string, std::string>> &inputs_name_type) const;
+  Status BuildSingleOpGraph(const OpDescPtr &op_desc, const InOutTensorRef &inputs_outputs, std::string graph_name,
+                            Graph &graph, std::vector<std::pair<std::string, std::string>> &inputs_name_type) const;
   Status BuildOriginalGraphInfo(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
                                 const std::vector<GeTensor> &outputs, const std::string &model_file_name,
                                 bool is_offline, GraphStage graph_stage, Graph &graph, ComputeGraphPtr &compute_graph,
@@ -113,9 +113,9 @@ class GE_FUNC_VISIBILITY GeGenerator {
   Status SetExternalGraphRebuildStateCtrl(void *rebuild_ctrl) const;
   using GeRootModelPtr = std::shared_ptr<ge::GeRootModel>;
   static Status SetModelNameForDump(const GeRootModelPtr &ge_root_model);
+
  private:
-  Status GenerateModel(const Graph &graph, const std::string &file_name_prefix,
-                       const std::vector<GeTensor> &inputs,
+  Status GenerateModel(const Graph &graph, const std::string &file_name_prefix, const std::vector<GeTensor> &inputs,
                        ge::ModelBufferData &model, bool is_offline = true,
                        OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT);
   Status BuildSingleOp(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs, const std::vector<GeTensor> &outputs,
@@ -129,8 +129,7 @@ class GE_FUNC_VISIBILITY GeGenerator {
   static Status InferFormatForSingleOp(const OpDescPtr &op_desc, const Graph &graph);
   static Status ResetAiCpuToDynamicShape(const ComputeGraphPtr &graph);
 
-  static Status CreateGeneralizedBuildAttrs(const GeRootModelPtr &ge_root_model,
-                                            const std::vector<GeTensor> &inputs,
+  static Status CreateGeneralizedBuildAttrs(const GeRootModelPtr &ge_root_model, const std::vector<GeTensor> &inputs,
                                             const std::vector<GeTensor> &outputs,
                                             const std::vector<std::pair<std::string, std::string>> &inputs_name_type,
                                             std::vector<ge::NamedAttrs> &generalized_build_attrs);
@@ -141,8 +140,7 @@ class GE_FUNC_VISIBILITY GeGenerator {
   void ConvertOpInfosToOptions(const OpDescPtr &op_desc) const;
   static Status ResetInputOutputShape(const ComputeGraphPtr &graph,
                                       const std::vector<std::pair<std::string, std::string>> &inputs_name_type,
-                                      std::vector<GeTensor> &inputs_dynamic,
-                                      std::vector<GeTensor> &outputs_dynamic);
+                                      std::vector<GeTensor> &inputs_dynamic, std::vector<GeTensor> &outputs_dynamic);
   static Status ResetOutputShapeRange(const OpDescPtr &op_desc, const size_t index,
                                       std::vector<std::pair<int64_t, int64_t>> &shape_range);
   static Status ResetTensorDesc(const size_t index, const GeShape &data_shape, std::vector<GeTensor> &vector_dynamic,

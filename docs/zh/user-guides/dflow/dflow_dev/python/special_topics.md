@@ -157,7 +157,7 @@ class Add():
                  return ff.FLOW_FUNC_FAILED
             self.count = 0
             return ff.FLOW_FUNC_SUCCESS
-    
+
     ```
 
 - 实现函数。
@@ -177,7 +177,7 @@ class Add():
             return ff.FLOW_FUNC_ERR_PARAM_INVALID
         tensor1 = input_flow_msgs[0].get_tensor()
         tensor2 = input_flow_msgs[1].get_tensor()
-    
+
         dtype1 = tensor1.get_data_type()
         dtype2 = tensor2.get_data_type()
         # 两个输入的datatype预期应该相同
@@ -209,7 +209,7 @@ class Add():
             return ff.FLOW_FUNC_FAILED
         self.count += 1
         return ff.FLOW_FUNC_SUCCESS
-    
+
     ```
 
 - 如果用户需要定义多个功能，可以在同一个类中定义多个实现函数。
@@ -218,11 +218,11 @@ class Add():
 
     ```python
     @ff.proc_wrapper()
-    def Add1(self, run_context, input_flow_msgs): 
+    def Add1(self, run_context, input_flow_msgs):
         xxxx
-    
+
     @ff.proc_wrapper()
-    def Add2(self, run_context, input_flow_msgs): 
+    def Add2(self, run_context, input_flow_msgs):
         xxxx
     ```
 
@@ -271,7 +271,7 @@ class Add():
                  return ff.FLOW_FUNC_FAILED
             self.count = 0
             return ff.FLOW_FUNC_SUCCESS
-    
+
     ```
 
 - Add\(\)：用户自定义的计算处理函数。UDF框架在接收到输入tensor的数据后，会调用此方法。
@@ -301,11 +301,11 @@ class Add():
 
     ```python
     @ff.proc_wrapper()
-    def Add1(self, run_context, input_flow_msgs): 
+    def Add1(self, run_context, input_flow_msgs):
         xxxx
-    
+
     @ff.proc_wrapper()
-    def Add2(self, run_context, input_flow_msgs): 
+    def Add2(self, run_context, input_flow_msgs):
         xxxx
     ```
 
@@ -499,7 +499,7 @@ dag = df.FlowGraph([out for out in flow_node0_out], options)
 
 ```json
 {
-   
+
    "keep_logic_device_order": false,
    "batch_deploy_info": [
         {
@@ -509,7 +509,7 @@ dag = df.FlowGraph([out for out in flow_node0_out], options)
         {
             "flow_node_list": ["flowNode3"],
             "logic_device_list": "0:0:1:1"
- 
+
         },
         {
             "flow_node_list": ["flowNode4"],
@@ -578,10 +578,10 @@ dag = df.FlowGraph([out for out in flow_node0_out], options)
            "ge.graph_compiler_cache_dir":"./build_cache_dir"
         }
         df.init(options)
-    
+
         flow_node0 = df.FlowNode(input_num=1, output_num=2)
         flow_node0_out = flow_node0(data0)
-    
+
         # 构建FlowGraph，此处重点说明option使用，实际构造dataflow graph请参考其他章节
         options = {
             "ge.graph_key":"test_graph_00"
@@ -600,7 +600,7 @@ dag = df.FlowGraph([out for out in flow_node0_out], options)
 
 2.  图发生变化后，如果需要重新编译。请参考如下步骤。
 
-    > [!NOTE]说明 
+    > [!NOTE]说明
     >图变化包括：修改GraphProcessPoint对应的graph或者config.json、修改UDF的实现文件和修改部署信息。
     >1.  手动删除整图缓存的文件（包括模型缓存文件、索引文件和变量格式文件，具体内容请参考“缓存文件生成规则”。
     >2.  重新编译。
@@ -668,10 +668,10 @@ DataFlow离线编译是指在开发环境编译，在运行环境上加载和部
             "ge.runFlag":"0"
         }
         df.init(options)
-    
+
         flow_node0 = df.FlowNode(input_num=1, output_num=2)
         flow_node0_out = flow_node0(data0)
-    
+
         # 构建FlowGraph，此处重点说明option使用，实际构造dataflow graph请参考其他章节
         options = {
             "ge.graph_key":"test_graph_00"
@@ -699,15 +699,15 @@ DataFlow离线编译是指在开发环境编译，在运行环境上加载和部
         graph_options = {"ge.graph_key" : "key"}
         # 构建FlowGraph
         dag = df.FlowGraph([flow_node2_out], graph_options)
-        
+
         # feed data
         feed_data0 = np.ones([1,2], dtype=np.int32)
         feed_data1 = np.array([[1,2]], dtype=np.int32)
-        
+
         flow_info = df.FlowInfo()
         flow_info.start_time = 0
         flow_info.end_time = 5
-        
+
         dag.feed_data({data0:feed_data0, data1:feed_data1}, flow_info) # 异步喂数据
         # feed_data接口涉及图编译和加载，如果设置ge.runFlag为0，则只进行图编译：
         graph_options = {"ge.graph_key" : "key",
@@ -728,7 +728,7 @@ DataFlow离线编译是指在开发环境编译，在运行环境上加载和部
 
 **了解数据对齐之前，需要先了解什么是数据对。**
 
-**图1**  数据对示意图  
+**图1**  数据对示意图
 ![](figures/数据对示意图.png "数据对示意图")
 
 - 定义Model X为数据最早的来源，输出有两个队列，输出的多组数据\[A1',B1'\]、\[A2',B2'\]、\[A3',B3'\]，每组数据是有关联的。
@@ -838,7 +838,7 @@ def resize_bilinear(x: torch.Tensor, hw: torch.Tensor):
 
 - 并行方式1：请求间多实例并行：
 
-    **图1**  请求间多实例并行  
+    **图1**  请求间多实例并行
     ![](figures/请求间多实例并行.png "请求间多实例并行")
 
     图中是由Model X-\>Model A-\>Model B串起来的DataFlow模型，由于Model A计算耗时长，所以对Model A拆成两个实例加速，数据流（A、B、C、D）经过Model X后，根据transaction ID轮询并分发到Model A的两个实例（数据A和C分流到实例1，数据B和D分流到实例2），之后再由Model B实现汇聚。
@@ -847,7 +847,7 @@ def resize_bilinear(x: torch.Tensor, hw: torch.Tensor):
 
     这种场景需要增加数据拆分和数据合并的逻辑，通过输出时指定BalanceConfig进行均衡分发，控制输出分发和汇聚（此功能当前不支持py\_flow注解执行方式）。
 
-    **图2**  拆分请求多实例加速  
+    **图2**  拆分请求多实例加速
     ![](figures/拆分请求多实例加速.png "拆分请求多实例加速")
 
 原始模型为由Model X-\>Model A-\>Model B串起来的DataFlow模型，由于Model A计算耗时长，为了降低端到端时延，对Model A进行多实例加速。详细步骤如下。

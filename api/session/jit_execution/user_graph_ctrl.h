@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,11 +56,10 @@ class UserGraphControl {
         jit_exe_thread_pool_("jit_exe", kDefaultJitExeThreadPoolSize, true),
         cmc_(user_graph_id_, compile_context_, graph_manager_) {
     auto ge_context = ge::GetThreadLocalContext();
-    user_graph_exe_thread_ = std::thread(
-      [this, ge_context]() mutable {
-        ge::GetThreadLocalContext() = ge_context;
-        this->ExecuteUserGraph();
-      });
+    user_graph_exe_thread_ = std::thread([this, ge_context]() mutable {
+      ge::GetThreadLocalContext() = ge_context;
+      this->ExecuteUserGraph();
+    });
     const auto ret = cmc_.RestoreCache(order_);
     if (ret != SUCCESS) {
       GELOGW("CompiledModelCache RestoreCache failed. The cache files are not valid. user_graph[%u].", user_graph_id);

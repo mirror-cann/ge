@@ -167,7 +167,7 @@ TEST_F(BuildTensorUT, SplitTensor_Host) {
 
   context_holder.FreeAll();
 }
-  
+
 ```
 > Note: If you're writing a case expecting Kernel execution function to fail, please be cautious: Is this a real runtime input scenario? If not, it's easy to fall into the "partial proof" quagmire -- why not test all exception input combinations. Even if you list all exception combinations, you'll fall into another quagmire of case count explosion.
 

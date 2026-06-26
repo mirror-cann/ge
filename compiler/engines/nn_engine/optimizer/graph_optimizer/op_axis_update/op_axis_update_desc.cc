@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,9 @@ Status OpAxisUpdateDesc::UpdateAxis(ge::ComputeGraph &graph) {
       continue;
     }
     OpPattern op_pattern = op_kernel->GetOpPattern();
-    bool broadcast_need_reshape = ((op_pattern == OP_PATTERN_BROADCAST || op_pattern == OP_PATTERN_BROADCAST_ENHANCED)
-                                   && IsNeedReshape(op_desc_ptr));
+    bool broadcast_need_reshape =
+        ((op_pattern == OP_PATTERN_BROADCAST || op_pattern == OP_PATTERN_BROADCAST_ENHANCED) &&
+         IsNeedReshape(op_desc_ptr));
     if (!(op_pattern == OP_PATTERN_REDUCE || broadcast_need_reshape)) {
       FE_LOGD("Op [Name:%s, Type:%s] is not reduce op or no need to reshape.", op_desc_ptr->GetName().c_str(),
               op_desc_ptr->GetType().c_str());
@@ -85,8 +86,7 @@ Status OpAxisUpdateDesc::SetAxisAttributeValue(ge::OpDesc &op_desc, ge::Format &
   } else {
     // 5HD,6HD,6D,FZ
     if (origin_format == ge::FORMAT_ND) {
-      FE_LOGD("Reduce op [%s] origin format is ND, does not need to change axis.",
-              op_desc.GetName().c_str());
+      FE_LOGD("Reduce op [%s] origin format is ND, does not need to change axis.", op_desc.GetName().c_str());
       return SUCCESS;
     }
     res = AxisNameUtil::GetNewAxisAttributeValue(op_desc, origin_format, current_format, origin_shape,
@@ -131,9 +131,9 @@ Status OpAxisUpdateDesc::GetNewAxisForNz(const ge::OpDesc &op_desc, const ge::Ge
 Status OpAxisUpdateDesc::ReshapeFz3DAndUpdateAxis(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &input_or_output_tensor_desc,
                                                   const bool &update_axis_flag, ge::OpDesc &op_desc) {
   ge::Format primary_format = ge::FORMAT_ND;  // current format of the op
-  ge::Format origin_format = ge::FORMAT_ND;  // original format of the op
-  ge::GeShape origin_shape;                  // original shape of the op
-  ge::DataType current_data_type;            // current data type of the op
+  ge::Format origin_format = ge::FORMAT_ND;   // original format of the op
+  ge::GeShape origin_shape;                   // original shape of the op
+  ge::DataType current_data_type;             // current data type of the op
 
   // 1.reset shape of fractal_z to 6d
   for (auto input_or_output_desc : input_or_output_tensor_desc) {
@@ -176,8 +176,8 @@ ge::GeShape OpAxisUpdateDesc::GetFractalZNewShape(const ge::GeShape &origin_shap
 
   // 2. get the FZ shape
   ge::GeShape new_fz_shape;
-  ShapeAndFormat shape_and_format_info = {origin_shape, new_fz_shape, origin_format, primary_format,
-                                          current_data_type, sub_format};
+  ShapeAndFormat shape_and_format_info = {origin_shape,   new_fz_shape,      origin_format,
+                                          primary_format, current_data_type, sub_format};
   status = GetShapeAccordingToFormat(shape_and_format_info);
   if (status != SUCCESS) {
     FE_LOGW(
@@ -225,8 +225,7 @@ ge::GeShape OpAxisUpdateDesc::GetFractalZNewShape(const ge::GeShape &origin_shap
   new_dim_vec.push_back(new_fz_shape.GetDim(3));
   ge::GeShape result = ge::GeShape(new_dim_vec);
   FE_LOGD("New shape of format %s is %s, with the old shape being %s.",
-          ge::TypeUtils::FormatToSerialString(primary_format).c_str(),
-          GetShapeDims(result).c_str(),
+          ge::TypeUtils::FormatToSerialString(primary_format).c_str(), GetShapeDims(result).c_str(),
           GetShapeDims(origin_shape).c_str());
   return result;
 }

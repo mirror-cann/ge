@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ graphStatus MarkSingleNode(const NodePtr &node, GraphLint::NodeInputRWDesc &inpu
       }
     }
   }
-  GE_ASSERT_GRAPH_SUCCESS(input_rw_desc.SetIsMarked(), "Node %s input rw type is not all setted.", node->GetTypePtr());
+  GE_ASSERT_GRAPH_SUCCESS(input_rw_desc.SetIsMarked(), "Node %s input rw type is not all set.", node->GetTypePtr());
   return GRAPH_SUCCESS;
 }
 
@@ -226,10 +226,11 @@ graphStatus GraphLint::VerifyRwConflictPerOutAnchor(const OutDataAnchorPtr &out_
       if (!is_connect) {
         GELOGW("There is no control relation between write node[%s] and other write node[%s].",
                write_node->GetNamePtr(), other_write_node->GetNamePtr());
-        REPORT_INNER_ERR_MSG("W18888",
-                           "There is no control relation between write node[%s] and other write node[%s]. Please check "
-                           "graph make it valid, sometimes it may cause problem (precision problem).",
-                           write_node->GetNamePtr(), other_write_node->GetNamePtr());
+        REPORT_INNER_ERR_MSG(
+            "W18888",
+            "There is no control relation between write node[%s] and other write node[%s]. Please check "
+            "graph make it valid, sometimes it may cause problem (precision problem).",
+            write_node->GetNamePtr(), other_write_node->GetNamePtr());
         return GRAPH_FAILED;
       }
     }
@@ -241,9 +242,9 @@ graphStatus GraphLint::VerifyRwConflictPerOutAnchor(const OutDataAnchorPtr &out_
         GELOGW("There is no control relation between write node[%s] and read node[%s].", write_node->GetNamePtr(),
                other_read_node->GetNamePtr());
         REPORT_INNER_ERR_MSG("W18888",
-                           "There is no control relation between write node[%s] and read node[%s]. Please check "
-                           "graph make it valid, sometimes it may cause problem (precision problem).",
-                           write_node->GetNamePtr(), other_read_node->GetNamePtr());
+                             "There is no control relation between write node[%s] and read node[%s]. Please check "
+                             "graph make it valid, sometimes it may cause problem (precision problem).",
+                             write_node->GetNamePtr(), other_read_node->GetNamePtr());
         return GRAPH_FAILED;
       }
     }

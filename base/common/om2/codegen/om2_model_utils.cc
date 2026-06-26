@@ -29,8 +29,8 @@ constexpr const char *kConstVarPrefix = "const_";
 
 Status ResolveConstIndex(const std::string &var_name, size_t &const_index) {
   const std::string prefix(kConstVarPrefix);
-  GE_ASSERT_TRUE(var_name.compare(0U, prefix.size(), prefix) == 0,
-                 "[OM2] Const var name %s is invalid.", var_name.c_str());
+  GE_ASSERT_TRUE(var_name.compare(0U, prefix.size(), prefix) == 0, "[OM2] Const var name %s is invalid.",
+                 var_name.c_str());
   size_t index = 0U;
   for (size_t i = prefix.size(); i < var_name.size(); ++i) {
     const char ch = var_name[i];
@@ -42,8 +42,7 @@ Status ResolveConstIndex(const std::string &var_name, size_t &const_index) {
 }
 
 uint64_t Om2ModelUtils::GetWorkspaceMemTypeByPriority(const bool is_p2p_memory, const bool is_l1_memory,
-                                                      const bool is_ub_memory,
-                                                      const bool session_scope_memory) {
+                                                      const bool is_ub_memory, const bool session_scope_memory) {
   if (is_p2p_memory) {
     return RT_MEMORY_P2P_DDR;
   }
@@ -97,12 +96,14 @@ bool Om2ModelUtils::ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64
   }
   const int64_t mem_range = offset + size;
   if (total_size < static_cast<uint64_t>(mem_range)) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) memory out of range, offset:%" PRId64 ", size:%" PRId64
-                       ", exceed total size:%" PRIu64 ".", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                       offset, size, total_size);
-    GELOGE(OUT_OF_MEMORY, "[OM2][Check][Param]Node:%s(%s) memory out of range, offset:%" PRId64 ", size:%" PRId64
-           ", exceed total size:%" PRIu64 ".", op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size,
-           total_size);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Node:%s(%s) memory out of range, offset:%" PRId64 ", size:%" PRId64
+                         ", exceed total size:%" PRIu64 ".",
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
+    GELOGE(OUT_OF_MEMORY,
+           "[OM2][Check][Param]Node:%s(%s) memory out of range, offset:%" PRId64 ", size:%" PRId64
+           ", exceed total size:%" PRIu64 ".",
+           op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
     return false;
   }
   return true;
@@ -129,21 +130,21 @@ Status Om2ModelUtils::GetValidatedTensorMemType(const GeTensorDescPtr &tensor_de
 }
 
 Status Om2ModelUtils::ResolveInputVarName(std::unordered_map<int64_t, OpInputEdges> &op_id_to_input_edges,
-                                          const ConstOpDescPtr &op_desc, const int64_t op_index,
-                                          const size_t input_idx, const size_t non_const_idx,
-                                          std::string &input_ptr_name, bool &is_reused_from_upstream) {
+                                          const ConstOpDescPtr &op_desc, const int64_t op_index, const size_t input_idx,
+                                          const size_t non_const_idx, std::string &input_ptr_name,
+                                          bool &is_reused_from_upstream) {
   GE_ASSERT_NOTNULL(op_desc);
   const int64_t current_op_id = op_desc->GetId();
   GE_ASSERT_TRUE(op_id_to_input_edges.find(current_op_id) != op_id_to_input_edges.end(),
                  "[OM2] Current op_id %" PRId64 " not found in op_id_to_input_edges", current_op_id);
   const OpInputEdges &current_edges = op_id_to_input_edges.at(current_op_id);
-  GE_ASSERT_TRUE(input_idx < current_edges.input_op_ids.size(),
-                 "[OM2] Input index %zu out of range for op_id %" PRId64, input_idx, current_op_id);
+  GE_ASSERT_TRUE(input_idx < current_edges.input_op_ids.size(), "[OM2] Input index %zu out of range for op_id %" PRId64,
+                 input_idx, current_op_id);
   const int64_t src_op_id = current_edges.input_op_ids[input_idx];
   const int32_t src_anchor_idx = current_edges.input_anchor_indices[input_idx];
   if (src_op_id == kInvalidOpId) {
-    GELOGE(FAILED, "[OM2] Input %zu of op %s(%" PRId64 ") is unconnected optional input, not supported",
-           input_idx, op_desc->GetName().c_str(), current_op_id);
+    GELOGE(FAILED, "[OM2] Input %zu of op %s(%" PRId64 ") is unconnected optional input, not supported", input_idx,
+           op_desc->GetName().c_str(), current_op_id);
     return FAILED;
   }
   GE_ASSERT_TRUE(op_id_to_input_edges.find(src_op_id) != op_id_to_input_edges.end(),
@@ -163,8 +164,7 @@ Status Om2ModelUtils::ResolveInputVarName(std::unordered_map<int64_t, OpInputEdg
 }
 
 bool Om2ModelUtils::GetFileConstInputVarName(
-    const int64_t input_offset,
-    const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
+    const int64_t input_offset, const std::unordered_map<int64_t, std::string> &fileconst_output_offset_to_varname,
     std::string &input_ptr_name) {
   const auto iter = fileconst_output_offset_to_varname.find(input_offset);
   if (iter == fileconst_output_offset_to_varname.end()) {
@@ -174,9 +174,9 @@ bool Om2ModelUtils::GetFileConstInputVarName(
   return true;
 }
 
-Status Om2ModelUtils::ConstructAddrSemanticForInputConst(
-                      const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
-                      const GeTensorDescPtr &tensor_desc, size_t index) {
+Status Om2ModelUtils::ConstructAddrSemanticForInputConst(const TaskSemanticContributeContext &context,
+                                                         AddrSemantic &input_addr, const GeTensorDescPtr &tensor_desc,
+                                                         size_t index) {
   int64_t data_offset = 0;
   GE_CHK_STATUS(TensorUtils::GetDataOffset(*tensor_desc, data_offset));
   int64_t weight_size = 0;
@@ -185,8 +185,8 @@ Status Om2ModelUtils::ConstructAddrSemanticForInputConst(
                   return FAILED);
   const auto var_name_it = context.weight_offset_to_varname->find(data_offset);
   GE_ASSERT_TRUE(var_name_it != context.weight_offset_to_varname->end(),
-                  "[OM2] Const input offset %" PRId64 " not found, op %s, index %zu", data_offset,
-                  context.op_desc->GetName().c_str(), index);
+                 "[OM2] Const input offset %" PRId64 " not found, op %s, index %zu", data_offset,
+                 context.op_desc->GetName().c_str(), index);
   input_addr.kind = AddrValueKind::kConstTensor;
   input_addr.symbol_hint = var_name_it->second;
   GE_ASSERT_SUCCESS(ResolveConstIndex(input_addr.symbol_hint, input_addr.const_index.emplace()));
@@ -195,19 +195,18 @@ Status Om2ModelUtils::ConstructAddrSemanticForInputConst(
   return SUCCESS;
 }
 
-Status Om2ModelUtils::ConstructAddrSemanticForCommon(
-                      const TaskSemanticContributeContext &context, AddrSemantic &input_addr,
-                      const GeTensorDescPtr &tensor_desc, size_t &input_offset_index,
-                      const std::vector<int64_t> &input_offsets, size_t index) {
+Status Om2ModelUtils::ConstructAddrSemanticForCommon(const TaskSemanticContributeContext &context,
+                                                     AddrSemantic &input_addr, const GeTensorDescPtr &tensor_desc,
+                                                     size_t &input_offset_index,
+                                                     const std::vector<int64_t> &input_offsets, size_t index) {
   uint64_t memory_type = RT_MEMORY_DEFAULT;
   std::vector<int64_t> v_memory_type;
   (void)AttrUtils::GetListInt(context.op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
   GE_ASSERT_SUCCESS(GetValidatedTensorMemType(tensor_desc, v_memory_type, index, memory_type));
   GE_ASSERT_TRUE(input_offset_index < input_offsets.size(), "[OM2] Input offset index %zu out of range, op=%s",
-                  input_offset_index, context.op_desc->GetName().c_str());
+                 input_offset_index, context.op_desc->GetName().c_str());
   const int64_t input_offset = input_offsets[input_offset_index];
-  GE_IF_BOOL_EXEC(!ValidateMemRange(context.op_desc, context.runtime->total_mem_size, input_offset, 0),
-                  return FAILED);
+  GE_IF_BOOL_EXEC(!ValidateMemRange(context.op_desc, context.runtime->total_mem_size, input_offset, 0), return FAILED);
   input_addr.mem_offset = input_offset;
   if (context.model_io->io_offsets.find(input_offset) != context.model_io->io_offsets.end()) {
     input_addr.memory_app = MemoryAppType::kModelIo;
@@ -255,8 +254,7 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
 
     if (input_offset_index < input_offsets.size()) {
       const int64_t input_offset = input_offsets[input_offset_index];
-      if (GetFileConstInputVarName(input_offset, *context.fileconst_output_offset_to_varname,
-                                   input_addr.symbol_hint)) {
+      if (GetFileConstInputVarName(input_offset, *context.fileconst_output_offset_to_varname, input_addr.symbol_hint)) {
         input_addr.kind = AddrValueKind::kConstTensor;
         GE_ASSERT_SUCCESS(ResolveConstIndex(input_addr.symbol_hint, input_addr.const_index.emplace()));
         input_addr.mem_offset = input_offset;
@@ -268,8 +266,8 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
         continue;
       }
     }
-    GE_ASSERT_SUCCESS(ConstructAddrSemanticForCommon(context, input_addr, tensor_desc, input_offset_index,
-                                                     input_offsets, i));
+    GE_ASSERT_SUCCESS(
+        ConstructAddrSemanticForCommon(context, input_addr, tensor_desc, input_offset_index, input_offsets, i));
     (void)input_addr.tensor_info.emplace();
     GE_ASSERT_SUCCESS(BuildInputTensorInfo(tensor_desc, *input_addr.tensor_info));
     input_addrs.push_back(std::move(input_addr));
@@ -278,14 +276,14 @@ Status Om2ModelUtils::ResolveInputAddrs(const TaskSemanticContributeContext &con
   return SUCCESS;
 }
 
-Status Om2ModelUtils::ConstructOutputAddrForCommon(
-                      const TaskSemanticContributeContext &context, AddrSemantic &output_addr,
-                      const GeTensorDescPtr &tensor_desc, std::vector<int64_t> &v_memory_type,
-                      const std::vector<int64_t> &v_output_offset, size_t index) {
+Status Om2ModelUtils::ConstructOutputAddrForCommon(const TaskSemanticContributeContext &context,
+                                                   AddrSemantic &output_addr, const GeTensorDescPtr &tensor_desc,
+                                                   std::vector<int64_t> &v_memory_type,
+                                                   const std::vector<int64_t> &v_output_offset, size_t index) {
   uint64_t memory_type = RT_MEMORY_DEFAULT;
   GE_ASSERT_SUCCESS(GetValidatedTensorMemType(tensor_desc, v_memory_type, index, memory_type));
   GE_ASSERT_TRUE(index < v_output_offset.size(), "[OM2] Output offset index %zu out of range, op=%s", index,
-                  context.op_desc->GetName().c_str());
+                 context.op_desc->GetName().c_str());
   GE_IF_BOOL_EXEC(!ValidateMemRange(context.op_desc, context.runtime->total_mem_size, v_output_offset[index], 0),
                   return FAILED);
   output_addr.mem_offset = v_output_offset[index];
@@ -296,8 +294,7 @@ Status Om2ModelUtils::ConstructOutputAddrForCommon(
   return SUCCESS;
 }
 
-Status Om2ModelUtils::ResolveOutputAddrs(const TaskSemanticContributeContext &context,
-                                         const bool has_optional_addr,
+Status Om2ModelUtils::ResolveOutputAddrs(const TaskSemanticContributeContext &context, const bool has_optional_addr,
                                          std::vector<AddrSemantic> &output_addrs) {
   GE_ASSERT_NOTNULL(context.op_desc);
   GE_ASSERT_NOTNULL(context.runtime);
@@ -336,8 +333,8 @@ Status Om2ModelUtils::ResolveOutputAddrs(const TaskSemanticContributeContext &co
       }
       continue;
     }
-    GE_ASSERT_SUCCESS(ConstructOutputAddrForCommon(context, output_addr, tensor_desc, v_memory_type, v_output_offset,
-                                                   i));
+    GE_ASSERT_SUCCESS(
+        ConstructOutputAddrForCommon(context, output_addr, tensor_desc, v_memory_type, v_output_offset, i));
     (void)output_addr.tensor_info.emplace();
     GE_ASSERT_SUCCESS(BuildOutputTensorInfo(tensor_desc, *output_addr.tensor_info));
     current_edges.output_var_names[i] = output_addr.symbol_hint;
@@ -353,7 +350,8 @@ Status Om2ModelUtils::ResolveWorkspaceAddrs(const TaskSemanticContributeContext 
   const auto &v_workspace_offset = context.op_desc->GetWorkspace();
   const auto &v_workspace_bytes = context.op_desc->GetWorkspaceBytes();
   GE_ASSERT_TRUE(v_workspace_offset.size() == v_workspace_bytes.size(),
-                 "[OM2] workspace offset size %zu != bytes size %zu", v_workspace_offset.size(), v_workspace_bytes.size());
+                 "[OM2] workspace offset size %zu != bytes size %zu", v_workspace_offset.size(),
+                 v_workspace_bytes.size());
 
   WorkspaceMemAttrs attrs;
   GE_ASSERT_SUCCESS(CollectWorkspaceMemAttrs(context.op_desc, attrs));
@@ -369,7 +367,8 @@ Status Om2ModelUtils::ResolveWorkspaceAddrs(const TaskSemanticContributeContext 
 Status Om2ModelUtils::CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, WorkspaceMemAttrs &attrs) {
   attrs.has_reuse_flag = AttrUtils::GetListBool(op_desc, "workspace_reuse_flag", attrs.reuse_flag);
   attrs.has_mem_type_attr = AttrUtils::GetListInt(op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, attrs.v_memory_type);
-  attrs.has_mem_type_workspace = AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, attrs.workspace_memory_type);
+  attrs.has_mem_type_workspace =
+      AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, attrs.workspace_memory_type);
   attrs.has_no_reuse_scope =
       AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, attrs.no_reuse_scope);
   return SUCCESS;
@@ -378,24 +377,25 @@ Status Om2ModelUtils::CollectWorkspaceMemAttrs(const ConstOpDescPtr &op_desc, Wo
 Status Om2ModelUtils::ConstructWorkspaceAddr(const TaskSemanticContributeContext &context,
                                              const WorkspaceMemAttrs &attrs,
                                              const std::vector<int64_t> &v_workspace_offset,
-                                             const std::vector<int64_t> &v_workspace_bytes,
-                                             size_t index, AddrSemantic &workspace_addr) {
-  const bool aicpu_work_space =
-      attrs.has_reuse_flag && (index < attrs.reuse_flag.size()) && (!attrs.reuse_flag[index]);
+                                             const std::vector<int64_t> &v_workspace_bytes, size_t index,
+                                             AddrSemantic &workspace_addr) {
+  const bool aicpu_work_space = attrs.has_reuse_flag && (index < attrs.reuse_flag.size()) && (!attrs.reuse_flag[index]);
   if (aicpu_work_space) {
     GELOGE(FAILED, "[OM2] Aicpu task not support append workspace addrs for now.");
     return FAILED;
   }
-  const bool session_scope_memory =
-      attrs.has_no_reuse_scope && (index < attrs.no_reuse_scope.size()) &&
-      (attrs.no_reuse_scope[index] == kSessionNoReuse);
+  const bool session_scope_memory = attrs.has_no_reuse_scope && (index < attrs.no_reuse_scope.size()) &&
+                                    (attrs.no_reuse_scope[index] == kSessionNoReuse);
   const bool is_p2p_memory =
       attrs.has_mem_type_workspace && (static_cast<uint64_t>(attrs.workspace_memory_type[index]) == RT_MEMORY_P2P_DDR);
-  const bool is_l1_memory = attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == RT_MEMORY_L1);
-  const bool is_ub_memory = attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == kRtMemoryUB);
+  const bool is_l1_memory =
+      attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == RT_MEMORY_L1);
+  const bool is_ub_memory =
+      attrs.has_mem_type_attr && (static_cast<uint64_t>(attrs.v_memory_type[index]) == kRtMemoryUB);
   const uint64_t memory_type =
       GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory);
-  GELOGI("[OM2] Workspace[%zu] mem_type[%" PRIu64 "], is_p2p[%d], is_l1[%d], is_ub[%d], session_scope[%d], "
+  GELOGI("[OM2] Workspace[%zu] mem_type[%" PRIu64
+         "], is_p2p[%d], is_l1[%d], is_ub[%d], session_scope[%d], "
          "workspace_memory_type[%" PRIu64 "], v_memory_type[%" PRIu64 "].",
          index, memory_type, is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory,
          attrs.has_mem_type_workspace ? static_cast<uint64_t>(attrs.workspace_memory_type[index]) : 0UL,
@@ -425,14 +425,13 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
   if (context.op_desc != nullptr) {
     addr_node.memory_app = MemoryAppType::kFix;
     const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(static_cast<uint32_t>(index));
-    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
-                    context.op_desc->GetName().c_str(), index);
+    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input", context.op_desc->GetName().c_str(),
+                   index);
     int64_t tensor_size = 0;
     GE_CHK_STATUS_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size), return FAILED);
     addr_node.byte_size = static_cast<uint64_t>(tensor_size);
     GE_ASSERT_SUCCESS(ResolveInputVarName(*context.op_id_to_input_edges, context.op_desc, context.op_index, index,
-                                          index, addr_node.symbol_hint,
-                                          addr_node.is_reused_from_upstream));
+                                          index, addr_node.symbol_hint, addr_node.is_reused_from_upstream));
   }
   if (context.model_io->io_offsets.find(logical_offset) != context.model_io->io_offsets.end()) {
     addr_node.memory_app = MemoryAppType::kModelIo;
@@ -444,7 +443,7 @@ Status Om2ModelUtils::GetRtInputAddress(const TaskSemanticContributeContext &con
 }
 
 Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
-                                    AddrSemantic &addr_node, bool isInput, uint32_t index) {
+                                   AddrSemantic &addr_node, bool isInput, uint32_t index) {
   GE_ASSERT_NOTNULL(context.runtime);
 
   GELOGI("[OM2][GetRtAddress] op=%s, logic_addr=0x%" PRIxPTR ", isInput=%d, index=%u",
@@ -460,14 +459,16 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
   if ((context.runtime->logic_mem_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_mem_base + context.runtime->total_mem_size))) {
     GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into FM range, isInput=%d", logic_addr, isInput);
-    return GetRtFmAddress(context, static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_mem_base),
+    return GetRtFmAddress(context,
+                          static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_mem_base),
                           addr_node, isInput, index);
   }
   if ((context.runtime->logic_weight_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_weight_base + context.runtime->total_weight_size))) {
     GELOGI("[OM2][GetRtAddress] logic_addr 0x%" PRIxPTR " falls into Weight range", logic_addr);
-    return GetRtWeightAddress(context, static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_weight_base),
-                              addr_node, index);
+    return GetRtWeightAddress(
+        context, static_cast<int64_t>(logic_addr) - static_cast<int64_t>(context.runtime->logic_weight_base), addr_node,
+        index);
   }
   if (is_check_var_manager && (context.runtime->logic_var_base <= logic_addr) &&
       (logic_addr < (context.runtime->logic_var_base + max_var_mem_size))) {
@@ -482,8 +483,7 @@ Status Om2ModelUtils::GetRtAddress(const TaskSemanticContributeContext &context,
   return GetRtEmptyAddress(context, addr_node, isInput, index);
 }
 
-Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &context,
-                                     const int64_t logical_offset,
+Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
                                      AddrSemantic &addr_node, bool is_input, uint32_t index) {
   GELOGI("logical_offset %" PRId64 ", index %u", logical_offset, index);
   if (is_input) {
@@ -492,8 +492,8 @@ Status Om2ModelUtils::GetRtFmAddress(const TaskSemanticContributeContext &contex
   return GetRtOutputAddress(context, logical_offset, addr_node, index);
 }
 
-Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &context,
-                                         const int64_t logical_offset, AddrSemantic &addr_node, uint32_t index) {
+Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
+                                         AddrSemantic &addr_node, uint32_t index) {
   addr_node.kind = AddrValueKind::kOutputInstance;
   addr_node.mem_offset = logical_offset;
   if (context.op_desc != nullptr) {
@@ -520,15 +520,14 @@ Status Om2ModelUtils::GetRtOutputAddress(const TaskSemanticContributeContext &co
   return SUCCESS;
 }
 
-Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &context,
-                                         const int64_t logical_offset,
+Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &context, const int64_t logical_offset,
                                          AddrSemantic &addr_node, uint32_t index) {
   GE_ASSERT_TRUE(context.weight_offset_to_varname != nullptr,
                  "[OM2] weight_offset_to_varname is null for weight offset %" PRId64 ".", logical_offset);
   const auto var_name_it = context.weight_offset_to_varname->find(logical_offset);
   GE_ASSERT_TRUE(var_name_it != context.weight_offset_to_varname->end(),
-                  "[OM2] Const input offset %" PRId64 " not found, op %s, index %u", logical_offset,
-                  context.op_desc != nullptr ? context.op_desc->GetName().c_str() : "null", index);
+                 "[OM2] Const input offset %" PRId64 " not found, op %s, index %u", logical_offset,
+                 context.op_desc != nullptr ? context.op_desc->GetName().c_str() : "null", index);
   addr_node.kind = AddrValueKind::kConstTensor;
   addr_node.symbol_hint = var_name_it->second;
   GE_ASSERT_SUCCESS(ResolveConstIndex(addr_node.symbol_hint, addr_node.const_index.emplace()));
@@ -536,14 +535,13 @@ Status Om2ModelUtils::GetRtWeightAddress(const TaskSemanticContributeContext &co
   addr_node.is_reused_from_upstream = true;
   if (context.op_desc != nullptr) {
     const GeTensorDescPtr tensor_desc = context.op_desc->MutableInputDesc(index);
-    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input",
-                   context.op_desc->GetName().c_str(), index);
+    GE_ASSERT_TRUE(tensor_desc != nullptr, "[OM2] Op: %s, Index: %u, has no input", context.op_desc->GetName().c_str(),
+                   index);
   }
   return SUCCESS;
 }
 
-Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &context,
-                                      const uintptr_t logic_addr,
+Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr,
                                       AddrSemantic &addr_node) {
   const auto iter = context.fileconst_output_offset_to_varname->find(logic_addr);
   if (iter != context.fileconst_output_offset_to_varname->end()) {
@@ -560,8 +558,7 @@ Status Om2ModelUtils::GetRtVarAddress(const TaskSemanticContributeContext &conte
   return PARAM_INVALID;
 }
 
-Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &context,
-                                          const uintptr_t logic_addr) {
+Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &context, const uintptr_t logic_addr) {
   for (const auto &iter : context.runtime->memory_infos) {
     const auto &mem_info = iter.second;
     GE_ASSERT_TRUE(mem_info.logic_memory_base >= 0);
@@ -580,15 +577,14 @@ Status Om2ModelUtils::GetRtUnknownAddress(const TaskSemanticContributeContext &c
   return PARAM_INVALID;
 }
 
-Status Om2ModelUtils::GetRtEmptyAddress(const TaskSemanticContributeContext &context,
-                                        AddrSemantic &addr_node, bool is_input, uint32_t index) {
+Status Om2ModelUtils::GetRtEmptyAddress(const TaskSemanticContributeContext &context, AddrSemantic &addr_node,
+                                        bool is_input, uint32_t index) {
   addr_node.kind = AddrValueKind::kEmptyAddr;
   addr_node.mem_offset = 0;
   addr_node.is_reused_from_upstream = false;
   if (context.op_desc != nullptr) {
-    addr_node.symbol_hint = is_input
-        ? "op" + std::to_string(context.op_index) + "_input" + std::to_string(index)
-        : "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
+    addr_node.symbol_hint = is_input ? "op" + std::to_string(context.op_index) + "_input" + std::to_string(index)
+                                     : "op" + std::to_string(context.op_index) + "_output" + std::to_string(index);
   }
   return SUCCESS;
 }
@@ -597,6 +593,7 @@ uint32_t Om2ModelUtils::ArgsSizeAlign8(uint32_t args_size) {
   return (args_size + kAlign8B - 1) / kAlign8B * kAlign8B;
 }
 uint64_t Om2ModelUtils::ArgsSizeAlign8(uint64_t args_size) {
-  return (args_size + static_cast<uint64_t>(kAlign8B) - 1U) / static_cast<uint64_t>(kAlign8B) * static_cast<uint64_t>(kAlign8B);
+  return (args_size + static_cast<uint64_t>(kAlign8B) - 1U) / static_cast<uint64_t>(kAlign8B) *
+         static_cast<uint64_t>(kAlign8B);
 }
 }  // namespace ge

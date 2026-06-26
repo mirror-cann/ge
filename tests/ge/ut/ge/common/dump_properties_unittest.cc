@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -129,12 +129,9 @@ TEST_F(UTEST_dump_properties, check_enable_dump) {
 
 TEST_F(UTEST_dump_properties, init_by_options_success_1) {
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_STEP, "0|1-3|10"},
-                                              {OPTION_EXEC_DUMP_MODE, "all"},
-                                              {OPTION_EXEC_DUMP_DATA, "tensor"},
-                                              {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP, "1"},      {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_STEP, "0|1-3|10"}, {OPTION_EXEC_DUMP_MODE, "all"},
+                                             {OPTION_EXEC_DUMP_DATA, "tensor"},   {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -142,9 +139,9 @@ TEST_F(UTEST_dump_properties, init_by_options_success_1) {
 
 TEST_F(UTEST_dump_properties, init_by_options_success_2) {
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -152,8 +149,7 @@ TEST_F(UTEST_dump_properties, init_by_options_success_2) {
 
 TEST_F(UTEST_dump_properties, init_by_options_success_3) {
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"}, {OPTION_EXEC_DUMP_PATH, "/tmp/"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -179,94 +175,94 @@ TEST_F(UTEST_dump_properties, check_SetModelBlacklist) {
   dp.SetModelBlacklist(model, blacklist);
 
   // 验证结果
-  const auto& blacklist_map = dp.GetModelDumpBlacklistMap();
+  const auto &blacklist_map = dp.GetModelDumpBlacklistMap();
   ASSERT_EQ(blacklist_map.size(), 1);
   ASSERT_TRUE(blacklist_map.find("model1") != blacklist_map.end());
 
-  const auto& model_blacklist = blacklist_map.at("model1");
+  const auto &model_blacklist = blacklist_map.at("model1");
   ASSERT_EQ(model_blacklist.dump_optype_blacklist.size(), 1);
   ASSERT_EQ(model_blacklist.dump_opname_blacklist.size(), 1);
 
   // 验证op_type blacklist
-  const auto& conv_blacklist_result = model_blacklist.dump_optype_blacklist.at("Conv2D");
+  const auto &conv_blacklist_result = model_blacklist.dump_optype_blacklist.at("Conv2D");
   EXPECT_EQ(conv_blacklist_result.input_indices, std::set<uint32_t>({0, 1}));
   EXPECT_EQ(conv_blacklist_result.output_indices, std::set<uint32_t>({0}));
 
   // 验证op_name blacklist
-  const auto& specific_blacklist_result = model_blacklist.dump_opname_blacklist.at("conv1");
+  const auto &specific_blacklist_result = model_blacklist.dump_opname_blacklist.at("conv1");
   EXPECT_EQ(specific_blacklist_result.input_indices, std::set<uint32_t>({2}));
   EXPECT_EQ(specific_blacklist_result.output_indices, std::set<uint32_t>({1, 2}));
 }
 
 // 测试合并现有模型的blacklist
 TEST_F(UTEST_dump_properties, check_MergeExistingModelBlacklist) {
-    DumpProperties dp;
-    // 第一次设置
-    ModelOpBlacklist first_blacklist;
-    OpBlacklist first_conv_blacklist;
-    first_conv_blacklist.input_indices = {0, 1};
-    first_conv_blacklist.output_indices = {0};
-    first_blacklist.dump_optype_blacklist["Conv2D"] = first_conv_blacklist;
+  DumpProperties dp;
+  // 第一次设置
+  ModelOpBlacklist first_blacklist;
+  OpBlacklist first_conv_blacklist;
+  first_conv_blacklist.input_indices = {0, 1};
+  first_conv_blacklist.output_indices = {0};
+  first_blacklist.dump_optype_blacklist["Conv2D"] = first_conv_blacklist;
 
-    OpBlacklist first_specific_blacklist;
-    first_specific_blacklist.input_indices = {2};
-    first_specific_blacklist.output_indices = {1};
-    first_blacklist.dump_opname_blacklist["conv1"] = first_specific_blacklist;
+  OpBlacklist first_specific_blacklist;
+  first_specific_blacklist.input_indices = {2};
+  first_specific_blacklist.output_indices = {1};
+  first_blacklist.dump_opname_blacklist["conv1"] = first_specific_blacklist;
 
-    dp.SetModelBlacklist("model1", first_blacklist);
+  dp.SetModelBlacklist("model1", first_blacklist);
 
-    // 第二次设置（合并）
-    ModelOpBlacklist second_blacklist;
-    OpBlacklist second_conv_blacklist;
-    second_conv_blacklist.input_indices = {2}; // 新增input index
-    second_conv_blacklist.output_indices = {1}; // 新增output index
-    second_blacklist.dump_optype_blacklist["Conv2D"] = second_conv_blacklist;
+  // 第二次设置（合并）
+  ModelOpBlacklist second_blacklist;
+  OpBlacklist second_conv_blacklist;
+  second_conv_blacklist.input_indices = {2};   // 新增input index
+  second_conv_blacklist.output_indices = {1};  // 新增output index
+  second_blacklist.dump_optype_blacklist["Conv2D"] = second_conv_blacklist;
 
-    OpBlacklist second_specific_blacklist;
-    second_specific_blacklist.input_indices = {3}; // 新增input index
-    second_specific_blacklist.output_indices = {2}; // 新增output index
-    second_blacklist.dump_opname_blacklist["conv1"] = second_specific_blacklist;
+  OpBlacklist second_specific_blacklist;
+  second_specific_blacklist.input_indices = {3};   // 新增input index
+  second_specific_blacklist.output_indices = {2};  // 新增output index
+  second_blacklist.dump_opname_blacklist["conv1"] = second_specific_blacklist;
 
-    // 添加新的op_type和op_name
-    OpBlacklist new_optype_blacklist;
-    new_optype_blacklist.input_indices = {0};
-    new_optype_blacklist.output_indices = {0};
-    second_blacklist.dump_optype_blacklist["MatMul"] = new_optype_blacklist;
+  // 添加新的op_type和op_name
+  OpBlacklist new_optype_blacklist;
+  new_optype_blacklist.input_indices = {0};
+  new_optype_blacklist.output_indices = {0};
+  second_blacklist.dump_optype_blacklist["MatMul"] = new_optype_blacklist;
 
-    OpBlacklist new_opname_blacklist;
-    new_opname_blacklist.input_indices = {1};
-    new_opname_blacklist.output_indices = {1};
-    second_blacklist.dump_opname_blacklist["fc1"] = new_opname_blacklist;
+  OpBlacklist new_opname_blacklist;
+  new_opname_blacklist.input_indices = {1};
+  new_opname_blacklist.output_indices = {1};
+  second_blacklist.dump_opname_blacklist["fc1"] = new_opname_blacklist;
 
-    dp.SetModelBlacklist("model1", second_blacklist);
+  dp.SetModelBlacklist("model1", second_blacklist);
 
-    // 验证合并结果
-    const auto& blacklist_map = dp.GetModelDumpBlacklistMap();
-    ASSERT_EQ(blacklist_map.size(), 1);
+  // 验证合并结果
+  const auto &blacklist_map = dp.GetModelDumpBlacklistMap();
+  ASSERT_EQ(blacklist_map.size(), 1);
 
-    const auto& model_blacklist = blacklist_map.at("model1");
-    ASSERT_EQ(model_blacklist.dump_optype_blacklist.size(), 2);
-    ASSERT_EQ(model_blacklist.dump_opname_blacklist.size(), 2);
+  const auto &model_blacklist = blacklist_map.at("model1");
+  ASSERT_EQ(model_blacklist.dump_optype_blacklist.size(), 2);
+  ASSERT_EQ(model_blacklist.dump_opname_blacklist.size(), 2);
 
-    // 验证合并后的Conv2D op_type
-    const auto& merged_conv_blacklist = model_blacklist.dump_optype_blacklist.at("Conv2D");
-    EXPECT_EQ(merged_conv_blacklist.input_indices, std::set<uint32_t>({0, 1, 2}));
-    EXPECT_EQ(merged_conv_blacklist.output_indices, std::set<uint32_t>({0, 1}));
+  // 验证合并后的Conv2D op_type
+  const auto &merged_conv_blacklist = model_blacklist.dump_optype_blacklist.at("Conv2D");
+  EXPECT_EQ(merged_conv_blacklist.input_indices, std::set<uint32_t>({0, 1, 2}));
+  EXPECT_EQ(merged_conv_blacklist.output_indices, std::set<uint32_t>({0, 1}));
 
-    // 验证合并后的conv1 op_name
-    const auto& merged_specific_blacklist = model_blacklist.dump_opname_blacklist.at("conv1");
-    EXPECT_EQ(merged_specific_blacklist.input_indices, std::set<uint32_t>({2, 3}));
-    EXPECT_EQ(merged_specific_blacklist.output_indices, std::set<uint32_t>({1, 2}));
+  // 验证合并后的conv1 op_name
+  const auto &merged_specific_blacklist = model_blacklist.dump_opname_blacklist.at("conv1");
+  EXPECT_EQ(merged_specific_blacklist.input_indices, std::set<uint32_t>({2, 3}));
+  EXPECT_EQ(merged_specific_blacklist.output_indices, std::set<uint32_t>({1, 2}));
 
-    // 验证新添加的op_type
-    const auto& new_optype_result = model_blacklist.dump_optype_blacklist.at("MatMul");
-    EXPECT_EQ(new_optype_result.input_indices, std::set<uint32_t>({0}));
-    EXPECT_EQ(new_optype_result.output_indices, std::set<uint32_t>({0}));
+  // 验证新添加的op_type
+  const auto &new_optype_result = model_blacklist.dump_optype_blacklist.at("MatMul");
+  EXPECT_EQ(new_optype_result.input_indices, std::set<uint32_t>({0}));
+  EXPECT_EQ(new_optype_result.output_indices, std::set<uint32_t>({0}));
 
-    // 验证新添加的op_name
-    const auto& new_opname_result = model_blacklist.dump_opname_blacklist.at("fc1");
-    EXPECT_EQ(new_opname_result.input_indices, std::set<uint32_t>({1}));
-    EXPECT_EQ(new_opname_result.output_indices, std::set<uint32_t>({1}));
+  // 验证新添加的op_name
+  const auto &new_opname_result = model_blacklist.dump_opname_blacklist.at("fc1");
+  EXPECT_EQ(new_opname_result.input_indices, std::set<uint32_t>({1}));
+  EXPECT_EQ(new_opname_result.output_indices, std::set<uint32_t>({1}));
 }
 
 TEST_F(UTEST_dump_properties, check_SetOpDumpRange) {
@@ -295,23 +291,36 @@ TEST_F(UTEST_dump_properties, check_GetDumpOpRangeSize) {
 }
 
 TEST_F(UTEST_dump_properties, check_DumpProcFsmTransition) {
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kRangeStart), DumpProcState::kStart);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kRangeEnd), DumpProcState::kError);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kOutOfRange), DumpProcState::kInit);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kRangeStart),
+            DumpProcState::kStart);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kRangeEnd),
+            DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kOutOfRange),
+            DumpProcState::kInit);
 
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kRangeStart), DumpProcState::kStart);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kRangeEnd), DumpProcState::kStop);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kOutOfRange), DumpProcState::kStart);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kRangeStart),
+            DumpProcState::kStart);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kRangeEnd),
+            DumpProcState::kStop);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStart, DumpProcEvent::kOutOfRange),
+            DumpProcState::kStart);
 
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kRangeStart), DumpProcState::kError);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kRangeEnd), DumpProcState::kStop);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kOutOfRange), DumpProcState::kInit);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kRangeStart),
+            DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kRangeEnd),
+            DumpProcState::kStop);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kStop, DumpProcEvent::kOutOfRange),
+            DumpProcState::kInit);
 
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kRangeStart), DumpProcState::kError);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kRangeEnd), DumpProcState::kError);
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kOutOfRange), DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kRangeStart),
+            DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kRangeEnd),
+            DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kError, DumpProcEvent::kOutOfRange),
+            DumpProcState::kError);
 
-  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kEnd, DumpProcEvent::kRangeStart), DumpProcState::kError);
+  EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kEnd, DumpProcEvent::kRangeStart),
+            DumpProcState::kError);
   EXPECT_EQ(DumpProperties::DumpProcFsmTransition(DumpProcState::kInit, DumpProcEvent::kEnd), DumpProcState::kError);
 }
 
@@ -408,7 +417,7 @@ TEST_F(UTEST_dump_properties, check_SetDumpFsmState) {
   EXPECT_NE(dp.SetDumpFsmState(model, "", "a", dump_fsm_state, dump_op_in_range), ge::SUCCESS);
 
   // kError4
-  std::vector<std::pair<std::string, std::string>> op_ranges_error4 = {{"a", "b"},{"c", "d"}};
+  std::vector<std::pair<std::string, std::string>> op_ranges_error4 = {{"a", "b"}, {"c", "d"}};
   dump_fsm_state.assign(1, DumpProcState::kInit);
   dump_op_in_range.clear();
   dp.SetOpDumpRange(model, op_ranges_error4);

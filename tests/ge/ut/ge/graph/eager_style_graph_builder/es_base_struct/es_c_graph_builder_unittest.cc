@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ TEST_F(EsCGraphBuilderLLT, Test_StoreAttrTensor) {
   EXPECT_NE(tensor, nullptr);
   auto es_c_tensor = builder.GetCGraphBuilder()->AddResource(std::move(tensor));
   EXPECT_NE(es_c_tensor, nullptr);
-  auto ret_tensor = static_cast<ge::Tensor*>(static_cast<void *>(es_c_tensor));
+  auto ret_tensor = static_cast<ge::Tensor *>(static_cast<void *>(es_c_tensor));
   auto tensor_data = reinterpret_cast<const int64_t *>(ret_tensor->GetData());
   EXPECT_NE(tensor_data, nullptr);
   EXPECT_EQ(tensor_data[0], 1);
@@ -63,16 +63,17 @@ TEST_F(EsCGraphBuilderLLT, Test_CreateDynamicTensorHolderFromNode) {
   auto t1 = builder.CreateInput(0, "input0", "Data");
   std::vector<EsTensorHolder> outputs1 = {t1};
   auto c_builder = builder.GetCGraphBuilder();
-  auto node = ge::es::CompliantNodeBuilder(c_builder->GetGraph()).OpType("test_node")
-      .Name( c_builder->GenerateNodeName("test_node").GetString())
-      .IrDefInputsV2({
-          {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
-      })
-      .IrDefOutputsV2({
-          {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
-      })
-      .InstanceDynamicOutputNum("y", static_cast<int32_t>(3))
-      .Build();
+  auto node = ge::es::CompliantNodeBuilder(c_builder->GetGraph())
+                  .OpType("test_node")
+                  .Name(c_builder->GenerateNodeName("test_node").GetString())
+                  .IrDefInputsV2({
+                      {"x", ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""},
+                  })
+                  .IrDefOutputsV2({
+                      {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
+                  })
+                  .InstanceDynamicOutputNum("y", static_cast<int32_t>(3))
+                  .Build();
   auto ret_dynamic_outputs = c_builder->CreateDynamicTensorHolderFromNode(node, 1, 3);
   EXPECT_NE(ret_dynamic_outputs, nullptr);
   EXPECT_EQ(ret_dynamic_outputs->size(), 3);

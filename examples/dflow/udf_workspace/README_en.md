@@ -1,18 +1,18 @@
 # Directory Structure
 
 ```tree
-├── 01_udf_add   
-│   ├── CMakeLists.txt   
-│   └── add_flow_func.cpp Single func interface definition of add function   
-├── 02_udf_call_add_nn   
-│   ├── CMakeLists.txt   
-│   └── call_nn_flow_func.cpp UDF calls tensorflow model  
-├── 03_udf_add_multi_func   
-│   ├── CMakeLists.txt   
-│   └── add_flow_func.cpp Multi-Func interface definition of add function  
-├── 04_control_func   
-│   ├── CMakeLists.txt   
-│   └── control_func.cpp Activates one of the multi funcs defined in 03 according to input  
+├── 01_udf_add
+│   ├── CMakeLists.txt
+│   └── add_flow_func.cpp Single func interface definition of add function
+├── 02_udf_call_add_nn
+│   ├── CMakeLists.txt
+│   └── call_nn_flow_func.cpp UDF calls tensorflow model
+├── 03_udf_add_multi_func
+│   ├── CMakeLists.txt
+│   └── add_flow_func.cpp Multi-Func interface definition of add function
+├── 04_control_func
+│   ├── CMakeLists.txt
+│   └── control_func.cpp Activates one of the multi funcs defined in 03 according to input
 └── README.md
 ```
 
@@ -27,10 +27,10 @@
    * Init function performs initialization actions, such as variable initialization, attribute acquisition, etc. UDF framework will call this function during initialization phase
    * Proc contains user-defined computation processing logic. UDF framework will call this function after receiving input data
 
-3. UDF registration, implemented through REGISTER_FLOW_FUNC macro to map class declaration to user-defined UDF function name, and register to UDF framework. For example:    
-   EGISTER_FLOW_FUNC("call_nn", CallNnFlowFunc); 
-      
-   call_nn: User-defined UDF function name       
+3. UDF registration, implemented through REGISTER_FLOW_FUNC macro to map class declaration to user-defined UDF function name, and register to UDF framework. For example:
+   EGISTER_FLOW_FUNC("call_nn", CallNnFlowFunc);
+
+   call_nn: User-defined UDF function name
 
    CallNnFlowFunc: Actual executing class name, needs to be consistent with class name in cpp file
 
@@ -43,9 +43,9 @@
 
       * Proc contains user-defined computation processing logic. UDF framework will call this function after receiving input data. Multiple proc functions can be defined
 
-   3. UDF registration, implemented through FLOW_FUNC_REGISTRAR macro to map class declaration to user-defined UDF function name, and register to UDF framework. For example:    
-   FLOW_FUNC_REGISTRAR(AddFlowFunc)    
-   .RegProcFunc("Proc1", &AddFlowFunc::Proc1)    
+   3. UDF registration, implemented through FLOW_FUNC_REGISTRAR macro to map class declaration to user-defined UDF function name, and register to UDF framework. For example:
+   FLOW_FUNC_REGISTRAR(AddFlowFunc)
+   .RegProcFunc("Proc1", &AddFlowFunc::Proc1)
    .RegProcFunc("Proc2", &AddFlowFunc::Proc2);
 
 ## Compilation Guide
@@ -55,7 +55,7 @@ After UDF function development is completed, you can use the following compilati
 ```bash
 source {HOME}/Ascend/cann/set_env.sh #{HOME} is the CANN software package installation directory, please replace according to the actual installation path
 # T
-ake 01_udf_add as an example
+ache 01_udf_add as an example
 cd 01_udf_add
 mkdir build
 cd build

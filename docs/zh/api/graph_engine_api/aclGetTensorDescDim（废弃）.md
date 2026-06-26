@@ -67,4 +67,3 @@ int64_t aclGetTensorDescDim(const aclTensorDesc *desc, size_t index)
 ## 返回值说明<a name="section25151444115613"></a>
 
 返回指定tensor描述中指定维度的大小。
-

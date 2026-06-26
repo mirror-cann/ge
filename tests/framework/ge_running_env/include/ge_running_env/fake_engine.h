@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,23 +28,22 @@ using FakeOpsKernelInfoStorePtr = std::shared_ptr<FakeOpsKernelInfoStore>;
 using FakeGraphOptimiezrPtr = std::shared_ptr<FakeGraphOptimizer>;
 
 struct FakeEngine : EnvInstaller {
-  FakeEngine(const std::string& engine_name);
-  FakeEngine& KernelBuilder(FakeOpsKernelBuilderPtr);
-  FakeEngine& KernelInfoStore(FakeOpsKernelInfoStorePtr);
-  FakeEngine& KernelInfoStore(const std::string&);
-  FakeEngine& GraphOptimizer(std::string name, FakeGraphOptimiezrPtr);
-  FakeEngine& GraphOptimizer(std::string name);
-  FakeEngine& Priority(PriorityEnum compute_cost);
+  FakeEngine(const std::string &engine_name);
+  FakeEngine &KernelBuilder(FakeOpsKernelBuilderPtr);
+  FakeEngine &KernelInfoStore(FakeOpsKernelInfoStorePtr);
+  FakeEngine &KernelInfoStore(const std::string &);
+  FakeEngine &GraphOptimizer(std::string name, FakeGraphOptimiezrPtr);
+  FakeEngine &GraphOptimizer(std::string name);
+  FakeEngine &Priority(PriorityEnum compute_cost);
 
  private:
-  void InstallTo(std::map<string, OpsKernelInfoStorePtr>&) const override;
-  void InstallTo(std::map<string, OpsKernelBuilderPtr>&) const override;
-  void InstallTo(std::map<std::string, DNNEnginePtr>&) const override;
-  void InstallTo(map<string, GraphOptimizerPtr> &,
-                 vector<std::pair<std::string, GraphOptimizerPtr>> &) const override;
+  void InstallTo(std::map<string, OpsKernelInfoStorePtr> &) const override;
+  void InstallTo(std::map<string, OpsKernelBuilderPtr> &) const override;
+  void InstallTo(std::map<std::string, DNNEnginePtr> &) const override;
+  void InstallTo(map<string, GraphOptimizerPtr> &, vector<std::pair<std::string, GraphOptimizerPtr>> &) const override;
 
   template <typename BasePtr, typename SubClass>
-  void InstallFor(std::map<string, BasePtr>& maps, const std::map<std::string, std::shared_ptr<SubClass>>&) const;
+  void InstallFor(std::map<string, BasePtr> &maps, const std::map<std::string, std::shared_ptr<SubClass>> &) const;
 
  protected:
   std::string engine_name_;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -271,10 +271,10 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_with_dep
   auto op = ge::OpDescUtils::CreateOperatorFromNode(reshape);
 
   // build input shape & input tensor
-  gert::Tensor input_shape_tensor = {{{2, 24}, {2, 24}},    // shape
+  gert::Tensor input_shape_tensor = {{{2, 24}, {2, 24}},                    // shape
                                      {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                                     kOnDeviceHbm,                                // placement
-                                     ge::DT_FLOAT16,                              // data type
+                                     kOnDeviceHbm,                          // placement
+                                     ge::DT_FLOAT16,                        // data type
                                      (void *)0x0};
   size_t total_size;
   auto input_tensor_holder = gert::Tensor::CreateFollowing(2, ge::DT_INT64, total_size);
@@ -294,14 +294,14 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_with_dep
     return StubReshapeInferShapeV1(v);
   };  // simulate operator_reg
   auto run_context = KernelRunContextFaker()
-                          .NodeIoNum(2, 1)
-                          .IrInputNum(2)
-                          .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-                          .NodeInputTd(1, ge::DT_INT64, ge::FORMAT_ND, ge::FORMAT_ND)
-                          .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
-                          .Inputs({&op, &infer_func_a, &input_shape_tensor, input_tensor})
-                          .Outputs({&output_shape_tensor})
-                          .Build();
+                         .NodeIoNum(2, 1)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                         .NodeInputTd(1, ge::DT_INT64, ge::FORMAT_ND, ge::FORMAT_ND)
+                         .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
+                         .Inputs({&op, &infer_func_a, &input_shape_tensor, input_tensor})
+                         .Outputs({&output_shape_tensor})
+                         .Build();
 
   run_context.value_holder[0].Set(&op, nullptr);
   run_context.value_holder[1].Set((void *)&infer_func_a, nullptr);  // inferfunc just copy shape from input to output
@@ -309,8 +309,7 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_with_dep
   run_context.value_holder[3].Set(input_tensor, nullptr);
   run_context.value_holder[4].Set(&output_shape_tensor, nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShape")->outputs_creator(nullptr, run_context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShape")->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShape")->run_func(run_context), ge::GRAPH_SUCCESS);
   // todo uncomment below after metadef fix
   auto output_shape = run_context.GetContext<KernelContext>()->GetOutputPointer<StorageShape>(0);
@@ -335,7 +334,7 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_with_dep
   // test infershape func using op_desc_utils
   ge::InferShapeFunc infer_func_b = [](ge::Operator &v) {
     return StubReshapeInferShapeV1WithOpDescUtils(v);
-  };                                                                // simulate operator_reg
+  };  // simulate operator_reg
   run_context.value_holder[1].Set((void *)&infer_func_b, nullptr);  // inferfunc just copy shape from input to output
   run_context.value_holder[4].Set(&output_shape_tensor2, nullptr);
 
@@ -361,7 +360,8 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_with_dep
 TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_withOptionalInput_success) {
   // build reshape operator
   ge::OpDescPtr desc_ptr = std::make_shared<ge::OpDesc>("foo", "Foo");
-  EXPECT_EQ(desc_ptr->AddOptionalInputDesc("x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED)),
+  EXPECT_EQ(desc_ptr->AddOptionalInputDesc(
+                "x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED)),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(desc_ptr->AddInputDesc("y", ge::GeTensorDesc(ge::GeShape({2}), ge::FORMAT_NCHW, ge::DT_INT64)),
             ge::GRAPH_SUCCESS);
@@ -384,13 +384,13 @@ TEST_F(InferShapeCompatibleKernelTest, test_infershape_InferShapeFuncV1_withOpti
     return StubOptionalInputInferShapeV1(v);
   };  // simulate operator_reg
   auto run_context = KernelRunContextFaker()
-      .NodeIoNum(1, 1)
-      .IrInputNum(1)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-      .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
-      .Inputs({&op, &infer_func_a, &input_shape})
-      .Outputs({&output_shape})
-      .Build();
+                         .NodeIoNum(1, 1)
+                         .IrInputNum(1)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                         .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
+                         .Inputs({&op, &infer_func_a, &input_shape})
+                         .Outputs({&output_shape})
+                         .Build();
 
   run_context.value_holder[0].Set(&op, nullptr);
   run_context.value_holder[1].Set((void *)&infer_func_a, nullptr);  // inferfunc just copy shape from input to output

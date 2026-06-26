@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ class FastLoweringGlobalDataUT : public BgTest {
     bg::ValueHolder::PushGraphFrame(init_node, "Init");
     global_data.LoweringAndSplitRtStreams(1);
     // prepare stream num in init
-    auto init_out = bg::FrameSelector::OnInitRoot([&stream_num, &global_data]()-> std::vector<bg::ValueHolderPtr> {
+    auto init_out = bg::FrameSelector::OnInitRoot([&stream_num, &global_data]() -> std::vector<bg::ValueHolderPtr> {
       auto stream_num_holder = bg::ValueHolder::CreateConst(&stream_num, sizeof(stream_num));
       global_data.SetUniqueValueHolder(kGlobalDataModelStreamNum, stream_num_holder);
       return {};
@@ -150,11 +150,11 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_CreateSelectAllocator_Ma
   auto allocator1 = gd.GetOrCreateL1Allocator({kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
   ASSERT_NE(allocator1, nullptr);
   EXPECT_EQ(allocator1->GetFastNode()->GetType(), "SelectL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(allocator1).StrictConnectFrom(
-              {{"InnerData"}, {"Data"}, {"InnerData"}, {"SplitRtStreams"}}),
-            "success");
+  EXPECT_EQ(
+      FastNodeTopoChecker(allocator1).StrictConnectFrom({{"InnerData"}, {"Data"}, {"InnerData"}, {"SplitRtStreams"}}),
+      "success");
   auto create_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
   ASSERT_NE(create_allocator_node, nullptr);
   ConnectFromInitToMain(create_allocator_node, 0, allocator1->GetFastNode(), 2);
 
@@ -199,11 +199,11 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_CreateSelectAllocator_Ex
   auto allocator1 = gd.GetOrCreateL1Allocator({kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
   ASSERT_NE(allocator1, nullptr);
   EXPECT_EQ(allocator1->GetFastNode()->GetType(), "SelectL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(allocator1).StrictConnectFrom(
-              {{"InnerData"}, {"Data"}, {"InnerData"}, {"SplitRtStreams"}}),
-            "success");
+  EXPECT_EQ(
+      FastNodeTopoChecker(allocator1).StrictConnectFrom({{"InnerData"}, {"Data"}, {"InnerData"}, {"SplitRtStreams"}}),
+      "success");
   auto create_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
   ASSERT_NE(create_allocator_node, nullptr);
   ConnectFromInitToMain(create_allocator_node, 0, allocator1->GetFastNode(), 2);
 
@@ -214,8 +214,8 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_CreateSelectAllocator_Ex
   });
   ASSERT_NE(init_allocator, nullptr);
   EXPECT_EQ(init_allocator->GetFastNode()->GetType(), "SelectL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom(
-              {{"Const"}, {"Data"}, {"CreateL1Allocator"}, {"SplitRtStreams"}}),
+  EXPECT_EQ(FastNodeTopoChecker(init_allocator)
+                .StrictConnectFrom({{"Const"}, {"Data"}, {"CreateL1Allocator"}, {"SplitRtStreams"}}),
             "success");
 }
 
@@ -239,8 +239,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_P2p
   });
   ASSERT_NE(init_allocator, nullptr);
   EXPECT_EQ(init_allocator->GetFastNode()->GetType(), "CreateL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom(
-      {{"Const"}}), "success");
+  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom({{"Const"}}), "success");
 }
 
 TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_UseAlwaysExternalAllocatorOption) {
@@ -260,12 +259,12 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_Use
   EXPECT_EQ(allocator1->GetFastNode()->GetType(), "SelectL1Allocator");
 
   auto create_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
   // 外置allocator后，图中就不存在CreateAllocator节点了
   ASSERT_EQ(create_allocator_node, nullptr);
 
   auto get_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "GetExternalL1Allocator");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "GetExternalL1Allocator");
   // 外置allocator后，init
   ASSERT_NE(get_allocator_node, nullptr);
 
@@ -276,12 +275,11 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_Use
   });
   ASSERT_NE(init_allocator, nullptr);
   EXPECT_EQ(init_allocator->GetFastNode()->GetType(), "GetExternalL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom(
-            {{"Const"}, {"Data"}}),
-            "success");
+  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom({{"Const"}, {"Data"}}), "success");
 }
 
-TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_UseAlwaysExternalAllocatorOption_P2pNotUseExternal) {
+TEST_F(FastLoweringGlobalDataUT,
+       GetOrCreateL1Allocator_ExternalAllocatorSet_UseAlwaysExternalAllocatorOption_P2pNotUseExternal) {
   LoweringGlobalData gd;
   InitTestFramesWithStream(gd);
   gd.SetExternalAllocator(bg::ValueHolder::CreateFeed(-2));
@@ -298,7 +296,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_Use
   EXPECT_EQ(allocator1->GetFastNode()->GetType(), "Init");
 
   auto create_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateL1Allocator");
   ASSERT_NE(create_allocator_node, nullptr);
 
   bg::ValueHolderPtr init_allocator = nullptr;
@@ -308,8 +306,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_ExternalAllocatorSet_Use
   });
   ASSERT_NE(init_allocator, nullptr);
   EXPECT_EQ(init_allocator->GetFastNode()->GetType(), "CreateL1Allocator");
-  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom(
-      {{"Const"}}), "success");
+  EXPECT_EQ(FastNodeTopoChecker(init_allocator).StrictConnectFrom({{"Const"}}), "success");
 }
 
 TEST_F(FastLoweringGlobalDataUT, GetOrCreateL1Allocator_AlwaysReturnOnRootFrame_CallInSubgraph) {
@@ -416,7 +413,8 @@ TEST_F(FastLoweringGlobalDataUT, OnMainRootLastOk) {
       auto create_session_holder = bg::ValueHolder::CreateSingleDataOutput("CreateSession", {session_id_holder});
       bg::ValueHolder::CreateVoidGuarder("DestroySession", create_session_holder, {});
       auto clear_builder = [&]() -> bg::ValueHolderPtr {
-        return bg::ValueHolder::CreateVoid<bg::ValueHolder>("ClearStepContainer", {session_id_holder, container_id_holder});
+        return bg::ValueHolder::CreateVoid<bg::ValueHolder>("ClearStepContainer",
+                                                            {session_id_holder, container_id_holder});
       };
       auto clear_holder = bg::FrameSelector::OnMainRootLast(clear_builder);
       EXPECT_NE(clear_holder, nullptr);
@@ -521,7 +519,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Device_WithoutExte
   EXPECT_NE(l2_allocator, nullptr);
 
   auto get_l2_allocator =
-    global_data.GetMainL2Allocator(0, {TensorPlacement::kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetMainL2Allocator(0, {TensorPlacement::kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator, nullptr);
   EXPECT_EQ(l2_allocator->GetFastNode(), get_l2_allocator->GetFastNode());
 
@@ -529,7 +527,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Device_WithoutExte
   EXPECT_EQ(ExeGraphSummaryChecker(init_exe_graph)
                 .StrictDirectNodeTypes(std::map<std::string, size_t>{{"Data", 1},
                                                                      {"SplitRtStreams", 1},
-                                                                     {"Const",4},
+                                                                     {"Const", 4},
                                                                      {"CreateL1Allocator", 1},
                                                                      {"CreateL2Allocators", 1},
                                                                      {"InnerNetOutput", 1}}),
@@ -544,7 +542,9 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Device_WithoutExte
             "success");
   FastNodeTopoChecker checker(l2_allocator);
   // Const(logic_stream_id), GetStreamById, InnerData(L1 allocator), InnerData(L2 allocators)
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"InnerData"}, {"InnerData"}})), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"InnerData"}, {"InnerData"}})),
+            "success");
 }
 
 TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_FollowingPlacement_GetHostAllocator) {
@@ -556,14 +556,14 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_FollowingPlacement
   EXPECT_NE(l2_allocator, nullptr);
 
   auto get_l2_allocator =
-    global_data.GetMainL2Allocator(0, {TensorPlacement::kFollowing, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetMainL2Allocator(0, {TensorPlacement::kFollowing, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator, nullptr);
   EXPECT_EQ(l2_allocator->GetFastNode(), get_l2_allocator->GetFastNode());
   auto get_l2_allocator_init =
-    global_data.GetInitL2Allocator({TensorPlacement::kFollowing, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetInitL2Allocator({TensorPlacement::kFollowing, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator_init, nullptr);
 
-  auto init_out = bg::FrameSelector::OnInitRoot([&]()-> std::vector<bg::ValueHolderPtr> {
+  auto init_out = bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
     return {global_data.GetOrCreateL2Allocator(0, {TensorPlacement::kFollowing, AllocatorUsage::kAllocNodeOutput})};
   });
   EXPECT_EQ(init_out.size(), 1);
@@ -577,13 +577,14 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorOnInit_UnsupportedPlaceme
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 3);
 
-  auto init_out = bg::FrameSelector::OnInitRoot([&]()-> std::vector<bg::ValueHolderPtr> {
-    return {global_data.GetOrCreateL2Allocator(0, {TensorPlacement::kTensorPlacementEnd, AllocatorUsage::kAllocNodeOutput})};
+  auto init_out = bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
+    return {global_data.GetOrCreateL2Allocator(
+        0, {TensorPlacement::kTensorPlacementEnd, AllocatorUsage::kAllocNodeOutput})};
   });
   EXPECT_EQ(init_out.size(), 0);
 
   auto get_l2_allocator_init =
-    global_data.GetInitL2Allocator({TensorPlacement::kTensorPlacementEnd, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetInitL2Allocator({TensorPlacement::kTensorPlacementEnd, AllocatorUsage::kAllocNodeOutput});
   EXPECT_EQ(get_l2_allocator_init, nullptr);
 }
 /*
@@ -616,11 +617,11 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Host_WithoutExtern
   EXPECT_NE(l2_allocator, nullptr);
 
   auto get_l2_allocator =
-    global_data.GetMainL2Allocator(0, {TensorPlacement::kOnHost, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetMainL2Allocator(0, {TensorPlacement::kOnHost, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator, nullptr);
   EXPECT_EQ(l2_allocator->GetFastNode(), get_l2_allocator->GetFastNode());
   auto get_l2_allocator_init =
-    global_data.GetInitL2Allocator({TensorPlacement::kOnHost, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetInitL2Allocator({TensorPlacement::kOnHost, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator_init, nullptr);
 
   auto main_frame = bg::ValueHolder::PopGraphFrame();
@@ -637,8 +638,8 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Host_WithoutExtern
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
   ge::DumpGraph(main_exe_graph->GetParentGraphBarePtr(), "TestHostL2Allocator");
   EXPECT_EQ(ExeGraphSummaryChecker(main_exe_graph)
-                .StrictDirectNodeTypes(std::map<std::string, size_t>{{"Const", 1}, // stream num
-                                                                     {"Data", 1}, // stream
+                .StrictDirectNodeTypes(std::map<std::string, size_t>{{"Const", 1},  // stream num
+                                                                     {"Data", 1},   // stream
                                                                      {"SplitRtStreams", 1},
                                                                      {"InnerData", 1},
                                                                      {"CreateHostL2Allocator", 1}}),
@@ -653,7 +654,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateL2AllocatorInMain_Host_WithoutExtern
  *                                                |          |               |
  *  Const(placement)  Const(stream_num)    Const(placement)  Const(usage)    |
  *          \          /                            \        /               |       Data(exteranl_allocator)
- *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      |         Data(external_stream)
+ *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      | Data(external_stream)
  *                             \                     /                       |      \     |       /
  *                              \                   /                        |    SelectAllocator
  *                                  InnerNetOutput <-------------------------+
@@ -674,9 +675,10 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_Device_WithExternalA
   InitTestFramesWithStream(global_data, 3);
 
   // prepare external allocator on init and main
-  bg::FrameSelector::OnInitRoot([&]()-> std::vector<bg::ValueHolderPtr> {
+  bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
     auto external_allocator_init = bg::ValueHolder::CreateFeed(-2);
-    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init), ExecuteGraphType::kInit);
+    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init),
+                                     ExecuteGraphType::kInit);
     return {};
   });
   auto external_allocator = bg::ValueHolder::CreateFeed(-2);
@@ -687,7 +689,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_Device_WithExternalA
   EXPECT_NE(l2_allocator, nullptr);
 
   auto get_l2_allocator =
-  global_data.GetMainL2Allocator(0, {TensorPlacement::kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
+      global_data.GetMainL2Allocator(0, {TensorPlacement::kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_l2_allocator, nullptr);
   EXPECT_EQ(l2_allocator->GetFastNode(), get_l2_allocator->GetFastNode());
 
@@ -716,7 +718,9 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_Device_WithExternalA
             "success");
   FastNodeTopoChecker checker(l2_allocator);
   // Const(logic_stream_id), GetStreamById, SelectL1Allocator(L1 allocator), InnerData(L2 allocators)
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})),
+            "success");
 }
 
 /*
@@ -725,7 +729,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_Device_WithExternalA
  *                                                |          |               |
  *  Const(placement)  Const(stream_num)    Const(placement)  Const(usage)    |
  *          \          /                            \        /               |       Data(exteranl_allocator)
- *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      |         Data(external_stream)
+ *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      | Data(external_stream)
  *                             \                     /                       |      \     |       /
  *                              \                   /                        |    SelectAllocator
  *                                  InnerNetOutput <-------------------------+
@@ -748,9 +752,10 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_WithExternalAllocato
   InitTestFramesWithStream(global_data, 3);
 
   // prepare external allocator on init and main
-  bg::FrameSelector::OnInitRoot([&]()-> std::vector<bg::ValueHolderPtr> {
+  bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
     auto external_allocator_init = bg::ValueHolder::CreateFeed(-2);
-    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init), ExecuteGraphType::kInit);
+    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init),
+                                     ExecuteGraphType::kInit);
     return {};
   });
   auto external_allocator = bg::ValueHolder::CreateFeed(-2);
@@ -802,8 +807,10 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_WithExternalAllocato
             "success");
   FastNodeTopoChecker checker(l2_allocator_00);
   // Const(logic_stream_id), GetStreamById, SelectL1Allocator(L1 allocator), InnerData(L2 allocators)
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})), "success");
-  EXPECT_EQ(checker.StrictConnectTo(0, std::vector<SrcFastNode>({{"consumer00"},{"consumer01"}})), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})),
+            "success");
+  EXPECT_EQ(checker.StrictConnectTo(0, std::vector<SrcFastNode>({{"consumer00"}, {"consumer01"}})), "success");
 }
 
 /*
@@ -812,7 +819,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_WithExternalAllocato
  *                                                |          |               |
  *  Const(placement)  Const(stream_num)    Const(placement)  Const(usage)    |
  *          \          /                            \        /               |       Data(exteranl_allocator)
- *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      |         Data(external_stream)
+ *             CreateL2Allocator                   CreateL1Allocator ----------+-----+      | Data(external_stream)
  *                             \                     /                       |      \     |       /
  *                              \                   /                        |    SelectAllocator
  *                                  InnerNetOutput <-------------------------+
@@ -836,9 +843,10 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_WithExternalAllocato
   InitTestFramesWithStream(global_data, 3);
 
   // prepare external allocator on init and main
-  bg::FrameSelector::OnInitRoot([&global_data]()-> std::vector<bg::ValueHolderPtr> {
+  bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     auto external_allocator_init = bg::ValueHolder::CreateFeed(-2);
-    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init), ExecuteGraphType::kInit);
+    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init),
+                                     ExecuteGraphType::kInit);
     return {};
   });
   auto external_allocator = bg::ValueHolder::CreateFeed(-2);
@@ -900,7 +908,9 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateAllocatorInMain_WithExternalAllocato
             "success");
   FastNodeTopoChecker checker(l2_allocator_00);
   // Const(logic_stream_id), GetStreamById, SelectL1Allocator(L1 allocator), InnerData(L2 allocators)
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<SrcFastNode>({{"Const"}, {"SplitRtStreams"}, {"SelectL1Allocator"}, {"InnerData"}})),
+            "success");
 }
 
 /*
@@ -921,9 +931,10 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateInitL2AllocatorOnInit_Device) {
   InitTestFramesWithStream(global_data, 3);
 
   // prepare external allocator on init and main
-  auto init_out1 = bg::FrameSelector::OnInitRoot([&global_data]()-> std::vector<bg::ValueHolderPtr> {
+  auto init_out1 = bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     auto external_allocator_init = bg::ValueHolder::CreateFeed(-2);
-    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init), ExecuteGraphType::kInit);
+    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init),
+                                     ExecuteGraphType::kInit);
 
     AllocatorDesc desc = {kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput};
     auto init_l2_allocator = global_data.GetOrCreateL2Allocator(0, desc);
@@ -935,8 +946,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateInitL2AllocatorOnInit_Device) {
 
   auto device_l2_allocator_init = bg::HolderOnInit(init_out1[0]);
   EXPECT_NE(device_l2_allocator_init, nullptr);
-  auto get_device_l2_allocator_init =
-    global_data.GetInitL2Allocator({kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
+  auto get_device_l2_allocator_init = global_data.GetInitL2Allocator({kOnDeviceHbm, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(device_l2_allocator_init, nullptr);
   EXPECT_EQ(device_l2_allocator_init->GetFastNode(), get_device_l2_allocator_init->GetFastNode());
 
@@ -978,10 +988,11 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateInitL2AllocatorOnInit_Host) {
   // prepare external allocator on init and main
   auto init_out = bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     auto external_allocator_init = bg::ValueHolder::CreateFeed(-2);
-    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init), ExecuteGraphType::kInit);
+    global_data.SetExternalAllocator(static_cast<bg::ValueHolderPtr &&>(external_allocator_init),
+                                     ExecuteGraphType::kInit);
 
     AllocatorDesc desc = {kOnHost, AllocatorUsage::kAllocNodeOutput};
-    auto init_l2_allocator =  global_data.GetOrCreateL2Allocator(0, desc);
+    auto init_l2_allocator = global_data.GetOrCreateL2Allocator(0, desc);
     EXPECT_NE(init_l2_allocator, nullptr);
     auto consumer = bg::ValueHolder::CreateSingleDataOutput("consumer", {init_l2_allocator});
     return {init_l2_allocator, consumer};
@@ -990,8 +1001,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateInitL2AllocatorOnInit_Host) {
 
   auto host_l2_allocator_init = bg::HolderOnInit(init_out[0]);
   EXPECT_NE(host_l2_allocator_init, nullptr);
-  auto get_host_l2_allocator_init =
-    global_data.GetInitL2Allocator({kOnHost, AllocatorUsage::kAllocNodeOutput});
+  auto get_host_l2_allocator_init = global_data.GetInitL2Allocator({kOnHost, AllocatorUsage::kAllocNodeOutput});
   EXPECT_NE(get_host_l2_allocator_init, nullptr);
   EXPECT_EQ(host_l2_allocator_init->GetFastNode(), get_host_l2_allocator_init->GetFastNode());
 
@@ -1015,7 +1025,7 @@ TEST_F(FastLoweringGlobalDataUT, GetOrCreateInitL2AllocatorOnInit_Host) {
   // get host l2 allocator in another init lowering
   auto init_out1 = bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     AllocatorDesc desc = {kOnHost, AllocatorUsage::kAllocNodeOutput};
-    auto init_l2_allocator =  global_data.GetOrCreateL2Allocator(0, desc);
+    auto init_l2_allocator = global_data.GetOrCreateL2Allocator(0, desc);
     EXPECT_NE(init_l2_allocator, nullptr);
     auto consumer1 = bg::ValueHolder::CreateSingleDataOutput("consumer1", {init_l2_allocator});
     return {init_l2_allocator, consumer1};
@@ -1091,8 +1101,8 @@ TEST_F(FastLoweringGlobalDataUT, GetStreamById_Main_Once) {
   auto main_frame = bg::ValueHolder::PopGraphFrame();
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
   EXPECT_EQ(ExeGraphSummaryChecker(main_exe_graph)
-                .StrictDirectNodeTypes(std::map<std::string, size_t>{
-                    {"Data", 1}, {"Const", 1}, {"SplitRtStreams", 1}, {"consumer", 1}}),
+                .StrictDirectNodeTypes(
+                    std::map<std::string, size_t>{{"Data", 1}, {"Const", 1}, {"SplitRtStreams", 1}, {"consumer", 1}}),
             "success");
   FastNodeTopoChecker checker(rt_stream);
   // Const(logic_stream_id), Data(rt_streams)
@@ -1130,7 +1140,7 @@ TEST_F(FastLoweringGlobalDataUT, GetStreamById_Main_SameStreamCallTwice) {
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
   EXPECT_EQ(ExeGraphSummaryChecker(main_exe_graph)
                 .StrictDirectNodeTypes(std::map<std::string, size_t>{
-                    {"Data", 1},{"Const", 1}, {"SplitRtStreams", 1}, {"consumer0", 1}, {"consumer1", 1}}),
+                    {"Data", 1}, {"Const", 1}, {"SplitRtStreams", 1}, {"consumer0", 1}, {"consumer1", 1}}),
             "success");
   FastNodeTopoChecker checker(rt_stream);
   // Const(logic_stream_id), Data(rt_streams)
@@ -1168,7 +1178,7 @@ TEST_F(FastLoweringGlobalDataUT, GetStreamById_Main_DiffStreamCallTwice) {
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
   EXPECT_EQ(ExeGraphSummaryChecker(main_exe_graph)
                 .StrictDirectNodeTypes(std::map<std::string, size_t>{
-                    {"Data", 1},{"Const", 1}, {"SplitRtStreams", 1}, {"consumer0", 1}, {"consumer1", 1}}),
+                    {"Data", 1}, {"Const", 1}, {"SplitRtStreams", 1}, {"consumer0", 1}, {"consumer1", 1}}),
             "success");
   FastNodeTopoChecker checker(rt_stream);
   // Const(logic_stream_id), Data(rt_streams)
@@ -1288,7 +1298,7 @@ TEST_F(FastLoweringGlobalDataUT, GetStreamById_Init_StreamIdOutOfRange) {
     auto all_rt_streams = global_data.LoweringAndSplitRtStreams(1);
     EXPECT_EQ(all_rt_streams.size(), 1);
 
-    auto rt_stream = global_data.GetStreamById(2); // stream id out of range
+    auto rt_stream = global_data.GetStreamById(2);  // stream id out of range
     EXPECT_EQ(rt_stream, nullptr);
     return {rt_stream};
   });
@@ -1300,7 +1310,7 @@ TEST_F(FastLoweringGlobalDataUT, GetStreamById_Init_StreamNumOutOfRange) {
   LoweringGlobalData global_data;
   auto consumer_and_stream = bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     // prepare rtStreams
-    auto all_rt_streams = global_data.LoweringAndSplitRtStreams(2); // stream num out of range
+    auto all_rt_streams = global_data.LoweringAndSplitRtStreams(2);  // stream num out of range
     EXPECT_EQ(all_rt_streams.size(), 0);
 
     auto rt_stream = global_data.GetStreamById(0);
@@ -1316,7 +1326,7 @@ TEST_F(FastLoweringGlobalDataUT, GetNotifyById_Main) {
   auto notify_0 = bg::ValueHolder::CreateFeed(0);
   auto notify_1 = bg::ValueHolder::CreateFeed(1);
   std::vector<bg::ValueHolderPtr> notifies{notify_0, notify_1};
-  (void) bg::FrameSelector::OnMainRoot([&global_data, &notifies]() -> std::vector<bg::ValueHolderPtr> {
+  (void)bg::FrameSelector::OnMainRoot([&global_data, &notifies]() -> std::vector<bg::ValueHolderPtr> {
     global_data.SetRtNotifies(notifies);
 
     auto rt_notify0 = global_data.GetNotifyById(0);
@@ -1328,7 +1338,7 @@ TEST_F(FastLoweringGlobalDataUT, GetNotifyById_Main) {
     return {};
   });
 
-  (void) bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
+  (void)bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
     auto rt_notify0 = global_data.GetNotifyById(0);
     EXPECT_EQ(rt_notify0, nullptr);
     return {};
@@ -1341,7 +1351,7 @@ TEST_F(FastLoweringGlobalDataUT, GetNotifyById_Init) {
   auto notify_0 = bg::ValueHolder::CreateFeed(0);
   auto notify_1 = bg::ValueHolder::CreateFeed(1);
   std::vector<bg::ValueHolderPtr> notifies{notify_0, notify_1};
-  (void) bg::FrameSelector::OnInitRoot([&global_data, &notifies]() -> std::vector<bg::ValueHolderPtr> {
+  (void)bg::FrameSelector::OnInitRoot([&global_data, &notifies]() -> std::vector<bg::ValueHolderPtr> {
     global_data.SetRtNotifies(notifies);
 
     auto rt_notify0 = global_data.GetNotifyById(0);

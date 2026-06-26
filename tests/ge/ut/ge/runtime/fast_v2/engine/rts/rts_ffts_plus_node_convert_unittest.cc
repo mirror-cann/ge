@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,6 @@
 #include "faker/space_registry_faker.h"
 #include "graph_tuner/rt2_src/graph_tunner_rt2_stub.h"
 #include "graph_builder/bg_memory.h"
-
 
 namespace gert {
 using namespace bg;
@@ -79,7 +78,7 @@ TEST_F(RtsFftsPlusNodeConvertUT, MemcpyAsyncLoweringOk) {
   lower_input.task_info = bg::ValueHolder::CreateConst(&task_info, sizeof(rtFftsPlusTaskInfo_t));
   lower_input.ffts_mem_allocator = bg::CreateFftsMemAllocator(lower_input.window_size, *lower_input.global_data);
   lower_input.ffts_thread_fun = tune::FFTSNodeThreadV2;
-  lower_input.mem_pool_types={1};
+  lower_input.mem_pool_types = {1};
 
   auto result = LoweringIdentityLikeNode(identity, lower_input);
   EXPECT_TRUE(result.result.IsSuccess());

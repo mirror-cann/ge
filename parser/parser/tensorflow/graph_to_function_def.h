@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,28 +36,20 @@ using std::vector;
 namespace ge {
 class GraphToFunctionDef {
  public:
-  static domi::Status RecordArg(ge::ComputeGraphPtr graph,
-                          const vector<ge::InDataAnchorPtr> &in_anchor);
+  static domi::Status RecordArg(ge::ComputeGraphPtr graph, const vector<ge::InDataAnchorPtr> &in_anchor);
 
-  static domi::Status RecordResult(ge::ComputeGraphPtr graph,
-                             const vector<ge::OutDataAnchorPtr> &out_anchor);
+  static domi::Status RecordResult(ge::ComputeGraphPtr graph, const vector<ge::OutDataAnchorPtr> &out_anchor);
 
-  static domi::Status DavGraphToFunctionDef(ge::ComputeGraphPtr graph,
-                                      const string &name, FunctionDef *fdef);
+  static domi::Status DavGraphToFunctionDef(ge::ComputeGraphPtr graph, const string &name, FunctionDef *fdef);
 
-  static domi::Status BuildFunctionDef(ge::ComputeGraphPtr &graph,
-                                 const string &name_in,
-                                 FunctionDefLibrary *library,
-                                 NodeDef *call_node_def,
-                                 vector<ge::InDataAnchorPtr> &in_anchor,
-                                 vector<ge::OutDataAnchorPtr> &out_anchor);
+  static domi::Status BuildFunctionDef(ge::ComputeGraphPtr &graph, const string &name_in, FunctionDefLibrary *library,
+                                       NodeDef *call_node_def, vector<ge::InDataAnchorPtr> &in_anchor,
+                                       vector<ge::OutDataAnchorPtr> &out_anchor);
 
-  static bool FindAttrValue(const domi::tensorflow::NodeDef *node_def,
-                            const string attr_name,
+  static bool FindAttrValue(const domi::tensorflow::NodeDef *node_def, const string attr_name,
                             domi::tensorflow::AttrValue &attr_value);
 
-  static void AddNodeAttr(const string &attr_name,
-                          const domi::tensorflow::AttrValue &value,
+  static void AddNodeAttr(const string &attr_name, const domi::tensorflow::AttrValue &value,
                           domi::tensorflow::NodeDef *node_def);
 };
 

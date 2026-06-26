@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 #include "common/unknown_shape_util.h"
 
 #define protected public
-#define private   public
+#define private public
 #include "adapter/tbe_adapter/tbe_op_store_adapter.h"
 #include "ops_kernel_store/fe_ops_kernel_info_store.h"
 #include "graph_optimizer/shape_format_transfer/trans_node_manager/trans_node_manager.h"
@@ -39,20 +39,16 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-
-
 class UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-            2,
-            "tbe-custom",
-            EN_IMPL_CUSTOM_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            ""};
+    FEOpsStoreInfo tbe_custom{
+        2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -61,18 +57,16 @@ class UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE : public testing::Test {
     fe_ops_kernel_info_store_ptr_->Initialize(options);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
- protected:
 
+ protected:
 };
 
-TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, InsertTransDataNode_01)
-{
+TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, InsertTransDataNode_01) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
@@ -125,11 +119,9 @@ TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, InsertTransDataNode_01)
     }
   }
   EXPECT_EQ(count_node, 3);
-
 }
 
-TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, InsertTransDataNode_Unknown_Shape)
-{
+TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, InsertTransDataNode_Unknown_Shape) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
@@ -191,7 +183,7 @@ TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, AddReshapeOp_01) {
 
   TransInfoPtr trans_info_ptr = std::make_shared<TransInfo>();
   trans_info_ptr->src_out_shape = GeShape({1, -1});
-  trans_info_ptr->dst_in_shape = GeShape({1, -1,1,1});
+  trans_info_ptr->dst_in_shape = GeShape({1, -1, 1, 1});
   vector<std::pair<int64_t, int64_t>> range2({{1, 1}, {1, 256}});
   vector<std::pair<int64_t, int64_t>> range3({{1, 1}, {1, 256}, {1, 1}, {1, 1}});
   trans_info_ptr->src_out_range = range2;
@@ -208,10 +200,9 @@ TEST_F(UTEST_FE_TRANSOP_INSERT_UNKNOWN_SHAPE, AddReshapeOp_01) {
   trans_info_ptr->src_anchor = src_node->GetOutDataAnchor(0);
   trans_info_ptr->dst_anchor = dst_node->GetInDataAnchor(0);
 
-
   TransNodeReshapeGenerator trans_op_insert(fe_ops_kernel_info_store_ptr_, trans_info_ptr);
   Status ret = trans_op_insert.AddTransNode(*graph.get(), trans_info_ptr);
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Reshape") {
       auto input_desc = node->GetOpDesc()->GetInputDescPtr(0);
       EXPECT_EQ(GetShapeRange(*input_desc), range2);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/attr_utils.h"
 #define protected public
-#define private   public
+#define private public
 #include "adapter/tbe_adapter/tbe_op_store_adapter.h"
 #include "ops_kernel_store/fe_ops_kernel_info_store.h"
 #include "graph_optimizer/shape_format_transfer/trans_node_manager/trans_node_manager.h"
@@ -38,19 +38,15 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-
-
 class STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-        6,
-        "tbe-custom",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
         ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -61,18 +57,15 @@ class STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE : public testing::Test {
     op_axis_update_desc_ptr_ = std::make_shared<fe::OpAxisUpdateDesc>(fe::AI_CORE_NAME);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
-
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   std::shared_ptr<fe::OpAxisUpdateDesc> op_axis_update_desc_ptr_;
+
  protected:
-
 };
-
 
 TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_01) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -87,7 +80,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_01) {
       .SetInput("b", ge::FORMAT_NDHWC, "reduce", ge::FORMAT_FRACTAL_Z_3D);
   ge::NodePtr reduce;
   test.GetNodeByName("reduce", reduce);
-  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {2,3});
+  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {2, 3});
   op_axis_update_desc_ptr_->UpdateAxis(*(graph.get()));
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -96,13 +89,13 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_01) {
   EXPECT_EQ(fe::SUCCESS, status);
 
   ge::NodePtr a;
-  for (auto &node: graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     if (node->GetName() == "a") {
       a = node;
     }
   }
-  std::vector<int64_t> shape_fz_3d = {360,8,16,16};
-  std::vector<int64_t> shape_7d = {1,12,5,6,8,16,16};
+  std::vector<int64_t> shape_fz_3d = {360, 8, 16, 16};
+  std::vector<int64_t> shape_7d = {1, 12, 5, 6, 8, 16, 16};
   // Check First Transdata
   ge::NodePtr transdata_1 = a->GetOutAllNodes().at(0);
   {
@@ -132,7 +125,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_01) {
   {
     EXPECT_EQ(reshape_2->GetType(), fe::RESHAPE);
     auto input_0 = reshape_2->GetOpDesc()->MutableInputDesc(0);
-    std::vector<int64_t> shape = {360,8,16,16};
+    std::vector<int64_t> shape = {360, 8, 16, 16};
     EXPECT_EQ(input_0->GetFormat(), ge::FORMAT_FRACTAL_Z_3D);
     EXPECT_EQ(input_0->GetShape().GetDims(), shape_7d);
     auto output_0 = reshape_2->GetOpDesc()->MutableOutputDesc(0);
@@ -145,7 +138,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_01) {
   {
     EXPECT_EQ(transdata_2->GetType(), fe::TRANSDATA);
     auto input_0 = transdata_2->GetOpDesc()->MutableInputDesc(0);
-    std::vector<int64_t> shape = {360,8,16,16};
+    std::vector<int64_t> shape = {360, 8, 16, 16};
     EXPECT_EQ(input_0->GetFormat(), ge::FORMAT_FRACTAL_Z_3D);
     EXPECT_EQ(input_0->GetShape().GetDims(), shape);
     auto output_0 = transdata_2->GetOpDesc()->MutableOutputDesc(0);
@@ -167,7 +160,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_02) {
       .SetInput("b", ge::FORMAT_DHWCN, "reduce", ge::FORMAT_FRACTAL_Z_3D);
   ge::NodePtr reduce;
   test.GetNodeByName("reduce", reduce);
-  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1,2});
+  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1, 2});
   op_axis_update_desc_ptr_->UpdateAxis(*(graph.get()));
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -176,13 +169,13 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_02) {
   EXPECT_EQ(fe::SUCCESS, status);
 
   ge::NodePtr a;
-  for (auto &node: graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     if (node->GetName() == "a") {
       a = node;
     }
   }
-  std::vector<int64_t> shape_fz_3d = {1*12*5*32,2,16,16};
-  std::vector<int64_t> shape_7d = {1,32,12,5,2,16,16};
+  std::vector<int64_t> shape_fz_3d = {1 * 12 * 5 * 32, 2, 16, 16};
+  std::vector<int64_t> shape_7d = {1, 32, 12, 5, 2, 16, 16};
   // Check First Transdata
   ge::NodePtr transdata_1 = a->GetOutAllNodes().at(0);
   {
@@ -212,7 +205,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_02) {
   {
     ASSERT_EQ(reshape_2->GetType(), fe::RESHAPE);
     auto input_0 = reshape_2->GetOpDesc()->MutableInputDesc(0);
-    std::vector<int64_t> shape = {360,8,16,16};
+    std::vector<int64_t> shape = {360, 8, 16, 16};
     EXPECT_EQ(input_0->GetFormat(), ge::FORMAT_FRACTAL_Z_3D);
     EXPECT_EQ(input_0->GetShape().GetDims(), shape_7d);
     auto output_0 = reshape_2->GetOpDesc()->MutableOutputDesc(0);
@@ -233,7 +226,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_02) {
   }
 }
 
-
 TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_03) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = GeShape({32, 12, 5, 6, 32});
@@ -247,10 +239,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_03) {
       .SetInput("reduce2", ge::FORMAT_FRACTAL_Z_3D, "reduce", ge::FORMAT_FRACTAL_Z_3D);
   ge::NodePtr reduce;
   test.GetNodeByName("reduce", reduce);
-  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1,2});
+  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1, 2});
   ge::NodePtr reduce2;
   test.GetNodeByName("reduce2", reduce2);
-  ge::AttrUtils::SetListInt(reduce2->GetOpDesc(), AXES_ATTR_NAME, {1,2});
+  ge::AttrUtils::SetListInt(reduce2->GetOpDesc(), AXES_ATTR_NAME, {1, 2});
 
   op_axis_update_desc_ptr_->UpdateAxis(*(graph.get()));
 
@@ -260,13 +252,13 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_03) {
   EXPECT_EQ(fe::SUCCESS, status);
 
   ge::NodePtr a;
-  for (auto &node: graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     if (node->GetName() == "a") {
       a = node;
     }
   }
-  std::vector<int64_t> shape_fz_3d = {1*12*5*32, 2, 16, 16};
-  std::vector<int64_t> shape_7d =  {1, 32, 12, 5, 2, 16, 16};
+  std::vector<int64_t> shape_fz_3d = {1 * 12 * 5 * 32, 2, 16, 16};
+  std::vector<int64_t> shape_7d = {1, 32, 12, 5, 2, 16, 16};
   // Check First Transdata
   ge::NodePtr transdata_1 = a->GetOutAllNodes().at(0);
   {
@@ -296,7 +288,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_03) {
   EXPECT_EQ(reduce2_temp->GetType(), "ReduceOp");
 }
 
-
 TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_04) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = GeShape({32, 12, 5, 6, 32});
@@ -310,10 +301,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_04) {
       .SetInput("b", ge::FORMAT_DHWCN, "reduce", ge::FORMAT_FRACTAL_Z_3D);
   ge::NodePtr reduce2;
   test.GetNodeByName("reduce2", reduce2);
-  ge::AttrUtils::SetListInt(reduce2->GetOpDesc(), AXES_ATTR_NAME, {1,2});
+  ge::AttrUtils::SetListInt(reduce2->GetOpDesc(), AXES_ATTR_NAME, {1, 2});
   ge::NodePtr reduce;
   test.GetNodeByName("reduce", reduce);
-  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1,2});
+  ge::AttrUtils::SetListInt(reduce->GetOpDesc(), AXES_ATTR_NAME, {1, 2});
 
   op_axis_update_desc_ptr_->UpdateAxis(*(graph.get()));
 
@@ -322,7 +313,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_04) {
   Status status = trans_op_insert.InsertAndMergeTransNodes(*(graph.get()));
   EXPECT_EQ(fe::SUCCESS, status);
 
-  std::vector<int64_t> shape_fz_3d = {1*12*5*32, 2, 16, 16};
+  std::vector<int64_t> shape_fz_3d = {1 * 12 * 5 * 32, 2, 16, 16};
   std::vector<int64_t> shape_7d = {1, 32, 12, 5, 2, 16, 16};
 
   // Check First Reshape
@@ -330,7 +321,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_FZ_3D_WITH_RESHAPE, insert_reshape_04) {
   {
     ASSERT_EQ(reshape_1->GetType(), fe::RESHAPE);
     auto input_0 = reshape_1->GetOpDesc()->MutableInputDesc(0);
-    std::vector<int64_t> shape = {360,8,16,16};
+    std::vector<int64_t> shape = {360, 8, 16, 16};
     EXPECT_EQ(input_0->GetFormat(), ge::FORMAT_FRACTAL_Z_3D);
     EXPECT_EQ(input_0->GetShape().GetDims(), shape_7d);
     auto output_0 = reshape_1->GetOpDesc()->MutableOutputDesc(0);

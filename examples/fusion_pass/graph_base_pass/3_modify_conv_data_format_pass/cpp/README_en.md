@@ -135,7 +135,7 @@ Assume CANN package installation directory is INSTALL_PATH, e.g., `/home/HwHiAiU
 
        ```python
        python torch_forward.py
-       ```  
+       ```
 
     - Following log appears:
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,7 +76,7 @@ const auto StubInferShapeForFlattenV2 = [](Operator &op) {
   }
   y_shape_dim.emplace_back(dim_val);
 
-  for (int64_t i = (end_axis + 1); i <static_cast<int64_t>(x_shape_dim.size()); i++) {
+  for (int64_t i = (end_axis + 1); i < static_cast<int64_t>(x_shape_dim.size()); i++) {
     y_shape_dim.emplace_back(x_shape_dim[i]);
   }
 
@@ -94,11 +94,12 @@ Graph BuildFalttenV2Graph(const std::vector<int64_t> &input_shape) {
   int64_t axis = 1;
   int64_t end_axis = -1;
   auto data_0 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, input_shape);
-  auto flattenv2_0 = OP_CFG(FLATTENV2).TensorDesc(FORMAT_NCHW, DT_FLOAT, input_shape).Attr("axis", axis).Attr("end_axis", end_axis);
+  auto flattenv2_0 =
+      OP_CFG(FLATTENV2).TensorDesc(FORMAT_NCHW, DT_FLOAT, input_shape).Attr("axis", axis).Attr("end_axis", end_axis);
   DEF_GRAPH(g) {
-                 CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("flattenv2_0", flattenv2_0));
-                 CHAIN(NODE("flattenv2_0", flattenv2_0)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-               };
+    CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("flattenv2_0", flattenv2_0));
+    CHAIN(NODE("flattenv2_0", flattenv2_0)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(g);
   const auto &compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -144,11 +145,9 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckStaticGraph_FlattenV2RemoveSu
   const std::vector<int64_t> input_shape = {1, 2, 3};
   Graph graph = BuildFalttenV2Graph(input_shape);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  EXPECT_EQ(gert::SummaryChecker(compute_graph).StrictDirectNodeTypes(
-            {{"Data", 1},
-            {"FlattenV2", 1},
-            {"NetOutput", 1}}),
-            "success");
+  EXPECT_EQ(
+      gert::SummaryChecker(compute_graph).StrictDirectNodeTypes({{"Data", 1}, {"FlattenV2", 1}, {"NetOutput", 1}}),
+      "success");
   // new session & add graph
   map<AscendString, AscendString> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
@@ -159,15 +158,12 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckStaticGraph_FlattenV2RemoveSu
   // build input tensor
   std::vector<InputTensorInfo> inputs;
   // build_graph through session
-  ret = session.BuildGraph(graph_id, inputs); // we only care about compile stage
+  ret = session.BuildGraph(graph_id, inputs);  // we only care about compile stage
   EXPECT_EQ(ret, SUCCESS);
   CHECK_GRAPH(PreRunAfterBuild) {
     const auto flattenv2_node = graph->FindNode("flattenv2_0");
     EXPECT_EQ(flattenv2_node, nullptr);
-    EXPECT_EQ(gert::SummaryChecker(graph).StrictDirectNodeTypes(
-              {{"Data", 1},
-              {"NetOutput", 1}}),
-              "success");
+    EXPECT_EQ(gert::SummaryChecker(graph).StrictDirectNodeTypes({{"Data", 1}, {"NetOutput", 1}}), "success");
   };
 }
 
@@ -184,20 +180,23 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckStaticGraph_FlattenV2RemoveSu
 TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckStaticGraph_FlattenV2ReserveSuccess) {
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
   ge_env.InstallDefault()
-        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(FLATTENV2).Inputs({"x"}).Outputs({"y"}).AttrsDef("axis", 1).
-          AttrsDef("end_axis", -1).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferShapeForFlattenV2))
-        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(FLATTENV2)
+                   .Inputs({"x"})
+                   .Outputs({"y"})
+                   .AttrsDef("axis", 1)
+                   .AttrsDef("end_axis", -1)
+                   .InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE")
+                   .InferShape(StubInferShapeForFlattenV2))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
   // build graph
   const std::vector<int64_t> input_shape = {1, 2, 3};
   Graph graph = BuildFalttenV2Graph(input_shape);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  EXPECT_EQ(gert::SummaryChecker(compute_graph).StrictDirectNodeTypes(
-            {{"Data", 1},
-            {"FlattenV2", 1},
-            {"NetOutput", 1}}),
-            "success");
+  EXPECT_EQ(
+      gert::SummaryChecker(compute_graph).StrictDirectNodeTypes({{"Data", 1}, {"FlattenV2", 1}, {"NetOutput", 1}}),
+      "success");
   // new session & add graph
   map<AscendString, AscendString> options;
   options[OO_CONSTANT_FOLDING] = "false";
@@ -226,7 +225,7 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckStaticGraph_FlattenV2ReserveS
       }
     }
     EXPECT_NE(flattenv2_0, nullptr);
-    std::vector<int64_t> expect_shape = {1,6};
+    std::vector<int64_t> expect_shape = {1, 6};
     EXPECT_EQ(output_dims, expect_shape);
     EXPECT_EQ(flattenv2_0_input_offsets.size(), 1U);
     EXPECT_EQ(flattenv2_0_output_offsets.size(), 1U);
@@ -248,19 +247,22 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckDynamicGraph_FlattenV2Reserve
   ge_env.InstallDefault()
       .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
       .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(FakeOp(FLATTENV2).Inputs({"x"}).Outputs({"y"}).AttrsDef("axis", 1).
-        AttrsDef("end_axis", -1).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferShapeForFlattenV2))
+      .Install(FakeOp(FLATTENV2)
+                   .Inputs({"x"})
+                   .Outputs({"y"})
+                   .AttrsDef("axis", 1)
+                   .AttrsDef("end_axis", -1)
+                   .InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE")
+                   .InferShape(StubInferShapeForFlattenV2))
       .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
       .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
   // build graph
   const std::vector<int64_t> input_shape = {-1, 2, 3};
   Graph graph = BuildFalttenV2Graph(input_shape);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  EXPECT_EQ(gert::SummaryChecker(compute_graph).StrictDirectNodeTypes(
-            {{"Data", 1},
-            {"FlattenV2", 1},
-            {"NetOutput", 1}}),
-            "success");
+  EXPECT_EQ(
+      gert::SummaryChecker(compute_graph).StrictDirectNodeTypes({{"Data", 1}, {"FlattenV2", 1}, {"NetOutput", 1}}),
+      "success");
   // new session & add graph
   map<AscendString, AscendString> options;
   Session session(options);
@@ -276,13 +278,13 @@ TEST_F(GeLocalEngineSystemTest, TestFlattenV2_CheckDynamicGraph_FlattenV2Reserve
   // runGraph and check output shape
   std::vector<Tensor> input_tensors, output_tensors;
   TensorDesc tensor_desc(Shape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
-  std::vector<uint8_t> data = {2,2,2,2,2,2};
+  std::vector<uint8_t> data = {2, 2, 2, 2, 2, 2};
   Tensor tensor(tensor_desc, data);
   input_tensors.emplace_back(tensor);
   ret = session.RunGraph(graph_id, input_tensors, output_tensors);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_EQ(output_tensors.size(), 1);
-  std::vector<int64_t> expect_shape = {1,6};
+  std::vector<int64_t> expect_shape = {1, 6};
   ASSERT_EQ(output_tensors.at(0).GetTensorDesc().GetShape().GetDims(), expect_shape);
 }
 }  // namespace ge

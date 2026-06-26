@@ -71,4 +71,3 @@ IMPLEMT_INFERFORMAT_FUNC(op_name, func_name)
 ## 约束说明<a name="zh-cn_topic_0000001265403622_section65498832"></a>
 
 无
-

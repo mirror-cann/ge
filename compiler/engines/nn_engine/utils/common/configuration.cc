@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,35 +37,27 @@
 namespace fe {
 namespace {
 enum OpStoreInfoIndex {
-    IDX_PRIORITY = 0,     // priority index
-    IDX_OPIMPL_TYPE,      // op_impl_type index
-    IDX_CFG_FILEPATH,     // cfg_file_path index
-    IDX_OPIMPL_FILEPATH,  // op_impl_file_path index
-    IDX_NEED_PRECOMPILE,  // need precompile
-    IDX_NEED_COMPILE,     // need compile
-    ID_IS_FULL_PATH,      // ascend_custom_opp_path
-    IDX_BOTTOM
+  IDX_PRIORITY = 0,     // priority index
+  IDX_OPIMPL_TYPE,      // op_impl_type index
+  IDX_CFG_FILEPATH,     // cfg_file_path index
+  IDX_OPIMPL_FILEPATH,  // op_impl_file_path index
+  IDX_NEED_PRECOMPILE,  // need precompile
+  IDX_NEED_COMPILE,     // need compile
+  ID_IS_FULL_PATH,      // ascend_custom_opp_path
+  IDX_BOTTOM
 };
 
-std::map<ge::OoLevel, std::string> opt_values = {
-    {ge::OoLevel::kO0, kStrFalse},
-    {ge::OoLevel::kO1, kStrFalse},
-    {ge::OoLevel::kO2, kStrTrue},
-    {ge::OoLevel::kO3, kStrTrue}
-};
-REG_OPTION(kComLevelO1Opt)
-    .LEVELS(ge::OoLevel::kO0)
-    .DEFAULT_VALUES(opt_values);
+std::map<ge::OoLevel, std::string> opt_values = {{ge::OoLevel::kO0, kStrFalse},
+                                                 {ge::OoLevel::kO1, kStrFalse},
+                                                 {ge::OoLevel::kO2, kStrTrue},
+                                                 {ge::OoLevel::kO3, kStrTrue}};
+REG_OPTION(kComLevelO1Opt).LEVELS(ge::OoLevel::kO0).DEFAULT_VALUES(opt_values);
 
-std::map<ge::OoLevel, std::string> o3_opt_values = {
-    {ge::OoLevel::kO0, kStrFalse},
-    {ge::OoLevel::kO1, kStrFalse},
-    {ge::OoLevel::kO2, kStrFalse},
-    {ge::OoLevel::kO3, kStrTrue}
-};
-REG_OPTION(kComLevelO3Opt)
-.LEVELS(ge::OoLevel::kO0)
-.DEFAULT_VALUES(o3_opt_values);
+std::map<ge::OoLevel, std::string> o3_opt_values = {{ge::OoLevel::kO0, kStrFalse},
+                                                    {ge::OoLevel::kO1, kStrFalse},
+                                                    {ge::OoLevel::kO2, kStrFalse},
+                                                    {ge::OoLevel::kO3, kStrTrue}};
+REG_OPTION(kComLevelO3Opt).LEVELS(ge::OoLevel::kO0).DEFAULT_VALUES(o3_opt_values);
 
 const size_t kHardwareInfoLen = 2;
 const float kDefaultCompressRatioThreshold = 0.8f;
@@ -94,130 +86,116 @@ constexpr char const *kCompileTaskTraceTimeInterval = "compile_task_trace.time_i
 constexpr char const *kCompileTaskTraceTimeConstThreshold = "compile_task_trace.time_interval";
 const uint64_t kDefaultTraceTimeInterval = 300;
 const uint64_t kDefaultTraceTimeConstThreshold = 300;
-const std::map<int64_t, string> kCustomPathMap{
-        {EN_IMPL_CUSTOM_TBE, "ai_core"},
-        {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, "vector_core"}
-};
+const std::map<int64_t, string> kCustomPathMap{{EN_IMPL_CUSTOM_TBE, "ai_core"},
+                                               {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, "vector_core"}};
 
 constexpr char const *ASCEND_OPP_PATH = "ASCEND_OPP_PATH";
-const std::map<ENV_STR_PARAM, std::tuple<mmEnvId, std::string>> kEnvParamMap {
-        {ENV_STR_PARAM::AscendOppPath, {MM_ENV_ASCEND_OPP_PATH, "ASCEND_OPP_PATH"}},
-        {ENV_STR_PARAM::NetworkAnalysis, {MM_ENV_ENABLE_NETWORK_ANALYSIS_DEBUG, "ENABLE_NETWORK_ANALYSIS_DEBUG"}},
-        {ENV_STR_PARAM::DynamicImplFirst, {MM_ENV_OP_DYNAMIC_COMPILE_STATIC, "OP_DYNAMIC_COMPILE_STATIC"}},
-        {ENV_STR_PARAM::AscendCustomOppPath, {MM_ENV_ASCEND_CUSTOM_OPP_PATH, "ASCEND_CUSTOM_OPP_PATH"}},
-        {ENV_STR_PARAM::DumpGeGraph, {MM_ENV_DUMP_GE_GRAPH, "DUMP_GE_GRAPH"}},
-        {ENV_STR_PARAM::DumpGraphLevel, {MM_ENV_DUMP_GRAPH_LEVEL, "DUMP_GRAPH_LEVEL"}},
-        {ENV_STR_PARAM::EnableAclnn, {MM_ENV_ENABLE_ACLNN, "ENABLE_ACLNN"}},
-        {ENV_STR_PARAM::NpuCollectPath, {MM_ENV_NPU_COLLECT_PATH, "NPU_COLLECT_PATH"}},
-        {ENV_STR_PARAM::AscendWorkPath, {MM_ENV_ASCEND_WORK_PATH, "ASCEND_WORK_PATH"}},
-        {ENV_STR_PARAM::MinCompileResourceUsageCtrl,
-          {MM_ENV_MIN_COMPILE_RESOURCE_USAGE_CTRL, "MIN_COMPILE_RESOURCE_USAGE_CTRL"}},
-        {ENV_STR_PARAM::EnableRt2, {MM_ENV_ENABLE_RUNTIME_V2, "ENABLE_RUNTIME_V2"}},
-        {ENV_STR_PARAM::AscendHomePath, {MM_ENV_ASCEND_HOME_PATH, "ASCEND_HOME_PATH"}}
+const std::map<ENV_STR_PARAM, std::tuple<mmEnvId, std::string>> kEnvParamMap{
+    {ENV_STR_PARAM::AscendOppPath, {MM_ENV_ASCEND_OPP_PATH, "ASCEND_OPP_PATH"}},
+    {ENV_STR_PARAM::NetworkAnalysis, {MM_ENV_ENABLE_NETWORK_ANALYSIS_DEBUG, "ENABLE_NETWORK_ANALYSIS_DEBUG"}},
+    {ENV_STR_PARAM::DynamicImplFirst, {MM_ENV_OP_DYNAMIC_COMPILE_STATIC, "OP_DYNAMIC_COMPILE_STATIC"}},
+    {ENV_STR_PARAM::AscendCustomOppPath, {MM_ENV_ASCEND_CUSTOM_OPP_PATH, "ASCEND_CUSTOM_OPP_PATH"}},
+    {ENV_STR_PARAM::DumpGeGraph, {MM_ENV_DUMP_GE_GRAPH, "DUMP_GE_GRAPH"}},
+    {ENV_STR_PARAM::DumpGraphLevel, {MM_ENV_DUMP_GRAPH_LEVEL, "DUMP_GRAPH_LEVEL"}},
+    {ENV_STR_PARAM::EnableAclnn, {MM_ENV_ENABLE_ACLNN, "ENABLE_ACLNN"}},
+    {ENV_STR_PARAM::NpuCollectPath, {MM_ENV_NPU_COLLECT_PATH, "NPU_COLLECT_PATH"}},
+    {ENV_STR_PARAM::AscendWorkPath, {MM_ENV_ASCEND_WORK_PATH, "ASCEND_WORK_PATH"}},
+    {ENV_STR_PARAM::MinCompileResourceUsageCtrl,
+     {MM_ENV_MIN_COMPILE_RESOURCE_USAGE_CTRL, "MIN_COMPILE_RESOURCE_USAGE_CTRL"}},
+    {ENV_STR_PARAM::EnableRt2, {MM_ENV_ENABLE_RUNTIME_V2, "ENABLE_RUNTIME_V2"}},
+    {ENV_STR_PARAM::AscendHomePath, {MM_ENV_ASCEND_HOME_PATH, "ASCEND_HOME_PATH"}}};
+
+const std::map<string, int64_t> kSwitchMap{{"1", 1}, {"0", 0}};
+const std::map<string, int64_t> kJitCompileMap{{"1", 1}, {"0", 0}, {"2", 2}};
+const std::map<string, int64_t> kDisableReuseMemoryMap{{"1", 0}, {"0", 1}};
+
+const std::map<std::string, int64_t> kFormatModeConfigMap{
+    {"0", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NZNZ)},
+    {"1", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NDND)},
+    {"2", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NDNZ)},
 };
 
-const std::map<string, int64_t> kSwitchMap {{"1", 1}, {"0", 0}};
-const std::map<string, int64_t> kJitCompileMap {{"1", 1}, {"0", 0}, {"2", 2}};
-const std::map<string, int64_t> kDisableReuseMemoryMap {{"1", 0}, {"0", 1}};
+const std::map<string, int64_t> kBufferOptimizeMap{{OFF_OPTIMIZE, static_cast<int64_t>(EN_OFF_OPTIMIZE)},
+                                                   {L1_OPTIMIZE, static_cast<int64_t>(EN_L1_OPTIMIZE)},
+                                                   {L2_OPTIMIZE, static_cast<int64_t>(EN_L2_OPTIMIZE)}};
 
-const std::map<std::string, int64_t> kFormatModeConfigMap {
-  {"0", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NZNZ)},
-  {"1", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NDND)},
-  {"2", static_cast<int64_t>(FormatModeType::FORMAT_MODE_NDNZ)},
-};
+const std::map<string, int64_t> kExportCompileStatMap{
+    {"0", static_cast<int64_t>(ExportCompileStatType::NONE)},
+    {"1", static_cast<int64_t>(ExportCompileStatType::AFTER_EXEC_COMPLITE)},
+    {"2", static_cast<int64_t>(ExportCompileStatType::AFTER_COMPILE_COMPLITE)}};
 
-const std::map<string, int64_t> kBufferOptimizeMap {
-        {OFF_OPTIMIZE, static_cast<int64_t>(EN_OFF_OPTIMIZE)},
-        {L1_OPTIMIZE, static_cast<int64_t>(EN_L1_OPTIMIZE)},
-        {L2_OPTIMIZE, static_cast<int64_t>(EN_L2_OPTIMIZE)}
-};
-
-const std::map<string, int64_t> kExportCompileStatMap {
-        {"0", static_cast<int64_t>(ExportCompileStatType::NONE)},
-        {"1", static_cast<int64_t>(ExportCompileStatType::AFTER_EXEC_COMPLITE)},
-        {"2", static_cast<int64_t>(ExportCompileStatType::AFTER_COMPILE_COMPLITE)}
-};
-
-const std::map<CONFIG_PARAM, std::tuple<int64_t, string, std::map<string, int64_t>>> kConfigParamMap {
+const std::map<CONFIG_PARAM, std::tuple<int64_t, string, std::map<string, int64_t>>> kConfigParamMap{
     {CONFIG_PARAM::SmallChannel, {0, ge::ENABLE_SMALL_CHANNEL, kSwitchMap}},
     {CONFIG_PARAM::JitCompile, {1, ge::JIT_COMPILE, kJitCompileMap}},
     {CONFIG_PARAM::VirtualType, {0, ge::VIRTUAL_TYPE, kSwitchMap}},
     {CONFIG_PARAM::CompressWeight, {0, ge::ENABLE_COMPRESS_WEIGHT, kSwitchMap}},
     {CONFIG_PARAM::SparseMatrixWeight, {0, ge::ENABLE_SPARSE_MATRIX_WEIGHT, kSwitchMap}},
     {CONFIG_PARAM::ReuseMemory, {1, ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, kDisableReuseMemoryMap}},
-    {CONFIG_PARAM::BufferOptimize, {static_cast<int64_t>(EN_UNKNOWN_OPTIMIZE),
-                                    ge::BUFFER_OPTIMIZE, kBufferOptimizeMap}},
+    {CONFIG_PARAM::BufferOptimize,
+     {static_cast<int64_t>(EN_UNKNOWN_OPTIMIZE), ge::BUFFER_OPTIMIZE, kBufferOptimizeMap}},
     {CONFIG_PARAM::FormatMode, {0, ge::OPTION_EXEC_FORMAT_MODEL, kFormatModeConfigMap}},
     {CONFIG_PARAM::QuantDumpable, {0, ge::QUANT_DUMPABLE, kSwitchMap}},
     {CONFIG_PARAM::QuantBiasOptimize, {1, kQuantBiasOptimze, kSwitchMap}},
-    {CONFIG_PARAM::ExportCompileStat, {1, kExportCompileStat, kExportCompileStatMap}}
-};
+    {CONFIG_PARAM::ExportCompileStat, {1, kExportCompileStat, kExportCompileStatMap}}};
 
 constexpr char const *kHardwareInfo = "ge.hardwareInfo";
 constexpr char const *kFusionLicense = "opt_module.fe";
 
-const std::map<CONFIG_STR_PARAM, string> kConfigStrParamMap {
-    {CONFIG_STR_PARAM::HardwareInfo, kHardwareInfo},
-    {CONFIG_STR_PARAM::FusionLicense, kFusionLicense}
-};
+const std::map<CONFIG_STR_PARAM, string> kConfigStrParamMap{{CONFIG_STR_PARAM::HardwareInfo, kHardwareInfo},
+                                                            {CONFIG_STR_PARAM::FusionLicense, kFusionLicense}};
 
-const std::vector<std::string> kImplModeParamVec = {
-  ge::OP_PRECISION_MODE,
-  ge::OP_SELECT_IMPL_MODE,
-  ge::OPTYPELIST_FOR_IMPLMODE,
-  ge::ALLOW_HF32
-};
+const std::vector<std::string> kImplModeParamVec = {ge::OP_PRECISION_MODE, ge::OP_SELECT_IMPL_MODE,
+                                                    ge::OPTYPELIST_FOR_IMPLMODE, ge::ALLOW_HF32};
 
-const std::map<CONFIG_PARSER_PARAM, std::vector<std::string>> kConfigParserParamMap {
-      {CONFIG_PARSER_PARAM::ImplMode, kImplModeParamVec},
-      {CONFIG_PARSER_PARAM::CustDtypes, {ge::CUSTOMIZE_DTYPES}},
-      {CONFIG_PARSER_PARAM::ModifyMixlist, {ge::MODIFY_MIXLIST}}
-};
+const std::map<CONFIG_PARSER_PARAM, std::vector<std::string>> kConfigParserParamMap{
+    {CONFIG_PARSER_PARAM::ImplMode, kImplModeParamVec},
+    {CONFIG_PARSER_PARAM::CustDtypes, {ge::CUSTOMIZE_DTYPES}},
+    {CONFIG_PARSER_PARAM::ModifyMixlist, {ge::MODIFY_MIXLIST}}};
 
 const std::vector<string> kForceClosePassVec = {"MatMulBiasAddFusionPass", "AutomaticUbFusion",
                                                 "ReshapeTransposeFusionPass", "SquareSumV1",
                                                 "TbeEltwiseCastFusionPass"};
 
-const std::map<std::string, std::string> kLicensePassNameMap {
-        {"3", "MatMulBiasAddFusionPass"},
-        {"4", "OneHotFusionPass"},
-        {"6", "MulAddNL2LossFusionPass"},
-        {"7", "AutomaticUbFusion"},
-        {"9", "TransposeReshapeFusionPass"},
-        {"17", "TbeConv2DBackpropElemwiseFusionPass"},
-        {"18", "TbeConvBnreduceFusionPass"},
-        {"19", "BatchMatmulFusionPass"},
-        {"20", "ConstToAttrStridedSliceFusion"},
-        {"21", "ExtremumGradFusionPass"},
-        {"22", "LayerNormGradFusionPass"},
-        {"23", "LayerNormGradFusionPassBetaGammaV2"},
-        {"25", "MatmulCastFusionPass"},
-        {"26", "ReshapeTransposeFusionPass"},
-        {"27", "SquareSumV1"},
-        {"28", "StridedSliceGradFusionPass"},
-        {"29", "ZUnsortedSegmentSumUpdateFusionPass"},
-        {"30", "ATbeMatmulElemwiseFusionPass"},
-        {"31", "BatchMatmulConfusiontransposeUbFusion"},
-        {"32", "MatmulConfusiontransposeUbFusion"},
-        {"33", "TbeBatchMatmulFusedMulAddFusionPass"},
-        {"34", "TbeEltwiseFusionPass"},
-        {"35", "TbeFullyconnectionElemwiseDequantFusionPass"},
-        {"36", "TbeMultiOutputFusionPass"},
-        {"37", "MulAddFusionPass"},
-        {"39", "clip_by_norm_nodivsquaresum"},
-        {"40", "PadConv2dFusionPass"},
-        {"41", "SparseSoftMaxFusionPass"},
-        {"42", "MulAddNPass"},
-        {"43", "Resnet50DbnDwFusionPass"},
-        {"44", "BatchMatmulDropOutDoMaskV3DFusionPass"},
-        {"45", "MatmulConfusiontransposeUbFusion"},
-        {"46", "MatmulDropOutDoMaskV3DFusionPass"},
-        {"47", "TbeBatchMatmulElementWiseFusionPass"},
-        {"48", "SoftmaxWithDropOutDoMaskFusion"}
-};
+const std::map<std::string, std::string> kLicensePassNameMap{{"3", "MatMulBiasAddFusionPass"},
+                                                             {"4", "OneHotFusionPass"},
+                                                             {"6", "MulAddNL2LossFusionPass"},
+                                                             {"7", "AutomaticUbFusion"},
+                                                             {"9", "TransposeReshapeFusionPass"},
+                                                             {"17", "TbeConv2DBackpropElemwiseFusionPass"},
+                                                             {"18", "TbeConvBnreduceFusionPass"},
+                                                             {"19", "BatchMatmulFusionPass"},
+                                                             {"20", "ConstToAttrStridedSliceFusion"},
+                                                             {"21", "ExtremumGradFusionPass"},
+                                                             {"22", "LayerNormGradFusionPass"},
+                                                             {"23", "LayerNormGradFusionPassBetaGammaV2"},
+                                                             {"25", "MatmulCastFusionPass"},
+                                                             {"26", "ReshapeTransposeFusionPass"},
+                                                             {"27", "SquareSumV1"},
+                                                             {"28", "StridedSliceGradFusionPass"},
+                                                             {"29", "ZUnsortedSegmentSumUpdateFusionPass"},
+                                                             {"30", "ATbeMatmulElemwiseFusionPass"},
+                                                             {"31", "BatchMatmulConfusiontransposeUbFusion"},
+                                                             {"32", "MatmulConfusiontransposeUbFusion"},
+                                                             {"33", "TbeBatchMatmulFusedMulAddFusionPass"},
+                                                             {"34", "TbeEltwiseFusionPass"},
+                                                             {"35", "TbeFullyconnectionElemwiseDequantFusionPass"},
+                                                             {"36", "TbeMultiOutputFusionPass"},
+                                                             {"37", "MulAddFusionPass"},
+                                                             {"39", "clip_by_norm_nodivsquaresum"},
+                                                             {"40", "PadConv2dFusionPass"},
+                                                             {"41", "SparseSoftMaxFusionPass"},
+                                                             {"42", "MulAddNPass"},
+                                                             {"43", "Resnet50DbnDwFusionPass"},
+                                                             {"44", "BatchMatmulDropOutDoMaskV3DFusionPass"},
+                                                             {"45", "MatmulConfusiontransposeUbFusion"},
+                                                             {"46", "MatmulDropOutDoMaskV3DFusionPass"},
+                                                             {"47", "TbeBatchMatmulElementWiseFusionPass"},
+                                                             {"48", "SoftmaxWithDropOutDoMaskFusion"}};
 
-bool ComparePriority(const FEOpsStoreInfo &left, const FEOpsStoreInfo &right) { return left.priority < right.priority; }
+bool ComparePriority(const FEOpsStoreInfo &left, const FEOpsStoreInfo &right) {
+  return left.priority < right.priority;
 }
+}  // namespace
 
 Configuration::Configuration(const string &engine_name)
     : is_init_(false),
@@ -326,8 +304,8 @@ Status Configuration::InitializeConfigParser(const std::map<string, string> &opt
     FE_LOGD("[OpdebugConfig][Init] Init unsuccessful.");
     return op_debug_config_status;
   }
-  OpDebugConfigParserPtr op_debug_config_parser = std::dynamic_pointer_cast<OpDebugConfigParser>
-                                                  (op_debug_config_parse_);
+  OpDebugConfigParserPtr op_debug_config_parser =
+      std::dynamic_pointer_cast<OpDebugConfigParser>(op_debug_config_parse_);
   op_debug_config_parser->SetOpDebugConfigEnv(env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::NpuCollectPath)]);
 
   Status status = InitializeExtend(options);
@@ -335,8 +313,7 @@ Status Configuration::InitializeConfigParser(const std::map<string, string> &opt
     return status;
   }
 
-  FE_MAKE_SHARED(impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(ascend_ops_path_),
-                 return FAILED);
+  FE_MAKE_SHARED(impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(ascend_ops_path_), return FAILED);
   FE_CHECK_NOTNULL(impl_mode_parser_);
   Status op_precision_mode_status = impl_mode_parser_->InitializeFromOptions(options);
   if (op_precision_mode_status != SUCCESS) {
@@ -352,8 +329,8 @@ Status Configuration::InitializeConfigParser(const std::map<string, string> &opt
     return cust_dtypes_status;
   }
   std::string combined_params_key = CombinedParamsKeyFromOptions(CONFIG_PARSER_PARAM::CustDtypes, options);
-  config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(combined_params_key, cust_dtypes_parser_);
+  config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)].emplace(combined_params_key,
+                                                                                       cust_dtypes_parser_);
 
   FE_MAKE_SHARED(mix_list_parser_ = std::make_shared<ModifyMixlistConfigParser>(), return FAILED);
   FE_CHECK_NOTNULL(mix_list_parser_);
@@ -363,8 +340,8 @@ Status Configuration::InitializeConfigParser(const std::map<string, string> &opt
     return mix_list_status;
   }
   combined_params_key = CombinedParamsKeyFromOptions(CONFIG_PARSER_PARAM::ModifyMixlist, options);
-  config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)]
-      .emplace(combined_params_key, mix_list_parser_);
+  config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)].emplace(combined_params_key,
+                                                                                          mix_list_parser_);
 
   is_init_ = true;
   FE_LOGI("Initialization of Configuration end.");
@@ -403,7 +380,7 @@ void Configuration::InitParamFromEnv() {
 
   // parse MinCompileResourceUsageCtrl
   std::string &op_compile_func_ctrl =
-          env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::MinCompileResourceUsageCtrl)];
+      env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::MinCompileResourceUsageCtrl)];
   if (!op_compile_func_ctrl.empty()) {
     auto params = StringUtils::Split(op_compile_func_ctrl, ',');
     auto iter = std::find(params.begin(), params.end(), kStrOpCompile);
@@ -427,15 +404,15 @@ void Configuration::InitParamFromEnv() {
   enable_rt2_ = rt2_str == "0" ? false : true;
 }
 
-const std::string& Configuration::GetDumpGeGraph() const {
+const std::string &Configuration::GetDumpGeGraph() const {
   return env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::DumpGeGraph)];
 }
 
-const std::string& Configuration::GetDumpGraphLevel() const {
+const std::string &Configuration::GetDumpGraphLevel() const {
   return env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::DumpGraphLevel)];
 }
 
-const std::string& Configuration::GetAscendWorkPath() const {
+const std::string &Configuration::GetAscendWorkPath() const {
   return env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::AscendWorkPath)];
 }
 
@@ -554,7 +531,9 @@ Status Configuration::ParseVirtualType() {
   FE_LOGD("ParseVirtualType begin.");
   const std::vector<uint32_t> &vir_type_list = PlatformUtils::Instance().GetVirTypeList();
   if (IsEnableVirtualType() && vir_type_list.empty()) {
-    std::string reason_str = "The SoC does not support virtual_type, or it supports virtual_type but vir_type_list is not configured in file_path";
+    std::string reason_str =
+        "The SoC does not support virtual_type, or it supports virtual_type but vir_type_list is not configured in "
+        "file_path";
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {"1", ge::VIRTUAL_TYPE, reason_str});
     ReportErrorMessage(err_msg);
     FE_LOGE("The value at index [1] of parameter [%s] is invalid: %s.", ge::VIRTUAL_TYPE.c_str(), reason_str.c_str());
@@ -632,7 +611,7 @@ void Configuration::InitCustomOpStore() {
   for (const auto &it : kCustomPathMap) {
     for (const std::string &custom_path : custom_opp_path_vec) {
       if (!AddCustomOpStoreContent(custom_path, it.second, it.first, true)) {
-        FE_LOGD("Resolve op impl path(%s) unsuccess, do next.", custom_path.c_str());
+        FE_LOGD("Resolve op impl path(%s) unsuccessful, do next.", custom_path.c_str());
         continue;
       }
       op_store_priority_count_++;
@@ -656,9 +635,10 @@ Status Configuration::InitAscendOpsPath() {
   }
 
   if (ascend_ops_path_.empty()) {
-    ErrorMessageDetail err_msg(EM_ENVIRONMENT_VARIABLE_FAILED,
-                               {ascend_ops_path, ASCEND_OPP_PATH,
-                                "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"});
+    ErrorMessageDetail err_msg(
+        EM_ENVIRONMENT_VARIABLE_FAILED,
+        {ascend_ops_path, ASCEND_OPP_PATH,
+         "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[GraphOpt][Init][InitOpsPath] Ascend opp path is invalid.");
     return INVALID_FILE_PATH;
@@ -693,8 +673,7 @@ Status Configuration::GetOppLatestPath(std::string &opp_path) const {
   return SUCCESS;
 }
 
-bool Configuration::IsPathExistedInOpp(const std::string &path, bool is_full_path) const
-{
+bool Configuration::IsPathExistedInOpp(const std::string &path, bool is_full_path) const {
   std::string real_path = path;
   if (!is_full_path) {
     real_path = ascend_ops_path_ + path;
@@ -713,14 +692,15 @@ bool Configuration::CheckIsValidAbstractPath(const std::string &path) const {
 // i|(impl_type|(i<<32))|vendors/xxx/op_impl/ai_core/tbe/config|vendors/xxx/op_impl/ai_core/tbe/xxx_impl|true|true
 bool Configuration::AddCustomOpStoreContent(const std::string &full_or_sub_path, const std::string &path_type,
                                             const int64_t main_impl_type, const bool is_full_path) {
-  FE_LOGD("Begin to add [%s] custom op store from path[%s], impl type[%ld], is_full_path[%d].",
-          path_type.c_str(), full_or_sub_path.c_str(), main_impl_type, is_full_path);
+  FE_LOGD("Begin to add [%s] custom op store from path[%s], impl type[%ld], is_full_path[%d].", path_type.c_str(),
+          full_or_sub_path.c_str(), main_impl_type, is_full_path);
   std::string impl_path;
   std::stringstream ss;
   if (is_full_path) {
     if (!CheckIsValidAbstractPath(full_or_sub_path)) {
-      REPORT_FE_WARN("[Init][LoadAscendCustomOppPath] ASCEND_CUSTOM_OPP_PATH[%s] does not exist or is not an abstract path.",
-                     full_or_sub_path.c_str());
+      REPORT_FE_WARN(
+          "[Init][LoadAscendCustomOppPath] ASCEND_CUSTOM_OPP_PATH[%s] does not exist or is not an abstract path.",
+          full_or_sub_path.c_str());
       return false;
     }
     ss << full_or_sub_path;
@@ -731,10 +711,10 @@ bool Configuration::AddCustomOpStoreContent(const std::string &full_or_sub_path,
     std::vector<std::string> dir_name;
     StringUtils::SplitWithTrim(full_or_sub_path, '/', dir_name);
     std::string &sub_path = dir_name.back();
-    impl_path = ss.str()  + "/tbe/" + sub_path + "_impl";
+    impl_path = ss.str() + "/tbe/" + sub_path + "_impl";
   } else {
     ss << "vendors/" << full_or_sub_path << "/op_impl/" << path_type;
-    impl_path = ss.str()  + "/tbe/" + full_or_sub_path + "_impl";
+    impl_path = ss.str() + "/tbe/" + full_or_sub_path + "_impl";
   }
   std::string cfg_path = ss.str() + "/tbe/config";
   if (!IsPathExistedInOpp(cfg_path, is_full_path) || !IsPathExistedInOpp(impl_path, is_full_path)) {
@@ -761,19 +741,19 @@ bool Configuration::AddCustomOpStoreContent(const std::string &full_or_sub_path,
     return false;
   }
   content_map_.emplace(custom_op_store_key, custom_op_store_value);
-  FE_LOGD("Insert ascend custom %s impl: key=%s, value=%s.",
-          path_type.c_str(), custom_op_store_key.c_str(), custom_op_store_value.c_str());
+  FE_LOGD("Insert ascend custom %s impl: key=%s, value=%s.", path_type.c_str(), custom_op_store_key.c_str(),
+          custom_op_store_value.c_str());
   return true;
 }
 
 // "op.binary.tbe-custom = impl_type1|path1,impl_type1|path1"
-void Configuration::ResolveBinaryPath(const string &sub_path, const string &path_type,
-                                      const int64_t main_impl_type, bool isOm, const std::string &binaryKey) {
+void Configuration::ResolveBinaryPath(const string &sub_path, const string &path_type, const int64_t main_impl_type,
+                                      bool isOm, const std::string &binaryKey) {
   std::stringstream ss;
   ss << "/vendors/";
   ss << sub_path;
   ss << "/op_impl/" << path_type << "/tbe/";
-  string sub_file = isOm ?  "model/" : "kernel/";
+  string sub_file = isOm ? "model/" : "kernel/";
   ss << sub_file;
   string file_path = ss.str();
   int64_t impl_type = main_impl_type | (op_store_priority_count_ << 32);
@@ -811,7 +791,7 @@ Status Configuration::LoadOppConfigFile() {
   for (const auto &it : kCustomPathMap) {
     for (const std::string &custom_path : custom_opp_path_vec) {
       if (!AddCustomOpStoreContent(custom_path, it.second, it.first, false)) {
-        FE_LOGD("Resolve op impl path(%s) unsuccess, do next.", custom_path.c_str());
+        FE_LOGD("Resolve op impl path(%s) unsuccessful, do next.", custom_path.c_str());
         continue;
       }
       ResolveBinaryPath(custom_path, it.second, it.first, false, kOpCustomBinaryKey);
@@ -848,8 +828,8 @@ Status Configuration::GetCustomOppPathFromOppConfigFile(std::vector<string> &cus
     size_t pos_of_equal = line.find('=');
     if (pos_of_equal == string::npos) {
       ifs.close();
-      ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
-        {"load_priority", real_opp_config_file_path, "Line:\"" + line + "\" not contain \"=\"."});
+      ErrorMessageDetail err_msg(
+          EM_INVALID_CONTENT, {"load_priority", real_opp_config_file_path, "Line:\"" + line + "\" not contain \"=\"."});
       ReportErrorMessage(err_msg);
       REPORT_FE_ERROR("[GraphOpt][LoadOppConfigFile] Config format is error.");
       return INVALID_FILE_PATH;
@@ -866,13 +846,13 @@ Status Configuration::GetCustomOppPathFromOppConfigFile(std::vector<string> &cus
 void Configuration::InitBinaryConfigFilePath() {
   const auto &iter = op_binary_path_map_.find(kOpBunitinBinaryKey);
   if (iter == op_binary_path_map_.end()) {
-      FE_LOGD("Not found builtin binary key:op.binary.builtin in map.");
-      return;
+    FE_LOGD("Not found builtin binary key:op.binary.builtin in map.");
+    return;
   }
   const size_t &pos = iter->second.find('|');
   if (pos == string::npos) {
-      FE_LOGD("Config format is wrong.");
-      return;
+    FE_LOGD("Config format is wrong.");
+    return;
   }
 
   string kernel_path = ascend_ops_path_ + iter->second.substr(pos + 1);
@@ -887,7 +867,7 @@ void Configuration::InitBinaryConfigFilePath() {
   FE_LOGD("The real file path of Ascend opp kernel is [%s].", bin_cfg_file_.c_str());
 }
 
-const std::string& Configuration::GetBinaryConfigFilePath() const {
+const std::string &Configuration::GetBinaryConfigFilePath() const {
   FE_LOGD("The binary configuration file path is %s.", bin_cfg_file_.c_str());
   return bin_cfg_file_;
 }
@@ -940,8 +920,7 @@ Status Configuration::LoadConfigFile() {
 
 bool Configuration::IsIgnoreOpStore(const FEOpsStoreInfo &ops_store_info) const {
   OpImplType main_impl = GetMainImplType<OpImplType>(ops_store_info.op_impl_type);
-  bool is_vevtor_core_type = main_impl == EN_IMPL_VECTOR_CORE_HW_TBE ||
-                             main_impl == EN_IMPL_VECTOR_CORE_CUSTOM_TBE;
+  bool is_vevtor_core_type = main_impl == EN_IMPL_VECTOR_CORE_HW_TBE || main_impl == EN_IMPL_VECTOR_CORE_CUSTOM_TBE;
   bool is_dsa_core_type = main_impl == EN_IMPL_HW_DSA;
   return (engine_name_ == AI_CORE_NAME && (is_vevtor_core_type || is_dsa_core_type)) ||
          (engine_name_ == VECTOR_CORE_NAME && !is_vevtor_core_type) ||
@@ -989,8 +968,8 @@ Status Configuration::AssembleOpsStoreInfoVector() {
     }
     if (!IsIgnoreOpStore(ops_store_info)) {
       ops_store_info_vector_.push_back(ops_store_info);
-      FE_LOGI("OP store [%s] has been added to the ops_store_info_vector_ of %s.", ops_store_info.fe_ops_store_name.c_str(),
-              engine_name_.c_str());
+      FE_LOGI("OP store [%s] has been added to the ops_store_info_vector_ of %s.",
+              ops_store_info.fe_ops_store_name.c_str(), engine_name_.c_str());
     }
   }
 
@@ -1020,8 +999,9 @@ Status Configuration::AssembleEachOpsStoreInfo(string &op_store_name, std::vecto
   std::istringstream(op_store_vector.at(IDX_PRIORITY)) >> ops_store_info.priority;
   string str_op_impl_type = op_store_vector.at(IDX_OPIMPL_TYPE);
   if (!StringUtils::IsInteger(str_op_impl_type)) {
-    REPORT_FE_ERROR("[GraphOpt][Init][AssemEachOpsStoreInfo] The opimpltype of opstore[%s] should be a positive integer.",
-                    op_store_name.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][Init][AssemEachOpsStoreInfo] The opimpltype of opstore[%s] should be a positive integer.",
+        op_store_name.c_str());
     return OPSTORE_OPIMPLTYPE_INVALID;
   }
   int64_t impl_type;
@@ -1051,7 +1031,7 @@ Status Configuration::AssembleEachOpsStoreInfo(string &op_store_name, std::vecto
     str_op_imply_file_path = op_store_vector.at(IDX_OPIMPL_FILEPATH);
   }
   OpImplType impl = GetMainImplType<OpImplType>(ops_store_info.op_impl_type);
-  if (impl == EN_IMPL_HW_TBE || impl== EN_IMPL_CUSTOM_TBE || impl == EN_IMPL_HW_DSA) {
+  if (impl == EN_IMPL_HW_TBE || impl == EN_IMPL_CUSTOM_TBE || impl == EN_IMPL_HW_DSA) {
     // default value of sub path is the lower case of soc version
     string sub_path = PlatformUtils::Instance().GetShortSocVersion();
     std::transform(sub_path.begin(), sub_path.end(), sub_path.begin(), ::tolower);
@@ -1062,14 +1042,20 @@ Status Configuration::AssembleEachOpsStoreInfo(string &op_store_name, std::vecto
 
   if (impl == EN_IMPL_HW_TBE && GetRealPath(str_cfg_file_path).empty()) {
     const std::map<string, string> error_key_map = {
-        {EM_VALUE, ascend_ops_path_}, {EM_ENV, ASCEND_OPP_PATH}, {EM_REASON, "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"}};
+        {EM_VALUE, ascend_ops_path_},
+        {EM_ENV, ASCEND_OPP_PATH},
+        {EM_REASON, "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"}};
     (void)REPORT_PREDEFINED_ERR_MSG(
         EM_ENVIRONMENT_VARIABLE_FAILED.c_str(),
         std::vector<const char *>({EM_VALUE.c_str(), EM_ENV.c_str(), EM_REASON.c_str()}),
-        std::vector<const char *>({ascend_ops_path_.c_str(), ASCEND_OPP_PATH, "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"}));
+        std::vector<const char *>(
+            {ascend_ops_path_.c_str(), ASCEND_OPP_PATH,
+             "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"}));
     FE_LOGE("Builtin op store[%s] with path [%s] is invalid.", op_store_name.c_str(), str_cfg_file_path.c_str());
-    ErrorMessageDetail err_msg(EM_ENVIRONMENT_VARIABLE_FAILED,
-        {ascend_ops_path_, ASCEND_OPP_PATH, "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"});
+    ErrorMessageDetail err_msg(
+        EM_ENVIRONMENT_VARIABLE_FAILED,
+        {ascend_ops_path_, ASCEND_OPP_PATH,
+         "ASCEND_OPP_PATH does not exist or access permission is denied during FE initialization"});
     ReportErrorMessage(err_msg);
     FE_LOGE("Builtin op store[%s] with path [%s] is invalid.", op_store_name.c_str(), str_cfg_file_path.c_str());
     return OPSTORE_EMPTY;
@@ -1090,16 +1076,17 @@ Status Configuration::AssembleEachOpsStoreInfo(string &op_store_name, std::vecto
 Status Configuration::VerifyOpStoreVector(std::vector<std::string> &op_store_vector,
                                           const std::string &op_store_name) const {
   if (op_store_vector.size() != OP_STORE_FORMAT_MAX_SIZE && op_store_vector.size() != OP_STORE_FORMAT_MAX_SIZE - 1) {
-    REPORT_FE_ERROR("[GraphOpt][Init][VerifyOpStoreVec] The size of the columns in %s is %zu, which should be either %d or %d.",
-                    op_store_name.c_str(), op_store_vector.size(), OP_STORE_FORMAT_MAX_SIZE,
-                    OP_STORE_FORMAT_MAX_SIZE - 1);
+    REPORT_FE_ERROR(
+        "[GraphOpt][Init][VerifyOpStoreVec] The size of the columns in %s is %zu, which should be either %d or %d.",
+        op_store_name.c_str(), op_store_vector.size(), OP_STORE_FORMAT_MAX_SIZE, OP_STORE_FORMAT_MAX_SIZE - 1);
     return OPSTORE_VALUE_ITEM_SIZE_INCORRECT;
   }
 
   if (op_store_vector.at(IDX_PRIORITY).empty() || op_store_vector.at(IDX_OPIMPL_TYPE).empty() ||
       op_store_vector.at(IDX_NEED_PRECOMPILE).empty() || op_store_vector.at(IDX_NEED_COMPILE).empty()) {
-    REPORT_FE_ERROR("[GraphOpt][Init][VerifyOpStoreVec] At least one of the columns in the [%s] value in fe.ini is empty.",
-                    op_store_name.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][Init][VerifyOpStoreVec] At least one of the columns in the [%s] value in fe.ini is empty.",
+        op_store_name.c_str());
     return OPSTORE_VALUE_ITEM_EMPTY;
   }
 
@@ -1111,7 +1098,9 @@ Status Configuration::VerifyOpStoreVector(std::vector<std::string> &op_store_vec
   return SUCCESS;
 }
 
-const string &Configuration::GetSocVersion() const { return PlatformUtils::Instance().GetSocVersion(); }
+const string &Configuration::GetSocVersion() const {
+  return PlatformUtils::Instance().GetSocVersion();
+}
 
 void Configuration::SetOpsStoreInfo(const FEOpsStoreInfo &fe_ops_store_info) {
   std::lock_guard<std::mutex> lock_guard(ops_store_info_vector_mutex_);
@@ -1152,8 +1141,8 @@ Status Configuration::CheckOpStoreInfo(const FEOpsStoreInfo &op_store_info) cons
 
   for (const FEOpsStoreInfo &op_store : ops_store_info_vector_) {
     if (op_store.priority == op_store_info.priority) {
-      REPORT_FE_ERROR("[GraphOpt][Init][ChkOpStoreInfo] Priority [%d] already exists in %s.",
-                      op_store_info.priority, op_store.fe_ops_store_name.c_str());
+      REPORT_FE_ERROR("[GraphOpt][Init][ChkOpStoreInfo] Priority [%d] already exists in %s.", op_store_info.priority,
+                      op_store.fe_ops_store_name.c_str());
       return OPSTORE_PRIORITY_INVALID;
     }
     if (op_store.op_impl_type == op_store_info.op_impl_type) {
@@ -1239,13 +1228,10 @@ bool Configuration::GetCustomizeDtypeByOpName(const string &op_name, OpCustomize
   return cust_dtypes_ptr->GetCustomizeDtypeByOpName(op_name, custom_dtype);
 }
 
-
-PrecisionPolicy Configuration::GetPrecisionPolicy(const std::string &op_type,
-                                                  const PrecisionPolicy &op_kernel_policy) {
+PrecisionPolicy Configuration::GetPrecisionPolicy(const std::string &op_type, const PrecisionPolicy &op_kernel_policy) {
   std::string mix_list_path = CombinedParamsKeyFromContext(CONFIG_PARSER_PARAM::ModifyMixlist);
   FE_LOGD("The mix_list_path is set to %s.", mix_list_path.empty() ? "null" : mix_list_path.c_str());
-  BaseConfigParserPtr mix_list_parser =
-      GetConfigParserFromContext(CONFIG_PARSER_PARAM::ModifyMixlist, mix_list_path);
+  BaseConfigParserPtr mix_list_parser = GetConfigParserFromContext(CONFIG_PARSER_PARAM::ModifyMixlist, mix_list_path);
   if (mix_list_parser == nullptr) {
     mix_list_parser = mix_list_parser_;
   }
@@ -1472,12 +1458,12 @@ bool Configuration::IsQuantDumpable() const {
   return static_cast<bool>(config_param_vec_[static_cast<size_t>(CONFIG_PARAM::QuantDumpable)]);
 }
 
-const string& Configuration::GetLicenseFusionStr() const {
+const string &Configuration::GetLicenseFusionStr() const {
   std::lock_guard<std::mutex> lock_guard(config_param_mutex_);
   return config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)];
 }
 
-const std::set<string>& Configuration::GetLicenseFusionDetailInfo() const {
+const std::set<string> &Configuration::GetLicenseFusionDetailInfo() const {
   return license_fusion_detail_value_;
 }
 
@@ -1493,15 +1479,23 @@ bool Configuration::IsEnableQuantBiasOptimize() const {
   return static_cast<bool>(config_param_vec_[static_cast<size_t>(CONFIG_PARAM::QuantBiasOptimize)]);
 }
 
-const std::map<int32_t, float>& Configuration::GetCompressRatios() const { return compress_ratios_; }
+const std::map<int32_t, float> &Configuration::GetCompressRatios() const {
+  return compress_ratios_;
+}
 
-const float& Configuration::GetAICoreCompressRatio() const { return ai_core_compress_ratio_; }
+const float &Configuration::GetAICoreCompressRatio() const {
+  return ai_core_compress_ratio_;
+}
 
-int32_t Configuration::GetMemReuseDistThreshold() const { return mem_reuse_dist_threshold_; }
+int32_t Configuration::GetMemReuseDistThreshold() const {
+  return mem_reuse_dist_threshold_;
+}
 
-const std::unordered_set<string>& Configuration::GetFp16OpTypeList() const { return fp16_op_type_list_; }
+const std::unordered_set<string> &Configuration::GetFp16OpTypeList() const {
+  return fp16_op_type_list_;
+}
 
-const std::map<string, string>& Configuration::GetBinaryPathMap() const {
+const std::map<string, string> &Configuration::GetBinaryPathMap() const {
   return op_binary_path_map_;
 }
 
@@ -1510,21 +1504,21 @@ std::string Configuration::GetAllOpsImplPath() const {
   for (const auto &op_store_info : ops_store_info_vector_) {
     all_path << op_store_info.op_impl_file_path;
     all_path << "|";
-    FE_LOGD("Insert op impl path:%s, ops store name:%s.",
-            op_store_info.op_impl_file_path.c_str(), op_store_info.fe_ops_store_name.c_str());
+    FE_LOGD("Insert op impl path:%s, ops store name:%s.", op_store_info.op_impl_file_path.c_str(),
+            op_store_info.fe_ops_store_name.c_str());
   }
   return all_path.str();
 }
 
 const std::string Configuration::GetOpDebugConfig() const {
-  OpDebugConfigParserPtr op_debug_config_parser = std::dynamic_pointer_cast<OpDebugConfigParser>
-                                                  (op_debug_config_parse_);
+  OpDebugConfigParserPtr op_debug_config_parser =
+      std::dynamic_pointer_cast<OpDebugConfigParser>(op_debug_config_parse_);
   return op_debug_config_parser->GetOpDebugConfig();
 }
 
 bool Configuration::GetMemoryCheckSwitch() const {
-  OpDebugConfigParserPtr op_debug_config_parser = std::dynamic_pointer_cast<OpDebugConfigParser>
-                                                  (op_debug_config_parse_);
+  OpDebugConfigParserPtr op_debug_config_parser =
+      std::dynamic_pointer_cast<OpDebugConfigParser>(op_debug_config_parse_);
   return op_debug_config_parser->IsNeedMemoryCheck();
 }
 std::map<string, string> Configuration::GetHardwareInfo() const {
@@ -1611,10 +1605,10 @@ Status Configuration::RefreshCustDtypes() {
       FE_LOGE("Failed to initialize new_cust_dtypes_parser from context.");
       return ret;
     }
-    std::lock_guard<std::mutex>
-        lock_guard(config_parser_map_mutex_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]);
-    config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-        .emplace(combined_params_key, new_cust_dtypes_parser);
+    std::lock_guard<std::mutex> lock_guard(
+        config_parser_map_mutex_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]);
+    config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)].emplace(combined_params_key,
+                                                                                         new_cust_dtypes_parser);
     return SUCCESS;
   }
   return SUCCESS;
@@ -1640,10 +1634,10 @@ Status Configuration::RefreshMixList() {
       FE_LOGE("Failed to initialize new_mix_list_parser from context.");
       return ret;
     }
-    std::lock_guard<std::mutex>
-        lock_guard(config_parser_map_mutex_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)]);
-    config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)]
-        .emplace(combined_params_key, new_mix_list_parser);
+    std::lock_guard<std::mutex> lock_guard(
+        config_parser_map_mutex_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)]);
+    config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::ModifyMixlist)].emplace(combined_params_key,
+                                                                                            new_mix_list_parser);
     return SUCCESS;
   }
   return SUCCESS;
@@ -1695,7 +1689,7 @@ void Configuration::InitCompressRatio() {
   std::vector<string> multi_core_ratios = StringUtils::Split(ratio_str, '|');
   for (const auto &multi_core_ratio : multi_core_ratios) {
     std::vector<string> core_ratio = StringUtils::Split(multi_core_ratio, ':');
-    if (core_ratio.size() != 2) { // 2 means no ':' or configure illegal
+    if (core_ratio.size() != 2) {  // 2 means no ':' or configure illegal
       continue;
     }
     int32_t core_num;
@@ -1818,23 +1812,37 @@ bool Configuration::GetDuplicationSwitch() const {
   return GetBoolValue(CONFIG_KEY_MAY_DUPLICATE_IN_AUTO_FUSION, false);
 }
 
-bool Configuration::IsEnableNetworkAnalysis() const { return enable_network_analysis_; }
+bool Configuration::IsEnableNetworkAnalysis() const {
+  return enable_network_analysis_;
+}
 
-bool Configuration::IsEnableOpImplStrategy() const { return enable_op_impl_strategy_; }
+bool Configuration::IsEnableOpImplStrategy() const {
+  return enable_op_impl_strategy_;
+}
 
-bool Configuration::IsEnableUbFusion() const { return enable_ub_fusion_; }
+bool Configuration::IsEnableUbFusion() const {
+  return enable_ub_fusion_;
+}
 
-bool Configuration::IsEnableAclnn() const { return enable_aclnn_; };
+bool Configuration::IsEnableAclnn() const {
+  return enable_aclnn_;
+};
 
-bool Configuration::IsEnableRt2() const { return enable_rt2_; };
+bool Configuration::IsEnableRt2() const {
+  return enable_rt2_;
+};
 
 bool Configuration::IsEnableFirstLayerQuantization() const {
   return IsEnableSmallChannel() ? enable_first_layer_quantization_ : false;
 }
 
-string Configuration::GetFeLibPath() const { return lib_path_ + "plugin/opskernel/"; }
+string Configuration::GetFeLibPath() const {
+  return lib_path_ + "plugin/opskernel/";
+}
 
-string Configuration::GetLibPath() const { return lib_path_; }
+string Configuration::GetLibPath() const {
+  return lib_path_;
+}
 
 bool Configuration::GetConfigValueByKey(const std::map<string, string> &options, const string &file_key,
                                         const string &cfg_key, string &value, string &file_path) const {
@@ -1848,8 +1856,8 @@ bool Configuration::GetConfigValueByKey(const std::map<string, string> &options,
   FE_LOGI("The real path for the config is %s.", real_path.c_str());
   std::ifstream ifs(real_path);
   if (!ifs.is_open()) {
-    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {file_path, file_key,
-                               "The file does not exist or its access permission is denied"});
+    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
+                               {file_path, file_key, "The file does not exist or its access permission is denied"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[Configuration][GetConfigValueByKey] Config file: [%s] did not exist.", file_path.c_str());
     return false;
@@ -1872,8 +1880,8 @@ bool Configuration::GetConfigValueByKey(const std::map<string, string> &options,
 }
 
 bool Configuration::IsConfigDebugListOp(const ge::OpDescPtr &op_desc_ptr) const {
-  OpDebugConfigParserPtr op_debug_config_parser = std::dynamic_pointer_cast<OpDebugConfigParser>
-                                                  (op_debug_config_parse_);
+  OpDebugConfigParserPtr op_debug_config_parser =
+      std::dynamic_pointer_cast<OpDebugConfigParser>(op_debug_config_parse_);
   return op_debug_config_parser->IsOpDebugListOp(op_desc_ptr);
 }
 
@@ -1895,7 +1903,7 @@ bool Configuration::InitFirstLayerQuantization(const std::map<string, string> &o
   size_t pos_of_equal = line.find(':');
   if (pos_of_equal == string::npos) {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-        {file_path, ge::COMPRESSION_OPTIMIZE_CONF, "Line:\"" + line + "\" not contain \":\""});
+                               {file_path, ge::COMPRESSION_OPTIMIZE_CONF, "Line:\"" + line + "\" not contain \":\""});
     ReportErrorMessage(err_msg);
     REPORT_FE_ERROR("[Configuration][InitFirstLayerQuantization]Config [%s] format is error.", line.c_str());
     return false;
@@ -1967,7 +1975,8 @@ int64_t Configuration::GetConfigParamValueFromContext(CONFIG_PARAM config_param_
         FE_LOGD("The value of param[%s] after conversion is %ld from context", param_key.c_str(), iter_value->second);
         return iter_value->second;
       } else {
-        FE_LOGW("The value [%s] for parameter [%s] is invalid in this context.", param_value.c_str(), param_key.c_str());
+        FE_LOGW("The value [%s] for parameter [%s] is invalid in this context.", param_value.c_str(),
+                param_key.c_str());
         return config_param_vec_[static_cast<size_t>(config_param_enum_type)];
       }
     } else {
@@ -2016,9 +2025,9 @@ std::string Configuration::CombinedParamsKeyFromContext(CONFIG_PARSER_PARAM conf
 }
 
 BaseConfigParserPtr Configuration::GetConfigParserFromContext(CONFIG_PARSER_PARAM config_parser_param_enum_type,
-    const std::string &combined_params_key) {
-  std::lock_guard<std::mutex>
-      lock_guard(config_parser_map_mutex_vec_[static_cast<size_t>(config_parser_param_enum_type)]);
+                                                              const std::string &combined_params_key) {
+  std::lock_guard<std::mutex> lock_guard(
+      config_parser_map_mutex_vec_[static_cast<size_t>(config_parser_param_enum_type)]);
   if (!combined_params_key.empty()) {
     const auto &config_parser_map = config_parser_map_vec_[static_cast<size_t>(config_parser_param_enum_type)];
     const auto &iter_value = config_parser_map.find(combined_params_key);

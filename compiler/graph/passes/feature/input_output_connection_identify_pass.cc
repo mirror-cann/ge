@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,8 @@ namespace ge {
 Status InputOutputConnectionIdentifyPass::Run(ComputeGraphPtr graph) {
   if (graph == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Param graph is nullptr, check invalid");
-    GELOGE(PARAM_INVALID, "[Check][Param] Input param graph is nullptr, "
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] Input param graph is nullptr, "
            "skip identification of nodes that connect to input and output.");
     return PARAM_INVALID;
   }
@@ -113,7 +114,7 @@ Status InputOutputConnectionIdentifyPass::UpdateNodeIdxMap(const std::string &sy
   const auto symbol_iter = symbol_to_anchors_.find(symbol_string);
   if (symbol_iter == symbol_to_anchors_.end()) {
     REPORT_INNER_ERR_MSG("E19999", "Can't find symbol:%s in symbol_to_anchors map, check invalid",
-                      symbol_string.c_str());
+                         symbol_string.c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Input param symbol std::string:%s is invalid.", symbol_string.c_str());
     return PARAM_INVALID;
   }
@@ -159,7 +160,7 @@ Status InputOutputConnectionIdentifyPass::SetNodeAttrOfConnectingInputOutput(
     if (iter.first->GetOpDesc() != nullptr) {
       if (!AttrUtils::SetListInt(iter.first->GetOpDesc(), ATTR_NAME_NODE_CONNECT_INPUT, iter.second)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_NODE_CONNECT_INPUT.c_str(),
-                          iter.first->GetName().c_str(), iter.first->GetType().c_str());
+                             iter.first->GetName().c_str(), iter.first->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_NODE_CONNECT_INPUT.c_str(),
                iter.first->GetName().c_str(), iter.first->GetType().c_str());
         return INTERNAL_ERROR;
@@ -172,7 +173,7 @@ Status InputOutputConnectionIdentifyPass::SetNodeAttrOfConnectingInputOutput(
     if (iter.first->GetOpDesc() != nullptr) {
       if (!AttrUtils::SetListInt(iter.first->GetOpDesc(), ATTR_NAME_NODE_CONNECT_OUTPUT, iter.second)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_NODE_CONNECT_OUTPUT.c_str(),
-                          iter.first->GetName().c_str(), iter.first->GetType().c_str());
+                             iter.first->GetName().c_str(), iter.first->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_NODE_CONNECT_OUTPUT.c_str(),
                iter.first->GetName().c_str(), iter.first->GetType().c_str());
         return INTERNAL_ERROR;

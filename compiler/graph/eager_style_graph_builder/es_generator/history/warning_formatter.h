@@ -19,8 +19,8 @@ namespace ge {
 namespace es {
 namespace history {
 std::string FormatWarning(const Warning &warning);
-} // namespace history
-} // namespace es
-} // namespace ge
+}  // namespace history
+}  // namespace es
+}  // namespace ge
 
 #endif  // AIR_CXX_COMPILER_GRAPH_EAGER_STYLE_EAGER_STYLE_GRAPH_BUILDER_ES_GENERATOR_WARNING_FORMATTER_H_

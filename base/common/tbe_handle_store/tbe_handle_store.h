@@ -86,17 +86,18 @@ class TBEHandleStore {
   ~TBEHandleStore() = default;
 
   std::unordered_map<std::string, std::unique_ptr<TbeHandleInfo>> bin_key_to_handle_;
-  std::unordered_map<void*, std::unordered_map<std::string, std::list<uint8_t>>> handle_to_kernel_to_unique_id_;
+  std::unordered_map<void *, std::unordered_map<std::string, std::list<uint8_t>>> handle_to_kernel_to_unique_id_;
 };
 
 class KernelHolder {
  public:
-  KernelHolder(const char_t *const stub_func,
-               const std::shared_ptr<OpKernelBin> &kernel_bin);
+  KernelHolder(const char_t *const stub_func, const std::shared_ptr<OpKernelBin> &kernel_bin);
 
   ~KernelHolder();
 
-  void SetBinHandle(void *const bin_handle) { bin_handle_ = bin_handle; }
+  void SetBinHandle(void *const bin_handle) {
+    bin_handle_ = bin_handle;
+  }
 
  private:
   friend class KernelBinRegistry;
@@ -110,8 +111,12 @@ class HandleHolder {
   explicit HandleHolder(void *const bin_handle);
   ~HandleHolder();
 
-  void SetBinHandle(void *const bin_handle) { bin_handle_ = bin_handle; }
-  const void *GetBinHandle() const { return bin_handle_; }
+  void SetBinHandle(void *const bin_handle) {
+    bin_handle_ = bin_handle;
+  }
+  const void *GetBinHandle() const {
+    return bin_handle_;
+  }
 
  private:
   friend class HandleRegistry;

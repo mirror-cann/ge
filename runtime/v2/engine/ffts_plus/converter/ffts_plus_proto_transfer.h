@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,25 +28,31 @@ using FftsAddrPrefHandle = std::function<ge::Status(const std::string &kernel_na
 using FftsFindNodeHandle = std::function<ge::OpDescPtr(const uint32_t op_index)>;
 using FftsSaveCtxArgsHandle = std::function<void(const ge::OpDescPtr &op_desc, const size_t args_offset)>;
 using FftsCreateAicpuSession = std::function<ge::Status(STR_FWK_OP_KERNEL &fwk_op_kernel)>;
-using FftsLoadCustAiCpuSo = std::function<ge::Status(const ge::OpDescPtr &op_desc,
-                                                     const domi::FftsPlusAicpuCtxDef &ctx_def)>;
-using FftsSaveAicpuCtxHandle = std::function<ge::Status(const ge::OpDescPtr &op_desc,
-                                                        const domi::aicpuKernelDef &kernel_def)>;
+using FftsLoadCustAiCpuSo =
+    std::function<ge::Status(const ge::OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def)>;
+using FftsSaveAicpuCtxHandle =
+    std::function<ge::Status(const ge::OpDescPtr &op_desc, const domi::aicpuKernelDef &kernel_def)>;
 class FftsPlusProtoTransfer {
  public:
   FftsPlusProtoTransfer(const uintptr_t args_base, std::vector<uintptr_t> &io_addrs, const ge::RuntimeParam &rts_param,
                         std::vector<void *> &ext_args, std::vector<size_t> &mode_addr_idx)
-    : args_base_(args_base), io_addrs_(io_addrs), ext_info_addrs_(ext_args), mode_addr_idx_(mode_addr_idx),
-      runtime_param_(rts_param) {
-  }
+      : args_base_(args_base),
+        io_addrs_(io_addrs),
+        ext_info_addrs_(ext_args),
+        mode_addr_idx_(mode_addr_idx),
+        runtime_param_(rts_param) {}
   ~FftsPlusProtoTransfer();
 
   std::unique_ptr<uint8_t[]> Transfer(const ge::OpDescPtr &op_desc, const domi::FftsPlusTaskDef &ffts_plus_task_def,
-                      size_t &total_size);
+                                      size_t &total_size);
 
-  void SetFindNodeHandle(const FftsFindNodeHandle &handle) { find_node_handle_ = handle; }
+  void SetFindNodeHandle(const FftsFindNodeHandle &handle) {
+    find_node_handle_ = handle;
+  }
   // for aicpu dynamic shape
-  void SetSaveAicpuCtxHandle(const FftsSaveAicpuCtxHandle &handle) { save_aicpu_ctx_handle_ = handle; }
+  void SetSaveAicpuCtxHandle(const FftsSaveAicpuCtxHandle &handle) {
+    save_aicpu_ctx_handle_ = handle;
+  }
 
  private:
   void InitFftsPlusSqe(const domi::FftsPlusSqeDef &sqe_def, rtFftsPlusSqe_t *const sqe) const;
@@ -65,10 +71,10 @@ class FftsPlusProtoTransfer {
 
   ge::Status InitMixAicAivCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
   ge::Status InitManualMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-                                const std::vector<std::string> &kernel_name_prefixes,
-                                rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx = 0) const;
-  ge::Status InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-                              rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx = 0) const;
+                                    const std::vector<std::string> &kernel_name_prefixes, rtFftsPlusMixAicAivCtx_t &ctx,
+                                    const int32_t start_idx = 0) const;
+  ge::Status InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def, rtFftsPlusMixAicAivCtx_t &ctx,
+                                  const int32_t start_idx = 0) const;
 
   ge::Status InitSdmaCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
 
@@ -76,13 +82,13 @@ class FftsPlusProtoTransfer {
 
   ge::Status InitAicpuCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
   ge::Status InitAicpuCtxUserData(const ge::OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def,
-                              rtFftsPlusAiCpuCtx_t &ctx) const;
+                                  rtFftsPlusAiCpuCtx_t &ctx) const;
 
   ge::Status InitAicpuInfo(const ge::OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def, void *&addr) const;
   ge::Status InitAicpuExtInfo(const ge::OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def,
-                              const void* const& addr) const;
+                              const void *const &addr) const;
   ge::Status InitAicpuTaskExtInfo(const ge::OpDescPtr &op_desc, const std::string &ext_info,
-                              std::shared_ptr<ge::hybrid::AicpuExtInfoHandler> &ext_handle) const;
+                                  std::shared_ptr<ge::hybrid::AicpuExtInfoHandler> &ext_handle) const;
   ge::Status InitAicpuIoAddrs(const ge::OpDescPtr &op_desc, const uintptr_t &io_addr, const size_t io_size) const;
 
   ge::Status InitCondSwitchCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
@@ -99,11 +105,11 @@ class FftsPlusProtoTransfer {
 
   void InitAdditionalData(const domi::FftsPlusTaskDef &task_def);
 
-  template<typename T>
+  template <typename T>
   ge::Status InitThrdIoAddrs(const T &ctx_def, const uint16_t thread_id, const int32_t addr_count,
-                       const int32_t start_idx = 0) const;
+                             const int32_t start_idx = 0) const;
 
-  uintptr_t args_base_{0U};     // runtime args memory
+  uintptr_t args_base_{0U};  // runtime args memory
   std::vector<uintptr_t> &io_addrs_;
   std::vector<void *> &ext_info_addrs_;
   std::vector<size_t> &mode_addr_idx_;
@@ -116,19 +122,17 @@ class FftsPlusProtoTransfer {
   FftsRunAddrHandle run_addr_handle_{nullptr};
   FftsAddrPrefHandle addr_pref_handle_{nullptr};
   FftsSaveCtxArgsHandle save_ctx_args_handle_{nullptr};
-  FftsSaveAicpuCtxHandle save_aicpu_ctx_handle_ =
-      [](const ge::OpDescPtr &, const domi::aicpuKernelDef &) { return 0U; };
+  FftsSaveAicpuCtxHandle save_aicpu_ctx_handle_ = [](const ge::OpDescPtr &, const domi::aicpuKernelDef &) {
+    return 0U;
+  };
 
-  using CtxHandle = std::function<ge::Status(FftsPlusProtoTransfer *, const domi::FftsPlusCtxDef &,
-                                         rtFftsPlusComCtx_t *const)>;
+  using CtxHandle =
+      std::function<ge::Status(FftsPlusProtoTransfer *, const domi::FftsPlusCtxDef &, rtFftsPlusComCtx_t *const)>;
   static std::map<rtFftsPlusContextType_t, CtxHandle> init_ctx_fun_;
   rtFftsPlusTaskInfo_t *ffts_plus_task_info_{nullptr};
 };
 
-enum class InfoStType : int16_t {
-  kDescBuf,
-  kInfoStTypeEnd
-};
+enum class InfoStType : int16_t { kDescBuf, kInfoStTypeEnd };
 /*
  * ————————————————Memory---------------------
  * TransTaskInfo || rtFftsPlusSqe_t || descBuf

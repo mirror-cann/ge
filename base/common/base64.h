@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,9 +20,9 @@
 namespace ge {
 namespace {
 const char *kBase64Chars =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "abcdefghijklmnopqrstuvwxyz"
-  "0123456789+/";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
 const char kEqualSymbol = '=';
 const size_t kBase64CharsNum = 64;
 const size_t kThreeByteOneGroup = 3;
@@ -37,7 +37,9 @@ const size_t kFourByteOneGroupIndex3 = 3;
 }  // namespace
 
 namespace base64 {
-static inline bool IsBase64Char(const char &c) { return (isalnum(c) || (c == '+') || (c == '/')); }
+static inline bool IsBase64Char(const char &c) {
+  return (isalnum(c) || (c == '+') || (c == '/'));
+}
 
 static std::string EncodeToBase64(const std::string &raw_data) {
   size_t encode_length = raw_data.size() / kThreeByteOneGroup * kFourByteOneGroup;
@@ -104,7 +106,7 @@ static Status DecodeFromBase64(const std::string &base64_data, std::string &deco
       }
     }
     decode_data +=
-      static_cast<char>((byte_4[kFourByteOneGroupIndex0] << 2u) + ((byte_4[kFourByteOneGroupIndex1] & 0x30) >> 4u));
+        static_cast<char>((byte_4[kFourByteOneGroupIndex0] << 2u) + ((byte_4[kFourByteOneGroupIndex1] & 0x30) >> 4u));
     if (byte_4[kFourByteOneGroupIndex2] >= kBase64CharsNum) {
       break;
     } else if (byte_4[kFourByteOneGroupIndex3] >= kBase64CharsNum) {
@@ -115,7 +117,7 @@ static Status DecodeFromBase64(const std::string &base64_data, std::string &deco
     decode_data += static_cast<char>(((byte_4[kFourByteOneGroupIndex1] & 0x0f) << 4u) +
                                      ((byte_4[kFourByteOneGroupIndex2] & 0x3c) >> 2u));
     decode_data +=
-      static_cast<char>(((byte_4[kFourByteOneGroupIndex2] & 0x03) << 6u) + byte_4[kFourByteOneGroupIndex3]);
+        static_cast<char>(((byte_4[kFourByteOneGroupIndex2] & 0x03) << 6u) + byte_4[kFourByteOneGroupIndex3]);
   }
   return SUCCESS;
 }

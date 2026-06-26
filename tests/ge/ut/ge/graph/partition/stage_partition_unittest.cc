@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,9 @@ GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, Format fo
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape = {1, 1, 224, 224}, Format format = FORMAT_NCHW,
                             DataType data_type = DT_FLOAT) {
@@ -77,10 +79,10 @@ class NodeBuilder {
 }  // namespace
 
 class UtestStagePartition : public testing::Test {
-  protected:
-    void SetUp() {}
+ protected:
+  void SetUp() {}
 
-    void TearDown() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestStagePartition, partition_test) {
@@ -91,11 +93,11 @@ TEST_F(UtestStagePartition, partition_test) {
   std::map<uint32_t, std::set<NodePtr>> stage_nodes;
   map<string, vector<int64_t>> shape_map;
   ge::NodePtr data0 = NodeBuilder("data1", DATA)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   std::set<NodePtr> node_ptr_set;
-  node_ptr_set.insert(data0);             
+  node_ptr_set.insert(data0);
   ge::ut::GraphBuilder builder("graph");
   auto data1 = builder.AddNode("data1", "Data", 1, 1);
   auto data2 = builder.AddNode("data2", "Data", 1, 1);
@@ -109,10 +111,10 @@ TEST_F(UtestStagePartition, partition_test) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1,224,224,3}), FORMAT_NHWC, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1, 224, 224, 3}), FORMAT_NHWC, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NHWC, DT_INT64));
-  node_ptr_set.insert(aipp);  
-  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1,node_ptr_set));
+  node_ptr_set.insert(aipp);
+  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1, node_ptr_set));
   stagePartitioner.stage_nodes_ = stage_nodes;
   ret = stagePartitioner.SplitStageLevel();
   ASSERT_EQ(ret, SUCCESS);
@@ -126,11 +128,11 @@ TEST_F(UtestStagePartition, stage_partition_test) {
   std::map<uint32_t, std::set<NodePtr>> stage_nodes;
   map<string, vector<int64_t>> shape_map;
   ge::NodePtr data0 = NodeBuilder("data1", DATA)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   std::set<NodePtr> node_ptr_set;
-  node_ptr_set.insert(data0);             
+  node_ptr_set.insert(data0);
   ge::ut::GraphBuilder builder("graph");
   auto data1 = builder.AddNode("data1", "Data", 1, 1);
   auto data2 = builder.AddNode("data2", "Data", 1, 1);
@@ -144,11 +146,11 @@ TEST_F(UtestStagePartition, stage_partition_test) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1,224,224,3}), FORMAT_NHWC, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1, 224, 224, 3}), FORMAT_NHWC, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NHWC, DT_INT64));
-  node_ptr_set.insert(aipp);  
-  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1,node_ptr_set));
-  stagePartitioner.stage_nodes_ = stage_nodes;           
+  node_ptr_set.insert(aipp);
+  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1, node_ptr_set));
+  stagePartitioner.stage_nodes_ = stage_nodes;
   ret = stagePartitioner.StagePartition();
   ASSERT_NE(ret, SUCCESS);
 }
@@ -161,11 +163,11 @@ TEST_F(UtestStagePartition, partition_test_2) {
   std::map<uint32_t, std::set<NodePtr>> stage_nodes;
   map<string, vector<int64_t>> shape_map;
   ge::NodePtr data0 = NodeBuilder("data1", DATA)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   std::set<NodePtr> node_ptr_set;
-  node_ptr_set.insert(data0);             
+  node_ptr_set.insert(data0);
   ge::ut::GraphBuilder builder("graph");
   auto data1 = builder.AddNode("data1", "Data", 1, 1);
   auto data2 = builder.AddNode("data2", "Data", 1, 1);
@@ -179,10 +181,10 @@ TEST_F(UtestStagePartition, partition_test_2) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1,224,224,3}), FORMAT_NHWC, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{1, 224, 224, 3}), FORMAT_NHWC, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NHWC, DT_INT64));
-  node_ptr_set.insert(aipp);  
-  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1,node_ptr_set));
+  node_ptr_set.insert(aipp);
+  stage_nodes.insert(std::pair<uint32_t, std::set<NodePtr>>(1, node_ptr_set));
   stagePartitioner.stage_nodes_ = stage_nodes;
   stagePartitioner.root_graph_ = computeGraph;
   ret = stagePartitioner.Partition();
@@ -246,4 +248,4 @@ TEST_F(UtestStagePartition, Partition3StageSuccess) {
   ASSERT_EQ(stage_num, 3U);
 }
 
-} // namespace ge
+}  // namespace ge

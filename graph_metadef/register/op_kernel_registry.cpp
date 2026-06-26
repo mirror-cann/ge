@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ OpKernelRegistry::OpKernelRegistry() {
 
 OpKernelRegistry::~OpKernelRegistry() = default;
 
-OpKernelRegistry& OpKernelRegistry::GetInstance() {
+OpKernelRegistry &OpKernelRegistry::GetInstance() {
   static OpKernelRegistry instance;
   return instance;
 }
@@ -62,8 +62,7 @@ bool OpKernelRegistry::IsRegistered(const std::string &op_type) const {
 
 void OpKernelRegistry::RegisterHostCpuOp(const std::string &op_type, const CreateFn create_fn) {
   if (impl_ == nullptr) {
-    GELOGE(MEMALLOC_FAILED,
-           "[Check][Param:impl_]Failed to register %s, OpKernelRegistry is not properly initialized",
+    GELOGE(MEMALLOC_FAILED, "[Check][Param:impl_]Failed to register %s, OpKernelRegistry is not properly initialized",
            op_type.c_str());
     return;
   }
@@ -95,4 +94,4 @@ HostCpuOpRegistrar::HostCpuOpRegistrar(const char_t *const op_type, HostCpuOp *(
 
   OpKernelRegistry::GetInstance().RegisterHostCpuOp(op_type, create_fn);
 }
-} // namespace ge
+}  // namespace ge

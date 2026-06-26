@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,7 +56,7 @@ Status GetNoAlignedSize(const GeTensorDesc &tensor_desc, int64_t &no_aligned_siz
   GE_ASSERT_SUCCESS(ge::TensorUtils::CalcTensorMemSize(shape, out_format, data_type, no_aligned_size));
   return SUCCESS;
 }
-}
+}  // namespace
 class UtestNodeCheckerUtils : public testing::Test {};
 
 TEST_F(UtestNodeCheckerUtils, AlignMemSize) {
@@ -156,10 +156,9 @@ TEST_F(UtestNodeCheckerUtils, GetStrideForContinuousInput_Success) {
   int64_t stride;
   ASSERT_EQ(NodeCheckerUtils::GetStrideForContinuousInput(a.get(), 0, stride), SUCCESS);
 
-
   std::vector<int64_t> offsets_for_fusion = {};
-  const bool has_lx_fusion_attr = AttrUtils::GetListInt(a->GetOpDescBarePtr(),
-                                                        ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
+  const bool has_lx_fusion_attr =
+      AttrUtils::GetListInt(a->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
   ASSERT_TRUE(has_lx_fusion_attr);
   ASSERT_FALSE(offsets_for_fusion.empty());
   EXPECT_EQ(offsets_for_fusion.at(0), stride);
@@ -175,8 +174,8 @@ TEST_F(UtestNodeCheckerUtils, GetStrideForNoPaddingContinuousInput_UseOutputOffs
   int64_t stride;
   ASSERT_EQ(NodeCheckerUtils::GetStrideForNoPaddingContinuousInput(pc1.get(), a.get(), 0, stride), SUCCESS);
   std::vector<int64_t> offsets_for_fusion = {};
-  const bool has_lx_fusion_attr = AttrUtils::GetListInt(a->GetOpDescBarePtr(),
-                                                        ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
+  const bool has_lx_fusion_attr =
+      AttrUtils::GetListInt(a->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
   ASSERT_TRUE(has_lx_fusion_attr);
   ASSERT_FALSE(offsets_for_fusion.empty());
   ASSERT_EQ(offsets_for_fusion.at(0), stride);
@@ -191,8 +190,8 @@ TEST_F(UtestNodeCheckerUtils, GetStrideForNoPaddingContinuousInput_UseDimIndex) 
 
   AttrUtils::ClearAllAttrs(a->GetOpDescBarePtr());
   std::vector<int64_t> offsets_for_fusion = {};
-  const bool has_lx_fusion_attr = AttrUtils::GetListInt(a->GetOpDescBarePtr(),
-                                                        ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
+  const bool has_lx_fusion_attr =
+      AttrUtils::GetListInt(a->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
   ASSERT_FALSE(has_lx_fusion_attr);
 
   int64_t stride;
@@ -233,15 +232,15 @@ TEST_F(UtestNodeCheckerUtils, ErrorLogAllInputs) {
 TEST_F(UtestNodeCheckerUtils, ErrorLogAllOutputs) {
   vector<int64_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   auto const2 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   auto split_node = graph->FindNode("split");
@@ -281,9 +280,9 @@ TEST_F(UtestNodeCheckerUtils, ErrorLogAllOutputs) {
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Failed_BecauseNotAllInputNodesHasAttr) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
-                  CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
+    CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto pc = graph->FindNode("pc");
@@ -306,9 +305,9 @@ TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Failed_Beca
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Failed_Because2KindsAttrsMixed) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
-                  CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
+    CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto pc = graph->FindNode("pc");
@@ -329,9 +328,9 @@ TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Failed_Beca
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Success) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
-                  CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("pc", PHONYCONCAT));
+    CHAIN(NODE("b", CAST)->NODE("pc", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto pc = graph->FindNode("pc");
@@ -358,16 +357,16 @@ TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Success) {
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Cascated_Success) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("pc1", PHONYCONCAT));
-                  CHAIN(NODE("b", CAST)->NODE("pc1", PHONYCONCAT));
-                  CHAIN(NODE("c", CAST)->NODE("pc2", PHONYCONCAT));
-                  CHAIN(NODE("pc1", CAST)->NODE("pc2", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("pc1", PHONYCONCAT));
+    CHAIN(NODE("b", CAST)->NODE("pc1", PHONYCONCAT));
+    CHAIN(NODE("c", CAST)->NODE("pc2", PHONYCONCAT));
+    CHAIN(NODE("pc1", CAST)->NODE("pc2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto pc1 = graph->FindNode("pc1");
   AttrUtils::SetBool(pc1->GetOpDescBarePtr(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
-  auto pc2= graph->FindNode("pc2");
+  auto pc2 = graph->FindNode("pc2");
   AttrUtils::SetBool(pc2->GetOpDescBarePtr(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
 
   // all input nodes has ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS
@@ -389,10 +388,10 @@ TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousInputNodeAttrs_Cascated_Su
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousOutputNodeAttrs_Failed_BecauseNotAllOutputsHasAttr) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("ps", PHONYSPLIT)->NODE("a", CAST));
-                  CHAIN(NODE("ps", PHONYSPLIT)->NODE("b", CAST));
-                  CHAIN(NODE("ps", PHONYSPLIT)->EDGE(0, 0)->NODE("c", CAST));
-                };
+    CHAIN(NODE("ps", PHONYSPLIT)->NODE("a", CAST));
+    CHAIN(NODE("ps", PHONYSPLIT)->NODE("b", CAST));
+    CHAIN(NODE("ps", PHONYSPLIT)->EDGE(0, 0)->NODE("c", CAST));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto ps = graph->FindNode("ps");
@@ -440,12 +439,12 @@ TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousOutputNodeAttrs_Success_Wi
 
 TEST_F(UtestNodeCheckerUtils, CheckNoPaddingContinuousOutputNodeAttrs_Success) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("ps1", PHONYSPLIT)->NODE("a", CAST));
-                  CHAIN(NODE("ps1", PHONYSPLIT)->NODE("b", CAST));
-                  CHAIN(NODE("ps1", PHONYSPLIT)->NODE("ps2", PHONYSPLIT));
-                  CHAIN(NODE("ps2", PHONYSPLIT)->NODE("c", CAST));
-                  CHAIN(NODE("ps2", PHONYSPLIT)->NODE("d", CAST));
-                };
+    CHAIN(NODE("ps1", PHONYSPLIT)->NODE("a", CAST));
+    CHAIN(NODE("ps1", PHONYSPLIT)->NODE("b", CAST));
+    CHAIN(NODE("ps1", PHONYSPLIT)->NODE("ps2", PHONYSPLIT));
+    CHAIN(NODE("ps2", PHONYSPLIT)->NODE("c", CAST));
+    CHAIN(NODE("ps2", PHONYSPLIT)->NODE("d", CAST));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto ps1 = graph->FindNode("ps1");
@@ -522,4 +521,4 @@ TEST_F(UtestNodeCheckerUtils, GetInputOutputSizeSuccess) {
   GetNoAlignedSize(b->GetOpDescBarePtr()->GetOutputDesc(0), noalign_size);
   EXPECT_EQ(mem_size, noalign_size);
 }
-} // namespace ge
+}  // namespace ge

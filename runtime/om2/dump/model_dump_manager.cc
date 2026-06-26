@@ -43,10 +43,9 @@ ModelDumpManager::~ModelDumpManager() {
   GELOGD("ModelDumpManager destructed, model_id=%u", model_id_);
 }
 
-Status ModelDumpManager::SetModelDumpInfo(const ModelDumpInfo& model_info) {
-  const char* model_name = (model_info.model_name != nullptr) ? model_info.model_name : "";
-  GELOGD("SetModelDumpInfo: model_id=%u, model_name=%s",
-         model_info.model_id, model_name);
+Status ModelDumpManager::SetModelDumpInfo(const ModelDumpInfo &model_info) {
+  const char *model_name = (model_info.model_name != nullptr) ? model_info.model_name : "";
+  GELOGD("SetModelDumpInfo: model_id=%u, model_name=%s", model_info.model_id, model_name);
   model_info_ = model_info;
   exception_impl_->SetDeviceId(model_info.device_id);
 
@@ -58,12 +57,10 @@ Status ModelDumpManager::SetModelDumpInfo(const ModelDumpInfo& model_info) {
       return ret;
     }
     // 将 overflow debug 信息传递给 data_dump_impl，用于构建 Opdebug 算子
-    data_dump_impl_->SetOpDebugInfo(overflow_impl_->GetOpDebugTaskId(),
-                                    overflow_impl_->GetOpDebugStreamId(),
+    data_dump_impl_->SetOpDebugInfo(overflow_impl_->GetOpDebugTaskId(), overflow_impl_->GetOpDebugStreamId(),
                                     overflow_impl_->GetOpDebugAddr());
-    GELOGD("Set overflow debug info: task_id=%u, stream_id=%u, addr=%p",
-           overflow_impl_->GetOpDebugTaskId(), overflow_impl_->GetOpDebugStreamId(),
-           overflow_impl_->GetOpDebugAddr());
+    GELOGD("Set overflow debug info: task_id=%u, stream_id=%u, addr=%p", overflow_impl_->GetOpDebugTaskId(),
+           overflow_impl_->GetOpDebugStreamId(), overflow_impl_->GetOpDebugAddr());
   }
 
   return SUCCESS;
@@ -88,29 +85,28 @@ Status ModelDumpManager::ReportModelLoadEnd() const {
   return profiling_impl_->ReportModelLoadEnd(model_info_);
 }
 
-Status ModelDumpManager::IsDataDumpEnabled(const char* op_name, uint8_t* is_data_dump) const {
+Status ModelDumpManager::IsDataDumpEnabled(const char *op_name, uint8_t *is_data_dump) const {
   if (is_data_dump == nullptr) {
     GELOGW("is_data_dump is null, skip");
     return PARAM_INVALID;
   }
 
-  const char* safe_op_name = (op_name != nullptr) ? op_name : "";
+  const char *safe_op_name = (op_name != nullptr) ? op_name : "";
 
   // 对齐 v1 KernelTaskInfo.is_data_dump_ 的判断逻辑：
   // is_data_dump_ 是纯 data dump 相关的，只判断：
   // 1. data dump 开关已启用
   // 2. 算子在 dump layer/list 配置中
-  const bool need_data_dump = DumpConfig::Instance().IsDataDumpEnabled() &&
-                              DumpConfig::Instance().IsOpNeedDump(safe_op_name);
+  const bool need_data_dump =
+      DumpConfig::Instance().IsDataDumpEnabled() && DumpConfig::Instance().IsOpNeedDump(safe_op_name);
 
-  GELOGD("IsDataDumpEnabled: op_name=%s, need_data_dump=%u",
-         safe_op_name, static_cast<uint32_t>(need_data_dump));
+  GELOGD("IsDataDumpEnabled: op_name=%s, need_data_dump=%u", safe_op_name, static_cast<uint32_t>(need_data_dump));
   *is_data_dump = need_data_dump ? 1U : 0U;
   return SUCCESS;
 }
 
-Status ModelDumpManager::PreprocessOm2TaskInfo(const Om2TaskInfo& task_info) {
-  const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
+Status ModelDumpManager::PreprocessOm2TaskInfo(const Om2TaskInfo &task_info) {
+  const char *op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
   GELOGD("PreprocessOm2TaskInfo: op_name=%s, stream_id=%u", op_name, task_info.stream_id);
 
   if (task_info.l0_exception_dump_info == nullptr) {
@@ -125,22 +121,22 @@ Status ModelDumpManager::PreprocessOm2TaskInfo(const Om2TaskInfo& task_info) {
   return SUCCESS;
 }
 
-Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
-  const char* op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
-  GELOGD("AddOm2TaskInfo: op_name=%s, task_id=%u, stream_id=%u",
-         op_name, task_info.task_id, task_info.stream_id);
+Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo &task_info) {
+  const char *op_name = (task_info.op_name != nullptr) ? task_info.op_name : "";
+  GELOGD("AddOm2TaskInfo: op_name=%s, task_id=%u, stream_id=%u", op_name, task_info.task_id, task_info.stream_id);
 
   // 判断该算子是否需要保存到 data dump：
   // 1. 配置了 data dump 且算子在列表中
   // 2. 开启了 overflow dump（所有算子都需要保存用于定位）
-  const bool need_data_dump = DumpConfig::Instance().IsDataDumpEnabled() &&
-                              DumpConfig::Instance().IsOpNeedDump(op_name);
+  const bool need_data_dump =
+      DumpConfig::Instance().IsDataDumpEnabled() && DumpConfig::Instance().IsOpNeedDump(op_name);
   const bool need_overflow_dump = DumpConfig::Instance().IsOverflowDumpEnabled();
   const bool need_save_to_data_dump = need_data_dump || need_overflow_dump;
 
-  GELOGD("AddOm2TaskInfo: op_name=%s, need_data_dump=%u, need_overflow_dump=%u, "
-         "need_save_to_data_dump=%u", op_name, need_data_dump, need_overflow_dump,
-         need_save_to_data_dump);
+  GELOGD(
+      "AddOm2TaskInfo: op_name=%s, need_data_dump=%u, need_overflow_dump=%u, "
+      "need_save_to_data_dump=%u",
+      op_name, need_data_dump, need_overflow_dump, need_save_to_data_dump);
 
   // task_type 类型转换
   ModelTaskType type = static_cast<ModelTaskType>(task_info.task_type);
@@ -148,8 +144,7 @@ Status ModelDumpManager::AddOm2TaskInfo(const Om2TaskInfo& task_info) {
   // Data Dump / Overflow Dump：保存 Task 信息到 AICPU
   // Overflow dump 需要保存算子的输入输出信息用于问题定位
   if (need_save_to_data_dump) {
-    Status ret = data_dump_impl_->SaveTask(task_info, type, task_info.stream,
-                                           overflow_impl_->IsOpDebugEnabled());
+    Status ret = data_dump_impl_->SaveTask(task_info, type, task_info.stream, overflow_impl_->IsOpDebugEnabled());
     if (ret != SUCCESS) {
       GELOGE(ret, "Save task dump info failed, op_name=%s", op_name);
       return ret;
@@ -193,7 +188,7 @@ Status ModelDumpManager::DispatchDumpInfo() {
   return SUCCESS;
 }
 
-bool ModelDumpManager::GetOpDescInfo(const OpDescInfoId& op_id, OpDescInfo& op_info) const {
+bool ModelDumpManager::GetOpDescInfo(const OpDescInfoId &op_id, OpDescInfo &op_info) const {
   return exception_impl_->GetOpDescInfo(op_id, op_info);
 }
 

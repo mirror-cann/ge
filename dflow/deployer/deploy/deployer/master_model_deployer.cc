@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -113,7 +113,7 @@ void MasterModelDeployer::DecreaseDeployingRootModelNum() {
   abnormal_status_handler_.DecreaseDeployingRootModelNum();
 }
 
-DeployPlan::AbnormalStatusCallbackInfo* MasterModelDeployer::GetAbnormalStatusCallbackInfo() {
+DeployPlan::AbnormalStatusCallbackInfo *MasterModelDeployer::GetAbnormalStatusCallbackInfo() {
   return abnormal_status_handler_.GetAbnormalStatusCallbackInfo();
 }
 
@@ -123,8 +123,7 @@ void MasterModelDeployer::SetDynamicSchedFlag(bool flag) {
 
 void MasterModelDeployer::AddDeployedModelInfo(uint32_t root_model_id) {
   auto deployed_model = deployed_models_[root_model_id];
-  abnormal_status_handler_.AddDeployedModelInfo(deployed_model.model_id,
-                                                deployed_model.model_deploy_infos,
+  abnormal_status_handler_.AddDeployedModelInfo(deployed_model.model_id, deployed_model.model_deploy_infos,
                                                 deployed_model.deployed_remote_nodes);
 }
 
@@ -135,7 +134,7 @@ void MasterModelDeployer::DelDeployedModelInfo(uint32_t root_model_id) {
 MasterModelDeployer::MasterModelDeployer() : mu_(), abnormal_status_handler_(mu_) {}
 
 Status MasterModelDeployer::Initialize(const std::map<std::string, std::string> &options) {
-  (void) options;
+  (void)options;
   GE_CHK_STATUS_RET(NetworkManager::GetInstance().Initialize(), "Failed to init NetworkManager");
   GE_CHK_STATUS_RET(DeviceMaintenanceMasterCfg::InitGlobalMaintenanceConfigs());
   const auto &node = Configurations::GetInstance().GetLocalNode();
@@ -162,8 +161,7 @@ Status MasterModelDeployer::PrepareFlowGwInfos(const std::string &rank_table_str
     if (!device_info.SupportFlowgw()) {
       continue;
     }
-    auto key = std::to_string(device_info.GetNodeId()) + "_" +
-               device_info.GetDeviceIp() + "_" +
+    auto key = std::to_string(device_info.GetNodeId()) + "_" + device_info.GetDeviceIp() + "_" +
                std::to_string(device_info.GetHcomDeviceId());
     const auto &it = deploy_flowgw_infos.find(key);
     if (it == deploy_flowgw_infos.cend()) {
@@ -171,11 +169,9 @@ Status MasterModelDeployer::PrepareFlowGwInfos(const std::string &rank_table_str
       flowgw_info.profiling_on = profiling_on;
       if (device_info.SupportHcom()) {
         int32_t rank_id = 0;
-        GE_CHK_BOOL_RET_STATUS(rank_builder.GetRankIdByDeviceId(device_info.GetDeviceIp(),
-                                                                device_info.GetHcomDeviceId(),
-                                                                rank_id),
-                               FAILED,
-                               "Failed to get rank id, device info[%s]", device_info.DebugString().c_str());
+        GE_CHK_BOOL_RET_STATUS(
+            rank_builder.GetRankIdByDeviceId(device_info.GetDeviceIp(), device_info.GetHcomDeviceId(), rank_id), FAILED,
+            "Failed to get rank id, device info[%s]", device_info.DebugString().c_str());
         flowgw_info.rank_table = rank_table_str;
         flowgw_info.rank_id = rank_id;
         GELOGI("Get device rank info success, device[%s], rank_id = %d", device_info.DebugString().c_str(), rank_id);
@@ -211,15 +207,15 @@ Status MasterModelDeployer::InitFlowGwInfo() {
                     remote_group_cache_config.c_str());
 
   std::map<std::string, DeployFlowGwInfo> deploy_flowgw_infos;
-  GE_CHK_STATUS_RET(PrepareFlowGwInfos(rank_table_json_str, deploy_flowgw_infos),
-                    "Failed to prepare flowgw infos.");
+  GE_CHK_STATUS_RET(PrepareFlowGwInfos(rank_table_json_str, deploy_flowgw_infos), "Failed to prepare flowgw infos.");
   // multi device send request
   ThreadPool pool("ge_dpl_ipr", deploy_flowgw_infos.size(), false);
   std::vector<std::future<Status>> fut_rets;
   for (const auto &it : deploy_flowgw_infos) {
     const auto &deploy_flowgw_info = it.second;
     auto fut = pool.commit([this, &deploy_flowgw_info, &remote_group_cache_config]() -> Status {
-      GE_CHK_STATUS_RET(InitProcessResourceRequest(deploy_flowgw_info, remote_group_cache_config), "Failed to deploy rank table");
+      GE_CHK_STATUS_RET(InitProcessResourceRequest(deploy_flowgw_info, remote_group_cache_config),
+                        "Failed to deploy rank table");
       return SUCCESS;
     });
     fut_rets.emplace_back(std::move(fut));
@@ -269,8 +265,8 @@ Status MasterModelDeployer::CreateRankTable(HcomRankTable &rank_table) {
       hcom_rank.hcom_device_id = device_info.GetHcomDeviceId();
       hcom_rank.device_type = device_info.GetDeviceType();
       ip_to_ranks[device_info.GetDeviceIp()].emplace_back(hcom_rank);
-      GELOGI("Create rank table, node addr = %s, port = %s, device_id = %s",
-             device_info.GetDeviceIp().c_str(), hcom_rank.port.c_str(), hcom_rank.device_id.c_str());
+      GELOGI("Create rank table, node addr = %s, port = %s, device_id = %s", device_info.GetDeviceIp().c_str(),
+             hcom_rank.port.c_str(), hcom_rank.device_id.c_str());
     }
   }
 
@@ -291,12 +287,12 @@ Status MasterModelDeployer::Finalize() {
   std::lock_guard<std::mutex> lk(mu_);
   for (auto &it : deployed_models_) {
     auto &deployed_model = it.second;
-    (void) UndeployModel(deployed_model);
+    (void)UndeployModel(deployed_model);
   }
 
   deployed_models_.clear();
-  (void) ResourceManager::GetInstance().Finalize();
-  (void) DeployerProxy::GetInstance().Finalize();
+  (void)ResourceManager::GetInstance().Finalize();
+  (void)DeployerProxy::GetInstance().Finalize();
   DeployerPortDistributor::GetInstance().Finalize();
   DeployerAuthentication::GetInstance().Finalize();
   return SUCCESS;
@@ -306,7 +302,7 @@ Status MasterModelDeployer::GetReplicaNum(const DeployState &state, size_t &repl
   std::string is_var_init_graph;
   replica_num = 1U;
   const char_t *const kOptionExecIsVarInitGraph = "ge.exec.isVarInitGraph";
-  (void) ge::GetContext().GetOption(kOptionExecIsVarInitGraph, is_var_init_graph);
+  (void)ge::GetContext().GetOption(kOptionExecIsVarInitGraph, is_var_init_graph);
   if (is_var_init_graph == kIsVarInitGraph) {
     const auto &deploy_plan = state.GetDeployPlan();
     replica_num = deploy_plan.GetSubmodels().size();
@@ -325,7 +321,8 @@ Status MasterModelDeployer::DeployStateUpdate(DeployState &deploy_state, uint32_
   deploy_state.SetIsDynamicSched(is_dynamic_sched);
   SetDynamicSchedFlag(is_dynamic_sched);
   bool enable_exception_catch = false;
-  (void)AttrUtils::GetBool(flow_model->GetRootGraph(), ATTR_NAME_DATA_FLOW_ENABLE_EXCEPTION_CATCH, enable_exception_catch);
+  (void)AttrUtils::GetBool(flow_model->GetRootGraph(), ATTR_NAME_DATA_FLOW_ENABLE_EXCEPTION_CATCH,
+                           enable_exception_catch);
   deploy_state.SetEnableExceptionCatch(enable_exception_catch);
 
   bool contains_n_mapping_node = false;
@@ -345,9 +342,7 @@ Status MasterModelDeployer::DeployModel(const FlowModelPtr &flow_model, DeployRe
   GE_TIMESTAMP_EVENT_END(DeployMallocTrim, "malloc trim before deploying master model");
 
   IncDeployingRootModelNum();
-  GE_DISMISSABLE_GUARD(guard, [this]() {
-    DecreaseDeployingRootModelNum();
-  });
+  GE_DISMISSABLE_GUARD(guard, [this]() { DecreaseDeployingRootModelNum(); });
 
   GE_CHK_STATUS_RET(InitFlowGwInfo());
 
@@ -373,8 +368,7 @@ Status MasterModelDeployer::DeployModel(const FlowModelPtr &flow_model, DeployRe
   DeployedModel deployed_model;
   deployed_model.model_id = root_model_id;
   deployed_model.deployed_remote_nodes = deploy_state.GetDeployedNodeIds();
-  deployed_model.model_deploy_infos =
-      deploy_state.MutableDeployPlan().GetModelDeployInfos();
+  deployed_model.model_deploy_infos = deploy_state.MutableDeployPlan().GetModelDeployInfos();
   {
     std::lock_guard<std::mutex> lk(mu_);
     deployed_models_.emplace(root_model_id, std::move(deployed_model));
@@ -423,8 +417,8 @@ Status MasterModelDeployer::UpdateProfilingInfo(const bool is_prof_start) {
   }
   GE_CHK_STATUS(DeployContext::LocalContext().UpdateLocalProfiling(is_prof_start, config_data, model_ids),
                 "Filed to UpdateLocalProfilingInfo");
-  GE_CHK_STATUS(HeterogeneousModelDeployer::UpdateRemoteProfiling(is_prof_start, config_data,
-                model_id_to_nodes), "Filed to UpdateRemoteProfiling");
+  GE_CHK_STATUS(HeterogeneousModelDeployer::UpdateRemoteProfiling(is_prof_start, config_data, model_id_to_nodes),
+                "Filed to UpdateRemoteProfiling");
   return SUCCESS;
 }
 
@@ -432,13 +426,12 @@ void MasterModelDeployer::UndeployModel(MasterModelDeployer::DeployedModel &depl
   const int32_t local_node_id = ResourceManager::GetInstance().GetLocalNodeId();
   auto nodes_to_undeploy = deployed_model.deployed_remote_nodes;
   nodes_to_undeploy.emplace(local_node_id);  // ensure local route can be released
-  (void) HeterogeneousModelDeployer::UndeployModel(nodes_to_undeploy, deployed_model.model_id);
+  (void)HeterogeneousModelDeployer::UndeployModel(nodes_to_undeploy, deployed_model.model_id);
   GELOGD("[Undeploy][Model] ended, model id = %u.", deployed_model.model_id);
 }
 
 Status MasterModelDeployer::GetBroadcastInputQueueAttrs(
-    const DeployPlan &deploy_plan,
-    const ExchangeRoute &route,
+    const DeployPlan &deploy_plan, const ExchangeRoute &route,
     std::vector<std::vector<DeployQueueAttr>> &broadcast_input_queue_attrs) {
   const auto &input_queue_indices = deploy_plan.GetInputQueueIndices();
   broadcast_input_queue_attrs.resize(input_queue_indices.size());
@@ -461,28 +454,24 @@ Status MasterModelDeployer::GetBroadcastInputQueueAttrs(
   return SUCCESS;
 }
 
-Status MasterModelDeployer::GetModelIoQueueAttrs(const DeployPlan &deploy_plan,
-                                                 const ExchangeRoute &route,
+Status MasterModelDeployer::GetModelIoQueueAttrs(const DeployPlan &deploy_plan, const ExchangeRoute &route,
                                                  DeployResult &deploy_result) {
   GE_CHK_STATUS_RET(route.GetQueueAttrs(deploy_plan.GetInputQueueIndices(), deploy_result.input_queue_attrs),
                     "Failed to get model input queue ids.");
-  GE_CHK_STATUS_RET(route.GetQueueAttrs(deploy_plan.GetControlInputQueueIndices(),
-                                        deploy_result.control_input_queue_attrs),
-                    "Failed to get model control input queue ids.");
+  GE_CHK_STATUS_RET(
+      route.GetQueueAttrs(deploy_plan.GetControlInputQueueIndices(), deploy_result.control_input_queue_attrs),
+      "Failed to get model control input queue ids.");
   GE_CHK_STATUS_RET(route.GetQueueAttrs(deploy_plan.GetOutputQueueIndices(), deploy_result.output_queue_attrs),
                     "Failed to get model output queue ids");
-  GE_CHK_STATUS_RET(route.GetQueueAttrs(deploy_plan.GetControlOutputQueueIndices(),
-                                        deploy_result.control_output_queue_attrs),
-                    "Failed to get model control output queue ids.");
-  GE_CHK_STATUS_RET(GetBroadcastInputQueueAttrs(deploy_plan,
-                                                route,
-                                                deploy_result.broadcast_input_queue_attrs),
+  GE_CHK_STATUS_RET(
+      route.GetQueueAttrs(deploy_plan.GetControlOutputQueueIndices(), deploy_result.control_output_queue_attrs),
+      "Failed to get model control output queue ids.");
+  GE_CHK_STATUS_RET(GetBroadcastInputQueueAttrs(deploy_plan, route, deploy_result.broadcast_input_queue_attrs),
                     "Failed to get model broadcast input queue attrs.");
   return SUCCESS;
 }
 
-Status MasterModelDeployer::GetDynamicSchedModelIoQueueIds(const DeployPlan &deploy_plan,
-                                                           const ExchangeRoute &route,
+Status MasterModelDeployer::GetDynamicSchedModelIoQueueIds(const DeployPlan &deploy_plan, const ExchangeRoute &route,
                                                            DeployResult &deploy_result) {
   GE_CHK_STATUS_RET(route.GetQueueAttrs(deploy_plan.GetDynamicSchedPlan().GetStatusOutputQueueIndices(),
                                         deploy_result.status_output_queue_attrs),
@@ -530,9 +519,7 @@ Status MasterModelDeployer::SetDeployResult(const DeployState &state, DeployResu
   deploy_result.is_exception_catch = state.IsEnableExceptionCatch();
   deploy_result.is_dynamic_sched = state.GetIsDynamicSched();
   deploy_result.contains_n_mapping_node = state.IsContainsNMappingNode();
-  deploy_result.dev_abnormal_callback = []() -> Status {
-    return DeployerProxy::GetInstance().GetDeviceAbnormalCode();
-  };
+  deploy_result.dev_abnormal_callback = []() -> Status { return DeployerProxy::GetInstance().GetDeviceAbnormalCode(); };
   deploy_result.input_align_attrs = state.GetInputAlignAttrs();
   deploy_result.abnormal_status_callback_info = GetAbnormalStatusCallbackInfo();
   if (deploy_result.is_exception_catch) {
@@ -548,7 +535,7 @@ Status MasterModelDeployer::SetDeployResult(const DeployState &state, DeployResu
                          FAILED, "Failed to get model queues");
   GE_CHK_STATUS_RET(GetReplicaNum(state, deploy_result.replica_num), "Failed to get model replica num.");
   SetTrimmingModelInstanceNames(state.GetDeployPlan().GetTrimmingEdgesModelInstances(),
-      deploy_result.model_trimming_edges_model_instances);
+                                deploy_result.model_trimming_edges_model_instances);
   return SUCCESS;
 }
 
@@ -573,8 +560,8 @@ void MasterModelDeployer::SetTrimmingModelInstanceNames(
 
 Status MasterModelDeployer::GetDeviceMeshIndex(const int32_t device_id, std::vector<int32_t> &node_mesh_index) {
   const auto &resource_manager = ResourceManager::GetInstance();
-  auto device_info = resource_manager.GetDeviceInfo(Configurations::GetInstance().GetLocalNode().node_id,
-                                                    device_id, NPU);
+  auto device_info =
+      resource_manager.GetDeviceInfo(Configurations::GetInstance().GetLocalNode().node_id, device_id, NPU);
   if (device_info == nullptr) {
     return FAILED;
   }

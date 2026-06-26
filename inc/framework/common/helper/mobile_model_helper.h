@@ -24,27 +24,21 @@
 namespace ge {
 
 class GE_FUNC_VISIBILITY MobileModelHelper : public ModelSaveHelper {
-public:
-    MobileModelHelper() noexcept = default;
+ public:
+  MobileModelHelper() noexcept = default;
 
-    ~MobileModelHelper() override = default;
+  ~MobileModelHelper() override = default;
 
-    Status SaveToOmRootModel(
-        const GeRootModelPtr& ge_root_model,
-        const std::string& output_file,
-        ModelBufferData& model,
-        const bool is_unknown_shape) override;
+  Status SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const std::string &output_file, ModelBufferData &model,
+                           const bool is_unknown_shape) override;
 
-    Status SaveToOmModel(
-        const GeModelPtr& ge_model,
-        const std::string& output_file,
-        ModelBufferData& model,
-        const GeRootModelPtr& ge_root_model = nullptr) override;
+  Status SaveToOmModel(const GeModelPtr &ge_model, const std::string &output_file, ModelBufferData &model,
+                       const GeRootModelPtr &ge_root_model = nullptr) override;
 
-    void SetSaveMode(const bool val) override;
+  void SetSaveMode(const bool val) override;
 
-private:
-    bool is_offline_ {true};
+ private:
+  bool is_offline_{true};
 };
 
 }  // namespace ge

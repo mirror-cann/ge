@@ -174,7 +174,7 @@ HcclResult HcomOpUtils::GetTensorMemSize(const ge::GeTensorDesc &tensorDesc, int
   HCCL_DEBUG("[GetTensorMemSize][Before] memSize[%lld B]", memSize);
   // 通过ge接口获取32B对齐后的memSize
   CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(tensorDesc, memSize) != ge::GRAPH_SUCCESS),
-    HCCL_ERROR("[GetTensorMemSize]In GetTensorMemSize, get memSize failed"), HCCL_E_PARA);
+              HCCL_ERROR("[GetTensorMemSize]In GetTensorMemSize, get memSize failed"), HCCL_E_PARA);
   HCCL_DEBUG("[GetTensorMemSize][After] memSize[%lld B]", memSize);
   return HCCL_SUCCESS;
 }
@@ -394,8 +394,8 @@ HcclResult HcomOpUtils::GetReduceScatterVCountsDispl(ge::Node &node, std::vector
     return HCCL_SUCCESS;
   }
 
-  CHK_PRT_RET(vInputVec.size() != V_INPUT_VEC_SIZE, HCCL_ERROR("Get ReduceScatterV input info from Operator invalid."),	 
-               HCCL_E_PARA);
+  CHK_PRT_RET(vInputVec.size() != V_INPUT_VEC_SIZE, HCCL_ERROR("Get ReduceScatterV input info from Operator invalid."),
+              HCCL_E_PARA);
   auto recvCountTensor = vInputVec[0U].get();
   auto sendCountsTensor = vInputVec[1U].get();
   auto sendDisplsTensor = vInputVec[2U].get();
@@ -538,8 +538,8 @@ HcclResult HcomOpUtils::CheckAlltoAllvcRank(const ge::Node &node, const int64_t 
 
   if (rankId != alltoallvcRank) {
     REPORT_PREDEFINED_ERR_MSG("EI0003", std::vector<const char *>({"ccl_op", "value", "parameter", "expect"}),
-                              std::vector<const char *>({"CheckAlltoAllvcRank", std::to_string(alltoallvcRank).c_str(), "rankId",
-                                                         std::to_string(rankId).c_str()}));
+                              std::vector<const char *>({"CheckAlltoAllvcRank", std::to_string(alltoallvcRank).c_str(),
+                                                         "rankId", std::to_string(rankId).c_str()}));
   }
   CHK_PRT_RET(rankId != alltoallvcRank,
               HCCL_ERROR("[%s][%s]errNo[0x%016llx] AlltoAllvc rank is invalid. "
@@ -655,23 +655,22 @@ HcclResult HcomOpUtils::GetAivCoreLimit(const ge::OpDescPtr &op, const std::stri
 
 // 对比getcountfromopdesc接口，此接口更为完善，主要区分于allreduce算子的count计算方式
 HcclResult HcomOpUtils::GetAccuracyCountFromOpDesc(const ge::OpDescPtr &op, const std::string &sCollectiveType,
-                                                      HcclDataType dataType, u64 &count, u32 rankSize) {
+                                                   HcclDataType dataType, u64 &count, u32 rankSize) {
   u32 dataTypeSize = 0;
   CHK_RET(SalGetDataTypeSize(dataType, dataTypeSize));
-  CHK_PRT_RET(dataTypeSize == 0, 
-      HCCL_ERROR("[%s][Get][CountFromOpDesc]dataType size is zero.", __func__), HCCL_E_PARA);
+  CHK_PRT_RET(dataTypeSize == 0, HCCL_ERROR("[%s][Get][CountFromOpDesc]dataType size is zero.", __func__), HCCL_E_PARA);
 
   // Receive 算子不支持获取count
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_RECEIVE) {
-    HCCL_RUN_WARNING("[%s][Get][Count] op[%s] get count failed. receive op not support get count.",
-              __func__, sCollectiveType.c_str());
+    HCCL_RUN_WARNING("[%s][Get][Count] op[%s] get count failed. receive op not support get count.", __func__,
+                     sCollectiveType.c_str());
     return HCCL_SUCCESS;
   }
 
   // ALLREDUCE 与 BROADCAST 算子特殊处理：都需要做 512 字节对齐
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLREDUCE || sCollectiveType == HCCL_KERNEL_OP_TYPE_BROADCAST) {
     CHK_RET(CalcCountForAlignedOp(op, sCollectiveType, dataTypeSize, count));
-    return HCCL_SUCCESS;  
+    return HCCL_SUCCESS;
   }
 
   // 其他算子通用处理
@@ -687,12 +686,13 @@ HcclResult HcomOpUtils::CalcCountForAlignedOp(const ge::OpDescPtr &op, const std
   for (u64 i = 0; i < op->GetInputsSize(); i++) {
     int64_t tensorSize = 0;
     CHK_PRT_RET((ge::GRAPH_SUCCESS != ge::TensorUtils::GetSize(*op->GetInputDescPtr(i), tensorSize)),
-        HCCL_ERROR("[Get][Count]errNo[0x%016llx] get workspace bytes failed. get size from TensorDesc"
-                  "failed, op : %s, input index : %llu",
-                  HCOM_ERROR_CODE(HCCL_E_PARA), sCollectiveType.c_str(), i),
-        HCCL_E_PARA);
-    
-    CHK_PRT_RET((static_cast<u64>(tensorSize) > INVALID_U64 - ALIGNED_SIZE),
+                HCCL_ERROR("[Get][Count]errNo[0x%016llx] get workspace bytes failed. get size from TensorDesc"
+                           "failed, op : %s, input index : %llu",
+                           HCOM_ERROR_CODE(HCCL_E_PARA), sCollectiveType.c_str(), i),
+                HCCL_E_PARA);
+
+    CHK_PRT_RET(
+        (static_cast<u64>(tensorSize) > INVALID_U64 - ALIGNED_SIZE),
         HCCL_ERROR("op[%s] input size[%llu] is overflow.", sCollectiveType.c_str(), static_cast<u64>(tensorSize)),
         HCCL_E_PARA);
 
@@ -703,10 +703,10 @@ HcclResult HcomOpUtils::CalcCountForAlignedOp(const ge::OpDescPtr &op, const std
   HCCL_INFO("[%s]op[%s] get count[%llu] for allreduce success.", __func__, sCollectiveType.c_str(), count);
   return HCCL_SUCCESS;
 }
- 	 
+
 // 除了allreduce算子以外的通用算子count计算
-HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::string &sCollectiveType,
-                                        u32 dataTypeSize, u32 rankSize, u64 &count) {
+HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::string &sCollectiveType, u32 dataTypeSize,
+                                        u32 rankSize, u64 &count) {
   // 内存连续类型的算子后续需要做对齐
   bool is_continuous_input = false;
   (void)ge::AttrUtils::GetBool(op, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continuous_input);
@@ -715,22 +715,24 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
 
   for (u64 i = 0; i < op->GetInputsSize(); i++) {
     u64 shapeSize = static_cast<u64>(op->GetInputDescPtr(i)->GetShape().GetShapeSize());
-    
+
     // 溢出检查
     CHK_PRT_RET(shapeSize > INVALID_U64 / dataTypeSize,
-        HCCL_ERROR("op[%s] input size[%llu] * dataTypeSize[%u] is overflow.",
-                  sCollectiveType.c_str(), shapeSize, dataTypeSize),
-        HCCL_E_PARA);
+                HCCL_ERROR("op[%s] input size[%llu] * dataTypeSize[%u] is overflow.", sCollectiveType.c_str(),
+                           shapeSize, dataTypeSize),
+                HCCL_E_PARA);
 
     u64 inputSize = shapeSize * dataTypeSize;
-    HCCL_INFO("[%s]op[%s] get inputSize[%llu] with dataTypeSize[%u] for index[%llu] success.",
-              __func__, sCollectiveType.c_str(), inputSize, dataTypeSize, i);
+    HCCL_INFO("[%s]op[%s] get inputSize[%llu] with dataTypeSize[%u] for index[%llu] success.", __func__,
+              sCollectiveType.c_str(), inputSize, dataTypeSize, i);
 
     // 根据算子类型计算 blockSize
     u64 blockSize = 0;
     if (sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTER) {
       const u32 paddingLen = 1024;
-      blockSize = is_continuous_input ?((inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE + paddingLen) / rankSize : (inputSize + paddingLen) / rankSize;
+      blockSize = is_continuous_input
+                      ? ((inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE + paddingLen) / rankSize
+                      : (inputSize + paddingLen) / rankSize;
     } else if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHER) {
       // ALLGATHER算子判断是否连续内存，连续内存需要对齐，非连续内存不需要对齐
       blockSize = is_continuous_input ? (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE : inputSize;
@@ -741,12 +743,12 @@ HcclResult HcomOpUtils::CalcCommonCount(const ge::OpDescPtr &op, const std::stri
       // 其他算子默认对齐
       blockSize = (inputSize + ALIGNED_SIZE - 1) / ALIGNED_SIZE * ALIGNED_SIZE;
     }
-    
+
     // 溢出检查
     CHK_PRT_RET(totalSize > INVALID_U64 - blockSize,
-        HCCL_ERROR("op[%s] totalSize[%llu] + blockSize[%llu] is overflow.",
-                  sCollectiveType.c_str(), totalSize, blockSize),
-        HCCL_E_PARA);
+                HCCL_ERROR("op[%s] totalSize[%llu] + blockSize[%llu] is overflow.", sCollectiveType.c_str(), totalSize,
+                           blockSize),
+                HCCL_E_PARA);
 
     totalSize += blockSize;
   }
@@ -833,16 +835,21 @@ HcclResult HcomOpUtils::GetTaskNumFromCrackSize(const ge::Node &node, u32 tensor
     ge::GeTensorDesc inputTensor = op->GetInputDesc(i);
     int64_t crackSizeTemp = 0;
     // 通过ge接口获取32B对齐后的memSize
-    CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, crackSizeTemp) != ge::GRAPH_SUCCESS),
-      HCCL_ERROR("[GetTaskNumFromCrackSize]Get memSize failed"), HCCL_E_PARA);
+    CHK_PRT_RET(
+        (ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, crackSizeTemp) != ge::GRAPH_SUCCESS),
+        HCCL_ERROR("[GetTaskNumFromCrackSize]Get memSize failed"), HCCL_E_PARA);
     crackSizeTemp = (crackSizeTemp + TENSOR_ALIGNMENT_512 - 1) / TENSOR_ALIGNMENT_512 * TENSOR_ALIGNMENT_512;
     if (crackSizeTemp >= tensorSize[i]) {
       crackSize = crackSizeTemp - tensorSize[i];
-      HCCL_INFO("[GetTaskNumFromCrackSize]The crackSize obtained through the GE interface is [%lld B], and the original tensorSize is [%ld B]",
-        crackSizeTemp, tensorSize[i]);
+      HCCL_INFO(
+          "[GetTaskNumFromCrackSize]The crackSize obtained through the GE interface is [%lld B], and the original "
+          "tensorSize is [%ld B]",
+          crackSizeTemp, tensorSize[i]);
     } else {
-      HCCL_ERROR("[GetTaskNumFromCrackSize]The value of crackSize[%lld B] obtained through the GE interface is less than that of tensorSize[%ld B]",
-        crackSizeTemp, tensorSize[i]);
+      HCCL_ERROR(
+          "[GetTaskNumFromCrackSize]The value of crackSize[%lld B] obtained through the GE interface is less than that "
+          "of tensorSize[%ld B]",
+          crackSizeTemp, tensorSize[i]);
       return HCCL_E_PARA;
     }
 
@@ -887,26 +894,28 @@ HcclResult HcomOpUtils::GetHcclCommNameFromConfig(std::string &commName) {
   return HCCL_SUCCESS;
 }
 
-HcclResult GetRankIdsFromGroupListV1(const std::string &groupName, const std::string &groupListString, std::vector<u32> &rankIds) {
+HcclResult GetRankIdsFromGroupListV1(const std::string &groupName, const std::string &groupListString,
+                                     std::vector<u32> &rankIds) {
   nlohmann::json groupListConf;
   CHK_RET(SalParseInformation(groupListConf, groupListString));
   std::vector<nlohmann::json> groupList = groupListConf.get<std::vector<nlohmann::json>>();
   for (const auto &groupInfo : groupList) {
-    HCCL_DEBUG("[GetRankIdsFromGroupListV1] groupInfo:%s", groupInfo.dump().c_str()); 
+    HCCL_DEBUG("[GetRankIdsFromGroupListV1] groupInfo:%s", groupInfo.dump().c_str());
 
     // 优化：使用 string_view 避免 std::string 拷贝
     absl::string_view curGroupName = groupInfo["group_name"];
     HCCL_DEBUG("[GetRankIdsFromGroupListV1] curGroupName:%s", curGroupName.data());
 
-    if (curGroupName == groupName) { 
-      rankIds = groupInfo["group_rank_list"].get<std::vector<u32>>(); 
-      break; 
+    if (curGroupName == groupName) {
+      rankIds = groupInfo["group_rank_list"].get<std::vector<u32>>();
+      break;
     }
   }
   return HCCL_SUCCESS;
 }
- 	 
-HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::string &groupListString, std::vector<u32> &rankIds) {
+
+HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::string &groupListString,
+                                     std::vector<u32> &rankIds) {
   nlohmann::json groupListConf;
   CHK_RET(SalParseInformation(groupListConf, groupListString));
 
@@ -917,7 +926,7 @@ HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::st
 
   const auto &groupList = groupListConf["GroupList"].get<std::vector<nlohmann::json>>();
   bool groupFound = false;
-  
+
   for (const auto &groupInfo : groupList) {
     HCCL_DEBUG("groupInfo:%s", groupInfo.dump().c_str());
 
@@ -957,12 +966,12 @@ HcclResult GetRankIdsFromGroupListV2(const std::string &groupName, const std::st
 }
 
 HcclResult HcomOpUtils::GetRankIdsFromGroupList(const std::string &groupName, std::vector<u32> &rankIds) {
-  std::string groupListString;	 
+  std::string groupListString;
 
   // V2和旧的json格式上有差异，当前主要使用的是最新的V2格式json文件，优先判断尝试解析V2格式
   if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST_V2, groupListString) == ge::GRAPH_SUCCESS) {
     CHK_RET(GetRankIdsFromGroupListV2(groupName, groupListString, rankIds));
-    return HCCL_SUCCESS;    
+    return HCCL_SUCCESS;
   }
   // 尝试旧格式
   if (ge::GetThreadLocalContext().GetOption(ge::OPTION_EXEC_HCOM_GROUPLIST, groupListString) == ge::GRAPH_SUCCESS) {

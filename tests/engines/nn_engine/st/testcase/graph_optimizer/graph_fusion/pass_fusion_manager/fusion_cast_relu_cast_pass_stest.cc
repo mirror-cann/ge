@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,18 +34,18 @@ using namespace testing;
 using namespace ge;
 using namespace fe;
 
-namespace fe{
+namespace fe {
 
 using FEOpsKernelInfoStorePtr = std::shared_ptr<fe::FEOpsKernelInfoStore>;
 
-
 class fusion_pass_cast_relu_cast_st : public testing::Test {
-public:
+ public:
   FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr;
-protected:
+
+ protected:
   void SetUp() {
     fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_builtin {
+    FEOpsStoreInfo tbe_builtin{
         0,
         "tbe-builtin",
         EN_IMPL_HW_TBE,
@@ -73,7 +73,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -98,7 +98,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -140,7 +140,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -165,7 +165,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -206,7 +206,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -261,7 +261,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -286,7 +286,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -337,7 +337,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -362,7 +362,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -420,7 +420,7 @@ protected:
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -445,7 +445,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -499,11 +499,8 @@ protected:
       printf("node name = %s.\n", node->GetName().c_str());
       for (ge::OutDataAnchorPtr anchor : node->GetAllOutDataAnchors()) {
         for (ge::InDataAnchorPtr peer_in_anchor : anchor->GetPeerInDataAnchors()) {
-          printf("    node name = %s[%d], out data node name = %s[%d].\n",
-                 node->GetName().c_str(),
-                 anchor->GetIdx(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetIdx());
+          printf("    node name = %s[%d], out data node name = %s[%d].\n", node->GetName().c_str(), anchor->GetIdx(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetIdx());
         }
       }
       if (node->GetOutControlAnchor() != nullptr) {
@@ -516,82 +513,69 @@ protected:
 
     return;
   }
-
 };
 
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_01)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph1();
-CastReluCastFusionPass pass;
-DumpGraph(graph, "test1");
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::SUCCESS, status);
-DumpGraph(graph, "test1");
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_01) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph1();
+  CastReluCastFusionPass pass;
+  DumpGraph(graph, "test1");
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::SUCCESS, status);
+  DumpGraph(graph, "test1");
 
-vector<int64_t> dim_a = {8, 4, 16, 16};
-vector<int64_t> dim_b = {1, 4, 64, 64};
+  vector<int64_t> dim_a = {8, 4, 16, 16};
+  vector<int64_t> dim_b = {1, 4, 64, 64};
 
-for(auto node : graph->GetDirectNode()) {
-OpDescPtr op_desc = node->GetOpDesc();
-if (op_desc->GetType() == "Relu") {
-EXPECT_EQ(op_desc->MutableInputDesc(0)->GetDataType(), DT_FLOAT16);
-EXPECT_EQ(op_desc->MutableInputDesc(0)->MutableShape().GetDims(), dim_b);
+  for (auto node : graph->GetDirectNode()) {
+    OpDescPtr op_desc = node->GetOpDesc();
+    if (op_desc->GetType() == "Relu") {
+      EXPECT_EQ(op_desc->MutableInputDesc(0)->GetDataType(), DT_FLOAT16);
+      EXPECT_EQ(op_desc->MutableInputDesc(0)->MutableShape().GetDims(), dim_b);
 
-EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetDataType(), DT_FLOAT16);
-EXPECT_EQ(op_desc->MutableOutputDesc(0)->MutableShape().GetDims(), dim_b);
-NodePtr node_out=node->GetOutDataNodes().at(0);
-EXPECT_EQ(node_out->GetOpDesc()->GetType(),"NetOutput");
-EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->GetDataType(),DT_FLOAT16);
-EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->MutableShape().GetDims(),dim_a);
-NodePtr  node0=node->GetInDataNodes().at(0);
-EXPECT_EQ(node0->GetOpDesc()->GetType(),"Other");
-EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->GetDataType(),DT_FLOAT16);
-EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->MutableShape().GetDims(), dim_a);
-
-}
-}
+      EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetDataType(), DT_FLOAT16);
+      EXPECT_EQ(op_desc->MutableOutputDesc(0)->MutableShape().GetDims(), dim_b);
+      NodePtr node_out = node->GetOutDataNodes().at(0);
+      EXPECT_EQ(node_out->GetOpDesc()->GetType(), "NetOutput");
+      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->GetDataType(), DT_FLOAT16);
+      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->MutableShape().GetDims(), dim_a);
+      NodePtr node0 = node->GetInDataNodes().at(0);
+      EXPECT_EQ(node0->GetOpDesc()->GetType(), "Other");
+      EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->GetDataType(), DT_FLOAT16);
+      EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->MutableShape().GetDims(), dim_a);
+    }
+  }
 }
 
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_02)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph2();
-CastReluCastFusionPass pass;
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::NOT_CHANGED, status);
-
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_02) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph2();
+  CastReluCastFusionPass pass;
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::NOT_CHANGED, status);
 }
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_03)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph3();
-CastReluCastFusionPass pass;
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::NOT_CHANGED, status);
-
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_03) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph3();
+  CastReluCastFusionPass pass;
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::NOT_CHANGED, status);
 }
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_04)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph4();
-CastReluCastFusionPass pass;
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::NOT_CHANGED, status);
-
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_04) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph4();
+  CastReluCastFusionPass pass;
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::NOT_CHANGED, status);
 }
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_05)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph5();
-CastReluCastFusionPass pass;
-DumpGraph(graph, "test1");
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::SUCCESS, status);
-DumpGraph(graph, "test1");
-
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_05) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph5();
+  CastReluCastFusionPass pass;
+  DumpGraph(graph, "test1");
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::SUCCESS, status);
+  DumpGraph(graph, "test1");
 }
-TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_06)
-{
-ComputeGraphPtr graph = CreateCastReluCastGraph6();
-CastReluCastFusionPass pass;
-fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
-EXPECT_EQ(fe::NOT_CHANGED, status);
-
+TEST_F(fusion_pass_cast_relu_cast_st, cast_relu_cast_06) {
+  ComputeGraphPtr graph = CreateCastReluCastGraph6();
+  CastReluCastFusionPass pass;
+  fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
+  EXPECT_EQ(fe::NOT_CHANGED, status);
 }
-}
+}  // namespace fe

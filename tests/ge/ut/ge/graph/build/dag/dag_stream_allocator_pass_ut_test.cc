@@ -104,7 +104,7 @@ ge::ConstGraphPtr BuildGraphWithControlEdge() {
 }  // namespace
 
 class DagStreamAllocatorPassTest : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -407,9 +407,9 @@ TEST(DagStreamAllocatorPassTest, RunPass_WithProfiledNodeCost_EntryPathSucceeds)
   GraphOptionGuard graph_option_guard;
 
   ProfilingFileGuard profiling_file_guard;
-  ASSERT_TRUE(profiling_file_guard.CreateAndSet(
-      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
-      "add1,AI_CORE,88.0,8,0\n"));
+  ASSERT_TRUE(
+      profiling_file_guard.CreateAndSet("Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+                                        "add1,AI_CORE,88.0,8,0\n"));
 
   auto graph = BuildGraphWithControlEdge();
   ASSERT_NE(graph, nullptr);
@@ -429,9 +429,9 @@ TEST(DagStreamAllocatorPassTest, RunPass_WithUnmatchedProfiling_EntryPathSucceed
   GraphOptionGuard graph_option_guard;
 
   ProfilingFileGuard profiling_file_guard;
-  ASSERT_TRUE(profiling_file_guard.CreateAndSet(
-      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
-      "other_node,AI_CORE,21.0,4,0\n"));
+  ASSERT_TRUE(
+      profiling_file_guard.CreateAndSet("Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+                                        "other_node,AI_CORE,21.0,4,0\n"));
 
   auto graph = BuildGraphWithControlEdge();
   ASSERT_NE(graph, nullptr);

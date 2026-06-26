@@ -103,4 +103,3 @@ uint32_t EsSetInt64AttrForGraph(EsCGraphBuilder *graph, const char *attr_name, i
 EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 uint32_t result = EsSetInt64AttrForGraph(graph, "int64_attr", 10);
 ```
-

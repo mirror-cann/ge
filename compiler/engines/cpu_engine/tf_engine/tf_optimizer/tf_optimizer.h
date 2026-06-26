@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,7 @@
 
 namespace aicpu {
 using OptimizerPtr = std::shared_ptr<Optimizer>;
-struct SubGraphInfo
-{
+struct SubGraphInfo {
   // record node in new sub graph
   std::unordered_map<string, ge::NodePtr> new_node_map;
   // record all input data anchors for new fused node
@@ -36,7 +35,7 @@ struct SubGraphInfo
 };
 
 class TfOptimizer : public Optimizer {
-public:
+ public:
   /**
    * Destructor
    */
@@ -71,23 +70,23 @@ public:
    */
   ge::Status Initialize() override;
 
-private:
+ private:
   /**
    * Contructor
-  */
+   */
   TfOptimizer() = default;
 
   // Copy prohibited
-  TfOptimizer(const TfOptimizer& tf_optimizer) = delete;
+  TfOptimizer(const TfOptimizer &tf_optimizer) = delete;
 
   // Move prohibited
-  TfOptimizer(const TfOptimizer&& tf_optimizer) = delete;
+  TfOptimizer(const TfOptimizer &&tf_optimizer) = delete;
 
   // Copy prohibited
-  TfOptimizer& operator=(const TfOptimizer& tf_optimizer) = delete;
+  TfOptimizer &operator=(const TfOptimizer &tf_optimizer) = delete;
 
   // Move prohibited
-  TfOptimizer& operator=(TfOptimizer&& tf_optimizer) = delete;
+  TfOptimizer &operator=(TfOptimizer &&tf_optimizer) = delete;
 
   /**
    * mark node can be fused
@@ -95,19 +94,18 @@ private:
    * @param tf_node_cluster_map, node cluster
    * @param tf_isolated_node_map, node cannot be fused
    * @return status whether this operation success
-  */
-  __attribute__((visibility("hidden")))
-  ge::Status MarkNodeForFusion(const ge::ComputeGraph &graph,
-                               const std::map<std::string, OpFullInfo> &all_op_info,
-                               std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map,
-                               std::unordered_map<std::string, ge::NodePtr> &tf_isolated_node_map) const;
-   /**
+   */
+  __attribute__((visibility("hidden"))) ge::Status MarkNodeForFusion(
+      const ge::ComputeGraph &graph, const std::map<std::string, OpFullInfo> &all_op_info,
+      std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map,
+      std::unordered_map<std::string, ge::NodePtr> &tf_isolated_node_map) const;
+  /**
    * mark node can be fused
    * @param graph, Compute graph
    * @param cluster_node_map, node cluster
    * @param isolated_node_map, node cannot be fused
    * @return status whether this operation success
-  */
+   */
   __attribute__((visibility("hidden"))) ge::Status MarkNodeForFusionOfFfts(
       const ge::ComputeGraph &graph, const std::map<std::string, OpFullInfo> &all_op_info,
       std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map,
@@ -144,38 +142,36 @@ private:
 
   /**
    * init debug mode of tf ops
-  */
+   */
   void InitTfDebugMode();
 
   /**
    * init the min num of fused ops
-  */
+   */
   void InitOpFusionMinNum();
 
   /**
    * init the parser used to convert ir to tf ops
-  */
+   */
   ge::Status InitializeIr2TfParser() const;
 
   /**
    * Check op is function op or not
    * @param op_desc Op desc ptr
    * @return bool if is function op
-  */
+   */
   bool CheckIsFunctionOp(ge::OpDescPtr &op_desc) const;
 
-  ge::Status CheckSubGraphSupportFuse(std::vector<ge::NodePtr> &node_cluster,
-                                      const SubGraphInfo &sub_graph_info,
+  ge::Status CheckSubGraphSupportFuse(std::vector<ge::NodePtr> &node_cluster, const SubGraphInfo &sub_graph_info,
                                       std::unordered_map<std::string, ge::NodePtr> &isolated_node_map) const;
-  
+
   /**
    * Optimize node cluster
    * @param graph Computation graph
    * @param node_cluster Node cluster
    * @return status whether this operation success
-  */
-  ge::Status OptimizeNodeCluster(ge::ComputeGraph &graph,
-                                 std::vector<ge::NodePtr> &node_cluster,
+   */
+  ge::Status OptimizeNodeCluster(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &node_cluster,
                                  std::unordered_map<std::string, ge::NodePtr> &isolated_node_map) const;
 
   /**
@@ -183,30 +179,29 @@ private:
    * @param graph Compute graph
    * @param node_cluster Node cluster
    * @return status whether this operation success
-  */
-  ge::Status FuseNodesForGraph(ge::ComputeGraph &graph,
-                               std::vector<ge::NodePtr> &node_cluster,
+   */
+  ge::Status FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &node_cluster,
                                std::unordered_map<std::string, ge::NodePtr> &isolated_node_map) const;
 
   /**
    * Optimize isolated node
    * @param node Ge node
    * @return status whether this operation success
-  */
+   */
   ge::Status OptimizeIsolatedNode(ge::NodePtr &node) const;
 
   /**
    * Create node def for ge node
    * @param node Ge node
    * @return status whether this operation success
-  */
+   */
   ge::Status CreateNodeDefForGeNode(ge::NodePtr &node) const;
 
   /**
    * set asyncFlag attr for ge node
    * @param node ge node
    * @return status whether this operation success
-  */
+   */
   ge::Status SetAsyncFlag(ge::NodePtr &node) const;
 
   /**
@@ -215,9 +210,8 @@ private:
    * @param node_cluster nodes need to be fused
    * @param sub_graph_info Sub graph info
    * @return status whether this operation success
-  */
-  ge::Status InsertNodesToSubGraph(ge::ComputeGraphPtr &sub_graph,
-                                   std::vector<ge::NodePtr> &node_cluster,
+   */
+  ge::Status InsertNodesToSubGraph(ge::ComputeGraphPtr &sub_graph, std::vector<ge::NodePtr> &node_cluster,
                                    SubGraphInfo &sub_graph_info) const;
 
   /**
@@ -225,17 +219,16 @@ private:
    * @param original_graph Original graph
    * @param new_node_map all node in new sub graph
    * @return status whether this operation success
-  */
-  __attribute__((visibility("hidden")))
-  ge::Status LinkInnerAnchorsForSubGraph(ge::ComputeGraph &original_graph,
-                                         std::unordered_map<std::string, ge::NodePtr> &new_node_map) const;
+   */
+  __attribute__((visibility("hidden"))) ge::Status LinkInnerAnchorsForSubGraph(
+      ge::ComputeGraph &original_graph, std::unordered_map<std::string, ge::NodePtr> &new_node_map) const;
 
   /**
    * Collect node function
    * @param node_cluster Node cluster
    * @param library Function def library
    * @return status whether this operation success
-  */
+   */
   ge::Status CollectNodeFuncs(const std::vector<ge::NodePtr> &node_cluster,
                               domi::tensorflow::FunctionDefLibrary *library) const;
 
@@ -244,7 +237,7 @@ private:
    * @param out_data_anchors Output data anchors
    * @param fused_op_desc Fused op desc
    * @return status whether this operation success
-  */
+   */
   ge::Status RebuildOutputDesc(const std::vector<ge::OutDataAnchorPtr> &out_data_anchors,
                                ge::OpDescPtr &fused_op_desc) const;
 
@@ -253,7 +246,7 @@ private:
    * @param in_data_anchors Input data anchors
    * @param fused_op_desc Fused op desc
    * @return status whether this operation success
-  */
+   */
   ge::Status RebuildInputDesc(const std::vector<ge::InDataAnchorPtr> &in_data_anchors,
                               ge::OpDescPtr &fused_op_desc) const;
 
@@ -262,18 +255,16 @@ private:
    * @param sub_graph_info Sub graph info
    * @param fused_node Fused node
    * @return status whether this operation success
-  */
-  ge::Status RebuildFusionNode(SubGraphInfo &sub_graph_info,
-                               ge::NodePtr &fused_node) const;
+   */
+  ge::Status RebuildFusionNode(SubGraphInfo &sub_graph_info, ge::NodePtr &fused_node) const;
 
   /**
    * Add attributes by scence
    * @param node_cluster Node cluster
    * @param fused_node Fused node
    * @return status whether this operation success
-  */
-  ge::Status LabelAttributesByScence(const std::vector<ge::NodePtr> &node_cluster,
-                                     const ge::NodePtr &fused_node) const;
+   */
+  ge::Status LabelAttributesByScence(const std::vector<ge::NodePtr> &node_cluster, const ge::NodePtr &fused_node) const;
 
   /**
    * Save fusion node mapping relations
@@ -281,7 +272,7 @@ private:
    * @param out_data_anchors Output data anchors
    * @param mapping_op_desc op desc
    * @return status whether this operation success
-  */
+   */
   ge::Status SaveFusionNodeMappingRelations(const std::vector<ge::NodePtr> &node_cluster,
                                             const std::vector<ge::OutDataAnchorPtr> &out_data_anchors,
                                             ge::OpDescPtr &mapping_op_desc) const;
@@ -293,13 +284,11 @@ private:
    * @param tf_op_flag Indicates whether a TF op
    * @param op_async_flag Indicates whether a async op
    * @return status whether this operation success
-  */
-  ge::Status GetOpFlagAndAsyncFlag(ge::OpDescPtr &op_desc_ptr,
-                                   const std::map<std::string, OpFullInfo> &all_op_info,
+   */
+  ge::Status GetOpFlagAndAsyncFlag(ge::OpDescPtr &op_desc_ptr, const std::map<std::string, OpFullInfo> &all_op_info,
                                    bool &tf_op_flag, bool &op_async_flag) const;
 
-  void UpdataOpInfos(ge::ComputeGraph &graph,
-                    const std::map<std::string, OpFullInfo> &all_op_info) const;
+  void UpdataOpInfos(ge::ComputeGraph &graph, const std::map<std::string, OpFullInfo> &all_op_info) const;
 
   ge::Status SetExceptionAbortAttr(ge::NodePtr &node) const;
   bool IsTfDebugFusion(ge::OpDescPtr &op_desc) const;
@@ -309,13 +298,12 @@ private:
    * @param graph compute graph
    * @param tf_node_cluster_map original tf node cluster map
    * @return unordered_map rebuild tf node cluster map
-  */
+   */
   std::unordered_map<std::string, std::vector<ge::NodePtr>> RebuildTfNodeClusterMap(
-    const ge::ComputeGraph &graph,
-    std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map) const;
+      const ge::ComputeGraph &graph,
+      std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map) const;
 
  private:
-
   // singleton instance
   static OptimizerPtr instance_;
   // min op fusion number
@@ -323,5 +311,5 @@ private:
   // tf debug mode(0: off, 1: on)
   bool tf_debug_mode_ = false;
 };
-} // namespace aicpu
-#endif // AICPU_TF_OPTIMIZER_H_
+}  // namespace aicpu
+#endif  // AICPU_TF_OPTIMIZER_H_

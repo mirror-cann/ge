@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,17 +29,17 @@ namespace {
 /*
  * Data -cast - netoutput
  */
-ComputeGraphPtr BuildGraph_Readonly_Subgraph(const string subraph_name){
+ComputeGraphPtr BuildGraph_Readonly_Subgraph(const string subraph_name) {
   auto sub_builder = ut::GraphBuilder(subraph_name);
-  auto data1 = sub_builder.AddNode("data1", DATA, 0,1);
-  auto cast = sub_builder.AddNode("cast", CAST, 1,1);
-  auto netoutput = sub_builder.AddNode("netoutput",NETOUTPUT, 1,1);
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(netoutput->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX,0);
-  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),ATTR_NAME_PARENT_NODE_INDEX,0);
+  auto data1 = sub_builder.AddNode("data1", DATA, 0, 1);
+  auto cast = sub_builder.AddNode("cast", CAST, 1, 1);
+  auto netoutput = sub_builder.AddNode("netoutput", NETOUTPUT, 1, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(netoutput->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
+  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
 
-  sub_builder.AddDataEdge(data1,0,cast,0);
-  sub_builder.AddDataEdge(cast,0,netoutput,0);
+  sub_builder.AddDataEdge(data1, 0, cast, 0);
+  sub_builder.AddDataEdge(cast, 0, netoutput, 0);
   return sub_builder.GetGraph();
 }
 
@@ -61,7 +61,7 @@ ComputeGraphPtr BuildGraph_Writeable_Subgraph(const string subraph_name) {
   auto netoutput = sub_builder.AddNode("netoutput", NETOUTPUT, 1, 1);
   AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   AttrUtils::SetInt(netoutput->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
-  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),ATTR_NAME_PARENT_NODE_INDEX,0);
+  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   sub_builder.AddDataEdge(var, 0, ref_node, 0);
   sub_builder.AddDataEdge(data1, 0, ref_node, 1);
@@ -72,15 +72,15 @@ ComputeGraphPtr BuildGraph_Writeable_Subgraph(const string subraph_name) {
 /*
  * Data -cast - netoutput
  */
-ComputeGraphPtr BuildGraph_With_Output_Readonly_Subgraph(const string subraph_name){
+ComputeGraphPtr BuildGraph_With_Output_Readonly_Subgraph(const string subraph_name) {
   auto sub_builder = ut::GraphBuilder(subraph_name);
-  auto data1 = sub_builder.AddNode("data1", DATA, 0,1);
-  auto const1 = sub_builder.AddNode("const1", CONSTANT, 0,1);
-  auto netoutput = sub_builder.AddNode("netoutput",NETOUTPUT, 1,1);
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 0);
-  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),ATTR_NAME_PARENT_NODE_INDEX,0);
+  auto data1 = sub_builder.AddNode("data1", DATA, 0, 1);
+  auto const1 = sub_builder.AddNode("const1", CONSTANT, 0, 1);
+  auto netoutput = sub_builder.AddNode("netoutput", NETOUTPUT, 1, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
+  AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
 
-  sub_builder.AddDataEdge(const1,0, netoutput,0);
+  sub_builder.AddDataEdge(const1, 0, netoutput, 0);
   return sub_builder.GetGraph();
 }
 
@@ -129,7 +129,7 @@ ComputeGraphPtr BuildGraph_Writeable_Subgraph2(const string subraph_name) {
 }
 /*
  *      const - allreduce
- *            \ 
+ *            \
  *              if
  *         insert identity
  */
@@ -139,7 +139,7 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite() {
   auto ctrl_const = builder.AddNode("ctrl_const", CONSTANT, 0, 1);
   auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 1, 1);
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
-  auto if_node = builder.AddNode("if", IF, 1,0);
+  auto if_node = builder.AddNode("if", IF, 1, 0);
 
   builder.AddDataEdge(const1, 0, allreduce, 0);
   builder.AddDataEdge(const1, 0, if_node, 0);
@@ -151,7 +151,7 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite() {
   then_branch_graph->SetParentNode(if_node);
   then_branch_graph->SetParentGraph(root_graph);
   if_node->GetOpDesc()->AddSubgraphName(subgraph_name);
-  if_node->GetOpDesc()->SetSubgraphInstanceName(0,subgraph_name);
+  if_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   return root_graph;
 }
@@ -161,7 +161,7 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite() {
  *              \                 \
  *               if                if
  */
-ComputeGraphPtr BuildGraph_Identiyt_Split(){
+ComputeGraphPtr BuildGraph_Identiyt_Split() {
   auto builder = ut::GraphBuilder("g1");
   auto var = builder.AddNode("var", VARIABLE, 0, 1);
   auto identity = builder.AddNode("identity", IDENTITY, 1, 1);
@@ -169,12 +169,12 @@ ComputeGraphPtr BuildGraph_Identiyt_Split(){
   auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 1, 1);
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
   auto cast1 = builder.AddNode("cast1", CAST, 1, 1);
-  auto if_node = builder.AddNode("if", IF, 1,0);
+  auto if_node = builder.AddNode("if", IF, 1, 0);
 
-  builder.AddDataEdge(var, 0 , identity, 0);
-  builder.AddDataEdge(identity, 0 , allreduce, 0);
-  builder.AddDataEdge(identity, 0 , cast1, 0);
-  builder.AddDataEdge(identity, 0 , if_node, 0);
+  builder.AddDataEdge(var, 0, identity, 0);
+  builder.AddDataEdge(identity, 0, allreduce, 0);
+  builder.AddDataEdge(identity, 0, cast1, 0);
+  builder.AddDataEdge(identity, 0, if_node, 0);
   builder.AddControlEdge(const1, allreduce);
 
   auto root_graph = builder.GetGraph();
@@ -183,7 +183,7 @@ ComputeGraphPtr BuildGraph_Identiyt_Split(){
   then_branch_graph->SetParentNode(if_node);
   then_branch_graph->SetParentGraph(root_graph);
   if_node->GetOpDesc()->AddSubgraphName(subgraph_name);
-  if_node->GetOpDesc()->SetSubgraphInstanceName(0,subgraph_name);
+  if_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   return root_graph;
 }
@@ -193,11 +193,11 @@ ComputeGraphPtr BuildGraph_Identiyt_Split(){
  */
 ComputeGraphPtr BuildGraph_mul_1To2_ScopeWrite() {
   auto builder = ut::GraphBuilder("test");
-  auto mul = builder.AddNode("mul", MUL, 2,1);
-  auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 2,0);
+  auto mul = builder.AddNode("mul", MUL, 2, 1);
+  auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 2, 0);
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
-  builder.AddDataEdge(mul,0,allreduce,0);
-  builder.AddDataEdge(mul,0,allreduce,1);
+  builder.AddDataEdge(mul, 0, allreduce, 0);
+  builder.AddDataEdge(mul, 0, allreduce, 1);
   return builder.GetGraph();
 }
 /*                                             foo1
@@ -210,16 +210,16 @@ ComputeGraphPtr BuildGraph_mul_1To2_ScopeWrite() {
  *                                                  \
  *                                                 foo2
  */
- ComputeGraphPtr BuildGraph_fifo_without_subgraph() {
-   auto builder = ut::GraphBuilder("test");
-   auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
-   auto foo1 = builder.AddNode("foo1", RELU, 1,1);
-   auto foo2 = builder.AddNode("foo2", RELU, 1,1);
-   AttrUtils::SetInt(foo1->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
-   AttrUtils::SetInt(foo2->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
-   builder.AddDataEdge(const1, 0, foo1, 0);
-   builder.AddDataEdge(const1, 0, foo2, 0);
-   return builder.GetGraph();
+ComputeGraphPtr BuildGraph_fifo_without_subgraph() {
+  auto builder = ut::GraphBuilder("test");
+  auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
+  auto foo1 = builder.AddNode("foo1", RELU, 1, 1);
+  auto foo2 = builder.AddNode("foo2", RELU, 1, 1);
+  AttrUtils::SetInt(foo1->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
+  AttrUtils::SetInt(foo2->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
+  builder.AddDataEdge(const1, 0, foo1, 0);
+  builder.AddDataEdge(const1, 0, foo2, 0);
+  return builder.GetGraph();
 }
 /*                                             foo1
  *                                              /
@@ -250,7 +250,7 @@ ComputeGraphPtr BuildGraph_fifo_with_subgraph() {
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   return root_graph;
 }
-/**  
+/**
  *         partitioncall
  *        +--------------------------+
  *        |                          |
@@ -260,7 +260,7 @@ ComputeGraphPtr BuildGraph_fifo_with_subgraph() {
  *        |       /                  |
  * const->| data2                    |
  *        +--------------------------+
-*/
+ */
 ComputeGraphPtr BuildGraph_writable_subgraph_with_write() {
   auto builder = ut::GraphBuilder("test");
   auto var = builder.AddNode("var", VARIABLE, 0, 1);
@@ -278,7 +278,7 @@ ComputeGraphPtr BuildGraph_writable_subgraph_with_write() {
   sub_branch->SetParentNode(partitioncall);
   sub_branch->SetParentGraph(root_graph);
   partitioncall->GetOpDesc()->AddSubgraphName(subgraph_name);
-  partitioncall->GetOpDesc()->SetSubgraphInstanceName(0,subgraph_name);
+  partitioncall->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, sub_branch);
   return root_graph;
 }
@@ -317,7 +317,7 @@ ComputeGraphPtr BuildGraphWithSubgraph() {
   if_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   string subgraph_name1 = "else_branch";
-  // else_branch_graph should insert indentity
+  // else_branch_graph should insert identity
   ComputeGraphPtr else_branch_graph = BuildGraph_Writeable_Subgraph(subgraph_name1);
   else_branch_graph->SetParentNode(if_node);
   else_branch_graph->SetParentGraph(root_graph);
@@ -360,7 +360,7 @@ ComputeGraphPtr BuildGraphWithIfSubgraph() {
   if_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   string subgraph_name1 = "else_branch";
-  // else_branch_graph should insert indentity
+  // else_branch_graph should insert identity
   ComputeGraphPtr else_branch_graph = BuildGraph_With_Output_Writeable_Subgraph(subgraph_name1);
   else_branch_graph->SetParentNode(if_node);
   else_branch_graph->SetParentGraph(root_graph);
@@ -441,7 +441,7 @@ TEST(UtestGraphPassesHcclMemcpyPass, CheckRWConflict) {
   EXPECT_EQ(graph_optimizer.CheckRWConflict(graph, has_conflict), SUCCESS);
 }
 
-/**  
+/**
  *         partitioncall
  *        +--------------------------+
  *        |                          |
@@ -451,7 +451,7 @@ TEST(UtestGraphPassesHcclMemcpyPass, CheckRWConflict) {
  *        |       /                  |
  * const->| data2                    |
  *        +--------------------------+
-*/
+ */
 TEST(UtestGraphPassesHcclMemcpyPass, CheckRWConflict_VarDirectConnectToPartitioncall) {
   ComputeGraphPtr graph = BuildGraph_writable_subgraph_with_write();
   bool has_conflict = true;
@@ -502,18 +502,18 @@ TEST(UtestGraphPassesHcclMemcpyPass, HandleMemoryRWConflictWithIfSubgraphs) {
 /**
 mul --> allreduce
     \
-        allreduce 
+        allreduce
 need insert identity before allreduce
 */
 TEST(UtestGraphPassesHcclMemcpyPass, TestSoftread2MultiScopeWrite) {
   auto builder = ut::GraphBuilder("test");
-  auto mul = builder.AddNode("mul", MUL, 2,1);
-  auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 1,0);
+  auto mul = builder.AddNode("mul", MUL, 2, 1);
+  auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 1, 0);
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
-  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 1,0);
+  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 1, 0);
   AttrUtils::SetBool(allreduce2->GetOpDesc(), "_input_mutable", true);
-  builder.AddDataEdge(mul,0,allreduce,0);
-  builder.AddDataEdge(mul,0,allreduce2,0);
+  builder.AddDataEdge(mul, 0, allreduce, 0);
+  builder.AddDataEdge(mul, 0, allreduce2, 0);
   auto graph = builder.GetGraph();
   GraphOptimize graph_optimizer;
   EXPECT_EQ(graph_optimizer.HandleMemoryRWConflict(graph), SUCCESS);
@@ -571,7 +571,7 @@ TEST(UtestGraphPassesHcclMemcpyPass, TestRootGraphData2Writable) {
          |    \          /
          |     \        /
          |      \      /
-  allreduce1    allreduce2  
+  allreduce1    allreduce2
 data2-->allreduce2: 不插入identity
 data1-->allreduce1: 插入identity
 data1-->allreduce2: 插入identity
@@ -580,9 +580,9 @@ TEST(UtestGraphPassesHcclMemcpyPass, TestData2ScopeWriteNode) {
   auto builder = ut::GraphBuilder("test");
   auto data1 = builder.AddNode("data1", DATA, 0, 1);
   auto data2 = builder.AddNode("data2", DATA, 0, 1);
-  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 1,0);
+  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 1, 0);
   AttrUtils::SetBool(allreduce1->GetOpDesc(), "_input_mutable", true);
-  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2,0);
+  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2, 0);
   AttrUtils::SetBool(allreduce2->GetOpDesc(), "_input_mutable", true);
 
   builder.AddDataEdge(data1, 0, allreduce1, 0);
@@ -597,15 +597,14 @@ TEST(UtestGraphPassesHcclMemcpyPass, TestData2ScopeWriteNode) {
   EXPECT_NE(allreduce2->GetInDataNodes().at(1)->GetType(), IDENTITY);
 }
 
-
 /*
               data1      data2      data3
                 |       /  |          /
-                |      /   |         / 
+                |      /   |         /
             mul(ref 0)     |        /
               \            |       /
                \           |      /
-              mul(ref 0)  mul(ref 0)  
+              mul(ref 0)  mul(ref 0)
                    \        /
                     \      /
                     allreduce
@@ -648,12 +647,12 @@ TEST(UtestGraphPassesHcclMemcpyPass, TestMulRefNode2ScopeWriteNode2) {
   auto mul_ref = builder.AddNode("mul_ref", MUL, 2, 1);
   mul_ref->GetOpDesc()->UpdateInputName({{"ref", 0}, {"value", 1}});
   mul_ref->GetOpDesc()->UpdateOutputName({{"ref", 0}});
-  AttrUtils::SetStr(mul_ref->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, "ref"); 
+  AttrUtils::SetStr(mul_ref->GetOpDesc()->MutableOutputDesc(0), REF_VAR_SRC_VAR_NAME, "ref");
   auto allreduce = builder.AddNode("allreduce", HCOMALLREDUCE, 1, 0);
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
 
   builder.AddDataEdge(mul_ref, 0, allreduce, 0);
-  
+
   auto graph = builder.GetGraph();
   GraphOptimize graph_optimizer;
   EXPECT_EQ(graph_optimizer.HandleMemoryRWConflict(graph), SUCCESS);
@@ -669,12 +668,11 @@ TEST(UtestGraphPassesHcclMemcpyPass, TestConst2ScopeWriteNode) {
   AttrUtils::SetBool(allreduce->GetOpDesc(), "_input_mutable", true);
 
   builder.AddDataEdge(constant, 0, allreduce, 0);
-  
+
   auto graph = builder.GetGraph();
   GraphOptimize graph_optimizer;
   EXPECT_EQ(graph_optimizer.HandleMemoryRWConflict(graph), SUCCESS);
   EXPECT_EQ(allreduce->GetInDataNodes().at(0)->GetType(), IDENTITY);
 }
-
 
 }  // namespace ge

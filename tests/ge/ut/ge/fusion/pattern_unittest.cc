@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,11 +20,9 @@ namespace ge {
 namespace fusion {
 class UtestPatternGraph : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 TEST_F(UtestPatternGraph, CreatePattern) {
   es::EsGraphBuilder graph_builder("pattern");
@@ -67,6 +65,5 @@ TEST_F(UtestPatternGraph, CaptrueTensor) {
   EXPECT_EQ(NodeAdapter::GNode2Node(node_outputs[0].node), y_producer);
   EXPECT_EQ(NodeAdapter::GNode2Node(node_outputs[1].node), x_producer);
 }
-} // namespace fusion
-} // namespace ge
-
+}  // namespace fusion
+}  // namespace ge

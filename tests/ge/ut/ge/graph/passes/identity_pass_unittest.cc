@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -114,7 +114,7 @@ static ComputeGraphPtr BuildGraph3() {
  *    \       ||
  *       \    ||
  *         \  ||
- *  const->assgin
+ *  const->assign
  */
 ComputeGraphPtr BuildGraph4(bool read_first_then_write = true) {
   auto builder = ut::GraphBuilder("test");
@@ -134,9 +134,9 @@ ComputeGraphPtr BuildGraph4(bool read_first_then_write = true) {
   builder.AddDataEdge(var0, 0, ref_node, 0);
   builder.AddDataEdge(const0, 0, ref_node, 1);
   if (read_first_then_write) {
-    builder.AddControlEdge(id1, ref_node); // read first
+    builder.AddControlEdge(id1, ref_node);  // read first
   } else {
-    builder.AddControlEdge(ref_node, id1); // write first
+    builder.AddControlEdge(ref_node, id1);  // write first
   }
   return builder.GetGraph();
 }
@@ -146,7 +146,7 @@ ComputeGraphPtr BuildGraph4(bool read_first_then_write = true) {
  *    \       ||     /\
  *       \    ||    /
  *        \/  \/  /
- *  const->assgin
+ *  const->assign
  */
 ComputeGraphPtr BuildGraph5() {
   auto builder = ut::GraphBuilder("test");
@@ -162,7 +162,7 @@ ComputeGraphPtr BuildGraph5() {
 
   builder.AddDataEdge(var0, 0, id1, 0);
   builder.AddDataEdge(id1, 0, mul, 0);
-  builder.AddDataEdge(ref_node, 0, mul, 1); // mul is like (var) * (var+1)
+  builder.AddDataEdge(ref_node, 0, mul, 1);  // mul is like (var) * (var+1)
   builder.AddDataEdge(mul, 0, netoutput_node, 0);
   builder.AddDataEdge(var0, 0, ref_node, 0);
   builder.AddDataEdge(const0, 0, ref_node, 1);

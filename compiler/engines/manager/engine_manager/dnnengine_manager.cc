@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,16 +41,15 @@ const char *const kHostCpuEngineName = "DNN_VM_HOST_CPU";
 const char *const kHostCpuOpKernelLibName = "DNN_VM_HOST_CPU_OP_STORE";
 const char *const kNoSupportReason = "Dynamic shape is not supported on this chip!";
 
-const std::map<std::string, std::string> kAcceleratorToEngineName = {
-    {"AiCore", "AIcoreEngine"},
-    {"AiVector", "VectorEngine"},
-    {"Dsa", "DSAEngine"},
-    {"Dvpp", "DNN_VM_DVPP"},
-    {"AiCpuAscend", "DNN_VM_AICPU_ASCEND"},
-    {"AiCpu", "DNN_VM_AICPU"},
-    {"HostCpu", "DNN_VM_HOST_CPU"},
-    {"Hccl", "DNN_HCCL"},
-    {"FftsPlus", "ffts_plus"}};
+const std::map<std::string, std::string> kAcceleratorToEngineName = {{"AiCore", "AIcoreEngine"},
+                                                                     {"AiVector", "VectorEngine"},
+                                                                     {"Dsa", "DSAEngine"},
+                                                                     {"Dvpp", "DNN_VM_DVPP"},
+                                                                     {"AiCpuAscend", "DNN_VM_AICPU_ASCEND"},
+                                                                     {"AiCpu", "DNN_VM_AICPU"},
+                                                                     {"HostCpu", "DNN_VM_HOST_CPU"},
+                                                                     {"Hccl", "DNN_HCCL"},
+                                                                     {"FftsPlus", "ffts_plus"}};
 }  // namespace
 
 namespace ge {
@@ -134,17 +133,18 @@ Status DNNEngineManager::Initialize(const std::map<std::string, std::string> &op
       return status;
     }
 
-
     // Check engines' attribute
     DNNEngineAttribute attrs;
     iter->second->GetAttributes(attrs);
     if (attrs.runtime_type == RuntimeType::DEVICE) {
       if ((attrs.mem_type.size()) != 1 ||
           ((attrs.mem_type.size() > 1) && (attrs.mem_type[0] != GE_ENGINE_ATTR_MEM_TYPE_HBM))) {
-        GELOGE(GE_ENG_MEMTYPE_ERROR, "[Check][Param]Engine %s in aicore, but the memory type is "
-               "not HBM, mem_type_size %zu", (iter->first).c_str(), attrs.mem_type.size());
+        GELOGE(GE_ENG_MEMTYPE_ERROR,
+               "[Check][Param]Engine %s in aicore, but the memory type is "
+               "not HBM, mem_type_size %zu",
+               (iter->first).c_str(), attrs.mem_type.size());
         REPORT_INNER_ERR_MSG("E19999", "Engine %s in aicore, but the memory type is not HBM, mem_type_size %zu",
-                           (iter->first).c_str(), attrs.mem_type.size());
+                             (iter->first).c_str(), attrs.mem_type.size());
         return GE_ENG_MEMTYPE_ERROR;
       }
     }
@@ -230,10 +230,10 @@ void DNNEngineManager::GetOpInfos(std::vector<OpInfo> &op_infos, const OpDescPtr
                                   bool &is_op_specified_engine) const {
   std::string engine_name;
   std::string kernel_name;
-  bool has_engine_attr = AttrUtils::GetStr(op_desc, ATTR_NAME_OP_SPECIFIED_ENGINE_NAME, engine_name) &&
-                         !engine_name.empty();
-  bool has_kernel_attr = AttrUtils::GetStr(op_desc, ATTR_NAME_OP_SPECIFIED_KERNEL_LIB_NAME, kernel_name) &&
-                         !kernel_name.empty();
+  bool has_engine_attr =
+      AttrUtils::GetStr(op_desc, ATTR_NAME_OP_SPECIFIED_ENGINE_NAME, engine_name) && !engine_name.empty();
+  bool has_kernel_attr =
+      AttrUtils::GetStr(op_desc, ATTR_NAME_OP_SPECIFIED_KERNEL_LIB_NAME, kernel_name) && !kernel_name.empty();
   is_op_specified_engine = has_engine_attr && has_kernel_attr;
   if (is_op_specified_engine) {
     OpInfo temp_op_info{engine_name, kernel_name, 0, false, false, false, "", ""};
@@ -252,8 +252,8 @@ void DNNEngineManager::GetExcludeEngines(std::set<std::string> &exclude_engines)
   const auto ret = ge::GetContext().GetOption(ge::CORE_TYPE, ge_core_type);
   const std::string &exclude_core_Type = (ge_core_type == kVectorCore) ? kAIcoreEngine : kVectorEngine;
   if (ret == GRAPH_SUCCESS) {
-    GELOGI("option [%s] is set to [%s], engine type will exclude %s",
-           CORE_TYPE.c_str(), ge_core_type.c_str(), exclude_core_Type.c_str());
+    GELOGI("option [%s] is set to [%s], engine type will exclude %s", CORE_TYPE.c_str(), ge_core_type.c_str(),
+           exclude_core_Type.c_str());
   }
 
   // option EXCLUDE_ENGINES
@@ -282,8 +282,7 @@ void DNNEngineManager::GetExcludeEngines(const std::string &option, std::set<std
              EXCLUDE_ENGINES.c_str(), option.c_str(), after_trim.c_str());
     }
   }
-  GELOGI("graph option %s is [%s], engine name is [%s]",
-         EXCLUDE_ENGINES.c_str(), option.c_str(), oss.str().c_str());
+  GELOGI("graph option %s is [%s], engine name is [%s]", EXCLUDE_ENGINES.c_str(), option.c_str(), oss.str().c_str());
 }
 
 void DNNEngineManager::UpdateOpDescWithOpInfo(const OpDescPtr &op_desc, const OpInfo &op_info) {
@@ -298,8 +297,8 @@ void DNNEngineManager::UpdateOpDescWithOpInfo(const OpDescPtr &op_desc, const Op
     GELOGD("Set aicpu blocking op:%s attribute(is_blocking_op):true", op_desc->GetName().c_str());
     (void)AttrUtils::SetBool(op_desc, ATTR_NAME_IS_BLOCKING_OP, true);
   }
-  (void) AttrUtils::SetStr(op_desc, ATTR_NAME_ENGINE_NAME_FOR_LX, op_info.engine);
-  (void) AttrUtils::SetStr(op_desc, ATTR_NAME_KKERNEL_LIB_NAME_FOR_LX, op_info.opKernelLib);
+  (void)AttrUtils::SetStr(op_desc, ATTR_NAME_ENGINE_NAME_FOR_LX, op_info.engine);
+  (void)AttrUtils::SetStr(op_desc, ATTR_NAME_KKERNEL_LIB_NAME_FOR_LX, op_info.opKernelLib);
 }
 
 void DNNEngineManager::UpdateOpDescsWithOpInfos(const std::map<NodePtr, OpInfo> &nodes_op_infos) {
@@ -322,8 +321,7 @@ std::string DNNEngineManager::GetDNNEngineName(const ge::NodePtr &node_ptr) {
 }
 
 std::string DNNEngineManager::GetDNNEngineName(const ge::NodePtr &node_ptr,
-                                               const std::set<std::string> &exclude_engines,
-                                               OpInfo &matched_op_info) {
+                                               const std::set<std::string> &exclude_engines, OpInfo &matched_op_info) {
   GE_IF_BOOL_EXEC(node_ptr == nullptr, GELOGE(GE_CLI_GE_NOT_INITIALIZED, "DNNEngineManager: node_ptr is nullptr");
                   return "");
   auto op_desc = node_ptr->GetOpDesc();
@@ -346,8 +344,10 @@ std::string DNNEngineManager::GetDNNEngineName(const ge::NodePtr &node_ptr,
     const auto &kernel_name = it.opKernelLib;
     auto kernel_info_store = OpsKernelManager::GetInstance().GetOpsKernelInfoStore(kernel_name);
     if (kernel_info_store == nullptr) {
-      GELOGW("DNNEngineManager:Can not find any supported ops kernel info store by kernel_name %s, op type is %s, "
-             "op name is %s", kernel_name.c_str(), op_desc->GetType().c_str(), op_desc->GetName().c_str());
+      GELOGW(
+          "DNNEngineManager:Can not find any supported ops kernel info store by kernel_name %s, op type is %s, "
+          "op name is %s",
+          kernel_name.c_str(), op_desc->GetType().c_str(), op_desc->GetName().c_str());
       return "";
     }
     std::string unsupported_reason;
@@ -414,16 +414,16 @@ std::string DNNEngineManager::GetDNNEngineName(const ge::NodePtr &node_ptr,
 
   auto root_graph = ge::GraphUtils::FindRootGraph(node_ptr->GetOwnerComputeGraph());
   if (root_graph != nullptr) {
-    analyzer::DataInfo analyze_info{root_graph->GetSessionID(), root_graph->GetGraphID(),
-                                    analyzer::CHECKSUPPORT, node_ptr, reason};
+    analyzer::DataInfo analyze_info{root_graph->GetSessionID(), root_graph->GetGraphID(), analyzer::CHECKSUPPORT,
+                                    node_ptr, reason};
     // do not change original process
     (void)Analyzer::GetInstance()->DoAnalyze(analyze_info);
   }
 
-  REPORT_PREDEFINED_ERR_MSG(
-      "EZ3003", std::vector<const char *>({"opname", "optype"}),
-      std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
-  GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED, "[Get][DNNEngineName]Can't find any supported ops kernel "
+  REPORT_PREDEFINED_ERR_MSG("EZ3003", std::vector<const char *>({"opname", "optype"}),
+                            std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
+  GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED,
+         "[Get][DNNEngineName]Can't find any supported ops kernel "
          "and engine of %s, type is %s",
          op_desc->GetName().c_str(), op_desc->GetType().c_str());
   return "";
@@ -435,11 +435,15 @@ std::string DNNEngineManager::GetCompositeEngineName(const ge::NodePtr &node_ptr
   GE_IF_BOOL_EXEC(op_desc == nullptr, GELOGE(GE_CLI_GE_NOT_INITIALIZED, "DNNEngineManager: op_desc is nullptr");
                   return "");
   if (recursive_depth > kMaxRecursiveDepth) {
-    REPORT_INNER_ERR_MSG("E19999", "Get CompositeEngineName will be terminated because too many nesting levels(%u) of "
-                                 "subgraphs, last node is %s", recursive_depth, op_desc->GetName().c_str());
-    GELOGE(PARAM_INVALID,
-           "[Check][Param] Get CompositeEngineName will be terminated because too many nesting levels(%u) of subgraphs, "
-           "last node is %s", recursive_depth, op_desc->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Get CompositeEngineName will be terminated because too many nesting levels(%u) of "
+                         "subgraphs, last node is %s",
+                         recursive_depth, op_desc->GetName().c_str());
+    GELOGE(
+        PARAM_INVALID,
+        "[Check][Param] Get CompositeEngineName will be terminated because too many nesting levels(%u) of subgraphs, "
+        "last node is %s",
+        recursive_depth, op_desc->GetName().c_str());
     return "";
   }
 
@@ -457,9 +461,9 @@ std::string DNNEngineManager::GetCompositeEngineName(const ge::NodePtr &node_ptr
     return composite_engine_name;
   }
 
-  bool recursive_mode = (op_desc->GetType() == PARTITIONEDCALL)
-      ? (op_desc->HasAttr(ATTR_NAME_FFTS_SUB_GRAPH) || op_desc->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH))
-      : !op_desc->GetSubgraphInstanceNames().empty();
+  bool recursive_mode = (op_desc->GetType() == PARTITIONEDCALL) ? (op_desc->HasAttr(ATTR_NAME_FFTS_SUB_GRAPH) ||
+                                                                   op_desc->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH))
+                                                                : !op_desc->GetSubgraphInstanceNames().empty();
   GELOGD("Node: %s, Recursive mode: %d", op_desc->GetName().c_str(), static_cast<int32_t>(recursive_mode));
   return recursive_mode ? GetCompositeEngine(node_ptr, recursive_depth) : GetCompositeEngine(node_ptr);
 }
@@ -479,8 +483,7 @@ std::string DNNEngineManager::GetCompositeEngine(const NodePtr &node) {
         break;
       }
     }
-    if (!in_diff_flag &&
-        (in_composite_engine_name != kInvalidCompositeEngineName) &&
+    if (!in_diff_flag && (in_composite_engine_name != kInvalidCompositeEngineName) &&
         !in_composite_engine_name.empty()) {
       composite_engine_name = in_composite_engine_name;
     }
@@ -527,10 +530,8 @@ std::string DNNEngineManager::GetCompositeEngine(const NodePtr &func_node, uint3
 
   std::string composite_engine_name;
   std::string composite_engine_kernel_lib_name = GetCompositeEngineKernelLibName(graph_composite_engine_name);
-  if (!graph_diff_composite_engine_flag &&
-      (graph_composite_engine_name != kInvalidCompositeEngineName) &&
-      !graph_composite_engine_name.empty() &&
-      !composite_engine_kernel_lib_name.empty()) {
+  if (!graph_diff_composite_engine_flag && (graph_composite_engine_name != kInvalidCompositeEngineName) &&
+      !graph_composite_engine_name.empty() && !composite_engine_kernel_lib_name.empty()) {
     composite_engine_name = graph_composite_engine_name;
     GELOGI("Assign composite engine %s, kernel lib name %s for node %s.", composite_engine_name.c_str(),
            composite_engine_kernel_lib_name.c_str(), op_desc->GetName().c_str());
@@ -572,10 +573,10 @@ std::string DNNEngineManager::GetCompositeEngine(const ComputeGraphPtr &subgraph
     GELOGD("all nodes in subgraph %s belongs to ge_local engine", subgraph->GetName().c_str());
     return "";
   }
-  if (!node_diff_composite_engine_flag &&
-      (node_composite_engine_name != kInvalidCompositeEngineName) &&
+  if (!node_diff_composite_engine_flag && (node_composite_engine_name != kInvalidCompositeEngineName) &&
       !node_composite_engine_name.empty()) {
-    GELOGI("Assign composite engine %s for subgraph %s.", node_composite_engine_name.c_str(), subgraph->GetName().c_str());
+    GELOGI("Assign composite engine %s for subgraph %s.", node_composite_engine_name.c_str(),
+           subgraph->GetName().c_str());
     (void)AttrUtils::SetStr(subgraph, ATTR_NAME_COMPOSITE_ENGINE_NAME, node_composite_engine_name);
     graph_composite_engine_name = node_composite_engine_name;
   } else {
@@ -607,26 +608,27 @@ std::string DNNEngineManager::GetCompositeEngineKernelLibName(const std::string 
   return iter->second;
 }
 
-std::string DNNEngineManager::GetHostCpuEngineName(const std::vector<OpInfo> &op_infos,
-                                                   const OpDescPtr &op_desc,
+std::string DNNEngineManager::GetHostCpuEngineName(const std::vector<OpInfo> &op_infos, const OpDescPtr &op_desc,
                                                    OpInfo &matched_op_info) const {
   for (const auto &it : op_infos) {
     if ((it.engine == kHostCpuEngineName) && (it.opKernelLib == kHostCpuOpKernelLibName)) {
       op_desc->SetOpEngineName(kHostCpuEngineName);
       matched_op_info.opKernelLib = kHostCpuOpKernelLibName;
-      GELOGI("DNNEngineManager: Set OpKernelLibName %s and OpEngineName %s to %s",
-             kHostCpuOpKernelLibName, kHostCpuEngineName, op_desc->GetName().c_str());
+      GELOGI("DNNEngineManager: Set OpKernelLibName %s and OpEngineName %s to %s", kHostCpuOpKernelLibName,
+             kHostCpuEngineName, op_desc->GetName().c_str());
       return kHostCpuEngineName;
     }
   }
-  GELOGE(FAILED, "[Get][HostCpuEngineName]Failed, HostCpuEngine not support [%s, %s]",
-         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  GELOGE(FAILED, "[Get][HostCpuEngineName]Failed, HostCpuEngine not support [%s, %s]", op_desc->GetName().c_str(),
+         op_desc->GetType().c_str());
   REPORT_INNER_ERR_MSG("E19999", "Get HostCpuEngineName failed, HostCpuEngine not support [%s, %s]",
-                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
   return "";
 }
 
-const std::map<std::string, SchedulerConf> &DNNEngineManager::GetSchedulers() const { return schedulers_; }
+const std::map<std::string, SchedulerConf> &DNNEngineManager::GetSchedulers() const {
+  return schedulers_;
+}
 
 Status DNNEngineManager::ParserJsonFile() {
   GELOGI("Begin to parse json file");
@@ -653,10 +655,14 @@ Status DNNEngineManager::ParserJsonFile() {
       return FAILED;
     }
     if (!scheduler_utils_json.is_array()) {
-      GELOGE(FAILED, "[Check][Param]The message of kSchedulerUnits is not array and "
-             "the file path is %s", path.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "The message of kSchedulerUnits is not array and "
-                        "the file path is %s", path.c_str());
+      GELOGE(FAILED,
+             "[Check][Param]The message of kSchedulerUnits is not array and "
+             "the file path is %s",
+             path.c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "The message of kSchedulerUnits is not array and "
+                           "the file path is %s",
+                           path.c_str());
       return FAILED;
     }
     auto size = scheduler_json_file[kSchedulerUnits].size();
@@ -680,8 +686,7 @@ Status DNNEngineManager::ParserJsonFile() {
       status = ParserEngineMessage(engines_json_map, scheduler_id_temp, engine_conf_map);
       if (status != SUCCESS) {
         GELOGE(FAILED, "[Parse][EngineMessage]Failed, scheduler_id_temp %s", scheduler_id_temp.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse engine message failed, scheduler_id_temp %s",
-                          scheduler_id_temp.c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Parse engine message failed, scheduler_id_temp %s", scheduler_id_temp.c_str());
         return FAILED;
       }
       scheduler_conf.name = scheduler_utils_json[i][kName];
@@ -689,8 +694,7 @@ Status DNNEngineManager::ParserJsonFile() {
       scheduler_conf.cal_engines = engine_conf_map;
       std::map<std::string, SchedulerConf>::const_iterator it = schedulers_.find(scheduler_id_temp);
       if (it != schedulers_.cend()) {
-        GELOGW("[Check][Param]There are the same scheduler ts %s in the json file",
-               scheduler_id_temp.c_str());
+        GELOGW("[Check][Param]There are the same scheduler ts %s in the json file", scheduler_id_temp.c_str());
         continue;
       }
       schedulers_.emplace(scheduler_id_temp, scheduler_conf);
@@ -749,10 +753,8 @@ Status DNNEngineManager::ParserEngineMessage(const json engines_json, const std:
         engine_conf_ptr->scheduler_id = scheduler_mark;
         std::map<std::string, EngineConfPtr>::const_iterator it = engines.find(engine_id);
         if (it != engines.cend()) {
-          GELOGE(FAILED, "[Check][Param]There are the same engine %s message in the json file",
-                 engine_id.c_str());
-          REPORT_INNER_ERR_MSG("E19999", "There are the same engine %s message in the json file",
-                             engine_id.c_str());
+          GELOGE(FAILED, "[Check][Param]There are the same engine %s message in the json file", engine_id.c_str());
+          REPORT_INNER_ERR_MSG("E19999", "There are the same engine %s message in the json file", engine_id.c_str());
           return FAILED;
         }
         engines.emplace(engine_id, engine_conf_ptr);
@@ -789,8 +791,7 @@ Status DNNEngineManager::ReadJsonFile(const std::string &file_path, JsonHandle h
   const char *file = file_path.data();
   if ((mmAccess2(file, M_F_OK)) != EN_OK) {
     if (engines_map_.size() != 0) {
-      GELOGE(FAILED, "[Check][Param]The json file %s does not exist, err %s",
-             file_path.c_str(), strerror(errno));
+      GELOGE(FAILED, "[Check][Param]The json file %s does not exist, err %s", file_path.c_str(), strerror(errno));
       REPORT_PREDEFINED_ERR_MSG("E10410", std::vector<const char *>({"cfgpath"}),
                                 std::vector<const char *>({file_path.c_str()}));
       return FAILED;
@@ -835,17 +836,13 @@ Status DNNEngineManager::CheckJsonFile() const {
       }
     }
     if (count == 0) {
-      GELOGE(FAILED, "[Check][JsonFile]The engine message %s is not found in the json file",
-             engine_name.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "The engine message %s is not found in the json file",
-                         engine_name.c_str());
+      GELOGE(FAILED, "[Check][JsonFile]The engine message %s is not found in the json file", engine_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "The engine message %s is not found in the json file", engine_name.c_str());
       return FAILED;
     }
     if (count > 1) {
-      GELOGE(FAILED, "[Check][JsonFile]The same engine message %s exists in the json file",
-             engine_name.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "The same engine message %s exists in the json file",
-                         engine_name.c_str());
+      GELOGE(FAILED, "[Check][JsonFile]The same engine message %s exists in the json file", engine_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "The same engine message %s exists in the json file", engine_name.c_str());
       return FAILED;
     }
   }

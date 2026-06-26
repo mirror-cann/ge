@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,14 +36,15 @@ class TestSubscriber {
   }
 };
 
-class TestSubscriber1{
-  public:
-  static void OnExecuteEvent(SubExeGraphType sub_exe_graph_type, TestSubscriber1 *void_arg, ExecutorEvent event, const void *node, KernelStatus result) {
+class TestSubscriber1 {
+ public:
+  static void OnExecuteEvent(SubExeGraphType sub_exe_graph_type, TestSubscriber1 *void_arg, ExecutorEvent event,
+                             const void *node, KernelStatus result) {
     void_arg->record_ = 100;
     return;
-   }
-   size_t record_{0};
-   TestSubscriber1(const std::shared_ptr<const SubscriberExtendInfo> &extend_info){};
+  }
+  size_t record_{0};
+  TestSubscriber1(const std::shared_ptr<const SubscriberExtendInfo> &extend_info) {};
 };
 const auto kEnableFunc = []() -> bool { return true; };
 }  // namespace
@@ -58,10 +59,11 @@ class ExecutorSubscribersSchedulerUT : public bg::BgTest {
 TEST_F(ExecutorSubscribersSchedulerUT, AddProfiler_Ok) {
   ExecutorSubscribersScheduler ess;
   EXPECT_EQ(ess.GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2), nullptr);
-  ess.AddBuiltIn<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2, 1UL, nullptr, kSubExeGraphTypeEnd, kEnableFunc);
+  ess.AddBuiltIn<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2, 1UL, nullptr, kSubExeGraphTypeEnd,
+                                 kEnableFunc);
   EXPECT_EQ(ess.GetSize(), 1UL);
   EXPECT_EQ(ess.GetBuiltInSubscriber<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling), nullptr);
-  ess.AddBuiltIn<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling, 1UL, nullptr, kSubExeGraphTypeEnd,kEnableFunc);
+  ess.AddBuiltIn<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling, 1UL, nullptr, kSubExeGraphTypeEnd, kEnableFunc);
   EXPECT_EQ(ess.GetSize(), 2UL);
   EXPECT_NE(ess.GetBuiltInSubscriber<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling), nullptr);
 }
@@ -73,7 +75,8 @@ TEST_F(ExecutorSubscribersSchedulerUT, AddDumper_Ok) {
   EXPECT_EQ(ess.GetSize(), 1UL);
   EXPECT_NE(ess.GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
   EXPECT_EQ(ess.GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
-  ess.AddBuiltIn<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper, 1UL, nullptr, kSubExeGraphTypeEnd, kEnableFunc);
+  ess.AddBuiltIn<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper, 1UL, nullptr, kSubExeGraphTypeEnd,
+                                     kEnableFunc);
   EXPECT_EQ(ess.GetSize(), 2UL);
   EXPECT_NE(ess.GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
 }
@@ -91,8 +94,8 @@ TEST_F(ExecutorSubscribersSchedulerUT, SetMultiple_Ok) {
   ASSERT_NE(executor_pack.executor, nullptr);
   ExecutorSubscribersScheduler ess;
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr,
-      SymbolsToValue{}, 0, "", nullptr, std::unordered_map<std::string, TraceAttr>{});
+      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "",
+      nullptr, std::unordered_map<std::string, TraceAttr>{});
   ess.Init(extend_info);
   // init profiler automatically
   EXPECT_NE(ess.GetBuiltInSubscriber<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling), nullptr);
@@ -109,11 +112,12 @@ TEST_F(ExecutorSubscribersSchedulerUT, AddSubscriberMakeEnable_Ok) {
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
 
-  auto executor_pack = BuildExecutorFromSingleNode();;
+  auto executor_pack = BuildExecutorFromSingleNode();
+  ;
   ASSERT_NE(executor_pack.executor, nullptr);
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr,
-      SymbolsToValue{}, 0, "", nullptr, std::unordered_map<std::string, TraceAttr>{});
+      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "",
+      nullptr, std::unordered_map<std::string, TraceAttr>{});
   ess.Init(extend_info);
   GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0UL);
   GlobalDumper::GetInstance()->SetEnableFlags(0UL);
@@ -148,12 +152,13 @@ TEST_F(ExecutorSubscribersSchedulerUT, RemoveSubscriber_Ok) {
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
 
-  auto executor_pack = BuildExecutorFromSingleNode();;
+  auto executor_pack = BuildExecutorFromSingleNode();
+  ;
   ASSERT_NE(executor_pack.executor, nullptr);
   ExecutorSubscribersScheduler ess;
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr,
-      SymbolsToValue{}, 0, "", nullptr, std::unordered_map<std::string, TraceAttr>{});
+      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "",
+      nullptr, std::unordered_map<std::string, TraceAttr>{});
   ess.Init(extend_info);
   EXPECT_NE(ess.GetBuiltInSubscriber<GeHostProfiler>(BuiltInSubscriberType::kGeProfiling), nullptr);
   auto sub1 = ess.AddSubscriber<TestSubscriber>();
@@ -183,7 +188,8 @@ TEST_F(ExecutorSubscribersSchedulerUT, RemoveBuiltInProfiling_Ok) {
 
 TEST_F(ExecutorSubscribersSchedulerUT, RemoveBuiltInHostDumper_Ok) {
   ExecutorSubscribersScheduler ess;
-  ess.AddBuiltIn<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper, 1UL, nullptr, kSubExeGraphTypeEnd, kEnableFunc);
+  ess.AddBuiltIn<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper, 1UL, nullptr, kSubExeGraphTypeEnd,
+                                     kEnableFunc);
   auto dumper = ess.MutableBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper);
   ASSERT_NE(dumper, nullptr);
   EXPECT_EQ(ess.GetSize(), 1UL);
@@ -196,12 +202,13 @@ TEST_F(ExecutorSubscribersSchedulerUT, RemoveBuiltInHostDumper_Ok) {
 TEST_F(ExecutorSubscribersSchedulerUT, RemoveBuiltInDumper_Ok) {
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
-  auto executor_pack = BuildExecutorFromSingleNode();;
+  auto executor_pack = BuildExecutorFromSingleNode();
+  ;
   ASSERT_NE(executor_pack.executor, nullptr);
   ExecutorSubscribersScheduler ess;
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr,
-      SymbolsToValue{}, 0, "", nullptr, std::unordered_map<std::string, TraceAttr>{});
+      executor_pack.executor.get(), executor_pack.exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "",
+      nullptr, std::unordered_map<std::string, TraceAttr>{});
   ess.Init(extend_info);
   auto dumper = ess.MutableBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper);
   ASSERT_NE(dumper, nullptr);
@@ -322,6 +329,5 @@ TEST_F(ExecutorSubscribersSchedulerUT, AddBuiltIn_GetWorkingSubscribers_OnlyOver
             reinterpret_cast<::SubscriberFunc>(ExecutorSubscribersScheduler::OnExecuteEvent));
   EXPECT_EQ(ssh.GetWorkingSubscribers().size(), 0);
 }
-
 
 }  // namespace gert

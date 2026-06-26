@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,12 +31,11 @@ class HybridDavinciModel::Impl {
     constexpr const char_t *kParallelModeMultiStreams = "0";
     constexpr const char_t *kParallelModeSerial = "1";
     constexpr const char_t *kParallelModeSingleStream = "2";
-    const std::set<std::string>
-        kValidValues = {"", kParallelModeMultiStreams, kParallelModeSerial, kParallelModeSingleStream};
+    const std::set<std::string> kValidValues = {"", kParallelModeMultiStreams, kParallelModeSerial,
+                                                kParallelModeSingleStream};
     std::string parallel_mode;
-    (void) GetContext().GetOption(OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode);
-    GE_CHK_BOOL_RET_STATUS(kValidValues.count(parallel_mode) > 0, PARAM_INVALID,
-                           "Option %s is invalid, value = [%s]",
+    (void)GetContext().GetOption(OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode);
+    GE_CHK_BOOL_RET_STATUS(kValidValues.count(parallel_mode) > 0, PARAM_INVALID, "Option %s is invalid, value = [%s]",
                            OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode.c_str());
     use_default_stream_ = (parallel_mode == kParallelModeSingleStream);
     GELOGI("Option %s = [%s]", OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode.c_str());
@@ -52,11 +51,8 @@ class HybridDavinciModel::Impl {
     return SUCCESS;
   }
 
-  Status Execute(const std::vector<DataBuffer> &inputs,
-                 const std::vector<GeTensorDesc> &input_desc,
-                 std::vector<DataBuffer> &outputs,
-                 std::vector<GeTensorDesc> &output_desc,
-                 const aclrtStream stream) {
+  Status Execute(const std::vector<DataBuffer> &inputs, const std::vector<GeTensorDesc> &input_desc,
+                 std::vector<DataBuffer> &outputs, std::vector<GeTensorDesc> &output_desc, const aclrtStream stream) {
     const auto main_stream = use_default_stream_ ? nullptr : stream;
     return executor_.Execute(inputs, input_desc, outputs, output_desc, main_stream);
   }
@@ -65,9 +61,8 @@ class HybridDavinciModel::Impl {
     return executor_.Execute(inputs, outputs);
   }
 
-  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                               std::vector<gert::Tensor> &outputs,
-                                               const aclrtStream stream) {
+  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
+                                const aclrtStream stream) {
     return executor_.ExecuteWithStreamAsync(inputs, outputs, stream);
   }
 
@@ -122,9 +117,13 @@ class HybridDavinciModel::Impl {
     return PtrToValue(model_.GetGlobalStep());
   }
 
-  const GraphExecutionContext *GeContext() const { return executor_.GeContext(); }
+  const GraphExecutionContext *GeContext() const {
+    return executor_.GeContext();
+  }
 
-  GraphExecutionContext *GeContext() { return executor_.GeContext(); }
+  GraphExecutionContext *GeContext() {
+    return executor_.GeContext();
+  }
 
   uint64_t GetSessionId() const {
     return model_.GetSessionId();
@@ -143,8 +142,7 @@ class HybridDavinciModel::Impl {
   }
 
   Status GetInputOutputDescInfo(std::vector<InputOutputDescInfo> &input_desc,
-                                std::vector<InputOutputDescInfo> &output_desc,
-                                std::vector<uint32_t> &input_formats,
+                                std::vector<InputOutputDescInfo> &output_desc, std::vector<uint32_t> &input_formats,
                                 std::vector<uint32_t> &output_formats) {
     return model_.GetInputOutputDescInfo(input_desc, output_desc, input_formats, output_formats);
   }
@@ -153,9 +151,13 @@ class HybridDavinciModel::Impl {
     model_.SetModelDescVersion(is_new_model_desc);
   }
 
-  uint32_t GetDataInputerSize() const { return executor_.GetDataInputerSize(); }
+  uint32_t GetDataInputerSize() const {
+    return executor_.GetDataInputerSize();
+  }
 
-  bool GetRunningFlag() const { return executor_.GetRunningFlag(); }
+  bool GetRunningFlag() const {
+    return executor_.GetRunningFlag();
+  }
 
   Status SetRunAsyncListenerCallback(const RunAsyncCallbackV2 &callback) const {
     const auto listener = dynamic_cast<RunAsyncListener *>(listener_.get());
@@ -193,7 +195,7 @@ HybridDavinciModel::~HybridDavinciModel() {
 }
 
 std::unique_ptr<HybridDavinciModel> HybridDavinciModel::Create(const GeRootModelPtr &ge_root_model) {
-  auto instance = std::unique_ptr<HybridDavinciModel>(new (std::nothrow)HybridDavinciModel());
+  auto instance = std::unique_ptr<HybridDavinciModel>(new (std::nothrow) HybridDavinciModel());
   if (instance != nullptr) {
     instance->impl_ = new (std::nothrow) HybridDavinciModel::Impl(ge_root_model);
     if (instance->impl_ != nullptr) {
@@ -209,10 +211,8 @@ Status HybridDavinciModel::Init() {
   return impl_->Init();
 }
 
-Status HybridDavinciModel::Execute(const std::vector<DataBuffer> &inputs,
-                                   const std::vector<GeTensorDesc> &input_desc,
-                                   std::vector<DataBuffer> &outputs,
-                                   std::vector<GeTensorDesc> &output_desc,
+Status HybridDavinciModel::Execute(const std::vector<DataBuffer> &inputs, const std::vector<GeTensorDesc> &input_desc,
+                                   std::vector<DataBuffer> &outputs, std::vector<GeTensorDesc> &output_desc,
                                    const aclrtStream stream) {
   GE_CHECK_NOTNULL(impl_);
   return impl_->Execute(inputs, input_desc, outputs, output_desc, stream);
@@ -230,8 +230,7 @@ Status HybridDavinciModel::ExecuteWithStreamAsync(const std::vector<GeTensor> &i
 }
 
 Status HybridDavinciModel::ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                                  std::vector<gert::Tensor> &outputs,
-                                                  const aclrtStream stream) {
+                                                  std::vector<gert::Tensor> &outputs, const aclrtStream stream) {
   GE_CHECK_NOTNULL(impl_);
   return impl_->ExecuteWithStreamAsync(inputs, outputs, stream);
 }
@@ -350,8 +349,7 @@ bool HybridDavinciModel::GetRunningFlag() const {
   return impl_->GetRunningFlag();
 }
 
-Status HybridDavinciModel::SetRunAsyncListenerCallback(
-  const RunAsyncCallbackV2 &callback) {
+Status HybridDavinciModel::SetRunAsyncListenerCallback(const RunAsyncCallbackV2 &callback) {
   GE_CHECK_NOTNULL(impl_);
   return impl_->SetRunAsyncListenerCallback(callback);
 }

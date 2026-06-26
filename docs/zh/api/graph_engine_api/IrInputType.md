@@ -10,4 +10,3 @@ IR输入类型枚举。头文件：\#include <ge/compliant\_node\_builder.h\>。
     kEsIrInputTypeEnd    // 枚举边界，无实际含义
   };
 ```
-

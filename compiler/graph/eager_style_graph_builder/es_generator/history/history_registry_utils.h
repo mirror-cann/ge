@@ -33,22 +33,22 @@ bool ValidateReleaseDateFormat(const std::string &date);
 
 // ============== 通用字段校验函数 ==============
 // 校验必填 string 字段
-bool ValidateRequireString(const nlohmann::json &j, const std::string &field,
-                           std::string &error_msg, const std::string &prefix = "");
+bool ValidateRequireString(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                           const std::string &prefix = "");
 
 // 校验必填 array 字段
-bool ValidateRequireArray(const nlohmann::json &j, const std::string &field,
-                          std::string &error_msg, const std::string &prefix = "");
+bool ValidateRequireArray(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                          const std::string &prefix = "");
 
 // 校验可选 string 字段
-bool ValidateOptionalString(const nlohmann::json &j, const std::string &field,
-                            std::string &error_msg, const std::string &prefix = "");
+bool ValidateOptionalString(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                            const std::string &prefix = "");
 
 // ============== JSON 结构校验函数 ==============
 bool ValidateIndexJson(const nlohmann::json &index_json, std::string &error_msg);
 
-bool ValidateIndexReleaseEntryJson(const nlohmann::json &entry, size_t index,
-                                   std::set<std::string> &seen_versions, std::string &error_msg);
+bool ValidateIndexReleaseEntryJson(const nlohmann::json &entry, size_t index, std::set<std::string> &seen_versions,
+                                   std::string &error_msg);
 }  // namespace history
 }  // namespace es
 }  // namespace ge

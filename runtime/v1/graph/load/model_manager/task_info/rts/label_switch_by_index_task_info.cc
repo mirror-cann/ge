@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ Status LabelSwitchByIndexTaskInfo::Init(const domi::TaskDef &task_def, DavinciMo
   const OpDescPtr op_desc = davinci_model->GetOpByIndex(label_switch.op_index());
   GE_CHECK_NOTNULL(op_desc, ", label switch op_index:%u out of range", label_switch.op_index());
 
-  GE_ASSERT_TRUE((!(iow_addrs.input_logic_addrs.empty())),
-                 "[Check][Param] Op:%s, input logic addr list is empty.", op_desc->GetName().c_str());
+  GE_ASSERT_TRUE((!(iow_addrs.input_logic_addrs.empty())), "[Check][Param] Op:%s, input logic addr list is empty.",
+                 op_desc->GetName().c_str());
 
   GE_CHK_STATUS_RET_NOLOG(InitIndexValue(*davinci_model, iow_addrs));
   branch_max_ = label_switch.label_max();
@@ -50,7 +50,7 @@ Status LabelSwitchByIndexTaskInfo::Init(const domi::TaskDef &task_def, DavinciMo
   std::vector<uint32_t> label_idx_list;
   if (!AttrUtils::GetListInt(op_desc, ATTR_NAME_LABEL_SWITCH_LIST, label_idx_list)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail, attribute value not set",
-                       ATTR_NAME_LABEL_SWITCH_LIST.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_LABEL_SWITCH_LIST.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Attr] %s in op:%s(%s) failed, attribute value not set",
            ATTR_NAME_LABEL_SWITCH_LIST.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -63,7 +63,7 @@ Status LabelSwitchByIndexTaskInfo::Init(const domi::TaskDef &task_def, DavinciMo
   };
   if (label_idx_list.empty() || (label_idx_list.size() != branch_max_) || (!validate_label_id(label_idx_list))) {
     REPORT_INNER_ERR_MSG("E19999", "label_idx_list in op:%s(%s) is empty, or size:%zu != branch_max:%u, check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(), label_idx_list.size(), branch_max_);
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), label_idx_list.size(), branch_max_);
     GELOGE(INTERNAL_ERROR, "[Check][Param] %s(%s) label index size:%zu, task branch max:%u.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), label_idx_list.size(), branch_max_);
     return INTERNAL_ERROR;
@@ -78,7 +78,7 @@ Status LabelSwitchByIndexTaskInfo::Init(const domi::TaskDef &task_def, DavinciMo
 
   GE_ASSERT_RT_OK(aclrtCreateLabelList(label_used.data(), label_used.size(), &args_));
   GELOGI("LabelSwitchByIndexTaskInfo %s Init success, branch max: %u, logic stream id: %u, stream: %p.",
-    op_desc->GetNamePtr(), task_def.stream_id(), stream_);
+         op_desc->GetNamePtr(), task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -126,7 +126,7 @@ Status LabelSwitchByIndexTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_d
   const auto input_data_addrs = ModelUtils::GetInputAddrsValue(davinci_model->GetRuntimeParam(), op_desc, mem_types);
   if ((input_data_addrs.size() != kLabelSwitchIndexNum) || (input_size != kLabelSwitchIndexNum)) {
     REPORT_INNER_ERR_MSG("E19999", "Op:%s, input_data_addrs.size():%zu or input size:%zu != %u, check invalid",
-                       op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
+                         op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
     GELOGE(FAILED, "[Check][Param] Op:%s, input_data_addrs.size():%zu, input size:%zu != %u.",
            op_desc->GetName().c_str(), input_data_addrs.size(), input_size, STREAM_SWITCH_INPUT_NUM);
     return FAILED;

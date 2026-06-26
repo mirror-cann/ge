@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,8 @@ class GE_FUNC_VISIBILITY DataFlowInfo {
 
   DataFlowInfo(const DataFlowInfo &context) = delete;
   DataFlowInfo(const DataFlowInfo &&context) = delete;
-  DataFlowInfo &operator=(const DataFlowInfo &context)& = delete;
-  DataFlowInfo &operator=(const DataFlowInfo &&context)& = delete;
+  DataFlowInfo &operator=(const DataFlowInfo &context) & = delete;
+  DataFlowInfo &operator=(const DataFlowInfo &&context) & = delete;
 
   void SetStartTime(const uint64_t start_time);
   uint64_t GetStartTime() const;
@@ -92,11 +92,10 @@ class GE_FUNC_VISIBILITY DataFlowInfo {
 };
 
 enum class MsgType : uint16_t {
-  MSG_TYPE_TENSOR_DATA = 0,              // tensor data msg type
-  MSG_TYPE_RAW_MSG = 1,                  // raw data msg type
+  MSG_TYPE_TENSOR_DATA = 0,  // tensor data msg type
+  MSG_TYPE_RAW_MSG = 1,      // raw data msg type
   MSG_TYPE_USER_DEFINE_START = 1024
 };
-
 
 class GE_FUNC_VISIBILITY FlowMsg {
  public:
@@ -217,8 +216,7 @@ using FlowMsgPtr = std::shared_ptr<FlowMsg>;
 
 class GE_FUNC_VISIBILITY FlowBufferFactory {
  public:
-  static std::shared_ptr<Tensor> AllocTensor(const std::vector<int64_t> &shape,
-                                             DataType data_type,
+  static std::shared_ptr<Tensor> AllocTensor(const std::vector<int64_t> &shape, DataType data_type,
                                              uint32_t align = 512U);
   static FlowMsgPtr AllocTensorMsg(const std::vector<int64_t> &shape, DataType data_type, uint32_t align = 512U);
   static FlowMsgPtr AllocRawDataMsg(size_t size, uint32_t align = 512U);

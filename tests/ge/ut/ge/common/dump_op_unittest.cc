@@ -284,7 +284,13 @@ TEST_F(UTEST_dump_op, generate_ffts_dump_ok) {
   DumpProperties dump_properties;
   OpDescPtr op_desc = std::make_shared<OpDesc>("GatherV2", "GatherV2");
   std::string str_slice_info =
-        "{\"dependencies\":[],\"thread_scopeId\":0,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_scope\":0,\"is_input_node_of_thread_scope\":false,\"is_output_node_of_thread_scope\":false,\"threadMode\":0,\"slice_instance_num\":0,\"parallel_window_size\":0,\"thrad_id\":0,\"oriInputTensorShape\":[],\"oriOutputTensorShape\":[],\"original_node\":\"\",\"core_num\":[],\"cutType\":[],\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],\"input_tensor_slice\":[],\"output_tensor_slice\":[],\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":[]}";
+      "{\"dependencies\":[],\"thread_scopeId\":0,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_scope\":0,"
+      "\"is_input_node_of_thread_scope\":false,\"is_output_node_of_thread_scope\":false,\"threadMode\":0,\"slice_"
+      "instance_num\":0,\"parallel_window_size\":0,\"thrad_id\":0,\"oriInputTensorShape\":[],\"oriOutputTensorShape\":["
+      "],\"original_node\":\"\",\"core_num\":[],\"cutType\":[],\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_"
+      "nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],"
+      "\"input_tensor_slice\":[],\"output_tensor_slice\":[],\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":["
+      "]}";
   (void)ge::AttrUtils::SetStr(op_desc, "_sgt_json_info", str_slice_info);
   std::set<std::string> temp;
   dump_properties.model_dump_properties_map_.emplace("model1", temp);
@@ -313,24 +319,28 @@ TEST_F(UTEST_dump_op, generate_ffts_dump_ok) {
   uint32_t load_dump_len = 0U;
   void *unload_dump_info = nullptr;
   uint32_t unload_dump_len = 0U;
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, true), ge::SUCCESS);
+  EXPECT_EQ(
+      dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len, true),
+      ge::SUCCESS);
 
   dump_properties.dump_mode_ = "input";
   dump_op.SaveFftsSubOpInfo(op_desc, dump_context);
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, true), ge::SUCCESS);
+  EXPECT_EQ(
+      dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len, true),
+      ge::SUCCESS);
 
   (void)ge::AttrUtils::SetStr(op_desc, "_sgt_json_info", "");
   dump_properties.dump_mode_ = "output";
   dump_op.SaveFftsSubOpInfo(op_desc, dump_context);
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, true), ge::SUCCESS);
+  EXPECT_EQ(
+      dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len, true),
+      ge::SUCCESS);
 
   dump_properties.dump_mode_ = "bad_mode";
   dump_op.SaveFftsSubOpInfo(op_desc, dump_context);
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, true), ge::SUCCESS);
+  EXPECT_EQ(
+      dump_op.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len, true),
+      ge::SUCCESS);
   free(addr_in);
   free(addr_out);
 }
@@ -759,7 +769,7 @@ TEST_F(UTEST_dump_op, LaunchDumpOp_WithMultipleInputs) {
   EXPECT_EQ(ret, ge::SUCCESS);
 
   for (auto addr : input_addrs) {
-    free(reinterpret_cast<void*>(addr));
+    free(reinterpret_cast<void *>(addr));
   }
   free(addr_out);
 }
@@ -828,11 +838,7 @@ TEST_F(UTEST_dump_op, SetTaskIdAndStreamId) {
 TEST_F(UTEST_dump_op, SetWorkspaceAddrs) {
   DumpOp dump_op;
 
-  std::vector<std::pair<uintptr_t, int64_t>> workspace_addrs = {
-    {0x1000, 1024},
-    {0x2000, 2048},
-    {0x3000, 4096}
-  };
+  std::vector<std::pair<uintptr_t, int64_t>> workspace_addrs = {{0x1000, 1024}, {0x2000, 2048}, {0x3000, 4096}};
 
   dump_op.SetWorkspaceAddrs(workspace_addrs);
 

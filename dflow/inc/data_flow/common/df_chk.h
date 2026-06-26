@@ -16,33 +16,33 @@
 
 // -----------------runtime related macro definitions-------------------------------
 // If expr is not ACL_ERROR_NONE, print the log
-#define DF_CHK_ACL(expr)                                                \
-  do {                                                                 \
-    const aclError _acl_err = (expr);                                  \
-    if (_acl_err != ACL_ERROR_NONE) {                                    \
+#define DF_CHK_ACL(expr)                                                   \
+  do {                                                                     \
+    const aclError _acl_err = (expr);                                      \
+    if (_acl_err != ACL_ERROR_NONE) {                                      \
       GELOGE(ge::RT_FAILED, "Call aclrt api failed, ret: 0x%X", _acl_err); \
-    }                                                                  \
+    }                                                                      \
   } while (false)
 
 // If expr is not ACL_ERROR_NONE, print the log and return
 #define DF_CHK_ACL_RET(expr) GE_CHK_ACL_RET(expr)
 
-#define DF_FREE_ACL_RT_LOG(addr)                                        \
-  do {                                                              \
-    if ((addr) != nullptr) {                                        \
-      const aclError error = aclrtFree(addr);                         \
-      if (error != ACL_ERROR_NONE) {                                 \
+#define DF_FREE_ACL_RT_LOG(addr)                                           \
+  do {                                                                     \
+    if ((addr) != nullptr) {                                               \
+      const aclError error = aclrtFree(addr);                              \
+      if (error != ACL_ERROR_NONE) {                                       \
         GELOGE(ge::RT_FAILED, "Call aclrtFree failed, error: %#x", error); \
-      }                                                             \
-      (addr) = nullptr;                                             \
-    }                                                               \
+      }                                                                    \
+      (addr) = nullptr;                                                    \
+    }                                                                      \
   } while (false)
 
-#define DF_MAKE_GUARD_ACLSTREAM(var)    \
-  GE_MAKE_GUARD(var, [&var]() {           \
-    if ((var) != nullptr) {            \
+#define DF_MAKE_GUARD_ACLSTREAM(var)       \
+  GE_MAKE_GUARD(var, [&var]() {            \
+    if ((var) != nullptr) {                \
       DF_CHK_ACL(aclrtDestroyStream(var)); \
-    }                                  \
+    }                                      \
   })
 
 #endif  // DFLOW_INC_COMMON_DF_CHK_H_

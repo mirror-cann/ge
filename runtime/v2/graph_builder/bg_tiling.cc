@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,8 +69,7 @@ bool NeedTilingCompatible(const ge::NodePtr &node, const gert::OpImplSpaceRegist
 }
 
 bg::ValueHolderPtr BuildCompileInfo(const ge::NodePtr &node, const std::string &json_key,
-                                    const ValueHolderPtr &platform_info,
-                                    LoweringGlobalData &global_data) {
+                                    const ValueHolderPtr &platform_info, LoweringGlobalData &global_data) {
   GE_ASSERT_NOTNULL(node);
   const std::string *op_compile_info_json = ge::AttrUtils::GetStr(node->GetOpDescBarePtr(), json_key);
   if (op_compile_info_json == nullptr) {
@@ -82,7 +81,8 @@ bg::ValueHolderPtr BuildCompileInfo(const ge::NodePtr &node, const std::string &
   const auto &node_type = bg::ValueHolder::CreateConst(node->GetTypePtr(), node->GetType().size() + 1, true);
   GE_ASSERT_NOTNULL(node->GetOpDesc());
   auto opp_impl_version = node->GetOpDesc()->GetOppImplVersion();
-  const auto space_registry_addr = global_data.GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version));
+  const auto space_registry_addr =
+      global_data.GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version));
   GE_ASSERT_NOTNULL(space_registry_addr);
   const auto &space_registry = bg::ValueHolder::CreateConst(&space_registry_addr, sizeof(void *), false);
   return bg::ValueHolder::CreateSingleDataOutput("TilingParse",
@@ -95,7 +95,7 @@ ge::Status AssembleCompileInfoJson(const ge::OpDesc *const op_desc, std::string 
     compile_info_json = nlohmann::json::parse(op_compile_info_json);
   } catch (nlohmann::json::parse_error &ex) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to set compile_info_value to json of op[%s]. op_compile_info_json:%s",
-                      op_desc->GetName().c_str(), op_compile_info_json.c_str());
+                         op_desc->GetName().c_str(), op_compile_info_json.c_str());
     GELOGE(ge::FAILED, "Failed to set compile_info_value to json of op[%s]. op_compile_info_json:%s",
            op_desc->GetName().c_str(), op_compile_info_json.c_str());
     return ge::FAILED;
@@ -126,13 +126,14 @@ bg::ValueHolderPtr BuildAtomCompileInfo(const ge::NodePtr &node, const std::stri
       bg::ValueHolder::CreateConst(op_compile_info_json.c_str(), op_compile_info_json.size() + 1, true);
   std::string node_type;
   if (node->GetType() == "MemSet") {
-    node_type= "MemSet";
+    node_type = "MemSet";
   } else {
-    node_type= "DynamicAtomicAddrClean";
+    node_type = "DynamicAtomicAddrClean";
   }
   auto opp_impl_version = op_desc->GetOppImplVersion();
   const auto &node_type_holder = bg::ValueHolder::CreateConst(node_type.c_str(), node_type.size() + 1, true);
-  const auto space_registry_addr = global_data.GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version));
+  const auto space_registry_addr =
+      global_data.GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version));
   GE_ASSERT_NOTNULL(space_registry_addr);
   const auto &space_registry = bg::ValueHolder::CreateConst(&space_registry_addr, sizeof(void *), false);
   const auto assembled_platform_info_holders = bg::AppendCoreTypeToPlatform(node, &global_data);
@@ -184,8 +185,8 @@ bool NeedSymbolTiling(const ge::NodePtr &node) {
 ValueHolderPtr GetTilingFunc(const ge::NodePtr &node, const TilingLowerInput &lower_input) {
   ValueHolderPtr tiling_func;
   if (NeedSymbolTiling(node)) {
-    tiling_func = AutofuseNodeConveter::GetAutofuseHandle(
-        lower_input.global_data, node, GetAutofuseFuncsOutput::kTilingFunc);
+    tiling_func =
+        AutofuseNodeConveter::GetAutofuseHandle(lower_input.global_data, node, GetAutofuseFuncsOutput::kTilingFunc);
   } else {
     std::string type;
     GE_ASSERT_SUCCESS(ge::GetOriginalType(node, type), "Failed to get original type from %s(%s).",
@@ -205,10 +206,10 @@ ge::Status BuildTilingFwkDataInputs(const ge::NodePtr &node, const TilingLowerIn
   return ge::SUCCESS;
 }
 
-ge::Status BuildCacheableTilingFwkDataInputs(
-    const ge::NodePtr &node, const TilingLowerInput &lower_input,
-    const size_t &data_dependency, const std::string &build_tiling_cache_key_func_name,
-    std::vector<bg::ValueHolderPtr> &tiling_input) {
+ge::Status BuildCacheableTilingFwkDataInputs(const ge::NodePtr &node, const TilingLowerInput &lower_input,
+                                             const size_t &data_dependency,
+                                             const std::string &build_tiling_cache_key_func_name,
+                                             std::vector<bg::ValueHolderPtr> &tiling_input) {
   const auto tiling_func = GetTilingFunc(node, lower_input);
   GE_ASSERT_NOTNULL(tiling_func);
   const auto data_dependency_holder = bg::ValueHolder::CreateConst(&data_dependency, sizeof(data_dependency));
@@ -246,13 +247,12 @@ ge::Status BuildTilingDeterministicInput(const ge::NodePtr &node, LoweringGlobal
   return ge::SUCCESS;
 }
 
-bg::ValueHolderPtr BuildSymbolTilingCacheKey(
-    const std::vector<bg::ValueHolderPtr> &input_shapes, const ge::NodePtr &node,
-    const TilingLowerInput &lower_inputs) {
+bg::ValueHolderPtr BuildSymbolTilingCacheKey(const std::vector<bg::ValueHolderPtr> &input_shapes,
+                                             const ge::NodePtr &node, const TilingLowerInput &lower_inputs) {
   std::vector<bg::ValueHolderPtr> inputs_holders;
   // input_data_size + input_shapes
-  auto inputs_with_size = AutofuseNodeConveter::GetSymbolInputsWithSize(
-      lower_inputs.global_data, input_shapes, node->GetOwnerComputeGraph()->GetName());
+  auto inputs_with_size = AutofuseNodeConveter::GetSymbolInputsWithSize(lower_inputs.global_data, input_shapes,
+                                                                        node->GetOwnerComputeGraph()->GetName());
   inputs_holders.insert(inputs_holders.end(), inputs_with_size.begin(), inputs_with_size.end());
   // get_symbol_tiling_cache_key_func_handle
   auto get_symbol_tiling_cache_key_func_handle = AutofuseNodeConveter::GetAutofuseHandle(
@@ -267,20 +267,20 @@ bg::ValueHolderPtr BuildSymbolTilingCacheKey(
 }
 
 bg::ValueHolderPtr BuildSymbolTilingParse(const ge::NodePtr &node, const TilingLowerInput &lower_inputs) {
-  auto tiling_parse_func_holder = AutofuseNodeConveter::GetAutofuseHandle(
-      lower_inputs.global_data, node, GetAutofuseFuncsOutput::kTilingParse);
+  auto tiling_parse_func_holder =
+      AutofuseNodeConveter::GetAutofuseHandle(lower_inputs.global_data, node, GetAutofuseFuncsOutput::kTilingParse);
   GE_ASSERT_NOTNULL(tiling_parse_func_holder);
   return bg::ValueHolder::CreateSingleDataOutput("SymbolTilingParse",
                                                  {lower_inputs.platform_info, tiling_parse_func_holder});
 }
 
-std::vector<bg::ValueHolderPtr> BuildCommonSymbolTilingInputs(
-    const ge::NodePtr &node, const TilingLowerInput &lower_inputs,
-    const std::vector<bg::ValueHolderPtr> &input_shapes) {
+std::vector<bg::ValueHolderPtr> BuildCommonSymbolTilingInputs(const ge::NodePtr &node,
+                                                              const TilingLowerInput &lower_inputs,
+                                                              const std::vector<bg::ValueHolderPtr> &input_shapes) {
   std::vector<bg::ValueHolderPtr> inputs_holders;
   // // input_data_size + input_shapes
-  auto inputs_with_size = AutofuseNodeConveter::GetSymbolInputsWithSize(
-      lower_inputs.global_data, input_shapes, node->GetOwnerComputeGraph()->GetName());
+  auto inputs_with_size = AutofuseNodeConveter::GetSymbolInputsWithSize(lower_inputs.global_data, input_shapes,
+                                                                        node->GetOwnerComputeGraph()->GetName());
   inputs_holders.insert(inputs_holders.end(), inputs_with_size.begin(), inputs_with_size.end());
   // tiling parse
   auto tiling_parse_holder = BuildSymbolTilingParse(node, lower_inputs);
@@ -493,8 +493,7 @@ ge::Status GetArgsFormatForTilingData(const ge::NodePtr &node, std::string &args
     return ge::UNSUPPORTED;
   } else {
     const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICore);
-    GE_IF_BOOL_EXEC(task_def == nullptr, GELOGW("Node[%s] get task null", node->GetNamePtr());
-                    return ge::UNSUPPORTED);
+    GE_IF_BOOL_EXEC(task_def == nullptr, GELOGW("Node[%s] get task null", node->GetNamePtr()); return ge::UNSUPPORTED);
     if (static_cast<ge::ModelTaskType>(task_def->type()) == ge::ModelTaskType::MODEL_TASK_ALL_KERNEL) {
       args_format_str = task_def->kernel_with_handle().context().args_format();
     } else {
@@ -522,8 +521,7 @@ void CheckThirdClassOp(const ge::NodePtr &node, std::vector<int64_t> &out_args_s
 }
 
 // ffts、mixl2算子 (未切至aicore) 场景不支持 TilingAppendDfxInfo
-ge::Status BuildTilingAppendDfxInfo(const ge::NodePtr &node,
-                                    std::vector<ValueHolderPtr> &input_vec,
+ge::Status BuildTilingAppendDfxInfo(const ge::NodePtr &node, std::vector<ValueHolderPtr> &input_vec,
                                     const TilingAppendDfxInfoInputs &dfx_inputs) {
   GELOGD("[Tiling] Start build TilingAppendDfxInfo kernel");
   const auto op_desc = node->GetOpDescBarePtr();
@@ -556,16 +554,15 @@ ge::Status BuildTilingAppendDfxInfo(const ge::NodePtr &node,
 
   // 6.ori_op_param_size
   size_t tiling_ori_param_size = static_cast<size_t>(ori_op_param_size);
-  input_vec.emplace_back(bg::ValueHolder::CreateConst(static_cast<void *>(&tiling_ori_param_size),
-                         sizeof(size_t), false));
+  input_vec.emplace_back(
+      bg::ValueHolder::CreateConst(static_cast<void *>(&tiling_ori_param_size), sizeof(size_t), false));
 
   // 7.is_mem_check_enable
-  input_vec.emplace_back(bg::ValueHolder::CreateConst(static_cast<void *>(&is_mem_check_enable),
-                         sizeof(bool), false));
+  input_vec.emplace_back(bg::ValueHolder::CreateConst(static_cast<void *>(&is_mem_check_enable), sizeof(bool), false));
 
   // 8.is_args_exception_enable
-  input_vec.emplace_back(bg::ValueHolder::CreateConst(static_cast<void *>(&is_args_exception_enable),
-                         sizeof(bool), false));
+  input_vec.emplace_back(
+      bg::ValueHolder::CreateConst(static_cast<void *>(&is_args_exception_enable), sizeof(bool), false));
 
   // 获取args_size_list 和 args_index_to_io_index
   auto compile_result = dfx_inputs.global_data.FindCompiledResult(node);
@@ -582,12 +579,11 @@ ge::Status BuildTilingAppendDfxInfo(const ge::NodePtr &node,
     std::vector<ge::ArgDesc> args_descs;
     GE_ASSERT_SUCCESS(ge::ArgsFormatDesc::Parse(op_desc_ptr, args_format_str, args_descs));
     GE_ASSERT_SUCCESS(
-      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc_ptr, args_descs, args_size_list, args_idx_to_io_idx));
+        optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc_ptr, args_descs, args_size_list, args_idx_to_io_idx));
   } else {
     GELOGI("OP [%s] not has formatted args_format. input_shapes size [%zu], out_shape size [%zu]",
-      op_desc->GetNamePtr(),dfx_inputs.input_shapes.size(), dfx_inputs.output_shapes.size());
-    GE_ASSERT_SUCCESS(
-      optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(
+           op_desc->GetNamePtr(), dfx_inputs.input_shapes.size(), dfx_inputs.output_shapes.size());
+    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(
         dfx_inputs.input_shapes.size(), dfx_inputs.output_shapes.size(), args_size_list, args_idx_to_io_idx));
   }
   CheckThirdClassOp(node, args_size_list);
@@ -637,7 +633,7 @@ std::vector<ValueHolderPtr> Tiling(const ge::NodePtr &node, const std::vector<Va
   }
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(node->GetOpDesc());
-  // To compatible with old version tiling_fun, build differnt exe graph for tiling
+  // To compatible with old version tiling_fun, build different exe graph for tiling
   if (NeedTilingCompatible(node, lower_inputs.global_data.GetSpaceRegistryV2(
                                      static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion())))) {
     GELOGD("Node %s type %s only support compatible tiling. Try turns to tiling on compatible version.",
@@ -654,8 +650,8 @@ std::vector<ValueHolderPtr> Tiling(const ge::NodePtr &node, const std::vector<Va
   std::vector<ValueHolderPtr> tiling_ret;
   size_t data_dependency = 0U;
   if (TilingCacheUtils::IsOpSupportTilingCache(node, lower_inputs.global_data, data_dependency)) {
-    GE_ASSERT_SUCCESS(BuildCacheableTilingFwkDataInputs(
-        node, lower_inputs, data_dependency, "BuildGeneralTilingCacheKey", tiling_input));
+    GE_ASSERT_SUCCESS(BuildCacheableTilingFwkDataInputs(node, lower_inputs, data_dependency,
+                                                        "BuildGeneralTilingCacheKey", tiling_input));
     GE_ASSERT_SUCCESS(BuildTilingDeterministicInput(node, lower_inputs.global_data, tiling_input));
     tiling_ret = ValueHolder::CreateDataOutput("CacheableTiling", tiling_input, tiling_output_num);
   } else {
@@ -708,8 +704,8 @@ std::vector<ValueHolderPtr> FallibleTiling(const ge::NodePtr &node, const std::v
   std::vector<ValueHolderPtr> tiling_ret;
   size_t data_dependency = 0U;
   if (TilingCacheUtils::IsOpSupportTilingCache(node, lower_inputs.global_data, data_dependency)) {
-    GE_ASSERT_SUCCESS(BuildCacheableTilingFwkDataInputs(
-        node, lower_inputs, data_dependency, "BuildGeneralTilingCacheKey", tiling_input));
+    GE_ASSERT_SUCCESS(BuildCacheableTilingFwkDataInputs(node, lower_inputs, data_dependency,
+                                                        "BuildGeneralTilingCacheKey", tiling_input));
     GE_ASSERT_SUCCESS(BuildTilingDeterministicInput(node, lower_inputs.global_data, tiling_input));
     tiling_ret = ValueHolder::CreateDataOutput("CacheableFallibleTiling", tiling_input, fallible_output_num);
   } else {
@@ -761,8 +757,9 @@ std::vector<ValueHolderPtr> TilingLegacy(const ge::NodePtr &node, const std::vec
   if ((node == nullptr) || (node->GetOpDescBarePtr() == nullptr)) {
     return {TilingContext::kOutputNum, nullptr};
   }
-  // To compatible with old version tiling_fun, build differnt exe graph for tiling
-  if (NeedTilingCompatible(node, global_data.GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion())))) {
+  // To compatible with old version tiling_fun, build different exe graph for tiling
+  if (NeedTilingCompatible(node, global_data.GetSpaceRegistryV2(
+                                     static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion())))) {
     GELOGD("Node %s type %s only support compatible tiling. Try turns to tiling on compatible version.",
            node->GetNamePtr(), node->GetTypePtr());
     const auto tiling_func_ret = BuildFindCompatibleTilingFunc(node);

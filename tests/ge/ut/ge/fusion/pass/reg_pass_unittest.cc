@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,7 +70,7 @@ FusionBasePass *CreateStage1PythonFusionPass() {
   }
   return new (std::nothrow) Stage1PythonFusionPass(g_python_create_snapshot.descriptor);
 }
-} // namespace
+}  // namespace
 
 class UtestRegPass : public testing::Test {
  public:
@@ -133,7 +133,7 @@ TEST_F(UtestRegPass, PatternFusionPassReg_Run) {
       PassRegistry::GetInstance().GetFusionPassRegDataByStage(CustomPassStage::kAfterInferShape);
 
   EXPECT_EQ(passes_before_infershape.size(), 1);
-  FusionBasePass* transdata_2_relu_pass = passes_before_infershape[0].GetCreatePassFn()();
+  FusionBasePass *transdata_2_relu_pass = passes_before_infershape[0].GetCreatePassFn()();
 
   CustomPassContext context;
   EXPECT_EQ(transdata_2_relu_pass->Run(target_graph, context), SUCCESS);
@@ -142,7 +142,8 @@ TEST_F(UtestRegPass, PatternFusionPassReg_Run) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -180,7 +181,8 @@ TEST_F(UtestRegPass, PatternFusionPassReg_Run) {
 TEST_F(UtestRegPass, DecomposePassReg_Run) {
   // define pass
   class DecomposeTransDataPass : public DecomposePass {
-  DecomposeTransDataPass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+    DecomposeTransDataPass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+
    protected:
     std::unique_ptr<Graph> Replacement(const GNode &matched_node) override {
       auto replace_graph = ge::es::EsGraphBuilder("replacement");
@@ -200,7 +202,7 @@ TEST_F(UtestRegPass, DecomposePassReg_Run) {
       PassRegistry::GetInstance().GetFusionPassRegDataByStage(CustomPassStage::kAfterInferShape);
 
   EXPECT_EQ(passes_after_infershape.size(), 1);
-  DecomposePass* transdata_2_relu_pass = dynamic_cast<DecomposePass *>(passes_after_infershape[0].GetCreatePassFn()());
+  DecomposePass *transdata_2_relu_pass = dynamic_cast<DecomposePass *>(passes_after_infershape[0].GetCreatePassFn()());
 
   CustomPassContext context;
   EXPECT_EQ(transdata_2_relu_pass->Run(target_graph, context), SUCCESS);
@@ -209,7 +211,8 @@ TEST_F(UtestRegPass, DecomposePassReg_Run) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -265,7 +268,6 @@ TEST_F(UtestRegPass, FusionPass_Reg_InWrongStage) {
     }
   };
   REG_FUSION_PASS(TransDataToReluPass).Stage(CustomPassStage::kAfterAssignLogicStream);
-
 
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
@@ -359,5 +361,5 @@ TEST_F(UtestRegPass, PythonPassDescriptor_Reg_DuplicateHolderKeyRejected) {
   ASSERT_EQ(passes.size(), 1);
   EXPECT_EQ(passes[0].GetPassName().GetString(), first_pass_desc.pass_name);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

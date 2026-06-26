@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,7 @@ class HeterogeneousModelIoHelper {
   /// @param [in]  inputs          input tensors
   /// @param [in]  control_info    control info
   /// @return SUCCESS success / others failure
-  Status Feed(const std::map<size_t, size_t> &indexes,
-              const std::vector<GeTensor> &inputs,
+  Status Feed(const std::map<size_t, size_t> &indexes, const std::vector<GeTensor> &inputs,
               const ExchangeService::ControlInfo &control_info);
 
   /// @ingroup ge
@@ -48,8 +47,7 @@ class HeterogeneousModelIoHelper {
   /// @param [in]  inputs          input flow msg
   /// @param [in]  control_info    control info
   /// @return SUCCESS success / others failure
-  Status FeedFlowMsg(const std::map<size_t, size_t> &indexes,
-                     const std::vector<FlowMsgBasePtr> &inputs,
+  Status FeedFlowMsg(const std::map<size_t, size_t> &indexes, const std::vector<FlowMsgBasePtr> &inputs,
                      const ExchangeService::ControlInfo &control_info);
 
   /// @ingroup ge
@@ -58,10 +56,8 @@ class HeterogeneousModelIoHelper {
   /// @param [in]  control_info    control info
   /// @param [out] flow_msg        output flow msg
   /// @return SUCCESS success / others failure
-  Status FetchFlowMsg(const DeployQueueAttr &queue_attr,
-                      const ExchangeService::ControlInfo &control_info,
-                      const GeTensorDescPtr &output_desc,
-                      FlowMsgBasePtr &flow_msg) const;
+  Status FetchFlowMsg(const DeployQueueAttr &queue_attr, const ExchangeService::ControlInfo &control_info,
+                      const GeTensorDescPtr &output_desc, FlowMsgBasePtr &flow_msg) const;
 
   /// @ingroup ge
   /// @brief Feed tensor to queue
@@ -73,17 +69,13 @@ class HeterogeneousModelIoHelper {
                      const ExchangeService::ControlInfo &control_info);
 
  private:
-  Status ExecuteEnqueueTask(const EnqueueTask &enqueue_task,
-                            const DeployQueueAttr &queue_attr,
-                            std::vector<std::future<Status>> &fut_rets,
-                            bool execute_parallel = false);
+  Status ExecuteEnqueueTask(const EnqueueTask &enqueue_task, const DeployQueueAttr &queue_attr,
+                            std::vector<std::future<Status>> &fut_rets, bool execute_parallel = false);
 
-  static Status FillBuffInfos(const GeTensor &tensor,
-                              RuntimeTensorDesc &tensor_desc,
+  static Status FillBuffInfos(const GeTensor &tensor, RuntimeTensorDesc &tensor_desc,
                               std::vector<ExchangeService::BuffInfo> &buffs);
 
-  Status EnqueueFlowMsg(const FlowMsgBasePtr &flow_msg,
-                        const DeployQueueAttr &queue_attr,
+  Status EnqueueFlowMsg(const FlowMsgBasePtr &flow_msg, const DeployQueueAttr &queue_attr,
                         const ExchangeService::ControlInfo &control_info) const;
 
   std::vector<DeployQueueAttr> input_queue_attrs_;

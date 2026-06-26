@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ bool ContainsName(const std::vector<std::string> *names, const std::string &name
   if (names == nullptr) {
     return false;
   }
-  for (const auto &candidate: *names) {
+  for (const auto &candidate : *names) {
     if (candidate == name) {
       return true;
     }
@@ -38,24 +38,20 @@ bool ContainsName(const std::vector<std::string> *names, const std::string &name
 
 bool IsInputParamKind(const ParamCxxKind kind) {
   return kind == ParamCxxKind::kEsTensorLikeRef || kind == ParamCxxKind::kTensorHolderRef ||
-      kind == ParamCxxKind::kTensorHoldersVecRef;
+         kind == ParamCxxKind::kTensorHoldersVecRef;
 }
 
 bool AreAllInputsOptional(const std::vector<IrInput> &inputs) {
   if (inputs.empty()) {
     return false;
   }
-  return std::all_of(inputs.begin(),
-                     inputs.end(),
-                     [](const IrInput &input) {
-                       return input.type == kIrInputOptional;
-                     });
+  return std::all_of(inputs.begin(), inputs.end(), [](const IrInput &input) { return input.type == kIrInputOptional; });
 }
 
 std::vector<std::string> CollectInputNames(const IrOpProto &proto) {
   std::vector<std::string> names;
   names.reserve(proto.inputs.size());
-  for (const auto &input: proto.inputs) {
+  for (const auto &input : proto.inputs) {
     names.emplace_back(input.name);
   }
   return names;
@@ -70,8 +66,8 @@ bool IsSameOutput(const IrOutput &lhs, const IrOutput &rhs) {
 }
 
 bool IsSameAttr(const IrAttr &lhs, const IrAttr &rhs) {
-  return lhs.name == rhs.name && lhs.av_type == rhs.av_type &&
-      lhs.required == rhs.required && lhs.default_value == rhs.default_value;
+  return lhs.name == rhs.name && lhs.av_type == rhs.av_type && lhs.required == rhs.required &&
+         lhs.default_value == rhs.default_value;
 }
 
 bool IsSameSubgraph(const IrSubgraph &lhs, const IrSubgraph &rhs) {
@@ -92,15 +88,13 @@ bool IsSameVector(const std::vector<T> &lhs, const std::vector<T> &rhs, EqualFn 
 }
 
 bool IsSameProto(const IrOpProto &lhs, const IrOpProto &rhs) {
-  return lhs.op_type == rhs.op_type &&
-      IsSameVector(lhs.inputs, rhs.inputs, IsSameInput) &&
-      IsSameVector(lhs.outputs, rhs.outputs, IsSameOutput) &&
-      IsSameVector(lhs.attrs, rhs.attrs, IsSameAttr) &&
-      IsSameVector(lhs.subgraphs, rhs.subgraphs, IsSameSubgraph);
+  return lhs.op_type == rhs.op_type && IsSameVector(lhs.inputs, rhs.inputs, IsSameInput) &&
+         IsSameVector(lhs.outputs, rhs.outputs, IsSameOutput) && IsSameVector(lhs.attrs, rhs.attrs, IsSameAttr) &&
+         IsSameVector(lhs.subgraphs, rhs.subgraphs, IsSameSubgraph);
 }
 
 void AppendUniqueStrings(std::vector<std::string> &dst, const std::vector<std::string> &src) {
-  for (const auto &item: src) {
+  for (const auto &item : src) {
     if (std::find(dst.begin(), dst.end(), item) != dst.end()) {
       continue;
     }
@@ -121,13 +115,12 @@ std::vector<std::string> CollectRemovedInputs(const IrOpProto &current, const Ir
 }
 
 void EraseInputParamsByName(Signature &sig, const std::vector<std::string> &input_names) {
-  sig.params.erase(std::remove_if(sig.params.begin(),
-                                  sig.params.end(),
+  sig.params.erase(std::remove_if(sig.params.begin(), sig.params.end(),
                                   [&input_names](const Param &param) {
                                     if (!IsInputParamKind(param.kind)) {
                                       return false;
                                     }
-                                    for (const auto &name: input_names) {
+                                    for (const auto &name : input_names) {
                                       if (param.ir_name == name) {
                                         return true;
                                       }
@@ -140,7 +133,7 @@ void EraseInputParamsByName(Signature &sig, const std::vector<std::string> &inpu
 std::string JoinStrings(const std::vector<std::string> &items) {
   std::stringstream ss;
   bool first = true;
-  for (const auto &item: items) {
+  for (const auto &item : items) {
     if (first) {
       first = false;
     } else {
@@ -176,26 +169,22 @@ std::string BuildWarningDetail(const std::string &context, const std::string &re
   return context + "; " + reason;
 }
 
-void AppendPlanWarning(std::vector<Warning> *warnings,
-                       const WarningCode code,
-                       const std::string &context,
+void AppendPlanWarning(std::vector<Warning> *warnings, const WarningCode code, const std::string &context,
                        const std::string &reason = "") {
   warnings->emplace_back(Warning{code, BuildWarningDetail(context, reason)});
 }
 
 void AppendWarningsUnique(std::vector<Warning> &dst, const std::vector<Warning> &src) {
   for (const auto &warning : src) {
-    const bool exists = std::any_of(dst.begin(),
-                                    dst.end(),
-                                    [&warning](const Warning &item) {
-                                      return item.code == warning.code && item.detail == warning.detail;
-                                    });
+    const bool exists = std::any_of(dst.begin(), dst.end(), [&warning](const Warning &item) {
+      return item.code == warning.code && item.detail == warning.detail;
+    });
     if (!exists) {
       dst.emplace_back(warning);
     }
   }
 }
-} // namespace
+}  // namespace
 
 /**
  *规划总入口：
@@ -235,8 +224,7 @@ OverloadPlan OverloadPlanner::Plan(const IrOpProto &current, const HistoryContex
   return plan;
 }
 
-OverloadPlan PlanCppOverloads(const IrOpProto &current,
-                              const HistoryContext &history,
+OverloadPlan PlanCppOverloads(const IrOpProto &current, const HistoryContext &history,
                               std::vector<std::string> &warnings) {
   OverloadPlanner planner;
   auto plan = planner.Plan(current, history);
@@ -250,7 +238,7 @@ std::vector<const IrOpProto *> OverloadPlanner::BuildVersionChain(const IrOpProt
                                                                   const HistoryContext &history) const {
   std::vector<const IrOpProto *> raw_versions;
   raw_versions.reserve(history.proto_chain.size() + 1U);
-  for (const auto &proto: history.proto_chain) {
+  for (const auto &proto : history.proto_chain) {
     raw_versions.push_back(&proto);
   }
   raw_versions.push_back(&current);
@@ -272,14 +260,14 @@ std::vector<const IrOpProto *> OverloadPlanner::BuildVersionChain(const IrOpProt
 // 从版本链中收集“需要保留旧重载”的分界点（重载边界）。
 // 一旦出现不可兼容变化（例如非尾部追加、required attr 新增等），直接失败返回。
 OverloadPlanner::BoundaryCollectResult OverloadPlanner::CollectBoundaries(
-  const std::vector<const IrOpProto *> &versions) const {
+    const std::vector<const IrOpProto *> &versions) const {
   BoundaryCollectResult result;
   for (size_t i = 1U; i < versions.size(); ++i) {
     const auto diff = AnalyzeDiff(*versions[i], *versions[i - 1U]);
     if (!diff.compatible) {
       result.success = false;
       result.fail_reason = "incompatible schema change in history chain at step " + std::to_string(i) +
-          (diff.detail.empty() ? "" : (": " + diff.detail));
+                           (diff.detail.empty() ? "" : (": " + diff.detail));
       return result;
     }
     if (diff.can_safe_merge) {
@@ -288,7 +276,7 @@ OverloadPlanner::BoundaryCollectResult OverloadPlanner::CollectBoundaries(
     if (diff.new_inputs.empty()) {
       result.success = false;
       result.fail_reason = "incompatible schema change without new optional inputs at step " + std::to_string(i) +
-          (diff.detail.empty() ? "" : (": " + diff.detail));
+                           (diff.detail.empty() ? "" : (": " + diff.detail));
       return result;
     }
     result.boundaries.emplace_back(BoundaryInfo{i, diff.new_inputs, diff.baseline_all_inputs_optional});
@@ -305,7 +293,7 @@ std::vector<size_t> OverloadPlanner::CollectBaselineIndices(const size_t version
   std::vector<size_t> indices;
   indices.reserve(boundaries.size() * 2U + 1U);
   indices.emplace_back(version_count - 1U);
-  for (const auto &boundary: boundaries) {
+  for (const auto &boundary : boundaries) {
     indices.emplace_back(boundary.step_index - 1U);
     indices.emplace_back(boundary.step_index);
   }
@@ -314,10 +302,8 @@ std::vector<size_t> OverloadPlanner::CollectBaselineIndices(const size_t version
   return indices;
 }
 
-bool OverloadPlanner::TryAdoptModeSignatures(const IrOpProto &current,
-                                             const std::vector<const IrOpProto *> &versions,
-                                             const std::vector<BoundaryInfo> &boundaries,
-                                             const MultiBaselineMode mode,
+bool OverloadPlanner::TryAdoptModeSignatures(const IrOpProto &current, const std::vector<const IrOpProto *> &versions,
+                                             const std::vector<BoundaryInfo> &boundaries, const MultiBaselineMode mode,
                                              std::vector<Warning> *warnings,
                                              std::vector<Signature> &accepted_signatures) const {
   std::vector<Warning> mode_warnings;
@@ -337,12 +323,11 @@ bool OverloadPlanner::TryAdoptModeSignatures(const IrOpProto &current,
 // - A1：Try0 二义时，强制 required + guard；
 // - A2：A1 仍二义时，将新增输入切为 TensorHolder + guard。
 // 该函数只做“升级尝试”，最终回退由 Plan 统一处理。
-bool OverloadPlanner::TryResolveModeEscalation(const IrOpProto &current,
-                                               const std::vector<const IrOpProto *> &versions,
+bool OverloadPlanner::TryResolveModeEscalation(const IrOpProto &current, const std::vector<const IrOpProto *> &versions,
                                                const std::vector<BoundaryInfo> &boundaries,
-                                               const std::string &warning_context,
-                                               OverloadPlan &plan) const {
-  if (TryAdoptModeSignatures(current, versions, boundaries, MultiBaselineMode::kTry0, &plan.warnings, plan.signatures)) {
+                                               const std::string &warning_context, OverloadPlan &plan) const {
+  if (TryAdoptModeSignatures(current, versions, boundaries, MultiBaselineMode::kTry0, &plan.warnings,
+                             plan.signatures)) {
     return true;
   }
   AppendPlanWarning(&plan.warnings, WarningCode::kUpgradeToA1, warning_context);
@@ -350,8 +335,7 @@ bool OverloadPlanner::TryResolveModeEscalation(const IrOpProto &current,
     return true;
   }
   AppendPlanWarning(&plan.warnings, WarningCode::kUpgradeToA2, warning_context);
-  return TryAdoptModeSignatures(current, versions, boundaries, MultiBaselineMode::kA2, &plan.warnings,
-                                plan.signatures);
+  return TryAdoptModeSignatures(current, versions, boundaries, MultiBaselineMode::kA2, &plan.warnings, plan.signatures);
 }
 
 // 批量生成多 baseline 的签名集合：
@@ -364,7 +348,7 @@ std::vector<Signature> OverloadPlanner::BuildMultiBaselineSignatures(const IrOpP
                                                                      std::vector<Warning> *warnings) const {
   const auto baseline_indices = CollectBaselineIndices(versions.size(), boundaries);
   size_t guard_count = 0U;
-  for (const auto &boundary: boundaries) {
+  for (const auto &boundary : boundaries) {
     guard_count += boundary.new_inputs.size();
   }
 
@@ -373,18 +357,14 @@ std::vector<Signature> OverloadPlanner::BuildMultiBaselineSignatures(const IrOpP
   std::vector<Signature> baseline_signatures(versions.size());
   std::vector<bool> has_baseline_signature(versions.size(), false);
 
-  for (const auto baseline_index: baseline_indices) {
+  for (const auto baseline_index : baseline_indices) {
     const auto &baseline = *versions[baseline_index];
     const auto plan_input = BuildBaselinePlanInput(current, baseline, boundaries, baseline_index, mode);
     const auto *required_ptr = plan_input.required_inputs.empty() ? nullptr : &plan_input.required_inputs;
     const auto *tensor_holder_ptr =
         plan_input.tensor_holder_inputs.empty() ? nullptr : &plan_input.tensor_holder_inputs;
     const auto *removed_ptr = plan_input.removed_inputs.empty() ? nullptr : &plan_input.removed_inputs;
-    auto signature = BuildSignature(current,
-                                    required_ptr,
-                                    tensor_holder_ptr,
-                                    removed_ptr,
-                                    warnings);
+    auto signature = BuildSignature(current, required_ptr, tensor_holder_ptr, removed_ptr, warnings);
     EraseInputParamsByName(signature, plan_input.removed_inputs);
 
     signatures.emplace_back(signature);
@@ -407,12 +387,11 @@ std::vector<Signature> OverloadPlanner::BuildMultiBaselineSignatures(const IrOpP
 // - required_inputs: A1/A2 场景下需要被强制 required 的输入集合。
 // - tensor_holder_inputs: A2 场景下需要从 TensorLike 切到 TensorHolder 的新增输入。
 // 注意：当历史输入全可选时，为稳定 owner_builder 位置，会把 baseline 全输入强制 required。
-OverloadPlanner::BaselinePlanInput OverloadPlanner::BuildBaselinePlanInput(
-  const IrOpProto &current,
-  const IrOpProto &baseline,
-  const std::vector<BoundaryInfo> &boundaries,
-  const size_t baseline_index,
-  const MultiBaselineMode mode) const {
+OverloadPlanner::BaselinePlanInput OverloadPlanner::BuildBaselinePlanInput(const IrOpProto &current,
+                                                                           const IrOpProto &baseline,
+                                                                           const std::vector<BoundaryInfo> &boundaries,
+                                                                           const size_t baseline_index,
+                                                                           const MultiBaselineMode mode) const {
   BaselinePlanInput plan_input;
   plan_input.removed_inputs = CollectRemovedInputs(current, baseline);
   if (mode == MultiBaselineMode::kTry0) {
@@ -422,7 +401,7 @@ OverloadPlanner::BaselinePlanInput OverloadPlanner::BuildBaselinePlanInput(
 
   std::vector<std::string> upgraded_inputs;
   bool force_all_inputs_required = false;
-  for (const auto &boundary: boundaries) {
+  for (const auto &boundary : boundaries) {
     // 仅吸收“位于该 baseline 及其之前”的边界信息；
     // baseline 之后才出现的新增输入，不应影响该 baseline 的约束策略。
     if (boundary.step_index > baseline_index) {
@@ -456,23 +435,21 @@ void OverloadPlanner::AppendBoundaryGuards(std::vector<Signature> &signatures,
     return;
   }
   const bool tensor_holder_mode = (mode == MultiBaselineMode::kA2);
-  for (const auto &boundary: boundaries) {
+  for (const auto &boundary : boundaries) {
     if (!has_baseline_signature[boundary.step_index]) {
       continue;
     }
     const auto &guard_base = baseline_signatures[boundary.step_index];
-    for (const auto &input_name: boundary.new_inputs) {
+    for (const auto &input_name : boundary.new_inputs) {
       signatures.emplace_back(BuildNullptrGuardSignature(guard_base, input_name, tensor_holder_mode));
     }
   }
 }
 
-bool OverloadPlanner::DiffInputs(const IrOpProto &current,
-                                 const IrOpProto &baseline,
-                                 DiffResult &diff) const {
+bool OverloadPlanner::DiffInputs(const IrOpProto &current, const IrOpProto &baseline, DiffResult &diff) const {
   if (current.inputs.size() < baseline.inputs.size()) {
-    diff.detail = "inputs shrink from " + std::to_string(baseline.inputs.size()) +
-        " to " + std::to_string(current.inputs.size());
+    diff.detail =
+        "inputs shrink from " + std::to_string(baseline.inputs.size()) + " to " + std::to_string(current.inputs.size());
     return false;
   }
   for (size_t i = 0U; i < baseline.inputs.size(); ++i) {
@@ -497,20 +474,17 @@ bool OverloadPlanner::DiffInputs(const IrOpProto &current,
   return true;
 }
 
-bool OverloadPlanner::DiffAttrs(const IrOpProto &current,
-                                const IrOpProto &baseline,
-                                DiffResult &diff) const {
+bool OverloadPlanner::DiffAttrs(const IrOpProto &current, const IrOpProto &baseline, DiffResult &diff) const {
   if (current.attrs.size() < baseline.attrs.size()) {
-    diff.detail = "attrs shrink from " + std::to_string(baseline.attrs.size()) +
-        " to " + std::to_string(current.attrs.size());
+    diff.detail =
+        "attrs shrink from " + std::to_string(baseline.attrs.size()) + " to " + std::to_string(current.attrs.size());
     return false;
   }
   for (size_t i = 0U; i < baseline.attrs.size(); ++i) {
     // 当前策略：历史属性 required 标记需保持不变。
     // TTODO(es_compat): 若后续需要支持“required -> optional”兼容，
     // 需要在这里放宽 required 比较，并同步验证默认值/调用二义性影响。
-    if (current.attrs[i].name != baseline.attrs[i].name ||
-        current.attrs[i].av_type != baseline.attrs[i].av_type ||
+    if (current.attrs[i].name != baseline.attrs[i].name || current.attrs[i].av_type != baseline.attrs[i].av_type ||
         current.attrs[i].required != baseline.attrs[i].required) {
       diff.detail = "attr mismatch at index " + std::to_string(i);
       return false;
@@ -530,9 +504,7 @@ bool OverloadPlanner::DiffAttrs(const IrOpProto &current,
   return true;
 }
 
-bool OverloadPlanner::DiffOutputs(const IrOpProto &current,
-                                  const IrOpProto &baseline,
-                                  DiffResult &diff) const {
+bool OverloadPlanner::DiffOutputs(const IrOpProto &current, const IrOpProto &baseline, DiffResult &diff) const {
   if (current.outputs.size() != baseline.outputs.size()) {
     diff.detail = "outputs changed";
     return false;
@@ -546,9 +518,7 @@ bool OverloadPlanner::DiffOutputs(const IrOpProto &current,
   return true;
 }
 
-bool OverloadPlanner::DiffSubgraphs(const IrOpProto &current,
-                                    const IrOpProto &baseline,
-                                    DiffResult &diff) const {
+bool OverloadPlanner::DiffSubgraphs(const IrOpProto &current, const IrOpProto &baseline, DiffResult &diff) const {
   if (current.subgraphs.size() != baseline.subgraphs.size()) {
     diff.detail = "subgraphs changed";
     return false;
@@ -563,9 +533,7 @@ bool OverloadPlanner::DiffSubgraphs(const IrOpProto &current,
   return true;
 }
 
-void OverloadPlanner::EvaluateMergeSafety(const IrOpProto &current,
-                                          const IrOpProto &baseline,
-                                          DiffResult &diff) const {
+void OverloadPlanner::EvaluateMergeSafety(const IrOpProto &current, const IrOpProto &baseline, DiffResult &diff) const {
   diff.can_safe_merge = true;
   if (!diff.new_inputs.empty() && diff.baseline_all_inputs_optional) {
     diff.can_safe_merge = false;
@@ -583,8 +551,7 @@ void OverloadPlanner::EvaluateMergeSafety(const IrOpProto &current,
   }
 }
 
-OverloadPlanner::DiffResult OverloadPlanner::AnalyzeDiff(const IrOpProto &current,
-                                                         const IrOpProto &baseline) const {
+OverloadPlanner::DiffResult OverloadPlanner::AnalyzeDiff(const IrOpProto &current, const IrOpProto &baseline) const {
   DiffResult diff;
   diff.baseline_all_inputs_optional = AreAllInputsOptional(baseline.inputs);
   if (!DiffInputs(current, baseline, diff)) {
@@ -622,7 +589,7 @@ bool OverloadPlanner::HasPotentialAmbiguity(const std::vector<Signature> &signat
 }
 
 bool OverloadPlanner::HasScalarLiteralAttrRisk(const IrOpProto &proto) const {
-  for (const auto &attr: proto.attrs) {
+  for (const auto &attr : proto.attrs) {
     if (attr.required) {
       continue;
     }
@@ -652,20 +619,20 @@ Signature OverloadPlanner::BuildSignature(const IrOpProto &current,
   return sig;
 }
 
-Signature OverloadPlanner::BuildNullptrGuardSignature(const Signature &sig,
-                                                      const std::string &input_name,
+Signature OverloadPlanner::BuildNullptrGuardSignature(const Signature &sig, const std::string &input_name,
                                                       bool tensor_holder_mode) const {
   Signature guard = sig;
   guard.is_deleted = true;
   guard.is_deprecated = true;
   if (tensor_holder_mode) {
     guard.deprecate_msg =
-        "New input " + input_name + " uses TensorHolder for disambiguation. "
+        "New input " + input_name +
+        " uses TensorHolder for disambiguation. "
         "Use legacy overload when disconnected, or use CreateScalar/CreateVector/CreateConst for constants.";
   } else {
-    guard.deprecate_msg =
-        "New input " + input_name + " cannot use nullptr in this overload. "
-        "Use the legacy overload when this input is disconnected.";
+    guard.deprecate_msg = "New input " + input_name +
+                          " cannot use nullptr in this overload. "
+                          "Use the legacy overload when this input is disconnected.";
   }
 
   const int index = FindInputParamIndex(guard, input_name);
@@ -697,12 +664,11 @@ int OverloadPlanner::FindInputParamIndex(const Signature &sig, const std::string
   return -1;
 }
 
-void OverloadPlanner::AppendInputParams(const IrOpProto &current,
-                                        const DefaultValuePolicy &policy,
+void OverloadPlanner::AppendInputParams(const IrOpProto &current, const DefaultValuePolicy &policy,
                                         const std::vector<std::string> *force_tensor_holder_inputs,
                                         Signature &sig) const {
   const bool use_tensor_like = UseTensorLikeInputs(current);
-  for (const auto &input: current.inputs) {
+  for (const auto &input : current.inputs) {
     Param param;
     if (input.type == kIrInputDynamic) {
       param.kind = ParamCxxKind::kTensorHoldersVecRef;
@@ -712,8 +678,8 @@ void OverloadPlanner::AppendInputParams(const IrOpProto &current,
     } else {
       const bool use_tensor_holder = ContainsName(force_tensor_holder_inputs, input.name);
       param.kind = use_tensor_holder
-                     ? ParamCxxKind::kTensorHolderRef
-                     : (use_tensor_like ? ParamCxxKind::kEsTensorLikeRef : ParamCxxKind::kTensorHolderRef);
+                       ? ParamCxxKind::kTensorHolderRef
+                       : (use_tensor_like ? ParamCxxKind::kEsTensorLikeRef : ParamCxxKind::kTensorHolderRef);
       param.role = ParamRole::kInput;
       param.ir_name = input.name;
       param.name = InName(input.name);
@@ -727,7 +693,7 @@ void OverloadPlanner::AppendInputParams(const IrOpProto &current,
 }
 
 void OverloadPlanner::AppendDynamicOutputParams(const IrOpProto &current, Signature &sig) const {
-  for (const auto &output: current.outputs) {
+  for (const auto &output : current.outputs) {
     if (output.type != kIrOutputDynamic) {
       continue;
     }
@@ -741,7 +707,7 @@ void OverloadPlanner::AppendDynamicOutputParams(const IrOpProto &current, Signat
 }
 
 void OverloadPlanner::AppendSubgraphParams(const IrOpProto &current, Signature &sig) const {
-  for (const auto &subgraph: current.subgraphs) {
+  for (const auto &subgraph : current.subgraphs) {
     Param param;
     if (subgraph.type == kStatic) {
       param.kind = ParamCxxKind::kGraphUniquePtr;
@@ -755,10 +721,8 @@ void OverloadPlanner::AppendSubgraphParams(const IrOpProto &current, Signature &
   }
 }
 
-void OverloadPlanner::AppendOwnerBuilderParam(const IrOpProto &current,
-                                              const DefaultValuePolicy &policy,
-                                              const std::vector<std::string> *removed_inputs,
-                                              Signature &sig) const {
+void OverloadPlanner::AppendOwnerBuilderParam(const IrOpProto &current, const DefaultValuePolicy &policy,
+                                              const std::vector<std::string> *removed_inputs, Signature &sig) const {
   if (current.inputs.empty()) {
     Param param;
     param.kind = ParamCxxKind::kGraphBuilderRef;
@@ -769,7 +733,7 @@ void OverloadPlanner::AppendOwnerBuilderParam(const IrOpProto &current,
     return;
   }
   bool all_optional = true;
-  for (const auto &in: current.inputs) {
+  for (const auto &in : current.inputs) {
     if (in.type == kIrInputRequired || in.type == kIrInputDynamic) {
       all_optional = false;
       break;
@@ -779,7 +743,7 @@ void OverloadPlanner::AppendOwnerBuilderParam(const IrOpProto &current,
     return;
   }
   bool has_effectively_optional_input = false;
-  for (const auto &in: current.inputs) {
+  for (const auto &in : current.inputs) {
     if (ContainsName(removed_inputs, in.name)) {
       continue;
     }
@@ -803,12 +767,10 @@ void OverloadPlanner::AppendOwnerBuilderParam(const IrOpProto &current,
   sig.params.emplace_back(std::move(param));
 }
 
-void OverloadPlanner::AppendAttrParams(const IrOpProto &current,
-                                       Signature &sig,
-                                       std::vector<Warning> *warnings) const {
+void OverloadPlanner::AppendAttrParams(const IrOpProto &current, Signature &sig, std::vector<Warning> *warnings) const {
   std::list<Param> required_params;
   std::list<Param> optional_params;
-  for (const auto &attr: current.attrs) {
+  for (const auto &attr : current.attrs) {
     Param param;
     bool supported = AttrTypeTraits::TryGetParamKindByHistoryType(attr.av_type, param.kind);
     if (!supported) {
@@ -846,16 +808,14 @@ bool OverloadPlanner::UseTensorLikeInputs(const IrOpProto &current) const {
   if (current.inputs.empty()) {
     return false;
   }
-  if (std::all_of(current.inputs.begin(),
-                  current.inputs.end(),
+  if (std::all_of(current.inputs.begin(), current.inputs.end(),
                   [](const auto &in) { return in.type == kIrInputOptional; })) {
     return true;
   }
   if (current.inputs.size() <= 1) {
     return false;
   }
-  if (std::any_of(current.inputs.begin(),
-                  current.inputs.end(),
+  if (std::any_of(current.inputs.begin(), current.inputs.end(),
                   [](const auto &in) { return in.type == kIrInputRequired || in.type == kIrInputOptional; })) {
     return true;
   }
@@ -863,7 +823,7 @@ bool OverloadPlanner::UseTensorLikeInputs(const IrOpProto &current) const {
 }
 
 bool OverloadPlanner::IsInputNameDuplicated(const IrOpProto &current, const std::string &name) const {
-  for (const auto &in: current.inputs) {
+  for (const auto &in : current.inputs) {
     if (in.name == name) {
       return true;
     }
@@ -880,6 +840,6 @@ std::string OverloadPlanner::DynamicOutputParamName(const IrOpProto &current, co
   }
   return base + "_num";
 }
-} // namespace history
-} // namespace es
-} // namespace ge
+}  // namespace history
+}  // namespace es
+}  // namespace ge

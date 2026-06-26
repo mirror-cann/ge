@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,18 +31,18 @@
 
 using namespace ge;
 namespace ge {
-    REG_OP(ConstPlaceHolder)
-        .OUTPUT(y, TensorType::ALL())
-        .REQUIRED_ATTR(origin_shape, ListInt)
-        .REQUIRED_ATTR(origin_format, Int)
-        .REQUIRED_ATTR(storage_shape, ListInt)
-        .REQUIRED_ATTR(storage_format, Int)
-        .REQUIRED_ATTR(expand_dim_rules, String)
-        .REQUIRED_ATTR(dtype, Type)
-        .REQUIRED_ATTR(addr, Int)
-        .REQUIRED_ATTR(size, Int)
-        .ATTR(placement, Int, 1)
-        .OP_END_FACTORY_REG(ConstPlaceHolder)
+REG_OP(ConstPlaceHolder)
+    .OUTPUT(y, TensorType::ALL())
+    .REQUIRED_ATTR(origin_shape, ListInt)
+    .REQUIRED_ATTR(origin_format, Int)
+    .REQUIRED_ATTR(storage_shape, ListInt)
+    .REQUIRED_ATTR(storage_format, Int)
+    .REQUIRED_ATTR(expand_dim_rules, String)
+    .REQUIRED_ATTR(dtype, Type)
+    .REQUIRED_ATTR(addr, Int)
+    .REQUIRED_ATTR(size, Int)
+    .ATTR(placement, Int, 1)
+    .OP_END_FACTORY_REG(ConstPlaceHolder)
 }
 namespace gert {
 using namespace ge;
@@ -101,11 +101,11 @@ ComputeGraphPtr BuildConstGraph() {
 void ConstructStringTensor(std::shared_ptr<GeTensor> &ge_tensor) {
   auto elem_cnt = ge_tensor->GetTensorDesc().GetShape().GetShapeSize();
   uint64_t single_str_size = 64U;
-  uint8_t *addr = reinterpret_cast<uint8_t*>(ge_tensor->MutableData().GetData());
+  uint8_t *addr = reinterpret_cast<uint8_t *>(ge_tensor->MutableData().GetData());
   uint64_t offset = elem_cnt * sizeof(ge::StringHead);
 
-  for(int64_t i = 0;i < elem_cnt; i++) {
-    ge::StringHead *string_head = reinterpret_cast<ge::StringHead*>(addr);
+  for (int64_t i = 0; i < elem_cnt; i++) {
+    ge::StringHead *string_head = reinterpret_cast<ge::StringHead *>(addr);
     string_head->len = single_str_size;
     string_head->addr = offset;
     *(reinterpret_cast<char *>(addr) + offset + 0) = 'a';
@@ -119,11 +119,11 @@ void ConstructStringTensor(std::shared_ptr<GeTensor> &ge_tensor) {
 
 void CheckStringTensor(void *data, const size_t elem_cnt) {
   uint64_t single_str_size = 64U;
-  uint8_t *addr = reinterpret_cast<uint8_t*>(data);
+  uint8_t *addr = reinterpret_cast<uint8_t *>(data);
   uint64_t offset = elem_cnt * sizeof(ge::StringHead);
 
-  for(size_t i = 0; i < elem_cnt; i++) {
-    ge::StringHead *string_head = reinterpret_cast<ge::StringHead*>(addr);
+  for (size_t i = 0; i < elem_cnt; i++) {
+    ge::StringHead *string_head = reinterpret_cast<ge::StringHead *>(addr);
     ASSERT_EQ(string_head->len, (int64_t)single_str_size);
     ASSERT_EQ(string_head->addr, offset);
     ASSERT_STRCASEEQ((reinterpret_cast<char *>(addr) + offset + 0), "abc");
@@ -139,8 +139,8 @@ void CheckStringTensor(void *data, const size_t elem_cnt) {
  */
 ComputeGraphPtr BuildConstWithStringGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const1", "Const")->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("const1", "Const")->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
   auto const1 = graph->FindNode("const1");
   const1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({2}));
@@ -168,8 +168,8 @@ ComputeGraphPtr BuildConstWithStringGraph() {
 
 ComputeGraphPtr BuildConstWithMaxLengthTensor() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const1", "Const")->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("const1", "Const")->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
   auto const1 = graph->FindNode("const1");
   const1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({2}));
@@ -304,18 +304,18 @@ ComputeGraphPtr BuildRefDataGraph() {
 ComputeGraphPtr BuildRefDataInSubGraph() {
   std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto refdata1 = OP_CFG("RefData")
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("input");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_INDEX, 1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("input");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("pred", "Data")->NODE("if", "If")->NODE("cast", "Cast")->NODE("NetOutput", "NetOutput"));
-                   CHAIN(NODE(refdata1)->EDGE(0, 1)->NODE("if", "If"));
-                 };
+      CHAIN(NODE("pred", "Data")->NODE("if", "If")->NODE("cast", "Cast")->NODE("NetOutput", "NetOutput"));
+      CHAIN(NODE(refdata1)->EDGE(0, 1)->NODE("if", "If"));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -334,9 +334,13 @@ ComputeGraphPtr BuildRefDataInSubGraph() {
 
   auto then_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE("input", "RefData")->NODE(assign)->NODE("cast", "Cast")->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE(const1)->EDGE(0, 1)->NODE("assign", "Assign"));
-                 };
+      CHAIN(NODE("data", "Data")
+                ->NODE("input", "RefData")
+                ->NODE(assign)
+                ->NODE("cast", "Cast")
+                ->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE(const1)->EDGE(0, 1)->NODE("assign", "Assign"));
+    };
     return ToComputeGraph(g);
   }();
   then_graph->SetName("then");
@@ -352,8 +356,8 @@ ComputeGraphPtr BuildRefDataInSubGraph() {
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE("input", "RefData")->NODE("cast1", "Cast")->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE("input", "RefData")->NODE("cast1", "Cast")->NODE("NetOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   else_graph->SetName("else");
@@ -404,8 +408,7 @@ TEST_F(InputsConverterUt, ConvertConstOk) {
   EXPECT_EQ(ret.out_shapes.size(), 1);
   auto root_graph = ret.out_addrs[0]->GetExecuteGraph();
   ASSERT_NE(root_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(root_graph)
-                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(root_graph).StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), "Init");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode(), ret.out_shapes[0]->GetFastNode());
@@ -427,7 +430,7 @@ TEST_F(InputsConverterUt, ConvertConstOk) {
   EXPECT_EQ(checker.StrictConnectTo(0, {{"InnerNetOutput", 0}}), "success");
   EXPECT_EQ(checker.StrictConnectTo(1, std::vector<FastSrcNode>({{"InnerNetOutput", 1}})), "success");
 
-  auto de_init_node= ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
+  auto de_init_node = ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
   ASSERT_NE(de_init_node, nullptr);
   auto de_init_graph = FastNodeUtils::GetSubgraphFromNode(de_init_node, 0);
   ASSERT_NE(de_init_graph, nullptr);
@@ -470,8 +473,7 @@ TEST_F(InputsConverterUt, ConvertConstWithStringTypeOk) {
   EXPECT_EQ(ret.out_shapes.size(), 1);
   auto root_graph = ret.out_addrs[0]->GetExecuteGraph();
   ASSERT_NE(root_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(root_graph)
-                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(root_graph).StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), "Init");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode(), ret.out_shapes[0]->GetFastNode());
@@ -493,7 +495,7 @@ TEST_F(InputsConverterUt, ConvertConstWithStringTypeOk) {
   EXPECT_EQ(checker.StrictConnectTo(0, {{"InnerNetOutput", 0}}), "success");
   EXPECT_EQ(checker.StrictConnectTo(1, std::vector<FastSrcNode>({{"InnerNetOutput", 1}})), "success");
 
-  auto de_init_node= ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
+  auto de_init_node = ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
   ASSERT_NE(de_init_node, nullptr);
   auto de_init_graph = FastNodeUtils::GetSubgraphFromNode(de_init_node, 0);
   ASSERT_NE(de_init_graph, nullptr);
@@ -528,8 +530,7 @@ TEST_F(InputsConverterUt, ConvertConstWithEmptyTensorOk) {
   EXPECT_EQ(ret.out_shapes.size(), 1);
   auto root_graph = ret.out_addrs[0]->GetExecuteGraph();
   ASSERT_NE(root_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(root_graph)
-                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(root_graph).StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), "Init");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode(), ret.out_shapes[0]->GetFastNode());
@@ -551,7 +552,7 @@ TEST_F(InputsConverterUt, ConvertConstWithEmptyTensorOk) {
   EXPECT_EQ(checker.StrictConnectTo(0, {{"InnerNetOutput", 0}}), "success");
   EXPECT_EQ(checker.StrictConnectTo(1, std::vector<FastSrcNode>({{"InnerNetOutput", 1}})), "success");
 
-  auto de_init_node= ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
+  auto de_init_node = ExecuteGraphUtils::FindFirstNodeMatchType(root_graph, "DeInit");
   ASSERT_NE(de_init_node, nullptr);
   auto de_init_graph = FastNodeUtils::GetSubgraphFromNode(de_init_node, 0);
   ASSERT_NE(de_init_graph, nullptr);
@@ -615,7 +616,7 @@ ge::FastNode *FindDataNode(const ge::ExecuteGraph *graph, int64_t expect_index) 
 }
 
 /*
- * exepct graph:
+ * expect graph:
  *       FreeTensorMemory
  *            |
  *        SplitTensor
@@ -639,7 +640,8 @@ TEST_F(InputsConverterUt, ConvertDataOk) {
   ASSERT_NE(data_node, nullptr);
   EXPECT_EQ(data_node->GetDataOutNum(), 1);
 
-  auto sink_tensor_node = ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(),"SplitDataTensor");
+  auto sink_tensor_node =
+      ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(), "SplitDataTensor");
   ASSERT_NE(sink_tensor_node, nullptr);
   EXPECT_EQ(sink_tensor_node->GetDataOutNum(), 2);
   EXPECT_EQ(sink_tensor_node->GetDataInNum(), 2);
@@ -651,7 +653,7 @@ TEST_F(InputsConverterUt, ConvertDataOk) {
 }
 
 /*
- * exepct graph:
+ * expect graph:
  *       netoutput
  *            |
  *           Data
@@ -680,8 +682,7 @@ TEST_F(InputsConverterUt, ConvertDataWithFrozen) {
   auto root_graph = ret.out_addrs[0]->GetExecuteGraph();
   ASSERT_NE(root_graph, nullptr);
 
-  ASSERT_EQ(ExeGraphSummaryChecker(root_graph)
-                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(root_graph).StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), "Init");
 
@@ -721,7 +722,8 @@ TEST_F(InputsConverterUt, LoweringUnfedDataNode) {
   EXPECT_EQ(ret.order_holders.size(), 0);
   EXPECT_EQ(ret.out_addrs.size(), 1);
   EXPECT_EQ(ret.out_shapes.size(), 1);
-  EXPECT_EQ(ret.out_addrs[0]->GetExecuteGraph()->GetAllNodes().size(), 1 /*stream*/ + 2 /*lower*/ + 2/*SplitRtStreams const*/);
+  EXPECT_EQ(ret.out_addrs[0]->GetExecuteGraph()->GetAllNodes().size(),
+            1 /*stream*/ + 2 /*lower*/ + 2 /*SplitRtStreams const*/);
 
   auto unfed_data = ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(), "UnfedData");
   ASSERT_NE(unfed_data, nullptr);
@@ -730,7 +732,7 @@ TEST_F(InputsConverterUt, LoweringUnfedDataNode) {
 }
 
 /*
- * exepct graph:
+ * expect graph:
  *       FreeTensorMemory
  *            |
  *        SplitTensor
@@ -744,7 +746,7 @@ TEST_F(InputsConverterUt, ConvertAippDataOk) {
   auto global_lowering_data = GlobalDataFaker(root_model).Build();
   LowerInput lower_input = {{}, {}, &global_lowering_data};
   auto aippData1 = graph->FindNode("aippData1");
-  ASSERT_TRUE(AttrUtils::SetInt(aippData1->GetOpDesc(), "index", 1)); // set no match data index
+  ASSERT_TRUE(AttrUtils::SetInt(aippData1->GetOpDesc(), "index", 1));  // set no match data index
   auto ret = LoweringDataNode(aippData1, lower_input);
   ASSERT_TRUE(ret.result.IsSuccess());
   DumpGraph(ret.out_addrs[0]->GetExecuteGraph(), "LoweredDataGraph");
@@ -757,7 +759,8 @@ TEST_F(InputsConverterUt, ConvertAippDataOk) {
   ASSERT_NE(data_node, nullptr);
   EXPECT_EQ(data_node->GetDataOutNum(), 1);
 
-  auto sink_tensor_node = ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(), "SplitDataTensor");
+  auto sink_tensor_node =
+      ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(), "SplitDataTensor");
   ASSERT_NE(sink_tensor_node, nullptr);
   EXPECT_EQ(sink_tensor_node->GetDataOutNum(), 2);
   EXPECT_EQ(sink_tensor_node->GetDataInNum(), 2);
@@ -773,7 +776,7 @@ TEST_F(InputsConverterUt, ConvertConstWithMaxLengthTensor) {
 }
 
 /*
- * exepct graph:
+ * expect graph:
  *       FreeTensorMemory
  *            |
  *        SplitTensor
@@ -798,7 +801,8 @@ TEST_F(InputsConverterUt, ConvertRefDataOk) {
   ASSERT_NE(data_node, nullptr);
   EXPECT_EQ(data_node->GetDataOutNum(), 1);
 
-  auto sink_tensor_node = ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(),"SplitDataTensor");
+  auto sink_tensor_node =
+      ExecuteGraphUtils::FindFirstNodeMatchType(ret.out_addrs[0]->GetExecuteGraph(), "SplitDataTensor");
   ASSERT_NE(sink_tensor_node, nullptr);
   EXPECT_EQ(sink_tensor_node->GetDataOutNum(), 2);
   EXPECT_EQ(sink_tensor_node->GetDataInNum(), 2);
@@ -810,9 +814,7 @@ TEST_F(InputsConverterUt, ConvertRefDataOk) {
   EXPECT_EQ(data_node->GetOutDataNodesByIndex(0).front(), sink_tensor_node);
 
   // 校验global data中有refdata的地址
-  auto builder = [&]() -> std::vector<bg::ValueHolderPtr> {
-    return {};
-  };
+  auto builder = [&]() -> std::vector<bg::ValueHolderPtr> { return {}; };
   auto refdata_shape_and_addr = global_lowering_data.GetOrCreateUniqueValueHolder("refdata", builder);
   EXPECT_EQ(refdata_shape_and_addr.size(), 2);
   EXPECT_NE(refdata_shape_and_addr[1], nullptr);
@@ -836,11 +838,8 @@ TEST_F(InputsConverterUt, ConvertRefDataInSubGraphOk) {
   EXPECT_EQ(ret.out_shapes.size(), 1);
   EXPECT_EQ(ret.out_addrs[0]->GetExecuteGraph()->GetAllNodes().size(), 11);
 
-
   // 校验global data中有refdata的地址
-  auto builder = [&]() -> std::vector<bg::ValueHolderPtr> {
-    return {};
-  };
+  auto builder = [&]() -> std::vector<bg::ValueHolderPtr> { return {}; };
   auto refdata_shape_and_addr = global_lowering_data.GetOrCreateUniqueValueHolder("input", builder);
   EXPECT_EQ(refdata_shape_and_addr.size(), 2);
   EXPECT_NE(refdata_shape_and_addr[1], nullptr);
@@ -879,21 +878,21 @@ TEST_F(InputsConverterUt, ConvertRefDataInSubGraphFailed) {
  */
 ComputeGraphPtr BuildConstPlaceHolderGraph() {
   DEF_GRAPH(g1) {
-                    CHAIN(NODE("ConstPlaceHolder", "ConstPlaceHolder")->NODE("NetOutput", "NetOutput"));
-                };
-  vector<int64_t > shape_ori({1, 2, 3});
-  vector<int64_t > shape_sto({3, 2, 1});
+    CHAIN(NODE("ConstPlaceHolder", "ConstPlaceHolder")->NODE("NetOutput", "NetOutput"));
+  };
+  vector<int64_t> shape_ori({1, 2, 3});
+  vector<int64_t> shape_sto({3, 2, 1});
   auto graph = ToComputeGraph(g1);
   auto ConstPlaceHolder = graph->FindNode("ConstPlaceHolder");
   auto constplaceholder_op_desc1 = ConstPlaceHolder->GetOpDesc();
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "origin_shape", shape_ori);
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "storage_shape", shape_sto);
   DataType data_type = DT_FLOAT;
-  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type); // float
+  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type);  // float
   int64_t data_length = 24L;
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "size", data_length);
   int64_t placement = 1L;
-  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement); // device
+  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement);  // device
   int64_t device_addr = 20000;
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "addr", device_addr);
 
@@ -917,8 +916,7 @@ TEST_F(InputsConverterUt, ConvertConstPlaceHolderOk) {
   auto root_graph = ret.out_addrs[0]->GetExecuteGraph();
   ASSERT_NE(root_graph, nullptr);
 
-  ASSERT_EQ(ExeGraphSummaryChecker(root_graph)
-                .StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
+  ASSERT_EQ(ExeGraphSummaryChecker(root_graph).StrictDirectNodeTypes({{"Init", 1}, {"Main", 1}, {"DeInit", 1}}),
             "success");
   EXPECT_EQ(ret.out_addrs[0]->GetFastNode()->GetType(), "Init");
 
@@ -1016,7 +1014,8 @@ ComputeGraphPtr BuildMultiBatchShapeGraph() {
   shape_data->GetOpDesc()->MutableOutputDesc(0)->SetFormat(ge::FORMAT_ND);
   shape_data->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(ge::FORMAT_ND);
   std::vector<int32_t> unknown_shape_data_index = {0, 1, 2};
-  (void)ge::AttrUtils::SetListInt(shape_data->GetOpDesc(), "_dynamic_batch_unknown_data_index", unknown_shape_data_index);
+  (void)ge::AttrUtils::SetListInt(shape_data->GetOpDesc(), "_dynamic_batch_unknown_data_index",
+                                  unknown_shape_data_index);
   if (!AttrUtils::SetInt(shape_data->GetOpDesc(), "index", 4)) {
     return nullptr;
   }

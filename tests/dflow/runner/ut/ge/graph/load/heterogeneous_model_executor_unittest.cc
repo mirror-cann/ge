@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,24 +35,24 @@ namespace {
 Status DevStatCallBackFail() {
   return FAILED;
 }
-} // namespace
+}  // namespace
 
 class HeterogeneousModelExecutorTest : public testing::Test {
  protected:
   class MockExchangeService : public ExchangeService {
    public:
-    Status CreateQueue(int32_t device_id,
-                       const string &name,
-                       const MemQueueAttr &mem_queue_attr,
+    Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                        uint32_t &queue_id) override {
       queue_id = queue_id_gen_++;
       return SUCCESS;
     }
     MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, const void *, size_t, const ExchangeService::ControlInfo &));
-    MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, size_t, const ExchangeService::FillFunc &, const ExchangeService::ControlInfo &));
-    MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void * , size_t, ExchangeService::ControlInfo &));
-    MOCK_METHOD5(DequeueMbufTensor, Status(int32_t, uint32_t, std::shared_ptr<AlignedPtr> &, size_t, ExchangeService::ControlInfo &));
-    MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor & , ExchangeService::ControlInfo &));
+    MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, size_t, const ExchangeService::FillFunc &,
+                                 const ExchangeService::ControlInfo &));
+    MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void *, size_t, ExchangeService::ControlInfo &));
+    MOCK_METHOD5(DequeueMbufTensor,
+                 Status(int32_t, uint32_t, std::shared_ptr<AlignedPtr> &, size_t, ExchangeService::ControlInfo &));
+    MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor &, ExchangeService::ControlInfo &));
     MOCK_METHOD4(DequeueMbuf, Status(int32_t, uint32_t, rtMbufPtr_t *, int32_t));
     MOCK_METHOD4(EnqueueMbuf, Status(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout));
 
@@ -77,8 +77,7 @@ class HeterogeneousModelExecutorTest : public testing::Test {
 
   class MockModelDeployer : public ModelDeployer {
    public:
-    Status DeployModel(const FlowModelPtr &flow_model,
-                       DeployResult &deploy_result) override {
+    Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
       return SUCCESS;
     }
     Status Undeploy(uint32_t model_id) override {
@@ -125,7 +124,7 @@ class HeterogeneousModelExecutorTest : public testing::Test {
     DeployResult deploy_result;
     deploy_result.model_id = 777;
     deploy_result.input_queue_attrs = {{1, 0, 0}, {2, 0, 0}};
-    deploy_result.broadcast_input_queue_attrs= {{{1, 0, 0}}};
+    deploy_result.broadcast_input_queue_attrs = {{{1, 0, 0}}};
     deploy_result.output_queue_attrs = {{5, 0, 0}};
     deploy_result.input_model_name = default_root_model_->GetModelName();
     deploy_result.dev_abnormal_callback = []() -> Status { return SUCCESS; };
@@ -171,10 +170,10 @@ Status DequeueNoTilingStubWithEOS(int32_t device_id, uint32_t queue_id, GeTensor
 }
 
 Status DequeueTensorFailed(int32_t device_id, uint32_t queue_id, GeTensor &tensor,
-                                  ExchangeService::ControlInfo &control_info) {
+                           ExchangeService::ControlInfo &control_info) {
   return ACL_ERROR_RT_QUEUE_EMPTY;
 }
-}
+}  // namespace
 
 /**
  *     NetOutput
@@ -243,7 +242,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestSetTensorInfoFailed) {
   DeployResult deploy_result = {};
   deploy_result.model_id = 777;
   deploy_result.input_queue_attrs = {{1, 0, 0}};
-  deploy_result.output_queue_attrs = {{2, 0 ,0}};
+  deploy_result.output_queue_attrs = {{2, 0, 0}};
   auto flow_model = std::make_shared<FlowModel>();
   HeterogeneousModelExecutor executor(flow_model, deploy_result);
   ASSERT_EQ(executor.SetTensorInfo(input_mapping, {"input"}, true), UNSUPPORTED);
@@ -259,9 +258,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestExecuteModelSuccess) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return(SUCCESS));
   std::vector<GeTensor> output_tensors;
@@ -282,16 +281,17 @@ TEST_F(HeterogeneousModelExecutorTest, TestExecuteModelFailed) {
   options_info.insert(std::pair<std::string, std::string>("ge.exec.graphExecTimeout", "2000"));
   ge::GetThreadLocalContext().SetGraphOption(options_info);
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return((Status)12345U));
   std::vector<GeTensor> output_tensors;
   ASSERT_EQ(default_executor_->Execute(input_tensors, output_tensors), (Status)12345U);
   // check callback state return failed
   default_executor_->dev_abnormal_callback_ = DevStatCallBackFail;
-  EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return((Status)RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_EMPTY)));
+  EXPECT_CALL(exchange_service, Dequeue)
+      .WillRepeatedly(Return((Status)RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_EMPTY)));
   ASSERT_NE(default_executor_->Execute(input_tensors, output_tensors), SUCCESS);
 }
 
@@ -311,9 +311,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestExecuteModelNoTilingSuccess) {
     default_executor_->output_tensor_sizes_[i] = 1 * 1 * 224 * 224 * 10;
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(testing::Invoke(DequeueNoTilingStub));
   EXPECT_CALL(exchange_service, DequeueTensor).WillRepeatedly(testing::Return(SUCCESS));
@@ -338,9 +338,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestEnqueueFailed) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(RT_FAILED));
   ASSERT_EQ(default_executor_->EnqueueInputTensors(input_tensors), RT_FAILED);
 }
@@ -349,21 +349,21 @@ TEST_F(HeterogeneousModelExecutorTest, TestExecuteModelWithEOS) {
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   std::vector<GeTensor> input_tensors;
   for (size_t i = 0; i < default_executor_->input_queue_attrs_.size(); ++i) {
-  auto tensor_desc = default_executor_->input_tensor_desc_[i];
-  auto tensor_size = default_executor_->input_tensor_sizes_[i];
-  default_executor_->input_is_no_tiling_[i] = true;
-  GeTensor tensor(*tensor_desc, std::vector<uint8_t>(tensor_size));
-  input_tensors.emplace_back(tensor);
+    auto tensor_desc = default_executor_->input_tensor_desc_[i];
+    auto tensor_size = default_executor_->input_tensor_sizes_[i];
+    default_executor_->input_is_no_tiling_[i] = true;
+    GeTensor tensor(*tensor_desc, std::vector<uint8_t>(tensor_size));
+    input_tensors.emplace_back(tensor);
   }
 
   for (size_t i = 0; i < default_executor_->output_queue_attrs_.size(); ++i) {
-  default_executor_->output_is_no_tiling_[i] = true;
-  default_executor_->output_tensor_sizes_[i] = 1 * 1 * 224 * 224 * 10;
+    default_executor_->output_is_no_tiling_[i] = true;
+    default_executor_->output_tensor_sizes_[i] = 1 * 1 * 224 * 224 * 10;
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   EXPECT_CALL(exchange_service, DequeueTensor).WillRepeatedly(testing::Invoke(DequeueNoTilingStubWithEOS));
   std::vector<GeTensor> output_tensors;
@@ -382,9 +382,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataSuccess) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   size_t size = 0;
   EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<size_t>(Enqueue3SizeMatcher(size)), _, _))
@@ -397,7 +397,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataSuccess) {
   info.SetTransactionId(1000);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -426,9 +426,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedRawDataSuccess) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   DataFlowInfo info;
   info.SetStartTime(1UL);
@@ -437,7 +437,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedRawDataSuccess) {
   info.SetTransactionId(1024);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -486,9 +486,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataWithSingleInputSuccess) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   DataFlowInfo info;
   info.SetStartTime(1UL);
@@ -496,7 +496,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataWithSingleInputSuccess) {
   info.SetFlowFlags(0U);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -519,7 +519,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchDataSameElement) {
   }
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -548,7 +548,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchDataSuccess) {
   info.SetFlowFlags(0U);
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -588,7 +588,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchDataEOS) {
 }
 
 TEST_F(HeterogeneousModelExecutorTest, TestTensorsExecuteFusion) {
-  default_executor_->input_queue_attrs_ = {{1, 0, 0}, {1, 0, 0}}; // queue ids are same;
+  default_executor_->input_queue_attrs_ = {{1, 0, 0}, {1, 0, 0}};  // queue ids are same;
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   std::vector<GeTensor> input_tensors;
   for (size_t i = 0; i < default_executor_->input_queue_attrs_.size(); ++i) {
@@ -598,9 +598,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestTensorsExecuteFusion) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   size_t size = 0;
   EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<size_t>(Enqueue3SizeMatcher(size)), _, _))
@@ -643,8 +643,7 @@ TEST_F(HeterogeneousModelExecutorTest, BuildInputTensorDescMapping_DataCtrLinkTo
 }
 
 uint32_t g_sched_cnt;
-Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
-                                   rtMbufPtr_t *m_buf, int32_t timeout) {
+Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) {
   if (g_sched_cnt > 0 && queue_id == 105) {
     domi::SubmodelStatus submodel_status;
     auto queue_status = submodel_status.add_queue_statuses();
@@ -692,8 +691,9 @@ Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
 }
 
 bool g_dynamic_sched_by_cache = false;
-Status DynamicSchedEnqueueStub(int32_t device_id, uint32_t queue_id, size_t size, const ExchangeService::FillFunc &fill_func,
-                   const ExchangeService::ControlInfo &control_info) {
+Status DynamicSchedEnqueueStub(int32_t device_id, uint32_t queue_id, size_t size,
+                               const ExchangeService::FillFunc &fill_func,
+                               const ExchangeService::ControlInfo &control_info) {
   if (queue_id == 101) {
     rtMbufPtr_t req_msg_mbuf = nullptr;
     void *input_buffer = nullptr;
@@ -721,8 +721,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexByDefaultSt
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -730,19 +729,15 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexByDefaultSt
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {3, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{3, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     default_executor_->cached_trans_ids_[i] = {0};
   }
-  default_executor_->routelabel_cache_info_ = {
-    {{1, 0}, {{3, std::make_pair(1, "")}}},
-    {{7, 8}, {{9, std::make_pair(10, "")}}}
-  };
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  default_executor_->routelabel_cache_info_ = {{{1, 0}, {{3, std::make_pair(1, "")}}},
+                                               {{7, 8}, {{9, std::make_pair(10, "")}}}};
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   g_sched_cnt = 0;
@@ -779,8 +774,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexBySched) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -788,10 +782,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexBySched) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     default_executor_->cached_trans_ids_[i] = {0};
@@ -802,7 +794,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexBySched) {
   status.device_type = 0;
   default_executor_->queue_status_info_[1].first = status;
   default_executor_->queue_status_info_[1].second = 0;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   g_sched_cnt = 0;
@@ -838,8 +830,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexInSingleIns
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -847,10 +838,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexInSingleIns
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, true};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, true};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     default_executor_->cached_trans_ids_[i] = {0};
@@ -861,7 +850,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexInSingleIns
   status.device_type = 0;
   default_executor_->queue_status_info_[1].first = status;
   default_executor_->queue_status_info_[1].second = 0;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   g_sched_cnt = 0;
@@ -897,8 +886,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedResponseEnqueueFailed) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -911,10 +899,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedResponseEnqueueFailed) {
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route4 = {2, 2, index_info2, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3, route4}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3, route4}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     default_executor_->cached_trans_ids_[i] = {0};
@@ -925,7 +911,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedResponseEnqueueFailed) {
   status.device_type = 0;
   default_executor_->queue_status_info_[1].first = status;
   default_executor_->queue_status_info_[1].second = 0;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   g_sched_cnt = 0;
@@ -961,8 +947,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexByCache) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -970,20 +955,16 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFindGroupIndexByCache) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {3, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{3, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     default_executor_->cached_trans_ids_[i] = {0};
   }
-  default_executor_->routelabel_cache_info_ = {
-    {{1, 0}, {{3, std::make_pair(1, "")}}},
-    {{7, 8}, {{9, std::make_pair(10, "")}}}
-  };
+  default_executor_->routelabel_cache_info_ = {{{1, 0}, {{3, std::make_pair(1, "")}}},
+                                               {{7, 8}, {{9, std::make_pair(10, "")}}}};
   g_dynamic_sched_by_cache = true;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   g_sched_cnt = 0;
@@ -1021,8 +1002,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedInitFailedWithWrongBindin
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -1030,12 +1010,10 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedInitFailedWithWrongBindin
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{3, 102}};
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   ASSERT_EQ(default_executor_->Initialize(), FAILED);
   default_executor_->is_dynamic_sched_ = false;
@@ -1058,8 +1036,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFetchDataSuccess) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -1067,10 +1044,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFetchDataSuccess) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
@@ -1088,7 +1063,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFetchDataSuccess) {
   info.SetFlowFlags(0U);
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1121,8 +1096,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedModelIndexInfoUpdateSucce
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -1130,10 +1104,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedModelIndexInfoUpdateSucce
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
   DeployQueueAttr queue_attr2 = {};
   queue_attr2.device_id = 0;
@@ -1156,29 +1128,30 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedModelIndexInfoUpdateSucce
   printf("start AbnormalStatusCallbackInit\n");
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   printf("success AbnormalStatusCallbackInit size=%zu\n",
-      default_executor_->abnormal_status_callback_info_->callback_list.size());
+         default_executor_->abnormal_status_callback_info_->callback_list.size());
   uint32_t dynamic_sched = kCallbackStartRedeploy;
   RootModelId2SubmodelName par2;
   par2[0]["model1_0_0_1"] = false;
   par2[0]["model2_0_0_1"] = false;
   for (auto &iter : abnormal_status_callback_info.callback_list) {
-     ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
-   }
+    ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
+  }
   dynamic_sched = kCallbackDynamicSched;
   for (auto &iter : abnormal_status_callback_info.callback_list) {
-     ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
-   }
+    ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
+  }
   dynamic_sched = kCallbackFailedRedeploy;
   for (auto &iter : abnormal_status_callback_info.callback_list) {
-     ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
-   }
+    ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
+  }
   std::unordered_set<std::string> trimming_names = {"test_model"};
   default_executor_->model_trimming_edges_model_instances_.emplace_back(trimming_names);
   dynamic_sched = kCallbackStartRedeploy;
   for (auto &iter : abnormal_status_callback_info.callback_list) {
     ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
   }
-  default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()] = {{"test_model", false}};
+  default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()] = {
+      {"test_model", false}};
   for (auto &iter : abnormal_status_callback_info.callback_list) {
     ASSERT_EQ((iter.second(dynamic_sched, par2)), SUCCESS);
   }
@@ -1205,7 +1178,9 @@ TEST_F(HeterogeneousModelExecutorTest, UpdateAbnormalNamesWithTrimmingModels) {
   abnormal_submodel_instances_name[default_executor_->GetDeployedModelId()] = {{"test_model", true}};
   default_executor_->UpdateAbnormalInstanceList(abnormal_submodel_instances_name);
   ASSERT_EQ(default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()].size(), 2);
-  ASSERT_EQ(default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()]["test_model2"], true);
+  ASSERT_EQ(
+      default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()]["test_model2"],
+      true);
   default_executor_->model_trimming_edges_model_instances_.clear();
   default_executor_->abnormal_submodel_instances_name_.clear();
 
@@ -1213,7 +1188,8 @@ TEST_F(HeterogeneousModelExecutorTest, UpdateAbnormalNamesWithTrimmingModels) {
   abnormal_submodel_instances_name[default_executor_->GetDeployedModelId()] = {{"test_model", false}};
   default_executor_->UpdateAbnormalInstanceList(abnormal_submodel_instances_name);
   ASSERT_EQ(default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()].size(), 1);
-  ASSERT_EQ(default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()]["test_model"], false);
+  ASSERT_EQ(default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()]["test_model"],
+            false);
   default_executor_->model_trimming_edges_model_instances_.clear();
   default_executor_->abnormal_submodel_instances_name_.clear();
 }
@@ -1233,8 +1209,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedFetchRedeploying) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -1242,16 +1217,14 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedFetchRedeploying) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {{index_info}, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {{index_info}, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1265,7 +1238,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedFetchRedeploying) {
     std::shared_ptr<AlignedPtr> aligned_ptr;
     ExchangeService::ControlInfo control_info;
     size_t output_index = 0U;
-    ASSERT_EQ(default_executor_->DoDequeue(output_tensor, aligned_ptr, control_info, output_index), ACL_ERROR_GE_REDEPLOYING);
+    ASSERT_EQ(default_executor_->DoDequeue(output_tensor, aligned_ptr, control_info, output_index),
+              ACL_ERROR_GE_REDEPLOYING);
   }
   {
     std::vector<uint32_t> indexes;
@@ -1305,7 +1279,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataSubhealthyState) {
     input_tensors.emplace_back(tensor);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   void *data = nullptr;
   EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
@@ -1318,7 +1292,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedDataSubhealthyState) {
   info.SetFlowFlags(0U);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1354,7 +1328,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchDataSubhealthyState) {
   info.SetFlowFlags(0U);
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1369,12 +1343,9 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchDataSubhealthyState) {
 }
 
 TEST_F(HeterogeneousModelExecutorTest, TestModelIndexInfoUpdate) {
-  DeployPlan::DeviceInfo device_info1 =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
-  DeployPlan::DeviceInfo device_info2 =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(NPU), 1, 0);
-  DeployPlan::DeviceInfo device_info3 =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(NPU), 1, 1);
+  DeployPlan::DeviceInfo device_info1 = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info2 = DeployPlan::DeviceInfo(static_cast<int32_t>(NPU), 1, 0);
+  DeployPlan::DeviceInfo device_info3 = DeployPlan::DeviceInfo(static_cast<int32_t>(NPU), 1, 1);
 
   DeployPlan::ExtendedIndexInfo index_info1;
   index_info1.device_info = device_info1;
@@ -1395,19 +1366,15 @@ TEST_F(HeterogeneousModelExecutorTest, TestModelIndexInfoUpdate) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info2, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info3, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info3, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
   dlog_setlevel(0, 0, 0);
-  default_executor_->model_index_info_ = {{1, {{1,
-      {index_info1, {{1, group_info}}}
-  }}}};
+  default_executor_->model_index_info_ = {{1, {{1, {index_info1, {{1, group_info}}}}}}};
   default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()] = {{"model1", false}};
   default_executor_->ModelIndexInfoUpdate();
   EXPECT_EQ(default_executor_->model_index_info_[1][1].first.is_normal, false);
   default_executor_->model_index_info_.clear();
   default_executor_->abnormal_submodel_instances_name_.clear();
-  default_executor_->model_index_info_ = {{1, {{1,
-      {index_info1, {{1, group_info}}}
-  }}}};
+  default_executor_->model_index_info_ = {{1, {{1, {index_info1, {{1, group_info}}}}}}};
   default_executor_->abnormal_submodel_instances_name_[default_executor_->GetDeployedModelId()] = {{"model2", false}};
   default_executor_->ModelIndexInfoUpdate();
   EXPECT_EQ(default_executor_->model_index_info_[1][1].second[1].routes[0].extended_info.is_normal, false);
@@ -1428,8 +1395,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedDataSuccess) {
   queue_attr.queue_id = 102;
   default_executor_->sched_output_queue_attrs_.push_back(queue_attr);
 
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -1437,12 +1403,10 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedDataSuccess) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  default_executor_->model_index_info_ = {{1, {{1,
-      {index_info, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  default_executor_->model_index_info_ = {{1, {{1, {index_info, {{1, group_info}}}}}}};
   default_executor_->datagw_request_bindings_ = {{1, 102}};
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
 
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
@@ -1456,7 +1420,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedDataSuccess) {
   }
 
   void *data = nullptr;
-  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void*>(Enqueue3VoidMatcher(data)), _, _))
+  EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<const void *>(Enqueue3VoidMatcher(data)), _, _))
       .WillRepeatedly(Return(SUCCESS));
   size_t size = 0;
   EXPECT_CALL(exchange_service, Enqueue(_, _, Matcher<size_t>(Enqueue3SizeMatcher(size)), _, _))
@@ -1468,7 +1432,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestDynamicSchedFeedDataSuccess) {
   info.SetFlowFlags(0U);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1502,10 +1466,10 @@ TEST_F(HeterogeneousModelExecutorTest, TestFillFusionInput) {
   HeterogeneousModelExecutor executor(flow_model, deploy_result);
   auto tensor_data1 = "qwertyui";
   GeTensor tensor1(GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_INT8), (uint8_t *)tensor_data1, 8);
-  auto buff =std::unique_ptr<uint8_t[]>(new uint8_t[1500]);
+  auto buff = std::unique_ptr<uint8_t[]>(new uint8_t[1500]);
   std::vector<GeTensor> inputs;
   inputs.emplace_back(tensor1);
-  EXPECT_EQ(executor.FillFusionInput(inputs, reinterpret_cast<void*>(buff.get()), 2048), SUCCESS);
+  EXPECT_EQ(executor.FillFusionInput(inputs, reinterpret_cast<void *>(buff.get()), 2048), SUCCESS);
 }
 
 TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataSuccess) {
@@ -1523,7 +1487,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataSuccess) {
   info.SetFlowFlags(0U);
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1546,7 +1510,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataTimeout) {
   DataFlowInfo info;
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1569,7 +1533,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataFailed) {
   DataFlowInfo info;
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1616,7 +1580,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataOverLimit) {
   DataFlowInfo info;
   std::vector<GeTensor> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1694,7 +1658,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestAlignFetchDataWithException) {
   default_executor_->output_is_no_tiling_.emplace_back(true);
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1743,11 +1707,11 @@ TEST_F(HeterogeneousModelExecutorTest, TestFeedFlowMsgSuccess) {
     input_flow_msgs.emplace_back(msg);
   }
 
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, EnqueueMbuf).WillRepeatedly(Return(SUCCESS));
 
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1764,8 +1728,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchTensorFlowMsgSuccess) {
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   auto tensor = FlowBufferFactory::AllocTensorMsg({1, 1}, DT_INT32);
-  auto mock_dequeue_mbuf =
-    [tensor](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [tensor](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                    int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(tensor);
     *m_buf = input_msg->MbufCopyRef();
     return SUCCESS;
@@ -1775,7 +1739,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchTensorFlowMsgSuccess) {
 
   std::vector<FlowMsgPtr> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1791,8 +1755,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchRawDataFlowMsgSuccess) {
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   auto raw_data = FlowBufferFactory::AllocRawDataMsg(5);
-  auto mock_dequeue_mbuf =
-    [raw_data](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [raw_data](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                      int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(raw_data);
     *m_buf = input_msg->MbufCopyRef();
     return SUCCESS;
@@ -1802,7 +1766,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchRawDataFlowMsgSuccess) {
 
   std::vector<FlowMsgPtr> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1818,8 +1782,8 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchEmptyDataFlowMsgEndOfSequence) {
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   auto empty = FlowBufferFactory::AllocEmptyDataMsg(MsgType::MSG_TYPE_TENSOR_DATA);
-  auto mock_dequeue_mbuf =
-    [empty](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [empty](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                   int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(empty);
     *m_buf = input_msg->MbufCopyRef();
     // set end of sequence
@@ -1834,7 +1798,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchEmptyDataFlowMsgEndOfSequence) {
 
   std::vector<FlowMsgPtr> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");
@@ -1849,8 +1813,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchEmptyDataFlowMsgEndOfSequence) {
 TEST_F(HeterogeneousModelExecutorTest, TestFetchFlowMsgTimeout) {
   ASSERT_EQ(default_executor_->Initialize(), SUCCESS);
   auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
-  auto mock_dequeue_mbuf =
-    [](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
     return RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_EMPTY);
   };
 
@@ -1858,7 +1821,7 @@ TEST_F(HeterogeneousModelExecutorTest, TestFetchFlowMsgTimeout) {
 
   std::vector<FlowMsgPtr> outputs;
   auto original_handle = ExecutionRuntime::handle_;
-  ExecutionRuntime::handle_ = (void*)0x12345678;
+  ExecutionRuntime::handle_ = (void *)0x12345678;
   auto options_bk = GetThreadLocalContext().GetAllSessionOptions();
   auto options = options_bk;
   options.emplace(RESOURCE_CONFIG_PATH, "xxx");

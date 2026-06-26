@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,9 @@ class NpuSchedModelLoader {
   void SetInputDynamicFlags(const std::vector<bool> &input_dynamic_flags);
   void SetOutputStaticTensorDescs(const std::vector<RuntimeTensorDesc> &output_static_tensor_descs);
   void SetGlobalStep(const uint64_t global_step);
-  void SetInputAlignAttrs(const InputAlignAttrs &input_align_attrs) { input_align_attrs_ = input_align_attrs; }
+  void SetInputAlignAttrs(const InputAlignAttrs &input_align_attrs) {
+    input_align_attrs_ = input_align_attrs;
+  }
   void SetEnablePostProcessV2Flag(const bool enable);
   void SetSkipMarkStep(bool skip_mark_step);
   uint32_t GetReqMsgQueueId() const;
@@ -109,5 +111,5 @@ class NpuSchedModelLoader {
   std::mutex queue_res_init_mutex_;
   bool queue_res_init_flag_ = false;
 };
-}
+}  // namespace ge
 #endif  // AIR_RUNTIME_DEPLOY_EXECUTOR_NPU_SCHED_MODEL_LOADER_H

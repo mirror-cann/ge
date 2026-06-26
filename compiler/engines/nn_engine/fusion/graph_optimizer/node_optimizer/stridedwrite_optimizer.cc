@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,6 @@
 #include "common/lxfusion_json_util.h"
 #include "graph/debug/ge_attr_define.h"
 #include "param_calculate/tensor_compute_util.h"
-
 
 using ToOpStructPtr = std::shared_ptr<fe::ToOpStruct_t>;
 namespace fe {
@@ -37,8 +36,8 @@ int32_t StridedWriteOptimizer::GetRealConcatDim(const ge::OpDescPtr &op_desc) co
   size_t shape_size = input_shape.size();
   size_t out_shape_size = output_shape.size();
   if (shape_size != out_shape_size) {
-    FE_LOGW("Cur node[%s], input_shape_size[%zu] does not match output_shape_size[%zu]",
-            op_desc->GetName().c_str(), shape_size, out_shape_size);
+    FE_LOGW("Cur node[%s], input_shape_size[%zu] does not match output_shape_size[%zu]", op_desc->GetName().c_str(),
+            shape_size, out_shape_size);
     return -1;
   }
   for (size_t index = 0; index < shape_size; ++index) {
@@ -72,8 +71,8 @@ Status StridedWriteOptimizer::SetStrideWriteInfoPhonyConcat(const ge::NodePtr &c
     ++cnt;
     bool last_input = (cnt == in_anchors.size()) ? true : false;
     idx = out_anchor->GetIdx();
-    if (FeedToOpStructInfo(peer_node, idx, concat_out_shape, last_input,
-                           phony_concat_dim, offset, true) != fe::SUCCESS) {
+    if (FeedToOpStructInfo(peer_node, idx, concat_out_shape, last_input, phony_concat_dim, offset, true) !=
+        fe::SUCCESS) {
       REPORT_FE_ERROR("[ConcatOptimize][SetSwInfo] FeedToOpStructInfo of node[%s] failed.",
                       peer_node->GetName().c_str());
       return FAILED;
@@ -124,9 +123,8 @@ Status StridedWriteOptimizer::SetStrideWriteInfoForInputs(const ge::NodePtr &con
   return fe::SUCCESS;
 }
 
-void StridedWriteOptimizer::CalSliceOffset(const std::vector<int64_t> &output_shape,
-                                           ge::DataType data_type, int64_t &output_offset_buff,
-                                           const int32_t &concat_dim) const {
+void StridedWriteOptimizer::CalSliceOffset(const std::vector<int64_t> &output_shape, ge::DataType data_type,
+                                           int64_t &output_offset_buff, const int32_t &concat_dim) const {
   int32_t shape_size = static_cast<int32_t>(output_shape.size());
   if (shape_size < concat_dim + 1) {
     FE_LOGE("Invalid output_shape size [%d], concat_dim [%d].", shape_size, concat_dim);
@@ -151,24 +149,20 @@ void StridedWriteOptimizer::CalSliceOffset(const std::vector<int64_t> &output_sh
 
 Status StridedWriteOptimizer::FeedToOpStructInfo(ge::NodePtr &node, const size_t &idx,
                                                  const std::vector<int64_t> &concat_out_shape,
-                                                 const bool &is_last_input,
-                                                 const int32_t &concat_dim,
-                                                 int64_t &phony_concat_offset,
-                                                 const bool &set_offset) const {
+                                                 const bool &is_last_input, const int32_t &concat_dim,
+                                                 int64_t &phony_concat_offset, const bool &set_offset) const {
   ge::OpDescPtr op_desc = node->GetOpDesc();
-  if (FeedToOpStructInfo(op_desc, idx, concat_out_shape, is_last_input, concat_dim,
-                         phony_concat_offset, set_offset) != SUCCESS) {
+  if (FeedToOpStructInfo(op_desc, idx, concat_out_shape, is_last_input, concat_dim, phony_concat_offset, set_offset) !=
+      SUCCESS) {
     return FAILED;
   }
   return SUCCESS;
 }
 
-Status StridedWriteOptimizer::FeedToOpStructInfo(ge::OpDescPtr& op_desc, const size_t &idx,
+Status StridedWriteOptimizer::FeedToOpStructInfo(ge::OpDescPtr &op_desc, const size_t &idx,
                                                  const std::vector<int64_t> &concat_out_shape,
-                                                 const bool &is_last_input,
-                                                 const int32_t &concat_dim,
-                                                 int64_t &phony_concat_offset,
-                                                 const bool &set_offset) const {
+                                                 const bool &is_last_input, const int32_t &concat_dim,
+                                                 int64_t &phony_concat_offset, const bool &set_offset) const {
   ge::GeTensorDescPtr tensor_desc = op_desc->MutableOutputDesc(idx);
   FE_CHECK_NOTNULL(tensor_desc);
 
@@ -197,16 +191,17 @@ Status StridedWriteOptimizer::FeedToOpStructInfo(ge::OpDescPtr& op_desc, const s
   }
   if (is_last_input) {
     output_offset_buff = 0;
-    FE_LOGD("Concat input_node[%s] is the final input; therefore, there is no need to calculate the output_offset_buff.",
-            op_desc->GetName().c_str());
+    FE_LOGD(
+        "Concat input_node[%s] is the final input; therefore, there is no need to calculate the output_offset_buff.",
+        op_desc->GetName().c_str());
   }
   FE_LOGD("Concat input_node[%s], phony_concat_offset is [%ld], and output_offset_buff is [%ld].",
           op_desc->GetName().c_str(), phony_concat_offset, output_offset_buff);
   outputs_offset[idx] = output_offset_buff;
 
   (void)ge::AttrUtils::SetListInt(op_desc, kOutputOffsetForBufferFusion, outputs_offset);
-  FE_LOGD("Op[%s] set attr _output_offet_for_buffer_fusion[%ld] successfully.",
-          op_desc->GetName().c_str(), output_offset_buff);
+  FE_LOGD("Op[%s] set attr _output_offet_for_buffer_fusion[%ld] successfully.", op_desc->GetName().c_str(),
+          output_offset_buff);
 
   op_desc->SetOutputOffset(output_i);
 

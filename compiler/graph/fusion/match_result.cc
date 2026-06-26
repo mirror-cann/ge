@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ class MatchResultImpl {
  public:
   explicit MatchResultImpl(const Pattern *const pattern)
       : pattern_(const_cast<Pattern *>(pattern)), captured_tensors_(pattern) {}
-  MatchResultImpl& operator=(const MatchResultImpl&) = delete;
+  MatchResultImpl &operator=(const MatchResultImpl &) = delete;
   MatchResultImpl(const MatchResultImpl &other) : pattern_(other.pattern_), captured_tensors_(other.pattern_) {
     if (&other != this) {
       this->pattern_node_2_matched_node_ = other.pattern_node_2_matched_node_;
@@ -172,13 +172,14 @@ class MatchResultImpl {
       auto netoutput = pattern_graph->FindFirstNodeMatchType(NETOUTPUT);
       GE_ASSERT_NOTNULL(netoutput);
       for (size_t output_idx = 0U; output_idx < netoutput->GetAllInDataAnchorsSize(); ++output_idx) {
-        auto peer_out_anchor= netoutput->GetInDataAnchor(output_idx)->GetPeerOutAnchor();
+        auto peer_out_anchor = netoutput->GetInDataAnchor(output_idx)->GetPeerOutAnchor();
         out_data_anchor_2_out_idx_[peer_out_anchor] = output_idx;
         output_nodes_.emplace(peer_out_anchor->GetOwnerNode());
         output_anchors_[peer_out_anchor->GetOwnerNode()].emplace(peer_out_anchor->GetIdx());
       }
       return SUCCESS;
     }
+
    private:
     std::set<NodePtr> output_nodes_;
     std::map<NodePtr, std::set<size_t>> output_anchors_;
@@ -231,6 +232,7 @@ class MatchResultImpl {
       node_output = {NodeAdapter::Node2GNode(out_data_anchor->GetOwnerNode()), out_data_anchor->GetIdx()};
       return SUCCESS;
     }
+
    private:
     std::set<OutDataAnchorPtr> pattern_captured_set_;
     std::map<OutDataAnchorPtr, size_t> pattern_captured_tensor_2_idx_;
@@ -243,8 +245,8 @@ class MatchResultImpl {
 
   std::set<NodePtr> matched_nodes_;
   std::map<NodePtr, NodePtr> pattern_node_2_matched_node_;
-  std::map<size_t, NodeIo> in_idx_2_out_data_anchor_; // match ret的input边界
-  std::map<size_t, NodeIo> out_idx_2_out_data_anchor_; // match ret的output边界
+  std::map<size_t, NodeIo> in_idx_2_out_data_anchor_;   // match ret的input边界
+  std::map<size_t, NodeIo> out_idx_2_out_data_anchor_;  // match ret的output边界
   CapturedTensors captured_tensors_;
 };
 
@@ -285,8 +287,7 @@ std::vector<GNode> MatchResult::GetMatchedNodes() const {
   return matched_nodes;
 }
 
-Status MatchResult::AppendNodeMatchPair(const NodeIo &pattern_node_out_tensor,
-                                        const NodeIo &target_node_out_tensor) {
+Status MatchResult::AppendNodeMatchPair(const NodeIo &pattern_node_out_tensor, const NodeIo &target_node_out_tensor) {
   return (impl_ != nullptr) ? impl_->AppendNodeMatchPair(pattern_node_out_tensor, target_node_out_tensor) : FAILED;
 }
 
@@ -336,5 +337,5 @@ const Graph &MatchResult::GetPatternGraph() const {
 }
 
 MatchResult::~MatchResult() = default;
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

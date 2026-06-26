@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,42 +57,40 @@ const char_t *const kNetworkModeCtrlDefaultPorts = "10023";
 const char_t *const kNetworkModeDataDefaultPorts = "18000~22000";
 
 template <typename T>
-inline void AssignOptionalField(T &varible, const string &key, const nlohmann::json &json_read) {
+inline void AssignOptionalField(T &variable, const string &key, const nlohmann::json &json_read) {
   auto iter = json_read.find(key);
   if (iter != json_read.end()) {
-    varible = iter.value().get<T>();
+    variable = iter.value().get<T>();
   }
 }
 
 template <typename T>
-inline void AssignOptionalField(T &varible,
-                                const string &key,
-                                const nlohmann::json &json_read,
+inline void AssignOptionalField(T &variable, const string &key, const nlohmann::json &json_read,
                                 const T &default_value) {
   auto iter = json_read.find(key);
   if (iter != json_read.end()) {
     try {
-      varible = iter.value().get<T>();
-    }  catch (const nlohmann::json::exception &e) {
-      GELOGE(ACL_ERROR_GE_PARAM_INVALID, "Failed to read config[%s] from json[%s], err msg: %s.",
-             key.c_str(), iter.value().dump().c_str(), e.what());
+      variable = iter.value().get<T>();
+    } catch (const nlohmann::json::exception &e) {
+      GELOGE(ACL_ERROR_GE_PARAM_INVALID, "Failed to read config[%s] from json[%s], err msg: %s.", key.c_str(),
+             iter.value().dump().c_str(), e.what());
       throw e;
     }
   } else {
-    varible = default_value;
+    variable = default_value;
   }
 }
 
 template <typename T>
-inline void AssignRequiredField(T &varible, const string &key, const nlohmann::json &json_read) {
+inline void AssignRequiredField(T &variable, const string &key, const nlohmann::json &json_read) {
   try {
-    json_read.at(key).get_to(varible);
-  }  catch (const nlohmann::json::exception &e) {
+    json_read.at(key).get_to(variable);
+  } catch (const nlohmann::json::exception &e) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "Failed to read config[%s], err msg: %s.", key.c_str(), e.what());
     throw e;
   }
 }
-}
+}  // namespace
 
 struct ClusterNodesTopology {
   std::string protocol = kProtocolTypeRdma;
@@ -144,9 +142,7 @@ static void from_json(const nlohmann::json &j, ClusterNodesTopology &nodes_topol
 static void from_json(const nlohmann::json &j, ClusterConfig &cluster_config) {
   AssignRequiredField(cluster_config.node_list, kConfigClusterNodes, j);
   std::sort(cluster_config.node_list.begin(), cluster_config.node_list.end(),
-            [](const NodeConfig &lhs, const NodeConfig &rhs) -> bool {
-              return (lhs.node_id < rhs.node_id);
-            });
+            [](const NodeConfig &lhs, const NodeConfig &rhs) -> bool { return (lhs.node_id < rhs.node_id); });
   AssignOptionalField(cluster_config.nodes_topology, kConfigNodesTopology, j);
 }
 
@@ -167,12 +163,9 @@ static void from_json(const nlohmann::json &j, NodeConfig &node_config) {
   AssignOptionalField(network, kConfigDataPanel, j);
   node_config.available_ports = network.available_ports;
   GEEVENT("Get node config success, node_id = %d, ipaddr = %s, port = %d, is_local = %d, auth_lib_path %s",
-         node_config.node_id,
-         node_config.ipaddr.c_str(),
-         node_config.port,
-         static_cast<int32_t>(node_config.is_local),
-         node_config.auth_lib_path.empty() ? "is not set, skip authentication"
-                                           : (std::string("= ") + node_config.auth_lib_path).c_str());
+          node_config.node_id, node_config.ipaddr.c_str(), node_config.port, static_cast<int32_t>(node_config.is_local),
+          node_config.auth_lib_path.empty() ? "is not set, skip authentication"
+                                            : (std::string("= ") + node_config.auth_lib_path).c_str());
   AssignRequiredField(node_config.device_list, kConfigDeviceList, j);
   int32_t os_id = 0;
   for (size_t i = 0; i < node_config.device_list.size(); ++i) {
@@ -197,10 +190,8 @@ static void from_json(const nlohmann::json &j, DeviceConfig &device_config) {
   AssignRequiredField(device_config.device_id, kConfigItemId, j);
   AssignRequiredField(device_config.phy_device_id, kConfigDeviceId, j);
   device_config.hcom_device_id = device_config.device_id;
-  GELOGI("Get device config success, ipaddr = %s, device_id = %d, phy_device_id = %d",
-         device_config.ipaddr.c_str(),
-         device_config.device_id,
-         device_config.phy_device_id);
+  GELOGI("Get device config success, ipaddr = %s, device_id = %d, phy_device_id = %d", device_config.ipaddr.c_str(),
+         device_config.device_id, device_config.phy_device_id);
 }
 
 void ConfigParser::InitNetWorkInfo(DeployerConfig &deployer_config) {
@@ -215,41 +206,36 @@ Status ConfigParser::GetResourceType(const std::vector<NodeDefConfig> &node_defs
                                      std::map<std::string, std::string> &node_type_to_node_resource_type,
                                      std::map<std::string, std::string> &node_type_to_item_resource_type) {
   std::map<std::string, std::string> item_type_to_resource_type;
-  const static std::set<std::string> kSupportResourceTypeList = {kResoureTypeX86,
-                                                                 kResoureTypeAscend,
+  const static std::set<std::string> kSupportResourceTypeList = {kResoureTypeX86, kResoureTypeAscend,
                                                                  kResoureTypeAarch};
   for (const auto &item_def : item_defs) {
     const auto &resource_type = item_def.resource_type;
     const auto &it = kSupportResourceTypeList.find(resource_type);
     GE_CHK_BOOL_RET_STATUS(it != kSupportResourceTypeList.cend(), ACL_ERROR_GE_PARAM_INVALID,
                            "The resourceType[%s] of config is not supported, only support %s, %s or %s.",
-                           resource_type.c_str(),
-                           kResoureTypeX86.c_str(),
-                           kResoureTypeAscend.c_str(),
+                           resource_type.c_str(), kResoureTypeX86.c_str(), kResoureTypeAscend.c_str(),
                            kResoureTypeAarch.c_str());
     item_type_to_resource_type[item_def.item_type] = resource_type;
-    GELOGI("Parse item resource success, item type = %s, resource type = %s",
-           item_def.item_type.c_str(), item_def.resource_type.c_str());
+    GELOGI("Parse item resource success, item type = %s, resource type = %s", item_def.item_type.c_str(),
+           item_def.resource_type.c_str());
   }
   for (const auto &node_def : node_defs) {
     const auto &resource_type = node_def.resource_type;
     const auto &type_it = kSupportResourceTypeList.find(resource_type);
     GE_CHK_BOOL_RET_STATUS(type_it != kSupportResourceTypeList.cend(), ACL_ERROR_GE_PARAM_INVALID,
                            "The resourceType[%s] of config is not supported, only support %s, %s or %s.",
-                           resource_type.c_str(),
-                           kResoureTypeX86.c_str(),
-                           kResoureTypeAscend.c_str(),
+                           resource_type.c_str(), kResoureTypeX86.c_str(), kResoureTypeAscend.c_str(),
                            kResoureTypeAarch.c_str());
     node_type_to_node_resource_type[node_def.node_type] = resource_type;
-    GELOGI("Parse node resource success, node type = %s, resource type = %s",
-           node_def.node_type.c_str(), resource_type.c_str());
+    GELOGI("Parse node resource success, node type = %s, resource type = %s", node_def.node_type.c_str(),
+           resource_type.c_str());
     for (const auto &item : node_def.item_config_list) {
       const auto &it = item_type_to_resource_type.find(item.item_type);
       // all item are the same resource type
       if (it != item_type_to_resource_type.cend()) {
         node_type_to_item_resource_type[node_def.node_type] = it->second;
-        GELOGI("Parse resource success, node type = %s, item resource type = %s",
-               node_def.node_type.c_str(), it->second.c_str());
+        GELOGI("Parse resource success, node type = %s, item resource type = %s", node_def.node_type.c_str(),
+               it->second.c_str());
       }
     }
   }
@@ -283,10 +269,8 @@ Status ConfigParser::CheckProtocolType(const std::string &protocol) {
   const static std::set<std::string> kSupportProtocolList = {kProtocolTypeRdma, kProtocolTypeTcp};
   const auto &it = kSupportProtocolList.find(protocol);
   GE_CHK_BOOL_RET_STATUS(it != kSupportProtocolList.cend(), ACL_ERROR_GE_PARAM_INVALID,
-                         "The protocol[%s] of config is not supported, only support %s or %s.",
-                         protocol.c_str(),
-                         kProtocolTypeRdma.c_str(),
-                         kProtocolTypeTcp.c_str());
+                         "The protocol[%s] of config is not supported, only support %s or %s.", protocol.c_str(),
+                         kProtocolTypeRdma.c_str(), kProtocolTypeTcp.c_str());
   GELOGI("Parse protocol success, type = %s.", protocol.c_str());
   return SUCCESS;
 }
@@ -297,11 +281,9 @@ Status ConfigParser::InitAllNodeConfig(const std::vector<ClusterConfig> &cluster
                                        std::vector<NodeConfig> &node_configs) {
   std::map<std::string, std::string> node_type_to_node_resource_type;
   std::map<std::string, std::string> node_type_to_item_resource_type;
-  GE_CHK_STATUS_RET(GetResourceType(node_defs,
-                                    item_defs,
-                                    node_type_to_node_resource_type,
-                                    node_type_to_item_resource_type),
-                    "Failed to get resource type.");
+  GE_CHK_STATUS_RET(
+      GetResourceType(node_defs, item_defs, node_type_to_node_resource_type, node_type_to_item_resource_type),
+      "Failed to get resource type.");
   bool local_node_matched = false;
   int32_t cluster_index = -1;
   int32_t node_id = 0;
@@ -316,18 +298,17 @@ Status ConfigParser::InitAllNodeConfig(const std::vector<ClusterConfig> &cluster
       auto new_node = node;
       if (new_node.is_local && new_node.device_list.size() > 1) {
         const auto device_id = new_node.device_list[0].device_id;
-        (void) aclrtGetDeviceCapability(device_id, ACL_FEATURE_SYSTEM_MEMQ_EVENT_CROSS_DEV, &support_host_flowgw);
+        (void)aclrtGetDeviceCapability(device_id, ACL_FEATURE_SYSTEM_MEMQ_EVENT_CROSS_DEV, &support_host_flowgw);
         bool has_flowgw = false;
         GE_CHK_STATUS_RET(SubprocessManager::HasFlowGw(has_flowgw), "Failed to check has flowgw");
-        GEEVENT("Check has host flowgw success, support_flowgw = %d, has_flowgw = %d.",
-                support_host_flowgw, static_cast<int32_t>(has_flowgw));
+        GEEVENT("Check has host flowgw success, support_flowgw = %d, has_flowgw = %d.", support_host_flowgw,
+                static_cast<int32_t>(has_flowgw));
         support_host_flowgw = static_cast<int32_t>((support_host_flowgw != 0) && has_flowgw);
       }
       GE_CHK_STATUS_RET(CheckProtocolType(protocol), "Failed to check protocol.");
-      GE_CHK_STATUS_RET(InitNodeResourceType(node_type_to_node_resource_type,
-                                             node_type_to_item_resource_type,
-                                             new_node),
-                        "Failed to init node resource type.");
+      GE_CHK_STATUS_RET(
+          InitNodeResourceType(node_type_to_node_resource_type, node_type_to_item_resource_type, new_node),
+          "Failed to init node resource type.");
       new_node.node_id = node_id++;
       new_node.node_mesh_index.emplace_back(cluster_index);
       new_node.node_mesh_index.emplace_back(node_index);
@@ -362,19 +343,16 @@ Status ConfigParser::InitAllNodeConfig(const std::vector<ClusterConfig> &cluster
 
 Status ConfigParser::InitDeployerConfig(const std::vector<ClusterConfig> &clusters,
                                         const std::vector<NodeDefConfig> &node_defs,
-                                        const std::vector<ItemDefConfig> &item_defs,
-                                        DeployerConfig &deployer_config) {
+                                        const std::vector<ItemDefConfig> &item_defs, DeployerConfig &deployer_config) {
   std::vector<NodeConfig> node_configs;
-  GE_CHK_STATUS_RET(InitAllNodeConfig(clusters, node_defs, item_defs, node_configs),
-                    "Failed to init all node config.");
+  GE_CHK_STATUS_RET(InitAllNodeConfig(clusters, node_defs, item_defs, node_configs), "Failed to init all node config.");
   for (const auto &node : node_configs) {
     if (node.is_local) {
       deployer_config.node_config = node;
     } else {
       deployer_config.remote_node_config_list.emplace_back(node);
     }
-    GELOGI("Get node success, node index = %s, is_local = %d",
-           ToString(node.node_mesh_index).c_str(),
+    GELOGI("Get node success, node index = %s, is_local = %d", ToString(node.node_mesh_index).c_str(),
            static_cast<int32_t>(node.is_local));
   }
   InitNetWorkInfo(deployer_config);
@@ -386,16 +364,15 @@ Status ConfigParser::ParseServerInfo(const std::string &file_path, DeployerConfi
   GELOGI("Get config json path[%s]successfully", file_path.c_str());
 
   nlohmann::json json_config;
-  GE_CHK_STATUS_RET(JsonParser::ReadConfigFile(file_path, json_config),
-                    "Read config file:%s failed",
+  GE_CHK_STATUS_RET(JsonParser::ReadConfigFile(file_path, json_config), "Read config file:%s failed",
                     file_path.c_str());
   std::vector<ClusterConfig> clusters;
   std::vector<NodeDefConfig> node_defs;
   std::vector<ItemDefConfig> item_defs;
   try {
     auto clusters_json = json_config.find(kConfigCluster.c_str());
-    GE_CHK_BOOL_RET_STATUS(clusters_json != json_config.end(), ACL_ERROR_GE_PARAM_INVALID,
-                           "Json config[%s] is empty.", kConfigCluster.c_str());
+    GE_CHK_BOOL_RET_STATUS(clusters_json != json_config.end(), ACL_ERROR_GE_PARAM_INVALID, "Json config[%s] is empty.",
+                           kConfigCluster.c_str());
     clusters = clusters_json->get<std::vector<ClusterConfig>>();
     auto node_defs_json = json_config.find(kConfigNodeDef.c_str());
     if (node_defs_json != json_config.end()) {
@@ -421,8 +398,7 @@ Status ConfigParser::ParseTopologyLinks(const nlohmann::json &json_link, LinkPai
   return SUCCESS;
 }
 
-Status ConfigParser::ParseClusterNode(const nlohmann::json &json_cluster_node,
-                                      const int32_t local_node_id,
+Status ConfigParser::ParseClusterNode(const nlohmann::json &json_cluster_node, const int32_t local_node_id,
                                       ClusterNode &cluster_node) {
   try {
     cluster_node.node_id = json_cluster_node.at("node_id").get<int32_t>();
@@ -566,8 +542,7 @@ Status ConfigParser::InitNumaConfig(const std::string &file_path, NumaConfig &nu
   GELOGI("Get config json path[%s]successfully", file_path.c_str());
 
   nlohmann::json json_config;
-  GE_CHK_STATUS_RET(JsonParser::ReadConfigFile(file_path, json_config),
-                    "Read config file:%s failed",
+  GE_CHK_STATUS_RET(JsonParser::ReadConfigFile(file_path, json_config), "Read config file:%s failed",
                     file_path.c_str());
   ClusterInfo cluster_info;
   GE_CHK_STATUS_RET(ParseClusterInfo(json_config, cluster_info), "Failed to parse cluster info from json file:%s",

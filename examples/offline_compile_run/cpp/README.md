@@ -25,7 +25,7 @@ cpp/
 - 通过 [环境准备](../../../docs/zh/quick_install.md) 中“方式三：手动安装软件包 > 场景1：体验master版本能力或基于master版本进行开发”，正确安装`toolkit`和`ops`包
 - 设置环境变量 (假设包安装在/usr/local/Ascend/)
 ```
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 
 ### 3.2、图编译和图执行

@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -16,19 +16,18 @@ Node 功能测试 - 使用 pytest 框架
 测试 ge.graph.node.py 中的 Node 类的各种功能
 """
 
-from typing import List
-import pytest
-import sys
-import os
 import ctypes
+from typing import List
+
+import pytest
 
 # 需要添加 ge 到 Python 路径，否则会报错
 try:
+    from ge._capi.pyes_graph_builder_wrapper import is_generated_lib_available
     from ge.es.graph_builder import GraphBuilder, TensorHolder
+    from ge.es.ut_test import Add
     from ge.graph import Graph, Node, Shape, Tensor, TensorDesc
     from ge.graph.types import DataType, Format
-    from ge._capi.pyes_graph_builder_wrapper import is_generated_lib_available
-    from ge.es.ut_test import Add
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -49,7 +48,7 @@ class TestNode:
             index=0,
             name="test_input",
             data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
 
         # 创建常量节点
@@ -205,7 +204,6 @@ class TestNode:
         assert out_node.type == "Add"
         assert port_index == 0
 
-
     def test_get_out_data_nodes_and_port_indexes_error(self, node_first):
         handle = node_first._handle
         try:
@@ -214,12 +212,11 @@ class TestNode:
                 out_data_nodes_and_port_indexes = node_first.get_out_data_nodes_and_port_indexes(0)
         finally:
             node_first._handle = handle
-        
+
     def test_get_out_data_nodes_and_port_indexes_invalid_index(self, node):
         """测试获取输出数据节点无效索引"""
         with pytest.raises(TypeError, match="Output index must be an integer"):
             node.get_out_data_nodes_and_port_indexes("invalid")
-
 
     def test_get_attr(self, node):
         """测试获取属性"""
@@ -301,7 +298,6 @@ class TestNode:
         with pytest.raises(TypeError, match="Input index must be an integer"):
             node.set_input_attr("attr", "invalid", "input_value")
 
-
     def test_get_output_attr(self, node):
         """测试获取输出属性"""
         # 先设置一个输出属性
@@ -342,7 +338,6 @@ class TestNode:
         with pytest.raises(TypeError, match="Output index must be an integer"):
             node.set_output_attr("attr", "invalid", "output_value")
 
-
     def test_node_attr_operations_with_different_types(self, node):
         """测试不同属性类型的操作"""
         # 测试字符串属性
@@ -364,7 +359,7 @@ class TestNode:
         node.set_attr("bool_attr", True)
         retrieved_bool = node.get_attr("bool_attr")
         assert retrieved_bool is True
-    
+
     def test_get_inputs_size(self, node):
         # 获取输入数量
         inputs_size = node.get_inputs_size()
@@ -386,7 +381,7 @@ class TestNode:
         # 测试HasAttr
         has_attr = node.has_attr("test_attr")
         assert has_attr is True
-    
+
     def test_has_attr_invalid(self, node):
         with pytest.raises(TypeError, match="attr_name must be a string"):
             node.has_attr(True)

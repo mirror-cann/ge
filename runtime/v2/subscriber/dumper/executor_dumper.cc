@@ -44,8 +44,8 @@
 #include "register/ffts_node_calculater_registry.h"
 #include "graph/utils/tensor_utils.h"
 #include "utils/utils.h"
-#include "engine/aicore/kernel/mixl2_update_kernel.h" // todo: to be deleted
-#include "engine/aicpu/kernel/ffts_plus/aicpu_update_kernel.h" // todo: to be deleted
+#include "engine/aicore/kernel/mixl2_update_kernel.h"           // todo: to be deleted
+#include "engine/aicpu/kernel/ffts_plus/aicpu_update_kernel.h"  // todo: to be deleted
 #include "core/utils/executor_utils.h"
 #include "kernel/known_subgraph/davinci_model_kernel.h"
 #include "graph/utils/attr_utils.h"
@@ -72,7 +72,7 @@ const ge::char_t *const kDumpModeAll = "all";
 const ge::char_t *const kRtsFftsPlusOpKernelName = "DNN_VM_RTS_FFTS_PLUS_OP_STORE";
 const std::string kDumpStatusOpen = "on";
 
-// kernel types no nedd add dependency in InitOrderHoldersFromExeGraph
+// kernel types no need add dependency in InitOrderHoldersFromExeGraph
 const std::set<std::string> kKernelTypesNoNeedWait = {"SendEvents", "WaitEvents"};
 
 ge::Status CopyH2D(const void *host_addr, const ge::GeTensorDesc &td, const size_t builtin_tensor_data_size,
@@ -192,10 +192,10 @@ ge::Status CheckOverflow(const Node &node, const aclrtStream stream, bool &is_ov
            compute_node_type);
     return ge::SUCCESS;
   } else if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
-           rt_ret);
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.",
+           timeout, rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
-                      timeout, rt_ret);
+                         timeout, rt_ret);
     return ge::FAILED;
   } else {
     GE_ASSERT_RT_OK(rt_ret);
@@ -206,10 +206,10 @@ ge::Status CheckOverflow(const Node &node, const aclrtStream stream, bool &is_ov
 bool GetKeyAndCallbackByKernel(const std::string &kernel_type, const KernelContext *context,
                                const rtFftsPlusTaskInfo_t **task_info, const gert::ContinuousVector **ctx_info,
                                void (*&set_ctx_dump_flag_callback)(rtFftsPlusComCtx_t *)) {
-  const auto aicore_callback = [] (rtFftsPlusComCtx_t *addr) {
+  const auto aicore_callback = [](rtFftsPlusComCtx_t *addr) {
     reinterpret_cast<rtFftsPlusAicAivCtx_t *>(addr)->dumpSwitch = true;
   };
-  const auto aicpu_callback = [] (rtFftsPlusComCtx_t *addr) {
+  const auto aicpu_callback = [](rtFftsPlusComCtx_t *addr) {
     reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(addr)->dumpSwitch = true;
   };
   if (IsAICoreUpdateContextNode(kernel_type.c_str())) {
@@ -241,7 +241,7 @@ ge::Status NormalProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *du
     uint32_t stream_id = 0U;
     int32_t device_id = 0;
     GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id));
-    GE_CHK_ACL_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)));
+    GE_CHK_ACL_RET(aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)));
     GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
     ge::OpDescInfoId id(task_id, stream_id, device_id);
     dumper->SaveDumpOpInfo(op_desc, extra_dump_unit, id, true);
@@ -251,7 +251,7 @@ ge::Status NormalProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *du
 
 ge::Status FftsPlusProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *dumper, NodeDumpUnit &dump_unit,
                              ge::ExtraOpInfo &extra_dump_unit, const aclrtStream &stream) {
-  (void) stream;
+  (void)stream;
   int32_t device_id = 0;
   GE_CHK_ACL_RET(aclrtGetDevice(&device_id));
   ge::OpDescInfoId id(UINT32_MAX, UINT32_MAX, device_id);
@@ -276,11 +276,10 @@ ge::Status FftsPlusProcessor(const ge::OpDescPtr &op_desc, ge::ExceptionDumper *
 }
 
 enum class ProcessorType { kNormal = 0U, kFftsPlus, kEnd };
-const std::array<
-    std::function<ge::Status(const ge::OpDescPtr &, ge::ExceptionDumper *, NodeDumpUnit &, ge::ExtraOpInfo &, aclrtStream &)>,
-    static_cast<uint32_t>(ProcessorType::kEnd)>
+const std::array<std::function<ge::Status(const ge::OpDescPtr &, ge::ExceptionDumper *, NodeDumpUnit &,
+                                          ge::ExtraOpInfo &, aclrtStream &)>,
+                 static_cast<uint32_t>(ProcessorType::kEnd)>
     processors = {NormalProcessor, FftsPlusProcessor};
-
 
 ge::Status FindNodeNameFromSubGraph(const bg::ValueHolderPtr &order_holder, const std::string &node_type,
                                     std::string &node_name) {
@@ -644,8 +643,8 @@ ge::Status ExecutorDumper::InitByGraphType(SubExeGraphType type) {
   }
 
   for (size_t i = 0UL; i < node_num; ++i) {
-    const auto kernel_extend_info = static_cast<const KernelExtendInfo *>(
-        execution_data->base_ed.nodes[i]->context.kernel_extend_info);
+    const auto kernel_extend_info =
+        static_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info);
     if (type == kMainExeGraph) {
       kernel_names_to_exe_nodes_[kernel_extend_info->GetKernelName()] = execution_data->base_ed.nodes[i];
       const auto kernel_funcs = KernelRegistry::GetInstance().FindKernelFuncs(kernel_extend_info->GetKernelType());
@@ -747,8 +746,9 @@ ge::Status ExecutorDumper::CollectLaunchKernelName() {
 ge::Status ExecutorDumper::OnExecutorDumperSwitch(void *ins, uint64_t enable_flags) {
   auto ess = static_cast<ExecutorDumper *>(ins);
   GE_ASSERT_NOTNULL(ess, "The instance is nullptr when switch dumper, ignore the event");
-  uint64_t dynamic_switch_bits = (gert::BuiltInSubscriberUtil::EnableBit<gert::DumpType>(gert::DumpType::kDataDump) |
-    gert::BuiltInSubscriberUtil::EnableBit<gert::DumpType>(gert::DumpType::kOverflowDump));
+  uint64_t dynamic_switch_bits =
+      (gert::BuiltInSubscriberUtil::EnableBit<gert::DumpType>(gert::DumpType::kDataDump) |
+       gert::BuiltInSubscriberUtil::EnableBit<gert::DumpType>(gert::DumpType::kOverflowDump));
   const bool switch_enable = ((enable_flags & dynamic_switch_bits) != 0UL);
   ess->LoadDumpTaskForDavinciModels(switch_enable);
   return ge::SUCCESS;
@@ -890,8 +890,9 @@ bool ExecutorDumper::IsOpInDumpList(const ge::DumpProperties &dump_properties, c
     GELOGW("dump unit find op name: %s failed", op_name.c_str());
     return false;
   }
-  if (ge::AttrUtils::GetListStr(iter->second.node->GetOpDescBarePtr(),
-    ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_names) && !original_names.empty()) {
+  if (ge::AttrUtils::GetListStr(iter->second.node->GetOpDescBarePtr(), ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES,
+                                original_names) &&
+      !original_names.empty()) {
     for (const auto &name : original_names) {
       if (dump_properties.IsLayerNeedDump(extend_info_->model_name, extend_info_->model_data.om_name, name)) {
         return true;
@@ -915,8 +916,8 @@ ge::Status ExecutorDumper::UpdateFftsplusLaunchTask(const Node *node) {
     uint32_t load_dump_len = 0U;
     void *unload_dump_info = nullptr;
     uint32_t unload_dump_len = 0U;
-    ffts_dump_op_.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len,
-                                   unload_dump_info, unload_dump_len, IsSingleOpScene());
+    ffts_dump_op_.GenerateFftsDump(dump_properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                   IsSingleOpScene());
     const auto context = reinterpret_cast<const KernelContext *>(&node->context);
     auto kernel_context = const_cast<KernelContext *>(context);
     auto task_info_para = kernel_context->GetInputValue<NodeMemPara *>(kNodeMemParamInput);
@@ -933,12 +934,12 @@ ge::Status ExecutorDumper::UpdateFftsplusLaunchTask(const Node *node) {
 }
 
 void ExecutorDumper::SetDumpModelInfo(ge::DumpOp &dump_op) const {
-    dump_op.SetDynamicModelInfo(extend_info_->model_name, extend_info_->model_data.om_name, extend_info_->model_id);
+  dump_op.SetDynamicModelInfo(extend_info_->model_name, extend_info_->model_data.om_name, extend_info_->model_id);
 
-    std::string root_graph_name = GetRootGraphName();
-    if (!root_graph_name.empty()) {
-        dump_op.SetRootGraphName(root_graph_name);
-    }
+  std::string root_graph_name = GetRootGraphName();
+  if (!root_graph_name.empty()) {
+    dump_op.SetRootGraphName(root_graph_name);
+  }
 }
 
 bool ExecutorDumper::HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr &op_desc_dump) {
@@ -951,20 +952,16 @@ bool ExecutorDumper::HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr
 }
 
 bool ExecutorDumper::GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc *op_desc,
-                                       std::vector<uintptr_t> &input_addrs,
-                                       std::vector<uintptr_t> &output_addrs,
-                                       std::vector<void*> &allocated_input_mem,
-                                       std::vector<void*> &allocated_output_mem) const {
+                                      std::vector<uintptr_t> &input_addrs, std::vector<uintptr_t> &output_addrs,
+                                      std::vector<void *> &allocated_input_mem,
+                                      std::vector<void *> &allocated_output_mem) const {
   if (GetDumpAddrFromChainAddr(dump_unit, true, allocated_input_mem, input_addrs) != ge::SUCCESS ||
       GetDumpAddrFromChainAddr(dump_unit, false, allocated_output_mem, output_addrs) != ge::SUCCESS) {
     return false;
   }
-  if (input_addrs.size() != op_desc->GetAllInputsSize() ||
-      output_addrs.size() != op_desc->GetAllOutputsDescSize()) {
-    GELOGW("[Dumper] Node %s addr size invalid: input %zu/%zu, output %zu/%zu",
-           dump_unit.node->GetName().c_str(),
-           input_addrs.size(), op_desc->GetInputsSize(),
-           output_addrs.size(), op_desc->GetOutputsSize());
+  if (input_addrs.size() != op_desc->GetAllInputsSize() || output_addrs.size() != op_desc->GetAllOutputsDescSize()) {
+    GELOGW("[Dumper] Node %s addr size invalid: input %zu/%zu, output %zu/%zu", dump_unit.node->GetName().c_str(),
+           input_addrs.size(), op_desc->GetInputsSize(), output_addrs.size(), op_desc->GetOutputsSize());
     return false;
   }
   return true;
@@ -1025,8 +1022,7 @@ ge::Status ExecutorDumper::DoDataDump(NodeDumpUnit &dump_unit, const ge::DumpPro
     dump_op.SetLoopAddr(global_step_addr_, 0U, 0U);
   }
   GELOGD("[Dumper] Is single op %d", static_cast<int32_t>(IsSingleOpScene()));
-  GE_ASSERT_SUCCESS(dump_op.LaunchDumpOp(IsSingleOpScene()),
-                    "[Dumper] Launch DumpOp failed in hybrid model.");
+  GE_ASSERT_SUCCESS(dump_op.LaunchDumpOp(IsSingleOpScene()), "[Dumper] Launch DumpOp failed in hybrid model.");
   GE_ASSERT_SUCCESS(DoRtStreamSyncWithTimeout(stream));
   GELOGI("[Dumper] Launch dump op:%s Successfully", name.c_str());
   return ge::SUCCESS;
@@ -1041,8 +1037,7 @@ ge::Status ExecutorDumper::InsertHcclDumpOp(const KernelRunContext &context, Exe
   if (cur_mode == mode || cur_mode == kDumpModeAll) {
     hccl_dump_properties.ClearOpDebugFlag();
     hccl_dump_properties.SetDumpMode(mode);
-    GE_ASSERT_SUCCESS(
-        DoDataDump(node_names_to_dump_units_[compute_node_info->GetNodeName()], hccl_dump_properties));
+    GE_ASSERT_SUCCESS(DoDataDump(node_names_to_dump_units_[compute_node_info->GetNodeName()], hccl_dump_properties));
   }
   return ge::SUCCESS;
 }
@@ -1057,13 +1052,13 @@ ge::Status ExecutorDumper::SetDumpFlagForMixl2(const Node *node) const {
 
   const auto context = reinterpret_cast<const KernelContext *>(&node->context);
   const auto task_info =
-      context->GetInputValue<rtFftsPlusTaskInfo_t*>(static_cast<size_t>(kernel::MixL2UpdateKey::TASK_INFO));
+      context->GetInputValue<rtFftsPlusTaskInfo_t *>(static_cast<size_t>(kernel::MixL2UpdateKey::TASK_INFO));
   GE_ASSERT_NOTNULL(task_info);
   const auto ctx_id = context->GetInputValue<uint32_t>(static_cast<size_t>(kernel::MixL2UpdateKey::CTX_ID));
   GE_ASSERT_TRUE(ctx_id < task_info->fftsPlusSqe->totalContextNum);
   const auto context_head = static_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
   GE_ASSERT_NOTNULL(context_head);
-  reinterpret_cast<rtFftsPlusMixAicAivCtx_t*>(context_head + ctx_id)->dumpSwitch = true;
+  reinterpret_cast<rtFftsPlusMixAicAivCtx_t *>(context_head + ctx_id)->dumpSwitch = true;
   GELOGI("Set dump flag for mixl2 node %s, context id %u.", compute_node_info->GetNodeName(), ctx_id);
   return ge::SUCCESS;
 }
@@ -1162,14 +1157,13 @@ ge::Status ExecutorDumper::UpdateStepNum() {
   }
   step_id = ge::ValueToPtr(static_cast<uint64_t>(global_step_addr_));
   GELOGI("Update step, addr:%p, iteration_num:%zu", step_id, iteration_num_);
-  GE_ASSERT_RT_OK(aclrtMemcpy(step_id, sizeof(uint64_t), &iteration_num_,
-      sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_ASSERT_RT_OK(aclrtMemcpy(step_id, sizeof(uint64_t), &iteration_num_, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   return ge::SUCCESS;
 }
 
 ge::Status ExecutorDumper::DoStreamSyncAfterFftsTask(const Node *node) {
   const auto kernel_type =
-    reinterpret_cast<const KernelExtendInfo *>(node->context.kernel_extend_info)->GetKernelType();
+      reinterpret_cast<const KernelExtendInfo *>(node->context.kernel_extend_info)->GetKernelType();
   if (!IsLaunchFFTSPlusTaskNode(kernel_type)) {
     return ge::SUCCESS;
   }
@@ -1192,8 +1186,8 @@ ge::Status ExecutorDumper::ResetDumpFsmState() {
   auto dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(session_id_);
   size_t num = dump_properties.GetDumpOpRangeSize(extend_info_->model_name, extend_info_->model_data.om_name);
   if (num > 0U) {
-    GELOGI("Model[%s] om name[%s] opname range size[%zu].",
-      extend_info_->model_name.c_str(), extend_info_->model_data.om_name.c_str(), num);
+    GELOGI("Model[%s] om name[%s] opname range size[%zu].", extend_info_->model_name.c_str(),
+           extend_info_->model_data.om_name.c_str(), num);
     dump_fsm_state_.resize(num, ge::DumpProcState::kInit);
   }
   dump_op_in_range_.clear();
@@ -1201,13 +1195,13 @@ ge::Status ExecutorDumper::ResetDumpFsmState() {
 }
 
 std::string ExecutorDumper::GetRootGraphName() const {
-    if (extend_info_ && extend_info_->root_graph) {
-        const std::string &name = extend_info_->root_graph->GetName();
-        GELOGD("Root graph name: %s", name.c_str());
-        return name;
-    }
-    GELOGD("No root graph available, returning empty string");
-    return "";
+  if (extend_info_ && extend_info_->root_graph) {
+    const std::string &name = extend_info_->root_graph->GetName();
+    GELOGD("Root graph name: %s", name.c_str());
+    return name;
+  }
+  GELOGD("No root graph available, returning empty string");
+  return "";
 }
 
 ge::Status ExecutorDumper::SetDumpFsmState(const Node *node, const char *const node_type) {
@@ -1216,7 +1210,7 @@ ge::Status ExecutorDumper::SetDumpFsmState(const Node *node, const char *const n
   }
 
   const auto compute_node_info = static_cast<const ComputeNodeInfo *>(node->context.compute_node_info);
-  if(compute_node_info == nullptr) {
+  if (compute_node_info == nullptr) {
     return ge::SUCCESS;
   }
 
@@ -1229,7 +1223,8 @@ ge::Status ExecutorDumper::SetDumpFsmState(const Node *node, const char *const n
     GELOGW("op[%s] node type[%s] no support dump with opname range", compute_node_info->GetNodeName(), node_type);
   }
   GE_ASSERT_SUCCESS(dump_properties.SetDumpFsmState(extend_info_->model_name, extend_info_->model_data.om_name,
-    compute_node_info->GetNodeName(), dump_fsm_state_, dump_op_in_range_, is_update_dump_op_range));
+                                                    compute_node_info->GetNodeName(), dump_fsm_state_,
+                                                    dump_op_in_range_, is_update_dump_op_range));
 
   return ge::SUCCESS;
 }
@@ -1246,8 +1241,10 @@ ge::Status ExecutorDumper::DataDump(const Node *node, ExecutorEvent event) {
       size_t op_range_size = dump_properties.GetDumpOpRangeSize(root_graph_name, extend_info_->model_data.om_name);
       bool is_watcher_enabled = dump_properties.IsDumpWatcherModelEnable();
       if (op_range_size > 0 || is_watcher_enabled) {
-        GELOGW("[Dump] Op range or watcher mode is configured for root graph [%s], but current model is [%s] (subgraph). "
-                "Dump may not work as expected for these features on subgraphs.", root_graph_name.c_str(), current_model_name.c_str());
+        GELOGW(
+            "[Dump] Op range or watcher mode is configured for root graph [%s], but current model is [%s] (subgraph). "
+            "Dump may not work as expected for these features on subgraphs.",
+            root_graph_name.c_str(), current_model_name.c_str());
       }
     }
     return Init();
@@ -1299,8 +1296,8 @@ ge::Status ExecutorDumper::FillExceptionDumpInfoByKernel(const Node &node) {
 }
 
 ge::Status ExecutorDumper::PrepareExceptionDump(const Node &node, const char *kernel_type, NodeDumpUnit &dump_unit) {
-  if (!IsLaunchWithHandleNode(kernel_type) && !IsLaunchWithFlagNode(kernel_type) &&
-      !IsAiCpuLaunchNode(kernel_type) && !IsUpdateContext(kernel_type)) {
+  if (!IsLaunchWithHandleNode(kernel_type) && !IsLaunchWithFlagNode(kernel_type) && !IsAiCpuLaunchNode(kernel_type) &&
+      !IsUpdateContext(kernel_type)) {
     return ge::SUCCESS;
   }
   auto compute_node = dump_unit.node;
@@ -1326,7 +1323,7 @@ ge::Status ExecutorDumper::PrepareExceptionDump(const Node &node, const char *ke
   auto dumper = global_dumper_->MutableExceptionDumper();
   GE_ASSERT_NOTNULL(dumper);
 
-  auto& extra_dump_unit = node_names_to_extra_units_[name];
+  auto &extra_dump_unit = node_names_to_extra_units_[name];
   ge::ExtraOpInfo extra_op_info;
   extra_op_info.tiling_data = std::move(extra_dump_unit.tiling_data);
   extra_op_info.args_before_execute = std::move(extra_dump_unit.args_before_execute);
@@ -1345,8 +1342,8 @@ ge::Status ExecutorDumper::PrepareExceptionDump(const Node &node, const char *ke
   auto stream = *(reinterpret_cast<aclrtStream *>(rt_streams->MutableData()) + 0U);
   GE_ASSERT_SUCCESS(GetKernelStream(&node, stream));
   const auto processor_type = dump_unit.context_list.empty() ? ProcessorType::kNormal : ProcessorType::kFftsPlus;
-  GE_ASSERT_SUCCESS(processors[static_cast<uint32_t>(processor_type)](op_desc_dump, dumper, dump_unit,
-                    extra_op_info, stream));
+  GE_ASSERT_SUCCESS(
+      processors[static_cast<uint32_t>(processor_type)](op_desc_dump, dumper, dump_unit, extra_op_info, stream));
   extra_op_info.DebugLogString();
 
   // reset dump info
@@ -1433,8 +1430,8 @@ ge::Status ExecutorDumper::SetOverflowDumpFlag(ExecutorEvent event, const Node &
       overflow_dump_unit->need_overflow_dump = true;
     }
     GELOGI("[Overflow][Dumper]Set need_overflow_dump is %s. Kernel name[%s], kernel type[%s]",
-            overflow_dump_unit->need_overflow_dump ? "true" : "false",
-            reinterpret_cast<const KernelExtendInfo *>(node.context.kernel_extend_info)->GetKernelName(), kernel_type);
+           overflow_dump_unit->need_overflow_dump ? "true" : "false",
+           reinterpret_cast<const KernelExtendInfo *>(node.context.kernel_extend_info)->GetKernelName(), kernel_type);
   }
   return ge::SUCCESS;
 }
@@ -1547,8 +1544,8 @@ ge::Status ExecutorDumper::OverflowDump(const Node *node, ExecutorEvent event) {
   }
   const auto &dump_properties = ge::DumpManager::GetInstance().GetDumpProperties(session_id_);
   if (!dump_properties.IsOpDebugOpen()) {
-    REPORT_INNER_ERR_MSG("E19999",
-                       "[Overflow][Dumper]Processing overflow dump, while op debug status is not open, please check.");                                                                \
+    REPORT_INNER_ERR_MSG(
+        "E19999", "[Overflow][Dumper]Processing overflow dump, while op debug status is not open, please check.");
     GELOGE(ge::FAILED, "[Overflow][Dumper]Processing overflow dump, while op debug status is not open, please check.");
     return ge::FAILED;
   }

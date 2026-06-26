@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,9 +17,9 @@
 
 namespace ge {
 enum class ContinuousMemScenario {
-  kContinuousMemScenarioOutIn, // 需要连续输出的节点连接需要连续输入的节点
-  kContinuousMemScenarioOut, // 连续输入
-  kContinuousMemScenarioIn // 连续输出
+  kContinuousMemScenarioOutIn,  // 需要连续输出的节点连接需要连续输入的节点
+  kContinuousMemScenarioOut,    // 连续输入
+  kContinuousMemScenarioIn      // 连续输出
 };
 
 class ContinuousMem {
@@ -63,9 +63,11 @@ class ContinuousMem {
 
   Status PushBackNodeOut(const Node *const node, int32_t out_index);
   void PushBackBlock(class MemoryBlock *const block);
+
  private:
-  bool can_reuse_ = true; // 连续输出-连续输入且集中清零场景不复用，其他可以复用
-  bool use_one_block_ = true; // 连续输入且集中清零场景使用多个block，连续输入单独清零场景/连续输出场景/连续输出-连续输入场景使用1个block
+  bool can_reuse_ = true;  // 连续输出-连续输入且集中清零场景不复用，其他可以复用
+  bool use_one_block_ =
+      true;  // 连续输入且集中清零场景使用多个block，连续输入单独清零场景/连续输出场景/连续输出-连续输入场景使用1个block
   std::vector<NodeIndexIO> continuous_node_out_;
   std::vector<size_t> aligned_sizes_;
   size_t total_size_ = 0U;
@@ -102,9 +104,11 @@ class ContinuousMemMng {
     return continuous_mem_;
   }
   Status PushBackBlock(const Node *const node, uint32_t out_index, class MemoryBlock *const block);
+
  private:
- Status SaveNodeOutInOrder(Node *const first_node, int32_t out_index, vector_bit_t &visited);
- Status SaveOneOut(const Node *const node, int32_t out_index);
+  Status SaveNodeOutInOrder(Node *const first_node, int32_t out_index, vector_bit_t &visited);
+  Status SaveOneOut(const Node *const node, int32_t out_index);
+
  private:
   std::vector<ContinuousMem> continuous_mem_;
   // 用来快速索引某节点的输出是否在continuous_mem_中

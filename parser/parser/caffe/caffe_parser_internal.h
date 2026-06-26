@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,13 +39,13 @@
 #include "proto/om.pb.h"
 
 namespace ge {
+using domi::Status;
 using domi::caffe::NetParameter;
 using std::map;
 using std::set;
 using std::string;
 using std::unordered_map;
 using std::vector;
-using domi::Status;
 
 class PARSER_FUNC_VISIBILITY CaffeModelParser : public domi::ModelParser {
  public:
@@ -128,6 +128,7 @@ class PARSER_FUNC_VISIBILITY CaffeModelParser : public domi::ModelParser {
   void Clear() override {
     PreChecker::Instance().Clear();
   }
+
  private:
   Status Parse(const char *model_path, ge::ComputeGraphPtr &graph);
 
@@ -381,33 +382,25 @@ class PARSER_FUNC_VISIBILITY CaffeWeightsParser : public domi::WeightsParser {
                                   const string &fusion_proto_name, ge::ComputeGraphPtr &graph);
 
   Status ParseLayerParameter(const google::protobuf::Descriptor &layer_descriptor,
-                             const google::protobuf::Message &message,
-                             ge::ComputeGraphPtr &graph);
+                             const google::protobuf::Message &message, ge::ComputeGraphPtr &graph);
 
-  Status ConvertLayerParameter(const google::protobuf::Message *layer_message,
-                               ge::ComputeGraphPtr &graph);
+  Status ConvertLayerParameter(const google::protobuf::Message *layer_message, ge::ComputeGraphPtr &graph);
 
   Status CheckLayersSize(const google::protobuf::Message &message) const;
 
-  Status ConvertLayerProto(const google::protobuf::Message &message,
-                           google::protobuf::Message *layer) const;
+  Status ConvertLayerProto(const google::protobuf::Message &message, google::protobuf::Message *layer) const;
 
-  Status ParseLayerField(const google::protobuf::Reflection &reflection,
-                         const google::protobuf::Message &message,
-                         const google::protobuf::FieldDescriptor &field,
-                         google::protobuf::Message *layer) const;
+  Status ParseLayerField(const google::protobuf::Reflection &reflection, const google::protobuf::Message &message,
+                         const google::protobuf::FieldDescriptor &field, google::protobuf::Message *layer) const;
 
-  Status ConvertBlobsProto(const google::protobuf::Message &message,
-                           google::protobuf::Message *blobs) const;
+  Status ConvertBlobsProto(const google::protobuf::Message &message, google::protobuf::Message *blobs) const;
 
-  Status ConvertBlobShapeProto(const google::protobuf::Message &message,
-                               google::protobuf::Message *dest_message) const;
+  Status ConvertBlobShapeProto(const google::protobuf::Message &message, google::protobuf::Message *dest_message) const;
 
   Status ConvertInnerProdcutProto(const google::protobuf::Message &message,
                                   google::protobuf::Message *dest_message) const;
 
-  Status ConvertConvParamProto(const google::protobuf::Message &message,
-                               google::protobuf::Message *dest_message) const;
+  Status ConvertConvParamProto(const google::protobuf::Message &message, google::protobuf::Message *dest_message) const;
   /**
    * @ingroup domi_omg
    * @brief Layer types to be ignored in weight resolution
@@ -415,6 +408,6 @@ class PARSER_FUNC_VISIBILITY CaffeWeightsParser : public domi::WeightsParser {
   static const set<string> skiped_layer_type_;
   std::map<std::string, int32_t> layer_name_record_map_;
 };
-}  // namespace domi
+}  // namespace ge
 
 #endif  // PARSER_CAFFE_CAFFE_PARSER_INTERNAL_H_

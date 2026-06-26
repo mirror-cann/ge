@@ -24,7 +24,7 @@ CountBatch count_batch = {};
 count_batch.timeout = 10;
 count_batch.batch_size = 300;
 count_batch.padding = true;
-count_batch.slide_stride = 5; 
+count_batch.slide_stride = 5;
 DataFlowInputAttr flow_attr = {DataFlowAttrType::COUNT_BATCH, &count_batch};
 std::vector<DataFlowInputAttr> flow_attrs = {flow_attr};
 // 通过FlowNode的MapInput设置

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,10 +43,9 @@ Status NoUseReshapeRemovePass::Run(ge::NodePtr &node) {
   // compare input and output dims
   if (op_desc_ptr->GetAllInputsSize() == 0U || op_desc_ptr->GetAllOutputsDescSize() == 0U) {
     REPORT_INNER_ERR_MSG("E19999", "Input or Output desc num is zero in node:%s(%s), check invalid",
-                       op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+                         op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] Input or output num is zero. node name:%s, input size:%zu, output size:%zu",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetAllInputsSize(),
-           op_desc_ptr->GetAllOutputsDescSize());
+           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetAllInputsSize(), op_desc_ptr->GetAllOutputsDescSize());
     return INTERNAL_ERROR;
   }
   const auto &input_desc = op_desc_ptr->MutableInputDesc(0);
@@ -99,8 +98,8 @@ Status NoUseReshapeRemovePass::TryRemoveConstShapeInput(ge::NodePtr &reshape_nod
   //   op(x)   const(shape)
   //     \     /
   //     reshape
-  GE_CHK_STATUS_RET(DeleteUselessConstAxisNode(shape_input),
-                    "Remove const axis input of node:%s failed", reshape_node->GetName().c_str());
+  GE_CHK_STATUS_RET(DeleteUselessConstAxisNode(shape_input), "Remove const axis input of node:%s failed",
+                    reshape_node->GetName().c_str());
   return SUCCESS;
 }
 

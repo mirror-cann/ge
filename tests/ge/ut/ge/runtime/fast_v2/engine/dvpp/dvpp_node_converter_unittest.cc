@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,8 @@ TEST_F(DvppNodeConverterUT, ConvertDvppNode) {
   AttrUtils::SetInt(add_op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
   add_op_desc->SetOpKernelLibName(ge::kEngineNameDvpp.c_str());
   DvppTaskDefFaker dvpp_task_def_faker;
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add",dvpp_task_def_faker).Build();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", dvpp_task_def_faker).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
 
@@ -47,8 +47,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
                           {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
                           &global_data};
-  auto add_ret = LoweringDvppNode(
-      graph->FindNode("add1"), add_input);
+  auto add_ret = LoweringDvppNode(graph->FindNode("add1"), add_input);
   ASSERT_TRUE(add_ret.result.IsSuccess());
   ASSERT_EQ(add_ret.out_addrs.size(), 1);
   ASSERT_EQ(add_ret.out_shapes.size(), 1);
@@ -57,8 +56,9 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(
-      add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralDvppExe");
 }

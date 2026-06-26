@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -26,20 +26,20 @@ graph模块 - 图操作接口
 - TensorDesc: 张量元信息描述对象
 """
 
-from .graph import Graph, DumpFormat
+from .graph import DumpFormat, Graph
 from .node import Node
 from .tensor import Tensor
 from .tensor_desc import Shape, TensorDesc
 from .types import DataType, Format, Placement
 
 __all__ = [
-    'Graph',
-    'Node',
-    'DataType',
-    'Format',
-    'Placement',
-    'Shape',
-    'Tensor',
-    'TensorDesc',
-    'DumpFormat',
+    "Graph",
+    "Node",
+    "DataType",
+    "Format",
+    "Placement",
+    "Shape",
+    "Tensor",
+    "TensorDesc",
+    "DumpFormat",
 ]

@@ -82,4 +82,3 @@ ge::Status SetDataType(const ge::DataType data_type)
 ## 约束说明<a name="section24049039"></a>
 
 无
-

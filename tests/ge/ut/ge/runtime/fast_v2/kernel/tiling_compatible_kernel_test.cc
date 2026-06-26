@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -166,7 +166,7 @@ bool StubOpTilingFuncV4(const ge::Operator &op, const optiling::CompileInfoPtr c
 
 bool StubOpTilingFuncV4OnRun(const ge::Operator &op, const optiling::CompileInfoPtr compile_info,
                              optiling::OpRunInfoV2 &op_run_info) {
-  // check input output shape 
+  // check input output shape
   // input shape  {1, 1, 2, 2, 256}, {1, 2, 2, 256}
   if (op.GetInputDesc(0).GetShape().GetDimNum() != 5) {
     return false;
@@ -334,7 +334,7 @@ TEST_F(TilingCompatibleKernelTest, test_tiling_func_v4_success) {
   std::string node_type = "node_with_tling_v4";
   optiling::OpTilingFuncRegistry(node_type, StubOpTilingFuncV4OnRun, StubOpParseFuncV4);
 
-  StorageShape input_shape{{1, 2, 2, 256}, {1,  1, 2, 2, 256}};
+  StorageShape input_shape{{1, 2, 2, 256}, {1, 1, 2, 2, 256}};
   StorageShape output_shape{{2, 2, 1, 256}, {2, 1, 2, 1, 256}};
   // build operator with single input and single output
   ge::OpDescPtr desc_ptr = std::make_shared<ge::OpDesc>("test", "Test");
@@ -356,15 +356,14 @@ TEST_F(TilingCompatibleKernelTest, test_tiling_func_v4_success) {
   kernel::TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(StubOpTilingFuncV4OnRun),
                                     .launch_arg = fake_launch_arg};
   // build context inputs
-  auto run_context =
-      gert::KernelRunContextFaker()
-          .NodeIoNum(1, 1)
-          .KernelIONum(6, static_cast<size_t>(kernel::TilingExOutputIndex::kNum))
-          .Inputs({&op, &info, (void *)tiling_version, &fwk_data, &input_shape, &output_shape})
-          .IrInputNum(1)
-          .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-          .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
-          .Build();
+  auto run_context = gert::KernelRunContextFaker()
+                         .NodeIoNum(1, 1)
+                         .KernelIONum(6, static_cast<size_t>(kernel::TilingExOutputIndex::kNum))
+                         .Inputs({&op, &info, (void *)tiling_version, &fwk_data, &input_shape, &output_shape})
+                         .IrInputNum(1)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NCHW)
+                         .Build();
   run_context.GetContext<KernelContext>()->GetOutput(TilingContext::kOutputWorkspace)->Set(ws_size, nullptr);
 
   auto tiling_func_v1 = KernelRegistry::GetInstance().FindKernelFuncs("CompatibleTiling");

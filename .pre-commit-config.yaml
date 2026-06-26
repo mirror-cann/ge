@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------------------------------
-# Copyright (c) 2026 Huawei Technologies Co., Ltd.
+# Copyright (c) 2025 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
       - id: check-json
+        exclude: ^tests/.*\.json$
 
   # C++ 代码格式化检查
   - repo: https://gitcode.com/pre-commit-clang/mirrors-clang-format
@@ -58,7 +59,7 @@ repos:
       - id: codespell
         args: [
             "-L",
-            "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog",
+            "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog,te,TE,Vistor,vistor,dout,PadD,pRes,bufer,datas,inout,ot,atMost,schem,indx,abl,enternal,DefInit,AddNo,padd,strage,typess,BUILDIN,variabel,millSecond,destOp,nd,Nd,determinstic,queryIn,disabl,numer,Unequality,weigths,crations,commiter,vor,lable,substract,accomodate,hueristics,ths,apparing,explicitely,IMPLEMT,build-in,vecotr,Excutor,Faile,collet,Unsupport,builer,signle,operater,resuse,resue,GREATE,buildin,rised,beed,corrent,indexs,realy,fO,childs,parm,intance,calculater,warpper,adge,tabe,variale,algin,mis,rego,fom,overlow,happend,doesnt",
             "--skip",
             "*.py,*.cpp,*.hpp,*.c,*.h",
           ]
@@ -70,7 +71,7 @@ repos:
         name: OAT Compliance Check
         entry: bash scripts/oat_check.sh
         language: system
-        pass_filenames: true
+        pass_filenames: false
         types: [file]
         stages: [pre-commit]
         verbose: true

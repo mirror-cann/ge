@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,10 +80,10 @@ const string kStageCompile = "[SubGraphOpt][Compile]";
 const string kStageAfterMultiDims = "[GraphOpt][AfterMultiDims]";
 const string kStageAfterOptimizeStage1 = "[GraphOpt][AfterOptimizeStage1]";
 const string kStageFused = "[SubGraphOpt]";
-const char* kGroupPolicy = "group";
-const char* kVectorGroup = "vector";
-const char* kAttachNotifyNumKey = "_attached_notify_num";
-const char* kFusionVirtualOpSetSwitch = "FusionVirtualOpSetSwitch";
+const char *kGroupPolicy = "group";
+const char *kVectorGroup = "vector";
+const char *kAttachNotifyNumKey = "_attached_notify_num";
+const char *kFusionVirtualOpSetSwitch = "FusionVirtualOpSetSwitch";
 FEGraphOptimizer::FEGraphOptimizer(FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr, std::string engine_name)
     : ops_kernel_info_store_ptr_(fe_ops_kernel_info_store_ptr),
       op_setter_ptr_(nullptr),
@@ -105,9 +105,9 @@ FEGraphOptimizer::~FEGraphOptimizer() {}
 template <typename T>
 Status FEGraphOptimizer::InitialzeOneCompiler(const string &compiler_name) {
   std::shared_ptr<T> op_compiler;
-  FE_MAKE_SHARED(op_compiler = std::make_shared<T>(compiler_name, graph_optimizer_attr_.engineName,
-                                                   lx_fusion_optimizer_ptr_),
-                 return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
+  FE_MAKE_SHARED(
+      op_compiler = std::make_shared<T>(compiler_name, graph_optimizer_attr_.engineName, lx_fusion_optimizer_ptr_),
+      return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
 
   Status ret = op_compiler->Initialize();
   if (ret != SUCCESS) {
@@ -159,7 +159,7 @@ Status FEGraphOptimizer::InitializeAllOpCompiler() {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::Initialize(const std::map<string, string>& options,
+Status FEGraphOptimizer::Initialize(const std::map<string, string> &options,
                                     ge::OptimizeUtility *const optimize_utility) {
   (void)options;
   // if graph optimizer has been initialized, return success
@@ -214,8 +214,8 @@ Status FEGraphOptimizer::Initialize(const std::map<string, string>& options,
   }
 
   // init priority mgr ptr
-  FE_MAKE_SHARED(fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-                     graph_optimizer_attr_.engineName, fusion_rule_mgr_ptr_),
+  FE_MAKE_SHARED(fusion_priority_mgr_ptr_ =
+                     std::make_shared<FusionPriorityManager>(graph_optimizer_attr_.engineName, fusion_rule_mgr_ptr_),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (fusion_priority_mgr_ptr_->Initialize() != SUCCESS) {
     FE_LOGE("[GraphOpt][Init] FusionPriorityMgr initialize failed.");
@@ -223,8 +223,8 @@ Status FEGraphOptimizer::Initialize(const std::map<string, string>& options,
   }
 
   // init lx fusion optimizer
-  FE_MAKE_SHARED(lx_fusion_optimizer_ptr_ = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr_ptr_,
-                                                                                ops_kernel_info_store_ptr_),
+  FE_MAKE_SHARED(lx_fusion_optimizer_ptr_ =
+                     std::make_shared<LxFusionOptimizer>(fusion_priority_mgr_ptr_, ops_kernel_info_store_ptr_),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (lx_fusion_optimizer_ptr_->Initialize() != SUCCESS) {
     FE_LOGE("[GraphOpt][Init] LxFusionOptimizer initialize failed.");
@@ -257,11 +257,11 @@ Status FEGraphOptimizer::Finalize() {
   }
 
   if (generate_cmo_type_manager_ptr_ != nullptr) {
-    (void) generate_cmo_type_manager_ptr_->Finalize();
+    (void)generate_cmo_type_manager_ptr_->Finalize();
   }
 
   Status ret1 = SUCCESS;
-  for (auto& compiler : op_compiler_ptr_) {
+  for (auto &compiler : op_compiler_ptr_) {
     if (compiler->Finalize() != SUCCESS) {
       FE_LOGE("[GraphOpt][Finalize] Failed to finalize %s.", compiler->GetCompilerName().c_str());
       ret1 = FAILED;
@@ -300,10 +300,9 @@ Status FEGraphOptimizer::Finalize() {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::FinalizeSessionInfo(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::FinalizeSessionInfo(ge::ComputeGraph &graph) {
   if (ge::GraphUtils::IsSingleOpScene(graph.shared_from_this())) {
-    FE_LOGI("[GraphOpt] _single_op_scene is true, skip FinalizeSessionInfo, graph name=%s.",
-            graph.GetName().c_str());
+    FE_LOGI("[GraphOpt] _single_op_scene is true, skip FinalizeSessionInfo, graph name=%s.", graph.GetName().c_str());
     return SUCCESS;
   }
 
@@ -312,22 +311,22 @@ Status FEGraphOptimizer::FinalizeSessionInfo(ge::ComputeGraph& graph) {
     FE_LOGW("[GraphOpt] get session graph id failed, graph name=%s.", graph.GetName().c_str());
     return SUCCESS;
   }
-  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(
-                    graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+  OpStoreAdapterPtr op_store_adapter =
+      OpStoreAdapterManager::Instance(graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
   Status res = op_store_adapter->FinalizeSessionInfo(session_graph_id);
   if (res != SUCCESS) {
     FE_LOGW("FinalizeSessionInfo failed!");
     return FAILED;
   }
-  
+
   if (Configuration::Instance(AI_CORE_NAME).GetExportCompileStat() != ExportCompileStatType::NONE) {
     FusionStatisticWriter::Instance().WriteAllFusionInfoToJsonFile(session_graph_id);
   }
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeOriginalGraph(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeOriginalGraph(ge::ComputeGraph &graph) {
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageOrigin, graph.GetName());
   if (!init_flag_) {
     REPORT_FE_ERROR("[GraphOpt][init] FEGraphOptimizer has not been initialized.");
@@ -345,7 +344,8 @@ Status FEGraphOptimizer::OptimizeOriginalGraph(ge::ComputeGraph& graph) {
   FE_TIMECOST_START(PruningPassFusion);
   Status ret = graph_fusion_ptr_->FusionPruningPass(graph);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Pruning] Failed to execute pruning pass fusion for graph [%s].", graph.GetName().c_str());
+    REPORT_FE_ERROR("[GraphOpt][Pruning] Failed to execute pruning pass fusion for graph [%s].",
+                    graph.GetName().c_str());
     return ret;
   }
   FE_TIMECOST_END(PruningPassFusion, "FEGraphOptimizer::PruningPassFusion");
@@ -417,7 +417,7 @@ Status FEGraphOptimizer::OptimizeOriginalGraph(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph& graph) const {
+Status FEGraphOptimizer::OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph &graph) const {
   Status ret;
   // set the highest prior imply type for op
   ret = op_impl_type_judge_ptr_->MultiThreadJudge(graph);
@@ -439,29 +439,32 @@ Status FEGraphOptimizer::OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::Co
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::InsertTransNodesForAllGraph(ge::ComputeGraph& graph,
-                                                     TransNodeManagerPtr& trans_node_mgr_ptr) const {
+Status FEGraphOptimizer::InsertTransNodesForAllGraph(ge::ComputeGraph &graph,
+                                                     TransNodeManagerPtr &trans_node_mgr_ptr) const {
   Status ret;
   // insert format and data type transfer op
   FE_MAKE_SHARED(trans_node_mgr_ptr = std::make_shared<TransNodeManager>(ops_kernel_info_store_ptr_),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (trans_node_mgr_ptr->Initialize() != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Trans][Init] Failed to initialize transNodeMgrPtr for graph %s.", graph.GetName().c_str());
+    REPORT_FE_ERROR("[GraphOpt][Trans][Init] Failed to initialize transNodeMgrPtr for graph %s.",
+                    graph.GetName().c_str());
     return FAILED;
   }
 
   ret = trans_node_mgr_ptr->InsertAndMergeTransNodes(graph);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Trans][Insert] Failed to insert format and dtype transformation operation for graph %s.",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][Trans][Insert] Failed to insert format and dtype transformation operation for graph %s.",
+        graph.GetName().c_str());
     return ret;
   }
 
   FeGraphUtils::DumpGraphAndOnnx(graph, "OptimizeOriginalGraph_FeInsertTransNodeAfter");
 
-  FE_LOGI("Successfully inserted format and dtype transfer operation into the original graph, graph[%s].", graph.GetName().c_str());
+  FE_LOGI("Successfully inserted format and dtype transfer operation into the original graph, graph[%s].",
+          graph.GetName().c_str());
 
-  for (auto& subgraph : graph.GetAllSubgraphs()) {
+  for (auto &subgraph : graph.GetAllSubgraphs()) {
     ret = trans_node_mgr_ptr->InsertAndMergeTransNodes(*(subgraph.get()));
     if (ret != SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][Trans][Insert] Failed to insert format and dtype transfer op for subgraph %s.",
@@ -469,19 +472,20 @@ Status FEGraphOptimizer::InsertTransNodesForAllGraph(ge::ComputeGraph& graph,
       return ret;
     }
     FeGraphUtils::DumpGraphAndOnnx(*(subgraph.get()), "OptimizeOriginalGraph_FeInsertTransNodeAfter_Subgraph");
-    FE_LOGI("Successfully inserted format and dtype transfer operation into subgraph, subgraph[%s].", subgraph->GetName().c_str());
+    FE_LOGI("Successfully inserted format and dtype transfer operation into subgraph, subgraph[%s].",
+            subgraph->GetName().c_str());
   }
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::GraphFusionBeforeTransnodesInsertion(ge::ComputeGraph& graph) const {
+Status FEGraphOptimizer::GraphFusionBeforeTransnodesInsertion(ge::ComputeGraph &graph) const {
   if (graph_fusion_ptr_->SetContinuousDtypeForOutput(graph) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgInst][GraphFusion][SetContinuousDtype] Failed to set continuous dtype for graph: %s.",
                     graph.GetName().c_str());
     return FAILED;
   }
 
-  for (const auto& sub_graph : graph.GetAllSubgraphs()) {
+  for (const auto &sub_graph : graph.GetAllSubgraphs()) {
     if (graph_fusion_ptr_->SetContinuousDtypeForOutput(*sub_graph) != SUCCESS) {
       REPORT_FE_ERROR(
           "[GraphOptJdgInst][GraphFusion][SetContinuousDtype] Failed to set continuous dtype for sub-graph: %s.",
@@ -501,18 +505,18 @@ Status FEGraphOptimizer::GraphFusionBeforeTransnodesInsertion(ge::ComputeGraph& 
   return SUCCESS;
 }
 
-#define FGO_RUN_AND_DUMP_WITH_EVENT(need_dump, name, func, ...)                                              \
-  do {                                                                                                       \
-    if (IsProcessBlockedByFusionSwitchCfg(name)) {                                                           \
-      FE_LOGI("Process [%s] has been blocked by FusionSwitchCfg.", name);                                     \
-    } else {                                                                                                 \
-      if (need_dump) {                                                                                       \
-        FE_RUN_AND_DUMP(FEGraphOptimizer, "OptimizeOriginalGraph_" name "After", func, __VA_ARGS__);         \
-      } else {                                                                                               \
-        FE_RUN(FEGraphOptimizer, func, __VA_ARGS__);                                                         \
-      };                                                                                                     \
-      FE_LOGI("Run %s on graph %s successfully.", name, graph.GetName().c_str());                            \
-    }                                                                                                        \
+#define FGO_RUN_AND_DUMP_WITH_EVENT(need_dump, name, func, ...)                                      \
+  do {                                                                                               \
+    if (IsProcessBlockedByFusionSwitchCfg(name)) {                                                   \
+      FE_LOGI("Process [%s] has been blocked by FusionSwitchCfg.", name);                            \
+    } else {                                                                                         \
+      if (need_dump) {                                                                               \
+        FE_RUN_AND_DUMP(FEGraphOptimizer, "OptimizeOriginalGraph_" name "After", func, __VA_ARGS__); \
+      } else {                                                                                       \
+        FE_RUN(FEGraphOptimizer, func, __VA_ARGS__);                                                 \
+      };                                                                                             \
+      FE_LOGI("Run %s on graph %s successfully.", name, graph.GetName().c_str());                    \
+    }                                                                                                \
   } while (0)
 
 bool FEGraphOptimizer::IsProcessBlockedByFusionSwitchCfg(const std::string &process_name) {
@@ -526,13 +530,11 @@ bool FEGraphOptimizer::IsProcessBlockedByFusionSwitchCfg(const std::string &proc
   return (!fusion_priority_mgr_ptr_->GetFusionSwitchByName(process_name, GRAPH_FUSION));
 }
 
-Status FEGraphOptimizer::GraphFusionAfterJudge(ge::ComputeGraph& graph) const {
-  Status ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStageJudgeInsert, graph,
-                                                           BUILT_IN_AFTER_OP_JUDGE);
+Status FEGraphOptimizer::GraphFusionAfterJudge(ge::ComputeGraph &graph) const {
+  Status ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStageJudgeInsert, graph, BUILT_IN_AFTER_OP_JUDGE);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR(
-        "[GraphOptJdgInst][GraphFusionAfterJudge] Failed to run graph fusion for graph[%s] after op judge.",
-        graph.GetName().c_str());
+    REPORT_FE_ERROR("[GraphOptJdgInst][GraphFusionAfterJudge] Failed to run graph fusion for graph[%s] after op judge.",
+                    graph.GetName().c_str());
     return ret;
   }
   return SUCCESS;
@@ -559,7 +561,7 @@ Status FEGraphOptimizer::HeavyFormatPropagate(ge::ComputeGraph &graph,
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph &graph) {
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageJudgeInsert, graph.GetName());
   FE_TIMECOST_START(OriginalGraphJudgeInsert);
   FeGraphUtils::DumpGraphAndOnnx(graph, "BeforeOptimizeOriginalGraphJudgeInsert");
@@ -571,8 +573,8 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph& grap
   FE_LOGD("Begin to judge the insertion of graph [%s] in engine [%s].", graph.GetName().c_str(),
           graph_optimizer_attr_.engineName.c_str());
 
-  FE_MAKE_SHARED(op_format_dtype_judge_ptr = std::make_shared<OpFormatDtypeJudge>(
-                     graph_optimizer_attr_.engineName, reflection_builder_ptr),
+  FE_MAKE_SHARED(op_format_dtype_judge_ptr =
+                     std::make_shared<OpFormatDtypeJudge>(graph_optimizer_attr_.engineName, reflection_builder_ptr),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (op_format_dtype_judge_ptr->Initialize() != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgInst][Init] Failed to initialize op_format_dtype_judge_ptr for graph [%s].",
@@ -587,7 +589,7 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph& grap
   (void)IsSingleOpGraphWithCache(graph);
 
   FGO_RUN_AND_DUMP_WITH_EVENT(false, "FeOptimizeOriginalGraphOpJudgeAndFormatDtypeSetter",
-      OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter, graph);
+                              OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter, graph);
 
   // set the format and data type of the input and output desc of op
   (void)reflection_builder_ptr->Clear();
@@ -604,10 +606,10 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph& grap
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph &graph) {
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageJudgeInsert, graph.GetName());
   FE_LOGD("[GraphOptJdgFmtInst] Begin to judge format of graph[%s], in engine[%s].", graph.GetName().c_str(),
-         graph_optimizer_attr_.engineName.c_str());
+          graph_optimizer_attr_.engineName.c_str());
   FE_TIMECOST_START(OriginalGraphJudgeFormatInsert);
   FGO_RUN_AND_DUMP_WITH_EVENT(true, "FeOpFormatJudge", op_format_dtype_judge_ptr->SetFormat, graph);
   Status ret = GraphFusionAfterJudge(graph);
@@ -615,10 +617,10 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph
     return ret;
   }
   HeavyFormatPropagationPtr heavy_format_propagation_ptr = nullptr;
-  FE_MAKE_SHARED(heavy_format_propagation_ptr = std::make_shared<HeavyFormatPropagation>(
-                     graph_optimizer_attr_.engineName, reflection_builder_ptr),
+  FE_MAKE_SHARED(heavy_format_propagation_ptr =
+                     std::make_shared<HeavyFormatPropagation>(graph_optimizer_attr_.engineName, reflection_builder_ptr),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
-  if (heavy_format_propagation_ptr->Initialize() != SUCCESS) {
+  if (heavy_format_propagation_ptr->Initalize() != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgFmtInst][Init] Failed to initialize heavy_format_propagation_ptr_ for graph[%s].",
                     graph.GetName().c_str());
     return FAILED;
@@ -644,7 +646,7 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph
   TransNodeManagerPtr trans_node_mgr_ptr;
   FGO_RUN_AND_DUMP_WITH_EVENT(false, "FeInsertTransNodes", InsertTransNodesForAllGraph, graph, trans_node_mgr_ptr);
   FGO_RUN_AND_DUMP_WITH_EVENT(false, "FeSwitchTransDataAndCast", graph_fusion_ptr_->SwitchTransDataAndCast, graph,
-      trans_node_mgr_ptr->GetOptimizableCast());
+                              trans_node_mgr_ptr->GetOptimizableCast());
 
   ret = WeightCompressJudge::CompressTypeJudge(optimize_utility_, graph);
   if (ret != SUCCESS) {
@@ -654,7 +656,7 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph
   ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStageJudgeInsert, graph, SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOptJdgFmtInst][Run] Failed to execute the second round of fusion for graph [%s].",
-                   graph.GetName().c_str());
+                    graph.GetName().c_str());
     return ret;
   }
   StridedOptimize(graph);
@@ -695,14 +697,17 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph
   }
   FE_CHECK(ConvertPartitionCalledOp(graph) != SUCCESS,
            REPORT_FE_ERROR("[GraphOptJdgFmtInst][TrsFuncOp] Failed to convert fixpipe to func op in graph [%s]",
-                           graph.GetName().c_str()), return FAILED);
+                           graph.GetName().c_str()),
+           return FAILED);
 
   ClearUnknowShapeAttr(graph);
-  FE_LOGI("%s Graph[%s]: Successfully judged the format and data type of the operation and inserted the transformation operation. The node size is %zu.",
-          kStageJudgeInsert.c_str(), graph.GetName().c_str(), graph.GetAllNodesSize());
+  FE_LOGI(
+      "%s Graph[%s]: Successfully judged the format and data type of the operation and inserted the transformation "
+      "operation. The node size is %zu.",
+      kStageJudgeInsert.c_str(), graph.GetName().c_str(), graph.GetAllNodesSize());
   FE_TIMECOST_END(OriginalGraphJudgeFormatInsert, "FEGraphOptimizer::OriginalGraphJudgeFormatInsert");
   ops_kernel_info_store_ptr_->SetCheckSupportedStaticFlag(true);
-  
+
   op_format_dtype_judge_ptr.reset();
   reflection_builder_ptr.reset();
   return SUCCESS;
@@ -711,8 +716,8 @@ Status FEGraphOptimizer::OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph
 Status FEGraphOptimizer::OptimizeAfterStage1(ge::ComputeGraph &graph) {
   FE_LOGD("Begin optimizing graph [%s] after stage 1.", graph.GetName().c_str());
   FE_CHECK_NOTNULL(graph_fusion_ptr_);
-  Status status = graph_fusion_ptr_->RunGraphFusionPassByType(kStageAfterOptimizeStage1, graph,
-                                                              BUILT_IN_AFTER_OPTIMIZE_STAGE1);
+  Status status =
+      graph_fusion_ptr_->RunGraphFusionPassByType(kStageAfterOptimizeStage1, graph, BUILT_IN_AFTER_OPTIMIZE_STAGE1);
   if (status != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][Prepare] Failed to run after-multi-dims for graph[%s].", graph.GetName().c_str());
     return status;
@@ -730,9 +735,9 @@ Status FEGraphOptimizer::ShapeAndValueGeneralize(ge::ComputeGraph &graph) const 
   (void)graph.TopologicalSorting();
 
   FuzzyGeneralizePtr fuzzy_generalize_ptr = nullptr;
-  FE_MAKE_SHARED(fuzzy_generalize_ptr = std::make_shared<FuzzyGeneralize>(
-    optimize_utility_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_),
-    return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
+  FE_MAKE_SHARED(fuzzy_generalize_ptr = std::make_shared<FuzzyGeneralize>(optimize_utility_, ops_kernel_info_store_ptr_,
+                                                                          fusion_priority_mgr_ptr_),
+                 return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   Status res = fuzzy_generalize_ptr->GeneralizeGraph(graph);
   bool bres = (res == SUCCESS) ? true : false;
   FE_LOGI("[GraphOpt][Prepare][Generalize] End to generalize graph[%s], generalize result is [%d].",
@@ -755,7 +760,8 @@ Status FEGraphOptimizer::OptimizeAfterGraphNormalization(const ge::ComputeGraphP
   }
   Status ret = optimize_utility_->MultiDimsProcess(graph);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Prepare] Failed to run multi-dimension process for graph [%s].", graph->GetName().c_str());
+    REPORT_FE_ERROR("[GraphOpt][Prepare] Failed to run multi-dimension process for graph [%s].",
+                    graph->GetName().c_str());
     return ret;
   }
   FE_LOGI("Optimize graph[%s] after multi dims successfully.", graph->GetName().c_str());
@@ -770,7 +776,7 @@ Status FEGraphOptimizer::OptimizeAfterGraphNormalization(const ge::ComputeGraphP
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeGraphInit(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeGraphInit(ge::ComputeGraph &graph) {
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageInit, graph.GetName());
   if (!init_flag_) {
     REPORT_FE_ERROR("[GraphOpt][Init] FEGraphOptimizer has not been initialized.");
@@ -779,7 +785,7 @@ Status FEGraphOptimizer::OptimizeGraphInit(ge::ComputeGraph& graph) {
 
   FE_TIMECOST_START(SortFusionPassByPriority);
   {
-    std::lock_guard <std::mutex> lock_guard(sort_lock_);
+    std::lock_guard<std::mutex> lock_guard(sort_lock_);
     if (Configuration::Instance(graph_optimizer_attr_.engineName).RefreshParameters() != SUCCESS) {
       FE_LOGE("[GraphOpt][RefreshConfig] Failed to refresh parameters of configuration.");
       return FAILED;
@@ -805,7 +811,7 @@ Status FEGraphOptimizer::OptimizeGraphInit(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph &graph) {
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStagePrepare, graph.GetName());
   if (!init_flag_) {
     REPORT_FE_ERROR("[GraphOpt][Prepare] FEGraphOptimizer has not been initialized.");
@@ -819,15 +825,14 @@ Status FEGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph& graph) {
 
   FE_TIMECOST_START(OptimizeTagNoConstFoldingGraph);
 
-  Status ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStagePrepare, graph,
-                                                           BUILT_IN_TF_TAG_NO_CONST_FODING_GRAPH_PASS);
+  Status ret =
+      graph_fusion_ptr_->RunGraphFusionPassByType(kStagePrepare, graph, BUILT_IN_TF_TAG_NO_CONST_FODING_GRAPH_PASS);
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][Prepare] Failed to apply no constant folding tag to graph %s", graph.GetName().c_str());
     return ret;
   }
 
-  ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStagePrepare, graph,
-                                                    BUILT_IN_PREPARE_GRAPH_PASS);
+  ret = graph_fusion_ptr_->RunGraphFusionPassByType(kStagePrepare, graph, BUILT_IN_PREPARE_GRAPH_PASS);
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][Prepare] Failed to run prepare-graph-fusion for graph[%s].", graph.GetName().c_str());
     return ret;
@@ -840,7 +845,7 @@ Status FEGraphOptimizer::OptimizeGraphPrepare(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::ConvertPartitionCalledOp(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::ConvertPartitionCalledOp(ge::ComputeGraph &graph) {
   std::shared_ptr<fe::GraphComm> graph_comm_ptr = nullptr;
   FE_MAKE_SHARED(graph_comm_ptr = std::make_shared<fe::GraphComm>(AI_CORE_NAME, fe_lock_ptr_), return FAILED);
   FE_CHECK(graph_comm_ptr == nullptr, FE_LOGE("graphCommPtr is null."), return FAILED);
@@ -910,8 +915,8 @@ Status FEGraphOptimizer::HandleCompressOp(const ge::ComputeGraph &graph) const {
     if (kCubeCompressOpList.count(node->GetType()) == 0) {
       continue;
     }
-    FE_LOGD("Trying to link anchor for compress index input of node [%s, %s].",
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGD("Trying to link anchor for compress index input of node [%s, %s].", node->GetName().c_str(),
+            node->GetType().c_str());
     ge::InDataAnchorPtr compress_index_in_anchor = node->GetInDataAnchor(TENSOR_INDEX_COMPRESS_INDEX);
     FE_CHECK_NOTNULL(compress_index_in_anchor);
     if (compress_index_in_anchor->GetPeerOutAnchor() != nullptr) {
@@ -928,8 +933,8 @@ Status FEGraphOptimizer::HandleCompressOp(const ge::ComputeGraph &graph) const {
                         node->GetName().c_str(), node->GetType().c_str());
         return FAILED;
       }
-      FE_LOGD("Input compression for node [%s, %s] has been linked to the weight node.",
-              node->GetName().c_str(), node->GetType().c_str());
+      FE_LOGD("Input compression for node [%s, %s] has been linked to the weight node.", node->GetName().c_str(),
+              node->GetType().c_str());
     }
 
     if (enable_sparsity == WEIGHCOMPRESSINNERFLAG::FOUR_TO_TWO_FLAG) {
@@ -963,8 +968,8 @@ Status FEGraphOptimizer::HandleAclnnOp(ge::ComputeGraph &graph) const {
       continue;
     }
     OpImplType op_impl_type = static_cast<OpImplType>(imply_type);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(graph_optimizer_attr_.engineName).
-                                         GetOpKernelInfoByOpType(op_impl_type, node->GetType());
+    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(graph_optimizer_attr_.engineName)
+                                             .GetOpKernelInfoByOpType(op_impl_type, node->GetType());
     if (op_kernel_info_ptr == nullptr || !op_kernel_info_ptr->IsMultiKernelSupport()) {
       continue;
     }
@@ -983,8 +988,7 @@ Status FEGraphOptimizer::HandleAclnnOp(ge::ComputeGraph &graph) const {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::SplitOptimizer(ge::ComputeGraph& graph,
-                                              const bool& need_set_virtual_op) const {
+Status FEGraphOptimizer::SplitOptimizer(ge::ComputeGraph &graph, const bool &need_set_virtual_op) const {
   Status ret = FAILED;
   bool is_memory_discontinuous = false;
   (void)ge::AttrUtils::GetBool(graph, ge::ATTR_NAME_MEMORY_DISCONTIGUOUS_ALLOCATION, is_memory_discontinuous);
@@ -1003,13 +1007,13 @@ Status FEGraphOptimizer::SplitOptimizer(ge::ComputeGraph& graph,
     FE_LOGD("Using split_c_to_n_optimizer to configure FusionVirtualOp.");
     (void)split_c_to_n_optimizer_ptr_->SetFusionVirtualOp(graph);
   } else {
-    FE_LOGD("Fusion virtual op set switch is off for graph %s, is_memory_discontinuous:%d.",
-            graph.GetName().c_str(), is_memory_discontinuous);
+    FE_LOGD("Fusion virtual op set switch is off for graph %s, is_memory_discontinuous:%d.", graph.GetName().c_str(),
+            is_memory_discontinuous);
   }
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::InsertClipByValue(ge::ComputeGraph& graph) const {
+Status FEGraphOptimizer::InsertClipByValue(ge::ComputeGraph &graph) const {
   if (!PlatformUtils::Instance().IsDCSoc()) {
     FE_LOGD("[SubGraphOpt][OptFusGraph][InstClip] No need to insert ClipByValue node.");
     return SUCCESS;
@@ -1020,8 +1024,8 @@ Status FEGraphOptimizer::InsertClipByValue(ge::ComputeGraph& graph) const {
     if (node->GetType() == CONSTANT) {
       FE_CHECK_NOTNULL(node->GetOpDesc()->GetOutputDescPtr(0));
       ge::DataType out_dtype = node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType();
-      bool need_insert_clip = (out_dtype == ge::DT_FLOAT || out_dtype == ge::DT_DOUBLE) &&
-                              (!node->GetOutDataNodes().empty());
+      bool need_insert_clip =
+          (out_dtype == ge::DT_FLOAT || out_dtype == ge::DT_DOUBLE) && (!node->GetOutDataNodes().empty());
       if (need_insert_clip) {
         // need insert clip by value
         CreateClipByValue(graph, node, true);
@@ -1031,10 +1035,9 @@ Status FEGraphOptimizer::InsertClipByValue(ge::ComputeGraph& graph) const {
       ge::AttrUtils::GetStr(node->GetOpDesc(), ge::ATTR_NAME_PLD_FRONT_NODE_ENGINE_NAME, parent_op_engine_name);
       FE_CHECK_NOTNULL(node->GetOpDesc()->GetOutputDescPtr(0));
       ge::DataType out_dtype = node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType();
-      bool need_insert_clip = (parent_op_engine_name == "DNN_VM_AICPU_ASCEND" ||
-                               parent_op_engine_name == "DNN_VM_AICPU") &&
-                              (out_dtype == ge::DT_FLOAT || out_dtype == ge::DT_DOUBLE) &&
-                              (!node->GetOutDataNodes().empty());
+      bool need_insert_clip =
+          (parent_op_engine_name == "DNN_VM_AICPU_ASCEND" || parent_op_engine_name == "DNN_VM_AICPU") &&
+          (out_dtype == ge::DT_FLOAT || out_dtype == ge::DT_DOUBLE) && (!node->GetOutDataNodes().empty());
       if (need_insert_clip) {
         // need insert clip by value
         CreateClipByValue(graph, node, false);
@@ -1044,8 +1047,8 @@ Status FEGraphOptimizer::InsertClipByValue(ge::ComputeGraph& graph) const {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::CreateClipByValue(ge::ComputeGraph& graph, const ge::NodePtr& node,
-                                           const bool& const_input) const {
+Status FEGraphOptimizer::CreateClipByValue(ge::ComputeGraph &graph, const ge::NodePtr &node,
+                                           const bool &const_input) const {
   FE_CHECK_NOTNULL(node);
   FE_CHECK_NOTNULL(node->GetOpDesc()->GetOutputDescPtr(0));
   ge::GeTensorDesc tensor_desc = node->GetOpDesc()->GetOutputDesc(0);
@@ -1094,7 +1097,7 @@ Status FEGraphOptimizer::CreateClipByValue(ge::ComputeGraph& graph, const ge::No
   return SUCCESS;
 }
 
-ge::NodePtr FEGraphOptimizer::CreateSalcarConst(ge::ComputeGraph& graph, const std::string &clip_name,
+ge::NodePtr FEGraphOptimizer::CreateSalcarConst(ge::ComputeGraph &graph, const std::string &clip_name,
                                                 const ge::GeTensorDesc &tensor_desc, const bool min_value) const {
   ge::OpDescPtr op_desc = nullptr;
   std::string op_name = clip_name;
@@ -1127,12 +1130,15 @@ ge::NodePtr FEGraphOptimizer::CreateSalcarConst(ge::ComputeGraph& graph, const s
   const int32_t origin_element_num = 1;
   // this attr is used for constant_folding_pass, which set to fuse constant
   ge::AttrUtils::SetInt(tensor.MutableTensorDesc(), "origin_element_num", origin_element_num);
-  if (node == nullptr) { FE_LOGE("Node is a nullptr."); return nullptr; }
+  if (node == nullptr) {
+    FE_LOGE("Node is a nullptr.");
+    return nullptr;
+  }
   ge::AttrUtils::SetTensor(node->GetOpDesc(), "value", tensor);
   return node;
 }
 
-Status FEGraphOptimizer::CompileMemSetOp(ge::ComputeGraph& graph) const {
+Status FEGraphOptimizer::CompileMemSetOp(ge::ComputeGraph &graph) const {
   string memset_policy_str;
   (void)ge::GetThreadLocalContext().GetOption(ge::ATOMIC_CLEAN_POLICY, memset_policy_str);
   if (memset_policy_str.empty()) {
@@ -1142,7 +1148,7 @@ Status FEGraphOptimizer::CompileMemSetOp(ge::ComputeGraph& graph) const {
   }
   if (memset_policy_str != "0" && memset_policy_str != "1") {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {memset_policy_str, ge::ATOMIC_CLEAN_POLICY,
-                               "The atomic clean policy value must be 0 or 1"});
+                                                         "The atomic clean policy value must be 0 or 1"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -1194,8 +1200,8 @@ void FEGraphOptimizer::ClearSameMemSet(ge::ComputeGraph &graph) const {
   }
 }
 
-Status FEGraphOptimizer::GetAndPreProcessForAtomicNodes(ge::ComputeGraph& graph,
-    vector<ge::NodePtr> &atomic_node_vec, const string &memset_policy) const {
+Status FEGraphOptimizer::GetAndPreProcessForAtomicNodes(ge::ComputeGraph &graph, vector<ge::NodePtr> &atomic_node_vec,
+                                                        const string &memset_policy) const {
   for (auto &node : graph.GetDirectNode()) {
     FE_CHECK_NOTNULL(node);
     /* if the node is atomic node and connected to netoutput,
@@ -1208,7 +1214,7 @@ Status FEGraphOptimizer::GetAndPreProcessForAtomicNodes(ge::ComputeGraph& graph,
     is_tbe_op = IsTbeOp(op_desc);
     if (is_tbe_op) {
       FE_LOGD("[SubGraphOpt][PostProcess][CompileAtomic] Start to set atomic attr for op[%s].",
-          node->GetName().c_str());
+              node->GetName().c_str());
       if (CheckAndSetAtomicAttr(op_desc, atomic_node_flag) != fe::SUCCESS) {
         FE_LOGW("[SubGraphOpt][PostProcess][CompileAtomic] Setting TBE op [%s] atomic info failed.",
                 op_desc->GetName().c_str());
@@ -1221,11 +1227,11 @@ Status FEGraphOptimizer::GetAndPreProcessForAtomicNodes(ge::ComputeGraph& graph,
     if (!UnknownShapeUtils::IsUnknownShapeOp(*(op_desc.get())) &&
         (memset_policy.compare(kAtomicCleanTogetherMode) == 0)) {
       FE_LOGD("[SubGraphOpt][PostProcess][CompileAtomic] Op:%s is not of unknown shape, moving to the next one.",
-          node->GetName().c_str());
+              node->GetName().c_str());
       continue;
     }
     FE_LOGD("[SubGraphOpt][PostProcess][CompileAtomic] Op:%s is unknown shape, start to set atomic attr for it.",
-        node->GetName().c_str());
+            node->GetName().c_str());
 
     if (atomic_node_flag) {
       atomic_node_vec.emplace_back(node);
@@ -1234,7 +1240,7 @@ Status FEGraphOptimizer::GetAndPreProcessForAtomicNodes(ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-void FEGraphOptimizer::AllocMixResource(ge::ComputeGraph& graph) const {
+void FEGraphOptimizer::AllocMixResource(ge::ComputeGraph &graph) const {
   bool is_in_dyn_graph = (graph.GetParentNode() != nullptr) && graph.GetGraphUnknownFlag();
   for (auto &node : graph.GetDirectNode()) {
     std::string core_type;
@@ -1262,8 +1268,8 @@ void FEGraphOptimizer::AllocMixResource(ge::ComputeGraph& graph) const {
   return;
 }
 
-Status FEGraphOptimizer::PostProcessAfterCompilingOp(ge::ComputeGraph& graph,
-                                                     const BufferFusionPtr& buffer_fusion_ptr) {
+Status FEGraphOptimizer::PostProcessAfterCompilingOp(ge::ComputeGraph &graph,
+                                                     const BufferFusionPtr &buffer_fusion_ptr) {
   if (WeightPrefetchUtils::HandleWeightPrefetch(graph) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][PostProcess][WeightPrefetch] Failed to handle weight prefetch.");
     return FAILED;
@@ -1280,7 +1286,8 @@ Status FEGraphOptimizer::PostProcessAfterCompilingOp(ge::ComputeGraph& graph,
 
   // calculate the input and output size of op.
   FE_CHECK(space_size_calculator_ptr_ == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][PostProcess][CalcuRunPara] The spaceSizeCalculatorPtr is null. Please check the initialization process."),
+           REPORT_FE_ERROR("[GraphOpt][PostProcess][CalcuRunPara] The spaceSizeCalculatorPtr is null. Please check the "
+                           "initialization process."),
            return FAILED);
   Status ret = space_size_calculator_ptr_->CalculateRunningParams(graph);
   if (ret != SUCCESS) {
@@ -1296,8 +1303,9 @@ Status FEGraphOptimizer::PostProcessAfterCompilingOp(ge::ComputeGraph& graph,
   }
   // set atomic info to op
   if (CompileMemSetOp(graph) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CompileMemSetOp] Compilation of atomic operation failed for graph [%s].",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][PostProcess][CompileMemSetOp] Compilation of atomic operation failed for graph [%s].",
+        graph.GetName().c_str());
     return FAILED;
   }
 
@@ -1308,7 +1316,7 @@ Status FEGraphOptimizer::PostProcessAfterCompilingOp(ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-void FEGraphOptimizer::MatchSuperkernelPlusNodes(const ge::ComputeGraph& graph) const {
+void FEGraphOptimizer::MatchSuperkernelPlusNodes(const ge::ComputeGraph &graph) const {
   if (!Configuration::Instance(graph_optimizer_attr_.engineName).IsEnableSuperkernelPlus()) {
     return;
   }
@@ -1353,15 +1361,15 @@ void FEGraphOptimizer::SetSkpScopeAttr(const std::vector<ge::NodePtr> &match_nod
   }
 }
 
-Status FEGraphOptimizer::GetOpCompiler(OpCompilerPtr& op_compiler) const {
+Status FEGraphOptimizer::GetOpCompiler(OpCompilerPtr &op_compiler) const {
   std::string build_mode_value = FEContextUtils::GetBuildMode();
   std::string step_mode_value = FEContextUtils::GetBuildStep();
   FE_LOGD("[SubGraphOpt][Compile][GetCompiler] Get build status from option: build_mode [%s], step [%s].",
           build_mode_value.c_str(), step_mode_value.c_str());
   auto size = op_compiler_ptr_.size();
   if (size != static_cast<size_t>(OpCompilerIndex::OP_COMPILER_BOTTOM)) {
-    FE_LOGE("[SubGraphOpt][Compile][GetCompiler] Op compiler's size(%zu) is less than %u.",
-            size, static_cast<uint32_t>(OpCompilerIndex::OP_COMPILER_BOTTOM));
+    FE_LOGE("[SubGraphOpt][Compile][GetCompiler] Op compiler's size(%zu) is less than %u.", size,
+            static_cast<uint32_t>(OpCompilerIndex::OP_COMPILER_BOTTOM));
     return FAILED;
   }
 
@@ -1412,9 +1420,9 @@ Status FEGraphOptimizer::OptimizeFusedCompileOpAndCalcTensorSize(const OpCompile
   return PostProcessAfterCompilingOp(graph, buffer_fusion_ptr);
 }
 
-Status FEGraphOptimizer::BufferFusionMatch(ge::ComputeGraph& graph,
+Status FEGraphOptimizer::BufferFusionMatch(ge::ComputeGraph &graph,
                                            const std::shared_ptr<FusionCycleDetector> &cycle_detector,
-                                           const BufferFusionPtr& buffer_fusion_ptr) const {
+                                           const BufferFusionPtr &buffer_fusion_ptr) const {
   FE_TIMECOST_START(FusionMatch);
   // find sub-graphs that match UB fusion pattern
   if (buffer_fusion_ptr->MatchFusionPatternFromGraph(graph) != SUCCESS) {
@@ -1428,8 +1436,7 @@ Status FEGraphOptimizer::BufferFusionMatch(ge::ComputeGraph& graph,
    * we do not set connection matrix to cycle detector. */
   cycle_detector->GetConnectionMatrix(connection_matrix);
   AutomaticBufferFusionPtr auto_buffer_fusion_ptr = nullptr;
-  FE_MAKE_SHARED(auto_buffer_fusion_ptr =
-                 std::make_shared<AutomaticBufferFusion>(std::move(connection_matrix)),
+  FE_MAKE_SHARED(auto_buffer_fusion_ptr = std::make_shared<AutomaticBufferFusion>(std::move(connection_matrix)),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (fusion_priority_mgr_ptr_->GetFusionSwitchByName("AutomaticUbFusion", UB_FUSION)) {
     if (auto_buffer_fusion_ptr->Run(graph) != SUCCESS) {
@@ -1444,7 +1451,7 @@ Status FEGraphOptimizer::BufferFusionMatch(ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::SubGraphCompile(ge::ComputeGraph& graph, const OpCompilerPtr &op_compiler,
+Status FEGraphOptimizer::SubGraphCompile(ge::ComputeGraph &graph, const OpCompilerPtr &op_compiler,
                                          const BufferFusionPtr &buffer_fusion_ptr) {
   Status ret = op_compiler->RunCompileProcess(graph);
   if (ret != SUCCESS) {
@@ -1464,7 +1471,7 @@ Status FEGraphOptimizer::SubGraphCompile(ge::ComputeGraph& graph, const OpCompil
   return PostProcessAfterCompilingOp(graph, buffer_fusion_ptr);
 }
 
-Status FEGraphOptimizer::PrecompileAndUbMatch(ge::ComputeGraph& graph, GraphCommPtr &graph_comm_ptr,
+Status FEGraphOptimizer::PrecompileAndUbMatch(ge::ComputeGraph &graph, GraphCommPtr &graph_comm_ptr,
                                               OpCompilerPtr &op_compiler, BufferFusionPtr &buffer_fusion_ptr) const {
   if (GetOpCompiler(op_compiler) != SUCCESS) {
     return FAILED;
@@ -1489,12 +1496,12 @@ Status FEGraphOptimizer::PrecompileAndUbMatch(ge::ComputeGraph& graph, GraphComm
   FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), return FAILED);
   cycle_detector->Initialize(graph);
 
-  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(
-                    graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+  OpStoreAdapterPtr op_store_adapter =
+      OpStoreAdapterManager::Instance(graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
 
-  FE_MAKE_SHARED(buffer_fusion_ptr = std::make_shared<BufferFusion>(
-                 graph_comm_ptr, fusion_priority_mgr_ptr_, op_store_adapter, cycle_detector),
+  FE_MAKE_SHARED(buffer_fusion_ptr = std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr_,
+                                                                    op_store_adapter, cycle_detector),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   buffer_fusion_ptr->SetEngineName(graph_optimizer_attr_.engineName);
 
@@ -1506,7 +1513,7 @@ Status FEGraphOptimizer::PrecompileAndUbMatch(ge::ComputeGraph& graph, GraphComm
   return SUCCESS;
 }
 
-bool FEGraphOptimizer::CheckNeedSetSliceInfo(ge::ComputeGraph& graph) const {
+bool FEGraphOptimizer::CheckNeedSetSliceInfo(ge::ComputeGraph &graph) const {
   bool sgt_sliced = false;
   for (const auto &node : graph.GetDirectNode()) {
     FE_CHECK(node == nullptr, FE_LOGE("Node is a nullptr."), return false);
@@ -1517,22 +1524,24 @@ bool FEGraphOptimizer::CheckNeedSetSliceInfo(ge::ComputeGraph& graph) const {
     uint32_t thread_scope_id = 0xFFFFFFFF;
     (void)ge::AttrUtils::GetInt(op_desc_ptr, kThreadScopeId, thread_scope_id);
     if (thread_scope_id != 0xFFFFFFFF) {
-      FE_LOGD("Operation %s belongs to the ffts-subgraph; there is no need to set slice information for the current graph %s.",
-              node->GetName().c_str(), graph.GetName().c_str());
+      FE_LOGD(
+          "Operation %s belongs to the ffts-subgraph; there is no need to set slice information for the current graph "
+          "%s.",
+          node->GetName().c_str(), graph.GetName().c_str());
       sgt_sliced = true;
     }
     break;
   }
   bool no_need_lx = (PlatformUtils::Instance().GetCubeVecState() == CubeVecStateNew::CUBE_VEC_SPLIT &&
-                     PlatformUtils::Instance().GetFftsMode() == FFTS_MODE_FFTS_PLUS) && FEContextUtils::IsTrainMode();
+                     PlatformUtils::Instance().GetFftsMode() == FFTS_MODE_FFTS_PLUS) &&
+                    FEContextUtils::IsTrainMode();
   bool bres = !sgt_sliced && !no_need_lx;
   (void)ge::AttrUtils::SetBool(graph, kNeedSetSliceInfo, bres);
-  FE_LOGD("Set attribute need_set_slice_info [%d] for current graph %s.",
-          bres, graph.GetName().c_str());
+  FE_LOGD("Set attribute need_set_slice_info [%d] for current graph %s.", bres, graph.GetName().c_str());
   return bres;
 }
 
-Status FEGraphOptimizer::OptimizeFusedGraph(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph) {
   FE_LOGD("Begin optimizing fused graph in engine [%s].", graph_optimizer_attr_.engineName.c_str());
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageFused, graph.GetName());
   if (!init_flag_) {
@@ -1544,7 +1553,7 @@ Status FEGraphOptimizer::OptimizeFusedGraph(ge::ComputeGraph& graph) {
 
   GraphCommPtr graph_comm_ptr = nullptr;
   FE_MAKE_SHARED(graph_comm_ptr = std::make_shared<GraphComm>(graph_optimizer_attr_.engineName, fe_lock_ptr_),
-      return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
+                 return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
 
   if (graph_comm_ptr->Initialize() != SUCCESS) {
     FE_LOGW("GraphComm initialize failed");
@@ -1627,8 +1636,9 @@ Status FEGraphOptimizer::OptimizeFusedGraph(ge::ComputeGraph& graph) {
  *  @param   [in|out] graph   compute graph
  *  @return  SUCCESS or FAILED
  */
-Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& graph) {
-  FE_LOGD("Begin optimizing the fused graph for the second stage in engine [%s].", graph_optimizer_attr_.engineName.c_str());
+Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph &graph) {
+  FE_LOGD("Begin optimizing the fused graph for the second stage in engine [%s].",
+          graph_optimizer_attr_.engineName.c_str());
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageAftFmtSlct, graph.GetName());
   FE_TIMECOST_START(OptimizeFusedGraphAfterGraphSlice);
   if (!init_flag_) {
@@ -1661,8 +1671,9 @@ Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& gra
   FE_CHECK_NOTNULL(op_compiler_format_tune_ptr);
   ret = op_compiler_format_tune_ptr->UpdateTuneFormatByNodeAttr(graph);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][CompileAfterSlice][FormatTune] Failed to update tuneformat using node attributes for graph %s.",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][CompileAfterSlice][FormatTune] Failed to update tuneformat using node attributes for graph %s.",
+        graph.GetName().c_str());
     return ret;
   }
 
@@ -1673,8 +1684,8 @@ Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& gra
   ret = op_compiler->PreCompileOp(graph);
   if (ret != SUCCESS) {
     REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(),
-                       "[SubGraphOpt][CompileAfterSlice][Pre-Comp] Failed to precompile graph %s after slice.",
-                       graph.GetName().c_str());
+                         "[SubGraphOpt][CompileAfterSlice][Pre-Comp] Failed to precompile graph %s after slice.",
+                         graph.GetName().c_str());
     return ret;
   }
   FE_LOGD("Optimizing fused graph name = %s: precompile op successfully.", graph.GetName().c_str());
@@ -1693,12 +1704,12 @@ Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& gra
   FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), return FAILED);
   cycle_detector->Initialize(graph);
 
-  OpStoreAdapterPtr op_store_adapter = OpStoreAdapterManager::Instance(
-                    graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
+  OpStoreAdapterPtr op_store_adapter =
+      OpStoreAdapterManager::Instance(graph_optimizer_attr_.engineName).GetOpStoreAdapter(EN_IMPL_HW_TBE);
   FE_CHECK_NOTNULL(op_store_adapter);
 
-  FE_MAKE_SHARED(buffer_fusion_ptr = std::make_shared<BufferFusion>(
-                 graph_comm_ptr, fusion_priority_mgr_ptr_, op_store_adapter, cycle_detector),
+  FE_MAKE_SHARED(buffer_fusion_ptr = std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr_,
+                                                                    op_store_adapter, cycle_detector),
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   buffer_fusion_ptr->SetEngineName(graph_optimizer_attr_.engineName);
   ret = OptimizeFusedCompileOpAndCalcTensorSize(op_compiler, buffer_fusion_ptr, graph);
@@ -1716,7 +1727,7 @@ Status FEGraphOptimizer::OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& gra
  *  @ingroup fe
  *  @brief   optimize stream graph (now only for single stream graph)
  */
-Status FEGraphOptimizer::OptimizeStreamGraph(ge::ComputeGraph& stream_graph, const ge::RunContext& context) {
+Status FEGraphOptimizer::OptimizeStreamGraph(ge::ComputeGraph &stream_graph, const ge::RunContext &context) {
   FE_LOGI("FEGraphOptimizer start optimizing stream graph.");
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStageLx, stream_graph.GetName());
   string session_graph_id = "";
@@ -1750,9 +1761,8 @@ Status FEGraphOptimizer::OptimizeStreamGraph(ge::ComputeGraph& stream_graph, con
   // choose L2 cache or L2 buffer mode, if L2 buffer mode, dynamic batch judge
   FE_CHECK(l2_optimize_ptr_ == nullptr, REPORT_FE_ERROR("[GraphOpt][OptStream] l2OptimizePtr_ is null."),
            return fe::FAILED);
-  Status ret = l2_optimize_ptr_->GetL2DataAlloc(stream_graph,
-                                                static_cast<uint64_t>(reinterpret_cast<uintptr_t>(context.dataMemBase)),
-                                                stream_id);
+  Status ret = l2_optimize_ptr_->GetL2DataAlloc(
+      stream_graph, static_cast<uint64_t>(reinterpret_cast<uintptr_t>(context.dataMemBase)), stream_id);
   if (ret != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][OptStream][GetL2DataAlloc] GetL2DataAlloc failed for graph [%s].",
                     stream_graph.GetName().c_str());
@@ -1828,16 +1838,15 @@ Status FEGraphOptimizer::OptimizeStreamedWholeGraph(ge::ComputeGraph &graph) {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::GetAttributes(ge::GraphOptimizerAttribute& attrs) const {
+Status FEGraphOptimizer::GetAttributes(ge::GraphOptimizerAttribute &attrs) const {
   attrs = graph_optimizer_attr_;
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeWholeGraph(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeWholeGraph(ge::ComputeGraph &graph) {
   std::string build_mode = FEContextUtils::GetBuildMode();
   if (build_mode != ge::BUILD_MODE_TUNING) {
-    FE_LOGD("Got build mode: %s, no need to restore ext_attr and sub_node_workspace_info.",
-            build_mode.c_str());
+    FE_LOGD("Got build mode: %s, no need to restore ext_attr and sub_node_workspace_info.", build_mode.c_str());
     return SUCCESS;
   }
   // 恢复扩展属性sub_node_workspace_info
@@ -1852,7 +1861,7 @@ Status FEGraphOptimizer::OptimizeWholeGraph(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status FEGraphOptimizer::OptimizeGraphForTiling(ge::ComputeGraph& graph) const {
+Status FEGraphOptimizer::OptimizeGraphForTiling(ge::ComputeGraph &graph) const {
   FE_TIMECOST_START(OptimizeGraphForTiling);
   if (ge::RecoverIrDefinitions(graph.shared_from_this()) != ge::GRAPH_SUCCESS) {
     return FAILED;
@@ -1887,8 +1896,7 @@ bool FEGraphOptimizer::CheckExportFusionResCond(ge::ComputeGraph &graph) const {
   return true;
 }
 
-
-Status FEGraphOptimizer::OptimizeGraphBeforeBuild(ge::ComputeGraph& graph) {
+Status FEGraphOptimizer::OptimizeGraphBeforeBuild(ge::ComputeGraph &graph) {
   if (PlatformUtils::Instance().IsEnableL2CacheCmo()) {
     ge::AttrUtils::SetBool(graph, "_op_need_multi_task", true);
     FE_LOGI("[GraphOpt][Optimize] Platform support CMO, set attribute _op_need_multi_task for graph[%s].",
@@ -1896,8 +1904,7 @@ Status FEGraphOptimizer::OptimizeGraphBeforeBuild(ge::ComputeGraph& graph) {
   }
 
   // set fusion_virtual_op info to op
-  bool need_set_virtual_op =
-          fusion_priority_mgr_ptr_->GetFusionSwitchByName(kFusionVirtualOpSetSwitch, UB_FUSION);
+  bool need_set_virtual_op = fusion_priority_mgr_ptr_->GetFusionSwitchByName(kFusionVirtualOpSetSwitch, UB_FUSION);
   if (SplitOptimizer(graph, need_set_virtual_op) != SUCCESS) {
     FE_LOGD("SplitOptimizer unsuccessful, graph [%s].", graph.GetName().c_str());
     return FAILED;
@@ -1905,8 +1912,8 @@ Status FEGraphOptimizer::OptimizeGraphBeforeBuild(ge::ComputeGraph& graph) {
 
   for (const auto &subgraph : graph.GetAllSubgraphs()) {
     FE_CHECK(SplitOptimizer(*(subgraph.get()), need_set_virtual_op) != SUCCESS,
-             FE_LOGD("SplitOptimizer subgraph unsuccess, subgraph [%s].",
-                     subgraph->GetName().c_str()), return FAILED);
+             FE_LOGD("SplitOptimizer subgraph unsuccessful, subgraph [%s].", subgraph->GetName().c_str()),
+             return FAILED);
   }
   op_setter_ptr_->DeleteFusionScope(graph);
   if (CheckExportFusionResCond(graph)) {
@@ -1917,7 +1924,7 @@ Status FEGraphOptimizer::OptimizeGraphBeforeBuild(ge::ComputeGraph& graph) {
 
 REG_PASS_OPTION(kFusionVirtualOpSetSwitch).LEVELS(ge::OoLevel::kO2);
 
-void FEGraphOptimizer::StridedOptimize(ge::ComputeGraph& graph) const {
+void FEGraphOptimizer::StridedOptimize(ge::ComputeGraph &graph) const {
   std::shared_ptr<StridedWriteOptimizer> stridedwrite_optimizer = nullptr;
   FE_MAKE_SHARED(stridedwrite_optimizer = std::make_shared<fe::StridedWriteOptimizer>(), return);
   std::shared_ptr<StridedReadOptimizer> stridedread_optimizer = nullptr;
@@ -1927,13 +1934,13 @@ void FEGraphOptimizer::StridedOptimize(ge::ComputeGraph& graph) const {
   return;
 }
 
-void FEGraphOptimizer::ClearUnknowShapeAttr(const ge::ComputeGraph& graph) const {
-  for (auto& node : graph.GetAllNodes()) {
+void FEGraphOptimizer::ClearUnknowShapeAttr(const ge::ComputeGraph &graph) const {
+  for (auto &node : graph.GetAllNodes()) {
     (void)node->GetOpDesc()->DelAttr(fe::ATTR_NAME_UNKNOWN_SHAPE);
   }
 }
 
-void FEGraphOptimizer::ConvertExtAttr2Json(const ge::ComputeGraph& graph, bool need_delete_ext_attr) const {
+void FEGraphOptimizer::ConvertExtAttr2Json(const ge::ComputeGraph &graph, bool need_delete_ext_attr) const {
   if (Configuration::Instance(graph_optimizer_attr_.engineName).GetDumpGeGraph().empty()) {
     return;
   }
@@ -1946,7 +1953,7 @@ void FEGraphOptimizer::ConvertExtAttr2Json(const ge::ComputeGraph& graph, bool n
       std::shared_ptr<std::unordered_map<std::string, std::vector<std::vector<std::string>>>> op_attrs_maps_tmp =
           nullptr;
       FE_MAKE_SHARED((op_attrs_maps_tmp =
-                     std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>()),
+                          std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>()),
                      return);
       const ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
       op_attrs_maps_tmp = op_desc_ptr->TryGetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp);
@@ -1972,7 +1979,7 @@ void FEGraphOptimizer::ConvertExtAttr2Json(const ge::ComputeGraph& graph, bool n
   }
 }
 
-void FEGraphOptimizer::ConvertJson2ExtAttr(const ge::ComputeGraph& graph) const {
+void FEGraphOptimizer::ConvertJson2ExtAttr(const ge::ComputeGraph &graph) const {
   if (Configuration::Instance(graph_optimizer_attr_.engineName).GetDumpGeGraph().empty()) {
     return;
   }
@@ -1994,14 +2001,14 @@ void FEGraphOptimizer::ConvertJson2ExtAttr(const ge::ComputeGraph& graph) const 
       std::shared_ptr<std::unordered_map<std::string, std::vector<std::vector<std::string>>>> origin_op_attrs_map =
           nullptr;
       FE_MAKE_SHARED((origin_op_attrs_map =
-                     std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>()),
+                          std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>()),
                      return);
       for (const auto &pass_name : pass_names) {
         std::vector<std::vector<std::string>> origin_op_attrs_tmp;
         const nlohmann::json &json_value = nlohmann::json::parse(json_str);
         json_value.at(pass_name).get_to(origin_op_attrs_tmp);
-        origin_op_attrs_map->insert(std::pair<std::string,
-                                    std::vector<std::vector<std::string>>>(pass_name, origin_op_attrs_tmp));
+        origin_op_attrs_map->insert(
+            std::pair<std::string, std::vector<std::vector<std::string>>>(pass_name, origin_op_attrs_tmp));
       }
       (void)op_desc_ptr->SetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, origin_op_attrs_map);
     }
@@ -2011,8 +2018,8 @@ void FEGraphOptimizer::ConvertJson2ExtAttr(const ge::ComputeGraph& graph) const 
 }
 
 Status FEGraphOptimizer::OptimizeSubgraphOfPrecompiledOp(ge::ComputeGraph &graph, const KernelLookup &lookup) {
-  FE_LOGD("Begin to recover node info in om graph[%s] in engine[%s].",
-          graph.GetName().c_str(), graph_optimizer_attr_.engineName.c_str());
+  FE_LOGD("Begin to recover node info in om graph[%s] in engine[%s].", graph.GetName().c_str(),
+          graph_optimizer_attr_.engineName.c_str());
   ge::TraceOwnerGuard guard(FE_MODULE_NAME, kStagePreCompile, graph.GetName());
   FE_TIMECOST_START(OptimizeSubgraphOfPrecompiledOp);
   // copy origin node info to om sub graph and recover node attrs info in om subgraph

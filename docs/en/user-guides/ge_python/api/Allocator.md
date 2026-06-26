@@ -24,10 +24,10 @@ Allocator is an abstract base class for external memory allocators, used to cust
 ```python
 class MemBlock:
     def __init__(self, addr: int, size: int)
-    
+
     @property
     def addr(self) -> int
-    
+
     @property
     def size(self) -> int
 ```
@@ -38,7 +38,7 @@ class MemBlock:
 class Allocator(ABC):
     @abstractmethod
     def malloc(self, size: int) -> MemBlock
-    
+
     @abstractmethod
     def free(self, block: MemBlock) -> None
 ```

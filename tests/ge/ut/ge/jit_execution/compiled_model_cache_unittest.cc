@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,20 +28,20 @@
 
 namespace ge {
 Status GenDirectory(const std::string &dir_path) {
-  if (mmAccess(dir_path.c_str()) != EN_OK) { // construct the root dir for the user_graph
+  if (mmAccess(dir_path.c_str()) != EN_OK) {  // construct the root dir for the user_graph
     system(("mkdir -p " + dir_path).c_str());
   }
   return SUCCESS;
 }
 
 void DeleteDirectory(const std::string &dir_path) {
-  if (mmAccess(dir_path.c_str()) == EN_OK) { // construct the root dir for the user_graph
+  if (mmAccess(dir_path.c_str()) == EN_OK) {  // construct the root dir for the user_graph
     system(("rm -rf " + dir_path).c_str());
   }
 }
 
 class CompiledModelCacheUT : public ::testing::Test {
-protected:
+ protected:
   static void SetUpTestSuite() {
     DirEnv::GetInstance().InitDir();
   }
@@ -78,7 +78,7 @@ protected:
   ComputeGraphPtr user_graph_ = SliceResultMocker::GenGraph("user_graph");
 
   map<std::string, std::string> global_options_ = {{"ge.graph_compiler_cache_dir", cache_dir_},
-                                               {"ge.graph_key", user_graph_key_}};
+                                                   {"ge.graph_key", user_graph_key_}};
   map<std::string, std::string> graph_options_ = {{"ge.graph_key", user_graph_key_}};
 
   std::string env;
@@ -115,12 +115,15 @@ TEST_F(CompiledModelCacheUT, check_get_gep_graph_key) {
 
   int64_t slice_graph_id = 1;
   std::string gep_graph_key_prefix_gt = user_graph_key_ + "_" + std::to_string(slice_graph_id) + "_";
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("Hello"), EsDestroyGraphBuilder);
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("Hello"),
+                                                                             EsDestroyGraphBuilder);
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
 
-  EXPECT_EQ(graph_manager.AddGraph(user_graph_id_,
-    *ge_graph, {{"ge.graph_key", user_graph_key_},
-    {"ge.graph_compiler_cache_dir", cache_dir_}}, OmgContext()), ge::SUCCESS);
+  EXPECT_EQ(graph_manager.AddGraph(user_graph_id_, *ge_graph,
+                                   {{"ge.graph_key", user_graph_key_}, {"ge.graph_compiler_cache_dir", cache_dir_}},
+                                   OmgContext()),
+            ge::SUCCESS);
 
   CompiledModelCache cmc(user_graph_id_, context, graph_manager);
 
@@ -148,12 +151,15 @@ TEST_F(CompiledModelCacheUT, check_emplace_gep_option) {
 
   constexpr int64_t slice_graph_id = 1;
   const std::string gep_graph_key_prefix_gt = user_graph_key_ + "_" + std::to_string(slice_graph_id) + "_";
-  const auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("Hello"), EsDestroyGraphBuilder);
-  const auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
+  const auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("Hello"),
+                                                                                   EsDestroyGraphBuilder);
+  const auto ge_graph =
+      std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
 
   EXPECT_EQ(graph_manager.AddGraph(user_graph_id_, *ge_graph,
-    {{"ge.graph_key", user_graph_key_},
-    {"ge.graph_compiler_cache_dir", cache_dir_}}, OmgContext()), ge::SUCCESS);
+                                   {{"ge.graph_key", user_graph_key_}, {"ge.graph_compiler_cache_dir", cache_dir_}},
+                                   OmgContext()),
+            ge::SUCCESS);
 
   CompiledModelCache cmc(user_graph_id_, context, graph_manager);
 
@@ -230,7 +236,8 @@ TEST_F(CompiledModelCacheUT, check_save_execution_point_no_ep) {
   const string user_graph_key = "";
   ExecutionPointUtil ep_util;
   std::map<std::string, std::string> graph_options;
-  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, nullptr, nullptr, graph_options);
+  std::unique_ptr<ExecutionPoint> exec_point_ptr =
+      std::make_unique<ExecutionPoint>(user_graph_id, nullptr, nullptr, graph_options);
   EXPECT_EQ(ep_util.SaveExecutionPoint(cache_dir_, user_graph_key, exec_point_ptr), ge::SUCCESS);
 }
 
@@ -240,7 +247,8 @@ TEST_F(CompiledModelCacheUT, check_save_execution_point_no_update_ep) {
   ExecutionPointUtil ep_util;
   ComputeGraphPtr sliced_graph = std::make_shared<ComputeGraph>("sliced_graph");
   std::map<std::string, std::string> graph_options;
-  std::unique_ptr<ExecutionPoint> exec_point_ptr = std::make_unique<ExecutionPoint>(user_graph_id, sliced_graph, nullptr, graph_options);
+  std::unique_ptr<ExecutionPoint> exec_point_ptr =
+      std::make_unique<ExecutionPoint>(user_graph_id, sliced_graph, nullptr, graph_options);
   EXPECT_EQ(ep_util.SaveExecutionPoint(cache_dir_, user_graph_key, exec_point_ptr), ge::SUCCESS);
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,12 +27,12 @@ using namespace ge;
 using namespace domi;
 
 class ConvertTensorUtest : public testing::Test {
-public:
+ public:
   domi::tensorflow::TensorProto tensor_;
   ge::graphStatus ret_;
   ge::GeTensorPtr weight_;
 
-protected:
+ protected:
   void SetUp() {
     tensor_.set_tensor_content("tensor_context_for_test");
   }
@@ -47,7 +47,8 @@ const unsigned int UNSIGNED_INT_TEST_NUM = 88;
 TEST_F(ConvertTensorUtest, ConvertTensorNoType) {
   GeTensorPtr weight;
   weight.reset();
-  TensorAssign::SetWeightData(domi::tensorflow::DataType_INT_MAX_SENTINEL_DO_NOT_USE_, 0, std::string("content"), weight);
+  TensorAssign::SetWeightData(domi::tensorflow::DataType_INT_MAX_SENTINEL_DO_NOT_USE_, 0, std::string("content"),
+                              weight);
   tensor_.set_dtype(domi::tensorflow::DataType_INT_MAX_SENTINEL_DO_NOT_USE_);
   ret_ = ge::AutoMappingUtil::ConvertTensor(tensor_, weight_);
   EXPECT_EQ(ret_, GRAPH_FAILED);
@@ -132,13 +133,12 @@ TEST_F(ConvertTensorUtest, ConvertTensorInt) {
   ret_ = ge::AutoMappingUtil::ConvertTensor(tensor_, weight_);
   EXPECT_EQ(ret_, domi::SUCCESS);
   tensor_.clear_int_val();
-  
+
   tensor_.add_int_val(INT_TEST_NUM);
   tensor_.set_dtype(domi::tensorflow::DT_UINT8);
   ret_ = ge::AutoMappingUtil::ConvertTensor(tensor_, weight_);
   EXPECT_EQ(ret_, domi::SUCCESS);
   tensor_.clear_int_val();
-
 }
 TEST_F(ConvertTensorUtest, ConvertTensorUnsignedInt) {
   tensor_.add_uint32_val(UNSIGNED_INT_TEST_NUM);

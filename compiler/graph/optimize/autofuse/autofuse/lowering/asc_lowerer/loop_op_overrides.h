@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,8 @@ class OpOverrides {
   virtual CseVar Load(const std::string &buffer, const TensorLoopDesc &loop_desc,
                       const TensorLoopDesc &loaded_loop_desc, const Expression &offset) = 0;
   virtual CseVar GatherLoad(const std::string &params, const std::string &indices,
-              const TensorLoopDesc &loop_desc_params, const TensorLoopDesc &loop_desc_indices, int64_t axis, bool negative_index_support) = 0;
+                            const TensorLoopDesc &loop_desc_params, const TensorLoopDesc &loop_desc_indices,
+                            int64_t axis, bool negative_index_support) = 0;
   virtual CseVar Store(const std::string &buffer, const CseVar &src, const TensorLoopDesc &loop_desc,
                        const Expression &offset) = 0;
   virtual CseVar StoreReduction(const std::string &buffer, const CseVar &src, ReduceType reduce_type,
@@ -36,8 +37,7 @@ class OpOverrides {
   virtual CseVar StoreConcat(const std::string &buffer, const std::vector<CseVar> &inputs,
                              const TensorLoopDesc &loop_desc, const Expression &offset) = 0;
 
-  virtual CseVar StoreSplit(const std::string &buffer, const CseVar &src,
-                            const TensorLoopDesc &output_loop_descs,
+  virtual CseVar StoreSplit(const std::string &buffer, const CseVar &src, const TensorLoopDesc &output_loop_descs,
                             const Expression &offset, size_t output_idx, size_t global_id) = 0;
   virtual CseVar Scalar(const std::string &face, ge::DataType dtype) = 0;
   virtual CseVar LoadSeed(const std::string &name, const CseVar &offset) = 0;

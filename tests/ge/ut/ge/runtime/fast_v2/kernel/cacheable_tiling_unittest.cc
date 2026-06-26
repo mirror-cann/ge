@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,7 +91,8 @@ void CheckTilingValue(const TilingCacheValue &tiling_value) {
   auto arg = reinterpret_cast<RtKernelLaunchArgsEx *>(expect_value.launch_arg_holder.get());
   ASSERT_NE(arg, nullptr);
   const auto &td = arg->GetTilingData();
-  const auto &expect_td = reinterpret_cast<RtKernelLaunchArgsEx *>(expect_value.launch_arg_holder.get())->GetTilingData();
+  const auto &expect_td =
+      reinterpret_cast<RtKernelLaunchArgsEx *>(expect_value.launch_arg_holder.get())->GetTilingData();
   ASSERT_EQ(td.GetDataSize(), expect_td.GetDataSize());
   ASSERT_EQ(td.GetCapacity(), expect_td.GetCapacity());
   EXPECT_EQ(std::memcmp(td.GetData(), expect_td.GetData(), expect_td.GetDataSize()), 0);
@@ -126,7 +127,8 @@ UINT32 StubTilingFuncSucc(KernelContext *context) {
   // 拷贝tilingData
   auto td_data = tiling_context->GetRawTilingData();
   GE_ASSERT_NOTNULL(td_data);
-  const auto &expect_td = reinterpret_cast<RtKernelLaunchArgsEx *>(expect_tiling_value.launch_arg_holder.get())->GetTilingData();
+  const auto &expect_td =
+      reinterpret_cast<RtKernelLaunchArgsEx *>(expect_tiling_value.launch_arg_holder.get())->GetTilingData();
   std::memcpy(td_data->GetData(), expect_td.GetData(), expect_td.GetDataSize());
   td_data->SetDataSize(expect_td.GetDataSize());
   return ge::GRAPH_SUCCESS;
@@ -184,19 +186,20 @@ TEST_F(CacheableTilingUt, CacheableTiling_Fail_CallTilingFuncFailed) {
   ASSERT_NE(cache_strategy, nullptr);
   TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(StubTilingFuncFail), .launch_arg = fake_launch_arg};
   std::string func_name = "BuildGeneralTilingCacheKey";
-  CacheableTilingFwkData cacheable_fwk_data{
-      fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL, func_name.data()};
+  CacheableTilingFwkData cacheable_fwk_data{fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL,
+                                            func_name.data()};
   // 准备Tiling的输出
   auto workspace_sizes_holder = CreateWorkspaceSizesWithDummyData(16UL);
   ASSERT_NE(workspace_sizes_holder, nullptr);
-  auto run_context = KernelRunContextFaker()
-                         .NodeIoNum(2UL, 1UL)
-                         .IrInputNum(2UL)
-                         .KernelIONum(6UL, static_cast<size_t>(TilingExOutputIndex::kNum))
-                         .Inputs({&in_shape1, &in_shape2, &out_shape, nullptr, nullptr, &cacheable_fwk_data, nullptr, nullptr})
-                         .Outputs({nullptr, nullptr, nullptr, nullptr, workspace_sizes_holder.get(),
-                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
-                         .Build();
+  auto run_context =
+      KernelRunContextFaker()
+          .NodeIoNum(2UL, 1UL)
+          .IrInputNum(2UL)
+          .KernelIONum(6UL, static_cast<size_t>(TilingExOutputIndex::kNum))
+          .Inputs({&in_shape1, &in_shape2, &out_shape, nullptr, nullptr, &cacheable_fwk_data, nullptr, nullptr})
+          .Outputs({nullptr, nullptr, nullptr, nullptr, workspace_sizes_holder.get(), nullptr, nullptr, nullptr,
+                    nullptr, nullptr, nullptr, nullptr})
+          .Build();
   ASSERT_EQ(kf_cacheable_tiling->run_func(run_context), ge::GRAPH_FAILED);
   // tiling_func调用失败不做缓存
   HashBuffer hash_buf;
@@ -232,18 +235,18 @@ TEST_F(CacheableTilingUt, CacheableTiling_Ok_TilingResultAddedAndFetched) {
   ASSERT_NE(cache_strategy, nullptr);
   TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(StubTilingFuncFail), .launch_arg = fake_launch_arg};
   std::string func_name = "BuildGeneralTilingCacheKey";
-  CacheableTilingFwkData cacheable_fwk_data{
-      fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL, func_name.data()};
+  CacheableTilingFwkData cacheable_fwk_data{fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL,
+                                            func_name.data()};
   const auto execute_kernel_and_check = [&](KernelRegistry::KernelFunc stub_func) {
     const TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(stub_func), .launch_arg = fake_launch_arg};
     cacheable_fwk_data.fwk_data = fwk_data;
-    auto run_context = KernelRunContextFaker()
-                           .NodeIoNum(2UL, 1UL)
-                           .IrInputNum(2UL)
-                           .KernelIONum(6UL, static_cast<size_t>(TilingExOutputIndex::kNum))
-                           .Inputs({&in_shape1, &in_shape2, &out_shape, nullptr, nullptr, &cacheable_fwk_data, nullptr,
-                                    nullptr})
-                           .Build();
+    auto run_context =
+        KernelRunContextFaker()
+            .NodeIoNum(2UL, 1UL)
+            .IrInputNum(2UL)
+            .KernelIONum(6UL, static_cast<size_t>(TilingExOutputIndex::kNum))
+            .Inputs({&in_shape1, &in_shape2, &out_shape, nullptr, nullptr, &cacheable_fwk_data, nullptr, nullptr})
+            .Build();
     ASSERT_EQ(kf_cacheable_tiling->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
     ASSERT_EQ(kf_cacheable_tiling->run_func(run_context), ge::GRAPH_SUCCESS);
     // tiling_func调用成功,缓存Tiling结果,其中workspace中缓存的是调用AlignWorkspaceSizes对齐后的结果
@@ -290,12 +293,12 @@ TEST_F(CacheableTilingUt, PrepareCacheableTilingFwkData_Ok) {
 TEST_F(CacheableTilingUt, PrepareCacheableTilingFwkDataForDataDependency_Ok) {
   uint64_t data_dependency = 10UL;
   std::string func_name = "BuildGeneralTilingCacheKey";
-  auto run_context = KernelRunContextFaker()
-      .KernelIONum(2UL, 1UL)
-      .Inputs({reinterpret_cast<void *>(StubTilingFuncSuccEmpty),
-               reinterpret_cast<void *>(fake_launch_arg), reinterpret_cast<void *>(data_dependency),
-               reinterpret_cast<void *>(func_name.data())})
-      .Build();
+  auto run_context =
+      KernelRunContextFaker()
+          .KernelIONum(2UL, 1UL)
+          .Inputs({reinterpret_cast<void *>(StubTilingFuncSuccEmpty), reinterpret_cast<void *>(fake_launch_arg),
+                   reinterpret_cast<void *>(data_dependency), reinterpret_cast<void *>(func_name.data())})
+          .Build();
   EXPECT_EQ(kf_prepare_cacheable_fwk_data->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
   EXPECT_EQ(kf_prepare_cacheable_fwk_data->run_func(run_context), ge::GRAPH_SUCCESS);
   auto context = run_context.GetContext<KernelContext>();
@@ -320,8 +323,8 @@ TEST_F(CacheableTilingUt, CacheableTiling_Ok_DataDependentTilingResultAddedAndFe
   ASSERT_NE(cache_strategy, nullptr);
   TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(StubTilingFuncFail), .launch_arg = fake_launch_arg};
   std::string func_name = "BuildGeneralTilingCacheKey";
-  CacheableTilingFwkData cacheable_fwk_data{
-      fwk_data, TilingCacheManager(std::move(cache_strategy)), 3UL, func_name.data()};
+  CacheableTilingFwkData cacheable_fwk_data{fwk_data, TilingCacheManager(std::move(cache_strategy)), 3UL,
+                                            func_name.data()};
   const auto execute_kernel_and_check = [&](KernelRegistry::KernelFunc stub_func) {
     cacheable_fwk_data.fwk_data.tiling_func = reinterpret_cast<void *>(stub_func);
     auto td_output_holder = TilingData::CreateCap(1024UL);
@@ -355,14 +358,14 @@ TEST_F(CacheableTilingUt, CacheableTiling_Ok_DataDependentTilingResultAddedAndFe
 }
 
 TEST_F(CacheableTilingUt, CacheableFallibleTiling_ok_TilingFuncSucc) {
-  std::unique_ptr<TilingCacheStrategy> cache_strategy(
-      new (std::nothrow)TilingCacheLruStrategy(kCacheSizeUt, kEvictNumUt));
+  std::unique_ptr<TilingCacheStrategy> cache_strategy(new (std::nothrow)
+                                                          TilingCacheLruStrategy(kCacheSizeUt, kEvictNumUt));
   ASSERT_NE(cache_strategy, nullptr);
   kernel::TilingFwkData fwk_data = {.tiling_func = reinterpret_cast<void *>(StubTilingFuncSuccEmpty),
                                     .launch_arg = fake_launch_arg};
   std::string func_name = "BuildGeneralTilingCacheKey";
-  CacheableTilingFwkData cacheable_fwk_data{
-      fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL, func_name.data()};
+  CacheableTilingFwkData cacheable_fwk_data{fwk_data, TilingCacheManager(std::move(cache_strategy)), 0UL,
+                                            func_name.data()};
   auto context_holder =
       KernelRunContextFaker()
           .KernelIONum(2, static_cast<size_t>(kernel::FallibleTilingExOutputIndex::kFallibleOutputNum))
@@ -370,7 +373,8 @@ TEST_F(CacheableTilingUt, CacheableFallibleTiling_ok_TilingFuncSucc) {
           .Build();
   auto context = context_holder.GetContext<KernelContext>();
   ASSERT_EQ(kf_cacheable_fallible_tiling->run_func(context), ge::GRAPH_SUCCESS);
-  const auto status = context->GetOutputPointer<uint32_t>(static_cast<size_t>(kernel::FallibleTilingExOutputIndex::kTilingStatus));
+  const auto status =
+      context->GetOutputPointer<uint32_t>(static_cast<size_t>(kernel::FallibleTilingExOutputIndex::kTilingStatus));
   ASSERT_EQ(*status, 0U);
 }
 

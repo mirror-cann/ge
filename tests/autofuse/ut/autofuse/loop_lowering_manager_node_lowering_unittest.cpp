@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -817,9 +817,10 @@ TEST_F(LoopNodeLoweringUT, LoweringZeroslikeBool) {
   ASSERT_EQ(LoweringManager::Lowering(tmp), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(tmp->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(),"tmp0 = ops.Scalar(\"DT_BOOL(0)\")\n"
-"tmp1 = ops.Broadcast(tmp0, \"[]->[d0, d1]\")\n"
-"tmp2 = ops.Store(\"ZerosLike_0:0\", tmp1)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Scalar(\"DT_BOOL(0)\")\n"
+            "tmp1 = ops.Broadcast(tmp0, \"[]->[d0, d1]\")\n"
+            "tmp2 = ops.Store(\"ZerosLike_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ComplexBiasaddNCHWLowering) {
@@ -1402,25 +1403,26 @@ TEST_F(LoopNodeLoweringUT, LoweringReluGrad) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"gradients:0\")\n"
-"tmp1 = ops.Load(\"features:0\")\n"
-"tmp2 = ops.Scalar(\"DT_FLOAT(0.00000000000000000000000000000000000001175494350822)\")\n"
-"tmp3 = ops.Scalar(\"DT_FLOAT(274877906944.000)\")\n"
-"tmp4 = ops.Scalar(\"DT_FLOAT(17592186044416.000)\")\n"
-"tmp5 = ops.Scalar(\"DT_FLOAT(17592186044416.000)\")\n"
-"tmp6 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
-"tmp7 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
-"tmp8 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
-"tmp9 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
-"tmp10 = ops.Scalar(\"DT_FLOAT(0)\")\n"
-"tmp11 = ops.Broadcast(tmp10, \"[]->[d0, d1, d2]\")\n"
-"tmp12 = ops.Minimum(tmp1, tmp6)\n"
-"tmp13 = ops.Maximum(tmp12, tmp11)\n"
-"tmp14 = ops.Mul(tmp13, tmp7)\n"
-"tmp15 = ops.Mul(tmp14, tmp9)\n"
-"tmp16 = ops.Mul(tmp15, tmp9)\n"
-"tmp17 = ops.Mul(tmp0, tmp16)\n"
-"tmp18 = ops.Store(\"ReluGrad_0:0\", tmp17)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"gradients:0\")\n"
+            "tmp1 = ops.Load(\"features:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(0.00000000000000000000000000000000000001175494350822)\")\n"
+            "tmp3 = ops.Scalar(\"DT_FLOAT(274877906944.000)\")\n"
+            "tmp4 = ops.Scalar(\"DT_FLOAT(17592186044416.000)\")\n"
+            "tmp5 = ops.Scalar(\"DT_FLOAT(17592186044416.000)\")\n"
+            "tmp6 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp7 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
+            "tmp8 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
+            "tmp9 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
+            "tmp10 = ops.Scalar(\"DT_FLOAT(0)\")\n"
+            "tmp11 = ops.Broadcast(tmp10, \"[]->[d0, d1, d2]\")\n"
+            "tmp12 = ops.Minimum(tmp1, tmp6)\n"
+            "tmp13 = ops.Maximum(tmp12, tmp11)\n"
+            "tmp14 = ops.Mul(tmp13, tmp7)\n"
+            "tmp15 = ops.Mul(tmp14, tmp9)\n"
+            "tmp16 = ops.Mul(tmp15, tmp9)\n"
+            "tmp17 = ops.Mul(tmp0, tmp16)\n"
+            "tmp18 = ops.Store(\"ReluGrad_0:0\", tmp17)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, LoweringReluGradINT32) {
@@ -1451,53 +1453,54 @@ TEST_F(LoopNodeLoweringUT, LoweringReluGradINT32) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"gradients:0\")\n"
-"tmp1 = ops.Load(\"features:0\")\n"
-"tmp2 = ops.Scalar(\"DT_INT32(1)\")\n"
-"tmp3 = ops.Scalar(\"DT_INT32(1)\")\n"
-"tmp4 = ops.Scalar(\"DT_INT32(1)\")\n"
-"tmp5 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
-"tmp6 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
-"tmp7 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
-"tmp8 = ops.Scalar(\"DT_INT32(0)\")\n"
-"tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
-"tmp10 = ops.Minimum(tmp1, tmp5)\n"
-"tmp11 = ops.Maximum(tmp10, tmp9)\n"
-"tmp12 = ops.Mul(tmp11, tmp6)\n"
-"tmp13 = ops.Mul(tmp12, tmp7)\n"
-"tmp14 = ops.Mul(tmp0, tmp13)\n"
-"tmp15 = ops.Store(\"ReluGrad_0:0\", tmp14)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"gradients:0\")\n"
+            "tmp1 = ops.Load(\"features:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_INT32(1)\")\n"
+            "tmp3 = ops.Scalar(\"DT_INT32(1)\")\n"
+            "tmp4 = ops.Scalar(\"DT_INT32(1)\")\n"
+            "tmp5 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
+            "tmp6 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
+            "tmp7 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
+            "tmp8 = ops.Scalar(\"DT_INT32(0)\")\n"
+            "tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
+            "tmp10 = ops.Minimum(tmp1, tmp5)\n"
+            "tmp11 = ops.Maximum(tmp10, tmp9)\n"
+            "tmp12 = ops.Mul(tmp11, tmp6)\n"
+            "tmp13 = ops.Mul(tmp12, tmp7)\n"
+            "tmp14 = ops.Mul(tmp0, tmp13)\n"
+            "tmp15 = ops.Store(\"ReluGrad_0:0\", tmp14)\n");
 }
 
-//TEST_F(LoopNodeLoweringUT, LoweringReluGradINT64) {
-//  [this]() {
-//    auto gradients = es_graph_->CreateInput(0, "gradients", nullptr);
-//    gradients.SetSymbolShape({"s0", "s1", "s2"});
-//    auto features = es_graph_->CreateInput(1, "features", nullptr);
-//    features.SetSymbolShape({"s0", "s1", "s2"});
-//    auto tensor = es::ReluGrad(gradients, features);
-//    tensor.SetSymbolShape({"s0", "s1", "s2"});
-//    es_graph_->SetOutput(tensor, 0);
-//  }();
+// TEST_F(LoopNodeLoweringUT, LoweringReluGradINT64) {
+//   [this]() {
+//     auto gradients = es_graph_->CreateInput(0, "gradients", nullptr);
+//     gradients.SetSymbolShape({"s0", "s1", "s2"});
+//     auto features = es_graph_->CreateInput(1, "features", nullptr);
+//     features.SetSymbolShape({"s0", "s1", "s2"});
+//     auto tensor = es::ReluGrad(gradients, features);
+//     tensor.SetSymbolShape({"s0", "s1", "s2"});
+//     es_graph_->SetOutput(tensor, 0);
+//   }();
 //
-//  auto graph = es_graph_->Build();
-//  auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-//  auto node = cg->FindNode("ReluGrad_0");
-//  ASSERT_NE(node, nullptr);
+//   auto graph = es_graph_->Build();
+//   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
+//   auto node = cg->FindNode("ReluGrad_0");
+//   ASSERT_NE(node, nullptr);
 //
-//  auto nodeptr1 = cg->FindNode("gradients");
-//  auto tmp_desc = nodeptr1->GetOpDesc()->MutableOutputDesc(0);
-//  tmp_desc->SetDataType(DT_INT64);
-//  tmp_desc->SetOriginDataType(DT_INT64);
-//  auto nodeptr2 = cg->FindNode("features");
-//  auto tmp_desc2 = nodeptr2->GetOpDesc()->MutableOutputDesc(0);
-//  tmp_desc2->SetDataType(DT_INT64);
-//  tmp_desc2->SetOriginDataType(DT_INT64);
+//   auto nodeptr1 = cg->FindNode("gradients");
+//   auto tmp_desc = nodeptr1->GetOpDesc()->MutableOutputDesc(0);
+//   tmp_desc->SetDataType(DT_INT64);
+//   tmp_desc->SetOriginDataType(DT_INT64);
+//   auto nodeptr2 = cg->FindNode("features");
+//   auto tmp_desc2 = nodeptr2->GetOpDesc()->MutableOutputDesc(0);
+//   tmp_desc2->SetDataType(DT_INT64);
+//   tmp_desc2->SetOriginDataType(DT_INT64);
 //
-//  ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
-//  auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
-//  ASSERT_FALSE(kernel.IsExternKernel());
-//  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"gradients:0\")\n"
+//   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
+//   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
+//   ASSERT_FALSE(kernel.IsExternKernel());
+//   EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"gradients:0\")\n"
 //"tmp1 = ops.Load(\"features:0\")\n"
 //"tmp2 = ops.Scalar(\"DT_INT64(0)\")\n"
 //"tmp3 = ops.Scalar(\"DT_INT64(0)\")\n"
@@ -1506,7 +1509,7 @@ TEST_F(LoopNodeLoweringUT, LoweringReluGradINT32) {
 //"tmp6 = ops.Le(tmp1, tmp5)\n"
 //"tmp7 = ops.Where(tmp6, tmp5, tmp0)\n"
 //"tmp8 = ops.Store(\"ReluGrad_0:0\", tmp7)\n");
-//}
+// }
 
 TEST_F(LoopNodeLoweringUT, LoweringReluGradUINT8) {
   [this]() {
@@ -1869,7 +1872,7 @@ TEST_F(LoopNodeLoweringUT, LoweringLeakyReluGrad) {
     data0.SetSymbolShape({"s0", "s1", "s2"});
     auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
     data1.SetSymbolShape({"s0", "s1", "s2"});
-    auto leakyrelu = es::LeakyReluGrad(data0, data1,0.0);
+    auto leakyrelu = es::LeakyReluGrad(data0, data1, 0.0);
     leakyrelu.SetSymbolShape({"s0", "s1", "s2"});
     es_graph_->SetOutput(leakyrelu, 0);
   }();
@@ -1882,17 +1885,18 @@ TEST_F(LoopNodeLoweringUT, LoweringLeakyReluGrad) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(leakyrelugrad->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"data0:0\")\n"
-"tmp1 = ops.Load(\"data0:0\")\n"
-"tmp2 = ops.Load(\"data1:0\")\n"
-"tmp3 = ops.Scalar(\"DT_FLOAT(0.0)\")\n"
-"tmp4 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
-"tmp5 = ops.Scalar(\"DT_FLOAT(0.0000000)\")\n"
-"tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
-"tmp7 = ops.Mul(tmp1, tmp6)\n"
-"tmp8 = ops.Gt(tmp2, tmp4)\n"
-"tmp9 = ops.Where(tmp8, tmp1, tmp7)\n"
-"tmp10 = ops.Store(\"LeakyReluGrad_0:0\", tmp9)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"data0:0\")\n"
+            "tmp1 = ops.Load(\"data0:0\")\n"
+            "tmp2 = ops.Load(\"data1:0\")\n"
+            "tmp3 = ops.Scalar(\"DT_FLOAT(0.0)\")\n"
+            "tmp4 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
+            "tmp5 = ops.Scalar(\"DT_FLOAT(0.0000000)\")\n"
+            "tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
+            "tmp7 = ops.Mul(tmp1, tmp6)\n"
+            "tmp8 = ops.Gt(tmp2, tmp4)\n"
+            "tmp9 = ops.Where(tmp8, tmp1, tmp7)\n"
+            "tmp10 = ops.Store(\"LeakyReluGrad_0:0\", tmp9)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, LogLowering) {
@@ -1913,18 +1917,19 @@ TEST_F(LoopNodeLoweringUT, LogLowering) {
   ASSERT_EQ(LoweringManager::Lowering(log), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(log->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Scalar(\"DT_FLOAT(2.0000000)\")\n"
-"tmp2 = ops.Broadcast(tmp1, \"[]->[d0, d1, d2]\")\n"
-"tmp3 = ops.Mul(tmp0, tmp2)\n"
-"tmp4 = ops.Scalar(\"DT_FLOAT(1.0000000)\")\n"
-"tmp5 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
-"tmp6 = ops.Add(tmp3, tmp5)\n"
-"tmp7 = ops.Ln(tmp6)\n"
-"tmp8 = ops.Scalar(\"DT_FLOAT(1.44269502162933349609)\")\n"
-"tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
-"tmp10 = ops.Mul(tmp7, tmp9)\n"
-"tmp11 = ops.Store(\"Log_0:0\", tmp10)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Scalar(\"DT_FLOAT(2.0000000)\")\n"
+            "tmp2 = ops.Broadcast(tmp1, \"[]->[d0, d1, d2]\")\n"
+            "tmp3 = ops.Mul(tmp0, tmp2)\n"
+            "tmp4 = ops.Scalar(\"DT_FLOAT(1.0000000)\")\n"
+            "tmp5 = ops.Broadcast(tmp4, \"[]->[d0, d1, d2]\")\n"
+            "tmp6 = ops.Add(tmp3, tmp5)\n"
+            "tmp7 = ops.Ln(tmp6)\n"
+            "tmp8 = ops.Scalar(\"DT_FLOAT(1.44269502162933349609)\")\n"
+            "tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
+            "tmp10 = ops.Mul(tmp7, tmp9)\n"
+            "tmp11 = ops.Store(\"Log_0:0\", tmp10)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, LogLoweringDefault) {
@@ -1945,9 +1950,10 @@ TEST_F(LoopNodeLoweringUT, LogLoweringDefault) {
   ASSERT_EQ(LoweringManager::Lowering(log), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(log->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Ln(tmp0)\n"
-"tmp2 = ops.Store(\"Log_0:0\", tmp1)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Ln(tmp0)\n"
+            "tmp2 = ops.Store(\"Log_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, LoweringPackLastDim_Fuse) {
@@ -1976,10 +1982,9 @@ TEST_F(LoopNodeLoweringUT, LoweringPackLastDim_Fuse) {
 TEST_F(LoopNodeLoweringUT, LoweringPackLastDim_NoFuse) {
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
-    auto pack =
-        es::Pack({data0, data0, data0, data0, data0, data0, data0, data0,
-                  data0, data0, data0, data0, data0, data0, data0, data0,
-                  data0}, 2, 17);
+    auto pack = es::Pack({data0, data0, data0, data0, data0, data0, data0, data0, data0, data0, data0, data0, data0,
+                          data0, data0, data0, data0},
+                         2, 17);
     data0.SetSymbolShape({"s0", "2"});
     pack.SetSymbolShape({"s0", "2", "2"});
     es_graph_->SetOutput(pack, 0);
@@ -2025,7 +2030,6 @@ TEST_F(LoopNodeLoweringUT, LoweringPackNonLastDim) {
             "tmp1 = ops.Load(\"data0:0\")\n"
             "tmp2 = ops.StoreConcat(\"Pack_0:0\", [tmp0, tmp1], concat_dim=1)\n");
 }
-
 
 TEST_F(LoopNodeLoweringUT, ReshapeLowering1) {
   [this]() {
@@ -2098,10 +2102,10 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering3) {
   ASSERT_EQ(LoweringManager::Lowering(reshape), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(reshape->GetOutDataAnchor(0));
   ASSERT_TRUE(kernel.IsExternKernel());
-//   EXPECT_EQ(kernel.Readable(),
-//   "tmp0 = ops.Load(\"x:0\")\n"
-// "tmp1 = ops.Reshape(tmp0, [2, 3, 2, 3] -> [2, 6, 3])\n"
-// "tmp2 = ops.Store(\"Reshape_0:0\", tmp1)\n");
+  //   EXPECT_EQ(kernel.Readable(),
+  //   "tmp0 = ops.Load(\"x:0\")\n"
+  // "tmp1 = ops.Reshape(tmp0, [2, 3, 2, 3] -> [2, 6, 3])\n"
+  // "tmp2 = ops.Store(\"Reshape_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLowering4) {
@@ -2123,10 +2127,10 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering4) {
   ASSERT_EQ(LoweringManager::Lowering(reshape), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(reshape->GetOutDataAnchor(0));
   ASSERT_TRUE(kernel.IsExternKernel());
-//   EXPECT_EQ(kernel.Readable(),
-//   "tmp0 = ops.Load(\"x:0\")\n"
-// "tmp1 = ops.Reshape(tmp0, [2, 6, 3] -> [2, 3, 2, 3])\n"
-// "tmp2 = ops.Store(\"Reshape_0:0\", tmp1)\n");
+  //   EXPECT_EQ(kernel.Readable(),
+  //   "tmp0 = ops.Load(\"x:0\")\n"
+  // "tmp1 = ops.Reshape(tmp0, [2, 6, 3] -> [2, 3, 2, 3])\n"
+  // "tmp2 = ops.Store(\"Reshape_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLowering5) {
@@ -2148,10 +2152,10 @@ TEST_F(LoopNodeLoweringUT, ReshapeLowering5) {
   ASSERT_EQ(LoweringManager::Lowering(reshape), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(reshape->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-    EXPECT_EQ(kernel.Readable(),
-"tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Unsqueeze(tmp0, 1)\n"
-"tmp2 = ops.StoreReshape(\"Reshape_0:0\", tmp1)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Unsqueeze(tmp0, 1)\n"
+            "tmp2 = ops.StoreReshape(\"Reshape_0:0\", tmp1)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ReshapeLoweringFailure1) {
@@ -2267,9 +2271,9 @@ TEST_F(LoopNodeLoweringUT, LoweringExpandDims) {
   auto kernel1 = ge::loop::GetKernelBox(expanddims1->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel1.IsExternKernel());
   EXPECT_EQ(kernel1.Readable(),
-          "tmp0 = ops.Load(\"data0:0\")\n"
-          "tmp1 = ops.Unsqueeze(tmp0, 2)\n"
-          "tmp2 = ops.StoreReshape(\"ExpandDims_3:0\", tmp1)\n");
+            "tmp0 = ops.Load(\"data0:0\")\n"
+            "tmp1 = ops.Unsqueeze(tmp0, 2)\n"
+            "tmp2 = ops.StoreReshape(\"ExpandDims_3:0\", tmp1)\n");
 
   auto kernel2 = ge::loop::GetKernelBox(expanddims2->GetOutDataAnchor(0));
   ASSERT_TRUE(kernel2.IsExternKernel());
@@ -2334,29 +2338,31 @@ TEST_F(LoopNodeLoweringUT, ApplyAdagradDLowering) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0));
   ASSERT_FALSE(asc_kernel.IsExternKernel());
-  EXPECT_EQ(asc_kernel.Readable(),"tmp0 = ops.Load(\"accum:0\")\n"
-"tmp1 = ops.Load(\"grad:0\")\n"
-"tmp2 = ops.Load(\"grad:0\")\n"
-"tmp3 = ops.Load(\"grad:0\")\n"
-"tmp4 = ops.Mul(tmp3, tmp3)\n"
-"tmp5 = ops.Add(tmp0, tmp4)\n"
-"tmp6 = ops.Load(\"var:0\")\n"
-"tmp7 = ops.Load(\"lr:0\")\n"
-"tmp8 = ops.Broadcast(tmp7, \"[]->[d0, d1, d2]\")\n"
-"tmp9 = ops.Sqrt(tmp5)\n"
-"tmp10 = ops.Mul(tmp8, tmp3)\n"
-"tmp11 = ops.Div(tmp10, tmp9)\n"
-"tmp12 = ops.Sub(tmp6, tmp11)\n"
-"tmp13 = ops.Store(\"ApplyAdagradD_0:0\", tmp12)\n");
+  EXPECT_EQ(asc_kernel.Readable(),
+            "tmp0 = ops.Load(\"accum:0\")\n"
+            "tmp1 = ops.Load(\"grad:0\")\n"
+            "tmp2 = ops.Load(\"grad:0\")\n"
+            "tmp3 = ops.Load(\"grad:0\")\n"
+            "tmp4 = ops.Mul(tmp3, tmp3)\n"
+            "tmp5 = ops.Add(tmp0, tmp4)\n"
+            "tmp6 = ops.Load(\"var:0\")\n"
+            "tmp7 = ops.Load(\"lr:0\")\n"
+            "tmp8 = ops.Broadcast(tmp7, \"[]->[d0, d1, d2]\")\n"
+            "tmp9 = ops.Sqrt(tmp5)\n"
+            "tmp10 = ops.Mul(tmp8, tmp3)\n"
+            "tmp11 = ops.Div(tmp10, tmp9)\n"
+            "tmp12 = ops.Sub(tmp6, tmp11)\n"
+            "tmp13 = ops.Store(\"ApplyAdagradD_0:0\", tmp12)\n");
 
   loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1));
   ASSERT_FALSE(asc_kernel1.IsExternKernel());
-  EXPECT_EQ(asc_kernel1.Readable(), "tmp0 = ops.Load(\"accum:0\")\n"
-"tmp1 = ops.Load(\"grad:0\")\n"
-"tmp2 = ops.Load(\"grad:0\")\n"
-"tmp3 = ops.Mul(tmp2, tmp2)\n"
-"tmp4 = ops.Add(tmp0, tmp3)\n"
-"tmp5 = ops.Store(\"ApplyAdagradD_0:1\", tmp4)\n");
+  EXPECT_EQ(asc_kernel1.Readable(),
+            "tmp0 = ops.Load(\"accum:0\")\n"
+            "tmp1 = ops.Load(\"grad:0\")\n"
+            "tmp2 = ops.Load(\"grad:0\")\n"
+            "tmp3 = ops.Mul(tmp2, tmp2)\n"
+            "tmp4 = ops.Add(tmp0, tmp3)\n"
+            "tmp5 = ops.Store(\"ApplyAdagradD_0:1\", tmp4)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ApplyAdagradDLowering1) {
@@ -2383,21 +2389,23 @@ TEST_F(LoopNodeLoweringUT, ApplyAdagradDLowering1) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0));
   ASSERT_FALSE(asc_kernel.IsExternKernel());
-  EXPECT_EQ(asc_kernel.Readable(), "tmp0 = ops.Load(\"accum:0\")\n"
-"tmp1 = ops.Load(\"grad:0\")\n"
-"tmp2 = ops.Load(\"var:0\")\n"
-"tmp3 = ops.Load(\"lr:0\")\n"
-"tmp4 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
-"tmp5 = ops.Sqrt(tmp0)\n"
-"tmp6 = ops.Mul(tmp4, tmp1)\n"
-"tmp7 = ops.Div(tmp6, tmp5)\n"
-"tmp8 = ops.Sub(tmp2, tmp7)\n"
-"tmp9 = ops.Store(\"ApplyAdagradD_0:0\", tmp8)\n");
+  EXPECT_EQ(asc_kernel.Readable(),
+            "tmp0 = ops.Load(\"accum:0\")\n"
+            "tmp1 = ops.Load(\"grad:0\")\n"
+            "tmp2 = ops.Load(\"var:0\")\n"
+            "tmp3 = ops.Load(\"lr:0\")\n"
+            "tmp4 = ops.Broadcast(tmp3, \"[]->[d0, d1, d2]\")\n"
+            "tmp5 = ops.Sqrt(tmp0)\n"
+            "tmp6 = ops.Mul(tmp4, tmp1)\n"
+            "tmp7 = ops.Div(tmp6, tmp5)\n"
+            "tmp8 = ops.Sub(tmp2, tmp7)\n"
+            "tmp9 = ops.Store(\"ApplyAdagradD_0:0\", tmp8)\n");
 
   loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1));
   ASSERT_FALSE(asc_kernel1.IsExternKernel());
-  EXPECT_EQ(asc_kernel1.Readable(), "tmp0 = ops.Load(\"accum:0\")\n"
-"tmp1 = ops.Store(\"ApplyAdagradD_0:1\", tmp0)\n");
+  EXPECT_EQ(asc_kernel1.Readable(),
+            "tmp0 = ops.Load(\"accum:0\")\n"
+            "tmp1 = ops.Store(\"ApplyAdagradD_0:1\", tmp0)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ApplyAdamDLowering) {
@@ -2438,61 +2446,64 @@ TEST_F(LoopNodeLoweringUT, ApplyAdamDLowering) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0));
   ASSERT_FALSE(asc_kernel.IsExternKernel());
-  EXPECT_EQ(asc_kernel.Readable(), "tmp0 = ops.Load(\"var:0\")\n"
-"tmp1 = ops.Load(\"m:0\")\n"
-"tmp2 = ops.Load(\"m:0\")\n"
-"tmp3 = ops.Load(\"v:0\")\n"
-"tmp4 = ops.Load(\"v:0\")\n"
-"tmp5 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
-"tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
-"tmp7 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
-"tmp8 = ops.Broadcast(tmp7, \"[]->[d0, d1, d2]\")\n"
-"tmp9 = ops.Scalar(\"DT_FLOAT(5.29999971389770507812e-01)\")\n"
-"tmp10 = ops.Broadcast(tmp9, \"[]->[d0, d1, d2]\")\n"
-"tmp11 = ops.Load(\"grad:0\")\n"
-"tmp12 = ops.Load(\"grad:0\")\n"
-"tmp13 = ops.Load(\"grad:0\")\n"
-"tmp14 = ops.Sub(tmp13, tmp2)\n"
-"tmp15 = ops.Mul(tmp6, tmp14)\n"
-"tmp16 = ops.Add(tmp2, tmp15)\n"
-"tmp17 = ops.Scalar(\"DT_FLOAT(0.12237314134836196899)\")\n"
-"tmp18 = ops.Broadcast(tmp17, \"[]->[d0, d1, d2]\")\n"
-"tmp19 = ops.Mul(tmp13, tmp13)\n"
-"tmp20 = ops.Sub(tmp19, tmp4)\n"
-"tmp21 = ops.Mul(tmp8, tmp20)\n"
-"tmp22 = ops.Add(tmp4, tmp21)\n"
-"tmp23 = ops.Sqrt(tmp22)\n"
-"tmp24 = ops.Add(tmp10, tmp23)\n"
-"tmp25 = ops.Div(tmp16, tmp24)\n"
-"tmp26 = ops.Mul(tmp18, tmp25)\n"
-"tmp27 = ops.Sub(tmp0, tmp26)\n"
-"tmp28 = ops.Store(\"ApplyAdamD_6:0\", tmp27)\n");
+  EXPECT_EQ(asc_kernel.Readable(),
+            "tmp0 = ops.Load(\"var:0\")\n"
+            "tmp1 = ops.Load(\"m:0\")\n"
+            "tmp2 = ops.Load(\"m:0\")\n"
+            "tmp3 = ops.Load(\"v:0\")\n"
+            "tmp4 = ops.Load(\"v:0\")\n"
+            "tmp5 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
+            "tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
+            "tmp7 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
+            "tmp8 = ops.Broadcast(tmp7, \"[]->[d0, d1, d2]\")\n"
+            "tmp9 = ops.Scalar(\"DT_FLOAT(5.29999971389770507812e-01)\")\n"
+            "tmp10 = ops.Broadcast(tmp9, \"[]->[d0, d1, d2]\")\n"
+            "tmp11 = ops.Load(\"grad:0\")\n"
+            "tmp12 = ops.Load(\"grad:0\")\n"
+            "tmp13 = ops.Load(\"grad:0\")\n"
+            "tmp14 = ops.Sub(tmp13, tmp2)\n"
+            "tmp15 = ops.Mul(tmp6, tmp14)\n"
+            "tmp16 = ops.Add(tmp2, tmp15)\n"
+            "tmp17 = ops.Scalar(\"DT_FLOAT(0.12237314134836196899)\")\n"
+            "tmp18 = ops.Broadcast(tmp17, \"[]->[d0, d1, d2]\")\n"
+            "tmp19 = ops.Mul(tmp13, tmp13)\n"
+            "tmp20 = ops.Sub(tmp19, tmp4)\n"
+            "tmp21 = ops.Mul(tmp8, tmp20)\n"
+            "tmp22 = ops.Add(tmp4, tmp21)\n"
+            "tmp23 = ops.Sqrt(tmp22)\n"
+            "tmp24 = ops.Add(tmp10, tmp23)\n"
+            "tmp25 = ops.Div(tmp16, tmp24)\n"
+            "tmp26 = ops.Mul(tmp18, tmp25)\n"
+            "tmp27 = ops.Sub(tmp0, tmp26)\n"
+            "tmp28 = ops.Store(\"ApplyAdamD_6:0\", tmp27)\n");
 
   loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1));
   ASSERT_FALSE(asc_kernel1.IsExternKernel());
-  EXPECT_EQ(asc_kernel1.Readable(), "tmp0 = ops.Load(\"m:0\")\n"
-"tmp1 = ops.Load(\"m:0\")\n"
-"tmp2 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
-"tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
-"tmp4 = ops.Load(\"grad:0\")\n"
-"tmp5 = ops.Sub(tmp4, tmp1)\n"
-"tmp6 = ops.Mul(tmp3, tmp5)\n"
-"tmp7 = ops.Add(tmp1, tmp6)\n"
-"tmp8 = ops.Store(\"ApplyAdamD_6:1\", tmp7)\n");
+  EXPECT_EQ(asc_kernel1.Readable(),
+            "tmp0 = ops.Load(\"m:0\")\n"
+            "tmp1 = ops.Load(\"m:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
+            "tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp4 = ops.Load(\"grad:0\")\n"
+            "tmp5 = ops.Sub(tmp4, tmp1)\n"
+            "tmp6 = ops.Mul(tmp3, tmp5)\n"
+            "tmp7 = ops.Add(tmp1, tmp6)\n"
+            "tmp8 = ops.Store(\"ApplyAdamD_6:1\", tmp7)\n");
 
   loop::KernelBox asc_kernel2 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(2));
   ASSERT_FALSE(asc_kernel2.IsExternKernel());
-  EXPECT_EQ(asc_kernel2.Readable(), "tmp0 = ops.Load(\"v:0\")\n"
-"tmp1 = ops.Load(\"v:0\")\n"
-"tmp2 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
-"tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
-"tmp4 = ops.Load(\"grad:0\")\n"
-"tmp5 = ops.Load(\"grad:0\")\n"
-"tmp6 = ops.Mul(tmp5, tmp5)\n"
-"tmp7 = ops.Sub(tmp6, tmp1)\n"
-"tmp8 = ops.Mul(tmp3, tmp7)\n"
-"tmp9 = ops.Add(tmp1, tmp8)\n"
-"tmp10 = ops.Store(\"ApplyAdamD_6:2\", tmp9)\n");
+  EXPECT_EQ(asc_kernel2.Readable(),
+            "tmp0 = ops.Load(\"v:0\")\n"
+            "tmp1 = ops.Load(\"v:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
+            "tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp4 = ops.Load(\"grad:0\")\n"
+            "tmp5 = ops.Load(\"grad:0\")\n"
+            "tmp6 = ops.Mul(tmp5, tmp5)\n"
+            "tmp7 = ops.Sub(tmp6, tmp1)\n"
+            "tmp8 = ops.Mul(tmp3, tmp7)\n"
+            "tmp9 = ops.Add(tmp1, tmp8)\n"
+            "tmp10 = ops.Store(\"ApplyAdamD_6:2\", tmp9)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ApplyAdamDLowering1) {
@@ -2533,69 +2544,72 @@ TEST_F(LoopNodeLoweringUT, ApplyAdamDLowering1) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0));
   ASSERT_FALSE(asc_kernel.IsExternKernel());
-  EXPECT_EQ(asc_kernel.Readable(), "tmp0 = ops.Load(\"var:0\")\n"
-"tmp1 = ops.Load(\"m:0\")\n"
-"tmp2 = ops.Load(\"m:0\")\n"
-"tmp3 = ops.Load(\"v:0\")\n"
-"tmp4 = ops.Load(\"v:0\")\n"
-"tmp5 = ops.Scalar(\"DT_FLOAT(7.69999980926513671875e-01)\")\n"
-"tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
-"tmp7 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
-"tmp8 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
-"tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
-"tmp10 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
-"tmp11 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
-"tmp12 = ops.Broadcast(tmp11, \"[]->[d0, d1, d2]\")\n"
-"tmp13 = ops.Scalar(\"DT_FLOAT(5.29999971389770507812e-01)\")\n"
-"tmp14 = ops.Broadcast(tmp13, \"[]->[d0, d1, d2]\")\n"
-"tmp15 = ops.Load(\"grad:0\")\n"
-"tmp16 = ops.Load(\"grad:0\")\n"
-"tmp17 = ops.Load(\"grad:0\")\n"
-"tmp18 = ops.Load(\"grad:0\")\n"
-"tmp19 = ops.Sub(tmp18, tmp2)\n"
-"tmp20 = ops.Mul(tmp10, tmp19)\n"
-"tmp21 = ops.Add(tmp2, tmp20)\n"
-"tmp22 = ops.Scalar(\"DT_FLOAT(0.12237314134836196899)\")\n"
-"tmp23 = ops.Broadcast(tmp22, \"[]->[d0, d1, d2]\")\n"
-"tmp24 = ops.Mul(tmp18, tmp18)\n"
-"tmp25 = ops.Sub(tmp24, tmp4)\n"
-"tmp26 = ops.Mul(tmp12, tmp25)\n"
-"tmp27 = ops.Add(tmp4, tmp26)\n"
-"tmp28 = ops.Sqrt(tmp27)\n"
-"tmp29 = ops.Add(tmp14, tmp28)\n"
-"tmp30 = ops.Mul(tmp10, tmp18)\n"
-"tmp31 = ops.Mul(tmp21, tmp6)\n"
-"tmp32 = ops.Add(tmp31, tmp30)\n"
-"tmp33 = ops.Div(tmp32, tmp29)\n"
-"tmp34 = ops.Mul(tmp23, tmp33)\n"
-"tmp35 = ops.Sub(tmp0, tmp34)\n"
-"tmp36 = ops.Store(\"ApplyAdamD_6:0\", tmp35)\n");
+  EXPECT_EQ(asc_kernel.Readable(),
+            "tmp0 = ops.Load(\"var:0\")\n"
+            "tmp1 = ops.Load(\"m:0\")\n"
+            "tmp2 = ops.Load(\"m:0\")\n"
+            "tmp3 = ops.Load(\"v:0\")\n"
+            "tmp4 = ops.Load(\"v:0\")\n"
+            "tmp5 = ops.Scalar(\"DT_FLOAT(7.69999980926513671875e-01)\")\n"
+            "tmp6 = ops.Broadcast(tmp5, \"[]->[d0, d1, d2]\")\n"
+            "tmp7 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
+            "tmp8 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
+            "tmp9 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
+            "tmp10 = ops.Broadcast(tmp8, \"[]->[d0, d1, d2]\")\n"
+            "tmp11 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
+            "tmp12 = ops.Broadcast(tmp11, \"[]->[d0, d1, d2]\")\n"
+            "tmp13 = ops.Scalar(\"DT_FLOAT(5.29999971389770507812e-01)\")\n"
+            "tmp14 = ops.Broadcast(tmp13, \"[]->[d0, d1, d2]\")\n"
+            "tmp15 = ops.Load(\"grad:0\")\n"
+            "tmp16 = ops.Load(\"grad:0\")\n"
+            "tmp17 = ops.Load(\"grad:0\")\n"
+            "tmp18 = ops.Load(\"grad:0\")\n"
+            "tmp19 = ops.Sub(tmp18, tmp2)\n"
+            "tmp20 = ops.Mul(tmp10, tmp19)\n"
+            "tmp21 = ops.Add(tmp2, tmp20)\n"
+            "tmp22 = ops.Scalar(\"DT_FLOAT(0.12237314134836196899)\")\n"
+            "tmp23 = ops.Broadcast(tmp22, \"[]->[d0, d1, d2]\")\n"
+            "tmp24 = ops.Mul(tmp18, tmp18)\n"
+            "tmp25 = ops.Sub(tmp24, tmp4)\n"
+            "tmp26 = ops.Mul(tmp12, tmp25)\n"
+            "tmp27 = ops.Add(tmp4, tmp26)\n"
+            "tmp28 = ops.Sqrt(tmp27)\n"
+            "tmp29 = ops.Add(tmp14, tmp28)\n"
+            "tmp30 = ops.Mul(tmp10, tmp18)\n"
+            "tmp31 = ops.Mul(tmp21, tmp6)\n"
+            "tmp32 = ops.Add(tmp31, tmp30)\n"
+            "tmp33 = ops.Div(tmp32, tmp29)\n"
+            "tmp34 = ops.Mul(tmp23, tmp33)\n"
+            "tmp35 = ops.Sub(tmp0, tmp34)\n"
+            "tmp36 = ops.Store(\"ApplyAdamD_6:0\", tmp35)\n");
 
   loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1));
   ASSERT_FALSE(asc_kernel1.IsExternKernel());
-  EXPECT_EQ(asc_kernel1.Readable(), "tmp0 = ops.Load(\"m:0\")\n"
-"tmp1 = ops.Load(\"m:0\")\n"
-"tmp2 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
-"tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
-"tmp4 = ops.Load(\"grad:0\")\n"
-"tmp5 = ops.Sub(tmp4, tmp1)\n"
-"tmp6 = ops.Mul(tmp3, tmp5)\n"
-"tmp7 = ops.Add(tmp1, tmp6)\n"
-"tmp8 = ops.Store(\"ApplyAdamD_6:1\", tmp7)\n");
+  EXPECT_EQ(asc_kernel1.Readable(),
+            "tmp0 = ops.Load(\"m:0\")\n"
+            "tmp1 = ops.Load(\"m:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(0.23000001907348632812)\")\n"
+            "tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp4 = ops.Load(\"grad:0\")\n"
+            "tmp5 = ops.Sub(tmp4, tmp1)\n"
+            "tmp6 = ops.Mul(tmp3, tmp5)\n"
+            "tmp7 = ops.Add(tmp1, tmp6)\n"
+            "tmp8 = ops.Store(\"ApplyAdamD_6:1\", tmp7)\n");
 
   loop::KernelBox asc_kernel2 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(2));
   ASSERT_FALSE(asc_kernel2.IsExternKernel());
-  EXPECT_EQ(asc_kernel2.Readable(), "tmp0 = ops.Load(\"v:0\")\n"
-"tmp1 = ops.Load(\"v:0\")\n"
-"tmp2 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
-"tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
-"tmp4 = ops.Load(\"grad:0\")\n"
-"tmp5 = ops.Load(\"grad:0\")\n"
-"tmp6 = ops.Mul(tmp5, tmp5)\n"
-"tmp7 = ops.Sub(tmp6, tmp1)\n"
-"tmp8 = ops.Mul(tmp3, tmp7)\n"
-"tmp9 = ops.Add(tmp1, tmp8)\n"
-"tmp10 = ops.Store(\"ApplyAdamD_6:2\", tmp9)\n");
+  EXPECT_EQ(asc_kernel2.Readable(),
+            "tmp0 = ops.Load(\"v:0\")\n"
+            "tmp1 = ops.Load(\"v:0\")\n"
+            "tmp2 = ops.Scalar(\"DT_FLOAT(0.94999998807907104492)\")\n"
+            "tmp3 = ops.Broadcast(tmp2, \"[]->[d0, d1, d2]\")\n"
+            "tmp4 = ops.Load(\"grad:0\")\n"
+            "tmp5 = ops.Load(\"grad:0\")\n"
+            "tmp6 = ops.Mul(tmp5, tmp5)\n"
+            "tmp7 = ops.Sub(tmp6, tmp1)\n"
+            "tmp8 = ops.Mul(tmp3, tmp7)\n"
+            "tmp9 = ops.Add(tmp1, tmp8)\n"
+            "tmp10 = ops.Store(\"ApplyAdamD_6:2\", tmp9)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, ApplyAdamDLowering2_beta1_power_eq_1) {
@@ -2658,21 +2672,25 @@ TEST_F(LoopNodeLoweringUT, ApplyGradientDescentLowering) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   loop::KernelBox asc_kernel = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0));
   ASSERT_FALSE(asc_kernel.IsExternKernel());
-  EXPECT_EQ(asc_kernel.Readable(), "tmp0 = ops.Load(\"var:0\")\n"
-"tmp1 = ops.Load(\"alpha:0\")\n"
-"tmp2 = ops.Broadcast(tmp1, \"[]->[d0, d1, d2]\")\n"
-"tmp3 = ops.Load(\"delta:0\")\n"
-"tmp4 = ops.Mul(tmp3, tmp2)\n"
-"tmp5 = ops.Sub(tmp0, tmp4)\n"
-"tmp6 = ops.Store(\"ApplyGradientDescent_0:0\", tmp5)\n");
+  EXPECT_EQ(asc_kernel.Readable(),
+            "tmp0 = ops.Load(\"var:0\")\n"
+            "tmp1 = ops.Load(\"alpha:0\")\n"
+            "tmp2 = ops.Broadcast(tmp1, \"[]->[d0, d1, d2]\")\n"
+            "tmp3 = ops.Load(\"delta:0\")\n"
+            "tmp4 = ops.Mul(tmp3, tmp2)\n"
+            "tmp5 = ops.Sub(tmp0, tmp4)\n"
+            "tmp6 = ops.Store(\"ApplyGradientDescent_0:0\", tmp5)\n");
 }
 
 class TestCounter : public Counter {
-public:
+ public:
   TestCounter() = default;
   virtual ~TestCounter() = default;
-  virtual int64_t NextId() { return id_++;};
-private:
+  virtual int64_t NextId() {
+    return id_++;
+  };
+
+ private:
   int64_t id_ = 0;
 };
 
@@ -3210,14 +3228,15 @@ TEST_F(LoopNodeLoweringUT, BNInferenceLowering) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Load(\"mean:0\")\n"
-"tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp3 = ops.Load(\"variance:0\")\n"
-"tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp5 = ops.Add(tmp0, tmp2)\n"
-"tmp6 = ops.Mul(tmp4, tmp5)\n"
-"tmp7 = ops.Store(\"BNInferenceD_0:0\", tmp6)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Load(\"mean:0\")\n"
+            "tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp3 = ops.Load(\"variance:0\")\n"
+            "tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp5 = ops.Add(tmp0, tmp2)\n"
+            "tmp6 = ops.Mul(tmp4, tmp5)\n"
+            "tmp7 = ops.Store(\"BNInferenceD_0:0\", tmp6)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, BNInferenceLowering1) {
@@ -3243,17 +3262,18 @@ TEST_F(LoopNodeLoweringUT, BNInferenceLowering1) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Load(\"mean:0\")\n"
-"tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp3 = ops.Load(\"variance:0\")\n"
-"tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp5 = ops.Load(\"scale:0\")\n"
-"tmp6 = ops.Broadcast(tmp5, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp7 = ops.Add(tmp0, tmp2)\n"
-"tmp8 = ops.Mul(tmp4, tmp7)\n"
-"tmp9 = ops.Mul(tmp8, tmp6)\n"
-"tmp10 = ops.Store(\"BNInferenceD_0:0\", tmp9)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Load(\"mean:0\")\n"
+            "tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp3 = ops.Load(\"variance:0\")\n"
+            "tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp5 = ops.Load(\"scale:0\")\n"
+            "tmp6 = ops.Broadcast(tmp5, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp7 = ops.Add(tmp0, tmp2)\n"
+            "tmp8 = ops.Mul(tmp4, tmp7)\n"
+            "tmp9 = ops.Mul(tmp8, tmp6)\n"
+            "tmp10 = ops.Store(\"BNInferenceD_0:0\", tmp9)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, BNInferenceLowering2) {
@@ -3281,20 +3301,21 @@ TEST_F(LoopNodeLoweringUT, BNInferenceLowering2) {
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"x:0\")\n"
-"tmp1 = ops.Load(\"mean:0\")\n"
-"tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp3 = ops.Load(\"variance:0\")\n"
-"tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp5 = ops.Load(\"scale:0\")\n"
-"tmp6 = ops.Broadcast(tmp5, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp7 = ops.Load(\"b:0\")\n"
-"tmp8 = ops.Broadcast(tmp7, \"[d3]->[d0, d1, d2, d3]\")\n"
-"tmp9 = ops.Add(tmp0, tmp2)\n"
-"tmp10 = ops.Mul(tmp4, tmp9)\n"
-"tmp11 = ops.Mul(tmp10, tmp6)\n"
-"tmp12 = ops.Add(tmp11, tmp8)\n"
-"tmp13 = ops.Store(\"BNInferenceD_0:0\", tmp12)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"x:0\")\n"
+            "tmp1 = ops.Load(\"mean:0\")\n"
+            "tmp2 = ops.Broadcast(tmp1, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp3 = ops.Load(\"variance:0\")\n"
+            "tmp4 = ops.Broadcast(tmp3, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp5 = ops.Load(\"scale:0\")\n"
+            "tmp6 = ops.Broadcast(tmp5, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp7 = ops.Load(\"b:0\")\n"
+            "tmp8 = ops.Broadcast(tmp7, \"[d3]->[d0, d1, d2, d3]\")\n"
+            "tmp9 = ops.Add(tmp0, tmp2)\n"
+            "tmp10 = ops.Mul(tmp4, tmp9)\n"
+            "tmp11 = ops.Mul(tmp10, tmp6)\n"
+            "tmp12 = ops.Add(tmp11, tmp8)\n"
+            "tmp13 = ops.Store(\"BNInferenceD_0:0\", tmp12)\n");
 }
 
 TEST_F(LoopNodeLoweringUT, SimpleClipByValueConstScalar) {
@@ -3319,7 +3340,8 @@ TEST_F(LoopNodeLoweringUT, SimpleClipByValueConstScalar) {
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
 
-EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Scalar(\"DT_FLOAT(1.00000000000000000000e+00)\")\n"
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Scalar(\"DT_FLOAT(1.00000000000000000000e+00)\")\n"
             "tmp1 = ops.Unsqueeze(tmp0, 0)\n"
             "tmp2 = ops.Unsqueeze(tmp1, 1)\n"
             "tmp3 = ops.Scalar(\"DT_FLOAT(2.00000000000000000000e+00)\")\n"
@@ -3355,16 +3377,17 @@ TEST_F(LoopNodeLoweringUT, ClipByValueWithTensorInput) {
   auto kernel = ge::loop::GetKernelBox(node->GetOutDataAnchor(0));
   ASSERT_FALSE(kernel.IsExternKernel());
 
-  EXPECT_EQ(kernel.Readable(), "tmp0 = ops.Load(\"data1:0\")\n"
-              "tmp1 = ops.Unsqueeze(tmp0, 0)\n"
-              "tmp2 = ops.Load(\"data2:0\")\n"
-              "tmp3 = ops.Unsqueeze(tmp2, 0)\n"
-              "tmp4 = ops.Broadcast(tmp1, \"[1, d1]->[d0, d1]\")\n"
-              "tmp5 = ops.Broadcast(tmp3, \"[1, d1]->[d0, d1]\")\n"
-              "tmp6 = ops.Load(\"data0:0\")\n"
-              "tmp7 = ops.Minimum(tmp6, tmp5)\n"
-              "tmp8 = ops.Maximum(tmp7, tmp4)\n"
-              "tmp9 = ops.Store(\"ClipByValue_0:0\", tmp8)\n");
+  EXPECT_EQ(kernel.Readable(),
+            "tmp0 = ops.Load(\"data1:0\")\n"
+            "tmp1 = ops.Unsqueeze(tmp0, 0)\n"
+            "tmp2 = ops.Load(\"data2:0\")\n"
+            "tmp3 = ops.Unsqueeze(tmp2, 0)\n"
+            "tmp4 = ops.Broadcast(tmp1, \"[1, d1]->[d0, d1]\")\n"
+            "tmp5 = ops.Broadcast(tmp3, \"[1, d1]->[d0, d1]\")\n"
+            "tmp6 = ops.Load(\"data0:0\")\n"
+            "tmp7 = ops.Minimum(tmp6, tmp5)\n"
+            "tmp8 = ops.Maximum(tmp7, tmp4)\n"
+            "tmp9 = ops.Store(\"ClipByValue_0:0\", tmp8)\n");
 }
 
 #define TEST_F_LOWER_INST1(BACKENDOP, OP)                           \

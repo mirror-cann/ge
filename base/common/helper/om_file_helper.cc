@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ constexpr uint32_t kOptionalNum = 2U;
 constexpr uint32_t kMaxIncreasePartitionNum = 3U;  // 新增partition类型时需要修改
 constexpr const char *kSocVersion = "soc_version";
 constexpr const char *kArchType = "arch_type";
-}
+}  // namespace
 namespace ge {
 static bool IsPartitionTableNumValid(const uint32_t partition_num, const uint32_t increase_partition_num) {
   if ((partition_num != (PARTITION_SIZE + increase_partition_num)) &&
@@ -67,8 +67,7 @@ Status OmFileLoadHelper::Init(uint8_t *const model_data, const uint32_t model_da
   return Init(model_data, static_cast<uint64_t>(model_data_size), model_num, nullptr);
 }
 
-Status OmFileLoadHelper::Init(uint8_t *const model_data,
-                              const uint64_t model_data_size,
+Status OmFileLoadHelper::Init(uint8_t *const model_data, const uint64_t model_data_size,
                               const ModelFileHeader *file_header) {
   size_t mem_offset = 0U;
   const Status status = LoadModelPartitionTable(model_data, model_data_size, 0U, mem_offset, file_header);
@@ -79,9 +78,7 @@ Status OmFileLoadHelper::Init(uint8_t *const model_data,
   return SUCCESS;
 }
 
-Status OmFileLoadHelper::Init(uint8_t *const model_data,
-                              const uint64_t model_data_size,
-                              const uint32_t model_num,
+Status OmFileLoadHelper::Init(uint8_t *const model_data, const uint64_t model_data_size, const uint32_t model_num,
                               const ModelFileHeader *file_header) {
   const Status status = LoadModelPartitionTable(model_data, model_data_size, model_num, file_header);
   if (status != SUCCESS) {
@@ -96,8 +93,8 @@ Status OmFileLoadHelper::GetModelPartition(const ModelPartitionType type, ModelP
   return GetModelPartition(type, partition, 0U);
 }
 
-Status OmFileLoadHelper::GetModelPartition(const ModelPartitionType type,
-                                           ModelPartition &partition, const size_t model_index) const {
+Status OmFileLoadHelper::GetModelPartition(const ModelPartitionType type, ModelPartition &partition,
+                                           const size_t model_index) const {
   if (!is_inited_) {
     GELOGE(PARAM_INVALID, "OmFileLoadHelper has not been initialized!");
     return PARAM_INVALID;
@@ -115,9 +112,9 @@ Status OmFileLoadHelper::GetModelPartition(const ModelPartitionType type,
   }
 
   static const std::set<ModelPartitionType> model_partitions = {
-      ModelPartitionType::TBE_KERNELS,      ModelPartitionType::WEIGHTS_DATA,      ModelPartitionType::CUST_AICPU_KERNELS,
-      ModelPartitionType::SO_BINS,          ModelPartitionType::MODEL_INOUT_INFO,  ModelPartitionType::TASK_INFO,
-      ModelPartitionType::TILING_DATA,      ModelPartitionType::CUSTOM_OPS,
+      ModelPartitionType::TBE_KERNELS, ModelPartitionType::WEIGHTS_DATA,     ModelPartitionType::CUST_AICPU_KERNELS,
+      ModelPartitionType::SO_BINS,     ModelPartitionType::MODEL_INOUT_INFO, ModelPartitionType::TASK_INFO,
+      ModelPartitionType::TILING_DATA, ModelPartitionType::CUSTOM_OPS,
   };
 
   if (model_partitions.count(type) == 0UL) {
@@ -136,7 +133,7 @@ const std::vector<ModelPartition> &OmFileLoadHelper::GetModelPartitions(const si
   return model_contexts_[model_index].partition_datas_;
 }
 
-static Status ConvertToModelPartitionTable(const TinyModelPartitionTable * const tiny_table,
+static Status ConvertToModelPartitionTable(const TinyModelPartitionTable *const tiny_table,
                                            std::unique_ptr<uint8_t[]> &model_partition_table_holder) {
   const size_t total_size = sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * tiny_table->num;
   model_partition_table_holder = MakeUnique<uint8_t[]>(total_size);
@@ -154,10 +151,8 @@ static Status ConvertToModelPartitionTable(const TinyModelPartitionTable * const
   return SUCCESS;
 }
 
-Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data,
-                                                 const uint64_t model_data_size,
-                                                 const size_t model_index,
-                                                 size_t &mem_offset,
+Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data, const uint64_t model_data_size,
+                                                 const size_t model_index, size_t &mem_offset,
                                                  const ModelFileHeader *file_header) {
   if (model_data == nullptr) {
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_ADDR_INVALID, "Param model_data must not be null!");
@@ -166,8 +161,8 @@ Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data
 
   if ((model_data_size < mem_offset) || (model_data_size - mem_offset <= sizeof(ModelPartitionTable))) {
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID,
-           "The partition table size %zu is greater than model data size %lu",
-           mem_offset + sizeof(ModelPartitionTable), model_data_size);
+           "The partition table size %zu is greater than model data size %lu", mem_offset + sizeof(ModelPartitionTable),
+           model_data_size);
     return ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID;
   }
 
@@ -180,7 +175,7 @@ Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data
     partition_table = PtrToPtr<void, ModelPartitionTable>(ValueToPtr(PtrToValue(model_data) + mem_offset));
     partition_table_size = SizeOfModelPartitionTable(*partition_table);
   } else {
-    TinyModelPartitionTable * const tiny_partition_table =
+    TinyModelPartitionTable *const tiny_partition_table =
         PtrToPtr<void, TinyModelPartitionTable>(ValueToPtr(PtrToValue(model_data) + mem_offset));
     if (!CheckPartitionTableNum(tiny_partition_table->num)) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID, "Invalid tiny_partition_table->num:%u", tiny_partition_table->num);
@@ -229,8 +224,8 @@ Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data
     model_contexts_[model_index].partition_datas_.push_back(partition);
     if ((partition.size > model_data_size) || (mem_offset > static_cast<size_t>(model_data_size - partition.size))) {
       GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID,
-             "The partition size (%lu + %zu) is greater than the model data size %lu.",
-             partition.size, mem_offset, model_data_size);
+             "The partition size (%lu + %zu) is greater than the model data size %lu.", partition.size, mem_offset,
+             model_data_size);
       return ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID;
     }
     if (CheckUint64AddOverflow(mem_offset, partition.size) != SUCCESS) {
@@ -263,7 +258,7 @@ Status OmFileLoadHelper::LoadModelPartitionTable(const uint8_t *const model_data
 
 Status OmFileLoadHelper::CheckModelCompatibility(const Model &model) const {
   std::string model_soc_version;
-  (void) AttrUtils::GetStr(model, kSocVersion, model_soc_version);
+  (void)AttrUtils::GetStr(model, kSocVersion, model_soc_version);
   if (model_soc_version.empty()) {  // 原接口rtModelCheckCompatibility逻辑，当model_soc_version为空时接口返回成功
     GELOGW("Model soc version is empty, skip compatibility check.");
     return SUCCESS;
@@ -272,7 +267,7 @@ Status OmFileLoadHelper::CheckModelCompatibility(const Model &model) const {
   GE_ASSERT_RT_OK(aclrtCheckArchCompatibility(model_soc_version.c_str(), &compatible));
   GELOGI("The soc version [%s]. Check compatibility is %d.", model_soc_version.c_str(), compatible);
   GE_ASSERT_TRUE(compatible == 1, "Model soc version[%s] is not support in this device",
-      model_soc_version.c_str()); // 1 for compatible, 0 for incompatible
+                 model_soc_version.c_str());  // 1 for compatible, 0 for incompatible
   return SUCCESS;
 }
 
@@ -280,8 +275,8 @@ ModelPartitionTable *OmFileSaveHelper::GetPartitionTable() {
   return GetPartitionTable(0U);
 }
 
-ModelPartitionTable *OmFileSaveHelper::GetPartitionTable(const size_t cur_ctx_index,
-                                                         const bool is_partition_align, const uint32_t align_bytes) {
+ModelPartitionTable *OmFileSaveHelper::GetPartitionTable(const size_t cur_ctx_index, const bool is_partition_align,
+                                                         const uint32_t align_bytes) {
   auto &cur_ctx = model_contexts_[cur_ctx_index];
   const uint64_t partition_size = static_cast<uint64_t>(cur_ctx.partition_datas_.size());
   // Build ModelPartitionTable, flex array
@@ -295,8 +290,8 @@ ModelPartitionTable *OmFileSaveHelper::GetPartitionTable(const size_t cur_ctx_in
   if (is_partition_align) {
     const auto table_size = (SizeOfModelPartitionTable(*partition_table));
     mem_offset = MemSizeAlign(table_size, align_bytes) - table_size;
-    GELOGI("cur_ctx_index:%u, raw table size:%u, partition start offset:%u, align bytes:%u",
-           cur_ctx_index, table_size, mem_offset, align_bytes);
+    GELOGI("cur_ctx_index:%u, raw table size:%u, partition start offset:%u, align bytes:%u", cur_ctx_index, table_size,
+           mem_offset, align_bytes);
   }
 
   for (size_t i = 0U; i < static_cast<size_t>(partition_size); i++) {
@@ -308,9 +303,8 @@ ModelPartitionTable *OmFileSaveHelper::GetPartitionTable(const size_t cur_ctx_in
     }
 
     std::string bool_val = is_partition_align ? "true" : "false";
-    GELOGD("Partition index:%u, type:%d, size:%lu, offset:%lu, is align:%s, align bytes:%u",
-           i, static_cast<int32_t>(partition.type), partition.size, mem_offset,
-           bool_val.c_str(), align_bytes);
+    GELOGD("Partition index:%u, type:%d, size:%lu, offset:%lu, is align:%s, align bytes:%u", i,
+           static_cast<int32_t>(partition.type), partition.size, mem_offset, bool_val.c_str(), align_bytes);
 
     if (is_partition_align) {
       mem_offset += MemSizeAlign(partition.size, align_bytes);
@@ -411,8 +405,8 @@ Status OmFileSaveHelper::SaveModel(const char_t *const output_file, ModelBufferD
   }
   Status ret;
   if (save_to_file) {
-    ret = FileSaver::SaveToFile(
-        output_file, model_header_, model_partition_tabels, all_model_partitions, is_partition_align, align_bytes);
+    ret = FileSaver::SaveToFile(output_file, model_header_, model_partition_tabels, all_model_partitions,
+                                is_partition_align, align_bytes);
   } else {
     ret = FileSaver::SaveToBuffWithFileHeader(model_header_, model_partition_tabels, all_model_partitions, model);
   }

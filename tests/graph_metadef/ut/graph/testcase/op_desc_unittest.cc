@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,7 +62,6 @@ TEST_F(UtestOpDesc, TestOpDescGetSetTensorDesc) {
 }
 
 TEST_F(UtestOpDesc, TestNodeShapeTransUtils) {
-
   NodeShapeTransUtils transformer1(nullptr);
   EXPECT_NE(transformer1.Init(), true);
 
@@ -82,7 +81,6 @@ TEST_F(UtestOpDesc, TestNodeShapeTransUtils) {
   EXPECT_EQ(transformer2.CatchFormatAndShape(), true);
   EXPECT_EQ(transformer2.UpdateFormatAndShape(), true);
 
-
   op_desc->AddInputDesc(tensor_desc->Clone());
   op_desc->AddInputDesc(tensor_desc->Clone());
   op_desc->AddInputDesc(tensor_desc->Clone());
@@ -95,7 +93,6 @@ TEST_F(UtestOpDesc, TestNodeShapeTransUtils) {
   EXPECT_EQ(transformer3.Init(), true);
   EXPECT_EQ(transformer3.CatchFormatAndShape(), true);
   EXPECT_EQ(transformer3.UpdateFormatAndShape(), true);
-
 
   EXPECT_EQ(GRAPH_SUCCESS, op_desc->CommonVerify());
 }
@@ -373,7 +370,7 @@ TEST_F(UtestOpDesc, InputIsSet_success) {
 
   auto op_desc = std::make_shared<OpDesc>();
   EXPECT_EQ(op_desc->InputIsSet("input_test"), false);
-  op_desc->AddInputDesc("input_test",tensor_desc->Clone());
+  op_desc->AddInputDesc("input_test", tensor_desc->Clone());
   EXPECT_EQ(op_desc->InputIsSet("input_test"), true);
 }
 
@@ -384,7 +381,7 @@ TEST_F(UtestOpDesc, MutableInputDesc_success) {
   tensor_desc->SetDataType(DT_FLOAT);
 
   auto op_desc = std::make_shared<OpDesc>();
-  op_desc->AddInputDesc("input_test1",tensor_desc->Clone());
+  op_desc->AddInputDesc("input_test1", tensor_desc->Clone());
   EXPECT_EQ(op_desc->MutableInputDesc("input_test"), nullptr);
   EXPECT_NE(op_desc->MutableInputDesc("input_test1"), nullptr);
 }
@@ -420,8 +417,8 @@ TEST_F(UtestOpDesc, AddDynamicInputDescByIndex_success) {
   tensor_desc->SetDataType(DT_FLOAT);
 
   auto op_desc = std::make_shared<OpDesc>();
-  op_desc->AddInputDesc("input_test1",tensor_desc->Clone());
-  op_desc->AddInputDesc("input_test2",tensor_desc->Clone());
+  op_desc->AddInputDesc("input_test1", tensor_desc->Clone());
+  op_desc->AddInputDesc("input_test2", tensor_desc->Clone());
   EXPECT_EQ(op_desc->AddDynamicInputDescByIndex("input_test2", 1, 1), GRAPH_SUCCESS);
 }
 
@@ -497,10 +494,8 @@ TEST_F(UtestOpDesc, UpdateInputOutName_with_dynamic_failed) {
   op_desc->AddDynamicInputDescByIndex("value", 1, 2);
   op_desc->UpdateInputDesc(2, tensor_desc->Clone());
 
-  std::map<std::string, uint32_t> input_name_idx{{"query", 0},
-                                                 {"padding_mask", 1},
-                                                 {"attention_mask", 2},
-                                                 {"seq_lens", 3}};
+  std::map<std::string, uint32_t> input_name_idx{
+      {"query", 0}, {"padding_mask", 1}, {"attention_mask", 2}, {"seq_lens", 3}};
   EXPECT_EQ(op_desc->UpdateInputName(input_name_idx), false);
 }
 
@@ -527,9 +522,7 @@ TEST_F(UtestOpDesc, UpdateOutputName_success) {
 
 TEST_F(UtestOpDesc, GetInferFunc_success) {
   auto op_desc = std::make_shared<OpDesc>();
-  const auto add_func = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto add_func = [](Operator &op) { return GRAPH_SUCCESS; };
   op_desc->AddInferFunc(add_func);
 
   Operator op;
@@ -541,15 +534,15 @@ TEST_F(UtestOpDesc, GetInferFunc_success) {
 // infer from output
 REG_OP(FixIOOp_OutputIsFix)
     .INPUT(fix_input1, "T")
-        .INPUT(fix_input2, "T")
-        .OUTPUT(fix_output, "T2")
-        .DATATYPE(T2, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(FixIOOp_OutputIsFix);
+    .INPUT(fix_input2, "T")
+    .OUTPUT(fix_output, "T2")
+    .DATATYPE(T2, TensorType({DT_BOOL}))
+    .OP_END_FACTORY_REG(FixIOOp_OutputIsFix);
 TEST_F(UtestOpDesc, CallInferV2Func_success) {
   auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1,1,1,1});
+  GeShape shape({1, 1, 1, 1});
   GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
   tensor_desc.SetOriginShape(shape);
   tensor_desc.SetOriginDataType(DT_FLOAT16);
@@ -565,15 +558,13 @@ TEST_F(UtestOpDesc, CallInferV2Func_success) {
   auto infer_shape_range_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t {
     return GRAPH_SUCCESS;
   };
-  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t {
-    return GRAPH_SUCCESS;
-  };
+  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t { return GRAPH_SUCCESS; };
   ge::OperatorFactoryImpl::operator_infer_shape_v2_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_datatype_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_shape_range_func_ = nullptr;
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
   auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
   ASSERT_EQ(status, GRAPH_SUCCESS);
   ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
@@ -605,15 +596,13 @@ TEST_F(UtestOpDesc, CallInferFunc_by_shape_value_success) {
   auto infer_shape_range_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t {
     return GRAPH_SUCCESS;
   };
-  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t {
-    return GRAPH_SUCCESS;
-  };
+  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t { return GRAPH_SUCCESS; };
   ge::OperatorFactoryImpl::operator_infer_shape_v2_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_datatype_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_shape_range_func_ = nullptr;
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
   EXPECT_EQ(AttrUtils::SetListInt(op_desc, "_output_shapes", shape_values), true);
   auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
   ASSERT_EQ(status, GRAPH_SUCCESS);
@@ -647,15 +636,13 @@ TEST_F(UtestOpDesc, CallInferFunc_by_shape_value_unknown_shape_success) {
   auto infer_shape_range_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t {
     return GRAPH_SUCCESS;
   };
-  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t {
-    return GRAPH_SUCCESS;
-  };
+  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t { return GRAPH_SUCCESS; };
   ge::OperatorFactoryImpl::operator_infer_shape_v2_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_datatype_func_ = nullptr;
   ge::OperatorFactoryImpl::operator_infer_shape_range_func_ = nullptr;
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
   std::vector<std::vector<int64_t>> shape_values = {{1, 2, 3}};
   EXPECT_EQ(AttrUtils::SetListListInt(op_desc, "_preset_output_shapes", shape_values), true);
   auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
@@ -674,7 +661,7 @@ TEST_F(UtestOpDesc, CallInferV2Func_no_inferfunc_failed) {
   auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1,1,1,1});
+  GeShape shape({1, 1, 1, 1});
   GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
   tensor_desc.SetOriginShape(shape);
   tensor_desc.SetOriginDataType(DT_FLOAT16);
@@ -682,13 +669,13 @@ TEST_F(UtestOpDesc, CallInferV2Func_no_inferfunc_failed) {
   tensor_desc.SetOriginShapeRange(range);
   op_desc->UpdateInputDesc(0, tensor_desc);
   op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr; // make v1 is null
+  op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
 
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
   ASSERT_NE(space_registry, nullptr);
   auto op_impl_func = space_registry->CreateOrGetOpImpl("FixIOOp_OutputIsFix");
-  op_impl_func->infer_shape = nullptr; // make v2 is null
+  op_impl_func->infer_shape = nullptr;  // make v2 is null
   op_impl_func->infer_datatype = nullptr;
   op_impl_func->infer_shape_range = nullptr;
 
@@ -700,7 +687,7 @@ TEST_F(UtestOpDesc, CallInferV2Func_failed) {
   auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1,1,1,1});
+  GeShape shape({1, 1, 1, 1});
   GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
   tensor_desc.SetOriginShape(shape);
   tensor_desc.SetOriginDataType(DT_FLOAT16);
@@ -710,18 +697,14 @@ TEST_F(UtestOpDesc, CallInferV2Func_failed) {
   op_desc->UpdateInputDesc(1, tensor_desc);
   op_desc->impl_->infer_func_ = nullptr;
 
-  auto infer_shape_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t {
-    return GRAPH_FAILED;
-  };
+  auto infer_shape_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t { return GRAPH_FAILED; };
   auto infer_shape_range_func = [](const ge::Operator &op, const OpDescPtr &op_desc) -> uint32_t {
     return GRAPH_SUCCESS;
   };
-  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t {
-    return GRAPH_SUCCESS;
-  };
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
-  (void) ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
+  auto infer_data_type_func = [](const OpDescPtr &op) -> uint32_t { return GRAPH_SUCCESS; };
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeV2Func(infer_shape_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferShapeRangeFunc(infer_shape_range_func);
+  (void)ge::OperatorFactoryImpl::RegisterInferDataTypeFunc(infer_data_type_func);
 
   auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
   ASSERT_EQ(status, PARAM_INVALID);
@@ -739,18 +722,14 @@ TEST_F(UtestOpDesc, CallInferFunc_failed) {
   op_desc_impl.infer_func_ = func;
   auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
   ASSERT_EQ(status, PARAM_INVALID);
-  const auto infer_data_slice_func = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto infer_data_slice_func = [](Operator &op) { return GRAPH_SUCCESS; };
 
   OpDescPtr odp = std::make_shared<OpDesc>("name", "type");
   op_desc_impl.infer_func_ = infer_data_slice_func;
   status = OpDescUtilsEx::CallInferFunc(odp, op);
-  ASSERT_NE(status, GRAPH_SUCCESS); //todo: check testcase
+  ASSERT_NE(status, GRAPH_SUCCESS);  // todo: check testcase
 
-  const auto error_infer_shape_func = [](Operator &op) {
-    return GRAPH_FAILED;
-  };
+  const auto error_infer_shape_func = [](Operator &op) { return GRAPH_FAILED; };
   odp->AddInputDesc(GeTensorDesc());
   odp->AddInferFunc(error_infer_shape_func);
   status = OpDescUtilsEx::CallInferFunc(odp, op);
@@ -760,12 +739,10 @@ TEST_F(UtestOpDesc, CallInferFunc_failed) {
 TEST_F(UtestOpDesc, InferDataSlice_success) {
   auto op_desc = std::make_shared<OpDesc>();
   EXPECT_EQ(OpDescUtilsEx::InferDataSlice(op_desc), NO_DEPENDENCE_FUNC);
-  const auto infer_data_slice_func = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto infer_data_slice_func = [](Operator &op) { return GRAPH_SUCCESS; };
   auto op = std::make_shared<Operator>();
   op_desc->SetType("test");
-  OperatorFactoryImpl::RegisterInferDataSliceFunc("test",infer_data_slice_func);
+  OperatorFactoryImpl::RegisterInferDataSliceFunc("test", infer_data_slice_func);
   EXPECT_EQ(OpDescUtilsEx::InferDataSlice(op_desc), GRAPH_SUCCESS);
 }
 
@@ -778,13 +755,13 @@ REG_OP(MatMulUt)
     .ATTR(transpose_x2, Bool, false)
     .OP_END_FACTORY_REG(MatMulUt)
 
-REG_OP(AddUt)
+        REG_OP(AddUt)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
     .OP_END_FACTORY_REG(AddUt)
 
-TEST_F(UtestOpDesc, SetTypeModifyIrAttrName_type_change) {
+        TEST_F(UtestOpDesc, SetTypeModifyIrAttrName_type_change) {
   auto op = ge::OperatorFactory::CreateOperator("MatMul", "MatMulUt");
   auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   EXPECT_NE(op_desc, nullptr);
@@ -827,9 +804,7 @@ TEST_F(UtestOpDesc, SetTypeModifyIrAttrName_type_not_change) {
 TEST_F(UtestOpDesc, InferShapeAndType_success) {
   auto op_desc = std::make_shared<OpDesc>();
   EXPECT_EQ(OpDescUtilsEx::InferShapeAndType(op_desc), GRAPH_SUCCESS);
-  const auto add_func = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto add_func = [](Operator &op) { return GRAPH_SUCCESS; };
   op_desc->AddInferFunc(add_func);
   EXPECT_EQ(OpDescUtilsEx::InferShapeAndType(op_desc), GRAPH_SUCCESS);
 }
@@ -837,9 +812,7 @@ TEST_F(UtestOpDesc, InferShapeAndType_success) {
 TEST_F(UtestOpDesc, OpVerify_success) {
   auto op_desc = std::make_shared<OpDesc>();
   EXPECT_EQ(OpDescUtilsEx::OpVerify(op_desc), GRAPH_SUCCESS);
-  const auto verify_func = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto verify_func = [](Operator &op) { return GRAPH_SUCCESS; };
   op_desc->AddVerifierFunc(verify_func);
   EXPECT_EQ(OpDescUtilsEx::OpVerify(op_desc), GRAPH_SUCCESS);
 }
@@ -869,13 +842,13 @@ TEST_F(UtestOpDesc, AttachedStreamId) {
   op_desc_null->SetAttachedStreamId(2);
 
   auto op_desc = std::make_shared<OpDesc>();
-  EXPECT_EQ(op_desc->GetAttachedStreamId(), -1); // default is -1
+  EXPECT_EQ(op_desc->GetAttachedStreamId(), -1);  // default is -1
   EXPECT_FALSE(op_desc->HasValidAttachedStreamId());
 
   op_desc->SetAttachedStreamId(2);
   EXPECT_EQ(op_desc->GetAttachedStreamId(), 2);
   EXPECT_TRUE(op_desc->HasValidAttachedStreamId());
-  op_desc->SetAttachedStreamId(-1); // reset to invalid
+  op_desc->SetAttachedStreamId(-1);  // reset to invalid
   EXPECT_FALSE(op_desc->HasValidAttachedStreamId());
 }
 
@@ -884,7 +857,7 @@ TEST_F(UtestOpDesc, AttachedStreamIds) {
   op_desc_null->SetAttachedStreamIds({2});
 
   auto op_desc = std::make_shared<OpDesc>();
-  EXPECT_EQ(op_desc->GetAttachedStreamIds().size(), 0); // default size is 0
+  EXPECT_EQ(op_desc->GetAttachedStreamIds().size(), 0);  // default size is 0
   EXPECT_FALSE(op_desc->HasValidAttachedStreamId());
 
   op_desc->SetAttachedStreamIds({2, 3});
@@ -899,7 +872,7 @@ TEST_F(UtestOpDesc, AttachedStreamIds) {
   EXPECT_EQ(op_desc->GetAttachedStreamIds()[2], 4);
   EXPECT_TRUE(op_desc->HasValidAttachedStreamId());
 
-  op_desc->SetAttachedStreamIds({-1}); // 设置失败,所以下一行校验会成功
+  op_desc->SetAttachedStreamIds({-1});  // 设置失败,所以下一行校验会成功
   EXPECT_TRUE(op_desc->HasValidAttachedStreamId());
 
   op_desc->SetAttachedStreamIds({-1, -1, -1});
@@ -908,7 +881,7 @@ TEST_F(UtestOpDesc, AttachedStreamIds) {
 
 TEST_F(UtestOpDesc, Set_GetInputName_success) {
   auto op_desc = std::make_shared<OpDesc>();
-  std::vector<std::string> input_name {"name1", "name2"};
+  std::vector<std::string> input_name{"name1", "name2"};
   op_desc->SetInputName(input_name);
   auto get_input_name = op_desc->GetInputName();
   EXPECT_EQ(get_input_name.size(), 2);
@@ -918,7 +891,7 @@ TEST_F(UtestOpDesc, Set_GetInputName_success) {
 
 TEST_F(UtestOpDesc, GetSrcName_success) {
   auto op_desc = std::make_shared<OpDesc>();
-  std::vector<std::string> src_name {"src"};
+  std::vector<std::string> src_name{"src"};
   op_desc->SetSrcName(src_name);
   auto get_src_name = op_desc->GetSrcName();
   EXPECT_EQ(get_src_name.size(), 1);
@@ -963,7 +936,7 @@ TEST_F(UtestOpDesc, GetDstName_success) {
 
 TEST_F(UtestOpDesc, Set_GetOpInferDepends_success) {
   auto op_desc = std::make_shared<OpDesc>("verify", "Rule");
-  std::vector<std::string> depend_names {"depend_name1", "depend_name2"};
+  std::vector<std::string> depend_names{"depend_name1", "depend_name2"};
   op_desc->SetOpInferDepends(depend_names);
   auto get_depend_names = op_desc->GetOpInferDepends();
   EXPECT_EQ(get_depend_names.size(), 2);
@@ -1139,4 +1112,4 @@ TEST_F(UtestOpDesc, TestGetOrderedSubgraphs) {
   EXPECT_EQ("static_graph", subgraph_pair[1].first);
   EXPECT_EQ(kStatic, subgraph_pair[1].second);
 }
-}
+}  // namespace ge

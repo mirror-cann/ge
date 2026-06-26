@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,15 +33,17 @@ namespace ge {
 +-----------+       +-----------+                   +-----------+
       |                   |                        /             \
       |                   |                       /               \
-+-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+ +-----------+
-|   Cast    |       |   Cast    |       |   Cast    |           |   Cast    |       |   Data    | |   Const   | |   Const   |
-+-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+ +-----------+
-      |                   |                   |                       |                   |             |             |
-      |                   |                   |                       |                   |             |             |
-+-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+ +-----------+
-| TransData |       | TransData |       |  Reshape  |           |  Reshape  |       |    Cast   | |    Cast   | |    Cast   |
-+-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+ +-----------+
-      |                   |                   |                       |                          \      |      /
++-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+
++-----------+ |   Cast    |       |   Cast    |       |   Cast    |           |   Cast    |       |   Data    | | Const
+| |   Const   |
++-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+
++-----------+ |                   |                   |                       |                   |             | | | |
+|                       |                   |             |             |
++-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+
++-----------+ | TransData |       | TransData |       |  Reshape  |           |  Reshape  |       |    Cast   | | Cast
+| |    Cast   |
++-----------+       +-----------+       +-----------+           +-----------+       +-----------+ +-----------+
++-----------+ |                   |                   |                       |                          \      |      /
       |                   |                   |                       |                           \     |     /
 +-----------+       +-----------+       +-----------+           +-----------+                     +-----------+
 |  Reshape  |       |  Reshape  |       | TransData |           | TransData |                     |   Conv2D  |
@@ -96,7 +98,7 @@ class UTEST_UnusedArgsCleanPass : public testing::Test {
   }
 
   void MakeDataChain(const ComputeGraphPtr &graph, NodePtr &head, NodePtr &tail) {
-    auto trans_0 = MakeNode(graph, 1, 1, "data",       "Data");
+    auto trans_0 = MakeNode(graph, 1, 1, "data", "Data");
     auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast", "Cast");
 
     GraphUtils::AddEdge(trans_0->GetOutDataAnchor(0), trans_1->GetInDataAnchor(0));
@@ -106,7 +108,7 @@ class UTEST_UnusedArgsCleanPass : public testing::Test {
 
   void MakeConstChain(const ComputeGraphPtr &graph, NodePtr &head, NodePtr &tail) {
     auto trans_0 = MakeNode(graph, 1, 1, "dynamic_const", "Const");
-    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast",    "Cast");
+    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast", "Cast");
 
     GraphUtils::AddEdge(trans_0->GetOutDataAnchor(0), trans_1->GetInDataAnchor(0));
     head = trans_0;
@@ -114,8 +116,8 @@ class UTEST_UnusedArgsCleanPass : public testing::Test {
   }
 
   void MakeNodeChain1(const ComputeGraphPtr &graph, NodePtr &head, NodePtr &tail) {
-    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast",      "Cast");
-    auto trans_2 = MakeNode(graph, 1, 1, "trans_Reshape",   "Reshape");
+    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast", "Cast");
+    auto trans_2 = MakeNode(graph, 1, 1, "trans_Reshape", "Reshape");
     auto trans_3 = MakeNode(graph, 1, 1, "trans_TransData", "TransData");
 
     GraphUtils::AddEdge(trans_1->GetOutDataAnchor(0), trans_2->GetInDataAnchor(0));
@@ -125,10 +127,10 @@ class UTEST_UnusedArgsCleanPass : public testing::Test {
   }
 
   void MakeNodeChain2(const ComputeGraphPtr &graph, NodePtr &head, NodePtr &tail) {
-    auto const_1 = MakeNode(graph, 0, 1, "dynamic_const",   "Const");
-    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast",      "Cast");
+    auto const_1 = MakeNode(graph, 0, 1, "dynamic_const", "Const");
+    auto trans_1 = MakeNode(graph, 1, 1, "trans_Cast", "Cast");
     auto trans_2 = MakeNode(graph, 1, 1, "trans_TransData", "TransData");
-    auto trans_3 = MakeNode(graph, 1, 1, "trans_Reshape",   "Reshape");
+    auto trans_3 = MakeNode(graph, 1, 1, "trans_Reshape", "Reshape");
     auto trans_4 = MakeNode(graph, 1, 1, "trans_TransData", "TransData");
 
     GraphUtils::AddEdge(const_1->GetOutDataAnchor(0), trans_1->GetInDataAnchor(0));
@@ -171,12 +173,12 @@ class UTEST_UnusedArgsCleanPass : public testing::Test {
       GraphUtils::AddEdge(bn_host->GetOutDataAnchor(1), bn_head_1->GetInDataAnchor(0));
     }
 
-    auto  bn_conv1 = MakeNode(graph, 3, 1, "bn_conv1_BNInferenceD", "BNInferenceD");
+    auto bn_conv1 = MakeNode(graph, 3, 1, "bn_conv1_BNInferenceD", "BNInferenceD");
     {
-      GraphUtils::AddEdge(conv2d_node->GetOutDataAnchor(0),  bn_conv1->GetInDataAnchor(0));
+      GraphUtils::AddEdge(conv2d_node->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(0));
 
-      GraphUtils::AddEdge(bn_tail_0->GetOutDataAnchor(0),  bn_conv1->GetInDataAnchor(1));
-      GraphUtils::AddEdge(bn_tail_1->GetOutDataAnchor(0),  bn_conv1->GetInDataAnchor(2));
+      GraphUtils::AddEdge(bn_tail_0->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(1));
+      GraphUtils::AddEdge(bn_tail_1->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(2));
     }
 
     auto scale_conv1 = MakeNode(graph, 3, 1, "scale_conv1", "Scale");
@@ -200,20 +202,19 @@ class FeInsertTransNodePass : public GraphPass {
   Status Run(ComputeGraphPtr graph) {
     graph->TopologicalSorting();
     for (const auto &node : graph->GetAllNodes()) {
-        if (kTransOpTypes.count(node->GetType()) > 0) {
-            node->SetHostNode(true);
-        }
+      if (kTransOpTypes.count(node->GetType()) > 0) {
+        node->SetHostNode(true);
+      }
     }
 
     return SUCCESS;
   }
 
-  const std::set<std::string> kTransOpTypes = { "Cast", "TransData", "Reshape", "BnHost" };
+  const std::set<std::string> kTransOpTypes = {"Cast", "TransData", "Reshape", "BnHost"};
 };
 REG_PASS_OPTION("FeInsertTransNodePass").LEVELS(OoLevel::kO3);
 
 TEST_F(UTEST_UnusedArgsCleanPass, Run) {
-
   PassManager pass_manager;
   pass_manager.AddPass("MultiBatchClonePass", new (std::nothrow) MultiBatchClonePass(0));
   pass_manager.AddPass("FeInsertTransNodePass", new (std::nothrow) FeInsertTransNodePass);
@@ -236,4 +237,4 @@ TEST_F(UTEST_UnusedArgsCleanPass, Run) {
   }
 }
 
-}   // namespace ge
+}  // namespace ge

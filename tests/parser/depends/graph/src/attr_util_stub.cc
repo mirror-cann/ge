@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,9 +29,9 @@
 #include "graph/serialization/tensor_desc_serializer.h"
 
 using std::map;
+using std::set;
 using std::string;
 using std::vector;
-using std::set;
 
 namespace ge {
 void NamedAttrs::SetName(const std::string &name) {
@@ -63,8 +63,8 @@ bool AttrUtils::HasAttr(ConstAttrHolderAdapter &&obj, const string &name) {
   return obj->HasAttr(name);
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetInt(ConstAttrHolderAdapter &&obj, const string &name, int32_t &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetInt(ConstAttrHolderAdapter &&obj, const string &name,
+                                                                      int32_t &value) {
   int64_t int64_val = 0;
   if (!AttrUtils::GetInt(std::move(obj), name, int64_val)) {
     return false;
@@ -78,8 +78,8 @@ bool AttrUtils::GetInt(ConstAttrHolderAdapter &&obj, const string &name, int32_t
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetInt(ConstAttrHolderAdapter &&obj, const string &name, uint32_t &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetInt(ConstAttrHolderAdapter &&obj, const string &name,
+                                                                      uint32_t &value) {
   int64_t int64_val = 0;
   if (!AttrUtils::GetInt(std::move(obj), name, int64_val)) {
     return false;
@@ -113,8 +113,7 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OpDescPtr AttrUtils::CloneOpDesc(
 
   imp.SetProtobufOwner(op_def);
   OpDescPtr op_desc = nullptr;
-  GE_CHK_BOOL_EXEC(imp.UnserializeOpDesc(op_desc, *op_def),
-                   REPORT_INNER_ERR_MSG("E19999", "UnserializeOpDesc failed");
+  GE_CHK_BOOL_EXEC(imp.UnserializeOpDesc(op_desc, *op_def), REPORT_INNER_ERR_MSG("E19999", "UnserializeOpDesc failed");
                    return op_desc, "[Call][UnserializeOpDesc] op_desc unserialize failed");
   op_desc->ext_attrs_ = org_op_desc->ext_attrs_;
 
@@ -177,24 +176,24 @@ GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OpDescPtr AttrUtils::CopyOpDesc(c
   return op_desc;
 }
 
-#define SET_ATTR_FUNC(type_name, type)  \
-    GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY  \
-    bool AttrUtils::Set##type_name(AttrHolderAdapter &&obj, const string &name, const type &value) {  \
-      if (obj->HasAttr("test_fail")) {                                                                \
-        return false;                                                                                 \
-      }                                                                                               \
-      return SetAttrValue(obj->MutableAttrMap(), name, value);  \
-    }
+#define SET_ATTR_FUNC(type_name, type)                                           \
+  GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::Set##type_name( \
+      AttrHolderAdapter &&obj, const string &name, const type &value) {          \
+    if (obj->HasAttr("test_fail")) {                                             \
+      return false;                                                              \
+    }                                                                            \
+    return SetAttrValue(obj->MutableAttrMap(), name, value);                     \
+  }
 
-#define GET_ATTR_FUNC(type_name, type) \
-    GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY  \
-    bool AttrUtils::Get##type_name(ConstAttrHolderAdapter &&obj, const string &name, type &value) { \
-        return GetAttrValue(obj->GetAttrMap(), name, value);  \
-    }
+#define GET_ATTR_FUNC(type_name, type)                                                                             \
+  GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::Get##type_name(ConstAttrHolderAdapter &&obj,      \
+                                                                                const string &name, type &value) { \
+    return GetAttrValue(obj->GetAttrMap(), name, value);                                                           \
+  }
 
 #define SET_GET_FUNC(type_name, type) \
-    SET_ATTR_FUNC(type_name, type)  \
-    GET_ATTR_FUNC(type_name, type)
+  SET_ATTR_FUNC(type_name, type)      \
+  GET_ATTR_FUNC(type_name, type)
 
 bool AttrUtils::SetListInt(AttrHolderAdapter &&obj, const string &name, const vector<int64_t> &value) {
   return SetAttrValue(obj->MutableAttrMap(), name, value);
@@ -218,20 +217,20 @@ SET_GET_FUNC(ListDataType, vector<DataType>)
 SET_GET_FUNC(ListListInt, vector<vector<int64_t>>)
 SET_GET_FUNC(ListListFloat, vector<vector<float>>)
 
-
 bool AttrUtils::SetListInt(AttrHolderAdapter &&obj, const string &name, const vector<uint32_t> &value) {
   return SetListInt(std::move(obj), name, std::vector<int64_t>(value.begin(), value.end()));
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListInt(AttrUtils::AttrHolderAdapter &&obj, const string &name, const vector<int32_t> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListInt(AttrUtils::AttrHolderAdapter &&obj,
+                                                                          const string &name,
+                                                                          const vector<int32_t> &value) {
   return SetListInt(std::move(obj), name, std::vector<int64_t>(value.begin(), value.end()));
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListInt(AttrHolderAdapter &&obj, const string &name, std::initializer_list<int64_t> &&value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListInt(AttrHolderAdapter &&obj, const string &name,
+                                                                          std::initializer_list<int64_t> &&value) {
   return SetListInt(std::move(obj), name, std::vector<int64_t>(value));
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj, const string &name, vector<int32_t> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj,
+                                                                          const string &name, vector<int32_t> &value) {
   value.clear();
   vector<int64_t> int64_list;
   if (!GetListInt(std::move(obj), name, int64_list)) {
@@ -248,8 +247,8 @@ bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj, const string &name, vec
   value.insert(value.begin(), int64_list.begin(), int64_list.end());
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj, const string &name, vector<uint32_t> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj,
+                                                                          const string &name, vector<uint32_t> &value) {
   value.clear();
   vector<int64_t> int64_list;
   if (!GetListInt(std::move(obj), name, int64_list)) {
@@ -268,8 +267,8 @@ bool AttrUtils::GetListInt(ConstAttrHolderAdapter &&obj, const string &name, vec
   value.insert(value.begin(), int64_list.begin(), int64_list.end());
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetTensor(AttrUtils::AttrHolderAdapter &&obj, const string &name, const GeTensor &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetTensor(AttrUtils::AttrHolderAdapter &&obj,
+                                                                         const string &name, const GeTensor &value) {
   // 当前GeTensor的拷贝赋值、拷贝构造函数均不是深拷贝，因此无法使用默认的方法SetAttr
   if (!obj->MutableAttrMap().SetByName(name, GeTensor())) {
     return false;
@@ -281,16 +280,17 @@ bool AttrUtils::SetTensor(AttrUtils::AttrHolderAdapter &&obj, const string &name
   TensorUtils::CopyTensor(value, *tensor);
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetTensor(AttrHolderAdapter &&obj, const string &name, const GeTensorPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetTensor(AttrHolderAdapter &&obj, const string &name,
+                                                                         const GeTensorPtr &value) {
   return SetTensor(std::move(obj), name, *value);
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetTensor(AttrHolderAdapter &&obj, const string &name, const ConstGeTensorPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetTensor(AttrHolderAdapter &&obj, const string &name,
+                                                                         const ConstGeTensorPtr &value) {
   return SetTensor(std::move(obj), name, *value);
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetShareTensor(AttrHolderAdapter &&obj, const string &name, const ge::GeTensor &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetShareTensor(AttrHolderAdapter &&obj,
+                                                                              const string &name,
+                                                                              const ge::GeTensor &value) {
   if (!obj) {
     return false;
   }
@@ -305,8 +305,9 @@ bool AttrUtils::SetShareTensor(AttrHolderAdapter &&obj, const string &name, cons
   TensorUtils::ShareTensor(value, *tensor);
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListTensor(AttrUtils::AttrHolderAdapter &&obj, const string &name, const vector<GeTensor> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListTensor(AttrUtils::AttrHolderAdapter &&obj,
+                                                                             const string &name,
+                                                                             const vector<GeTensor> &value) {
   std::vector<GeTensor> tensors(value.size());
   if (!obj->MutableAttrMap().SetByName(name, tensors)) {
     return false;
@@ -320,14 +321,16 @@ bool AttrUtils::SetListTensor(AttrUtils::AttrHolderAdapter &&obj, const string &
   }
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj, const string &name, const vector<GeTensorPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj,
+                                                                             const string &name,
+                                                                             const vector<GeTensorPtr> &value) {
   vector<ConstGeTensorPtr> tensors(value.size());
   std::copy(value.begin(), value.end(), tensors.begin());
   return SetListTensor(std::move(obj), name, tensors);
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj, const string &name, const vector<ConstGeTensorPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj,
+                                                                             const string &name,
+                                                                             const vector<ConstGeTensorPtr> &value) {
   std::vector<GeTensor> tensors(value.size());
   if (!obj->MutableAttrMap().SetByName(name, tensors)) {
     return false;
@@ -341,63 +344,65 @@ bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj, const string &name, const
   }
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListTensor(AttrHolderAdapter &&obj, const string &name,
-                              std::initializer_list<ConstGeTensorPtr> &&value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListTensor(
+    AttrHolderAdapter &&obj, const string &name, std::initializer_list<ConstGeTensorPtr> &&value) {
   return SetListTensor(std::move(obj), name, vector<ConstGeTensorPtr>(value));
 }
 
 // 所有权UT测试，不能把属性上的GeTensor给错误释放了
 // 而且这里的行为与老版本是不一样的，老版本中，即使属性的owner生命周期结束析构了，通过本接口获取的value仍然是可用的
 // 但是新接口中，owner没有转移，owner析构后，value指向的内存就被释放了，这里需要排查
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::MutableTensor(AttrHolderAdapter &&obj, const string &name, GeTensorPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::MutableTensor(AttrHolderAdapter &&obj,
+                                                                             const string &name, GeTensorPtr &value) {
   auto tensor = obj->MutableAttrMap().MutableGetByName<GeTensor>(name);
   if (tensor == nullptr) {
     return false;
   }
-  value = std::shared_ptr<GeTensor>(tensor, [](GeTensor *){});
+  value = std::shared_ptr<GeTensor>(tensor, [](GeTensor *) {});
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetTensor(ConstAttrHolderAdapter &&obj, const string &name, ConstGeTensorPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetTensor(ConstAttrHolderAdapter &&obj,
+                                                                         const string &name, ConstGeTensorPtr &value) {
   auto tensor = obj->GetAttrMap().GetByName<GeTensor>(name);
   if (tensor == nullptr) {
     return false;
   }
-  value = std::shared_ptr<const GeTensor>(tensor, [](const GeTensor *){});
+  value = std::shared_ptr<const GeTensor>(tensor, [](const GeTensor *) {});
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetListTensor(ConstAttrHolderAdapter &&obj, const string &name, vector<ConstGeTensorPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetListTensor(ConstAttrHolderAdapter &&obj,
+                                                                             const string &name,
+                                                                             vector<ConstGeTensorPtr> &value) {
   auto tensors = obj->GetAttrMap().GetByName<std::vector<GeTensor>>(name);
   if (tensors == nullptr) {
     return false;
   }
   value.resize(tensors->size());
   for (size_t i = 0; i < tensors->size(); ++i) {
-    value[i] = std::shared_ptr<const GeTensor>(&(*tensors)[i], [](const GeTensor *){});
+    value[i] = std::shared_ptr<const GeTensor>(&(*tensors)[i], [](const GeTensor *) {});
   }
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::MutableListTensor(AttrHolderAdapter &&obj, const string &name, vector<GeTensorPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::MutableListTensor(AttrHolderAdapter &&obj,
+                                                                                 const string &name,
+                                                                                 vector<GeTensorPtr> &value) {
   auto tensors = obj->MutableAttrMap().MutableGetByName<std::vector<GeTensor>>(name);
   if (tensors == nullptr) {
     return false;
   }
   value.resize(tensors->size());
   for (size_t i = 0; i < tensors->size(); ++i) {
-    value[i] = std::shared_ptr<GeTensor>(&(*tensors)[i], [](GeTensor *){});
+    value[i] = std::shared_ptr<GeTensor>(&(*tensors)[i], [](GeTensor *) {});
   }
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetGraph(AttrUtils::AttrHolderAdapter &&obj, const string &name, const ComputeGraphPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetGraph(AttrUtils::AttrHolderAdapter &&obj,
+                                                                        const string &name,
+                                                                        const ComputeGraphPtr &value) {
   proto::GraphDef *graph_def = SetAndGetAttrValue(obj->MutableAttrMap(), name, proto::GraphDef());
   if (graph_def == nullptr) {
     return false;
@@ -411,9 +416,9 @@ bool AttrUtils::SetGraph(AttrUtils::AttrHolderAdapter &&obj, const string &name,
   }
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListGraph(AttrUtils::AttrHolderAdapter &&obj, const string &name,
-                             const vector<ComputeGraphPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListGraph(AttrUtils::AttrHolderAdapter &&obj,
+                                                                            const string &name,
+                                                                            const vector<ComputeGraphPtr> &value) {
   std::vector<proto::GraphDef> graphs(value.size());
   if (!obj->MutableAttrMap().SetByName(name, graphs)) {
     return false;
@@ -425,7 +430,7 @@ bool AttrUtils::SetListGraph(AttrUtils::AttrHolderAdapter &&obj, const string &n
   for (size_t i = 0; i < value.size(); ++i) {
     ModelSerializeImp imp;
     if (!imp.SerializeGraph(value[i], &attr_graphs->at(i))) {
-          REPORT_INNER_ERR_MSG("E19999", "SerializeGraph failed when add ComputeGraph to attr %s", name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "SerializeGraph failed when add ComputeGraph to attr %s", name.c_str());
       GELOGE(GRAPH_FAILED, "[Serialize][Graph] Failed when add ComputeGraph to attr %s", name.c_str());
       obj->MutableAttrMap().Delete(name);
       return false;
@@ -433,8 +438,8 @@ bool AttrUtils::SetListGraph(AttrUtils::AttrHolderAdapter &&obj, const string &n
   }
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetGraph(AttrUtils::ConstAttrHolderAdapter &&obj, const string &name, ComputeGraphPtr &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetGraph(AttrUtils::ConstAttrHolderAdapter &&obj,
+                                                                        const string &name, ComputeGraphPtr &value) {
   auto attr_graph_def = obj->GetAttrMap().GetByName<proto::GraphDef>(name);
   if (attr_graph_def == nullptr) {
     return false;
@@ -458,9 +463,9 @@ bool AttrUtils::GetGraph(AttrUtils::ConstAttrHolderAdapter &&obj, const string &
 
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetListGraph(AttrUtils::ConstAttrHolderAdapter &&obj, const string &name,
-                             vector<ComputeGraphPtr> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetListGraph(AttrUtils::ConstAttrHolderAdapter &&obj,
+                                                                            const string &name,
+                                                                            vector<ComputeGraphPtr> &value) {
   auto graph_defs = obj->GetAttrMap().GetByName<std::vector<proto::GraphDef>>(name);
   if (graph_defs == nullptr) {
     return false;
@@ -489,8 +494,8 @@ bool AttrUtils::GetListGraph(AttrUtils::ConstAttrHolderAdapter &&obj, const stri
   }
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetBytes(AttrUtils::AttrHolderAdapter &&obj, const string &name, const Buffer &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetBytes(AttrUtils::AttrHolderAdapter &&obj,
+                                                                        const string &name, const Buffer &value) {
   auto buffer = SetAndGetAttrValue(obj->MutableAttrMap(), name, Buffer());
   if (buffer == nullptr) {
     return false;
@@ -498,8 +503,8 @@ bool AttrUtils::SetBytes(AttrUtils::AttrHolderAdapter &&obj, const string &name,
   BufferUtils::CopyFrom(value, *buffer);
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetBytes(ConstAttrHolderAdapter &&obj, const string &name, Buffer &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetBytes(ConstAttrHolderAdapter &&obj,
+                                                                        const string &name, Buffer &value) {
   auto buffer = obj->GetAttrMap().GetByName<Buffer>(name);
   if (buffer == nullptr) {
     return false;
@@ -507,8 +512,9 @@ bool AttrUtils::GetBytes(ConstAttrHolderAdapter &&obj, const string &name, Buffe
   BufferUtils::CopyFrom(*buffer, value);
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetListBytes(AttrUtils::AttrHolderAdapter &&obj, const string &name, const vector<Buffer> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetListBytes(AttrUtils::AttrHolderAdapter &&obj,
+                                                                            const string &name,
+                                                                            const vector<Buffer> &value) {
   std::vector<Buffer> buffers(value.size());
   auto attr_buffers = SetAndGetAttrValue(obj->MutableAttrMap(), name, buffers);
   if (attr_buffers == nullptr) {
@@ -521,8 +527,8 @@ bool AttrUtils::SetListBytes(AttrUtils::AttrHolderAdapter &&obj, const string &n
 
   return true;
 }
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetListBytes(AttrUtils::ConstAttrHolderAdapter &&obj, const string &name, vector<Buffer> &value) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetListBytes(AttrUtils::ConstAttrHolderAdapter &&obj,
+                                                                            const string &name, vector<Buffer> &value) {
   auto buffers = obj->GetAttrMap().GetByName<std::vector<Buffer>>(name);
   if (buffers == nullptr) {
     return false;
@@ -534,32 +540,34 @@ bool AttrUtils::GetListBytes(AttrUtils::ConstAttrHolderAdapter &&obj, const stri
   return true;
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetZeroCopyBytes(AttrHolderAdapter &&obj, const string &name, Buffer &&buffer) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetZeroCopyBytes(AttrHolderAdapter &&obj,
+                                                                                const string &name, Buffer &&buffer) {
   // Value will be shared
   return SetAttrValue(obj->MutableAttrMap(), name, std::move(buffer));
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetZeroCopyBytes(ConstAttrHolderAdapter &&obj, const string &name, Buffer &buffer) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetZeroCopyBytes(ConstAttrHolderAdapter &&obj,
+                                                                                const string &name, Buffer &buffer) {
   // Value will be shared
   return GetAttrValue<Buffer>(obj->GetAttrMap(), name, buffer);
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::SetZeroCopyListBytes(AttrHolderAdapter &&obj, const string &name, vector<Buffer> &list_buffer) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::SetZeroCopyListBytes(AttrHolderAdapter &&obj,
+                                                                                    const string &name,
+                                                                                    vector<Buffer> &list_buffer) {
   // Value will be shared
   return SetAttrValue(obj->MutableAttrMap(), name, list_buffer);
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-bool AttrUtils::GetZeroCopyListBytes(ConstAttrHolderAdapter &&obj, const string &name, vector<Buffer> &list_buffer) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY bool AttrUtils::GetZeroCopyListBytes(ConstAttrHolderAdapter &&obj,
+                                                                                    const string &name,
+                                                                                    vector<Buffer> &list_buffer) {
   // Value will be shared
   return GetAttrValue<vector<Buffer>>(obj->GetAttrMap(), name, list_buffer);
 }
 
-GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY
-std::map<string, AnyValue> AttrUtils::GetAllAttrs(ConstAttrHolderAdapter &&obj) {
+GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY std::map<string, AnyValue> AttrUtils::GetAllAttrs(
+    ConstAttrHolderAdapter &&obj) {
   auto holder = obj.get();
   if (holder == nullptr) {
     std::map<string, AnyValue> empty;
@@ -568,9 +576,7 @@ std::map<string, AnyValue> AttrUtils::GetAllAttrs(ConstAttrHolderAdapter &&obj) 
   return holder->GetAllAttrs();
 }
 
-
 std::string AttrUtils::GetAttrsStrAfterRid(ConstAttrHolderAdapter &&obj, const set<string> &un_compute_attrs) {
-
   std::map<string, AnyValue> attr_map = GetAllAttrs(std::move(obj));
   if (attr_map.empty()) {
     return "";
@@ -597,7 +603,6 @@ std::string AttrUtils::GetAttrsStrAfterRid(ConstAttrHolderAdapter &&obj, const s
   return ss.str();
 }
 std::string AttrUtils::GetAllAttrsStr(ConstAttrHolderAdapter &&obj) {
-
   std::map<string, AnyValue> attr_map = GetAllAttrs(std::move(obj));
   if (attr_map.empty()) {
     return "";

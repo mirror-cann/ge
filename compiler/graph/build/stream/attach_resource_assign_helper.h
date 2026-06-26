@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,12 +58,12 @@ struct AttachedResourceInfoV2 {
                           // 后续算子按此整改，attached_policy与attached_group_name需要废弃
   std::string reuse_key;  // 可选，与name拼接后组成复用关系最终的key
                           // 即：不填时则按照默认name复用
-  std::vector<int64_t> depend_value_input_indices; // 可选，用于表达值依赖，默认为空
-  bool required = false; // 可选，true表示必须申请，false表示可以申请不到，默认为false
-  bool force_reuse = false; // 可选，当设置为true时，GE在拼接新的reuse_key时不拼上主流stream id，默认为false
+  std::vector<int64_t> depend_value_input_indices;  // 可选，用于表达值依赖，默认为空
+  bool required = false;                            // 可选，true表示必须申请，false表示可以申请不到，默认为false
+  bool force_reuse = false;  // 可选，当设置为true时，GE在拼接新的reuse_key时不拼上主流stream id，默认为false
 
-  int64_t resource_id; // GE分配完成后的stream/event/notify id
-  bool is_valid = false; // GE分配后，成功返回true，失败返回false
+  int64_t resource_id;    // GE分配完成后的stream/event/notify id
+  bool is_valid = false;  // GE分配后，成功返回true，失败返回false
 
   std::string ToString(const std::string &tag) const {
     std::stringstream ss;
@@ -84,7 +84,7 @@ struct AttachedResourceInfoV2 {
 };
 
 std::string CalcuSyncResourceReuseKey(const std::string &usage_name, const std::string &reuse_key,
-                                       const ge::OpDescPtr &op_desc);
+                                      const ge::OpDescPtr &op_desc);
 
 // 后续全部整改成V2方式
 using GetAttachedResourceInfoFuncV2 =

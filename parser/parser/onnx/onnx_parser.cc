@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,12 +52,12 @@
 namespace {
 const char *const kLocation = "location";
 const char *const kInitializerKey = "Initializer";
-}
+}  // namespace
 
 namespace ge {
 graphStatus PrepareBeforeParse(AclGraphParserUtil &acl_graph_parse_util,
-                               const std::map<AscendString, AscendString> &parser_params,
-                               ge::Graph &graph, std::shared_ptr<domi::ModelParser> &model_parser) {
+                               const std::map<AscendString, AscendString> &parser_params, ge::Graph &graph,
+                               std::shared_ptr<domi::ModelParser> &model_parser) {
   GetParserContext().type = domi::ONNX;
   Status init_ret = ge::SUCCESS;
   static std::once_flag flag;
@@ -91,8 +91,7 @@ graphStatus PrepareBeforeParse(AclGraphParserUtil &acl_graph_parse_util,
 }
 
 graphStatus HandleAfterParse(AclGraphParserUtil &acl_graph_parse_util,
-                             const std::map<AscendString, AscendString> &parser_params,
-                             ge::Graph &graph) {
+                             const std::map<AscendString, AscendString> &parser_params, ge::Graph &graph) {
   if (acl_graph_parse_util.ParseParamsAfterGraph(graph, parser_params) != ge::SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "ParseParamsAfterGraph failed.");
     GELOGE(ge::FAILED, "[Parser][Params] after graph failed.");
@@ -108,8 +107,8 @@ graphStatus HandleAfterParse(AclGraphParserUtil &acl_graph_parse_util,
   return ge::SUCCESS;
 }
 
-graphStatus aclgrphParseONNX(const char *model_file,
-                             const std::map<AscendString, AscendString> &parser_params, ge::Graph &graph) {
+graphStatus aclgrphParseONNX(const char *model_file, const std::map<AscendString, AscendString> &parser_params,
+                             ge::Graph &graph) {
   PARSER_TIMESTAMP_START(aclgrphParseONNX);
   GE_CHECK_NOTNULL(model_file);
   // load custom plugin so and proto
@@ -125,8 +124,8 @@ graphStatus aclgrphParseONNX(const char *model_file,
   // parse onnx model_file to GE graph
   ge::graphStatus ret = model_parser->Parse(model_file, graph);
   if (ret != ge::SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "parse modelfile %s failed, graph:%s",
-                      model_file, ParserUtils::GetGraphName(graph).c_str());
+    REPORT_INNER_ERR_MSG("E19999", "parse modelfile %s failed, graph:%s", model_file,
+                         ParserUtils::GetGraphName(graph).c_str());
     GELOGE(ret, "[Parse][ModelFile] %s failed, graph %s.", model_file, ParserUtils::GetGraphName(graph).c_str());
     return ge::FAILED;
   }
@@ -148,7 +147,7 @@ graphStatus aclgrphParseONNXFromMem(const char *buffer, size_t size,
   AclGraphParserUtil acl_graph_parse_util;
   std::shared_ptr<domi::ModelParser> model_parser;
 
-  if (PrepareBeforeParse(acl_graph_parse_util, parser_params, graph, model_parser)  != ge::SUCCESS) {
+  if (PrepareBeforeParse(acl_graph_parse_util, parser_params, graph, model_parser) != ge::SUCCESS) {
     GELOGE(ge::FAILED, "[Invoke][PrepareBeforeParse] failed.");
     return ge::FAILED;
   }
@@ -162,22 +161,20 @@ graphStatus aclgrphParseONNXFromMem(const char *buffer, size_t size,
   }
   GELOGI("Parse graph %s success.", ParserUtils::GetGraphName(graph).c_str());
 
-  if (HandleAfterParse(acl_graph_parse_util, parser_params, graph)  != ge::SUCCESS) {
+  if (HandleAfterParse(acl_graph_parse_util, parser_params, graph) != ge::SUCCESS) {
     GELOGE(ge::FAILED, "[Invoke][HandleAfterParse] failed.");
     return ge::FAILED;
   }
-    GELOGI("Call aclgrphParse to parse graph %s success.", ParserUtils::GetGraphName(graph).c_str());
-    return ge::SUCCESS;
+  GELOGI("Call aclgrphParse to parse graph %s success.", ParserUtils::GetGraphName(graph).c_str());
+  return ge::SUCCESS;
 }
-} // namespace ge
+}  // namespace ge
 
 namespace ge {
 namespace {
-const std::map<std::string, std::string> kOnnxOpMap = {
-    {ge::kOpTypeInput, ge::parser::DATA},
-    {ge::kOpTypeConstant, ge::parser::CONSTANT},
-    {ge::kFileConstant, ge::parser::FILECONSTANT}
-};
+const std::map<std::string, std::string> kOnnxOpMap = {{ge::kOpTypeInput, ge::parser::DATA},
+                                                       {ge::kOpTypeConstant, ge::parser::CONSTANT},
+                                                       {ge::kFileConstant, ge::parser::FILECONSTANT}};
 const int64_t kDimValue = 1;
 
 struct ParseArg {
@@ -224,7 +221,7 @@ Status BuildLinkForChildAndParentGraph(const ge::ComputeGraphPtr &sub_graph, con
     GELOGE(ret, "[Set][Subgraph] Failed to set subgraph %s to node %s index %u", sub_graph->GetName().c_str(),
            parent_node->GetName().c_str(), index);
     REPORT_INNER_ERR_MSG("E19999", "Failed to set subgraph %s to node %s index %u", sub_graph->GetName().c_str(),
-                      parent_node->GetName().c_str(), index);
+                         parent_node->GetName().c_str(), index);
     return ret;
   }
   return SUCCESS;
@@ -237,8 +234,7 @@ Status PostOpProcessForSubgraph(const ParseArg &arg, ge::ComputeGraphPtr sub_gra
   std::string op_type = arg.parent_node->GetType();
   std::string op_name = arg.parent_node->GetName();
   domi::ParseSubgraphFuncV2 parse_func_v2 = nullptr;
-  auto post_func =
-      domi::OpRegistry::Instance()->GetParseSubgraphPostFunc(op_type);
+  auto post_func = domi::OpRegistry::Instance()->GetParseSubgraphPostFunc(op_type);
   if (post_func == nullptr) {
     GELOGW("The subgraph post func for node %s type %s is null", op_name.c_str(), op_type.c_str());
     if (domi::OpRegistry::Instance()->GetParseSubgraphPostFunc(op_type, parse_func_v2) != SUCCESS ||
@@ -249,8 +245,7 @@ Status PostOpProcessForSubgraph(const ParseArg &arg, ge::ComputeGraphPtr sub_gra
   }
 
   GELOGD("Post process for node %s with type %s in subgraph %s ", arg.graph_name.c_str(),
-         arg.parent_node->GetType().c_str(),
-         arg.parent_node->GetName().c_str());
+         arg.parent_node->GetType().c_str(), arg.parent_node->GetName().c_str());
 
   // Refresh node_name in subgraph
   for (const ge::NodePtr &node : sub_graph->GetDirectNode()) {
@@ -270,18 +265,19 @@ Status PostOpProcessForSubgraph(const ParseArg &arg, ge::ComputeGraphPtr sub_gra
   if (ret != SUCCESS) {
     GELOGE(FAILED, "[PostProcess][Subgraph]Failed to post-process subgraph %s on node %s type %s",
            arg.graph_name.c_str(), arg.parent_node->GetName().c_str(), arg.parent_node->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Failed to post-process subgraph %s on node %s type %s",
-                      arg.graph_name.c_str(), arg.parent_node->GetName().c_str(), arg.parent_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Failed to post-process subgraph %s on node %s type %s", arg.graph_name.c_str(),
+                         arg.parent_node->GetName().c_str(), arg.parent_node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status OnnxModelParser::ParseOutput(ge::onnx::GraphProto &onnx_graph) {
   if (onnx_graph.output_size() == 0) {
     GELOGE(FAILED, "[Parse][Output] Onnx graph:%s has zero output", onnx_graph.name().c_str());
-    REPORT_PREDEFINED_ERR_MSG("E16001", std::vector<const char_t *>({"value"}), std::vector<const char_t *>({"output"}));
+    REPORT_PREDEFINED_ERR_MSG("E16001", std::vector<const char_t *>({"value"}),
+                              std::vector<const char_t *>({"output"}));
     return FAILED;
   }
 
@@ -366,7 +362,7 @@ Status OnnxModelParser::ParseInitializer(ge::onnx::GraphProto &onnx_graph,
   int index = 0;
   for (auto it : initializer_name_tensor) {
     ge::onnx::NodeProto *const_node = onnx_graph.add_node();
-    std::string output_name = it.first+ "_"  + kInitializerKey + "_" + to_string(index++);
+    std::string output_name = it.first + "_" + kInitializerKey + "_" + to_string(index++);
     const_node->set_name(output_name);
     const_node->add_output(it.first);
     ge::onnx::AttributeProto *attribute = const_node->add_attribute();
@@ -490,15 +486,15 @@ Status OnnxModelParser::TransNodeToOperator(const ge::onnx::NodeProto *node_prot
   op = ge::OperatorFactory::CreateOperator(node_name.c_str(), op_type.c_str());
   if (ParserUtils::GetOperatorName(op) != node_name) {
     REPORT_PREDEFINED_ERR_MSG("E10501", std::vector<const char_t *>({"opname", "optype"}),
-                       std::vector<const char_t *>({node_name.c_str(), op_type.c_str()}));
-    GELOGE(INTERNAL_ERROR, "[Creat][Op] IR for op[%s] optype[%s] is not registered.",
-           node_name.c_str(), op_type.c_str());
+                              std::vector<const char_t *>({node_name.c_str(), op_type.c_str()}));
+    GELOGE(INTERNAL_ERROR, "[Creat][Op] IR for op[%s] optype[%s] is not registered.", node_name.c_str(),
+           op_type.c_str());
     return INTERNAL_ERROR;
   }
 
   GELOGI("After create operator, op[%s]: type[%s] have input size: %zu, output size: %zu",
-         ParserUtils::GetOperatorName(op).c_str(), ParserUtils::GetOperatorType(op).c_str(),
-         op.GetInputsSize(), op.GetOutputsSize());
+         ParserUtils::GetOperatorName(op).c_str(), ParserUtils::GetOperatorType(op).c_str(), op.GetInputsSize(),
+         op.GetOutputsSize());
   return SUCCESS;
 }
 
@@ -523,10 +519,8 @@ Status OnnxModelParser::SetOperatorInputs() {
   for (auto in_iter = inputs_map_.begin(); in_iter != inputs_map_.end(); in_iter++) {
     auto out_iter = outputs_map_.find(in_iter->first);
     if (out_iter == outputs_map_.end()) {
-      GELOGW("Unknown input: %s:%d for node: %s, which maybe option input.",
-             in_iter->first.c_str(),
-             in_iter->second[0].second,
-             in_iter->second[0].first.c_str());
+      GELOGW("Unknown input: %s:%d for node: %s, which maybe option input.", in_iter->first.c_str(),
+             in_iter->second[0].second, in_iter->second[0].first.c_str());
       continue;
     }
 
@@ -553,9 +547,8 @@ Status OnnxModelParser::SetOperatorInputs() {
         auto src_op = output_op_iter->second;
         int dst_index = input_node_index.second;
         int src_index = out_node_index.second;
-        GELOGI("Start add output:%d of op:%s as input:%d of op:%s.",
-               src_index, ParserUtils::GetOperatorName(src_op).c_str(),
-               dst_index, ParserUtils::GetOperatorName(dst_op).c_str());
+        GELOGI("Start add output:%d of op:%s as input:%d of op:%s.", src_index,
+               ParserUtils::GetOperatorName(src_op).c_str(), dst_index, ParserUtils::GetOperatorName(dst_op).c_str());
         auto dst_op_desc = ge::OpDescUtils::GetOpDescFromOperator(dst_op);
         GE_CHECK_NOTNULL(dst_op_desc);
         auto src_op_desc = ge::OpDescUtils::GetOpDescFromOperator(src_op);
@@ -614,13 +607,13 @@ Status OnnxModelParser::ParseOpParam(const ge::onnx::NodeProto *node_proto, ge::
     ge::Operator op_src(node_proto->name().c_str(), op_type.c_str());
     status = Message2Operator::ParseOperatorAttrs(node_proto, 1, op_src);
     if (status != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Auto mapping node:%s(%s) to operator failed",
-                        node_proto->name().c_str(), op_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Auto mapping node:%s(%s) to operator failed", node_proto->name().c_str(),
+                           op_type.c_str());
       GELOGE(status, "Node[%s] auto mapping failed.", node_proto->name().c_str());
       return status;
     }
     std::shared_ptr<ge::OnnxCustomParserAdapter> onnx_custom_op_parser =
-            std::dynamic_pointer_cast<ge::OnnxCustomParserAdapter>(op_parser);
+        std::dynamic_pointer_cast<ge::OnnxCustomParserAdapter>(op_parser);
     status = onnx_custom_op_parser->ParseParams(op_src, op);
     op_src.BreakConnect();
   }
@@ -672,8 +665,8 @@ Status OnnxModelParser::ParseAllNodeProto(ge::onnx::GraphProto &onnx_graph, ge::
     }
 
     GELOGI("After ParseParams, op[%s]: type[%s] have input size: %zu, output size: %zu",
-           ParserUtils::GetOperatorName(op).c_str(), ParserUtils::GetOperatorType(op).c_str(),
-           op.GetInputsSize(), op.GetOutputsSize());
+           ParserUtils::GetOperatorName(op).c_str(), ParserUtils::GetOperatorType(op).c_str(), op.GetInputsSize(),
+           op.GetOutputsSize());
 
     ge::graphStatus graph_status = graph.AddOp(op);
     if (graph_status != ge::GRAPH_SUCCESS) {
@@ -697,7 +690,7 @@ Status OnnxModelParser::ParseAllNodeProto(ge::onnx::GraphProto &onnx_graph, ge::
 
 Status OnnxModelParser::GetGraphInputs(ge::onnx::GraphProto &onnx_graph, std::vector<ge::Operator> &input_ops) {
   if (input_node_names_.empty()) {
-  // subgraph might not have input, we use constant nodes as the start nodes of the graph,
+    // subgraph might not have input, we use constant nodes as the start nodes of the graph,
     for (int i = 0; i < onnx_graph.node_size(); i++) {
       ge::onnx::NodeProto *node = onnx_graph.mutable_node(i);
       if (node->op_type() == kOpTypeConstant) {
@@ -708,26 +701,21 @@ Status OnnxModelParser::GetGraphInputs(ge::onnx::GraphProto &onnx_graph, std::ve
   for (auto in_name : input_node_names_) {
     std::map<std::string, ge::Operator>::const_iterator in_op = name_operator_.find(in_name);
     if (in_op == name_operator_.end()) {
-      GELOGE(PARAM_INVALID, "[Get][Inputs] Model assigned input node name: %s cannot find in graph.",
-             in_name.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Model assigned input node name: %s cannot find in graph.",
-                         in_name.c_str());
+      GELOGE(PARAM_INVALID, "[Get][Inputs] Model assigned input node name: %s cannot find in graph.", in_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Model assigned input node name: %s cannot find in graph.", in_name.c_str());
       return PARAM_INVALID;
     }
     input_ops.emplace_back(in_op->second);
-    GELOGI("Model assigned input node name: %s",
-           ParserUtils::GetOperatorName(in_op->second).c_str());
+    GELOGI("Model assigned input node name: %s", ParserUtils::GetOperatorName(in_op->second).c_str());
   }
-    return SUCCESS;
+  return SUCCESS;
 }
 
-Status OnnxModelParser::GetAllGraphNodes(ge::onnx::GraphProto &onnx_graph,
-                                         std::vector<ge::Operator> &ops) const {
+Status OnnxModelParser::GetAllGraphNodes(ge::onnx::GraphProto &onnx_graph, std::vector<ge::Operator> &ops) const {
   for (int i = 0; i < onnx_graph.node_size(); i++) {
     ge::onnx::NodeProto *node = onnx_graph.mutable_node(i);
     const auto iter = name_operator_.find(node->name());
-    GE_ASSERT_TRUE(iter != name_operator_.end(),
-        "Cannot find node: %s in graph", node->name().c_str());
+    GE_ASSERT_TRUE(iter != name_operator_.end(), "Cannot find node: %s in graph", node->name().c_str());
     ops.emplace_back(iter->second);
   }
   return SUCCESS;
@@ -737,7 +725,7 @@ Status OnnxModelParser::GetGraphOutputs(std::vector<std::pair<Operator, std::vec
                                         ParserUtils::OutputMapping &out_tensor_to_nodes) {
   for (auto output_name : output_node_names_) {
     std::map<std::string, std::vector<std::pair<std::string, int>>>::const_iterator itr =
-      outputs_map_.find(output_name);
+        outputs_map_.find(output_name);
     if (itr == outputs_map_.end()) {
       GELOGE(PARAM_INVALID, "[Get][Outputs] Cannot find output:%s in graph.", output_name.c_str());
       REPORT_INNER_ERR_MSG("E19999", "[Get][Outputs] Cannot find output:%s in graph.", output_name.c_str());
@@ -789,9 +777,9 @@ Status OnnxModelParser::SetExternalPath(const char *file, ge::onnx::ModelProto &
   const auto ret = strncpy_s(tmp_file.get(), file_len + 1U, real_path.c_str(), file_len);
   if (ret != EN_OK) {
     REPORT_INNER_ERR_MSG("E19999", "strncpy_s failed, src=%s, dst=%p, src_len=%zu, dst_len=%zu, ret=%d.",
-                      real_path.c_str(), static_cast<void *>(tmp_file.get()), file_len, file_len + 1U, ret);
-    GELOGE(FAILED, "strncpy_s failed, src=%s, dst=%p, src_len=%zu, dst_len=%zu.",
-           real_path.c_str(), static_cast<void *>(tmp_file.get()), file_len, file_len + 1U);
+                         real_path.c_str(), static_cast<void *>(tmp_file.get()), file_len, file_len + 1U, ret);
+    GELOGE(FAILED, "strncpy_s failed, src=%s, dst=%p, src_len=%zu, dst_len=%zu.", real_path.c_str(),
+           static_cast<void *>(tmp_file.get()), file_len, file_len + 1U);
     return FAILED;
   }
   const char *const dir = mmDirName(tmp_file.get());
@@ -811,8 +799,8 @@ Status OnnxModelParser::SetExternalPath(const char *file, ge::onnx::ModelProto &
       }
       const std::string &file_name = string_proto.value();
       const std::string new_file = std::string(dir) + MMPA_PATH_SEPARATOR_STR + file_name;
-      GELOGD("[%s] is external data. concat dir[%s] and file_name[%s], new_file[%s]",
-             initializer_tensor.name().c_str(), dir, file_name.c_str(), new_file.c_str());
+      GELOGD("[%s] is external data. concat dir[%s] and file_name[%s], new_file[%s]", initializer_tensor.name().c_str(),
+             dir, file_name.c_str(), new_file.c_str());
       string_proto.set_value(new_file);
     }
   }
@@ -902,8 +890,8 @@ Status OnnxModelParser::AdaptAndFindAllOnnxGraph(
       }
       std::vector<ge::onnx::GraphProto *> onnx_graphs;
       std::map<std::string, ge::onnx::GraphProto *> name_to_onnx_subgraph;
-      if (subgraph_adapter->AdaptAndFindAllSubgraphs(
-          node_proto, onnx_graphs, name_to_onnx_subgraph, graph_name) != SUCCESS) {
+      if (subgraph_adapter->AdaptAndFindAllSubgraphs(node_proto, onnx_graphs, name_to_onnx_subgraph, graph_name) !=
+          SUCCESS) {
         GELOGE(FAILED, "[Adapt][Subgraph] adapt subgraph of node:%s failed.", node_proto->name().c_str());
         REPORT_INNER_ERR_MSG("E19999", "adapt subgraph of node:%s failed.", node_proto->name().c_str());
         return FAILED;
@@ -942,8 +930,8 @@ Status OnnxModelParser::ModelParseToGraph(const ge::onnx::ModelProto &onnx_model
     domain_verseion_[it.domain()] = it.version();
     GELOGI("Domain:[%s], Version:[%ld].", it.domain().c_str(), it.version());
   }
-  std::string root_graph_name = ParserUtils::GetGraphName(root_graph).empty() ? "default_graph" :
-      ParserUtils::GetGraphName(root_graph);
+  std::string root_graph_name =
+      ParserUtils::GetGraphName(root_graph).empty() ? "default_graph" : ParserUtils::GetGraphName(root_graph);
   tasks.push_back({&root_onnx_graph, nullptr, root_graph_name, 0});
 
   while (!tasks.empty()) {
@@ -992,7 +980,7 @@ Status OnnxModelParser::ModelParseToGraph(const ge::onnx::ModelProto &onnx_model
       GELOGE(ret, "[BuildLink][Graph] Build link for child graph:%s and parent graph failed.",
              cur_compute_graph->GetName().c_str());
       REPORT_INNER_ERR_MSG("E19999", "Build link for child graph:%s and parent graph failed.",
-                        cur_compute_graph->GetName().c_str());
+                           cur_compute_graph->GetName().c_str());
       return ret;
     }
 
@@ -1001,7 +989,7 @@ Status OnnxModelParser::ModelParseToGraph(const ge::onnx::ModelProto &onnx_model
       GELOGE(ret, "[Generate][Task] Failed to gen tasks on graph %s for next iteration",
              cur_compute_graph->GetName().c_str());
       REPORT_INNER_ERR_MSG("E19999", "Failed to gen tasks on graph %s for next iteration",
-                        cur_compute_graph->GetName().c_str());
+                           cur_compute_graph->GetName().c_str());
       return ret;
     }
   }
@@ -1013,7 +1001,7 @@ Status OnnxModelParser::ModelParseToGraphImpl(bool is_subgraph, ge::onnx::GraphP
   ClearMembers();
   GE_RETURN_WITH_LOG_IF_ERROR(ProtoTypePassManager::Instance().Run(&onnx_graph, domi::ONNX),
                               "Run ProtoType Pass Failed");
-  // 1. Get all inializer.
+  // 1. Get all initializer.
   std::map<std::string, ge::onnx::TensorProto> initializer_name_tensor;
   for (int i = 0; i < onnx_graph.initializer_size(); i++) {
     ge::onnx::TensorProto initializer_tensor = onnx_graph.initializer(i);
@@ -1091,8 +1079,10 @@ Status OnnxModelParser::ModelParseToGraphImpl(bool is_subgraph, ge::onnx::GraphP
   std::string topo_sorting_mode_str;
   ge::GetContext().GetOption(ge::OPTION_TOPOSORTING_MODE, topo_sorting_mode_str);
   const int32_t base = 10;
-  auto topo_sorting_mode = topo_sorting_mode_str.empty() ? TopoSortingMode::kDFS :
-      static_cast<TopoSortingMode>(std::strtol(topo_sorting_mode_str.c_str(), nullptr, base));
+  auto topo_sorting_mode =
+      topo_sorting_mode_str.empty()
+          ? TopoSortingMode::kDFS
+          : static_cast<TopoSortingMode>(std::strtol(topo_sorting_mode_str.c_str(), nullptr, base));
   if (topo_sorting_mode == TopoSortingMode::kStableRDFS) {
     std::vector<ge::Operator> ops;
     GE_ASSERT_SUCCESS(GetAllGraphNodes(onnx_graph, ops));
@@ -1101,7 +1091,7 @@ Status OnnxModelParser::ModelParseToGraphImpl(bool is_subgraph, ge::onnx::GraphP
     graph.SetInputs(input_ops);
   }
 
-  // 10. Get output info and set outpus for subgraph
+  // 10. Get output info and set outputs for subgraph
   std::vector<std::pair<Operator, std::vector<size_t>>> output_ops;
   ParserUtils::OutputMapping out_tensor_to_nodes;
   ret = GetGraphOutputs(output_ops, out_tensor_to_nodes);
@@ -1240,8 +1230,8 @@ Status OnnxModelParser::SetOutputsInfo(const ParserUtils::OutputMapping &final_o
       if (iter != final_tensor_to_nodes.end()) {
         user_specified_nodes.emplace_back(iter->second);
         output_tensor_names.emplace_back(tensor_name);
-        GELOGI("[UserSpecified]Add network output node[%s], index[%d], tensor name[%s].",
-               iter->second.first.c_str(), iter->second.second, tensor_name.c_str());
+        GELOGI("[UserSpecified]Add network output node[%s], index[%d], tensor name[%s].", iter->second.first.c_str(),
+               iter->second.second, tensor_name.c_str());
       } else {
         REPORT_INNER_ERR_MSG("E19999", "User specified tensor[%s] is not output of graph.", tensor_name.c_str());
         GELOGE(FAILED, "[Set][OutputsInfo]User specified tensor[%s] is not output of graph.", tensor_name.c_str());
@@ -1257,15 +1247,14 @@ Status OnnxModelParser::SetOutputsInfo(const ParserUtils::OutputMapping &final_o
     auto &output_node_info = final_tensor_to_nodes[tensor_name];
     default_out_nodes.emplace_back(output_node_info);
     output_tensor_names.emplace_back(tensor_name);
-    GELOGI("[Default]Add network output node[%s], index[%d], tensor name[%s].",
-           output_node_info.first.c_str(),
+    GELOGI("[Default]Add network output node[%s], index[%d], tensor name[%s].", output_node_info.first.c_str(),
            output_node_info.second, tensor_name.c_str());
   }
   return SUCCESS;
 }
-}  // namespace domi
+}  // namespace ge
 
 namespace domi {
-  REGISTER_MODEL_PARSER_CREATOR(ONNX, ge::OnnxModelParser);
-  REGISTER_WEIGHTS_PARSER_CREATOR(ONNX, ge::OnnxWeightsParser);
-}
+REGISTER_MODEL_PARSER_CREATOR(ONNX, ge::OnnxModelParser);
+REGISTER_WEIGHTS_PARSER_CREATOR(ONNX, ge::OnnxWeightsParser);
+}  // namespace domi

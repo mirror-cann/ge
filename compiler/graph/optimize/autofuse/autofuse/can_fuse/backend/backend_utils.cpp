@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,12 +53,13 @@ bool IsLoadConnectedToSplit(const NodePtr &load_node) {
   const auto load_out_anchor = load_node->GetOutDataAnchor(0);
   GE_ASSERT_NOTNULL(load_out_anchor);
   const auto load_peer_in_anchors = load_out_anchor->GetPeerInDataAnchors();
-  for (auto &load_peer_in_anchor: load_peer_in_anchors) {
+  for (auto &load_peer_in_anchor : load_peer_in_anchors) {
     GE_ASSERT_NOTNULL(load_peer_in_anchor);
     const auto load_peer_in_node = load_peer_in_anchor->GetOwnerNode();
     GE_ASSERT_NOTNULL(load_peer_in_node);
     if (load_peer_in_node->GetType() == kSplitType) {
-      GELOGD("load node %s is followed by split node %s.", load_node->GetName().c_str(), load_peer_in_node->GetName().c_str());
+      GELOGD("load node %s is followed by split node %s.", load_node->GetName().c_str(),
+             load_peer_in_node->GetName().c_str());
       return true;
     }
   }
@@ -164,20 +165,23 @@ bool CanFuseByStrategyPro(const NodePtr &node1, const NodePtr &node2, uint32_t &
   GE_ASSERT_NOTNULL(attr2);
 
   if (attr1->GetVectorCoreNum() != attr2->GetVectorCoreNum()) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][It has different vector core num scope, "
-           "node1 vector core num is %d, node2 vector core num is %d]", node1->GetNamePtr(), node1->GetType().c_str(),
-           node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kVectorCoreNumNotEqual),
-           attr1->GetVectorCoreNum(), attr2->GetVectorCoreNum());
+    GELOGI(
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][It has different vector core num scope, "
+        "node1 vector core num is %d, node2 vector core num is %d]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kVectorCoreNumNotEqual), attr1->GetVectorCoreNum(),
+        attr2->GetVectorCoreNum());
     return false;
   }
   // 融合后节点数超过总数限制不做融合
   if ((attr1->GetFusionNodesSize() + attr2->GetFusionNodesSize()) > max_fusion_nodes_size) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 size(%" PRIu64 ") plus node2 size(%" PRIu64 ")"
-        " exceeds max fusion nodes size(%" PRIu64 ")]", node1->GetNamePtr(), node1->GetType().c_str(),
-        node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kMaxFusionNodesSizeExceedThreshold), attr1->GetFusionNodesSize(),
-        attr2->GetFusionNodesSize(), max_fusion_nodes_size);
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 size(%" PRIu64
+           ") plus node2 size(%" PRIu64
+           ")"
+           " exceeds max fusion nodes size(%" PRIu64 ")]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kMaxFusionNodesSizeExceedThreshold), attr1->GetFusionNodesSize(),
+           attr2->GetFusionNodesSize(), max_fusion_nodes_size);
     return false;
   }
   return true;
@@ -200,7 +204,7 @@ bool IsSplitComplete(const NodePtr &node) {
   auto fused_split_num = 0U;
   auto asc_graph = BackendUtils::GetNodeFusedAscGraph(node);
   GE_ASSERT_NOTNULL(asc_graph);
-  for (auto ascir_node: asc_graph->GetAllNodes()) {
+  for (auto ascir_node : asc_graph->GetAllNodes()) {
     if (ascir_node->GetType() == kSplitType) {
       fused_split_num++;
     }
@@ -236,8 +240,8 @@ bool IsSplitLowFusionRatio(const NodePtr &node, uint32_t &max_fusion_node_input_
   auto origin_node = attr->GetOriginNodes()[0];
   GE_ASSERT_NOTNULL(origin_node);
   uint32_t total = origin_node->GetAllOutDataAnchorsSize();
-  for (const auto &anchor: node->GetAllOutDataAnchors()) {
-    for (const auto &peer_anchor: anchor->GetPeerInDataAnchorsPtr()) {
+  for (const auto &anchor : node->GetAllOutDataAnchors()) {
+    for (const auto &peer_anchor : anchor->GetPeerInDataAnchorsPtr()) {
       const auto peer_node_bare = peer_anchor->GetOwnerNodeBarePtr();
       if (!BackendUtils::IsBackendFuseNode(peer_node_bare)) {
         continue;
@@ -252,8 +256,8 @@ bool IsSplitLowFusionRatio(const NodePtr &node, uint32_t &max_fusion_node_input_
   }
   GE_ASSERT_TRUE(total > 0U);
   const float32_t ratio = static_cast<float32_t>(can_fuse) / static_cast<float32_t>(total);
-  GELOGD("node %s, total number of output: %zu, number of can-fuse output: %zu, fuse ratio %f, threshold: %f", node->GetName().c_str(), total,
-         can_fuse, ratio, kSplitLowFusionRatioThreshold);
+  GELOGD("node %s, total number of output: %zu, number of can-fuse output: %zu, fuse ratio %f, threshold: %f",
+         node->GetName().c_str(), total, can_fuse, ratio, kSplitLowFusionRatioThreshold);
   if (ratio > kSplitLowFusionRatioThreshold) {
     GELOGD("node %s has high fuse ratio, can fuse", node->GetName().c_str());
     // 缓存判断结果避免重复判断
@@ -279,7 +283,8 @@ bool BackendUtils::IsEqZero(const Expression &e1) {
   return SymbolicUtils::StaticCheckEq(e1, kSymbolZero) == TriBool::kTrue;
 }
 
-Status BackendUtils::UpdateContinueStrides(const std::vector<ge::Expression> &repeats, std::vector<ge::Expression> &strides) {
+Status BackendUtils::UpdateContinueStrides(const std::vector<ge::Expression> &repeats,
+                                           std::vector<ge::Expression> &strides) {
   auto size = repeats.size();
   if (size > 0U) {
     strides[size - 1U] = kSymbolOne;
@@ -328,7 +333,7 @@ bool BackendUtils::IsSimplestLoad(const ge::Node *node, const NodePtr &load_node
                                   std::vector<ViewOpAttrInfo> &attr_infos, const bool is_condition_with_node_type) {
   const auto attr = BackendUtils::GetNodeAutoFuseAttr(node);
   GE_ASSERT_NOTNULL(attr);
-  if (attr->HasFuseType(loop::FuseType::kConcat)){
+  if (attr->HasFuseType(loop::FuseType::kConcat)) {
     GELOGD("node %s(Concat) is simplest op.", node->GetNamePtr());
     return true;
   }
@@ -347,7 +352,8 @@ bool BackendUtils::IsSimplestLoad(const ge::Node *node, const NodePtr &load_node
   ViewOpAttrInfo attr_info;
   GE_ASSERT_SUCCESS(FusedBackSteppingViewOp(data_node, load_node.get(), attr_info, true));
   attr_infos.push_back(attr_info);
-  if ((!attr_info.broadcast_info.empty()) || (attr_info.slice_info.two_slice_node_flag) || !attr_info.transpose_info.empty()) {
+  if ((!attr_info.broadcast_info.empty()) || (attr_info.slice_info.two_slice_node_flag) ||
+      !attr_info.transpose_info.empty()) {
     GELOGD("data node %s(%s) and load node %s(%s) have broadcast or transpose op.", data_node->GetNamePtr(),
            data_node->GetType().c_str(), load_node->GetNamePtr(), load_node->GetType().c_str());
     return false;
@@ -359,8 +365,8 @@ bool BackendUtils::IsSimplestLoad(const ge::Node *node, const NodePtr &load_node
 }
 
 // Broadcast 反推处理函数
-Status BackendUtils::BackSteppingViewOpBroadcast(TensorAttrInfo &temp_data_attr,
-                                                 TensorAttrInfo &temp_load_attr, ViewOpAttrInfo &attr_info) {
+Status BackendUtils::BackSteppingViewOpBroadcast(TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr,
+                                                 ViewOpAttrInfo &attr_info) {
   // 1.反推出 broadcast_info
   auto &broadcast_info = attr_info.broadcast_info;
   auto &data_repeats = temp_data_attr.repeats;
@@ -377,8 +383,7 @@ Status BackendUtils::BackSteppingViewOpBroadcast(TensorAttrInfo &temp_data_attr,
       broadcast_info.push_back(axis_id);
     }
   }
-  GELOGD("back stepping view op broadcast axis id:%s.",
-         AutofuseUtils::VectorToStr(attr_info.broadcast_info).c_str());
+  GELOGD("back stepping view op broadcast axis id:%s.", AutofuseUtils::VectorToStr(attr_info.broadcast_info).c_str());
   return SUCCESS;
 }
 
@@ -406,12 +411,15 @@ Status BackendUtils::FusedBackSteppingViewOpBroadcast(TensorAttrInfo &temp_graph
 
   GE_ASSERT_TRUE(temp_graph_attr.axis.size() <= load_repeats.size());
   for (auto index = 0U; index < load_repeats.size(); index++) {
-    if (!BackendUtils::IsEqOne(load_repeats[index])) { // slice的load可能出现repeat是1，stride是512，同时跟graph非1的size相比是需要broadcast的
+    if (!BackendUtils::IsEqOne(
+            load_repeats
+                [index])) {  // slice的load可能出现repeat是1，stride是512，同时跟graph非1的size相比是需要broadcast的
       continue;
     }
     const auto axis_id = load_axis[index];
     for (auto graph_index = 0U; graph_index < temp_graph_attr.axis.size(); graph_index++) {
-      if ((temp_graph_attr.axis[graph_index] == axis_id) && (!BackendUtils::IsEqOne(temp_graph_attr.repeats[graph_index]))) {
+      if ((temp_graph_attr.axis[graph_index] == axis_id) &&
+          (!BackendUtils::IsEqOne(temp_graph_attr.repeats[graph_index]))) {
         broadcast_info.push_back(axis_id);
       }
     }
@@ -529,7 +537,7 @@ Status BackendUtils::PostProBackSteppingViewOpTranspose(TensorAttrInfo &temp_gra
 }
 
 // 从无序的数组中获取交换轴信息（最少次数交换）
-Status BackendUtils:: MinSwapsToSortDesc(const vector<int64_t> &arr, std::vector<std::pair<int64_t, int64_t>> &swaps) {
+Status BackendUtils::MinSwapsToSortDesc(const vector<int64_t> &arr, std::vector<std::pair<int64_t, int64_t>> &swaps) {
   vector<int64_t> non_zero_values;
   vector<int64_t> non_zero_indices;
   // 存在0的时候
@@ -610,8 +618,8 @@ AscTensorAttr *SliceGetDataPeerOutNodeAttr(const NodePtr &node2, const NodePtr &
 
   ComputeGraphPtr origin_graph;
   GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(peer_out_node, origin_graph));
-  GELOGI("AscBackendGraphFuse: before fuse origin graph: %s, node: %s(%s)).",
-         origin_graph->GetName().c_str(), node2->GetNamePtr(), node2->GetType().c_str());
+  GELOGI("AscBackendGraphFuse: before fuse origin graph: %s, node: %s(%s)).", origin_graph->GetName().c_str(),
+         node2->GetNamePtr(), node2->GetType().c_str());
   OpDescPtr cur_op_desc = nullptr;
   for (const auto &inner_node : origin_graph->GetAllNodes()) {
     GELOGI("inner_node->GetType(): %s.", inner_node->GetType().c_str());
@@ -634,7 +642,7 @@ AscTensorAttr *SliceGetDataPeerOutNodeAttr(const NodePtr &node2, const NodePtr &
   const auto cur_output_desc = cur_op_desc->MutableOutputDesc(0);
   GE_ASSERT_NOTNULL(cur_output_desc);
   auto cur_output_attr = cur_output_desc->GetAttrsGroup<AscTensorAttr>();
-  GE_ASSERT_NOTNULL(cur_output_attr); 
+  GE_ASSERT_NOTNULL(cur_output_attr);
   return cur_output_attr;
 }
 
@@ -645,7 +653,7 @@ Status SliceCalcOffsetAndStridePerAxisPreNode(TensorAttrInfo &temp_load_attr, Vi
 
   // 计算对应每根轴的原始stride
   for (const auto &load_stride : load_strides) {
-      slice_info.pre_load_strides.push_back(load_stride);
+    slice_info.pre_load_strides.push_back(load_stride);
   }
   GELOGD("slice info pre load strides: %s.", AutofuseUtils::VectorToStr(slice_info.pre_load_strides).c_str());
   slice_info.pre_load_offsets.push_back(offset);
@@ -662,17 +670,19 @@ Status SliceCalcOffsetAndStridePerAxisCurNode(TensorAttrInfo &temp_load_attr, Te
 
   // 计算对应每根轴的原始stride
   for (auto index = 0U; index < peer_output_data_repeats.size(); index++) {
-      strides_temp = BackendUtils::IsEqOne(peer_output_data_repeats[index]) ? kSymbolZero
-                   : (ge::sym::Floor(load_strides[index] / peer_output_data_strides[index])).Simplify();
-      slice_info.load_strides.push_back(strides_temp);
+    strides_temp = BackendUtils::IsEqOne(peer_output_data_repeats[index])
+                       ? kSymbolZero
+                       : (ge::sym::Floor(load_strides[index] / peer_output_data_strides[index])).Simplify();
+    slice_info.load_strides.push_back(strides_temp);
   }
   GELOGD("slice info load strides: %s.", AutofuseUtils::VectorToStr(slice_info.load_strides).c_str());
 
   Expression offset_remain = offset;
   Expression offset_temp;
   for (auto index = 0U; index < peer_output_data_repeats.size(); index++) {
-    offset_temp =  BackendUtils::IsEqOne(peer_output_data_repeats[index]) ? kSymbolZero
-                   : (ge::sym::Floor(offset_remain / peer_output_data_strides[index])).Simplify();
+    offset_temp = BackendUtils::IsEqOne(peer_output_data_repeats[index])
+                      ? kSymbolZero
+                      : (ge::sym::Floor(offset_remain / peer_output_data_strides[index])).Simplify();
     offset_remain = (offset_remain - offset_temp * peer_output_data_strides[index]).Simplify();
     slice_info.load_offsets.push_back(offset_temp);
   }
@@ -727,31 +737,33 @@ std::vector<Expression> ContiguousStrides(const std::vector<Expression> &dims) {
   return strides;
 }
 
-bool IsNeedCheckLoadSame(const NodePtr &node1, const NodePtr &node2,
-                         std::vector<ViewOpAttrInfo> &attr_infos1, std::vector<ViewOpAttrInfo> &attr_infos2) {
-    /* 如果都不为0，需要判断这两个load上是不是都是slice，如果不是，也不进行任何操作 */
-    bool attr_infos1_all_is_slice = true;
-    bool attr_infos2_all_is_slice = true;
-    for (auto index1 = 0U; index1 < attr_infos1.size(); index1++) {
-      if (attr_infos1[index1].slice_info.two_slice_node_flag != true) {
-        attr_infos1_all_is_slice = false;
-        break;
-      }
+bool IsNeedCheckLoadSame(const NodePtr &node1, const NodePtr &node2, std::vector<ViewOpAttrInfo> &attr_infos1,
+                         std::vector<ViewOpAttrInfo> &attr_infos2) {
+  /* 如果都不为0，需要判断这两个load上是不是都是slice，如果不是，也不进行任何操作 */
+  bool attr_infos1_all_is_slice = true;
+  bool attr_infos2_all_is_slice = true;
+  for (auto index1 = 0U; index1 < attr_infos1.size(); index1++) {
+    if (attr_infos1[index1].slice_info.two_slice_node_flag != true) {
+      attr_infos1_all_is_slice = false;
+      break;
     }
+  }
 
-    for (auto index2 = 0U; index2 < attr_infos2.size(); index2++) {
-      if (attr_infos2[index2].slice_info.two_slice_node_flag != true) {
-        attr_infos2_all_is_slice = false;
-        break;
-      }
+  for (auto index2 = 0U; index2 < attr_infos2.size(); index2++) {
+    if (attr_infos2[index2].slice_info.two_slice_node_flag != true) {
+      attr_infos2_all_is_slice = false;
+      break;
     }
-    GELOGD("attr size: node1 %s(size is %d). node2 %s(size is %d).", node1->GetNamePtr(), attr_infos1.size(), node2->GetNamePtr(), attr_infos2.size());
-    GELOGD("slice flag : node1 %s(flag is %d). node2 %s(flag is %d).", node1->GetNamePtr(), attr_infos1_all_is_slice, node2->GetNamePtr(), attr_infos2_all_is_slice);
-    if ((((attr_infos1_all_is_slice == true) && (attr_infos1.size() == 1U))
-         && ((attr_infos2_all_is_slice == true) && (attr_infos2.size() == 1U)))) {
-      return true;
-    } 
-    return false;
+  }
+  GELOGD("attr size: node1 %s(size is %d). node2 %s(size is %d).", node1->GetNamePtr(), attr_infos1.size(),
+         node2->GetNamePtr(), attr_infos2.size());
+  GELOGD("slice flag : node1 %s(flag is %d). node2 %s(flag is %d).", node1->GetNamePtr(), attr_infos1_all_is_slice,
+         node2->GetNamePtr(), attr_infos2_all_is_slice);
+  if ((((attr_infos1_all_is_slice == true) && (attr_infos1.size() == 1U)) &&
+       ((attr_infos2_all_is_slice == true) && (attr_infos2.size() == 1U)))) {
+    return true;
+  }
+  return false;
 }
 
 bool BackendUtils::SliceHasSameLoad(const NodePtr &node1, const NodePtr &node2,
@@ -771,19 +783,21 @@ bool BackendUtils::SliceHasSameLoad(const NodePtr &node1, const NodePtr &node2,
     for (auto index = 0U; index < attr_infos1.size(); index++) {
       auto &node1_slice_info = attr_infos1[index].slice_info;
       auto &node2_slice_info = attr_infos2[index].slice_info;
-      
-      GE_ASSERT_TRUE((node1_slice_info.pre_load_offsets.size() != 0) && (node2_slice_info.pre_load_offsets.size() != 0));
+
+      GE_ASSERT_TRUE((node1_slice_info.pre_load_offsets.size() != 0) &&
+                     (node2_slice_info.pre_load_offsets.size() != 0));
       if (node1_slice_info.pre_load_offsets[0] != node2_slice_info.pre_load_offsets[0]) {
-        GELOGD("two slice offset is not equal: node1 %s(%s). node2 %s(%s).", 
-                node1->GetNamePtr(), node1_slice_info.pre_load_offsets[0].Serialize().get(),
-                node2->GetNamePtr(), node2_slice_info.pre_load_offsets[0].Serialize().get()); 
+        GELOGD("two slice offset is not equal: node1 %s(%s). node2 %s(%s).", node1->GetNamePtr(),
+               node1_slice_info.pre_load_offsets[0].Serialize().get(), node2->GetNamePtr(),
+               node2_slice_info.pre_load_offsets[0].Serialize().get());
         slice_has_nosame_load_flag = true;
         break;
       }
       bool not_equal_flag = false;
       for (auto dim_index = 0U; dim_index < node1_slice_info.pre_load_strides_save.size(); dim_index++) {
-        if ((node1_slice_info.pre_load_strides_save[dim_index] != node2_slice_info.pre_load_strides_save[dim_index]) || (node1_slice_info.pre_data_repeat_save[dim_index] != node2_slice_info.pre_data_repeat_save[dim_index])) {
-          GELOGD("two slice stride or repeat not equal: node1 %s, node2 %s, stride or repeat index is %u.", 
+        if ((node1_slice_info.pre_load_strides_save[dim_index] != node2_slice_info.pre_load_strides_save[dim_index]) ||
+            (node1_slice_info.pre_data_repeat_save[dim_index] != node2_slice_info.pre_data_repeat_save[dim_index])) {
+          GELOGD("two slice stride or repeat not equal: node1 %s, node2 %s, stride or repeat index is %u.",
                  node1->GetNamePtr(), node2->GetNamePtr(), dim_index);
           not_equal_flag = true;
           break;
@@ -791,7 +805,7 @@ bool BackendUtils::SliceHasSameLoad(const NodePtr &node1, const NodePtr &node2,
       }
       if (not_equal_flag == true) {
         slice_has_nosame_load_flag = true;
-        break;         
+        break;
       }
     }
   }
@@ -823,9 +837,8 @@ bool IsOffsetZero(const ge::Node *load_node) {
   return false;
 }
 
-bool IsSlice(const ge::Node *load_node,
-             TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr, ViewOpAttrInfo &attr_info,
-             bool is_fuse) {
+bool IsSlice(const ge::Node *load_node, TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr,
+             ViewOpAttrInfo &attr_info, bool is_fuse) {
   auto &load_repeats = temp_load_attr.repeats;
   auto &data_repeats = temp_data_attr.repeats;
   auto load_strides = temp_load_attr.strides;
@@ -833,7 +846,7 @@ bool IsSlice(const ge::Node *load_node,
   GELOGD("temp load attr repeats:%s. temp data attr repeats:%s. load strides:%s. data strides:%s.",
          AutofuseUtils::VectorToStr(load_repeats).c_str(), AutofuseUtils::VectorToStr(data_repeats).c_str(),
          AutofuseUtils::VectorToStr(load_strides).c_str(), AutofuseUtils::VectorToStr(data_strides).c_str());
-  if((!attr_info.broadcast_info.empty()) || (!attr_info.transpose_info.empty())) {
+  if ((!attr_info.broadcast_info.empty()) || (!attr_info.transpose_info.empty())) {
     return false;
   }
   std::vector<ge::Expression> strides = ContiguousStrides(data_repeats);
@@ -868,8 +881,7 @@ Status BackendUtils::BackSteppingViewOpSlice(TensorAttrInfo &temp_data_attr, Ten
   attr_info.slice_info.two_slice_node_flag = true;
   if (is_fuse) {
     GE_ASSERT_SUCCESS(SliceGetNodeOffset(load_node, pre_load_offset, pre_node_slice_op_flag));
-    GELOGD("pre load offset is:%s. load node name is:%s.", pre_load_offset.Serialize().get(),
-          load_node->GetNamePtr());
+    GELOGD("pre load offset is:%s. load node name is:%s.", pre_load_offset.Serialize().get(), load_node->GetNamePtr());
     GE_ASSERT_SUCCESS(SlicePreLoadDataNodePro(temp_data_attr, temp_load_attr, attr_info, pre_load_offset));
   }
 
@@ -909,7 +921,8 @@ Status BackendUtils::FusedApplyViewOpBroadcast(const AscNodeAttr *node_attr, Asc
     output_attr->strides[index] = kSymbolZero;
   }
   if (!attr_info.broadcast_info.empty()) {
-    output_attr->strides = ContiguousStrides(output_attr->repeats);  // slice和broadcast不共存于同一节点，可刷load strides
+    output_attr->strides =
+        ContiguousStrides(output_attr->repeats);  // slice和broadcast不共存于同一节点，可刷load strides
   }
   return SUCCESS;
 }
@@ -937,10 +950,8 @@ Status BackendUtils::ApplySwaps(const NodePtr &node, const std::vector<std::pair
     std::swap(strides[index1], strides[index2]);
   }
   output_attr->strides = ContiguousStrides(output_attr->repeats);
-  GELOGD("after Apply Transpose, node name:(%s) output_attr axis:%s repeats:%s strides:%s.",
-         node->GetName().c_str(),
-         AutofuseUtils::VectorToStr(axis).c_str(),
-         AutofuseUtils::VectorToStr(repeats).c_str(),
+  GELOGD("after Apply Transpose, node name:(%s) output_attr axis:%s repeats:%s strides:%s.", node->GetName().c_str(),
+         AutofuseUtils::VectorToStr(axis).c_str(), AutofuseUtils::VectorToStr(repeats).c_str(),
          AutofuseUtils::VectorToStr(strides).c_str());
   return SUCCESS;
 }
@@ -1061,8 +1072,8 @@ Status BackendUtils::FusedApplyViewOpSlice(AscTensorAttr *output_attr, const Nod
   temp_pre_out_data_attr.strides = pre_output_attr->strides;
 
   GE_ASSERT_SUCCESS(SliceGetNodeOffset(load_node.get(), curr_load_offset, curr_node_slice_op_flag));
-  GE_ASSERT_SUCCESS(SliceCalcOffsetAndStridePerAxisCurNode(temp_load_attr, temp_pre_out_data_attr, attr_info,
-                                                           curr_load_offset));
+  GE_ASSERT_SUCCESS(
+      SliceCalcOffsetAndStridePerAxisCurNode(temp_load_attr, temp_pre_out_data_attr, attr_info, curr_load_offset));
   // 计算最终需要更新的offset以及stride
   GE_ASSERT_SUCCESS(ApplyViewOpFinalInfoSlice(temp_data_attr, attr_info));
   // 需要将pre_data的节点信息更新到data节点的输出属性上
@@ -1087,8 +1098,9 @@ Status BackendUtils::BackSteppingViewOpPro(TensorAttrInfo &temp_data_attr, Tenso
   return SUCCESS;
 }
 
-Status BackendUtils::FusedApplyViewOpPro(const AscNodeAttr *node_attr, AscTensorAttr *output_attr, const NodePtr &data_node,
-                                         const NodePtr &load_node, ViewOpAttrInfo &attr_info, const NodePtr &node2) {
+Status BackendUtils::FusedApplyViewOpPro(const AscNodeAttr *node_attr, AscTensorAttr *output_attr,
+                                         const NodePtr &data_node, const NodePtr &load_node, ViewOpAttrInfo &attr_info,
+                                         const NodePtr &node2) {
   GE_ASSERT_SUCCESS(FusedApplyViewOpTranspose(data_node, load_node, attr_info));
   GE_ASSERT_SUCCESS(FusedApplyViewOpBroadcast(node_attr, output_attr, attr_info));
   GE_ASSERT_SUCCESS(FusedApplyViewOpSlice(output_attr, data_node, load_node, attr_info, node2));
@@ -1102,7 +1114,7 @@ Status BackendUtils::PostProBackSteppingViewOpPro(TensorAttrInfo &temp_graph_att
   if (is_back_broadcast) {
     GE_ASSERT_SUCCESS(FusedBackSteppingViewOpBroadcast(temp_graph_attr, temp_load_attr, attr_info));
   }
-  return SUCCESS; // 后端只支持一个ascgraph里面有一个transpose,后处理transpose反推流程暂时不走了，走transpose后移流程来插入transpose节点
+  return SUCCESS;  // 后端只支持一个ascgraph里面有一个transpose,后处理transpose反推流程暂时不走了，走transpose后移流程来插入transpose节点
   GE_ASSERT_SUCCESS(PostProBackSteppingViewOpTranspose(temp_graph_attr, temp_load_attr, attr_info, cur_node_type));
   return SUCCESS;
 }
@@ -1135,15 +1147,15 @@ Status BackendUtils::PostProBackSteppingViewOp(AscGraph &asc_graph, const NodePt
   GELOGD(
       "post process before back step, graph %s, axis:%s."
       "node %s(%s), output_attr repeats:%s strides:%s axis:%s, sched axis:%s.",
-      asc_graph.GetName().c_str(),
-      AutofuseUtils::VectorToStr(temp_graph_attr.axis).c_str(), cur_node->GetNamePtr(),
+      asc_graph.GetName().c_str(), AutofuseUtils::VectorToStr(temp_graph_attr.axis).c_str(), cur_node->GetNamePtr(),
       cur_node->GetType().c_str(), AutofuseUtils::VectorToStr(cur_output_attr->repeats).c_str(),
       AutofuseUtils::VectorToStr(cur_output_attr->strides).c_str(),
       AutofuseUtils::VectorToStr(cur_output_attr->axis).c_str(),
       AutofuseUtils::VectorToStr(cur_node_attr->sched.axis).c_str());
 
   auto cur_node_type = cur_node->GetType();
-  GE_ASSERT_SUCCESS(PostProBackSteppingViewOpPro(temp_graph_attr, temp_cur_attr, attr_info, is_back_broadcast, cur_node_type));
+  GE_ASSERT_SUCCESS(
+      PostProBackSteppingViewOpPro(temp_graph_attr, temp_cur_attr, attr_info, is_back_broadcast, cur_node_type));
   return SUCCESS;
 }
 
@@ -1215,8 +1227,8 @@ Status BackendUtils::BackSteppingViewOp(const NodePtr &data_node, const NodePtr 
   return SUCCESS;
 }
 
-Status BackendUtils::FusedBackSteppingViewOp(const ge::Node *data_node, const ge::Node *load_node, ViewOpAttrInfo &attr_info,
-                                             const bool is_merge_check) {
+Status BackendUtils::FusedBackSteppingViewOp(const ge::Node *data_node, const ge::Node *load_node,
+                                             ViewOpAttrInfo &attr_info, const bool is_merge_check) {
   TensorAttrInfo temp_data_attr;
   TensorAttrInfo temp_load_attr;
   GE_ASSERT_SUCCESS(GetNodeAttr(data_node, load_node, temp_data_attr, temp_load_attr));
@@ -1240,17 +1252,18 @@ Status BackendUtils::FusedBackSteppingViewOp(const ge::Node *data_node, const ge
   GELOGD("temp_graph_attr.axis: %s.", AutofuseUtils::VectorToStr(temp_graph_attr.axis).c_str());
   GE_ASSERT_SUCCESS(FusedBackSteppingViewOpTranspose(temp_graph_attr, temp_load_attr, attr_info));
   GE_ASSERT_SUCCESS(FusedBackSteppingViewOpBroadcast(temp_graph_attr, temp_load_attr, attr_info));
-  GE_ASSERT_SUCCESS(BackSteppingViewOpSlice(temp_data_attr, temp_load_attr, load_node, attr_info, true, is_merge_check));
+  GE_ASSERT_SUCCESS(
+      BackSteppingViewOpSlice(temp_data_attr, temp_load_attr, load_node, attr_info, true, is_merge_check));
   return SUCCESS;
 }
 
-Status BackendUtils::FusedBackSteppingViewOp(const NodePtr &data_node, const NodePtr &load_node, ViewOpAttrInfo &attr_info,
-                                             const bool is_merge_check) {
+Status BackendUtils::FusedBackSteppingViewOp(const NodePtr &data_node, const NodePtr &load_node,
+                                             ViewOpAttrInfo &attr_info, const bool is_merge_check) {
   return FusedBackSteppingViewOp(data_node.get(), load_node.get(), attr_info, is_merge_check);
 }
 
-Status BackendUtils::FusedApplyViewOp(const NodePtr &data_node, const NodePtr &load_node,
-                                      ViewOpAttrInfo &attr_info, const NodePtr &node2) {
+Status BackendUtils::FusedApplyViewOp(const NodePtr &data_node, const NodePtr &load_node, ViewOpAttrInfo &attr_info,
+                                      const NodePtr &node2) {
   auto op_desc = load_node->GetOpDesc();
   AscNodeAttr *node_attr = op_desc->GetAttrsGroup<AscNodeAttr>();
   GE_ASSERT_NOTNULL(node_attr);
@@ -1272,8 +1285,9 @@ Status BackendUtils::FusedApplyViewOp(const NodePtr &data_node, const NodePtr &l
 }
 
 // 把一个node的输出Tensor信息转移到其他节点
-Status BackendUtils::TransferOutputTensorToOtherNode(const NodePtr &src_node, const NodePtr &node, 
-                                                     const bool is_vertical, const std::vector<int64_t> &broadcast_info) {
+Status BackendUtils::TransferOutputTensorToOtherNode(const NodePtr &src_node, const NodePtr &node,
+                                                     const bool is_vertical,
+                                                     const std::vector<int64_t> &broadcast_info) {
   auto src_op_desc = src_node->GetOpDesc();
   GE_ASSERT_NOTNULL(src_op_desc);
   auto src_output_desc = src_op_desc->MutableOutputDesc(0);
@@ -1293,7 +1307,7 @@ Status BackendUtils::TransferOutputTensorToOtherNode(const NodePtr &src_node, co
   output_attr->strides = src_output_attr->strides;
   output_attr->axis = src_output_attr->axis;
   node_attr->sched.axis = src_node_attr->sched.axis;
-  for (const auto &axis_id : broadcast_info) { // 此处目前只有水平融合会走
+  for (const auto &axis_id : broadcast_info) {  // 此处目前只有水平融合会走
     GE_ASSERT_TRUE(static_cast<size_t>(axis_id) < output_attr->strides.size(), "%lu VS %zu.", axis_id,
                    output_attr->strides.size());
     output_attr->strides[axis_id] = kSymbolZero;
@@ -1309,7 +1323,7 @@ Status BackendUtils::TransferOutputTensorToOtherNode(const NodePtr &src_node, co
       AutofuseUtils::VectorToStr(output_attr->strides).c_str(), AutofuseUtils::VectorToStr(output_attr->axis).c_str(),
       AutofuseUtils::VectorToStr(node_attr->sched.axis).c_str());
   if (is_vertical && (((src_node->GetType() == kLoadType) || (src_node->GetType() == kGatherType)) &&
-       ((node->GetType() == kLoadType) || (node->GetType() == kGatherType)))) {
+                      ((node->GetType() == kLoadType) || (node->GetType() == kGatherType)))) {
     auto node_attr_ptr = dynamic_cast<ascir_op::Load::AscLoadIrAttrDef *>(node_attr->ir_attr.get());
     GE_ASSERT_NOTNULL(node_attr_ptr);
     auto src_node_attr_ptr = dynamic_cast<ascir_op::Load::AscLoadIrAttrDef *>(src_node_attr->ir_attr.get());
@@ -1446,8 +1460,8 @@ Status BackendUtils::CreateSubGraphInput(const ComputeGraphPtr &sub_graph, const
 
     // fused中data需要继承前序node的输出tensor，但是序列化的时候不需要继承该信息
     if (need_inherit_pre_node_tensor) {
-      GE_ASSERT_TRUE(static_cast<size_t>(input_idx) < pre_nodes.size(), "size %u VS size %zu.",
-                     input_idx, pre_nodes.size());
+      GE_ASSERT_TRUE(static_cast<size_t>(input_idx) < pre_nodes.size(), "size %u VS size %zu.", input_idx,
+                     pre_nodes.size());
       auto pre_node_op_desc = pre_nodes[input_idx].first->GetOpDescBarePtr();
       auto pre_node_desc = pre_node_op_desc->MutableOutputDesc(pre_nodes[input_idx].second);
       GE_ASSERT_NOTNULL(pre_node_desc);
@@ -1461,7 +1475,8 @@ Status BackendUtils::CreateSubGraphInput(const ComputeGraphPtr &sub_graph, const
     }
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), node->GetInDataAnchor(input_idx)));
   }
-  GELOGD("node %s(%s) in num(%u), create subgraph input success.", node->GetNamePtr(), node->GetType().c_str(), in_nums);
+  GELOGD("node %s(%s) in num(%u), create subgraph input success.", node->GetNamePtr(), node->GetType().c_str(),
+         in_nums);
   return SUCCESS;
 }
 
@@ -1631,7 +1646,7 @@ void BackendUtils::GetOutputMap(const std::vector<std::pair<int32_t, int32_t>> &
                                 const uint32_t node_out_node_size, std::vector<int32_t> &node_output_map) {
   std::vector<std::pair<int32_t, int32_t>> temp_link_map = link_map;
   for (auto i = 0U; i < node_out_node_size; i++) {
-    if (temp_link_map.empty()){
+    if (temp_link_map.empty()) {
       node_output_map.push_back(static_cast<int32_t>(i));
       continue;
     }
@@ -2195,8 +2210,8 @@ std::string BackendUtils::AscAxisToStr(const std::vector<AxisPtr> &axis) {
   oss << "[";
   auto i = 0U;
   for (const auto &axis_info : axis) {
-    oss << "(axis name:" << axis_info->name.c_str() << ", axis id:" << axis_info->id << ", axis size:"
-        << std::string(axis_info->size.Str().get()).c_str() << ")";
+    oss << "(axis name:" << axis_info->name.c_str() << ", axis id:" << axis_info->id
+        << ", axis size:" << std::string(axis_info->size.Str().get()).c_str() << ")";
     if (i < axis.size() - 1U) {
       oss << ", ";
     }
@@ -2206,9 +2221,7 @@ std::string BackendUtils::AscAxisToStr(const std::vector<AxisPtr> &axis) {
   return oss.str();
 }
 
-
-NodePtr BackendUtils::GetFusedAscBackendInputNode(const NodePtr &node, const int32_t index,
-                                                  int32_t &in_anchor_idx) {
+NodePtr BackendUtils::GetFusedAscBackendInputNode(const NodePtr &node, const int32_t index, int32_t &in_anchor_idx) {
   ComputeGraphPtr graph;
   GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(node, graph));
   const auto subgraph_input_nodes = graph->GetInputNodes();
@@ -2281,11 +2294,11 @@ bool BackendUtils::CanFuseByStrategy(const NodePtr &node1, const NodePtr &node2,
   GE_ASSERT_NOTNULL(attr1);
   if ((attr1->GetFuseType() == loop::FuseType::kSplit) && IsSplitComplete(node1) &&
       IsSplitLowFusionRatio(node1, max_fusion_node_input_size)) {
-      // Split类型不支持低融合比例, 当前只支持split后向融合
-      GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
-             node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
-             ge::NotFuseReasonCode(ge::NotFuseReason::kSplitLowFuseRatio));
-      return false;
+    // Split类型不支持低融合比例, 当前只支持split后向融合
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 or node2 has low fuse ratio]",
+           node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kSplitLowFuseRatio));
+    return false;
   }
   return true;
 }
@@ -2564,11 +2577,9 @@ Status BackendUtils::ApplyTransposeOp(const ComputeGraphPtr &graph,
              AutofuseUtils::VectorToStr(output_desc_tensor_attr->strides).c_str(),
              AutofuseUtils::VectorToStr(output_desc_tensor_attr->axis).c_str());
       auto tmp_axis1 = output_desc_tensor_attr->axis;
-      GE_ASSERT_SUCCESS(
-          SwapTensorInfo(transpose_info, tmp_axis1, output_desc_tensor_attr->repeats));
+      GE_ASSERT_SUCCESS(SwapTensorInfo(transpose_info, tmp_axis1, output_desc_tensor_attr->repeats));
       auto tmp_axis2 = output_desc_tensor_attr->axis;
-      GE_ASSERT_SUCCESS(
-          SwapTensorInfo(transpose_info, tmp_axis2, output_desc_tensor_attr->strides));
+      GE_ASSERT_SUCCESS(SwapTensorInfo(transpose_info, tmp_axis2, output_desc_tensor_attr->strides));
       GE_ASSERT_SUCCESS(UpdateContinueStrides(output_desc_tensor_attr->repeats, output_desc_tensor_attr->strides));
       GE_ASSERT_SUCCESS(SwapSchedAxis(transpose_info, output_desc_tensor_attr->axis));
       GELOGD("swap after tensor: repeats(%s), strides(%s), axis(%s).",
@@ -2723,8 +2734,7 @@ Status BackendUtils::ProcessAscgraphAfterMerge(const NodePtr &new_node) {
   GE_ASSERT_NOTNULL(asc_graph);
   GE_ASSERT_SUCCESS(asc_adapt::FallbackPro(*asc_graph, new_node));
   GE_ASSERT_SUCCESS(asc_adapt::CompleteNodeAttrsOnAscGraph(*asc_graph, new_node));
-  GELOGD("dump attr after merged node:%s(%s) asc subgraph info:", new_node->GetNamePtr(),
-         new_node->GetType().c_str());
+  GELOGD("dump attr after merged node:%s(%s) asc subgraph info:", new_node->GetNamePtr(), new_node->GetType().c_str());
   BackendUtils::DumpAscGraph(new_node);
   return SUCCESS;
 }
@@ -2808,7 +2818,8 @@ bool BackendUtils::IsSameBroadCastInfo(std::vector<ViewOpAttrInfo> &attr_infos1,
   if (!BackendUtils::IsSameAttrInfoInVector(attr_infos2)) {
     return false;
   }
-  // 5.attr_infos1和attr_infos2都不为空，对比attr_infos1和attr_infos2中broadcast info是否相同，如果不同返回false，否则返回true
+  // 5.attr_infos1和attr_infos2都不为空，对比attr_infos1和attr_infos2中broadcast
+  // info是否相同，如果不同返回false，否则返回true
   const std::vector<int64_t> broadcast_info1 = attr_infos1[0].broadcast_info;
   const std::vector<int64_t> broadcast_info2 = attr_infos2[0].broadcast_info;
   return broadcast_info1 == broadcast_info2;
@@ -2866,7 +2877,8 @@ bool BackendUtils::CurNodeInputIsSimplestLoad(const NodePtr &node, const int32_t
     for (const auto &node_peer_anchor : data_out_anchor->GetPeerInDataAnchorsPtr()) {
       const auto load_node = node_peer_anchor->GetOwnerNode();
       GE_ASSERT_NOTNULL(load_node);
-      if (!BackendUtils::IsSimplestLoad(node.get(), load_node, data_node.get(), attr_infos, is_condition_with_node_type)) {
+      if (!BackendUtils::IsSimplestLoad(node.get(), load_node, data_node.get(), attr_infos,
+                                        is_condition_with_node_type)) {
         GELOGD("cur node %s(%s) ascgraph data node %s(%s) have view op.", node->GetNamePtr(), node->GetType().c_str(),
                data_node->GetNamePtr(), data_node->GetType().c_str());
         return false;
@@ -2905,7 +2917,7 @@ bool BackendUtils::AscNodeInputIsSimplestLoad(const NodePtr &peer_node, const In
     GE_ASSERT_NOTNULL(pre_data_node);
     if (!IsSimplestLoad(peer_node.get(), pre_load_node, pre_data_node, attr_infos)) {
       GELOGD("cur node %s(%s) ascgraph date node %s(%s) have view op.", peer_node->GetNamePtr(),
-                peer_node->GetType().c_str(), pre_data_node->GetNamePtr(), pre_data_node->GetType().c_str());
+             peer_node->GetType().c_str(), pre_data_node->GetNamePtr(), pre_data_node->GetType().c_str());
       return false;
     }
   }
@@ -2929,7 +2941,7 @@ Status BackendUtils::GetPreAscBackendNodeAndAnchor(const NodePtr &node, const No
   asc_node = netoutput_peer_out_anchor->GetOwnerNode();
   GE_ASSERT_NOTNULL(asc_node);
   GELOGD("get node %s(%s) pre ascbackend node %s(%s).", node->GetNamePtr(), node->GetType().c_str(),
-            asc_node->GetNamePtr(), asc_node->GetType().c_str());
+         asc_node->GetNamePtr(), asc_node->GetType().c_str());
   return SUCCESS;
 }
 
@@ -2943,7 +2955,8 @@ bool BackendUtils::PreNodeInputIsSimplestLoad(const NodePtr &node, const int32_t
   } else if (peer_node->GetType() == kFusedAscBackendType) {
     NodePtr asc_node;
     InDataAnchorPtr netoutput_in_anchor;
-    GE_ASSERT_SUCCESS(BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
+    GE_ASSERT_SUCCESS(
+        BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
     ComputeGraphPtr graph;
     GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(asc_node, graph));
     GE_ASSERT_SUCCESS(BackendUtils::UpdateSubgraphOutputAttr(graph, asc_node));
@@ -3214,7 +3227,8 @@ bool BackendUtils::OnlyHasTypesInAscgraph(const NodePtr &node, const std::vector
     for (const auto &sub_node : graph->GetAllNodes()) {
       const std::string &node_type = sub_node->GetType();
       if (target_type_set.count(node_type) == 0) {
-        GELOGD("node %s(%s) ascgraph has unexpected type: %s", node->GetNamePtr(), node->GetType().c_str(), node_type.c_str());
+        GELOGD("node %s(%s) ascgraph has unexpected type: %s", node->GetNamePtr(), node->GetType().c_str(),
+               node_type.c_str());
         return false;
       }
     }
@@ -3305,7 +3319,7 @@ Status BackendUtils::FlushReduceOriginalAxisIfIsReduceNode(const NodePtr &node, 
 }
 
 Status GetNodeTransposeInfo(const NodePtr &node, const TensorAttrInfo &temp_graph_attr,
-                                     std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
+                            std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
   const auto cur_op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(cur_op_desc);
   const auto cur_output_desc = cur_op_desc->MutableOutputDesc(0);

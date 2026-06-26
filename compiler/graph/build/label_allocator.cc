@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,15 +45,15 @@ Status LabelAllocator::AssignFunctionalLabels() {
   for (auto node : functional_nodes) {
     LabelMakerPtr maker = LabelMakerFactory::Instance().Create(node->GetType(), compute_graph_, node);
     if (maker == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Check Node:%s(%s) label maker not registed",
-                        node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(INTERNAL_ERROR, "[Create][LabelMaker] Node: %s label maker not registed.", node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Check Node:%s(%s) label maker not registered", node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Create][LabelMaker] Node: %s label maker not registered.", node->GetType().c_str());
       return INTERNAL_ERROR;
     }
 
     if (maker->Run(label_index) != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) run label maker failed",
-                        node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) run label maker failed", node->GetName().c_str(),
+                           node->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Call][Run] Node: %s run label maker failed.", node->GetType().c_str());
       return INTERNAL_ERROR;
     }
@@ -91,8 +91,8 @@ bool LabelAllocator::CollectFunctionalNode(ComputeGraphPtr &graph, std::set<Node
 
   ComputeGraphPtr owner_graph = func_node->GetOwnerComputeGraph();
   if (owner_graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "ComputeGraph owner not set in node:%s(%s), graph:%s",
-                       func_node->GetName().c_str(), func_node->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "ComputeGraph owner not set in node:%s(%s), graph:%s", func_node->GetName().c_str(),
+                         func_node->GetType().c_str(), graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Graph] ComputeGraph owner not set: %s.", func_node->GetName().c_str());
     return false;
   }

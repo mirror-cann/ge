@@ -118,4 +118,3 @@ graphStatus aclgrphBuildModel(const ge::Graph &graph, const std::map<AscendStrin
         后续使用acl接口进行推理业务时，需要使用**从内存中**加载模型的接口，例如aclmdlLoadFromMem，然后使用aclmdlExecute接口执行推理。
 
     acl接口详细介绍请参见《应用开发指南 \(C&C++\)》。
-

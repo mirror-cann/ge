@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,9 +23,7 @@ struct OutputLowerResult {
   OutputLowerResult() : has_init(false), order_holders(), shape(nullptr), address(nullptr) {}
   OutputLowerResult(const vector<bg::ValueHolderPtr> &in_order_holders, bg::ValueHolderPtr in_shape,
                     bg::DevMemValueHolderPtr in_address)
-      : has_init(true), order_holders(in_order_holders),
-        shape(std::move(in_shape)),
-        address(std::move(in_address)) {}
+      : has_init(true), order_holders(in_order_holders), shape(std::move(in_shape)), address(std::move(in_address)) {}
   bool has_init;
   std::vector<bg::ValueHolderPtr> order_holders;
   bg::ValueHolderPtr shape;
@@ -43,8 +41,7 @@ class PlacedLoweringResult {
   const LowerResult *GetResult() const;
   const OutputLowerResult *GetOutputResult(LoweringGlobalData &global_data, int32_t output_index,
                                            TargetAddrDesc target_addr_desc, bool is_data_dependent);
-  const OutputLowerResult *GetOutputTensorResult(LoweringGlobalData &global_data,
-                                                 int32_t output_index,
+  const OutputLowerResult *GetOutputTensorResult(LoweringGlobalData &global_data, int32_t output_index,
                                                  TargetAddrDesc target_addr_desc);
 
  private:
@@ -55,9 +52,9 @@ class PlacedLoweringResult {
   const OutputLowerResult *CreateDataDependentResult(int32_t output_index, TargetAddrDesc &target_addr_desc,
                                                      const OutputLowerResult &result,
                                                      const OutputLowerResult &host_result);
-  const OutputLowerResult *CreateRawTensorResult(const OutputLowerResult &result,
-                                                 int32_t output_index,
+  const OutputLowerResult *CreateRawTensorResult(const OutputLowerResult &result, int32_t output_index,
                                                  int32_t address_placement);
+
  private:
   ge::Node *node_;
   LowerResult result_;

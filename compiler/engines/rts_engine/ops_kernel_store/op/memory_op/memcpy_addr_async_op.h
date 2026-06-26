@@ -39,7 +39,7 @@ class MemcpyAddrAsyncOp : public Op {
   ge::Status Run(vector<TaskDef> &tasks) override;
 
  private:
-  rtError_t AddArgsFormatDescInfo(domi::MemcpyAsyncDef * const memcpyAsyncDef, const uint64_t count);
+  rtError_t AddArgsFormatDescInfo(domi::MemcpyAsyncDef *const memcpyAsyncDef, const uint64_t count);
 };
 }  // namespace runtime
 }  // namespace cce

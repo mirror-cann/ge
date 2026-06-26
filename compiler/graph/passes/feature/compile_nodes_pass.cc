@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,8 +95,8 @@ graphStatus CompileNodesPass::GetSupportedKernel(const NodePtr &node, const std:
     (void)instance->DNNEngineManagerObj().GetDNNEngineName(node);
     kernel_lib_name = op_desc->GetOpKernelLibName();
     if (kernel_lib_name.empty()) {
-      REPORT_INNER_ERR_MSG("E19999", "kernel_lib_name in op:%s(%s) is empty, check invalid",
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "kernel_lib_name in op:%s(%s) is empty, check invalid", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
       GELOGE(GRAPH_FAILED, "[Get][OpKernelLib] for node:%s(%s) failed.", node->GetName().c_str(),
              op_desc->GetType().c_str());
       return GRAPH_FAILED;
@@ -104,8 +104,8 @@ graphStatus CompileNodesPass::GetSupportedKernel(const NodePtr &node, const std:
   }
   OpsKernelInfoStorePtr kernel_info = instance->OpsKernelManagerObj().GetOpsKernelInfoStore(kernel_lib_name);
   if (kernel_info == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Find ops kernel by name:%s failed for op:%s(%s)",
-                       kernel_lib_name.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Find ops kernel by name:%s failed for op:%s(%s)", kernel_lib_name.c_str(),
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(ge::GE_GRAPH_PARAM_NULLPTR, "[Get][OpsKernelInfoStore] for op:%s failed", node->GetName().c_str());
     return ge::GE_GRAPH_PARAM_NULLPTR;
   }
@@ -136,15 +136,16 @@ graphStatus CompileNodesPass::GetSupportedKernel(const NodePtr &node, const std:
       }
     }
     for (const auto &it : unsupported_reasons) {
-      REPORT_PREDEFINED_ERR_MSG("EZ3002", std::vector<const char_t *>({"optype", "opskernel", "reason"}),
-                         std::vector<const char_t *>({op_desc->GetType().c_str(), it.first.c_str(), it.second.c_str()}));
+      REPORT_PREDEFINED_ERR_MSG(
+          "EZ3002", std::vector<const char_t *>({"optype", "opskernel", "reason"}),
+          std::vector<const char_t *>({op_desc->GetType().c_str(), it.first.c_str(), it.second.c_str()}));
       GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED,
              "[Call][CheckAccuracySupport] for Op type %s of ops kernel %s is unsupported, reason:%s",
              op_desc->GetType().c_str(), it.first.c_str(), it.second.c_str());
     }
 
     REPORT_PREDEFINED_ERR_MSG("EZ3003", std::vector<const char_t *>({"opname", "optype"}),
-                       std::vector<const char_t *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
+                              std::vector<const char_t *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
     GELOGE(GRAPH_FAILED, "[Check][Param] Cannot find kernel lib support node:%s, type:%s , get kernel lib failed.",
            node->GetName().c_str(), op_desc->GetType().c_str());
     return GRAPH_FAILED;
@@ -152,9 +153,9 @@ graphStatus CompileNodesPass::GetSupportedKernel(const NodePtr &node, const std:
   return GRAPH_SUCCESS;
 }
 
-bool CompileNodesPass::CheckAccuracySupport(
-    const OpsKernelInfoStorePtr &kernel_info, const std::shared_ptr<GELib> instance,
-    const NodePtr &node, string& unsupported_reason) const {
+bool CompileNodesPass::CheckAccuracySupport(const OpsKernelInfoStorePtr &kernel_info,
+                                            const std::shared_ptr<GELib> instance, const NodePtr &node,
+                                            string &unsupported_reason) const {
   (void)instance;
   if (!(kernel_info->CheckAccuracySupported(node, unsupported_reason, true))) {
     return false;

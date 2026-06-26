@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -134,15 +134,25 @@ const std::map<std::string, PriorityEnum> &StreamUtils::GetEnginePriority() {
   return engine_priority_;
 }
 
-bool StreamUtils::IsEngineSkip(const Subgraph &subgraph) { return subgraph.engine_conf.skip_assign_stream; }
+bool StreamUtils::IsEngineSkip(const Subgraph &subgraph) {
+  return subgraph.engine_conf.skip_assign_stream;
+}
 
-bool StreamUtils::IsEngineAttach(const Subgraph &subgraph) { return subgraph.engine_conf.attach; }
+bool StreamUtils::IsEngineAttach(const Subgraph &subgraph) {
+  return subgraph.engine_conf.attach;
+}
 
-bool StreamUtils::IsEngineIndependent(const Subgraph &subgraph) { return subgraph.engine_conf.independent; }
+bool StreamUtils::IsEngineIndependent(const Subgraph &subgraph) {
+  return subgraph.engine_conf.independent;
+}
 
-bool StreamUtils::HasStreamLabel(const Subgraph &subgraph) { return !subgraph.subgraph_info.GetStreamLabel().empty(); }
+bool StreamUtils::HasStreamLabel(const Subgraph &subgraph) {
+  return !subgraph.subgraph_info.GetStreamLabel().empty();
+}
 
-bool StreamUtils::HasUserStreamLabel(const Subgraph &subgraph) { return !subgraph.subgraph_info.GetUserStreamLabel().empty(); }
+bool StreamUtils::HasUserStreamLabel(const Subgraph &subgraph) {
+  return !subgraph.subgraph_info.GetUserStreamLabel().empty();
+}
 
 bool StreamUtils::HasStreamLabelOrUserStreamLabel(const ge::NodePtr &node) {
   auto op_desc = node->GetOpDesc();
@@ -151,7 +161,9 @@ bool StreamUtils::HasStreamLabelOrUserStreamLabel(const ge::NodePtr &node) {
          AttrUtils::HasAttr(op_desc, public_attr::USER_STREAM_LABEL);
 }
 
-bool StreamUtils::HasAssignedStream(const Subgraph &subgraph) { return subgraph.stream_id != kInvalidStream; }
+bool StreamUtils::HasAssignedStream(const Subgraph &subgraph) {
+  return subgraph.stream_id != kInvalidStream;
+}
 
 bool StreamUtils::HasAssignedUserStream(const Subgraph &subgraph) {
   return subgraph.stream_id != kInvalidStream && HasUserStreamLabel(subgraph);
@@ -272,7 +284,6 @@ bool StreamUtils::IsAivNode(const NodePtr &node) {
   return is_aiv;
 }
 
-
 bool StreamUtils::IsAicNode(const NodePtr &node) {
   std::string core_type;
   const auto op_desc = node->GetOpDesc();
@@ -281,7 +292,6 @@ bool StreamUtils::IsAicNode(const NodePtr &node) {
   }
   return false;
 }
-
 
 // trans string to map, "0:0,1:0,2:1" to {{0,0}, {1,0}, {2,1}}
 Status StreamUtils::TransStrToMap(const std::string &map_str, std::map<int64_t, int64_t> &result) {
@@ -304,7 +314,7 @@ Status StreamUtils::TransStrToMap(const std::string &map_str, std::map<int64_t, 
 std::string StreamUtils::TransMapToStr(const std::map<int64_t, int64_t> &map) {
   std::stringstream ss;
   bool first = true;
-  for (const auto& pair : map) {
+  for (const auto &pair : map) {
     if (!first) {
       ss << ",";
     }
@@ -577,7 +587,7 @@ Status StreamUtils::RefreshEventByReuseMap(
 
 Status StreamUtils::TransUserStreamLabel(const ComputeGraphPtr &root_graph) {
   GE_ASSERT_NOTNULL(root_graph);
-  for (const auto &node: root_graph->GetAllNodesPtr()) {
+  for (const auto &node : root_graph->GetAllNodesPtr()) {
     GE_ASSERT_NOTNULL(node);
     std::string user_stream_label;
     auto op_desc = node->GetOpDesc();
@@ -585,10 +595,10 @@ Status StreamUtils::TransUserStreamLabel(const ComputeGraphPtr &root_graph) {
     // todo use attr define after metadef submodule update
     if (AttrUtils::GetStr(op_desc, public_attr::USER_STREAM_LABEL, user_stream_label)) {
       std::string inner_stream_label;
-      if (AttrUtils::GetStr(op_desc, ATTR_NAME_STREAM_LABEL,inner_stream_label)) {
+      if (AttrUtils::GetStr(op_desc, ATTR_NAME_STREAM_LABEL, inner_stream_label)) {
         GELOGI(
-          "Node %s(%s) has both user stream label %s and inner stream label: %s. User stream label will take effect.",
-          op_desc->GetNamePtr(), op_desc->GetTypePtr(), user_stream_label.c_str(), inner_stream_label.c_str());
+            "Node %s(%s) has both user stream label %s and inner stream label: %s. User stream label will take effect.",
+            op_desc->GetNamePtr(), op_desc->GetTypePtr(), user_stream_label.c_str(), inner_stream_label.c_str());
         bool enable_inner_parallel = false;
         (void)AttrUtils::GetBool(op_desc, "_enable_inner_parallel", enable_inner_parallel);
         if (enable_inner_parallel) {
@@ -598,9 +608,8 @@ Status StreamUtils::TransUserStreamLabel(const ComputeGraphPtr &root_graph) {
                  op_desc->GetTypePtr(), user_stream_label.c_str());
         }
       }
-      GELOGI(
-        "Node %s(%s) has user stream label: %s. User stream label will take effect.",
-        op_desc->GetNamePtr(), op_desc->GetTypePtr(), user_stream_label.c_str());
+      GELOGI("Node %s(%s) has user stream label: %s. User stream label will take effect.", op_desc->GetNamePtr(),
+             op_desc->GetTypePtr(), user_stream_label.c_str());
       AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, user_stream_label);
     }
   }

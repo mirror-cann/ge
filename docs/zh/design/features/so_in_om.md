@@ -36,7 +36,7 @@ graph TB
         H --> I
         I --> J[写入 OM 文件的 SO_BINS 分区]
     end
-    
+
     subgraph "OM 文件结构"
         J --> K[ModelFileHeader]
         K --> L[MODEL_DEF 分区]
@@ -45,7 +45,7 @@ graph TB
         K --> O[SO_BINS 分区]
         K --> P[TILING_DATA 分区]
     end
-    
+
     subgraph "运行时 (ModelManager)"
         O --> Q[ModelHelper::LoadSoStoreModelPartitionInfo]
         Q --> R[OpSoStore::Load 解析]
@@ -82,13 +82,13 @@ graph LR
         C[kOpMasterDevice = 1] -->|bit 14| D[0x4000]
         E[kAutofuse = 2] -->|bit 13| F[0x2000]
     end
-    
+
     subgraph "用途"
         B --> G[RT2 动态 shape<br/>infer shape / tiling so]
         D --> H[设备端 tiling so<br/>op_master_device]
         F --> I[Autofuse 融合算子 so<br/>离线保存和加载]
     end
-    
+
     subgraph "触发条件"
         G --> J[动态 shape 模型<br/>或 static_to_dynamic_softsync]
         H --> K[TaskDef 中存在<br/>PREPROCESS_KERNEL 类型任务]

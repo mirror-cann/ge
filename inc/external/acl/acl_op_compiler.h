@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,35 +18,29 @@
 extern "C" {
 #endif
 
-typedef enum aclCompileType {
-    ACL_COMPILE_SYS,
-    ACL_COMPILE_UNREGISTERED
-} aclopCompileType;
+typedef enum aclCompileType { ACL_COMPILE_SYS, ACL_COMPILE_UNREGISTERED } aclopCompileType;
 
 typedef enum {
-    ACL_PRECISION_MODE,
-    ACL_AICORE_NUM,
-    ACL_AUTO_TUNE_MODE, // The auto_tune_mode has been discarded
-    ACL_OP_SELECT_IMPL_MODE,
-    ACL_OPTYPELIST_FOR_IMPLMODE,
-    ACL_OP_DEBUG_LEVEL,
-    ACL_DEBUG_DIR,
-    ACL_OP_COMPILER_CACHE_MODE,
-    ACL_OP_COMPILER_CACHE_DIR,
-    ACL_OP_PERFORMANCE_MODE,
-    ACL_OP_JIT_COMPILE,
-    ACL_OP_DETERMINISTIC,
-    ACL_CUSTOMIZE_DTYPES,
-    ACL_OP_PRECISION_MODE,
-    ACL_ALLOW_HF32,
-    ACL_PRECISION_MODE_V2,
-    ACL_OP_DEBUG_OPTION
+  ACL_PRECISION_MODE,
+  ACL_AICORE_NUM,
+  ACL_AUTO_TUNE_MODE,  // The auto_tune_mode has been discarded
+  ACL_OP_SELECT_IMPL_MODE,
+  ACL_OPTYPELIST_FOR_IMPLMODE,
+  ACL_OP_DEBUG_LEVEL,
+  ACL_DEBUG_DIR,
+  ACL_OP_COMPILER_CACHE_MODE,
+  ACL_OP_COMPILER_CACHE_DIR,
+  ACL_OP_PERFORMANCE_MODE,
+  ACL_OP_JIT_COMPILE,
+  ACL_OP_DETERMINISTIC,
+  ACL_CUSTOMIZE_DTYPES,
+  ACL_OP_PRECISION_MODE,
+  ACL_ALLOW_HF32,
+  ACL_PRECISION_MODE_V2,
+  ACL_OP_DEBUG_OPTION
 } aclCompileOpt;
 
-typedef enum aclCompileFlag {
-    ACL_OP_COMPILE_DEFAULT,
-    ACL_OP_COMPILE_FUZZ
-} aclOpCompileFlag;
+typedef enum aclCompileFlag { ACL_OP_COMPILE_DEFAULT, ACL_OP_COMPILE_FUZZ } aclOpCompileFlag;
 
 typedef struct aclGraphDumpOption aclGraphDumpOption;
 
@@ -68,15 +62,10 @@ typedef struct aclGraphDumpOption aclGraphDumpOption;
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclopCompile(const char *opType,
-                                          int numInputs,
-                                          const aclTensorDesc *const inputDesc[],
-                                          int numOutputs,
-                                          const aclTensorDesc *const outputDesc[],
-                                          const aclopAttr *attr,
-                                          aclopEngineType engineType,
-                                          aclopCompileType compileFlag,
-                                          const char *opPath);
+ACL_FUNC_VISIBILITY aclError aclopCompile(const char *opType, int numInputs, const aclTensorDesc *const inputDesc[],
+                                          int numOutputs, const aclTensorDesc *const outputDesc[],
+                                          const aclopAttr *attr, aclopEngineType engineType,
+                                          aclopCompileType compileFlag, const char *opPath);
 
 /**
  * @ingroup AscendCL
@@ -99,12 +88,10 @@ ACL_FUNC_VISIBILITY aclError aclopCompile(const char *opType,
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclopCompileAndExecute(const char *opType,
-    int numInputs, const aclTensorDesc *const inputDesc[], const aclDataBuffer *const inputs[],
-    int numOutputs, const aclTensorDesc *const outputDesc[], aclDataBuffer *const outputs[],
-    const aclopAttr *attr, aclopEngineType engineType, aclopCompileType compileFlag,
-    const char *opPath, aclrtStream stream);
-
+ACL_FUNC_VISIBILITY aclError aclopCompileAndExecute(
+    const char *opType, int numInputs, const aclTensorDesc *const inputDesc[], const aclDataBuffer *const inputs[],
+    int numOutputs, const aclTensorDesc *const outputDesc[], aclDataBuffer *const outputs[], const aclopAttr *attr,
+    aclopEngineType engineType, aclopCompileType compileFlag, const char *opPath, aclrtStream stream);
 
 /**
  * @ingroup AscendCL
@@ -127,11 +114,12 @@ ACL_FUNC_VISIBILITY aclError aclopCompileAndExecute(const char *opType,
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclopCompileAndExecuteV2(const char *opType,
-    int numInputs, aclTensorDesc *inputDesc[], aclDataBuffer *inputs[],
-    int numOutputs, aclTensorDesc *outputDesc[], aclDataBuffer *outputs[],
-    aclopAttr *attr, aclopEngineType engineType, aclopCompileType compileFlag,
-    const char *opPath, aclrtStream stream);
+ACL_FUNC_VISIBILITY aclError aclopCompileAndExecuteV2(const char *opType, int numInputs, aclTensorDesc *inputDesc[],
+                                                      aclDataBuffer *inputs[], int numOutputs,
+                                                      aclTensorDesc *outputDesc[], aclDataBuffer *outputs[],
+                                                      aclopAttr *attr, aclopEngineType engineType,
+                                                      aclopCompileType compileFlag, const char *opPath,
+                                                      aclrtStream stream);
 
 /**
  * @ingroup AscendCL
@@ -200,11 +188,10 @@ ACL_FUNC_VISIBILITY aclError aclopSetCompileFlag(aclOpCompileFlag flag);
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclGenGraphAndDumpForOp(const char *opType,
-    int numInputs, const aclTensorDesc *const inputDesc[], const aclDataBuffer *const inputs[],
-    int numOutputs, const aclTensorDesc *const outputDesc[], aclDataBuffer *const outputs[],
-    const aclopAttr *attr, aclopEngineType engineType,
-    const char *graphDumpPath, const aclGraphDumpOption *graphDumpOpt);
+ACL_FUNC_VISIBILITY aclError aclGenGraphAndDumpForOp(
+    const char *opType, int numInputs, const aclTensorDesc *const inputDesc[], const aclDataBuffer *const inputs[],
+    int numOutputs, const aclTensorDesc *const outputDesc[], aclDataBuffer *const outputs[], const aclopAttr *attr,
+    aclopEngineType engineType, const char *graphDumpPath, const aclGraphDumpOption *graphDumpOpt);
 
 /**
  * @ingroup AscendCL
@@ -234,4 +221,4 @@ ACL_FUNC_VISIBILITY aclError aclDestroyGraphDumpOpt(const aclGraphDumpOption *gr
 }
 #endif
 
-#endif // INC_EXTERNAL_ACL_ACL_OP_COMPILER_H_
+#endif  // INC_EXTERNAL_ACL_ACL_OP_COMPILER_H_

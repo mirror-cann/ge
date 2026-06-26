@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,9 +36,7 @@ using namespace ge;
 namespace ge {
 class UtestAclGraphParser : public testing::Test {
  protected:
-  void SetUp() {
-
-  }
+  void SetUp() {}
   void TearDown() {}
 };
 
@@ -49,7 +47,7 @@ TEST_F(UtestAclGraphParser, test_parse_acl_output_nodes) {
   ParerUTestsUtils::ClearParserInnerCtx();
   GetParserContext().type = domi::ONNX;
   std::map<AscendString, AscendString> out_nodes_with_node_and_index = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out1:0;Out2:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out1:0;Out2:1")}};
   ParerUTestsUtils::ClearParserInnerCtx();
   auto ret = acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_with_node_and_index, graph_name);
   ASSERT_EQ(ret, SUCCESS);
@@ -61,7 +59,7 @@ TEST_F(UtestAclGraphParser, test_parse_acl_output_nodes) {
   ParerUTestsUtils::ClearParserInnerCtx();
   GetParserContext().type = domi::ONNX;
   std::map<AscendString, AscendString> out_nodes_with_tensor_name = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_with_tensor_name, graph_name);
   ASSERT_EQ(ret, SUCCESS);
   EXPECT_EQ(ge::GetParserContext().user_out_nodes.size(), 0);
@@ -72,7 +70,7 @@ TEST_F(UtestAclGraphParser, test_parse_acl_output_nodes) {
   ParerUTestsUtils::ClearParserInnerCtx();
   GetParserContext().type = domi::ONNX;
   std::map<AscendString, AscendString> out_nodes_mode_mixex_pre = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out1:0;Out2:1;Out_tensor_1;Out_tensor_2")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out1:0;Out2:1;Out_tensor_1;Out_tensor_2")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_mode_mixex_pre, graph_name);
   ASSERT_EQ(ret, PARAM_INVALID);
   EXPECT_EQ(ge::GetParserContext().user_out_nodes.size(), 2);
@@ -83,7 +81,7 @@ TEST_F(UtestAclGraphParser, test_parse_acl_output_nodes) {
   ParerUTestsUtils::ClearParserInnerCtx();
   GetParserContext().type = domi::ONNX;
   std::map<AscendString, AscendString> out_nodes_mode_mixex_mid = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out1:0;Out2:1;Out_tensor_2")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out1:0;Out2:1;Out_tensor_2")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_mode_mixex_mid, graph_name);
   ASSERT_EQ(ret, PARAM_INVALID);
   EXPECT_EQ(ge::GetParserContext().user_out_nodes.size(), 0);
@@ -94,17 +92,15 @@ TEST_F(UtestAclGraphParser, test_parse_acl_output_nodes) {
   ParerUTestsUtils::ClearParserInnerCtx();
   GetParserContext().type = domi::ONNX;
   std::map<AscendString, AscendString> out_nodes_mode_mixex_post = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2;Out1:0;Out2:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2;Out1:0;Out2:1")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_mode_mixex_post, graph_name);
   ASSERT_EQ(ret, PARAM_INVALID);
   EXPECT_EQ(ge::GetParserContext().user_out_nodes.size(), 0);
   EXPECT_EQ(ge::GetParserContext().out_nodes_map.size(), 0);
   EXPECT_EQ(ge::GetParserContext().user_out_tensors.size(), 2);
-
 }
 
-TEST_F(UtestAclGraphParser, test_CheckConflictOp)
-{
+TEST_F(UtestAclGraphParser, test_CheckConflictOp) {
   ge::ProtoFileParser op;
   std::string custom_file = "/dev/null";
   const char *caffe_proto_file = custom_file.c_str();
@@ -113,7 +109,8 @@ TEST_F(UtestAclGraphParser, test_CheckConflictOp)
   std::map<std::string, std::pair<int, string>> custom_op_identifier_map;
   custom_op_identifier_map.insert(std::make_pair("ge", std::make_pair(1, "ge")));
   caffe_op_identifier_map.insert(std::make_pair("ge", std::make_pair(1, "ge")));
-  EXPECT_NO_THROW(op.CheckConflictOp(caffe_proto_file, custom_proto_file, caffe_op_identifier_map, custom_op_identifier_map));
+  EXPECT_NO_THROW(
+      op.CheckConflictOp(caffe_proto_file, custom_proto_file, caffe_op_identifier_map, custom_op_identifier_map));
 
   caffe_op_identifier_map.clear();
   caffe_op_identifier_map.insert(std::make_pair("ge", std::make_pair(2, "ge")));
@@ -122,8 +119,7 @@ TEST_F(UtestAclGraphParser, test_CheckConflictOp)
   EXPECT_NE(op.custom_repeat_line_map_.size(), 0U);
 }
 
-TEST_F(UtestAclGraphParser, test_CheckConflictIdentifier)
-{
+TEST_F(UtestAclGraphParser, test_CheckConflictIdentifier) {
   ge::ProtoFileParser op;
   char *caffe_proto_file = "/dev/null";
   char *custom_proto_file = "/dev/null";
@@ -131,7 +127,8 @@ TEST_F(UtestAclGraphParser, test_CheckConflictIdentifier)
   std::map<int, std::pair<string, string>> custom_op_identifier_map;
   custom_op_identifier_map.insert(std::make_pair(1, std::make_pair("ge", "ge")));
   caffe_op_identifier_map.insert(std::make_pair(1, std::make_pair("ge", "ge")));
-  EXPECT_NO_THROW(op.CheckConflictIdentifier(caffe_proto_file, custom_proto_file, caffe_op_identifier_map, custom_op_identifier_map));
+  EXPECT_NO_THROW(op.CheckConflictIdentifier(caffe_proto_file, custom_proto_file, caffe_op_identifier_map,
+                                             custom_op_identifier_map));
 
   caffe_op_identifier_map.clear();
   caffe_op_identifier_map.insert(std::make_pair(1, std::make_pair("acl", "ge")));
@@ -140,8 +137,7 @@ TEST_F(UtestAclGraphParser, test_CheckConflictIdentifier)
   EXPECT_NE(op.custom_repeat_line_map_.size(), 0U);
 }
 
-TEST_F(UtestAclGraphParser, test_AddCustomAndConflictLayer)
-{
+TEST_F(UtestAclGraphParser, test_AddCustomAndConflictLayer) {
   Status ret;
   char *custom_proto_file = "../parser/parser/caffe/caffe_parser_internal.h";
   ge::ProtoFileParser op;
@@ -154,24 +150,24 @@ TEST_F(UtestAclGraphParser, test_AddCustomAndConflictLayer)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestAclGraphParser, test_FindConflictLine)
-{
+TEST_F(UtestAclGraphParser, test_FindConflictLine) {
   Status ret;
   ProtoFileParser op;
   int identifier = 0;
   std::string dest_line;
   string search_string("message=1,LayerParameter=1");
   string search_string1("optional=1 repeated=2 required=3 ");
-  ret = op.FindConflictLine("../tests/parser/ut/parser/testcase/common/acl_graph_parser_unittest.cc", identifier, dest_line);
+  ret = op.FindConflictLine("../tests/parser/ut/parser/testcase/common/acl_graph_parser_unittest.cc", identifier,
+                            dest_line);
   EXPECT_EQ(ret, FAILED);
 
   identifier = 1;
-  ret = op.FindConflictLine("../tests/parser/ut/parser/testcase/common/acl_graph_parser_unittest.cc", identifier, dest_line);
+  ret = op.FindConflictLine("../tests/parser/ut/parser/testcase/common/acl_graph_parser_unittest.cc", identifier,
+                            dest_line);
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestAclGraphParser, test_ParseProtoFile)
-{
+TEST_F(UtestAclGraphParser, test_ParseProtoFile) {
   Status ret;
   ProtoFileParser op;
   std::string dest_line;
@@ -182,8 +178,7 @@ TEST_F(UtestAclGraphParser, test_ParseProtoFile)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestAclGraphParser, test_AddCustomAndConflictMessage)
-{
+TEST_F(UtestAclGraphParser, test_AddCustomAndConflictMessage) {
   Status ret;
   ProtoFileParser op;
   std::ofstream write_tmp;
@@ -193,8 +188,7 @@ TEST_F(UtestAclGraphParser, test_AddCustomAndConflictMessage)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestAclGraphParser, test_RecordProtoMessage)
-{
+TEST_F(UtestAclGraphParser, test_RecordProtoMessage) {
   Status ret;
   ProtoFileParser op;
   std::string file = "../parser/parser/caffe/caffe_parser_internal.h";
@@ -203,9 +197,7 @@ TEST_F(UtestAclGraphParser, test_RecordProtoMessage)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-
-TEST_F(UtestAclGraphParser, test_WriteCaffeProtoFile)
-{
+TEST_F(UtestAclGraphParser, test_WriteCaffeProtoFile) {
   Status ret;
   ProtoFileParser op;
   std::string file = "../parser/parser/caffe/caffe_parser_internal.h";
@@ -216,8 +208,7 @@ TEST_F(UtestAclGraphParser, test_WriteCaffeProtoFile)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestAclGraphParser, test_CreatProtoFile)
-{
+TEST_F(UtestAclGraphParser, test_CreatProtoFile) {
   Status ret;
   ProtoFileParser op;
   op.fusion_proto_path = "/ge/ge/ge/ge.c";
@@ -225,8 +216,7 @@ TEST_F(UtestAclGraphParser, test_CreatProtoFile)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestAclGraphParser, test_Finalize)
-{
+TEST_F(UtestAclGraphParser, test_Finalize) {
   bool ret;
   bool is_train = true;
   ge::OpRegistrationTbe op;
@@ -235,8 +225,7 @@ TEST_F(UtestAclGraphParser, test_Finalize)
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(UtestAclGraphParser, test_WriteProtoFile)
-{
+TEST_F(UtestAclGraphParser, test_WriteProtoFile) {
   Status ret;
   ProtoFileParser op;
   char *caffe_proto_file = "/dev/null";
@@ -245,16 +234,14 @@ TEST_F(UtestAclGraphParser, test_WriteProtoFile)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestAclGraphParser, test_GraphPasses)
-{
+TEST_F(UtestAclGraphParser, test_GraphPasses) {
   std::vector<std::pair<std::string, GraphPass *>> v;
   ge::parser::PassManager manager;
   v = manager.GraphPasses();
   EXPECT_TRUE(v.empty());
 }
 
-TEST_F(UtestAclGraphParser, test_ClearHandles_)
-{
+TEST_F(UtestAclGraphParser, test_ClearHandles_) {
   Status ret;
   TBEPluginLoader loader;
   void *handle = dlopen("/lib/libdmmp.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
@@ -267,23 +254,22 @@ TEST_F(UtestAclGraphParser, test_ClearHandles_)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestAclGraphParser, test_operatoreq)
-{
-  float f_val1= 2139095000.2;
-  ge::parser::fp16_t fp16_1,fp16_2;
+TEST_F(UtestAclGraphParser, test_operatoreq) {
+  float f_val1 = 2139095000.2;
+  ge::parser::fp16_t fp16_1, fp16_2;
   fp16_1.operator=(fp16_2);
   fp16_1.operator=(f_val1);
 
-  float f_val2= 0.0000112;
+  float f_val2 = 0.0000112;
   fp16_1.operator=(f_val2);
 
-  float f_val3= 0.0000000299;
+  float f_val3 = 0.0000000299;
   fp16_1.operator=(f_val3);
 
-  float f_val4= 0.00000000299;
+  float f_val4 = 0.00000000299;
   fp16_1.operator=(f_val4);
 
-  uint32_t  u_val1 = 4095;
+  uint32_t u_val1 = 4095;
   fp16_1.operator=(u_val1);
 
   uint16_t u16_val1 = 4095;
@@ -300,7 +286,7 @@ TEST_F(UtestAclGraphParser, test_operatoreq)
 
   parser::fp16_t fp16;
   fp16.operator=(f_val1);
-  float f = fp16; //float();
+  float f = fp16;  // float();
   double d = fp16;
   int8_t int8 = fp16;
   uint8_t uint8 = fp16;
@@ -342,7 +328,7 @@ TEST_F(UtestAclGraphParser, test_operatoreq)
 TEST_F(UtestAclGraphParser, test_pre_checker) {
   TBEPluginLoader tbe_plugin;
   PreChecker::Instance().fmk_op_types_ = nullptr;
-  const char* str = "iiii";
+  const char *str = "iiii";
   PreChecker::OpId id = str;
   std::string type("ddd");
   std::string name("lll");
@@ -355,31 +341,28 @@ TEST_F(UtestAclGraphParser, test_pre_checker) {
 TEST_F(UtestAclGraphParser, test_ParseAclInputShape) {
   AclGraphParserUtil acl_graph_parse_util;
   std::map<AscendString, AscendString> param = {
-    {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:1, 2;input2:3")}};
+      {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:1, 2;input2:3")}};
   string graph_name;
   auto ret = acl_graph_parse_util.ParseParamsBeforeGraph(param, graph_name);
   ASSERT_EQ(ret, SUCCESS);
   EXPECT_EQ(ge::GetParserContext().input_dims.size(), 2);
 
-  std::map<AscendString, AscendString> param1 = {
-    {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("")}};
+  std::map<AscendString, AscendString> param1 = {{AscendString(ge::ir_option::INPUT_SHAPE), AscendString("")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(param1, graph_name);
   ASSERT_EQ(ret, SUCCESS);
   EXPECT_EQ(ge::GetParserContext().input_dims.size(), 0);
 
   std::map<AscendString, AscendString> param2 = {
-    {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:1, 2;input2:3,#")}};
+      {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:1, 2;input2:3,#")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(param2, graph_name);
   ASSERT_NE(ret, SUCCESS);
 
-  std::map<AscendString, AscendString> param3 = {
-    {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("-2")}};
+  std::map<AscendString, AscendString> param3 = {{AscendString(ge::ir_option::INPUT_SHAPE), AscendString("-2")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(param3, graph_name);
   ASSERT_NE(ret, SUCCESS);
 
-  std::map<AscendString, AscendString> param4 = {
-    {AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:")}};
+  std::map<AscendString, AscendString> param4 = {{AscendString(ge::ir_option::INPUT_SHAPE), AscendString("input1:")}};
   ret = acl_graph_parse_util.ParseParamsBeforeGraph(param4, graph_name);
   ASSERT_EQ(ret, SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

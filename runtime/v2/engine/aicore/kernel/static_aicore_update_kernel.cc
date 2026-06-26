@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,11 +28,12 @@ namespace gert {
 namespace kernel {
 namespace {
 ge::graphStatus UpdateManualCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, const gert::ContinuousVector *cmo_idx,
-    const gert::ContinuousVector *ctx_id_vec, const AICoreSubTaskFlush *flush_data, size_t type) {
+                                       const gert::ContinuousVector *ctx_id_vec, const AICoreSubTaskFlush *flush_data,
+                                       size_t type) {
   const size_t idx_num = cmo_idx->GetSize();
   auto idx_vec = reinterpret_cast<const int32_t *>(cmo_idx->GetData());
   auto ctx_vec = reinterpret_cast<const uint32_t *>(ctx_id_vec->GetData());
-  rtFftsPlusComCtx_t *context_head = reinterpret_cast<rtFftsPlusComCtx_t*>(const_cast<void*>(task_info->descBuf));
+  rtFftsPlusComCtx_t *context_head = reinterpret_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;
   for (size_t j = 0U; j < idx_num; ++j) {
     int32_t io_index = idx_vec[j];
@@ -49,7 +50,7 @@ ge::graphStatus UpdateManualCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, co
     uint64_t para_base = addr_base_vv[io_index][0U];
     GELOGD("Update data context [%u] for io index: %d with address: %lx.", ctx_id, io_index, para_base);
     FE_ASSERT_TRUE(para_base != 0U);
-    auto data_ctx = reinterpret_cast<rtFftsPlusDataCtx_t*>(context_head + ctx_id);
+    auto data_ctx = reinterpret_cast<rtFftsPlusDataCtx_t *>(context_head + ctx_id);
     SetLow32FromSrc(data_ctx->addressBaseL, para_base);
     SetHigh32FromSrc(data_ctx->addressBaseH, para_base);
   }
@@ -57,17 +58,17 @@ ge::graphStatus UpdateManualCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, co
 }
 
 ge::graphStatus UpdateStaticCmoProc(const KernelContext *context, const rtFftsPlusTaskInfo_t *task_info,
-    const AICoreSubTaskFlush *flush_data) {
+                                    const AICoreSubTaskFlush *flush_data) {
   for (size_t i = 0U; i < kMaxCmoType; ++i) {
-    auto cmo_idx = context->GetInputPointer<gert::ContinuousVector>(
-        static_cast<size_t>(StaUpdateKey::PREFETCH_IDX) + (i << 1));
+    auto cmo_idx =
+        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(StaUpdateKey::PREFETCH_IDX) + (i << 1));
     FE_ASSERT_NOTNULL(cmo_idx);
     const size_t idx_num = cmo_idx->GetSize();
     if (idx_num == 0U) {
       continue;
     }
-    auto ctx_id_vec = context->GetInputPointer<gert::ContinuousVector>(
-        static_cast<size_t>(StaUpdateKey::PREFETCH_CTX) + (i << 1));
+    auto ctx_id_vec =
+        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(StaUpdateKey::PREFETCH_CTX) + (i << 1));
     FE_ASSERT_NOTNULL(ctx_id_vec);
     if (ctx_id_vec->GetSize() != idx_num) {
       GELOGE(ge::FAILED, "Cmo index num[%zu] not equal with ctx id num[%zu].", idx_num, ctx_id_vec->GetSize());
@@ -103,7 +104,7 @@ ge::graphStatus StaManualUpdateContext(KernelContext *context) {
   KLOGD("Update AICore static node begin.");
   auto flush_data = context->GetInputPointer<AICoreSubTaskFlush>(static_cast<size_t>(StaUpdateKey::FLUSH_DATA));
   FE_ASSERT_NOTNULL(flush_data);
-  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t*>(static_cast<size_t>(StaUpdateKey::TASK_INFO));
+  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t *>(static_cast<size_t>(StaUpdateKey::TASK_INFO));
   FE_ASSERT_NOTNULL(task_info);
   FE_ASSERT_NOTNULL(task_info->descBuf);
   FE_ASSERT_NOTNULL(task_info->fftsPlusSqe);
@@ -112,21 +113,21 @@ ge::graphStatus StaManualUpdateContext(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
   auto context_id = context->GetInputValue<uint32_t>(static_cast<size_t>(StaUpdateKey::AICORE_CTX));
-  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t*>(const_cast<void*>(task_info->descBuf));
+  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;
   if (context_id >= total_num) {
     KLOGE("Context Id(%u) overflow with %u.", context_id, total_num);
     return ge::GRAPH_FAILED;
   }
-  auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(context_head + context_id);
+  auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(context_head + context_id);
   FE_ASSERT_NOTNULL(ctx);
   UpdateStaticAicAivCtx(ctx, flush_data);
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(StaManualUpdateContext).RunFunc(StaManualUpdateContext);
 
-inline void InitCtxIoAddrs(size_t index, const void *addr, size_t in_num,
-    AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data) {
+inline void InitCtxIoAddrs(size_t index, const void *addr, size_t in_num, AICoreSubTaskFlush *flush_data,
+                           uintptr_t *args_host_data) {
   const uintptr_t data_base = ge::PtrToValue(addr);
   if (index < in_num) {
     flush_data->input_addr_vv[index][0U] = data_base;
@@ -146,7 +147,7 @@ ge::graphStatus FFTSUpdateStaAICoreArgs(KernelContext *context) {
   FE_ASSERT_NOTNULL(workspace);
   auto sink_ret = context->GetInputPointer<AICoreSinkRet>(static_cast<size_t>(StaArgsInKey::SINK_RET));
   FE_ASSERT_NOTNULL(sink_ret);
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(StaArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(StaArgsInKey::ARGS_PARA));
   FE_ASSERT_NOTNULL(args_para);
   auto in_num = context->GetInputValue<size_t>(static_cast<size_t>(StaArgsInKey::IN_NUM));
   auto out_num = context->GetInputValue<size_t>(static_cast<size_t>(StaArgsInKey::OUT_NUM));
@@ -168,19 +169,19 @@ ge::graphStatus FFTSUpdateStaAICoreArgs(KernelContext *context) {
   size_t real_size = flush_data->param_ptr_offset * sizeof(uintptr_t);
   FE_ASSERT_TRUE(real_size <= rt_args->GetArgsCap(RtFFTSKernelLaunchArgs::kArgsHostAddr));
   GELOGD("Host real size is [%zu], with a maximum size of [%zu].", real_size, args_para->size);
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   FE_ASSERT_NOTNULL(args_base_addr);
   size_t args_pos = rt_args->GetArgsPos();
   uintptr_t *args_host_data = &args_base_addr[args_pos];
   size_t args_abs_pos = rt_args->GetArgsAbsPos();
-  flush_data->args_base = static_cast<void*>(&(static_cast<uint8_t*>(args_para->dev_addr)[args_abs_pos]));
+  flush_data->args_base = static_cast<void *>(&(static_cast<uint8_t *>(args_para->dev_addr)[args_abs_pos]));
   GELOGD("Args: host_pos[%zu], absolute_pos[%zu], rtArgs: base[%lx], device_args_addr[%lx].", args_pos, args_abs_pos,
          args_para->host_addr, flush_data->args_base);
   size_t arg_index = 0U;
   // input + output
   for (size_t input_i = 0U; input_i < io_num; ++input_i) {
-    auto tensor_data = context->GetInputValue<gert::GertTensorData *>(
-        static_cast<size_t>(StaArgsInKey::IO_START) + input_i);
+    auto tensor_data =
+        context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(StaArgsInKey::IO_START) + input_i);
     FE_ASSERT_NOTNULL(tensor_data);
     InitCtxIoAddrs(arg_index, tensor_data->GetAddr(), in_num, flush_data, args_host_data);
     arg_index++;
@@ -209,8 +210,8 @@ ge::graphStatus StaticUpdateManualGeDataDumpInfo(const KernelContext *context, g
   std::vector<uint64_t> input_shapes_size_vec;
   std::vector<uint64_t> output_shapes_size_vec;
   for (size_t i = 0; i < io_num; ++i) {
-    uint64_t shape_size = static_cast<uint64_t>(
-        context->GetInputValue<size_t>(static_cast<size_t>(ManualDataDumpKey::IO_START) + i));
+    uint64_t shape_size =
+        static_cast<uint64_t>(context->GetInputValue<size_t>(static_cast<size_t>(ManualDataDumpKey::IO_START) + i));
     if (i < in_num) {
       input_shapes_size_vec.emplace_back(shape_size);
     } else {
@@ -247,8 +248,9 @@ ge::graphStatus StaticUpdateManualDataDumpInfo(KernelContext *context) {
   (void)context;
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(StaticUpdateManualDataDumpInfo).RunFunc(StaticUpdateManualDataDumpInfo).
-    DataDumpInfoFiller(StaticUpdateManualGeDataDumpInfo);
+REGISTER_KERNEL(StaticUpdateManualDataDumpInfo)
+    .RunFunc(StaticUpdateManualDataDumpInfo)
+    .DataDumpInfoFiller(StaticUpdateManualGeDataDumpInfo);
 
 ge::graphStatus StaticManualUpdateGeExceptionDumpInfo(const KernelContext *context,
                                                       gert::ExceptionDumpInfoWrapper &wrapper) {
@@ -261,13 +263,13 @@ ge::graphStatus StaticManualUpdateGeExceptionDumpInfo(const KernelContext *conte
     FE_ASSERT_NOTNULL(workspace_addrs_data[i]);
     uintptr_t workspace_addr = static_cast<uintptr_t>(ge::PtrToValue(workspace_addrs_data[i]->GetAddr()));
     int64_t addr_size = static_cast<int64_t>(workspace_addrs_data[i]->GetSize());
-    GELOGD("Add workspace, index: %zu, workspace address: %lu, address size: %ld, work size: %zu.",
-           i, static_cast<uint64_t>(workspace_addr), addr_size, work_size);
+    GELOGD("Add workspace, index: %zu, workspace address: %lu, address size: %ld, work size: %zu.", i,
+           static_cast<uint64_t>(workspace_addr), addr_size, work_size);
     wrapper.AddWorkspace(workspace_addr, addr_size);
   }
 
   // args
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(ManualExceptionDumpKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(ManualExceptionDumpKey::ARGS_PARA));
   FE_ASSERT_NOTNULL(args_para);
   FE_ASSERT_NOTNULL(args_para->host_addr);
   auto rt_args_host_addr = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
@@ -284,8 +286,9 @@ ge::graphStatus StaticManualUpdateExceptionDumpInfo(KernelContext *context) {
   (void)context;
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(StaticManualUpdateExceptionDumpInfo).RunFunc(StaticManualUpdateExceptionDumpInfo).
-    ExceptionDumpInfoFiller(StaticManualUpdateGeExceptionDumpInfo);
+REGISTER_KERNEL(StaticManualUpdateExceptionDumpInfo)
+    .RunFunc(StaticManualUpdateExceptionDumpInfo)
+    .ExceptionDumpInfoFiller(StaticManualUpdateGeExceptionDumpInfo);
 
 ge::graphStatus CreateStaticFlushData(const ge::FastNode *node, KernelContext *context) {
   (void)node;
@@ -296,14 +299,14 @@ ge::graphStatus CreateStaticFlushData(const ge::FastNode *node, KernelContext *c
 }
 
 std::string PrintStaticArgs(const KernelContext *context) {
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(StaArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(StaArgsInKey::ARGS_PARA));
   if (args_para == nullptr) {
     return "Launch manual args pointer is null.";
   }
   auto rt_args = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
   std::stringstream ss;
   ss << "All args: ";
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   size_t print_size = (rt_args->GetAtomTilingAbsPos() - rt_args->GetArgsAbsPos()) / sizeof(TensorAddress);
   PrintHex(args_base_addr + rt_args->GetArgsPos(), print_size, ss);
   return ss.str();
@@ -317,16 +320,19 @@ std::vector<std::string> PrintStaticAICoreArgs(const KernelContext *context) {
   msgs.emplace_back(PrintStaticArgs(context));
   return msgs;
 }
-REGISTER_KERNEL(FFTSUpdateStaAICoreArgs).RunFunc(FFTSUpdateStaAICoreArgs).OutputsCreator(CreateStaticFlushData).
-    TracePrinter(PrintStaticAICoreArgs).ConcurrentCriticalSectionKey(kKernelUseMemory);
+REGISTER_KERNEL(FFTSUpdateStaAICoreArgs)
+    .RunFunc(FFTSUpdateStaAICoreArgs)
+    .OutputsCreator(CreateStaticFlushData)
+    .TracePrinter(PrintStaticAICoreArgs)
+    .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
-void InitAutoIoAddrs(size_t index, const void *addr, const uint64_t *offset_vec,
-                     AICoreSubTaskFlush *flush_data, AutoArgProc &proc_arg) {
+void InitAutoIoAddrs(size_t index, const void *addr, const uint64_t *offset_vec, AICoreSubTaskFlush *flush_data,
+                     AutoArgProc &proc_arg) {
   const uintptr_t data_base = ge::PtrToValue(addr);
   for (uint32_t i = 0U; i < flush_data->thread_dim; ++i) {
     const size_t ctx_io_idx = (flush_data->param_ptr_offset * i) + index;
-    GELOGD("Addr_base: 0x%lx, addr_index: %zu, thread index: %u, thread addr offset: 0x%lx, args index: %zu",
-           data_base, index, i, offset_vec[index], ctx_io_idx);
+    GELOGD("Addr_base: 0x%lx, addr_index: %zu, thread index: %u, thread addr offset: 0x%lx, args index: %zu", data_base,
+           index, i, offset_vec[index], ctx_io_idx);
     proc_arg.args_host_data[ctx_io_idx] = (data_base + (offset_vec[index] * i));
     if (index < proc_arg.in_num) {
       flush_data->input_addr_vv[index][i] = data_base;
@@ -337,13 +343,13 @@ void InitAutoIoAddrs(size_t index, const void *addr, const uint64_t *offset_vec,
 }
 
 bool InitAutoWorkAddrs(size_t index, const memory::FftsMemBlock *ffts_mem, AICoreSubTaskFlush *flush_data,
-                                  uintptr_t *args_host_data) {
+                       uintptr_t *args_host_data) {
   for (uint32_t i = 0U; i < flush_data->thread_dim; ++i) {
     const size_t ctx_io_idx = (flush_data->param_ptr_offset * i) + index;
     FE_ASSERT_NOTNULL(ffts_mem->Addr(i));
     args_host_data[ctx_io_idx] = ge::PtrToValue(ffts_mem->Addr(i));
-    GELOGD("Addr_base: 0x%lx, addr_index: %zu, thread index: %u, args index: %zu",
-           args_host_data[ctx_io_idx], index, i, ctx_io_idx);
+    GELOGD("Addr_base: 0x%lx, addr_index: %zu, thread index: %u, args index: %zu", args_host_data[ctx_io_idx], index, i,
+           ctx_io_idx);
   }
   return true;
 }
@@ -353,7 +359,7 @@ ge::graphStatus FFTSUpdateAutoAICoreArgs(KernelContext *context) {
   FE_ASSERT_NOTNULL(workspace);
   auto sink_ret = context->GetInputPointer<AICoreSinkRet>(static_cast<size_t>(AutoArgsInKey::SINK_RET));
   FE_ASSERT_NOTNULL(sink_ret);
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AutoArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AutoArgsInKey::ARGS_PARA));
   FE_ASSERT_NOTNULL(args_para);
   auto thread_dim = context->GetInputValue<uint32_t>(static_cast<size_t>(AutoArgsInKey::THREAD_DIM));
   auto window_size = context->GetInputValue<uint32_t>(static_cast<size_t>(AutoArgsInKey::WINDOW_SIZE));
@@ -386,19 +392,19 @@ ge::graphStatus FFTSUpdateAutoAICoreArgs(KernelContext *context) {
   size_t real_size = flush_data->param_ptr_offset * thread_dim * sizeof(uintptr_t);
   FE_ASSERT_TRUE(real_size <= rt_args->GetArgsCap(RtFFTSKernelLaunchArgs::kArgsHostAddr));
   GELOGD("Host real size is [%zu], with a maximum size of [%zu].", real_size, args_para->size);
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   FE_ASSERT_NOTNULL(args_base_addr);
   size_t args_pos = rt_args->GetArgsPos();
   proc_arg.args_host_data = &args_base_addr[args_pos];
   size_t args_abs_pos = rt_args->GetArgsAbsPos();
-  flush_data->args_base = static_cast<void*>(&(static_cast<uint8_t*>(args_para->dev_addr)[args_abs_pos]));
+  flush_data->args_base = static_cast<void *>(&(static_cast<uint8_t *>(args_para->dev_addr)[args_abs_pos]));
   GELOGD("Args: host_pos[%zu], absolute_pos[%zu], rtArgs: base[%lx], device_args_addr[%lx].", args_pos, args_abs_pos,
          args_para->host_addr, flush_data->args_base);
   auto offset_vec = reinterpret_cast<const uint64_t *>(offset->GetData());
   // input + output
   for (size_t input_i = 0U; input_i < io_num; ++input_i) {
-    auto tensor_data = context->GetInputValue<gert::GertTensorData *>(
-        static_cast<size_t>(AutoArgsInKey::IO_START) + input_i);
+    auto tensor_data =
+        context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(AutoArgsInKey::IO_START) + input_i);
     FE_ASSERT_NOTNULL(tensor_data);
     FE_ASSERT_NOTNULL(tensor_data->GetAddr());
     InitAutoIoAddrs(input_i, tensor_data->GetAddr(), offset_vec, flush_data, proc_arg);
@@ -415,8 +421,7 @@ ge::graphStatus FFTSUpdateAutoAICoreArgs(KernelContext *context) {
 inline ge::graphStatus GetAddrSizeAndOffset(size_t input_i, bool is_input, size_t index, uint32_t thread_dim,
                                             uint32_t thread_id, const std::vector<uint64_t> &input_orishapes_size_vec,
                                             const std::vector<uint64_t> &output_orishapes_size_vec,
-                                            const uint64_t *offset_vec,
-                                            uint64_t &addr_size, uint64_t &offset) {
+                                            const uint64_t *offset_vec, uint64_t &addr_size, uint64_t &offset) {
   if (offset_vec[input_i] == 0) {
     // no slice, addr_size is ori_shape size
     addr_size = is_input ? input_orishapes_size_vec[index] : output_orishapes_size_vec[index];
@@ -427,8 +432,8 @@ inline ge::graphStatus GetAddrSizeAndOffset(size_t input_i, bool is_input, size_
       uint64_t orishape_size = is_input ? input_orishapes_size_vec[index] : output_orishapes_size_vec[index];
       uint64_t non_tail_shapes_size = (thread_dim - 1) * offset_vec[input_i];
       if (orishape_size < non_tail_shapes_size) {
-        GELOGE(ge::FAILED, "Orishape_size[%lu] smaller than non_tail_shapes_size[%lu].",
-               orishape_size, non_tail_shapes_size);
+        GELOGE(ge::FAILED, "Orishape_size[%lu] smaller than non_tail_shapes_size[%lu].", orishape_size,
+               non_tail_shapes_size);
         return ge::GRAPH_FAILED;
       }
       addr_size = orishape_size - non_tail_shapes_size;
@@ -463,24 +468,24 @@ ge::graphStatus StaticUpdateAutoGeDataDumpInfo(const KernelContext *context, ger
 
   auto ctx_ids = context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(AutoDataDumpKey::AICORE_CTX));
   FE_ASSERT_NOTNULL(ctx_ids);
-  auto ctx_id_vec = reinterpret_cast<const int32_t*>(ctx_ids->GetData());
+  auto ctx_id_vec = reinterpret_cast<const int32_t *>(ctx_ids->GetData());
 
   size_t io_num = in_num + out_num;
   std::vector<uint64_t> input_orishapes_size_vec;
   std::vector<uint64_t> output_orishapes_size_vec;
   for (size_t i = 0; i < io_num; ++i) {
-    uint64_t shape_size = static_cast<uint64_t>(
-        context->GetInputValue<size_t>(static_cast<size_t>(AutoDataDumpKey::IO_START) + i));
+    uint64_t shape_size =
+        static_cast<uint64_t>(context->GetInputValue<size_t>(static_cast<size_t>(AutoDataDumpKey::IO_START) + i));
     if (i < in_num) {
       input_orishapes_size_vec.emplace_back(shape_size);
     } else {
       output_orishapes_size_vec.emplace_back(shape_size);
     }
   }
-  size_t  ctx_id_vec_size = ctx_ids->GetSize();
+  size_t ctx_id_vec_size = ctx_ids->GetSize();
   if (ctx_id_vec_size <= (static_cast<size_t>((thread_dim - 1) % window_size))) {
-    GELOGE(ge::FAILED, "Ctx_id_vec size(%zu) error, thread_dim is %u, window_size is %u.",
-           ctx_id_vec_size, thread_dim, window_size);
+    GELOGE(ge::FAILED, "Ctx_id_vec size(%zu) error, thread_dim is %u, window_size is %u.", ctx_id_vec_size, thread_dim,
+           window_size);
     return ge::GRAPH_FAILED;
   }
   for (uint32_t thread_id = 0; thread_id < thread_dim; ++thread_id) {
@@ -519,8 +524,9 @@ ge::graphStatus StaticUpdateAutoDataDumpInfo(KernelContext *context) {
   (void)context;
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(StaticUpdateAutoDataDumpInfo).RunFunc(StaticUpdateAutoDataDumpInfo).
-    DataDumpInfoFiller(StaticUpdateAutoGeDataDumpInfo);
+REGISTER_KERNEL(StaticUpdateAutoDataDumpInfo)
+    .RunFunc(StaticUpdateAutoDataDumpInfo)
+    .DataDumpInfoFiller(StaticUpdateAutoGeDataDumpInfo);
 
 ge::graphStatus StaticAutoUpdateGeExceptionDumpInfo(const KernelContext *context,
                                                     gert::ExceptionDumpInfoWrapper &wrapper) {
@@ -547,12 +553,12 @@ ge::graphStatus StaticAutoUpdateGeExceptionDumpInfo(const KernelContext *context
   }
 
   // args
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AutoExceptionDumpKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AutoExceptionDumpKey::ARGS_PARA));
   FE_ASSERT_NOTNULL(args_para);
   FE_ASSERT_NOTNULL(args_para->host_addr);
   auto rt_args = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
-  uintptr_t args_addr = static_cast<uintptr_t>(
-      ge::PtrToValue(rt_args->GetArgsPointer<uintptr_t>(RtFFTSKernelLaunchArgs::kArgsHostAddr)));
+  uintptr_t args_addr =
+      static_cast<uintptr_t>(ge::PtrToValue(rt_args->GetArgsPointer<uintptr_t>(RtFFTSKernelLaunchArgs::kArgsHostAddr)));
   size_t args_size = rt_args->GetArgsCap(RtFFTSKernelLaunchArgs::kArgsHostAddr);
   GELOGD("Add host arguments, args_addr: %lu, args_size: %zu.", static_cast<uint64_t>(args_addr), args_size);
   wrapper.SetHostArgs(args_addr, args_size);
@@ -564,18 +570,19 @@ ge::graphStatus StaticAutoUpdateExceptionDumpInfo(KernelContext *context) {
   (void)context;
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(StaticAutoUpdateExceptionDumpInfo).RunFunc(StaticAutoUpdateExceptionDumpInfo).
-    ExceptionDumpInfoFiller(StaticAutoUpdateGeExceptionDumpInfo);
+REGISTER_KERNEL(StaticAutoUpdateExceptionDumpInfo)
+    .RunFunc(StaticAutoUpdateExceptionDumpInfo)
+    .ExceptionDumpInfoFiller(StaticAutoUpdateGeExceptionDumpInfo);
 
 std::string PrintAutoStaticArgs(const KernelContext *context) {
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AutoArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AutoArgsInKey::ARGS_PARA));
   if (args_para == nullptr) {
     return "Launch auto args pointer is null.";
   }
   auto rt_args = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
   std::stringstream ss;
   ss << "All args: ";
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   PrintHex(args_base_addr, rt_args->GetArgsSize() / sizeof(TensorAddress), ss);
   return ss.str();
 }
@@ -588,15 +595,18 @@ std::vector<std::string> PrintStaticAutoAICoreArgs(const KernelContext *context)
   msgs.emplace_back(PrintAutoStaticArgs(context));
   return msgs;
 }
-REGISTER_KERNEL(FFTSUpdateAutoAICoreArgs).RunFunc(FFTSUpdateAutoAICoreArgs).OutputsCreator(CreateStaticFlushData).
-    TracePrinter(PrintStaticAutoAICoreArgs);
+REGISTER_KERNEL(FFTSUpdateAutoAICoreArgs)
+    .RunFunc(FFTSUpdateAutoAICoreArgs)
+    .OutputsCreator(CreateStaticFlushData)
+    .TracePrinter(PrintStaticAutoAICoreArgs);
 
 ge::graphStatus UpdateAutoCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, const gert::ContinuousVector *cmo_idx,
-    const gert::ContinuousVector *ctx_id_vec, const AICoreSubTaskFlush *flush_data, size_t type) {
+                                     const gert::ContinuousVector *ctx_id_vec, const AICoreSubTaskFlush *flush_data,
+                                     size_t type) {
   const size_t idx_num = cmo_idx->GetSize();
   auto idx_vec = reinterpret_cast<const int32_t *>(cmo_idx->GetData());
   auto ctx_vec = reinterpret_cast<const uint32_t *>(ctx_id_vec->GetData());
-  rtFftsPlusComCtx_t *context_head = reinterpret_cast<rtFftsPlusComCtx_t*>(const_cast<void*>(task_info->descBuf));
+  rtFftsPlusComCtx_t *context_head = reinterpret_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;
   for (size_t j = 0U; j < idx_num; ++j) {
     int32_t io_index = idx_vec[j];
@@ -614,7 +624,7 @@ ge::graphStatus UpdateAutoCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, cons
         GELOGE(ge::FAILED, "Data ctx[%u] over total num[%u].", ctx_id, total_num);
         return ge::GRAPH_FAILED;
       }
-      auto data_ctx = reinterpret_cast<rtFftsPlusDataCtx_t*>(context_head + ctx_id);
+      auto data_ctx = reinterpret_cast<rtFftsPlusDataCtx_t *>(context_head + ctx_id);
       SetLow32FromSrc(data_ctx->addressBaseL, para_base);
       SetHigh32FromSrc(data_ctx->addressBaseH, para_base);
     }
@@ -623,17 +633,17 @@ ge::graphStatus UpdateAutoCmoCtxProc(const rtFftsPlusTaskInfo_t *task_info, cons
 }
 
 ge::graphStatus UpdateStaticAutoCmoProc(const KernelContext *context, const rtFftsPlusTaskInfo_t *task_info,
-    const AICoreSubTaskFlush *flush_data) {
+                                        const AICoreSubTaskFlush *flush_data) {
   for (size_t i = 0U; i < kMaxCmoType; ++i) {
-    auto cmo_idx = context->GetInputPointer<gert::ContinuousVector>(
-        static_cast<size_t>(AutoUpdateKey::PREFETCH_IDX) + (i << 1));
+    auto cmo_idx =
+        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(AutoUpdateKey::PREFETCH_IDX) + (i << 1));
     FE_ASSERT_NOTNULL(cmo_idx);
     const size_t idx_num = cmo_idx->GetSize();
     if (idx_num == 0U) {
       continue;
     }
-    auto ctx_id_vec = context->GetInputPointer<gert::ContinuousVector>(
-        static_cast<size_t>(AutoUpdateKey::PREFETCH_CTX) + (i << 1));
+    auto ctx_id_vec =
+        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(AutoUpdateKey::PREFETCH_CTX) + (i << 1));
     FE_ASSERT_NOTNULL(ctx_id_vec);
     if (ctx_id_vec->GetSize() != (idx_num * flush_data->window_size)) {
       GELOGE(ge::FAILED, "Cmo index num[%zu] not equal with ctx id num[%zu].", idx_num, ctx_id_vec->GetSize());
@@ -650,7 +660,7 @@ ge::graphStatus StaAutoUpdateContext(KernelContext *context) {
   KLOGD("Update AICore static auto node begin.");
   auto flush_data = context->GetInputPointer<AICoreSubTaskFlush>(static_cast<size_t>(AutoUpdateKey::FLUSH_DATA));
   FE_ASSERT_NOTNULL(flush_data);
-  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t*>(static_cast<size_t>(AutoUpdateKey::TASK_INFO));
+  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t *>(static_cast<size_t>(AutoUpdateKey::TASK_INFO));
   FE_ASSERT_NOTNULL(task_info);
   FE_ASSERT_NOTNULL(task_info->descBuf);
   FE_ASSERT_NOTNULL(task_info->fftsPlusSqe);
@@ -660,17 +670,17 @@ ge::graphStatus StaAutoUpdateContext(KernelContext *context) {
   }
   auto ctx_ids = context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(AutoUpdateKey::AICORE_CTX));
   FE_ASSERT_NOTNULL(ctx_ids);
-  auto ctx_id_vec = reinterpret_cast<const int32_t*>(ctx_ids->GetData());
+  auto ctx_id_vec = reinterpret_cast<const int32_t *>(ctx_ids->GetData());
   const size_t ctx_num = ctx_ids->GetSize();
   uint64_t paraBase = reinterpret_cast<uintptr_t>(flush_data->args_base);
-  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t*>(const_cast<void*>(task_info->descBuf));
+  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;
   for (size_t idx = 0U; idx < ctx_num; ++idx) {
     if (ctx_id_vec[idx] >= total_num) {
       KLOGE("Context Id(%d) overflow.", ctx_id_vec[idx]);
       return ge::GRAPH_FAILED;
     }
-    auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(context_head + ctx_id_vec[idx]);
+    auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(context_head + ctx_id_vec[idx]);
     FE_ASSERT_NOTNULL(ctx);
     GELOGD("Update context id %d", ctx_id_vec[idx]);
     UpdateStaAicAivCtx(ctx, flush_data, paraBase);

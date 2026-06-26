@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,30 +76,30 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
    */
   Status Finalize() override;
 
-  Status FinalizeSessionInfo(const std::string& session_graph_id) override;
+  Status FinalizeSessionInfo(const std::string &session_graph_id) override;
 
-  bool CheckSupport(const ge::NodePtr &node, CheckSupportParam &check_param,
-                    const bool &is_dynamic_impl, std::string &reason) override;
+  bool CheckSupport(const ge::NodePtr &node, CheckSupportParam &check_param, const bool &is_dynamic_impl,
+                    std::string &reason) override;
 
   Status GetLXOpCoreType(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
                          const bool &is_dynamic_impl, std::string &lx_op_core_type_str) override;
 
-  Status SelectOpFormat(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
-                        const bool &is_dynamic_impl, const HeavyFormatInfo &heavy_format_info,
-                        std::string &op_format_dtype_str) override;
+  Status SelectOpFormat(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr, const bool &is_dynamic_impl,
+                        const HeavyFormatInfo &heavy_format_info, std::string &op_format_dtype_str) override;
 
   Status SetTbeOpSliceInfo(const ge::NodePtr &node_ptr, OpKernelInfoPtr &op_kernel_info_ptr) override;
 
   Status GeneralizeNode(const ge::NodePtr &node, const te::TbeOpInfo &op_info,
-    te::TE_GENERALIZE_TYPE generalize_type) override;
+                        te::TE_GENERALIZE_TYPE generalize_type) override;
 
   bool GetSpecificInfo(const te::TbeOpInfo &tbe_op_info, std::string &opSpecificInfo);
 
-  Status GetRangeLimitType(const ge::NodePtr &node_ptr,
-                           const te::TbeOpInfo &tbe_op_info, bool &is_limited) const override;
+  Status GetRangeLimitType(const ge::NodePtr &node_ptr, const te::TbeOpInfo &tbe_op_info,
+                           bool &is_limited) const override;
 
   Status LimitedNodesCheck(bool &is_support, const te::TbeOpInfo &tbe_op_info,
-      std::vector<size_t> &upper_limited_input_indexs, std::vector<size_t> &lower_limited_input_indexs) override;
+                           std::vector<size_t> &upper_limited_input_indexs,
+                           std::vector<size_t> &lower_limited_input_indexs) override;
 
   Status IsGeneralizeFuncRegistered(bool &is_registered, const te::TbeOpInfo &op_info) override;
 
@@ -108,11 +108,9 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
 
   Status FeedNodeGeneralInfo(const ge::NodePtr &node_ptr, NodeGeneralInfoPtr &node_info_ptr) const override;
 
-  Status FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node_ptr,
-                                        NodeGeneralInfoPtr &node_info_ptr) const override;
+  Status FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node_ptr, NodeGeneralInfoPtr &node_info_ptr) const override;
 
-  Status GetRangeLimit(const NodeGeneralInfoPtr &node_info_ptr,
-                       const ge::NodePtr &node_ptr) const override;
+  Status GetRangeLimit(const NodeGeneralInfoPtr &node_info_ptr, const ge::NodePtr &node_ptr) const override;
 
   Status GetDynamicPromoteType(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
                                std::string &promote_str) const override;
@@ -141,14 +139,16 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
   function<bool(te::TbeOpInfo &, te::CheckSupportedInfo &)> CheckTbeSupported{nullptr};
   function<bool(te::TbeOpInfo &, uint64_t, uint64_t)> PreBuildTbeOp{nullptr};
   function<te::OpBuildResCode(std::vector<ge::Node *>, ge::OpDescPtr, const std::vector<ge::NodePtr> &, uint64_t,
-                              uint64_t, const std::string &)> TeFusion{nullptr};
+                              uint64_t, const std::string &)>
+      TeFusion{nullptr};
   function<te::OpBuildResCode(std::vector<ge::Node *>, ge::OpDescPtr, const std::vector<ge::NodePtr> &, uint64_t,
-                              uint64_t, uint64_t, const std::string &)> TeFusionV{nullptr};
+                              uint64_t, uint64_t, const std::string &)>
+      TeFusionV{nullptr};
   function<te::OpBuildResCode(uint64_t, uint64_t, ge::Node &)> FuzzBuildTbeOp{nullptr};
-  function<te::OpBuildResCode(const std::vector<ge::Node *> &, ge::OpDescPtr,
-                              uint64_t, uint64_t)> TaskFusionFunc{nullptr};
-  function<te::OpBuildResCode(const std::vector<ge::Node *> &, ge::OpDescPtr,
-                              uint64_t, uint64_t)> BuildSuperKernel{nullptr};
+  function<te::OpBuildResCode(const std::vector<ge::Node *> &, ge::OpDescPtr, uint64_t, uint64_t)> TaskFusionFunc{
+      nullptr};
+  function<te::OpBuildResCode(const std::vector<ge::Node *> &, ge::OpDescPtr, uint64_t, uint64_t)> BuildSuperKernel{
+      nullptr};
   function<te::LX_QUERY_STATUS(const te::TbeOpInfo &, std::string &)> GetOpInfo{nullptr};
   function<bool(const std::map<std::string, std::string> &, bool *)> TbeInitialize{nullptr};
   function<bool()> TbeFinalize{nullptr};
@@ -158,8 +158,8 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
   function<bool(const te::TbeOpInfo &, const te::TE_GENERALIZE_TYPE &, const ge::NodePtr &)> TeGeneralize{nullptr};
   function<bool(const te::TbeOpInfo &, std::string &)> GetOpSpecificInfo{nullptr};
   function<bool(const te::TbeOpInfo &, std::vector<std::string> &)> GetOpUniqueKeyFunc{nullptr};
-  function<bool(const te::TbeOpInfo &, bool &, std::vector<size_t> &, std::vector<size_t> &)>
-    DynamicShapeRangeCheck{nullptr};
+  function<bool(const te::TbeOpInfo &, bool &, std::vector<size_t> &, std::vector<size_t> &)> DynamicShapeRangeCheck{
+      nullptr};
   function<bool(std::vector<std::pair<std::string, std::string>> &)> QueryOpPattern{nullptr};
   function<void(std::vector<std::string> &)> GetAllCompileStatistics{nullptr};
   function<bool(bool, int64_t)> IsOppKernelInstalled{nullptr};
@@ -192,8 +192,8 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
   bool CheckUnsupportReason(const ge::NodePtr &node, const std::string &reason,
                             te::CheckSupportedResult &is_supported) const;
 
-  Status SetOpCompileResult(const int64_t scope_id, const ge::OpDescPtr &compile_op_desc,
-                            const bool is_replace, CompileResultMap &compile_ret_map) const;
+  Status SetOpCompileResult(const int64_t scope_id, const ge::OpDescPtr &compile_op_desc, const bool is_replace,
+                            CompileResultMap &compile_ret_map) const;
 
   Status ParallelCompileOp(CompileInfoParam &compile_info);
 
@@ -210,7 +210,7 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
                                       std::vector<ge::NodePtr> &l1_fusion_failed_nodes,
                                       const CompileStrategy &compile_strategy);
 
-  Status SetFailedOpCompileTask(ge::Node* node, CompileTaskPara &task_para, const CompileStrategy &compile_strategy);
+  Status SetFailedOpCompileTask(ge::Node *node, CompileTaskPara &task_para, const CompileStrategy &compile_strategy);
 
   Status RetryCompileFailOp(CompileTaskPara &task_para);
 
@@ -222,19 +222,18 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
 
   Status DoFuzzBuildTbeOp(std::vector<ge::Node *> &node_vec, uint64_t taskId, uint64_t thread_id);
 
-  Status SetTeTask(vector<ge::Node *> &node_vec, uint64_t taskId,
-                   const std::vector<ge::NodePtr> &buff_fus_to_del_nodes, const CompileStrategy &compile_strategy,
-                   const bool &is_fusion_check);
+  Status SetTeTask(vector<ge::Node *> &node_vec, uint64_t taskId, const std::vector<ge::NodePtr> &buff_fus_to_del_nodes,
+                   const CompileStrategy &compile_strategy, const bool &is_fusion_check);
 
   Status SgtSetTeTask(vector<ge::Node *> &node_vec, uint64_t taskId,
-                      const std::vector<ge::NodePtr> &buff_fus_to_del_nodes,
-                      const CompileStrategy &compile_strategy, uint64_t slice_shape_index = 0xFFFFFFFF);
+                      const std::vector<ge::NodePtr> &buff_fus_to_del_nodes, const CompileStrategy &compile_strategy,
+                      uint64_t slice_shape_index = 0xFFFFFFFF);
 
   Status SetTaskFusionTask(const uint64_t thread_id, const int64_t scope_id, const std::vector<ge::Node *> &nodes,
                            CompileTaskPara &task_para) const;
 
-  Status SetSuperKernelTask(const uint64_t thread_id, const int64_t scope_id,
-                            const std::vector<ge::Node *> &nodes, CompileTaskPara &task_para) const;
+  Status SetSuperKernelTask(const uint64_t thread_id, const int64_t scope_id, const std::vector<ge::Node *> &nodes,
+                            CompileTaskPara &task_para) const;
   void SgtGetCompileStrategy(std::vector<ge::Node *> &node_vec, std::string &op_compile_strategy,
                              const CompileStrategy &compile_strategy) const;
 
@@ -294,8 +293,7 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
                                    std::vector<ge::NodePtr> &compile_failed_nodes,
                                    const std::vector<ge::NodePtr> &to_del_nodes);
 
-  Status ProcessLxFusionFailCompileTasks(CompileTaskPara &task_para,
-                                         std::vector<ge::NodePtr> &l1_fusion_failed_nodes,
+  Status ProcessLxFusionFailCompileTasks(CompileTaskPara &task_para, std::vector<ge::NodePtr> &l1_fusion_failed_nodes,
                                          std::vector<ge::NodePtr> &buff_fus_failed_nodes) const;
 
   bool IsBuffFusOptimizedNodes(const std::vector<ge::Node *> &scope_op) const;
@@ -303,23 +301,20 @@ class TbeOpStoreAdapter : public OpStoreAdapter {
   bool IsL1FusionOptimizedNodes(const std::vector<ge::Node *> &nodes) const;
 
   void SaveMsTuneErrorMsg(CompileTaskPara &task_para) const;
-  Status GetSgtSliceTaskRollbackNode(CompileTaskPara &task_para,
-                                     std::vector<ge::NodePtr> &need_rollback_nodes) const;
+  Status GetSgtSliceTaskRollbackNode(CompileTaskPara &task_para, std::vector<ge::NodePtr> &need_rollback_nodes) const;
 
-  Status SetSgtTensorSliceInfoToNodes(std::vector<ge::Node*> &compile_nodes, int32_t thread_idx) const;
+  Status SetSgtTensorSliceInfoToNodes(std::vector<ge::Node *> &compile_nodes, int32_t thread_idx) const;
 
-  Status SetTaskForOneScope(std::vector<ge::Node *> &nodes,
-                            const int64_t scope_id,
-                            const std::vector<ge::NodePtr> &to_del_nodes,
-                            CompileTaskPara &task_para,
+  Status SetTaskForOneScope(std::vector<ge::Node *> &nodes, const int64_t scope_id,
+                            const std::vector<ge::NodePtr> &to_del_nodes, CompileTaskPara &task_para,
                             const CompileStrategy &compile_strategy);
-  Status SetSgtSliceTaskToTeFusion(CompileTaskPara &task_para,
-                                   const std::vector<ge::NodePtr> &to_del_nodes);
+  Status SetSgtSliceTaskToTeFusion(CompileTaskPara &task_para, const std::vector<ge::NodePtr> &to_del_nodes);
   Status ProcessSuccSgtSliceTask(CompileTaskPara &task_para) const;
 
   void ClearTaskPara(CompileTaskPara &task_para) const;
 
-  Status UpdateTensorByMixPrecisionMode(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
+  Status UpdateTensorByMixPrecisionMode(
+      const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
       std::pair<std::vector<size_t>, std::vector<size_t>> &in_out_changed_idx_vec) const;
 
   void UpdateDtypeByAllowFp32ToFp16(const ge::OpDescPtr &op_desc, size_t input_or_output_index,

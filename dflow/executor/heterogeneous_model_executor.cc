@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,15 +33,15 @@ namespace ge {
 namespace {
 constexpr size_t kDataOutputIndexVal0 = 0U;
 constexpr size_t kAlignmentVal64 = 64U;
-constexpr int32_t kRetryInterval = 1000; // 1000 ms
+constexpr int32_t kRetryInterval = 1000;  // 1000 ms
 constexpr int32_t kQueueNeverTimeout = -1;
-constexpr int32_t kQueueDefaultTimeout = 10 * 60 * 1000; // ms
+constexpr int32_t kQueueDefaultTimeout = 10 * 60 * 1000;  // ms
 constexpr int32_t kTimeoutValuePerSecond = 1000;
 // limit max cache dynamic schedule route trans id num.
 constexpr size_t kCacheMaxTransIdNum = 1024;
 constexpr int32_t kDequeueMbufWaitTime = 3000;
 constexpr int32_t kMicrosecondToNanosecond = 1000;
-constexpr int32_t kDynamicSchedDuration = 100 * kMicrosecondToNanosecond; // 100us
+constexpr int32_t kDynamicSchedDuration = 100 * kMicrosecondToNanosecond;  // 100us
 constexpr int32_t kAttachTimeOut = 3000;
 constexpr int32_t kDequeueSize = 1U;
 constexpr uint16_t kRawDataMsg = 1U;
@@ -89,8 +89,7 @@ HeterogeneousModelExecutor::HeterogeneousModelExecutor(const FlowModelPtr &flow_
       contains_n_mapping_node_(deploy_result.contains_n_mapping_node),
       abnormal_status_callback_info_(deploy_result.abnormal_status_callback_info),
       model_trimming_edges_model_instances_(deploy_result.model_trimming_edges_model_instances),
-      align_attrs_(deploy_result.input_align_attrs) {
-}
+      align_attrs_(deploy_result.input_align_attrs) {}
 
 HeterogeneousModelExecutor::~HeterogeneousModelExecutor() {
   if (run_flag_) {
@@ -117,8 +116,8 @@ void HeterogeneousModelExecutor::UpdateAbnormalInstanceForTrimmingModel(const ui
                                                                         const std::string &abnormal_name) {
   for (const auto &trimming_models : model_trimming_edges_model_instances_) {
     if (trimming_models.count(abnormal_name) != 0UL) {
-      GELOGI("There are num[%zu] trimming relation models for Abnormal model[%s].",
-             trimming_models.size(), abnormal_name.c_str());
+      GELOGI("There are num[%zu] trimming relation models for Abnormal model[%s].", trimming_models.size(),
+             abnormal_name.c_str());
       for (const auto &trimming_model : trimming_models) {
         abnormal_submodel_instances_name_[root_model_id].emplace(trimming_model, true);
         GELOGI("Record model instance[%s] as abnormal result of trimming model relation.", trimming_model.c_str());
@@ -129,9 +128,8 @@ void HeterogeneousModelExecutor::UpdateAbnormalInstanceForTrimmingModel(const ui
 
 void HeterogeneousModelExecutor::AbnormalStatusCallbackInit() {
   if (abnormal_status_callback_info_ != nullptr) {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [this](
-        uint32_t operation_type,
-        RootModelId2SubmodelName &abnormal_submodel_instances_names) -> Status {
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [this](uint32_t operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_names) -> Status {
       if (IsRedeployStart(operation_type)) {
         deploy_state_.store(kCallbackStartRedeploy);
         GELOGI("abnormal status callback: deploy status is kCallbackStartRedeploy");
@@ -169,21 +167,20 @@ Status HeterogeneousModelExecutor::Initialize() {
   std::vector<uint32_t> control_output_queue_ids;
   for (size_t i = 0; i < input_queue_attrs_.size(); ++i) {
     input_queue_ids.emplace_back(input_queue_attrs_[i].queue_id);
-    GEEVENT("[IO info], flow model input info = [index:%zu], queue info = [%s].",
-            i, input_queue_attrs_[i].DebugString().c_str());
+    GEEVENT("[IO info], flow model input info = [index:%zu], queue info = [%s].", i,
+            input_queue_attrs_[i].DebugString().c_str());
   }
   for (size_t i = 0; i < output_queue_attrs_.size(); ++i) {
     output_queue_ids.emplace_back(output_queue_attrs_[i].queue_id);
-    GEEVENT("[IO info], flow model output info = [index:%zu], queue info = [%s].",
-            i, output_queue_attrs_[i].DebugString().c_str());
+    GEEVENT("[IO info], flow model output info = [index:%zu], queue info = [%s].", i,
+            output_queue_attrs_[i].DebugString().c_str());
   }
 
-  GEEVENT("[IO info], flow model input_queues = %s, control_input_queues = %s, "
-          "output_queues = %s, control_output_queues = %s",
-          ToString(input_queue_ids).c_str(),
-          ToString(control_input_queue_ids).c_str(),
-          ToString(output_queue_ids).c_str(),
-          ToString(control_output_queue_ids).c_str());
+  GEEVENT(
+      "[IO info], flow model input_queues = %s, control_input_queues = %s, "
+      "output_queues = %s, control_output_queues = %s",
+      ToString(input_queue_ids).c_str(), ToString(control_input_queue_ids).c_str(), ToString(output_queue_ids).c_str(),
+      ToString(control_output_queue_ids).c_str());
 
   GE_CHK_STATUS_RET(ParseInputTensorInfo(), "Failed to parse input tensor info, model name = %s",
                     flow_model_->GetModelName().c_str());
@@ -211,9 +208,10 @@ Status HeterogeneousModelExecutor::Initialize() {
 Status HeterogeneousModelExecutor::DynamicSchedQueueInitialize(const bool is_dynamic_sched) {
   for (const auto &id : status_input_queue_attrs_) {
     auto ret = rtMemQueueAttach(id.device_id, id.queue_id, kAttachTimeOut);
-    GE_CHK_BOOL_RET_STATUS(ret == RT_ERROR_NONE, FAILED,
-        "DynamicSched, mem queue attach failed, device_id=%d, status_input_queue_ids queue_id=%u, ret=%d",
-        id.device_id, id.queue_id, ret);
+    GE_CHK_BOOL_RET_STATUS(
+        ret == RT_ERROR_NONE, FAILED,
+        "DynamicSched, mem queue attach failed, device_id=%d, status_input_queue_ids queue_id=%u, ret=%d", id.device_id,
+        id.queue_id, ret);
   }
   if (!is_dynamic_sched) {
     return SUCCESS;
@@ -222,22 +220,25 @@ Status HeterogeneousModelExecutor::DynamicSchedQueueInitialize(const bool is_dyn
   for (uint32_t i = 0U; i < sched_input_queue_attrs_.size(); i++) {
     auto iter = datagw_request_bindings_.find(sched_input_queue_attrs_[i].global_logic_id);
     GE_CHK_BOOL_RET_STATUS(iter != datagw_request_bindings_.end(), FAILED,
-        "DynamicSched, can't find sched app output indices=%u record.", sched_input_queue_attrs_[i].global_logic_id);
-    datagw_rqt_to_rsp_[iter->second] = sched_input_queue_attrs_[i]; // 获得datagw逻辑input queue到app物理queueid映射
-    GELOGI("DynamicSched, scheding request, find datagw input indices=%d to sched app output queueid=%u.",
-        iter->second, sched_input_queue_attrs_[i].queue_id);
+                           "DynamicSched, can't find sched app output indices=%u record.",
+                           sched_input_queue_attrs_[i].global_logic_id);
+    datagw_rqt_to_rsp_[iter->second] = sched_input_queue_attrs_[i];  // 获得datagw逻辑input queue到app物理queueid映射
+    GELOGI("DynamicSched, scheding request, find datagw input indices=%d to sched app output queueid=%u.", iter->second,
+           sched_input_queue_attrs_[i].queue_id);
   }
 
   for (auto id : sched_input_queue_attrs_) {
     auto drv_ret = rtMemQueueAttach(id.device_id, id.queue_id, kAttachTimeOut);
-    GE_CHK_BOOL_RET_STATUS(drv_ret == RT_ERROR_NONE, FAILED,
+    GE_CHK_BOOL_RET_STATUS(
+        drv_ret == RT_ERROR_NONE, FAILED,
         "DynamicSched, mem queue attach failed, device_id=%d, sched_input_queue_attrs queue_id=%u, ret=%d",
         id.device_id, id.queue_id, drv_ret);
   }
 
   for (auto id : sched_output_queue_attrs_) {
     auto drv_ret = rtMemQueueAttach(id.device_id, id.queue_id, kAttachTimeOut);
-    GE_CHK_BOOL_RET_STATUS(drv_ret == RT_ERROR_NONE, FAILED,
+    GE_CHK_BOOL_RET_STATUS(
+        drv_ret == RT_ERROR_NONE, FAILED,
         "DynamicSched, mem queue attach failed, device_id=%d, sched_output_queue_attrs queue_id=%u, ret=%d",
         id.device_id, id.queue_id, drv_ret);
   }
@@ -259,8 +260,7 @@ Status HeterogeneousModelExecutor::WrapSingleModel() {
 
     auto model_relation = ge::MakeShared<ModelRelation>();
     GE_CHECK_NOTNULL(model_relation);
-    GE_CHK_STATUS_RET(ModelRelationBuilder().BuildForSingleModel(*single_model->GetRootGraph(),
-                                                                 *model_relation),
+    GE_CHK_STATUS_RET(ModelRelationBuilder().BuildForSingleModel(*single_model->GetRootGraph(), *model_relation),
                       "Failed to build model relation for single model");
     model_relation_ = std::move(model_relation);
   }
@@ -273,9 +273,8 @@ Status HeterogeneousModelExecutor::ParseInputTensorInfo() {
   GE_CHK_STATUS_RET_NOLOG(BuildInputTensorDescMapping(input_tensor_desc_map));
   GELOGD("Start to set tensor info for inputs, size = %zu",
          model_relation_->root_model_endpoint_info.input_endpoint_names.size());
-  GE_CHK_STATUS_RET_NOLOG(SetTensorInfo(input_tensor_desc_map,
-                                        model_relation_->root_model_endpoint_info.input_endpoint_names,
-                                        true));
+  GE_CHK_STATUS_RET_NOLOG(
+      SetTensorInfo(input_tensor_desc_map, model_relation_->root_model_endpoint_info.input_endpoint_names, true));
   GE_CHK_STATUS_RET_NOLOG(BuildFusionInputTensorMapping());
   return SUCCESS;
 }
@@ -291,8 +290,8 @@ Status HeterogeneousModelExecutor::BuildFusionInputTensorMapping() {
     auto is_fusion_input = input_indices.size() > 1;
     for (auto index : input_indices) {
       is_fusion_input_[index] = is_fusion_input;
-      GELOGI("Build fusion input mapping success, input index = %zu, is fusion input = %d",
-             index, static_cast<int32_t>(is_fusion_input));
+      GELOGI("Build fusion input mapping success, input index = %zu, is fusion input = %d", index,
+             static_cast<int32_t>(is_fusion_input));
     }
   }
   return SUCCESS;
@@ -389,14 +388,13 @@ Status HeterogeneousModelExecutor::ParseOutputTensorInfo() {
   GE_CHK_STATUS_RET_NOLOG(BuildOutputTensorDescMapping(output_tensor_desc_map));
   GELOGD("Start to set tensor info for outputs, size = %zu",
          model_relation_->root_model_endpoint_info.output_endpoint_names.size());
-  GE_CHK_STATUS_RET_NOLOG(SetTensorInfo(
-      output_tensor_desc_map, model_relation_->root_model_endpoint_info.output_endpoint_names, false));
+  GE_CHK_STATUS_RET_NOLOG(
+      SetTensorInfo(output_tensor_desc_map, model_relation_->root_model_endpoint_info.output_endpoint_names, false));
   return SUCCESS;
 }
 
 Status HeterogeneousModelExecutor::SetTensorInfo(std::map<std::string, GeTensorDescPtr> &mapping,
-                                                 const std::vector<std::string> &queue_names,
-                                                 const bool is_input) {
+                                                 const std::vector<std::string> &queue_names, const bool is_input) {
   for (size_t i = 0U; i < queue_names.size(); ++i) {
     const auto &queue_name = queue_names[i];
     auto tensor_desc = mapping[queue_name];
@@ -414,26 +412,20 @@ Status HeterogeneousModelExecutor::SetTensorInfo(std::map<std::string, GeTensorD
     int64_t tensor_size = -1;
     (void)TensorUtils::GetSize(*tensor_desc, tensor_size);
     int64_t tensor_raw_size = -1;
-    GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(tensor_desc->GetShape(),
-                                                           tensor_desc->GetFormat(),
-                                                           tensor_desc->GetDataType(),
-                                                           tensor_raw_size),
+    GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(tensor_desc->GetShape(), tensor_desc->GetFormat(),
+                                                           tensor_desc->GetDataType(), tensor_raw_size),
                             "Failed to calc tensor raw size, queue name = %s", queue_name.c_str());
-    GELOGD("index = %zu, queue name = %s, shape = [%s], tensor raw size = %" PRId64 ", "
+    GELOGD("index = %zu, queue name = %s, shape = [%s], tensor raw size = %" PRId64
+           ", "
            "padded size = %" PRId64 ", notiling = %d",
-           i,
-           queue_name.c_str(),
-           tensor_desc->GetShape().ToString().c_str(),
-           tensor_raw_size,
-           tensor_size,
+           i, queue_name.c_str(), tensor_desc->GetShape().ToString().c_str(), tensor_raw_size, tensor_size,
            static_cast<int32_t>(is_no_tiling));
     if ((!is_no_tiling) && ((tensor_raw_size < 0) || (tensor_size < 0))) {
-      GELOGE(UNSUPPORTED, "Dynamic shape is not supported yet, raw/padded size = %" PRId64 "/%" PRId64 ", "
+      GELOGE(UNSUPPORTED,
+             "Dynamic shape is not supported yet, raw/padded size = %" PRId64 "/%" PRId64
+             ", "
              "shape of queue[%s] = [%s]",
-             tensor_raw_size,
-             tensor_size,
-             queue_name.c_str(),
-             tensor_desc->GetShape().ToString().c_str());
+             tensor_raw_size, tensor_size, queue_name.c_str(), tensor_desc->GetShape().ToString().c_str());
       return UNSUPPORTED;
     }
     if (is_input) {
@@ -493,8 +485,7 @@ Status HeterogeneousModelExecutor::EnqueueInputTensors(const std::vector<GeTenso
   return SUCCESS;
 }
 
-Status HeterogeneousModelExecutor::FillFusionInput(const std::vector<GeTensor> &fusion_inputs,
-                                                   void *const buffer,
+Status HeterogeneousModelExecutor::FillFusionInput(const std::vector<GeTensor> &fusion_inputs, void *const buffer,
                                                    const size_t size) const {
   auto fusion_buffer = PtrToPtr<void, uint8_t>(buffer);
   auto fusion_size = size;
@@ -518,9 +509,9 @@ Status HeterogeneousModelExecutor::FillFusionInput(const std::vector<GeTensor> &
   return SUCCESS;
 }
 
-Status HeterogeneousModelExecutor::EnqueueFusionInputs(const std::map<DeployQueueAttr,
-                                                                      std::vector<GeTensor>> &fusion_inputs,
-                                                       ExchangeService::ControlInfo &control_info) const {
+Status HeterogeneousModelExecutor::EnqueueFusionInputs(
+    const std::map<DeployQueueAttr, std::vector<GeTensor>> &fusion_inputs,
+    ExchangeService::ControlInfo &control_info) const {
   for (const auto &it : fusion_inputs) {
     const auto &queue_attr = it.first;
     const auto &tensors = it.second;
@@ -535,14 +526,11 @@ Status HeterogeneousModelExecutor::EnqueueFusionInputs(const std::map<DeployQueu
     const ExchangeService::FillFunc fill_func = [this, &tensors](void *const buffer, const size_t size) {
       return FillFusionInput(tensors, buffer, size);
     };
-    GE_CHK_STATUS_RET(exchange_service_->Enqueue(static_cast<int32_t>(queue_attr.device_id),
-                                                 queue_attr.queue_id,
-                                                 total_size,
-                                                 fill_func,
-                                                 control_info),
+    GE_CHK_STATUS_RET(exchange_service_->Enqueue(static_cast<int32_t>(queue_attr.device_id), queue_attr.queue_id,
+                                                 total_size, fill_func, control_info),
                       "Failed to enqueue input, model id = %u, queue id = %u", model_id_, queue_attr.queue_id);
-    GELOGD("Enqueue input successfully, model id = %u, queue id = %u, size = %" PRIu64,
-           model_id_, queue_attr.queue_id, total_size);
+    GELOGD("Enqueue input successfully, model id = %u, queue id = %u, size = %" PRIu64, model_id_, queue_attr.queue_id,
+           total_size);
   }
   return SUCCESS;
 }
@@ -570,16 +558,15 @@ Status HeterogeneousModelExecutor::EnqueueInputTensors(const std::vector<GeTenso
     const auto &tensor_desc = input.GetTensorDesc();
     RuntimeTensorDesc runtime_tensor_desc = {};
     GE_CHK_STATUS_RET(DataFlowExecutorUtils::FillRuntimeTensorDesc(tensor_desc, runtime_tensor_desc));
-    const ExchangeService::BuffInfo tensor_desc_buff = {.addr = &runtime_tensor_desc,
-                                                        .len = sizeof(RuntimeTensorDesc)};
+    const ExchangeService::BuffInfo tensor_desc_buff = {.addr = &runtime_tensor_desc, .len = sizeof(RuntimeTensorDesc)};
     const ExchangeService::BuffInfo data_buff = {.addr = ValueToPtr(PtrToValue(tensor_data)), .len = tensor_size};
     const std::vector<ExchangeService::BuffInfo> buffs = {tensor_desc_buff, data_buff};
     GELOGI("Enqueue buffs size is %zu, tensor_size is %zu.", buffs.size(), tensor_size);
     GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id, buffs, control_info),
                       "Failed to enqueue input[%zu], model id=%u, queue id=%u", i, model_id_, queue_attr.queue_id);
 
-    GELOGD("Enqueue input[%zu] successfully, model id = %u, queue id = %u, size = %zu, notiling = %d",
-           i, model_id_, queue_attr.queue_id, tensor_size, static_cast<int32_t>(input_is_no_tiling_[i]));
+    GELOGD("Enqueue input[%zu] successfully, model id = %u, queue id = %u, size = %zu, notiling = %d", i, model_id_,
+           queue_attr.queue_id, tensor_size, static_cast<int32_t>(input_is_no_tiling_[i]));
   }
 
   GE_CHK_STATUS_RET(EnqueueFusionInputs(fusion_inputs, control_info), "Failed to enqueue fusion inputs.");
@@ -587,21 +574,17 @@ Status HeterogeneousModelExecutor::EnqueueInputTensors(const std::vector<GeTenso
   for (size_t i = 0U; i < control_input_queue_attrs_.size(); ++i) {
     const auto &queue_attr = control_input_queue_attrs_[i];
     const int32_t control_value = 0;
-    GE_CHK_STATUS_RET(
-        exchange_service_->Enqueue(queue_attr.device_id,
-                                   queue_attr.queue_id,
-                                   &control_value,
-                                   sizeof(control_value),
-                                   control_info),
-        "Failed to enqueue control input[%zu], model id = %u, queue id = %u", i, model_id_, queue_attr.queue_id);
+    GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id, &control_value,
+                                                 sizeof(control_value), control_info),
+                      "Failed to enqueue control input[%zu], model id = %u, queue id = %u", i, model_id_,
+                      queue_attr.queue_id);
   }
   return SUCCESS;
 }
 
 Status HeterogeneousModelExecutor::ValidateInputTensors(const std::vector<GeTensor> &inputs) {
   if (inputs.size() != input_queue_attrs_.size()) {
-    GELOGE(PARAM_INVALID,
-           "Number of inputs (%zu) mismatches that of model inputs (%zu).", inputs.size(),
+    GELOGE(PARAM_INVALID, "Number of inputs (%zu) mismatches that of model inputs (%zu).", inputs.size(),
            input_queue_attrs_.size());
     return PARAM_INVALID;
   }
@@ -611,10 +594,11 @@ Status HeterogeneousModelExecutor::ValidateInputTensors(const std::vector<GeTens
       const auto &input = inputs[i];
       const auto tensor_size = input.GetData().GetSize();
       REQUIRE_COMPAT_INT64(tensor_size);
-      GE_CHK_BOOL_RET_STATUS(static_cast<int64_t>(tensor_size) <= input_tensor_sizes_[i],
-                             PARAM_INVALID,
-                             "Model[%u] validate input tensor[%zu] failed, expect at most = %" PRId64 ", "
-                             "but given = %zu", model_id_, i, input_tensor_sizes_[i], tensor_size);
+      GE_CHK_BOOL_RET_STATUS(static_cast<int64_t>(tensor_size) <= input_tensor_sizes_[i], PARAM_INVALID,
+                             "Model[%u] validate input tensor[%zu] failed, expect at most = %" PRId64
+                             ", "
+                             "but given = %zu",
+                             model_id_, i, input_tensor_sizes_[i], tensor_size);
     }
   }
   return SUCCESS;
@@ -666,9 +650,8 @@ Status HeterogeneousModelExecutor::DequeueOutputTensors(std::vector<GeTensor> &o
       status = deq_ret;
       continue;
     }
-    GELOGD(
-        "Dequeue output[%zu] successfully, model id = %u, queue id = %u, size = %" PRId64 ", notiling = %d",
-        i, model_id_, queue_attr.queue_id, output_tensor_raw_size, static_cast<int32_t>(output_is_no_tiling_[i]));
+    GELOGD("Dequeue output[%zu] successfully, model id = %u, queue id = %u, size = %" PRId64 ", notiling = %d", i,
+           model_id_, queue_attr.queue_id, output_tensor_raw_size, static_cast<int32_t>(output_is_no_tiling_[i]));
     if (control_info.end_of_sequence_flag) {
       end_of_sequence_num++;
       continue;
@@ -684,10 +667,8 @@ Status HeterogeneousModelExecutor::DequeueOutputTensors(std::vector<GeTensor> &o
   return status;
 }
 
-Status HeterogeneousModelExecutor::DoDequeue(GeTensor &output_tensor,
-                                             std::shared_ptr<AlignedPtr> &aligned_ptr,
-                                             ExchangeService::ControlInfo &control_info,
-                                             const size_t output_index) {
+Status HeterogeneousModelExecutor::DoDequeue(GeTensor &output_tensor, std::shared_ptr<AlignedPtr> &aligned_ptr,
+                                             ExchangeService::ControlInfo &control_info, const size_t output_index) {
   Status status = SUCCESS;
   const int32_t total_timeout = control_info.timeout;
   int32_t left_wait_time = total_timeout;
@@ -721,8 +702,7 @@ Status HeterogeneousModelExecutor::DoDequeue(GeTensor &output_tensor,
   return status;
 }
 
-Status HeterogeneousModelExecutor::DoDequeue(FlowMsgBasePtr &flow_msg,
-                                             ExchangeService::ControlInfo &control_info,
+Status HeterogeneousModelExecutor::DoDequeue(FlowMsgBasePtr &flow_msg, ExchangeService::ControlInfo &control_info,
                                              size_t output_index) {
   Status ret = SUCCESS;
   const int32_t total_timeout = control_info.timeout;
@@ -749,8 +729,8 @@ Status HeterogeneousModelExecutor::DoDequeue(FlowMsgBasePtr &flow_msg,
       GELOGE(FAILED, "Dequeue output[%zu] flow msg timeout, model id=%u, queue id=%u, total_timeout = %d ms",
              output_index, model_id_, output_queue_attrs_[output_index].queue_id, total_timeout);
     }
-    GELOGE(FAILED, "Failed to dequeue output[%zu] flow msg, model id = %u, queue id = %u, ret = %u",
-           output_index, model_id_, output_queue_attrs_[output_index].queue_id, ret);
+    GELOGE(FAILED, "Failed to dequeue output[%zu] flow msg, model id = %u, queue id = %u, ret = %u", output_index,
+           model_id_, output_queue_attrs_[output_index].queue_id, ret);
     return ret;
   }
   GELOGD("Do dequeue output[%zu] end.", output_index);
@@ -788,8 +768,7 @@ Status HeterogeneousModelExecutor::DoDequeueOnce(GeTensor &output_tensor, std::s
   return status;
 }
 
-Status HeterogeneousModelExecutor::DoDequeueOnce(FlowMsgBasePtr &flow_msg,
-                                                 ExchangeService::ControlInfo &control_info,
+Status HeterogeneousModelExecutor::DoDequeueOnce(FlowMsgBasePtr &flow_msg, ExchangeService::ControlInfo &control_info,
                                                  size_t output_index) {
   GE_CHK_STATUS_RET_NOLOG(GetRedeployStatus());
   const auto &queue_attr = output_queue_attrs_[output_index];
@@ -830,7 +809,7 @@ Status HeterogeneousModelExecutor::ModelRunStart() {
       GetThreadLocalContext() = run_context_;
       GE_CHK_STATUS(StatusRun(), "DynamicSched, StatusRun failed");
     });
-    auto func = [this](const domi::SubmodelStatus& request) {
+    auto func = [this](const domi::SubmodelStatus &request) {
       (void)status_messages_queue_.Push(std::move(request));
       return SUCCESS;
     };
@@ -842,24 +821,22 @@ Status HeterogeneousModelExecutor::ModelRunStart() {
 }
 
 Status HeterogeneousModelExecutor::FindValidGroupEntry(uint32_t uuid, int32_t logic_queue_id, int32_t logic_group_id,
-    DeployPlan::DstGroupInfo **group_entry_ptr) {
+                                                       DeployPlan::DstGroupInfo **group_entry_ptr) {
   auto model_iter = model_index_info_.find(uuid);
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(model_iter == model_index_info_.end(),
-                         PARAM_INVALID,
-                         "DynamicSched can't find valid queue status data, uuid=%u", uuid);
-  auto group_iters = model_iter->second.find(logic_queue_id); // 模型输出逻辑id
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(model_iter == model_index_info_.end(), PARAM_INVALID,
+                                 "DynamicSched can't find valid queue status data, uuid=%u", uuid);
+  auto group_iters = model_iter->second.find(logic_queue_id);  // 模型输出逻辑id
   GE_CHK_BOOL_RET_SPECIAL_STATUS(group_iters == model_iter->second.end() || !(group_iters->second.first.is_normal),
-                         PARAM_INVALID,
-                         "DynamicSched can't find valid queue status data, uuid=%u,"
-                         " logic_queue_id=%d", uuid, logic_queue_id);
-  auto group_iter = group_iters->second.second.find(logic_group_id);
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(group_iter == group_iters->second.second.end(),
-                         PARAM_INVALID,
-                         "DynamicSched can't find valid queue status data, uuid=%u,"
-                         " logic_queue_id=%d, logic_group_id=%d", uuid, logic_queue_id, logic_group_id);
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(group_iter->second.routes.size() == 0,
                                  PARAM_INVALID,
-                                 "DynamicSched group size is 0!");
+                                 "DynamicSched can't find valid queue status data, uuid=%u,"
+                                 " logic_queue_id=%d",
+                                 uuid, logic_queue_id);
+  auto group_iter = group_iters->second.second.find(logic_group_id);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(group_iter == group_iters->second.second.end(), PARAM_INVALID,
+                                 "DynamicSched can't find valid queue status data, uuid=%u,"
+                                 " logic_queue_id=%d, logic_group_id=%d",
+                                 uuid, logic_queue_id, logic_group_id);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(group_iter->second.routes.size() == 0, PARAM_INVALID, "DynamicSched group size is 0!");
   *group_entry_ptr = &(group_iter->second);
   return SUCCESS;
 }
@@ -871,12 +848,12 @@ void HeterogeneousModelExecutor::ProcAfterFindGroupEntry(DeployPlan::DstGroupInf
   queue_status_info_[group_info.routes[group_entry_index].endpoint_index].second = Now();
   // 路径被选中后队列深度加1，下次选路优先级降低（做出的选择若直接体现在结果上，可能导致不同routelabel做出相同路径选择）
   queue_status_info_[group_info.routes[group_entry_index].endpoint_index].first.queue_depth++;
-  GELOGI("DynamicSched found group_entry_index=%d, dst_uuid=%u, group_num=%u, mul_submodel_id=%u.",
-      group_entry_index, dst_uuid, group_info.routes.size(), group_info.model_id);
+  GELOGI("DynamicSched found group_entry_index=%d, dst_uuid=%u, group_num=%u, mul_submodel_id=%u.", group_entry_index,
+         dst_uuid, group_info.routes.size(), group_info.model_id);
 }
 
-bool HeterogeneousModelExecutor::FindGroupEntryIndexInSingleInstance(DeployPlan::DstGroupInfo &group_info,
-  std::pair<int32_t, std::string> &group_entry_index_and_name) {
+bool HeterogeneousModelExecutor::FindGroupEntryIndexInSingleInstance(
+    DeployPlan::DstGroupInfo &group_info, std::pair<int32_t, std::string> &group_entry_index_and_name) {
   std::pair<int32_t, std::string> group_main_entry_index_and_name;
   std::pair<int32_t, std::string> group_redundant_entry_index_and_name;
   uint32_t normal_instance_num = 0U;
@@ -899,23 +876,24 @@ bool HeterogeneousModelExecutor::FindGroupEntryIndexInSingleInstance(DeployPlan:
     return false;
   }
   group_entry_index_and_name =
-    normal_instance_num == 1U ? group_main_entry_index_and_name : group_redundant_entry_index_and_name;
+      normal_instance_num == 1U ? group_main_entry_index_and_name : group_redundant_entry_index_and_name;
 
   return true;
 }
 
-bool HeterogeneousModelExecutor::FindGroupEntryIndexFromCache(DeployPlan::DstGroupInfo &group_info,
-  std::pair<int32_t, std::string> &group_entry_index_and_name,
-  uint64_t trans_id,
-  uint32_t route_label) {
+bool HeterogeneousModelExecutor::FindGroupEntryIndexFromCache(
+    DeployPlan::DstGroupInfo &group_info, std::pair<int32_t, std::string> &group_entry_index_and_name,
+    uint64_t trans_id, uint32_t route_label) {
   const std::lock_guard<std::mutex> lk(cache_mu_);
   auto cache_iter = routelabel_cache_info_.find(std::make_pair(trans_id, route_label));
   if (cache_iter != routelabel_cache_info_.end()) {
     auto groups_iter = cache_iter->second.find(group_info.routes.size());
     if (groups_iter != cache_iter->second.end()) {
       group_entry_index_and_name = groups_iter->second;
-      GELOGI("DynamicSched, found routelabel cache info, trans_id=%" PRIu64 ", route_label=%u,"
-          " group_entry_index=%d", trans_id, route_label, group_entry_index_and_name.first);
+      GELOGI("DynamicSched, found routelabel cache info, trans_id=%" PRIu64
+             ", route_label=%u,"
+             " group_entry_index=%d",
+             trans_id, route_label, group_entry_index_and_name.first);
       const std::lock_guard<std::mutex> lk2(queue_status_mu_);
       ProcAfterFindGroupEntry(group_info, group_entry_index_and_name.first);
       return true;
@@ -994,16 +972,16 @@ void HeterogeneousModelExecutor::DeleteInvalidCache() {
     const auto &route_labels = head_iter->second;
     for (uint32_t route_label : route_labels) {
       routelabel_cache_info_.erase({trans_id, route_label});
-      GELOGD("DynamicSched, delete route label cache info, trans_id=%" PRIu64 ", route_label=%u.",
-        trans_id, route_label);
+      GELOGD("DynamicSched, delete route label cache info, trans_id=%" PRIu64 ", route_label=%u.", trans_id,
+             route_label);
     }
     (void)cached_trans_ids_.erase(head_iter);
   }
 }
 
-template<typename T>
-Status HeterogeneousModelExecutor::GetQueueInfoByDequeueMbuf(const int32_t device_id,
-    const uint32_t queue_id, T &info, const int32_t time_out) const {
+template <typename T>
+Status HeterogeneousModelExecutor::GetQueueInfoByDequeueMbuf(const int32_t device_id, const uint32_t queue_id, T &info,
+                                                             const int32_t time_out) const {
   rtMbufPtr_t m_buf = nullptr;
   auto ret = exchange_service_->DequeueMbuf(device_id, queue_id, &m_buf, time_out);
   if (ret != SUCCESS) {
@@ -1019,13 +997,12 @@ Status HeterogeneousModelExecutor::GetQueueInfoByDequeueMbuf(const int32_t devic
   GE_CHK_RT_RET(rtMbufGetBuffSize(m_buf, &buffer_size));
   google::protobuf::io::ArrayInputStream stream(buffer_addr, static_cast<int32_t>(buffer_size));
   GE_CHK_BOOL_RET_STATUS(info.ParseFromZeroCopyStream(&stream), FAILED,
-      "DynamicSched info parse from zero copy stream failed, queue_id=%u", queue_id);
+                         "DynamicSched info parse from zero copy stream failed, queue_id=%u", queue_id);
   return SUCCESS;
 }
 
 Status HeterogeneousModelExecutor::DynamicSchedProc(const domi::FlowgwRequest &flowgw_request,
-                                                    int32_t queue_infos_index,
-                                                    domi::FlowgwResponse &flowgw_response) {
+                                                    int32_t queue_infos_index, domi::FlowgwResponse &flowgw_response) {
   int32_t node_id = flowgw_request.node_id();
   int32_t datagw_input_index = flowgw_request.input_index();
   const auto &queue_infos = flowgw_request.queue_infos(queue_infos_index);
@@ -1042,10 +1019,13 @@ Status HeterogeneousModelExecutor::DynamicSchedProc(const domi::FlowgwRequest &f
     route_label = static_cast<uint32_t>(queue_infos.route_label_old());
   }
   uint32_t root_model_id = queue_infos.root_model_id();
-  GELOGI("DynamicSched FlowgwRequest info: node_id=%d, input_index=%d, queue_id=%d, device_type=%d, device_id=%d,"
-      " logic_id=%d, logic_group_id=%d, model_uuid=%u, trans_id=%" PRIu64 ", route_label=%u, root_model_id=%u,"
-      " queue_infos_index=%d", node_id, datagw_input_index, queue_id, device_type, device_id, logic_id,
-      logic_group_id, uuid, trans_id, route_label, root_model_id, queue_infos_index);
+  GELOGI(
+      "DynamicSched FlowgwRequest info: node_id=%d, input_index=%d, queue_id=%d, device_type=%d, device_id=%d,"
+      " logic_id=%d, logic_group_id=%d, model_uuid=%u, trans_id=%" PRIu64
+      ", route_label=%u, root_model_id=%u,"
+      " queue_infos_index=%d",
+      node_id, datagw_input_index, queue_id, device_type, device_id, logic_id, logic_group_id, uuid, trans_id,
+      route_label, root_model_id, queue_infos_index);
 
   DeployPlan::DstGroupInfo *group_entry_ptr = nullptr;
   // group_entry: logic_group_id绑定的group entry数组<endpoint index, 对应的对端逻辑queueid(input)>
@@ -1061,12 +1041,13 @@ Status HeterogeneousModelExecutor::DynamicSchedProc(const domi::FlowgwRequest &f
     const std::lock_guard<std::mutex> lk(cache_mu_);
     // routelabel_cache_info_: key: trans_id; data: group_entry
     routelabel_cache_info_[std::make_pair(trans_id, route_label)][group_entry.routes.size()] =
-      group_entry_index_and_name;
+        group_entry_index_and_name;
     (void)cached_trans_ids_[trans_id].emplace(route_label);
     DeleteInvalidCache();
-    GELOGD("DynamicSched add sched cache info: uuid=%u, trans_id=%" PRIu64 ", route_label=%u,"
-        " logic_group_id=%d, group_entry_index=%d, cached_trans_ids size=%zu.",
-        uuid, trans_id, route_label, logic_group_id, group_entry_index_and_name.first, cached_trans_ids_.size());
+    GELOGD("DynamicSched add sched cache info: uuid=%u, trans_id=%" PRIu64
+           ", route_label=%u,"
+           " logic_group_id=%d, group_entry_index=%d, cached_trans_ids size=%zu.",
+           uuid, trans_id, route_label, logic_group_id, group_entry_index_and_name.first, cached_trans_ids_.size());
   }
 
   auto queue_infos_rsp = flowgw_response.add_queue_infos();
@@ -1080,43 +1061,41 @@ Status HeterogeneousModelExecutor::DynamicSchedProc(const domi::FlowgwRequest &f
   // compatible for old version
   queue_infos_rsp->set_trans_id_old(static_cast<int32_t>(trans_id));
   queue_infos_rsp->set_route_label_old(static_cast<int32_t>(route_label));
-  queue_infos_rsp->set_choose_logic_id(group_entry_index_and_name.first); // 直接把group的index给QS
+  queue_infos_rsp->set_choose_logic_id(group_entry_index_and_name.first);  // 直接把group的index给QS
   queue_infos_rsp->set_logic_group_id(logic_group_id);
   queue_infos_rsp->set_root_model_id(root_model_id);
   queue_infos_rsp->set_need_cache(need_flowgw_cache);
-  GELOGI("DynamicSched FlowgwResponse info: queue_id=%d, device_type=%d, device_id=%d, logic_id=%d, logic_group_id=%d,"
-      " model_uuid=%u, trans_id=%" PRIu64 ", route_label=%u, choose_logic_id=%d, root_model_id=%u, queue_infos_index=%d,"
+  GELOGI(
+      "DynamicSched FlowgwResponse info: queue_id=%d, device_type=%d, device_id=%d, logic_id=%d, logic_group_id=%d,"
+      " model_uuid=%u, trans_id=%" PRIu64
+      ", route_label=%u, choose_logic_id=%d, root_model_id=%u, queue_infos_index=%d,"
       " entry_logic_id=%d, group_num=%u, mul_submodel_id=%u, need_flowgw_cache=%d, choose_instance_name=%s.",
-      queue_id, device_type, device_id,
-      logic_id, logic_group_id, uuid, trans_id, route_label, group_entry_index_and_name.first, root_model_id,
-      queue_infos_index, group_entry.routes[group_entry_index_and_name.first].entry_index, group_entry.routes.size(),
-      group_entry.model_id, static_cast<int32_t>(need_flowgw_cache), group_entry_index_and_name.second.c_str());
+      queue_id, device_type, device_id, logic_id, logic_group_id, uuid, trans_id, route_label,
+      group_entry_index_and_name.first, root_model_id, queue_infos_index,
+      group_entry.routes[group_entry_index_and_name.first].entry_index, group_entry.routes.size(), group_entry.model_id,
+      static_cast<int32_t>(need_flowgw_cache), group_entry_index_and_name.second.c_str());
   return SUCCESS;
 }
 
 Status HeterogeneousModelExecutor::FlowgwResponseEnqueue(int32_t device_id, int32_t datagw_input_index,
                                                          domi::FlowgwResponse &flowgw_response) {
   auto iter = datagw_rqt_to_rsp_.find(datagw_input_index);
-  GE_CHK_BOOL_RET_STATUS(iter != datagw_rqt_to_rsp_.end(),
-      FAILED, "DynamicSched can't find datagw request input indices id=%d", datagw_input_index);
+  GE_CHK_BOOL_RET_STATUS(iter != datagw_rqt_to_rsp_.end(), FAILED,
+                         "DynamicSched can't find datagw request input indices id=%d", datagw_input_index);
   int32_t out_queue_id = iter->second.queue_id;
-  GELOGI("DynamicSched FlowgwResponse Enqueue info: datagw_input_index=%d, out_queue_id=%d.",
-      datagw_input_index, out_queue_id);
+  GELOGI("DynamicSched FlowgwResponse Enqueue info: datagw_input_index=%d, out_queue_id=%d.", datagw_input_index,
+         out_queue_id);
   auto rsp_size = flowgw_response.ByteSizeLong();
   ExchangeService::ControlInfo control_info{};
-  ExchangeService::FillFunc fill_func = [&flowgw_response] (void *buffer, size_t size) {
-    GE_CHK_BOOL_RET_STATUS(flowgw_response.SerializeToArray(buffer, static_cast<int32_t>(size)),
-        FAILED, "DynamicSched flowgw_response serialize to array failed.");
+  ExchangeService::FillFunc fill_func = [&flowgw_response](void *buffer, size_t size) {
+    GE_CHK_BOOL_RET_STATUS(flowgw_response.SerializeToArray(buffer, static_cast<int32_t>(size)), FAILED,
+                           "DynamicSched flowgw_response serialize to array failed.");
     return SUCCESS;
   };
-  GE_CHK_STATUS_RET(exchange_service_->Enqueue(device_id,
-                                               out_queue_id,
-                                               rsp_size,
-                                               fill_func,
-                                               control_info),
+  GE_CHK_STATUS_RET(exchange_service_->Enqueue(device_id, out_queue_id, rsp_size, fill_func, control_info),
                     "DynamicSched Failed to enqueue flowgw_response");
   GELOGI("DynamicSched, sent scheding response, datagw_input_index=%d, datagw_input_cnt=%d.", datagw_input_index,
-      sched_input_cnt_[datagw_input_index]++);
+         sched_input_cnt_[datagw_input_index]++);
   return SUCCESS;
 }
 
@@ -1140,13 +1119,12 @@ void HeterogeneousModelExecutor::DynamicSchedDurationEnd() {
 }
 
 Status HeterogeneousModelExecutor::SchedRun(uint32_t index) {
-  GELOGD("DynamicSched datagw request process thread started, model id=%u, deployed model id=%u",
-      model_id_, deployed_model_id_);
+  GELOGD("DynamicSched datagw request process thread started, model id=%u, deployed model id=%u", model_id_,
+         deployed_model_id_);
   while (run_flag_) {
     GELOGD("DynamicSched datagw request process input queue info, size=%zu", sched_output_queue_attrs_.size());
     domi::FlowgwRequest flowgw_request;
-    GE_CHK_BOOL_RET_STATUS(sched_output_queue_attrs_.size() != 0, FAILED,
-        "DynamicSched, sched input queue size is 0!");
+    GE_CHK_BOOL_RET_STATUS(sched_output_queue_attrs_.size() != 0, FAILED, "DynamicSched, sched input queue size is 0!");
     const uint32_t queue_id = sched_output_queue_attrs_[index].queue_id;
     const int32_t device_id = sched_output_queue_attrs_[index].device_id;
     if (GetQueueInfoByDequeueMbuf(device_id, queue_id, flowgw_request, kDequeueMbufWaitTime) != SUCCESS) {
@@ -1155,8 +1133,8 @@ Status HeterogeneousModelExecutor::SchedRun(uint32_t index) {
 
     DynamicSchedDurationStart();
     int32_t datagw_input_index = flowgw_request.input_index();
-    GELOGI("DynamicSched receive scheding request, datagw_input_index=%d, datagw_input_cnt=%d.",
-        datagw_input_index, sched_input_cnt_[datagw_input_index]);
+    GELOGI("DynamicSched receive scheding request, datagw_input_index=%d, datagw_input_cnt=%d.", datagw_input_index,
+           sched_input_cnt_[datagw_input_index]);
     domi::FlowgwResponse flowgw_response;
     for (int32_t i = 0; i < flowgw_request.queue_infos_size(); ++i) {
       if (DynamicSchedProc(flowgw_request, i, flowgw_response) != SUCCESS) {
@@ -1166,14 +1144,14 @@ Status HeterogeneousModelExecutor::SchedRun(uint32_t index) {
     }
     if (flowgw_response.queue_infos_size() > 0) {
       GE_CHK_STATUS_RET(FlowgwResponseEnqueue(device_id, datagw_input_index, flowgw_response),
-          "DynamicSched proc enqueue flowgw response failed.");
+                        "DynamicSched proc enqueue flowgw response failed.");
     }
     DynamicSchedDurationEnd();
     GELOGD("DynamicSched Dequeue datagw request successfully, model_id=%u.", model_id_);
   }
   DynamicSchedInfoClear();
-  GELOGD("DynamicSched datagw request process thread ended, model id=%u, deployed model id=%u.",
-      model_id_, deployed_model_id_);
+  GELOGD("DynamicSched datagw request process thread ended, model id=%u, deployed model id=%u.", model_id_,
+         deployed_model_id_);
   return SUCCESS;
 }
 
@@ -1188,13 +1166,12 @@ void HeterogeneousModelExecutor::UpdateQueueStatusInfo(const domi::SubmodelStatu
 }
 
 Status HeterogeneousModelExecutor::StatusRun() {
-  GELOGD("DynamicSched Status Run thread started, model id=%u, deployed model id=%u",
-      model_id_, deployed_model_id_);
+  GELOGD("DynamicSched Status Run thread started, model id=%u, deployed model id=%u", model_id_, deployed_model_id_);
   while (run_flag_) {
     GE_DISMISSABLE_GUARD(report_error, []() { REPORT_INNER_ERR_MSG("E19999", "Status run failed."); });
     GELOGD("DynamicSched start to dequeue status info, size=%zu", status_input_queue_attrs_.size());
     GE_CHK_BOOL_RET_STATUS(status_input_queue_attrs_.size() != 0, FAILED,
-        "DynamicSched, status input queue size is 0!");
+                           "DynamicSched, status input queue size is 0!");
     domi::SubmodelStatus submodel_status;
     if ((!status_messages_queue_.Pop(submodel_status))) {
       GELOGI("Status message blocking queue is stopped.");
@@ -1212,8 +1189,8 @@ Status HeterogeneousModelExecutor::StatusRun() {
 bool HeterogeneousModelExecutor::IsModelInstanceAbnormal(const std::string &submodel_instance_name) {
   const auto iter = abnormal_submodel_instances_name_[deployed_model_id_].find(submodel_instance_name);
   if (iter != abnormal_submodel_instances_name_[deployed_model_id_].cend()) {
-    GELOGI("ModelIndexInfoUpdate, excutor process is abnormal, submodel instance[%s] is on this process",
-        submodel_instance_name.c_str());
+    GELOGI("ModelIndexInfoUpdate, executor process is abnormal, submodel instance[%s] is on this process",
+           submodel_instance_name.c_str());
     return true;
   }
   GELOGI("ModelIndexInfoUpdate, submodel instance[%s] is normals", submodel_instance_name.c_str());
@@ -1230,12 +1207,10 @@ void HeterogeneousModelExecutor::DynamicSchedClear() {
     uint32_t times = 0U;
     Status status = SUCCESS;
     while (status == SUCCESS) {
-      status = GetQueueInfoByDequeueMbuf(device_id,
-                                          queue_id,
-                                          flowgw_request);
+      status = GetQueueInfoByDequeueMbuf(device_id, queue_id, flowgw_request);
       times++;
-      GELOGI("AbnormalDataClear, SchedRun Dequeue clear, times=%u, device id=%d, queue id=%u, ret=%u",
-          times, device_id, queue_id, status);
+      GELOGI("AbnormalDataClear, SchedRun Dequeue clear, times=%u, device id=%d, queue id=%u, ret=%u", times, device_id,
+             queue_id, status);
     }
   }
   // 2、状态管理队列清空
@@ -1247,12 +1222,10 @@ void HeterogeneousModelExecutor::DynamicSchedClear() {
     uint32_t times = 0U;
     Status status = SUCCESS;
     while (status == SUCCESS) {
-      status = GetQueueInfoByDequeueMbuf(device_id,
-                                          queue_id,
-                                          submodel_status);
+      status = GetQueueInfoByDequeueMbuf(device_id, queue_id, submodel_status);
       times++;
-      GELOGI("AbnormalDataClear, StatusRun Dequeue clear, times=%u, device id =%d, queue id =%u, ret=%u",
-          times, device_id, queue_id, status);
+      GELOGI("AbnormalDataClear, StatusRun Dequeue clear, times=%u, device id =%d, queue id =%u, ret=%u", times,
+             device_id, queue_id, status);
     }
   }
   // 3、决策数据结构清空
@@ -1271,7 +1244,7 @@ void HeterogeneousModelExecutor::DynamicSchedClear() {
 
 void HeterogeneousModelExecutor::ClearFeedData() {
   GELOGI("AbnormalDataClear, start to clear transId, input size = %zu, control input size = %zu",
-      input_queue_attrs_.size(), control_input_queue_attrs_.size());
+         input_queue_attrs_.size(), control_input_queue_attrs_.size());
   for (size_t i = 0U; i < input_queue_attrs_.size(); ++i) {
     const auto &queue_attr = input_queue_attrs_[i];
     exchange_service_->ResetQueueInfo(queue_attr.device_id, queue_attr.queue_id);
@@ -1287,9 +1260,10 @@ void HeterogeneousModelExecutor::ClearFeedData() {
 }
 
 void HeterogeneousModelExecutor::ClearFetchData() {
-  GELOGI("AbnormalDataClear, start to clear fetch data, output size = %zu,"
-         " control output size = %zu, replica_num = %zu",
-         output_queue_attrs_.size(), control_output_queue_attrs_.size(), replica_num_);
+  GELOGI(
+      "AbnormalDataClear, start to clear fetch data, output size = %zu,"
+      " control output size = %zu, replica_num = %zu",
+      output_queue_attrs_.size(), control_output_queue_attrs_.size(), replica_num_);
   for (uint32_t i = 0U; i < output_queue_attrs_.size(); i++) {
     const auto &queue_attr = output_queue_attrs_[i];
     ExchangeService::ControlInfo control_info{};
@@ -1300,8 +1274,8 @@ void HeterogeneousModelExecutor::ClearFetchData() {
     while (status != ACL_ERROR_RT_QUEUE_EMPTY) {
       times++;
       status = exchange_service_->Dequeue(queue_attr.device_id, queue_attr.queue_id, nullptr, 0U, control_info);
-      GELOGI("AbnormalDataClear, output queue[%zu], times=%u, ret=%u, device id =%d, queue id =%u",
-          i, times, status, queue_attr.device_id, queue_attr.queue_id);
+      GELOGI("AbnormalDataClear, output queue[%zu], times=%u, ret=%u, device id =%d, queue id =%u", i, times, status,
+             queue_attr.device_id, queue_attr.queue_id);
     }
   }
 
@@ -1316,12 +1290,10 @@ void HeterogeneousModelExecutor::ClearFetchData() {
       uint32_t times = 0U;
       while (status != ACL_ERROR_RT_QUEUE_EMPTY) {
         times++;
-        status = exchange_service_->Dequeue(queue_attr.device_id,
-                                            queue_attr.queue_id,
-                                            &data[0],
-                                            kDequeueSize,
-                                            control_info);
-        GELOGI("AbnormalDataClear, dequeue control output[%zu], model id=%u, times=%u, ret=%u, device id =%d,"
+        status =
+            exchange_service_->Dequeue(queue_attr.device_id, queue_attr.queue_id, &data[0], kDequeueSize, control_info);
+        GELOGI(
+            "AbnormalDataClear, dequeue control output[%zu], model id=%u, times=%u, ret=%u, device id =%d,"
             " queue id=%u,",
             j, model_id_, times, status, queue_attr.device_id, queue_attr.queue_id);
       }
@@ -1333,12 +1305,12 @@ void HeterogeneousModelExecutor::ClearFetchData() {
 
 void HeterogeneousModelExecutor::ModelIndexGroupInfoUpdate(DeployPlan::DstGroupInfo &group_info) {
   for (auto group_entry_iter = group_info.routes.begin(); group_entry_iter != group_info.routes.end();
-      group_entry_iter++) { // group_entry_index
+       group_entry_iter++) {  // group_entry_index
     // 判断dst映射的模型实例是否异常，防止往异常的模型实例发数据
     if (IsModelInstanceAbnormal(group_entry_iter->extended_info.submodel_instance_name)) {
       group_entry_iter->extended_info.is_normal = false;
       GELOGI("ModelIndexInfoUpdate: group entry index[%u] is on abnormal process",
-          group_entry_iter - group_info.routes.begin());
+             group_entry_iter - group_info.routes.begin());
     }
   }
   return;
@@ -1351,14 +1323,14 @@ void HeterogeneousModelExecutor::ModelIndexInfoUpdate() {
       // 判断src映射的submodel instance是否异常，防止从异常的submodel instance收到脏数据
       if (IsModelInstanceAbnormal(group_iters->second.first.submodel_instance_name)) {
         group_iters->second.first.is_normal = false;
-        GELOGI("ModelIndexInfoUpdate: model id[%d], src endpoint index[%d] is on abnormal process",
-            model_iter->first, group_iters->first);
+        GELOGI("ModelIndexInfoUpdate: model id[%d], src endpoint index[%d] is on abnormal process", model_iter->first,
+               group_iters->first);
         continue;
       }
-      GELOGI("ModelIndexInfoUpdate: model id[%d], src endpoint index[%d] is on normal process",
-          model_iter->first, group_iters->first);
+      GELOGI("ModelIndexInfoUpdate: model id[%d], src endpoint index[%d] is on normal process", model_iter->first,
+             group_iters->first);
       for (auto group_iter = group_iters->second.second.begin(); group_iter != group_iters->second.second.end();
-          group_iter++) { // logic_group_id
+           group_iter++) {  // logic_group_id
         ModelIndexGroupInfoUpdate(group_iter->second);
       }
     }
@@ -1417,14 +1389,9 @@ Status HeterogeneousModelExecutor::FeedEmptyEosData(ExchangeService::ControlInfo
       const ExchangeService::BuffInfo tensor_desc_buff = {.addr = &runtime_tensor_desc,
                                                           .len = sizeof(RuntimeTensorDesc)};
       const std::vector<ExchangeService::BuffInfo> buffs = {tensor_desc_buff};
-      GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id,
-                                                   queue_attr.queue_id,
-                                                   buffs,
-                                                   control_info),
-                        "Failed to enqueue input[%zu], model id=%u, queue id=%u",
-                        i, model_id_, queue_attr.queue_id);
-      GELOGD("Enqueue empty eos input[%zu] successfully, model id=%u, queue id=%u.",
-             i, model_id_, queue_attr.queue_id);
+      GE_CHK_STATUS_RET(exchange_service_->Enqueue(queue_attr.device_id, queue_attr.queue_id, buffs, control_info),
+                        "Failed to enqueue input[%zu], model id=%u, queue id=%u", i, model_id_, queue_attr.queue_id);
+      GELOGD("Enqueue empty eos input[%zu] successfully, model id=%u, queue id=%u.", i, model_id_, queue_attr.queue_id);
     }
   } else {
     GELOGE(FAILED, "Inputs not eos data.");
@@ -1445,9 +1412,8 @@ Status HeterogeneousModelExecutor::GetRedeployStatus() {
   return SUCCESS;
 }
 
-Status HeterogeneousModelExecutor::FeedRawData(const std::vector<RawData> &raw_data_list,
-                                               uint32_t index, const DataFlowInfo &info,
-                                               int32_t timeout) {
+Status HeterogeneousModelExecutor::FeedRawData(const std::vector<RawData> &raw_data_list, uint32_t index,
+                                               const DataFlowInfo &info, int32_t timeout) {
   GE_CHK_STATUS_RET_NOLOG(GetRedeployStatus());
   GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout is invalid, must be >=%d, timeout=%d",
                          kQueueNeverTimeout, timeout);
@@ -1467,10 +1433,11 @@ Status HeterogeneousModelExecutor::FeedRawData(const std::vector<RawData> &raw_d
   }
   for (size_t i = 0UL; i < control_input_queue_attrs_.size(); ++i) {
     const int32_t control_value = 0;
-    GE_CHK_STATUS_RET(exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id,
-        control_input_queue_attrs_[i].queue_id, &control_value, sizeof(control_value), control_info),
-        "Failed to enqueue control input[%zu], model id=%u, queue id=%u",
-        i, model_id_, control_input_queue_attrs_[i].queue_id);
+    GE_CHK_STATUS_RET(
+        exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id, control_input_queue_attrs_[i].queue_id,
+                                   &control_value, sizeof(control_value), control_info),
+        "Failed to enqueue control input[%zu], model id=%u, queue id=%u", i, model_id_,
+        control_input_queue_attrs_[i].queue_id);
   }
   return deploy_state_.load() == kCallbackRedeployDone ? ACL_ERROR_GE_SUBHEALTHY : SUCCESS;
 }
@@ -1505,7 +1472,8 @@ Status HeterogeneousModelExecutor::FeedData(const std::vector<uint32_t> &indexes
       const auto &input = inputs[idx];
       const uint32_t i = feed_indexes[idx];
       GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()), FAILED,
-          "idx must be less than input num, idx=%zu, input num=%zu.", idx, input_queue_attrs_.size());
+                             "idx must be less than input num, idx=%zu, input num=%zu.", idx,
+                             input_queue_attrs_.size());
       const auto &queue_attr = input_queue_attrs_[i];
       if (queue_attr.queue_id == UINT32_MAX) {
         // dummy queue for input
@@ -1523,18 +1491,18 @@ Status HeterogeneousModelExecutor::FeedData(const std::vector<uint32_t> &indexes
   }
   for (size_t i = 0UL; i < control_input_queue_attrs_.size(); ++i) {
     const int32_t control_value = 0;
-    GE_CHK_STATUS_RET(exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id,
-        control_input_queue_attrs_[i].queue_id, &control_value, sizeof(control_value), control_info),
-        "Failed to enqueue control input[%zu], model id=%u, queue id=%u",
-        i, model_id_, control_input_queue_attrs_[i].queue_id);
+    GE_CHK_STATUS_RET(
+        exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id, control_input_queue_attrs_[i].queue_id,
+                                   &control_value, sizeof(control_value), control_info),
+        "Failed to enqueue control input[%zu], model id=%u, queue id=%u", i, model_id_,
+        control_input_queue_attrs_[i].queue_id);
   }
 
   return deploy_state_.load() == kCallbackRedeployDone ? ACL_ERROR_GE_SUBHEALTHY : SUCCESS;
 }
 
 Status HeterogeneousModelExecutor::FeedFlowMsg(const std::vector<uint32_t> &indexes,
-                                               const std::vector<FlowMsgPtr> &inputs,
-                                               int32_t timeout) {
+                                               const std::vector<FlowMsgPtr> &inputs, int32_t timeout) {
   GE_CHK_STATUS_RET_NOLOG(GetRedeployStatus());
   GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout is invalid, must be >=%d, timeout=%d",
                          kQueueNeverTimeout, timeout);
@@ -1546,14 +1514,14 @@ Status HeterogeneousModelExecutor::FeedFlowMsg(const std::vector<uint32_t> &inde
     std::iota(feed_indexes.begin(), feed_indexes.end(), 0U);
   }
 
-  GE_ASSERT_TRUE(feed_indexes.size() == inputs.size(), "feed indexes size:%zu != inputs size:%zu.",
-                  feed_indexes.size(), inputs.size());
+  GE_ASSERT_TRUE(feed_indexes.size() == inputs.size(), "feed indexes size:%zu != inputs size:%zu.", feed_indexes.size(),
+                 inputs.size());
   std::map<size_t, size_t> enqueue_indexes;
   std::vector<FlowMsgBasePtr> feed_inputs;
   for (size_t idx = 0U; idx < feed_indexes.size(); ++idx) {
     const uint32_t i = feed_indexes[idx];
     GE_CHK_BOOL_RET_STATUS((i < input_queue_attrs_.size()), FAILED,
-        "idx must be less than input num, idx=%zu, input num=%zu.", idx, input_queue_attrs_.size());
+                           "idx must be less than input num, idx=%zu, input num=%zu.", idx, input_queue_attrs_.size());
     auto feed_input = std::dynamic_pointer_cast<FlowMsgBase>(inputs[idx]);
     GE_CHECK_NOTNULL(feed_input);
     feed_inputs.emplace_back(feed_input);
@@ -1571,10 +1539,11 @@ Status HeterogeneousModelExecutor::FeedFlowMsg(const std::vector<uint32_t> &inde
 
   for (size_t i = 0UL; i < control_input_queue_attrs_.size(); ++i) {
     const int32_t control_value = 0;
-    GE_CHK_STATUS_RET(exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id,
-        control_input_queue_attrs_[i].queue_id, &control_value, sizeof(control_value), control_info),
-        "Failed to enqueue control input[%zu], model id=%u, queue id=%u",
-        i, model_id_, control_input_queue_attrs_[i].queue_id);
+    GE_CHK_STATUS_RET(
+        exchange_service_->Enqueue(control_input_queue_attrs_[i].device_id, control_input_queue_attrs_[i].queue_id,
+                                   &control_value, sizeof(control_value), control_info),
+        "Failed to enqueue control input[%zu], model id=%u, queue id=%u", i, model_id_,
+        control_input_queue_attrs_[i].queue_id);
   }
   return deploy_state_.load() == kCallbackRedeployDone ? ACL_ERROR_GE_SUBHEALTHY : SUCCESS;
 }
@@ -1582,9 +1551,11 @@ Status HeterogeneousModelExecutor::FeedFlowMsg(const std::vector<uint32_t> &inde
 void HeterogeneousModelExecutor::DynamicSchedInfoClear() {
   const std::lock_guard<std::mutex> lk(queue_status_mu_);
   queue_status_info_.clear();
-  GEEVENT("DynamicSched, scheding data: Total(us)=%" PRIu64 ", Cnt=%" PRIu64 ", Per duration(ns)=%" PRIu64 ", "
-      "Max duration(ns)=%" PRIu64 ", Greater 100us cnt=%" PRIu64, duration_total_ / kMicrosecondToNanosecond, cnt_total_,
-      (duration_total_ / (cnt_total_ != 0ULL ? cnt_total_ : 1ULL)), duration_max_, duration_size_);
+  GEEVENT("DynamicSched, scheding data: Total(us)=%" PRIu64 ", Cnt=%" PRIu64 ", Per duration(ns)=%" PRIu64
+          ", "
+          "Max duration(ns)=%" PRIu64 ", Greater 100us cnt=%" PRIu64,
+          duration_total_ / kMicrosecondToNanosecond, cnt_total_,
+          (duration_total_ / (cnt_total_ != 0ULL ? cnt_total_ : 1ULL)), duration_max_, duration_size_);
   duration_total_ = 0ULL;
   cnt_total_ = 0ULL;
   duration_max_ = 0ULL;
@@ -1593,12 +1564,11 @@ void HeterogeneousModelExecutor::DynamicSchedInfoClear() {
   return;
 }
 
-Status HeterogeneousModelExecutor::FetchFlowMsg(const std::vector<uint32_t> &indexes,
-                                                std::vector<FlowMsgPtr> &outputs,
+Status HeterogeneousModelExecutor::FetchFlowMsg(const std::vector<uint32_t> &indexes, std::vector<FlowMsgPtr> &outputs,
                                                 int32_t timeout) {
   GE_CHK_STATUS_RET_NOLOG(GetRedeployStatus());
-  GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout:%d is invalid, must be >=%d",
-                         timeout, kQueueNeverTimeout);
+  GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout:%d is invalid, must be >=%d", timeout,
+                         kQueueNeverTimeout);
   std::vector<uint32_t> msg_indexs(indexes);
   if (msg_indexs.empty()) {
     msg_indexs.resize(output_queue_attrs_.size());
@@ -1616,7 +1586,8 @@ Status HeterogeneousModelExecutor::FetchFlowMsg(const std::vector<uint32_t> &ind
   control_info.timeout = timeout;
   for (const uint32_t idx : msg_indexs) {
     GE_CHK_BOOL_RET_STATUS((idx < output_queue_attrs_.size()), FAILED,
-        "idx must be less than output num, idx=%u, output num=%zu.", idx, output_queue_attrs_.size());
+                           "idx must be less than output num, idx=%u, output num=%zu.", idx,
+                           output_queue_attrs_.size());
     // Dequeue tensor
     const auto queue_id = output_queue_attrs_[idx].queue_id;
     FlowMsgBasePtr flow_msg = nullptr;
@@ -1633,7 +1604,7 @@ Status HeterogeneousModelExecutor::FetchFlowMsg(const std::vector<uint32_t> &ind
         GELOGD("Output[%u] is end of sequence, model id=%u, queue id=%u", idx, model_id_, queue_id);
       }
       outputs.emplace_back(flow_msg);
-      }
+    }
   }
 
   GE_CHK_STATUS_RET(DequeueControlOutputs(replica_num_, control_info.timeout), "Dequeue control outputs failed.");
@@ -1645,8 +1616,8 @@ Status HeterogeneousModelExecutor::FetchFlowMsg(const std::vector<uint32_t> &ind
 Status HeterogeneousModelExecutor::FetchData(const std::vector<uint32_t> &indexes, std::vector<GeTensor> &outputs,
                                              DataFlowInfo &info, int32_t timeout) {
   GE_CHK_STATUS_RET_NOLOG(GetRedeployStatus());
-  GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout:%d is invalid, must be >=%d",
-                         timeout, kQueueNeverTimeout);
+  GE_CHK_BOOL_RET_STATUS(timeout >= kQueueNeverTimeout, FAILED, "timeout:%d is invalid, must be >=%d", timeout,
+                         kQueueNeverTimeout);
   std::vector<uint32_t> fetch_indexs(indexes);
   if (fetch_indexs.empty()) {
     fetch_indexs.resize(output_queue_attrs_.size());
@@ -1670,7 +1641,8 @@ Status HeterogeneousModelExecutor::FetchData(const std::vector<uint32_t> &indexe
   control_info.msg_info = &msg_info;
   for (const uint32_t idx : fetch_indexs) {
     GE_CHK_BOOL_RET_STATUS((idx < output_queue_attrs_.size()), FAILED,
-        "idx must be less than output num, idx=%u, output num=%zu.", idx, output_queue_attrs_.size());
+                           "idx must be less than output num, idx=%u, output num=%zu.", idx,
+                           output_queue_attrs_.size());
     // Dequeue tensor
     const auto queue_id = output_queue_attrs_[idx].queue_id;
     GeTensor output_tensor(*(output_tensor_desc_[idx]));
@@ -1744,7 +1716,8 @@ Status HeterogeneousModelExecutor::AlignFetchData(const std::vector<uint32_t> &f
       auto current_time = std::chrono::steady_clock::now();
       int64_t elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
       if (elapsed_time >= timeout) {
-        GELOGE(status, "Dequeue output[%u] timeout, model id=%u, queue id=%u, "
+        GELOGE(status,
+               "Dequeue output[%u] timeout, model id=%u, queue id=%u, "
                "timeout=%d ms, elapsed_time=%" PRId64 " ms",
                queue_idx, model_id_, queue_id, timeout, elapsed_time);
         break;

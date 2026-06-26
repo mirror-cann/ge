@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,57 +40,48 @@ class STestOnnxParser : public testing::Test {
   void RegisterCustomOp();
 };
 
-static Status ParseParams(const google::protobuf::Message* op_src, ge::Operator& op_dest) {
+static Status ParseParams(const google::protobuf::Message *op_src, ge::Operator &op_dest) {
   return SUCCESS;
 }
 
-static Status ParseParamByOpFunc(const ge::Operator &op_src, ge::Operator& op_dest) {
+static Status ParseParamByOpFunc(const ge::Operator &op_src, ge::Operator &op_dest) {
   return SUCCESS;
 }
 
-Status ParseSubgraphPostFnIf(const std::string& subgraph_name, const ge::Graph& graph) {
+Status ParseSubgraphPostFnIf(const std::string &subgraph_name, const ge::Graph &graph) {
   domi::AutoMappingSubgraphIOIndexFunc auto_mapping_subgraph_index_func =
       domi::FrameworkRegistry::Instance().GetAutoMappingSubgraphIOIndexFunc(domi::ONNX);
   if (auto_mapping_subgraph_index_func == nullptr) {
-    std::cout<<"auto mapping if subgraph func is nullptr!"<<std::endl;
+    std::cout << "auto mapping if subgraph func is nullptr!" << std::endl;
     return FAILED;
   }
-  return auto_mapping_subgraph_index_func(graph,
-                                          [&](int data_index, int &parent_index) -> Status {
-                                            parent_index = data_index + 1;
-                                            return SUCCESS;
-                                          },
-                                          [&](int output_index, int &parent_index) -> Status {
-                                            parent_index = output_index;
-                                            return SUCCESS;
-                                          });
+  return auto_mapping_subgraph_index_func(
+      graph,
+      [&](int data_index, int &parent_index) -> Status {
+        parent_index = data_index + 1;
+        return SUCCESS;
+      },
+      [&](int output_index, int &parent_index) -> Status {
+        parent_index = output_index;
+        return SUCCESS;
+      });
 }
 
 void STestOnnxParser::RegisterCustomOp() {
-  REGISTER_CUSTOM_OP("Conv2D")
-  .FrameworkType(domi::ONNX)
-  .OriginOpType("ai.onnx::11::Conv")
-  .ParseParamsFn(ParseParams);
+  REGISTER_CUSTOM_OP("Conv2D").FrameworkType(domi::ONNX).OriginOpType("ai.onnx::11::Conv").ParseParamsFn(ParseParams);
 
   // register if op info to GE
   REGISTER_CUSTOM_OP("If")
-  .FrameworkType(domi::ONNX)
-  .OriginOpType({"ai.onnx::9::If",
-                 "ai.onnx::10::If",
-                 "ai.onnx::11::If",
-                 "ai.onnx::12::If",
-                 "ai.onnx::13::If"})
-  .ParseParamsFn(ParseParams)
-  .ParseParamsByOperatorFn(ParseParamByOpFunc)
-  .ParseSubgraphPostFn(ParseSubgraphPostFnIf);
+      .FrameworkType(domi::ONNX)
+      .OriginOpType({"ai.onnx::9::If", "ai.onnx::10::If", "ai.onnx::11::If", "ai.onnx::12::If", "ai.onnx::13::If"})
+      .ParseParamsFn(ParseParams)
+      .ParseParamsByOperatorFn(ParseParamByOpFunc)
+      .ParseSubgraphPostFn(ParseSubgraphPostFnIf);
 
-  REGISTER_CUSTOM_OP("Add")
-  .FrameworkType(domi::ONNX)
-      .OriginOpType("ai.onnx::11::Add")
-      .ParseParamsFn(ParseParams);
+  REGISTER_CUSTOM_OP("Add").FrameworkType(domi::ONNX).OriginOpType("ai.onnx::11::Add").ParseParamsFn(ParseParams);
 
   REGISTER_CUSTOM_OP("Identity")
-  .FrameworkType(domi::ONNX)
+      .FrameworkType(domi::ONNX)
       .OriginOpType("ai.onnx::11::Identity")
       .ParseParamsFn(ParseParams);
 
@@ -106,16 +97,16 @@ ge::onnx::GraphProto CreateOnnxGraph(const std::string &op_type = "Add") {
   ge::onnx::GraphProto onnx_graph;
   (void)onnx_graph.add_input();
   (void)onnx_graph.add_output();
-  ::ge::onnx::NodeProto* node_const1 = onnx_graph.add_node();
-  ::ge::onnx::NodeProto* node_const2 = onnx_graph.add_node();
-  ::ge::onnx::NodeProto* node_add = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_const1 = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_const2 = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_add = onnx_graph.add_node();
   node_const1->set_op_type(kOpTypeConstant);
   node_const2->set_op_type(kOpTypeConstant);
   node_add->set_op_type(op_type);
 
-  ::ge::onnx::AttributeProto* attr = node_const1->add_attribute();
+  ::ge::onnx::AttributeProto *attr = node_const1->add_attribute();
   attr->set_name(ge::kAttrNameValue);
-  ::ge::onnx::TensorProto* tensor_proto = attr->mutable_t();
+  ::ge::onnx::TensorProto *tensor_proto = attr->mutable_t();
   tensor_proto->set_data_location(ge::onnx::TensorProto_DataLocation_EXTERNAL);
   attr = node_const1->add_attribute();
   tensor_proto->add_external_data();
@@ -244,13 +235,12 @@ TEST_F(STestOnnxParser, onnx_parser_if_node_with_const_input) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
-TEST_F(STestOnnxParser, onnx_test_ModelParseToGraph)
-{
+TEST_F(STestOnnxParser, onnx_test_ModelParseToGraph) {
   OnnxModelParser modelParser;
   ge::onnx::ModelProto model_proto;
   auto onnx_graph = model_proto.mutable_graph();
   *onnx_graph = CreateOnnxGraph();
-  ge::onnx::OperatorSetIdProto* op_st = model_proto.add_opset_import();
+  ge::onnx::OperatorSetIdProto *op_st = model_proto.add_opset_import();
   op_st->set_domain("ai.onnx");
   op_st->set_version(11);
   ge::Graph graph;
@@ -259,8 +249,7 @@ TEST_F(STestOnnxParser, onnx_test_ModelParseToGraph)
   EXPECT_EQ(ret, INTERNAL_ERROR);
 }
 
-TEST_F(STestOnnxParser, FileConstantParseParam)
-{
+TEST_F(STestOnnxParser, FileConstantParseParam) {
   OnnxFileConstantParser parser;
   ge::onnx::NodeProto input_node;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("file_constant", "FileConstant");
@@ -287,13 +276,12 @@ TEST_F(STestOnnxParser, FileConstantParseParam)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestOnnxParser, onnx_test_PreChecker_not_support)
-{
+TEST_F(STestOnnxParser, onnx_test_PreChecker_not_support) {
   OnnxModelParser modelParser;
   ge::onnx::ModelProto model_proto;
   auto onnx_graph = model_proto.mutable_graph();
   *onnx_graph = CreateOnnxGraph("Test");
-  ge::onnx::OperatorSetIdProto* op_st = model_proto.add_opset_import();
+  ge::onnx::OperatorSetIdProto *op_st = model_proto.add_opset_import();
   op_st->set_domain("ai.onnx");
   op_st->set_version(11);
   ge::Graph graph;
@@ -304,8 +292,7 @@ TEST_F(STestOnnxParser, onnx_test_PreChecker_not_support)
   EXPECT_EQ(PreChecker::Instance().HasError(), true);
 }
 
-TEST_F(STestOnnxParser, onnx_test_SetExternalPath)
-{
+TEST_F(STestOnnxParser, onnx_test_SetExternalPath) {
   OnnxModelParser modelParser;
   ge::onnx::ModelProto model_proto;
   auto onnx_graph = model_proto.mutable_graph();
@@ -314,4 +301,4 @@ TEST_F(STestOnnxParser, onnx_test_SetExternalPath)
   auto ret = modelParser.SetExternalPath("/usr/local", model_proto);
   EXPECT_EQ(ret, SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

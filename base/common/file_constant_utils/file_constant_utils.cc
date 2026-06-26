@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,8 +80,7 @@ Status WriteJsonFile(const std::string &file_path, const nlohmann::json &json_ob
 
 void SortConstNodeWeightHashList(ConstNodeWeightHashList &const_to_weight_hash_list) {
   std::stable_sort(const_to_weight_hash_list.begin(), const_to_weight_hash_list.end(),
-                   [](const ConstNodeWeightHashList::value_type &lhs,
-                      const ConstNodeWeightHashList::value_type &rhs) {
+                   [](const ConstNodeWeightHashList::value_type &lhs, const ConstNodeWeightHashList::value_type &rhs) {
                      const auto &lhs_node = lhs.first;
                      const auto &rhs_node = rhs.first;
                      if (lhs_node == rhs_node) {
@@ -115,7 +114,7 @@ void SortConstNodeWeightHashList(ConstNodeWeightHashList &const_to_weight_hash_l
                      return lhs_id < rhs_id;
                    });
 }
-}
+}  // namespace
 
 void from_json(const nlohmann::json &j, FileIdToFilePath &info) {
   const auto id = j.find(kBinIdValue);
@@ -151,11 +150,8 @@ Status FileConstantUtils::GetFileIdToPathMapFromOption(std::map<std::string, std
   } catch (nlohmann::json::exception &ex) {
     const auto readable_name = ge::GetContext().GetReadableName(FILE_CONSTANT_PATH);
     std::string reason = "it is not a valid json string, exception: " + std::string(ex.what());
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E10001", 
-        std::vector<const char *>({"value", "parameter", "reason"}),
-        std::vector<const char *>({opt.c_str(), readable_name.c_str(), reason.c_str()})
-    );
+    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"value", "parameter", "reason"}),
+                                    std::vector<const char *>({opt.c_str(), readable_name.c_str(), reason.c_str()}));
     GELOGE(FAILED, "Failed to parse option FILE_CONSTANT_PATH, which [%s] is invalid, err:%s", opt.c_str(), ex.what());
     return FAILED;
   }
@@ -168,15 +164,16 @@ Status FileConstantUtils::GetFileIdToPathMapFromOption(std::map<std::string, std
       GELOGD("get single info, file id is %s, file path is %s.", single_info.value_bin_file_id.c_str(),
              single_info.value_bin_file_path.c_str());
       (void)file_id_to_path_map.insert(
-        std::pair<std::string, std::string>(single_info.value_bin_file_id, single_info.value_bin_file_path));
+          std::pair<std::string, std::string>(single_info.value_bin_file_id, single_info.value_bin_file_path));
     }
   }
   return SUCCESS;
 }
 
-Status FileConstantUtils::CopyOneWeightFromFileWithFilehandler(const void *const curr_dev_ptr, const std::string &file_path,
-                                                              const size_t offset, const size_t file_constant_size,
-                                                              size_t &left_size, std::ifstream &ifs) {
+Status FileConstantUtils::CopyOneWeightFromFileWithFilehandler(const void *const curr_dev_ptr,
+                                                               const std::string &file_path, const size_t offset,
+                                                               const size_t file_constant_size, size_t &left_size,
+                                                               std::ifstream &ifs) {
   GE_CHECK_GE(left_size, file_constant_size);
   ifs.clear();
   (void)ifs.seekg(static_cast<int64_t>(offset), ifs.beg);
@@ -194,15 +191,15 @@ Status FileConstantUtils::CopyOneWeightFromFileWithFilehandler(const void *const
       GELOGE(GRAPH_FAILED, "copy failed for lack memory, free size is %zu, need memory is %zu.", left_size,
              used_memory + copy_len_once);
       REPORT_INNER_ERR_MSG("E19999", "copy failed for lack memory, free size is %zu, need memory is %zu.", left_size,
-                        used_memory + copy_len_once);
+                           used_memory + copy_len_once);
       ret = FAILED;
       break;
     }
 
     GELOGI("copy %zu bytes to memory, path = %s.", copy_len_once, file_path.c_str());
     void *const cur_dev_ptr = reinterpret_cast<void *>(PtrToValue(curr_dev_ptr) + used_memory);
-    const aclError rts_error =
-      aclrtMemcpy(cur_dev_ptr, left_size - used_memory, &compress_nodes[0U], copy_len_once, ACL_MEMCPY_HOST_TO_DEVICE);
+    const aclError rts_error = aclrtMemcpy(cur_dev_ptr, left_size - used_memory, &compress_nodes[0U], copy_len_once,
+                                           ACL_MEMCPY_HOST_TO_DEVICE);
     if (rts_error != ACL_SUCCESS) {
       GELOGE(GRAPH_FAILED, "copy failed, result code = %d.", rts_error);
       REPORT_INNER_ERR_MSG("E19999", "copy failed, result code = %d.", rts_error);
@@ -225,10 +222,11 @@ Status FileConstantUtils::CopyOneWeightFromFile(const void *const curr_dev_ptr, 
   if (!ifs.is_open()) {
     GELOGE(FAILED, "[Open][File] %s failed.", file_path.c_str());
     (void)REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
-                       std::vector<const char *>({file_path.c_str(), "Open file failed"}));
+                                    std::vector<const char *>({file_path.c_str(), "Open file failed"}));
     return FAILED;
   }
-  const Status ret = CopyOneWeightFromFileWithFilehandler(curr_dev_ptr, real_path, offset, file_constant_size, left_size, ifs);
+  const Status ret =
+      CopyOneWeightFromFileWithFilehandler(curr_dev_ptr, real_path, offset, file_constant_size, left_size, ifs);
   ifs.close();
   return ret;
 }
@@ -246,12 +244,12 @@ Status FileConstantUtils::GetFilePath(const OpDescPtr &op_desc,
   offset = 0U;
   length = 0U;
   file_path = "";
-  const std::string* file_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_PATH);
+  const std::string *file_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_PATH);
   if (file_path_ptr != nullptr && !file_path_ptr->empty()) {
     file_path = *file_path_ptr;
     return SUCCESS;
   }
-  const std::string* file_id_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID);
+  const std::string *file_id_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID);
   GE_CHK_BOOL_RET_STATUS(file_id_ptr != nullptr, FAILED, "Failed to get filed id from attr");
   GE_CHK_BOOL_RET_STATUS(!file_id_ptr->empty(), FAILED, "The file path and file id are empty.");
   const auto it = file_id_to_path_map.find(*file_id_ptr);
@@ -266,7 +264,7 @@ Status FileConstantUtils::GetFilePath(const OpDescPtr &op_desc,
 
 FileConstantInfo FileConstantUtils::GetFileConstantInfo(const OpDescPtr &op_desc) {
   FileConstantInfo fileconstant_info;
-  const std::string* weight_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_LOCATION);
+  const std::string *weight_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_LOCATION);
   if (weight_path_ptr != nullptr) {
     fileconstant_info.weight_path = *weight_path_ptr;
   }
@@ -303,8 +301,7 @@ Status FileConstantUtils::GetExternalWeightDirFromOmPath(const std::string &om_p
   GELOGD("OM dir is[%s], om name is[%s].", om_dir.c_str(), om_name.c_str());
   GE_ASSERT_TRUE(!om_name.empty());
   file_constant_weight_dir = om_dir.append("/weight/");
-  GELOGI("Get external weight path %s from model_data.om_path: %s",
-    file_constant_weight_dir.c_str(), om_path.c_str());
+  GELOGI("Get external weight path %s from model_data.om_path: %s", file_constant_weight_dir.c_str(), om_path.c_str());
   return ge::SUCCESS;
 }
 
@@ -381,7 +378,7 @@ Status FileConstantUtils::ConvertFileConstToConst(const NodePtr &node) {
   const auto &fileconstant_info = GetFileConstantInfo(op_desc);
   std::string file_path = fileconstant_info.weight_path;
   if (file_path.empty()) {
-    const std::string* file_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_PATH);
+    const std::string *file_path_ptr = AttrUtils::GetStr(op_desc, ATTR_NAME_FILE_PATH);
     if (file_path_ptr == nullptr || file_path_ptr->empty()) {
       return SUCCESS;
     }
@@ -390,7 +387,7 @@ Status FileConstantUtils::ConvertFileConstToConst(const NodePtr &node) {
   const size_t offset = fileconstant_info.weight_offset;
   const size_t length = fileconstant_info.weight_length;
   const size_t file_length = (length == 0U ? static_cast<size_t>(weight_size) : length);
-  GE_CHK_STATUS_RET(CheckUint64AddOverflow(offset, file_length), "offset add length overlow uint64");
+  GE_CHK_STATUS_RET(CheckUint64AddOverflow(offset, file_length), "offset add length overflow uint64");
   const auto bin_buff = MakeUnique<char_t[]>(file_length);
   GE_CHECK_NOTNULL(bin_buff);
   GE_CHK_STATUS_RET(ReadExternalWeightFromFile(file_path, offset, file_length, bin_buff.get()),
@@ -434,7 +431,7 @@ ConstNodeWeightHashList FileConstantUtils::GetAllConstNodesAndWeightHash(const C
       continue;
     }
     std::string hash_value;
-    const std::string* hash_value_ptr = AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256);
+    const std::string *hash_value_ptr = AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_WEIGHT_SHA256);
     if (hash_value_ptr == nullptr || hash_value_ptr->empty()) {
       continue;
     }
@@ -454,8 +451,8 @@ Status FileConstantUtils::SaveWeightToFileWithReuse(const ConstNodeWeightHashLis
   errno = 0;
   const char_t *value = nullptr;
   MM_SYS_GET_ENV(MM_ENV_MAX_COMPILE_CORE_NUMBER, value);
-  const int64_t thread_num = ((value != nullptr) && (value[0U] != '\0')) ?
-    std::strtol(value, nullptr, 10) : kDefaultThreadNum;
+  const int64_t thread_num =
+      ((value != nullptr) && (value[0U] != '\0')) ? std::strtol(value, nullptr, 10) : kDefaultThreadNum;
   GE_ASSERT_TRUE(errno == 0, "strtol failed, value: %s", value);
   GELOGI("Start to save weight to file, thread num[%ld]", thread_num);
   ThreadPool thread_pool("ge_savweigh", static_cast<uint32_t>(thread_num), false);
@@ -527,9 +524,9 @@ Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHash
   if (pos != std::string::npos) {
     om_name = om_name.substr(0, pos);
   }
-  const std::string weight_file_name = om_name.empty()
-                                         ? (graph_name.empty() ? "weight_combined" : (graph_name + "_weight_combined"))
-                                         : (om_name + "_weight_combined");
+  const std::string weight_file_name =
+      om_name.empty() ? (graph_name.empty() ? "weight_combined" : (graph_name + "_weight_combined"))
+                      : (om_name + "_weight_combined");
   std::string weight_path;
   GetValidFullPath(weight_dir, weight_file_name, weight_path);
 
@@ -545,7 +542,7 @@ Status FileConstantUtils::SaveWeightToOneFileWithReuse(const ConstNodeWeightHash
   size_t new_weights_written = 0;
   size_t reused_weights_count = 0;
   GE_CHK_STATUS_RET(SaveWeightsAndMetadata(const_to_weight_hash_list, meta, ofs, weight_path, offset,
-                                            new_weights_written, reused_weights_count));
+                                           new_weights_written, reused_weights_count));
   ofs.close();
   GELOGI("Successfully saved %zu new weights to single file (reused: %zu), total file offset: %zu bytes",
          new_weights_written, reused_weights_count, offset);
@@ -583,10 +580,10 @@ Status FileConstantUtils::SaveWeightsAndMetadata(const ConstNodeWeightHashList &
   return SUCCESS;
 }
 
-Status FileConstantUtils::WriteWeightWithPadding(std::ofstream &ofs, const uint8_t *weight_data_ptr,
-                                                 const size_t size, size_t &offset) {
+Status FileConstantUtils::WriteWeightWithPadding(std::ofstream &ofs, const uint8_t *weight_data_ptr, const size_t size,
+                                                 size_t &offset) {
   // 写入权重数据
-  (void)ofs.write(reinterpret_cast<const char*>(weight_data_ptr), static_cast<std::streamsize>(size));
+  (void)ofs.write(reinterpret_cast<const char *>(weight_data_ptr), static_cast<std::streamsize>(size));
   if (!ofs.good()) {
     GELOGE(FAILED, "Failed to write weight data to file");
     return FAILED;
@@ -627,7 +624,8 @@ Status FileConstantUtils::WriteWeightWithPadding(std::ofstream &ofs, const uint8
 }
 
 Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashList &const_to_weight_hash_list,
-                                                 const std::string &weight_dir, FileConstantMeta &meta, const bool all_in_one) {
+                                                 const std::string &weight_dir, FileConstantMeta &meta,
+                                                 const bool all_in_one) {
   if (all_in_one) {
     GE_CHK_STATUS_RET(SaveWeightToOneFileWithReuse(const_to_weight_hash_list, weight_dir, meta),
                       "Failed to save weight to one file");
@@ -648,13 +646,14 @@ Status FileConstantUtils::ConvertToFileConstants(const ConstNodeWeightHashList &
     (void)const_op->DelAttr(ATTR_NAME_WEIGHTS);
     const auto &output_desc = const_op->GetOutputDesc(0U);
     const auto &weight_path = meta.hash_to_weight_file.at(weight_hash);
-    const int64_t offset = all_in_one ? static_cast<int64_t>(meta.hash_to_weight_offset.at(weight_hash)) : kDefaultOffset;
+    const int64_t offset =
+        all_in_one ? static_cast<int64_t>(meta.hash_to_weight_offset.at(weight_hash)) : kDefaultOffset;
     SetFileConstantPath(const_op, weight_path, offset, static_cast<int64_t>(weight_length));
     (void)AttrUtils::SetDataType(const_op, kAttrDtype, output_desc.GetDataType());
     (void)AttrUtils::SetListInt(const_op, kAttrShape, output_desc.GetShape().GetDims());
     (void)AttrUtils::SetListInt(const_op, "original_shape", output_desc.GetOriginShape().GetDims());
     GELOGI("Convert node:%s from const to file constant success, save path[%s], offset[%d]",
-      const_node->GetName().c_str(), weight_path.c_str(), offset);
+           const_node->GetName().c_str(), weight_path.c_str(), offset);
   }
   return SUCCESS;
 }
@@ -741,7 +740,7 @@ Status FileConstantUtils::ConvertConstToFileConst(const NodePtr &node) {
 Status FileConstantUtils::ChangeFilePath(const ComputeGraphPtr &compute_graph, const std::string &om_path) {
   std::map<std::string, std::string> old_file_to_new_file;
   GE_ASSERT_SUCCESS(ChangeFilePathAttr(compute_graph, om_path, old_file_to_new_file),
-                    "Chnage file path attribute for graph %s failed.", compute_graph->GetName().c_str());
+                    "Change file path attribute for graph %s failed.", compute_graph->GetName().c_str());
   return MoveFilePath(old_file_to_new_file);
 }
 
@@ -821,8 +820,8 @@ Status FileConstantUtils::MoveFilePath(const std::map<std::string, std::string> 
     GE_ASSERT_TRUE(pos != std::string::npos, "File path:%s is invalid.", new_path.c_str());
     const std::string om_weight_dir = new_path.substr(0, pos);
     GE_ASSERT_TRUE(CreateDirectory(om_weight_dir) == 0, "Failed to create directory:%s.", om_weight_dir.c_str());
-    GE_ASSERT_TRUE(std::rename(old_path.c_str(), new_path.c_str()) == 0,
-                   "Failed to change path from %s to %s.", old_path.c_str(), new_path.c_str());
+    GE_ASSERT_TRUE(std::rename(old_path.c_str(), new_path.c_str()) == 0, "Failed to change path from %s to %s.",
+                   old_path.c_str(), new_path.c_str());
     GELOGD("Change file %s to %s success.", old_path.c_str(), new_path.c_str());
   }
   for (const auto &old_dir : old_dirs) {

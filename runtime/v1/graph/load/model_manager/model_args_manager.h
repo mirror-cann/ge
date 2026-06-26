@@ -64,16 +64,16 @@ constexpr uint32_t kAlign32B = 32;
 constexpr size_t kArgsReserved = 16UL;  // reserved for workspace and future extension
 constexpr size_t kArgsFieldSize = sizeof(void *);
 struct UpdateModelParamTilingData {
-    uint32_t totalActiveBaseTblCnt;
-    uint32_t blockCnt;
-    uint32_t tileCnt;
-    uint32_t tailCnt;
-    uint32_t lastTailCnt;
-    uint16_t tileNum;
-    uint16_t lastTileNum;
-    uint32_t lastTailCntOri;
-    uint32_t reserve_2;
-  };
+  uint32_t totalActiveBaseTblCnt;
+  uint32_t blockCnt;
+  uint32_t tileCnt;
+  uint32_t tailCnt;
+  uint32_t lastTailCnt;
+  uint16_t tileNum;
+  uint16_t lastTileNum;
+  uint32_t lastTailCntOri;
+  uint32_t reserve_2;
+};
 class ModelArgsManager {
  public:
   struct ModelArgPartition {
@@ -133,31 +133,31 @@ class ModelArgsManager {
   };
 
   struct ModelArgsRefreshInfo {
-    uint32_t id;           // allocatin id
-    uint64_t offset;       // offset of active mem base addr of the allocation id
+    uint32_t id;      // allocatin id
+    uint64_t offset;  // offset of active mem base addr of the allocation id
     void *host_args_addr;
     uint64_t device_args_addr;
 
     std::string ToString() const {
-    std::stringstream ss;
-    ss << "id:" << id << ", offset:0x" << &std::hex << offset << ", host_args_addr:0x" <<
-      &std::hex << PtrToValue(host_args_addr) << ", device_args_addr:0x" << &std::hex << device_args_addr;
-    return ss.str();
-  }
+      std::stringstream ss;
+      ss << "id:" << id << ", offset:0x" << &std::hex << offset << ", host_args_addr:0x" << &std::hex
+         << PtrToValue(host_args_addr) << ", device_args_addr:0x" << &std::hex << device_args_addr;
+      return ss.str();
+    }
   };
 
   struct ExtraArgsPool {
     std::unique_ptr<uint8_t[]> host_addr;  // host memory
-    uint64_t device_addr;                   // device memory
-    size_t total_size;                      // total size
-    size_t allocated_offset;                // allocated offset
-    ArgsPlacement placement;                // memory placement
+    uint64_t device_addr;                  // device memory
+    size_t total_size;                     // total size
+    size_t allocated_offset;               // allocated offset
+    ArgsPlacement placement;               // memory placement
   };
 
   struct ReservedSegmentInfo {
-    size_t start_offset;      // reserved segment start offset (relative to model_args base address)
-    size_t total_size;        // reserved segment total size (capacity)
-    size_t current_offset;    // reserved segment current allocation offset (next allocation start position)
+    size_t start_offset;    // reserved segment start offset (relative to model_args base address)
+    size_t total_size;      // reserved segment total size (capacity)
+    size_t current_offset;  // reserved segment current allocation offset (next allocation start position)
   };
 
   enum AllocForType : int32_t {
@@ -204,7 +204,7 @@ class ModelArgsManager {
  public:
   ModelArgsManager() : ModelArgsManager(nullptr) {}
   ~ModelArgsManager() noexcept;
-  explicit ModelArgsManager(DavinciModel *davinci_model) : davinci_model_(davinci_model){};
+  explicit ModelArgsManager(DavinciModel *davinci_model) : davinci_model_(davinci_model) {};
 
   void Init(DavinciModel *const davinci_model) {
     davinci_model_ = davinci_model;
@@ -212,7 +212,8 @@ class ModelArgsManager {
   Status Init(domi::ModelTaskDef &model_task_def, std::vector<TaskInfoPtr> *task_list_ptr);
   const std::vector<ModelArgs> &GetModelArgs() const;
   const FixedAddrBulk &GetFixedAddrBulk() const;
-  Status UpdateForExecute(uint32_t &up, const aclrtStream stm = nullptr, const uint32_t model_execute_stage = 1);  // todo 删掉默认值
+  Status UpdateForExecute(uint32_t &up, const aclrtStream stm = nullptr,
+                          const uint32_t model_execute_stage = 1);  // todo 删掉默认值
   void GenModelArgsAaddrAfterDistributed();
   Status ReportKernelLaunchOpProfilingData(const uint64_t begin_time) const;
   Status OnTaskDistributed(const size_t task_index, const TaskInfo *task_info);
@@ -231,27 +232,27 @@ class ModelArgsManager {
     model_io_hit_count_ = model_io_hit_count;
   }
 
-  std::vector<uint32_t>& GetId2Policy() {
+  std::vector<uint32_t> &GetId2Policy() {
     return id_to_plicy_;
   }
 
   // KernelLaunchOpArgs | activemembase | host input size
   Status AllocKernelLaunchArgsHostMem(uint64_t active_mem_base_addr_len, uint64_t append_size = 0U) {
     uint32_t active_mem_base_addr_len_align32b =
-      (active_mem_base_addr_len + sizeof(uint32_t) - 1U) / sizeof(uint32_t) * sizeof(uint32_t);
+        (active_mem_base_addr_len + sizeof(uint32_t) - 1U) / sizeof(uint32_t) * sizeof(uint32_t);
 
-    launched_args_unique_ptr_ = ge::MakeUnique<uint8_t[]>(sizeof(KernelLaunchOpArgs) +
-      active_mem_base_addr_len_align32b * sizeof(uint64_t) + append_size);
+    launched_args_unique_ptr_ = ge::MakeUnique<uint8_t[]>(
+        sizeof(KernelLaunchOpArgs) + active_mem_base_addr_len_align32b * sizeof(uint64_t) + append_size);
     GE_ASSERT_NOTNULL(launched_args_unique_ptr_);
 
     kernel_launch_args_ptr_ =
-      reinterpret_cast<KernelLaunchOpArgs*>(static_cast<void*>(launched_args_unique_ptr_.get()));
-    *(reinterpret_cast<uint64_t*>(static_cast<void*>(launched_args_unique_ptr_.get()))
-      + sizeof(KernelLaunchOpArgs)/sizeof(uint64_t) + active_mem_base_addr_len - 1U) = 0xFFFFFFFFFFFFFFFFUL;
+        reinterpret_cast<KernelLaunchOpArgs *>(static_cast<void *>(launched_args_unique_ptr_.get()));
+    *(reinterpret_cast<uint64_t *>(static_cast<void *>(launched_args_unique_ptr_.get())) +
+      sizeof(KernelLaunchOpArgs) / sizeof(uint64_t) + active_mem_base_addr_len - 1U) = 0xFFFFFFFFFFFFFFFFUL;
 
     host_input_size_ = append_size;
     host_input_host_ptr_ = static_cast<uint8_t *>(launched_args_unique_ptr_.get()) + sizeof(KernelLaunchOpArgs) +
-      active_mem_base_addr_len_align32b * sizeof(uint64_t);
+                           active_mem_base_addr_len_align32b * sizeof(uint64_t);
 
     return SUCCESS;
   }
@@ -261,16 +262,16 @@ class ModelArgsManager {
       return nullptr;
     }
 
-    return  reinterpret_cast<uint64_t*>(static_cast<void*>(launched_args_unique_ptr_.get()))
-      + sizeof(KernelLaunchOpArgs)/sizeof(uint64_t);
+    return reinterpret_cast<uint64_t *>(static_cast<void *>(launched_args_unique_ptr_.get())) +
+           sizeof(KernelLaunchOpArgs) / sizeof(uint64_t);
   }
 
   void SetFuncHandle(const rtFuncHandle &func_handle) {
     func_handle_ = func_handle;
   }
 
-  Status CalculateUpdateModelParamTiling(uint32_t active_base_len, uint32_t index_len,
-    uint32_t &block_dim, UpdateModelParamTilingData &tiling) const;
+  Status CalculateUpdateModelParamTiling(uint32_t active_base_len, uint32_t index_len, uint32_t &block_dim,
+                                         UpdateModelParamTilingData &tiling) const;
   Status GetHostInputMem(uint64_t &host_addr, uint64_t &device_addr, uint64_t &len);
 
   void InitDfx(bool enable_flag, std::string graph_name, uint32_t graph_id, uint32_t model_id, bool refreshable,
@@ -289,6 +290,7 @@ class ModelArgsManager {
   void PrintDfxStatistics(const uint32_t model_execute_stage = 1);
   Status PaRemapped(const uint64_t va, const uint64_t new_pa, const uint64_t len,
                     std::vector<std::pair<uint64_t, uint64_t>> &overlap_range);
+
  private:
   struct OneTaskUpdateData {
     UpdateHostArgsArg update_data;
@@ -300,9 +302,8 @@ class ModelArgsManager {
  private:
   Status InitTaskInfoV2(domi::ModelTaskDef &model_task_def);
   void ChangeMemcpyTaskTypeToAddrIfNeed(domi::TaskDef *const task_def) const;
-  Status AllocModelArgs(const ModelArgsLayoutPlannedResult &layout,
-                        std::vector<ModelArgs> &model_args, std::vector<uint64_t> &model_args_len,
-                        ArgsPlacement &pls);
+  Status AllocModelArgs(const ModelArgsLayoutPlannedResult &layout, std::vector<ModelArgs> &model_args,
+                        std::vector<uint64_t> &model_args_len, ArgsPlacement &pls);
   Status ConstructUpdateData(const TaskNodeMap &task_node_map, const ModelArgsLayoutPlannedResult &layout,
                              const std::vector<TaskRunParam> &task_indexes_to_param,
                              std::vector<PisToArgs> &task_indexes_to_args);
@@ -335,17 +336,18 @@ class ModelArgsManager {
   TriggerTypesToPolicies GenerateTriggerTypesToCorrespondingUpdatePolicies() const;
 
   UpdatePolicy CalcUpdatePolicy(const std::vector<uint64_t> &active_mem_base_addr);
-  void DebugLogTaskUpdatePolicies(const TaskNodeMap &task_node_map,
-                                  const TriggerPolicies &upis, size_t task_index) const;
+  void DebugLogTaskUpdatePolicies(const TaskNodeMap &task_node_map, const TriggerPolicies &upis,
+                                  size_t task_index) const;
   Status ValidateTaskRunParam(const std::vector<TaskArgsDesc> &args_descs) const;
   Status TaskArgsVa2PaAssociatedWithModelIO(aclrtStream const stm) const;
   void GetStageTimeInfo(ModelArgsManagerStage stage);
-  void UpdateHostArgs(uint64_t* active_mem_base_addr);
+  void UpdateHostArgs(uint64_t *active_mem_base_addr);
 
-  Status GenModelArgsRefreshInfosForTask(std::vector<TaskArgsRefreshInfo> &infos,
-                                         PisToArgs &pls_to_args, const NodePtr &node);
+  Status GenModelArgsRefreshInfosForTask(std::vector<TaskArgsRefreshInfo> &infos, PisToArgs &pls_to_args,
+                                         const NodePtr &node);
 
-  Status GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info, const NodePtr &node, std::vector<IowPaRemapInfo> pa_remap_infos);
+  Status GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info, const NodePtr &node,
+                                        std::vector<IowPaRemapInfo> pa_remap_infos);
   void InitForUpdate();
 
   // AllocateArgsBuffer helper functions
@@ -396,12 +398,12 @@ class ModelArgsManager {
   rtArgsEx_t addr_update_op_args_{};
   bool active_mem_base_table_h2d_copy_flag_{false};
   std::unique_ptr<uint8_t[]> launched_args_unique_ptr_;
-  KernelLaunchOpArgs* kernel_launch_args_ptr_{nullptr};
+  KernelLaunchOpArgs *kernel_launch_args_ptr_{nullptr};
   uint64_t host_input_size_{0U};
   uint8_t *host_input_host_ptr_{nullptr};
   uint64_t host_input_device_ptr_{0U};
   uint64_t host_input_partition_len_{0U};
-  int8_t logLevel_ {DLOG_DEBUG};
+  int8_t logLevel_{DLOG_DEBUG};
   uint32_t block_dim_{0};
   rtFuncHandle func_handle_{nullptr};
   std::vector<uint64_t> index_dingwei;
@@ -417,7 +419,7 @@ class ModelArgsManager {
   uint64_t pa_remap_match_nosupport_num_{0UL};
 
   // 地址刷新算子: Map from UpdatePolicy to task_info pointers for ArgsUpdater operators
-  std::unordered_map<UpdatePolicy, std::unordered_set<TaskInfo*>> custom_op_policies_to_task_infos_;
+  std::unordered_map<UpdatePolicy, std::unordered_set<TaskInfo *>> custom_op_policies_to_task_infos_;
 
   // 地址刷新算子: Map from task_index to exact UpdatePolicy list for custom operators
   std::unordered_map<size_t, SmallVector<UpdatePolicy, kUpdatePolicyEnd>> custom_op_task_to_policies_;

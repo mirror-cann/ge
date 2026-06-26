@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ Status OpCompilerBaseline::GetFusionScope(ge::ComputeGraph &graph, ScopeNodeIdMa
   return SUCCESS;
 }
 
-Status OpCompilerBaseline::PreCompileProcess(ge::ComputeGraph& graph, bool &sgt_flag) {
+Status OpCompilerBaseline::PreCompileProcess(ge::ComputeGraph &graph, bool &sgt_flag) {
   /* Some nodes needs to be re-pre-compiled after Ub fusion matching.
    * Because their format or data type maybe changed. */
   bool need_re_precompile_graph = false;
@@ -137,8 +137,7 @@ Status OpCompilerBaseline::RunCompileProcess(ge::ComputeGraph &graph) {
   }
   ret = PostCompileOp(graph, buff_fus_compile_failed_nodes);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][Baseline] Failed to post compile for graph[%s].",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][Compile][Baseline] Failed to post compile for graph[%s].", graph.GetName().c_str());
     return ret;
   }
   FE_LOGI("Successfully compiled op in Baseline mode for graph %s.", graph.GetName().c_str());

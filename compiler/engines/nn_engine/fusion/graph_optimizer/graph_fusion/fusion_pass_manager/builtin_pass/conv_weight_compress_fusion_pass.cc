@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,8 +77,7 @@ Status RelinkControlEdges(ge::NodePtr conv_node, ge::NodePtr conv_compress_node)
 }
 
 Status RelinkDataEdgesOfMergeNode(ge::NodePtr conv_node, ge::NodePtr conv_compress_node, ge::NodePtr merge_node) {
-  FE_CHECK(conv_node->GetOutDataAnchor(0) == nullptr,
-           REPORT_FE_ERROR("conv_node->GetOutDataAnchor(0) is nullptr."),
+  FE_CHECK(conv_node->GetOutDataAnchor(0) == nullptr, REPORT_FE_ERROR("conv_node->GetOutDataAnchor(0) is nullptr."),
            return FAILED);
   auto conv_out_peer_data_anchors = conv_node->GetOutDataAnchor(0)->GetPeerInDataAnchors();
   conv_node->GetOutDataAnchor(0)->UnlinkAll();
@@ -101,18 +100,21 @@ Status RelinkDataEdgesOfMergeNode(ge::NodePtr conv_node, ge::NodePtr conv_compre
   // link the output anchor of merge node
   for (const auto &peer_in_data_anchor : conv_out_peer_data_anchors) {
     if (ge::GraphUtils::AddEdge(merge_node->GetOutDataAnchor(0), peer_in_data_anchor) != ge::GRAPH_SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][RelkDataEdge] Failed to add edge for the output anchor of merge node [%s].",
-                      merge_node->GetName().c_str());
+      REPORT_FE_ERROR(
+          "[GraphOpt][ConvWgtCmpsFus][RelkDataEdge] Failed to add edge for the output anchor of merge node [%s].",
+          merge_node->GetName().c_str());
       return FAILED;
     }
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 static const string PATTERN_CONV = "conv_pattern";
-static const std::map<std::string, std::string> CONV_COMPRESS_OP_TYPE_MAP {
-    {CONV2D, kConv2DCompress}, {kFullyConnection, kFullyConnectionCompress}, {MATMULV2OP, kMatMulV2Compress},
+static const std::map<std::string, std::string> CONV_COMPRESS_OP_TYPE_MAP{
+    {CONV2D, kConv2DCompress},
+    {kFullyConnection, kFullyConnectionCompress},
+    {MATMULV2OP, kMatMulV2Compress},
     {kConv2DTransposeD, kConv2DTransposeDCompress}};
 static const std::string HOST_OP_TYPE = "WeightCompressHost";
 static const std::string SWITCH_OP_TYPE = "Switch";
@@ -228,8 +230,8 @@ Status ConvWeightCompressFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &ma
            return FAILED);
   // add merge op
   ge::NodePtr merge_node = CreateMergeNode(conv_op_desc, graph);
-  FE_CHECK(merge_node == nullptr, REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][Fusion]Failed to add merge node to graph."),
-           return FAILED);
+  FE_CHECK(merge_node == nullptr,
+           REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][Fusion]Failed to add merge node to graph."), return FAILED);
 
   if (RelinkNodeEdges(conv_node, conv_compress_node, host_node, switch_node, merge_node) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][Fusion] Failed to link edges around node[%s, %s].",
@@ -244,31 +246,34 @@ Status ConvWeightCompressFusionPass::RelinkNodeEdges(ge::NodePtr conv_node, ge::
                                                      ge::NodePtr host_node, ge::NodePtr switch_node,
                                                      ge::NodePtr merge_node) const {
   // unlink the edge of conv's weight input
-  FE_CHECK(conv_node->GetInDataAnchor(1) == nullptr,
-           REPORT_FE_ERROR("conv_node->GetInDataAnchor(1) is nullptr."),
+  FE_CHECK(conv_node->GetInDataAnchor(1) == nullptr, REPORT_FE_ERROR("conv_node->GetInDataAnchor(1) is nullptr."),
            return FAILED);
   ge::OutDataAnchorPtr conv_weight_output_anchor = conv_node->GetInDataAnchor(1)->GetPeerOutAnchor();
   if (ge::GraphUtils::RemoveEdge(conv_weight_output_anchor, conv_node->GetInDataAnchor(1)) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to remove the first input anchors edge from the conv node [%s].",
-                    conv_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to remove the first input anchors edge from the conv node [%s].",
+        conv_node->GetName().c_str());
     return FAILED;
   }
   // link the input of host node
   if (ge::GraphUtils::AddEdge(conv_weight_output_anchor, host_node->GetInDataAnchor(0)) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge for the host node [%s]'s first indata anchor.",
-                    host_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge for the host node [%s]'s first indata anchor.",
+        host_node->GetName().c_str());
     return FAILED;
   }
 
   // link the input of switch node with weight and host node
   if (ge::GraphUtils::AddEdge(conv_weight_output_anchor, switch_node->GetInDataAnchor(0)) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge for switch node [%s]'s first indata anchor.",
-                    switch_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge for switch node [%s]'s first indata anchor.",
+        switch_node->GetName().c_str());
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(host_node->GetOutDataAnchor(0), switch_node->GetInDataAnchor(1)) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge between host node[%s] and switch node[%s]",
-                    host_node->GetName().c_str(), switch_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge between host node[%s] and switch node[%s]",
+        host_node->GetName().c_str(), switch_node->GetName().c_str());
     return FAILED;
   }
 
@@ -280,8 +285,7 @@ Status ConvWeightCompressFusionPass::RelinkNodeEdges(ge::NodePtr conv_node, ge::
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(switch_node->GetOutDataAnchor(1),
-                              conv_compress_node->GetInDataAnchor(TENSOR_INDEX_FILTER_COMPRESS)) !=
-      ge::GRAPH_SUCCESS) {
+                              conv_compress_node->GetInDataAnchor(TENSOR_INDEX_FILTER_COMPRESS)) != ge::GRAPH_SUCCESS) {
     REPORT_FE_ERROR(
         "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Failed to add edge between SwitchNode[%s] and ConvCompressNode[%s].",
         switch_node->GetName().c_str(), conv_compress_node->GetName().c_str());
@@ -305,8 +309,8 @@ Status ConvWeightCompressFusionPass::RelinkNodeEdges(ge::NodePtr conv_node, ge::
         if (ge::GraphUtils::AddEdge(in_data_anchor_ptr->GetPeerOutAnchor(),
                                     conv_compress_node->GetInDataAnchor(index)) != ge::GRAPH_SUCCESS) {
           REPORT_FE_ERROR(
-              "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Fail to add edge for input[%u] of ConvCompressNode[%s].",
-              index, conv_compress_node->GetName().c_str());
+              "[GraphOpt][ConvWgtCmpsFus][RelkNdEdge] Fail to add edge for input[%u] of ConvCompressNode[%s].", index,
+              conv_compress_node->GetName().c_str());
           return FAILED;
         }
       }
@@ -387,7 +391,8 @@ Status ConvWeightCompressFusionPass::CreateConvCompressOpDesc(ge::OpDescPtr conv
   if (compress_flag == static_cast<uint8_t>(WEIGHCOMPRESSINNERFLAG::WEIGHT_COMPRESS_FLAG)) {
     // add _weight_compress
     if (!ge::AttrUtils::SetBool(conv_compress_op_desc, ATTR_NAME_WEIGHT_COMPRESS, true)) {
-      FE_LOGD("Setting _weight_compress attribute on node [%s] was unsuccessful.", conv_compress_op_desc->GetName().c_str());
+      FE_LOGD("Setting _weight_compress attribute on node [%s] was unsuccessful.",
+              conv_compress_op_desc->GetName().c_str());
       return FAILED;
     }
     return SUCCESS;
@@ -406,8 +411,7 @@ Status ConvWeightCompressFusionPass::CreateConvCompressOpDesc(ge::OpDescPtr conv
   }
 }
 
-ge::NodePtr ConvWeightCompressFusionPass::CreateHostNode(const ge::OpDescPtr &conv_op_desc,
-                                                         ge::ComputeGraph &graph,
+ge::NodePtr ConvWeightCompressFusionPass::CreateHostNode(const ge::OpDescPtr &conv_op_desc, ge::ComputeGraph &graph,
                                                          const uint8_t &compress_flag) const {
   // add host node
   std::string op_name = conv_op_desc->GetName() + "_" + HOST_OP_TYPE;
@@ -438,8 +442,9 @@ ge::NodePtr ConvWeightCompressFusionPass::CreateHostNode(const ge::OpDescPtr &co
   output_desc.SetOriginFormat(ge::FORMAT_ND);
   host_op_desc->AddOutputDesc("iscompress", output_desc);
   if (compress_flag == static_cast<uint8_t>(WEIGHCOMPRESSINNERFLAG::FOUR_TO_TWO_FLAG)) {
-   (void)ge::AttrUtils::SetStr(host_op_desc, ATTR_NAME_COMPRESS_TYPE_FLAG, kWeightSparseFourToTwo);
-   FE_LOGD("Successfully set _compress flag attribute %d on node [%s].", compress_flag, host_op_desc->GetName().c_str());
+    (void)ge::AttrUtils::SetStr(host_op_desc, ATTR_NAME_COMPRESS_TYPE_FLAG, kWeightSparseFourToTwo);
+    FE_LOGD("Successfully set _compress flag attribute %d on node [%s].", compress_flag,
+            host_op_desc->GetName().c_str());
   }
   ge::NodePtr host_node = graph.AddNode(host_op_desc);
   return host_node;
@@ -569,6 +574,6 @@ bool ConvWeightCompressFusionPass::CheckConstFoldNode(ge::NodePtr node_ptr) cons
   return true;
 }
 
-REG_PASS("ConvWeightCompressFusionPass", BUILT_IN_GRAPH_PASS,
-         ConvWeightCompressFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS("ConvWeightCompressFusionPass", BUILT_IN_GRAPH_PASS, ConvWeightCompressFusionPass,
+         SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

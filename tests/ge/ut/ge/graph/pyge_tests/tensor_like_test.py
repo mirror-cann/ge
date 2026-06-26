@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -22,10 +22,10 @@ import pytest
 try:
     from ge.es.graph_builder import GraphBuilder, TensorHolder
     from ge.es.tensor_like import (
+        _flatten_and_infer_shape,
+        _unflatten,
         convert_to_tensor_holder,
         resolve_builder,
-        _flatten_and_infer_shape,
-        _unflatten
     )
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
@@ -62,7 +62,10 @@ class TestTensorLike:
     @staticmethod
     def test_flatten_and_infer_shape_ragged_list_raises():
         """验证不规则嵌套或非法元素会触发异常"""
-        with pytest.raises(ValueError, match="Irregular nested list: all sub-lists must have the same shape"):
+        with pytest.raises(
+            ValueError,
+            match="Irregular nested list: all sub-lists must have the same shape",
+        ):
             _flatten_and_infer_shape([[1, 2], [3]])
 
         with pytest.raises(TypeError, match="Value must be int/float or nested lists of int|float"):
@@ -155,7 +158,8 @@ class TestTensorLike:
             1,
             *(tensor_list if tensor_list else [None]),
             *(tensor_list1 if tensor_list1 else [None]),
-            *(tensor_list2 if tensor_list2 else [None]))
+            *(tensor_list2 if tensor_list2 else [None]),
+        )
         assert result is builder
 
         result = resolve_builder(1, builder)
@@ -164,6 +168,8 @@ class TestTensorLike:
     @staticmethod
     def test_resolve_builder_raises_without_tensor_holder():
         """验证未提供 TensorHolder 时抛出异常"""
-        with pytest.raises(ValueError,
-                           match="Please ensure at least one input tensor or an explicit owner_builder is provided when supported"):
+        with pytest.raises(
+            ValueError,
+            match="Please ensure at least one input tensor or an explicit owner_builder is provided when supported",
+        ):
             resolve_builder(1, [2, 3.0])

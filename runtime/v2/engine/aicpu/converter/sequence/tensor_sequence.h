@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,7 +48,7 @@ class TensorSeq {
     return ge::GRAPH_SUCCESS;
   }
 
-  ge::graphStatus SetElements(std::vector<TensorRef>&& tensors) {
+  ge::graphStatus SetElements(std::vector<TensorRef> &&tensors) {
     if (!tensors_.empty()) {
       GELOGE(ge::PARAM_INVALID, "tensor sequence is not empty, so can't set elements.");
       REPORT_INNER_ERR_MSG("E39999", "tensor sequence is not empty, so can't set elements.");
@@ -58,18 +58,26 @@ class TensorSeq {
     return ge::GRAPH_SUCCESS;
   }
 
-  ge::DataType DataType() const noexcept { return elem_type_; }
+  ge::DataType DataType() const noexcept {
+    return elem_type_;
+  }
 
-  bool IsSameDataType(const TensorSeq& tensor_seq) const noexcept {
+  bool IsSameDataType(const TensorSeq &tensor_seq) const noexcept {
     return elem_type_ == tensor_seq.elem_type_;
   }
 
-  size_t Size() const noexcept { return tensors_.size(); }
+  size_t Size() const noexcept {
+    return tensors_.size();
+  }
 
   // Suitable for for range loop
-  const_iterator begin() const noexcept { return tensors_.cbegin(); }
+  const_iterator begin() const noexcept {
+    return tensors_.cbegin();
+  }
 
-  const_iterator end() const noexcept { return tensors_.cend(); }
+  const_iterator end() const noexcept {
+    return tensors_.cend();
+  }
 
   bool ValidateSeqIdx(int64_t index) const {
     bool ret = false;
@@ -81,15 +89,14 @@ class TensorSeq {
     }
 
     if (!ret) {
-      GELOGE(ge::PARAM_INVALID, "input index %lld is not valid, sequence's size %lld",
-                       index, size);
+      GELOGE(ge::PARAM_INVALID, "input index %lld is not valid, sequence's size %lld", index, size);
       REPORT_INNER_ERR_MSG("E39999", "input is not valid");
     }
     return ret;
   }
 
   // Get by index
-  const TensorRef* Get(int64_t index) const {
+  const TensorRef *Get(int64_t index) const {
     if (!ValidateSeqIdx(index)) {
       return nullptr;
     }
@@ -101,14 +108,18 @@ class TensorSeq {
     return &tensors_[index];
   }
 
-  ge::graphStatus Add(TensorRef&& tensor, ge::DataType data_type) {
+  ge::graphStatus Add(TensorRef &&tensor, ge::DataType data_type) {
     if (elem_type_ != data_type) {
-      GELOGE(ge::PARAM_INVALID, "The data type of add tensor is not equal with element type "
+      GELOGE(ge::PARAM_INVALID,
+             "The data type of add tensor is not equal with element type "
              "of tensor sequence, the input data type is [%u] , tensor sequence's element "
-             "type is [%u].", data_type, elem_type_);
-      REPORT_INNER_ERR_MSG("E39999", "The data type of add tensor is not equal with element type "
-                         "of tensor sequence, the input data type is [%u] , tensor sequence's "
-                        "element type is [%u].", data_type, elem_type_);
+             "type is [%u].",
+             data_type, elem_type_);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "The data type of add tensor is not equal with element type "
+                           "of tensor sequence, the input data type is [%u] , tensor sequence's "
+                           "element type is [%u].",
+                           data_type, elem_type_);
       return ge::PARAM_INVALID;
     }
     tensors_.push_back(std::move(tensor));
@@ -131,20 +142,23 @@ class TensorSeq {
     return ss.str();
   }
 
-  ge::graphStatus Add(const Tensor& tensor) {
+  ge::graphStatus Add(const Tensor &tensor) {
     auto data_type = tensor.GetDataType();
     if (elem_type_ != data_type) {
-      GELOGE(ge::PARAM_INVALID, "The data type of add tensor is not equal with element type "
+      GELOGE(ge::PARAM_INVALID,
+             "The data type of add tensor is not equal with element type "
              "of tensor sequence, the input data type is [%u] , tensor sequence's element "
-             "type is [%u].", data_type, elem_type_);
-      REPORT_INNER_ERR_MSG("E39999", "The data type of add tensor is not equal with element type "
-                         "of tensor sequence, the input data type is [%u] , tensor sequence's "
-                        "element type is [%u].", data_type, elem_type_);
+             "type is [%u].",
+             data_type, elem_type_);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "The data type of add tensor is not equal with element type "
+                           "of tensor sequence, the input data type is [%u] , tensor sequence's "
+                           "element type is [%u].",
+                           data_type, elem_type_);
       return ge::PARAM_INVALID;
     }
     TensorRef tensor_ref;
-    if (tensor_ref.tensor_addr_.ShareFrom(tensor.GetTensorData()) !=
-        ge::GRAPH_SUCCESS) {
+    if (tensor_ref.tensor_addr_.ShareFrom(tensor.GetTensorData()) != ge::GRAPH_SUCCESS) {
       GELOGE(ge::PARAM_INVALID, "Create tensor ref failed");
       REPORT_INNER_ERR_MSG("E39999", "Create tensor ref failed");
       return ge::PARAM_INVALID;
@@ -155,21 +169,22 @@ class TensorSeq {
       tensor_ref.tensor_shape_.SetDim(index, shape.GetDim(index));
     }
     tensors_.push_back(std::move(tensor_ref));
-    GELOGD("Add tensor success, data type is %u, tensor size is %llu",
-           data_type, tensor.GetSize());
+    GELOGD("Add tensor success, data type is %u, tensor size is %llu", data_type, tensor.GetSize());
     return ge::GRAPH_SUCCESS;
   }
 
-  ge::graphStatus Add(const ge::DataType data_type,
-                      const TensorData& tensor_data,
-                      const StorageShape& storage_shape) {
+  ge::graphStatus Add(const ge::DataType data_type, const TensorData &tensor_data, const StorageShape &storage_shape) {
     if (elem_type_ != data_type) {
-      GELOGE(ge::PARAM_INVALID, "The data type of add tensor is not equal with element type "
+      GELOGE(ge::PARAM_INVALID,
+             "The data type of add tensor is not equal with element type "
              "of tensor sequence, the input data type is [%u] , tensor sequence's element "
-             "type is [%u].", data_type, elem_type_);
-      REPORT_INNER_ERR_MSG("E39999", "The data type of add tensor is not equal with element type "
-                         "of tensor sequence, the input data type is [%u] , tensor sequence's "
-                        "element type is [%u].", data_type, elem_type_);
+             "type is [%u].",
+             data_type, elem_type_);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "The data type of add tensor is not equal with element type "
+                           "of tensor sequence, the input data type is [%u] , tensor sequence's "
+                           "element type is [%u].",
+                           data_type, elem_type_);
       return ge::PARAM_INVALID;
     }
     TensorRef tensor_ref;
@@ -185,20 +200,23 @@ class TensorSeq {
       tensor_ref.tensor_shape_.SetDim(index, shape.GetDim(index));
     }
     tensors_.push_back(std::move(tensor_ref));
-    GELOGD("tensor sequence add tensor ref success, tensor shape is %s",
-           ShapeToString(shape).c_str());
+    GELOGD("tensor sequence add tensor ref success, tensor shape is %s", ShapeToString(shape).c_str());
     return ge::GRAPH_SUCCESS;
   }
 
-  ge::graphStatus Add(const Tensor& tensor, int64_t index) {
+  ge::graphStatus Add(const Tensor &tensor, int64_t index) {
     auto data_type = tensor.GetDataType();
     if (elem_type_ != data_type) {
-      GELOGE(ge::PARAM_INVALID, "The data type of add tensor is not equal with element type "
+      GELOGE(ge::PARAM_INVALID,
+             "The data type of add tensor is not equal with element type "
              "of tensor sequence, the input data type is [%u] , tensor sequence's element "
-             "type is [%u].", data_type, elem_type_);
-      REPORT_INNER_ERR_MSG("E39999", "The data type of add tensor is not equal with element type "
-                         "of tensor sequence, the input data type is [%u] , tensor sequence's "
-                        "element type is [%u].", data_type, elem_type_);
+             "type is [%u].",
+             data_type, elem_type_);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "The data type of add tensor is not equal with element type "
+                           "of tensor sequence, the input data type is [%u] , tensor sequence's "
+                           "element type is [%u].",
+                           data_type, elem_type_);
       return ge::PARAM_INVALID;
     }
 
@@ -211,8 +229,7 @@ class TensorSeq {
     }
 
     TensorRef tensor_ref;
-    if (tensor_ref.tensor_addr_.ShareFrom(tensor.GetTensorData()) !=
-        ge::GRAPH_SUCCESS) {
+    if (tensor_ref.tensor_addr_.ShareFrom(tensor.GetTensorData()) != ge::GRAPH_SUCCESS) {
       GELOGE(ge::PARAM_INVALID, "Create tensor ref failed");
       REPORT_INNER_ERR_MSG("E39999", "Create tensor ref failed");
       return ge::PARAM_INVALID;
@@ -224,21 +241,23 @@ class TensorSeq {
       tensor_ref.tensor_shape_.SetDim(idx, shape.GetDim(idx));
     }
     tensors_.insert(tensors_.begin() + index, std::move(tensor_ref));
-    GELOGD("Add tensor success, index is %lld, tensor size is %llu",
-           index, tensor.GetSize());
+    GELOGD("Add tensor success, index is %lld, tensor size is %llu", index, tensor.GetSize());
     return ge::GRAPH_SUCCESS;
   }
 
-  ge::graphStatus Add(const ge::DataType data_type,
-                      const TensorData& tensor_data,
-                      const StorageShape& storage_shape, int64_t index) {
+  ge::graphStatus Add(const ge::DataType data_type, const TensorData &tensor_data, const StorageShape &storage_shape,
+                      int64_t index) {
     if (elem_type_ != data_type) {
-      GELOGE(ge::PARAM_INVALID, "The data type of add tensor is not equal with element type "
+      GELOGE(ge::PARAM_INVALID,
+             "The data type of add tensor is not equal with element type "
              "of tensor sequence, the input data type is [%u] , tensor sequence's element "
-             "type is [%u].", data_type, elem_type_);
-      REPORT_INNER_ERR_MSG("E39999", "The data type of add tensor is not equal with element type "
-                         "of tensor sequence, the input data type is [%u] , tensor sequence's "
-                        "element type is [%u].", data_type, elem_type_);
+             "type is [%u].",
+             data_type, elem_type_);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "The data type of add tensor is not equal with element type "
+                           "of tensor sequence, the input data type is [%u] , tensor sequence's "
+                           "element type is [%u].",
+                           data_type, elem_type_);
       return ge::PARAM_INVALID;
     }
 
@@ -263,8 +282,8 @@ class TensorSeq {
       tensor_ref.tensor_shape_.SetDim(idx, shape.GetDim(idx));
     }
     tensors_.insert(tensors_.begin() + index, std::move(tensor_ref));
-    GELOGD("tensor sequence add ref tensor success, index is %lld, tensor shape is %s",
-           index, ShapeToString(shape).c_str());
+    GELOGD("tensor sequence add ref tensor success, index is %lld, tensor shape is %s", index,
+           ShapeToString(shape).c_str());
     return ge::GRAPH_SUCCESS;
   }
 
@@ -280,7 +299,9 @@ class TensorSeq {
     return ge::GRAPH_SUCCESS;
   }
 
-  void Reserve(size_t capacity) { tensors_.reserve(capacity); }
+  void Reserve(size_t capacity) {
+    tensors_.reserve(capacity);
+  }
 
  private:
   ge::DataType elem_type_{ge::DT_FLOAT};

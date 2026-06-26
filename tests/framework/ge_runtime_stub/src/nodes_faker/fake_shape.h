@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,8 +24,7 @@ class FakedShapeImpl : public BaseNodeExeFaker {
     return kOnHost;
   }
   ge::graphStatus RunFunc(KernelContext *context) override {
-    auto gert_allocator =
-        context->GetInputValue<GertAllocator *>(kFkiAllocator);
+    auto gert_allocator = context->GetInputValue<GertAllocator *>(kFkiAllocator);
     GE_ASSERT_NOTNULL(gert_allocator);
     auto in_shape = context->GetInputPointer<StorageShape>(kFkiStart);
     auto out_shape = context->GetOutputPointer<StorageShape>(0);
@@ -45,8 +44,8 @@ class FakedShapeImpl : public BaseNodeExeFaker {
     if (out_addr->GetAddr() == nullptr || out_addr->GetSize() < out_data_size) {
       auto out_data = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(out_data_size));
       GE_ASSERT_NOTNULL(out_data);
-      *out_addr = TensorUtils::ToGertTensorData(
-          out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
+      *out_addr =
+          TensorUtils::ToGertTensorData(out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
     }
 
     memcpy(out_addr->GetAddr(), &(in_shape->GetStorageShape()[0]), out_data_size);
@@ -60,8 +59,7 @@ class FakedRankImpl : public BaseNodeExeFaker {
     return kOnHost;
   }
   ge::graphStatus RunFunc(KernelContext *context) override {
-    auto gert_allocator =
-        context->GetInputValue<GertAllocator *>(kFkiAllocator);
+    auto gert_allocator = context->GetInputValue<GertAllocator *>(kFkiAllocator);
     GE_ASSERT_NOTNULL(gert_allocator);
     auto in_shape = context->GetInputPointer<StorageShape>(kFkiStart);
     auto out_shape = context->GetOutputPointer<StorageShape>(0);
@@ -77,10 +75,10 @@ class FakedRankImpl : public BaseNodeExeFaker {
     if (out_addr->GetAddr() == nullptr || out_addr->GetSize() < out_data_size) {
       auto out_data = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(out_data_size));
       GE_ASSERT_NOTNULL(out_data);
-      std::cout << "Rank: Alloc output memory " << out_data
-                << ", count " << out_data->GetCount(gert_allocator->GetStreamId()) << std::endl;
-      *out_addr = TensorUtils::ToGertTensorData(
-          out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
+      std::cout << "Rank: Alloc output memory " << out_data << ", count "
+                << out_data->GetCount(gert_allocator->GetStreamId()) << std::endl;
+      *out_addr =
+          TensorUtils::ToGertTensorData(out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
     }
 
     *static_cast<size_t *>(out_addr->GetAddr()) = in_shape->GetStorageShape().GetDimNum();
@@ -94,8 +92,7 @@ class FakedSizeImpl : public BaseNodeExeFaker {
     return kOnHost;
   }
   ge::graphStatus RunFunc(KernelContext *context) override {
-    auto gert_allocator =
-        context->GetInputValue<GertAllocator *>(kFkiAllocator);
+    auto gert_allocator = context->GetInputValue<GertAllocator *>(kFkiAllocator);
     GE_ASSERT_NOTNULL(gert_allocator);
     auto in_shape = context->GetInputPointer<StorageShape>(kFkiStart);
     auto out_shape = context->GetOutputPointer<StorageShape>(0);
@@ -111,9 +108,10 @@ class FakedSizeImpl : public BaseNodeExeFaker {
     if (out_addr->GetAddr() == nullptr || out_addr->GetSize() < out_data_size) {
       auto out_data = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(out_data_size));
       GE_ASSERT_NOTNULL(out_data);
-      std::cout << "Rank: Alloc output memory " << out_data << ", count " << out_data->GetCount(gert_allocator->GetStreamId()) << std::endl;
-      *out_addr = TensorUtils::ToGertTensorData(
-          out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
+      std::cout << "Rank: Alloc output memory " << out_data << ", count "
+                << out_data->GetCount(gert_allocator->GetStreamId()) << std::endl;
+      *out_addr =
+          TensorUtils::ToGertTensorData(out_data, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
     }
 
     *static_cast<int64_t *>(out_addr->GetAddr()) = in_shape->GetStorageShape().GetShapeSize();

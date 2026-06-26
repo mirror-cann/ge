@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -122,16 +122,22 @@ Status NoPaddingContinuousInputNodeOffsetChecker(const NodeCheckerParam &param) 
     }
 
     if (expect_offset != offset) {
-      REPORT_INNER_ERR_MSG("E19999", "nopadding continuous input node memory check failed. node: %s, input_index: %d,"
-          " input node %s, out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 ", use_offset_list: %d,"
-          " base_offset: %" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
-          NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset, use_offset_list,
-          base_offset);
-      GELOGE(FAILED, "nopadding continuous input node memory check failed. node: %s, input_index: %d, input node %s, "
-          "out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64 ", use_offset_list: %d, base_offset: "
-          "%" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
-          NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset, use_offset_list,
-          base_offset);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "nopadding continuous input node memory check failed. node: %s, input_index: %d,"
+                           " input node %s, out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64
+                           ", use_offset_list: %d,"
+                           " base_offset: %" PRId64 "",
+                           NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
+                           NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset,
+                           use_offset_list, base_offset);
+      GELOGE(FAILED,
+             "nopadding continuous input node memory check failed. node: %s, input_index: %d, input node %s, "
+             "out_index: %d, offset: %" PRId64 ", expect_offset: %" PRId64
+             ", use_offset_list: %d, base_offset: "
+             "%" PRId64 "",
+             NodeCheckerUtils::NodeName(param.node).c_str(), in_data_anchor->GetIdx(),
+             NodeCheckerUtils::NodeName(peer_node).c_str(), out_index, offset, expect_offset, use_offset_list,
+             base_offset);
       GE_ASSERT_SUCCESS(NodeCheckerUtils::ErrorLogAllInputs(param));
       return FAILED;
     }
@@ -204,7 +210,8 @@ Status GetNoAlignedSize(const Node *const node, const int32_t out_index, int64_t
   const auto &shape = output_desc.GetShape();
   GE_ASSERT_SUCCESS(ge::TensorUtils::CalcTensorMemSize(shape, out_format, data_type, no_aligned_size));
   GE_ASSERT_TRUE(no_aligned_size >= 0,
-                 "After calculating, tensor memory size:%" PRId64 " invalid, less than 0. "
+                 "After calculating, tensor memory size:%" PRId64
+                 " invalid, less than 0. "
                  "new shape:%s, format:%s, dtype:%s, maybe has dynamic shape",
                  no_aligned_size, shape.ToString().c_str(), TypeUtils::FormatToSerialString(out_format).c_str(),
                  TypeUtils::DataTypeToSerialString(data_type).c_str());
@@ -246,14 +253,23 @@ Status NoPaddingContinuousInputNodeSizeChecker(const NodeCheckerParam &param) {
   GE_ASSERT_TRUE(!AddOverflow(continuous_mem_base, continuous_mem_size, max_offset),
                  "offset: %" PRId64 ", len: %" PRId64 "", continuous_mem_base, continuous_mem_size);
   if (max_offset < out_offset_end) {
-    REPORT_INNER_ERR_MSG("E19999", "nopadding continuous input node memory size check failed. valid offset[%" PRId64 ","
-        " %" PRId64 "), last real input node out_offset: %" PRId64 ", out_offset_end: %" PRId64 ", last real input"
-        " node: %s, phony concat node: %s", continuous_mem_base, max_offset, out_offset, out_offset_end,
-        NodeCheckerUtils::NodeName(last_in_node).c_str(), NodeCheckerUtils::NodeName(param.node).c_str());
-    GELOGE(FAILED, "nopadding continuous input node memory size check failed. valid offset[%" PRId64 ", %" PRId64 "),"
-        " last real input node out_offset: %" PRId64 ", out_offset_end: %" PRId64 ", last real input node: %s,"
-        " phony concat node: %s", continuous_mem_base, max_offset, out_offset, out_offset_end,
-        NodeCheckerUtils::NodeName(last_in_node).c_str(), NodeCheckerUtils::NodeName(param.node).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "nopadding continuous input node memory size check failed. valid offset[%" PRId64
+                         ","
+                         " %" PRId64 "), last real input node out_offset: %" PRId64 ", out_offset_end: %" PRId64
+                         ", last real input"
+                         " node: %s, phony concat node: %s",
+                         continuous_mem_base, max_offset, out_offset, out_offset_end,
+                         NodeCheckerUtils::NodeName(last_in_node).c_str(),
+                         NodeCheckerUtils::NodeName(param.node).c_str());
+    GELOGE(FAILED,
+           "nopadding continuous input node memory size check failed. valid offset[%" PRId64 ", %" PRId64
+           "),"
+           " last real input node out_offset: %" PRId64 ", out_offset_end: %" PRId64
+           ", last real input node: %s,"
+           " phony concat node: %s",
+           continuous_mem_base, max_offset, out_offset, out_offset_end,
+           NodeCheckerUtils::NodeName(last_in_node).c_str(), NodeCheckerUtils::NodeName(param.node).c_str());
     GE_ASSERT_SUCCESS(ErrorLogAllPhonyConcat(param.node), "node: %s", NodeCheckerUtils::NodeName(param.node).c_str());
     return FAILED;
   }

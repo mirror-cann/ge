@@ -42,20 +42,20 @@ inline std::string BuildAssertMsg(const char *expr, const char *fmt, ...) {
 
 }  // namespace minidag
 
-#define MINIDAG_ASSERT_SUCCESS(expr, ...)                                                          \
-  do {                                                                                             \
-    if ((expr) != minidag::graphStatus::SUCCESS) {                                                 \
-      MINIDAG_LOG_ERROR("%s", minidag::BuildAssertMsg(#expr, ##__VA_ARGS__).c_str());              \
-      return minidag::graphStatus::FAILED;                                                         \
-    }                                                                                              \
+#define MINIDAG_ASSERT_SUCCESS(expr, ...)                                             \
+  do {                                                                                \
+    if ((expr) != minidag::graphStatus::SUCCESS) {                                    \
+      MINIDAG_LOG_ERROR("%s", minidag::BuildAssertMsg(#expr, ##__VA_ARGS__).c_str()); \
+      return minidag::graphStatus::FAILED;                                            \
+    }                                                                                 \
   } while (false)
 
-#define MINIDAG_ASSERT_NOTNULL(expr, ...)                                                          \
-  do {                                                                                             \
-    if ((expr) == nullptr) {                                                                       \
-      MINIDAG_LOG_ERROR("%s", minidag::BuildAssertMsg(#expr " is nullptr", ##__VA_ARGS__).c_str());\
-      return minidag::graphStatus::FAILED;                                                         \
-    }                                                                                              \
+#define MINIDAG_ASSERT_NOTNULL(expr, ...)                                                           \
+  do {                                                                                              \
+    if ((expr) == nullptr) {                                                                        \
+      MINIDAG_LOG_ERROR("%s", minidag::BuildAssertMsg(#expr " is nullptr", ##__VA_ARGS__).c_str()); \
+      return minidag::graphStatus::FAILED;                                                          \
+    }                                                                                               \
   } while (false)
 
 #endif  // GE_GRAPH_BUILD_DAG_MINIDAG_DAG_CHECKER_H_

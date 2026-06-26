@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,8 +18,7 @@ using namespace ge;
 using namespace ge::es;
 namespace es_showcase {
 
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -27,7 +26,7 @@ int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
     std::cout << "Global session not ready" << std::endl;
     return -1;
   }
-  static uint32_t next =0;
+  static uint32_t next = 0;
   const uint32_t graph_id = next++;
   auto ret = s->AddGraph(graph_id, graph);
   if (ret != ge::SUCCESS) {
@@ -79,4 +78,4 @@ int MakeControlEdgeGraphByEsAndRun() {
   inputs.push_back(*ge::Utils::StubTensor<float>(input2_data, {2}));
   return RunGraph(*graph, inputs, "ControlEdge");
 }
-}
+}  // namespace es_showcase

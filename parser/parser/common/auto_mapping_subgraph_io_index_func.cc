@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,8 @@ std::vector<NodePtr> FindNodesByType(const ge::ComputeGraphPtr &graph, const std
   return nodes;
 }
 
-Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &compute_graph,
+Status AutoMappingSubgraphIndexByOutputNodesInfo(
+    const ge::ComputeGraphPtr &compute_graph,
     const std::function<Status(int netoutput_index, int &parent_output_index)> &output) {
   const auto &out_nodes_info = compute_graph->GetGraphOutNodesInfo();
   for (size_t i = 0; i < out_nodes_info.size(); ++i) {
@@ -53,9 +54,10 @@ Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &comp
     int parent_index = -1;
     auto ret = output(index, parent_index);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Get parent output index %" PRId64 " failed, node:%s", index, out_node->GetName().c_str());
-      GELOGE(FAILED, "[Get][ParentOutputIndex] Get parent output index %" PRId64 " failed, node:%s",
-             index, out_node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get parent output index %" PRId64 " failed, node:%s", index,
+                           out_node->GetName().c_str());
+      GELOGE(FAILED, "[Get][ParentOutputIndex] Get parent output index %" PRId64 " failed, node:%s", index,
+             out_node->GetName().c_str());
       return FAILED;
     }
     auto op_desc = out_node->GetOpDesc();
@@ -66,19 +68,20 @@ Status AutoMappingSubgraphIndexByOutputNodesInfo(const ge::ComputeGraphPtr &comp
     auto output_desc = op_desc->MutableOutputDesc(output_index);
     if (output_desc == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "Cannot find output tensor desc from node:%s, index %d",
-                        out_node->GetName().c_str(), output_index);
+                           out_node->GetName().c_str(), output_index);
       GELOGE(FAILED, "[Get][OutputDesc] Cannot find output tensor desc from node:%s, index %d",
              out_node->GetName().c_str(), output_index);
       return FAILED;
     }
     if (!ge::AttrUtils::SetInt(output_desc, ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
       REPORT_INNER_ERR_MSG("E19999", "Set attr:%s of op:%s failed, parent_index:%d",
-                         ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), out_node->GetName().c_str(), parent_index);
+                           ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), out_node->GetName().c_str(), parent_index);
       GELOGE(FAILED, "[Set][Attr] Set attr:%s of op:%s failed, parent_index:%d",
              ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), out_node->GetName().c_str(), parent_index);
       return FAILED;
     }
-    GELOGI("Generate subgraph output map for subgraph %s, out node index %" PRId64 ", parent node index %d, node name:%s",
+    GELOGI("Generate subgraph output map for subgraph %s, out node index %" PRId64
+           ", parent node index %d, node name:%s",
            compute_graph->GetName().c_str(), index, parent_index, out_node->GetName().c_str());
   }
 
@@ -104,10 +107,10 @@ Status AutoMappingSubgraphIndexByDataNode(const ge::ComputeGraphPtr &compute_gra
       return FAILED;
     }
     if (!ge::AttrUtils::SetInt(nodes[i]->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-      REPORT_INNER_ERR_MSG("E19999", "Set attr:%s failed, op_name:%s, ",
-                         ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), nodes[i]->GetName().c_str());
-      GELOGE(FAILED, "[Set][Attr] Set attr:%s failed, op_name:%s, ",
-             ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), nodes[i]->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Set attr:%s failed, op_name:%s, ", ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+                           nodes[i]->GetName().c_str());
+      GELOGE(FAILED, "[Set][Attr] Set attr:%s failed, op_name:%s, ", ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+             nodes[i]->GetName().c_str());
       return FAILED;
     }
     GELOGI("Generate subgraph input map for subgraph %s, data index %zu, parent node index %d",
@@ -115,11 +118,10 @@ Status AutoMappingSubgraphIndexByDataNode(const ge::ComputeGraphPtr &compute_gra
   }
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status AutoMappingSubgraphIndexByDataNodeAndOutputNodesInfo(
-    const ge::Graph &graph,
-    const std::function<Status(int data_index, int &parent_input_index)> &input,
+    const ge::Graph &graph, const std::function<Status(int data_index, int &parent_input_index)> &input,
     const std::function<Status(int netoutput_index, int &parent_output_index)> &output) {
   GE_CHECK_NOTNULL(input);
   GE_CHECK_NOTNULL(output);
@@ -172,14 +174,12 @@ domi::Status AutoMappingSubgraphDataFormat(const NodePtr &parent_node, const ge:
     input_desc->SetOriginFormat(input_original_format);
     output_desc->SetFormat(input_format);
     output_desc->SetOriginFormat(input_original_format);
-    GELOGD("Set index %d of data[%zu], node:%s, format:%d->%d, original "
-           "format:%d->%d, from parent node:%s, node_type:%s",
-           index, i, data_nodes[i]->GetName().c_str(),
-           static_cast<int32_t>(output_desc->GetFormat()),
-           static_cast<int32_t>(input_format),
-           static_cast<int32_t>(output_desc->GetOriginFormat()),
-           static_cast<int32_t>(input_original_format),
-           parent_node->GetName().c_str(), parent_node->GetType().c_str());
+    GELOGD(
+        "Set index %d of data[%zu], node:%s, format:%d->%d, original "
+        "format:%d->%d, from parent node:%s, node_type:%s",
+        index, i, data_nodes[i]->GetName().c_str(), static_cast<int32_t>(output_desc->GetFormat()),
+        static_cast<int32_t>(input_format), static_cast<int32_t>(output_desc->GetOriginFormat()),
+        static_cast<int32_t>(input_original_format), parent_node->GetName().c_str(), parent_node->GetType().c_str());
   }
   return SUCCESS;
 }

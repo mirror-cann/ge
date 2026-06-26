@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ class LLMUtils {
   static ge::Status ParserWaitTimeInfo(const std::map<ge::AscendString, ge::AscendString> &options,
                                        DecoderWaitTimeInfo &wait_time_info);
 
-  template<typename T>
+  template <typename T>
   static ge::Status ToNumber(const std::string &num_str, T &value) {
     std::stringstream ss(num_str);
     ss >> value;
@@ -52,15 +52,12 @@ class LLMUtils {
   static ge::Status ParseDeviceId(const std::map<ge::AscendString, ge::AscendString> &options,
                                   std::vector<int32_t> &device_ids, const char *option);
 
-  static ge::Status GenerateClusterInfo(uint64_t cluster_id,
-                                        bool need_listen_ip,
-                                        size_t device_num,
+  static ge::Status GenerateClusterInfo(uint64_t cluster_id, bool need_listen_ip, size_t device_num,
                                         std::map<ge::AscendString, ge::AscendString> &options);
 
   static std::string GenerateNumaConfig(std::vector<int32_t> &device_ids);
 
-  static ge::Status ParseListenIpInfo(const std::map<ge::AscendString, ge::AscendString> &options,
-                                      uint32_t &ip_int,
+  static ge::Status ParseListenIpInfo(const std::map<ge::AscendString, ge::AscendString> &options, uint32_t &ip_int,
                                       uint32_t &port);
 
   static ge::Status IpToInt(const std::string &ip, uint32_t &ip_int);
@@ -72,8 +69,7 @@ class LLMUtils {
                                                  const std::vector<uint64_t> &dst_blocks,
                                                  std::vector<std::vector<std::pair<int64_t, int64_t>>> &result);
   static ge::Status ParseFlag(const std::string &option_name,
-                              const std::map<ge::AscendString, ge::AscendString> &options,
-                              bool &enabled);
+                              const std::map<ge::AscendString, ge::AscendString> &options, bool &enabled);
 
   static bool CheckMultiplyOverflowInt64(int64_t a, int64_t b);
 
@@ -85,14 +81,11 @@ class LLMUtils {
 
   static ge::Status GetSizeInBytes(int64_t element_count, ge::DataType data_type, int64_t &mem_size);
 
-  static ge::Status CalcTensorMemSize(const std::vector<int64_t> &dims,
-                                      const ge::DataType data_type,
+  static ge::Status CalcTensorMemSize(const std::vector<int64_t> &dims, const ge::DataType data_type,
                                       int64_t &mem_size);
 
  private:
- static ge::Status ParseListenIpInfo(const std::string &option,
-                                      uint32_t &ip_int,
-                                      uint32_t &port);
+  static ge::Status ParseListenIpInfo(const std::string &option, uint32_t &ip_int, uint32_t &port);
 };
 
 /// @ingroup domi_common

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,7 +70,7 @@ TEST_F(UtestStreamResource, MallocMemory_Ok_WithoutExternalAllocator) {
   res.allocator_ = &res.internal_allocator_;
   auto mem = (ge::MemBlock *)0x01;
   EXPECT_NE(res.MallocMemory("malloc mem", 10, false, mem), nullptr);
-  EXPECT_NE(mem,  (ge::MemBlock *)0x01);
+  EXPECT_NE(mem, (ge::MemBlock *)0x01);
 }
 
 TEST_F(UtestStreamResource, MallocMemory_NoReuseAllocated_WithoutExternalAllocator) {
@@ -78,7 +78,7 @@ TEST_F(UtestStreamResource, MallocMemory_NoReuseAllocated_WithoutExternalAllocat
   res.allocator_ = &res.internal_allocator_;
   auto mem = (ge::MemBlock *)0x01;
   EXPECT_NE(res.MallocMemory("malloc mem", 10, false, mem), nullptr);
-  EXPECT_NE(mem,  (ge::MemBlock *)0x01);
+  EXPECT_NE(mem, (ge::MemBlock *)0x01);
   EXPECT_EQ(res.internal_allocator_.memory_list_.size(), 1);
   auto last_size = mem->GetSize();
   EXPECT_NE(res.MallocMemory("malloc mem", 2048, false, mem), nullptr);

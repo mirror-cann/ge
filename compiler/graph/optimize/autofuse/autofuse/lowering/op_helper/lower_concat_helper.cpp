@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,16 +23,15 @@ constexpr int32_t kAlgTranspose = 0;
 constexpr int32_t kAlgScatter = 1;
 const Expression kOne = Symbol(1);
 }  // namespace
-LowerConcatHelper::LowerConcatHelper(NodePtr fused_asc_backend_node) :
-    fused_asc_backend_node_(std::move(fused_asc_backend_node)) {
-}
+LowerConcatHelper::LowerConcatHelper(NodePtr fused_asc_backend_node)
+    : fused_asc_backend_node_(std::move(fused_asc_backend_node)) {}
 
 graphStatus LowerConcatHelper::LiftingPoorPerfFusedAscBackendOps(const ComputeGraphPtr &graph) {
   for (const auto &node : graph->GetAllNodes()) {
     if (node->GetType() == kFusedAscBackendType) {
       LowerConcatHelper lower_concat_helper(node);
-      GE_ASSERT_GRAPH_SUCCESS(lower_concat_helper.LiftingPoorPerfFusedAscBackendOp(),
-                              "Failed to process %s", node->GetNamePtr());
+      GE_ASSERT_GRAPH_SUCCESS(lower_concat_helper.LiftingPoorPerfFusedAscBackendOp(), "Failed to process %s",
+                              node->GetNamePtr());
     }
   }
   return ge::GRAPH_SUCCESS;
@@ -103,10 +102,8 @@ graphStatus LowerConcatHelper::ParseConcatNode() {
       ++non_one_count;
     }
   }
-  GE_ASSERT_TRUE(found,
-                 "[%s] failed to find concat dim, input_shape[0] = %s, output_shape = %s",
-                 fused_asc_backend_node_->GetNamePtr(),
-                 ToString(input_shapes_.front()).c_str(),
+  GE_ASSERT_TRUE(found, "[%s] failed to find concat dim, input_shape[0] = %s, output_shape = %s",
+                 fused_asc_backend_node_->GetNamePtr(), ToString(input_shapes_.front()).c_str(),
                  ToString(output_shape_).c_str());
   return GRAPH_SUCCESS;
 }
@@ -125,14 +122,12 @@ graphStatus LowerConcatHelper::ParseConcatCase() {
       auto &input_shape = input_shapes_[in_anchor->GetIdx()];
       GE_ASSERT_EQ(input_shape.size(), output_shape_.size());
       const auto dim_size = input_shape[concat_dim_];
-      GE_CHK_BOOL_RET_SPECIAL_STATUS((!dim_size.IsConstExpr()),
-                                     ge::SUCCESS,
-                                     "contains non-const dim: %s",
+      GE_CHK_BOOL_RET_SPECIAL_STATUS((!dim_size.IsConstExpr()), ge::SUCCESS, "contains non-const dim: %s",
                                      SymbolicUtils::ToString(dim_size).c_str());
       int64_t dim_size_val = -1;
-      (void) dim_size.GetConstValue(dim_size_val);
-      GE_CHK_BOOL_RET_SPECIAL_STATUS(dim_size_val < 0, ge::SUCCESS,
-                                     "input[%zu] contains %ld dim", in_anchor->GetIdx(), dim_size_val);
+      (void)dim_size.GetConstValue(dim_size_val);
+      GE_CHK_BOOL_RET_SPECIAL_STATUS(dim_size_val < 0, ge::SUCCESS, "input[%zu] contains %ld dim", in_anchor->GetIdx(),
+                                     dim_size_val);
       auto peer_out_anchor = in_anchor->GetPeerOutAnchor();
       GE_ASSERT_NOTNULL(peer_out_anchor);
       const auto peer_node = peer_out_anchor->GetOwnerNodeBarePtr();
@@ -151,15 +146,14 @@ graphStatus LowerConcatHelper::ParseConcatCase() {
   }
   const auto in_num = concat_asc_backend_node_->GetInDataNodesSize();
   const auto all_aligned = (num_aligned == in_num);
-  const auto none_reuse =  (input_shapes_.size() == in_num);
+  const auto none_reuse = (input_shapes_.size() == in_num);
   GELOGI("can_be_no_task = %d, all_aligned = %d, none_reuse = %d", static_cast<int32_t>(can_be_no_task),
          static_cast<int32_t>(all_aligned), static_cast<int32_t>(none_reuse));
   if (can_be_no_task && all_aligned && none_reuse) {
     case_ = ParseConcatCaseForNoTask();
     return GRAPH_SUCCESS;
   }
-  case_ = is_first_dim_ ? ConcatCase::kFirstDim :
-          (all_aligned ? ConcatCase::kAllAligned : ConcatCase::kOther);
+  case_ = is_first_dim_ ? ConcatCase::kFirstDim : (all_aligned ? ConcatCase::kAllAligned : ConcatCase::kOther);
   return GRAPH_SUCCESS;
 }
 
@@ -194,22 +188,18 @@ graphStatus LowerConcatHelper::NeedLifting(bool &need_lifting) {
   }
   GE_ASSERT_SUCCESS(ParseConcatNode());
   // 暂不处理concat_dim后为动态shape的场景
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(!output_shape_[concat_dim_].IsConstExpr(),
-                                 GRAPH_SUCCESS,
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(!output_shape_[concat_dim_].IsConstExpr(), GRAPH_SUCCESS,
                                  "concat dim size is non-const");
-  (void) output_shape_[concat_dim_].GetConstValue(output_dim_size_);
-  GE_CHK_BOOL_RET_SPECIAL_STATUS(output_dim_size_ <= 0,
-                                 GRAPH_SUCCESS,
-                                 "concat dim size is not positive");
+  (void)output_shape_[concat_dim_].GetConstValue(output_dim_size_);
+  GE_CHK_BOOL_RET_SPECIAL_STATUS(output_dim_size_ <= 0, GRAPH_SUCCESS, "concat dim size is not positive");
   GE_ASSERT_SUCCESS(ParseConcatCase());
   GE_CHK_BOOL_RET_SPECIAL_STATUS(case_ == ConcatCase::kNoLifting, GRAPH_SUCCESS, "No need for lifting");
   auto buffer_ratio = static_cast<float64_t>(total_fused_dim_size_) / static_cast<float64_t>(output_dim_size_);
   auto threshold = GetThreshold(backend_spec->concat_alg, case_);
   need_lifting = buffer_ratio < threshold;
   GELOGI("FusedAscBackend: %s, concat: %s, case = %s, ratio = %ld/%ld = %.15f, threshold = %f, need_lifting = %d",
-         fused_asc_backend_node_->GetNamePtr(), concat_node_->GetNamePtr(),
-         CaseName(case_).c_str(), total_fused_dim_size_, output_dim_size_,
-         buffer_ratio, threshold, need_lifting);
+         fused_asc_backend_node_->GetNamePtr(), concat_node_->GetNamePtr(), CaseName(case_).c_str(),
+         total_fused_dim_size_, output_dim_size_, buffer_ratio, threshold, need_lifting);
   return GRAPH_SUCCESS;
 }
 
@@ -244,11 +234,8 @@ bool LowerConcatHelper::CheckGraph() const {
 
 bool LowerConcatHelper::HasBackwardFusion() const {
   const auto out_data_nodes = concat_asc_backend_node_->GetOutDataNodes();
-  return std::any_of(out_data_nodes.begin(),
-                     out_data_nodes.end(),
-                     [](const ge::NodePtr &peer_node) -> bool {
-                       return peer_node->GetType() == kAscBackendType;
-                     });
+  return std::any_of(out_data_nodes.begin(), out_data_nodes.end(),
+                     [](const ge::NodePtr &peer_node) -> bool { return peer_node->GetType() == kAscBackendType; });
 }
 
 bool LowerConcatHelper::IsTile() const {

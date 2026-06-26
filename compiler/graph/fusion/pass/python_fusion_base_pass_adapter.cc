@@ -40,8 +40,8 @@ class PythonFusionPassRuntimeRegistryImpl {
  public:
   bool Register(const PythonPassDescriptor &pass_desc, const PythonFusionPassCallbacks &callbacks) {
     if (!callbacks.IsValid(pass_desc.kind)) {
-      GELOGW("Register python pass runtime failed, descriptor key[%s], kind[%u].",
-             pass_desc.descriptor_key.c_str(), static_cast<uint32_t>(pass_desc.kind));
+      GELOGW("Register python pass runtime failed, descriptor key[%s], kind[%u].", pass_desc.descriptor_key.c_str(),
+             static_cast<uint32_t>(pass_desc.kind));
       return false;
     }
 
@@ -51,8 +51,8 @@ class PythonFusionPassRuntimeRegistryImpl {
       return false;
     }
 
-    descriptor_key_2_runtime_entry_.emplace(
-        pass_desc.descriptor_key, ge::ComGraphMakeShared<PythonFusionPassRuntimeEntry>(pass_desc, callbacks));
+    descriptor_key_2_runtime_entry_.emplace(pass_desc.descriptor_key,
+                                            ge::ComGraphMakeShared<PythonFusionPassRuntimeEntry>(pass_desc, callbacks));
     return true;
   }
 
@@ -150,13 +150,21 @@ PythonPassHolder::~PythonPassHolder() {
   }
 }
 
-bool PythonPassHolder::IsValid() const { return valid_; }
+bool PythonPassHolder::IsValid() const {
+  return valid_;
+}
 
-void *PythonPassHolder::GetHolder() const { return holder_; }
+void *PythonPassHolder::GetHolder() const {
+  return holder_;
+}
 
-const PythonFusionPassCallbacks &PythonPassHolder::GetCallbacks() const { return callbacks_; }
+const PythonFusionPassCallbacks &PythonPassHolder::GetCallbacks() const {
+  return callbacks_;
+}
 
-const PythonPassDescriptor &PythonPassHolder::GetPassDescriptor() const { return pass_desc_; }
+const PythonPassDescriptor &PythonPassHolder::GetPassDescriptor() const {
+  return pass_desc_;
+}
 
 PythonFusionPassRuntimeRegistry &PythonFusionPassRuntimeRegistry::GetInstance() {
   static PythonFusionPassRuntimeRegistry runtime_registry;
@@ -164,7 +172,7 @@ PythonFusionPassRuntimeRegistry &PythonFusionPassRuntimeRegistry::GetInstance() 
 }
 
 bool PythonFusionPassRuntimeRegistry::Register(const PythonPassDescriptor &pass_desc,
-                                                const PythonFusionPassCallbacks &callbacks) {
+                                               const PythonFusionPassCallbacks &callbacks) {
   return GetPythonFusionPassRuntimeRegistryImpl().Register(pass_desc, callbacks);
 }
 
@@ -173,7 +181,7 @@ bool PythonFusionPassRuntimeRegistry::Unregister(const std::string &descriptor_k
 }
 
 bool PythonFusionPassRuntimeRegistry::Acquire(const PythonPassDescriptor &pass_desc,
-                                               PythonFusionPassCallbacks &callbacks) {
+                                              PythonFusionPassCallbacks &callbacks) {
   return GetPythonFusionPassRuntimeRegistryImpl().Acquire(pass_desc, callbacks);
 }
 
@@ -246,8 +254,7 @@ FusionBasePass *CreatePythonPassAdapter() {
   }
 }
 
-bool RegisterPythonPass(const PythonPassDescriptor &pass_desc,
-                        const PythonFusionPassCallbacks &callbacks) {
+bool RegisterPythonPass(const PythonPassDescriptor &pass_desc, const PythonFusionPassCallbacks &callbacks) {
   if (!PythonFusionPassRuntimeRegistry::GetInstance().Register(pass_desc, callbacks)) {
     return false;
   }

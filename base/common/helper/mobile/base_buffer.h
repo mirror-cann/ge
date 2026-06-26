@@ -8,7 +8,6 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-
 #ifndef BASE_COMMON_HELPER_MOBILE_BASE_BUFFER_H
 #define BASE_COMMON_HELPER_MOBILE_BASE_BUFFER_H
 
@@ -18,75 +17,59 @@
 namespace ge {
 
 class BaseBuffer {
-public:
-    BaseBuffer() : data_(nullptr), size_(0)
-    {
+ public:
+  BaseBuffer() : data_(nullptr), size_(0) {}
+
+  BaseBuffer(void *data, std::size_t size) : data_(data), size_(size) {}
+
+  BaseBuffer(std::uint8_t *data, std::size_t size) : data_(data), size_(size) {}
+
+  ~BaseBuffer() = default;
+
+  BaseBuffer(const BaseBuffer &other) {
+    if (&other != this) {
+      data_ = other.data_;
+      size_ = other.size_;
     }
+  }
 
-    BaseBuffer(void* data, std::size_t size)
-        : data_(data), size_(size)
-    {
+  BaseBuffer &operator=(const BaseBuffer &other) {
+    if (&other != this) {
+      data_ = other.data_;
+      size_ = other.size_;
     }
+    return *this;
+  }
 
-    BaseBuffer(std::uint8_t* data, std::size_t size)
-        : data_(data), size_(size)
-    {
-    }
+  inline const std::uint8_t *GetData() const {
+    return static_cast<const uint8_t *>(data_);
+  }
 
-    ~BaseBuffer() = default;
+  inline std::uint8_t *GetData() {
+    return static_cast<uint8_t *>(data_);
+  }
 
-    BaseBuffer(const BaseBuffer& other)
-    {
-        if (&other != this) {
-            data_ = other.data_;
-            size_ = other.size_;
-        }
-    }
+  inline std::size_t GetSize() const {
+    return size_;
+  }
 
-    BaseBuffer& operator=(const BaseBuffer& other)
-    {
-        if (&other != this) {
-            data_ = other.data_;
-            size_ = other.size_;
-        }
-        return *this;
-    }
+  inline void SetData(std::uint8_t *data) {
+    data_ = data;
+  }
 
-    inline const std::uint8_t* GetData() const
-    {
-        return static_cast<const uint8_t*>(data_);
-    }
+  inline void SetData(void *data) {
+    data_ = data;
+  }
 
-    inline std::uint8_t* GetData()
-    {
-        return static_cast<uint8_t*>(data_);
-    }
+  inline void SetSize(std::size_t size) {
+    size_ = size;
+  }
 
-    inline std::size_t GetSize() const
-    {
-        return size_;
-    }
-
-    inline void SetData(std::uint8_t* data)
-    {
-        data_ = data;
-    }
-
-    inline void SetData(void* data)
-    {
-        data_ = data;
-    }
-
-    inline void SetSize(std::size_t size)
-    {
-        size_ = size;
-    }
-
-private:
-    void* data_;
-    std::size_t size_;
+ private:
+  void *data_;
+  std::size_t size_;
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_BASE_BUFFER_H
+#endif  // BASE_COMMON_HELPER_MOBILE_BASE_BUFFER_H

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,11 +20,7 @@
 #include "common/memory/feature_memory_impl.h"
 
 namespace ge {
-enum class ModelIORole : int32_t {
-  KInput = 0,
-  KOutput = 1,
-  KEnd = 2
-};
+enum class ModelIORole : int32_t { KInput = 0, KOutput = 1, KEnd = 2 };
 
 class CompiledGraphSummary::Builder {
  public:
@@ -37,22 +33,46 @@ class CompiledGraphSummary::SummaryData {
  public:
   SummaryData() = default;
   ~SummaryData() = default;
-  bool IsStatic() const { return is_static_; }
-  bool IsFeatureMemoryBaseRefreshable() const { return is_feature_mem_refreshable_; }
-  size_t GetConstMemorySize() const { return const_mem_size_; }
-  size_t GetFeatureMemorySize() const { return feature_mem_size_; }
-  size_t GetFixedFeatureMemorySize() const { return fixed_feature_mem_size_; }
+  bool IsStatic() const {
+    return is_static_;
+  }
+  bool IsFeatureMemoryBaseRefreshable() const {
+    return is_feature_mem_refreshable_;
+  }
+  size_t GetConstMemorySize() const {
+    return const_mem_size_;
+  }
+  size_t GetFeatureMemorySize() const {
+    return feature_mem_size_;
+  }
+  size_t GetFixedFeatureMemorySize() const {
+    return fixed_feature_mem_size_;
+  }
   std::vector<FeatureMemoryPtr> GetAllFeatureMemoryTypeSize() const;
-  size_t GetRefreshableFeatureMemorySize() const { return refreshable_feature_mem_size_; }
-  size_t GetStreamNum() const { return stream_num_; }
-  size_t GetEventNum() const { return event_num_; }
+  size_t GetRefreshableFeatureMemorySize() const {
+    return refreshable_feature_mem_size_;
+  }
+  size_t GetStreamNum() const {
+    return stream_num_;
+  }
+  size_t GetEventNum() const {
+    return event_num_;
+  }
   std::shared_ptr<StreamAllocationSummary> GetStreamAllocationSummary() {
     return stream_allocation_summary_;
   }
-  std::vector<ge::Shape> GetOutputShapes() { return netoutput_shapes_; }
-  std::vector<ge::DataType> GetOutputDtypes() { return netoutput_dtypes_;}
-  std::vector<std::pair<uint32_t, uint32_t>> GetIOIndexesWithSameAddr() const { return io_indexes_with_same_addr_; }
-  const std::vector<ExternalWeightDescPtr> &GetExternalWeightPaths() const { return external_weight_paths_; }
+  std::vector<ge::Shape> GetOutputShapes() {
+    return netoutput_shapes_;
+  }
+  std::vector<ge::DataType> GetOutputDtypes() {
+    return netoutput_dtypes_;
+  }
+  std::vector<std::pair<uint32_t, uint32_t>> GetIOIndexesWithSameAddr() const {
+    return io_indexes_with_same_addr_;
+  }
+  const std::vector<ExternalWeightDescPtr> &GetExternalWeightPaths() const {
+    return external_weight_paths_;
+  }
 
  private:
   friend class CompiledGraphSummary::Builder;
@@ -65,8 +85,9 @@ class CompiledGraphSummary::SummaryData {
   Status SetStreamNum(const GeModelPtr &ge_model);
   Status SetEventNum(const GeModelPtr &ge_model);
   Status SetOutputTensorInfo(const GeModelPtr &ge_model);
-  Status ConstructIoOffsetToRoleToIndex(const ComputeGraphPtr &compute_graph,
-    std::map<int64_t, map<int32_t, std::vector<uint32_t>>> &io_offset_to_role_to_index) const;
+  Status ConstructIoOffsetToRoleToIndex(
+      const ComputeGraphPtr &compute_graph,
+      std::map<int64_t, map<int32_t, std::vector<uint32_t>>> &io_offset_to_role_to_index) const;
   Status SetIOIndexesWithSameAddr(const GeModelPtr &ge_model);
   Status SetExternalWeightPaths(const GeModelPtr &ge_model);
 
@@ -101,8 +122,9 @@ class StreamAllocationSummary::StreamAllocationSummaryImpl {
                                           std::vector<LogicalStreamAllocationInfo> &logical_stream_infos);
   Status CollectStreamInfosFromUnKnownGraph(const ComputeGraphPtr graph,
                                             std::vector<LogicalStreamAllocationInfo> &logical_stream_infos);
-  Status CollectCustomStreamInfo(const ComputeGraphPtr graph,
-                                 std::map<int64_t, LogicalStreamAllocationInfo> &logical_stream_id_to_stream_info) const;
+  Status CollectCustomStreamInfo(
+      const ComputeGraphPtr graph,
+      std::map<int64_t, LogicalStreamAllocationInfo> &logical_stream_id_to_stream_info) const;
 
  private:
   std::map<AscendString, AscendString> graph_to_stream_graph_;

@@ -2,28 +2,30 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
 import ctypes
-from typing import Optional, List, Any, Union, TYPE_CHECKING
-from ge._capi.pygraph_wrapper import graph_lib
+from typing import TYPE_CHECKING, Any, List, Optional, Union
+
 from ge._capi.pyes_graph_builder_wrapper import esb_lib
+from ge._capi.pygraph_wrapper import graph_lib
 from ge._capi.pytensor_runtime_wrapper import tensor_runtime_lib
+
+from ._numeric import float_list_to_fp16_bits
 from .tensor_desc import Shape, TensorDesc
 from .types import DataType, Format, Placement
-from ._numeric import float_list_to_fp16_bits
-
 
 if TYPE_CHECKING:
     from ge.es.graph_builder import GraphBuilder
-    from ge.es.tensor_like import TensorLike, _unflatten
+    from ge.es.tensor_like import TensorLike
 UnionTensorDataType = Union[List[int], List[float], List[bool]]
+
 
 class Tensor:
     def __init__(
@@ -33,8 +35,8 @@ class Tensor:
         data_type: Optional[DataType] = DataType.DT_FLOAT,
         format: Optional[Format] = Format.FORMAT_ND,
         shape: Optional[List[int]] = None,
-        placement: Optional[Placement] = Placement.PLACEMENT_HOST
-        ) -> None:
+        placement: Optional[Placement] = Placement.PLACEMENT_HOST,
+    ) -> None:
         """
         Args:
             data: Data to read from.
@@ -103,8 +105,9 @@ class Tensor:
         self,
         data: Optional[UnionTensorDataType],
         data_type: Optional[DataType],
-        format: Optional[Format], 
-        shape: Optional[List[int]]):
+        format: Optional[Format],
+        shape: Optional[List[int]],
+    ):
         """Create Tensor from data."""
         if not isinstance(data, list):
             raise TypeError("data should be List")
@@ -120,8 +123,9 @@ class Tensor:
         self,
         file_path: Optional[str],
         data_type: Optional[DataType],
-        format: Optional[Format], 
-        shape: Optional[List[int]]):
+        format: Optional[Format],
+        shape: Optional[List[int]],
+    ):
         """Create Tensor from file."""
         dim_num = len(shape) if shape is not None else 0
         c_dims_array = (ctypes.c_int64 * dim_num)(*shape) if dim_num > 0 else None
@@ -141,21 +145,21 @@ class Tensor:
     def __deepcopy__(self, memodict) -> None:
         """Deep copy is not supported."""
         raise RuntimeError("Tensor does not support deepcopy")
-        
+
     def __str__(self) -> str:
-        return f'''
-        Tensor format is {self.get_format()}, 
-        data_type is {self.get_data_type()}, 
-        shape is {self.get_shape()}, 
+        return f"""
+        Tensor format is {self.get_format()},
+        data_type is {self.get_data_type()},
+        shape is {self.get_shape()},
         data is {self.get_data()}
-        '''
+        """
 
     @property
     def placement(self) -> Placement:
         return self.get_placement()
-        
+
     @classmethod
-    def _create_from(cls, handle: ctypes.c_void_p) -> 'Tensor':
+    def _create_from(cls, handle: ctypes.c_void_p) -> "Tensor":
         """Create Tensor object from C++ pointer.
 
         Args:
@@ -175,24 +179,25 @@ class Tensor:
         instance._owner = None
         return instance
 
-    def _transfer_ownership_when_pass_as_attr(self, new_owner: 'GraphBuilder') -> None:
+    def _transfer_ownership_when_pass_as_attr(self, new_owner: "GraphBuilder") -> None:
         """Transfer ownership of the C++ resource to new_owner.
-        
+
         After calling this method, Python will no longer destroy the underlying
         C++ Tensor object. This is called automatically when a Tenensor is passed
         as an attribute.
-        
+
         Args:
             new_owner: The object that will manage the C++ resource (typically a GraphBuilder).
                        this Tensor will hold a reference to keep the new_owner alive.
         """
         if self._owner is not None:
-            raise RuntimeError("Tensor already has an new owner builder :{}, cannot transfer ownership again"
-                               .format(self._owner.name))
+            raise RuntimeError(
+                "Tensor already has an new owner builder :{}, cannot transfer ownership again".format(self._owner.name)
+            )
         self._owns_handle = False
         self._owner = new_owner  # Keep reference to prevent premature GC
 
-    def set_format(self, format: Format) -> 'Tensor':
+    def set_format(self, format: Format) -> "Tensor":
         """Set format of tensor.
 
         Args:
@@ -227,7 +232,7 @@ class Tensor:
     def format(self) -> Format:
         return self.get_format()
 
-    def set_data_type(self, data_type: DataType) -> 'Tensor':
+    def set_data_type(self, data_type: DataType) -> "Tensor":
         """Set datatype of tensor.
 
         Args:
@@ -266,7 +271,7 @@ class Tensor:
     def shape(self) -> Shape:
         return self.get_shape()
 
-    def get_data(self) -> 'TensorLike':
+    def get_data(self) -> "TensorLike":
         """Get tensor data.
 
         Returns:
@@ -278,15 +283,15 @@ class Tensor:
         c_str = graph_lib.GeApiWrapper_Tensor_GetData(self._handle)
         if not c_str:
             raise RuntimeError("Failed to get Tensor data")
-        
+
         try:
-            data_str = ctypes.string_at(c_str).decode('utf-8')
+            data_str = ctypes.string_at(c_str).decode("utf-8")
             return unflatten_tensor_data(data_str, self.shape)
         finally:
             graph_lib.GeApiWrapper_FreeString(c_str)
-    
+
     @property
-    def data(self) -> 'TensorLike':
+    def data(self) -> "TensorLike":
         return self.get_data()
 
     def get_tensor_desc(self) -> TensorDesc:
@@ -311,7 +316,7 @@ class Tensor:
         ret = graph_lib.GeApiWrapper_Tensor_GetShape(self._handle, ctypes.byref(dims_arr), ctypes.byref(dims_num))
 
         if ret != 0:  # GRAPH_SUCCESS
-            raise RuntimeError(f"Failed to get shape of tensor")
+            raise RuntimeError("Failed to get shape of tensor")
         try:
             return Shape([dims_arr[i] for i in range(dims_num.value)])
         finally:
@@ -326,7 +331,7 @@ class Tensor:
         res = graph_lib.GeApiWrapper_Tensor_GetPlacement(self._handle)
         return Placement(res)
 
-    def to_host(self) -> 'Tensor':
+    def to_host(self) -> "Tensor":
         """Move this tensor from device to host in place."""
         if self.get_placement() != Placement.PLACEMENT_DEVICE:
             raise ValueError("to_host() only supports device tensors")
@@ -336,7 +341,7 @@ class Tensor:
             raise RuntimeError(f"Failed to move tensor from device to host, ret={ret}")
         return self
 
-    def to_device(self) -> 'Tensor':
+    def to_device(self) -> "Tensor":
         """Move this tensor from host to device in place."""
         if self.get_placement() != Placement.PLACEMENT_HOST:
             raise ValueError("to_device() only supports host tensors")
@@ -347,7 +352,7 @@ class Tensor:
         return self
 
 
-def _parse_str_list(list_str: str) -> List['Number']:
+def _parse_str_list(list_str: str) -> List[Union[int, float]]:
     """
     Convert string like '[1, 2, 3]' into python list.
 
@@ -376,8 +381,9 @@ def _parse_str_list(list_str: str) -> List['Number']:
     return result
 
 
-def unflatten_tensor_data(tensor_data: str, shape: List[int]) -> 'TensorLike':
+def unflatten_tensor_data(tensor_data: str, shape: List[int]) -> "TensorLike":
     from ge.es.tensor_like import _unflatten
+
     tensor_data_list = _parse_str_list(tensor_data)
     if len(shape) == 0:
         if len(tensor_data_list) != 1:

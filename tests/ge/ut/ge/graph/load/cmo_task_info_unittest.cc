@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ class UtestCmoTaskInfo : public testing::Test {
     rtStream_t stream = nullptr;
     davinci_model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     davinci_model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    davinci_model.stream_list_ = { stream };
+    davinci_model.stream_list_ = {stream};
 
     task_def.set_stream_id(0);
     domi::CmoTaskDef *cmo_task_def = task_def.mutable_cmo_task();
@@ -78,4 +78,4 @@ TEST_F(UtestCmoTaskInfo, success_cmo_task_distribute) {
   EXPECT_EQ(cmo_task_info.Distribute(), SUCCESS);
   domi::GetContext().is_online_model = false;
 }
-}
+}  // namespace ge

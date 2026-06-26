@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,21 +42,21 @@ using OpFormatMatcherPtr = std::shared_ptr<OpFormatMatcher>;
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
 class UTEST_fusion_engine_op_judge_unittest_Fz_RNN : public testing::Test {
-protected:
-
+ protected:
   void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
 
     FEOpsStoreInfo tbe_custom{
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            "",
-            false,
-            false,
-            false};
+        6,
+        "tbe-custom",
+        EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        "",
+        false,
+        false,
+        false};
     vector<FEOpsStoreInfo> store_info;
 
     store_info.emplace_back(tbe_custom);
@@ -69,18 +69,16 @@ protected:
     op_format_dtype_judge_ptr_->Initialize();
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   RefRelationsPtr reflection_builder_ptr_;
   OpFormatDtypeJudgePtr op_format_dtype_judge_ptr_;
 };
 
-
-TEST_F(UTEST_fusion_engine_op_judge_unittest_Fz_RNN, test_01){
+TEST_F(UTEST_fusion_engine_op_judge_unittest_Fz_RNN, test_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("rnn_op1", "RNN_OP1");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({64, 1024});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -107,7 +105,6 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_Fz_RNN, test_01){
   ge::AttrUtils::SetInt(op1, "input_size", 32);
   ge::NodePtr node1 = graph->AddNode(op1);
 
-
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -125,5 +122,4 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_Fz_RNN, test_01){
   EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_FRACTAL_ZN_RNN);
   EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_resultfz_rnn);
-
 }

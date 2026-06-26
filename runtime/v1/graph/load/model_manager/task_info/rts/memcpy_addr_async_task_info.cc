@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@
 
 namespace {
 constexpr size_t kAlignment = 64U;
-} // anonymous namespace
+}  // anonymous namespace
 
 namespace ge {
 Status MemcpyAddrAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
@@ -28,8 +28,8 @@ Status MemcpyAddrAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def,
   GE_ASSERT_NOTNULL(op_desc_);
 
   // TODO: RTS暂时不能从Torino分支回合，故为空args_format的场景提供默认值
-  const auto &format_str = !memcpy_async.args_format().empty() ? memcpy_async.args_format()
-                                                               : "{}{}{i_instance0*}{o_instance0*}";
+  const auto &format_str =
+      !memcpy_async.args_format().empty() ? memcpy_async.args_format() : "{}{}{i_instance0*}{o_instance0*}";
   GE_ASSERT_GRAPH_SUCCESS(ArgsFormatDesc::FromString(format_, op_desc_, format_str));
   GELOGD("args format: %s", format_str.c_str());
 
@@ -37,9 +37,11 @@ Status MemcpyAddrAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def,
   count_ = memcpy_async.count();
   kind_ = static_cast<rtMemcpyKind_t>(memcpy_async.kind());
   GE_ASSERT_GRAPH_SUCCESS(format_.GetArgsSize(op_desc_, args_size_));
-  pls_ = (rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, args_size_ + kAlignment) & RT_MEMORY_TS) != 0 ?
-         ArgsPlacement::kArgsPlacementTs : ArgsPlacement::kArgsPlacementHbm;
-  GELOGI("size: %zu (with extra %zu alignment addend), placement: %d, dst_max: %" PRIu64 ", count: %" PRIu64 ", kind: %d",
+  pls_ = (rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, args_size_ + kAlignment) & RT_MEMORY_TS) != 0
+             ? ArgsPlacement::kArgsPlacementTs
+             : ArgsPlacement::kArgsPlacementHbm;
+  GELOGI("size: %zu (with extra %zu alignment addend), placement: %d, dst_max: %" PRIu64 ", count: %" PRIu64
+         ", kind: %d",
          args_size_, kAlignment, static_cast<int32_t>(pls_), dst_max_, count_, static_cast<int32_t>(kind_));
 
   uint8_t *src = nullptr;
@@ -57,8 +59,7 @@ Status MemcpyAddrAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def,
   return SUCCESS;
 }
 
-Status MemcpyAddrAsyncTaskInfo::HandleZeroCopy(DavinciModel *const davinci_model, uintptr_t base,
-                                               uint64_t logic_addr) {
+Status MemcpyAddrAsyncTaskInfo::HandleZeroCopy(DavinciModel *const davinci_model, uintptr_t base, uint64_t logic_addr) {
   // AICPU scheduler cannot access TS memory.
   if (davinci_model->IsArgsUpdateByDeviceAicpu() && pls_ == ArgsPlacement::kArgsPlacementTs) {
     GE_ASSERT_SUCCESS(davinci_model->DisableZeroCopy(ValueToPtr(logic_addr)));
@@ -82,8 +83,8 @@ Status MemcpyAddrAsyncTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel
   size_t align_offset = (arg.dev_addr + kAlignment - 1) / kAlignment * kAlignment - arg.dev_addr;
   device_args_aligned_ = arg.dev_addr + align_offset;
   host_args_aligned_ = ValueToPtr(PtrToValue(arg.host_addr) + align_offset);
-  GELOGI("arg.dev_addr: %p, device_args_aligned: %p, arg.host_addr: %p, host_args_aligned: %p",
-         arg.dev_addr, device_args_aligned_, arg.host_addr, host_args_aligned_);
+  GELOGI("arg.dev_addr: %p, device_args_aligned: %p, arg.host_addr: %p, host_args_aligned: %p", arg.dev_addr,
+         device_args_aligned_, arg.host_addr, host_args_aligned_);
 
   // 此处假设RTS提供的args_format中输入与输出字段相邻排布，中间不能有其他字段
   // 首个IO地址的偏移量将被记录，其与align_offset之和作为后续地址刷新的总偏移
@@ -118,12 +119,12 @@ Status MemcpyAddrAsyncTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel
     GE_ASSERT_SUCCESS(ArgsFormatDesc::GetArgSize(op_desc_, iter, io_offset));
   }
 
-  GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model->GetLogicalMemAllocation(), io_addrs,
-                                                io_addr_mem_types, {op_desc_->GetName(), op_desc_->GetType()}),
+  GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model->GetLogicalMemAllocation(), io_addrs, io_addr_mem_types,
+                                                {op_desc_->GetName(), op_desc_->GetType()}),
                     "args io addrs updater init failed.");
 
   GELOGI("MemcpyAddrAsyncTaskInfo Init Success, node :%s, logic stream id: %u, stream: %p.",
-    op_desc_->GetName().c_str(), task_def.stream_id(), stream_);
+         op_desc_->GetName().c_str(), task_def.stream_id(), stream_);
 
   return SUCCESS;
 }
@@ -139,15 +140,14 @@ Status MemcpyAddrAsyncTaskInfo::Distribute() {
          op_desc_->GetName().c_str(), dst_max_, count_, kind_);
   SetTaskTag(op_desc_->GetName().c_str());
 
-  const auto rt_ret = rtMemcpyAsyncPtr(ValueToPtr(device_args_aligned_), dst_max_, count_, kind_,
-                                       stream_, qosCfg_);
+  const auto rt_ret = rtMemcpyAsyncPtr(ValueToPtr(device_args_aligned_), dst_max_, count_, kind_, stream_, qosCfg_);
   if (rt_ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "Call rtMemcpyAsyncWithCfg failed, size:%" PRIu64 ",ret:%d", dst_max_, rt_ret);
     GELOGE(RT_FAILED, "[Call][rtMemcpyAsyncWithCfg] failed, size:%" PRIu64 ", ret:%d", dst_max_, rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
   GE_CHK_ACL_RET(aclrtMemcpy(host_args_aligned_, args_size_, ValueToPtr(device_args_aligned_), args_size_,
-      ACL_MEMCPY_DEVICE_TO_HOST));
+                             ACL_MEMCPY_DEVICE_TO_HOST));
 
   uintptr_t host_addr = PtrToValue(host_args_aligned_);
   for (const auto &iter : format_) {
@@ -164,7 +164,8 @@ Status MemcpyAddrAsyncTaskInfo::Distribute() {
   }
 
   GELOGI("MemcpyAddrAsyncTaskInfo Distribute Success, op %s, dst_max:%" PRIu64 ", count:%" PRIu64
-    ", kind:%us, stream: %p.", op_desc_->GetNamePtr(), dst_max_, count_, kind_, stream_);
+         ", kind:%us, stream: %p.",
+         op_desc_->GetNamePtr(), dst_max_, count_, kind_, stream_);
 
   is_support_redistribute_ = true;
 

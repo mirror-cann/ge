@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -16,10 +16,9 @@ Graph 功能测试 - 使用 pytest 框架
 测试 graph.py 中的 Graph 类的各种功能
 """
 
-import pytest
-import sys
-import os
 import ctypes
+
+import pytest
 
 # 添加 ge 到 Python 路径
 try:
@@ -41,8 +40,9 @@ class TestGraph:
     @pytest.fixture
     def graph_with_subgraph(self):
         """创建 含有子图的 Graph 实例的 fixture"""
-        from ge.es.graph_builder import GraphBuilder
         from es_ut_test import phony_If
+        from ge.es.graph_builder import GraphBuilder
+
         builder = GraphBuilder("graph_with_subgraph")
         input_tensor = builder.create_input(0)
 
@@ -65,18 +65,19 @@ class TestGraph:
     def graph_with_data(self):
         """创建 含有实际数据的的 Graph 实例的 fixture"""
         from ge.es.graph_builder import GraphBuilder
+
         builder = GraphBuilder()
         input_tensor = builder.create_input(
             index=0,
             name="test_input",
             data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
 
         # 创建常量节点
         const_tensor1 = builder.create_const_float(1.0)
         const_tensor2 = builder.create_const_int64(10)
-        
+
         # 设置输出
         builder.set_graph_output(input_tensor, 0)
         builder.set_graph_output(const_tensor1, 1)
@@ -88,8 +89,8 @@ class TestGraph:
         """测试 Graph 创建"""
         graph = Graph("my_graph")
         assert graph is not None
-        assert hasattr(graph, '_handle')
-        assert hasattr(graph, 'name')
+        assert hasattr(graph, "_handle")
+        assert hasattr(graph, "name")
 
     def test_graph_creation_with_default_name(self):
         """测试使用默认名称创建 Graph"""
@@ -133,7 +134,7 @@ class TestGraph:
         """测试获取属性"""
         # 先设置一个属性
         graph.set_attr("test_attr", "test_value")
-        
+
         # 获取属性
         retrieved_attr = graph.get_attr("test_attr")
         assert isinstance(retrieved_attr, str)
@@ -148,7 +149,7 @@ class TestGraph:
         """测试设置属性"""
         # 设置属性
         graph.set_attr("test_attr", "test_value")
-        
+
         # 验证设置成功
         retrieved_attr = graph.get_attr("test_attr")
         assert retrieved_attr == "test_value"
@@ -210,13 +211,13 @@ class TestGraph:
     def test_multiple_attr_operations(self, graph):
         """测试多个属性操作"""
         attrs = {}
-        
+
         # 设置多个属性
         for i in range(10):
             attr_name = f"attr_{i}"
             graph.set_attr(attr_name, f"value_{i}")
             attrs[attr_name] = f"value_{i}"
-        
+
         # 验证所有属性
         for attr_name, expected_value in attrs.items():
             retrieved_attr = graph.get_attr(attr_name)
@@ -225,13 +226,14 @@ class TestGraph:
     def test_transfer_ownership(self):
         """测试所有权转移"""
         from ge.es.graph_builder import GraphBuilder
+
         builder = GraphBuilder()
         graph = builder.build_and_reset()
         assert graph.name == "graph"
         assert graph._owner is None
         assert graph._owns_handle is True
         assert graph._handle is not None
-        # 测试所有权转移, 当graph作为子图参数传递给builder时, 所有权转移给builder, 
+        # 测试所有权转移, 当graph作为子图参数传递给builder时, 所有权转移给builder,
         # 因转移是在es gen的If, While, Case等操作中C接口自动完成的, 所以这里仅仅是覆盖率测试
         graph._transfer_ownership_when_pass_as_subgraph(builder)
         assert graph._owner is not None
@@ -239,7 +241,10 @@ class TestGraph:
         assert graph._owns_handle is False
         assert graph._handle is not None
         assert graph.name == "graph"
-        with pytest.raises(RuntimeError, match="Graph :graph already has an new owner builder :graph, cannot transfer ownership again"):
+        with pytest.raises(
+            RuntimeError,
+            match="Graph :graph already has an new owner builder :graph, cannot transfer ownership again",
+        ):
             graph._transfer_ownership_when_pass_as_subgraph(builder)
         # 还原为了避免内存泄漏
         graph._owns_handle = True
@@ -252,13 +257,13 @@ class TestGraph:
 
     def test_remove_node(self, graph_with_data):
         """测试移除节点"""
-        
+
         # 获取所有节点
         nodes = graph_with_data.get_all_nodes()
         node_count_before = len(nodes)
         print(f"node_count_before = '{node_count_before}'")
-        assert node_count_before > 0 
-        
+        assert node_count_before > 0
+
         # 选取单个节点
         node = nodes[-1]
         graph_with_data.remove_node(node)
@@ -267,12 +272,15 @@ class TestGraph:
 
     def test_add_data_edge_invalid(self, graph_with_data):
         """测试添加数据边"""
-        with pytest.raises(RuntimeError, match="Failed to add DataEdge from Node test_input, Port Index 0 to Node Const_0, Port Index 0"):
+        with pytest.raises(
+            RuntimeError,
+            match="Failed to add DataEdge from Node test_input, Port Index 0 to Node Const_0, Port Index 0",
+        ):
             nodes = graph_with_data.get_all_nodes()
             in_node = nodes[0]
             out_node = nodes[1]
             # 添加数据边
-            graph_with_data.add_data_edge(in_node, 0 , out_node, 0)
+            graph_with_data.add_data_edge(in_node, 0, out_node, 0)
 
     def test_add_control_edge(self, graph_with_data):
         """测试添加控制边"""
@@ -288,7 +296,7 @@ class TestGraph:
         # 移除控制边
         graph_with_data.remove_edge(in_node, -1, out_node, -1)
         assert True
-        
+
     def test_find_node_by_name(self, graph_with_data):
         """测试通过名字获取Node"""
         # 获取单个节点
@@ -299,13 +307,13 @@ class TestGraph:
 
     def test_find_node_by_name_invalid(self, graph_with_data):
         """测试找不到Node名字"""
-        # 根据节点名字获取节点        
+        # 根据节点名字获取节点
         with pytest.raises(RuntimeError, match="Failed to find Node name invalid"):
             graph_with_data.find_node_by_name("invalid")
-    
+
     def test_find_node_by_name_invalid_name(self, graph_with_data):
         """测试name必须为string"""
-        # 根据节点名字获取节点        
+        # 根据节点名字获取节点
         with pytest.raises(TypeError, match="name must be a string"):
             graph_with_data.find_node_by_name(122)
 
@@ -350,7 +358,7 @@ class TestGraph:
         with pytest.raises(TypeError, match="src_port_index must be an integer"):
             node = graph_with_data.get_all_nodes()[-1]
             graph_with_data.remove_edge(node, "string", node, 1)
-            
+
     def test_remove_edge_invalid_dst_node(self, graph_with_data):
         """测试dst_node必须为Node"""
         with pytest.raises(TypeError, match="dst_node must be a Node"):
@@ -362,7 +370,6 @@ class TestGraph:
         with pytest.raises(TypeError, match="dst_port_index must be an integer"):
             node = graph_with_data.get_all_nodes()[-1]
             graph_with_data.remove_edge(node, 1, node, "string")
-    
 
     def test_add_data_edge_invalid_src_node(self, graph_with_data):
         with pytest.raises(TypeError, match="src_node must be a Node"):
@@ -373,7 +380,7 @@ class TestGraph:
         with pytest.raises(TypeError, match="src_port_index must be an integer"):
             node = graph_with_data.get_all_nodes()[-1]
             graph_with_data.add_data_edge(node, "string", node, 1)
-            
+
     def test_add_data_edge_invalid_dst_node(self, graph_with_data):
         with pytest.raises(TypeError, match="dst_node must be a Node"):
             node = graph_with_data.get_all_nodes()[-1]
@@ -383,7 +390,6 @@ class TestGraph:
         with pytest.raises(TypeError, match="dst_port_index must be an integer"):
             node = graph_with_data.get_all_nodes()[-1]
             graph_with_data.add_data_edge(node, 1, node, "string")
-        
 
     def test_add_control_edge_invalid_src_node(self, graph_with_data):
         with pytest.raises(TypeError, match="src_node must be a Node"):
@@ -439,7 +445,10 @@ class TestGraph:
         assert subgraphs[0].name == "then_graph"
 
         # 尝试添加同名子图，应该失败
-        with pytest.raises(RuntimeError, match="Failed to add subgraph 'then_graph' to graph 'test_graph'"):
+        with pytest.raises(
+            RuntimeError,
+            match="Failed to add subgraph 'then_graph' to graph 'test_graph'",
+        ):
             graph.add_subgraph(then_graph)
 
         # 验证只有一个子图

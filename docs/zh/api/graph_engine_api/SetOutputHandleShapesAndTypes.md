@@ -69,4 +69,3 @@ void SetOutputHandleShapesAndTypes(std::vector<std::vector<ShapeAndType>> &&shap
 ## 约束说明<a name="zh-cn_topic_0000001265403618_section121601216013"></a>
 
 无。
-

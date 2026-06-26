@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,7 @@ using namespace testing;
 using namespace ge;
 
 namespace gert {
-namespace kernel {
-}
+namespace kernel {}
 using namespace kernel;
 namespace {
 void *StubCreateCompileInfo() {
@@ -119,12 +118,12 @@ ge::graphStatus InferShapeTest2(InferShapeContext *context) {
 }  // namespace
 
 class MixL2LoweringST : public testing::Test {
-  void SetUp() override {
-  }
+  void SetUp() override {}
   void TearDown() override {
     while (bg::ValueHolder::PopGraphFrame() != nullptr) {
     }
   }
+
  public:
   KernelRegistryImpl &registry = KernelRegistryImpl::GetInstance();
   void TestMixL2SingleLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data, bool expect) {
@@ -153,7 +152,8 @@ class MixL2LoweringST : public testing::Test {
     FakeTensors outputs = FakeTensors({4, 4, 4, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -188,21 +188,20 @@ class MixL2LoweringST : public testing::Test {
  *
  **********************************************************************************************************************/
 static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, bool single) {
-
   DEF_GRAPH(fused_graph) {
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-    auto ret_val_0 = OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
+    auto ret_val_0 =
+        OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
 
     auto conv = OP_CFG("CONV2D_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     auto sqrt = OP_CFG("SQRT_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("_arg_in_0", data_0)
               ->EDGE(0, 0)
               ->NODE("conv2d", conv)
@@ -210,28 +209,22 @@ static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, 
               ->NODE("sqrt", sqrt)
               ->EDGE(0, 0)
               ->NODE("retVal", ret_val_0));
-    CHAIN(NODE("_arg_in_1", data_1)
-              ->EDGE(0, 1)
-              ->NODE("conv2d", conv));
+    CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
   };
   auto origin_fused_graph = ToComputeGraph(fused_graph);
-  std::vector<int64_t> unknown_shape = {4,4,-1,4};
+  std::vector<int64_t> unknown_shape = {4, 4, -1, 4};
   DEF_GRAPH(g1) {
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto fused_conv = OP_CFG("CONV2D_T")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(2)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-        .Build("Conv2D_Sqrt");
-    CHAIN(NODE("_arg_0", data_0)
-              ->EDGE(0, 0)
-              ->NODE(fused_conv)
-              ->EDGE(0, 0)
-              ->NODE("Node_Output", NETOUTPUT));
+                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                          .InCnt(2)
+                          .OutCnt(1)
+                          .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                          .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                          .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                          .Build("Conv2D_Sqrt");
+    CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE(fused_conv)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE(fused_conv));
   };
   uint32_t mem_offset = 0U;
@@ -247,7 +240,7 @@ static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, 
   (void)ge::AttrUtils::SetStr(conv2d_desc, ge::kAttrCalcArgsSizeFunc, ge::kFFTSMixL2CalcFunc);
   (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
   conv2d_desc->MutableInputDesc(0)->SetShape(GeShape(unknown_shape));
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -277,7 +270,7 @@ TEST_F(MixL2LoweringST, lowering_output_shapes_empty_mix_l2_2_kernel_success) {
   ge::NodePtr node = nullptr;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -291,7 +284,7 @@ TEST_F(MixL2LoweringST, lowering_output_shapes_empty_mix_l2_2_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
@@ -322,7 +315,7 @@ TEST_F(MixL2LoweringST, lowering_output_shapes_empty_mix_l2_2_kernel_success) {
 
   auto out_desc = node->GetOpDesc()->MutableOutputDesc(0);
   std::vector<std::pair<int64_t, int64_t>> in_shape_range = {{0, -1}, {0, -1}, {0, 3}, {0, 4}};
-  //out_desc->SetShapeRange(in_shape_range);
+  // out_desc->SetShapeRange(in_shape_range);
   out_desc->SetDataType(DT_FLOAT);
   auto root_model = GeModelBuilder(root_graph).BuildGeRootModel();
   TestMixL2SingleLowering(root_model, global_data, true);

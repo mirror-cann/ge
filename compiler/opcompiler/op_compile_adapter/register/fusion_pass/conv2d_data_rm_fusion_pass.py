@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,8 +13,10 @@
 """
 conv2d_data_rm_build_pass
 """
+
 import copy
 import time
+
 from tbe.common import register
 from tbe.common.platform import platform_info
 
@@ -119,8 +121,12 @@ def get_pre_op(op_list, current_op):
             for output_desc in op_node.get(OUTPUT_DESC, []):
                 if not output_desc:
                     continue
-                if output_desc.get(NAME_STR) is not None and output_desc[NAME_STR] == input_desc[NAME_STR] and\
-                    op_node.get(TYPE_STR) is not None and op_node[TYPE_STR] != DATA:
+                if (
+                    output_desc.get(NAME_STR) is not None
+                    and output_desc[NAME_STR] == input_desc[NAME_STR]
+                    and op_node.get(TYPE_STR) is not None
+                    and op_node[TYPE_STR] != DATA
+                ):
                     return op_node
     return {}
 
@@ -224,12 +230,13 @@ def validity_final_check(head_struct_oplist, tail_op_list, strided_write_flag):
     head_oplist = (CONV, STRIDED_READ)
     if strided_write_flag and len(tail_op_list) == DOUBLE_OUTPUT:
         return False
-    if len(head_struct_oplist) == HEAD_STRUCT_OP_SIZE_ONE and\
-        head_struct_oplist[0].get(TYPE_STR) == CONV:
+    if len(head_struct_oplist) == HEAD_STRUCT_OP_SIZE_ONE and head_struct_oplist[0].get(TYPE_STR) == CONV:
         return True
-    if len(head_struct_oplist) == HEAD_STRUCT_OP_SIZE_TWO and\
-        head_struct_oplist[0].get(TYPE_STR) in head_oplist and\
-        head_struct_oplist[1].get(TYPE_STR) in head_oplist:
+    if (
+        len(head_struct_oplist) == HEAD_STRUCT_OP_SIZE_TWO
+        and head_struct_oplist[0].get(TYPE_STR) in head_oplist
+        and head_struct_oplist[1].get(TYPE_STR) in head_oplist
+    ):
         return True
     return False
 
@@ -305,8 +312,10 @@ def pattern1_match(op_list, head_op, tail_op):
     -------
     True or False
     """
-    if head_op.get(PATTERN_STR, INVALID_PATTERN) != DEQUANT_PATTERN or\
-        tail_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN:
+    if (
+        head_op.get(PATTERN_STR, INVALID_PATTERN) != DEQUANT_PATTERN
+        or tail_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN
+    ):
         return False
     while 1:
         next_op = get_next_op(op_list, head_op)
@@ -338,8 +347,10 @@ def pattern2_match(op_list, head_op, tail_op):
         return False
     while 1:
         next_op = get_next_op(op_list, head_op)
-        if not next_op or (next_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN and\
-                           next_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN):
+        if not next_op or (
+            next_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN
+            and next_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN
+        ):
             return False
         if next_op.get(NAME_STR) is not None and next_op.get(NAME_STR) == tail_op.get(NAME_STR):
             return True
@@ -364,20 +375,24 @@ def pattern3_match(op_list, head_op, tail_op):
     -------
     True or False
     """
-    if head_op.get(PATTERN_STR, INVALID_PATTERN) != DEQUANT_PATTERN or\
-        tail_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN:
+    if (
+        head_op.get(PATTERN_STR, INVALID_PATTERN) != DEQUANT_PATTERN
+        or tail_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN
+    ):
         return False
     while 1:
         next_op = get_next_op(op_list, head_op)
-        if not next_op or (next_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN and\
-                           next_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN):
+        if not next_op or (
+            next_op.get(PATTERN_STR, INVALID_PATTERN) != ELTWISE_PATTERN
+            and next_op.get(PATTERN_STR, INVALID_PATTERN) != QUANT_PATTERN
+        ):
             return False
         if next_op.get(NAME_STR) is not None and next_op.get(NAME_STR) == tail_op.get(NAME_STR):
             return True
         head_op = next_op
 
 
-def pattern4_match(op_list:list, head_op:dict, tail_op:dict) -> bool:
+def pattern4_match(op_list: list, head_op: dict, tail_op: dict) -> bool:
     """
     check pattern: conv + transdata
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,8 +17,8 @@
 #include "common/util/trace_manager/trace_manager.h"
 
 namespace fe {
-Status UbPassManager::AddPass(const std::string &pass_name, const std::string &engine_name, BaseBufferFusionPassRunner *pass,
-                            const std::string fusion_type) {
+Status UbPassManager::AddPass(const std::string &pass_name, const std::string &engine_name,
+                              BaseBufferFusionPassRunner *pass, const std::string fusion_type) {
   FE_CHECK(pass == nullptr, REPORT_FE_ERROR("[GraphOpt][FirstRoundFusion][AddPass] pass is null, AddPass failed"),
            return PARAM_INVALID);
   graph_passes_.push_back(pass);
@@ -26,7 +26,9 @@ Status UbPassManager::AddPass(const std::string &pass_name, const std::string &e
   return SUCCESS;
 }
 
-Status UbPassManager::Run(const ge::ComputeGraph &graph) { return Run(graph, graph_passes_); }
+Status UbPassManager::Run(const ge::ComputeGraph &graph) {
+  return Run(graph, graph_passes_);
+}
 
 Status UbPassManager::Run(const ge::ComputeGraph &graph, vector<BaseBufferFusionPassRunner *> &passes) {
   bool not_changed = true;

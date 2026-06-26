@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,32 +44,27 @@ using namespace ge;
 using namespace fe;
 using namespace te;
 
-
 using TbeInfoAssemblerPtr = std::shared_ptr<TbeInfoAssembler>;
-te::OpBuildResCode TeFusionStubOnlySingleNode(std::vector<Node*> teGraphNode,
-                                              OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>&to_be_del,
-                                              uint64_t taskid, uint64_t tid, uint64_t slice_id,
-                                              const std::string op_compile_strategy)
-{
+te::OpBuildResCode TeFusionStubOnlySingleNode(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                              const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                              uint64_t slice_id, const std::string op_compile_strategy) {
   string json_file_path = "./kernel_meta/";
-  //OpDescPtr op_desc_ptr = output_node->GetOpDesc();
+  // OpDescPtr op_desc_ptr = output_node->GetOpDesc();
   AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
   return te::OP_BUILD_SUCC;
 }
 
-
-te::OpBuildResCode TeFusionStubNew(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr> &to_be_del,
-                                   uint64_t taskid, uint64_t tid, const std::string op_compile_strategy)
-{
+te::OpBuildResCode TeFusionStubNew(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                   const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                   const std::string op_compile_strategy) {
   string json_file_path = "";
-  //OpDescPtr op_desc_ptr = output_node->GetOpDesc();
+  // OpDescPtr op_desc_ptr = output_node->GetOpDesc();
   AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
   return te::OP_BUILD_SUCC;
 }
 // The first time ub fused compilation is failed and the
 // second time single-node compilation is passed.
-bool WaitAllFinishedStub2(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedStub2(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -125,8 +120,7 @@ bool WaitAllFinishedStub2(uint64_t tid, vector<te::FinComTask> &fin_task)
 
 // The first time two single node compilation: one successful and one failed.
 // second time single-node compilation is successfully.
-bool WaitAllFinishedStub3(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedStub3(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -177,8 +171,7 @@ bool WaitAllFinishedStub3(uint64_t tid, vector<te::FinComTask> &fin_task)
 }
 
 // The first time two single node compilation: both successful
-bool WaitAllFinishedStubBothSucc(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedStubBothSucc(uint64_t tid, vector<te::FinComTask> &fin_task) {
   te::FinComTask fin_com_task;
   uint64_t curr_atomic_id = GetAtomicId();
 
@@ -210,8 +203,7 @@ bool WaitAllFinishedStubBothSucc(uint64_t tid, vector<te::FinComTask> &fin_task)
 
 // The first time ub fused compilation is failed and the
 // second time single-node compilation still failed.
-bool WaitAllFinishedSecondTimeStillFailed(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedSecondTimeStillFailed(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -268,8 +260,7 @@ bool WaitAllFinishedSecondTimeStillFailed(uint64_t tid, vector<te::FinComTask> &
 // One task is failed and another is successful
 // Re-compile them as single node.
 // Second time compilation is successful
-bool WaitAllFinishedOneTaskFailedAnotherSucc(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedOneTaskFailedAnotherSucc(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -327,8 +318,7 @@ bool WaitAllFinishedOneTaskFailedAnotherSucc(uint64_t tid, vector<te::FinComTask
 // successful for scope 1
 // Re-compile them as single node.
 // Second time compilation is successful
-bool WaitAllFinishedThreeNode(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedThreeNode(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -399,13 +389,11 @@ bool WaitAllFinishedThreeNode(uint64_t tid, vector<te::FinComTask> &fin_task)
 // compiling is failed for scope 1.
 // Re-compile them as single node.
 // Second time the single node conv still fails.
-bool WaitAllFinishedThreeNodeAllFailed(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedThreeNodeAllFailed(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
     uint64_t curr_atomic_id = GetAtomicId();
-
 
     fin_com_task.teNodeOpDesc = std::make_shared<ge::OpDesc>("conv", "Conv2D");
     fin_com_task.taskId = curr_atomic_id - 1;
@@ -435,7 +423,6 @@ bool WaitAllFinishedThreeNodeAllFailed(uint64_t tid, vector<te::FinComTask> &fin
   } else {
     te::FinComTask fin_com_task;
     uint64_t curr_atomic_id = GetAtomicId();
-
 
     fin_com_task.teNodeOpDesc = std::make_shared<ge::OpDesc>("conv", "Conv2D");
     fin_com_task.taskId = curr_atomic_id - 1;
@@ -483,8 +470,7 @@ bool WaitAllFinishedThreeNodeAllFailed(uint64_t tid, vector<te::FinComTask> &fin
  * The single node also fails to compile.
  * Second time they are all successfully compiled.
  * The single node is not a sgt sliced node. */
-bool WaitAllFinishedThreeNode2(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedThreeNode2(uint64_t tid, vector<te::FinComTask> &fin_task) {
   static int count = 0;
   if (count == 0) {
     te::FinComTask fin_com_task;
@@ -507,7 +493,6 @@ bool WaitAllFinishedThreeNode2(uint64_t tid, vector<te::FinComTask> &fin_task)
     fin_com_task.status = 0;
     ge::AttrUtils::SetStr(fin_com_task.teNodeOpDesc, "json_file_path", "path_failed2");
     fin_task.push_back(fin_com_task);
-
 
     count++;
   } else {
@@ -544,7 +529,6 @@ bool WaitAllFinishedThreeNode2(uint64_t tid, vector<te::FinComTask> &fin_task)
     ge::AttrUtils::SetStr(fin_com_task.teNodeOpDesc, "json_file_path", "bn2");
     fin_task.push_back(fin_com_task);
 
-
     count++;
   }
 
@@ -558,21 +542,24 @@ te::LX_QUERY_STATUS GetTbeOpinfoStubSucc(const te::TbeOpInfo &info, std::string 
 namespace {
 CubeVecStateNew current_cv_state = CubeVecStateNew::CUBE_VEC_FUSE;
 AICoreMode current_ffts_mode = FFTS_MODE_FFTS_PLUS;
-}
+}  // namespace
 
 class UTEST_FE_SGT_TBE_COMPILER : public testing::Test {
  protected:
-
   static void SetUpTestCase() {
     current_cv_state = PlatformUtils::Instance().GetCubeVecState();
     current_ffts_mode = PlatformUtils::Instance().GetFftsMode();
-    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeVecState)] = static_cast<int64_t>(CubeVecStateNew::CUBE_VEC_SPLIT);
-    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::FftsMode)] = static_cast<int64_t>(FFTS_MODE_FFTS_PLUS);
+    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeVecState)] =
+        static_cast<int64_t>(CubeVecStateNew::CUBE_VEC_SPLIT);
+    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::FftsMode)] =
+        static_cast<int64_t>(FFTS_MODE_FFTS_PLUS);
   }
 
   static void TearDownTestCase() {
-    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeVecState)] = static_cast<int64_t>(current_cv_state);
-    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::FftsMode)] = static_cast<int64_t>(current_ffts_mode);
+    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeVecState)] =
+        static_cast<int64_t>(current_cv_state);
+    PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::FftsMode)] =
+        static_cast<int64_t>(current_ffts_mode);
   }
 
   void SetSliceinfo(const vector<int64_t> &shape, size_t tensor_num, size_t slice_num,
@@ -622,12 +609,10 @@ class UTEST_FE_SGT_TBE_COMPILER : public testing::Test {
     for (auto &node : graph->GetDirectNode()) {
       auto op_desc_ptr = node->GetOpDesc();
 
-      if (op_desc_ptr->GetName() == "relu" ||
-          op_desc_ptr->GetName() == "bn" ||
-          op_desc_ptr->GetName() == "conv") {
+      if (op_desc_ptr->GetName() == "relu" || op_desc_ptr->GetName() == "bn" || op_desc_ptr->GetName() == "conv") {
         AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
         ffts::ThreadSliceMap subgraphInfo;
-        //thread->tensor->dim->range
+        // thread->tensor->dim->range
         vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
         vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
         auto input0 = op_desc_ptr->MutableInputDesc(0);
@@ -732,11 +717,8 @@ void StubPlatFormInfo() {
   PlatformUtils::Instance().soc_version_ = soc_version;
 }
 
-void CheckOneTensor(const vector<vector<ffts::DimRange>> &slice,
-                    const vector<ffts::DimRange>& expect_range,
-                    const vector<int64_t>& expect,
-                    const ge::GeTensorDescPtr &tensor,
-                    int32_t index_in_attr) {
+void CheckOneTensor(const vector<vector<ffts::DimRange>> &slice, const vector<ffts::DimRange> &expect_range,
+                    const vector<int64_t> &expect, const ge::GeTensorDescPtr &tensor, int32_t index_in_attr) {
   EXPECT_EQ(slice.size(), 1);
 
   auto slice_tensor_0 = slice[0];
@@ -753,12 +735,11 @@ void CheckOneTensor(const vector<vector<ffts::DimRange>> &slice,
   EXPECT_EQ(slice_dims_head_tail[index_in_attr][1], expect[1]);
   EXPECT_EQ(slice_dims_head_tail[index_in_attr][2], expect[2]);
   EXPECT_EQ(slice_dims_head_tail[index_in_attr][3], expect[3]);
-
 }
 
-void CheckSliceInfo(const ge::NodePtr &node, const vector<int64_t> &non_tail,
-                    const vector<int64_t> &tail, vector<ffts::DimRange> &first_slice_range,
-                    vector<ffts::DimRange> &last_slice_range, uint32_t slice_num) {
+void CheckSliceInfo(const ge::NodePtr &node, const vector<int64_t> &non_tail, const vector<int64_t> &tail,
+                    vector<ffts::DimRange> &first_slice_range, vector<ffts::DimRange> &last_slice_range,
+                    uint32_t slice_num) {
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   slice_info_ptr = node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
 
@@ -770,28 +751,22 @@ void CheckSliceInfo(const ge::NodePtr &node, const vector<int64_t> &non_tail,
   auto input_first_slice = input_slices.at(0);
 
   FE_LOGD("Check non-tail slice for node %s.", node->GetName().c_str());
-  CheckOneTensor(input_first_slice, first_slice_range, non_tail,
-                 node->GetOpDesc()->MutableInputDesc(0), 0);
+  CheckOneTensor(input_first_slice, first_slice_range, non_tail, node->GetOpDesc()->MutableInputDesc(0), 0);
 
   // tail slice of input
   auto input_tail_slice = input_slices.at(slice_num - 1);
-  CheckOneTensor(input_tail_slice, last_slice_range, tail,
-                 node->GetOpDesc()->MutableInputDesc(0), 1);
-
+  CheckOneTensor(input_tail_slice, last_slice_range, tail, node->GetOpDesc()->MutableInputDesc(0), 1);
 
   auto &output_slices = slice_info_ptr->output_tensor_slice;
   EXPECT_EQ(output_slices.size(), slice_num);
 
   // non-tail slice of output
   auto output_first_slice = output_slices.at(0);
-  CheckOneTensor(output_first_slice, first_slice_range, non_tail,
-                 node->GetOpDesc()->MutableOutputDesc(0), 0);
-
+  CheckOneTensor(output_first_slice, first_slice_range, non_tail, node->GetOpDesc()->MutableOutputDesc(0), 0);
 
   // tail slice of output
   auto output_tail_slice = output_slices.at(slice_num - 1);
-  CheckOneTensor(output_tail_slice, last_slice_range, tail,
-                 node->GetOpDesc()->MutableOutputDesc(0), 1);
+  CheckOneTensor(output_tail_slice, last_slice_range, tail, node->GetOpDesc()->MutableOutputDesc(0), 1);
 }
 
 int64_t GetN(bool is_tail, uint32_t slice_num, int64_t init_dim) {
@@ -804,8 +779,7 @@ int64_t GetN(bool is_tail, uint32_t slice_num, int64_t init_dim) {
 /* Failed to compile two nodes(relu and bn) as a fused node.
  * Retry single node compilation.
  * Two single nodes are both successfully compiled. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_first_time_failed_and_rolled_back_to_single_op)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_first_time_failed_and_rolled_back_to_single_op) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedStub2;
@@ -815,8 +789,8 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_first_time_failed_and_rolled_back_to_sing
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphSgtSlice(graph);
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr;
+  for (auto node : graph->GetDirectNode()) {
     vector_node_ptr.emplace_back(node.get());
   }
 
@@ -845,7 +819,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_first_time_failed_and_rolled_back_to_sing
     index++;
   }
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -872,9 +846,8 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_first_time_failed_and_rolled_back_to_sing
 
 /* Failed to compile relu as a single node and successfully compile bn.
  * Retry single node relu compilation.
- * Second time compiliation for relu is successful. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_node_failed_another_succ)
-{
+ * Second time compilation for relu is successful. */
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_node_failed_another_succ) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedStub3;
@@ -884,9 +857,9 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_node_failed_another_succ)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphSgtSlice(graph);
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  std::vector<ge::Node*> vector_node_ptr1;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  std::vector<ge::Node *> vector_node_ptr1;
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       vector_node_ptr0.emplace_back(node.get());
     }
@@ -917,7 +890,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_node_failed_another_succ)
   EXPECT_EQ(compile_info.compile_ret_map[0][1].json_file_path, "bn1");
   EXPECT_EQ(compile_info.compile_ret_map[-1][1].json_file_path, "relu1");
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -943,8 +916,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_node_failed_another_succ)
 }
 
 /* Compile two node as single node, both of them are successfully compiled. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_both_succ)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_both_succ) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedStubBothSucc;
@@ -954,9 +926,9 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_both_succ)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphSgtSlice(graph);
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  std::vector<ge::Node*> vector_node_ptr1;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  std::vector<ge::Node *> vector_node_ptr1;
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       vector_node_ptr0.emplace_back(node.get());
     }
@@ -988,7 +960,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_both_succ)
   EXPECT_EQ(compile_info.compile_ret_map[0][1].json_file_path, "bn1");
   EXPECT_EQ(compile_info.compile_ret_map[1][1].json_file_path, "relu1");
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -1016,8 +988,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_both_succ)
 /* Compile two node as a fused node.
  * First time compilation is failed and we re-compile them as single node.
  * One task of relu still fails. Return FAILED. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_second_time_still_failed)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_second_time_still_failed) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedSecondTimeStillFailed;
@@ -1027,8 +998,8 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_second_time_still_failed)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphSgtSlice(graph);
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  for (auto node : graph->GetDirectNode()) {
     vector_node_ptr0.emplace_back(node.get());
   }
 
@@ -1048,7 +1019,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_second_time_still_failed)
 
   EXPECT_EQ(compile_info.compile_ret_map.size(), 0);
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -1075,8 +1046,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_second_time_still_failed)
 
 /* Compile two node as sa fused node, one task failed.
  * Re-Compile them as single node, both successful. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedOneTaskFailedAnotherSucc;
@@ -1086,8 +1056,8 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphSgtSlice(graph);
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  for (auto node : graph->GetDirectNode()) {
     vector_node_ptr0.emplace_back(node.get());
   }
 
@@ -1114,7 +1084,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed)
   EXPECT_EQ(compile_info.compile_ret_map[-1][1].json_file_path, "bn1");
   EXPECT_EQ(compile_info.compile_ret_map[-2][1].json_file_path, "relu1");
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -1143,8 +1113,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed)
  * First time one of the fused tasks(bn+relu) fails and we re-compile them.
  * The single node compiles successfully.
  * Second time they(bn+relu) both succeed. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedThreeNode;
@@ -1156,9 +1125,9 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node)
   CreateGraphConv(graph);
 
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  std::vector<ge::Node*> vector_node_ptr1;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  std::vector<ge::Node *> vector_node_ptr1;
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "relu" || node->GetName() == "bn") {
       vector_node_ptr0.emplace_back(node.get());
     } else {
@@ -1193,7 +1162,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node)
   EXPECT_EQ(compile_info.compile_ret_map[-1][1].json_file_path, "bn1");
   EXPECT_EQ(compile_info.compile_ret_map[-2][1].json_file_path, "relu1");
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn" || node->GetName() == "conv") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -1223,8 +1192,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node)
  * The single node also fails to compile.
  * Second time they(bn+relu) both succeed but the single
  * node(conv) still fails. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_2)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_2) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.WaitAllFinished = WaitAllFinishedThreeNodeAllFailed;
@@ -1236,9 +1204,9 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_2
   CreateGraphConv(graph);
 
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  std::vector<ge::Node*> vector_node_ptr1;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  std::vector<ge::Node *> vector_node_ptr1;
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "relu" || node->GetName() == "bn") {
       vector_node_ptr0.emplace_back(node.get());
     } else {
@@ -1262,7 +1230,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_2
   Status ret = compile_tbe_op.CompileOp(compile_info);
   EXPECT_EQ(compile_info.compile_ret_map.size(), 0);
 
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "bn" || node->GetName() == "conv") {
       int64_t non_tail_n = GetN(false, slice_num, 288);
       int64_t tail_n = GetN(true, slice_num, 288);
@@ -1291,8 +1259,7 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_2
  * The single node also fails to compile.
  * Second time they are all successfully compiled.
  * The single node is not a sgt sliced node. */
-TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_3)
-{
+TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_3) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusionV = TeFusionStubOnlySingleNode;
   compile_tbe_op.TeFusion = TeFusionStubNew;
@@ -1305,9 +1272,9 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_3
   CreateGraphConv(graph, "conv_not_sliced");
 
   SetSgtSliceInfo(graph, slice_num);
-  std::vector<ge::Node*> vector_node_ptr0;
-  std::vector<ge::Node*> vector_node_ptr1;
-  for (auto node: graph->GetDirectNode()) {
+  std::vector<ge::Node *> vector_node_ptr0;
+  std::vector<ge::Node *> vector_node_ptr1;
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "relu" || node->GetName() == "bn") {
       vector_node_ptr0.emplace_back(node.get());
     } else {
@@ -1340,8 +1307,8 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_3
   EXPECT_EQ(compile_info.compile_ret_map[-2][0].json_file_path, "relu2");
   EXPECT_EQ(compile_info.compile_ret_map[-2][1].json_file_path, "relu1");
   EXPECT_EQ(compile_info.compile_ret_map[-3][0].json_file_path, "conv_not_sliced");
-  for (auto node: graph->GetDirectNode()) {
-    for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
+    for (auto node : graph->GetDirectNode()) {
       if (node->GetName() == "bn") {
         int64_t non_tail_n = GetN(false, slice_num, 288);
         int64_t tail_n = GetN(true, slice_num, 288);
@@ -1373,12 +1340,11 @@ TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_one_task_succ_another_failed_three_node_3
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
 TEST_F(UTEST_FE_SGT_TBE_COMPILER, case_compile_op_multi_slice) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.support_parallel_compile = true;
 
-  //1.create graph
+  // 1.create graph
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   vector<int64_t> dim_weight = {1, 3, 3, 3};
   GeShape shape_weight(dim_weight);

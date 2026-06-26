@@ -68,7 +68,7 @@ rtError_t rtEventSynchronize(rtEvent_t event) {
 }
 
 rtError_t rtEventDestroy(rtEvent_t event) {
-  delete[](int *) event;
+  delete[] (int *)event;
   return RT_ERROR_NONE;
 }
 
@@ -82,7 +82,7 @@ rtError_t rtMemset(void *dev_ptr, uint64_t dest_max, uint32_t value, uint64_t co
 }
 
 rtError_t rtFree(void *dev_ptr) {
-  delete[](uint8_t *) dev_ptr;
+  delete[] (uint8_t *)dev_ptr;
   return RT_ERROR_NONE;
 }
 
@@ -92,7 +92,7 @@ rtError_t rtMallocHost(void **host_ptr, uint64_t size, const uint16_t moduleid) 
 }
 
 rtError_t rtFreeHost(void *host_ptr) {
-  delete[](uint8_t *) host_ptr;
+  delete[] (uint8_t *)host_ptr;
   return RT_ERROR_NONE;
 }
 
@@ -438,8 +438,8 @@ rtError_t rtMallocHostSharedMemory(rtMallocHostSharedMemoryIn *in, rtMallocHostS
 }
 
 rtError_t rtFreeHostSharedMemory(rtFreeHostSharedMemoryIn *in) {
-  delete[](uint8_t *) in->ptr;
-  delete[](uint8_t *) in->devPtr;
+  delete[] (uint8_t *)in->ptr;
+  delete[] (uint8_t *)in->devPtr;
   return RT_ERROR_NONE;
 }
 
@@ -499,7 +499,7 @@ rtError_t rtGetEventID(rtEvent_t event, uint32_t *eventId) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetIsHeterogenous(int32_t *heterogenous) {
+rtError_t rtGetIsHeterogenous(int32_t *heterogeneous) {
   return RT_ERROR_NONE;
 }
 

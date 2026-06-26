@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,14 +35,14 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
-} // namespace
+} __attribute__((packed));
+}  // namespace
 class AicpuFFTSArgsST : public testing::Test {
  public:
   KernelRegistry &registry = KernelRegistry::GetInstance();
 };
 
-TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) { 
+TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
   auto ext_data = GetFakeExtInfo();
   auto ext_len = ext_data.size();
   AicpuTaskStruct args;
@@ -58,9 +58,9 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
 
   uint32_t in_shape_num = 2;
   auto in_shapes = ContinuousVector::Create<Shape>(in_shape_num);
-  auto in_shapes_vec = reinterpret_cast<ContinuousVector*>(in_shapes.get());
+  auto in_shapes_vec = reinterpret_cast<ContinuousVector *>(in_shapes.get());
   in_shapes_vec->SetSize(in_shape_num);
-  auto in_shapes_data = static_cast<Shape*>(in_shapes_vec->MutableData());
+  auto in_shapes_data = static_cast<Shape *>(in_shapes_vec->MutableData());
   for (size_t i = 0; i < in_shape_num; i++) {
     in_shapes_data[i].SetDimNum(2);
     in_shapes_data[i].SetDim(0, 2);
@@ -69,9 +69,9 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
 
   uint32_t out_shape_num = 1;
   auto out_shapes = ContinuousVector::Create<Shape>(out_shape_num);
-  auto out_shapes_vec = reinterpret_cast<ContinuousVector*>(out_shapes.get());
+  auto out_shapes_vec = reinterpret_cast<ContinuousVector *>(out_shapes.get());
   out_shapes_vec->SetSize(out_shape_num);
-  auto out_shapes_data = static_cast<Shape*>(out_shapes_vec->MutableData());
+  auto out_shapes_data = static_cast<Shape *>(out_shapes_vec->MutableData());
   for (size_t i = 0; i < out_shape_num; i++) {
     out_shapes_data[i].SetDimNum(2);
     out_shapes_data[i].SetDim(0, 2);
@@ -86,18 +86,18 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
   auto out_type = ContinuousVector::Create<uint32_t>(1);
   auto out_type_vec = reinterpret_cast<ContinuousVector *>(out_type.get());
   out_type_vec->SetSize(1);
-  auto out_type_ptr = reinterpret_cast<uint32_t*>(out_type_vec->MutableData());
+  auto out_type_ptr = reinterpret_cast<uint32_t *>(out_type_vec->MutableData());
   out_type_ptr[0] = 0;
 
   auto in_type = ContinuousVector::Create<uint32_t>(2);
   auto in_type_vec = reinterpret_cast<ContinuousVector *>(in_type.get());
   in_type_vec->SetSize(2);
-  auto in_type_ptr = reinterpret_cast<uint32_t*>(in_type_vec->MutableData());
+  auto in_type_ptr = reinterpret_cast<uint32_t *>(in_type_vec->MutableData());
   in_type_ptr[0] = 0;
   in_type_ptr[1] = 0;
 
   uint64_t session_id = 0;
-  
+
   auto run_context = BuildKernelRunContext(18, 2);
   run_context.value_holder[0].Set(in_type_vec, nullptr);
   run_context.value_holder[1].Set(out_type_vec, nullptr);
@@ -132,8 +132,8 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
   NodeMemPara arg_addr;
   size_t size = 6144;
   arg_addr.size = size;
-  char *mem  = new char[size];
-  arg_addr.dev_addr = (void*)mem;
+  char *mem = new char[size];
+  arg_addr.dev_addr = (void *)mem;
   auto holder = ge::MakeUnique<uint8_t[]>(size);
   arg_addr.host_addr = holder.get();
 
@@ -152,7 +152,7 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_cc_args) {
   ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAICpuCCArgs")->run_func(run_context), ge::GRAPH_FAILED);
 }
 
-TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) { 
+TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) {
   auto ext_data = GetFakeExtInfo();
   auto ext_len = ext_data.size();
   AicpuTaskStruct args;
@@ -168,9 +168,9 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) {
 
   uint32_t in_shape_num = 2;
   auto in_shapes = ContinuousVector::Create<Shape>(in_shape_num);
-  auto in_shapes_vec = reinterpret_cast<ContinuousVector*>(in_shapes.get());
+  auto in_shapes_vec = reinterpret_cast<ContinuousVector *>(in_shapes.get());
   in_shapes_vec->SetSize(in_shape_num);
-  auto in_shapes_data = static_cast<Shape*>(in_shapes_vec->MutableData());
+  auto in_shapes_data = static_cast<Shape *>(in_shapes_vec->MutableData());
   for (size_t i = 0; i < in_shape_num; i++) {
     in_shapes_data[i].SetDimNum(2);
     in_shapes_data[i].SetDim(0, 2);
@@ -179,9 +179,9 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) {
 
   uint32_t out_shape_num = 1;
   auto out_shapes = ContinuousVector::Create<Shape>(out_shape_num);
-  auto out_shapes_vec = reinterpret_cast<ContinuousVector*>(out_shapes.get());
+  auto out_shapes_vec = reinterpret_cast<ContinuousVector *>(out_shapes.get());
   out_shapes_vec->SetSize(out_shape_num);
-  auto out_shapes_data = static_cast<Shape*>(out_shapes_vec->MutableData());
+  auto out_shapes_data = static_cast<Shape *>(out_shapes_vec->MutableData());
   for (size_t i = 0; i < out_shape_num; i++) {
     out_shapes_data[i].SetDimNum(2);
     out_shapes_data[i].SetDim(0, 2);
@@ -196,19 +196,19 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) {
   auto out_type = ContinuousVector::Create<uint32_t>(1);
   auto out_type_vec = reinterpret_cast<ContinuousVector *>(out_type.get());
   out_type_vec->SetSize(1);
-  auto out_type_ptr = reinterpret_cast<uint32_t*>(out_type_vec->MutableData());
+  auto out_type_ptr = reinterpret_cast<uint32_t *>(out_type_vec->MutableData());
   out_type_ptr[0] = 0;
 
   auto in_type = ContinuousVector::Create<uint32_t>(2);
   auto in_type_vec = reinterpret_cast<ContinuousVector *>(in_type.get());
   in_type_vec->SetSize(2);
-  auto in_type_ptr = reinterpret_cast<uint32_t*>(in_type_vec->MutableData());
+  auto in_type_ptr = reinterpret_cast<uint32_t *>(in_type_vec->MutableData());
   in_type_ptr[0] = 0;
   in_type_ptr[1] = 0;
 
   uint64_t session_id = 0;
   uint64_t step_id = 3;
-  
+
   auto run_context = BuildKernelRunContext(19, 2);
   run_context.value_holder[0].Set(in_type_vec, nullptr);
   run_context.value_holder[1].Set(out_type_vec, nullptr);
@@ -244,8 +244,8 @@ TEST_F(AicpuFFTSArgsST, test_ffts_update_aicpu_tf_args) {
   NodeMemPara arg_addr;
   size_t size = 6144;
   arg_addr.size = size;
-  char *mem  = new char[size];
-  arg_addr.dev_addr = (void*)mem;
+  char *mem = new char[size];
+  arg_addr.dev_addr = (void *)mem;
   auto holder = ge::MakeUnique<uint8_t[]>(size);
   arg_addr.host_addr = holder.get();
 
@@ -280,7 +280,7 @@ TEST_F(AicpuFFTSArgsST, test_init_aicpu_ffts_ctx_user) {
   GertTensorData so_name_dev;
   GertTensorData kernel_name_dev;
   rtStream_t stream = nullptr;
-  
+
   auto run_context = BuildKernelRunContext(9, 1);
   run_context.value_holder[0].Set(ctx_ids_vec, nullptr);
   run_context.value_holder[1].Set(reinterpret_cast<void *>(0), nullptr);
@@ -295,29 +295,29 @@ TEST_F(AicpuFFTSArgsST, test_init_aicpu_ffts_ctx_user) {
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(16);
   size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t) + sizeof(rtFftsPlusComCtx_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusAiCpuCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_AICPU;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_FLUSH_DATA;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_INVALIDATE_DATA;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_WRITEBACK_DATA;
   }
 
@@ -345,9 +345,9 @@ TEST_F(AicpuFFTSArgsST, test_FillAICpuDataDumpInfo) {
 
   uint32_t in_shape_num = 2;
   auto in_shapes = ContinuousVector::Create<Shape>(in_shape_num);
-  auto in_shapes_vec = reinterpret_cast<ContinuousVector*>(in_shapes.get());
+  auto in_shapes_vec = reinterpret_cast<ContinuousVector *>(in_shapes.get());
   in_shapes_vec->SetSize(in_shape_num);
-  auto in_shapes_data = static_cast<Shape*>(in_shapes_vec->MutableData());
+  auto in_shapes_data = static_cast<Shape *>(in_shapes_vec->MutableData());
   for (size_t i = 0; i < in_shape_num; i++) {
     in_shapes_data[i].SetDimNum(2);
     in_shapes_data[i].SetDim(0, 2);
@@ -356,9 +356,9 @@ TEST_F(AicpuFFTSArgsST, test_FillAICpuDataDumpInfo) {
 
   uint32_t out_shape_num = 1;
   auto out_shapes = ContinuousVector::Create<Shape>(out_shape_num);
-  auto out_shapes_vec = reinterpret_cast<ContinuousVector*>(out_shapes.get());
+  auto out_shapes_vec = reinterpret_cast<ContinuousVector *>(out_shapes.get());
   out_shapes_vec->SetSize(out_shape_num);
-  auto out_shapes_data = static_cast<Shape*>(out_shapes_vec->MutableData());
+  auto out_shapes_data = static_cast<Shape *>(out_shapes_vec->MutableData());
   for (size_t i = 0; i < out_shape_num; i++) {
     out_shapes_data[i].SetDimNum(2);
     out_shapes_data[i].SetDim(0, 2);
@@ -385,23 +385,26 @@ TEST_F(AicpuFFTSArgsST, test_FillAICpuDataDumpInfo) {
   auto out_type = ContinuousVector::Create<uint32_t>(1);
   auto out_type_vec = reinterpret_cast<ContinuousVector *>(out_type.get());
   out_type_vec->SetSize(1);
-  auto out_type_ptr = reinterpret_cast<uint32_t*>(out_type_vec->MutableData());
+  auto out_type_ptr = reinterpret_cast<uint32_t *>(out_type_vec->MutableData());
   out_type_ptr[0] = 0;
 
   auto in_type = ContinuousVector::Create<uint32_t>(2);
   auto in_type_vec = reinterpret_cast<ContinuousVector *>(in_type.get());
   in_type_vec->SetSize(2);
-  auto in_type_ptr = reinterpret_cast<uint32_t*>(in_type_vec->MutableData());
+  auto in_type_ptr = reinterpret_cast<uint32_t *>(in_type_vec->MutableData());
   in_type_ptr[0] = 0;
   in_type_ptr[1] = 1;
 
   uint64_t session_id = 0;
 
-  auto run_context = KernelRunContextFaker().KernelIONum(20, 2).NodeIoNum(2, 1).IrInputNum(2)
-                                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-                                            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-                                            .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-                                            .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(20, 2)
+                         .NodeIoNum(2, 1)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
   run_context.value_holder[0].Set(in_type_vec, nullptr);
   run_context.value_holder[1].Set(out_type_vec, nullptr);
   run_context.value_holder[2].Set(reinterpret_cast<void *>(session_id), nullptr);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -256,7 +256,7 @@ std::unique_ptr<RtV2PipelineExecutor> RtV2PipelineExecutor::Create(const ge::GeR
 }
 
 std::unique_ptr<RtV2PipelineExecutor> RtV2PipelineExecutor::Create(const ge::GeRootModelPtr &model,
-    RtSession *session) {
+                                                                   RtSession *session) {
   auto root_graph = model->GetRootGraph();  // Never topo sorting here as compile results not been read
   GE_ASSERT_NOTNULL(root_graph);
   auto executor = std::unique_ptr<RtV2PipelineExecutor>(new (std::nothrow) RtV2PipelineExecutor());

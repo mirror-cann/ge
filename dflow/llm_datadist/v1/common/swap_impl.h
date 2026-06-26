@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,8 +25,7 @@ class SwapImpl {
   explicit SwapImpl(int32_t device_id) : device_id_(device_id) {}
   ~SwapImpl() = default;
   ge::Status SwapBlocks(const Cache &src, const Cache &dst, const uint64_t block_size, const uint32_t type,
-                        const std::vector<std::pair<int64_t, int64_t>> &block_mapping,
-                        size_t device_index = 0U) const;
+                        const std::vector<std::pair<int64_t, int64_t>> &block_mapping, size_t device_index = 0U) const;
 
  private:
   static ge::Status SwapInBlocks(const std::vector<uintptr_t> &src_addrs, const std::vector<uintptr_t> &dst_addrs,

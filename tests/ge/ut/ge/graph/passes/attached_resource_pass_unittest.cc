@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ ComputeGraphPtr BuildNormalGraph() {
   sub_2.Layout();
   return ToComputeGraph(g1);
 }
-} // namespace
+}  // namespace
 
 TEST_F(UtestAttachedResourcePass, test_SetAttachedResource_succ) {
   const auto graph = BuildNormalGraph();
@@ -74,4 +74,4 @@ TEST_F(UtestAttachedResourcePass, test_SetAttachedResource_succ) {
     EXPECT_TRUE(!node->GetOpDesc()->HasAttr("_disable_attached_resource"));
   }
 }
-} // namespace ge
+}  // namespace ge

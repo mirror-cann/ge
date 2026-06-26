@@ -66,4 +66,3 @@ python3.11 sample_perf.py
 unset RESOURCE_CONFIG_PATH
 
 ```
-

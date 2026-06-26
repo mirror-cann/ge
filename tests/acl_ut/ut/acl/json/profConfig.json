@@ -18,7 +18,7 @@
                   "conf":{
                                  "cpuSamplingInterval": "20",
                                   "sysMemorySamplingInterval": "100",
-                                  "hardwareMemorySamplingInterval": "20", 
+                                  "hardwareMemorySamplingInterval": "20",
                                   "ioSamplingInterval": "20",
                                   "interconnectionSamplingInterval": "20",
                                   "dvppSamplingInterval": "20",

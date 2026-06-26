@@ -83,37 +83,30 @@ Status Om2CodegenModelBuilder::CollectConstInputsFromOp(const OpDescPtr &op_desc
     GE_ASSERT_SUCCESS(Om2ModelUtils::BuildInputTensorInfo(tensor_desc, entry.tensor_info));
     codegen_model.const_inputs.push_back(std::move(entry));
     (void)weight_offset_to_varname_.emplace(data_offset, var_name);
-    const_metas.push_back(Om2ConstMeta{const_index,
-                                       "INTERNAL",
-                                       "",
-                                       "",
-                                       data_offset,
-                                       tensor_size,
-                                       ""});
+    const_metas.push_back(Om2ConstMeta{const_index, "INTERNAL", "", "", data_offset, tensor_size, ""});
   }
   return SUCCESS;
 }
 
-void Om2CodegenModelBuilder::ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder,  domi::TaskDef *const task_def,
-                                               std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index,
-                                               ModelTaskType task_type) {
-  const auto op_index =
-      (task_builder == nullptr) ? kInvalidOpIndex : task_builder->ParseOpIndex(*task_def);
+void Om2CodegenModelBuilder::ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder, domi::TaskDef *const task_def,
+                                                   std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index,
+                                                   ModelTaskType task_type) {
+  const auto op_index = (task_builder == nullptr) ? kInvalidOpIndex : task_builder->ParseOpIndex(*task_def);
   if (task_builder == nullptr || op_index == kInvalidOpIndex) {
     REPORT_INNER_ERR_MSG("E19999", "Unsupported task type %d", static_cast<int32_t>(task_type));
     GELOGE(FAILED, "[OM2] Unsupported task type %d, task def %s", static_cast<int32_t>(task_type),
-            task_def->ShortDebugString().c_str());
+           task_def->ShortDebugString().c_str());
   } else {
     const auto op_desc_it = op_desc_by_index.find(op_index);
     if (op_desc_it == op_desc_by_index.end() || op_desc_it->second == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Unsupported task type %d, op_index=%" PRId64,
-                           static_cast<int32_t>(task_type), op_index);
+      REPORT_INNER_ERR_MSG("E19999", "Unsupported task type %d, op_index=%" PRId64, static_cast<int32_t>(task_type),
+                           op_index);
       GELOGE(FAILED, "[OM2] Unsupported task type %d, op_index=%" PRId64 ", task def %s",
              static_cast<int32_t>(task_type), op_index, task_def->ShortDebugString().c_str());
     } else {
       const auto &op_desc = op_desc_it->second;
       REPORT_INNER_ERR_MSG("E19999", "Unsupported task type %d for op %s, op_index=%" PRId64,
-                            static_cast<int32_t>(task_type), op_desc->GetName().c_str(), op_index);
+                           static_cast<int32_t>(task_type), op_desc->GetName().c_str(), op_index);
       GELOGE(FAILED, "[OM2] Unsupported task type %d for op %s, op type %s, op_index=%" PRId64 ", task def %s",
              static_cast<int32_t>(task_type), op_desc->GetName().c_str(), op_desc->GetTypePtr(), op_index,
              task_def->ShortDebugString().c_str());
@@ -149,8 +142,8 @@ Status Om2CodegenModelBuilder::CreateTaskCodeBuilders(const GeModelPtr &model, A
       ReportUnsupportedTask(task_builder, task_def, op_desc_by_index, task_type);
       return FAILED;
     }
-    GE_ASSERT_NOTNULL(task_builder, "Failed to create task code builder from type %d, task index %zu",
-                      task_def->type(), i);
+    GE_ASSERT_NOTNULL(task_builder, "Failed to create task code builder from type %d, task index %zu", task_def->type(),
+                      i);
     if (task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX) {
       codegen_model.runtime.has_label_switch = true;
     }
@@ -234,8 +227,8 @@ Status Om2CodegenModelBuilder::BuildOpInputEdges(const GeModelPtr &model) {
       const int32_t src_anchor_idx = peer_out_anchor->GetIdx();
       auto it = op_id_to_input_edges_.find(op_id);
       GE_ASSERT_TRUE(it != op_id_to_input_edges_.end(), "[OM2] Op id %" PRId64 " not found in mapping", op_id);
-      GE_ASSERT_TRUE(i < it->second.input_op_ids.size(),
-                     "[OM2] Input index %zu out of range for op_id %" PRId64, i, op_id);
+      GE_ASSERT_TRUE(i < it->second.input_op_ids.size(), "[OM2] Input index %zu out of range for op_id %" PRId64, i,
+                     op_id);
       it->second.input_op_ids[i] = src_op_id;
       it->second.input_anchor_indices[i] = src_anchor_idx;
     }
@@ -345,16 +338,17 @@ Status Om2CodegenModelBuilder::InitStreamActive(const OpDescPtr &op_desc,
   if (op_desc->HasAttr(ATTR_NAME_SWITCH_BRANCH_NODE_LABEL)) {
     std::vector<uint32_t> active_stream_list;
     if (!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list)) {
-      REPORT_INNER_ERR_MSG("E19999", "[Get][Attr] active_stream_list in op:%s(%s) failed.",
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(INTERNAL_ERROR, "[Get][Attr] active_stream_list in op:%s(%s) failed.",
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "[Get][Attr] active_stream_list in op:%s(%s) failed.", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Get][Attr] active_stream_list in op:%s(%s) failed.", op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       return INTERNAL_ERROR;
     }
 
     for (size_t j = 0U; j < active_stream_list.size(); ++j) {
       (void)active_stream_indication.insert(active_stream_list[j]);
-      GELOGI("[OM2]flowctrl_op_index_map node:%s, active_stream_id=%u.", op_desc->GetName().c_str(), active_stream_list[j]);
+      GELOGI("[OM2]flowctrl_op_index_map node:%s, active_stream_id=%u.", op_desc->GetName().c_str(),
+             active_stream_list[j]);
     }
   }
   return SUCCESS;
@@ -366,8 +360,10 @@ Status Om2CodegenModelBuilder::InitStreamSwitch(const OpDescPtr &op_desc,
   GE_LOGI_IF(!AttrUtils::GetListInt(op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list),
              "GetInt active_stream_list failed.");
   if (active_stream_list.size() != kTrueBranchStreamCount) {
-    REPORT_INNER_ERR_MSG("E19999", "[Check][Param] Attr: active_stream_list.size:%zu in op:%s(%s) != 1, "
-        "check invalid", active_stream_list.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[Check][Param] Attr: active_stream_list.size:%zu in op:%s(%s) != 1, "
+                         "check invalid",
+                         active_stream_list.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] Attr: active_stream_list.size:%zu in op:%s(%s) != 1",
            active_stream_list.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -393,7 +389,8 @@ Status Om2CodegenModelBuilder::BuildModelIo(const GeModelPtr &model, Om2CodegenM
   }
   for (const auto &item : output_items) {
     if (input_offsets.count(item.memory_offset) > 0U) {
-      REPORT_INNER_ERR_MSG("E19999", "[OM2] memory_offset %" PRId64 " is both input and output, which is not supported.",
+      REPORT_INNER_ERR_MSG("E19999",
+                           "[OM2] memory_offset %" PRId64 " is both input and output, which is not supported.",
                            item.memory_offset);
       GELOGE(PARAM_INVALID, "[OM2] memory_offset %" PRId64 " is both input and output, which is not supported.",
              item.memory_offset);
@@ -403,7 +400,8 @@ Status Om2CodegenModelBuilder::BuildModelIo(const GeModelPtr &model, Om2CodegenM
   std::stable_sort(input_items.begin(), input_items.end(), &CompareInputModelIoItem);
   uint32_t update_host_args_index = 0U;
   for (const auto &item : input_items) {
-    codegen_model.model_io.entries.push_back(ModelIoEntry{item.index, item.memory_offset, update_host_args_index, true});
+    codegen_model.model_io.entries.push_back(
+        ModelIoEntry{item.index, item.memory_offset, update_host_args_index, true});
     ++update_host_args_index;
   }
   for (const auto &item : output_items) {
@@ -430,7 +428,8 @@ Status Om2CodegenModelBuilder::CollectModelIoItems(Om2CodegenModel &codegen_mode
         GELOGD("[OM2] Get data node attr index %u, node=%s", index, node->GetName().c_str());
       }
       const auto output_offsets = op_desc->GetOutputOffset();
-      GE_ASSERT_TRUE(!output_offsets.empty(), "[OM2] Data node output offset is empty, node=%s", node->GetName().c_str());
+      GE_ASSERT_TRUE(!output_offsets.empty(), "[OM2] Data node output offset is empty, node=%s",
+                     node->GetName().c_str());
       input_items.push_back(InputModelIoItem{index, output_offsets[0], input_visit_order});
       (void)codegen_model.model_io.io_offsets.emplace(output_offsets[0]);
       ++input_visit_order;
@@ -597,8 +596,7 @@ Status Om2CodegenModelBuilder::BuildKernelRegistry(const GeModelPtr &model,
           codegen_model.kernel_registry.func_handle_indices.end()) {
         continue;
       }
-      GE_ASSERT_SUCCESS(BuildKernelRegistryForAicpu(codegen_model, task_def, op_type, kernel_name,
-                                                    aicpu_kernel_sign));
+      GE_ASSERT_SUCCESS(BuildKernelRegistryForAicpu(codegen_model, task_def, op_type, kernel_name, aicpu_kernel_sign));
       continue;
     }
 
@@ -609,8 +607,8 @@ Status Om2CodegenModelBuilder::BuildKernelRegistry(const GeModelPtr &model,
           codegen_model.kernel_registry.func_handle_indices.end()) {
         continue;
       }
-      GE_ASSERT_SUCCESS(BuildKernelRegistryForCustAicpu(codegen_model, op_desc, op_type, kernel_name,
-                                                        cust_aicpu_kernel_sign));
+      GE_ASSERT_SUCCESS(
+          BuildKernelRegistryForCustAicpu(codegen_model, op_desc, op_type, kernel_name, cust_aicpu_kernel_sign));
       continue;
     }
 
@@ -629,8 +627,7 @@ Status Om2CodegenModelBuilder::BuildKernelRegistry(const GeModelPtr &model,
 Status Om2CodegenModelBuilder::BuildKernelRegistryForAicore(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,
                                                             ModelTaskType task_type) {
   const auto kernel_name_ptr = AttrUtils::GetStr(op_desc, "_kernelname");
-  GE_ASSERT_NOTNULL(kernel_name_ptr, "[OM2] Failed to get kernel_name from op_desc, op=%s",
-                    op_desc->GetName().c_str());
+  GE_ASSERT_NOTNULL(kernel_name_ptr, "[OM2] Failed to get kernel_name from op_desc, op=%s", op_desc->GetName().c_str());
   const std::string kernel_name = *kernel_name_ptr;
 
   uint64_t tiling_key = 0U;
@@ -677,31 +674,21 @@ Status Om2CodegenModelBuilder::BuildKernelRegistryForAicore(Om2CodegenModel &cod
 }
 
 Status Om2CodegenModelBuilder::BuildKernelRegistryForAicpu(Om2CodegenModel &codegen_model,
-                                                           const domi::TaskDef &task_def,
-                                                           const std::string &op_type,
+                                                           const domi::TaskDef &task_def, const std::string &op_type,
                                                            const std::string &kernel_name,
                                                            const std::string &aicpu_kernel_sign) {
   const std::string &so_name = task_def.kernel().so_name();
   const std::string op_kernel_lib = "AICPUKernel";
-  const uint32_t func_handle_index =
-      static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
+  const uint32_t func_handle_index = static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
   GELOGI("[OM2] RegisterAicpu: op_type=%s, kernel=%s, sign=%s, func_idx=%u", op_type.c_str(), kernel_name.c_str(),
          aicpu_kernel_sign.c_str(), func_handle_index);
-  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kAicpu,
-                                                                      kernel_name,
-                                                                      "",
-                                                                      op_type,
-                                                                      so_name,
-                                                                      op_kernel_lib,
-                                                                      "",
-                                                                      0U,
-                                                                      func_handle_index});
+  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{
+      KernelBinaryKind::kAicpu, kernel_name, "", op_type, so_name, op_kernel_lib, "", 0U, func_handle_index});
   (void)codegen_model.kernel_registry.func_handle_indices.emplace(aicpu_kernel_sign, func_handle_index);
   return SUCCESS;
 }
 
-Status Om2CodegenModelBuilder::BuildKernelRegistryForCustAicpu(Om2CodegenModel &codegen_model,
-                                                               const OpDescPtr &op_desc,
+Status Om2CodegenModelBuilder::BuildKernelRegistryForCustAicpu(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,
                                                                const std::string &op_type,
                                                                const std::string &kernel_name,
                                                                const std::string &kernel_sign) {
@@ -710,58 +697,38 @@ Status Om2CodegenModelBuilder::BuildKernelRegistryForCustAicpu(Om2CodegenModel &
   const size_t hash_id = std::hash<std::string>{}(std::string(
       cust_aicpu_bin_ptr->GetBinData(), cust_aicpu_bin_ptr->GetBinData() + cust_aicpu_bin_ptr->GetBinDataSize()));
   const std::string file_name = std::to_string(hash_id) + "_CustAicpuKernel";
-  const uint32_t func_handle_index =
-      static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
+  const uint32_t func_handle_index = static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
   GELOGI("[OM2] RegisterCustAicpu: op_type=%s, kernel=%s, sign=%s, func_idx=%u", op_type.c_str(), kernel_name.c_str(),
          kernel_sign.c_str(), func_handle_index);
-  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kCustAicpu,
-                                                                      kernel_name,
-                                                                      file_name,
-                                                                      op_type,
-                                                                      "",
-                                                                      "",
-                                                                      "",
-                                                                      0U,
-                                                                      func_handle_index});
+  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{
+      KernelBinaryKind::kCustAicpu, kernel_name, file_name, op_type, "", "", "", 0U, func_handle_index});
   (void)codegen_model.kernel_registry.func_handle_indices.emplace(kernel_sign, func_handle_index);
   return SUCCESS;
 }
 
-Status Om2CodegenModelBuilder::BuildKernelRegistryForTFAicpu(Om2CodegenModel &codegen_model,
- 	                                                              const std::string &op_type,
- 	                                                              const std::string &tf_aicpu_kernel_sign) {
+Status Om2CodegenModelBuilder::BuildKernelRegistryForTFAicpu(Om2CodegenModel &codegen_model, const std::string &op_type,
+                                                             const std::string &tf_aicpu_kernel_sign) {
   const uint32_t func_handle_index = static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
   GELOGI("[OM2] RegisterTFAicpu: op_type=%s, sign=%s, func_idx=%u", op_type.c_str(), tf_aicpu_kernel_sign.c_str(),
          func_handle_index);
-  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kAicpu,
-    "TFOperateAPI",
-    "",
-    op_type,
-    "libtf_kernels.so",
-    "TFKernel",
-    "",
-    0U,
-    func_handle_index});
+  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kAicpu, "TFOperateAPI", "",
+                                                                      op_type, "libtf_kernels.so", "TFKernel", "", 0U,
+                                                                      func_handle_index});
   (void)codegen_model.kernel_registry.func_handle_indices.emplace(tf_aicpu_kernel_sign, func_handle_index);
   return SUCCESS;
 }
 
 Status Om2CodegenModelBuilder::BuildKernelRegistryForTFAicpuSession(Om2CodegenModel &codegen_model,
-  const std::string &op_type, const std::string &tf_aicpu_kernel_sign) {
+                                                                    const std::string &op_type,
+                                                                    const std::string &tf_aicpu_kernel_sign) {
   const uint32_t func_handle_index = static_cast<uint32_t>(codegen_model.kernel_registry.func_handle_indices.size());
   GELOGI("[OM2] RegisterTFAicpuSession: op_type=%s, sign=%s, func_idx=%u", op_type.c_str(),
          tf_aicpu_kernel_sign.c_str(), func_handle_index);
-  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kAicpu,
-    "TFOperateAPI",
-    "",
-    op_type,
-    "libtf_kernels.so",
-    "TFKernel",
-    "",
-    0U,
-    func_handle_index});
+  codegen_model.kernel_registry.binaries.push_back(KernelBinaryRecord{KernelBinaryKind::kAicpu, "TFOperateAPI", "",
+                                                                      op_type, "libtf_kernels.so", "TFKernel", "", 0U,
+                                                                      func_handle_index});
   (void)codegen_model.kernel_registry.func_handle_indices.emplace(tf_aicpu_kernel_sign, func_handle_index);
- 	return SUCCESS;
+  return SUCCESS;
 }
 
 Status Om2CodegenModelBuilder::BuildTaskSemantics(const GeModelPtr &model,
@@ -793,12 +760,20 @@ Status Om2CodegenModelBuilder::BuildTaskSemantics(const GeModelPtr &model,
       op_desc = op_desc_it->second;
     }
 
-    TaskSemanticContributeContext context{
-        task_type,                  task_def,                       op_index,
-        op_desc,                    &codegen_model.runtime,         &codegen_model.model_io,
-        &codegen_model.kernel_registry.func_handle_indices, &weight_offset_to_varname_,
-        &fileconst_output_offset_to_varname_, &op_id_to_input_edges_, &op_index_to_count_map_,
-        &next_args_table_index,     &next_host_args_offset,         &codegen_model.aicpu_task_count};
+    TaskSemanticContributeContext context{task_type,
+                                          task_def,
+                                          op_index,
+                                          op_desc,
+                                          &codegen_model.runtime,
+                                          &codegen_model.model_io,
+                                          &codegen_model.kernel_registry.func_handle_indices,
+                                          &weight_offset_to_varname_,
+                                          &fileconst_output_offset_to_varname_,
+                                          &op_id_to_input_edges_,
+                                          &op_index_to_count_map_,
+                                          &next_args_table_index,
+                                          &next_host_args_offset,
+                                          &codegen_model.aicpu_task_count};
     GE_ASSERT_SUCCESS(task_builder->Contribute(context));
   }
   return SUCCESS;

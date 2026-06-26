@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,7 +82,8 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
     stub.GetKernelStub().AllKernelRegisteredAndSuccess();
 
     ExeGraphExecutor executor;
-    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value).Build(et, executor),
+    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value)
+                  .Build(et, executor),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(executor.Load(), ge::GRAPH_SUCCESS);
     ASSERT_EQ(executor.Execute(), ge::GRAPH_SUCCESS);
@@ -107,7 +108,8 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
     stub.GetKernelStub().SetUp("Foo", FooImpl);
 
     ExeGraphExecutor executor;
-    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value).Build(et, executor),
+    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value)
+                  .Build(et, executor),
               ge::GRAPH_SUCCESS);
     ASSERT_EQ(executor.Load(), ge::GRAPH_SUCCESS);
 
@@ -184,7 +186,8 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
     stub.GetKernelStub().SetUp("MoveToOutput", {MoveToOutputImpl, OutputCreator, nullptr, nullptr});
 
     ExeGraphExecutor executor;
-    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value).Build(et, executor),
+    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value)
+                  .Build(et, executor),
               ge::GRAPH_SUCCESS);
 
     int64_t input1 = 1000, input2 = 24;
@@ -214,7 +217,8 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
     stub.GetKernelStub().SetUp("MoveToOutput", {MoveToOutputImpl, OutputCreator, nullptr, nullptr});
 
     ExeGraphExecutor executor;
-    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value).Build(et, executor),
+    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value)
+                  .Build(et, executor),
               ge::GRAPH_SUCCESS);
 
     int64_t input1 = 1000, input2 = 24;
@@ -245,7 +249,7 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
    *     foo_y1,2,3       |   -- priority 1,2,3
    *              \       |
    *               foo_x1,2,3  -- priority 1,2,3
-   *                   | 
+   *                   |
    *                 data0
    */
   bg::ExeGraph BuildGraph2(std::vector<std::string> *names = nullptr,
@@ -313,9 +317,9 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
       }
     }
     return bg::ExeGraph(root_frame->GetExecuteGraph());
-   }
-   
-   void TestMultipleNodeFailedThenSuccess(ExecutorType et, bool with_callback = false) {
+  }
+
+  void TestMultipleNodeFailedThenSuccess(ExecutorType et, bool with_callback = false) {
     std::vector<std::string> expect_names;
     std::vector<std::string> expect_priority_names;
     auto exe_graph = BuildGraph2(&expect_names, &expect_priority_names);
@@ -329,7 +333,8 @@ class ExecutorUT : public bg::BgTestAutoCreate3StageFrame {
     stub.GetKernelStub().SetUp("MoveToOutput", {MoveToOutputImpl, OutputCreator, nullptr, nullptr});
 
     ExeGraphExecutor executor;
-    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value).Build(et, executor),
+    ASSERT_EQ(GraphExecutorBuilder(mld.GetModelLevelData(), exe_graph.GetMainGraph(), &mld.symbols_to_value)
+                  .Build(et, executor),
               ge::GRAPH_SUCCESS);
 
     int64_t input1 = 1024;

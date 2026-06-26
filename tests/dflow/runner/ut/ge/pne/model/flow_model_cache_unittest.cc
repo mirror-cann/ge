@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -88,7 +88,9 @@ ComputeGraphPtr FakeComputeGraphWithConstant(const string &graph_name) {
 
     auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE(graph_name + "_constant_0", constant_0)->NODE("fused_op1", fake_type2_op1)->NODE("Node_Output", net_output));
+    CHAIN(NODE(graph_name + "_constant_0", constant_0)
+              ->NODE("fused_op1", fake_type2_op1)
+              ->NODE("Node_Output", net_output));
   };
 
   auto root_graph = ToComputeGraph(graph1);
@@ -147,18 +149,17 @@ PneModelPtr BuildPneModel(const string &name, ComputeGraphPtr graph) {
   ge_model->SetModelTaskDef(model_task_def);
   ge_model->SetName(name);
   ge_model->SetGraph(graph);
-  ge_root_model->SetModelName(name);	
-  ge_root_model->SetSubgraphInstanceNameToModel(name, ge_model);	
+  ge_root_model->SetModelName(name);
+  ge_root_model->SetSubgraphInstanceNameToModel(name, ge_model);
   bool is_unknown_shape = false;
   GE_ASSERT_SUCCESS(ge_root_model->CheckIsUnknownShape(is_unknown_shape));
   ModelBufferData model_buffer_data{};
-  const auto model_save_helper =
-    ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   model_save_helper->SetSaveMode(false);
   GE_ASSERT_SUCCESS(model_save_helper->SaveToOmRootModel(ge_root_model, name, model_buffer_data, is_unknown_shape));
   ModelData model_data{};
   model_data.model_data = model_buffer_data.data.get();
-	model_data.model_len = model_buffer_data.length;
+  model_data.model_len = model_buffer_data.length;
   auto graph_model = FlowModelHelper::ToPneModel(model_data, graph);
   graph_model->SetLogicDeviceId("0:0:1");
   return graph_model;
@@ -197,7 +198,7 @@ void AddSubModelQueueInfo(const std::shared_ptr<ModelRelation> &model_relation, 
 }
 
 void AddSubModelP2pNodeInfo(const std::shared_ptr<ModelRelation> &model_relation, const std::string &model_name,
-                          const ModelRelation::ModelEndpointInfo &model_queue_info) {
+                            const ModelRelation::ModelEndpointInfo &model_queue_info) {
   AddModelQueueDef(model_relation, model_queue_info.input_endpoint_names);
   AddModelQueueDef(model_relation, model_queue_info.output_endpoint_names);
   AddModelQueueDef(model_relation, model_queue_info.external_input_queue_names);
@@ -332,7 +333,8 @@ bool ReadIndexFile(const std::string &index_file, std::vector<ge::CacheFileIndex
   return true;
 }
 
-bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key, size_t expect_cache_size, bool compare_key = true) {
+bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key, size_t expect_cache_size,
+                      bool compare_key = true) {
   const auto cache_idx_file = cache_dir + "/" + graph_key + ".idx";
   auto check_ret = mmAccess(cache_idx_file.c_str());
   if (check_ret != 0) {
@@ -342,7 +344,7 @@ bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key
 
   std::vector<ge::CacheFileIndex> cache_file_list;
   if (!ReadIndexFile(cache_idx_file, cache_file_list)) {
-    std::cout << "Faile to read cache index file:" << cache_idx_file << std::endl;
+    std::cout << "Fail to read cache index file:" << cache_idx_file << std::endl;
     return false;
   }
   for (auto &idx : cache_file_list) {
@@ -383,7 +385,7 @@ std::string GetCacheFileName(const std::string &cache_dir, const std::string &gr
 
   std::vector<ge::CacheFileIndex> cache_file_list;
   if (!ReadIndexFile(cache_idx_file, cache_file_list)) {
-    std::cout << "Faile to read cache index file:" << cache_idx_file << std::endl;
+    std::cout << "Fail to read cache index file:" << cache_idx_file << std::endl;
     return "";
   }
   for (auto &idx : cache_file_list) {
@@ -405,14 +407,14 @@ std::string GetCacheFileName(const std::string &cache_dir, const std::string &gr
   return "";
 }
 
-class MockMmpaForOpenFailed : public MmpaStubApiGe {
+class MockMmpaForOpenFaild : public MmpaStubApiGe {
  public:
   INT32 Open2(const CHAR *path_name, INT32 flags, MODE mode) override {
     return -1;
   }
 };
 
-class MockMmpaForFlockFailed : public MmpaStubApiGe {
+class MockMmpaForFlockFaild : public MmpaStubApiGe {
  public:
   INT32 Open2(const CHAR *path_name, INT32 flags, MODE mode) override {
     return INT32_MAX;
@@ -421,19 +423,14 @@ class MockMmpaForFlockFailed : public MmpaStubApiGe {
 
 class MockExchangeService : public ExchangeService {
  public:
-  Status CreateQueue(const int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(const int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     return 0;
   }
   Status DestroyQueue(const int32_t device_id, const uint32_t queue_id) override {
     return 0;
   }
-  Status Enqueue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 const void *const data,
-                 const size_t size,
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data, const size_t size,
                  const ControlInfo &control_info) override {
     return 0;
   }
@@ -441,10 +438,7 @@ class MockExchangeService : public ExchangeService {
                  const ControlInfo &control_info) override {
     return 0;
   }
-  Status Enqueue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 const size_t size,
-                 const FillFunc &fill_func,
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size, const FillFunc &fill_func,
                  const ControlInfo &control_info) override {
     return 0;
   }
@@ -455,10 +449,7 @@ class MockExchangeService : public ExchangeService {
   Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout) override {
     return 0;
   }
-  Status Dequeue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 void *const data,
-                 const size_t size,
+  Status Dequeue(const int32_t device_id, const uint32_t queue_id, void *const data, const size_t size,
                  ControlInfo &control_info) override {
     return 0;
   }
@@ -466,9 +457,7 @@ class MockExchangeService : public ExchangeService {
                            const size_t size, ControlInfo &control_info) override {
     return 0;
   }
-  Status DequeueTensor(const int32_t device_id,
-                       const uint32_t queue_id,
-                       GeTensor &tensor,
+  Status DequeueTensor(const int32_t device_id, const uint32_t queue_id, GeTensor &tensor,
                        ControlInfo &control_info) override {
     return 0;
   }
@@ -482,8 +471,7 @@ class MockExchangeService : public ExchangeService {
 
 class MockModelDeployer : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     return SUCCESS;
   }
   Status Undeploy(uint32_t model_id) override {
@@ -502,13 +490,13 @@ class MockExecutionRuntime : public ExecutionRuntime {
   Status Finalize() override {
     return SUCCESS;
   }
-  const std::string &GetCompileHostResourceType() const override{
+  const std::string &GetCompileHostResourceType() const override {
     if (with_host_resource_) {
       return host_stub_;
     }
     return host_stub2_;
   }
-  const std::map<std::string, std::string> &GetCompileDeviceInfo() const override{
+  const std::map<std::string, std::string> &GetCompileDeviceInfo() const override {
     if (with_dev_resource_) {
       return logic_dev_id_to_res_type_;
     }
@@ -521,12 +509,17 @@ class MockExecutionRuntime : public ExecutionRuntime {
     return exchange_service_;
   }
 
-  void SetHostResFlag() { with_host_resource_ = true; }
-  void SetDevResFlag() { with_dev_resource_ = true; }
+  void SetHostResFlag() {
+    with_host_resource_ = true;
+  }
+  void SetDevResFlag() {
+    with_dev_resource_ = true;
+  }
   void ResetCompileResFlag() {
     with_host_resource_ = false;
     with_dev_resource_ = false;
   }
+
  private:
   MockModelDeployer model_deployer_;
   MockExchangeService exchange_service_;
@@ -545,9 +538,7 @@ class FlowModelCacheTest : public testing::Test {
   static void PrepareForCacheConfig(bool cache_manual_check, bool cache_debug_mode) {
     std::string cache_config_file = "./ut_cache_dir/cache.conf";
     {
-      nlohmann::json cfg_json = {
-                                  {"cache_manual_check", cache_manual_check},
-                                  {"cache_debug_mode", cache_debug_mode}};
+      nlohmann::json cfg_json = {{"cache_manual_check", cache_manual_check}, {"cache_debug_mode", cache_debug_mode}};
       std::ofstream json_file(cache_config_file);
       json_file << cfg_json << std::endl;
     }
@@ -572,7 +563,7 @@ echo "test1_release" > test1_release.so
 tar -cvf test1_release.tar.gz test1_release.om test1_release.so
 cd -
 )";
-  (void)system(cmd.c_str());
+    (void)system(cmd.c_str());
   }
   static void TearDownTestSuite() {
     GetThreadLocalContext().SetSessionOption(origin_session_options_);
@@ -738,7 +729,7 @@ TEST_F(FlowModelCacheTest, save_and_load_with_subgraph) {
     EXPECT_EQ(ret, SUCCESS);
     auto check_ret = CheckCacheResult("./ut_cache_dir", "graph_key_flow_model_with_sub_graph", 1);
     EXPECT_EQ(check_ret, true);
-    // save will not change orgin graph
+    // save will not change origin graph
     EXPECT_EQ(root_graph->GetAllSubgraphs().size(), 1);
   }
   {
@@ -851,7 +842,6 @@ TEST_F(FlowModelCacheTest, save_and_load_flow_model_with_constant) {
   }
 }
 
-
 TEST_F(FlowModelCacheTest, save_and_load_flow_model_with_var) {
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model1");
@@ -885,7 +875,7 @@ TEST_F(FlowModelCacheTest, save_and_load_flow_model_with_var) {
 TEST_F(FlowModelCacheTest, save_and_load_with_compile_resource) {
   auto *execute_runtime = ExecutionRuntime::GetInstance();
   EXPECT_NE(execute_runtime, nullptr);
-  static_cast<MockExecutionRuntime*>(execute_runtime)->SetHostResFlag();
+  static_cast<MockExecutionRuntime *>(execute_runtime)->SetHostResFlag();
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model1");
   auto graph = FakeComputeGraph("root_graph");
@@ -903,7 +893,7 @@ TEST_F(FlowModelCacheTest, save_and_load_with_compile_resource) {
   {
     FlowModelCache flow_model_cache;
     auto ret = flow_model_cache.Init(graph);
-    static_cast<MockExecutionRuntime*>(execute_runtime)->SetDevResFlag();
+    static_cast<MockExecutionRuntime *>(execute_runtime)->SetDevResFlag();
     ret = flow_model_cache.TryCacheFlowModel(flow_model);
     EXPECT_EQ(ret, SUCCESS);
     auto check_ret = CheckCacheResult("./ut_cache_dir", "graph_key_flow_model1", 1);
@@ -921,14 +911,14 @@ TEST_F(FlowModelCacheTest, save_and_load_with_compile_resource) {
     ASSERT_NE(load_flow_model, nullptr);
     EXPECT_NE(load_flow_model->GetModelRelation(), nullptr);
     ASSERT_EQ(load_flow_model->GetSubmodels().size(), 2);
- 
+
     ASSERT_EQ(load_flow_model->GetCompileResource()->host_resource_type, "stub_host_type");
     ASSERT_EQ(load_flow_model->GetCompileResource()->logic_dev_id_to_res_type.size(), 1);
     ASSERT_EQ(load_flow_model->GetCompileResource()->logic_dev_id_to_res_type.count("0:0:0"), 0);
     ASSERT_EQ(load_flow_model->GetCompileResource()->logic_dev_id_to_res_type.count("0:0:1"), 1);
     ASSERT_EQ(load_flow_model->GetCompileResource()->logic_dev_id_to_res_type["0:0:1"], "stub_dev_type");
   }
-  static_cast<MockExecutionRuntime*>(execute_runtime)->ResetCompileResFlag();
+  static_cast<MockExecutionRuntime *>(execute_runtime)->ResetCompileResFlag();
 }
 
 TEST_F(FlowModelCacheTest, save_and_load_flow_model_with_invalid_graph_key) {
@@ -998,7 +988,6 @@ TEST_F(FlowModelCacheTest, save_and_load_flow_model_with_udf) {
   }
 }
 
-
 TEST_F(FlowModelCacheTest, save_and_load_flow_model_check_priority) {
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model_with_udf1");
@@ -1049,7 +1038,7 @@ TEST_F(FlowModelCacheTest, save_and_load_flow_model_check_priority) {
     EXPECT_EQ(load_flow_model->GetModelsEschedPriority(), models_esched_priority);
   }
 }
-  
+
 TEST_F(FlowModelCacheTest, save_and_load_flow_model_compile_and_deploy) {
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model1");
@@ -1094,7 +1083,7 @@ TEST_F(FlowModelCacheTest, save_and_load_flow_model_compile_and_deploy) {
     ASSERT_EQ(load_flow_model2->GetSubmodels().size(), 2);
     EXPECT_EQ(load_flow_model2->GetLogicDeviceId(), "");
     EXPECT_EQ(load_flow_model2->GetRedundantLogicDeviceId(), "");
-    for (const auto &submodel:load_flow_model2->GetSubmodels()) {
+    for (const auto &submodel : load_flow_model2->GetSubmodels()) {
       EXPECT_EQ(submodel.second->GetRedundantLogicDeviceId(), redundant_logic_device_id);
     }
   }
@@ -1106,7 +1095,7 @@ TEST_F(FlowModelCacheTest, load_and_save_flow_model) {
 
   GeTensorDesc tensor_desc(GeShape({16, 16}), FORMAT_ND, DT_INT16);
   EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("some_var", nullptr, tensor_desc, RT_MEMORY_HBM), SUCCESS);
- 
+
   auto fake_graph = FakeComputeGraph("test_load_graph");
   AttrUtils::SetStr(*fake_graph, ATTR_NAME_SESSION_GRAPH_ID, "100_99");
   FlowModelPtr load_flow_model;
@@ -1118,7 +1107,7 @@ TEST_F(FlowModelCacheTest, load_and_save_flow_model) {
     ret = flow_model_cache.TryLoadFlowModelFromCache(fake_graph, load_flow_model);
     EXPECT_EQ(ret, SUCCESS);
     EXPECT_EQ(load_flow_model, nullptr);
-    
+
     // mock var fusion
     GeTensorDesc tensor_desc1(GeShape({16, 16}), FORMAT_NCHW, DT_INT16);
     EXPECT_EQ(VarManager::Instance(0)->RecordStagedVarDesc(0, "some_var", tensor_desc1), SUCCESS);
@@ -1127,10 +1116,10 @@ TEST_F(FlowModelCacheTest, load_and_save_flow_model) {
     VarTransRoad fusion_road;
     fusion_road.emplace_back(trans_node_info);
     EXPECT_EQ(VarManager::Instance(0)->SetTransRoad("some_var", fusion_road), SUCCESS);
-    
+
     GeTensorDesc tensor_desc2(GeShape({16, 16}), FORMAT_NHWC, DT_INT16);
     EXPECT_EQ(VarManager::Instance(0)->RenewCurVarDesc("some_var", tensor_desc2), SUCCESS);
-    
+
     auto graph = FakeComputeGraph("root_graph");
     FlowModelPtr flow_model = BuildFlowModelWithoutUdf("flow_model1", graph);
     ret = flow_model_cache.TryCacheFlowModel(flow_model);
@@ -1142,13 +1131,13 @@ TEST_F(FlowModelCacheTest, load_and_save_flow_model) {
     FlowModelCache flow_model_cache_for_load;
     auto ret = flow_model_cache_for_load.Init(fake_graph);
     EXPECT_EQ(ret, SUCCESS);
-    
+
     // resume var
     EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("some_var", nullptr, tensor_desc, RT_MEMORY_HBM), SUCCESS);
     // match cache
     ret = flow_model_cache_for_load.TryLoadFlowModelFromCache(fake_graph, load_flow_model);
     EXPECT_EQ(ret, SUCCESS);
-    
+
     ASSERT_NE(load_flow_model, nullptr);
     EXPECT_NE(load_flow_model->GetModelRelation(), nullptr);
     ASSERT_EQ(load_flow_model->GetSubmodels().size(), 2);
@@ -1168,7 +1157,7 @@ TEST_F(FlowModelCacheTest, save_and_load_sub_flow_model) {
     EXPECT_EQ(ret, SUCCESS);
     auto check_ret = mmAccess("./ut_cache_dir/graph_key/graph1/graph1.om");
     EXPECT_EQ(check_ret, 0);
-    
+
     auto graph2 = FakeComputeGraph("graph2/test");
     graph2->SetExtAttr<std::string>("_graph_info_for_data_flow_cache", "graph_info");
     AttrUtils::SetStr(*graph2, ATTR_NAME_PROCESS_NODE_ENGINE_ID, PNE_ID_UDF);
@@ -1203,7 +1192,7 @@ TEST_F(FlowModelCacheTest, save_and_load_sub_flow_model) {
     ASSERT_NE(load_flow_model, nullptr);
     EXPECT_NE(load_flow_model->GetModelRelation(), nullptr);
     ASSERT_EQ(load_flow_model->GetSubmodels().size(), 2);
-    
+
     auto fake_graph2 = FakeComputeGraph("graph2/test");
     fake_graph2->SetExtAttr<std::string>("_graph_info_for_data_flow_cache", "graph_info");
     AttrUtils::SetStr(*fake_graph2, ATTR_NAME_PROCESS_NODE_ENGINE_ID, PNE_ID_UDF);
@@ -1381,13 +1370,12 @@ TEST_F(FlowModelCacheTest, save_and_load_sub_flow_model_failed) {
   EXPECT_EQ(ret, SUCCESS);
   ret = flow_model_cache_for_load.TryLoadFlowModelFromCache(fake_graph3, load_flow_model);
   EXPECT_EQ(ret, SUCCESS);
-  auto cache_release_info =
-    fake_graph3->TryGetExtAttr<std::string>("_cache_graph_info_for_data_flow_cache", "");
+  auto cache_release_info = fake_graph3->TryGetExtAttr<std::string>("_cache_graph_info_for_data_flow_cache", "");
   EXPECT_EQ(cache_release_info, "");
 }
 
 TEST_F(FlowModelCacheTest, save_flow_model_open_lock_file_failed) {
-  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForOpenFailed>());
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForOpenFaild>());
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model1");
   auto graph = FakeComputeGraph("root_graph");
@@ -1400,7 +1388,7 @@ TEST_F(FlowModelCacheTest, save_flow_model_open_lock_file_failed) {
 }
 
 TEST_F(FlowModelCacheTest, save_flow_model_open_lock_failed) {
-  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForFlockFailed>());
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForFlockFaild>());
   SetCacheDirOption("./ut_cache_dir");
   SetGraphKeyOption("graph_key_flow_model1");
   auto graph = FakeComputeGraph("root_graph");

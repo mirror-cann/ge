@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,11 +15,11 @@
 #include "parser/common/op_parser_factory.h"
 #include "parser/common/util.h"
 
+using domi::TENSORFLOW;
+using domi::tensorflow::AttrValue;
 using domi::tensorflow::DataType;
 using domi::tensorflow::DT_FLOAT;
-using domi::tensorflow::AttrValue;
 using domi::tensorflow::NodeDef;
-using domi::TENSORFLOW;
 using namespace ge::parser;
 
 namespace ge {
@@ -36,13 +36,11 @@ Status TensorFlowRefSwitchParser::ParseT(const domi::tensorflow::NodeDef *node, 
 
   const domi::tensorflow::DataType tfType = attr.type();
   const ge::DataType type = domi::TensorAssign::ConvertTensorflowDataType(tfType);
-  CHECK_FALSE_EXEC(type != ge::DataType::DT_UNDEFINED,
-                   REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
-                                     DataType_Name(tfType).c_str(),
-                                     node->name().c_str());
-                   GELOGE(FAILED, "Data type %s of node %s is not supported.",
-                          DataType_Name(tfType).c_str(), node->name().c_str());
-                   return PARAM_INVALID);
+  CHECK_FALSE_EXEC(
+      type != ge::DataType::DT_UNDEFINED, REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
+                                                               DataType_Name(tfType).c_str(), node->name().c_str());
+      GELOGE(FAILED, "Data type %s of node %s is not supported.", DataType_Name(tfType).c_str(), node->name().c_str());
+      return PARAM_INVALID);
 
   op->T(type);
 

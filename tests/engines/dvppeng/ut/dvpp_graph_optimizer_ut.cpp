@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@
 
 #include "util/dvpp_constexpr.h"
 
-TEST(DvppGraphOptimizer, AllTest_910B)
-{
+TEST(DvppGraphOptimizer, AllTest_910B) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -83,8 +82,7 @@ TEST(DvppGraphOptimizer, AllTest_910B)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, AllTest_910B_ResizeBilinearV2)
-{
+TEST(DvppGraphOptimizer, AllTest_910B_ResizeBilinearV2) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -118,7 +116,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_ResizeBilinearV2)
   status = dvppGraphOptimizer.OptimizeGraphPrepare(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
- // OptimizeOriginalGraph
+  // OptimizeOriginalGraph
   status = dvppGraphOptimizer.OptimizeOriginalGraph(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
@@ -144,8 +142,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_ResizeBilinearV2)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, AllTest_910B_Resize)
-{
+TEST(DvppGraphOptimizer, AllTest_910B_Resize) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -184,7 +181,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_Resize)
   status = dvppGraphOptimizer.OptimizeGraphPrepare(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
- // OptimizeOriginalGraph
+  // OptimizeOriginalGraph
   status = dvppGraphOptimizer.OptimizeOriginalGraph(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
@@ -210,8 +207,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_Resize)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -248,7 +244,6 @@ TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_01)
   ge::GeTensorDesc data_int_tensor_y(ge::GeShape(std::vector<int64_t>{4}), ge::FORMAT_ND, ge::DT_INT32);
   data_op_desc_ptr->AddOutputDesc("y", data_int_tensor_y);
 
-
   ge::OpDescPtr output_op_desc_ptr = std::make_shared<ge::OpDesc>("NetOutput", "NetOutput");
   ge::GeTensorDesc output_tensor_x(ge::GeShape({-2}), ge::FORMAT_ND, ge::DT_UINT8);
   output_op_desc_ptr->AddInputDesc(0, output_tensor_x);
@@ -282,8 +277,7 @@ TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_02)
-{
+TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_02) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -325,8 +319,7 @@ TEST(DvppGraphOptimizer, Test_910B_DecodeJpeg_02)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_GaussianBlur_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_GaussianBlur_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -396,8 +389,7 @@ TEST(DvppGraphOptimizer, Test_910B_GaussianBlur_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_Rotate_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_Rotate_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -472,8 +464,7 @@ TEST(DvppGraphOptimizer, Test_910B_Rotate_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_RgbToGrayscale_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_RgbToGrayscale_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -540,8 +531,7 @@ TEST(DvppGraphOptimizer, Test_910B_RgbToGrayscale_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_Rotate_02)
-{
+TEST(DvppGraphOptimizer, Test_910B_Rotate_02) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -616,8 +606,7 @@ TEST(DvppGraphOptimizer, Test_910B_Rotate_02)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_WarpAffineV2_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_WarpAffineV2_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -635,7 +624,7 @@ TEST(DvppGraphOptimizer, Test_910B_WarpAffineV2_01)
   op_desc_ptr->AddInputDesc("x", tensor_x);
   ge::GeTensorDesc tensor_matrix(ge::GeShape(std::vector<int64_t>{2, 3}), ge::FORMAT_ND, ge::DT_FLOAT);
   op_desc_ptr->AddInputDesc("matrix", tensor_matrix);
-  ge::GeTensorDesc tensor_dst_size(ge::GeShape(std::vector<int64_t>{1,2}), ge::FORMAT_ND, ge::DT_INT32);
+  ge::GeTensorDesc tensor_dst_size(ge::GeShape(std::vector<int64_t>{1, 2}), ge::FORMAT_ND, ge::DT_INT32);
   op_desc_ptr->AddInputDesc("dst_size", tensor_dst_size);
   ge::GeTensorDesc tensor_y(ge::GeShape(std::vector<int64_t>{1280, 720, 3}), ge::FORMAT_ND, ge::DT_UINT8);
   op_desc_ptr->AddOutputDesc("y", tensor_y);
@@ -676,7 +665,7 @@ TEST(DvppGraphOptimizer, Test_910B_WarpAffineV2_01)
   auto warp_affine_out_anchor = warp_affine_node->GetOutDataAnchor(0);
   auto warp_affine_peer_in_anchor = warp_affine_out_anchor->GetPeerInDataAnchors();
   std::vector<ge::InDataAnchorPtr> output_in_anchors(warp_affine_peer_in_anchor.begin(),
-      warp_affine_peer_in_anchor.end());
+                                                     warp_affine_peer_in_anchor.end());
   error = ge::GraphUtils::InsertNodeAfter(warp_affine_out_anchor, output_in_anchors, output_node);
   ASSERT_EQ(error, ge::GRAPH_SUCCESS);
 
@@ -691,8 +680,7 @@ TEST(DvppGraphOptimizer, Test_910B_WarpAffineV2_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Initialize)
-{
+TEST(DvppGraphOptimizer, Initialize) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
   std::map<std::string, std::string> options;
   options[ge::SOC_VERSION] = "Ascend";
@@ -700,8 +688,7 @@ TEST(DvppGraphOptimizer, Initialize)
   ASSERT_EQ(status, ge::FAILED);
 }
 
-TEST(DvppGraphOptimizer, AllTest_910B_WarpPerspective)
-{
+TEST(DvppGraphOptimizer, AllTest_910B_WarpPerspective) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -740,7 +727,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_WarpPerspective)
   status = dvppGraphOptimizer.OptimizeGraphPrepare(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
- // OptimizeOriginalGraph
+  // OptimizeOriginalGraph
   status = dvppGraphOptimizer.OptimizeOriginalGraph(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
@@ -766,8 +753,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_WarpPerspective)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, AllTest_910B_ResizeV2)
-{
+TEST(DvppGraphOptimizer, AllTest_910B_ResizeV2) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -802,7 +788,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_ResizeV2)
   status = dvppGraphOptimizer.OptimizeGraphPrepare(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
- // OptimizeOriginalGraph
+  // OptimizeOriginalGraph
   status = dvppGraphOptimizer.OptimizeOriginalGraph(*graphPtr);
   ASSERT_EQ(status, ge::SUCCESS);
 
@@ -828,8 +814,7 @@ TEST(DvppGraphOptimizer, AllTest_910B_ResizeV2)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_01)
-{
+TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_01) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
 
   // Initialize
@@ -874,8 +859,7 @@ TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_01)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_02)
-{
+TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_02) {
   dvpp::DvppGraphOptimizer dvppGraphOptimizer;
   // Initialize
   std::map<std::string, std::string> options;
@@ -908,7 +892,6 @@ TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_02)
   data_factor_op_desc_ptr->AddInputDesc("x", factor_tensor_x);
   ge::GeTensorDesc factor_tensor_y(ge::GeShape(std::vector<int64_t>{1}), ge::FORMAT_ND, ge::DT_FLOAT);
   data_factor_op_desc_ptr->AddOutputDesc("y", factor_tensor_y);
-
 
   ge::OpDescPtr output_op_desc_ptr = std::make_shared<ge::OpDesc>("NetOutput", "NetOutput");
   ge::GeTensorDesc output_tensor_x(ge::GeShape({-1, -1, -1, -1}), ge::FORMAT_ND, ge::DT_UINT8);
@@ -948,8 +931,7 @@ TEST(DvppGraphOptimizer, Test_910B_AdjustContrast_02)
   ASSERT_EQ(status, ge::SUCCESS);
 }
 
-TEST(DvppGraphOptimizer, Test_CheckSubAndMulFusedIntoNormalizeV2_01)
-{
+TEST(DvppGraphOptimizer, Test_CheckSubAndMulFusedIntoNormalizeV2_01) {
   // set graph
   std::shared_ptr<ge::ComputeGraph> graphPtr = std::make_shared<ge::ComputeGraph>("test_graph");
   ge::AttrUtils::SetStr(graphPtr, ge::ATTR_NAME_SESSION_GRAPH_ID, "_0_1");
@@ -968,8 +950,7 @@ TEST(DvppGraphOptimizer, Test_CheckSubAndMulFusedIntoNormalizeV2_01)
   ASSERT_EQ(status, false);
 }
 
-TEST(DvppGraphOptimizer, Test_CheckSubAndMulFusedIntoNormalizeV2_02)
-{
+TEST(DvppGraphOptimizer, Test_CheckSubAndMulFusedIntoNormalizeV2_02) {
   // set graph
   std::shared_ptr<ge::ComputeGraph> graphPtr = std::make_shared<ge::ComputeGraph>("test_graph");
   ge::AttrUtils::SetStr(graphPtr, ge::ATTR_NAME_SESSION_GRAPH_ID, "_0_1");

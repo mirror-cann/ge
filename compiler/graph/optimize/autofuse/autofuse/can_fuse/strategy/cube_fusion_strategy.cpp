@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -103,7 +103,7 @@ bool CanFuseWithElementwise(const NodePtr &node1, const NodePtr &node2) {
   if (!IsIndirectLinksWithoutBatchBroadcast(node1, node2, node_fuse_info.GetNode1ToNode2LinkMap())) {
     return false;
   }
-  std::vector<std::string> target_types1 = {}; // 如果不支持有某个node类型，可以加在这里例如 kScalarType
+  std::vector<std::string> target_types1 = {};  // 如果不支持有某个node类型，可以加在这里例如 kScalarType
   if (BackendUtils::HasTypesInAscgraph(node2, target_types1)) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is[%s] [node1 is Cube, node2 is Pointwise but "
@@ -150,9 +150,10 @@ bool CubeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
 
   // 3.cube不能和非elementwise融合
   if (!(attr1->HasFuseType(loop::FuseType::kCube) && BackendUtils::IsOnlyPointwise(node2))) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, reason is[%s] [node1 is Cube, node2 is not Pointwise or Reshape].",
-           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-           ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithNotElementwise));
+    GELOGI(
+        "node1 %s(%s) and node2 %s(%s) cannot fuse, reason is[%s] [node1 is Cube, node2 is not Pointwise or Reshape].",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kCubeCanNotFuseWithNotElementwise));
     return false;
   }
 
@@ -171,9 +172,8 @@ FusionPriority CubeFusionStrategy::GetFusionPairPriority(const NodePtr &node1, c
   FusionPriority fusion_priority = FusionPriority::DEFAULT;
   // 首轮融合才要处理，只有AscBackend场景
   if ((attr->GetFuseType() == loop::FuseType::kCube) && BackendUtils::IsVertical(node1, node2)) {
-    fusion_priority = FusionPriority::LOW; // 防止影响当前网络已融合结构，在已融合结构基础上再做cube融合
-    GELOGI("node1 %s(Cube) --> node2 %s(*) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(),
-           fusion_priority);
+    fusion_priority = FusionPriority::LOW;  // 防止影响当前网络已融合结构，在已融合结构基础上再做cube融合
+    GELOGI("node1 %s(Cube) --> node2 %s(*) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(), fusion_priority);
   }
   return fusion_priority;
 }

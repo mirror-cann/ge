@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -260,7 +260,7 @@ TEST_F(AttributeGroupShapeEnvUt, ShapeEnvAttrClone_Succ) {
   EXPECT_EQ(shape_env_bak->value_to_symbol_, shape_env->value_to_symbol_);
   EXPECT_EQ(shape_env_bak->symbol_check_infos_.size(), 1);
   EXPECT_EQ(shape_env_bak->symbol_check_infos_, shape_env->symbol_check_infos_);
-  EXPECT_EQ(shape_env_bak->symbol_assert_infos_.size(),0);
+  EXPECT_EQ(shape_env_bak->symbol_assert_infos_.size(), 0);
   EXPECT_EQ(shape_env_bak->symbol_assert_infos_, shape_env->symbol_assert_infos_);
   SetCurShapeEnvContext(nullptr);
 }
@@ -287,7 +287,7 @@ TEST_F(AttributeGroupShapeEnvUt, ShapeEnvAttrCopy_Succ) {
   EXPECT_EQ(shape_env_bak.value_to_symbol_, shape_env.value_to_symbol_);
   EXPECT_EQ(shape_env_bak.symbol_check_infos_.size(), 1);
   EXPECT_EQ(shape_env_bak.symbol_check_infos_, shape_env.symbol_check_infos_);
-  EXPECT_EQ(shape_env_bak.symbol_assert_infos_.size(),0);
+  EXPECT_EQ(shape_env_bak.symbol_assert_infos_.size(), 0);
   EXPECT_EQ(shape_env_bak.symbol_assert_infos_, shape_env.symbol_assert_infos_);
   SetCurShapeEnvContext(nullptr);
 }
@@ -335,7 +335,7 @@ TEST_F(AttributeGroupShapeEnvUt, Get_Guard_Has_No_Dfx_Info_When_Clear_Guard_Cont
     GuardDfxContext dfx_context("node name:Add");
     shape_env.AppendSymbolCheckInfo(guard_1);
   }
-  
+
   auto check_infos = shape_env.GetAllSymbolCheckInfos();
   EXPECT_EQ(1, check_infos.size());
   EXPECT_EQ("node name:Add", check_infos[0].dfx_info);
@@ -431,5 +431,5 @@ TEST_F(AttributeGroupShapeEnvUt, CheckReplacementCycleTest) {
 
   SetCurShapeEnvContext(nullptr);
 }
-}
+}  // namespace
 }  // namespace ge

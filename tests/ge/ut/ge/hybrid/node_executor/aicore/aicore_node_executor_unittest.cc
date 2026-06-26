@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,7 @@ using namespace testing;
 namespace ge {
 using namespace hybrid;
 namespace {
-  // for fuzz compiler to init
+// for fuzz compiler to init
 class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
  private:
   Status Initialize(const std::map<std::string, std::string> &options) override {
@@ -47,14 +47,14 @@ class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
   bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
     return false;
   };
-  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override{};
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
 
   Status FuzzCompileOp(std::vector<NodePtr> &node_vec) override {
     return SUCCESS;
   };
 };
 
-void BuildDefaultTaskDef(domi::TaskDef & task_def) {
+void BuildDefaultTaskDef(domi::TaskDef &task_def) {
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   std::vector<uint8_t> args(100, 0);
   task_def.mutable_kernel()->set_args(args.data(), args.size());
@@ -96,7 +96,7 @@ void BuildDefaultNodeItem(const NodePtr &node, std::unique_ptr<NodeItem> &node_i
 }
 
 class FuzzFailToCompileFusedNodeSelector : public NodeBinSelector {
-  public:
+ public:
   FuzzFailToCompileFusedNodeSelector() {};
   NodeCompileCacheItem *SelectBin(const NodePtr &node, const GEThreadLocalContext *ge_context,
                                   std::vector<domi::TaskDef> &task_defs) override {
@@ -105,10 +105,11 @@ class FuzzFailToCompileFusedNodeSelector : public NodeBinSelector {
   Status Initialize() override {
     return SUCCESS;
   };
-  private:
+
+ private:
   NodeCompileCacheItem cci_;
 };
-} // namespace
+}  // namespace
 
 class UtestAiCoreNodeExecutor : public testing::Test {
  protected:
@@ -141,7 +142,6 @@ TEST_F(UtestAiCoreNodeExecutor, callback_success) {
   ge_root_model->SetModelName("test_name");
   HybridModel hybrid_model(ge_root_model);
 
-
   GraphExecutionContext graph_context;
   graph_context.model = &hybrid_model;
   SubgraphContext subgraph_context(&graph_item, &graph_context);
@@ -151,7 +151,7 @@ TEST_F(UtestAiCoreNodeExecutor, callback_success) {
 
   auto node_state = subgraph_context.GetNodeState(new_node.get());
   ASSERT_NE(node_state, nullptr);
-  auto outputs_shape = reinterpret_cast<uint32_t(*)[9]>(task1->shape_buffer_->GetData());
+  auto outputs_shape = reinterpret_cast<uint32_t (*)[9]>(task1->shape_buffer_->GetData());
   outputs_shape[0][0] = 2;
   outputs_shape[0][1] = 1;
   outputs_shape[0][2] = 2;
@@ -195,7 +195,7 @@ TEST_F(UtestAiCoreNodeExecutor, callback_success) {
   (void)aicore_node_task->SetBinSelector(selector);
   ret = aicore_node_task->SelectBin(*node_state->GetTaskContext(), subgraph_context.GetExecutionContext());
   ASSERT_EQ(ret, SUCCESS);
-  ASSERT_EQ(aicore_node_task->last_bin_, UINT64_MAX); // single mode not upate op task
+  ASSERT_EQ(aicore_node_task->last_bin_, UINT64_MAX);  // single mode not update op task
 
   std::pair<rtEvent_t, std::pair<rtCallback_t, void *>> entry;
   auto callback_manager =
@@ -222,7 +222,7 @@ REG_OP(Conv2D)
     .ATTR(offset_x, Int, 0)
     .OP_END_FACTORY_REG(Conv2D)
 
-TEST_F(UtestAiCoreNodeExecutor, test_Load_Task_without_task_def) {
+        TEST_F(UtestAiCoreNodeExecutor, test_Load_Task_without_task_def) {
   map<std::string, std::string> options;
   options.emplace(BUILD_MODE, BUILD_MODE_TUNING);
   options.emplace(BUILD_STEP, BUILD_STEP_AFTER_BUILDER);
@@ -247,7 +247,7 @@ TEST_F(UtestAiCoreNodeExecutor, test_Load_Task_without_task_def) {
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.node_bin_mode_ = fuzz_compile::kOneNodeMultipleBinsMode;
-  hybrid_model.task_defs_[conv2d_node] = {}; //empty task def
+  hybrid_model.task_defs_[conv2d_node] = {};  // empty task def
   std::unique_ptr<NodeItem> node_item;
   BuildDefaultNodeItem(conv2d_node, node_item);
 
@@ -271,7 +271,8 @@ TEST_F(UtestAiCoreNodeExecutor, test_Load_Task_without_task_def) {
   ASSERT_EQ(executor.LoadTask(hybrid_model, conv2d_node, node_task_after_load), SUCCESS);
 
   // 4. test select bin
-  ASSERT_EQ(node_task_after_load->SelectBin(*node_state->GetTaskContext(), subgraph_context.GetExecutionContext()), SUCCESS);
+  ASSERT_EQ(node_task_after_load->SelectBin(*node_state->GetTaskContext(), subgraph_context.GetExecutionContext()),
+            SUCCESS);
 
   // 5. load empty task when norma case, load failed
   hybrid_model.node_bin_mode_ = fuzz_compile::kOneNodeSingleBinMode;
@@ -286,8 +287,8 @@ TEST_F(UtestAiCoreNodeExecutor, test_execute_on_origin_fused_task) {
   // 1. test load task with fused_task
   // (1) build origin fused graph
   DEF_GRAPH(fused_graph) {
-      auto data = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-      CHAIN(NODE("data", data)->NODE("conv2d", EXPANDDIMS)->NODE("sqrt", RESHAPE)->NODE("netoutput", NETOUTPUT));
+    auto data = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
+    CHAIN(NODE("data", data)->NODE("conv2d", EXPANDDIMS)->NODE("sqrt", RESHAPE)->NODE("netoutput", NETOUTPUT));
   };
   auto origin_fused_graph = ToComputeGraph(fused_graph);
   auto net_output = origin_fused_graph->FindNode("netoutput");
@@ -327,24 +328,24 @@ TEST_F(UtestAiCoreNodeExecutor, test_execute_on_origin_fused_task) {
   std::unique_ptr<GraphItem> origin_fused_graph_item = std::unique_ptr<GraphItem>(new GraphItem());
   NodeExecutorManager::GetInstance().EnsureInitialized();
   for (const auto &node : origin_fused_graph->GetDirectNode()) {
-      if (node->GetType() == DATA) {
-        ++origin_fused_graph_item->total_inputs_;
-      }
-      if (node->GetType() == NETOUTPUT) {
-        ++origin_fused_graph_item->total_outputs_;
-      }
-      std::unique_ptr<NodeItem> node_item_in_sub;
-      BuildDefaultNodeItem(node, node_item_in_sub);
-      // simulate load task on node in subgraph
-      if (node->GetType() != DATA && node->GetType() != NETOUTPUT) {
-         node->GetOpDesc()->SetOpKernelLibName("GeLocal");
-      }
+    if (node->GetType() == DATA) {
+      ++origin_fused_graph_item->total_inputs_;
+    }
+    if (node->GetType() == NETOUTPUT) {
+      ++origin_fused_graph_item->total_outputs_;
+    }
+    std::unique_ptr<NodeItem> node_item_in_sub;
+    BuildDefaultNodeItem(node, node_item_in_sub);
+    // simulate load task on node in subgraph
+    if (node->GetType() != DATA && node->GetType() != NETOUTPUT) {
+      node->GetOpDesc()->SetOpKernelLibName("GeLocal");
+    }
 
-      // NodeExecutorManager::GetInstance().GetExecutor(*node_item_in_sub, node_item_in_sub->node_executor);
-      // const auto &node_ptr = node_item_in_sub->node;
-      // node_item_in_sub->node_executor->LoadTask(hybrid_model, node_ptr, node_item_in_sub->kernel_task);
-      origin_fused_graph_item->node_items_.emplace_back(node_item_in_sub.get());
-      hybrid_model.node_items_[node] = std::move(node_item_in_sub);
+    // NodeExecutorManager::GetInstance().GetExecutor(*node_item_in_sub, node_item_in_sub->node_executor);
+    // const auto &node_ptr = node_item_in_sub->node;
+    // node_item_in_sub->node_executor->LoadTask(hybrid_model, node_ptr, node_item_in_sub->kernel_task);
+    origin_fused_graph_item->node_items_.emplace_back(node_item_in_sub.get());
+    hybrid_model.node_items_[node] = std::move(node_item_in_sub);
   }
   hybrid_model.subgraph_items_[origin_fused_graph->GetName()] = std::move(origin_fused_graph_item);
 
@@ -353,7 +354,7 @@ TEST_F(UtestAiCoreNodeExecutor, test_execute_on_origin_fused_task) {
   AiCoreNodeExecutor executor;
   ASSERT_EQ(executor.LoadTask(hybrid_model, fused_conv2d_node, node_task_after_load), SUCCESS);
   AiCoreNodeTask *aicore_node_task = dynamic_cast<AiCoreNodeTask *>(node_task_after_load.get());
-  ASSERT_NE(aicore_node_task->fused_task_, nullptr); // after load task, fused_task_ has been load
+  ASSERT_NE(aicore_node_task->fused_task_, nullptr);  // after load task, fused_task_ has been load
 
   // 2. test select bin switch to origin fused graph execution
   // (1) set failed_compile_selector to aicore_node_task
@@ -361,7 +362,8 @@ TEST_F(UtestAiCoreNodeExecutor, test_execute_on_origin_fused_task) {
   aicore_node_task->SetBinSelector(sp.get());
 
   // (2) test select bin to switch to orgin_fused_graph_execution
-  ASSERT_EQ(aicore_node_task->SelectBin(*node_state->GetTaskContext(), subgraph_context.GetExecutionContext()), SUCCESS);
+  ASSERT_EQ(aicore_node_task->SelectBin(*node_state->GetTaskContext(), subgraph_context.GetExecutionContext()),
+            SUCCESS);
   ASSERT_EQ(aicore_node_task->origin_fused_graph_exec_, true);
 }
 
@@ -397,7 +399,7 @@ TEST_F(UtestAiCoreNodeExecutor, check_overflow_test) {
 
   auto node_state = subgraph_context.GetNodeState(new_node.get());
   ASSERT_NE(node_state, nullptr);
-  auto outputs_shape = reinterpret_cast<uint32_t(*)[9]>(task1->shape_buffer_->GetData());
+  auto outputs_shape = reinterpret_cast<uint32_t (*)[9]>(task1->shape_buffer_->GetData());
   outputs_shape[0][0] = 2;
   outputs_shape[0][1] = 1;
   outputs_shape[0][2] = 2;

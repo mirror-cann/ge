@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,8 +56,9 @@ size_t GraphItem::GetNodeSize(const int32_t group) const {
     return node_items_.size();
   }
 
-  return (static_cast<uint32_t>(group) < grouped_node_items_.size()) ?
-          grouped_node_items_[static_cast<size_t>(group)].size() : 0U;
+  return (static_cast<uint32_t>(group) < grouped_node_items_.size())
+             ? grouped_node_items_[static_cast<size_t>(group)].size()
+             : 0U;
 }
 
 const std::vector<const NodeItem *> &GraphItem::GetInputNodes() const {
@@ -114,11 +115,10 @@ Status GraphItem::GroupNodes(const std::vector<NodeItem *> &node_items,
     const int32_t group = node->group;
     if (group != last_group) {
       if (seen_groups.find(group) != seen_groups.end()) {
-        REPORT_INNER_ERR_MSG("E19999", "Unordered node group found. node:%s(%s), group:%d",
-                           node->NodeName().c_str(), node->NodeType().c_str(), group);
-        GELOGE(INTERNAL_ERROR,
-            "[Find][Group] Unordered node group found. node:%s(%s), group:%d",
-            node->NodeName().c_str(), node->NodeType().c_str(), group);
+        REPORT_INNER_ERR_MSG("E19999", "Unordered node group found. node:%s(%s), group:%d", node->NodeName().c_str(),
+                             node->NodeType().c_str(), group);
+        GELOGE(INTERNAL_ERROR, "[Find][Group] Unordered node group found. node:%s(%s), group:%d",
+               node->NodeName().c_str(), node->NodeType().c_str(), group);
         return INTERNAL_ERROR;
       } else {
         last_group = group;
@@ -136,7 +136,7 @@ Status GraphItem::GroupNodes(const std::vector<NodeItem *> &node_items,
   return SUCCESS;
 }
 
-GraphStageCache& GraphItem::GetStageCache() const {
+GraphStageCache &GraphItem::GetStageCache() const {
   return stage_cache_;
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,9 +12,8 @@
 #include "inc/ffts_utils.h"
 #include "graph/debug/ge_attr_define.h"
 
-
 namespace ffts {
-static const vector<std::string> kMixPrefixs = { "_mix_aic", "_mix_aiv" };
+static const vector<std::string> kMixPrefixs = {"_mix_aic", "_mix_aiv"};
 
 MixAICAIVTaskBuilder::MixAICAIVTaskBuilder() {}
 
@@ -72,7 +71,7 @@ Status MixAICAIVTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsPl
               node->GetName().c_str(), context_id);
   }
 
-  mix_aic_aiv_ctx_def->set_thread_window_size(kDefaultManualWindowSize); // not used yet
+  mix_aic_aiv_ctx_def->set_thread_window_size(kDefaultManualWindowSize);  // not used yet
   FFTS_LOGD("GenContextDef threadid nodetype: %s, name: %s, defaultManualWindowSize: %u.", node->GetType().c_str(),
             node->GetName().c_str(), kDefaultManualWindowSize);
 
@@ -80,8 +79,8 @@ Status MixAICAIVTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsPl
   uint32_t addr_size = mix_aic_aiv_ctx_def->task_addr_size();
   uint32_t cur_addr_size = ffts_plus_task_def->addr_size();
   ffts_plus_task_def->set_addr_size(cur_addr_size + addr_size);
-  FFTS_LOGD("GenContextDef nodetype:%s, name:%s, total_addr_size:%u", node->GetType().c_str(),
-            node->GetName().c_str(), ffts_plus_task_def->addr_size());
+  FFTS_LOGD("GenContextDef nodetype:%s, name:%s, total_addr_size:%u", node->GetType().c_str(), node->GetName().c_str(),
+            ffts_plus_task_def->addr_size());
   if (AddAdditionalArgs(op_desc, ffts_plus_task_def, 1) != SUCCESS) {
     REPORT_FFTS_ERROR("[MixAICAIVTaskBuilder] [AddAdditionalArgs] Failed to add additional arguments for node [%s].",
                       op_desc->GetName().c_str());
@@ -96,7 +95,7 @@ Status MixAICAIVTaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc, domi::Fft
   FFTS_CHECK_NOTNULL(op_desc);
   // modeInArgsFirstField
   uint32_t mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
   bool inter_core_sync = false;
   (void)ge::AttrUtils::GetBool(op_desc, kAttrIntercoreSync, inter_core_sync);
   if (mode == 1 || inter_core_sync) {
@@ -104,11 +103,11 @@ Status MixAICAIVTaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc, domi::Fft
     domi::AdditionalDataDef *additional_data_def = ffts_plus_task_def->add_additional_data();
     FFTS_CHECK_NOTNULL(additional_data_def);
     uint32_t context_id;
-    (void) ge::AttrUtils::GetInt(op_desc, kContextId, context_id);
+    (void)ge::AttrUtils::GetInt(op_desc, kContextId, context_id);
     additional_data_def->set_data_type(data_type);
     additional_data_def->add_context_id(context_id);
     if (ctx_num > 1) {
-      (void) ge::AttrUtils::GetInt(op_desc, "_default_context_id", context_id);
+      (void)ge::AttrUtils::GetInt(op_desc, "_default_context_id", context_id);
       additional_data_def->add_context_id(context_id);
     }
   }

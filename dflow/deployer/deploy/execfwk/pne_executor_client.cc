@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,10 +19,9 @@ namespace {
 constexpr uint32_t kBindAllDevice = 0xffffffff;
 }
 
-PneExecutorClient::PneExecutorClient(int32_t device_id) : device_id_(device_id) {
-}
+PneExecutorClient::PneExecutorClient(int32_t device_id) : device_id_(device_id) {}
 
-void PneExecutorClient::SetContext(const ClientContext& context) {
+void PneExecutorClient::SetContext(const ClientContext &context) {
   context_ = context;
 }
 
@@ -108,27 +107,23 @@ PneExecutorClientFactory &PneExecutorClientFactory::GetInstance() {
   return instance;
 }
 
-std::string PneExecutorClientFactory::GenerateClientKey(const std::string &engine_name,
-                                                        bool is_proxy) const {
+std::string PneExecutorClientFactory::GenerateClientKey(const std::string &engine_name, bool is_proxy) const {
   std::string key = engine_name + "_" + std::to_string(static_cast<uint32_t>(is_proxy));
   return key;
 }
 
-void PneExecutorClientFactory::RegisterCreateFunc(const std::string &engine_name,
-                                                  bool is_proxy,
+void PneExecutorClientFactory::RegisterCreateFunc(const std::string &engine_name, bool is_proxy,
                                                   PneExecutorClientFactory::CreateFunc func) {
   std::string key = GenerateClientKey(engine_name, is_proxy);
   create_funcs_[key] = std::move(func);
 }
 
-std::unique_ptr<PneExecutorClient> PneExecutorClientFactory::CreateClient(const std::string &engine_name,
-                                                                          bool is_proxy,
+std::unique_ptr<PneExecutorClient> PneExecutorClientFactory::CreateClient(const std::string &engine_name, bool is_proxy,
                                                                           int32_t device_id) {
   std::string key = GenerateClientKey(engine_name, is_proxy);
   auto func = create_funcs_[key];
   if (func == nullptr) {
-    GELOGE(UNSUPPORTED, "Unsupported client, engine type = %s, is_proxy = %d",
-           engine_name.c_str(), is_proxy);
+    GELOGE(UNSUPPORTED, "Unsupported client, engine type = %s, is_proxy = %d", engine_name.c_str(), is_proxy);
     return nullptr;
   }
   return func(device_id);

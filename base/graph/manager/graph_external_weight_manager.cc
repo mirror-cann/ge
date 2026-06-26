@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ void to_json(nlohmann::json &j, const FileConstantMeta &meta) {
 
 ExternalWeightManager::ExternalWeightManager(const uint64_t session_id) : session_id_(session_id) {
   std::string option_str = ExternalWeightManager::GetWeightPathFromOption();
-  if(option_str.empty()){
+  if (option_str.empty()) {
     weight_path_ = FileConstantUtils::GetTmpWeightDir(mmGetPid(), session_id_);
   } else {
     weight_path_ = option_str;
@@ -52,7 +52,7 @@ void ExternalWeightManager::Finalize() noexcept {
   shard_info_to_fileconstant_info_.clear();
   const std::string tmp_weight_dir = FileConstantUtils::GetTmpWeightDir(mmGetPid(), session_id_);
   if (mmAccess(tmp_weight_dir.c_str()) == EN_OK) {
-    (void) mmRmdir(tmp_weight_dir.c_str());
+    (void)mmRmdir(tmp_weight_dir.c_str());
     GELOGI("Success to remove dir:%s", tmp_weight_dir.c_str());
   }
 }
@@ -99,7 +99,7 @@ bool ExternalWeightManager::TryGetSlicedFileConstantInfo(const std::string &shar
   return false;
 }
 
-std::string ExternalWeightManager::GetWeightPathFromOption(){
+std::string ExternalWeightManager::GetWeightPathFromOption() {
   std::string option_str;
   (void)GetThreadLocalContext().GetOption(OPTION_EXTERNAL_WEIGHT_DIR, option_str);
   return option_str;
@@ -147,7 +147,7 @@ void ExternalWeightManagerPool::RemoveManager(const uint64_t session_id) {
     const auto &session_and_manager = session_id_to_manager_.find(session_id);
     if (session_and_manager != session_id_to_manager_.end()) {
       external_weight_manager = session_and_manager->second;
-      (void) session_id_to_manager_.erase(session_and_manager);
+      (void)session_id_to_manager_.erase(session_and_manager);
       GELOGI("Success to remove external weight manager, session id:%" PRIu64 "", session_id);
     }
   }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,36 +43,28 @@ const std::map<int64_t, HcclDataType> kConstOpHcclDataType = {
 };
 
 static std::map<HcclDataType, int32_t> kConstOpHcclDataTypeSize = {
-    {HCCL_DATA_TYPE_FP64, sizeof(float) * 2U},
-    {HCCL_DATA_TYPE_FP32, sizeof(float)},
-    {HCCL_DATA_TYPE_FP16, sizeof(float) / 2U},
-    {HCCL_DATA_TYPE_INT8, sizeof(int8_t)},
-    {HCCL_DATA_TYPE_INT16, sizeof(int16_t)},
-    {HCCL_DATA_TYPE_INT32, sizeof(int32_t)},
-    {HCCL_DATA_TYPE_INT64, sizeof(int64_t)},
-    {HCCL_DATA_TYPE_UINT8, sizeof(uint8_t)},
-    {HCCL_DATA_TYPE_UINT16, sizeof(uint16_t)},
-    {HCCL_DATA_TYPE_UINT32, sizeof(uint32_t)},
-    {HCCL_DATA_TYPE_UINT64, sizeof(uint64_t)},
-    {HCCL_DATA_TYPE_BFP16, sizeof(float) / 2U},
-    {HCCL_DATA_TYPE_HIF8, sizeof(uint8_t)},
-    {HCCL_DATA_TYPE_FP8E5M2, sizeof(uint8_t)},
+    {HCCL_DATA_TYPE_FP64, sizeof(float) * 2U}, {HCCL_DATA_TYPE_FP32, sizeof(float)},
+    {HCCL_DATA_TYPE_FP16, sizeof(float) / 2U}, {HCCL_DATA_TYPE_INT8, sizeof(int8_t)},
+    {HCCL_DATA_TYPE_INT16, sizeof(int16_t)},   {HCCL_DATA_TYPE_INT32, sizeof(int32_t)},
+    {HCCL_DATA_TYPE_INT64, sizeof(int64_t)},   {HCCL_DATA_TYPE_UINT8, sizeof(uint8_t)},
+    {HCCL_DATA_TYPE_UINT16, sizeof(uint16_t)}, {HCCL_DATA_TYPE_UINT32, sizeof(uint32_t)},
+    {HCCL_DATA_TYPE_UINT64, sizeof(uint64_t)}, {HCCL_DATA_TYPE_BFP16, sizeof(float) / 2U},
+    {HCCL_DATA_TYPE_HIF8, sizeof(uint8_t)},    {HCCL_DATA_TYPE_FP8E5M2, sizeof(uint8_t)},
     {HCCL_DATA_TYPE_FP8E4M3, sizeof(uint8_t)},
 };
 
 static std::map<HorovodReduceOp, HcclReduceOp> kHorovodRedOpToHcclRedOp = {
-    {HOROVOD_REDUCE_SUM, HCCL_REDUCE_SUM},           {HOROVOD_REDUCE_MIN, HCCL_REDUCE_MIN},
-    {HOROVOD_REDUCE_MAX, HCCL_REDUCE_MAX},           {HOROVOD_REDUCE_PROD, HCCL_REDUCE_PROD},
-    {HOROVOD_REDUCE_RESERVED, HCCL_REDUCE_RESERVED}
-};
+    {HOROVOD_REDUCE_SUM, HCCL_REDUCE_SUM},
+    {HOROVOD_REDUCE_MIN, HCCL_REDUCE_MIN},
+    {HOROVOD_REDUCE_MAX, HCCL_REDUCE_MAX},
+    {HOROVOD_REDUCE_PROD, HCCL_REDUCE_PROD},
+    {HOROVOD_REDUCE_RESERVED, HCCL_REDUCE_RESERVED}};
 
 Status HcomOmeUtil::GetHcclDataType(const ge::DataType src_data_type, HcclDataType &hccl_data_type) {
   const auto &iter = kConstOpHcclDataType.find(static_cast<int64_t>(src_data_type));
-  GE_CHK_BOOL_RET_STATUS(iter != kConstOpHcclDataType.end(),
-                         PARAM_INVALID,
-                         "Transform src_data_type:[%d, %s] to hccl_data_type failed.",
-                         static_cast<int32_t>(src_data_type),
-                         ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+  GE_CHK_BOOL_RET_STATUS(
+      iter != kConstOpHcclDataType.end(), PARAM_INVALID, "Transform src_data_type:[%d, %s] to hccl_data_type failed.",
+      static_cast<int32_t>(src_data_type), ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
   hccl_data_type = iter->second;
   return SUCCESS;
 }
@@ -81,8 +73,8 @@ Status HcomOmeUtil::GetHcclDataType(const ge::ConstOpDescPtr &op_desc,
                                     std::vector<GETaskKernelHcclInfo> &kernel_hccl_infos) {
   GE_CHECK_NOTNULL(op_desc);
   if (CheckKernelHcclInfo(op_desc, kernel_hccl_infos) != SUCCESS) {
-    GELOGE(PARAM_INVALID, "[Check][KernelHcclInfo] failed, op:%s(%s).",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][KernelHcclInfo] failed, op:%s(%s).", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
   GELOGI("GetHcclDataType start, node[%s], opType[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
@@ -95,7 +87,7 @@ Status HcomOmeUtil::GetHcclDataType(const ge::ConstOpDescPtr &op_desc,
       const bool ret = ge::AttrUtils::GetDataType(op_desc, HCOM_ATTR_DATA_TYPE, src_data_type);
       if (!ret) {
         REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", HCOM_ATTR_DATA_TYPE.c_str(),
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
         GELOGE(PARAM_INVALID, "[Get][Attr] %s in op:%s(%s) fail", HCOM_ATTR_DATA_TYPE.c_str(),
                op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return PARAM_INVALID;
@@ -109,13 +101,15 @@ Status HcomOmeUtil::GetHcclDataType(const ge::ConstOpDescPtr &op_desc,
     const auto iter = kConstOpHcclDataType.find(static_cast<int64_t>(src_data_type));
     if (iter == kConstOpHcclDataType.end()) {
       REPORT_INNER_ERR_MSG("E19999",
-                         "Attr:%s in op:%s(%s), value data_type:%s, not support in kConstOpHcclDataType now, "
-                         "check invalid",
-                         HCOM_ATTR_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                         ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
-      GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s in op:%s(%s), value data_type:%s, "
-             "not support in kConstOpHcclDataType now", HCOM_ATTR_DATA_TYPE.c_str(), op_desc->GetName().c_str(),
-             op_desc->GetType().c_str(), ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+                           "Attr:%s in op:%s(%s), value data_type:%s, not support in kConstOpHcclDataType now, "
+                           "check invalid",
+                           HCOM_ATTR_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+                           ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+      GELOGE(PARAM_INVALID,
+             "[Check][Param] Attr:%s in op:%s(%s), value data_type:%s, "
+             "not support in kConstOpHcclDataType now",
+             HCOM_ATTR_DATA_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+             ge::TypeUtils::DataTypeToSerialString(src_data_type).c_str());
       return PARAM_INVALID;
     }
 
@@ -132,8 +126,7 @@ Status HcomOmeUtil::GetHcclTypeSize(const HcclDataType data_type, int32_t &size)
   return SUCCESS;
 }
 
-Status HcomOmeUtil::GetAlignedTensorSize(const ge::GeTensorDesc &tensor_desc,
-                                         const int32_t align_size,
+Status HcomOmeUtil::GetAlignedTensorSize(const ge::GeTensorDesc &tensor_desc, const int32_t align_size,
                                          int64_t &output_size) {
   GE_CHK_BOOL_RET_STATUS(align_size > 0, FAILED, "[Check][Param] align size = %d should be greater than 0.",
                          align_size);
@@ -146,10 +139,8 @@ Status HcomOmeUtil::GetAlignedTensorSize(const ge::GeTensorDesc &tensor_desc,
   return SUCCESS;
 }
 
-Status HcomOmeUtil::GetHcomP2pCount(const ge::GeTensorDesc &tensor_desc,
-                                    const HcclDataType data_type,
-                                    const HcomOperationType p2p_type,
-                                    int64_t &count) {
+Status HcomOmeUtil::GetHcomP2pCount(const ge::GeTensorDesc &tensor_desc, const HcclDataType data_type,
+                                    const HcomOperationType p2p_type, int64_t &count) {
   int64_t total_size = 0;
   constexpr int32_t align_size = 512;
   int32_t size = 0;
@@ -185,14 +176,14 @@ Status HcomOmeUtil::GetHcomP2pCount(const ge::GeTensorDesc &tensor_desc,
 
 Status HcomOmeUtil::GetHcomCount(const ge::ConstOpDescPtr &op_desc, const HcclDataType data_type,
                                  const bool is_allgather, int64_t &count) {
-  const auto GetAlignedSize = [](const int64_t input_size)->int64_t {
+  const auto GetAlignedSize = [](const int64_t input_size) -> int64_t {
     constexpr int32_t align_size = 512;
     return (input_size + align_size - 1) / align_size * align_size;
   };
   GE_CHECK_NOTNULL(op_desc);
   if (!IsHCOMOp(op_desc->GetType())) {
     REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) is not hcom op, check invalid", op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str());
+                         op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Op:%s(%s) is not hcom op", op_desc->GetName().c_str(),
            op_desc->GetType().c_str());
     return PARAM_INVALID;
@@ -229,13 +220,14 @@ Status HcomOmeUtil::GetHcomCount(const ge::ConstOpDescPtr &op_desc, const HcclDa
                           shape_size, size, op_desc->GetName().c_str(), op_desc->GetType().c_str());
         block_size = is_continuous_input ? GetAlignedSize(input_size) / rank_size : (shape_size * size) / rank_size;
         GE_CHK_STATUS_RET(ge::CheckInt64AddOverflow(total_size, block_size),
-                          "[Check][Param] Total size:%" PRId64 " is beyond the INT64_MAX, op:%s(%s)",
-                          total_size, op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                          "[Check][Param] Total size:%" PRId64 " is beyond the INT64_MAX, op:%s(%s)", total_size,
+                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
         total_size = total_size + block_size;
         continue;
       }
-      const int64_t shape_size = op_desc->GetInputDescPtr(i)->GetShape().IsScalar() ? 1 :
-          op_desc->GetInputDescPtr(i)->GetShape().GetShapeSize();
+      const int64_t shape_size = op_desc->GetInputDescPtr(i)->GetShape().IsScalar()
+                                     ? 1
+                                     : op_desc->GetInputDescPtr(i)->GetShape().GetShapeSize();
       GE_CHK_STATUS_RET(ge::CheckInt64Int32MulOverflow(shape_size, size),
                         "[Check][Param] Product of shape size:%" PRId64 " and size:%d beyond INT64_MAX, op:%s(%s)",
                         shape_size, size, op_desc->GetName().c_str(), op_desc->GetType().c_str());
@@ -247,13 +239,13 @@ Status HcomOmeUtil::GetHcomCount(const ge::ConstOpDescPtr &op_desc, const HcclDa
         input_size = shape_size * size;
       }
 
-      GELOGD("hcom util node %s inputsize %" PRId64 ", shapesize %" PRId64 ", datasize %d.",
-        op_desc->GetName().c_str(), input_size, shape_size, size);
+      GELOGD("hcom util node %s inputsize %" PRId64 ", shapesize %" PRId64 ", datasize %d.", op_desc->GetName().c_str(),
+             input_size, shape_size, size);
       GE_CHK_STATUS_RET(CheckInt64AddOverflow(input_size, align_size),
                         "[Check][Param] input_size:%" PRId64 " and align_size:%" PRId64 " beyond INT64_MAX after add.",
                         input_size, align_size);
       if (op_desc->GetType() == HCOMALLTOALL) {
-        block_size = shape_size * size ;
+        block_size = shape_size * size;
         GELOGI("[%s] block size = %" PRId64, op_desc->GetName().c_str(), block_size);
       } else if (is_allgather) {
         block_size = is_continuous_input ? GetAlignedSize(input_size) : (shape_size * size);
@@ -280,26 +272,26 @@ Status HcomOmeUtil::GetHorovodCount(const ge::ConstOpDescPtr &op_desc,
                                     std::vector<GETaskKernelHcclInfo> &kernel_hccl_infos) {
   GE_CHECK_NOTNULL(op_desc);
   if (!IsHorovodOp(op_desc->GetType())) {
-    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) is not horovod op, check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Call][IsHorovodOp] failed, Op:%s(%s) is not horovod op",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) is not horovod op, check invalid", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Call][IsHorovodOp] failed, Op:%s(%s) is not horovod op", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
   constexpr int64_t align_size = 512;
   int32_t size = 0;
   if (op_desc->GetInputsSize() > kernel_hccl_infos.size()) {
     REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) input size:%zu bigger than kernel_hccl_infos.size:%zu",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                       op_desc->GetInputsSize(), kernel_hccl_infos.size());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetInputsSize(),
+                         kernel_hccl_infos.size());
     GELOGE(PARAM_INVALID, "[Call][IsHorovodOp] failed, Op:%s(%s) input size:%zu bigger than kernel_hccl_infos.size:%zu",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetInputsSize(), kernel_hccl_infos.size());
     return PARAM_INVALID;
   }
   for (size_t i = 0U; i < op_desc->GetInputsSize(); i++) {
     GE_CHK_STATUS_RET(HcomOmeUtil::GetHcclTypeSize(static_cast<HcclDataType>(kernel_hccl_infos[i].dataType), size),
-                      "[Call][GetHcclTypeSize] fail, op:%s(%s)",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                      "[Call][GetHcclTypeSize] fail, op:%s(%s)", op_desc->GetName().c_str(),
+                      op_desc->GetType().c_str());
     int64_t input_size = 0;
     int64_t block_size = 0;
     GE_CHECK_NOTNULL(op_desc->GetInputDescPtr(static_cast<uint32_t>(i)));
@@ -308,7 +300,8 @@ Status HcomOmeUtil::GetHorovodCount(const ge::ConstOpDescPtr &op_desc,
 
     const int64_t shape_size = op_desc->GetInputDescPtr(static_cast<uint32_t>(i))->GetShape().GetShapeSize();
     GE_CHK_STATUS_RET(ge::CheckInt64Int32MulOverflow(shape_size, size),
-                      "[Check][Param] Product of shape size:%" PRId64 " and size:%d beyond INT64_MAX", shape_size, size);
+                      "[Check][Param] Product of shape size:%" PRId64 " and size:%d beyond INT64_MAX", shape_size,
+                      size);
     if (kernel_hccl_infos[0U].hccl_type == HVDCALLBACKALLGATHER) {
       block_size = shape_size * size;
     } else {
@@ -368,10 +361,9 @@ Status HcomOmeUtil::GetHcclOperationType(const ge::ConstOpDescPtr &op_desc, Hccl
     std::string hcom_op_type;
     GE_CHK_BOOL_EXEC(ge::AttrUtils::GetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, hcom_op_type),
                      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", HCOM_ATTR_REDUCE_TYPE.c_str(),
-                                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                     return PARAM_INVALID,
-                     "[Get][Attr] %s in op:%s(%s) fail", HCOM_ATTR_REDUCE_TYPE.c_str(),
-                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                     return PARAM_INVALID, "[Get][Attr] %s in op:%s(%s) fail", HCOM_ATTR_REDUCE_TYPE.c_str(),
+                            op_desc->GetName().c_str(), op_desc->GetType().c_str());
 
     if (hcom_op_type == "min") {
       op_type = HCCL_REDUCE_MIN;
@@ -382,32 +374,37 @@ Status HcomOmeUtil::GetHcclOperationType(const ge::ConstOpDescPtr &op_desc, Hccl
     } else if (hcom_op_type == "sum") {
       op_type = HCCL_REDUCE_SUM;
     } else {
-      REPORT_INNER_ERR_MSG("E19999", "Attr:%s in Op:%s(%s), hcom_op_type value:%s is not supported now, "
-                         "check invalid", HCOM_ATTR_REDUCE_TYPE.c_str(),
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), hcom_op_type.c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Attr:%s in Op:%s(%s), hcom_op_type value:%s is not supported now, "
+                           "check invalid",
+                           HCOM_ATTR_REDUCE_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+                           hcom_op_type.c_str());
       GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s in Op:%s(%s), hcom_op_type value:%s is not supported now",
-             HCOM_ATTR_REDUCE_TYPE.c_str(), op_desc->GetName().c_str(),
-             op_desc->GetType().c_str(), hcom_op_type.c_str());
+             HCOM_ATTR_REDUCE_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+             hcom_op_type.c_str());
       return PARAM_INVALID;
     }
   }
 
   if (IsHorovodOp(op_desc->GetType())) {
     int64_t horovod_op_type;
-    GE_CHK_BOOL_EXEC(ge::AttrUtils::GetInt(op_desc, ATTR_HOROVOD_ATTR_REDUCE_TYPE, horovod_op_type),
-                     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail",
-                                        ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(),
-                                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                     return PARAM_INVALID,
-                     "[Get][Attr] %s in op:%s(%s) fail", ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(),
-                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GE_CHK_BOOL_EXEC(
+        ge::AttrUtils::GetInt(op_desc, ATTR_HOROVOD_ATTR_REDUCE_TYPE, horovod_op_type),
+        REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(),
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        return PARAM_INVALID, "[Get][Attr] %s in op:%s(%s) fail", ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(),
+               op_desc->GetName().c_str(), op_desc->GetType().c_str());
 
     const auto iter = kHorovodRedOpToHcclRedOp.find(static_cast<HorovodReduceOp>(horovod_op_type));
     if (iter == kHorovodRedOpToHcclRedOp.end()) {
-      REPORT_INNER_ERR_MSG("E19999", "Attr:%s in Op:%s(%s), horovod_op_type value:%" PRId64 " is not supported now, "
-                         "check invalid", ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(),
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), horovod_op_type);
-      GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s in Op:%s(%s), "
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Attr:%s in Op:%s(%s), horovod_op_type value:%" PRId64
+                           " is not supported now, "
+                           "check invalid",
+                           ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(), op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str(), horovod_op_type);
+      GELOGE(PARAM_INVALID,
+             "[Check][Param] Attr:%s in Op:%s(%s), "
              "horovod_op_type value:%" PRId64 " is not supported now",
              ATTR_HOROVOD_ATTR_REDUCE_TYPE.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
              horovod_op_type);
@@ -422,12 +419,10 @@ Status HcomOmeUtil::GetHcclOperationType(const ge::ConstOpDescPtr &op_desc, Hccl
 Status HcomOmeUtil::GetHcclRootId(const ge::ConstOpDescPtr &op_desc, int64_t &root_id) {
   GE_CHECK_NOTNULL(op_desc);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::GetInt(op_desc, HCOM_ATTR_ROOT_RANK, root_id),
-                   REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail",
-                                      HCOM_ATTR_ROOT_RANK.c_str(),
-                                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                   return PARAM_INVALID,
-                   "[Get][Attr] %s in op:%s(%s) fail", HCOM_ATTR_ROOT_RANK.c_str(),
-                   op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", HCOM_ATTR_ROOT_RANK.c_str(),
+                                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                   return PARAM_INVALID, "[Get][Attr] %s in op:%s(%s) fail", HCOM_ATTR_ROOT_RANK.c_str(),
+                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
 
   return SUCCESS;
 }
@@ -456,8 +451,8 @@ bool HcomOmeUtil::IsHCOMOp(const std::string &op_type) {
   return (op_type == HCOMALLREDUCE) || (op_type == HCOMALLGATHER) || (op_type == HCOMBROADCAST) ||
          (op_type == HCOMSEND) || (op_type == HCOMRECEIVE) || (op_type == HCOMREDUCESCATTER) ||
          (op_type == HCOMREDUCE) || (op_type == HCOMALLTOALLV) || (op_type == HCOMALLTOALLVC) ||
-         (op_type == HCOMALLTOALL) || (op_type == HCOMGATHER) ||
-         (op_type == HCOMALLGATHERV) || (op_type == HCOMREDUCESCATTERV);
+         (op_type == HCOMALLTOALL) || (op_type == HCOMGATHER) || (op_type == HCOMALLGATHERV) ||
+         (op_type == HCOMREDUCESCATTERV);
 }
 
 bool HcomOmeUtil::IsHorovodOp(const std::string &op_type) {
@@ -466,57 +461,56 @@ bool HcomOmeUtil::IsHorovodOp(const std::string &op_type) {
 }
 
 bool HcomOmeUtil::IsCollectiveCommOp(const std::string &op_type) {
-  static const std::set<std::string> kCollectiveCommOps = {
-      HCOMALLREDUCE,
-      HCOMALLGATHER,
-      HCOMALLGATHERV,
-      HCOMBROADCAST,
-      HCOMREDUCESCATTER,
-      HCOMREDUCESCATTERV,
-      HCOMREDUCE,
-      HCOMALLTOALL,
-      HCOMALLTOALLV,
-      HCOMALLTOALLVC,
-      HCOMGATHERALLTOALLV,
-      HCOMGATHER,
-      HVDCALLBACKALLREDUCE,
-      HVDCALLBACKALLGATHER,
-      HVDCALLBACKBROADCAST,
-      "MatMulAllReduce",
-      "GroupedMatMulAllReduce",
-      "MatMulAllReduceAddRmsNorm",
-      "AllGatherMatmul",
-      "AllGatherMatmulV2",
-      "AlltoAllAllGatherBatchMatMul",
-      "AlltoAllMatmul",
-      "AlltoAllvGroupedMatMul",
-      "AlltoAllvQuantGroupedMatMul",
-      "AttentionToFFN",
-      "BatchMatMulReduceScatterAlltoAll",
-      "DistributeBarrier",
-      "FFNToAttention",
-      "GroupedMatMulAllReduce",
-      "GroupedMatMulAlltoAllv",
-      "InplaceMatmulAllReduceAddRmsNorm",
-      "MatmulAllReduce",
-      "MatmulAllReduceAddRmsNorm",
-      "MatmulAlltoAll",
-      "MatmulReduceScatter",
-      "MatmulReduceScatterV2",
-      "MoeDistributeCombine",
-      "MoeDistributeCombineAddRmsNorm",
-      "MoeDistributeCombineSetup",
-      "MoeDistributeCombineTeardown",
-      "MoeDistributeCombineV2",
-      "MoeDistributeCombineV3",
-      "MoeDistributeDispatch",
-      "MoeDistributeDispatchSetup",
-      "MoeDistributeDispatchTeardown",
-      "MoeDistributeDispatchV2",
-      "MoeDistributeDispatchV3",
-      "QuantAllReduce",
-      "QuantGroupedMatMulAlltoAllv",
-      "QuantReduceScatter"};
+  static const std::set<std::string> kCollectiveCommOps = {HCOMALLREDUCE,
+                                                           HCOMALLGATHER,
+                                                           HCOMALLGATHERV,
+                                                           HCOMBROADCAST,
+                                                           HCOMREDUCESCATTER,
+                                                           HCOMREDUCESCATTERV,
+                                                           HCOMREDUCE,
+                                                           HCOMALLTOALL,
+                                                           HCOMALLTOALLV,
+                                                           HCOMALLTOALLVC,
+                                                           HCOMGATHERALLTOALLV,
+                                                           HCOMGATHER,
+                                                           HVDCALLBACKALLREDUCE,
+                                                           HVDCALLBACKALLGATHER,
+                                                           HVDCALLBACKBROADCAST,
+                                                           "MatMulAllReduce",
+                                                           "GroupedMatMulAllReduce",
+                                                           "MatMulAllReduceAddRmsNorm",
+                                                           "AllGatherMatmul",
+                                                           "AllGatherMatmulV2",
+                                                           "AlltoAllAllGatherBatchMatMul",
+                                                           "AlltoAllMatmul",
+                                                           "AlltoAllvGroupedMatMul",
+                                                           "AlltoAllvQuantGroupedMatMul",
+                                                           "AttentionToFFN",
+                                                           "BatchMatMulReduceScatterAlltoAll",
+                                                           "DistributeBarrier",
+                                                           "FFNToAttention",
+                                                           "GroupedMatMulAllReduce",
+                                                           "GroupedMatMulAlltoAllv",
+                                                           "InplaceMatmulAllReduceAddRmsNorm",
+                                                           "MatmulAllReduce",
+                                                           "MatmulAllReduceAddRmsNorm",
+                                                           "MatmulAlltoAll",
+                                                           "MatmulReduceScatter",
+                                                           "MatmulReduceScatterV2",
+                                                           "MoeDistributeCombine",
+                                                           "MoeDistributeCombineAddRmsNorm",
+                                                           "MoeDistributeCombineSetup",
+                                                           "MoeDistributeCombineTeardown",
+                                                           "MoeDistributeCombineV2",
+                                                           "MoeDistributeCombineV3",
+                                                           "MoeDistributeDispatch",
+                                                           "MoeDistributeDispatchSetup",
+                                                           "MoeDistributeDispatchTeardown",
+                                                           "MoeDistributeDispatchV2",
+                                                           "MoeDistributeDispatchV3",
+                                                           "QuantAllReduce",
+                                                           "QuantGroupedMatMulAlltoAllv",
+                                                           "QuantReduceScatter"};
   return kCollectiveCommOps.find(op_type) != kCollectiveCommOps.end();
 }
 
@@ -524,9 +518,10 @@ Status HcomOmeUtil::CheckKernelHcclInfo(const ge::ConstOpDescPtr &op_desc,
                                         const std::vector<GETaskKernelHcclInfo> &kernel_hccl_infos) {
   GE_CHECK_NOTNULL(op_desc);
   if (IsHCOMOp(op_desc->GetType()) && (kernel_hccl_infos.size() != 1U)) {
-    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) is not hcom op or param kernel_hccl_infos.size:%zu != 1, "
-                       "check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(), kernel_hccl_infos.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Op:%s(%s) is not hcom op or param kernel_hccl_infos.size:%zu != 1, "
+                         "check invalid",
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), kernel_hccl_infos.size());
     GELOGE(PARAM_INVALID, "[Check][Param] Op:%s(%s) is not hcom op or param kernel_hccl_infos.size:%zu != 1",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), kernel_hccl_infos.size());
     return PARAM_INVALID;
@@ -537,13 +532,16 @@ Status HcomOmeUtil::CheckKernelHcclInfo(const ge::ConstOpDescPtr &op_desc,
       return SUCCESS;
     }
     if (kernel_hccl_infos.empty() || (op_desc->GetInputsSize() != kernel_hccl_infos.size())) {
-      REPORT_INNER_ERR_MSG("E19999", "Param kernel_hccl_infos.size:%zu is empty or not equal to input_desc size:%zu "
-                         "in op:%s(%s), check invalid",
-                         kernel_hccl_infos.size(), op_desc->GetInputsSize(),
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(PARAM_INVALID, "Param kernel_hccl_infos.size:%zu is empty or not equal to "
-             "input_desc size:%zu in op:%s(%s)", kernel_hccl_infos.size(), op_desc->GetInputsSize(),
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Param kernel_hccl_infos.size:%zu is empty or not equal to input_desc size:%zu "
+                           "in op:%s(%s), check invalid",
+                           kernel_hccl_infos.size(), op_desc->GetInputsSize(), op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
+      GELOGE(PARAM_INVALID,
+             "Param kernel_hccl_infos.size:%zu is empty or not equal to "
+             "input_desc size:%zu in op:%s(%s)",
+             kernel_hccl_infos.size(), op_desc->GetInputsSize(), op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       return PARAM_INVALID;
     }
   }

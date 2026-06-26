@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ class StreamExecutorUT : public testing::Test {
 
   void TearDown() override {
     unsetenv("ASCEND_OPP_PATH");
-   }
+  }
 };
 
 TEST_F(StreamExecutorUT, GetOrCreateLoaded_ReturnSameExecutor_WhenStreamTheSame) {
@@ -131,13 +131,13 @@ TEST_F(StreamExecutorUT, TestLoadStreamExecutorFromModelData) {
 
   SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
   ge::graphStatus error_code = ge::GRAPH_FAILED;
   gert::LoweringOption option;
-  auto stream_executor = LoadStreamExecutorFromModelData(model_data_holder.Get(), option,error_code);
+  auto stream_executor = LoadStreamExecutorFromModelData(model_data_holder.Get(), option, error_code);
   ASSERT_NE(stream_executor, nullptr);
   ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 }

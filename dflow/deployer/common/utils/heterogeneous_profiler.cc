@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,11 +17,12 @@ namespace ge {
 namespace {
 const size_t kStartimestampIndex = 0UL;
 const size_t kEndTimestampIndex = 1UL;
-const std::map<ge::ProfilerEvent, std::string> kEvnetTypeToStr = {{ProfilerEvent::kMbufAlloc, "[AllocMbuff]"},
-  {ProfilerEvent::kMemCopyToMbuf, "[MemoryCopyToMbuf]"}, {ProfilerEvent::kMbufEnqueue, "[MbufEnqueue]"},
-  {ProfilerEvent::kMbufDequeue, "[MbufDequeue]"}, {ProfilerEvent::kMbufCopyToMem, "[MbufCopyToMemory]"},
-  {ProfilerEvent::kPrepareInputs, "[PrepareInputs]"}, {ProfilerEvent::kPrepareOutputs, "[PrepareOutputs]"},
-  {ProfilerEvent::kDynamicExecute, "[DynamicExec]"}, {ProfilerEvent::kUpdateOutputs, "[UpdateOutputs]"}};
+const std::map<ge::ProfilerEvent, std::string> kEvnetTypeToStr = {
+    {ProfilerEvent::kMbufAlloc, "[AllocMbuff]"},           {ProfilerEvent::kMemCopyToMbuf, "[MemoryCopyToMbuf]"},
+    {ProfilerEvent::kMbufEnqueue, "[MbufEnqueue]"},        {ProfilerEvent::kMbufDequeue, "[MbufDequeue]"},
+    {ProfilerEvent::kMbufCopyToMem, "[MbufCopyToMemory]"}, {ProfilerEvent::kPrepareInputs, "[PrepareInputs]"},
+    {ProfilerEvent::kPrepareOutputs, "[PrepareOutputs]"},  {ProfilerEvent::kDynamicExecute, "[DynamicExec]"},
+    {ProfilerEvent::kUpdateOutputs, "[UpdateOutputs]"}};
 int64_t GetThread() {
   thread_local static int64_t tid = static_cast<int64_t>(mmGetTid());
   return tid;
@@ -30,15 +31,14 @@ int64_t GetThread() {
 bool CheckDetailRecordInvalid(const std::map<uint32_t, std::vector<uint64_t>> &check_data, const size_t expect_size) {
   for (const auto &data : check_data) {
     if (data.second.size() != expect_size) {
-      GEEVENT("Current senario not support calculate total duration");
+      GEEVENT("Current scenario not support calculate total duration");
       return false;
     }
   }
   return true;
 }
 
-uint64_t GetMinMaxStartTimestampByIndex(const std::map<uint32_t, std::vector<uint64_t>> &input_data,
-                                        const size_t index,
+uint64_t GetMinMaxStartTimestampByIndex(const std::map<uint32_t, std::vector<uint64_t>> &input_data, const size_t index,
                                         const bool min_value) {
   uint64_t result = min_value ? std::numeric_limits<uint64_t>::max() : 0UL;
   for (const auto &data : input_data) {
@@ -53,7 +53,7 @@ uint64_t GetMinMaxStartTimestampByIndex(const std::map<uint32_t, std::vector<uin
   }
   return result;
 }
-}
+}  // namespace
 
 HeterogeneousProfiler &HeterogeneousProfiler::Instance() {
   static HeterogeneousProfiler heterogeneous_profiler;
@@ -76,10 +76,8 @@ void HeterogeneousProfiler::RecordHeterogeneousProfilerEvent(const ProfilerType 
   if (!enable_flag_) {
     return;
   }
-  const HeterogeneousProfilerRecordKey record_key = {.thread_id = GetThread(),
-                                              .device_id = device_id,
-                                              .queue_id = queue_id,
-                                              .profiler_event = event_type};
+  const HeterogeneousProfilerRecordKey record_key = {
+      .thread_id = GetThread(), .device_id = device_id, .queue_id = queue_id, .profiler_event = event_type};
   const std::lock_guard<std::mutex> lock(mutex_);
   const uint64_t current_timestamp = ge::GetCurrentTimestamp();
 
@@ -103,8 +101,8 @@ void HeterogeneousProfiler::RecordHeterogeneousProfilerEvent(const ProfilerType 
   } else if (type == ProfilerType::kEndPoint) {
     const auto iterator_iter = queueId_and_event_to_iter_.find(record_key);
     if (iterator_iter == queueId_and_event_to_iter_.cend()) {
-      GELOGW("QueueId:%u event:%d get end profiler before start profiler is illegal,",
-             queue_id, static_cast<int32_t>(event_type));
+      GELOGW("QueueId:%u event:%d get end profiler before start profiler is illegal,", queue_id,
+             static_cast<int32_t>(event_type));
       return;
     }
     const uint64_t current_iterator = iterator_iter->second;
@@ -116,7 +114,7 @@ void HeterogeneousProfiler::RecordHeterogeneousProfilerEvent(const ProfilerType 
     // increase iterator id when get end
     ++queueId_and_event_to_iter_[record_key];
   } else {
-    GELOGW("Invaid profiler type:%d from queue_id:%u", static_cast<int32_t>(type), queue_id);
+    GELOGW("Invalid profiler type:%d from queue_id:%u", static_cast<int32_t>(type), queue_id);
   }
 }
 
@@ -134,20 +132,19 @@ void HeterogeneousProfiler::ProcessDetailTimeStamp() {
   for (size_t i = 0UL; i < exp_iter_num; ++i) {
     uint64_t input_start_timestamp = GetMinMaxStartTimestampByIndex(mbuf_alloc_start_total_record_, i, true);
     uint64_t input_end_timestamp = GetMinMaxStartTimestampByIndex(enqueue_end_total_record_, i, false);
-    if ((input_start_timestamp != std::numeric_limits<uint64_t>::max()) &&
-        (input_end_timestamp != 0UL)&& (input_start_timestamp <= input_end_timestamp)) {
-      GEEVENT("[HeterogeneousProfiler] [Iterator]:%zu [Input prepare duration]:%lu",
-              i, (input_end_timestamp - input_start_timestamp));
+    if ((input_start_timestamp != std::numeric_limits<uint64_t>::max()) && (input_end_timestamp != 0UL) &&
+        (input_start_timestamp <= input_end_timestamp)) {
+      GEEVENT("[HeterogeneousProfiler] [Iterator]:%zu [Input prepare duration]:%lu", i,
+              (input_end_timestamp - input_start_timestamp));
     } else {
-      GEEVENT("[HeterogeneousProfiler] [Iterator]:%zu Invalid timestamp: input start:%lu end:%lu",
-              i, input_start_timestamp, input_end_timestamp);
+      GEEVENT("[HeterogeneousProfiler] [Iterator]:%zu Invalid timestamp: input start:%lu end:%lu", i,
+              input_start_timestamp, input_end_timestamp);
     }
   }
 }
 
 void HeterogeneousProfiler::PrintAvgHeterogeneousProfilerData(const HeterogeneousProfilerRecordKey &key,
-                                                              const uint64_t &totalDuration,
-                                                              const uint32_t &recordNum,
+                                                              const uint64_t &totalDuration, const uint32_t &recordNum,
                                                               const uint32_t &maxDuration) const {
   std::stringstream ss;
   ss << "[Record thread id]:" << key.thread_id << ", ";
@@ -196,8 +193,8 @@ void HeterogeneousProfiler::PrintHeterogeneousProfilerData() {
           maxDuration = duration > maxDuration ? duration : maxDuration;
           ss << "[Duration]:" << duration << "us";
         } else {
-          ss << "[Invalid start timestamp]:" << record.second[kStartimestampIndex] <<
-                ", [Invalid end timestamp]:" << record.second[kEndTimestampIndex];
+          ss << "[Invalid start timestamp]:" << record.second[kStartimestampIndex]
+             << ", [Invalid end timestamp]:" << record.second[kEndTimestampIndex];
         }
       }
       GEEVENT("[HeterogeneousProfiler] %s", ss.str().c_str());

@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -17,13 +17,11 @@ AttrValue 功能测试 - 使用 pytest 框架
 """
 
 import pytest
-import sys
-import os
 
 # 添加 ge 到 Python 路径
 try:
-    from ge.graph._attr import _AttrValue as AttrValue
     from ge.graph import Tensor
+    from ge.graph._attr import _AttrValue as AttrValue
     from ge.graph.types import AttrValueType, DataType
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
@@ -41,9 +39,9 @@ class TestAttrValue:
         """测试 AttrValue 创建"""
         av = AttrValue()
         assert av is not None
-        assert hasattr(av, '_av_ptr')
-        assert hasattr(av, '_value_type')
-        assert hasattr(av, '_cached_value')
+        assert hasattr(av, "_av_ptr")
+        assert hasattr(av, "_value_type")
+        assert hasattr(av, "_cached_value")
 
     def test_string_operations(self, attr_value):
         """测试字符串操作"""
@@ -139,7 +137,12 @@ class TestAttrValue:
         assert attr_value.get_data_type() == test_data_type
 
         # 测试数据类型列表
-        test_data_type_list = [DataType.DT_FLOAT, DataType.DT_INT32, DataType.DT_BOOL, DataType.DT_STRING]
+        test_data_type_list = [
+            DataType.DT_FLOAT,
+            DataType.DT_INT32,
+            DataType.DT_BOOL,
+            DataType.DT_STRING,
+        ]
         attr_value.set_list_data_type(test_data_type_list)
         assert attr_value.get_list_data_type() == test_data_type_list
 
@@ -257,12 +260,12 @@ class TestAttrValue:
     def test_edge_cases(self, attr_value):
         """测试边界情况"""
         # 测试极大整数
-        large_int = 2 ** 63 - 1
+        large_int = 2**63 - 1
         attr_value.set_int(large_int)
         assert attr_value.get_int() == large_int
 
         # 测试极小整数
-        small_int = -2 ** 63
+        small_int = -(2**63)
         attr_value.set_int(small_int)
         assert attr_value.get_int() == small_int
 
@@ -285,34 +288,36 @@ class TestAttrValueParametrized:
     def attr_value(self):
         return AttrValue()
 
-    @pytest.mark.parametrize("test_string", [
-        "simple",
-        "with spaces",
-        "with\nnewlines",
-        "with\ttabs",
-        "with special chars: !@#$%^&*()",
-        "中文测试",
-        "",  # 空字符串
-    ])
+    @pytest.mark.parametrize(
+        "test_string",
+        [
+            "simple",
+            "with spaces",
+            "with\nnewlines",
+            "with\ttabs",
+            "with special chars: !@#$%^&*()",
+            "中文测试",
+            "",  # 空字符串
+        ],
+    )
     def test_string_values(self, attr_value, test_string):
         """参数化测试各种字符串值"""
         attr_value.set_string(test_string)
         assert attr_value.get_string() == test_string
 
-    @pytest.mark.parametrize("test_int", [
-        0, 1, -1, 42, -100, 2 ** 31 - 1, -2 ** 31, 2 ** 63 - 1, -2 ** 63
-    ])
+    @pytest.mark.parametrize("test_int", [0, 1, -1, 42, -100, 2**31 - 1, -(2**31), 2**63 - 1, -(2**63)])
     def test_int_values(self, attr_value, test_int):
         """参数化测试各种整数值"""
         attr_value.set_int(test_int)
         assert attr_value.get_int() == test_int
 
-    @pytest.mark.parametrize("test_float", [
-        0.0, 1.0, -1.0, 3.14159, -2.71828, 1e10, 1e-10, float('inf'), -float('inf')
-    ])
+    @pytest.mark.parametrize(
+        "test_float",
+        [0.0, 1.0, -1.0, 3.14159, -2.71828, 1e10, 1e-10, float("inf"), -float("inf")],
+    )
     def test_float_values(self, attr_value, test_float):
         """参数化测试各种浮点数值"""
-        if not (test_float == float('inf') or test_float == -float('inf')):
+        if not (test_float == float("inf") or test_float == -float("inf")):
             attr_value.set_float(test_float)
             assert abs(attr_value.get_float() - test_float) < 1e-6
 
@@ -322,13 +327,16 @@ class TestAttrValueParametrized:
         attr_value.set_bool(test_bool)
         assert attr_value.get_bool() == test_bool
 
-    @pytest.mark.parametrize("test_list", [
-        [1, 2, 3],
-        [1.1, 2.2, 3.3],
-        [True, False, True],
-        ["a", "b", "c"],
-        [1],  # 单元素列表
-    ])
+    @pytest.mark.parametrize(
+        "test_list",
+        [
+            [1, 2, 3],
+            [1.1, 2.2, 3.3],
+            [True, False, True],
+            ["a", "b", "c"],
+            [1],  # 单元素列表
+        ],
+    )
     def test_list_values(self, attr_value, test_list):
         """参数化测试各种列表值"""
         if test_list and isinstance(test_list[0], int):

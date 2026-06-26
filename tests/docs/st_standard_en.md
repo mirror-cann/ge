@@ -16,11 +16,11 @@ Split files and name them at the feature granularity level
 
 Test case names need to clearly indicate the testing point
 
-    OK:    TEST_F(ConstantFoldingTest, test_flattenv2_folding_success) 
+    OK:    TEST_F(ConstantFoldingTest, test_flattenv2_folding_success)
 
         This indicates that this test case tests the normal scenario of flattenv2's constant folding functionality
 
-    **NOK:  TEST_F(FftsPlusTest, ffts_plus_graph)** 
+    **NOK:  TEST_F(FftsPlusTest, ffts_plus_graph)**
 
         It's unclear what functionality is being tested.
 

@@ -71,4 +71,3 @@ int32_t GetDynamicInputNum(const char_t *name) const
 ## 约束说明<a name="section25339754"></a>
 
 无。
-

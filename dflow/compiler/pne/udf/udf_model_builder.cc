@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,7 +71,7 @@ Status UdfModelBuilder::Build(UdfModel &udf_model) const {
   (void)AttrUtils::GetBool(graph, kAttrNameDataFlowHeavyLoad, is_heavy_load);
   GELOGD("model[%s] attr[%s]=%d.", graph->GetName().c_str(), kAttrNameDataFlowHeavyLoad,
          static_cast<int32_t>(is_heavy_load));
-  auto buffer_configs =graph->TryGetExtAttr<std::vector<CompileConfigJson::BufCfg>>(kBufferConfig, {});
+  auto buffer_configs = graph->TryGetExtAttr<std::vector<CompileConfigJson::BufCfg>>(kBufferConfig, {});
   for (const NodePtr &node : graph->GetDirectNode()) {
     GE_CHECK_NOTNULL(node);
     OpDescPtr op_desc = node->GetOpDesc();
@@ -121,20 +121,20 @@ Status UdfModelBuilder::BuildFlowFuncOp(const OpDescPtr &op_desc, const bool is_
     cfg_proto->set_blk_size(cfg.blk_size);
     cfg_proto->set_max_buf_size(cfg.max_buf_size);
     cfg_proto->set_page_type(cfg.page_type);
-    GELOGI("Set user buffer config for UdfDef from op[%s].{ total_size:%u, blk_size:%u, max_buf_size:%u, page_type:%s }",
+    GELOGI(
+        "Set user buffer config for UdfDef from op[%s].{ total_size:%u, blk_size:%u, max_buf_size:%u, page_type:%s }",
         op_desc->GetName().c_str(), cfg.total_size, cfg.blk_size, cfg.max_buf_size, cfg.page_type.c_str());
   }
-  GE_CHK_STATUS_RET(BuildUdfDef(op_desc, *udf_def), "Failed to build UdfDef from op[%s].",
-                    op_desc->GetName().c_str());
+  GE_CHK_STATUS_RET(BuildUdfDef(op_desc, *udf_def), "Failed to build UdfDef from op[%s].", op_desc->GetName().c_str());
   if (op_desc->HasAttr(dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS)) {
     std::vector<std::string> invoke_keys;
-    GE_CHK_BOOL_RET_STATUS(AttrUtils::GetListStr(op_desc, dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS, invoke_keys),
-                           FAILED, "Failed to get attr[%s] from op[%s].", dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS,
+    GE_CHK_BOOL_RET_STATUS(AttrUtils::GetListStr(op_desc, dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS, invoke_keys), FAILED,
+                           "Failed to get attr[%s] from op[%s].", dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS,
                            op_desc->GetName().c_str());
     GE_CHK_BOOL_RET_STATUS(AttrUtils::SetListStr(graph, dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS, invoke_keys), FAILED,
                            "Failed to set attr[%s] to graph[%s].", dflow::ATTR_NAME_FLOW_FUNC_INVOKE_KEYS,
                            graph->GetName().c_str());
-    }
+  }
   GE_CHK_STATUS_RET(GenReleasePackage(udf_model, op_desc, resource_type, graph), "Set release lib to udf failed.");
   return SUCCESS;
 }
@@ -155,21 +155,27 @@ Status UdfModelBuilder::SetDeployResource(const OpDescPtr &op_desc, UdfModel &ud
 
 Status UdfModelBuilder::BuildUdfDef(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const {
   udf_def.set_name(op_desc->GetName());
-  GE_CHK_STATUS_RET(SetFuncNameAndInputOutputMaps(op_desc, udf_def), "Failed to set func_name and inputs/outputs map "
-      "for UdfDef from op[%s].", op_desc->GetName().c_str());
+  GE_CHK_STATUS_RET(SetFuncNameAndInputOutputMaps(op_desc, udf_def),
+                    "Failed to set func_name and inputs/outputs map "
+                    "for UdfDef from op[%s].",
+                    op_desc->GetName().c_str());
   std::string release_pkg_path;
   if (AttrUtils::GetStr(op_desc, kUdfAttrNameReleaseLib, release_pkg_path)) {
     if (release_pkg_path.empty()) {
       const auto &func_inputs_map = udf_def.func_inputs_map();
       if (func_inputs_map.empty()) {
         const auto &func_name = udf_def.func_name();
-        GE_CHK_BOOL_RET_STATUS(func_name.find("_BuiltIn_") == 0, FAILED, "func[%s] release pkg path is empty, "
-            "but not built in func, op[%s].", func_name.c_str(), op_desc->GetName().c_str());
+        GE_CHK_BOOL_RET_STATUS(func_name.find("_BuiltIn_") == 0, FAILED,
+                               "func[%s] release pkg path is empty, "
+                               "but not built in func, op[%s].",
+                               func_name.c_str(), op_desc->GetName().c_str());
       } else {
         for (const auto &func_input_map : func_inputs_map) {
           const auto &func_name = func_input_map.first;
-          GE_CHK_BOOL_RET_STATUS(func_name.find("_BuiltIn_") == 0, FAILED, "func[%s] release pkg path is empty, "
-              "but not built in func, op[%s].", func_name.c_str(), op_desc->GetName().c_str());
+          GE_CHK_BOOL_RET_STATUS(func_name.find("_BuiltIn_") == 0, FAILED,
+                                 "func[%s] release pkg path is empty, "
+                                 "but not built in func, op[%s].",
+                                 func_name.c_str(), op_desc->GetName().c_str());
         }
       }
       udf_def.set_bin_name(kUdfBuildInBinName);
@@ -303,14 +309,15 @@ Status UdfModelBuilder::SetFuncNameAndInputOutputMaps(const OpDescPtr &op_desc, 
 }
 
 Status UdfModelBuilder::GetAndCheckAttrs(const OpDescPtr &op_desc, const ComputeGraphPtr &graph,
-    std::string &release_pkg_path, std::string &cache_release_info, std::string &om_model_file) const {
+                                         std::string &release_pkg_path, std::string &cache_release_info,
+                                         std::string &om_model_file) const {
   (void)AttrUtils::GetStr(op_desc, kUdfAttrNameReleaseLib, release_pkg_path);
   GE_CHK_BOOL_RET_STATUS(!release_pkg_path.empty(), PARAM_INVALID,
                          "release pkg path cannot be empty in user define udf.");
   std::regex dir_pattern(R"([A-Za-z0-9./+\-_]+)");
   std::smatch match_result;
   GE_CHK_BOOL_RET_STATUS(std::regex_match(release_pkg_path, match_result, dir_pattern), PARAM_INVALID,
-                          "Invalid release path: %s", release_pkg_path.c_str());
+                         "Invalid release path: %s", release_pkg_path.c_str());
   GE_CHECK_NOTNULL(graph);
   cache_release_info = graph->TryGetExtAttr<std::string>("_cache_graph_info_for_data_flow_cache", "");
   om_model_file = graph->TryGetExtAttr<std::string>("_cache_graph_udf_om_file", "");
@@ -322,12 +329,13 @@ Status UdfModelBuilder::GetAndCheckAttrs(const OpDescPtr &op_desc, const Compute
 }
 
 Status UdfModelBuilder::GenReleasePackageForUserDefineFunc(UdfModel &udf_model, const OpDescPtr &op_desc,
-    const std::string &resource_type, const ComputeGraphPtr &graph) const {
+                                                           const std::string &resource_type,
+                                                           const ComputeGraphPtr &graph) const {
   std::string release_pkg_path;
   std::string cache_release_info;
   std::string om_model_file;
   GE_CHK_STATUS_RET(GetAndCheckAttrs(op_desc, graph, release_pkg_path, cache_release_info, om_model_file),
-      "Check and get op/graph attrs failed.");
+                    "Check and get op/graph attrs failed.");
   bool skip_check = false;
   skip_check = graph->TryGetExtAttr<bool>("_cache_skip_release_info_check", false);
   if (skip_check) {
@@ -337,8 +345,7 @@ Status UdfModelBuilder::GenReleasePackageForUserDefineFunc(UdfModel &udf_model, 
   int32_t fd = mmOpen(compile_lock.c_str(), M_WRONLY);
   if (fd == -1) {
     const int32_t error_code = mmGetErrorCode();
-    GELOGE(FAILED, "Failed to open file[%s], error msg[%s].", compile_lock.c_str(),
-           GetErrorNumStr(error_code).c_str());
+    GELOGE(FAILED, "Failed to open file[%s], error msg[%s].", compile_lock.c_str(), GetErrorNumStr(error_code).c_str());
     return FAILED;
   }
   {
@@ -369,20 +376,19 @@ Status UdfModelBuilder::GenReleasePackageForUserDefineFunc(UdfModel &udf_model, 
                         op_desc->GetName().c_str(), release_pkg_path.c_str());
       GE_CHK_STATUS_RET(PackRelease(release_pkg_path, resource_type, normalize_name),
                         "Failed to pack release pkg for op[%s], release_pkg_path=%s", op_desc->GetName().c_str(),
-                          release_pkg_path.c_str());
+                        release_pkg_path.c_str());
       GE_CHK_STATUS_RET(GetReleaseInfo(release_pkg_path, release_info), "Failed to get path[%s] info.",
                         release_pkg_path.c_str());
       GE_CHK_BOOL_RET_STATUS(graph->SetExtAttr("_graph_info_for_data_flow_cache", release_info), FAILED,
-                              "Failed to set graph info, graph[%s].", graph->GetName().c_str());
+                             "Failed to set graph info, graph[%s].", graph->GetName().c_str());
       const std::string real_pkg_path = RealPath(release_pkg_path.c_str());
       GE_ASSERT_TRUE(!real_pkg_path.empty(), "Real path cannot be empty.");
       udf_model.SetSavedModelPath(real_pkg_path + "/" + normalize_name + ".tar.gz");
       udf_model.SetNormalizedModelName(normalize_name);
-      GE_CHK_BOOL_RET_STATUS(graph->SetExtAttr("_udf_om_file_for_data_flow_cache",
-          graph->GetName() + "/" + normalize_name + ".om"), FAILED, "Failed to set cache graph info for graph[%s].",
-          graph->GetName().c_str());
-      GELOGI("Set release lib[%s] to UdfModel from op[%s] success.", real_pkg_path.c_str(),
-           op_desc->GetName().c_str());
+      GE_CHK_BOOL_RET_STATUS(
+          graph->SetExtAttr("_udf_om_file_for_data_flow_cache", graph->GetName() + "/" + normalize_name + ".om"),
+          FAILED, "Failed to set cache graph info for graph[%s].", graph->GetName().c_str());
+      GELOGI("Set release lib[%s] to UdfModel from op[%s] success.", real_pkg_path.c_str(), op_desc->GetName().c_str());
     } else {
       GE_CHK_STATUS_RET(ProcessForCache(udf_model, om_model_file), "Process for udf cache failed.");
     }
@@ -395,13 +401,13 @@ Status UdfModelBuilder::ProcessForCache(UdfModel &udf_model, const std::string &
   std::string normalize_model_name = GetUdfModelNameByFileName(om_model_file);
   GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name failed by path[%s].", om_model_file.c_str());
   udf_model.SetNormalizedModelName(normalize_model_name);
-  GELOGI("Set cache file path [%s] and normalized name [%s] to UdfModel success.",
-    om_model_file.c_str(), normalize_model_name.c_str());
+  GELOGI("Set cache file path [%s] and normalized name [%s] to UdfModel success.", om_model_file.c_str(),
+         normalize_model_name.c_str());
   return SUCCESS;
 }
 
 Status UdfModelBuilder::GenReleasePackage(UdfModel &udf_model, const OpDescPtr &op_desc,
-    const std::string &resource_type, const ComputeGraphPtr &graph) const {
+                                          const std::string &resource_type, const ComputeGraphPtr &graph) const {
   udf::UdfModelDef &udf_model_def = udf_model.MutableUdfModelDef();
   const auto udf_def_size = udf_model_def.udf_def_size();
   GE_ASSERT_TRUE(udf_def_size == 1, "udf def size should be 1");
@@ -425,10 +431,11 @@ Status UdfModelBuilder::SaveModelToFile(UdfModel &udf_model, const std::string &
                     udf_model.GetModelName().c_str());
   std::string om_data_file_name = release_pkg_path + "/" + normalize_name + ".om";
   uint32_t data_len = static_cast<uint32_t>(serialize_buff.length);
-  GE_CHK_GRAPH_STATUS_RET(WriteBinToFile(om_data_file_name, reinterpret_cast<char_t *>(serialize_buff.data.get()),
-      data_len), "Wrtie data to file[%s] failed.", om_data_file_name.c_str());
-  GELOGI("Save udf model %s to file %s success. size is %u.",
-          udf_model.GetModelName().c_str(), om_data_file_name.c_str(), data_len);
+  GE_CHK_GRAPH_STATUS_RET(
+      WriteBinToFile(om_data_file_name, reinterpret_cast<char_t *>(serialize_buff.data.get()), data_len),
+      "Write data to file[%s] failed.", om_data_file_name.c_str());
+  GELOGI("Save udf model %s to file %s success. size is %u.", udf_model.GetModelName().c_str(),
+         om_data_file_name.c_str(), data_len);
   return SUCCESS;
 }
 
@@ -436,7 +443,7 @@ Status UdfModelBuilder::SetAttr(const std::string &attr_name, const AnyValue &va
   AnyValue::ValueType value_type = value.GetValueType();
   const auto iter = UdfAttrUtils::set_attr_funcs_.find(value_type);
   if (iter == UdfAttrUtils::set_attr_funcs_.cend()) {
-    GELOGW("Set attr[%s] failed, unsupport value type %d.", attr_name.c_str(), value_type);
+    GELOGW("Set attr[%s] failed, unsupported value type %d.", attr_name.c_str(), value_type);
     return SUCCESS;
   }
   udf::AttrValue attr;
@@ -479,7 +486,7 @@ void UdfModelBuilder::GenerateTarCmd(const std::string &release_pkg_path, const 
   pack_cmd = R"(set -e
 release_dir=")";
   pack_cmd.append(release_pkg_path.c_str());
-  std::string om_dir_var =  R"("
+  std::string om_dir_var = R"("
 current_dir=`pwd`
 om_dir=")";
   pack_cmd.append(om_dir_var);
@@ -490,7 +497,7 @@ normalize_name=")";
   pack_cmd.append(name_var);
   pack_cmd.append(normalize_name);
   if (with_hash) {
-  pack_cmd.append(R"("
+    pack_cmd.append(R"("
 release_dir_tmp=$(dirname "$release_dir")
 release_dir_tmp="${release_dir_tmp}_tmp"
 rm -rf "$release_dir_tmp/udf_resource"
@@ -521,7 +528,7 @@ rm -rf "$release_dir_tmp"
 rm -rf "$release_dir"/"$normalize_name".om
 )");
   } else {
-  pack_cmd.append(R"("
+    pack_cmd.append(R"("
 release_dir_tmp=$(dirname "$release_dir")
 release_dir_tmp="${release_dir_tmp}_tmp"
 rm -rf "$release_dir_tmp/udf_resource"
@@ -575,8 +582,8 @@ std::string UdfModelBuilder::GenNormalizeModelName(const std::string &model_name
     uint8_t sha256[SHA256_DIGEST_LENGTH];
     (void)SHA256(reinterpret_cast<const uint8_t *>(result.c_str()), static_cast<std::size_t>(result.size()), sha256);
     std::stringstream shass;
-    for (const auto byte : sha256) { // 使用范围for循环
-        shass << std::hex << static_cast<int32_t>(byte);
+    for (const auto byte : sha256) {  // 使用范围for循环
+      shass << std::hex << static_cast<int32_t>(byte);
     }
     result = shass.str() + "_release";
   }

@@ -20,7 +20,7 @@ cat /usr/local/Ascend/cann/<arch>-linux/ascend_ops_install.info
 根据实际场景，选择合适的命令：
 
   ```bash
-  # 默认路径安装，以root用户为例（非root用户，将/usr/local替换为${HOME}） 
+  # 默认路径安装，以root用户为例（非root用户，将/usr/local替换为${HOME}）
   source /usr/local/Ascend/cann/set_env.sh
   # 指定路径安装
   source ${install_path}/cann/set_env.sh
@@ -33,7 +33,7 @@ cat /usr/local/Ascend/cann/<arch>-linux/ascend_ops_install.info
 开发者可通过如下命令下载本仓源码：
 
   ```bash
-  # 下载项目源码，以master分支为例 
+  # 下载项目源码，以master分支为例
   git clone https://gitcode.com/cann/ge.git
   ```
 
@@ -59,7 +59,7 @@ cat /usr/local/Ascend/cann/<arch>-linux/ascend_ops_install.info
 
 - CMake >= 3.16.0 （建议使用3.20.0版本）
 
-- bash >= 5.1.16 
+- bash >= 5.1.16
 
 - ccache/asan/autoconf/automake/libtool/gperf/lcov/libasan/patch/perl/graph-easy(其中graph-easy可选)
 
@@ -100,7 +100,7 @@ bash scripts/check_env.sh
 ### 4.3 编译
 
 > [!NOTE] 注意
-> 若您的编译环境无法访问网络，由于无法通过`git`指令下载代码，须在联网环境中下载源码及三方库依赖后，手动上传至目标环境，参见[离线编译指导](./user-guides/offline_compile.md)。 
+> 若您的编译环境无法访问网络，由于无法通过`git`指令下载代码，须在联网环境中下载源码及三方库依赖后，手动上传至目标环境，参见[离线编译指导](./user-guides/offline_compile.md)。
 > 若您的编译环境可以访问网络，通过`git`指令下载代码后，编译过程中将自动下载开源第三方软件。
 
 若您的编译环境可以访问网络，或已经完成[离线编译指导](./user-guides/offline_compile.md)，`GE`提供一键式编译能力，进入代码仓根目录，可通过如下命令进行编译：
@@ -122,7 +122,7 @@ bash scripts/check_env.sh
 > [!NOTE] 注意
 > 若您的编译环境无法访问网络，请确保已经完成了[4.3 编译](#43-编译)章节中的[离线编译指导](./user-guides/offline_compile.md)。
 
-编译完成后，用户可以进行开发者测试。 
+编译完成后，用户可以进行开发者测试。
 
 - 编译执行`UT`测试用例：
 
@@ -163,7 +163,7 @@ bash scripts/check_env.sh
   **输出位置**：生成的覆盖率文件位于代码根目录下的 `cov/` 目录中。
 
 - 执行指定用例：
-  
+
   执行完成UT/ST后，可以通过直接执行测试可执行文件进行单独测试。
 
   **前置条件**：
@@ -171,7 +171,7 @@ bash scripts/check_env.sh
 
   **使用方法**：
   - 示例：已经执行了 `bash tests/run_test.sh --ut=ge_common` ，并希望单独执行验证 `ut_libge_multiparts_utest` ：
-  
+
   ```bash
   # 测试UT/ST会对部分依赖so进行打桩处理，需要清除LD_LIBRARY_PATH和ASCEND_OPP_PATH环境变量，避免宿主机已安装的 CANN/Ascend 环境干扰测试
   unset LD_LIBRARY_PATH
@@ -202,12 +202,12 @@ bash scripts/check_env.sh
 
   > [!CAUTION]注意
   > * 此处的安装路径（无论默认还是指定）需与前面安装toolkit包时的路径保持一致。安装完成后，用户编译生成的`GE`软件包会替换已安装CANN开发套件包中的`GE`相关软件。
-  > * `cann-dflow-executor_<version>_<arch>.run`软件包仅在使用[dflow特性](https://hiascend.com/document/redirect/CannCommunityDataflow)时需要，若仅使用GE图编译和执行功能，可选择不安装。该包中含有`cann-udf-compat.tar.gz`(UDF兼容升级包)，会在业务启动时加载至Device侧，加载过程中驱动默认会进行安全验签，以确保包的可信性。开发者通过本仓源码自行编译产生的`cann-udf-compat.tar.gz`不含签名头，因此必须关闭驱动的安全验签机制才能使用。  
-      关闭验签方式：  
-      关闭验签功能依赖Ascend NPU驱动软件包（Ascend HDK 25.5.T2.B001及以上版本），可以通过该Ascend HDK配套的npu-smi工具查询版本和关闭验签，详见[查询基本信息](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/4a8adb57?idPath=23710424|251366513|254884019|261408772|252764743)，[设置自定义验签能力使能状态](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/3152813c?idPath=23710424|251366513|254884019|261408772|252764743)，[设置验签模式](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/a484ba7b?idPath=23710424|251366513|254884019|261408772|252764743)命令文档，需要以root用户在物理机上执行（由于权限问题，WebIDE暂不支持）。  
-      以device 0为例 （其中 -i 后面的参数是device id）：  
-      npu-smi info     # 查询基本信息，包含驱动版本  
-      npu-smi set -t custom-op-secverify-enable -i ***0*** -d 1     # 使能自定义验签  
+  > * `cann-dflow-executor_<version>_<arch>.run`软件包仅在使用[dflow特性](https://hiascend.com/document/redirect/CannCommunityDataflow)时需要，若仅使用GE图编译和执行功能，可选择不安装。该包中含有`cann-udf-compat.tar.gz`(UDF兼容升级包)，会在业务启动时加载至Device侧，加载过程中驱动默认会进行安全验签，以确保包的可信性。开发者通过本仓源码自行编译产生的`cann-udf-compat.tar.gz`不含签名头，因此必须关闭驱动的安全验签机制才能使用。
+      关闭验签方式：
+      关闭验签功能依赖Ascend NPU驱动软件包（Ascend HDK 25.5.T2.B001及以上版本），可以通过该Ascend HDK配套的npu-smi工具查询版本和关闭验签，详见[查询基本信息](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/4a8adb57?idPath=23710424|251366513|254884019|261408772|252764743)，[设置自定义验签能力使能状态](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/3152813c?idPath=23710424|251366513|254884019|261408772|252764743)，[设置验签模式](https://support.huawei.com/enterprise/zh/doc/EDOC1100540362/a484ba7b?idPath=23710424|251366513|254884019|261408772|252764743)命令文档，需要以root用户在物理机上执行（由于权限问题，WebIDE暂不支持）。
+      以device 0为例 （其中 -i 后面的参数是device id）：
+      npu-smi info     # 查询基本信息，包含驱动版本
+      npu-smi set -t custom-op-secverify-enable -i ***0*** -d 1     # 使能自定义验签
       npu-smi set -t custom-op-secverify-mode -i ***0*** -d 0      # 设置成"关闭验签模式"
 
 - 卸载

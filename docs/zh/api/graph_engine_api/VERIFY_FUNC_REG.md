@@ -49,4 +49,3 @@ VERIFY_FUNC_REG(op_name, x)
 ## 约束说明<a name="zh-cn_topic_0000001312403753_section65498832"></a>
 
 无
-

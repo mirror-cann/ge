@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,10 @@ class TaskInfoRegistryOnlyCustomOp : public EagerExecuteOp {
 
 TEST_F(TaskInfoUT, CustomTaskInfoDistributeDoesNotFallbackToGlobalRegistry) {
   const std::string op_type = "GlobalOnlyCustomTaskOp";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TaskInfoRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(
+                op_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TaskInfoRegistryOnlyCustomOp>(); }),
+            GRAPH_SUCCESS);
   ASSERT_NE(CustomOpFactory::CreateOrGetCustomOp(op_type.c_str()), nullptr);
 
   DavinciModel davinci_model(0, nullptr);
@@ -50,9 +51,10 @@ TEST_F(TaskInfoUT, CustomTaskInfoDistributeDoesNotFallbackToGlobalRegistry) {
 
 TEST_F(TaskInfoUT, CustomTaskInfoDistributeUsesGlobalRegistry) {
   const std::string op_type = "OnlineGlobalCustomTaskOp";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TaskInfoRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(
+                op_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TaskInfoRegistryOnlyCustomOp>(); }),
+            GRAPH_SUCCESS);
   auto *global_op = CustomOpFactory::CreateOrGetCustomOp(op_type.c_str());
   ASSERT_NE(global_op, nullptr);
 

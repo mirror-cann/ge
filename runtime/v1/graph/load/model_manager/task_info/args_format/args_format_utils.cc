@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ Status ArgsFormatUtils::GetHcomHiddenInputs(const OpDescPtr &op_desc, const Davi
     GE_ASSERT_TRUE(op_desc->SetExtAttr(kResourceTypes, resource_type_list));
     GE_ASSERT_EQ(rt_resource_list->size(), resource_type_list->size());
     GELOGI("Op %s %s set attached stream %zu stream handle %p and stream type %" PRId64 " successfully.",
-      op_desc->GetNamePtr(), op_desc->GetTypePtr(), stream_id, stream_list[stream_id], stream_type);
+           op_desc->GetNamePtr(), op_desc->GetTypePtr(), stream_id, stream_list[stream_id], stream_type);
   }
   GELOGI("start to call op %s %s hidden func", op_desc->GetNamePtr(), op_desc->GetTypePtr());
   const auto hiddens_func = HiddenInputsFuncRegistry::GetInstance().FindHiddenInputsFunc(hi_type);
@@ -117,11 +117,11 @@ Status ArgsFormatUtils::SinkTilingContext(const NodePtr &node, DavinciModel &dav
 
   // 添加atomic index
   if (is_args_exception_enable && (aligned_max_tiling_size >= sizeof(uint64_t))) {
-    uint64_t *atomic_index_data = static_cast<uint64_t *>
-      (ValueToPtr(PtrToValue(host_data) + aligned_tiling_size - sizeof(uint64_t)));
+    uint64_t *atomic_index_data =
+        static_cast<uint64_t *>(ValueToPtr(PtrToValue(host_data) + aligned_tiling_size - sizeof(uint64_t)));
     *atomic_index_data = atomic_index;
     GELOGI("aligned tiling size with cap: %zu, atomic index offset in tiling data: %zu, atomic index: %" PRIu64 ".",
-      aligned_tiling_size, aligned_max_tiling_size - sizeof(uint64_t), atomic_index);
+           aligned_tiling_size, aligned_max_tiling_size - sizeof(uint64_t), atomic_index);
   }
 
   GE_ASSERT_EOK(memcpy_s(host_pointer.get(), aligned_tiling_size, tiling_holder.get(), aligned_tiling_size));
@@ -161,8 +161,8 @@ Status ArgsFormatUtils::SinkTilingContext(const NodePtr &node, DavinciModel &dav
   }
 
   // H2D
-  GE_CHK_ACL_RET(aclrtMemcpy(device_addr, total_plain_size, host_pointer.get(),
-      total_plain_size, ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(
+      aclrtMemcpy(device_addr, total_plain_size, host_pointer.get(), total_plain_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
   std::shared_ptr<TilingContextAddr> tiling_context_addr = MakeShared<TilingContextAddr>();
   tiling_context_addr->tiling_context_addr = tiling_context_holder.dev_context_addr_;

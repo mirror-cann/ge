@@ -16,8 +16,8 @@ import ctypes
 from typing import List, Optional
 
 from ge._capi.pygraph_wrapper import graph_lib
-from .types import DataType, Format
 
+from .types import DataType, Format
 
 UNKNOWN_DIM = -1
 UNKNOWN_DIM_NUM = -2
@@ -138,10 +138,7 @@ class TensorDesc:
         raise RuntimeError("TensorDesc does not support deepcopy")
 
     def __repr__(self) -> str:
-        return (
-            f"TensorDesc(shape={self.get_shape()}, format={self.get_format()}, "
-            f"data_type={self.get_data_type()})"
-        )
+        return f"TensorDesc(shape={self.get_shape()}, format={self.get_format()}, data_type={self.get_data_type()})"
 
     @property
     def shape(self) -> Shape:
@@ -164,7 +161,7 @@ class TensorDesc:
         return self.get_data_type()
 
     @classmethod
-    def _create_from(cls, handle: ctypes.c_void_p) -> 'TensorDesc':
+    def _create_from(cls, handle: ctypes.c_void_p) -> "TensorDesc":
         """Create TensorDesc object from an existing C++ pointer.
 
         Takes ownership of the pointer and destroys it on garbage collection.
@@ -195,7 +192,7 @@ class TensorDesc:
         """
         return self._get_shape(graph_lib.GeApiWrapper_TensorDesc_GetShape, "shape")
 
-    def set_shape(self, shape: List[int]) -> 'TensorDesc':
+    def set_shape(self, shape: List[int]) -> "TensorDesc":
         """Set the shape.
 
         Args:
@@ -222,7 +219,7 @@ class TensorDesc:
         """
         return self._get_shape(graph_lib.GeApiWrapper_TensorDesc_GetOriginShape, "origin shape")
 
-    def set_origin_shape(self, shape: List[int]) -> 'TensorDesc':
+    def set_origin_shape(self, shape: List[int]) -> "TensorDesc":
         """Set the original shape.
 
         Args:
@@ -246,7 +243,7 @@ class TensorDesc:
         """
         return Format(graph_lib.GeApiWrapper_TensorDesc_GetFormat(self._handle))
 
-    def set_format(self, format: Format) -> 'TensorDesc':
+    def set_format(self, format: Format) -> "TensorDesc":
         """Set the data format.
 
         Args:
@@ -274,7 +271,7 @@ class TensorDesc:
         """
         return Format(graph_lib.GeApiWrapper_TensorDesc_GetOriginFormat(self._handle))
 
-    def set_origin_format(self, format: Format) -> 'TensorDesc':
+    def set_origin_format(self, format: Format) -> "TensorDesc":
         """Set the original data format.
 
         Args:
@@ -302,7 +299,7 @@ class TensorDesc:
         """
         return DataType(graph_lib.GeApiWrapper_TensorDesc_GetDataType(self._handle))
 
-    def set_data_type(self, data_type: DataType) -> 'TensorDesc':
+    def set_data_type(self, data_type: DataType) -> "TensorDesc":
         """Set the element data type.
 
         Args:

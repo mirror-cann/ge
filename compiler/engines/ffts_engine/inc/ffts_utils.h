@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,7 +61,7 @@ void PrintNode(const ge::NodePtr &node);
 void DeleteNode(ge::NodePtr &node);
 void PrintNodeAttrExtNode(const ge::NodePtr &node, std::string attrname);
 void PrintNodeAttrExtNodes(const ge::NodePtr &node, std::string attrname);
-Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph& graph, const std::string &node_type);
+Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph &graph, const std::string &node_type);
 // Record the start time of stage.
 #define FFTS_TIMECOST_START(stage) int64_t start_usec_##stage = GetMicroSecondTime();
 
@@ -81,7 +81,7 @@ Status UnfoldPartionCallOnlyOneDepth(ge::ComputeGraph& graph, const std::string 
   } while (false)
 
 template <typename T, typename... Args>
-inline std::shared_ptr<T> FFTSComGraphMakeShared(Args &&... args) {
+inline std::shared_ptr<T> FFTSComGraphMakeShared(Args &&...args) {
   using T_nc = typename std::remove_const<T>::type;
   const std::shared_ptr<T> ret(new (std::nothrow) T_nc(std::forward<Args>(args)...));
   return ret;
@@ -133,15 +133,15 @@ inline Status CheckInt64MulOverflow(const int64_t &m, const int64_t &n) {
     return FAILED;                                                                                 \
   }
 
-#define FFTS_ADD_OVERFLOW(x, y, z)        \
-  if (ge::AddOverflow((x), (y), (z))) {   \
-    return FAILED;                        \
-  }                                       \
+#define FFTS_ADD_OVERFLOW(x, y, z)      \
+  if (ge::AddOverflow((x), (y), (z))) { \
+    return FAILED;                      \
+  }
 
-#define FFTS_MUL_OVERFLOW(x, y, z)        \
-  if (ge::MulOverflow((x), (y), (z))) {   \
-    return FAILED;                        \
-  }                                       \
+#define FFTS_MUL_OVERFLOW(x, y, z)      \
+  if (ge::MulOverflow((x), (y), (z))) { \
+    return FAILED;                      \
+  }
 
 constexpr uint32_t kOneByteBitNum = 8U;
 void SetBitOne(const uint32_t pos, uint32_t &bm);

@@ -4,21 +4,21 @@
 ```
 ├── CMakeLists.txt  cmake配置文件
 ├── README.md  样例使用指导
-├── config    
+├── config
 │   ├── model_generator.py  生成用例所需的模型的脚本
-│   ├── add_func_multi.json  用例中使用的多func的配置文件   
-│   ├── add_func_multi_control.json  用例中使用的多func的配置文件    
-│   ├── add_func.json  用例中add FunctionPp对应的配置文件  
-│   ├── add_graph.json  用例中add GraphPp对应的配置文件  
+│   ├── add_func_multi.json  用例中使用的多func的配置文件
+│   ├── add_func_multi_control.json  用例中使用的多func的配置文件
+│   ├── add_func.json  用例中add FunctionPp对应的配置文件
+│   ├── add_graph.json  用例中add GraphPp对应的配置文件
 │   ├── data_flow_deploy_info.json  用例中指定节点部署位置的配置文件
-│   └── invoke_func.json  用例中udf调用nn对应的配置文件  
-├── node_builder.h  构造functionPp和GraphPp的公共方法  
+│   └── invoke_func.json  用例中udf调用nn对应的配置文件
+├── node_builder.h  构造functionPp和GraphPp的公共方法
 ├── sample_base.cpp  该样例展示了基本的DataFlow API构图，包含UDF，GraphPp和UDF执行NN推理三种类型节点的构造和执行
 ├── sample_timebatch.cpp  该样例展示了TimeBatch使用方法
 ├── sample_countbatch.cpp  该样例展示了CountBatch使用方法
 ├── sample_tensorflow.cpp  该样例展示了Tensorflow图构造Dataflow节点的方法
 ├── sample_multifunc.cpp  该样例展示了多func的调用方法
-├── sample_exception.cpp  该样例展示了开启异常上报的方法 
+├── sample_exception.cpp  该样例展示了开启异常上报的方法
 └── sample_perf.cpp  该样例测试Feed和Fetch的接口性能
 ```
 

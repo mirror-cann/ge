@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,6 @@
 #include <set>
 #include <vector>
 #include <string>
-
 
 namespace ge {
 namespace {
@@ -54,8 +53,8 @@ class SubexpressionMigrationPass : public GraphPass {
   /// @param [in] node_idx: Parent index of Data node.
   /// @param [in] anchor_idx: Anchor index of node.
   /// @return true: Same / false: not same
-  bool IsParallelNodeSame(const OrderedGraphToNodes &graph_nodes,
-                          const NodePtr &base_node, uint32_t node_idx, uint32_t anchor_idx) const;
+  bool IsParallelNodeSame(const OrderedGraphToNodes &graph_nodes, const NodePtr &base_node, uint32_t node_idx,
+                          uint32_t anchor_idx) const;
 
   /// @ingroup ge
   /// @brief Migration subgraph Node to Root
@@ -65,8 +64,7 @@ class SubexpressionMigrationPass : public GraphPass {
   /// @param [in] data_base: Data Node for migration.
   /// @param [in] data_idx: Data groups of subgraph.
   /// @return 0: SUCCESS / others: FAILED
-  Status GraphNodeMigration(const ComputeGraphPtr &graph, const NodePtr &func_node,
-                            OrderedGraphToNodes &graph_nodes,
+  Status GraphNodeMigration(const ComputeGraphPtr &graph, const NodePtr &func_node, OrderedGraphToNodes &graph_nodes,
                             const NodePtr &data_base, uint32_t data_idx);
 
   /// @ingroup ge
@@ -79,8 +77,7 @@ class SubexpressionMigrationPass : public GraphPass {
   /// @param [in] outputs: Parent index of Node output.
   /// @return 0: SUCCESS / others: FAILED
   Status MoveNodeToParent(const ComputeGraphPtr &graph, const NodePtr &func_node,
-                          const OrderedGraphToNodes &graph_nodes,
-                          uint32_t anchor_idx, uint32_t base_index,
+                          const OrderedGraphToNodes &graph_nodes, uint32_t anchor_idx, uint32_t base_index,
                           const std::map<uint32_t, uint32_t> &inputs,
                           const std::map<uint32_t, uint32_t> &outputs) const;
 
@@ -90,8 +87,8 @@ class SubexpressionMigrationPass : public GraphPass {
   /// @param [in] func_node: functional Node of Case.
   /// @param [in] outputs: Parent index of Node output.
   /// @return 0: SUCCESS / others: FAILED
-  Status AppendParallelNode(OrderedGraphToNodes &graph_nodes,
-                            const NodePtr &func_node, std::map<uint32_t, uint32_t> &outputs);
+  Status AppendParallelNode(OrderedGraphToNodes &graph_nodes, const NodePtr &func_node,
+                            std::map<uint32_t, uint32_t> &outputs);
 
   /// @ingroup ge
   /// @brief Delete Node from all subgraph.
@@ -115,8 +112,7 @@ class SubexpressionMigrationPass : public GraphPass {
                             const std::map<uint32_t, uint32_t> &outputs) const;
 
   Status SplitIdentityN(ComputeGraphPtr &graph);
-  Status ClassifyInputAnchor(NodePtr &identity_node,
-                             std::vector<int32_t> &data_input_anchor_index,
+  Status ClassifyInputAnchor(NodePtr &identity_node, std::vector<int32_t> &data_input_anchor_index,
                              std::vector<int32_t> &non_data_input_anchor_index) const;
   Status AddNewIdentityN(NodePtr &old_node, std::vector<int32_t> &input_anchor_index,
                          const std::string &new_node_name) const;

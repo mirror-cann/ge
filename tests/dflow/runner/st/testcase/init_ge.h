@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,9 @@ inline void InitGe() {
     std::cout << "ge init failed , ret code:" << init_status << std::endl;
   }
 
-  const_cast<std::map<std::string, OpsKernelInfoStorePtr>&>(
-      OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores()).clear();
+  const_cast<std::map<std::string, OpsKernelInfoStorePtr> &>(
+      OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores())
+      .clear();
 
   GeRunningEnvFaker ge_env;
   ge_env.InstallDefault();
@@ -45,8 +46,9 @@ inline void ReInitGe() {
     std::cout << "ge init failed , ret code:" << init_status << std::endl;
   }
 
-  const_cast<std::map<std::string, OpsKernelInfoStorePtr>&>(
-      OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores()).clear();
+  const_cast<std::map<std::string, OpsKernelInfoStorePtr> &>(
+      OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores())
+      .clear();
 
   GeRunningEnvFaker ge_env;
   ge_env.InstallDefault();
@@ -60,5 +62,5 @@ inline void ReInitDFlow() {
     std::cout << "dflow init failed , ret code:" << init_status << std::endl;
   }
 }
-}
-#endif //AIR_CXX_TESTS_ST_TESTCASE_INIT_GE_H_
+}  // namespace ge
+#endif  // AIR_CXX_TESTS_ST_TESTCASE_INIT_GE_H_

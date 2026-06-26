@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ class HeterogeneousExchangeService : public ExchangeService {
   struct TransInfoContext {
     int32_t device_id;
     uint32_t queue_id;
-    bool operator < (const TransInfoContext &other) const {
+    bool operator<(const TransInfoContext &other) const {
       if (device_id != other.device_id) {
         return device_id < other.device_id;
       } else {
@@ -45,19 +45,14 @@ class HeterogeneousExchangeService : public ExchangeService {
 
   Status Finalize();
 
-  Status CreateQueue(const int32_t device_id,
-                     const std::string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(const int32_t device_id, const std::string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override;
   Status DestroyQueue(int32_t device_id, uint32_t queue_id) override;
   Status Enqueue(int32_t device_id, uint32_t queue_id, const void *data, size_t size,
                  const ControlInfo &control_info) override;
   Status Enqueue(int32_t device_id, uint32_t queue_id, size_t size, rtMbufPtr_t m_buf,
                  const ControlInfo &control_info) override;
-  Status Enqueue(int32_t device_id,
-                 uint32_t queue_id,
-                 size_t size,
-                 const FillFunc &fill_func,
+  Status Enqueue(int32_t device_id, uint32_t queue_id, size_t size, const FillFunc &fill_func,
                  const ControlInfo &control_info) override;
   Status Enqueue(const int32_t device_id, const uint32_t queue_id, const std::vector<BuffInfo> &buffs,
                  const ControlInfo &control_info) override;
@@ -78,9 +73,9 @@ class HeterogeneousExchangeService : public ExchangeService {
 
   // put m_buf info to client queue, do not take ownership of m_buf
   static Status EnqueueMbufToClientQueue(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout);
+
  private:
-  static Status MoveMbufTo(void *m_buf, const ControlInfo &control_info,
-                           std::shared_ptr<AlignedPtr> &aligned_ptr);
+  static Status MoveMbufTo(void *m_buf, const ControlInfo &control_info, std::shared_ptr<AlignedPtr> &aligned_ptr);
   static Status CopyMbufTo(void *m_buf, void *data, size_t size, const ControlInfo &control_info);
   static Status CopyMbufHeadTo(void *m_buf, void *&control_data, size_t &head_size);
   void ProcessEmptyToNotEmptyEvent(const uint32_t queue_id);
@@ -97,7 +92,7 @@ class HeterogeneousExchangeService : public ExchangeService {
   Status ProcessEnqueueBuff(const int32_t device_id, const uint32_t queue_id, const std::vector<BuffInfo> &buffs,
                             const ControlInfo &control_info);
   Status ProcessEnqueueMbuf(const int32_t device_id, const uint32_t queue_id, const std::vector<BuffInfo> &buffs,
-                           rtMbufPtr_t mbuf, const ControlInfo &control_info);
+                            rtMbufPtr_t mbuf, const ControlInfo &control_info);
   Status GenTransId(const int32_t device_id, const uint32_t queue_id, uint64_t &trans_id,
                     const uint64_t user_assign_trans_id);
   uint64_t GetCurrentTransId(int32_t device_id, uint32_t queue_id);
@@ -116,11 +111,11 @@ class HeterogeneousExchangeService : public ExchangeService {
 
   std::mutex dequeue_mu_;
   std::condition_variable dequeue_cv_;
-  std::map<uint32_t, bool> subscribed_dequeues_; // key is qid, true means not empty
+  std::map<uint32_t, bool> subscribed_dequeues_;  // key is qid, true means not empty
 
   std::mutex enqueue_mu_;
   std::condition_variable enqueue_cv_;
-  std::map<uint32_t, bool> subscribed_enqueues_; // key is qid, true means not full
+  std::map<uint32_t, bool> subscribed_enqueues_;  // key is qid, true means not full
 
   std::atomic<bool> waiting_{true};
   std::vector<std::thread> events_threads_;

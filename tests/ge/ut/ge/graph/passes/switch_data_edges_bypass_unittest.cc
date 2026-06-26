@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -148,7 +148,6 @@ ComputeGraphPtr BuildGraph5() {
   return builder.GetGraph();
 }
 
-
 /*
  *      netoutput1
  *         |
@@ -271,7 +270,7 @@ std::set<std::string> GetNames(const Node::Vistor<NodePtr> &node_list) {
   for (const auto &node : node_list) {
     name_set.insert(node->GetName());
   }
-  return  name_set;
+  return name_set;
 }
 
 std::set<std::string> GetNames(const ComputeGraph::Vistor<NodePtr> &node_list) {
@@ -279,9 +278,9 @@ std::set<std::string> GetNames(const ComputeGraph::Vistor<NodePtr> &node_list) {
   for (const auto &node : node_list) {
     name_set.insert(node->GetName());
   }
-  return  name_set;
+  return name_set;
 }
-}// namespace
+}  // namespace
 
 TEST_F(UtestSwitchDataEdgesBypass, OneOut) {
   auto graph = BuildGraph1();
@@ -294,8 +293,7 @@ TEST_F(UtestSwitchDataEdgesBypass, OneOut) {
   EXPECT_EQ(identity_name.find("SwitchDataEdgesByPass_Identity_"), 0);
   auto identity0 = graph->FindNode(identity_name);
   EXPECT_EQ(identity0->GetOutDataNodesSize(), 0);
-  EXPECT_EQ(GetNames(identity0->GetOutControlNodes()),
-            std::set<std::string>({"addn1"}));
+  EXPECT_EQ(GetNames(identity0->GetOutControlNodes()), std::set<std::string>({"addn1"}));
   auto data1 = graph->FindNode("data1");
   EXPECT_EQ(GetNames(data1->GetOutDataNodes()), std::set<std::string>({"addn1", "switch1"}));
 }
@@ -312,13 +310,13 @@ TEST_F(UtestSwitchDataEdgesBypass, TwoOut) {
   EXPECT_EQ(identity0_name.find("SwitchDataEdgesByPass_Identity_"), 0);
   auto identity0 = graph->FindNode(identity0_name);
   EXPECT_EQ(identity0->GetOutDataNodesSize(), 0);
-  EXPECT_EQ(GetNames(identity0->GetOutControlNodes()),std::set<std::string>({"addn1"}));
+  EXPECT_EQ(GetNames(identity0->GetOutControlNodes()), std::set<std::string>({"addn1"}));
 
   auto identity1_name = switch1->GetOutDataNodes().at(1)->GetName();
   EXPECT_EQ(identity1_name.find("SwitchDataEdgesByPass_Identity_"), 0);
   auto identity1 = graph->FindNode(identity1_name);
   EXPECT_EQ(identity1->GetOutDataNodesSize(), 0);
-  EXPECT_EQ(GetNames(identity1->GetOutControlNodes()),std::set<std::string>({"addn2"}));
+  EXPECT_EQ(GetNames(identity1->GetOutControlNodes()), std::set<std::string>({"addn2"}));
 
   EXPECT_NE(identity0_name, identity1_name);
   auto data1 = graph->FindNode("data1");
@@ -341,7 +339,6 @@ TEST_F(UtestSwitchDataEdgesBypass, SwitchWithoutPredAnchor) {
             std::set<std::string>({"data1", "switch1", "addn1", "merge1", "netoutput1"}));
 }
 
-
 TEST_F(UtestSwitchDataEdgesBypass, SwitchWithoutNoDataInput) {
   auto graph = BuildGraph9();
   SwitchDataEdgesBypass pass;
@@ -363,8 +360,7 @@ TEST_F(UtestSwitchDataEdgesBypass, MultiPeerNodeInOneBranch) {
   auto identity = graph->FindNode(identity_name);
 
   EXPECT_EQ(identity->GetOutDataNodesSize(), 0);
-  EXPECT_EQ(GetNames(identity->GetOutControlNodes()),
-            std::set<std::string>({"addn1", "addn2"}));
+  EXPECT_EQ(GetNames(identity->GetOutControlNodes()), std::set<std::string>({"addn1", "addn2"}));
   auto data1 = graph->FindNode("data1");
   EXPECT_EQ(GetNames(data1->GetOutDataNodes()), std::set<std::string>({"addn1", "addn2", "switch1"}));
 }
@@ -382,8 +378,7 @@ TEST_F(UtestSwitchDataEdgesBypass, MultiEdgesInOneBranch) {
 
   EXPECT_EQ(identity->GetOutDataNodesSize(), 0);
   EXPECT_EQ(identity->GetOutControlNodes().size(), 1);
-  EXPECT_EQ(GetNames(identity->GetOutControlNodes()),
-            std::set<std::string>({"addn3"}));
+  EXPECT_EQ(GetNames(identity->GetOutControlNodes()), std::set<std::string>({"addn3"}));
   auto data1 = graph->FindNode("data1");
   EXPECT_EQ(data1->GetOutDataNodesSize(), 3);
   EXPECT_EQ(GetNames(data1->GetOutDataNodes()), std::set<std::string>({"addn3", "switch1"}));
@@ -393,9 +388,8 @@ TEST_F(UtestSwitchDataEdgesBypass, IgnoreSwitchInWhile) {
   auto graph = BuildGraph7();
   SwitchDataEdgesBypass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
-  EXPECT_EQ(GetNames(graph->GetDirectNode()),
-            std::set<std::string>({"data1", "enter1", "merge1", "loopcond1",
-                                   "switch1", "addn1", "nextiter1", "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetDirectNode()), std::set<std::string>({"data1", "enter1", "merge1", "loopcond1",
+                                                                     "switch1", "addn1", "nextiter1", "netoutput1"}));
 }
 
 TEST_F(UtestSwitchDataEdgesBypass, SwitchConnectToMerge) {

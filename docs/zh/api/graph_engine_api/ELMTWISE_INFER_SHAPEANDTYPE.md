@@ -79,4 +79,3 @@ ELMTWISE_INFER_SHAPEANDTYPE(in_name, out_name)
 ```
 COMMON_INFER_FUNC_REG(DiagD, ELMTWISE_INFER_SHAPEANDTYPE("assist", "y"));
 ```
-

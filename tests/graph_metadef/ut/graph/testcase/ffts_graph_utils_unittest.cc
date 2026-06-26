@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -219,7 +219,8 @@ void BuildGraphForSplit_with_func_node(ComputeGraphPtr &graph, ComputeGraphPtr &
   sub_builder1.AddDataEdge(square3, 0, netoutput3, 0);
   AttrUtils::SetInt(data3->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   AttrUtils::SetInt(netoutput3->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
-  const auto &subgraph3 = sub_builder3.GetGraph();(AttrUtils::SetStr(subgraph3, "_session_graph_id", "_session_graph_id"));
+  const auto &subgraph3 = sub_builder3.GetGraph();
+  (AttrUtils::SetStr(subgraph3, "_session_graph_id", "_session_graph_id"));
   if2->GetOpDesc()->AddSubgraphName("then_branch");
   if2->GetOpDesc()->SetSubgraphInstanceName(0, subgraph3->GetName());
   graph->AddSubGraph(subgraph3);
@@ -246,7 +247,7 @@ void BuildGraphForSplit_with_func_node(ComputeGraphPtr &graph, ComputeGraphPtr &
 
   return;
 }
-}
+}  // namespace
 
 class UtestFftsGraphUtils : public testing::Test {
  protected:
@@ -256,9 +257,7 @@ class UtestFftsGraphUtils : public testing::Test {
 
 TEST_F(UtestFftsGraphUtils, LimitExceedPartition_invalid_input) {
   ASSERT_EQ(FftsGraphUtils::GraphPartition(*ut::GraphBuilder("root").GetGraph(), nullptr, {}), GRAPH_SUCCESS);
-  const auto &calc_func = [](const NodePtr &node) {
-    return std::vector<uint32_t> {1};
-  };
+  const auto &calc_func = [](const NodePtr &node) { return std::vector<uint32_t>{1}; };
   ASSERT_EQ(FftsGraphUtils::GraphPartition(*ut::GraphBuilder("root").GetGraph(), calc_func, {}), GRAPH_SUCCESS);
 }
 
@@ -269,30 +268,28 @@ TEST_F(UtestFftsGraphUtils, LimitExceedPartition_no_func_node) {
   ASSERT_NE(graph, nullptr);
   ASSERT_NE(subgraph, nullptr);
 
-  const auto &calc_func = [](const NodePtr &node) {
-    return std::vector<uint32_t> {1};
-  };
+  const auto &calc_func = [](const NodePtr &node) { return std::vector<uint32_t>{1}; };
   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, calc_func, {8}), GRAPH_SUCCESS);
   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, calc_func, {3}), GRAPH_SUCCESS);
   ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
 
   ASSERT_EQ(graph->GetAllSubgraphs().size(), 2);
   std::vector<ComputeGraphPtr> subgraphs;
-  GetSubgraphsWithFilter(graph,
-                         [](const ComputeGraphPtr &graph) {
-                           const auto &parent_node = graph->GetParentNode();
-                           if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
-                             return false;
-                           }
-                           return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH); },
-                         subgraphs);
+  GetSubgraphsWithFilter(
+      graph,
+      [](const ComputeGraphPtr &graph) {
+        const auto &parent_node = graph->GetParentNode();
+        if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
+          return false;
+        }
+        return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH);
+      },
+      subgraphs);
   ASSERT_EQ(subgraphs.size(), 2);
   for (const auto &subgraph : subgraphs) {
     ASSERT_TRUE(subgraph != nullptr);
-    ASSERT_TRUE(IsAllNodeMatch(subgraph,
-                               [](const NodePtr &node) {
-                                 return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
-                               }, false));
+    ASSERT_TRUE(IsAllNodeMatch(
+        subgraph, [](const NodePtr &node) { return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID); }, false));
   }
 
   const auto &cast1 = FindNodeWithNamePattern(graph, "cast1", false);
@@ -353,85 +350,83 @@ TEST_F(UtestFftsGraphUtils, LimitExceedPartition_with_func_node) {
   ASSERT_NE(graph, nullptr);
   ASSERT_NE(subgraph, nullptr);
 
-  const auto &calc_func = [](const NodePtr &node) {
-    return std::vector<uint32_t> {1};
-  };
+  const auto &calc_func = [](const NodePtr &node) { return std::vector<uint32_t>{1}; };
   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, calc_func, {8}), GRAPH_SUCCESS);
   ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   ASSERT_EQ(graph->GetAllSubgraphs().size(), 9);
 }
 
-//TEST_F(UtestFftsGraphUtils, ClipNodesFromGraph_no_func_node) {
-//  ComputeGraphPtr graph;
-//  ComputeGraphPtr subgraph;
-//  BuildGraphForSplit_without_func_node(graph, subgraph);
-//  ASSERT_NE(graph, nullptr);
-//  ASSERT_NE(subgraph, nullptr);
+// TEST_F(UtestFftsGraphUtils, ClipNodesFromGraph_no_func_node) {
+//   ComputeGraphPtr graph;
+//   ComputeGraphPtr subgraph;
+//   BuildGraphForSplit_without_func_node(graph, subgraph);
+//   ASSERT_NE(graph, nullptr);
+//   ASSERT_NE(subgraph, nullptr);
 //
-//  ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, {}), GRAPH_SUCCESS);
+//   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, {}), GRAPH_SUCCESS);
 //
-//  auto data1 = FindNodeWithNamePattern(subgraph, "data1");
-//  ASSERT_NE(data1.get(), nullptr);
-//  ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, {data1}), GRAPH_SUCCESS);
+//   auto data1 = FindNodeWithNamePattern(subgraph, "data1");
+//   ASSERT_NE(data1.get(), nullptr);
+//   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, {data1}), GRAPH_SUCCESS);
 //
-//  std::set<NodePtr> unsupported_nodes;
-//  auto cast1 = FindNodeWithNamePattern(subgraph, "cast1");
-//  ASSERT_NE(cast1, nullptr);
-//  unsupported_nodes.insert(cast1);
-//  auto cast4 = FindNodeWithNamePattern(subgraph, "cast4");
-//  ASSERT_NE(cast4, nullptr);
-//  unsupported_nodes.insert(cast4);
-//  auto cast5 = FindNodeWithNamePattern(subgraph, "cast5");
-//  ASSERT_NE(cast5, nullptr);
-//  unsupported_nodes.insert(cast5);
-//  ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, unsupported_nodes), GRAPH_SUCCESS);
-//  ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
+//   std::set<NodePtr> unsupported_nodes;
+//   auto cast1 = FindNodeWithNamePattern(subgraph, "cast1");
+//   ASSERT_NE(cast1, nullptr);
+//   unsupported_nodes.insert(cast1);
+//   auto cast4 = FindNodeWithNamePattern(subgraph, "cast4");
+//   ASSERT_NE(cast4, nullptr);
+//   unsupported_nodes.insert(cast4);
+//   auto cast5 = FindNodeWithNamePattern(subgraph, "cast5");
+//   ASSERT_NE(cast5, nullptr);
+//   unsupported_nodes.insert(cast5);
+//   ASSERT_EQ(FftsGraphUtils::GraphPartition(*subgraph, unsupported_nodes), GRAPH_SUCCESS);
+//   ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
 //
-//  ASSERT_EQ(graph->GetAllSubgraphs().size(), 3);
-//  const auto &parent_node = subgraph->GetParentNode();
-//  ASSERT_NE(parent_node, nullptr);
-//  ASSERT_FALSE(parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH));
-//  ASSERT_TRUE(IsAllNodeMatch(subgraph,
-//                             [](const NodePtr &node) {
-//                               return !node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
-//                             }));
+//   ASSERT_EQ(graph->GetAllSubgraphs().size(), 3);
+//   const auto &parent_node = subgraph->GetParentNode();
+//   ASSERT_NE(parent_node, nullptr);
+//   ASSERT_FALSE(parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH));
+//   ASSERT_TRUE(IsAllNodeMatch(subgraph,
+//                              [](const NodePtr &node) {
+//                                return !node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
+//                              }));
 //
-//  std::vector<ComputeGraphPtr> subgraphs;
-//  GetSubgraphsWithFilter(graph,
-//                         [](const ComputeGraphPtr &graph) {
-//                           const auto &parent_node = graph->GetParentNode();
-//                           if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
-//                             return false;
-//                           }
-//                           return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH); },
-//                         subgraphs);
-//  ASSERT_EQ(subgraphs.size(), 2);
-//  for (const auto &subgraph : subgraphs) {
-//    ASSERT_TRUE(subgraph != nullptr);
-//    ASSERT_TRUE(IsAllNodeMatch(subgraph,
-//                               [](const NodePtr &node) {
-//                                 return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
-//                               }, false));
-//  }
+//   std::vector<ComputeGraphPtr> subgraphs;
+//   GetSubgraphsWithFilter(graph,
+//                          [](const ComputeGraphPtr &graph) {
+//                            const auto &parent_node = graph->GetParentNode();
+//                            if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
+//                              return false;
+//                            }
+//                            return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH); },
+//                          subgraphs);
+//   ASSERT_EQ(subgraphs.size(), 2);
+//   for (const auto &subgraph : subgraphs) {
+//     ASSERT_TRUE(subgraph != nullptr);
+//     ASSERT_TRUE(IsAllNodeMatch(subgraph,
+//                                [](const NodePtr &node) {
+//                                  return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
+//                                }, false));
+//   }
 //
-//  ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "data1"; }));
-//  ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast1"; }));
-//  ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast4"; }));
-//  ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast5"; }));
-//  ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "netoutput"; }));
-//  ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast2"; }));
-//  ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast3"; }));
-//  ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast6"; }));
+//   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "data1"; }));
+//   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast1"; }));
+//   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast4"; }));
+//   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast5"; }));
+//   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "netoutput"; }));
+//   ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast2"; }));
+//   ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast3"; }));
+//   ASSERT_FALSE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "cast6"; }));
 //
-//  const auto &cast2 = FindNodeWithNamePattern(graph, "cast2", false);
-//  ASSERT_NE(cast2, nullptr);
-//  const auto &cast3 = FindNodeWithNamePattern(graph, "cast3", false);
-//  ASSERT_NE(cast3, nullptr);
-//  const auto &cast6 = FindNodeWithNamePattern(graph, "cast6", false);
-//  ASSERT_NE(cast6, nullptr);
-//  ASSERT_EQ(cast2->GetOwnerComputeGraph(), cast3->GetOwnerComputeGraph());
-//  ASSERT_NE(cast2->GetOwnerComputeGraph(), cast6->GetOwnerComputeGraph());
-//}
+//   const auto &cast2 = FindNodeWithNamePattern(graph, "cast2", false);
+//   ASSERT_NE(cast2, nullptr);
+//   const auto &cast3 = FindNodeWithNamePattern(graph, "cast3", false);
+//   ASSERT_NE(cast3, nullptr);
+//   const auto &cast6 = FindNodeWithNamePattern(graph, "cast6", false);
+//   ASSERT_NE(cast6, nullptr);
+//   ASSERT_EQ(cast2->GetOwnerComputeGraph(), cast3->GetOwnerComputeGraph());
+//   ASSERT_NE(cast2->GetOwnerComputeGraph(), cast6->GetOwnerComputeGraph());
+// }
 
 TEST_F(UtestFftsGraphUtils, ClipNodesFromGraph_with_func_node) {
   ComputeGraphPtr graph;
@@ -454,27 +449,25 @@ TEST_F(UtestFftsGraphUtils, ClipNodesFromGraph_with_func_node) {
   const auto &parent_node = subgraph->GetParentNode();
   ASSERT_NE(parent_node, nullptr);
   ASSERT_FALSE(parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH));
-  ASSERT_TRUE(IsAllNodeMatch(subgraph,
-                             [](const NodePtr &node) {
-                               return !node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
-                             }));
+  ASSERT_TRUE(IsAllNodeMatch(
+      subgraph, [](const NodePtr &node) { return !node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID); }));
 
   std::vector<ComputeGraphPtr> subgraphs;
-  GetSubgraphsWithFilter(graph,
-                         [](const ComputeGraphPtr &graph) {
-                           const auto &parent_node = graph->GetParentNode();
-                           if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
-                             return false;
-                           }
-                           return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH); },
-                         subgraphs);
+  GetSubgraphsWithFilter(
+      graph,
+      [](const ComputeGraphPtr &graph) {
+        const auto &parent_node = graph->GetParentNode();
+        if ((parent_node == nullptr) || (parent_node->GetOpDesc() == nullptr)) {
+          return false;
+        }
+        return parent_node->GetOpDesc()->HasAttr(ATTR_NAME_FFTS_PLUS_SUB_GRAPH);
+      },
+      subgraphs);
   ASSERT_EQ(subgraphs.size(), 5);
   for (const auto &subgraph : subgraphs) {
     ASSERT_TRUE(subgraph != nullptr);
-    ASSERT_TRUE(IsAllNodeMatch(subgraph,
-                               [](const NodePtr &node) {
-                                 return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID);
-                               }, false));
+    ASSERT_TRUE(IsAllNodeMatch(
+        subgraph, [](const NodePtr &node) { return node->GetOpDesc()->HasAttr(ATTR_NAME_THREAD_SCOPE_ID); }, false));
   }
 
   ASSERT_TRUE(IfNodeExist(subgraph, [](const NodePtr &node) { return node->GetName() == "var1"; }));
@@ -525,7 +518,7 @@ TEST_F(UtestFftsGraphUtils, ClipNodesFromGraph_with_func_node) {
 
 TEST_F(UtestFftsGraphUtils, CheckRecursionDepth) {
   std::map<NodePtr, std::vector<uint32_t>> node_value;
-  std::map<ComputeGraphPtr , std::vector<uint32_t>> graph_value;
+  std::map<ComputeGraphPtr, std::vector<uint32_t>> graph_value;
   ComputeGraphPtr graph = nullptr;
   ASSERT_EQ(FftsGraphUtils::Calculate(graph, nullptr, node_value, graph_value, 10), GRAPH_FAILED);
   ASSERT_EQ(FftsGraphUtils::Calculate(graph, nullptr, node_value, graph_value, 9), PARAM_INVALID);
@@ -535,7 +528,7 @@ TEST_F(UtestFftsGraphUtils, CheckRecursionDepth) {
 
 TEST_F(UtestFftsGraphUtils, SplitSubgraph_nullptr_graph) {
   std::vector<std::pair<bool, std::set<NodePtr>>> split_nodes;
-  split_nodes.emplace_back(std::make_pair(true, std::set<NodePtr>{ nullptr }));
+  split_nodes.emplace_back(std::make_pair(true, std::set<NodePtr>{nullptr}));
   ASSERT_EQ(FftsGraphUtils::SplitSubgraph(nullptr, split_nodes), GRAPH_FAILED);
 }
 
@@ -547,7 +540,7 @@ TEST_F(UtestFftsGraphUtils, SetAttrForFftsPlusSubgraph_nullptr_parent_node) {
 TEST_F(UtestFftsGraphUtils, Calculate_nullptr_node) {
   NodePtr node = nullptr;
   std::map<NodePtr, std::vector<uint32_t>> node_value;
-  std::map<ComputeGraphPtr , std::vector<uint32_t>> graph_value;
+  std::map<ComputeGraphPtr, std::vector<uint32_t>> graph_value;
   ASSERT_TRUE(FftsGraphUtils::Calculate(node, nullptr, node_value, graph_value, 1).empty());
 }
 }  // namespace ge

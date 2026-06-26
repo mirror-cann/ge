@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,7 @@
 #include "ops_store/ops_kernel_error_codes.h"
 
 namespace fe {
-OpsKernelManager::OpsKernelManager(const std::string &engine_name)
-    : is_init_(false), engine_name_(engine_name) {}
+OpsKernelManager::OpsKernelManager(const std::string &engine_name) : is_init_(false), engine_name_(engine_name) {}
 OpsKernelManager::~OpsKernelManager() {}
 
 OpsKernelManager &OpsKernelManager::Instance(const std::string &engine_name) {
@@ -65,8 +64,9 @@ Status OpsKernelManager::Initialize() {
   }
 
   if (sub_ops_kernel_map_.empty()) {
-    std::string init_fail_log = "FEOpsKernelInfoStore: Initialize custom and builtin sub-information library failed, "
-                                "please check the related warning or error log above for detailed information!";
+    std::string init_fail_log =
+        "FEOpsKernelInfoStore: Initialize custom and builtin sub-information library failed, "
+        "please check the related warning or error log above for detailed information!";
     REPORT_FE_ERROR("[GraphOpt][Init] %s", init_fail_log.c_str());
     return FAILED;
   }
@@ -192,7 +192,9 @@ Status OpsKernelManager::AddSubOpsKernel(SubOpInfoStorePtr sub_op_info_store_ptr
   FE_CHECK_NOTNULL(sub_op_info_store_ptr);
   std::string store_name = sub_op_info_store_ptr->GetOpsStoreName();
   if (store_name.empty()) {
-    REPORT_FE_ERROR("[GraphOpt][SetDyncCustomOpStoreInfo][AddSubOpsKernel] The library name of the operation information is empty.");
+    REPORT_FE_ERROR(
+        "[GraphOpt][SetDyncCustomOpStoreInfo][AddSubOpsKernel] The library name of the operation information is "
+        "empty.");
     return FAILED;
   }
   std::map<std::string, SubOpInfoStorePtr>::const_iterator iter = sub_ops_kernel_map_.find(store_name);
@@ -221,8 +223,8 @@ bool OpsKernelManager::FindOpKernelByType(const std::string &op_type, OpKernelIn
   for (const auto &ops_store : fe_ops_store_info_vec) {
     op_kernel_ptr = GetOpKernelInfoByOpType(ops_store.fe_ops_store_name, op_type);
     if (op_kernel_ptr != nullptr) {
-      FE_LOGD("[FindOpKernelByType] GetOpKernel successfully, op type[%s], op store name[%s].",
-              op_type.c_str(), ops_store.fe_ops_store_name.c_str());
+      FE_LOGD("[FindOpKernelByType] GetOpKernel successfully, op type[%s], op store name[%s].", op_type.c_str(),
+              ops_store.fe_ops_store_name.c_str());
       return true;
     }
   }
@@ -230,7 +232,7 @@ bool OpsKernelManager::FindOpKernelByType(const std::string &op_type, OpKernelIn
 }
 
 void OpsKernelManager::UpdatePatternForAllKernel(
-      const std::vector<std::pair<std::string, std::string>> &op_prebuild_patterns) {
+    const std::vector<std::pair<std::string, std::string>> &op_prebuild_patterns) {
   std::lock_guard<std::mutex> lock_guard(ops_kernel_manager_lock_);
   for (const auto &op_pattern_pair : op_prebuild_patterns) {
     OpKernelInfoPtr op_kernel_ptr;
@@ -252,4 +254,4 @@ OpKernelInfoPtr OpsKernelManager::GetHighPrioOpKernelInfoPtr(const string &op_ty
   FE_LOGW("Cannot find Op (type [%s]) in all ops information store libs.", op_type.c_str());
   return nullptr;
 }
-}
+}  // namespace fe

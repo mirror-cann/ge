@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,10 +35,7 @@ enum class InputVldType {
   VLD_NORMAL_MEAN_STDDEV = 0b11000
 };
 
-enum class DsaValueType {
-  DSA_DATA_VALUE = 0b1,
-  DSA_DATA_ADDR = 0b0
-};
+enum class DsaValueType { DSA_DATA_VALUE = 0b1, DSA_DATA_ADDR = 0b0 };
 
 class DsaTaskBuilder {
   struct DSAFlags {
@@ -110,37 +107,37 @@ class DsaTaskBuilder {
   const std::string stateless_uniform_ = "DSAStatelessRandomUniform";
   const std::map<std::string, DSAFlags> dsa_opname_values_ = {
       {truncated_normal_,
-      {DistributionType::DIS_TRUNCATED_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_TRUNCATED_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {normal_,
-      {DistributionType::DIS_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {bitmask_,
-      {DistributionType::DIS_BITMASK, InputVldType::VLD_BITMASK_DPT_RATIO, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_BITMASK, InputVldType::VLD_BITMASK_DPT_RATIO, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {uniform_,
-      {DistributionType::DIS_UNIFORM, InputVldType::VLD_UNIFORM_MIN_MAX, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_UNIFORM, InputVldType::VLD_UNIFORM_MIN_MAX, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {stateless_truncated_normal_,
-      {DistributionType::DIS_TRUNCATED_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_TRUNCATED_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {stateless_normal_,
-      {DistributionType::DIS_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_NORMAL, InputVldType::VLD_NORMAL_MEAN_STDDEV, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {stateless_bitmask_,
-      {DistributionType::DIS_BITMASK, InputVldType::VLD_BITMASK_DPT_RATIO, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_BITMASK, InputVldType::VLD_BITMASK_DPT_RATIO, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
       {stateless_uniform_,
-      {DistributionType::DIS_UNIFORM, InputVldType::VLD_UNIFORM_MIN_MAX, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
-      DsaValueType::DSA_DATA_ADDR}},
+       {DistributionType::DIS_UNIFORM, InputVldType::VLD_UNIFORM_MIN_MAX, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR, DsaValueType::DSA_DATA_ADDR,
+        DsaValueType::DSA_DATA_ADDR}},
   };
 
   const std::map<std::string, vector<uint32_t>> dsa_op_flags_idx_ = {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ ComputeGraphPtr BuildIdentityGraph() {
   };
   auto graph = ToComputeGraph(g1);
   auto data1 = graph->FindNode("data1");
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8,3,224,224}));
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8,3,224,224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8, 3, 224, 224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8, 3, 224, 224}));
   data1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(ge::FORMAT_NCHW);
@@ -67,8 +67,8 @@ ComputeGraphPtr BuildMemcpyAddrAsycnGraph() {
   };
   auto graph = ToComputeGraph(g1);
   auto data1 = graph->FindNode("data1");
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8,3,224,224}));
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8,3,224,224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8, 3, 224, 224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8, 3, 224, 224}));
   data1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(ge::FORMAT_NCHW);
@@ -89,13 +89,15 @@ ComputeGraphPtr BuildMemcpyAddrAsycnGraph() {
  */
 ComputeGraphPtr BuildIdentityNGraph() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")->EDGE(0,0)->NODE("identityn", "IdentityN")->EDGE(0,0)->NODE("NetOutput", "NetOutput"));
-    CHAIN(NODE("data2", "Data")->EDGE(0,1)->NODE("identityn", "IdentityN")->EDGE(1,0)->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data1", "Data")->EDGE(0, 0)->NODE("identityn", "IdentityN")->EDGE(0, 0)->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data2", "Data")->EDGE(0, 1)->NODE("identityn", "IdentityN")->EDGE(1, 0)->NODE("NetOutput", "NetOutput"));
   };
   auto graph = ToComputeGraph(g1);
   auto data1 = graph->FindNode("data1");
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8,3,224,224}));
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8,3,224,224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8, 3, 224, 224}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8, 3, 224, 224}));
   data1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(ge::FORMAT_NCHW);
@@ -105,8 +107,8 @@ ComputeGraphPtr BuildIdentityNGraph() {
   }
 
   auto data2 = graph->FindNode("data2");
-  data2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8,3,224,224}));
-  data2->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8,3,224,224}));
+  data2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({8, 3, 224, 224}));
+  data2->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({8, 3, 224, 224}));
   data2->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
   data2->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
   data2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(ge::FORMAT_NCHW);
@@ -116,12 +118,12 @@ ComputeGraphPtr BuildIdentityNGraph() {
   }
   return graph;
 }
-}
+}  // namespace
 
 TEST_F(IdentityConverterUt, ConvertIdentity_InputPlacementUnknown_Ok) {
   auto graph = BuildIdentityGraph();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-LoweringGlobalData lgd = GlobalDataFaker(root_model).Build();
+  LoweringGlobalData lgd = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(lgd);
   auto identity = graph->FindNode("identity");
 
@@ -142,12 +144,13 @@ LoweringGlobalData lgd = GlobalDataFaker(root_model).Build();
   FastNodeTopoChecker checker(ret.out_addrs[0]);
   // stream, allocator, src_addr, tensorsize, src_shape, datatype
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams", 0},
-                                                            {"SelectL2Allocator", 0},
-                                                            {"Data", 0},
-                                                            {"CalcTensorSizeFromShape", 0},
-                                                            {"Data", 0},
-                                                            {"Const", 0}}), true),
-"success");
+                                                                {"SelectL2Allocator", 0},
+                                                                {"Data", 0},
+                                                                {"CalcTensorSizeFromShape", 0},
+                                                                {"Data", 0},
+                                                                {"Const", 0}}),
+                                      true),
+            "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}})), "success");
 }
 
@@ -174,7 +177,9 @@ TEST_F(IdentityConverterUt, ConvertIdentity_InputPlacementDevice_Ok) {
 
   FastNodeTopoChecker checker(ret.out_addrs[0]);
   // src_addr, tensor_size, allocator, stream
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true),
+            "success");
 }
 
 TEST_F(IdentityConverterUt, ConvertIdentity_InputPlacementHost_Ok) {
@@ -233,12 +238,16 @@ TEST_F(IdentityConverterUt, ConvertIdentityN_InputPlacementAllDevice_Ok) {
 
   FastNodeTopoChecker checker(ret.out_addrs[0]);
   // src_addr, tensor_size, allocator, stream
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true),
+            "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"CopyD2D", 1}, {"FreeMemory", 0}})), "success");
 
   FastNodeTopoChecker checker_1(ret.out_addrs[1]);
   // makesure, tensor_size, allocator, stream
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true), "success");
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromShape", 0}}), true),
+            "success");
 }
 
 TEST_F(IdentityConverterUt, ConvertIdentityN_InputPlacementMix_UnknownAndHost_Ok) {
@@ -269,13 +278,15 @@ TEST_F(IdentityConverterUt, ConvertIdentityN_InputPlacementMix_UnknownAndHost_Ok
   FastNodeTopoChecker checker(ret.out_addrs[0]);
   // stream, allocator, src_addr, tensor_size, src_shape, datatype
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams", 0},
-                                                            {"SelectL2Allocator", 0},
-                                                            {"Data", 0},
-                                                            {"CalcTensorSizeFromShape", 0},
-                                                            {"Data", 0},
-                                                            {"Const", 0}}), true), "success");
+                                                                {"SelectL2Allocator", 0},
+                                                                {"Data", 0},
+                                                                {"CalcTensorSizeFromShape", 0},
+                                                                {"Data", 0},
+                                                                {"Const", 0}}),
+                                      true),
+            "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}})), "success");
-  
+
   FastNodeTopoChecker checker_1(ret.out_addrs[1]);
   // src_addr, src_shape, datatype
   EXPECT_EQ(checker_1.StrictConnectFrom(

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,45 +17,27 @@
 
 namespace ge {
 const std::map<Format, std::vector<std::string>> FORMAT_MAP = {
-  {Format::FORMAT_NCHW, {"N", "C", "H", "W"}},
-  {Format::FORMAT_NHWC, {"N", "H", "W", "C"}},
-  {Format::FORMAT_CHWN, {"C", "H", "W", "N"}},
-  {Format::FORMAT_HWCN, {"H", "W", "C", "N"}},
-  {Format::FORMAT_NC1HWC0, {"N", "C1", "H", "W", "C0"}},
-  {Format::FORMAT_NC1HWC0_C04, {"N", "C1", "H", "W", "C0"}},
-  {Format::FORMAT_NCDHW, {"N", "C", "D", "H", "W"}},
-  {Format::FORMAT_NDHWC, {"N", "D", "H", "W", "C"}},
-  {Format::FORMAT_DHWCN, {"D", "H", "W", "C", "N"}},
-  {Format::FORMAT_DHWNC, {"D", "H", "W", "N", "C"}},
-  {Format::FORMAT_NDC1HWC0, {"N", "D", "C1", "H", "W", "C0"}}
-};
-const std::set<Format> FORMAT_4D_SET = {
-  Format::FORMAT_NCHW,
-  Format::FORMAT_NHWC,
-  Format::FORMAT_CHWN,
-  Format::FORMAT_HWCN
-};
-const std::set<Format> FORMAT_5D_SET = {
-  Format::FORMAT_NCDHW,
-  Format::FORMAT_NDHWC,
-  Format::FORMAT_DHWCN,
-  Format::FORMAT_DHWNC
-};
+    {Format::FORMAT_NCHW, {"N", "C", "H", "W"}},
+    {Format::FORMAT_NHWC, {"N", "H", "W", "C"}},
+    {Format::FORMAT_CHWN, {"C", "H", "W", "N"}},
+    {Format::FORMAT_HWCN, {"H", "W", "C", "N"}},
+    {Format::FORMAT_NC1HWC0, {"N", "C1", "H", "W", "C0"}},
+    {Format::FORMAT_NC1HWC0_C04, {"N", "C1", "H", "W", "C0"}},
+    {Format::FORMAT_NCDHW, {"N", "C", "D", "H", "W"}},
+    {Format::FORMAT_NDHWC, {"N", "D", "H", "W", "C"}},
+    {Format::FORMAT_DHWCN, {"D", "H", "W", "C", "N"}},
+    {Format::FORMAT_DHWNC, {"D", "H", "W", "N", "C"}},
+    {Format::FORMAT_NDC1HWC0, {"N", "D", "C1", "H", "W", "C0"}}};
+const std::set<Format> FORMAT_4D_SET = {Format::FORMAT_NCHW, Format::FORMAT_NHWC, Format::FORMAT_CHWN,
+                                        Format::FORMAT_HWCN};
+const std::set<Format> FORMAT_5D_SET = {Format::FORMAT_NCDHW, Format::FORMAT_NDHWC, Format::FORMAT_DHWCN,
+                                        Format::FORMAT_DHWNC};
 const std::map<Format, std::string> FORMAT_MAP_STR = {
-  {Format::FORMAT_NCHW, "NCHW"},
-  {Format::FORMAT_NHWC, "NHWC"},
-  {Format::FORMAT_CHWN, "CHWN"},
-  {Format::FORMAT_HWCN, "HWCN"},
-  {Format::FORMAT_NC1HWC0, "NC1HWC0"},
-  {Format::FORMAT_NC1HWC0_C04, "NC1HWC0"},
-  {Format::FORMAT_NCHW, "NCHW"},
-  {Format::FORMAT_NCDHW, "NCDHW"},
-  {Format::FORMAT_NDHWC, "NDHWC"},
-  {Format::FORMAT_DHWCN, "DHWCN"},
-  {Format::FORMAT_DHWNC, "DHWNC"},
-  {Format::FORMAT_NDC1HWC0, "NDC1HWC0"},
-  {Format::FORMAT_FRACTAL_NZ, "NZ"},
-  {Format::FORMAT_ND, "ND"},
+    {Format::FORMAT_NCHW, "NCHW"},     {Format::FORMAT_NHWC, "NHWC"},       {Format::FORMAT_CHWN, "CHWN"},
+    {Format::FORMAT_HWCN, "HWCN"},     {Format::FORMAT_NC1HWC0, "NC1HWC0"}, {Format::FORMAT_NC1HWC0_C04, "NC1HWC0"},
+    {Format::FORMAT_NCHW, "NCHW"},     {Format::FORMAT_NCDHW, "NCDHW"},     {Format::FORMAT_NDHWC, "NDHWC"},
+    {Format::FORMAT_DHWCN, "DHWCN"},   {Format::FORMAT_DHWNC, "DHWNC"},     {Format::FORMAT_NDC1HWC0, "NDC1HWC0"},
+    {Format::FORMAT_FRACTAL_NZ, "NZ"}, {Format::FORMAT_ND, "ND"},
 };
 constexpr int64_t AXIS_INDEX_1 = 1;
 constexpr int64_t AXIS_INDEX_2 = 2;
@@ -69,8 +51,7 @@ constexpr size_t DIM_NUM_5 = 5;
 constexpr size_t MAX_TYPE_SIZE = 2;
 constexpr size_t RANGE_NUM_SIZE = 2;
 
-void DataSliceAdapter::PrintAxisItem(const AxisTypeInfo &axis_type, bool print_ori, std::stringstream &ss)
-{
+void DataSliceAdapter::PrintAxisItem(const AxisTypeInfo &axis_type, bool print_ori, std::stringstream &ss) {
   ss << "{type:" << static_cast<int>(axis_type.GetAxisType());
   ss << ",relate_inputs:[";
   for (const auto &relate_input : axis_type.GetRelateInputs()) {
@@ -112,8 +93,7 @@ void DataSliceAdapter::PrintAxisItem(const AxisTypeInfo &axis_type, bool print_o
 }
 
 void DataSliceAdapter::PrintAxis(const OpDescPtr &op, const std::vector<AxisTypeInfo> &axis_type_vec,
-    const std::string &type, bool print_ori)
-{
+                                 const std::string &type, bool print_ori) {
   if (!IsLogEnable(GE, DLOG_DEBUG)) {
     return;
   }
@@ -126,9 +106,8 @@ void DataSliceAdapter::PrintAxis(const OpDescPtr &op, const std::vector<AxisType
   GELOGD("%s", ss.str().c_str());
 }
 
-void DataSliceAdapter::PrintSlice(const OpDescPtr &op, const DataSliceType &slice_info,
-    const std::string &tensor_type, const std::string &tag)
-{
+void DataSliceAdapter::PrintSlice(const OpDescPtr &op, const DataSliceType &slice_info, const std::string &tensor_type,
+                                  const std::string &tag) {
   if (!IsLogEnable(GE, DLOG_DEBUG)) {
     return;
   }
@@ -148,8 +127,7 @@ void DataSliceAdapter::PrintSlice(const OpDescPtr &op, const DataSliceType &slic
   GELOGD("%s", ss.str().c_str());
 }
 
-void DataSliceAdapter::PrintOp(const OpDescPtr &op)
-{
+void DataSliceAdapter::PrintOp(const OpDescPtr &op) {
   if (!IsLogEnable(GE, DLOG_DEBUG)) {
     return;
   }
@@ -160,8 +138,7 @@ void DataSliceAdapter::PrintOp(const OpDescPtr &op)
   GELOGD("OpName[%s] output:%s", op->GetName().c_str(), output_str.c_str());
 }
 
-std::string DataSliceAdapter::GetTensorStr(const OpDesc::Vistor<ge::GeTensorDescPtr> all_tensor_desc)
-{
+std::string DataSliceAdapter::GetTensorStr(const OpDesc::Vistor<ge::GeTensorDescPtr> all_tensor_desc) {
   std::stringstream ss;
   for (const auto &tensor : all_tensor_desc) {
     const Format ori_format = tensor->GetOriginFormat();
@@ -176,19 +153,18 @@ std::string DataSliceAdapter::GetTensorStr(const OpDesc::Vistor<ge::GeTensorDesc
     }
     if (iter_ori == FORMAT_MAP_STR.cend() || iter == FORMAT_MAP_STR.cend()) {
       ss << "ori_fomat:" << ori_format << ",ori_shape:" << ori_shape.ToString();
-      ss << ",fomat:" << format << ",shape:" << shape.ToString();
+      ss << ",format:" << format << ",shape:" << shape.ToString();
       ss << ",reshape_type:" << (reshape_type == nullptr ? "" : *reshape_type) << ";";
       continue;
     }
     ss << "ori_fomat:" << iter_ori->second << ",ori_shape:" << ori_shape.ToString();
-    ss << ",fomat:" << iter->second << ",shape:" << shape.ToString();
+    ss << ",format:" << iter->second << ",shape:" << shape.ToString();
     ss << ",reshape_type:" << (reshape_type == nullptr ? "" : *reshape_type) << ";";
   }
   return ss.str();
 }
 
-AxisTypeInfo DataSliceAdapter::GetTmpAxisTypeInfo(const AxisTypeInfo &slice_info)
-{
+AxisTypeInfo DataSliceAdapter::GetTmpAxisTypeInfo(const AxisTypeInfo &slice_info) {
   AxisTypeInfo axis_type_info = slice_info;
   axis_type_info.SetRelateInputs(slice_info.GetOriRelateInputs());
   axis_type_info.SetRelateOutputs(slice_info.GetOriRelateOutputs());
@@ -196,8 +172,7 @@ AxisTypeInfo DataSliceAdapter::GetTmpAxisTypeInfo(const AxisTypeInfo &slice_info
 }
 
 Status DataSliceAdapter::GetOriOutputSlice(const OpDescPtr &op, const AxisTypeInfo &slice_info,
-    DataSliceType &ori_output_slice)
-{
+                                           DataSliceType &ori_output_slice) {
   DataSliceType output_slice;
   for (const auto &tensor_slice : slice_info.GetRelateOutputs()) {
     GeTensorDesc tensor_desc = op->GetOutputDesc(tensor_slice.first);
@@ -215,8 +190,7 @@ Status DataSliceAdapter::GetOriOutputSlice(const OpDescPtr &op, const AxisTypeIn
 }
 
 Status DataSliceAdapter::GetCurInputSlice(const OpDescPtr &op, const AxisTypeInfo &slice_info,
-    const DataSliceType &ori_input_slice, DataSliceType &cur_input_slice)
-{
+                                          const DataSliceType &ori_input_slice, DataSliceType &cur_input_slice) {
   PrintSlice(op, ori_input_slice, "input", "origin");
   if (TransSliceInfo(op, slice_info, TransType::ORI_TO_CUR, ori_input_slice, cur_input_slice) != SUCCESS) {
     GELOGE(FAILED, "Failed to trans slice info from cur to ori, op_name = %s", op->GetName().c_str());
@@ -226,8 +200,7 @@ Status DataSliceAdapter::GetCurInputSlice(const OpDescPtr &op, const AxisTypeInf
   return SUCCESS;
 }
 
-bool DataSliceAdapter::CheckOriInfo(const OpDescPtr &op)
-{
+bool DataSliceAdapter::CheckOriInfo(const OpDescPtr &op) {
   for (size_t idx = 0; idx < op->GetAllInputsDescPtr().size(); idx++) {
     auto cur_tensor = op->MutableInputDesc(idx);
     if (cur_tensor == nullptr) {
@@ -257,10 +230,8 @@ bool DataSliceAdapter::CheckOriInfo(const OpDescPtr &op)
   return true;
 }
 
-void DataSliceAdapter::SetOriOpInfo(OpDescPtr &op,
-    std::vector<std::pair<Format, GeShape>> &cache_input_info,
-    std::vector<std::pair<Format, GeShape>> &cache_output_info)
-{
+void DataSliceAdapter::SetOriOpInfo(OpDescPtr &op, std::vector<std::pair<Format, GeShape>> &cache_input_info,
+                                    std::vector<std::pair<Format, GeShape>> &cache_output_info) {
   uint32_t input_size = static_cast<uint32_t>(op->GetAllInputsDescPtr().size());
   for (uint32_t idx = 0; idx < input_size; idx++) {
     auto cur_tensor = op->MutableInputDesc(idx);
@@ -268,8 +239,7 @@ void DataSliceAdapter::SetOriOpInfo(OpDescPtr &op,
       GELOGW("op_name = %s, input_tensor[%u] is nullptr", op->GetName().c_str(), idx);
       continue;
     }
-    cache_input_info.emplace_back(static_cast<Format>(cur_tensor->GetFormat()),
-                                  cur_tensor->GetShape());
+    cache_input_info.emplace_back(static_cast<Format>(cur_tensor->GetFormat()), cur_tensor->GetShape());
     cur_tensor->SetFormat(cur_tensor->GetOriginFormat());
     cur_tensor->SetShape(cur_tensor->GetOriginShape());
   }
@@ -280,17 +250,14 @@ void DataSliceAdapter::SetOriOpInfo(OpDescPtr &op,
       GELOGW("op_name = %s, output_tensor[%u] is nullptr", op->GetName().c_str(), idx);
       continue;
     }
-    cache_output_info.emplace_back(static_cast<Format>(cur_tensor->GetFormat()),
-                                   cur_tensor->GetShape());
+    cache_output_info.emplace_back(static_cast<Format>(cur_tensor->GetFormat()), cur_tensor->GetShape());
     cur_tensor->SetFormat(cur_tensor->GetOriginFormat());
     cur_tensor->SetShape(cur_tensor->GetOriginShape());
   }
 }
 
-void DataSliceAdapter::SetCurOpInfo(OpDescPtr &op,
-    const std::vector<std::pair<Format, GeShape>> &cache_input_info,
-    const std::vector<std::pair<Format, GeShape>> &cache_output_info)
-{
+void DataSliceAdapter::SetCurOpInfo(OpDescPtr &op, const std::vector<std::pair<Format, GeShape>> &cache_input_info,
+                                    const std::vector<std::pair<Format, GeShape>> &cache_output_info) {
   size_t item_idx = 0;
   uint32_t input_size = static_cast<uint32_t>(op->GetAllInputsDescPtr().size());
   for (uint32_t idx = 0; idx < input_size; idx++) {
@@ -317,8 +284,7 @@ void DataSliceAdapter::SetCurOpInfo(OpDescPtr &op,
   }
 }
 
-std::vector<int64_t> DataSliceAdapter::TransAxisToNZ(const GeTensorDescPtr &tensor, int64_t axis)
-{
+std::vector<int64_t> DataSliceAdapter::TransAxisToNZ(const GeTensorDescPtr &tensor, int64_t axis) {
   const auto ori_shape = tensor->GetOriginShape();
   const int64_t rank = static_cast<int64_t>(ori_shape.GetDims().size());
   std::vector<int64_t> axis_vec;
@@ -334,9 +300,8 @@ std::vector<int64_t> DataSliceAdapter::TransAxisToNZ(const GeTensorDescPtr &tens
   return axis_vec;
 }
 
-bool DataSliceAdapter::CheckReshape(const GeTensorDescPtr &tensor, const std::string &reshape_type,
-    int64_t axis, int64_t &format_match_axis)
-{
+bool DataSliceAdapter::CheckReshape(const GeTensorDescPtr &tensor, const std::string &reshape_type, int64_t axis,
+                                    int64_t &format_match_axis) {
   if (axis >= static_cast<int64_t>(reshape_type.size())) {
     GELOGW("The axis [%ld] >= reshape_type size [%zu]", axis, reshape_type.size());
     return false;
@@ -349,8 +314,7 @@ bool DataSliceAdapter::CheckReshape(const GeTensorDescPtr &tensor, const std::st
   return true;
 }
 
-bool DataSliceAdapter::CheckRank(size_t rank, size_t dim_num, const std::string &reshape_type)
-{
+bool DataSliceAdapter::CheckRank(size_t rank, size_t dim_num, const std::string &reshape_type) {
   if (rank > dim_num) {
     return false;
   } else if (rank < dim_num && rank != reshape_type.size()) {
@@ -360,8 +324,7 @@ bool DataSliceAdapter::CheckRank(size_t rank, size_t dim_num, const std::string 
 }
 
 std::vector<int64_t> DataSliceAdapter::TransAxisForSplit(const GeTensorDescPtr &tensor, const int64_t axis,
-    size_t dim_num)
-{
+                                                         size_t dim_num) {
   const auto ori_shape = tensor->GetOriginShape();
   const size_t rank = ori_shape.GetDims().size();
   std::string reshape_type;
@@ -384,7 +347,7 @@ std::vector<int64_t> DataSliceAdapter::TransAxisForSplit(const GeTensorDescPtr &
   auto iter_dst = FORMAT_MAP.find(format);
   if (iter == FORMAT_MAP.cend() || iter_dst == FORMAT_MAP.cend()) {
     GELOGW("Cannot find ori_format[%d] or format[%d] in FORMAT_MAP", static_cast<int>(ori_format),
-        static_cast<int>(format));
+           static_cast<int>(format));
     return axis_vec;
   }
 
@@ -407,8 +370,7 @@ std::vector<int64_t> DataSliceAdapter::TransAxisForSplit(const GeTensorDescPtr &
 }
 
 std::vector<int64_t> DataSliceAdapter::TransAxisForNoSplit(const GeTensorDescPtr &tensor, const int64_t axis,
-    size_t dim_num)
-{
+                                                           size_t dim_num) {
   const auto ori_shape = tensor->GetOriginShape();
   const size_t rank = ori_shape.GetDims().size();
   std::vector<int64_t> axis_vec;
@@ -439,14 +401,12 @@ std::vector<int64_t> DataSliceAdapter::TransAxisForNoSplit(const GeTensorDescPtr
   return axis_vec;
 }
 
-bool DataSliceAdapter::IsFormatInSet(const Format format, const std::set<Format> &format_set)
-{
+bool DataSliceAdapter::IsFormatInSet(const Format format, const std::set<Format> &format_set) {
   auto iter = format_set.find(format);
   return iter != format_set.cend();
 }
 
-std::vector<int64_t> DataSliceAdapter::TransAxis(const GeTensorDescPtr &tensor, int64_t ori_axis)
-{
+std::vector<int64_t> DataSliceAdapter::TransAxis(const GeTensorDescPtr &tensor, int64_t ori_axis) {
   std::vector<int64_t> axis_vec;
   auto ori_format = tensor->GetOriginFormat();
   auto format = static_cast<Format>(GetPrimaryFormat(tensor->GetFormat()));
@@ -467,8 +427,7 @@ std::vector<int64_t> DataSliceAdapter::TransAxis(const GeTensorDescPtr &tensor, 
   return axis_vec;
 }
 
-Status DataSliceAdapter::FixAxisTypeInfoToOne(AxisTypeInfo &axis_type_info)
-{
+Status DataSliceAdapter::FixAxisTypeInfoToOne(AxisTypeInfo &axis_type_info) {
   size_t count = 0;
   std::vector<CutInfo> input_cut_info_vec = axis_type_info.GetRelateInputs();
   for (const auto &item : input_cut_info_vec) {
@@ -508,8 +467,7 @@ Status DataSliceAdapter::FixAxisTypeInfoToOne(AxisTypeInfo &axis_type_info)
 }
 
 Status DataSliceAdapter::TransAxisForInputTensor(const OpDescPtr &op, const std::string &axis_type_str,
-    AxisTypeInfo &axis_type_info)
-{
+                                                 AxisTypeInfo &axis_type_info) {
   std::vector<CutInfo> tmp_relate_puts;
   for (const auto &item : axis_type_info.GetRelateInputs()) {
     std::vector<int64_t> trans_axis_list;
@@ -526,8 +484,8 @@ Status DataSliceAdapter::TransAxisForInputTensor(const OpDescPtr &op, const std:
         return FAILED;
       }
       if (axis_vec.empty()) {
-        GELOGW("TransAxis failed: op_name = %s, input_tensor[%ld], ori_axis[%ld]",
-            op->GetName().c_str(), item.first, axis);
+        GELOGW("TransAxis failed: op_name = %s, input_tensor[%ld], ori_axis[%ld]", op->GetName().c_str(), item.first,
+               axis);
         return FAILED;
       }
       trans_axis_list.insert(trans_axis_list.cend(), axis_vec.cbegin(), axis_vec.cend());
@@ -539,8 +497,7 @@ Status DataSliceAdapter::TransAxisForInputTensor(const OpDescPtr &op, const std:
 }
 
 Status DataSliceAdapter::TransAxisForOutputTensor(const OpDescPtr &op, const std::string &axis_type_str,
-    AxisTypeInfo &axis_type_info)
-{
+                                                  AxisTypeInfo &axis_type_info) {
   std::vector<CutInfo> tmp_relate_puts;
   for (const auto &item : axis_type_info.GetRelateOutputs()) {
     std::vector<int64_t> trans_axis_list;
@@ -557,8 +514,8 @@ Status DataSliceAdapter::TransAxisForOutputTensor(const OpDescPtr &op, const std
         return FAILED;
       }
       if (axis_vec.empty()) {
-        GELOGW("TransAxis failed: op_name = %s, output_tensor[%ld], ori_axis[%ld]",
-            op->GetName().c_str(), item.first, axis);
+        GELOGW("TransAxis failed: op_name = %s, output_tensor[%ld], ori_axis[%ld]", op->GetName().c_str(), item.first,
+               axis);
         return FAILED;
       }
       trans_axis_list.insert(trans_axis_list.cend(), axis_vec.cbegin(), axis_vec.cend());
@@ -570,8 +527,7 @@ Status DataSliceAdapter::TransAxisForOutputTensor(const OpDescPtr &op, const std
 }
 
 Status DataSliceAdapter::TransByAxisTypeStr(const OpDescPtr &op, const std::string &axis_type_str,
-    AxisTypeInfo &axis_type_info)
-{
+                                            AxisTypeInfo &axis_type_info) {
   if (TransAxisForInputTensor(op, axis_type_str, axis_type_info) != SUCCESS) {
     GELOGW("Failed to trans axis type for input tensor.");
     return FAILED;
@@ -588,31 +544,26 @@ Status DataSliceAdapter::TransByAxisTypeStr(const OpDescPtr &op, const std::stri
   return SUCCESS;
 }
 
-void DataSliceAdapter::BackupOriAxisTypeInfo(AxisTypeInfo &axis_type_info)
-{
+void DataSliceAdapter::BackupOriAxisTypeInfo(AxisTypeInfo &axis_type_info) {
   axis_type_info.SetOriRelateInputs(axis_type_info.GetRelateInputs());
   axis_type_info.SetOriRelateOutputs(axis_type_info.GetRelateOutputs());
 }
 
-void DataSliceAdapter::ResetOriAxisTypeInfo(AxisTypeInfo &axis_type_info)
-{
+void DataSliceAdapter::ResetOriAxisTypeInfo(AxisTypeInfo &axis_type_info) {
   std::vector<CutInfo> relat_inputs;
   std::vector<CutInfo> relat_outputs;
   axis_type_info.SetOriRelateInputs(relat_inputs);
   axis_type_info.SetOriRelateOutputs(relat_outputs);
 }
 
-bool DataSliceAdapter::ValidateRelateInputOutput(const AxisTypeInfo &axis_type_info)
-{
+bool DataSliceAdapter::ValidateRelateInputOutput(const AxisTypeInfo &axis_type_info) {
   if (axis_type_info.GetRelateInputs().size() > 0 && axis_type_info.GetRelateOutputs().size() > 0) {
     return true;
   }
   return false;
 }
 
-Status DataSliceAdapter::TransAxisByType(const AxisType axis_type, const OpDescPtr &op,
-    AxisTypeInfo &axis_type_info)
-{
+Status DataSliceAdapter::TransAxisByType(const AxisType axis_type, const OpDescPtr &op, AxisTypeInfo &axis_type_info) {
   if (!ValidateRelateInputOutput(axis_type_info)) {
     GELOGW("ValidateRelateInputOutput failed");
     return FAILED;
@@ -647,8 +598,7 @@ Status DataSliceAdapter::TransAxisByType(const AxisType axis_type, const OpDescP
   return ret;
 }
 
-AxisType DataSliceAdapter::GetAxisTypeForTransAxis(const AxisTypeInfo &axis_type_info)
-{
+AxisType DataSliceAdapter::GetAxisTypeForTransAxis(const AxisTypeInfo &axis_type_info) {
   const std::vector<AxisType> tmp_vec = axis_type_info.GetAxisTypes();
   std::set<AxisType> tmp_set(tmp_vec.begin(), tmp_vec.end());
   if (tmp_set.size() > MAX_TYPE_SIZE) {
@@ -666,8 +616,7 @@ AxisType DataSliceAdapter::GetAxisTypeForTransAxis(const AxisTypeInfo &axis_type
   return axis_type_info.GetAxisType();
 }
 
-void DataSliceAdapter::TransAxisInfo(const OpDescPtr &op, std::vector<AxisTypeInfo> &axis_type_vec)
-{
+void DataSliceAdapter::TransAxisInfo(const OpDescPtr &op, std::vector<AxisTypeInfo> &axis_type_vec) {
   for (auto iter = axis_type_vec.begin(); iter != axis_type_vec.end();) {
     AxisType axis_type = GetAxisTypeForTransAxis(*iter);
     if (TransAxisByType(axis_type, op, *iter) == SUCCESS) {
@@ -679,9 +628,7 @@ void DataSliceAdapter::TransAxisInfo(const OpDescPtr &op, std::vector<AxisTypeIn
   }
 }
 
-int64_t DataSliceAdapter::SearchOriAxis(const std::vector<CutInfo> &ori_relate, int64_t tensor_idx,
-    int64_t axis_idx)
-{
+int64_t DataSliceAdapter::SearchOriAxis(const std::vector<CutInfo> &ori_relate, int64_t tensor_idx, int64_t axis_idx) {
   for (const auto &item : ori_relate) {
     if (item.first == tensor_idx) {
       if (axis_idx < static_cast<int64_t>(item.second.size())) {
@@ -692,14 +639,12 @@ int64_t DataSliceAdapter::SearchOriAxis(const std::vector<CutInfo> &ori_relate, 
   return -1;
 }
 
-bool DataSliceAdapter::ValidateAxisIndex(int64_t from_axis,
-    const std::vector<std::vector<int64_t>> &slice_info,
-    int64_t to_axis, const std::vector<std::vector<int64_t>> &cur_tensor_range)
-{
-  if (from_axis >= static_cast<int64_t>(slice_info.size()) || 
-    to_axis >= static_cast<int64_t>(cur_tensor_range.size())) {
-    GELOGE(FAILED, "from_axis:%ld,slice_info_size:%zu,to_axis:%ld, cur_tensor_range_size:%zu",
-        from_axis, slice_info.size(), to_axis, cur_tensor_range.size());
+bool DataSliceAdapter::ValidateAxisIndex(int64_t from_axis, const std::vector<std::vector<int64_t>> &slice_info,
+                                         int64_t to_axis, const std::vector<std::vector<int64_t>> &cur_tensor_range) {
+  if (from_axis >= static_cast<int64_t>(slice_info.size()) ||
+      to_axis >= static_cast<int64_t>(cur_tensor_range.size())) {
+    GELOGE(FAILED, "from_axis:%ld,slice_info_size:%zu,to_axis:%ld, cur_tensor_range_size:%zu", from_axis,
+           slice_info.size(), to_axis, cur_tensor_range.size());
     return false;
   }
   if (slice_info[from_axis].size() != RANGE_NUM_SIZE) {
@@ -710,13 +655,13 @@ bool DataSliceAdapter::ValidateAxisIndex(int64_t from_axis,
 }
 
 Status DataSliceAdapter::TransSliceInfoToOriForElement(const OpDescPtr &op, const AxisTypeInfo &axis_type_info,
-    const DataSliceType &slice_info_list, DataSliceType &ori_slice_info_list)
-{
+                                                       const DataSliceType &slice_info_list,
+                                                       DataSliceType &ori_slice_info_list) {
   const std::vector<CutInfo> ori_relate_outputs = axis_type_info.GetOriRelateOutputs();
   const std::vector<CutInfo> relate_outputs = axis_type_info.GetRelateOutputs();
   if (ori_relate_outputs.size() == 0 || relate_outputs.size() != slice_info_list.size()) {
     GELOGW("op_name = %s, ori_relate_outputs_size[%zu], relate_outputs_size[%zu], slice_info_list_size[%zu]",
-        op->GetName().c_str(), ori_relate_outputs.size(), relate_outputs.size(), slice_info_list.size());
+           op->GetName().c_str(), ori_relate_outputs.size(), relate_outputs.size(), slice_info_list.size());
     return FAILED;
   }
   for (size_t index = 0; index < relate_outputs.size(); index++) {
@@ -735,7 +680,7 @@ Status DataSliceAdapter::TransSliceInfoToOriForElement(const OpDescPtr &op, cons
       const int64_t ori_axis = SearchOriAxis(ori_relate_outputs, tensor_idx, idx);
       if (ori_axis < 0) {
         GELOGW("op_name = %s, get_ori_axis for output_tensor[%ld] axis[%ld] return ori_axis [-1]",
-            op->GetName().c_str(), tensor_idx, idx);
+               op->GetName().c_str(), tensor_idx, idx);
         return FAILED;
       }
       const int64_t cur_axis = axis_vec[idx];
@@ -744,8 +689,8 @@ Status DataSliceAdapter::TransSliceInfoToOriForElement(const OpDescPtr &op, cons
       }
       const std::vector<int64_t> transed_axis_list = TransAxis(output_tensor, ori_axis);
       if (transed_axis_list.size() == 0) {
-        GELOGW("op_name = %s, TransAxis failed for output_tensor[%ld] ori_axis[%ld]",
-            op->GetName().c_str(), tensor_idx, ori_axis);
+        GELOGW("op_name = %s, TransAxis failed for output_tensor[%ld] ori_axis[%ld]", op->GetName().c_str(), tensor_idx,
+               ori_axis);
         return FAILED;
       }
       GeShape cur_shape = output_tensor->GetShape();
@@ -758,7 +703,7 @@ Status DataSliceAdapter::TransSliceInfoToOriForElement(const OpDescPtr &op, cons
       std::vector<int64_t> &ori_slice_piece = cur_tensor_range[ori_axis];
       ori_slice_piece[0] = ori_slice_piece[0] * prod_rest_axis;
       ori_slice_piece[1] = ori_slice_piece[1] * prod_rest_axis + prod_rest_axis - 1;
-      ori_slice_piece[1] = std::min(ori_slice_piece[1], ori_shape.GetDim(ori_axis) -1);
+      ori_slice_piece[1] = std::min(ori_slice_piece[1], ori_shape.GetDim(ori_axis) - 1);
     }
     ori_slice_info_list.emplace_back(cur_tensor_range);
   }
@@ -766,13 +711,13 @@ Status DataSliceAdapter::TransSliceInfoToOriForElement(const OpDescPtr &op, cons
 }
 
 Status DataSliceAdapter::TransSliceInfoToCurForElement(const OpDescPtr &op, const AxisTypeInfo &axis_type_info,
-    const DataSliceType &slice_info_list, DataSliceType &cur_slice_info_list)
-{
+                                                       const DataSliceType &slice_info_list,
+                                                       DataSliceType &cur_slice_info_list) {
   const std::vector<CutInfo> ori_relate_inputs = axis_type_info.GetOriRelateInputs();
   const std::vector<CutInfo> relate_inputs = axis_type_info.GetRelateInputs();
   if (ori_relate_inputs.size() == 0 || relate_inputs.size() != slice_info_list.size()) {
     GELOGW("op_name = %s, ori_relate_inputs_size[%zu], relate_inputs_size[%zu], slice_info_list_size[%zu]",
-        op->GetName().c_str(), ori_relate_inputs.size(), relate_inputs.size(), slice_info_list.size());
+           op->GetName().c_str(), ori_relate_inputs.size(), relate_inputs.size(), slice_info_list.size());
     return FAILED;
   }
   for (size_t index = 0; index < relate_inputs.size(); index++) {
@@ -790,8 +735,8 @@ Status DataSliceAdapter::TransSliceInfoToCurForElement(const OpDescPtr &op, cons
     for (size_t idx = 0; idx < axis_vec.size(); idx++) {
       const int64_t ori_axis = SearchOriAxis(ori_relate_inputs, tensor_idx, idx);
       if (ori_axis < 0) {
-        GELOGW("op_name = %s, get_ori_axis for input_tensor[%ld] axis[%ld] return ori_axis [-1]",
-            op->GetName().c_str(), tensor_idx, idx);
+        GELOGW("op_name = %s, get_ori_axis for input_tensor[%ld] axis[%ld] return ori_axis [-1]", op->GetName().c_str(),
+               tensor_idx, idx);
         return FAILED;
       }
       const int64_t cur_axis = axis_vec[idx];
@@ -800,8 +745,8 @@ Status DataSliceAdapter::TransSliceInfoToCurForElement(const OpDescPtr &op, cons
       }
       const std::vector<int64_t> transed_axis_list = TransAxis(input_tensor, ori_axis);
       if (transed_axis_list.size() == 0) {
-        GELOGW("op_name = %s, TransAxis failed for input_tensor[%ld] ori_axis[%ld]",
-            op->GetName().c_str(), tensor_idx, ori_axis);
+        GELOGW("op_name = %s, TransAxis failed for input_tensor[%ld] ori_axis[%ld]", op->GetName().c_str(), tensor_idx,
+               ori_axis);
         return FAILED;
       }
 
@@ -819,8 +764,7 @@ Status DataSliceAdapter::TransSliceInfoToCurForElement(const OpDescPtr &op, cons
   return SUCCESS;
 }
 
-AxisType DataSliceAdapter::GetAxisTypeForTransSlice(const AxisTypeInfo &axis_type_info)
-{
+AxisType DataSliceAdapter::GetAxisTypeForTransSlice(const AxisTypeInfo &axis_type_info) {
   const std::vector<AxisType> tmp_vec = axis_type_info.GetAxisTypes();
   std::set<AxisType> tmp_set(tmp_vec.begin(), tmp_vec.end());
   if (tmp_set.size() >= MAX_TYPE_SIZE) {
@@ -832,9 +776,8 @@ AxisType DataSliceAdapter::GetAxisTypeForTransSlice(const AxisTypeInfo &axis_typ
   return axis_type_info.GetAxisType();
 }
 
-Status DataSliceAdapter::TransSliceInfo(const OpDescPtr &op, const AxisTypeInfo &axis_type_info,
-    TransType trans_type, const DataSliceType &slice_info_list, DataSliceType &out_slice_info_list)
-{
+Status DataSliceAdapter::TransSliceInfo(const OpDescPtr &op, const AxisTypeInfo &axis_type_info, TransType trans_type,
+                                        const DataSliceType &slice_info_list, DataSliceType &out_slice_info_list) {
   const AxisType axis_type = GetAxisTypeForTransSlice(axis_type_info);
   Status ret = SUCCESS;
   switch (axis_type) {
@@ -856,10 +799,10 @@ Status DataSliceAdapter::TransSliceInfo(const OpDescPtr &op, const AxisTypeInfo 
       GELOGI("op_name[%s], axis_type[%d], keep slice info.", op->GetName().c_str(), static_cast<int>(axis_type));
       break;
     default:
-      GELOGW("op_name[%s], unsupport axis_type[%d]", op->GetName().c_str(), static_cast<int>(axis_type));
+      GELOGW("op_name[%s], unsupported axis_type[%d]", op->GetName().c_str(), static_cast<int>(axis_type));
       ret = FAILED;
       break;
   }
   return ret;
 }
-}
+}  // namespace ge

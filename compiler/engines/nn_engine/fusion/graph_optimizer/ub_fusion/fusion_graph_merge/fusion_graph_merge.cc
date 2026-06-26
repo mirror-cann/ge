@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,10 +62,10 @@ void PrintTensorSliceInfo(const std::vector<std::vector<std::vector<ffts::DimRan
 
 void PrintSliceInfo(const ffts::ThreadSliceMap &obj) {
   FE_LOGD("Print op slice info for op %s.", obj.original_node.c_str());
-  FE_LOGD("%u %u %u %zu %zu %zu %zu %zu %zu %zu %zu", obj.thread_scope_id, obj.slice_instance_num,
-          obj.thread_mode, obj.ori_input_tensor_shape.size(), obj.ori_output_tensor_shape.size(),
-          obj.input_tensor_slice.size(), obj.output_tensor_slice.size(), obj.ori_input_tensor_slice.size(),
-          obj.ori_output_tensor_slice.size(), obj.input_tensor_indexes.size(), obj.output_tensor_indexes.size());
+  FE_LOGD("%u %u %u %zu %zu %zu %zu %zu %zu %zu %zu", obj.thread_scope_id, obj.slice_instance_num, obj.thread_mode,
+          obj.ori_input_tensor_shape.size(), obj.ori_output_tensor_shape.size(), obj.input_tensor_slice.size(),
+          obj.output_tensor_slice.size(), obj.ori_input_tensor_slice.size(), obj.ori_output_tensor_slice.size(),
+          obj.input_tensor_indexes.size(), obj.output_tensor_indexes.size());
   FE_LOGD("ori_input_tensor_shape:");
   for (size_t i = 0; i < obj.ori_input_tensor_shape.size(); i++) {
     FE_LOGD("Thread %zu:", i);
@@ -146,7 +146,7 @@ void UpdateInputSgtSliceInfo(const ge::OpDescPtr &dst_op, uint32_t dst_anchor_in
     fus_op->SetExtAttr(ffts::kAttrSgtStructInfo, fused_slice_info);
   }
 }
-} // namespace
+}  // namespace
 FusionGraphMerge::FusionGraphMerge(const std::string &scope_attr, const GraphCommPtr &graph_comm_ptr)
     : scope_attr_(scope_attr), graph_comm_ptr_(graph_comm_ptr) {}
 
@@ -253,8 +253,8 @@ Status FusionGraphMerge::AddRelatedThreadNode(ScopeNodeMap &fusion_scope_map) co
           related_nodes_size = related_thread_nodes->size();
         } else {
           if (related_nodes_size != related_thread_nodes->size()) {
-            FE_LOGE("related node size of %s is %zu, first %zu.",
-                    node->GetName().c_str(), related_thread_nodes->size(), related_nodes_size);
+            FE_LOGE("related node size of %s is %zu, first %zu.", node->GetName().c_str(), related_thread_nodes->size(),
+                    related_nodes_size);
             return FAILED;
           }
         }
@@ -316,7 +316,8 @@ Status FusionGraphMerge::GetScopeNodeMap(const ge::ComputeGraph &fusion_graph, S
     bool no_need_compile = false;
     (void)ge::AttrUtils::GetBool(op_desc, ATTR_NAME_IS_COMPIED_FUSION_OP, no_need_compile);
     if (no_need_compile) {
-      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(), node->GetType().c_str());
+      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(),
+              node->GetType().c_str());
       continue;
     }
     if (ge::AttrUtils::GetInt(op_desc, scope_attr_, scope_id)) {
@@ -360,10 +361,11 @@ void FusionGraphMerge::SetAtomicFlagAndOutputIndex(const ge::NodePtr &first_node
   size_t first_input_num = first_node->GetOpDesc()->GetInputsSize();
   size_t first_workspace_num = first_node->GetOpDesc()->GetWorkspaceBytes().size();
   size_t first_output_num = first_node->GetOpDesc()->GetOutputsSize();
-  FE_LOGD("inputNum:%zu, output_num:%zu, workspace_size:%zu, para_size:%zu,"
-          "firstNode name:%s, fus_node name:%s.",
-          input_num, output_num, workspace_num, parameters_index.size(), first_node->GetName().c_str(),
-          fus_node->GetName().c_str());
+  FE_LOGD(
+      "inputNum:%zu, output_num:%zu, workspace_size:%zu, para_size:%zu,"
+      "firstNode name:%s, fus_node name:%s.",
+      input_num, output_num, workspace_num, parameters_index.size(), first_node->GetName().c_str(),
+      fus_node->GetName().c_str());
   if ((first_input_num + first_workspace_num + first_output_num) < parameters_index.size()) {
     // in parameters data sort as input->output->workspace
     for (size_t i = 0; i < workspace_num; ++i) {
@@ -425,13 +427,13 @@ Status FusionGraphMerge::MergeEachFusionNode(ge::ComputeGraph &fusion_graph, vec
   vector<FusionDataFlow> fus_input_ctrl_edge_list;
   vector<FusionDataFlow> fus_output_ctrl_edge_list;
   vector<pair<uint32_t, ge::NodePtr>> src_op_out_index_in_fus_op;
-  if (graph_comm_ptr_->GetFusionNodeEdgeList(fus_nodelist, node_set, fus_input_edge_list,
-      fus_output_edge_list) != SUCCESS) {
+  if (graph_comm_ptr_->GetFusionNodeEdgeList(fus_nodelist, node_set, fus_input_edge_list, fus_output_edge_list) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][PostProcess][MergeFusNode] Failed to get FusionNode edge list.");
     return FAILED;
   }
   if (graph_comm_ptr_->GetFusionNodeCtrlEdgeList(fus_nodelist, node_set, fus_input_ctrl_edge_list,
-      fus_output_ctrl_edge_list) != SUCCESS) {
+                                                 fus_output_ctrl_edge_list) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][PostProcess][MergeFusNode] Failed to get Fusion Node Control Edge List.");
     return FAILED;
   }
@@ -444,7 +446,7 @@ Status FusionGraphMerge::MergeEachFusionNode(ge::ComputeGraph &fusion_graph, vec
     REPORT_FE_ERROR("[SubGraphOpt][PostProcess][MergeFusNode] Failed to AddFusionNodeOpDesc");
     return FAILED;
   }
-  
+
   vector<vector<ge::ConstGeTensorDescPtr>> output_place;
   if (FusionOpComm::GetOutputInplaceAbilityAttrs(fus_nodelist, output_place)) {
     SetFusionOpOutputInplaceAbility(fus_op_desc, output_place);
@@ -604,7 +606,7 @@ Status FusionGraphMerge::UpdateL2Info(const int64_t &origin_index, const int64_t
   return SUCCESS;
 }
 
-uint8_t FusionGraphMerge::GetFusionOutputIndex(const std::string &orgin_name, uint8_t origin_output_index,
+uint8_t FusionGraphMerge::GetFusionOutputIndex(const std::string &origin_name, uint8_t origin_output_index,
                                                uint32_t data_index,
                                                const std::map<std::int64_t, std::int64_t> &out_index_map,
                                                const ge::NodePtr &fusion_node) const {
@@ -613,7 +615,7 @@ uint8_t FusionGraphMerge::GetFusionOutputIndex(const std::string &orgin_name, ui
   if (index_map != out_index_map.end()) {
     output_index_temp = index_map->second;
   } else {
-    FE_LOGD("Cannot find fusion outindex in map, orgin node %s, index %u, fusion node %s.", orgin_name.c_str(),
+    FE_LOGD("Cannot find fusion outindex in map, origin node %s, index %u, fusion node %s.", origin_name.c_str(),
             data_index, fusion_node->GetName().c_str());
   }
   return output_index_temp;
@@ -622,20 +624,20 @@ uint8_t FusionGraphMerge::GetFusionOutputIndex(const std::string &orgin_name, ui
 Status FusionGraphMerge::SetL2NameAndIndex(const L2FusionInfoPtr &originl2_info,
                                            L2FusionInfoPtr &fusion_l2_info) const {
   for (uint32_t i = 0; i < L2_MAXDATANUM; i++) {
-    std::string orgin_name = originl2_info->l2_info.node_name[i];
-    if (!orgin_name.empty()) {
+    std::string origin_name = originl2_info->l2_info.node_name[i];
+    if (!origin_name.empty()) {
       std::map<std::int64_t, std::int64_t> out_index_map;
       ge::NodePtr fusion_node;
-      Status ret = GetFusionAnchorInfo(orgin_name, out_index_map, fusion_node);
+      Status ret = GetFusionAnchorInfo(origin_name, out_index_map, fusion_node);
       if (ret == FAILED || fusion_node == nullptr) {
         fusion_l2_info->l2_info.node_name[i] = originl2_info->l2_info.node_name[i];
         fusion_l2_info->l2_info.output_index[i] = originl2_info->l2_info.output_index[i];
-        FE_LOGD("Node %s is not a fusion node.", orgin_name.c_str());
+        FE_LOGD("Node %s is not a fusion node.", origin_name.c_str());
         continue;
       }
       std::string name_temp = fusion_node->GetName();
       uint8_t output_index_temp =
-	          GetFusionOutputIndex(orgin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
+          GetFusionOutputIndex(origin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
       fusion_l2_info->l2_info.node_name[i] = name_temp;
       fusion_l2_info->l2_info.output_index[i] = output_index_temp;
       FE_LOGD("data index %u, node_name %s, outputindex %u.", i, name_temp.c_str(), output_index_temp);
@@ -677,7 +679,8 @@ Status FusionGraphMerge::ConvertSgtToJsonAttr(ge::OpDescPtr &fus_op) const {
   ffts::ThreadSliceMapPtr slice_info = nullptr;
   slice_info = fus_op->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info);
   if (slice_info == nullptr) {
-    FE_LOGW("fusion op [%s:%s] does not have any sgt struct info.", fus_op->GetName().c_str(), fus_op->GetType().c_str());
+    FE_LOGW("fusion op [%s:%s] does not have any sgt struct info.", fus_op->GetName().c_str(),
+            fus_op->GetType().c_str());
     return FAILED;
   }
   std::string json_str;
@@ -713,7 +716,7 @@ Status FusionGraphMerge::AddFusionNodeOpDesc(ge::OpDescPtr &fus_op, std::vector<
 }
 
 static Status CopySgtCutList(const std::vector<std::vector<int64_t>> &ori_cur_list,
-                      std::vector<std::vector<int64_t>> &dst_cur_list) {
+                             std::vector<std::vector<int64_t>> &dst_cur_list) {
   if (ori_cur_list.empty()) {
     return FAILED;
   }
@@ -769,8 +772,7 @@ void FusionGraphMerge::SetMultiKernelOutPutOffsets(const ge::OpDescPtr &src_op, 
                                                    std::vector<int64_t> &save_pre_output_offset) const {
   std::vector<int64_t> output_offset_temp;
   std::vector<int64_t> buffer_fusion_output_offset;
-  (void)ge::AttrUtils::GetListInt(fus_op, ge::ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION,
-                                  buffer_fusion_output_offset);
+  (void)ge::AttrUtils::GetListInt(fus_op, ge::ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, buffer_fusion_output_offset);
 
   if (!buffer_fusion_output_offset.empty()) {
     if (ge::AttrUtils::GetListInt(src_op, ge::ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, output_offset_temp)) {
@@ -796,7 +798,7 @@ void FusionGraphMerge::CopySameAtomic(const ffts::ThreadSliceMapPtr &ori_slice_i
   }
   for (const auto &iter : ori_slice_info->same_atomic_clean_nodes) {
     if (std::find(fused_slice_info->same_atomic_clean_nodes.begin(), fused_slice_info->same_atomic_clean_nodes.end(),
-        iter) == fused_slice_info->same_atomic_clean_nodes.end()) {
+                  iter) == fused_slice_info->same_atomic_clean_nodes.end()) {
       fused_slice_info->same_atomic_clean_nodes.emplace_back(iter);
     }
   }
@@ -905,8 +907,8 @@ Status FusionGraphMerge::AddFusionNodeOutputDesc(ge::OpDescPtr fus_op, vector<Fu
         if (ret != ge::GRAPH_SUCCESS) {
           FE_LOGI("fusOp[%s, %s] AddOutputDesc not successfully", fus_op->GetName().c_str(), fus_op->GetType().c_str());
         } else {
-          src_op_out_index_in_fus_op.push_back(std::make_pair(src_out_idx,
-                                                              out_edge_src_data_anchor_ptr->GetOwnerNode()));
+          src_op_out_index_in_fus_op.push_back(
+              std::make_pair(src_out_idx, out_edge_src_data_anchor_ptr->GetOwnerNode()));
           int64_t current_output_idx = static_cast<int64_t>(fus_op->GetAllOutputsDescSize() - 1);
           fusion_op_output_idx_map_[output_desc_ptr] = current_output_idx;
         }
@@ -938,8 +940,8 @@ Status FusionGraphMerge::AddFusionNodeOutputDesc(ge::OpDescPtr fus_op, vector<Fu
             FusNodeOutputOffset.push_back(old_node_output_offset[out_edge_src_data_anchor_ptr->GetIdx()]);
           } else {
             FE_LOGI("%s, out_offset_old_node size is %zu, less than idx %d.",
-                    out_edge_src_op_desc_ptr->GetName().c_str(),
-                    old_node_output_offset.size(), out_edge_src_data_anchor_ptr->GetIdx());
+                    out_edge_src_op_desc_ptr->GetName().c_str(), old_node_output_offset.size(),
+                    out_edge_src_data_anchor_ptr->GetIdx());
           }
         }
       } else {
@@ -968,7 +970,7 @@ Status FusionGraphMerge::AddFusionNodeOutputDesc(ge::OpDescPtr fus_op, vector<Fu
 }
 
 static Status SetL1Attr(ge::OpDescPtr &fus_op, const vector<int64_t> &op_input_l1_flag,
-                 const vector<int64_t> &op_input_l1_addr, const vector<int64_t> &op_input_l1_valid_size) {
+                        const vector<int64_t> &op_input_l1_addr, const vector<int64_t> &op_input_l1_valid_size) {
   bool need_set_l1_attr = false;
   for (int64_t l1_flag : op_input_l1_flag) {
     if (l1_flag >= 0) {
@@ -993,8 +995,9 @@ static Status SetL1Attr(ge::OpDescPtr &fus_op, const vector<int64_t> &op_input_l
     FE_LOGD("OpInputL1Addr of op[%s, %s] is %s.", fus_op->GetName().c_str(), fus_op->GetType().c_str(),
             StringUtils::IntegerVecToString(op_input_l1_addr).c_str());
     if (!ge::AttrUtils::SetListInt(fus_op, ge::ATTR_NAME_OP_INPUT_L1_VALID_SIZE, op_input_l1_valid_size)) {
-      REPORT_FE_ERROR("[SubGraphOpt][Merge][SetL1Attr] Failed to set the op_input_l1_valid_size attribute on op [%s, %s].",
-                      fus_op->GetName().c_str(), fus_op->GetType().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Merge][SetL1Attr] Failed to set the op_input_l1_valid_size attribute on op [%s, %s].",
+          fus_op->GetName().c_str(), fus_op->GetType().c_str());
       return FAILED;
     }
     FE_LOGD("OpInputL1ValidSize of op[%s, %s] is %s.", fus_op->GetName().c_str(), fus_op->GetType().c_str(),
@@ -1070,7 +1073,7 @@ Status CopyInputSliceInfo(const ffts::ThreadSliceMap &a, size_t input_index, con
 }
 
 static void SetInputMemTypeAndOffset(ge::OpDescPtr &fus_op, const vector<int> &in_mem_type_fus_node,
-                              const vector<int64_t> &FusNodeInputOffset) {
+                                     const vector<int64_t> &FusNodeInputOffset) {
   if (!in_mem_type_fus_node.empty()) {
     (void)ge::AttrUtils::SetListInt(fus_op, ge::ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type_fus_node);
   }
@@ -1090,12 +1093,12 @@ void FusionGraphMerge::UpdateOutputRefPortIndex(ge::OpDescPtr &in_edge_dst_op_de
   bool has_update_index = false;
   for (size_t i = 0; i < in_edge_dst_op_desc_ptr->GetAllOutputsDescSize(); i++) {
     std::vector<int32_t> ref_port_index;
-    if (ge::AttrUtils::GetListInt(in_edge_dst_op_desc_ptr->MutableOutputDesc(i), kAttrRefPortIndex,
-                                  ref_port_index) && !ref_port_index.empty()) {
+    if (ge::AttrUtils::GetListInt(in_edge_dst_op_desc_ptr->MutableOutputDesc(i), kAttrRefPortIndex, ref_port_index) &&
+        !ref_port_index.empty()) {
       for (auto &ref_port_index_tmp : ref_port_index) {
         if (ref_port_index_tmp == static_cast<int32_t>(dst_anchor_index)) {
           FE_LOGD("Op[%s] old ref_port_index is: %d.", in_edge_dst_op_desc_ptr->GetName().c_str(), ref_port_index_tmp);
-          // first set a minus number, to avoid update ref_port_index repeatly
+          // first set a minus number, to avoid update ref_port_index repeatedly
           // In function UpdateFusionOpRefPortIndex, flush the minus ref_port_index to positive ref_port_index
           ref_port_index_tmp = -(fus_op->GetAllInputsSize() - 1);
           FE_LOGD("Op[%s] ref_port_index has been refresh, new ref_port_index is: %d.",
@@ -1113,15 +1116,14 @@ void FusionGraphMerge::UpdateOutputRefPortIndex(ge::OpDescPtr &in_edge_dst_op_de
 }
 
 static Status SetInputParaTypeList(ge::OpDescPtr &op_desc, std::vector<uint32_t> &fusion_input_para_type,
-                            const uint32_t &idx) {
+                                   const uint32_t &idx) {
   std::vector<uint32_t> dst_input_type_list;
   if (!ge::AttrUtils::GetListInt(op_desc, kInputParaTypeList, dst_input_type_list)) {
     FE_LOGW("Failed to get attribute input_para_type_list from node [%s].", op_desc->GetName().c_str());
     return SUCCESS;
   }
   if (idx >= dst_input_type_list.size()) {
-    REPORT_FE_ERROR("Invalid attr input_para_type_list from op[%s], wrong index[%u].",
-                    op_desc->GetName().c_str(), idx);
+    REPORT_FE_ERROR("Invalid attr input_para_type_list from op[%s], wrong index[%u].", op_desc->GetName().c_str(), idx);
     return FAILED;
   }
   fusion_input_para_type.emplace_back(dst_input_type_list[idx]);
@@ -1201,8 +1203,7 @@ Status FusionGraphMerge::AddFusionNodeInputDesc(ge::OpDescPtr fus_op, vector<Fus
       (void)UpdateOutputRefPortIndex(in_edge_dst_op_desc_ptr, fus_op, dst_anchor_index);
       FE_LOGD("fusOp name %s, in_anchor_idx %zu.", fus_op->GetName().c_str(), in_anchor_idx);
       for (size_t idx = 0; idx < op_infer_depends.size(); idx++) {
-        if (op_infer_depends[idx] ==
-            in_edge_dst_op_desc_ptr->GetInputNameByIndex(in_anchor_idx)) {
+        if (op_infer_depends[idx] == in_edge_dst_op_desc_ptr->GetInputNameByIndex(in_anchor_idx)) {
           op_infer_depends[idx] = fus_op->GetInputNameByIndex(tensor_desc_index);
           FE_LOGD("Update _op_infer_depends attribute of fusion op[%s]: %zu, %s", fus_op->GetName().c_str(), idx,
                   op_infer_depends[idx].c_str());
@@ -1353,9 +1354,8 @@ Status FusionGraphMerge::SetDataOutPutMapingAttr(
                                                        fuse_node_output_desc);
         }
 
-        FE_LOGD(
-            "Original node %s has an original attribute; we successfully copied it to the fused node %s.",
-            iter->first->GetName().c_str(), fus_node->GetName().c_str());
+        FE_LOGD("Original node %s has an original attribute; we successfully copied it to the fused node %s.",
+                iter->first->GetName().c_str(), fus_node->GetName().c_str());
       } else {
         (void)ge::AttrUtils::SetStr(fuse_node_output_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_NAME, iter->first->GetName());
         (void)ge::AttrUtils::SetInt(fuse_node_output_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OUTPUT_INDEX, anchor_idx);
@@ -1378,10 +1378,10 @@ Status FusionGraphMerge::SetDataOutPutMapingAttr(
 
 void FusionGraphMerge::SetDataDumpRef(ge::NodePtr fus_node, const ge::ComputeGraph &fusion_graph) const {
   std::string build_mode_value = FEContextUtils::GetBuildMode();
-  bool switch_on = Configuration::Instance(graph_comm_ptr_->GetEngineName()).EnableL1Fusion() ||
-                   build_mode_value == ge::BUILD_MODE_TUNING ||
-                   (Configuration::Instance(AI_CORE_NAME).EnableL2Fusion() &&
-                    CheckL2FusionFusionStrategy(fusion_graph));
+  bool switch_on =
+      Configuration::Instance(graph_comm_ptr_->GetEngineName()).EnableL1Fusion() ||
+      build_mode_value == ge::BUILD_MODE_TUNING ||
+      (Configuration::Instance(AI_CORE_NAME).EnableL2Fusion() && CheckL2FusionFusionStrategy(fusion_graph));
   if (!switch_on) {
     return;
   }
@@ -1454,17 +1454,17 @@ void FusionGraphMerge::SetDataDumpRefForInDataAnchors(ge::NodePtr fus_node) cons
 
 Status FusionGraphMerge::SetL2NameAndIndexForUnfusNode(L2FusionInfoPtr &originl2_info) const {
   for (uint32_t i = 0; i < L2_MAXDATANUM; i++) {
-    std::string orgin_name = originl2_info->l2_info.node_name[i];
-    if (!orgin_name.empty()) {
+    std::string origin_name = originl2_info->l2_info.node_name[i];
+    if (!origin_name.empty()) {
       std::map<std::int64_t, std::int64_t> out_index_map;
       ge::NodePtr fusion_node;
-      Status ret = GetFusionAnchorInfo(orgin_name, out_index_map, fusion_node);
+      Status ret = GetFusionAnchorInfo(origin_name, out_index_map, fusion_node);
       if (ret == FAILED) {
         continue;
       }
       std::string name_temp = fusion_node->GetName();
       uint8_t output_index_temp =
-	          GetFusionOutputIndex(orgin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
+          GetFusionOutputIndex(origin_name, originl2_info->l2_info.output_index[i], i, out_index_map, fusion_node);
       originl2_info->l2_info.node_name[i] = name_temp;
       originl2_info->l2_info.output_index[i] = output_index_temp;
       FE_LOGD("data index %u, node_name %s, outputindex %u.", i, name_temp.c_str(), output_index_temp);
@@ -1564,7 +1564,8 @@ Status FusionGraphMerge::RefreshFusionNodeDataFlow(ge::NodePtr fus_node, const g
   return SUCCESS;
 }
 
-void FusionGraphMerge::CalcPassStridedOutSize(const ge::NodePtr &fus_node_ptr, vector<ge::NodePtr> &fus_nodelist,
+void FusionGraphMerge::CalcPassStridedOutSize(
+    const ge::NodePtr &fus_node_ptr, vector<ge::NodePtr> &fus_nodelist,
     vector<std::pair<uint32_t, ge::NodePtr>> &src_op_out_index_in_fus_op) const {
   ToOpStructPtr optimize_info = nullptr;
   FE_MAKE_SHARED(optimize_info = std::make_shared<ToOpStruct_t>(), return);
@@ -1572,7 +1573,8 @@ void FusionGraphMerge::CalcPassStridedOutSize(const ge::NodePtr &fus_node_ptr, v
 
   for (uint32_t i = 0; i < fus_opdesc->GetAllOutputsDescSize(); i++) {
     if (std::find(fus_nodelist.begin(), fus_nodelist.end(), src_op_out_index_in_fus_op[i].second) !=
-        fus_nodelist.end() && i < src_op_out_index_in_fus_op.size()) {
+            fus_nodelist.end() &&
+        i < src_op_out_index_in_fus_op.size()) {
       ge::OpDescPtr op_desc = src_op_out_index_in_fus_op[i].second->GetOpDesc();
       GetL2ToOpStructFromJson(op_desc, optimize_info);
       if (optimize_info == nullptr) {
@@ -1583,8 +1585,8 @@ void FusionGraphMerge::CalcPassStridedOutSize(const ge::NodePtr &fus_node_ptr, v
       }
       int64_t tensor_size = 0;
       int32_t real_calc_flag = 1;
-      ge::GeTensorDesc tmp_td = src_op_out_index_in_fus_op[i].second->GetOpDesc()->GetOutputDesc(
-          src_op_out_index_in_fus_op[i].first);
+      ge::GeTensorDesc tmp_td =
+          src_op_out_index_in_fus_op[i].second->GetOpDesc()->GetOutputDesc(src_op_out_index_in_fus_op[i].first);
       auto cur_fus_opdesc = fus_node_ptr->GetOpDesc();
       if (!optimize_info->slice_output_shape.empty() &&
           src_op_out_index_in_fus_op[i].first < optimize_info->slice_output_shape.size() &&
@@ -1628,7 +1630,7 @@ void FusionGraphMerge::CalcSingleOpStridedSize(ge::ComputeGraph &graph) const {
   std::string build_mode_value = FEContextUtils::GetBuildMode();
   std::string step_mode_value = FEContextUtils::GetBuildStep();
   bool need_special_output_size =
-          (build_mode_value == ge::BUILD_MODE_TUNING && step_mode_value == ge::BUILD_STEP_AFTER_UB_MATCH);
+      (build_mode_value == ge::BUILD_MODE_TUNING && step_mode_value == ge::BUILD_STEP_AFTER_UB_MATCH);
   if (!need_special_output_size) {
     return;
   }
@@ -1645,7 +1647,8 @@ void FusionGraphMerge::CalcSingleOpStridedSize(ge::ComputeGraph &graph) const {
   }
 }
 
-Status FusionGraphMerge::CalcStridedWriteOutSize(const ge::NodePtr &fus_node_ptr, vector<ge::NodePtr> &fus_nodelist,
+Status FusionGraphMerge::CalcStridedWriteOutSize(
+    const ge::NodePtr &fus_node_ptr, vector<ge::NodePtr> &fus_nodelist,
     vector<pair<uint32_t, ge::NodePtr>> &src_op_out_index_in_fus_op) const {
   /* When StridedWrite is connected to NetOutput, we need
    * to set _special_output_size attr. The reason is:
@@ -1764,11 +1767,12 @@ void FusionGraphMerge::DelAttrsInOriginalFusionOpGraph(ge::NodePtr &node) const 
 static bool IsNeedCreateOriginalFusion() {
   std::string env_ge_graph = Configuration::Instance(AI_CORE_NAME).GetDumpGeGraph();
   std::string env_graph_level = Configuration::Instance(AI_CORE_NAME).GetDumpGraphLevel();
-  FE_LOGD("The value of dump ge graph is [%s] and the value of dump graph level is [%s].",
-          env_ge_graph.c_str(), env_graph_level.c_str());
+  FE_LOGD("The value of dump ge graph is [%s] and the value of dump graph level is [%s].", env_ge_graph.c_str(),
+          env_graph_level.c_str());
   if ((env_ge_graph.empty()) || (env_graph_level.empty())) {
-    FE_LOGD("The environment variable of DUMP_GE_GRAPH or DUMP_GRAPH_LEVEL does not exist, do not need to create "
-            "original fusion graph.");
+    FE_LOGD(
+        "The environment variable of DUMP_GE_GRAPH or DUMP_GRAPH_LEVEL does not exist, do not need to create "
+        "original fusion graph.");
     return true;
   } else if (env_graph_level != kMaxDumpGraphLevel) {
     return true;
@@ -1831,17 +1835,18 @@ void FusionGraphMerge::CreateOriginalFusionOpGraph(ge::NodePtr &fus_node_ptr, ve
   std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>> fusion_op_input_anchors_map;
   shared_ptr<std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>>> fusion_op_input_anchors_map_ptr = nullptr;
   FE_MAKE_SHARED((fusion_op_input_anchors_map_ptr =
-                 std::make_shared<std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>>>(
-                 fusion_op_desc->TryGetExtAttr("InEdgeAnchorMap", fusion_op_input_anchors_map))), return);
+                      std::make_shared<std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>>>(
+                          fusion_op_desc->TryGetExtAttr("InEdgeAnchorMap", fusion_op_input_anchors_map))),
+                 return);
   FE_CHECK(fusion_op_input_anchors_map_ptr == nullptr,
-           FE_LOGE("Null pointer is unexpected, current op[name:%s].", fus_node_ptr->GetName().c_str()), return );
+           FE_LOGE("Null pointer is unexpected, current op[name:%s].", fus_node_ptr->GetName().c_str()), return);
   FE_LOGD("fusionOpInputAnchorsMap size is %zu.", fusion_op_input_anchors_map_ptr->size());
   std::map<uint32_t, uint32_t> input_mapping;
   for (auto iter = fusion_op_input_anchors_map_ptr->cbegin(); iter != fusion_op_input_anchors_map_ptr->cend(); iter++) {
     FE_LOGD("input data anchor size is %zu", iter->second.size());
     for (auto iter_vec = iter->second.begin(); iter_vec != iter->second.end(); iter_vec++) {
-      FE_CHECK(iter_vec->first == nullptr, FE_LOGW("iterVec->first is null"), return );
-      FE_CHECK(iter_vec->second == nullptr, FE_LOGW("iterVec->second is null"), return );
+      FE_CHECK(iter_vec->first == nullptr, FE_LOGW("iterVec->first is null"), return);
+      FE_CHECK(iter_vec->second == nullptr, FE_LOGW("iterVec->second is null"), return);
       std::uint32_t src_idx = std::static_pointer_cast<ge::DataAnchor>(iter_vec->first)->GetIdx();
       std::uint32_t fusion_idx = std::static_pointer_cast<ge::DataAnchor>(iter_vec->second)->GetIdx();
       ge::NodePtr src_node = std::static_pointer_cast<ge::DataAnchor>(iter_vec->first)->GetOwnerNode();
@@ -1871,8 +1876,8 @@ void FusionGraphMerge::CreateOriginalFusionOpGraph(ge::NodePtr &fus_node_ptr, ve
       output_anchor_order_map.emplace(fusion_anchor_idx, anchor_pair);
     }
     for (auto iter_vec = output_anchor_order_map.cbegin(); iter_vec != output_anchor_order_map.cend(); iter_vec++) {
-      FE_CHECK(iter_vec->second.first == nullptr, FE_LOGW("iterVec->first is null"), return );
-      FE_CHECK(iter_vec->second.second == nullptr, FE_LOGW("iterVec->second is null"), return );
+      FE_CHECK(iter_vec->second.first == nullptr, FE_LOGW("iterVec->first is null"), return);
+      FE_CHECK(iter_vec->second.second == nullptr, FE_LOGW("iterVec->second is null"), return);
       std::uint32_t src_idx = std::static_pointer_cast<ge::DataAnchor>(iter_vec->second.first)->GetIdx();
       std::uint32_t fusion_idx = std::static_pointer_cast<ge::DataAnchor>(iter_vec->second.second)->GetIdx();
       ge::NodePtr src_node = std::static_pointer_cast<ge::DataAnchor>(iter_vec->second.first)->GetOwnerNode();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -241,18 +241,18 @@ void TilingContextFaker::UpdateInputs() {
   for (const auto output_shape : output_shapes_) {
     inputs.push_back(output_shape);
   }
-  inputs.push_back(compile_info_);         // kInputsCompileInfo
-  inputs.push_back(fwk_data_);  // kInputsTilingFunc
+  inputs.push_back(compile_info_);  // kInputsCompileInfo
+  inputs.push_back(fwk_data_);      // kInputsTilingFunc
   inputs.push_back(deterministic_);
   inputs.push_back(deterministic_level_);
   base_faker_.Inputs(std::move(inputs));
 }
-TilingContextFaker &TilingContextFaker::TilingFwkData(void* fwk_data) {
+TilingContextFaker &TilingContextFaker::TilingFwkData(void *fwk_data) {
   fwk_data_ = fwk_data;
   UpdateInputs();
   return *this;
 }
-TilingContextFaker &TilingContextFaker::Deterministic(void* deterministic) {
+TilingContextFaker &TilingContextFaker::Deterministic(void *deterministic) {
   deterministic_ = deterministic;
   UpdateInputs();
   return *this;

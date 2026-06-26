@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,8 +40,7 @@ bool IsGuardedByPivot(const ge::FastNode *const n) {
          std::all_of(in_ctrl_edges.begin(), in_ctrl_edges.end(), IsSrcZeroInDegree);
 }
 
-ge::graphStatus GetCtrlGraphInfo(const ge::FastNode *const node, const ge::FastNode *&start,
-                                 const ge::FastNode *&end) {
+ge::graphStatus GetCtrlGraphInfo(const ge::FastNode *const node, const ge::FastNode *&start, const ge::FastNode *&end) {
   if (IsIfOrCaseType(node->GetTypePtr())) {
     const auto cond_graph = ge::FastNodeUtils::GetSubgraphFromNode(node, 0U);
     GE_ASSERT_NOTNULL(cond_graph);
@@ -56,7 +55,7 @@ ge::graphStatus GetCtrlGraphInfo(const ge::FastNode *const node, const ge::FastN
     GE_ASSERT_NOTNULL(control_graph);
     start = ge::ExecuteGraphUtils::FindFirstNodeMatchType(control_graph, "Enter");
     end = ge::ExecuteGraphUtils::FindFirstNodeMatchType(control_graph, "Exit");
-  } else { // SubGraphCall当前在while控制子图固定结构中，不存在级联场景
+  } else {  // SubGraphCall当前在while控制子图固定结构中，不存在级联场景
     return ge::GRAPH_FAILED;
   }
   GE_ASSERT_NOTNULL(start);
@@ -273,8 +272,7 @@ ge::graphStatus GraphNode::ReadInNodeHasSubgraph(const ge::FastNode *const node)
   return ge::GRAPH_FAILED;
 }
 
-ge::graphStatus GraphNode::ReadInWatcher(const std::pair<ge::FastNode *, Node *> &node_to_exe_node,
-                                         Watcher *&watcher) {
+ge::graphStatus GraphNode::ReadInWatcher(const std::pair<ge::FastNode *, Node *> &node_to_exe_node, Watcher *&watcher) {
   const auto node = node_to_exe_node.first;
   std::vector<NodeIdentity> watch_nodes;
   NodeIdentity node_id = 0UL;
@@ -305,13 +303,12 @@ ge::graphStatus GraphNode::AddAdditionalInfo(const ge::FastNode *src_node, const
 }
 
 ge::graphStatus GraphNode::RemoveAdditionalInfo(const ge::FastNode *src_node, const ge::FastNode *dst_node) {
-  GELOGD("Remove additional info between src node[%s] and dst node[%s]",
-         src_node->GetNamePtr(), dst_node->GetNamePtr());
+  GELOGD("Remove additional info between src node[%s] and dst node[%s]", src_node->GetNamePtr(),
+         dst_node->GetNamePtr());
   return SetAdditionalInfo(src_node, dst_node, false);
 }
 
-ge::graphStatus GraphNode::SetAdditionalInfo(const ge::FastNode *src_node,
-                                             const ge::FastNode *dst_node, bool isAdd) {
+ge::graphStatus GraphNode::SetAdditionalInfo(const ge::FastNode *src_node, const ge::FastNode *dst_node, bool isAdd) {
   auto is_no_need_update = [](const char *node_type) {
     return IsGraphInputNode(node_type) || IsGraphOutputNode(node_type) || IsUsrOutputNode(node_type) ||
            IsMemTransferNode(node_type) || IsStroreConstDataNode(node_type);

@@ -64,4 +64,3 @@ const char *aclmdlGetInputNameByIndex(const aclmdlDesc *modelDesc, size_t index)
 ## 返回值说明<a name="section184151120582"></a>
 
 返回指定输入的输入名称。
-

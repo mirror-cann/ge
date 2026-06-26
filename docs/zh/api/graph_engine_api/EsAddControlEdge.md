@@ -106,4 +106,3 @@ auto tensor2 = _builder->CreateInput(2).GetCTensorHolder();
 std::vector<EsCTensorHolder *> ctrl_ins = {tensor1, tensor2};
 EsAddControlEdge(tensor0, ctrl_ins.data(), 2)；
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -141,7 +141,7 @@ NodePtr CreateReshapeNodeToGraphWithConstInput(const ComputeGraphPtr &compute_gr
          shape_const_node->GetName().c_str(), shape_const_node->GetType().c_str(), op_name.c_str(), RESHAPE);
   return reshape_node;
 }
-} // namespace
+}  // namespace
 
 uint64_t GeShapeHasher::operator()(const GeShape &shape) const {
   uint64_t seed = HashUtils::MultiHash();
@@ -166,7 +166,7 @@ OpDescPtr TransOpCreator::CreateTransDataOp(const std::string &op_name, const Ge
     return nullptr;
   }
 
-  // check accuarcy support
+  // check accuracy support
   if (enable_check_acc_support) {
     bool is_supported = false;
     if ((CheckAccuracySupported(op_desc, is_supported) != GRAPH_SUCCESS) || (!is_supported)) {
@@ -193,7 +193,7 @@ OpDescPtr TransOpCreator::CreateTransPoseDOp(const std::string &op_name, const G
   auto dst_format = output_desc.GetFormat();
   std::vector<int64_t> perm_arg;
   if (formats::GetPermByForamt(src_format, dst_format, perm_arg) != SUCCESS) {
-    GELOGW("Get perm by foramt failed.");
+    GELOGW("Get perm by format failed.");
     return op_desc;
   }
 
@@ -229,7 +229,7 @@ OpDescPtr TransOpCreator::CreateCastOp(const std::string &op_name, const GeTenso
     return nullptr;
   }
 
-  // check accuarcy support
+  // check accuracy support
   if (enable_check_acc_support) {
     bool is_supported = false;
     if ((CheckAccuracySupported(op_desc, is_supported) != GRAPH_SUCCESS) || (!is_supported)) {
@@ -249,8 +249,8 @@ NodePtr TransOpCreator::CreateReshapeNodeToGraph(const ComputeGraphPtr &compute_
 }
 
 NodePtr TransOpCreator::CreateReshapeNodeToGraph(
-    const ComputeGraphPtr &compute_graph, const std::string &op_name,
-    const GeTensorDesc &input_desc_x, const GeTensorDesc &output_desc,
+    const ComputeGraphPtr &compute_graph, const std::string &op_name, const GeTensorDesc &input_desc_x,
+    const GeTensorDesc &output_desc,
     std::unordered_map<GeShape, NodePtr, GeShapeHasher> &reshape_target_shape_2_const_nodes) {
   // build shape node
   auto shape_node = GetOrCreateShapeConst(compute_graph, output_desc, reshape_target_shape_2_const_nodes);

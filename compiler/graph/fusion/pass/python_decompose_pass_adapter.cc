@@ -30,8 +30,7 @@ std::vector<AscendString> BuildDecomposeOpTypes(const PythonPassDescriptor &pass
 }  // namespace
 
 PythonDecomposePassAdapter::PythonDecomposePassAdapter(const PythonPassDescriptor &pass_desc)
-    : DecomposePass(BuildDecomposeOpTypes(pass_desc)),
-      holder_(new (std::nothrow) PythonPassHolder(pass_desc)) {}
+    : DecomposePass(BuildDecomposeOpTypes(pass_desc)), holder_(new (std::nothrow) PythonPassHolder(pass_desc)) {}
 
 PythonDecomposePassAdapter::~PythonDecomposePassAdapter() = default;
 
@@ -48,8 +47,7 @@ bool PythonDecomposePassAdapter::MeetRequirements(const GNode &matched_node) {
   }
   const bool ret = holder_->GetCallbacks().decompose_meet_requirements(holder_->GetHolder(), matched_node);
   GELOGI("PythonDecomposePassAdapter::MeetRequirements for pass[%s] returned[%d].",
-         holder_->GetPassDescriptor().pass_name.c_str(),
-         ret ? 1 : 0);
+         holder_->GetPassDescriptor().pass_name.c_str(), ret ? 1 : 0);
   return ret;
 }
 
@@ -60,15 +58,13 @@ GraphUniqPtr PythonDecomposePassAdapter::Replacement(const GNode &matched_node) 
     return nullptr;
   }
   GraphUniqPtr replacement_graph;
-  const auto ret =
-      holder_->GetCallbacks().decompose_replacement(holder_->GetHolder(), matched_node, replacement_graph);
+  const auto ret = holder_->GetCallbacks().decompose_replacement(holder_->GetHolder(), matched_node, replacement_graph);
   if (ret != SUCCESS) {
     GELOGW("Python decompose adapter Replacement callback failed, ret[%u].", static_cast<uint32_t>(ret));
     return nullptr;
   }
   GELOGI("PythonDecomposePassAdapter::Replacement succeeded for pass[%s], graph[%p].",
-         holder_->GetPassDescriptor().pass_name.c_str(),
-         replacement_graph.get());
+         holder_->GetPassDescriptor().pass_name.c_str(), replacement_graph.get());
   return replacement_graph;
 }
 }  // namespace fusion

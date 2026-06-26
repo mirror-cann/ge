@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,17 +18,16 @@ es::EsTensorHolder MakeAddGraph(es::EsTensorHolder input1, es::EsTensorHolder in
   // 操作符重载
   return input1 + input2;
 }
-}
+}  // namespace
 namespace es_showcase {
-int RunGraphAdd(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraphAdd(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
   if (s == nullptr) {
     std::cout << "Global session not ready" << std::endl;
     return -1;
   }
-  static uint32_t next =0;
+  static uint32_t next = 0;
   const uint32_t graph_id = next++;
   auto ret = s->AddGraph(graph_id, graph);
   if (ret != ge::SUCCESS) {
@@ -56,7 +55,7 @@ std::unique_ptr<ge::Graph> MakeAddGraphByEs() {
   auto input2 = graph_builder->CreateInput(1, "data1", ge::DT_INT32, FORMAT_ND, {});
   auto result = MakeAddGraph(input1, input2);
   // 3、设置输出
-  (void) graph_builder->SetOutput(result, 0);
+  (void)graph_builder->SetOutput(result, 0);
   // 4、构建图
   return graph_builder->BuildAndReset();
 }
@@ -71,4 +70,4 @@ int MakeAddGraphByEsAndRun() {
   inputs.push_back(*ge::Utils::StubTensor<int32_t>({20}, {}));
   return RunGraphAdd(*graph, inputs, "Add");
 }
-}
+}  // namespace es_showcase

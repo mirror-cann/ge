@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,15 +56,15 @@ ge::Status LinkManager::CheckClusterInfo(const std::vector<ClusterInfo> &cluster
   for (const auto &cluster : clusters) {
     LLMLOGI("Link remote cluster:%lu, remote role type:%d", cluster.remote_cluster_id, cluster.remote_role_type);
     LLM_CHK_BOOL_RET_STATUS(((!cluster.local_ip_infos.empty()) && (!cluster.remote_ip_infos.empty())),
-                           ge::LLM_PARAM_INVALID, "clusters info is empty");
+                            ge::LLM_PARAM_INVALID, "clusters info is empty");
     LLM_CHK_BOOL_RET_STATUS(cluster.local_ip_infos.size() == cluster.remote_ip_infos.size(), ge::LLM_PARAM_INVALID,
-                           "local ip infos size:%zu, remote ip infos:%zu", cluster.local_ip_infos.size(),
-                           cluster.remote_ip_infos.size());
+                            "local ip infos size:%zu, remote ip infos:%zu", cluster.local_ip_infos.size(),
+                            cluster.remote_ip_infos.size());
     LLM_CHK_BOOL_RET_STATUS(cluster.local_ip_infos.size() == sliced_num, ge::LLM_PARAM_INVALID,
-                           "cluster ip info size:%zu not match sliced_num:%zu", cluster.local_ip_infos.size(),
-                           sliced_num);
+                            "cluster ip info size:%zu not match sliced_num:%zu", cluster.local_ip_infos.size(),
+                            sliced_num);
     LLM_CHK_BOOL_RET_STATUS(cluster.local_ip_infos == local_ip_infos, ge::LLM_PARAM_INVALID,
-                           "local_ip_infos should be same");
+                            "local_ip_infos should be same");
     for (const auto &remote_ip : cluster.remote_ip_infos) {
       LLMLOGI("Link remote ip:%u", ToDesc(remote_ip).c_str());
     }
@@ -97,11 +97,11 @@ ge::Status LinkManager::PrepareLinkInfoTensors(const std::vector<ClusterInfo> &c
                                                const LinkOperator operator_type, const size_t sliced_num,
                                                const int32_t timeout, bool force_flag) {
   LLM_CHK_BOOL_RET_STATUS(CheckClusterInfo(clusters, sliced_num) == ge::SUCCESS, ge::LLM_PARAM_INVALID,
-                         "check cluster info failed");
+                          "check cluster info failed");
   uint64_t link_info_timeout = timeout <= 0 ? 0UL : static_cast<uint64_t>(timeout) * kMillsToMicros;
   cluster_num_ = clusters.size();
   LLM_CHK_BOOL_RET_STATUS(cluster_num_ <= kMaxLinkAndUnlinkNum, ge::LLM_CLUSTER_NUM_EXCEED_LIMIT,
-                         "link or unlink size:%zu exceeds the upper limit:%u", cluster_num_, kMaxLinkAndUnlinkNum);
+                          "link or unlink size:%zu exceeds the upper limit:%u", cluster_num_, kMaxLinkAndUnlinkNum);
   size_t total_inner_clusters_info_size = 0U;
   for (size_t i = 0UL; i < cluster_num_; ++i) {
     const auto &cluster = clusters[i];
@@ -120,12 +120,12 @@ ge::Status LinkManager::PrepareLinkInfoTensors(const std::vector<ClusterInfo> &c
     const size_t inner_cluster_info_size =
         sizeof(InnerClusterInfo) + cluster.local_ip_infos.size() * sizeof(InnerIpInfo);
     auto inner_cluster_info_addr = llm::PtrToValue(link_info->cluster_infos) + i * (inner_cluster_info_size);
-    LLM_ASSERT_EOK(memcpy_s(llm::ValueToPtr(inner_cluster_info_addr), sizeof(uint64_t), &cluster_id_,
-                           sizeof(uint64_t)));
+    LLM_ASSERT_EOK(
+        memcpy_s(llm::ValueToPtr(inner_cluster_info_addr), sizeof(uint64_t), &cluster_id_, sizeof(uint64_t)));
     // 给InnerClusterInfo remote_cluster_id赋值
     inner_cluster_info_addr += sizeof(uint64_t);
     LLM_ASSERT_EOK(memcpy_s(llm::ValueToPtr(inner_cluster_info_addr), sizeof(uint64_t), &cluster.remote_cluster_id,
-                           sizeof(uint64_t)));
+                            sizeof(uint64_t)));
     // 给给InnerClusterInfo ip_infos_num赋值
     const uint32_t ip_infos_num = static_cast<uint32_t>(cluster.local_ip_infos.size());
     auto ip_infos_num_addr = inner_cluster_info_addr + sizeof(uint64_t);
@@ -137,7 +137,7 @@ ge::Status LinkManager::PrepareLinkInfoTensors(const std::vector<ClusterInfo> &c
       inner_ip_info.remote_ip = cluster.remote_ip_infos[j].ip;
       inner_ip_info.remote_port = cluster.remote_ip_infos[j].port;
       LLM_ASSERT_EOK(memcpy_s(llm::ValueToPtr(ip_infos_num_addr + sizeof(uint32_t) + j * sizeof(InnerIpInfo)),
-                             sizeof(InnerIpInfo), &inner_ip_info, sizeof(InnerIpInfo)));
+                              sizeof(InnerIpInfo), &inner_ip_info, sizeof(InnerIpInfo)));
       InnerIpInfo *ptr =
           static_cast<InnerIpInfo *>(llm::ValueToPtr(ip_infos_num_addr + sizeof(uint32_t) + j * sizeof(InnerIpInfo)));
       LLMLOGI("Link local ip:%u", ptr->local_ip);
@@ -153,7 +153,7 @@ ge::Status LinkManager::PrepareLinkInfoTensors(const std::vector<ClusterInfo> &c
 ge::Status LinkManager::ParseOutputRetStatus(const ge::Tensor &output, std::vector<ge::Status> &result) const {
   const auto data = output.GetData();
   LLM_CHK_BOOL_RET_STATUS(output.GetSize() / sizeof(int32_t) >= cluster_num_, ge::LLM_PARAM_INVALID,
-                         "The output contains invalid return values");
+                          "The output contains invalid return values");
   for (size_t i = 0U; i < cluster_num_; ++i) {
     result.emplace_back(ConvertRetCode(*llm::PtrToPtr<uint8_t, int32_t>(data + i * sizeof(int32_t))));
   }
@@ -169,21 +169,15 @@ ge::Status LinkManager::LinkOrUnlinkAsync(int32_t timeout, bool is_link) {
   return ge::SUCCESS;
 }
 
-ge::Status LinkManager::FeedInputs(const uint32_t graph_id,
-                                   const std::vector<uint32_t> &indices,
-                                   const std::vector<ge::Tensor> &inputs,
-                                   const int32_t timeout,
-                                   bool is_link) {
+ge::Status LinkManager::FeedInputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                                   const std::vector<ge::Tensor> &inputs, const int32_t timeout, bool is_link) {
   (void)is_link;
   ge::DataFlowInfo data_flow_info;
   return GeApi::GetInstance().FeedDataFlowGraph(graph_id, indices, inputs, data_flow_info, timeout);
 }
 
-ge::Status LinkManager::FetchOutputs(const uint32_t graph_id,
-                                     const std::vector<uint32_t> &indices,
-                                     std::vector<ge::Tensor> &outputs,
-                                     int64_t timeout,
-                                     uint64_t transaction_id) {
+ge::Status LinkManager::FetchOutputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                                     std::vector<ge::Tensor> &outputs, int64_t timeout, uint64_t transaction_id) {
   (void)transaction_id;
   ge::DataFlowInfo flow_info;
   auto ret = GeApi::GetInstance().FetchDataFlowGraph(graph_id, indices, outputs, flow_info,
@@ -242,7 +236,7 @@ ge::Status LinkManager::GetUnLinkResult(int64_t left_timeout, std::vector<ge::St
   rets.resize(cluster_num_, ge::SUCCESS);
   HandleFetchEmpty(ret, outputs, rets);
   LLM_CHK_BOOL_RET_STATUS((ret == ge::SUCCESS) || (ret == ge::LLM_WAIT_PROC_TIMEOUT), ret,
-                         "decoder graph fetch data failed.");
+                          "decoder graph fetch data failed.");
   for (const auto &output : outputs) {
     std::vector<ge::Status> result;
     const auto status_ret = ParseOutputRetStatus(output, result);
@@ -282,12 +276,13 @@ ge::Status LinkManager::LinkClusters(const std::vector<ClusterInfo> &clusters, s
   auto feed_time_cost = std::chrono::duration_cast<std::chrono::microseconds>(feed_end - link_start).count();
   auto timeout_in_micros = static_cast<int64_t>(link_timeout * kMillsToMicros);
   LLM_CHK_BOOL_RET_STATUS(feed_time_cost < timeout_in_micros, ge::LLM_WAIT_PROC_TIMEOUT,
-                         "Feed timeout, cost:%ld us, left:%ld us.", feed_time_cost, timeout_in_micros);
+                          "Feed timeout, cost:%ld us, left:%ld us.", feed_time_cost, timeout_in_micros);
 
   std::vector<ge::Tensor> outputs;
   std::vector<ClusterInfo> need_rollback_clusters;
   // make sure device timeout first.
-  ret = GetLinkResult(clusters, timeout_in_micros + kFetchExtraTimeInMicros, rets, need_rollback_clusters, transaction_id);
+  ret = GetLinkResult(clusters, timeout_in_micros + kFetchExtraTimeInMicros, rets, need_rollback_clusters,
+                      transaction_id);
   LLM_CHK_BOOL_RET_STATUS(ret == ge::SUCCESS, ret, "link fetch output failed");
   const auto link_end = std::chrono::steady_clock::now();
   cost_in_us = std::chrono::duration_cast<std::chrono::microseconds>(link_end - feed_end);
@@ -330,7 +325,7 @@ ge::Status LinkManager::UnlinkClusters(const std::vector<ClusterInfo> &clusters,
   auto feed_time_cost = std::chrono::duration_cast<std::chrono::microseconds>(feed_end - unlink_start).count();
   auto time_out_in_micros = static_cast<int64_t>(unlink_timeout * kMillsToMicros);
   LLM_CHK_BOOL_RET_STATUS(feed_time_cost < time_out_in_micros, ge::LLM_WAIT_PROC_TIMEOUT,
-                         "Feed timeout, cost:%ld us, left:%ld us.", feed_time_cost, time_out_in_micros);
+                          "Feed timeout, cost:%ld us, left:%ld us.", feed_time_cost, time_out_in_micros);
 
   std::vector<ge::Tensor> outputs;
   ret = GetUnLinkResult(time_out_in_micros + kFetchExtraTimeInMicros, rets, transaction_id);

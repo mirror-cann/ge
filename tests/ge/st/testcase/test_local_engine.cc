@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,6 @@ LowerResult LoweringAddStub(const ge::NodePtr &node, const LowerInput &lower_inp
 }
 REGISTER_NODE_CONVERTER(ADD, LoweringAddStub);
 
-
 ge::graphStatus FakeInferDataTypeForBitCast(gert::InferDataTypeContext *context) {
   const auto attrs = context->GetAttrs();
   GE_ASSERT_NOTNULL(attrs);
@@ -81,7 +80,7 @@ ge::graphStatus FakeInferShapeForBitcast(gert::InferShapeContext *context) {
                                                                    : target_dtype_size * kBitNumOfOneByte;
   }
   if (x_dtype_size > target_dtype_size) {
-    GE_ASSERT_TRUE(x_dtype_size % target_dtype_size ==0);
+    GE_ASSERT_TRUE(x_dtype_size % target_dtype_size == 0);
     y_shape->AppendDim(x_dtype_size / target_dtype_size);
     return ge::GRAPH_SUCCESS;
   }
@@ -112,25 +111,24 @@ Graph GetBitcastGraph(const std::vector<int64_t> &input_shape, const ge::DataTyp
       OP_CFG(BITCAST).TensorDesc(FORMAT_NCHW, bitcast_out_dtype, bitcast_out_shape).Attr("type", bitcast_out_dtype);
 
   DEF_GRAPH(g) {
-                 CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
-                 CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
-                 CHAIN(NODE("add", add_0)->NODE("bitcast", bitcast_0)->NODE("netoutput", NETOUTPUT));
-               };
+    CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
+    CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
+    CHAIN(NODE("add", add_0)->NODE("bitcast", bitcast_0)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(g);
   return graph;
 }
 
-class RealDivHostCpuOp : public HostCpuOp{
-public:
-    RealDivHostCpuOp() {};
-    virtual graphStatus Compute(Operator &op,
-                                const std::map<std::string, const Tensor> &inputs,
-                                std::map<std::string, Tensor> &outputs) {
-      return GRAPH_SUCCESS;
-    }
+class RealDivHostCpuOp : public HostCpuOp {
+ public:
+  RealDivHostCpuOp() {};
+  virtual graphStatus Compute(Operator &op, const std::map<std::string, const Tensor> &inputs,
+                              std::map<std::string, Tensor> &outputs) {
+    return GRAPH_SUCCESS;
+  }
 };
-}
+}  // namespace
 
 class HostCpuEngineTest : public testing::Test {
  protected:
@@ -138,8 +136,8 @@ class HostCpuEngineTest : public testing::Test {
     REGISTER_HOST_CPU_OP_BUILDER(REALDIV, RealDivHostCpuOp);
 
     ge_env.InstallDefault()
-          .Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("aicpu_ascend_kernel"))
-          .Install(FakeOp(REALDIV).InfoStoreAndBuilder("aicpu_ascend_kernel"));
+        .Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("aicpu_ascend_kernel"))
+        .Install(FakeOp(REALDIV).InfoStoreAndBuilder("aicpu_ascend_kernel"));
   }
   void TearDown() {}
   GeRunningEnvFaker ge_env;
@@ -148,14 +146,14 @@ class HostCpuEngineTest : public testing::Test {
 TEST_F(HostCpuEngineTest, host_cpu_engine_run) {
   vector<int64_t> perm1{1};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1}), FORMAT_ND, DT_INT64);
-  GeTensorPtr const_tensor1 = 
-    std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANT).Weight(const_tensor1);
 
   vector<int32_t> perm2{1};
   GeTensorDesc tensor_desc2(GeShape(vector<int64_t>{1}), FORMAT_ND, DT_INT32);
-  GeTensorPtr const_tensor2 = 
-    std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()), sizeof(int32_t)*perm2.size());
+  GeTensorPtr const_tensor2 = std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()),
+                                                         sizeof(int32_t) * perm2.size());
   auto const2 = OP_CFG(CONSTANT).Weight(const_tensor2);
 
   DEF_GRAPH(g1) {
@@ -200,9 +198,8 @@ class GeLocalEngineTest : public testing::Test {
   std::map<std::string, std::string> global_options_;
   std::map<std::string, std::string> graph_options_;
   std::map<std::string, std::string> session_options_;
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
 };
-
 
 TEST_F(GeLocalEngineTest, StaticGraph_BitcastInt32ToInt4_ExpandDim) {
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
@@ -228,14 +225,11 @@ TEST_F(GeLocalEngineTest, StaticGraph_BitcastInt32ToInt4_ExpandDim) {
   auto ret = session.AddGraph(graph_id, graph, options);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<InputTensorInfo> inputs;
-  ret = session.BuildGraph(graph_id, inputs); // we only care about compile stage
+  ret = session.BuildGraph(graph_id, inputs);  // we only care about compile stage
   EXPECT_EQ(ret, SUCCESS);
 
   EXPECT_EQ(gert::SummaryChecker(compute_graph)
-                .StrictDirectNodeTypes({{"Data", 2},
-                                        {"Add", 1},
-                                        {"Bitcast", 1},
-                                        {"NetOutput", 1}}),
+                .StrictDirectNodeTypes({{"Data", 2}, {"Add", 1}, {"Bitcast", 1}, {"NetOutput", 1}}),
             "success");
   auto bitcast_node = compute_graph->FindFirstNodeMatchType(BITCAST);
   ASSERT_NE(bitcast_node, nullptr);
@@ -334,13 +328,11 @@ TEST_F(GeLocalEngineTest, DynamicGraph_BitcastInt4ToInt32_SqueezeDim) {
   auto ret = session.AddGraph(graph_id, graph, options);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<InputTensorInfo> inputs;
-  ret = session.BuildGraph(graph_id, inputs); // we only care about compile stage
+  ret = session.BuildGraph(graph_id, inputs);  // we only care about compile stage
   EXPECT_EQ(ret, SUCCESS);
 
   EXPECT_EQ(gert::SummaryChecker(compute_graph)
-                .StrictDirectNodeTypes({{"Data", 2},
-                                        {"PartitionedCall", 1},
-                                        {"NetOutput", 1}}),
+                .StrictDirectNodeTypes({{"Data", 2}, {"PartitionedCall", 1}, {"NetOutput", 1}}),
             "success");
   bool is_bitcast_found = false;
   for (const auto &node : compute_graph->GetAllNodes()) {
@@ -360,8 +352,8 @@ TEST_F(GeLocalEngineTest, DynamicGraph_BitcastInt4ToInt32_SqueezeDim) {
 /*
  *    data1  data2
  *      |      |
- *    mul1   mul2 
- *       \    / 
+ *    mul1   mul2
+ *       \    /
  *     phony_concat
  *          |
  *         mul3
@@ -373,10 +365,15 @@ ComputeGraphPtr GetSimplePhonyConcatComputeGraph() {
     auto mul3 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 8, 8});
     auto mul1 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul2 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
-    auto phony_concat = OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{3}).Attr("N", std::vector<int64_t>{2});
+    auto phony_concat =
+        OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{3}).Attr("N", std::vector<int64_t>{2});
 
-    CHAIN(NODE("data1", "Data")->NODE("mul1", mul1)->EDGE(0, 0)->NODE("phony_concat", phony_concat)->
-          NODE("mul3", mul3)->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")
+              ->NODE("mul1", mul1)
+              ->EDGE(0, 0)
+              ->NODE("phony_concat", phony_concat)
+              ->NODE("mul3", mul3)
+              ->NODE("netoutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->NODE("mul2", mul2)->EDGE(0, 1)->NODE("phony_concat", phony_concat));
   };
 
@@ -431,20 +428,30 @@ TEST_F(GeLocalEngineTest, PhonyConcatGraphBuild) {
     int64_t int_attr = 10;
     EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOTASK, bool_attr), true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, bool_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+                                     bool_attr),
+              true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr), true);
+    EXPECT_EQ(
+        ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr),
+        true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetInt(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr), true);
+    EXPECT_EQ(
+        ge::AttrUtils::GetInt(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr),
+        true);
     EXPECT_EQ(int_attr, 0);
 
     ASSERT_NE(name_to_node["mul1"], nullptr);
     vector<int64_t> list_int_attr;
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_output_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_output_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 0);
 
     ASSERT_NE(name_to_node["mul2"], nullptr);
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_output_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_output_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 64);
   };
 }
@@ -482,20 +489,30 @@ TEST_F(GeLocalEngineTest, PhonyConcatGraphBuildNegetiveDim) {
     int64_t int_attr = 10;
     EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOTASK, bool_attr), true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, bool_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+                                     bool_attr),
+              true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr), true);
+    EXPECT_EQ(
+        ge::AttrUtils::GetBool(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr),
+        true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetInt(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr), true);
+    EXPECT_EQ(
+        ge::AttrUtils::GetInt(name_to_node["phony_concat"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr),
+        true);
     EXPECT_EQ(int_attr, 0);
 
     ASSERT_NE(name_to_node["mul1"], nullptr);
     vector<int64_t> list_int_attr;
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_output_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_output_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 0);
 
     ASSERT_NE(name_to_node["mul2"], nullptr);
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_output_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_output_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 64);
   };
 }
@@ -507,7 +524,7 @@ TEST_F(GeLocalEngineTest, PhonyConcatGraphBuildNegetiveDim) {
  *         |
  *     phony_split
  *       /    \
- *    mul1   mul2 
+ *    mul1   mul2
  *       \    /
  *      netoutput
  */
@@ -517,10 +534,14 @@ ComputeGraphPtr GetSimplePhonySplitComputeGraph() {
     auto mul3 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 8, 8});
     auto mul1 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul2 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
-    auto phony_split = OP_CFG("PhonySplit").Attr("split_dim", std::vector<int64_t>{3}).Attr("num_split", std::vector<int64_t>{2});
+    auto phony_split =
+        OP_CFG("PhonySplit").Attr("split_dim", std::vector<int64_t>{3}).Attr("num_split", std::vector<int64_t>{2});
 
-    CHAIN(NODE("data1", "Data")->NODE("mul3", mul3)->NODE("phony_split", phony_split)->
-          NODE("mul1", mul1)->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")
+              ->NODE("mul3", mul3)
+              ->NODE("phony_split", phony_split)
+              ->NODE("mul1", mul1)
+              ->NODE("netoutput", "NetOutput"));
     CHAIN(NODE("phony_split", phony_split)->NODE("mul2", mul2)->NODE("netoutput", "NetOutput"));
   };
 
@@ -580,20 +601,29 @@ TEST_F(GeLocalEngineTest, PhonySplitGraphBuild) {
     int64_t int_attr = 10;
     EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_NOTASK, bool_attr), true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, bool_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
+                                     bool_attr),
+              true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetBool(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr),
+              true);
     EXPECT_EQ(bool_attr, true);
-    EXPECT_EQ(ge::AttrUtils::GetInt(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr), true);
+    EXPECT_EQ(
+        ge::AttrUtils::GetInt(name_to_node["phony_split"]->GetOpDesc(), ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, int_attr),
+        true);
     EXPECT_EQ(int_attr, 0);
 
     ASSERT_NE(name_to_node["mul1"], nullptr);
     vector<int64_t> list_int_attr;
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_input_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul1"]->GetOpDesc(), "_input_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 0);
 
     ASSERT_NE(name_to_node["mul2"], nullptr);
-    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_input_offset_list_for_continuous", list_int_attr), true);
+    EXPECT_EQ(ge::AttrUtils::GetListInt(name_to_node["mul2"]->GetOpDesc(), "_input_offset_list_for_continuous",
+                                        list_int_attr),
+              true);
     EXPECT_EQ(list_int_attr[0], 64);
   };
 }

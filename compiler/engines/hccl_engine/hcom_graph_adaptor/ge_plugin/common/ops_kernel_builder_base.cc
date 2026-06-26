@@ -64,7 +64,7 @@ HcclResult HCCLOpsKernelBuilder::SetOpOutputMemSize(ge::Node &node, const std::s
 
     if (memSize == -1) {  // memsize 为-1 时，表示输入的shape不正确
       HCCL_ERROR(
-          "[SetOp][OutputMemSize]In get output mem size, error outputSize because unknow shape,"
+          "[SetOp][OutputMemSize]In get output mem size, error outputSize because unknown shape,"
           "Format[%d], dataType[%d], outputSize[%lld], index[%u]",
           format, dataType, memSize, i);
       return HCCL_E_PARA;
@@ -89,15 +89,16 @@ HcclResult HCCLOpsKernelBuilder::SetOpOutputMemSize(ge::Node &node, const std::s
   return HCCL_SUCCESS;
 }
 
-HcclResult HCCLOpsKernelBuilder::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) const {
+HcclResult HCCLOpsKernelBuilder::CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize,
+                                                       const ge::GeTensorDesc &desc_temp) const {
   HCCL_DEBUG("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Before sCollectiveType[%s], memSize[%lld B]",
-    sCollectiveType.c_str(), memSize);
+             sCollectiveType.c_str(), memSize);
   // 通过ge接口获取32B对齐后的memSize
   CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, memSize) != ge::GRAPH_SUCCESS),
-    HCCL_ERROR("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
+              HCCL_ERROR("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]Get memSize failed"), HCCL_E_PARA);
 
   HCCL_DEBUG("[HCCLOpsKernelBuilder][CalcHCCLOutputMemSize]After sCollectiveType[%s], memSize[%lld B]",
-    sCollectiveType.c_str(), memSize);
+             sCollectiveType.c_str(), memSize);
   return HCCL_SUCCESS;
 }
 }  // namespace hccl

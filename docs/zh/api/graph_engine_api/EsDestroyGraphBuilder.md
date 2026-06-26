@@ -71,4 +71,3 @@ EsCGraphBuilder *builder = EsCreateGraphBuilder("graph_name");
 // 释放builder及其管理的过程资源
 EsDestroyGraphBuilder(builder);
 ```
-

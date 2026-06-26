@@ -21,15 +21,13 @@ using Placement = ge::Placement;
 
 /// Kernel launch arguments with memory placement info
 struct KernelArgs {
-  void *args_data;      ///< Pointer to argument data
-  size_t args_size;     ///< Size of argument data in bytes
-  uint64_t reserved[4]; ///< Reserved for future extension
-  Placement placement;  ///< Memory placement (host or device)
-  uint8_t placement_reserved_[4]; ///< Reserved field, 4-byte aligned for Placement
+  void *args_data;                 ///< Pointer to argument data
+  size_t args_size;                ///< Size of argument data in bytes
+  uint64_t reserved[4];            ///< Reserved for future extension
+  Placement placement;             ///< Memory placement (host or device)
+  uint8_t placement_reserved_[4];  ///< Reserved field, 4-byte aligned for Placement
 
-  KernelArgs()
-      : args_data(nullptr), args_size(0U), reserved{},
-        placement(ge::kPlacementHost), placement_reserved_{} {}
+  KernelArgs() : args_data(nullptr), args_size(0U), reserved{}, placement(ge::kPlacementHost), placement_reserved_{} {}
 };
 
 }  // namespace gert

@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 #include <parser/tensorflow_parser.h>
 
 namespace gerec {
-ModelInference::Builder::Builder(const std::string& modelPath, const std::string& modelType) {
+ModelInference::Builder::Builder(const std::string &modelPath, const std::string &modelType) {
   infer_params_.model_path_ = modelPath;
   infer_params_.model_type_ = modelType;
 }
@@ -50,14 +50,13 @@ std::unique_ptr<ModelInference> ModelInference::Builder::Build() {
 }
 
 ModelInference::ModelInference(const InferenceParams &inference_params)
-  : model_path_(inference_params.model_path_),
-    model_type_(inference_params.model_type_),
-    multi_instance_num_(inference_params.multi_instance_num_),
-    ai_core_num_(inference_params.ai_core_num_),
-    parser_params_(inference_params.parser_params_),
-    enable_input_batch_cpy_(inference_params.enable_input_batch_cpy_),
-    global_max_queue_size_(inference_params.global_max_queue_size_) {
-}
+    : model_path_(inference_params.model_path_),
+      model_type_(inference_params.model_type_),
+      multi_instance_num_(inference_params.multi_instance_num_),
+      ai_core_num_(inference_params.ai_core_num_),
+      parser_params_(inference_params.parser_params_),
+      enable_input_batch_cpy_(inference_params.enable_input_batch_cpy_),
+      global_max_queue_size_(inference_params.global_max_queue_size_) {}
 
 void ModelInference::GraphWorker::Run(const std::shared_ptr<ge::Session> &session) {
   aclError aerr = aclrtSetDevice(deviceId);
@@ -82,9 +81,7 @@ void ModelInference::GraphWorker::Run(const std::shared_ptr<ge::Session> &sessio
     std::function<void()> task;
     {
       std::unique_lock<std::mutex> lock(mtx);
-      cv.wait(lock, [this]() {
-        return stop || !tasks.empty();
-      });
+      cv.wait(lock, [this]() { return stop || !tasks.empty(); });
       if (stop && tasks.empty()) break;
       task = std::move(tasks.front());
       tasks.pop();
@@ -127,19 +124,12 @@ inline void FreeDevice(std::vector<gert::Tensor> &device_tensors) {
 
 inline bool CopyBatch(MemcpyBatchParam &memcpy_batch_param) {
   size_t failIndex = SIZE_MAX;
-  aclError aerr = aclrtMemcpyBatch(
-      memcpy_batch_param.dsts.data(),
-      memcpy_batch_param.destMaxs.data(),
-      memcpy_batch_param.srcs.data(),
-      memcpy_batch_param.sizes.data(),
-      memcpy_batch_param.numBatches,
-      memcpy_batch_param.attrs.data(),
-      memcpy_batch_param.attrsIndexes.data(),
-      memcpy_batch_param.numAttrs,
-      &failIndex);
+  aclError aerr = aclrtMemcpyBatch(memcpy_batch_param.dsts.data(), memcpy_batch_param.destMaxs.data(),
+                                   memcpy_batch_param.srcs.data(), memcpy_batch_param.sizes.data(),
+                                   memcpy_batch_param.numBatches, memcpy_batch_param.attrs.data(),
+                                   memcpy_batch_param.attrsIndexes.data(), memcpy_batch_param.numAttrs, &failIndex);
   if (aerr != ACL_ERROR_NONE) {
-    std::cerr << " batch failed, ret=" << aerr
-        << ", failIndex=" << failIndex << std::endl;
+    std::cerr << " batch failed, ret=" << aerr << ", failIndex=" << failIndex << std::endl;
     return false;
   }
   return true;
@@ -150,12 +140,9 @@ inline bool CopySingle(const std::vector<gert::Tensor> &src, std::vector<gert::T
 
   for (size_t i = 0; i < src.size(); ++i) {
     size_t bytes = src[i].GetSize();
-    aclError aerr = aclrtMemcpy(dst[i].GetAddr(), bytes,
-                                src[i].GetAddr(), bytes,
-                                kind);
+    aclError aerr = aclrtMemcpy(dst[i].GetAddr(), bytes, src[i].GetAddr(), bytes, kind);
     if (aerr != ACL_ERROR_NONE) {
-      std::cerr << "CopySingle failed at index " << i
-          << ", ret=" << aerr << std::endl;
+      std::cerr << "CopySingle failed at index " << i << ", ret=" << aerr << std::endl;
       return false;
     }
   }
@@ -195,8 +182,7 @@ inline bool CopyH2D(const std::vector<gert::Tensor> &host, std::vector<gert::Ten
       return false;
     }
     MemcpyBatchParam memcpy_batch_params;
-    BuildMemcpyBatchParams(host, dev, memcpy_batch_params, ACL_MEM_LOCATION_TYPE_HOST,
-                           ACL_MEM_LOCATION_TYPE_DEVICE,
+    BuildMemcpyBatchParams(host, dev, memcpy_batch_params, ACL_MEM_LOCATION_TYPE_HOST, ACL_MEM_LOCATION_TYPE_DEVICE,
                            deviceId);
     return CopyBatch(memcpy_batch_params);
   }
@@ -243,8 +229,7 @@ void ModelInference::GraphTask::operator()() {
   auto exec_start = std::chrono::high_resolution_clock::now();
 
   auto safe_callback = [&](std::shared_ptr<std::vector<gert::Tensor>> outputs,
-                           std::shared_ptr<std::vector<gert::Tensor>> inputs,
-                           bool status, long long exec_us) {
+                           std::shared_ptr<std::vector<gert::Tensor>> inputs, bool status, long long exec_us) {
     try {
       if (callback) callback(outputs, inputs, status, exec_us);
     } catch (const std::exception &ex) {
@@ -271,9 +256,7 @@ void ModelInference::GraphTask::operator()() {
     return;
   }
 
-  ge::Status ret = session->
-      ExecuteGraphWithStreamAsync(worker->graphId, worker->stream, device_inputs,
-                                  device_outputs);
+  ge::Status ret = session->ExecuteGraphWithStreamAsync(worker->graphId, worker->stream, device_inputs, device_outputs);
   if (ret != ge::SUCCESS) {
     std::cerr << "ExecuteGraphWithStreamAsync failed!" << std::endl;
     FreeDevice(device_inputs);
@@ -302,8 +285,7 @@ void ModelInference::GraphTask::operator()() {
   FreeDevice(device_outputs);
 
   auto exec_end = std::chrono::high_resolution_clock::now();
-  long long exec_us = std::chrono::duration_cast<std::chrono::microseconds>(
-      exec_end - exec_start).count();
+  long long exec_us = std::chrono::duration_cast<std::chrono::microseconds>(exec_end - exec_start).count();
 
   safe_callback(host_outputs, host_inputs, true, exec_us);
 }
@@ -330,15 +312,13 @@ ge::Status ModelInference::Init() {
   }
 
   std::map<ge::AscendString, ge::AscendString> session_options = {
-      {ge::AscendString("ge.exec.precision_mode"), ge::AscendString("allow_fp32_to_fp16")}
-  };
+      {ge::AscendString("ge.exec.precision_mode"), ge::AscendString("allow_fp32_to_fp16")}};
   if (!ai_core_num_.empty()) {
     session_options.emplace(ge::AscendString("ge.aicoreNum"), ge::AscendString(ai_core_num_.c_str()));
   }
 
   std::map<ge::AscendString, ge::AscendString> global_options = {
-      {ge::AscendString("ge.graphRunMode"), ge::AscendString("0")}
-  };
+      {ge::AscendString("ge.graphRunMode"), ge::AscendString("0")}};
 
   ge::Status gerr = ge::GEInitialize(global_options);
   if (gerr != ge::SUCCESS) {
@@ -382,9 +362,7 @@ ge::Status ModelInference::Init() {
     worker->deviceId = deviceId;
     worker->graph = std::move(graph);
     worker->max_queue_size = global_max_queue_size_;
-    worker->worker = std::thread([this, wptr = worker.get()]() {
-      wptr->Run(session_);
-    });
+    worker->worker = std::thread([this, wptr = worker.get()]() { wptr->Run(session_); });
     worker->batchCopy = enable_input_batch_cpy_;
     workers_.push_back(std::move(worker));
   }
@@ -393,9 +371,9 @@ ge::Status ModelInference::Init() {
     std::cerr << "No workers created!" << std::endl;
     return ge::FAILED;
   }
-  std::cout << "ModelInference Init success. There are [" << multi_instance_num_ <<
-      "] inference instance , input_batch_cpy is " << enable_input_batch_cpy_ << ", ai_core_num_ is [" << ai_core_num_
-      << "]" << std::endl;
+  std::cout << "ModelInference Init success. There are [" << multi_instance_num_
+            << "] inference instance , input_batch_cpy is " << enable_input_batch_cpy_ << ", ai_core_num_ is ["
+            << ai_core_num_ << "]" << std::endl;
   return ge::SUCCESS;
 }
 
@@ -413,12 +391,10 @@ ge::Status ModelInference::RunGraphAsync(const std::shared_ptr<std::vector<gert:
 
   GraphTask graphTask{session_, worker.get(), host_inputs, host_outputs, callback};
 
-  if (!worker->Enqueue([task = std::move(graphTask)]() mutable {
-    task();
-  })) {
+  if (!worker->Enqueue([task = std::move(graphTask)]() mutable { task(); })) {
     std::cerr << "Task queue full for worker " << idx << std::endl;
     return ge::FAILED;
   }
   return ge::SUCCESS;
 }
-} // namespace gerec
+}  // namespace gerec

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,9 @@ class DumpOp {
   void SaveFftsSubOpInfo(const OpDescPtr &op_desc, const std::vector<Context> &context);
   Status GenerateFftsDump(const DumpProperties &dump_properties, void *&load_dump_info, uint32_t &load_dump_len,
                           void *&unload_dump_info, uint32_t &unload_dump_len, const bool is_single_op_dump);
-  bool IsFftsDumpInfoEmpty() const { return ffts_sub_op_list_.empty(); }
+  bool IsFftsDumpInfoEmpty() const {
+    return ffts_sub_op_list_.empty();
+  }
   void SetTaskId(const uint32_t task_id) {
     task_id_ = task_id;
   }
@@ -62,16 +64,18 @@ class DumpOp {
   void SetStreamId(const uint32_t stream_id) {
     stream_id_ = stream_id;
   }
-  Status UpdateAddrs(const std::vector<uintptr_t> &input_addrs,
-                     const std::vector<uintptr_t> &output_addrs);
-  void SetRootGraphName(const std::string &name) { root_graph_name_ = name; }
+  Status UpdateAddrs(const std::vector<uintptr_t> &input_addrs, const std::vector<uintptr_t> &output_addrs);
+  void SetRootGraphName(const std::string &name) {
+    root_graph_name_ = name;
+  }
+
  private:
   Status ExecutorDumpOp(bool need_device_args);
   void DumpWorkspace(toolkit::aicpu::dump::Task &task);
-  Status DumpOutput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_desc,
-                    const std::vector<uintptr_t> &addrs, bool ffts_flag = false) const;
-  Status DumpInput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_desc,
-                   const std::vector<uintptr_t> &addrs, bool ffts_flag = false) const;
+  Status DumpOutput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_desc, const std::vector<uintptr_t> &addrs,
+                    bool ffts_flag = false) const;
+  Status DumpInput(toolkit::aicpu::dump::Task &task, const OpDescPtr &op_desc, const std::vector<uintptr_t> &addrs,
+                   bool ffts_flag = false) const;
   void DumpTask(toolkit::aicpu::dump::Task &task, const uint32_t task_id);
   Status SetDumpModelName();
   Status ProtoMallocAndMemcpy(const size_t proto_size, const std::string &proto_msg);

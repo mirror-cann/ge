@@ -21,7 +21,6 @@ from pathlib import Path
 
 import pytest
 
-
 GE_PYTHON_DIR = Path(__file__).resolve().parents[6] / "api/python/ge"
 if str(GE_PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(GE_PYTHON_DIR))
@@ -116,7 +115,7 @@ def _install_fake_graph_modules(monkeypatch):
             self._handle = ctypes.c_void_p(0x5678)
 
     class Tensor:
-        def __init__(self, handle=0x9abc):
+        def __init__(self, handle=0x9ABC):
             self._handle = ctypes.c_void_p(handle)
 
         @staticmethod
@@ -208,13 +207,18 @@ def test_run_graph_failure_uses_status_return_value(fake_runtime_wrapper):
     assert len(fake_runtime_wrapper.GeApiWrapper_Session_RunGraph.calls[0]) == 6
 
 
-def test_run_graph_with_stream_async_failure_uses_status_return_value(fake_runtime_wrapper):
+def test_run_graph_with_stream_async_failure_uses_status_return_value(
+    fake_runtime_wrapper,
+):
     fake_runtime_wrapper.GeApiWrapper_Session_RunGraphWithStreamAsync.impl = lambda *_args: 145000
     error_mod = importlib.import_module("ge.error")
     session_mod = importlib.import_module("ge.session.session")
 
     session = session_mod.Session()
-    with pytest.raises(error_mod.GeError, match="RunGraphWithStreamAsync.*graph_id=3.*stream=0x1111.*E10062"):
+    with pytest.raises(
+        error_mod.GeError,
+        match="RunGraphWithStreamAsync.*graph_id=3.*stream=0x1111.*E10062",
+    ):
         session.run_graph_with_stream_async(3, 0x1111, [])
 
     assert len(fake_runtime_wrapper.GeApiWrapper_Session_RunGraphWithStreamAsync.calls[0]) == 7
@@ -279,10 +283,12 @@ def test_offline_compile_failures_raise_ge_error(fake_runtime_wrapper):
         ),
         (
             fake_runtime_wrapper.GeApiWrapper_OfflineCompile_BundleBuildModel,
-            lambda: offline_mod.bundle_build_model([
-                offline_mod.GraphWithOptions(offline_mod.Graph()),
-                offline_mod.GraphWithOptions(offline_mod.Graph()),
-            ]),
+            lambda: offline_mod.bundle_build_model(
+                [
+                    offline_mod.GraphWithOptions(offline_mod.Graph()),
+                    offline_mod.GraphWithOptions(offline_mod.Graph()),
+                ]
+            ),
             "BundleBuildModel",
         ),
         (

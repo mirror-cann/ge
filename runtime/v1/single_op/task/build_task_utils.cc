@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,7 @@
 #include "graph/utils/op_type_utils.h"
 
 namespace ge {
-std::vector<std::vector<void *>> BuildTaskUtils::GetAddresses(const OpDescPtr &op_desc,
-                                                              const SingleOpModelParam &param,
+std::vector<std::vector<void *>> BuildTaskUtils::GetAddresses(const OpDescPtr &op_desc, const SingleOpModelParam &param,
                                                               const bool keep_workspace) {
   std::vector<std::vector<void *>> ret;
   ret.emplace_back(ModelUtils::GetInputDataAddrs(param.runtime_param, op_desc));
@@ -39,14 +38,12 @@ std::vector<void *> BuildTaskUtils::JoinAddresses(const std::vector<std::vector<
   return ret;
 }
 
-std::vector<void *> BuildTaskUtils::GetKernelArgs(const OpDescPtr &op_desc,
-                                                  const SingleOpModelParam &param) {
+std::vector<void *> BuildTaskUtils::GetKernelArgs(const OpDescPtr &op_desc, const SingleOpModelParam &param) {
   const auto addresses = GetAddresses(op_desc, param);
   return JoinAddresses(addresses);
 }
 
-std::string BuildTaskUtils::InnerGetTaskInfo(const OpDescPtr &op_desc,
-                                             const std::vector<const void *> &input_addrs,
+std::string BuildTaskUtils::InnerGetTaskInfo(const OpDescPtr &op_desc, const std::vector<const void *> &input_addrs,
                                              const std::vector<const void *> &output_addrs) {
   std::stringstream ss;
   if (op_desc != nullptr) {
@@ -100,8 +97,7 @@ std::string BuildTaskUtils::GetTaskInfo(const OpDescPtr &op_desc) {
   return InnerGetTaskInfo(op_desc, input_addrs, output_addrs);
 }
 
-std::string BuildTaskUtils::GetTaskInfo(const OpDescPtr &op_desc,
-                                        const std::vector<DataBuffer> &inputs,
+std::string BuildTaskUtils::GetTaskInfo(const OpDescPtr &op_desc, const std::vector<DataBuffer> &inputs,
                                         const std::vector<DataBuffer> &outputs) {
   std::vector<const void *> input_addrs;
   std::vector<const void *> output_addrs;

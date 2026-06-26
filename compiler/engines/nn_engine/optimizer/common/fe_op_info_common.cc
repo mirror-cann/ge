@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,8 +70,7 @@ void GetCoreTypeAndRatio(const ge::OpDescPtr &op_desc, const int64_t cube_ratio,
     ratio = static_cast<int32_t>(vector_ratio / cube_ratio);
     tmp_core_type = kCoreTypeMixAIC;
   }
-  if (core_type != kCoreTypeMixEnhance && core_type != kCoreTypeMixVectorCore &&
-      core_type != kCoreTypeMixAICore) {
+  if (core_type != kCoreTypeMixEnhance && core_type != kCoreTypeMixVectorCore && core_type != kCoreTypeMixAICore) {
     core_type = tmp_core_type;
   }
 }
@@ -148,8 +147,8 @@ Status TilingResultCheck(const ge::OpDescPtr &op_desc, RunInfoPtr &tiling_info) 
     (void)ge::AttrUtils::SetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, iter->second->GetBlockDim());
 
     FE_LOGD("Node[%s] has cache tiling data with key[%s], tiling_data size:%zu, blockdim:%u.",
-        op_desc->GetName().c_str(), tiling_key.c_str(), iter->second->GetAllTilingData().str().size(),
-        iter->second->GetBlockDim());
+            op_desc->GetName().c_str(), tiling_key.c_str(), iter->second->GetAllTilingData().str().size(),
+            iter->second->GetBlockDim());
     tiling_info = iter->second;
     return SUCCESS;
   }
@@ -232,8 +231,7 @@ Status UpdateTilingResult(const RunInfoPtr &tiling_info, const RunInfoPtr &temp_
   return SUCCESS;
 }
 
-Status TilingForSoftSyncOp(const ge::NodePtr &node, PlatFormInfos &platform_infos,
-                           const RunInfoPtr &tiling_info) {
+Status TilingForSoftSyncOp(const ge::NodePtr &node, PlatFormInfos &platform_infos, const RunInfoPtr &tiling_info) {
   const std::vector<uint32_t> &vir_type_list = PlatformUtils::Instance().GetVirTypeList();
   for (auto &vir_type : vir_type_list) {
     RunInfoPtr temp_tiling_info;
@@ -263,8 +261,8 @@ Status TilingForOneNode(const ge::NodePtr &node) {
 
   PlatFormInfos platform_infos;
   OptionalInfos opti_compilation_info;
-  if (PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(platform_infos,
-      opti_compilation_info) != SUCCESS) {
+  if (PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(platform_infos, opti_compilation_info) !=
+      SUCCESS) {
     FE_LOGE("Do tiling failed for node:%s, failed to get platform.", node->GetName().c_str());
     return FAILED;
   }
@@ -320,8 +318,8 @@ Status UpdateTileFwkKernelInfo(const ge::OpDescPtr &op_desc) {
 
   SubkernelInfo subkernel_info;
   if (TileFwkOpInfo::Instance().GetFatbinInfo(op_desc->GetType(), config_key, subkernel_info) != SUCCESS) {
-    FE_LOGE("Node[%s, %s]: failed to get subkernel info by config key %lu.",
-            op_desc->GetNamePtr(), op_desc->GetTypePtr(), config_key);
+    FE_LOGE("Node[%s, %s]: failed to get subkernel info by config key %lu.", op_desc->GetNamePtr(),
+            op_desc->GetTypePtr(), config_key);
     return FAILED;
   }
   FE_CHECK_NOTNULL(subkernel_info.subkernel_ptr);
@@ -335,7 +333,7 @@ Status UpdateTileFwkKernelInfo(const ge::OpDescPtr &op_desc) {
   FE_LOGD("Node[%s, %s]: block dim is %ld, workspace size is %ld.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
           subkernel_info.block_dim, subkernel_info.workspace_size);
 
-  const uint8_t* subkernel_bin = subkernel_info.subkernel_ptr->GetBinData();
+  const uint8_t *subkernel_bin = subkernel_info.subkernel_ptr->GetBinData();
   KernelHeader kernel_header;
   if (memcpy_s(&kernel_header, sizeof(KernelHeader), subkernel_bin, sizeof(KernelHeader)) != EOK) {
     FE_LOGE("Node[%s, %s]: failed to get subkernel header.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
@@ -344,33 +342,32 @@ Status UpdateTileFwkKernelInfo(const ge::OpDescPtr &op_desc) {
   std::vector<char> op_binary_bin(
       subkernel_bin + kernel_header.dataOffset[static_cast<size_t>(KernelContextType::OpBinary)],
       subkernel_bin + kernel_header.dataOffset[static_cast<size_t>(KernelContextType::OpBinary)] +
-      kernel_header.dataSize[static_cast<size_t>(KernelContextType::OpBinary)]);
-  std::vector<char> kernel_bin(
-      subkernel_bin + kernel_header.dataOffset[static_cast<size_t>(KernelContextType::Kernel)],
-      subkernel_bin + kernel_header.dataOffset[static_cast<size_t>(KernelContextType::Kernel)] +
-      kernel_header.dataSize[static_cast<size_t>(KernelContextType::Kernel)]);
+          kernel_header.dataSize[static_cast<size_t>(KernelContextType::OpBinary)]);
+  std::vector<char> kernel_bin(subkernel_bin + kernel_header.dataOffset[static_cast<size_t>(KernelContextType::Kernel)],
+                               subkernel_bin +
+                                   kernel_header.dataOffset[static_cast<size_t>(KernelContextType::Kernel)] +
+                                   kernel_header.dataSize[static_cast<size_t>(KernelContextType::Kernel)]);
   ge::Buffer op_binary_buffer =
-      ge::Buffer::CopyFrom(reinterpret_cast<uint8_t*>(op_binary_bin.data()), op_binary_bin.size());
+      ge::Buffer::CopyFrom(reinterpret_cast<uint8_t *>(op_binary_bin.data()), op_binary_bin.size());
   (void)ge::AttrUtils::SetBytes(op_desc, kAttrSubkernelOpBinaryStr, op_binary_buffer);
   std::string attr_prefix;
   (void)ge::AttrUtils::GetStr(op_desc, kAttrPrefixStr, attr_prefix);
   std::string kernel_name;
   (void)ge::AttrUtils::GetStr(op_desc, attr_prefix + kKernelName, kernel_name);
   ge::OpKernelBinPtr kernel_bin_ptr = nullptr;
-  FE_MAKE_SHARED(kernel_bin_ptr =
-      std::make_shared<ge::OpKernelBin>(kernel_name, std::move(kernel_bin)), return FAILED);
+  FE_MAKE_SHARED(kernel_bin_ptr = std::make_shared<ge::OpKernelBin>(kernel_name, std::move(kernel_bin)), return FAILED);
   (void)op_desc->SetExtAttr(attr_prefix + ge::OP_EXTATTR_NAME_TBE_KERNEL, kernel_bin_ptr);
 
   int32_t block_dim = 0;
   (void)ge::AttrUtils::GetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, block_dim);
   if (subkernel_info.block_dim < block_dim) {
-    FE_LOGD("Node[%s, %s]: block dim changes from %ld to %ld.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
-            block_dim, subkernel_info.block_dim);
+    FE_LOGD("Node[%s, %s]: block dim changes from %ld to %ld.", op_desc->GetNamePtr(), op_desc->GetTypePtr(), block_dim,
+            subkernel_info.block_dim);
     (void)ge::AttrUtils::SetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, subkernel_info.block_dim);
   }
   op_desc->SetWorkspaceBytes({subkernel_info.workspace_size});
-  FE_LOGD("Node[%s, %s]: op binary size is %zu, kernel size is %ld.", op_desc->GetNamePtr(),
-          op_desc->GetTypePtr(), op_binary_bin.size(), kernel_bin_ptr->GetBinDataSize());
+  FE_LOGD("Node[%s, %s]: op binary size is %zu, kernel size is %ld.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+          op_binary_bin.size(), kernel_bin_ptr->GetBinDataSize());
   return SUCCESS;
 }
 }  // namespace fe

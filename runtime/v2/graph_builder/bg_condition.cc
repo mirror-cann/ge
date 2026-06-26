@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,9 +54,8 @@ GuarderInfo FindGuarder(const ge::EdgeSrcEndpoint &edge_src_point) {
   const auto guarder_type = GetGuarderOutside(src_node);
   if (!guarder_type.empty()) {
     if (!IsFreeNode(guarder_type.c_str())) {
-      GELOGE(ge::PARAM_INVALID, "get guarder type of node %s[%s] failed, guarder type = %s",
-             src_node->GetNamePtr(), src_node->GetTypePtr(),
-             guarder_type.c_str());
+      GELOGE(ge::PARAM_INVALID, "get guarder type of node %s[%s] failed, guarder type = %s", src_node->GetNamePtr(),
+             src_node->GetTypePtr(), guarder_type.c_str());
       return {false, nullptr, ""};
     }
     return {true, nullptr, guarder_type};
@@ -79,7 +78,9 @@ GuarderInfo FindGuarder(const ge::EdgeSrcEndpoint &edge_src_point) {
 }
 }  // namespace
 
-std::vector<ValueHolderPtr> EmptySubgraphBuilder() { return {}; }
+std::vector<ValueHolderPtr> EmptySubgraphBuilder() {
+  return {};
+}
 
 ge::graphStatus CreateBranchGraphs(
     const ValueHolderPtr &cond_holder, const std::vector<SubgraphBuilder> &builders,
@@ -155,7 +156,7 @@ ge::graphStatus CreateControlFrame(const ValueHolderPtr &cond_holder, size_t bra
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode * const parent_node,
+ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode *const parent_node,
                                            std::set<std::pair<int32_t, std::string>> &all_guarder_indexes_types,
                                            std::vector<OutputsGuarderInfo> &subgraph_indexes_to_policy) {
   const auto op_desc = parent_node->GetOpDescBarePtr();
@@ -189,7 +190,7 @@ ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode * const parent_nod
           // 如果未插入成功，说明遇到了同一个guarded输出连接到多个子图外的场景，那么从第二个开始加加引用计数，并在子图外部新增guarder
           if (!subgraph_indexes_to_guarded_endpoint[i].insert(src_endpoint).second) {
             subgraph_indexes_to_policy[i].plus_refs.push_back(
-                  {edge->src, edge->src_output, ge::EdgeDstEndpoint{edge->dst, edge->dst_input}});
+                {edge->src, edge->src_output, ge::EdgeDstEndpoint{edge->dst, edge->dst_input}});
           }
           subgraph_indexes_to_policy[i].to_be_removed_guarders.push_back(guarder_info.in_graph_guarder);
         } else {
@@ -197,11 +198,11 @@ ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode * const parent_nod
           // 此时一种正确的做法是为新增的这个tensor也加上guarder。因此此处为父节点对应输入增加guarder，在子图内部增加引用计数。
           // 因此，这也是这里加加计数，外部加guarder的来历。
           subgraph_indexes_to_policy[i].plus_refs.push_back(
-                {edge->src, edge->src_output, ge::EdgeDstEndpoint{edge->dst, edge->dst_input}});
+              {edge->src, edge->src_output, ge::EdgeDstEndpoint{edge->dst, edge->dst_input}});
         }
       } else {
-        subgraph_indexes_to_parent_indexes_to_no_guarder[i][edge->dst_input] = {edge->src, edge->src_output,
-                                                                                {edge->dst, edge->dst_input}};
+        subgraph_indexes_to_parent_indexes_to_no_guarder[i][edge->dst_input] = {
+            edge->src, edge->src_output, {edge->dst, edge->dst_input}};
       }
     }
   }
@@ -251,7 +252,7 @@ ge::graphStatus AddPlusCount(const std::string &name, const std::vector<PlusRefG
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus CalcChainConflictSolvePolicy(const ge::FastNode * const node,
+ge::graphStatus CalcChainConflictSolvePolicy(const ge::FastNode *const node,
                                              std::vector<ge::FastNode *> &subgraph_indexes_to_netoutput,
                                              std::set<int32_t> &conflict_indexes, std::set<int32_t> &all_same_indexes) {
   const auto op_desc = node->GetOpDescBarePtr();
@@ -306,8 +307,8 @@ ge::graphStatus AddPointFromForConflicts(const std::string &name, const std::set
     GE_ASSERT_NOTNULL(node);
     uint32_t pfi_index = 0U;
     for (auto conflict_index : conflict_indexes) {
-      GE_ASSERT_SUCCESS(ge::ExecuteGraphUtils::InsertNodeBefore({netoutput_node, conflict_index}, node,
-                                                                pfi_index, pfi_index));
+      GE_ASSERT_SUCCESS(
+          ge::ExecuteGraphUtils::InsertNodeBefore({netoutput_node, conflict_index}, node, pfi_index, pfi_index));
       ++pfi_index;
     }
   }

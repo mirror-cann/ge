@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,8 @@ class PlanRetChecker {
   PlanRetChecker(const vector<TaskArgsRefreshTypeClassifier::TaskRefreshType> &task_indexes_to_rt,
                  const vector<TaskRunParam> &task_indexes_to_param)
       : task_indexes_to_rt_(task_indexes_to_rt), task_indexes_to_param_(task_indexes_to_param) {}
-  PlanRetChecker &PartitionLen(ArgsPlacement placement, UpdateTriggerType partition_type,
-                               int64_t len, int64_t align_offset) {
+  PlanRetChecker &PartitionLen(ArgsPlacement placement, UpdateTriggerType partition_type, int64_t len,
+                               int64_t align_offset) {
     expect_partition_[static_cast<int32_t>(placement)][static_cast<int32_t>(partition_type)] = len;
     expect_partition_align_offset[static_cast<int32_t>(placement)][static_cast<int32_t>(partition_type)] = align_offset;
     return *this;
@@ -168,7 +168,7 @@ class PlanRetChecker {
              << static_cast<int32_t>(last_partition) << std::endl;
           break;
         }
-        // partion 发生变化时，需要加上前一个partion的align offset
+        // partition 发生变化时，需要加上前一个partition的align offset
         if (ol.partition_type != last_partition) {
           expect_offset += ret.placements_to_partitions_to_align_offset[pli][static_cast<int32_t>(last_partition)];
           last_partition = ol.partition_type;
@@ -190,8 +190,8 @@ class PlanRetChecker {
             ret.placements_to_partitions_to_len[pli][pai]) {
           ss << " placement [" << pli << "] partition " << pai << " len "
              << ret.placements_to_partitions_to_len[pli][pai] << ", not match all task args len "
-             << pais_to_task_len[pai] << ", align offset "
-             << ret.placements_to_partitions_to_align_offset[pli][pai] << std::endl;
+             << pais_to_task_len[pai] << ", align offset " << ret.placements_to_partitions_to_align_offset[pli][pai]
+             << std::endl;
           success = false;
         }
       }
@@ -209,8 +209,8 @@ class PlanRetChecker {
  private:
   int64_t expect_partition_[static_cast<int32_t>(ArgsPlacement::kEnd)][static_cast<int32_t>(UpdateTriggerType::kEnd)] =
       {{}, {}};
-  int64_t expect_partition_align_offset[static_cast<int32_t>(ArgsPlacement::kEnd)][static_cast<int32_t>(UpdateTriggerType::kEnd)] =
-      {{}, {}};
+  int64_t expect_partition_align_offset[static_cast<int32_t>(ArgsPlacement::kEnd)]
+                                       [static_cast<int32_t>(UpdateTriggerType::kEnd)] = {{}, {}};
   const std::vector<TaskArgsRefreshTypeClassifier::TaskRefreshType> &task_indexes_to_rt_;
   const std::vector<TaskRunParam> &task_indexes_to_param_;
 };

@@ -91,4 +91,3 @@ EsGraphBuilder builder("graph_name");
 // 2. 添加输入节点
 EsTensorHolder data0 = builder.CreateInput(0).SetOriginSymbolShape({"a", "b", "c", "d"}); // 设置输入节点输出tensor的符号化shape
 ```
-

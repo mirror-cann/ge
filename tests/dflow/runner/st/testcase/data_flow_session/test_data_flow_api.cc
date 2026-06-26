@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@
 #include "ge_running_env/ge_running_env_faker.h"
 #include "api/gelib/gelib.h"
 #include "init_ge.h"
-#include "ge/ge_api.h" // 等GE提供真正的依赖接口
+#include "ge/ge_api.h"  // 等GE提供真正的依赖接口
 #include "dflow/compiler/pne/udf/udf_process_node_engine.h"
 #include "dflow/compiler/pne/process_node_engine_manager.h"
 #include "common/env_path.h"
@@ -35,16 +35,16 @@
 using namespace testing;
 namespace ge {
 namespace dflow {
-using ge::Operator;
-using ge::GRAPH_SUCCESS;
-using ge::SUCCESS;
-using ge::FAILED;
-using ge::PARAM_INVALID;
 using ge::ComputeGraphPtr;
-using ge::Node;
-using ge::RunContext;
-using ge::TensorDesc;
+using ge::FAILED;
+using ge::GRAPH_SUCCESS;
 using ge::INVALID_SESSION_ID;
+using ge::Node;
+using ge::Operator;
+using ge::PARAM_INVALID;
+using ge::RunContext;
+using ge::SUCCESS;
+using ge::TensorDesc;
 
 Status InitializeExecutionRuntimeStub(const std::map<std::string, std::string> &options) {
   auto stub = std::make_shared<ge::ExecutionRuntimeStub>();
@@ -53,9 +53,9 @@ Status InitializeExecutionRuntimeStub(const std::map<std::string, std::string> &
 }
 
 static int32_t g_so_addr = 0;
-static void* g_handle = &(g_so_addr);
+static void *g_handle = &(g_so_addr);
 class MockMmpaDeployer : public ge::MmpaStubApiGe {
-  public:
+ public:
   void *DlOpen(const char *file_name, int32_t mode) {
     if (std::string(file_name) == "libmodel_deployer.so") {
       return g_handle;
@@ -65,7 +65,7 @@ class MockMmpaDeployer : public ge::MmpaStubApiGe {
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &(InitializeExecutionRuntimeStub);
+      return (void *)&(InitializeExecutionRuntimeStub);
     }
     return dlsym(handle, func_name);
   }
@@ -80,7 +80,7 @@ class MockMmpaDeployer : public ge::MmpaStubApiGe {
 namespace {
 ge::dflow::FlowGraph BuildFlowGraph() {
   std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-  (void) system(cmd.c_str());
+  (void)system(cmd.c_str());
   std::ofstream cmakefile("./temp/CMakeLists.txt");
   {
     cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -120,7 +120,7 @@ ge::dflow::FlowGraph BuildFlowGraph() {
   flow_graph.SetInputs(inputsOperator).SetOutputs(outputsOperator);
   return flow_graph;
 }
-}
+}  // namespace
 class DataFlowApiTest : public testing::Test {
  protected:
   static void SetUpTestSuite() {
@@ -140,14 +140,39 @@ class DataFlowApiTest : public testing::Test {
 
     ge::GeRunningEnvFaker ge_env;
     auto multi_dims = ge::MakeShared<ge::FakeMultiDimsOptimizer>();
-    ge_env.Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine").Priority(ge::PriorityEnum::COST_0));
-    ge_env.Install(ge::FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(ge::PriorityEnum::COST_1));
-    ge_env.Install(ge::FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(ge::PriorityEnum::COST_3));
-    ge_env.Install(ge::FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(ge::PriorityEnum::COST_2));
-    ge_env.Install(ge::FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(ge::PriorityEnum::COST_1));
-    ge_env.Install(ge::FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(ge::PriorityEnum::COST_1));
-    ge_env.Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(ge::PriorityEnum::COST_9));
-    ge_env.Install(ge::FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(ge::PriorityEnum::COST_10));
+    ge_env.Install(ge::FakeEngine("AIcoreEngine")
+                       .KernelInfoStore("AiCoreLib")
+                       .GraphOptimizer("AIcoreEngine")
+                       .Priority(ge::PriorityEnum::COST_0));
+    ge_env.Install(ge::FakeEngine("VectorEngine")
+                       .KernelInfoStore("VectorLib")
+                       .GraphOptimizer("VectorEngine")
+                       .Priority(ge::PriorityEnum::COST_1));
+    ge_env.Install(ge::FakeEngine("DNN_VM_AICPU")
+                       .KernelInfoStore("AicpuLib")
+                       .GraphOptimizer("aicpu_tf_optimizer")
+                       .Priority(ge::PriorityEnum::COST_3));
+    ge_env.Install(ge::FakeEngine("DNN_VM_AICPU_ASCEND")
+                       .KernelInfoStore("AicpuAscendLib")
+                       .GraphOptimizer("aicpu_ascend_optimizer")
+                       .Priority(ge::PriorityEnum::COST_2));
+    ge_env.Install(ge::FakeEngine("DNN_HCCL")
+                       .KernelInfoStore("ops_kernel_info_hccl")
+                       .GraphOptimizer("hccl_graph_optimizer")
+                       .GraphOptimizer("hvd_graph_optimizer")
+                       .Priority(ge::PriorityEnum::COST_1));
+    ge_env.Install(ge::FakeEngine("DNN_VM_RTS")
+                       .KernelInfoStore("RTSLib")
+                       .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                       .Priority(ge::PriorityEnum::COST_1));
+    ge_env.Install(ge::FakeEngine("DNN_VM_GE_LOCAL")
+                       .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                       .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                       .Priority(ge::PriorityEnum::COST_9));
+    ge_env.Install(ge::FakeEngine("DNN_VM_HOST_CPU")
+                       .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                       .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                       .Priority(ge::PriorityEnum::COST_10));
     ge_env.Install(ge::FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(ge::PriorityEnum::COST_1));
     ge_env.Install(ge::FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
     ge_env.Install(ge::FakeOp("Data").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
@@ -210,7 +235,7 @@ TEST_F(DataFlowApiTest, AddFeedFetchGraph) {
   EXPECT_EQ(session.FetchDataFlowGraph(1, outputs, data_flow_info, 0), SUCCESS);
   EXPECT_EQ(session.FetchDataFlowGraph(1, output_flow_msg, 0), SUCCESS);
   ASSERT_EQ(session.RemoveGraph(1), SUCCESS);
-  ASSERT_EQ(session.RemoveGraph(100), FAILED); // id not existed
+  ASSERT_EQ(session.RemoveGraph(100), FAILED);  // id not existed
 }
 
 TEST_F(DataFlowApiTest, OperateSessionWithoutDflowInit) {
@@ -265,7 +290,7 @@ TEST_F(DataFlowApiTest, FeedRawData) {
   DFlowSession session2(no_run_session_options);
 
   EXPECT_EQ(session2.AddGraph(graph_id, graph, empty_options), SUCCESS);
-  EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), FAILED); // not build
+  EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), FAILED);  // not build
   EXPECT_EQ(session2.BuildGraph(graph_id, inputs), SUCCESS);
   // runFlag is false, no need feed
   EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), SUCCESS);

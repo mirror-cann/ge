@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ constexpr int64_t kNoNeedCompress = 0xFFFFFFFFFFFFFFFF;
 constexpr int64_t kNeedCompressVersion = 0x1;
 const string kKernelName = "_kernelname";
 const string kAtomicKernelName = "_atomic_kernelname";
-const std::set<std::string> kUnusedAttrNames = { "_l2fusion_ToOpStruct", "_op_slice_info", "_ir_attr_names" };
+const std::set<std::string> kUnusedAttrNames = {"_l2fusion_ToOpStruct", "_op_slice_info", "_ir_attr_names"};
 
 int64_t ModelCompressManager::om_compress_version_;
 vector<string> ModelCompressManager::enum_attr_names_;
@@ -114,8 +114,8 @@ Status ModelCompressManager::ProcessKernelName(const OpDescPtr &op_desc) {
   } else if (AttrUtils::GetStr(op_desc, pre_kernel_name, attr_value) ||
              AttrUtils::GetStr(op_desc, ATTR_NAME_TBE_KERNEL_NAME_FOR_LOAD, attr_value)) {
     GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, kKernelName, attr_value),
-                   "op_desc[%s] set kKernelName[%s] value[%s] failed.",
-                   op_desc->GetName().c_str(), kKernelName.c_str(), attr_value.c_str());
+                   "op_desc[%s] set kKernelName[%s] value[%s] failed.", op_desc->GetName().c_str(), kKernelName.c_str(),
+                   attr_value.c_str());
     (void)op_desc->DelAttr(pre_kernel_name);
     (void)op_desc->DelAttr(ATTR_NAME_TBE_KERNEL_NAME_FOR_LOAD);
   } else {
@@ -131,8 +131,8 @@ Status ModelCompressManager::ProcessAtomicKernelName(const OpDescPtr &op_desc) {
     (void)op_desc->DelAttr(pre_atomic_kernel_name);
   } else if (AttrUtils::GetStr(op_desc, pre_atomic_kernel_name, attr_value)) {
     GE_ASSERT_TRUE(AttrUtils::SetStr(op_desc, kAtomicKernelName, attr_value),
-                   "op_desc[%s] set kAtomicKernelName[%s] value[%s] failed.",
-                   op_desc->GetName().c_str(), kAtomicKernelName.c_str(), attr_value.c_str());
+                   "op_desc[%s] set kAtomicKernelName[%s] value[%s] failed.", op_desc->GetName().c_str(),
+                   kAtomicKernelName.c_str(), attr_value.c_str());
     (void)op_desc->DelAttr(pre_atomic_kernel_name);
   } else {
     // do nothing
@@ -203,8 +203,8 @@ Status ModelCompressManager::GetEnumAttrsFromModel(const GeModelPtr &ge_model) {
   GE_ASSERT_TRUE(AttrUtils::GetListBool(ge_model, ATTR_MODEL_ATTRS_USE_STRING_VALUE, name_use_string_values_),
                  "get name_use_string_values_ failed.");
   GE_ASSERT_TRUE((enum_attr_names_.size() == name_use_string_values_.size()),
-                 "enum_attr_names size[%zu] name_use_string_values size[%zu].",
-                 enum_attr_names_.size(), name_use_string_values_.size());
+                 "enum_attr_names size[%zu] name_use_string_values size[%zu].", enum_attr_names_.size(),
+                 name_use_string_values_.size());
   GELOGD("success get enum attrs from model.");
   return SUCCESS;
 }
@@ -282,8 +282,9 @@ Status ModelCompressManager::DenumAttrs(const pair<const string, GeAttrValue> &n
   // 1. decompress attr name
   const auto &enum_attr_name = name_to_value.first;
   bool is_value_string = false;
-  GE_ASSERT_GRAPH_SUCCESS(EnumAttrUtils::GetAttrName(enum_attr_names_, name_use_string_values_, enum_attr_name,
-                                                     attr_name, is_value_string), "[GetAttrName] failed");
+  GE_ASSERT_GRAPH_SUCCESS(
+      EnumAttrUtils::GetAttrName(enum_attr_names_, name_use_string_values_, enum_attr_name, attr_name, is_value_string),
+      "[GetAttrName] failed");
 
   // 2. decompress attr value
   if (is_value_string) {
@@ -293,8 +294,7 @@ Status ModelCompressManager::DenumAttrs(const pair<const string, GeAttrValue> &n
       int64_t data_i = 0;
       GE_ASSERT_GRAPH_SUCCESS(enum_attr_value.GetValue(data_i), "get value failed.");
       string data_s;
-      GE_ASSERT_GRAPH_SUCCESS(EnumAttrUtils::GetAttrValue(enum_attr_values_, data_i, data_s),
-                              "[GetAttrValue] failed");
+      GE_ASSERT_GRAPH_SUCCESS(EnumAttrUtils::GetAttrValue(enum_attr_values_, data_i, data_s), "[GetAttrValue] failed");
       GE_ASSERT_GRAPH_SUCCESS(attr_value.SetValue(data_s), "set value failed.");
     } else if (value_type == GeAttrValue::VT_LIST_INT) {
       vector<int64_t> data_is = {};
@@ -304,7 +304,7 @@ Status ModelCompressManager::DenumAttrs(const pair<const string, GeAttrValue> &n
                               "[GetAttrValues] failed");
       GE_ASSERT_GRAPH_SUCCESS(attr_value.SetValue(data_ss), "set value failed.");
     } else {
-      GELOGE(FAILED, "has unsupport value_type[%u].", static_cast<uint32_t>(value_type));
+      GELOGE(FAILED, "has unsupported value_type[%u].", static_cast<uint32_t>(value_type));
       return FAILED;
     }
   } else {

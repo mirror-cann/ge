@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ namespace ge {
 const int32_t IR_MAJOR_VERSION = 1;
 const int32_t IR_MINOR_VERSION = 0;
 const int32_t IR_PATCH_VERSION = 0;
-typedef void* aclmdlModel;
+typedef void *aclmdlModel;
 
 struct ModelBufferData {
   std::shared_ptr<uint8_t> data = nullptr;
@@ -118,8 +118,9 @@ GE_FUNC_VISIBILITY graphStatus aclgrphSaveModel(const char_t *output_file, const
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-GE_FUNC_VISIBILITY graphStatus aclgrphConvertToWeightRefreshableGraphs(const ge::Graph &origin_graph,
-    const std::vector<AscendString> &const_names, WeightRefreshableGraphs &weight_refreshable_graphs);
+GE_FUNC_VISIBILITY graphStatus
+aclgrphConvertToWeightRefreshableGraphs(const ge::Graph &origin_graph, const std::vector<AscendString> &const_names,
+                                        WeightRefreshableGraphs &weight_refreshable_graphs);
 /**
  * @ingroup AscendCL
  * @brief build model.Notice the model is stored in buffer
@@ -213,20 +214,24 @@ GE_FUNC_VISIBILITY graphStatus aclgrphSetOpAttr(Graph &graph, aclgrphAttrType at
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-GE_FUNC_VISIBILITY graphStatus aclgrphBuildModelFromFile(const char_t *graph_file, const std::map<AscendString, AscendString> &build_options, aclmdlModel **model);
+GE_FUNC_VISIBILITY graphStatus aclgrphBuildModelFromFile(const char_t *graph_file,
+                                                         const std::map<AscendString, AscendString> &build_options,
+                                                         aclmdlModel **model);
 
 /**
  * @ingroup GE
  * @brief compile model with model address
  *
  * @param graph_data      [IN] model memory address
-  * @param graph_size      [IN] model memory size
+ * @param graph_size      [IN] model memory size
  * @param build_options  [IN] build option
  * @param model   [OUT] compiled model
  * @retval GRAPH_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-GE_FUNC_VISIBILITY graphStatus aclgrphBuildModelFromData(const void *graph_data, size_t graph_size, const std::map<AscendString, AscendString> &build_options, aclmdlModel **model);
+GE_FUNC_VISIBILITY graphStatus aclgrphBuildModelFromData(const void *graph_data, size_t graph_size,
+                                                         const std::map<AscendString, AscendString> &build_options,
+                                                         aclmdlModel **model);
 
 /**
  * @ingroup GE
@@ -260,5 +265,5 @@ GE_FUNC_VISIBILITY graphStatus aclgrphSaveModelToBuffer(ModelBufferData &model_b
  * @retval OtherValues Failure
  */
 GE_FUNC_VISIBILITY graphStatus aclgrphDestroyModel(const aclmdlModel *model);
-};      // namespace ge
+};  // namespace ge
 #endif  // INC_EXTERNAL_GE_IR_BUILD_H_

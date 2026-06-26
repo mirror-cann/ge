@@ -10,9 +10,9 @@
 
 ```
 ├── src
-│   ├──move_relu_before_concat_pass.cpp                 // pass实现文件 
+│   ├──move_relu_before_concat_pass.cpp                 // pass实现文件
 ├── CMakeLists.txt                                      // 编译脚本
-├── data         
+├── data
 |   ├──es_gen_air.py                                // 导出air
 |   ├──torch_forward.py                                 // torch脚本用于在线推理
 |—— gen_es_api
@@ -101,7 +101,7 @@
       ```
     - 安装es_all.whl
       ```
-      pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/ 
+      pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/
       ${BUILD_PATH}/es_output/whl/es_all-*****.whl
       ```
       `${BUILD_PATH}`请替换为build目录的实际路径。
@@ -133,7 +133,7 @@
     - 进入data目录执行.py文件进行在线推理（在线推理请确保已安装torch_npu插件）：
        ```
        python torch_forward.py
-       ```  
+       ```
     - 日志中出现如下打印：
       ```
       MoveReluBeforeConcatPass

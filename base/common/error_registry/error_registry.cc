@@ -1362,4 +1362,4 @@ const std::string ge_error_code = R"(
 )";
 
 REG_FORMAT_ERROR_MSG(ge_error_code.c_str(), ge_error_code.size());
-} // namespace
+}  // namespace

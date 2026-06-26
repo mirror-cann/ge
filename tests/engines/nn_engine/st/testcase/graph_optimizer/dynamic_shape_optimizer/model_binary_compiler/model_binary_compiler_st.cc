@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,18 +60,13 @@ using namespace ge;
 using namespace fe;
 
 class STEST_fusion_engine_model_binary_compiler : public testing::Test {
-public:
+ public:
   static std::map<std::string, ge::OpKernelBinPtr> OpKernelBinMap_;
 
-protected:
-  void SetUp()
-  {
+ protected:
+  void SetUp() {}
 
-  }
-
-  void TearDown() {
-
-  }
+  void TearDown() {}
 
   static void CreateOmSubGraph(ComputeGraphPtr &sub_graph, ge::NodePtr &return_node, bool flag) {
     std::string graph_name = sub_graph->GetName();
@@ -125,7 +120,7 @@ protected:
       (void)ge::AttrUtils::SetInt(data0, ge::ATTR_NAME_PARENT_NODE_INDEX, -1);
       (void)ge::AttrUtils::SetInt(data1, ge::ATTR_NAME_PARENT_NODE_INDEX, -1);
     }
-    
+
     (void)ge::AttrUtils::SetBool(op3, "transpose_x1", false);
     (void)ge::AttrUtils::SetBool(op3, "transpose_x2", false);
     (void)ge::AttrUtils::SetInt(op3, "offset_x", 0);
@@ -138,7 +133,7 @@ protected:
     NodePtr const_node = sub_graph->AddNode(const_op);
     NodePtr net_output_node = sub_graph->AddNode(net_output_op);
 
-    uint8_t* data = nullptr;
+    uint8_t *data = nullptr;
     size_t data_len = 8;
     vector<ge::GeTensorPtr> weigths;
     weigths.push_back(std::make_shared<ge::GeTensor>(in_desc1, data, data_len));
@@ -154,7 +149,7 @@ protected:
 
     const auto in_tensor_desc0 = net_output_op->MutableInputDesc(0);
     const auto in_tensor_desc1 = net_output_op->MutableInputDesc(1);
-    
+
     if (flag) {
       (void)ge::AttrUtils::SetInt(in_tensor_desc0, ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
       (void)ge::AttrUtils::SetInt(in_tensor_desc1, ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
@@ -168,8 +163,10 @@ protected:
     (void)ge::AttrUtils::SetStr(op1, fe::kKernelName, op1->GetName() + "_kernelName");
     (void)ge::AttrUtils::SetStr(op2, fe::kKernelName, op2->GetName() + "_kernelName");
     (void)ge::AttrUtils::SetStr(op2, ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_OM");
-    (void)ge::AttrUtils::SetStr(op3, "_mix_aic" + ge::ATTR_NAME_TBE_KERNEL_NAME, "_mix_aic" + op3->GetName() + "_kernelName");
-    (void)ge::AttrUtils::SetStr(op3, "_mix_aiv" + ge::ATTR_NAME_TBE_KERNEL_NAME, "_mix_aiv" + op3->GetName() + "_kernelName");
+    (void)ge::AttrUtils::SetStr(op3, "_mix_aic" + ge::ATTR_NAME_TBE_KERNEL_NAME,
+                                "_mix_aic" + op3->GetName() + "_kernelName");
+    (void)ge::AttrUtils::SetStr(op3, "_mix_aiv" + ge::ATTR_NAME_TBE_KERNEL_NAME,
+                                "_mix_aiv" + op3->GetName() + "_kernelName");
 
     const char tbe_bin[] = "tbe_bin";
     vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
@@ -197,8 +194,9 @@ protected:
     ffts::DimRange dim_rang2;
     dim_rang2.higher = 20;
     dim_rang2.lower = 10;
-    slice_info_ptr->ori_input_tensor_shape = {{{{1,2,3,4}}, {{5,6,7,8}}}, {{{1,3,5,7}}, {{2,4,6,8}}}};
-    slice_info_ptr->ori_output_tensor_shape = {{{{10,20,30,40}}, {{50,60,70,80}}}, {{{10,30,50,70}}, {{20,40,60,80}}}};
+    slice_info_ptr->ori_input_tensor_shape = {{{{1, 2, 3, 4}}, {{5, 6, 7, 8}}}, {{{1, 3, 5, 7}}, {{2, 4, 6, 8}}}};
+    slice_info_ptr->ori_output_tensor_shape = {{{{10, 20, 30, 40}}, {{50, 60, 70, 80}}},
+                                               {{{10, 30, 50, 70}}, {{20, 40, 60, 80}}}};
     slice_info_ptr->input_tensor_slice = {{{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}},
                                           {{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}}};
     slice_info_ptr->output_tensor_slice = {{{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}},
@@ -207,13 +205,14 @@ protected:
                                               {{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}}};
     slice_info_ptr->ori_output_tensor_slice = {{{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}},
                                                {{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}}};
-    slice_info_ptr->input_axis = {3,5};
-    slice_info_ptr->output_axis = {4,6};
-    slice_info_ptr->input_tensor_indexes = {0,1};
-    slice_info_ptr->output_tensor_indexes = {0,1};
+    slice_info_ptr->input_axis = {3, 5};
+    slice_info_ptr->output_axis = {4, 6};
+    slice_info_ptr->input_tensor_indexes = {0, 1};
+    slice_info_ptr->output_tensor_indexes = {0, 1};
   }
 
-  static void CreateWholeGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &om_graph, ComputeGraphPtr &om_sub_graph, bool flag) {
+  static void CreateWholeGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &om_graph, ComputeGraphPtr &om_sub_graph,
+                               bool flag) {
     ge::NodePtr root_func_node;
     CreateOmSubGraph(root_graph, root_func_node, flag);
     ge::NodePtr om_func_node;
@@ -251,7 +250,8 @@ protected:
 
 std::map<std::string, ge::OpKernelBinPtr> STEST_fusion_engine_model_binary_compiler::OpKernelBinMap_;
 
-std::vector<std::vector<std::vector<std::vector<int64_t>>>> GetVectorDimRange(std::vector<std::vector<std::vector<ffts::DimRange>>> tensor_slice) {
+std::vector<std::vector<std::vector<std::vector<int64_t>>>> GetVectorDimRange(
+    std::vector<std::vector<std::vector<ffts::DimRange>>> tensor_slice) {
   std::vector<std::vector<std::vector<std::vector<int64_t>>>> vvvv;
   for (size_t i = 0; i < tensor_slice.size(); ++i) {
     std::vector<std::vector<std::vector<int64_t>>> vvv;
@@ -302,7 +302,7 @@ TEST_F(STEST_fusion_engine_model_binary_compiler, update_node_info_in_omSubGraph
       uint8_t *data = const_cast<uint8_t *>(const_tensor_ptr->GetData().GetData());
       size_t data_size = const_tensor_ptr->GetData().GetSize() / sizeof(uint8_t);
       for (size_t i = 0; i < data_size; i++) {
-        std::cout << "i:" << i << " = " << data[i] <<std::endl;
+        std::cout << "i:" << i << " = " << data[i] << std::endl;
       }
     }
 
@@ -324,7 +324,7 @@ TEST_F(STEST_fusion_engine_model_binary_compiler, update_node_info_in_omSubGraph
       dim_rang2.lower = 10;
       ffts::ThreadSliceMapPtr ori_slice_info_ptr = nullptr;
       FE_MAKE_SHARED(ori_slice_info_ptr = std::make_shared<ffts::ThreadSliceMap>(), return);
-      ori_slice_info_ptr->ori_input_tensor_shape = {{{{5,6,7,8}}}, {{{2,4,6,8}}}};
+      ori_slice_info_ptr->ori_input_tensor_shape = {{{{5, 6, 7, 8}}}, {{{2, 4, 6, 8}}}};
       ori_slice_info_ptr->input_tensor_slice = {{{{dim_rang2, dim_rang2}}}, {{{dim_rang2, dim_rang2}}}};
       ori_slice_info_ptr->ori_input_tensor_slice = {{{{dim_rang2, dim_rang2}}}, {{{dim_rang2, dim_rang2}}}};
       ori_slice_info_ptr->input_axis = {5};
@@ -343,7 +343,7 @@ TEST_F(STEST_fusion_engine_model_binary_compiler, update_node_info_in_omSubGraph
       dim_rang1.lower = 0;
       ffts::ThreadSliceMapPtr ori_slice_info_ptr = nullptr;
       FE_MAKE_SHARED(ori_slice_info_ptr = std::make_shared<ffts::ThreadSliceMap>(), return);
-      ori_slice_info_ptr->ori_input_tensor_shape = {{{{1,2,3,4}}}, {{{1,3,5,7}}}};
+      ori_slice_info_ptr->ori_input_tensor_shape = {{{{1, 2, 3, 4}}}, {{{1, 3, 5, 7}}}};
       ori_slice_info_ptr->input_tensor_slice = {{{{dim_rang1, dim_rang1}}}, {{{dim_rang1, dim_rang1}}}};
       ori_slice_info_ptr->ori_input_tensor_slice = {{{{dim_rang1, dim_rang1}}}, {{{dim_rang1, dim_rang1}}}};
       ori_slice_info_ptr->input_axis = {3};
@@ -365,13 +365,14 @@ TEST_F(STEST_fusion_engine_model_binary_compiler, update_node_info_in_omSubGraph
       dim_rang2.lower = 10;
       ffts::ThreadSliceMapPtr ori_slice_info_ptr = nullptr;
       FE_MAKE_SHARED(ori_slice_info_ptr = std::make_shared<ffts::ThreadSliceMap>(), return);
-      ori_slice_info_ptr->ori_output_tensor_shape = {{{{10,20,30,40}}, {{50,60,70,80}}}, {{{10,30,50,70}}, {{20,40,60,80}}}};
+      ori_slice_info_ptr->ori_output_tensor_shape = {{{{10, 20, 30, 40}}, {{50, 60, 70, 80}}},
+                                                     {{{10, 30, 50, 70}}, {{20, 40, 60, 80}}}};
       ori_slice_info_ptr->output_tensor_slice = {{{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}},
                                                  {{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}}};
       ori_slice_info_ptr->ori_output_tensor_slice = {{{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}},
                                                      {{{dim_rang1, dim_rang1}}, {{dim_rang2, dim_rang2}}}};
-      ori_slice_info_ptr->output_axis = {4,6};
-      ori_slice_info_ptr->output_tensor_indexes = {0,1};
+      ori_slice_info_ptr->output_axis = {4, 6};
+      ori_slice_info_ptr->output_tensor_indexes = {0, 1};
       ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
       slice_info_ptr = node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
       EXPECT_NE(slice_info_ptr, nullptr);
@@ -389,7 +390,8 @@ TEST_F(STEST_fusion_engine_model_binary_compiler, update_axis_and_tensor_index) 
   std::vector<uint32_t> axis = {1};
   std::vector<uint32_t> new_tensor_indexes;
   std::vector<uint32_t> new_axis;
-  Status ret = model_binary_compiler_ptr->UpdateAxisAndTensorIndex(index, tensor_indexes, axis, new_tensor_indexes, new_axis);
+  Status ret =
+      model_binary_compiler_ptr->UpdateAxisAndTensorIndex(index, tensor_indexes, axis, new_tensor_indexes, new_axis);
   EXPECT_EQ(ret, fe::FAILED);
 }
 

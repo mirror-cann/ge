@@ -26,25 +26,23 @@ class UTestRefIdentityDeleteOpPass : public testing::Test {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string& name, const std::string& type) {
+  NodeBuilder(const std::string &name, const std::string &type) {
     op_desc_ = std::make_shared<OpDesc>(name, type);
   }
 
-  NodeBuilder& AddInputDesc(const std::string &name, const std::vector<int64_t> &shape,
-                            ge::Format format = FORMAT_NCHW,
+  NodeBuilder &AddInputDesc(const std::string &name, const std::vector<int64_t> &shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
     op_desc_->AddInputDesc(name, ge::GeTensorDesc(GeShape(shape), format, data_type));
     return *this;
   }
 
-  NodeBuilder& AddOutputDesc(const std::string &name, const std::vector<int64_t> &shape,
-                             ge::Format format = FORMAT_NCHW,
-                             ge::DataType data_type = DT_FLOAT) {
+  NodeBuilder &AddOutputDesc(const std::string &name, const std::vector<int64_t> &shape,
+                             ge::Format format = FORMAT_NCHW, ge::DataType data_type = DT_FLOAT) {
     op_desc_->AddOutputDesc(name, ge::GeTensorDesc(GeShape(shape), format, data_type));
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr& graph) {
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
     return graph->AddNode(op_desc_);
   }
 
@@ -133,24 +131,24 @@ TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_transnode_succe
 TEST_F(UTestRefIdentityDeleteOpPass, ref_identity_delete_without_ref_identity) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr variable_node = NodeBuilder("variable", VARIABLE)
-          .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .AddOutputDesc("output", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .Build(graph);
+                                  .AddInputDesc("input", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                  .AddOutputDesc("output", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                  .Build(graph);
 
   ge::NodePtr apply_monetum_node = NodeBuilder("Applymomentum", APPLYMOMENTUM)
-          .AddInputDesc("var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .AddOutputDesc("no_var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .Build(graph);
+                                       .AddInputDesc("var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                       .AddOutputDesc("no_var", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                       .Build(graph);
 
   ge::NodePtr add_node = NodeBuilder("Add", ADD)
-          .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .Build(graph);
-          
+                             .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                             .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                             .Build(graph);
+
   ge::NodePtr variable_ref = NodeBuilder("VariableRef", VARIABLE)
-          .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-          .Build(graph);
+                                 .AddInputDesc("x", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .AddOutputDesc("y", {2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .Build(graph);
 
   ge::GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), apply_monetum_node->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(apply_monetum_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));

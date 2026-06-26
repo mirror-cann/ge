@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,18 +33,18 @@ namespace kernel {
 namespace {
 ge::graphStatus AtomicUpdateContext(KernelContext *context) {
   GELOGD("Update atomic node begin.");
-  auto flush_data = context->GetInputValue<AICoreSubTaskFlush*>(static_cast<size_t>(AtomUpdateKey::FLUSH_DATA));
+  auto flush_data = context->GetInputValue<AICoreSubTaskFlush *>(static_cast<size_t>(AtomUpdateKey::FLUSH_DATA));
   FE_ASSERT_NOTNULL(flush_data);
   auto ctx_ids = context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(AtomUpdateKey::AICORE_CTX));
   FE_ASSERT_NOTNULL(ctx_ids);
   flush_data->blk_dim = context->GetInputValue<uint32_t>(static_cast<size_t>(AtomUpdateKey::BLOCK_DIM));
   flush_data->tail_blk_dim = context->GetInputValue<uint32_t>(static_cast<size_t>(AtomUpdateKey::TAIL_BLOCK_DIM));
-  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t*>(static_cast<size_t>(AtomUpdateKey::TASK_INFO));
+  auto task_info = context->GetInputValue<rtFftsPlusTaskInfo_t *>(static_cast<size_t>(AtomUpdateKey::TASK_INFO));
   FE_ASSERT_NOTNULL(task_info);
   FE_ASSERT_NOTNULL(task_info->descBuf);
   FE_ASSERT_NOTNULL(task_info->fftsPlusSqe);
-  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t*>(const_cast<void*>(task_info->descBuf));
-  auto ctx_id_vec = reinterpret_cast<const int32_t*>(ctx_ids->GetData());
+  auto *context_head = reinterpret_cast<rtFftsPlusComCtx_t *>(const_cast<void *>(task_info->descBuf));
+  auto ctx_id_vec = reinterpret_cast<const int32_t *>(ctx_ids->GetData());
   const size_t ctx_num = ctx_ids->GetSize();
   uint64_t paraBase = reinterpret_cast<uintptr_t>(flush_data->args_base);
   KLOGD("Update %zu ctx Base:0x%lx, block dim:%d/%d, thread dim:%u.", ctx_num, paraBase, flush_data->blk_dim,
@@ -55,7 +55,7 @@ ge::graphStatus AtomicUpdateContext(KernelContext *context) {
       KLOGE("Atomic context Id(%d) overflow.", ctx_id_vec[idx]);
       return ge::GRAPH_FAILED;
     }
-    auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(context_head + ctx_id_vec[idx]);
+    auto ctx = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(context_head + ctx_id_vec[idx]);
     if (ctx == nullptr) {
       KLOGE("Atomic context[%d] is nullptr.", ctx_id_vec[idx]);
       return ge::GRAPH_FAILED;
@@ -106,7 +106,7 @@ ge::Status FFTSCalcAtomicOutputShapeSize(KernelContext *context) {
 }
 REGISTER_KERNEL(FFTSCalcAtomicOutputShapeSize).RunFunc(FFTSCalcAtomicOutputShapeSize);
 
-ge::graphStatus GetAtomFlushDataVal(const KernelContext *context, AICoreSubTaskFlush* flush_data) {
+ge::graphStatus GetAtomFlushDataVal(const KernelContext *context, AICoreSubTaskFlush *flush_data) {
   auto thread_dim = context->GetInputValue<uint32_t>(static_cast<size_t>(AtomArgsInKey::THREAD_DIM));
   auto window_size = context->GetInputValue<uint32_t>(static_cast<size_t>(AtomArgsInKey::WINDOW_SIZE));
   auto proc_type = context->GetInputValue<uint32_t>(static_cast<size_t>(AtomArgsInKey::PROC_TYPE));
@@ -134,7 +134,7 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
   FE_ASSERT_NOTNULL(out_index);
   auto out_mem_type = context->GetInputPointer<ContinuousVector>(static_cast<size_t>(AtomArgsInKey::OUT_MEM_TYPE));
   FE_ASSERT_NOTNULL(out_mem_type);
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
   FE_ASSERT_NOTNULL(args_para);
   FE_ASSERT_NOTNULL(args_para->host_addr);
   FE_ASSERT_NOTNULL(args_para->dev_addr);
@@ -146,11 +146,11 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
   size_t clear_work_size = work_index->GetSize();
-  auto clear_work_index_v = reinterpret_cast<const int64_t*>(work_index->GetData());
+  auto clear_work_index_v = reinterpret_cast<const int64_t *>(work_index->GetData());
   size_t clear_out_size = out_index->GetSize();
-  auto out_index_vec = reinterpret_cast<const int64_t*>(out_index->GetData());
+  auto out_index_vec = reinterpret_cast<const int64_t *>(out_index->GetData());
   size_t mem_type_size = out_mem_type->GetSize();
-  auto mem_type_vec = reinterpret_cast<const uint32_t*>(out_mem_type->GetData());
+  auto mem_type_vec = reinterpret_cast<const uint32_t *>(out_mem_type->GetData());
 
   flush_data->param_ptr_offset = clear_work_size + clear_out_size;
   if (flush_data->atom_proc_type != static_cast<uint32_t>(AtomProcType::STATIC_OP)) {
@@ -161,12 +161,12 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
   auto rt_args = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
   size_t real_size = flush_data->param_ptr_offset * sizeof(uintptr_t);
   FE_ASSERT_TRUE(real_size <= rt_args->GetArgsCap(RtFFTSKernelLaunchArgs::kAtomArgsHostAddr));
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   FE_ASSERT_NOTNULL(args_base_addr);
   size_t args_pos = rt_args->GetAtomArgsPos();
   uintptr_t *args_host_data = &args_base_addr[args_pos];
   size_t args_abs_pos = rt_args->GetAtomArgsAbsPos();
-  flush_data->args_base = static_cast<void*>(&(static_cast<uint8_t*>(args_para->dev_addr)[args_abs_pos]));
+  flush_data->args_base = static_cast<void *>(&(static_cast<uint8_t *>(args_para->dev_addr)[args_abs_pos]));
   GELOGD("Args: host pos[%zu], absolute pos[%zu], rtArgs: base[%lx], dev args addr[%lx], proc_type: %u.", args_pos,
          args_abs_pos, args_para->host_addr, flush_data->args_base, flush_data->atom_proc_type);
   // only output
@@ -177,12 +177,11 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
     // mem pool type after input and output
     if (mem_type_vec[out_index_vec[i]] == 0) {
       auto tensor_data =
-        context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(AtomArgsInKey::IO_START) + i);
+          context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(AtomArgsInKey::IO_START) + i);
       GE_CHECK_NOTNULL(tensor_data);
       FE_ASSERT_TRUE(InitCtxIoAddrs(i, tensor_data, thread_para, flush_data, args_host_data));
     } else {
-      auto ffts_mem =
-        context->GetInputValue<memory::FftsMemBlock *>(static_cast<size_t>(AtomArgsInKey::IO_START) + i);
+      auto ffts_mem = context->GetInputValue<memory::FftsMemBlock *>(static_cast<size_t>(AtomArgsInKey::IO_START) + i);
       GE_CHECK_NOTNULL(ffts_mem);
       FE_ASSERT_TRUE(InitCtxIoAddrs(i, ffts_mem, thread_para, flush_data, args_host_data));
     }
@@ -201,8 +200,8 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
       InitCtxIoAddrs(io_index, reinterpret_cast<memory::FftsMemBlock *>(addrs_data[clear_work_idx]), thread_para,
                      flush_data, args_host_data);
     } else {
-      InitL1WorkAddrs(io_index, reinterpret_cast<GertTensorData *>(addrs_data[clear_work_idx])->GetAddr(),
-                      flush_data, args_host_data);
+      InitL1WorkAddrs(io_index, reinterpret_cast<GertTensorData *>(addrs_data[clear_work_idx])->GetAddr(), flush_data,
+                      args_host_data);
     }
     io_index++;
   }
@@ -212,7 +211,7 @@ ge::graphStatus FFTSUpdateAtomicArgs(KernelContext *context) {
   // tiling data address
   size_t tiling_pos = rt_args->GetAtomTilingAbsPos();
   size_t tiling_offset = rt_args->GetAtomTilingOffset();
-  auto tiling_base = static_cast<void*>(&(static_cast<uint8_t*>(args_para->dev_addr)[tiling_pos]));
+  auto tiling_base = static_cast<void *>(&(static_cast<uint8_t *>(args_para->dev_addr)[tiling_pos]));
   InitOpTiling(io_index, flush_data, args_host_data, tiling_offset, tiling_base);
   return ge::GRAPH_SUCCESS;
 }
@@ -226,7 +225,7 @@ ge::graphStatus CreateAtomicFlushData(const ge::FastNode *node, KernelContext *c
 }
 
 void PrintAtomArgs(const KernelContext *context, std::vector<std::string> &args_str) {
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
   if (args_para == nullptr) {
     args_str.emplace_back("Launch args pointer is null.");
     return;
@@ -236,7 +235,7 @@ void PrintAtomArgs(const KernelContext *context, std::vector<std::string> &args_
   std::stringstream ss;
   if (proc_type != static_cast<uint32_t>(AtomProcType::STATIC_OP)) {
     size_t tiling_pos = rt_args->GetAtomTilingAbsPos();
-    auto print_base = reinterpret_cast<uintptr_t*>(&(static_cast<uint8_t*>(args_para->host_addr)[tiling_pos]));
+    auto print_base = reinterpret_cast<uintptr_t *>(&(static_cast<uint8_t *>(args_para->host_addr)[tiling_pos]));
     ss << "Tiling data: ";
     size_t print_size = (rt_args->GetAtomArgsAbsPos() - tiling_pos) / sizeof(TensorAddress);
     PrintHex(print_base, print_size, ss);
@@ -245,7 +244,7 @@ void PrintAtomArgs(const KernelContext *context, std::vector<std::string> &args_
   }
   ss << "All args: ";
   auto args_pos = rt_args->GetAtomArgsAbsPos();
-  auto print_base = reinterpret_cast<uintptr_t*>(&(static_cast<uint8_t*>(args_para->host_addr)[args_pos]));
+  auto print_base = reinterpret_cast<uintptr_t *>(&(static_cast<uint8_t *>(args_para->host_addr)[args_pos]));
   size_t print_size = rt_args->GetArgsCap(RtFFTSKernelLaunchArgs::kAtomArgsHostAddr) / sizeof(TensorAddress);
   PrintHex(print_base, print_size, ss);
   args_str.emplace_back(ss.str());
@@ -262,8 +261,10 @@ std::vector<std::string> PrintAtomicArgs(const KernelContext *context) {
   msgs.insert(msgs.cend(), args_str.cbegin(), args_str.cend());
   return msgs;
 }
-REGISTER_KERNEL(FFTSUpdateAtomicArgs).RunFunc(FFTSUpdateAtomicArgs).OutputsCreator(CreateAtomicFlushData).
-    TracePrinter(PrintAtomicArgs);
+REGISTER_KERNEL(FFTSUpdateAtomicArgs)
+    .RunFunc(FFTSUpdateAtomicArgs)
+    .OutputsCreator(CreateAtomicFlushData)
+    .TracePrinter(PrintAtomicArgs);
 }  // namespace
 }  // namespace kernel
 }  // namespace gert

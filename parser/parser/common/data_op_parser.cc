@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,8 +66,7 @@ FMK_FUNC_HOST_VISIBILITY Status DataOpParser::ParseShape(const std::vector<int64
     // To be modified after AICPU operators support pvmodel.
     if (data_type == ge::DT_FLOAT) {
       // Input
-      GE_RETURN_WITH_LOG_IF_ERROR(InitInputTensor(def_format_shape, i_tensor_desc),
-                                  "[Invoke][InitInputTensor] failed");
+      GE_RETURN_WITH_LOG_IF_ERROR(InitInputTensor(def_format_shape, i_tensor_desc), "[Invoke][InitInputTensor] failed");
       // Output
       GE_RETURN_WITH_LOG_IF_ERROR(InitOutputTensor(def_format_shape, o_tensor_desc),
                                   "[Invoke][InitOutputTensor] failed");
@@ -194,12 +193,10 @@ Status DataOpParser::InitOutputTensor(const std::vector<int64_t> &shape, ge::GeT
   ge::graphStatus graph_status = ge::TensorUtils::CalcTensorMemSize(output_shape, format, data_type, output_size);
   if (graph_status != ge::GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "CalcTensorMemSize failed, shape:%s, format:%s, datatype:%s",
-                      output_shape.ToString().c_str(),
-                      ge::TypeUtils::FormatToSerialString(format).c_str(),
-                      ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
+                         output_shape.ToString().c_str(), ge::TypeUtils::FormatToSerialString(format).c_str(),
+                         ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
     GELOGE(FAILED, "[Invoke][CalcTensorMemSize] failed, shape:%s, format:%s, datatype:%s",
-           output_shape.ToString().c_str(),
-           ge::TypeUtils::FormatToSerialString(format).c_str(),
+           output_shape.ToString().c_str(), ge::TypeUtils::FormatToSerialString(format).c_str(),
            ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
     return FAILED;
   }
@@ -212,13 +209,13 @@ Status DataOpParser::InitOutputTensor(const std::vector<int64_t> &shape, ge::GeT
   int64_t size = output_size;
   auto valid_max_size = INT64_MAX - kTwoTimesAlign * kDataMemAlignSize;
   if (size > valid_max_size || size < 0) {
-    REPORT_INNER_ERR_MSG("E19999", "updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
-                       valid_max_size, output_shape.ToString().c_str(),
-                       ge::TypeUtils::FormatToSerialString(format).c_str(),
-                       ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
-    GELOGE(FAILED, "[Check][Size] updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
-           valid_max_size, output_shape.ToString().c_str(),
-           ge::TypeUtils::FormatToSerialString(format).c_str(),
+    REPORT_INNER_ERR_MSG(
+        "E19999", "updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
+        valid_max_size, output_shape.ToString().c_str(), ge::TypeUtils::FormatToSerialString(format).c_str(),
+        ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
+    GELOGE(FAILED,
+           "[Check][Size] updated mem size is out of data range [0, %" PRId64 "], shape:%s, format:%s, datatype:%s",
+           valid_max_size, output_shape.ToString().c_str(), ge::TypeUtils::FormatToSerialString(format).c_str(),
            ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
     return FAILED;
   } else {

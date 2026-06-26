@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -204,28 +204,25 @@ TEST_F(UtestEnumAttrUtils, TestGetAttrName) {
   string enum_attr_name = "";
   string attr_name = "";
   bool is_value_string = false;
-  auto ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                        enum_attr_name, attr_name, is_value_string);
+  auto ret =
+      EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_FAILED);
 
   // enum_attr_names为空校验
   char_t a1 = 1;
   enum_attr_name.append(kAppendNum, prefix);
   enum_attr_name.append(kAppendNum, a1);
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_FAILED);
 
   // name_use_string_values为空校验
   enum_attr_names.emplace_back("name1");
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_FAILED);
 
   // 一个成员的正常的流程 enum化的属性名
   name_use_string_values.emplace_back(true);
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(attr_name, "name1");
   ASSERT_EQ(is_value_string, true);
@@ -237,8 +234,7 @@ TEST_F(UtestEnumAttrUtils, TestGetAttrName) {
   enum_attr_name.append(kAppendNum, a2);
   enum_attr_names.emplace_back("name2");
   name_use_string_values.emplace_back(false);
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(attr_name, "name2");
   ASSERT_EQ(is_value_string, false);
@@ -252,8 +248,7 @@ TEST_F(UtestEnumAttrUtils, TestGetAttrName) {
     enum_attr_names.emplace_back("name" + to_string(i));
     name_use_string_values.emplace_back(true);
   }
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(attr_name, "name127");
   ASSERT_EQ(is_value_string, true);
@@ -267,16 +262,14 @@ TEST_F(UtestEnumAttrUtils, TestGetAttrName) {
   enum_attr_name.append(kAppendNum, a128_2);
   enum_attr_names.emplace_back("name128");
   name_use_string_values.emplace_back(true);
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(attr_name, "name128");
   ASSERT_EQ(is_value_string, true);
 
   // 正常的流程 非enum化的属性名
   enum_attr_name = "name1";
-  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values,
-                                   enum_attr_name, attr_name, is_value_string);
+  ret = EnumAttrUtils::GetAttrName(enum_attr_names, name_use_string_values, enum_attr_name, attr_name, is_value_string);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(attr_name, enum_attr_name);
   ASSERT_EQ(is_value_string, false);
@@ -314,4 +307,4 @@ TEST_F(UtestEnumAttrUtils, TestGetAttrValues) {
   ASSERT_EQ(attr_values.size(), 1U);
   ASSERT_EQ(attr_values[0], "value2");
 }
-}
+}  // namespace ge

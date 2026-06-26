@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,8 +53,7 @@ REGISTER_NODE_CONVERTER_PLACEMENT(kFFTSAiCoreLowerFuncTest.c_str(), kOnDeviceHbm
 
 class FFTSGraphLoweringUT : public testing::Test {
  public:
-  void SetUp() override {
-  }
+  void SetUp() override {}
   void TearDown() override {
     while (bg::ValueHolder::PopGraphFrame() != nullptr) {
     }
@@ -65,9 +64,8 @@ class FFTSGraphLoweringUT : public testing::Test {
     (void)bg::ValueHolder::PopGraphFrame();
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-    auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(graph, global_data);
+    auto exe_graph =
+        GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
     if (expect) {
       ASSERT_NE(exe_graph, nullptr);
     } else {
@@ -82,9 +80,8 @@ class FFTSGraphLoweringUT : public testing::Test {
     (void)bg::ValueHolder::PopGraphFrame();
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-    auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(graph, global_data);
+    auto exe_graph =
+        GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
     ASSERT_NE(exe_graph, nullptr);
     ge::DumpGraph(exe_graph.get(), "LoweringFFTSGraph");
   }
@@ -93,9 +90,8 @@ class FFTSGraphLoweringUT : public testing::Test {
     (void)bg::ValueHolder::PopGraphFrame();
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-    auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(graph, global_data);
+    auto exe_graph =
+        GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
     ASSERT_EQ(exe_graph, nullptr);
   }
 };
@@ -167,7 +163,7 @@ static void BuildFftsPlusSingleOpGraph(ComputeGraphPtr &root_graph, ComputeGraph
 }
 
 extern ge::graphStatus LoadSgtKernelBinToOpDesc(const ge::NodePtr &node, const ge::ComputeGraphPtr &graph,
-                                                 const ge::GeModelPtr &ge_model, const ModelTaskType task_type);
+                                                const ge::GeModelPtr &ge_model, const ModelTaskType task_type);
 TEST_F(FFTSGraphLoweringUT, load_ffts_bin_success) {
   ComputeGraphPtr root_graph;
   ComputeGraphPtr ffts_plus_graph;
@@ -247,7 +243,7 @@ TEST_F(FFTSGraphLoweringUT, ffts_plus_proto_trans_test) {
   TBEKernelStore tbe_kernel_store;
   BuildFftsPlusSingleOpGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
 
@@ -338,9 +334,7 @@ TEST_F(FFTSGraphLoweringUT, ffts_plus_proto_trans_test) {
 
   auto conv_node = ffts_plus_graph->FindNode("sgt_graph/Conv2D");
   auto conv_desc = conv_node->GetOpDesc();
-  const auto find_node_handle = [&conv_desc](const uint32_t op_index) -> ge::OpDescPtr {
-    return conv_desc;
-  };
+  const auto find_node_handle = [&conv_desc](const uint32_t op_index) -> ge::OpDescPtr { return conv_desc; };
   std::vector<uintptr_t> io_addrs;
   std::vector<size_t> mode_addr_idx;
   const ge::RuntimeParam runtime_param;
@@ -381,8 +375,8 @@ TEST_F(FFTSGraphLoweringUT, ffts_plus_proto_trans_aicpu_test) {
   BuildFftsPlusSingleOpGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
   auto conv_node = ffts_plus_graph->FindNode("sgt_graph/Conv2D");
   auto conv_desc = conv_node->GetOpDesc();
-// Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  // Build FftsTaskDef.
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
 
@@ -390,7 +384,7 @@ TEST_F(FFTSGraphLoweringUT, ffts_plus_proto_trans_aicpu_test) {
   InitFftsPlusCaseDefaultDef(ffts_plus_graph, case_defalut_ctx_def, "sgt_graph/Conv2D");
 
   string args(64, '1');
-  auto &ctx_def_3= *ffts_plus_task_def.add_ffts_plus_ctx();
+  auto &ctx_def_3 = *ffts_plus_task_def.add_ffts_plus_ctx();
   ctx_def_3.set_context_id(2);
   ctx_def_3.set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_AICPU));
   auto aicpu_ctx_def3 = ctx_def_3.mutable_aicpu_ctx();
@@ -402,9 +396,7 @@ TEST_F(FFTSGraphLoweringUT, ffts_plus_proto_trans_aicpu_test) {
   kernel_def3->set_args(args.data(), 64);
   kernel_def3->set_args_size(64);
 
-  const auto find_node_handle = [&conv_desc](const uint32_t op_index) -> ge::OpDescPtr {
-    return conv_desc;
-  };
+  const auto find_node_handle = [&conv_desc](const uint32_t op_index) -> ge::OpDescPtr { return conv_desc; };
   std::vector<uintptr_t> io_addrs;
   std::vector<size_t> mode_addr_idx;
   const ge::RuntimeParam runtime_param;

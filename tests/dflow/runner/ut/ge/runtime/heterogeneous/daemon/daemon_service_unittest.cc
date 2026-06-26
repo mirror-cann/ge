@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,26 +42,26 @@ class MockMmpa : public MmpaStubApiGe {
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "NewSignResult") {
-      return (void *) &NewSignResult;
+      return (void *)&NewSignResult;
     } else if (std::string(func_name) == "DeleteSignResult") {
-      return (void *) &DeleteSignResult;
+      return (void *)&DeleteSignResult;
     } else if (std::string(func_name) == "GetSignLength") {
-      return (void *) &GetSignLength;
+      return (void *)&GetSignLength;
     } else if (std::string(func_name) == "GetSignData") {
-      return (void *) &GetSignData;
+      return (void *)&GetSignData;
     } else if (std::string(func_name) == "DataFlowAuthMasterInit") {
-      return (void *) &DataFlowAuthMasterInit;
+      return (void *)&DataFlowAuthMasterInit;
     } else if (std::string(func_name) == "DataFlowAuthSign") {
-      return (void *) &DataFlowAuthSign;
+      return (void *)&DataFlowAuthSign;
     } else if (std::string(func_name) == "DataFlowAuthVerify") {
-      return (void *) &DataFlowAuthVerify;
+      return (void *)&DataFlowAuthVerify;
     }
     std::cout << "func name:" << func_name << " not stub\n";
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
 
   void *DlOpen(const char *fileName, int32_t mode) override {
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
   int32_t DlClose(void *handle) override {
     return 0L;
@@ -145,7 +145,7 @@ class MockDeployerDaemonClient : public DeployerDaemonClient {
  private:
   DeployContext context_;
 };
-}
+}  // namespace
 
 class DaemonServiceUnittest : public testing::Test {
  protected:
@@ -191,9 +191,7 @@ TEST_F(DaemonServiceUnittest, TestProcessInitRequest) {
 
 TEST_F(DaemonServiceUnittest, TestProcessInitServerRequest) {
   auto information = Configurations::GetInstance().information_;
-  GE_MAKE_GUARD(recover, [information]() {
-    Configurations::GetInstance().information_ = information;
-  });
+  GE_MAKE_GUARD(recover, [information]() { Configurations::GetInstance().information_ = information; });
   SetNumaConfigEnv("valid/server/numa_config2_with_auth.json");
   SubprocessManager::GetInstance().executable_paths_["deployer_daemon"] = "deployer_daemon";
   ge::DaemonService daemon_service;
@@ -281,4 +279,4 @@ TEST_F(DaemonServiceUnittest, TestProcessInitRequestVerifyToolSuccess) {
   daemon_service.ProcessInitRequest("xxx:10.216.56.15:8080", request, response);
   ASSERT_EQ(response.error_code(), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

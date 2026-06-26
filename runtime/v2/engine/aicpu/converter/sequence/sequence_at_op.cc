@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "exe_graph/runtime/extended_kernel_context.h"
 #include "exe_graph/runtime/kernel_context.h"
@@ -19,17 +18,16 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace {
-  constexpr size_t kSessionIdIndex = 0U;
-  constexpr size_t kContainerIdIndex = 1U;
-  constexpr size_t kHandleIndex = 2U;
-  constexpr size_t kDataIndex = 3U;
-  constexpr size_t kIndexDescIndex = 1U;
-  constexpr size_t kDataTypeIndex = 2U;
-  constexpr size_t kOutputTensorIndex = 3U;
-}
+constexpr size_t kSessionIdIndex = 0U;
+constexpr size_t kContainerIdIndex = 1U;
+constexpr size_t kHandleIndex = 2U;
+constexpr size_t kDataIndex = 3U;
+constexpr size_t kIndexDescIndex = 1U;
+constexpr size_t kDataTypeIndex = 2U;
+constexpr size_t kOutputTensorIndex = 3U;
+}  // namespace
 namespace gert {
-ge::graphStatus SequenceAtDoComputeExtend(KernelContext *context, const uint64_t handle,
-                                          const int64_t index) {
+ge::graphStatus SequenceAtDoComputeExtend(KernelContext *context, const uint64_t handle, const int64_t index) {
   uint64_t session_id = context->GetInputValue<size_t>(kSessionIdIndex);
   uint64_t container_id = context->GetInputValue<size_t>(kContainerIdIndex);
   GELOGD("SequenceAt session = %llu, container = %llu", session_id, container_id);
@@ -67,8 +65,8 @@ ge::graphStatus SequenceAtDoComputeExtend(KernelContext *context, const uint64_t
   output_tensor->MutableOriginShape() = tensor_ref->tensor_shape_;
 
   auto output_tensor_data_type = output_tensor->GetDataType();
-  GELOGD("SequenceAt output tensor data type is %u, tensor size is %u",
-         output_tensor_data_type, output_tensor->GetSize());
+  GELOGD("SequenceAt output tensor data type is %u, tensor size is %u", output_tensor_data_type,
+         output_tensor->GetSize());
   GELOGD("SequenceAtDoCompute end");
   return ge::GRAPH_SUCCESS;
 }
@@ -82,8 +80,8 @@ ge::graphStatus SequenceAtDoCompute(KernelContext *context) {
     REPORT_INNER_ERR_MSG("E39999", "Failed to get input handle.");
     return ge::PARAM_INVALID;
   }
-  auto handle = *(static_cast<uint64_t*>(input_handle->GetAddr()));
-  
+  auto handle = *(static_cast<uint64_t *>(input_handle->GetAddr()));
+
   auto index_data = context->GetInputPointer<TensorData>(kDataIndex);
   if ((index_data == nullptr) || (index_data->GetAddr() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "Failed to get input index.");
@@ -91,7 +89,7 @@ ge::graphStatus SequenceAtDoCompute(KernelContext *context) {
     return ge::PARAM_INVALID;
   }
 
-  auto extend_ctx = reinterpret_cast<ExtendedKernelContext*>(context);
+  auto extend_ctx = reinterpret_cast<ExtendedKernelContext *>(context);
   auto index_desc = extend_ctx->GetInputDesc(kIndexDescIndex);
   if (index_desc == nullptr) {
     GELOGE(ge::PARAM_INVALID, "index_desc is nullptr");
@@ -103,17 +101,21 @@ ge::graphStatus SequenceAtDoCompute(KernelContext *context) {
   int64_t index = 0;
   switch (index_type) {
     case ge::DT_INT32:
-      index = static_cast<int64_t>(*(static_cast<int32_t*>(index_data->GetAddr())));
+      index = static_cast<int64_t>(*(static_cast<int32_t *>(index_data->GetAddr())));
       break;
     case ge::DT_INT64:
-      index = *(static_cast<int64_t*>(index_data->GetAddr()));;
+      index = *(static_cast<int64_t *>(index_data->GetAddr()));
+      ;
       break;
     default:
-      GELOGE(ge::PARAM_INVALID, 
-            "Sequence SequenceAt input index data type should be DT_INT32 or "
-            "DT_INT64, [%u] not support.", index_type);
-      REPORT_INNER_ERR_MSG("E39999", "Sequence SequenceAt input index data type should be DT_INT32 "
-                         "or DT_INT64, [%u] not support.", index_type);
+      GELOGE(ge::PARAM_INVALID,
+             "Sequence SequenceAt input index data type should be DT_INT32 or "
+             "DT_INT64, [%u] not support.",
+             index_type);
+      REPORT_INNER_ERR_MSG("E39999",
+                           "Sequence SequenceAt input index data type should be DT_INT32 "
+                           "or DT_INT64, [%u] not support.",
+                           index_type);
       return ge::PARAM_INVALID;
   }
 
@@ -172,7 +174,7 @@ ge::graphStatus SequenceEmptyDoCompute(KernelContext *context) {
     return ge::PARAM_INVALID;
   }
 
-  uint64_t* data = output_tensor->GetData<uint64_t>();
+  uint64_t *data = output_tensor->GetData<uint64_t>();
   *data = handle;
   GELOGD("SequenceEmptyDoCompute end");
   return ge::GRAPH_SUCCESS;
@@ -191,7 +193,7 @@ ge::graphStatus SequenceLengthDoCompute(KernelContext *context) {
     return ge::PARAM_INVALID;
   }
 
-  auto handle = *(static_cast<uint64_t*>(input_handle->GetAddr()));
+  auto handle = *(static_cast<uint64_t *>(input_handle->GetAddr()));
   GELOGD("SequenceLength session = %llu, container = %llu", session_id, container_id);
   GELOGD("SequenceLength handle = %llu", handle);
   ResourceMgrPtr out_rm;
@@ -214,7 +216,7 @@ ge::graphStatus SequenceLengthDoCompute(KernelContext *context) {
     return ge::PARAM_INVALID;
   }
 
-  int64_t* data = output_tensor->GetData<int64_t>();
+  int64_t *data = output_tensor->GetData<int64_t>();
   *data = length;
   GELOGD("SequenceLengthDoCompute end");
   return ge::GRAPH_SUCCESS;

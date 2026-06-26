@@ -30,10 +30,8 @@ constexpr auto kOpTypeTileD = "TileD";
 // 注意：ReduceSum 和 ReduceProd 不支持，因为：
 // - Sum -> Mul: broadcast_size 很大时 x*size 可能溢出，而原始累加器更鲁棒
 // - Prod -> Pow: Pow 运算比连乘更昂贵且精度波动更大
-const std::unordered_set<std::string> kReduceOpTypes = {
-  "ReduceMax", "ReduceMin", "ReduceMean",
-  "ReduceMaxD", "ReduceMinD", "ReduceMeanD"
-};
+const std::unordered_set<std::string> kReduceOpTypes = {"ReduceMax",  "ReduceMin",  "ReduceMean",
+                                                        "ReduceMaxD", "ReduceMinD", "ReduceMeanD"};
 
 constexpr auto kAttrNameAxes = "axes";
 constexpr auto kAttrNameShape = "shape";
@@ -48,8 +46,7 @@ bool IsReduceNode(const NodePtr &node) {
 bool IsBroadcastNode(const NodePtr &node) {
   GE_ASSERT_NOTNULL(node);
   const auto &op_type = node->GetType();
-  return op_type == kOpTypeBroadcastTo || op_type == kOpTypeFill ||
-         op_type == kOpTypeTile || op_type == kOpTypeTileD;
+  return op_type == kOpTypeBroadcastTo || op_type == kOpTypeFill || op_type == kOpTypeTile || op_type == kOpTypeTileD;
 }
 
 // 标准化轴索引（处理负数轴）
@@ -78,7 +75,7 @@ bool GetBroadcastToAxes(const NodePtr &brc_node, std::vector<int64_t> &brc_axes)
 
   // 检查输入 shape 是否有动态维度（输出可以有 -1）
   // 输入有 -1 时无法确定是否是广播轴，不能优化
-  for (auto dim: input_shape) {
+  for (auto dim : input_shape) {
     if (dim == -1) {
       GELOGW("BroadcastTo %s has dynamic input shape", brc_node->GetNamePtr());
       return false;
@@ -116,7 +113,7 @@ bool GetFillBroadcastAxes(const NodePtr &fill_node, std::vector<int64_t> &brc_ax
   // 检查 value 输入（index 1）是否有动态 shape
   // 如果 value shape 包含 -1，无法确定 reshape 目标，不能优化
   const auto &value_shape = op_desc->GetInputDesc(1).GetShape().GetDims();
-  for (auto dim: value_shape) {
+  for (auto dim : value_shape) {
     if (dim == -1) {
       GELOGW("Fill %s has dynamic value shape, cannot optimize", fill_node->GetNamePtr());
       return false;
@@ -131,8 +128,7 @@ bool GetFillBroadcastAxes(const NodePtr &fill_node, std::vector<int64_t> &brc_ax
   return !brc_axes.empty();
 }
 
-bool ReadIntVecFromInput(const NodePtr &node, const std::string &input_name,
-                         std::vector<int64_t> &values) {
+bool ReadIntVecFromInput(const NodePtr &node, const std::string &input_name, std::vector<int64_t> &values) {
   const auto op = ge::OpDescUtils::CreateOperatorFromNode(node);
   ge::Tensor tensor;
   if (op.GetInputConstData(input_name.c_str(), tensor) != ge::SUCCESS) {
@@ -145,8 +141,8 @@ bool ReadIntVecFromInput(const NodePtr &node, const std::string &input_name,
   }
   const auto &dims = tensor.GetTensorDesc().GetShape().GetDims();
   if (dims.size() > 1U) {
-    GELOGD("ReadIntVecFromInput %s: input '%s' dims size %zu is not scalar or 1D",
-           node->GetNamePtr(), input_name.c_str(), dims.size());
+    GELOGD("ReadIntVecFromInput %s: input '%s' dims size %zu is not scalar or 1D", node->GetNamePtr(),
+           input_name.c_str(), dims.size());
     return false;
   }
   const int64_t num_elems = dims.empty() ? 1L : dims[0];
@@ -157,8 +153,8 @@ bool ReadIntVecFromInput(const NodePtr &node, const std::string &input_name,
     } else if (dtype == ge::DT_INT64) {
       values.push_back(reinterpret_cast<const int64_t *>(tensor.GetData())[i]);
     } else {
-      GELOGW("ReadIntVecFromInput %s: unsupported dtype=%d for input '%s'",
-             node->GetNamePtr(), static_cast<int32_t>(dtype), input_name.c_str());
+      GELOGW("ReadIntVecFromInput %s: unsupported dtype=%d for input '%s'", node->GetNamePtr(),
+             static_cast<int32_t>(dtype), input_name.c_str());
       return false;
     }
   }
@@ -193,13 +189,13 @@ bool GetTileBroadcastAxes(const NodePtr &tile_node, std::vector<int64_t> &brc_ax
   }
 
   // 检查动态 shape
-  for (auto dim: input_shape) {
+  for (auto dim : input_shape) {
     if (dim == -1) {
       GELOGW("Tile %s has dynamic input shape", tile_node->GetNamePtr());
       return false;
     }
   }
-  for (auto mult: multiples) {
+  for (auto mult : multiples) {
     if (mult == -1) {
       GELOGW("Tile %s has dynamic multiples", tile_node->GetNamePtr());
       return false;
@@ -254,13 +250,9 @@ bool GetBroadcastAxes(const NodePtr &brc_node, std::vector<int64_t> &brc_axes) {
 }
 
 // 优化类型
-enum class EliminationType {
-  kFullElimination,
-  kNoElimination
-};
+enum class EliminationType { kFullElimination, kNoElimination };
 
-EliminationType AnalyzeBroadcastReduce(const std::vector<int64_t> &brc_axes,
-                                       const std::vector<int64_t> &reduce_axes) {
+EliminationType AnalyzeBroadcastReduce(const std::vector<int64_t> &brc_axes, const std::vector<int64_t> &reduce_axes) {
   // broadcast 轴和 reduce 轴必须完全一致：
   // - reduce 不能覆盖非广播轴（会丢失真实数据计算）
   // - 所有广播轴都必须被 reduce（否则输出仍含广播维度）
@@ -274,8 +266,8 @@ EliminationType AnalyzeBroadcastReduce(const std::vector<int64_t> &brc_axes,
 
 // 检查是否有其他消费者
 bool HasOtherConsumers(const NodePtr &brc_node, const NodePtr &reduce_node) {
-  for (const auto &out_anchor: brc_node->GetAllOutDataAnchors()) {
-    for (const auto &in_anchor: out_anchor->GetPeerInDataAnchors()) {
+  for (const auto &out_anchor : brc_node->GetAllOutDataAnchors()) {
+    for (const auto &in_anchor : out_anchor->GetPeerInDataAnchors()) {
       if (in_anchor->GetOwnerNode() != reduce_node) {
         return true;
       }
@@ -286,8 +278,7 @@ bool HasOtherConsumers(const NodePtr &brc_node, const NodePtr &reduce_node) {
 
 // 计算 Reduce 输出 shape
 std::vector<int64_t> ComputeReduceOutputShape(const std::vector<int64_t> &broadcast_output_dims,
-                                              const std::vector<int64_t> &reduce_axes,
-                                              bool keep_dims) {
+                                              const std::vector<int64_t> &reduce_axes, bool keep_dims) {
   const std::unordered_set<int64_t> reduce_set(reduce_axes.begin(), reduce_axes.end());
   std::vector<int64_t> output_dims;
   for (size_t i = 0; i < broadcast_output_dims.size(); ++i) {
@@ -303,28 +294,28 @@ std::vector<int64_t> ComputeReduceOutputShape(const std::vector<int64_t> &broadc
 }
 
 // 替换节点并清理
-Status ReplaceAndCleanup(const ComputeGraphPtr &graph, const NodePtr &brc_node,
-                         const NodePtr &reduce_node, const NodePtr &replacement_node) {
+Status ReplaceAndCleanup(const ComputeGraphPtr &graph, const NodePtr &brc_node, const NodePtr &reduce_node,
+                         const NodePtr &replacement_node) {
   // 迁移数据边
-  for (const auto &out_anchor: reduce_node->GetAllOutDataAnchors()) {
-    for (const auto &in_anchor: out_anchor->GetPeerInDataAnchors()) {
+  for (const auto &out_anchor : reduce_node->GetAllOutDataAnchors()) {
+    for (const auto &in_anchor : out_anchor->GetPeerInDataAnchors()) {
       GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(out_anchor, in_anchor));
       GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(replacement_node->GetOutDataAnchor(0), in_anchor));
     }
   }
 
   // 迁移 Reduce 节点的入控制边
-  for (const auto &ctrl_in: reduce_node->GetInControlNodes()) {
+  for (const auto &ctrl_in : reduce_node->GetInControlNodes()) {
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(ctrl_in->GetOutControlAnchor(), reduce_node->GetInControlAnchor()));
-    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(ctrl_in->GetOutControlAnchor(), replacement_node->GetInControlAnchor()))
-    ;
+    GE_ASSERT_GRAPH_SUCCESS(
+        GraphUtils::AddEdge(ctrl_in->GetOutControlAnchor(), replacement_node->GetInControlAnchor()));
   }
 
   // 迁移 Broadcast 节点的入控制边（保持执行顺序依赖）
-  for (const auto &ctrl_in: brc_node->GetInControlNodes()) {
+  for (const auto &ctrl_in : brc_node->GetInControlNodes()) {
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(ctrl_in->GetOutControlAnchor(), brc_node->GetInControlAnchor()));
-    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::AddEdge(ctrl_in->GetOutControlAnchor(), replacement_node->GetInControlAnchor()))
-    ;
+    GE_ASSERT_GRAPH_SUCCESS(
+        GraphUtils::AddEdge(ctrl_in->GetOutControlAnchor(), replacement_node->GetInControlAnchor()));
   }
 
   NodeUtils::UnlinkAll(*brc_node);
@@ -335,8 +326,8 @@ Status ReplaceAndCleanup(const ComputeGraphPtr &graph, const NodePtr &brc_node,
 }
 
 // 创建 Reshape 节点
-NodePtr CreateReshapeNode(const ComputeGraphPtr &graph, const NodePtr &input,
-                          const std::vector<int64_t> &target_shape, const std::string &name) {
+NodePtr CreateReshapeNode(const ComputeGraphPtr &graph, const NodePtr &input, const std::vector<int64_t> &target_shape,
+                          const std::string &name) {
   auto op_desc = std::make_shared<OpDesc>(name, "Reshape");
   GE_ASSERT_NOTNULL(op_desc);
 
@@ -361,8 +352,7 @@ NodePtr CreateReshapeNode(const ComputeGraphPtr &graph, const NodePtr &input,
 
 // 创建替换节点
 NodePtr CreateReplacementNode(const ComputeGraphPtr &graph, const NodePtr &input,
-                              const std::vector<int64_t> &target_shape,
-                              const std::string &base_name) {
+                              const std::vector<int64_t> &target_shape, const std::string &base_name) {
   auto input_dims = input->GetOpDesc()->GetOutputDesc(0).GetShape().GetDims();
   // shape 完全相同，直接用原始输入
   if (input_dims == target_shape) {
@@ -382,8 +372,8 @@ NodePtr GetBroadcastInput(const NodePtr &brc_node) {
 }
 
 // 处理 Broadcast + Reduce 优化
-graphStatus ProcessBroadcastReduce(const NodePtr &brc_node, const NodePtr &reduce_node,
-                                   const ComputeGraphPtr &graph, bool &changed) {
+graphStatus ProcessBroadcastReduce(const NodePtr &brc_node, const NodePtr &reduce_node, const ComputeGraphPtr &graph,
+                                   bool &changed) {
   // 1. 获取广播轴
   std::vector<int64_t> brc_axes;
   if (!GetBroadcastAxes(brc_node, brc_axes)) {
@@ -398,7 +388,7 @@ graphStatus ProcessBroadcastReduce(const NodePtr &brc_node, const NodePtr &reduc
   }
 
   int64_t output_rank = brc_node->GetOpDesc()->GetOutputDesc(0).GetShape().GetDims().size();
-  for (auto &axis: reduce_axes) {
+  for (auto &axis : reduce_axes) {
     axis = NormalizeAxis(axis, output_rank);
   }
 
@@ -417,23 +407,22 @@ graphStatus ProcessBroadcastReduce(const NodePtr &brc_node, const NodePtr &reduc
   auto replacement_node = CreateReplacementNode(graph, brc_input, reduce_output_dims,
                                                 std::string(brc_input->GetNamePtr()) + "_" + reduce_node->GetNamePtr());
   if (!replacement_node) {
-    GELOGW("Failed to create replacement node for %s + %s",
-           brc_node->GetNamePtr(), reduce_node->GetNamePtr());
+    GELOGW("Failed to create replacement node for %s + %s", brc_node->GetNamePtr(), reduce_node->GetNamePtr());
     return GRAPH_SUCCESS;
   }
 
-  GELOGD("BroadcastReduceElimination: eliminating %s + %s (keep_dims=%d)",
-         brc_node->GetType().c_str(), reduce_node->GetType().c_str(), keep_dims);
+  GELOGD("BroadcastReduceElimination: eliminating %s + %s (keep_dims=%d)", brc_node->GetType().c_str(),
+         reduce_node->GetType().c_str(), keep_dims);
   GE_ASSERT_SUCCESS(ReplaceAndCleanup(graph, brc_node, reduce_node, replacement_node));
   changed = true;
   return GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 graphStatus BroadcastReduceEliminationPass::Run(const ComputeGraphPtr &graph, bool &changed) const {
   GE_ASSERT_NOTNULL(graph);
   std::vector<std::pair<NodePtr, NodePtr> > pairs_to_process;
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     GE_ASSERT_NOTNULL(node);
 
     if (!IsReduceNode(node)) {
@@ -453,12 +442,12 @@ graphStatus BroadcastReduceEliminationPass::Run(const ComputeGraphPtr &graph, bo
   }
 
   uint32_t optimized_count = 0U;
-  for (const auto &pair: pairs_to_process) {
+  for (const auto &pair : pairs_to_process) {
     bool cur_changed = false;
     auto ret = ProcessBroadcastReduce(pair.first, pair.second, graph, cur_changed);
     if (ret != GRAPH_SUCCESS) {
-      GELOGW("Failed to process broadcast-reduce pattern for %s + %s",
-             pair.first->GetNamePtr(), pair.second->GetNamePtr());
+      GELOGW("Failed to process broadcast-reduce pattern for %s + %s", pair.first->GetNamePtr(),
+             pair.second->GetNamePtr());
       continue;
     }
 
@@ -474,4 +463,4 @@ graphStatus BroadcastReduceEliminationPass::Run(const ComputeGraphPtr &graph, bo
 
   return GRAPH_SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

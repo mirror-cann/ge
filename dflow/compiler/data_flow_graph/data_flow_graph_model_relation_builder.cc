@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,7 @@ Status DataFlowGraphModelRelationBuilder::DoBuildForFlowData(
 }
 
 Status DataFlowGraphModelRelationBuilder::DoBuildForNodeOutput(
-    const DataFlowGraph &data_flow_graph,
-    const NodePtr &node,
-    const std::string &endpoint_name,
+    const DataFlowGraph &data_flow_graph, const NodePtr &node, const std::string &endpoint_name,
     std::map<NodePtr, std::map<int, std::string>> &paired_inputs) {
   const auto &out_data_anchor = node->GetOutDataAnchor(0);
   GE_CHECK_NOTNULL(out_data_anchor);
@@ -67,8 +65,8 @@ Status DataFlowGraphModelRelationBuilder::DoBuildForFlowNode(
   for (const auto &out_data_anchor : node->GetAllOutDataAnchors()) {
     GE_CHECK_NOTNULL(out_data_anchor);
     const int32_t output_idx = out_data_anchor->GetIdx();
-    const std::string queue_name = data_flow_graph.GetDataFlowScope() + node->GetName() + ":"
-                                   + std::to_string(output_idx);
+    const std::string queue_name =
+        data_flow_graph.GetDataFlowScope() + node->GetName() + ":" + std::to_string(output_idx);
     bool is_dummy = out_data_anchor->GetPeerInDataAnchors().empty();
     if (is_dummy) {
       GELOGI("Output queue[%s] is dummy.", queue_name.c_str());

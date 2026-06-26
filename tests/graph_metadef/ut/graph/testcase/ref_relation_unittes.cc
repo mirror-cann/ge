@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,12 +24,9 @@ using namespace std;
 namespace ge {
 class UTTEST_RefRelations : public testing::Test {
  protected:
+  void SetUp() {}
 
-  void SetUp() {
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 namespace {
@@ -217,13 +214,11 @@ ComputeGraphPtr BuildSubGraph2(const std::string name) {
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(1));
 
-
   builder.AddDataEdge(data1, 0, sub, 0);
   builder.AddDataEdge(data2, 0, sub, 1);
   builder.AddDataEdge(sub, 0, netoutput, 0);
   builder.AddDataEdge(data2, 0, relu, 0);
   builder.AddDataEdge(relu, 0, netoutput, 1);
-
 
   return builder.GetGraph();
 }
@@ -289,14 +284,12 @@ ComputeGraphPtr BuildWhileBodySubGraph(const std::string name) {
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(1));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(2), "_parent_node_index", static_cast<int>(2));
 
-
   builder.AddDataEdge(data1, 0, sub, 0);
   builder.AddDataEdge(data2, 0, sub, 1);
   builder.AddDataEdge(sub, 0, netoutput, 0);
   builder.AddDataEdge(data2, 0, relu, 0);
   builder.AddDataEdge(relu, 0, netoutput, 1);
   builder.AddDataEdge(data3, 0, netoutput, 2);
-
 
   return builder.GetGraph();
 }
@@ -390,14 +383,12 @@ ComputeGraphPtr BuildWhileBodySubGraph2(const std::string name) {
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(0));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(2), "_parent_node_index", static_cast<int>(2));
 
-
   builder.AddDataEdge(data1, 0, sub, 0);
   builder.AddDataEdge(data2, 0, sub, 1);
   builder.AddDataEdge(sub, 0, netoutput, 0);
   builder.AddDataEdge(data2, 0, relu, 0);
   builder.AddDataEdge(relu, 0, netoutput, 1);
   builder.AddDataEdge(data3, 0, netoutput, 2);
-
 
   return builder.GetGraph();
 }
@@ -466,14 +457,12 @@ ComputeGraphPtr BuildWhileBodySubGraph3(const std::string name) {
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(1));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
 
-
   builder.AddDataEdge(data0, 0, sub, 0);
   builder.AddDataEdge(const1, 0, sub, 1);
   builder.AddDataEdge(const1, 0, netoutput, 3);
   builder.AddDataEdge(sub, 0, netoutput, 2);
   builder.AddDataEdge(data1, 0, netoutput, 1);
   builder.AddDataEdge(data2, 0, netoutput, 0);
-
 
   return builder.GetGraph();
 }
@@ -547,19 +536,19 @@ ComputeGraphPtr BuildMainGraphWithWhile3() {
 // Check result
 void CheckResult(RefRelations &ref_builder, vector<RefCell> &keys, unordered_set<string> &values) {
   for (const auto &key : keys) {
-    std::unordered_set<RefCell, RefCellHash>  result;
+    std::unordered_set<RefCell, RefCellHash> result;
     auto status = ref_builder.LookUpRefRelations(key, result);
     EXPECT_EQ(status, GRAPH_SUCCESS);
     for (const auto &it : result) {
       string res = it.node_name + std::to_string(it.in_out) + std::to_string(it.in_out_idx) +
-          std::to_string((unsigned long) it.node.get());
+                   std::to_string((unsigned long)it.node.get());
       auto iter = values.find(res);
       bool is_exist = (iter == values.end()) ? false : true;
       EXPECT_EQ(is_exist, true);
     }
   }
 }
-}
+}  // namespace
 
 TEST_F(UTTEST_RefRelations, Pass_if_1) {
   auto main_graph = BuildMainGraphWithIf();
@@ -586,54 +575,41 @@ TEST_F(UTTEST_RefRelations, Pass_if_1) {
   auto status = ref_builder.BuildRefRelations(*main_graph);
   EXPECT_EQ(status, GRAPH_SUCCESS);
 
-
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1",sub1data1, NODE_IN,0),
-    RefCell("sub1data1",sub1data1, NODE_OUT,0),
-    RefCell("sub2data1",sub2data1, NODE_IN,0),
-    RefCell("sub2data1",sub2data1, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 0),
   };
 
-  unordered_set<string> values_1 = {
-    string("sub1data100") + sub1data1_s,
-    string("sub1data110") + sub1data1_s,
-    string("sub2data100") + sub2data1_s,
-    string("sub2data110") + sub2data1_s,
-    string("if00") + if1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s, string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s, string("sub2data110") + sub2data1_s,
+                                    string("if00") + if1_s};
 
   vector<RefCell> keys_2 = {
-    RefCell("sub1data2", sub1data2, NODE_IN,0),
-    RefCell("sub1data2", sub1data2, NODE_OUT,0),
-    RefCell("sub2data2", sub2data2, NODE_IN,0),
-    RefCell("sub2data2", sub2data2, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 1),
+      RefCell("sub1data2", sub1data2, NODE_IN, 0),
+      RefCell("sub1data2", sub1data2, NODE_OUT, 0),
+      RefCell("sub2data2", sub2data2, NODE_IN, 0),
+      RefCell("sub2data2", sub2data2, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 1),
   };
-  unordered_set<string> values_2 = {
-    string("sub1data200") + sub1data2_s,
-    string("sub1data210") + sub1data2_s,
-    string("sub2data200") + sub2data2_s,
-    string("sub2data210") + sub2data2_s,
-    string("if01") + if1_s
+  unordered_set<string> values_2 = {string("sub1data200") + sub1data2_s, string("sub1data210") + sub1data2_s,
+                                    string("sub2data200") + sub2data2_s, string("sub2data210") + sub2data2_s,
+                                    string("if01") + if1_s};
+
+  vector<RefCell> keys_3 = {
+      RefCell("sub1netoutput", sub1netoutput, NODE_IN, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 0),
+      RefCell("if", if1, NODE_OUT, 0),
   };
 
-   vector<RefCell> keys_3 = {
-    RefCell("sub1netoutput",sub1netoutput, NODE_IN,0),
-    RefCell("sub2netoutput",sub2netoutput, NODE_IN,0),
-    RefCell("if", if1, NODE_OUT, 0),
-  };
-
-  unordered_set<string> values_3 = {
-    string("sub1netoutput00") + sub1netoutput_s,
-    string("sub2netoutput00") + sub2netoutput_s,
-    string("if10") + if1_s
-  };
+  unordered_set<string> values_3 = {string("sub1netoutput00") + sub1netoutput_s,
+                                    string("sub2netoutput00") + sub2netoutput_s, string("if10") + if1_s};
 
   CheckResult(ref_builder, keys_1, values_1);
   CheckResult(ref_builder, keys_2, values_2);
   CheckResult(ref_builder, keys_3, values_3);
-
 }
 
 TEST_F(UTTEST_RefRelations, Pass_if_2) {
@@ -662,64 +638,49 @@ TEST_F(UTTEST_RefRelations, Pass_if_2) {
   EXPECT_EQ(status, GRAPH_SUCCESS);
 
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1", sub1data1, NODE_IN,0),
-    RefCell("sub1data1", sub1data1, NODE_OUT,0),
-    RefCell("sub2data1", sub2data1, NODE_IN,0),
-    RefCell("sub2data1", sub2data1, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 0),
   };
-  unordered_set<string> values_1 = {
-    string("sub1data100") + sub1data1_s,
-    string("sub1data110") + sub1data1_s,
-    string("sub2data100") + sub2data1_s,
-    string("sub2data110") + sub2data1_s,
-    string("if00") + if1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s, string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s, string("sub2data110") + sub2data1_s,
+                                    string("if00") + if1_s};
 
   vector<RefCell> keys_2 = {
-    RefCell("sub1data2", sub1data2 ,NODE_IN,0),
-    RefCell("sub1data2", sub1data2 ,NODE_OUT,0),
-    RefCell("sub2data2", sub2data2 ,NODE_IN,0),
-    RefCell("sub2data2", sub2data2 ,NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 1),
+      RefCell("sub1data2", sub1data2, NODE_IN, 0),
+      RefCell("sub1data2", sub1data2, NODE_OUT, 0),
+      RefCell("sub2data2", sub2data2, NODE_IN, 0),
+      RefCell("sub2data2", sub2data2, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 1),
   };
-  unordered_set<string> values_2 = {
-    string("sub1data200") + sub1data2_s,
-    string("sub1data210") + sub1data2_s,
-    string("sub2data200") + sub2data2_s,
-    string("sub2data210") + sub2data2_s,
-    string("if01") + if1_s
+  unordered_set<string> values_2 = {string("sub1data200") + sub1data2_s, string("sub1data210") + sub1data2_s,
+                                    string("sub2data200") + sub2data2_s, string("sub2data210") + sub2data2_s,
+                                    string("if01") + if1_s};
+
+  vector<RefCell> keys_3 = {
+      RefCell("sub1netoutput", sub1netoutput, NODE_IN, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 0),
+      RefCell("if", if1, NODE_OUT, 0),
   };
 
-   vector<RefCell> keys_3 = {
-    RefCell("sub1netoutput", sub1netoutput,NODE_IN,0),
-    RefCell("sub2netoutput", sub2netoutput,NODE_IN,0),
-    RefCell("if", if1,  NODE_OUT, 0),
-  };
-
-  unordered_set<string> values_3 = {
-    string("sub1netoutput00") + sub1netoutput_s,
-    string("sub2netoutput00") + sub2netoutput_s,
-    string("if10") + if1_s
-  };
+  unordered_set<string> values_3 = {string("sub1netoutput00") + sub1netoutput_s,
+                                    string("sub2netoutput00") + sub2netoutput_s, string("if10") + if1_s};
 
   vector<RefCell> keys_4 = {
-    RefCell("sub1netoutput",sub1netoutput, NODE_IN,1),
-    RefCell("sub2netoutput",sub2netoutput, NODE_IN,1),
-    RefCell("if", if1, NODE_OUT, 1),
+      RefCell("sub1netoutput", sub1netoutput, NODE_IN, 1),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 1),
+      RefCell("if", if1, NODE_OUT, 1),
   };
 
-  unordered_set<string> values_4 = {
-    string("sub1netoutput01") + sub1netoutput_s,
-    string("sub2netoutput01") + sub2netoutput_s,
-    string("if11") + if1_s
-  };
+  unordered_set<string> values_4 = {string("sub1netoutput01") + sub1netoutput_s,
+                                    string("sub2netoutput01") + sub2netoutput_s, string("if11") + if1_s};
 
   CheckResult(ref_builder, keys_1, values_1);
   CheckResult(ref_builder, keys_2, values_2);
   CheckResult(ref_builder, keys_3, values_3);
   CheckResult(ref_builder, keys_4, values_4);
-
 }
 
 TEST_F(UTTEST_RefRelations, Pass_if_3) {
@@ -751,69 +712,52 @@ TEST_F(UTTEST_RefRelations, Pass_if_3) {
   auto status = ref_builder.BuildRefRelations(*main_graph);
   EXPECT_EQ(status, GRAPH_SUCCESS);
 
-
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1",sub1data1, NODE_IN,0),
-    RefCell("sub1data1",sub1data1, NODE_OUT,0),
-    RefCell("sub2data1",sub2data1, NODE_IN,0),
-    RefCell("sub2data1",sub2data1, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 0),
   };
 
-  unordered_set<string> values_1 = {
-    string("sub1data100") + sub1data1_s,
-    string("sub1data110") + sub1data1_s,
-    string("sub2data100") + sub2data1_s,
-    string("sub2data110") + sub2data1_s,
-    string("if00") + if1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s, string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s, string("sub2data110") + sub2data1_s,
+                                    string("if00") + if1_s};
 
   vector<RefCell> keys_2 = {
-    RefCell("sub1data2", sub1data2, NODE_IN,0),
-    RefCell("sub1data2", sub1data2, NODE_OUT,0),
-    RefCell("sub2data2", sub2data2, NODE_IN,0),
-    RefCell("sub2data2", sub2data2, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 1),
+      RefCell("sub1data2", sub1data2, NODE_IN, 0),
+      RefCell("sub1data2", sub1data2, NODE_OUT, 0),
+      RefCell("sub2data2", sub2data2, NODE_IN, 0),
+      RefCell("sub2data2", sub2data2, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 1),
   };
-  unordered_set<string> values_2 = {
-    string("sub1data200") + sub1data2_s,
-    string("sub1data210") + sub1data2_s,
-    string("sub2data200") + sub2data2_s,
-    string("sub2data210") + sub2data2_s,
-    string("if01") + if1_s
-  };
+  unordered_set<string> values_2 = {string("sub1data200") + sub1data2_s, string("sub1data210") + sub1data2_s,
+                                    string("sub2data200") + sub2data2_s, string("sub2data210") + sub2data2_s,
+                                    string("if01") + if1_s};
 
   vector<RefCell> keys_4 = {
-    RefCell("sub1data3", sub1data3, NODE_IN,0),
-    RefCell("sub1data3", sub1data3, NODE_OUT,0),
-    RefCell("sub2data3", sub2data3, NODE_IN,0),
-    RefCell("sub2data3", sub2data3, NODE_OUT,0),
-    RefCell("if", if1, NODE_IN, 1),
+      RefCell("sub1data3", sub1data3, NODE_IN, 0),
+      RefCell("sub1data3", sub1data3, NODE_OUT, 0),
+      RefCell("sub2data3", sub2data3, NODE_IN, 0),
+      RefCell("sub2data3", sub2data3, NODE_OUT, 0),
+      RefCell("if", if1, NODE_IN, 1),
   };
-  unordered_set<string> values_4 = {
-    string("sub1data300") + sub1data3_s,
-    string("sub1data310") + sub1data3_s,
-    string("sub2data300") + sub2data3_s,
-    string("sub2data310") + sub2data3_s,
-    string("if01") + if1_s
-  };
+  unordered_set<string> values_4 = {string("sub1data300") + sub1data3_s, string("sub1data310") + sub1data3_s,
+                                    string("sub2data300") + sub2data3_s, string("sub2data310") + sub2data3_s,
+                                    string("if01") + if1_s};
 
   vector<RefCell> keys_3 = {
-    RefCell("sub1netoutput",sub1netoutput, NODE_IN,0),
-    RefCell("sub2netoutput",sub2netoutput, NODE_IN,0),
-    RefCell("if", if1, NODE_OUT, 0),
+      RefCell("sub1netoutput", sub1netoutput, NODE_IN, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 0),
+      RefCell("if", if1, NODE_OUT, 0),
   };
 
-  unordered_set<string> values_3 = {
-    string("sub1netoutput00") + sub1netoutput_s,
-    string("sub2netoutput00") + sub2netoutput_s,
-    string("if10") + if1_s
-  };
+  unordered_set<string> values_3 = {string("sub1netoutput00") + sub1netoutput_s,
+                                    string("sub2netoutput00") + sub2netoutput_s, string("if10") + if1_s};
 
   CheckResult(ref_builder, keys_1, values_1);
   CheckResult(ref_builder, keys_2, values_2);
   CheckResult(ref_builder, keys_3, values_3);
-
 }
 
 TEST_F(UTTEST_RefRelations, Pass_while) {
@@ -846,61 +790,55 @@ TEST_F(UTTEST_RefRelations, Pass_while) {
   EXPECT_EQ(status, GRAPH_SUCCESS);
 
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1", sub1data1, NODE_IN,0),
-    RefCell("sub1data1", sub1data1, NODE_OUT,0),
-    RefCell("sub2data1", sub2data1, NODE_IN,0),
-    RefCell("sub2data1", sub2data1, NODE_OUT,0),
-    RefCell("sub2netoutput", sub2netoutput, NODE_IN,0),
-    RefCell("while1", while1, NODE_IN, 0),
-    RefCell("while1", while1, NODE_OUT, 0),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 0),
+      RefCell("while1", while1, NODE_IN, 0),
+      RefCell("while1", while1, NODE_OUT, 0),
   };
-  unordered_set<string> values_1 = {
-    string("sub1data100") + sub1data1_s,
-    string("sub1data110") + sub1data1_s,
-    string("sub2data100") + sub2data1_s,
-    string("sub2data110") + sub2data1_s,
-    string("sub2netoutput00") + sub2netoutput_s,
-    string("while100") + while1_s,
-    string("while110") + while1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s,
+                                    string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s,
+                                    string("sub2data110") + sub2data1_s,
+                                    string("sub2netoutput00") + sub2netoutput_s,
+                                    string("while100") + while1_s,
+                                    string("while110") + while1_s};
 
   vector<RefCell> keys_2 = {
-    RefCell("sub1data2", sub1data2, NODE_IN,0),
-    RefCell("sub1data2", sub1data2, NODE_OUT,0),
-    RefCell("sub2data2", sub2data2, NODE_IN,0),
-    RefCell("sub2data2", sub2data2, NODE_OUT,0),
-    RefCell("sub2netoutput", sub2netoutput, NODE_IN,1),
-    RefCell("while1", while1, NODE_IN, 1),
-    RefCell("while1", while1, NODE_OUT, 1),
+      RefCell("sub1data2", sub1data2, NODE_IN, 0),
+      RefCell("sub1data2", sub1data2, NODE_OUT, 0),
+      RefCell("sub2data2", sub2data2, NODE_IN, 0),
+      RefCell("sub2data2", sub2data2, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 1),
+      RefCell("while1", while1, NODE_IN, 1),
+      RefCell("while1", while1, NODE_OUT, 1),
   };
-  unordered_set<string> values_2 = {
-    string("sub1data200")+ sub1data2_s,
-    string("sub1data210")+ sub1data2_s,
-    string("sub2data200")+ sub2data2_s,
-    string("sub2data210")+ sub2data2_s,
-    string("sub2netoutput01")+ sub2netoutput_s,
-    string("while101")+ while1_s,
-    string("while111")+ while1_s
-  };
+  unordered_set<string> values_2 = {string("sub1data200") + sub1data2_s,
+                                    string("sub1data210") + sub1data2_s,
+                                    string("sub2data200") + sub2data2_s,
+                                    string("sub2data210") + sub2data2_s,
+                                    string("sub2netoutput01") + sub2netoutput_s,
+                                    string("while101") + while1_s,
+                                    string("while111") + while1_s};
 
   vector<RefCell> keys_3 = {
-    RefCell("sub1data3", sub1data3,NODE_IN,0),
-    RefCell("sub1data3", sub1data3,NODE_OUT,0),
-    RefCell("sub2data3", sub2data3,NODE_IN,0),
-    RefCell("sub2data3", sub2data3,NODE_OUT,0),
-    RefCell("sub2netoutput", sub2netoutput,NODE_IN,2),
-    RefCell("while1", while1,NODE_IN, 2),
-    RefCell("while1", while1,NODE_OUT, 2),
+      RefCell("sub1data3", sub1data3, NODE_IN, 0),
+      RefCell("sub1data3", sub1data3, NODE_OUT, 0),
+      RefCell("sub2data3", sub2data3, NODE_IN, 0),
+      RefCell("sub2data3", sub2data3, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 2),
+      RefCell("while1", while1, NODE_IN, 2),
+      RefCell("while1", while1, NODE_OUT, 2),
   };
-  unordered_set<string> values_3 = {
-    string("sub1data300")+ sub1data3_s,
-    string("sub1data310")+ sub1data3_s,
-    string("sub2data300")+ sub2data3_s,
-    string("sub2data310")+ sub2data3_s,
-    string("sub2netoutput02")+ sub2netoutput_s,
-    string("while102")+ while1_s,
-    string("while112")+ while1_s
-  };
+  unordered_set<string> values_3 = {string("sub1data300") + sub1data3_s,
+                                    string("sub1data310") + sub1data3_s,
+                                    string("sub2data300") + sub2data3_s,
+                                    string("sub2data310") + sub2data3_s,
+                                    string("sub2netoutput02") + sub2netoutput_s,
+                                    string("while102") + while1_s,
+                                    string("while112") + while1_s};
   CheckResult(ref_builder, keys_1, values_1);
   CheckResult(ref_builder, keys_2, values_2);
   CheckResult(ref_builder, keys_3, values_3);
@@ -937,23 +875,21 @@ TEST_F(UTTEST_RefRelations, Pass_while_2) {
   EXPECT_EQ(status, GRAPH_SUCCESS);
 
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1",sub1data1, NODE_IN,0),
-    RefCell("sub1data1",sub1data1 ,NODE_OUT,0),
-    RefCell("sub2data1",sub2data1 ,NODE_IN,0),
-    RefCell("sub2data1",sub2data1 ,NODE_OUT,0),
-    RefCell("sub2netoutput",sub2netoutput ,NODE_IN,1),
-    RefCell("while1",while1 ,NODE_IN, 0),
-    RefCell("while1",while1 ,NODE_OUT, 0),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 1),
+      RefCell("while1", while1, NODE_IN, 0),
+      RefCell("while1", while1, NODE_OUT, 0),
   };
-  unordered_set<string> values_1 = {
-    string("sub1data100") + sub1data1_s,
-    string("sub1data110") + sub1data1_s,
-    string("sub2data100") + sub2data1_s,
-    string("sub2data110") + sub2data1_s,
-    string("sub2netoutput01") + sub2netoutput_s,
-    string("while100") + while1_s,
-    string("while110") + while1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s,
+                                    string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s,
+                                    string("sub2data110") + sub2data1_s,
+                                    string("sub2netoutput01") + sub2netoutput_s,
+                                    string("while100") + while1_s,
+                                    string("while110") + while1_s};
 
   // vector<RefCell> keys_2 = {
   //   RefCell("sub1data2",sub1data2 ,NODE_IN,0),
@@ -975,7 +911,6 @@ TEST_F(UTTEST_RefRelations, Pass_while_2) {
   //   string("while101")+ while1_s,
   //   string("while111")+ while1_s
   // };
-
 
   // vector<RefCell> keys_3 = {
   //   RefCell("sub1data3",sub1data3 ,NODE_IN,0),
@@ -1033,56 +968,52 @@ TEST_F(UTTEST_RefRelations, Pass_while3) {
   EXPECT_NE(status, GRAPH_SUCCESS);
 
   vector<RefCell> keys_0 = {
-    RefCell("sub1data0", sub1data0, NODE_IN,0),
-    RefCell("sub1data0", sub1data0, NODE_OUT,0),
-    RefCell("sub2data0", sub2data0, NODE_IN,0),
-    RefCell("sub2data0", sub2data0, NODE_OUT,0),
-    RefCell("sub2netoutput", sub2netoutput, NODE_IN,2),
-    RefCell("while1", while1, NODE_IN, 2),
-    RefCell("while1", while1, NODE_OUT, 2),
+      RefCell("sub1data0", sub1data0, NODE_IN, 0),
+      RefCell("sub1data0", sub1data0, NODE_OUT, 0),
+      RefCell("sub2data0", sub2data0, NODE_IN, 0),
+      RefCell("sub2data0", sub2data0, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 2),
+      RefCell("while1", while1, NODE_IN, 2),
+      RefCell("while1", while1, NODE_OUT, 2),
   };
-  unordered_set<string> values_0 = {
-    string("sub1data000") + sub1data0_s,
-    string("sub1data010") + sub1data0_s,
-    string("sub2data000") + sub2data0_s,
-    string("sub2data010") + sub2data0_s,
-    string("sub2netoutput02") + sub2netoutput_s,
-    string("while102") + while1_s,
-    string("while112") + while1_s
-  };
+  unordered_set<string> values_0 = {string("sub1data000") + sub1data0_s,
+                                    string("sub1data010") + sub1data0_s,
+                                    string("sub2data000") + sub2data0_s,
+                                    string("sub2data010") + sub2data0_s,
+                                    string("sub2netoutput02") + sub2netoutput_s,
+                                    string("while102") + while1_s,
+                                    string("while112") + while1_s};
 
   vector<RefCell> keys_1 = {
-    RefCell("sub1data1", sub1data1, NODE_IN,0),
-    RefCell("sub1data1", sub1data1, NODE_OUT,0),
-    RefCell("sub2data1", sub2data1, NODE_IN,0),
-    RefCell("sub2data1", sub2data1, NODE_OUT,0),
-    RefCell("sub1data2", sub1data2, NODE_IN,0),
-    RefCell("sub1data2", sub1data2, NODE_OUT,0),
-    RefCell("sub2data2", sub2data2, NODE_IN,0),
-    RefCell("sub2data2", sub2data2, NODE_OUT,0),
-    RefCell("sub2netoutput", sub2netoutput, NODE_IN,0),
-    RefCell("sub2netoutput", sub2netoutput, NODE_IN,1),
-    RefCell("while1", while1, NODE_IN, 0),
-    RefCell("while1", while1, NODE_OUT, 0),
-    RefCell("while1", while1, NODE_IN, 1),
-    RefCell("while1", while1, NODE_OUT, 1),
+      RefCell("sub1data1", sub1data1, NODE_IN, 0),
+      RefCell("sub1data1", sub1data1, NODE_OUT, 0),
+      RefCell("sub2data1", sub2data1, NODE_IN, 0),
+      RefCell("sub2data1", sub2data1, NODE_OUT, 0),
+      RefCell("sub1data2", sub1data2, NODE_IN, 0),
+      RefCell("sub1data2", sub1data2, NODE_OUT, 0),
+      RefCell("sub2data2", sub2data2, NODE_IN, 0),
+      RefCell("sub2data2", sub2data2, NODE_OUT, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 0),
+      RefCell("sub2netoutput", sub2netoutput, NODE_IN, 1),
+      RefCell("while1", while1, NODE_IN, 0),
+      RefCell("while1", while1, NODE_OUT, 0),
+      RefCell("while1", while1, NODE_IN, 1),
+      RefCell("while1", while1, NODE_OUT, 1),
   };
-  unordered_set<string> values_1 = {
-    string("sub1data100")+ sub1data1_s,
-    string("sub1data110")+ sub1data1_s,
-    string("sub2data100")+ sub2data1_s,
-    string("sub2data110")+ sub2data1_s,
-    string("sub1data200")+ sub1data2_s,
-    string("sub1data210")+ sub1data2_s,
-    string("sub2data200")+ sub2data2_s,
-    string("sub2data210")+ sub2data2_s,
-    string("sub2netoutput01")+ sub2netoutput_s,
-    string("sub2netoutput00")+ sub2netoutput_s,
-    string("while100")+ while1_s,
-    string("while110")+ while1_s,
-    string("while101")+ while1_s,
-    string("while111")+ while1_s
-  };
+  unordered_set<string> values_1 = {string("sub1data100") + sub1data1_s,
+                                    string("sub1data110") + sub1data1_s,
+                                    string("sub2data100") + sub2data1_s,
+                                    string("sub2data110") + sub2data1_s,
+                                    string("sub1data200") + sub1data2_s,
+                                    string("sub1data210") + sub1data2_s,
+                                    string("sub2data200") + sub2data2_s,
+                                    string("sub2data210") + sub2data2_s,
+                                    string("sub2netoutput01") + sub2netoutput_s,
+                                    string("sub2netoutput00") + sub2netoutput_s,
+                                    string("while100") + while1_s,
+                                    string("while110") + while1_s,
+                                    string("while101") + while1_s,
+                                    string("while111") + while1_s};
 
   // CheckResult(ref_builder, keys_0, values_0);
   CheckResult(ref_builder, keys_1, values_1);
@@ -1093,4 +1024,4 @@ TEST_F(UTTEST_RefRelations, Failed_if_1) {
   auto status = ref_builder.BuildRefRelations(*main_graph);
   EXPECT_EQ(status, GRAPH_SUCCESS);
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -190,8 +190,8 @@ ge::graphStatus GeApiWrapper_GNode_GetInputAttr(const ge::GNode *node, const cha
                                                 void *attr_value);
 ge::GNode **GeApiWrapper_GNode_GetOutControlNodes(const ge::GNode *node, size_t *node_num);
 void GeApiWrapper_GNode_DestroyGNode(const ge::GNode *node);
-ge::graphStatus GeApiWrapper_GNode_GetInDataNodesAndPortIndexes(const ge::GNode *node, int32_t in_index, ge::GNode **in_node,
-                                                                int32_t *index);
+ge::graphStatus GeApiWrapper_GNode_GetInDataNodesAndPortIndexes(const ge::GNode *node, int32_t in_index,
+                                                                ge::GNode **in_node, int32_t *index);
 const char *GeApiWrapper_GNode_GetType(const ge::GNode *node);
 ge::GNode **GeApiWrapper_GNode_GetInControlNodes(const ge::GNode *node, size_t *node_num);
 size_t GeApiWrapper_GNode_GetInputsSize(const ge::GNode *node);

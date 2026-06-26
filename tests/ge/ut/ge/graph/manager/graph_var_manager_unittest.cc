@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,7 +54,7 @@ OpDescPtr CreateFileConstOpDesc(const std::string &name, const GeTensorPtr &tens
   FileConstantUtils::SetFileConstantPath(op_desc, file_path, offset, length);
   return op_desc;
 }
-}
+}  // namespace
 class UtestGraphVarManagerTest : public testing::Test {
  protected:
   void SetUp() {
@@ -95,10 +95,12 @@ TEST_F(UtestGraphVarManagerTest, test_mem_manager_not_set) {
   EXPECT_EQ(VarManager::Instance(0)->GetVarMemoryAddr(nullptr, RT_MEMORY_RDMA_HBM), nullptr);
 
   GeTensorDesc tensor_desc;
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM), INTERNAL_ERROR);
-  
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM),
+            INTERNAL_ERROR);
+
   EXPECT_EQ(VarManager::Instance(0)->GetVarMemoryAddr(nullptr, RT_MEMORY_RDMA_HBM), nullptr);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM), INTERNAL_ERROR);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM),
+            INTERNAL_ERROR);
 }
 
 TEST_F(UtestGraphVarManagerTest, test_with_mem_manager) {
@@ -113,7 +115,8 @@ TEST_F(UtestGraphVarManagerTest, test_with_mem_manager) {
 
   // RdmaPoolAllocator block_bin_ not found.
   GeTensorDesc tensor_desc;
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM), INTERNAL_ERROR);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("global_step", nullptr, tensor_desc, RT_MEMORY_RDMA_HBM),
+            INTERNAL_ERROR);
 }
 
 TEST_F(UtestGraphVarManagerTest, test_var_manager_addr_and_free) {
@@ -125,10 +128,10 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_addr_and_free) {
   const map<string, string> options{{"ge.graphMemoryMaxSize", "536870912"}};
   Status ret = VarManager::Instance(5)->Init(static_cast<uint32_t>(SessionVersion::MINI_VERSION), 1, 0, 0x5a5a);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   ret = VarManager::Instance(5)->SetMemoryMallocSize(options, 1024UL * 1024UL * 1024UL);
   EXPECT_EQ(ret, SUCCESS);
-  std::vector<int64_t> s = {1,2,3,4};
+  std::vector<int64_t> s = {1, 2, 3, 4};
   GeShape shape(s);
   GeTensorDesc tensor_desc(shape);
   TensorUtils::SetSize(tensor_desc, shape.GetShapeSize());
@@ -140,21 +143,24 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_addr_and_free) {
   VarManager::Instance(5)->var_resource_->UpdateDevVarMgrInfo(0);
   ret = VarManager::Instance(5)->var_resource_->SetVarMgrDevAddr(0, logic_value, nullptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_NE(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM), nullptr);
+  EXPECT_NE(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM),
+            nullptr);
   EXPECT_EQ(VarManager::Instance(5)->FreeVarMemory(), SUCCESS);
-  ret = VarManager::Instance(5)->var_resource_->SetVarMgrDevAddr(0, logic_value, reinterpret_cast<uint8_t *>(&logic_value));
+  ret = VarManager::Instance(5)->var_resource_->SetVarMgrDevAddr(0, logic_value,
+                                                                 reinterpret_cast<uint8_t *>(&logic_value));
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_NE(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)),
-      RT_MEMORY_HBM), nullptr);
+  EXPECT_NE(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM),
+            nullptr);
   logic_value = 0;
-  EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(reinterpret_cast<uint8_t *>(&logic_value), RT_MEMORY_HBM), nullptr);
+  EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(reinterpret_cast<uint8_t *>(&logic_value), RT_MEMORY_HBM),
+            nullptr);
   VarManager::Instance(5)->var_resource_->device_id_to_var_dev_addr_mgr_map_.clear();
 }
 
 TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   class RuntimeMock : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {
       if (prop->pg_type == 2) {
         return -1;
       }
@@ -178,15 +184,14 @@ TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   options.insert(pair<string, string>("ge.graphMemoryMaxSize", "536870912"));
   Status ret = VarManager::Instance(5)->Init(static_cast<uint32_t>(SessionVersion::MINI_VERSION), 1, 0, 0x5a5a);
   EXPECT_EQ(ret, SUCCESS);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
   ASSERT_NE(mem_allocator1, nullptr);
   VarManager::Instance(5)->InitExpandableMemoryAllocator(mem_allocator1);
 
-  
   ret = VarManager::Instance(5)->SetMemoryMallocSize(options, 1024UL * 1024UL * 1024UL);
   EXPECT_EQ(ret, SUCCESS);
-  std::vector<int64_t> s = {1,2,3,4};
+  std::vector<int64_t> s = {1, 2, 3, 4};
   GeShape shape(s);
   GeTensorDesc tensor_desc(shape);
   TensorUtils::SetSize(tensor_desc, shape.GetShapeSize());
@@ -198,7 +203,8 @@ TEST_F(UtestGraphVarManagerTest, Malloc1GHugePageFailed_Return) {
   VarManager::Instance(5)->var_resource_->UpdateDevVarMgrInfo(0);
   ret = VarManager::Instance(5)->var_resource_->SetVarMgrDevAddr(0, logic_value, nullptr);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM), nullptr);
+  EXPECT_EQ(VarManager::Instance(5)->GetVarMemoryAddr(PtrToPtr<void, uint8_t>(ValueToPtr(34359738368)), RT_MEMORY_HBM),
+            nullptr);
   EXPECT_EQ(VarManager::Instance(5)->FreeVarMemory(), SUCCESS);
   VarManager::Instance(5)->var_resource_->device_id_to_var_dev_addr_mgr_map_.clear();
   ge::RuntimeStub::Reset();
@@ -209,14 +215,14 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_serial_deserial) {
   const map<string, string> options{};
   Status ret = VarManager::Instance(1)->Init(static_cast<uint32_t>(SessionVersion::MINI_VERSION), 1, 0, 0x5a5a);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   ret = VarManager::Instance(1)->SetMemoryMallocSize(options, 1024UL * 1024UL * 1024UL);
   EXPECT_EQ(ret, SUCCESS);
   size_t graph_mem_max_size = VarManager::Instance(1)->graph_mem_max_size_;
   size_t var_mem_max_size = VarManager::Instance(1)->var_mem_max_size_;
   size_t var_mem_logic_base = VarManager::Instance(1)->var_mem_logic_base_;
   size_t use_max_mem_size = VarManager::Instance(1)->use_max_mem_size_;
-  std::vector<int64_t> s = {1,2,3,4};
+  std::vector<int64_t> s = {1, 2, 3, 4};
   GeShape shape(s);
   GeTensorDesc tensor_desc(shape);
   TensorUtils::SetSize(tensor_desc, shape.GetShapeSize());
@@ -269,7 +275,7 @@ TEST_F(UtestGraphVarManagerTest, var_address_op_fail) {
   uint64_t session_id = 1;
   rtMemType_t memory_type = RT_MEMORY_HBM;
   Status retStatus;
-  std::vector<int64_t> s = {1,2,3,4};
+  std::vector<int64_t> s = {1, 2, 3, 4};
   GeShape shape(s);
   GeTensorDesc tensor_desc(shape);
   TensorUtils::SetSize(tensor_desc, shape.GetShapeSize());
@@ -303,18 +309,15 @@ TEST_F(UtestGraphVarManagerTest, var_address_op_fail) {
   ret = VarManager::Instance(session_id)->AssignVarMem(var_name, nullptr, tensor_desc, memory_type);
   EXPECT_EQ(ret, SUCCESS);
 
-  retStatus = VarManager::Instance(session_id)->var_resource_->SaveVarAddr(var_name,
-                                                                           tensor_desc,
-                                                                           dev_ptr,
-                                                                           memory_type, nullptr);
+  retStatus = VarManager::Instance(session_id)
+                  ->var_resource_->SaveVarAddr(var_name, tensor_desc, dev_ptr, memory_type, nullptr);
   EXPECT_EQ(retStatus, FAILED);
-
 }
 
 TEST_F(UtestGraphVarManagerTest, renew_current_var_desc) {
   VarResource tmpVarRes(1);
 
-  std::vector<int64_t> s = {1,2,3,4};
+  std::vector<int64_t> s = {1, 2, 3, 4};
   GeShape shape(s);
   GeTensorDesc tensor_desc(shape);
   // var not exist
@@ -334,7 +337,7 @@ TEST_F(UtestGraphVarManagerTest, renew_current_var_desc) {
 TEST_F(UtestGraphVarManagerTest, VarManager_WithNo_varResource) {
   Status retStatus;
   bool retBool;
-  rtMemType_t retMemType; 
+  rtMemType_t retMemType;
   VarTransRoad *retVarTransRoad;
   VarManager::Instance(1)->var_resource_.reset();
 
@@ -408,12 +411,15 @@ TEST_F(UtestGraphVarManagerTest, aoe_const_mem_reuse_succ) {
 
   auto tensor1 = CreateTensor({1, 2, 3});
   auto const1 = CreateOpDesc("const1", tensor1);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const1", const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const1", const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+            SUCCESS);
   auto const2 = CreateOpDesc("const2", tensor1);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const2", const2, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const2", const2, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+            SUCCESS);
   auto tensor2 = CreateTensor({1, 2, 3, 4, 5});
   auto const3 = CreateOpDesc("const3", tensor2);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const3", const3, tensor2->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const3", const3, tensor2->MutableTensorDesc(), RT_MEMORY_HBM),
+            SUCCESS);
 
   EXPECT_EQ(VarManager::Instance(0)->var_resource_->GetVarMgrInfo(0, 0), nullptr);
   EXPECT_EQ(VarManager::Instance(0)->var_resource_->SetVarMgrDevAddr(0, 0, nullptr), INTERNAL_ERROR);
@@ -430,16 +436,24 @@ TEST_F(UtestGraphVarManagerTest, fileconstant_mem_reuse_succ) {
   auto tensor1 = CreateTensor({1, 2, 3});
   std::string file_path1 = "tmp_weight/12345/weight.bin";
   auto file_const1 = CreateFileConstOpDesc("file_const1", tensor1, file_path1);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("file_const1", file_const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(
+      VarManager::Instance(0)->AssignVarMem("file_const1", file_const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+      SUCCESS);
   auto file_const2 = CreateFileConstOpDesc("file_const2", tensor1, file_path1);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("file_const2", file_const2, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(
+      VarManager::Instance(0)->AssignVarMem("file_const2", file_const2, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+      SUCCESS);
   std::string file_path2 = "tmp_weight/12345/weight1.bin";
   auto file_const3 = CreateFileConstOpDesc("const3", tensor1, file_path2);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("file_const3", file_const3, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(
+      VarManager::Instance(0)->AssignVarMem("file_const3", file_const3, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+      SUCCESS);
   // clear file constant reuse key
   VarManager::Instance(0)->var_resource_->var_addr_mgr_map_.clear();
   auto file_const4 = CreateFileConstOpDesc("file_const4", tensor1, file_path1);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("file_const4", file_const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(
+      VarManager::Instance(0)->AssignVarMem("file_const4", file_const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+      SUCCESS);
 }
 
 TEST_F(UtestGraphVarManagerTest, get_reuse_addr_failed_with_no_aligned_ptr) {
@@ -503,20 +517,21 @@ TEST_F(UtestGraphVarManagerTest, const_place_holder_set_addr_success) {
   ge::TensorUtils::SetSize(tensor1->MutableTensorDesc(), 24L);
   auto constplaceholder_op_desc1 = CreateOpDesc("ConstPlaceHolder", tensor1);
   constplaceholder_op_desc1->SetType("ConstPlaceHolder");
-  vector<int64_t > shape({1, 2, 3});
+  vector<int64_t> shape({1, 2, 3});
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "origin_shape", shape);
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "storage_shape", shape);
   DataType data_type = DT_FLOAT;
-  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type); // float
+  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type);  // float
   int64_t data_length = 24L;
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "size", data_length);
   int64_t placement = 1L;
-  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement); // device
+  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement);  // device
   int64_t device_addr = 20000;
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "addr", device_addr);
   uint64_t logic_address = VarManager::Instance(0)->GetVarMemLogicBase();
   EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("constplacehoulder_test1", constplaceholder_op_desc1,
-                                                  tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+                                                  tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+            SUCCESS);
   EXPECT_EQ(VarManager::Instance(0)->GetVarMemoryAddr(reinterpret_cast<uint8_t *>(logic_address), RT_MEMORY_HBM),
             reinterpret_cast<void *>(device_addr));
 }
@@ -526,7 +541,8 @@ TEST_F(UtestGraphVarManagerTest, test_check_and_set_var_loaded) {
   auto const1 = CreateOpDesc("const1", tensor1);
   EXPECT_EQ(VarManager::Instance(0)->CheckAndSetVarLoaded(const1, 0), false);
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 0, 0), SUCCESS);
-  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const1", const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM), SUCCESS);
+  EXPECT_EQ(VarManager::Instance(0)->AssignVarMem("const1", const1, tensor1->MutableTensorDesc(), RT_MEMORY_HBM),
+            SUCCESS);
   uint8_t *dev_ptr = nullptr;
   EXPECT_EQ(VarManager::Instance(0)->GetVarAddr(const1->GetName(), tensor1->GetTensorDesc(), dev_ptr), SUCCESS);
   std::vector<int64_t> output_list{static_cast<int64_t>(PtrToValue(dev_ptr))};
@@ -580,59 +596,59 @@ TEST_F(UtestGraphVarManagerTest, test_var_manager_restore_var_mem) {
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_match) {
-    // Initialize VarManager
-    const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
-    EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
+  // Initialize VarManager
+  const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
+  EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
 
-    VarManager::Instance(0)->SetMemManager(&MemManager::Instance());
-    EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 0, 0), SUCCESS);
+  VarManager::Instance(0)->SetMemManager(&MemManager::Instance());
+  EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 0, 0), SUCCESS);
 
-    // Create variable tensor with placement device
-    std::vector<int64_t> var_shape{1, 1, 1, 1, 10}; 
-    GeShape shape(var_shape);
-    GeTensorDesc tensor_desc(shape);
-    tensor_desc.SetDataType(DT_FLOAT);
-    tensor_desc.SetFormat(FORMAT_NCHW);
-    TensorUtils::SetSize(tensor_desc, 10 * sizeof(float)); 
+  // Create variable tensor with placement device
+  std::vector<int64_t> var_shape{1, 1, 1, 1, 10};
+  GeShape shape(var_shape);
+  GeTensorDesc tensor_desc(shape);
+  tensor_desc.SetDataType(DT_FLOAT);
+  tensor_desc.SetFormat(FORMAT_NCHW);
+  TensorUtils::SetSize(tensor_desc, 10 * sizeof(float));
 
-    // Create init_value tensor with matching format and type
-    std::vector<float> init_data(10, 1.0f); 
-    auto init_tensor = std::make_shared<GeTensor>();
-    GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NCHW, DT_FLOAT);
-    init_tensor->SetData(reinterpret_cast<uint8_t*>(init_data.data()), init_data.size() * sizeof(float));
-    init_tensor->MutableTensorDesc() = init_desc;
+  // Create init_value tensor with matching format and type
+  std::vector<float> init_data(10, 1.0f);
+  auto init_tensor = std::make_shared<GeTensor>();
+  GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NCHW, DT_FLOAT);
+  init_tensor->SetData(reinterpret_cast<uint8_t *>(init_data.data()), init_data.size() * sizeof(float));
+  init_tensor->MutableTensorDesc() = init_desc;
 
-    // Set init_value attribute
-    EXPECT_TRUE(ge::AttrUtils::SetTensor(&tensor_desc, ATTR_NAME_INIT_VALUE, init_tensor));
+  // Set init_value attribute
+  EXPECT_TRUE(ge::AttrUtils::SetTensor(&tensor_desc, ATTR_NAME_INIT_VALUE, init_tensor));
 
-    // Create OpDesc
-    OpDescPtr op_desc = std::make_shared<OpDesc>("test_var_match", VARIABLE);
-    op_desc->AddOutputDesc(tensor_desc);
+  // Create OpDesc
+  OpDescPtr op_desc = std::make_shared<OpDesc>("test_var_match", VARIABLE);
+  op_desc->AddOutputDesc(tensor_desc);
 
-    // Assign variable memory
-    std::string var_name = "test_var_match";
-    Status status = VarManager::Instance(0)->AssignVarMem(var_name, op_desc, tensor_desc, RT_MEMORY_HBM);
-    EXPECT_EQ(status, SUCCESS);
+  // Assign variable memory
+  std::string var_name = "test_var_match";
+  Status status = VarManager::Instance(0)->AssignVarMem(var_name, op_desc, tensor_desc, RT_MEMORY_HBM);
+  EXPECT_EQ(status, SUCCESS);
 
-    VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
+  VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
 
-    // Get the variable logical address
-    uint8_t* logic_addr = nullptr;
-    status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
-    EXPECT_EQ(status, SUCCESS);
-    EXPECT_NE(logic_addr, nullptr);
+  // Get the variable logical address
+  uint8_t *logic_addr = nullptr;
+  status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
+  EXPECT_EQ(status, SUCCESS);
+  EXPECT_NE(logic_addr, nullptr);
 
-    // Get GetVarMemoryAddr to trigger InitVarIfHasInitValue
-    uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
-    EXPECT_NE(dev_addr, nullptr);
+  // Get GetVarMemoryAddr to trigger InitVarIfHasInitValue
+  uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
+  EXPECT_NE(dev_addr, nullptr);
 
-    // Cast dev_addr to float pointer to access the data
-    float *device_data = reinterpret_cast<float *>(dev_addr);
+  // Cast dev_addr to float pointer to access the data
+  float *device_data = reinterpret_cast<float *>(dev_addr);
 
-    // Compare the data in device memory with the init_data
-    for (size_t i = 0; i < init_data.size(); ++i) {
-      EXPECT_FLOAT_EQ(device_data[i], init_data[i]);
-    }
+  // Compare the data in device memory with the init_data
+  for (size_t i = 0; i < init_data.size(); ++i) {
+    EXPECT_FLOAT_EQ(device_data[i], init_data[i]);
+  }
 }
 
 TEST_F(UtestGraphVarManagerTest, test_external_var) {
@@ -661,7 +677,7 @@ TEST_F(UtestGraphVarManagerTest, test_external_var) {
   EXPECT_EQ(status, SUCCESS);
 
   VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
-  uint8_t* logic_addr = nullptr;
+  uint8_t *logic_addr = nullptr;
   status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(logic_addr, nullptr);
@@ -680,7 +696,7 @@ TEST_F(UtestGraphVarManagerTest, test_external_var) {
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_format_mismatch) {
-  // Initialize VarManager 
+  // Initialize VarManager
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
 
@@ -698,7 +714,7 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_format_mismatch
   std::vector<float> init_data(8 * 1 * 64 * 64 * 16, 1.0f);
   auto init_tensor = std::make_shared<GeTensor>();
   GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NHWC, DT_FLOAT);  // Mismatched format
-  init_tensor->SetData(reinterpret_cast<uint8_t*>(init_data.data()), init_data.size() * sizeof(float));
+  init_tensor->SetData(reinterpret_cast<uint8_t *>(init_data.data()), init_data.size() * sizeof(float));
   init_tensor->MutableTensorDesc() = init_desc;
 
   // Set init_value attribute
@@ -715,18 +731,17 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_format_mismatch
 
   VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
 
-  uint8_t* logic_addr = nullptr;
+  uint8_t *logic_addr = nullptr;
   status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(logic_addr, nullptr);
 
-  uint8_t* dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
+  uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
 
-  EXPECT_EQ(dev_addr, nullptr);  
+  EXPECT_EQ(dev_addr, nullptr);
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_shape_mismatch) {
-
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
 
@@ -739,11 +754,11 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_shape_mismatch)
   tensor_desc.SetDataType(DT_FLOAT);
   tensor_desc.SetFormat(FORMAT_NCHW);
 
-  std::vector<int64_t> init_shape{8, 1, 32, 32, 16};  
+  std::vector<int64_t> init_shape{8, 1, 32, 32, 16};
   std::vector<float> init_data(8 * 1 * 32 * 32 * 16, 1.0f);
   auto init_tensor = std::make_shared<GeTensor>();
   GeTensorDesc init_desc(GeShape(init_shape), FORMAT_NCHW, DT_FLOAT);
-  init_tensor->SetData(reinterpret_cast<uint8_t*>(init_data.data()), init_data.size() * sizeof(float));
+  init_tensor->SetData(reinterpret_cast<uint8_t *>(init_data.data()), init_data.size() * sizeof(float));
   init_tensor->MutableTensorDesc() = init_desc;
 
   EXPECT_TRUE(ge::AttrUtils::SetTensor(&tensor_desc, ATTR_NAME_INIT_VALUE, init_tensor));
@@ -757,18 +772,17 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_shape_mismatch)
 
   VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
 
-  uint8_t* logic_addr = nullptr;
+  uint8_t *logic_addr = nullptr;
   status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(logic_addr, nullptr);
 
-  uint8_t* dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
+  uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
 
   EXPECT_EQ(dev_addr, nullptr);
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_dtype_mismatch) {
-
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
 
@@ -778,13 +792,13 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_dtype_mismatch)
   std::vector<int64_t> var_shape{8, 1, 64, 64, 16};
   GeShape shape(var_shape);
   GeTensorDesc tensor_desc(shape);
-  tensor_desc.SetDataType(DT_FLOAT);  
+  tensor_desc.SetDataType(DT_FLOAT);
   tensor_desc.SetFormat(FORMAT_NCHW);
 
   std::vector<float> init_data(8 * 1 * 64 * 64 * 16, 1.0f);
   auto init_tensor = std::make_shared<GeTensor>();
-  GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NCHW, DT_INT32);  
-  init_tensor->SetData(reinterpret_cast<uint8_t*>(init_data.data()), init_data.size() * sizeof(float));
+  GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NCHW, DT_INT32);
+  init_tensor->SetData(reinterpret_cast<uint8_t *>(init_data.data()), init_data.size() * sizeof(float));
   init_tensor->MutableTensorDesc() = init_desc;
 
   EXPECT_TRUE(ge::AttrUtils::SetTensor(&tensor_desc, ATTR_NAME_INIT_VALUE, init_tensor));
@@ -798,18 +812,17 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_dtype_mismatch)
 
   VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
 
-  uint8_t* logic_addr = nullptr;
+  uint8_t *logic_addr = nullptr;
   status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(logic_addr, nullptr);
 
-  uint8_t* dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
+  uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
 
   EXPECT_EQ(dev_addr, nullptr);
 }
 
 TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_size_exceeds) {
-
   const std::vector<rtMemType_t> memory_types({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
   EXPECT_EQ(MemManager::Instance().Initialize(memory_types), SUCCESS);
 
@@ -821,12 +834,12 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_size_exceeds) {
   GeTensorDesc tensor_desc(shape);
   tensor_desc.SetDataType(DT_FLOAT);
   tensor_desc.SetFormat(FORMAT_NCHW);
-  TensorUtils::SetSize(tensor_desc, 10 * sizeof(float)); 
+  TensorUtils::SetSize(tensor_desc, 10 * sizeof(float));
 
-  std::vector<float> oversized_data(10000000, 1.0f);  
+  std::vector<float> oversized_data(10000000, 1.0f);
   auto init_tensor = std::make_shared<GeTensor>();
   GeTensorDesc init_desc(GeShape(var_shape), FORMAT_NCHW, DT_FLOAT);
-  init_tensor->SetData(reinterpret_cast<uint8_t*>(oversized_data.data()), oversized_data.size() * sizeof(float));
+  init_tensor->SetData(reinterpret_cast<uint8_t *>(oversized_data.data()), oversized_data.size() * sizeof(float));
   init_tensor->MutableTensorDesc() = init_desc;
 
   EXPECT_TRUE(ge::AttrUtils::SetTensor(&tensor_desc, ATTR_NAME_INIT_VALUE, init_tensor));
@@ -840,13 +853,13 @@ TEST_F(UtestGraphVarManagerTest, test_init_var_if_has_init_value_size_exceeds) {
 
   VarManager::Instance(0)->var_resource_->UpdateDevVarMgrInfo(0);
 
-  uint8_t* logic_addr = nullptr;
+  uint8_t *logic_addr = nullptr;
   status = VarManager::Instance(0)->GetVarAddr(var_name, tensor_desc, logic_addr);
   EXPECT_EQ(status, SUCCESS);
   EXPECT_NE(logic_addr, nullptr);
 
-  uint8_t* dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
+  uint8_t *dev_addr = VarManager::Instance(0)->GetVarMemoryAddr(var_name, logic_addr, RT_MEMORY_HBM, 0);
 
   EXPECT_EQ(dev_addr, nullptr);
 }
-} // namespace ge
+}  // namespace ge

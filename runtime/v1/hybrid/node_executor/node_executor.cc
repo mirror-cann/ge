@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,8 @@ Status NodeExecutor::PrepareTask(NodeTask &task, TaskContext &context) const {
 }
 
 Status NodeExecutor::ExecuteTask(NodeTask &task, TaskContext &context, const std::function<void()> &callback) const {
-  HYBRID_CHK_STATUS_RET(task.ExecuteAsync(context, callback),
-                        "[Execute][Task] failed. node = %s", context.GetNodeItem().NodeName().c_str());
+  HYBRID_CHK_STATUS_RET(task.ExecuteAsync(context, callback), "[Execute][Task] failed. node = %s",
+                        context.GetNodeItem().NodeName().c_str());
   return SUCCESS;
 }
 
@@ -86,14 +86,14 @@ NodeExecutorManager::ExecutorType NodeExecutorManager::ResolveExecutorType(const
     return ExecutorType::CONTROL_OP;
   }
 
-  const auto op_desc = node.GetOpDesc(); // checked before
+  const auto op_desc = node.GetOpDesc();  // checked before
   const auto &lib_name = op_desc->GetOpKernelLibName();
   const auto it = engine_mapping_.find(lib_name);
   if (it == engine_mapping_.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Failed to get ExecutorType by lib_name:%s, node:%s(%s)",
-                       lib_name.c_str(), node.GetName().c_str(), node.GetType().c_str());
-    GELOGE(UNSUPPORTED, "[Find][ExecutorType]Failed to get ExecutorType by lib_name:%s, node:%s(%s)",
-           lib_name.c_str(), node.GetName().c_str(), node.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Failed to get ExecutorType by lib_name:%s, node:%s(%s)", lib_name.c_str(),
+                         node.GetName().c_str(), node.GetType().c_str());
+    GELOGE(UNSUPPORTED, "[Find][ExecutorType]Failed to get ExecutorType by lib_name:%s, node:%s(%s)", lib_name.c_str(),
+           node.GetName().c_str(), node.GetType().c_str());
     return ExecutorType::RESERVED;
   }
 
@@ -130,7 +130,7 @@ Status NodeExecutorManager::GetOrCreateExecutor(const ExecutorType executor_type
       builders_.find(executor_type);
   if (it == builders_.cend()) {
     REPORT_INNER_ERR_MSG("E19999", "Create NodeExecutor failed for executor type = %d",
-                      static_cast<int32_t>(executor_type));
+                         static_cast<int32_t>(executor_type));
     GELOGE(INTERNAL_ERROR, "[Create][NodeExecutor] failed for executor type = %d", static_cast<int32_t>(executor_type));
     return INTERNAL_ERROR;
   }
@@ -140,7 +140,7 @@ Status NodeExecutorManager::GetOrCreateExecutor(const ExecutorType executor_type
   auto executor = std::unique_ptr<NodeExecutor>(build_fn());
   if (executor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Create NodeExecutor failed for executor type = %d",
-                      static_cast<int32_t>(executor_type));
+                         static_cast<int32_t>(executor_type));
     GELOGE(INTERNAL_ERROR, "[Create][NodeExecutor] failed for engine type = %d", static_cast<int32_t>(executor_type));
     return INTERNAL_ERROR;
   }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -121,25 +121,25 @@ TEST_F(RedundantOpRemovePassTest, RemoveReshapeWithSlice) {
   auto begin_tensor = std::make_shared<GeTensor>(desc, reinterpret_cast<uint8_t *>(begin_buffer.data()),
                                                  GetSizeByDataType(dtype) * num_elements);
   auto const_0 = OP_CFG(CONSTANT)
-      .TensorDesc(desc.GetFormat(), dtype, shape.GetDims())
-      .OutCnt(1)
-      .Weight(begin_tensor)
-      .Build("const_0");
+                     .TensorDesc(desc.GetFormat(), dtype, shape.GetDims())
+                     .OutCnt(1)
+                     .Weight(begin_tensor)
+                     .Build("const_0");
 
   std::vector<int32_t> end_buffer{24};
   auto end_tensor = std::make_shared<GeTensor>(desc, reinterpret_cast<uint8_t *>(end_buffer.data()),
                                                GetSizeByDataType(dtype) * num_elements);
   auto const_1 = OP_CFG(CONSTANT)
-      .TensorDesc(desc.GetFormat(), dtype, shape.GetDims())
-      .OutCnt(1)
-      .Weight(end_tensor)
-      .Build("const_1");
+                     .TensorDesc(desc.GetFormat(), dtype, shape.GetDims())
+                     .OutCnt(1)
+                     .Weight(end_tensor)
+                     .Build("const_1");
   auto slice1 = OP_CFG("Slice")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {24})
-      .InCnt(3)
-      .OutCnt(1)
-      .InNames({"x", "offsets", "size"})
-      .Build("slice1");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, {24})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x", "offsets", "size"})
+                    .Build("slice1");
 
   auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).Build("Data");
   auto reshape1 = OP_CFG("Reshape").TensorDesc(FORMAT_NCHW, DT_FLOAT, {24}).InCnt(1).OutCnt(1).Build("reshape1");
@@ -158,7 +158,6 @@ TEST_F(RedundantOpRemovePassTest, RemoveReshapeWithSlice) {
   EXPECT_TRUE(graph->FindNode("reshape2") != nullptr);
   EXPECT_TRUE(graph->FindNode("slice1") == nullptr);
 }
-
 
 TEST_F(RedundantOpRemovePassTest, RemoveSlice) {
   auto dtype = DT_INT32;

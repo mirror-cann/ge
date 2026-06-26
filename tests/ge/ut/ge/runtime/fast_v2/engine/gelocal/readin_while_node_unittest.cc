@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,36 +42,36 @@ const auto is_no_need_update = [](const char *node_type) {
          IsMemTransferNode(node_type) || IsStroreConstDataNode(node_type);
 };
 
-#define EXPECT_GRAPH_GUARDED_BY(G, P, D, GN)                                   \
-  do {                                                                         \
-    for (auto &node : (G)->GetDirectNode()) {                                  \
-      if (!kPivotGuard(node) || is_no_need_update(node->GetTypePtr())) {       \
-        continue;                                                              \
-      }                                                                        \
-      auto &nodes = (GN).additional_add_info[P];                                 \
-      EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), node) != nodes.end()); \
-      EXPECT_GT((GN).additional_indegree_info[node], 0);                         \
-    }                                                                          \
-                                                                               \
-    auto net_output = ge::ExecuteGraphUtils::FindFirstNodeMatchType((G), "InnerNetOutput");           \
-    for (auto &node : net_output->GetAllInNodes()) {                           \
-      if (is_no_need_update(node->GetTypePtr())) {                             \
-        continue;                                                              \
-      }                                                                        \
-      auto &nodes = (GN).additional_add_info[node];                              \
-      EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), (D)) != nodes.end());  \
-      EXPECT_GT((GN).additional_indegree_info[(D)], 0);                          \
-    }                                                                          \
-    for (const auto node : (G)->GetDirectNode()) {                             \
-      if ((node->GetAllOutNodes().empty()) && (node->GetType() != "InnerNetOutput")) {                \
-        if (is_no_need_update(node->GetTypePtr())) {                           \
-          continue;                                                            \
-        }                                                                      \
-        auto &nodes = (GN).additional_add_info[node];                          \
-        EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), (D)) != nodes.end()); \
-        EXPECT_GT((GN).additional_indegree_info[(D)], 0);                      \
-      } \
-    } \
+#define EXPECT_GRAPH_GUARDED_BY(G, P, D, GN)                                                \
+  do {                                                                                      \
+    for (auto &node : (G)->GetDirectNode()) {                                               \
+      if (!kPivotGuard(node) || is_no_need_update(node->GetTypePtr())) {                    \
+        continue;                                                                           \
+      }                                                                                     \
+      auto &nodes = (GN).additional_add_info[P];                                            \
+      EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), node) != nodes.end());              \
+      EXPECT_GT((GN).additional_indegree_info[node], 0);                                    \
+    }                                                                                       \
+                                                                                            \
+    auto net_output = ge::ExecuteGraphUtils::FindFirstNodeMatchType((G), "InnerNetOutput"); \
+    for (auto &node : net_output->GetAllInNodes()) {                                        \
+      if (is_no_need_update(node->GetTypePtr())) {                                          \
+        continue;                                                                           \
+      }                                                                                     \
+      auto &nodes = (GN).additional_add_info[node];                                         \
+      EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), (D)) != nodes.end());               \
+      EXPECT_GT((GN).additional_indegree_info[(D)], 0);                                     \
+    }                                                                                       \
+    for (const auto node : (G)->GetDirectNode()) {                                          \
+      if ((node->GetAllOutNodes().empty()) && (node->GetType() != "InnerNetOutput")) {      \
+        if (is_no_need_update(node->GetTypePtr())) {                                        \
+          continue;                                                                         \
+        }                                                                                   \
+        auto &nodes = (GN).additional_add_info[node];                                       \
+        EXPECT_TRUE(std::find(nodes.begin(), nodes.end(), (D)) != nodes.end());             \
+        EXPECT_GT((GN).additional_indegree_info[(D)], 0);                                   \
+      }                                                                                     \
+    }                                                                                       \
   } while (false)
 }  // namespace
 
@@ -196,7 +196,8 @@ TEST_F(ReadInWhileNodeUT, ReadInCascadeWhileNode) {
   auto control_graph1 = lower_3stage_graph->GetSubGraph(while1_node->GetOpDescBarePtr()->GetSubgraphInstanceName(0U));
   ASSERT_NE(control_graph1, nullptr);
 
-  const auto control_graph2 = lower_3stage_graph->GetSubGraph(while2_node->GetOpDescBarePtr()->GetSubgraphInstanceName(0U));
+  const auto control_graph2 =
+      lower_3stage_graph->GetSubGraph(while2_node->GetOpDescBarePtr()->GetSubgraphInstanceName(0U));
   ASSERT_NE(control_graph2, nullptr);
   const auto control_graph1_end = ge::ExecuteGraphUtils::FindFirstNodeMatchType(control_graph1, "Exit");
   ASSERT_NE(control_graph1_end, nullptr);

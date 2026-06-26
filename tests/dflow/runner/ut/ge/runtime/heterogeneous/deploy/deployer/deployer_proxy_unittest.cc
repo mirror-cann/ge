@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,6 +52,7 @@ class MockDeployer : public Deployer {
   Status GetDevStat() override {
     return SUCCESS;
   }
+
  private:
   NodeInfo node_info_;
 };
@@ -59,8 +60,8 @@ class MockDeployer : public Deployer {
 class MockDeployerClient : public DeployerClient {
  public:
   MockDeployerClient() = default;
-  Status SendRequest(const deployer::DeployerRequest &request,
-                     deployer::DeployerResponse &response, const int64_t timeout_sec = -1) override {
+  Status SendRequest(const deployer::DeployerRequest &request, deployer::DeployerResponse &response,
+                     const int64_t timeout_sec = -1) override {
     if (request.type() == deployer::kInitRequest) {
       response.mutable_init_response()->set_client_id(0);
       response.mutable_init_response()->set_dev_count(2);
@@ -69,10 +70,8 @@ class MockDeployerClient : public DeployerClient {
     return SUCCESS;
   }
 
-  Status SendRequestWithRetry(const deployer::DeployerRequest &request,
-                              deployer::DeployerResponse &response,
-                              const int64_t timeout_in_sec,
-                              const int32_t retry_times) override {
+  Status SendRequestWithRetry(const deployer::DeployerRequest &request, deployer::DeployerResponse &response,
+                              const int64_t timeout_in_sec, const int32_t retry_times) override {
     if (request.type() == deployer::kInitRequest) {
       response.mutable_init_response()->set_client_id(0);
       response.mutable_init_response()->set_dev_count(2);
@@ -94,26 +93,26 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "NewSignResult") {
-      return (void *) &NewSignResult;
+      return (void *)&NewSignResult;
     } else if (std::string(func_name) == "DeleteSignResult") {
-      return (void *) &DeleteSignResult;
+      return (void *)&DeleteSignResult;
     } else if (std::string(func_name) == "GetSignLength") {
-      return (void *) &GetSignLength;
+      return (void *)&GetSignLength;
     } else if (std::string(func_name) == "GetSignData") {
-      return (void *) &GetSignData;
+      return (void *)&GetSignData;
     } else if (std::string(func_name) == "DataFlowAuthMasterInit") {
-      return (void *) &DataFlowAuthMasterInit;
+      return (void *)&DataFlowAuthMasterInit;
     } else if (std::string(func_name) == "DataFlowAuthSign") {
-      return (void *) &DataFlowAuthSign;
+      return (void *)&DataFlowAuthSign;
     } else if (std::string(func_name) == "DataFlowAuthVerify") {
-      return (void *) &DataFlowAuthVerify;
+      return (void *)&DataFlowAuthVerify;
     }
     std::cout << "func name:" << func_name << " not stub\n";
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
 
   void *DlOpen(const char *fileName, int32_t mode) override {
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
   int32_t DlClose(void *handle) override {
     return 0L;
@@ -168,7 +167,7 @@ class MockRuntimeCallbck : public RuntimeStub {
     return RT_ERROR_NONE;
   }
 };
-}
+}  // namespace
 
 TEST_F(DeployerProxyTest, TestInitializeAndAutoFinalize) {
   NodeConfig local_node_config;
@@ -262,7 +261,7 @@ TEST_F(DeployerProxyTest, TestLocalDeployerGetDevStatWithDeviceOom) {
   deployer_config.node_config = node_config;
   Configurations::GetInstance().information_ = deployer_config;
   std::unique_ptr<Deployer> deployer = nullptr;
-  deployer.reset((Deployer*)(new LocalDeployer()));
+  deployer.reset((Deployer *)(new LocalDeployer()));
   ASSERT_EQ(deployer->Initialize(), SUCCESS);
   EXPECT_EQ(deployer->GetDevStat(), SUCCESS);
   DeployerProxy::GetInstance().deployers_.emplace_back(std::move(deployer));
@@ -324,9 +323,7 @@ TEST_F(DeployerProxyTest, TestRemoteDeployer) {
   ASSERT_EQ(DeployerAuthentication::GetInstance().Initialize("/a/b/c/libdataflow_auth.so", true), SUCCESS);
   MockRemoteDeployer deployer(remote_node_config);
   ASSERT_EQ(deployer.Initialize(), SUCCESS);
-  std::thread keepalive_thread = std::thread([&deployer]() {
-    deployer.Keepalive();
-  });
+  std::thread keepalive_thread = std::thread([&deployer]() { deployer.Keepalive(); });
   deployer.SendHeartbeat(1);
   deployer.Finalize();
   if (keepalive_thread.joinable()) {
@@ -350,9 +347,7 @@ TEST_F(DeployerProxyTest, TestRemoteDeployerWithParseRsponse) {
   ASSERT_EQ(DeployerAuthentication::GetInstance().Initialize("/a/b/c/libdataflow_auth.so", true), SUCCESS);
   MockRemoteDeployer deployer(remote_node_config);
   ASSERT_EQ(deployer.Initialize(), SUCCESS);
-  std::thread keepalive_thread = std::thread([&deployer]() {
-    deployer.Keepalive();
-  });
+  std::thread keepalive_thread = std::thread([&deployer]() { deployer.Keepalive(); });
 
   deployer::DeployerResponse response;
 
@@ -384,7 +379,7 @@ TEST_F(DeployerProxyTest, TestRemoteDeployerWithParseRsponse) {
 
 TEST_F(DeployerProxyTest, TestGetNodeStat) {
   std::unique_ptr<Deployer> deployer = nullptr;
-  deployer.reset((Deployer*)(new LocalDeployer()));
+  deployer.reset((Deployer *)(new LocalDeployer()));
   DeployerProxy::GetInstance().deployers_.emplace_back(std::move(deployer));
   EXPECT_EQ(DeployerProxy::GetInstance().GetNodeStat(), ge::SUCCESS);
   DeployerProxy::GetInstance().Finalize();

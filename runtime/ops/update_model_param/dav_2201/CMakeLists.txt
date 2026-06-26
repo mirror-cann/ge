@@ -6,7 +6,7 @@ set_source_files_properties(
 )
 
 if(BUILD_PKG_COMPONENT
-    AND "ge-executor" IN_LIST BUILD_COMPONENT 
+    AND "ge-executor" IN_LIST BUILD_COMPONENT
     AND NOT ENABLE_MOD_EXT)
     set(CCEC_PATH ${ASCEND_INSTALL_PATH}/tools/ccec_compiler/bin)
     find_cann_package(asc_devkit MODULE REQUIRED)
@@ -29,7 +29,7 @@ if(BUILD_PKG_COMPONENT
         DEPENDS kernel_tiling_headers
         COMMAND_EXPAND_LISTS VERBATIM
     )
-    
+
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UpdateModelParam_dav_2201.o
         DESTINATION ${INSTALL_LIBRARY_DIR} ${INSTALL_OPTIONAL}
     )

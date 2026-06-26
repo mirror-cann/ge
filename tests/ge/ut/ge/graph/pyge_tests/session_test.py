@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -17,22 +17,23 @@ Session 功能测试 - 使用 pytest 框架
 """
 
 import pytest
+
 # 添加 ge 到 Python 路径
 try:
-    from ge.session import Session
-    from ge.ge_global import GeApi
-    from ge.error import GeError
-    from ge.graph import Graph
-    from ge.graph import Tensor
-    from ge.graph.types import DataType, Format
-    from ge.es.graph_builder import GraphBuilder
     from ge.allocator import Allocator, MemBlock
+    from ge.error import GeError
+    from ge.es.graph_builder import GraphBuilder
+    from ge.ge_global import GeApi
+    from ge.graph import Graph, Tensor
+    from ge.graph.types import DataType, Format
+    from ge.session import Session
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
 
 class TestSession:
     """Session 功能测试类"""
+
     @staticmethod
     def test_copy_not_supported():
         session = Session()
@@ -49,7 +50,7 @@ class TestSession:
 
     @staticmethod
     def test_session_with_option():
-        option = {"ge.exec.enableDump":"0"}
+        option = {"ge.exec.enableDump": "0"}
         session = Session(option)
         assert session is not None
 
@@ -107,7 +108,7 @@ class TestSession:
         ge_api.ge_finalize()
         graph = Graph("test_graph")
         graph_id = 2
-        option = {"ge.exec.deviceId":"2", "ge.graphRunMode":"0"}
+        option = {"ge.exec.deviceId": "2", "ge.graphRunMode": "0"}
         session = Session()
         with pytest.raises(GeError, match=r"AddGraph failed;.*graph_id=2"):
             session.add_graph(graph_id, graph, option)
@@ -116,7 +117,7 @@ class TestSession:
     def test_run_graph_invaild_graph_id():
         session = Session()
         graph_id = "test"
-        tensor = Tensor([1, 2, 3, 4, 5], None, DataType.DT_INT8, Format.FORMAT_ND, [1,2,3])
+        tensor = Tensor([1, 2, 3, 4, 5], None, DataType.DT_INT8, Format.FORMAT_ND, [1, 2, 3])
         inputs = [tensor]
         with pytest.raises(TypeError, match="Graph_id must be an integer"):
             session.run_graph(graph_id, inputs)
@@ -137,7 +138,7 @@ class TestSession:
         graph_id = 2
         session = Session()
         with pytest.raises(GeError, match=r"RunGraph failed;.*graph_id=2"):
-            session.run_graph(graph_id,inputs)
+            session.run_graph(graph_id, inputs)
 
     @staticmethod
     def test_remove_graph_invalid_graph_id():
@@ -176,6 +177,7 @@ class TestSession:
     @staticmethod
     def test_register_external_allocator_invalid_stream():
         """测试 register_external_allocator stream 非整数类型"""
+
         class _StubAllocator(Allocator):
             def malloc(self, size):
                 return MemBlock(0, size)
@@ -204,6 +206,7 @@ class TestSession:
     @staticmethod
     def test_register_external_allocator_forgets_default_stream(monkeypatch):
         """custom allocator 覆盖 default 后，session 析构不再按 default 清理该 stream"""
+
         class _StubAllocator(Allocator):
             def malloc(self, size):
                 return MemBlock(0, size)
@@ -220,12 +223,18 @@ class TestSession:
             c_get_addr = None
 
         import importlib
+
         session_module = importlib.import_module("ge.session.session")
-        monkeypatch.setattr(session_module, "create_allocator_c_callbacks",
-                            lambda _allocator: (_Callbacks(), 0, None))
-        monkeypatch.setattr(session_module.session_lib,
-                            "GeApiWrapper_Session_RegisterExternalAllocator",
-                            _register_external_allocator)
+        monkeypatch.setattr(
+            session_module,
+            "create_allocator_c_callbacks",
+            lambda _allocator: (_Callbacks(), 0, None),
+        )
+        monkeypatch.setattr(
+            session_module.session_lib,
+            "GeApiWrapper_Session_RegisterExternalAllocator",
+            _register_external_allocator,
+        )
 
         session = Session.__new__(Session)
         session._handle = 1
@@ -254,6 +263,6 @@ class TestSession:
     @staticmethod
     def test_ge_init():
         ge_api = GeApi()
-        config = {"ge.exec.deviceId":"2", "ge.graphRunMode":"0"}
+        config = {"ge.exec.deviceId": "2", "ge.graphRunMode": "0"}
         ret = ge_api.ge_initialize(config)
         assert ret == 0

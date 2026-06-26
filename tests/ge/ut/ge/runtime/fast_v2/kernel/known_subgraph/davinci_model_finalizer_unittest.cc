@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,10 @@ class DavinciModelFinalizerUt : public testing::Test {
       context_holder_with_davinci_model_.emplace_back(BuildContextForCreateDavinciModel(space_registry_array));
       auto ret = registry.FindKernelFuncs("DavinciModelCreate")->run_func(context_holder_with_davinci_model_.back());
       EXPECT_EQ(ret, ge::SUCCESS);
-      auto davinci_model = context_holder_with_davinci_model_.back().value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd)].GetPointer<ge::DavinciModel>();
+      auto davinci_model =
+          context_holder_with_davinci_model_.back()
+              .value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd)]
+              .GetPointer<ge::DavinciModel>();
       EXPECT_NE(davinci_model, nullptr);
       auto ret2 =
           registry.FindKernelFuncs("DavinciModelCreate")->trace_printer(context_holder_with_davinci_model_.back());
@@ -53,7 +56,8 @@ class DavinciModelFinalizerUt : public testing::Test {
     context.value_holder[15].Set((void *)file_constant_mem_data_.get(), nullptr);
   }
 
-  KernelRunContextHolder BuildContextForCreateDavinciModel(std::shared_ptr<OpImplSpaceRegistryV2Array> space_registry_array) {
+  KernelRunContextHolder BuildContextForCreateDavinciModel(
+      std::shared_ptr<OpImplSpaceRegistryV2Array> space_registry_array) {
     (void)bg::ValueHolder::PushGraphFrame();
     auto graph = ShareGraph::BuildWithKnownSubgraph();
     auto parent_node = graph->FindNode(ge::PARTITIONEDCALL);
@@ -69,7 +73,8 @@ class DavinciModelFinalizerUt : public testing::Test {
     weight_data_ = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[weight_size]);
     weight_info_ = {weight_data_.get(), weight_size, kTensorPlacementEnd, -1};
 
-    KernelRunContextHolder context = BuildKernelRunContext(static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd), 1);
+    KernelRunContextHolder context =
+        BuildKernelRunContext(static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd), 1);
     context.value_holder[0].Set(ge_model, nullptr);
     context.value_holder[1].Set((void *)session_id_, nullptr);
     context.value_holder[2].Set(&weight_info_, nullptr);

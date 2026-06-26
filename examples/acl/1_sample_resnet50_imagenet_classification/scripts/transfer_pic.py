@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-import os
 import logging
+import os
+
 import numpy as np
 from PIL import Image
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(levelname)s] %(asctime)s : %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s : %(message)s")
 
 
 def process(input_path):
@@ -30,7 +28,7 @@ def process(input_path):
         width = img.shape[1]
         h_off = int((height - 224) / 2)
         w_off = int((width - 224) / 2)
-        crop_img = img[h_off:height - h_off, w_off:width - w_off, :]
+        crop_img = img[h_off : height - h_off, w_off : width - w_off, :]
         img = crop_img[:, :, :]
         shape = img.shape
         img = img.astype("float32")
@@ -39,7 +37,7 @@ def process(input_path):
         img[:, :, 2] /= 255
         img = img.reshape([1] + list(shape))
         result = img.transpose([0, 3, 1, 2])
-        output_name = input_path.split('.')[0] + ".bin"
+        output_name = input_path.split(".")[0] + ".bin"
         result.tofile(output_name)
         input_image.close()
     except Exception as except_err:
@@ -52,7 +50,7 @@ def process(input_path):
 if __name__ == "__main__":
     count_ok = 0
     count_ng = 0
-    images = os.listdir(r'./')
+    images = os.listdir(r"./")
     for image_name in images:
         if not image_name.endswith("jpg"):
             continue
@@ -65,7 +63,15 @@ if __name__ == "__main__":
             logging.error("failed to process image %s", image_name)
             count_ng = count_ng + 1
     if count_ng == 0:
-        logging.info("%s images in total, %s images process successfully", count_ok + count_ng, count_ok)
+        logging.info(
+            "%s images in total, %s images process successfully",
+            count_ok + count_ng,
+            count_ok,
+        )
     else:
-        logging.error("%s images in total, %s images process successfully, %s images process failed",
-                     count_ok + count_ng, count_ok, count_ng)
+        logging.error(
+            "%s images in total, %s images process successfully, %s images process failed",
+            count_ok + count_ng,
+            count_ok,
+            count_ng,
+        )

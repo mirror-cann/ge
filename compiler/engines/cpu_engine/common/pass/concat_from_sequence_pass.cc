@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -176,7 +176,7 @@ ComputeGraphPtr BuildBodyGraph(const NodePtr &while_node, int32_t axis, int32_t 
   auto concat_input1_desc = concat_op_desc->MutableInputDesc(1);
   SetUnknowRankAndDataType(concat_input1_desc, output_data_type);
 
-  auto concat_input2_desc = concat_op_desc->MutableInputDesc(2);  // 2 is the sencond input
+  auto concat_input2_desc = concat_op_desc->MutableInputDesc(2);  // 2 is the second input
   SetUnknowRankAndDataType(concat_input2_desc, output_data_type);
 
   // 将output shape设置为-2，不然后面不会对其进行infershape
@@ -322,10 +322,10 @@ uint32_t AddCondAndBodyGraph(ComputeGraphPtr &graph, NodePtr &while_node, const 
   auto concat_from_sequence_output_data_type = concat_from_sequence_desc->GetOutputDesc(0).GetDataType();
   // 将input2 shape设置为-2，不然后面承接的cast算子不会走infershape
   auto while_op_desc = while_node->GetOpDesc();
-  auto while_input2_desc = while_op_desc->MutableInputDesc(2);  // 2 is the sencond input
+  auto while_input2_desc = while_op_desc->MutableInputDesc(2);  // 2 is the second input
   SetUnknowRankAndDataType(while_input2_desc, concat_from_sequence_output_data_type);
   // 将output2 shape设置为-2，不然后面承接的cast算子不会走infershape
-  auto while_output2_desc = while_op_desc->MutableOutputDesc(2);  // 2 is the sencond output
+  auto while_output2_desc = while_op_desc->MutableOutputDesc(2);  // 2 is the second output
   SetUnknowRankAndDataType(while_output2_desc, concat_from_sequence_output_data_type);
   ComputeGraphPtr body_graph = BuildBodyGraph(while_node, axis, new_axis, concat_from_sequence_output_data_type);
   if ((body_graph == nullptr) || (root_graph->AddSubgraph(body_graph)) != GRAPH_SUCCESS) {
@@ -397,7 +397,7 @@ uint32_t BuildWhileSubGraph(ComputeGraphPtr &graph, const NodePtr &concat_from_s
   AttrUtils::GetInt(concat_from_sequence_node->GetOpDesc(), "new_axis", new_axis);
   if (new_axis == 0) {
     // 当while的body体进不去时，while节点的input会作为output
-    // 2 is the sencond input of while node
+    // 2 is the second input of while node
     if (GraphUtils::AddEdge(sequence_at_node->GetOutDataAnchor(0), while_node->GetInDataAnchor(2)) != GRAPH_SUCCESS) {
       AICPUE_LOGE("[Build][While]Add edge between sequence_at_node and while_node[2] failed");
       return FAILED;
@@ -416,7 +416,7 @@ uint32_t BuildWhileSubGraph(ComputeGraphPtr &graph, const NodePtr &concat_from_s
       return FAILED;
     }
 
-    // 2 is the sencond input of while node
+    // 2 is the second input of while node
     if (GraphUtils::AddEdge(unsqueeze_node->GetOutDataAnchor(0), while_node->GetInDataAnchor(2)) != GRAPH_SUCCESS) {
       AICPUE_LOGE("[Build][While]Add edge between unsqueeze_node and while_node[2] failed");
       return FAILED;
@@ -435,7 +435,7 @@ uint32_t BuildWhileSubGraph(ComputeGraphPtr &graph, const NodePtr &concat_from_s
     return FAILED;
   };
 
-  OutDataAnchorPtr while_out_data_anchor = while_node->GetOutDataAnchor(2);  // 2 is the sencond output
+  OutDataAnchorPtr while_out_data_anchor = while_node->GetOutDataAnchor(2);  // 2 is the second output
   OutDataAnchorPtr cur_node_out_data_anchor = concat_from_sequence_node->GetOutDataAnchor(0);
   // 将原本连接concatFromSequence output的节点与while node的第二个output进行连接
   for (const auto &peer_in_data_anchor : cur_node_out_data_anchor->GetPeerInDataAnchors()) {

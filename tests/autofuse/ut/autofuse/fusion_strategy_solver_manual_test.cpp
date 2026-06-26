@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,17 +20,14 @@
 #include "utils/autofuse_utils.h"
 #include "graph/ascendc_ir/ascendc_ir_core/ascendc_ir.h"
 
-
 using namespace std;
 using namespace testing;
 
 namespace ge {
 class UtestFusionStrategySolverManual : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 
   static Status SetAttrsGroup(const NodePtr &node) {
     gert::SymbolShape ori_symbol_shape({Symbol(1), Symbol(2), Symbol(3), Symbol(4)});
@@ -69,7 +66,7 @@ class UtestFusionStrategySolverManual : public testing::Test {
 
     for (const auto out_anchor : node->GetAllOutDataAnchorsPtr()) {
       GE_ASSERT_NOTNULL(out_anchor);
-      for(const auto &peer_in_anchor: out_anchor->GetPeerInDataAnchors()) {
+      for (const auto &peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
         if (peer_in_anchor == nullptr) {
           can_fuse = false;
           return false;
@@ -88,6 +85,7 @@ class UtestFusionStrategySolverManual : public testing::Test {
     }
     return true;
   }
+
  public:
 };
 
@@ -139,16 +137,16 @@ TEST_F(UtestFusionStrategySolverManual, Fuse_all) {
     return;
   }
   bool load_success = GraphUtils::LoadGEGraph(dump_file_name.c_str(), graph);
-  if(load_success) {
+  if (load_success) {
     for (const auto &node : graph->GetAllNodes()) {
       SetAttrsGroup(node);
     }
     FusionDeciderRegistry::Instance().Register(std::unique_ptr<FusionDecider>(new MockFusionDecider()));
-    FusionStrategySolver  fusion_strategy_solver;
+    FusionStrategySolver fusion_strategy_solver;
     GEEVENT("Before fuse all nodes size:%zu", graph->GetAllNodesSize());
     EXPECT_EQ(fusion_strategy_solver.Fuse(graph), SUCCESS);
     GEEVENT("After fuse all nodes size:%zu", graph->GetAllNodesSize());
   }
 }
 
-} // namespace ge
+}  // namespace ge

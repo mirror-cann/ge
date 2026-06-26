@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ bool JsonParser::CheckFilePath(const std::string &file_path) {
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStringLen);
     std::string reason = ge::FormatErrnoReason(mmGetErrorCode(), err_msg);
     REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char_t *>({"path", "errmsg"}),
-                       std::vector<const char_t *>({file_path.c_str(), reason.c_str()}));
+                              std::vector<const char_t *>({file_path.c_str(), reason.c_str()}));
     return false;
   }
 
@@ -67,7 +67,7 @@ Status JsonParser::ReadConfigFile(const std::string &file_path, nlohmann::json &
   if (!fin.is_open()) {
     GELOGE(FAILED, "[Read][File]Read file %s failed", file_path.c_str());
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char_t *>({"file", "errmsg"}),
-                       std::vector<const char_t *>({file_path.c_str(), "Open file failed"}));
+                              std::vector<const char_t *>({file_path.c_str(), "Open file failed"}));
     return FAILED;
   }
 
@@ -76,7 +76,7 @@ Status JsonParser::ReadConfigFile(const std::string &file_path, nlohmann::json &
   } catch (const nlohmann::json::exception &e) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][File]Invalid json file, exception:%s", e.what());
     REPORT_PREDEFINED_ERR_MSG("WF0001", std::vector<const char_t *>({"filepath"}),
-                       std::vector<const char_t *>({file_path.c_str()}));
+                              std::vector<const char_t *>({file_path.c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   GELOGI("Parse json from file [%s] successfully", file_path.c_str());

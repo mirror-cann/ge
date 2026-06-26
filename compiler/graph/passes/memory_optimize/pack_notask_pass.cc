@@ -23,11 +23,11 @@ bool PackNotaskPass::CheckFormat(const ge::OpDescPtr &op_desc) const {
     const auto format = op_desc->GetInputDesc(i).GetFormat();
     const auto primary_format = static_cast<ge::Format>(ge::GetPrimaryFormat(static_cast<int32_t>(format)));
     if (TypeUtilsInner::IsInternalFormat(format) && (primary_format != FORMAT_FRACTAL_NZ)) {
-      GELOGD("Pack [%s] input[%zu] format %s (primary %s) is unsupported internal format, "
-             "only FRACTAL_NZ (and its C0 variants) is allowed.",
-        op_desc->GetName().c_str(), i,
-        ge::TypeUtils::FormatToSerialString(format).c_str(),
-        ge::TypeUtils::FormatToSerialString(primary_format).c_str());
+      GELOGD(
+          "Pack [%s] input[%zu] format %s (primary %s) is unsupported internal format, "
+          "only FRACTAL_NZ (and its C0 variants) is allowed.",
+          op_desc->GetName().c_str(), i, ge::TypeUtils::FormatToSerialString(format).c_str(),
+          ge::TypeUtils::FormatToSerialString(primary_format).c_str());
       return false;
     }
   }
@@ -63,7 +63,7 @@ bool PackNotaskPass::CheckDim(const ge::OpDescPtr &op_desc) const {
       for (size_t d = 0; d < input_orinal_shape.GetDimNum(); ++d) {
         if (input_orinal_shape.GetDim(d) != 1) {
           GELOGD("Pack [%s] axis==rank but dim[%zu]=%lld != 1, interleaved layout cannot be no-task optimized.",
-            op_desc->GetName().c_str(), d, input_orinal_shape.GetDim(d));
+                 op_desc->GetName().c_str(), d, input_orinal_shape.GetDim(d));
           return false;
         }
       }

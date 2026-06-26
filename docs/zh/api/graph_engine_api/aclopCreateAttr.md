@@ -41,4 +41,3 @@ aclopAttr *aclopCreateAttr()
 ## 返回值说明<a name="section737919363199"></a>
 
 返回aclopAttr类型的指针。
-

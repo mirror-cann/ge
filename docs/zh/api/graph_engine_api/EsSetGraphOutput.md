@@ -97,4 +97,3 @@ EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 auto *tensor = EsCreateGraphInput(graph, 0);
 uint32_t result = EsSetGraphOutput(tensor, 0);
 ```
-

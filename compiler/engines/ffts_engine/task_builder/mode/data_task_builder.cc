@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,13 +14,12 @@ namespace ffts {
 namespace {
 const int64_t kMaxBurstLen = 201326592;
 static const std::map<CACHE_OPERATION, std::tuple<string, ContextType, bool, string>> kDataOptInfo = {
-  std::make_pair(CACHE_OPERATION::PREFETCH,
-                 std::make_tuple(kPrefetchEnableBm, RT_CTX_TYPE_FLUSH_DATA, true, "prefetch")),
-  std::make_pair(CACHE_OPERATION::INVALIDATE,
-                 std::make_tuple(kInvalidateBm, RT_CTX_TYPE_INVALIDATE_DATA, false, "invalidate")),
-  std::make_pair(CACHE_OPERATION::WRITE_BACK,
-                 std::make_tuple(kWriteBackBm, RT_CTX_TYPE_WRITEBACK_DATA, false, "write back"))
-};
+    std::make_pair(CACHE_OPERATION::PREFETCH,
+                   std::make_tuple(kPrefetchEnableBm, RT_CTX_TYPE_FLUSH_DATA, true, "prefetch")),
+    std::make_pair(CACHE_OPERATION::INVALIDATE,
+                   std::make_tuple(kInvalidateBm, RT_CTX_TYPE_INVALIDATE_DATA, false, "invalidate")),
+    std::make_pair(CACHE_OPERATION::WRITE_BACK,
+                   std::make_tuple(kWriteBackBm, RT_CTX_TYPE_WRITEBACK_DATA, false, "write back"))};
 
 Status SetDataContextId(size_t anchor_index, const ge::NodePtr &node, bool is_input,
                         std::vector<uint32_t> &ctx_id_vec) {
@@ -58,7 +57,8 @@ Status DataTaskBuilder::GenManualDataCtxDef(const ge::NodePtr &node, domi::FftsP
     return SUCCESS;
   }
   const auto &lib_name = op_desc->GetOpKernelLibName();
-  FFTS_LOGD("Node %s needs %s context, lib_name: %s.", node->GetName().c_str(), operation_name.c_str(), lib_name.c_str());
+  FFTS_LOGD("Node %s needs %s context, lib_name: %s.", node->GetName().c_str(), operation_name.c_str(),
+            lib_name.c_str());
   if (lib_name == kRtsFftsPlusOpStoreName) {
     return SUCCESS;
   }
@@ -84,8 +84,8 @@ Status DataTaskBuilder::GenManualDataCtxDef(const ge::NodePtr &node, domi::FftsP
     }
 
     if (ExceedMaxCtxNum(curr_num, data_ctx_params.size())) {
-      FFTS_LOGI("Exceeded the upper limit of prefetch context. Current total is %zu, pending total is %zu.",
-                curr_num, data_ctx_params.size());
+      FFTS_LOGI("Exceeded the upper limit of prefetch context. Current total is %zu, pending total is %zu.", curr_num,
+                data_ctx_params.size());
       continue;
     }
 
@@ -106,8 +106,8 @@ Status DataTaskBuilder::GenManualDataCtxDef(const ge::NodePtr &node, domi::FftsP
       FFTS_CHECK_NOTNULL(data_ctx_def);
       uint32_t ctx_id = static_cast<uint32_t>(ffts_plus_task_def->ffts_plus_ctx_size() - 1);
       ctx_id_vec.emplace_back(ctx_id);
-      FFTS_LOGD("Filling one %s context[%u] for tensor %zu in node %s.", operation_name.c_str(), ctx_id,
-                anchor_index, node->GetName().c_str());
+      FFTS_LOGD("Filling one %s context[%u] for tensor %zu in node %s.", operation_name.c_str(), ctx_id, anchor_index,
+                node->GetName().c_str());
       Status status = FillManualDataCtx(anchor_index, node, param, ffts_plus_task_def, data_ctx_def);
       if (status != SUCCESS) {
         REPORT_FFTS_ERROR("[GenTask][InvldTsk][GenCtxDef]Fill context %s %zu failed. Op[%s], optype[%s]",
@@ -160,8 +160,8 @@ Status DataTaskBuilder::GenAutoDataCtxDef(const ge::NodePtr &node, domi::FftsPlu
     }
 
     if (ExceedMaxCtxNum(curr_num, param_nontail_tail.size())) {
-      FFTS_LOGI("Exceeded the upper limit of prefetch context. Current total is %zu, pending total is %zu.",
-                curr_num, param_nontail_tail.size());
+      FFTS_LOGI("Exceeded the upper limit of prefetch context. Current total is %zu, pending total is %zu.", curr_num,
+                param_nontail_tail.size());
       continue;
     }
 
@@ -236,8 +236,8 @@ Status DataTaskBuilder::GenDynamicDataCtxDef(const ge::NodePtr &node, domi::Ffts
     }
     FFTS_LOGD("Node %s's tensor %d needs %s.", node->GetName().c_str(), index, operation_name.c_str());
     cmo_idx.emplace_back(index);
-    Status ret = FillDynamicDataCtx(static_cast<size_t>(index), node, ffts_plus_task_def, context_type,
-                                    context_id_list);
+    Status ret =
+        FillDynamicDataCtx(static_cast<size_t>(index), node, ffts_plus_task_def, context_type, context_id_list);
     if (ret == FAILED) {
       return FAILED;
     }
@@ -324,7 +324,7 @@ void DataTaskBuilder::FillManualThreadingParam(const DataContextParam &param,
 /* We assume the data address is continuous. So there is no gap
  * between two sgt thread and the offset is equal to size of thread.
  * All auto threads use the same data context and hardware use
- * the thread id to differenciate them.
+ * the thread id to differentiate them.
  *
  * For one non-tail thread the base offset is equal to:
  * non-tail thread dim size * thread_id.
@@ -333,7 +333,7 @@ void DataTaskBuilder::FillManualThreadingParam(const DataContextParam &param,
 void DataTaskBuilder::FillAutoThreadingParam(const vector<DataContextParam> &params,
                                              domi::FftsPlusDataCtxDef *data_ctx_def, const uint32_t &slice_num) const {
   if (params.size() <= 1 || slice_num < 1) {
-    return ;
+    return;
   }
   if (data_ctx_def == nullptr) {
     return;
@@ -364,14 +364,15 @@ Status DataTaskBuilder::GetAddrBase(size_t in_anchor_index, const ge::NodePtr &n
   }
 
   if (in_anchor_index >= input_addrs.size()) {
-    FFTS_LOGW("[GenTsk][PrefetchTsk][FillCtxt][node %s, type %s] In anchor %zu, the value is greater than or equal to the size of input_addrs %zu.",
-              node->GetName().c_str(), node->GetType().c_str(), in_anchor_index, input_addrs.size());
+    FFTS_LOGW(
+        "[GenTsk][PrefetchTsk][FillCtxt][node %s, type %s] In anchor %zu, the value is greater than or equal to the "
+        "size of input_addrs %zu.",
+        node->GetName().c_str(), node->GetType().c_str(), in_anchor_index, input_addrs.size());
     return SUCCESS;
   }
   addr_base = static_cast<uint64_t>(input_addrs[in_anchor_index]);
   return SUCCESS;
 }
-
 
 Status DataTaskBuilder::UpdateSrcSlotAndPfBm(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t context_id) const {
   FFTS_LOGD("Update src slot and pf bm for context %u", context_id);
@@ -387,12 +388,12 @@ Status DataTaskBuilder::UpdateSrcSlotAndPfBm(domi::FftsPlusTaskDef *ffts_plus_ta
     auto mix_aic_aiv_ctx = ctx->mutable_mix_aic_aiv_ctx();
     return AddSrcSlotAndBmToCtx(prefetch_ctx_id, mix_aic_aiv_ctx);
   } else {
-    REPORT_FFTS_ERROR("[DataTaskBuilder][UpdateSrcSlotAndPfBm] Context type %u, with ID %u, does not require prefetching.",
-                      context_type, context_id);
+    REPORT_FFTS_ERROR(
+        "[DataTaskBuilder][UpdateSrcSlotAndPfBm] Context type %u, with ID %u, does not require prefetching.",
+        context_type, context_id);
     return FAILED;
   }
 }
-
 
 /*
  * Just for auto_mode and dynamic_mode
@@ -450,8 +451,8 @@ Status DataTaskBuilder::GetSuccessorContextId(uint32_t out_anchor_index, const g
           continue;
         }
         ctx_id_tmp = peer_in_context_id_list[0];
-        FFTS_LOGD("Peer input op for PhonyConcat is %s, context id is %u.",
-                  peer_op_of_pc->GetName().c_str(), ctx_id_tmp);
+        FFTS_LOGD("Peer input op for PhonyConcat is %s, context id is %u.", peer_op_of_pc->GetName().c_str(),
+                  ctx_id_tmp);
         peer_in_context_id.emplace_back(ctx_id_tmp);
       }
     } else {
@@ -463,8 +464,8 @@ Status DataTaskBuilder::GetSuccessorContextId(uint32_t out_anchor_index, const g
         continue;
       }
       ctx_id_tmp = peer_in_context_id_list[0];
-      FFTS_LOGD("Peer input op of %s is %s, context id is %u.",
-                node->GetName().c_str(), peer_op->GetName().c_str(), ctx_id_tmp);
+      FFTS_LOGD("Peer input op of %s is %s, context id is %u.", node->GetName().c_str(), peer_op->GetName().c_str(),
+                ctx_id_tmp);
       peer_in_context_id.emplace_back(ctx_id_tmp);
     }
 
@@ -509,10 +510,8 @@ void DataTaskBuilder::UpdateRedundantNodes(const ge::NodePtr &node, vector<ge::N
   }
 }
 
-Status DataTaskBuilder::UpdateSuccListWithMemReuse(const ge::NodePtr &node,
-                                                   vector<ge::MemReuseInfo> &mem_reuse_infos,
-                                                   domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                                   int &data_ctx_id,
+Status DataTaskBuilder::UpdateSuccListWithMemReuse(const ge::NodePtr &node, vector<ge::MemReuseInfo> &mem_reuse_infos,
+                                                   domi::FftsPlusTaskDef *ffts_plus_task_def, int &data_ctx_id,
                                                    const size_t &window_id) {
   if (mem_reuse_infos.empty()) {
     REPORT_FFTS_ERROR("[GenTsk][DataTsk][FillCtxt][node %s, type %s] mem_reuse_infos value is empty.",
@@ -537,15 +536,15 @@ Status DataTaskBuilder::UpdateSuccListWithMemReuse(const ge::NodePtr &node,
     auto op_desc = reuse_info.node->GetOpDesc();
     FFTS_CHECK_NOTNULL(op_desc);
     if (IsPhonyOp(op_desc)) {
-      FFTS_LOGD("[GenTsk][DataTsk][FillCtxt][node %s, type %s] mem reuse node is phonyop.",
-                node->GetName().c_str(), node->GetType().c_str());
+      FFTS_LOGD("[GenTsk][DataTsk][FillCtxt][node %s, type %s] mem reuse node is phonyop.", node->GetName().c_str(),
+                node->GetType().c_str());
       continue;
     }
 
     auto ai_graph = reuse_info.node->GetOwnerComputeGraph();
     if (ai_graph == nullptr) {
-      FFTS_LOGD("[GenTsk][DataTsk][FillCtxt][node %s, type %s] can't get owner compute graph.",
-                node->GetName().c_str(), node->GetType().c_str());
+      FFTS_LOGD("[GenTsk][DataTsk][FillCtxt][node %s, type %s] can't get owner compute graph.", node->GetName().c_str(),
+                node->GetType().c_str());
       continue;
     }
     // check is in the same ffts+ sub graph or not
@@ -561,17 +560,16 @@ Status DataTaskBuilder::UpdateSuccListWithMemReuse(const ge::NodePtr &node,
     redundant_nodes.emplace_back(reuse_info.node);
     UpdateRedundantNodes(reuse_info.node, redundant_nodes);
 
-    FFTS_LOGI("[GenTsk][DataTsk][FillCtxt][node %s, type %s] by [node %s, type %s] reuse mem.",
-              node->GetName().c_str(), node->GetType().c_str(), reuse_info.node->GetName().c_str(),
-              reuse_info.node->GetType().c_str());
+    FFTS_LOGI("[GenTsk][DataTsk][FillCtxt][node %s, type %s] by [node %s, type %s] reuse mem.", node->GetName().c_str(),
+              node->GetType().c_str(), reuse_info.node->GetName().c_str(), reuse_info.node->GetType().c_str());
     UpdateInvalidCtxWithMemReuse(reuse_info.node, data_ctx_id, window_id, ffts_plus_task_def);
   }
   return SUCCESS;
 }
 
 Status DataTaskBuilder::GenInvalidSuccListWithMemReuse(const ge::NodePtr &node, size_t out_anchor_index,
-                                                       domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                                       int &data_ctx_id, const size_t &window_id) {
+                                                       domi::FftsPlusTaskDef *ffts_plus_task_def, int &data_ctx_id,
+                                                       const size_t &window_id) {
   FFTS_LOGD("[GenTsk][DataTsk][MemReuse] Node %s of type %s is ready to get out_anchor_index: %zu mem reuse info.",
             node->GetName().c_str(), node->GetType().c_str(), out_anchor_index);
 
@@ -579,8 +577,8 @@ Status DataTaskBuilder::GenInvalidSuccListWithMemReuse(const ge::NodePtr &node, 
   map<string, vector<ge::MemReuseInfo>> mem_reuse_infos{};
   mem_reuse_infos = op_desc->TryGetExtAttr(ge::ATTR_NAME_MEMORY_REUSE_INFO, mem_reuse_infos);
   if (mem_reuse_infos.empty()) {
-    FFTS_LOGD("[GenTsk][DataTsk][MemReuse][node %s, type %s] has no mem_reuse_info.",
-              node->GetName().c_str(), node->GetType().c_str());
+    FFTS_LOGD("[GenTsk][DataTsk][MemReuse][node %s, type %s] has no mem_reuse_info.", node->GetName().c_str(),
+              node->GetType().c_str());
     return SUCCESS;
   }
 
@@ -622,8 +620,8 @@ Status DataTaskBuilder::GenInvalidSuccListWithMemReuse(const ge::NodePtr &node, 
     return SUCCESS;
   }
 
-  if (UpdateSuccListWithMemReuse(node, mem_reuse_infos[mem_info_key], ffts_plus_task_def,
-                                 data_ctx_id, window_id) != SUCCESS) {
+  if (UpdateSuccListWithMemReuse(node, mem_reuse_infos[mem_info_key], ffts_plus_task_def, data_ctx_id, window_id) !=
+      SUCCESS) {
     return FAILED;
   }
 

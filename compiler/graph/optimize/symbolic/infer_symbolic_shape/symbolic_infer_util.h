@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,13 +22,13 @@ const Expression kSymbolZero{Symbol(0)};
 const Expression kSymbolOne{Symbol(1)};
 const Expression kSymbolTwo{Symbol(2)};
 
-#define GE_UNSUPPORTED_IF_NULL(exp, ...)                                                                               \
-  do {                                                                                                                 \
-    if (exp == nullptr) {                                                                                              \
-      auto msg = CreateErrorMsg(__VA_ARGS__);                                                                          \
-      GELOGW("unsupported assert failed: %s", (msg.empty() ? #exp : msg.data()));                                      \
-      return ge::UNSUPPORTED;                                                                                          \
-    }                                                                                                                  \
+#define GE_UNSUPPORTED_IF_NULL(exp, ...)                                          \
+  do {                                                                            \
+    if (exp == nullptr) {                                                         \
+      auto msg = CreateErrorMsg(__VA_ARGS__);                                     \
+      GELOGW("unsupported assert failed: %s", (msg.empty() ? #exp : msg.data())); \
+      return ge::UNSUPPORTED;                                                     \
+    }                                                                             \
   } while (false)
 
 class SymbolicInferUtil {
@@ -44,7 +44,7 @@ class SymbolicInferUtil {
 
   template <typename T>
   static graphStatus ReduceDimsWithoutKeepDims(const gert::SymbolShape *x_shape, const std::vector<T> &axes_dims,
-                                        const size_t axes_size, gert::SymbolShape *output_shape) {
+                                               const size_t axes_size, gert::SymbolShape *output_shape) {
     T dim_num = x_shape->GetDimNum();
     output_shape->MutableDims().clear();
     for (T j = 0; j < dim_num; ++j) {
@@ -70,7 +70,7 @@ class SymbolicInferUtil {
 
   template <typename T>
   static graphStatus ReduceDimsWithKeepDims(const gert::SymbolShape *x_shape, const std::vector<T> &axes_dims,
-                                     const size_t axes_size, gert::SymbolShape *output_shape) {
+                                            const size_t axes_size, gert::SymbolShape *output_shape) {
     T dim_num = x_shape->GetDimNum();
     const bool is_scalar = dim_num == 0;
     *output_shape = *x_shape;
@@ -91,8 +91,8 @@ class SymbolicInferUtil {
   }
 
   template <typename T>
-  static graphStatus ReduceDims(const gert::SymbolShape *x_shape, const gert::SymbolTensor *axes_tensor, size_t axes_size,
-                         const bool keep_dims, gert::SymbolShape *output_shape) {
+  static graphStatus ReduceDims(const gert::SymbolShape *x_shape, const gert::SymbolTensor *axes_tensor,
+                                size_t axes_size, const bool keep_dims, gert::SymbolShape *output_shape) {
     auto exps = *axes_tensor->GetSymbolicValue();
     std::vector<T> axes_dims_const;
     axes_dims_const.reserve(axes_size);
@@ -130,13 +130,12 @@ class SymbolicInferUtil {
     return result;
   }
   /**
-  * 广播`shapes`，生成`b_shape`，并标记`need_broadcast`。
-  * @param shapes 输入的shape，每个元素是一个shape，每个shape是一个维度数组
-  * @param b_shape 广播后输出的shape，如果不需要广播，那么`b_shape`为空
-  * @return SUCCESS为成功
-  */
-  static Status Broadcast(const std::vector<std::vector<Expression>> &shapes,
-                          std::vector<Expression> &b_shape);
+   * 广播`shapes`，生成`b_shape`，并标记`need_broadcast`。
+   * @param shapes 输入的shape，每个元素是一个shape，每个shape是一个维度数组
+   * @param b_shape 广播后输出的shape，如果不需要广播，那么`b_shape`为空
+   * @return SUCCESS为成功
+   */
+  static Status Broadcast(const std::vector<std::vector<Expression>> &shapes, std::vector<Expression> &b_shape);
   static std::string DumpSymbolTensor(const gert::SymbolTensor &symbolic_tensor);
   static bool IsSupportCondNode(const NodePtr &node);
   static NodePtr GetCondInput(const NodePtr &node);

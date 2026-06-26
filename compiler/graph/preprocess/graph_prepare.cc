@@ -114,16 +114,16 @@ NodePtr CreateTransNode(const std::string &name, const std::string &node_type, c
   auto graph = node->GetOwnerComputeGraph();
   if (graph == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Owner graph in node is nullptr, trans_name:%s, trans_type:%s, check invalid",
-                       name.c_str(), node_type.c_str());
-    GELOGE(PARAM_INVALID, "[Get][OwnerGraph] in node is nullptr, trans_name:%s, trans_type:%s",
-           name.c_str(), node_type.c_str());
+                         name.c_str(), node_type.c_str());
+    GELOGE(PARAM_INVALID, "[Get][OwnerGraph] in node is nullptr, trans_name:%s, trans_type:%s", name.c_str(),
+           node_type.c_str());
     return nullptr;
   }
 
   auto index = TransOpUtil::GetTransOpDataIndex(node_type);
   if (index < 0) {
-    REPORT_INNER_ERR_MSG("E19999", "The trans node type %s does not exist, it must be %s",
-                       node_type.c_str(), TransOpUtil::TransopMapToString().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "The trans node type %s does not exist, it must be %s", node_type.c_str(),
+                         TransOpUtil::TransopMapToString().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] The trans node type %s does not exist.", node_type.c_str());
     return nullptr;
   }
@@ -145,10 +145,8 @@ NodePtr CreateTransNode(const std::string &name, const std::string &node_type, c
   }
 
   if (op_desc == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "New OpDesc failed, trans_name:%s, trans_type:%s",
-                      name.c_str(), node_type.c_str());
-    GELOGE(INTERNAL_ERROR, "[New][OpDesc] failed, trans_name:%s, trans_type:%s",
-           name.c_str(), node_type.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "New OpDesc failed, trans_name:%s, trans_type:%s", name.c_str(), node_type.c_str());
+    GELOGE(INTERNAL_ERROR, "[New][OpDesc] failed, trans_name:%s, trans_type:%s", name.c_str(), node_type.c_str());
     return nullptr;
   }
   // for data dump
@@ -162,11 +160,10 @@ NodePtr CreateTransNode(const std::string &name, const std::string &node_type, c
 
   NodePtr trans_node = graph->InsertNode(node, op_desc);
   if (trans_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                      graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
   return trans_node;
@@ -182,34 +179,31 @@ Status RecoverOneTransNodeForVar(const std::string &name, const TransNodeInfo &t
 
   auto ret = GraphUtils::ReplaceNodeDataAnchors(trans_node, node, {}, {0});
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Replace out anchors of node:%s(%s) by node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Replace][OutAnchors] of node:%s(%s) by node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Replace out anchors of node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+                         node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Replace][OutAnchors] of node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+           node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   ret = GraphUtils::AddEdge(node->GetOutDataAnchor(0), trans_node->GetInDataAnchor(0));
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(out_index:0) and op:%s(%s)(in_index:0) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str());
+                         node->GetName().c_str(), node->GetType().c_str(), trans_node->GetName().c_str(),
+                         trans_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][Edge] between op:%s(%s)(out_index:0) and op:%s(%s)(in_index:0) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+           node->GetName().c_str(), node->GetType().c_str(), trans_node->GetName().c_str(),
+           trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   ret = GraphUtils::MoveOutCtrlEdges(node, trans_node);
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Move out control edges from node:%s(%s) to node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[MoveOut][ControlEdges] from node:%s(%s) to node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+                         node->GetName().c_str(), node->GetType().c_str(), trans_node->GetName().c_str(),
+                         trans_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[MoveOut][ControlEdges] from node:%s(%s) to node:%s(%s) failed", node->GetName().c_str(),
+           node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -226,34 +220,31 @@ Status RecoverOneTransNodeForVarRef(const std::string &name, const TransNodeInfo
 
   auto ret = GraphUtils::ReplaceNodeDataAnchors(trans_node, node, {0}, {});
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Replace out anchors of node:%s(%s) by node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Replace][OutAnchors] of node:%s(%s) by node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Replace out anchors of node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+                         node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Replace][OutAnchors] of node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+           node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   ret = GraphUtils::AddEdge(trans_node->GetOutDataAnchor(0), node->GetInDataAnchor(0));
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(out_index:0) and op:%s(%s)(in_index:0) failed",
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str());
+                         trans_node->GetName().c_str(), trans_node->GetType().c_str(), node->GetName().c_str(),
+                         node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Add][Edge] between op:%s(%s)(out_index:0) and op:%s(%s)(in_index:0) failed",
-           trans_node->GetName().c_str(), trans_node->GetType().c_str(),
-           node->GetName().c_str(), node->GetType().c_str());
+           trans_node->GetName().c_str(), trans_node->GetType().c_str(), node->GetName().c_str(),
+           node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   ret = GraphUtils::MoveInCtrlEdges(node, trans_node);
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Move in control edges from node:%s(%s) to node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[MoveIn][CtrlEdges] from node:%s(%s) to node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+                         node->GetName().c_str(), node->GetType().c_str(), trans_node->GetName().c_str(),
+                         trans_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[MoveIn][CtrlEdges] from node:%s(%s) to node:%s(%s) failed", node->GetName().c_str(),
+           node->GetType().c_str(), trans_node->GetName().c_str(), trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -309,20 +300,19 @@ Status RecoverTransRoadForVar(const NodePtr &var, const VarTransRoad &road) {
     if (!stream_label.empty()) {
       auto status = SetStreamLabel(last_node, stream_label);
       if (status != ge::SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Set stream_label:%s to op:%s(%s) failed",
-                          stream_label.c_str(), last_node->GetName().c_str(), last_node->GetType().c_str());
-        GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-               stream_label.c_str(), last_node->GetName().c_str(), last_node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Set stream_label:%s to op:%s(%s) failed", stream_label.c_str(),
+                             last_node->GetName().c_str(), last_node->GetType().c_str());
+        GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(), last_node->GetName().c_str(),
+               last_node->GetType().c_str());
         return status;
       }
     }
-    GE_CHK_BOOL_EXEC((ge::AttrUtils::SetBool(last_node->GetOpDesc(), ge::ATTR_INSERTED_BY_GE, true)),
-                     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to node:%s(%s) failed",
-                                       ge::ATTR_INSERTED_BY_GE.c_str(),
-                                       last_node->GetName().c_str(), last_node->GetType().c_str());
-                     return INTERNAL_ERROR,
-                     "[Set][Attr] %s to node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
-                     last_node->GetName().c_str(), last_node->GetType().c_str());
+    GE_CHK_BOOL_EXEC(
+        (ge::AttrUtils::SetBool(last_node->GetOpDesc(), ge::ATTR_INSERTED_BY_GE, true)),
+        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
+                             last_node->GetName().c_str(), last_node->GetType().c_str());
+        return INTERNAL_ERROR, "[Set][Attr] %s to node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
+               last_node->GetName().c_str(), last_node->GetType().c_str());
     GELOGD("Recover trans node %s type %s success", trans_name.c_str(), iter->node_type.c_str());
   }
   if (road.empty()) {
@@ -341,8 +331,8 @@ Status RecoverTransRoadForVarRef(const std::set<NodePtr> &nodes, const VarTransR
       auto trans_name = var->GetName() + "_trans_" + std::to_string(index++);
       auto ret = RecoverOneTransNodeForVarRef(trans_name, *iter, last_node, last_node);
       if (ret != SUCCESS) {
-        GELOGE(INTERNAL_ERROR, "[Recover][TransNode] for variable %s failed, index %s, type %s",
-               var->GetName().c_str(), std::to_string(index).c_str(), iter->node_type.c_str());
+        GELOGE(INTERNAL_ERROR, "[Recover][TransNode] for variable %s failed, index %s, type %s", var->GetName().c_str(),
+               std::to_string(index).c_str(), iter->node_type.c_str());
         return INTERNAL_ERROR;
       }
       // set stream_label
@@ -353,21 +343,20 @@ Status RecoverTransRoadForVarRef(const std::set<NodePtr> &nodes, const VarTransR
       if (!stream_label.empty()) {
         auto status = SetStreamLabel(last_node, stream_label);
         if (status != ge::SUCCESS) {
-          REPORT_INNER_ERR_MSG("E19999", "Set stream_label:%s to op:%s(%s) failed",
-                            stream_label.c_str(), last_node->GetName().c_str(), last_node->GetType().c_str());
-          GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-                 stream_label.c_str(), last_node->GetName().c_str(), last_node->GetType().c_str());
+          REPORT_INNER_ERR_MSG("E19999", "Set stream_label:%s to op:%s(%s) failed", stream_label.c_str(),
+                               last_node->GetName().c_str(), last_node->GetType().c_str());
+          GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(),
+                 last_node->GetName().c_str(), last_node->GetType().c_str());
           return status;
         }
       }
 
-      GE_CHK_BOOL_EXEC((ge::AttrUtils::SetBool(last_node->GetOpDesc(), ge::ATTR_INSERTED_BY_GE, true)),
-                       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s of node:%s(%s) failed",
-                                         ge::ATTR_INSERTED_BY_GE.c_str(),
-                                         last_node->GetName().c_str(), last_node->GetType().c_str());
-                       return INTERNAL_ERROR,
-                       "[Set][Attr] %s of node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
-                       last_node->GetName().c_str(), last_node->GetType().c_str());
+      GE_CHK_BOOL_EXEC(
+          (ge::AttrUtils::SetBool(last_node->GetOpDesc(), ge::ATTR_INSERTED_BY_GE, true)),
+          REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s of node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
+                               last_node->GetName().c_str(), last_node->GetType().c_str());
+          return INTERNAL_ERROR, "[Set][Attr] %s of node:%s(%s) failed", ge::ATTR_INSERTED_BY_GE.c_str(),
+                 last_node->GetName().c_str(), last_node->GetType().c_str());
     }
     if (!(road.empty()) && (UpdateVarFormats(var, road.rbegin()->output) != SUCCESS)) {
       return INTERNAL_ERROR;
@@ -426,10 +415,10 @@ Status ModifyInputFormatAndShape(const NodePtr &node_ptr) {
   ge::DataType dt = input->GetDataType();
   std::vector<int64_t> dst_shape_dims;
   if (TransferShape2NC1HWC0(old_format, old_shape, dt, FORMAT_NC1HWC0, dst_shape_dims) != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Transfer shape to NC1HWC0 failed, op:%s(%s),",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Transfer][Shape] to NC1HWC0 failed, op:%s(%s),",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Transfer shape to NC1HWC0 failed, op:%s(%s),", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Transfer][Shape] to NC1HWC0 failed, op:%s(%s),", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return FAILED;
   }
 
@@ -445,10 +434,10 @@ Status ModifyInputFormatAndShape(const NodePtr &node_ptr) {
   // data node size should not 32 bytes align
   graphStatus graph_status = TensorUtils::GetTensorSizeInBytes(*output, size);
   if (graph_status != ge::GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Get output tensor size failed, op:%s(%s), index:0",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(graph_status, "[Get][TensorSize] In Bytes failed, op:%s(%s), index:0",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Get output tensor size failed, op:%s(%s), index:0", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(graph_status, "[Get][TensorSize] In Bytes failed, op:%s(%s), index:0", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return FAILED;
   }
   ge::TensorUtils::SetSize(*output, size);
@@ -613,10 +602,11 @@ Status ModifyTensorDescStorageFormatAndShape(const OpDescPtr &op_desc, Idx2Tenso
                                              Format storage_format, const std::vector<int64_t> &storage_shape_dims,
                                              bool use_align_size = true) {
   if ((storage_format == FORMAT_FRACTAL_ZN_RNN) || (storage_format == FORMAT_ND_RNN_BIAS)) {
-    // this two storage format relyed on attrs on node, not support defined by user.
+    // this two storage format relied on attrs on node, not support defined by user.
     const std::string reason =
         "The user defined storage format " + TypeUtils::FormatToSerialString(storage_format) + " is not supported";
-    REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char *>({"reason"}),
+                              std::vector<const char *>({reason.c_str()}));
     GELOGE(PARAM_INVALID, "Not support user define storage format %s",
            TypeUtils::FormatToSerialString(storage_format).c_str());
     return FAILED;
@@ -646,7 +636,7 @@ Status ModifyTensorDescStorageFormatAndShape(const OpDescPtr &op_desc, Idx2Tenso
     }
     if (graph_status != ge::GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get output tensor size failed, op:%s(%s), index:%u", op_desc->GetName().c_str(),
-                        op_desc->GetType().c_str(), idx_2_tensor_desc.first);
+                           op_desc->GetType().c_str(), idx_2_tensor_desc.first);
       GELOGE(graph_status, "[Get][TensorSize] In Bytes failed, op:%s(%s), index:%u", op_desc->GetName().c_str(),
              op_desc->GetType().c_str(), idx_2_tensor_desc.first);
       return FAILED;
@@ -669,7 +659,7 @@ Status CheckIfDynamicBatchScene(const NodePtr &data_node, bool &is_dynamic_batch
   if (AttrUtils::GetStr(data_node->GetOpDesc(), kMbatchSwitchnName, related_node_name)) {
     if (related_node_name.empty()) {
       REPORT_INNER_ERR_MSG("E19999", "The data node %s has SwitchN node flag, but the value is empty",
-                         data_node->GetName().c_str());
+                           data_node->GetName().c_str());
       GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has SwitchN node flag, but the value is empty",
              data_node->GetName().c_str());
       return INTERNAL_ERROR;
@@ -686,7 +676,7 @@ Status CheckIfDynamicBatchScene(const NodePtr &data_node, bool &is_dynamic_batch
 
     if (mbatch_case_node == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "The data node %s has SwitchN node %s, but cannot find it on the graph",
-                         data_node->GetName().c_str(), related_node_name.c_str());
+                           data_node->GetName().c_str(), related_node_name.c_str());
       GELOGE(INTERNAL_ERROR, "[Check][Param] The data node %s has SwitchN node %s, but cannot find it on the graph",
              data_node->GetName().c_str(), related_node_name.c_str());
       return INTERNAL_ERROR;
@@ -754,10 +744,11 @@ Status ProcessInputDtDynShape(const NodePtr &node_ptr, const DataType &dt_set) {
     int64_t input_shape_size = 0;
     int64_t output_shape_size = 0;
     ge::graphStatus input_graph_status = ge::TensorUtils::GetTensorSizeInBytes(*input, input_shape_size);
-    ge::graphStatus output_graph_status = ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*input, output_shape_size);
+    ge::graphStatus output_graph_status =
+        ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*input, output_shape_size);
     if (input_graph_status != ge::GRAPH_SUCCESS && output_graph_status != ge::GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Get input tensor size failed, op:%s(%s), index:0",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get input tensor size failed, op:%s(%s), index:0", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
       GELOGE(GRAPH_FAILED, "[Process][InputOp] Get tensor size of op [%s] failed!", node_ptr->GetName().c_str());
       return FAILED;
     }
@@ -815,9 +806,11 @@ Status UpdateSubgraphDataOfCase(const NodePtr &mbatch_node, const DataType &dt_s
       auto data_output = data_desc->MutableOutputDesc(0);
       GE_CHECK_NOTNULL(data_output);
       data_output->SetDataType(dt_set);
-      GELOGD("Update input and output data type of node[name: %s, type: %s, parent_node_index: %d] in subgraph %s "
-             "to %s.", data_desc->GetName().c_str(), data_desc->GetType().c_str(), parent_node_index,
-             subgraph->GetName().c_str(), TypeUtils::DataTypeToSerialString(dt_set).c_str());
+      GELOGD(
+          "Update input and output data type of node[name: %s, type: %s, parent_node_index: %d] in subgraph %s "
+          "to %s.",
+          data_desc->GetName().c_str(), data_desc->GetType().c_str(), parent_node_index, subgraph->GetName().c_str(),
+          TypeUtils::DataTypeToSerialString(dt_set).c_str());
     }
   }
 
@@ -834,9 +827,11 @@ Status ProcessMbatchScene(const NodePtr &mbatch_node, const DataType &dt_set, in
   }
 
   if (UpdateSubgraphDataOfCase(mbatch_node, dt_set, index) != SUCCESS) {
-    GELOGE(FAILED, "[Update][SubgraphDataOfCase] node[parent_node_index:%d] in subgraphs of "
-           "node[name:%s, type:%s] to %s failed.", index, mbatch_node->GetName().c_str(),
-           mbatch_node->GetType().c_str(), TypeUtils::DataTypeToSerialString(dt_set).c_str());
+    GELOGE(FAILED,
+           "[Update][SubgraphDataOfCase] node[parent_node_index:%d] in subgraphs of "
+           "node[name:%s, type:%s] to %s failed.",
+           index, mbatch_node->GetName().c_str(), mbatch_node->GetType().c_str(),
+           TypeUtils::DataTypeToSerialString(dt_set).c_str());
     return FAILED;
   }
 
@@ -853,17 +848,16 @@ Status ProcessInputNC1HWC0DynShape(const NodePtr &node_ptr, const bool &is_dynam
   ge::GeShape old_shape = input->GetShape();
   bool support = ((old_format == FORMAT_NC1HWC0) || (old_format == FORMAT_NCHW) || (old_format == FORMAT_NHWC));
   if (!support) {
-    REPORT_INNER_ERR_MSG("E19999",
-                       "The format:%s of op:%s(%s) is unsupported, only support FORMAT_NC1HWC0,FORMAT_NCHW,FORMAT_NHWC",
-                       TypeUtils::FormatToSerialString(old_format).c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG(
+        "E19999", "The format:%s of op:%s(%s) is unsupported, only support FORMAT_NC1HWC0,FORMAT_NCHW,FORMAT_NHWC",
+        TypeUtils::FormatToSerialString(old_format).c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] The format [%s] is unsupported, op:%s",
            TypeUtils::FormatToSerialString(old_format).c_str(), op_desc->GetName().c_str());
     return FAILED;
   }
   if (ModifyInputFormatAndShape(node_ptr) != SUCCESS) {
-    GELOGE(INTERNAL_ERROR, "[Modify][InputFormatAndShape] failed, op:%s(%s)",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Modify][InputFormatAndShape] failed, op:%s(%s)", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return FAILED;
   }
   if (is_dynamic_batch) {
@@ -872,7 +866,7 @@ Status ProcessInputNC1HWC0DynShape(const NodePtr &node_ptr, const bool &is_dynam
     const GeTensorDescPtr &switchn_input = switchn_op_desc->MutableInputDesc(0);
     if (ModifyFormatAndShapeForSingleTensor(switchn_input) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Modify format and shape of input:0 in op:%s(%s) failed",
-                        switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
+                           switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Modify][FormatAndShape] of input:0 in op:%s(%s) failed",
              switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
       return FAILED;
@@ -884,7 +878,7 @@ Status ProcessInputNC1HWC0DynShape(const NodePtr &node_ptr, const bool &is_dynam
       old_shape = switchn_output->GetShape();
       if (ModifyFormatAndShapeForSingleTensor(switchn_output) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Modify format and shape of output:%u in op:%s(%s) failed", i,
-                          switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
+                             switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Modify][FormatAndShape] of output:%u in op:%s(%s) failed", i,
                switchn_op_desc->GetName().c_str(), switchn_op_desc->GetType().c_str());
         return FAILED;
@@ -992,11 +986,11 @@ Status ProcessNetoutputNodeFp16Nc1hwc0DynShape(GeTensorDesc &src_desc, GeTensorD
   std::vector<int64_t> src_shape_dims = src_shape.GetDims();
   if (TransferShape2NC1HWC0(src_format, src_shape_dims, DT_FLOAT16, FORMAT_NC1HWC0, dst_shape_dims) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Transfer output:0 shape of op:%s(%s) to NC1HWC0 format failed, shape:%s, format:%s",
-                      src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str(),
-                      src_shape.ToString().c_str(), TypeUtils::FormatToSerialString(src_format).c_str());
+                         src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str(), src_shape.ToString().c_str(),
+                         TypeUtils::FormatToSerialString(src_format).c_str());
     GELOGE(INTERNAL_ERROR, "[Trans][Shape] of op:%s(%s) to NC1HWC0 format failed, shape:%s, format:%s",
-           src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str(),
-           src_shape.ToString().c_str(), TypeUtils::FormatToSerialString(src_format).c_str());
+           src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str(), src_shape.ToString().c_str(),
+           TypeUtils::FormatToSerialString(src_format).c_str());
     return FAILED;
   }
   ge::GeShape dst_shape(dst_shape_dims);
@@ -1007,9 +1001,9 @@ Status ProcessNetoutputNodeFp16Nc1hwc0DynShape(GeTensorDesc &src_desc, GeTensorD
     GE_CHECK_NOTNULL(merge_out);
     if (ModifyFormatAndShapeForSingleTensor(merge_out) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Modify format and shape of output:0 in op:%s(%s) failed",
-                        src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
-      GELOGE(INTERNAL_ERROR, "[Modify][FormatAndShape] of output:0 in op:%s(%s) failed",
-             src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
+                           src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Modify][FormatAndShape] of output:0 in op:%s(%s) failed", src_op_desc->GetName().c_str(),
+             src_op_desc->GetType().c_str());
       return FAILED;
     }
     for (uint32_t i = 0; i < node->GetAllInDataAnchorsSize(); ++i) {
@@ -1017,7 +1011,7 @@ Status ProcessNetoutputNodeFp16Nc1hwc0DynShape(GeTensorDesc &src_desc, GeTensorD
       GE_CHECK_NOTNULL(merge_in);
       if (ModifyFormatAndShapeForSingleTensor(merge_in) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Modify format and shape of input:%u in op:%s(%s) failed", i,
-                          src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
+                             src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Modify][FormatAndShape] of input:%u in op:%s(%s) failed", i,
                src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
         return FAILED;
@@ -1103,8 +1097,8 @@ Status ProcessNetoutputNodeDynShape(const NodePtr &node) {
     if (NeedUpdateFormatByOutputTypeParm(op_desc, index)) {
       if ((old_format != FORMAT_NCHW) && (old_format != FORMAT_NHWC) && (old_format != FORMAT_NC1HWC0)) {
         REPORT_INNER_ERR_MSG("E19999", "Format:%s of op:%s(%s) is not one of NCHW, NHWC, NC1HWC0.",
-                           TypeUtils::FormatToSerialString(old_format).c_str(),
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                             TypeUtils::FormatToSerialString(old_format).c_str(), op_desc->GetName().c_str(),
+                             op_desc->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Check][Param] Format is not one of NCHW, NHWC, NC1HWC0.");
         return FAILED;
       }
@@ -1138,7 +1132,7 @@ Status GetDynamicInputShapeRange(const std::vector<GeTensor> &user_input,
     // currently ge.shape_generalized_build_mode has been set by tfa
     // here set bin_mode to one_node_multi_bin
     auto graph_options = GetThreadLocalContext().GetAllGraphOptions();
-    graph_options.emplace("RUNTIME_NODE_BIN_MODE", "1"); // 1 means kOneNodeMultipleBinsMode
+    graph_options.emplace("RUNTIME_NODE_BIN_MODE", "1");  // 1 means kOneNodeMultipleBinsMode
     GetThreadLocalContext().SetGraphOption(graph_options);
     return SUCCESS;
   }
@@ -1152,7 +1146,8 @@ Status GetDynamicInputShapeRange(const std::vector<GeTensor> &user_input,
   if (range_vec.size() != user_input.size()) {
     const std::string reason = "Dynamic input shape range size " + std::to_string(range_vec.size()) +
                                " does not match input size " + std::to_string(user_input.size()) + ".";
-    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>({ge::GetContext().GetReadableName(OPTION_EXEC_DATA_INPUTS_SHAPE_RANGE).c_str(),
                                    iter->second.c_str(), reason.c_str()}));
     GELOGE(PARAM_INVALID, "[Check][Param] %s", reason.c_str());
@@ -1174,12 +1169,15 @@ Status UpdateDynamicInputShapeRange(const int64_t index,
 
   if (current_shape_range_vec.size() != origin_shape.GetDimNum()) {
     auto iter = graph_option.find(OPTION_EXEC_DATA_INPUTS_SHAPE_RANGE);
-    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                       std::vector<const char *>({"dynamic_inputs_shape_range", iter->second.c_str(),
-                       "The origin shape size does not match the current dynamic input shape range size."}));
-    GELOGE(PARAM_INVALID, "[Check][Param] For node %s. Given shape_range dim num is %zu, current dim num is %zu, "
-           "not match. Please Check.", op->GetName().c_str(),
-           current_shape_range_vec.size(), origin_shape.GetDimNum());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+        std::vector<const char *>(
+            {"dynamic_inputs_shape_range", iter->second.c_str(),
+             "The origin shape size does not match the current dynamic input shape range size."}));
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] For node %s. Given shape_range dim num is %zu, current dim num is %zu, "
+           "not match. Please Check.",
+           op->GetName().c_str(), current_shape_range_vec.size(), origin_shape.GetDimNum());
     return PARAM_INVALID;
   }
   for (size_t i = 0; i < origin_shape.GetDimNum(); ++i) {
@@ -1192,25 +1190,27 @@ Status UpdateDynamicInputShapeRange(const int64_t index,
         std::string reason =
             "It is out of range [" + std::to_string(left_range) + ", " + std::to_string(right_range) + "].";
         REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                           std::vector<const char *>(
-                           {"dynamic_inputs_shape_range", std::to_string(right_range).c_str(), reason.c_str()}));
-        GELOGE(PARAM_INVALID, "[Check][Param] Given shape range is %ld, current dim shape is %ld, "
-               "not match. Please Check.", left_range, curr_dim);
+                                  std::vector<const char *>({"dynamic_inputs_shape_range",
+                                                             std::to_string(right_range).c_str(), reason.c_str()}));
+        GELOGE(PARAM_INVALID,
+               "[Check][Param] Given shape range is %ld, current dim shape is %ld, "
+               "not match. Please Check.",
+               left_range, curr_dim);
         return PARAM_INVALID;
       }
       origin_shape.SetDim(i, left_range);
     } else if (curr_dim != UNKNOWN_DIM) {
       // given shape_range is fix range, check input_shape is in this range or not
-      if ((right_range != UNKNOWN_DIM) &&
-          ((curr_dim < left_range) ||
-           (curr_dim > right_range))) {
+      if ((right_range != UNKNOWN_DIM) && ((curr_dim < left_range) || (curr_dim > right_range))) {
         std::string reason =
             "It is out of range [" + std::to_string(left_range) + ", " + std::to_string(right_range) + "].";
         REPORT_PREDEFINED_ERR_MSG(
             "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
             std::vector<const char *>({"cur_dim", std::to_string(curr_dim).c_str(), reason.c_str()}));
-        GELOGE(PARAM_INVALID, "[Check][Param] Given shape range is [%ld~%ld], current dim shape is %ld, "
-               "out of range. Please Check.", left_range, right_range, curr_dim);
+        GELOGE(PARAM_INVALID,
+               "[Check][Param] Given shape range is [%ld~%ld], current dim shape is %ld, "
+               "out of range. Please Check.",
+               left_range, right_range, curr_dim);
         return PARAM_INVALID;
       }
       origin_shape.SetDim(i, UNKNOWN_DIM);
@@ -1372,7 +1372,9 @@ Status GraphPrepare::UpdateVariableFormats(const ComputeGraphPtr &graph) const {
   return SUCCESS;
 }
 
-void GraphPrepare::SetOptions(const ge::GraphManagerOptions &options) { options_ = options; }
+void GraphPrepare::SetOptions(const ge::GraphManagerOptions &options) {
+  options_ = options;
+}
 
 Status GraphPrepare::Init(const ge::Graph &graph, uint64_t session_id, GraphRebuildStateCtrl *graph_rebuild_state_ctrl,
                           ResourceContextMgr *resource_context_mgr) {
@@ -1469,9 +1471,8 @@ Status GraphPrepare::CheckRefInputNode(const NodePtr &node, const std::string &i
   auto input_type = input_op_desc->GetType();
   if (input_type == ge::FRAMEWORKOP) {
     if (!ge::AttrUtils::GetStr(input_op_desc, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, input_type)) {
-      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed",
-                         ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE.c_str(),
-                         input_op_desc->GetName().c_str(), input_op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed", ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE.c_str(),
+                           input_op_desc->GetName().c_str(), input_op_desc->GetType().c_str());
       GELOGE(PARAM_INVALID, "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE.c_str(),
              input_op_desc->GetName().c_str(), input_op_desc->GetType().c_str());
       return PARAM_INVALID;
@@ -1479,13 +1480,15 @@ Status GraphPrepare::CheckRefInputNode(const NodePtr &node, const std::string &i
   }
   bool is_block = (block_list.find(input_type) != block_list.cend());
   if (is_block) {
-    REPORT_INNER_ERR_MSG("E19999", "The ref input memory of ref node %s[%s] cannot be referenced from const node,"
-                                 "but node %s[%s] is const", node->GetName().c_str(), node->GetType().c_str(),
-                       node->GetOpDesc()->GetName().c_str(),
-                       node->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param] The ref input memory of ref node %s[%s] cannot be referenced from const"
-                          " node, but node %s[%s] is const", node->GetName().c_str(), node->GetType().c_str(),
-           node->GetOpDesc()->GetName().c_str(),
+    REPORT_INNER_ERR_MSG("E19999",
+                         "The ref input memory of ref node %s[%s] cannot be referenced from const node,"
+                         "but node %s[%s] is const",
+                         node->GetName().c_str(), node->GetType().c_str(), node->GetOpDesc()->GetName().c_str(),
+                         node->GetType().c_str());
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] The ref input memory of ref node %s[%s] cannot be referenced from const"
+           " node, but node %s[%s] is const",
+           node->GetName().c_str(), node->GetType().c_str(), node->GetOpDesc()->GetName().c_str(),
            node->GetType().c_str());
     return PARAM_INVALID;
   }
@@ -1517,7 +1520,7 @@ Status GraphPrepare::CheckRefOp() {
           GELOGE(PARAM_INVALID, "[Check][RefInputNode] failed, node:%s.", op_desc->GetName().c_str());
           return PARAM_INVALID;
         }
-        (void)ref_nodes.insert(node); // no need to check value
+        (void)ref_nodes.insert(node);  // no need to check value
       }
     }
   }
@@ -1547,17 +1550,17 @@ Status GraphPrepare::AdjustDataOpOutput(const NodePtr &node) const {
   graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(output, tensor_size);
   if (graph_status != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GetTensorMemorySize by output index:0 of op:%s(%s) failed.",
-                      op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+                         op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     GELOGE(graph_status, "[Call][GetTensorMemorySizeInBytesWithAutoPadding] failed, op:%s", node->GetName().c_str());
     return FAILED;
   }
   TensorUtils::SetSize(output, tensor_size);
   graphStatus graph_ret = op_desc_ptr->UpdateOutputDesc(0, output);
   if (graph_ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Update output desc of op:%s(%s) failed, index:0",
-                      op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
-    GELOGE(graph_ret, "[Update][OutputDesc] of op:%s(%s) failed, index:0",
-           op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Update output desc of op:%s(%s) failed, index:0", op_desc_ptr->GetName().c_str(),
+                         op_desc_ptr->GetType().c_str());
+    GELOGE(graph_ret, "[Update][OutputDesc] of op:%s(%s) failed, index:0", op_desc_ptr->GetName().c_str(),
+           op_desc_ptr->GetType().c_str());
     return graph_ret;
   }
   return SUCCESS;
@@ -1568,14 +1571,14 @@ Status GraphPrepare::CheckInternalFormat(const NodePtr &input_node, const GeTens
   auto tune_flag = (options_.build_mode == BUILD_MODE_TUNING) || (options_.build_mode == BUILD_MODE_OPAT_RESULT);
   // inner model = false : build om binary file for packing including internal format
   auto inner_model_flag = (options_.build_inner_model == "true");
-  bool need_check_internal_format = (!IsTansDataOpData(input_node)) &&
-                                    (!options_.is_single_op) &&
-                                    (!tune_flag) && (inner_model_flag);
+  bool need_check_internal_format =
+      (!IsTansDataOpData(input_node)) && (!options_.is_single_op) && (!tune_flag) && (inner_model_flag);
   if (need_check_internal_format) {
     if (TypeUtilsInner::IsInternalFormat(origin_format)) {
       std::string reason = "The original format " + TypeUtils::FormatToSerialString(origin_format) + " of operator " +
                            input_node->GetName() + " is not supported";
-      REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+      REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                                std::vector<const char *>({reason.c_str()}));
       GELOGE(PARAM_INVALID, "[Check][Param] Origin_format %s is not supported.",
              TypeUtils::FormatToSerialString(origin_format).c_str());
       return FAILED;
@@ -1589,9 +1592,11 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   uint32_t length = 1;
   bool type_ret = TypeUtils::GetDataTypeLength(data_type, length);
   if (!type_ret) {
-    std::string reason = "The input tensor is invalid. The input data type " + TypeUtils::DataTypeToSerialString(data_type) + " of operator " +
-                         std::to_string(index) + " is not supported";
-    REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+    std::string reason = "The input tensor is invalid. The input data type " +
+                         TypeUtils::DataTypeToSerialString(data_type) + " of operator " + std::to_string(index) +
+                         " is not supported";
+    REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                              std::vector<const char *>({reason.c_str()}));
     GELOGE(PARAM_INVALID, "[Check][Param] Input datatype %s is not supported.",
            TypeUtils::DataTypeToSerialString(data_type).c_str());
     return FAILED;
@@ -1605,8 +1610,8 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   // this attr set by tune module, because in tune mode ge cannot decide when to refresh data format
   // by user input.
   bool skip_refresh_data_format = false;
-  (void) AttrUtils::GetBool(op, "_skip_refresh_data_format", skip_refresh_data_format);
-  (void) op->DelAttr("_skip_refresh_data_format");
+  (void)AttrUtils::GetBool(op, "_skip_refresh_data_format", skip_refresh_data_format);
+  (void)op->DelAttr("_skip_refresh_data_format");
   if (skip_refresh_data_format) {
     GELOGI("data %s skip update info in tune mode", op->GetName().c_str());
     return SUCCESS;
@@ -1622,7 +1627,7 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   graphStatus graph_ret = op->UpdateInputDesc(0, desc);
   if (graph_ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Update input desc of op:%s(%s) failed, index:0", op->GetName().c_str(),
-                      op->GetType().c_str());
+                         op->GetType().c_str());
     GELOGE(graph_ret, "[Update][InputDesc] of op:%s(%s) failed, index:0", op->GetName().c_str(), op->GetType().c_str());
     return graph_ret;
   }
@@ -1631,7 +1636,7 @@ Status GraphPrepare::UpdateDataInputOutputDesc(int64_t index, const OpDescPtr &o
   graph_ret = op->UpdateOutputDesc(0, desc);
   if (graph_ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Update output desc of op:%s(%s) failed, index:0", op->GetName().c_str(),
-                      op->GetType().c_str());
+                         op->GetType().c_str());
     GELOGE(graph_ret, "[Update][OutputDesc] of op:%s(%s) failed, index:0", op->GetName().c_str(),
            op->GetType().c_str());
     return graph_ret;
@@ -1648,19 +1653,18 @@ Status GraphPrepare::UpdateUninitializedOriginShape(const NodePtr &input_node) c
   GE_CHECK_NOTNULL(input_node);
   auto op_desc = input_node->GetOpDesc();
   GE_CHECK_NOTNULL(op_desc);
-  GELOGD("Start to update original shape for node:%s, type:%s",
-         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  GELOGD("Start to update original shape for node:%s, type:%s", op_desc->GetName().c_str(), op_desc->GetType().c_str());
   for (size_t i = 0; i < op_desc->GetInputsSize(); ++i) {
     auto input_desc = op_desc->MutableInputDesc(i);
     GE_CHECK_NOTNULL(input_desc);
     if (input_desc->IsOriginShapeInitialized()) {
-      GELOGD("The input[%zu] original shape of node:%s has already initialized, no need to change",
-             i, op_desc->GetName().c_str());
+      GELOGD("The input[%zu] original shape of node:%s has already initialized, no need to change", i,
+             op_desc->GetName().c_str());
       continue;
     }
     input_desc->SetOriginShape(GeShape(input_desc->GetShape().GetDims()));
-    GELOGD("The input[%zu] original shape of node:%s has been changed to %s",
-           i, op_desc->GetName().c_str(), input_desc->GetOriginShape().ToString().c_str());
+    GELOGD("The input[%zu] original shape of node:%s has been changed to %s", i, op_desc->GetName().c_str(),
+           input_desc->GetOriginShape().ToString().c_str());
   }
 
   if (op_desc->GetType() == FILECONSTANT) {
@@ -1679,13 +1683,13 @@ Status GraphPrepare::UpdateUninitializedOriginShape(const NodePtr &input_node) c
     auto output_desc = op_desc->MutableOutputDesc(i);
     GE_CHECK_NOTNULL(output_desc);
     if (output_desc->IsOriginShapeInitialized()) {
-      GELOGD("The output[%zu] original shape of node:%s has already initialized, no need to change",
-             i, op_desc->GetName().c_str());
+      GELOGD("The output[%zu] original shape of node:%s has already initialized, no need to change", i,
+             op_desc->GetName().c_str());
       continue;
     }
     output_desc->SetOriginShape(GeShape(output_desc->GetShape().GetDims()));
-    GELOGD("The output[%zu] original shape of node:%s has been changed to %s",
-           i, op_desc->GetName().c_str(), output_desc->GetOriginShape().ToString().c_str());
+    GELOGD("The output[%zu] original shape of node:%s has been changed to %s", i, op_desc->GetName().c_str(),
+           output_desc->GetOriginShape().ToString().c_str());
   }
 
   if (op_desc->GetType() == CONSTANTOP || op_desc->GetType() == CONSTANT) {
@@ -1693,8 +1697,8 @@ Status GraphPrepare::UpdateUninitializedOriginShape(const NodePtr &input_node) c
     (void)AttrUtils::MutableTensor(op_desc, ATTR_NAME_WEIGHTS, weight);
     if (weight != nullptr && !(weight->GetTensorDesc().IsOriginShapeInitialized())) {
       weight->MutableTensorDesc().SetOriginShape(GeShape(weight->MutableTensorDesc().GetShape().GetDims()));
-      GELOGI("The weight original shape of node:%s has been changed to %s",
-             op_desc->GetName().c_str(), weight->GetTensorDesc().GetOriginShape().ToString().c_str());
+      GELOGI("The weight original shape of node:%s has been changed to %s", op_desc->GetName().c_str(),
+             weight->GetTensorDesc().GetOriginShape().ToString().c_str());
       auto output_desc = op_desc->MutableOutputDesc(0);
       GE_CHECK_NOTNULL(output_desc);
       output_desc->SetShape(weight->MutableTensorDesc().GetShape());
@@ -1728,9 +1732,10 @@ Status GraphPrepare::UpdateInput(const std::vector<GeTensor> &user_input,
             " is invalid. It must be greater than or equal to 0 and less than the number of input tensors " +
             std::to_string(user_input.size());
 
-        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
-        GELOGE(PARAM_INVALID, "[Check][Param] user_input size = %zu, graph data op index = %ld.",
-               user_input.size(), index);
+        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                                  std::vector<const char *>({reason.c_str()}));
+        GELOGE(PARAM_INVALID, "[Check][Param] user_input size = %zu, graph data op index = %ld.", user_input.size(),
+               index);
         return FAILED;
       }
 
@@ -1870,8 +1875,7 @@ Status GraphPrepare::UpdateDataByStorageFormat(const NodePtr &data_node) const {
   Format storage_format = FORMAT_RESERVED;
   std::vector<int64_t> dst_shape_dims;
   if (GetStorageFormatAndShape(op_desc, input, storage_format, dst_shape_dims) != SUCCESS) {
-    GELOGE(INTERNAL_ERROR, "[Get][StorageFormatAndShape] for input failed, op:%s, index:0",
-           op_desc->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][StorageFormatAndShape] for input failed, op:%s, index:0", op_desc->GetName().c_str());
     return FAILED;
   }
 
@@ -2119,8 +2123,8 @@ Status GraphPrepare::CtrlFlowPreProcess() const {
   PassManager graph_pass;
 
   // After InferShape Mark v1 control flow for unknown shape.
-  GE_CHK_STATUS_RET(graph_pass.AddPass("PreRun::MarkForceUnknownForCondPass",
-                                       new (std::nothrow) MarkForceUnknownForCondPass));
+  GE_CHK_STATUS_RET(
+      graph_pass.AddPass("PreRun::MarkForceUnknownForCondPass", new (std::nothrow) MarkForceUnknownForCondPass));
 
   GE_CHK_STATUS_RET(graph_pass.Run(compute_graph_));
   return SUCCESS;
@@ -2275,9 +2279,9 @@ Status GraphPrepare::VerifyConstOp(const NodePtr &node) const {
   ConstGeTensorPtr ge_tensor_ptr;
   if (!(AttrUtils::GetTensor(op_desc, ATTR_NAME_WEIGHTS, ge_tensor_ptr))) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(), op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
   GE_CHECK_NOTNULL(ge_tensor_ptr);
@@ -2308,12 +2312,12 @@ bool GraphPrepare::IsDynamicDims(const NodePtr &input_node) const {
     return true;
   }
   std::string jit_compile;
-  (void) ge::GetContext().GetOption("ge.jit_compile", jit_compile);
+  (void)ge::GetContext().GetOption("ge.jit_compile", jit_compile);
   std::string compile_dynamic_mode;
-  (void) ge::GetContext().GetOption("ge.compile_dynamic_mode", compile_dynamic_mode);
+  (void)ge::GetContext().GetOption("ge.compile_dynamic_mode", compile_dynamic_mode);
   if ((!all_is_positive) && ((compile_dynamic_mode == "1") || (jit_compile == "0") || (jit_compile == "2"))) {
     GELOGI("No need fresh input shape when shape is unknown if compile_dynamic_mode:[%s] or jit_compile:[%s]",
-        compile_dynamic_mode.c_str(), jit_compile.c_str());
+           compile_dynamic_mode.c_str(), jit_compile.c_str());
     return true;
   }
   // adapts to autofuse offline compiled dynamic shape scenes
@@ -2342,7 +2346,7 @@ Status GraphPrepare::CheckUserInput(const std::vector<GeTensor> &user_input) {
       int64_t index = 0;
       if (!(AttrUtils::GetInt(op, ATTR_NAME_INDEX, index))) {
         REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                           op->GetName().c_str(), op->GetType().c_str());
+                             op->GetName().c_str(), op->GetType().c_str());
         GELOGE(GE_GRAPH_INIT_FAILED, "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
                op->GetName().c_str(), op->GetType().c_str());
         return GE_GRAPH_INIT_FAILED;
@@ -2352,13 +2356,17 @@ Status GraphPrepare::CheckUserInput(const std::vector<GeTensor> &user_input) {
             "Index " + std::to_string(index) + " of DATA node " + input_node->GetName() +
             " is invalid. It must be greater than or equal to 0 and less than the number of input tensors " +
             std::to_string(user_input.size());
-        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                                  std::vector<const char *>({reason.c_str()}));
         GELOGE(GE_GRAPH_INIT_FAILED, "[Check][Param] %s", reason.c_str());
         return GE_GRAPH_INIT_FAILED;
       }
       if ((op->GetType() == REFDATA) && (alloc_mode == "ByGE")) {
-        std::string reason = "When the input and output memory allocation is controlled by GE, RefData operators are not supported in the graph";
-        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+        std::string reason =
+            "When the input and output memory allocation is controlled by GE, RefData operators are not supported in "
+            "the graph";
+        REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                                  std::vector<const char *>({reason.c_str()}));
         GELOGE(GE_GRAPH_INIT_FAILED, "[Check][Param] %s", reason.c_str());
         return GE_GRAPH_INIT_FAILED;
       }
@@ -2370,9 +2378,10 @@ Status GraphPrepare::CheckUserInput(const std::vector<GeTensor> &user_input) {
       for (size_t i = 0; i < desc.GetShape().GetDimNum(); ++i) {
         int64_t dim = desc.GetShape().GetDim(i);
         if (dim < UNKNOWN_DIM_NUM) {
-          std::string reason = "The dim " + std::to_string(dim) + " of input tensor " + std::to_string(i) + " is invalid. It must be greater than or equal to -2";
-          REPORT_PREDEFINED_ERR_MSG(
-              "E13025", std::vector<const char *>({"reason"}), std::vector<const char *>({reason.c_str()}));
+          std::string reason = "The dim " + std::to_string(dim) + " of input tensor " + std::to_string(i) +
+                               " is invalid. It must be greater than or equal to -2";
+          REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char *>({"reason"}),
+                                    std::vector<const char *>({reason.c_str()}));
           GELOGE(GE_GRAPH_INIT_FAILED, "[Check][InputDim]data dim %zu is not supported, need >= -2, real:%ld.", i, dim);
           return GE_GRAPH_INIT_FAILED;
         }
@@ -2388,8 +2397,8 @@ Status GraphPrepare::CheckUserInput(const std::vector<GeTensor> &user_input) {
 Status GraphPrepare::InferShapeForPreprocess(ComputeGraphPtr &compute_graph, GraphRebuildStateCtrl *rebuild_ctrl,
                                              ResourceContextMgr *resource_mgr) {
   GELOGI("Start infershape for preprocess.");
-  GE_CHK_STATUS_RET(RecoverIrDefinitions(compute_graph),
-                    "[Recover][IrDefinitions] failed, graph[%s]", compute_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(RecoverIrDefinitions(compute_graph), "[Recover][IrDefinitions] failed, graph[%s]",
+                    compute_graph->GetName().c_str());
   // Prepare dummy_shape for v1 control_flow op before infershape
   InitDummyShapeOnControlFlow(compute_graph);
 
@@ -2612,7 +2621,7 @@ Status GraphPrepare::ProcessNetOutput() const {
     graph_passes_before_infershape.AddPass("ProcessNetOutput::DataPass",
                                            new (std::nothrow) DataPass);  // Add NetOutput first.
     graph_passes_before_infershape.AddPass("ProcessNetOutput::InnerIdentityAddPass",
-                                           new(std::nothrow) InnerIdentityAddPass);
+                                           new (std::nothrow) InnerIdentityAddPass);
   } catch (std::bad_alloc &) {
     REPORT_INNER_ERR_MSG("E19999", "bad memory allocation occur when add Pass");
     GELOGE(INTERNAL_ERROR, "[Add][Pass] failed, bad memory allocation occurs.");

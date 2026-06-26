@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ void GetStorageShape(const ge::GeTensorDesc &tensor_desc, gert::StorageShape &st
     (void)storage_shape.MutableOriginShape().AppendDim(dim);
   }
 }
-} // namespace
+}  // namespace
 
 TilingContextBuilder &TilingContextBuilder::CompileInfo(void *compile_info) {
   compile_info_ = compile_info;
@@ -63,7 +63,8 @@ TilingContextBuilder &TilingContextBuilder::Workspace(ContinuousVector *workspac
   return *this;
 }
 
-TilingContextBuilder &TilingContextBuilder::SetSpaceRegistryV2(const OpImplSpaceRegistryV2Ptr &space_registry, OppImplVersionTag version_tag) {
+TilingContextBuilder &TilingContextBuilder::SetSpaceRegistryV2(const OpImplSpaceRegistryV2Ptr &space_registry,
+                                                               OppImplVersionTag version_tag) {
   if (version_tag >= OppImplVersionTag::kVersionEnd) {
     GELOGE(ge::PARAM_INVALID, "version_tag %d is invalid", static_cast<int>(version_tag));
     return *this;
@@ -88,8 +89,7 @@ ge::graphStatus TilingContextBuilder::GetDependInputTensorAddr(const ge::Operato
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus TilingContextBuilder::BuildRtTensor(const ge::GeTensorDesc &tensor_desc,
-                                                    TensorAddress address,
+ge::graphStatus TilingContextBuilder::BuildRtTensor(const ge::GeTensorDesc &tensor_desc, TensorAddress address,
                                                     std::unique_ptr<uint8_t[]> &rt_tensor_holder) const {
   gert::StorageShape storage_shape;
   GetStorageShape(tensor_desc, storage_shape);
@@ -97,15 +97,12 @@ ge::graphStatus TilingContextBuilder::BuildRtTensor(const ge::GeTensorDesc &tens
   rt_tensor_holder = ge::ComGraphMakeUnique<uint8_t[]>(sizeof(gert::Tensor));
   GE_ASSERT_NOTNULL(rt_tensor_holder, "Create context holder inputs failed.");
   if (address == nullptr) {
-    new (rt_tensor_holder.get())
-        gert::Tensor(storage_shape,
-                     {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}},
-                     tensor_desc.GetDataType());
+    new (rt_tensor_holder.get()) gert::Tensor(
+        storage_shape, {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}}, tensor_desc.GetDataType());
   } else {
     new (rt_tensor_holder.get())
-        gert::Tensor(storage_shape,
-                     {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}},
-                     gert::kOnHost, tensor_desc.GetDataType(), address);
+        gert::Tensor(storage_shape, {tensor_desc.GetOriginFormat(), tensor_desc.GetFormat(), {}}, gert::kOnHost,
+                     tensor_desc.GetDataType(), address);
   }
   return ge::GRAPH_SUCCESS;
 }

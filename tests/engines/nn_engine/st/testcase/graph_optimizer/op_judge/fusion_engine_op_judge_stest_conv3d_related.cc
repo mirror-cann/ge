@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,22 +43,17 @@ using OpFormatDtypeJudgePtr = std::shared_ptr<OpFormatDtypeJudge>;
 using OpDtypeRiseMatcherPtr = std::shared_ptr<OpDtypeRiseMatcher>;
 using OpFormatMatcherPtr = std::shared_ptr<OpFormatMatcher>;
 
-
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
 class STEST_OP_JUDGE_CONV3D : public testing::Test {
  protected:
-
   void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
 
     FEOpsStoreInfo tbe_custom{
-        6,
-        "tbe-custom",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv3d",
-        ""};
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv3d", ""};
     vector<FEOpsStoreInfo> store_info;
 
     store_info.emplace_back(tbe_custom);
@@ -72,20 +67,17 @@ class STEST_OP_JUDGE_CONV3D : public testing::Test {
     op_format_dtype_judge_ptr_->Initialize();
   }
 
-  void TearDown() {
-
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   RefRelationsPtr reflection_builder_ptr_;
   OpFormatDtypeJudgePtr op_format_dtype_judge_ptr_;
 };
 
-
-TEST_F(STEST_OP_JUDGE_CONV3D, test_01){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, 33, 12, 16, 64});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -143,11 +135,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_01){
   EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_02){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3DTranspose", "Conv3DTranspose");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, 33, 12, 16, 64});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -205,12 +197,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_02){
   EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
 }
 
-
-TEST_F(STEST_OP_JUDGE_CONV3D, test_03){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, 33, 12, 16, 64});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -269,132 +260,132 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_03){
 }
 
 // x: NCDHW, filter:NCDHW, y:NCDHW
-TEST_F(STEST_OP_JUDGE_CONV3D, test_04){
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
-    OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-    //add descriptor
-    vector<int64_t> dim_input({4, 33, 12, 16, 64});
-    GeShape shape(dim_input);
-    GeTensorDesc tensor_desc(shape);
-    tensor_desc.SetOriginFormat(FORMAT_NCDHW);
-    tensor_desc.SetOriginShape(shape);
-    tensor_desc.SetFormat(FORMAT_NCDHW);
-    tensor_desc.SetDataType(DT_FLOAT);
-    op1->AddInputDesc("x", tensor_desc);
+TEST_F(STEST_OP_JUDGE_CONV3D, test_04) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
+  OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
+  // add descriptor
+  vector<int64_t> dim_input({4, 33, 12, 16, 64});
+  GeShape shape(dim_input);
+  GeTensorDesc tensor_desc(shape);
+  tensor_desc.SetOriginFormat(FORMAT_NCDHW);
+  tensor_desc.SetOriginShape(shape);
+  tensor_desc.SetFormat(FORMAT_NCDHW);
+  tensor_desc.SetDataType(DT_FLOAT);
+  op1->AddInputDesc("x", tensor_desc);
 
-    vector<int64_t> dim_weight({3, 3, 3, 4, 5});
-    GeShape weight_shape(dim_weight);
-    GeTensorDesc weight_desc(weight_shape);
-    weight_desc.SetOriginFormat(FORMAT_NCDHW);
-    weight_desc.SetOriginShape(weight_shape);
-    weight_desc.SetFormat(FORMAT_NCDHW);
-    weight_desc.SetDataType(DT_FLOAT);
-    op1->AddInputDesc("y", weight_desc);
+  vector<int64_t> dim_weight({3, 3, 3, 4, 5});
+  GeShape weight_shape(dim_weight);
+  GeTensorDesc weight_desc(weight_shape);
+  weight_desc.SetOriginFormat(FORMAT_NCDHW);
+  weight_desc.SetOriginShape(weight_shape);
+  weight_desc.SetFormat(FORMAT_NCDHW);
+  weight_desc.SetDataType(DT_FLOAT);
+  op1->AddInputDesc("y", weight_desc);
 
-    op1->AddOutputDesc("z", tensor_desc);
-    ge::AttrUtils::SetInt(op1, FE_IMPLY_TYPE, 6);
-    ge::NodePtr node1 = graph->AddNode(op1);
+  op1->AddOutputDesc("z", tensor_desc);
+  ge::AttrUtils::SetInt(op1, FE_IMPLY_TYPE, 6);
+  ge::NodePtr node1 = graph->AddNode(op1);
 
-    op2->AddInputDesc("x", tensor_desc);
-    op2->AddOutputDesc("z", tensor_desc);
-    ge::AttrUtils::SetInt(op2, FE_IMPLY_TYPE, 6);
-    ge::NodePtr node2 = graph->AddNode(op2);
-    GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
+  op2->AddInputDesc("x", tensor_desc);
+  op2->AddOutputDesc("z", tensor_desc);
+  ge::AttrUtils::SetInt(op2, FE_IMPLY_TYPE, 6);
+  ge::NodePtr node2 = graph->AddNode(op2);
+  GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-    Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
-    Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret2 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node2, "tbe-custom");
-    ASSERT_EQ(ret1, fe::SUCCESS);
-    ASSERT_EQ(ret2, fe::SUCCESS);
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  ASSERT_EQ(ret2, fe::SUCCESS);
 
-    vector<int64_t> dim_result6_d({4, 12, 3, 16, 64, 16});
-    vector<int64_t> dim_result_fz({60, 1, 16, 16});
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
-    EXPECT_EQ(op1->GetInputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetInputDesc(0).GetShape().GetDims(), dim_result6_d);
+  vector<int64_t> dim_result6_d({4, 12, 3, 16, 64, 16});
+  vector<int64_t> dim_result_fz({60, 1, 16, 16});
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
+  EXPECT_EQ(op1->GetInputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetInputDesc(0).GetShape().GetDims(), dim_result6_d);
 
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(1).GetFormat()), FORMAT_FRACTAL_Z_3D);
-    EXPECT_EQ(op1->GetInputDesc(1).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetInputDesc(1).GetShape().GetDims(), dim_result_fz);
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(1).GetFormat()), FORMAT_FRACTAL_Z_3D);
+  EXPECT_EQ(op1->GetInputDesc(1).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetInputDesc(1).GetShape().GetDims(), dim_result_fz);
 
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
-    EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d);
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
+  EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d);
 
-    EXPECT_EQ(op2->GetInputDesc(0).GetFormat(), FORMAT_NCDHW);
-    EXPECT_EQ(op2->GetInputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op2->GetInputDesc(0).GetShape().GetDims(), dim_input);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetFormat(), FORMAT_NCDHW);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
+  EXPECT_EQ(op2->GetInputDesc(0).GetFormat(), FORMAT_NCDHW);
+  EXPECT_EQ(op2->GetInputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op2->GetInputDesc(0).GetShape().GetDims(), dim_input);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetFormat(), FORMAT_NCDHW);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
 }
 
 // x: NDCHW, filter:NDCHW, y:NDCHW
-TEST_F(STEST_OP_JUDGE_CONV3D, test_05){
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
-    OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-    //add descriptor
-    vector<int64_t> dim_input({4, 33, 12, 16, 64});
-    GeShape shape(dim_input);
-    GeTensorDesc tensor_desc(shape);
-    tensor_desc.SetOriginFormat(FORMAT_NDHWC);
-    tensor_desc.SetOriginShape(shape);
-    tensor_desc.SetFormat(FORMAT_NDHWC);
-    tensor_desc.SetDataType(DT_FLOAT);
-    op1->AddInputDesc("x", tensor_desc);
+TEST_F(STEST_OP_JUDGE_CONV3D, test_05) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
+  OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
+  // add descriptor
+  vector<int64_t> dim_input({4, 33, 12, 16, 64});
+  GeShape shape(dim_input);
+  GeTensorDesc tensor_desc(shape);
+  tensor_desc.SetOriginFormat(FORMAT_NDHWC);
+  tensor_desc.SetOriginShape(shape);
+  tensor_desc.SetFormat(FORMAT_NDHWC);
+  tensor_desc.SetDataType(DT_FLOAT);
+  op1->AddInputDesc("x", tensor_desc);
 
-    vector<int64_t> dim_weight({3, 3, 3, 4, 5});
-    GeShape weight_shape(dim_weight);
-    GeTensorDesc weight_desc(weight_shape);
-    weight_desc.SetOriginFormat(FORMAT_NDHWC);
-    weight_desc.SetOriginShape(weight_shape);
-    weight_desc.SetFormat(FORMAT_NDHWC);
-    weight_desc.SetDataType(DT_FLOAT);
-    op1->AddInputDesc("y", weight_desc);
+  vector<int64_t> dim_weight({3, 3, 3, 4, 5});
+  GeShape weight_shape(dim_weight);
+  GeTensorDesc weight_desc(weight_shape);
+  weight_desc.SetOriginFormat(FORMAT_NDHWC);
+  weight_desc.SetOriginShape(weight_shape);
+  weight_desc.SetFormat(FORMAT_NDHWC);
+  weight_desc.SetDataType(DT_FLOAT);
+  op1->AddInputDesc("y", weight_desc);
 
-    op1->AddOutputDesc("z", tensor_desc);
-    ge::AttrUtils::SetInt(op1, FE_IMPLY_TYPE, 6);
-    ge::NodePtr node1 = graph->AddNode(op1);
+  op1->AddOutputDesc("z", tensor_desc);
+  ge::AttrUtils::SetInt(op1, FE_IMPLY_TYPE, 6);
+  ge::NodePtr node1 = graph->AddNode(op1);
 
-    op2->AddInputDesc("x", tensor_desc);
-    op2->AddOutputDesc("z", tensor_desc);
-    ge::AttrUtils::SetInt(op2, FE_IMPLY_TYPE, 6);
-    ge::NodePtr node2 = graph->AddNode(op2);
-    GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
+  op2->AddInputDesc("x", tensor_desc);
+  op2->AddOutputDesc("z", tensor_desc);
+  ge::AttrUtils::SetInt(op2, FE_IMPLY_TYPE, 6);
+  ge::NodePtr node2 = graph->AddNode(op2);
+  GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-    Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
-    Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret2 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node2, "tbe-custom");
-    ASSERT_EQ(ret1, fe::SUCCESS);
-    ASSERT_EQ(ret2, fe::SUCCESS);
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  ASSERT_EQ(ret2, fe::SUCCESS);
 
-    vector<int64_t> dim_result6_d({4, 33, 4, 12, 16, 16});
-    vector<int64_t> dim_result_fz({36, 1, 16, 16});
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
-    EXPECT_EQ(op1->GetInputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetInputDesc(0).GetShape().GetDims(), dim_result6_d);
+  vector<int64_t> dim_result6_d({4, 33, 4, 12, 16, 16});
+  vector<int64_t> dim_result_fz({36, 1, 16, 16});
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
+  EXPECT_EQ(op1->GetInputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetInputDesc(0).GetShape().GetDims(), dim_result6_d);
 
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(1).GetFormat()), FORMAT_FRACTAL_Z_3D);
-    EXPECT_EQ(op1->GetInputDesc(1).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetInputDesc(1).GetShape().GetDims(), dim_result_fz);
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetInputDesc(1).GetFormat()), FORMAT_FRACTAL_Z_3D);
+  EXPECT_EQ(op1->GetInputDesc(1).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetInputDesc(1).GetShape().GetDims(), dim_result_fz);
 
-    EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
-    EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d);
+  EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_NDC1HWC0);
+  EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d);
 
-    EXPECT_EQ(op2->GetInputDesc(0).GetFormat(), FORMAT_NDHWC);
-    EXPECT_EQ(op2->GetInputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op2->GetInputDesc(0).GetShape().GetDims(), dim_input);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetFormat(), FORMAT_NDHWC);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
-    EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
+  EXPECT_EQ(op2->GetInputDesc(0).GetFormat(), FORMAT_NDHWC);
+  EXPECT_EQ(op2->GetInputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op2->GetInputDesc(0).GetShape().GetDims(), dim_input);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetFormat(), FORMAT_NDHWC);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
+  EXPECT_EQ(op2->GetOutputDesc(0).GetShape().GetDims(), dim_input);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NDHWC){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NDHWC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("b1", "B");
   OpDescPtr op2 = std::make_shared<OpDesc>("b2", "B");
@@ -499,7 +490,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NDHWC){
   EXPECT_EQ(op4->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d_4);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NCDHW){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NCDHW) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("b1", "B");
   OpDescPtr op2 = std::make_shared<OpDesc>("b2", "B");
@@ -604,7 +595,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_expand_dim_NCDHW){
   EXPECT_EQ(op4->GetOutputDesc(0).GetShape().GetDims(), dim_result6_d_4);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NCDHW){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NCDHW) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "BatchNormV9");
   // x w b c ac bc
@@ -707,7 +698,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NCDHW){
   EXPECT_EQ(op1->GetInputDesc(5).GetShape().GetDims(), dim_result_bc);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NDHWC){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NDHWC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "BatchNormV9");
   // x w b c ac bc
@@ -810,7 +801,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_NDHWC){
   EXPECT_EQ(op1->GetInputDesc(5).GetShape().GetDims(), dim_result_bc);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWCN){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWCN) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "BatchNormV9");
   // x w b c ac bc
@@ -913,7 +904,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWCN){
   EXPECT_EQ(op1->GetInputDesc(5).GetShape().GetDims(), dim_result_bc);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWNC){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWNC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "BatchNormV9");
   // x w b c ac bc
@@ -1016,11 +1007,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_opjudge_update_shape_DHWNC){
   EXPECT_EQ(op1->GetInputDesc(5).GetShape().GetDims(), dim_result_bc);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_01){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, -1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> range1({{1, 33}, {1, 12}, {1, 16}, {1, 64}});
   GeShape shape(dim_input);
@@ -1089,11 +1080,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_01){
   EXPECT_EQ(GetShapeRange(op2->GetOutputDesc(0)), range1);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_02){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3DTranspose", "Conv3DTranspose");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, -1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> range1({{1, 33}, {1, 12}, {1, 16}, {1, 64}});
   GeShape shape(dim_input);
@@ -1162,11 +1153,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_02){
   EXPECT_EQ(GetShapeRange(op2->GetOutputDesc(0)), range1);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_03){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, -1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> range1({{1, 33}, {1, 12}, {1, 16}, {1, 64}});
   GeShape shape(dim_input);
@@ -1235,11 +1226,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_03){
   EXPECT_EQ(GetShapeRange(op2->GetOutputDesc(0)), range1);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_04){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_04) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, -1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> range1({{1, 33}, {1, 12}, {1, 16}, {1, 64}});
   GeShape shape(dim_input);
@@ -1271,7 +1262,7 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_04){
   ge::AttrUtils::SetInt(op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr node2 = graph->AddNode(op2);
   GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
-  
+
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
@@ -1308,11 +1299,11 @@ TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_04){
   EXPECT_EQ(GetShapeRange(op2->GetOutputDesc(0)), range1);
 }
 
-TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_05){
+TEST_F(STEST_OP_JUDGE_CONV3D, test_unknown_shape_05) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("Conv3D", "Conv3D");
   OpDescPtr op2 = std::make_shared<OpDesc>("A1", "A");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({4, -1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> range1({{1, 33}, {1, 12}, {1, 16}, {1, 64}});
   GeShape shape(dim_input);
@@ -1396,14 +1387,16 @@ TEST_F(STEST_OP_JUDGE_CONV3D, update_newshape_and_format) {
   uint32_t index;
   ge::GeTensorDesc op_input_or_output_desc;
   bool is_input;
-  UpdateInfo update_info = {op_kernel_info_ptr, input_or_output_info_ptr, matched_index, node_ptr, index, op_input_or_output_desc, is_input}; 
-  ge::Format op_kernel_format = ge::FORMAT_FRACTAL_Z; 
+  UpdateInfo update_info = {
+      op_kernel_info_ptr, input_or_output_info_ptr, matched_index, node_ptr, index, op_input_or_output_desc, is_input};
+  ge::Format op_kernel_format = ge::FORMAT_FRACTAL_Z;
   int64_t group = 65536;
-  ge::GeShape original_shape; 
+  ge::GeShape original_shape;
   ge::GeShape new_shape;
   std::string op_type;
   std::string op_name;
-  Status ret = fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
+  Status ret =
+      fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
   EXPECT_EQ(ret, ge::FAILED);
 }
 
@@ -1428,14 +1421,16 @@ TEST_F(STEST_OP_JUDGE_CONV3D, update_newshape_and_format_suc) {
   uint32_t index;
   ge::GeTensorDesc op_input_or_output_desc;
   bool is_input;
-  UpdateInfo update_info = {op_kernel_info_ptr, in_desc_ptr, matched_index, node_ptr, index, op_input_or_output_desc, is_input}; 
-  ge::Format op_kernel_format = ge::FORMAT_FRACTAL_Z; 
+  UpdateInfo update_info = {op_kernel_info_ptr,      in_desc_ptr, matched_index, node_ptr, index,
+                            op_input_or_output_desc, is_input};
+  ge::Format op_kernel_format = ge::FORMAT_FRACTAL_Z;
   int64_t group = 32;
-  ge::GeShape original_shape; 
+  ge::GeShape original_shape;
   ge::GeShape new_shape;
   std::string op_type;
   std::string op_name;
-  Status ret = fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
+  Status ret =
+      fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
   ge::Format new_format = update_info.op_input_or_output_desc.GetFormat();
   int32_t sub_format = ge::GetSubFormat(new_format);
   EXPECT_EQ(sub_format, 32);
@@ -1463,14 +1458,16 @@ TEST_F(STEST_OP_JUDGE_CONV3D, update_newshape_and_format_fail) {
   uint32_t index;
   ge::GeTensorDesc op_input_or_output_desc;
   bool is_input;
-  UpdateInfo update_info = {op_kernel_info_ptr, in_desc_ptr, matched_index, node_ptr, index, op_input_or_output_desc, is_input};
+  UpdateInfo update_info = {op_kernel_info_ptr,      in_desc_ptr, matched_index, node_ptr, index,
+                            op_input_or_output_desc, is_input};
   ge::Format op_kernel_format = ge::FORMAT_FRACTAL_Z;
   int64_t group = 2;
   ge::GeShape original_shape;
   ge::GeShape new_shape;
   std::string op_type;
   std::string op_name;
-  Status ret = fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
+  Status ret =
+      fe::UpdateNewShapeAndFormat(update_info, op_kernel_format, group, original_shape, new_shape, op_type, op_name);
   ge::Format new_format = update_info.op_input_or_output_desc.GetFormat();
   EXPECT_EQ(ret, ge::FAILED);
 }

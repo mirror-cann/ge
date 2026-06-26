@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -215,7 +215,7 @@ struct MemConflictShareGraph {
   static void SetShapeForNodesInputs(ComputeGraphPtr &graph, const std::vector<int64_t> &shape,
                                      const std::vector<std::string> &names);
   static void SetShapeForNodesOutputs(ComputeGraphPtr &graph, const std::vector<int64_t> &shape,
-                                     const std::vector<std::string> &names);
+                                      const std::vector<std::string> &names);
   static void SetStreamForNodes(ComputeGraphPtr &graph, int64_t stream_id, const std::vector<std::string> &names);
 
   /*
@@ -224,7 +224,7 @@ struct MemConflictShareGraph {
   static Status TopologicalSortingMock(const ComputeGraphPtr &graph, const std::vector<std::string> &node_names);
 };
 struct DebugLog {
-  DebugLog () {
+  DebugLog() {
     dlog_setlevel(GE_MODULE_NAME, 0, 0);
   }
   ~DebugLog() {
@@ -232,7 +232,7 @@ struct DebugLog {
   }
 };
 struct InfoLog {
-  InfoLog () {
+  InfoLog() {
     dlog_setlevel(GE_MODULE_NAME, 1, 0);
   }
   ~InfoLog() {
@@ -250,8 +250,7 @@ struct OptionSetter {
     ge::GetThreadLocalContext().SetGlobalOption(new_options);
   }
   explicit OptionSetter(std::initializer_list<std::pair<const std::string, std::string>> options)
-    : OptionSetter(std::map<std::string, std::string>(options)) {
-  }
+      : OptionSetter(std::map<std::string, std::string>(options)) {}
   ~OptionSetter() {
     GetThreadLocalContext().SetGlobalOption(origin_options);
   }

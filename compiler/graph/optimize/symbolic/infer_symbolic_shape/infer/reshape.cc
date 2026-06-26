@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,8 @@ graphStatus GetConstInt(const Expression &expr, DataType dt, int64_t &value) {
   return ge::GRAPH_SUCCESS;
 }
 
-graphStatus ReshapeInferCommon(const gert::InferSymbolShapeContext *context, const gert::SymbolShape *in_shape, gert::SymbolShape *out_shape,
-                               const gert::SymbolTensor *shape_tensor, DataType dt) {
+graphStatus ReshapeInferCommon(const gert::InferSymbolShapeContext *context, const gert::SymbolShape *in_shape,
+                               gert::SymbolShape *out_shape, const gert::SymbolTensor *shape_tensor, DataType dt) {
   auto reshape_dim_num = shape_tensor->GetSymbolicValue()->size();
   size_t unknown_dim_idx = std::numeric_limits<size_t>::max();
   // expr可能是常量或者符号

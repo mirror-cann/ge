@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,13 +46,11 @@ Status CalcRangeSize(const vector<int64_t> &range, int64_t &range_size, const ui
   FFTS_MUL_OVERFLOW(range_size, static_cast<int64_t>(data_type_size), range_size);
   return SUCCESS;
 }
-}
+}  // namespace
 
-Status ParamCalculator::CalcAutoThreadInput(const ge::NodePtr &node,
-                                            vector<vector<vector<int64_t>>> &tensor_slice,
+Status ParamCalculator::CalcAutoThreadInput(const ge::NodePtr &node, vector<vector<vector<int64_t>>> &tensor_slice,
                                             vector<uint64_t> &task_addr_offset,
-                                            std::vector<uint32_t> &input_tensor_indexes)
-{
+                                            std::vector<uint32_t> &input_tensor_indexes) {
   if (tensor_slice.empty()) {
     FE_LOGE("[FFTSPlus][CalcAutoThreadInput]Input tensor slice is empty.");
     return FAILED;
@@ -71,7 +69,7 @@ Status ParamCalculator::CalcAutoThreadInput(const ge::NodePtr &node,
       task_addr_offset.emplace_back(0);
       continue;
     }
-     if (tensor_slice.size() <= 1) {
+    if (tensor_slice.size() <= 1) {
       FFTS_LOGI("[FFTSPlus][CalcAutoThreadInput]Anchor index:%u slice num:1.", anchor_index);
       task_addr_offset.emplace_back(0);
       continue;
@@ -83,8 +81,8 @@ Status ParamCalculator::CalcAutoThreadInput(const ge::NodePtr &node,
     uint32_t data_type_size = 0U;
     (void)GetDataTypeSize(tensor_desc_ptr->GetDataType(), data_type_size);
     if (anchor_index >= tensor_slice[0U].size()) {
-      FFTS_LOGE("[FFTSPlus][CalcAutoThreadInput] Anchor index: %u exceeds slice number: %zu.",
-                anchor_index, tensor_slice[0].size());
+      FFTS_LOGE("[FFTSPlus][CalcAutoThreadInput] Anchor index: %u exceeds slice number: %zu.", anchor_index,
+                tensor_slice[0].size());
       return FAILED;
     }
 
@@ -100,8 +98,7 @@ Status ParamCalculator::CalcAutoThreadInput(const ge::NodePtr &node,
   return SUCCESS;
 }
 
-Status ParamCalculator::CalcAutoThreadOutput(const ge::NodePtr &node,
-                                             vector<vector<vector<int64_t>>> &tensor_slice,
+Status ParamCalculator::CalcAutoThreadOutput(const ge::NodePtr &node, vector<vector<vector<int64_t>>> &tensor_slice,
                                              vector<uint64_t> &task_addr_offset,
                                              std::vector<uint32_t> &output_tensor_indexes) {
   FFTS_CHECK(tensor_slice.empty(), FE_LOGE("Output tensor slice is empty!"), return FAILED);
@@ -128,8 +125,8 @@ Status ParamCalculator::CalcAutoThreadOutput(const ge::NodePtr &node,
     }
     uint32_t data_type_size = 0U;
     if (GetDataTypeSize(tensor_desc_ptr->GetDataType(), data_type_size) != SUCCESS) {
-        FFTS_LOGE("[FFTSPlus][CalcAutoThreadOutput] Node:%s anchor index: %u data type: %d is not supported.",
-                  node->GetName().c_str(), anchor_index, tensor_desc_ptr->GetDataType());
+      FFTS_LOGE("[FFTSPlus][CalcAutoThreadOutput] Node:%s anchor index: %u data type: %d is not supported.",
+                node->GetName().c_str(), anchor_index, tensor_desc_ptr->GetDataType());
       return FAILED;
     }
 
@@ -153,8 +150,8 @@ Status ParamCalculator::CalcAutoThreadOutput(const ge::NodePtr &node,
     slice_tensor_size = std::max(thread_offset, slice_tensor_size);
 
     (void)ge::AttrUtils::SetInt(tensor_desc_ptr, ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_SIZE, slice_tensor_size);
-    FFTS_LOGD("Output Index: %u, thread_offset: %ld, slice_tensor_size: %ld.",
-              anchor_index, thread_offset, slice_tensor_size);
+    FFTS_LOGD("Output Index: %u, thread_offset: %ld, slice_tensor_size: %ld.", anchor_index, thread_offset,
+              slice_tensor_size);
 
     task_addr_offset.emplace_back(thread_offset);
   }

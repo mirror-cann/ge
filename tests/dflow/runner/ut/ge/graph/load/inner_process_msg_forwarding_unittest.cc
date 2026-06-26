@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,8 @@ using namespace testing;
 
 namespace ge {
 namespace {
-Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
-                                   rtMbufPtr_t *m_buf, int32_t timeout) {
-  if (queue_id == 100) { // status
+Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) {
+  if (queue_id == 100) {  // status
     domi::SubmodelStatus submodel_status;
     auto queue_status = submodel_status.add_queue_statuses();
     domi::QueueAttrs *queue_attrs = queue_status->mutable_queue_attrs();
@@ -53,7 +52,7 @@ Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
     EXPECT_EQ(submodel_status.SerializeToArray(input_buffer, static_cast<int32_t>(req_msg_mbuf_size)), true);
     *m_buf = req_msg_mbuf;
     return SUCCESS;
-  } else if (queue_id == 102) { // exception
+  } else if (queue_id == 102) {  // exception
     domi::SubmodelStatus submodel_status;
     submodel_status.set_msg_type(1);
     auto *exception_info = submodel_status.mutable_exception();
@@ -116,31 +115,32 @@ class MockRuntimeFailed : public RuntimeStub {
     mem_bufs_.clear();
   }
 
- public :
+ public:
   bool get_buffer_error = false;
   bool get_size_error = false;
+
  private:
   std::mutex mu_;
   uint8_t data_[128] = {};
   std::vector<void *> mem_bufs_;
 };
-}
+}  // namespace
 class InnerProcessMsgForwardingTest : public testing::Test {
  protected:
   class MockExchangeService : public ExchangeService {
    public:
-    Status CreateQueue(int32_t device_id,
-                       const string &name,
-                       const MemQueueAttr &mem_queue_attr,
+    Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                        uint32_t &queue_id) override {
       queue_id = queue_id_gen_++;
       return SUCCESS;
     }
     MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, const void *, size_t, const ExchangeService::ControlInfo &));
-    MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, size_t, const ExchangeService::FillFunc &, const ExchangeService::ControlInfo &));
-    MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void * , size_t, ExchangeService::ControlInfo &));
-    MOCK_METHOD5(DequeueMbufTensor, Status(int32_t, uint32_t, std::shared_ptr<AlignedPtr> &, size_t, ExchangeService::ControlInfo &));
-    MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor & , ExchangeService::ControlInfo &));
+    MOCK_METHOD5(Enqueue, Status(int32_t, uint32_t, size_t, const ExchangeService::FillFunc &,
+                                 const ExchangeService::ControlInfo &));
+    MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void *, size_t, ExchangeService::ControlInfo &));
+    MOCK_METHOD5(DequeueMbufTensor,
+                 Status(int32_t, uint32_t, std::shared_ptr<AlignedPtr> &, size_t, ExchangeService::ControlInfo &));
+    MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor &, ExchangeService::ControlInfo &));
     MOCK_METHOD4(DequeueMbuf, Status(int32_t, uint32_t, rtMbufPtr_t *, int32_t));
 
     void ResetQueueInfo(const int32_t device_id, const uint32_t queue_id) override {
@@ -167,8 +167,7 @@ class InnerProcessMsgForwardingTest : public testing::Test {
 
   class MockModelDeployer : public ModelDeployer {
    public:
-    Status DeployModel(const FlowModelPtr &flow_model,
-                       DeployResult &deploy_result) override {
+    Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
       return SUCCESS;
     }
     Status Undeploy(uint32_t model_id) override {
@@ -209,6 +208,7 @@ class InnerProcessMsgForwardingTest : public testing::Test {
     status_messages_queue_.Stop();
     RuntimeStub::Reset();
   }
+
  public:
   BlockingQueue<domi::SubmodelStatus> status_messages_queue_;
 };
@@ -218,7 +218,7 @@ TEST_F(InnerProcessMsgForwardingTest, InitAndFinalize) {
   EXPECT_EQ(forwarding.Initialize({}), FAILED);
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 1;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Finalize();
@@ -228,17 +228,17 @@ TEST_F(InnerProcessMsgForwardingTest, RegAndRunSuccess) {
   InnerProcessMsgForwarding forwarding;
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 100;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Start();
-  auto func = [this](const domi::SubmodelStatus& request) {
+  auto func = [this](const domi::SubmodelStatus &request) {
     GE_CHK_BOOL_RET_STATUS(status_messages_queue_.Push(std::move(request)), INTERNAL_ERROR, "Failed to enqueue input");
     return SUCCESS;
   };
   forwarding.RegisterCallBackFunc(StatusQueueMsgType::STATUS, func);
   domi::SubmodelStatus submodel_status;
-  while(true) {
+  while (true) {
     EXPECT_EQ(status_messages_queue_.Pop(submodel_status), true);
     forwarding.Finalize();
     status_messages_queue_.Clear();
@@ -254,11 +254,11 @@ TEST_F(InnerProcessMsgForwardingTest, RunRegNotFound) {
   InnerProcessMsgForwarding forwarding;
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 102;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Start();
-  auto func = [this](const domi::SubmodelStatus& request) {
+  auto func = [this](const domi::SubmodelStatus &request) {
     GE_CHK_BOOL_RET_STATUS(status_messages_queue_.Push(std::move(request)), INTERNAL_ERROR, "Failed to enqueue input");
     return SUCCESS;
   };
@@ -276,7 +276,7 @@ TEST_F(InnerProcessMsgForwardingTest, RunRegGetBufferError) {
   InnerProcessMsgForwarding forwarding;
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 1;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Start();
@@ -291,7 +291,7 @@ TEST_F(InnerProcessMsgForwardingTest, RunRegGetSizeError) {
   InnerProcessMsgForwarding forwarding;
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 1;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Start();
@@ -304,11 +304,11 @@ TEST_F(InnerProcessMsgForwardingTest, RunRegExecuteFuncError) {
   InnerProcessMsgForwarding forwarding;
   DeployQueueAttr queue_attr;
   queue_attr.queue_id = 102;
-  auto &exchange_service = (MockExchangeService &) ExecutionRuntime::GetInstance()->GetExchangeService();
+  auto &exchange_service = (MockExchangeService &)ExecutionRuntime::GetInstance()->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_EQ(forwarding.Initialize({queue_attr}), SUCCESS);
   forwarding.Start();
-  auto func = [this](const domi::SubmodelStatus& request) {
+  auto func = [this](const domi::SubmodelStatus &request) {
     status_messages_queue_.Stop();
     GE_CHK_BOOL_RET_STATUS(status_messages_queue_.Push(std::move(request)), INTERNAL_ERROR, "Failed to enqueue input");
     return SUCCESS;

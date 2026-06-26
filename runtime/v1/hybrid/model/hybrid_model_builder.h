@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,8 +51,7 @@ class HybridModelBuilder {
                                      const InDataAnchorPtr &in_data_anchor);
   static Status UnfoldSubgraph(const ComputeGraphPtr &root_graph, const ComputeGraphPtr &parent_graph,
                                ComputeGraph &sub_graph, const uint32_t depth = 0U);
-  static Status BuildInputMapping(GraphItem &graph_item,
-                                  const std::vector<NodeItem *> &input_nodes,
+  static Status BuildInputMapping(GraphItem &graph_item, const std::vector<NodeItem *> &input_nodes,
                                   const bool is_root_graph);
   static Status ResolveRefIo(NodeItem &node_item);
   Status InitOverflowAddr() const;
@@ -72,15 +71,12 @@ class HybridModelBuilder {
   Status CollectParallelGroups(NodeItem &node_item);
   Status ParseDependentInputNodes(NodeItem &node_item);
   Status ParseDependentInData(const NodeItem &node_item, std::set<NodePtr> &dependent_for_execution) const;
-  Status ParseDependencies(NodeItem &node_item,
-                           std::set<NodePtr> &dependent_for_shape_inference);
-  Status ParseDependentForFusedSubgraph(const NodeItem &node_item,
-                                        std::set<ge::NodePtr> &dependencies) const;
+  Status ParseDependencies(NodeItem &node_item, std::set<NodePtr> &dependent_for_shape_inference);
+  Status ParseDependentForFusedSubgraph(const NodeItem &node_item, std::set<ge::NodePtr> &dependencies) const;
   Status ParseDependentByParallelGroup();
   Status IndexTaskDefs();
   Status IndexTaskDefs(const ComputeGraphPtr &sub_graph, const GeModelPtr &ge_model);
-  static void LoadTbeKernelBinToOpDesc(const ModelTaskType task_type, const GeModelPtr &ge_model,
-                                       const NodePtr &node);
+  static void LoadTbeKernelBinToOpDesc(const ModelTaskType task_type, const GeModelPtr &ge_model, const NodePtr &node);
   static void LoadSgtKernelBinToOpDesc(const OpDesc &op_desc, const ComputeGraphPtr &sub_graph,
                                        const GeModelPtr &ge_model);
   Status IndexSpecialNodes();
@@ -93,9 +89,7 @@ class HybridModelBuilder {
   Status AssignUninitializedConstantOps() const;
   Status InitConstantOps() const;
   Status InitVariableTensors() const;
-  void *GetOrCreateVarMem(const std::string &var_name,
-                          const OpDescPtr &var_desc,
-                          const rtMemType_t memory_type) const;
+  void *GetOrCreateVarMem(const std::string &var_name, const OpDescPtr &var_desc, const rtMemType_t memory_type) const;
   Status LoadDynamicSubgraph(const ComputeGraphPtr &graph, const bool is_root_graph);
   Status LoadDynamicNodeItem(GraphItem &graph_item, const NodePtr &node, std::vector<NodeItem *> &input_nodes,
                              std::map<size_t, std::pair<uint32_t, uint32_t>> &profiling_nodes);
@@ -173,4 +167,4 @@ class HybridModelBuilder {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_MODEL_HYBRID_MODEL_BUILDER_H_
+#endif  // GE_HYBRID_MODEL_HYBRID_MODEL_BUILDER_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,8 @@ using namespace fe;
 using namespace ge;
 
 using GenerateCMOTypeBasePtr = std::shared_ptr<GenerateCMOTypeBase>;
-class GenerateCmoTypeBaseTest : public testing::Test{
-protected:
+class GenerateCmoTypeBaseTest : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     cout << "GenerateCmoTypeBaseTest SetUp" << endl;
   }
@@ -39,21 +39,20 @@ protected:
   static void TearDownTestCase() {
     cout << "GenerateCmoTypeBaseTest TearDwon" << endl;
   }
-  
+
   virtual void SetUp() {
     cmo_type_base_ = std::make_shared<GenerateCMOTypeBase>();
   }
 
-  virtual void TearDown() {
-  }
-  
-public:
+  virtual void TearDown() {}
+
+ public:
   GenerateCMOTypeBasePtr cmo_type_base_;
 };
 
 TEST_F(GenerateCmoTypeBaseTest, GetInputTensorSize) {
   OpDescPtr op_desc_ptr = make_shared<OpDesc>("Add", "Add");
-  vector<int64_t> data_dims={1, 1, 1};
+  vector<int64_t> data_dims = {1, 1, 1};
   GeTensorDesc data_tensor_desc1(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
   ge::TensorUtils::SetSize(data_tensor_desc1, 32);
   GeTensorDesc data_tensor_desc2(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
@@ -67,7 +66,7 @@ TEST_F(GenerateCmoTypeBaseTest, GetInputTensorSize) {
 
 TEST_F(GenerateCmoTypeBaseTest, GetOutputTensorSize) {
   OpDescPtr op_desc_ptr = make_shared<OpDesc>("Add", "Add");
-  vector<int64_t> data_dims={1, 1, 1};
+  vector<int64_t> data_dims = {1, 1, 1};
   GeTensorDesc data_tensor_desc1(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
   ge::TensorUtils::SetSize(data_tensor_desc1, 32);
   GeTensorDesc data_tensor_desc2(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
@@ -109,7 +108,7 @@ TEST_F(GenerateCmoTypeBaseTest, ReadIsLifeCycleEndFalse) {
   vector<int64_t> data_dims = {2};
   GeTensorDesc data_tensor_desc(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
   op_desc_ptr->AddInputDesc("input1", data_tensor_desc);
-  
+
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   NodePtr node = graph->AddNode(op_desc_ptr);
   bool res = cmo_type_base_->ReadIsLifeCycleEnd(node, node->GetInDataAnchor(0));

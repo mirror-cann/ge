@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,7 @@ class HcclMemcpyPass : public GraphPass {
   Status Run(ge::ComputeGraphPtr graph);
 
  private:
-  OpDescPtr CreateIdentityOpDesc(const OutDataAnchorPtr &out_data_anchor,
-                                 const InDataAnchorPtr &hccl_in_anchor) const;
+  OpDescPtr CreateIdentityOpDesc(const OutDataAnchorPtr &out_data_anchor, const InDataAnchorPtr &hccl_in_anchor) const;
 
   NodePtr CreateAssignNode(const ComputeGraphPtr &graph, const OutDataAnchorPtr &out_data_anchor,
                            const InDataAnchorPtr &hccl_in_anchor) const;
@@ -32,16 +31,14 @@ class HcclMemcpyPass : public GraphPass {
   Status ModifyEdgeConnection(const ComputeGraphPtr &graph, const OutDataAnchorPtr &src_out_anchor,
                               const InDataAnchorPtr &hccl_in_anchor) const;
 
-  Status InsertIdentityBeforeHccl(const OutDataAnchorPtr &src_out_anchor,
-                                  const InDataAnchorPtr &hccl_in_anchor) const;
+  Status InsertIdentityBeforeHccl(const OutDataAnchorPtr &src_out_anchor, const InDataAnchorPtr &hccl_in_anchor) const;
 
-  Status InsertAssignAfterBroadcastIfNeed(const ComputeGraphPtr &graph,
-                                          const OutDataAnchorPtr &var_out_anchor,
+  Status InsertAssignAfterBroadcastIfNeed(const ComputeGraphPtr &graph, const OutDataAnchorPtr &var_out_anchor,
                                           const InDataAnchorPtr &hccl_in_anchor) const;
 
   Status MutableInputProcess(const ComputeGraphPtr &graph, const NodePtr node) const;
 
-  bool NotAllowedModifyMem(const std::string& node_type) const;
+  bool NotAllowedModifyMem(const std::string &node_type) const;
 };
 }  // namespace ge
 

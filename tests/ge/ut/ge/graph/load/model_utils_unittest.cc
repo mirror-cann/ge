@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -204,7 +204,7 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_tensor_mem_type) {
   AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
   op_desc->SetInputOffset({0x10001000, 0x10002000, 0x10004000});
 
-  { // RT_MEMORY_L1
+  {  // RT_MEMORY_L1
     auto tensor_desc = op_desc->MutableInputDesc(0);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 64);
@@ -212,19 +212,19 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_tensor_mem_type) {
   }
 
   uint8_t ts_mem_base_addr = 0;
-  { // RT_MEMORY_TS
+  {  // RT_MEMORY_TS
     auto tensor_desc = op_desc->MutableInputDesc(1);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 64);
     TensorUtils::SetDataOffset(*tensor_desc, 0x10002000);
 
     TsMemMall &ts_mem_mall = *runtime_param.ts_mem_mall;
-    ts_mem_mall.mem_store_size_[0x10002000] = &ts_mem_base_addr;   // offset is 0
+    ts_mem_mall.mem_store_size_[0x10002000] = &ts_mem_base_addr;  // offset is 0
     ts_mem_mall.mem_store_addr_[&ts_mem_base_addr] = 0x10002000;
   }
 
   uint8_t p2p_mem_base_addr = 0;
-  { // RT_MEMORY_P2P_DDR
+  {  // RT_MEMORY_P2P_DDR
     auto tensor_desc = op_desc->MutableInputDesc(2);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 32);
@@ -271,9 +271,12 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_tensor_mem_type_with_variable) {
   op_desc->UpdateOutputDesc(0, tensor_desc);
   op_desc->SetInputOffset({0x800000000, 0x800000600});
   op_desc->SetOutputOffset({0x800000c00});
-  VarManager::Instance(runtime_param.session_id)->AssignVarMem("add_in_0", op_desc, op_desc->GetInputDesc(0), RT_MEMORY_HBM);
-  VarManager::Instance(runtime_param.session_id)->AssignVarMem("add_in_1", op_desc, op_desc->GetInputDesc(1), RT_MEMORY_HBM);
-  VarManager::Instance(runtime_param.session_id)->AssignVarMem("add_out_0", op_desc, op_desc->GetOutputDesc(0), RT_MEMORY_HBM);
+  VarManager::Instance(runtime_param.session_id)
+      ->AssignVarMem("add_in_0", op_desc, op_desc->GetInputDesc(0), RT_MEMORY_HBM);
+  VarManager::Instance(runtime_param.session_id)
+      ->AssignVarMem("add_in_1", op_desc, op_desc->GetInputDesc(1), RT_MEMORY_HBM);
+  VarManager::Instance(runtime_param.session_id)
+      ->AssignVarMem("add_out_0", op_desc, op_desc->GetOutputDesc(0), RT_MEMORY_HBM);
   const vector<void *> input_data_addr = ModelUtils::GetInputDataAddrs(runtime_param, op_desc);
   EXPECT_EQ(input_data_addr.size(), 2);
 
@@ -421,7 +424,7 @@ TEST_F(UtestModelUtils, GetOutputDataAddrs_with_optional_output) {
   }
 
   std::vector<uint64_t> mem_type;
-  vector<uint64_t > output_data_addr = ModelUtils::GetOutputAddrsValue(runtime_param, op_desc, mem_type, true);
+  vector<uint64_t> output_data_addr = ModelUtils::GetOutputAddrsValue(runtime_param, op_desc, mem_type, true);
   EXPECT_EQ(output_data_addr.size(), 5);
   EXPECT_EQ(output_data_addr.at(0), 0x10001000);
   EXPECT_EQ(output_data_addr.at(1), PtrToValue(&ts_mem_base_addr));
@@ -484,7 +487,7 @@ TEST_F(UtestModelUtils, GetWorkspaceDataAddrs_tensor_mem_type) {
   const vector<int32_t> workspace_no_reuse_scope{kSessionNoReuse, kSessionNoReuse, kSessionNoReuse, kSessionNoReuse};
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
   uint8_t p2p_mem_base_addr = 0;
-  { // RT_MEMORY_P2P_DDR
+  {  // RT_MEMORY_P2P_DDR
     MemInfo &mem_info = runtime_param.memory_infos[RT_MEMORY_P2P_DDR];
     mem_info.memory_size = 0x20002000u;
     mem_info.logic_memory_base = 0u;
@@ -493,7 +496,7 @@ TEST_F(UtestModelUtils, GetWorkspaceDataAddrs_tensor_mem_type) {
   }
 
   uint8_t session_scope_mem_base_addr = 0;
-  { // kSessionScopeMemory
+  {  // kSessionScopeMemory
     MemInfo &mem_info = runtime_param.memory_infos[0x100000000u | RT_MEMORY_HBM];
     mem_info.memory_size = 0x20002000u;
     mem_info.logic_memory_base = 0u;
@@ -693,26 +696,26 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_with_optional_input_placeholder) {
   AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
   op_desc->SetInputOffset({0x10001000, 0x10002000, 0x10003000});
 
-  { // input0: valid (HBM)
+  {  // input0: valid (HBM)
     auto tensor_desc = op_desc->MutableInputDesc(0);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 64);
     TensorUtils::SetDataOffset(*tensor_desc, 0x10001000);
   }
 
-  { // input1: valid (L1)
+  {  // input1: valid (L1)
     auto tensor_desc = op_desc->MutableInputDesc(1);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 64);
     TensorUtils::SetDataOffset(*tensor_desc, 0x10002000);
   }
 
-  { // input2: optional placeholder
+  {  // input2: optional placeholder
     auto tensor_desc = op_desc->MutableInputDesc(2);
     EXPECT_EQ(tensor_desc, nullptr);
   }
 
-  { // input3: valid (HBM), after optional — this is where index misalignment would show
+  {  // input3: valid (HBM), after optional — this is where index misalignment would show
     auto tensor_desc = op_desc->MutableInputDesc(3);
     EXPECT_NE(tensor_desc, nullptr);
     TensorUtils::SetSize(*tensor_desc, 64);
@@ -728,8 +731,8 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_with_optional_input_placeholder) {
   const vector<uint64_t> input_data_addr = ModelUtils::GetInputAddrsValue(runtime_param, op_desc, mem_type, true);
   EXPECT_EQ(input_data_addr.size(), 4);
   EXPECT_EQ(input_data_addr.at(0), PtrToValue(&mem_base_addr) + 0x10001000);  // HBM
-  EXPECT_EQ(input_data_addr.at(1), 0x10002000);  // L1
-  EXPECT_EQ(input_data_addr.at(2), 0);           // optional placeholder
+  EXPECT_EQ(input_data_addr.at(1), 0x10002000);                               // L1
+  EXPECT_EQ(input_data_addr.at(2), 0);                                        // optional placeholder
   EXPECT_EQ(input_data_addr.at(3), PtrToValue(&mem_base_addr) + 0x10003000);  // HBM (after optional)
   EXPECT_EQ(mem_type.size(), 4);
   EXPECT_EQ(mem_type.at(0), RT_MEMORY_HBM);
@@ -740,7 +743,7 @@ TEST_F(UtestModelUtils, GetInputDataAddrs_with_optional_input_placeholder) {
   // has_optional_addr=false: 3 addresses, optional skipped, no index shift
   mem_type.clear();
   const vector<uint64_t> input_data_addr_no_placeholder =
-    ModelUtils::GetInputAddrsValue(runtime_param, op_desc, mem_type, false);
+      ModelUtils::GetInputAddrsValue(runtime_param, op_desc, mem_type, false);
   EXPECT_EQ(input_data_addr_no_placeholder.size(), 3);
   EXPECT_EQ(mem_type.at(0), RT_MEMORY_HBM);
   EXPECT_EQ(mem_type.at(1), RT_MEMORY_L1);

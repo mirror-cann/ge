@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,18 +18,48 @@
 
 namespace {
 constexpr std::array<uint8_t, 24> kHiF8ExpToMantissaWidth = {{
-  3, 3, 3, 3,                   // [0, 3]
-  2, 2, 2, 2,                   // [4, 7]
-  1, 1, 1, 1, 1, 1, 1, 1,       // [8, 15]
-  0, 0, 0, 0, 0, 0, 0,          // [16, 22]
-  static_cast<uint8_t>(-1),     // [23]
+    3,
+    3,
+    3,
+    3,  // [0, 3]
+    2,
+    2,
+    2,
+    2,  // [4, 7]
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,  // [8, 15]
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,                         // [16, 22]
+    static_cast<uint8_t>(-1),  // [23]
 }};
 constexpr std::array<uint8_t, 16> kHiF8ExpToDot = {{
-  0b0001,                                                               // [0]
-  0b0010,                                                               // [1]
-  0b0100, 0b0100,                                                       // [2, 3]
-  0b1000, 0b1000, 0b1000, 0b1000,                                       // [4, 7]
-  0b1100, 0b1100, 0b1100, 0b1100, 0b1100, 0b1100, 0b1100, 0b1100,       // [8, 15]
+    0b0001,  // [0]
+    0b0010,  // [1]
+    0b0100,
+    0b0100,  // [2, 3]
+    0b1000,
+    0b1000,
+    0b1000,
+    0b1000,  // [4, 7]
+    0b1100,
+    0b1100,
+    0b1100,
+    0b1100,
+    0b1100,
+    0b1100,
+    0b1100,
+    0b1100,  // [8, 15]
 }};
 
 constexpr int8_t kHiF8DmlExpMax = -16;
@@ -68,14 +98,13 @@ uint8_t EncodeHiF8(int8_t exp, uint8_t mantissa) {
   };
   GE_ASSERT(mag < sizeof(kHiF8ExpToDot));
   return static_cast<uint8_t>(kHiF8ExpToDot[mag] << kHiF8DotOffset) |
-         static_cast<uint8_t>(encode_em(mag, exp < 0) << kHiF8ExpToMantissaWidth[mag]) |
-         mantissa;
+         static_cast<uint8_t>(encode_em(mag, exp < 0) << kHiF8ExpToMantissaWidth[mag]) | mantissa;
 }
 
 enum class IeeeType : int8_t {
   kZero,
   kNaN,
-  kInf,
+  kind,
   kOrdinary,
 };
 
@@ -94,7 +123,7 @@ IeeeType UnpackIeeeFp(uint32_t bits, uint8_t *sign_bit, int8_t *exp, uint32_t *m
 
   // Handle NaN or Inf.
   if (static_cast<uint8_t>(*exp) == (1U << (exp_bits - 1U))) {
-    return *mantissa != 0 ? IeeeType::kNaN : IeeeType::kInf;
+    return *mantissa != 0 ? IeeeType::kNaN : IeeeType::kind;
   }
   // Handle IEEE subnormal values.
   if (*exp == -bias && *mantissa != 0) {
@@ -122,7 +151,7 @@ uint8_t HiF8FromIeeeBits(uint32_t bits) {
     return 0;
   } else if (type == IeeeType::kNaN) {
     return 0b10000000;
-  } else if (type == IeeeType::kInf || (type == IeeeType::kOrdinary && exp > kHiF8NmlExpMax)) {
+  } else if (type == IeeeType::kind || (type == IeeeType::kOrdinary && exp > kHiF8NmlExpMax)) {
     return sign_bit | 0b01101111U;
   }
 
@@ -145,7 +174,7 @@ auto BitCast(const From &src) -> To {
   (void)memcpy_s(&dst, sizeof(To), &src, sizeof(From));
   return dst;
 }
-} // namespace anonymous
+}  // namespace
 
 namespace ge {
 HiF8 HiF8::FromRawBits(uint8_t bits) {
@@ -183,12 +212,22 @@ HiF8::operator float() const {
                                       : std::numeric_limits<float>::infinity();
   }
   static const std::array<std::pair<uint8_t, uint8_t>, 16> kDotTable = {{
-    { kHiF8DmlFlag, 4 },                        // 0b0000
-    { 0, 4 },                                   // 0b0001
-    { 1, 3 }, { 1, 3 },                         // 0b001.
-    { 2, 2 }, { 2, 2 }, { 2, 2 }, { 2, 2 },     // 0b01..
-    { 3, 2 }, { 3, 2 }, { 3, 2 }, { 3, 2 },     // 0b10..
-    { 4, 2 }, { 4, 2 }, { 4, 2 }, { 4, 2 },     // 0b11..
+      {kHiF8DmlFlag, 4},  // 0b0000
+      {0, 4},             // 0b0001
+      {1, 3},
+      {1, 3},  // 0b001.
+      {2, 2},
+      {2, 2},
+      {2, 2},
+      {2, 2},  // 0b01..
+      {3, 2},
+      {3, 2},
+      {3, 2},
+      {3, 2},  // 0b10..
+      {4, 2},
+      {4, 2},
+      {4, 2},
+      {4, 2},  // 0b11..
   }};
   const float sign = (u8_ & kHiF8SignMask) != 0 ? -1.0F : 1.0F;
   const auto pair = kDotTable[(u8_ & kHiF8DmlMask) >> kHiF8DotOffset];
@@ -203,7 +242,7 @@ HiF8::operator float() const {
   }
   const uint8_t mantissa_width = 7 - (dot + width);
   float mantissa_value = 0.0F;
-  for (uint8_t n = 0; n < mantissa_width; n ++) {
+  for (uint8_t n = 0; n < mantissa_width; n++) {
     if ((u8_ & static_cast<uint8_t>(1U << n)) == 0) {
       continue;
     }
@@ -233,4 +272,4 @@ HiF8::operator fp16_t() const {
   tmp = static_cast<float>(*this);
   return tmp;
 }
-} // namespace ge
+}  // namespace ge

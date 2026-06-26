@@ -36,7 +36,7 @@ LOCAL_MODULE := libaicpu_ascend_engine
 LOCAL_CFLAGS += -DAICPU_PLUGIN -std=c++11 -Wno-deprecated-declarations -Dgoogle=ascend_private
 LOCAL_LDFLAGS += -lrt -ldl
 
-LOCAL_STATIC_LIBRARIES := 
+LOCAL_STATIC_LIBRARIES :=
 
 LOCAL_SHARED_LIBRARIES := libslog \
                           liberror_manager \
@@ -59,7 +59,7 @@ LOCAL_CFLAGS += -DAICPU_PLUGIN -std=c++11 -Wno-deprecated-declarations -Dgoogle=
 LOCAL_LDFLAGS += -lrt -ldl
 
 
-LOCAL_STATIC_LIBRARIES := 
+LOCAL_STATIC_LIBRARIES :=
 
 LOCAL_SHARED_LIBRARIES := libslog \
                           liberror_manager \
@@ -111,7 +111,7 @@ LOCAL_LDFLAGS += -lrt -ldl
 
 LOCAL_UNINSTALLABLE_MODULE := false
 LOCAL_STATIC_LIBRARIES :=
-                           
+
 
 LOCAL_SHARED_LIBRARIES := libaicpu_builder_common \
                           libregister \

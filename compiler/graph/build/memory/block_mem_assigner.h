@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,7 @@ struct EdgeLife {
 };
 
 struct CompareEdgeLife {
-  bool operator() (const ge::EdgeLife &left, const ge::EdgeLife &right) const {
+  bool operator()(const ge::EdgeLife &left, const ge::EdgeLife &right) const {
     return left.node_id < right.node_id;
   }
 };
@@ -91,7 +91,7 @@ struct MemoryReuseInfo {
   bool diff_stream_prior_ = false;
 };
 
-template<class T>
+template <class T>
 struct TAttr {
   TAttr(ge::AttrHolder *const ptr, const ge::OpDesc *const desc, int32_t index, const std::string &name, const T value)
       : ptr_(ptr), desc_(desc), name_(name), index_(index), value_(value) {}
@@ -128,15 +128,15 @@ struct NodeTypeIndex {
   }
   static std::string GetMemType(const OpMemoryType &mem_type) {
     switch (mem_type) {
-      case kOutput :
+      case kOutput:
         return "output";
-      case kWorkspace :
+      case kWorkspace:
         return "workspace";
       case kOutputDesc:
         return "output_desc";
       case kInput:
         return "input";
-      default :
+      default:
         return "unknown";
     }
   }
@@ -209,9 +209,15 @@ struct NodeTypeIndex {
   void SetContinuousNode(const bool flag) {
     continuous_node_ = flag;
   }
-  bool GetFirstContinuousNodeFlag() const { return first_continuous_node_; }
-  bool GetLastContinuousNodeFlag() const { return last_continuous_node_; }
-  bool GetContinuousNodeFlag() const { return continuous_node_; }
+  bool GetFirstContinuousNodeFlag() const {
+    return first_continuous_node_;
+  }
+  bool GetLastContinuousNodeFlag() const {
+    return last_continuous_node_;
+  }
+  bool GetContinuousNodeFlag() const {
+    return continuous_node_;
+  }
 
   const ge::Node *node_ = nullptr;
   OpMemoryType mem_type_ = kOutput;
@@ -291,7 +297,9 @@ class MemoryBlock {
     symbol_list_.clear();
   }
 
-  size_t Size() const { return block_size_; }
+  size_t Size() const {
+    return block_size_;
+  }
 
   void SetSize(size_t size) {
     if (size > block_size_) {
@@ -305,9 +313,13 @@ class MemoryBlock {
 
   void SetTailOffset(size_t offset);
 
-  size_t HeadOffset() const { return head_offset_; }
+  size_t HeadOffset() const {
+    return head_offset_;
+  }
 
-  size_t TailOffset() const { return tail_offset_; }
+  size_t TailOffset() const {
+    return tail_offset_;
+  }
 
   void AddNodeTypeIndex(const NodeTypeIndex &node_type_index, size_t real_size, size_t no_align_size,
                         int64_t stream_id) {
@@ -357,15 +369,33 @@ class MemoryBlock {
     node_type_index_list_.back().diff_stream_life_time_.clear();
   }
 
-  const std::vector<NodeTypeIndex> &NodeTypeIndexList() const { return node_type_index_list_; }
-  const std::vector<std::string> &SymbolList() const { return symbol_list_; }
-  const std::vector<size_t> &RealSizeList() const { return real_size_list_; }
-  const std::vector<MemoryBlock *> &ChildBlockList() const { return child_blocks_; }
-  const std::map<std::string, std::vector<MemoryBlock *>> &BatchBlockList() const { return batch_to_blocks_; }
-  const std::vector<size_t> &NoAlignSizeList() const { return no_align_size_list_; }
-  const std::vector<MemoryBlock *> &ChildSubGraphBlockList() const { return sub_graph_blocks_; }
-  bool IsNoAlignSizeReuseBlock() const { return continuous_block_; }
-  bool IsRealSizeReuseBlock() const { return is_zero_copy_; }
+  const std::vector<NodeTypeIndex> &NodeTypeIndexList() const {
+    return node_type_index_list_;
+  }
+  const std::vector<std::string> &SymbolList() const {
+    return symbol_list_;
+  }
+  const std::vector<size_t> &RealSizeList() const {
+    return real_size_list_;
+  }
+  const std::vector<MemoryBlock *> &ChildBlockList() const {
+    return child_blocks_;
+  }
+  const std::map<std::string, std::vector<MemoryBlock *>> &BatchBlockList() const {
+    return batch_to_blocks_;
+  }
+  const std::vector<size_t> &NoAlignSizeList() const {
+    return no_align_size_list_;
+  }
+  const std::vector<MemoryBlock *> &ChildSubGraphBlockList() const {
+    return sub_graph_blocks_;
+  }
+  bool IsNoAlignSizeReuseBlock() const {
+    return continuous_block_;
+  }
+  bool IsRealSizeReuseBlock() const {
+    return is_zero_copy_;
+  }
   std::vector<MemoryBlock *> AllChildBlockList() const;
 
   inline void SetRefLifeTimeEnd() {
@@ -398,8 +428,8 @@ class MemoryBlock {
 
   void AddZeroCopyLifeReuseBlock(MemoryBlock &block);
 
-  bool AddLifeReuseBlock(const BlockMemAssigner *const mem_assigner,
-                         MemoryBlock *block, std::vector<MemoryBlock *> &clone_blocks, uint32_t depth,
+  bool AddLifeReuseBlock(const BlockMemAssigner *const mem_assigner, MemoryBlock *block,
+                         std::vector<MemoryBlock *> &clone_blocks, uint32_t depth,
                          DiffStreamEdgeLife &diff_stream_edge_life, bool child_reuse = false);
 
   void SetLifeTimeEnd(size_t time, int64_t stream_id);
@@ -470,11 +500,19 @@ class MemoryBlock {
       node_type_index_list_.back().SetContinuousNode(true);
     }
   }
-  bool GetFirstContinuousFlag() const { return first_continuous_block_; }
-  bool GetLastContinuousFlag() const { return last_continuous_block_; }
-  bool GetContinuousFlag() const { return continuous_block_; }
+  bool GetFirstContinuousFlag() const {
+    return first_continuous_block_;
+  }
+  bool GetLastContinuousFlag() const {
+    return last_continuous_block_;
+  }
+  bool GetContinuousFlag() const {
+    return continuous_block_;
+  }
 
-  const ReuseStrategy &GetReuseStrategy() const { return reuse_strategy_; }
+  const ReuseStrategy &GetReuseStrategy() const {
+    return reuse_strategy_;
+  }
 
   int32_t ref_count_;
   int64_t stream_id_;
@@ -500,6 +538,7 @@ class MemoryBlock {
   bool is_fixed_addr_prior_;
   bool diff_stream_prior_;
   bool used_by_diff_streams_;
+
  private:
   size_t block_size_;
   std::vector<size_t> real_size_list_;
@@ -521,8 +560,8 @@ using StreamIdToBlocks = std::unordered_map<int64_t, std::vector<MemoryBlock *>>
 using MemoryTypeToSubGraphIdBlocks = std::unordered_map<int64_t, StreamIdToBlocks>;
 
 struct ApplyMemoryParam {
-  size_t block_size;           // block_size applied memory block size
-  size_t real_size;            // real_size actual memory size required
+  size_t block_size;  // block_size applied memory block size
+  size_t real_size;   // real_size actual memory size required
   size_t no_align_size;
   OpMemoryType mem_type;
   uint32_t out_index;          // out_index output node index
@@ -551,17 +590,29 @@ class BlockMemAssigner : public MemAssigner {
 
   Status Assign() override;
 
-  const std::map<uint64_t, size_t> &GetMemOffsets() const { return mem_offsets_; }
+  const std::map<uint64_t, size_t> &GetMemOffsets() const {
+    return mem_offsets_;
+  }
 
-  const std::map<uint64_t, MemoryStat> &GetMemoryStat() const { return memory_stat_; }
+  const std::map<uint64_t, MemoryStat> &GetMemoryStat() const {
+    return memory_stat_;
+  }
 
-  int64_t GetAtomicAddrCleanId() const { return atomic_addr_clean_id_; }
+  int64_t GetAtomicAddrCleanId() const {
+    return atomic_addr_clean_id_;
+  }
 
-  std::vector<MemoryBlock *> GetMemoryBlocks() const { return memory_blocks_; }
+  std::vector<MemoryBlock *> GetMemoryBlocks() const {
+    return memory_blocks_;
+  }
 
-  void SetReuseStrategy(const ReuseStrategy &reuse_strategy) { reuse_strategy_ = reuse_strategy; }
+  void SetReuseStrategy(const ReuseStrategy &reuse_strategy) {
+    reuse_strategy_ = reuse_strategy;
+  }
 
-  bool IsMemoryPriorityMode() const { return memory_priority_mode_; }
+  bool IsMemoryPriorityMode() const {
+    return memory_priority_mode_;
+  }
 
   /// @ingroup domi
   /// @brief   memory size fixed for reuse. get memory range
@@ -574,7 +625,9 @@ class BlockMemAssigner : public MemAssigner {
   /// @author
   Status AssignMemoryWithReuse(std::vector<int64_t> &ranges);
 
-  std::string GetMaxBatchLabel() const { return max_batch_label_; }
+  std::string GetMaxBatchLabel() const {
+    return max_batch_label_;
+  }
 
   /// PreAssign and SetOpMemOffset are not thread safe, can only be called from a single thread
   /// Other function must ensure thread safety, there will be multiple thread calls
@@ -585,6 +638,7 @@ class BlockMemAssigner : public MemAssigner {
   void SetOpMemOffset(const std::vector<MemoryBlock *> &zero_copy_blocks) const;
   void SetOffsetForContinuousMem() const;
   bool HasSameOutAnchorWithDiffStream(const Node *n, const uint32_t index) const;
+
  protected:
   /// @ingroup domi
   /// @brief traverse all memory size, resize, and calculate offset
@@ -593,8 +647,7 @@ class BlockMemAssigner : public MemAssigner {
 
   Status GetOutAndWorkSpaceMem(std::vector<int64_t> &all_memory_size);
 
-  void GetNodeWorkSpaceSize(const ge::NodePtr &node, std::vector<int64_t> &workspace_memory,
-                            int64_t &total_size) const;
+  void GetNodeWorkSpaceSize(const ge::NodePtr &node, std::vector<int64_t> &workspace_memory, int64_t &total_size) const;
 
   /// @ingroup GE
   /// @brief Determine whether it is the type of zero memory node.
@@ -693,7 +746,9 @@ class BlockMemAssigner : public MemAssigner {
   /// @author
   bool CheckIsZeroMemNodeOutputIndex(const NodePtr &n, uint32_t index) const;
 
-  virtual bool NeedLevel2Reuse() { return true; };
+  virtual bool NeedLevel2Reuse() {
+    return true;
+  };
 
   Status GetRealStreamIdForParentNode(const NodePtr &node, const uint32_t out_index, int64_t &stream_id,
                                       bool &is_reuse) const;
@@ -744,7 +799,7 @@ class BlockMemAssigner : public MemAssigner {
   /// @param [in] ApplyMemoryParam apply memory param
   /// @return MemoryBlock*
   /// @author
-  MemoryBlock *ApplyMemory(const NodePtr &n,  const std::vector<bool> &workspace_reuse_flag,
+  MemoryBlock *ApplyMemory(const NodePtr &n, const std::vector<bool> &workspace_reuse_flag,
                            const ApplyMemoryParam &param);
   bool IsNodeOutputUseSameMemWithNetOutput(const ge::NodePtr &node, uint32_t out_index) const;
   /// @ingroup GE
@@ -798,8 +853,7 @@ class BlockMemAssigner : public MemAssigner {
   /// @param [in] reusable_memory reusable list
   /// @return void
   /// @author
-  void ReleaseMemorys(StreamIdToBlocks &to_releases,
-                      StreamIdToBlocks &reusable_memory);
+  void ReleaseMemorys(StreamIdToBlocks &to_releases, StreamIdToBlocks &reusable_memory);
 
   /// @ingroup GE
   /// @brief Release memory block to reusable list
@@ -817,9 +871,8 @@ class BlockMemAssigner : public MemAssigner {
   bool IsZeroCopyBlock(const NodePtr &node, uint32_t output_index, bool continuous, size_t output_size = 0) const;
   bool IsAtomicOutputMemory(const ge::NodePtr &node, uint32_t output_index, bool is_atomic,
                             bool out_node_set_continuous_input) const;
-  bool IsOutNodeSetContinuousInput(const NodePtr &n, uint32_t out_index,
-                                   InDataAnchor *&continuous_in_anchor, bool &is_reuse_zero_copy,
-                                   std::set<int64_t> &streams);
+  bool IsOutNodeSetContinuousInput(const NodePtr &n, uint32_t out_index, InDataAnchor *&continuous_in_anchor,
+                                   bool &is_reuse_zero_copy, std::set<int64_t> &streams);
   Status GetNoNeedAssignMemoryFlag(const NodePtr &n, uint32_t out_index, bool &no_need_assign_memory) const;
 
   bool IsContinuousMemoryReuse(const Node *const n, uint32_t out_index, const Node *const continuous_node,
@@ -849,8 +902,8 @@ class BlockMemAssigner : public MemAssigner {
   void CheckAndReleaseSuspendedBlock(const NodePtr &node, uint32_t idx, MemoryBlock *block);
 
   int32_t GetAllRefCount(const NodeIndexIO &out_node_index_io, bool &is_reuse_zero_copy) const;
-  Status GetContinuousMemLifeTime(const ContinuousMem &continuous_mem, int64_t &begin_time,
-                                  int64_t &out_time, int64_t &end_time, size_t &out_streams_cnt) const;
+  Status GetContinuousMemLifeTime(const ContinuousMem &continuous_mem, int64_t &begin_time, int64_t &out_time,
+                                  int64_t &end_time, size_t &out_streams_cnt) const;
   static void OptimizeStreamIdForMemoryReuse(const NodePtr &node);
   static void SetRealStreamIdForDataNode(const Node *const node);
 
@@ -859,7 +912,7 @@ class BlockMemAssigner : public MemAssigner {
   void InsertStreamOutEdge();
   void InsertStreamInEdge(const EdgeLife &new_in_edge, const int64_t src_stream_id, const int64_t dst_stream_id,
                           const char *src_name = nullptr, const char *dst_name = nullptr);
-      /// @ingroup GE
+  /// @ingroup GE
   /// @brief Cascade memory scenarios to obtain the actual life time begin of continuous input memory
   /// @return void
   /// @author
@@ -872,8 +925,8 @@ class BlockMemAssigner : public MemAssigner {
 
   bool IsNoNeedAssignMemory(const NodePtr &n, const NodeIndexIO &out_node_index_io, const uint32_t index) const;
 
-  void SetOffsetSize(const NodeTypeIndex &node_type, const MemoryBlock &block,
-                     size_t real_size, size_t no_align_size, int32_t child_block_level) const;
+  void SetOffsetSize(const NodeTypeIndex &node_type, const MemoryBlock &block, size_t real_size, size_t no_align_size,
+                     int32_t child_block_level) const;
 
   void SetBlockOpMemOffset(const MemoryBlock *const block, int32_t child_block_level, bool &is_fixed_addr_prior) const;
 
@@ -907,9 +960,9 @@ class BlockMemAssigner : public MemAssigner {
 
   bool op_reuse_env_valid_ = false;  // init flag for op_no_reuse_mem_vec_
 
-  bool is_ge_reuse_mem_ = true; // global, controlled by ge option ge.exec.disableReuseMemory
+  bool is_ge_reuse_mem_ = true;  // global, controlled by ge option ge.exec.disableReuseMemory
 
-  bool is_op_reuse_mem_ = true; // op-level, changed and shared in the process of an op
+  bool is_op_reuse_mem_ = true;  // op-level, changed and shared in the process of an op
 
   bool is_separate_clean_continuous_inputs_ = false;  // op-output-level, changed and shared in the process of an output
 

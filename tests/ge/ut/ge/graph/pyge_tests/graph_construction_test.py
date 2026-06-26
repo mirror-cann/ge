@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -20,16 +20,23 @@ import pytest
 
 try:
     from ge.es.graph_builder import GraphBuilder, TensorHolder
-    from ge.graph import Graph, Tensor, DumpFormat
-    from ge.graph.types import DataType, Format
     from ge.es.ut_test import (
-        phony_1i_1o, Add, Const, phony_1i1dyi_1o, phony_If, While,
-        phony_3opi_1o, phony_1opi_1o, phony_req_attrs
+        Add,
+        Const,
+        While,
+        phony_1i1dyi_1o,
+        phony_1i_1o,
+        phony_1opi_1o,
+        phony_3opi_1o,
+        phony_If,
+        phony_req_attrs,
     )
+    from ge.graph import Graph, Tensor
+    from ge.graph.types import DataType, Format
 except Exception as e:
     import traceback
 
-    print(f'Error: {e}')
+    print(f"Error: {e}")
     traceback.print_exc()
 
 
@@ -49,7 +56,7 @@ class TestGraphConstruction:
             name="input",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
         assert input_tensor is not None
 
@@ -137,21 +144,48 @@ class TestGraphConstruction:
             name="input",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[5]
+            shape=[5],
         )
         tensor = Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT64, shape=[5])
 
         const = Const(builder, value=tensor)
         assert isinstance(const, TensorHolder)
-        constint32 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT32, shape=[5]))
-        constint16 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT16, shape=[5]))
-        constint8 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT8, shape=[5]))
-        constuint64 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT64, shape=[5]))
-        constuint32 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT32, shape=[5]))
-        constuint16 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT16, shape=[5]))
-        constuint8 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT8, shape=[5]))
-        constfloat32 = Const(builder, value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_FLOAT, shape=[5]))
-        constfloat16 = Const(builder, value=Tensor([1.0, 2.0, 3.0, 4.0, 5.0], data_type=DataType.DT_FLOAT16, shape=[5]))
+        constint32 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT32, shape=[5]),
+        )
+        constint16 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT16, shape=[5]),
+        )
+        constint8 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_INT8, shape=[5]),
+        )
+        constuint64 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT64, shape=[5]),
+        )
+        constuint32 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT32, shape=[5]),
+        )
+        constuint16 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT16, shape=[5]),
+        )
+        constuint8 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_UINT8, shape=[5]),
+        )
+        constfloat32 = Const(
+            builder,
+            value=Tensor([1, 2, 3, 4, 5], data_type=DataType.DT_FLOAT, shape=[5]),
+        )
+        constfloat16 = Const(
+            builder,
+            value=Tensor([1.0, 2.0, 3.0, 4.0, 5.0], data_type=DataType.DT_FLOAT16, shape=[5]),
+        )
         input_tensor1 = Add(Add(Add(Add(input_tensor, const), constint32), constint16), constint8)
         input_tensor2 = Add(Add(Add(Add(input_tensor, const), constuint64), constuint32), constuint8)
         input_tensor3 = Add(constfloat32, constfloat16)
@@ -179,7 +213,9 @@ class TestGraphConstruction:
         print("=== graph readable dump BEGIN ===\n")
         print(graph)
         print("=== graph readable dump END ===\n")
-        assert str(graph).strip() == """graph("test_graph"):
+        assert (
+            str(graph).strip()
+            == """graph("test_graph"):
   %input : [#users=1] = Node[type=Data] (attrs = {index: 0})
   %Const_0 : [#users=1] = Node[type=Const] (attrs = {value: [1 2 3 4 5]})
   %Const_1 : [#users=1] = Node[type=Const] (attrs = {value: [1 2 3 4 5]})
@@ -209,18 +245,25 @@ class TestGraphConstruction:
 
   return (%Add_24)
 """.strip()
+        )
 
     def test_const_graph_construction_fp16_coverage(self, builder):
         """测试 FP16 转换函数的完整覆盖率，确保 float_to_fp16_bits 函数覆盖率达到 100%"""
 
         # 1. 正常规格化数（-14 <= exponent <= 15，不需要舍入）
-        normal_fp16 = Const(builder, value=Tensor([1.0, 2.0, 3.0], data_type=DataType.DT_FLOAT16, shape=[3]))
+        normal_fp16 = Const(
+            builder,
+            value=Tensor([1.0, 2.0, 3.0], data_type=DataType.DT_FLOAT16, shape=[3]),
+        )
 
         # 2. 零值（exponent < -24，下溢到0）
         zero_fp16 = Const(builder, value=Tensor([0.0], data_type=DataType.DT_FLOAT16, shape=[1]))
 
         # 3. 负数（覆盖符号位）
-        negative_fp16 = Const(builder, value=Tensor([-1.0, -2.5], data_type=DataType.DT_FLOAT16, shape=[2]))
+        negative_fp16 = Const(
+            builder,
+            value=Tensor([-1.0, -2.5], data_type=DataType.DT_FLOAT16, shape=[2]),
+        )
 
         # 4. 非常大的数（exponent > 15，溢出到无穷大）
         # FP16 最大正常值约为 65504，超过这个值会溢出
@@ -243,16 +286,25 @@ class TestGraphConstruction:
         # 9. 偶数舍入的情况（round_bits == 0x1000 and half_mant & 0x1）
         # 这个值需要精确构造：mantissa 的低13位是 0x1000，且 half_mant 是奇数
         # 例如：1.0 + 2^-12 = 1.000244140625，但需要确保 half_mant 是奇数
-        even_round_fp16 = Const(builder, value=Tensor([1.00048828125], data_type=DataType.DT_FLOAT16, shape=[1]))
+        even_round_fp16 = Const(
+            builder,
+            value=Tensor([1.00048828125], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 10. 偶数舍入但不满足条件（round_bits == 0x1000 but half_mant & 0x1 == 0）
         # 需要 half_mant 是偶数的情况
-        even_round_no_fp16 = Const(builder, value=Tensor([2.00048828125], data_type=DataType.DT_FLOAT16, shape=[1]))
+        even_round_no_fp16 = Const(
+            builder,
+            value=Tensor([2.00048828125], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 11. 舍入后需要进位到指数（half_mant == 0x400 after rounding）
         # 需要构造一个 half_mant 接近 0x3FF 且需要舍入的值
         # 例如：1.99951171875 的 half_mant 是 0x3FF，如果舍入会变成 0x400
-        carry_exp_fp16 = Const(builder, value=Tensor([1.99951171875], data_type=DataType.DT_FLOAT16, shape=[1]))
+        carry_exp_fp16 = Const(
+            builder,
+            value=Tensor([1.99951171875], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 12. 舍入后指数溢出（half_exp == 0x1F after rounding）
         # FP16 最大指数是 15，对应 FP32 指数是 30
@@ -260,13 +312,22 @@ class TestGraphConstruction:
         max_round_fp16 = Const(builder, value=Tensor([65503.0], data_type=DataType.DT_FLOAT16, shape=[1]))
 
         # 13. 正无穷大（exponent == 255, mantissa == 0）
-        pos_inf_fp16 = Const(builder, value=Tensor([float('inf')], data_type=DataType.DT_FLOAT16, shape=[1]))
+        pos_inf_fp16 = Const(
+            builder,
+            value=Tensor([float("inf")], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 14. 负无穷大（exponent == 255, mantissa == 0, sign == 1）
-        neg_inf_fp16 = Const(builder, value=Tensor([float('-inf')], data_type=DataType.DT_FLOAT16, shape=[1]))
+        neg_inf_fp16 = Const(
+            builder,
+            value=Tensor([float("-inf")], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 15. NaN（exponent == 255, mantissa != 0）
-        nan_fp16 = Const(builder, value=Tensor([float('nan')], data_type=DataType.DT_FLOAT16, shape=[1]))
+        nan_fp16 = Const(
+            builder,
+            value=Tensor([float("nan")], data_type=DataType.DT_FLOAT16, shape=[1]),
+        )
 
         # 验证所有常量都创建成功
         assert isinstance(normal_fp16, TensorHolder)
@@ -291,7 +352,7 @@ class TestGraphConstruction:
             name="input",
             data_type=DataType.DT_FLOAT16,
             format=Format.FORMAT_ND,
-            shape=[1]
+            shape=[1],
         )
 
         # 将所有常量连接到输入上，这样它们都会出现在图中
@@ -318,7 +379,7 @@ class TestGraphConstruction:
             name="input2",
             data_type=DataType.DT_FLOAT16,
             format=Format.FORMAT_ND,
-            shape=[3]
+            shape=[3],
         )
         result2 = Add(input2, normal_fp16)
 
@@ -327,7 +388,7 @@ class TestGraphConstruction:
             name="input3",
             data_type=DataType.DT_FLOAT16,
             format=Format.FORMAT_ND,
-            shape=[2]
+            shape=[2],
         )
         result3 = Add(input3, negative_fp16)
 
@@ -379,14 +440,14 @@ class TestGraphConstruction:
         def mock_get_math_lib(self):
             return get_generated_lib("libes_ut_test.so")
 
-        monkeypatch.setattr(TensorHolder, '_get_math_operator_lib', mock_get_math_lib)
+        monkeypatch.setattr(TensorHolder, "_get_math_operator_lib", mock_get_math_lib)
 
         input_tensor = builder.create_input(
             index=0,
             name="input",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1]
+            shape=[1],
         )
 
         then_graph_builder = GraphBuilder("then_graph")
@@ -427,21 +488,21 @@ class TestGraphConstruction:
             name="input1",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
         input2 = builder.create_input(
             index=1,
             name="input2",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
         input3 = builder.create_input(
             index=2,
             name="input3",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
 
         out = phony_3opi_1o(input1, input2, input3, builder)
@@ -464,7 +525,7 @@ class TestGraphConstruction:
             name="input1",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
 
         out = phony_3opi_1o(input1)
@@ -497,8 +558,10 @@ class TestGraphConstruction:
     def test_all_optional_inputs_graph_construction_without_input_and_owner_graph(self, builder):
         """测试所有输入都是可选的构图功能：不提供输入，不传递 owner_graph"""
         # 调用C接口返回空，构造返回值时跑异常
-        with pytest.raises(ValueError, match=
-        "Please ensure at least one input tensor or an explicit owner_builder is provided when supported"):
+        with pytest.raises(
+            ValueError,
+            match="Please ensure at least one input tensor or an explicit owner_builder is provided when supported",
+        ):
             out4 = phony_3opi_1o()
 
     def test_one_optional_input_graph_construction_with_numeric_input_and_owner_graph(self, builder):
@@ -517,7 +580,13 @@ class TestGraphConstruction:
 
     def test_nested_subgraph_construction(self, builder):
         input_tensor = builder.create_input(0)
-        if_output = phony_If(input_tensor, [1, 2], 2, build_if_then_branch_graph(), build_if_else_branch_graph())
+        if_output = phony_If(
+            input_tensor,
+            [1, 2],
+            2,
+            build_if_then_branch_graph(),
+            build_if_else_branch_graph(),
+        )
         builder.set_graph_output(if_output[0], 0)
         graph = builder.build_and_reset()
 
@@ -553,7 +622,6 @@ class TestGraphConstruction:
         while_02_cond_subgraph = graph.get_subgraph("while_02_cond")
         assert while_02_cond_subgraph is not None
 
-
         while_02_body_subgraph = else_branch_subgraph.get_subgraph("while_02_body")
         assert while_02_body_subgraph is not None
         while_02_body_subgraph = graph.get_subgraph("while_02_body")
@@ -563,7 +631,9 @@ class TestGraphConstruction:
         print("=== Nested subgraph readable dump BEGIN ===")
         print(graph)
         print("=== Nested subgraph readable dump END ===")
-        assert str(graph).strip() == """graph("test_graph"):
+        assert (
+            str(graph).strip()
+            == """graph("test_graph"):
   %input_0 : [#users=1] = Node[type=Data] (attrs = {index: 0})
   %Const_0 : [#users=1] = Node[type=Const] (attrs = {value: [1]})
   %Const_1 : [#users=1] = Node[type=Const] (attrs = {value: [2]})
@@ -613,6 +683,7 @@ graph("while_02_body"):
 
   return (output_0=%input_0, output_1=%phony_1i_1o_0)
 """.strip()
+        )
 
     def test_list_attr_graph_construction(self, builder):
         """测试带有二维数组、字符串数组属性的算子图构建功能 - 使用 phony_req_attrs 算子"""
@@ -624,10 +695,14 @@ graph("while_02_body"):
         output_tensor = phony_req_attrs(
             input_tensor,
             req_data_type=DataType.DT_INT64,
-            req_list_data_type=[DataType.DT_FLOAT, DataType.DT_INT32, DataType.DT_INT64],
+            req_list_data_type=[
+                DataType.DT_FLOAT,
+                DataType.DT_INT32,
+                DataType.DT_INT64,
+            ],
             req_list_list_int=[[0, 1], [2, 3]],
             req_tensor=Tensor(),
-            req_list_string=["test"]
+            req_list_string=["test"],
         )
         assert isinstance(output_tensor, TensorHolder)
 
@@ -649,12 +724,15 @@ graph("while_02_body"):
         assert "phony_req_attrs" in node_types
         assert "NetOutput" in node_types
         # 验证dump结果
-        assert str(graph).strip() == """graph("test_graph"):
+        assert (
+            str(graph).strip()
+            == """graph("test_graph"):
   %input_0 : [#users=1] = Node[type=Data] (attrs = {index: 0})
   %phony_req_attrs_0 : [#users=1] = Node[type=phony_req_attrs] (inputs = (x=%input_0), attrs = {req_data_type: DT_INT64, req_list_data_type: {DT_FLOAT, DT_INT32, DT_INT64}, req_list_list_int: {{0, 1}, {2, 3}}, req_tensor: <empty>, req_list_string: {"test"}})
 
   return (%phony_req_attrs_0)
 """.strip()
+        )
 
 
 def build_while_cond_graph(while_graph_builder: GraphBuilder):

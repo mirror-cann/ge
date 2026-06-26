@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -88,11 +88,8 @@ class ModelManager {
   Status LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node,
                          const uint32_t device_id, const aclrtStream stream = nullptr);
 
-  Status DoLoadHybridModelOnline(const uint32_t model_id,
-                                 const ModelData &model,
-                                 const uint32_t device_id,
-                                 const GeRootModelPtr &ge_root_model,
-                                 const std::shared_ptr<ModelListener> &listener,
+  Status DoLoadHybridModelOnline(const uint32_t model_id, const ModelData &model, const uint32_t device_id,
+                                 const GeRootModelPtr &ge_root_model, const std::shared_ptr<ModelListener> &listener,
                                  const aclrtStream stream = nullptr);
 
   /// @ingroup ge
@@ -110,14 +107,11 @@ class ModelManager {
   /// @param [in] model_queue_param: params and queue ids and create from user.
   /// @param [in] priority: model priority.
   /// @return: 0 for success / others for fail
-  Status LoadModelWithQueueParam(uint32_t &model_id,
-                                 const GeRootModelPtr &root_model,
-                                 const ModelQueueParam &model_queue_param,
-                                 const int32_t priority = 0,
+  Status LoadModelWithQueueParam(uint32_t &model_id, const GeRootModelPtr &root_model,
+                                 const ModelQueueParam &model_queue_param, const int32_t priority = 0,
                                  const bool need_update_session_id = true);
 
-  Status LoadModelWithQueueParam(uint32_t &model_id,
-                                 const ModelData &model_data,
+  Status LoadModelWithQueueParam(uint32_t &model_id, const ModelData &model_data,
                                  const ModelQueueParam &model_queue_param);
 
   /// @ingroup domi_ome
@@ -155,9 +149,9 @@ class ModelManager {
   /// @param [out] output_data  model output data
   /// @param [out] output_desc  description of model output data
   Status ExecuteModel(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
-                      const InputData &input_data, const std::vector<GeTensorDesc> &input_desc,
-                      OutputData &output_data, std::vector<GeTensorDesc> &output_desc,
-                      const std::vector<GeTensor> &input_tensor, const std::vector<GeTensor> &output_tensor);
+                      const InputData &input_data, const std::vector<GeTensorDesc> &input_desc, OutputData &output_data,
+                      std::vector<GeTensorDesc> &output_desc, const std::vector<GeTensor> &input_tensor,
+                      const std::vector<GeTensor> &output_tensor);
 
   /// @ingroup domi_ome
   /// @brief  ACL case, do not start new thread, return result
@@ -170,15 +164,14 @@ class ModelManager {
                       const std::vector<GeTensor> &input_tensor, std::vector<GeTensor> &output_tensor);
 
   Status ExecuteModelAsync(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
-                           const std::vector<GeTensor> &input_tensor,
-                           std::vector<GeTensor> &output_tensor);
+                           const std::vector<GeTensor> &input_tensor, std::vector<GeTensor> &output_tensor);
 
   Status ExecuteModelWithStreamAsync(const uint32_t model_id, const GraphNodePtr &graph_node,
                                      const std::vector<gert::Tensor> &input_tensor,
                                      std::vector<gert::Tensor> &output_tensor, const aclrtStream stream);
   Status ExecuteModelWithStream(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
-                                  const std::vector<gert::Tensor> &input_tensor,
-                                  std::vector<gert::Tensor> &output_tensor);
+                                const std::vector<gert::Tensor> &input_tensor,
+                                std::vector<gert::Tensor> &output_tensor);
 
   Status ExecuteModelWithStreamAsync(const uint32_t model_id, const GraphNodePtr &graph_node,
                                      const std::vector<GeTensor> &input_tensor, std::vector<GeTensor> &output_tensor,
@@ -278,8 +271,7 @@ class ModelManager {
 
   static Status GetModelMemAndWeightSize(const ModelData &model, size_t &mem_size, size_t &weight_size);
 
-  Status DestroyAicpuSessionForDevice(const uint64_t session_id,
-                                      const uint32_t device_id,
+  Status DestroyAicpuSessionForDevice(const uint64_t session_id, const uint32_t device_id,
                                       const bool need_set_device = false);
 
   void DestroyAicpuSession(const uint64_t session_id, const bool single_device = false, const uint32_t device_id = 0U);
@@ -311,17 +303,20 @@ class ModelManager {
   Status GetOrigInputInfo(const uint32_t model_id, const uint32_t index, OriginInputInfo &orig_input_info);
 
   Status GetAllAippInputOutputDims(const uint32_t model_id, const uint32_t index,
-                                   std::vector<InputOutputDims> &input_dims,
-                                   std::vector<InputOutputDims> &output_dims);
+                                   std::vector<InputOutputDims> &input_dims, std::vector<InputOutputDims> &output_dims);
 
   bool IsDynamicShape(const uint32_t model_id);
   bool IsNeedHybridLoad(const GeRootModel &ge_root_model) const;
   Status GetOpDescInfo(const uint32_t device_id, const uint32_t stream_id, const uint32_t task_id,
                        OpDescInfo &desc_info) const;
 
-  bool IsSocketClose() const { return is_socket_close_; }
+  bool IsSocketClose() const {
+    return is_socket_close_;
+  }
 
-  void SetSocketCloseStatus(const bool status) { is_socket_close_ = status; }
+  void SetSocketCloseStatus(const bool status) {
+    is_socket_close_ = status;
+  }
 
   uint32_t GetRunningFlag(const uint32_t model_id);
   uint32_t GetDataInputerSize(const uint32_t model_id);
@@ -363,20 +358,16 @@ class ModelManager {
       platform_bin_handle_ = bin_handle;
     }
   }
-  Status GetOutputAllocator(const uint32_t model_id, const aclrtStream stream,
-                             ge::Allocator *&allocator_ptr);
+  Status GetOutputAllocator(const uint32_t model_id, const aclrtStream stream, ge::Allocator *&allocator_ptr);
 
-  Status EnsureTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                          const uint32_t model_id, const aclrtStream stream,
-                          ModelOutputTensorInfo &info);
+  Status EnsureTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph_node, const uint32_t model_id,
+                          const aclrtStream stream, ModelOutputTensorInfo &info);
 
-  Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                             const uint32_t model_id, const aclrtStream stream,
-                             std::vector<GeTensor> &outputs);
+  Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node, const uint32_t model_id,
+                             const aclrtStream stream, std::vector<GeTensor> &outputs);
 
-  Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                             const uint32_t model_id, const aclrtStream stream,
-                             std::vector<gert::Tensor> &outputs);
+  Status MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node, const uint32_t model_id,
+                             const aclrtStream stream, std::vector<gert::Tensor> &outputs);
 
  private:
   /// @ingroup domi_ome
@@ -435,7 +426,7 @@ class ModelManager {
   void TryCleanupDumpDebugJsonFile(const std::string &file_path) const;
 
   std::mutex model_shared_session_mutex_;
-  std::set<uint32_t> model_shared_session_; // 存在多个模型共享同一份rtSession资源场景，在此记录这些modelID
+  std::set<uint32_t> model_shared_session_;  // 存在多个模型共享同一份rtSession资源场景，在此记录这些modelID
   std::map<uint32_t, std::shared_ptr<DavinciModel>> model_map_;
   std::map<uint32_t, std::shared_ptr<hybrid::HybridDavinciModel>> hybrid_model_map_;
   std::map<uint32_t, ScalableAllocatorManager> model_built_allocator_;

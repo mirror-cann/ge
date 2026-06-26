@@ -8,4 +8,3 @@ typedef struct aclAippDims {
     size_t aippOutSize;       // 经过AIPP处理后的输出数据的大小
 } aclAippDims;
 ```
-

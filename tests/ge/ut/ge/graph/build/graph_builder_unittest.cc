@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,7 +60,7 @@ class GraphBuilderTest : public testing::Test {
     bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
       return true;
     };
-    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override{};
+    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
   };
 
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
@@ -119,27 +119,27 @@ class GraphBuilderTest : public testing::Test {
   };
 
   class AICoreDNNEngine : public DNNEngine {
-  public:
-      explicit AICoreDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
-      ~AICoreDNNEngine() override = default;
+   public:
+    explicit AICoreDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
+    ~AICoreDNNEngine() override = default;
   };
 
   class AICpuDNNEngine : public DNNEngine {
-  public:
-      explicit AICpuDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
-      ~AICpuDNNEngine() override = default;
+   public:
+    explicit AICpuDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
+    ~AICpuDNNEngine() override = default;
   };
 
   class GeLocalDNNEngine : public DNNEngine {
-  public:
-      explicit GeLocalDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
-      ~GeLocalDNNEngine() override = default;
+   public:
+    explicit GeLocalDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
+    ~GeLocalDNNEngine() override = default;
   };
 
   class HcclDNNEngine : public DNNEngine {
-  public:
-      explicit HcclDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
-      ~HcclDNNEngine() override = default;
+   public:
+    explicit HcclDNNEngine(const DNNEngineAttribute &attrs) : DNNEngine(attrs) {}
+    ~HcclDNNEngine() override = default;
   };
 
   class FakeGraphOptimizer : public GraphOptimizer {
@@ -203,22 +203,22 @@ class GraphBuilderTest : public testing::Test {
 
     instance_ptr->DNNEngineManagerObj().schedulers_[kKernelLibName] = scheduler_conf;
 
-    DNNEngineAttribute attr_aicore = { "AIcoreEngine", {}, PriorityEnum::COST_0, DEVICE, FORMAT_RESERVED,
-                                       FORMAT_RESERVED, true };
+    DNNEngineAttribute attr_aicore = {"AIcoreEngine",  {},  PriorityEnum::COST_0, DEVICE, FORMAT_RESERVED,
+                                      FORMAT_RESERVED, true};
     auto aicore_engine = std::make_shared<AICoreDNNEngine>(attr_aicore);
     instance_ptr->DNNEngineManagerObj().engines_map_["AIcoreEngine"] = aicore_engine;
 
-    DNNEngineAttribute attr_aicpu = { "DNN_VM_AICPU", {}, PriorityEnum::COST_2, DEVICE, FORMAT_RESERVED,
-                                      FORMAT_RESERVED, true };
+    DNNEngineAttribute attr_aicpu = {"DNN_VM_AICPU",  {},  PriorityEnum::COST_2, DEVICE, FORMAT_RESERVED,
+                                     FORMAT_RESERVED, true};
     auto aicpu_engine = std::make_shared<AICpuDNNEngine>(attr_aicpu);
     instance_ptr->DNNEngineManagerObj().engines_map_["DNN_VM_AICPU"] = aicpu_engine;
 
-    DNNEngineAttribute attr_hccl = { "hccl", {}, PriorityEnum::COST_1, DEVICE, FORMAT_RESERVED, FORMAT_RESERVED, true };
+    DNNEngineAttribute attr_hccl = {"hccl", {}, PriorityEnum::COST_1, DEVICE, FORMAT_RESERVED, FORMAT_RESERVED, true};
     auto hccl_engine = std::make_shared<HcclDNNEngine>(attr_hccl);
     instance_ptr->DNNEngineManagerObj().engines_map_["hccl"] = hccl_engine;
 
-    DNNEngineAttribute attr_ge_local = { "DNN_VM_GE_LOCAL", {}, PriorityEnum::COST_9, DEVICE, FORMAT_RESERVED,
-                                         FORMAT_RESERVED, true };
+    DNNEngineAttribute attr_ge_local = {"DNN_VM_GE_LOCAL", {},  PriorityEnum::COST_9, DEVICE, FORMAT_RESERVED,
+                                        FORMAT_RESERVED,   true};
     auto ge_local_engine = std::make_shared<GeLocalDNNEngine>(attr_ge_local);
     instance_ptr->DNNEngineManagerObj().engines_map_["DNN_VM_GE_LOCAL"] = ge_local_engine;
 
@@ -485,7 +485,7 @@ TEST_F(GraphBuilderTest, CalcOpParam_fixed) {
   for (const auto &node : root_graph->GetAllNodes()) {
     if (strcmp(node->GetOpDesc()->GetNamePtr(), "Conv2D") == 0) {
       node->GetOpDesc()->SetOpKernelLibName("ops_kernel_info_hccl");
-      //node->GetOpDesc()->SetOpEngineName("ops_kernel_info_hccl");
+      // node->GetOpDesc()->SetOpEngineName("ops_kernel_info_hccl");
     }
   }
   auto ret = graph_builder.CalcOpParam(root_graph);
@@ -763,7 +763,7 @@ TEST_F(GraphBuilderTest, TestSkAppendWs) {
   EXPECT_NE(sub_graph_1, nullptr);
   relu_g1_node = sub_graph_1->FindNode("relu1");
   EXPECT_NE(relu_g1_node, nullptr);
-  
+
   need_sk_append_ws = true;
   DEF_GRAPH(g2) {
     CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE("relu2", RELU)->NODE("netoutput", NETOUTPUT));
@@ -801,10 +801,12 @@ TEST_F(GraphBuilderTest, TestSkAppendWs) {
   EXPECT_EQ(relu_g2_node->GetOpDesc()->GetInputOffset()[0] - 512, relu_g1_node->GetOpDesc()->GetInputOffset()[0]);
 
   std::vector<int64_t> task_gen_input_offset_relu1_g1;
-  (void)AttrUtils::GetListInt(relu_g1_node->GetOpDesc(), "_test_task_generate_input_offset", task_gen_input_offset_relu1_g1);
+  (void)AttrUtils::GetListInt(relu_g1_node->GetOpDesc(), "_test_task_generate_input_offset",
+                              task_gen_input_offset_relu1_g1);
   EXPECT_EQ(task_gen_input_offset_relu1_g1.size(), 0);
   std::vector<int64_t> task_gen_input_offset_relu1_g2;
-  (void)AttrUtils::GetListInt(relu_g2_node->GetOpDesc(), "_test_task_generate_input_offset", task_gen_input_offset_relu1_g2);
+  (void)AttrUtils::GetListInt(relu_g2_node->GetOpDesc(), "_test_task_generate_input_offset",
+                              task_gen_input_offset_relu1_g2);
   EXPECT_EQ(task_gen_input_offset_relu1_g2.size(), 0);
 
   auto relu2_g1_node = root_graph_1->FindNode("relu2");
@@ -812,10 +814,12 @@ TEST_F(GraphBuilderTest, TestSkAppendWs) {
   auto relu2_g2_node = root_graph_2->FindNode("relu2");
   EXPECT_NE(relu2_g2_node, nullptr);
   std::vector<int64_t> task_gen_output_offset_relu2_g1;
-  (void)AttrUtils::GetListInt(relu2_g1_node->GetOpDesc(), "_test_task_generate_output_offset", task_gen_output_offset_relu2_g1);
+  (void)AttrUtils::GetListInt(relu2_g1_node->GetOpDesc(), "_test_task_generate_output_offset",
+                              task_gen_output_offset_relu2_g1);
   EXPECT_EQ(task_gen_output_offset_relu2_g1.size(), 1);
   std::vector<int64_t> task_gen_output_offset_relu2_g2;
-  (void)AttrUtils::GetListInt(relu2_g2_node->GetOpDesc(), "_test_task_generate_output_offset", task_gen_output_offset_relu2_g2);
+  (void)AttrUtils::GetListInt(relu2_g2_node->GetOpDesc(), "_test_task_generate_output_offset",
+                              task_gen_output_offset_relu2_g2);
   EXPECT_EQ(task_gen_output_offset_relu2_g2.size(), 1);
   EXPECT_EQ(task_gen_output_offset_relu2_g2[0] - 512, task_gen_output_offset_relu2_g1[0]);
   int64_t origin_mem_size = 0;
@@ -877,8 +881,8 @@ TEST_F(GraphBuilderTest, TestAppendWs_multi_stream) {
   EXPECT_NE(root_model_1, nullptr);
   int64_t origin_memory_size = 0;
   EXPECT_EQ(root_model_1->GetSubgraphInstanceNameToModel().size(), 1);
-  (void)AttrUtils::GetInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second,
-                          ATTR_MODEL_MEMORY_SIZE, origin_memory_size);
+  (void)AttrUtils::GetInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second, ATTR_MODEL_MEMORY_SIZE,
+                          origin_memory_size);
   std::vector<std::vector<int64_t>> origin_sub_memory_infos;
   (void)AttrUtils::GetListListInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second,
                                   ATTR_MODEL_SUB_MEMORY_INFO, origin_sub_memory_infos);
@@ -915,8 +919,8 @@ TEST_F(GraphBuilderTest, TestAppendWs_multi_stream) {
   EXPECT_NE(root_model_2, nullptr);
   int64_t memory_size = 0;
   EXPECT_EQ(root_model_2->GetSubgraphInstanceNameToModel().size(), 1);
-  (void)AttrUtils::GetInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second,
-                          ATTR_MODEL_MEMORY_SIZE, memory_size);
+  (void)AttrUtils::GetInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second, ATTR_MODEL_MEMORY_SIZE,
+                          memory_size);
   std::vector<std::vector<int64_t>> sub_memory_infos;
   (void)AttrUtils::GetListListInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second,
                                   ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
@@ -958,11 +962,11 @@ TEST_F(GraphBuilderTest, TestAppendWs) {
   EXPECT_NE(root_model_1, nullptr);
   int64_t origin_memory_size = 0;
   EXPECT_EQ(root_model_1->GetSubgraphInstanceNameToModel().size(), 1);
-  (void)AttrUtils::GetInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second,
-                          ATTR_MODEL_MEMORY_SIZE, origin_memory_size);
+  (void)AttrUtils::GetInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second, ATTR_MODEL_MEMORY_SIZE,
+                          origin_memory_size);
   std::vector<std::vector<int64_t>> origin_sub_memory_infos;
   (void)AttrUtils::GetListListInt(root_model_1->GetSubgraphInstanceNameToModel().begin()->second,
-      ATTR_MODEL_SUB_MEMORY_INFO, origin_sub_memory_infos);
+                                  ATTR_MODEL_SUB_MEMORY_INFO, origin_sub_memory_infos);
   auto relu_g1_node = root_graph_1->FindNode("relu1");
   EXPECT_NE(relu_g1_node, nullptr);
   EXPECT_EQ(relu_g1_node->GetOpDesc()->GetWorkspaceBytes().size(), 0);
@@ -997,8 +1001,8 @@ TEST_F(GraphBuilderTest, TestAppendWs) {
   EXPECT_NE(root_model_2, nullptr);
   int64_t memory_size = 0;
   EXPECT_EQ(root_model_2->GetSubgraphInstanceNameToModel().size(), 1);
-  (void)AttrUtils::GetInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second,
-                          ATTR_MODEL_MEMORY_SIZE, memory_size);
+  (void)AttrUtils::GetInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second, ATTR_MODEL_MEMORY_SIZE,
+                          memory_size);
   std::vector<std::vector<int64_t>> sub_memory_infos;
   (void)AttrUtils::GetListListInt(root_model_2->GetSubgraphInstanceNameToModel().begin()->second,
                                   ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
@@ -1029,11 +1033,11 @@ TEST_F(GraphBuilderTest, evaluate_graph_mode_simple) {
   auto sub_add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024 * 1024});
   auto sub_net_output = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 512, 1024, 1024});
   DEF_GRAPH(g1) {
-      CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
-      CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
-      CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
+    CHAIN(NODE("sub_data_1", sub_data_1)->EDGE(0, 0)->NODE("sub_add", sub_add));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add", sub_add));
+    CHAIN(NODE("sub_add", sub_add)->EDGE(0, 0)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("var", var)->EDGE(0, 1)->NODE("sub_add1", sub_add1));
+    CHAIN(NODE("sub_add1", sub_add1)->EDGE(0, 0)->NODE("sub_net_output", sub_net_output));
   };
 
   const auto graph = ToGeGraph(g1);

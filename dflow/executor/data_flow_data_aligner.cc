@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -129,8 +129,8 @@ Status DataFlowDataAligner::PushAndAlignData(uint32_t queue_idx, TensorWithHeade
   if (cache_find_ret == wait_align_data_.end()) {
     AlignCacheData tmp_cache_data(cache_nums_);
     auto emplace_ret = wait_align_data_.emplace(trans_id_and_data_label, std::move(tmp_cache_data));
-    GE_ASSERT_TRUE(emplace_ret.second, "add cache data failed, trans_id=%" PRIu64 ", data_label=%u",
-      trans_id, data_label);
+    GE_ASSERT_TRUE(emplace_ret.second, "add cache data failed, trans_id=%" PRIu64 ", data_label=%u", trans_id,
+                   data_label);
     cache_find_ret = emplace_ret.first;
   }
   auto &cache_data = cache_find_ret->second;
@@ -143,8 +143,8 @@ Status DataFlowDataAligner::PushAndAlignData(uint32_t queue_idx, TensorWithHeade
   GE_CHK_STATUS_RET(cache_data.Push(idx, std::move(tensor_with_header)),
                     "save queue_idx[%u] trans_id[%" PRIu64 "] data_label[%u] to the [%zu]th cache queue failed",
                     queue_idx, trans_id, data_label, idx);
-  GELOGD("save queue_idx[%u] trans_id[%" PRIu64 "] data_label[%u] to the [%zu]th cache queue success.",
-         queue_idx, trans_id, data_label, idx);
+  GELOGD("save queue_idx[%u] trans_id[%" PRIu64 "] data_label[%u] to the [%zu]th cache queue success.", queue_idx,
+         trans_id, data_label, idx);
   if (cache_data.IsComplete()) {
     GELOGI("trans_id[%" PRIu64 "] data_label[%u] align complete.", trans_id, data_label);
     is_aligned = true;
@@ -185,7 +185,8 @@ void DataFlowDataAligner::ClearCacheByTransId(uint64_t trans_id) {
          ToString(queue_idxes_).c_str());
 }
 
-Status DataFlowDataAligner::TryTakeExpiredOrOverLimitData(std::vector<GeTensor> &data, DataFlowInfo &info, bool &has_output) {
+Status DataFlowDataAligner::TryTakeExpiredOrOverLimitData(std::vector<GeTensor> &data, DataFlowInfo &info,
+                                                          bool &has_output) {
   has_output = false;
   Status ret = TryTakeExpired(data, info, has_output);
   // when null data, data may be empty.
@@ -205,10 +206,11 @@ Status DataFlowDataAligner::TryTakeOverLimit(std::vector<GeTensor> &data, DataFl
     Status ret = begin->second.Take(data, info);
     if (begin->second.IsEmpty()) {
       GELOGW("cache size=%zu is over limit size %u, take trans id=%" PRIu64 ", data label=%u finish.",
-        wait_align_data_.size(), align_attrs_.align_max_cache_num, begin->first.first, begin->first.second);
+             wait_align_data_.size(), align_attrs_.align_max_cache_num, begin->first.first, begin->first.second);
       (void)wait_align_data_.erase(begin);
     } else {
-      GELOGW("cache size=%zu is over limit size %u, take trans id=%" PRIu64 ", "
+      GELOGW("cache size=%zu is over limit size %u, take trans id=%" PRIu64
+             ", "
              "data label=%u not finish, need take next time.",
              wait_align_data_.size(), align_attrs_.align_max_cache_num, begin->first.first, begin->first.second);
     }
@@ -240,18 +242,19 @@ Status DataFlowDataAligner::TryTakeExpired(std::vector<GeTensor> &data, DataFlow
       continue;
     }
     if (align_attrs_.drop_when_not_align) {
-      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, need drop it.", iter->first.first, iter->first.second);
+      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, need drop it.", iter->first.first,
+             iter->first.second);
       iter = wait_align_data_.erase(iter);
       continue;
     }
     Status ret = iter->second.Take(data, info);
     if (iter->second.IsEmpty()) {
-      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, and take finish.",
-        iter->first.first, iter->first.second);
+      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, and take finish.", iter->first.first,
+             iter->first.second);
       (void)wait_align_data_.erase(iter);
     } else {
-      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, and take not finish.",
-        iter->first.first, iter->first.second);
+      GELOGW("data trans id=%" PRIu64 ", data label=%u is expire, and take not finish.", iter->first.first,
+             iter->first.second);
     }
     has_output = true;
     return ret;

@@ -27,7 +27,7 @@ layer {
   type: "Reshape"
   bottom: "data"
   bottom: "const"
-  top: "reshpae_out" 
+  top: "reshpae_out"
   reshape_param {
     shape {
       dim: 3

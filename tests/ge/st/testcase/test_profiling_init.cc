@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -84,7 +84,7 @@ TEST_F(ProfilingInitTest, test_shut) {
   profiling_init.ShutDownProfiling();
 
   // MsprofFinalize fail
-  const char_t * const kEnvValue = "MS_PROF_FINALIZE_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_FINALIZE_FAIL";
   mmSetEnv(kEnvValue, "mock_fail", 1);
   profiling_init.ShutDownProfiling();
 
@@ -99,7 +99,7 @@ TEST_F(ProfilingInitTest, test_init_failed) {
   "task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})";
   options[ge::OPTION_EXEC_JOB_ID] = "0";
 
-  const char_t * const kEnvValue = "MS_PROF_INIT_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_INIT_FAIL";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);

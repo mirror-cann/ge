@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ using namespace ge;
  *   |     /
  *    \  /
  *      F(0)
- * 
+ *
  */
 void CreateMultiStreamComputeGraph(const ge::ComputeGraphPtr &graph, std::vector<EventInfo> &all_event_info) {
   const auto &a_desc = std::make_shared<ge::OpDesc>("A", DATA);
@@ -86,7 +86,7 @@ void CreateMultiStreamComputeGraph(const ge::ComputeGraphPtr &graph, std::vector
   f_desc->AddInputDesc(GeTensorDesc());
   f_desc->AddOutputDesc(GeTensorDesc());
   f_desc->SetStreamId(0);
-  AttrUtils::SetListInt(f_desc, ge::ATTR_NAME_RECV_EVENT_IDS, {2,3});
+  AttrUtils::SetListInt(f_desc, ge::ATTR_NAME_RECV_EVENT_IDS, {2, 3});
   const auto &f_node = graph->AddNode(f_desc);
 
   GraphUtils::AddEdge(a_node->GetOutDataAnchor(0), b_node->GetInDataAnchor(0));
@@ -99,13 +99,13 @@ void CreateMultiStreamComputeGraph(const ge::ComputeGraphPtr &graph, std::vector
 }
 
 /**
- * 
+ *
  *     A(0)   C(1)
  *    /          |
  *   B(0)    D(1)
  *   |     /
  *   E(0)
- * 
+ *
  */
 void CreateFirstEventSyncComputeGraph(const ge::ComputeGraphPtr &graph) {
   const auto &a_desc = std::make_shared<ge::OpDesc>("A", DATA);
@@ -149,13 +149,13 @@ void CreateFirstEventSyncComputeGraph(const ge::ComputeGraphPtr &graph) {
 }
 
 /**
- * 
+ *
  *       A(0)
  *    /    \    \
  *   B(0)   C(1)  D(1)
  *   |
  *   E(0)
- * 
+ *
  */
 void CreateLastEventSyncComputeGraph(const ge::ComputeGraphPtr &graph) {
   const auto &a_desc = std::make_shared<ge::OpDesc>("A", DATA);
@@ -163,7 +163,7 @@ void CreateLastEventSyncComputeGraph(const ge::ComputeGraphPtr &graph) {
   a_desc->AddOutputDesc(ge::GeTensorDesc());
   a_desc->SetStreamId(0);
   a_desc->SetAttachedStreamId(3);
-  AttrUtils::SetListInt(a_desc, ge::ATTR_NAME_SEND_EVENT_IDS, {0,1});
+  AttrUtils::SetListInt(a_desc, ge::ATTR_NAME_SEND_EVENT_IDS, {0, 1});
   const auto &a_node = graph->AddNode(a_desc);
 
   const auto &b_desc = std::make_shared<OpDesc>("B", "testb");
@@ -200,7 +200,7 @@ void CreateLastEventSyncComputeGraph(const ge::ComputeGraphPtr &graph) {
   GraphUtils::AddEdge(a_node->GetOutDataAnchor(0), d_node->GetInDataAnchor(0));
   graph->SetGraphUnknownFlag(true);
 }
-} // namespace
+}  // namespace
 class BgEventUT : public BgTestAutoCreateFrame {
  public:
   GraphFrame *root_frame = nullptr;
@@ -237,7 +237,7 @@ TEST_F(BgEventUT, SendEvents_OneEvent) {
 
   // prepare stream num in init for l2 allocator
   int64_t stream_num = 3;
-  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]()-> std::vector<ValueHolderPtr> {
+  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]() -> std::vector<ValueHolderPtr> {
     auto stream_num_holder = ValueHolder::CreateConst(&stream_num, sizeof(stream_num));
     global_data.SetUniqueValueHolder(kGlobalDataModelStreamNum, stream_num_holder);
     return {};
@@ -259,21 +259,24 @@ TEST_F(BgEventUT, SendEvents_OneEvent) {
 
   auto main_frame = ValueHolder::PopGraphFrame();
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
-   // GE_DUMP(init_exe_graph, "send_event_init");
+  // GE_DUMP(init_exe_graph, "send_event_init");
   EXPECT_EQ(ExeGraphSummaryChecker(init_exe_graph)
                 .StrictDirectNodeTypes(std::map<std::string, size_t>{
                     {"Const", 3}, {"CreateL1Allocator", 1}, {"CreateL2Allocators", 1}, {"InnerNetOutput", 1}}),
             "success");
 
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
-   // GE_DUMP(main_exe_graph, "send_event_main");
+  // GE_DUMP(main_exe_graph, "send_event_main");
   EXPECT_EQ(ExeGraphSummaryChecker(main_exe_graph)
                 .DirectNodeTypesOnlyCareAbout(std::map<std::string, size_t>{
-                 {"Data", 3}, {"InnerData", 2}, {"SplitRtStreams", 1}, {"SelectL2Allocator", 1}, {"SendEvents", 1}}),
+                    {"Data", 3}, {"InnerData", 2}, {"SplitRtStreams", 1}, {"SelectL2Allocator", 1}, {"SendEvents", 1}}),
             "success");
   FastNodeTopoChecker checker(order_holder);
   // Const(logic_stream_id), GetRtStreamById, Const(event_ids), Data(gert events), Data(rt_events),SelectL2Allocator
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams"}, {"Const"}, {"Data"}, {"Data"}, {"SelectL2Allocator"}}), true), "success");
+  EXPECT_EQ(
+      checker.StrictConnectFrom(
+          std::vector<FastSrcNode>({{"SplitRtStreams"}, {"Const"}, {"Data"}, {"Data"}, {"SelectL2Allocator"}}), true),
+      "success");
 }
 
 TEST_F(BgEventUT, SendEvents_MultiEvents) {
@@ -282,7 +285,7 @@ TEST_F(BgEventUT, SendEvents_MultiEvents) {
 
   // prepare stream num in init for l2 allocator
   int64_t stream_num = 3;
-  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]()-> std::vector<ValueHolderPtr> {
+  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]() -> std::vector<ValueHolderPtr> {
     auto stream_num_holder = ValueHolder::CreateConst(&stream_num, sizeof(stream_num));
     global_data.SetUniqueValueHolder(kGlobalDataModelStreamNum, stream_num_holder);
     return {};
@@ -319,7 +322,10 @@ TEST_F(BgEventUT, SendEvents_MultiEvents) {
             "success");
   FastNodeTopoChecker checker(order_holder);
   // Const(logic_stream_id), GetRtStreamById, Const(event_ids), Data(gert events), Data(rt_events),SelectL2Allocator
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams"}, {"Const"}, {"Data"}, {"Data"}, {"SelectL2Allocator"}}), true), "success");
+  EXPECT_EQ(
+      checker.StrictConnectFrom(
+          std::vector<FastSrcNode>({{"SplitRtStreams"}, {"Const"}, {"Data"}, {"Data"}, {"SelectL2Allocator"}}), true),
+      "success");
 
   // check event_id_list const value is ok
   auto event_ids = order_holder->GetFastNode()->GetInDataEdgeByIndex(1)->src;
@@ -356,7 +362,8 @@ TEST_F(BgEventUT, CollectAndCreateGertEvents_ok) {
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
   // GE_DUMP(init_exe_graph, "CollectAndCreateGertEvents_ok");
   EXPECT_EQ(ExeGraphSummaryChecker(init_exe_graph)
-                .StrictDirectNodeTypes(std::map<std::string, size_t>{{"Const", 1}, {"CreateGertEvents", 1}, {"InnerNetOutput", 1}}),
+                .StrictDirectNodeTypes(
+                    std::map<std::string, size_t>{{"Const", 1}, {"CreateGertEvents", 1}, {"InnerNetOutput", 1}}),
             "success");
   // check event_infos const value is right
   auto create_gert_events_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_exe_graph, "CreateGertEvents");
@@ -440,11 +447,11 @@ TEST_F(BgEventUT, LoweringFirstEventSync_ok) {
 
   FastNodeTopoChecker checker(first_sync_pcall);
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams"},       // rt stream of send
-                                                            {"Data"},                 // gert events
-                                                            {"Data"},                 // rt events
-                                                            {"SelectL2Allocator"},    // l2 allocator of send
-                                                            {"SplitRtStreams"},       // rt stream of wait
-                                                            {"SelectL2Allocator"}}),  // l2 allocator of wait
+                                                                {"Data"},                 // gert events
+                                                                {"Data"},                 // rt events
+                                                                {"SelectL2Allocator"},    // l2 allocator of send
+                                                                {"SplitRtStreams"},       // rt stream of wait
+                                                                {"SelectL2Allocator"}}),  // l2 allocator of wait
                                       true),
             "success");
 
@@ -464,7 +471,7 @@ TEST_F(BgEventUT, LoweringLastEventSync_ok) {
 
   // prepare stream num in init for l2 allocator
   int64_t stream_num = 2;
-  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]()-> std::vector<ValueHolderPtr> {
+  auto init_out = FrameSelector::OnInitRoot([&stream_num, &global_data]() -> std::vector<ValueHolderPtr> {
     auto stream_num_holder = ValueHolder::CreateConst(&stream_num, sizeof(stream_num));
     global_data.SetUniqueValueHolder(kGlobalDataModelStreamNum, stream_num_holder);
     return {};
@@ -518,20 +525,22 @@ TEST_F(BgEventUT, LoweringLastEventSync_ok) {
                                                                      {"SelectL2Allocator", 2}}),
             "success");
 
-  auto stage_ids_to_first_pcall = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<bg::ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
+  auto stage_ids_to_first_pcall =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<bg::ValueHolderPtr>>(kStageIdsToFirstPartitionedCall);
   EXPECT_EQ(stage_ids_to_first_pcall, nullptr);
 
-  auto stage_ids_to_last_pcall = main_frame->GetExecuteGraph()->GetExtAttr<std::vector<bg::ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
+  auto stage_ids_to_last_pcall =
+      main_frame->GetExecuteGraph()->GetExtAttr<std::vector<bg::ValueHolderPtr>>(kStageIdsToLastPartitionedCall);
   EXPECT_EQ(stage_ids_to_last_pcall->size(), static_cast<size_t>(OnMainRootLastExecStage::kStageSize));
   auto last_sync_pcall = stage_ids_to_last_pcall->at(static_cast<size_t>(OnMainRootLastExecStage::kLastEventSyncStage));
   EXPECT_NE(last_sync_pcall, nullptr);
   FastNodeTopoChecker checker(last_sync_pcall);
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams"}, // rt stream of send
-                                                            {"Data"}, // (gert events)
-                                                            {"Data"}, // (rt_events)
-                                                            {"SelectL2Allocator"}, // l2 allocator of send
-                                                            {"SplitRtStreams"}, // rt stream of wait
-                                                            {"SelectL2Allocator"}}), // l2 allocator of wait
+  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams"},       // rt stream of send
+                                                                {"Data"},                 // (gert events)
+                                                                {"Data"},                 // (rt_events)
+                                                                {"SelectL2Allocator"},    // l2 allocator of send
+                                                                {"SplitRtStreams"},       // rt stream of wait
+                                                                {"SelectL2Allocator"}}),  // l2 allocator of wait
                                       true),
             "success");
 

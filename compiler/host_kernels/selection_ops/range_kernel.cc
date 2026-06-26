@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,8 +101,8 @@ Status RangeKernel::RangeCheck(const std::vector<ConstGeTensorPtr> &input) const
   GE_CHECK_NOTNULL(delta);
   // check whether there is data in Tensor
   if (start->GetData().size() == 0 || limit->GetData().size() == 0 || delta->GetData().size() == 0) {
-    GELOGI("Data size check skipped: empty input. start: %zu, limit: %zu, delta: %zu", start->GetData().size(), limit->GetData().size(),
-           delta->GetData().size());
+    GELOGI("Data size check skipped: empty input. start: %zu, limit: %zu, delta: %zu", start->GetData().size(),
+           limit->GetData().size(), delta->GetData().size());
     return NOT_CHANGED;
   }
 
@@ -163,9 +163,9 @@ Status RangeKernel::GetRange(const T start, const T limit, const T delta, GeTens
     return PARAM_INVALID;
   }
 
-  int64_t size = static_cast<int64_t>(std::is_integral<T>::value ? ((std::abs(limit - start)
-                                                                   + std::abs(delta) - 1) / std::abs(delta))
-                                                                 : std::ceil(std::abs((limit - start) / delta)));
+  int64_t size = static_cast<int64_t>(std::is_integral<T>::value
+                                          ? ((std::abs(limit - start) + std::abs(delta) - 1) / std::abs(delta))
+                                          : std::ceil(std::abs((limit - start) / delta)));
   output->MutableTensorDesc().SetShape(GeShape());  // when size is 0
 
   if (size > 0) {

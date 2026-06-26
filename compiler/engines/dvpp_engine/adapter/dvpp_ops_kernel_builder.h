@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,28 +27,23 @@ class DvppOpsKernelBuilder : public ge::OpsKernelBuilder {
   virtual ~DvppOpsKernelBuilder() = default;
 
   // Copy constructor prohibited
-  DvppOpsKernelBuilder(
-      const DvppOpsKernelBuilder& dvpp_ops_kernel_builder) = delete;
+  DvppOpsKernelBuilder(const DvppOpsKernelBuilder &dvpp_ops_kernel_builder) = delete;
 
   // Move constructor prohibited
-  DvppOpsKernelBuilder(
-      const DvppOpsKernelBuilder&& dvpp_ops_kernel_builder) = delete;
+  DvppOpsKernelBuilder(const DvppOpsKernelBuilder &&dvpp_ops_kernel_builder) = delete;
 
   // Copy assignment prohibited
-  DvppOpsKernelBuilder& operator=(
-      const DvppOpsKernelBuilder& dvpp_ops_kernel_builder) = delete;
+  DvppOpsKernelBuilder &operator=(const DvppOpsKernelBuilder &dvpp_ops_kernel_builder) = delete;
 
   // Move assignment prohibited
-  DvppOpsKernelBuilder& operator=(
-      DvppOpsKernelBuilder&& dvpp_ops_kernel_builder) = delete;
+  DvppOpsKernelBuilder &operator=(DvppOpsKernelBuilder &&dvpp_ops_kernel_builder) = delete;
 
   /**
    * @brief initialize dvpp ops kernel builder
    * @param options initial options
    * @return status whether success
    */
-  ge::Status Initialize(
-      const std::map<std::string, std::string>& options) override;
+  ge::Status Initialize(const std::map<std::string, std::string> &options) override;
 
   /**
    * @brief close dvpp ops kernel builder
@@ -62,7 +57,7 @@ class DvppOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param node node info, return task memory size in node attr
    * @return status whether success
    */
-  ge::Status CalcOpRunningParam(ge::Node& node) override;
+  ge::Status CalcOpRunningParam(ge::Node &node) override;
 
   /**
    * @brief make the task info details
@@ -72,12 +67,11 @@ class DvppOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param tasks make the task return to GE
    * @return status whether success
    */
-  ge::Status GenerateTask(const ge::Node& node, ge::RunContext& context,
-                          std::vector<domi::TaskDef>& tasks) override;
+  ge::Status GenerateTask(const ge::Node &node, ge::RunContext &context, std::vector<domi::TaskDef> &tasks) override;
 
  private:
   std::shared_ptr<DvppBuilder> dvpp_builder_{nullptr};
-}; // class DvppOpsKernelBuilder
-} // namespace dvpp
+};  // class DvppOpsKernelBuilder
+}  // namespace dvpp
 
-#endif // DVPP_ENGINE_ADAPTER_DVPP_OPS_KERNEL_BUILDER_H_
+#endif  // DVPP_ENGINE_ADAPTER_DVPP_OPS_KERNEL_BUILDER_H_

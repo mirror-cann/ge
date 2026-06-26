@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -166,10 +166,8 @@ Status RangeTransferAccordingToFormat::GetFzRangeByAxisValue(
     /* size_of_original_vec - 1 mean the last value of original vec
      * size_of_original_vec - 2 mean the second last value of original vec */
     new_range[size_of_original_vec - MINUS_VALUE_ONE] = std::pair<int64_t, int64_t>(
-        DivisionCeiling(nd_range_value[size_of_original_vec - MINUS_VALUE_TWO].first,
-                        SHAPE_NUMBER_16),
-        DivisionCeiling(nd_range_value[size_of_original_vec - MINUS_VALUE_TWO].second,
-                        SHAPE_NUMBER_16));
+        DivisionCeiling(nd_range_value[size_of_original_vec - MINUS_VALUE_TWO].first, SHAPE_NUMBER_16),
+        DivisionCeiling(nd_range_value[size_of_original_vec - MINUS_VALUE_TWO].second, SHAPE_NUMBER_16));
 
     new_range[size_of_original_vec - MINUS_VALUE_TWO] = std::pair<int64_t, int64_t>(
         DivisionCeiling(nd_range_value[size_of_original_vec - MINUS_VALUE_ONE].first, range_value[AXIS_C0].first),
@@ -322,10 +320,8 @@ Status RangeTransferAccordingToFormat::GetNzRangeByAxisValue(
   /* size_of_original_vec - 1 mean the last value of original vec
    * size_of_original_vec - 2 mean the second last value of original vec */
   new_range[size_of_original_vec - MINUS_VALUE_ONE] = std::pair<int64_t, int64_t>(
-      DivisionCeiling(nd_range_value_temp[size_of_original_vec - MINUS_VALUE_TWO].first,
-                      SHAPE_NUMBER_16),
-      DivisionCeiling(nd_range_value_temp[size_of_original_vec - MINUS_VALUE_TWO].second,
-                      SHAPE_NUMBER_16));
+      DivisionCeiling(nd_range_value_temp[size_of_original_vec - MINUS_VALUE_TWO].first, SHAPE_NUMBER_16),
+      DivisionCeiling(nd_range_value_temp[size_of_original_vec - MINUS_VALUE_TWO].second, SHAPE_NUMBER_16));
 
   new_range[size_of_original_vec - MINUS_VALUE_TWO] = std::pair<int64_t, int64_t>(
       DivisionCeiling(nd_range_value_temp[size_of_original_vec - MINUS_VALUE_ONE].first, range_value[AXIS_C0].first),
@@ -462,14 +458,12 @@ Status RangeTransferAccordingToFormat::GetFznRNNRangeByAxisValue(
 
   /* size_of_original_vec - 1 mean the last value of original vec
    * size_of_original_vec - 2 mean the second last value of original vec */
-  int64_t min_first_dim_value =
-      min(DivisionCeiling(k_value_range.first, SHAPE_NUMBER_16),
-          DivisionCeiling(range_value[AXIS_INPUT_SIZE].first, SHAPE_NUMBER_16) +
-              DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].first, SHAPE_NUMBER_16));
-  int64_t max_first_dim_value =
-      max(DivisionCeiling(k_value_range.second, SHAPE_NUMBER_16),
-          (DivisionCeiling(range_value[AXIS_INPUT_SIZE].first, SHAPE_NUMBER_16) +
-           DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].first, SHAPE_NUMBER_16)));
+  int64_t min_first_dim_value = min(DivisionCeiling(k_value_range.first, SHAPE_NUMBER_16),
+                                    DivisionCeiling(range_value[AXIS_INPUT_SIZE].first, SHAPE_NUMBER_16) +
+                                        DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].first, SHAPE_NUMBER_16));
+  int64_t max_first_dim_value = max(DivisionCeiling(k_value_range.second, SHAPE_NUMBER_16),
+                                    (DivisionCeiling(range_value[AXIS_INPUT_SIZE].first, SHAPE_NUMBER_16) +
+                                     DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].first, SHAPE_NUMBER_16)));
 
   new_range[size_of_original_vec - MINUS_VALUE_TWO] =
       std::pair<int64_t, int64_t>(min_first_dim_value, max_first_dim_value);
@@ -513,9 +507,9 @@ Status RangeTransferAccordingToFormat::GetNDRNNRangeByAxisValue(
                     DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].second, range_value[AXIS_C0].second));
   new_range[size_of_original_vec - MINUS_VALUE_ONE] = std::pair<int64_t, int64_t>(
       n_num_range.first * DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].first, range_value[AXIS_C0].first) *
-      range_value[AXIS_C0].first,
+          range_value[AXIS_C0].first,
       n_num_range.second * DivisionCeiling(range_value[AXIS_HIDEEN_SIZE].second, range_value[AXIS_C0].second) *
-      range_value[AXIS_C0].second);
+          range_value[AXIS_C0].second);
   return SUCCESS;
 }
 

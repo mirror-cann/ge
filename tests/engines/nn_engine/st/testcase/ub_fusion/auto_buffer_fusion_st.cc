@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,20 +39,19 @@ using namespace ge;
 using namespace te;
 
 namespace {
-  int32_t fusion_nodes_num = 0;
-  int32_t last_fusion_nodes_num = 0;
-}
+int32_t fusion_nodes_num = 0;
+int32_t last_fusion_nodes_num = 0;
+}  // namespace
 class UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER : public testing::Test {
  public:
-
  protected:
   virtual void SetUp() {
     graph_comm_ptr_ = std::make_shared<GraphComm>("engineName");
     graph_comm_ptr_->Initialize();
-    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-        "engineName", nullptr);
+    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>("engineName", nullptr);
 
-    tbe_adapter_ptr_ = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+    tbe_adapter_ptr_ = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
     tbe_adapter_ptr_->Initialize(std::map<std::string, std::string>());
     tbe_adapter_ptr_->support_parallel_compile = false;
 
@@ -60,9 +59,7 @@ class UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER : public testing::Test {
         std::make_shared<BufferFusion>(graph_comm_ptr_, fusion_priority_mgr_ptr_, tbe_adapter_ptr_);
   }
 
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
 
   std::shared_ptr<GraphComm> graph_comm_ptr_;
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr_;
@@ -70,16 +67,16 @@ class UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER : public testing::Test {
   TbeOpStoreAdapterPtr tbe_adapter_ptr_;
 };
 
-te::OpBuildResCode TeFusionFusionCheckStub1(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>
-        &to_be_del, uint64_t taskid, uint64_t tid, const std::string op_compile_strategy)
-{
+te::OpBuildResCode TeFusionFusionCheckStub1(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                            const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                            const std::string op_compile_strategy) {
   fusion_nodes_num++;
   return te::OP_BUILD_SUCC;
 }
 
-te::OpBuildResCode TeFusionFusionCheckStub2(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>
-        &to_be_del, uint64_t taskid, uint64_t tid, const std::string op_compile_strategy)
-{
+te::OpBuildResCode TeFusionFusionCheckStub2(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                            const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                            const std::string op_compile_strategy) {
   fusion_nodes_num++;
   int32_t reduce_node_num = 0;
   for (auto node : teGraphNode) {
@@ -97,22 +94,20 @@ te::OpBuildResCode TeFusionFusionCheckStub2(std::vector<Node*> teGraphNode, OpDe
   return te::OP_BUILD_SUCC;
 }
 
-bool WaitAllFinishedFusionCheckdStub1(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedFusionCheckdStub1(uint64_t tid, vector<te::FinComTask> &fin_task) {
   te::FinComTask fin_com_task;
   fin_com_task.teNodeOpDesc = std::make_shared<ge::OpDesc>("OneOP", "");
-  fin_com_task.taskId = GetAtomicId()- fusion_nodes_num;
+  fin_com_task.taskId = GetAtomicId() - fusion_nodes_num;
   fin_com_task.status = 0;
   ge::AttrUtils::SetStr(fin_com_task.teNodeOpDesc, "json_file_path", "jsonFilePath");
   fin_task.push_back(fin_com_task);
   return true;
 }
 
-bool WaitAllFinishedFusionCheckdStub2(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedFusionCheckdStub2(uint64_t tid, vector<te::FinComTask> &fin_task) {
   te::FinComTask fin_com_task;
   fin_com_task.teNodeOpDesc = std::make_shared<ge::OpDesc>("OneOP", "");
-  fin_com_task.taskId = GetAtomicId()- (fusion_nodes_num - last_fusion_nodes_num);
+  fin_com_task.taskId = GetAtomicId() - (fusion_nodes_num - last_fusion_nodes_num);
   if (!last_fusion_nodes_num) {
     last_fusion_nodes_num = fusion_nodes_num;
   }
@@ -126,21 +121,20 @@ te::LX_QUERY_STATUS get_tbe_opinfo_fusion_check_stub_succ(const te::TbeOpInfo &i
   return te::LX_QUERY_SUCC;
 }
 
-
 class SingleReduceFusionPass1 : public BufferFusionPassBase {
  public:
   SingleReduceFusionPass1() {}
   ~SingleReduceFusionPass1() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "SingleReduceFusionPass1";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("reduce", {"CommReduce"}, 1, 1, true)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -153,14 +147,14 @@ class SingleNormFusionPass1 : public BufferFusionPassBase {
   ~SingleNormFusionPass1() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "SingleNormFusionPass1";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("norm", {"Softmax"}, 1, 1, false)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -173,14 +167,14 @@ class MultipleReduceFusionPass1 : public BufferFusionPassBase {
   ~MultipleReduceFusionPass1() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "MultipleReduceFusionPass1";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("reduce", {"CommReduce"}, 1, 5, false)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 6, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 6, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -193,14 +187,14 @@ class MultipleNormFusionPass2 : public BufferFusionPassBase {
   ~MultipleNormFusionPass2() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "MultipleNormFusionPass2";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("norm", {"Softmax"}, 1, 5, false)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -213,14 +207,14 @@ class MultipleReduceFusionPass3_1 : public BufferFusionPassBase {
   ~MultipleReduceFusionPass3_1() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "MultipleReduceFusionPass3_1";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("reduce", {"CommReduce"}, 1, 5, false)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -233,14 +227,14 @@ class MultipleReduceFusionPass3_2 : public BufferFusionPassBase {
   ~MultipleReduceFusionPass3_2() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "MultipleReduceFusionPass3_2";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("reduce", {"CommReduce"}, 1, 1, true)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
     return patterns;
@@ -253,15 +247,15 @@ class MultipleReduceAndDataaccessFusionPass1 : public BufferFusionPassBase {
   ~MultipleReduceAndDataaccessFusionPass1() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
     string pattern_name = "MultipleReduceAndDataaccessFusionPass1";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed"), return patterns);
     FE_LOGD("Start to define %s pass pattern", pattern_name.c_str());
     pattern->AddOpDesc("reduce", {"CommReduce"}, 1, 5, false)
-            .AddOpDesc("gather", {"GatherV2"}, 0, 5, false)
-            .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
+        .AddOpDesc("gather", {"GatherV2"}, 0, 5, false)
+        .AddOpDesc("elemwise_or_broadcast_1", {"ElemWise", "Broadcast"}, 0, 5, true);
     pattern->SetRelation("reduce", "gather", PatternRelation::RELATIVE_POSITION_CONSISTENT);
     patterns.push_back(pattern);
     FE_LOGD("End to define %s pass pattern.", pattern_name.c_str());
@@ -305,8 +299,8 @@ void BuildGraph_01(ge::ComputeGraphPtr &graph) {
       .Attr("relu3", ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
       .Attr("relu3", OPS_PATH_NAME_PREFIX, "")
       .AddOpDesc(EN_IMPL_HW_TBE, "CommReduce", "reduceMeanD2", "ReduceMeanD", 1, 1)
-      .Attr("reduceMeanD2", ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)    
-      .Attr("reduceMeanD2", OPS_PATH_NAME_PREFIX, "")  
+      .Attr("reduceMeanD2", ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
+      .Attr("reduceMeanD2", OPS_PATH_NAME_PREFIX, "")
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "square2", "Square", 1, 1)
       .Attr("square2", ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
       .Attr("square2", OPS_PATH_NAME_PREFIX, "")
@@ -497,13 +491,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, singel_reduce_fusion_01) {
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_01(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) SingleReduceFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -531,18 +525,18 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, singel_norm_fusion_01) {
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_02(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) SingleNormFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
   const std::vector<std::string> nodes_name_vec = {"relu1softmax1", "square1", "relu2softmax2",
-                                                   "square2", "add1", "relu3"};
+                                                   "square2",       "add1",    "relu3"};
   int index = 0;
   for (auto &node : graph->GetDirectNode()) {
     EXPECT_EQ(node->GetName(), nodes_name_vec.at(index));
@@ -566,13 +560,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_fusion_01) {
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_01(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -597,13 +591,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_norm_fusion_02) {
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_03(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleNormFusionPass2(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -633,17 +627,18 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_fusion_03) {
   BuildGraph_01(graph);
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  
+
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>(fe::AI_CORE_NAME);
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
       std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferAutoFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
-  std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr = 
-    std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, tbe_adapter_ptr_);
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
+  std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, tbe_adapter_ptr_);
   sub_graph_optimizer_ptr->cycle_detector_ = cycle_detector;
   BufferFusionPassType type = BUILT_IN_AI_CORE_BUFFER_FUSION_PASS;
   Status status = sub_graph_optimizer_ptr->RunRegisterBufferFusionPass(*graph, type);
@@ -674,13 +669,15 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_and_dataaccess_fusi
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_04(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  auto create_fn = []() -> BufferFusionPassBase * {
+    return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1();
+  };
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -708,13 +705,15 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_and_dataaccess_fusi
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_05(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  auto create_fn = []() -> BufferFusionPassBase * {
+    return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1();
+  };
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -742,13 +741,15 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_and_dataaccess_fusi
 
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_06(graph);
-  
+
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  auto create_fn = []() -> BufferFusionPassBase * {
+    return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1();
+  };
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -765,12 +766,14 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, get_fusion_nodes_map) {
   BuildGraph_07(graph);
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
-  
+  auto create_fn = []() -> BufferFusionPassBase * {
+    return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1();
+  };
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+
   vector<int64_t> dim_weight = {1, 3, 3, 3};
   GeShape shape_weight(dim_weight);
   GeTensorDesc weight_desc(shape_weight);
@@ -804,12 +807,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION_PASS_RUNNER, multiple_reduce_and_dataaccess_fusi
     }
   }
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
-  auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1(); };
-  AutoBufferFusionPassRunner *test_pass = new (std::nothrow)
-      AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
+  auto create_fn = []() -> BufferFusionPassBase * {
+    return new (std::nothrow) MultipleReduceAndDataaccessFusionPass1();
+  };
+  AutoBufferFusionPassRunner *test_pass =
+      new (std::nothrow) AutoBufferFusionPassRunner("test_pass", create_fn, cycle_detector, tbe_adapter_ptr_);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 }
-

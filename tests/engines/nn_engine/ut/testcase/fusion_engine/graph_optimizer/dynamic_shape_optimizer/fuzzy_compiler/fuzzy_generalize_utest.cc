@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,16 +60,15 @@ using namespace testing;
 using namespace ge;
 using namespace fe;
 
-
 using FEGraphOptimizerPtr = std::shared_ptr<fe::FEGraphOptimizer>;
 using OpStoreAdapterPtr = std::shared_ptr<fe::OpStoreAdapter>;
 
-class OptimizeUtilityStub: public ge::OptimizeUtility {
+class OptimizeUtilityStub : public ge::OptimizeUtility {
  public:
   OptimizeUtilityStub() {}
   virtual ~OptimizeUtilityStub() override {}
 
-  ge::Status InferShape(ComputeGraph &compute_graph) override{
+  ge::Status InferShape(ComputeGraph &compute_graph) override {
     return ge::SUCCESS;
   }
 
@@ -94,21 +93,21 @@ bool CheckIsRegisteredException(const te::TbeOpInfo &op_info, bool &val) {
 }
 
 std::string GetCurpath() {
-    Dl_info dl_info;
-    if (dladdr((void*) GetCurpath, &dl_info) == 0) {
-        return "";
-    } else {
-        std::string so_path = dl_info.dli_fname;
-        char resoved_path[4096] = {0x00};
-        realpath(so_path.c_str(), resoved_path);
-        so_path = resoved_path;
-        std::string real_dir_file_path = so_path.substr(0, so_path.rfind('/') + 1);
-        return real_dir_file_path;
-    }
+  Dl_info dl_info;
+  if (dladdr((void *)GetCurpath, &dl_info) == 0) {
+    return "";
+  } else {
+    std::string so_path = dl_info.dli_fname;
+    char resoved_path[4096] = {0x00};
+    realpath(so_path.c_str(), resoved_path);
+    so_path = resoved_path;
+    std::string real_dir_file_path = so_path.substr(0, so_path.rfind('/') + 1);
+    return real_dir_file_path;
+  }
 }
 
-bool TeGeneralizeStub(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool TeGeneralizeStub(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
+                      const ge::NodePtr &node) {
   std::vector<int64_t> shape_vec;
   auto op_desc = node->GetOpDesc();
   auto tensor_desc_x = op_desc->MutableInputDesc("x");
@@ -118,7 +117,7 @@ bool TeGeneralizeStub(const te::TbeOpInfo &op_info,
       i = -1;
     }
   } else if (general_type == te::DEFAULT_TBE_OP_INFO) {
-    for (int i = 0; i < shape_vec.size()-1; ++i) {
+    for (int i = 0; i < shape_vec.size() - 1; ++i) {
       shape_vec[i] = -1;
     }
   } else {
@@ -131,8 +130,8 @@ bool TeGeneralizeStub(const te::TbeOpInfo &op_info,
   return true;
 }
 
-bool TeGeneralizeStubDynamicRank(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool TeGeneralizeStubDynamicRank(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
+                                 const ge::NodePtr &node) {
   std::vector<int64_t> shape_vec;
   auto op_desc = node->GetOpDesc();
   auto tensor_desc_x = op_desc->MutableInputDesc("x");
@@ -144,7 +143,7 @@ bool TeGeneralizeStubDynamicRank(const te::TbeOpInfo &op_info,
       i = -1;
     }
   } else if (general_type == te::DEFAULT_TBE_OP_INFO) {
-    for (int i = 0; i < shape_vec.size()-1; ++i) {
+    for (int i = 0; i < shape_vec.size() - 1; ++i) {
       shape_range.emplace_back(std::make_pair(1, -1));
       shape_vec[i] = -1;
     }
@@ -158,13 +157,13 @@ bool TeGeneralizeStubDynamicRank(const te::TbeOpInfo &op_info,
   return true;
 }
 
-bool TeGeneralizeTrue(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool TeGeneralizeTrue(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
+                      const ge::NodePtr &node) {
   return true;
 }
 
-bool TeGeneralizeException(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool TeGeneralizeException(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
+                           const ge::NodePtr &node) {
   return false;
 }
 
@@ -188,24 +187,24 @@ bool GetOpSpecificInfoFailStep(const te::TbeOpInfo &tbeOpInfo, std::string &opSp
 }
 
 bool DynamicShapeRangeCheckNotSupportUpperStep(const te::TbeOpInfo &tbeOpInfo, bool &isSupported,
-    std::vector<size_t> &upperLimitedInputIndexs,
-    std::vector<size_t> &lowerLimitedInputIndexs) {
+                                               std::vector<size_t> &upperLimitedInputIndexs,
+                                               std::vector<size_t> &lowerLimitedInputIndexs) {
   upperLimitedInputIndexs.emplace_back(0);
   isSupported = false;
   return true;
 }
 
 bool DynamicShapeRangeCheckNotSupportLowerStep(const te::TbeOpInfo &tbeOpInfo, bool &isSupported,
-    std::vector<size_t> &upperLimitedInputIndexs,
-    std::vector<size_t> &lowerLimitedInputIndexs) {
+                                               std::vector<size_t> &upperLimitedInputIndexs,
+                                               std::vector<size_t> &lowerLimitedInputIndexs) {
   lowerLimitedInputIndexs.emplace_back(0);
   isSupported = false;
   return true;
 }
 
 bool DynamicShapeRangeCheckSupportStep(const te::TbeOpInfo &tbeOpInfo, bool &isSupported,
-    std::vector<size_t> &upperLimitedInputIndexs,
-    std::vector<size_t> &lowerLimitedInputIndexs) {
+                                       std::vector<size_t> &upperLimitedInputIndexs,
+                                       std::vector<size_t> &lowerLimitedInputIndexs) {
   isSupported = true;
   return true;
 }
@@ -215,9 +214,8 @@ class TestGeneralizationPass : public PatternFusionBasePass {
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
     FusionPattern *pattern1 = new (std::nothrow) FusionPattern("TestGenPattern1");
-    FE_CHECK(pattern1 == nullptr, FE_LOGE("New a pattern1 object failed."),  return patterns);
-    pattern1->AddOpDesc("TestGen", {"TestGen"})
-        .SetOutput("TestGen");
+    FE_CHECK(pattern1 == nullptr, FE_LOGE("New a pattern1 object failed."), return patterns);
+    pattern1->AddOpDesc("TestGen", {"TestGen"}).SetOutput("TestGen");
     patterns.push_back(pattern1);
     return patterns;
   };
@@ -227,11 +225,11 @@ class TestGeneralizationPass : public PatternFusionBasePass {
   }
 };
 
-REG_PASS("TestGeneralizationPass", BUILT_IN_GRAPH_PASS,
-         TestGeneralizationPass, SINGLE_SCENE_OPEN | FE_PASS | ALWAYS_GENERALIZE);
+REG_PASS("TestGeneralizationPass", BUILT_IN_GRAPH_PASS, TestGeneralizationPass,
+         SINGLE_SCENE_OPEN | FE_PASS | ALWAYS_GENERALIZE);
 
 class UTEST_fusion_engine_fuzzy_generalize : public testing::Test {
-public:
+ public:
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr_;
   FuzzyGeneralizePtr fuzzy_ptr;
   RefRelationsPtr reflection_builder_ptr_;
@@ -253,24 +251,24 @@ public:
     }
     return graph->AddNode(op_desc);
   }
-protected:
+
+ protected:
   static void SetUpTestCase() {
     std::string soc_version = "Ascend910B1";
     PlatformInfoManager::Instance().opti_compilation_info_.soc_version = soc_version;
     PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion(soc_version);
     PlatformUtils::Instance().soc_version_ = soc_version;
   }
-  void SetUp()
-  {
+  void SetUp() {
     ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
     ops_kernel_info_store_ptr_->tbe_info_assembler_ptr_ = std::make_shared<TbeInfoAssembler>();
     ops_kernel_info_store_ptr_->tbe_info_assembler_ptr_->Initialize();
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
     FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-    FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-              fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
-     graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-        ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
+    FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+        std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+    graph_fusion_ptr_ =
+        std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
     graph_fusion_ptr_->SetEngineName(fe::AI_CORE_NAME);
 
     OptimizeUtilityStub *optimize_utility_stub = new OptimizeUtilityStub();
@@ -281,12 +279,9 @@ protected:
     fuzzy_ptr->optimize_utility_ = optimize_utility_stub;
 
     FEOpsStoreInfo TBE_OPINFO_STUB = {
-            6,
-            "tbe-builtin",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/heavy_opinfo",
-            ""
-    };
+        6, "tbe-builtin", EN_IMPL_HW_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/heavy_opinfo",
+        ""};
     sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
     sub_ops_store_ptr->SetSubStoreInfo(TBE_OPINFO_STUB);
     sub_ops_store_ptr->InitializeSubStore();
@@ -311,13 +306,13 @@ protected:
         OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
 
     FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-        fe::AI_CORE_NAME, fusion_rule_mgr_ptr);
+    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr);
     fusion_attr_mgr_ = std::make_shared<FusionAttrManager>(fusion_priority_mgr_ptr_);
-    fe::FusionPassRegistry::PassDesc pass_desc = {SINGLE_SCENE_OPEN | FE_PASS | ALWAYS_GENERALIZE,
-                                                  []() -> ::fe::GraphPass * { return new (std::nothrow) TestGeneralizationPass(); }};
-    fusion_priority_mgr_ptr_->sorted_graph_fusion_single_scene_map_[FusionPriorityManager::GetCurrentHashedKey()].emplace_back(
-        "TestGeneralizationPass", BUILT_IN_GRAPH_PASS, "", 1, pass_desc);
+    fe::FusionPassRegistry::PassDesc pass_desc = {
+        SINGLE_SCENE_OPEN | FE_PASS | ALWAYS_GENERALIZE,
+        []() -> ::fe::GraphPass * { return new (std::nothrow) TestGeneralizationPass(); }};
+    fusion_priority_mgr_ptr_->sorted_graph_fusion_single_scene_map_[FusionPriorityManager::GetCurrentHashedKey()]
+        .emplace_back("TestGeneralizationPass", BUILT_IN_GRAPH_PASS, "", 1, pass_desc);
     fusion_attr_mgr_->Initialize();
   }
 
@@ -336,7 +331,8 @@ protected:
 
     // add descriptor
     vector<int64_t> dims = {1, 2, 3, 32};
-    vector<std::pair<int64_t, int64_t>> range = {std::make_pair(1, -1), std::make_pair(1, -1), std::make_pair(1, -1), std::make_pair(1, -1)};
+    vector<std::pair<int64_t, int64_t>> range = {std::make_pair(1, -1), std::make_pair(1, -1), std::make_pair(1, -1),
+                                                 std::make_pair(1, -1)};
     GeShape shape(dims);
 
     GeTensorDesc in_desc2(shape);
@@ -360,8 +356,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -398,8 +393,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -436,8 +430,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -473,8 +466,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -510,8 +502,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -547,8 +538,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -596,8 +586,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -878,7 +867,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_feedInputsRootSet)
   }
 
   // CorrectCAxisByOriginalFormat
-  EXPECT_EQ(fuzzy_ptr->CorrectCAxisByOriginalFormat(ge::FORMAT_FRACTAL_Z, bn_node, data_node, "input_name"), fe::FAILED);
+  EXPECT_EQ(fuzzy_ptr->CorrectCAxisByOriginalFormat(ge::FORMAT_FRACTAL_Z, bn_node, data_node, "input_name"),
+            fe::FAILED);
 
   fuzzy_ptr->decent_steps_.clear();
   fuzzy_ptr->decent_times_count_.clear();
@@ -926,10 +916,11 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_check_and_update_l
   vector<int64_t> dims = {1, 2, 3, 32};
   vector<std::pair<int64_t, int64_t>> range({{1, 200}, {1, 200}, {1, 200}, {1, 200}});
   const std::vector<NodePtr> nodes = {bn_node};
-  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();;
+  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();
+  ;
   node_info_bn->disjoint_root_set.emplace(data_node);
-  node_info_bn->inputs_root_map.insert(std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0),
-      node_info_bn->disjoint_root_set));
+  node_info_bn->inputs_root_map.insert(
+      std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0), node_info_bn->disjoint_root_set));
   fuzzy_ptr->node_info_map_.insert(std::make_pair(bn_node, node_info_bn));
 
   tbe_op_store_adapter_->DynamicShapeRangeCheck = DynamicShapeRangeCheckSupportStep;
@@ -1019,20 +1010,20 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_graph_preprocessin
   CreateSingleNodeGraph2(graph1);
   fe::Status res = fuzzy_ptr->GraphPreprocessing(*graph1, tbe_op_store_adapter_);
   EXPECT_EQ(res, fe::SUCCESS);
-//
-//  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoLimitStep;
-//  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
-//  EXPECT_EQ(fuzzy_ptr->external_input_nodes_.empty(), false);
-//  EXPECT_EQ(fuzzy_ptr->limited_range_nodes_.empty(), false);
-//  EXPECT_EQ(res, fe::SUCCESS);
-//
-//  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoUnlimitStep;
-//  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
-//  EXPECT_EQ(res, fe::SUCCESS);
-//
-//  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoDynamicStep;
-//  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
-//  EXPECT_EQ(res, fe::SUCCESS);
+  //
+  //  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoLimitStep;
+  //  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
+  //  EXPECT_EQ(fuzzy_ptr->external_input_nodes_.empty(), false);
+  //  EXPECT_EQ(fuzzy_ptr->limited_range_nodes_.empty(), false);
+  //  EXPECT_EQ(res, fe::SUCCESS);
+  //
+  //  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoUnlimitStep;
+  //  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
+  //  EXPECT_EQ(res, fe::SUCCESS);
+  //
+  //  tbe_op_store_adapter_->GetOpSpecificInfo = GetOpSpecificInfoDynamicStep;
+  //  res = fuzzy_ptr->GraphPreprocessing(*graph, tbe_op_store_adapter_);
+  //  EXPECT_EQ(res, fe::SUCCESS);
 }
 
 TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_update_input_nodes) {
@@ -1051,10 +1042,11 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_update_input_nodes
   vector<std::pair<int64_t, int64_t>> range({{1, 200}, {1, 200}, {1, 200}, {1, 200}});
   vector<std::pair<int64_t, int64_t>> range_last;
   vector<std::pair<int64_t, int64_t>> range_cur;
-  vector<std::pair<int64_t, int64_t>> range_dst({{1,145}, {1,146}, {1,146}, {1,153}});
+  vector<std::pair<int64_t, int64_t>> range_dst({{1, 145}, {1, 146}, {1, 146}, {1, 153}});
   fuzzy_ptr->original_input_nodes_.emplace("DATA0", data_node);
   vector<size_t> limited_input_indexs = {0};
-  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();;
+  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();
+  ;
   std::unordered_set<ge::NodePtr> root_set{data_node};
   node_info_bn->inputs_root_map.insert(std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0), root_set));
   fuzzy_ptr->node_info_map_.insert(std::make_pair(bn_node, node_info_bn));
@@ -1113,7 +1105,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_calculate_decent_s
 
   vector<std::pair<int64_t, int64_t>> range_last;
   vector<std::pair<int64_t, int64_t>> range_cur;
-  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();;
+  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();
+  ;
   std::unordered_set<ge::NodePtr> root_set{data_node};
   node_info_bn->inputs_root_map.insert(std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0), root_set));
 
@@ -1188,9 +1181,10 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_001
       node = cur_node;
     }
     if (cur_node->GetType() == "BatchNorm") {
-        NodeGeneralInfoPtr node_info_ptr = std::make_shared<NodeGeneralInfo>();
-        node_info_ptr->op_kernel = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
-        fuzzy_ptr->node_info_map_.insert(std::make_pair(cur_node, node_info_ptr));
+      NodeGeneralInfoPtr node_info_ptr = std::make_shared<NodeGeneralInfo>();
+      node_info_ptr->op_kernel =
+          OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
+      fuzzy_ptr->node_info_map_.insert(std::make_pair(cur_node, node_info_ptr));
     }
   }
   for (auto &cur_node : original_graph->GetDirectNode()) {
@@ -1203,9 +1197,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_001
   EXPECT_EQ(res, fe::SUCCESS);
 
   std::vector<int64_t> shape = node->GetOpDesc()->MutableInputDesc(0)->GetOriginShape().GetDims();
-  EXPECT_EQ(shape, (std::vector<int64_t>{-1,2,-1,-1}));
+  EXPECT_EQ(shape, (std::vector<int64_t>{-1, 2, -1, -1}));
 }
-
 
 TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_002) {
   ge::ComputeGraphPtr generalized_graph = std::make_shared<ComputeGraph>("test");
@@ -1222,7 +1215,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_002
     }
     if (cur_node->GetType() == "BatchNorm") {
       NodeGeneralInfoPtr node_info_ptr = std::make_shared<NodeGeneralInfo>();
-      node_info_ptr->op_kernel = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
+      node_info_ptr->op_kernel =
+          OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
       fuzzy_ptr->node_info_map_.insert(std::make_pair(cur_node, node_info_ptr));
     }
   }
@@ -1236,7 +1230,7 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_002
   EXPECT_EQ(res, fe::SUCCESS);
 
   std::vector<int64_t> shape = node->GetOpDesc()->MutableInputDesc(0)->GetOriginShape().GetDims();
-  EXPECT_EQ(shape, (std::vector<int64_t>{ -1, 2}));
+  EXPECT_EQ(shape, (std::vector<int64_t>{-1, 2}));
 }
 
 TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_003) {
@@ -1256,7 +1250,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, fuzzy_generalize_C_axis_corrent_003
       auto op_desc = cur_node->GetOpDesc();
       ge::OpDescUtilsEx::SetType(op_desc, "Cosh");
       NodeGeneralInfoPtr node_info_ptr = std::make_shared<NodeGeneralInfo>();
-      node_info_ptr->op_kernel = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
+      node_info_ptr->op_kernel =
+          OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", "BatchNorm");
       fuzzy_ptr->node_info_map_.insert(std::make_pair(cur_node, node_info_ptr));
     }
   }
@@ -1318,8 +1313,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, get_subgraphs_by_curnode_001) {
   fuzzy_ptr->is_range_limited_graph_ = true;
   fuzzy_ptr->node_info_map_.clear();
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-      fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   std::vector<ge::ComputeGraphPtr> cur_node_subgraph = input_node_generalize.GetSubgraphsByCurNode(data_node);
   EXPECT_EQ(cur_node_subgraph.empty(), true);
 }
@@ -1342,8 +1337,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, get_subgraphs_by_curnode_002) {
   fuzzy_ptr->is_range_limited_graph_ = true;
   fuzzy_ptr->node_info_map_.clear();
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   std::vector<ge::ComputeGraphPtr> cur_node_subgraph = input_node_generalize.GetSubgraphsByCurNode(data_node);
   EXPECT_EQ(cur_node_subgraph.empty(), true);
 }
@@ -1365,9 +1360,10 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, unlimited_node_generalize) {
   fuzzy_ptr->is_range_limited_graph_ = true;
   fuzzy_ptr->node_info_map_.clear();
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
-  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();;
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
+  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();
+  ;
   std::unordered_set<ge::NodePtr> root_set{data_node};
   node_info_bn->inputs_root_map.insert(std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0), root_set));
   node_info_bn->is_found_in_opstore = true;
@@ -1401,14 +1397,15 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, GeneralizeFirstNodeOfGraph) {
   fuzzy_ptr->is_range_limited_graph_ = false;
   fuzzy_ptr->node_info_map_.clear();
 
-  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();;
+  NodeGeneralInfoPtr node_info_bn = std::make_shared<NodeGeneralInfo>();
+  ;
   std::unordered_set<ge::NodePtr> root_set{data_node};
   node_info_bn->inputs_root_map.insert(std::make_pair(bn_node->GetOpDesc()->MutableInputDesc(0), root_set));
   node_info_bn->is_found_in_opstore = false;
   fuzzy_ptr->node_info_map_.insert(std::make_pair(bn_node, node_info_bn));
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   tbe_op_store_adapter_->TeGeneralize = TeGeneralizeException;
   Status res = input_node_generalize.GeneralizeFirstNodeOfGraph(bn_node);
   EXPECT_EQ(res, fe::FAILED);
@@ -1462,10 +1459,11 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, merge_range_with_upper_limit_max_te
   fuzzy_ptr->is_range_limited_graph_ = true;
   fuzzy_ptr->node_info_map_.clear();
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
 
-  Status ret = input_node_generalize.MergeRangeWithUpperLimitMax(upper_limit_max_range, range, dim_index, dst_shape_range);
+  Status ret =
+      input_node_generalize.MergeRangeWithUpperLimitMax(upper_limit_max_range, range, dim_index, dst_shape_range);
   EXPECT_EQ(ret, fe::FAILED);
 }
 
@@ -1485,8 +1483,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, set_value_depend_flag_to_input_node
   fuzzy_ptr->external_input_nodes_.clear();
   fuzzy_ptr->external_input_nodes_.emplace(data_node);
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   NodeGeneralInfoPtr node_info = std::make_shared<NodeGeneralInfo>();
   Status ret = input_node_generalize.SetValueDependFlagToInputNodes(bn_node, node_info);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1522,8 +1520,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, update_subGraph_input_to_rootGraph)
   fuzzy_ptr->external_input_nodes_.clear();
   fuzzy_ptr->external_input_nodes_.emplace(data_node);
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
 
   ge::ComputeGraphPtr graph1 = std::make_shared<ComputeGraph>("test1");
   CreateBatchNormGraph(graph1);
@@ -1574,8 +1572,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, update_dynamic_shape_to_newInputNod
 
 TEST_F(UTEST_fusion_engine_fuzzy_generalize, merge_range) {
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   std::vector<std::pair<int64_t, int64_t>> src_range;
   std::vector<std::pair<int64_t, int64_t>> dst_range;
   std::vector<std::pair<int64_t, int64_t>> res_range;
@@ -1680,8 +1678,8 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, coverage_increase) {
   fuzzy_ptr->node_info_map_.insert(std::make_pair(bn_node, node_info));
 
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, nullptr);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, nullptr);
   std::unordered_set<ge::NodePtr> sub_graph_input_nodes;
   sub_graph_input_nodes.emplace(data_node);
   input_node_generalize.UpdateSubGraphInputToRootGraph(sub_graph_input_nodes, graph);
@@ -1717,7 +1715,9 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, coverage_increase) {
 }
 
 TEST_F(UTEST_fusion_engine_fuzzy_generalize, further_generalize) {
-  std::string path = GetCurpath() + "../../../../../tests/engines/nn_engine/config/op_impl/built-in/ai_core/tbe/kernel/config/Ascend910B/op_info_config.json";
+  std::string path = GetCurpath() +
+                     "../../../../../tests/engines/nn_engine/config/op_impl/built-in/ai_core/tbe/kernel/config/"
+                     "Ascend910B/op_info_config.json";
   char resoved_path[500] = {0x00};
   realpath(path.c_str(), resoved_path);
   path = resoved_path;
@@ -1779,20 +1779,21 @@ TEST_F(UTEST_fusion_engine_fuzzy_generalize, test_generalization_when_pass_regis
   fuzzy_ptr->external_input_nodes_.emplace(data_node);
   fuzzy_ptr->is_range_limited_graph_ = false;
   fuzzy_ptr->node_info_map_.clear();
-  NodeGeneralInfoPtr node_info_gen = std::make_shared<NodeGeneralInfo>();;
+  NodeGeneralInfoPtr node_info_gen = std::make_shared<NodeGeneralInfo>();
+  ;
   node_info_gen->is_found_in_opstore = true;
   fuzzy_ptr->node_info_map_.insert(std::make_pair(gen_node, node_info_gen));
 
   GraphType graph_type{fuzzy_ptr->is_range_limited_graph_, fuzzy_ptr->is_single_op_graph_};
 
-  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type,
-                                            fuzzy_ptr->node_info_map_, tbe_op_store_adapter_, fusion_attr_mgr_);
+  InputNodeGeneralize input_node_generalize(fuzzy_ptr->external_input_nodes_, graph_type, fuzzy_ptr->node_info_map_,
+                                            tbe_op_store_adapter_, fusion_attr_mgr_);
 
   /* 1. Test when generalize function does not work. */
   tbe_op_store_adapter_->TeGeneralize = TeGeneralizeException;
   Status res = input_node_generalize.GeneralizeFirstNodeOfGraph(gen_node);
   EXPECT_EQ(res, fe::FAILED);
-  ge::GeShape original_shape({1,2,3,4});
+  ge::GeShape original_shape({1, 2, 3, 4});
   EXPECT_EQ(data_output_desc->GetShape(), original_shape);
   EXPECT_EQ(gen_node_input_desc->GetShape(), original_shape);
   EXPECT_EQ(data_input_desc->HasAttr(ge::ATTR_NAME_VALUE), true);

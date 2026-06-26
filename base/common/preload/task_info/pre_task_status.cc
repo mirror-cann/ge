@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,7 +14,7 @@
 #include <securec.h>
 
 namespace ge {
-ge::char_t *CreateMessage(const ge::char_t * const format, va_list arg) {
+ge::char_t *CreateMessage(const ge::char_t *const format, va_list arg) {
   GE_ASSERT_TRUE(!(format == nullptr));
 
   va_list arg_copy;
@@ -38,7 +38,7 @@ PreTaskStatus::PreTaskStatus(const PreTaskStatus &other) : status_{nullptr} {
 }
 
 PreTaskStatus &PreTaskStatus::operator=(const PreTaskStatus &other) {
-  delete [] status_;
+  delete[] status_;
   if (other.status_ == nullptr) {
     status_ = nullptr;
   } else {
@@ -60,7 +60,7 @@ PreTaskStatus::PreTaskStatus(PreTaskStatus &&other) noexcept {
 }
 
 PreTaskStatus &PreTaskStatus::operator=(PreTaskStatus &&other) noexcept {
-  delete [] status_;
+  delete[] status_;
   status_ = other.status_;
   other.status_ = nullptr;
   return *this;

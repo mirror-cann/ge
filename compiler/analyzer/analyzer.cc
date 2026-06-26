@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,34 +35,32 @@ const std::string kFilePath = "./";
 const std::string kAnalyzeFile = "ge_check_op.json";
 
 const std::string kUnknownShape = "unknownshape";
-const std::string kUnsupport    = "unsupport";
+const std::string kUnsupport = "unsupported";
 
 const std::string kSessionId = "session_id";
-const std::string kGraphId   = "graph_id";
-const std::string kOpInfo    = "op_info";
+const std::string kGraphId = "graph_id";
+const std::string kOpInfo = "op_info";
 const std::string kErrorType = "error_type";
-const std::string kOpName    = "name";
-const std::string kOpType    = "type";
-const std::string kReason    = "reason";
-const std::string kInput     = "input";
-const std::string kOutput    = "output";
-const std::string kShape     = "shape";
-const std::string kDataType  = "data_type";
-const std::string kLayout    = "layout";
-const std::string kResult    = "result";
-const std::string kOp        = "op";
+const std::string kOpName = "name";
+const std::string kOpType = "type";
+const std::string kReason = "reason";
+const std::string kInput = "input";
+const std::string kOutput = "output";
+const std::string kShape = "shape";
+const std::string kDataType = "data_type";
+const std::string kLayout = "layout";
+const std::string kResult = "result";
+const std::string kOp = "op";
 
-std::map<analyzer::AnalyzeType, std::string> errors_map {
-  {PARSER,         "paser_error"},
-  {INFER_SHAPE,    "infer_shape_error"},
-  {CHECKSUPPORT,   "check_support_error"},
-  {GRAPH_OPTIMIZE, "graph_optimize_error"},
-  {GRAPH_PARTION,  "graph_partion_error"},
-  {GRAPH_BUILDER,  "graph_builder_error"}
-};
-}
+std::map<analyzer::AnalyzeType, std::string> errors_map{{PARSER, "paser_error"},
+                                                        {INFER_SHAPE, "infer_shape_error"},
+                                                        {CHECKSUPPORT, "check_support_error"},
+                                                        {GRAPH_OPTIMIZE, "graph_optimize_error"},
+                                                        {GRAPH_PARTION, "graph_partion_error"},
+                                                        {GRAPH_BUILDER, "graph_builder_error"}};
+}  // namespace
 
-Analyzer* Analyzer::GetInstance() {
+Analyzer *Analyzer::GetInstance() {
   static Analyzer instance;
   return &instance;
 }
@@ -72,7 +70,7 @@ Status Analyzer::BuildJsonObject(uint64_t session_id, uint64_t graph_id) {
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    std::shared_ptr<GraphInfo> graph_info(new(std::nothrow) GraphInfo());
+    std::shared_ptr<GraphInfo> graph_info(new (std::nothrow) GraphInfo());
     GE_CHECK_NOTNULL(graph_info);
     std::map<uint64_t, std::shared_ptr<GraphInfo>> graph_map;
     graph_map[graph_id] = graph_info;
@@ -82,7 +80,7 @@ Status Analyzer::BuildJsonObject(uint64_t session_id, uint64_t graph_id) {
   } else {
     std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>::const_iterator iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      std::shared_ptr<GraphInfo> graph_info(new(std::nothrow) GraphInfo());
+      std::shared_ptr<GraphInfo> graph_info(new (std::nothrow) GraphInfo());
       GE_CHECK_NOTNULL(graph_info);
       graph_info->session_id = session_id;
       graph_info->graph_id = graph_id;
@@ -124,7 +122,7 @@ void Analyzer::Finalize() {
 void Analyzer::DestroySessionJsonObject(uint64_t session_id) {
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   std::map<uint64_t, std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>>::const_iterator iter =
-    graph_infos_.find(session_id);
+      graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
     GELOGW("cannot find the stored object by session_id[%" PRIu64 "].Do nothing", session_id);
   } else {
@@ -140,8 +138,8 @@ void Analyzer::DestroyGraphJsonObject(uint64_t session_id, uint64_t graph_id) {
   } else {
     std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>::const_iterator iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      GELOGW("Cannot find the graph json object by session_id[%" PRIu64 "] and graph_id[%" PRIu64 "]. Do nothing.", session_id,
-             graph_id);
+      GELOGW("Cannot find the graph json object by session_id[%" PRIu64 "] and graph_id[%" PRIu64 "]. Do nothing.",
+             session_id, graph_id);
       return;
     }
     (iter->second).erase(iter1);
@@ -152,18 +150,23 @@ std::shared_ptr<GraphInfo> Analyzer::GetJsonObject(uint64_t session_id, uint64_t
   std::lock_guard<std::recursive_mutex> lg(mutex_);
   auto iter = graph_infos_.find(session_id);
   if (iter == graph_infos_.end()) {
-    GELOGE(PARAM_INVALID, "[Check][SessionId]session_id:%" PRIu64 " does not exist! "
-           "graph_id:%" PRIu64 "", session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Sessin_id %" PRIu64 " does not exist, graph_id %" PRIu64 "",
-                       session_id, graph_id);
+    GELOGE(PARAM_INVALID,
+           "[Check][SessionId]session_id:%" PRIu64
+           " does not exist! "
+           "graph_id:%" PRIu64 "",
+           session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Sessin_id %" PRIu64 " does not exist, graph_id %" PRIu64 "", session_id, graph_id);
     return nullptr;
   } else {
     auto iter1 = (iter->second).find(graph_id);
     if (iter1 == (iter->second).end()) {
-      GELOGE(PARAM_INVALID, "[Check][GraphId]graph_id:%" PRIu64 " does not exist! "
-             "session_id:%" PRIu64 ".", graph_id, session_id);
-      REPORT_INNER_ERR_MSG("E19999", "Graph_id %" PRIu64 " does not exist, session_id %" PRIu64 "",
-                         graph_id, session_id);
+      GELOGE(PARAM_INVALID,
+             "[Check][GraphId]graph_id:%" PRIu64
+             " does not exist! "
+             "session_id:%" PRIu64 ".",
+             graph_id, session_id);
+      REPORT_INNER_ERR_MSG("E19999", "Graph_id %" PRIu64 " does not exist, session_id %" PRIu64 "", graph_id,
+                           session_id);
       return nullptr;
     }
     GELOGI("GetJsonObject Success!session_id:%" PRIu64 " graph_id:%" PRIu64 "", session_id, graph_id);
@@ -189,14 +192,12 @@ ge::Status Analyzer::CreateAnalyzerFile() {
   std::lock_guard<std::mutex> lg(file_mutex_);
   int32_t fd = open(json_file_name_.c_str(), O_WRONLY | O_CREAT | O_TRUNC, kFileAuthority);
   if (fd < 0) {
-    GELOGE(INTERNAL_ERROR, "[FileOpen][AnalyzeFile]Fail to open the analyze file: %s.",
-           json_file_name_.c_str());
+    GELOGE(INTERNAL_ERROR, "[FileOpen][AnalyzeFile]Fail to open the analyze file: %s.", json_file_name_.c_str());
     REPORT_INNER_ERR_MSG("E19999", "Failed to open analyze file %s", json_file_name_.c_str());
     return INTERNAL_ERROR;
   }
   if (close(fd) != 0) {
-    GELOGE(INTERNAL_ERROR, "[FileClose][AnalyzeFile]Fail to close the analyze file: %s.",
-           json_file_name_.c_str());
+    GELOGE(INTERNAL_ERROR, "[FileClose][AnalyzeFile]Fail to close the analyze file: %s.", json_file_name_.c_str());
     REPORT_INNER_ERR_MSG("E19999", "Failed to close analyze file %s", json_file_name_.c_str());
     return INTERNAL_ERROR;
   }
@@ -218,8 +219,7 @@ ge::Status Analyzer::SaveAnalyzerDataToFile(uint64_t session_id, uint64_t graph_
   std::lock_guard<std::mutex> lg(file_mutex_);
   json_file_.open(json_file_name_, std::ios::app);
   if (!json_file_.is_open()) {
-    GELOGE(FAILED, "[Check][AnalyzeFile]analyze file does not exist[%s]",
-           json_file_name_.c_str());
+    GELOGE(FAILED, "[Check][AnalyzeFile]analyze file does not exist[%s]", json_file_name_.c_str());
     REPORT_INNER_ERR_MSG("E19999", "Analyze file %s does not exist", json_file_name_.c_str());
     return PARAM_INVALID;
   }
@@ -234,9 +234,10 @@ ge::Status Analyzer::SaveAnalyzerDataToFile(uint64_t session_id, uint64_t graph_
            "[Json.dump][GraphInfo]Dump analyze file [%s] failed because [%s],"
            "session_id:%" PRIu64 ", graph_id:%" PRIu64 "",
            json_file_name_.c_str(), e.what(), session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Dump analyze file %s failed because %s, "
-                       "session_id %" PRIu64 ", graph_id %" PRIu64 "",
-                       json_file_name_.c_str(), e.what(), session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Dump analyze file %s failed because %s, "
+                         "session_id %" PRIu64 ", graph_id %" PRIu64 "",
+                         json_file_name_.c_str(), e.what(), session_id, graph_id);
     ret_failed = true;
   }
   json_file_.close();
@@ -256,11 +257,10 @@ ge::Status Analyzer::DoAnalyze(const DataInfo &data_info) {
   GE_CHECK_NOTNULL(graph_info);
   auto status = SaveOpInfo(desc, data_info, graph_info);
   if (status != SUCCESS) {
-    GELOGE(status,
-           "[Check][SaveOpInfo]save op info: desc_name [%s] desc_type [%s] failed!",
-           desc->GetName().c_str(), desc->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Save op info: desc_name %s, desc_type %s failed",
-                      desc->GetName().c_str(), desc->GetType().c_str());
+    GELOGE(status, "[Check][SaveOpInfo]save op info: desc_name [%s] desc_type [%s] failed!", desc->GetName().c_str(),
+           desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Save op info: desc_name %s, desc_type %s failed", desc->GetName().c_str(),
+                         desc->GetType().c_str());
     return FAILED;
   }
   // create json file
@@ -277,18 +277,18 @@ ge::Status Analyzer::SaveOpInfo(ge::OpDescPtr desc, const DataInfo &data_info,
   op_info.error_type = iter->second;
   op_info.op_name = desc->GetName();
   op_info.op_type = desc->GetType();
-  op_info.reason  = data_info.reason;
+  op_info.reason = data_info.reason;
 
   for (const auto &ptr : desc->GetAllInputsDescPtr()) {
     TensorInfo tensor_info;
-    tensor_info.shape  = ptr->GetShape().GetDims();
+    tensor_info.shape = ptr->GetShape().GetDims();
     tensor_info.d_type = ge::TypeUtils::DataTypeToSerialString(ptr->GetDataType());
     tensor_info.layout = ge::TypeUtils::FormatToSerialString(ptr->GetFormat());
     op_info.input_info.emplace_back(tensor_info);
   }
   for (const auto &ptr : desc->GetAllOutputsDescPtr()) {
     TensorInfo tensor_info;
-    tensor_info.shape  = ptr->GetShape().GetDims();
+    tensor_info.shape = ptr->GetShape().GetDims();
     tensor_info.d_type = ge::TypeUtils::DataTypeToSerialString(ptr->GetDataType());
     tensor_info.layout = ge::TypeUtils::FormatToSerialString(ptr->GetFormat());
     op_info.output_info.emplace_back(tensor_info);
@@ -298,13 +298,13 @@ ge::Status Analyzer::SaveOpInfo(ge::OpDescPtr desc, const DataInfo &data_info,
   return SUCCESS;
 }
 
-void Analyzer::TensorInfoToJson(json& j, const TensorInfo &tensor_info) const {
+void Analyzer::TensorInfoToJson(json &j, const TensorInfo &tensor_info) const {
   j[kShape] = tensor_info.shape;
   j[kDataType] = tensor_info.d_type;
   j[kLayout] = tensor_info.layout;
 }
 
-void Analyzer::OpInfoToJson(json& j, const OpInfo &op_info) const {
+void Analyzer::OpInfoToJson(json &j, const OpInfo &op_info) const {
   j[kErrorType] = op_info.error_type;
   j[kOpName] = op_info.op_name;
   j[kOpType] = op_info.op_type;
@@ -321,7 +321,7 @@ void Analyzer::OpInfoToJson(json& j, const OpInfo &op_info) const {
   }
 }
 
-void Analyzer::GraphInfoToJson(json& j, const GraphInfo &graph_info) {
+void Analyzer::GraphInfoToJson(json &j, const GraphInfo &graph_info) {
   GELOGD("start to buff graph info!");
   j[kSessionId] = graph_info.session_id;
   j[kGraphId] = graph_info.graph_id;
@@ -333,4 +333,4 @@ void Analyzer::GraphInfoToJson(json& j, const GraphInfo &graph_info) {
   }
   j[kOp] = json_op_infos;
 }
-} // namespace ge
+}  // namespace ge

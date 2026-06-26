@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,17 +38,17 @@ class UtestMemcpyAddrAsyncPass : public testing::Test {
     RTS_STUB_TEARDOWN();
   }
 
-public:
-/* 设置一个Graph，使其拥有如下网络结构
-*
-*              Data
-*               |
-*           StreamSwitchN
-*               |
-*               A
-*               |
-*           NetOutput
-*/
+ public:
+  /* 设置一个Graph，使其拥有如下网络结构
+   *
+   *              Data
+   *               |
+   *           StreamSwitchN
+   *               |
+   *               A
+   *               |
+   *           NetOutput
+   */
   void MakeGraphDataInParent1(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -107,18 +107,18 @@ public:
     GraphUtils::AddEdge(a_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*
-*              Data
-*               |
-*              If
-*               '
-*                '
-*                 '
-*                 Data
-*                   |
-*             StreamSwitchN
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *
+   *              Data
+   *               |
+   *              If
+   *               '
+   *                '
+   *                 '
+   *                 Data
+   *                   |
+   *             StreamSwitchN
+   */
   void MakeGraphDataInSub1(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -140,7 +140,6 @@ public:
     if_node->GetOpDesc()->AddSubgraphName(cond_name);
     if_node->GetOpDesc()->SetSubgraphInstanceName(0, cond_name);
     graph->AddSubGraph(cond_graph);
-
 
     OpDescPtr op_desc_data_sub = MakeShared<OpDesc>("Data", DATA);
     op_desc_data_sub->AddOutputDesc(desc);
@@ -176,7 +175,6 @@ public:
     if_node->GetOpDesc()->SetSubgraphInstanceName(0, cond_name);
     graph->AddSubGraph(cond_graph);
 
-
     OpDescPtr op_desc_data_sub = MakeShared<OpDesc>("Data", DATA);
     op_desc_data_sub->AddOutputDesc(desc);
     NodePtr data_node_sub = cond_graph->AddNode(op_desc_data_sub);
@@ -189,18 +187,18 @@ public:
     GraphUtils::AddEdge(data_node_sub->GetOutDataAnchor(0), cond_node->GetInDataAnchor(0));
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*
-*              Relu
-*               |
-*              If
-*               '
-*                '
-*                 '
-*                 Data
-*                   |
-*             StreamSwitchN
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *
+   *              Relu
+   *               |
+   *              If
+   *               '
+   *                '
+   *                 '
+   *                 Data
+   *                   |
+   *             StreamSwitchN
+   */
   void MakeGraphDataInSub2(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -235,24 +233,24 @@ public:
     GraphUtils::AddEdge(data_node_sub->GetOutDataAnchor(0), cond_node->GetInDataAnchor(0));
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*
-*           Data1
-*             |
-*            If1
-*             '
-*              '
-*               '
-*              Data2
-*               |
-*              If2
-*               '
-*                '
-*                 '
-*                 Data
-*                   |
-*             StreamSwitchN
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *
+   *           Data1
+   *             |
+   *            If1
+   *             '
+   *              '
+   *               '
+   *              Data2
+   *               |
+   *              If2
+   *               '
+   *                '
+   *                 '
+   *                 Data
+   *                   |
+   *             StreamSwitchN
+   */
   void MakeGraphDataInSub3(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -301,19 +299,19 @@ public:
     graph->AddSubGraph(cond_graph1);
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*              Data
-*               |
-*              If1
-*               |
-*              If2
-*               '
-*                '
-*                 '
-*                 Data
-*                   |
-*             StreamSwitchN
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *              Data
+   *               |
+   *              If1
+   *               |
+   *              If2
+   *               '
+   *                '
+   *                 '
+   *                 Data
+   *                   |
+   *             StreamSwitchN
+   */
   void MakeGraphDataInSub4(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -397,18 +395,18 @@ public:
     GraphUtils::AddEdge(data_node_sub->GetOutDataAnchor(0), cond_node->GetInDataAnchor(0));
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*
-*              Data
-*               |
-*          Partition_call
-*               '
-*                '
-*                 '
-*                 Data
-*                   |
-*             StreamSwitchN
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *
+   *              Data
+   *               |
+   *          Partition_call
+   *               '
+   *                '
+   *                 '
+   *                 Data
+   *                   |
+   *             StreamSwitchN
+   */
   void MakeGraphDataInSub5(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -457,7 +455,7 @@ public:
     op_desc_known->AddInputDesc(desc);
     NodePtr known_node = graph->AddNode(op_desc_known);
     bool is_unknown_shape = false;
-   (void)AttrUtils::SetBool(known_node->GetOpDesc(), ATTR_NAME_IS_UNKNOWN_SHAPE, is_unknown_shape);
+    (void)AttrUtils::SetBool(known_node->GetOpDesc(), ATTR_NAME_IS_UNKNOWN_SHAPE, is_unknown_shape);
 
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), known_node->GetInDataAnchor(0));
 
@@ -490,11 +488,11 @@ public:
   }
 
   /* 设置一个Graph，使其拥有如下网络结构
-*
-*              Data
-*               |
-*           NetOutput
-*/
+   *
+   *              Data
+   *               |
+   *           NetOutput
+   */
   void MakeGraphData2NetOutputOnRootGraph(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -511,11 +509,11 @@ public:
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
   /* 设置一个Graph，使其拥有如下网络结构
-*
-*              Data
-*               |
-*           NetOutput
-*/
+   *
+   *              Data
+   *               |
+   *           NetOutput
+   */
   void MakeGrapConst2NetOutputOnRootGraph(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -530,11 +528,11 @@ public:
   }
 
   /* 设置一个Graph，使其拥有如下网络结构
-*
-*              Refdata
-*               |
-*            hcomallreduce
-*/
+   *
+   *              Refdata
+   *               |
+   *            hcomallreduce
+   */
   void MakeGraphRefData2HCCL(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -552,8 +550,7 @@ public:
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
 
-  void InitOpDescTensor(NodePtr node)
-  {
+  void InitOpDescTensor(NodePtr node) {
     float weights_0[] = {1.0};
     GeTensorDesc tensor_desc_0(GeShape({1, 1, 1, 1}), FORMAT_NHWC, DT_FLOAT);
     GeTensorPtr tensor_conv_filter = MakeShared<GeTensor>(tensor_desc_0, (uint8_t *)weights_0, sizeof(weights_0));
@@ -561,15 +558,14 @@ public:
     OpDescUtils::SetWeights(node, tensor_vec);
   }
 
-  NodePtr AddNode(ComputeGraphPtr graph, const string& name, const string& type,
-                  int32_t in_anchors_num = 3, int32_t out_anchors_num = 3)
-  {
+  NodePtr AddNode(ComputeGraphPtr graph, const string &name, const string &type, int32_t in_anchors_num = 3,
+                  int32_t out_anchors_num = 3) {
     GeTensorDesc tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NHWC, DT_INT32);
     OpDescPtr opdesc = MakeShared<OpDesc>(name, type);
     for (int32_t i = 0; i < in_anchors_num; i++) {
       opdesc->AddInputDesc(tensor_desc);
     }
-    for (int32_t i = 0; i <out_anchors_num; i++) {
+    for (int32_t i = 0; i < out_anchors_num; i++) {
       opdesc->AddOutputDesc(tensor_desc);
     }
 
@@ -581,17 +577,16 @@ public:
     return node;
   }
 
-  void InitFullGraph(ComputeGraphPtr graph)
-  {
+  void InitFullGraph(ComputeGraphPtr graph) {
     OpDescPtr data_op_1 = MakeShared<OpDesc>("data_op_1", DATA);
     AttrUtils::SetInt(data_op_1, "index", 0);
-    //构造一个input descriptor
+    // 构造一个input descriptor
     vector<int64_t> dims = {1, 3, 10, 10};
     GeShape shape(dims);
     GeTensorDesc tensor_desc1(shape);
     TensorUtils::SetSize(tensor_desc1, 1200);
 
-    //添加一个描述Tensor
+    // 添加一个描述Tensor
     data_op_1->AddInputDesc(tensor_desc1);
     data_op_1->AddOutputDesc(tensor_desc1);
     data_op_1->AddOutputDesc(tensor_desc1);
@@ -599,7 +594,7 @@ public:
     data_op_1->SetInputOffset({0});
     NodePtr data_node_1 = graph->AddNode(data_op_1);
 
-    //data_op_2
+    // data_op_2
     OpDescPtr data_op_2 = std::make_shared<OpDesc>("data_op_2", DATA);
     AttrUtils::SetInt(data_op_2, "index", 1);
     data_op_2->AddInputDesc(tensor_desc1);
@@ -610,7 +605,7 @@ public:
     NodePtr data_node_2 = graph->AddNode(data_op_2);
 
     GeTensorDesc tensor_desc(GeShape({1}));
-    //conv
+    // conv
     NodePtr conv_node = AddNode(graph, "conv_op", CONVOLUTION);
     NodePtr reshape_node_1 = AddNode(graph, "reshape_op_1", RESHAPE);
     NodePtr reshape_node_2 = AddNode(graph, "reshape_op_2", RESHAPE);
@@ -624,7 +619,6 @@ public:
     ge::GraphUtils::AddEdge(reshape_node_1->GetOutDataAnchor(0), concat_node->GetInDataAnchor(2));
     ge::GraphUtils::AddEdge(reshape_node_2->GetOutDataAnchor(0), concat_node->GetInDataAnchor(3));
   }
-
 };
 
 TEST_F(UtestMemcpyAddrAsyncPass, run) {
@@ -644,8 +638,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, run) {
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAsyncNode)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAsyncNode) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>();
   ge::OpDescUtilsEx::SetType(op, STREAMSWITCH);
@@ -665,8 +658,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAsyncNode)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAddrAsyncNode)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAddrAsyncNode) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>();
   ge::OpDescUtilsEx::SetType(op, STREAMSWITCH);
@@ -686,8 +678,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, AddMemcpyAddrAsyncNode)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, InsertMemAddrAsyncNodeBeforeNetoutput)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, InsertMemAddrAsyncNodeBeforeNetoutput) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   InitFullGraph(graph);
 
@@ -704,8 +695,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, InsertMemAddrAsyncNodeBeforeNetoutput)
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, FindUserData)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, FindUserData) {
   MemcpyAddrAsyncPass pass;
   uint32_t index = 0;
 
@@ -717,8 +707,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, FindUserData)
   EXPECT_NO_THROW(pass.FindUserData(call_node, index));
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, CreateMemcpyAddrAsyncNode)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, CreateMemcpyAddrAsyncNode) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   OpDescPtr op = std::make_shared<OpDesc>("A", "test_cce_a");
   GeTensorDesc op_desc(GeShape({1, 1, 1, 1}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -732,10 +721,9 @@ TEST_F(UtestMemcpyAddrAsyncPass, CreateMemcpyAddrAsyncNode)
   EXPECT_NE(nodePtr, nullptr);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_parent)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_parent) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -748,17 +736,15 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_parent)
   EXPECT_EQ(graph->GetAllNodes().size(), 4);
   Status ret = memcpy_addr.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetAllNodes().size(),5);
+  EXPECT_EQ(graph->GetAllNodes().size(), 5);
 
   // 清理环境变量
   mmSetEnv(kEnvValue, "", 1);
 }
 
-
-TEST_F(UtestMemcpyAddrAsyncPass, Data2Netoutput_success_parent2)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, Data2Netoutput_success_parent2) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -771,7 +757,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, Data2Netoutput_success_parent2)
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
   Status ret = memcpy_addr.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetAllNodes().size(),2);
+  EXPECT_EQ(graph->GetAllNodes().size(), 2);
 
   // 清理环境变量
   mmSetEnv(kEnvValue, "", 1);
@@ -779,7 +765,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, Data2Netoutput_success_parent2)
 
 TEST_F(UtestMemcpyAddrAsyncPass, Const2Netoutput_success_parent1) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -792,7 +778,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, Const2Netoutput_success_parent1) {
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
   Status ret = memcpy_addr.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetAllNodes().size(),3);
+  EXPECT_EQ(graph->GetAllNodes().size(), 3);
   auto const_node = graph->FindNode("Const");
   auto output_node = graph->FindNode("Node_output");
   EXPECT_EQ(const_node->GetOutDataNodes().at(0)->GetType(), "MemcpyAddrAsync");
@@ -803,7 +789,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, Const2Netoutput_success_parent1) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub1) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -823,7 +809,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub1) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub2) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -843,7 +829,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub2) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub3) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -863,7 +849,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub3) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub4) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -883,7 +869,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub4) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub5) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -904,7 +890,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub5) {
 
 TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_sub6) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -932,8 +918,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, GetRtCapability_failed) {
   EXPECT_EQ(memcpy_addr.Run(graph), SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, IsEmptyTenor_test)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, IsEmptyTenor_test) {
   MemcpyAddrAsyncPass memcpy_addr;
 
   vector<int64_t> dims = {1, 3, 10, 10};
@@ -943,10 +928,9 @@ TEST_F(UtestMemcpyAddrAsyncPass, IsEmptyTenor_test)
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -963,10 +947,9 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test)
   mmSetEnv(kEnvValue, "", 1);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test2)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test2) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -983,8 +966,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test2)
   mmSetEnv(kEnvValue, "", 1);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test3)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test3) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
   MakeGraphDataInParent2(graph);
   graph->TopologicalSorting();
@@ -993,8 +975,7 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_Run_Test3)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_dsa)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_dsa) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsync");
   graph->SetGraphUnknownFlag(true);
   MakeDsaSubGraph(graph);
@@ -1003,10 +984,9 @@ TEST_F(UtestMemcpyAddrAsyncPass, MemcpyAddrAsyncPass_success_dsa)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestMemcpyAddrAsyncPass, RefData2Hccl_success)
-{
+TEST_F(UtestMemcpyAddrAsyncPass, RefData2Hccl_success) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("MemcpyAddrAsyncPassSuccess");
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -1019,11 +999,11 @@ TEST_F(UtestMemcpyAddrAsyncPass, RefData2Hccl_success)
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
   Status ret = memcpy_addr.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetAllNodes().size(),3);
+  EXPECT_EQ(graph->GetAllNodes().size(), 3);
   auto data_node = graph->FindNode("Data");
   auto output_node = graph->FindNode("Node_output");
-  EXPECT_EQ(data_node->GetOutDataNodes().at(0)->GetType(),"MemcpyAddrAsync");
-  EXPECT_EQ(output_node->GetInDataNodes().at(0)->GetType(),"MemcpyAddrAsync");
+  EXPECT_EQ(data_node->GetOutDataNodes().at(0)->GetType(), "MemcpyAddrAsync");
+  EXPECT_EQ(output_node->GetInDataNodes().at(0)->GetType(), "MemcpyAddrAsync");
   // 清理环境变量
   mmSetEnv(kEnvValue, "", 1);
 }

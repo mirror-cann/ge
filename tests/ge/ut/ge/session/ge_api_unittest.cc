@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -64,7 +64,9 @@ class FakeLabelMaker : public LabelMaker {
 
   ~FakeLabelMaker() override {}
 
-  virtual Status Run(uint32_t &label_index) { return ge::GRAPH_SUCCESS; }
+  virtual Status Run(uint32_t &label_index) {
+    return ge::GRAPH_SUCCESS;
+  }
 };
 
 Status InitializeHeterogeneousRuntime(const std::map<std::string, std::string> &options) {
@@ -74,7 +76,7 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
@@ -85,8 +87,7 @@ class ExternalAllocatorUtStub : public Allocator {
   MemBlock *Malloc(size_t size) override {
     return nullptr;
   }
-  void Free(MemBlock *block) override {
-  }
+  void Free(MemBlock *block) override {}
 };
 
 class GeFakeOpsKernelBuilder : public OpsKernelBuilder {
@@ -119,9 +120,9 @@ class UtestGeApi : public testing::Test {
       env = env_ptr;
       unsetenv("LD_PRELOAD");
     }
-    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
     GetThreadLocalContext().SetGlobalOption({});
     GetThreadLocalContext().SetSessionOption({});
     GetThreadLocalContext().SetGraphOption({});
@@ -189,9 +190,7 @@ TEST_F(UtestGeApi, build_graph_success) {
 }
 
 TEST_F(UtestGeApi, ge_initialize_modify_mixlist) {
-  std::map<std::string, std::string> options = {
-    {ge::MODIFY_MIXLIST, "/mixlist.json"}
-  };
+  std::map<std::string, std::string> options = {{ge::MODIFY_MIXLIST, "/mixlist.json"}};
   Json option_name_map;
   option_name_map.emplace("ge.enableSmallChannel", "enable_small_channel");
   options.insert({ge::OPTION_NAME_MAP, option_name_map.dump()});
@@ -200,24 +199,21 @@ TEST_F(UtestGeApi, ge_initialize_modify_mixlist) {
 }
 
 TEST_F(UtestGeApi, InitError_EmptyString) {
-  std::map<std::string, std::string> options = {
-    {"", "/mixlist.json"}
-  };
+  std::map<std::string, std::string> options = {{"", "/mixlist.json"}};
   auto ret = GEInitialize(options);
   ASSERT_NE(ret, SUCCESS);
 }
 
 TEST_F(UtestGeApi, ge_initialize_fail) {
-  std::map<std::string, std::string> options = {
-    {"ge.optionInvalid", "Invalid"}
-  };
+  std::map<std::string, std::string> options = {{"ge.optionInvalid", "Invalid"}};
 
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
   dlog_setlevel(GE_MODULE_NAME, 2, 0);
   auto ret = GEInitialize(options);
   ASSERT_EQ(ret, SUCCESS);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by global level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by global level, Please check!");
   EXPECT_TRUE(find_log > -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   GEFinalize();
@@ -247,7 +243,7 @@ TEST_F(UtestGeApi, ge_not_initialized) {
   std::map<std::string, std::string> options;
   std::map<AscendString, AscendString> ascend_options;
   Session session(options);
-  auto ret = session.ExecuteGraphWithStreamAsync(10, nullptr, gert_inputs,gert_outputs);
+  auto ret = session.ExecuteGraphWithStreamAsync(10, nullptr, gert_inputs, gert_outputs);
   ASSERT_NE(ret, SUCCESS);
 
   GraphId graph_id = 1;
@@ -390,7 +386,7 @@ TEST_F(UtestGeApi, ge_session_test) {
   EXPECT_EQ(GEInitialize(options), SUCCESS);
 
   std::map<AscendString, AscendString> ascend_options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   Session session(options);
 
   GraphId graph_id = 1;
@@ -411,7 +407,7 @@ TEST_F(UtestGeApi, ge_session_test) {
   vector<Tensor> outputs;
   EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   EXPECT_EQ(session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), FAILED);
-  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS); // Push to queue.
+  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);  // Push to queue.
 
   vector<string> var_inputs;
   EXPECT_EQ(session.GetVariables(var_inputs, outputs), FAILED);
@@ -445,7 +441,6 @@ TEST_F(UtestGeApi, ge_session_test) {
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
 
-
 TEST_F(UtestGeApi, ge_session_test1) {
   std::map<std::string, std::string> options;
   options.insert(pair<std::string, std::string>("ge.exec.opWaitTimeout", "1"));
@@ -466,7 +461,7 @@ TEST_F(UtestGeApi, ge_session_test1) {
   EXPECT_EQ(GEInitialize(options), SUCCESS);
 
   std::map<AscendString, AscendString> ascend_options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   Session session(options);
   GraphId graph_id = 1;
   const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
@@ -505,13 +500,13 @@ TEST_F(UtestGeApi, ge_session_test_fail) {
 
   options.insert(pair<std::string, std::string>("ge.optionInvalid", "invalid"));
   Session session1(options);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
   dlog_setlevel(GE_MODULE_NAME, 2, 0);
   Session session2(ascend_options);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by session level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by session level, Please check!");
   EXPECT_TRUE(find_log >= -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
@@ -555,8 +550,7 @@ TEST_F(UtestGeApi, AddGraph_test_fail) {
   Session session(options);
   options.insert(pair<std::string, std::string>("ge.optionInvalid", "invalid"));
   (void)session.AddGraph(graph_id, graph, option);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
 
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
@@ -564,22 +558,26 @@ TEST_F(UtestGeApi, AddGraph_test_fail) {
   (void)session.AddGraph(graph_id, graph, ascend_options);
   (void)session.AddGraphWithCopy(graph_id, graph, ascend_options);
   EXPECT_EQ(GEFinalize(), SUCCESS);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by graph level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by graph level, Please check!");
   EXPECT_TRUE(find_log > -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 
 TEST_F(UtestGeApi, CheckOptionsValid_Invalid_JobId_test) {
   std::map<std::string, std::string> options;
-  options.insert(pair<std::string, std::string>(OPTION_EXEC_JOB_ID, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+  options.insert(pair<std::string, std::string>(
+      OPTION_EXEC_JOB_ID,
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
   Status ret = ge::GEInitialize(options);
   EXPECT_NE(ret, SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
 
 TEST_F(UtestGeApi, CheckOptionsInvalid_test) {
-  std::map<AscendString, AscendString> options = {
-    {AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
+  std::map<AscendString, AscendString> options = {{AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
   Status ret = ge::GEInitialize(options);
   EXPECT_EQ(ret, FAILED);
   EXPECT_EQ(GEFinalize(), SUCCESS);
@@ -587,19 +585,17 @@ TEST_F(UtestGeApi, CheckOptionsInvalid_test) {
 
 TEST_F(UtestGeApi, GEInitialize_test) {
   std::map<AscendString, AscendString> options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   Status ret = ge::GEInitialize(options);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 
-  std::map<AscendString, AscendString> options1 = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString(nullptr)}};
+  std::map<AscendString, AscendString> options1 = {{AscendString(ge::ir_option::OUT_NODES), AscendString(nullptr)}};
   ret = ge::GEInitialize(options1);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 
-  std::map<AscendString, AscendString> options2 = {
-    {AscendString("ge.autoTuneMode"), AscendString("RA")}};
+  std::map<AscendString, AscendString> options2 = {{AscendString("ge.autoTuneMode"), AscendString("RA")}};
   ret = ge::GEInitialize(options2);
   EXPECT_NE(ret, SUCCESS);
 
@@ -671,12 +667,12 @@ TEST_F(UtestGeApi, GetCompileGraphSummary_test) {
 
   {
     Session session(options);
-    EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr); // not init
+    EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr); // not add graph
+  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);  // not add graph
 }
 
 TEST_F(UtestGeApi, SetGraphConstMemoryBase_test) {
@@ -685,12 +681,12 @@ TEST_F(UtestGeApi, SetGraphConstMemoryBase_test) {
 
   {
     Session session(options);
-    EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApi, UpdateGraphFeatureMemoryBase_test) {
@@ -699,12 +695,12 @@ TEST_F(UtestGeApi, UpdateGraphFeatureMemoryBase_test) {
 
   {
     Session session(options);
-    EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApi, SetGraphFixedFeatureMemoryBase_test) {
@@ -712,12 +708,12 @@ TEST_F(UtestGeApi, SetGraphFixedFeatureMemoryBase_test) {
   std::map<AscendString, AscendString> options;
   {
     Session session(options);
-    EXPECT_NE(session.SetGraphFixedFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.SetGraphFixedFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.SetGraphFixedFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApi, SetGraphFixedFeatureMemoryBaseWithType_test) {
@@ -726,7 +722,8 @@ TEST_F(UtestGeApi, SetGraphFixedFeatureMemoryBaseWithType_test) {
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0),
+            SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApi, UpdateGraphRefreshableFeatureMemoryBase_test) {
@@ -735,12 +732,12 @@ TEST_F(UtestGeApi, UpdateGraphRefreshableFeatureMemoryBase_test) {
 
   {
     Session session(options);
-    EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApi, CompileGraph_test) {
@@ -749,12 +746,12 @@ TEST_F(UtestGeApi, CompileGraph_test) {
 
   {
     Session session(options);
-    EXPECT_NE(session.CompileGraph(graph_id), SUCCESS); // not init
+    EXPECT_NE(session.CompileGraph(graph_id), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.CompileGraph(graph_id), SUCCESS); // not add graph
+  EXPECT_NE(session.CompileGraph(graph_id), SUCCESS);  // not add graph
 
   Graph graph = gert::ShareGraph::BuildSwitchMergeGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
@@ -1012,10 +1009,8 @@ TEST_F(UtestGeApi, test_GeSession_Api) {
 
   vector<gert::Tensor> gert_inputs;
   vector<gert::Tensor> gert_outputs;
-  EXPECT_NE(GeSessionExecuteGraphWithStreamAsync(session, graph_id, nullptr,
-    gert_inputs, gert_inputs), SUCCESS);
+  EXPECT_NE(GeSessionExecuteGraphWithStreamAsync(session, graph_id, nullptr, gert_inputs, gert_inputs), SUCCESS);
 }
-
 
 TEST_F(UtestGeApi, LoadGraph_with_graph_id) {
   uint32_t graph_id = 1;
@@ -1031,7 +1026,6 @@ TEST_F(UtestGeApi, LoadGraph_with_graph_id) {
   EXPECT_NE(session1.LoadGraph(graph_id, options, nullptr), SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
-
 
 TEST_F(UtestGeApi, Test_LoadGraphApi) {
   uint32_t graph_id = 1;
@@ -1125,9 +1119,9 @@ TEST_F(UtestGeApi, run_graph_with_stream_async) {
 }
 
 TEST_F(UtestGeApi, run_graph_with_stream_with_dynamic) {
-  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-  OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-  OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+  OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+  OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
 
   gert::GertRuntimeStub rtstub;
   rtstub.GetRtsRuntimeStub().Clear();
@@ -1172,7 +1166,7 @@ TEST_F(UtestGeApi, run_graph_with_stream_with_dynamic) {
   // dynamic shape graph
   EXPECT_EQ(session.GetCompiledGraphSummary(graph_id)->IsStatic(), false);
 
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   auto ret = session.RunGraphWithStreamAsync(1, stream, inputs, outputs);
   ASSERT_NE(ret, SUCCESS);
 
@@ -1275,14 +1269,39 @@ TEST_F(UtestGeApi, run_graph_with_stream_with_multi_batch) {
 
   GeRunningEnvFaker ge_env;
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine").Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AicpuLib"));
@@ -1459,18 +1478,18 @@ TEST_F(UtestGeApi, PaRemapped_test) {
 
   {
     Session session(options);
-    EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS); // not init
+    EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS);  // not init
   }
 
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   ge::GetThreadLocalContext().SetGraphOption(options);
   EXPECT_EQ(GEInitialize(options), SUCCESS);
   Session session(options);
-  EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS); // not add graph
+  EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS);  // not add graph
 
   Graph graph = gert::ShareGraph::BuildHcomGraphWithRefData();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
-  EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS); // not compile
+  EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS);  // not compile
 
   EXPECT_NE(session.CompileGraph(graph_id), SUCCESS);
   EXPECT_NE(session.PaRemapped(0UL, 0UL, 64UL), SUCCESS);
@@ -1539,7 +1558,6 @@ TEST_F(UtestGeApi, Session_oo_init_param_invalid) {
 
   std::map<std::string, std::string> session_options;
   Session session(session_options);
-
 
   GraphId graph_id = 1;
   ComputeGraphPtr compute_graph = gert::ShareGraph::AicoreGraph();
@@ -1619,16 +1637,16 @@ TEST_F(UtestGeApi, Session_export_compile_stat_invalid) {
 }
 
 namespace {
-  class AbnormalAclStub : public AclRuntimeStub {
-  public:
-    aclError aclrtCreateContext(aclrtContext*context, int32_t deviceId) override {
-      return 1; // failed
-    }
-  };
-} // namespace
-  /**
-   * 若session创建失败，确保session manager没有残留的未成功创建的session
-   */
+class AbnormalAclStub : public AclRuntimeStub {
+ public:
+  aclError aclrtCreateContext(aclrtContext *context, int32_t deviceId) override {
+    return 1;  // failed
+  }
+};
+}  // namespace
+/**
+ * 若session创建失败，确保session manager没有残留的未成功创建的session
+ */
 TEST_F(UtestGeApi, CreateSessionFailed) {
   auto acl_stub = std::make_shared<AbnormalAclStub>();
   AclRuntimeStub::Install(acl_stub.get());
@@ -1637,7 +1655,7 @@ TEST_F(UtestGeApi, CreateSessionFailed) {
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
 
-  Session sess1(options); // rt create context failed
+  Session sess1(options);  // rt create context failed
   EXPECT_EQ(sess1.GetSessionId(), 0);
   Graph tmp_graph;
   EXPECT_NE(sess1.AddGraph(1, tmp_graph), SUCCESS);
@@ -1654,14 +1672,14 @@ TEST_F(UtestGeApi, CreateSessionFailed) {
 #define EXPECT_STR_EQ(x, y) EXPECT_EQ(std::string(x.GetString()), std::string(y))
 
 REG_OP(QueryIrTestOp1)
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp1)
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp1)
 
-TEST_F(UtestGeApi, QueryIrInputOutput) {
+        TEST_F(UtestGeApi, QueryIrInputOutput) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp1", inputs, outputs, attrs), SUCCESS);
@@ -1681,14 +1699,14 @@ TEST_F(UtestGeApi, QueryIrInputOutput) {
 }
 
 REG_OP(QueryIrTestOp2)
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp2)
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp2)
 
-TEST_F(UtestGeApi, QueryIrInputOutputKeepOrder) {
+        TEST_F(UtestGeApi, QueryIrInputOutputKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp2", inputs, outputs, attrs), SUCCESS);
@@ -1708,24 +1726,24 @@ TEST_F(UtestGeApi, QueryIrInputOutputKeepOrder) {
 }
 
 REG_OP(QueryIrTestOp3)
-  .REQUIRED_ATTR(attr1, Int)
-  .REQUIRED_ATTR(attr2, Float)
-  .REQUIRED_ATTR(attr3, String)
-  .REQUIRED_ATTR(attr4, Bool)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .REQUIRED_ATTR(attr6, Type)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp3)
+    .REQUIRED_ATTR(attr1, Int)
+    .REQUIRED_ATTR(attr2, Float)
+    .REQUIRED_ATTR(attr3, String)
+    .REQUIRED_ATTR(attr4, Bool)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .REQUIRED_ATTR(attr6, Type)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp3)
 
-TEST_F(UtestGeApi, QueryIrAttr) {
+        TEST_F(UtestGeApi, QueryIrAttr) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp3", inputs, outputs, attrs), SUCCESS);
@@ -1765,24 +1783,24 @@ TEST_F(UtestGeApi, QueryIrAttr) {
 }
 
 REG_OP(QueryIrTestOp4)
-  .ATTR(attr1, Int, 3)
-  .ATTR(attr2, Float, 2.0)
-  .REQUIRED_ATTR(attr3, String)
-  .ATTR(attr4, Bool, false)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .ATTR(attr6, Type, DT_BF16)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp4)
+    .ATTR(attr1, Int, 3)
+    .ATTR(attr2, Float, 2.0)
+    .REQUIRED_ATTR(attr3, String)
+    .ATTR(attr4, Bool, false)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .ATTR(attr6, Type, DT_BF16)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp4)
 
-TEST_F(UtestGeApi, QueryIrAttrKeepOrder) {
+        TEST_F(UtestGeApi, QueryIrAttrKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp4", inputs, outputs, attrs), SUCCESS);

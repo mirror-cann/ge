@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,10 +20,10 @@
 
 namespace fe {
 class TraceHandleManager {
-public:
+ public:
   TraceHandleManager(const TraceHandleManager &) = delete;
   TraceHandleManager &operator=(const TraceHandleManager &) = delete;
-  static TraceHandleManager& Instance();
+  static TraceHandleManager &Instance();
   Status Initialize();
   void Finalize();
   void AddSubGraphTraceHandle();
@@ -31,7 +31,7 @@ public:
   void SubmitGlobalTrace(const TraceMsgBasePtr &trace_msg) const;
   void SubmitStatisticsTrace(const std::string &trace_msg) const;
 
-private:
+ private:
   TraceHandleManager();
   ~TraceHandleManager();
   static bool SubmitTrace(const TraHandle &trace_handle, const std::string &trace_msg);
@@ -44,5 +44,5 @@ private:
   std::map<uint64_t, TraEventHandle> subgraph_event_map_;
   mutable std::mutex subgraph_mutex_;
 };
-}
+}  // namespace fe
 #endif  // AIR_COMPILER_GRAPHCOMPILER_ENGINES_NNENG_TRACE_HANDLE_MANAGER_TRACE_HANDLE_MANAGER_H_

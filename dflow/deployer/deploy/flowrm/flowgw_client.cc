@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,8 +42,7 @@ FlowGwClient::FlowGwClient(uint32_t device_id, int32_t device_type, const std::v
       is_proxy_(is_proxy),
       is_inited_(false),
       is_exception_(false),
-      res_ids_(res_ids) {
-}
+      res_ids_(res_ids) {}
 
 std::string FlowGwClient::FormatListParam(const std::vector<int32_t> &list) {
   std::string param;
@@ -85,16 +84,14 @@ Status FlowGwClient::InnerStartFlowGw(const ProcessParam &param) {
     GE_CHK_RT_RET(rtBindHostPid(info));
   }
 
-  (void) mmSleep(kInnerForkQsWaitTimeInMilliSec);  // wait for qs fully initialized
+  (void)mmSleep(kInnerForkQsWaitTimeInMilliSec);  // wait for qs fully initialized
 
   std::function<void(const ProcStatus &)> excpt_handle_callback = [param, this](const ProcStatus &proc_status) {
     GEEVENT("Queue schedule process status is %d.", static_cast<int32_t>(proc_status));
     proc_status_ = proc_status;
   };
   SubprocessManager::GetInstance().RegExcptHandleCallback(pid_, excpt_handle_callback);
-  status_func_ = [this]() -> ProcStatus {
-    return proc_status_;
-  };
+  status_func_ = [this]() -> ProcStatus { return proc_status_; };
   return SUCCESS;
 }
 
@@ -119,7 +116,7 @@ Status FlowGwClient::Shutdown(pid_t pid) {
       GELOGI("mmWaitPid success, ret[%d] pid[%d] status[%d]", ret, pid, status);
       return SUCCESS;
     }
-    (void) mmSleep(100U);
+    (void)mmSleep(100U);
     ++times;
   }
   GELOGI("queue schedule[%d] stopping timeout, ready to kill", pid);
@@ -133,12 +130,11 @@ Status FlowGwClient::Shutdown(pid_t pid) {
 
 Status FlowGwClient::StartFlowGwFromTsd(uint32_t device_id, const std::string &group_name) {
   GE_CHK_STATUS_RET(TsdClient::GetInstance().StartFlowGw(device_id, group_name, pid_),
-                    "Failed to start flowgw, device_id = %d, group name = %s.",
-                    device_id, group_name.c_str());
+                    "Failed to start flowgw, device_id = %d, group name = %s.", device_id, group_name.c_str());
   GE_CHK_STATUS_RET(MemoryGroupManager::GetInstance().RemoteMemGrpAddProc(device_id, group_name, pid_, false, true),
-                    "Failed to add remote group, device_id = %d, group name = %s, pid = %d.",
-                    device_id, group_name.c_str(), pid_);
-  (void) mmSleep(kForkQsWaitTimeInMilliSec);  // wait for qs fully initialized;
+                    "Failed to add remote group, device_id = %d, group name = %s, pid = %d.", device_id,
+                    group_name.c_str(), pid_);
+  (void)mmSleep(kForkQsWaitTimeInMilliSec);  // wait for qs fully initialized;
   status_func_ = [this]() -> ProcStatus {
     ProcStatus stat = ProcStatus::NORMAL;
     auto ret = TsdClient::GetInstance().GetProcStatus(device_id_, pid_, stat, kFlowGwProcessName);
@@ -165,8 +161,8 @@ Status FlowGwClient::StartFlowGw() {
   if (is_proxy_) {
     const auto &mem_group_name = MemoryGroupManager::GetInstance().GetRemoteMemGroupName(device_id_);
     GE_CHK_STATUS_RET(StartFlowGwFromTsd(device_id_, mem_group_name),
-                      "Failed to start flowgw from tsd, device_id = %d, memory group = %s.",
-                      device_id_, mem_group_name.c_str());
+                      "Failed to start flowgw from tsd, device_id = %d, memory group = %s.", device_id_,
+                      mem_group_name.c_str());
     return SUCCESS;
   }
   const auto &mem_group_name = MemoryGroupManager::GetInstance().GetQsMemGroupName();
@@ -176,19 +172,18 @@ Status FlowGwClient::StartFlowGw() {
   param.group_name = mem_group_name;
   param.res_ids = res_ids_;
   GE_CHK_STATUS_RET(ToVisibleDeviceId(node_config.proxy_device_ids, param.dev_ids),
-                    "Failed to covert logical device id to visible device id");
-  GE_CHK_STATUS_RET(InnerStartFlowGw(param),
-                    "Failed to start flowgw, device_id = %d, memory group = %s.",
-                    device_id_, mem_group_name.c_str());
+                    "Failed to convert logical device id to visible device id");
+  GE_CHK_STATUS_RET(InnerStartFlowGw(param), "Failed to start flowgw, device_id = %d, memory group = %s.", device_id_,
+                    mem_group_name.c_str());
   return SUCCESS;
 }
 
 Status FlowGwClient::Initialize() {
-  GE_CHK_STATUS_RET(StartFlowGw(), "Failed to start flowgw client, device_id = %d, is_proxy = %d.",
-                    device_id_, is_proxy_);
+  GE_CHK_STATUS_RET(StartFlowGw(), "Failed to start flowgw client, device_id = %d, is_proxy = %d.", device_id_,
+                    is_proxy_);
   is_inited_ = true;
-  GE_CHK_STATUS_RET(InitFlowGwClient(), "Failed to init flowgw client, pid = %d, device_id = %d, is_proxy = %d.",
-                    pid_, device_id_, is_proxy_);
+  GE_CHK_STATUS_RET(InitFlowGwClient(), "Failed to init flowgw client, pid = %d, device_id = %d, is_proxy = %d.", pid_,
+                    device_id_, is_proxy_);
   return SUCCESS;
 }
 
@@ -199,17 +194,18 @@ Status FlowGwClient::InitFlowGwClient() const {
   GE_CHECK_NOTNULL(dgw_client);
   constexpr uint32_t kMaxInitTimes = 30U;
   while (count++ < kMaxInitTimes) {
-    GEEVENT("Init datagw client begin, flowgw server pid=%d, "
-            "device id=%u, is_proxy = %d, number of initializations=%u.",
-            pid_, device_id_, static_cast<int32_t>(is_proxy_), count);
+    GEEVENT(
+        "Init datagw client begin, flowgw server pid=%d, "
+        "device id=%u, is_proxy = %d, number of initializations=%u.",
+        pid_, device_id_, static_cast<int32_t>(is_proxy_), count);
     int32_t res = dgw_client->Initialize(pid_, proc_sign, is_proxy_, kWaitTimeoutInSec);
     if (res == 0) {
       GE_CHK_STATUS_RET(SetHcclProtocol(), "Failed to set hccl protocol");
-      GEEVENT("Init datagw client success, flowgw server pid=%u, device id=%u, number of initializations=%u.",
-              pid_, device_id_, count);
+      GEEVENT("Init datagw client success, flowgw server pid=%u, device id=%u, number of initializations=%u.", pid_,
+              device_id_, count);
       return SUCCESS;
     }
-    (void) mmSleep(kWaitTimeInMilliSecond);
+    (void)mmSleep(kWaitTimeInMilliSecond);
   }
 
   GELOGE(FAILED, "Init datagw client failed, dgw server pid=%d, device id=%u.", pid_, device_id_);
@@ -222,15 +218,13 @@ Status FlowGwClient::SetHcclProtocol() const {
   const auto &protocol = node_config.protocol;
   bqs::ConfigInfo cfg = {};
   cfg.cmd = bqs::ConfigCmd::DGW_CFG_CMD_SET_HCCL_PROTOCOL;
-  cfg.cfg.hcclProtocolCfg.protocol = protocol == kProtocolTypeRdma ?
-                                     bqs::HcclProtocolType::RDMA :
-                                     bqs::HcclProtocolType::TCP;
+  cfg.cfg.hcclProtocolCfg.protocol =
+      protocol == kProtocolTypeRdma ? bqs::HcclProtocolType::RDMA : bqs::HcclProtocolType::TCP;
   std::vector<int32_t> results;
   auto dgw_client = bqs::DgwClient::GetInstance(device_id_, pid_, is_proxy_);
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Set][HcclProtocol] failed, ret = %d, hccl protocol = %u, device_id = %u.",
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Set][HcclProtocol] failed, ret = %d, hccl protocol = %u, device_id = %u.",
                          ret, static_cast<uint32_t>(cfg.cfg.hcclProtocolCfg.protocol), device_id_);
   GELOGI("[Set][HcclProtocol] success, hccl protocol = %u, device_id = %u.",
          static_cast<uint32_t>(cfg.cfg.hcclProtocolCfg.protocol), device_id_);
@@ -254,8 +248,7 @@ Status FlowGwClient::UpdateProfiling() const {
   auto dgw_client = bqs::DgwClient::GetInstance(device_id_, pid_, is_proxy_);
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Update][Profiling] failed, ret = %d, device_id = %u.", ret, device_id_);
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Update][Profiling] failed, ret = %d, device_id = %u.", ret, device_id_);
   GELOGI("[Update][Profiling] success, device_id = %u.", device_id_);
   return SUCCESS;
 }
@@ -285,9 +278,8 @@ Status FlowGwClient::CreateFlowGwGroup(const std::vector<const ExchangeEndpoint 
   auto dgw_client = bqs::DgwClient::GetInstance(device_id_, pid_, is_proxy_);
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Create][Group] failed, ret = %d, endpoint size=%zu, device id=%u.",
-                         ret, endpoint_list.size(), device_id_);
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Create][Group] failed, ret = %d, endpoint size=%zu, device id=%u.", ret,
+                         endpoint_list.size(), device_id_);
   group_id = cfg.cfg.groupCfg.groupId;
   GELOGD("[Create][Group] success, endpoint size=%zu, device id=%u.", endpoint_list.size(), device_id_);
   return SUCCESS;
@@ -302,8 +294,8 @@ Status FlowGwClient::DestroyFlowGwGroup(int32_t group_id) const {
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
   GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Destroy][Group] failed, ret = %d, group_id = %d, device id = %u, datagw pid = %d.",
-                         ret, group_id, device_id_, pid_);
+                         "[Destroy][Group] failed, ret = %d, group_id = %d, device id = %u, datagw pid = %d.", ret,
+                         group_id, device_id_, pid_);
   GELOGI("[Destroy][Group] success, group_id = %d, device id = %u, datagw pid = %d.", group_id, device_id_, pid_);
   return SUCCESS;
 }
@@ -313,8 +305,8 @@ Status FlowGwClient::ClearFlowgwModelData(const std::set<uint32_t> &model_ids, c
   bqs::ConfigInfo cfg = {};
 
   if (is_exception_ && type == EXCEPTION_HANDLE_STOP) {
-    (void) DestroyHcomHandle();
-    (void) Finalize();
+    (void)DestroyHcomHandle();
+    (void)Finalize();
     return SUCCESS;
   }
 
@@ -337,22 +329,19 @@ Status FlowGwClient::ClearFlowgwModelData(const std::set<uint32_t> &model_ids, c
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
   GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[ClearModelExceptionData] failed, ret = %d, type = %d, device id = %u, datagw pid = %d.",
-                         ret, type, device_id_, pid_);
+                         "[ClearModelExceptionData] failed, ret = %d, type = %d, device id = %u, datagw pid = %d.", ret,
+                         type, device_id_, pid_);
   GELOGI("[ClearModelExceptionData] success, type = %d, device id = %u, datagw pid = %d.", type, device_id_, pid_);
   return SUCCESS;
 }
 
-Status FlowGwClient::GrantQueueForRoute(const std::pair<const ExchangeEndpoint *,
-                                                        const ExchangeEndpoint *> &queue_route) const {
+Status FlowGwClient::GrantQueueForRoute(
+    const std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *> &queue_route) const {
   GELOGD("[Grant][Queue] for flowgw route.");
   if ((queue_route.first->type == ExchangeEndpointType::kEndpointTypeExternalQueue ||
        queue_route.first->type == ExchangeEndpointType::kEndpointTypeQueue) &&
       queue_route.first->device_type == device_type_) {
-    GE_CHK_STATUS_RET(GrantQueue(queue_route.first->device_id,
-                                 queue_route.first->id,
-                                 pid_,
-                                 GrantType::kReadOnly),
+    GE_CHK_STATUS_RET(GrantQueue(queue_route.first->device_id, queue_route.first->id, pid_, GrantType::kReadOnly),
                       "Grant src queue failed, endpoint=[%s], datagw pid = %d",
                       queue_route.first->DebugString().c_str(), pid_);
   }
@@ -360,10 +349,7 @@ Status FlowGwClient::GrantQueueForRoute(const std::pair<const ExchangeEndpoint *
   if ((queue_route.second->type == ExchangeEndpointType::kEndpointTypeExternalQueue ||
        queue_route.second->type == ExchangeEndpointType::kEndpointTypeQueue) &&
       queue_route.second->device_type == device_type_) {
-    GE_CHK_STATUS_RET(GrantQueue(queue_route.second->device_id,
-                                 queue_route.second->id,
-                                 pid_,
-                                 GrantType::kWriteOnly),
+    GE_CHK_STATUS_RET(GrantQueue(queue_route.second->device_id, queue_route.second->id, pid_, GrantType::kWriteOnly),
                       "Grant dst queue failed, endpoint=[%s], datagw pid = %d",
                       queue_route.second->DebugString().c_str(), pid_);
   }
@@ -371,16 +357,14 @@ Status FlowGwClient::GrantQueueForRoute(const std::pair<const ExchangeEndpoint *
 }
 
 void FlowGwClient::PrintFlowRoute(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes,
-    bool print_error) {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes, bool print_error) {
   for (auto &queue_route : queue_routes) {
     if (print_error) {
       GELOGE(FAILED, "Flow route info, src endpoint = [%s], dst endpoint = [%s]",
              queue_route.first->DebugString().c_str(), queue_route.second->DebugString().c_str());
     } else {
-      GELOGI("Flow route info, src endpoint = [%s], dst endpoint = [%s]",
-             queue_route.first->DebugString().c_str(), queue_route.second->DebugString().c_str());
+      GELOGI("Flow route info, src endpoint = [%s], dst endpoint = [%s]", queue_route.first->DebugString().c_str(),
+             queue_route.second->DebugString().c_str());
     }
   }
 }
@@ -399,15 +383,13 @@ Status FlowGwClient::FillCommChannelAttrEndpoint(const ExchangeEndpoint &endpoin
 
 bqs::Endpoint FlowGwClient::ToFlowGwEndpoint(const ExchangeEndpoint &endpoint) const {
   bqs::Endpoint ret = {};
-  ret.resId = 0x8000 |
-              static_cast<uint16_t>(endpoint.device_id) |
-              (static_cast<uint16_t>(endpoint.device_type) << 14U);
+  ret.resId = 0x8000 | static_cast<uint16_t>(endpoint.device_id) | (static_cast<uint16_t>(endpoint.device_type) << 14U);
   ret.globalId = endpoint.index;
   ret.modelId = endpoint.model_id;
   ret.rootModelId = endpoint.root_model_id;
   switch (endpoint.type) {
     case ExchangeEndpointType::kEndpointTypeTag: {
-      (void) FillCommChannelAttrEndpoint(endpoint, ret);
+      (void)FillCommChannelAttrEndpoint(endpoint, ret);
       break;
     }
     case ExchangeEndpointType::kEndpointTypeExternalQueue:  // fall through
@@ -435,8 +417,7 @@ bqs::Endpoint FlowGwClient::ToFlowGwEndpoint(const ExchangeEndpoint &endpoint) c
 }
 
 void FlowGwClient::ToFlowGwRoutes(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes,
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
     std::vector<bqs::Route> &flowgw_routes) const {
   for (const auto &route : queue_routes) {
     bqs::Route flowgw_route = {};
@@ -446,9 +427,8 @@ void FlowGwClient::ToFlowGwRoutes(
   }
 }
 
-void FlowGwClient::ToFlowGwEndpoints(
-    const std::vector<const ExchangeEndpoint *> &endpoints,
-    std::vector<bqs::Endpoint> &flowgw_endpoints) const {
+void FlowGwClient::ToFlowGwEndpoints(const std::vector<const ExchangeEndpoint *> &endpoints,
+                                     std::vector<bqs::Endpoint> &flowgw_endpoints) const {
   for (const auto &endpoint : endpoints) {
     bqs::Endpoint flowgw_endpoint = {};
     flowgw_endpoint = ToFlowGwEndpoint(*endpoint);
@@ -457,13 +437,11 @@ void FlowGwClient::ToFlowGwEndpoints(
 }
 
 Status FlowGwClient::BindQueues(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes) const {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) const {
   GELOGD("[Bind][Queues] device_id = %u, routes size = %zu", device_id_, queue_routes.size());
   for (size_t i = 0U; i < queue_routes.size(); ++i) {
     const auto &queue_route = queue_routes[i];
-    GE_CHK_STATUS_RET(GrantQueueForRoute(queue_route),
-                      "[Grant][Queue] failed, src=[%s], dst=[%s].",
+    GE_CHK_STATUS_RET(GrantQueueForRoute(queue_route), "[Grant][Queue] failed, src=[%s], dst=[%s].",
                       queue_route.first->DebugString().c_str(), queue_route.second->DebugString().c_str());
   }
 
@@ -479,16 +457,14 @@ Status FlowGwClient::BindQueues(
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, bind_results, kWaitTimeoutInSec);
   PrintFlowRoute(queue_routes, ret != 0);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Bind][Route] failed, ret = %d, device_id = %u, route size = %zu.",
-                         ret, device_id_, queue_routes.size());
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Bind][Route] failed, ret = %d, device_id = %u, route size = %zu.", ret,
+                         device_id_, queue_routes.size());
   GELOGI("[Bind][Route] success, route size = %zu.", queue_routes.size());
   return SUCCESS;
 }
 
 Status FlowGwClient::UnbindQueues(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes) const {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) const {
   std::vector<bqs::Route> routes;
   ToFlowGwRoutes(queue_routes, routes);
   bqs::ConfigInfo cfg = {};
@@ -500,9 +476,8 @@ Status FlowGwClient::UnbindQueues(
   GE_CHECK_NOTNULL(dgw_client);
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
   PrintFlowRoute(queue_routes, ret != 0);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Unbind][Route] failed, ret = %d, device_id = %u, route size = %zu.",
-                         ret, device_id_, queue_routes.size());
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Unbind][Route] failed, ret = %d, device_id = %u, route size = %zu.", ret,
+                         device_id_, queue_routes.size());
   GELOGI("[Unbind][Route] success, route size = %zu.", queue_routes.size());
   return SUCCESS;
 }
@@ -518,7 +493,7 @@ ExchangeEndpoint *FlowGwClient::GetEndpoint(std::map<int32_t, std::shared_ptr<Ex
 }
 
 bool FlowGwClient::IsExceptionGroup(const ExchangeEndpoint *group_endpoint,
-    std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const {
+                                    std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const {
   for (auto indice : group_endpoint->endpoint_indices) {
     auto endpoint = GetEndpoint(endpoints, indice);
     GE_CHECK_NOTNULL(endpoint);
@@ -530,7 +505,7 @@ bool FlowGwClient::IsExceptionGroup(const ExchangeEndpoint *group_endpoint,
 }
 
 Status FlowGwClient::UpdateGroupRoute(const ExchangeEndpoint *group_endpoint,
-    std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const {
+                                      std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const {
   GELOGI("[UpdateExceptionRoutes] try update group, endpoint = %s.", group_endpoint->DebugString().c_str());
   std::vector<int32_t> new_endpoint_indices;
   for (auto indice : group_endpoint->endpoint_indices) {
@@ -565,15 +540,15 @@ Status FlowGwClient::UpdateGroupRoute(const ExchangeEndpoint *group_endpoint,
 }
 
 Status FlowGwClient::UpdateExceptionRoutes(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes,
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
     std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const {
   for (auto &queue_route : queue_routes) {
     auto &src = queue_route.first;
     auto &dst = queue_route.second;
-    GELOGI("[UpdateExceptionRoutes] start handle exception route, src endpoint = %s, dst endpoint = %s,"
-           " flowgw client info: device_id = %u, device_type = %d.",
-           src->DebugString().c_str(), dst->DebugString().c_str(), device_id_, device_type_);
+    GELOGI(
+        "[UpdateExceptionRoutes] start handle exception route, src endpoint = %s, dst endpoint = %s,"
+        " flowgw client info: device_id = %u, device_type = %d.",
+        src->DebugString().c_str(), dst->DebugString().c_str(), device_id_, device_type_);
     if (src->is_del || dst->is_del) {
       GELOGI("[UpdateExceptionRoutes] dst endpoint or src endpoint need delete, unbind route.");
       GE_CHK_STATUS_RET(UnbindQueues({queue_route}), "[UpdateExceptionRoutes] Failed to bind routes.");
@@ -589,8 +564,7 @@ Status FlowGwClient::UpdateExceptionRoutes(
     GELOGI("[UpdateExceptionRoutes] dst endpoint or src endpoint need update group, unbind route first.");
     GE_CHK_STATUS_RET(UnbindQueues({queue_route}), "[UpdateExceptionRoutes] Failed to unbind old route.");
     if (src->type == ExchangeEndpointType::kEndpointTypeGroup) {
-      GE_CHK_STATUS_RET(UpdateGroupRoute(src, endpoints),
-                        "[UpdateExceptionRoutes] Failed to update src group route.");
+      GE_CHK_STATUS_RET(UpdateGroupRoute(src, endpoints), "[UpdateExceptionRoutes] Failed to update src group route.");
     }
     GELOGI("[UpdateExceptionRoutes] bind new route after update group, src endpoint = %s, dst endpoint = %s,",
            src->DebugString().c_str(), dst->DebugString().c_str());
@@ -601,11 +575,9 @@ Status FlowGwClient::UpdateExceptionRoutes(
 
 Status FlowGwClient::GrantQueue(uint32_t device_id, uint32_t qid, pid_t pid, GrantType grant_type) {
   rtMemQueueShareAttr_t attr = {};
-  GE_CHK_BOOL_RET_STATUS(grant_type == GrantType::kReadOnly ||
-                         grant_type == GrantType::kWriteOnly ||
-                         grant_type == GrantType::kReadAndWrite,
-                         FAILED,
-                         "[Grant][Queue] type[%d] error.", static_cast<int32_t>(grant_type));
+  GE_CHK_BOOL_RET_STATUS(grant_type == GrantType::kReadOnly || grant_type == GrantType::kWriteOnly ||
+                             grant_type == GrantType::kReadAndWrite,
+                         FAILED, "[Grant][Queue] type[%d] error.", static_cast<int32_t>(grant_type));
   if (grant_type == GrantType::kReadOnly) {
     attr.read = 1;
   } else if (grant_type == GrantType::kWriteOnly) {
@@ -644,9 +616,8 @@ Status FlowGwClient::DestroyHcomHandle() {
   auto dgw_client = bqs::DgwClient::GetInstance(device_id_, pid_, is_proxy_);
   GE_CHECK_NOTNULL(dgw_client);
   const int32_t ret = dgw_client->DestroyHcomHandle(hcom_handle_, kDestroyHcomWaitTimeoutInSec);
-  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED,
-                         "[Destroy][Handle] failed, hcom_handle=%lu, device id=%u",
-                         hcom_handle_, device_id_);
+  GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "[Destroy][Handle] failed, hcom_handle=%lu, device id=%u", hcom_handle_,
+                         device_id_);
   hcom_handle_ = kInvalidHcomHandle;
   GEEVENT("[Destroy][Handle] success, hcom_handle=%lu, device id=%u, pid = %d", hcom_handle_, device_id_, pid_);
   return SUCCESS;
@@ -669,18 +640,18 @@ void FlowGwClient::SetExceptionFlag() {
   is_exception_ = true;
 }
 
-Status FlowGwClient::ConfigSchedInfoToDataGw(const uint32_t device_id, const int32_t input_indice,
-                                             const uint32_t input, const uint32_t output,
-                                             const uint32_t root_model_id, const bool is_proxy) const {
+Status FlowGwClient::ConfigSchedInfoToDataGw(const uint32_t device_id, const int32_t input_indice, const uint32_t input,
+                                             const uint32_t output, const uint32_t root_model_id,
+                                             const bool is_proxy) const {
   auto dgw_client = bqs::DgwClient::GetInstance(device_id_, pid_, is_proxy_);
   GE_CHECK_NOTNULL(dgw_client);
 
   GE_CHK_STATUS_RET(GrantQueue(device_id, input, pid_, GrantType::kReadOnly),
-                    "DynamicSched Grant src queue failed, device id=%u, input queue id=%d, datagw pid=%d",
-                    device_id, input, pid_);
+                    "DynamicSched Grant src queue failed, device id=%u, input queue id=%d, datagw pid=%d", device_id,
+                    input, pid_);
   GE_CHK_STATUS_RET(GrantQueue(device_id, output, pid_, GrantType::kWriteOnly),
-                    "DynamicSched Grant src queue failed, device id=%u, output queue id=%d, datagw pid=%d",
-                    device_id, output, pid_);
+                    "DynamicSched Grant src queue failed, device id=%u, output queue id=%d, datagw pid=%d", device_id,
+                    output, pid_);
   GELOGI("DynamicSched Grant src queue succ, device id=%u, input queue id=%d, output queue id=%d, datagw pid=%d",
          device_id, input, output, pid_);
 
@@ -702,14 +673,20 @@ Status FlowGwClient::ConfigSchedInfoToDataGw(const uint32_t device_id, const int
   std::vector<int32_t> results;
   int32_t ret = dgw_client->UpdateConfig(cfg, results, kWaitTimeoutInSec);
   if (ret != 0) {
-    GELOGE(FAILED, "DynamicSched cfg failed, ret = %d, device id=%u, input queue id=%u, output queue id=%u,"
-           " datagw pid=%d.", ret, device_id, input, output, pid_);
-    REPORT_INNER_ERR_MSG("E19999", "DynamicSched cfg failed, ret = %d, device id=%u, input queue id=%u, "
-                      "output queue id=%u, datagw pid=%d.", ret, device_id, input, output, pid_);
+    GELOGE(FAILED,
+           "DynamicSched cfg failed, ret = %d, device id=%u, input queue id=%u, output queue id=%u,"
+           " datagw pid=%d.",
+           ret, device_id, input, output, pid_);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "DynamicSched cfg failed, ret = %d, device id=%u, input queue id=%u, "
+                         "output queue id=%u, datagw pid=%d.",
+                         ret, device_id, input, output, pid_);
     return FAILED;
   }
-  GELOGD("DynamicSched cfg succ, root_model_id=%u, device id=%u, input queue id=%u, output queue id=%u,"
-         " datagw pid=%d, is_proxy=%d.", root_model_id, device_id, input, output, pid_, is_proxy);
+  GELOGD(
+      "DynamicSched cfg succ, root_model_id=%u, device id=%u, input queue id=%u, output queue id=%u,"
+      " datagw pid=%d, is_proxy=%d.",
+      root_model_id, device_id, input, output, pid_, is_proxy);
   return SUCCESS;
 }
 }  // namespace ge

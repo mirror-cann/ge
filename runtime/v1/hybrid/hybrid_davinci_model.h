@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,19 +33,16 @@ class HybridDavinciModel {
 
   Status Init();
 
-  virtual Status Execute(const std::vector<DataBuffer> &inputs,
-                         const std::vector<GeTensorDesc> &input_desc,
-                         std::vector<DataBuffer> &outputs,
-                         std::vector<GeTensorDesc> &output_desc,
+  virtual Status Execute(const std::vector<DataBuffer> &inputs, const std::vector<GeTensorDesc> &input_desc,
+                         std::vector<DataBuffer> &outputs, std::vector<GeTensorDesc> &output_desc,
                          const aclrtStream stream);
 
   Status Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
 
   Status ExecuteWithStreamAsync(const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs,
                                 const aclrtStream stream = nullptr);
-  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                                    std::vector<gert::Tensor> &outputs,
-                                                    const aclrtStream stream = nullptr);
+  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
+                                const aclrtStream stream = nullptr);
 
   Status ModelRunStart();
 
@@ -78,8 +75,7 @@ class HybridDavinciModel {
   void GetOutputShapeInfo(std::vector<std::string> &dynamic_output_shape_info) const;
 
   Status GetInputOutputDescInfo(std::vector<InputOutputDescInfo> &input_desc,
-                                std::vector<InputOutputDescInfo> &output_desc,
-                                std::vector<uint32_t> &input_formats,
+                                std::vector<InputOutputDescInfo> &output_desc, std::vector<uint32_t> &input_formats,
                                 std::vector<uint32_t> &output_formats);
 
   void SetModelDescVersion(const bool is_new_model_desc);
@@ -107,4 +103,4 @@ class HybridDavinciModel {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // HYBRID_HYBRID_DAVINCI_MODEL_H_
+#endif  // HYBRID_HYBRID_DAVINCI_MODEL_H_

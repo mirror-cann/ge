@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -145,8 +145,8 @@ const int64_t RANGE_UNLIMITED_LOW_ONE = 1;
 const int64_t RANGE_UNLIMITED_UP = -1;
 const int64_t DYNAMIC_SHAPE_DIM = -2;
 const int64_t UNKNOWN_DIM = -1;
-const double TIME_INTERVAL = 2.999999;    // interval 3s to record log for suppressing massive Logs
-const double PRINT_INTERVAL = 9.999999;    // print to screen interval, 10s
+const double TIME_INTERVAL = 2.999999;   // interval 3s to record log for suppressing massive Logs
+const double PRINT_INTERVAL = 9.999999;  // print to screen interval, 10s
 
 // fusion check result initial value
 const int CHECK_RES_INITIAL_VALUE = -2;
@@ -173,18 +173,15 @@ const int64_t OPP_LATEST_ENUM = 1;
 constexpr const char *OPP_PATH = "_opp_path";
 const int64_t AICORE_IMPL_TYPE_NUM = 6;
 
-const std::vector<std::pair<int64_t, int64_t>> DIM_N = {
-  std::make_pair(1, 1), std::make_pair(2, 3), std::make_pair(4, 7),
-  std::make_pair(8, 15), std::make_pair(16, 31), std::make_pair(32, -1)
-};
+const std::vector<std::pair<int64_t, int64_t>> DIM_N = {std::make_pair(1, 1),   std::make_pair(2, 3),
+                                                        std::make_pair(4, 7),   std::make_pair(8, 15),
+                                                        std::make_pair(16, 31), std::make_pair(32, -1)};
 const int64_t DIM_N_MAX = 32;
 
 const std::vector<std::pair<int64_t, int64_t>> DIM_DHW = {
-  std::make_pair(1, 3), std::make_pair(4, 15), std::make_pair(16, 31),
-  std::make_pair(32, 63), std::make_pair(64, 127), std::make_pair(128, 191),
-  std::make_pair(192, 255), std::make_pair(256, 511), std::make_pair(512, 767),
-  std::make_pair(768, 1023), std::make_pair(1024, -1)
-};
+    std::make_pair(1, 3),     std::make_pair(4, 15),     std::make_pair(16, 31),   std::make_pair(32, 63),
+    std::make_pair(64, 127),  std::make_pair(128, 191),  std::make_pair(192, 255), std::make_pair(256, 511),
+    std::make_pair(512, 767), std::make_pair(768, 1023), std::make_pair(1024, -1)};
 const int64_t DIM_DHW_MAX = 1024;
 
 const std::vector<int64_t> unknownRankShape = {-2};
@@ -201,32 +198,25 @@ const std::map<std::string, uint32_t> kDataTypeStrToLength = {
     {"uint8", 8},
 };
 
-const std::map<std::string, int64_t> kBoolStrMap {
-    {"true", static_cast<int64_t>(true)},
-    {"false", static_cast<int64_t>(false)}
-};
+const std::map<std::string, int64_t> kBoolStrMap{{"true", static_cast<int64_t>(true)},
+                                                 {"false", static_cast<int64_t>(false)}};
 
-const std::map<std::string, int64_t> kSwitchStrMap {
-    {"1", static_cast<int64_t>(true)},
-    {"0", static_cast<int64_t>(false)}
-};
+const std::map<std::string, int64_t> kSwitchStrMap{{"1", static_cast<int64_t>(true)},
+                                                   {"0", static_cast<int64_t>(false)}};
 
 const std::string COMPILE_CACHE_MODE_ENABLE = "enable";
 const std::string COMPILE_CACHE_MODE_DISABLE = "disable";
 const std::string COMPILE_CACHE_MODE_FORCE = "force";
-const std::map<std::string, int64_t> kCompileCacheModeStrMap {
+const std::map<std::string, int64_t> kCompileCacheModeStrMap{
     {COMPILE_CACHE_MODE_DISABLE, static_cast<int64_t>(CompileCacheMode::Disable)},
     {COMPILE_CACHE_MODE_ENABLE, static_cast<int64_t>(CompileCacheMode::Enable)},
-    {COMPILE_CACHE_MODE_FORCE, static_cast<int64_t>(CompileCacheMode::Force)}
-};
+    {COMPILE_CACHE_MODE_FORCE, static_cast<int64_t>(CompileCacheMode::Force)}};
 
-const std::map<std::string, int64_t> kOpDebugLevelStrMap {
-    {"0", static_cast<int64_t>(OpDebugLevel::Disable)},
-    {"1", static_cast<int64_t>(OpDebugLevel::Level1)},
-    {"2", static_cast<int64_t>(OpDebugLevel::Level2)},
-    {"3", static_cast<int64_t>(OpDebugLevel::Level3)},
-    {"4", static_cast<int64_t>(OpDebugLevel::Level4)}
-};
-} // namespace fusion
-} // namespace te
+const std::map<std::string, int64_t> kOpDebugLevelStrMap{{"0", static_cast<int64_t>(OpDebugLevel::Disable)},
+                                                         {"1", static_cast<int64_t>(OpDebugLevel::Level1)},
+                                                         {"2", static_cast<int64_t>(OpDebugLevel::Level2)},
+                                                         {"3", static_cast<int64_t>(OpDebugLevel::Level3)},
+                                                         {"4", static_cast<int64_t>(OpDebugLevel::Level4)}};
+}  // namespace fusion
+}  // namespace te
 #endif  // TE_FUSION_UTIL_CONSTANTS_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,10 +18,10 @@
 #include "graph_builder_utils.h"
 
 namespace ge {
-  class UtestDataPass : public testing::Test {
-   protected:
-    void SetUp() {}
-    void TearDown() {}
+class UtestDataPass : public testing::Test {
+ protected:
+  void SetUp() {}
+  void TearDown() {}
 };
 
 ComputeGraphPtr MakeMergeGraph() {
@@ -40,7 +40,7 @@ ComputeGraphPtr MakeMergeGraph() {
   output_desc_data2.SetShape(GeShape({1, 1, 2}));
   data1->GetOpDesc()->UpdateOutputDesc(0, output_desc_data1);
   data1->GetOpDesc()->UpdateOutputDesc(0, output_desc_data2);
-  
+
   auto output_desc_relu1_0 = relu1->GetOpDesc()->GetOutputDesc(0);
   auto output_desc_relu1_1 = relu1->GetOpDesc()->GetOutputDesc(1);
   auto input_desc_relu1_0 = relu1->GetOpDesc()->GetInputDesc(0);
@@ -57,7 +57,7 @@ ComputeGraphPtr MakeMergeGraph() {
   auto input_desc_shapeN1 = shapeN1->GetOpDesc()->GetInputDesc(0);
   auto output_desc_shapeN1 = shapeN1->GetOpDesc()->GetOutputDesc(0);
   ge::AttrUtils::SetStr(shapeN1->GetOpDesc(), "_split_shapen_origin_name", "shapeN_unknown");
-  input_desc_shapeN1.SetShape(GeShape({-1, 1 ,2}));
+  input_desc_shapeN1.SetShape(GeShape({-1, 1, 2}));
   output_desc_shapeN1.SetShape(GeShape({-1, 1, 2}));
   shapeN1->GetOpDesc()->UpdateInputDesc(0, input_desc_shapeN1);
   shapeN1->GetOpDesc()->UpdateOutputDesc(0, output_desc_shapeN1);
@@ -65,7 +65,7 @@ ComputeGraphPtr MakeMergeGraph() {
   auto input_desc_shapeN2 = shapeN2->GetOpDesc()->GetInputDesc(0);
   auto output_desc_shapeN2 = shapeN2->GetOpDesc()->GetOutputDesc(0);
   ge::AttrUtils::SetStr(shapeN2->GetOpDesc(), "_split_shapen_origin_name", "shapeN_unknown");
-  input_desc_shapeN2.SetShape(GeShape({-1, 1 ,2}));
+  input_desc_shapeN2.SetShape(GeShape({-1, 1, 2}));
   output_desc_shapeN2.SetShape(GeShape({-1, 1, 2}));
   shapeN2->GetOpDesc()->UpdateInputDesc(0, input_desc_shapeN2);
   shapeN2->GetOpDesc()->UpdateOutputDesc(0, output_desc_shapeN2);
@@ -81,7 +81,7 @@ ComputeGraphPtr MakeMergeGraph() {
   relu2->GetOpDesc()->UpdateOutputDesc(0, output_desc_relu2_0);
 
   auto input_desc_netoutput = netoutput->GetOpDesc()->GetInputDesc(0);
-  input_desc_netoutput.SetShape(GeShape({-1, 1 ,2}));
+  input_desc_netoutput.SetShape(GeShape({-1, 1, 2}));
   netoutput->GetOpDesc()->UpdateInputDesc(0, input_desc_netoutput);
 
   builder.AddDataEdge(data1, 0, relu1, 0);

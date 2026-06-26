@@ -1,15 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include <gtest/gtest.h>
-
 
 #include "macro_utils/dt_public_scope.h"
 
@@ -23,7 +22,7 @@
 namespace ge {
 namespace {
 class UtestGraphPassesInputOutputIdentifyPass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -64,7 +63,7 @@ protected:
     return num;
   }
 };
-} // namespace
+}  // namespace
 
 TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
   /**
@@ -188,7 +187,6 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
       EXPECT_EQ(GraphUtils::AddEdge(data_node_1->GetOutDataAnchor(0), output_node->GetInDataAnchor(1)), SUCCESS);
       EXPECT_EQ(GraphUtils::AddEdge(data_node_2->GetOutDataAnchor(0), b_node->GetInDataAnchor(0)), SUCCESS);
       EXPECT_EQ(GraphUtils::AddEdge(b_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(2)), SUCCESS);
-      
     }
   }
 
@@ -205,7 +203,7 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
   EXPECT_EQ(part_node_1->GetOpDesc()->GetSubgraphInstanceNames().size(), 1);
 
   {
-    // subgraph3: node->NetOutput 
+    // subgraph3: node->NetOutput
     NodePtr node_1 = subgraph3->AddNode(CreateOpDesc("subgraph3_node1", VARIABLE, 1, 1));
     EXPECT_EQ(AttrUtils::SetInt(node_1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0), true);
     NodePtr node_2 = subgraph3->AddNode(CreateOpDesc("subgraph3_node2", VARIABLE, 1, 1));
@@ -233,14 +231,16 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
     EXPECT_EQ(node_out->GetOpDesc()->GetSubgraphInstanceNames().size(), 1);
 
     {
-      // subgraph32: node->NetOutput 
+      // subgraph32: node->NetOutput
       NodePtr node_1_32 = subgraph32->AddNode(CreateOpDesc("subgraph32_node1", VARIABLE, 1, 1));
       NodePtr node_2_32 = subgraph32->AddNode(CreateOpDesc("subgraph32_node2", VARIABLE, 1, 1));
       EXPECT_EQ(AttrUtils::SetInt(node_2_32->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0), true);
       NodePtr node_out_32 = subgraph32->AddNode(CreateOpDesc("subgraph32_out", SQRT, 2, 1));
       NodePtr output_node_32 = subgraph32->AddNode(CreateOpDesc("subgraph32_netoutput", NETOUTPUT, 2, 1));
-      EXPECT_EQ(AttrUtils::SetInt(output_node_32->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0), true);
-      EXPECT_EQ(AttrUtils::SetInt(output_node_32->GetOpDesc()->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1), true);
+      EXPECT_EQ(AttrUtils::SetInt(output_node_32->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0),
+                true);
+      EXPECT_EQ(AttrUtils::SetInt(output_node_32->GetOpDesc()->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1),
+                true);
       EXPECT_EQ(GraphUtils::AddEdge(node_1_32->GetOutDataAnchor(0), output_node_32->GetInDataAnchor(1)), SUCCESS);
       EXPECT_EQ(GraphUtils::AddEdge(node_2_32->GetOutDataAnchor(0), output_node_32->GetInDataAnchor(0)), SUCCESS);
       EXPECT_EQ(GraphUtils::AddEdge(node_2_32->GetOutDataAnchor(0), node_out_32->GetInDataAnchor(0)), SUCCESS);
@@ -261,7 +261,7 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
   EXPECT_EQ(part_node_2->GetOpDesc()->GetSubgraphInstanceNames().size(), 1);
 
   {
-    // subgraph4: node->NetOutput 
+    // subgraph4: node->NetOutput
     NodePtr node_1 = subgraph4->AddNode(CreateOpDesc("subgraph4_node1", VARIABLE, 1, 1));
     EXPECT_EQ(AttrUtils::SetInt(node_1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0), true);
     NodePtr node_2 = subgraph4->AddNode(CreateOpDesc("subgraph4_node2", VARIABLE, 1, 1));
@@ -287,7 +287,7 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, sub_graph_input_success) {
     EXPECT_EQ(node_a->GetOpDesc()->GetSubgraphInstanceNames().size(), 1);
 
     {
-      // subgraph42: node->NetOutput 
+      // subgraph42: node->NetOutput
       NodePtr node_1_42 = subgraph42->AddNode(CreateOpDesc("subgraph42_node1", VARIABLE, 1, 1));
       EXPECT_EQ(AttrUtils::SetInt(node_1_42->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0), true);
       NodePtr node_2_42 = subgraph42->AddNode(CreateOpDesc("subgraph42_node2", VARIABLE, 1, 1));
@@ -337,4 +337,4 @@ TEST_F(UtestGraphPassesInputOutputIdentifyPass, UpdateNodeIdxMap_failed) {
   delete my_pass;
   my_pass = nullptr;
 }
-} // namespace ge
+}  // namespace ge

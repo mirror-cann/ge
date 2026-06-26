@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -123,8 +123,8 @@ class VISIBILITY_EXPORT ExecutorSubscribersScheduler {
    */
   template <typename T>
   void AddBuiltIn(BuiltInSubscriberType subscriber_type, uint64_t enable_flag,
-                  const std::shared_ptr<const SubscriberExtendInfo> &extend_info,
-                  SubExeGraphType sub_graph_type, const std::function<bool()> &enabled_func) {
+                  const std::shared_ptr<const SubscriberExtendInfo> &extend_info, SubExeGraphType sub_graph_type,
+                  const std::function<bool()> &enabled_func) {
     (void)enable_flag;
     if (subscriber_type >= BuiltInSubscriberType::kNum) {
       GELOGW("Unexpected built-in subscriber type %zu", static_cast<size_t>(subscriber_type));
@@ -194,6 +194,7 @@ class VISIBILITY_EXPORT ExecutorSubscribersScheduler {
   size_t GetSize() const {
     return subscribers_holder_.size();
   }
+
  private:
   template <typename T, typename... Args>
   T *AddSubscriberGuarder(Args... args) {
@@ -205,8 +206,8 @@ class VISIBILITY_EXPORT ExecutorSubscribersScheduler {
     if (subscribers_holder_.size() == static_cast<size_t>(BuiltInSubscriberType::kNum)) {
       enabled_ = true;
     }
-    auto guarder = ge::MakeShared<ExecutorSubscriberGuarder>(reinterpret_cast<::SubscriberFunc>(T::OnExecuteEvent),
-                                                         ins, ObjectDeleter<T>);
+    auto guarder = ge::MakeShared<ExecutorSubscriberGuarder>(reinterpret_cast<::SubscriberFunc>(T::OnExecuteEvent), ins,
+                                                             ObjectDeleter<T>);
     if (guarder == nullptr) {
       delete ins;
       return nullptr;
@@ -224,10 +225,10 @@ class VISIBILITY_EXPORT ExecutorSubscribersScheduler {
       }
     }
   }
+
  private:
   bool enabled_{false};
-  std::array<void *, static_cast<size_t>(BuiltInSubscriberType::kNum)>
-      built_in_subscribers_ptr_;
+  std::array<void *, static_cast<size_t>(BuiltInSubscriberType::kNum)> built_in_subscribers_ptr_;
   std::array<std::vector<ExecutorSubscriberGuarderPtr>, kSubExeGraphTypeEnd> sub_exe_graph_subscribers_;
   std::vector<ExecutorSubscriberGuarderPtr> working_sub_exe_graph_subscribers_{};
   std::vector<ExecutorSubscriberGuarderPtr> subscribers_holder_;

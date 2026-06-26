@@ -77,4 +77,3 @@ inline std::vector<EsCTensorHolder *> TensorsToEsCTensorHolders(const std::vecto
 ## 约束说明<a name="section24049039"></a>
 
 无
-

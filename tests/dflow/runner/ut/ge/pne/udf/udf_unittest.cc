@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -376,7 +376,7 @@ TEST_F(UdfModelBuilderTest, Build_Failed_lock) {
 
 TEST_F(UdfModelBuilderTest, Build_builtin_udf) {
   ComputeGraphPtr compute_graph = BuildBuiltInUdfComputeGraph();
-  std::vector<CompileConfigJson::BufCfg> buf_cfg = {{100,256,100,"normal"}};
+  std::vector<CompileConfigJson::BufCfg> buf_cfg = {{100, 256, 100, "normal"}};
   compute_graph->SetExtAttr("_user_buf_cfg", buf_cfg);
   UdfModel udf_model{compute_graph};
   EXPECT_EQ(UdfModelBuilder::GetInstance().Build(udf_model), SUCCESS);
@@ -539,12 +539,12 @@ void GenerateCmdFile() {
   std::ofstream tar1_str("./tar1.sh");
   tar1_str << tar_cmd;
 }
-}
+}  // namespace
 
 // 修改udf model builder GenerateTarCmd后本地验证，线上执行shell命令执行报错
 TEST_F(UdfModelBuilderTest, Udf_generate_tar_shell) {
-GenerateCmdFile();
-std::string cmd = R"(
+  GenerateCmdFile();
+  std::string cmd = R"(
 mkdir -p ./workspace/_build/Test/release/
 mkdir -p ./workspace/verify
 cd ./workspace/_build/Test/release/
@@ -558,7 +558,7 @@ echo 1>1.so
 echo 1>subdir/2.so
 cd -
 )";
-(void)system(cmd.c_str());
+  (void)system(cmd.c_str());
   std::string path = "./bin_path";
   {
     std::ofstream bin(path);
@@ -567,11 +567,13 @@ cd -
   ComputeGraphPtr compute_graph = BuildComputeGraph(path);
   UdfModel udf_model{compute_graph};
 
-  const std::string  expect_result = "./:\n1.so.68b329da9893e34099c7d8ad5cb9c940\n2.so.68b329da9893e34099c7d8ad5cb9c940"
-                                     "\nTest_release.om\nTest_release.om_dir\n\n./Test_release.om_dir:\n1.so\n"
-                                     "subdir\n\n./Test_release.om_dir/subdir:\n2.so\n";
-  const std::string  expect1_result = "./:\nTest_release.om\nTest_release.om_dir\n\n./Test_release.om_dir:"
-                                     "\n1.so\nsubdir\n\n./Test_release.om_dir/subdir:\n2.so\n";
+  const std::string expect_result =
+      "./:\n1.so.68b329da9893e34099c7d8ad5cb9c940\n2.so.68b329da9893e34099c7d8ad5cb9c940"
+      "\nTest_release.om\nTest_release.om_dir\n\n./Test_release.om_dir:\n1.so\n"
+      "subdir\n\n./Test_release.om_dir/subdir:\n2.so\n";
+  const std::string expect1_result =
+      "./:\nTest_release.om\nTest_release.om_dir\n\n./Test_release.om_dir:"
+      "\n1.so\nsubdir\n\n./Test_release.om_dir/subdir:\n2.so\n";
   auto ret = system("bash ./tar1.sh");
   if (ret == 0) {
     std::cout << "Verify tar pack" << std::endl;
@@ -581,8 +583,9 @@ cd -
     EXPECT_EQ(real_result, expect1_result);
   }
 
-  (void)system("mv ./workspace/verify/udf_resource/*.om ./workspace/_build/Test/release/;"
-               " rm -rf ./workspace/verify/udf_resource");
+  (void)system(
+      "mv ./workspace/verify/udf_resource/*.om ./workspace/_build/Test/release/;"
+      " rm -rf ./workspace/verify/udf_resource");
   (void)system("rm -rf ./workspace/_build/Test/release/Test_release.tar.gz");
   ret = system("bash ./tar.sh");
   if (ret == 0) {

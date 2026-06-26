@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,8 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
-} // namespace
+} __attribute__((packed));
+}  // namespace
 
 class AicpuFFTSUpdateKernelUT : public testing::Test {
  public:
@@ -55,14 +55,17 @@ TEST_F(AicpuFFTSUpdateKernelUT, test_aicpu_cal_output_max_threadSize) {
   for (size_t i = 0; i < last_out_slice_vec->GetSize(); i++) {
     last_out_slice_ptr[i] = last_shape;
   }
-  auto run_context = KernelRunContextFaker().KernelIONum(3, 1).NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(3, 1)
+                         .NodeIoNum(2, 2)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
   size_t index = 1UL;
-  run_context.value_holder[0].Set((void*)index, nullptr);
+  run_context.value_holder[0].Set((void *)index, nullptr);
   run_context.value_holder[1].Set(not_last_out_slice_vec, nullptr);
   run_context.value_holder[2].Set(last_out_slice_vec, nullptr);
 
@@ -105,13 +108,16 @@ TEST_F(AicpuFFTSUpdateKernelUT, test_ffts_aicpu_cal_thread_param) {
   for (size_t i = 0; i < out_slice_vec->GetSize(); i++) {
     out_slice_ptr[i] = shape;
   }
-  
-  auto run_context = KernelRunContextFaker().KernelIONum(5, 1).NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .Build();
+
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(5, 1)
+                         .NodeIoNum(2, 2)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
   run_context.value_holder[0].Set(reinterpret_cast<void *>(thread_dim), nullptr);
   run_context.value_holder[1].Set(in_index_vec, nullptr);
   run_context.value_holder[2].Set(out_index_vec, nullptr);
@@ -122,7 +128,8 @@ TEST_F(AicpuFFTSUpdateKernelUT, test_ffts_aicpu_cal_thread_param) {
   thread_param.input_num = 1;
   thread_param.output_num = 1;
   run_context.value_holder[5].Set(&thread_param, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("AICpuGetAutoThreadParam")->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("AICpuGetAutoThreadParam")->outputs_creator(nullptr, run_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("AICpuGetAutoThreadParam")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
@@ -143,31 +150,31 @@ TEST_F(AicpuFFTSUpdateKernelUT, test_ffts_aicpu_update_context) {
   run_context.value_holder[2].Set(reinterpret_cast<void *>(thread_dim), nullptr);
 
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(16);
-  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t) ;
+  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusAiCpuCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_AICPU;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_FLUSH_DATA;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_INVALIDATE_DATA;
   }
   for (int i = 0; i < 4; ++i) {
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
-    auto context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_WRITEBACK_DATA;
   }
 

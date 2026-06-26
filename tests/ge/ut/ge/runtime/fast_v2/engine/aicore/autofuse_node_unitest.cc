@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,10 +46,10 @@ ge::graphStatus PrepareCacheableTilingFwkData(KernelContext *context);
 ge::graphStatus CacheableTiling(KernelContext *context);
 ge::graphStatus PrepareTilingFwkData(KernelContext *context);
 ge::graphStatus BuildTilingFwkDataOutput(const ge::FastNode *node, KernelContext *context);
-}
+}  // namespace kernel
 
 namespace {
-using DfxInputSymbolInfo = ge::graphStatus(*)(const KernelContext *, char *, size_t);
+using DfxInputSymbolInfo = ge::graphStatus (*)(const KernelContext *, char *, size_t);
 std::string GetAutofuseSoPath() {
   std::string cmake_binary_path = CMAKE_BINARY_DIR;
   return cmake_binary_path + "/tests/depends/op_stub/libautofuse_stub.so";
@@ -140,19 +140,20 @@ void InferTraceWithSymboInfoTest(const size_t all_sym_num, const std::string &ex
   gert::Shape shape0 = gert::Shape({1, 2});
   gert::Shape shape1 = gert::Shape({1, 2});
 
-  auto context_holder = gert::KernelRunContextBuilder()
-      .Inputs({(void *)input_num, &shape0, &shape1, (void *)all_sym_num, dfx_info_func, infer_shape_func})
-      .Build(op_desc);
+  auto context_holder =
+      gert::KernelRunContextBuilder()
+          .Inputs({(void *)input_num, &shape0, &shape1, (void *)all_sym_num, dfx_info_func, infer_shape_func})
+          .Build(op_desc);
   auto context = context_holder.GetKernelContext();
   std::vector<std::string> trace_info = gert::kernel::InferShapeKernelTrace(context);
   ASSERT_EQ(trace_info[1], expect_info);
 }
-}
+}  // namespace
 
 class AutofuseNodeUT : public bg::BgTestAutoCreate3StageFrame {
  protected:
   void SetUp() override {
-    //BgTest::SetUp();
+    // BgTest::SetUp();
     BgTestAutoCreate3StageFrame::SetUp();
   }
   void TearDown() override {
@@ -181,11 +182,10 @@ TEST_F(AutofuseNodeUT, autofuse_convert_test) {
   ASSERT_TRUE(data2_ret.result.IsSuccess());
   ASSERT_TRUE(data3_ret.result.IsSuccess());
 
-  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0],
-                              data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
-                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0],
-                              data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
-                          &global_data};
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
+      &global_data};
 
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
       gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kExceptionDump}));
@@ -207,7 +207,9 @@ TEST_F(AutofuseNodeUT, autofuse_convert_test) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(autofuse_ret.out_addrs), autofuse_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(autofuse_ret.out_addrs),
+                                                      autofuse_ret.order_holders)
+                           ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
 
   size_t sym_tiling_node = 0;
@@ -253,12 +255,12 @@ TEST_F(AutofuseNodeUT, symtiling_kernel_test) {
   auto node_desc_holder = malloc(compiled_args_size + sizeof(ComputeNodeDesc));
   auto node_desc = reinterpret_cast<ComputeNodeDesc *>(node_desc_holder);
   *node_desc = {.input_num = 1,
-      .output_num = 1,
-      .workspace_cap = 8,
-      .max_tiling_data = 128,
-      .need_shape_buffer = false,
-      .need_overflow = false,
-      .compiled_args_size = compiled_args_size};
+                .output_num = 1,
+                .workspace_cap = 8,
+                .max_tiling_data = 128,
+                .need_shape_buffer = false,
+                .need_overflow = false,
+                .compiled_args_size = compiled_args_size};
   auto args_info_desc_holder = CreateDefaultArgsInfoDesc(node_desc->input_num, node_desc->output_num);
   auto args_info_desc = reinterpret_cast<ArgsInfosDesc *>(args_info_desc_holder.get());
   auto holder = RtKernelLaunchArgsEx::Create(*node_desc, *args_info_desc);
@@ -270,27 +272,25 @@ TEST_F(AutofuseNodeUT, symtiling_kernel_test) {
 
   auto tiling_func = DlopenSym("TilingFunc", autofuse_so_handle);
 
-  auto fwk_data_holder = gert::KernelRunContextBuilder()
-      .Inputs({tiling_func, args})
-      .Outputs({nullptr})
-      .Build(op_desc);
+  auto fwk_data_holder = gert::KernelRunContextBuilder().Inputs({tiling_func, args}).Outputs({nullptr}).Build(op_desc);
   auto fwk_data_context = fwk_data_holder.GetKernelContext();
   ASSERT_EQ(kernel::BuildTilingFwkDataOutput(nullptr, fwk_data_context), GRAPH_SUCCESS);
   ASSERT_EQ(kernel::PrepareTilingFwkData(fwk_data_context), GRAPH_SUCCESS);
   auto fwk_data = fwk_data_context->GetOutputPointer<kernel::TilingFwkData>(0U);
   ASSERT_NE(fwk_data, nullptr);
 
-  gert::Shape shape0 = gert::Shape({1, 2}) ;
+  gert::Shape shape0 = gert::Shape({1, 2});
   gert::Shape shape1 = gert::Shape({1, 2});
   size_t input_data_num = 2;
   AfTilingParseData parse_data{8, 16 * 1024};
 
   const auto workspace_size_t = gert::ContinuousVector::Create<size_t>(16);
-  auto autofuse_tiling_context_holder = gert::KernelRunContextBuilder()
-      .Inputs({(void *)input_data_num, &shape0, &shape1, &parse_data, fwk_data, nullptr, nullptr})
-      .Outputs({nullptr, nullptr, nullptr, nullptr,
-                static_cast<void *>(workspace_size_t.get()), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
-      .Build(op_desc);
+  auto autofuse_tiling_context_holder =
+      gert::KernelRunContextBuilder()
+          .Inputs({(void *)input_data_num, &shape0, &shape1, &parse_data, fwk_data, nullptr, nullptr})
+          .Outputs({nullptr, nullptr, nullptr, nullptr, static_cast<void *>(workspace_size_t.get()), nullptr, nullptr,
+                    nullptr, nullptr, nullptr, nullptr, nullptr})
+          .Build(op_desc);
 
   auto autofuse_tiling_context = autofuse_tiling_context_holder.GetKernelContext();
   ASSERT_EQ(kernel::Tiling(autofuse_tiling_context), GRAPH_SUCCESS);
@@ -319,12 +319,12 @@ TEST_F(AutofuseNodeUT, cacheablesymtiling_kernel_test) {
   auto node_desc_holder = malloc(compiled_args_size + sizeof(ComputeNodeDesc));
   auto node_desc = reinterpret_cast<ComputeNodeDesc *>(node_desc_holder);
   *node_desc = {.input_num = 1,
-      .output_num = 1,
-      .workspace_cap = 8,
-      .max_tiling_data = 128,
-      .need_shape_buffer = false,
-      .need_overflow = false,
-      .compiled_args_size = compiled_args_size};
+                .output_num = 1,
+                .workspace_cap = 8,
+                .max_tiling_data = 128,
+                .need_shape_buffer = false,
+                .need_overflow = false,
+                .compiled_args_size = compiled_args_size};
   auto args_info_desc_holder = CreateDefaultArgsInfoDesc(node_desc->input_num, node_desc->output_num);
   auto args_info_desc = reinterpret_cast<ArgsInfosDesc *>(args_info_desc_holder.get());
   auto holder = RtKernelLaunchArgsEx::Create(*node_desc, *args_info_desc);
@@ -344,12 +344,13 @@ TEST_F(AutofuseNodeUT, cacheablesymtiling_kernel_test) {
   auto func_getsymtilingcache = DlopenSym("GetSymbolTilingCacheKey", autofuse_so_handle);
   ASSERT_NE(func_getsymtilingcache, nullptr);
 
-  auto get_tiling_cahce_key_holder = gert::KernelRunContextBuilder()
-      .Inputs({(void *)input_num, &shape0, &shape1, func_getsymtilingcache, (void *)all_symbol_num})
-      .Outputs({nullptr})
-      .Build(op_desc);
+  auto get_tiling_cahce_key_holder =
+      gert::KernelRunContextBuilder()
+          .Inputs({(void *)input_num, &shape0, &shape1, func_getsymtilingcache, (void *)all_symbol_num})
+          .Outputs({nullptr})
+          .Build(op_desc);
   auto get_tiling_cahce_context = get_tiling_cahce_key_holder.GetKernelContext();
-  ASSERT_EQ(kernel::BuildSymbolTilingCacheKeyOutputs(nullptr, get_tiling_cahce_context),ge::GRAPH_SUCCESS);
+  ASSERT_EQ(kernel::BuildSymbolTilingCacheKeyOutputs(nullptr, get_tiling_cahce_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(kernel::GetSymbolTilingCacheKeyKernel(get_tiling_cahce_context), ge::GRAPH_SUCCESS);
   auto all_sym_num_vector = get_tiling_cahce_context->GetOutputPointer<TypedContinuousVector<int64_t>>(0);
   ASSERT_NE(all_sym_num_vector, nullptr);
@@ -358,9 +359,9 @@ TEST_F(AutofuseNodeUT, cacheablesymtiling_kernel_test) {
   const size_t data_dependency = 0U;
   std::string func_name = "BuildSymbolTilingCacheKey";
   auto cache_tiling_fwk_holder = gert::KernelRunContextBuilder()
-      .Inputs({tiling_func, args, (void *)data_dependency, func_name.data()})
-      .Outputs({nullptr})
-      .Build(op_desc);
+                                     .Inputs({tiling_func, args, (void *)data_dependency, func_name.data()})
+                                     .Outputs({nullptr})
+                                     .Build(op_desc);
   auto cache_tiling_fwk_context = cache_tiling_fwk_holder.GetKernelContext();
   ASSERT_EQ(kernel::BuildCacheableTilingFwkDataOutput(nullptr, cache_tiling_fwk_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(kernel::PrepareCacheableTilingFwkData(cache_tiling_fwk_context), ge::GRAPH_SUCCESS);
@@ -369,11 +370,13 @@ TEST_F(AutofuseNodeUT, cacheablesymtiling_kernel_test) {
 
   AfTilingParseData parse_data{8, 16 * 1024};
   const auto cacheable_workspace_size_t = gert::ContinuousVector::Create<size_t>(16);
-  auto cacheable_tiling_context_holder = gert::KernelRunContextBuilder()
-      .Inputs({(void *)input_num, &shape0, &shape1, &parse_data, all_sym_num_vector, tiling_fwk_data, nullptr, nullptr})
-      .Outputs({nullptr, nullptr, nullptr, nullptr,
-                static_cast<void *>(cacheable_workspace_size_t.get()), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
-      .Build(op_desc);
+  auto cacheable_tiling_context_holder =
+      gert::KernelRunContextBuilder()
+          .Inputs(
+              {(void *)input_num, &shape0, &shape1, &parse_data, all_sym_num_vector, tiling_fwk_data, nullptr, nullptr})
+          .Outputs({nullptr, nullptr, nullptr, nullptr, static_cast<void *>(cacheable_workspace_size_t.get()), nullptr,
+                    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
+          .Build(op_desc);
   auto cacheable_tiling_cxt = cacheable_tiling_context_holder.GetKernelContext();
   // add cache
   ASSERT_EQ(kernel::CacheableTiling(cacheable_tiling_cxt), GRAPH_SUCCESS);
@@ -408,10 +411,8 @@ TEST_F(AutofuseNodeUT, symbol_tiling_parse_kernel_test) {
   ASSERT_NE(func_tilingparse, nullptr);
 
   fe::PlatFormInfos platform_infos;
-  auto tilingparse_context_holder = gert::KernelRunContextBuilder()
-      .Inputs({&platform_infos, func_tilingparse})
-      .Outputs({nullptr})
-      .Build(op_desc);
+  auto tilingparse_context_holder =
+      gert::KernelRunContextBuilder().Inputs({&platform_infos, func_tilingparse}).Outputs({nullptr}).Build(op_desc);
   auto tilingparse_context = tilingparse_context_holder.GetKernelContext();
   ASSERT_EQ(kernel::SymbolTilingParseKernel(tilingparse_context), GRAPH_SUCCESS);
   auto tilingparse_data = tilingparse_context->GetOutputPointer<AfTilingParseData *>(0U);
@@ -427,9 +428,9 @@ TEST_F(AutofuseNodeUT, dlopen_autofuseso_funcs_kernel_test) {
 
   auto so_path = GetAutofuseSoPath();
   auto context_holder = gert::KernelRunContextBuilder()
-      .Inputs({so_path.data()})
-      .Outputs({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
-      .Build(op_desc);
+                            .Inputs({so_path.data()})
+                            .Outputs({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
+                            .Build(op_desc);
   auto context = context_holder.GetKernelContext();
   ASSERT_EQ(kernel::GetAutofuseFuncsKernel(context), GRAPH_SUCCESS);
 }
@@ -469,9 +470,9 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_test) {
   ASSERT_TRUE(pos != std::string::npos);
   const auto &so_name = autofuse_stub_so.substr(pos + 1UL);
   const auto &vendor_name = autofuse_stub_so.substr(0, pos);
-  std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new(std::nothrow) char[bin_len]);
+  std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[bin_len]);
   std::string so_bin_str(bin.get(), bin_len);
-  (void) memcpy_s(so_bin.get(), bin_len, so_bin_str.c_str(), bin_len);
+  (void)memcpy_s(so_bin.get(), bin_len, so_bin_str.c_str(), bin_len);
   ge::OpSoBinPtr so_bin_ptr = ge::MakeShared<ge::OpSoBin>(so_name, vendor_name, std::move(so_bin), bin_len);
 
   // 修改路径为新创建的so
@@ -493,19 +494,18 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_test) {
   ASSERT_TRUE(data2_ret.result.IsSuccess());
   ASSERT_TRUE(data3_ret.result.IsSuccess());
 
-  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0],
-                              data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
-                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0],
-                              data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
-                          &global_data};
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
+      &global_data};
 
   auto autofuse_ret = LoweringAutofuseNode(fused_graph_node, add_input);
   ASSERT_TRUE(autofuse_ret.result.IsSuccess());
 
   auto context_holder = gert::KernelRunContextBuilder()
-      .Inputs({so_path_for_test.data()})
-      .Outputs({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
-      .Build(op_desc);
+                            .Inputs({so_path_for_test.data()})
+                            .Outputs({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
+                            .Build(op_desc);
   auto context = context_holder.GetKernelContext();
   ASSERT_EQ(kernel::GetAutofuseFuncsKernel(context), GRAPH_SUCCESS);
 
@@ -536,11 +536,10 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_no_bin_file_path_test) {
   ASSERT_TRUE(data2_ret.result.IsSuccess());
   ASSERT_TRUE(data3_ret.result.IsSuccess());
 
-  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0],
-                              data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
-                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0],
-                              data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
-                          &global_data};
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
+      &global_data};
 
   auto autofuse_ret = LoweringAutofuseNode(fused_graph_node, add_input);
   ASSERT_FALSE(autofuse_ret.result.IsSuccess());
@@ -571,9 +570,9 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_no_bin_file_buffer_test) {
   ASSERT_TRUE(pos != std::string::npos);
   const auto &so_name = autofuse_stub_so.substr(pos + 1UL);
   const auto &vendor_name = autofuse_stub_so.substr(0, pos);
-  std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new(std::nothrow) char[bin_len]);
+  std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[bin_len]);
   std::string so_bin_str(bin.get(), bin_len);
-  (void) memcpy_s(so_bin.get(), bin_len, so_bin_str.c_str(), bin_len);
+  (void)memcpy_s(so_bin.get(), bin_len, so_bin_str.c_str(), bin_len);
   ge::OpSoBinPtr so_bin_ptr = ge::MakeShared<ge::OpSoBin>(so_name, vendor_name, std::move(so_bin), bin_len);
 
   // 修改路径为新创建的so
@@ -594,11 +593,10 @@ TEST_F(AutofuseNodeUT, autofuse_so_offline_no_bin_file_buffer_test) {
   ASSERT_TRUE(data2_ret.result.IsSuccess());
   ASSERT_TRUE(data3_ret.result.IsSuccess());
 
-  LowerInput add_input = {{data0_ret.out_shapes[0], data1_ret.out_shapes[0],
-                              data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
-                          {data0_ret.out_addrs[0], data1_ret.out_addrs[0],
-                              data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
-                          &global_data};
+  LowerInput add_input = {
+      {data0_ret.out_shapes[0], data1_ret.out_shapes[0], data2_ret.out_shapes[0], data3_ret.out_shapes[0]},
+      {data0_ret.out_addrs[0], data1_ret.out_addrs[0], data2_ret.out_addrs[0], data3_ret.out_addrs[0]},
+      &global_data};
 
   auto autofuse_ret = LoweringAutofuseNode(fused_graph_node, add_input);
   ASSERT_FALSE(autofuse_ret.result.IsSuccess());
@@ -623,4 +621,4 @@ TEST_F(AutofuseNodeUT, lowering_data_node_set_host_tensor_placement_test) {
   ASSERT_TRUE(data0_ret.result.IsSuccess());
   ASSERT_EQ(data0_ret.out_addrs[0]->GetPlacement(), static_cast<int32_t>(kOnHost));
 }
-}
+}  // namespace gert

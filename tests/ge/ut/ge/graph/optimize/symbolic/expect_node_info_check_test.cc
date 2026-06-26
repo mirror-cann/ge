@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@ bool ExpectNodeInfo::ExpectShapeCheck(const gert::SymbolShape &real_shape) const
       expect_str += std::string(GetExpectSymbolOutputShape()[i].Serialize().get()) +
                     (i + 1 < GetExpectSymbolOutputShape().size() ? ", " : "");
     }
-    GELOGE(ge::FAILED, "ExpectShapeCheck FAIL: node=%s, actual=[%s], expected=[%s]",
-           GetNodeName().c_str(), real_str.c_str(), expect_str.c_str());
+    GELOGE(ge::FAILED, "ExpectShapeCheck FAIL: node=%s, actual=[%s], expected=[%s]", GetNodeName().c_str(),
+           real_str.c_str(), expect_str.c_str());
   }
   GE_ASSERT_TRUE(real_shape.GetDims() == GetExpectSymbolOutputShape());
   return true;
@@ -35,8 +35,7 @@ bool ExpectNodeInfo::ExpectGuardInfoCheck(const std::vector<SymbolCheckInfo> rea
   }
   GE_ASSERT_EQ(real_guard.size(), GetExpectGuardInfos().size());
   for (auto &iter : real_guard) {
-    GE_ASSERT_TRUE(GetExpectGuardInfos().find(std::string(iter.expr.Serialize().get())) !=
-                   GetExpectGuardInfos().end());
+    GE_ASSERT_TRUE(GetExpectGuardInfos().find(std::string(iter.expr.Serialize().get())) != GetExpectGuardInfos().end());
   }
   return true;
 }
@@ -100,4 +99,4 @@ Status RunSymbolInferenceTest(const ComputeGraphPtr &cg, const std::vector<Expec
   }
   return SUCCESS;
 }
-}
+}  // namespace ge

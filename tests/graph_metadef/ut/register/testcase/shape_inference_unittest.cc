@@ -35,13 +35,12 @@
 #include "faker/space_registry_faker.h"
 #include "graph/custom_op_factory.h"
 
-namespace ge{
+namespace ge {
 REG_OP(Const)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .ATTR(value, Tensor, Tensor())
-        .OP_END_FACTORY_REG(Const);
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .ATTR(value, Tensor, Tensor())
+    .OP_END_FACTORY_REG(Const);
 }
 namespace gert {
 using namespace ge;
@@ -69,7 +68,8 @@ class CustomShapeInferAddImpl : public ShapeInferOp {
   }
 };
 static const CustomOpCreatorRegister g_custom_shape_infer_add_register(
-    "CustomShapeInferAdd", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<CustomShapeInferAddImpl>(); });
+    "CustomShapeInferAdd",
+    []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<CustomShapeInferAddImpl>(); });
 
 class ShapeInferenceUT : public testing::Test {};
 // infer from output
@@ -113,7 +113,8 @@ TEST_F(ShapeInferenceUT, CallInferV2Func_success) {
     output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
     return GRAPH_SUCCESS;
   };
-  IMPL_OP(FixIOOp_OutputIsFix).InferShape(infer_shape_func)
+  IMPL_OP(FixIOOp_OutputIsFix)
+      .InferShape(infer_shape_func)
       .InferDataType(infer_data_type_func)
       .InferShapeRange(infer_shape_range_func)
       .OutputShapeDependOnCompute({0});
@@ -188,9 +189,7 @@ TEST_F(ShapeInferenceUT, CallInferV2Func_OptionalInputWithOutInstance) {
     output->SetDimNum(input_shape->GetDimNum());
     return GRAPH_SUCCESS;
   };
-  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
+  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func).InferDataType(nullptr).InferShapeRange(nullptr);
 
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
@@ -241,9 +240,7 @@ TEST_F(ShapeInferenceUT, CallInferV2Func_OptionalInputWithoutInstance_NoPlacehol
     output->SetDimNum(input_shape1->GetDimNum());
     return GRAPH_SUCCESS;
   };
-  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
+  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func).InferDataType(nullptr).InferShapeRange(nullptr);
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
   auto op_impl_func = space_registry->CreateOrGetOpImpl("OptionalInput3Input3Output");
@@ -296,16 +293,13 @@ TEST_F(ShapeInferenceUT, CallInferV2Func_OptionalInputWithInstance) {
     output2->SetDimNum(input_shape2->GetDimNum());
     return GRAPH_SUCCESS;
   };
-  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
+  IMPL_OP(OptionalInput3Input3Output).InferShape(infer_shape_func).InferDataType(nullptr).InferShapeRange(nullptr);
 
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
   ASSERT_NE(space_registry, nullptr);
   auto op_impl_func = space_registry->CreateOrGetOpImpl("OptionalInput3Input3Output");
   op_impl_func->infer_shape = infer_shape_func;
-
 
   const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
   ASSERT_NE(call_infer_shape_v2, nullptr);
@@ -321,1416 +315,1381 @@ REG_OP(TwoOptionalInputsOp)
     .OPTIONAL_INPUT(input2, TensorType({DT_FLOAT16, DT_FLOAT}))
     .OUTPUT(output1, TensorType({DT_FLOAT16, DT_INT8))
     .OP_END_FACTORY_REG(TwoOptionalInputsOp);
-// 只实例化第二个可选输入，预期第一个可选输入dtype为undefined，第二个可选输入为算子上的dtype
-TEST_F(ShapeInferenceUT, CallInferV2Func_Rt2ConetxtGetRightDtype_JustInstantializeOptionalInputs) {
-  auto op = OperatorFactory::CreateOperator("test2", "TwoOptionalInputsOp");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  // input0
-  GeShape shape0({1, 2, 3, 4});
-  GeTensorDesc tensor_desc0(shape0, Format::FORMAT_NCHW, DT_FLOAT);
-  tensor_desc0.SetOriginShape(shape0);
-  tensor_desc0.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc0);
-  // optional input 1
-  GeShape shape1({4, 3, 2});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_RESERVED, DT_UNDEFINED);
-  tensor_desc1.SetOriginDataType(DT_UNDEFINED);
-  op_desc->UpdateInputDesc(1, tensor_desc1);
-  // optional input 2
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc2);
+  // 只实例化第二个可选输入，预期第一个可选输入dtype为undefined，第二个可选输入为算子上的dtype
+  TEST_F(ShapeInferenceUT, CallInferV2Func_Rt2ConetxtGetRightDtype_JustInstantializeOptionalInputs) {
+    auto op = OperatorFactory::CreateOperator("test2", "TwoOptionalInputsOp");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    // input0
+    GeShape shape0({1, 2, 3, 4});
+    GeTensorDesc tensor_desc0(shape0, Format::FORMAT_NCHW, DT_FLOAT);
+    tensor_desc0.SetOriginShape(shape0);
+    tensor_desc0.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc0);
+    // optional input 1
+    GeShape shape1({4, 3, 2});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_RESERVED, DT_UNDEFINED);
+    tensor_desc1.SetOriginDataType(DT_UNDEFINED);
+    op_desc->UpdateInputDesc(1, tensor_desc1);
+    // optional input 2
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc2);
 
-  const auto infer_datatype_func = [](gert::InferDataTypeContext *context) -> graphStatus {
-    const auto option_input_dtype_1 = context->GetOptionalInputDataType(1U);
-    if (option_input_dtype_1 != ge::DT_UNDEFINED) {
-      return GRAPH_FAILED;
-    }
-    const auto option_input_dtype_2 = context->GetOptionalInputDataType(2U);
-    if (option_input_dtype_2 != ge::DT_FLOAT16) {
-      return GRAPH_FAILED;
-    }
-    auto ret = context->SetOutputDataType(0U, option_input_dtype_2 == ge::DT_FLOAT16 ? ge::DT_INT8 : DT_FLOAT);
-    return ret;
-  };
-  IMPL_OP(TwoOptionalInputsOp).InferShape(nullptr).InferDataType(infer_datatype_func).InferShapeRange(nullptr);
+    const auto infer_datatype_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+      const auto option_input_dtype_1 = context->GetOptionalInputDataType(1U);
+      if (option_input_dtype_1 != ge::DT_UNDEFINED) {
+        return GRAPH_FAILED;
+      }
+      const auto option_input_dtype_2 = context->GetOptionalInputDataType(2U);
+      if (option_input_dtype_2 != ge::DT_FLOAT16) {
+        return GRAPH_FAILED;
+      }
+      auto ret = context->SetOutputDataType(0U, option_input_dtype_2 == ge::DT_FLOAT16 ? ge::DT_INT8 : DT_FLOAT);
+      return ret;
+    };
+    IMPL_OP(TwoOptionalInputsOp).InferShape(nullptr).InferDataType(infer_datatype_func).InferShapeRange(nullptr);
 
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("TwoOptionalInputsOp");
-  op_impl_func->infer_datatype = infer_datatype_func;
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("TwoOptionalInputsOp");
+    op_impl_func->infer_datatype = infer_datatype_func;
 
-  const auto call_infer_dtype_v2 = OperatorFactoryImpl::GetInferDataTypeFunc();
-  ASSERT_NE(call_infer_dtype_v2, nullptr);
-  auto status = call_infer_dtype_v2(op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), ge::DT_INT8);
-}
-
-// 动态输入的input测试
-REG_OP(DynamicInput3Input3Output3)
-    .INPUT(input1, "T")
-    .DYNAMIC_INPUT(dyn_input, "D")
-        .INPUT(input3, "T")
-        .OUTPUT(output1, "T2")
-        .OUTPUT(output2, "T2")
-        .OUTPUT(output3, "T2")
-        .DATATYPE(T2, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(DynamicInput3Input3Output3);
-const auto INFER_SHAPE_FUNC = [](gert::InferShapeContext *context) -> graphStatus {
-  // update input3 input to output0
-  const auto input_shape = context->GetInputShape(1U);
-  auto output = context->GetOutputShape(0);
-  for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
-    output->AppendDim(input_shape->GetDim(dim));
+    const auto call_infer_dtype_v2 = OperatorFactoryImpl::GetInferDataTypeFunc();
+    ASSERT_NE(call_infer_dtype_v2, nullptr);
+    auto status = call_infer_dtype_v2(op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), ge::DT_INT8);
   }
-  output->SetDimNum(input_shape->GetDimNum());
-  // update dyn_input_0 to output1, dyn_input_1 to output2
-  const auto input_shape2 = context->GetInputShape(2U);
-  auto output2 = context->GetOutputShape(1);
-  for (size_t dim = 0UL; dim < input_shape2->GetDimNum(); dim++) {
-    output2->AppendDim(input_shape2->GetDim(dim));
-  }
-  output2->SetDimNum(input_shape2->GetDimNum());
 
-  const auto input_shape3 = context->GetInputShape(3U);
-  auto output3 = context->GetOutputShape(2);
-  for (size_t dim = 0UL; dim < input_shape3->GetDimNum(); dim++) {
-    output3->AppendDim(input_shape3->GetDim(dim));
-  }
-  output3->SetDimNum(input_shape3->GetDimNum());
-  return GRAPH_SUCCESS;
-};
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({1, 2, 3, 4});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-}
-
-// 动态输入的input测试 动态轴-2
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_2) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({-2});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-    .InferDataType(nullptr)
-    .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 0);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-}
-
-// 动态输入的input测试 动态轴-1, shape range 不设值
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_no_shaperange) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-}
-
-// 动态输入的input测试 动态轴-1, shape range 设值
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {22, 999}};
-  tensor_desc1.SetShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  std::vector<std::pair<int64_t, int64_t>> shape_range;
-  (void)op_desc->GetOutputDesc(2U).GetShapeRange(shape_range);
-  ASSERT_EQ(shape_range.size(), 4U);
-  for (size_t i = 0UL; i < shape_range.size(); ++i) {
-    ASSERT_EQ(shape_range[i].first, range[i].first);
-    ASSERT_EQ(shape_range[i].second, range[i].second);
-  }
-}
-
-// 动态输入的input测试 动态轴-1, shape range 设值,min大于max异常场景
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange_min_bigger_max) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {999, 22}};
-  tensor_desc1.SetShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-    .InferDataType(nullptr)
-    .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, ge::PARAM_INVALID);
-  std::vector<std::pair<int64_t, int64_t>> shape_range;
-  (void)op_desc->GetOutputDesc(2U).GetShapeRange(shape_range);
-  ASSERT_EQ(shape_range.size(), 0U);
-}
-
-// 动态输入的input测试 动态轴-1, shape range 设值, min大于max, max为-1的正常场景
-TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange_min_bigger_max_success) {
-  auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
-  operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{1, -1}, {2, -1}, {3, -1}, {999, -1}};
-  tensor_desc1.SetShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  GeShape shape2({4, 3, 2});
-  GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc2.SetOriginShape(shape2);
-  tensor_desc2.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(1, tensor_desc2);
-  // dynamic input
-  GeShape shape3({4, 3});
-  GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  op_desc->UpdateInputDesc(3, tensor_desc1);
-  IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC)
-    .InferDataType(nullptr)
-    .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_shape = INFER_SHAPE_FUNC;
-  op_impl_func->infer_shape_range = nullptr;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(operator_dynamic, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
-  ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(operator_dynamic, op_desc);
-  ASSERT_EQ(status, ge::GRAPH_SUCCESS);
-}
-
-// 二类算子值依赖测试
-REG_OP(Type2_1Input_1Output)
-    .INPUT(input1, "T")
-        .OPTIONAL_INPUT(input2, "T")
-        .INPUT(input3, "T")
-        .OUTPUT(output1, "T2")
-        .DATATYPE(T2, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(Type2_1Input_1Output);
-TEST_F(ShapeInferenceUT, CallInferV2Func_Type2ValueDepend) {
-  // construct const input
-  auto const_input = ge::op::Const("const_input");
-  ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
-  ge::Tensor tensor(td);
-  std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
-  tensor.SetData(val);
-  const_input.set_attr_value(tensor);
-  // const input link to op
-  auto op = op::Type2_1Input_1Output("test5");
-  op.set_input_input1(const_input);
-  op.set_input_input3(const_input);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
-  // input1
-  ge::GeShape shape1({1, 2, 3, 5});
-  ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  op_desc->UpdateInputDesc(2, tensor_desc1);
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    // update input3(因为option输入未实例化，所以是第二个) value to output0
-    const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
-    std::vector<int64_t> dims = {data[0], data[1], data[2], data[3]};
-    ge::Shape input_shape(dims);
-    auto output = context->GetOutputShape(0);
-    for (size_t dim = 0UL; dim < input_shape.GetDimNum(); dim++) {
-      output->AppendDim(input_shape.GetDim(dim));
-    }
-    output->SetDimNum(input_shape.GetDimNum());
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(Type2_1Input_1Output).InferShape(infer_shape_func).InputsDataDependency({2})
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_1Input_1Output");
-  op_impl_func->infer_shape = infer_shape_func;
-  op_impl_func->SetInputDataDependency(2);
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  const auto status = call_infer_shape_v2(op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
-  ASSERT_EQ(shape.GetDimNum(), 4);
-  ASSERT_EQ(shape.GetDim(0U), 85);
-  ASSERT_EQ(shape.GetDim(1U), 86);
-  ASSERT_EQ(shape.GetDim(2U), 87);
-  ASSERT_EQ(shape.GetDim(3U), 88);
-}
-
-// 二类算子值依赖测试,带shape range
-REG_OP(Type2_3Input_2Output)
-  .INPUT(input1, "T")
-  .OPTIONAL_INPUT(input2, "T")
-  .INPUT(input3, "T")
-  .OUTPUT(output1, "T2")
-  .OUTPUT(output2, "T2")
-  .DATATYPE(T2, TensorType({DT_BOOL}))
-  .OP_END_FACTORY_REG(Type2_3Input_2Output);
-TEST_F(ShapeInferenceUT, CallInferV2Func_Type2ValueDepend_unknow_shaperange) {
-  // construct const input
-  auto const_input = ge::op::Const("const_input");
-  ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
-  ge::Tensor tensor(td);
-  std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
-  tensor.SetData(val);
-  const_input.set_attr_value(tensor);
-  // const input link to op
-  auto op = op::Type2_3Input_2Output("test5");
-  op.set_input_input1(const_input);
-  op.set_input_input3(const_input);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {22, 999}};
-  tensor_desc1.SetShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  ge::GeShape shape3({1, 2, 3, 5});
-  ge::GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    // update input3(因为option输入未实例化，所以是第二个) value to output0
-    const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
-    std::vector<int64_t> dims = {data[0], data[1], data[2], data[3]};
-    ge::Shape input_shape(dims);
-    auto output = context->GetOutputShape(0);
-    for (size_t dim = 0UL; dim < input_shape.GetDimNum(); dim++) {
-      output->AppendDim(input_shape.GetDim(dim));
-    }
-    output->SetDimNum(input_shape.GetDimNum());
-
-    const auto input_shape1 = context->GetInputShape(0U);
-    auto output1 = context->GetOutputShape(1);
-    for (size_t dim = 0UL; dim < input_shape1->GetDimNum(); dim++) {
-      output1->AppendDim(input_shape1->GetDim(dim));
-    }
-    output1->SetDimNum(input_shape1->GetDimNum());
-    return GRAPH_SUCCESS;
-  };
-  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
-    auto input_shape_range = context->GetInputShapeRange(0U);
-    auto output_shape_range = context->GetOutputShapeRange(0U);
-    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
-    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(Type2_3Input_2Output).InferShape(infer_shape_func).InputsDataDependency({2})
-    .InferDataType(nullptr)
-    .InferShapeRange(infer_shape_range_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_3Input_2Output");
-  op_impl_func->infer_shape = infer_shape_func;
-  op_impl_func->SetInputDataDependency(2);
-  op_impl_func->infer_shape_range = infer_shape_range_func;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  auto status = call_infer_shape_v2(op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
-  ASSERT_EQ(shape.GetDimNum(), 4);
-  ASSERT_EQ(shape.GetDim(0U), 85);
-  ASSERT_EQ(shape.GetDim(1U), 86);
-  ASSERT_EQ(shape.GetDim(2U), 87);
-  ASSERT_EQ(shape.GetDim(3U), 88);
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  status = call_infer_shape_range(op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  std::vector<std::pair<int64_t, int64_t>> shape_range;
-  (void)op_desc->GetOutputDesc(0U).GetShapeRange(shape_range);
-  ASSERT_EQ(shape_range.size(), 4U);
-  for (size_t i = 0UL; i < shape_range.size(); ++i) {
-    ASSERT_EQ(shape_range[i].first, range[i].first);
-    ASSERT_EQ(shape_range[i].second, range[i].second);
-  }
-}
-TEST_F(ShapeInferenceUT, CallInferV2Func_skip_shaperange_infer_when_input_without_range) {
-  // construct const input
-  auto const_input = ge::op::Const("const_input");
-  ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
-  ge::Tensor tensor(td);
-  std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
-  tensor.SetData(val);
-  const_input.set_attr_value(tensor);
-  // const input link to op
-  auto op = op::Type2_3Input_2Output("test5");
-  op.set_input_input1(const_input);
-  op.set_input_input3(const_input);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
-  // input1
-  GeShape shape1({1, 2, 3, -1});
-  GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  // input3
-  ge::GeShape shape3({1, 2, 3, 5});
-  ge::GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc3.SetOriginShape(shape3);
-  tensor_desc3.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(2, tensor_desc3);
-
-  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus { return GRAPH_FAILED; };
-  IMPL_OP(Type2_3Input_2Output).InputsDataDependency({2})
-      .InferDataType(nullptr)
-      .InferShapeRange(infer_shape_range_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_3Input_2Output");
-  op_impl_func->SetInputDataDependency(2);
-  op_impl_func->infer_shape_range = infer_shape_range_func;
-
-  auto status = InferShapeRangeOnCompile(op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS); // success means not called infer_shape_range_func
-}
-
-// 资源类算子测试
-REG_OP(RegisterAndGetReiledOnResource)
-    .INPUT(input1, "T")
-        .OUTPUT(output1, "T2")
-        .DATATYPE(T2, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(RegisterAndGetReiledOnResource);
-TEST_F(ShapeInferenceUT, CallInferV2Func_RegisterAndGetReiledOnResource) {
-  auto op = OperatorFactory::CreateOperator("test6", "RegisterAndGetReiledOnResource");
-  const char_t *resource_key = "224";
-  auto read_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create());
-  read_inference_context->RegisterReliedOnResourceKey(AscendString(resource_key));
-  op.SetInferenceContext(read_inference_context);
-
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);    // simulate read_op register relied resource
-  // input1
-  ge::GeShape shape1({1, 2, 3, 5});
-  ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    auto ct_context = reinterpret_cast<gert::CtInferShapeContext *>(context);
-    const auto &read_inference_context = ct_context->GetInferenceContext();
-    const auto &reiled_keys = read_inference_context->GetReliedOnResourceKeys();
-    const char_t *resource_key_ = "224";
-    // check result
-    EXPECT_EQ(reiled_keys.empty(), false);
-    EXPECT_EQ(*reiled_keys.begin(), resource_key_);
-    if (reiled_keys.empty() ||
-        (*reiled_keys.begin() != resource_key_)) {
-      return GRAPH_FAILED;
-    }
-    auto out_shape = context->GetOutputShape(0UL);
-    out_shape->SetDimNum(1UL);
-    out_shape->SetDim(0UL, std::strtol(resource_key_, nullptr, 10));
-    return GRAPH_SUCCESS;
-  };
-  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
-    auto ct_context = reinterpret_cast<gert::CtInferShapeRangeContext *>(context);
-    const auto &read_inference_context = ct_context->GetInferenceContext();
-    const auto &reiled_keys = read_inference_context->GetReliedOnResourceKeys();
-    const char_t *resource_key_ = "224";
-    // check result
-    EXPECT_EQ(reiled_keys.empty(), false);
-    EXPECT_EQ(*reiled_keys.begin(), resource_key_);
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(RegisterAndGetReiledOnResource)
-      .InferShape(infer_shape_func)
-      .InferDataType(nullptr)
-      .InferShapeRange(infer_shape_range_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("RegisterAndGetReiledOnResource");
-  op_impl_func->infer_shape = infer_shape_func;
-
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  const auto status = call_infer_shape_v2(op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
-  ASSERT_EQ(shape.GetDim(0), std::strtol(resource_key, nullptr, 10));
-}
-
-// 默认infer datatype测试
-REG_OP(TestDefaultInferDataType)
-    .INPUT(input1, "T")
-        .OUTPUT(output1, "T")
-        .DATATYPE(T, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(TestDefaultInferDataType);
-TEST_F(ShapeInferenceUT, CallInferV2Func_TestDefaultInferShape) {
-  auto op = OperatorFactory::CreateOperator("test7", "TestDefaultInferDataType");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);    // simulate read_op register relied resource
-  // input1
-  ge::GeShape shape1({1, 2, 3, 5});
-  ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_BOOL);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_BOOL);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(TestDefaultInferDataType)
-      .InferShape(infer_shape_func)
-      .InferDataType(nullptr)
-      .InferShapeRange(nullptr);
-  const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
-  const auto status = call_infer_data_type(op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  const auto &data_type = op_desc->GetOutputDesc(0U).GetDataType();
-  ASSERT_EQ(data_type, DT_BOOL);
-}
-TEST_F(ShapeInferenceUT, AdaptFuncRegisterOk) {
-  ASSERT_NE(OperatorFactoryImpl::GetInferShapeV2Func(), nullptr);
-  ASSERT_NE(OperatorFactoryImpl::GetInferShapeRangeFunc(), nullptr);
-  ASSERT_NE(OperatorFactoryImpl::GetInferDataTypeFunc(), nullptr);
-}
-TEST_F(ShapeInferenceUT, CallInferV2Func_no_inferfunc_failed_FAST_IGNORE_INFER_ERRIR_is_empty) {
-  auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("FixIOOp_OutputIsFix");
-  op_impl_func->infer_shape = nullptr;  // make v2 is null
-  op_impl_func->infer_datatype = nullptr;
-  op_impl_func->infer_shape_range = nullptr;
-
-  mmSetEnv("IGNORE_INFER_ERROR", "111", 1);
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, GRAPH_PARAM_INVALID);
-  unsetenv("IGNORE_INFER_ERROR");
-}
-
-TEST_F(ShapeInferenceUT, CallInferV2Func_NoSpaceRegistry_NotSupportSymbolicInfer_failed) {
-  auto op = OperatorFactory::CreateOperator("test1", "AddUt");  // not support symbolic infer dtype
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
-}
-
-TEST_F(ShapeInferenceUT, CallInferV2Func_NoSpaceRegistry_SupportSymbolicInfer_success) {
-  auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");  // support symbolic infer dtype
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr; // make v1 is null
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
-}
-
-TEST_F(ShapeInferenceUT, CallInferV2Func_NoCustomInferdtype_NotSupportSymbolicInfer_failed) {
-  auto op = OperatorFactory::CreateOperator("test1", "AddUt"); // not support symbolic infer dtype
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1,1,1,1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr; // make v1 is null
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("AddUt");
-  op_impl_func->infer_shape = nullptr; // make v2 is null
-  op_impl_func->infer_datatype = nullptr; // make v2 infer dtype is null
-  op_impl_func->infer_shape_range = nullptr;
-
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
-}
-
-TEST_F(ShapeInferenceUT, CallInferV2Func_NoInferShape_failed) {
-  auto op = OperatorFactory::CreateOperator("test1", "AddUt");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1,1,1,1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->impl_->infer_func_ = nullptr; // make v1 is null
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("AddUt");
-  op_impl_func->infer_shape = nullptr; // make v2 is null
-  op_impl_func->infer_datatype = nullptr; // make v2 infer dtype is null
-  op_impl_func->infer_shape_range = nullptr;
-
-  auto status = InferShapeOnCompile(op, op_desc);
-  ASSERT_NE(status, ge::GRAPH_SUCCESS);
-}
-
-TEST_F(ShapeInferenceUT, CallInferFormatFunc_OptionalInput) {
-  auto op = OperatorFactory::CreateOperator("OptionalTest", "OptionalInput3Input3Output");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  EXPECT_NE(op_desc, nullptr);
-  // option_input
-  GeShape shape({1, 1, 1, 1});
-  const auto format = Format::FORMAT_NCHW;
-  const auto ori_format = Format::FORMAT_ND;
-  GeTensorDesc tensor_desc(shape, format);
-  tensor_desc.SetOriginFormat(ori_format);
-  tensor_desc.SetOriginShape(shape);
-  op_desc->UpdateInputDesc(1U, tensor_desc);
-
-  auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
-    const auto option_input_format = context->GetOptionalInputFormat(1U);
-    EXPECT_NE(option_input_format, nullptr);
-    EXPECT_EQ(option_input_format->GetOriginFormat(), Format::FORMAT_ND);
-    EXPECT_EQ(option_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
-
-    const auto option_input_shape = context->GetOptionalInputShape(1U);
-    EXPECT_NE(option_input_shape, nullptr);
-    EXPECT_EQ(option_input_shape->GetDimNum(), 4UL);
-    EXPECT_EQ(option_input_shape->GetDim(0U), 1L);
-
-    auto input_0 = context->GetRequiredInputFormat(0U);
-    input_0->SetOriginFormat(Format::FORMAT_NCHW);
-    input_0->SetStorageFormat(Format::FORMAT_NCHW);
-
-    auto output_0 = context->GetOutputFormat(0U);
-    output_0->SetOriginFormat(Format::FORMAT_NCHW);
-    output_0->SetStorageFormat(Format::FORMAT_NCHW);
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(OptionalInput3Input3Output).InferFormat(infer_format_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("OptionalInput3Input3Output");
-  op_impl_func->infer_format_func = infer_format_func;
-
-  const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
-  EXPECT_NE(call_infer_format_v2, nullptr);
-  ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
-
-  const auto &input_0 = op_desc->GetInputDesc(0U);
-  EXPECT_EQ(input_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(input_0.GetFormat(), Format::FORMAT_NCHW);
-
-  const auto &output_0 = op_desc->GetOutputDesc(0U);
-  EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
-}
-
-TEST_F(ShapeInferenceUT, CallInferFormatFunc_DynamicInput) {
-  auto op = op::DynamicInput3Input3Output3("DynamicTest");
-  op.create_dynamic_input_byindex_dyn_input(2, 1);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
-
-  // dynamic_input index=1
-  GeShape shape({1, 1, 1, 1});
-  const auto format = Format::FORMAT_NCHW;
-  const auto ori_format = Format::FORMAT_ND;
-  GeTensorDesc tensor_desc(shape, format);
-  tensor_desc.SetOriginFormat(ori_format);
-  tensor_desc.SetOriginShape(shape);
-  op_desc->UpdateInputDesc(1U, tensor_desc);
-
-  auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
-    const auto dynamic_input_format = context->GetDynamicInputFormat(1U, 0U);
-    EXPECT_NE(dynamic_input_format, nullptr);
-    EXPECT_EQ(dynamic_input_format->GetOriginFormat(), Format::FORMAT_ND);
-    EXPECT_EQ(dynamic_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
-
-    const auto dynamic_input_shape = context->GetDynamicInputShape(1U, 0U);
-    EXPECT_NE(dynamic_input_shape, nullptr);
-    EXPECT_EQ(dynamic_input_shape->GetDimNum(), 4UL);
-    EXPECT_EQ(dynamic_input_shape->GetDim(0U), 1L);
-
-    auto input_0 = context->GetRequiredInputFormat(2U);
-    input_0->SetOriginFormat(Format::FORMAT_NCHW);
-    input_0->SetStorageFormat(Format::FORMAT_NCHW);
-
-    auto output_0 = context->GetOutputFormat(0U);
-    output_0->SetOriginFormat(Format::FORMAT_NCHW);
-    output_0->SetStorageFormat(Format::FORMAT_NCHW);
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(DynamicInput3Input3Output3).InferFormat(infer_format_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
-  op_impl_func->infer_format_func = infer_format_func;
-
-  const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
-  EXPECT_NE(call_infer_format_v2, nullptr);
-  ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
-
-  const auto &input_0 = op_desc->GetInputDesc(3U);
-  EXPECT_EQ(input_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(input_0.GetFormat(), Format::FORMAT_NCHW);
-
-  const auto &output_0 = op_desc->GetOutputDesc(0U);
-  EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
-}
-
-TEST_F(ShapeInferenceUT, CallInferFormatFunc_ValueDependInput) {
-  // construct const input
-  auto const_input = ge::op::Const("const_input");
-  ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
-  ge::Tensor tensor(td);
-  std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58,
-                           0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
-  tensor.SetData(val);
-  const_input.set_attr_value(tensor);
-  // const input link to op
-  auto op = op::Type2_1Input_1Output("test5");
-  op.set_input_input1(const_input);
-  op.set_input_input3(const_input);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
-  // input1
-  ge::GeShape shape1({1, 2, 3, 4});
-  ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc1.SetOriginShape(shape1);
-  tensor_desc1.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc1);
-  op_desc->UpdateInputDesc(2, tensor_desc1);
-
-
-  auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
-    const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
-    EXPECT_EQ(data[0], 85);
-
-    auto output_0 = context->GetOutputFormat(0U);
-    output_0->SetOriginFormat(Format::FORMAT_NCHW);
-    output_0->SetStorageFormat(Format::FORMAT_NCHW);
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(Type2_1Input_1Output).InferFormat(infer_format_func).InputsDataDependency({2});
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_1Input_1Output");
-  op_impl_func->infer_format_func = infer_format_func;
-  op_impl_func->SetInputDataDependency(2);
-
-  const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
-  EXPECT_NE(call_infer_format_v2, nullptr);
-  ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
-
-  const auto &output_0 = op_desc->GetOutputDesc(0U);
-  EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
-}
-
-REG_OP(DynamicInputDynamicOutput)
-    .DYNAMIC_INPUT(dyn_input, "D")
-    .DYNAMIC_OUTPUT(dyn_output, "D")
-    .OUTPUT(out, "T")
-    .OP_END_FACTORY_REG(DynamicInputDynamicOutput);
-TEST_F(ShapeInferenceUT, CallInferFormatFunc_DynamicOutput) {
-  auto op = op::DynamicInputDynamicOutput("DynamicTest");
-  op.create_dynamic_input_byindex_dyn_input(1, 0);
-  op.create_dynamic_output_dyn_output(1);
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-
-  // dynamic_input
-  GeShape shape({1, 1, 1, 1});
-  const auto format = Format::FORMAT_NCHW;
-  const auto ori_format = Format::FORMAT_ND;
-  GeTensorDesc tensor_desc(shape, format);
-  tensor_desc.SetOriginFormat(ori_format);
-  tensor_desc.SetOriginShape(shape);
-  op_desc->UpdateInputDesc(0U, tensor_desc);
-  op_desc->UpdateOutputDesc(0U, tensor_desc);
-  op_desc->UpdateOutputDesc(1U, tensor_desc);
-
-  auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
-    const auto dynamic_input_format = context->GetDynamicInputFormat(0U, 0U);
-    EXPECT_NE(dynamic_input_format, nullptr);
-    EXPECT_EQ(dynamic_input_format->GetOriginFormat(), Format::FORMAT_ND);
-    EXPECT_EQ(dynamic_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
-
-    const auto dynamic_input_shape = context->GetDynamicInputShape(0U, 0U);
-    EXPECT_NE(dynamic_input_shape, nullptr);
-    EXPECT_EQ(dynamic_input_shape->GetDimNum(), 4UL);
-    EXPECT_EQ(dynamic_input_shape->GetDim(0U), 1L);
-
-
-    auto output_0 = context->GetDynamicOutputFormat(0U, 0U);
-    output_0->SetOriginFormat(Format::FORMAT_NCHW);
-    output_0->SetStorageFormat(Format::FORMAT_NCHW);
-
-    auto output_1 = context->GetRequiredOutputFormat(0U);
-    output_1->SetOriginFormat(Format::FORMAT_NCHW);
-    output_1->SetStorageFormat(Format::FORMAT_NCHW);
-    return GRAPH_SUCCESS;
-  };
-  IMPL_OP(DynamicInputDynamicOutput).InferFormat(infer_format_func);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInputDynamicOutput");
-  op_impl_func->infer_format_func = infer_format_func;
-
-  const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
-  EXPECT_NE(call_infer_format_v2, nullptr);
-  ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
-
-  const auto &output_0 = op_desc->GetOutputDesc(0U);
-  EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
-
-  const auto &output_1 = op_desc->GetOutputDesc(1U);
-  EXPECT_EQ(output_1.GetOriginFormat(), Format::FORMAT_NCHW);
-  EXPECT_EQ(output_1.GetFormat(), Format::FORMAT_NCHW);
-}
-
-
-// infer from output
-REG_OP(CustomAdd)
-    .INPUT(input1, "T")
-    .INPUT(input2, "T")
-    .OUTPUT(output, "T")
-    .OP_END_FACTORY_REG(CustomAdd);
-TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_With_InferShape_Success) {
-  auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    const auto input_shape = context->GetInputShape(0U);
+  // 动态输入的input测试
+  REG_OP(DynamicInput3Input3Output3)
+      .INPUT(input1, "T")
+      .DYNAMIC_INPUT(dyn_input, "D")
+      .INPUT(input3, "T")
+      .OUTPUT(output1, "T2")
+      .OUTPUT(output2, "T2")
+      .OUTPUT(output3, "T2")
+      .DATATYPE(T2, TensorType({DT_BOOL}))
+      .OP_END_FACTORY_REG(DynamicInput3Input3Output3);
+  const auto INFER_SHAPE_FUNC = [](gert::InferShapeContext *context) -> graphStatus {
+    // update input3 input to output0
+    const auto input_shape = context->GetInputShape(1U);
     auto output = context->GetOutputShape(0);
     for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
       output->AppendDim(input_shape->GetDim(dim));
     }
     output->SetDimNum(input_shape->GetDimNum());
-    return GRAPH_SUCCESS;
-  };
-  const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
-    const auto date_type = context->GetInputDataType(0U);
-    EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
-    return GRAPH_SUCCESS;
-  };
-  const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
-    auto input_shape_range = context->GetInputShapeRange(0U);
-    auto output_shape_range = context->GetOutputShapeRange(0U);
-    output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
-    output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
-    return GRAPH_SUCCESS;
-  };
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
-
-  op_impl_func->infer_shape = infer_shape_func;
-  op_impl_func->infer_datatype = infer_data_type_func;
-  op_impl_func->infer_shape_range = infer_shape_range_func;
-  op_impl_func->output_shape_depend_compute = 1UL;
-
-  CustomOpFactory::RegisterCustomOpCreator("CustomAdd", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MyCustomOp>();
-  });
-
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 4);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 1);
-}
-
-REG_OP(CustomShapeInferAdd)
-    .INPUT(input1, "T")
-    .INPUT(input2, "T")
-    .OUTPUT(output, "T")
-    .OP_END_FACTORY_REG(CustomShapeInferAdd);
-
-TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_With_ShapeInferOp_Success) {
-  auto op = OperatorFactory::CreateOperator("test1", "CustomShapeInferAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  const GeShape input_shape({2, 3});
-  GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  input_desc.SetOriginShape(input_shape);
-  input_desc.SetOriginFormat(Format::FORMAT_NCHW);
-  input_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0U, input_desc);
-  op_desc->UpdateInputDesc(1U, input_desc);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_INT64);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 2);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(1), 3);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(2), 16);
-}
-
-TEST_F(ShapeInferenceUT, CustomOpInferShapeOnCompile_Success) {
-  auto op = OperatorFactory::CreateOperator("test_shape", "CustomShapeInferAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  const GeShape input_shape({2, 3});
-  GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  input_desc.SetOriginShape(input_shape);
-  input_desc.SetOriginFormat(Format::FORMAT_NCHW);
-  input_desc.SetOriginDataType(DT_FLOAT16);
-  ASSERT_EQ(op_desc->UpdateInputDesc(0U, input_desc), GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->UpdateInputDesc(1U, input_desc), GRAPH_SUCCESS);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-
-  const auto custom_op_infer_shape_func = OperatorFactoryImpl::GetCustomOpInferShapeFunc();
-  ASSERT_NE(custom_op_infer_shape_func, nullptr);
-  auto *shape_infer_op =
-      dynamic_cast<ShapeInferOp *>(CustomOpFactory::CreateOrGetCustomOp("CustomShapeInferAdd"));
-  ASSERT_NE(shape_infer_op, nullptr);
-
-  const auto status = custom_op_infer_shape_func(shape_infer_op, op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDims(), std::vector<int64_t>({2, 3, 16}));
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetOriginShape().GetDims(), std::vector<int64_t>({2, 3, 16}));
-}
-
-TEST_F(ShapeInferenceUT, CustomOpInferDataTypeOnCompile_Success) {
-  auto op = OperatorFactory::CreateOperator("test_dtype", "CustomShapeInferAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  const GeShape input_shape({2, 3});
-  GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  input_desc.SetOriginShape(input_shape);
-  input_desc.SetOriginFormat(Format::FORMAT_NCHW);
-  input_desc.SetOriginDataType(DT_FLOAT16);
-  ASSERT_EQ(op_desc->UpdateInputDesc(0U, input_desc), GRAPH_SUCCESS);
-  ASSERT_EQ(op_desc->UpdateInputDesc(1U, input_desc), GRAPH_SUCCESS);
-
-  const auto custom_op_infer_datatype_func = OperatorFactoryImpl::GetCustomOpInferDataTypeFunc();
-  ASSERT_NE(custom_op_infer_datatype_func, nullptr);
-  auto *shape_infer_op =
-      dynamic_cast<ShapeInferOp *>(CustomOpFactory::CreateOrGetCustomOp("CustomShapeInferAdd"));
-  ASSERT_NE(shape_infer_op, nullptr);
-
-  const auto status = custom_op_infer_datatype_func(shape_infer_op, op_desc);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_INT64);
-  EXPECT_EQ(op_desc->GetOutputDesc(0U).GetOriginDataType(), DT_INT64);
-}
-
-TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_Without_InferShape_Success) {
-  auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
-  (void) op_impl_func;
-  CustomOpFactory::RegisterCustomOpCreator("CustomAdd", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MyCustomOp>();
-  });
-
-  const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  ASSERT_NE(call_infer_data_type, nullptr);
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  ASSERT_NE(call_infer_shape_range, nullptr);
-
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  // 走shape为-2
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_UNDEFINED);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 0);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), -2);
-}
-
-TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_Without_InferShape_with_origin_shape_Success) {
-  auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-  GeShape shape({1, 1, 1, 1});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
-  tensor_desc.SetOriginShapeRange(range);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-  op_desc->UpdateInputDesc(1, tensor_desc);
-  op_desc->UpdateOutputDesc(0, tensor_desc);
-
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
-  (void) op_impl_func;
-  CustomOpFactory::RegisterCustomOpCreator("CustomAdd", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<MyCustomOp>();
-  });
-
-  const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
-  const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
-
-  const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
-  ASSERT_NE(call_infer_data_type, nullptr);
-  ASSERT_NE(call_infer_shape_v2, nullptr);
-  ASSERT_NE(call_infer_shape_range, nullptr);
-
-  auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
-  ASSERT_EQ(status, GRAPH_SUCCESS);
-  // 走shape为-2
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 4);
-  ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 1);
-}
-
-// 测试算子，用于 IsInferShapeV2Registered 测试
-REG_OP(TestIsInferShapeV2Registered)
-    .INPUT(input1, "T")
-    .OUTPUT(output, "T")
-    .OP_END_FACTORY_REG(TestIsInferShapeV2Registered);
-
-// 测试算子，用于 rule 场景
-REG_OP(TestRuleOp)
-    .DYNAMIC_INPUT(x, TensorType::ALL())
-    .DYNAMIC_OUTPUT(y, TensorType::ALL())
-    .OP_END_FACTORY_REG(TestRuleOp);
-
-// 测试用例：算子注册了 infer_shape 函数，返回 true
-TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferShapeFunc_ReturnTrue) {
-  auto op = OperatorFactory::CreateOperator("test1", "TestIsInferShapeV2Registered");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
-
-  GeShape shape({1, 2, 3});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc);
-
-  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
-    const auto input_shape = context->GetInputShape(0U);
-    auto output = context->GetOutputShape(0);
-    for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
-      output->AppendDim(input_shape->GetDim(dim));
+    // update dyn_input_0 to output1, dyn_input_1 to output2
+    const auto input_shape2 = context->GetInputShape(2U);
+    auto output2 = context->GetOutputShape(1);
+    for (size_t dim = 0UL; dim < input_shape2->GetDimNum(); dim++) {
+      output2->AppendDim(input_shape2->GetDim(dim));
     }
-    output->SetDimNum(input_shape->GetDimNum());
+    output2->SetDimNum(input_shape2->GetDimNum());
+
+    const auto input_shape3 = context->GetInputShape(3U);
+    auto output3 = context->GetOutputShape(2);
+    for (size_t dim = 0UL; dim < input_shape3->GetDimNum(); dim++) {
+      output3->AppendDim(input_shape3->GetDim(dim));
+    }
+    output3->SetDimNum(input_shape3->GetDimNum());
     return GRAPH_SUCCESS;
   };
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({1, 2, 3, 4});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
-  op_impl_func->infer_shape = infer_shape_func;
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
-  ASSERT_NE(is_registered_func, nullptr);
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+  }
 
-  bool is_registered = is_registered_func(op_desc);
-  EXPECT_TRUE(is_registered);
-}
+  // 动态输入的input测试 动态轴-2
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_2) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({-2});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-// 测试用例：算子没有 infer_shape 函数但有 ShapeInferenceRule，返回 true
-TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferenceRule_ReturnTrue) {
-  auto op = OperatorFactory::CreateOperator("test2", "TestRuleOp");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  // 设置输入输出
-  GeShape input_shape({32, 64});
-  GeTensorDesc input_tensor_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  input_tensor_desc.SetOriginShape(input_shape);
-  input_tensor_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc("x", input_tensor_desc);
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 0);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+  }
 
-  GeShape output_shape({32, 64});
-  GeTensorDesc output_tensor_desc(output_shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  output_tensor_desc.SetOriginShape(output_shape);
-  output_tensor_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateOutputDesc("y", output_tensor_desc);
+  // 动态输入的input测试 动态轴-1, shape range 不设值
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_no_shaperange) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-  // 设置 inference rule
-  nlohmann::json rule_json;
-  rule_json["shape"]["inputs"] = {{"s0", "s1"}};
-  rule_json["shape"]["outputs"] = {{"s0", "s1"}};
-  std::string rule_str = rule_json.dump();
-  ge::AttrUtils::SetStr(op_desc, "_inference_rule", rule_str);
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
-  ASSERT_NE(is_registered_func, nullptr);
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+  }
 
-  bool is_registered = is_registered_func(op_desc);
-  EXPECT_TRUE(is_registered);
-}
+  // 动态输入的input测试 动态轴-1, shape range 设值
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {22, 999}};
+    tensor_desc1.SetShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-// 测试用例：算子既没有 infer_shape 函数也没有 ShapeInferenceRule，返回 false
-TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithoutInferShapeAndRule_ReturnFalse) {
-  auto op = OperatorFactory::CreateOperator("test3", "TestIsInferShapeV2Registered");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  GeShape shape({1, 2, 3});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc);
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    std::vector<std::pair<int64_t, int64_t>> shape_range;
+    (void)op_desc->GetOutputDesc(2U).GetShapeRange(shape_range);
+    ASSERT_EQ(shape_range.size(), 4U);
+    for (size_t i = 0UL; i < shape_range.size(); ++i) {
+      ASSERT_EQ(shape_range[i].first, range[i].first);
+      ASSERT_EQ(shape_range[i].second, range[i].second);
+    }
+  }
 
-  gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
-  auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-  ASSERT_NE(space_registry, nullptr);
-  auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
-  op_impl_func->infer_shape = nullptr;  // 没有注册 infer_shape 函数
+  // 动态输入的input测试 动态轴-1, shape range 设值,min大于max异常场景
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange_min_bigger_max) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {999, 22}};
+    tensor_desc1.SetShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
-  ASSERT_NE(is_registered_func, nullptr);
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  bool is_registered = is_registered_func(op_desc);
-  EXPECT_FALSE(is_registered);
-}
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, ge::PARAM_INVALID);
+    std::vector<std::pair<int64_t, int64_t>> shape_range;
+    (void)op_desc->GetOutputDesc(2U).GetShapeRange(shape_range);
+    ASSERT_EQ(shape_range.size(), 0U);
+  }
 
-// 测试用例：space_registry 为 null，返回 false
-TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_SpaceRegistryNull_ReturnFalse) {
-  auto op = OperatorFactory::CreateOperator("test4", "TestIsInferShapeV2Registered");
-  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-  ASSERT_NE(op_desc, nullptr);
+  // 动态输入的input测试 动态轴-1, shape range 设值, min大于max, max为-1的正常场景
+  TEST_F(ShapeInferenceUT, CallInferV2Func_DynamicInput_unknow_shaperange_min_bigger_max_success) {
+    auto operator_dynamic = op::DynamicInput3Input3Output3("test4");
+    operator_dynamic.create_dynamic_input_byindex_dyn_input(2, true);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(operator_dynamic);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{1, -1}, {2, -1}, {3, -1}, {999, -1}};
+    tensor_desc1.SetShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    GeShape shape2({4, 3, 2});
+    GeTensorDesc tensor_desc2(shape2, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc2.SetOriginShape(shape2);
+    tensor_desc2.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(1, tensor_desc2);
+    // dynamic input
+    GeShape shape3({4, 3});
+    GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    op_desc->UpdateInputDesc(3, tensor_desc1);
+    IMPL_OP(DynamicInput3Input3Output3).InferShape(INFER_SHAPE_FUNC).InferDataType(nullptr).InferShapeRange(nullptr);
 
-  GeShape shape({1, 2, 3});
-  GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
-  tensor_desc.SetOriginShape(shape);
-  tensor_desc.SetOriginDataType(DT_FLOAT16);
-  op_desc->UpdateInputDesc(0, tensor_desc);
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_shape = INFER_SHAPE_FUNC;
+    op_impl_func->infer_shape_range = nullptr;
 
-  // 设置 space_registry 为 null
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(operator_dynamic, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    ASSERT_EQ(op_desc->GetOutputDesc(1U).GetShape().GetDimNum(), 2);
+    ASSERT_EQ(op_desc->GetOutputDesc(2U).GetShape().GetDimNum(), 4);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(operator_dynamic, op_desc);
+    ASSERT_EQ(status, ge::GRAPH_SUCCESS);
+  }
 
-  const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
-  ASSERT_NE(is_registered_func, nullptr);
+  // 二类算子值依赖测试
+  REG_OP(Type2_1Input_1Output)
+      .INPUT(input1, "T")
+      .OPTIONAL_INPUT(input2, "T")
+      .INPUT(input3, "T")
+      .OUTPUT(output1, "T2")
+      .DATATYPE(T2, TensorType({DT_BOOL}))
+      .OP_END_FACTORY_REG(Type2_1Input_1Output);
+  TEST_F(ShapeInferenceUT, CallInferV2Func_Type2ValueDepend) {
+    // construct const input
+    auto const_input = ge::op::Const("const_input");
+    ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
+    ge::Tensor tensor(td);
+    std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57,
+                             0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
+    tensor.SetData(val);
+    const_input.set_attr_value(tensor);
+    // const input link to op
+    auto op = op::Type2_1Input_1Output("test5");
+    op.set_input_input1(const_input);
+    op.set_input_input3(const_input);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
+    // input1
+    ge::GeShape shape1({1, 2, 3, 5});
+    ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    op_desc->UpdateInputDesc(2, tensor_desc1);
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+      // update input3(因为option输入未实例化，所以是第二个) value to output0
+      const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
+      std::vector<int64_t> dims = {data[0], data[1], data[2], data[3]};
+      ge::Shape input_shape(dims);
+      auto output = context->GetOutputShape(0);
+      for (size_t dim = 0UL; dim < input_shape.GetDimNum(); dim++) {
+        output->AppendDim(input_shape.GetDim(dim));
+      }
+      output->SetDimNum(input_shape.GetDimNum());
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(Type2_1Input_1Output)
+        .InferShape(infer_shape_func)
+        .InputsDataDependency({2})
+        .InferDataType(nullptr)
+        .InferShapeRange(nullptr);
 
-  bool is_registered = is_registered_func(op_desc);
-  EXPECT_FALSE(is_registered);
-}
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_1Input_1Output");
+    op_impl_func->infer_shape = infer_shape_func;
+    op_impl_func->SetInputDataDependency(2);
+
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    const auto status = call_infer_shape_v2(op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
+    ASSERT_EQ(shape.GetDimNum(), 4);
+    ASSERT_EQ(shape.GetDim(0U), 85);
+    ASSERT_EQ(shape.GetDim(1U), 86);
+    ASSERT_EQ(shape.GetDim(2U), 87);
+    ASSERT_EQ(shape.GetDim(3U), 88);
+  }
+
+  // 二类算子值依赖测试,带shape range
+  REG_OP(Type2_3Input_2Output)
+      .INPUT(input1, "T")
+      .OPTIONAL_INPUT(input2, "T")
+      .INPUT(input3, "T")
+      .OUTPUT(output1, "T2")
+      .OUTPUT(output2, "T2")
+      .DATATYPE(T2, TensorType({DT_BOOL}))
+      .OP_END_FACTORY_REG(Type2_3Input_2Output);
+  TEST_F(ShapeInferenceUT, CallInferV2Func_Type2ValueDepend_unknow_shaperange) {
+    // construct const input
+    auto const_input = ge::op::Const("const_input");
+    ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
+    ge::Tensor tensor(td);
+    std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57,
+                             0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
+    tensor.SetData(val);
+    const_input.set_attr_value(tensor);
+    // const input link to op
+    auto op = op::Type2_3Input_2Output("test5");
+    op.set_input_input1(const_input);
+    op.set_input_input3(const_input);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{1, 1}, {2, 2}, {3, 3}, {22, 999}};
+    tensor_desc1.SetShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    ge::GeShape shape3({1, 2, 3, 5});
+    ge::GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+      // update input3(因为option输入未实例化，所以是第二个) value to output0
+      const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
+      std::vector<int64_t> dims = {data[0], data[1], data[2], data[3]};
+      ge::Shape input_shape(dims);
+      auto output = context->GetOutputShape(0);
+      for (size_t dim = 0UL; dim < input_shape.GetDimNum(); dim++) {
+        output->AppendDim(input_shape.GetDim(dim));
+      }
+      output->SetDimNum(input_shape.GetDimNum());
+
+      const auto input_shape1 = context->GetInputShape(0U);
+      auto output1 = context->GetOutputShape(1);
+      for (size_t dim = 0UL; dim < input_shape1->GetDimNum(); dim++) {
+        output1->AppendDim(input_shape1->GetDim(dim));
+      }
+      output1->SetDimNum(input_shape1->GetDimNum());
+      return GRAPH_SUCCESS;
+    };
+    const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+      auto input_shape_range = context->GetInputShapeRange(0U);
+      auto output_shape_range = context->GetOutputShapeRange(0U);
+      output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+      output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(Type2_3Input_2Output)
+        .InferShape(infer_shape_func)
+        .InputsDataDependency({2})
+        .InferDataType(nullptr)
+        .InferShapeRange(infer_shape_range_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_3Input_2Output");
+    op_impl_func->infer_shape = infer_shape_func;
+    op_impl_func->SetInputDataDependency(2);
+    op_impl_func->infer_shape_range = infer_shape_range_func;
+
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    auto status = call_infer_shape_v2(op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
+    ASSERT_EQ(shape.GetDimNum(), 4);
+    ASSERT_EQ(shape.GetDim(0U), 85);
+    ASSERT_EQ(shape.GetDim(1U), 86);
+    ASSERT_EQ(shape.GetDim(2U), 87);
+    ASSERT_EQ(shape.GetDim(3U), 88);
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    status = call_infer_shape_range(op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    std::vector<std::pair<int64_t, int64_t>> shape_range;
+    (void)op_desc->GetOutputDesc(0U).GetShapeRange(shape_range);
+    ASSERT_EQ(shape_range.size(), 4U);
+    for (size_t i = 0UL; i < shape_range.size(); ++i) {
+      ASSERT_EQ(shape_range[i].first, range[i].first);
+      ASSERT_EQ(shape_range[i].second, range[i].second);
+    }
+  }
+  TEST_F(ShapeInferenceUT, CallInferV2Func_skip_shaperange_infer_when_input_without_range) {
+    // construct const input
+    auto const_input = ge::op::Const("const_input");
+    ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
+    ge::Tensor tensor(td);
+    std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57,
+                             0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
+    tensor.SetData(val);
+    const_input.set_attr_value(tensor);
+    // const input link to op
+    auto op = op::Type2_3Input_2Output("test5");
+    op.set_input_input1(const_input);
+    op.set_input_input3(const_input);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
+    // input1
+    GeShape shape1({1, 2, 3, -1});
+    GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    // input3
+    ge::GeShape shape3({1, 2, 3, 5});
+    ge::GeTensorDesc tensor_desc3(shape3, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc3.SetOriginShape(shape3);
+    tensor_desc3.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(2, tensor_desc3);
+
+    const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+      return GRAPH_FAILED;
+    };
+    IMPL_OP(Type2_3Input_2Output)
+        .InputsDataDependency({2})
+        .InferDataType(nullptr)
+        .InferShapeRange(infer_shape_range_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_3Input_2Output");
+    op_impl_func->SetInputDataDependency(2);
+    op_impl_func->infer_shape_range = infer_shape_range_func;
+
+    auto status = InferShapeRangeOnCompile(op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);  // success means not called infer_shape_range_func
+  }
+
+  // 资源类算子测试
+  REG_OP(RegisterAndGetReiledOnResource)
+      .INPUT(input1, "T")
+      .OUTPUT(output1, "T2")
+      .DATATYPE(T2, TensorType({DT_BOOL}))
+      .OP_END_FACTORY_REG(RegisterAndGetReiledOnResource);
+  TEST_F(ShapeInferenceUT, CallInferV2Func_RegisterAndGetReiledOnResource) {
+    auto op = OperatorFactory::CreateOperator("test6", "RegisterAndGetReiledOnResource");
+    const char_t *resource_key = "224";
+    auto read_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create());
+    read_inference_context->RegisterReliedOnResourceKey(AscendString(resource_key));
+    op.SetInferenceContext(read_inference_context);
+
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);  // simulate read_op register relied resource
+    // input1
+    ge::GeShape shape1({1, 2, 3, 5});
+    ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+      auto ct_context = reinterpret_cast<gert::CtInferShapeContext *>(context);
+      const auto &read_inference_context = ct_context->GetInferenceContext();
+      const auto &reiled_keys = read_inference_context->GetReliedOnResourceKeys();
+      const char_t *resource_key_ = "224";
+      // check result
+      EXPECT_EQ(reiled_keys.empty(), false);
+      EXPECT_EQ(*reiled_keys.begin(), resource_key_);
+      if (reiled_keys.empty() || (*reiled_keys.begin() != resource_key_)) {
+        return GRAPH_FAILED;
+      }
+      auto out_shape = context->GetOutputShape(0UL);
+      out_shape->SetDimNum(1UL);
+      out_shape->SetDim(0UL, std::strtol(resource_key_, nullptr, 10));
+      return GRAPH_SUCCESS;
+    };
+    const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+      auto ct_context = reinterpret_cast<gert::CtInferShapeRangeContext *>(context);
+      const auto &read_inference_context = ct_context->GetInferenceContext();
+      const auto &reiled_keys = read_inference_context->GetReliedOnResourceKeys();
+      const char_t *resource_key_ = "224";
+      // check result
+      EXPECT_EQ(reiled_keys.empty(), false);
+      EXPECT_EQ(*reiled_keys.begin(), resource_key_);
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(RegisterAndGetReiledOnResource)
+        .InferShape(infer_shape_func)
+        .InferDataType(nullptr)
+        .InferShapeRange(infer_shape_range_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("RegisterAndGetReiledOnResource");
+    op_impl_func->infer_shape = infer_shape_func;
+
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    const auto status = call_infer_shape_v2(op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    const auto &shape = op_desc->GetOutputDesc(0U).GetShape();
+    ASSERT_EQ(shape.GetDim(0), std::strtol(resource_key, nullptr, 10));
+  }
+
+  // 默认infer datatype测试
+  REG_OP(TestDefaultInferDataType)
+      .INPUT(input1, "T")
+      .OUTPUT(output1, "T")
+      .DATATYPE(T, TensorType({DT_BOOL}))
+      .OP_END_FACTORY_REG(TestDefaultInferDataType);
+  TEST_F(ShapeInferenceUT, CallInferV2Func_TestDefaultInferShape) {
+    auto op = OperatorFactory::CreateOperator("test7", "TestDefaultInferDataType");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);  // simulate read_op register relied resource
+    // input1
+    ge::GeShape shape1({1, 2, 3, 5});
+    ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_BOOL);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_BOOL);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus { return GRAPH_SUCCESS; };
+    IMPL_OP(TestDefaultInferDataType).InferShape(infer_shape_func).InferDataType(nullptr).InferShapeRange(nullptr);
+    const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
+    const auto status = call_infer_data_type(op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    const auto &data_type = op_desc->GetOutputDesc(0U).GetDataType();
+    ASSERT_EQ(data_type, DT_BOOL);
+  }
+  TEST_F(ShapeInferenceUT, AdaptFuncRegisterOk) {
+    ASSERT_NE(OperatorFactoryImpl::GetInferShapeV2Func(), nullptr);
+    ASSERT_NE(OperatorFactoryImpl::GetInferShapeRangeFunc(), nullptr);
+    ASSERT_NE(OperatorFactoryImpl::GetInferDataTypeFunc(), nullptr);
+  }
+  TEST_F(ShapeInferenceUT, CallInferV2Func_no_inferfunc_failed_FAST_IGNORE_INFER_ERRIR_is_empty) {
+    auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("FixIOOp_OutputIsFix");
+    op_impl_func->infer_shape = nullptr;  // make v2 is null
+    op_impl_func->infer_datatype = nullptr;
+    op_impl_func->infer_shape_range = nullptr;
+
+    mmSetEnv("IGNORE_INFER_ERROR", "111", 1);
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, GRAPH_PARAM_INVALID);
+    unsetenv("IGNORE_INFER_ERROR");
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferV2Func_NoSpaceRegistry_NotSupportSymbolicInfer_failed) {
+    auto op = OperatorFactory::CreateOperator("test1", "AddUt");  // not support symbolic infer dtype
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
+    gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferV2Func_NoSpaceRegistry_SupportSymbolicInfer_success) {
+    auto op = OperatorFactory::CreateOperator("test1", "FixIOOp_OutputIsFix");  // support symbolic infer dtype
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
+    gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferV2Func_NoCustomInferdtype_NotSupportSymbolicInfer_failed) {
+    auto op = OperatorFactory::CreateOperator("test1", "AddUt");  // not support symbolic infer dtype
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("AddUt");
+    op_impl_func->infer_shape = nullptr;     // make v2 is null
+    op_impl_func->infer_datatype = nullptr;  // make v2 infer dtype is null
+    op_impl_func->infer_shape_range = nullptr;
+
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, ge::GRAPH_PARAM_INVALID);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferV2Func_NoInferShape_failed) {
+    auto op = OperatorFactory::CreateOperator("test1", "AddUt");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->impl_->infer_func_ = nullptr;  // make v1 is null
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("AddUt");
+    op_impl_func->infer_shape = nullptr;     // make v2 is null
+    op_impl_func->infer_datatype = nullptr;  // make v2 infer dtype is null
+    op_impl_func->infer_shape_range = nullptr;
+
+    auto status = InferShapeOnCompile(op, op_desc);
+    ASSERT_NE(status, ge::GRAPH_SUCCESS);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferFormatFunc_OptionalInput) {
+    auto op = OperatorFactory::CreateOperator("OptionalTest", "OptionalInput3Input3Output");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    EXPECT_NE(op_desc, nullptr);
+    // option_input
+    GeShape shape({1, 1, 1, 1});
+    const auto format = Format::FORMAT_NCHW;
+    const auto ori_format = Format::FORMAT_ND;
+    GeTensorDesc tensor_desc(shape, format);
+    tensor_desc.SetOriginFormat(ori_format);
+    tensor_desc.SetOriginShape(shape);
+    op_desc->UpdateInputDesc(1U, tensor_desc);
+
+    auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
+      const auto option_input_format = context->GetOptionalInputFormat(1U);
+      EXPECT_NE(option_input_format, nullptr);
+      EXPECT_EQ(option_input_format->GetOriginFormat(), Format::FORMAT_ND);
+      EXPECT_EQ(option_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
+
+      const auto option_input_shape = context->GetOptionalInputShape(1U);
+      EXPECT_NE(option_input_shape, nullptr);
+      EXPECT_EQ(option_input_shape->GetDimNum(), 4UL);
+      EXPECT_EQ(option_input_shape->GetDim(0U), 1L);
+
+      auto input_0 = context->GetRequiredInputFormat(0U);
+      input_0->SetOriginFormat(Format::FORMAT_NCHW);
+      input_0->SetStorageFormat(Format::FORMAT_NCHW);
+
+      auto output_0 = context->GetOutputFormat(0U);
+      output_0->SetOriginFormat(Format::FORMAT_NCHW);
+      output_0->SetStorageFormat(Format::FORMAT_NCHW);
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(OptionalInput3Input3Output).InferFormat(infer_format_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("OptionalInput3Input3Output");
+    op_impl_func->infer_format_func = infer_format_func;
+
+    const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
+    EXPECT_NE(call_infer_format_v2, nullptr);
+    ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
+
+    const auto &input_0 = op_desc->GetInputDesc(0U);
+    EXPECT_EQ(input_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(input_0.GetFormat(), Format::FORMAT_NCHW);
+
+    const auto &output_0 = op_desc->GetOutputDesc(0U);
+    EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferFormatFunc_DynamicInput) {
+    auto op = op::DynamicInput3Input3Output3("DynamicTest");
+    op.create_dynamic_input_byindex_dyn_input(2, 1);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 4);
+
+    // dynamic_input index=1
+    GeShape shape({1, 1, 1, 1});
+    const auto format = Format::FORMAT_NCHW;
+    const auto ori_format = Format::FORMAT_ND;
+    GeTensorDesc tensor_desc(shape, format);
+    tensor_desc.SetOriginFormat(ori_format);
+    tensor_desc.SetOriginShape(shape);
+    op_desc->UpdateInputDesc(1U, tensor_desc);
+
+    auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
+      const auto dynamic_input_format = context->GetDynamicInputFormat(1U, 0U);
+      EXPECT_NE(dynamic_input_format, nullptr);
+      EXPECT_EQ(dynamic_input_format->GetOriginFormat(), Format::FORMAT_ND);
+      EXPECT_EQ(dynamic_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
+
+      const auto dynamic_input_shape = context->GetDynamicInputShape(1U, 0U);
+      EXPECT_NE(dynamic_input_shape, nullptr);
+      EXPECT_EQ(dynamic_input_shape->GetDimNum(), 4UL);
+      EXPECT_EQ(dynamic_input_shape->GetDim(0U), 1L);
+
+      auto input_0 = context->GetRequiredInputFormat(2U);
+      input_0->SetOriginFormat(Format::FORMAT_NCHW);
+      input_0->SetStorageFormat(Format::FORMAT_NCHW);
+
+      auto output_0 = context->GetOutputFormat(0U);
+      output_0->SetOriginFormat(Format::FORMAT_NCHW);
+      output_0->SetStorageFormat(Format::FORMAT_NCHW);
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(DynamicInput3Input3Output3).InferFormat(infer_format_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInput3Input3Output3");
+    op_impl_func->infer_format_func = infer_format_func;
+
+    const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
+    EXPECT_NE(call_infer_format_v2, nullptr);
+    ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
+
+    const auto &input_0 = op_desc->GetInputDesc(3U);
+    EXPECT_EQ(input_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(input_0.GetFormat(), Format::FORMAT_NCHW);
+
+    const auto &output_0 = op_desc->GetOutputDesc(0U);
+    EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferFormatFunc_ValueDependInput) {
+    // construct const input
+    auto const_input = ge::op::Const("const_input");
+    ge::TensorDesc td{ge::Shape(std::vector<int64_t>({1, 2, 3, 4})), FORMAT_NCHW, DT_UINT8};
+    ge::Tensor tensor(td);
+    std::vector<uint8_t> val{0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57,
+                             0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58, 0x55, 0x56, 0x57, 0x58, 0x58, 0x58};
+    tensor.SetData(val);
+    const_input.set_attr_value(tensor);
+    // const input link to op
+    auto op = op::Type2_1Input_1Output("test5");
+    op.set_input_input1(const_input);
+    op.set_input_input3(const_input);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    ASSERT_EQ(op_desc->GetAllInputsSize(), 3);
+    // input1
+    ge::GeShape shape1({1, 2, 3, 4});
+    ge::GeTensorDesc tensor_desc1(shape1, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc1.SetOriginShape(shape1);
+    tensor_desc1.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc1);
+    op_desc->UpdateInputDesc(2, tensor_desc1);
+
+    auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
+      const auto data = context->GetInputTensor(1U)->GetData<uint8_t>();
+      EXPECT_EQ(data[0], 85);
+
+      auto output_0 = context->GetOutputFormat(0U);
+      output_0->SetOriginFormat(Format::FORMAT_NCHW);
+      output_0->SetStorageFormat(Format::FORMAT_NCHW);
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(Type2_1Input_1Output).InferFormat(infer_format_func).InputsDataDependency({2});
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("Type2_1Input_1Output");
+    op_impl_func->infer_format_func = infer_format_func;
+    op_impl_func->SetInputDataDependency(2);
+
+    const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
+    EXPECT_NE(call_infer_format_v2, nullptr);
+    ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
+
+    const auto &output_0 = op_desc->GetOutputDesc(0U);
+    EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
+  }
+
+  REG_OP(DynamicInputDynamicOutput)
+      .DYNAMIC_INPUT(dyn_input, "D")
+      .DYNAMIC_OUTPUT(dyn_output, "D")
+      .OUTPUT(out, "T")
+      .OP_END_FACTORY_REG(DynamicInputDynamicOutput);
+  TEST_F(ShapeInferenceUT, CallInferFormatFunc_DynamicOutput) {
+    auto op = op::DynamicInputDynamicOutput("DynamicTest");
+    op.create_dynamic_input_byindex_dyn_input(1, 0);
+    op.create_dynamic_output_dyn_output(1);
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+
+    // dynamic_input
+    GeShape shape({1, 1, 1, 1});
+    const auto format = Format::FORMAT_NCHW;
+    const auto ori_format = Format::FORMAT_ND;
+    GeTensorDesc tensor_desc(shape, format);
+    tensor_desc.SetOriginFormat(ori_format);
+    tensor_desc.SetOriginShape(shape);
+    op_desc->UpdateInputDesc(0U, tensor_desc);
+    op_desc->UpdateOutputDesc(0U, tensor_desc);
+    op_desc->UpdateOutputDesc(1U, tensor_desc);
+
+    auto infer_format_func = [](gert::InferFormatContext *context) -> UINT32 {
+      const auto dynamic_input_format = context->GetDynamicInputFormat(0U, 0U);
+      EXPECT_NE(dynamic_input_format, nullptr);
+      EXPECT_EQ(dynamic_input_format->GetOriginFormat(), Format::FORMAT_ND);
+      EXPECT_EQ(dynamic_input_format->GetStorageFormat(), Format::FORMAT_NCHW);
+
+      const auto dynamic_input_shape = context->GetDynamicInputShape(0U, 0U);
+      EXPECT_NE(dynamic_input_shape, nullptr);
+      EXPECT_EQ(dynamic_input_shape->GetDimNum(), 4UL);
+      EXPECT_EQ(dynamic_input_shape->GetDim(0U), 1L);
+
+      auto output_0 = context->GetDynamicOutputFormat(0U, 0U);
+      output_0->SetOriginFormat(Format::FORMAT_NCHW);
+      output_0->SetStorageFormat(Format::FORMAT_NCHW);
+
+      auto output_1 = context->GetRequiredOutputFormat(0U);
+      output_1->SetOriginFormat(Format::FORMAT_NCHW);
+      output_1->SetStorageFormat(Format::FORMAT_NCHW);
+      return GRAPH_SUCCESS;
+    };
+    IMPL_OP(DynamicInputDynamicOutput).InferFormat(infer_format_func);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("DynamicInputDynamicOutput");
+    op_impl_func->infer_format_func = infer_format_func;
+
+    const auto call_infer_format_v2 = OperatorFactoryImpl::GetInferFormatV2Func();
+    EXPECT_NE(call_infer_format_v2, nullptr);
+    ASSERT_EQ(call_infer_format_v2(op, op_desc), GRAPH_SUCCESS);
+
+    const auto &output_0 = op_desc->GetOutputDesc(0U);
+    EXPECT_EQ(output_0.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(output_0.GetFormat(), Format::FORMAT_NCHW);
+
+    const auto &output_1 = op_desc->GetOutputDesc(1U);
+    EXPECT_EQ(output_1.GetOriginFormat(), Format::FORMAT_NCHW);
+    EXPECT_EQ(output_1.GetFormat(), Format::FORMAT_NCHW);
+  }
+
+  // infer from output
+  REG_OP(CustomAdd).INPUT(input1, "T").INPUT(input2, "T").OUTPUT(output, "T").OP_END_FACTORY_REG(CustomAdd);
+  TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_With_InferShape_Success) {
+    auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+      const auto input_shape = context->GetInputShape(0U);
+      auto output = context->GetOutputShape(0);
+      for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+        output->AppendDim(input_shape->GetDim(dim));
+      }
+      output->SetDimNum(input_shape->GetDimNum());
+      return GRAPH_SUCCESS;
+    };
+    const auto infer_data_type_func = [](gert::InferDataTypeContext *context) -> graphStatus {
+      const auto date_type = context->GetInputDataType(0U);
+      EXPECT_EQ(context->SetOutputDataType(0, date_type), SUCCESS);
+      return GRAPH_SUCCESS;
+    };
+    const auto infer_shape_range_func = [](gert::InferShapeRangeContext *context) -> graphStatus {
+      auto input_shape_range = context->GetInputShapeRange(0U);
+      auto output_shape_range = context->GetOutputShapeRange(0U);
+      output_shape_range->SetMin(const_cast<gert::Shape *>(input_shape_range->GetMin()));
+      output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
+      return GRAPH_SUCCESS;
+    };
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
+
+    op_impl_func->infer_shape = infer_shape_func;
+    op_impl_func->infer_datatype = infer_data_type_func;
+    op_impl_func->infer_shape_range = infer_shape_range_func;
+    op_impl_func->output_shape_depend_compute = 1UL;
+
+    CustomOpFactory::RegisterCustomOpCreator(
+        "CustomAdd", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 4);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 1);
+  }
+
+  REG_OP(CustomShapeInferAdd)
+      .INPUT(input1, "T")
+      .INPUT(input2, "T")
+      .OUTPUT(output, "T")
+      .OP_END_FACTORY_REG(CustomShapeInferAdd);
+
+  TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_With_ShapeInferOp_Success) {
+    auto op = OperatorFactory::CreateOperator("test1", "CustomShapeInferAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    const GeShape input_shape({2, 3});
+    GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    input_desc.SetOriginShape(input_shape);
+    input_desc.SetOriginFormat(Format::FORMAT_NCHW);
+    input_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0U, input_desc);
+    op_desc->UpdateInputDesc(1U, input_desc);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_INT64);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 3);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 2);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(1), 3);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(2), 16);
+  }
+
+  TEST_F(ShapeInferenceUT, CustomOpInferShapeOnCompile_Success) {
+    auto op = OperatorFactory::CreateOperator("test_shape", "CustomShapeInferAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    const GeShape input_shape({2, 3});
+    GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    input_desc.SetOriginShape(input_shape);
+    input_desc.SetOriginFormat(Format::FORMAT_NCHW);
+    input_desc.SetOriginDataType(DT_FLOAT16);
+    ASSERT_EQ(op_desc->UpdateInputDesc(0U, input_desc), GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->UpdateInputDesc(1U, input_desc), GRAPH_SUCCESS);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+
+    const auto custom_op_infer_shape_func = OperatorFactoryImpl::GetCustomOpInferShapeFunc();
+    ASSERT_NE(custom_op_infer_shape_func, nullptr);
+    auto *shape_infer_op = dynamic_cast<ShapeInferOp *>(CustomOpFactory::CreateOrGetCustomOp("CustomShapeInferAdd"));
+    ASSERT_NE(shape_infer_op, nullptr);
+
+    const auto status = custom_op_infer_shape_func(shape_infer_op, op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDims(), std::vector<int64_t>({2, 3, 16}));
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetOriginShape().GetDims(), std::vector<int64_t>({2, 3, 16}));
+  }
+
+  TEST_F(ShapeInferenceUT, CustomOpInferDataTypeOnCompile_Success) {
+    auto op = OperatorFactory::CreateOperator("test_dtype", "CustomShapeInferAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    const GeShape input_shape({2, 3});
+    GeTensorDesc input_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    input_desc.SetOriginShape(input_shape);
+    input_desc.SetOriginFormat(Format::FORMAT_NCHW);
+    input_desc.SetOriginDataType(DT_FLOAT16);
+    ASSERT_EQ(op_desc->UpdateInputDesc(0U, input_desc), GRAPH_SUCCESS);
+    ASSERT_EQ(op_desc->UpdateInputDesc(1U, input_desc), GRAPH_SUCCESS);
+
+    const auto custom_op_infer_datatype_func = OperatorFactoryImpl::GetCustomOpInferDataTypeFunc();
+    ASSERT_NE(custom_op_infer_datatype_func, nullptr);
+    auto *shape_infer_op = dynamic_cast<ShapeInferOp *>(CustomOpFactory::CreateOrGetCustomOp("CustomShapeInferAdd"));
+    ASSERT_NE(shape_infer_op, nullptr);
+
+    const auto status = custom_op_infer_datatype_func(shape_infer_op, op_desc);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_INT64);
+    EXPECT_EQ(op_desc->GetOutputDesc(0U).GetOriginDataType(), DT_INT64);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_Without_InferShape_Success) {
+    auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
+    (void)op_impl_func;
+    CustomOpFactory::RegisterCustomOpCreator(
+        "CustomAdd", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+
+    const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    ASSERT_NE(call_infer_data_type, nullptr);
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    ASSERT_NE(call_infer_shape_range, nullptr);
+
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    // 走shape为-2
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_UNDEFINED);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 0);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), -2);
+  }
+
+  TEST_F(ShapeInferenceUT, CallInferFunc_CustomOp_Without_InferShape_with_origin_shape_Success) {
+    auto op = OperatorFactory::CreateOperator("test1", "CustomAdd");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+    GeShape shape({1, 1, 1, 1});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    std::vector<std::pair<int64_t, int64_t>> range = {{0, 10000}};
+    tensor_desc.SetOriginShapeRange(range);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+    op_desc->UpdateInputDesc(1, tensor_desc);
+    op_desc->UpdateOutputDesc(0, tensor_desc);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(true);
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("CustomAdd");
+    (void)op_impl_func;
+    CustomOpFactory::RegisterCustomOpCreator(
+        "CustomAdd", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<MyCustomOp>(); });
+
+    const auto call_infer_data_type = OperatorFactoryImpl::GetInferDataTypeFunc();
+    const auto call_infer_shape_v2 = OperatorFactoryImpl::GetInferShapeV2Func();
+
+    const auto call_infer_shape_range = OperatorFactoryImpl::GetInferShapeRangeFunc();
+    ASSERT_NE(call_infer_data_type, nullptr);
+    ASSERT_NE(call_infer_shape_v2, nullptr);
+    ASSERT_NE(call_infer_shape_range, nullptr);
+
+    auto status = OpDescUtilsEx::CallInferFunc(op_desc, op);
+    ASSERT_EQ(status, GRAPH_SUCCESS);
+    // 走shape为-2
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetDataType(), DT_FLOAT16);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDimNum(), 4);
+    ASSERT_EQ(op_desc->GetOutputDesc(0U).GetShape().GetDim(0), 1);
+  }
+
+  // 测试算子，用于 IsInferShapeV2Registered 测试
+  REG_OP(TestIsInferShapeV2Registered)
+      .INPUT(input1, "T")
+      .OUTPUT(output, "T")
+      .OP_END_FACTORY_REG(TestIsInferShapeV2Registered);
+
+  // 测试算子，用于 rule 场景
+  REG_OP(TestRuleOp)
+      .DYNAMIC_INPUT(x, TensorType::ALL())
+      .DYNAMIC_OUTPUT(y, TensorType::ALL())
+      .OP_END_FACTORY_REG(TestRuleOp);
+
+  // 测试用例：算子注册了 infer_shape 函数，返回 true
+  TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferShapeFunc_ReturnTrue) {
+    auto op = OperatorFactory::CreateOperator("test1", "TestIsInferShapeV2Registered");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+
+    GeShape shape({1, 2, 3});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+
+    const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+      const auto input_shape = context->GetInputShape(0U);
+      auto output = context->GetOutputShape(0);
+      for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
+        output->AppendDim(input_shape->GetDim(dim));
+      }
+      output->SetDimNum(input_shape->GetDimNum());
+      return GRAPH_SUCCESS;
+    };
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
+    op_impl_func->infer_shape = infer_shape_func;
+
+    const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+    ASSERT_NE(is_registered_func, nullptr);
+
+    bool is_registered = is_registered_func(op_desc);
+    EXPECT_TRUE(is_registered);
+  }
+
+  // 测试用例：算子没有 infer_shape 函数但有 ShapeInferenceRule，返回 true
+  TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithInferenceRule_ReturnTrue) {
+    auto op = OperatorFactory::CreateOperator("test2", "TestRuleOp");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+
+    // 设置输入输出
+    GeShape input_shape({32, 64});
+    GeTensorDesc input_tensor_desc(input_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    input_tensor_desc.SetOriginShape(input_shape);
+    input_tensor_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc("x", input_tensor_desc);
+
+    GeShape output_shape({32, 64});
+    GeTensorDesc output_tensor_desc(output_shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    output_tensor_desc.SetOriginShape(output_shape);
+    output_tensor_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateOutputDesc("y", output_tensor_desc);
+
+    // 设置 inference rule
+    nlohmann::json rule_json;
+    rule_json["shape"]["inputs"] = {{"s0", "s1"}};
+    rule_json["shape"]["outputs"] = {{"s0", "s1"}};
+    std::string rule_str = rule_json.dump();
+    ge::AttrUtils::SetStr(op_desc, "_inference_rule", rule_str);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+    ASSERT_NE(is_registered_func, nullptr);
+
+    bool is_registered = is_registered_func(op_desc);
+    EXPECT_TRUE(is_registered);
+  }
+
+  // 测试用例：算子既没有 infer_shape 函数也没有 ShapeInferenceRule，返回 false
+  TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_WithoutInferShapeAndRule_ReturnFalse) {
+    auto op = OperatorFactory::CreateOperator("test3", "TestIsInferShapeV2Registered");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+
+    GeShape shape({1, 2, 3});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+
+    gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
+    auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+    ASSERT_NE(space_registry, nullptr);
+    auto op_impl_func = space_registry->CreateOrGetOpImpl("TestIsInferShapeV2Registered");
+    op_impl_func->infer_shape = nullptr;  // 没有注册 infer_shape 函数
+
+    const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+    ASSERT_NE(is_registered_func, nullptr);
+
+    bool is_registered = is_registered_func(op_desc);
+    EXPECT_FALSE(is_registered);
+  }
+
+  // 测试用例：space_registry 为 null，返回 false
+  TEST_F(ShapeInferenceUT, IsInferShapeV2Registered_SpaceRegistryNull_ReturnFalse) {
+    auto op = OperatorFactory::CreateOperator("test4", "TestIsInferShapeV2Registered");
+    auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+    ASSERT_NE(op_desc, nullptr);
+
+    GeShape shape({1, 2, 3});
+    GeTensorDesc tensor_desc(shape, Format::FORMAT_NCHW, DT_FLOAT16);
+    tensor_desc.SetOriginShape(shape);
+    tensor_desc.SetOriginDataType(DT_FLOAT16);
+    op_desc->UpdateInputDesc(0, tensor_desc);
+
+    // 设置 space_registry 为 null
+    gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
+
+    const auto is_registered_func = OperatorFactoryImpl::GetIsInferShapeV2RegisteredFunc();
+    ASSERT_NE(is_registered_func, nullptr);
+
+    bool is_registered = is_registered_func(op_desc);
+    EXPECT_FALSE(is_registered);
+  }
 }  // namespace gert

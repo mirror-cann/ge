@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,7 @@ class InferValueRangePass : public InferBasePass {
   void CheckInputValueRange(const NodePtr &node, bool &has_unknown_value_range, bool &has_zero_in_value_range) const;
   graphStatus GenerateWorstValueRange(const NodePtr &node) const;
   template <typename T>
-  graphStatus ConstructData(const GeTensorDesc &tensor_desc, bool use_floor_value,
-                            const GeTensorPtr &output_ptr) const;
+  graphStatus ConstructData(const GeTensorDesc &tensor_desc, bool use_floor_value, const GeTensorPtr &output_ptr) const;
   graphStatus ConstructDataByType(const GeTensorDesc &tensor_desc, bool use_floor_value,
                                   const GeTensorPtr &output_ptr) const;
   std::vector<ConstGeTensorPtr> ConstructInputTensors(const NodePtr &node, bool use_floor_value) const;

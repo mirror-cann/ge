@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -567,7 +567,7 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_success) {
   graph->SetSessionID(session_id);
 
   ge::NodePtr node_var_is = nullptr;
-  
+
   for (ge::NodePtr node : graph->GetDirectNode()) {
     if (node->GetType() == VARISINITIALIZEDOP) {
       graphStatus graph_ret = node->SetOwnerComputeGraph(graph);
@@ -578,7 +578,8 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_success) {
   }
   NodePtr var_node = graph->FindNode("Variable");
   EXPECT_NE(var_node, nullptr);
-  VarManager::Instance(session_id)->AssignVarMem(var_node->GetName(), nullptr, var_node->GetOpDesc()->GetOutputDesc(0), 0);
+  VarManager::Instance(session_id)
+      ->AssignVarMem(var_node->GetName(), nullptr, var_node->GetOpDesc()->GetOutputDesc(0), 0);
 
   VarIsInitializedOpPass var_pass;
   Status ret = var_pass.Run(node_var_is);
@@ -663,7 +664,6 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, change_to_false) {
   VarManagerPool::Instance().Destory();
 }
 
-
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   MakeGraphError(graph);
@@ -683,7 +683,6 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_2) {
   EXPECT_EQ(FAILED, ret);
   VarManagerPool::Instance().Destory();
 }
-
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -728,7 +727,6 @@ TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, run_fail_4) {
   EXPECT_EQ(FAILED, ret);
   VarManagerPool::Instance().Destory();
 }
-
 
 TEST_F(UTEST_graph_passes_var_is_initialized_op_pass, init_before_VarIsInitializedOp) {
   auto graph = BuildGraph3();

@@ -15,8 +15,7 @@
 
 namespace minidag {
 
-int32_t ProfilingParser::FindColumnIndex(const std::vector<std::string> &headers,
-                                          const std::string &column_name) {
+int32_t ProfilingParser::FindColumnIndex(const std::vector<std::string> &headers, const std::string &column_name) {
   for (size_t i = 0; i < headers.size(); ++i) {
     if (headers[i] == column_name) {
       return static_cast<int32_t>(i);
@@ -25,11 +24,8 @@ int32_t ProfilingParser::FindColumnIndex(const std::vector<std::string> &headers
   return -1;
 }
 
-void ProfilingParser::CalculateCoreCounts(const std::string &task_type,
-                                           uint32_t block_num,
-                                           uint32_t mix_block_num,
-                                           size_t &cube_block_num,
-                                           size_t &vec_block_num) {
+void ProfilingParser::CalculateCoreCounts(const std::string &task_type, uint32_t block_num, uint32_t mix_block_num,
+                                          size_t &cube_block_num, size_t &vec_block_num) {
   cube_block_num = 0;
   vec_block_num = 0;
 
@@ -46,9 +42,8 @@ void ProfilingParser::CalculateCoreCounts(const std::string &task_type,
   }
 }
 
-graphStatus ProfilingParser::ParseRow(const std::vector<std::string> &fields,
-                                       const std::vector<int32_t> &col_indices,
-                                       ProfilingData &data) {
+graphStatus ProfilingParser::ParseRow(const std::vector<std::string> &fields, const std::vector<int32_t> &col_indices,
+                                      ProfilingData &data) {
   const int32_t kOpNameIdx = 0;
   const int32_t kTaskTypeIdx = 1;
   const int32_t kDurationIdx = 2;
@@ -87,16 +82,11 @@ graphStatus ProfilingParser::ParseRow(const std::vector<std::string> &fields,
   return graphStatus::SUCCESS;
 }
 
-static const std::vector<std::string> kRequiredColumns = {
-  "Op Name",
-  "Task Type",
-  "Task Duration(us)",
-  "Block Num",
-  "Mix Block Num"
-};
+static const std::vector<std::string> kRequiredColumns = {"Op Name", "Task Type", "Task Duration(us)", "Block Num",
+                                                          "Mix Block Num"};
 
 graphStatus ProfilingParser::Parse(const std::string &csv_path,
-                                    std::unordered_map<std::string, ProfilingData> &profiles) {
+                                   std::unordered_map<std::string, ProfilingData> &profiles) {
   profiles.clear();
 
   std::ifstream file(csv_path);

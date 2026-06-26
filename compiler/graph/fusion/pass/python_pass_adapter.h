@@ -27,16 +27,16 @@ using PythonFusionBasePassHolderCreateFn = void *(*)(const PythonPassDescriptor 
 using PythonFusionBasePassHolderDestroyFn = void (*)(void *holder);
 using PythonFusionBasePassRunFn = Status (*)(const void *holder, GraphPtr &graph, CustomPassContext &pass_context);
 
-using PythonFusionPassGetMatcherConfigFn =
-    Status (*)(const void *holder, std::unique_ptr<PatternMatcherConfig> &matcher_config);
+using PythonFusionPassGetMatcherConfigFn = Status (*)(const void *holder,
+                                                      std::unique_ptr<PatternMatcherConfig> &matcher_config);
 using PythonFusionPassPatternsFn = Status (*)(const void *holder, std::vector<PatternUniqPtr> &patterns);
 using PythonFusionPassMeetRequirementsFn = bool (*)(const void *holder,
-                                                   const std::unique_ptr<MatchResult> &match_result);
-using PythonFusionPassReplacementFn =
-    Status (*)(const void *holder, const std::unique_ptr<MatchResult> &match_result, GraphUniqPtr &replacement_graph);
+                                                    const std::unique_ptr<MatchResult> &match_result);
+using PythonFusionPassReplacementFn = Status (*)(const void *holder, const std::unique_ptr<MatchResult> &match_result,
+                                                 GraphUniqPtr &replacement_graph);
 using PythonDecomposePassMeetRequirementsFn = bool (*)(const void *holder, const GNode &matched_node);
-using PythonDecomposePassReplacementFn =
-    Status (*)(const void *holder, const GNode &matched_node, GraphUniqPtr &replacement_graph);
+using PythonDecomposePassReplacementFn = Status (*)(const void *holder, const GNode &matched_node,
+                                                    GraphUniqPtr &replacement_graph);
 
 struct PythonFusionPassCallbacks {
   PythonFusionBasePassHolderCreateFn create{nullptr};
@@ -148,8 +148,7 @@ class PythonDecomposePassAdapter : public DecomposePass {
 };
 
 FusionBasePass *CreatePythonPassAdapter();
-bool RegisterPythonPass(const PythonPassDescriptor &pass_desc,
-                        const PythonFusionPassCallbacks &callbacks);
+bool RegisterPythonPass(const PythonPassDescriptor &pass_desc, const PythonFusionPassCallbacks &callbacks);
 
 void ClearPythonPassRuntimeRegistry();
 }  // namespace fusion

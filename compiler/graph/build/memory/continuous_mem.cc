@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,8 +70,7 @@ Status GetRealPeerContinuousInputNode(const Node *const node, const int32_t out_
  *  函数入参无论是hcom4/5/6中的哪一个，都要找到a节点，及其输出index
  *  将遍历到的需要连续输入的节点设置为visited，避免重复处理
  */
-Status FindFirstNode(const Node *const node, vector_bit_t &visited, Node *&first_node,
-                     int32_t &out_index) {
+Status FindFirstNode(const Node *const node, vector_bit_t &visited, Node *&first_node, int32_t &out_index) {
   GE_ASSERT_NOTNULL(node);
   auto continuous_in_node = node;
   do {
@@ -99,7 +98,7 @@ Status FindFirstNode(const Node *const node, vector_bit_t &visited, Node *&first
   } while (continuous_in_node != nullptr);
   return SUCCESS;
 }
-}
+}  // namespace
 
 /*
  * 连续输出-连续输入且集中清零场景不复用，其他可以复用
@@ -125,22 +124,22 @@ ContinuousMem::ContinuousMem(const ContinuousMemScenario &scenario) {
 std::vector<std::string> ContinuousMem::ToString() const {
   std::vector<std::string> ret;
   std::stringstream ss0;
-  ss0 << "[ContinuousMem] can_reuse_:" << can_reuse_ << ", use_one_block_:" << use_one_block_ << ", total size:"
-     << total_size_ << ", node outputs num:" << continuous_node_out_.size();
+  ss0 << "[ContinuousMem] can_reuse_:" << can_reuse_ << ", use_one_block_:" << use_one_block_
+      << ", total size:" << total_size_ << ", node outputs num:" << continuous_node_out_.size();
   ret.emplace_back(ss0.str());
 
   for (size_t i = 0U; i < continuous_node_out_.size(); ++i) {
     const auto &node_out = continuous_node_out_.at(i);
     std::stringstream ss;
     ss << "[ContinuousMem] ";
-    ss << node_out.node_ptr_->GetOpDescBarePtr()->GetId() << "(" << node_out.node_ptr_->GetType() << ")[out:"
-       << node_out.index_ << ", size:" << aligned_sizes_.at(i) << "] -> ";
+    ss << node_out.node_ptr_->GetOpDescBarePtr()->GetId() << "(" << node_out.node_ptr_->GetType()
+       << ")[out:" << node_out.index_ << ", size:" << aligned_sizes_.at(i) << "] -> ";
     bool suspend = true;
     for (const auto &peer_in : node_out.node_ptr_->GetOutDataAnchor(node_out.index_)->GetPeerInDataAnchorsPtr()) {
       const auto peer_node = peer_in->GetOwnerNodeBarePtr();
       if (peer_node != nullptr) {
-        ss << peer_node->GetOpDescBarePtr()->GetId() << "(" << peer_node->GetType() << ")[in: "
-           << peer_in->GetIdx() << "] ";
+        ss << peer_node->GetOpDescBarePtr()->GetId() << "(" << peer_node->GetType() << ")[in: " << peer_in->GetIdx()
+           << "] ";
         suspend = false;
       }
     }
@@ -159,9 +158,9 @@ Status ContinuousMem::PushBackNodeOut(const Node *const node, int32_t out_index)
   const auto tensor_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(out_index));
   GE_ASSERT_NOTNULL(tensor_desc);
   int64_t size = 0;
-  GE_ASSERT_SUCCESS(MemReuseUtils::GetTensorSize(*tensor_desc, size,
-      MemReuseUtils::IsNeedSplitSize(node, static_cast<uint32_t>(out_index))),
-      "node: %s, out_index: %u, get tensor size failed.", node->GetNamePtr(), out_index);
+  GE_ASSERT_SUCCESS(MemReuseUtils::GetTensorSize(
+                        *tensor_desc, size, MemReuseUtils::IsNeedSplitSize(node, static_cast<uint32_t>(out_index))),
+                    "node: %s, out_index: %u, get tensor size failed.", node->GetNamePtr(), out_index);
   continuous_node_out_.emplace_back(NodeIndexIO{node, static_cast<uint32_t>(out_index), kOut});
   auto mem_align_size = static_cast<size_t>(size);
   MemReuseUtils::AlignMemOffset(mem_align_size);
@@ -191,8 +190,10 @@ Status ContinuousMemMng::Init(const ComputeGraphPtr &graph) {
     continuous_mem_.emplace_back(ContinuousMem(scenario));
     Node *first_node = nullptr;
     int32_t out_index = 0U;
-    GE_ASSERT_SUCCESS(FindFirstNode(node, visited, first_node, out_index), "save node output in order failed. "
-                      "find first node failed, node: %s", node->GetNamePtr());
+    GE_ASSERT_SUCCESS(FindFirstNode(node, visited, first_node, out_index),
+                      "save node output in order failed. "
+                      "find first node failed, node: %s",
+                      node->GetNamePtr());
     if (IsVisited(visited, first_node)) {
       continue;
     }
@@ -200,8 +201,10 @@ Status ContinuousMemMng::Init(const ComputeGraphPtr &graph) {
     GELOGI("[ContinuousMem] find first node: %s(%s, %lld), out_index: %d", first_node->GetNamePtr(),
            first_node->GetTypePtr(), first_node->GetOpDescBarePtr()->GetId(), out_index);
     GE_ASSERT_NOTNULL(first_node);
-    GE_ASSERT_SUCCESS(SaveNodeOutInOrder(first_node, out_index, visited), "save node output in order failed. node: %s,"
-                      " first_node:%s out_index: %d", node->GetNamePtr(), first_node->GetNamePtr(), out_index);
+    GE_ASSERT_SUCCESS(SaveNodeOutInOrder(first_node, out_index, visited),
+                      "save node output in order failed. node: %s,"
+                      " first_node:%s out_index: %d",
+                      node->GetNamePtr(), first_node->GetNamePtr(), out_index);
     if (IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
       const auto logs = continuous_mem_.back().ToString();
       for (const auto &log : logs) {
@@ -248,27 +251,33 @@ Status ContinuousMemMng::SaveNodeOutInOrder(Node *const first_node, int32_t out_
   GE_ASSERT_NOTNULL(first_node);
   Node *cur_node = first_node;
   auto cur_index = out_index;
-  while(cur_node != nullptr) {
+  while (cur_node != nullptr) {
     OutDataAnchor *last_out_anchor = nullptr;
     if (MemLayoutConflictUtil::IsContinuousOutput(cur_node)) {
       const auto all_out_anchor = cur_node->GetAllOutDataAnchorsPtr();
       for (auto i = static_cast<size_t>(cur_index); i < all_out_anchor.size(); ++i) {
-        GE_ASSERT_SUCCESS(SaveOneOut(cur_node, i), "save one output failed, cur_node: %s, i: %d, first_node: %s, "
-            "out_index: %d", cur_node->GetNamePtr(), i, first_node->GetNamePtr(), out_index);
+        GE_ASSERT_SUCCESS(SaveOneOut(cur_node, i),
+                          "save one output failed, cur_node: %s, i: %d, first_node: %s, "
+                          "out_index: %d",
+                          cur_node->GetNamePtr(), i, first_node->GetNamePtr(), out_index);
       }
       last_out_anchor = all_out_anchor.back();
       GE_ASSERT_NOTNULL(last_out_anchor);
     } else {
-      GE_ASSERT_SUCCESS(SaveOneOut(cur_node, cur_index), "save one output failed, cur_node: %s, cur_index: %d, "
-          "first_node: %s, out_index: %d", cur_node->GetNamePtr(), cur_index, first_node->GetNamePtr(), out_index);
+      GE_ASSERT_SUCCESS(SaveOneOut(cur_node, cur_index),
+                        "save one output failed, cur_node: %s, cur_index: %d, "
+                        "first_node: %s, out_index: %d",
+                        cur_node->GetNamePtr(), cur_index, first_node->GetNamePtr(), out_index);
       last_out_anchor = cur_node->GetOutDataAnchor(cur_index).get();
-      GE_ASSERT_NOTNULL(last_out_anchor, "cur_node: %s, cur_index: %d, first_node: %s,"
-          " out_index: %d", cur_node->GetNamePtr(), cur_index, first_node->GetNamePtr(), out_index);
+      GE_ASSERT_NOTNULL(last_out_anchor,
+                        "cur_node: %s, cur_index: %d, first_node: %s,"
+                        " out_index: %d",
+                        cur_node->GetNamePtr(), cur_index, first_node->GetNamePtr(), out_index);
     }
     Node *continuous_in_node = nullptr;
     int32_t in_index = 0;
-    GE_ASSERT_SUCCESS(GetRealPeerContinuousInputNode(cur_node, last_out_anchor->GetIdx(), continuous_in_node,
-                                                     in_index));
+    GE_ASSERT_SUCCESS(
+        GetRealPeerContinuousInputNode(cur_node, last_out_anchor->GetIdx(), continuous_in_node, in_index));
     if (continuous_in_node == nullptr) {
       break;
     }
@@ -283,8 +292,10 @@ Status ContinuousMemMng::SaveNodeOutInOrder(Node *const first_node, int32_t out_
         cur_node = src_node;
         cur_index = src_index;
       } else {
-        GE_ASSERT_SUCCESS(SaveOneOut(src_node, src_index), "save one output failed, src_node: %s, src_index: %d, "
-            "first_node: %s, out_index: %d", src_node->GetNamePtr(), src_index, first_node->GetNamePtr(), out_index);
+        GE_ASSERT_SUCCESS(SaveOneOut(src_node, src_index),
+                          "save one output failed, src_node: %s, src_index: %d, "
+                          "first_node: %s, out_index: %d",
+                          src_node->GetNamePtr(), src_index, first_node->GetNamePtr(), out_index);
       }
     }
   }
@@ -297,7 +308,7 @@ Status ContinuousMemMng::SaveOneOut(const ge::Node *const node, int32_t out_inde
   GE_ASSERT_NOTNULL(out_anchor);
   GE_ASSERT_TRUE(node_out_to_index_.find(out_anchor.get()) == node_out_to_index_.end(),
                  "node: %s, index: %u is already saved.", node->GetNamePtr(), out_index);
-  node_out_to_index_[out_anchor.get()] = continuous_mem_.size() - 1U; // continuous_mem_必不为空
+  node_out_to_index_[out_anchor.get()] = continuous_mem_.size() - 1U;  // continuous_mem_必不为空
   GE_ASSERT_SUCCESS(continuous_mem_.back().PushBackNodeOut(node, out_index), "node: %s, out_index: %d",
                     node->GetNamePtr(), out_index);
   return SUCCESS;

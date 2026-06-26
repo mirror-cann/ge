@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,20 +47,19 @@ int64_t AlignOutputMemSize(const int64_t mem_size) {
 }
 using CalcOpParamCall = std::function<graphStatus(const Node &node)>;
 std::map<std::string, CalcOpParamCall> calc_op_param_call = {
-  {PHONYCONCAT, GeLocalOpsKernelBuilderCalcOpParam::CalcPhonyConcatNodeOffset},
-  {PHONYSPLIT, GeLocalOpsKernelBuilderCalcOpParam::CalcPhonySplitNodeOffset},
-  {"Bitcast", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"Flatten", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"FlattenV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"ExpandDims", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"ReFormat", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"Squeeze", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"Unsqueeze", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"SqueezeV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"UnsqueezeV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"SqueezeV3", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
-  {"UnsqueezeV3", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput}
-};
+    {PHONYCONCAT, GeLocalOpsKernelBuilderCalcOpParam::CalcPhonyConcatNodeOffset},
+    {PHONYSPLIT, GeLocalOpsKernelBuilderCalcOpParam::CalcPhonySplitNodeOffset},
+    {"Bitcast", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"Flatten", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"FlattenV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"ExpandDims", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"ReFormat", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"Squeeze", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"Unsqueeze", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"SqueezeV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"UnsqueezeV2", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"SqueezeV3", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput},
+    {"UnsqueezeV3", GeLocalOpsKernelBuilderCalcOpParam::CalcNodeOffsetByReuseInput}};
 }  // namespace
 
 GeLocalOpsKernelBuilder::~GeLocalOpsKernelBuilder() {
@@ -176,8 +175,8 @@ Status GeLocalOpsKernelBuilder::CalcOpRunningParam(Node &node) {
     graph_status = CalcMemSizeByNodeType(op_desc, output_tensor, output_mem_size, node_type);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "calc op[%s:%s] out[%zu] mem size failed, format=%s, data_type=%s, error=%u.",
-                        node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-                        TypeUtils::DataTypeToSerialString(data_type).c_str(), graph_status);
+                           node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+                           TypeUtils::DataTypeToSerialString(data_type).c_str(), graph_status);
       GELOGE(FAILED, "[Calc][MemSize] for op[%s:%s] out[%zu] failed, format=%s, data_type=%s, error=%u.",
              node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
              TypeUtils::DataTypeToSerialString(data_type).c_str(), graph_status);
@@ -185,11 +184,13 @@ Status GeLocalOpsKernelBuilder::CalcOpRunningParam(Node &node) {
     }
 
     if (output_mem_size < 0) {
-      REPORT_INNER_ERR_MSG("E19999", "Calc op[%s:%s] out[%zu] mem size is negative(not support),"
-                         " format=%s, data_type=%s, mem_size=%ld.",
-                         node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-                         TypeUtils::DataTypeToSerialString(data_type).c_str(), output_mem_size);
-      GELOGE(FAILED, "[Calc][MemSize] op[%s:%s] out[%zu] mem size is negative(not support),"
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Calc op[%s:%s] out[%zu] mem size is negative(not support),"
+                           " format=%s, data_type=%s, mem_size=%ld.",
+                           node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+                           TypeUtils::DataTypeToSerialString(data_type).c_str(), output_mem_size);
+      GELOGE(FAILED,
+             "[Calc][MemSize] op[%s:%s] out[%zu] mem size is negative(not support),"
              " format=%s, data_type=%s, mem_size=%ld.",
              node_name.c_str(), node_type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
              TypeUtils::DataTypeToSerialString(data_type).c_str(), output_mem_size);
@@ -217,8 +218,8 @@ Status GeLocalOpsKernelBuilder::CalcOpRunningParam(Node &node) {
 
   if (calc_op_param_call.find(node_type) != calc_op_param_call.end()) {
     GE_ASSERT_SUCCESS(calc_op_param_call[node_type](node),
-                      "[Call]calc_op_param_call faild, node name: %s, node type: %s.",
-                      node_name.c_str(), node_type.c_str());
+                      "[Call]calc_op_param_call failed, node name: %s, node type: %s.", node_name.c_str(),
+                      node_type.c_str());
   }
 
   GELOGD("Calc op[%s:%s] running param success.", node_name.c_str(), node_type.c_str());
@@ -234,9 +235,8 @@ Status GeLocalOpsKernelBuilder::GenerateTask(const Node &node, RunContext &conte
   bool is_shape_unknown = false;
   if (NodeUtils::GetNodeUnknownShapeStatus(node, is_shape_unknown) == GRAPH_SUCCESS) {
     if (is_shape_unknown) {
-      (void) ge::AttrUtils::SetBool(node.GetOpDesc(), ge::ATTR_NAME_NOTASK, true);
-      GELOGI("op:%s is unknown shape, does not need to generate task",
-             node.GetName().c_str());
+      (void)ge::AttrUtils::SetBool(node.GetOpDesc(), ge::ATTR_NAME_NOTASK, true);
+      GELOGI("op:%s is unknown shape, does not need to generate task", node.GetName().c_str());
       return SUCCESS;
     }
   }

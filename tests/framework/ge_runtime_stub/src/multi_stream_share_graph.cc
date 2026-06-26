@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,10 +36,10 @@ namespace ge {
                       └────────┘
  */
 Graph MultiStreamShareGraph::TwoNodeGraphWithUserStreamLabel() {
-    DEF_GRAPH(g1) {
-        CHAIN(NODE("data1", "Data")->NODE("trans1", "TransData")->NODE("NetOutput", "NetOutput"));
-        CHAIN(NODE("data1", "Data")->EDGE(0,0)->NODE("cast", "Cast")->NODE("NetOutput", "NetOutput"));
-    };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", "Data")->NODE("trans1", "TransData")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")->EDGE(0, 0)->NODE("cast", "Cast")->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   AttrUtils::SetInt(compute_graph->FindNode("data1")->GetOpDesc(), "index", 0);
@@ -48,9 +48,10 @@ Graph MultiStreamShareGraph::TwoNodeGraphWithUserStreamLabel() {
   auto net_output = compute_graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"trans1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
-  gert::AddCompileResult(trans1, true,
-                         "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                         "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  gert::AddCompileResult(
+      trans1, true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   auto cast = compute_graph->FindNode("cast");
   cast->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT16);
   cast->GetOpDesc()->MutableInputDesc(0)->SetOriginDataType(DT_FLOAT16);
@@ -59,4 +60,3 @@ Graph MultiStreamShareGraph::TwoNodeGraphWithUserStreamLabel() {
   return graph;
 }
 }  // namespace ge
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,11 @@
 
 namespace ge {
 namespace {
-static const std::unordered_map<std::string, std::string> kTypeToGroup = {
-    {kCastType, kCastType}, {kLoadType, kLoadType}, {kGatherType, kGatherType}, {kScalarType, kScalarType}, {kStoreType, kStoreType}};
+static const std::unordered_map<std::string, std::string> kTypeToGroup = {{kCastType, kCastType},
+                                                                          {kLoadType, kLoadType},
+                                                                          {kGatherType, kGatherType},
+                                                                          {kScalarType, kScalarType},
+                                                                          {kStoreType, kStoreType}};
 
 static const std::unordered_map<std::string, std::string> kBlackList1 = {
     {kDataType, kDataType},           {kLoadType, kLoadType},     {kScalarType, kScalarType},
@@ -49,7 +52,7 @@ bool IsUltraLowToLowPrecision(DataType peer_output_dtype, DataType output_dtype)
   return IsUltraLowPrecisionDataType(peer_output_dtype) && IsLowPrecisionDataType(output_dtype);
 }
 
-[[maybe_unused]]bool IsLowToUltraLowPrecision(DataType peer_output_dtype, DataType output_dtype) {
+[[maybe_unused]] bool IsLowToUltraLowPrecision(DataType peer_output_dtype, DataType output_dtype) {
   return IsLowPrecisionDataType(peer_output_dtype) && IsUltraLowPrecisionDataType(output_dtype);
 }
 
@@ -98,7 +101,7 @@ Status IsNeedInsertCastBeforeOther(const AscGraph &asc_graph, const NodePtr &oth
   std::vector<NodePtr> peer_out_nodes;
   GE_ASSERT_SUCCESS(asc_adapt::GetPeerOutNodes(other_node, peer_out_nodes));
   GeTensorDescPtr peer_output_tensor_desc;
-  for (auto idx = 0U ; idx < peer_out_nodes.size(); idx++) {
+  for (auto idx = 0U; idx < peer_out_nodes.size(); idx++) {
     auto peer_out_node = peer_out_nodes[idx];
     GE_ASSERT_SUCCESS(asc_adapt::GetOutputTensorDesc(peer_out_node, peer_output_tensor_desc));
     if (peer_out_node->GetType() == kCastType || peer_out_node->GetType() == kLoadType ||
@@ -147,7 +150,8 @@ NodePtr CreateCastNode(AscGraph &asc_graph, const NodePtr &node) {
   return af::AscGraphAddAscirNodeByType(asc_graph, kCastType.c_str(), name.c_str(), 0U, 0U);
 }
 
-Status ConstructAndInsertCastNode(AscGraph &asc_graph, const NodePtr &peer_in_node, NodePtr &c_node, int32_t input_idx) {
+Status ConstructAndInsertCastNode(AscGraph &asc_graph, const NodePtr &peer_in_node, NodePtr &c_node,
+                                  int32_t input_idx) {
   c_node = CreateCastNode(asc_graph, peer_in_node);
   GE_ASSERT_NOTNULL(c_node);
   GE_ASSERT_SUCCESS(c_node->SetOwnerComputeGraph(AscGraphUtils::GetComputeGraph(asc_graph)));
@@ -198,8 +202,8 @@ Status UpdateCastNodeTensorInfo(const NodePtr &c_node, const NodePtr &node, cons
     const auto next_output_tensor_desc = next_node_opdesc->MutableOutputDesc(0);
     GE_ASSERT_NOTNULL(next_output_tensor_desc);
     c_output_tensor_desc->SetDataType(IsLowPrecisionDataType(next_output_tensor_desc->GetDataType())
-                                      ? next_output_tensor_desc->GetDataType()
-                                      : DT_FLOAT16);
+                                          ? next_output_tensor_desc->GetDataType()
+                                          : DT_FLOAT16);
   }
 
   const auto output_attr = output_tensor_desc->GetAttrsGroup<AscTensorAttr>();
@@ -359,8 +363,9 @@ Status CastNodeProc(AscGraph &asc_graph, const NodePtr &node) {
     return SUCCESS;
   }
 
-  // 1、判断是否 fp16/bf16非load节点(非load节点后续流程会升为p32)或fp32的load 降 int4/int8/uint8，需要在前面插入 fp32 降 fp16/bf16 的cast节点
-  // 2、预留判断是否已支持跨精度cast（fp32不支持直接降 int4/int8/uint8），支持了跨精度则不需要再多插一个cast
+  // 1、判断是否 fp16/bf16非load节点(非load节点后续流程会升为p32)或fp32的load 降 int4/int8/uint8，需要在前面插入 fp32 降
+  // fp16/bf16 的cast节点 2、预留判断是否已支持跨精度cast（fp32不支持直接降
+  // int4/int8/uint8），支持了跨精度则不需要再多插一个cast
   // 3、降精度cast前面是load或cast，且load或cast是fp16/bf16，不需要插cast处理
   if (IsFloatToUltraLowNeedInsertCast(peer_out_node, peer_output_dtype, output_dtype)) {
     GE_ASSERT_SUCCESS(InsertCastToDecreasePrecision(asc_graph, node, true));
@@ -390,7 +395,8 @@ Status CastNodeProc(AscGraph &asc_graph, const NodePtr &node) {
   return SUCCESS;
 }
 
-// 临时接口，使用node type来判断是否非ComputeElewise类型,ascir支持构建node的时候配置node_attr->api.compute_type后改用compute_type
+// 临时接口，使用node
+// type来判断是否非ComputeElewise类型,ascir支持构建node的时候配置node_attr->api.compute_type后改用compute_type
 bool IsInBlackList1(const NodePtr &node) {
   auto node_type = node->GetType();
   auto it = kBlackList1.find(node_type);
@@ -497,7 +503,7 @@ Status ImprovePrecision(AscGraph &asc_graph, [[maybe_unused]] const NodePtr &asc
   // 后端不支持concat后有cast的情况，当前分析不出这是concat特例还是搬运类算子的普遍情况，暂时先跳过concat，如果是普遍情况还需要和后端Scheduler讨论处理方案
   const auto asc_node_attr = BackendUtils::GetNodeAutoFuseAttr(asc_node);
   GE_ASSERT_NOTNULL(asc_node_attr);
-  if (asc_node_attr->HasFuseType(loop::FuseType::kConcat)||asc_node_attr->HasFuseType(loop::FuseType::kSplit)) {
+  if (asc_node_attr->HasFuseType(loop::FuseType::kConcat) || asc_node_attr->HasFuseType(loop::FuseType::kSplit)) {
     GELOGI("graph %s fuse type is concat, don't improve precision.", asc_graph.GetName().c_str());
     return SUCCESS;
   }
@@ -508,7 +514,7 @@ Status ImprovePrecision(AscGraph &asc_graph, [[maybe_unused]] const NodePtr &asc
 
   bool is_in_blacklist = true;
   GE_ASSERT_SUCCESS(IsAllNodesInBlacklist(asc_graph, is_in_blacklist));
-  if(is_in_blacklist) {
+  if (is_in_blacklist) {
     GELOGI("graph %s all nodes are in blacklist, don't improve precision.", asc_graph.GetName().c_str());
     return SUCCESS;
   }

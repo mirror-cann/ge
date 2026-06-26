@@ -100,4 +100,3 @@ aclmdlGetInputDynamicDims(model.modelDesc, -1, dims, gearCount);</pre>
 -   第2档：
     -   **[aclmdlIODims](aclmdlIODims.md)**结构体内dimCount：8，表示所有输入tensor的维度数量之和
     -   **[aclmdlIODims](aclmdlIODims.md)**结构体内的dims：“1,1,40,80,1,60,4,4”，表示data\(1,1,40,80\)+label\(1,60\)+mask\(4,4\)
-

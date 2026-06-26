@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,8 @@ ResourceGuardPtr MultiThreadExecutionDataBuilder::Build(GraphNode &graph_nodes) 
   auto execution_data_holder = ge::MakeUnique<uint8_t[]>(sizeof(MultiThreadExecutionData));
   GE_ASSERT_NOTNULL(execution_data_holder);
   auto execution_data = reinterpret_cast<MultiThreadExecutionData *>(execution_data_holder.get());
-  base_ed_builder_.ReOrderByPriority(false).Build(&(execution_data->topo_ed.base_ed),
-                                                  resource_guard.get(), graph_nodes);
+  base_ed_builder_.ReOrderByPriority(false).Build(&(execution_data->topo_ed.base_ed), resource_guard.get(),
+                                                  graph_nodes);
 
   GE_ASSERT_SUCCESS(graph_nodes.EnsureNodeExeInOrder(GetExecutorBuilder().GetExeGraph().get()));
 
@@ -61,7 +61,7 @@ ResourceGuardPtr MultiThreadExecutionDataBuilder::Build(GraphNode &graph_nodes) 
     cfg.AddWorkers(1, ExecTaskType::LAUNCH, TaskThreadMode::URGENT, 1);
     thread_num--;
   }
-  cfg.AddWorkers(1, ExecTaskType::NORMAL, TaskThreadMode::URGENT, thread_num - 1); // one for memory worker
+  cfg.AddWorkers(1, ExecTaskType::NORMAL, TaskThreadMode::URGENT, thread_num - 1);  // one for memory worker
 
   execution_data->scheduler = resource_guard->ResetTaskScheduler(
       std::unique_ptr<TaskScheduler>(TaskSchedulerFactory::GetInstance().Create(cfg)));

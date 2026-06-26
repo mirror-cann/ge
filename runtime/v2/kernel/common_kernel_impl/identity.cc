@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,8 +40,7 @@ ge::graphStatus CreateIdentityShapeOutputs(const ge::FastNode *node, KernelConte
     // 该kernel是为while子图的NetOutput算子插入identity，需要使用输入desc，netOutput没有输出
     auto input_desc = extend_context->GetInputDesc(i);
     GE_ASSERT_NOTNULL(input_desc);
-    auto shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-        input_desc->GetFormat(), input_desc->GetDataType());
+    auto shape_tensor = new (std::nothrow) Tensor(StorageShape(), input_desc->GetFormat(), input_desc->GetDataType());
     GE_ASSERT_NOTNULL(shape_tensor);
     chain->SetWithDefaultDeleter(shape_tensor);
   }
@@ -93,8 +92,7 @@ ge::graphStatus CreateIdentityShapeAndAddrOutputs(const ge::FastNode *node, Kern
     // 该kernel是为while子图的NetOutput算子插入identity，需要使用输入desc，netOutput没有输出
     auto input_desc = extend_context->GetInputDesc(i);
     GE_ASSERT_NOTNULL(input_desc);
-    auto shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-        input_desc->GetFormat(), input_desc->GetDataType());
+    auto shape_tensor = new (std::nothrow) Tensor(StorageShape(), input_desc->GetFormat(), input_desc->GetDataType());
     GE_ASSERT_NOTNULL(shape_tensor);
     chain->SetWithDefaultDeleter(shape_tensor);
   }

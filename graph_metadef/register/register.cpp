@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,16 +42,23 @@ const std::string kFuncNameKey = "name";
 
 struct DynamicInfo {
   DynamicInfo(const DynamicType dynamic_type, const uint32_t index, const uint32_t num)
-      : type(dynamic_type),
-        inset_index(index),
-        tensor_num(num) {}
+      : type(dynamic_type), inset_index(index), tensor_num(num) {}
   explicit DynamicInfo() : DynamicInfo(kInvalid, 0U, 0U) {}
 
-  DynamicType GetType() const {return type;}
-  uint32_t GetInsetIndex() const {return inset_index;}
-  uint32_t GetTensorNum() const {return tensor_num;}
-  void SetInsetIndex(const uint32_t insetIndex) {inset_index = insetIndex;}
-private:
+  DynamicType GetType() const {
+    return type;
+  }
+  uint32_t GetInsetIndex() const {
+    return inset_index;
+  }
+  uint32_t GetTensorNum() const {
+    return tensor_num;
+  }
+  void SetInsetIndex(const uint32_t insetIndex) {
+    inset_index = insetIndex;
+  }
+
+ private:
   DynamicType type;
   uint32_t inset_index;
   uint32_t tensor_num;
@@ -62,10 +69,10 @@ std::set<std::string> GetSubgraphAttrNames(const ge::Operator &op) {
     return std::set<std::string>();
   }
   std::vector<ge::AscendString> subgraph_names;
-  (void) op.GetSubgraphNames(subgraph_names);
+  (void)op.GetSubgraphNames(subgraph_names);
   std::vector<std::string> subgraph_name_strings;
   for (const auto &subgraph_name : subgraph_names) {
-    (void) subgraph_name_strings.emplace_back(subgraph_name.GetString());
+    (void)subgraph_name_strings.emplace_back(subgraph_name.GetString());
   }
   return std::set<std::string>(subgraph_name_strings.begin(), subgraph_name_strings.end());
 }
@@ -103,12 +110,11 @@ std::set<std::string> GetSubgraphAttrNames(const ge::Operator &op) {
 /// \return
 Status AutoMappingFunction(const std::pair<std::string, domi::tensorflow::AttrValue> &func_attr,
                            std::shared_ptr<ge::OpDesc> &op_desc) {
- if (func_attr.second.value_case() == domi::tensorflow::AttrValue::kFunc) {
+  if (func_attr.second.value_case() == domi::tensorflow::AttrValue::kFunc) {
     const auto &func_signature = func_attr.second.func().name();
     if (ge::OpDescUtils::SetSubgraphInstanceName(func_attr.first, func_signature, op_desc) != ge::GRAPH_SUCCESS) {
-      GE_LOGE("Failed to set subgraph instance %s for node %s type %s, instance name %s",
-              func_attr.first.c_str(), op_desc->GetName().c_str(),
-              op_desc->GetType().c_str(), func_signature.c_str());
+      GE_LOGE("Failed to set subgraph instance %s for node %s type %s, instance name %s", func_attr.first.c_str(),
+              op_desc->GetName().c_str(), op_desc->GetType().c_str(), func_signature.c_str());
       return FAILED;
     }
   } else if (func_attr.second.value_case() == domi::tensorflow::AttrValue::kList) {
@@ -118,15 +124,15 @@ Status AutoMappingFunction(const std::pair<std::string, domi::tensorflow::AttrVa
       const auto subgraph_name = func_attr.first + std::to_string(i++);
       auto ret = op_desc->AddSubgraphName(subgraph_name);
       if (ret != ge::GRAPH_SUCCESS) {
-        GE_LOGE("Failed to add subgraph name %s to node %s type %s",
-                subgraph_name.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        GE_LOGE("Failed to add subgraph name %s to node %s type %s", subgraph_name.c_str(), op_desc->GetName().c_str(),
+                op_desc->GetType().c_str());
         return FAILED;
       }
       ret = ge::OpDescUtils::SetSubgraphInstanceName(subgraph_name, func_signature, op_desc);
       if (ret != ge::GRAPH_SUCCESS) {
         GE_LOGE("Failed to set dynamic subgraph instance %s for node %s type %s, instance name %s",
-                func_attr.first.c_str(), op_desc->GetName().c_str(),
-                op_desc->GetType().c_str(), func_signature.c_str());
+                func_attr.first.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+                func_signature.c_str());
         return FAILED;
       }
     }
@@ -141,22 +147,22 @@ Status CheckDynamicInfo(const vector<DynamicInputOutputInfo> &dynamic_name_attr_
   for (const auto &dynamic_info : dynamic_name_attr_value) {
     if ((dynamic_info.port_name_len == 0) || (dynamic_info.port_name_len > kMaxNameLength) ||
         (dynamic_info.attr_name_len == 0) || (dynamic_info.attr_name_len > kMaxNameLength)) {
-      GELOGE(PARAM_INVALID, "[Check][Param]port_name_len:%ld, attr_name_len:%ld",
-             dynamic_info.port_name_len,  dynamic_info.attr_name_len);
+      GELOGE(PARAM_INVALID, "[Check][Param]port_name_len:%ld, attr_name_len:%ld", dynamic_info.port_name_len,
+             dynamic_info.attr_name_len);
       return PARAM_INVALID;
     }
 
     const int64_t port_name_len = static_cast<int64_t>(strnlen(dynamic_info.port_name, ge::kMaxNameLen));
     if ((dynamic_info.port_name == nullptr) || (port_name_len != dynamic_info.port_name_len)) {
-      GELOGE(PARAM_INVALID, "[Check][Param]port_name:%s, port_name_len:%ld",
-             dynamic_info.port_name, dynamic_info.port_name_len);
+      GELOGE(PARAM_INVALID, "[Check][Param]port_name:%s, port_name_len:%ld", dynamic_info.port_name,
+             dynamic_info.port_name_len);
       return PARAM_INVALID;
     }
 
     const int64_t attr_name_len = static_cast<int64_t>(strnlen(dynamic_info.attr_name, ge::kMaxNameLen));
     if ((dynamic_info.attr_name == nullptr) || (attr_name_len != dynamic_info.attr_name_len)) {
-      GELOGE(PARAM_INVALID, "[Check][Param]attr_name:%s, attr_name_len:%ld",
-             dynamic_info.attr_name, dynamic_info.attr_name_len);
+      GELOGE(PARAM_INVALID, "[Check][Param]attr_name:%s, attr_name_len:%ld", dynamic_info.attr_name,
+             dynamic_info.attr_name_len);
       return PARAM_INVALID;
     }
   }
@@ -179,7 +185,7 @@ Status GetDynamicTensorNum(const std::shared_ptr<ge::OpDesc> &op_desc, const str
     case ge::GeAttrValue::VT_LIST_DATA_TYPE: {
       vector<ge::DataType> vec_d;
       (void)ge::AttrUtils::GetListDataType(op_desc, attr_name, vec_d);
-      tensor_num = static_cast<uint32_t >(vec_d.size());
+      tensor_num = static_cast<uint32_t>(vec_d.size());
       break;
     }
     case ge::GeAttrValue::VT_INT: {
@@ -195,15 +201,16 @@ Status GetDynamicTensorNum(const std::shared_ptr<ge::OpDesc> &op_desc, const str
 }
 
 Status GetDynamicAttrNum(const std::shared_ptr<ge::OpDesc> &op_desc,
-    const vector<DynamicInputOutputInfo> &dynamic_name_attrs, std::map<string, DynamicInfo> &port_dynamic_info) {
+                         const vector<DynamicInputOutputInfo> &dynamic_name_attrs,
+                         std::map<string, DynamicInfo> &port_dynamic_info) {
   GE_CHECK_NOTNULL(op_desc);
   for (const auto &dynamic_name_attr : dynamic_name_attrs) {
     const std::string attr_name = dynamic_name_attr.attr_name;
     uint32_t dynamic_tensor_num = 0U;
     if (op_desc->HasAttr(attr_name)) {
       if (GetDynamicTensorNum(op_desc, attr_name, dynamic_tensor_num) != SUCCESS) {
-        GELOGE(FAILED, "[Get][DynamicTensorNum]op_name:%s, attr_name:%s",
-               op_desc->GetName().c_str(), attr_name.c_str());
+        GELOGE(FAILED, "[Get][DynamicTensorNum]op_name:%s, attr_name:%s", op_desc->GetName().c_str(),
+               attr_name.c_str());
         return FAILED;
       }
     } else {
@@ -219,7 +226,8 @@ Status GetDynamicAttrNum(const std::shared_ptr<ge::OpDesc> &op_desc,
 }
 
 Status UpdateDynamicInputOutPutIndex(const std::shared_ptr<ge::OpDesc> &op_desc,
-    const vector<DynamicInputOutputInfo> &dynamic_name_attrs, std::map<string, DynamicInfo> &port_dynamic_info) {
+                                     const vector<DynamicInputOutputInfo> &dynamic_name_attrs,
+                                     std::map<string, DynamicInfo> &port_dynamic_info) {
   GE_CHECK_NOTNULL(op_desc);
   if (GetDynamicAttrNum(op_desc, dynamic_name_attrs, port_dynamic_info) != SUCCESS) {
     GELOGE(FAILED, "[Get][DynamicAttrNum] fail, op_name:%s", op_desc->GetName().c_str());
@@ -295,12 +303,12 @@ Status SetOpdescInputOutputFormat(std::shared_ptr<ge::OpDesc> &op_desc) {
   }
   return SUCCESS;
 }
-}
+}  // namespace
 
-FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingFnDynamic(
-    const google::protobuf::Message *op_src, ge::Operator &op,
-    std::map<std::string, std::pair<std::string, std::string>> dynamic_name_attr_value,
-    int32_t in_pos, int32_t out_pos) {
+FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status
+AutoMappingFnDynamic(const google::protobuf::Message *op_src, ge::Operator &op,
+                     std::map<std::string, std::pair<std::string, std::string>> dynamic_name_attr_value, int32_t in_pos,
+                     int32_t out_pos) {
   // 1. automapping for parser
   const std::shared_ptr<ge::OpDesc> op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   GE_CHECK_NOTNULL(op_desc);
@@ -319,8 +327,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingFnDynamic(
   }
 
   // add dynamic input and output
-  const domi::tensorflow::NodeDef *const node = ge::PtrToPtr<const google::protobuf::Message,
-                                                             const domi::tensorflow::NodeDef>(op_src);
+  const domi::tensorflow::NodeDef *const node =
+      ge::PtrToPtr<const google::protobuf::Message, const domi::tensorflow::NodeDef>(op_src);
   for (const auto &it : dynamic_name_attr_value) {
     const std::string flag = it.first;
     const std::pair<std::string, std::string> name_value = it.second;
@@ -330,7 +338,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingFnDynamic(
     tensorflow::AttrValue attr_num;
     int32_t dynamic_tensor_num = 0;
     if (!(ge::AutoMappingUtil::FindAttrValue(node, attr_name, attr_num))) {
-      GELOGW("[AutoMappingFn][GetAttr] Dynamic attr %s in node %s does not exist.", attr_name.c_str(), node->name().c_str());
+      GELOGW("[AutoMappingFn][GetAttr] Dynamic attr %s in node %s does not exist.", attr_name.c_str(),
+             node->name().c_str());
     }
 
     dynamic_tensor_num = (attr_num.has_list()) ? attr_num.list().type_size() : static_cast<int32_t>(attr_num.i());
@@ -360,8 +369,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingFnDynamic(
   return SUCCESS;
 }
 
-FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFnDynamic(const ge::Operator &op_src,
-    ge::Operator &op, const vector<DynamicInputOutputInfo> &dynamic_name_attr_value) {
+FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFnDynamic(
+    const ge::Operator &op_src, ge::Operator &op, const vector<DynamicInputOutputInfo> &dynamic_name_attr_value) {
   // 1. auto mapping for parser
   const std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op);
   GE_CHECK_NOTNULL(op_desc_dst);
@@ -387,8 +396,9 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFnDynamic
   // 4. sort map by port name insert index.
   vector<pair<string, DynamicInfo>> port_dynamic_info_vec(port_dynamic_info.cbegin(), port_dynamic_info.cend());
   std::sort(port_dynamic_info_vec.begin(), port_dynamic_info_vec.end(),
-            [](const pair<string, DynamicInfo> &p1, const pair<string, DynamicInfo> &p2)
-            { return p1.second.GetInsetIndex() < p2.second.GetInsetIndex(); });
+            [](const pair<string, DynamicInfo> &p1, const pair<string, DynamicInfo> &p2) {
+              return p1.second.GetInsetIndex() < p2.second.GetInsetIndex();
+            });
   // 5. add dynamic input and output
   for (const auto &dynamic_info : port_dynamic_info_vec) {
     const string port_name = dynamic_info.first;
@@ -402,8 +412,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFnDynamic
       GELOGI("Op[%s] add dynamic input[%u]", op_desc_dst->GetName().c_str(), tensor_num);
     } else if (dynamic_type == kOutput) {
       (void)op_desc_dst->AddOutputDescMiddle(port_name, tensor_num, static_cast<size_t>(insert_index));
-      (void)ge::AttrUtils::SetInt(op_desc_dst, DYNAMIC_OUTPUT_TD_NUM(port_name),
-                                  static_cast<int64_t>(tensor_num));
+      (void)ge::AttrUtils::SetInt(op_desc_dst, DYNAMIC_OUTPUT_TD_NUM(port_name), static_cast<int64_t>(tensor_num));
       GELOGI("Op[%s] add dynamic output[%u]", op_desc_dst->GetName().c_str(), tensor_num);
     } else {
       GELOGW("Do not add input or output desc with dynamic type :[%d].", static_cast<int32_t>(dynamic_type));
@@ -422,8 +431,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status OperatorAutoMapping(cons
   GE_CHECK_NOTNULL(op_dst);
 
   const auto subgraph_attr_names = GetSubgraphAttrNames(op);
-  const domi::tensorflow::NodeDef *const node_src = ge::PtrToPtr<const ascend_private::protobuf::Message,
-                                                                 const domi::tensorflow::NodeDef>(op_src);
+  const domi::tensorflow::NodeDef *const node_src =
+      ge::PtrToPtr<const ascend_private::protobuf::Message, const domi::tensorflow::NodeDef>(op_src);
   GE_CHECK_NOTNULL(node_src);
   op_dst->SetName(node_src->name());
   for (const auto &attr_pair : node_src->attr()) {
@@ -464,25 +473,25 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFn(const 
   for (const auto &subgraph_name_index : subgraph_name_indexs) {
     const auto ret = op_desc_dst->AddSubgraphName(subgraph_name_index.first);
     if (ret != ge::GRAPH_SUCCESS) {
-      GELOGW("[AutoMappingFn][Check] %s subgraph of node %s, type %s already exist.",
-             subgraph_name_index.first.c_str(), op_desc_dst->GetName().c_str(), op_desc_dst->GetType().c_str());
+      GELOGW("[AutoMappingFn][Check] %s subgraph of node %s, type %s already exist.", subgraph_name_index.first.c_str(),
+             op_desc_dst->GetName().c_str(), op_desc_dst->GetType().c_str());
     }
   }
 
   const auto subgraph_instance_names = op_desc_src->GetSubgraphInstanceNames();
   uint32_t index = 0U;
   for (const auto &subgraph_instance_name : subgraph_instance_names) {
-      const auto ret = op_desc_dst->SetSubgraphInstanceName(index, subgraph_instance_name);
-      if (ret != ge::GRAPH_SUCCESS) {
-        GELOGE(FAILED, "[Add][SubGraphInstance] subgraph_name: %s, index: %u, for node %s type %s.",
-               subgraph_instance_name.c_str(), index, op_desc_dst->GetType().c_str(), op_desc_dst->GetName().c_str());
-        return FAILED;
-      }
-      index++;
+    const auto ret = op_desc_dst->SetSubgraphInstanceName(index, subgraph_instance_name);
+    if (ret != ge::GRAPH_SUCCESS) {
+      GELOGE(FAILED, "[Add][SubGraphInstance] subgraph_name: %s, index: %u, for node %s type %s.",
+             subgraph_instance_name.c_str(), index, op_desc_dst->GetType().c_str(), op_desc_dst->GetName().c_str());
+      return FAILED;
+    }
+    index++;
   }
 
   for (const auto &iter : op_desc_src->GetAllAttrs()) {
-    (void) op_desc_dst->SetAttr(iter.first, iter.second);
+    (void)op_desc_dst->SetAttr(iter.first, iter.second);
   }
 
   const Status ret = SetOpdescInputOutputFormat(op_desc_dst);
@@ -493,54 +502,54 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingByOpFn(const 
   return SUCCESS;
 }
 
-FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY
-Status AutoMappingSubgraphIndex(const ge::Graph &graph,
-                                const std::function<int32_t(int32_t data_index)> &input,
-                                const std::function<int32_t(int32_t netoutput_index)> &output) {
+FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status
+AutoMappingSubgraphIndex(const ge::Graph &graph, const std::function<int32_t(int32_t data_index)> &input,
+                         const std::function<int32_t(int32_t netoutput_index)> &output) {
   GE_CHECK_NOTNULL(input);
   GE_CHECK_NOTNULL(output);
-  return AutoMappingSubgraphIndex(graph,
-                                  [&input](const int32_t i, int32_t &o) -> Status {
-                                    o = input(i);
-                                    return SUCCESS;
-                                  },
-                                  [&output](const int32_t i, int32_t &o) -> Status {
-                                    o = output(i);
-                                    return SUCCESS;
-                                  });
+  return AutoMappingSubgraphIndex(
+      graph,
+      [&input](const int32_t i, int32_t &o) -> Status {
+        o = input(i);
+        return SUCCESS;
+      },
+      [&output](const int32_t i, int32_t &o) -> Status {
+        o = output(i);
+        return SUCCESS;
+      });
 }
 
 namespace {
-  std::vector<std::shared_ptr<ge::Node>> FindNodesByType(const ge::ComputeGraphPtr &graph, const std::string &type) {
-    std::vector<std::shared_ptr<ge::Node>> nodes;
-    for (const auto &node : graph->GetDirectNode()) {
-      GELOGI("Find node %s, node type is %s.", type.c_str(), node->GetOpDesc()->GetType().c_str());
-      if (node->GetOpDesc()->GetType() == type) {
-        nodes.push_back(node);
+std::vector<std::shared_ptr<ge::Node>> FindNodesByType(const ge::ComputeGraphPtr &graph, const std::string &type) {
+  std::vector<std::shared_ptr<ge::Node>> nodes;
+  for (const auto &node : graph->GetDirectNode()) {
+    GELOGI("Find node %s, node type is %s.", type.c_str(), node->GetOpDesc()->GetType().c_str());
+    if (node->GetOpDesc()->GetType() == type) {
+      nodes.push_back(node);
+      continue;
+    }
+    if (node->GetOpDesc()->GetType() == "FrameworkOp") {
+      std::string original_type;
+      if (!ge::AttrUtils::GetStr(node->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type)) {
+        // if there is no ref index on the TensorDesc, it means the output data will be ignored outer.
         continue;
       }
-      if (node->GetOpDesc()->GetType() == "FrameworkOp") {
-        std::string original_type;
-        if (!ge::AttrUtils::GetStr(node->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type)) {
-          // if there is no ref index on the TensorDesc, it means the output data will be ignored outer.
-          continue;
-        }
-        if (original_type == type) {
-          nodes.push_back(node);
-        }
+      if (original_type == type) {
+        nodes.push_back(node);
       }
     }
-    return nodes;
   }
+  return nodes;
 }
+}  // namespace
 
-static Status AutoMappingSubgraphOutput(const ge::ComputeGraphPtr &graph,
-                                        const std::function<Status(int32_t netoutput_index,
-                                                                   int32_t &parent_output_index)> &output) {
+static Status AutoMappingSubgraphOutput(
+    const ge::ComputeGraphPtr &graph,
+    const std::function<Status(int32_t netoutput_index, int32_t &parent_output_index)> &output) {
   GE_CHECK_NOTNULL(graph);
   GE_CHECK_NOTNULL(output);
   const auto &output_node = graph->FindFirstNodeMatchType(ge::NETOUTPUT);
-  if (output_node == nullptr) {   // Graph from parser no NetOutput.
+  if (output_node == nullptr) {  // Graph from parser no NetOutput.
     return SUCCESS;
   }
 
@@ -555,8 +564,8 @@ static Status AutoMappingSubgraphOutput(const ge::ComputeGraphPtr &graph,
       return FAILED;
     }
 
-    GELOGI("Generate subgraph output map for subgraph %s, index %ld, parent node index %d",
-           graph->GetName().c_str(), index, parent_index);
+    GELOGI("Generate subgraph output map for subgraph %s, index %ld, parent node index %d", graph->GetName().c_str(),
+           index, parent_index);
     if (parent_index == -1) {
       continue;
     }
@@ -565,8 +574,8 @@ static Status AutoMappingSubgraphOutput(const ge::ComputeGraphPtr &graph,
     GE_CHECK_NOTNULL(tensor);
     if (!ge::AttrUtils::SetInt(tensor, ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
       GELOGE(FAILED, "[Set][Attr:%s]Failed for graph %s, op_name:%s, parent_index:%d",
-             ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), graph->GetName().c_str(),
-             op_desc->GetName().c_str(), parent_index);
+             ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), graph->GetName().c_str(), op_desc->GetName().c_str(),
+             parent_index);
       return FAILED;
     }
   }
@@ -574,8 +583,8 @@ static Status AutoMappingSubgraphOutput(const ge::ComputeGraphPtr &graph,
   return SUCCESS;
 }
 
-FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY
-static Status AutoMappingSubgraphIndexByDataNode(const ge::ComputeGraphPtr &compute_graph,
+FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY static Status AutoMappingSubgraphIndexByDataNode(
+    const ge::ComputeGraphPtr &compute_graph,
     const std::function<Status(int32_t data_index, int32_t &parent_input_index)> &input) {
   const auto nodes = FindNodesByType(compute_graph, "Data");
   for (size_t i = 0U; i < nodes.size(); ++i) {
@@ -592,8 +601,8 @@ static Status AutoMappingSubgraphIndexByDataNode(const ge::ComputeGraphPtr &comp
       return FAILED;
     }
     if (!ge::AttrUtils::SetInt(nodes[i]->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-      GELOGE(FAILED, "[Set][Attr:%s]data_index:%zu, op_name:%s, ",
-             ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), i, nodes[i]->GetName().c_str());
+      GELOGE(FAILED, "[Set][Attr:%s]data_index:%zu, op_name:%s, ", ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), i,
+             nodes[i]->GetName().c_str());
       return FAILED;
     }
     GELOGI("Generate subgraph input map for subgraph %s, data index %zu, parent node index %d",
@@ -602,17 +611,15 @@ static Status AutoMappingSubgraphIndexByDataNode(const ge::ComputeGraphPtr &comp
   return SUCCESS;
 }
 
-FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY
-Status AutoMappingSubgraphIndex(const ge::Graph &graph,
-                                const std::function<Status(int32_t data_index, int32_t &parent_input_index)> &input,
-                                const std::function<Status(int32_t netoutput_index,
-                                                           int32_t &parent_output_index)> &output) {
+FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY Status AutoMappingSubgraphIndex(
+    const ge::Graph &graph, const std::function<Status(int32_t data_index, int32_t &parent_input_index)> &input,
+    const std::function<Status(int32_t netoutput_index, int32_t &parent_output_index)> &output) {
   GE_CHECK_NOTNULL(input);
   GE_CHECK_NOTNULL(output);
   const auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
   GE_CHECK_NOTNULL(compute_graph);
   ge::AscendString graph_name;
-  (void) graph.GetName(graph_name);
+  (void)graph.GetName(graph_name);
   auto ret = AutoMappingSubgraphIndexByDataNode(compute_graph, input);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Mapping][Index] auto mapping graph:%s input index failed,", graph_name.GetString());
@@ -623,8 +630,8 @@ Status AutoMappingSubgraphIndex(const ge::Graph &graph,
   for (auto &retval : nodes) {
     int64_t index = -1;
     if (!ge::AttrUtils::GetInt(retval->GetOpDesc(), "retval_index", index)) {
-      GELOGE(FAILED, "[Get][Attr:retval_index]retval index %ld, op_name:%s",
-             index, retval->GetOpDesc()->GetName().c_str());
+      GELOGE(FAILED, "[Get][Attr:retval_index]retval index %ld, op_name:%s", index,
+             retval->GetOpDesc()->GetName().c_str());
       return FAILED;
     }
     int32_t parent_index = -1;
@@ -634,8 +641,8 @@ Status AutoMappingSubgraphIndex(const ge::Graph &graph,
       return FAILED;
     }
     if (!ge::AttrUtils::SetInt(retval->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-      GELOGE(FAILED, "[Set][Attr:%s]op_name:%s, parent_index:%d",
-             ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), retval->GetName().c_str(), parent_index);
+      GELOGE(FAILED, "[Set][Attr:%s]op_name:%s, parent_index:%d", ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+             retval->GetName().c_str(), parent_index);
       return FAILED;
     }
     GELOGI("Generate subgraph output map for subgraph %s, retval index %ld, parent node index %d",
@@ -649,12 +656,13 @@ class FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY FrameworkRegistryImpl {
  public:
   void AddAutoMappingSubgraphIOIndexFunc(const domi::FrameworkType framework, AutoMappingSubgraphIOIndexFunc fun);
   AutoMappingSubgraphIOIndexFunc GetAutoMappingSubgraphIOIndexFunc(const domi::FrameworkType framework);
+
  private:
   std::map<domi::FrameworkType, AutoMappingSubgraphIOIndexFunc> fmk_type_to_auto_mapping_subgraph_index_fun_;
 };
 
-void FrameworkRegistryImpl::AddAutoMappingSubgraphIOIndexFunc(
-    const domi::FrameworkType framework, AutoMappingSubgraphIOIndexFunc fun) {
+void FrameworkRegistryImpl::AddAutoMappingSubgraphIOIndexFunc(const domi::FrameworkType framework,
+                                                              AutoMappingSubgraphIOIndexFunc fun) {
   GELOGD("Regitser auto mapping function: framework type:%d.", framework);
   fmk_type_to_auto_mapping_subgraph_index_fun_[framework] = std::move(fun);
 }
@@ -677,51 +685,53 @@ FrameworkRegistry::FrameworkRegistry() {
 
 FrameworkRegistry::~FrameworkRegistry() = default;
 
-FrameworkRegistry& FrameworkRegistry::Instance() {
+FrameworkRegistry &FrameworkRegistry::Instance() {
   static FrameworkRegistry instance;
   return instance;
 }
 
-void FrameworkRegistry::AddAutoMappingSubgraphIOIndexFunc(
-    domi::FrameworkType framework, AutoMappingSubgraphIOIndexFunc fun) {
+void FrameworkRegistry::AddAutoMappingSubgraphIOIndexFunc(domi::FrameworkType framework,
+                                                          AutoMappingSubgraphIOIndexFunc fun) {
   if (impl_ != nullptr) {
     impl_->AddAutoMappingSubgraphIOIndexFunc(framework, fun);
   }
 }
 
-AutoMappingSubgraphIOIndexFunc FrameworkRegistry::GetAutoMappingSubgraphIOIndexFunc(
-    domi::FrameworkType framework) {
+AutoMappingSubgraphIOIndexFunc FrameworkRegistry::GetAutoMappingSubgraphIOIndexFunc(domi::FrameworkType framework) {
   if (impl_ != nullptr) {
     return impl_->GetAutoMappingSubgraphIOIndexFunc(framework);
   }
   return nullptr;
 }
 
-AutoMappingSubgraphIOIndexFuncRegister::AutoMappingSubgraphIOIndexFuncRegister(
-    domi::FrameworkType framework, AutoMappingSubgraphIOIndexFunc fun) {
+AutoMappingSubgraphIOIndexFuncRegister::AutoMappingSubgraphIOIndexFuncRegister(domi::FrameworkType framework,
+                                                                               AutoMappingSubgraphIOIndexFunc fun) {
   FrameworkRegistry::Instance().AddAutoMappingSubgraphIOIndexFunc(framework, fun);
 }
 
-OpReceiver::OpReceiver(OpRegistrationData &reg_data) { OpRegistry::Instance()->registrationDatas.push_back(reg_data); }
+OpReceiver::OpReceiver(OpRegistrationData &reg_data) {
+  OpRegistry::Instance()->registrationDatas.push_back(reg_data);
+}
 
 class OpRegistrationDataImpl {
  public:
   OpRegistrationDataImpl() = default;
   ~OpRegistrationDataImpl() = default;
   explicit OpRegistrationDataImpl(const std::string &om_optype);
-private:
+
+ private:
   friend class OpRegistrationData;
   friend class OpRegistry;
   domi::FrameworkType fmk_type_;
-  std::set<std::string> ori_optype_set_;                   // OP type in the original model, there may be multiple
-  std::string om_optype_;                                  // OP type in OM model
-  domi::ImplyType imply_type_;                             // execution type
-  ParseParamFunc parseParamFn_;                            // parseParam function
-  ParseParamByOpFunc parse_param_by_op_fn_;                // parse param by op function
-  FusionParseParamFunc fusionParseParamFn_;                // fusion parseParam function
-  FusionParseParamByOpFunc fusion_parse_param_by_op_fn_;   // fusion parseParam by op function
-  ParseSubgraphFunc parse_subgraph_post_fn_;               // a function called after the subgraph was generated
-  ParseSubgraphFuncV2 parse_subgraph_post_fn_v2_;          // a function called after the subgraph was generated
+  std::set<std::string> ori_optype_set_;                  // OP type in the original model, there may be multiple
+  std::string om_optype_;                                 // OP type in OM model
+  domi::ImplyType imply_type_;                            // execution type
+  ParseParamFunc parseParamFn_;                           // parseParam function
+  ParseParamByOpFunc parse_param_by_op_fn_;               // parse param by op function
+  FusionParseParamFunc fusionParseParamFn_;               // fusion parseParam function
+  FusionParseParamByOpFunc fusion_parse_param_by_op_fn_;  // fusion parseParam by op function
+  ParseSubgraphFunc parse_subgraph_post_fn_;              // a function called after the subgraph was generated
+  ParseSubgraphFuncV2 parse_subgraph_post_fn_v2_;         // a function called after the subgraph was generated
   std::vector<RemoveInputConfigure> remove_input_configure_vec_;
   ParseOpToGraphFunc parse_op_to_graph_fn_;
 };
@@ -819,7 +829,7 @@ OpRegistrationData &OpRegistrationData::OriginOpType(const char_t *ori_op_type) 
   if (impl_ != nullptr) {
     std::string tmp_ori_op_type;
     if (ori_op_type != nullptr) {
-      tmp_ori_op_type =  ori_op_type;
+      tmp_ori_op_type = ori_op_type;
     }
     (void)impl_->ori_optype_set_.insert(tmp_ori_op_type);
   }
@@ -837,7 +847,7 @@ std::set<std::string> OpRegistrationData::GetOriginOpTypeSet() const {
 Status OpRegistrationData::GetOriginOpTypeSet(std::set<ge::AscendString> &ori_op_type) const {
   std::set<std::string> ori_op_type_set;
   if (impl_ != nullptr) {
-    ori_op_type_set =  impl_->ori_optype_set_;
+    ori_op_type_set = impl_->ori_optype_set_;
   }
   for (auto &op_type : ori_op_type_set) {
     (void)ori_op_type.insert(ge::AscendString(op_type.c_str()));
@@ -875,7 +885,7 @@ ParseParamByOpFunc OpRegistrationData::GetParseParamByOperatorFn() const {
 
 OpRegistrationData &OpRegistrationData::FusionParseParamsFn(const FusionParseParamFunc &fusionParseParamFn) {
   if (impl_ != nullptr) {
-   impl_->fusionParseParamFn_ = fusionParseParamFn;
+    impl_->fusionParseParamFn_ = fusionParseParamFn;
   }
   return *this;
 }
@@ -1034,7 +1044,7 @@ namespace {
 std::string GetParserKey(const std::string &om_type, const std::string &ori_type) {
   return om_type + "_" + ori_type;
 }
-} // namespace
+}  // namespace
 
 bool OpRegistry::Register(const OpRegistrationData &reg_data, bool is_custom_op) {
   if (reg_data.impl_ == nullptr) {

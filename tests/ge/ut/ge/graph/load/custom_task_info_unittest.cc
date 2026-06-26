@@ -31,10 +31,9 @@ namespace ge {
 namespace {
 class AclMockMemcpy : public AclRuntimeStub {
  public:
-  MOCK_METHOD5(aclrtMemcpy, int32_t(void *, size_t, const void *, size_t, aclrtMemcpyKind)
-  );
+  MOCK_METHOD5(aclrtMemcpy, int32_t(void *, size_t, const void *, size_t, aclrtMemcpyKind));
 };
-}
+}  // namespace
 
 class UtestCustomTaskInfo : public testing::Test {
  protected:
@@ -238,12 +237,14 @@ TEST_F(UtestCustomTaskInfo, UpdateCustomDumpAddrs_ReturnSuccessWhenDumpEnabled) 
 
 class MockArgsUpdater : public ArgsUpdater {
  public:
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
     update_count_++;
     return GRAPH_SUCCESS;
   }
 
-  int GetUpdateCount() const { return update_count_; }
+  int GetUpdateCount() const {
+    return update_count_;
+  }
 
  private:
   int update_count_ = 0;
@@ -251,7 +252,7 @@ class MockArgsUpdater : public ArgsUpdater {
 
 class MockFailArgsUpdater : public ArgsUpdater {
  public:
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
     return GRAPH_FAILED;
   }
 };
@@ -265,18 +266,16 @@ std::atomic<int> g_args_updater_test_counter{0};
 
 class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     execute_called_ = true;
     execute_ctx_ = ctx;
 
-    auto* out_tensor = ctx->MallocOutputTensor(0,
-        gert::StorageShape({2, 3}, {2, 1, 3, 16}),
-        gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}},
-        ge::DT_INT64);
+    auto *out_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 3}, {2, 1, 3, 16}),
+                                               gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_INT64);
     out_shape_set_ = (out_tensor != nullptr);
 
     // Verify input tensor accessible via context and record shape
-    const auto* in_tensor = ctx->GetInputTensor(0);
+    const auto *in_tensor = ctx->GetInputTensor(0);
     if (in_tensor != nullptr) {
       in_tensor_accessible_ = true;
       auto &in_origin = in_tensor->GetOriginShape();
@@ -299,14 +298,14 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
     return GRAPH_SUCCESS;
   }
 
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
     update_host_args_called_ = true;
     update_args_ctx_ = ctx;
     kernel_args_host_ = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0U);
     kernel_args_device_ = ctx->GetKernelArgs(gert::Placement::kPlacementDevice, 0U);
 
     // Verify output tensor accessible via UpdateHostArgs context
-    const auto* out_tensor = ctx->GetOutputTensor(0);
+    const auto *out_tensor = ctx->GetOutputTensor(0);
     if (out_tensor != nullptr) {
       out_tensor_accessible_in_update_ = true;
       auto &out_origin = out_tensor->GetOriginShape();
@@ -318,7 +317,7 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
     }
 
     // Verify input tensor shape persists in UpdateHostArgs context
-    const auto* in_tensor = ctx->GetInputTensor(0);
+    const auto *in_tensor = ctx->GetInputTensor(0);
     if (in_tensor != nullptr) {
       in_tensor_accessible_in_update_ = true;
       auto &in_origin = in_tensor->GetOriginShape();
@@ -338,18 +337,18 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
   }
 
   bool execute_called_ = false;
-  gert::EagerOpExecutionContext* execute_ctx_ = nullptr;
-  const gert::KernelArgs* malloc_read_only_dev_args_result_ = nullptr;
+  gert::EagerOpExecutionContext *execute_ctx_ = nullptr;
+  const gert::KernelArgs *malloc_read_only_dev_args_result_ = nullptr;
   bool malloc_args_valid_ = false;
-  void* malloc_dev_args_addr_ = nullptr;
+  void *malloc_dev_args_addr_ = nullptr;
   size_t malloc_dev_args_size_ = 0;
   gert::Placement malloc_dev_args_placement_ = gert::Placement::kPlacementHost;
 
   bool update_host_args_called_ = false;
-  gert::UpdateArgsContext* update_args_ctx_ = nullptr;
-  const gert::KernelArgs* kernel_args_host_ = nullptr;
-  const gert::KernelArgs* kernel_args_device_ = nullptr;
-    void* malloc_dev_args_addr_via_update_ = nullptr;
+  gert::UpdateArgsContext *update_args_ctx_ = nullptr;
+  const gert::KernelArgs *kernel_args_host_ = nullptr;
+  const gert::KernelArgs *kernel_args_device_ = nullptr;
+  void *malloc_dev_args_addr_via_update_ = nullptr;
 
   bool out_shape_set_ = false;
   bool in_tensor_accessible_ = false;
@@ -368,7 +367,7 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
 
 class TestArgsRefreshableCustomOp : public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     execute_called_ = true;
     // Call MallocReadOnlyDevArgs: non-refreshable ops should use MallocDynamicMemory + H2D copy
     uint64_t host_args_buffer[4] = {0x1000ULL, 0x2000ULL, 0x3000ULL, 0x4000ULL};
@@ -379,38 +378,36 @@ class TestArgsRefreshableCustomOp : public EagerExecuteOp {
       malloc_dev_args_size_ = malloc_read_only_dev_args_result_->args_size;
       malloc_dev_args_placement_ = malloc_read_only_dev_args_result_->placement;
     }
-    auto* out_tensor = ctx->MallocOutputTensor(0,
-        gert::StorageShape({2, 3}, {2, 1, 3, 16}),
-        gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}},
-        ge::DT_INT64);
+    auto *out_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 3}, {2, 1, 3, 16}),
+                                               gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_INT64);
     return GRAPH_SUCCESS;
   }
 
   bool execute_called_ = false;
-  const gert::KernelArgs* malloc_read_only_dev_args_result_ = nullptr;
+  const gert::KernelArgs *malloc_read_only_dev_args_result_ = nullptr;
   bool malloc_args_valid_ = false;
-  void* malloc_dev_args_addr_ = nullptr;
+  void *malloc_dev_args_addr_ = nullptr;
   size_t malloc_dev_args_size_ = 0U;
   gert::Placement malloc_dev_args_placement_ = gert::Placement::kPlacementHost;
 };
 
 class TestEagerOnlyCustomOp : public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     return GRAPH_SUCCESS;
   }
 };
 
 class TestVerifyContextCustomOp : public ArgsUpdater, public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     // Execute being called with a valid context proves additional inputs are wired
     saw_allocator_ = true;
     saw_args_handler_ = true;
     return GRAPH_SUCCESS;
   }
 
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
     return GRAPH_SUCCESS;
   }
 
@@ -453,11 +450,9 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
 
-  MemAllocation fm_alloc = {0, 0ULL, model.runtime_param_.mem_size,
-                             MemAllocation::Type::FEATURE_MAP, 0U};
-  MemAllocation abs_alloc = {0, model.runtime_param_.mem_base,
-                              model.runtime_param_.mem_size,
-                              MemAllocation::Type::ABSOLUTE, 0U};
+  MemAllocation fm_alloc = {0, 0ULL, model.runtime_param_.mem_size, MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation abs_alloc = {0, model.runtime_param_.mem_base, model.runtime_param_.mem_size,
+                             MemAllocation::Type::ABSOLUTE, 0U};
   model.logical_mem_allocations_ = {fm_alloc, abs_alloc};
 
   rtStream_t stream = nullptr;
@@ -467,8 +462,7 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
 
   model.op_list_[op_desc->GetId()] = op_desc;
 
-  model.mem_type_to_allocator_[RT_MEMORY_HBM] =
-      std::make_shared<MemoryBlockManager>(RT_MEMORY_HBM);
+  model.mem_type_to_allocator_[RT_MEMORY_HBM] = std::make_shared<MemoryBlockManager>(RT_MEMORY_HBM);
 
   ModelArgsManager::ExtraArgsPool pool;
   pool.host_addr = ge::MakeUnique<uint8_t[]>(4096);
@@ -482,16 +476,14 @@ void SetUpMinimalDavinciModel(DavinciModel &model, const OpDescPtr &op_desc) {
 
 class TestFailArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
-    auto* out_tensor = ctx->MallocOutputTensor(0,
-        gert::StorageShape({2, 3}, {2, 1, 3, 16}),
-        gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}},
-        ge::DT_INT64);
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+    auto *out_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 3}, {2, 1, 3, 16}),
+                                               gert::StorageFormat{ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_INT64);
     out_shape_set_ = (out_tensor != nullptr);
     return GRAPH_SUCCESS;
   }
 
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
     return GRAPH_FAILED;
   }
 
@@ -506,9 +498,10 @@ TEST_F(UtestCustomTaskInfo, ParseTaskRunParam_UsesModelCustomOpRegistry) {
   const std::string op_type = GenerateUniqueOpType();
   auto registry = std::make_shared<CustomOpRegistry>();
   ASSERT_NE(registry, nullptr);
-  ASSERT_EQ(registry->RegisterCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestArgsUpdaterCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(registry->RegisterCreator(
+                op_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestArgsUpdaterCustomOp>(); }),
+            GRAPH_SUCCESS);
 
   DavinciModel model(0, nullptr);
   model.SetCustomOpRegistry(registry);
@@ -537,10 +530,8 @@ class UtestCustomTaskInfoE2E : public testing::Test {
 
 TEST_F(UtestCustomTaskInfoE2E, Distribute_DetectsArgsUpdaterAndSetsArgsUpdateOp) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestArgsUpdaterCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(
+      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestArgsUpdaterCustomOp>(); });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -572,12 +563,11 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_DetectsArgsUpdaterAndSetsArgsUpdateOp)
 TEST_F(UtestCustomTaskInfoE2E, Distribute_ExecuteCallsMallocReadOnlyDevArgs) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -632,12 +622,11 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_ExecuteCallsMallocReadOnlyDevArgs) {
 TEST_F(UtestCustomTaskInfoE2E, Distribute_AdditionalInputsOutputsWired) {
   std::string op_type = GenerateUniqueOpType();
   TestVerifyContextCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestVerifyContextCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestVerifyContextCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -669,12 +658,11 @@ TEST_F(UtestCustomTaskInfoE2E, Distribute_AdditionalInputsOutputsWired) {
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_CallsOpCallbackWithValidContext) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -729,10 +717,8 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_CallsOpCallbackWithValidContext) {
 
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNonArgsUpdaterOp) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestEagerOnlyCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(
+      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestEagerOnlyCustomOp>(); });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -765,12 +751,11 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNonArgsUpdaterOp) {
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNullBaseAddrOrZeroSize) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -805,12 +790,11 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_FailsOnNullBaseAddrOrZeroSize) {
 TEST_F(UtestCustomTaskInfoE2E, InitArgsIoAddrsUpdater_PopulatesMemAllocationAndOffsets) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -849,7 +833,7 @@ TEST_F(UtestCustomTaskInfoE2E, AllocateArgsBuffer_FromExistingPool_Success) {
   ArgsAllocationResult result;
   EXPECT_EQ(model.AllocateArgsBuffer(32, ArgsPlacement::kArgsPlacementHbm, result), SUCCESS);
   EXPECT_NE(result.host_addr, nullptr);
-  EXPECT_EQ(result.device_addr, 0xDEADBEEFULL);   // from extra_args_pools_[0].device_addr + offset 0
+  EXPECT_EQ(result.device_addr, 0xDEADBEEFULL);  // from extra_args_pools_[0].device_addr + offset 0
   EXPECT_EQ(result.size, 32U);
   EXPECT_FALSE(result.is_from_reserved);
   EXPECT_EQ(result.extra_pool_index, 0U);
@@ -884,12 +868,11 @@ TEST_F(UtestCustomTaskInfoE2E, AllocateArgsBuffer_ExistingPoolExhausted_CreatesN
 TEST_F(UtestCustomTaskInfoE2E, AllocateArgsBuffer_MallocReadOnlyDevArgsE2E) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -978,10 +961,8 @@ TEST_F(UtestCustomTaskInfoE2E, AllocateArgsBuffer_InvalidSizeOrPlacement_Returns
 
 TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_ArgsUpdater_SupportRefreshTrue) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestArgsUpdaterCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(
+      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestArgsUpdaterCustomOp>(); });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1016,10 +997,8 @@ TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_ArgsUpdater_SupportRefreshTrue)
 
 TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_EagerOnly_SupportRefreshFalse) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestEagerOnlyCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(
+      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestEagerOnlyCustomOp>(); });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1055,12 +1034,11 @@ TEST_F(UtestCustomTaskInfoE2E, ParseTaskRunParam_EagerOnly_SupportRefreshFalse) 
 TEST_F(UtestCustomTaskInfoE2E, MallocReadOnlyDevArgs_EagerOnly_UsesMallocDynamicMemory) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsRefreshableCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsRefreshableCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsRefreshableCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1110,12 +1088,11 @@ TEST_F(UtestCustomTaskInfoE2E, MallocReadOnlyDevArgs_EagerOnly_UsesMallocDynamic
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_AllocationIdOutOfBounds_ReturnsFailed) {
   std::string op_type = GenerateUniqueOpType();
   TestArgsUpdaterCustomOp *op_instance = nullptr;
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
-        auto op = std::make_unique<TestArgsUpdaterCustomOp>();
-        op_instance = op.get();
-        return op;
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), [&op_instance]() -> std::unique_ptr<BaseCustomOp> {
+    auto op = std::make_unique<TestArgsUpdaterCustomOp>();
+    op_instance = op.get();
+    return op;
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1160,10 +1137,9 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_EmptyMemAllocs_ReturnsFailed) {
 
 TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_OperatorUpdateFails_ReturnsFailed) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestFailArgsUpdaterCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestFailArgsUpdaterCustomOp>();
+  });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1199,10 +1175,8 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_OperatorUpdateFails_ReturnsFailed)
 
 TEST_F(UtestCustomTaskInfoE2E, Distribute_NonEagerOp_ReturnsFailed) {
   std::string op_type = GenerateUniqueOpType();
-  CustomOpFactory::RegisterCustomOpCreator(op_type.c_str(),
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestNonEagerCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator(
+      op_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestNonEagerCustomOp>(); });
 
   DavinciModel model(0, nullptr);
   const auto op_desc = CreateOpDesc(op_type, op_type, 1, 1);
@@ -1243,7 +1217,7 @@ TEST_F(UtestCustomTaskInfoE2E, MallocReadOnlyDevArgsImpl_ZeroArgsSize_ReturnsNul
   DavinciModel model(0, nullptr);
   task_info.davinci_model_ = &model;
 
-  EXPECT_EQ(task_info.MallocReadOnlyDevArgsImpl(reinterpret_cast<void*>(0x1000), 0), nullptr);
+  EXPECT_EQ(task_info.MallocReadOnlyDevArgsImpl(reinterpret_cast<void *>(0x1000), 0), nullptr);
 }
 
 TEST_F(UtestCustomTaskInfoE2E, MallocReadOnlyDevArgsImpl_NullDavinciModel_ReturnsNullptr) {
@@ -1324,11 +1298,11 @@ TEST_F(UtestCustomTaskInfoE2E, UpdateHostArgs_NullArgsUpdateOp_ReturnsFailed) {
 TEST_F(UtestCustomTaskInfoE2E, GetKernelArgsDeque_DeviceReturnsDeviceDeque) {
   CustomTaskInfo task_info;
   task_info.kernel_args_device_deque_.push_back(gert::KernelArgs());
-  task_info.kernel_args_device_deque_.back().args_data = reinterpret_cast<void*>(0xDEADULL);
+  task_info.kernel_args_device_deque_.back().args_data = reinterpret_cast<void *>(0xDEADULL);
   task_info.kernel_args_device_deque_.back().args_size = 32U;
   task_info.kernel_args_device_deque_.back().placement = gert::Placement::kPlacementDevice;
 
-  const auto& device_args = task_info.GetKernelArgsDeque(gert::Placement::kPlacementDevice);
+  const auto &device_args = task_info.GetKernelArgsDeque(gert::Placement::kPlacementDevice);
   EXPECT_EQ(device_args.size(), 1U);
   EXPECT_EQ(device_args[0].placement, gert::Placement::kPlacementDevice);
 }
@@ -1336,11 +1310,11 @@ TEST_F(UtestCustomTaskInfoE2E, GetKernelArgsDeque_DeviceReturnsDeviceDeque) {
 TEST_F(UtestCustomTaskInfoE2E, GetKernelArgsDeque_HostReturnsHostDeque) {
   CustomTaskInfo task_info;
   task_info.kernel_args_host_deque_.push_back(gert::KernelArgs());
-  task_info.kernel_args_host_deque_.back().args_data = reinterpret_cast<void*>(0xBEEFULL);
+  task_info.kernel_args_host_deque_.back().args_data = reinterpret_cast<void *>(0xBEEFULL);
   task_info.kernel_args_host_deque_.back().args_size = 16U;
   task_info.kernel_args_host_deque_.back().placement = gert::Placement::kPlacementHost;
 
-  const auto& host_args = task_info.GetKernelArgsDeque(gert::Placement::kPlacementHost);
+  const auto &host_args = task_info.GetKernelArgsDeque(gert::Placement::kPlacementHost);
   EXPECT_EQ(host_args.size(), 1U);
   EXPECT_EQ(host_args[0].placement, gert::Placement::kPlacementHost);
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -118,8 +118,7 @@ graphStatus ClearControlEdgeRelation(std::map<std::string, std::vector<NodePtr>>
   return GRAPH_SUCCESS;
 }
 
-graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs,
-                                        const NodePtr &asc_node,
+graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs, const NodePtr &asc_node,
                                         const ComputeGraphPtr &pre_lowering_graph) {
   GE_ASSERT_NOTNULL(asc_node);
   GE_ASSERT_NOTNULL(pre_lowering_graph);
@@ -137,7 +136,8 @@ graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs,
   }
 
   const std::string subgraph_name = asc_node->GetName() + "_origin_subgraph";
-  const ComputeGraphPtr sub_compute_graph = GraphUtils::BuildSubgraphWithNodes(pre_lowering_graph, node_set, subgraph_name);
+  const ComputeGraphPtr sub_compute_graph =
+      GraphUtils::BuildSubgraphWithNodes(pre_lowering_graph, node_set, subgraph_name);
   GE_ASSERT_NOTNULL(sub_compute_graph);
 
   AutofuseUtils::DumpGEGraph(sub_compute_graph, kLoweringDir, subgraph_name);
@@ -145,8 +145,8 @@ graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs,
 
   const std::string kSubgraphRecoverDir = "./subgraph_recover";
   if (mmAccess2(kSubgraphRecoverDir.c_str(), M_F_OK) != EN_OK) {
-    GE_ASSERT(CreateDir(kSubgraphRecoverDir) == 0,
-              "Failed to create subgraph_recover directory: %s", kSubgraphRecoverDir.c_str());
+    GE_ASSERT(CreateDir(kSubgraphRecoverDir) == 0, "Failed to create subgraph_recover directory: %s",
+              kSubgraphRecoverDir.c_str());
   }
 
   ge::Graph ge_graph = GraphUtilsEx::CreateGraphFromComputeGraph(sub_compute_graph);
@@ -161,9 +161,7 @@ graphStatus DumpSubgraphFromOriginNodes(const AutoFuseAttrs &fuse_attrs,
 graphStatus AscIrLowerer::Lowering(const ComputeGraphPtr &graph) {
   TRACING_PERF_SCOPE(TracingModule::kModelCompile, "Lowering", graph->GetName());
   auto nodes = graph->GetAllNodes();
-  if (std::any_of(nodes.begin(), nodes.end(), [](const NodePtr &node) {
-        return IsAscBackendOpNode(node);
-      })) {
+  if (std::any_of(nodes.begin(), nodes.end(), [](const NodePtr &node) { return IsAscBackendOpNode(node); })) {
     GELOGI("Skip lowering for graph %s as it has been lowered", graph->GetName().c_str());
     do_lowered_ = false;
     return GRAPH_SUCCESS;
@@ -306,8 +304,7 @@ graphStatus AscIrLowerer::DfxForAscBackendOp(const ComputeGraphPtr &graph) const
   GE_ASSERT_NOTNULL(graph);
   const std::string aiv_cnt_key = "_op_vectorcore_num";
   for (auto &node : graph->GetAllNodes()) {
-    if ((!IsAscBackendOpNode(node) && (node->GetType() != "FusedAscBackend")) ||
-        node->GetOutNodes().empty()) {
+    if ((!IsAscBackendOpNode(node) && (node->GetType() != "FusedAscBackend")) || node->GetOutNodes().empty()) {
       continue;
     }
     GE_ASSERT_NOTNULL(node->GetOpDesc());
@@ -330,15 +327,15 @@ graphStatus AscIrLowerer::DfxForAscBackendOp(const ComputeGraphPtr &graph) const
 
     int32_t vector_core_num = GetInterAttrs(fuse_attrs).vector_core_num;
     GE_CHECK_GE(vector_core_num, 0);
-    if (vector_core_num > 0){
+    if (vector_core_num > 0) {
       (void)ge::AttrUtils::SetStr(node->GetOpDesc(), aiv_cnt_key, std::to_string(vector_core_num));
     }
   }
   return GRAPH_SUCCESS;
 }
 
-graphStatus CutCtrEdgeIfNeed(const NodePtr &control_node, const NodePtr &node,
-                             const OutControlAnchorPtr &src, const InControlAnchorPtr &dst,
+graphStatus CutCtrEdgeIfNeed(const NodePtr &control_node, const NodePtr &node, const OutControlAnchorPtr &src,
+                             const InControlAnchorPtr &dst,
                              std::map<std::string, std::vector<NodePtr>> &node_to_control_const_node) {
   if (OpTypeUtils::IsConstNode(control_node->GetType())) {
     bool is_from_constant_folding = false;
@@ -348,16 +345,16 @@ graphStatus CutCtrEdgeIfNeed(const NodePtr &control_node, const NodePtr &node,
              node->GetName().c_str(), control_node->GetName().c_str());
       GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::RemoveEdge(src, dst), "[Remove][ControlEdge] between %s and %s failed",
                               control_node->GetName().c_str(), node->GetName().c_str());
-      GE_ASSERT_GRAPH_SUCCESS(
-          RecordControlEdgeRelation(node_to_control_const_node, node->GetName(), control_node));
+      GE_ASSERT_GRAPH_SUCCESS(RecordControlEdgeRelation(node_to_control_const_node, node->GetName(), control_node));
     } else {
-      GELOGD("node:%s has control edge from/to const/constant nodes:%s,"
-             "but is not generated by constant folding, skip process.",
-             node->GetName().c_str(), control_node->GetName().c_str());
+      GELOGD(
+          "node:%s has control edge from/to const/constant nodes:%s,"
+          "but is not generated by constant folding, skip process.",
+          node->GetName().c_str(), control_node->GetName().c_str());
     }
   } else {
-    GELOGD("node:%s has control edge from/to non const/constant nodes:%s, skip process.",
-           node->GetName().c_str(), control_node->GetName().c_str());
+    GELOGD("node:%s has control edge from/to non const/constant nodes:%s, skip process.", node->GetName().c_str(),
+           control_node->GetName().c_str());
   }
   return GRAPH_SUCCESS;
 }
@@ -379,7 +376,7 @@ graphStatus AscIrLowerer::ProcessControlEdge(const ComputeGraphPtr &graph) {
     if (node->GetOutDataNodes().size() == 0U) {
       continue;
     }
-    (void) LoweringManager::Lowering(node);
+    (void)LoweringManager::Lowering(node);
     const auto node_out_anchor = node->GetOutDataAnchor(0);
     const auto node_kernel_box = loop::GetKernelBox(node_out_anchor);
     const auto &fuse_type = FuseTypeToString(node_kernel_box.Type());
@@ -411,10 +408,9 @@ graphStatus AscIrLowerer::RecoverInitControlEdge(const ComputeGraphPtr &graph) {
     auto it = node_in_control_to_const_.find(node->GetName());
     if (it != node_in_control_to_const_.end()) {
       for (const auto &const_node : it->second) {
-        GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::AddEdge(const_node->GetOutControlAnchor(),
-                                                        node->GetInControlAnchor()),
-                                "[Add][ControlEdge] between %s and %s failed",
-                                const_node->GetName().c_str(), node->GetName().c_str());
+        GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::AddEdge(const_node->GetOutControlAnchor(), node->GetInControlAnchor()),
+                                "[Add][ControlEdge] between %s and %s failed", const_node->GetName().c_str(),
+                                node->GetName().c_str());
         GELOGI("Success to recover control edge from node %s to node %s", const_node->GetName().c_str(),
                node->GetName().c_str());
       }
@@ -422,10 +418,9 @@ graphStatus AscIrLowerer::RecoverInitControlEdge(const ComputeGraphPtr &graph) {
     it = node_out_control_to_const_.find(node->GetName());
     if (it != node_out_control_to_const_.end()) {
       for (const auto &const_node : it->second) {
-        GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::AddEdge(node->GetOutControlAnchor(),
-                                                        const_node->GetInControlAnchor()),
-                                "[Add][ControlEdge] between %s and %s failed",
-                                node->GetName().c_str(), const_node->GetName().c_str());
+        GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::AddEdge(node->GetOutControlAnchor(), const_node->GetInControlAnchor()),
+                                "[Add][ControlEdge] between %s and %s failed", node->GetName().c_str(),
+                                const_node->GetName().c_str());
         GELOGI("Success to recover control edge from node %s to node %s", node->GetName().c_str(),
                const_node->GetName().c_str());
       }

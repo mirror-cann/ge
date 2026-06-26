@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,6 +59,7 @@ class ExternalAllocatorUtStub : public Allocator {
   uint64_t GetAdviseCnt() {
     return advise_cnt;
   }
+
  private:
   uint64_t mem = 0;
   MemBlock *block_{nullptr};
@@ -107,10 +108,10 @@ void CreateSummaryCompiledModel(GraphNodePtr &graph_node, GeModelPtr &ge_model, 
   uint64_t mem = 0UL;
   std::vector<std::vector<int64_t>> sub_mem_infos;
   std::vector<int64_t> sub_mem_offset;
-  sub_mem_offset.emplace_back(0x2U);// mem_type RT_MEMORY_HBM 0x2U
-  sub_mem_offset.emplace_back((int64_t)(&mem));// mem_offset_base
-  sub_mem_offset.emplace_back(sizeof(mem)); // mem_size
-  sub_mem_offset.emplace_back(1UL); // is_fixed_addr_prior
+  sub_mem_offset.emplace_back(0x2U);             // mem_type RT_MEMORY_HBM 0x2U
+  sub_mem_offset.emplace_back((int64_t)(&mem));  // mem_offset_base
+  sub_mem_offset.emplace_back(sizeof(mem));      // mem_size
+  sub_mem_offset.emplace_back(1UL);              // is_fixed_addr_prior
   sub_mem_infos.emplace_back(sub_mem_offset);
   AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_infos);
 
@@ -119,7 +120,7 @@ void CreateSummaryCompiledModel(GraphNodePtr &graph_node, GeModelPtr &ge_model, 
   GetThreadLocalContext().SetGraphOption(graph_options);
   graph_node->SetOptions(graph_options);
 }
-}
+}  // namespace
 class UtestModelExecutorTest : public testing::Test {
  protected:
   void SetUp() {}
@@ -160,7 +161,6 @@ TEST_F(UtestModelExecutorTest, test_load_graph_sync) {
   graph_node->SetGeRootModel(ge_root_model);
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(false);
-  
 
   EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
   EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
@@ -244,7 +244,6 @@ TEST_F(UtestModelExecutorTest, test_load_graph_failed) {
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(compute_graph), SUCCESS);
 
-
   GraphId graph_id = 1;
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(graph_id);
   graph_node->SetGeRootModel(ge_root_model);
@@ -268,7 +267,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_success) {
   uint32_t graph_num = 4;
   for (uint32_t i = 1; i < graph_num; i++) {
     GraphId graph_id = i;
-    string graph_name =  "test_graph" + to_string(graph_id);
+    string graph_name = "test_graph" + to_string(graph_id);
 
     auto compute_graph = MakeShared<ComputeGraph>(graph_name);
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -283,7 +282,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_success) {
     graph_node->SetGeRootModel(ge_root_model);
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    
 
     uint32_t stream_num_dev_avail = 0;
     switch (graph_id) {
@@ -327,7 +325,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_failed) {
   uint32_t graph_num = 4;
   for (uint32_t i = 1; i < graph_num; i++) {
     GraphId graph_id = i;
-    string graph_name =  "test_graph" + to_string(graph_id);
+    string graph_name = "test_graph" + to_string(graph_id);
 
     auto compute_graph = MakeShared<ComputeGraph>(graph_name);
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -341,7 +339,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_stream_failed) {
     graph_node->SetGeRootModel(ge_root_model);
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    
 
     uint32_t stream_num_dev_avail = 0;
     switch (graph_id) {
@@ -384,7 +381,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_success) {
   uint32_t graph_num = 5;
   for (uint32_t i = 1; i < graph_num; i++) {
     GraphId graph_id = i;
-    string graph_name =  "test_graph" + to_string(graph_id);
+    string graph_name = "test_graph" + to_string(graph_id);
 
     auto compute_graph = MakeShared<ComputeGraph>(graph_name);
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -399,7 +396,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_success) {
     graph_node->SetGeRootModel(ge_root_model);
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    
 
     uint32_t event_num_dev_avail = 0;
     switch (graph_id) {
@@ -431,14 +427,15 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_success) {
         AttrUtils::SetBool(op_desc, ATTR_NAME_IS_BLOCKING_OP, true);
         compute_graph->AddNode(op_desc);
         AttrUtils::SetListStr(op_desc, "_hccl_group_id_list", {"group0", "group1"});
-        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void*)1), GRAPH_SUCCESS);
-        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void*)2), GRAPH_SUCCESS);
+        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void *)1), GRAPH_SUCCESS);
+        EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void *)2), GRAPH_SUCCESS);
 
         shared_ptr<domi::ModelTaskDef> model_task_def = std::make_shared<domi::ModelTaskDef>();
         ge_model->SetModelTaskDef(model_task_def);
 
         (void)aclrtGetEventAvailNum(&event_num_dev_avail);
-        EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, event_num_dev_avail - 2)); // 释放1个，kfc占用2个event， block占用1个event
+        EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM,
+                                      event_num_dev_avail - 2));  // 释放1个，kfc占用2个event， block占用1个event
         EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
         EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
       }
@@ -462,7 +459,7 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_failed) {
   uint32_t graph_num = 4;
   for (uint32_t i = 1; i < graph_num; i++) {
     GraphId graph_id = i;
-    string graph_name =  "test_graph" + to_string(graph_id);
+    string graph_name = "test_graph" + to_string(graph_id);
 
     auto compute_graph = MakeShared<ComputeGraph>(graph_name);
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -477,7 +474,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_failed) {
     graph_node->SetGeRootModel(ge_root_model);
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    
 
     uint32_t event_num_dev_avail = 0;
     switch (graph_id) {
@@ -522,7 +518,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_event_failed) {
 }
 
 TEST_F(UtestModelExecutorTest, test_release_model_check_hccl_task) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model = MakeShared<DavinciModel>(1, listener);
@@ -535,7 +530,7 @@ TEST_F(UtestModelExecutorTest, test_release_model_check_hccl_task) {
   EXPECT_EQ(model_executor.Initialize({}, 0), SUCCESS);
   model_executor.StartRunThread();
 
-  string graph_name =  "test_graph";
+  string graph_name = "test_graph";
   auto compute_graph = MakeShared<ComputeGraph>(graph_name);
 
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -558,7 +553,6 @@ TEST_F(UtestModelExecutorTest, test_release_model_check_hccl_task) {
 }
 
 TEST_F(UtestModelExecutorTest, test_unload_model_check_hccl_task) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model = MakeShared<DavinciModel>(1, listener);
@@ -571,7 +565,7 @@ TEST_F(UtestModelExecutorTest, test_unload_model_check_hccl_task) {
   EXPECT_EQ(model_executor.Initialize({}, 0), SUCCESS);
   model_executor.StartRunThread();
 
-  string graph_name =  "test_graph";
+  string graph_name = "test_graph";
   auto compute_graph = MakeShared<ComputeGraph>(graph_name);
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(compute_graph), SUCCESS);
@@ -594,7 +588,6 @@ TEST_F(UtestModelExecutorTest, test_unload_model_check_hccl_task) {
 }
 
 TEST_F(UtestModelExecutorTest, test_check_and_release_memory) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model1 = MakeShared<DavinciModel>(1, listener);
@@ -646,7 +639,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory) {
 }
 
 TEST_F(UtestModelExecutorTest, test_check_and_release_memory_with_refreshable_fm) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model1 = MakeShared<DavinciModel>(1, listener);
@@ -702,7 +694,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory_with_refreshable_fm
 }
 
 TEST_F(UtestModelExecutorTest, test_check_and_release_memory_with_fix_fm) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model1 = MakeShared<DavinciModel>(1, listener);
@@ -737,7 +728,8 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory_with_fix_fm) {
   ge_root_model->SetModelId(1);
   ge_root_model->SetModelId(2);
   auto memory = malloc(10);
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, memory, 10, true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, memory, 10, true, false, false, 0U, nullptr}});
   graph_node->SetGeRootModel(ge_root_model);
   graph_node->SetLoadFlag(true);
   ge_model->model_id_to_session_id_map_[1] = session_id;
@@ -757,7 +749,6 @@ TEST_F(UtestModelExecutorTest, test_check_and_release_memory_with_fix_fm) {
 }
 
 TEST_F(UtestModelExecutorTest, test_flow_model_check_and_release_memory) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model1 = MakeShared<DavinciModel>(1, listener);
@@ -809,7 +800,6 @@ TEST_F(UtestModelExecutorTest, test_flow_model_check_and_release_memory) {
 }
 
 TEST_F(UtestModelExecutorTest, test_check_and_release_memory_extend_size_static_memory) {
-
   {
     auto listener = MakeShared<RunAsyncListener>();
     shared_ptr<DavinciModel> davinci_model1 = MakeShared<DavinciModel>(1, listener);
@@ -897,7 +887,7 @@ TEST_F(UtestModelExecutorTest, test_run_thread) {
   uint64_t session_id = 0;
   error_message::ErrorManagerContext error_context;
   GEThreadLocalContext context = GetThreadLocalContext();
-  const auto callback = [](Status status, std::vector<gert::Tensor> &outputs) { };
+  const auto callback = [](Status status, std::vector<gert::Tensor> &outputs) {};
 
   auto compute_graph = MakeShared<ComputeGraph>("test_graph");
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
@@ -1168,8 +1158,7 @@ TEST_F(UtestModelExecutorTest, test_run_thread_4) {
     ModelExecutor model_executor;
     EXPECT_EQ(model_executor.Initialize({}, session_id), SUCCESS);
     // Callback for execute.
-    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
-    };
+    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {};
     run_args->callback = callback;
     graph_node->Lock();
     auto hybrid_model_ptr = ge::hybrid::HybridDavinciModel::Create(ge_root_model);
@@ -1181,7 +1170,7 @@ TEST_F(UtestModelExecutorTest, test_run_thread_4) {
     shared_model->SetListener(listerner_ptr);
     EXPECT_EQ(model_executor.PushRunArgs(run_args), SUCCESS);
     model_executor.StartRunThread();
-    sleep(1); // wait for thread
+    sleep(1);  // wait for thread
     ASSERT_NE(listerner_ptr->sem_.Size() + listerner_ptr->sem_v2_.Size(), 0);
     EXPECT_EQ(ModelManager::GetInstance().DeleteModel(ge_root_model->GetModelId()), SUCCESS);
     EXPECT_EQ(model_executor.Finalize(), SUCCESS);
@@ -1268,7 +1257,6 @@ TEST_F(UtestModelExecutorTest, test_run_graph_with_stream) {
   aclrtDestroyStream(stream);
 }
 
-
 TEST_F(UtestModelExecutorTest, test_execute_graph_with_stream) {
   ModelExecutor model_executor;
   EXPECT_EQ(model_executor.Initialize({}, 0), SUCCESS);
@@ -1295,11 +1283,11 @@ TEST_F(UtestModelExecutorTest, test_execute_graph_with_stream) {
   std::vector<gert::Tensor> gert_inputs;
   gert_inputs.resize(1);
   std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 0);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
   std::vector<gert::Tensor> gert_outputs;
 
   rtStream_t stream = nullptr;
@@ -1308,7 +1296,8 @@ TEST_F(UtestModelExecutorTest, test_execute_graph_with_stream) {
   std::vector<GeTensor> inputs{tensor};
   std::vector<GeTensor> outputs;
   EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph_id, stream, inputs, outputs), PARAM_INVALID);
-  EXPECT_EQ(model_executor.ExecuteGraphWithStream(graph_node, graph_id, stream, gert_inputs, gert_outputs), ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
+  EXPECT_EQ(model_executor.ExecuteGraphWithStream(graph_node, graph_id, stream, gert_inputs, gert_outputs),
+            ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
   GraphNodePtr graph_node_2 = MakeShared<ge::GraphNode>(2);
   EXPECT_NE(model_executor.ExecuteGraphWithStream(graph_node_2, 2, stream, gert_inputs, gert_outputs), SUCCESS);
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
@@ -1453,10 +1442,10 @@ TEST_F(UtestModelExecutorTest, MallocAndFreeFixedFeatureMemoryIfNeed_Success_Use
   EXPECT_TRUE(p2p_iter->second.ge_alloc);
   EXPECT_FALSE(p2p_iter->second.user_alloc);
 
-  auto hbm_session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().
-      GetMemAllocator(session_id, GetContext().DeviceId(), RT_MEMORY_HBM);
-  auto p2p_session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().
-      GetMemAllocator(session_id, GetContext().DeviceId(), RT_MEMORY_P2P_DDR);
+  auto hbm_session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().GetMemAllocator(
+      session_id, GetContext().DeviceId(), RT_MEMORY_HBM);
+  auto p2p_session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().GetMemAllocator(
+      session_id, GetContext().DeviceId(), RT_MEMORY_P2P_DDR);
 
   auto hbm_mem_block = hbm_session_allocator->Malloc(2048);
   ASSERT_NE(hbm_mem_block, nullptr);
@@ -1493,8 +1482,7 @@ TEST_F(UtestModelExecutorTest, FreeFixedFeatureMemory_WhenLoadFailed) {
 
   const std::string purpose = MemTypeUtils::ToString(RT_MEMORY_HBM) + " fixed feature base";
   auto &mem_instance = MemManager::Instance().MemInstance(RT_MEMORY_HBM);
-  auto addr = mem_instance.MallocMemory(purpose,
-                                        8 * 1024 * 1024, GetContext().DeviceId());
+  auto addr = mem_instance.MallocMemory(purpose, 8 * 1024 * 1024, GetContext().DeviceId());
   ASSERT_NE(addr, nullptr);
   (void)ge_root_model->MutableFixedFeatureMemory().insert(
       {RT_MEMORY_HBM, {RT_MEMORY_HBM, addr, 8 * 1024 * 1024, false, true, false, 0, nullptr}});
@@ -1543,7 +1531,7 @@ TEST_F(UtestModelExecutorTest, MallocAndFreeFixedFeatureMemoryIfNeed_Success_Whe
   EXPECT_NE(hbm_iter->second.addr, nullptr);
   EXPECT_EQ(hbm_iter->second.block, nullptr);
   EXPECT_EQ(hbm_iter->second.size, 12);
-  EXPECT_FALSE(hbm_iter->second.ge_alloc); // ge_alloc is false
+  EXPECT_FALSE(hbm_iter->second.ge_alloc);  // ge_alloc is false
   EXPECT_TRUE(hbm_iter->second.user_alloc);
 
   const auto p2p_iter = all_fixed_feature_mem.find(RT_MEMORY_P2P_DDR);
@@ -1588,7 +1576,7 @@ TEST_F(UtestModelExecutorTest, MallocAndFreeFixedFeatureMemoryIfNeed_ExternalAll
   const auto hbm_iter = all_fixed_feature_mem.find(RT_MEMORY_HBM);
   ASSERT_NE(hbm_iter, all_fixed_feature_mem.end());
   EXPECT_NE(hbm_iter->second.addr, nullptr);
-  ASSERT_NE(hbm_iter->second.block, nullptr); // external allocator, block is not nullptr
+  ASSERT_NE(hbm_iter->second.block, nullptr);  // external allocator, block is not nullptr
   EXPECT_EQ(hbm_iter->second.size, 8);
   EXPECT_TRUE(hbm_iter->second.ge_alloc);
   EXPECT_FALSE(hbm_iter->second.user_alloc);
@@ -1650,4 +1638,4 @@ TEST_F(UtestModelExecutorTest, MallocAndFreeFixedFeatureMemoryIfNeed_UserHasSetF
   EXPECT_TRUE(ge_root_model->GetFixedFeatureMemory().empty());
   ExternalAllocatorManager::DeleteExternalAllocator(rtStream_t(0x1));
 }
-} // namespace ge
+}  // namespace ge

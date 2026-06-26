@@ -56,4 +56,3 @@ void aclDestroyTensorDesc(const aclTensorDesc *desc)
 ## 返回值说明<a name="section25151444115613"></a>
 
 无
-

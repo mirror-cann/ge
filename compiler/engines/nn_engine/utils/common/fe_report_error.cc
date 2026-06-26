@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,14 +19,14 @@
 
 namespace fe {
 std::map<std::string, std::vector<std::string>> kFeErrorParamMap = {
-  {EM_COMPILE_FAILED, {"pass_name", "pass_type"}},
-  {EM_ENVIRONMENT_VARIABLE_FAILED, {"value", "env", "reason"}},
-  {EM_INVALID_CONTENT, {"parameter", "filepath", "reason"}},
-  {EM_RUN_PASS_FAILED, {"pass_name", "pass_type"}},
-  {EM_INPUT_OPTION_INVALID, {"value", "parameter", "reason"}},
-  {EM_AICORENUM_OUT_OF_RANGE, {"value", "parameter", "range"}},
-  {EM_OPEN_FILE_FAILED, {"file_name"}},
-  {EM_READ_FILE_FAILED, {"file_name", "reason"}},
+    {EM_COMPILE_FAILED, {"pass_name", "pass_type"}},
+    {EM_ENVIRONMENT_VARIABLE_FAILED, {"value", "env", "reason"}},
+    {EM_INVALID_CONTENT, {"parameter", "filepath", "reason"}},
+    {EM_RUN_PASS_FAILED, {"pass_name", "pass_type"}},
+    {EM_INPUT_OPTION_INVALID, {"value", "parameter", "reason"}},
+    {EM_AICORENUM_OUT_OF_RANGE, {"value", "parameter", "range"}},
+    {EM_OPEN_FILE_FAILED, {"file_name"}},
+    {EM_READ_FILE_FAILED, {"file_name", "reason"}},
 };
 
 void ErrorMessageDetail::ModifyArgsByErrorCode() {
@@ -56,7 +56,7 @@ void ErrorMessageDetail::ToParamMap(std::map<std::string, std::string> &args_map
     return;
   }
   size_t arg_size = (iter->second.size() > arg_list.size()) ? arg_list.size() : iter->second.size();
-  
+
   for (size_t i = 0; i < arg_size; ++i) {
     args_map[iter->second[i]] = arg_list[i];
     FE_LOGD("error_code: %s, add key: %s, args: %s to args_map.", error_code.c_str(), iter->second[i].c_str(),
@@ -69,8 +69,8 @@ void ReportErrorMessage(ErrorMessageDetail &error_detail) {
   error_detail.ModifyArgsByErrorCode();
   std::map<std::string, std::string> args_map;
   error_detail.ToParamMap(args_map);
-  std::vector<const char*> args_keys;
-  std::vector<const char*> args_values;
+  std::vector<const char *> args_keys;
+  std::vector<const char *> args_values;
   for (const auto &item : args_map) {
     args_keys.push_back(item.first.c_str());
     args_values.push_back(item.second.c_str());

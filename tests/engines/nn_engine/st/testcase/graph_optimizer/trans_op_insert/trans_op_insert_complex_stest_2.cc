@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 #include "graph/debug/ge_attr_define.h"
 
 #define protected public
-#define private   public
+#define private public
 #include "graph_optimizer/fusion_common/fusion_pass_manager.h"
 #include "graph_optimizer/graph_fusion/graph_fusion.h"
 #include "graph_optimizer/fe_graph_optimizer.h"
@@ -55,15 +55,13 @@ uint64_t GetTransAtomicIdFromZero() {
 
 class STEST_FE_TRANSOP_INSERT_COMPLEX_2 : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-        6,
-        "tbe-custom",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
         ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -74,8 +72,7 @@ class STEST_FE_TRANSOP_INSERT_COMPLEX_2 : public testing::Test {
     RegisterOpCreator("Transpose", {"x", "perm"}, {"y"});
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
 
     k_clear_atomic_id_flag = true;
@@ -83,8 +80,7 @@ class STEST_FE_TRANSOP_INSERT_COMPLEX_2 : public testing::Test {
     k_clear_atomic_id_flag = false;
   }
 
-  static void RegisterOpCreator(const std::string &op_type,
-                                const std::vector<std::string> &input_names,
+  static void RegisterOpCreator(const std::string &op_type, const std::vector<std::string> &input_names,
                                 const std::vector<std::string> &output_names) {
     auto op_creator = [op_type, input_names, output_names](const std::string &name) -> Operator {
       auto op_desc = make_shared<OpDesc>(name, op_type);
@@ -105,8 +101,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_1) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("var1", fe::VARIABLE);
-  vector<int64_t> dims4_d = {100,200,300,400};
-  vector<int64_t> dimsfz = {380000,25,16,16};
+  vector<int64_t> dims4_d = {100, 200, 300, 400};
+  vector<int64_t> dimsfz = {380000, 25, 16, 16};
   GeTensorDesc src_tensor_desc(GeShape(dims4_d), ge::FORMAT_HWCN, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(GeShape(dims4_d));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
@@ -170,26 +166,22 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_1) {
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
-    EXPECT_NE(node->GetName(),"transdata_0");
-    EXPECT_NE(node->GetName(),"transdata_1");
+    EXPECT_NE(node->GetName(), "transdata_0");
+    EXPECT_NE(node->GetName(), "transdata_1");
     if (node->GetName() == "apply") {
       {
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
       }
     }
     if (node->GetType() == "Cast") {
@@ -198,19 +190,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_1) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
         index++;
       } else {
@@ -218,19 +206,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_1) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
       }
     }
@@ -238,14 +222,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_1) {
   EXPECT_EQ(count_node, 7);
 }
 
-
-
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("var1", OP_TYPE_PLACE_HOLDER);
-  vector<int64_t> dims4_d = {100,200,300,400};
-  vector<int64_t> dimsfz = {380000,25,16,16};
+  vector<int64_t> dims4_d = {100, 200, 300, 400};
+  vector<int64_t> dimsfz = {380000, 25, 16, 16};
   GeTensorDesc src_tensor_desc(GeShape(dims4_d), ge::FORMAT_HWCN, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(GeShape(dims4_d));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
@@ -310,26 +292,22 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
-    EXPECT_NE(node->GetName(),"transdata_0");
-    EXPECT_NE(node->GetName(),"transdata_1");
+    EXPECT_NE(node->GetName(), "transdata_0");
+    EXPECT_NE(node->GetName(), "transdata_1");
     if (node->GetName() == "apply") {
       {
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
       }
     }
     if (node->GetType() == "Cast") {
@@ -338,19 +316,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
         index_cast++;
       } else {
@@ -358,19 +332,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
       }
     }
@@ -380,19 +350,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dims4_d);
-          EXPECT_EQ(ge::FORMAT_HWCN,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_HWCN, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()));
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()));
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
         index_transdata++;
       } else {
@@ -400,19 +366,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dims4_d);
-          EXPECT_EQ(ge::FORMAT_HWCN,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_HWCN, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
       }
     }
@@ -420,10 +382,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertAllTransop_2) {
   EXPECT_EQ(count_node, 7);
 }
 
-
-
-TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertPermuteNode)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertPermuteNode) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   std::vector<int64_t> dim_src = {1, 1024, 256, 512};
@@ -465,7 +424,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertPermuteNode)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
@@ -475,25 +434,21 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, InsertPermuteNode)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
         EXPECT_EQ(input_vec_of_b[3], 2);
       }
-
     }
-
   }
   EXPECT_EQ(count_node, 2);
 }
 
-
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 28, 28},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 28, 28},
                 {72, 32, 28, 28});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -508,14 +463,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape) {
   EXPECT_EQ(count_node, 2);
 }
 
-
 /* shape's total product is the same, but the sequence is not the same and
  * does not meet the requirements of reshape*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 14, 15},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 14, 15},
                 {72, 32, 15, 14});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -533,8 +486,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_02
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 14, 15},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {8, 288, 14, 15},
                 {72, 32, 14, 30});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -553,8 +505,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_03
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_04) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {64, 4*9, 14, 30},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {64, 4 * 9, 14, 30},
                 {32, 72, 14, 30});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -567,16 +518,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_04
   }
   EXPECT_EQ(count_node, 4);
 }
-
 
 /* shape's total product is the same, N * C is also the same, but axis of node
  * A cannot be divided by 32. */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_05) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {16, 9*16, 14, 30},
-                {32, 72, 14, 30});
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW,
+                {16, 9 * 16, 14, 30}, {32, 72, 14, 30});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
   trans_op_insert.Initialize();
@@ -589,14 +538,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_05
   EXPECT_EQ(count_node, 4);
 }
 
-
 /* shape's total product is the same, N * C is also the same, and axis of node
  * A can be divided by 32. */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_06) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {36, 64, 14, 30},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {36, 64, 14, 30},
                 {72, 32, 14, 30});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -610,13 +557,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_06
   EXPECT_EQ(count_node, 2);
 }
 
-
 /* shape's total product is the same, N * C is not the same */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_07) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NCHW, ge::FORMAT_NCHW, {1, 64, 128, 1},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NCHW, ge::FORMAT_NCHW, {1, 64, 128, 1},
                 {64, 128, 1, 1});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -630,13 +575,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_07
   EXPECT_EQ(count_node, 4);
 }
 
-
 /* shape's total product is the same, NHWC is the same */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_08) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NHWC, ge::FORMAT_NHWC, {1, 64, 128, 1},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NHWC, ge::FORMAT_NHWC, {1, 64, 128, 1},
                 {64, 128, 1, 1});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -650,15 +593,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_08
   EXPECT_EQ(count_node, 2);
 }
 
-
-
 /* shape's total product is the same, NHWC is the same, but C is not the same
  * and they can not be divided by 16. */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_09) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_NHWC, ge::FORMAT_NHWC, {1, 64, 128, 7},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_NHWC, ge::FORMAT_NHWC, {1, 64, 128, 7},
                 {64, 128, 7, 1});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -677,8 +617,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_09
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_10) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   GraphConstructor test(graph, "", ge::FORMAT_HWCN, ge::DT_INT8);
-  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0,
-                ge::FORMAT_HWCN, ge::FORMAT_HWCN, {32, 64, 128, 1},
+  test.SetInput("A", ge::FORMAT_NC1HWC0, "B", ge::FORMAT_NC1HWC0, ge::FORMAT_HWCN, ge::FORMAT_HWCN, {32, 64, 128, 1},
                 {64, 128, 32, 1});
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -692,17 +631,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, merge_two_transdata_with_diff_shape_10
   EXPECT_EQ(count_node, 8);
 }
 
-
-
 /* A -> TransData(4->5, bool) -> Cast(5HD, bool->fp16) -> B (5HD, fp16)
-* will be changed to :
-* A -> Cast(4D, bool->fp16) -> TransData(4->5, fp16) -> B (5HD, fp16)
-*/
+ * will be changed to :
+ * A -> Cast(4D, bool->fp16) -> TransData(4->5, fp16) -> B (5HD, fp16)
+ */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -710,7 +646,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata) {
 
   test.SetInput("transdata", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16);
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -719,8 +655,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -745,16 +680,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NC1HWC0);
 }
 
-
 /* The following case is RARE.
-* A -> TransData(5->4, bool) -> Cast(4D, bool->fp16) -> B (4D, fp16)
-* will be changed to :
-* A -> Cast(5D, bool->fp16) -> TransData(5->4, fp16) -> B (4D, fp16) */
+ * A -> TransData(5->4, bool) -> Cast(4D, bool->fp16) -> B (4D, fp16)
+ * will be changed to :
+ * A -> Cast(5D, bool->fp16) -> TransData(5->4, fp16) -> B (4D, fp16) */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_2) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -762,7 +695,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_2) {
 
   test.SetInput("transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "a", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
       .SetInput("cast", ge::FORMAT_NHWC, ge::DT_BOOL, "transdata", ge::FORMAT_NHWC, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_FLOAT16, "cast", ge::FORMAT_NHWC,  ge::DT_FLOAT16);
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_FLOAT16, "cast", ge::FORMAT_NHWC, ge::DT_FLOAT16);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -771,8 +704,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_2) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -797,17 +729,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_2) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NHWC);
 }
 
-
-
 /* A -> Cast(5HD, fp16->bool) -> TransData(5->4, bool) -> B (4D, bool)
-* will be changed to :
-* A -> TransData(5->4, fp16) -> Cast(4D, fp16->bool) -> B (4D, bool)
-*/
+ * will be changed to :
+ * A -> TransData(5->4, fp16) -> Cast(4D, fp16->bool) -> B (4D, bool)
+ */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_3) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -815,7 +744,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_3) {
 
   test.SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "a", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
       .SetInput("transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "cast", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "transdata", ge::FORMAT_NHWC,  ge::DT_BOOL);
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "transdata", ge::FORMAT_NHWC, ge::DT_BOOL);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -824,8 +753,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_3) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -854,8 +782,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_3) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_4) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -863,7 +790,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_4) {
 
   test.SetInput("cast", ge::FORMAT_NHWC, ge::DT_FLOAT16, "a", ge::FORMAT_NHWC, ge::DT_FLOAT16)
       .SetInput("transdata", ge::FORMAT_NHWC, ge::DT_BOOL, "cast", ge::FORMAT_NHWC, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "transdata", ge::FORMAT_NC1HWC0,  ge::DT_BOOL);
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -872,8 +799,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_4) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -897,20 +823,18 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_4) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NC1HWC0);
 }
 
-
 /* An Special Case is :
-* A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->fp16)
-* -> B(5HD, fp16)
-* This case will be optimized as:
-* A -> TransData(4->5, bool) -> Cast(5HD, bool->fp16)-> B(5HD, fp16)
-* then:
-* A -> Cast(4D, bool->fp16) -> TransData(4->5, fp16) -> B(5HD, fp16)
-* */
+ * A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->fp16)
+ * -> B(5HD, fp16)
+ * This case will be optimized as:
+ * A -> TransData(4->5, bool) -> Cast(5HD, bool->fp16)-> B(5HD, fp16)
+ * then:
+ * A -> Cast(4D, bool->fp16) -> TransData(4->5, fp16) -> B(5HD, fp16)
+ * */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_5) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast1", fe::CAST, 1, 1)
@@ -919,8 +843,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_5) {
 
   test.SetInput("transdata", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("cast1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("cast2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "cast1", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast2", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16);
+      .SetInput("cast2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "cast1", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -929,8 +853,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_5) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -958,28 +881,27 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_5) {
 }
 
 /* An Special Case is :
-* A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->fp16) -> B(5HD, fp16)
-*                                                    \-> Cast3(5HD, fp32->fp16) -> C(5HD, fp16)
+ * A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->fp16) -> B(5HD, fp16)
+ *                                                    \-> Cast3(5HD, fp32->fp16) -> C(5HD, fp16)
  *                                                   \-> Cast4(5HD, fp32->fp16) -> D(5HD, fp16)
-* This case will be optimized as:
-* A -> Cast1(4D, bool->fp16)-> TransData(4->5, 16) ----> B(5HD, fp16)
-*                                                    \-> C(5HD, fp16)
+ * This case will be optimized as:
+ * A -> Cast1(4D, bool->fp16)-> TransData(4->5, 16) ----> B(5HD, fp16)
+ *                                                    \-> C(5HD, fp16)
  *                                                   \-> D(5HD, fp16)
-* */
+ * */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_6) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.SetInput("TransData", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "TransData", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
+      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
 
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_2", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16)
-      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_3", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16)
-      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_4", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16);
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
+      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
+      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
 
   test.DumpGraph(graph);
 
@@ -989,8 +911,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_6) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1028,30 +949,29 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_6) {
 }
 
 /* An Special Case is :
-* A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->int32) -> B(5HD, int32)
-*                                                    \-> Cast3(5HD, fp32->int32) -> C(5HD, int32)
-*                                                    \-> Cast4(5HD, fp32->int32) -> D(5HD, int32)
-* This case will be optimized to:
-* A -> Cast1(4D, bool->fp32) -> TransData(4->5, fp32)-> Cast2(5HD, fp32->int32) -> B(5HD, int32)
-*                                                    \-> Cast3(5HD, fp32->int32) -> C(5HD, int32)
-*                                                    \-> Cast4(5HD, fp32->int32) -> D(5HD, int32)
-* */
+ * A -> TransData(4->5, bool) -> Cast1(5HD, bool->fp32)-> Cast2(5HD, fp32->int32) -> B(5HD, int32)
+ *                                                    \-> Cast3(5HD, fp32->int32) -> C(5HD, int32)
+ *                                                    \-> Cast4(5HD, fp32->int32) -> D(5HD, int32)
+ * This case will be optimized to:
+ * A -> Cast1(4D, bool->fp32) -> TransData(4->5, fp32)-> Cast2(5HD, fp32->int32) -> B(5HD, int32)
+ *                                                    \-> Cast3(5HD, fp32->int32) -> C(5HD, int32)
+ *                                                    \-> Cast4(5HD, fp32->int32) -> D(5HD, int32)
+ * */
 
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_7) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
   test.SetInput("TransData", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "TransData", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
+      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
 
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_2", ge::FORMAT_NC1HWC0,  ge::DT_INT32)
-      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_3", ge::FORMAT_NC1HWC0,  ge::DT_INT32)
-      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_4", ge::FORMAT_NC1HWC0,  ge::DT_INT32);
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_2", ge::FORMAT_NC1HWC0, ge::DT_INT32)
+      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_3", ge::FORMAT_NC1HWC0, ge::DT_INT32)
+      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_INT32, "Cast_4", ge::FORMAT_NC1HWC0, ge::DT_INT32);
 
   test.DumpGraph(graph);
 
@@ -1061,8 +981,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_7) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1113,18 +1032,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_7) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_8) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
   test.SetInput("TransData", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "TransData", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
+      .SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
 
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_2", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16)
-      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_3", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16)
-      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_4", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16);
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
+      .SetInput("c", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
+      .SetInput("d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "Cast_4", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
 
   test.DumpGraph(graph);
 
@@ -1134,8 +1052,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_8) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1175,23 +1092,22 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_8) {
 }
 
 /* Another Special Case is :
-* Fuse two concecutive cast if they meet the following pattern
-* ----> Cast2(16 -> fp32) ----> Cast1 (fp32 -> x) ----> TransData ---->
-* This case will become:
-* ----> Cast1(16 -> x) ----> TransData ---->
-* then:
-* ----> TransData (5HD -> 4D, fp16)----> Cast1(4D, 16 -> x) ---->
-* */
+ * Fuse two consecutive cast if they meet the following pattern
+ * ----> Cast2(16 -> fp32) ----> Cast1 (fp32 -> x) ----> TransData ---->
+ * This case will become:
+ * ----> Cast1(16 -> x) ----> TransData ---->
+ * then:
+ * ----> TransData (5HD -> 4D, fp16)----> Cast1(4D, 16 -> x) ---->
+ * */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_9) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
   test.SetInput("Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "a", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
-      .SetInput("TransData", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1", ge::FORMAT_NC1HWC0,  ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData", ge::FORMAT_NHWC,  ge::DT_BOOL);
+      .SetInput("TransData", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData", ge::FORMAT_NHWC, ge::DT_BOOL);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1200,8 +1116,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_9) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1228,9 +1143,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_9) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NHWC);
 }
 
-
 /* Another Special Case is :
- * Fuse two concecutive cast if they meet the following pattern
+ * Fuse two consecutive cast if they meet the following pattern
  * ----> Cast2(16 -> fp32) ----> Cast1 (fp32 -> x) ----> TransData1 ---->
  *                         \---> Cast3 (fp32 -> x) ----> TransData2 ---->
  * This case will be optimized to :
@@ -1240,16 +1154,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_9) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_10) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
   test.SetInput("Cast_2", ge::FORMAT_NHWC, ge::DT_FLOAT16, "a", ge::FORMAT_NHWC, ge::DT_FLOAT16)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_2:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
-      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_2:0", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT)
-      .SetInput("TransData_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1", ge::FORMAT_NC1HWC0,  ge::DT_BOOL)
-      .SetInput("TransData_2", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_3", ge::FORMAT_NC1HWC0,  ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_1", ge::FORMAT_NHWC,  ge::DT_BOOL)
-      .SetInput("c", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_2", ge::FORMAT_NHWC,  ge::DT_BOOL);
+      .SetInput("Cast_3", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_2:0", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
+      .SetInput("TransData_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
+      .SetInput("TransData_2", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_3", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_1", ge::FORMAT_NHWC, ge::DT_BOOL)
+      .SetInput("c", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_2", ge::FORMAT_NHWC, ge::DT_BOOL);
 
   test.DumpGraph(graph);
 
@@ -1259,8 +1172,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_10) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1287,9 +1199,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_10) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NHWC);
 }
 
-
 /* Another Special Case is :
- * Fuse two concecutive cast if they meet the following pattern
+ * Fuse two consecutive cast if they meet the following pattern
  * ----> Cast2(16 -> fp32) ----> Cast1 (fp32 -> Bool) ----> TransData1 (5->4, Bool)---->
  *                                                  \ ----> TransData2 (5->4, Bool)---->
  * This case will be optimized as:
@@ -1298,15 +1209,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_10) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_11) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
   test.SetInput("Cast_2", ge::FORMAT_NHWC, ge::DT_FLOAT16, "a", ge::FORMAT_NHWC, ge::DT_FLOAT16)
       .SetInput("Cast_1", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "Cast_2", ge::FORMAT_NC1HWC0, ge::DT_FLOAT)
-      .SetInput("TransData_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_BOOL)
-      .SetInput("TransData_2", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1:0", ge::FORMAT_NC1HWC0,  ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_1", ge::FORMAT_NHWC,  ge::DT_BOOL)
-      .SetInput("c", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_2", ge::FORMAT_NHWC,  ge::DT_BOOL);
+      .SetInput("TransData_1", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
+      .SetInput("TransData_2", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "Cast_1:0", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_1", ge::FORMAT_NHWC, ge::DT_BOOL)
+      .SetInput("c", ge::FORMAT_NHWC, ge::DT_BOOL, "TransData_2", ge::FORMAT_NHWC, ge::DT_BOOL);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1315,8 +1225,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_11) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1338,7 +1247,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_11) {
   EXPECT_EQ(transdata->GetOpDesc()->GetOutputDesc(0).GetFormat(), ge::FORMAT_NHWC);
 }
 
-
 /* A->Transadata(5d->6HD, fp32)->Cast(fp32 to fp16, 6HD)-> Conv3D(fp16,6HD)
  * will be changed to :
  * A -> Cast(fp32 to fp16, 5d) -> Transadata(5d->6HD, fp16) -> Conv3D(fp16,6HD)
@@ -1346,8 +1254,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_11) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -1355,7 +1262,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12) {
 
   test.SetInput("transdata", ge::FORMAT_NDHWC, ge::DT_FLOAT, "a", ge::FORMAT_NDHWC, ge::DT_FLOAT)
       .SetInput("cast", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "transdata", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
-      .SetInput("conv3d", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NDC1HWC0,  ge::DT_FLOAT16);
+      .SetInput("conv3d", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1364,8 +1271,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1395,11 +1301,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_1) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 6, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_UINT8,
-                        original_shape);
-  test.AddOpDesc("a", "A", 1, 1)
-      .AddOpDesc("cast", fe::CAST, 1, 1)
-      .AddOpDesc("conv2d", "Conv2D", 1, 1);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_UINT8, original_shape);
+  test.AddOpDesc("a", "A", 1, 1).AddOpDesc("cast", fe::CAST, 1, 1).AddOpDesc("conv2d", "Conv2D", 1, 1);
 
   test.SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_UINT8, "a", ge::FORMAT_NHWC, ge::DT_UINT8)
       .SetInput("conv2d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
@@ -1416,8 +1319,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_1) {
   Status ret = trans_op_insert.InsertAndMergeTransNodes(*(graph.get()));
   EXPECT_EQ(ret, fe::SUCCESS);
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1448,14 +1350,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_1) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_2) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 6, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_UINT8,
-                        original_shape);
-  test.AddOpDesc("a", "A", 1, 1)
-  .AddOpDesc("cast", fe::CAST, 1, 1)
-  .AddOpDesc("conv2d", "Conv2D", 1, 1);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_UINT8, original_shape);
+  test.AddOpDesc("a", "A", 1, 1).AddOpDesc("cast", fe::CAST, 1, 1).AddOpDesc("conv2d", "Conv2D", 1, 1);
 
   test.SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT, "conv2d", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
-  .SetInput("a", ge::FORMAT_NHWC, ge::DT_UINT8, "cast", ge::FORMAT_NC1HWC0, ge::DT_UINT8);
+      .SetInput("a", ge::FORMAT_NHWC, ge::DT_UINT8, "cast", ge::FORMAT_NC1HWC0, ge::DT_UINT8);
   test.DumpGraph(graph);
   ge::NodePtr cast = GraphConstructor::GetNodeByName("cast", graph);
   ge::NodePtr conv2d = GraphConstructor::GetNodeByName("conv2d", graph);
@@ -1469,8 +1368,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_2) {
   Status ret = trans_op_insert.InsertAndMergeTransNodes(*(graph.get()));
   EXPECT_EQ(ret, fe::SUCCESS);
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1500,8 +1398,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_12_2) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_13) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -1509,7 +1406,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_13) {
 
   test.SetInput("cast", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16, "a", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16)
       .SetInput("transdata", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
-      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata", ge::FORMAT_NDHWC,  ge::DT_FLOAT);
+      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata", ge::FORMAT_NDHWC, ge::DT_FLOAT);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1518,8 +1415,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_13) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1554,8 +1450,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_13) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_14) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata1", fe::TRANSDATA, 1, 1)
       .AddOpDesc("transdata2", fe::TRANSDATA, 1, 1)
@@ -1569,9 +1464,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_14) {
       .SetInput("transdata1", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata2", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata3", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
-      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata1", ge::FORMAT_NDHWC,  ge::DT_FLOAT)
-      .SetInput("c", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC,  ge::DT_FLOAT)
-      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata3", ge::FORMAT_NDHWC,  ge::DT_FLOAT);
+      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata1", ge::FORMAT_NDHWC, ge::DT_FLOAT)
+      .SetInput("c", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC, ge::DT_FLOAT)
+      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata3", ge::FORMAT_NDHWC, ge::DT_FLOAT);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1602,7 +1497,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_14) {
   ASSERT_EQ(cast->GetOutAllNodes().at(1)->GetName(), "c");
   ASSERT_EQ(cast->GetOutAllNodes().at(2)->GetName(), "d");
 
-
   ASSERT_EQ(transdata1->GetInAllNodes().size(), 1);
   ASSERT_EQ(transdata1->GetInAllNodes().at(0)->GetType(), "A");
   EXPECT_EQ(transdata1->GetOpDesc()->GetInputDesc(0).GetDataType(), ge::DT_FLOAT16);
@@ -1614,7 +1508,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_14) {
   ASSERT_EQ(transdata3, nullptr);
 }
 
-
 /* A-> Cast(fp16 to fp32 NDC1HWC0 -> Transadata1(NDC1HWC0 to NDHWC fp32) -> B (fp32, NDHWC)
  *                                -> Transadata2(NDC1HWC0 to NDHWC fp32) -> C (fp32, NDHWC)
  *                                -> Transadata3(NDC1HWC0 to DHWCN fp32) -> D (fp32, DHWCN)
@@ -1623,8 +1516,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_14) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_15) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata1", fe::TRANSDATA, 1, 1)
       .AddOpDesc("transdata2", fe::TRANSDATA, 1, 1)
@@ -1638,9 +1530,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_15) {
       .SetInput("transdata1", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata2", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata3", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
-      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata1", ge::FORMAT_NDHWC,  ge::DT_FLOAT)
-      .SetInput("c", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC,  ge::DT_FLOAT)
-      .SetInput("d", ge::FORMAT_DHWCN, ge::DT_FLOAT, "transdata3", ge::FORMAT_DHWCN,  ge::DT_FLOAT);
+      .SetInput("b", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata1", ge::FORMAT_NDHWC, ge::DT_FLOAT)
+      .SetInput("c", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC, ge::DT_FLOAT)
+      .SetInput("d", ge::FORMAT_DHWCN, ge::DT_FLOAT, "transdata3", ge::FORMAT_DHWCN, ge::DT_FLOAT);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1649,8 +1541,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_15) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1659,7 +1550,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_15) {
   ge::NodePtr transdata1 = GraphConstructor::GetNodeByName("transdata1", graph);
   ge::NodePtr transdata2 = GraphConstructor::GetNodeByName("transdata2", graph);
   ge::NodePtr transdata3 = GraphConstructor::GetNodeByName("transdata3", graph);
-
 
   ASSERT_EQ(cast->GetInAllNodes().size(), 1);
   ASSERT_EQ(cast->GetInAllNodes().at(0)->GetType(), "A");
@@ -1702,8 +1592,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_15) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_16) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6, 32});
-  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata2", fe::TRANSDATA, 1, 1)
       .AddOpDesc("transdata3", fe::TRANSDATA, 1, 1)
@@ -1716,8 +1605,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_16) {
       .SetInput("b", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata2", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
       .SetInput("transdata3", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT, "cast:0", ge::FORMAT_NDC1HWC0, ge::DT_FLOAT)
-      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC,  ge::DT_FLOAT)
-      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata3", ge::FORMAT_NDHWC,  ge::DT_FLOAT);
+      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata2", ge::FORMAT_NDHWC, ge::DT_FLOAT)
+      .SetInput("d", ge::FORMAT_NDHWC, ge::DT_FLOAT, "transdata3", ge::FORMAT_NDHWC, ge::DT_FLOAT);
   test.DumpGraph(graph);
 
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1726,14 +1615,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_16) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
   test.DumpGraph(graph);
 
-  ge::NodePtr cast = GraphConstructor::GetNodeByName("cast", graph);;
+  ge::NodePtr cast = GraphConstructor::GetNodeByName("cast", graph);
+  ;
   ge::NodePtr transdata2 = GraphConstructor::GetNodeByName("transdata2", graph);
   ge::NodePtr transdata3 = GraphConstructor::GetNodeByName("transdata3", graph);
 
@@ -1780,8 +1669,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdata_16) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_01) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -1790,7 +1678,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_01) {
 
   test.SetInput("transdata", ge::FORMAT_NHWC, ge::DT_BOOL, "a", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NC1HWC0,  ge::DT_FLOAT16)
+      .SetInput("b", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
       .SetInput("x:-1", "transdata:-1")
       .SetInput("cast:-1", "x:-1");
 
@@ -1802,8 +1690,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_01) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1863,8 +1750,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_01) {
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_02) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
   test.AddOpDesc("a", "A", 1, 1)
       .AddOpDesc("transdata", fe::TRANSDATA, 1, 1)
       .AddOpDesc("cast", fe::CAST, 1, 1)
@@ -1873,7 +1759,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_02) {
 
   test.SetInput("cast", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16, "a", ge::FORMAT_NC1HWC0, ge::DT_FLOAT16)
       .SetInput("transdata", ge::FORMAT_NC1HWC0, ge::DT_BOOL, "cast", ge::FORMAT_NC1HWC0, ge::DT_BOOL)
-      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "transdata", ge::FORMAT_NHWC,  ge::DT_BOOL)
+      .SetInput("b", ge::FORMAT_NHWC, ge::DT_BOOL, "transdata", ge::FORMAT_NHWC, ge::DT_BOOL)
       .SetInput("x:-1", "cast:-1")
       .SetInput("transdata:-1", "x:-1");
 
@@ -1885,8 +1771,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX_2, SwitchCastAndTransdataCtrlEdge_02) {
   EXPECT_EQ(ret, fe::SUCCESS);
 
   FusionRuleManagerPtr fusion_rule_mgr_ptr = make_shared<FusionRuleManager>(fe_ops_kernel_info_store_ptr_);
-    auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_,
-                                                        nullptr);
+  auto graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr, fe_ops_kernel_info_store_ptr_, nullptr);
   graph_fusion_ptr->SetEngineName(AI_CORE_NAME);
   ret = graph_fusion_ptr->SwitchTransDataAndCast(*(graph.get()), trans_op_insert.GetOptimizableCast());
   EXPECT_EQ(ret, fe::SUCCESS);

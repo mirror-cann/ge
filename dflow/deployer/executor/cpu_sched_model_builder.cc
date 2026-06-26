@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,7 @@ struct ModelBatchDequeueTaskParam {
 struct ModelBatchDequeueBuffTaskParam {
   uint32_t num_inputs;
   uint32_t align_interval;
-  uint64_t align_offsets_addr; // value equal to 0 when align is false
+  uint64_t align_offsets_addr;  // value equal to 0 when align is false
   uint64_t queue_ids_addr;
   uint64_t mbuf_addrs_addr;
   uint64_t device_ids_addr;
@@ -116,7 +116,7 @@ Status CpuSchedModelBuilder::AddMarkStepTask(uint32_t stream_id, bool is_head) {
     GELOGE(FAILED, "[Call][strcpy_s] strcpy failed, result: %d, dump_step: %s", ret, dump_step.c_str());
     return FAILED;
   }
-  void * const global_step_addr = ValueToPtr(global_step_);
+  void *const global_step_addr = ValueToPtr(global_step_);
   if (global_step_addr != nullptr) {
     DF_CHK_ACL_RET(aclrtMemset(global_step_addr, sizeof(uint64_t), 0U, sizeof(uint64_t)));
   }
@@ -153,23 +153,21 @@ void CpuSchedModelBuilder::AddModelRepeat(uint32_t stream_id) {
   *reinterpret_cast<uint32_t *>(task_param) = model_.model_info_.modelId;
 }
 
-void CpuSchedModelBuilder::AddQueueOpTask(const char_t *kernel_name, uint32_t queue_id,
-                                          uintptr_t mbuf_addr, uint32_t stream_id) {
-  auto task_param = reinterpret_cast<QueueOpTaskParam *>(
-      NewTask(kernel_name, sizeof(QueueOpTaskParam), stream_id));
+void CpuSchedModelBuilder::AddQueueOpTask(const char_t *kernel_name, uint32_t queue_id, uintptr_t mbuf_addr,
+                                          uint32_t stream_id) {
+  auto task_param = reinterpret_cast<QueueOpTaskParam *>(NewTask(kernel_name, sizeof(QueueOpTaskParam), stream_id));
   task_param->queue_id = queue_id;
   task_param->mbuf_addr = mbuf_addr;
 }
 
 void CpuSchedModelBuilder::AddQueueBuffOpTask(const char_t *kernel_name, const QueueAttrs &queue_attrs,
                                               uintptr_t mbuf_addr, uint32_t stream_id) {
-  auto task_param = reinterpret_cast<QueueOpBuffTaskParam *>(
-      NewTask(kernel_name, sizeof(QueueOpBuffTaskParam), stream_id));
+  auto task_param =
+      reinterpret_cast<QueueOpBuffTaskParam *>(NewTask(kernel_name, sizeof(QueueOpBuffTaskParam), stream_id));
   task_param->queue_id = queue_attrs.queue_id;
   task_param->device_id = queue_attrs.device_id;
   task_param->mbuf_addr = mbuf_addr;
 }
-
 
 void CpuSchedModelBuilder::AddBatchDequeueOpTask(uint32_t stream_id) {
   const auto num_inputs = static_cast<uint32_t>(input_local_queue_infos_.size());
@@ -185,8 +183,8 @@ void CpuSchedModelBuilder::AddBatchDequeueOpTask(uint32_t stream_id) {
   const auto align_offsets_size = sizeof(uint32_t) * num_inputs;
   arg_size += sizeof(uint32_t) * align_offsets_size;
 
-  auto kernel_args = reinterpret_cast<ModelBatchDequeueTaskParam *>(
-      NewTask(kCpuSdTaskModelBatchDequeue, arg_size, stream_id));
+  auto kernel_args =
+      reinterpret_cast<ModelBatchDequeueTaskParam *>(NewTask(kCpuSdTaskModelBatchDequeue, arg_size, stream_id));
   kernel_args->num_inputs = num_inputs;
   kernel_args->align_interval = align_interval_;
   kernel_args->align_offsets_addr = PtrToValue(kernel_args) + align_offsets_offset;
@@ -229,12 +227,12 @@ void CpuSchedModelBuilder::AddBatchDequeueBuffOpTask(uint32_t stream_id) {
   const auto device_id_size = sizeof(int32_t) * num_inputs;
   arg_size += device_id_size;
 
-  auto kernel_args = reinterpret_cast<ModelBatchDequeueBuffTaskParam *>(
-      NewTask(kCpuSdTaskModelBatchDequeueBuff, arg_size, stream_id));
+  auto kernel_args =
+      reinterpret_cast<ModelBatchDequeueBuffTaskParam *>(NewTask(kCpuSdTaskModelBatchDequeueBuff, arg_size, stream_id));
   kernel_args->num_inputs = num_inputs;
   kernel_args->align_interval = align_interval_;
-  kernel_args->align_offsets_addr = has_align_attr_ ? (PtrToValue(kernel_args) + align_offsets_offset) :
-                                                      align_offsets_offset;
+  kernel_args->align_offsets_addr =
+      has_align_attr_ ? (PtrToValue(kernel_args) + align_offsets_offset) : align_offsets_offset;
   kernel_args->queue_ids_addr = PtrToValue(kernel_args) + queue_ids_offset;
   kernel_args->mbuf_addrs_addr = PtrToValue(kernel_args) + mbuf_addrs_offset;
   kernel_args->device_ids_addr = PtrToValue(kernel_args) + device_id_offset;
@@ -289,8 +287,7 @@ void CpuSchedModelBuilder::AddGatherDequeueTask(uint32_t stream_id) {
   const auto device_type_size = sizeof(uint32_t) * num_inputs;
   arg_size += device_type_size;
 
-  auto kernel_args = reinterpret_cast<GatherDequeueParam *>(
-      NewTask(kGatherDequeue, arg_size, stream_id));
+  auto kernel_args = reinterpret_cast<GatherDequeueParam *>(NewTask(kGatherDequeue, arg_size, stream_id));
   kernel_args->input_nums = num_inputs;
   kernel_args->inputs_align_max_cache_num = input_align_attrs_.align_max_cache_num;
   kernel_args->inputs_align_timeout = input_align_attrs_.align_timeout;
@@ -322,17 +319,17 @@ void CpuSchedModelBuilder::AddGatherDequeueTask(uint32_t stream_id) {
 }
 
 void CpuSchedModelBuilder::AddDequeueTasksByAttrs(uint32_t stream_id) {
-    if ((input_align_attrs_.align_max_cache_num != 0U) &&
-        (input_client_queue_infos_.size() + input_local_queue_infos_.size() > 1UL)) {
-      AddGatherDequeueTask(stream_id);
+  if ((input_align_attrs_.align_max_cache_num != 0U) &&
+      (input_client_queue_infos_.size() + input_local_queue_infos_.size() > 1UL)) {
+    AddGatherDequeueTask(stream_id);
+  } else {
+    if (has_align_attr_) {
+      AddBatchDequeueOpTask(stream_id);
     } else {
-      if (has_align_attr_) {
-        AddBatchDequeueOpTask(stream_id);
-      } else {
-        AddDequeueTasks(stream_id);
-      }
-      AddBatchDequeueBuffOpTask(stream_id);
+      AddDequeueTasks(stream_id);
     }
+    AddBatchDequeueBuffOpTask(stream_id);
+  }
 }
 
 Status CpuSchedModelBuilder::Build() {
@@ -408,4 +405,4 @@ uint32_t CpuSchedModelBuilder::GenerateStreamId() const {
   static std::atomic<uint32_t> stream_id_gen{1};
   return stream_id_gen++;
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,6 +68,6 @@ FLOW_FUNC_VISIBILITY bool ConvertToInt32(const std::string &str, int32_t &val);
  * @return true: convert success, false:convert failed.
  */
 FLOW_FUNC_VISIBILITY bool ConvertToInt64(const std::string &str, int64_t &val);
-}
+}  // namespace FlowFunc
 
-#endif // UDF_COMMON_DATA_UTILS_H
+#endif  // UDF_COMMON_DATA_UTILS_H

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,9 @@ Status SubNetOutputFormatDtypeUpdate::UpdateTensorDesc(ge::NodePtr node_ptr) {
     std::unordered_set<ge::RefCell, ge::RefCellHash> reflections;
     auto status = reflection_builder_ptr_->LookUpRefRelations(key, reflections);
     if (status != ge::GRAPH_SUCCESS) {
-      REPORT_FE_ERROR("[GraphOptJdgInst][UpdFmtAndDtype][UpdTensorDesc] Failed to look up relations for Node [%s]: %s %d.",
-                      node_name.c_str(), STR_INPUT_LOWERCASE.c_str(), index);
+      REPORT_FE_ERROR(
+          "[GraphOptJdgInst][UpdFmtAndDtype][UpdTensorDesc] Failed to look up relations for Node [%s]: %s %d.",
+          node_name.c_str(), STR_INPUT_LOWERCASE.c_str(), index);
       continue;
     }
 
@@ -101,7 +102,8 @@ Status SubNetOutputFormatDtypeUpdate::UpdateDtype(ge::NodePtr node_ptr, const ge
   // 4. update the related edges
   if (UpdateDtypeOfRelatedEdges(input_desc, node_ptr, ge::NODE_IN, index) != SUCCESS) {
     REPORT_FE_ERROR(
-        "[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Graph[%s] NetOutput[%s]: Failed to update the related edges of the "
+        "[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Graph[%s] NetOutput[%s]: Failed to update the related edges of "
+        "the "
         "input %d.",
         graph_name.c_str(), node_name.c_str(), index);
     return FAILED;

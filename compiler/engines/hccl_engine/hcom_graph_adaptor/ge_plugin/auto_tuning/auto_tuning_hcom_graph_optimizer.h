@@ -36,7 +36,8 @@ class AutoTuningHcomGraphOptimizer : public HcomGraphOptimizer {
   HcclResult CheckSupportedOP(const std::string &sCollectiveType) const override;
   HcclResult CalcOpRunningParam(ge::Node &node);
   HcclResult SetOpOutputMemSize(ge::Node &node, const std::string &sCollectiveType) override;
-  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) override;
+  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize,
+                                   const ge::GeTensorDesc &desc_temp) override;
   HcclResult SetOpMemAttr(ge::Node &node, const std::string &sCollectiveType, const u64 &opMemSize) override;
   HcclResult ParseProfilingConfig(bool &profilingMode, std::string &profilingOption);
 

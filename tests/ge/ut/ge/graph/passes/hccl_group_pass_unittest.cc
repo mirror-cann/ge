@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,9 +57,9 @@ ComputeGraphPtr BuildGraphPass1() {
   auto switch1 = builder.AddNode("switch1", SWITCH, 2, 1);
   auto output = builder.AddNode("output", NETOUTPUT, 1, 1);
 
-  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(),"_hccl_fused_node",true);
-  AttrUtils::SetBool(hcomallreduce2->GetOpDesc(),"_hccl_fused_node",true);
-  AttrUtils::SetBool(hcomallreduce3->GetOpDesc(),"_hccl_fused_node",true);
+  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(), "_hccl_fused_node", true);
+  AttrUtils::SetBool(hcomallreduce2->GetOpDesc(), "_hccl_fused_node", true);
+  AttrUtils::SetBool(hcomallreduce3->GetOpDesc(), "_hccl_fused_node", true);
   AttrUtils::SetStr(hcomallreduce3->GetOpDesc(), "_hccl_fused_group", "2");
 
   builder.AddDataEdge(data1, 0, hcomallreduce1, 0);
@@ -80,7 +80,6 @@ ComputeGraphPtr BuildGraphPass1() {
 
   return builder.GetGraph();
 }
-
 
 /*
  *                 data1
@@ -107,8 +106,8 @@ ComputeGraphPtr BuildGraphPass2() {
   auto conv2d = builder.AddNode("conv2d", CONV2D, 1, 1);
   auto conv2d2 = builder.AddNode("conv2d2", CONV2D, 1, 1);
 
-  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(),"_hccl_fused_node",true);
-  AttrUtils::SetBool(hcomallreduce2->GetOpDesc(),"_hccl_fused_node",true);
+  AttrUtils::SetBool(hcomallreduce1->GetOpDesc(), "_hccl_fused_node", true);
+  AttrUtils::SetBool(hcomallreduce2->GetOpDesc(), "_hccl_fused_node", true);
   builder.AddDataEdge(data1, 0, hcomallreduce1, 0);
   builder.AddDataEdge(data1, 0, hcomallreduce2, 0);
   builder.AddDataEdge(hcomallreduce1, 0, add1, 0);
@@ -149,9 +148,12 @@ TEST_F(UtestHcclGroupPass, success) {
   ret = hccl_group_pass.Run(hcomallreduce2);
   EXPECT_EQ(ret, SUCCESS);
 
-  vector<string> check_node_name_vec = {"data1","hcomallreduce1","add1","cast1","hcomallreduce3","cast3","conv2d","hcomallreduce2","add2","cast2"};
-  vector<string> exp_group_id_vec_1 = {"","hcomallreduce1","hcomallreduce1","hcomallreduce1","","","","","",""};
-  vector<string> exp_group_id_vec_2 = {"","hcomallreduce1","hcomallreduce1","hcomallreduce1","","","","hcomallreduce2","hcomallreduce2","hcomallreduce2"};
+  vector<string> check_node_name_vec = {"data1", "hcomallreduce1", "add1",           "cast1", "hcomallreduce3",
+                                        "cast3", "conv2d",         "hcomallreduce2", "add2",  "cast2"};
+  vector<string> exp_group_id_vec_1 = {"", "hcomallreduce1", "hcomallreduce1", "hcomallreduce1", "", "", "", "", "",
+                                       ""};
+  vector<string> exp_group_id_vec_2 = {"", "hcomallreduce1", "hcomallreduce1", "hcomallreduce1", "", "",
+                                       "", "hcomallreduce2", "hcomallreduce2", "hcomallreduce2"};
   auto compute_graph = BuildGraphPass1();
   compute_graph->SetSessionID(0);
 
@@ -161,7 +163,7 @@ TEST_F(UtestHcclGroupPass, success) {
   // check after run pass on data1
   hcomallreduce1 = compute_graph->FindNode("hcomallreduce1");
   string group_id;
-  EXPECT_EQ(false,AttrUtils::GetStr(hcomallreduce1->GetOpDesc(),"_hccl_fused_group",group_id));
+  EXPECT_EQ(false, AttrUtils::GetStr(hcomallreduce1->GetOpDesc(), "_hccl_fused_group", group_id));
   ret = hccl_group_pass.Run(hcomallreduce1);
   EXPECT_EQ(ret, SUCCESS);
   // check after run pass on hcomallreduce1
@@ -183,4 +185,4 @@ TEST_F(UtestHcclGroupPass, node_is_null) {
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-}
+}  // namespace ge

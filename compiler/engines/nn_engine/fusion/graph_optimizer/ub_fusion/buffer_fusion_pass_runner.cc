@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,7 @@ void PrintMapping(const BufferFusionMapping &mapping, string stage = "") {
 
     for (auto &ele : mapping) {
       for (auto &node : ele.second) {
-        FE_LOGD("[%s] : [%s]", ele.first->desc_name.c_str(),
-                node->GetName().c_str());
+        FE_LOGD("[%s] : [%s]", ele.first->desc_name.c_str(), node->GetName().c_str());
       }
     }
   }
@@ -68,9 +67,8 @@ string AssmbleDescNames(const vector<BufferFusionOpDesc *> &curr_queue_descs) {
   return node_name;
 }
 
-Status SaveMatchResult(bool not_any_and_output_op, BufferFusionOpDesc *out_desc,
-                       const ge::NodePtr &out_node, std::map<BufferFusionOpDesc *, bool> &usage_flags,
-                       MatchInfo& m_info) {
+Status SaveMatchResult(bool not_any_and_output_op, BufferFusionOpDesc *out_desc, const ge::NodePtr &out_node,
+                       std::map<BufferFusionOpDesc *, bool> &usage_flags, MatchInfo &m_info) {
   auto out_node_name = out_node->GetName();
   if (not_any_and_output_op) {
     m_info.m_st.queue_nodes.push_back(out_node);
@@ -125,8 +123,7 @@ Status SaveMatchResult(bool not_any_and_output_op, BufferFusionOpDesc *out_desc,
   return SUCCESS;
 }
 
-bool GetOutputs(BufferFusionOpDesc *op_desc, std::vector<BufferFusionOpDesc *> &outputs,
-                bool ignore_repeat = false) {
+bool GetOutputs(BufferFusionOpDesc *op_desc, std::vector<BufferFusionOpDesc *> &outputs, bool ignore_repeat = false) {
   if (op_desc == nullptr) {
     FE_LOGW("[GetOutputs][Check] op_desc is null.");
     return false;
@@ -162,18 +159,21 @@ bool GetOutputs(BufferFusionOpDesc *op_desc, std::vector<BufferFusionOpDesc *> &
 
   return true;
 }
-} // namespace
+}  // namespace
 
 BufferFusionPassRunner::BufferFusionPassRunner(const string &pass_name, BufferFusionPassBase *(*create_fn)(),
-  const FusionCycleDetectorPtr &cycle_detector, const OpStoreAdapterBasePtr &op_store_adapter_ptr,
-  const bool is_fusion_check, const BufferFusionOptimizerPtr &buffer_fusion_optimizer)
-  : BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector, is_fusion_check, op_store_adapter_ptr),
-    buffer_fusion_optimizer_(buffer_fusion_optimizer) {}
+                                               const FusionCycleDetectorPtr &cycle_detector,
+                                               const OpStoreAdapterBasePtr &op_store_adapter_ptr,
+                                               const bool is_fusion_check,
+                                               const BufferFusionOptimizerPtr &buffer_fusion_optimizer)
+    : BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector, is_fusion_check, op_store_adapter_ptr),
+      buffer_fusion_optimizer_(buffer_fusion_optimizer) {}
 
 BufferFusionPassRunner::BufferFusionPassRunner(const string &pass_name, BufferFusionPassBase *(*create_fn)(),
-  const FusionCycleDetectorPtr &cycle_detector, const BufferFusionOptimizerPtr &buffer_fusion_optimizer)
-  : BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector),
-    buffer_fusion_optimizer_(buffer_fusion_optimizer) {}
+                                               const FusionCycleDetectorPtr &cycle_detector,
+                                               const BufferFusionOptimizerPtr &buffer_fusion_optimizer)
+    : BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector),
+      buffer_fusion_optimizer_(buffer_fusion_optimizer) {}
 
 BufferFusionPassRunner::~BufferFusionPassRunner() {}
 
@@ -208,8 +208,8 @@ bool BufferFusionPassRunner::IsOpTypeExist(const ge::NodePtr node, const BufferF
   bool res = GetOpAttrType(node, op_type, op_desc->not_pattern);
   FE_LOGD("op type(pattern) of %s is %s.", name.c_str(), op_type.c_str());
   if (!res) {
-      pattern_type_index = GetPatternTypeIndex(types, TBE_PATTERN_OUTPUT_NODE);
-      if (pattern_type_index != kInvalidShapeRuleTypeIndex) {
+    pattern_type_index = GetPatternTypeIndex(types, TBE_PATTERN_OUTPUT_NODE);
+    if (pattern_type_index != kInvalidShapeRuleTypeIndex) {
       FE_LOGD("Node [%s] is an output node.", node->GetName().c_str());
       return true;
     } else {
@@ -225,13 +225,14 @@ bool BufferFusionPassRunner::IsOpTypeExist(const ge::NodePtr node, const BufferF
   }
   pattern_type_index = GetPatternTypeIndex(types, TBE_PATTERN_OP_TYPE_ANY);
   if (pattern_type_index != kInvalidShapeRuleTypeIndex) {
-    FE_LOGD("Node: %s, Type: %s, Match Operation Pattern: ANY, Type Index: %d", name.c_str(), op_type.c_str(), pattern_type_index);
+    FE_LOGD("Node: %s, Type: %s, Match Operation Pattern: ANY, Type Index: %d", name.c_str(), op_type.c_str(),
+            pattern_type_index);
     return true;
   }
   pattern_type_index = GetPatternTypeIndex(types, TBE_PATTERN_OUTPUT_NODE);
   if (pattern_type_index != kInvalidShapeRuleTypeIndex) {
-    FE_LOGD("Node: %s, Type: %s, Match Operation Pattern: OUTNODE, Type Index: %d",
-            name.c_str(), op_type.c_str(), pattern_type_index);
+    FE_LOGD("Node: %s, Type: %s, Match Operation Pattern: OUTNODE, Type Index: %d", name.c_str(), op_type.c_str(),
+            pattern_type_index);
     return true;
   }
   return false;
@@ -246,10 +247,10 @@ bool BufferFusionPassRunner::IsOpTypeExist(const ge::NodePtr node, const BufferF
  */
 bool BufferFusionPassRunner::SkipDiffSizeDesc(ge::NodePtr node, const BufferFusionOpDesc *op_desc,
                                               const string &pattern_name) const {
-  (void) pattern_name;
+  (void)pattern_name;
   FE_CHECK(node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][UbFusion][SkipDiffSizeDesc] Node is null."), return false);
-  FE_CHECK(op_desc == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][UbFusion][SkipDiffSizeDesc] opDesc is null."), return false);
+  FE_CHECK(op_desc == nullptr, REPORT_FE_ERROR("[SubGraphOpt][UbFusion][SkipDiffSizeDesc] opDesc is null."),
+           return false);
 
   // single output node match single desc, and binary node match binary desc
   if (node->GetOutDataNodes().size() == 1 && op_desc->out_branch_type == TBE_OUTPUT_BRANCH_MULTI) {
@@ -302,10 +303,11 @@ bool BufferFusionPassRunner::CheckPatternOpTypeMatch(ge::NodePtr node, const Buf
       break;
   }
 
-  FE_LOGD("Node[%s, %s] shape is %s and pattern rule is %s.", node->GetName().c_str(),
-          node->GetType().c_str(), (is_dyn_op ? "Dynamic" : "Static"),
-          (kShapeTypeRuleToStr.find(shape_type_rule) != kShapeTypeRuleToStr.end() ?
-            kShapeTypeRuleToStr.find(shape_type_rule)->second.c_str() : "Unknown"));
+  FE_LOGD("Node[%s, %s] shape is %s and pattern rule is %s.", node->GetName().c_str(), node->GetType().c_str(),
+          (is_dyn_op ? "Dynamic" : "Static"),
+          (kShapeTypeRuleToStr.find(shape_type_rule) != kShapeTypeRuleToStr.end()
+               ? kShapeTypeRuleToStr.find(shape_type_rule)->second.c_str()
+               : "Unknown"));
   return is_match;
 }
 
@@ -384,7 +386,7 @@ bool BufferFusionPassRunner::GetPatternMatchStatus(BufferFusionPattern &pattern)
       }
     } else if (desc->repeate_curr < desc->repeate_min) {
       FE_LOGD("pattern %s did not match; description name=[%s], current match count=[%ld], minimum match count=[%ld]",
-          pattern.GetName().c_str(), desc->desc_name.c_str(), desc->repeate_curr, desc->repeate_min);
+              pattern.GetName().c_str(), desc->desc_name.c_str(), desc->repeate_curr, desc->repeate_min);
       status = false;
       break;
     }
@@ -409,8 +411,8 @@ BufferFusionOpDesc *BufferFusionPassRunner::GetMatchedHeadDesc(ge::NodePtr node,
     if (SkipDiffSizeDesc(node, desc, pattern_name) || !CheckPatternOpTypeMatch(node, desc, pattern_type_index)) {
       continue;
     }
-    FE_LOGD("Node [%s], desc[%s] from graph has matched to head desc from fusion pattern %s.",
-            node->GetName().c_str(), desc->desc_name.c_str(), pattern_name.c_str());
+    FE_LOGD("Node [%s], desc[%s] from graph has matched to head desc from fusion pattern %s.", node->GetName().c_str(),
+            desc->desc_name.c_str(), pattern_name.c_str());
     return desc;
   }
   return nullptr;
@@ -423,17 +425,18 @@ BufferFusionOpDesc *BufferFusionPassRunner::GetMatchedHeadDesc(ge::NodePtr node,
  * @param [in] usage: record whether desc has beed matched
  * @return BufferFusionOpDesc*: matched desc ptr
  */
-BufferFusionOpDesc *BufferFusionPassRunner::GetMatchedNormalDesc(
-    const ge::NodePtr &node, const std::vector<BufferFusionOpDesc *> &descs,
-    std::map<BufferFusionOpDesc *, bool> &usage, MatchInfo &m_info) {
+BufferFusionOpDesc *BufferFusionPassRunner::GetMatchedNormalDesc(const ge::NodePtr &node,
+                                                                 const std::vector<BufferFusionOpDesc *> &descs,
+                                                                 std::map<BufferFusionOpDesc *, bool> &usage,
+                                                                 MatchInfo &m_info) {
   /* If node cannot match any concrete pattern, we use the
    * lower priority patterns such as "OutputData" or "OpTypeAny" */
   BufferFusionOpDesc *lower_prior_desc = nullptr;
   std::string node_name = node->GetName();
 
   for (auto out_desc : descs) {
-    FE_LOGD("Check whether description %s and node %s are matched. Usage: %d.",
-            out_desc->desc_name.c_str(), node->GetName().c_str(), usage[out_desc]);
+    FE_LOGD("Check whether description %s and node %s are matched. Usage: %d.", out_desc->desc_name.c_str(),
+            node->GetName().c_str(), usage[out_desc]);
     int32_t pattern_type_index = kInvalidShapeRuleTypeIndex;
     if (!IsOpTypeExist(node, out_desc, pattern_type_index)) {
       continue;
@@ -458,9 +461,8 @@ BufferFusionOpDesc *BufferFusionPassRunner::GetMatchedNormalDesc(
   return lower_prior_desc;
 }
 
-bool BufferFusionPassRunner::TempCycleDetection(const ge::NodePtr &out_node, bool &is_stacked,
-                                                MatchInfo &m_info, MatchInfoPair &m_info_pair,
-                                                MatchInfoStack &m_info_stack) {
+bool BufferFusionPassRunner::TempCycleDetection(const ge::NodePtr &out_node, bool &is_stacked, MatchInfo &m_info,
+                                                MatchInfoPair &m_info_pair, MatchInfoStack &m_info_stack) {
   ge::NodePtr node_lead_to_cycle;
   if (CheckLoopForward(m_info.m_st.m_rs.mapping, out_node, node_lead_to_cycle)) {
     FE_LOGD("Temp cycle has been detected when matching node %s in pattern %s. Cycle from [%s], flag %d.",
@@ -470,7 +472,7 @@ bool BufferFusionPassRunner::TempCycleDetection(const ge::NodePtr &out_node, boo
       /* Do not need to back track to out_node again,
        * because its father node is already in the back-tracking
        * list. */
-      for (const auto &node: m_info.m_st.m_rs.nodes_lead_to_cycle) {
+      for (const auto &node : m_info.m_st.m_rs.nodes_lead_to_cycle) {
         if (node == node_lead_to_cycle) {
           FE_LOGD("%s has already been checked and added into the stack.", node->GetName().c_str());
           return false;
@@ -520,7 +522,8 @@ bool BufferFusionPassRunner::IsSgtInfoConsistant(const ge::NodePtr &consumer, co
 }
 
 void BufferFusionPassRunner::MatchFollowingNodes(ge::NodePtr node, std::vector<BufferFusionOpDesc *> &out_descs,
-    std::map<BufferFusionOpDesc *, bool> &usage_flags, MatchInfo& m_info, MatchInfoStack &m_info_stack) {
+                                                 std::map<BufferFusionOpDesc *, bool> &usage_flags, MatchInfo &m_info,
+                                                 MatchInfoStack &m_info_stack) {
   auto out_nodes = node->GetOutDataNodes();
   FE_LOGD("Match successors for node %s, successor size %zu.", node->GetName().c_str(), out_nodes.size());
   for (auto desc : out_descs) {
@@ -564,8 +567,7 @@ void BufferFusionPassRunner::MatchFollowingNodes(ge::NodePtr node, std::vector<B
       }
 
       bool not_any_and_output_op = not_any_op && not_out_op;
-      if (SaveMatchResult(not_any_and_output_op, out_desc, out_node,
-                          usage_flags, m_info) != SUCCESS) {
+      if (SaveMatchResult(not_any_and_output_op, out_desc, out_node, usage_flags, m_info) != SUCCESS) {
         return;
       }
 
@@ -595,7 +597,7 @@ bool BufferFusionPassRunner::IsOptionalOutput(const BufferFusionOpDesc *desc) co
   FE_CHECK(desc == nullptr, FE_LOGW("Unexpected null pointer."), return false);
   if (desc->out_branch_type > static_cast<int>(desc->outputs.size())) {
     FE_LOGW("%s outputs size is less than out_branch_type required, consider it as optional output.",
-        desc->desc_name.c_str());
+            desc->desc_name.c_str());
     return true;
   } else if (desc->out_branch_type == TBE_OUTPUT_BRANCH_SINGLE && desc->outputs.size() > 1) {
     for (auto out_desc : desc->outputs) {
@@ -619,8 +621,7 @@ bool BufferFusionPassRunner::IsOptionalOutput(const BufferFusionOpDesc *desc) co
   }
 }
 
-bool BufferFusionPassRunner::CheckLoopForward(const BufferFusionMapping &mapping,
-                                              const ge::NodePtr &target_node,
+bool BufferFusionPassRunner::CheckLoopForward(const BufferFusionMapping &mapping, const ge::NodePtr &target_node,
                                               ge::NodePtr &node_lead_to_cycle) {
   std::vector<ge::NodePtr> all_fuse_nodes;
   for (const auto &it : mapping) {
@@ -633,8 +634,8 @@ bool BufferFusionPassRunner::CheckLoopForward(const BufferFusionMapping &mapping
   }
 
   for (auto it = mapping.begin(); it != mapping.end(); it++) {
-    for (const auto& node : it->second) {
-      for (const auto& n : node->GetOutAllNodes()) {
+    for (const auto &node : it->second) {
+      for (const auto &n : node->GetOutAllNodes()) {
         if (n == target_node) {
           continue;
         }
@@ -643,8 +644,8 @@ bool BufferFusionPassRunner::CheckLoopForward(const BufferFusionMapping &mapping
         }
         if (GetFusionCycleDetectorPtr()->IsConnected(n, target_node)) {
           node_lead_to_cycle = n;
-          FE_LOGD("target node %s is a sub node of %s, a loop will be generated.",
-                  target_node->GetName().c_str(), n->GetName().c_str());
+          FE_LOGD("target node %s is a sub node of %s, a loop will be generated.", target_node->GetName().c_str(),
+                  n->GetName().c_str());
           return true;
         }
       }
@@ -653,15 +654,14 @@ bool BufferFusionPassRunner::CheckLoopForward(const BufferFusionMapping &mapping
   return false;
 }
 
-bool BufferFusionPassRunner::CompareMappings(const MatchResult &curr_m_rs,
-                                             MatchResult &longest_m_rs,
+bool BufferFusionPassRunner::CompareMappings(const MatchResult &curr_m_rs, MatchResult &longest_m_rs,
                                              size_t &longest_num) const {
   size_t curr_num = GetMappingSize(curr_m_rs.mapping);
   if (curr_num > longest_num) {
     longest_m_rs = curr_m_rs;
     longest_num = curr_num;
-    FE_LOGD("Set current mapping as the longest mapping(size %zu). Mapping element size is %zu.",
-            longest_num, longest_m_rs.mapping.size());
+    FE_LOGD("Set current mapping as the longest mapping(size %zu). Mapping element size is %zu.", longest_num,
+            longest_m_rs.mapping.size());
     PrintMapping(curr_m_rs.mapping, "Found Longer Mapping");
     return true;
   } else if (curr_num == longest_num) {
@@ -671,27 +671,24 @@ bool BufferFusionPassRunner::CompareMappings(const MatchResult &curr_m_rs,
     size_t curr_distinct_num = GetDistinctNodeSize(curr_m_rs.mapping);
     size_t longest_distinct_num = GetDistinctNodeSize(longest_m_rs.mapping);
 
-    FE_LOGD("Current and longest distinct nodes number are %zu and %zu.",
-            curr_distinct_num, longest_distinct_num);
+    FE_LOGD("Current and longest distinct nodes number are %zu and %zu.", curr_distinct_num, longest_distinct_num);
     if (curr_distinct_num > longest_distinct_num) {
       longest_m_rs = curr_m_rs;
       longest_num = curr_num;
-      FE_LOGD("Set current mapping as the longest mapping(size %zu). Mapping element size is %zu.",
-              longest_num, longest_m_rs.mapping.size());
+      FE_LOGD("Set current mapping as the longest mapping(size %zu). Mapping element size is %zu.", longest_num,
+              longest_m_rs.mapping.size());
       PrintMapping(curr_m_rs.mapping, "Found Longer Node Size Mapping");
       return true;
     }
   }
 
-  FE_LOGD("Current mapping (size %zu) is <= longest mapping(size %zu). Mapping element size is %zu.",
-          curr_num, longest_num, longest_m_rs.mapping.size());
+  FE_LOGD("Current mapping (size %zu) is <= longest mapping(size %zu). Mapping element size is %zu.", curr_num,
+          longest_num, longest_m_rs.mapping.size());
   PrintMapping(curr_m_rs.mapping, "Found Shorter Mapping");
   return false;
 }
 
-void BufferFusionPassRunner::RecoverMappingAndQueue(
-    MatchInfo &m_info, bool match_error,
-    size_t &longest_num) const {
+void BufferFusionPassRunner::RecoverMappingAndQueue(MatchInfo &m_info, bool match_error, size_t &longest_num) const {
   if (match_error) {
     m_info.m_st.queue_descs.clear();
     m_info.m_st.queue_nodes.clear();
@@ -726,8 +723,8 @@ void BufferFusionPassRunner::RecoverMappingAndQueue(
   }
 }
 
-bool BufferFusionPassRunner::SkipNodeForNormalDesc(BufferFusionOpDesc *out_desc, ge::NodePtr node,
-                                                   MatchInfo &m_info, const int32_t pattern_type_index) const {
+bool BufferFusionPassRunner::SkipNodeForNormalDesc(BufferFusionOpDesc *out_desc, ge::NodePtr node, MatchInfo &m_info,
+                                                   const int32_t pattern_type_index) const {
   FE_CHECK(out_desc == nullptr || node == nullptr, FE_LOGW("Unexpected null pointer."), return false);
   string node_name = node->GetName();
 
@@ -749,10 +746,10 @@ bool BufferFusionPassRunner::SkipNodeForNormalDesc(BufferFusionOpDesc *out_desc,
     }
   }
   bool input_match = out_desc == m_info.head_desc || out_desc->ignore_input_num ||
-                      node->GetInDataNodes().size() == out_desc->inputs.size() || IsOutputNode(out_desc->types);
+                     node->GetInDataNodes().size() == out_desc->inputs.size() || IsOutputNode(out_desc->types);
   if (!input_match) {
     FE_LOGD("node size does not match desc, node name=[%s], input count=[%zu], desc input size=[%zu].",
-        node_name.c_str(), node->GetInDataNodes().size(), out_desc->inputs.size());
+            node_name.c_str(), node->GetInDataNodes().size(), out_desc->inputs.size());
     return true;
   }
 
@@ -770,8 +767,7 @@ bool BufferFusionPassRunner::SkipNodeBeforeMatch(const ge::NodePtr &node, size_t
     return true;
   }
   if (op_desc->output_max_limit != -1 && curr_node_num > static_cast<size_t>(op_desc->output_max_limit)) {
-    FE_LOGD("output nodes[%zu] of current node %s exceeds 10. skipping...", curr_node_num,
-            node->GetName().c_str());
+    FE_LOGD("output nodes[%zu] of current node %s exceeds 10. skipping...", curr_node_num, node->GetName().c_str());
     return true;
   }
   if (!get_output_result) {
@@ -781,8 +777,8 @@ bool BufferFusionPassRunner::SkipNodeBeforeMatch(const ge::NodePtr &node, size_t
   if (!op_desc->ignore_output_num && curr_node_num > 1 &&
       (curr_node_num != curr_desc_num || op_desc->out_branch_type != TBE_OUTPUT_BRANCH_MULTI)) {
     FE_LOGI("Not match info: out relation [%ld], outnode size [%zu], outdesc size [%zu]. Node %s, desc %s.",
-        op_desc->out_branch_type, curr_node_num, curr_desc_num,
-        node->GetName().c_str(), op_desc->desc_name.c_str());
+            op_desc->out_branch_type, curr_node_num, curr_desc_num, node->GetName().c_str(),
+            op_desc->desc_name.c_str());
     return true;
   }
   return false;
@@ -842,8 +838,7 @@ void BufferFusionPassRunner::SaveQueueBeforeMatch(std::vector<BufferFusionOpDesc
   }
 }
 
-void BufferFusionPassRunner::BreathFirstMatch(MatchInfo &m_info,
-                                              MatchInfoStack &m_info_stack) {
+void BufferFusionPassRunner::BreathFirstMatch(MatchInfo &m_info, MatchInfoStack &m_info_stack) {
   size_t longest_num = GetMappingSize(m_info.longest_m_rs.mapping);
 
   while (!m_info.m_st.queue_descs.empty() && !m_info.m_st.queue_nodes.empty()) {
@@ -853,8 +848,7 @@ void BufferFusionPassRunner::BreathFirstMatch(MatchInfo &m_info,
     std::vector<BufferFusionOpDesc *> out_descs;
     bool res = GetOutputs(op_desc, out_descs);
 
-    FE_LOGD("Out descs for %s are: {%s}.", op_desc->desc_name.c_str(),
-            AssmbleDescNames(out_descs).c_str());
+    FE_LOGD("Out descs for %s are: {%s}.", op_desc->desc_name.c_str(), AssmbleDescNames(out_descs).c_str());
 
     if (SkipNodeBeforeMatch(node, out_nodes.size(), out_descs.size(), op_desc, res)) {
       RecoverMappingAndQueue(m_info, true, longest_num);
@@ -872,8 +866,7 @@ void BufferFusionPassRunner::BreathFirstMatch(MatchInfo &m_info,
     // match head node's following nodes
     MatchFollowingNodes(node, out_descs, usage_flags, m_info, m_info_stack);
     // check whether match is ok
-    bool match_status =
-        GetCurrMatchStatus(op_desc, out_nodes.size(), out_descs, usage_flags);
+    bool match_status = GetCurrMatchStatus(op_desc, out_nodes.size(), out_descs, usage_flags);
     FE_LOGD("matched status for output of [desc %s, node %s] is %d.", op_desc->desc_name.c_str(),
             node->GetName().c_str(), match_status);
     if (match_status) {
@@ -886,8 +879,7 @@ void BufferFusionPassRunner::BreathFirstMatch(MatchInfo &m_info,
       for (uint32_t i = 0; i < m_info.saved_count; i++) {
         auto save_op_desc = m_info.saved_m_st.back().queue_descs;
         m_info.saved_m_st.pop_back();
-        FE_LOGD("remove last queue {%s} for unsuccess match.",
-                AssmbleDescNames(save_op_desc).c_str());
+        FE_LOGD("remove last queue {%s} for unsuccessful match.", AssmbleDescNames(save_op_desc).c_str());
       }
 
       RecoverMappingAndQueue(m_info, true, longest_num);
@@ -907,16 +899,15 @@ bool BufferFusionPassRunner::FinalCycleDetection(const MatchResult &longest_matc
   ge::ComputeGraphPtr graph;
   graph = fusion_nodes[0]->GetOwnerComputeGraph();
   if (graph == nullptr) {
-    FE_LOGW("[BufferFusion][Match]Owner graph of node %s is nullptr.",
-            fusion_nodes[0]->GetName().c_str());
+    FE_LOGW("[BufferFusion][Match]Owner graph of node %s is nullptr.", fusion_nodes[0]->GetName().c_str());
     return false;
   }
 
   return GetFusionCycleDetectorPtr()->CycleDetection(*graph, fusion_nodes);
 }
 
-void BufferFusionPassRunner::CheckMatchingResult(BufferFusionMapping &longest_mapping,
-                                                 MatchInfo &m_info, bool &is_matched) const {
+void BufferFusionPassRunner::CheckMatchingResult(BufferFusionMapping &longest_mapping, MatchInfo &m_info,
+                                                 bool &is_matched) const {
   // check pattern status
   bool pattern_status = GetPatternMatchStatus(*m_info.pattern);
   if (!pattern_status) {
@@ -930,7 +921,6 @@ void BufferFusionPassRunner::CheckMatchingResult(BufferFusionMapping &longest_ma
   longest_mapping = m_info.longest_m_rs.mapping;
   is_matched = true;
 }
-
 
 Status BufferFusionPassRunner::MatchFusionPattern(MatchInfo &m_info, BufferFusionMapping &longest_mapping) {
   /* m_info_stack is for real cycle detection. Because currently
@@ -993,8 +983,8 @@ Status BufferFusionPassRunner::MatchFusionPattern(MatchInfo &m_info, BufferFusio
 
   if (!is_matched) {
     FE_CHECK_NOTNULL(m_info.head_node);
-    FE_LOGD("Cannot matched pattern %s with head %s.",
-            m_info.pattern->GetName().c_str(), m_info.head_node->GetName().c_str());
+    FE_LOGD("Cannot matched pattern %s with head %s.", m_info.pattern->GetName().c_str(),
+            m_info.head_node->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -1088,8 +1078,8 @@ Status BufferFusionPassRunner::MatchEachPattern(const ge::ComputeGraph &graph, B
     matched_times++;
   }
 
-  FE_LOGD("Match times of buffer fusion pass[%s] and pattern[%s] is [%zu].",
-          GetPassName().c_str(), pattern_name.c_str(), matched_times);
+  FE_LOGD("Match times of buffer fusion pass[%s] and pattern[%s] is [%zu].", GetPassName().c_str(),
+          pattern_name.c_str(), matched_times);
   return SUCCESS;
 }
 
@@ -1097,7 +1087,7 @@ bool BufferFusionPassRunner::CheckAttrMatch(BufferFusionMapping &mapping) const 
   // node attr _stream_label must be equal
   auto fusion_nodes = BufferFusionPassBase::GetMatchedNodes(mapping);
   string stream_label;
-  for (const auto& n : fusion_nodes) {
+  for (const auto &n : fusion_nodes) {
     string stream_label_tmp;
     if (!ge::AttrUtils::GetStr(n->GetOpDesc(), STREAM_LABEL, stream_label_tmp)) {
       stream_label_tmp = "null";

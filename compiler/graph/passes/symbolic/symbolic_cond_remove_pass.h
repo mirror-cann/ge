@@ -20,8 +20,9 @@ namespace ge {
 class InputValueForCondSource : public Source {
  public:
   InputValueForCondSource(int32_t input_data_idx, int32_t cond_value)
-      : input_data_idx_(input_data_idx), cond_value_(cond_value){}
+      : input_data_idx_(input_data_idx), cond_value_(cond_value) {}
   [[nodiscard]] std::string GetSourceStr() const override;
+
  private:
   int32_t input_data_idx_;
   int32_t cond_value_;
@@ -31,12 +32,13 @@ class SymbolicCondRemovePass : public BaseNodePass {
  public:
   explicit SymbolicCondRemovePass(std::vector<GeTensor> graph_inputs) : graph_inputs_(std::move(graph_inputs)) {}
   Status Run(NodePtr &node) override;
+
  private:
   Status GetCondIndexSymbol(const NodePtr &cond_input, Expression &cond_index_sym, const std::string &node_type);
   std::vector<GeTensor> graph_inputs_;
   // key: data_idx, value: new sym
   std::unordered_map<int32_t, Expression> created_sym{};
 };
-} // namespace ge
+}  // namespace ge
 
-#endif // GE_GRAPH_PASSES_COND_GUARD_PASS_H
+#endif  // GE_GRAPH_PASSES_COND_GUARD_PASS_H

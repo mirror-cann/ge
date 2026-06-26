@@ -49,14 +49,14 @@ void CopyStubSoToOppPath(const std::string &path_stub_so, const std::string &opp
   GELOGD("command: %s", command.c_str());
   system(command.c_str());
 }
-}
+}  // namespace
 
 int SuperSystem(const char *cmd, char *retmsg, int msg_len) {
   FILE *fp;
-    GELOGD("current cmd %s", cmd);
+  GELOGD("current cmd %s", cmd);
   int res = -1;
   if (cmd == NULL || retmsg == NULL || msg_len < 0) {
-    GELOGD("Err: Fuc:%s system paramer invalid! ", __func__);
+    GELOGD("Err: Fuc:%s system parameter invalid! ", __func__);
     return 1;
   }
   if ((fp = popen(cmd, "r")) == NULL) {
@@ -65,8 +65,7 @@ int SuperSystem(const char *cmd, char *retmsg, int msg_len) {
     return 2;
   } else {
     memset(retmsg, 0, msg_len);
-    while (fgets(retmsg, msg_len - 1, fp))
-    {
+    while (fgets(retmsg, msg_len - 1, fp)) {
       GELOGD("Fuc: %s fgets buf is %s ", __func__, retmsg);
     }
     if ((res = pclose(fp)) == -1) {
@@ -184,10 +183,10 @@ SpaceRegistryFaker::~SpaceRegistryFaker() {
 
 OpImplSpaceRegistryV2Ptr SpaceRegistryFaker::Build() {
   auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
-   std::string cmake_binary_path = CMAKE_BINARY_DIR;
-   auto op_impl_path = cmake_binary_path + "/tests/depends/op_stub/libgert_op_impl2.so";
+  std::string cmake_binary_path = CMAKE_BINARY_DIR;
+  auto op_impl_path = cmake_binary_path + "/tests/depends/op_stub/libgert_op_impl2.so";
 
-   space_registry->AddSoToRegistry(
+  space_registry->AddSoToRegistry(
       gert::OppSoDesc(std::vector<ge::AscendString>{ge::AscendString(op_impl_path.c_str())}, "libgert_op_impl2.so"));
   return space_registry;
 }
@@ -261,7 +260,7 @@ void SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry() {
 
 void SpaceRegistryFaker::CreateDefaultSpaceRegistry(bool only_main_space) {
   // 重新创建避免用例间影响
-  auto  space_registry = GetMainSpaceRegistry();
+  auto space_registry = GetMainSpaceRegistry();
   if (space_registry == nullptr) {
     GELOGE(ge::FAILED, "Create space registry failed!");
     return;
@@ -274,7 +273,7 @@ void SpaceRegistryFaker::CreateDefaultSpaceRegistry(bool only_main_space) {
         gert::OppSoDesc(std::vector<ge::AscendString>{ge::AscendString(op_impl_path.c_str())}, "libgert_op_impl.so"));
   }
 
-  GELOGI("space_registry:%p", (void*)space_registry.get());
+  GELOGI("space_registry:%p", (void *)space_registry.get());
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
 }
 
@@ -308,7 +307,7 @@ void SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2(bool only_main_space) {
     space_registry->AddSoToRegistry(
         gert::OppSoDesc(std::vector<ge::AscendString>{ge::AscendString(op_impl_path.c_str())}, "libgert_op_impl2.so"));
   }
-  GELOGI("space_registry:%p", (void*)space_registry.get());
+  GELOGI("space_registry:%p", (void *)space_registry.get());
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
 }
 
@@ -347,12 +346,14 @@ void CreateVendorsOppSo(const std::string &opp_path, const std::string &customiz
   if (!customize_1.empty()) {
     load_priority += customize_1;
     CopyStubSoToOppPath(op_impl_path1, opp_path, (kVendor + "/" + customize_1));
-    system(("echo 'compiler_version=6.4.T5.0.B121' > " + opp_path + kVendor + "/" + customize_1 + "/version.info").c_str());
+    system(("echo 'compiler_version=6.4.T5.0.B121' > " + opp_path + kVendor + "/" + customize_1 + "/version.info")
+               .c_str());
   }
   if (!customize_2.empty()) {
     load_priority += "," + customize_2;
     CopyStubSoToOppPath(op_impl_path, opp_path, (kVendor + "/" + customize_2));
-    system(("echo 'compiler_version=6.5.T5.0.B121' > " + opp_path + kVendor + "/" + customize_2 + "/version.info").c_str());
+    system(("echo 'compiler_version=6.5.T5.0.B121' > " + opp_path + kVendor + "/" + customize_2 + "/version.info")
+               .c_str());
   }
   GELOGD("load_priority is:%s", load_priority.c_str());
   system(("echo 'load_priority=" + load_priority + "' > " + path_config).c_str());
@@ -423,4 +424,4 @@ void CreateBuiltInSubPkgSo(std::vector<std::string> &paths) {
   paths.emplace_back(opp_latest_path);
   system(("cp -rf " + opp_path + "built-in " + opp_latest_path).c_str());
 }
-} // gert
+}  // namespace gert

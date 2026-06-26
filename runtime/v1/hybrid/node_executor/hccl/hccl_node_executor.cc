@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,9 @@ constexpr size_t kGatherAllToAllVInputNums = 4UL;
 constexpr size_t kAllToAllVCInputNums = 2UL;
 const std::string kHcomOpAttr = "group";
 
-const std::set<std::string> kRdmaReadTypes = { HCOMREMOTEREAD, HCOMREMOTEREFREAD };
-const std::set<std::string> kRdmaWriteTypes = { HCOMREMOTEWRITE, HCOMREMOTESCATTERWRITE };
-const std::set<std::string> kRdmaScatterTypes = { HCOMREMOTEREFREAD, HCOMREMOTESCATTERWRITE };
+const std::set<std::string> kRdmaReadTypes = {HCOMREMOTEREAD, HCOMREMOTEREFREAD};
+const std::set<std::string> kRdmaWriteTypes = {HCOMREMOTEWRITE, HCOMREMOTESCATTERWRITE};
+const std::set<std::string> kRdmaScatterTypes = {HCOMREMOTEREFREAD, HCOMREMOTESCATTERWRITE};
 const std::set<std::string> kAllToAllTypes = {HCOMALLTOALLV, HCOMGATHERALLTOALLV, HCOMALLTOALLVC};
 }  // namespace
 namespace hybrid {
@@ -41,8 +41,7 @@ namespace hybrid {
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::HCCL, HcclNodeExecutor);
 
 Status HcclNodeTask::FillHcomOpInfo(const TaskContext &context, const OpDescPtr op_desc,
-                                    const std::vector<void *> &inputs,
-                                    const std::vector<void *> &outputs,
+                                    const std::vector<void *> &inputs, const std::vector<void *> &outputs,
                                     HcomOperation &hcom_op_info) {
   hcom_op_info.hcclType = op_desc->GetType();
   hcom_op_info.inputPtr = inputs.empty() ? nullptr : inputs[0UL];
@@ -53,13 +52,13 @@ Status HcclNodeTask::FillHcomOpInfo(const TaskContext &context, const OpDescPtr 
   const auto iter = kConstOpHcclDataType.find(static_cast<int64_t>(src_data_type));
   if (iter == kConstOpHcclDataType.end()) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) inputdesc0 datatype:%s not support.", op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+                         op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     GELOGE(PARAM_INVALID, "[Find][DataType] %s(%s) inputdesc0 datatype:%s not support.", op_desc->GetName().c_str(),
            op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     return PARAM_INVALID;
   }
   hcom_op_info.dataType = iter->second;
-  const std::set<std::string> hccl_types = { HCOMALLREDUCE, HCOMREDUCESCATTER, HVDCALLBACKALLREDUCE, HCOMREDUCE };
+  const std::set<std::string> hccl_types = {HCOMALLREDUCE, HCOMREDUCESCATTER, HVDCALLBACKALLREDUCE, HCOMREDUCE};
   if (hccl_types.count(op_desc->GetType()) > 0UL) {
     HcclReduceOp op_type = HCCL_REDUCE_SUM;
     GE_CHK_STATUS_RET(HcomOmeUtil::GetHcclOperationType(op_desc, op_type),
@@ -103,10 +102,10 @@ Status HcclNodeTask::GetInputsOutPuts(const TaskContext &context, std::vector<vo
 Status HcclNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
   GELOGI("[%s] HcclNodeTask::ExecuteAsync in.", context.GetNodeName());
   if (context.GetContextHandle() == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", " %s(%s) invalid, hccl handle is nullptr!",
-                       context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
-    GELOGE(FAILED, "[Check][Param:context] %s(%s) hccl handle is nullptr!",
-           context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", " %s(%s) invalid, hccl handle is nullptr!", context.GetNodeName(),
+                         context.GetNodeItem().NodeType().c_str());
+    GELOGE(FAILED, "[Check][Param:context] %s(%s) hccl handle is nullptr!", context.GetNodeName(),
+           context.GetNodeItem().NodeType().c_str());
     return FAILED;
   }
 
@@ -119,8 +118,8 @@ Status HcclNodeTask::ExecuteAsync(TaskContext &context, const std::function<void
   GE_CHECK_NOTNULL(op_desc);
 
   const auto hcom_exec_enqueue_op =
-      reinterpret_cast<HcclResult(*)(HcomOperation, std::function<void(const HcclResult status)>)>(mmDlsym(
-          context.GetContextHandle(), "HcomExecEnqueueOperation"));
+      reinterpret_cast<HcclResult (*)(HcomOperation, std::function<void(const HcclResult status)>)>(
+          mmDlsym(context.GetContextHandle(), "HcomExecEnqueueOperation"));
   if (hcom_exec_enqueue_op == nullptr) {
     GELOGE(FAILED, "[Invoke][HcomExecEnqueueOperation] failed for %s(%s) hcom unknown node function.",
            context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
@@ -136,7 +135,7 @@ Status HcclNodeTask::ExecuteAsync(TaskContext &context, const std::function<void
   const auto callback = [op_desc, done_callback](const HcclResult stat) {
     if (stat != HCCL_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "call HcomExecEnqueueOperation failed for node %s(%s), ret: %d",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str(), stat);
+                           op_desc->GetName().c_str(), op_desc->GetType().c_str(), stat);
       GELOGE(HCCL_E_INTERNAL, "[Call][HcomExecEnqueueOperation] failed for node %s(%s), ret: %d",
              op_desc->GetName().c_str(), op_desc->GetType().c_str(), stat);
     }
@@ -149,7 +148,7 @@ Status HcclNodeTask::ExecuteAsync(TaskContext &context, const std::function<void
   const HcclResult hccl_ret = hcom_exec_enqueue_op(hcom_op_info, callback);
   if (hccl_ret != HCCL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call HcomExecEnqueueOperation failed for node:%s(%s), ret: %d",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), hccl_ret);
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), hccl_ret);
     GELOGE(HCCL_E_INTERNAL, "[Call][HcomExecEnqueueOperation] failed for node:%s(%s), ret: %d",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), hccl_ret);
     return HCCL_E_INTERNAL;
@@ -192,7 +191,7 @@ Status RdmaNodeTask::Init(TaskContext &context) {
     GE_CHECK_NOTNULL(node_item_ref.node->GetInDataAnchor(offset_idx)->GetPeerOutAnchor()->GetOwnerNode()->GetOpDesc());
     offset_index_ = {
         node_item_ref.node->GetInDataAnchor(offset_idx)->GetPeerOutAnchor()->GetOwnerNode()->GetOpDesc()->GetId(),
-        node_item_ref.node->GetInDataAnchor(offset_idx)->GetPeerOutAnchor()->GetIdx() };
+        node_item_ref.node->GetInDataAnchor(offset_idx)->GetPeerOutAnchor()->GetIdx()};
   }
   return SUCCESS;
 }
@@ -208,11 +207,13 @@ Status RdmaNodeTask::GetOffsetTensor(const TaskContext &context, const RuntimeIn
   GE_CHECK_NOTNULL(offset_tensor);
   const size_t tensor_size = offset_tensor->GetData().GetSize();
   if ((tensor_size / static_cast<size_t>(GetSizeByDataType(in_data_type))) != row_num) {
-    REPORT_INNER_ERR_MSG("E19999", "num of offset and remote addr mismatch, check invalid"
-                                 "offset size=%zu, remote_addr size=%zu, dtype=%s", tensor_size, row_num,
-                       TypeUtils::DataTypeToSerialString(in_data_type).c_str());
-    GELOGE(PARAM_INVALID, "[Check][Size]num of offset and remote addr mismatch,"
-                          "offset size=%zu, remote_addr size=%zu, dtype=%s",
+    REPORT_INNER_ERR_MSG("E19999",
+                         "num of offset and remote addr mismatch, check invalid"
+                         "offset size=%zu, remote_addr size=%zu, dtype=%s",
+                         tensor_size, row_num, TypeUtils::DataTypeToSerialString(in_data_type).c_str());
+    GELOGE(PARAM_INVALID,
+           "[Check][Size]num of offset and remote addr mismatch,"
+           "offset size=%zu, remote_addr size=%zu, dtype=%s",
            tensor_size, row_num, TypeUtils::DataTypeToSerialString(in_data_type).c_str());
     return PARAM_INVALID;
   }
@@ -220,8 +221,7 @@ Status RdmaNodeTask::GetOffsetTensor(const TaskContext &context, const RuntimeIn
 }
 
 Status RdmaNodeTask::SetAddrInfo(const TaskContext &context, const RuntimeInferenceContext &rt_ctx,
-                                 const uint64_t *const data,
-                                 const size_t row_num,
+                                 const uint64_t *const data, const size_t row_num,
                                  std::vector<HcomRemoteAccessAddrInfo> &addr_infos) const {
   TensorValue *tv = nullptr;
   GeTensorDescPtr tensor_desc = nullptr;
@@ -246,31 +246,33 @@ Status RdmaNodeTask::SetAddrInfo(const TaskContext &context, const RuntimeInfere
     for (auto idx = 0UL; idx < row_num; idx++) {
       FMK_INT64_MULCHECK(idx, kVarTableRowCnt)
       const auto line_idx = idx * kVarTableRowCnt;
-      addr_infos[idx] = { static_cast<uint32_t>(data[line_idx]),
-                          data[line_idx + kVarTableIdxAddr],
-                          PtrToValue(static_cast<const void *>(base_addr + addr_offset[idx])),
-                          data[line_idx + kVarTableIdxLen] };
+      addr_infos[idx] = {static_cast<uint32_t>(data[line_idx]), data[line_idx + kVarTableIdxAddr],
+                         PtrToValue(static_cast<const void *>(base_addr + addr_offset[idx])),
+                         data[line_idx + kVarTableIdxLen]};
     }
   } else {
     auto local_addr = PtrToValue(tv->MutableData());
-    const auto device_len = (row_num == 0UL) ? 0UL :
-        static_cast<uint64_t>(tensor_desc->GetShape().GetShapeSize()) / row_num * sizeof(float32_t);
+    const auto device_len =
+        (row_num == 0UL) ? 0UL
+                         : static_cast<uint64_t>(tensor_desc->GetShape().GetShapeSize()) / row_num * sizeof(float32_t);
     const auto data_len_ptr = PtrAdd<const uint64_t>(data, row_num, kVarTableIdxLen);
     GE_CHECK_NOTNULL(data_len_ptr);
     const uint64_t data_len = *data_len_ptr;
     if ((device_len <= 0UL) || (device_len > data_len)) {
-      REPORT_INNER_ERR_MSG("E19999", "Local embedding length is out of range, expect "
-		         "%" PRIu64 ", but %" PRIu64 " exactly.", data_len, static_cast<uint64_t>(device_len));
-      GELOGE(FAILED, "[Check][Size]Local embedding length is out of range, expect %lu, but %lu exactly.",
-             data_len, device_len);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Local embedding length is out of range, expect "
+                           "%" PRIu64 ", but %" PRIu64 " exactly.",
+                           data_len, static_cast<uint64_t>(device_len));
+      GELOGE(FAILED, "[Check][Size]Local embedding length is out of range, expect %lu, but %lu exactly.", data_len,
+             device_len);
       return FAILED;
     }
 
     for (size_t idx = 0UL; idx < row_num; ++idx) {
       FMK_INT64_MULCHECK(idx, kVarTableRowCnt)
       const auto line_idx = idx * kVarTableRowCnt;
-      addr_infos[idx] = { static_cast<uint32_t>(data[line_idx]), data[line_idx + kVarTableIdxAddr], local_addr,
-                          device_len };
+      addr_infos[idx] = {static_cast<uint32_t>(data[line_idx]), data[line_idx + kVarTableIdxAddr], local_addr,
+                         device_len};
       local_addr += device_len;
     }
   }
@@ -290,7 +292,7 @@ Status RdmaNodeTask::ExtractTensor(const TaskContext &context,
       return SUCCESS;
     } else {
       REPORT_INNER_ERR_MSG("E19999", "Tensor data is nullptr, and kRdmaScatterTypes does not contain %s",
-                         context.GetNodeItem().NodeType().c_str());
+                           context.GetNodeItem().NodeType().c_str());
       GELOGE(FAILED, "[Find][NodeType]Tensor data is nullptr, and kRdmaScatterTypes does not contain %s",
              context.GetNodeItem().NodeType().c_str());
       return FAILED;
@@ -298,12 +300,16 @@ Status RdmaNodeTask::ExtractTensor(const TaskContext &context,
   }
   const auto dims = remote_tensor->GetTensorDesc().GetShape().GetDims();
   if ((dims.size() != kVarTableDims) && (static_cast<size_t>(dims.back()) != kVarTableRowCnt)) {
-    REPORT_INNER_ERR_MSG("E19999", "Variable table shape check failed, number of shape dims:%zu not equal expect:%zu "
-        "and shape dims back:%" PRId64 " not equal expect:%zu, node:%s(%s)", dims.size(), kVarTableDims,
-        dims.back(), kVarTableRowCnt, context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Variable table shape check failed, number of shape dims:%zu not equal "
-        "expect:%zu and shape dims back:%" PRId64 " not equal expect:%zu, node:%s(%s)", dims.size(), kVarTableDims,
-        dims.back(), kVarTableRowCnt, context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Variable table shape check failed, number of shape dims:%zu not equal expect:%zu "
+                         "and shape dims back:%" PRId64 " not equal expect:%zu, node:%s(%s)",
+                         dims.size(), kVarTableDims, dims.back(), kVarTableRowCnt, context.GetNodeName(),
+                         context.GetNodeItem().NodeType().c_str());
+    GELOGE(PARAM_INVALID,
+           "[Check][Param]Variable table shape check failed, number of shape dims:%zu not equal "
+           "expect:%zu and shape dims back:%" PRId64 " not equal expect:%zu, node:%s(%s)",
+           dims.size(), kVarTableDims, dims.back(), kVarTableRowCnt, context.GetNodeName(),
+           context.GetNodeItem().NodeType().c_str());
     return PARAM_INVALID;
   }
 
@@ -312,8 +318,8 @@ Status RdmaNodeTask::ExtractTensor(const TaskContext &context,
     size_t remote_size = 0UL;
     for (size_t idx = 0UL; idx < static_cast<size_t>(dims.front()); ++idx) {
       FMK_INT64_MULCHECK(idx, kVarTableRowCnt);
-      const auto size_ptr = PtrAdd<const uint64_t>(data, remote_tensor->GetData().GetSize(),
-                                                   (idx * kVarTableRowCnt) + kVarTableIdxLen);
+      const auto size_ptr =
+          PtrAdd<const uint64_t>(data, remote_tensor->GetData().GetSize(), (idx * kVarTableRowCnt) + kVarTableIdxLen);
       GE_CHECK_NOTNULL(size_ptr);
       remote_size += *size_ptr;
     }
@@ -327,15 +333,16 @@ Status RdmaNodeTask::ExtractTensor(const TaskContext &context,
   } else if (context.GetNodeItem().NodeType() == HCOMREMOTEREFREAD) {
     attr.SetMemType(MemStorageType::RDMA_HBM);
     GE_CHK_STATUS_RET(context.AllocateOutputs(&attr));
-  } else {} // no operation
+  } else {
+  }  // no operation
   return SetAddrInfo(context, ctx, data, static_cast<size_t>(dims.front()), addr_infos);
 }
 
 Status RdmaNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
   GELOGI("[%s] RdmaNodeTask::ExecuteAsync in.", context.GetNodeName());
   const auto hcom_exec_enqueue_remote_access =
-      reinterpret_cast<HcclResult(*)(const std::string &, const std::vector<HcomRemoteAccessAddrInfo> &,
-          std::function<void(const HcclResult status)>)>(
+      reinterpret_cast<HcclResult (*)(const std::string &, const std::vector<HcomRemoteAccessAddrInfo> &,
+                                      std::function<void(const HcclResult status)>)>(
           mmDlsym(context.GetContextHandle(), "HcomExecEnqueueRemoteAccess"));
   if (hcom_exec_enqueue_remote_access == nullptr) {
     GELOGE(FAILED, "[Invoke][HcomExecEnqueueRemoteAccess] failed for node:%s(%s) hcom unknown node function.",
@@ -356,15 +363,15 @@ Status RdmaNodeTask::ExecuteAsync(TaskContext &context, const std::function<void
 
   aclrtEvent evt = nullptr;
   if (context.GetExecutionContext()->hccl_stream != nullptr) {
-    GE_CHK_ACL_RET(aclrtCreateEventWithFlag(
-      &evt, ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE));
+    GE_CHK_ACL_RET(
+        aclrtCreateEventWithFlag(&evt, ACL_EVENT_SYNC | ACL_EVENT_CAPTURE_STREAM_PROGRESS | ACL_EVENT_TIME_LINE));
     GE_CHK_ACL_RET(aclrtStreamWaitEvent(context.GetExecutionContext()->hccl_stream, evt));
   }
   TaskContext *const p_ctx = &context;
   const auto callback = [p_ctx, done_callback, evt](const HcclResult stat) {
     if (stat != HCCL_SUCCESS) {
-      GELOGE(HCCL_E_INTERNAL, "[Call][HcomExcutorInitialize] failed for node:%s(%s), ret: 0x%X",
-             p_ctx->GetNodeName(), p_ctx->GetNodeItem().NodeType().c_str(), stat);
+      GELOGE(HCCL_E_INTERNAL, "[Call][HcomExcutorInitialize] failed for node:%s(%s), ret: 0x%X", p_ctx->GetNodeName(),
+             p_ctx->GetNodeItem().NodeType().c_str(), stat);
       p_ctx->SetStatus(FAILED);
     }
     if (done_callback != nullptr) {
@@ -410,7 +417,7 @@ static Status BuildAllToAllVparams(const TaskContext &context, HcomAllToAllVPara
   const auto iter = kConstOpHcclDataType.find(static_cast<int64_t>(src_data_type));
   if (iter == kConstOpHcclDataType.end()) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) alltoallv datatype:%s not support.", op_desc_p->GetName().c_str(),
-                       op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+                         op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     GELOGE(PARAM_INVALID, "[Find][DataType] %s(%s) alltoallv datatype:%s not support.", op_desc_p->GetName().c_str(),
            op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     return PARAM_INVALID;
@@ -448,7 +455,7 @@ static Status BuildGatherAllToAllParams(const TaskContext &context, HcomGatherAl
   const auto iter = kConstOpHcclDataType.find(static_cast<int64_t>(hccl_data_type));
   if (iter == kConstOpHcclDataType.end()) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) received datatype:%s not support.", op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(hccl_data_type).c_str());
+                         op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(hccl_data_type).c_str());
     GELOGE(PARAM_INVALID, "[Find][DataType] %s(%s) received datatype:%s not support.", op_desc->GetName().c_str(),
            op_desc->GetType().c_str(), TypeUtils::DataTypeToSerialString(hccl_data_type).c_str());
     return PARAM_INVALID;
@@ -483,7 +490,7 @@ static Status BuildAllToAllVCParams(const TaskContext &context, HcomAllToAllVCPa
   const auto iter = kConstOpHcclDataType.find(static_cast<int64_t>(src_data_type));
   if (iter == kConstOpHcclDataType.end()) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) alltoallv datatype:%s not support.", op_desc_p->GetName().c_str(),
-                       op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+                         op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     GELOGE(PARAM_INVALID, "[Find][DataType] %s(%s) alltoallv datatype:%s not support.", op_desc_p->GetName().c_str(),
            op_desc_p->GetType().c_str(), TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     return PARAM_INVALID;
@@ -501,8 +508,8 @@ Status AllToAllNodeTask::ExecuteAsync(TaskContext &context, const std::function<
   TaskContext *const p_ctx = &context;
   const auto callback = [p_ctx, done_callback](const HcclResult stat) {
     if (stat != HCCL_SUCCESS) {
-      GELOGE(HCCL_E_INTERNAL, "[Run][CallBack] [%s(%s)] AllToAllNodeTask execute failed.",
-             p_ctx->GetNodeName(), p_ctx->GetNodeItem().NodeType().c_str());
+      GELOGE(HCCL_E_INTERNAL, "[Run][CallBack] [%s(%s)] AllToAllNodeTask execute failed.", p_ctx->GetNodeName(),
+             p_ctx->GetNodeItem().NodeType().c_str());
       p_ctx->SetStatus(FAILED);
     }
     if (done_callback != nullptr) {
@@ -513,11 +520,11 @@ Status AllToAllNodeTask::ExecuteAsync(TaskContext &context, const std::function<
 
   if (context.GetNodeItem().NodeType() == HCOMALLTOALLV) {
     const auto hcom_exec_enqueue_all_to_allv =
-        reinterpret_cast<HcclResult(*)(HcomAllToAllVParams, std::function<void(const HcclResult status)>)>(mmDlsym(
-            context.GetContextHandle(), "HcomExecEnqueueAllToAllV"));
+        reinterpret_cast<HcclResult (*)(HcomAllToAllVParams, std::function<void(const HcclResult status)>)>(
+            mmDlsym(context.GetContextHandle(), "HcomExecEnqueueAllToAllV"));
     if (hcom_exec_enqueue_all_to_allv == nullptr) {
-      GELOGE(FAILED, "[Invoke][Function] [HcomExecEnqueueAllToAllV] for node:%s(%s) failed.",
-             context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+      GELOGE(FAILED, "[Invoke][Function] [HcomExecEnqueueAllToAllV] for node:%s(%s) failed.", context.GetNodeName(),
+             context.GetNodeItem().NodeType().c_str());
       return FAILED;
     }
     HcomAllToAllVParams params;
@@ -531,7 +538,7 @@ Status AllToAllNodeTask::ExecuteAsync(TaskContext &context, const std::function<
     }
   } else if (context.GetNodeItem().NodeType() == HCOMGATHERALLTOALLV) {
     const auto hcom_enqueue_gather_all_to_allv =
-        reinterpret_cast<HcclResult(*)(HcomGatherAllToAllVParams, std::function<void(const HcclResult status)>)>(
+        reinterpret_cast<HcclResult (*)(HcomGatherAllToAllVParams, std::function<void(const HcclResult status)>)>(
             mmDlsym(context.GetContextHandle(), "HcomExecEnqueueGatherAllToAllV"));
     if (hcom_enqueue_gather_all_to_allv == nullptr) {
       GELOGE(FAILED, "[Invoke][Function] [HcomExecEnqueueGatherAllToAllV] for node:%s(%s) failed.",
@@ -562,8 +569,7 @@ Status AllToAllNodeTask::ExecuteAsync(TaskContext &context, const std::function<
     GE_CHK_STATUS_RET(BuildAllToAllVCParams(context, params, alltoallvc_group));
     const HcclResult hccl_ret = hcom_enqueue_all_to_allv_c(params, callback);
     if (hccl_ret != HCCL_SUCCESS) {
-      GELOGE(HCCL_E_INTERNAL,
-             "[Process][HcomAllToAllVCParams] AllToAllVC teak enqueue failed for node [%s(%s)].",
+      GELOGE(HCCL_E_INTERNAL, "[Process][HcomAllToAllVCParams] AllToAllVC teak enqueue failed for node [%s(%s)].",
              context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
       return HCCL_E_INTERNAL;
     }
@@ -585,17 +591,17 @@ Status HcclNodeTask::Init(TaskContext &context) {
 Status HcclNodeExecutor::PrepareTask(NodeTask &task, TaskContext &context) const {
   GELOGI("[%s] HcclNodeExecutor::PrepareTask in.", context.GetNodeName());
 
-  GE_CHK_STATUS_RET(task.Init(context), "[Invoke][Init]hccl node %s(%s) load hccl so failed.",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+  GE_CHK_STATUS_RET(task.Init(context), "[Invoke][Init]hccl node %s(%s) load hccl so failed.", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
   // allocate output mem, output mem or remote read will be calculated when node execute.
   if (kRdmaReadTypes.count(context.GetNodeItem().NodeType()) == 0UL) {
     GE_CHK_STATUS_RET(context.AllocateOutputs(),
-                      "[Invoke][AllocateOutputs]hccl node %s(%s) task allocate output failed.",
-                      context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+                      "[Invoke][AllocateOutputs]hccl node %s(%s) task allocate output failed.", context.GetNodeName(),
+                      context.GetNodeItem().NodeType().c_str());
   }
 
-  GE_CHK_STATUS_RET(task.UpdateArgs(context), "[Update][Args] failed for hccl node %s(%s).",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+  GE_CHK_STATUS_RET(task.UpdateArgs(context), "[Update][Args] failed for hccl node %s(%s).", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
   GELOGI("[%s] HcclNodeExecutor::PrepareTask success.", context.GetNodeName());
   return SUCCESS;
 }
@@ -619,8 +625,7 @@ Status HcclNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node,
 Status HcclNodeExecutor::ExecuteTask(NodeTask &task, TaskContext &context,
                                      const std::function<void()> &callback) const {
   context.SetContextHandle(handle_);
-  GE_CHK_STATUS_RET(task.ExecuteAsync(context, callback),
-                    "[Invoke][ExecuteAsync] failed to execute task. node:%s(%s)",
+  GE_CHK_STATUS_RET(task.ExecuteAsync(context, callback), "[Invoke][ExecuteAsync] failed to execute task. node:%s(%s)",
                     context.GetNodeItem().NodeName().c_str(), context.GetNodeItem().NodeType().c_str());
   return SUCCESS;
 }
@@ -637,14 +642,13 @@ Status HcclNodeExecutor::Initialize() {
 
   GELOGI("FileName:%s, Path:%s.", file_name.c_str(), canonical_path.c_str());
   handle_ = mmDlopen(canonical_path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-                     static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+                                                                  static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
   if (handle_ == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Open SoFile %s failed, error:%s! ", canonical_path.c_str(), mmDlerror());
     GELOGE(GE_PLGMGR_SO_NOT_EXIST, "[Open][SoFile] %s failed, error:%s! ", canonical_path.c_str(), mmDlerror());
     return FAILED;
   }
-  const auto HcomExecInitialize =
-      reinterpret_cast<HcclResult(*)()>(mmDlsym(handle_, "HcomExecInitialize"));
+  const auto HcomExecInitialize = reinterpret_cast<HcclResult (*)()>(mmDlsym(handle_, "HcomExecInitialize"));
   if (HcomExecInitialize == nullptr) {
     GELOGE(FAILED, "[Invoke][HcomExecInitialize] Failed for hcom unknown node function.");
     return FAILED;
@@ -662,7 +666,7 @@ Status HcclNodeExecutor::Initialize() {
 }
 
 Status HcclNodeExecutor::Finalize() {
-  const auto HcomExecFinalize = reinterpret_cast<HcclResult(*)()>(mmDlsym(handle_, "HcomExecFinalize"));
+  const auto HcomExecFinalize = reinterpret_cast<HcclResult (*)()>(mmDlsym(handle_, "HcomExecFinalize"));
   if (HcomExecFinalize == nullptr) {
     GELOGE(FAILED, "[Invoke][HcomExecFinalize] failed for hcom unknown node function.");
     return FAILED;

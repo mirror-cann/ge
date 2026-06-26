@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -153,7 +153,7 @@ TEST_F(UtestScatteredCollection, FftsPlusProtoTransfer_InitAutoMixAicAivCtx) {
   auto desc_temp = *desc_temp_ptr;
   ffpt.op_desc_->AddInputDesc(desc_temp);
   auto desc_out = *desc_temp_ptr;
-  std::vector<int64_t> sub_offsets = {0,80};
+  std::vector<int64_t> sub_offsets = {0, 80};
   (void)ge::AttrUtils::SetListInt(desc_out, ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_OFFSETS, sub_offsets);
   std::vector<uint32_t> ctx_ids = {20, 21};
   (void)ge::AttrUtils::SetListInt(desc_out, "_tensor_ctx_id", ctx_ids);
@@ -234,7 +234,6 @@ TEST_F(UtestScatteredCollection, FftsPlusProtoTransfer_InitAutoMixAicAivCtx) {
   EXPECT_EQ(rts_data_ctx2->addressBaseL, 0x2050);
   EXPECT_EQ(rts_data_ctx2->addressBaseH, 0U);
 
-
   start_idx = 7;
   EXPECT_EQ(ffpt.InitAutoMixAicAivCtx(mixctxdef, ctx, start_idx), FAILED);
 }
@@ -276,8 +275,8 @@ TEST_F(UtestScatteredCollection, FftsPlusProtoTransfer_InitManualMixAicAivCtx) {
   InitMixAicAivCtx(mixctxdef, false);
   EXPECT_EQ(ffpt.InitManualMixAicAivCtx(*mixctxdef, name_prefixes, ctx, start_idx), SUCCESS);
 
-//  vector<std::string> mix_name_prefixes {"_mix_enhanced"};
-//  EXPECT_EQ(ffpt.InitManualMixAicAivCtx(*mixctxdef, mix_name_prefixes, ctx, start_idx), SUCCESS);
+  //  vector<std::string> mix_name_prefixes {"_mix_enhanced"};
+  //  EXPECT_EQ(ffpt.InitManualMixAicAivCtx(*mixctxdef, mix_name_prefixes, ctx, start_idx), SUCCESS);
 }
 
 // fusion_start_task_info.cc
@@ -309,7 +308,7 @@ TEST_F(UtestScatteredCollection, FusionStartTaskInfo_Success) {
   rtStream_t stream = nullptr;
   davinci_model->reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   davinci_model->reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  davinci_model->stream_list_ = { stream };
+  davinci_model->stream_list_ = {stream};
 
   auto ret = fstart.Init(task_def, davinci_model);
   EXPECT_EQ(ret, SUCCESS);
@@ -345,7 +344,7 @@ TEST_F(UtestScatteredCollection, FusionStopTaskInfo_Init_Success) {
   rtStream_t stream = nullptr;
   davinci_model->reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   davinci_model->reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  davinci_model->stream_list_ = { stream };
+  davinci_model->stream_list_ = {stream};
 
   auto ret = fstop.Init(task_def, davinci_model);
   EXPECT_EQ(ret, SUCCESS);
@@ -398,7 +397,7 @@ TEST_F(UtestScatteredCollection, init_label_switch_by_index_task_info) {
 }
 
 TEST_F(UtestScatteredCollection, LabelSwitchByIndexTaskInf_HBM_test) {
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -517,4 +516,4 @@ TEST_F(UtestScatteredCollection, testStreamActiveTaskInfo) {
   EXPECT_EQ(sati.Distribute(), SUCCESS);
   domi::GetContext().is_online_model = false;
 }
-} // end of namespace ge
+}  // end of namespace ge

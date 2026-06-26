@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,12 +31,12 @@ std::vector<CacheItemId> AddCachesByDepth(std::unique_ptr<CachePolicy> &cp, uint
     CacheItemId cache_id = cp->AddCache(cache_desc);
 
     if (cache_id != KInvalidCacheItemId) {
-      GELOGE(ge::FAILED, "AddCachesByDepth falied.");
+      GELOGE(ge::FAILED, "AddCachesByDepth failed.");
       return {};
     }
     cache_id = cp->AddCache(cache_desc);
     if (cache_id == KInvalidCacheItemId) {
-      GELOGE(ge::FAILED, "AddCachesByDepth falied.");
+      GELOGE(ge::FAILED, "AddCachesByDepth failed.");
       return {};
     }
     ids.emplace_back(cache_id);
@@ -53,7 +53,7 @@ std::vector<CacheItemId> AddCachesByDepthForLRU(std::unique_ptr<CachePolicy> &cp
     cache_desc->SetShapes({s});
     auto cache_id = cp->AddCache(cache_desc);
     if (cache_id == KInvalidCacheItemId) {
-      GELOGE(ge::FAILED, "AddCachesByDepth falied.");
+      GELOGE(ge::FAILED, "AddCachesByDepth failed.");
       return {};
     }
     ids.emplace_back(cache_id);
@@ -69,7 +69,8 @@ class UtestCompileCachePolicy : public testing::Test {
 };
 
 TEST_F(UtestCompileCachePolicy, CreateCCPSuccess_1) {
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   ASSERT_NE(ccp, nullptr);
 }
 
@@ -98,18 +99,18 @@ TEST_F(UtestCompileCachePolicy, AddSameCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
   uint8_t *data = &value;
   BinaryHolder holder(data, 1);
   cache_desc->AddBinary(holder);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -121,18 +122,18 @@ TEST_F(UtestCompileCachePolicy, AddDifferentOptypeCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
   uint8_t *data = &value;
   BinaryHolder holder(data, 1);
   cache_desc->AddBinary(holder);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -146,10 +147,10 @@ TEST_F(UtestCompileCachePolicy, AddDifferentUniqueIdCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
@@ -160,8 +161,8 @@ TEST_F(UtestCompileCachePolicy, AddDifferentUniqueIdCache) {
   ASSERT_EQ(cache_desc->scope_id_.size(), 2);
   ASSERT_EQ(cache_desc->scope_id_[0], 1);
   ASSERT_EQ(cache_desc->scope_id_[1], 2);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -179,14 +180,14 @@ TEST_F(UtestCompileCachePolicy, AddDifferentBinarySizeCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -204,18 +205,18 @@ TEST_F(UtestCompileCachePolicy, AddDifferentBinaryValueCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
   uint8_t *data = &value;
   BinaryHolder holder(data, 1);
   cache_desc->AddBinary(holder);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -233,18 +234,18 @@ TEST_F(UtestCompileCachePolicy, AddDifferentTensorFormatCache) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
   uint8_t *data = &value;
   BinaryHolder holder(data, 1);
   cache_desc->AddBinary(holder);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -259,21 +260,21 @@ TEST_F(UtestCompileCachePolicy, CacheFindFailBecauseRangeFirst) {
   cache_desc->SetOpType("test_op");
   CompileCacheDescPtr cache_desc_match = cache_desc;
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  SmallVector<int64_t, kDefaultDimsNum> shape{-1,-1};
+  SmallVector<int64_t, kDefaultDimsNum> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
   ASSERT_EQ(tensor_info.shape_.size(), 2);
   ASSERT_EQ(tensor_info.shape_[0], -1);
   ASSERT_EQ(tensor_info.shape_[1], -1);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
-  std::vector<int64_t> shape_match{0,5}; 
+  std::vector<int64_t> shape_match{0, 5};
   tensor_info.SetShape(shape_match);
   cache_desc_match->AddTensorInfo(tensor_info);
   CacheItemId cache_id_find = ccp->FindCache(cache_desc_match);
@@ -285,18 +286,18 @@ TEST_F(UtestCompileCachePolicy, CacheFindFailBecauseRangeSecond) {
   cache_desc->SetOpType("test_op");
   CompileCacheDescPtr cache_desc_match = cache_desc;
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
-  std::vector<int64_t> shape_match{5,11}; 
+  std::vector<int64_t> shape_match{5, 11};
   tensor_info.SetShape(shape_match);
   cache_desc_match->AddTensorInfo(tensor_info);
   CacheItemId cache_id_find = ccp->FindCache(cache_desc_match);
@@ -308,40 +309,39 @@ TEST_F(UtestCompileCachePolicy, CacheFindSuccessBecauseUnknownRank) {
   cache_desc->SetOpType("test_op");
   CompileCacheDescPtr cache_desc_match = std::make_shared<CompileCacheDesc>(*cache_desc.get());
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-2}; 
+  std::vector<int64_t> shape{-2};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
   cache_desc->AddTensorInfo(tensor_info);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
-  std::vector<int64_t> shape_match{5,11}; 
+  std::vector<int64_t> shape_match{5, 11};
   tensor_info.SetShape(shape_match);
   cache_desc_match->AddTensorInfo(tensor_info);
   CacheItemId cache_id_find = ccp->FindCache(cache_desc_match);
   ASSERT_EQ(cache_id_find, cache_id);
 }
 
-
 TEST_F(UtestCompileCachePolicy, CacheFindSuccessCommonTest) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   CompileCacheDescPtr cache_desc_match = std::make_shared<CompileCacheDesc>(*cache_desc.get());
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
-  std::vector<int64_t> shape_match{5,5}; 
+  std::vector<int64_t> shape_match{5, 5};
   tensor_info.SetShape(shape_match);
   cache_desc_match->AddTensorInfo(tensor_info);
   CacheItemId cache_id_find = ccp->FindCache(cache_desc_match);
@@ -354,18 +354,18 @@ TEST_F(UtestCompileCachePolicy, CacheDelTest) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("test_op");
   TensorInfoArgs tensor_info(ge::FORMAT_ND, ge::FORMAT_ND, ge::DT_FLOAT16);
-  std::vector<int64_t> shape{-1,-1};
+  std::vector<int64_t> shape{-1, -1};
   tensor_info.SetShape(shape);
   tensor_info.SetOriginShape(shape);
-  std::vector<std::pair<int64_t, int64_t>> ranges{{1,10}, {1,10}};
+  std::vector<std::pair<int64_t, int64_t>> ranges{{1, 10}, {1, 10}};
   tensor_info.SetShapeRange(ranges);
   cache_desc->AddTensorInfo(tensor_info);
   uint8_t value = 9;
   uint8_t *data = &value;
   BinaryHolder holder(data, 1);
   cache_desc->AddBinary(holder);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -397,8 +397,8 @@ TEST_F(UtestCompileCachePolicy, AgingCacheSuccess_1) {
   holder_new = holder;
   ASSERT_NE(holder_new.GetDataPtr(), nullptr);
   cache_desc->AddBinary(holder_new);
-  auto ccp = ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY,
-      ge::AgingPolicyType::AGING_POLICY_LRU);
+  auto ccp =
+      ge::CachePolicy::Create(ge::MatchPolicyType::MATCH_POLICY_EXACT_ONLY, ge::AgingPolicyType::AGING_POLICY_LRU);
   CacheItemId cache_id = ccp->AddCache(cache_desc);
   ASSERT_NE(cache_id, -1);
 
@@ -492,7 +492,6 @@ TEST_F(UtestCompileCachePolicy, AddCache_GetSameCacheId_AddAnotherSameCache) {
   CacheItemId cache_id_same = cp->AddCache(another_cache_desc);
   EXPECT_EQ(cache_id_same, cache_id);
 }
-
 
 TEST_F(UtestCompileCachePolicy, AddCache_GetDiffCacheId_OneCacheSetDiffShapes) {
   auto mp = std::make_shared<MatchPolicyForExactlyTheSame>();
@@ -727,4 +726,4 @@ TEST_F(UtestCompileCachePolicy, DoAging_TestSetIntervalForLRU) {
   EXPECT_TRUE(delete_ids[0] == 0 || delete_ids[0] == 1);
   EXPECT_TRUE(delete_ids[1] == 0 || delete_ids[1] == 1);
 }
-}
+}  // namespace ge

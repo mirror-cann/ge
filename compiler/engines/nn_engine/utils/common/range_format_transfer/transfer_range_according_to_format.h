@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,17 +39,27 @@ struct RangeAndFormatInfo {
   CalcShapeExtraAttr extra_attr;
   RangeAndFormatInfo(ge::GeShape input_old_shape, vector<std::pair<int64_t, int64_t>> input_old_range,
                      vector<std::pair<int64_t, int64_t>> &input_new_range, ge::Format input_old_format,
-                     ge::Format input_new_format, ge::DataType input_current_data_type, int64_t input_op_impl_type) :
-          old_shape(input_old_shape), old_range(input_old_range), new_range(input_new_range), old_format(input_old_format),
-          new_format(input_new_format), current_data_type(input_current_data_type), op_impl_type(input_op_impl_type),
-          extra_attr(CalcShapeExtraAttr()) {}
+                     ge::Format input_new_format, ge::DataType input_current_data_type, int64_t input_op_impl_type)
+      : old_shape(input_old_shape),
+        old_range(input_old_range),
+        new_range(input_new_range),
+        old_format(input_old_format),
+        new_format(input_new_format),
+        current_data_type(input_current_data_type),
+        op_impl_type(input_op_impl_type),
+        extra_attr(CalcShapeExtraAttr()) {}
   RangeAndFormatInfo(ge::GeShape input_old_shape, vector<std::pair<int64_t, int64_t>> input_old_range,
                      vector<std::pair<int64_t, int64_t>> &input_new_range, ge::Format input_old_format,
                      ge::Format input_new_format, ge::DataType input_current_data_type, int64_t input_op_impl_type,
-                     CalcShapeExtraAttr input_extra_attr) :
-          old_shape(input_old_shape), old_range(input_old_range), new_range(input_new_range), old_format(input_old_format),
-          new_format(input_new_format), current_data_type(input_current_data_type), op_impl_type(input_op_impl_type),
-          extra_attr(input_extra_attr) {}
+                     CalcShapeExtraAttr input_extra_attr)
+      : old_shape(input_old_shape),
+        old_range(input_old_range),
+        new_range(input_new_range),
+        old_format(input_old_format),
+        new_format(input_new_format),
+        current_data_type(input_current_data_type),
+        op_impl_type(input_op_impl_type),
+        extra_attr(input_extra_attr) {}
 };
 
 using RangeAndFormat = struct RangeAndFormatInfo;
@@ -127,10 +137,11 @@ class RangeTransferAccordingToFormat {
   static Status GetNDRNNRangeByAxisValue(vector<std::pair<int64_t, int64_t>> &new_range, const int64_t &impl_type,
                                          const vector<std::pair<int64_t, int64_t>> &range_value,
                                          const vector<std::pair<int64_t, int64_t>> &nd_range_value);
-  
+
   static Status GetFzWinoRangeByAxisValue(vector<std::pair<int64_t, int64_t>> &new_range, const int64_t &impl_type,
-                                         const vector<std::pair<int64_t, int64_t>> &range_value,
-                                         const vector<std::pair<int64_t, int64_t>> &nd_range_value);
+                                          const vector<std::pair<int64_t, int64_t>> &range_value,
+                                          const vector<std::pair<int64_t, int64_t>> &nd_range_value);
+
  private:
   /* map of GetAxisValueInfoByFormat, get axis value by different original
    * formats. */

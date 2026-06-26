@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,6 +54,7 @@ class TaskGenerator {
   Status GenerateTaskForNodes(const std::vector<Node *> nodes);
   Status ReGetTaskInfo(const ComputeGraphPtr &comp_graph);
   std::unordered_map<int64_t, std::vector<domi::TaskDef>> &MutableNodeId2TaskDefs();
+
  private:
   /**
    * task 生成接口
@@ -98,8 +99,7 @@ class TaskGenerator {
   Status InitRuntimeParams(const ModelPtr &model_ptr, PreRuntimeParam &runtime_param);
   Status SetAnchorsOffset(const NodePtr &owner_node, const bool is_input, const uint32_t index,
                           const PreRuntimeParam &runtime_param, const OpDescPtr &op_desc);
-  Status SetOpOffset(const OpDescPtr &op_desc, const bool is_input, const int64_t offset,
-                     const uint32_t offset_to_id);
+  Status SetOpOffset(const OpDescPtr &op_desc, const bool is_input, const int64_t offset, const uint32_t offset_to_id);
   Status SetNetOutputNodeInAnchorAndPeerOffset(const InDataAnchorPtr &in_anchor, const PreRuntimeParam &runtime_param,
                                                SymbolToAnchors &symbol_to_anchors, AnchorToSymbol &anchor_to_symbol);
   Status SetNetOutputNodePeerNodeOffset(const NodePtr &peer_node, const bool is_input, uint32_t index,
@@ -113,7 +113,7 @@ class TaskGenerator {
   // record node need gen task
   std::vector<Node *> nodes_;
   std::unordered_set<Node *> fusion_nodes_seen_;
-  std::unordered_map<int64_t , std::vector<domi::TaskDef>> node_id_2_node_tasks_;
+  std::unordered_map<int64_t, std::vector<domi::TaskDef>> node_id_2_node_tasks_;
   // fusion node场景下用来记录model task def插入的node顺序
   std::vector<int64_t> fusion_ordered_node_list_;
   // fusion node场景下用来记录task对应的node name， 不一定是产生该task的node name

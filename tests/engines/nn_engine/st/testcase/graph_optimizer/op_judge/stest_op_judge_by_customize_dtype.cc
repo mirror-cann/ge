@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,14 +39,14 @@ std::string GetAscendPath() {
   const char *ascend_custom_path_ptr = std::getenv("ASCEND_INSTALL_PATH");
   string ascend_path = "/mnt/d/Ascend";
   if (ascend_custom_path_ptr != nullptr) {
-      ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
+    ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
   } else {
-      const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
-      if (ascend_home_path_ptr != nullptr) {
+    const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
+    if (ascend_home_path_ptr != nullptr) {
       ascend_path = fe::GetRealPath(string(ascend_home_path_ptr));
-      } else {
+    } else {
       ascend_path = "/mnt/d/Ascend";
-      }
+    }
   }
   return ascend_path;
 }
@@ -57,21 +57,17 @@ string GetNetworkPath(const string &network_name) {
   return custom_path + network_name;
 }
 
-class st_op_judge_by_custom_dtypes : public testing::Test
-{
-protected:
-  void SetUp()
-  {
+class st_op_judge_by_custom_dtypes : public testing::Test {
+ protected:
+  void SetUp() {
     ReflectionBuilderPtr reflection_builder_ptr = std::make_shared<ge::RefRelations>();
-    FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr =
-            std::make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+    FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr = std::make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            ""};
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -84,22 +80,19 @@ protected:
     if (Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ == nullptr) {
       Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ = make_shared<OpCustDtypesConfigParser>();
     }
-    op_cust_dtypes_parser_ptr_ =
-            std::dynamic_pointer_cast<OpCustDtypesConfigParser>(Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
+    op_cust_dtypes_parser_ptr_ = std::dynamic_pointer_cast<OpCustDtypesConfigParser>(
+        Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
-    op_impl_type_judge_ptr_ =
-            std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr);
-    format_dtype_setter_ptr_ =
-            std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
-    op_format_dtype_judge_ptr_ =
-            std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr);
+    op_impl_type_judge_ptr_ = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr);
+    format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+    op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr);
     op_format_dtype_judge_ptr_->Initialize();
     Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   }
 
   void TearDown() {}
 
-protected:
+ protected:
   OpImplyTypeJudgePtr op_impl_type_judge_ptr_;
   FormatDtypeSetterPtr format_dtype_setter_ptr_;
   OpFormatDtypeJudgePtr op_format_dtype_judge_ptr_;
@@ -113,7 +106,7 @@ protected:
     OpDescPtr const_op3 = std::make_shared<OpDesc>("const3", "Const");
     op_desc = mat_mul_op;
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -158,7 +151,7 @@ protected:
     OpDescPtr const_op2 = std::make_shared<OpDesc>("const2", "Const");
     op_desc = mat_mul_op;
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -186,13 +179,12 @@ protected:
     return graph;
   }
 
-  ComputeGraphPtr  CreateFirstLayerOpGraph1(ge::NodePtr &conv2d_node, OpDescPtr &conv2d_op,
-                                           OpDescPtr &dw_op) {
+  ComputeGraphPtr CreateFirstLayerOpGraph1(ge::NodePtr &conv2d_node, OpDescPtr &conv2d_op, OpDescPtr &dw_op) {
     conv2d_op = std::make_shared<OpDesc>("conv2d1", "Conv2D");
     OpDescPtr data_op = std::make_shared<OpDesc>("data1", "Data");
     OpDescPtr weight_op = std::make_shared<OpDesc>("weight1", "Variable");
     dw_op = std::make_shared<OpDesc>("conv2ddw", "Conv2DBackpropFilterD");
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -208,7 +200,7 @@ protected:
     dw_op->AddInputDesc(conv2d_op->GetInputDesc(0));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(dw_op);
@@ -234,7 +226,7 @@ protected:
     OpDescPtr test_op9 = std::make_shared<OpDesc>("test9", "Test");
     OpDescPtr test_op10 = std::make_shared<OpDesc>("test10", "Test");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -273,13 +265,12 @@ protected:
     test_op9->AddOutputDesc(conv2d_op->GetInputDesc(0));
     test_op10->AddOutputDesc(conv2d_op->GetInputDesc(0));
 
-
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(conv2ddw_op);
-    
+
     ge::NodePtr test_node1 = graph->AddNode(test_op1);
     ge::NodePtr test_node2 = graph->AddNode(test_op2);
     ge::NodePtr test_node3 = graph->AddNode(test_op3);
@@ -312,7 +303,7 @@ protected:
     OpDescPtr data_op = std::make_shared<OpDesc>("data1", "Data");
     OpDescPtr weight_op = std::make_shared<OpDesc>("weight1", "Variable");
     OpDescPtr conv2ddw_op = std::make_shared<OpDesc>("conv2ddw", "Conv2DBackpropFilterD");
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -328,7 +319,7 @@ protected:
     conv2ddw_op->AddInputDesc(conv2d_op->GetInputDesc(0));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(conv2ddw_op);
@@ -336,13 +327,13 @@ protected:
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), conv2ddw_node->GetInDataAnchor(0));
     return graph;
   }
-  
+
   ComputeGraphPtr CreateFirstLayerOpGraph4(ge::NodePtr &conv2d_node, OpDescPtr &conv2d_op) {
     conv2d_op = std::make_shared<OpDesc>("conv2d1", "Conv2D");
     OpDescPtr data_op = std::make_shared<OpDesc>("data1", "Data");
     OpDescPtr weight_op = std::make_shared<OpDesc>("weight1", "Test");
     OpDescPtr conv2ddw_op = std::make_shared<OpDesc>("conv2ddw", "Conv2DBackpropFilterD");
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -358,7 +349,7 @@ protected:
     conv2ddw_op->AddInputDesc(conv2d_op->GetInputDesc(0));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(conv2ddw_op);
@@ -385,7 +376,7 @@ protected:
     OpDescPtr test_op10 = std::make_shared<OpDesc>("test10", "Test");
     OpDescPtr test_op11 = std::make_shared<OpDesc>("test11", "Test");
     OpDescPtr test_op12 = std::make_shared<OpDesc>("test12", "Test");
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -429,11 +420,11 @@ protected:
     test_op12->AddOutputDesc(conv2d_op->GetInputDesc(0));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(conv2ddw_op);
-    
+
     ge::NodePtr test_node1 = graph->AddNode(test_op1);
     ge::NodePtr test_node2 = graph->AddNode(test_op2);
     ge::NodePtr test_node3 = graph->AddNode(test_op3);
@@ -469,7 +460,7 @@ protected:
     OpDescPtr data_op = std::make_shared<OpDesc>("data1", "Data");
     OpDescPtr weight_op = std::make_shared<OpDesc>("weight1", "Variable");
     OpDescPtr conv2ddw_op = std::make_shared<OpDesc>("conv2ddw", "Test");
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -485,7 +476,7 @@ protected:
     conv2ddw_op->AddInputDesc(conv2d_op->GetInputDesc(0));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr data_node = graph->AddNode(data_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
     ge::NodePtr conv2ddw_node = graph->AddNode(conv2ddw_op);
@@ -500,8 +491,8 @@ protected:
     OpDescPtr bn_op = std::make_shared<OpDesc>("bninter", "BNInferenceD");
     OpDescPtr aipp_op = std::make_shared<OpDesc>("aipp1", "Aipp");
     OpDescPtr weight_op = std::make_shared<OpDesc>("weight1", "Const");
-    
-     //add descriptor
+
+    // add descriptor
     vector<int64_t> dim({4, 33, 12, 16});
     GeShape shape(dim);
     GeTensorDesc tensor_desc(shape);
@@ -518,7 +509,7 @@ protected:
     weight_op->AddOutputDesc(conv2d_op->GetInputDesc(1));
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-    conv2d_node =  graph->AddNode(conv2d_op);
+    conv2d_node = graph->AddNode(conv2d_op);
     ge::NodePtr bn_node = graph->AddNode(bn_op);
     ge::NodePtr aipp_node = graph->AddNode(aipp_op);
     ge::NodePtr weight_node = graph->AddNode(weight_op);
@@ -536,8 +527,7 @@ protected:
   }
 };
 
-TEST_F(st_op_judge_by_custom_dtypes, multi_thread_judge)
-{
+TEST_F(st_op_judge_by_custom_dtypes, multi_thread_judge) {
   auto graph = CreateInceptionV3NetGraph();
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
   EXPECT_EQ(fe::SUCCESS, ret);
@@ -550,8 +540,7 @@ TEST_F(st_op_judge_by_custom_dtypes, multi_thread_judge)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_without_custom)
-{
+TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_without_custom) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   Configuration::Instance(fe::AI_CORE_NAME).fp16_op_type_list_.clear();
@@ -582,8 +571,7 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_without_custom)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_FLOAT);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_not_pass)
-{
+TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_not_pass) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   string op_name = "mat_mul_name";
@@ -592,12 +580,15 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_not_pass)
   ComputeGraphPtr graph = CreateMatmulSingleOpGraph(op_name, op_type, op_desc);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-                  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes1.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes1.txt");
   ge::GetThreadLocalContext().SetGraphOption(options);
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
-  Configuration::Instance(fe::AI_CORE_NAME).config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes1.txt",
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
+      .emplace(GetCodeDir() +
+                   "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes1.txt",
                Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -622,8 +613,7 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_not_pass)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_FLOAT);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_pass)
-{
+TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_pass) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   string op_name = "mat_mul_name";
@@ -632,12 +622,15 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_pass)
   ComputeGraphPtr graph = CreateMatmulSingleOpGraph(op_name, op_type, op_desc);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes2.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes2.txt");
   ge::GetThreadLocalContext().SetGraphOption(options);
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
-  Configuration::Instance(fe::AI_CORE_NAME).config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes2.txt",
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
+      .emplace(GetCodeDir() +
+                   "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes2.txt",
                Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -662,8 +655,7 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v2_check_support_pass)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_pass)
-{
+TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_pass) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   string op_name = "mat_mul_name";
@@ -672,12 +664,15 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_pass)
   ComputeGraphPtr graph = CreateMatmulSingleOpGraph(op_name, op_type, op_desc);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes3.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes3.txt");
   ge::GetThreadLocalContext().SetGraphOption(options);
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
-  Configuration::Instance(fe::AI_CORE_NAME).config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes3.txt",
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
+      .emplace(GetCodeDir() +
+                   "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes3.txt",
                Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -702,8 +697,7 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_pass)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_FLOAT);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_without_custom)
-{
+TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_without_custom) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   string op_name = "mat_mul_name";
@@ -712,8 +706,9 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_without_custom)
   ComputeGraphPtr graph = CreateMatmulSingleOpGraph(op_name, op_type, op_desc);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes4.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes4.txt");
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
 
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -738,8 +733,7 @@ TEST_F(st_op_judge_by_custom_dtypes, mat_mul_v3_check_support_without_custom)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_FLOAT);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass1)
-{
+TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass1) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
@@ -749,12 +743,15 @@ TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass1)
   ComputeGraphPtr graph = CreateCustomSingleOpGraph(op_name, op_type, op_desc);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes5.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes5.txt");
   ge::GetThreadLocalContext().SetGraphOption(options);
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
-  Configuration::Instance(fe::AI_CORE_NAME).config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes5.txt",
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
+      .emplace(GetCodeDir() +
+                   "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes5.txt",
                Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
   Status ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -769,8 +766,7 @@ TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass1)
   EXPECT_EQ(op_desc->GetOutputDesc(0).GetDataType(), DT_INT32);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass2)
-{
+TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass2) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
@@ -784,12 +780,15 @@ TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass2)
   EXPECT_EQ(op_desc->HasAttr(fe::FE_IMPLY_TYPE), false);
 
   map<string, string> options;
-  options.emplace("ge.customizeDtypes",
-  GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes6.txt");
+  options.emplace(
+      "ge.customizeDtypes",
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes6.txt");
   ge::GetThreadLocalContext().SetGraphOption(options);
   Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_->InitializeFromOptions(options);
-  Configuration::Instance(fe::AI_CORE_NAME).config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes6.txt",
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
+      .emplace(GetCodeDir() +
+                   "/tests/engines/nn_engine/st/testcase/graph_optimizer/op_judge/custom_dtypes/custom_dtypes6.txt",
                Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
   ret = op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
@@ -805,8 +804,7 @@ TEST_F(st_op_judge_by_custom_dtypes, custom_op_check_support_pass2)
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv01)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv01) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
@@ -814,7 +812,7 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv01)
   OpDescPtr dw_op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph1(op_node, op_desc, dw_op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -824,15 +822,14 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv01)
   EXPECT_EQ(dw_op_desc->HasAttr(IS_FIRST_LAYER_CONV_FOR_OP), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv02)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv02) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph2(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -840,15 +837,14 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv02)
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv03)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv03) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph3(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -856,15 +852,14 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv03)
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv04)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv04) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph4(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -872,15 +867,14 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv04)
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv05)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv05) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph5(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -888,15 +882,14 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv05)
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv06)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv06) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph6(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
@@ -904,19 +897,17 @@ TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv06)
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
 
-TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv07)
-{
+TEST_F(st_op_judge_by_custom_dtypes, JudgeFirstLayerConv07) {
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   OpDescPtr op_desc = nullptr;
   ge::NodePtr op_node = nullptr;
   ComputeGraphPtr graph = CreateFirstLayerOpGraph7(op_node, op_desc);
-  if (op_desc == nullptr ||  op_node == nullptr) {
+  if (op_desc == nullptr || op_node == nullptr) {
     EXPECT_EQ(false, true);
   }
   format_dtype_setter_ptr_->JudgeFirstLayerConv(op_node, op_desc);
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV_FOR_OP), true);
   EXPECT_EQ(op_desc->HasAttr(IS_FIRST_LAYER_CONV), false);
 }
-

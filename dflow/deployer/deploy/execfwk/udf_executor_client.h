@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,24 +30,23 @@ class UdfExecutorClient : public PneExecutorClient {
     std::string npu_sched_model;
   };
 
-  explicit UdfExecutorClient(int32_t device_id) : PneExecutorClient(device_id){};
+  explicit UdfExecutorClient(int32_t device_id) : PneExecutorClient(device_id) {};
   ~UdfExecutorClient() override = default;
   Status Initialize() override;
   Status Finalize() override;
   static Status PreprocessUdfTarPackage(const std::set<std::string> &local_udf_saved_path,
-                                         const std::string &local_udf_load_path);
+                                        const std::string &local_udf_load_path);
   Status SyncVarManager(deployer::ExecutorRequest_SyncVarManageRequest sync_var_manage_desc) override;
   bool SupportSyncVarManager() override {
     return false;
   };
-  Status PreProcess(const std::vector<deployer::SubmodelDesc> &model_descs,
-                    const std::string &base_dir) override;
+  Status PreProcess(const std::vector<deployer::SubmodelDesc> &model_descs, const std::string &base_dir) override;
   Status LoadModel(deployer::ExecutorRequest_BatchLoadModelMessage load_model_desc) override;
   Status UpdateProfilingFromExecutor(deployer::ExecutorRequest_UpdateProfRequest &prof_message) override {
-    (void) prof_message;
+    (void)prof_message;
     return SUCCESS;
   }
-  
+
   Status UnloadModel(uint32_t model_id) override;
   ProcStatus GetSubProcStat() override;
   void GetAbnormalModelInsName(std::map<uint32_t, std::vector<std::string>> &abnormal_model_instances_name) override;
@@ -61,8 +60,7 @@ class UdfExecutorClient : public PneExecutorClient {
   Status StartUdfProcess(const std::vector<deployer::ExecutorRequest_BatchLoadModelMessage> &load_model_descs,
                          const std::vector<std::string> &msg_file_paths);
   virtual Status LoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
-                             const std::string &msg_file_path,
-                             const std::string &group_name);
+                             const std::string &msg_file_path, const std::string &group_name);
 
   virtual Status ForkChildProcess(const deployer::ExecutorRequest_LoadModelRequest &model_req,
                                   const std::string &file_path, const std::string &group_name,
@@ -75,11 +73,11 @@ class UdfExecutorClient : public PneExecutorClient {
   Status GrantDynamicSchedQueuesForUdf(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
                                        const pid_t pid, int32_t process_device_type);
   void AddPidToModelInstanceNameRelation(pid_t child_pid,
-      const deployer::ExecutorRequest_BatchLoadModelMessage& model_desc);
-  Status ForkAndInit(const deployer::ExecutorRequest_BatchLoadModelMessage& model_desc,
-                     const std::string &group_name, const std::string &message_path,
-                     pid_t &child_pid);
-  Status DistributeAndSerializeModelDescs(deployer::ExecutorRequest_BatchLoadModelMessage load_model_desc,
+                                         const deployer::ExecutorRequest_BatchLoadModelMessage &model_desc);
+  Status ForkAndInit(const deployer::ExecutorRequest_BatchLoadModelMessage &model_desc, const std::string &group_name,
+                     const std::string &message_path, pid_t &child_pid);
+  Status DistributeAndSerializeModelDescs(
+      deployer::ExecutorRequest_BatchLoadModelMessage load_model_desc,
       std::vector<deployer::ExecutorRequest_BatchLoadModelMessage> &load_model_descs,
       std::vector<std::string> &msg_file_paths);
   ProcStatus GetSubProcStatStartByPm();
@@ -90,6 +88,7 @@ class UdfExecutorClient : public PneExecutorClient {
   // key: pid, value pair<request queue id, queue id>
   std::map<pid_t, std::shared_ptr<ExecutorMessageClient>> pid_to_message_client_;
   bool is_proxy_ = false;
+
  private:
   Status SerializeLoadModelMessageToFile(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
                                          const std::string &base_dir, std::string &file_path);
@@ -102,8 +101,7 @@ class UdfExecutorClient : public PneExecutorClient {
 
   Status CheckDevPidStatus(const int32_t device_id, const pid_t &pid);
   void ShutdownByRelatedDeviceIds(const std::set<int32_t> &device_ids);
-  void RecordPidWithNpuDeviceId(int32_t queue_owner_pid,
-      deployer::ExecutorRequest_ModelQueuesAttrs model_queues_attrs);
+  void RecordPidWithNpuDeviceId(int32_t queue_owner_pid, deployer::ExecutorRequest_ModelQueuesAttrs model_queues_attrs);
   std::string GetPidModelInstanceName(pid_t child_pid);
   Status GetModelMessageClients(uint32_t root_model_id,
                                 std::map<pid_t, std::shared_ptr<ExecutorMessageClient>> &pid_and_message_clients);

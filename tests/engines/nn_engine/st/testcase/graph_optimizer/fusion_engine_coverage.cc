@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,13 +39,9 @@ using namespace fe;
 
 class STestFusionEngineCoverage : public testing::Test {
  protected:
-  void SetUp()
-  {
-  }
+  void SetUp() {}
 
-  void TearDown()
-  {
-  }
+  void TearDown() {}
 };
 
 TEST_F(STestFusionEngineCoverage, coverage6) {
@@ -54,7 +50,7 @@ TEST_F(STestFusionEngineCoverage, coverage6) {
   vector<std::pair<int64_t, int64_t>> range_value;
   vector<std::pair<int64_t, int64_t>> nd_range_value;
 
-  vector<std::pair<int64_t, int64_t>> range_value_not_empty = {8, {1,1}};
+  vector<std::pair<int64_t, int64_t>> range_value_not_empty = {8, {1, 1}};
   vector<std::pair<int64_t, int64_t>> nd_range_value_not_empty = {8, {1, 2}};
 
   EXPECT_EQ(RangeTransferAccordingToFormat::GetNCHWRangeByAxisValue(new_range, impl_type, range_value, nd_range_value),
@@ -143,31 +139,29 @@ TEST_F(STestFusionEngineCoverage, coverage6) {
   ge::Format new_format = old_format;
   ge::DataType current_data_type = ge::DT_UNDEFINED;
   int64_t op_impl_type = 1;
-  RangeAndFormat range_and_format_info = {old_shape, old_range, new_range,
-                                       old_format, new_format, current_data_type,
-                                       op_impl_type};
+  RangeAndFormat range_and_format_info = {old_shape,  old_range,         new_range,   old_format,
+                                          new_format, current_data_type, op_impl_type};
   RangeTransferAccordingToFormat::GetRangeAccordingToFormat(range_and_format_info);
 
-  RangeAndFormat range_and_format_info1 = {old_shape, old_range, new_range,
-                                       ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0,
-                                       current_data_type, op_impl_type};
+  RangeAndFormat range_and_format_info1 = {old_shape,          old_range,         new_range,   ge::FORMAT_NC1HWC0,
+                                           ge::FORMAT_NC1HWC0, current_data_type, op_impl_type};
   RangeTransferAccordingToFormat::GetRangeAccordingToFormat(range_and_format_info1);
 }
 
 TEST_F(STestFusionEngineCoverage, coverage7) {
-  ge::GeShape old_shape({-1,-1,-1,-1});
+  ge::GeShape old_shape({-1, -1, -1, -1});
   vector<std::pair<int64_t, int64_t>> old_range = {{3, 10}, {3, 10}, {4, 16}, {64, 64}};
   ge::Format old_format = ge::FORMAT_HWCN;
   ge::Format new_format = ge::FORMAT_FRACTAL_Z_C04;
   int64_t op_impl_type = 6;
   ge::DataType current_data_type = ge::DT_INT8;
   vector<std::pair<int64_t, int64_t>> new_range;
-  RangeAndFormat range_and_format_info = {old_shape, old_range, new_range, old_format, new_format,
-                                          ge::DT_INT8, op_impl_type};
+  RangeAndFormat range_and_format_info = {old_shape,  old_range,   new_range,   old_format,
+                                          new_format, ge::DT_INT8, op_impl_type};
   EXPECT_EQ(RangeTransferAccordingToFormat::GetRangeAccordingToFormat(range_and_format_info), fe::SUCCESS);
   vector<std::pair<int64_t, int64_t>> new_range1;
-  RangeAndFormat range_and_format_info1 = {old_shape, old_range, new_range1, old_format, new_format,
-                                           ge::DT_FLOAT16, op_impl_type};
+  RangeAndFormat range_and_format_info1 = {old_shape,  old_range,      new_range1,  old_format,
+                                           new_format, ge::DT_FLOAT16, op_impl_type};
   EXPECT_EQ(RangeTransferAccordingToFormat::GetRangeAccordingToFormat(range_and_format_info1), fe::SUCCESS);
 }
 
@@ -181,13 +175,11 @@ TEST_F(STestFusionEngineCoverage, coverage8) {
   int64_t group_count = 0;
 
   ge::GeShape new_shape;
-  ShapeAndFormat format_info = {old_shape, new_shape, old_format, new_format,
-                               current_data_type, group_count};
+  ShapeAndFormat format_info = {old_shape, new_shape, old_format, new_format, current_data_type, group_count};
   EXPECT_EQ(GetShapeAccordingToFormat(format_info), fe::SUCCESS);
 
-  ShapeAndFormat format_info1 = {old_shape, new_shape, ge::FORMAT_NC1HWC0,
-                               ge::FORMAT_NC1HWC0, current_data_type,
-                               group_count};
+  ShapeAndFormat format_info1 = {old_shape,          new_shape,         ge::FORMAT_NC1HWC0,
+                                 ge::FORMAT_NC1HWC0, current_data_type, group_count};
   EXPECT_EQ(GetShapeAccordingToFormat(format_info1), fe::SUCCESS);
 }
 

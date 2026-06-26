@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,6 @@
 #include "common/opskernel/ops_kernel_info_types.h"
 #include "graph/utils/attr_utils.h"
 
-
 namespace ge {
 namespace {
 class ExternalAllocatorUtStub : public Allocator {
@@ -65,6 +64,7 @@ class ExternalAllocatorUtStub : public Allocator {
   uint32_t GetMallocAdviseCnt() {
     return malloc_advise_cnt;
   }
+
  private:
   uint32_t malloc_cnt = 0;
   uint32_t malloc_advise_cnt = 0;
@@ -177,47 +177,48 @@ void ConstructInputOutputTensorForMultiBatch(std::vector<ge::Tensor> &inputs, st
 void ConstructInputOutputGertTensorForMultiBatch(std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
                                                  size_t output_num = 1U) {
   inputs.resize(4);
-  std::vector<int32_t> input_data_1(1, 0);;
-  inputs[0] =  {{{1, 1, 1}, {1, 1, 1}},                       // shape
-                {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                gert::kOnDeviceHbm,                          // placement
-                ge::DT_INT32,                                // data type
-                (void *) input_data_1.data()};
+  std::vector<int32_t> input_data_1(1, 0);
+  ;
+  inputs[0] = {{{1, 1, 1}, {1, 1, 1}},                  // shape
+               {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+               gert::kOnDeviceHbm,                      // placement
+               ge::DT_INT32,                            // data type
+               (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(8, 0);
-  inputs[1] =  {{{2, 2, 2}, {2, 2, 2}},                      // shape
-                {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                gert::kOnDeviceHbm,                          // placement
-                ge::DT_INT32,                                // data type
-                (void *) input_data_2.data()};
+  inputs[1] = {{{2, 2, 2}, {2, 2, 2}},                  // shape
+               {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+               gert::kOnDeviceHbm,                      // placement
+               ge::DT_INT32,                            // data type
+               (void *)input_data_2.data()};
 
   std::vector<int32_t> input_data_3(1, 0);
-  inputs[2] =  {{{1, 1, 1}, {1, 1, 1}},                      // shape
-                {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                gert::kOnDeviceHbm,                          // placement
-                ge::DT_INT32,                                // data type
-                (void *) input_data_3.data()};
+  inputs[2] = {{{1, 1, 1}, {1, 1, 1}},                  // shape
+               {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+               gert::kOnDeviceHbm,                      // placement
+               ge::DT_INT32,                            // data type
+               (void *)input_data_3.data()};
 
   std::vector<int32_t> input_data_4(1, 0);
-  inputs[3] =  {{{1, 1, 1}, {1, 1, 1}},                      // shape
-                {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                gert::kOnDeviceHbm,                          // placement
-                ge::DT_INT32,                                // data type
-                (void *) input_data_4.data()};
+  inputs[3] = {{{1, 1, 1}, {1, 1, 1}},                  // shape
+               {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+               gert::kOnDeviceHbm,                      // placement
+               ge::DT_INT32,                            // data type
+               (void *)input_data_4.data()};
 
   outputs.resize(output_num);
   for (size_t i = 0; i < output_num; ++i) {
     std::vector<uint8_t> output_data_1(8, 0xff);
-    outputs[i] =  {{{2, 2, 2}, {2, 2, 2}},                      // shape
-                   {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                   gert::kOnDeviceHbm,                          // placement
-                   ge::DT_INT32,                                // data type
-                   (void *) input_data_4.data()};
+    outputs[i] = {{{2, 2, 2}, {2, 2, 2}},                  // shape
+                  {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+                  gert::kOnDeviceHbm,                      // placement
+                  ge::DT_INT32,                            // data type
+                  (void *)input_data_4.data()};
   }
   return;
 }
 
-}
+}  // namespace
 
 using namespace gert;
 class ExternalAllocatorGraphTest : public testing::Test {
@@ -304,14 +305,39 @@ TEST_F(ExternalAllocatorGraphTest, dynamic_multi_batch_run_success) {
 
   GeRunningEnvFaker ge_env;
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("MultiDims", multi_dims).Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("MultiDims", multi_dims)
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeOp(DATA).InfoStoreAndBuilder("AiCoreLib"));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AiCoreLib"));
@@ -384,14 +410,39 @@ TEST_F(ExternalAllocatorGraphTest, dynamic_multi_batch_run_and_execute_success) 
 
   GeRunningEnvFaker ge_env;
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("MultiDims", multi_dims).Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("MultiDims", multi_dims)
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeOp(DATA).InfoStoreAndBuilder("AiCoreLib"));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AiCoreLib"));
@@ -546,7 +597,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_success) {
   options.emplace("ge.exec.hostInputIndexes", "0");
 
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindNode("data_1");
@@ -605,7 +656,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_success) {
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
   EXPECT_NE(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocCnt(), 0);
   EXPECT_EQ(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocAdviseCnt(), 0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
 
@@ -622,7 +673,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_feature_base_refreshable_succ
   options.emplace("ge.exec.hostInputIndexes", "0");
 
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data_node = compute_graph->FindNode("data_1");
@@ -674,13 +725,12 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_feature_base_refreshable_succ
 
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
 
   MemManager::Instance().Finalize();
 }
-
 
 TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_success) {
   GertRuntimeStub runtime_stub;
@@ -693,7 +743,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_success) {
   options.emplace("ge.exec.hostInputIndexes", "0");
 
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
 
   // 构造校大的host内存，走非pice流程
@@ -718,8 +768,8 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_success) {
   std::string base_path = "runtime/lib64";
   std::string save_path = base_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
 
@@ -767,13 +817,12 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_success) {
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
   EXPECT_NE(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocCnt(), 0);
   EXPECT_EQ(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocAdviseCnt(), 0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
   remove(save_path.c_str());
   MemManager::Instance().Finalize();
 }
-
 
 TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_pcie_success) {
   GertRuntimeStub runtime_stub;
@@ -786,7 +835,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_pcie_success) {
   options.emplace("ge.exec.hostInputIndexes", "1");
 
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   uint32_t graph_id = 1;
   session.AddGraph(graph_id, graph);
@@ -801,8 +850,8 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_pcie_success) {
   std::string base_path = "runtime/lib64";
   std::string save_path = base_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
 
@@ -852,25 +901,25 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_pcie_success) {
     gert_inputs.resize(2);
     gert_outputs.resize(1);
     std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-    gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnDeviceHbm,                                // placement
-                              ge::DT_INT32,                              // data type
-                              (void *) input_data_1.data()};
+    gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_1.data()};
 
     std::vector<int32_t> input_data_2(1, 666);
-    gert_inputs[1] = {{{1}, {1}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnHost,                                // placement
-                              ge::DT_BOOL,                              // data type
-                              (void *) input_data_2.data()};
+    gert_inputs[1] = {{{1}, {1}},                                  // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnHost,                               // placement
+                      ge::DT_BOOL,                                 // data type
+                      (void *)input_data_2.data()};
 
     std::vector<int32_t> output_data(1 * 2 * 3 * 4, 666);
-    gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                                // placement
-                          ge::DT_INT32,                              // data type
-                          nullptr};
+    gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       nullptr};
     gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(
         gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::ProfilingType>(
             {gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice}));
@@ -881,7 +930,7 @@ TEST_F(ExternalAllocatorGraphTest, host_input_with_kernel_bin_pcie_success) {
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
   EXPECT_NE(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocCnt(), 0);
   EXPECT_EQ(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocAdviseCnt(), 0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
   remove(save_path.c_str());
@@ -898,7 +947,7 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   options.emplace("ge.exec.frozenInputIndexes", "1000");
   options.emplace("ge.socVersion", "Ascend910B1");
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   uint32_t graph_id = 1;
   session.AddGraph(graph_id, graph);
@@ -913,8 +962,8 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   std::string base_path = "runtime/lib64";
   std::string save_path = base_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
 
@@ -952,25 +1001,25 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   gert_inputs.resize(2);
   gert_outputs.resize(1);
   std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_2.data()};
 
   std::vector<int32_t> output_data(1 * 2 * 3 * 4, 666);
-  gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                        gert::kOnDeviceHbm,                                // placement
-                        ge::DT_INT32,                              // data type
-                        nullptr};
+  gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(
       gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::ProfilingType>(
           {gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice}));
@@ -979,13 +1028,12 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(0);
   EXPECT_NE(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocCnt(), 0);
   EXPECT_EQ(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocAdviseCnt(), 0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
   remove(save_path.c_str());
   MemManager::Instance().Finalize();
 }
-
 
 TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_overflow_dump_enabled) {
   GertRuntimeStub runtime_stub;
@@ -1000,7 +1048,7 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   options.emplace("ge.exec.frozenInputIndexes", "1000");
   options.emplace("ge.socVersion", "Ascend910B1");
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   uint32_t graph_id = 1;
   session.AddGraph(graph_id, graph);
@@ -1015,8 +1063,8 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   std::string base_path = "runtime/lib64";
   std::string save_path = base_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
 
@@ -1053,32 +1101,32 @@ TEST_F(ExternalAllocatorGraphTest, malloc_const_feature_addr_refresh_op_success_
   gert_inputs.resize(2);
   gert_outputs.resize(1);
   std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_2.data()};
 
   std::vector<int32_t> output_data(1 * 2 * 3 * 4, 666);
-  gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                        gert::kOnDeviceHbm,                                // placement
-                        ge::DT_INT32,                              // data type
-                        nullptr};
+  gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(
       gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::ProfilingType>(
           {gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice}));
   EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
   EXPECT_NE(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocCnt(), 0);
   EXPECT_EQ(dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetMallocAdviseCnt(), 0);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(SUCCESS, session.RemoveGraph(graph_id));
   EXPECT_EQ(SUCCESS, session.UnregisterExternalAllocator(stream));
   remove(save_path.c_str());

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,40 +67,34 @@ class DynamicSingleOpImpl {
                       std::mutex *const stream_mutex, aclrtStream const stream);
   ~DynamicSingleOpImpl() = default;
 
-  Status ExecuteAsync(const std::vector <GeTensorDesc> &input_desc,
-                      const std::vector <DataBuffer> &input_buffers,
-                      std::vector <GeTensorDesc> &output_desc,
-                      std::vector <DataBuffer> &output_buffers);
+  Status ExecuteAsync(const std::vector<GeTensorDesc> &input_desc, const std::vector<DataBuffer> &input_buffers,
+                      std::vector<GeTensorDesc> &output_desc, std::vector<DataBuffer> &output_buffers);
 
   int64_t GetProfilingNodeIndex() const noexcept;
 
  private:
   friend class SingleOpModel;
 
-  Status ValidateParams(const std::vector <GeTensorDesc> &input_desc,
-                        const std::vector <DataBuffer> &inputs,
-                        const std::vector <GeTensorDesc> &output_desc,
-                        const std::vector <DataBuffer> &outputs) const;
+  Status ValidateParams(const std::vector<GeTensorDesc> &input_desc, const std::vector<DataBuffer> &inputs,
+                        const std::vector<GeTensorDesc> &output_desc, const std::vector<DataBuffer> &outputs) const;
 
-  Status SetHostTensorValue(const std::vector <std::pair<size_t, uint64_t>> &inputs_size,
-                            const std::vector <GeTensorDesc> &input_desc,
-                            const std::vector <DataBuffer> &input_buffers);
+  Status SetHostTensorValue(const std::vector<std::pair<size_t, uint64_t>> &inputs_size,
+                            const std::vector<GeTensorDesc> &input_desc, const std::vector<DataBuffer> &input_buffers);
 
-  Status SetHostTensorValue(const std::vector <GeTensorDesc> &input_desc,
-                            const std::vector <DataBuffer> &input_buffers);
+  Status SetHostTensorValue(const std::vector<GeTensorDesc> &input_desc, const std::vector<DataBuffer> &input_buffers);
 
-  bool CheckHostMemInputOptimization(const std::vector <DataBuffer> &input_buffers);
+  bool CheckHostMemInputOptimization(const std::vector<DataBuffer> &input_buffers);
 
   void InjectRuntimeContext();
 
-  std::unique_ptr <OpTask> op_task_;
-  std::unique_ptr <hybrid::HybridModel> hybrid_model_;
-  std::unique_ptr <hybrid::HybridModelRtV1Executor> hybrid_model_executor_;
-  std::map <int32_t, int64_t> hostmem_node_id_map_;
-  std::map <int32_t, std::pair<int32_t, int32_t>> input_node_anchor_map_;
-  std::vector <NodePtr> node_with_hostmem_;
+  std::unique_ptr<OpTask> op_task_;
+  std::unique_ptr<hybrid::HybridModel> hybrid_model_;
+  std::unique_ptr<hybrid::HybridModelRtV1Executor> hybrid_model_executor_;
+  std::map<int32_t, int64_t> hostmem_node_id_map_;
+  std::map<int32_t, std::pair<int32_t, int32_t>> input_node_anchor_map_;
+  std::vector<NodePtr> node_with_hostmem_;
 
-  ObjectPool <GeTensor> *tensor_pool_;
+  ObjectPool<GeTensor> *tensor_pool_;
   int64_t profiling_node_type_index_ = -1;
   uintptr_t resource_id_;
   std::mutex *stream_mutex_;
@@ -108,8 +102,8 @@ class DynamicSingleOpImpl {
   size_t num_inputs_ = 0U;
   size_t num_outputs_ = 0U;
   ComputeGraphPtr compute_graph_;
-  std::queue <std::unique_ptr<GeTensor>> shared_tensors_;
+  std::queue<std::unique_ptr<GeTensor>> shared_tensors_;
   RuntimeInferenceContext runtime_context_;
 };
-} // namespace ge
-#endif // GE_SINGLE_OP_SINGLE_OP_IMPL_H_
+}  // namespace ge
+#endif  // GE_SINGLE_OP_SINGLE_OP_IMPL_H_

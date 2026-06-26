@@ -273,8 +273,7 @@ graphStatus NamedIoNodeBuilder::Impl::SetAttrs(const OpDescPtr &op_desc, AscendS
   return GRAPH_SUCCESS;
 }
 
-graphStatus NamedIoNodeBuilder::Impl::RecoverIrDefinition(const OpDescPtr &op_desc,
-                                                                AscendString &error_message) const {
+graphStatus NamedIoNodeBuilder::Impl::RecoverIrDefinition(const OpDescPtr &op_desc, AscendString &error_message) const {
   const graphStatus ret = RecoverIrUtils::RecoverOpDescIrDefinition(op_desc);
   if (ret != GRAPH_SUCCESS) {
     error_message = AscendString(("Failed to recover IR definition for op: " + type_).c_str());
@@ -284,8 +283,7 @@ graphStatus NamedIoNodeBuilder::Impl::RecoverIrDefinition(const OpDescPtr &op_de
   return GRAPH_SUCCESS;
 }
 
-graphStatus NamedIoNodeBuilder::Impl::ValidateIrInstance(const OpDescPtr &op_desc,
-                                                               AscendString &error_message) const {
+graphStatus NamedIoNodeBuilder::Impl::ValidateIrInstance(const OpDescPtr &op_desc, AscendString &error_message) const {
   // Data 和 NetOutput 节点在 RecoverIrDefinition 中被跳过（不恢复 IR 定义），
   // 此处同步跳过校验，避免对无 IR 信息的节点做实例兼容性检查
   if ((op_desc->GetType() == ge::NETOUTPUT) || ge::OpTypeUtils::IsDataNode(op_desc->GetType())) {
@@ -309,8 +307,8 @@ graphStatus NamedIoNodeBuilder::Impl::ValidateIrInputInstances(
       }
       const auto &input = inputs_[input_index];
       if (input.name != ir_name) {
-        return SetError(error_message, "Input \"" + input.name + "\" is not compatible with IR input \"" +
-                                           ir_name + "\" for op \"" + type_ + "\"; check input name and order");
+        return SetError(error_message, "Input \"" + input.name + "\" is not compatible with IR input \"" + ir_name +
+                                           "\" for op \"" + type_ + "\"; check input name and order");
       }
       ++input_index;
     } else if (ir_type == kIrInputOptional) {
@@ -330,7 +328,7 @@ graphStatus NamedIoNodeBuilder::Impl::ValidateIrInputInstances(
   }
   if (input_index < inputs_.size()) {
     return SetError(error_message, "Input \"" + inputs_[input_index].name +
-                                      "\" is not defined in IR or is out of order for op \"" + type_ + "\"");
+                                       "\" is not defined in IR or is out of order for op \"" + type_ + "\"");
   }
   return GRAPH_SUCCESS;
 }
@@ -347,8 +345,8 @@ graphStatus NamedIoNodeBuilder::Impl::ValidateIrOutputInstances(
       }
       const auto &output = outputs_[output_index];
       if (output.name != ir_name) {
-        return SetError(error_message, "Output \"" + output.name + "\" is not compatible with IR output \"" +
-                                           ir_name + "\" for op \"" + type_ + "\"; check output name and order");
+        return SetError(error_message, "Output \"" + output.name + "\" is not compatible with IR output \"" + ir_name +
+                                           "\" for op \"" + type_ + "\"; check output name and order");
       }
       ++output_index;
     } else if (ir_type == kIrOutputDynamic) {
@@ -364,7 +362,7 @@ graphStatus NamedIoNodeBuilder::Impl::ValidateIrOutputInstances(
   }
   if (output_index < outputs_.size()) {
     return SetError(error_message, "Output \"" + outputs_[output_index].name +
-                                      "\" is not defined in IR or is out of order for op \"" + type_ + "\"");
+                                       "\" is not defined in IR or is out of order for op \"" + type_ + "\"");
   }
   return GRAPH_SUCCESS;
 }

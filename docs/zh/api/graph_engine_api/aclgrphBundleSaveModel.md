@@ -105,7 +105,7 @@ graphStatus aclgrphBundleSaveModel(const char_t *output_file, const ModelBufferD
 
 ```
 // 包含的头文件：
-#include "ge_ir_build.h" 
+#include "ge_ir_build.h"
 #include "ge_api_types.h"
 
 // 1.生成Graph
@@ -157,4 +157,3 @@ if (status != GRAPH_SUCCESS) {
 // 6.构图进程结束，释放资源
 aclgrphBuildFinalize();
 ```
-

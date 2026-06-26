@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -128,47 +128,47 @@ constexpr uint16_t kFp16MaxMan = 0x03FF;
 /// @ingroup fp16 basic operator
 /// @brief   get sign of fp16
 inline uint16_t Fp16ExtracSign(const uint16_t x) {
-    return (((x) >> kFp16SignIndex) & 1);
+  return (((x) >> kFp16SignIndex) & 1);
 }
 /// @ingroup fp16 basic operator
 /// @brief   get exponent of fp16
 inline uint16_t Fp16ExtracExp(const uint16_t x) {
-    return (((x) >> kFp16ExpLen) & kFp16MaxExp);
+  return (((x) >> kFp16ExpLen) & kFp16MaxExp);
 }
 /// @ingroup fp16 basic operator
 /// @brief   get mantissa of fp16
 inline uint16_t Fp16ExtracMan(const uint16_t x) {
-    return ((((x) >> 0) & 0x3FF) | (((((x) >> kFp16ManLen) & 0x1F) > 0 ? 1 : 0) * 0x400));
+  return ((((x) >> 0) & 0x3FF) | (((((x) >> kFp16ManLen) & 0x1F) > 0 ? 1 : 0) * 0x400));
 }
 /// @ingroup fp16 basic operator
 /// @brief   constructor of fp16 from sign exponent and mantissa
 inline uint16_t Fp16Constructor(const uint16_t s, const uint16_t e, const uint16_t m) {
-    return (((s) << kFp16SignIndex) | ((e) << kFp16ManLen) | ((m) & kFp16MaxMan));
+  return (((s) << kFp16SignIndex) | ((e) << kFp16ManLen) | ((m)&kFp16MaxMan));
 }
 /// @ingroup fp16 special value judgment
 /// @brief   whether a fp16 is zero
 inline bool Fp16IsZero(const uint16_t x) {
-    return (((x) & kFp16AbsMax) == 0);
+  return (((x)&kFp16AbsMax) == 0);
 }
 /// @ingroup fp16 special value judgment
 /// @brief   whether a fp16 is a denormalized value
 inline bool Fp16IsDenorm(const uint16_t x) {
-    return ((((x) & kFp16ExpMask) == 0));
+  return ((((x)&kFp16ExpMask) == 0));
 }
 /// @ingroup fp16 special value judgment
 /// @brief   whether a fp16 is infinite
 inline bool Fp16IsInf(const uint16_t x) {
-    return (((x)&kFp16AbsMax) == kFp16ExpMask);
+  return (((x)&kFp16AbsMax) == kFp16ExpMask);
 }
 /// @ingroup fp16 special value judgment
 /// @brief   whether a fp16 is NaN
 inline bool Fp16IsNan(const uint16_t x) {
-    return ((((x) & kFp16ExpMask) == kFp16ExpMask) && (((x) & kFp16ManMask) != 0U));
+  return ((((x)&kFp16ExpMask) == kFp16ExpMask) && (((x)&kFp16ManMask) != 0U));
 }
 /// @ingroup fp16 special value judgment
 /// @brief   whether a fp16 is invalid
 inline bool Fp16IsInvalid(const uint16_t x) {
-    return (((x) & kFp16ExpMask) == kFp16ExpMask);
+  return (((x)&kFp16ExpMask) == kFp16ExpMask);
 }
 /// @ingroup fp32 basic parameter
 /// @brief   fp32 exponent bias
@@ -206,12 +206,12 @@ constexpr uint32_t kFp32MaxMan = 0x7FFFFFU;
 /// @ingroup fp32 special value judgment
 /// @brief   whether a fp32 is NaN
 inline bool Fp32IsNan(const uint32_t x) {
-  return ((((x) & kFp32ExpMask) == kFp32ExpMask) && (((x) & kFp32ManMask) != 0U));
+  return ((((x)&kFp32ExpMask) == kFp32ExpMask) && (((x)&kFp32ManMask) != 0U));
 }
 /// @ingroup fp32 special value judgment
 /// @brief   whether a fp32 is infinite
 inline bool Fp32IsInf(const uint32_t x) {
-  return ((((x) & kFp32ExpMask) == kFp32ExpMask) && (((x) & kFp32ManMask) == 0U));
+  return ((((x)&kFp32ExpMask) == kFp32ExpMask) && (((x)&kFp32ManMask) == 0U));
 }
 /// @ingroup fp32 special value judgment
 /// @brief   whether a fp32 is a denormalized value
@@ -236,7 +236,7 @@ inline uint32_t Fp32ExtracMan(const uint32_t x) {
 /// @ingroup fp32 basic operator
 /// @brief   constructor of fp32 from sign exponent and mantissa
 inline uint32_t Fp32Constructor(const uint32_t s, const uint32_t e, const uint32_t m) {
-  return (((s) << kFp32SignIndex) | ((e) << kFp32ManLen) | ((m) & kFp32MaxMan));
+  return (((s) << kFp32SignIndex) | ((e) << kFp32ManLen) | ((m)&kFp32MaxMan));
 }
 /// @ingroup fp64 basic parameter
 /// @brief   fp64 exponent bias
@@ -274,12 +274,12 @@ constexpr uint64_t kFp64MaxMan = 0xFFFFFFFFFFFLLu;
 /// @ingroup fp64 special value judgment
 /// @brief   whether a fp64 is NaN
 inline bool Fp64IsNan(const uint64_t x) {
-  return ((((x) & kFp64ExpMask) == kFp64ExpMask) && (((x) & kFp64ManMask) != 0ULL));
+  return ((((x)&kFp64ExpMask) == kFp64ExpMask) && (((x)&kFp64ManMask) != 0ULL));
 }
 /// @ingroup fp64 special value judgment
 /// @brief   whether a fp64 is infinite
 inline bool Fp64IsInf(const uint64_t x) {
-  return ((((x) & kFp64ExpMask) == kFp64ExpMask) && (((x) & kFp64ManMask) == 0ULL));
+  return ((((x)&kFp64ExpMask) == kFp64ExpMask) && (((x)&kFp64ManMask) == 0ULL));
 }
 /// @ingroup integer special value judgment
 /// @brief   maximum positive value of int8_t            (0111 1111)
@@ -324,7 +324,7 @@ enum class TagFp16RoundMode {
 using fp16_t = struct TagFp16 {
   uint16_t val;
 
-public:
+ public:
   /// @ingroup fp16_t constructor
   /// @brief   Constructor without any param(default constructor)
   TagFp16() : val(0x0u) {}
@@ -585,7 +585,7 @@ void ExtractFp16(const uint16_t &val, uint16_t &s, int16_t &e, uint16_t &m);
 /// @param [in|out] man      mantissa to be reverse
 /// @brief   Calculate a mantissa's complement (add ont to it's radix-minus-one complement)
 /// @return  Return complement of man
-template<typename T>
+template <typename T>
 void ReverseMan(bool negative, T &man) {
   if (negative) {
     man = (~(man)) + 1;
@@ -599,7 +599,7 @@ void ReverseMan(bool negative, T &man) {
 /// @param [in] m_b mantissa of another fp16_t/float number
 /// @brief   choose mantissa to be shift right whoes exponent is less than another one
 /// @return  Return mantissawhoes exponent is less than another one
-template<typename T>
+template <typename T>
 T MinMan(const int16_t &e_a, T &m_a, const int16_t &e_b, T &m_b) {
   return (e_a > e_b) ? m_b : m_a;
 }
@@ -609,7 +609,7 @@ T MinMan(const int16_t &e_a, T &m_a, const int16_t &e_b, T &m_b) {
 /// @param [in] shift right shift bits
 /// @brief   right shift a mantissa
 /// @return  Return right-shift mantissa
-template<typename T>
+template <typename T>
 T RightShift(T man, int16_t shift) {
   int bits = sizeof(T) * 8;  // one byte have 8 bits
   T mask = static_cast<T>(1u) << static_cast<uint32_t>(bits - 1);
@@ -626,7 +626,7 @@ T RightShift(T man, int16_t shift) {
 /// @param [in] m_b mantissa of another temp fp16_t number
 /// @brief   Get mantissa sum of two temp fp16_t numbers, T support types: uint16_t/uint32_t/uint64_t
 /// @return  Return mantissa sum
-template<typename T>
+template <typename T>
 T GetManSum(int16_t e_a, const T &m_a, int16_t e_b, const T &m_b) {
   T sum = 0;
   if (e_a != e_b) {
@@ -655,7 +655,7 @@ T GetManSum(int16_t e_a, const T &m_a, int16_t e_b, const T &m_b) {
 /// @param [in] shift   abbreviation bits
 /// @brief    Round fp16_t or float mantissa to nearest value
 /// @return   Returns true if round 1,otherwise false;
-template<typename T>
+template <typename T>
 T ManRoundToNearest(bool bit0, bool bit1, bool bitLeft, T man, uint16_t shift = 0) {
   man = (man >> shift) + ((bit1 && (bitLeft || bit0)) ? 1 : 0);
   return man;
@@ -665,7 +665,7 @@ T ManRoundToNearest(bool bit0, bool bit1, bool bitLeft, T man, uint16_t shift = 
 /// @param [in] man    mantissa of a float number, support types: uint16_t/uint32_t/uint64_t
 /// @brief   Get bit length of a uint32_t number
 /// @return  Return bit length of man
-template<typename T>
+template <typename T>
 int16_t GetManBitLength(T man) {
   int16_t len = 0;
   while (man) {

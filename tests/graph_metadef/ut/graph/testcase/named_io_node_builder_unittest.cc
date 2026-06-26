@@ -35,8 +35,8 @@ REG_OP(TestAddForIRBuilder)
     .ATTR(axis, Int, 0)
     .OP_END_FACTORY_REG(TestAddForIRBuilder)
 
-// 带可选输入的算子
-REG_OP(TestConvForIRBuilder)
+    // 带可选输入的算子
+    REG_OP(TestConvForIRBuilder)
     .INPUT(x, TensorType({DT_FLOAT}))
     .INPUT(w, TensorType({DT_FLOAT}))
     .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT}))
@@ -45,173 +45,173 @@ REG_OP(TestConvForIRBuilder)
     .ATTR(pad_mode, Int, 0)
     .OP_END_FACTORY_REG(TestConvForIRBuilder)
 
-// 带动态输入/输出的算子
-REG_OP(TestDynamicForIRBuilder)
+    // 带动态输入/输出的算子
+    REG_OP(TestDynamicForIRBuilder)
     .DYNAMIC_INPUT(x, TensorType({DT_FLOAT}))
     .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT}))
     .ATTR(N, Int, 1)
     .OP_END_FACTORY_REG(TestDynamicForIRBuilder)
 
-// Data 类型算子（RecoverIrDefinition 和 ValidateIrInstance 均跳过 Data/NetOutput）
-REG_OP(Data)
+    // Data 类型算子（RecoverIrDefinition 和 ValidateIrInstance 均跳过 Data/NetOutput）
+    REG_OP(Data)
     .OUTPUT(y, TensorType({DT_FLOAT}))
     .ATTR(index, Int, 0)
     .OP_END_FACTORY_REG(Data)
 
-namespace {
-class OpDescChecker {
- public:
-  explicit OpDescChecker(const GNode &node) {
-    const auto node_ptr = NodeAdapter::GNode2Node(node);
-    EXPECT_NE(node_ptr, nullptr);
-    if (node_ptr != nullptr) {
-      op_desc_ = node_ptr->GetOpDesc();
-    }
-    EXPECT_NE(op_desc_, nullptr);
-  }
-
-  OpDescChecker &CheckName(const std::string &name) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetName(), name);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckType(const std::string &type) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetType(), type);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckInputSize(const size_t valid_size, const size_t all_size) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetInputsSize(), valid_size);
-      EXPECT_EQ(op_desc_->GetAllInputsSize(), all_size);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckOutputSize(const size_t size) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetOutputsSize(), size);
-      EXPECT_EQ(op_desc_->GetAllOutputsDescSize(), size);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckInputNames(const std::vector<std::string> &names) {
-    if (op_desc_ != nullptr) {
-      std::vector<std::string> input_names;
-      for (const auto &name : op_desc_->GetAllInputNames()) {
-        input_names.emplace_back(name);
+        namespace {
+  class OpDescChecker {
+   public:
+    explicit OpDescChecker(const GNode &node) {
+      const auto node_ptr = NodeAdapter::GNode2Node(node);
+      EXPECT_NE(node_ptr, nullptr);
+      if (node_ptr != nullptr) {
+        op_desc_ = node_ptr->GetOpDesc();
       }
-      std::vector<std::string> sorted_names = names;
-      std::sort(input_names.begin(), input_names.end());
-      std::sort(sorted_names.begin(), sorted_names.end());
-      EXPECT_EQ(input_names, sorted_names);
-      EXPECT_EQ(op_desc_->GetRegisterInputName(), names);
+      EXPECT_NE(op_desc_, nullptr);
     }
-    return *this;
-  }
 
-  OpDescChecker &CheckIrInputs(const std::vector<std::pair<std::string, IrInputType>> &inputs) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetIrInputs(), inputs);
+    OpDescChecker &CheckName(const std::string &name) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetName(), name);
+      }
+      return *this;
     }
-    return *this;
-  }
 
-  OpDescChecker &CheckIrOutputs(const std::vector<std::pair<std::string, IrOutputType>> &outputs) {
-    if (op_desc_ != nullptr) {
-      EXPECT_EQ(op_desc_->GetIrOutputs(), outputs);
+    OpDescChecker &CheckType(const std::string &type) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetType(), type);
+      }
+      return *this;
     }
-    return *this;
-  }
 
-  OpDescChecker &CheckIrAttrs(const std::vector<std::string> &attrs) {
-    if (op_desc_ != nullptr) {
-      const auto &ir_attr_names = op_desc_->GetIrAttrNames();
-      for (const auto &attr : attrs) {
-        EXPECT_NE(std::find(ir_attr_names.begin(), ir_attr_names.end(), attr), ir_attr_names.end());
+    OpDescChecker &CheckInputSize(const size_t valid_size, const size_t all_size) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetInputsSize(), valid_size);
+        EXPECT_EQ(op_desc_->GetAllInputsSize(), all_size);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckOutputSize(const size_t size) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetOutputsSize(), size);
+        EXPECT_EQ(op_desc_->GetAllOutputsDescSize(), size);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckInputNames(const std::vector<std::string> &names) {
+      if (op_desc_ != nullptr) {
+        std::vector<std::string> input_names;
+        for (const auto &name : op_desc_->GetAllInputNames()) {
+          input_names.emplace_back(name);
+        }
+        std::vector<std::string> sorted_names = names;
+        std::sort(input_names.begin(), input_names.end());
+        std::sort(sorted_names.begin(), sorted_names.end());
+        EXPECT_EQ(input_names, sorted_names);
+        EXPECT_EQ(op_desc_->GetRegisterInputName(), names);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckIrInputs(const std::vector<std::pair<std::string, IrInputType>> &inputs) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetIrInputs(), inputs);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckIrOutputs(const std::vector<std::pair<std::string, IrOutputType>> &outputs) {
+      if (op_desc_ != nullptr) {
+        EXPECT_EQ(op_desc_->GetIrOutputs(), outputs);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckIrAttrs(const std::vector<std::string> &attrs) {
+      if (op_desc_ != nullptr) {
+        const auto &ir_attr_names = op_desc_->GetIrAttrNames();
+        for (const auto &attr : attrs) {
+          EXPECT_NE(std::find(ir_attr_names.begin(), ir_attr_names.end(), attr), ir_attr_names.end());
+        }
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckAttr(const std::vector<std::string> &attrs) {
+      if (op_desc_ != nullptr) {
+        for (const auto &attr : attrs) {
+          EXPECT_TRUE(op_desc_->HasAttr(attr));
+        }
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckInputRawIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
+      if (op_desc_ != nullptr) {
+        std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
+        EXPECT_EQ(OpDescUtils::GetIrInputRawDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
+        EXPECT_EQ(ir_ranges, ir_ranges_golden);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckInputInstanceIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
+      if (op_desc_ != nullptr) {
+        std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
+        EXPECT_EQ(OpDescUtils::GetIrInputInstanceDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
+        EXPECT_EQ(ir_ranges, ir_ranges_golden);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckOutputIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
+      if (op_desc_ != nullptr) {
+        std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
+        EXPECT_EQ(OpDescUtils::GetIrOutputDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
+        EXPECT_EQ(ir_ranges, ir_ranges_golden);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckInputDesc(const size_t index, const DataType data_type, const Format format,
+                                  const std::vector<int64_t> &shape) {
+      if (op_desc_ != nullptr) {
+        CheckTensorDesc(op_desc_->GetInputDesc(static_cast<uint32_t>(index)), data_type, format, shape);
+      }
+      return *this;
+    }
+
+    OpDescChecker &CheckOutputDesc(const size_t index, const DataType data_type, const Format format,
+                                   const std::vector<int64_t> &shape) {
+      if (op_desc_ != nullptr) {
+        CheckTensorDesc(op_desc_->GetOutputDesc(static_cast<uint32_t>(index)), data_type, format, shape);
+      }
+      return *this;
+    }
+
+   private:
+    void CheckTensorDesc(const GeTensorDesc &desc, const DataType data_type, const Format format,
+                         const std::vector<int64_t> &shape) const {
+      EXPECT_EQ(desc.GetDataType(), data_type);
+      EXPECT_EQ(desc.GetFormat(), format);
+      const auto desc_shape = desc.GetShape();
+      EXPECT_EQ(desc_shape.GetDimNum(), shape.size());
+      for (size_t i = 0U; i < shape.size(); ++i) {
+        EXPECT_EQ(desc_shape.GetDim(i), shape[i]);
       }
     }
-    return *this;
-  }
 
-  OpDescChecker &CheckAttr(const std::vector<std::string> &attrs) {
-    if (op_desc_ != nullptr) {
-      for (const auto &attr : attrs) {
-        EXPECT_TRUE(op_desc_->HasAttr(attr));
-      }
-    }
-    return *this;
-  }
+    OpDescPtr op_desc_;
+  };
 
-  OpDescChecker &CheckInputRawIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
-    if (op_desc_ != nullptr) {
-      std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
-      EXPECT_EQ(OpDescUtils::GetIrInputRawDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
-      EXPECT_EQ(ir_ranges, ir_ranges_golden);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckInputInstanceIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
-    if (op_desc_ != nullptr) {
-      std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
-      EXPECT_EQ(OpDescUtils::GetIrInputInstanceDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
-      EXPECT_EQ(ir_ranges, ir_ranges_golden);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckOutputIrInfo(const std::map<size_t, std::pair<size_t, size_t>> &ir_ranges_golden) {
-    if (op_desc_ != nullptr) {
-      std::map<size_t, std::pair<size_t, size_t>> ir_ranges;
-      EXPECT_EQ(OpDescUtils::GetIrOutputDescRange(op_desc_, ir_ranges), GRAPH_SUCCESS);
-      EXPECT_EQ(ir_ranges, ir_ranges_golden);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckInputDesc(const size_t index, const DataType data_type, const Format format,
-                                const std::vector<int64_t> &shape) {
-    if (op_desc_ != nullptr) {
-      CheckTensorDesc(op_desc_->GetInputDesc(static_cast<uint32_t>(index)), data_type, format, shape);
-    }
-    return *this;
-  }
-
-  OpDescChecker &CheckOutputDesc(const size_t index, const DataType data_type, const Format format,
-                                 const std::vector<int64_t> &shape) {
-    if (op_desc_ != nullptr) {
-      CheckTensorDesc(op_desc_->GetOutputDesc(static_cast<uint32_t>(index)), data_type, format, shape);
-    }
-    return *this;
-  }
-
- private:
-  void CheckTensorDesc(const GeTensorDesc &desc, const DataType data_type, const Format format,
-                       const std::vector<int64_t> &shape) const {
-    EXPECT_EQ(desc.GetDataType(), data_type);
-    EXPECT_EQ(desc.GetFormat(), format);
-    const auto desc_shape = desc.GetShape();
-    EXPECT_EQ(desc_shape.GetDimNum(), shape.size());
-    for (size_t i = 0U; i < shape.size(); ++i) {
-      EXPECT_EQ(desc_shape.GetDim(i), shape[i]);
+  void ExpectGraphNotPolluted(const Graph &graph) {
+    const auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
+    if (compute_graph != nullptr) {
+      EXPECT_EQ(compute_graph->GetDirectNodesSize(), 0U);
     }
   }
-
-  OpDescPtr op_desc_;
-};
-
-void ExpectGraphNotPolluted(const Graph &graph) {
-  const auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  if (compute_graph != nullptr) {
-    EXPECT_EQ(compute_graph->GetDirectNodesSize(), 0U);
-  }
-}
 }  // namespace
 
 // ===== 测试类 =====
@@ -230,12 +230,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_RecoverIRSuccess) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -260,12 +260,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_SuccessClearsErrorMessage) {
   AscendString error_msg("stale error");
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
   EXPECT_EQ(error_msg.GetLength(), 0U);
@@ -280,12 +280,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_IrInputsRecovered) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -301,12 +301,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_IrOutputsRecovered) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -319,12 +319,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_IrAttrNamesRecovered) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -337,12 +337,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildBasic_DefaultAttrRecovered) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -364,13 +364,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAttr_UserAttrPreserved) {
   axis_val.SetAttrValue(static_cast<int64_t>(42));
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Attr("axis", axis_val)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Attr("axis", axis_val)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -389,12 +389,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithOptionalInput_OnlyRequiredConnected) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestConvForIRBuilder")
-      .Name("conv_node")
-      .AddInput("x")
-      .AddInput("w")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestConvForIRBuilder")
+                  .Name("conv_node")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -421,13 +421,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithOptionalInput_InvalidTensorDescPreserved
   TensorDesc invalid_bias_desc(Shape({1}), FORMAT_RESERVED, DT_UNDEFINED);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestConvForIRBuilder")
-      .Name("conv_node")
-      .AddInput("x")
-      .AddInput("w")
-      .AddInput("bias", invalid_bias_desc)
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestConvForIRBuilder")
+                  .Name("conv_node")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddInput("bias", invalid_bias_desc)
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -450,13 +450,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithOptionalInput_DefaultTensorDescConnected
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestConvForIRBuilder")
-      .Name("conv_node")
-      .AddInput("x")
-      .AddInput("w")
-      .AddInput("bias")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestConvForIRBuilder")
+                  .Name("conv_node")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddInput("bias")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -475,14 +475,14 @@ TEST_F(NamedIoNodeBuilderTest, BuildDynamicInputOutput) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("dynamic_node")
-      .AddInput("x0")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y0")
-      .AddOutput("y1")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("dynamic_node")
+                  .AddInput("x0")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y0")
+                  .AddOutput("y1")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -508,12 +508,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithTensorDesc) {
   TensorDesc y_desc(Shape({3, 4}), FORMAT_ND, DT_FLOAT);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1", x_desc)
-      .AddInput("x2", x_desc)
-      .AddOutput("y", y_desc)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1", x_desc)
+                  .AddInput("x2", x_desc)
+                  .AddOutput("y", y_desc)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -532,11 +532,7 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithoutType_ReturnsNullptr) {
   Graph graph("test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Name("no_type_node")
-      .AddInput("x")
-      .AddOutput("y")
-      .Build(error_msg);
+  auto node = NamedIoNodeBuilder(graph).Name("no_type_node").AddInput("x").AddOutput("y").Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -548,12 +544,8 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithUnregisteredType_ReturnsNullptr) {
   Graph graph("test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Type("NonExistentOp")
-      .Name("bad_node")
-      .AddInput("x")
-      .AddOutput("y")
-      .Build(error_msg);
+  auto node =
+      NamedIoNodeBuilder(graph).Type("NonExistentOp").Name("bad_node").AddInput("x").AddOutput("y").Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -566,12 +558,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithUnknownInputName_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("bad_input_node")
-      .AddInput("x1")
-      .AddInput("not_in_ir")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("bad_input_node")
+                  .AddInput("x1")
+                  .AddInput("not_in_ir")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -585,11 +577,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithMissingRequiredInput_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("missing_input_node")
-      .AddInput("x1")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("missing_input_node")
+                  .AddInput("x1")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -603,12 +595,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithInputOutOfOrder_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestConvForIRBuilder")
-      .Name("out_of_order_node")
-      .AddInput("w")
-      .AddInput("x")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestConvForIRBuilder")
+                  .Name("out_of_order_node")
+                  .AddInput("w")
+                  .AddInput("x")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -622,14 +614,14 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithOptionalInputRepeated_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestConvForIRBuilder")
-      .Name("repeated_optional_node")
-      .AddInput("x")
-      .AddInput("w")
-      .AddInput("bias")
-      .AddInput("bias")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestConvForIRBuilder")
+                  .Name("repeated_optional_node")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddInput("bias")
+                  .AddInput("bias")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -643,11 +635,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithDynamicInputNotStartFromZero_ReturnsNull
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("bad_dynamic_input_node")
-      .AddInput("x1")
-      .AddOutput("y0")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("bad_dynamic_input_node")
+                  .AddInput("x1")
+                  .AddOutput("y0")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -661,12 +653,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithDynamicInputIndexGap_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("bad_dynamic_input_node")
-      .AddInput("x0")
-      .AddInput("x2")
-      .AddOutput("y0")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("bad_dynamic_input_node")
+                  .AddInput("x0")
+                  .AddInput("x2")
+                  .AddOutput("y0")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -680,11 +672,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithDynamicOutputNotStartFromZero_ReturnsNul
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("bad_dynamic_output_node")
-      .AddInput("x0")
-      .AddOutput("y1")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("bad_dynamic_output_node")
+                  .AddInput("x0")
+                  .AddOutput("y1")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -698,12 +690,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithUnknownOutputName_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("bad_output_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("not_in_ir")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("bad_output_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("not_in_ir")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -718,11 +710,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildCalledTwice_ReturnsNullptrOnSecondCall) {
 
   auto builder = std::make_unique<NamedIoNodeBuilder>(graph);
   auto node1 = builder->Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                   .Name("add_node")
+                   .AddInput("x1")
+                   .AddInput("x2")
+                   .AddOutput("y")
+                   .Build(error_msg);
 
   ASSERT_NE(node1, nullptr);
 
@@ -741,12 +733,12 @@ TEST_F(NamedIoNodeBuilderTest, OpDescStateMatchesTorchairPattern) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -769,11 +761,7 @@ TEST_F(NamedIoNodeBuilderTest, BuildDataNode_SkipsIrValidation) {
   Graph graph("test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Type("Data")
-      .Name("data_node")
-      .AddOutput("y")
-      .Build(error_msg);
+  auto node = NamedIoNodeBuilder(graph).Type("Data").Name("data_node").AddOutput("y").Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -798,11 +786,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithMissingRequiredOutput_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("missing_output_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("missing_output_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -816,12 +804,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithIncompatibleOutputName_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("bad_output_name_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("wrong_name")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("bad_output_name_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("wrong_name")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -835,13 +823,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithExtraOutputNotInIr_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("extra_output_node")
-      .AddInput("x0")
-      .AddOutput("y0")
-      .AddOutput("y1")
-      .AddOutput("extra_output")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("extra_output_node")
+                  .AddInput("x0")
+                  .AddOutput("y0")
+                  .AddOutput("y1")
+                  .AddOutput("extra_output")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -854,10 +842,7 @@ TEST_F(NamedIoNodeBuilderTest, BuildNetOutputNode_SkipsIrValidation) {
   Graph graph("test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Type("NetOutput")
-      .Name("netoutput_node")
-      .Build(error_msg);
+  auto node = NamedIoNodeBuilder(graph).Type("NetOutput").Name("netoutput_node").Build(error_msg);
 
   // NetOutput 需要注册，若未注册则跳过
   if (node == nullptr) {
@@ -879,12 +864,7 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithTypeNullptr_ReturnsNullptr) {
   Graph graph("test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Type(nullptr)
-      .Name("node")
-      .AddInput("x1")
-      .AddOutput("y")
-      .Build(error_msg);
+  auto node = NamedIoNodeBuilder(graph).Type(nullptr).Name("node").AddInput("x1").AddOutput("y").Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -897,12 +877,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithNameNullptr_StillSucceeds) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name(nullptr)
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name(nullptr)
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 }
@@ -913,13 +893,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAddInputNullptr_MissingInput) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput(nullptr)
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput(nullptr)
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   // nullptr input 被跳过，inputs_ 只有 x1, x2，构建应成功
   ASSERT_NE(node, nullptr);
@@ -933,13 +913,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAddInputDescNullptr_Skipped) {
   TensorDesc desc(Shape({3, 4}), FORMAT_ND, DT_FLOAT);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput(nullptr, desc)
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput(nullptr, desc)
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 }
@@ -950,12 +930,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAddOutputNullptr_MissingOutput) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput(nullptr)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput(nullptr)
+                  .Build(error_msg);
 
   // nullptr output 被跳过，outputs_ 为空，缺少必选输出 y
   EXPECT_EQ(node, nullptr);
@@ -971,12 +951,12 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAddOutputDescNullptr_Skipped) {
   TensorDesc desc(Shape({3, 4}), FORMAT_ND, DT_FLOAT);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput(nullptr, desc)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput(nullptr, desc)
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -991,13 +971,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAttrNameNullptr_Skipped) {
   val.SetAttrValue(static_cast<int64_t>(42));
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Attr(nullptr, val)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Attr(nullptr, val)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
   // Attr 未被设置，axis 应保留默认值 0
@@ -1016,13 +996,13 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithAttrDefaultValue_NoCrash) {
   AttrValue default_val;  // impl 非 nullptr（ComGraphMakeShared），但未设置任何值
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Attr("axis", default_val)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Attr("axis", default_val)
+                  .Build(error_msg);
 
   ASSERT_EQ(node, nullptr);
 }
@@ -1035,18 +1015,16 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithOutputTensorDesc) {
   TensorDesc y_desc(Shape({3, 4}), FORMAT_ND, DT_FLOAT);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y", y_desc)
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y", y_desc)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
-  OpDescChecker(*node)
-      .CheckOutputSize(1U)
-      .CheckOutputDesc(0U, DT_FLOAT, FORMAT_ND, {3, 4});
+  OpDescChecker(*node).CheckOutputSize(1U).CheckOutputDesc(0U, DT_FLOAT, FORMAT_ND, {3, 4});
 }
 
 // 动态输入只添加一个实例
@@ -1055,11 +1033,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildDynamicInputSingle) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestDynamicForIRBuilder")
-      .Name("dynamic_node")
-      .AddInput("x0")
-      .AddOutput("y0")
-      .Build(error_msg);
+                  .Type("TestDynamicForIRBuilder")
+                  .Name("dynamic_node")
+                  .AddInput("x0")
+                  .AddOutput("y0")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -1076,11 +1054,11 @@ TEST_F(NamedIoNodeBuilderTest, BuildWithoutName_Succeeds) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("TestAddForIRBuilder")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("TestAddForIRBuilder")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 }

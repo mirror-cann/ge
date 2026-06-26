@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,7 @@ namespace ge {
 namespace {
 const std::string kProtocolTypeRdma = "RDMA";
 }
-Status DaemonService::Process(const std::string &peer_uri,
-                              const deployer::DeployerRequest &request,
+Status DaemonService::Process(const std::string &peer_uri, const deployer::DeployerRequest &request,
                               deployer::DeployerResponse &response) {
   auto request_type = request.type();
   if (request_type == deployer::kInitRequest) {
@@ -72,8 +71,7 @@ Status DaemonService::VerifySignData(const deployer::DeployerRequest &request) {
   return DeployerAuthentication::GetInstance().AuthVerify(data, init_request.sign_data());
 }
 
-Status DaemonService::VerifyInitRequest(const std::string &peer_uri,
-                                        const deployer::DeployerRequest &request,
+Status DaemonService::VerifyInitRequest(const std::string &peer_uri, const deployer::DeployerRequest &request,
                                         deployer::DeployerResponse &response) {
   auto init_request = const_cast<deployer::DeployerRequest &>(request).mutable_init_request();
   GE_MAKE_GUARD(init_request, [&init_request]() {
@@ -82,9 +80,9 @@ Status DaemonService::VerifyInitRequest(const std::string &peer_uri,
   });
   std::string error_msg;
   GE_DISMISSABLE_GUARD(failed_process, ([&error_msg, &response]() {
-    response.set_error_code(FAILED);
-    response.set_error_message(error_msg);
-  }));
+                         response.set_error_code(FAILED);
+                         response.set_error_message(error_msg);
+                       }));
   error_msg = "Failed to verify ipaddr.";
   GE_CHK_STATUS_RET(VerifyIpaddr(peer_uri), "%s", error_msg.c_str());
 
@@ -101,16 +99,14 @@ void DaemonService::SetSupportFlowgwMerged(deployer::DeployerResponse &response)
     support_flowgw_merged = false;
   } else {
     int32_t support_merged = 0;
-    (void) aclrtGetDeviceCapability(0, ACL_FEATURE_SYSTEM_MEMQ_EVENT_CROSS_DEV,
-                                    &support_merged);
+    (void)aclrtGetDeviceCapability(0, ACL_FEATURE_SYSTEM_MEMQ_EVENT_CROSS_DEV, &support_merged);
     support_flowgw_merged = (support_merged == 1);
   }
   GEEVENT("Support flowgw merged = %d.", static_cast<int32_t>(support_flowgw_merged));
   response.mutable_init_response()->set_support_flowgw_merged(support_flowgw_merged);
 }
 
-void DaemonService::ProcessInitRequest(const std::string &peer_uri,
-                                       const deployer::DeployerRequest &request,
+void DaemonService::ProcessInitRequest(const std::string &peer_uri, const deployer::DeployerRequest &request,
                                        deployer::DeployerResponse &response) {
   GEEVENT("[Process][Request] init request start.");
   auto res = VerifyInitRequest(peer_uri, request, response);
@@ -136,7 +132,8 @@ void DaemonService::ProcessInitRequest(const std::string &peer_uri,
   int32_t dev_count = 1;
   int32_t offset = 0;
   client_manager_->GenDgwPortOffset(dev_count, offset);
-  GEEVENT("[Process][Request] init request success, client_id = %" PRId64 ", "
+  GEEVENT("[Process][Request] init request success, client_id = %" PRId64
+          ", "
           "address = %s, device count = %d, dwg port offset = %d.",
           client_id, peer_uri.c_str(), dev_count, offset);
   response.mutable_init_response()->set_client_id(client_id);
@@ -145,16 +142,17 @@ void DaemonService::ProcessInitRequest(const std::string &peer_uri,
   SetSupportFlowgwMerged(response);
 }
 
-void DaemonService::ProcessDisconnectRequest(const std::string &peer_uri,
-                                             const deployer::DeployerRequest &request,
+void DaemonService::ProcessDisconnectRequest(const std::string &peer_uri, const deployer::DeployerRequest &request,
                                              deployer::DeployerResponse &response) {
   int64_t client_id = request.client_id();
-  GEEVENT("[Process][Request] disconnect request start, client_id = %" PRId64 ", addr = %s.", client_id, peer_uri.c_str());
+  GEEVENT("[Process][Request] disconnect request start, client_id = %" PRId64 ", addr = %s.", client_id,
+          peer_uri.c_str());
   DeployerDaemonClient *client = nullptr;
   if (GetClient(client_id, &client, response)) {
     (void)client_manager_->CloseClient(client_id);
   }
-  GEEVENT("[Process][Request] disconnect request succeeded, client_id = %" PRId64 ", addr = %s.", client_id, peer_uri.c_str());
+  GEEVENT("[Process][Request] disconnect request succeeded, client_id = %" PRId64 ", addr = %s.", client_id,
+          peer_uri.c_str());
 }
 
 void DaemonService::ProcessHeartbeatRequest(const deployer::DeployerRequest &request,
@@ -200,8 +198,8 @@ void DaemonService::ProcessDeployRequest(const deployer::DeployerRequest &reques
                   "[Process][Request] process deploy request failed, client_id = %" PRId64 ", type = %s", client_id,
                   deployer::DeployerRequestType_Name(request.type()).c_str());
     GE_CHK_STATUS(response.error_code(),
-                  "[Process][Request] check response failed, client_id = %" PRId64 ", type = %s, error code = %u", client_id,
-                  deployer::DeployerRequestType_Name(request.type()).c_str(), response.error_code());
+                  "[Process][Request] check response failed, client_id = %" PRId64 ", type = %s, error code = %u",
+                  client_id, deployer::DeployerRequestType_Name(request.type()).c_str(), response.error_code());
     GELOGI("[Process][Request] process deploy request end, client_id = %" PRId64 ", type = %s, ret = %u.", client_id,
            deployer::DeployerRequestType_Name(request.type()).c_str(), response.error_code());
   }
@@ -239,9 +237,8 @@ void DeployerDaemonService::Finalize() {
   daemon_service_->Finalize();
 }
 
-Status DeployerDaemonService::Process(const std::string &peer_uri,
-                                      const deployer::DeployerRequest &request,
+Status DeployerDaemonService::Process(const std::string &peer_uri, const deployer::DeployerRequest &request,
                                       deployer::DeployerResponse &response) {
   return daemon_service_->Process(peer_uri, request, response);
 }
-} // namespace ge
+}  // namespace ge

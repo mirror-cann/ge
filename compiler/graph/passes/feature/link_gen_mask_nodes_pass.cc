@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,15 +17,13 @@
 #include "framework/common/framework_types_internal.h"
 #include "api/gelib/gelib.h"
 
-
 namespace ge {
 namespace {
 const size_t kGenMaskInputIndex = 1;
 const size_t kDefaultMaxParallelNum = 1;
 const std::set<std::string> kDropOutDoMaskTypes = {
-  DROPOUTDOMASK, DROPOUTDOMASKV3, DROPOUTDOMASKV3D, SOFTMAXV2WITHDROPOUTDOMASKV3D,
-  AXPYWITHSOFTMAXANDDROPOUTDOMASK, ATTENTIONSCORE, ATTENTIONSCOREGRAD
-};
+    DROPOUTDOMASK,  DROPOUTDOMASKV3,   DROPOUTDOMASKV3D, SOFTMAXV2WITHDROPOUTDOMASKV3D, AXPYWITHSOFTMAXANDDROPOUTDOMASK,
+    ATTENTIONSCORE, ATTENTIONSCOREGRAD};
 const std::set<std::string> kDropOutGenMaskTypes = {DROPOUTGENMASK, DROPOUTGENMASKV3};
 }  // namespace
 
@@ -71,7 +69,7 @@ Status LinkGenMaskNodesPass::Run(ComputeGraphPtr graph) {
 
   for (size_t index = 1; index < gen_mask_nodes.size(); ++index) {
     if (index % gen_mask_group_size == 0) {
-      GELOGI("skiped index: %zu.", index);
+      GELOGI("skipped index: %zu.", index);
       continue;
     }
 
@@ -85,12 +83,10 @@ Status LinkGenMaskNodesPass::Run(ComputeGraphPtr graph) {
 
     graphStatus status_link_to = src_anchor->LinkTo(dest_anchor);
     if (status_link_to != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) link control to op:%s(%s) failed",
-                        src_node->GetName().c_str(), src_node->GetType().c_str(),
-                        dest_node->GetName().c_str(), dest_node->GetType().c_str());
-      GELOGE(FAILED, "[Add][Edge] Op:%s(%s) link control to op:%s(%s) failed",
-             src_node->GetName().c_str(), src_node->GetType().c_str(),
-             dest_node->GetName().c_str(), dest_node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) link control to op:%s(%s) failed", src_node->GetName().c_str(),
+                           src_node->GetType().c_str(), dest_node->GetName().c_str(), dest_node->GetType().c_str());
+      GELOGE(FAILED, "[Add][Edge] Op:%s(%s) link control to op:%s(%s) failed", src_node->GetName().c_str(),
+             src_node->GetType().c_str(), dest_node->GetName().c_str(), dest_node->GetType().c_str());
       return FAILED;
     }
     GELOGD("Link from %s to %s.", src_node->GetName().c_str(), dest_node->GetName().c_str());
@@ -128,8 +124,8 @@ void LinkGenMaskNodesPass::GetAllGenMaskNodes(ComputeGraphPtr graph, std::vector
         // node gen_mask is located at different place in the fused node
         if (IsExpectedType(in_data_node, kDropOutGenMaskTypes)) {
           gen_mask = in_data_node;
-          GELOGD("The fused node type [%s], paired with the input node name [%s].",
-                 node->GetType().c_str(), gen_mask->GetName().c_str());
+          GELOGD("The fused node type [%s], paired with the input node name [%s].", node->GetType().c_str(),
+                 gen_mask->GetName().c_str());
           break;
         }
       }

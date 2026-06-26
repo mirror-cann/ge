@@ -237,7 +237,8 @@ struct ShareGraph {
   static ge::Graph MultiBatchGraph();
   static ge::Graph BuildCVParallelGraph();
   static ge::Graph BuildCVSerialGraph();
-  static ge::Graph OnlyDataGraph(std::initializer_list<int64_t> data0_shape, std::initializer_list<int64_t> data1_shape);
+  static ge::Graph OnlyDataGraph(std::initializer_list<int64_t> data0_shape,
+                                 std::initializer_list<int64_t> data1_shape);
   static ge::ComputeGraphPtr ShapeToMultiAiCoreGraph();
   static ge::ComputeGraphPtr BuildMultiBatchShapesGraph();
   static ge::ComputeGraphPtr AicoreWithRtsDebugOverflowGraph();
@@ -255,8 +256,9 @@ struct ShareGraph {
   static ge::ComputeGraphPtr MultiStreamGraphWithFirstEventSyncGraph(int64_t &stream_num, int64_t &event_num);
   static ge::ComputeGraphPtr MultiStreamGraphWithLastEventSyncGraph(int64_t &stream_num, int64_t &event_num);
   static ge::ComputeGraphPtr BuildStaticMinimumGradAndAddGraph();
-  static ge::ComputeGraphPtr BuildSubGraph(const std::string& name = "subgraph", int64_t parent_node_index = 0);
-  static ge::ComputeGraphPtr BuildNestPartitioncallSubGraph(const ge::ComputeGraphPtr &main_graph, const std::string &name);
+  static ge::ComputeGraphPtr BuildSubGraph(const std::string &name = "subgraph", int64_t parent_node_index = 0);
+  static ge::ComputeGraphPtr BuildNestPartitioncallSubGraph(const ge::ComputeGraphPtr &main_graph,
+                                                            const std::string &name);
   static ge::ComputeGraphPtr BuildNestIfGraph();
   static ge::ComputeGraphPtr BuildNestCaseGraph();
   static ge::ComputeGraphPtr BuildNestIfGraph1();
@@ -268,7 +270,7 @@ struct ShareGraph {
   static ge::ComputeGraphPtr BuildIfWithNestedPartitionedCall();
   static ge::ComputeGraphPtr BuildCaseWithNestedPartitionedCall();
   // TODO value depend, aicpu, ffts, refdata
-  };
+};
 
 class SingleNodeGraphBuilder {
  public:
@@ -276,7 +278,7 @@ class SingleNodeGraphBuilder {
   SingleNodeGraphBuilder &NumInputs(size_t num_inputs);
   SingleNodeGraphBuilder &NumOutputs(size_t num_outputs);
 
-  ge::ComputeGraphPtr Build(const ge::NodePtr& parent = nullptr);
+  ge::ComputeGraphPtr Build(const ge::NodePtr &parent = nullptr);
   ge::ComputeGraphPtr BuildSubGraph(const ge::NodePtr &parent, int64_t parent_start);
 
  private:

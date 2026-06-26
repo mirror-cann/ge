@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,9 +26,7 @@
 
 namespace gert {
 namespace kernel {
-enum class GatherShapeInputs {
-  kShapeStart
-};
+enum class GatherShapeInputs { kShapeStart };
 namespace {
 constexpr size_t kAxesAttrIndex = 0U;
 constexpr size_t kDTypeAttrIndex = 1U;
@@ -39,7 +37,7 @@ ge::graphStatus GetOutputDataType(KernelContext *context, ge::DataType &out_data
   auto attrs = compute_node_info->GetAttrs();
   const int32_t *const data_type = attrs->GetAttrPointer<int32_t>(kDTypeAttrIndex);
   GE_ASSERT_NOTNULL(data_type, "%s dtype does not exist, ", extend_context->GetKernelName());
-  out_data_type =  static_cast<ge::DataType>(*data_type);
+  out_data_type = static_cast<ge::DataType>(*data_type);
   return ge::SUCCESS;
 }
 ge::graphStatus GetAxes(KernelContext *context, const ContinuousVectorVector **cvv) {
@@ -66,8 +64,8 @@ std::string PrintContinuousVectorVector(const ContinuousVectorVector *cvv) {
   ss << "]";
   return ss.str();
 }
-}
-template<typename T>
+}  // namespace
+template <typename T>
 ge::Status SetOutput(const int64_t *const output_data, size_t size, TensorAddress output_addr) {
   auto out_dims = ge::PtrToPtr<void, T>(output_addr);
   GE_ASSERT_NOTNULL(out_dims);
@@ -90,16 +88,19 @@ ge::graphStatus GatherShapesKernel(KernelContext *context) {
   for (size_t i = 0U; i < cvv->GetSize(); ++i) {
     const auto cv = cvv->Get(i);
     GE_ASSERT_NOTNULL(cv);
-    GE_ASSERT_EQ(cv->GetSize(), 2U); // [it_index, dim_index]
+    GE_ASSERT_EQ(cv->GetSize(), 2U);  // [it_index, dim_index]
     const uint64_t *data = reinterpret_cast<const uint64_t *>(cv->GetData());
     GE_ASSERT_NOTNULL(data);
     const auto input_index = *data + static_cast<size_t>(GatherShapeInputs::kShapeStart);
-    GE_ASSERT(input_index < context->GetInputNum(), "input_index[%lu] must less than input num[%zu],"
-              " i: %zu, axes: %s", input_index, context->GetInputNum(), i, PrintContinuousVectorVector(cvv).c_str());
+    GE_ASSERT(input_index < context->GetInputNum(),
+              "input_index[%lu] must less than input num[%zu],"
+              " i: %zu, axes: %s",
+              input_index, context->GetInputNum(), i, PrintContinuousVectorVector(cvv).c_str());
     const auto dim_index = *(data + 1U);
     auto in_shape = context->GetInputPointer<StorageShape>(input_index);
     GE_ASSERT_NOTNULL(in_shape);
-    GE_ASSERT(dim_index < in_shape->GetOriginShape().GetDimNum(), "dim_index[%lu] must less than input shape"
+    GE_ASSERT(dim_index < in_shape->GetOriginShape().GetDimNum(),
+              "dim_index[%lu] must less than input shape"
               " dim number[%zu], i: %zu, axes: %s",
               dim_index, in_shape->GetOriginShape().GetDimNum(), i, PrintContinuousVectorVector(cvv).c_str());
     const auto dim = in_shape->GetOriginShape().GetDim(dim_index);

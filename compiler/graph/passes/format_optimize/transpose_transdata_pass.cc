@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,10 +80,9 @@ Status TransposeTransDataPass::Run(NodePtr &node) {
   auto input_format = op_desc->GetInputDescPtr(0)->GetFormat();
   GE_ASSERT_NOTNULL(op_desc->GetOutputDescPtr(0));
   auto output_format = op_desc->GetOutputDescPtr(0)->GetFormat();
-  if (input_format ==  output_format) {
+  if (input_format == output_format) {
     GELOGW("Node %s input format is %s, output format is %s, should not happend. Ignore pass.",
-           op_desc->GetName().c_str(),
-           TypeUtils::FormatToSerialString(input_format).c_str(),
+           op_desc->GetName().c_str(), TypeUtils::FormatToSerialString(input_format).c_str(),
            TypeUtils::FormatToSerialString(output_format).c_str());
     return SUCCESS;
   }
@@ -125,14 +124,16 @@ Status TransposeTransDataPass::CheckInOutDataAnchorValid(const NodePtr &node, ui
   uint32_t in_data_node_nums = node->GetInDataNodes().size();
   if (in_data_anchor_nums != input_data_num || out_data_anchor_nums != output_data_num ||
       in_data_node_nums != input_data_num) {
-    REPORT_INNER_ERR_MSG("E19999", "In data anchor num:%u should be %u, out data anchor num:%u should be %u,"
-                       "in data node num:%u should be %u, node is:%s(%s), check invalid", in_data_anchor_nums,
-                       input_data_num, out_data_anchor_nums, output_data_num, in_data_node_nums, input_data_num,
-                       node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "In data anchor num:%u should be %u, out data anchor num:%u should be %u,"
-           "in data node num:%u should be %u, node is:%s(%s), check invalid", in_data_anchor_nums,
-           input_data_num, out_data_anchor_nums, output_data_num, in_data_node_nums, input_data_num,
-           node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "In data anchor num:%u should be %u, out data anchor num:%u should be %u,"
+                         "in data node num:%u should be %u, node is:%s(%s), check invalid",
+                         in_data_anchor_nums, input_data_num, out_data_anchor_nums, output_data_num, in_data_node_nums,
+                         input_data_num, node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(FAILED,
+           "In data anchor num:%u should be %u, out data anchor num:%u should be %u,"
+           "in data node num:%u should be %u, node is:%s(%s), check invalid",
+           in_data_anchor_nums, input_data_num, out_data_anchor_nums, output_data_num, in_data_node_nums,
+           input_data_num, node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -142,8 +143,8 @@ Status TransposeTransDataPass::RemoveTranspose(const NodePtr &node) {
   GE_CHECK_NOTNULL(node);
   ComputeGraphPtr graph = node->GetOwnerComputeGraph();
   if (graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Owner graph of node:%s(%s) is nullptr, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Owner graph of node:%s(%s) is nullptr, check invalid", node->GetName().c_str(),
+                         node->GetType().c_str());
     GELOGE(FAILED, "[Get][OwnerComputeGraph] failed, The owner graph of node:%s(%s) must not be null.",
            node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
@@ -157,8 +158,8 @@ Status TransposeTransDataPass::RemoveTranspose(const NodePtr &node) {
     GE_CHECK_NOTNULL(origin_node_in);
     GE_CHECK_NOTNULL(origin_node_in->GetOutControlAnchor());
     GE_CHK_STATUS_RET(origin_node_in->GetOutControlAnchor()->LinkTo(peer_anchor),
-                      "[Link][Anchor] between %s and %s failed",
-                      origin_node_in->GetName().c_str(), peer_anchor->GetOwnerNode()->GetName().c_str());
+                      "[Link][Anchor] between %s and %s failed", origin_node_in->GetName().c_str(),
+                      peer_anchor->GetOwnerNode()->GetName().c_str());
   }
 
   for (const auto &anchor : node->GetAllInAnchors()) {
@@ -171,10 +172,10 @@ Status TransposeTransDataPass::RemoveTranspose(const NodePtr &node) {
   }
   AddNodeDeleted(node);
   if (GraphUtils::RemoveNodeWithoutRelink(graph, node) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                      node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed",
-           node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+                         node->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+           node->GetType().c_str(), graph->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -241,7 +242,7 @@ void TransposeTransDataPass::CopyInputEdges(NodePtr &origin_node, NodePtr &new_n
   if (new_in_data_anchor == nullptr || origin_node->GetInDataAnchor(0) == nullptr) {
     return;
   }
-    // If delete transpose, need link a control edges to transdata
+  // If delete transpose, need link a control edges to transdata
   if (origin_node->GetType() == TRANSPOSE) {
     auto perm_node_in = origin_node->GetInDataNodes().at(1);
     auto perm_out_anchor = perm_node_in->GetOutControlAnchor();
@@ -257,7 +258,7 @@ void TransposeTransDataPass::CopyInputEdges(NodePtr &origin_node, NodePtr &new_n
 
   // control anchor only link to control anchor
   GE_IF_BOOL_EXEC(
-    GraphUtils::CopyInCtrlEdges(origin_node, new_node) != GRAPH_SUCCESS, GELOGW("Copy in ctrl edges failed"); return);
+      GraphUtils::CopyInCtrlEdges(origin_node, new_node) != GRAPH_SUCCESS, GELOGW("Copy in ctrl edges failed"); return);
 }
 
 REG_PASS_OPTION("TransposeTransDataPass").LEVELS(OoLevel::kO3);

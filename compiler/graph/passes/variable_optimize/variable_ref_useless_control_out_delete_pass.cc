@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,8 +24,8 @@ Status VariableRefUselessControlOutDeletePass::Run(ge::ComputeGraphPtr graph) {
     }
     auto src_nodes = node->GetInDataNodes();
     if (src_nodes.empty()) {
-      GELOGW("The variable ref name %s(ref %s) does not has a input node",
-             node->GetName().c_str(), src_var_name.c_str());
+      GELOGW("The variable ref name %s(ref %s) does not has a input node", node->GetName().c_str(),
+             src_var_name.c_str());
       continue;
     }
     auto &src_node = src_nodes.at(0);
@@ -35,10 +35,8 @@ Status VariableRefUselessControlOutDeletePass::Run(ge::ComputeGraphPtr graph) {
     auto out_control_anchor = node->GetOutControlAnchor();
     for (const auto &dst_node_anchor : out_control_anchor->GetPeerInControlAnchors()) {
       if (controlled_nodes.count(dst_node_anchor->GetOwnerNode()) > 0) {
-        GELOGI("Unlink the duplicated control edge from variable ref %s to %s, prev node %s",
-               node->GetName().c_str(),
-               dst_node_anchor->GetOwnerNode()->GetName().c_str(),
-               src_node->GetName().c_str());
+        GELOGI("Unlink the duplicated control edge from variable ref %s to %s, prev node %s", node->GetName().c_str(),
+               dst_node_anchor->GetOwnerNode()->GetName().c_str(), src_node->GetName().c_str());
         out_control_anchor->Unlink(dst_node_anchor);
       }
     }
@@ -47,4 +45,4 @@ Status VariableRefUselessControlOutDeletePass::Run(ge::ComputeGraphPtr graph) {
 }
 
 REG_PASS_OPTION("VariableRefUselessControlOutDeletePass").LEVELS(OoLevel::kO3);
-}
+}  // namespace ge

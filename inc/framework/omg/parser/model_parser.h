@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@
 
 namespace domi {
 using GetGraphCallback = std::function<std::unique_ptr<google::protobuf::Message>(
-  const google::protobuf::Message *root_proto, const std::string &graph)>;
+    const google::protobuf::Message *root_proto, const std::string &graph)>;
 
 using GetGraphCallbackV2 = std::function<std::string(const std::string &subgraph_name)>;
 
@@ -94,7 +94,7 @@ class GE_FUNC_VISIBILITY ModelParser {
    * @return Others failed
    */
   virtual Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
-                                              ge::ComputeGraphPtr &graph) = 0;
+                                        ge::ComputeGraphPtr &graph) = 0;
   /**
    * @ingroup domi_omg
    * @brief Convert model files to JSON format
@@ -104,9 +104,9 @@ class GE_FUNC_VISIBILITY ModelParser {
    * @return Others failed
    */
   virtual Status ToJson(const char *model_file, const char *json_file) {
-   (void)model_file;
-   (void)json_file;
-   return SUCCESS;
+    (void)model_file;
+    (void)json_file;
+    return SUCCESS;
   }
 
   /*
@@ -162,8 +162,7 @@ class GE_FUNC_VISIBILITY ModelParser {
    */
   virtual Status ParseProtoWithSubgraph(const std::vector<std::string> &partitioned_serialized,
                                         const std::map<std::string, std::string> &const_value_map,
-                                        GetGraphCallbackV2 callback,
-                                        ge::ComputeGraphPtr &graph) {
+                                        GetGraphCallbackV2 callback, ge::ComputeGraphPtr &graph) {
     (void)partitioned_serialized;
     (void)const_value_map;
     (void)callback;
@@ -181,8 +180,7 @@ class GE_FUNC_VISIBILITY ModelParser {
    * @return Others failed
    */
   virtual Status ParseProto(const std::vector<std::string> &partitioned_serialized,
-                            const std::map<std::string, std::string> &const_value_map,
-                            ge::ComputeGraphPtr &graph) {
+                            const std::map<std::string, std::string> &const_value_map, ge::ComputeGraphPtr &graph) {
     (void)partitioned_serialized;
     (void)const_value_map;
     (void)graph;
@@ -201,8 +199,7 @@ class GE_FUNC_VISIBILITY ModelParser {
    */
   virtual Status ParseProtoWithSubgraph(const std::vector<ge::AscendString> &partitioned_serialized,
                                         const std::map<ge::AscendString, ge::AscendString> &const_value_map,
-                                        GetGraphCallbackV3 callback,
-                                        ge::ComputeGraphPtr &graph) {
+                                        GetGraphCallbackV3 callback, ge::ComputeGraphPtr &graph) {
     (void)partitioned_serialized;
     (void)const_value_map;
     (void)callback;

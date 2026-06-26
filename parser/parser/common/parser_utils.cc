@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,7 @@ namespace {
 bool HasOneNonDataNode(const ComputeGraphPtr &graph) {
   GE_CHECK_NOTNULL(graph);
   int32_t non_data_nums = 0;
-  for (const auto& node : graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     if ((node->GetType() != parser::DATA) && (node->GetType() != parser::NETOUTPUT)) {
       non_data_nums++;
     }
@@ -37,7 +37,7 @@ bool HasOneNonDataNode(const ComputeGraphPtr &graph) {
   GELOGD("Graph has non data node num is %d", non_data_nums);
   return (non_data_nums == 1);
 }
-}
+}  // namespace
 
 Status ParserUtils::ExpandOneToManyGraph(const Graph &graph, OutputMapping &output_mapping) {
   GELOGD("Begin to run ParserUtils::ExpandOneToManyGraph.");
@@ -49,12 +49,12 @@ Status ParserUtils::ExpandOneToManyGraph(const Graph &graph, OutputMapping &outp
     domi::ParseOpToGraphFunc parse_op_to_graph_func =
         domi::OpRegistry::Instance()->GetParseOpToGraphFunc(node->GetType(), ori_type);
     if (parse_op_to_graph_func == nullptr) {
-      GELOGD("node:%s type:%s ori type:%s has no parse_op_to_graph_func.",
-             node->GetName().c_str(), node->GetType().c_str(), ori_type.c_str());
+      GELOGD("node:%s type:%s ori type:%s has no parse_op_to_graph_func.", node->GetName().c_str(),
+             node->GetType().c_str(), ori_type.c_str());
       continue;
     }
-    GELOGI("node:%s type:%s ori type:%s has registered one to many parser func.",
-           node->GetName().c_str(), node->GetType().c_str(), ori_type.c_str());
+    GELOGI("node:%s type:%s ori type:%s has registered one to many parser func.", node->GetName().c_str(),
+           node->GetType().c_str(), ori_type.c_str());
     Graph subgraph("one_to_many_graph");
     Operator op = OpDescUtils::CreateOperatorFromNode(node);
     Status ret = parse_op_to_graph_func(op, subgraph);
@@ -100,9 +100,8 @@ Status ParserUtils::ExpandNodeToSubgraph(const Graph &subgraph, const NodePtr &n
       new_name = node->GetName();
     }
     op_desc->SetName(new_name);
-    std::vector<std::string> node_name_vec = { node->GetName() };
-    (void)ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES,
-        std::move(node_name_vec));
+    std::vector<std::string> node_name_vec = {node->GetName()};
+    (void)ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, std::move(node_name_vec));
   }
   GE_ASSERT_SUCCESS(GraphUtils::ExpandNodeWithGraph(node, sub_compute_graph));
   // handle output context.
@@ -113,7 +112,7 @@ Status ParserUtils::ExpandNodeToSubgraph(const Graph &subgraph, const NodePtr &n
     GELOGD("Begin to handle output node: %s[%d] with index:%zu", out_node->GetName().c_str(), out_index, index);
     std::string key = GenOutputKey({node->GetName(), index});
     GE_ASSERT_NOTNULL(out_node);
-    output_mapping[key] = std::make_pair(out_node->GetName(), out_index); 
+    output_mapping[key] = std::make_pair(out_node->GetName(), out_index);
   }
   return SUCCESS;
 }
@@ -127,8 +126,8 @@ void ParserUtils::UpdateOutputNodeInfo(const OutputMapping &final_output_nodes, 
   auto iter = final_output_nodes.find(key);
   if (iter != final_output_nodes.end()) {
     output_node_info = iter->second;
-    GELOGD("Update output node info, origin[%s], now[%s].",
-           key.c_str(), ParserUtils::GenOutputKey(output_node_info).c_str());
+    GELOGD("Update output node info, origin[%s], now[%s].", key.c_str(),
+           ParserUtils::GenOutputKey(output_node_info).c_str());
   }
 }
 

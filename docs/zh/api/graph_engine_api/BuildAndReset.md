@@ -115,4 +115,3 @@
     // 5. 完成构图，获取构造好的`Graph`对象，`builder`中的资源随析构而销毁
     std::unique_ptr<ge::Graph> graph = builder.BuildAndReset({data0 + data1}); // 一行中完成3，4，5
     ```
-

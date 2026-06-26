@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -196,8 +196,7 @@ ge::graphStatus AddDataEdge(ge::FastNode *src, int32_t src_index, ge::FastNode *
   GE_ASSERT_NOTNULL(graph);
   auto edge = graph->AddEdge(src_endpoint.node, src_endpoint.index, dst, dst_index);
   if (edge == nullptr) {
-    GE_LOGE("Failed to connect edge from %s:%d to %s:%d", src->GetNamePtr(), src_index,
-            dst->GetNamePtr(), dst_index);
+    GE_LOGE("Failed to connect edge from %s:%d to %s:%d", src->GetNamePtr(), src_index, dst->GetNamePtr(), dst_index);
     return ge::GRAPH_FAILED;
   }
   return ge::GRAPH_SUCCESS;
@@ -208,18 +207,14 @@ HyperStatus AddDependencyBetweenNodes(ge::FastNode *src, ge::FastNode *dst) {
   auto dst_graph = dst->GetExtendInfo()->GetOwnerGraphBarePtr();
   if (src_graph != dst_graph) {
     return HyperStatus::ErrorStatus("The source node %s(%s) and dst node %s(%s) does not on the same graph",
-                                    src->GetNamePtr(), src->GetTypePtr(), dst->GetNamePtr(),
-                                    dst->GetTypePtr());
+                                    src->GetNamePtr(), src->GetTypePtr(), dst->GetNamePtr(), dst->GetTypePtr());
   }
   if (src_graph == nullptr) {
     return HyperStatus::ErrorStatus("The source node %s(%s) and dst node %s(%s) does not on the graph",
-                                    src->GetNamePtr(), src->GetTypePtr(), dst->GetNamePtr(),
-                                    dst->GetTypePtr());
+                                    src->GetNamePtr(), src->GetTypePtr(), dst->GetNamePtr(), dst->GetTypePtr());
   }
-  if (src_graph->AddEdge(src, ge::kControlEdgeIndex,
-                         dst, ge::kControlEdgeIndex) == nullptr) {
-    return HyperStatus::ErrorStatus("Failed to add control edge from %s to %s", src->GetNamePtr(),
-                                    dst->GetNamePtr());
+  if (src_graph->AddEdge(src, ge::kControlEdgeIndex, dst, ge::kControlEdgeIndex) == nullptr) {
+    return HyperStatus::ErrorStatus("Failed to add control edge from %s to %s", src->GetNamePtr(), dst->GetNamePtr());
   }
   return HyperStatus::Success();
 }
@@ -252,8 +247,11 @@ std::atomic<int64_t> ValueHolder::id_generator_{0};
 ValueHolder::~ValueHolder() = default;
 
 ValueHolder::ValueHolder()
-    : id_(id_generator_++), type_(ValueHolderType::kValueHolderTypeEnd),
-      fast_node_(nullptr), index_(0), placement_(0) {}
+    : id_(id_generator_++),
+      type_(ValueHolderType::kValueHolderTypeEnd),
+      fast_node_(nullptr),
+      index_(0),
+      placement_(0) {}
 
 bool ValueHolder::IsOk() const noexcept {
   return error_msg_ == nullptr;
@@ -325,8 +323,9 @@ ge::FastNode *ValueHolder::CreateNode(const char *node_type, const std::vector<V
                                       size_t out_count) {
   auto frame = GetCurrentFrame();
   if (frame == nullptr) {
-    GE_LOGE("The current frame does not exist, "
-            "the function ValueHolder::PushGraphFrame should be called before construct the graph");
+    GE_LOGE(
+        "The current frame does not exist, "
+        "the function ValueHolder::PushGraphFrame should be called before construct the graph");
     return nullptr;
   }
   auto node = ValueHolder::AddNode(node_type, inputs.size(), out_count, *frame);
@@ -363,8 +362,7 @@ void ValueHolder::SetErrorMsg(const char *fmt, va_list arg) {
 }
 
 std::vector<ValueHolderPtr> ValueHolder::CreateDataOutput(const char *node_type,
-                                                          const std::vector<ValueHolderPtr> &inputs,
-                                                          size_t out_count) {
+                                                          const std::vector<ValueHolderPtr> &inputs, size_t out_count) {
   auto node = CreateNode(node_type, inputs, out_count);
   if (node == nullptr) {
     return {out_count, nullptr};
@@ -409,8 +407,8 @@ HyperStatus ValueHolder::AddInnerDataToKVMap(int32_t index) const noexcept {
     return HyperStatus::ErrorStatus("Failed to add node to KVMap, because node type is not InnerData.");
   }
   GELOGI("Set inner data: %s to kv map, index: %d", fast_node_->GetNamePtr(), index);
-  AddKVToMapExtAttr<int32_t, ge::FastNode *>(fast_node_->GetExtendInfo()->GetOwnerGraphBarePtr(),
-                                             kInnerDataNodes, index, fast_node_);
+  AddKVToMapExtAttr<int32_t, ge::FastNode *>(fast_node_->GetExtendInfo()->GetOwnerGraphBarePtr(), kInnerDataNodes,
+                                             index, fast_node_);
   return HyperStatus::Success();
 }
 
@@ -424,10 +422,10 @@ ValueHolderPtr ValueHolder::CreateSingleDataOutput(const char *node_type, const 
 
 HyperStatus ValueHolder::AddDependency(const ValueHolderPtr &src, const ValueHolderPtr &dst) {
   if (src == nullptr || src->GetFastNode() == nullptr) {
-    return HyperStatus::ErrorStatus("Failed to add control ege, because the src does not have a node.");
+    return HyperStatus::ErrorStatus("Failed to add control edge, because the src does not have a node.");
   }
   if (dst == nullptr || dst->GetFastNode() == nullptr) {
-    return HyperStatus::ErrorStatus("Failed to add control ege, because the dst does not have a node.");
+    return HyperStatus::ErrorStatus("Failed to add control edge, because the dst does not have a node.");
   }
   if (src->GetFastNode() == dst->GetFastNode()) {
     GELOGW("Add dependency between the same node %s, skip", src->GetFastNode()->GetNamePtr());
@@ -498,11 +496,10 @@ GraphFrame *ValueHolder::PushGraphFrame(const ValueHolderPtr &belongs, const cha
 GraphFrame *ValueHolder::PushGraphFrame(GraphFrame *graph_frame) {
   GE_ASSERT_NOTNULL(graph_frame);
   if (!graph_frames.empty()) {
-    GE_ASSERT_TRUE((graph_frames.back()->GetExecuteGraph().get() ==
-                   graph_frame->GetExecuteGraph()->GetParentGraphBarePtr()),
-                   "Last graph frame in stack %s is not parent graph frame of %s.",
-                   graph_frames.back()->GetExecuteGraph()->GetName().c_str(),
-                   graph_frame->GetExecuteGraph()->GetName().c_str());
+    GE_ASSERT_TRUE(
+        (graph_frames.back()->GetExecuteGraph().get() == graph_frame->GetExecuteGraph()->GetParentGraphBarePtr()),
+        "Last graph frame in stack %s is not parent graph frame of %s.",
+        graph_frames.back()->GetExecuteGraph()->GetName().c_str(), graph_frame->GetExecuteGraph()->GetName().c_str());
   }
   graph_frames.emplace_back(graph_frame);
   return graph_frames.back().get();

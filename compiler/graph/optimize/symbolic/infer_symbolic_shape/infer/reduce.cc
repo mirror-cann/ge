@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,8 @@ graphStatus InferShape4ReduceCommon(gert::InferSymbolShapeContext *context) {
   auto axes_tensor = context->GetInputSymbolTensor(1);
   GE_UNSUPPORTED_IF_NULL(axes_tensor);
   if (axes_tensor->GetSymbolicValue() == nullptr) {
-    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
 
@@ -124,7 +125,7 @@ graphStatus InferShape4LayerNormBetaGammaBackpropV2(gert::InferSymbolShapeContex
   auto out1_shape = context->GetOutputSymbolShape(1);
   GE_ASSERT_NOTNULL(out1_shape);
 
-  //shape_gamma
+  // shape_gamma
   auto cv = attrs->GetListInt(0);
   GE_ASSERT_NOTNULL(cv);
   std::vector<int64_t> dims;
@@ -137,7 +138,7 @@ graphStatus InferShape4LayerNormBetaGammaBackpropV2(gert::InferSymbolShapeContex
   auto it_found = std::find(dims.begin(), dims.end(), -1);
   std::vector<int64_t> reduce_axes;
   if (it_found == dims.end()) {
-    //shape is shape as shape_gamma
+    // shape is shape as shape_gamma
     out_shape->Clear();
     for (auto dim : dims) {
       out_shape->AppendDim(Symbol(dim));
@@ -152,9 +153,12 @@ graphStatus InferShape4LayerNormBetaGammaBackpropV2(gert::InferSymbolShapeContex
       reduce_axes.emplace_back(i);
     }
   }
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::Broadcast({dy_shape->GetDims(), res_for_gamma_shape->GetDims()}, out_shape->MutableDims()));
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(out_shape, reduce_axes, reduce_axes.size(), out_shape));
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(dy_shape, reduce_axes, reduce_axes.size(), out1_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::Broadcast({dy_shape->GetDims(), res_for_gamma_shape->GetDims()}, out_shape->MutableDims()));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(out_shape, reduce_axes, reduce_axes.size(), out_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(dy_shape, reduce_axes, reduce_axes.size(), out1_shape));
   return ge::GRAPH_SUCCESS;
 }
 
@@ -182,8 +186,10 @@ graphStatus InferShape4LayerNormV3(gert::InferSymbolShapeContext *context) {
     begin_norm_axis += static_cast<int64_t>(real_dim_num);
   }
   if (begin_norm_axis < 0 || static_cast<size_t>(begin_norm_axis) >= real_dim_num) {
-    GELOGE(PARAM_INVALID, "the op layernormv3 does not support beginNormAxis"
-                          "(%ld) large than shape dims(%lu)", begin_norm_axis, real_dim_num);
+    GELOGE(PARAM_INVALID,
+           "the op layernormv3 does not support beginNormAxis"
+           "(%ld) large than shape dims(%lu)",
+           begin_norm_axis, real_dim_num);
     return ge::PARAM_INVALID;
   }
   // the shape of y is equal with input x
@@ -194,8 +200,10 @@ graphStatus InferShape4LayerNormV3(gert::InferSymbolShapeContext *context) {
     reduce_axes.emplace_back(i);
   }
 
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_mean_shape));
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_rstd_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_mean_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_rstd_shape));
   return ge::GRAPH_SUCCESS;
 }
 
@@ -241,7 +249,8 @@ graphStatus InferShape4LayerNormV4(gert::InferSymbolShapeContext *context) {
                    "norm_shape_len must be a constant value");
   }
 
-  GE_ASSERT_TRUE(real_dim_num >= norm_shape_len, "norm_shape_len(%ld) must be <= xshape rank(%ld)", norm_shape_len, real_dim_num);
+  GE_ASSERT_TRUE(real_dim_num >= norm_shape_len, "norm_shape_len(%ld) must be <= xshape rank(%ld)", norm_shape_len,
+                 real_dim_num);
 
   int64_t begin_norm_axis_val = real_dim_num - norm_shape_len;
   vector<int64_t> reduce_axes;
@@ -250,8 +259,10 @@ graphStatus InferShape4LayerNormV4(gert::InferSymbolShapeContext *context) {
     reduce_axes.emplace_back(i);
   }
 
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_mean_shape));
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_rstd_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_mean_shape));
+  GE_ASSERT_GRAPH_SUCCESS(
+      SymbolicInferUtil::ReduceDimsWithKeepDims<int64_t>(x_shape, reduce_axes, reduce_axes.size(), out_rstd_shape));
   return ge::GRAPH_SUCCESS;
 }
 
@@ -286,7 +297,8 @@ IMPL_OP_INFER_SYMBOL_SHAPE_INNER(ReduceAnyD).InferSymbolShape(InferShape4ReduceD
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(BiasAddGrad).InferSymbolShape(InferShape4BiasAddGrad);
 
-IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormBetaGammaBackpropV2).InferSymbolShape(InferShape4LayerNormBetaGammaBackpropV2);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormBetaGammaBackpropV2)
+    .InferSymbolShape(InferShape4LayerNormBetaGammaBackpropV2);
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormV3).InferSymbolShape(InferShape4LayerNormV3);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormV4).InferSymbolShape(InferShape4LayerNormV4);

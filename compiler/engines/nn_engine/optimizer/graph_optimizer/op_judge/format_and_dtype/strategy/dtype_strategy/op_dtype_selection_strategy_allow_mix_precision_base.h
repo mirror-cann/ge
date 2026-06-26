@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,30 +27,29 @@ using OpDtypeRiseMatcherPtr = std::shared_ptr<OpDtypeRiseMatcher>;
 using OpDtypeReduceMatcherPtr = std::shared_ptr<OpDtypeReduceMatcher>;
 class OpDtypeSelectionStrategyAllowMixPrecisionBase : public OpDtypeSeletionStrategyBase {
  public:
-  OpDtypeSelectionStrategyAllowMixPrecisionBase(
-      const std::string& engine_name,
-      FormatDtypeQuerierPtr format_dtype_querier_ptr,
-      OpDtypeMixPrecisionMatcherPtr op_dtype_mixed_precision_matcher_ptr,
-      OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr,
-      OpDtypeReduceMatcherPtr op_dtype_reduce_matcher_ptr,
-      const string mix_precision_type,
-      const ge::DataType data_type);
+  OpDtypeSelectionStrategyAllowMixPrecisionBase(const std::string &engine_name,
+                                                FormatDtypeQuerierPtr format_dtype_querier_ptr,
+                                                OpDtypeMixPrecisionMatcherPtr op_dtype_mixed_precision_matcher_ptr,
+                                                OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr,
+                                                OpDtypeReduceMatcherPtr op_dtype_reduce_matcher_ptr,
+                                                const string mix_precision_type, const ge::DataType data_type);
 
   ~OpDtypeSelectionStrategyAllowMixPrecisionBase() override;
 
-  Status RunForOpInWhiteList(FormatDtypeSelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype);
+  Status RunForOpInWhiteList(FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype);
 
-  Status RunForOpInGrayList(FormatDtypeSelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype);
+  Status RunForOpInGrayList(FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype);
 
   /* Black list op must use their original data types. */
-  Status RunForOpInBlackList(FormatDtypeSelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype) const;
+  Status RunForOpInBlackList(FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype) const;
   Status GetOpPrecisionPolicy(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
                               PrecisionPolicy &precision_policy) const;
+
  private:
   void MatchForGray(const string &cur_op_desc_type, const string &cur_op_desc_name,
-       const vector<ge::DataType> &op_kernel_dtype_vec, ge::DataType fahter_output_dtype,
-       const FormatDtypeSelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype);
-  bool IsOpFp16Bf16Fp32Cast(const ge::NodePtr &cur_node_ptr, const uint32_t& father_out_anchor_index);
+                    const vector<ge::DataType> &op_kernel_dtype_vec, ge::DataType fahter_output_dtype,
+                    const FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype);
+  bool IsOpFp16Bf16Fp32Cast(const ge::NodePtr &cur_node_ptr, const uint32_t &father_out_anchor_index);
   Status QueryPrecisionPolicy(const ge::NodePtr &node_ptr, PrecisionPolicy &precision_policy);
 
   std::string engine_name_;

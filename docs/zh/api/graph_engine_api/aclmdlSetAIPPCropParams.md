@@ -119,4 +119,3 @@ uint64_t batchIndex)
 
 -   cropSizeW+cropStartPosW ≤ srcImageSizeW
 -   cropSizeH+cropStartPosH ≤ srcImageSizeH
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ class UserGraphControlUT : public testing::Test {
     }
     CommonSetupUtil::CommonSetup();
     gert_stub_.GetKernelStub().StubTiling();
-    RuntimeStub::Install(nullptr); // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
+    RuntimeStub::Install(nullptr);  // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
     AclRuntimeStub::Install(nullptr);
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
     std::map<std::string, std::string> options = {{ge::SOC_VERSION, "Ascend310"}};
@@ -53,9 +53,8 @@ class UserGraphControlUT : public testing::Test {
   gert::GertRuntimeStub gert_stub_;
   std::string env;
 
-  Status RunGraphAsyncSimpleImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
-                                  const std::vector<int64_t> &shape_dim,
-                                  std::vector<gert::Tensor> &gert_inputs) {
+  Status RunGraphAsyncSimpleImpl(uint32_t user_graph_id, UserGraphControl *ctrl, const std::vector<int64_t> &shape_dim,
+                                 std::vector<gert::Tensor> &gert_inputs) {
     const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
       EXPECT_EQ(status, SUCCESS);
       EXPECT_EQ(outputs.size(), 1);
@@ -71,12 +70,9 @@ class UserGraphControlUT : public testing::Test {
     return SUCCESS;
   }
 
-  Status RunGraphAsyncNoWaitImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
-                                  std::atomic_int32_t &callback_times,
-                                  const std::vector<int64_t> &shape_dim,
-                                  std::vector<gert::Tensor> &gert_inputs,
-                                  std::mutex &cv_mutex,
-                                  std::condition_variable &finish_condition) {
+  Status RunGraphAsyncNoWaitImpl(uint32_t user_graph_id, UserGraphControl *ctrl, std::atomic_int32_t &callback_times,
+                                 const std::vector<int64_t> &shape_dim, std::vector<gert::Tensor> &gert_inputs,
+                                 std::mutex &cv_mutex, std::condition_variable &finish_condition) {
     const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
       EXPECT_EQ(status, SUCCESS);
       EXPECT_EQ(outputs.size(), 1);
@@ -98,10 +94,8 @@ class UserGraphControlUT : public testing::Test {
     return SUCCESS;
   }
 
-  Status RunGraphAsyncImpl(uint32_t user_graph_id, UserGraphControl *ctrl,
-                            std::atomic_int32_t &callback_times,
-                            const std::vector<int64_t> &shape_dim,
-                            std::vector<gert::Tensor> &gert_inputs) {
+  Status RunGraphAsyncImpl(uint32_t user_graph_id, UserGraphControl *ctrl, std::atomic_int32_t &callback_times,
+                           const std::vector<int64_t> &shape_dim, std::vector<gert::Tensor> &gert_inputs) {
     auto promise_ptr = std::make_shared<std::promise<Status>>();
     auto future = promise_ptr->get_future();
 
@@ -181,7 +175,7 @@ TEST_F(UserGraphControlUT, AddGraphInstance_MultiThread_Success) {
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
-  for (size_t i = 0u; i< 10; ++i) {
+  for (size_t i = 0u; i < 10; ++i) {
     auto fut = thread_pool.commit([&ctrl, this]() -> Status {
       EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
       return SUCCESS;
@@ -249,9 +243,9 @@ TEST_F(UserGraphControlUT, RunGraphAsync_Failed) {
   EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
 
   // prepare run task
-  std::vector<int64_t> shape_dim = {2, -3, 3, 2}; // invalid shape
+  std::vector<int64_t> shape_dim = {2, -3, 3, 2};  // invalid shape
   TensorDesc td(Shape(shape_dim), FORMAT_NCHW, DT_FLOAT);
-  td.SetOriginShape(Shape(shape_dim)); // todo check tfa set origin shape?
+  td.SetOriginShape(Shape(shape_dim));  // todo check tfa set origin shape?
   Tensor tensor(td);
   std::vector<Tensor> inputs{std::move(tensor)};
   std::vector<Tensor> outputs;
@@ -291,7 +285,7 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_MultiJitInstance_Success) {
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
-  for (size_t i = 0u; i< 10; ++i) {
+  for (size_t i = 0u; i < 10; ++i) {
     auto fut = thread_pool.commit([&ctrl, this]() -> Status {
       EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
       return SUCCESS;
@@ -309,7 +303,7 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_MultiJitInstance_Success) {
   thread_2_gert_inputs.resize(10U);
   futs.clear();
   std::atomic_int32_t callback_times = 0;
-  for (size_t i = 0u; i< 10; ++i) {
+  for (size_t i = 0u; i < 10; ++i) {
     std::vector<gert::Tensor> &gert_inputs = thread_2_gert_inputs[i];
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
@@ -364,13 +358,14 @@ TEST_F(UserGraphControlUT, RunGraphAsync_MultiThread_OneJitInstance_Success) {
   futs.clear();
   std::atomic_int32_t callback_times = 0;
 
-  for (size_t i = 0u; i< 10; ++i) {
+  for (size_t i = 0u; i < 10; ++i) {
     std::vector<gert::Tensor> &gert_inputs = thread_2_gert_inputs[i];
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
 
     auto fut = thread_pool.commit([&]() -> Status {
-      return RunGraphAsyncNoWaitImpl(user_graph_id, ctrl.get(), callback_times, shape_dim, gert_inputs, cv_mutex, finish_condition);
+      return RunGraphAsyncNoWaitImpl(user_graph_id, ctrl.get(), callback_times, shape_dim, gert_inputs, cv_mutex,
+                                     finish_condition);
     });
     EXPECT_TRUE(fut.valid());
     futs.emplace_back(std::move(fut));
@@ -434,7 +429,7 @@ TEST_F(UserGraphControlUT, RunGraphAsync_StaticShape_MultiThread_Success) {
   EXPECT_NE(ctrl, nullptr);
   ThreadPool thread_pool("tset", 8);
   std::vector<std::future<Status>> futs;
-  for (size_t i = 0u; i< 10; ++i) {
+  for (size_t i = 0u; i < 10; ++i) {
     auto fut = thread_pool.commit([&ctrl, this]() -> Status {
       EXPECT_EQ(ctrl->AddGraphInstance(), SUCCESS);
       return SUCCESS;
@@ -455,9 +450,8 @@ TEST_F(UserGraphControlUT, RunGraphAsync_StaticShape_MultiThread_Success) {
     std::vector<gert::Tensor> &gert_inputs = thread_2_gert_inputs[i];
     gert_inputs.resize(1U);
     TensorCheckUtils::ConstructGertTensor(gert_inputs[0], {2, 3, 3, 2}, DT_FLOAT, FORMAT_NCHW);
-    auto fut = thread_pool.commit([&]() -> Status {
-      return RunGraphAsyncSimpleImpl(user_graph_id, ctrl.get(), shape_dim, gert_inputs);
-    });
+    auto fut = thread_pool.commit(
+        [&]() -> Status { return RunGraphAsyncSimpleImpl(user_graph_id, ctrl.get(), shape_dim, gert_inputs); });
     EXPECT_TRUE(fut.valid());
     futs.emplace_back(std::move(fut));
   }

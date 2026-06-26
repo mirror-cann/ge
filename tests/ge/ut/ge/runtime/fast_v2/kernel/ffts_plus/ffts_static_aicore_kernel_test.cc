@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,7 +46,8 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_ffts_static_update_args) {
   memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
   memory::MultiStreamMemBlock ms_block;
   ms_block.ReInit(&single_stream_l2_allocator, &mem_block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
-  GertTensorData workspace_gtd = GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
+  GertTensorData workspace_gtd =
+      GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
   auto work_space = ContinuousVector::Create<GertTensorData *>(3);
   auto work_space_vector = reinterpret_cast<ContinuousVector *>(work_space.get());
   work_space_vector->SetSize(3);
@@ -59,7 +60,8 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_ffts_static_update_args) {
   auto device_data = std::vector<int8_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   GertTensorData tensor_data = {(uint8_t *)device_data.data(), 0U, kTensorPlacementEnd, -1};
 
-  auto run_context = BuildKernelRunContext(static_cast<size_t>(StaArgsInKey::kNUM) + 3, static_cast<size_t>(StaArgsOutKey::kNUM));
+  auto run_context =
+      BuildKernelRunContext(static_cast<size_t>(StaArgsInKey::kNUM) + 3, static_cast<size_t>(StaArgsOutKey::kNUM));
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::WORKSPACE)].Set(work_space_vector, nullptr);
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::SINK_RET)].Set(&sink_ret, nullptr);
   NodeMemPara node_para;
@@ -76,13 +78,13 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_ffts_static_update_args) {
   auto rt_arg = RtFFTSKernelLaunchArgs::Create(tmp_node, node_desc, total_size);
   node_para.host_addr = rt_arg.get();
   char *mem_2 = new char[total_size];
-  node_para.dev_addr = (void*)mem_2;
+  node_para.dev_addr = (void *)mem_2;
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::ARGS_PARA)].Set(&node_para, nullptr);
 
   size_t in_num = 2;
   size_t out_num = 1;
-  run_context.value_holder[static_cast<size_t>(StaArgsInKey::IN_NUM)].Set((void*)in_num, nullptr);
-  run_context.value_holder[static_cast<size_t>(StaArgsInKey::OUT_NUM)].Set((void*)out_num, nullptr);
+  run_context.value_holder[static_cast<size_t>(StaArgsInKey::IN_NUM)].Set((void *)in_num, nullptr);
+  run_context.value_holder[static_cast<size_t>(StaArgsInKey::OUT_NUM)].Set((void *)out_num, nullptr);
   auto device_data1 = std::vector<int8_t>{10};
   GertTensorData in_data = {(uint8_t *)device_data1.data(), 0U, kTensorPlacementEnd, -1};
   GertTensorData out_data = {(uint8_t *)device_data1.data(), 0U, kTensorPlacementEnd, -1};
@@ -90,25 +92,25 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_ffts_static_update_args) {
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::IO_START) + 1].Set(&in_data, nullptr);
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::IO_START) + 2].Set(&out_data, nullptr);
 
-
   AICoreSubTaskFlush flush_data;
   run_context.value_holder[static_cast<size_t>(StaArgsInKey::IO_START) + 3].Set(&flush_data, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateStaAICoreArgs")->outputs_creator(nullptr, run_context),
-  ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateStaAICoreArgs")->run_func(run_context),
-      ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateStaAICoreArgs")->run_func(run_context), ge::GRAPH_SUCCESS);
   EXPECT_FALSE(registry.FindKernelFuncs("FFTSUpdateStaAICoreArgs")->trace_printer(run_context).empty());
   delete[] mem_2;
 }
 
 TEST_F(FFTSStaAICoreKernelTestUT, test_static_aicore_update_context) {
-  auto run_context = KernelRunContextFaker().KernelIONum(static_cast<size_t>(StaUpdateKey::RESERVED), 0).
-      NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(static_cast<size_t>(StaUpdateKey::RESERVED), 0)
+                         .NodeIoNum(2, 2)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
 
   AICoreSubTaskFlush flush_data;
   flush_data.input_addr_vv[0][0] = 0x1000;
@@ -120,23 +122,23 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_static_aicore_update_context) {
   run_context.value_holder[static_cast<size_t>(StaUpdateKey::FLUSH_DATA)].Set(&flush_data, nullptr);
 
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(16);
-  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t) ;
+  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
-  auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(buff_ptr);
+  auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(buff_ptr);
   context->contextType = RT_CTX_TYPE_AICORE;
   buff_ptr += sizeof(rtFftsPlusComCtx_t);
-  auto data_context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+  auto data_context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
   data_context->contextType = RT_CTX_TYPE_FLUSH_DATA;
   buff_ptr += sizeof(rtFftsPlusComCtx_t);
-  data_context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+  data_context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
   data_context->contextType = RT_CTX_TYPE_FLUSH_DATA;
   buff_ptr += sizeof(rtFftsPlusComCtx_t);
-  data_context = reinterpret_cast<rtFftsPlusDataCtx_t*>(buff_ptr);
+  data_context = reinterpret_cast<rtFftsPlusDataCtx_t *>(buff_ptr);
   data_context->contextType = RT_CTX_TYPE_INVALIDATE_DATA;
   rtFftsPlusTaskInfo_t task_inf;
   auto *const ffts_plus_sqe = ge::PtrToPtr<uint8_t, rtFftsPlusSqe_t>(task_info_ptr->args);
@@ -146,7 +148,8 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_static_aicore_update_context) {
   run_context.value_holder[static_cast<size_t>(StaUpdateKey::TASK_INFO)].Set(&task_inf, nullptr);
 
   uint32_t ctx_id = 0;
-  run_context.value_holder[static_cast<size_t>(StaUpdateKey::AICORE_CTX)].Set(reinterpret_cast<void *>(ctx_id), nullptr);
+  run_context.value_holder[static_cast<size_t>(StaUpdateKey::AICORE_CTX)].Set(reinterpret_cast<void *>(ctx_id),
+                                                                              nullptr);
 
   // prefetch idx && ctx id
   auto prefetch_idx = ContinuousVector::Create<int32_t>(2);
@@ -205,8 +208,10 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticUpdateManualGeDataDumpInfo) {
   uint32_t ctx_id = 2;
   uint32_t in_num = 1;
   uint32_t out_num = 1;
-  context.value_holder[static_cast<size_t>(ManualDataDumpKey::THREAD_ID)].Set(reinterpret_cast<void *>(thread_id), nullptr);
-  context.value_holder[static_cast<size_t>(ManualDataDumpKey::CONTEXT_ID)].Set(reinterpret_cast<void *>(ctx_id), nullptr);
+  context.value_holder[static_cast<size_t>(ManualDataDumpKey::THREAD_ID)].Set(reinterpret_cast<void *>(thread_id),
+                                                                              nullptr);
+  context.value_holder[static_cast<size_t>(ManualDataDumpKey::CONTEXT_ID)].Set(reinterpret_cast<void *>(ctx_id),
+                                                                               nullptr);
   context.value_holder[static_cast<size_t>(ManualDataDumpKey::IN_NUM)].Set(reinterpret_cast<void *>(in_num), nullptr);
   context.value_holder[static_cast<size_t>(ManualDataDumpKey::OUT_NUM)].Set(reinterpret_cast<void *>(out_num), nullptr);
 
@@ -225,8 +230,7 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticUpdateManualGeDataDumpInfo) {
   gert::ExecutorDataDumpInfoWrapper wrapper(&dump_unit);
   auto ret = registry.FindKernelFuncs("StaticUpdateManualDataDumpInfo")->data_dump_info_filler(context, wrapper);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("StaticUpdateManualDataDumpInfo")->run_func(context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("StaticUpdateManualDataDumpInfo")->run_func(context), ge::GRAPH_SUCCESS);
 }
 
 TEST_F(FFTSStaAICoreKernelTestUT, test_StaticManualUpdateGeExceptionDumpInfo) {
@@ -243,7 +247,8 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticManualUpdateGeExceptionDumpInfo) {
   memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
   memory::MultiStreamMemBlock ms_block;
   ms_block.ReInit(&single_stream_l2_allocator, &mem_block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
-  GertTensorData workspace_gtd = GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
+  GertTensorData workspace_gtd =
+      GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
   for (size_t i = 0; i < work_space_vector->GetSize(); i++) {
     work_space_ptr[i] = &workspace_gtd;
   }
@@ -263,18 +268,18 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticManualUpdateGeExceptionDumpInfo) {
   auto rt_arg = RtFFTSKernelLaunchArgs::Create(tmp_node, node_desc, total_size);
   char *mem_1 = new char[total_size];
   char *mem_2 = new char[total_size];
-  node_para.host_addr = (void*)mem_1;
-  node_para.dev_addr = (void*)mem_2;
+  node_para.host_addr = (void *)mem_1;
+  node_para.dev_addr = (void *)mem_2;
   (void)memcpy_s(node_para.host_addr, node_para.size, rt_arg.get(), node_para.size);
   context.value_holder[static_cast<size_t>(ManualExceptionDumpKey::ARGS_PARA)].Set(&node_para, nullptr);
 
   ExceptionDumpUint dump_unit;
   ExecutorExceptionDumpInfoWrapper wrapper(&dump_unit);
   ASSERT_NE(registry.FindKernelFuncs("StaticManualUpdateExceptionDumpInfo"), nullptr);
-  auto ret = registry.FindKernelFuncs("StaticManualUpdateExceptionDumpInfo")->exception_dump_info_filler(context, wrapper);
+  auto ret =
+      registry.FindKernelFuncs("StaticManualUpdateExceptionDumpInfo")->exception_dump_info_filler(context, wrapper);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("StaticManualUpdateExceptionDumpInfo")->run_func(context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("StaticManualUpdateExceptionDumpInfo")->run_func(context), ge::GRAPH_SUCCESS);
   delete[] mem_1;
   delete[] mem_2;
 }
@@ -285,26 +290,28 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticUpdateAutoDataDumpInfo) {
   uint32_t window_size = 2;
   uint32_t in_num = 1;
   uint32_t out_num = 1;
-  context.value_holder[static_cast<size_t>(AutoDataDumpKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
-  context.value_holder[static_cast<size_t>(AutoDataDumpKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size), nullptr);
+  context.value_holder[static_cast<size_t>(AutoDataDumpKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim),
+                                                                             nullptr);
+  context.value_holder[static_cast<size_t>(AutoDataDumpKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size),
+                                                                              nullptr);
   context.value_holder[static_cast<size_t>(AutoDataDumpKey::IN_NUM)].Set(reinterpret_cast<void *>(in_num), nullptr);
   context.value_holder[static_cast<size_t>(AutoDataDumpKey::OUT_NUM)].Set(reinterpret_cast<void *>(out_num), nullptr);
   auto ctx_ids = ContinuousVector::Create<uint64_t>(4);
   auto ctx_ids_vec = reinterpret_cast<ContinuousVector *>(ctx_ids.get());
   ctx_ids_vec->SetSize(4);
-  auto ctx_ids_vec_ptr = reinterpret_cast<uint64_t*>(ctx_ids_vec->MutableData());
+  auto ctx_ids_vec_ptr = reinterpret_cast<uint64_t *>(ctx_ids_vec->MutableData());
   for (size_t i = 0; i < ctx_ids_vec->GetSize(); ++i) {
     ctx_ids_vec_ptr[i] = i;
   }
-  context.value_holder[static_cast<size_t>(AutoDataDumpKey::AICORE_CTX)].Set((void*)ctx_ids_vec, nullptr);
+  context.value_holder[static_cast<size_t>(AutoDataDumpKey::AICORE_CTX)].Set((void *)ctx_ids_vec, nullptr);
   auto offset = ContinuousVector::Create<uint64_t>(6);
   auto offset_vector = reinterpret_cast<ContinuousVector *>(offset.get());
   offset_vector->SetSize(5);
-  auto offset_vector_ptr = reinterpret_cast<uint64_t*>(offset_vector->MutableData());
+  auto offset_vector_ptr = reinterpret_cast<uint64_t *>(offset_vector->MutableData());
   for (size_t i = 0; i < offset_vector->GetSize(); ++i) {
     offset_vector_ptr[i] = i;
   }
-  context.value_holder[static_cast<size_t>(AutoDataDumpKey::THREAD_ADDR_OFFSET)].Set((void*)offset_vector, nullptr);
+  context.value_holder[static_cast<size_t>(AutoDataDumpKey::THREAD_ADDR_OFFSET)].Set((void *)offset_vector, nullptr);
 
   auto input_shapes_size = std::vector<uint64_t>{1};
   auto output_shapes_size = std::vector<uint64_t>{1};
@@ -321,14 +328,14 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticUpdateAutoDataDumpInfo) {
   gert::ExecutorDataDumpInfoWrapper wrapper(&dump_unit);
   auto ret = registry.FindKernelFuncs("StaticUpdateAutoDataDumpInfo")->data_dump_info_filler(context, wrapper);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("StaticUpdateAutoDataDumpInfo")->run_func(context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("StaticUpdateAutoDataDumpInfo")->run_func(context), ge::GRAPH_SUCCESS);
 }
 
 TEST_F(FFTSStaAICoreKernelTestUT, test_StaticAutoUpdateGeExceptionDumpInfo) {
   auto context = BuildKernelRunContext(static_cast<size_t>(AutoExceptionDumpKey::RESERVED), 0);
   uint32_t thread_dim = 1;
-  context.value_holder[static_cast<size_t>(AutoExceptionDumpKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
+  context.value_holder[static_cast<size_t>(AutoExceptionDumpKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim),
+                                                                                  nullptr);
 
   auto level_1_allocator = memory::CachingMemAllocator::GetAllocator();
   ASSERT_NE(level_1_allocator, nullptr);
@@ -358,18 +365,18 @@ TEST_F(FFTSStaAICoreKernelTestUT, test_StaticAutoUpdateGeExceptionDumpInfo) {
   auto rt_arg = RtFFTSKernelLaunchArgs::Create(tmp_node, node_desc, total_size);
   char *mem_1 = new char[total_size];
   char *mem_2 = new char[total_size];
-  node_para.host_addr = (void*)mem_1;
-  node_para.dev_addr = (void*)mem_2;
+  node_para.host_addr = (void *)mem_1;
+  node_para.dev_addr = (void *)mem_2;
   (void)memcpy_s(node_para.host_addr, node_para.size, rt_arg.get(), node_para.size);
   context.value_holder[static_cast<size_t>(AutoExceptionDumpKey::ARGS_PARA)].Set(&node_para, nullptr);
 
   ExceptionDumpUint dump_unit;
   ExecutorExceptionDumpInfoWrapper wrapper(&dump_unit);
   ASSERT_NE(registry.FindKernelFuncs("StaticAutoUpdateExceptionDumpInfo"), nullptr);
-  auto ret = registry.FindKernelFuncs("StaticAutoUpdateExceptionDumpInfo")->exception_dump_info_filler(context, wrapper);
+  auto ret =
+      registry.FindKernelFuncs("StaticAutoUpdateExceptionDumpInfo")->exception_dump_info_filler(context, wrapper);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("StaticAutoUpdateExceptionDumpInfo")->run_func(context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("StaticAutoUpdateExceptionDumpInfo")->run_func(context), ge::GRAPH_SUCCESS);
   delete[] mem_1;
   delete[] mem_2;
   for (size_t i = 0; i < work_space_vector->GetSize(); i++) {

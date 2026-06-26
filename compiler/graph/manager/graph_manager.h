@@ -71,10 +71,8 @@ class GraphManager {
 
   Status ForkGraph(uint32_t origin_graph_id, uint32_t forked_graph_id);
 
-  Status AddGraphForBuild(const GraphId &graph_id,
-                          const ComputeGraphPtr &compute_graph,
-                          const std::map<std::string, std::string> &options,
-                          bool graph_normalized = false);
+  Status AddGraphForBuild(const GraphId &graph_id, const ComputeGraphPtr &compute_graph,
+                          const std::map<std::string, std::string> &options, bool graph_normalized = false);
   Status InitDynamicParams(const ComputeGraphPtr &compute_graph,
                            const std::map<std::string, std::string> &graph_options) const;
 
@@ -99,7 +97,7 @@ class GraphManager {
   /// @param [out] outputs output data
   /// @return Status result of function
   Status RunGraph(const GraphId &graph_id, const std::vector<Tensor> &inputs, std::vector<Tensor> &outputs,
-    uint64_t session_id);
+                  uint64_t session_id);
   Status RunGraph(const GraphId &graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
 
   /// @ingroup ge_graph
@@ -132,7 +130,7 @@ class GraphManager {
                         const aclrtStream stream = nullptr) const;
 
   Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options,
-      const aclrtStream stream);
+                   const aclrtStream stream);
 
   Status BuildGraphForUnregisteredOp(const GraphId &graph_id, const std::vector<GeTensor> &inputs,
                                      GeRootModelPtr &ge_root_model, uint64_t session_id);
@@ -162,19 +160,21 @@ class GraphManager {
   /// @param [in] inputs input data
   /// @param [out] callback: callback while run graph async finish
   /// @return Status result of function
-  Status RunGraphAsync(const GraphId &graph_id, std::vector<gert::Tensor> &&inputs,
-                       uint64_t session_id, const RunAsyncCallbackV2 &callback);
+  Status RunGraphAsync(const GraphId &graph_id, std::vector<gert::Tensor> &&inputs, uint64_t session_id,
+                       const RunAsyncCallbackV2 &callback);
 
   /// @ingroup ge_graph
   /// @brief me register the callback function to get the result of summary or checkpoin
   /// @param [in] key: summary or checkpoint
   /// @param [in] callbak: The real callback object of me
   /// @return Status result of function
-  Status RegisterCallBackFunc(const std::string &key,
-                              const std::function<Status(uint32_t,
-                              const std::map<AscendString, gert::Tensor> &)> &callback);
+  Status RegisterCallBackFunc(
+      const std::string &key,
+      const std::function<Status(uint32_t, const std::map<AscendString, gert::Tensor> &)> &callback);
 
-  bool GetTrainFlag() const { return options_.train_graph_flag; }
+  bool GetTrainFlag() const {
+    return options_.train_graph_flag;
+  }
 
   bool IsGraphNeedRebuild(uint32_t graph_id);
 
@@ -250,13 +250,14 @@ class GraphManager {
                           const aclrtStream stream = nullptr);
   Status TranFrameOp(const GraphNodePtr &graph_node);
   Status RegisterExternalAllocator(const void *const stream, AllocatorPtr allocator) const;
-  Status UnregisterExternalAllocator(const void * const stream) const;
+  Status UnregisterExternalAllocator(const void *const stream) const;
   Status GetOmeContextByGraphId(const GraphId &graph_id, OmeContext &ome_context) const;
   bool GetLoadFlag(uint32_t graph_id) const;
   bool GetBuildFlag(uint32_t graph_id) const;
   Status GetCompiledFlag(uint32_t graph_id, bool &flag) const;
   Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result);
   Status SetCompiledFlag(uint32_t graph_id, bool flag);
+
  private:
   struct CompilerStages {
     GraphPrepare preparer;
@@ -291,8 +292,8 @@ class GraphManager {
   static Status ResortAndUpdateMultiBatchContext(const GraphNodePtr &graph_node);
   static Status ResortDynamicBatchInput(const std::vector<std::vector<int64_t>> &batch_shapes,
                                         std::vector<NodePtr> &data_nodes);
-  static Status UpdateMultiBatchContext(const std::vector<NodePtr> &data_nodes,
-      const std::vector<std::vector<int64_t>> &batch_shapes,
+  static Status UpdateMultiBatchContext(
+      const std::vector<NodePtr> &data_nodes, const std::vector<std::vector<int64_t>> &batch_shapes,
       const std::map<std::string, std::vector<vector<int64_t>>> &data_to_dynamic_info);
   Status OptimizeSubgraph(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph, uint64_t session_id);
 
@@ -303,8 +304,8 @@ class GraphManager {
   Status SubgraphPartitionAndOptimization(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph,
                                           uint64_t session_id, EnginePartitioner::Mode mode);
 
-  Status Build(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph,
-               GeRootModelPtr &ge_root_model, uint64_t session_id);
+  Status Build(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph, GeRootModelPtr &ge_root_model,
+               uint64_t session_id);
 
   Status InnerRunGraphWithStream(const GraphNodePtr &graph_node, const GraphId &graph_id, aclrtStream stream,
                                  const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs);
@@ -378,7 +379,9 @@ class GraphManager {
                                   NodePtr &use_node) const;
 
   // graph context
-  std::shared_ptr<GraphContext> GetGraphContext() const { return graph_context_; }
+  std::shared_ptr<GraphContext> GetGraphContext() const {
+    return graph_context_;
+  }
 
   Status RemoveIsolatedConst(ComputeGraphPtr &compute_graph);
   Status RemoveIsolatedConstInThisGraph(const ComputeGraphPtr &compute_graph) const;
@@ -399,24 +402,18 @@ class GraphManager {
   void PushRunArgs(const std::shared_ptr<RunArgs> &args) const;
   void PreRunThreadV2();
   void StopQueue();
-  void ReturnError(RunAsyncCallbackV2 callback, Status ret,
-      const std::string &log);
+  void ReturnError(RunAsyncCallbackV2 callback, Status ret, const std::string &log);
   void ChangeConstTypeWhenTraining(const ComputeGraphPtr &compute_graph) const;
 
   Status PreRunOptimizeOriginalGraph(const GraphNodePtr &graph_node, const std::vector<GeTensor> &inputs,
                                      ComputeGraphPtr &compute_graph, uint64_t session_id);
-  Status PreRunOptimizeSubGraph(const GraphNodePtr &graph_node,
-                                ComputeGraphPtr &compute_graph,
-                                uint64_t session_id);
-  Status PreRunAfterOptimizeSubGraph(const GraphNodePtr &graph_node,
-                                     ComputeGraphPtr &compute_graph,
-                                     GeRootModelPtr &ge_root_model,
-                                     uint64_t session_id);
+  Status PreRunOptimizeSubGraph(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph, uint64_t session_id);
+  Status PreRunAfterOptimizeSubGraph(const GraphNodePtr &graph_node, ComputeGraphPtr &compute_graph,
+                                     GeRootModelPtr &ge_root_model, uint64_t session_id);
 
   Status UnfoldDynamicShapeGraph(ComputeGraphPtr &compute_graph) const;
 
-  Status OptimizeSubGraphWithMultiThreads(ComputeGraphPtr compute_graph,
-                                          Graph2SubGraphInfoList &sub_graph_map,
+  Status OptimizeSubGraphWithMultiThreads(ComputeGraphPtr compute_graph, Graph2SubGraphInfoList &sub_graph_map,
                                           uint64_t session_id);
 
   void AddLocalOmgContext(GraphId graph_id, const OmgContext &omg_context);
@@ -454,10 +451,8 @@ class GraphManager {
 
   Status UpdateInputWithHintShape(const std::vector<GeShape> &hint_shape, std::vector<GeTensor> &inputs) const;
 
-  Status NormalizeInputsOutputs(const ComputeGraphPtr &compute_graph,
-                                const std::vector<GeTensor> &inputs,
-                                const std::vector<GeTensor> &outputs,
-                                std::vector<GeTensor> &normalized_inputs) const;
+  Status NormalizeInputsOutputs(const ComputeGraphPtr &compute_graph, const std::vector<GeTensor> &inputs,
+                                const std::vector<GeTensor> &outputs, std::vector<GeTensor> &normalized_inputs) const;
 
   Status CheckOptionsValid(const ComputeGraphPtr &compute_graph,
                            const std::map<std::string, std::string> &options) const;

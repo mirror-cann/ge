@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,33 +77,35 @@ Status BufferFusion::RunBuiltInFusion(ge::ComputeGraph &graph) {
   return SUCCESS;
 }
 
-BaseBufferFusionPassRunnerPtr BufferFusion::MakePassRunnerPtr(const BufferFusionInfo &sorted_buffer_fusion_info,
-                                                const BufferFusionOptimizerPtr buffer_fusion_optimizer) const {
+BaseBufferFusionPassRunnerPtr BufferFusion::MakePassRunnerPtr(
+    const BufferFusionInfo &sorted_buffer_fusion_info, const BufferFusionOptimizerPtr buffer_fusion_optimizer) const {
   BaseBufferFusionPassRunnerPtr buffer_fusion_pass_runner_ptr = nullptr;
   if (sorted_buffer_fusion_info.is_auto_fusion) {
     // auto fusion framework
     FE_MAKE_SHARED(buffer_fusion_pass_runner_ptr = std::make_shared<AutoBufferFusionPassRunner>(
-        sorted_buffer_fusion_info.name, sorted_buffer_fusion_info.buffer_fusion_pass_create_fn,
-        cycle_detector_, op_store_adapter_ptr_),
-    return nullptr);
+                       sorted_buffer_fusion_info.name, sorted_buffer_fusion_info.buffer_fusion_pass_create_fn,
+                       cycle_detector_, op_store_adapter_ptr_),
+                   return nullptr);
   } else {
     // normal fusion framework
-    FE_MAKE_SHARED(buffer_fusion_pass_runner_ptr = std::make_shared<BufferFusionPassRunner>(
-        sorted_buffer_fusion_info.name, sorted_buffer_fusion_info.buffer_fusion_pass_create_fn, cycle_detector_,
-        op_store_adapter_ptr_, sorted_buffer_fusion_info.is_fusion_check, buffer_fusion_optimizer),
-    return nullptr);
+    FE_MAKE_SHARED(
+        buffer_fusion_pass_runner_ptr = std::make_shared<BufferFusionPassRunner>(
+            sorted_buffer_fusion_info.name, sorted_buffer_fusion_info.buffer_fusion_pass_create_fn, cycle_detector_,
+            op_store_adapter_ptr_, sorted_buffer_fusion_info.is_fusion_check, buffer_fusion_optimizer),
+        return nullptr);
   }
   return buffer_fusion_pass_runner_ptr;
 }
 
 Status BufferFusion::RunRegisterBufferFusionPass(ge::ComputeGraph &graph, BufferFusionPassType pass_type) {
   string pass_type_str = GetBufferFusionPassTypeString(pass_type);
-  FE_LOGD("Graph[%s] PassType[%s] start to run reg buffer fusion pass.", graph.GetName().c_str(), pass_type_str.c_str());
+  FE_LOGD("Graph[%s] PassType[%s] start to run reg buffer fusion pass.", graph.GetName().c_str(),
+          pass_type_str.c_str());
   FE_CHECK(fusion_priority_mgr_ptr_ == nullptr,
            REPORT_FE_ERROR("[SubGraphOpt][PostProcess][RunRegBufFus] The fusion_priority_mgr_ptr_ is null."),
            return FAILED);
   const std::vector<BufferFusionInfo> &sorted_buffer_fusion_vec =
-          fusion_priority_mgr_ptr_->GetSortedBufferFusionList(graph);
+      fusion_priority_mgr_ptr_->GetSortedBufferFusionList(graph);
   if (sorted_buffer_fusion_vec.empty()) {
     FE_LOGD("No fusion pass got read, BufferFusionPassType:[%u].", pass_type);
     return SUCCESS;
@@ -126,8 +128,9 @@ Status BufferFusion::RunRegisterBufferFusionPass(ge::ComputeGraph &graph, Buffer
     FE_CHECK_NOTNULL(buffer_fusion_pass_runner_ptr);
     Status ret = buffer_fusion_pass_runner_ptr->Run(graph);
     if (ret != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][UBMatch] Buffer fusion pass execution failed, result: %u, graph: %s, pass: %s, type: %s",
-                      ret, graph.GetName().c_str(), sorted_buffer_fusion_info.name.c_str(), pass_type_str.c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][UBMatch] Buffer fusion pass execution failed, result: %u, graph: %s, pass: %s, type: %s", ret,
+          graph.GetName().c_str(), sorted_buffer_fusion_info.name.c_str(), pass_type_str.c_str());
       return ret;
     }
     FE_LOGI("Run buffer fusion pass successfully, pass name:%s.", sorted_buffer_fusion_info.name.c_str());

@@ -426,7 +426,7 @@ flowchart TD
     A[L1: CachingMemAllocator] --> B[物理内存管理，带缓存/队列复用]
     C[L2: L2MemPool] --> D[流感知内存池，管理块分配、版本化和回收]
     E[L3: BorrowAllocator] --> F[跨流内存共享池，复用其他流释放的块]
-    
+
     B --> G[HBM/Host 物理内存]
     D --> H[MultiStreamL2Allocator: 多流协调]
     D --> I[SingleStreamL2Allocator: 单流]
@@ -464,7 +464,7 @@ sequenceDiagram
     participant Runtime as 运行时
     participant StreamA as 源流 A
     participant StreamB as 目标流 B
-    
+
     Lowering->>Runtime: 检测到跨流访问
     Lowering->>Runtime: 创建 AccessMemCrossStream 节点
     Runtime->>StreamA: 执行 WanderFrom()
@@ -484,10 +484,10 @@ sequenceDiagram
     participant SrcStream as 源流
     participant Event as 硬件事件
     participant DstStream as 目标流
-    
+
     SrcStream->>Event: SendEvents 内核
     Note over SrcStream,Event: 收集待回收块 + 借出块<br/>打包到 GertEvent::space<br/>调用 aclrtRecordEvent()
-    
+
     Event->>DstStream: WaitEvents 内核
     Note over DstStream: 调用 rtStreamWaitEvent()<br/>SyncLocalRecycleStatus: 合并源流回收状态<br/>BirthRecycle: 完全释放回归出生流的块<br/>版本匹配: 忽略过期事件
 ```
@@ -568,40 +568,40 @@ flowchart TD
         P3[InplaceSupportCheckPass: 标记 Inplace 候选]
         P4[AtomicAddrCleanPass: 原子操作清零]
     end
-    
+
     subgraph "编译器 - 优化阶段"
         P5[HcclMemcpyPass 二次运行]
         P6[MemcpyAddrAsyncPass: 零拷贝地址传递]
         P7[MarkSameAddrPass: 固定地址标记]
     end
-    
+
     subgraph "编译器 - 内存冲突处理"
         P8[HandleMemoryRWConflict: 语义级冲突检测]
         P9[HandleMemoryLayoutConflict: 符号级冲突检测]
     end
-    
+
     subgraph "编译器 - 内存分配阶段"
         P10[ProcessInplace: Inplace 内存复用 + 冲突检查]
         P11[SetInputOutputOffsetPass: 偏移量设置]
     end
-    
+
     subgraph "编译器 - 验证"
         P12[GraphLint: 最终冲突验证]
     end
-    
+
     subgraph "运行时 - 图构建"
         R1[CalcChainConflictSolvePolicy: 条件分支冲突]
         R2[CalcSubgraphGuardersPolicy: 资源生命周期扩展]
         R3[AccessMemCrossStream: 跨流内存追踪]
     end
-    
+
     subgraph "运行时 - 执行"
         R4[SendEvents/WaitEvents: 事件驱动同步]
         R5[MIF 位图: 多流占用追踪]
         R6[VersionBlocks: 过期事件过滤]
         R7[CheckIoReuseAddrs: IO 地址复用验证]
     end
-    
+
     P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
     P7 --> P8 --> P9 --> P10 --> P11 --> P12
     P12 --> R1 --> R2 --> R3 --> R4

@@ -92,4 +92,3 @@ Status aclgrphProfInit(const char *profiler_path, uint32_t length)
 
 -   不支持多次重复调用aclgrphProfInit，并且该接口需和[aclgrphProfFinalize](aclgrphProfFinalize.md)配对使用，先调用aclgrphProfInit接口再调用aclgrphProfFinalize接口。
 -   建议该接口在[GEInitialize](GEInitialize.md)之后，[AddGraph](AddGraph.md)之前被调用，可采集到AddGraph时的Profiling数据。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,13 +36,11 @@ namespace {
 const char *const kAddYes = "CseAddYes";
 class TestKernel : public Kernel {
  public:
-  Status Compute(const ge::NodePtr &node,
-                 std::vector<ge::GeTensorPtr> &v_output) const {
+  Status Compute(const ge::NodePtr &node, std::vector<ge::GeTensorPtr> &v_output) const {
     return SUCCESS;
   }
 };
 REGISTER_COMPUTE_NODE_KERNEL(kAddYes, TestKernel);
-
 
 /*
  *  netoutput1
@@ -316,7 +314,7 @@ ComputeGraphPtr BuildGraph7() {
  */
 ComputeGraphPtr BuildGraph8() {
   ut::GraphBuilder builder("8");
-  auto data1 = builder.AddNode("data1", "Data1", 1,1);
+  auto data1 = builder.AddNode("data1", "Data1", 1, 1);
   auto const1 = builder.AddNode("const1", "Const", 0, 1);
   auto const2 = builder.AddNode("const2", "Const", 0, 1);
   auto switch1 = builder.AddNode("switch1", "Switch", 2, 2);
@@ -338,14 +336,14 @@ ComputeGraphPtr BuildGraph8() {
   return builder.GetGraph();
 }
 
-/* 
+/*
  *        netoutput
  *         /     \
  *      relu1     relu2
  *       |         |
  * transdata1    transdata2
  *         \    /
- *          data 
+ *          data
  */
 ComputeGraphPtr BuildGraph9() {
   ut::GraphBuilder builder("g1");
@@ -366,7 +364,6 @@ ComputeGraphPtr BuildGraph9() {
   return builder.GetGraph();
 }
 
-
 std::string FindFirstNode(const ComputeGraphPtr &graph, const std::string &type) {
   for (auto &node : graph->GetAllNodes()) {
     if (node->GetType() == type) {
@@ -376,7 +373,8 @@ std::string FindFirstNode(const ComputeGraphPtr &graph, const std::string &type)
   return "";
 }
 
-std::string FindFirstNode(const ComputeGraphPtr &graph, const std::string &type, std::initializer_list<std::string> names) {
+std::string FindFirstNode(const ComputeGraphPtr &graph, const std::string &type,
+                          std::initializer_list<std::string> names) {
   std::set<std::string> names_set(names);
   for (auto &node : graph->GetAllNodes()) {
     if (node->GetType() == type && names_set.count(node->GetName()) > 0) {
@@ -399,7 +397,7 @@ std::set<std::string> GetNames(const Node::Vistor<NodePtr> &node_list) {
   for (const auto &node : node_list) {
     name_set.insert(node->GetName());
   }
-  return  name_set;
+  return name_set;
 }
 
 std::set<std::string> GetNames(const ComputeGraph::Vistor<NodePtr> &node_list) {
@@ -407,16 +405,17 @@ std::set<std::string> GetNames(const ComputeGraph::Vistor<NodePtr> &node_list) {
   for (const auto &node : node_list) {
     name_set.insert(node->GetName());
   }
-  return  name_set;
+  return name_set;
 }
-} // namespace
+}  // namespace
 
 TEST_F(UTestCommonSubexpressionEliminationPass, Success) {
   auto graph = BuildGraph1();
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 4);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()),
+            std::set<std::string>({"const1", "const2", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
   auto const1 = graph->FindNode("const1");
   auto const2 = graph->FindNode("const2");
   auto netoutput1 = graph->FindNode("netoutput1");
@@ -433,7 +432,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessWithControlEdges) {
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 6);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", "data1", "addn1", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", "data1", "addn1",
+                                                                   FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
   auto const1 = graph->FindNode("const1");
   auto const2 = graph->FindNode("const2");
   auto addn1 = graph->FindNode("addn1");
@@ -442,7 +442,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessWithControlEdges) {
   EXPECT_EQ(const2->GetOutNodes().size(), 1);
   EXPECT_EQ(GetNames(const1->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes")}));
   EXPECT_EQ(netoutput1->GetInNodes().size(), 3);
-  EXPECT_EQ(GetNames(netoutput1->GetInDataNodes()), std::set<std::string>({"addn1", FindFirstNode(graph, "CseAddYes")}));
+  EXPECT_EQ(GetNames(netoutput1->GetInDataNodes()),
+            std::set<std::string>({"addn1", FindFirstNode(graph, "CseAddYes")}));
   EXPECT_EQ(const1->GetOutNodes().at(0)->GetName(), netoutput1->GetInNodes().at(0)->GetName());
   EXPECT_EQ(addn1->GetOutNodes().size(), 2);
   EXPECT_EQ(addn1->GetOutControlNodes().size(), 1);
@@ -456,7 +457,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessFourNodes) {
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 4);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()),
+            std::set<std::string>({"const1", "const2", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
   auto const1 = graph->FindNode("const1");
   auto const2 = graph->FindNode("const2");
   auto netoutput1 = graph->FindNode("netoutput1");
@@ -473,7 +475,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessDiffOutNodes) {
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", "addn1", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()),
+            std::set<std::string>({"const1", "const2", "addn1", FindFirstNode(graph, "CseAddYes"), "netoutput1"}));
   auto const1 = graph->FindNode("const1");
   auto const2 = graph->FindNode("const2");
   auto netoutput1 = graph->FindNode("netoutput1");
@@ -500,19 +503,23 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessContinuesNodes) {
   auto const2 = graph->FindNode("const2");
   auto const3 = graph->FindNode("const3");
   auto netoutput1 = graph->FindNode("netoutput1");
-  EXPECT_EQ(GetNames(const1->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
-  EXPECT_EQ(GetNames(const2->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
+  EXPECT_EQ(GetNames(const1->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
+  EXPECT_EQ(GetNames(const2->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
   EXPECT_EQ(netoutput1->GetInNodes().size(), 2);
-  EXPECT_EQ(GetNames(netoutput1->GetInNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
-  EXPECT_EQ(GetNames(const3->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
+  EXPECT_EQ(GetNames(netoutput1->GetInNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
+  EXPECT_EQ(GetNames(const3->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
 }
 
 TEST_F(UTestCommonSubexpressionEliminationPass, SuccessContainsAttr) {
   auto graph = BuildGraph6();
   auto add1 = graph->FindNode("add1");
   auto add2 = graph->FindNode("add2");
-  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1,10, 100,1000}));
-  AttrUtils::SetListInt(add2->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1,10, 100,1000}));
+  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1, 10, 100, 1000}));
+  AttrUtils::SetListInt(add2->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1, 10, 100, 1000}));
   AttrUtils::SetBool(add1->GetOpDesc(), "TestAttr2", true);
   AttrUtils::SetBool(add2->GetOpDesc(), "TestAttr2", true);
 
@@ -520,7 +527,7 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessContainsAttr) {
   auto add4 = graph->FindNode("add4");
   AttrUtils::SetStr(add3->GetOpDesc(), "TestAttr1", "HelloWorld111");
   AttrUtils::SetStr(add4->GetOpDesc(), "TestAttr1", "HelloWorld111");
-  AttrUtils::SetFloat(add3->GetOpDesc(), "TestAttr2",  3.14);
+  AttrUtils::SetFloat(add3->GetOpDesc(), "TestAttr2", 3.14);
   AttrUtils::SetFloat(add4->GetOpDesc(), "TestAttr2", 3.14);
 
   CommonSubexpressionEliminationPass pass;
@@ -534,17 +541,21 @@ TEST_F(UTestCommonSubexpressionEliminationPass, SuccessContainsAttr) {
   auto const2 = graph->FindNode("const2");
   auto const3 = graph->FindNode("const3");
   auto netoutput1 = graph->FindNode("netoutput1");
-  EXPECT_EQ(GetNames(const1->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
-  EXPECT_EQ(GetNames(const2->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
+  EXPECT_EQ(GetNames(const1->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
+  EXPECT_EQ(GetNames(const2->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add1", "add2"})}));
   EXPECT_EQ(netoutput1->GetInNodes().size(), 2);
-  EXPECT_EQ(GetNames(netoutput1->GetInNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
-  EXPECT_EQ(GetNames(const3->GetOutNodes()), std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
+  EXPECT_EQ(GetNames(netoutput1->GetInNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
+  EXPECT_EQ(GetNames(const3->GetOutNodes()),
+            std::set<std::string>({FindFirstNode(graph, "CseAddYes", {"add3", "add4"})}));
 }
 
 TEST_F(UTestCommonSubexpressionEliminationPass, NoCse) {
   auto graph = BuildGraph1();
   auto add1 = graph->FindNode("add1");
-  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1,10, 100,1000}));
+  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1, 10, 100, 1000}));
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
@@ -563,8 +574,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, DifferentAttr) {
   auto graph = BuildGraph1();
   auto add1 = graph->FindNode("add1");
   auto add2 = graph->FindNode("add2");
-  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1,10, 100,1000}));
-  AttrUtils::SetListInt(add2->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1,10, 100,1001}));
+  AttrUtils::SetListInt(add1->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1, 10, 100, 1000}));
+  AttrUtils::SetListInt(add2->GetOpDesc(), "TestAttr1", std::vector<int64_t>({1, 10, 100, 1001}));
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
@@ -588,7 +599,6 @@ TEST_F(UTestCommonSubexpressionEliminationPass, DifferentControlEdges) {
             std::set<std::string>({"const1", "const2", "data1", "add1", "add2", "addn1", "addn2", "netoutput1"}));
 }
 
-
 TEST_F(UTestCommonSubexpressionEliminationPass, DiffOutAnchorsFromOneNode) {
   auto graph = BuildGraph8();
   CommonSubexpressionEliminationPass pass;
@@ -609,8 +619,7 @@ TEST_F(UTestCommonSubexpressionEliminationPass, CseWithUnknowShape_ShapeDisconti
   op_desc2->MutableInputDesc(0)->SetShape(GeShape({-1, 1, 448, 3}));
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 5);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2",
-                                                                       "add1", "add2", "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"const1", "const2", "add1", "add2", "netoutput1"}));
   auto const1 = graph->FindNode("const1");
   auto const2 = graph->FindNode("const2");
   auto netoutput1 = graph->FindNode("netoutput1");
@@ -685,8 +694,8 @@ TEST_F(UTestCommonSubexpressionEliminationPass, CseWithDiffInputShape) {
   op_desc2->MutableInputDesc(0)->SetShape(GeShape({1, 224, 224, 1, 3}));
   EXPECT_EQ(pass.Run(graph), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 6);
-  EXPECT_EQ(GetNames(graph->GetAllNodes()), std::set<std::string>({"data", "trans1",
-                                                                       "trans2", "relu1", "relu2", "netoutput1"}));
+  EXPECT_EQ(GetNames(graph->GetAllNodes()),
+            std::set<std::string>({"data", "trans1", "trans2", "relu1", "relu2", "netoutput1"}));
 }
 
 TEST_F(UTestCommonSubexpressionEliminationPass, CseWithCascade) {
@@ -700,12 +709,12 @@ TEST_F(UTestCommonSubexpressionEliminationPass, CseWithCascade) {
 
 TEST_F(UTestCommonSubexpressionEliminationPass, SkipGeInsertedNode) {
   auto graph = BuildGraph1();
-  EXPECT_EQ(graph->GetAllNodesSize(), 5); 
+  EXPECT_EQ(graph->GetAllNodesSize(), 5);
   auto add1 = graph->FindNode("add1");
   auto add2 = graph->FindNode("add2");
   AttrUtils::SetBool(add1->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING, false);
   AttrUtils::SetBool(add2->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING, false);
   CommonSubexpressionEliminationPass pass;
   EXPECT_EQ(pass.Run(graph), SUCCESS);
-  EXPECT_EQ(graph->GetAllNodesSize(), 5); 
+  EXPECT_EQ(graph->GetAllNodesSize(), 5);
 }

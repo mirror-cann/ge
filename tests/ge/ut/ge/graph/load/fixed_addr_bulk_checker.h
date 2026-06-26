@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,19 +18,19 @@ namespace ge {
 class StubMemoryBlockManager : public MemoryBlockManager {
  public:
   explicit StubMemoryBlockManager(const uint32_t mem_type = RT_MEMORY_HBM)
-      : MemoryBlockManager(mem_type), memory_type_(mem_type) {
-  }
+      : MemoryBlockManager(mem_type), memory_type_(mem_type) {}
   ~StubMemoryBlockManager() = default;
   void *Malloc(const std::string &purpose, const size_t size) override {
     auto ptr = MemoryBlockManager::Malloc(purpose, size);
-    addrs_to_mem_info_[(void *)ptr] = gert::RuntimeStubImpl::MemoryInfo{(void *)ptr, static_cast<size_t>(size),
-                                                                        memory_type_, GE_MODULE_NAME_U16};
+    addrs_to_mem_info_[(void *)ptr] =
+        gert::RuntimeStubImpl::MemoryInfo{(void *)ptr, static_cast<size_t>(size), memory_type_, GE_MODULE_NAME_U16};
     GELOGI("stub malloc success, ptr: %p, size: %zu, mem_type: %d", ptr, size, memory_type_);
     return ptr;
   }
   const std::unordered_map<void *, gert::RuntimeStubImpl::MemoryInfo> &GetAllocatedRtsMemory() const {
     return addrs_to_mem_info_;
   }
+
  private:
   const rtMemType_t memory_type_;
   std::unordered_map<void *, gert::RuntimeStubImpl::MemoryInfo> addrs_to_mem_info_;
@@ -41,7 +41,9 @@ class FixedAddrBulkChecker {
   FixedAddrBulkChecker(const gert::GertRuntimeStub &runtime_stub, StubMemoryBlockManager *allocator,
                        const ModelArgsManager::FixedAddrBulk &fab,
                        const std::unordered_map<std::string, std::vector<size_t>> &node_names_to_task_indexes)
-      : runtime_stub_(runtime_stub), allocator_(allocator), fab_(fab),
+      : runtime_stub_(runtime_stub),
+        allocator_(allocator),
+        fab_(fab),
         node_names_to_task_indexes_(node_names_to_task_indexes) {}
 
   bool Check(std::string &ret) const {
@@ -167,5 +169,5 @@ class FixedAddrBulkChecker {
   // 每个vector元素代表相同fixed地址的所有piece
   std::vector<std::set<TaskArgsRefreshTypeClassifier::TaskFixedAddr>> same_addr_fixed_mems_;
 };
-}
+}  // namespace ge
 #endif  // AIR_CXX_TESTS_UT_GE_GRAPH_LOAD_FIXED_ADDR_BULK_CHECKER_H_

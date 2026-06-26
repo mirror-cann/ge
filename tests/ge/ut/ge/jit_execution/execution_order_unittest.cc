@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ class ExecutionOrderUT : public testing::Test {
 TEST_F(ExecutionOrderUT, no_slice_tests) {
   [this]() {
     auto data = es_graph_->CreateInput(0, "data", DATA);
-    data.SetShape({-1,-1,-1,-1});
+    data.SetShape({-1, -1, -1, -1});
     auto relu = es::Relu(data);
     auto relu1 = es::Relu(relu);
     es::EsGraphBuilder::SetOutput(relu1, 0);
@@ -50,9 +50,9 @@ TEST_F(ExecutionOrderUT, no_slice_tests) {
   auto graph = es_graph_->BuildAndReset();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
 
-  compute_graph->SetOutputSize(2); // make a wrong output size
+  compute_graph->SetOutputSize(2);  // make a wrong output size
 
-  UserGraph user_graph {0, compute_graph};
+  UserGraph user_graph{0, compute_graph};
   ExecutionOrder eo(user_graph);
 
   std::vector<GeTensor> input_tensors(1);
@@ -80,7 +80,7 @@ TEST_F(ExecutionOrderUT, test_has_next_ep) {
   // prepare graph
   [this]() {
     auto data = es_graph_->CreateInput(0, "data", DATA);
-    data.SetShape({-1,-1,-1,-1});
+    data.SetShape({-1, -1, -1, -1});
     auto relu = es::Relu(data);
     auto relu1 = es::Relu(relu);
     es::EsGraphBuilder::SetOutput(relu1, 0);
@@ -90,7 +90,7 @@ TEST_F(ExecutionOrderUT, test_has_next_ep) {
   compute_graph->SetOutputSize(1);
 
   // fake eo with 3 ep
-  UserGraph user_graph {0, compute_graph};
+  UserGraph user_graph{0, compute_graph};
   ExecutionOrder eo(user_graph);
   std::map<std::string, std::string> graph_options;
   auto ep0 = MakeUnique<ExecutionPoint>(0, compute_graph, compute_graph, graph_options);
@@ -136,7 +136,7 @@ TEST_F(ExecutionOrderUT, test_has_next_ep) {
 TEST_F(ExecutionOrderUT, seperate_graph_options_and_select_ep_option) {
   [this]() {
     auto data = es_graph_->CreateInput(0, "data", DATA);
-    data.SetShape({-1,-1,-1,-1});
+    data.SetShape({-1, -1, -1, -1});
     auto relu = es::Relu(data);
     es::EsGraphBuilder::SetOutput(relu, 0);
   }();
@@ -147,7 +147,7 @@ TEST_F(ExecutionOrderUT, seperate_graph_options_and_select_ep_option) {
   graph_options["ge.inputShape"] = "1,2,3,4";
   graph_options["ge.outputDatatype"] = "float16";
   graph_options["another.middle"] = "another_value";
-  UserGraph user_graph {0, compute_graph, graph_options};
+  UserGraph user_graph{0, compute_graph, graph_options};
   ExecutionOrder eo(user_graph);
 
   ASSERT_EQ(eo.first_ep_options_, graph_options);

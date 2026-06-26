@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,6 @@ class UtestFusionStatistics : public testing::Test {
   void TearDown() {}
 };
 
-
-
 TEST_F(UtestFusionStatistics, test_01) {
   auto &fs_instance = fe::FusionStatisticRecorder::Instance();
   fe::FusionInfo fusion_info(0, "", "test_pass");
@@ -43,11 +41,9 @@ TEST_F(UtestFusionStatistics, test_01) {
   string session_graph_id = "0_1";
   std::map<std::string, fe::FusionInfo> graph_fusion_info_map;
   std::map<std::string, fe::FusionInfo> buffer_fusion_info_map;
-  fs_instance.GetAndClearFusionInfo(session_graph_id, graph_fusion_info_map,
-                                    buffer_fusion_info_map);
+  fs_instance.GetAndClearFusionInfo(session_graph_id, graph_fusion_info_map, buffer_fusion_info_map);
 
-  fs_instance.GetFusionInfo(session_graph_id, graph_fusion_info_map,
-                            buffer_fusion_info_map);
+  fs_instance.GetFusionInfo(session_graph_id, graph_fusion_info_map, buffer_fusion_info_map);
 
   fs_instance.ClearFusionInfo(session_graph_id);
 
@@ -80,18 +76,12 @@ TEST_F(UtestFusionStatistics, test_02) {
   string session_graph_id = "0_1";
   std::map<std::string, fe::FusionInfo> graph_fusion_info_map;
   std::map<std::string, fe::FusionInfo> buffer_fusion_info_map;
-  fs_instance.GetAndClearFusionInfo(session_graph_id, graph_fusion_info_map,
-                                    buffer_fusion_info_map);
+  fs_instance.GetAndClearFusionInfo(session_graph_id, graph_fusion_info_map, buffer_fusion_info_map);
 
-  fs_instance.GetFusionInfo(session_graph_id, graph_fusion_info_map,
-                            buffer_fusion_info_map);
+  fs_instance.GetFusionInfo(session_graph_id, graph_fusion_info_map, buffer_fusion_info_map);
 
   fs_instance.ClearFusionInfo(session_graph_id);
 
   std::vector<string> session_graph_id_vec = {session_graph_id};
   EXPECT_NO_THROW(fs_instance.GetAllSessionAndGraphIdList(session_graph_id_vec));
 }
-
-
-
-

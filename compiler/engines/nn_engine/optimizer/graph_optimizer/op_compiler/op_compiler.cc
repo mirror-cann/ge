@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,9 +44,9 @@ const int64_t WEIGHT_SIZE_THRESHOLD = 262144;  // 256K
 const double WEIGHT_CHECK_THRESHOLD = 0.8;
 const uint64_t CUBE_K_OF_INT8 = 32;
 const uint32_t kFFTSNoCompileThreadNum = 3;
-constexpr const char* kCannKbImplType = "impl_type";
-constexpr const char* kCannKbDynamicCompileStatic = "dynamic_compile_static";
-constexpr const char* kCannKbOpImplSwitch = "op_impl_switch";
+constexpr const char *kCannKbImplType = "impl_type";
+constexpr const char *kCannKbDynamicCompileStatic = "dynamic_compile_static";
+constexpr const char *kCannKbOpImplSwitch = "op_impl_switch";
 
 using RelatedNodesMap = std::map<ge::NodePtr, std::shared_ptr<std::vector<ge::NodePtr>>>;
 
@@ -73,8 +73,7 @@ void FullOriginalNode(const ge::NodePtr &node, const ffts::ThreadSliceMapPtr &sl
       auto pos_next_underline = op_name.find("_", pos + 1);
       if (pos_next_underline != string::npos && (pos_next_underline + 1 < op_name.size())) {
         slice_info_ptr->original_node += op_name.substr(pos_next_underline);
-        FE_LOGI("op_name %s's original node name is %s.", op_name.c_str(),
-                slice_info_ptr->original_node.c_str());
+        FE_LOGI("op_name %s's original node name is %s.", op_name.c_str(), slice_info_ptr->original_node.c_str());
       }
     } else {
       FE_LOGW("op_name %s is not valid.", op_name.c_str());
@@ -132,8 +131,7 @@ Status CountThread1Node(const ge::ComputeGraph::Vistor<ge::NodePtr> &direct_node
       FE_LOGD("Add node %s into origin node %s's %p map.", node->GetName().c_str(),
               slice_info_ptr->original_node.c_str(), node.get());
       thread1_nodes.emplace(slice_info_ptr->original_node, node);
-      FE_MAKE_SHARED(thread1_node_to_other_threads_nodes[node] =
-                     std::make_shared<std::vector<ge::NodePtr>>(),
+      FE_MAKE_SHARED(thread1_node_to_other_threads_nodes[node] = std::make_shared<std::vector<ge::NodePtr>>(),
                      return FAILED);
     }
   }
@@ -153,8 +151,7 @@ void CountOtherThreadsNode(const ge::ComputeGraph::Vistor<ge::NodePtr> &direct_n
     }
     FullOriginalNode(node, slice_info_ptr);
     FE_LOGD("Node %s, thread_id: %u, slice instance number: %u, original node: [%s].", node->GetName().c_str(),
-            slice_info_ptr->thread_id, slice_info_ptr->slice_instance_num,
-            slice_info_ptr->original_node.c_str());
+            slice_info_ptr->thread_id, slice_info_ptr->slice_instance_num, slice_info_ptr->original_node.c_str());
     if (slice_info_ptr->original_node.empty()) {
       continue;
     }
@@ -175,8 +172,8 @@ void CountOtherThreadsNode(const ge::ComputeGraph::Vistor<ge::NodePtr> &direct_n
   }
 }
 
-Status GetParam(const ge::OpDescPtr& op_desc, int64_t& fm_h, int64_t& fm_w, int64_t& weight_h, int64_t& weight_w,
-                int64_t& cin, int64_t& cout, uint64_t& cube_k) {
+Status GetParam(const ge::OpDescPtr &op_desc, int64_t &fm_h, int64_t &fm_w, int64_t &weight_h, int64_t &weight_w,
+                int64_t &cin, int64_t &cout, uint64_t &cube_k) {
   auto fm_in_tensor_desc = op_desc->GetInputDescPtr(0);
   FE_CHECK_NOTNULL(fm_in_tensor_desc);
   auto weight_tensor_desc = op_desc->GetInputDescPtr(1);
@@ -186,7 +183,8 @@ Status GetParam(const ge::OpDescPtr& op_desc, int64_t& fm_h, int64_t& fm_w, int6
   if (!GetDimValueByFormatAndShape(fm_out_tensor_desc->GetOriginFormat(), fm_out_tensor_desc->GetOriginShape(), "H",
                                    fm_h)) {
     REPORT_FE_ERROR(
-        "[SubGraphOpt][Compile][WeightCmprs][node %s] Failed to obtain the dimension H of the output feature map with format %d.",
+        "[SubGraphOpt][Compile][WeightCmprs][node %s] Failed to obtain the dimension H of the output feature map with "
+        "format %d.",
         op_desc->GetName().c_str(), fm_out_tensor_desc->GetOriginFormat());
     return FAILED;
   }
@@ -205,8 +203,9 @@ Status GetParam(const ge::OpDescPtr& op_desc, int64_t& fm_h, int64_t& fm_w, int6
   }
   if (!GetDimValueByFormatAndShape(weight_tensor_desc->GetOriginFormat(), weight_tensor_desc->GetOriginShape(), "W",
                                    weight_w)) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][WeightCmprs][node %s] Failed to retrieve Dim W of the weight with format %d",
-                    op_desc->GetName().c_str(), weight_tensor_desc->GetOriginFormat());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][WeightCmprs][node %s] Failed to retrieve Dim W of the weight with format %d",
+        op_desc->GetName().c_str(), weight_tensor_desc->GetOriginFormat());
     return FAILED;
   }
   if (!GetDimValueByFormatAndShape(fm_in_tensor_desc->GetOriginFormat(), fm_in_tensor_desc->GetOriginShape(), "C",
@@ -263,13 +262,13 @@ OpCompiler::OpCompiler(const std::string &compiler_name, const std::string &engi
 
 OpCompiler::OpCompiler(const std::string &compiler_name, const std::string &engine_name, const bool need_post_process,
                        const LxFusionOptimizerPtr &lx_fusion_optimizer)
-        : init_flag_(false),
-          compiler_name_(compiler_name),
-          engine_name_(engine_name),
-          need_post_process_(need_post_process),
-          lx_fusion_optimizer_ptr_(lx_fusion_optimizer) {}
+    : init_flag_(false),
+      compiler_name_(compiler_name),
+      engine_name_(engine_name),
+      need_post_process_(need_post_process),
+      lx_fusion_optimizer_ptr_(lx_fusion_optimizer) {}
 
-const string& OpCompiler::GetCompilerName() const {
+const string &OpCompiler::GetCompilerName() const {
   return compiler_name_;
 }
 
@@ -338,7 +337,7 @@ Status OpCompiler::AddNodeToFusionMap(ge::Node &node, const int64_t scope_id, Sc
  *  @param   [out] fusion_map    scope id and node map
  *  @return  SUCCESS or FAILED
  */
-Status OpCompiler::GetScopeNodeMap(const ge::ComputeGraph& graph, ScopeNodeIdMap& fusion_node_map) {
+Status OpCompiler::GetScopeNodeMap(const ge::ComputeGraph &graph, ScopeNodeIdMap &fusion_node_map) {
   std::vector<ge::NodePtr> all_nodes;
   for (auto const &node : graph.GetDirectNode()) {
     all_nodes.push_back(node);
@@ -377,8 +376,7 @@ Status OpCompiler::VerifyScopeIdAttr(const int64_t &scope_id, const bool &is_l1_
   return SUCCESS;
 }
 
-Status OpCompiler::AddNormalTbeNodeIntoMap(ge::NodePtr node, ge::OpDescPtr op_desc_ptr,
-                                           ScopeNodeIdMap &fusion_node_map,
+Status OpCompiler::AddNormalTbeNodeIntoMap(ge::NodePtr node, ge::OpDescPtr op_desc_ptr, ScopeNodeIdMap &fusion_node_map,
                                            std::map<int64_t, bool> &fusion_scope_type_map) {
   int64_t scope_id = 0;
   bool is_l1_fusion = false;
@@ -414,10 +412,11 @@ Status OpCompiler::AddNormalTbeNodeIntoMap(ge::NodePtr node, ge::OpDescPtr op_de
     }
   } else {
     FEOpsStoreInfo op_store_info;
-    if (Configuration::Instance(node->GetOpDesc()->GetOpEngineName()).
-            GetOpStoreInfoByImplType(static_cast<OpImplType>(tmp_imply_type), op_store_info) != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][AddNdIntoMap] Failed to get op store info for node [%s] by impl_type [%ld].",
-                      node->GetName().c_str(), tmp_imply_type);
+    if (Configuration::Instance(node->GetOpDesc()->GetOpEngineName())
+            .GetOpStoreInfoByImplType(static_cast<OpImplType>(tmp_imply_type), op_store_info) != SUCCESS) {
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][AddNdIntoMap] Failed to get op store info for node [%s] by impl_type [%ld].",
+          node->GetName().c_str(), tmp_imply_type);
       return OP_COMPILER_CHECK_FALSE_FAILED;
     }
     if (op_store_info.need_compile) {
@@ -461,12 +460,10 @@ bool OpCompiler::CheckCompileCondition(const ge::NodePtr &node) const {
   return true;
 }
 
-Status OpCompiler::GetScopeNodeMap(const ge::ComputeGraph& graph,
-                                   const std::vector<ge::NodePtr>& scope_nodes,
-                                   ScopeNodeIdMap& fusion_node_map) {
-  vector<string> vec = {
-      OP_TYPE_PLACE_HOLDER, OP_TYPE_END, CONSTANTOP, fe::CONSTANT, SWAPCO, BNHOST, RESHAPE, REFORMAT,
-      SQUEEZE_V2, UNSQUEEZE_V2, COMPRESSOP, COMPRESSFCOP};
+Status OpCompiler::GetScopeNodeMap(const ge::ComputeGraph &graph, const std::vector<ge::NodePtr> &scope_nodes,
+                                   ScopeNodeIdMap &fusion_node_map) {
+  vector<string> vec = {OP_TYPE_PLACE_HOLDER, OP_TYPE_END,  CONSTANTOP, fe::CONSTANT, SWAPCO, BNHOST, RESHAPE, REFORMAT,
+                        SQUEEZE_V2,           UNSQUEEZE_V2, COMPRESSOP, COMPRESSFCOP};
   std::map<int64_t, bool> fusion_scope_type_map;
   for (auto &node : scope_nodes) {
     FE_CHECK(node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Compile][GetScopeNdMap] Node is nullptr."), return FAILED);
@@ -559,11 +556,12 @@ Status OpCompiler::SetPreCompParameter(
   OpKernelInfoPtr op_kernel_info_ptr = nullptr;
   std::string op_dsl_file_path = "";
   if (!ge::OpTypeUtils::IsAutofuseNode(node->GetOpDesc())) {
-    op_kernel_info_ptr = OpsKernelManager::Instance(node->GetOpDesc()->GetOpEngineName()).
-                                           GetOpKernelInfoByOpType(imply_type_str, node->GetType());
+    op_kernel_info_ptr = OpsKernelManager::Instance(node->GetOpDesc()->GetOpEngineName())
+                             .GetOpKernelInfoByOpType(imply_type_str, node->GetType());
     if (op_kernel_info_ptr == nullptr) {
       REPORT_FE_ERROR(
-          "[SubGraphOpt][Compile][SetPreCompPara] Node[%s]: failed to obtain op kernel information. The imply_type is %s.",
+          "[SubGraphOpt][Compile][SetPreCompPara] Node[%s]: failed to obtain op kernel information. The imply_type is "
+          "%s.",
           node->GetType().c_str(), imply_type_str.c_str());
       return FAILED;
     }
@@ -582,13 +580,13 @@ Status OpCompiler::SetPreCompParameter(
     }
   } else {
     FE_MAKE_SHARED(op_kernel_info_ptr = std::make_shared<OpKernelInfo>("AIcoreEngine", OpImplType::EN_IMPL_HW_TBE),
-                  return FAILED);
+                   return FAILED);
     FE_CHECK_NOTNULL(op_kernel_info_ptr);
     op_dsl_file_path = "autofuse";
   }
 
-  PreCompileNodePara pre_comp_node_para = {node.get(), op_kernel_info_ptr, imply_type_str, op_dsl_file_path,
-                                           session_graph_id, nullptr};
+  PreCompileNodePara pre_comp_node_para = {node.get(),       op_kernel_info_ptr, imply_type_str,
+                                           op_dsl_file_path, session_graph_id,   nullptr};
   if (pre_comp_map.find(op_store_adapter) == pre_comp_map.end()) {
     vector<PreCompileNodePara> pre_comp_node_para_vec;
     pre_comp_node_para_vec.push_back(pre_comp_node_para);
@@ -612,8 +610,9 @@ bool OpCompiler::UpdateOpAttrByCannKbResult(const std::string &kb_result_str, co
         StringUtils::ToLowerString(dynamic_compile_static_str);
         bool dynamic_compile_static_flag = dynamic_compile_static_str == kStrTrue;
         (void)ge::AttrUtils::SetBool(op_desc, ATTR_NAME_IS_OP_DYNAMIC_IMPL, dynamic_compile_static_flag);
-        FE_LOGD("Attribute [%s] of operator [%s, %s] has been set to [%d] due to repository.", ATTR_NAME_IS_OP_DYNAMIC_IMPL.c_str(),
-                op_desc->GetName().c_str(), op_desc->GetType().c_str(), dynamic_compile_static_flag);
+        FE_LOGD("Attribute [%s] of operator [%s, %s] has been set to [%d] due to repository.",
+                ATTR_NAME_IS_OP_DYNAMIC_IMPL.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+                dynamic_compile_static_flag);
       }
     }
     iter = params_json.find(kCannKbOpImplSwitch);
@@ -626,7 +625,7 @@ bool OpCompiler::UpdateOpAttrByCannKbResult(const std::string &kb_result_str, co
                 op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_impl_str.c_str());
       }
     }
-  } catch (nlohmann::json::parse_error& ex) {
+  } catch (nlohmann::json::parse_error &ex) {
     FE_LOGW("[%s] is not in JSON format.", kb_result_str.c_str());
     return false;
   }
@@ -641,20 +640,19 @@ Status OpCompiler::UpdateNodeCompileParams(const ge::NodePtr &node, const OpKern
   FE_CHECK_NOTNULL(op_desc_ptr);
   bool is_tune_stage = op_desc_ptr->HasAttr(kAttrDynamicCompileStatic) || op_desc_ptr->HasAttr(kAttrOpImplSwitch);
   if (is_tune_stage) {
-    FE_LOGD("Op[%s, %s] has at least one of [%s] and [%s] attr.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(),
-            kAttrDynamicCompileStatic.c_str(), kAttrOpImplSwitch.c_str());
+    FE_LOGD("Op[%s, %s] has at least one of [%s] and [%s] attr.", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str(), kAttrDynamicCompileStatic.c_str(), kAttrOpImplSwitch.c_str());
     // if op has one of DynamicCompileStatic and OpImplSwitch attr, tune stage
     bool attr_dynamic_compile_static = false;
     if (ge::AttrUtils::GetBool(op_desc_ptr, kAttrDynamicCompileStatic, attr_dynamic_compile_static)) {
-      FE_LOGD("Attr[%s] of op[%s, %s] is [%d].", kAttrDynamicCompileStatic.c_str(),
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), attr_dynamic_compile_static);
+      FE_LOGD("Attr[%s] of op[%s, %s] is [%d].", kAttrDynamicCompileStatic.c_str(), op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str(), attr_dynamic_compile_static);
       (void)ge::AttrUtils::SetBool(op_desc_ptr, ATTR_NAME_IS_OP_DYNAMIC_IMPL, attr_dynamic_compile_static);
     }
     std::string op_impl_switch;
     if (ge::AttrUtils::GetStr(op_desc_ptr, kAttrOpImplSwitch, op_impl_switch) && !op_impl_switch.empty()) {
-      FE_LOGD("Attr[%s] of op[%s, %s] is [%s].", kAttrOpImplSwitch.c_str(),
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), op_impl_switch.c_str());
+      FE_LOGD("Attr[%s] of op[%s, %s] is [%s].", kAttrOpImplSwitch.c_str(), op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str(), op_impl_switch.c_str());
       (void)ge::AttrUtils::SetStr(op_desc_ptr, kAttrOpImplSwitchValue, op_impl_switch);
     }
   } else {
@@ -662,28 +660,27 @@ Status OpCompiler::UpdateNodeCompileParams(const ge::NodePtr &node, const OpKern
     if (enable_op_compile && (op_kernel_info_ptr->GetDynamicCompileStatic() == DynamicCompileStatic::TUNE ||
                               !op_kernel_info_ptr->GetOpImplSwitch().empty())) {
       OpStoreAdapterPtr op_store_adapter =
-              OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(op_kernel_info_ptr->GetOpStoreImplType());
+          OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(op_kernel_info_ptr->GetOpStoreImplType());
       FE_CHECK_NOTNULL(op_store_adapter);
       std::vector<std::string> op_unique_keys;
       (void)op_store_adapter->GetOpUniqueKeys(node, op_kernel_info_ptr, op_unique_keys);
-      FE_LOGD("The Op_unique_key size of op [%s, %s] is [%zu].",
-              node->GetName().c_str(), node->GetType().c_str(), op_unique_keys.size());
+      FE_LOGD("The Op_unique_key size of op [%s, %s] is [%zu].", node->GetName().c_str(), node->GetType().c_str(),
+              op_unique_keys.size());
       std::map<std::string, std::string> config_map;
       config_map.emplace(EM_OP_TYPE, kCannKbImplType);
       std::string kb_result_str;
       if (!OpCompilerFormatTune::GetTuneKnowledgeResult(node, op_unique_keys, config_map, kb_result_str)) {
-        REPORT_FE_ERROR("Failed to retrieve tuning knowledge for op [%s, %s].",
-                        node->GetName().c_str(), node->GetType().c_str());
+        REPORT_FE_ERROR("Failed to retrieve tuning knowledge for op [%s, %s].", node->GetName().c_str(),
+                        node->GetType().c_str());
         return FAILED;
       }
       if (kb_result_str.empty()) {
-        FE_LOGD("The CANN KB result is empty for node [%s, %s].",
-                node->GetName().c_str(), node->GetType().c_str());
+        FE_LOGD("The CANN KB result is empty for node [%s, %s].", node->GetName().c_str(), node->GetType().c_str());
         return SUCCESS;
       }
       if (!UpdateOpAttrByCannKbResult(kb_result_str, op_desc_ptr)) {
-        REPORT_FE_ERROR("Failed to parse kb result string for op [%s, %s].",
-                        node->GetName().c_str(), node->GetType().c_str());
+        REPORT_FE_ERROR("Failed to parse kb result string for op [%s, %s].", node->GetName().c_str(),
+                        node->GetType().c_str());
         return FAILED;
       }
     }
@@ -703,8 +700,7 @@ void OpCompiler::MarkDuplicatedNode(const ge::ComputeGraph &graph) const {
 
   for (const auto &thread1_iter : thread1_nodes) {
     auto thread1_node = thread1_iter.second;
-    FE_LOGD("Setting other thread nodes for thread 1 node %s.",
-            thread1_node->GetName().c_str());
+    FE_LOGD("Setting other thread nodes for thread 1 node %s.", thread1_node->GetName().c_str());
     auto other_thread_nodes_iter = related_threads_nodes.find(thread1_node);
     if (other_thread_nodes_iter != related_threads_nodes.end()) {
       thread1_node->GetOpDesc()->SetExtAttr(kAttrRelatedThreadsNodes, other_thread_nodes_iter->second);
@@ -725,14 +721,14 @@ Status OpCompiler::UpdateCompileParams(const ge::ComputeGraph &graph) const {
     if (!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, fe_imply_type)) {
       continue;
     }
-    FE_LOGD("Attr fe imply type of op[%s, %s] is %ld.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), fe_imply_type);
+    FE_LOGD("Attr fe imply type of op[%s, %s] is %ld.", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(),
+            fe_imply_type);
     OpImplType imply_type = static_cast<OpImplType>(fe_imply_type);
     OpKernelInfoPtr op_kernel_info_ptr =
-            OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(imply_type, op_desc_ptr->GetType());
+        OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpType(imply_type, op_desc_ptr->GetType());
     if (op_kernel_info_ptr == nullptr) {
-      FE_LOGD("Op Kernel Info of op[%s, %s] is nullptr",
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+      FE_LOGD("Op Kernel Info of op[%s, %s] is nullptr", op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str());
       continue;
     }
     if (UpdateNodeCompileParams(node, op_kernel_info_ptr) != SUCCESS) {
@@ -768,7 +764,8 @@ Status OpCompiler::PreCompileOp(ge::ComputeGraph &graph) {
     bool no_need_compile = false;
     (void)ge::AttrUtils::GetBool(op_desc_ptr, ATTR_NAME_IS_COMPIED_FUSION_OP, no_need_compile);
     if (no_need_compile) {
-      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(), node->GetType().c_str());
+      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(),
+              node->GetType().c_str());
       continue;
     }
 
@@ -780,8 +777,9 @@ Status OpCompiler::PreCompileOp(ge::ComputeGraph &graph) {
     // get op imply type
     int64_t tmp_imply_type = 0;
     if (!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type)) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompOp] Failed to obtain imply type for op [%s], optype [%s], imply_type [%ld].",
-                      op_desc_ptr->GetName().c_str(), op_type.c_str(), tmp_imply_type);
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][PreCompOp] Failed to obtain imply type for op [%s], optype [%s], imply_type [%ld].",
+          op_desc_ptr->GetName().c_str(), op_type.c_str(), tmp_imply_type);
       return OP_COMPILER_CHECK_FALSE_FAILED;
     }
 
@@ -789,8 +787,7 @@ Status OpCompiler::PreCompileOp(ge::ComputeGraph &graph) {
     OpImplType imply_type = static_cast<OpImplType>(tmp_imply_type);
     FEOpsStoreInfo op_store_info;
     auto engine_name = node->GetOpDesc()->GetOpEngineName();
-    if (Configuration::Instance(engine_name).
-            GetOpStoreInfoByImplType(imply_type, op_store_info) != SUCCESS) {
+    if (Configuration::Instance(engine_name).GetOpStoreInfoByImplType(imply_type, op_store_info) != SUCCESS) {
       FE_LOGW("Engine[%s] failed to retrieve op store info for impl_type[%ld].", engine_name.c_str(), imply_type);
       return SUCCESS;
     }
@@ -816,12 +813,13 @@ Status OpCompiler::PreCompileOp(ge::ComputeGraph &graph) {
 
 Status OpCompiler::PreCompileThreadOpHelper(const ge::NodePtr &node, const ge::OpDescPtr &op_desc_ptr,
                                             const ge::OpDescPtr &old_op_desc, const string &session_graph_id,
-                                            const ge::ComputeGraph& graph) {
-   // get op imply type
+                                            const ge::ComputeGraph &graph) {
+  // get op imply type
   int64_t tmp_imply_type = 0;
   if (!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type)) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompOp] Failed to obtain imply type for op [%s], optype [%s], imply_type [%ld].",
-                    op_desc_ptr->GetName().c_str(), node->GetType().c_str(), tmp_imply_type);
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][PreCompOp] Failed to obtain imply type for op [%s], optype [%s], imply_type [%ld].",
+        op_desc_ptr->GetName().c_str(), node->GetType().c_str(), tmp_imply_type);
     return OP_COMPILER_CHECK_FALSE_FAILED;
   }
 
@@ -902,9 +900,11 @@ Status OpCompiler::PreCompileThreadOp(ge::ComputeGraph &graph, bool &sgt_flag) {
     FE_CHECK(slice_info_ptr == nullptr,
              REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] slice_info_ptr is nullptr."), return FAILED);
     FE_CHECK((slice_info_ptr->input_tensor_slice.size() != slice_info_ptr->ori_input_tensor_shape.size()),
-             REPORT_FE_ERROR("[Compile][PreCompThreadOp] Slice input size does not match original size."), return FAILED);
+             REPORT_FE_ERROR("[Compile][PreCompThreadOp] Slice input size does not match original size."),
+             return FAILED);
     FE_CHECK((slice_info_ptr->output_tensor_slice.size() != slice_info_ptr->ori_output_tensor_shape.size()),
-             REPORT_FE_ERROR("[Compile][PreCompThreadOp] Slice output size does not match original size."), return FAILED);
+             REPORT_FE_ERROR("[Compile][PreCompThreadOp] Slice output size does not match original size."),
+             return FAILED);
     FE_CHECK((slice_info_ptr->input_tensor_slice.size() != slice_info_ptr->output_tensor_slice.size()),
              REPORT_FE_ERROR("[Compile][PreCompThreadOp] Slice input and output sizes are not equal."), return FAILED);
     auto slice_size = slice_info_ptr->input_tensor_slice.size();
@@ -917,8 +917,10 @@ Status OpCompiler::PreCompileThreadOp(ge::ComputeGraph &graph, bool &sgt_flag) {
       auto input_tensors = op_desc_ptr->GetAllInputsDescPtr();
       FE_CHECK((slice_info_ptr->input_tensor_slice[i].size() != input_tensors.size()),
                REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Slice input size is in error."), return FAILED);
-      FE_CHECK((slice_info_ptr->ori_input_tensor_shape[i].size() != input_tensors.size()),
-               REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Original input size for Slice op is incorrect."), return FAILED);
+      FE_CHECK(
+          (slice_info_ptr->ori_input_tensor_shape[i].size() != input_tensors.size()),
+          REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Original input size for Slice op is incorrect."),
+          return FAILED);
       for (size_t j = 0; j < input_tensors.size(); j++) {
         auto tensor = input_tensors.at(j);
         ge::GeShape slice_shape;
@@ -931,16 +933,19 @@ Status OpCompiler::PreCompileThreadOp(ge::ComputeGraph &graph, bool &sgt_flag) {
 
         ge::GeShape slice_origin_shape = ge::GeShape(slice_info_ptr->ori_input_tensor_shape[i][j]);
         tensor->SetOriginShape(slice_origin_shape);
-        FE_LOGD("Node[%s, %s]: set thread %zu's configuration for input[%zu, %s]. The slice shape is %s. The original slice shape is %s.",
-                node->GetType().c_str(), node->GetName().c_str(), i, j, tensor->GetName().c_str(),
-                StringUtils::IntegerVecToString(slice_shape.GetDims()).c_str(),
-                StringUtils::IntegerVecToString(slice_origin_shape.GetDims()).c_str());
+        FE_LOGD(
+            "Node[%s, %s]: set thread %zu's configuration for input[%zu, %s]. The slice shape is %s. The original "
+            "slice shape is %s.",
+            node->GetType().c_str(), node->GetName().c_str(), i, j, tensor->GetName().c_str(),
+            StringUtils::IntegerVecToString(slice_shape.GetDims()).c_str(),
+            StringUtils::IntegerVecToString(slice_origin_shape.GetDims()).c_str());
       }
       auto output_tensors = op_desc_ptr->GetAllOutputsDescPtr();
       FE_CHECK((slice_info_ptr->output_tensor_slice[i].size() != output_tensors.size()),
                REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Slice output size error."), return FAILED);
       FE_CHECK((slice_info_ptr->ori_output_tensor_shape[i].size() != output_tensors.size()),
-               REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Original slice output size is erroneous."), return FAILED);
+               REPORT_FE_ERROR("[SubGraphOpt][Compile][PreCompThreadOp] Original slice output size is erroneous."),
+               return FAILED);
       for (size_t j = 0; j < output_tensors.size(); j++) {
         auto tensor = output_tensors.at(j);
         ge::GeShape slice_shape;
@@ -1031,14 +1036,13 @@ Status OpCompiler::SetMemoryTypeForOutput(const ge::NodePtr &node, const OpKerne
                                   static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
       FE_LOGI("Node[type=%s,name=%s]: success to set the attribute %s to %d for the output %s.", op_type.c_str(),
               op_name.c_str(), ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE.c_str(),
-              static_cast<int32_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY),
-              out_info->GetName().c_str());
+              static_cast<int32_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY), out_info->GetName().c_str());
     }
   }
   return SUCCESS;
 }
 
-Status OpCompiler::ParseTvmJsonToSetAttr(const ge::NodePtr& node, const ge::OpDescPtr op_desc_ptr,
+Status OpCompiler::ParseTvmJsonToSetAttr(const ge::NodePtr &node, const ge::OpDescPtr op_desc_ptr,
                                          const CompileResultInfo &compile_result) const {
   // package tvm json info
   TbeJsonFileParsePtr parse_ptr = nullptr;
@@ -1063,8 +1067,8 @@ Status OpCompiler::ParseJsonAndUpdateOp(const ge::NodePtr &node, const ge::OpDes
   }
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   slice_info_ptr = node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
-  if ((slice_info_ptr == nullptr) || ((slice_info_ptr->thread_mode == kManualMode) &&
-      (compile_results.size() == 1)) || !OpIsAutoThread(slice_info_ptr)) {
+  if ((slice_info_ptr == nullptr) || ((slice_info_ptr->thread_mode == kManualMode) && (compile_results.size() == 1)) ||
+      !OpIsAutoThread(slice_info_ptr)) {
     if (ParseTvmJsonToSetAttr(node, op_desc_ptr, compile_results.at(0)) == FAILED) {
       return FAILED;
     }
@@ -1082,8 +1086,8 @@ Status OpCompiler::ParseJsonAndUpdateOp(const ge::NodePtr &node, const ge::OpDes
   return SUCCESS;
 }
 
-Status OpCompiler::ParseJsonAndCompressOp(const ge::ComputeGraph& graph, const CompileResultMap& compile_ret_map,
-                                          const std::vector<ge::NodePtr>& nodes_be_compiled) const {
+Status OpCompiler::ParseJsonAndCompressOp(const ge::ComputeGraph &graph, const CompileResultMap &compile_ret_map,
+                                          const std::vector<ge::NodePtr> &nodes_be_compiled) const {
   (void)graph;
   map<int64_t, bool> is_json_parsed;
   bool is_after_merge_step = FEContextUtils::GetBuildStep() == ge::BUILD_STEP_AFTER_MERGE;
@@ -1178,8 +1182,8 @@ Status OpCompiler::CompileOpOnly(CompileInfoParam &compile_info) const {
   return SUCCESS;
 }
 
-Status OpCompiler::GetFusionScope(const ge::ComputeGraph& graph,
-                                  const std::vector<ge::NodePtr>& buff_fus_rollback_nodes,
+Status OpCompiler::GetFusionScope(const ge::ComputeGraph &graph,
+                                  const std::vector<ge::NodePtr> &buff_fus_rollback_nodes,
                                   ScopeNodeIdMap &fusion_nodes_map, std::vector<ge::NodePtr> &nodes_be_compiled) {
   std::string graph_name = graph.GetName();
   auto all_nodes = graph.GetDirectNode();
@@ -1207,7 +1211,7 @@ Status OpCompiler::GetFusionScope(const ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-bool OpCompiler::CheckCompiledFusionGraph(const ge::ComputeGraph& graph) const {
+bool OpCompiler::CheckCompiledFusionGraph(const ge::ComputeGraph &graph) const {
   auto all_nodes = graph.GetDirectNode();
   for (const auto &node : all_nodes) {
     bool no_need_compile = false;
@@ -1220,11 +1224,13 @@ bool OpCompiler::CheckCompiledFusionGraph(const ge::ComputeGraph& graph) const {
   return false;
 }
 
-Status OpCompiler::GetMixComFusionScope(const ge::ComputeGraph& graph,
-                                        const std::vector<ge::NodePtr>& buff_fus_rollback_nodes,
+Status OpCompiler::GetMixComFusionScope(const ge::ComputeGraph &graph,
+                                        const std::vector<ge::NodePtr> &buff_fus_rollback_nodes,
                                         ScopeNodeIdMap &fusion_nodes_map, std::vector<ge::NodePtr> &nodes_be_compiled) {
   (void)buff_fus_rollback_nodes;
-  FE_LOGD("Graph has compiled fusion nodes; it filters the compiled nodes and calculates the scope ID when obtaining the nodes that need to be compiled.");
+  FE_LOGD(
+      "Graph has compiled fusion nodes; it filters the compiled nodes and calculates the scope ID when obtaining the "
+      "nodes that need to be compiled.");
   std::string graph_name = graph.GetName();
   auto all_nodes = graph.GetDirectNode();
   for (const auto &node : all_nodes) {
@@ -1232,7 +1238,8 @@ Status OpCompiler::GetMixComFusionScope(const ge::ComputeGraph& graph,
     bool no_need_compile = false;
     (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_IS_COMPIED_FUSION_OP, no_need_compile);
     if (no_need_compile) {
-      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(), node->GetType().c_str());
+      FE_LOGD("Op[name:%s, type:%s] does not require optimization of the fused graph.", node->GetName().c_str(),
+              node->GetType().c_str());
       continue;
     }
     nodes_be_compiled.emplace_back(node);
@@ -1249,7 +1256,7 @@ Status OpCompiler::GetMixComFusionScope(const ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-Status OpCompiler::CompileOp(ge::ComputeGraph& graph) {
+Status OpCompiler::CompileOp(ge::ComputeGraph &graph) {
   std::vector<ge::NodePtr> buff_fus_rollback_nodes;
   std::vector<ge::NodePtr> buff_fus_to_del_nodes;
   std::vector<ge::NodePtr> buff_fus_compile_failed_nodes;
@@ -1262,10 +1269,9 @@ Status OpCompiler::CompileOp(ge::ComputeGraph& graph) {
  *  @param   [in|out] graph  compute graph
  *  @return  SUCCESS or FAILED
  */
-Status OpCompiler::CompileOp(ge::ComputeGraph& graph,
-                             std::vector<ge::NodePtr>& buff_fus_compile_failed_nodes,
-                             const std::vector<ge::NodePtr>& buff_fus_rollback_nodes,
-                             const std::vector<ge::NodePtr>& buff_fus_to_del_nodes) {
+Status OpCompiler::CompileOp(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes,
+                             const std::vector<ge::NodePtr> &buff_fus_rollback_nodes,
+                             const std::vector<ge::NodePtr> &buff_fus_to_del_nodes) {
   (void)buff_fus_to_del_nodes;
   CompileInfoParam compile_info(buff_fus_compile_failed_nodes);
   vector<ge::NodePtr> nodes_be_compiled;
@@ -1306,7 +1312,7 @@ Status OpCompiler::CompileOp(ge::ComputeGraph& graph,
   return SUCCESS;
 }
 
-Status OpCompiler::PostCompileOp(ge::ComputeGraph& graph, std::vector<ge::NodePtr>& buff_fus_compile_failed_nodes) {
+Status OpCompiler::PostCompileOp(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes) {
   FE_CHECK_NOTNULL(lx_fusion_optimizer_ptr_);
   if (!buff_fus_compile_failed_nodes.empty()) {
     std::vector<ge::NodePtr> buff_fus_rollback_nodes;
@@ -1347,7 +1353,7 @@ Status OpCompiler::SetCompressWeightAttr(ge::NodePtr node) const {
             node->GetType().c_str());
     return SUCCESS;
   }
-  if (node_type != CONV2D && node_type != MATMULV2OP  && node_type != kConv2DTransposeD) {
+  if (node_type != CONV2D && node_type != MATMULV2OP && node_type != kConv2DTransposeD) {
     return SUCCESS;
   }
 
@@ -1463,14 +1469,14 @@ Status OpCompiler::InsertCompressOp(const ge::NodePtr &node) const {
 
   // 2. Check is there compress op before cube compress op
   if (HasInsertCompressOp(node)) {
-    FE_LOGD("Compress op has already been insert before node[%s, %s].",
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGD("Compress op has already been insert before node[%s, %s].", node->GetName().c_str(),
+            node->GetType().c_str());
     return SUCCESS;
   }
 
   WEIGHCOMPRESSINNERFLAG enable_sparsity = JudgeIsSparsityFlag();
-  FE_LOGD("Begin to insert compression op for node [%s, %s], with sparsity enabled as [%d].",
-          node->GetName().c_str(), node->GetType().c_str(), static_cast<int32_t>(enable_sparsity));
+  FE_LOGD("Begin to insert compression op for node [%s, %s], with sparsity enabled as [%d].", node->GetName().c_str(),
+          node->GetType().c_str(), static_cast<int32_t>(enable_sparsity));
 
   ge::OpDescPtr conv_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(conv_desc);
@@ -1503,8 +1509,9 @@ Status OpCompiler::InsertCompressOp(const ge::NodePtr &node) const {
     int64_t weight_compress_type = -1;
     (void)ge::AttrUtils::GetInt(conv_desc, ATTR_NAME_WEIGHT_COMPRESS_TYPE, weight_compress_type);
     if (kWeightCompressTypes.count(static_cast<WeightCompressType>(weight_compress_type)) == 0) {
-      REPORT_FE_ERROR("[SubGraphOpt][Compile][InsrtCmprsOp] Failed to retrieve the weight compression type from node [%s, %s].",
-                      conv_desc->GetName().c_str(), conv_desc->GetType().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Compile][InsrtCmprsOp] Failed to retrieve the weight compression type from node [%s, %s].",
+          conv_desc->GetName().c_str(), conv_desc->GetType().c_str());
       return FAILED;
     }
     (void)ge::AttrUtils::SetInt(compress_opdesc, ATTR_NAME_WEIGHT_COMPRESS_TYPE, weight_compress_type);
@@ -1527,9 +1534,8 @@ Status OpCompiler::InsertCompressOp(const ge::NodePtr &node) const {
                     conv_desc->GetName().c_str(), conv_desc->GetType().c_str());
     return FAILED;
   }
-  FE_LOGI("The compress node[%s, %s] has been insert before node[%s, %s].",
-          compress_opdesc->GetName().c_str(), compress_opdesc->GetType().c_str(),
-          node->GetName().c_str(), node->GetType().c_str());
+  FE_LOGI("The compress node[%s, %s] has been insert before node[%s, %s].", compress_opdesc->GetName().c_str(),
+          compress_opdesc->GetType().c_str(), node->GetName().c_str(), node->GetType().c_str());
   ProcCompressOpMemType(node);
   return SUCCESS;
 }
@@ -1563,8 +1569,8 @@ Status OpCompiler::UpdateCompressIndexShape(const ge::OpDescPtr &conv_desc,
   std::vector<int64_t> compress_index_desc_dims = {compress_param_vec[COMPRESS_PARAMETER_INFOSIZE_INDEX]};
   ge::GeTensorDescPtr index_tensor_desc_ptr = conv_desc->MutableInputDesc(TENSOR_INDEX_COMPRESS_INDEX);
   if (index_tensor_desc_ptr == nullptr) {
-    FE_LOGE("The compress index input for the conv node [%s, %s] is null.",
-            conv_desc->GetName().c_str(), conv_desc->GetType().c_str());
+    FE_LOGE("The compress index input for the conv node [%s, %s] is null.", conv_desc->GetName().c_str(),
+            conv_desc->GetType().c_str());
     return FAILED;
   }
   if (index_tensor_desc_ptr->MutableShape().GetDims() == compress_index_desc_dims) {
@@ -1575,9 +1581,8 @@ Status OpCompiler::UpdateCompressIndexShape(const ge::OpDescPtr &conv_desc,
   ge::GeShape index_shape(compress_index_desc_dims);
   index_tensor_desc_ptr->SetShape(index_shape);
   index_tensor_desc_ptr->SetOriginShape(index_shape);
-  FE_LOGI("The shape of compress index of node[%s, %s] has been update to [%s].",
-          conv_desc->GetName().c_str(), conv_desc->GetType().c_str(),
-          StringUtils::IntegerVecToString(index_shape.GetDims()).c_str());
+  FE_LOGI("The shape of compress index of node[%s, %s] has been update to [%s].", conv_desc->GetName().c_str(),
+          conv_desc->GetType().c_str(), StringUtils::IntegerVecToString(index_shape.GetDims()).c_str());
   return SUCCESS;
 }
 
@@ -1587,8 +1592,7 @@ ge::OpDescPtr OpCompiler::CreateCompressOp(const ge::OpDescPtr &conv_desc,
   std::string compress_op_name = conv_desc->GetName() + "_" + compress_type;
   ge::OpDescPtr compress_opdesc = nullptr;
   FE_MAKE_SHARED(compress_opdesc = std::make_shared<ge::OpDesc>(compress_op_name, compress_type), return nullptr);
-  FE_CHECK(compress_opdesc == nullptr,
-           REPORT_FE_ERROR("[CreateCompressOp] Create op desc failed."), return nullptr);
+  FE_CHECK(compress_opdesc == nullptr, REPORT_FE_ERROR("[CreateCompressOp] Create op desc failed."), return nullptr);
   // add input desc
   compress_opdesc->AddInputDesc("weight", conv_desc->GetInputDesc(TENSOR_INDEX_FILTER_COMPRESS));
 
@@ -1625,8 +1629,7 @@ Status OpCompiler::AddCompressNodeAndCopyWeight(const ge::NodePtr &conv_node,
 
   (void)ge::GraphUtils::AddEdge(compress_node->GetOutDataAnchor(COMPRESSOP_INDEX_WEIGHT_COMPRESS),
                                 conv_weight_in_anchor);
-  (void)ge::GraphUtils::AddEdge(compress_node->GetOutDataAnchor(COMPRESSOP_INDEX_COMPRESS_INDEX),
-                                conv_index_in_anchor);
+  (void)ge::GraphUtils::AddEdge(compress_node->GetOutDataAnchor(COMPRESSOP_INDEX_COMPRESS_INDEX), conv_index_in_anchor);
   (void)ge::GraphUtils::AddEdge(weight_peer_out_anchor, compress_node->GetInDataAnchor(0));
 
   // copy weight whilt tuning
@@ -1714,8 +1717,9 @@ Status OpCompiler::ReCompileL1FusionFailedNodes(const ge::ComputeGraph &graph, C
   }
 
   if (CompileOpOnly(compile_info) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][Lx] Failed to compile L1 fusion nodes that previously failed in graph [%s].",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][Lx] Failed to compile L1 fusion nodes that previously failed in graph [%s].",
+        graph.GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -1745,9 +1749,8 @@ Status OpCompiler::ReCompileOpAfterLxFusion(ge::ComputeGraph &graph, CompileInfo
    * which are changed in lx-fusion and need re-compiling. */
   ret = CompileOpOnly(compile_info);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR(
-        "[SubGraphOpt][Compile][Lx] Failed to compile after lx-fusion for graph %s with strategy %u.",
-        graph.GetName().c_str(), static_cast<uint32_t>(compile_info.compile_strategy));
+    REPORT_FE_ERROR("[SubGraphOpt][Compile][Lx] Failed to compile after lx-fusion for graph %s with strategy %u.",
+                    graph.GetName().c_str(), static_cast<uint32_t>(compile_info.compile_strategy));
     return ret;
   }
 
@@ -1768,7 +1771,7 @@ Status OpCompiler::ReCompileOpAfterLxFusion(ge::ComputeGraph &graph, CompileInfo
   return SUCCESS;
 }
 
-Status OpCompiler::GenerateFormatTuneResult(ge::ComputeGraph& graph, LxFusionOptimizeResult& buffer_ret,
+Status OpCompiler::GenerateFormatTuneResult(ge::ComputeGraph &graph, LxFusionOptimizeResult &buffer_ret,
                                             const bool &need_re_compile) const {
   std::string aoe_type = "";
   bool need_re_precompile = false;
@@ -1783,7 +1786,7 @@ Status OpCompiler::GenerateFormatTuneResult(ge::ComputeGraph& graph, LxFusionOpt
     }
   }
   if (buffer_ret != LxFusionOptimizeResult::NO_FUSION_STRATEGY) {
-    (void) ge::AttrUtils::SetBool(graph, NEED_RE_PRECOMPILE, true);
+    (void)ge::AttrUtils::SetBool(graph, NEED_RE_PRECOMPILE, true);
     ge::GraphUtils::DumpGEGraph(graph.shared_from_this(), "AfterBufferFusion");
     ge::GraphUtils::DumpGEGraphToOnnx(graph, "AfterBufferFusion");
   } else if (buffer_ret == LxFusionOptimizeResult::NO_FUSION_STRATEGY && need_re_compile) {

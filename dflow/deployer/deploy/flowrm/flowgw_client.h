@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,12 +22,7 @@
 #include "proto/deployer.pb.h"
 
 namespace ge {
-enum class GrantType {
-  kReadOnly = 0,
-  kWriteOnly,
-  kReadAndWrite,
-  kInvalid
-};
+enum class GrantType { kReadOnly = 0, kWriteOnly, kReadAndWrite, kInvalid };
 
 enum class ExchangeEndpointType : int32_t {
   kEndpointTypeNone = -1,
@@ -71,14 +66,12 @@ struct ExchangeEndpoint {
     std::string key;
     if ((type == ExchangeEndpointType::kEndpointTypeQueue) ||
         (type == ExchangeEndpointType::kEndpointTypeExternalQueue)) {
-      key = "queue:" + std::to_string(id) + ", " +
-            "device_id:" + std::to_string(device_id) + ", " +
+      key = "queue:" + std::to_string(id) + ", " + "device_id:" + std::to_string(device_id) + ", " +
             "device_type:" + std::to_string(device_type);
     } else if (type == ExchangeEndpointType::kEndpointTypeTag) {
       key = "tag:" + std::to_string(id) + ", rank:" + std::to_string(rank_id) + "->" + std::to_string(peer_rank_id);
     } else if (type == ExchangeEndpointType::kEndpointTypeGroup) {
-      key = "group:" + std::to_string(id) + ", " +
-            "device_id:" + std::to_string(device_id) + ", " +
+      key = "group:" + std::to_string(id) + ", " + "device_id:" + std::to_string(device_id) + ", " +
             "device_type:" + std::to_string(device_type);
     } else {
       // do nothing
@@ -87,32 +80,28 @@ struct ExchangeEndpoint {
   }
 
   std::string DebugString() const {
-    std::string debug = "id:" + std::to_string(id) + ", " +
-                        "name:" + name + ", " +
-                        "node_id:" + std::to_string(node_id) + ", " +
-                        "device_id:" + std::to_string(device_id) + ", " +
-                        "device_type:" + std::to_string(device_type) + ", " +
-                        "is_need_del:" + std::to_string(is_del);
+    std::string debug = "id:" + std::to_string(id) + ", " + "name:" + name + ", " +
+                        "node_id:" + std::to_string(node_id) + ", " + "device_id:" + std::to_string(device_id) + ", " +
+                        "device_type:" + std::to_string(device_type) + ", " + "is_need_del:" + std::to_string(is_del);
     if ((type == ExchangeEndpointType::kEndpointTypeQueue) ||
         (type == ExchangeEndpointType::kEndpointTypeExternalQueue)) {
       debug += ", type:queue info";
     } else if (type == ExchangeEndpointType::kEndpointTypeTag) {
-      debug += (", type:tag info"
-                ", handle:" + std::to_string(hcom_handle) +
-                ", tag_id:" + std::to_string(tag_id) +
-                ", peer_tag_id:" + std::to_string(peer_tag_id) +
-                ", rank_id:" + std::to_string(rank_id) +
-                ", peer_rank_id:" + std::to_string(peer_rank_id) +
-                ", peer_node_id:" + std::to_string(peer_node_id) +
-                ", peer_device_id:" + std::to_string(peer_device_id) +
-                ", peer_device_type:" + std::to_string(peer_device_type));
+      debug +=
+          (", type:tag info"
+           ", handle:" +
+           std::to_string(hcom_handle) + ", tag_id:" + std::to_string(tag_id) +
+           ", peer_tag_id:" + std::to_string(peer_tag_id) + ", rank_id:" + std::to_string(rank_id) +
+           ", peer_rank_id:" + std::to_string(peer_rank_id) + ", peer_node_id:" + std::to_string(peer_node_id) +
+           ", peer_device_id:" + std::to_string(peer_device_id) +
+           ", peer_device_type:" + std::to_string(peer_device_type));
     } else if (type == ExchangeEndpointType::kEndpointTypeGroup) {
-      debug += ", type:group info"
-                ", elements indices:" + ToString(endpoint_indices) +
-                ", instance_num:" + std::to_string(instance_num) +
-                ", instance_idx:" + std::to_string(instance_idx) +
-                ", is_dynamic_sched:" + std::to_string(is_dynamic_sched) +
-                ", root_model_id:" + std::to_string(root_model_id);
+      debug +=
+          ", type:group info"
+          ", elements indices:" +
+          ToString(endpoint_indices) + ", instance_num:" + std::to_string(instance_num) +
+          ", instance_idx:" + std::to_string(instance_idx) + ", is_dynamic_sched:" + std::to_string(is_dynamic_sched) +
+          ", root_model_id:" + std::to_string(root_model_id);
     } else {
       // do nothing
     }
@@ -150,11 +139,11 @@ class FlowGwClient {
 
   Status Finalize();
 
-  Status BindQueues(const std::vector<std::pair<const ExchangeEndpoint *,
-                                                const ExchangeEndpoint *>> &queue_routes) const;
+  Status BindQueues(
+      const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) const;
 
-  Status UnbindQueues(const std::vector<std::pair<const ExchangeEndpoint *,
-                                                  const ExchangeEndpoint *>> &queue_routes) const;
+  Status UnbindQueues(
+      const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) const;
 
   virtual ProcStatus GetSubProcStat() const;
 
@@ -166,8 +155,7 @@ class FlowGwClient {
 
   Status WaitConfigEffect();
 
-  Status CreateFlowGwGroup(const std::vector<const ExchangeEndpoint *> &endpoint_list,
-                           int32_t &group_id) const;
+  Status CreateFlowGwGroup(const std::vector<const ExchangeEndpoint *> &endpoint_list, int32_t &group_id) const;
 
   Status DestroyFlowGwGroup(int32_t group_id) const;
 
@@ -186,9 +174,9 @@ class FlowGwClient {
     rank_id_ = rank_id;
   }
 
-  static void PrintFlowRoute(const std::vector<std::pair<const ExchangeEndpoint *,
-                                                         const ExchangeEndpoint *>> &queue_routes,
-                             bool print_error = true);
+  static void PrintFlowRoute(
+      const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
+      bool print_error = true);
 
   Status ConfigSchedInfoToDataGw(const uint32_t device_id, const int32_t input_indice, const uint32_t input,
                                  const uint32_t output, const uint32_t root_model_id, const bool is_proxy) const;
@@ -196,9 +184,10 @@ class FlowGwClient {
 
   Status ClearFlowgwModelData(const std::set<uint32_t> &model_ids, const int32_t type);
 
-  Status UpdateExceptionRoutes(const std::vector<std::pair<const ExchangeEndpoint *,
-                               const ExchangeEndpoint *>> &queue_routes,
-                               std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const;
+  Status UpdateExceptionRoutes(
+      const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
+      std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const;
+
  protected:
   virtual int32_t KillProcess(pid_t pid, int32_t signal);
 
@@ -218,25 +207,21 @@ class FlowGwClient {
   static Status ToVisibleDeviceId(const std::vector<int32_t> &logical_device_ids,
                                   std::vector<int32_t> &visible_device_ids);
 
-  Status GrantQueueForRoute(const std::pair<const ExchangeEndpoint *,
-                                            const ExchangeEndpoint *> &queue_route) const;
+  Status GrantQueueForRoute(const std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *> &queue_route) const;
 
   static std::string FormatListParam(const std::vector<int32_t> &list);
 
   bqs::Endpoint ToFlowGwEndpoint(const ExchangeEndpoint &endpoint) const;
 
-  void ToFlowGwRoutes(
-      const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes,
-      std::vector<bqs::Route> &flowgw_routes) const;
+  void ToFlowGwRoutes(const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
+                      std::vector<bqs::Route> &flowgw_routes) const;
 
   void ToFlowGwEndpoints(const std::vector<const ExchangeEndpoint *> &endpoints,
                          std::vector<bqs::Endpoint> &flowgw_endpoints) const;
 
   static Status FillCommChannelAttrEndpoint(const ExchangeEndpoint &endpoint, bqs::Endpoint &ret);
 
-  ExchangeEndpoint *GetEndpoint(std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints,
-                                int32_t index) const;
+  ExchangeEndpoint *GetEndpoint(std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints, int32_t index) const;
 
   Status UpdateGroupRoute(const ExchangeEndpoint *group_endpoint,
                           std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) const;
@@ -259,5 +244,5 @@ class FlowGwClient {
   std::string rank_table_;
   int32_t rank_id_ = -1;
 };
-}
-#endif // AIR_RUNTIME_HETEROGENEOUS_FLOWRM_FLOWGW_CLIENT_H_
+}  // namespace ge
+#endif  // AIR_RUNTIME_HETEROGENEOUS_FLOWRM_FLOWGW_CLIENT_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,12 +50,7 @@ struct SharedConstantCopyHelper {
 };
 
 class GraphVarVisitor : public gert::RtVarManager {
-  enum class VariablePlacement {
-    kOnHost,
-    kOnDeviceHbm,
-    kOnDeviceRdma,
-    kVariablePlacementEnd
-  };
+  enum class VariablePlacement { kOnHost, kOnDeviceHbm, kOnDeviceRdma, kVariablePlacementEnd };
   struct Variable {
     VariablePlacement placement;
     GeTensorDesc desc;
@@ -85,9 +80,7 @@ class GraphVarVisitor : public gert::RtVarManager {
   Status GetVarDeviceInstance(const ge::NodePtr &node, Variable &var_instance);
 
  private:
-  void *GetOrCreateVarMem(const std::string &var_name,
-                          const OpDescPtr &var_desc,
-                          const rtMemType_t memory_type) const;
+  void *GetOrCreateVarMem(const std::string &var_name, const OpDescPtr &var_desc, const rtMemType_t memory_type) const;
 
   Status LoadFileConstantToAddr(const ge::OpDescPtr &op_desc, const Variable &var_instance) const;
   Status LoadFileConstantToDevice(const ExternalWeightManagerPtr &manager, const uint32_t device_id,
@@ -123,17 +116,16 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
       (void)mmClose(guard_check_info_.guard_so_fd);
     }
   }
-  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs,
-                            std::shared_ptr<ModelListener> listener) override;
+  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs, std::shared_ptr<ModelListener> listener) override;
   Status Init(CallbackManager *const callback_manager = nullptr) override;
   Status ExecuteWithStreamAsync(const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs,
                                 const aclrtStream stream = nullptr) override;
-  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                std::vector<gert::Tensor> &outputs, const aclrtStream stream) override;
+  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
+                                const aclrtStream stream) override;
   Status Execute(const InputData &input_data, ExecuteArgs &args);
   Status Execute(ExecuteArgs &args) override;
   Status Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) override;
+                 CtrlArgs &ctrl_args) override;
   void ResetMemcpyBatchParams();
   void Stop() override;
   bool NeedBuildDeviceTensorAsOutput() const override;
@@ -141,11 +133,12 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
                            std::vector<ge::Tensor> &outputs) const override;
   Status StepDone() const;
   void StepDoneV2();
-  GraphExecutionContext* GetContext() override {
+  GraphExecutionContext *GetContext() override {
     return &context_;
   }
   Status HandleResult(const Status exec_ret, const uint32_t data_id, HybridModelExecutor::CtrlArgs &ctrl_args,
-    std::vector<gert::Tensor> &outputs, std::shared_ptr<ModelListener> listener) const override;
+                      std::vector<gert::Tensor> &outputs, std::shared_ptr<ModelListener> listener) const override;
+
  private:
   Status LoadGuardFunc(const ge::ComputeGraphPtr &graph);
   Status CheckGuard();
@@ -155,7 +148,7 @@ class HybridModelRtV2Executor : public HybridModelExecutor {
   Status CheckInputIsOnDevice();
   void InitHostInputFlags(const ge::ComputeGraphPtr &root_graph);
   Status InitModelIdentity(const std::shared_ptr<ge::GeRootModel> &ge_root_model,
-                         const ge::ComputeGraphPtr &root_graph);
+                           const ge::ComputeGraphPtr &root_graph);
   Status InitExecutorAndProfiler(const std::shared_ptr<ge::GeRootModel> &ge_root_model);
   Status InitIoDescriptors(const ge::ComputeGraphPtr &root_graph);
   Status InitModelArgsAndLoad();

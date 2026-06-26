@@ -17,13 +17,12 @@
 #include "graph/ascend_string.h"
 #include "graph/ge_error_codes.h"
 
-
 namespace ge {
 class CustomOpRegistry;
 using CustomOpRegistryPtr = std::shared_ptr<CustomOpRegistry>;
 
 class CustomOpFactory {
-public:
+ public:
   static graphStatus RegisterCustomOpCreator(const AscendString &op_type, const BaseOpCreator &op_creator);
 
   static BaseCustomOp *CreateOrGetCustomOp(const AscendString &op_type);
@@ -37,8 +36,9 @@ public:
   static graphStatus LoadCustomOpsPartition(const uint8_t *data, size_t len);
 
   static bool IsAddressRefreshable(const AscendString &op_type);
+
  private:
   static CustomOpRegistry &GetGlobalRegistry();
 };
-} // namespace ge
+}  // namespace ge
 #endif  // CANN_GRAPH_ENGINE_CUSTOM_OP_REGISTRY_H

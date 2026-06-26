@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -300,7 +300,8 @@ void RunIfGraphWithDataDump(TensorHolder &pred_tensor, bool expect_branch) {
   aclrtDestroyStream(stream);
 }
 
-std::unique_ptr<ModelV2Executor> BuildModelV2ExecutorWithStaticSubGraph(ge::GeRootModelPtr &root_model, GlobalDataFaker &faker,
+std::unique_ptr<ModelV2Executor> BuildModelV2ExecutorWithStaticSubGraph(ge::GeRootModelPtr &root_model,
+                                                                        GlobalDataFaker &faker,
                                                                         ge::ComputeGraphPtr &graph) {
   GertRuntimeStub fakeRuntime;
   auto global_data = faker.FakeWithoutHandleAiCore("Conv2d", false).Build();
@@ -324,8 +325,8 @@ bool CheckLogExpected(std::vector<OneLog> &logs, const std::string &expect_log) 
 class ThirdAicpuLaunchStub : public ge::RuntimeStub {
  public:
   rtError_t rtAicpuKernelLaunchExWithArgs(uint32_t kernelType, const char *opName, uint32_t blockDim,
-                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                          rtStream_t stream, uint32_t flags) override {
+                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                                          uint32_t flags) override {
     if (opName == string("nonzero")) {
       EXPECT_EQ(argsInfo->kernelOffsetInfoNum, 2);
       EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].addrOffset, 80);
@@ -338,11 +339,12 @@ class ThirdAicpuLaunchStub : public ge::RuntimeStub {
 };
 }  // namespace
 class BuiltinSubscribersST : public bg::BgTest {
-  void SetUp() override {
-  }
+  void SetUp() override {}
+
  public:
   void BuildExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
     auto graph = ShareGraph::BuildSingleNodeGraph();
     graph->TopologicalSorting();
     GeModelBuilder builder(graph);
@@ -357,7 +359,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     GertRuntimeStub fakeRuntime;
     fakeRuntime.GetKernelStub().StubTiling();
     ge::GeRootModelPtr root_model = std::make_shared<ge::GeRootModel>();
-    ge::AttrUtils::SetBool(graph,  ge::ATTR_SINGLE_OP_SCENE, true);
+    ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
     root_model->SetRootGraph(graph);
     ge::ModelData model_data{};
     root_model->SetModelName("test_model");
@@ -366,8 +368,9 @@ class BuiltinSubscribersST : public bg::BgTest {
     ASSERT_NE(model_executor, nullptr);
   }
 
-    void BuildAclnnExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+  void BuildAclnnExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
     auto graph = ShareGraph::BuildSingleNodeGraph();
     graph->TopologicalSorting();
     GeModelBuilder builder(graph);
@@ -382,22 +385,25 @@ class BuiltinSubscribersST : public bg::BgTest {
     GertRuntimeStub fakeRuntime;
     fakeRuntime.GetKernelStub().StubTiling();
     ge::GeRootModelPtr root_model = std::make_shared<ge::GeRootModel>();
-    ge::AttrUtils::SetBool(graph,  ge::ATTR_SINGLE_OP_SCENE, true);
+    ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
     root_model->SetRootGraph(graph);
     ge::ModelData model_data{};
     root_model->SetModelName("test_model");
     model_data.om_name = "test";
     model_executor = ModelV2Executor::Create(exe_graph, model_data, ge_root_model);
-    auto execution_data = reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+    auto execution_data =
+        reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
     for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
-      const_cast<KernelExtendInfo *>(reinterpret_cast<const KernelExtendInfo *>(
-        execution_data->base_ed.nodes[i]->context.kernel_extend_info))->SetKernelType("ExecuteOpFunc");
+      const_cast<KernelExtendInfo *>(
+          reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info))
+          ->SetKernelType("ExecuteOpFunc");
     }
     ASSERT_NE(model_executor, nullptr);
   }
 
   void BuildHcclExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
     auto graph = ShareGraph::BuildSingleHcclNodeGraph();
     graph->TopologicalSorting();
     GeModelBuilder builder(graph);
@@ -409,7 +415,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     GertRuntimeStub fakeRuntime;
     fakeRuntime.GetKernelStub().StubTiling();
     ge::GeRootModelPtr root_model = std::make_shared<ge::GeRootModel>();
-    ge::AttrUtils::SetBool(graph,  ge::ATTR_SINGLE_OP_SCENE, true);
+    ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
     root_model->SetRootGraph(graph);
     ge::ModelData model_data{};
     model_data.om_name = "test";
@@ -417,7 +423,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     ASSERT_NE(model_executor, nullptr);
   }
 
-  std::unique_ptr<ModelV2Executor> BuildExecutor(LoweringOption option={}) {
+  std::unique_ptr<ModelV2Executor> BuildExecutor(LoweringOption option = {}) {
     std::unique_ptr<ModelV2Executor> model_executor;
     BuildExecutorInner(model_executor, option);
     // turn off profiling to prevent other cases from being affected
@@ -425,7 +431,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     return model_executor;
   }
 
-  std::unique_ptr<ModelV2Executor> BuildHcclExecutor(LoweringOption option={}) {
+  std::unique_ptr<ModelV2Executor> BuildHcclExecutor(LoweringOption option = {}) {
     std::unique_ptr<ModelV2Executor> model_executor;
     BuildHcclExecutorInner(model_executor, option);
     // turn off profiling to prevent other cases from being affected
@@ -433,7 +439,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     return model_executor;
   }
 
-    std::unique_ptr<ModelV2Executor> BuildAclnnExecutor(LoweringOption option={}) {
+  std::unique_ptr<ModelV2Executor> BuildAclnnExecutor(LoweringOption option = {}) {
     std::unique_ptr<ModelV2Executor> model_executor;
     BuildAclnnExecutorInner(model_executor, option);
     // turn off profiling to prevent other cases from being affected
@@ -443,7 +449,8 @@ class BuiltinSubscribersST : public bg::BgTest {
 
   void BuildAicpuExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option,
                                int32_t k_class_shape) {
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
     auto graph = ShareGraph::BuildBlockGraph();
     graph->TopologicalSorting();
     auto add_node = graph->FindFirstNodeMatchType("Add");
@@ -461,7 +468,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     GertRuntimeStub fakeRuntime;
     fakeRuntime.GetKernelStub().StubTiling();
     ge::GeRootModelPtr root_model = std::make_shared<ge::GeRootModel>();
-    ge::AttrUtils::SetBool(graph,  ge::ATTR_SINGLE_OP_SCENE, true);
+    ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
     root_model->SetRootGraph(graph);
     ge::ModelData model_data{};
     root_model->SetModelName("test_model");
@@ -469,7 +476,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     model_executor = ModelV2Executor::Create(exe_graph, model_data, ge_root_model);
     ASSERT_NE(model_executor, nullptr);
   }
-  std::unique_ptr<ModelV2Executor> BuildAicpuExecutor(int32_t k_class_shape, LoweringOption option={}) {
+  std::unique_ptr<ModelV2Executor> BuildAicpuExecutor(int32_t k_class_shape, LoweringOption option = {}) {
     std::unique_ptr<ModelV2Executor> model_executor;
     BuildAicpuExecutorInner(model_executor, option, k_class_shape);
     // turn off profiling to prevent other cases from being affected
@@ -517,7 +524,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     return model_executor;
   }
 
-  void TestNormalExceptionDump(){
+  void TestNormalExceptionDump() {
     setenv("NPU_COLLECT_PATH_EXE", "dump", true);
     setenv("ASCEND_SLOG_PRINT_TO_STDOUT", "1", true);
     ge::diagnoseSwitch::EnableExceptionDump();
@@ -532,16 +539,19 @@ class BuiltinSubscribersST : public bg::BgTest {
     fakeRuntime.GetSlogStub().Clear();
     fakeRuntime.GetSlogStub().SetLevel(DLOG_INFO);
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+              nullptr);
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
 
     //  check turn off dumper
     ge::diagnoseSwitch::DisableDumper();
-    EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+    EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+              nullptr);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
     aclrtDestroyStream(stream);
     unsetenv("NPU_COLLECT_PATH_EXE");
@@ -557,7 +567,7 @@ class BuiltinSubscribersST : public bg::BgTest {
     ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
     GlobalDumper::GetInstance()->ClearInnerExceptionDumpers();
     GlobalProfilingWrapper::GetInstance()->Free();
-    ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId); // need clear otherwise cannot emplace
+    ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId);  // need clear otherwise cannot emplace
   }
 };
 
@@ -650,7 +660,7 @@ TEST_F(BuiltinSubscribersST, SetAscendWorkPath_ProfilingOk) {
   unsetenv("ASCEND_WORK_PATH");
 }
 
-TEST_F(BuiltinSubscribersST, DataDump_Ok)  {
+TEST_F(BuiltinSubscribersST, DataDump_Ok) {
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
   auto model_executor = BuildExecutor();
   RtSession session;
@@ -669,7 +679,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok)  {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -697,12 +708,13 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok)  {
   EXPECT_EQ(task.output().at(0).shape().dim(0), 2048UL);
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
 
-TEST_F(BuiltinSubscribersST, DataDumpWithOpRange_Ok)  {
+TEST_F(BuiltinSubscribersST, DataDumpWithOpRange_Ok) {
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
   auto model_executor = BuildExecutor();
   RtSession session;
@@ -721,7 +733,8 @@ TEST_F(BuiltinSubscribersST, DataDumpWithOpRange_Ok)  {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   std::vector<std::pair<std::string, std::string>> op_ranges = {{"add1", "add1"}};
@@ -732,7 +745,7 @@ TEST_F(BuiltinSubscribersST, DataDumpWithOpRange_Ok)  {
   ge::DumpManager::GetInstance().AddDumpProperties(session.GetSessionId(), dump_properties);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-                                    ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
   ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId);
   ge::DumpManager::GetInstance().RemoveDumpProperties(session.GetSessionId());
 }
@@ -749,8 +762,7 @@ TEST_F(BuiltinSubscribersST, DataDumpByOriginalName_Ok) {
   tensor_holder.MutableTensorData() = TensorData{(void *)1024, nullptr, 0, kOnDeviceHbm};
   GertTensorData tensor_data;
   TensorUtils::RefTdToGtd(tensor_holder.MutableTensorData(), -1, tensor_data);
-  auto context_holder_1 =
-      KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
+  auto context_holder_1 = KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
   std::string node_name = "add1";
   const auto iter = dumper->node_names_to_dump_units_.find(node_name);
   EXPECT_NE(iter, dumper->node_names_to_dump_units_.end());
@@ -794,7 +806,7 @@ TEST_F(BuiltinSubscribersST, OverflowDump_AicoreOp) {
   ge::diagnoseSwitch::EnableOverflowDump();
   mmSetEnv("SYNCSTREAM_OVERFLOW_RET", "aicore", 1);  // for rtStreamSynchronizeWithTimeout stub
   ge::DumpProperties dump_properties;
-  dump_properties.InitInferOpDebug(); // open debug dump
+  dump_properties.InitInferOpDebug();  // open debug dump
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(ge::DumpManager::GetInstance().GetDumpProperties(0).IsOpDebugOpen(), true);
 
@@ -811,7 +823,8 @@ TEST_F(BuiltinSubscribersST, OverflowDump_AicoreOp) {
   auto outputs = FakeTensors({2048}, 1, (void *)mem_block_1.get());
   auto inputs = FakeTensors({2048}, 2, (void *)mem_block_2.get());
 
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
@@ -861,7 +874,7 @@ TEST_F(BuiltinSubscribersST, OverflowDump_ExecuteFuncOp) {
   ge::diagnoseSwitch::EnableOverflowDump();
   mmSetEnv("SYNCSTREAM_OVERFLOW_RET", "aicore", 1);  // for rtStreamSynchronizeWithTimeout stub
   ge::DumpProperties dump_properties;
-  dump_properties.InitInferOpDebug(); // open debug dump
+  dump_properties.InitInferOpDebug();  // open debug dump
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(ge::DumpManager::GetInstance().GetDumpProperties(0).IsOpDebugOpen(), true);
 
@@ -879,7 +892,8 @@ TEST_F(BuiltinSubscribersST, OverflowDump_ExecuteFuncOp) {
   auto inputs = FakeTensors({2048}, 2, (void *)mem_block_2.get());
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
 
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
@@ -928,7 +942,7 @@ TEST_F(BuiltinSubscribersST, OverflowDump_ExecuteFuncOp) {
 TEST_F(BuiltinSubscribersST, OverflowDump_NoDumpDataInfo_AicpuOpNotOverflow) {
   ge::diagnoseSwitch::EnableOverflowDump();
   ge::DumpProperties dump_properties;
-  dump_properties.InitInferOpDebug(); // open debug dump
+  dump_properties.InitInferOpDebug();  // open debug dump
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(ge::DumpManager::GetInstance().GetDumpProperties(0).IsOpDebugOpen(), true);
 
@@ -944,7 +958,8 @@ TEST_F(BuiltinSubscribersST, OverflowDump_NoDumpDataInfo_AicpuOpNotOverflow) {
   auto outputs = FakeTensors({2}, 1);
   auto inputs = FakeTensors({2048, 2, 3, 4}, 2);
 
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
@@ -980,7 +995,7 @@ TEST_F(BuiltinSubscribersST, OverflowDump_AicpuOverflow) {
   mmSetEnv("SYNCSTREAM_OVERFLOW_RET", "aicpu", 1);  // for rtStreamSynchronizeWithTimeout stub
   ge::diagnoseSwitch::EnableOverflowDump();
   ge::DumpProperties dump_properties;
-  dump_properties.InitInferOpDebug(); // open debug dump
+  dump_properties.InitInferOpDebug();  // open debug dump
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(ge::DumpManager::GetInstance().GetDumpProperties(0).IsOpDebugOpen(), true);
 
@@ -998,7 +1013,8 @@ TEST_F(BuiltinSubscribersST, OverflowDump_AicpuOverflow) {
   auto outputs = FakeTensors({2048}, 1, (void *)mem_block_1.get());
   auto inputs = FakeTensors({2048}, 2, (void *)mem_block_2.get());
 
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
             ge::GRAPH_SUCCESS);
@@ -1038,8 +1054,7 @@ TEST_F(BuiltinSubscribersST, OverflowDump_NoDataDump_ComputeNodeInfoIsNullptr) {
   tensor_holder.MutableTensorData() = TensorData{(void *)1024, nullptr, 0, kOnDeviceHbm};
   GertTensorData tensor_data;
   TensorUtils::RefTdToGtd(tensor_holder.MutableTensorData(), -1, tensor_data);
-  auto context_holder_1 =
-      KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
+  auto context_holder_1 = KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
   auto &node_add_dump_unit = dumper->node_names_to_dump_units_["add1"];
   node_add_dump_unit.output_addrs[0] = context_holder_1.GetContext<KernelContext>()->GetOutput(1);
   node_add_dump_unit.input_addrs[0] = context_holder_1.GetContext<KernelContext>()->GetOutput(1);
@@ -1047,22 +1062,22 @@ TEST_F(BuiltinSubscribersST, OverflowDump_NoDataDump_ComputeNodeInfoIsNullptr) {
   gert::StorageShape x2_shape = {{4, 8, 16, 1, 1}, {4, 8, 16, 1, 1, 1, 1}};
   gert::StorageShape x1_shape = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}};
   auto context_holder_2 = KernelRunContextFaker()
-      .Inputs({&x1_shape})
-      .Outputs({&x2_shape})
-      .KernelIONum(1, 1)
-      .NodeIoNum(1, 1)
-      .IrInstanceNum({1})
-      .Build();
+                              .Inputs({&x1_shape})
+                              .Outputs({&x2_shape})
+                              .KernelIONum(1, 1)
+                              .NodeIoNum(1, 1)
+                              .IrInstanceNum({1})
+                              .Build();
   node_add_dump_unit.output_shapes[0] = context_holder_2.GetContext<KernelContext>()->GetOutput(0);
   node_add_dump_unit.input_shapes[0] = const_cast<Chain *>(context_holder_2.GetContext<KernelContext>()->GetInput(0));
   node_add_dump_unit.input_shapes[1] = const_cast<Chain *>(context_holder_2.GetContext<KernelContext>()->GetInput(0));
 
   auto kernel_launch_context_holder = KernelRunContextFaker()
-      .NodeName("add1")
-      .KernelIONum(2, 1)
-      .KernelType("LaunchKernelWithHandle")
-      .KernelName("Add_LaunchKernelWithHandle")
-      .Build();
+                                          .NodeName("add1")
+                                          .KernelIONum(2, 1)
+                                          .KernelType("LaunchKernelWithHandle")
+                                          .KernelName("Add_LaunchKernelWithHandle")
+                                          .Build();
   Node add_kernel_launch_node{"", 0, nullptr, *kernel_launch_context_holder.GetContext<KernelRunContext>()};
   for (auto &kernel_name_and_exe_node : dumper->kernel_names_to_exe_nodes_) {
     if (!FindKernelNameByStartKeyWord(kernel_name_and_exe_node.first, "LaunchKernelWithHandle").empty()) {
@@ -1112,22 +1127,22 @@ TEST_F(BuiltinSubscribersST, OverflowDump_NoDataDump_ComputeNodeInfoIsNullptr) {
 }
 
 /**
-* 用例描述：使能总是零拷贝情况下dump
-*
-* 预置条件：
-* 1. 包含fake Add算子的v2执行器
-*
-* 测试步骤：
-* 1. 构造单算子Add的计算图
-* 2. lowering、加载计算图
-* 3. 使能data dump
-* 4. 构造输入Tensor，shape为[2048]，输出Tensor的shape为[2048]，执行
-*
-* 预期结果：
-* 1. 执行成功
-* 2. 校验传入aicpu launch接口的地址与add算子的输入输出地址一致
-* 3. 校验传入aicpu launch接口的shape与add算子的shape一致
-*/
+ * 用例描述：使能总是零拷贝情况下dump
+ *
+ * 预置条件：
+ * 1. 包含fake Add算子的v2执行器
+ *
+ * 测试步骤：
+ * 1. 构造单算子Add的计算图
+ * 2. lowering、加载计算图
+ * 3. 使能data dump
+ * 4. 构造输入Tensor，shape为[2048]，输出Tensor的shape为[2048]，执行
+ *
+ * 预期结果：
+ * 1. 执行成功
+ * 2. 校验传入aicpu launch接口的地址与add算子的输入输出地址一致
+ * 3. 校验传入aicpu launch接口的shape与add算子的shape一致
+ */
 TEST_F(BuiltinSubscribersST, DataDump_Ok_EnableAlwaysZeroCopy) {
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
   auto model_executor = BuildExecutor({.trust_shape_on_out_tensor = true, .always_zero_copy = true});
@@ -1151,7 +1166,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_EnableAlwaysZeroCopy) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -1184,7 +1200,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_EnableAlwaysZeroCopy) {
 
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1206,7 +1223,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_WithHostAddr) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -1235,7 +1253,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_WithHostAddr) {
   EXPECT_EQ(task.output().at(0).shape().dim(0), 2048UL);
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1263,7 +1282,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Workspace_Ok) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -1293,7 +1313,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Workspace_Ok) {
   }
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1313,7 +1334,8 @@ TEST_F(BuiltinSubscribersST, ExceptionDump_Workspace_Ok) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableExceptionDump();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
@@ -1324,7 +1346,8 @@ TEST_F(BuiltinSubscribersST, ExceptionDump_Workspace_Ok) {
 
   //  check turn off dumper
   ge::diagnoseSwitch::DisableDumper();
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
   ge::DumpStub::GetInstance().ClearOpInfos();
@@ -1346,11 +1369,12 @@ TEST_F(BuiltinSubscribersST, ExceptionDump_Host_Ok) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::diagnoseSwitch::EnableExceptionDump();
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-  reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-  ge::GRAPH_SUCCESS);
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
 
   Adx::OperatorInfoV2 info;
   EXPECT_TRUE(ge::DumpStub::GetInstance().GetOpInfo(0, 0, 0, info));  // deviceId 0, streamId 0, taskId 0
@@ -1369,7 +1393,6 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_WithControlNodeInExegraph) {
   auto pred_holder = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Value<int32_t>({1}).Build();
   RunIfGraphWithDataDump(pred_holder, true);
 }
-
 
 /**
  * 用例描述：静态子图中的算子发生aic error，能够进行exception dump
@@ -1426,7 +1449,8 @@ static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &no
   DEF_GRAPH(fused_graph) {
     auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-    auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+    auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP)
+                         .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
                          .Attr(ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
     auto conv = OP_CFG("CONV2D_T")
                     .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
@@ -1443,9 +1467,7 @@ static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &no
               ->NODE("sqrt", sqrt)
               ->EDGE(0, 0)
               ->NODE("retVal", ret_val_0));
-    CHAIN(NODE("_arg_in_1", data_1)
-              ->EDGE(0, 1)
-              ->NODE("conv2d", conv));
+    CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
   };
   auto origin_fused_graph = ge::ToComputeGraph(fused_graph);
 
@@ -1478,7 +1500,7 @@ static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &no
   (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
   (void)ge::AttrUtils::SetStr(conv2d_desc, ge::ATTR_NAME_ALIAS_ENGINE_NAME, "mix_l2");
 
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -1519,7 +1541,8 @@ static ge::graphStatus InferShapeTest1(InferShapeContext *context) {
   auto input_shape_1 = *context->GetInputShape(1);
   auto output_shape = context->GetOutputShape(0);
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
-    GELOGE(ge::PARAM_INVALID, "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+    GELOGE(ge::PARAM_INVALID,
+           "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
            context->GetNodeName(), input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
   }
   output_shape->SetDimNum(input_shape_0.GetDimNum());
@@ -1566,7 +1589,7 @@ static void BuildMixL2GraphAndTaskDef(ge::GeRootModelPtr &root_model, LoweringGl
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
@@ -1574,14 +1597,17 @@ static void BuildMixL2GraphAndTaskDef(ge::GeRootModelPtr &root_model, LoweringGl
   global_data = GlobalDataFaker(root_model).Build();
   global_data.AddCompiledResult(node, {{task_def}});
   OpImplSpaceRegistryV2Array space_registry_v2_array;
-  space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)] = DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)] =
+      DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
   global_data.SetSpaceRegistriesV2(space_registry_v2_array);
   (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kUnknownShapeFromFe, true);
-  auto op_impl_func = space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)]->CreateOrGetOpImpl("CONV2D_T");
+  auto op_impl_func =
+      space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)]->CreateOrGetOpImpl("CONV2D_T");
   op_impl_func->infer_shape = InferShapeTest1;
   op_impl_func->tiling = TilingTestSuccess;
   op_impl_func->tiling_parse = TilingParseTEST;
-  space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)]->CreateOrGetOpImpl("SQRT_T")->infer_shape = InferShapeTest2;
+  space_registry_v2_array[static_cast<size_t>(OppImplVersionTag::kOpp)]->CreateOrGetOpImpl("SQRT_T")->infer_shape =
+      InferShapeTest2;
 
   auto infer_fun = [](ge::Operator &op) -> ge::graphStatus {
     const char_t *name = "__output0";
@@ -1613,7 +1639,7 @@ void TestFFTSAutoStaticLowering(ge::ComputeGraphPtr &graph, LoweringGlobalData &
   ModelLoadArg load_arg(&session, {nullptr, 0});
   EXPECT_EQ(model_executor->Load({}, load_arg), ge::GRAPH_SUCCESS);
   FakeTensors inputs = FakeTensors({6, 4, 4, 4}, 2);
-  auto output = TensorFaker().Shape({3,4,4,4}).DataType(ge::DT_INT64).Build();
+  auto output = TensorFaker().Shape({3, 4, 4, 4}).DataType(ge::DT_INT64).Build();
   std::vector<Tensor *> outputs{output.GetTensor()};
 
   rtStream_t stream;
@@ -1621,8 +1647,8 @@ void TestFFTSAutoStaticLowering(ge::ComputeGraphPtr &graph, LoweringGlobalData &
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.data(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                    outputs.size()),
             ge::GRAPH_SUCCESS);
   ess->PrintExecutionSummary();
 
@@ -1646,8 +1672,9 @@ TEST_F(BuiltinSubscribersST, OverflowDumpForMixl2) {
   root_graph->TopologicalSorting();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry());
-  auto exe_graph = GraphConverter().SetModelDescHolder(&model_desc_holder).
-                   ConvertComputeGraphToExecuteGraph(root_graph, global_data);
+  auto exe_graph = GraphConverter()
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(root_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
@@ -1672,7 +1699,8 @@ TEST_F(BuiltinSubscribersST, OverflowDumpForMixl2) {
   dump_properties.InitInferOpDebug();
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.GetTensorList(), outputs.size()),
+            ge::GRAPH_SUCCESS);
 
   ge::diagnoseSwitch::DisableDumper();
   unsetenv("SYNCSTREAM_OVERFLOW_RET");
@@ -1697,8 +1725,9 @@ TEST_F(BuiltinSubscribersST, DataDumpForMixl2) {
   root_graph->TopologicalSorting();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry());
-  auto exe_graph = GraphConverter().SetModelDescHolder(&model_desc_holder).
-      ConvertComputeGraphToExecuteGraph(root_graph, global_data);
+  auto exe_graph = GraphConverter()
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(root_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
 
   auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
@@ -1723,7 +1752,8 @@ TEST_F(BuiltinSubscribersST, DataDumpForMixl2) {
   dump_properties.SetDumpMode("all");
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
   ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                    outputs.GetTensorList(), outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.GetTensorList(), outputs.size()),
+            ge::GRAPH_SUCCESS);
 
   ge::diagnoseSwitch::DisableDumper();
   auto cpu_args = stub.GetRtsRuntimeStub().PopCpuLaunchArgsByKernelName("test_haha");
@@ -1753,7 +1783,9 @@ TEST_F(BuiltinSubscribersST, HostDump_Ok) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
+  ASSERT_NE(
+      model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper),
+      nullptr);
   ge::diagnoseSwitch::EnableHostDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -1772,12 +1804,14 @@ TEST_F(BuiltinSubscribersST, HostDump_Ok) {
 
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
+  EXPECT_NE(
+      model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper),
+      nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
 
-TEST_F(BuiltinSubscribersST, HostDump_NotInStep ) {
+TEST_F(BuiltinSubscribersST, HostDump_NotInStep) {
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
   auto model_executor = BuildExecutor();
   RtSession session{ge::kInferSessionId};
@@ -1794,7 +1828,9 @@ TEST_F(BuiltinSubscribersST, HostDump_NotInStep ) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
+  ASSERT_NE(
+      model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper),
+      nullptr);
   ge::diagnoseSwitch::EnableHostDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -1813,7 +1849,9 @@ TEST_F(BuiltinSubscribersST, HostDump_NotInStep ) {
 
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
+  EXPECT_NE(
+      model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper),
+      nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1854,7 +1892,9 @@ TEST_F(BuiltinSubscribersST, HostDump_Workspace_Ok) {
   EXPECT_FALSE(CheckLogExpected(event_log, expectd_log));
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper), nullptr);
+  EXPECT_NE(
+      model_executor->GetSubscribers().GetBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper),
+      nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1880,16 +1920,16 @@ TEST_F(BuiltinSubscribersST, ExceptionDump_L0_Ok) {
   auto units = ge::DumpStub::GetInstance().GetDynamicUnits();
   ASSERT_EQ(units.size(), 1);
   ASSERT_EQ(units[0].size(), 24);
-  EXPECT_EQ(units[0][0], 8224); // input 1 size
-  EXPECT_EQ(units[0][1], 8224); // input 2 size
-  EXPECT_EQ(units[0][2], 8224); // output 1 size
-  EXPECT_EQ(units[0][3], 4096); // workspace size
+  EXPECT_EQ(units[0][0], 8224);  // input 1 size
+  EXPECT_EQ(units[0][1], 8224);  // input 2 size
+  EXPECT_EQ(units[0][2], 8224);  // output 1 size
+  EXPECT_EQ(units[0][3], 4096);  // workspace size
   // 中间knownworkspace, 不校验
-  EXPECT_EQ(units[0][19], 1); // input 1 dim num
-  EXPECT_EQ(units[0][20], 2048); // input 1 dim
-  EXPECT_EQ(units[0][21], 1); // input 2 dim nume
-  EXPECT_EQ(units[0][22], 2048); // input 2 dim
-  EXPECT_EQ(units[0][23], 0); // output 1 dim num
+  EXPECT_EQ(units[0][19], 1);     // input 1 dim num
+  EXPECT_EQ(units[0][20], 2048);  // input 1 dim
+  EXPECT_EQ(units[0][21], 1);     // input 2 dim nume
+  EXPECT_EQ(units[0][22], 2048);  // input 2 dim
+  EXPECT_EQ(units[0][23], 0);     // output 1 dim num
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1910,7 +1950,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_ByAclSet) {
   rtStream_t stream;
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ge::DumpConfig dump_config;
   dump_config.dump_path = "/test";
   dump_config.dump_mode = "all";
@@ -1938,7 +1979,8 @@ TEST_F(BuiltinSubscribersST, DataDump_Ok_ByAclSet) {
   EXPECT_EQ(task.output().at(0).shape().dim(0), 2048UL);
   //  check turn off dumper
   ge::diagnoseSwitch::MutableDumper().SetEnableFlag(0);
-  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper), nullptr);
+  EXPECT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper),
+            nullptr);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
   ge::DumpManager::GetInstance().RemoveDumpProperties(0);

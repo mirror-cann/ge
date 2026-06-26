@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,17 +101,15 @@ Status SubexpressionMigrationPass::ClassifyInputAnchor(NodePtr &identity_node,
   return SUCCESS;
 }
 
-Status SubexpressionMigrationPass::AddNewIdentityN(NodePtr &old_node,
-                                                   std::vector<int32_t> &input_anchor_index,
+Status SubexpressionMigrationPass::AddNewIdentityN(NodePtr &old_node, std::vector<int32_t> &input_anchor_index,
                                                    const std::string &new_node_name) const {
   auto old_op_desc = old_node->GetOpDesc();
   GE_ASSERT_NOTNULL(old_op_desc);
   std::string identity_name = old_op_desc->GetName() + "_" + IDENTITYN + "_" + new_node_name;
   OpDescBuilder op_desc_builder(identity_name, IDENTITYN);
-  auto identityn_op_desc = op_desc_builder
-      .AddDynamicInput("x", input_anchor_index.size())
-      .AddDynamicOutput("y", input_anchor_index.size())
-      .Build();
+  auto identityn_op_desc = op_desc_builder.AddDynamicInput("x", input_anchor_index.size())
+                               .AddDynamicOutput("y", input_anchor_index.size())
+                               .Build();
   GE_ASSERT_NOTNULL(identityn_op_desc);
   for (size_t i = 0UL; i < input_anchor_index.size(); i++) {
     auto input_desc = old_op_desc->GetInputDesc(input_anchor_index[i]);
@@ -135,11 +133,10 @@ Status SubexpressionMigrationPass::AddNewIdentityN(NodePtr &old_node,
     GE_ASSERT_NOTNULL(old_node_out_anchor);
     auto new_node_in_anchor = new_node->GetInDataAnchor(i);
     auto new_node_out_anchor = new_node->GetOutDataAnchor(i);
-    GE_ASSERT_SUCCESS(GraphUtils::ReplaceEdgeDst(old_node_in_anchor->GetPeerOutAnchor(),
-        old_node_in_anchor, new_node_in_anchor));
+    GE_ASSERT_SUCCESS(
+        GraphUtils::ReplaceEdgeDst(old_node_in_anchor->GetPeerOutAnchor(), old_node_in_anchor, new_node_in_anchor));
     for (auto &peer_out_anchors : old_node_out_anchor->GetPeerInDataAnchors()) {
-      GE_ASSERT_SUCCESS(GraphUtils::ReplaceEdgeSrc(old_node_out_anchor,
-          peer_out_anchors, new_node_out_anchor));
+      GE_ASSERT_SUCCESS(GraphUtils::ReplaceEdgeSrc(old_node_out_anchor, peer_out_anchors, new_node_out_anchor));
     }
   }
   GE_ASSERT_SUCCESS(GraphUtils::CopyInCtrlEdges(old_node, new_node));
@@ -154,8 +151,7 @@ Status SubexpressionMigrationPass::SplitIdentityN(ComputeGraphPtr &graph) {
     }
     std::vector<int32_t> data_input_anchor_index;
     std::vector<int32_t> non_data_input_anchor_index;
-    GE_ASSERT_SUCCESS(ClassifyInputAnchor(node, data_input_anchor_index,
-        non_data_input_anchor_index));
+    GE_ASSERT_SUCCESS(ClassifyInputAnchor(node, data_input_anchor_index, non_data_input_anchor_index));
     if (non_data_input_anchor_index.empty() || data_input_anchor_index.empty()) {
       continue;
     }
@@ -227,16 +223,15 @@ Status SubexpressionMigrationPass::Run(ComputeGraphPtr graph) {
 /// @param [out] graph_nodes: Data groups of subgraph.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status SubexpressionMigrationPass::ClassifyDataNodes(
-    const ComputeGraphPtr &graph, const OpDescPtr &func_desc,
-    OrderedGraphToNodes &graph_nodes) const {
+Status SubexpressionMigrationPass::ClassifyDataNodes(const ComputeGraphPtr &graph, const OpDescPtr &func_desc,
+                                                     OrderedGraphToNodes &graph_nodes) const {
   for (const auto &name : func_desc->GetSubgraphInstanceNames()) {
     const auto &subgraph = graph->GetSubgraph(name);
     if (subgraph == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Get subgraph from graph:%s by name:%s failed",
-                         graph->GetName().c_str(), name.c_str());
-      GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] from graph:%s by name:%s failed",
-             graph->GetName().c_str(), name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get subgraph from graph:%s by name:%s failed", graph->GetName().c_str(),
+                           name.c_str());
+      GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] from graph:%s by name:%s failed", graph->GetName().c_str(),
+             name.c_str());
       return GE_GRAPH_EMPTY_SUBGRAPH;
     }
 
@@ -250,7 +245,7 @@ Status SubexpressionMigrationPass::ClassifyDataNodes(
       uint32_t parent_index = 0;
       if (!AttrUtils::GetInt(data->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
         REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                          data->GetName().c_str(), data->GetType().c_str());
+                             data->GetName().c_str(), data->GetType().c_str());
         GELOGE(FAILED, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
                data->GetName().c_str(), data->GetType().c_str());
         return FAILED;
@@ -284,8 +279,8 @@ bool SubexpressionMigrationPass::GetAssociatedNodes(const NodePtr &node, std::ma
     GE_ASSERT_NOTNULL(in_anchor);
     const auto &out_anchor = in_anchor->GetPeerOutAnchor();
     if (out_anchor == nullptr) {
-        inputs[i] = kInvalidParent;
-        continue;
+      inputs[i] = kInvalidParent;
+      continue;
     }
 
     // Has none Data input node, Cannot move to parent.
@@ -319,9 +314,8 @@ bool SubexpressionMigrationPass::GetAssociatedNodes(const NodePtr &node, std::ma
 /// @param [in] anchor_idx: Anchor index of node.
 /// @return true: Same / false: not same
 ///
-bool SubexpressionMigrationPass::IsParallelNodeSame(
-    const OrderedGraphToNodes &graph_nodes,
-    const NodePtr &base_node, uint32_t node_idx, uint32_t anchor_idx) const {
+bool SubexpressionMigrationPass::IsParallelNodeSame(const OrderedGraphToNodes &graph_nodes, const NodePtr &base_node,
+                                                    uint32_t node_idx, uint32_t anchor_idx) const {
   auto it = graph_nodes.begin();
   for (++it; it != graph_nodes.end(); ++it) {
     const auto &data_nodes = it->second;
@@ -343,7 +337,7 @@ bool SubexpressionMigrationPass::IsParallelNodeSame(
     const auto &in_anchor = in_anchors.at(anchor_idx);
     if (in_anchor == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "Index:%u anchor does not exist in out:%u data anchor's peer of node:%s(%s)",
-                         node_idx, kDataOutIndex, work_data->GetName().c_str(), work_data->GetType().c_str());
+                           node_idx, kDataOutIndex, work_data->GetName().c_str(), work_data->GetType().c_str());
       GELOGE(FAILED, "[Check][Param] Index:%u anchor does not exist in out:%u data anchor's peer of node:%s(%s)",
              node_idx, kDataOutIndex, work_data->GetName().c_str(), work_data->GetType().c_str());
       return false;
@@ -370,10 +364,9 @@ bool SubexpressionMigrationPass::IsParallelNodeSame(
 /// @param [in] data_idx: Data groups of subgraph.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status SubexpressionMigrationPass::GraphNodeMigration(
-    const ComputeGraphPtr &graph, const NodePtr &func_node,
-    OrderedGraphToNodes &graph_nodes,
-    const NodePtr &data_base, uint32_t data_idx) {
+Status SubexpressionMigrationPass::GraphNodeMigration(const ComputeGraphPtr &graph, const NodePtr &func_node,
+                                                      OrderedGraphToNodes &graph_nodes, const NodePtr &data_base,
+                                                      uint32_t data_idx) {
   bool can_extrapolation = false;
   do {
     can_extrapolation = false;
@@ -387,11 +380,8 @@ Status SubexpressionMigrationPass::GraphNodeMigration(
       const auto &op_desc = base_node->GetOpDesc();
       GE_CHECK_NOTNULL(op_desc);
       // 此处暂时先将IdentityN和Identity移动到根图中，解决线上问题，近期一周内会删除整改
-      if (((!base_node->GetHostNode()) &&
-          (base_node->GetType() != IDENTITYN) &&
-          (base_node->GetType() != IDENTITY)) ||
-          (base_node->GetType() == SWITCH) ||
-          (!op_desc->GetSubgraphInstanceNames().empty())) {
+      if (((!base_node->GetHostNode()) && (base_node->GetType() != IDENTITYN) && (base_node->GetType() != IDENTITY)) ||
+          (base_node->GetType() == SWITCH) || (!op_desc->GetSubgraphInstanceNames().empty())) {
         continue;
       }
 
@@ -429,9 +419,8 @@ Status SubexpressionMigrationPass::GraphNodeMigration(
 /// @param [in] outputs: Parent index of Node output.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status SubexpressionMigrationPass::AppendParallelNode(
-    OrderedGraphToNodes &graph_nodes,
-    const NodePtr &func_node, std::map<uint32_t, uint32_t> &outputs) {
+Status SubexpressionMigrationPass::AppendParallelNode(OrderedGraphToNodes &graph_nodes, const NodePtr &func_node,
+                                                      std::map<uint32_t, uint32_t> &outputs) {
   // If outputs index invalid, add Data and Input Tensor.
   for (auto &item : outputs) {
     if (item.second != kInvalidParent) {
@@ -444,7 +433,7 @@ Status SubexpressionMigrationPass::AppendParallelNode(
       const auto &subgraph = groups.first;
       auto &data_nodes = groups.second;
 
-      item.second = func_node->GetAllInDataAnchorsSize() + append_num[subgraph]; // Update to valid parent index.
+      item.second = func_node->GetAllInDataAnchorsSize() + append_num[subgraph];  // Update to valid parent index.
       std::string data_name = subgraph->GetName() + "_data_" + std::to_string(item.second);
 
       OpDescBuilder op_builder(data_name, DATA);
@@ -458,15 +447,15 @@ Status SubexpressionMigrationPass::AppendParallelNode(
       uint32_t data_index = item.second - kCaseInputBase;
       if (!AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, data_index)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_INDEX.c_str(),
-                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
-        GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_INDEX.c_str(),
-               op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_INDEX.c_str(), op_desc->GetName().c_str(),
+               op_desc->GetType().c_str());
         return FAILED;
       }
 
       if (!AttrUtils::SetInt(op_desc, ATTR_NAME_PARENT_NODE_INDEX, item.second)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
         GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
                op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return FAILED;
@@ -494,17 +483,16 @@ Status SubexpressionMigrationPass::AppendParallelNode(
 /// @param [in] outputs: Parent index of Node output.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status SubexpressionMigrationPass::DetachParallelNode(
-    const std::map<uint32_t, NodePtr> &graph_datas, const NodePtr &detach,
-    const std::map<uint32_t, uint32_t> &outputs) const {
+Status SubexpressionMigrationPass::DetachParallelNode(const std::map<uint32_t, NodePtr> &graph_datas,
+                                                      const NodePtr &detach,
+                                                      const std::map<uint32_t, uint32_t> &outputs) const {
   // Break Data and Move node.
   for (const auto &in_anchor : detach->GetAllInDataAnchors()) {
     const auto &out_anchor = in_anchor->GetPeerOutAnchor();
     if (out_anchor == nullptr) {
-        continue;
+      continue;
     }
-    GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor),
-                            "[Remove][Edge] between %s and %s failed",
+    GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor), "[Remove][Edge] between %s and %s failed",
                             out_anchor->GetOwnerNode()->GetName().c_str(), detach->GetName().c_str());
 
     const auto &owner_node = out_anchor->GetOwnerNode();
@@ -535,20 +523,18 @@ Status SubexpressionMigrationPass::DetachParallelNode(
     const auto &out_desc = detach->GetOpDesc()->GetOutputDesc(i);
     const auto &data_desc = data_node->GetOpDesc();
     GE_CHECK_NOTNULL(data_desc);
-    (void)data_desc->UpdateInputDesc(kDataOutIndex, out_desc);    // Set Data Input to new connect Node.
-    (void)data_desc->UpdateOutputDesc(kDataOutIndex, out_desc);   // Set Data Output to new connect Node.
+    (void)data_desc->UpdateInputDesc(kDataOutIndex, out_desc);   // Set Data Input to new connect Node.
+    (void)data_desc->UpdateOutputDesc(kDataOutIndex, out_desc);  // Set Data Output to new connect Node.
 
     GE_CHECK_NOTNULL(out_anchor);
     for (const auto &in_anchor : out_anchor->GetPeerInDataAnchors()) {
-      GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor),
-                              "[Remove][Edge] between %s and %s failed",
+      GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor), "[Remove][Edge] between %s and %s failed",
                               detach->GetName().c_str(), in_anchor->GetOwnerNode()->GetName().c_str());
       const auto &owner_node = in_anchor->GetOwnerNode();
       GELOGI("Remove Edge: %s %s", detach->GetName().c_str(), owner_node->GetName().c_str());
 
       const auto &data_out_anchor = data_node->GetOutDataAnchor(kDataOutIndex);
-      GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(data_out_anchor, in_anchor),
-                              "[Add][Edge] between %s and %s failed",
+      GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(data_out_anchor, in_anchor), "[Add][Edge] between %s and %s failed",
                               data_node->GetName().c_str(), owner_node->GetName().c_str());
       GELOGI("Add Edge: %s %s", data_node->GetName().c_str(), owner_node->GetName().c_str());
     }
@@ -578,7 +564,7 @@ Status SubexpressionMigrationPass::AttachParallelNode(const ComputeGraphPtr &gra
       GELOGE(FAILED, "[Check][Param] Node:%s parent index %u not found", attach->GetName().c_str(), i);
       return FAILED;
     }
-    if (it_idx->second == kInvalidParent) {   // Not connect, Skip.
+    if (it_idx->second == kInvalidParent) {  // Not connect, Skip.
       continue;
     }
 
@@ -587,8 +573,8 @@ Status SubexpressionMigrationPass::AttachParallelNode(const ComputeGraphPtr &gra
     const auto &out_anchor = in_anchor->GetPeerOutAnchor();
     GE_ASSERT_NOTNULL(out_anchor);
     GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(out_anchor, attach->GetInDataAnchor(i)),
-                            "[Add][Edge] between %s and %s failed",
-                            out_anchor->GetOwnerNode()->GetName().c_str(), attach->GetName().c_str());
+                            "[Add][Edge] between %s and %s failed", out_anchor->GetOwnerNode()->GetName().c_str(),
+                            attach->GetName().c_str());
     const auto &owner_node = out_anchor->GetOwnerNode();
     GELOGI("Add Edge: %s %s", owner_node->GetName().c_str(), attach->GetName().c_str());
   }
@@ -598,28 +584,27 @@ Status SubexpressionMigrationPass::AttachParallelNode(const ComputeGraphPtr &gra
     if (it_idx == outputs.end()) {
       return FAILED;
     }
-    if (it_idx->second == kInvalidParent) {   // Not connect, Skip.
+    if (it_idx->second == kInvalidParent) {  // Not connect, Skip.
       continue;
     }
 
     const auto &out_desc = attach->GetOpDesc()->GetOutputDesc(i);
     const auto &func_desc = func_node->GetOpDesc();
     GE_CHECK_NOTNULL(func_desc);
-    (void)func_desc->UpdateInputDesc(it_idx->second, out_desc);    // Set Data Input to new connect Node.
+    (void)func_desc->UpdateInputDesc(it_idx->second, out_desc);  // Set Data Input to new connect Node.
 
     const auto &in_anchor = func_node->GetInDataAnchor(it_idx->second);
     GE_CHECK_NOTNULL(in_anchor);
     const auto &out_anchor = in_anchor->GetPeerOutAnchor();
     if (out_anchor != nullptr) {
-      GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor),
-                              "[Remove][Edge] between %s and %s failed",
+      GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, in_anchor), "[Remove][Edge] between %s and %s failed",
                               out_anchor->GetOwnerNode()->GetName().c_str(), func_node->GetName().c_str());
       const auto &owner_node = out_anchor->GetOwnerNode();
       GELOGI("Remove Edge: %s %s", owner_node->GetName().c_str(), func_node->GetName().c_str());
     }
     GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(attach->GetOutDataAnchor(i), in_anchor),
-                            "[Add][Edge] between %s and %s failed",
-                            attach->GetName().c_str(), func_node->GetName().c_str());
+                            "[Add][Edge] between %s and %s failed", attach->GetName().c_str(),
+                            func_node->GetName().c_str());
     GELOGI("Add Edge: %s %s", attach->GetName().c_str(), func_node->GetName().c_str());
   }
 
@@ -641,11 +626,10 @@ Status SubexpressionMigrationPass::AttachParallelNode(const ComputeGraphPtr &gra
 /// @param [in] outputs: Parent index of Node output.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status SubexpressionMigrationPass::MoveNodeToParent(
-    const ComputeGraphPtr &graph, const NodePtr &func_node,
-    const OrderedGraphToNodes &graph_nodes,
-    uint32_t anchor_idx, uint32_t base_index, const std::map<uint32_t, uint32_t> &inputs,
-    const std::map<uint32_t, uint32_t> &outputs) const {
+Status SubexpressionMigrationPass::MoveNodeToParent(const ComputeGraphPtr &graph, const NodePtr &func_node,
+                                                    const OrderedGraphToNodes &graph_nodes, uint32_t anchor_idx,
+                                                    uint32_t base_index, const std::map<uint32_t, uint32_t> &inputs,
+                                                    const std::map<uint32_t, uint32_t> &outputs) const {
   if (inputs.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Param inputs is empty, check invalid");
     GELOGE(FAILED, "[Check][Param] Param inputs is empty");
@@ -659,10 +643,10 @@ Status SubexpressionMigrationPass::MoveNodeToParent(
     const auto &subnodes = groups.second;
     auto it = subnodes.find(base_index);
     if (it == subnodes.end()) {
-      REPORT_INNER_ERR_MSG("E19999", "Index:%u data node not found in graph:%s, check invalid",
-                         base_index, subgraph->GetName().c_str());
-      GELOGE(FAILED, "[Check][Param] Index:%u data node not found in graph:%s",
-             base_index, subgraph->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Index:%u data node not found in graph:%s, check invalid", base_index,
+                           subgraph->GetName().c_str());
+      GELOGE(FAILED, "[Check][Param] Index:%u data node not found in graph:%s", base_index,
+             subgraph->GetName().c_str());
       return FAILED;
     }
 
@@ -674,7 +658,7 @@ Status SubexpressionMigrationPass::MoveNodeToParent(
     const auto &in_anchor = in_anchors.at(anchor_idx);
     if (in_anchor == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "Index:%u anchor does not exist in out:%u data anchor's peer of node:%s(%s)",
-                         anchor_idx, kDataOutIndex, base_data->GetName().c_str(), base_data->GetType().c_str());
+                           anchor_idx, kDataOutIndex, base_data->GetName().c_str(), base_data->GetType().c_str());
       GELOGE(FAILED, "[Check][Param] Index:%u anchor does not exist in out:%u data anchor's peer of node:%s(%s)",
              anchor_idx, kDataOutIndex, base_data->GetName().c_str(), base_data->GetType().c_str());
       return FAILED;
@@ -687,8 +671,7 @@ Status SubexpressionMigrationPass::MoveNodeToParent(
       return FAILED;
     }
 
-    GE_CHK_GRAPH_STATUS_RET(subgraph->RemoveNode(move_node),
-                            "[Remove][Node] %s from graph:%s failed",
+    GE_CHK_GRAPH_STATUS_RET(subgraph->RemoveNode(move_node), "[Remove][Node] %s from graph:%s failed",
                             move_node->GetName().c_str(), graph->GetName().c_str());
     GELOGI("Remove Node: %s %s", subgraph->GetName().c_str(), move_node->GetName().c_str());
   }

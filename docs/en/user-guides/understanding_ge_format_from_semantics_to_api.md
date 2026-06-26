@@ -77,8 +77,8 @@ Origin is used to describe **original semantics expressed by user when construct
 
 Origin's source is usually frontend framework or user explicitly given model definition, its core characteristics are:
 
-- **Directly reflects user intent**  
-- **Does not contain any assumptions targeting specific hardware or implementation**  
+- **Directly reflects user intent**
+- **Does not contain any assumptions targeting specific hardware or implementation**
 - **Does not adjust for performance goals**
 
 When GE receives a computational graph, Origin is usually **explicitly given** by graph inputs and some key operators' attributes (e.g. Conv2D marks its input/output formats via attributes). GE will propagate Origin throughout computational graph as much as possible, its purpose is not for performance optimization, but to **always retain complete understanding of user's original computational semantics** throughout compilation process.
@@ -96,8 +96,8 @@ Unlike Origin, Storage is used to describe representation form adopted by tensor
 Storage is not specified by user, but derived by GE during compilation process based on multiple factors, e.g.:
 
 - Operator capabilities and limitations
-- Different operators' format affinity  
-- Network-wide data flow relationships- Different operators' affinity to formats  
+- Different operators' format affinity
+- Network-wide data flow relationships- Different operators' affinity to formats
 - Whole graph scope data flow relationships
 
 Since not all operators support all formats, Storage derivation process naturally受约束. For example, some formats may only be valid for specific operators or specific inputs of operators (like weights).
@@ -117,8 +117,8 @@ This division enables GE to flexibly adjust execution-layer Format while guarant
 
 After clarifying Origin and Storage two representation systems, problems GE needs to solve can归结为 two points:
 
-1. How to as accurately as possible understand user's original semantics for format in whole computational graph  
-2. On this basis, how to select suitable execution format for operators, to obtain overall better execution efficiency  
+1. How to as accurately as possible understand user's original semantics for format in whole computational graph
+2. On this basis, how to select suitable execution format for operators, to obtain overall better execution efficiency
 
 Centering on these two problems, GE's Format optimization follows a clear principle path: **first understand semantics, then optimize execution**.
 
@@ -144,9 +144,9 @@ After completing whole graph scope OriginFormat derivation, GE enters **executio
 
 At this point, Format optimization focus shifts from "whether semantics correct" to "how to obtain better execution efficiency". StorageFormat selection isn't direct mapping of OriginFormat, but needs comprehensive consideration of following factors:
 
-- Operator's support capability for execution formats  
-- Different operators' affinity to specific formats  
-- Whole graph scope overall execution efficiency  
+- Operator's support capability for execution formats
+- Different operators' affinity to specific formats
+- Whole graph scope overall execution efficiency
 
 In this phase, GE始终遵循 a premise: **don't破坏 already confirmed Origin semantics**.
 
@@ -205,11 +205,11 @@ This interface design value在于:
 
 #### 4.2.1 Shape: Pure Data Structure, Not Binding Semantics
 
-`Shape` is a pure data structure class, only负责 expressing "a shape".  
+`Shape` is a pure data structure class, only负责 expressing "a shape".
 Therefore:
 
-- `Shape` can be used to承载 OriginShape  
-- `Shape` can also be used to承载 StorageShape  
+- `Shape` can be used to承载 OriginShape
+- `Shape` can also be used to承载 StorageShape
 
 Whether属于 Origin还是 Storage, depends on its **usage context** and which interface returns it, not `Shape` type itself's attribute.
 
@@ -221,16 +221,16 @@ Reason需要 binding Origin and Storage in same type, fundamental reason在于 S
 
 Using NC1HWC0 format as example, when seeing a Tensor shaped like `[8, 1, 224, 224, 16]`:
 
-- Its StorageFormat is NC1HWC0  
-- Its OriginFormat could be NCHW, or could be NHWC  
-- Its OriginShape's C dimension could be any value between 1~16  
+- Its StorageFormat is NC1HWC0
+- Its OriginFormat could be NCHW, or could be NHWC
+- Its OriginShape's C dimension could be any value between 1~16
 
 Only from execution phase StorageShape or StorageFormat, cannot uniquely restore its corresponding semantic meaning. Only binding Origin and Storage two parts info simultaneously, can form an interpretable, stably usable complete description.
 
 Therefore, in external API context:
 
-- `StorageShape` and `StorageFormat` are closer to **Descriptors**  
-- They provide explicit access to different perspectives through `GetOrigin*()` / `GetStorage*()`  
+- `StorageShape` and `StorageFormat` are closer to **Descriptors**
+- They provide explicit access to different perspectives through `GetOrigin*()` / `GetStorage*()`
 - Type itself承担的是 "binding and encapsulation" responsibility, not direct mapping of single concept
 
 ### 4.3 Explanation and Suggestions Regarding Class Name Ambiguity

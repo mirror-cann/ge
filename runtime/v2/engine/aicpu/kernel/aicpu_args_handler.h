@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@
 namespace gert {
 class AicpuArgsHandler {
  public:
-  AicpuArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext) :
-      node_name_(node_name), io_num_(io_num), need_device_ext_(need_device_ext), args_({}) {
+  AicpuArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext)
+      : node_name_(node_name), io_num_(io_num), need_device_ext_(need_device_ext), args_({}) {
     io_sizes_.resize(io_num_);
   }
 
@@ -161,8 +161,8 @@ class AicpuArgsHandler {
  */
 class AicpuCCArgsHandler : public AicpuArgsHandler {
  public:
-  AicpuCCArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext) :
-      AicpuArgsHandler(node_name, io_num, need_device_ext) {}
+  AicpuCCArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext)
+      : AicpuArgsHandler(node_name, io_num, need_device_ext) {}
 
   ge::graphStatus BuildCCArgs(const std::string &arg_data, const std::string &kernel_name, const std::string &so_name,
                               const size_t ext_info_size);
@@ -193,8 +193,8 @@ class AicpuCCArgsHandler : public AicpuArgsHandler {
  */
 class AicpuTfArgsHandler : public AicpuArgsHandler {
  public:
-  AicpuTfArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext) :
-      AicpuArgsHandler(node_name, io_num, need_device_ext) {}
+  AicpuTfArgsHandler(const std::string &node_name, const uint32_t io_num, const bool need_device_ext)
+      : AicpuArgsHandler(node_name, io_num, need_device_ext) {}
 
   ge::graphStatus BuildTfArgs(const std::string &arg_data, const std::string &task_info, const size_t ext_info_size,
                               const uint64_t session_id, const void *step_id);
@@ -202,5 +202,5 @@ class AicpuTfArgsHandler : public AicpuArgsHandler {
  private:
   ge::graphStatus SetOffsetArgs();
 };
-} // gert
-#endif // AIR_CXX_RUNTIME_V2_ENGINE_AICPU_KERNEL_AICPU_ARGS_HANDLER_H_
+}  // namespace gert
+#endif  // AIR_CXX_RUNTIME_V2_ENGINE_AICPU_KERNEL_AICPU_ARGS_HANDLER_H_

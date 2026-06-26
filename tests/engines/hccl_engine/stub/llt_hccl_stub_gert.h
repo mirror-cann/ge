@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,14 +24,15 @@
 #include "exe_graph/runtime/tensor_data_utils.h"
 // #include "inc/common/checker.h"
 
-namespace gert{
-namespace bg{
+namespace gert {
+namespace bg {
 class GenerateExeGraph {
  public:
   struct ExeGraphGenerator {
     using InferShapeFunc = std::vector<ValueHolderPtr> (*)(const ge::NodePtr &node,
                                                            const std::vector<ValueHolderPtr> &shapes);
-    using AllocOutputMemoryFunc = std::vector<DevMemValueHolderPtr> (*)(TensorPlacement placement, const ge::NodePtr &node,
+    using AllocOutputMemoryFunc = std::vector<DevMemValueHolderPtr> (*)(TensorPlacement placement,
+                                                                        const ge::NodePtr &node,
                                                                         const std::vector<ValueHolderPtr> &output_sizes,
                                                                         LoweringGlobalData &global_data);
     using CalcTensorSizeFunc = std::vector<ValueHolderPtr> (*)(const ge::NodePtr &node,
@@ -43,11 +44,11 @@ class GenerateExeGraph {
   };
 
  public:
-class DevMemValueHolder : public ValueHolder {
-   static std::vector<DevMemValueHolderPtr> CreateDataOutput(const char *node_type,
-                                                            const std::vector<ValueHolderPtr> &inputs,
-                                                            size_t out_count, int64_t logic_stream_id);
-};
+  class DevMemValueHolder : public ValueHolder {
+    static std::vector<DevMemValueHolderPtr> CreateDataOutput(const char *node_type,
+                                                              const std::vector<ValueHolderPtr> &inputs,
+                                                              size_t out_count, int64_t logic_stream_id);
+  };
   static std::vector<ValueHolderPtr> InferShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &shapes) {
     if (generator_.infer_shape == nullptr) {
       return {};
@@ -68,7 +69,7 @@ class DevMemValueHolder : public ValueHolder {
     size_t outputSize = output_shapes.size();
     ValueHolderPtr outputHolder;
     for (size_t i = 0; i < outputSize; i++) {
-        holders.push_back(outputHolder);
+      holders.push_back(outputHolder);
     }
     return holders;
   }
@@ -80,10 +81,10 @@ class DevMemValueHolder : public ValueHolder {
  private:
   static ExeGraphGenerator generator_;
 };
-}
+}  // namespace bg
 
 class KernelContextHolder {
-public:
+ public:
   KernelContextHolder() = default;
   KernelContextHolder(KernelContextHolder &&holder) {
     context_holder_ = std::move(holder.context_holder_);
@@ -120,7 +121,7 @@ public:
 };
 
 class KernelRunContextBuilder {
-public:
+ public:
   KernelRunContextBuilder() = default;
   KernelRunContextBuilder &Inputs(std::vector<std::pair<void *, Chain::Deleter>> inputs) {
     inputs_ = std::move(inputs);
@@ -148,12 +149,13 @@ public:
 
   KernelContextHolder Build(const ge::OpDescPtr &op_desc);
 
-private:
+ private:
   ge::NodePtr MakeNode(const ge::OpDescPtr &op_desc);
-private:
+
+ private:
   ge::ComputeGraphPtr graph_;
   std::vector<std::pair<void *, Chain::Deleter>> inputs_;
   std::vector<std::pair<void *, Chain::Deleter>> outputs_;
 };
-}
+}  // namespace gert
 #endif  // __LLT_HCCL_STUB_GERT_H__

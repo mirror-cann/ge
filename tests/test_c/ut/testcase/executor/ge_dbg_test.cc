@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,22 +29,22 @@
 #include "vector.h"
 #include <securec.h>
 using namespace testing;
-using ::testing::Return;
-using ::testing::Eq;
-using ::testing::NotNull;
-using ::testing::Invoke;
 using ::testing::_;
+using ::testing::Eq;
+using ::testing::Invoke;
+using ::testing::NotNull;
+using ::testing::Return;
 
 class UtestGEDBGTest : public testing::Test {
  protected:
   void SetUp() {
     ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillByDefault(Invoke(mmMalloc_Normal_Invoke));
     ON_CALL(MmpaStubMock::GetInstance(), mmTellFile(_)).WillByDefault(Invoke(mmTellFile_Normal_Invoke));
-    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
+    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
     ON_CALL(RtStubMock::GetInstance(), rtDumpInit()).WillByDefault(Return(0));
-    ON_CALL(RtStubMock::GetInstance(), access(_,_)).WillByDefault(Return(0));
-    ON_CALL(RtStubMock::GetInstance(), rtMalloc(_,_,_,_)).WillByDefault(Invoke(rtMalloc_Normal_Invoke));
-    ON_CALL(RtStubMock::GetInstance(), rtMemcpy(_,_,_,_,_)).WillByDefault(Invoke(rtMemcpy_Normal_Invoke));
+    ON_CALL(RtStubMock::GetInstance(), access(_, _)).WillByDefault(Return(0));
+    ON_CALL(RtStubMock::GetInstance(), rtMalloc(_, _, _, _)).WillByDefault(Invoke(rtMalloc_Normal_Invoke));
+    ON_CALL(RtStubMock::GetInstance(), rtMemcpy(_, _, _, _, _)).WillByDefault(Invoke(rtMemcpy_Normal_Invoke));
   }
   void TearDown() {
     Mock::VerifyAndClearExpectations(&MmpaStubMock::GetInstance());
@@ -65,10 +65,12 @@ TEST_F(UtestGEDBGTest, GeDbgDumpInit) {
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmTellFile(_)).WillRepeatedly(Invoke(mmTellFile_Normal_Invoke));
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   EXPECT_CALL(RtStubMock::GetInstance(), rtDumpInit()).WillRepeatedly(Return(0));
   Status ret = DbgDumpInit(filePath);
@@ -80,10 +82,10 @@ TEST_F(UtestGEDBGTest, GeDbgDumpInit) {
 TEST_F(UtestGEDBGTest, GeDbgDumpInitWithFailAccess) {
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
-  EXPECT_CALL(RtStubMock::GetInstance(), access(_,_)).Times(1).WillOnce(Return(1));
-  Status ret = DbgDumpInit(filePath); // covers access fail in CheckDumpPath
+  EXPECT_CALL(RtStubMock::GetInstance(), access(_, _)).Times(1).WillOnce(Return(1));
+  Status ret = DbgDumpInit(filePath);  // covers access fail in CheckDumpPath
   ASSERT_EQ(ret, SUCCESS);
-  EXPECT_CALL(RtStubMock::GetInstance(), access(_,_)).WillRepeatedly(Return(0));
+  EXPECT_CALL(RtStubMock::GetInstance(), access(_, _)).WillRepeatedly(Return(0));
   ret = DbgDumpDeInit();
   ASSERT_EQ(ret, SUCCESS);
 }
@@ -91,8 +93,11 @@ TEST_F(UtestGEDBGTest, GeDbgDumpInitWithFailAccess) {
 TEST_F(UtestGEDBGTest, GeDbgDumpInitWithGetModelNameFail) {
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(2).WillOnce(mmMalloc_Normal_Invoke).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
-  Status ret = DbgDumpInit(filePath); // covers malloc fail in GetModelName
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(2)
+      .WillOnce(mmMalloc_Normal_Invoke)
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
+  Status ret = DbgDumpInit(filePath);  // covers malloc fail in GetModelName
   ASSERT_EQ(ret, SUCCESS);
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   ret = DbgDumpDeInit();
@@ -102,8 +107,12 @@ TEST_F(UtestGEDBGTest, GeDbgDumpInitWithGetModelNameFail) {
 TEST_F(UtestGEDBGTest, GeDbgDumpInitWithGetModelLayerFail) {
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(3).WillOnce(mmMalloc_Normal_Invoke).WillOnce(mmMalloc_Normal_Invoke).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
-  Status ret = DbgDumpInit(filePath); // covers malloc fail in GetModelLayer
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(3)
+      .WillOnce(mmMalloc_Normal_Invoke)
+      .WillOnce(mmMalloc_Normal_Invoke)
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
+  Status ret = DbgDumpInit(filePath);  // covers malloc fail in GetModelLayer
   ASSERT_EQ(ret, SUCCESS);
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   ret = DbgDumpDeInit();
@@ -133,9 +142,11 @@ TEST_F(UtestGEDBGTest, GeDbgDumpInitWithNullStopDumpFunc) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)InitDataDumpMock))
-    .WillOnce(Return(nullptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)InitDataDumpMock))
+      .WillOnce(Return(nullptr));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_NE(ret, SUCCESS);
@@ -145,10 +156,12 @@ TEST_F(UtestGEDBGTest, GeDbgCreateModelHandle) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -167,15 +180,15 @@ TEST_F(UtestGEDBGTest, GeInitDumpThreadWithDumpInitFail) {
 
 TEST_F(UtestGEDBGTest, GeInitDumpThreadWithDlfuncFail) {
   EXPECT_CALL(RtStubMock::GetInstance(), rtDumpInit()).WillRepeatedly(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(nullptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(nullptr));
   Status ret = InitDumpThread();
   ASSERT_NE(ret, SUCCESS);
   DeInitDumpThread();
   int testNum = 1;
   void *ptr = &testNum;
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(1).WillOnce(Return(nullptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _)).Times(1).WillOnce(Return(nullptr));
   ret = InitDumpThread();
   ASSERT_NE(ret, SUCCESS);
   DeInitDumpThread();
@@ -192,10 +205,12 @@ TEST_F(UtestGEDBGTest, GeDumpInitAndDeinitWithNormalMode) {
 TEST_F(UtestGEDBGTest, HandleDumpConfigWithDebugOff) {
   int testNum = 1;
   void *ptr = &testNum;
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath2 = "../tests/test_c/ut/testcase/data/aclCase2.json";
   Status ret = DbgDumpInit(filePath2);
   ASSERT_EQ(ret, SUCCESS);
@@ -206,10 +221,12 @@ TEST_F(UtestGEDBGTest, HandleDumpConfigWithDebugOff) {
 TEST_F(UtestGEDBGTest, HandleDumpConfigWithStatsData) {
   int testNum = 1;
   void *ptr = &testNum;
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath3 = "../tests/test_c/ut/testcase/data/aclCase3.json";
   Status ret = DbgDumpInit(filePath3);
   ASSERT_EQ(ret, SUCCESS);
@@ -328,10 +345,12 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithNoDbgFile) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -357,22 +376,28 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithNoDbgFile) {
 }
 
 TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMallocFail) {
-    uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -386,11 +411,13 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMallocFail) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -404,16 +431,19 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMallocFail) {
 
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(1).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
-  ASSERT_NE(ret, SUCCESS); // cover malloc fail in DbgDumpPreProcess
+  ASSERT_NE(ret, SUCCESS);  // cover malloc fail in DbgDumpPreProcess
 
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(3).WillOnce(Invoke(mmMalloc_Normal_Invoke))
-    .WillOnce(Invoke(mmMalloc_Normal_Invoke)).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(3)
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
-  ASSERT_NE(ret, SUCCESS); // covers malloc fail in ProModelName
+  ASSERT_NE(ret, SUCCESS);  // covers malloc fail in ProModelName
 
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(1).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
-  ret = SendLoadInfoToAicpu((ModelDbgHandle *)handle); // covers rtMalloc fail in InitLoadDumpInfo
+  ret = SendLoadInfoToAicpu((ModelDbgHandle *)handle);  // covers rtMalloc fail in InitLoadDumpInfo
   ASSERT_NE(ret, SUCCESS);
 
   DbgFreeLoadDumpInfo(handle);
@@ -423,22 +453,28 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMallocFail) {
 }
 
 TEST_F(UtestGEDBGTest, GeParseDbgCaseWithSetDumpFlagError) {
-    uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -452,14 +488,23 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithSetDumpFlagError) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
-  EXPECT_CALL(RtStubMock::GetInstance(), rtSetTaskDescDumpFlag(_,_,_)).Times(2).WillOnce(Return(-1)).WillOnce(Return(RT_ERROR_NONE));
-  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_,_,_,_,_)).Times(4).WillOnce(Return(-1)).WillOnce(Return(RT_ERROR_NONE)).WillOnce(Return(-1))
-    .WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtSetTaskDescDumpFlag(_, _, _))
+      .Times(2)
+      .WillOnce(Return(-1))
+      .WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_, _, _, _, _))
+      .Times(4)
+      .WillOnce(Return(-1))
+      .WillOnce(Return(RT_ERROR_NONE))
+      .WillOnce(Return(-1))
+      .WillOnce(Return(RT_ERROR_NONE));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -481,7 +526,7 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithSetDumpFlagError) {
   uint64_t stepId = 1;
   uint64_t *stepIdAddr = &stepId;
 
-  EXPECT_CALL(RtStubMock::GetInstance(), rtMalloc(_,_,_,_)).WillRepeatedly(Invoke(rtMalloc_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtMalloc(_, _, _, _)).WillRepeatedly(Invoke(rtMalloc_Normal_Invoke));
   ret = DbgDumpPostProcess(modelId, stepIdAddr, handle);
   ASSERT_NE(ret, SUCCESS);
   DbgStepIdCounterPlus(handle);
@@ -491,7 +536,7 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithSetDumpFlagError) {
   DbgStepIdCounterPlus(NULL);
   DbgStepIdCounterPlus(handle);
   DbgFreeLoadDumpInfo(NULL);
-  ret = SendUnLoadInfoToAicpu((ModelDbgHandle *)handle); // covers rtMsgSend err
+  ret = SendUnLoadInfoToAicpu((ModelDbgHandle *)handle);  // covers rtMsgSend err
   ASSERT_NE(ret, SUCCESS);
 
   DbgFreeLoadDumpInfo(handle);
@@ -504,22 +549,28 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithSetDumpFlagError) {
 }
 
 TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMemcpyFail) {
-    uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -533,12 +584,14 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMemcpyFail) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
-  EXPECT_CALL(RtStubMock::GetInstance(), rtSetTaskDescDumpFlag(_,_,_)).Times(1).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtSetTaskDescDumpFlag(_, _, _)).Times(1).WillOnce(Return(RT_ERROR_NONE));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase8.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -557,22 +610,28 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseWithDumpProcessMemcpyFail) {
 }
 
 TEST_F(UtestGEDBGTest, GeParseDbgCaseUnnormal) {
-    uint8_t file[] =
-    {0,0,0,0,91,91,91,91,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  91, 91,  91,  91,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -586,10 +645,12 @@ TEST_F(UtestGEDBGTest, GeParseDbgCaseUnnormal) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase8.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -621,10 +682,12 @@ TEST_F(UtestGEDBGTest, GeOpNameMatchOpErr) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -647,18 +710,22 @@ TEST_F(UtestGEDBGTest, GeOpNameMatchOpMallocErr) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
   const char *opName = "concatv2";
   uint16_t opNameLen = strlen(opName);
   const char *mdlName = "concat_nano";
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(2).WillOnce(Invoke(mmMalloc_Abnormal_Invoke)).
-    WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(2)
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
   bool result = IsOpNameMatch((uint8_t *)opName, opNameLen, mdlName);
   ASSERT_EQ(result, false);
 
@@ -673,10 +740,12 @@ TEST_F(UtestGEDBGTest, GeOpNameMatchNull) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -693,10 +762,12 @@ TEST_F(UtestGEDBGTest, GeOpNameMatchMdlErr) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/acl.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -715,10 +786,12 @@ TEST_F(UtestGEDBGTest, GeOpNameMatchSuccess) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase6.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -749,22 +822,28 @@ TEST_F(UtestGEDBGTest, GeDumpPostProcessCaseWithFormatErr) {
 }
 
 TEST_F(UtestGEDBGTest, GeDumpPostProcessCaseWithDumpOn) {
-    uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -778,11 +857,13 @@ TEST_F(UtestGEDBGTest, GeDumpPostProcessCaseWithDumpOn) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase7.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -793,10 +874,12 @@ TEST_F(UtestGEDBGTest, GeDumpPostProcessCaseWithDumpOn) {
   std::string dbgFilePath = "concat_nano";
   size_t taskDescSize = 1000UL;
 
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).Times(1).WillOnce(Invoke(mmReadFile_Abnormal_Invoke));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _))
+      .Times(1)
+      .WillOnce(Invoke(mmReadFile_Abnormal_Invoke));
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
-  ASSERT_NE(ret, SUCCESS); // cover mmReadFile fail in ParseDbgFile
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  ASSERT_NE(ret, SUCCESS);  // cover mmReadFile fail in ParseDbgFile
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
 
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
@@ -813,22 +896,28 @@ TEST_F(UtestGEDBGTest, GeDumpPostProcessCaseWithDumpOn) {
 }
 
 TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithEmptyList) {
-  uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -842,12 +931,17 @@ TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithEmptyList) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
-  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_,_,_,_,_)).Times(2).WillOnce(Return(RT_ERROR_NONE)).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_, _, _, _, _))
+      .Times(2)
+      .WillOnce(Return(RT_ERROR_NONE))
+      .WillOnce(Return(RT_ERROR_NONE));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase9.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -858,14 +952,16 @@ TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithEmptyList) {
   std::string dbgFilePath = "concat_nano";
   size_t taskDescSize = 1000UL;
 
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).Times(2).WillOnce(Invoke(mmMalloc_Normal_Invoke))
-    .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
+      .Times(2)
+      .WillOnce(Invoke(mmMalloc_Normal_Invoke))
+      .WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
-  ASSERT_NE(ret, SUCCESS); // covers malloc fail in ParseDbgFile
+  ASSERT_NE(ret, SUCCESS);  // covers malloc fail in ParseDbgFile
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
 
   ret = DbgDumpPreProcess(&mdlLoad, taskDescSize, (char *)dbgFilePath.c_str(), handle);
-  ASSERT_EQ(ret, SUCCESS); // covers debug_en == 1
+  ASSERT_EQ(ret, SUCCESS);  // covers debug_en == 1
 
   uint32_t modelId = 1U;
   uint64_t stepId = 1;
@@ -881,10 +977,12 @@ TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithEmptyList) {
 TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithNoList) {
   int testNum = 1;
   void *ptr = &testNum;
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase10.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -901,22 +999,28 @@ TEST_F(UtestGEDBGTest, GeDumpOverFlowCaseWithNormalList) {
 }
 
 TEST_F(UtestGEDBGTest, GeDumpExceptionCaseWithSwitchOff) {
-  uint8_t file[] =
-    {0,0,0,0,90,90,90,90,0,0,0,0,11,0,0,0,99,111,110,99,97,116,95,110,97,110,111,1,0,0,0,198,
-     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,169,1,0,0,
-     0,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,1,0,0,0,9,0,0,0,67,111,110,99,97,116,86,50,
-     68,2,0,0,0,12,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,4,0,0,0,180,0,0,0,2,0,0,
-     0,1,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,114,0,
-     0,0,0,0,0,48,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,
-     0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,60,57,0,0,0,0,0,0,1,0,0,0,1,0,0,
-     0,3,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,48,0,0,
-     0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,1,0,0,0,16,0,0,
-     0,1,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,5,0,0,0,120,0,0,0,1,0,0,0,1,0,0,
-     0,1,0,0,0,3,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,16,0,0,0,0,0,0,0,0,0,0,
-     0,0,0,0,0,180,114,0,0,0,0,0,0,64,0,0,0,0,0,0,0,16,0,0,0,1,0,0,0,0,0,0,
-     0,90,57,0,0,0,0,0,0,1,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,90,57,0,0,0,0,0,
-     0,2,0,0,0,8,0,0,0,99,111,110,99,97,116,118,50,8,0,0,0,48,0,0,0,1,0,0,0,0,115,0,
-     0,0,0,0,0,224,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,229,0,0,0,0,0,0,0,0,0,0};
+  uint8_t file[] = {
+      0,  0,   0,   0,  90, 90,  90,  90,  0, 0,  0, 0, 11,  0,   0,   0,   99, 111, 110, 99,  97, 116, 95,  110,
+      97, 110, 111, 1,  0,  0,   0,   198, 1, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   1,   0, 0,  0, 0, 169, 1,   0,   0,   0,  0,   0,   0,   8,  0,   0,   0,
+      99, 111, 110, 99, 97, 116, 118, 50,  1, 0,  0, 0, 9,   0,   0,   0,   67, 111, 110, 99,  97, 116, 86,  50,
+      68, 2,   0,   0,  0,  12,  0,   0,   0, 8,  0, 0, 0,   99,  111, 110, 99, 97,  116, 118, 50, 4,   0,   0,
+      0,  180, 0,   0,  0,  2,   0,   0,   0, 1,  0, 0, 0,   1,   0,   0,   0,  3,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   120, 114, 0,   0,  0,   0,   0,   0,  48,  0,   0,
+      0,  0,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 1,  0, 0, 0,   0,   0,   0,   0,  60,  57,  0,   0,  0,   0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 3,  0, 0, 0,   8,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,
+      0,  0,   0,   0,  0,  60,  0,   0,   0, 0,  0, 0, 0,   48,  0,   0,   0,  0,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  1,   0,   0,   0,  16,  0,   0,
+      0,  1,   0,   0,  0,  0,   0,   0,   0, 30, 0, 0, 0,   0,   0,   0,   0,  5,   0,   0,   0,  120, 0,   0,
+      0,  1,   0,   0,  0,  1,   0,   0,   0, 1,  0, 0, 0,   3,   0,   0,   0,  0,   0,   0,   0,  1,   0,   0,
+      0,  1,   0,   0,  0,  16,  0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  180, 114, 0,
+      0,  0,   0,   0,  0,  64,  0,   0,   0, 0,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 1,  0, 0, 0,   16,  0,   0,   0,  1,   0,   0,   0,  0,   0,   0,
+      0,  90,  57,  0,  0,  0,   0,   0,   0, 2,  0, 0, 0,   8,   0,   0,   0,  99,  111, 110, 99, 97,  116, 118,
+      50, 8,   0,   0,  0,  48,  0,   0,   0, 1,  0, 0, 0,   0,   115, 0,   0,  0,   0,   0,   0,  224, 114, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0, 0,  0, 0, 0,   0,   0,   0,   0,  0,   0,   0,   0,  224, 229, 0,
+      0,  0,   0,   0,  0,  0,   0,   0,   0};
   int len = sizeof(file) / sizeof(uint8_t);
   void *outBuff = nullptr;
   outBuff = malloc(len);
@@ -930,12 +1034,17 @@ TEST_F(UtestGEDBGTest, GeDumpExceptionCaseWithSwitchOff) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillRepeatedly(Invoke(mmMalloc_Normal_Invoke));
-  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillRepeatedly(Invoke(mmReadFile_Normal_Invoke));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
-  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_,_,_,_,_)).Times(2).WillOnce(Return(RT_ERROR_NONE)).WillOnce(Return(RT_ERROR_NONE));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), rtMsgSend(_, _, _, _, _))
+      .Times(2)
+      .WillOnce(Return(RT_ERROR_NONE))
+      .WillOnce(Return(RT_ERROR_NONE));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase11.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -969,10 +1078,12 @@ TEST_F(UtestGEDBGTest, GeDumpExceptionCaseWithSwitchOn) {
 TEST_F(UtestGEDBGTest, GeDumpNormal) {
   int testNum = 1;
   void *ptr = &testNum;
-  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_,_)).Times(1).WillOnce(Return(ptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_,_)).Times(2).WillOnce(Return((void *)StopDataDumpMock))
-    .WillOnce(Return((void *)StopDataDumpMock));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
+      .Times(2)
+      .WillOnce(Return((void *)StopDataDumpMock))
+      .WillOnce(Return((void *)StopDataDumpMock));
   const char *filePath = "../tests/test_c/ut/testcase/data/aclCase12.json";
   Status ret = DbgDumpInit(filePath);
   ASSERT_EQ(ret, SUCCESS);

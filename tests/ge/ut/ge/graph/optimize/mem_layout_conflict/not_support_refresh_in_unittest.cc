@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,14 +70,14 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
 /*
  *   hcomallreduce (p2p output)
  *     |
- *   swtich
+ *   switch
  *
  *   ||
  *   \/
  *
  *   hcomallreduce (p2p output)
  *     |
- *   swtich
+ *   switch
  */
 TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndRtsSpecailOut_NotInsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialOutGraph();
@@ -89,7 +89,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndRtsSpeca
 /*
  *   hcomallreduce (p2p output)
  *     |
- *   swtich
+ *   switch
  *
  *   ||
  *   \/
@@ -98,7 +98,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndRtsSpeca
  *     |
  *   identity
  *     |
- *   swtich
+ *   switch
  */
 TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
        NotSupportRefreshInAndRtsSpecailOut_InsertIdentityWhenFeatureMapRefreshable_Success) {
@@ -112,14 +112,14 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
 /*
  *    add
  *     |
- *   swtich
+ *   switch
  *
  *   ||
  *   \/
  *
  *    add
  *     |
- *   swtich
+ *   switch
  */
 TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndNoramlOut_NotInsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshInAndNormalOutGraph();
@@ -131,7 +131,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndNoramlOu
 /*
  *    add
  *     |
- *   swtich
+ *   switch
  *
  *   ||
  *   \/
@@ -140,7 +140,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndNoramlOu
  *     |
  *   identity
  *     |
- *   swtich
+ *   switch
  */
 TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
        NotSupportRefreshInAndNoramlOut_InsertIdentityWhenFeatureMapRefreshable_Success) {
@@ -154,7 +154,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
 /*
  *    add
  *     |
- *   swtich
+ *   switch
  *
  *   ||
  *   \/
@@ -163,7 +163,7 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
  *     |
  *   identity
  *     |
- *   swtich
+ *   switch
  */
 TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
        NotSupportRefreshInAndNoramlOut_InsertIdentityWhenDynamicAndStaticGraphMemoryReuse_Success) {
@@ -247,7 +247,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndContinuo
  *    /\           /\
  * swt2 phony_concat swt4
  */
-TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndNoPaddingContinuousInput_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
+       NotSupportRefreshInAndNoPaddingContinuousInput_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingContinuousInputGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder fm_refresh_guarder;
@@ -271,7 +272,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndContinuo
  *     / \
  *  swt1  swt2
  */
-TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, NotSupportRefreshInAndNoPaddingContinuousOutnput_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictNotSupportRefreshIn,
+       NotSupportRefreshInAndNoPaddingContinuousOutnput_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingContinuousOutputGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder fm_refresh_guarder;
@@ -292,6 +294,10 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshIn, ImmutableOutAndNotSupportedRef
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder fm_refresh_guarder;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"swt", 0},}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph,
+                                                          {
+                                                              {"swt", 0},
+                                                          }),
+            GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

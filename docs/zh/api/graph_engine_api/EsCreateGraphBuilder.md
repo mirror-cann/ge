@@ -88,4 +88,3 @@ EsCGraphBuilder *EsCreateGraphBuilder(const char *name)
 ```
 EsCGraphBuilder *builder = EsCreateGraphBuilder("graph_name");
 ```
-

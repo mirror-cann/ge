@@ -14,7 +14,6 @@
 pyatc CLI launcher 功能测试 - pytest 框架
 """
 
-import os
 import sys
 
 import pytest
@@ -62,7 +61,9 @@ class TestPyAtc:
     def test_forwards_sys_argv_to_native_main(monkeypatch, fake_pyatc_lib):
         monkeypatch.setattr(pyatc_main, "pyatc_lib", fake_pyatc_lib)
         monkeypatch.setattr(
-            sys, "argv", ["/path/to/bin/pyatc", "--model=foo.onnx", "--soc_version=Ascend910"]
+            sys,
+            "argv",
+            ["/path/to/bin/pyatc", "--model=foo.onnx", "--soc_version=Ascend910"],
         )
 
         with pytest.raises(SystemExit) as exc:

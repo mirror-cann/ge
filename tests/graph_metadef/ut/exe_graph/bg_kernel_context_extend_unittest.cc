@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ bool isMemoryCleared(const uint8_t *ptr, size_t size) {
   }
   return std::all_of(ptr, ptr + size, [](uint8_t byte) { return byte == 0; });
 }
-}
+}  // namespace
 namespace gert {
 class BgKernelContextExtendUT : public testing::Test {};
 TEST_F(BgKernelContextExtendUT, BuildRequiredInput) {
@@ -485,7 +485,8 @@ TEST_F(BgKernelContextExtendUT, BuildWithAttrs) {
   ge::AttrUtils::SetListInt(op_desc, "b5", std::vector<int64_t>({10, 400, 3000, 8192}));
   ge::AttrUtils::SetTensor(op_desc, "b6", ge_tensor);
   ge::AttrUtils::SetListStr(op_desc, "c1", std::vector<std::string>({"hello", "world", "world1", "hello1"}));
-  ge::AttrUtils::SetListDataType(op_desc, "c2", std::vector<ge::DataType>({ge::DT_FLOAT, ge::DT_STRING, ge::DT_UINT16, ge::DT_BOOL}));
+  ge::AttrUtils::SetListDataType(op_desc, "c2",
+                                 std::vector<ge::DataType>({ge::DT_FLOAT, ge::DT_STRING, ge::DT_UINT16, ge::DT_BOOL}));
 
   op_desc->AppendIrAttrName("b1");
   op_desc->AppendIrAttrName("b2");
@@ -588,7 +589,10 @@ TEST_F(BgKernelContextExtendUT, BuildWithAttrs) {
   auto list_datatype = attrs->GetAttrPointer<gert::ContinuousVector>(13);
   ASSERT_NE(list_datatype, nullptr);
   ASSERT_EQ(list_datatype->GetSize(), 4);
-  EXPECT_EQ(memcmp(list_datatype->GetData(), std::vector<ge::DataType>({ge::DT_FLOAT, ge::DT_STRING, ge::DT_UINT16, ge::DT_BOOL}).data(), 4 * sizeof(ge::DataType)), 0);
+  EXPECT_EQ(memcmp(list_datatype->GetData(),
+                   std::vector<ge::DataType>({ge::DT_FLOAT, ge::DT_STRING, ge::DT_UINT16, ge::DT_BOOL}).data(),
+                   4 * sizeof(ge::DataType)),
+            0);
   auto typed_list_datatype = attrs->GetAttrPointer<TypedContinuousVector<ge::DataType>>(13);
   ASSERT_NE(typed_list_datatype, nullptr);
   ASSERT_EQ(typed_list_datatype->GetSize(), 4);
@@ -596,7 +600,6 @@ TEST_F(BgKernelContextExtendUT, BuildWithAttrs) {
   EXPECT_EQ((ge::DataType)typed_list_datatype->GetData()[1], ge::DT_STRING);
   EXPECT_EQ((ge::DataType)typed_list_datatype->GetData()[2], ge::DT_UINT16);
   EXPECT_EQ((ge::DataType)typed_list_datatype->GetData()[3], ge::DT_BOOL);
-
 }
 TEST_F(BgKernelContextExtendUT, IgnoreNoneIrAttr) {
   auto op_desc = std::make_shared<ge::OpDesc>("node", "node");
@@ -672,7 +675,7 @@ TEST_F(BgKernelContextExtendUT, BuildRequiredInputWithExpandDimsType) {
   // get reshape type 此处模拟FE调用transformer中方法获取int类型的reshape type
   int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0,
                                                                                origin_shape.size(), "NCH");
-  (void) ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, int_reshape_type);
+  (void)ge::AttrUtils::SetInt(tensor_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, int_reshape_type);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AppendIrInput("x", ge::kIrInputRequired);
 
@@ -846,8 +849,8 @@ TEST_F(BgKernelContextExtendUT, BuildOptionalInputWithNoPeerOutputAnchor) {
   size_t total_size = 0;
   auto ret = bg::CreateComputeNodeInfo(conv_node, buffer_pool, total_size);
   ASSERT_NE(ret, nullptr);
-  size_t buf_size = sizeof(ComputeNodeInfo) + sizeof(AnchorInstanceInfo) * 3 +
-      sizeof(CompileTimeTensorDesc) * 2 + sizeof(RuntimeAttrsDef);
+  size_t buf_size = sizeof(ComputeNodeInfo) + sizeof(AnchorInstanceInfo) * 3 + sizeof(CompileTimeTensorDesc) * 2 +
+                    sizeof(RuntimeAttrsDef);
   ASSERT_EQ(total_size, buf_size);
 
   auto compute_node_info = reinterpret_cast<ComputeNodeInfo *>(ret.get());
@@ -877,8 +880,8 @@ TEST_F(BgKernelContextExtendUT, CheckCompileTimeTensorDescReservedMemClean) {
   size_t total_size = 0;
   auto ret = bg::CreateComputeNodeInfo(conv_node, buffer_pool, total_size);
   ASSERT_NE(ret, nullptr);
-  size_t buf_size = sizeof(ComputeNodeInfo) + sizeof(AnchorInstanceInfo) * 3 +
-      sizeof(CompileTimeTensorDesc) * 2 + sizeof(RuntimeAttrsDef);
+  size_t buf_size = sizeof(ComputeNodeInfo) + sizeof(AnchorInstanceInfo) * 3 + sizeof(CompileTimeTensorDesc) * 2 +
+                    sizeof(RuntimeAttrsDef);
   ASSERT_EQ(total_size, buf_size);
 
   auto compute_node_info = reinterpret_cast<ComputeNodeInfo *>(ret.get());

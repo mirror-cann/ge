@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,19 +31,18 @@
 
 using namespace std;
 using namespace testing;
-using ::testing::Return;
-using ::testing::Eq;
-using ::testing::NotNull;
-using ::testing::Invoke;
 using ::testing::_;
+using ::testing::Eq;
+using ::testing::Invoke;
+using ::testing::NotNull;
+using ::testing::Return;
 class AclMdlTest : public testing::Test {
-protected:
- void SetUp(){
-  ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
-      .WillByDefault(Invoke(mmMalloc_Normal_Invoke));
+ protected:
+  void SetUp() {
+    ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillByDefault(Invoke(mmMalloc_Normal_Invoke));
   }
 
-  void TearDown(){
+  void TearDown() {
     Mock::VerifyAndClearExpectations(&MmpaStubMock::GetInstance());
     Mock::VerifyAndClearExpectations(&MockFunctionTest::aclStubInstance());
     Mock::VerifyAndClearExpectations(&GeExecutorStubMock::GetInstance());
@@ -87,7 +86,7 @@ TEST_F(AclMdlTest, aclmdlQuerySize_normal) {
   const char *fileName = "/home";
   size_t memSize;
   size_t weightSize;
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetMemAndWeightSize(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetMemAndWeightSize(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   aclError ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
   EXPECT_EQ(ret, ACL_SUCCESS);
 }
@@ -100,7 +99,9 @@ TEST_F(AclMdlTest, aclmdlQuerySize_abnormal) {
   aclError ret = aclmdlQuerySize(nullptr, nullptr, nullptr);
   EXPECT_NE(ret, ACL_SUCCESS);
 
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetMemAndWeightSize(_,_,_)).Times(1).WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetMemAndWeightSize(_, _, _))
+      .Times(1)
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
   ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
   EXPECT_NE(ret, ACL_SUCCESS);
 }
@@ -108,7 +109,7 @@ TEST_F(AclMdlTest, aclmdlQuerySize_abnormal) {
 TEST_F(AclMdlTest, aclmdlQueryExeOMDesc_normal) {
   const char *fileName = "/home";
   aclmdlExeOMDesc mdlPartitionSize;
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetPartitionSize(_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetPartitionSize(_, _)).Times(1).WillOnce(Return(SUCCESS));
   aclError ret = aclmdlQueryExeOMDesc(fileName, &mdlPartitionSize);
   EXPECT_EQ(ret, ACL_SUCCESS);
 }
@@ -119,7 +120,9 @@ TEST_F(AclMdlTest, aclmdlQueryExeOMDesc_abnormal) {
   aclError ret = aclmdlQueryExeOMDesc(nullptr, nullptr);
   EXPECT_NE(ret, ACL_SUCCESS);
 
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetPartitionSize(_,_)).Times(1).WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GetPartitionSize(_, _))
+      .Times(1)
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
   ret = aclmdlQueryExeOMDesc(fileName, &mdlPartitionSize);
   EXPECT_NE(ret, ACL_SUCCESS);
 }
@@ -183,9 +186,7 @@ TEST_F(AclMdlTest, aclmdlExecuteAsyncV2_normal) {
   handle.workPtr = malloc(workSize);
   handle.workSize = workSize;
   uint32_t modelId = 1;
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), ExecModel(_, _, _, _, _))
-      .Times(1)
-      .WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), ExecModel(_, _, _, _, _)).Times(1).WillOnce(Return(SUCCESS));
   ret = aclmdlExecuteAsyncV2(modelId, dataset, dataset, nullptr, &handle);
   EXPECT_EQ(ret, ACL_SUCCESS);
   free(dataBuffer);
@@ -226,7 +227,7 @@ TEST_F(AclMdlTest, aclmdlSetExecConfigOpt_valueSizeInvalid) {
 
 TEST_F(AclMdlTest, aclmdlSetExecConfigOpt_normal_setWorkSpace) {
   aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-   void *p = (void *)0x0001;
+  void *p = (void *)0x0001;
   size_t size = 100UL;
   aclError ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_WORK_ADDR_PTR, &p, sizeof(p));
   EXPECT_EQ(ret, ACL_SUCCESS);
@@ -235,7 +236,6 @@ TEST_F(AclMdlTest, aclmdlSetExecConfigOpt_normal_setWorkSpace) {
   ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_WORK_SIZET, &size, sizeof(size));
   EXPECT_EQ(ret, ACL_SUCCESS);
   aclmdlDestroyExecConfigHandle(handle);
-
 }
 
 TEST_F(AclMdlTest, aclmdlSetExecConfigOpt_normal_setAICQOS) {
@@ -293,7 +293,7 @@ TEST_F(AclMdlTest, aclmdlExecuteV2_normal) {
   ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_WORK_SIZET, &size, sizeof(size));
   EXPECT_EQ(ret, ACL_SUCCESS);
 
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), ExecModel(_,_,_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), ExecModel(_, _, _, _, _)).Times(1).WillOnce(Return(SUCCESS));
   ret = aclmdlExecuteV2(1, dataset, dataset, nullptr, handle);
   EXPECT_EQ(ret, ACL_SUCCESS);
 
@@ -302,7 +302,6 @@ TEST_F(AclMdlTest, aclmdlExecuteV2_normal) {
   EXPECT_EQ(ret, ACL_SUCCESS);
   aclmdlDestroyExecConfigHandle(handle);
 }
-
 
 TEST_F(AclMdlTest, aclmdlCreateConfigHandle_mmMallocErr) {
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
@@ -313,10 +312,10 @@ TEST_F(AclMdlTest, aclmdlCreateConfigHandle_mmMallocErr) {
 TEST_F(AclMdlTest, aclmdlSetConfigOpt_attrErr) {
   aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
   size_t type = ACL_MDL_LOAD_FROM_FILE;
-  //1. not support these atts, 0，7-14
+  // 1. not support these atts, 0，7-14
   aclError ret = aclmdlSetConfigOpt(handle, aclmdlConfigAttr(ACL_MDL_WORKSPACE_MEM_OPTIMIZE), &type, 0);
   EXPECT_NE(ret, ACL_SUCCESS);
-  //2. attr out of bounds
+  // 2. attr out of bounds
   ret = aclmdlSetConfigOpt(handle, aclmdlConfigAttr(0x100), &type, 0);
   EXPECT_NE(ret, ACL_SUCCESS);
   aclmdlDestroyConfigHandle(handle);
@@ -325,11 +324,11 @@ TEST_F(AclMdlTest, aclmdlSetConfigOpt_attrErr) {
 TEST_F(AclMdlTest, aclmdlSetConfigOpt_loadTypeErr) {
   aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
   size_t type = ACL_MDL_LOAD_FROM_FILE;
-  //1. load type size invalid
+  // 1. load type size invalid
   aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, 0);
   EXPECT_NE(ret, ACL_SUCCESS);
 
-  //2. load type should be between 1 and 4
+  // 2. load type should be between 1 and 4
   type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
   ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
@@ -339,7 +338,7 @@ TEST_F(AclMdlTest, aclmdlSetConfigOpt_loadTypeErr) {
 TEST_F(AclMdlTest, aclmdlSetConfigOpt_loadTypeSucc) {
   aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
   size_t type = ACL_MDL_LOAD_FROM_FILE;
-  aclError ret  = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
   EXPECT_EQ(ret, ACL_SUCCESS);
   aclmdlDestroyConfigHandle(handle);
 }
@@ -358,7 +357,8 @@ TEST_F(AclMdlTest, aclmdlSetConfigOpt_mdlPath) {
 
 TEST_F(AclMdlTest, aclmdlSetConfigOpt_memPtr) {
   aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
-  void *p = (void *)0x0004;;
+  void *p = (void *)0x0004;
+  ;
   // valueSize invalid
   aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, 0);
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
@@ -582,11 +582,11 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromMem_handleErr_memErr) {
   aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
   EXPECT_EQ(ret, ACL_SUCCESS);
   uint32_t modelId;
-  //1. model mem ptr is not set in handle
+  // 1. model mem ptr is not set in handle
   ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-  //2. model mem size is not set in handle
+  // 2. model mem size is not set in handle
   void *p = (void *)0x0004;
   ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
   EXPECT_EQ(ret, ACL_SUCCESS);
@@ -602,7 +602,7 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromMem_handleErr_memSizeErr) {
   void *p = (void *)0x0004;
   aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
   aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
-  //modelSize is 0
+  // modelSize is 0
   size_t modelSize = 0;
   aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
   uint32_t modelId;
@@ -622,7 +622,9 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromMem_abnormal_GeLoadModelFromDataErr)
   aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
 
   uint32_t modelId;
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_,_)).Times(1).WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_, _))
+      .Times(1)
+      .WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
   aclError ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
   aclmdlDestroyConfigHandle(handle);
@@ -639,7 +641,7 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromMem_normal) {
   aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
 
   uint32_t modelId;
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_, _)).Times(1).WillOnce(Return(SUCCESS));
   aclError ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_SUCCESS);
   aclmdlDestroyConfigHandle(handle);
@@ -665,7 +667,9 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromFile_abnormal_LoadDataFromFilelErr) 
   const char *path = "/home";
   aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
   uint32_t modelId;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_)).Times(1).WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _))
+      .Times(1)
+      .WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
   aclError ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
   aclmdlDestroyConfigHandle(handle);
@@ -679,13 +683,14 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromFile_abnormal_GeLoadModelFromDataErr
   const char *path = "/home";
   aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
   uint32_t modelId;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_,_)).Times(1).WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_, _))
+      .Times(1)
+      .WillOnce(Return(ACL_ERROR_GE_PARAM_INVALID));
   aclError ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
   aclmdlDestroyConfigHandle(handle);
 }
-
 
 TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromFile_normal) {
   // when loadFromFile, loadFromFilewithMem, handle must set loadtype, mdlPath
@@ -695,8 +700,8 @@ TEST_F(AclMdlTest, aclmdlLoadWithConfig_fromFile_normal) {
   const char *path = "/home";
   aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
   uint32_t modelId;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(GeExecutorStubMock::GetInstance(), GeLoadModelFromData(_, _)).Times(1).WillOnce(Return(SUCCESS));
   aclError ret = aclmdlLoadWithConfig(handle, &modelId);
   EXPECT_EQ(ret, ACL_SUCCESS);
   aclmdlDestroyConfigHandle(handle);
@@ -717,7 +722,7 @@ TEST_F(AclMdlTest, DataBuffer) {
   EXPECT_NE(dataset, nullptr);
 
   DataSet *geDataSet = (DataSet *)dataset;
-  geDataSet->io_addr_host = (uint64_t*)mmMalloc(sizeof(uint64_t));
+  geDataSet->io_addr_host = (uint64_t *)mmMalloc(sizeof(uint64_t));
   EXPECT_NE(geDataSet->io_addr_host, nullptr);
   aclError ret = aclmdlAddDatasetBuffer(dataset, nullptr);
   EXPECT_NE(ret, ACL_SUCCESS);
@@ -749,12 +754,12 @@ TEST_F(AclMdlTest, DataBuffer) {
 
 TEST_F(AclMdlTest, aclCreateDataBuffer_mmMallocErr) {
   EXPECT_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillOnce(Invoke(mmMalloc_Abnormal_Invoke));
-  aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
   EXPECT_EQ(buffer, nullptr);
 }
 
 TEST_F(AclMdlTest, aclGetDataBufferSizeV2_Test) {
-  aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
   EXPECT_EQ(aclGetDataBufferSizeV2(nullptr), 0);
   EXPECT_EQ(aclGetDataBufferSizeV2(buffer), 1);
   aclDestroyDataBuffer(buffer);
@@ -773,24 +778,23 @@ TEST_F(AclMdlTest, aclGetDataBufferAddr) {
   aclDestroyDataBuffer(dataBuffer);
 }
 
-TEST_F(AclMdlTest, aclmdlExecConfigAttr)
-{
-    aclmdlExecConfigAttr configExecAttr;
-    configExecAttr = (aclmdlExecConfigAttr)2;
-    EXPECT_EQ(configExecAttr, ACL_MDL_WORK_ADDR_PTR);
+TEST_F(AclMdlTest, aclmdlExecConfigAttr) {
+  aclmdlExecConfigAttr configExecAttr;
+  configExecAttr = (aclmdlExecConfigAttr)2;
+  EXPECT_EQ(configExecAttr, ACL_MDL_WORK_ADDR_PTR);
 
-    configExecAttr = (aclmdlExecConfigAttr)3;
-    EXPECT_EQ(configExecAttr, ACL_MDL_WORK_SIZET);
+  configExecAttr = (aclmdlExecConfigAttr)3;
+  EXPECT_EQ(configExecAttr, ACL_MDL_WORK_SIZET);
 
-    configExecAttr = (aclmdlExecConfigAttr)4;
-    EXPECT_EQ(configExecAttr, ACL_MDL_MPAIMID_SIZET);
+  configExecAttr = (aclmdlExecConfigAttr)4;
+  EXPECT_EQ(configExecAttr, ACL_MDL_MPAIMID_SIZET);
 
-    configExecAttr = (aclmdlExecConfigAttr)5;
-    EXPECT_EQ(configExecAttr, ACL_MDL_AICQOS_SIZET);
+  configExecAttr = (aclmdlExecConfigAttr)5;
+  EXPECT_EQ(configExecAttr, ACL_MDL_AICQOS_SIZET);
 
-    configExecAttr = (aclmdlExecConfigAttr)6;
-    EXPECT_EQ(configExecAttr, ACL_MDL_AICOST_SIZET);
+  configExecAttr = (aclmdlExecConfigAttr)6;
+  EXPECT_EQ(configExecAttr, ACL_MDL_AICOST_SIZET);
 
-    configExecAttr = (aclmdlExecConfigAttr)7;
-    EXPECT_EQ(configExecAttr, ACL_MDL_MEC_TIMETHR_SIZET);
+  configExecAttr = (aclmdlExecConfigAttr)7;
+  EXPECT_EQ(configExecAttr, ACL_MDL_MEC_TIMETHR_SIZET);
 }

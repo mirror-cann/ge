@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -90,11 +90,11 @@ LowerResult LoweringIf(const ge::NodePtr &node, const LowerInput &lower_input) {
   const auto op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(op_desc);
   // todo create stream ValueHolder on root graph
-  auto gen_index_for_if = bg::DevMemValueHolder::CreateSingleDataOutput(
-      "GenIndexForIf", {lower_input.input_shapes[0]}, op_desc->GetStreamId());
+  auto gen_index_for_if = bg::DevMemValueHolder::CreateSingleDataOutput("GenIndexForIf", {lower_input.input_shapes[0]},
+                                                                        op_desc->GetStreamId());
   // the `LoweringSubgraphInput` use the attr to determine the starting index of InnerData
-  LOWER_REQUIRE(ge::AttrUtils::SetInt(op_desc, "OuterStartIndex", 1),
-                "Failed to lower node %s, add start index failed", node->GetNamePtr());
+  LOWER_REQUIRE(ge::AttrUtils::SetInt(op_desc, "OuterStartIndex", 1), "Failed to lower node %s, add start index failed",
+                node->GetNamePtr());
 
   std::vector<bg::ValueHolderPtr> if_inputs;
   if_inputs.emplace_back(gen_index_for_if);
@@ -107,7 +107,7 @@ LowerResult LoweringIf(const ge::NodePtr &node, const LowerInput &lower_input) {
       bg::Cond<bg::DevMemValueHolder>(if_inputs, "If", {ge::kThenGraph, ge::kElseGraph},
                                       {[&node, &lower_input]() { return BuildSubgraph(node, 0, lower_input); },
                                        [&node, &lower_input]() { return BuildSubgraph(node, 1, lower_input); }},
-                                       op_desc->GetStreamId());
+                                      op_desc->GetStreamId());
 
   return CheckOutputsAndReturn(node, outputs);
 }
@@ -129,8 +129,8 @@ LowerResult LoweringCase(const ge::NodePtr &node, const LowerInput &lower_input)
   auto gen_index_for_case = bg::DevMemValueHolder::CreateSingleDataOutput(
       "GenIndexForCase", {lower_input.input_shapes[0U], branch_num_holder}, stream_id);
   // the `LoweringSubgraphInput` use the attr to determine the starting index of InnerData
-  LOWER_REQUIRE(ge::AttrUtils::SetInt(op_desc, "OuterStartIndex", 1),
-                "Failed to lower node %s, add start index failed", node->GetNamePtr());
+  LOWER_REQUIRE(ge::AttrUtils::SetInt(op_desc, "OuterStartIndex", 1), "Failed to lower node %s, add start index failed",
+                node->GetNamePtr());
 
   std::vector<bg::ValueHolderPtr> inputs;
   inputs.emplace_back(gen_index_for_case);

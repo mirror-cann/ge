@@ -13,14 +13,15 @@
 """GeUtils Python API tests."""
 
 import ctypes
+
 import pytest
 
 try:
     import ge._capi.pyge_utils_wrapper as wrapper
     import ge.utils.ge_utils as ge_utils_module
     from ge.es.graph_builder import GraphBuilder
-    from ge.utils import GeUtils
     from ge.graph import Graph, Node
+    from ge.utils import GeUtils
 except (ImportError, OSError) as exc:
     pytest.skip(f"无法导入 ge 模块: {exc}", allow_module_level=True)
 
@@ -45,11 +46,14 @@ class TestGeUtils:
             GeUtils.infer_shape(graph, [[1]])
 
     @staticmethod
-    @pytest.mark.parametrize("input_shapes", [
-        "bad",
-        [1, 2],
-        [[1, "bad"]],
-    ])
+    @pytest.mark.parametrize(
+        "input_shapes",
+        [
+            "bad",
+            [1, 2],
+            [[1, "bad"]],
+        ],
+    )
     def test_infer_shape_rejects_invalid_input_shapes(input_shapes):
         with pytest.raises(TypeError):
             GeUtils.infer_shape(Graph("ge_utils_invalid_input_shapes"), input_shapes)
@@ -79,7 +83,11 @@ class TestGeUtils:
             "GeApiWrapper_GeUtils_CheckNodeSupportOnAicore",
             mock_check_node_support_on_aicore,
         )
-        monkeypatch.setattr(ge_utils_module.ge_utils_lib, "GeApiWrapper_GeUtils_FreeString", mock_free_string)
+        monkeypatch.setattr(
+            ge_utils_module.ge_utils_lib,
+            "GeApiWrapper_GeUtils_FreeString",
+            mock_free_string,
+        )
 
         is_supported, reason = GeUtils.check_node_support_on_aicore(node)
 

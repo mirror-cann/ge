@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,7 @@
 
 namespace ge {
 namespace {
-static const std::set<AnchorAttribute> kNoConflictTypes{
-    ANCHOR_ATTR_REFERENCE_OUTPUT};
+static const std::set<AnchorAttribute> kNoConflictTypes{ANCHOR_ATTR_REFERENCE_OUTPUT};
 }
 std::set<std::pair<AnchorAttribute, AnchorAttribute>> RegAllAbsoluteNoConflict() {
   std::set<std::pair<AnchorAttribute, AnchorAttribute>> absolute_no_conflict_set;
@@ -100,8 +99,8 @@ Status Checker::CheckAbsoluteConflict(CheckFuncContext &context) const {
   GE_ASSERT_NOTNULL(anchor_b);
   // 如果两个都是InDataAnchor，为了避免随机，总是选择一个拓扑ID小的
   if (anchor_a->IsTypeIdOf<ge::InDataAnchor>() && anchor_b->IsTypeIdOf<ge::InDataAnchor>()) {
-    if (node_a.node_->GetOpDesc()->GetId() < node_b.node_->GetOpDesc()->GetId()
-        && (!MemLayoutConflictUtil::IsNodeOutRefFromInput(node_a, context.all_nodes))) {
+    if (node_a.node_->GetOpDesc()->GetId() < node_b.node_->GetOpDesc()->GetId() &&
+        (!MemLayoutConflictUtil::IsNodeOutRefFromInput(node_a, context.all_nodes))) {
       context.result.insert(node_a.node_ptr_->GetInDataAnchor(node_a.index_));
       GE_MEM_LAYOUT_CONFLICT_LOGI(context, node_a);
     } else {
@@ -137,25 +136,25 @@ bool Checker::IsSkip(CheckFuncContext &context) const {
   // 1 有 ref_var_src_var_name 属性的，引用anchor和被引用anchor不需要判断冲突
   // 2 但是有一个例外场景，如果是连续内存，仍然属于冲突场景，不能跳过。
   //   具体场景见：MemConflictShareGraph::BuildContinuousOutAndContinuousOutHcomByRefGraph
-  if ((node_a.io_type_ == kOut) && (node_b.io_type_ == kOut)
-      && (!MemLayoutConflictUtil::IsContainTargetType(context.type_b, ANCHOR_ATTR_CONTINUOUS_OUTPUT))
-      && (!MemLayoutConflictUtil::IsContainTargetType(context.type_a, ANCHOR_ATTR_CONTINUOUS_OUTPUT))) {
+  if ((node_a.io_type_ == kOut) && (node_b.io_type_ == kOut) &&
+      (!MemLayoutConflictUtil::IsContainTargetType(context.type_b, ANCHOR_ATTR_CONTINUOUS_OUTPUT)) &&
+      (!MemLayoutConflictUtil::IsContainTargetType(context.type_a, ANCHOR_ATTR_CONTINUOUS_OUTPUT))) {
     const auto &node_a_src_node = GetRefSrcAnchor(node_a.node_->GetOutDataAnchor(node_a.index_));
     const auto &node_b_src_node = GetRefSrcAnchor(node_b.node_->GetOutDataAnchor(node_b.index_));
     const auto is_a_ref_b = (node_a_src_node == node_b.node_);
     const auto is_b_ref_a = (node_b_src_node == node_a.node_);
     if (is_a_ref_b || is_b_ref_a) {
-      GELOGI("[MemConflict] reference by ref_var_src_var_name attr, skip."
-             " node_a: %s, node_b:%s, is_a_ref_b: %d, is_b_ref_a:%d",
-             node_a.ToString().c_str(), node_b.ToString().c_str(), is_a_ref_b, is_b_ref_a);
+      GELOGI(
+          "[MemConflict] reference by ref_var_src_var_name attr, skip."
+          " node_a: %s, node_b:%s, is_a_ref_b: %d, is_b_ref_a:%d",
+          node_a.ToString().c_str(), node_b.ToString().c_str(), is_a_ref_b, is_b_ref_a);
       return true;
     }
   }
   return false;
 }
 
-Status Checker::CheckConditionConflict(const AnchorAttribute &type_a,
-                                       const AnchorAttribute &type_b,
+Status Checker::CheckConditionConflict(const AnchorAttribute &type_a, const AnchorAttribute &type_b,
                                        CheckFuncContext &context) const {
   const auto checker_func = checkers_[type_a][type_b];
   if ((checker_func != nullptr) && (!checker_func->IsCallAsSymbol())) {
@@ -165,13 +164,10 @@ Status Checker::CheckConditionConflict(const AnchorAttribute &type_a,
   return SUCCESS;
 }
 
-Status Checker::CheckConditionConflictAsSymbol(const AnchorAttribute &type_a,
-                                               const AnchorAttribute &type_b,
-                                               CheckFuncContext &context,
-                                               std::vector<vector_bit_t> &visit_flag) const {
+Status Checker::CheckConditionConflictAsSymbol(const AnchorAttribute &type_a, const AnchorAttribute &type_b,
+                                               CheckFuncContext &context, std::vector<vector_bit_t> &visit_flag) const {
   const auto checker_func = checkers_[type_a][type_b];
-  if ((checker_func != nullptr) && (checker_func->IsCallAsSymbol())
-      && (!visit_flag[type_a][type_b])) {
+  if ((checker_func != nullptr) && (checker_func->IsCallAsSymbol()) && (!visit_flag[type_a][type_b])) {
     GE_ASSERT_SUCCESS(checker_func->GetFunc()(context), "call [%s, %s] checker func failed.",
                       CheckerLog::ToStr(type_a).c_str(), CheckerLog::ToStr(type_b).c_str());
     visit_flag[type_a][type_b] = true;
@@ -197,11 +193,11 @@ Status Checker::CheckConflict(CheckFuncContext &context, std::vector<vector_bit_
         continue;
       }
       GE_ASSERT_SUCCESS(CheckConditionConflictAsSymbol(context.type_a[i], context.type_b[j], context, visit_flag),
-                        "call [%s, %s] checker func failed.",
-                        CheckerLog::ToStr(context.type_a[i]).c_str(), CheckerLog::ToStr(context.type_b[i]).c_str());
+                        "call [%s, %s] checker func failed.", CheckerLog::ToStr(context.type_a[i]).c_str(),
+                        CheckerLog::ToStr(context.type_b[i]).c_str());
       GE_ASSERT_SUCCESS(CheckConditionConflict(context.type_a[i], context.type_b[j], context),
-                        "call [%s, %s] checker func failed.",
-                        CheckerLog::ToStr(context.type_a[i]).c_str(), CheckerLog::ToStr(context.type_b[i]).c_str());
+                        "call [%s, %s] checker func failed.", CheckerLog::ToStr(context.type_a[i]).c_str(),
+                        CheckerLog::ToStr(context.type_b[i]).c_str());
     }
   }
   return SUCCESS;

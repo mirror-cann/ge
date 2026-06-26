@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,8 @@ bool CheckNodesIsSameLinkInGraph(const ComputeGraphPtr &graph, const std::vector
  *                \      /
  *                netoutput
  */
-void BuildGraphForTestInOrOutNodeGenerate(ComputeGraphPtr &graph, std::vector<NodePtr> &sliced_nodes, std::vector<NodePtr> &remaining_nodes) {
+void BuildGraphForTestInOrOutNodeGenerate(ComputeGraphPtr &graph, std::vector<NodePtr> &sliced_nodes,
+                                          std::vector<NodePtr> &remaining_nodes) {
   auto builder = ut::GraphBuilder("Origin_Graph");
   const auto &data1 = builder.AddNode("data1", DATA, 1, 1);
   const auto &data2 = builder.AddNode("data2", DATA, 1, 1);
@@ -163,9 +164,9 @@ TEST_F(BinaryGraphBuilderUT, return_two_graph_with_io_link_when_give_two_nodes_f
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 
   GraphMapping target_mapping = {{"data1", {{0, {{"add1", 0}}}}},
-                                {"data2", {{0, {{"add1", 1}}}}},
-                                {"var", {{0, {{"add2", 1}, {"mul", 0}}}}},
-                                {"data3", {{0, {{"mul", 1}}}}}};
+                                 {"data2", {{0, {{"add1", 1}}}}},
+                                 {"var", {{0, {{"add2", 1}, {"mul", 0}}}}},
+                                 {"data3", {{0, {{"mul", 1}}}}}};
   EXPECT_EQ(io_link.binary_graph_mapping, target_mapping);
 
   auto netout_node = sliced_graph->GetOrUpdateNetOutputNode();
@@ -173,7 +174,12 @@ TEST_F(BinaryGraphBuilderUT, return_two_graph_with_io_link_when_give_two_nodes_f
   for (const auto &io_idx_pair : io_link.out_idx_2_in_idxs) {
     auto out_name = netout_node->GetInDataAnchor(io_idx_pair.first)->GetPeerOutAnchor()->GetOwnerNode()->GetName();
     auto out_idx = netout_node->GetInDataAnchor(io_idx_pair.first)->GetPeerOutAnchor()->GetIdx();
-    auto in_name = in_data_nodes.at(io_idx_pair.second)->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName();
+    auto in_name = in_data_nodes.at(io_idx_pair.second)
+                       ->GetOutDataAnchor(0)
+                       ->GetPeerInDataAnchors()
+                       .at(0)
+                       ->GetOwnerNode()
+                       ->GetName();
     auto in_idx = in_data_nodes.at(io_idx_pair.second)->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetIdx();
     int64_t data_index;
     ASSERT_TRUE(AttrUtils::GetInt(in_data_nodes.at(io_idx_pair.second)->GetOpDesc(), ATTR_NAME_INDEX, data_index));
@@ -232,8 +238,7 @@ TEST_F(BinaryGraphBuilderUT, return_remaining_graph_input_with_var_node_when_sli
   EXPECT_EQ(io_link.out_idx_2_in_idxs.size(), 3);
 
   auto var_node = remaining_graph->FindNode("var");
-  EXPECT_EQ(mul_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode(),
-            var_node);
+  EXPECT_EQ(mul_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode(), var_node);
   EXPECT_EQ(mul_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode(),
             add2_node->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode());
 }
@@ -322,7 +327,7 @@ TEST_F(BinaryGraphBuilderUT, return_remaining_graph_input_merge_node_when_sliced
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(remaining_graph->GetInputNodes().size(), 5);
   ret = graph_builder_.MergeSameInputNode(io_link);
-  EXPECT_EQ(remaining_graph->GetInputNodes().size(), 4);  
+  EXPECT_EQ(remaining_graph->GetInputNodes().size(), 4);
   auto mul_node = remaining_graph->FindNode("mul");
   auto add2_node = remaining_graph->FindNode("add2");
   EXPECT_EQ(mul_node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode(),
@@ -349,10 +354,10 @@ TEST_F(BinaryGraphBuilderUT, return_remaining_graph_input_node_with_desc_when_or
   ret = graph_builder_.SetInputNodeDesc(io_link);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   auto in_data_nodes = remaining_graph->GetInputNodes();
-  for (const auto & in_node : in_data_nodes) {
-      EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetShape(), GeShape({1, 1, 224, 224}));
-      EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat(), FORMAT_NCHW);
-      EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), DT_FLOAT);
+  for (const auto &in_node : in_data_nodes) {
+    EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetShape(), GeShape({1, 1, 224, 224}));
+    EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat(), FORMAT_NCHW);
+    EXPECT_EQ(in_node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), DT_FLOAT);
   }
 }
 
@@ -365,19 +370,19 @@ TEST_F(BinaryGraphBuilderUT, return_remaining_graph_input_node_with_desc_when_or
  */
 ut::GraphBuilder TestSubgraphBuilder() {
   ut::GraphBuilder graph_builder = ut::GraphBuilder("branch_graph");
-  std::vector<int64_t> shape1 = {1,1};
+  std::vector<int64_t> shape1 = {1, 1};
   auto data1 = graph_builder.AddNode("data1_1", "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape1);
   auto data1_desc = data1->GetOpDesc();
   EXPECT_NE(data1_desc, nullptr);
   AttrUtils::SetInt(data1_desc, "_parent_node_index", 0);
-  std::vector<int64_t> shape2 = {2,2};
+  std::vector<int64_t> shape2 = {2, 2};
   auto data2 = graph_builder.AddNode("data2_1", "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape2);
   auto data2_desc = data2->GetOpDesc();
   EXPECT_NE(data2_desc, nullptr);
   AttrUtils::SetInt(data2_desc, "_parent_node_index", 1);
 
   auto sub = graph_builder.AddNode("Sub", "Sub", 2, 1);
-  std::vector<int64_t> shape3 = {8,8};
+  std::vector<int64_t> shape3 = {8, 8};
   auto netoutput = graph_builder.AddNode("output", NETOUTPUT, 1, 0, FORMAT_NCHW, DT_INT32, shape3);
   auto input0_desc = netoutput->GetOpDesc()->MutableInputDesc(0);
   EXPECT_NE(input0_desc, nullptr);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,19 +40,19 @@ class EsbFuncsLLT : public ::testing::Test {
     temp_dir = GetTempDirectory() + "/binary_file_test";
     file_path = temp_dir + "/test_binary.bin";
     std::string command = "mkdir -p " + temp_dir;
-    (void) std::system(command.c_str());
+    (void)std::system(command.c_str());
   }
 
   void CleanTmpFileDir() {
     std::string command = "rm -rf " + temp_dir;
-    (void) std::system(command.c_str());
+    (void)std::system(command.c_str());
   }
 
-  template<typename T>
-  void CreateBinaryFile(const std::vector<T>& data) {
+  template <typename T>
+  void CreateBinaryFile(const std::vector<T> &data) {
     std::ofstream file(file_path, std::ios::binary);
     EXPECT_TRUE(file.is_open()) << "Failed to create file: " << file_path;
-    file.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(T));
+    file.write(reinterpret_cast<const char *>(data.data()), data.size() * sizeof(T));
     file.close();
   }
 
@@ -121,9 +121,8 @@ TEST_F(EsbFuncsLLT, EsCreateEsCTensorFromFile_success) {
   CreateBinaryFile(test_data);
   EXPECT_TRUE(mmAccess(file_path.c_str()) == EN_OK);
   int64_t dims[] = {3};
-  auto es_tensor =
-      EsCreateEsCTensorFromFile(file_path.c_str(), dims, 1, C_DT_INT64, C_FORMAT_ALL);
-    CleanTmpFileDir();
+  auto es_tensor = EsCreateEsCTensorFromFile(file_path.c_str(), dims, 1, C_DT_INT64, C_FORMAT_ALL);
+  CleanTmpFileDir();
   EXPECT_NE(es_tensor, nullptr);
   auto inner_tensor = static_cast<const ge::Tensor *>(static_cast<void *>(es_tensor));
   EXPECT_NE(inner_tensor, nullptr);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,9 +49,9 @@ struct rtProfTraceUserData {
 enum class GeProfInfoType {
   // model level
   kModelExecute = MSPROF_REPORT_MODEL_GRAPH_ID_MAP_TYPE + 1,  // 模型执行
-  kModelLoad,         // 模型加载
-  kInputCopy,         // input拷贝
-  kOutputCopy,        // output拷贝
+  kModelLoad,                                                 // 模型加载
+  kInputCopy,                                                 // input拷贝
+  kOutputCopy,                                                // output拷贝
   kModelLevelEnd,
   // node level
   // todo
@@ -190,7 +190,7 @@ class VISIBILITY_EXPORT GlobalProfilingWrapper {
                                                  MsprofEvent &prof_single_event) const;
 
   static ge::Status ReportEvent(const uint64_t item_id, const uint32_t request_id, const GeProfInfoType type,
-                             MsprofEvent &prof_single_event);
+                                MsprofEvent &prof_single_event);
 
   static ge::Status ReportApiInfo(const uint64_t begin_time, const uint64_t end_time, const uint64_t item_id,
                                   const uint32_t api_type);
@@ -318,6 +318,7 @@ class VISIBILITY_EXPORT ProfilerRegistry {
   void SaveRegistryType(const std::string &type, const bool launch_flag);
   bool IsProfLaunchType(const std::string &kernel_type, const bool launch_flag = true);
   bool IsProfDavinciModelExecuteType(const std::string &kernel_type) const;
+
  private:
   ProfilerRegistry() noexcept = default;
   std::vector<std::string> register_prof_launch_type_{};
@@ -363,12 +364,12 @@ class ProfLaunchTypeRegistry {
     event##begin_time = MsprofSysCycleTime();                                                   \
   }
 
-#define CANN_PROFILING_MODEL_API_END(item_id, info_type, end_time, event)                                          \
-  do {                                                                                                             \
-    if (gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kTaskTime)) {                  \
-      gert::GlobalProfilingWrapper::GetInstance()->ReportApiInfoModelLevel(                                        \
-      event##begin_time, end_time, item_id, info_type);                                                            \
-    }                                                                                                              \
+#define CANN_PROFILING_MODEL_API_END(item_id, info_type, end_time, event)                                        \
+  do {                                                                                                           \
+    if (gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kTaskTime)) {                \
+      gert::GlobalProfilingWrapper::GetInstance()->ReportApiInfoModelLevel(event##begin_time, end_time, item_id, \
+                                                                           info_type);                           \
+    }                                                                                                            \
   } while (false)
 
 #define CANN_PROFILING_MODEL_API_START(event)                                                   \
@@ -411,12 +412,12 @@ class ProfLaunchTypeRegistry {
     }                                                                                             \
   } while (false)
 
-#define CANN_PROFILING_GRAPH_ID(prof_time, tid, graph_id, model_id, is_aging, model_name)                   \
-  do {                                                                                                      \
-    if (gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kTaskTime)) {           \
-      (void)gert::GlobalProfilingWrapper::ReportGraphIdMap(prof_time, tid, {graph_id, model_id}, is_aging,  \
-                                                           model_name);                                     \
-    }                                                                                                       \
+#define CANN_PROFILING_GRAPH_ID(prof_time, tid, graph_id, model_id, is_aging, model_name)                  \
+  do {                                                                                                     \
+    if (gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kTaskTime)) {          \
+      (void)gert::GlobalProfilingWrapper::ReportGraphIdMap(prof_time, tid, {graph_id, model_id}, is_aging, \
+                                                           model_name);                                    \
+    }                                                                                                      \
   } while (false)
 
 #define CANN_PROFILING_STEP_TRACE(model_id, step_id, tag_id, stream)                         \

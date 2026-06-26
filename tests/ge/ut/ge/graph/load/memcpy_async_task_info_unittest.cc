@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -98,7 +98,7 @@ TEST_F(UtestMemcpyAsyncTaskInfo, success_memcpy_async_task_init) {
   EXPECT_EQ(PtrToValue(memcpy_async_task_info1.src_), 0x1b43);
 
   // set OpDesc attr
-  std::vector<int64_t> memory_type = { RT_MEMORY_TS };
+  std::vector<int64_t> memory_type = {RT_MEMORY_TS};
   AttrUtils::SetListInt(model.op_list_[6], ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memory_type);
   model.SetFeatureBaseRefreshable(false);
   memcpy_async->set_dst_max(0);
@@ -167,12 +167,11 @@ TEST_F(UtestMemcpyAsyncTaskInfo, success_memcpy_async_task_init_failed) {
   memcpy_async->set_dst(0x08003000);
 
   // set OpDesc attr
-  std::vector<int64_t> memory_type = { RT_MEMORY_TS };
+  std::vector<int64_t> memory_type = {RT_MEMORY_TS};
   AttrUtils::SetListInt(model.op_list_[6], ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memory_type);
   memcpy_async->set_dst_max(0);
   EXPECT_EQ(memcpy_async_task_info.Init(task_def, nullptr, args, persistant_workspace, iow_addrs), PARAM_INVALID);
   memcpy_async->set_dst_max(512);
-
 
   GeTensorDesc tensor(GeShape(), FORMAT_NCHW, DT_FLOAT);
   model.op_list_[6]->AddInputDesc(tensor);
@@ -217,12 +216,11 @@ TEST_F(UtestMemcpyAsyncTaskInfo, success_parse_task_run_param_dst_ts_mem) {
                                      model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
-
   MemcpyAsyncTaskInfo memcpy_async_task_info;
   model.op_list_[6] = CreateOpDesc("memcpyasync", MEMCPYASYNC);
   memcpy_async->set_src(0x08008000);
   memcpy_async->set_dst(0x08003000);
-  std::vector<int64_t> memory_type = { RT_MEMORY_TS };
+  std::vector<int64_t> memory_type = {RT_MEMORY_TS};
   AttrUtils::SetListInt(model.op_list_[6], ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memory_type);
   memcpy_async->set_dst_max(0);
   memcpy_async->set_dst_max(512);
@@ -300,8 +298,8 @@ TEST_F(UtestMemcpyAsyncTaskInfo, success_distribute) {
   model.ge_model_ = MakeShared<GeModel>();
   model.op_list_[0] = CreateOpDesc("memcpyasync", MEMCPYASYNC);
   model.SetFeatureBaseRefreshable(true);
-  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
-                                     512, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base), 512,
+                                     ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
   const auto model_task_def = MakeShared<domi::ModelTaskDef>();
@@ -332,7 +330,7 @@ TEST_F(UtestMemcpyAsyncTaskInfo, success_distribute) {
 
   EXPECT_EQ(task_info->Init(*task_def, &model, args, persistant_workspace, iow_addrs), SUCCESS);
 
-  model.task_list_ = { task_info };
+  model.task_list_ = {task_info};
   model.ge_model_->SetModelTaskDef(model_task_def);
   domi::GetContext().is_online_model = true;
   EXPECT_EQ(model.DistributeTask(*model_task_def), SUCCESS);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ Status SavePass::Run(ge::ComputeGraphPtr graph) {
             GE_CHECK_NOTNULL(op_desc);
             GE_IF_BOOL_EXEC(!ge::AttrUtils::SetStr(op_desc, kVarAttrVarIsSave, kVarIsSave),
                             REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", kVarAttrVarIsSave,
-                                              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                                 op_desc->GetName().c_str(), op_desc->GetType().c_str());
                             GELOGE(INTERNAL_ERROR, "[Set][Attr] %s to op:%s(%s) failed", kVarAttrVarIsSave,
                                    op_desc->GetName().c_str(), op_desc->GetType().c_str());
                             return INTERNAL_ERROR);
@@ -67,10 +67,10 @@ Status SavePass::Run(ge::ComputeGraphPtr graph) {
   for (auto &node_ptr : del_nodes) {
     auto ret = graph->RemoveNode(node_ptr);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) from graph:%s failed",
-                        node_ptr->GetName().c_str(), node_ptr->GetType().c_str(), graph->GetName().c_str());
-      GELOGE(ret, "[Remove][Node] %s(%s) from graph:%s failed",
-             node_ptr->GetName().c_str(), node_ptr->GetType().c_str(), graph->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) from graph:%s failed", node_ptr->GetName().c_str(),
+                           node_ptr->GetType().c_str(), graph->GetName().c_str());
+      GELOGE(ret, "[Remove][Node] %s(%s) from graph:%s failed", node_ptr->GetName().c_str(),
+             node_ptr->GetType().c_str(), graph->GetName().c_str());
       return ret;
     }
 

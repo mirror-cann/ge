@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,58 +25,55 @@ const std::string KERNEL_META_TEMP = "/kernel_meta_temp_";
 #define TE_FUSION_TIMECOST_START(stage) int64_t start_usec_##stage = GetMicroSecondTime();
 
 // Print the log of time cost of stage.
-#define TE_FUSION_TIMECOST_END(stage, stage_name)                                               \
-{                                                                                               \
-    int64_t end_usec_##stage = GetMicroSecondTime();                                            \
-    TE_INFOLOG("[FE_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name),     \
-        (end_usec_##stage - start_usec_##stage));                                               \
+#define TE_FUSION_TIMECOST_END(stage, stage_name)                                          \
+  {                                                                                        \
+    int64_t end_usec_##stage = GetMicroSecondTime();                                       \
+    TE_INFOLOG("[FE_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name), \
+               (end_usec_##stage - start_usec_##stage));                                   \
+  }
+
+template <typename T>
+std::string GetVectorValueToString(const std::vector<T> &value) {
+  std::ostringstream oss;
+  for (const T &val : value) {
+    oss << " " << val;
+  }
+  return oss.str();
 }
 
-template<typename T>
-std::string GetVectorValueToString(const std::vector<T> &value)
-{
-    std::ostringstream oss;
-    for (const T &val : value) {
-        oss << " " << val;
+template <typename K, typename V>
+std::string GetMapKeyToString(const std::map<K, V> &value) {
+  std::ostringstream oss;
+  bool isFirst = true;
+  for (const auto &val : value) {
+    if (isFirst) {
+      isFirst = false;
+    } else {
+      oss << ", ";
     }
-    return oss.str();
+    oss << val.first;
+  }
+  return oss.str();
 }
 
-template<typename K, typename V>
-std::string GetMapKeyToString(const std::map<K, V> &value)
-{
-    std::ostringstream oss;
-    bool isFirst = true;
-    for (const auto &val : value) {
-        if (isFirst) {
-            isFirst = false;
-        } else {
-            oss << ", ";
-        }
-        oss << val.first;
+template <typename K, typename V>
+std::string GetMapKeyToStringWithOr(const std::map<K, V> &value) {
+  std::ostringstream oss;
+  bool isFirst = true;
+  size_t index = 0;
+  size_t size = value.size();
+  for (const auto &val : value) {
+    if (isFirst) {
+      isFirst = false;
+    } else if (index == size - 1) {
+      oss << " or ";
+    } else {
+      oss << ", ";
     }
-    return oss.str();
-}
-
-template<typename K, typename V>
-std::string GetMapKeyToStringWithOr(const std::map<K, V> &value)
-{
-    std::ostringstream oss;
-    bool isFirst = true;
-    size_t index = 0;
-    size_t size = value.size();
-    for (const auto &val : value) {
-        if (isFirst) {
-            isFirst = false;
-        } else if (index == size - 1) {
-            oss << " or ";
-        } else {
-            oss << ", ";
-        }
-        oss << val.first;
-        index++;
-    }
-    return oss.str();
+    oss << val.first;
+    index++;
+  }
+  return oss.str();
 }
 
 int64_t GetMicroSecondTime();
@@ -127,7 +124,7 @@ bool CheckPathValid(const std::string &path, const std::string &pathOwner);
 
 void AssembleJsonPath(const std::string &opsPathNamePrefix, std::string &jsonFilePath, std::string &binFilePath);
 
-bool compareStrings(const std::string& a, const std::string& b);
+bool compareStrings(const std::string &a, const std::string &b);
 }  // namespace fusion
 }  // namespace te
 #endif  // ATC_OPCOMPILER_TE_FUSION_SOURCE_COMMON_COMMON_UTILS_H_

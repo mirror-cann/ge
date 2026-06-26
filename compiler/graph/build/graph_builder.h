@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,18 +48,17 @@ class GraphBuilder {
   Status CalcOpParam(const ge::ComputeGraphPtr &graph);
   Status ProcessAppendWs(const ModelPtr &model_ptr, const ComputeGraphPtr &comp_graph,
                          std::vector<Node *> &refresh_nodes) const;
-  Status UpdateMemAfterAppendWs(const ModelPtr &model_ptr,
-                                const std::map<int64_t, int64_t> &append_ws_stm_max,
+  Status UpdateMemAfterAppendWs(const ModelPtr &model_ptr, const std::map<int64_t, int64_t> &append_ws_stm_max,
                                 const std::map<int64_t, std::vector<NodePtr>> &append_ws_stm_nodes,
                                 int64_t &last_append_ws_size) const;
-  Status RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_graph,
-                                    const int64_t origin_memory_size, const int64_t zero_copy_size,
-                                    const int64_t last_append_ws_size, std::vector<Node *> &refresh_nodes) const;
-  Status RefreshNodeOffsetAfterAppendWs(const Node *node,
-                                        const int64_t origin_memory_size, const int64_t zero_copy_size,
-                                        const int64_t last_append_ws_size, bool &need_refresh) const;
-  Status GetCurrentRunContext(const ge::ModelBuilder &builder, const ModelPtr &model_ptr,
-                              ComputeGraphPtr &comp_graph, uint64_t session_id);
+  Status RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_graph, const int64_t origin_memory_size,
+                                    const int64_t zero_copy_size, const int64_t last_append_ws_size,
+                                    std::vector<Node *> &refresh_nodes) const;
+  Status RefreshNodeOffsetAfterAppendWs(const Node *node, const int64_t origin_memory_size,
+                                        const int64_t zero_copy_size, const int64_t last_append_ws_size,
+                                        bool &need_refresh) const;
+  Status GetCurrentRunContext(const ge::ModelBuilder &builder, const ModelPtr &model_ptr, ComputeGraphPtr &comp_graph,
+                              uint64_t session_id);
   Status GetTaskInfo(const ge::ModelBuilder &builder, const ModelPtr &model_ptr, ComputeGraphPtr &comp_graph,
                      Graph2SubGraphInfoList &subgraph_map, uint64_t session_id = INVALID_SESSION_ID);
   Status SetInputSize(const ge::NodePtr &node_ptr);
@@ -77,8 +76,8 @@ class GraphBuilder {
                                        GeModelPtr &ge_model_ptr, const uint64_t session_id = INVALID_SESSION_ID,
                                        const bool has_assigned_var_mem = false);
   Status RefreshInfoOfDynamicShapeGraph(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_model) const;
-  Status BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph,
-                                 GeModelPtr &ge_model_ptr, const uint64_t session_id = INVALID_SESSION_ID,
+  Status BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph, GeModelPtr &ge_model_ptr,
+                                 const uint64_t session_id = INVALID_SESSION_ID,
                                  const bool has_assigned_var_mem = false);
   Status BuildForUnknownShapeGraph(ComputeGraphPtr &comp_graph, GeModelPtr &ge_model_ptr,
                                    uint64_t session_id = INVALID_SESSION_ID);

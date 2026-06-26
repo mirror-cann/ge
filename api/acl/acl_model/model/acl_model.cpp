@@ -16,1000 +16,783 @@
 extern "C" {
 #endif
 
-aclmdlDesc *aclmdlCreateDesc()
-{
-    return aclmdlCreateDescImplOm2();
+aclmdlDesc *aclmdlCreateDesc() {
+  return aclmdlCreateDescImplOm2();
 }
 
-aclError aclmdlDestroyDesc(aclmdlDesc *modelDesc)
-{
-    return aclmdlDestroyDescImplOm2(modelDesc);
+aclError aclmdlDestroyDesc(aclmdlDesc *modelDesc) {
+  return aclmdlDestroyDescImplOm2(modelDesc);
 }
 
-aclError aclmdlGetDesc(aclmdlDesc *modelDesc, uint32_t modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetDescImplOm2(modelDesc, modelId) :
-        aclmdlGetDescImpl(modelDesc, modelId);
+aclError aclmdlGetDesc(aclmdlDesc *modelDesc, uint32_t modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetDescImplOm2(modelDesc, modelId) : aclmdlGetDescImpl(modelDesc, modelId);
 }
 
-aclError aclmdlGetDescFromFile(aclmdlDesc *modelDesc, const char *modelPath)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetDescFromFileImplOm2(modelDesc, modelPath) :
-        aclmdlGetDescFromFileImpl(modelDesc, modelPath);
+aclError aclmdlGetDescFromFile(aclmdlDesc *modelDesc, const char *modelPath) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetDescFromFileImplOm2(modelDesc, modelPath) : aclmdlGetDescFromFileImpl(modelDesc, modelPath);
 }
 
-aclError aclmdlGetDescFromMem(aclmdlDesc *modelDesc, const void *model, size_t modelSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetDescFromMemImplOm2(modelDesc, model, modelSize) :
-        aclmdlGetDescFromMemImpl(modelDesc, model, modelSize);
+aclError aclmdlGetDescFromMem(aclmdlDesc *modelDesc, const void *model, size_t modelSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetDescFromMemImplOm2(modelDesc, model, modelSize)
+               : aclmdlGetDescFromMemImpl(modelDesc, model, modelSize);
 }
 
-size_t aclmdlGetNumInputs(aclmdlDesc *modelDesc)
-{
-    return aclmdlGetNumInputsImplOm2(modelDesc);
+size_t aclmdlGetNumInputs(aclmdlDesc *modelDesc) {
+  return aclmdlGetNumInputsImplOm2(modelDesc);
 }
 
-size_t aclmdlGetNumOutputs(aclmdlDesc *modelDesc)
-{
-    return aclmdlGetNumOutputsImplOm2(modelDesc);
+size_t aclmdlGetNumOutputs(aclmdlDesc *modelDesc) {
+  return aclmdlGetNumOutputsImplOm2(modelDesc);
 }
 
-size_t aclmdlGetInputSizeByIndex(aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetInputSizeByIndexImplOm2(modelDesc, index);
+size_t aclmdlGetInputSizeByIndex(aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetInputSizeByIndexImplOm2(modelDesc, index);
 }
 
-size_t aclmdlGetOutputSizeByIndex(aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetOutputSizeByIndexImplOm2(modelDesc, index);
+size_t aclmdlGetOutputSizeByIndex(aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetOutputSizeByIndexImplOm2(modelDesc, index);
 }
 
-aclmdlExecConfigHandle *aclmdlCreateExecConfigHandle()
-{
-    return aclmdlCreateExecConfigHandleImplOm2();
+aclmdlExecConfigHandle *aclmdlCreateExecConfigHandle() {
+  return aclmdlCreateExecConfigHandleImplOm2();
 }
 
-aclError aclmdlDestroyExecConfigHandle(const aclmdlExecConfigHandle *handle)
-{
-    return aclmdlDestroyExecConfigHandleImplOm2(handle);
+aclError aclmdlDestroyExecConfigHandle(const aclmdlExecConfigHandle *handle) {
+  return aclmdlDestroyExecConfigHandleImplOm2(handle);
 }
 
-aclmdlDataset *aclmdlCreateDataset()
-{
-    return aclmdlCreateDatasetImplOm2();
+aclmdlDataset *aclmdlCreateDataset() {
+  return aclmdlCreateDatasetImplOm2();
 }
 
-aclError aclmdlDestroyDataset(const aclmdlDataset *dataset)
-{
-    return aclmdlDestroyDatasetImplOm2(dataset);
+aclError aclmdlDestroyDataset(const aclmdlDataset *dataset) {
+  return aclmdlDestroyDatasetImplOm2(dataset);
 }
 
-aclError aclmdlAddDatasetBuffer(aclmdlDataset *dataset, aclDataBuffer *dataBuffer)
-{
-    return aclmdlAddDatasetBufferImplOm2(dataset, dataBuffer);
+aclError aclmdlAddDatasetBuffer(aclmdlDataset *dataset, aclDataBuffer *dataBuffer) {
+  return aclmdlAddDatasetBufferImplOm2(dataset, dataBuffer);
 }
 
-aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset, aclTensorDesc *tensorDesc, size_t index)
-{
-    return aclmdlSetDatasetTensorDescImplOm2(dataset, tensorDesc, index);
+aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset, aclTensorDesc *tensorDesc, size_t index) {
+  return aclmdlSetDatasetTensorDescImplOm2(dataset, tensorDesc, index);
 }
 
-aclTensorDesc *aclmdlGetDatasetTensorDesc(const aclmdlDataset *dataset, size_t index)
-{
-    return aclmdlGetDatasetTensorDescImplOm2(dataset, index);
+aclTensorDesc *aclmdlGetDatasetTensorDesc(const aclmdlDataset *dataset, size_t index) {
+  return aclmdlGetDatasetTensorDescImplOm2(dataset, index);
 }
 
-size_t aclmdlGetDatasetNumBuffers(const aclmdlDataset *dataset)
-{
-    return aclmdlGetDatasetNumBuffersImplOm2(dataset);
+size_t aclmdlGetDatasetNumBuffers(const aclmdlDataset *dataset) {
+  return aclmdlGetDatasetNumBuffersImplOm2(dataset);
 }
 
-aclDataBuffer *aclmdlGetDatasetBuffer(const aclmdlDataset *dataset, size_t index)
-{
-    return aclmdlGetDatasetBufferImplOm2(dataset, index);
+aclDataBuffer *aclmdlGetDatasetBuffer(const aclmdlDataset *dataset, size_t index) {
+  return aclmdlGetDatasetBufferImplOm2(dataset, index);
 }
 
-aclError aclmdlLoadFromFile(const char *modelPath, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromFileImplOm2(modelPath, modelId) :
-        aclmdlLoadFromFileImpl(modelPath, modelId);
+aclError aclmdlLoadFromFile(const char *modelPath, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromFileImplOm2(modelPath, modelId) : aclmdlLoadFromFileImpl(modelPath, modelId);
 }
 
-aclError aclmdlBundleLoadFromFile(const char *modelPath, uint32_t *bundleId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleLoadFromFileImplOm2(modelPath, bundleId) :
-        aclmdlBundleLoadFromFileImpl(modelPath, bundleId);
+aclError aclmdlBundleLoadFromFile(const char *modelPath, uint32_t *bundleId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleLoadFromFileImplOm2(modelPath, bundleId)
+               : aclmdlBundleLoadFromFileImpl(modelPath, bundleId);
 }
 
-aclError aclmdlBundleLoadFromMem(const void *model,  size_t modelSize, uint32_t *bundleId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleLoadFromMemImplOm2(model, modelSize, bundleId) :
-        aclmdlBundleLoadFromMemImpl(model, modelSize, bundleId);
+aclError aclmdlBundleLoadFromMem(const void *model, size_t modelSize, uint32_t *bundleId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleLoadFromMemImplOm2(model, modelSize, bundleId)
+               : aclmdlBundleLoadFromMemImpl(model, modelSize, bundleId);
 }
 
-aclError aclmdlBundleUnload(uint32_t bundleId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleUnloadImplOm2(bundleId) :
-        aclmdlBundleUnloadImpl(bundleId);
+aclError aclmdlBundleUnload(uint32_t bundleId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleUnloadImplOm2(bundleId) : aclmdlBundleUnloadImpl(bundleId);
 }
 
-aclError aclmdlBundleGetModelNum(uint32_t bundleId, size_t *modelNum)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleGetModelNumImplOm2(bundleId, modelNum) :
-        aclmdlBundleGetModelNumImpl(bundleId, modelNum);
+aclError aclmdlBundleGetModelNum(uint32_t bundleId, size_t *modelNum) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleGetModelNumImplOm2(bundleId, modelNum) : aclmdlBundleGetModelNumImpl(bundleId, modelNum);
 }
 
-aclError aclmdlBundleGetModelId(uint32_t bundleId, size_t index, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleGetModelIdImplOm2(bundleId, index, modelId) :
-        aclmdlBundleGetModelIdImpl(bundleId, index, modelId);
+aclError aclmdlBundleGetModelId(uint32_t bundleId, size_t index, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleGetModelIdImplOm2(bundleId, index, modelId)
+               : aclmdlBundleGetModelIdImpl(bundleId, index, modelId);
 }
 
-aclmdlBundleQueryInfo *aclmdlBundleCreateQueryInfo()
-{
-    return aclmdlBundleCreateQueryInfoImplOm2();
+aclmdlBundleQueryInfo *aclmdlBundleCreateQueryInfo() {
+  return aclmdlBundleCreateQueryInfoImplOm2();
 }
 
-aclError aclmdlBundleDestroyQueryInfo(aclmdlBundleQueryInfo *queryInfo)
-{
+aclError aclmdlBundleDestroyQueryInfo(aclmdlBundleQueryInfo *queryInfo) {
   return aclmdlBundleDestroyQueryInfoImplOm2(queryInfo);
 }
 
-aclError aclmdlBundleQueryInfoFromFile(const char* fileName, aclmdlBundleQueryInfo *queryInfo)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(fileName, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleQueryInfoFromFileImplOm2(fileName, queryInfo) :
-        aclmdlBundleQueryInfoFromFileImpl(fileName, queryInfo);
+aclError aclmdlBundleQueryInfoFromFile(const char *fileName, aclmdlBundleQueryInfo *queryInfo) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(fileName, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleQueryInfoFromFileImplOm2(fileName, queryInfo)
+               : aclmdlBundleQueryInfoFromFileImpl(fileName, queryInfo);
 }
 
-aclError aclmdlBundleQueryInfoFromMem(const void *model, size_t modelSize, aclmdlBundleQueryInfo *queryInfo)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleQueryInfoFromMemImplOm2(model, modelSize, queryInfo) :
-        aclmdlBundleQueryInfoFromMemImpl(model, modelSize, queryInfo);
+aclError aclmdlBundleQueryInfoFromMem(const void *model, size_t modelSize, aclmdlBundleQueryInfo *queryInfo) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleQueryInfoFromMemImplOm2(model, modelSize, queryInfo)
+               : aclmdlBundleQueryInfoFromMemImpl(model, modelSize, queryInfo);
 }
 
-aclError aclmdlBundleGetQueryModelNum(const aclmdlBundleQueryInfo *queryInfo, size_t *modelNum)
-{
+aclError aclmdlBundleGetQueryModelNum(const aclmdlBundleQueryInfo *queryInfo, size_t *modelNum) {
   return aclmdlBundleGetQueryModelNumImplOm2(queryInfo, modelNum);
 }
 
-aclError aclmdlBundleGetVarWeightSize(const aclmdlBundleQueryInfo *queryInfo, size_t *variableWeightSize)
-{
+aclError aclmdlBundleGetVarWeightSize(const aclmdlBundleQueryInfo *queryInfo, size_t *variableWeightSize) {
   return aclmdlBundleGetVarWeightSizeImplOm2(queryInfo, variableWeightSize);
 }
 
-aclError aclmdlBundleGetSize(const aclmdlBundleQueryInfo *queryInfo, size_t index,
-                             size_t *workSize, size_t *constWeightSize)
-{
+aclError aclmdlBundleGetSize(const aclmdlBundleQueryInfo *queryInfo, size_t index, size_t *workSize,
+                             size_t *constWeightSize) {
   return aclmdlBundleGetSizeImplOm2(queryInfo, index, workSize, constWeightSize);
 }
 
-aclError aclmdlBundleInitFromFile(const char* modelPath, void *varWeightPtr,
-                                  size_t varWeightSize, uint32_t *bundleId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleInitFromFileImplOm2(modelPath, varWeightPtr, varWeightSize, bundleId) :
-        aclmdlBundleInitFromFileImpl(modelPath, varWeightPtr, varWeightSize, bundleId);
-}
-
-aclError aclmdlBundleInitFromMem(const void* model, size_t modelSize, void *varWeightPtr,
-                                 size_t varWeightSize, uint32_t *bundleId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleInitFromMemImplOm2(model, modelSize, varWeightPtr, varWeightSize, bundleId) :
-        aclmdlBundleInitFromMemImpl(model, modelSize, varWeightPtr, varWeightSize, bundleId);
-}
-
-aclError aclmdlBundleLoadModel(uint32_t bundleId, size_t index, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleLoadModelImplOm2(bundleId, index, modelId) :
-        aclmdlBundleLoadModelImpl(bundleId, index, modelId);
-}
-
-aclError aclmdlBundleLoadModelWithMem(uint32_t bundleId, size_t index, void *workPtr,
-                                      size_t workSize, void *weightPtr,
-                                      size_t weightSize, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleLoadModelWithMemImplOm2(bundleId, index, workPtr, workSize, weightPtr, weightSize, modelId) :
-        aclmdlBundleLoadModelWithMemImpl(bundleId, index, workPtr, workSize, weightPtr, weightSize, modelId);
-}
-
-aclError aclmdlBundleLoadModelWithConfig(uint32_t bundleId, size_t index,
-                                         aclmdlConfigHandle *handle, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleLoadModelWithConfigImplOm2(bundleId, index, handle, modelId) :
-        aclmdlBundleLoadModelWithConfigImpl(bundleId, index, handle, modelId);
-}
-
-aclError aclmdlBundleUnloadModel(uint32_t bundleId, uint32_t modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlBundleUnloadModelImplOm2(bundleId, modelId) :
-        aclmdlBundleUnloadModelImpl(bundleId, modelId);
-}
-
-aclError aclmdlLoadFromMem(const void *model,  size_t modelSize, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromMemImplOm2(model, modelSize, modelId) :
-        aclmdlLoadFromMemImpl(model, modelSize, modelId);
-}
-
-aclError aclmdlLoadFromFileWithMem(const char *modelPath,
-                                   uint32_t *modelId, void *workPtr, size_t workSize,
-                                   void *weightPtr, size_t weightSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromFileWithMemImplOm2(modelPath, modelId, workPtr, workSize, weightPtr, weightSize) :
-        aclmdlLoadFromFileWithMemImpl(modelPath, modelId, workPtr, workSize, weightPtr, weightSize);
-}
-
-aclError aclmdlLoadFromMemWithMem(const void *model, size_t modelSize,
-                                  uint32_t *modelId, void *workPtr, size_t workSize,
-                                  void *weightPtr, size_t weightSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromMemWithMemImplOm2(model, modelSize, modelId, workPtr, workSize, weightPtr, weightSize) :
-        aclmdlLoadFromMemWithMemImpl(model, modelSize, modelId, workPtr, workSize, weightPtr, weightSize);
-}
-
-aclError aclmdlLoadFromFileWithQ(const char *modelPath, uint32_t *modelId, const uint32_t *inputQ,
-                                 size_t inputQNum, const uint32_t *outputQ, size_t outputQNum)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromFileWithQImplOm2(modelPath, modelId, inputQ, inputQNum, outputQ, outputQNum) :
-        aclmdlLoadFromFileWithQImpl(modelPath, modelId, inputQ, inputQNum, outputQ, outputQNum);
-}
-
-aclError aclmdlLoadFromMemWithQ(const void *model, size_t modelSize, uint32_t *modelId,
-                                const uint32_t *inputQ, size_t inputQNum,
-                                const uint32_t *outputQ, size_t outputQNum)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadFromMemWithQImplOm2(model, modelSize, modelId, inputQ, inputQNum, outputQ, outputQNum) :
-        aclmdlLoadFromMemWithQImpl(model, modelSize, modelId, inputQ, inputQNum, outputQ, outputQNum);
-}
-
-aclError aclmdlExecute(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlExecuteImplOm2(modelId, input, output) :
-        aclmdlExecuteImpl(modelId, input, output);
-}
-
-aclError aclmdlExecuteV2(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output,
-                         aclrtStream stream, const aclmdlExecConfigHandle *handle)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlExecuteV2ImplOm2(modelId, input, output, stream, handle) :
-        aclmdlExecuteV2Impl(modelId, input, output, stream, handle);
-}
-
-aclError aclmdlExecuteAsync(uint32_t modelId, const aclmdlDataset *input,
-                            aclmdlDataset *output, aclrtStream stream)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlExecuteAsyncImplOm2(modelId, input, output, stream) :
-        aclmdlExecuteAsyncImpl(modelId, input, output, stream);
-}
-
-aclError aclmdlUnload(uint32_t modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlUnloadImplOm2(modelId) :
-        aclmdlUnloadImpl(modelId);
-}
-
-aclError aclmdlQuerySize(const char *fileName, size_t *workSize, size_t *weightSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByPath(fileName, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlQuerySizeImplOm2(fileName, workSize, weightSize) :
-        aclmdlQuerySizeImpl(fileName, workSize, weightSize);
-}
-
-aclError aclmdlQuerySizeFromMem(const void *model, size_t modelSize, size_t *workSize,
-                                size_t *weightSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlQuerySizeFromMemImplOm2(model, modelSize, workSize, weightSize) :
-        aclmdlQuerySizeFromMemImpl(model, modelSize, workSize, weightSize);
-}
-
-aclError aclmdlSetDynamicBatchSize(uint32_t modelId, aclmdlDataset *dataset, size_t index,
-                                   uint64_t batchSize)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetDynamicBatchSizeImplOm2(modelId, dataset, index, batchSize) :
-        aclmdlSetDynamicBatchSizeImpl(modelId, dataset, index, batchSize);
-}
-
-aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset *dataset, size_t index,
-                                uint64_t height, uint64_t width)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetDynamicHWSizeImplOm2(modelId, dataset, index, height, width) :
-        aclmdlSetDynamicHWSizeImpl(modelId, dataset, index, height, width);
-}
-
-aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset *dataset, size_t index,
-                                   const aclmdlIODims *dims)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetInputDynamicDimsImplOm2(modelId, dataset, index, dims) :
-        aclmdlSetInputDynamicDimsImpl(modelId, dataset, index, dims);
-}
-
-aclError aclmdlGetInputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims)
-{
-    return aclmdlGetInputDimsImplOm2(modelDesc, index, dims);
-}
-
-aclError aclmdlGetInputDimsV2(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims)
-{
-    return aclmdlGetInputDimsV2ImplOm2(modelDesc, index, dims);
-}
-
-aclError aclmdlGetInputDimsRange(const aclmdlDesc *modelDesc, size_t index,
-                                 aclmdlIODimsRange *dimsRange)
-{
-    return aclmdlGetInputDimsRangeImplOm2(modelDesc, index, dimsRange);
-}
-
-aclError aclmdlGetOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims)
-{
-    return aclmdlGetOutputDimsImplOm2(modelDesc, index, dims);
-}
-
-aclError aclmdlGetCurOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByDesc(modelDesc, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetCurOutputDimsImplOm2(modelDesc, index, dims) :
-        aclmdlGetCurOutputDimsImpl(modelDesc, index, dims);
-}
-
-const char *aclmdlGetOpAttr(aclmdlDesc *modelDesc, const char *opName, const char *attr)
-{
-    if (modelDesc == nullptr) {
-        return nullptr;
-    }
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByDesc(modelDesc, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return nullptr;
-    }
-    return isOm2 ?
-        aclmdlGetOpAttrImplOm2(modelDesc, opName, attr) :
-        aclmdlGetOpAttrImpl(modelDesc, opName, attr);
-}
-
-const char *aclmdlGetInputNameByIndex(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetInputNameByIndexImplOm2(modelDesc, index);
-}
-
-const char *aclmdlGetOutputNameByIndex(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetOutputNameByIndexImplOm2(modelDesc, index);
-}
-
-aclFormat aclmdlGetInputFormat(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetInputFormatImplOm2(modelDesc, index);
-}
-
-aclFormat aclmdlGetOutputFormat(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetOutputFormatImplOm2(modelDesc, index);
-}
-
-aclDataType aclmdlGetInputDataType(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetInputDataTypeImplOm2(modelDesc, index);
-}
-
-aclDataType aclmdlGetOutputDataType(const aclmdlDesc *modelDesc, size_t index)
-{
-    return aclmdlGetOutputDataTypeImplOm2(modelDesc, index);
-}
-
-aclError aclmdlGetInputIndexByName(const aclmdlDesc *modelDesc, const char *name, size_t *index)
-{
-    return aclmdlGetInputIndexByNameImplOm2(modelDesc, name, index);
-}
-
-aclError aclmdlGetOutputIndexByName(const aclmdlDesc *modelDesc, const char *name, size_t *index)
-{
-    return aclmdlGetOutputIndexByNameImplOm2(modelDesc, name, index);
-}
-
-aclError aclmdlGetDynamicBatch(const aclmdlDesc *modelDesc, aclmdlBatch *batch)
-{
-    return aclmdlGetDynamicBatchImplOm2(modelDesc, batch);
-}
-
-aclError aclmdlGetDynamicHW(const aclmdlDesc *modelDesc, size_t index, aclmdlHW *hw)
-{
-    return aclmdlGetDynamicHWImplOm2(modelDesc, index, hw);
-}
-
-aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc *modelDesc, size_t index,
-                                        size_t *gearCount)
-{
-    return aclmdlGetInputDynamicGearCountImplOm2(modelDesc, index, gearCount);
-}
-
-aclError aclmdlGetInputDynamicDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims,
-                                   size_t gearCount)
-{
-    return aclmdlGetInputDynamicDimsImplOm2(modelDesc, index, dims, gearCount);
-}
-
-aclmdlAIPP *aclmdlCreateAIPP(uint64_t batchSize)
-{
-    return aclmdlCreateAIPPImplOm2(batchSize);
-}
-
-aclError aclmdlDestroyAIPP(const aclmdlAIPP *aippParmsSet)
-{
-    return aclmdlDestroyAIPPImplOm2(aippParmsSet);
-}
-
-aclError aclmdlGetAippDataSize(uint64_t batchSize, size_t *size)
-{
-    return aclmdlGetAippDataSizeImplOm2(batchSize, size);
-}
-
-aclError aclmdlSetAIPPInputFormat(aclmdlAIPP *aippParmsSet, aclAippInputFormat inputFormat)
-{
-    return aclmdlSetAIPPInputFormatImplOm2(aippParmsSet, inputFormat);
-}
-
-aclError aclmdlSetAIPPCscParams(aclmdlAIPP *aippParmsSet, int8_t cscSwitch,
-                                int16_t cscMatrixR0C0, int16_t cscMatrixR0C1, int16_t cscMatrixR0C2,
-                                int16_t cscMatrixR1C0, int16_t cscMatrixR1C1, int16_t cscMatrixR1C2,
-                                int16_t cscMatrixR2C0, int16_t cscMatrixR2C1, int16_t cscMatrixR2C2,
-                                uint8_t cscOutputBiasR0, uint8_t cscOutputBiasR1,
-                                uint8_t cscOutputBiasR2, uint8_t cscInputBiasR0,
-                                uint8_t cscInputBiasR1, uint8_t cscInputBiasR2)
-{
-    return aclmdlSetAIPPCscParamsImplOm2(aippParmsSet, cscSwitch, cscMatrixR0C0, cscMatrixR0C1, cscMatrixR0C2, cscMatrixR1C0, cscMatrixR1C1, cscMatrixR1C2, cscMatrixR2C0, cscMatrixR2C1, cscMatrixR2C2, cscOutputBiasR0, cscOutputBiasR1, cscOutputBiasR2, cscInputBiasR0, cscInputBiasR1, cscInputBiasR2);
-}
-
-aclError aclmdlSetAIPPRbuvSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t rbuvSwapSwitch)
-{
-    return aclmdlSetAIPPRbuvSwapSwitchImplOm2(aippParmsSet, rbuvSwapSwitch);
-}
-
-aclError aclmdlSetAIPPAxSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t axSwapSwitch)
-{
-    return aclmdlSetAIPPAxSwapSwitchImplOm2(aippParmsSet, axSwapSwitch);
-}
-
-aclError aclmdlSetAIPPSrcImageSize(aclmdlAIPP *aippParmsSet, int32_t srcImageSizeW,
-                                   int32_t srcImageSizeH)
-{
-    return aclmdlSetAIPPSrcImageSizeImplOm2(aippParmsSet, srcImageSizeW, srcImageSizeH);
-}
-
-aclError aclmdlSetAIPPScfParams(aclmdlAIPP *aippParmsSet,
-                                int8_t scfSwitch,
-                                int32_t scfInputSizeW,
-                                int32_t scfInputSizeH,
-                                int32_t scfOutputSizeW,
-                                int32_t scfOutputSizeH,
-                                uint64_t batchIndex)
-{
-    return aclmdlSetAIPPScfParamsImplOm2(aippParmsSet, scfSwitch, scfInputSizeW, scfInputSizeH, scfOutputSizeW, scfOutputSizeH, batchIndex);
-}
-
-aclError aclmdlSetAIPPCropParams(aclmdlAIPP *aippParmsSet,
-                                 int8_t cropSwitch,
-                                 int32_t cropStartPosW,
-                                 int32_t cropStartPosH,
-                                 int32_t cropSizeW,
-                                 int32_t cropSizeH,
-                                 uint64_t batchIndex)
-{
-    return aclmdlSetAIPPCropParamsImplOm2(aippParmsSet, cropSwitch, cropStartPosW, cropStartPosH, cropSizeW, cropSizeH, batchIndex);
-}
-
-aclError aclmdlSetAIPPPaddingParams(aclmdlAIPP *aippParmsSet, int8_t paddingSwitch,
-                                    int32_t paddingSizeTop, int32_t paddingSizeBottom,
-                                    int32_t paddingSizeLeft, int32_t paddingSizeRight,
-                                    uint64_t batchIndex)
-{
-    return aclmdlSetAIPPPaddingParamsImplOm2(aippParmsSet, paddingSwitch, paddingSizeTop, paddingSizeBottom, paddingSizeLeft, paddingSizeRight, batchIndex);
-}
-
-aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP *aippParmsSet,
-                                   int16_t dtcPixelMeanChn0,
-                                   int16_t dtcPixelMeanChn1,
-                                   int16_t dtcPixelMeanChn2,
-                                   int16_t dtcPixelMeanChn3,
-                                   uint64_t batchIndex)
-{
-    return aclmdlSetAIPPDtcPixelMeanImplOm2(aippParmsSet, dtcPixelMeanChn0, dtcPixelMeanChn1, dtcPixelMeanChn2, dtcPixelMeanChn3, batchIndex);
-}
-
-aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP *aippParmsSet,
-                                  float dtcPixelMinChn0,
-                                  float dtcPixelMinChn1,
-                                  float dtcPixelMinChn2,
-                                  float dtcPixelMinChn3,
-                                  uint64_t batchIndex)
-{
-    return aclmdlSetAIPPDtcPixelMinImplOm2(aippParmsSet, dtcPixelMinChn0, dtcPixelMinChn1, dtcPixelMinChn2, dtcPixelMinChn3, batchIndex);
-}
-
-aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP *aippParmsSet,
-                                   float dtcPixelVarReciChn0,
-                                   float dtcPixelVarReciChn1,
-                                   float dtcPixelVarReciChn2,
-                                   float dtcPixelVarReciChn3,
-                                   uint64_t batchIndex)
-{
-    return aclmdlSetAIPPPixelVarReciImplOm2(aippParmsSet, dtcPixelVarReciChn0, dtcPixelVarReciChn1, dtcPixelVarReciChn2, dtcPixelVarReciChn3, batchIndex);
-}
-
-aclError aclmdlSetInputAIPP(uint32_t modelId,
-                            aclmdlDataset *dataset,
-                            size_t index,
-                            const aclmdlAIPP *aippParmsSet)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetInputAIPPImplOm2(modelId, dataset, index, aippParmsSet) :
-        aclmdlSetInputAIPPImpl(modelId, dataset, index, aippParmsSet);
-}
-
-aclError aclmdlSetAIPPByInputIndex(uint32_t modelId,
-                                   aclmdlDataset *dataset,
-                                   size_t index,
-                                   const aclmdlAIPP *aippParmsSet)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetAIPPByInputIndexImplOm2(modelId, dataset, index, aippParmsSet) :
-        aclmdlSetAIPPByInputIndexImpl(modelId, dataset, index, aippParmsSet);
-}
-
-aclError aclmdlGetAippType(uint32_t modelId,
-                           size_t index,
-                           aclmdlInputAippType *type,
-                           size_t *dynamicAttachedDataIndex)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetAippTypeImplOm2(modelId, index, type, dynamicAttachedDataIndex) :
-        aclmdlGetAippTypeImpl(modelId, index, type, dynamicAttachedDataIndex);
-}
-
-aclError aclmdlGetFirstAippInfo(uint32_t modelId, size_t index, aclAippInfo *aippInfo)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetFirstAippInfoImplOm2(modelId, index, aippInfo) :
-        aclmdlGetFirstAippInfoImpl(modelId, index, aippInfo);
-}
-
-aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId,
-    uint32_t taskId, char *opName, size_t opNameLen, aclTensorDesc **inputDesc, size_t *numInputs,
-    aclTensorDesc **outputDesc, size_t *numOutputs)
-{
-    const aclError om2Ret = aclmdlCreateAndGetOpDescImplOm2(deviceId, streamId, taskId, opName, opNameLen,
-        inputDesc, numInputs, outputDesc, numOutputs);
-    // If OM2 OpDescInfo is not found, ACL_ERROR_GE_FAILURE is returned and OM OpDescInfo should be queried.
-    if ((om2Ret == ACL_SUCCESS) || (om2Ret == ACL_ERROR_FAILURE) || (om2Ret == ACL_ERROR_INVALID_PARAM)) {
-        return om2Ret;
-    }
-    const aclError ret = aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen,
-        inputDesc, numInputs, outputDesc, numOutputs);
+aclError aclmdlBundleInitFromFile(const char *modelPath, void *varWeightPtr, size_t varWeightSize, uint32_t *bundleId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
     return ret;
+  }
+  return isOm2 ? aclmdlBundleInitFromFileImplOm2(modelPath, varWeightPtr, varWeightSize, bundleId)
+               : aclmdlBundleInitFromFileImpl(modelPath, varWeightPtr, varWeightSize, bundleId);
 }
 
-aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelByConfig(handle, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlLoadWithConfigImplOm2(handle, modelId) :
-        aclmdlLoadWithConfigImpl(handle, modelId);
+aclError aclmdlBundleInitFromMem(const void *model, size_t modelSize, void *varWeightPtr, size_t varWeightSize,
+                                 uint32_t *bundleId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleInitFromMemImplOm2(model, modelSize, varWeightPtr, varWeightSize, bundleId)
+               : aclmdlBundleInitFromMemImpl(model, modelSize, varWeightPtr, varWeightSize, bundleId);
 }
 
-aclError aclmdlSetExternalWeightAddress(aclmdlConfigHandle *handle, const char *weightFileName,
-    void *devPtr, size_t size)
-{
-    return aclmdlSetExternalWeightAddressImplOm2(handle, weightFileName, devPtr, size);
+aclError aclmdlBundleLoadModel(uint32_t bundleId, size_t index, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleLoadModelImplOm2(bundleId, index, modelId)
+               : aclmdlBundleLoadModelImpl(bundleId, index, modelId);
 }
 
-aclmdlConfigHandle *aclmdlCreateConfigHandle()
-{
-    return aclmdlCreateConfigHandleImplOm2();
+aclError aclmdlBundleLoadModelWithMem(uint32_t bundleId, size_t index, void *workPtr, size_t workSize, void *weightPtr,
+                                      size_t weightSize, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleLoadModelWithMemImplOm2(bundleId, index, workPtr, workSize, weightPtr, weightSize, modelId)
+               : aclmdlBundleLoadModelWithMemImpl(bundleId, index, workPtr, workSize, weightPtr, weightSize, modelId);
 }
 
-aclError aclmdlDestroyConfigHandle(aclmdlConfigHandle *handle)
-{
-    return aclmdlDestroyConfigHandleImplOm2(handle);
+aclError aclmdlBundleLoadModelWithConfig(uint32_t bundleId, size_t index, aclmdlConfigHandle *handle,
+                                         uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleLoadModelWithConfigImplOm2(bundleId, index, handle, modelId)
+               : aclmdlBundleLoadModelWithConfigImpl(bundleId, index, handle, modelId);
 }
 
-aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
-    const void *attrValue, size_t valueSize)
-{
-    return aclmdlSetConfigOptImplOm2(handle, attr, attrValue, valueSize);
+aclError aclmdlBundleUnloadModel(uint32_t bundleId, uint32_t modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2BundleById(bundleId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlBundleUnloadModelImplOm2(bundleId, modelId) : aclmdlBundleUnloadModelImpl(bundleId, modelId);
 }
 
-aclError aclmdlSetExecConfigOpt(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr,
-                                const void *attrValue, size_t valueSize)
-{
-    return aclmdlSetExecConfigOptImplOm2(handle, attr, attrValue, valueSize);
+aclError aclmdlLoadFromMem(const void *model, size_t modelSize, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromMemImplOm2(model, modelSize, modelId) : aclmdlLoadFromMemImpl(model, modelSize, modelId);
 }
 
-const char *aclmdlGetTensorRealName(const aclmdlDesc *modelDesc, const char *name)
-{
-    return aclmdlGetTensorRealNameImplOm2(modelDesc, name);
+aclError aclmdlLoadFromFileWithMem(const char *modelPath, uint32_t *modelId, void *workPtr, size_t workSize,
+                                   void *weightPtr, size_t weightSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromFileWithMemImplOm2(modelPath, modelId, workPtr, workSize, weightPtr, weightSize)
+               : aclmdlLoadFromFileWithMemImpl(modelPath, modelId, workPtr, workSize, weightPtr, weightSize);
 }
 
-aclError aclRecoverAllHcclTasks(int32_t deviceId)
-{
-    aclError ret = aclRecoverAllHcclTasksImpl(deviceId);
-    if (ret != ACL_SUCCESS) {
-        return ret;
-    }
-    return aclRecoverAllHcclTasksImplOm2(deviceId);
+aclError aclmdlLoadFromMemWithMem(const void *model, size_t modelSize, uint32_t *modelId, void *workPtr,
+                                  size_t workSize, void *weightPtr, size_t weightSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromMemWithMemImplOm2(model, modelSize, modelId, workPtr, workSize, weightPtr, weightSize)
+               : aclmdlLoadFromMemWithMemImpl(model, modelSize, modelId, workPtr, workSize, weightPtr, weightSize);
 }
 
-aclTensorDesc *aclCreateTensorDesc(aclDataType dataType, int numDims, const int64_t *dims, aclFormat format)
-{
-    return aclCreateTensorDescImplOm2(dataType, numDims, dims, format);
+aclError aclmdlLoadFromFileWithQ(const char *modelPath, uint32_t *modelId, const uint32_t *inputQ, size_t inputQNum,
+                                 const uint32_t *outputQ, size_t outputQNum) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(modelPath, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromFileWithQImplOm2(modelPath, modelId, inputQ, inputQNum, outputQ, outputQNum)
+               : aclmdlLoadFromFileWithQImpl(modelPath, modelId, inputQ, inputQNum, outputQ, outputQNum);
 }
 
-void aclDestroyTensorDesc(const aclTensorDesc *desc)
-{
-    aclDestroyTensorDescImplOm2(desc);
+aclError aclmdlLoadFromMemWithQ(const void *model, size_t modelSize, uint32_t *modelId, const uint32_t *inputQ,
+                                size_t inputQNum, const uint32_t *outputQ, size_t outputQNum) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadFromMemWithQImplOm2(model, modelSize, modelId, inputQ, inputQNum, outputQ, outputQNum)
+               : aclmdlLoadFromMemWithQImpl(model, modelSize, modelId, inputQ, inputQNum, outputQ, outputQNum);
 }
 
-aclError aclSetTensorShapeRange(aclTensorDesc* desc,
-                                size_t dimsCount,
-                                int64_t dimsRange[][ACL_TENSOR_SHAPE_RANGE_NUM])
-{
-    return aclSetTensorShapeRangeImplOm2(desc, dimsCount, dimsRange);
+aclError aclmdlExecute(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlExecuteImplOm2(modelId, input, output) : aclmdlExecuteImpl(modelId, input, output);
 }
 
-aclError aclSetTensorValueRange(aclTensorDesc* desc,
-                                size_t valueCount,
-                                int64_t valueRange[][ACL_TENSOR_VALUE_RANGE_NUM])
-{
-    return aclSetTensorValueRangeImplOm2(desc, valueCount, valueRange);
+aclError aclmdlExecuteV2(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output, aclrtStream stream,
+                         const aclmdlExecConfigHandle *handle) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlExecuteV2ImplOm2(modelId, input, output, stream, handle)
+               : aclmdlExecuteV2Impl(modelId, input, output, stream, handle);
 }
 
-aclDataType aclGetTensorDescType(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescTypeImplOm2(desc);
+aclError aclmdlExecuteAsync(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output, aclrtStream stream) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlExecuteAsyncImplOm2(modelId, input, output, stream)
+               : aclmdlExecuteAsyncImpl(modelId, input, output, stream);
 }
 
-aclFormat aclGetTensorDescFormat(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescFormatImplOm2(desc);
+aclError aclmdlUnload(uint32_t modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlUnloadImplOm2(modelId) : aclmdlUnloadImpl(modelId);
 }
 
-size_t aclGetTensorDescSize(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescSizeImplOm2(desc);
+aclError aclmdlQuerySize(const char *fileName, size_t *workSize, size_t *weightSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByPath(fileName, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlQuerySizeImplOm2(fileName, workSize, weightSize)
+               : aclmdlQuerySizeImpl(fileName, workSize, weightSize);
 }
 
-size_t aclGetTensorDescElementCount(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescElementCountImplOm2(desc);
+aclError aclmdlQuerySizeFromMem(const void *model, size_t modelSize, size_t *workSize, size_t *weightSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByData(model, modelSize, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlQuerySizeFromMemImplOm2(model, modelSize, workSize, weightSize)
+               : aclmdlQuerySizeFromMemImpl(model, modelSize, workSize, weightSize);
 }
 
-size_t aclGetTensorDescNumDims(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescNumDimsImplOm2(desc);
+aclError aclmdlSetDynamicBatchSize(uint32_t modelId, aclmdlDataset *dataset, size_t index, uint64_t batchSize) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetDynamicBatchSizeImplOm2(modelId, dataset, index, batchSize)
+               : aclmdlSetDynamicBatchSizeImpl(modelId, dataset, index, batchSize);
 }
 
-int64_t aclGetTensorDescDim(const aclTensorDesc *desc, size_t index)
-{
-    return aclGetTensorDescDimImplOm2(desc, index);
+aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset *dataset, size_t index, uint64_t height,
+                                uint64_t width) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetDynamicHWSizeImplOm2(modelId, dataset, index, height, width)
+               : aclmdlSetDynamicHWSizeImpl(modelId, dataset, index, height, width);
 }
 
-aclError aclGetTensorDescDimV2(const aclTensorDesc *desc, size_t index, int64_t *dimSize)
-{
-    return aclGetTensorDescDimV2ImplOm2(desc, index, dimSize);
+aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset *dataset, size_t index, const aclmdlIODims *dims) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetInputDynamicDimsImplOm2(modelId, dataset, index, dims)
+               : aclmdlSetInputDynamicDimsImpl(modelId, dataset, index, dims);
 }
 
-aclError aclGetTensorDescDimRange(const aclTensorDesc* desc,
-                                  size_t index,
-                                  size_t dimRangeNum,
-                                  int64_t *dimRange)
-{
-    return aclGetTensorDescDimRangeImplOm2(desc, index, dimRangeNum, dimRange);
+aclError aclmdlGetInputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims) {
+  return aclmdlGetInputDimsImplOm2(modelDesc, index, dims);
 }
 
-void aclSetTensorDescName(aclTensorDesc *desc, const char *name)
-{
-    aclSetTensorDescNameImplOm2(desc, name);
+aclError aclmdlGetInputDimsV2(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims) {
+  return aclmdlGetInputDimsV2ImplOm2(modelDesc, index, dims);
 }
 
-const char *aclGetTensorDescName(aclTensorDesc *desc)
-{
-    return aclGetTensorDescNameImplOm2(desc);
+aclError aclmdlGetInputDimsRange(const aclmdlDesc *modelDesc, size_t index, aclmdlIODimsRange *dimsRange) {
+  return aclmdlGetInputDimsRangeImplOm2(modelDesc, index, dimsRange);
 }
 
-aclError aclTransTensorDescFormat(const aclTensorDesc *srcDesc, aclFormat dstFormat,
-                                  aclTensorDesc **dstDesc)
-{
-    return aclTransTensorDescFormatImpl(srcDesc, dstFormat, dstDesc);
+aclError aclmdlGetOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims) {
+  return aclmdlGetOutputDimsImplOm2(modelDesc, index, dims);
 }
 
-aclError aclSetTensorStorageFormat(aclTensorDesc *desc, aclFormat format)
-{
-    return aclSetTensorStorageFormatImplOm2(desc, format);
+aclError aclmdlGetCurOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByDesc(modelDesc, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetCurOutputDimsImplOm2(modelDesc, index, dims)
+               : aclmdlGetCurOutputDimsImpl(modelDesc, index, dims);
 }
 
-aclError aclSetTensorStorageShape(aclTensorDesc *desc, int numDims, const int64_t *dims)
-{
-    return aclSetTensorStorageShapeImplOm2(desc, numDims, dims);
+const char *aclmdlGetOpAttr(aclmdlDesc *modelDesc, const char *opName, const char *attr) {
+  if (modelDesc == nullptr) {
+    return nullptr;
+  }
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByDesc(modelDesc, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return nullptr;
+  }
+  return isOm2 ? aclmdlGetOpAttrImplOm2(modelDesc, opName, attr) : aclmdlGetOpAttrImpl(modelDesc, opName, attr);
 }
 
-aclError aclSetTensorFormat(aclTensorDesc *desc, aclFormat format)
-{
-    return aclSetTensorFormatImplOm2(desc, format);
+const char *aclmdlGetInputNameByIndex(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetInputNameByIndexImplOm2(modelDesc, index);
 }
 
-aclError aclSetTensorShape(aclTensorDesc *desc, int numDims, const int64_t *dims)
-{
-    return aclSetTensorShapeImplOm2(desc, numDims, dims);
+const char *aclmdlGetOutputNameByIndex(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetOutputNameByIndexImplOm2(modelDesc, index);
 }
 
-aclError aclSetTensorOriginFormat(aclTensorDesc *desc, aclFormat format)
-{
-    return aclSetTensorOriginFormatImplOm2(desc, format);
+aclFormat aclmdlGetInputFormat(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetInputFormatImplOm2(modelDesc, index);
 }
 
-aclError aclSetTensorOriginShape(aclTensorDesc *desc, int numDims, const int64_t *dims)
-{
-    return aclSetTensorOriginShapeImplOm2(desc, numDims, dims);
+aclFormat aclmdlGetOutputFormat(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetOutputFormatImplOm2(modelDesc, index);
 }
 
-aclTensorDesc *aclGetTensorDescByIndex(aclTensorDesc *desc, size_t index)
-{
-    return aclGetTensorDescByIndexImplOm2(desc, index);
+aclDataType aclmdlGetInputDataType(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetInputDataTypeImplOm2(modelDesc, index);
 }
 
-aclError aclSetTensorDynamicInput(aclTensorDesc *desc, const char *dynamicInputName)
-{
-    return aclSetTensorDynamicInputImplOm2(desc, dynamicInputName);
+aclDataType aclmdlGetOutputDataType(const aclmdlDesc *modelDesc, size_t index) {
+  return aclmdlGetOutputDataTypeImplOm2(modelDesc, index);
 }
 
-aclError aclSetTensorConst(aclTensorDesc *desc, void *dataBuffer, size_t length)
-{
-    return aclSetTensorConstImplOm2(desc, dataBuffer, length);
+aclError aclmdlGetInputIndexByName(const aclmdlDesc *modelDesc, const char *name, size_t *index) {
+  return aclmdlGetInputIndexByNameImplOm2(modelDesc, name, index);
 }
 
-aclError aclSetTensorPlaceMent(aclTensorDesc *desc, aclMemType memType)
-{
-    return aclSetTensorPlaceMentImplOm2(desc, memType);
+aclError aclmdlGetOutputIndexByName(const aclmdlDesc *modelDesc, const char *name, size_t *index) {
+  return aclmdlGetOutputIndexByNameImplOm2(modelDesc, name, index);
 }
 
-void *aclGetTensorDescAddress(const aclTensorDesc *desc)
-{
-    return aclGetTensorDescAddressImplOm2(desc);
+aclError aclmdlGetDynamicBatch(const aclmdlDesc *modelDesc, aclmdlBatch *batch) {
+  return aclmdlGetDynamicBatchImplOm2(modelDesc, batch);
 }
 
-aclError aclmdlSetAttribute(uint32_t modelId, aclmdlAttr attr, aclmdlAttrValue_t *attrValue)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlSetAttributeImplOm2(modelId, attr, attrValue) :
-        aclmdlSetAttributeImpl(modelId, attr, attrValue);
+aclError aclmdlGetDynamicHW(const aclmdlDesc *modelDesc, size_t index, aclmdlHW *hw) {
+  return aclmdlGetDynamicHWImplOm2(modelDesc, index, hw);
 }
 
-aclError aclmdlGetAttribute(uint32_t modelId, aclmdlAttr attr, aclmdlAttrValue_t *attrValue)
-{
-    bool isOm2 = false;
-    aclError ret = AclIsOm2ModelById(modelId, &isOm2);
-    if (ret != ACL_ERROR_NONE) {
-        return ret;
-    }
-    return isOm2 ?
-        aclmdlGetAttributeImplOm2(modelId, attr, attrValue) :
-        aclmdlGetAttributeImpl(modelId, attr, attrValue);
+aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc *modelDesc, size_t index, size_t *gearCount) {
+  return aclmdlGetInputDynamicGearCountImplOm2(modelDesc, index, gearCount);
+}
+
+aclError aclmdlGetInputDynamicDims(const aclmdlDesc *modelDesc, size_t index, aclmdlIODims *dims, size_t gearCount) {
+  return aclmdlGetInputDynamicDimsImplOm2(modelDesc, index, dims, gearCount);
+}
+
+aclmdlAIPP *aclmdlCreateAIPP(uint64_t batchSize) {
+  return aclmdlCreateAIPPImplOm2(batchSize);
+}
+
+aclError aclmdlDestroyAIPP(const aclmdlAIPP *aippParmsSet) {
+  return aclmdlDestroyAIPPImplOm2(aippParmsSet);
+}
+
+aclError aclmdlGetAippDataSize(uint64_t batchSize, size_t *size) {
+  return aclmdlGetAippDataSizeImplOm2(batchSize, size);
+}
+
+aclError aclmdlSetAIPPInputFormat(aclmdlAIPP *aippParmsSet, aclAippInputFormat inputFormat) {
+  return aclmdlSetAIPPInputFormatImplOm2(aippParmsSet, inputFormat);
+}
+
+aclError aclmdlSetAIPPCscParams(aclmdlAIPP *aippParmsSet, int8_t cscSwitch, int16_t cscMatrixR0C0,
+                                int16_t cscMatrixR0C1, int16_t cscMatrixR0C2, int16_t cscMatrixR1C0,
+                                int16_t cscMatrixR1C1, int16_t cscMatrixR1C2, int16_t cscMatrixR2C0,
+                                int16_t cscMatrixR2C1, int16_t cscMatrixR2C2, uint8_t cscOutputBiasR0,
+                                uint8_t cscOutputBiasR1, uint8_t cscOutputBiasR2, uint8_t cscInputBiasR0,
+                                uint8_t cscInputBiasR1, uint8_t cscInputBiasR2) {
+  return aclmdlSetAIPPCscParamsImplOm2(aippParmsSet, cscSwitch, cscMatrixR0C0, cscMatrixR0C1, cscMatrixR0C2,
+                                       cscMatrixR1C0, cscMatrixR1C1, cscMatrixR1C2, cscMatrixR2C0, cscMatrixR2C1,
+                                       cscMatrixR2C2, cscOutputBiasR0, cscOutputBiasR1, cscOutputBiasR2, cscInputBiasR0,
+                                       cscInputBiasR1, cscInputBiasR2);
+}
+
+aclError aclmdlSetAIPPRbuvSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t rbuvSwapSwitch) {
+  return aclmdlSetAIPPRbuvSwapSwitchImplOm2(aippParmsSet, rbuvSwapSwitch);
+}
+
+aclError aclmdlSetAIPPAxSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t axSwapSwitch) {
+  return aclmdlSetAIPPAxSwapSwitchImplOm2(aippParmsSet, axSwapSwitch);
+}
+
+aclError aclmdlSetAIPPSrcImageSize(aclmdlAIPP *aippParmsSet, int32_t srcImageSizeW, int32_t srcImageSizeH) {
+  return aclmdlSetAIPPSrcImageSizeImplOm2(aippParmsSet, srcImageSizeW, srcImageSizeH);
+}
+
+aclError aclmdlSetAIPPScfParams(aclmdlAIPP *aippParmsSet, int8_t scfSwitch, int32_t scfInputSizeW,
+                                int32_t scfInputSizeH, int32_t scfOutputSizeW, int32_t scfOutputSizeH,
+                                uint64_t batchIndex) {
+  return aclmdlSetAIPPScfParamsImplOm2(aippParmsSet, scfSwitch, scfInputSizeW, scfInputSizeH, scfOutputSizeW,
+                                       scfOutputSizeH, batchIndex);
+}
+
+aclError aclmdlSetAIPPCropParams(aclmdlAIPP *aippParmsSet, int8_t cropSwitch, int32_t cropStartPosW,
+                                 int32_t cropStartPosH, int32_t cropSizeW, int32_t cropSizeH, uint64_t batchIndex) {
+  return aclmdlSetAIPPCropParamsImplOm2(aippParmsSet, cropSwitch, cropStartPosW, cropStartPosH, cropSizeW, cropSizeH,
+                                        batchIndex);
+}
+
+aclError aclmdlSetAIPPPaddingParams(aclmdlAIPP *aippParmsSet, int8_t paddingSwitch, int32_t paddingSizeTop,
+                                    int32_t paddingSizeBottom, int32_t paddingSizeLeft, int32_t paddingSizeRight,
+                                    uint64_t batchIndex) {
+  return aclmdlSetAIPPPaddingParamsImplOm2(aippParmsSet, paddingSwitch, paddingSizeTop, paddingSizeBottom,
+                                           paddingSizeLeft, paddingSizeRight, batchIndex);
+}
+
+aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP *aippParmsSet, int16_t dtcPixelMeanChn0, int16_t dtcPixelMeanChn1,
+                                   int16_t dtcPixelMeanChn2, int16_t dtcPixelMeanChn3, uint64_t batchIndex) {
+  return aclmdlSetAIPPDtcPixelMeanImplOm2(aippParmsSet, dtcPixelMeanChn0, dtcPixelMeanChn1, dtcPixelMeanChn2,
+                                          dtcPixelMeanChn3, batchIndex);
+}
+
+aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP *aippParmsSet, float dtcPixelMinChn0, float dtcPixelMinChn1,
+                                  float dtcPixelMinChn2, float dtcPixelMinChn3, uint64_t batchIndex) {
+  return aclmdlSetAIPPDtcPixelMinImplOm2(aippParmsSet, dtcPixelMinChn0, dtcPixelMinChn1, dtcPixelMinChn2,
+                                         dtcPixelMinChn3, batchIndex);
+}
+
+aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP *aippParmsSet, float dtcPixelVarReciChn0, float dtcPixelVarReciChn1,
+                                   float dtcPixelVarReciChn2, float dtcPixelVarReciChn3, uint64_t batchIndex) {
+  return aclmdlSetAIPPPixelVarReciImplOm2(aippParmsSet, dtcPixelVarReciChn0, dtcPixelVarReciChn1, dtcPixelVarReciChn2,
+                                          dtcPixelVarReciChn3, batchIndex);
+}
+
+aclError aclmdlSetInputAIPP(uint32_t modelId, aclmdlDataset *dataset, size_t index, const aclmdlAIPP *aippParmsSet) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetInputAIPPImplOm2(modelId, dataset, index, aippParmsSet)
+               : aclmdlSetInputAIPPImpl(modelId, dataset, index, aippParmsSet);
+}
+
+aclError aclmdlSetAIPPByInputIndex(uint32_t modelId, aclmdlDataset *dataset, size_t index,
+                                   const aclmdlAIPP *aippParmsSet) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetAIPPByInputIndexImplOm2(modelId, dataset, index, aippParmsSet)
+               : aclmdlSetAIPPByInputIndexImpl(modelId, dataset, index, aippParmsSet);
+}
+
+aclError aclmdlGetAippType(uint32_t modelId, size_t index, aclmdlInputAippType *type,
+                           size_t *dynamicAttachedDataIndex) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetAippTypeImplOm2(modelId, index, type, dynamicAttachedDataIndex)
+               : aclmdlGetAippTypeImpl(modelId, index, type, dynamicAttachedDataIndex);
+}
+
+aclError aclmdlGetFirstAippInfo(uint32_t modelId, size_t index, aclAippInfo *aippInfo) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetFirstAippInfoImplOm2(modelId, index, aippInfo)
+               : aclmdlGetFirstAippInfoImpl(modelId, index, aippInfo);
+}
+
+aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId, uint32_t taskId, char *opName, size_t opNameLen,
+                                  aclTensorDesc **inputDesc, size_t *numInputs, aclTensorDesc **outputDesc,
+                                  size_t *numOutputs) {
+  const aclError om2Ret = aclmdlCreateAndGetOpDescImplOm2(deviceId, streamId, taskId, opName, opNameLen, inputDesc,
+                                                          numInputs, outputDesc, numOutputs);
+  // If OM2 OpDescInfo is not found, ACL_ERROR_GE_FAILURE is returned and OM OpDescInfo should be queried.
+  if ((om2Ret == ACL_SUCCESS) || (om2Ret == ACL_ERROR_FAILURE) || (om2Ret == ACL_ERROR_INVALID_PARAM)) {
+    return om2Ret;
+  }
+  const aclError ret = aclmdlCreateAndGetOpDescImpl(deviceId, streamId, taskId, opName, opNameLen, inputDesc, numInputs,
+                                                    outputDesc, numOutputs);
+  return ret;
+}
+
+aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelByConfig(handle, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlLoadWithConfigImplOm2(handle, modelId) : aclmdlLoadWithConfigImpl(handle, modelId);
+}
+
+aclError aclmdlSetExternalWeightAddress(aclmdlConfigHandle *handle, const char *weightFileName, void *devPtr,
+                                        size_t size) {
+  return aclmdlSetExternalWeightAddressImplOm2(handle, weightFileName, devPtr, size);
+}
+
+aclmdlConfigHandle *aclmdlCreateConfigHandle() {
+  return aclmdlCreateConfigHandleImplOm2();
+}
+
+aclError aclmdlDestroyConfigHandle(aclmdlConfigHandle *handle) {
+  return aclmdlDestroyConfigHandleImplOm2(handle);
+}
+
+aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr, const void *attrValue,
+                            size_t valueSize) {
+  return aclmdlSetConfigOptImplOm2(handle, attr, attrValue, valueSize);
+}
+
+aclError aclmdlSetExecConfigOpt(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr, const void *attrValue,
+                                size_t valueSize) {
+  return aclmdlSetExecConfigOptImplOm2(handle, attr, attrValue, valueSize);
+}
+
+const char *aclmdlGetTensorRealName(const aclmdlDesc *modelDesc, const char *name) {
+  return aclmdlGetTensorRealNameImplOm2(modelDesc, name);
+}
+
+aclError aclRecoverAllHcclTasks(int32_t deviceId) {
+  aclError ret = aclRecoverAllHcclTasksImpl(deviceId);
+  if (ret != ACL_SUCCESS) {
+    return ret;
+  }
+  return aclRecoverAllHcclTasksImplOm2(deviceId);
+}
+
+aclTensorDesc *aclCreateTensorDesc(aclDataType dataType, int numDims, const int64_t *dims, aclFormat format) {
+  return aclCreateTensorDescImplOm2(dataType, numDims, dims, format);
+}
+
+void aclDestroyTensorDesc(const aclTensorDesc *desc) {
+  aclDestroyTensorDescImplOm2(desc);
+}
+
+aclError aclSetTensorShapeRange(aclTensorDesc *desc, size_t dimsCount,
+                                int64_t dimsRange[][ACL_TENSOR_SHAPE_RANGE_NUM]) {
+  return aclSetTensorShapeRangeImplOm2(desc, dimsCount, dimsRange);
+}
+
+aclError aclSetTensorValueRange(aclTensorDesc *desc, size_t valueCount,
+                                int64_t valueRange[][ACL_TENSOR_VALUE_RANGE_NUM]) {
+  return aclSetTensorValueRangeImplOm2(desc, valueCount, valueRange);
+}
+
+aclDataType aclGetTensorDescType(const aclTensorDesc *desc) {
+  return aclGetTensorDescTypeImplOm2(desc);
+}
+
+aclFormat aclGetTensorDescFormat(const aclTensorDesc *desc) {
+  return aclGetTensorDescFormatImplOm2(desc);
+}
+
+size_t aclGetTensorDescSize(const aclTensorDesc *desc) {
+  return aclGetTensorDescSizeImplOm2(desc);
+}
+
+size_t aclGetTensorDescElementCount(const aclTensorDesc *desc) {
+  return aclGetTensorDescElementCountImplOm2(desc);
+}
+
+size_t aclGetTensorDescNumDims(const aclTensorDesc *desc) {
+  return aclGetTensorDescNumDimsImplOm2(desc);
+}
+
+int64_t aclGetTensorDescDim(const aclTensorDesc *desc, size_t index) {
+  return aclGetTensorDescDimImplOm2(desc, index);
+}
+
+aclError aclGetTensorDescDimV2(const aclTensorDesc *desc, size_t index, int64_t *dimSize) {
+  return aclGetTensorDescDimV2ImplOm2(desc, index, dimSize);
+}
+
+aclError aclGetTensorDescDimRange(const aclTensorDesc *desc, size_t index, size_t dimRangeNum, int64_t *dimRange) {
+  return aclGetTensorDescDimRangeImplOm2(desc, index, dimRangeNum, dimRange);
+}
+
+void aclSetTensorDescName(aclTensorDesc *desc, const char *name) {
+  aclSetTensorDescNameImplOm2(desc, name);
+}
+
+const char *aclGetTensorDescName(aclTensorDesc *desc) {
+  return aclGetTensorDescNameImplOm2(desc);
+}
+
+aclError aclTransTensorDescFormat(const aclTensorDesc *srcDesc, aclFormat dstFormat, aclTensorDesc **dstDesc) {
+  return aclTransTensorDescFormatImpl(srcDesc, dstFormat, dstDesc);
+}
+
+aclError aclSetTensorStorageFormat(aclTensorDesc *desc, aclFormat format) {
+  return aclSetTensorStorageFormatImplOm2(desc, format);
+}
+
+aclError aclSetTensorStorageShape(aclTensorDesc *desc, int numDims, const int64_t *dims) {
+  return aclSetTensorStorageShapeImplOm2(desc, numDims, dims);
+}
+
+aclError aclSetTensorFormat(aclTensorDesc *desc, aclFormat format) {
+  return aclSetTensorFormatImplOm2(desc, format);
+}
+
+aclError aclSetTensorShape(aclTensorDesc *desc, int numDims, const int64_t *dims) {
+  return aclSetTensorShapeImplOm2(desc, numDims, dims);
+}
+
+aclError aclSetTensorOriginFormat(aclTensorDesc *desc, aclFormat format) {
+  return aclSetTensorOriginFormatImplOm2(desc, format);
+}
+
+aclError aclSetTensorOriginShape(aclTensorDesc *desc, int numDims, const int64_t *dims) {
+  return aclSetTensorOriginShapeImplOm2(desc, numDims, dims);
+}
+
+aclTensorDesc *aclGetTensorDescByIndex(aclTensorDesc *desc, size_t index) {
+  return aclGetTensorDescByIndexImplOm2(desc, index);
+}
+
+aclError aclSetTensorDynamicInput(aclTensorDesc *desc, const char *dynamicInputName) {
+  return aclSetTensorDynamicInputImplOm2(desc, dynamicInputName);
+}
+
+aclError aclSetTensorConst(aclTensorDesc *desc, void *dataBuffer, size_t length) {
+  return aclSetTensorConstImplOm2(desc, dataBuffer, length);
+}
+
+aclError aclSetTensorPlaceMent(aclTensorDesc *desc, aclMemType memType) {
+  return aclSetTensorPlaceMentImplOm2(desc, memType);
+}
+
+void *aclGetTensorDescAddress(const aclTensorDesc *desc) {
+  return aclGetTensorDescAddressImplOm2(desc);
+}
+
+aclError aclmdlSetAttribute(uint32_t modelId, aclmdlAttr attr, aclmdlAttrValue_t *attrValue) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlSetAttributeImplOm2(modelId, attr, attrValue) : aclmdlSetAttributeImpl(modelId, attr, attrValue);
+}
+
+aclError aclmdlGetAttribute(uint32_t modelId, aclmdlAttr attr, aclmdlAttrValue_t *attrValue) {
+  bool isOm2 = false;
+  aclError ret = AclIsOm2ModelById(modelId, &isOm2);
+  if (ret != ACL_ERROR_NONE) {
+    return ret;
+  }
+  return isOm2 ? aclmdlGetAttributeImplOm2(modelId, attr, attrValue) : aclmdlGetAttributeImpl(modelId, attr, attrValue);
 }
 
 #ifdef __cplusplus

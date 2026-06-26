@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -85,8 +85,11 @@ class VISIBILITY_EXPORT ModelConverter {
     Args() = default;
     Args(const LoweringOption &opt, StreamAllocator *const strm_alloc, EventAllocator *const evnt_alloc,
          NotifyAllocator *const noti_alloc, const std::vector<ge::FileConstantMem> *const file_const_mems)
-        : option(opt), stream_allocator(strm_alloc), event_allocator(evnt_alloc),
-          notify_allocator(noti_alloc), file_constant_mems(file_const_mems){}
+        : option(opt),
+          stream_allocator(strm_alloc),
+          event_allocator(evnt_alloc),
+          notify_allocator(noti_alloc),
+          file_constant_mems(file_const_mems) {}
     LoweringOption option{};
     StreamAllocator *const stream_allocator = nullptr;
     EventAllocator *const event_allocator = nullptr;
@@ -100,6 +103,7 @@ class VISIBILITY_EXPORT ModelConverter {
   ModelDescHolder &GetModelDescHolder() {
     return model_desc_holder_;
   }
+
  private:
   ge::graphStatus CreateModelDesc(const ge::GeRootModelPtr &root_model, StreamAllocator *const stream_allocator,
                                   EventAllocator *const event_allocator, NotifyAllocator *const notify_allocator);
@@ -107,5 +111,5 @@ class VISIBILITY_EXPORT ModelConverter {
 };
 ge::graphStatus LoadSgtKernelBinToOpDesc(const ge::NodePtr &node, const ge::ComputeGraphPtr &graph,
                                          const ge::GeModelPtr &ge_model, const ge::ModelTaskType task_type);
-} // gert
+}  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_LOWERING_MODEL_CONVERTER_H_

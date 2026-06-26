@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,10 +39,9 @@ class PneExecutorClient {
   virtual Status Finalize() = 0;
   virtual Status SyncVarManager(deployer::ExecutorRequest_SyncVarManageRequest sync_var_manage_desc) = 0;
   virtual bool SupportSyncVarManager();
-  virtual Status PreProcess(const std::vector<deployer::SubmodelDesc> &model_descs,
-                            const std::string &base_dir) {
-    (void) model_descs;
-    (void) base_dir;
+  virtual Status PreProcess(const std::vector<deployer::SubmodelDesc> &model_descs, const std::string &base_dir) {
+    (void)model_descs;
+    (void)base_dir;
     return SUCCESS;
   }
   virtual Status LoadModel(deployer::ExecutorRequest_BatchLoadModelMessage load_model_desc) = 0;
@@ -53,7 +52,7 @@ class PneExecutorClient {
   virtual Status DataFlowExceptionNotify(const deployer::DataFlowExceptionNotifyRequest &req_body) = 0;
   virtual Status UpdateProfilingFromExecutor(deployer::ExecutorRequest_UpdateProfRequest &prof_message) = 0;
 
-  void SetContext(const ClientContext& context);
+  void SetContext(const ClientContext &context);
 
   int32_t GetDeviceId() const;
 
@@ -72,17 +71,17 @@ class PneExecutorClient {
     return MakeUnique<ExecutorMessageClient>(device_id);
   }
   virtual Status DoGrantQueues(int32_t pid, const std::vector<DeployQueueAttr> &queue_attrs) {
-    (void) pid;
-    (void) queue_attrs;
+    (void)pid;
+    (void)queue_attrs;
     return SUCCESS;
   }
   virtual Status DoBindHostPid(const int32_t pid) {
-    (void) pid;
+    (void)pid;
     return SUCCESS;
   }
   bool is_valid_ = true;
- private:
 
+ private:
   int32_t device_id_ = 0;
   ClientContext context_;
 };
@@ -92,15 +91,11 @@ using PneExecutorClientPtr = std::unique_ptr<PneExecutorClient>;
 class PneExecutorClientFactory {
  public:
   static PneExecutorClientFactory &GetInstance();
-  std::unique_ptr<PneExecutorClient> CreateClient(const std::string &engine_name,
-                                                  bool is_proxy,
-                                                  int32_t device_id);
+  std::unique_ptr<PneExecutorClient> CreateClient(const std::string &engine_name, bool is_proxy, int32_t device_id);
 
   using CreateFunc = std::function<PneExecutorClientPtr(int32_t device_id)>;
 
-  void RegisterCreateFunc(const std::string &engine_name,
-                          bool is_proxy,
-                          CreateFunc func);
+  void RegisterCreateFunc(const std::string &engine_name, bool is_proxy, CreateFunc func);
 
  private:
   std::string GenerateClientKey(const std::string &engine_name, bool is_proxy) const;
@@ -108,21 +103,16 @@ class PneExecutorClientFactory {
   std::map<std::string, CreateFunc> create_funcs_;
 };
 
-template<typename T>
+template <typename T>
 class PneExecutorClientCreatorRegistrar {
  public:
   explicit PneExecutorClientCreatorRegistrar(const std::string &engine_name) {
     PneExecutorClientCreatorRegistrar(engine_name, false);
   }
 
-  PneExecutorClientCreatorRegistrar(const std::string &engine_name,
-                                    bool is_proxy) {
-    auto func = [](int32_t device_id) -> PneExecutorClientPtr  {
-      return ::ge::MakeUnique<T>(device_id);
-    };
-    PneExecutorClientFactory::GetInstance().RegisterCreateFunc(engine_name,
-                                                               is_proxy,
-                                                               std::move(func));
+  PneExecutorClientCreatorRegistrar(const std::string &engine_name, bool is_proxy) {
+    auto func = [](int32_t device_id) -> PneExecutorClientPtr { return ::ge::MakeUnique<T>(device_id); };
+    PneExecutorClientFactory::GetInstance().RegisterCreateFunc(engine_name, is_proxy, std::move(func));
   }
   ~PneExecutorClientCreatorRegistrar() = default;
 };

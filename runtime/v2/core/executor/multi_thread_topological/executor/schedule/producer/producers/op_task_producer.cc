@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,7 @@ namespace {
 bool OpNameEqual(const Node *left, const Node *right) {
   auto extend_context_left = reinterpret_cast<const ExtendedKernelContext *>(&left->context);
   auto extend_context_right = reinterpret_cast<const ExtendedKernelContext *>(&right->context);
-  if (extend_context_left->GetNodeName() != nullptr && extend_context_right->GetNodeName()!= nullptr) {
+  if (extend_context_left->GetNodeName() != nullptr && extend_context_right->GetNodeName() != nullptr) {
     return strcmp(extend_context_left->GetNodeName(), extend_context_right->GetNodeName()) == 0;
   }
   return false;

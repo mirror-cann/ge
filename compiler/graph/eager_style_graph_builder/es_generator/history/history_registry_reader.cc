@@ -163,7 +163,8 @@ IrOpProto HistoryRegistryReader::LoadOpProto(const std::string &pkg_dir, const s
 }
 
 std::vector<VersionMeta> HistoryRegistryReader::SelectWindowVersions(const std::vector<VersionMeta> &all_versions,
-                                                                    const std::string &current_version, int window_days) {
+                                                                     const std::string &current_version,
+                                                                     int window_days) {
   if (all_versions.empty()) {
     std::cout << "Ops history registry versions is empty." << std::endl;
     return {};
@@ -171,16 +172,16 @@ std::vector<VersionMeta> HistoryRegistryReader::SelectWindowVersions(const std::
 
   std::string current_date;
   if (current_version.empty()) {
-    std::cout << "release_version is empty, use current date as anchor to select history registry versions." << std::endl;
+    std::cout << "release_version is empty, use current date as anchor to select history registry versions."
+              << std::endl;
     if (!GetCurrentDate(current_date)) {
       std::cerr << "Failed to get current date from system for history registry versions selection." << std::endl;
       return {};
     }
   } else {
-    auto current_it = std::find_if(all_versions.begin(), all_versions.end(),
-                                   [&current_version](const VersionMeta &m) {
-                                     return m.release_version == current_version;
-                                   });
+    auto current_it = std::find_if(all_versions.begin(), all_versions.end(), [&current_version](const VersionMeta &m) {
+      return m.release_version == current_version;
+    });
     if (current_it == all_versions.end()) {
       std::cerr << "Version " << current_version << " not found in all history registry versions." << std::endl;
       return {};
@@ -201,7 +202,7 @@ std::vector<VersionMeta> HistoryRegistryReader::SelectWindowVersions(const std::
     }
     window.push_back(*it);
   }
-  std::cerr << "Selected history registry versions num: " << window.size()  << std::endl;
+  std::cerr << "Selected history registry versions num: " << window.size() << std::endl;
   std::reverse(window.begin(), window.end());
   return window;
 }

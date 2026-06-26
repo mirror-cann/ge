@@ -20,7 +20,7 @@ namespace ge {
 namespace {
 
 graphStatus ProcessSqueezeAxes(const gert::SymbolShape *in_shape, gert::SymbolShape *out_shape,
-                                const std::vector<int64_t> &axes) {
+                               const std::vector<int64_t> &axes) {
   if (axes.empty()) {
     // axes is empty, squeeze all dims that are 1
     out_shape->Clear();
@@ -110,7 +110,7 @@ graphStatus InferShape4SqueezeV3(gert::InferSymbolShapeContext *context) {
 }
 
 graphStatus ProcessUnsqueezeAxes(const gert::SymbolShape *in_shape, gert::SymbolShape *out_shape,
-                                  const std::vector<int64_t> &axes) {
+                                 const std::vector<int64_t> &axes) {
   const auto in_dim_num = in_shape->GetDimNum();
   const auto out_dim_num = in_dim_num + axes.size();
   GE_ASSERT(out_dim_num <= gert::Shape::kMaxDimNum,
@@ -187,7 +187,8 @@ graphStatus ExpandDimsInferShapeImpl(const gert::InferSymbolShapeContext *contex
                                      const gert::SymbolTensor *axis_tensor, gert::SymbolShape *output_shape) {
   T axis_data;
   if (axis_tensor->GetSymbolicValue()->at(0).GetConstValue<T>(axis_data) == false) {
-    GELOGW("Symbol Infer unsupported, axis value is not constvalue, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, axis value is not constvalue, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
   axis_data = (axis_data < 0) ? (axis_data + static_cast<T>(x_shape->GetDimNum() + 1)) : axis_data;
@@ -208,7 +209,8 @@ graphStatus InferShape4ExpandDims(gert::InferSymbolShapeContext *context) {
   auto axes_tensor = context->GetInputSymbolTensor(1);
   GE_UNSUPPORTED_IF_NULL(axes_tensor);
   if (axes_tensor->GetSymbolicValue() == nullptr) {
-    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
   auto out_shape = context->GetOutputSymbolShape(0);

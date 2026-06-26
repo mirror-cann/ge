@@ -45,7 +45,7 @@ const std::unordered_set<ModelTaskType> kSupportedTaskTypes = {
     ModelTaskType::MODEL_TASK_CMO_ADDR,
     ModelTaskType::MODEL_TASK_BARRIER,
 };
-}
+}  // namespace
 std::string Om2CodegenUtils::GetKernelNameWithExtension(const std::string &kernel_name) {
   const auto pos = kernel_name.find("__kernel");
   if (pos != std::string::npos) {
@@ -112,8 +112,8 @@ bool Om2CodegenUtils::IsAICoreKernel(const ge::ccKernelType kernel_type) {
 }
 
 bool Om2CodegenUtils::IsUnsupportedNodeType(const std::string &type) {
-  return ((type == VARIABLE) || (type == CONSTANTOP) || (type == CONSTPLACEHOLDER) || (type == QUEUE_DATA)
-          || (type == REFDATA) || (type == QUEUE_DATA) || (type == "SuperKernel"));
+  return ((type == VARIABLE) || (type == CONSTANTOP) || (type == CONSTPLACEHOLDER) || (type == QUEUE_DATA) ||
+          (type == REFDATA) || (type == QUEUE_DATA) || (type == "SuperKernel"));
 }
 
 bool Om2CodegenUtils::IsNeedAtomicCleanTask(const OpDescPtr &op_desc) {
@@ -195,4 +195,4 @@ int32_t Om2CodegenUtils::TopicTypeToRtsFlag(const int32_t topic_type) {
 
   return -1;
 }
-}
+}  // namespace ge

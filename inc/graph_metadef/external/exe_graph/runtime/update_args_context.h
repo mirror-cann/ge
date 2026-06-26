@@ -25,11 +25,10 @@ class UpdateArgsContext : public EagerOpExecutionContext {
    *               对应 index 0，后续依次递增）。
    * @return 只读 KernelArgs 指针，失败返回 nullptr。
    */
-  const KernelArgs* GetKernelArgs(Placement placement, size_t index) const;
+  const KernelArgs *GetKernelArgs(Placement placement, size_t index) const;
 };
 
-static_assert(std::is_standard_layout<UpdateArgsContext>::value,
-              "UpdateArgsContext must be standard layout");
+static_assert(std::is_standard_layout<UpdateArgsContext>::value, "UpdateArgsContext must be standard layout");
 static_assert(sizeof(UpdateArgsContext) == sizeof(EagerOpExecutionContext),
               "POD constraint violated: UpdateArgsContext must not add member variables");
 }  // namespace gert

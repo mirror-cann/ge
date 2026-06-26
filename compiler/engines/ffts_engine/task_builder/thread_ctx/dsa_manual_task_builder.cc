@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,8 +65,7 @@ Status DSAManualTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsPl
 
   (void)ge::AttrUtils::SetListInt(op_desc, kSuccList, sub_ffts_plus_context[0].succ_list);
   FFTS_LOGD("GenContextDef nodetype:%s, name:%s, total_addr_size:%u, pred_cnt:%u", node->GetType().c_str(),
-            node->GetName().c_str(), ffts_plus_task_def->addr_size(),
-            sub_ffts_plus_context[0].pred_cnt);
+            node->GetName().c_str(), ffts_plus_task_def->addr_size(), sub_ffts_plus_context[0].pred_cnt);
   return SUCCESS;
 }
 
@@ -80,12 +79,13 @@ Status DSAManualTaskBuilder::FillDsaContextDef(const ge::Node &node, const DSAFl
   dsa_ctx_def->set_seed_value_or_ptr(static_cast<uint32_t>(dsa_flags.seed_type));
   dsa_ctx_def->set_random_count_value_or_ptr(static_cast<uint32_t>(dsa_flags.rand_count_type));
   dsa_ctx_def->set_input_value_addr_flag(dsa_flags.CalAddrOrValueFlag());
-  FFTS_LOGD("Distribution_type:%u, input_vld:%u, input1_value_or_ptr:%u, input2_value_or_ptr:%u, seed_value_or_ptr:%u,"
-            " random_count_value_or_ptr:%u, input_value_addr_flag:%u.",
-            static_cast<uint32_t>(dsa_flags.distribution_type), static_cast<uint32_t>(dsa_flags.input_vld),
-            static_cast<uint32_t>(dsa_flags.input1_type), static_cast<uint32_t>(dsa_flags.input2_type),
-            static_cast<uint32_t>(dsa_flags.seed_type), static_cast<uint32_t>(dsa_flags.rand_count_type),
-            dsa_flags.CalAddrOrValueFlag());
+  FFTS_LOGD(
+      "Distribution_type:%u, input_vld:%u, input1_value_or_ptr:%u, input2_value_or_ptr:%u, seed_value_or_ptr:%u,"
+      " random_count_value_or_ptr:%u, input_value_addr_flag:%u.",
+      static_cast<uint32_t>(dsa_flags.distribution_type), static_cast<uint32_t>(dsa_flags.input_vld),
+      static_cast<uint32_t>(dsa_flags.input1_type), static_cast<uint32_t>(dsa_flags.input2_type),
+      static_cast<uint32_t>(dsa_flags.seed_type), static_cast<uint32_t>(dsa_flags.rand_count_type),
+      dsa_flags.CalAddrOrValueFlag());
   uint32_t data_type = 0;
   FFTS_CHECK(GetDataType(node, data_type) != SUCCESS, FFTS_LOGD("GetDataType unsuccessful"), return FAILED);
   dsa_ctx_def->set_data_type(data_type);
@@ -94,8 +94,7 @@ Status DSAManualTaskBuilder::FillDsaContextDef(const ge::Node &node, const DSAFl
   return SUCCESS;
 }
 
-Status DSAManualTaskBuilder::FillDsaContextData(const ge::Node &node,
-                                                const domi::FftsPlusDsaCtxDef *dsacore_ctx_def,
+Status DSAManualTaskBuilder::FillDsaContextData(const ge::Node &node, const domi::FftsPlusDsaCtxDef *dsacore_ctx_def,
                                                 domi::FftsPlusDsaCtxDef *dsa_ctx_def) const {
   if (dsacore_ctx_def == nullptr || dsa_ctx_def == nullptr) {
     return FAILED;
@@ -103,8 +102,8 @@ Status DSAManualTaskBuilder::FillDsaContextData(const ge::Node &node,
   std::shared_ptr<ge::RunContext> contextptr = nullptr;
   contextptr = node.GetOpDesc()->TryGetExtAttr(kRuntimeContentx, contextptr);
   if (contextptr == nullptr || contextptr->dataMemBase == nullptr) {
-     FFTS_LOGD("DsaOpTaskBuilder: contextPtr is null");
-     return FAILED;
+    FFTS_LOGD("DsaOpTaskBuilder: contextPtr is null");
+    return FAILED;
   }
   DSAFlags dsa_flags;
   if (GetDsaValueOrAddrFlags(node, dsa_flags) != SUCCESS) {
@@ -125,21 +124,20 @@ Status DSAManualTaskBuilder::FillDsaContextData(const ge::Node &node,
   args_ptr->set_workspace_philox_count_addr(workspace.philox_count_addr);
 
   uint64_t output_addr = 0;
-  FFTS_CHECK(GetOutputAddr(node, output_addr, contextptr) != SUCCESS, FFTS_LOGD("GetOutputAddr failed"),
-             return FAILED);
+  FFTS_CHECK(GetOutputAddr(node, output_addr, contextptr) != SUCCESS, FFTS_LOGD("GetOutputAddr failed"), return FAILED);
   args_ptr->set_output_addr(output_addr);
 
   DsaInput input;
-  FFTS_CHECK(GetInputs(node, dsa_flags, input, contextptr) != SUCCESS, FFTS_LOGD("GetInputs failed"),
-  return FAILED);
+  FFTS_CHECK(GetInputs(node, dsa_flags, input, contextptr) != SUCCESS, FFTS_LOGD("GetInputs failed"), return FAILED);
   args_ptr->set_random_count_value_or_addr(input.random_count);
   args_ptr->set_input1_value_or_addr(input.input1);
   args_ptr->set_input2_value_or_addr(input.input2);
   args_ptr->set_seed_value_or_addr(input.seed);
-  FFTS_LOGD("Alg_type:%u, workspace_input_addr:0x%lx, _philox_count_addr:0x%lx, output_addr:0x%lx, "
-            "random_count_value_or_addr:%s, input1_value_or_addr:%s, input2_value_or_addr:%s, seed_value_or_addr:%s.",
-            dsa_philox_type_, workspace.input_addr, workspace.philox_count_addr, output_addr,
-            input.random_count.c_str(), input.input1.c_str(), input.input2.c_str(), input.seed.c_str());
+  FFTS_LOGD(
+      "Alg_type:%u, workspace_input_addr:0x%lx, _philox_count_addr:0x%lx, output_addr:0x%lx, "
+      "random_count_value_or_addr:%s, input1_value_or_addr:%s, input2_value_or_addr:%s, seed_value_or_addr:%s.",
+      dsa_philox_type_, workspace.input_addr, workspace.philox_count_addr, output_addr, input.random_count.c_str(),
+      input.input1.c_str(), input.input2.c_str(), input.seed.c_str());
   return SUCCESS;
 }
 
@@ -154,35 +152,33 @@ uint32_t DSAManualTaskBuilder::DSAFlags::CalAddrOrValueFlag() const {
       addr_or_value_flag = static_cast<uint32_t>(input1_type) << k1Bit;
       addr_or_value_flag |= static_cast<uint32_t>(input2_type) << k2Bit;
       FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_UNIFORM input1_type:%u, input2_type:%u",
-                static_cast<uint32_t>(input1_type),  static_cast<uint32_t>(input2_type));
+                static_cast<uint32_t>(input1_type), static_cast<uint32_t>(input2_type));
       break;
     case DistributionType::DIS_NORMAL:
       addr_or_value_flag = static_cast<uint32_t>(input1_type) << k3Bit;
       addr_or_value_flag |= static_cast<uint32_t>(input1_type) << k4Bit;
-      FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_NORMAL input1_type: %u",
-                static_cast<uint32_t>(input1_type));
+      FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_NORMAL input1_type: %u", static_cast<uint32_t>(input1_type));
       break;
     case DistributionType::DIS_TRUNCATED_NORMAL:
       addr_or_value_flag = static_cast<uint32_t>(input1_type) << k3Bit;
       addr_or_value_flag |= static_cast<uint32_t>(input1_type) << k4Bit;
-      FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_TRUNCATED_NORMAL input1_type:%u",
-                static_cast<uint32_t>(input1_type));
+      FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_TRUNCATED_NORMAL input1_type:%u", static_cast<uint32_t>(input1_type));
       break;
     default:
       break;
   }
   addr_or_value_flag |= static_cast<uint32_t>(seed_type) << k5Bit;
   addr_or_value_flag |= static_cast<uint32_t>(rand_count_type) << k6Bit;
-  FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_UNIFORM seed_type:%u, rand_count_type:%u",
-            static_cast<uint32_t>(seed_type),  static_cast<uint32_t>(rand_count_type));
+  FFTS_LOGD("ffts CalAddrOrValueFlag::DIS_UNIFORM seed_type:%u, rand_count_type:%u", static_cast<uint32_t>(seed_type),
+            static_cast<uint32_t>(rand_count_type));
   return addr_or_value_flag;
 }
 
 bool DSAManualTaskBuilder::IsConstInput(const ge::Node &node, uint32_t input_idx) {
   bool ret = false;
   const auto &in_data_anchors = node.GetAllInDataAnchors();
-  FFTS_LOGD("DSAManualTaskBuilder::IsConstInput input_idx: %u, in_data_anchors_size: %zu.",
-            input_idx, in_data_anchors.size());
+  FFTS_LOGD("DSAManualTaskBuilder::IsConstInput input_idx: %u, in_data_anchors_size: %zu.", input_idx,
+            in_data_anchors.size());
   if (input_idx >= static_cast<size_t>(in_data_anchors.size())) {
     return ret;
   }
@@ -200,8 +196,8 @@ bool DSAManualTaskBuilder::IsConstInput(const ge::Node &node, uint32_t input_idx
   }
   const auto type = owner_node->GetType();
   ret = (type == kConstant || type == kConstantOp);
-  FFTS_LOGD("DSAManualTaskBuilder::IsConstInput owner_node:%s type:%s",
-            owner_node->GetName().c_str(), owner_node->GetType().c_str());
+  FFTS_LOGD("DSAManualTaskBuilder::IsConstInput owner_node:%s type:%s", owner_node->GetName().c_str(),
+            owner_node->GetType().c_str());
   return ret;
 }
 
@@ -227,7 +223,6 @@ bool DSAManualTaskBuilder::GetInputDataType(const ge::Node &node, uint32_t input
   data_type = input_desc_ptr->GetDataType();
   return true;
 }
-
 
 Status DSAManualTaskBuilder::GetDsaValueOrAddrFlags(const ge::Node &node, DSAFlags &flags) const {
   const auto op_type = node.GetType();
@@ -344,7 +339,7 @@ Status DSAManualTaskBuilder::GetInputs(const ge::Node &node, const DSAFlags &fla
         return FAILED;
       }
       uint64_t input_addr = reinterpret_cast<uint64_t>(contextptr->dataMemBase) + offsets[input_index];
-      content.first.assign(reinterpret_cast<const char*>(&input_addr), sizeof(input_addr));
+      content.first.assign(reinterpret_cast<const char *>(&input_addr), sizeof(input_addr));
       FFTS_LOGD("DSAManualTaskBuilder::GenerateTask input: %u is at address[%lu].", input_index, input_addr);
     }
     input_index++;

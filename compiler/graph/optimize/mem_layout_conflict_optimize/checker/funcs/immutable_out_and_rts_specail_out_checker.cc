@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,12 +14,11 @@
 #include "graph/optimize/mem_layout_conflict_optimize/checker/check_register.h"
 #include "graph/optimize/mem_layout_conflict_optimize/checker/checker_log.h"
 
-
 namespace ge {
 Status ImmutableOutputAndRtsSpecailOutputChecker(CheckFuncContext &context) {
   bool done = false;
-  GE_ASSERT_SUCCESS(MemLayoutConflictUtil::AssignVarInsertIdentity(context,
-                                                                   ANCHOR_ATTR_IMMUTABLE_ADDRESS_OUTPUT, done));
+  GE_ASSERT_SUCCESS(
+      MemLayoutConflictUtil::AssignVarInsertIdentity(context, ANCHOR_ATTR_IMMUTABLE_ADDRESS_OUTPUT, done));
   if (done) {
     return SUCCESS;
   }

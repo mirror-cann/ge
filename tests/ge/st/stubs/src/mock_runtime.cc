@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,7 +50,6 @@ int32_t CheckArgs(const rtArgsEx_t *const args) {
 }
 
 int32_t CheckStaticShapeUseBinaryArgs(const rtArgsEx_t *const args) {
-
   const std::string tiling_data_str = "666";
   EXPECT_EQ(args->hasTiling, true);
   uint64_t data_ptr = PtrToValue(args->args) + args->tilingDataOffset;
@@ -85,7 +84,7 @@ rtError_t MockRtAicpuKernelLaunchWithFlagForHostMem(const rtKernelLaunchNames_t 
 }
 
 rtError_t MockRtKernelLaunchWithHandle(void *handle, const uint64_t tilingkey, uint32_t blockDim, rtArgsEx_t *args,
-                                   rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
+                                       rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
   // check offset
   EXPECT_EQ(CheckStaticShapeUseBinaryArgs(args), 0);
   return RT_ERROR_NONE;
@@ -134,8 +133,7 @@ std::shared_ptr<MockRuntime> MockForKernelLaunchWithHostMemInput() {
 std::shared_ptr<MockRuntime> MockForKernelLaunchForStaticShapeUseBinary() {
   auto runtime_stub = std::make_shared<MockRuntime>();
   RuntimeStub::SetInstance(runtime_stub);
-  EXPECT_CALL(*runtime_stub, rtKernelLaunchWithHandle)
-      .WillRepeatedly(testing::Invoke(MockRtKernelLaunchWithHandle));
+  EXPECT_CALL(*runtime_stub, rtKernelLaunchWithHandle).WillRepeatedly(testing::Invoke(MockRtKernelLaunchWithHandle));
   EXPECT_CALL(*runtime_stub, rtMemcpy).WillRepeatedly(testing::Invoke(MockRtMemcpy));
   return runtime_stub;
 }
@@ -143,8 +141,8 @@ std::shared_ptr<MockRuntime> MockForKernelLaunchForStaticShapeUseBinary() {
 std::shared_ptr<MockRuntime> MockForKernelGetAddrAndPrefCntV2() {
   auto runtime_stub = std::make_shared<MockRuntime>();
   RuntimeStub::SetInstance(runtime_stub);
-  EXPECT_CALL(*runtime_stub,
-              rtKernelGetAddrAndPrefCntV2).WillRepeatedly(testing::Invoke(MockRtKernelGetAddrAndPrefCntV2));
+  EXPECT_CALL(*runtime_stub, rtKernelGetAddrAndPrefCntV2)
+      .WillRepeatedly(testing::Invoke(MockRtKernelGetAddrAndPrefCntV2));
   return runtime_stub;
 }
 
@@ -154,4 +152,4 @@ std::shared_ptr<MockRuntime> MockForKernelLaunchExFailed() {
   EXPECT_CALL(*runtime_stub, rtKernelLaunchEx).WillRepeatedly(testing::Invoke(MockRtKernelLaunchExFailed));
   return runtime_stub;
 }
-}
+}  // namespace ge

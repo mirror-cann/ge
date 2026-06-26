@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,10 +27,8 @@ class DeployerClient::GrpcClient {
    */
   Status Init(const std::string &address);
 
-  Status SendRequest(const deployer::DeployerRequest &request,
-                     deployer::DeployerResponse &response,
-                     const int64_t timeout_sec,
-                     const int32_t retry_times);
+  Status SendRequest(const deployer::DeployerRequest &request, deployer::DeployerResponse &response,
+                     const int64_t timeout_sec, const int32_t retry_times);
 
  private:
   std::unique_ptr<deployer::DeployerService::Stub> stub_;
@@ -56,19 +54,16 @@ Status DeployerClient::GrpcClient::Init(const std::string &address) {
 }
 
 Status DeployerClient::GrpcClient::SendRequest(const deployer::DeployerRequest &request,
-                                               deployer::DeployerResponse &response,
-                                               const int64_t timeout_sec,
+                                               deployer::DeployerResponse &response, const int64_t timeout_sec,
                                                const int32_t retry_times) {
-  GELOGI("[Send][Request] start, client_id = %ld, type = %s, peer_address = %s",
-         request.client_id(),
-         deployer::DeployerRequestType_Name(request.type()).c_str(),
-         address_.c_str());
+  GELOGI("[Send][Request] start, client_id = %ld, type = %s, peer_address = %s", request.client_id(),
+         deployer::DeployerRequestType_Name(request.type()).c_str(), address_.c_str());
   int32_t try_times = (retry_times <= 0) ? 1 : retry_times + 1;
-  constexpr uint32_t kTryWaitInterval = 1000U; // millisconds
+  constexpr uint32_t kTryWaitInterval = 1000U;  // millisconds
   ::grpc::Status status;
   for (int32_t i = 0; i < try_times; ++i) {
     if (i != 0) {
-      (void) mmSleep(kTryWaitInterval);  // mmSleep max wait 1s
+      (void)mmSleep(kTryWaitInterval);  // mmSleep max wait 1s
     }
     ::grpc::ClientContext context;
     if (timeout_sec < 0) {
@@ -82,10 +77,10 @@ Status DeployerClient::GrpcClient::SendRequest(const deployer::DeployerRequest &
       break;
     }
   }
-  GE_CHK_BOOL_RET_STATUS(
-      status.ok(), FAILED, "RPC failed, gRPC error code =%d, type = %s, error message=%s, peer_address = %s",
-      status.error_code(), deployer::DeployerRequestType_Name(request.type()).c_str(),
-      status.error_message().c_str(), address_.c_str());
+  GE_CHK_BOOL_RET_STATUS(status.ok(), FAILED,
+                         "RPC failed, gRPC error code =%d, type = %s, error message=%s, peer_address = %s",
+                         status.error_code(), deployer::DeployerRequestType_Name(request.type()).c_str(),
+                         status.error_message().c_str(), address_.c_str());
   return SUCCESS;
 }
 
@@ -95,10 +90,8 @@ DeployerClient::~DeployerClient() = default;
 Status DeployerClient::Initialize(const std::string &address) {
   grpc_client_ = MakeUnique<DeployerClient::GrpcClient>();
   GE_CHECK_NOTNULL(grpc_client_);
-  GE_CHK_BOOL_RET_STATUS(grpc_client_->Init(address) == SUCCESS,
-                         FAILED,
-                         "[Init][Client]Init grpc client failed, address:%s",
-                         address.c_str());
+  GE_CHK_BOOL_RET_STATUS(grpc_client_->Init(address) == SUCCESS, FAILED,
+                         "[Init][Client]Init grpc client failed, address:%s", address.c_str());
   return SUCCESS;
 }
 
@@ -108,8 +101,7 @@ Status DeployerClient::SendRequest(const deployer::DeployerRequest &request, dep
 }
 
 Status DeployerClient::SendRequestWithRetry(const deployer::DeployerRequest &request,
-                                            deployer::DeployerResponse &response,
-                                            const int64_t timeout_sec,
+                                            deployer::DeployerResponse &response, const int64_t timeout_sec,
                                             const int32_t retry_times) {
   return grpc_client_->SendRequest(request, response, timeout_sec, retry_times);
 }

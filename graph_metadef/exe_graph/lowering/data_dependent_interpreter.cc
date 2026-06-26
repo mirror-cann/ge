@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 
 namespace gert {
 namespace {
-constexpr const ge::char_t* kUbGraph = "_original_fusion_graph";
+constexpr const ge::char_t *kUbGraph = "_original_fusion_graph";
 bool IsUbFusedNode(const ge::OpDesc *const op_desc) {
   return ge::AttrUtils::HasAttr(op_desc, kUbGraph);
 }
@@ -81,7 +81,6 @@ ge::graphStatus GetInputIrIndexByInstanceIndex(const ge::OpDescPtr &op_desc, con
 DataDependentInterpreter::DataDependentInterpreter(const ge::OpDescPtr &op_desc,
                                                    const gert::OpImplSpaceRegistryV2Array &space_registry)
     : op_desc_(op_desc), space_registries_v2_(space_registry) {}
-
 
 ge::graphStatus DataDependentInterpreter::IsDataDependentByImplOp(const int32_t input_index,
                                                                   bool &is_data_dependent) const {
@@ -190,8 +189,8 @@ ge::graphStatus DataDependentInterpreter::IsDataDependentByUbGraph(int32_t index
   GE_ASSERT_NOTNULL(ub_graph);
 
   const auto data_node = FindSubgraphDataNode(ub_graph, index);
-  GE_ASSERT_NOTNULL(data_node, "Failed to find the data node from ub graph by index %d from node %s type %s.",
-                    index, op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+  GE_ASSERT_NOTNULL(data_node, "Failed to find the data node from ub graph by index %d from node %s type %s.", index,
+                    op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
 
   is_data_dependent = false;
   for (const auto &node_and_anchor : data_node->GetOutDataNodesAndAnchors()) {

@@ -40,8 +40,7 @@ class GraphPrepare {
   Status PrepareInit(const GraphNodePtr &graph_node, uint64_t session_id = 0,
                      GraphRebuildStateCtrl *graph_rebuild_state_ctrl = nullptr,
                      ResourceContextMgr *resource_context_mgr = nullptr);
-  Status NormalizeGraph(const ComputeGraphPtr &compute_graph,
-                        const std::map<std::string, std::string> &options,
+  Status NormalizeGraph(const ComputeGraphPtr &compute_graph, const std::map<std::string, std::string> &options,
                         const std::vector<GeTensor> &user_input);
   Status PrepareDynShape();
   Status RecordAIPPInfo(const ge::ComputeGraphPtr &compute_graph) const;
@@ -55,6 +54,7 @@ class GraphPrepare {
   static Status InferShapeForPreprocess(ComputeGraphPtr &compute_graph, GraphRebuildStateCtrl *rebuild_ctrl,
                                         ResourceContextMgr *resource_mgr);
   Status CheckAippInsert();
+
  private:
   // Remove magic attributes (should be added by compile) to prevent compilation result injection.
   void RemoveMagicCompiledAttrs() const;
@@ -72,8 +72,8 @@ class GraphPrepare {
   Status CheckAndUpdateInput(const std::vector<GeTensor> &user_input,
                              const std::map<std::string, std::string> &graph_option);
   Status CheckConstOp() const;
-  Status CheckTensorIsValid(const NodePtr &node, int64_t shape_size, size_t data_size,
-                            size_t dim_num, DataType data_type) const;
+  Status CheckTensorIsValid(const NodePtr &node, int64_t shape_size, size_t data_size, size_t dim_num,
+                            DataType data_type) const;
   Status VerifyConstOp(const NodePtr &node) const;
   Status CheckUserInput(const std::vector<GeTensor> &user_input);
   Status UpdateDataNetOutputByStorageFormat() const;

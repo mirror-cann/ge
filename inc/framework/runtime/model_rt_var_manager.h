@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,14 +26,17 @@ class ModelRtVarManager : public RtVarManager {
   static std::shared_ptr<ModelRtVarManager> Instance(const uint64_t session_id);
   explicit ModelRtVarManager(uint64_t session_id) : session_id_(session_id) {}
   ge::Status Init(const uint64_t device_id, const uint64_t logic_var_base, const int64_t total_var_size,
-                  void* external_var_addr, uint64_t external_var_size);
+                  void *external_var_addr, uint64_t external_var_size);
   bool IsInited() const {
     return inited;
   }
   ge::Status RestoreDeviceVariables(const std::vector<ge::NodePtr> &variables, const uint32_t graph_id,
                                     const uint32_t device_id, const bool need_collect = true);
   ge::Status GetVarShapeAndMemory(const std::string &id, StorageShape &shape, TensorData &memory) const override;
-  void Destroy() { name_to_var_info_.clear();};
+  void Destroy() {
+    name_to_var_info_.clear();
+  };
+
  private:
   struct VarInfo {
     void *var_addr{nullptr};

@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ ge_compiler_install_package() {
             log "INFO" "install ${_package} successfully!"
         fi
     else
-        log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_package} faied, can not find the matched package for this platform."
+        log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_package} failed, can not find the matched package for this platform."
         exit 1
     fi
 }
@@ -271,7 +271,7 @@ ge_compiler_install_ge_package() {
         exit 1
     fi
     if [ ! -f "$_ge_package" ]; then
-        log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_ge_package} faied, can not find the matched package for this platform."
+        log "ERROR" "ERR_NO:0x0080;ERR_DES:install ${_ge_package} failed, can not find the matched package for this platform."
         exit 1
     fi
     ge_compiler_clean_python_pass_artifacts "${_pythonlocalpath}"

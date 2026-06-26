@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,12 +18,11 @@
 namespace ge {
 namespace {
 constexpr uint32_t kMask32Bits = 0xFFFFFFFFU;  // 32 bits, 1111,1111,1111,1111,1111,1111,1111,1111
-constexpr int64_t  kSqeArgsLen = 40L;
-}
+constexpr int64_t kSqeArgsLen = 40L;
+}  // namespace
 
-Status DSATaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                         const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                         const IowAddrs &iow_addrs) {
+Status DSATaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
+                         const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
   GELOGI("DSATaskInfo Init Start.");
   (void)persistent_workspace;
   GE_CHECK_NOTNULL(davinci_model);
@@ -40,18 +39,18 @@ Status DSATaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davi
 
   GE_ASSERT_TRUE((iow_addrs.input_logic_addrs.size() == input_data_addrs_.size()),
                  "[Check][Param] Op:%s(%s) input logic addrs list size:%zu != input data addr list size:%zu",
-                 op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                 iow_addrs.input_logic_addrs.size(), input_data_addrs_.size());
+                 op_desc->GetName().c_str(), op_desc->GetType().c_str(), iow_addrs.input_logic_addrs.size(),
+                 input_data_addrs_.size());
 
   GE_ASSERT_TRUE((iow_addrs.output_logic_addrs.size() == output_data_addrs_.size()),
                  "[Check][Param] Op:%s(%s) output logic addrs list size:%zu != output data addr list size:%zu",
-                 op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                 iow_addrs.output_logic_addrs.size(), output_data_addrs_.size());
+                 op_desc->GetName().c_str(), op_desc->GetType().c_str(), iow_addrs.output_logic_addrs.size(),
+                 output_data_addrs_.size());
 
   GE_ASSERT_TRUE((iow_addrs.workspace_logic_addrs.size() == workspace_data_addrs_.size()),
                  "[Check][Param] Op:%s(%s) workspace logic addrs list size:%zu != workspace data addr list size:%zu",
-                 op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                 iow_addrs.workspace_logic_addrs.size(), workspace_data_addrs_.size());
+                 op_desc->GetName().c_str(), op_desc->GetType().c_str(), iow_addrs.workspace_logic_addrs.size(),
+                 workspace_data_addrs_.size());
 
   GetAddrs(iow_addrs);
   GE_ASSERT_SUCCESS(InitSqe(op_desc, dsa_task));
@@ -59,20 +58,20 @@ Status DSATaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davi
   (void)workspace_io_addrs_.insert(workspace_io_addrs_.cend(), input_data_addrs_.cbegin(), input_data_addrs_.cend());
   (void)workspace_io_addrs_.insert(workspace_io_addrs_.cend(), output_data_addrs_.cbegin(), output_data_addrs_.cend());
   (void)hbm_args_refresh_flags_.insert(hbm_args_refresh_flags_.cend(), input_addr_refresh_.cbegin(),
-      input_addr_refresh_.cend());
+                                       input_addr_refresh_.cend());
   (void)hbm_args_refresh_flags_.insert(hbm_args_refresh_flags_.cend(), output_addr_refresh_.cbegin(),
-      output_addr_refresh_.cend());
+                                       output_addr_refresh_.cend());
 
   if (support_refresh_) {
     // args updater init
     GE_ASSERT_SUCCESS(sqe_args_updater_.Init(davinci_model_->GetLogicalMemAllocation(), sqe_io_addrs_,
-        sqe_args_refresh_flags_, {op_desc->GetName(), op_desc->GetType()}));
+                                             sqe_args_refresh_flags_, {op_desc->GetName(), op_desc->GetType()}));
     GE_ASSERT_SUCCESS(workspace_args_updater_.Init(davinci_model_->GetLogicalMemAllocation(), workspace_io_addrs_,
-        hbm_args_refresh_flags_, {op_desc->GetName(), op_desc->GetType()}));
+                                                   hbm_args_refresh_flags_, {op_desc->GetName(), op_desc->GetType()}));
   }
 
   GELOGI("DSATaskInfo %s Init Success, hbm_workspace_args is 0x%llx, logic stream id: %u, stream: %p.",
-    op_desc->GetNamePtr(), hbm_workspace_args_, task_def.stream_id(), stream_);
+         op_desc->GetNamePtr(), hbm_workspace_args_, task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -83,7 +82,8 @@ Status DSATaskInfo::InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskD
     hbm_args_refresh_flags_.push_back(input_addr_refresh_[2U]);
     workspace_io_addrs_.push_back(input_data_addrs_[2U]);
     if ((input_data_addrs_.size() == kDSAStateInputAddrSize) ||
-    ((input_data_addrs_.size() == kDSAArgsInputAddrSize) && (workspace_data_addrs_.size() == kDSAWorkspaceAddrSize))) {
+        ((input_data_addrs_.size() == kDSAArgsInputAddrSize) &&
+         (workspace_data_addrs_.size() == kDSAWorkspaceAddrSize))) {
       hbm_args_refresh_flags_.push_back(input_addr_refresh_[3U]);
       workspace_io_addrs_.push_back(input_data_addrs_[3U]);
     }
@@ -94,7 +94,8 @@ Status DSATaskInfo::InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskD
     auto mem_ret = memcpy_s(&input_data0, sizeof(uint64_t), input1.c_str(), input1.size());
     GE_ASSERT_EOK(mem_ret, "dsa input data memcpy failed.");
     if ((input_data_addrs_.size() == kDSAStateInputAddrSize) ||
-    ((input_data_addrs_.size() == kDSAArgsInputAddrSize) && (workspace_data_addrs_.size() == kDSAWorkspaceAddrSize))) {
+        ((input_data_addrs_.size() == kDSAArgsInputAddrSize) &&
+         (workspace_data_addrs_.size() == kDSAWorkspaceAddrSize))) {
       const std::string &input2 = dsa_task.args().input2_value_or_addr();
       mem_ret = memcpy_s(&input_data1, sizeof(uint64_t), input2.c_str(), input2.size());
       GE_ASSERT_EOK(mem_ret, "dsa input data memcpy failed.");
@@ -105,8 +106,8 @@ Status DSATaskInfo::InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskD
   }
 
   // todo: hbm_args要替换成init接口传过来的args地址
-  const uint64_t hbm_args = (hbm_workspace_args_ == 0UL)
-      ? workspace_data_addrs_[workspace_data_addrs_.size() - 1U] : hbm_workspace_args_;
+  const uint64_t hbm_args =
+      (hbm_workspace_args_ == 0UL) ? workspace_data_addrs_[workspace_data_addrs_.size() - 1U] : hbm_workspace_args_;
   const auto workspace_size = ModelUtils::GetWorkspaceSize(op_desc);
   GE_CHECK_GE(workspace_size.size(), workspace_data_addrs_.size());
   uint64_t dev_size = static_cast<uint64_t>(workspace_size[workspace_data_addrs_.size() - 1U]);
@@ -115,17 +116,17 @@ Status DSATaskInfo::InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskD
   // todo: 后面修改成静态图不可刷新场景, 在此拷贝, 采用model; 注意不支持刷新的也需要在此拷贝
   if ((!davinci_model_->IsFeatureBaseRefreshable()) || (!support_refresh_)) {
     GE_CHK_ACL_RET(aclrtMemcpy(ValueToPtr(hbm_args), dev_size, workspace_io_addrs_.data(),
-        sizeof(uint64_t) * workspace_io_addrs_.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+                               sizeof(uint64_t) * workspace_io_addrs_.size(), ACL_MEMCPY_HOST_TO_DEVICE));
   }
 
-  dev_size = static_cast<uint64_t>(MemSizeAlign(static_cast<size_t>(dev_size),
-      static_cast<uint32_t>(sizeof(uint64_t))));
+  dev_size =
+      static_cast<uint64_t>(MemSizeAlign(static_cast<size_t>(dev_size), static_cast<uint32_t>(sizeof(uint64_t))));
   workspace_io_addrs_.resize((dev_size / sizeof(uint64_t)), 0UL);
   hbm_args_refresh_flags_.resize(dev_size / sizeof(uint64_t), 0U);
   dump_args_ = ((hbm_workspace_args_ != 0UL) && (dump_flag_ == RT_KERNEL_DUMPFLAG)) ? (hbm_args + dev_size) : 0UL;
 
   GELOGI("opType[%s] Node name[%s], hbm_args addr 0x%llx, dump args addr 0x%llx, dev_size 0x%llx.",
-      op_desc->GetType().c_str(), op_desc->GetName().c_str(), hbm_args, dump_args_, dev_size);
+         op_desc->GetType().c_str(), op_desc->GetName().c_str(), hbm_args, dump_args_, dev_size);
 
   return SUCCESS;
 }
@@ -165,26 +166,29 @@ Status DSATaskInfo::InitSqe(const OpDescPtr &op_desc, const domi::DSATaskDef &ds
   GE_ASSERT_SUCCESS(InitWorkspace(op_desc, dsa_task));
   const uint64_t workspace_input_addr = workspace_data_addrs_[workspace_data_addrs_.size() - 1U];
   const uint64_t cfg_param_addr = (hbm_workspace_args_ == 0UL) ? workspace_input_addr : hbm_workspace_args_;
-  sqe_args_refresh_flags_.push_back((hbm_workspace_args_ == 0UL)
-      ? workspace_addr_refresh_[workspace_addr_refresh_.size() - 1U] : 0U);
+  sqe_args_refresh_flags_.push_back(
+      (hbm_workspace_args_ == 0UL) ? workspace_addr_refresh_[workspace_addr_refresh_.size() - 1U] : 0U);
   sqe_io_addrs_.push_back(cfg_param_addr);
   dsa_sqe_.dsaCfgParamAddrLow = static_cast<uint32_t>(cfg_param_addr & kMask32Bits);
   dsa_sqe_.dsaCfgParamAddrHigh = static_cast<uint32_t>(cfg_param_addr >> k32Bits);
 
   // 4.dsaCfgSeed
-  const uint64_t seed_value_or_addr = (dsa_task.seed_value_or_ptr() == kDSASetInputAddr) ? input_data_addrs_[1U] :
-                                      *(PtrToPtr<char_t, uint64_t>(dsa_task.args().seed_value_or_addr().c_str()));
+  const uint64_t seed_value_or_addr = (dsa_task.seed_value_or_ptr() == kDSASetInputAddr)
+                                          ? input_data_addrs_[1U]
+                                          : *(PtrToPtr<char_t, uint64_t>(dsa_task.args().seed_value_or_addr().c_str()));
   sqe_args_refresh_flags_.push_back((dsa_task.seed_value_or_ptr() == kDSASetInputAddr) ? input_addr_refresh_[1U] : 0U);
   sqe_io_addrs_.push_back(seed_value_or_addr);
   dsa_sqe_.dsaCfgSeedLow = static_cast<uint32_t>(seed_value_or_addr & kMask32Bits);
   dsa_sqe_.dsaCfgSeedHigh = static_cast<uint32_t>(seed_value_or_addr >> k32Bits);
 
   // 5.dsaCfgNumber
-  const uint64_t random_count_value_or_addr = (dsa_task.random_count_value_or_ptr() == kDSASetInputAddr) ?
-      input_data_addrs_[0U] : *(PtrToPtr<char_t, uint64_t>(dsa_task.args().random_count_value_or_addr().c_str()));
+  const uint64_t random_count_value_or_addr =
+      (dsa_task.random_count_value_or_ptr() == kDSASetInputAddr)
+          ? input_data_addrs_[0U]
+          : *(PtrToPtr<char_t, uint64_t>(dsa_task.args().random_count_value_or_addr().c_str()));
 
-  sqe_args_refresh_flags_.push_back((dsa_task.random_count_value_or_ptr() == kDSASetInputAddr)
-                                    ? input_addr_refresh_[0U] : 0U);
+  sqe_args_refresh_flags_.push_back((dsa_task.random_count_value_or_ptr() == kDSASetInputAddr) ? input_addr_refresh_[0U]
+                                                                                               : 0U);
   sqe_io_addrs_.push_back(random_count_value_or_addr);
   dsa_sqe_.dsaCfgNumberLow = static_cast<uint32_t>(random_count_value_or_addr & kMask32Bits);
   dsa_sqe_.dsaCfgNumberHigh = static_cast<uint32_t>(random_count_value_or_addr >> k32Bits);
@@ -209,7 +213,7 @@ void DSATaskInfo::GetAddrs(const IowAddrs &iow_addrs) {
   // todo: dsa 独立申请wordspace地址
   if (davinci_model_->IsFeatureBaseRefreshable()) {
     for (size_t i = 0U; i < workspace_data_addrs_.size(); i++) {
-      workspace_data_addrs_[i] =  PtrToValue(self_wkspace_base_) + static_cast<uint64_t>(workspace_offset_[i]);
+      workspace_data_addrs_[i] = PtrToValue(self_wkspace_base_) + static_cast<uint64_t>(workspace_offset_[i]);
       workspace_addr_refresh_[i] = 0U;
     }
   }
@@ -249,12 +253,12 @@ Status DSATaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciMode
     task_run_param.parsed_input_addrs.push_back({input_data_addrs_[i], input_addr_mem_types[i], support_refresh_, {0}});
   }
   for (size_t i = 0U; i < output_data_addrs_.size(); i++) {
-    task_run_param.parsed_output_addrs.push_back({output_data_addrs_[i], output_addr_mem_types[i],
-                                                 support_refresh_, {0}});
+    task_run_param.parsed_output_addrs.push_back(
+        {output_data_addrs_[i], output_addr_mem_types[i], support_refresh_, {0}});
   }
   for (size_t i = 0U; i < workspace_data_addrs_.size(); i++) {
-    task_run_param.parsed_workspace_addrs.push_back({workspace_data_addrs_[i], wkspace_addr_mem_types[i],
-                                                    support_refresh_, {0}});
+    task_run_param.parsed_workspace_addrs.push_back(
+        {workspace_data_addrs_[i], wkspace_addr_mem_types[i], support_refresh_, {0}});
   }
   input_addr_refresh_.resize(input_data_addrs_.size(), (support_refresh_ ? 1U : 0U));
   output_addr_refresh_.resize(output_data_addrs_.size(), (support_refresh_ ? 1U : 0U));
@@ -263,17 +267,18 @@ Status DSATaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciMode
   GE_CHECK_GE(workspace_size.size(), workspace_data_addrs_.size());
   // todo: 如果dump打开了, 才申请一个dump args, 追加到hbm args尾部
   if (support_refresh_) {
-    hbm_args_len_ = static_cast<int64_t>(MemSizeAlign(
-        static_cast<size_t>(workspace_size[workspace_data_addrs_.size() - 1U]),
-        static_cast<uint32_t>(sizeof(uint64_t)))) +
+    hbm_args_len_ =
+        static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(workspace_size[workspace_data_addrs_.size() - 1U]),
+                                          static_cast<uint32_t>(sizeof(uint64_t)))) +
         static_cast<int64_t>(sizeof(uint64_t) * (input_data_addrs_.size() + output_data_addrs_.size()));
     task_run_param.args_descs.push_back({hbm_args_len_, ArgsPlacement::kArgsPlacementHbm});
     task_run_param.args_descs.push_back({kSqeArgsLen, ArgsPlacement::kArgsPlacementSqe});
-    GELOGI("opType[%s] Node name[%s], sqe args len is %" PRId64 ", hbm_args len is %" PRId64 ", "
-        "workspace_size %" PRId64 ", io size %zu.",
-        op_desc->GetType().c_str(), op_desc->GetName().c_str(), kSqeArgsLen, hbm_args_len_,
-        workspace_size[workspace_data_addrs_.size() - 1U],
-        (sizeof(uint64_t) * (input_data_addrs_.size() + output_data_addrs_.size())));
+    GELOGI("opType[%s] Node name[%s], sqe args len is %" PRId64 ", hbm_args len is %" PRId64
+           ", "
+           "workspace_size %" PRId64 ", io size %zu.",
+           op_desc->GetType().c_str(), op_desc->GetName().c_str(), kSqeArgsLen, hbm_args_len_,
+           workspace_size[workspace_data_addrs_.size() - 1U],
+           (sizeof(uint64_t) * (input_data_addrs_.size() + output_data_addrs_.size())));
   }
   if (!davinci_model->IsFeatureBaseRefreshable()) {
     return SUCCESS;
@@ -281,8 +286,7 @@ Status DSATaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciMode
 
   const std::vector<int64_t> workspace_bytes = op_desc->GetWorkspaceBytes();
   if (workspace_bytes.empty()) {
-    GELOGE(INTERNAL_ERROR, "Node %s workspace size %zu is wrong", op_desc->GetName().c_str(),
-           workspace_bytes.size());
+    GELOGE(INTERNAL_ERROR, "Node %s workspace size %zu is wrong", op_desc->GetName().c_str(), workspace_bytes.size());
     return INTERNAL_ERROR;
   }
 
@@ -303,18 +307,18 @@ Status DSATaskInfo::Distribute() {
   SetTaskTag(op_desc_->GetName().c_str());
   if (davinci_model_ != nullptr && davinci_model_->IsDumpOpWithAdump()) {
     GELOGD("Both overflow detection and persistent stream unlimited enabled, disable dump for op %s",
-            op_desc_ ? op_desc_->GetName().c_str() : "unknown");
+           op_desc_ ? op_desc_->GetName().c_str() : "unknown");
     dump_flag_ &= ~RT_KERNEL_DUMPFLAG;
   }
   const TaskProfGuarder prof_guarder(this);
   GE_CHK_RT_RET(ge::rtStarsTaskLaunchWithFlag(&dsa_sqe_, static_cast<uint32_t>(sizeof(dsa_sqe_)), stream_, dump_flag_));
   GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
-  GELOGI("DSATaskInfo %s Distribute TaskId[%u], stream id [%u], dumpflag [%u] Success.",
-         op_desc_->GetNamePtr(), task_id_, stream_id_, dump_flag_);
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)));
+  GELOGI("DSATaskInfo %s Distribute TaskId[%u], stream id [%u], dumpflag [%u] Success.", op_desc_->GetNamePtr(),
+         task_id_, stream_id_, dump_flag_);
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
   }
   is_support_redistribute_ = true;
 
@@ -329,7 +333,7 @@ Status DSATaskInfo::Release() {
 
 void DSATaskInfo::InitDsaDumpInfo(const OpDescPtr &op_desc) {
   if ((davinci_model_->OpNeedDump(op_desc->GetName()) ||
-    davinci_model_->OpNeedSetDumpFlagOnWatcherModel(op_desc->GetName()))) {
+       davinci_model_->OpNeedSetDumpFlagOnWatcherModel(op_desc->GetName()))) {
     dump_flag_ = RT_KERNEL_DUMPFLAG;
   }
   return;
@@ -347,7 +351,7 @@ void DSATaskInfo::PostProcess(const domi::TaskDef &task_def) {
 void DSATaskInfo::PostProfilingProcess(const domi::TaskDef &task_def) {
   const domi::DSATaskDef &dsa_task = task_def.dsa_task();
   GE_CHK_RT_EXEC(aclrtGetThreadLastTaskId(&task_id_), return);
-  GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)), return);
+  GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)), return);
   davinci_model_->SaveDfxInfo(dsa_task.op_index(), task_def, *this);
 }
 
@@ -366,8 +370,8 @@ void DSATaskInfo::PostDumpProcess(const domi::TaskDef &task_def) {
   (void)dump_io_addr.insert(dump_io_addr.cend(), input_data_addrs_.cbegin(), input_data_addrs_.cend());
   (void)dump_io_addr.insert(dump_io_addr.cend(), output_data_addrs_.cbegin(), output_data_addrs_.cend());
 
-  GELOGI("DSATaskInfo PostDumpProcess TaskId[%u], stream id [%u], op_index [%u] args[%p] Success.",
-         task_id_, stream_id_, op_index, dump_io_addr.data());
+  GELOGI("DSATaskInfo PostDumpProcess TaskId[%u], stream id [%u], op_index [%u] args[%p] Success.", task_id_,
+         stream_id_, op_index, dump_io_addr.data());
 
   std::vector<uintptr_t> args;
   for (size_t i = 0U; i < dump_io_addr.size(); i++) {
@@ -379,13 +383,13 @@ void DSATaskInfo::PostDumpProcess(const domi::TaskDef &task_def) {
   GELOGI("Start to SaveDumpTask for op[%s], task_type[%u]", op_desc->GetName().c_str(),
          static_cast<uint32_t>(task_type));
   if ((!support_refresh_) || (!davinci_model_->IsFeatureBaseRefreshable())) {
-      // 兼容性考虑 support_refresh_ 为false表示是老的drv包是老包, 或者不支持刷新的场景下, 走一级指针dump
-      davinci_model_->SaveDumpTask(id, op_desc, static_cast<uintptr_t>(PtrToValue(args.data())),
-                                   first_level_address_info, {}, task_type, stream_);
+    // 兼容性考虑 support_refresh_ 为false表示是老的drv包是老包, 或者不支持刷新的场景下, 走一级指针dump
+    davinci_model_->SaveDumpTask(id, op_desc, static_cast<uintptr_t>(PtrToValue(args.data())), first_level_address_info,
+                                 {}, task_type, stream_);
   } else {
     // support_refresh_ 为true表示是dsa支持可刷新, 走二级指针dump流程, 仅纯静态图在此拷贝, 其他走args table拷贝
     (void)aclrtMemcpy(ValueToPtr(dump_args_), sizeof(uint64_t) * dump_io_addr.size(), dump_io_addr.data(),
-        sizeof(uint64_t) * dump_io_addr.size(), ACL_MEMCPY_HOST_TO_DEVICE);
+                      sizeof(uint64_t) * dump_io_addr.size(), ACL_MEMCPY_HOST_TO_DEVICE);
     // Dump of second-level addresses
     davinci_model_->SaveDumpTask(id, op_desc, static_cast<uintptr_t>(dump_args_), {false, {}}, {}, task_type, stream_);
   }
@@ -399,26 +403,24 @@ int64_t DSATaskInfo::ParseOpIndex(const domi::TaskDef &task_def) const {
 }
 
 Status DSATaskInfo::UpdateHostArgsWithSqePlacement(const std::vector<uint64_t> &active_mem_base_addr,
-                                   void *const host_args,
-                                   const size_t host_args_len) const {
+                                                   void *const host_args, const size_t host_args_len) const {
   return sqe_args_updater_.SetArgIoAddrs(active_mem_base_addr, host_args, host_args_len);
 }
 
 Status DSATaskInfo::UpdateHostArgsWithHbmPlacement(const std::vector<uint64_t> &active_mem_base_addr,
-                                   void *const host_args,
-                                   const size_t host_args_len) const {
+                                                   void *const host_args, const size_t host_args_len) const {
   return workspace_args_updater_.SetArgIoAddrs(active_mem_base_addr, host_args, host_args_len);
 }
 
 Status DSATaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
                                    const std::vector<HostArg> &host_args) {
-GE_ASSERT_TRUE((host_args.size() == 2U), "[Update][HostArgs]args does not support, host args size is %zu.",
-               host_args.size());
+  GE_ASSERT_TRUE((host_args.size() == 2U), "[Update][HostArgs]args does not support, host args size is %zu.",
+                 host_args.size());
 
   for (auto &arg : host_args) {
-    GE_ASSERT_TRUE(((arg.placement == ArgsPlacement::kArgsPlacementSqe) ||
-                   (arg.placement == ArgsPlacement::kArgsPlacementHbm)), "[Update][HostArgs]invalid placement %d.",
-                   arg.placement);
+    GE_ASSERT_TRUE(
+        ((arg.placement == ArgsPlacement::kArgsPlacementSqe) || (arg.placement == ArgsPlacement::kArgsPlacementHbm)),
+        "[Update][HostArgs]invalid placement %d.", arg.placement);
     if (arg.placement == ArgsPlacement::kArgsPlacementSqe) {
       GE_ASSERT_SUCCESS(UpdateHostArgsWithSqePlacement(active_mem_base_addr, arg.addr, static_cast<size_t>(arg.len)));
     } else {

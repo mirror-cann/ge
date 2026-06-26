@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -89,8 +89,7 @@ ge::graphStatus LoadSgtKernelBinToOpDesc(const ge::NodePtr &node, const ge::Comp
 namespace {
 void LoadTbeKernelBinToOpDesc(const ge::ModelTaskType task_type, const ge::GeModelPtr &ge_model,
                               const ge::NodePtr &node) {
-  if ((task_type == ge::ModelTaskType::MODEL_TASK_KERNEL) ||
-      (task_type == ge::ModelTaskType::MODEL_TASK_ALL_KERNEL)) {
+  if ((task_type == ge::ModelTaskType::MODEL_TASK_KERNEL) || (task_type == ge::ModelTaskType::MODEL_TASK_ALL_KERNEL)) {
     ge_model->GetTBEKernelStore().LoadTBEKernelBinToOpDesc(node->GetOpDesc());
   }
 }
@@ -234,11 +233,11 @@ ge::graphStatus InitConstWeights(const ge::GeRootModelPtr &root_model, int64_t &
   auto root_graph = root_model->GetRootGraph();
   const auto &root_graph_name = root_graph->GetName();
   // For constant in root graph
-  const ge::Tensor::DeleteFunc kDoNothing = [](uint8_t *data) {(void)data;};
+  const ge::Tensor::DeleteFunc kDoNothing = [](uint8_t *data) { (void)data; };
   for (const auto &subgraph_model : root_model->GetSubgraphInstanceNameToModel()) {
     GE_ASSERT_NOTNULL(subgraph_model.second, "Compiled model of %s is nullptr", subgraph_model.first.c_str());
     const auto &name = subgraph_model.first;
-    const auto sub_model_weight_size  = static_cast<int64_t>(subgraph_model.second->GetWeightSize());
+    const auto sub_model_weight_size = static_cast<int64_t>(subgraph_model.second->GetWeightSize());
     GELOGD("set FLATTEN_OFFSET to model[%s], {%ld, %ld}", subgraph_model.second->GetName().c_str(),
            graph_flatten_offset, sub_model_weight_size);
     subgraph_model.second->SetAttr(
@@ -284,8 +283,8 @@ ge::graphStatus InitConstWeights(const ge::GeRootModelPtr &root_model, int64_t &
                           ge::GeAttrValue::CreateFrom<std::vector<int64_t>>({flatten_off, weight_size}));
       GELOGI("set offset to node[%s], offset[%ld], size[%ld]", node->GetNamePtr(), flatten_off, weight_size);
       GE_CHECK_NOTNULL(subgraph_model.second->GetWeightData() + static_cast<size_t>(data_offset));
-      weight->SetData(subgraph_model.second->GetWeightData() + static_cast<size_t>(data_offset),
-                      tensor_size, kDoNothing); // use zero copy to reduce host mem
+      weight->SetData(subgraph_model.second->GetWeightData() + static_cast<size_t>(data_offset), tensor_size,
+                      kDoNothing);  // use zero copy to reduce host mem
     }
     graph_flatten_offset += sub_model_weight_size;
   }
@@ -483,8 +482,8 @@ ge::graphStatus CollectAndReserveStreamResource(const ge::GeRootModelPtr &root_m
     GE_ASSERT_SUCCESS(RefreshStreamIdOfSingleStreamGraph(root_model->GetRootGraph()));
   }
 
-  GEEVENT("Model %s require reusable stream num is %" PRId64 ", attached stream num is %" PRId64 ", event num is %" PRId64
-          ", notify num is %" PRId64 ".",
+  GEEVENT("Model %s require reusable stream num is %" PRId64 ", attached stream num is %" PRId64
+          ", event num is %" PRId64 ", notify num is %" PRId64 ".",
           root_model->GetModelName().c_str(), resource.reusable_stream_num, resource.attached_stream_num,
           resource.reusable_event_num, resource.reusable_notify_num);
   model_desc_holder.MutableModelDesc().SetReusableStreamNum(static_cast<size_t>(resource.reusable_stream_num));
@@ -501,7 +500,7 @@ ge::graphStatus SetFixedFeatureMemory(const ge::GeRootModelPtr &root_model, Lowe
   std::vector<ge::FeatureMemoryPtr> all_feature_memory;
   size_t hbm_fixed_feature_mem;
   GE_ASSERT_SUCCESS(root_model->GetSummaryFeatureMemory(all_feature_memory, hbm_fixed_feature_mem));
-  (void) hbm_fixed_feature_mem;
+  (void)hbm_fixed_feature_mem;
 
   // 只设置长度，如果用户设置了地址，会覆盖
   for (const auto &summary_feature_mem : all_feature_memory) {
@@ -510,15 +509,14 @@ ge::graphStatus SetFixedFeatureMemory(const ge::GeRootModelPtr &root_model, Lowe
       GE_ASSERT_SUCCESS(ge::MemTypeUtils::ExternalMemTypeToRtMemType(summary_feature_mem->GetType(), rt_mem_type),
                         "external type: %s", ge::MemTypeUtils::ToString(summary_feature_mem->GetType()).c_str());
       global_data.SetFixedFeatureMemoryBase(rt_mem_type, nullptr, summary_feature_mem->GetSize());
-      GELOGI("fixed_feature_memory type:%s, size:%zu",
-             ge::MemTypeUtils::ToString(rt_mem_type).c_str(), summary_feature_mem->GetSize());
+      GELOGI("fixed_feature_memory type:%s, size:%zu", ge::MemTypeUtils::ToString(rt_mem_type).c_str(),
+             summary_feature_mem->GetSize());
     }
   }
 
   const auto fixed_feature_mem = root_model->GetFixedFeatureMemory();
   for (const auto fixed_iter : fixed_feature_mem) {
-    global_data.SetFixedFeatureMemoryBase(fixed_iter.first, fixed_iter.second.addr,
-                                          fixed_iter.second.size);
+    global_data.SetFixedFeatureMemoryBase(fixed_iter.first, fixed_iter.second.addr, fixed_iter.second.size);
     GELOGI("Set fixed_feature_memory base to global data. %s", fixed_iter.second.ToString().c_str());
   }
   return ge::GRAPH_SUCCESS;
@@ -527,7 +525,9 @@ ge::graphStatus SetFixedFeatureMemory(const ge::GeRootModelPtr &root_model, Lowe
 
 ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRootModelPtr &root_model,
                                                                  const Args &args) {
-  if ((root_model == nullptr) || (root_model->GetRootGraph() == nullptr)) { return nullptr; }
+  if ((root_model == nullptr) || (root_model->GetRootGraph() == nullptr)) {
+    return nullptr;
+  }
 
   GE_ASSERT_SUCCESS(CreateModelDesc(root_model, args.stream_allocator, args.event_allocator, args.notify_allocator));
 
@@ -569,8 +569,9 @@ ge::ExecuteGraphPtr ModelConverter::ConvertGeModelToExecuteGraph(const ge::GeRoo
   if (args.file_constant_mems != nullptr) {
     global_data.SetFileConstantMem(*args.file_constant_mems);
   }
-  auto graph = GraphConverter().SetModelDescHolder(&model_desc_holder_)
-                               .ConvertComputeGraphToExecuteGraph(flatten_graph, args.option, global_data);
+  auto graph = GraphConverter()
+                   .SetModelDescHolder(&model_desc_holder_)
+                   .ConvertComputeGraphToExecuteGraph(flatten_graph, args.option, global_data);
   GE_ASSERT_NOTNULL(graph, "Failed lowering compute graph %s", flatten_graph->GetName().c_str());
   ge::DumpGraph(graph.get(), "ExecuteGraphAfterSplit");
   return graph;

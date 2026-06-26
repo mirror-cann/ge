@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include <gtest/gtest.h>
 #include "faker/space_registry_faker.h"
@@ -49,15 +48,15 @@ class AutofuserUT : public testing::Test {
 namespace {
 REG_OP(BroadcastTo)
     .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_UINT8, DT_INT8, DI_UINT16, DT_INT16, DT_INT32, DT_INT64,
-                      DT_COMPLEX64, DT_COMPLEX128}))
+                          DT_COMPLEX64, DT_COMPLEX128}))
     .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
     .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
                            DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .OP_END_FACTORY_REG(BroadcastTo)
 
-template <typename T>
-ComputeGraphPtr BuildGraph(const std::string &op_type, DataType dtype, T value,
-                           bool lhs_is_data, bool ref_const = false) {
+        template <typename T>
+        ComputeGraphPtr
+    BuildGraph(const std::string &op_type, DataType dtype, T value, bool lhs_is_data, bool ref_const = false) {
   std::vector<int64_t> const_shape = {8, 16};
   std::vector<int64_t> data_shape = {8, 1};
   GeTensorDesc const_desc(GeShape(const_shape), FORMAT_ND, dtype);
@@ -110,19 +109,19 @@ ComputeGraphPtr BuildGraph(const std::string &op_type, DataType dtype, T value,
 /*
  * 普通的fuse流程
  */
-//TEST_F(AutofuserUT, AddFuse) {
-//  const auto graph = cg::BuildAbsAddReluReluGraph({4, 5, 6});
-//  ASSERT_NE(graph, nullptr);
-//  std::vector<GeTensor> inputs;
-//  GeTensorDesc td;
-//  td.SetShape((GeShape({4, 5, 6})));
-//  td.SetOriginShape((GeShape({4, 5, 6})));
-//  inputs.emplace_back(td);
+// TEST_F(AutofuserUT, AddFuse) {
+//   const auto graph = cg::BuildAbsAddReluReluGraph({4, 5, 6});
+//   ASSERT_NE(graph, nullptr);
+//   std::vector<GeTensor> inputs;
+//   GeTensorDesc td;
+//   td.SetShape((GeShape({4, 5, 6})));
+//   td.SetOriginShape((GeShape({4, 5, 6})));
+//   inputs.emplace_back(td);
 //
-//  ASSERT_EQ(SymbolicShapeSymbolizer::Symbolize(graph, inputs), SUCCESS);
-//  AutoFusePass pass;
-//  EXPECT_EQ(pass.Run(graph), ge::SUCCESS);
-//}
+//   ASSERT_EQ(SymbolicShapeSymbolizer::Symbolize(graph, inputs), SUCCESS);
+//   AutoFusePass pass;
+//   EXPECT_EQ(pass.Run(graph), ge::SUCCESS);
+// }
 
 TEST_F(AutofuserUT, Symbolic_AllConstDimValue_AllConstSymbol) {
   const auto graph = cg::BuildAddGraph({-1, -1, -1}, {-1, -1, -1});
@@ -170,7 +169,7 @@ TEST_F(AutofuserUT, Symbolic_DynamicShapeTest_InputIsEmpty_Fail) {
   td.SetOriginShape((GeShape()));
   inputs.emplace_back(td);
   inputs.emplace_back(td);
-  ASSERT_NE(SymbolicShapeSymbolizer::Symbolize(graph, inputs), SUCCESS); // test input not match
+  ASSERT_NE(SymbolicShapeSymbolizer::Symbolize(graph, inputs), SUCCESS);  // test input not match
 }
 
 TEST_F(AutofuserUT, PreProcess_Success) {
@@ -185,4 +184,4 @@ TEST_F(AutofuserUT, PreProcess_Success) {
     EXPECT_EQ(pass.Run(graph), SUCCESS);
   }
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 
 namespace fe {
 namespace {
-  const std::string kTrueStr = "true";
+const std::string kTrueStr = "true";
 }
 
 BinaryKernelInfo &BinaryKernelInfo::Instance() {
@@ -38,8 +38,9 @@ Status BinaryKernelInfo::Initialize(const std::string &config_file_path) {
   }
   try {
     if (!op_json_file.is_object()) {
-      REPORT_FE_ERROR("[GraphOpt][Init][LoadOpJsonFile] The top level of the JSON file should be an object, but it is actually %s.",
-                      GetJsonObjectType(op_json_file).c_str());
+      REPORT_FE_ERROR(
+          "[GraphOpt][Init][LoadOpJsonFile] The top level of the JSON file should be an object, but it is actually %s.",
+          GetJsonObjectType(op_json_file).c_str());
       return OP_SUB_STORE_ILLEGAL_JSON;
     }
     std::vector<string> op_type_vec;
@@ -49,8 +50,10 @@ Status BinaryKernelInfo::Initialize(const std::string &config_file_path) {
     }
     for (auto &op_type : op_type_vec) {
       if (!op_json_file[op_type].is_object()) {
-        REPORT_FE_ERROR("[GraphOpt][Init][LoadOpJsonFile] The second level of the JSON file should be an object, but it is actually %s.",
-                        GetJsonObjectType(op_json_file[op_type]).c_str());
+        REPORT_FE_ERROR(
+            "[GraphOpt][Init][LoadOpJsonFile] The second level of the JSON file should be an object, but it is "
+            "actually %s.",
+            GetJsonObjectType(op_json_file[op_type]).c_str());
         return OP_SUB_STORE_ILLEGAL_JSON;
       }
       const nlohmann::json &op_info = op_json_file[op_type];
@@ -58,7 +61,7 @@ Status BinaryKernelInfo::Initialize(const std::string &config_file_path) {
       if (iter != op_info.end()) {
         const std::string &val = iter.value().get<std::string>();
         if (val == kTrueStr) {
-            support_dynamic_rank_ops_.emplace(op_type);
+          support_dynamic_rank_ops_.emplace(op_type);
         }
       }
     }
@@ -83,4 +86,4 @@ void BinaryKernelInfo::Finalize() {
   support_dynamic_rank_ops_.clear();
   is_init_ = false;
 }
-}
+}  // namespace fe

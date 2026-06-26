@@ -13,8 +13,8 @@
 #include "rt_external_model.h"
 #include "framework/executor_c/ge_log.h"
 #include "ge/ge_error_codes.h"
-typedef int(*CAC_AICPU_INIT_FUNC)(void);
-typedef int(*CAC_AICPU_STOP_FUNC)(void);
+typedef int (*CAC_AICPU_INIT_FUNC)(void);
+typedef int (*CAC_AICPU_STOP_FUNC)(void);
 static void *g_aicpuHandle = NULL;
 static CAC_AICPU_INIT_FUNC cac_aicpu_init_func = NULL;
 static CAC_AICPU_STOP_FUNC cac_aicpu_stop_func = NULL;

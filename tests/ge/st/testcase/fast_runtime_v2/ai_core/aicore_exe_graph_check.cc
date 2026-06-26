@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,7 @@ namespace gert {
 void GetAllLayerRecord(ExecuteGraph *exe_graph, std::vector<TestRecord> &record_v) {
   ExecuteGraph *tmp_graph = exe_graph;
   TestRecord record;
-  while(tmp_graph->GetName().find("Main") == string::npos) {
+  while (tmp_graph->GetName().find("Main") == string::npos) {
     auto node11 = tmp_graph->GetParentNodeBarePtr();
     tmp_graph = node11->GetExtendInfo()->GetOwnerGraphBarePtr();
     if (tmp_graph == nullptr || (tmp_graph->GetName().find("ROOT") != string::npos)) {
@@ -46,12 +46,12 @@ bool Judge2KernelPriority(ExecuteGraphPtr exe_graph, JudgeInfo &judge_info) {
   for (auto sub_graph : exe_graph->GetAllSubgraphs()) {
     GELOGD("Sub graph name[%s].", sub_graph->GetName().c_str());
     for (auto node : sub_graph->GetDirectNode()) {
-      if ((node->GetType() == judge_info.high_pri_type) && (node->GetName().find(judge_info.high_pri_name) !=
-                                                            string::npos)) {
+      if ((node->GetType() == judge_info.high_pri_type) &&
+          (node->GetName().find(judge_info.high_pri_name) != string::npos)) {
         node1 = node;
       }
-      if ((node->GetType() == judge_info.low_pri_type) && (node->GetName().find(judge_info.low_pri_name) !=
-                                                           string::npos)) {
+      if ((node->GetType() == judge_info.low_pri_type) &&
+          (node->GetName().find(judge_info.low_pri_name) != string::npos)) {
         node2 = node;
       }
     }
@@ -96,4 +96,4 @@ bool Judge2KernelPriority(ExecuteGraphPtr exe_graph, JudgeInfo &judge_info) {
   }
   return TravelFindEqualNode(record_v1[i].node, record_v2[j].node);
 }
-}
+}  // namespace gert

@@ -34,7 +34,7 @@
 ## 函数原型<a name="zh-cn_topic_0000001265084818_section129451113125413"></a>
 
 ```
-REGISTER_CUSTOM_PASS(name) 
+REGISTER_CUSTOM_PASS(name)
 ```
 
 ## 参数说明<a name="zh-cn_topic_0000001265084818_section1843519321017"></a>
@@ -70,4 +70,3 @@ REGISTER_CUSTOM_PASS(name)
 #include "register/register_custom_pass.h"
 REGISTER_CUSTOM_PASS("pass_name").CustomPassFn(CustomPassFunc);
 ```
-

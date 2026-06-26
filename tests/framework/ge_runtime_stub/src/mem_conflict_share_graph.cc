@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ void SetRefSrcVarName(ComputeGraphPtr &root_graph, const std::string &node_name,
     }
   }
 }
-}
+}  // namespace
 void MemConflictShareGraph::SetOutReuseInput(ComputeGraphPtr &root_graph, const std::string &node_name) {
   for (auto &node : root_graph->GetAllNodes()) {
     if (node->GetName() == node_name) {
@@ -170,7 +170,7 @@ void MemConflictShareGraph::SetShapeForNodesInputs(ComputeGraphPtr &graph, const
 }
 
 void MemConflictShareGraph::SetShapeForNodesOutputs(ComputeGraphPtr &graph, const std::vector<int64_t> &shape,
-                                                   const std::vector<std::string> &names) {
+                                                    const std::vector<std::string> &names) {
   for (auto &node : graph->GetAllNodes()) {
     const auto node_name = node->GetName();
     const auto iter = std::find(names.begin(), names.end(), node_name);
@@ -203,7 +203,7 @@ Status EnsureOrder(std::vector<NodePtr> &origin_nodes, NodePtr &a, NodePtr &b) {
   auto a_iter = std::find(origin_nodes.begin(), origin_nodes.end(), a);
   auto b_iter = std::find(origin_nodes.begin(), origin_nodes.end(), b);
   if (a_iter == origin_nodes.end() || b_iter == origin_nodes.end()) {
-    std::cerr << "EnsureOrder failed, cannot find a or b"  << std::endl;
+    std::cerr << "EnsureOrder failed, cannot find a or b" << std::endl;
     return FAILED;
   }
   if (a_iter < b_iter) {
@@ -253,7 +253,8 @@ void MemConflictShareGraph::SetSizeForAllNodes(ComputeGraphPtr &graph) {
         continue;
       }
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(out_tensor->GetShape(), out_tensor->GetFormat(), out_tensor->GetDataType(),
+                                     tensor_size);
       tensor_size = (tensor_size + 32 - 1) / 32 * 32 + 32;
       TensorUtils::SetSize(*out_tensor, tensor_size);
     }
@@ -264,7 +265,8 @@ void MemConflictShareGraph::SetSizeForAllNodes(ComputeGraphPtr &graph) {
         continue;
       }
       int64_t tensor_size = 0;
-      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(), tensor_size);
+      TensorUtils::CalcTensorMemSize(in_tensor->GetShape(), in_tensor->GetFormat(), in_tensor->GetDataType(),
+                                     tensor_size);
       tensor_size = (tensor_size + 32 - 1) / 32 * 32 + 32;
       TensorUtils::SetSize(*in_tensor, tensor_size);
     }
@@ -290,21 +292,26 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserInGraph() {
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data4 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data4", data4));
-                      };
+    CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data4", data4));
+  };
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data5", data5));
-                        CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data5", data5));
+    CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if", IF, then_sub, else_sub));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if", IF, then_sub, else_sub));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   return graph;
@@ -317,8 +324,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserInGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("netoutput", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
 
@@ -335,11 +342,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserOutGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserOutGraphInSubGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -359,11 +366,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserOutGraphInSubGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNormalInWithSubGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data2", sub_data)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data2", sub_data)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 }
@@ -384,11 +391,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNormalInWithSubGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNormalOutWithSubGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data2", sub_data)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data2", sub_data)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 }
@@ -411,12 +418,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNormalOutWithSubGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshInGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data)->NODE("switch", STREAMSWITCH)->NODE("op3", ADD)
-                               ->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data)->NODE("switch", STREAMSWITCH)->NODE("op3", ADD)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -432,8 +438,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshInGraph() 
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("swt", STREAMSWITCH)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("swt", STREAMSWITCH)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetOutReuseInput(graph, "swt");
   return graph;
@@ -449,8 +455,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefWithHcomGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("hcom", HCOMBROADCAST)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("hcom", HCOMBROADCAST)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetEngine(graph, {"hcom"}, kEngineNameHccl);
   SetOutReuseInput(graph, "hcom");
@@ -469,9 +475,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefWi
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefGraph2() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("swt1", STREAMSWITCH)->
-                  NODE("swt2", STREAMSWITCH)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("swt1", STREAMSWITCH)
+              ->NODE("swt2", STREAMSWITCH)
+              ->NODE("a", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 };
@@ -482,9 +491,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByRefGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("swt", STREAMSWITCH)->NODE("phonyconcat", PHONYCONCAT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("swt", STREAMSWITCH)->NODE("phonyconcat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phonyconcat");
   return graph;
@@ -497,13 +506,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNotSupportRefreshOutByConti
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndRtsSpecialInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("op1", HCOMALLREDUCE));
-                };
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("data", DATA)->NODE("op1", HCOMALLREDUCE));
+  };
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("op1");
-  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
-                                  in_mem_type);
+  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
   return graph;
 }
 /*
@@ -516,23 +524,21 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndRtsSpecialInGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndRtsSpecialInGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)
-              ->NODE("op1", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)->NODE("op1", RELU)->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE("const", constant)->NODE("assign", assign));
   };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "refdata");
 
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto op1 = graph->FindNode("op1");
-  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
-                                  in_mem_type);
+  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
 
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -550,24 +556,22 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndRtsSpecialInGraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndRtsSpecialOutGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)
-              ->NODE("hcom", HCOMBROADCAST)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)->NODE("hcom", HCOMBROADCAST)->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE("const", constant)->NODE("assign", assign));
   };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "refdata");
 
-  std::vector<int64_t> out_mem_type {RT_MEMORY_P2P_DDR};
+  std::vector<int64_t> out_mem_type{RT_MEMORY_P2P_DDR};
   SetOutReuseInput(graph, "hcom");
   auto op1 = graph->FindNode("hcom");
-  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                  out_mem_type);
+  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, out_mem_type);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
 
@@ -583,14 +587,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndRtsSpecialOutGraph()
 ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndNotSupportRefreshInGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)
-              ->NODE("swt", STREAMSWITCH)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)->NODE("swt", STREAMSWITCH)->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE("const", constant)->NODE("assign", assign));
   };
   auto graph = ToComputeGraph(g1);
@@ -611,14 +614,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndNotSupportRefreshInG
 ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndNotSupportRefreshOutGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)
-              ->NODE("swt", STREAMSWITCH)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)->NODE("swt", STREAMSWITCH)->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE("const", constant)->NODE("assign", assign));
   };
   auto graph = ToComputeGraph(g1);
@@ -640,14 +642,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInRefDataAndNotSupportRefreshOut
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndRtsSpecialOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("hcom", HCOMALLREDUCE)->NODE("a", RELU));
-                };
-  std::vector<int64_t> out_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("data", DATA)->NODE("hcom", HCOMALLREDUCE)->NODE("a", RELU));
+  };
+  std::vector<int64_t> out_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   SetOutReuseInput(graph, "hcom");
   auto op1 = graph->FindNode("hcom");
-  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                  out_mem_type);
+  (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, out_mem_type);
   return graph;
 }
 /*
@@ -681,59 +682,72 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndOtherConflictTypeGraph() {
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data4 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(then_sub1) {
-                        CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data4", data4));
-                      };
+    CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data4", data4));
+  };
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(else_sub1) {
-                        CHAIN(NODE("data5", data5)->NODE("op5", MUL)->Ctrl()->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data6", data6)->EDGE(0, 1)->NODE("op5", MUL));
-                      };
+    CHAIN(NODE("data5", data5)->NODE("op5", MUL)->Ctrl()->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data6", data6)->EDGE(0, 1)->NODE("op5", MUL));
+  };
 
   const auto data7 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data8 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(then_sub2) {
-                         CHAIN(NODE("data7", data7)->NODE("netoutput3", NETOUTPUT));
-                         CHAIN(NODE("data8", data8));
-                       };
+    CHAIN(NODE("data7", data7)->NODE("netoutput3", NETOUTPUT));
+    CHAIN(NODE("data8", data8));
+  };
   const auto data9 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data10 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(else_sub2) {
-                         CHAIN(NODE("data9", data9));
-                         CHAIN(NODE("data10", data10)->NODE("netoutput4", NETOUTPUT));
-                       };
+    CHAIN(NODE("data9", data9));
+    CHAIN(NODE("data10", data10)->NODE("netoutput4", NETOUTPUT));
+  };
 
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
 
   DEF_GRAPH(partitioned_call1) {
-                         CHAIN(NODE("constant1", constant1)->NODE("netoutput5", NETOUTPUT));
-                       };
+    CHAIN(NODE("constant1", constant1)->NODE("netoutput5", NETOUTPUT));
+  };
 
   const auto data12 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call2) {
-                                 CHAIN(NODE("data12", data12)->NODE("netoutput6", NETOUTPUT));
-                               };
+    CHAIN(NODE("data12", data12)->NODE("netoutput6", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->EDGE(0, 0)->NODE("netoutput8", NETOUTPUT));
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if1", IF, then_sub1, else_sub1)
-                            ->EDGE(0, 0)->NODE("op3", TRANSDATA)->EDGE(0, 1)->NODE("netoutput8", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if1", IF, then_sub1, else_sub1));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
+              ->EDGE(0, 0)
+              ->NODE("netoutput8", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if1", IF, then_sub1, else_sub1)
+              ->EDGE(0, 0)
+              ->NODE("op3", TRANSDATA)
+              ->EDGE(0, 1)
+              ->NODE("netoutput8", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if1", IF, then_sub1, else_sub1));
 
-                  CHAIN(NODE("data11", DATA)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)
-                            ->EDGE(0, 2)->NODE("netoutput8", NETOUTPUT));
-                  CHAIN(NODE("data11", DATA)->EDGE(0, 0)->NODE("if2", IF, then_sub2, else_sub2)
-                            ->EDGE(0, 0)->NODE("op4", TRANSDATA)->EDGE(0, 3)->NODE("netoutput8", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
-                            ->EDGE(0, 1)->NODE("if2", IF, then_sub2, else_sub2));
-                };
+    CHAIN(NODE("data11", DATA)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)->EDGE(0, 2)->NODE("netoutput8", NETOUTPUT));
+    CHAIN(NODE("data11", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if2", IF, then_sub2, else_sub2)
+              ->EDGE(0, 0)
+              ->NODE("op4", TRANSDATA)
+              ->EDGE(0, 3)
+              ->NODE("netoutput8", NETOUTPUT));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->EDGE(0, 1)
+              ->NODE("if2", IF, then_sub2, else_sub2));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -780,30 +794,38 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserIO() {
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data4 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
-                         CHAIN(NODE("data4", data4));
-                       };
+    CHAIN(NODE("data3", data3)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data4", data4));
+  };
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data5", data5)->NODE("op2", MUL)->Ctrl()->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("data6", data6)->EDGE(0, 1)->NODE("op2", MUL));
-                       };
+    CHAIN(NODE("data5", data5)->NODE("op2", MUL)->Ctrl()->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data6", data6)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data6", data6)->EDGE(0, 1)->NODE("op2", MUL));
+  };
 
   const auto data7 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call2) {
-                                 CHAIN(NODE("data7", data7)->NODE("netoutput3", NETOUTPUT));
-                               };
+    CHAIN(NODE("data7", data7)->NODE("netoutput3", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->EDGE(0, 0)->NODE("netoutput4", NETOUTPUT));
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 1)->NODE("if1", IF, then_sub1, else_sub1)
-                            ->EDGE(0, 0)->NODE("op1", TRANSDATA)->EDGE(0, 1)->NODE("netoutput4", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 2)->NODE("if1", IF, then_sub1, else_sub1));
-                  CHAIN(NODE("op0", RELU)->EDGE(0, 0)->NODE("if1", IF, then_sub1, else_sub1));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
+              ->EDGE(0, 0)
+              ->NODE("netoutput4", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 1)
+              ->NODE("if1", IF, then_sub1, else_sub1)
+              ->EDGE(0, 0)
+              ->NODE("op1", TRANSDATA)
+              ->EDGE(0, 1)
+              ->NODE("netoutput4", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 2)->NODE("if1", IF, then_sub1, else_sub1));
+    CHAIN(NODE("op0", RELU)->EDGE(0, 0)->NODE("if1", IF, then_sub1, else_sub1));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -837,27 +859,31 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUserIO() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUnRefreshableInputAndConstInput() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data2", data2)->NODE("netoutput1", NETOUTPUT));
-                       };
+    CHAIN(NODE("data2", data2)->NODE("netoutput1", NETOUTPUT));
+  };
 
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(1);
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data3", data3));
-                         CHAIN(NODE("constant1", constant1)->NODE("netoutput2", NETOUTPUT));
-                       };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("constant1", constant1)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)
-                            ->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 1)->NODE("if1", IF, then_sub1, else_sub1)
-                            ->EDGE(0, 0)->NODE("op2", TRANSDATA)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("if1", IF, then_sub1, else_sub1));
-                };
+    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 1)
+              ->NODE("if1", IF, then_sub1, else_sub1)
+              ->EDGE(0, 0)
+              ->NODE("op2", TRANSDATA)
+              ->EDGE(0, 1)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("if1", IF, then_sub1, else_sub1));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -872,8 +898,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndUnRefreshableInputAndConstI
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectNetoutputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -889,9 +915,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectNetoutputGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("hcom", HCOMALLGATHER)->NODE("a", ADD));
-                  CHAIN(NODE("data2", DATA)->NODE("hcom", HCOMALLGATHER));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("hcom", HCOMALLGATHER)->NODE("a", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("hcom", HCOMALLGATHER));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -908,9 +934,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectContinuousInputGraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectContinuousOutputGraph() {
   const auto hcom = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x1", "x2"}).OutNames({"x1", "x2"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("hcom", hcom)->NODE("a", ADD));
-                  CHAIN(NODE("data2", DATA)->NODE("hcom", hcom)->NODE("b", ADD));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("hcom", hcom)->NODE("a", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("hcom", hcom)->NODE("b", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -927,9 +953,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectContinuousOutputGraph()
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectNoPaddingContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("phony_concat", "PhonyConcat")->NODE("a", ADD));
-                  CHAIN(NODE("data2", DATA)->NODE("phony_concat", "PhonyConcat"));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("phony_concat", "PhonyConcat")->NODE("a", ADD));
+    CHAIN(NODE("data2", DATA)->NODE("phony_concat", "PhonyConcat"));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -947,9 +973,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectNoPaddingContinuousOutp
   const auto data = OP_CFG(DATA).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 1, 224, 448});
   const auto phony_split = OP_CFG("PhonySplit");
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", data)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
-                };
+    CHAIN(NODE("data", data)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto ps = graph->FindNode("phony_split");
@@ -977,26 +1003,27 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInConnectNoPaddingContinuousOutp
 ComputeGraphPtr MemConflictShareGraph::BuildUserInOutConnectContinuousInAndOutGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   auto const2 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
 
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call) {
-                                 CHAIN(NODE("data3", data3)->NODE("a", RELU)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("data3", data3)->NODE("a", RELU)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("hcom1", HCOMREDUCESCATTER)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const1", const1)->NODE("hcom1", HCOMREDUCESCATTER));
-                  CHAIN(NODE("var1", VARIABLE)->NODE("assign", assign)->NODE("hcom1", HCOMREDUCESCATTER));
-                  CHAIN(NODE("const2", const2)->NODE("assign", assign));
+    CHAIN(NODE("data1", DATA)->NODE("hcom1", HCOMREDUCESCATTER)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("hcom1", HCOMREDUCESCATTER));
+    CHAIN(NODE("var1", VARIABLE)->NODE("assign", assign)->NODE("hcom1", HCOMREDUCESCATTER));
+    CHAIN(NODE("const2", const2)->NODE("assign", assign));
 
-                  CHAIN(NODE("data2", DATA)->NODE("hcom2", HCOMREDUCESCATTER)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data4", DATA)->NODE("hcom2", HCOMREDUCESCATTER));
-                  CHAIN(NODE("hcom2", HCOMREDUCESCATTER)->NODE("partitioned_call", PARTITIONEDCALL, partitioned_call)
-                            ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("hcom2", HCOMREDUCESCATTER)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data4", DATA)->NODE("hcom2", HCOMREDUCESCATTER));
+    CHAIN(NODE("hcom2", HCOMREDUCESCATTER)
+              ->NODE("partitioned_call", PARTITIONEDCALL, partitioned_call)
+              ->NODE("netoutput", NETOUTPUT));
   };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -1037,33 +1064,35 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInOutConnectContinuousInAndOutGr
 ComputeGraphPtr MemConflictShareGraph::BuildUserInOutConnectNoPaddingContinuousInAndOutGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   auto const2 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
 
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call) {
-                                CHAIN(NODE("data3", data3)->NODE("a", RELU)->NODE("netoutput1", NETOUTPUT));
-                              };
+    CHAIN(NODE("data3", data3)->NODE("a", RELU)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("phonyconcat1", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const1", const1)->NODE("phonyconcat1", PHONYCONCAT));
-                  CHAIN(NODE("var1", VARIABLE)->NODE("assign", assign)->NODE("phonyconcat1", PHONYCONCAT));
-                  CHAIN(NODE("const2", const2)->NODE("assign", assign));
+    CHAIN(NODE("data1", DATA)->NODE("phonyconcat1", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("phonyconcat1", PHONYCONCAT));
+    CHAIN(NODE("var1", VARIABLE)->NODE("assign", assign)->NODE("phonyconcat1", PHONYCONCAT));
+    CHAIN(NODE("const2", const2)->NODE("assign", assign));
 
-                  CHAIN(NODE("data2", DATA)->NODE("phonysplit", PHONYSPLIT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("partitioned_call", PARTITIONEDCALL, partitioned_call)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data2", DATA)->NODE("phonysplit", PHONYSPLIT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phonysplit", PHONYSPLIT)
+              ->NODE("partitioned_call", PARTITIONEDCALL, partitioned_call)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   SetNoPaddingContinuousInput(graph, "phonyconcat1");
   auto phonyconcat1_node = graph->FindNode("phonyconcat1");
   phonyconcat1_node->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(vector<int64_t>{1, 3, 224, 224}));
   /*
-   * 由于其他用例中会设置PhonyConcat的引擎or注册optimizer?，导致会走到 GeLocalGraphOptimizer::OptimizeOriginalGraphJudgeInsert，
+   * 由于其他用例中会设置PhonyConcat的引擎or注册optimizer?，导致会走到
+   * GeLocalGraphOptimizer::OptimizeOriginalGraphJudgeInsert，
    * 里面会对PhonyConcat设置Nopadding连续输入,单独跑一个用例，和全量跑所有ST用例可能不一致.
    * 如果想测试NoPadding连续输出，就不要用PhonyConcat。
    */
@@ -1092,15 +1121,18 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInOutConnectNoPaddingContinuousI
 ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNoPaddingContinuousInByAssignOutput() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto pc = OP_CFG(PHONYCONCAT);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata", REFDATA)->NODE("assign", assign)->NODE("pc", pc)
-              ->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", REFDATA)
+              ->NODE("assign", assign)
+              ->NODE("pc", pc)
+              ->NODE("b", RELU)
+              ->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE("const", constant)->NODE("assign", assign));
     CHAIN(NODE("a", RELU)->NODE("pc", pc)->NODE("netoutput", NETOUTPUT));
   };
@@ -1113,7 +1145,6 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserInAndNoPaddingContinuousInByAssi
   return graph;
 }
 
-
 /*
  * constant---netoutput
  */
@@ -1121,13 +1152,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildConstantConnectNetoutputGraph() {
   vector<float> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}));
   GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) ,
-                                 sizeof(float) * perm1.size());
+      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()), sizeof(float) * perm1.size());
   auto constant1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("constant", constant1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("constant", constant1)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -1150,17 +1180,19 @@ ComputeGraphPtr MemConflictShareGraph::BuildConstantConnectNetoutputSubGraph() {
   vector<float> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}));
   GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) ,
-                                 sizeof(float) * perm1.size());
+      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()), sizeof(float) * perm1.size());
   auto constant1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data2", sub_data));
-                     CHAIN(NODE("constant", constant1)->NODE("netoutput1", NETOUTPUT));
-                   };
+    CHAIN(NODE("data2", sub_data));
+    CHAIN(NODE("constant", constant1)->NODE("netoutput1", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("op1", RELU)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("op2", RELU)->NODE("netoutput2", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->NODE("op1", RELU)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("op2", RELU)
+              ->NODE("netoutput2", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   // 如果不设置，会被设置为动态shape图
@@ -1197,16 +1229,16 @@ ComputeGraphPtr MemConflictShareGraph::BuildConstantConnectNetoutputSubGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndOtherTypeGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   const auto refdata1 = OP_CFG(REFDATA).InCnt(1);
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("var", VARIABLE)->NODE("netoutput1", NETOUTPUT));
-                                 CHAIN(NODE("const1", const1)->NODE("netoutput1", NETOUTPUT));
-                                 CHAIN(NODE("data1", data1)->Ctrl()->NODE("refdata1", refdata1)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("var", VARIABLE)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data1", data1)->Ctrl()->NODE("refdata1", refdata1)->NODE("netoutput1", NETOUTPUT));
+  };
 
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(2);
@@ -1214,12 +1246,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndOtherTypeGraph() {
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(4);
   const auto refnode = OP_CFG(ASSIGNADD).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(then_sub1) {
-                         //CHAIN(NODE("data1", data1));
-                         CHAIN(NODE("data2", data2)->NODE("refnode", refnode)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("data3", data3)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("data5", data5)->NODE("netoutput2", NETOUTPUT));
-                       };
+    // CHAIN(NODE("data1", data1));
+    CHAIN(NODE("data2", data2)->NODE("refnode", refnode)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data3", data3)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data5", data5)->NODE("netoutput2", NETOUTPUT));
+  };
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data7 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data8 = OP_CFG(DATA).ParentNodeIndex(2);
@@ -1227,43 +1259,54 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndOtherTypeGraph() {
   const auto data10 = OP_CFG(DATA).ParentNodeIndex(4);
   const auto refdata2 = OP_CFG(REFDATA).InCnt(1);
   const auto transdata1 = OP_CFG(TRANSDATA).Attr(REF_VAR_SRC_VAR_NAME, "refdata2");
-  const auto transdata2 = OP_CFG(TRANSDATA).Attr(REF_VAR_SRC_VAR_NAME, "refdata2");// 若ref到var，要求var在根图
+  const auto transdata2 = OP_CFG(TRANSDATA).Attr(REF_VAR_SRC_VAR_NAME, "refdata2");  // 若ref到var，要求var在根图
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data6", data6));
-                         CHAIN(NODE("data7", data7));
-                         CHAIN(NODE("data8", data8));
-                         CHAIN(NODE("data9", data9));
-                         CHAIN(NODE("data10", data10));
+    CHAIN(NODE("data6", data6));
+    CHAIN(NODE("data7", data7));
+    CHAIN(NODE("data8", data8));
+    CHAIN(NODE("data9", data9));
+    CHAIN(NODE("data10", data10));
 
-                         CHAIN(NODE("data7")->Ctrl()->NODE("refdata2", refdata2)->NODE("transdata1", transdata1)->NODE("netoutput3", NETOUTPUT));
-                         CHAIN(NODE("op3", RELU)->NODE("transdata2", transdata2)->NODE("netoutput3", NETOUTPUT));
-                         CHAIN(NODE("swt", LABELSWITCHBYINDEX)->NODE("netoutput3", NETOUTPUT));
-                         CHAIN(NODE("op4", RELU)->NODE("netoutput3", NETOUTPUT));
-                       };
+    CHAIN(NODE("data7")
+              ->Ctrl()
+              ->NODE("refdata2", refdata2)
+              ->NODE("transdata1", transdata1)
+              ->NODE("netoutput3", NETOUTPUT));
+    CHAIN(NODE("op3", RELU)->NODE("transdata2", transdata2)->NODE("netoutput3", NETOUTPUT));
+    CHAIN(NODE("swt", LABELSWITCHBYINDEX)->NODE("netoutput3", NETOUTPUT));
+    CHAIN(NODE("op4", RELU)->NODE("netoutput3", NETOUTPUT));
+  };
 
   auto refdata_root = OP_CFG("RefData")
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {1,23,5,7})
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .InNames({"x"})
-        .OutNames({"y"})
-        .Build("refdata_root");
+                          .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 23, 5, 7})
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .Attr(ATTR_NAME_INDEX, 0)
+                          .InNames({"x"})
+                          .OutNames({"y"})
+                          .Build("refdata_root");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1));
-                  CHAIN(NODE(refdata_root)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                  CHAIN(NODE("op2", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                  CHAIN(NODE("op5", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1));
+    CHAIN(NODE(refdata_root)
+              ->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("if", IF, then_sub1, else_sub1)
+              ->NODE("op5", RELU));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("if", IF, then_sub1, else_sub1)
+              ->NODE("op5", RELU));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("if", IF, then_sub1, else_sub1)
+              ->NODE("op5", RELU));
+    CHAIN(NODE("op2", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
+    CHAIN(NODE("op5", RELU)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
-  SetRefSrcVarName(graph, "transdata1", "refdata2"); // data pass will modify node name.
+  SetRefSrcVarName(graph, "transdata1", "refdata2");  // data pass will modify node name.
   SetRefSrcVarName(graph, "transdata2", "var");
   graph->TopologicalSorting();
   SetShapeForNodesOutputs(graph, {1, 1, 224, 224}, {"if"});
@@ -1272,7 +1315,7 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndOtherTypeGraph() {
 }
 
 /*
- *  unknow root graph               know subgraph
+ *  unknown root graph               know subgraph
  *   ref_data1   partitioned_call1  +-----------------+
  *         \     / /                | var   constant1 |
  *         partitioned_call2        |   \    /        |
@@ -1290,13 +1333,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndOtherTypeGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildRefDataGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("var", VARIABLE)->NODE("netoutput1", NETOUTPUT));
-                                 CHAIN(NODE("const1", const1)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("var", VARIABLE)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto ref_data2 = OP_CFG(REFDATA).InCnt(1).ParentNodeIndex(0).Attr(REF_VAR_SRC_VAR_NAME, "ref_data1");
   const auto transdata1 = OP_CFG(TRANSDATA).Attr(REF_VAR_SRC_VAR_NAME, "ref_data1");
   const auto transdata2 = OP_CFG(TRANSDATA).Attr(REF_VAR_SRC_VAR_NAME, "var");
@@ -1304,23 +1347,28 @@ ComputeGraphPtr MemConflictShareGraph::BuildRefDataGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(partitioned_call2) {
-                                 CHAIN(NODE("data0", data0)->Ctrl()->NODE("ref_data2", ref_data2)->NODE("transdata1", transdata1)
-                                           ->NODE("netoutput2", NETOUTPUT));
-                                 CHAIN(NODE("data1", data1)->NODE("transdata2", transdata2)
-                                           ->NODE("netoutput2", NETOUTPUT));
-                                 CHAIN(NODE("data2", data2)->NODE("transdata3", TRANSDATA)
-                                           ->NODE("netoutput2", NETOUTPUT));
-                               };
+    CHAIN(NODE("data0", data0)
+              ->Ctrl()
+              ->NODE("ref_data2", ref_data2)
+              ->NODE("transdata1", transdata1)
+              ->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data1", data1)->NODE("transdata2", transdata2)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data2", data2)->NODE("transdata3", TRANSDATA)->NODE("netoutput2", NETOUTPUT));
+  };
   const auto ref_data1 = OP_CFG(REFDATA).InCnt(1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("ref_data1", ref_data1)->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->NODE("op1", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
-                            ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->NODE("op2", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
-                            ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->NODE("op3", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("ref_data1", ref_data1)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
+              ->NODE("op1", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
+              ->NODE("op2", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
+              ->NODE("op3", RELU)
+              ->NODE("netoutput", NETOUTPUT));
   };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -1342,10 +1390,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousOu
   const auto const_node = OP_CFG(CONSTANT).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 1, 224, 448});
   const auto phony_split = OP_CFG("PhonySplit");
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const_2", const_node)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", const_node)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
-                };
+    CHAIN(NODE("const_2", const_node)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", const_node)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   auto ps = graph->FindNode("phony_split");
   ps->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 112, 448})));
@@ -1368,10 +1416,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildRefDataAndNoPaddingContinuousOutput(
   const auto split = OP_CFG(SPLIT);
   const auto ref_data1 = OP_CFG(REFDATA).InCnt(1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("refdata2", ref_data1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("refdata", ref_data1)->NODE("split", split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", split)->NODE("a", ADD));
-                };
+    CHAIN(NODE("refdata2", ref_data1)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("refdata", ref_data1)->NODE("split", split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", split)->NODE("a", ADD));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto ref_data = graph->FindNode("refdata");
@@ -1399,11 +1447,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildVarAndNoPaddingContinuousOutputWithM
   const auto phony_split = OP_CFG("PhonySplit");
   const auto apply_momentum = OP_CFG(APPLYMOMENTUM).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const_2", const_node)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("var", VARIABLE)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
-                  CHAIN(NODE("var", VARIABLE)->EDGE(0, 0)->NODE("apply_momentum", apply_momentum)->NODE("c", ADD)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("const_2", const_node)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("var", VARIABLE)->NODE("phony_split", phony_split)->NODE("a", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_split", phony_split)->NODE("a", ADD));
+    CHAIN(NODE("var", VARIABLE)
+              ->EDGE(0, 0)
+              ->NODE("apply_momentum", apply_momentum)
+              ->NODE("c", ADD)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -1418,9 +1470,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildVarAndNoPaddingContinuousOutputWithM
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousInput() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->NODE("concat", CONCAT));
-                  CHAIN(NODE("variable", VARIABLE)->NODE("concat", CONCAT));
-                };
+    CHAIN(NODE("const", CONSTANT)->NODE("concat", CONCAT));
+    CHAIN(NODE("variable", VARIABLE)->NODE("concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -1434,9 +1486,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousInput() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousInput() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->NODE("phony_concat", CONCAT));
-                  CHAIN(NODE("variable", VARIABLE)->NODE("phony_concat", CONCAT));
-                };
+    CHAIN(NODE("const", CONSTANT)->NODE("phony_concat", CONCAT));
+    CHAIN(NODE("variable", VARIABLE)->NODE("phony_concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -1450,11 +1502,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousIn
  *   /  \
  *  a    b
  */
-ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousOutput(){
+ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousOutput() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->NODE("split", SPLIT)->NODE("a", RELU));
-                  CHAIN(NODE("split", SPLIT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("const", CONSTANT)->NODE("split", SPLIT)->NODE("a", RELU));
+    CHAIN(NODE("split", SPLIT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -1476,18 +1528,21 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousOutput(){
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousByAssignOutput() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x", "y"});
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("hcombroadcast", hcombroadcast)
-                            ->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", constant)->NODE("assign", assign));
-                  CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var", VARIABLE)
+              ->NODE("assign", assign)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->NODE("a", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", constant)->NODE("assign", assign));
+    CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "var");
   SetContinuousOutput(graph, "hcombroadcast");
@@ -1510,18 +1565,17 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndContinuousByAssignOut
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousInByAssignOutput() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto pc = OP_CFG(PHONYCONCAT);
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("pc", pc)
-                            ->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", constant)->NODE("assign", assign));
-                  CHAIN(NODE("a", RELU)->NODE("pc", pc)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("pc", pc)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", constant)->NODE("assign", assign));
+    CHAIN(NODE("a", RELU)->NODE("pc", pc)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "var");
   SetNoPaddingContinuousInput(graph, "pc");
@@ -1542,18 +1596,18 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingContinuousIn
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingAndContinuousByRefOutput() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant1 = OP_CFG(CONSTANT).Weight(const_tensor1);
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", constant1)->NODE("hcom", HCOMALLGATHER)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("hcom", HCOMALLGATHER)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("var1", VARIABLE)->NODE("hcom", HCOMALLGATHER));
+    CHAIN(NODE("const", constant1)->NODE("hcom", HCOMALLGATHER)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("hcom", HCOMALLGATHER)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("var1", VARIABLE)->NODE("hcom", HCOMALLGATHER));
 
-                  CHAIN(NODE("var2", VARIABLE)->NODE("phonysplit", PHONYSPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var2", VARIABLE)->NODE("phonysplit", PHONYSPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   auto var2 = graph->FindNode("var2");
   var2->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 448})));
@@ -1587,9 +1641,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNoPaddingAndContinuou
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndUserOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("add", ADD)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("add", ADD)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
 
@@ -1606,15 +1660,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndUserOutGraphWithSubGraph()
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("data1", data1)->NODE("netoutput1", NETOUTPUT));
-                                 CHAIN(NODE("data2", data2)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("data1", data1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2)->NODE("netoutput1", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1));
-                  CHAIN(NODE("add", ADD)->EDGE(0, 1)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("add", ADD)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1));
+    CHAIN(NODE("add", ADD)->EDGE(0, 1)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   return graph;
@@ -1633,13 +1687,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndUserOutGraphWithSubGraph()
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndUserOutGraphInSubGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data));
-                     CHAIN(NODE("op3", ADD)->NODE("netoutput", NETOUTPUT));
-                     CHAIN(NODE("op3", ADD)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data));
+    CHAIN(NODE("op3", ADD)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op3", ADD)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -1652,8 +1706,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndUserOutGraphInSubGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("const", CONSTANT)->NODE("netoutput", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
 /*
@@ -1663,8 +1717,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndVariableGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("variable", VARIABLE)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("variable", VARIABLE)->NODE("netoutput", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
 
@@ -1675,8 +1729,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndVariableGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRefdataGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("refdata", REFDATA)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("refdata", REFDATA)->NODE("netoutput", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
 /*
@@ -1689,13 +1743,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRefdataGraph() {
  *       netoutput
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraphWithSubGraph() {
-
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("constant1", CONSTANTOP)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("constant1", CONSTANTOP)->NODE("netoutput1", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   return graph;
@@ -1714,12 +1767,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraphWithSubGraph(
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraphInSubgraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data));
-                     CHAIN(NODE("constant", CONSTANTOP)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data));
+    CHAIN(NODE("constant", CONSTANTOP)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -1743,12 +1796,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndConstOutGraphInSubgraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutWithSubgraphDataGraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data)->NODE("op3", ADD)->NODE("switch", STREAMSWITCH)
-                               ->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data)->NODE("op3", ADD)->NODE("switch", STREAMSWITCH)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -1762,9 +1814,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutWithSu
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("switch", STREAMSWITCH));
-                  CHAIN(NODE("op1", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("switch", STREAMSWITCH));
+    CHAIN(NODE("op1", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 }
@@ -1778,8 +1830,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshInGraph()
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshInByRefGraph() {
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", ADD)->NODE("hcombroadcast", hcombroadcast)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", ADD)->NODE("hcombroadcast", hcombroadcast)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetEngine(graph, {"hcombroadcast"}, kEngineNameHccl);
   graph->SetGraphUnknownFlag(false);
@@ -1794,9 +1846,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshInByRefGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutOneOutMultiRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", ADD)->NODE("swt", STREAMSWITCH)->NODE("b", ADD));
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", ADD)->NODE("swt", STREAMSWITCH)->NODE("b", ADD));
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(false);
   return graph;
@@ -1811,9 +1863,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutOneOut
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", ADD)->NODE("hcom", HCOMBROADCAST)->NODE("b", ADD));
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", ADD)->NODE("hcom", HCOMBROADCAST)->NODE("b", ADD));
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetEngine(graph, {"hcom"}, kEngineNameHccl);
   SetOutReuseInput(graph, "hcom");
@@ -1849,10 +1901,14 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNotSupportRefreshOutByRefG
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRtsSpecialInGraph() {
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("op1", RELU)->NODE("hcombroadcast", hcombroadcast)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("data", DATA)
+              ->NODE("op1", RELU)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->EDGE(0, 1)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcombroadcast");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
@@ -1869,9 +1925,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRtsSpecialInGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRtsSpecialOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
-  std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
+  std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcomallreduce");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, mem_type);
@@ -1905,31 +1961,31 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndRtsSpecialOutGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndOtherConflictTypeGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("data1", data1)->NODE("netoutput1", NETOUTPUT));
-                               };
+    CHAIN(NODE("data1", data1)->NODE("netoutput1", NETOUTPUT));
+  };
 
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
 
   DEF_GRAPH(partitioned_call2) {
-                                 CHAIN(NODE("constant1", constant1)->NODE("netoutput2", NETOUTPUT));
-                               };
+    CHAIN(NODE("constant1", constant1)->NODE("netoutput2", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
-                        ->EDGE(0, 2)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)
-                            ->EDGE(0, 3)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op3", RELU)->EDGE(0, 4)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op3", RELU)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)
-                            ->EDGE(0, 5)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op4", RELU)->EDGE(0, 6)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("op4", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLREDUCE)
-                            ->EDGE(0, 7)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op1", RELU)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op1", RELU)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->EDGE(0, 2)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call2", PARTITIONEDCALL, partitioned_call2)->EDGE(0, 3)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op3", RELU)->EDGE(0, 4)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op3", RELU)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX)->EDGE(0, 5)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op4", RELU)->EDGE(0, 6)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("op4", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLREDUCE)->EDGE(0, 7)->NODE("netoutput", NETOUTPUT));
   };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -1956,10 +2012,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndOtherConflictTypeGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", ADD)->EDGE(0, 1)->NODE("hcomallreduce", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", ADD)->EDGE(0, 1)->NODE("hcomallreduce", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousInput(graph, "hcomallreduce");
   // 如果不设置，会被设置为动态shape图
@@ -1976,10 +2032,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousInputGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", ADD)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("a", ADD)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", ADD)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phonyconcat");
   // 如果不设置，会被设置为动态shape图
@@ -2002,14 +2058,18 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousInputGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingAndContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("hcom", HCOMALLGATHER)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER));
+    CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("hcom", HCOMALLGATHER)->EDGE(0, 1)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER));
 
-                  CHAIN(NODE("data3", DATA)->NODE("c", RELU)->NODE("phonyconcat", PHONYCONCAT)->EDGE(0, 3)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data4", DATA)->NODE("d", RELU)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
-                };
+    CHAIN(NODE("data3", DATA)
+              ->NODE("c", RELU)
+              ->NODE("phonyconcat", PHONYCONCAT)
+              ->EDGE(0, 3)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data4", DATA)->NODE("d", RELU)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   auto pc = graph->FindNode("phonyconcat");
   pc->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({2, 1, 224, 224})));
@@ -2035,9 +2095,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingAndContinuousInpu
 ComputeGraphPtr MemConflictShareGraph::BuildConnectToNoPaddingContinuousInputThroughtRefNodeGraph() {
   const auto refnode = OP_CFG(ASSIGNADD).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("refnode", refnode)->NODE("pc", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("pc", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("refnode", refnode)->NODE("pc", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("pc", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "pc");
   // 如果不设置，会被设置为动态shape图
@@ -2055,9 +2115,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildConnectToNoPaddingContinuousInputThr
 ComputeGraphPtr MemConflictShareGraph::BuildConnectToContinuousInputThroughtRefNodeGraph() {
   const auto refnode = OP_CFG(ASSIGNADD).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("refnode", refnode)->NODE("hcom", HCOMALLREDUCE)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("a", RELU)->NODE("refnode", refnode)->NODE("hcom", HCOMALLREDUCE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousInput(graph, "hcom");
   // 如果不设置，会被设置为动态shape图
@@ -2075,9 +2135,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildConnectToContinuousInputThroughtRefN
 ComputeGraphPtr MemConflictShareGraph::BuildContinousOutConnectRefNodeGraph() {
   const auto refnode = OP_CFG(ASSIGNADD).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("hcom", HCOMALLREDUCE)->NODE("refnode", refnode)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("hcom", HCOMALLREDUCE)->NODE("a", RELU));
-                };
+    CHAIN(NODE("hcom", HCOMALLREDUCE)->NODE("refnode", refnode)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("hcom", HCOMALLREDUCE)->NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousOutput(graph, "hcom");
   // 如果不设置，会被设置为动态shape图
@@ -2095,9 +2155,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinousOutConnectRefNodeGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildNopaddingContinousOutConnectRefNodeGraph() {
   const auto refnode = OP_CFG(ASSIGNADD).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", PHONYSPLIT)->NODE("refnode", refnode)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", PHONYSPLIT)->NODE("a", RELU));
-                };
+    CHAIN(NODE("split", PHONYSPLIT)->NODE("refnode", refnode)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", PHONYSPLIT)->NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousOutput(graph, "split");
   // 如果不设置，会被设置为动态shape图
@@ -2114,9 +2174,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNopaddingContinousOutConnectRefNodeG
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousOutputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("split", SPLIT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("split", SPLIT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousOutput(graph, "split");
   // 如果不设置，会被设置为动态shape图
@@ -2130,14 +2190,18 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousOutputGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndALotOfContinuousOutputGraph() {
   auto hcom = OP_CFG(HCOMALLREDUCE)
-                    .OutCnt(2000)
-                    .Build("HcomReduceScatter_55_abcdefghijklmnopqrstuvwxwzdddddddddddddddddddddddddddddddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafffffffffffffffffff");
-  auto netoutput = OP_CFG(NETOUTPUT)
-                    .InCnt(2000)
-                    .Build("HcomReduceScatter_54_aaaaaaaddddddddjjjjjjjjdddddddddddllllllzjjjjjjjjjjjjjjeeeeeeeeezzzzzzzzzzzzzzzzzzzzzjjjjjjjjjjjjiiiiiiiallllllldd");
+                  .OutCnt(2000)
+                  .Build(
+                      "HcomReduceScatter_55_"
+                      "abcdefghijklmnopqrstuvwxwzdddddddddddddddddddddddddddddddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                      "aaaafffffffffffffffffff");
+  auto netoutput = OP_CFG(NETOUTPUT).InCnt(2000).Build(
+      "HcomReduceScatter_54_"
+      "aaaaaaaddddddddjjjjjjjjdddddddddddllllllzjjjjjjjjjjjjjjeeeeeeeeezzzzzzzzzzzzzzzzzzzzzjjjjjjjjjjjjiiiiiiialllllll"
+      "dd");
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(hcom)->NODE(netoutput));
-                };
+    CHAIN(NODE(hcom)->NODE(netoutput));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousOutput(graph, "hcom");
   auto hcom_node = graph->FindFirstNodeMatchType(HCOMALLREDUCE);
@@ -2159,9 +2223,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndALotOfContinuousOutputGrap
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousOutputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_split", SPLIT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_split", SPLIT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousOutput(graph, "phony_split");
   // 如果不设置，会被设置为动态shape图
@@ -2179,9 +2243,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousOutputG
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousInputByReferenceGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("phony_concat", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("phony_concat", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   auto a = graph->FindNode("a");
   a->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 112, 448})));
@@ -2207,9 +2271,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndNoPaddingContinuousInputBy
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousInputByReferenceGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("concat", CONCAT));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousInput(graph, "concat");
   SetOutReuseInput(graph, "concat");
@@ -2224,8 +2288,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildUserOutAndContinuousInputByReference
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("swt", STREAMSWITCH));
-                };
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("swt", STREAMSWITCH));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 }
@@ -2239,8 +2303,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshIn
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("swt", STREAMSWITCH)->NODE("a", RELU));
-                };
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("swt", STREAMSWITCH)->NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   SetOutReuseInput(graph, "swt");
   return graph;
@@ -2252,9 +2316,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshOu
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshOutByContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("swt", STREAMSWITCH)->NODE("phonyconcat", PHONYCONCAT));
-                };
+    CHAIN(NODE("const", CONSTANT)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("swt", STREAMSWITCH)->NODE("phonyconcat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phonyconcat");
   return graph;
@@ -2266,9 +2330,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndNotSupportedRefreshOu
  */
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                };
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("const", CONSTANT)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+  };
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcomallreduce");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
@@ -2288,17 +2352,20 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailInGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailInByAssignGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("hcombroadcast", hcombroadcast)
-                            ->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", constant)->NODE("assign", assign));
-                };
+    CHAIN(NODE("var", VARIABLE)
+              ->NODE("assign", assign)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->NODE("a", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", constant)->NODE("assign", assign));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeInput(graph, "hcombroadcast", RT_MEMORY_P2P_DDR);
   SetRtsSpecialTypeOutput(graph, "hcombroadcast", RT_MEMORY_P2P_DDR);
@@ -2326,19 +2393,24 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailInByAssignG
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailOutGraph() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("variable", VARIABLE)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data2", data2));
-                      };
+    CHAIN(NODE("variable", VARIABLE)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2));
+  };
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data3", data3));
-                        CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeOutput(graph, "hcomallreduce", RT_MEMORY_P2P_DDR);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -2358,18 +2430,21 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAndRtsSpecailOutGraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAnRtsSpecailOutByAssignOutput() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x", "y"});
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("hcombroadcast", hcombroadcast)
-                            ->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", constant)->NODE("assign", assign));
-                  CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var", VARIABLE)
+              ->NODE("assign", assign)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->NODE("a", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", constant)->NODE("assign", assign));
+    CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "var");
   SetRtsSpecialTypeOutput(graph, "hcombroadcast", RT_MEMORY_P2P_DDR);
@@ -2394,19 +2469,22 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAnRtsSpecailOutByAssignO
 ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAnRtsSpecailOutContinuousInOutByAssignGraph() {
   vector<int64_t> perm1(1 * 1 * 224 * 224, 0);
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{1, 1, 224, 224}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()), sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto constant = OP_CFG(CONSTANT).Weight(const_tensor1);
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x", "y"}).OutNames({"x", "y"});
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign", assign)->NODE("hcombroadcast", hcombroadcast)
-                            ->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const", constant)->NODE("assign", assign));
-                  CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("c", RELU)->NODE("hcombroadcast", hcombroadcast));
-                };
+    CHAIN(NODE("var", VARIABLE)
+              ->NODE("assign", assign)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->NODE("a", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const", constant)->NODE("assign", assign));
+    CHAIN(NODE("hcombroadcast", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("c", RELU)->NODE("hcombroadcast", hcombroadcast));
+  };
   auto graph = ToComputeGraph(g1);
   SetRefSrcVarName(graph, "assign", "var");
   SetRtsSpecialTypeOutput(graph, "hcombroadcast", RT_MEMORY_P2P_DDR);
@@ -2426,10 +2504,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildImmutableOutAnRtsSpecailOutContinuou
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("hcomallreduce", HCOMALLREDUCE));
-                  CHAIN(NODE("op1", ADD)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
-                };
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("op1", ADD)->NODE("hcomallreduce", HCOMALLREDUCE));
+    CHAIN(NODE("op1", ADD)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
+  };
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcomallreduce");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
@@ -2439,13 +2517,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialInGr
 /*
  *   hcomallreduce (p2p output)
  *     |
- *   swtich
+ *   switch
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
-                };
-  std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
+  };
+  std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcomallreduce");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, mem_type);
@@ -2455,12 +2533,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialOutG
 /*
  *    add
  *     |
- *   swtich
+ *   switch
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndNormalOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
-                };
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("switch", STREAMSWITCH));
+  };
   auto graph = ToComputeGraph(g1);
   return graph;
 }
@@ -2472,8 +2550,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndNormalOutGraph
  */
 ComputeGraphPtr MemConflictShareGraph::BuildPhysicalRefreshableInAndNormalOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcom", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcom", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   SetEngine(graph, {"hcom"}, kEngineNameHccl);
   return graph;
@@ -2498,27 +2576,31 @@ ComputeGraphPtr MemConflictShareGraph::BuildPhysicalRefreshableInAndNormalOutGra
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInAndNormalOutInKnowSubgraph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data", sub_data)->NODE("add1", ADD)->EDGE(0, 0)
-                               ->NODE("switch", STREAMSWITCH)->NODE("add2", ADD)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("data", sub_data)
+              ->NODE("add1", ADD)
+              ->EDGE(0, 0)
+              ->NODE("switch", STREAMSWITCH)
+              ->NODE("add2", ADD)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
 }
 
 /*
- *  swtich
+ *  switch
  *    |
  *  hcomallreduce p2p in
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecialInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                };
-  std::vector<int64_t> in_mem_type {RT_MEMORY_P2P_DDR};
+    CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+  };
+  std::vector<int64_t> in_mem_type{RT_MEMORY_P2P_DDR};
   auto graph = ToComputeGraph(g1);
   auto op1 = graph->FindNode("hcomallreduce");
   (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
@@ -2540,12 +2622,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecialInG
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAnchorIndex1Graph() {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 0)->NODE("add", ADD));
-                     CHAIN(NODE("switch", STREAMSWITCH)->EDGE(1, 1)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 0)->NODE("add", ADD));
+    CHAIN(NODE("switch", STREAMSWITCH)->EDGE(1, 1)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
-                };
+    CHAIN(NODE("op1", ADD)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("op2", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   graph->SetGraphUnknownFlag(true);
   return graph;
@@ -2568,19 +2650,24 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAnchorIndex1Grap
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecailOutGraph() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data2", data2));
-                      };
+    CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2));
+  };
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data3", data3));
-                        CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeOutput(graph, "hcomallreduce", RT_MEMORY_P2P_DDR);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -2605,20 +2692,25 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecailOut
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNormalOutGraph() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data2", data2));
-                      };
+    CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2));
+  };
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data3", data3));
-                        CHAIN(NODE("add", ADD)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("add", ADD)->NODE("netoutput2", NETOUTPUT));
+  };
 
   auto sub_graph = ToComputeGraph(else_sub);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   return graph;
@@ -2642,23 +2734,27 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNormalOutGrap
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutMultiReferenceAndNormalOutGraph() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 1)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data2", data2));
-                      };
+    CHAIN(NODE("switch", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("switch", STREAMSWITCH)->EDGE(0, 1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2));
+  };
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data3", data3));
-                        CHAIN(NODE("add", ADD)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("add2", ADD)->EDGE(0, 0)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("add", ADD)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("add2", ADD)->EDGE(0, 0)->NODE("netoutput2", NETOUTPUT));
+  };
 
   auto sub_graph = ToComputeGraph(else_sub);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("if", IF, then_sub, else_sub)->NODE("op3", ADD));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("if", IF, then_sub, else_sub)->NODE("op3", ADD));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
   return graph;
@@ -2681,23 +2777,23 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutMultiReferenceAn
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecailIOAndNormalOutGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", LABELSWITCHBYINDEX)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                         CHAIN(NODE("swt2", LABELSWITCHBYINDEX)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                       };
+    CHAIN(NODE("data1", data1)
+              ->NODE("memcpy1", MEMCPYASYNC)
+              ->NODE("swt1", LABELSWITCHBYINDEX)
+              ->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("swt2", LABELSWITCHBYINDEX)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data2", data2));
-                         CHAIN(NODE("op2", RELU)->NODE("memcpy2", MEMCPYASYNC)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("op3", RELU)->NODE("netoutput2", NETOUTPUT));
-                       };
+    CHAIN(NODE("data2", data2));
+    CHAIN(NODE("op2", RELU)->NODE("memcpy2", MEMCPYASYNC)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("op3", RELU)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)
-                            ->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                };
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -2714,9 +2810,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecailIOA
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("swt1", STREAMSWITCH)->NODE("concat", CONCAT));
-                  CHAIN(NODE("swt2", STREAMSWITCH)->NODE("concat", CONCAT));
-                };
+    CHAIN(NODE("swt1", STREAMSWITCH)->NODE("concat", CONCAT));
+    CHAIN(NODE("swt2", STREAMSWITCH)->NODE("concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousInput(graph, "concat");
   // 如果不设置，会被设置为动态shape图
@@ -2730,9 +2826,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndContinuousInp
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNoPaddingContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("swt1", STREAMSWITCH)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("swt2", STREAMSWITCH)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("swt1", STREAMSWITCH)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("swt2", STREAMSWITCH)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phony_concat");
   // 如果不设置，会被设置为动态shape图
@@ -2757,23 +2853,21 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNoPaddingCont
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndContinuousOutputGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                         CHAIN(NODE("swt2", STREAMSWITCH)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                       };
+    CHAIN(
+        NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("swt2", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data2", data2));
-                         CHAIN(NODE("split", SPLIT)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("split", SPLIT)->NODE("netoutput2", NETOUTPUT));
-                       };
+    CHAIN(NODE("data2", data2));
+    CHAIN(NODE("split", SPLIT)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("split", SPLIT)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)
-                            ->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                };
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
+  };
 
   auto graph = ToComputeGraph(g1);
   SetContinuousOutput(graph, "split");
@@ -2800,23 +2894,21 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndContinuousOut
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNoPaddingContinuousOutputGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                         CHAIN(NODE("swt2", STREAMSWITCH)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                       };
+    CHAIN(
+        NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("swt2", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data2", data2));
-                         CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("netoutput2", NETOUTPUT));
-                         CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("netoutput2", NETOUTPUT));
-                       };
+    CHAIN(NODE("data2", data2));
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)
-                            ->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
-                };
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op4", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("if", IF, then_sub1, else_sub1)->NODE("op5", RELU));
+  };
 
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousOutput(graph, "phony_split");
@@ -2842,19 +2934,18 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNoPaddingCont
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRefreshOutGraph() {
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub1) {
-                         CHAIN(NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)
-                                   ->NODE("netoutput1", NETOUTPUT));
-                       };
+    CHAIN(
+        NODE("data1", data1)->NODE("memcpy1", MEMCPYASYNC)->NODE("swt1", STREAMSWITCH)->NODE("netoutput1", NETOUTPUT));
+  };
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub1) {
-                         CHAIN(NODE("data2", data2));
-                         CHAIN(NODE("swt2", STREAMSWITCH)->NODE("netoutput2", NETOUTPUT));
-                       };
+    CHAIN(NODE("data2", data2));
+    CHAIN(NODE("swt2", STREAMSWITCH)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)
-                            ->NODE("op3", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub1, else_sub1)->NODE("op3", RELU)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
@@ -2877,9 +2968,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRef
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRefreshOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("a", RELU)->NODE("swt1", STREAMSWITCH)
-                            ->NODE("swt2", STREAMSWITCH)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("a", RELU)
+              ->NODE("swt1", STREAMSWITCH)
+              ->NODE("swt2", STREAMSWITCH)
+              ->NODE("b", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetOutReuseInput(graph, "swt2");
   // 如果不设置，会被设置为动态shape图
@@ -2901,9 +2996,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRef
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRefreshInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("a", RELU)->NODE("swt1", LABELSWITCHBYINDEX)
-                            ->NODE("swt2", LABELSWITCHBYINDEX)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("a", RELU)
+              ->NODE("swt1", LABELSWITCHBYINDEX)
+              ->NODE("swt2", LABELSWITCHBYINDEX)
+              ->NODE("b", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   // 如果不设置，会被设置为动态shape图
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
@@ -2918,11 +3017,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshOutAndNotSupportRef
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat1", CONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat1", CONCAT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat2", CONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat2", CONCAT));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat1", CONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat1", CONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat2", CONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat2", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat1");
@@ -2940,12 +3039,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat1", CONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("concat1", CONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("concat2", CONCAT));
-                  CHAIN(NODE("concat1", CONCAT)->NODE("concat2", CONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("concat2", CONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat1", CONCAT));
+    CHAIN(NODE("b", RELU)->NODE("concat1", CONCAT));
+    CHAIN(NODE("c", RELU)->NODE("concat2", CONCAT));
+    CHAIN(NODE("concat1", CONCAT)->NODE("concat2", CONCAT));
+    CHAIN(NODE("d", RELU)->NODE("concat2", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat1");
@@ -2968,15 +3067,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInByRefGrap
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInMixGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLGATHER));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat2", CONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat2", CONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLGATHER));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat2", CONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat2", CONCAT));
 
-                  CHAIN(NODE("c", RELU)->NODE("concat3", CONCAT));
-                  CHAIN(NODE("concat2", CONCAT)->NODE("concat3", CONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("concat3", CONCAT)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("c", RELU)->NODE("concat3", CONCAT));
+    CHAIN(NODE("concat2", CONCAT)->NODE("concat3", CONCAT));
+    CHAIN(NODE("d", RELU)->NODE("concat3", CONCAT)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "hcom");
@@ -3000,15 +3099,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousInMixGraph(
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousInMixGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLGATHER));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("hcom", HCOMALLGATHER));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("hcom", HCOMALLGATHER)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phonyconcat", PHONYCONCAT));
 
-                  CHAIN(NODE("c", RELU)->NODE("concat3", CONCAT));
-                  CHAIN(NODE("phonyconcat", PHONYCONCAT)->NODE("concat3", CONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("concat3", CONCAT)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("c", RELU)->NODE("concat3", CONCAT));
+    CHAIN(NODE("phonyconcat", PHONYCONCAT)->NODE("concat3", CONCAT));
+    CHAIN(NODE("d", RELU)->NODE("concat3", CONCAT)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -3035,10 +3134,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousIn
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3055,11 +3154,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousOutGraph() 
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInHeadSameWithContinuousOutTailGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", SPLIT)->NODE("a", RELU));
-                  CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("concat", CONCAT));
-                };
+    CHAIN(NODE("split", SPLIT)->NODE("a", RELU));
+    CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
+    CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("c", RELU)->NODE("concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3097,11 +3196,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInTailSameWithContinuousOu
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInIsSubSetOfContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", SPLIT)->NODE("a", RELU));
-                  CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
-                  CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
-                  CHAIN(NODE("split", SPLIT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("split", SPLIT)->NODE("a", RELU));
+    CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
+    CHAIN(NODE("split", SPLIT)->NODE("concat", CONCAT));
+    CHAIN(NODE("split", SPLIT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3287,11 +3386,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndContinuousOutPartialS
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat", CONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat", CONCAT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("concat", CONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("concat", CONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3309,12 +3408,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousIn
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousInByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("concat", CONCAT)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("concat", CONCAT)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3331,10 +3430,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousIn
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("concat", CONCAT));
-                  CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("concat", CONCAT));
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3350,10 +3449,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndNoPaddingContinuousOu
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("hcom1", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("b", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("hcom1", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3369,9 +3468,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
-                  CHAIN(NODE("hcom1", HCOMALLREDUCE)->NODE("concat", CONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("concat", CONCAT));
+    CHAIN(NODE("hcom1", HCOMALLREDUCE)->NODE("concat", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "concat");
@@ -3390,9 +3489,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailOutGraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInByRefGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("switch", STREAMSWITCH));
-                  CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("switch", STREAMSWITCH));
+    CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousInput(graph, "hcom1");
@@ -3414,10 +3513,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInByRefGrap
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndRtsSpecailInByRefAndOutAnchorSuspendedGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x", "y"}).OutNames({"x", "y"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("c", RELU)->NODE("hcom", hcom1));
-                  CHAIN(NODE("a", RELU)->NODE("pc", PHONYCONCAT)->NODE("hcom", hcom1)->NODE("d", RELU));
-                  CHAIN(NODE("b", RELU)->NODE("pc", PHONYCONCAT));
-                };
+    CHAIN(NODE("c", RELU)->NODE("hcom", hcom1));
+    CHAIN(NODE("a", RELU)->NODE("pc", PHONYCONCAT)->NODE("hcom", hcom1)->NODE("d", RELU));
+    CHAIN(NODE("b", RELU)->NODE("pc", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   auto hcom = graph->FindNode("hcom");
   hcom->GetOpDescBarePtr()->AddOutputDesc(hcom->GetOpDescBarePtr()->GetInputDesc(0));
@@ -3444,9 +3543,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInWithSameAnchorD
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("assign_slice0", assign)->NODE("pc", PHONYCONCAT));
-                  CHAIN(NODE("data", DATA)->Data(0, 0)->NODE("assign_slice1", assign)->NODE("pc", PHONYCONCAT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("data", DATA)->NODE("assign_slice0", assign)->NODE("pc", PHONYCONCAT));
+    CHAIN(NODE("data", DATA)->Data(0, 0)->NODE("assign_slice1", assign)->NODE("pc", PHONYCONCAT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "pc");
@@ -3471,9 +3570,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInWithSameAnchorV
   const auto assign = OP_CFG(ASSIGN).Attr(ATTR_NAME_REFERENCE, true).InNames({"ref"}).OutNames({"ref"});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("assign_slice0", assign)->NODE("pc", PHONYCONCAT));
-                  CHAIN(NODE("var", VARIABLE)->Data(0, 0)->NODE("assign_slice1", assign)->NODE("pc", PHONYCONCAT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("var", VARIABLE)->NODE("assign_slice0", assign)->NODE("pc", PHONYCONCAT));
+    CHAIN(NODE("var", VARIABLE)->Data(0, 0)->NODE("assign_slice1", assign)->NODE("pc", PHONYCONCAT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "pc");
@@ -3504,11 +3603,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInWithSameAnchorV
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInOutGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom2", HCOMALLGATHER)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
-                  CHAIN(NODE("c", RELU)->NODE("hcom2", HCOMALLGATHER));
-                  CHAIN(NODE("c", RELU)->EDGE(0, 0)->NODE("f", RELU)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom2", HCOMALLGATHER)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
+    CHAIN(NODE("c", RELU)->NODE("hcom2", HCOMALLGATHER));
+    CHAIN(NODE("c", RELU)->EDGE(0, 0)->NODE("f", RELU)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetRtsSpecialTypeInput(graph, "hcom1", RT_MEMORY_P2P_DDR);
@@ -3536,9 +3635,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInOutGraph(
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInOutSameMemTypeGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom2", HCOMALLGATHER)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom2", HCOMALLGATHER)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetRtsSpecialTypeInput(graph, "hcom1", RT_MEMORY_P2P_DDR);
@@ -3559,11 +3658,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousInAndRtsSpecailInOutSameMe
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndContinuousOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
-                  CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
+    CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousOutput(graph, "split1");
@@ -3583,11 +3682,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndContinuousOutByRefGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
-                  CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("a", CAST)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
+    CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("a", CAST)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousOutput(graph, "split1");
@@ -3605,12 +3704,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutGraph() {
  *    a     b
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndContinuousOutHcomByRefGraph() {
-  auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x1", "x2"}).OutNames({"x1", "x2"});
+  auto hcombroadcast =
+      OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x1", "x2"}).OutNames({"x1", "x2"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("hcom2", hcombroadcast)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("hcom1", HCOMALLGATHER)->NODE("hcom2", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("hcom1", HCOMALLGATHER)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var", VARIABLE)->NODE("hcom2", hcombroadcast)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("hcom1", HCOMALLGATHER)->NODE("hcom2", hcombroadcast)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("hcom1", HCOMALLGATHER)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousOutput(graph, "hcom1");
@@ -3626,9 +3726,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndContinuousOutHcomByR
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndNoPaddingContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", SPLIT)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("split", SPLIT)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("split", SPLIT)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("split", SPLIT)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetContinuousOutput(graph, "split");
@@ -3646,11 +3746,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndNoPaddingContinuousI
  */
 ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndNoPaddingContinuousOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", SPLIT)->NODE("phony_plit", PHONYSPLIT));
-                  CHAIN(NODE("split", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("split", SPLIT)->NODE("phony_plit", PHONYSPLIT));
+    CHAIN(NODE("split", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto split = graph->FindNode("split");
@@ -3675,11 +3775,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildContinuousOutAndNoPaddingContinuousO
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat1");
@@ -3700,13 +3800,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInCascadedGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("pc1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("pc1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("pc1", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->EDGE(0, 0)->NODE("pc2", PHONYCONCAT));
-                  CHAIN(NODE("pc1", RELU)->EDGE(0, 1)->NODE("pc2", PHONYCONCAT));
-                  CHAIN(NODE("f", RELU)->EDGE(0, 2)->NODE("pc2", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("pc1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("pc1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("pc1", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->EDGE(0, 0)->NODE("pc2", PHONYCONCAT));
+    CHAIN(NODE("pc1", RELU)->EDGE(0, 1)->NODE("pc2", PHONYCONCAT));
+    CHAIN(NODE("f", RELU)->EDGE(0, 2)->NODE("pc2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "pc1");
@@ -3722,13 +3822,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInCascadedGraph()
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat1");
@@ -3742,15 +3842,17 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  *     | | | |      | |
  *   phonyconcat1 phonyconcat2
  */
-ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph() {
+ComputeGraphPtr
+MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(
+        NODE("d", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   auto pc1 = graph->FindNode("phony_concat1");
   pc1->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 448})));
@@ -3779,15 +3881,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInTailPartialSameInputsGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("e", RELU)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("f", RELU)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->EDGE(0, 3)->NODE("phony_concat2", PHONYCONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("e", RELU)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("f", RELU)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->EDGE(0, 2)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->EDGE(0, 3)->NODE("phony_concat2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat1");
@@ -3803,14 +3905,14 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInTailIntersectionGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("a", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat1", PHONYCONCAT));
 
-                  CHAIN(NODE("e", RELU)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
-                };
+    CHAIN(NODE("e", RELU)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat1");
@@ -3829,13 +3931,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInCrossGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 1)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("phony_concat1", PHONYCONCAT));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
-                  CHAIN(NODE("phony_concat1", PHONYCONCAT)->NODE("c", RELU));
-                  CHAIN(NODE("phony_concat2", PHONYCONCAT)->NODE("c", RELU));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 1)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("phony_concat1", PHONYCONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phony_concat2", PHONYCONCAT));
+    CHAIN(NODE("phony_concat1", PHONYCONCAT)->NODE("c", RELU));
+    CHAIN(NODE("phony_concat2", PHONYCONCAT)->NODE("c", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -3862,12 +3964,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat1", CONCAT));
-                  CHAIN(NODE("b", RELU)->NODE("phony_concat1", CONCAT));
-                  CHAIN(NODE("c", RELU)->NODE("phony_concat2", CONCAT));
-                  CHAIN(NODE("phony_concat1", CONCAT)->NODE("phony_concat2", CONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phony_concat2", CONCAT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_concat1", CONCAT));
+    CHAIN(NODE("b", RELU)->NODE("phony_concat1", CONCAT));
+    CHAIN(NODE("c", RELU)->NODE("phony_concat2", CONCAT));
+    CHAIN(NODE("phony_concat1", CONCAT)->NODE("phony_concat2", CONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phony_concat2", CONCAT));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat1");
@@ -3890,16 +3992,19 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInMixGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat1", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phonyconcat1", PHONYCONCAT)
-                            ->NODE("e", RELU)->NODE("netoutput", NETOUTPUT)); // 连a连netoutput，避免phonyconcat1被优化掉
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat2", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phonyconcat2", PHONYCONCAT));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat1", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)
+              ->EDGE(0, 1)
+              ->NODE("phonyconcat1", PHONYCONCAT)
+              ->NODE("e", RELU)
+              ->NODE("netoutput", NETOUTPUT));  // 连a连netoutput，避免phonyconcat1被优化掉
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phonyconcat2", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 1)->NODE("phonyconcat2", PHONYCONCAT));
 
-                  CHAIN(NODE("c", RELU)->NODE("phonyconcat3", PHONYCONCAT));
-                  CHAIN(NODE("phonyconcat2", PHONYCONCAT)->NODE("phonyconcat3", PHONYCONCAT));
-                  CHAIN(NODE("d", RELU)->NODE("phonyconcat3", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("c", RELU)->NODE("phonyconcat3", PHONYCONCAT));
+    CHAIN(NODE("phonyconcat2", PHONYCONCAT)->NODE("phonyconcat3", PHONYCONCAT));
+    CHAIN(NODE("d", RELU)->NODE("phonyconcat3", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -3933,10 +4038,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phony_concat", CONCAT));
-                  CHAIN(NODE("phony_split", SPLIT)->NODE("phony_concat", CONCAT));
-                  CHAIN(NODE("phony_split", SPLIT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phony_concat", CONCAT));
+    CHAIN(NODE("phony_split", SPLIT)->NODE("phony_concat", CONCAT));
+    CHAIN(NODE("phony_split", SPLIT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousInput(graph, "phony_concat");
@@ -3956,11 +4061,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousOutByRefGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phonyconcat", PHONYCONCAT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("phonyconcat", PHONYCONCAT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("b", RELU)->EDGE(0, 0)->NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("e", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -3990,11 +4095,14 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousOutConnectGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("phonyconcat", PHONYCONCAT)->NODE("phonysplit", PHONYSPLIT)
-                            ->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("b", RELU)->NODE("phonyconcat", PHONYCONCAT));
-                  CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)
+              ->NODE("phonyconcat", PHONYCONCAT)
+              ->NODE("phonysplit", PHONYSPLIT)
+              ->NODE("c", RELU)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("b", RELU)->NODE("phonyconcat", PHONYCONCAT));
+    CHAIN(NODE("phonysplit", PHONYSPLIT)->NODE("d", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -4024,11 +4132,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingCon
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousOutAndNoPaddingContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("d", RELU)->NODE("phony_plit1", PHONYSPLIT)->NODE("phony_plit2", PHONYSPLIT));
-                  CHAIN(NODE("phony_plit1", PHONYSPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_plit2", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("phony_plit2", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("d", RELU)->NODE("phony_plit1", PHONYSPLIT)->NODE("phony_plit2", PHONYSPLIT));
+    CHAIN(NODE("phony_plit1", PHONYSPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_plit2", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("phony_plit2", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   auto d = graph->FindNode("d");
   d->GetOpDescBarePtr()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 448})));
@@ -4054,10 +4162,10 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousOutAndNoPaddingCo
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousOutAndNormalOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("c", RELU)->NODE("phony_plit", PHONYSPLIT));
-                  CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("a", RELU));
-                  CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("b", RELU));
-                };
+    CHAIN(NODE("c", RELU)->NODE("phony_plit", PHONYSPLIT));
+    CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("a", RELU));
+    CHAIN(NODE("phony_plit", PHONYSPLIT)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetNoPaddingContinuousOutput(graph, "phony_plit");
@@ -4074,11 +4182,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNoPaddingContinuousOutAndNormalOutGr
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndOtherConflictTypeGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX));
-                  CHAIN(NODE("hcom1", HCOMBROADCAST)->EDGE(0, 1)->NODE("swt", LABELSWITCHBYINDEX));
-                  CHAIN(NODE("op2", RELU)->EDGE(0, 2)->NODE("swt", LABELSWITCHBYINDEX));
-                  CHAIN(NODE("op2", RELU)->EDGE(0, 0)->NODE("hcom2", HCOMBROADCAST));
-                };
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("swt", LABELSWITCHBYINDEX));
+    CHAIN(NODE("hcom1", HCOMBROADCAST)->EDGE(0, 1)->NODE("swt", LABELSWITCHBYINDEX));
+    CHAIN(NODE("op2", RELU)->EDGE(0, 2)->NODE("swt", LABELSWITCHBYINDEX));
+    CHAIN(NODE("op2", RELU)->EDGE(0, 0)->NODE("hcom2", HCOMBROADCAST));
+  };
   auto graph = ToComputeGraph(g1);
 
   SetRtsSpecialTypeInput(graph, "hcom2", RT_MEMORY_P2P_DDR);
@@ -4096,11 +4204,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndOtherConfli
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("swt1", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("swt2", LABELSWITCHBYINDEX)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("swt1", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("concat", CONCAT));
-                  CHAIN(NODE("swt3", LABELSWITCHBYINDEX)->EDGE(0, 1)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("swt3", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("swt4", LABELSWITCHBYINDEX)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("swt1", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("swt2", LABELSWITCHBYINDEX)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("swt1", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("concat", CONCAT));
+    CHAIN(NODE("swt3", LABELSWITCHBYINDEX)->EDGE(0, 1)->NODE("concat", CONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("swt3", LABELSWITCHBYINDEX)->EDGE(0, 0)->NODE("swt4", LABELSWITCHBYINDEX)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousInput(graph, "concat");
   return graph;
@@ -4112,11 +4220,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndContinuousI
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingContinuousInputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("swt2", STREAMSWITCH));
-                  CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("b", STREAMSWITCH)->EDGE(0, 1)->NODE("phony_concat", PHONYCONCAT));
-                  CHAIN(NODE("b", STREAMSWITCH)->EDGE(0, 0)->NODE("swt4", STREAMSWITCH));
-                };
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("swt2", STREAMSWITCH));
+    CHAIN(NODE("a", RELU)->EDGE(0, 0)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("b", STREAMSWITCH)->EDGE(0, 1)->NODE("phony_concat", PHONYCONCAT));
+    CHAIN(NODE("b", STREAMSWITCH)->EDGE(0, 0)->NODE("swt4", STREAMSWITCH));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phony_concat");
   return graph;
@@ -4128,9 +4236,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingCo
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndContinuousOutputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split", SPLIT)->NODE("swt1", STREAMSWITCH));
-                  CHAIN(NODE("split", SPLIT)->NODE("swt2", STREAMSWITCH));
-                };
+    CHAIN(NODE("split", SPLIT)->NODE("swt1", STREAMSWITCH));
+    CHAIN(NODE("split", SPLIT)->NODE("swt2", STREAMSWITCH));
+  };
   auto graph = ToComputeGraph(g1);
   SetContinuousOutput(graph, "split");
   return graph;
@@ -4142,9 +4250,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndContinuousO
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingContinuousOutputGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("swt1", STREAMSWITCH));
-                  CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("swt2", STREAMSWITCH));
-                };
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("swt1", STREAMSWITCH));
+    CHAIN(NODE("phony_split", PHONYSPLIT)->NODE("swt2", STREAMSWITCH));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousOutput(graph, "phony_split");
   return graph;
@@ -4156,8 +4264,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndNoPaddingCo
 ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndRefDataGraph() {
   const auto ref_data = OP_CFG(REFDATA).InCnt(1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("refdata", ref_data)->NODE("hcom", HCOMALLREDUCE)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("refdata", ref_data)->NODE("hcom", HCOMALLREDUCE)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetEngine(graph, {"hcom"}, kEngineNameHccl);
 
@@ -4173,17 +4281,17 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotSupportRefreshInputAndRefDataGrap
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("rtMemCpyAsync", MEMCPYASYNC));
-                };
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("rtMemCpyAsync", MEMCPYASYNC));
+  };
   auto graph = ToComputeGraph(g1);
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_TS};
+    std::vector<int64_t> mem_type{RT_MEMORY_TS};
     auto op1 = graph->FindNode("rtMemCpyAsync");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
@@ -4191,17 +4299,17 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInGraph() {
 }
 
 /*
-*   a
+ *   a
  *  |
  * hcom1
  *  |
  *  b
-*/
+ */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInByRefGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("b", RELU));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("b", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeInput(graph, "hcom1", RT_MEMORY_P2P_DDR);
   SetRtsSpecialTypeOutput(graph, "hcom1", RT_MEMORY_P2P_DDR);
@@ -4216,9 +4324,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInByRefGrap
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndOtherTypeGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("hcom", HCOMBROADCAST));
-                  CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("rtMemCpyAsync", MEMCPYASYNC));
-                };
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("hcom", HCOMBROADCAST));
+    CHAIN(NODE("op1", RELU)->EDGE(0, 0)->NODE("rtMemCpyAsync", MEMCPYASYNC));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeInput(graph, "hcom", RT_MEMORY_P2P_DDR);
   SetRtsSpecialTypeInput(graph, "rtMemCpyAsync", RT_MEMORY_TS);
@@ -4235,17 +4343,17 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndOtherTypeGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInSameTypeGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce2", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce2", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce2");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
@@ -4259,16 +4367,16 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInSameTypeG
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("StreamSwitch", STREAMSWITCH)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("StreamSwitch", STREAMSWITCH)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_TS};
+    std::vector<int64_t> mem_type{RT_MEMORY_TS};
     auto op1 = graph->FindNode("StreamSwitch");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, mem_type);
   }
@@ -4284,8 +4392,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutGraph() 
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutByRefGraph() {
   auto hcom1 = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom1", hcom1)->NODE("hcom2", HCOMALLGATHER));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeOutput(graph, "a", RT_MEMORY_TS);
 
@@ -4302,16 +4410,16 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutByRefGra
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutSameTypeGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("hcomallreduce1", MEMCPYASYNC)->EDGE(0, 0)->NODE("hcomallreduce2", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("hcomallreduce1", MEMCPYASYNC)->EDGE(0, 0)->NODE("hcomallreduce2", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce2");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce1");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, mem_type);
   }
@@ -4325,11 +4433,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialOutSameType
  */
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndNormalOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
-                };
+    CHAIN(NODE("add", ADD)->EDGE(0, 0)->NODE("hcomallreduce", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
   {
-    std::vector<int64_t> mem_type {RT_MEMORY_P2P_DDR};
+    std::vector<int64_t> mem_type{RT_MEMORY_P2P_DDR};
     auto op1 = graph->FindNode("hcomallreduce");
     (void)ge::AttrUtils::SetListInt(op1->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, mem_type);
   }
@@ -4354,19 +4462,24 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialInAndNormalOutGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialOutAndRtsSpecialOutGraph() {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("rtMemCpyAsync", MEMCPYASYNC)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data2", data2));
-                      };
+    CHAIN(NODE("rtMemCpyAsync", MEMCPYASYNC)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data2", data2));
+  };
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data3", data3));
-                        CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3", data3));
+    CHAIN(NODE("hcomallreduce", HCOMALLREDUCE)->NODE("netoutput2", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_sub, else_sub)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_sub, else_sub)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeOutput(graph, "hcomallreduce", RT_MEMORY_P2P_DDR);
   SetRtsSpecialTypeOutput(graph, "rtMemCpyAsync", RT_MEMORY_TS);
@@ -4388,9 +4501,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialOutAndRtsSpecialOutGraph()
 ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialOutAndRtsSpecialOutByRefGraph() {
   auto hcom = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU)->NODE("hcom1", hcom)
-                            ->NODE("hcom2", hcom)->NODE("b", RELU)->NODE("netoutput0", NETOUTPUT));
-                };
+    CHAIN(NODE("a", RELU)->NODE("hcom1", hcom)->NODE("hcom2", hcom)->NODE("b", RELU)->NODE("netoutput0", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   SetRtsSpecialTypeOutput(graph, "hcom1", RT_MEMORY_P2P_DDR);
   SetRtsSpecialTypeOutput(graph, "hcom2", RT_MEMORY_P2P_DDR);
@@ -4399,8 +4511,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildRtsSpecialOutAndRtsSpecialOutByRefGr
   return graph;
 }
 
-void AddSubgraphInstance(ge::ComputeGraphPtr parent_graph, ge::ComputeGraphPtr sub_graph,
-                         const int parent_node_index, const std::string &parent_node_name) {
+void AddSubgraphInstance(ge::ComputeGraphPtr parent_graph, ge::ComputeGraphPtr sub_graph, const int parent_node_index,
+                         const std::string &parent_node_name) {
   auto sub_graph_name = sub_graph->GetName();
   sub_graph->SetParentGraph(parent_graph);
   sub_graph->SetParentNode(parent_graph->FindNode(parent_node_name));
@@ -4421,7 +4533,8 @@ void AddWhileDummyCond(ge::ComputeGraphPtr parent_graph, const std::string &pare
   ge::AttrUtils::SetInt(cond_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(cond_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(cond_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(cond_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(cond_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   AddSubgraphInstance(parent_graph, cond_graph, 0, parent_node_name);
 }
@@ -4438,7 +4551,8 @@ void AddWhileBody(ge::ComputeGraphPtr parent_graph, const std::string &parent_no
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
@@ -4455,7 +4569,8 @@ void AddWhileBodyWithOneNode(ge::ComputeGraphPtr parent_graph, const std::string
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
@@ -4472,7 +4587,8 @@ void AddWhileBodyWithTwoNode(ge::ComputeGraphPtr parent_graph, const std::string
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
@@ -4491,8 +4607,10 @@ void AddWhileBodyTwoExchange(ge::ComputeGraphPtr parent_graph, const std::string
   ge::AttrUtils::SetInt(body_graph->FindNode("data1")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindNode("data2")->GetOpDesc(), "index", 1);
   ge::AttrUtils::SetInt(body_graph->FindNode("data2")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(1),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
 
@@ -4510,8 +4628,10 @@ void AddWhileBodyTwoNoExchange(ge::ComputeGraphPtr parent_graph, const std::stri
   ge::AttrUtils::SetInt(body_graph->FindNode("data1")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindNode("data2")->GetOpDesc(), "index", 1);
   ge::AttrUtils::SetInt(body_graph->FindNode("data2")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(1),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
 
@@ -4540,7 +4660,7 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfGraph() {
   main_graph->SetName("main");
   ge::AttrUtils::SetInt(main_graph->FindNode("cast")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(main_graph->FindNode("input")->GetOpDesc(), "index", 1);
-  
+
   auto then_graph = []() {
     DEF_GRAPH(g) {
       CHAIN(NODE("data1", "Data")->NODE("netOutput1", "NetOutput"));
@@ -4552,7 +4672,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfGraph() {
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
@@ -4564,7 +4685,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfGraph() {
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto if_node = main_graph->FindFirstNodeMatchType("If");
   then_graph->SetParentGraph(main_graph);
@@ -4598,7 +4720,7 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfGraph() {
 }
 
 /*
- *  unknow sub graph
+ *  unknown sub graph
  *     data
  *      |                  know sub graph
  *   partitioned_call1   +-----------------+
@@ -4616,27 +4738,27 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfInKnowSubGraph() {
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data4 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data3", data3));
-                      };
+    CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data3", data3));
+  };
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(else_sub) {
-                        CHAIN(NODE("data5", data5));
-                        CHAIN(NODE("data6", data6)->NODE("netoutput3", NETOUTPUT));
-                      };
+    CHAIN(NODE("data5", data5));
+    CHAIN(NODE("data6", data6)->NODE("netoutput3", NETOUTPUT));
+  };
 
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(partitioned_call1) {
-                                 CHAIN(NODE("data2", data2));
-                                 CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub, else_sub)
-                                           ->NODE("op3", ADD)->NODE("netoutput1", NETOUTPUT));
-                                 CHAIN(NODE("op2", RELU)->NODE("if", IF, then_sub, else_sub));
-                };
+    CHAIN(NODE("data2", data2));
+    CHAIN(NODE("op1", RELU)->NODE("if", IF, then_sub, else_sub)->NODE("op3", ADD)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("op2", RELU)->NODE("if", IF, then_sub, else_sub));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("partitioned_call1", PARTITIONEDCALL, partitioned_call1)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto root_graph = ToComputeGraph(g1);
 
   auto then_sub_graph = ToComputeGraph(then_sub);
@@ -4688,7 +4810,7 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   main_graph->SetName("main");
   ge::AttrUtils::SetInt(main_graph->FindNode("cast")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(main_graph->FindNode("input")->GetOpDesc(), "index", 1);
-  
+
   auto then_graph = []() {
     DEF_GRAPH(g) {
       CHAIN(NODE("data1", DATA)->NODE("mul1", MUL)->EDGE(0, 0)->NODE("netoutput1", NETOUTPUT));
@@ -4701,7 +4823,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
@@ -4714,7 +4837,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto if_node = main_graph->FindFirstNodeMatchType("If");
   then_graph->SetParentGraph(main_graph);
@@ -4780,14 +4904,15 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   main_graph->SetName("main");
   ge::AttrUtils::SetInt(main_graph->FindNode("cast")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(main_graph->FindNode("input")->GetOpDesc(), "index", 1);
-  
+
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data3", data3)->NODE("netoutput3", NETOUTPUT));
-                   };
+    CHAIN(NODE("data3", data3)->NODE("netoutput3", NETOUTPUT));
+  };
   DEF_GRAPH(then_graph_) {
     CHAIN(NODE("data1", DATA)->NODE("mul1", MUL)->EDGE(0, 0)->NODE("netoutput1", NETOUTPUT));
-    CHAIN(NODE("mul1", MUL)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(
+        NODE("mul1", MUL)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
   };
   auto then_graph = ToComputeGraph(then_graph_);
 
@@ -4801,7 +4926,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
@@ -4814,7 +4940,8 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(DATA)->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto if_node = main_graph->FindFirstNodeMatchType("If");
   then_graph->SetParentGraph(main_graph);
@@ -4867,7 +4994,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGra
 ComputeGraphPtr MemConflictShareGraph::BuildWhileDataToNetoutputGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -4905,7 +5036,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileDataToNetoutputGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildWhileDataMulNetoutputGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -4943,7 +5078,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileDataMulNetoutputGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildWhileDataMulMulNetoutputGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -4982,7 +5121,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileDataMulMulNetoutputGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildWhileTwoDataToNetoutputExchangeGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input1", DATA)->NODE("cast1", CAST)->NODE("while1", WHILE)->NODE("add", ADD)->NODE("netOutput", NETOUTPUT));
+      CHAIN(NODE("input1", DATA)
+                ->NODE("cast1", CAST)
+                ->NODE("while1", WHILE)
+                ->NODE("add", ADD)
+                ->NODE("netOutput", NETOUTPUT));
       CHAIN(NODE("input2", DATA)->NODE("cast2", CAST)->NODE("while1", WHILE)->NODE("add", ADD));
     };
     return ToComputeGraph(g);
@@ -5023,7 +5166,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileTwoDataToNetoutputExchangeGraph
 ComputeGraphPtr MemConflictShareGraph::BuildWhileTwoDataToNetoutputNoExchangeGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input1", DATA)->NODE("cast1", CAST)->NODE("while1", WHILE)->NODE("add", ADD)->NODE("netOutput", NETOUTPUT));
+      CHAIN(NODE("input1", DATA)
+                ->NODE("cast1", CAST)
+                ->NODE("while1", WHILE)
+                ->NODE("add", ADD)
+                ->NODE("netOutput", NETOUTPUT));
       CHAIN(NODE("input2", DATA)->NODE("cast2", CAST)->NODE("while1", WHILE)->NODE("add", ADD));
     };
     return ToComputeGraph(g);
@@ -5057,7 +5204,8 @@ void AddWhileBodyWithRef(ge::ComputeGraphPtr parent_graph, const std::string &pa
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   AddSubgraphInstance(parent_graph, body_graph, 1, parent_node_name);
 }
@@ -5081,7 +5229,11 @@ void AddWhileBodyWithRef(ge::ComputeGraphPtr parent_graph, const std::string &pa
 ComputeGraphPtr MemConflictShareGraph::BuildWhileDataRefNetoutputGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -5103,12 +5255,12 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileDataRefNetoutputGraph() {
 void AddWhileBodyWithPartionedCall(ge::ComputeGraphPtr &parent_graph, const std::string &parent_node_name) {
   const auto data2 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data2", data2)->NODE("netoutput2", NETOUTPUT));
-                   };
+    CHAIN(NODE("data2", data2)->NODE("netoutput2", NETOUTPUT));
+  };
   const auto data1 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(body) {
-                    CHAIN(NODE("data1", data1)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
-                  };
+    CHAIN(NODE("data1", data1)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
+  };
 
   auto body_graph = ToComputeGraph(body);
   body_graph->SetName("body");
@@ -5116,7 +5268,8 @@ void AddWhileBodyWithPartionedCall(ge::ComputeGraphPtr &parent_graph, const std:
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc(), "index", 0);
-  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(body_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto partitioned_call_graph = ToComputeGraph(sub_1);
   body.Layout();
@@ -5149,13 +5302,17 @@ void AddWhileBodyWithPartionedCall(ge::ComputeGraphPtr &parent_graph, const std:
  *                     |   netoutput1        |     |      | |
  *                     |                     | netoutput2 | |
  *                     |                     +------------+ |
- *                     +------------------------------------+                      
+ *                     +------------------------------------+
  *
  */
 ComputeGraphPtr MemConflictShareGraph::BuildWhileDataPartitionedCallNetoutputGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -5194,9 +5351,13 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileDataPartitionedCallNetoutputGra
 ComputeGraphPtr MemConflictShareGraph::BuildWhileInNodeConnectToMultiNodesGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("input", "Data")->NODE("cast0", "Cast")->NODE("while1", "While")->NODE("cast1", "Cast")->NODE("netOutput", "NetOutput"));
-                   CHAIN(NODE("cast0", "Cast")->EDGE(0, 0)->NODE("relu", RELU)->NODE("netOutput", "NetOutput"));
-                 };
+      CHAIN(NODE("input", "Data")
+                ->NODE("cast0", "Cast")
+                ->NODE("while1", "While")
+                ->NODE("cast1", "Cast")
+                ->NODE("netOutput", "NetOutput"));
+      CHAIN(NODE("cast0", "Cast")->EDGE(0, 0)->NODE("relu", RELU)->NODE("netOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   graph->SetName("main");
@@ -5225,9 +5386,9 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileInNodeConnectToMultiNodesGraph(
  */
 ComputeGraphPtr MemConflictShareGraph::BuildUnknowShapeGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("phony_concat", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("phony_concat", PHONYCONCAT));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("a", RELU)->NODE("phony_concat", PHONYCONCAT)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("b", RELU)->NODE("phony_concat", PHONYCONCAT));
+  };
   auto graph = ToComputeGraph(g1);
   SetNoPaddingContinuousInput(graph, "phony_concat");
   auto netoutput_node = graph->FindNode("netoutput");
@@ -5248,11 +5409,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildUnknowShapeGraph() {
  */
 ComputeGraphPtr MemConflictShareGraph::BuildNotContinuousOutGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
-                  CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("a", CAST)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
+    CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("a", CAST)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto a = graph->FindNode("a");
@@ -5297,11 +5458,11 @@ ComputeGraphPtr MemConflictShareGraph::BuildNotContinuousOutGraph() {
 ComputeGraphPtr MemConflictShareGraph::BuildWhileSplitGraph() {
   auto graph = []() {
     DEF_GRAPH(g) {
-                CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
-                CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("while1", "While")->NODE("netoutput", NETOUTPUT));
-                CHAIN(NODE("split2", SPLIT)->NODE("acast", CAST)->NODE("netoutput", NETOUTPUT));
-                CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-              };
+      CHAIN(NODE("split1", SPLIT)->NODE("split2", SPLIT));
+      CHAIN(NODE("split1", SPLIT)->NODE("c", RELU)->NODE("while1", "While")->NODE("netoutput", NETOUTPUT));
+      CHAIN(NODE("split2", SPLIT)->NODE("acast", CAST)->NODE("netoutput", NETOUTPUT));
+      CHAIN(NODE("split2", SPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+    };
     return ToComputeGraph(g);
   }();
   graph->SetName("main");
@@ -5324,4 +5485,4 @@ ComputeGraphPtr MemConflictShareGraph::BuildWhileSplitGraph() {
   AttrUtils::SetBool(graph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
   return graph;
 }
-} // namespace ge
+}  // namespace ge

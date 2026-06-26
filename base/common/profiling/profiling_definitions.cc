@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@
 #include "aprof_pub.h"
 namespace ge {
 namespace profiling {
-ProfilingContext &ProfilingContext::GetInstance()  {
+ProfilingContext &ProfilingContext::GetInstance() {
   static ProfilingContext pc;
   return pc;
 }
@@ -115,7 +115,7 @@ void ProfilingContext::Init() {
   inited_ = true;
 }
 
-int64_t ProfilingContext::RegisterStringHash(const uint64_t hash_id, const std::string &str)  {
+int64_t ProfilingContext::RegisterStringHash(const uint64_t hash_id, const std::string &str) {
   if (profiler_ == nullptr) {
     return -1;
   }
@@ -154,7 +154,7 @@ void ProfilingContext::UpdateHashByStr(const std::string &str, const uint64_t ha
     profiler_->UpdateHashByIndex(index, hash);
   } else {
     // update operation cannot add new element, strings_to_index_ size cannot increase in this function
-    (void) strings_to_index_.erase(str);
+    (void)strings_to_index_.erase(str);
   }
   GELOGD("[Update][hash] element=%s, hash=%lu, index=%ld", str.c_str(), hash, index);
 }
@@ -182,5 +182,5 @@ bool ProfilingContext::IsDumpToStdEnabled() {
   MM_SYS_GET_ENV(MM_ENV_GE_PROFILING_TO_STD_OUT, profiling_to_std_out);
   return profiling_to_std_out != nullptr;
 }
-}
-}
+}  // namespace profiling
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,9 +36,7 @@
 namespace ge {
 class MockExchangeService : public ExchangeService {
  public:
-  Status CreateQueue(int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     queue_id = queue_id_gen_++;
     return SUCCESS;
@@ -47,8 +45,8 @@ class MockExchangeService : public ExchangeService {
   void ResetQueueInfo(const int32_t device_id, const uint32_t queue_id) override {
     return;
   }
-  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data,
-                const size_t size, const ControlInfo &control_info) {
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data, const size_t size,
+                 const ControlInfo &control_info) {
     return SUCCESS;
   }
 
@@ -56,8 +54,8 @@ class MockExchangeService : public ExchangeService {
                  const ControlInfo &control_info) override {
     return SUCCESS;
   }
-  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size,
-                       const FillFunc &fill_func, const ControlInfo &control_info) {
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size, const FillFunc &fill_func,
+                 const ControlInfo &control_info) {
     return SUCCESS;
   }
   Status Enqueue(const int32_t device_id, const uint32_t queue_id, const std::vector<BuffInfo> &buffs,
@@ -71,14 +69,13 @@ class MockExchangeService : public ExchangeService {
                  ControlInfo &control_info) override {
     return SUCCESS;
   }
-  Status DequeueMbufTensor(const int32_t device_id, const uint32_t queue_id,
-                                 std::shared_ptr<AlignedPtr> &aligned_ptr, const size_t size,
-                                 ControlInfo &control_info) override {
+  Status DequeueMbufTensor(const int32_t device_id, const uint32_t queue_id, std::shared_ptr<AlignedPtr> &aligned_ptr,
+                           const size_t size, ControlInfo &control_info) override {
     return SUCCESS;
   }
 
   Status DequeueTensor(const int32_t device_id, const uint32_t queue_id, GeTensor &tensor,
-                              ControlInfo &control_info) override {
+                       ControlInfo &control_info) override {
     return SUCCESS;
   }
   Status DequeueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) override {
@@ -93,8 +90,7 @@ class MockExchangeService : public ExchangeService {
 
 class MockModelDeployer : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     return SUCCESS;
   }
   Status Undeploy(uint32_t model_id) override {
@@ -130,14 +126,14 @@ namespace dflow {
 namespace {
 class TestProcessNodeEngine : public ge::NPUProcessNodeEngine {
   Status Initialize(const std::map<std::string, std::string> &options) override {
-    (void) options;
+    (void)options;
     return FAILED;
   }
 };
 
 ge::dflow::FlowGraph BuildFlowGraph() {
   std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-  (void) system(cmd.c_str());
+  (void)system(cmd.c_str());
   std::ofstream cmakefile("./temp/CMakeLists.txt");
   {
     cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -177,7 +173,7 @@ ge::dflow::FlowGraph BuildFlowGraph() {
   flow_graph.SetInputs(inputsOperator).SetOutputs(outputsOperator);
   return flow_graph;
 }
-}
+}  // namespace
 
 class GeFakeOpsKernelBuilder : public ge::OpsKernelBuilder {
  public:
@@ -206,7 +202,7 @@ class MockMmpa : public ge::MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
     if (string("libmodel_deployer.so") == file_name) {
-      return (void *) &g_so_addr;
+      return (void *)&g_so_addr;
     }
     return MmpaStubApiGe::DlOpen(file_name, mode);
   }
@@ -246,19 +242,20 @@ class UtestDflowApi : public testing::Test {
   }
 
   void SetUp() override {
-    ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-    ge::OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-    ge::OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+    ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+    ge::OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+    ge::OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
     ge::GetThreadLocalContext().SetGlobalOption({});
     ge::GetThreadLocalContext().SetSessionOption({});
     ge::GetThreadLocalContext().SetGraphOption({});
     ge::GetThreadLocalContext().GetOo().Initialize({}, ge::OptionRegistry::GetInstance().GetRegisteredOptTable());
-    ge::GeRunningEnvFaker().Reset()
-      .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-      .Install(ge::FakeOp("Data").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp("FlowNode").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp("NetOutput").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+    ge::GeRunningEnvFaker()
+        .Reset()
+        .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+        .Install(ge::FakeOp("Data").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp("FlowNode").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp("NetOutput").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
     ge::ProcessNodeEngineRegisterar udf_engine_register __attribute__((unused)) (
         "UDF", []() -> ::ge::ProcessNodeEngine * { return new (std::nothrow) ge::UdfProcessNodeEngine(); });
 
@@ -351,8 +348,8 @@ TEST_F(UtestDflowApi, RemoveGraph) {
   auto graph = BuildFlowGraph();
   {
     DFlowSession session(options);
-    ASSERT_EQ(session.AddGraph(graph_id, graph, options), FAILED); // not init
-    ASSERT_EQ(session.RemoveGraph(graph_id), FAILED); // not init
+    ASSERT_EQ(session.AddGraph(graph_id, graph, options), FAILED);  // not init
+    ASSERT_EQ(session.RemoveGraph(graph_id), FAILED);               // not init
   }
 
   ge::MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -361,10 +358,10 @@ TEST_F(UtestDflowApi, RemoveGraph) {
   ge::OpsKernelBuilderRegistry::GetInstance().Register(ge::kEngineNameGeLocal, builder);
   EXPECT_EQ(DFlowInitialize(options), SUCCESS);
   DFlowSession session(options);
-  EXPECT_NE(session.RemoveGraph(graph_id), SUCCESS); // not add graph
+  EXPECT_NE(session.RemoveGraph(graph_id), SUCCESS);  // not add graph
 
   EXPECT_EQ(session.AddGraph(graph_id, graph, options), SUCCESS);
-  EXPECT_EQ(session.AddGraph(graph_id, graph, options), FAILED); // add twice
+  EXPECT_EQ(session.AddGraph(graph_id, graph, options), FAILED);  // add twice
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   EXPECT_EQ(DFlowFinalize(), SUCCESS);
   ge::MmpaStub::GetInstance().Reset();
@@ -376,7 +373,7 @@ TEST_F(UtestDflowApi, BuildGraphTest) {
   vector<Tensor> inputs;
   {
     DFlowSession session(options);
-    ASSERT_EQ(session.BuildGraph(graph_id, inputs), FAILED); // not init
+    ASSERT_EQ(session.BuildGraph(graph_id, inputs), FAILED);  // not init
   }
 
   ge::MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -385,7 +382,7 @@ TEST_F(UtestDflowApi, BuildGraphTest) {
   ge::OpsKernelBuilderRegistry::GetInstance().Register(ge::kEngineNameGeLocal, builder);
   EXPECT_EQ(DFlowInitialize(options), SUCCESS);
   DFlowSession session(options);
-  ASSERT_EQ(session.BuildGraph(graph_id, inputs), FAILED); // not add graph
+  ASSERT_EQ(session.BuildGraph(graph_id, inputs), FAILED);  // not add graph
 
   auto graph = BuildFlowGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
@@ -406,7 +403,7 @@ TEST_F(UtestDflowApi, BuildGraphTestInGESession) {
 
   auto graph = BuildFlowGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph.ToGeGraph()), SUCCESS);
-  EXPECT_EQ(session.BuildGraph(100, inputs), FAILED); // not add graph
+  EXPECT_EQ(session.BuildGraph(100, inputs), FAILED);  // not add graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   ge::MmpaStub::GetInstance().Reset();
@@ -456,7 +453,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphFetch) {
   DataFlowInfo data_flow_info;
   {
     DFlowSession session(options);
-    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, data_flow_info, 0), FAILED); // not init
+    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, data_flow_info, 0), FAILED);  // not init
   }
 
   ge::MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -465,7 +462,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphFetch) {
   ge::OpsKernelBuilderRegistry::GetInstance().Register(ge::kEngineNameGeLocal, builder);
   EXPECT_EQ(DFlowInitialize(options), SUCCESS);
   DFlowSession session(options);
-  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, data_flow_info, 0), FAILED); // not add graph
+  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, data_flow_info, 0), FAILED);  // not add graph
 
   auto graph = BuildFlowGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
@@ -500,7 +497,6 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphWithoutRun) {
   ge::MmpaStub::GetInstance().Reset();
 }
 
-
 TEST_F(UtestDflowApi, FeedDataFlowGraphFetchWithoutAddGraph) {
   uint32_t graph_id = 1;
   std::map<AscendString, AscendString> options;
@@ -508,7 +504,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphFetchWithoutAddGraph) {
   vector<Tensor> outputs;
   DataFlowInfo data_flow_info;
   DFlowSession session(options);
-  EXPECT_EQ(session.FetchDataFlowGraph(graph_id, outputs, data_flow_info, 0), FAILED); // not init
+  EXPECT_EQ(session.FetchDataFlowGraph(graph_id, outputs, data_flow_info, 0), FAILED);  // not init
   ge::MmpaStub::GetInstance().Reset();
 }
 
@@ -524,7 +520,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphWithIndex) {
   DataFlowInfo data_flow_info;
   {
     DFlowSession session(options);
-    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, indexes, inputs, data_flow_info, 0), FAILED); // not init
+    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, indexes, inputs, data_flow_info, 0), FAILED);  // not init
   }
 
   ge::MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -533,7 +529,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphWithIndex) {
   ge::OpsKernelBuilderRegistry::GetInstance().Register(ge::kEngineNameGeLocal, builder);
   EXPECT_EQ(DFlowInitialize(options), SUCCESS);
   DFlowSession session(options);
-  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, indexes, inputs, data_flow_info, 0), FAILED); // not add graph
+  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, indexes, inputs, data_flow_info, 0), FAILED);  // not add graph
 
   auto graph = BuildFlowGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
@@ -559,7 +555,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphWithFlowMsg) {
   DataFlowInfo data_flow_info;
   {
     DFlowSession session(options);
-    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, 0), FAILED); // not init
+    ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, 0), FAILED);  // not init
   }
 
   ge::MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -568,7 +564,7 @@ TEST_F(UtestDflowApi, FeedDataFlowGraphWithFlowMsg) {
   ge::OpsKernelBuilderRegistry::GetInstance().Register(ge::kEngineNameGeLocal, builder);
   EXPECT_EQ(DFlowInitialize(options), SUCCESS);
   DFlowSession session(options);
-  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, 0), FAILED); // not add graph
+  ASSERT_EQ(session.FeedDataFlowGraph(graph_id, inputs, 0), FAILED);  // not add graph
 
   auto graph = BuildFlowGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
@@ -616,7 +612,7 @@ TEST_F(UtestDflowApi, FeedRawData) {
   DFlowSession session2(options);
 
   EXPECT_EQ(session2.AddGraph(graph_id, graph, options), SUCCESS);
-  EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), FAILED); // not build
+  EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), FAILED);  // not build
 
   EXPECT_EQ(session2.BuildGraph(graph_id, inputs), SUCCESS);
   EXPECT_EQ(session2.FeedRawData(graph_id, {raw_data}, 0, data_flow_info, 0), SUCCESS);
@@ -648,10 +644,10 @@ TEST_F(UtestDflowApi, test_build) {
   ge::ProcessNodeEnginePtr pne = pne_iter->second;
   ComputeGraphPtr graph = ge::MakeShared<ge::ComputeGraph>("test");
   ge::PneModelPtr model;
-  
+
   // graph invalid
   EXPECT_NE(pne->BuildGraph(0, graph, options, {}, model), ge::SUCCESS);
   impl.Finalize();
 }
-}
-}
+}  // namespace dflow
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,18 +29,18 @@ class UtestDSATask : public testing::Test {
 
 // test Init_DSATaskInfo
 TEST_F(UtestDSATask, init_dsa_task_info) {
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -140,7 +140,7 @@ TEST_F(UtestDSATask, init_dsa_task_info) {
   int64_t op_index = task_info.ParseOpIndex(task_def);
   EXPECT_EQ(op_index, 0);
   EXPECT_EQ(task_info.Release(), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
@@ -148,7 +148,7 @@ TEST_F(UtestDSATask, init_dsa_task_info) {
 }
 
 TEST_F(UtestDSATask, init_stateless_dsa_task_info) {
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -233,7 +233,7 @@ TEST_F(UtestDSATask, init_stateless_dsa_task_info) {
   EXPECT_EQ(task_info.GetTaskIowPaRemapInfos(remap_infos), SUCCESS);
   EXPECT_TRUE(remap_infos.empty());
 
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
@@ -310,7 +310,7 @@ TEST_F(UtestDSATask, testParseTaskRunParam) {
   TaskRunParam task_run_param = {};
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
 
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
 }
@@ -318,11 +318,11 @@ TEST_F(UtestDSATask, testParseTaskRunParam) {
 TEST_F(UtestDSATask, testDistributeWithFlag) {
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -412,7 +412,7 @@ TEST_F(UtestDSATask, testDistributeWithFlag) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_TRUE(task_info.IsSupportReDistribute());
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
@@ -423,7 +423,7 @@ TEST_F(UtestDSATask, testDistributeWithFlag) {
 TEST_F(UtestDSATask, testPostProcess) {
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   DumpProperties dump_properties;
@@ -433,7 +433,7 @@ TEST_F(UtestDSATask, testPostProcess) {
   model.SetDumpProperties(dump_properties);
 
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -520,8 +520,9 @@ TEST_F(UtestDSATask, testPostProcess) {
   const auto workspace_size = ModelUtils::GetWorkspaceSize(op_desc);
   const uint64_t dev_size = MemSizeAlign(workspace_size[workspace_size.size() - 1U], sizeof(uint64_t));
   EXPECT_EQ(task_info.workspace_io_addrs_.size(),
-      ((dev_size / sizeof(uint64_t)) + task_info.input_data_addrs_.size() + task_info.output_data_addrs_.size()));
-  EXPECT_EQ(task_info.hbm_args_refresh_flags_.size(),
+            ((dev_size / sizeof(uint64_t)) + task_info.input_data_addrs_.size() + task_info.output_data_addrs_.size()));
+  EXPECT_EQ(
+      task_info.hbm_args_refresh_flags_.size(),
       ((dev_size / sizeof(uint64_t)) + task_info.input_addr_refresh_.size() + task_info.output_addr_refresh_.size()));
 
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
@@ -532,7 +533,7 @@ TEST_F(UtestDSATask, testPostProcess) {
   task_info.PostProcess(task_def);
   task_info.support_refresh_ = true;
   task_info.PostProcess(task_def);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
@@ -540,7 +541,7 @@ TEST_F(UtestDSATask, testPostProcess) {
 }
 
 TEST_F(UtestDSATask, update_host_args_failed) {
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");

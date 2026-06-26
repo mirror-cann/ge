@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ LoweringGlobalData GlobalDataWithArgsInfo(const NodePtr &aicore_node, const Lowe
   LoweringGlobalData global_data;
   LoweringGlobalData::NodeCompileResult aicore_node_compile_result;
   auto task_defs = origin_global_data.FindCompiledResult(aicore_node)->GetTaskDefs();
-  if (task_defs.size() !=args_infos.size()) {
+  if (task_defs.size() != args_infos.size()) {
     GELOGE(ge::PARAM_INVALID,
            "task_defs.size()[%zu] must be equal to args_infos.size()[%zu], return origin global data instead.",
            task_defs.size(), args_infos.size());
@@ -88,13 +88,14 @@ size_t GetArgsSize(size_t args_info_num, size_t merged_copy_addr_num, size_t hos
   return host_input_data_offset + merged_copy_addr_num * sizeof(TensorAddress) + host_input_data_num * 4U;
 }
 size_t GetArgsSizeNew(const NodePtr node, size_t l1_addr_num, size_t host_input_data_num) {
-  auto algin_host_input_len= 0U;
+  auto algin_host_input_len = 0U;
   if (ge::AddOverflow(ge::RoundUp(host_input_data_num * 4U, kHostInputDataAlginSize), kHostInputDataAlginSize,
-                  algin_host_input_len)) {
-    GELOGE(ge::PARAM_INVALID, "algin host input size failed, host input size = %zu", host_input_data_num * 4U);
+                      algin_host_input_len)) {
+    GELOGE(ge::PARAM_INVALID, "align host input size failed, host input size = %zu", host_input_data_num * 4U);
     return 0U;
   }
-  size_t host_input_data_offset = GetTilingDataOffset(l1_addr_num) + kTilingDataLen + kTilingDfxAppend + algin_host_input_len;
+  size_t host_input_data_offset =
+      GetTilingDataOffset(l1_addr_num) + kTilingDataLen + kTilingDfxAppend + algin_host_input_len;
 
   std::vector<std::vector<int64_t>> dyn_in_vv;
   (void)ge::AttrUtils::GetListListInt(node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
@@ -137,7 +138,7 @@ size_t GetArgsSizeNew(const NodePtr node, size_t l1_addr_num, size_t host_input_
   }
   return host_input_data_offset + merged_copy_size;
 }
-}
+}  // namespace
 class GraphExecutorWithCopyFlowLaunchKernelUnitTest : public bg::BgTest {
  protected:
   void SetUp() override {
@@ -172,8 +173,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_CopyFlowL
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
 
-  auto kernel_launch_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
+  auto kernel_launch_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
   GELOGD("kernel_launch_node:%s", kernel_launch_node[0]->GetName().c_str());
   auto main_graph = kernel_launch_node[0]->GetExtendInfo()->GetOwnerGraphBarePtr();
   ge::DumpGraph(main_graph, "main_graph");
@@ -795,7 +795,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_BinaryArg
   graph->TopologicalSorting();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto origin_global_data = GlobalDataFaker(root_model).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin")).Build();
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{0,1}, {3}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{0, 1}, {3}};
   (void)ge::AttrUtils::SetListListInt(add_node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   (void)ge::AttrUtils::SetStr(add_node->GetOpDesc(), kAttrDynamicParamMode, kFoldedWithDesc);
   std::vector<FakeArgsInfo> args_info{
@@ -863,7 +863,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleNodeAiCore_OutOfOrde
   graph->TopologicalSorting();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto origin_global_data = GlobalDataFaker(root_model).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin")).Build();
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{0,1}, {3}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{0, 1}, {3}};
   (void)ge::AttrUtils::SetListListInt(add_node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   std::vector<std::vector<int64_t>> dyn_out_vv = {{0}};
   (void)ge::AttrUtils::SetListListInt(add_node->GetOpDesc(), kDynamicOutputsIndexes, dyn_out_vv);
@@ -1025,9 +1025,9 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
 
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").AtomicStubNum(DynamicAtomicStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
-      .Build();
+                         .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").AtomicStubNum(DynamicAtomicStubName))
+                         .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
+                         .Build();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Shape"), nullptr);
   model_desc_holder.SetSpaceRegistry(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry());
@@ -1043,8 +1043,7 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
 
-  auto kernel_launch_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
+  auto kernel_launch_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
   GELOGD("kernel_launch_node:%s", kernel_launch_node[0]->GetName().c_str());
   auto main_graph = kernel_launch_node[0]->GetExtendInfo()->GetOwnerGraphBarePtr();
   ge::DumpGraph(main_graph, "main_graph");
@@ -1052,7 +1051,12 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
 
   auto outputs = FakeTensors({2048}, 2);
 
-  auto input_tensor1 = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_INT32).Shape({1,2,3,4}).StorageShape({1,2,3,4}).Build();
+  auto input_tensor1 = TensorFaker()
+                           .Placement(kOnDeviceHbm)
+                           .DataType(ge::DT_INT32)
+                           .Shape({1, 2, 3, 4})
+                           .StorageShape({1, 2, 3, 4})
+                           .Build();
   auto input_tensor2 = TensorFaker().Placement(kOnHost).DataType(ge::DT_INT32).Build();
   std::vector<Tensor *> inputs{input_tensor1.GetTensor(), input_tensor2.GetTensor()};
   rtStream_t stream;
@@ -1097,7 +1101,6 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
             args_host_buffer[add_launch_args->GetArgsEx()->tilingDataOffset / 8 - 1U]);
   ASSERT_EQ(args_host_buffer[add_launch_args->GetArgsEx()->tilingAddrOffset / 8 + 2U], nullptr);*/
 
-
   auto relu_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName("te_relu_12345");
   ASSERT_NE(relu_launch_args, nullptr);
   /*
@@ -1133,28 +1136,28 @@ TEST_F(GraphExecutorWithCopyFlowLaunchKernelUnitTest, SingleHostCopyToTwoAiCoreN
   for (const auto launch_node : kernel_launch_node) {
     if (launch_node->GetName().find("_relu_") != std::string::npos) {
       relu_launch_kernel = launch_node;
-      std::cout<< launch_node->GetName()<< std::endl;
+      std::cout << launch_node->GetName() << std::endl;
     }
   }
   EXPECT_NE(relu_launch_kernel, nullptr);
   FastNodeTopoChecker topo_checker1(relu_launch_kernel);
   EXPECT_EQ(topo_checker1.StrictConnectFrom({
-                                                {"SplitRtStreams", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"AllocBatchHbm", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"InnerData", 0},
-                                                {"CopyFlowLaunch", 0}, // only one copy flow
-                                                {"AllocModelOutTensor", 0},
-                                                {"InferShape", 0},
-                                                {"InnerData", 0},
-                                            }),
+                {"SplitRtStreams", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"AllocBatchHbm", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"InnerData", 0},
+                {"CopyFlowLaunch", 0},  // only one copy flow
+                {"AllocModelOutTensor", 0},
+                {"InferShape", 0},
+                {"InnerData", 0},
+            }),
             "success");
   aclrtDestroyStream(stream);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);

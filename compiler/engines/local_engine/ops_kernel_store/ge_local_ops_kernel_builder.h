@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,10 +31,9 @@ class GE_FUNC_VISIBILITY GeLocalOpsKernelBuilder : public OpsKernelBuilder {
  private:
   using CalcOpParamCall = std::function<graphStatus(const Node &node)>;
 
-  graphStatus CalcMemSizeByNodeType(OpDescPtr &op_desc, GeTensorDesc &output_tensor,
-                                    int64_t &output_mem_size, const std::string &node_type);
-  graphStatus SetSizeForStringInput(Node &node, GeTensorDesc &output_tensor,
-                                    size_t output_index);
+  graphStatus CalcMemSizeByNodeType(OpDescPtr &op_desc, GeTensorDesc &output_tensor, int64_t &output_mem_size,
+                                    const std::string &node_type);
+  graphStatus SetSizeForStringInput(Node &node, GeTensorDesc &output_tensor, size_t output_index);
 };
 }  // namespace ge_local
 }  // namespace ge

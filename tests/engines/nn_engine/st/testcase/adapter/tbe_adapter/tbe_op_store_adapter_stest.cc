@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,55 +45,49 @@ using namespace ge;
 using namespace fe;
 using namespace te;
 
+class STEST_tbe_op_store_adapter : public testing::Test {
+ protected:
+  void SetUp() {}
 
-class STEST_tbe_op_store_adapter : public testing::Test
-{
-protected:
-    void SetUp()
-    {
-    }
+  void TearDown() {}
 
-    void TearDown()
-    {
-    }
+  /*
+   * batchnorm
+   *    |
+   *   relu
+   */
+  static void CreateGraph(ComputeGraphPtr graph) {
+    OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
+    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
 
-        /*
- * batchnorm
- *    |
- *   relu
- */
-    static void CreateGraph(ComputeGraphPtr graph) {
-        OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
-        OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
+    // add descriptor
+    vector<int64_t> dims = {288, 32, 16, 16};
+    GeShape shape(dims);
+    GeTensorDesc in_desc1(shape);
+    in_desc1.SetFormat(FORMAT_FRACTAL_Z);
+    in_desc1.SetDataType(DT_FLOAT16);
+    bn_op->AddInputDesc("x", in_desc1);
+    GeTensorDesc out_desc1(shape);
+    out_desc1.SetFormat(FORMAT_NHWC);
+    out_desc1.SetDataType(DT_FLOAT16);
+    bn_op->AddOutputDesc("y", out_desc1);
+    GeTensorDesc in_desc2(shape);
+    in_desc2.SetFormat(FORMAT_NCHW);
+    in_desc2.SetDataType(DT_FLOAT16);
+    relu_op->AddInputDesc("x", in_desc2);
+    GeTensorDesc out_desc2(shape);
+    out_desc2.SetFormat(FORMAT_HWCN);
+    out_desc2.SetDataType(DT_FLOAT16);
+    relu_op->AddOutputDesc("y", out_desc2);
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
 
-        // add descriptor
-        vector<int64_t> dims = {288, 32, 16, 16};
-        GeShape shape(dims);
-        GeTensorDesc in_desc1(shape);
-        in_desc1.SetFormat(FORMAT_FRACTAL_Z);
-        in_desc1.SetDataType(DT_FLOAT16);
-        bn_op->AddInputDesc("x", in_desc1);
-        GeTensorDesc out_desc1(shape);
-        out_desc1.SetFormat(FORMAT_NHWC);
-        out_desc1.SetDataType(DT_FLOAT16);
-        bn_op->AddOutputDesc("y", out_desc1);
-        GeTensorDesc in_desc2(shape);
-        in_desc2.SetFormat(FORMAT_NCHW);
-        in_desc2.SetDataType(DT_FLOAT16);
-        relu_op->AddInputDesc("x", in_desc2);
-        GeTensorDesc out_desc2(shape);
-        out_desc2.SetFormat(FORMAT_HWCN);
-        out_desc2.SetDataType(DT_FLOAT16);
-        relu_op->AddOutputDesc("y", out_desc2);
-        ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
-        ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    NodePtr bn_node = graph->AddNode(bn_op);
+    NodePtr relu_node = graph->AddNode(relu_op);
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+  }
 
-        NodePtr bn_node = graph->AddNode(bn_op);
-        NodePtr relu_node = graph->AddNode(relu_op);
-        GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
-    }
-
-protected:
+ protected:
   static bool GetOpSpecificInfoSub(const te::TbeOpInfo &tbeOpInfo, std::string &opSpecificInfoString) {
     nlohmann::json op_specific_info;
     op_specific_info["rangeLimit"] = "limited";
@@ -116,45 +110,44 @@ protected:
   }
 };
 
-te::OpBuildResCode SgtTeFusionStub(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>
-        &to_be_del, uint64_t taskid, uint64_t tid, uint64_t sgt_thread_index, const std::string op_compile_strategy)
-{
-    string json_file_path = "./kernel_meta/";
-    AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
-    return te::OP_BUILD_SUCC;
+te::OpBuildResCode SgtTeFusionStub(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                   const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                   uint64_t sgt_thread_index, const std::string op_compile_strategy) {
+  string json_file_path = "./kernel_meta/";
+  AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
+  return te::OP_BUILD_SUCC;
 }
 
-te::OpBuildResCode SgtTeFusionStub2(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>
-        &to_be_del, uint64_t taskid, uint64_t tid, uint64_t sgt_thread_index, const std::string op_compile_strategy)
-{
-    string json_file_path = "./kernel_meta/";
-    AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
-    return te::OP_BUILD_FAIL;
+te::OpBuildResCode SgtTeFusionStub2(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                    const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                    uint64_t sgt_thread_index, const std::string op_compile_strategy) {
+  string json_file_path = "./kernel_meta/";
+  AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
+  return te::OP_BUILD_FAIL;
 }
 
-te::OpBuildResCode TeFusionStub(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr>
-        &to_be_del, uint64_t taskid, uint64_t tid, const std::string op_compile_strategy)
-{
-    string json_file_path = "./kernel_meta/";
-    //OpDescPtr op_desc_ptr = output_node->GetOpDesc();
-    AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
-    return te::OP_BUILD_SUCC;
+te::OpBuildResCode TeFusionStub(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                const std::string op_compile_strategy) {
+  string json_file_path = "./kernel_meta/";
+  // OpDescPtr op_desc_ptr = output_node->GetOpDesc();
+  AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
+  return te::OP_BUILD_SUCC;
 }
 
-te::OpBuildResCode TeFusionStub3(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr, const std::vector<ge::NodePtr> &to_be_del,
-        uint64_t taskid, uint64_t tid, const std::string op_compile_strategy)
-{
-    string json_file_path = "";
-    //OpDescPtr op_desc_ptr = output_node->GetOpDesc();
-    AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
-    return te::OP_BUILD_FAIL;
+te::OpBuildResCode TeFusionStub3(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                 const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                 const std::string op_compile_strategy) {
+  string json_file_path = "";
+  // OpDescPtr op_desc_ptr = output_node->GetOpDesc();
+  AttrUtils::SetStr(op_desc_ptr, "json_file_path", json_file_path);
+  return te::OP_BUILD_FAIL;
 }
 
-bool WaitAllFinishedStub(uint64_t tid, vector<te::FinComTask> &fin_task)
-{
+bool WaitAllFinishedStub(uint64_t tid, vector<te::FinComTask> &fin_task) {
   te::FinComTask fin_com_task;
   fin_com_task.teNodeOpDesc = std::make_shared<ge::OpDesc>("OneOP", "");
-  fin_com_task.taskId = GetAtomicId()-1;
+  fin_com_task.taskId = GetAtomicId() - 1;
   fin_com_task.status = 0;
   ge::AttrUtils::SetStr(fin_com_task.teNodeOpDesc, "json_file_path", "jsonFilePath");
   fin_task.push_back(fin_com_task);
@@ -165,49 +158,48 @@ te::LX_QUERY_STATUS get_tbe_opinfo_stub(const te::TbeOpInfo &info, std::string &
   return te::LX_QUERY_NOT_FOUND;
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_tbe_compiler_null_sgt_slice_op_success)
-{
-    TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
-    compile_tbe_op.support_parallel_compile = false;
-    compile_tbe_op.TeFusion = TeFusionStub;
-    compile_tbe_op.TeFusionV = SgtTeFusionStub;
-    compile_tbe_op.WaitAllFinished = WaitAllFinishedStub;
-    compile_tbe_op.GetOpInfo = get_tbe_opinfo_stub;
-    ScopeNodeIdMap fusion_nodes_map;
+TEST_F(STEST_tbe_op_store_adapter, case_tbe_compiler_null_sgt_slice_op_success) {
+  TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
+  compile_tbe_op.support_parallel_compile = false;
+  compile_tbe_op.TeFusion = TeFusionStub;
+  compile_tbe_op.TeFusionV = SgtTeFusionStub;
+  compile_tbe_op.WaitAllFinished = WaitAllFinishedStub;
+  compile_tbe_op.GetOpInfo = get_tbe_opinfo_stub;
+  ScopeNodeIdMap fusion_nodes_map;
 
-    //1.create graph
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-    vector<int64_t> dim_weight = {1, 3, 3, 3};
-    GeShape shape_weight(dim_weight);
-    GeTensorDesc weight_desc(shape_weight);
-    vector<int64_t> dim_weight1 = {1, 3, 3, 3};
-    GeShape shape_weight1(dim_weight1);
-    GeTensorDesc weight_desc1(shape_weight1);
-    OpDescPtr weight_op_desc1 = std::make_shared<OpDesc>("w1", fe::CONSTANT);
-    OpDescPtr weight_op_desc2 = std::make_shared<OpDesc>("w2", fe::CONSTANT);
-    weight_op_desc1->AddOutputDesc(weight_desc);
-    weight_op_desc2->AddOutputDesc(weight_desc1);
-    NodePtr Node1 = graph->AddNode(weight_op_desc1);
-    NodePtr Node2 = graph->AddNode(weight_op_desc2);
+  // 1.create graph
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  vector<int64_t> dim_weight = {1, 3, 3, 3};
+  GeShape shape_weight(dim_weight);
+  GeTensorDesc weight_desc(shape_weight);
+  vector<int64_t> dim_weight1 = {1, 3, 3, 3};
+  GeShape shape_weight1(dim_weight1);
+  GeTensorDesc weight_desc1(shape_weight1);
+  OpDescPtr weight_op_desc1 = std::make_shared<OpDesc>("w1", fe::CONSTANT);
+  OpDescPtr weight_op_desc2 = std::make_shared<OpDesc>("w2", fe::CONSTANT);
+  weight_op_desc1->AddOutputDesc(weight_desc);
+  weight_op_desc2->AddOutputDesc(weight_desc1);
+  NodePtr Node1 = graph->AddNode(weight_op_desc1);
+  NodePtr Node2 = graph->AddNode(weight_op_desc2);
 
-    std::vector<ge::Node*> vector_node_ptr;
-    vector_node_ptr.emplace_back(Node1.get());
-    vector_node_ptr.emplace_back(Node2.get());
-    fusion_nodes_map.insert(std::make_pair(0, vector_node_ptr));
+  std::vector<ge::Node *> vector_node_ptr;
+  vector_node_ptr.emplace_back(Node1.get());
+  vector_node_ptr.emplace_back(Node2.get());
+  fusion_nodes_map.insert(std::make_pair(0, vector_node_ptr));
 
-    CompileResultMap compile_ret_map;
-    CompileResultInfo compile_info("xxxx1");
-    std::vector<CompileResultInfo> compile_infos = {compile_info};
-    compile_ret_map.emplace(make_pair(1, compile_infos));
-    std::vector<ge::NodePtr> compile_failed_nodes;
-    std::vector<ge::NodePtr> to_del_nodes;
+  CompileResultMap compile_ret_map;
+  CompileResultInfo compile_info("xxxx1");
+  std::vector<CompileResultInfo> compile_infos = {compile_info};
+  compile_ret_map.emplace(make_pair(1, compile_infos));
+  std::vector<ge::NodePtr> compile_failed_nodes;
+  std::vector<ge::NodePtr> to_del_nodes;
 
-    Status ret = compile_tbe_op.CompileMultiKernelSliceOp(fusion_nodes_map, compile_ret_map, compile_failed_nodes, to_del_nodes);
-    EXPECT_EQ(fe::SUCCESS, ret);
+  Status ret =
+      compile_tbe_op.CompileMultiKernelSliceOp(fusion_nodes_map, compile_ret_map, compile_failed_nodes, to_del_nodes);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_pre_compile)
-{
+TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_pre_compile) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -234,7 +226,7 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_pre_compile)
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -260,7 +252,7 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_succ_pre_comp_task) {
   NodePtr Node1 = graph->AddNode(weight_op_desc1);
   NodePtr Node2 = graph->AddNode(weight_op_desc2);
 
-  TbeOpInfoPtr tbe_op_info_ptr = make_shared<te::TbeOpInfo>("","","","");
+  TbeOpInfoPtr tbe_op_info_ptr = make_shared<te::TbeOpInfo>("", "", "", "");
   tbe_op_info_ptr->SetPattern("w2Pattern");
   TbeOpStoreAdapter::CompileTaskPara task_para;
   task_para.task_num = 1;
@@ -294,8 +286,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_tbe_set_sgt_json_path_fail) {
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_get_buffer_optimize_rollback_node_fail)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_get_buffer_optimize_rollback_node_fail) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -325,18 +316,17 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_buffer_optimize_rollback_node_fail)
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
   vector<ge::NodePtr> l1_failed_nodes;
-  Status ret = compile_tbe_op.ProcessLxFusionFailCompileTasks(task_para, l1_failed_nodes,
-                                                              buff_fus_compile_failed_nodes);
+  Status ret =
+      compile_tbe_op.ProcessLxFusionFailCompileTasks(task_para, l1_failed_nodes, buff_fus_compile_failed_nodes);
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, save_ms_tune_error_msg)
-{
+TEST_F(STEST_tbe_op_store_adapter, save_ms_tune_error_msg) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -363,7 +353,7 @@ TEST_F(STEST_tbe_op_store_adapter, save_ms_tune_error_msg)
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -372,8 +362,7 @@ TEST_F(STEST_tbe_op_store_adapter, save_ms_tune_error_msg)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_retry_compile_fail_op_fail_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_retry_compile_fail_op_fail_1) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -400,7 +389,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_retry_compile_fail_op_fail_1)
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -408,8 +397,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_retry_compile_fail_op_fail_1)
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile)
-{
+TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -436,35 +424,31 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile)
   failed_tasks.graphId = 996;
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
 
   Status ret = compile_tbe_op.ProcessFailCompileTask(task_para, CompileStrategy::COMPILE_STRATEGY_OP_SPEC);
-  //3. result expected
+  // 3. result expected
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-te::OpBuildResCode TeFusionStub1(std::vector<Node*> teGraphNode, OpDescPtr op_desc_ptr,
-  const std::vector<ge::NodePtr>  &to_be_del, uint64_t taskid, uint64_t tid,
-  const std::string op_compile_strategy)
-{
-    return te::OP_BUILD_SUCC;
+te::OpBuildResCode TeFusionStub1(std::vector<Node *> teGraphNode, OpDescPtr op_desc_ptr,
+                                 const std::vector<ge::NodePtr> &to_be_del, uint64_t taskid, uint64_t tid,
+                                 const std::string op_compile_strategy) {
+  return te::OP_BUILD_SUCC;
 }
 
-te::OpBuildResCode FuzzBuildTbeOpStubSucc(uint64_t taskId, uint64_t graphId, ge::Node &node)
-{
-    return te::OP_BUILD_SUCC;
+te::OpBuildResCode FuzzBuildTbeOpStubSucc(uint64_t taskId, uint64_t graphId, ge::Node &node) {
+  return te::OP_BUILD_SUCC;
 }
 
-te::OpBuildResCode FuzzBuildTbeOpStubFail(uint64_t taskId, uint64_t graphId, ge::Node &node)
-{
-    return te::OP_BUILD_FAIL;
+te::OpBuildResCode FuzzBuildTbeOpStubFail(uint64_t taskId, uint64_t graphId, ge::Node &node) {
+  return te::OP_BUILD_FAIL;
 }
 
-TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks)
-{
+TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.TeFusion = TeFusionStub1;
 
@@ -493,17 +477,16 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks
   failed_tasks.graphId = 996;
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
   Status ret = compile_tbe_op.ProcessFailCompileTask(task_para, CompileStrategy::COMPILE_STRATEGY_OP_SPEC);
-  //3. result expected
+  // 3. result expected
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks_fuzzy_succ)
-{
+TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks_fuzzy_succ) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.FuzzBuildTbeOp = FuzzBuildTbeOpStubSucc;
 
@@ -532,7 +515,7 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks
   failed_tasks.graphId = 996;
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -550,12 +533,11 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks
   options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_precise"));
   ge::GetThreadLocalContext().SetGlobalOption(options1);
 
-  //3. result expected
+  // 3. result expected
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks_fuzzy_fail)
-{
+TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks_fuzzy_fail) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.FuzzBuildTbeOp = FuzzBuildTbeOpStubFail;
 
@@ -584,7 +566,7 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks
   failed_tasks.graphId = 996;
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -602,12 +584,11 @@ TEST_F(STEST_tbe_op_store_adapter, tbe_op_process_fail_compile_null_failed_tasks
   options.insert(std::pair<std::string, std::string>("ge.shape_generalized_build_mode", "shape_precise"));
   ge::GetThreadLocalContext().SetGlobalOption(options1);
 
-  //3. result expected
+  // 3. result expected
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_fail_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_fail_1) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -640,8 +621,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_fail_1
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_1) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -671,7 +651,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_1)
   task_para.failed_tasks[failed_tasks.taskId] = failed_tasks;
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -679,8 +659,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_1)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_2)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_2) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -711,7 +690,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_2)
   vector<uint64_t> stim = {1, 2};
   task_para.scope_task_ids_map[1] = stim;
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   vector_node_ptr.emplace_back(Node2.get());
   fusion_nodes_map.insert(std::make_pair(1, vector_node_ptr));
   task_para.fusion_nodes_map = &fusion_nodes_map;
@@ -720,19 +699,18 @@ TEST_F(STEST_tbe_op_store_adapter, case_get_sgt_slice_task_roll_back_node_suc_2)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_fail)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_fail) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   ffts::ThreadSliceMapPtr tsmp_ptr;
   for (auto &node : graph->GetDirectNode()) {
     auto op_desc_ptr = node->GetOpDesc();
 
     if (op_desc_ptr->GetName() == "relu") {
-        vector_node_ptr.emplace_back(node.get());
+      vector_node_ptr.emplace_back(node.get());
     }
   }
 
@@ -740,84 +718,83 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_fail)
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_suc)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_suc) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   ffts::ThreadSliceMapPtr tsmp_ptr;
   for (auto &node : graph->GetDirectNode()) {
     auto op_desc_ptr = node->GetOpDesc();
     if (op_desc_ptr->GetName() == "relu") {
-        AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
-        ffts::ThreadSliceMap subgraphInfo;
-        vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr1;
-            for (size_t j = 0; j < vec1.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec1[j];
-                dr.higher = vec1[j + 1];
-                vdr1.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr1);
-            vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr2;
-            for (size_t j = 0; j < vec2.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec2[j];
-                dr.higher = vec2[j + 1];
-                vdr2.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr2);
-            inputTensorSlice.push_back(threadSlice);
-            oriInputTensorSlice.push_back(oriThreadSlice);
+      AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
+      ffts::ThreadSliceMap subgraphInfo;
+      vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr1;
+        for (size_t j = 0; j < vec1.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec1[j];
+          dr.higher = vec1[j + 1];
+          vdr1.push_back(dr);
+          j = j + 2;
         }
-
-        vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr3;
-            for (size_t j = 0; j < vec3.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec3[j];
-                dr.higher = vec3[j + 1];
-                vdr3.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr3);
-            vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr4;
-            for (size_t j = 0; j < vec4.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec4[j];
-                dr.higher = vec4[j + 1];
-                vdr4.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr4);
-            outputTensorSlice.push_back(threadSlice);
-            oriOutputTensorSlice.push_back(oriThreadSlice);
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr1);
+        vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr2;
+        for (size_t j = 0; j < vec2.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec2[j];
+          dr.higher = vec2[j + 1];
+          vdr2.push_back(dr);
+          j = j + 2;
         }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr2);
+        inputTensorSlice.push_back(threadSlice);
+        oriInputTensorSlice.push_back(oriThreadSlice);
+      }
 
-        subgraphInfo.input_tensor_slice = inputTensorSlice;
-        subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
-        subgraphInfo.output_tensor_slice = outputTensorSlice;
-        subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
-        tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
-        op_desc_ptr->SetExtAttr(ffts::kAttrSgtStructInfo, tsmp_ptr);
-        vector_node_ptr.emplace_back(node.get());
+      vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr3;
+        for (size_t j = 0; j < vec3.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec3[j];
+          dr.higher = vec3[j + 1];
+          vdr3.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr3);
+        vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr4;
+        for (size_t j = 0; j < vec4.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec4[j];
+          dr.higher = vec4[j + 1];
+          vdr4.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr4);
+        outputTensorSlice.push_back(threadSlice);
+        oriOutputTensorSlice.push_back(oriThreadSlice);
+      }
+
+      subgraphInfo.input_tensor_slice = inputTensorSlice;
+      subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
+      subgraphInfo.output_tensor_slice = outputTensorSlice;
+      subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
+      tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
+      op_desc_ptr->SetExtAttr(ffts::kAttrSgtStructInfo, tsmp_ptr);
+      vector_node_ptr.emplace_back(node.get());
     }
   }
 
@@ -825,8 +802,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_tensor_slice_info_to_nodes_suc)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_suc)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_suc) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.support_parallel_compile = false;
   compile_tbe_op.TeFusionV = SgtTeFusionStub;
@@ -836,79 +812,79 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_suc)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
   vector<ge::NodePtr> to_del_nodes;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   ScopeNodeIdMap fusion_nodes_map;
   for (auto &node : graph->GetDirectNode()) {
     auto op_desc_ptr = node->GetOpDesc();
     if (op_desc_ptr->GetName() == "relu") {
-        AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
-        ffts::ThreadSliceMap subgraphInfo;
-        vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr1;
-            for (size_t j = 0; j < vec1.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec1[j];
-                dr.higher = vec1[j + 1];
-                vdr1.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr1);
-            vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr2;
-            for (size_t j = 0; j < vec2.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec2[j];
-                dr.higher = vec2[j + 1];
-                vdr2.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr2);
-            inputTensorSlice.push_back(threadSlice);
-            oriInputTensorSlice.push_back(oriThreadSlice);
+      AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
+      ffts::ThreadSliceMap subgraphInfo;
+      vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr1;
+        for (size_t j = 0; j < vec1.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec1[j];
+          dr.higher = vec1[j + 1];
+          vdr1.push_back(dr);
+          j = j + 2;
         }
-
-        vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr3;
-            for (size_t j = 0; j < vec3.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec3[j];
-                dr.higher = vec3[j + 1];
-                vdr3.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr3);
-            vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr4;
-            for (size_t j = 0; j < vec4.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec4[j];
-                dr.higher = vec4[j + 1];
-                vdr4.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr4);
-            outputTensorSlice.push_back(threadSlice);
-            oriOutputTensorSlice.push_back(oriThreadSlice);
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr1);
+        vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr2;
+        for (size_t j = 0; j < vec2.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec2[j];
+          dr.higher = vec2[j + 1];
+          vdr2.push_back(dr);
+          j = j + 2;
         }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr2);
+        inputTensorSlice.push_back(threadSlice);
+        oriInputTensorSlice.push_back(oriThreadSlice);
+      }
 
-        subgraphInfo.input_tensor_slice = inputTensorSlice;
-        subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
-        subgraphInfo.output_tensor_slice = outputTensorSlice;
-        subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
-        subgraphInfo.thread_mode = 1;
-        ffts::ThreadSliceMapPtr tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
-        node->GetOpDesc()->SetExtAttr("_sgt_struct_info", tsmp_ptr);
-        vector_node_ptr.emplace_back(node.get());
+      vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr3;
+        for (size_t j = 0; j < vec3.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec3[j];
+          dr.higher = vec3[j + 1];
+          vdr3.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr3);
+        vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr4;
+        for (size_t j = 0; j < vec4.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec4[j];
+          dr.higher = vec4[j + 1];
+          vdr4.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr4);
+        outputTensorSlice.push_back(threadSlice);
+        oriOutputTensorSlice.push_back(oriThreadSlice);
+      }
+
+      subgraphInfo.input_tensor_slice = inputTensorSlice;
+      subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
+      subgraphInfo.output_tensor_slice = outputTensorSlice;
+      subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
+      subgraphInfo.thread_mode = 1;
+      ffts::ThreadSliceMapPtr tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
+      node->GetOpDesc()->SetExtAttr("_sgt_struct_info", tsmp_ptr);
+      vector_node_ptr.emplace_back(node.get());
     }
   }
 
@@ -931,8 +907,7 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_suc)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_fail_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_fail_1) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
   compile_tbe_op.support_parallel_compile = false;
   compile_tbe_op.TeFusionV = SgtTeFusionStub2;
@@ -942,81 +917,81 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_fail_1)
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraph(graph);
   vector<ge::NodePtr> to_del_nodes;
-  std::vector<ge::Node*> vector_node_ptr;
+  std::vector<ge::Node *> vector_node_ptr;
   ScopeNodeIdMap fusion_nodes_map;
   for (auto &node : graph->GetDirectNode()) {
     auto op_desc_ptr = node->GetOpDesc();
     if (op_desc_ptr->GetName() == "relu") {
-        AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
-        ffts::ThreadSliceMap subgraphInfo;
-        vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr1;
-            for (size_t j = 0; j < vec1.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec1[j];
-                dr.higher = vec1[j + 1];
-                vdr1.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr1);
-
-            vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr2;
-            for (size_t j = 0; j < vec2.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec2[j];
-                dr.higher = vec2[j + 1];
-                vdr2.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr2);
-            inputTensorSlice.push_back(threadSlice);
-            oriInputTensorSlice.push_back(oriThreadSlice);
+      AttrUtils::SetInt(node->GetOpDesc(), kThreadScopeId, 1);
+      ffts::ThreadSliceMap subgraphInfo;
+      vector<vector<vector<ffts::DimRange>>> inputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriInputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec1 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr1;
+        for (size_t j = 0; j < vec1.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec1[j];
+          dr.higher = vec1[j + 1];
+          vdr1.push_back(dr);
+          j = j + 2;
         }
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr1);
 
-        vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
-        vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
-        for (size_t i = 0; i < 2; i++) {
-            vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr3;
-            for (size_t j = 0; j < vec3.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec3[j];
-                dr.higher = vec3[j + 1];
-                vdr3.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> threadSlice;
-            threadSlice.push_back(vdr3);
-
-            vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
-            vector<ffts::DimRange> vdr4;
-            for (size_t j = 0; j < vec4.size() - 1;) {
-                ffts::DimRange dr;
-                dr.lower = vec4[j];
-                dr.higher = vec4[j + 1];
-                vdr4.push_back(dr);
-                j = j + 2;
-            }
-            vector<vector<ffts::DimRange>> oriThreadSlice;
-            oriThreadSlice.push_back(vdr4);
-            outputTensorSlice.push_back(threadSlice);
-            oriOutputTensorSlice.push_back(oriThreadSlice);
+        vector<int64_t> vec2 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr2;
+        for (size_t j = 0; j < vec2.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec2[j];
+          dr.higher = vec2[j + 1];
+          vdr2.push_back(dr);
+          j = j + 2;
         }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr2);
+        inputTensorSlice.push_back(threadSlice);
+        oriInputTensorSlice.push_back(oriThreadSlice);
+      }
 
-        subgraphInfo.input_tensor_slice = inputTensorSlice;
-        subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
-        subgraphInfo.output_tensor_slice = outputTensorSlice;
-        subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
-        subgraphInfo.thread_mode = 1;
-        ffts::ThreadSliceMapPtr tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
-        node->GetOpDesc()->SetExtAttr("_sgt_struct_info", tsmp_ptr);
-        vector_node_ptr.emplace_back(node.get());
+      vector<vector<vector<ffts::DimRange>>> outputTensorSlice;
+      vector<vector<vector<ffts::DimRange>>> oriOutputTensorSlice;
+      for (size_t i = 0; i < 2; i++) {
+        vector<int64_t> vec3 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr3;
+        for (size_t j = 0; j < vec3.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec3[j];
+          dr.higher = vec3[j + 1];
+          vdr3.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> threadSlice;
+        threadSlice.push_back(vdr3);
+
+        vector<int64_t> vec4 = {0, 288, 0, 32, 0, 16, 0, 16};
+        vector<ffts::DimRange> vdr4;
+        for (size_t j = 0; j < vec4.size() - 1;) {
+          ffts::DimRange dr;
+          dr.lower = vec4[j];
+          dr.higher = vec4[j + 1];
+          vdr4.push_back(dr);
+          j = j + 2;
+        }
+        vector<vector<ffts::DimRange>> oriThreadSlice;
+        oriThreadSlice.push_back(vdr4);
+        outputTensorSlice.push_back(threadSlice);
+        oriOutputTensorSlice.push_back(oriThreadSlice);
+      }
+
+      subgraphInfo.input_tensor_slice = inputTensorSlice;
+      subgraphInfo.ori_input_tensor_slice = oriInputTensorSlice;
+      subgraphInfo.output_tensor_slice = outputTensorSlice;
+      subgraphInfo.ori_output_tensor_slice = oriOutputTensorSlice;
+      subgraphInfo.thread_mode = 1;
+      ffts::ThreadSliceMapPtr tsmp_ptr = make_shared<ffts::ThreadSliceMap>(subgraphInfo);
+      node->GetOpDesc()->SetExtAttr("_sgt_struct_info", tsmp_ptr);
+      vector_node_ptr.emplace_back(node.get());
     }
   }
 
@@ -1038,28 +1013,27 @@ TEST_F(STEST_tbe_op_store_adapter, case_set_sgt_slice_task_to_te_fusion_fail_1)
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, set_te_task_fail_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, set_te_task_fail_1) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   std::vector<ge::Node *> node_vec;
   uint64_t taskId;
   std::vector<ge::NodePtr> buff_fus_to_del_nodes;
   CompileStrategy compile_strategy;
   uint64_t slice_shape_index;
-  Status ret = tbe_adapter_ptr->SgtSetTeTask(node_vec, taskId, buff_fus_to_del_nodes,
-                                             compile_strategy, slice_shape_index);
+  Status ret =
+      tbe_adapter_ptr->SgtSetTeTask(node_vec, taskId, buff_fus_to_del_nodes, compile_strategy, slice_shape_index);
   EXPECT_EQ(fe::FAILED, ret);
   ret = tbe_adapter_ptr->SetTeTask(node_vec, taskId, buff_fus_to_del_nodes, compile_strategy, false);
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_01)
-{
+TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_01) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   std::map<string, string> ge_options = {{"ge.aicoreNum", "16"},
                                          {"ge.hardwareInfo", "ai_core_cnt:12;vector_core_cnt:16"}};
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] = "ai_core_cnt:12;vector_core_cnt:16";
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] =
+      "ai_core_cnt:12;vector_core_cnt:16";
   config.ParseHardwareInfo();
   std::map<string, string> options = {{"ge.aicoreNum", "16"}};
   tbe_adapter_ptr->ParseHardwareInfos(options);
@@ -1068,13 +1042,13 @@ TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_01)
   EXPECT_EQ(options["vector_core_cnt"], "16");
 }
 
-TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_02)
-{
+TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_02) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   std::map<string, string> ge_options = {{"ge.aicoreNum", "16"},
                                          {"ge.hardwareInfo", "ai_core_cnt:12;vector_core_cnt:16"}};
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] = "ai_core_cnt:12;vector_core_cnt:16";
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] =
+      "ai_core_cnt:12;vector_core_cnt:16";
   config.ParseHardwareInfo();
   std::map<string, string> options = {};
   tbe_adapter_ptr->ParseHardwareInfos(options);
@@ -1083,10 +1057,10 @@ TEST_F(STEST_tbe_op_store_adapter, parse_hardwareinfos_02)
   EXPECT_EQ(options["vector_core_cnt"], "16");
 }
 
-TEST_F(STEST_tbe_op_store_adapter, GetRangeLimitedType_1)
-{
+TEST_F(STEST_tbe_op_store_adapter, GetRangeLimitedType_1) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -1096,10 +1070,7 @@ TEST_F(STEST_tbe_op_store_adapter, GetRangeLimitedType_1)
   ge::OpDescPtr op_desc = make_shared<ge::OpDesc>("relu", "Relu");
   ge::NodePtr node = graph->AddNode(op_desc);
 
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   bool is_limited = false;
   Status ret = tbe_adapter_ptr->GetRangeLimitType(node, info, is_limited);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -1118,7 +1089,8 @@ TEST_F(STEST_tbe_op_store_adapter, GetRangeLimitedType_1)
 
 TEST_F(STEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_1) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -1152,7 +1124,8 @@ TEST_F(STEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_1) {
 
 TEST_F(STEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_2) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -1186,7 +1159,8 @@ TEST_F(STEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_2) {
 
 TEST_F(STEST_tbe_op_store_adapter, DealOpDebugDir_success) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -1197,7 +1171,7 @@ TEST_F(STEST_tbe_op_store_adapter, DealOpDebugDir_success) {
   ge::NodePtr node = graph->AddNode(op_desc);
 
   std::map<std::string, std::string> options;
-  char *path = new(std::nothrow) char[1024];
+  char *path = new (std::nothrow) char[1024];
   getcwd(path, 1024);
   tbe_adapter_ptr->DealOpDebugDir(options);
   string value = options[ge::DEBUG_DIR];
@@ -1220,7 +1194,7 @@ TEST_F(STEST_tbe_op_store_adapter, wait_task_debug_message) {
   te::FinComTask fin_task3;
   fin_task3.teNodeOpDesc = std::make_shared<ge::OpDesc>("op1", "test");
   fin_task3.taskId = 996;
-  fin_task3.status = 1; 
+  fin_task3.status = 1;
 
   std::vector<te::FinComTask> fin_tasks = {fin_task1, fin_task2, fin_task3};
   std::string res = GetStrByFinComTaskVec(fin_tasks);
@@ -1277,10 +1251,10 @@ TEST_F(STEST_tbe_op_store_adapter, trans_dtype_to_string04_uint8) {
 
 TEST_F(STEST_tbe_op_store_adapter, TaskFusion_MockFailed_Coverage670to674) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
-  compile_tbe_op.TaskFusionFunc = [](const vector<ge::Node*>&, ge::OpDescPtr, uint64_t, uint64_t) {
+  compile_tbe_op.TaskFusionFunc = [](const vector<ge::Node *> &, ge::OpDescPtr, uint64_t, uint64_t) {
     return te::OP_BUILD_FAIL;
   };
-  
+
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
   GeTensorDesc tensor_desc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
@@ -1288,23 +1262,23 @@ TEST_F(STEST_tbe_op_store_adapter, TaskFusion_MockFailed_Coverage670to674) {
   op_desc->AddOutputDesc(tensor_desc);
   AttrUtils::SetInt(op_desc, "_fe_imply_type", 6);
   NodePtr node = graph->AddNode(op_desc);
-  
-  vector<ge::Node*> nodes = {node.get()};
+
+  vector<ge::Node *> nodes = {node.get()};
   ScopeNodeIdMap fusion_nodes_map;
   fusion_nodes_map[0] = nodes;
-  
+
   CompileResultMap compile_ret_map;
-  
+
   Status status = compile_tbe_op.TaskFusion(fusion_nodes_map, compile_ret_map);
   EXPECT_NE(status, fe::SUCCESS);
 }
 
 TEST_F(STEST_tbe_op_store_adapter, SuperKernelCompile_MockFailed_Coverage740to744) {
   TbeOpStoreAdapter compile_tbe_op(AI_CORE_NAME);
-  compile_tbe_op.BuildSuperKernel = [](const vector<ge::Node*>&, ge::OpDescPtr, uint64_t, uint64_t) {
+  compile_tbe_op.BuildSuperKernel = [](const vector<ge::Node *> &, ge::OpDescPtr, uint64_t, uint64_t) {
     return te::OP_BUILD_FAIL;
   };
-  
+
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc = std::make_shared<OpDesc>("spk_op", "Add");
   GeTensorDesc tensor_desc(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
@@ -1312,13 +1286,13 @@ TEST_F(STEST_tbe_op_store_adapter, SuperKernelCompile_MockFailed_Coverage740to74
   op_desc->AddOutputDesc(tensor_desc);
   AttrUtils::SetInt(op_desc, "_fe_imply_type", 6);
   NodePtr node = graph->AddNode(op_desc);
-  
-  vector<ge::Node*> nodes = {node.get()};
+
+  vector<ge::Node *> nodes = {node.get()};
   ScopeNodeIdMap fusion_nodes_map;
   fusion_nodes_map[0] = nodes;
-  
+
   CompileResultMap compile_ret_map;
-  
+
   Status status = compile_tbe_op.SuperKernelCompile(fusion_nodes_map, compile_ret_map);
   EXPECT_NE(status, fe::SUCCESS);
 }

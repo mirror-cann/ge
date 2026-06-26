@@ -7,7 +7,7 @@
 - 使用 `SubgraphBoundary` + `SubgraphRewriter.replace()` 做子图替换
 
 > **FusionBasePass与PatternFusionPass**
-> 
+>
 > 本样例中的 pass 继承 FusionBasePass，与继承 PatternFusionPass 不同，这里通过重写 `run()` 函数实现 pass 逻辑。
 > `run()` 函数入参包含 graph 对象的引用，本样例场景中 Concat 节点输入数量不固定，
 > 难以用固定的 pattern 表示，而在 `run()` 函数里可以根据目标图中匹配到的 Concat 节点动态构造 Boundary，实现更高的灵活性。

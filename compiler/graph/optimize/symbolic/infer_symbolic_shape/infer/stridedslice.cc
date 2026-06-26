@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -143,8 +143,7 @@ std::pair<int64_t, int64_t> GetEllipsisMaskRange(const StridedSliceAttr &strided
   const int64_t ellipsis_mask_num = input_size + bit_count - slice_dim_num + 1;
   int64_t pos = 0L;
   for (; pos < slice_dim_num; pos++) {
-    if ((static_cast<uint64_t>(strided_slice_attr.ellipsis_mask) &
-        (1UL << static_cast<uint64_t>(pos))) > 0) {
+    if ((static_cast<uint64_t>(strided_slice_attr.ellipsis_mask) & (1UL << static_cast<uint64_t>(pos))) > 0) {
       break;
     }
   }
@@ -227,7 +226,9 @@ Status FillMissionIndex(const std::pair<int64_t, int64_t> &ellipsis_mask_range,
   origin_strides_indexes.resize(input_dims.size());
   GE_ASSERT_SUCCESS(NormalizeInput(origin_start_indexes, input_dims));
   GE_ASSERT_SUCCESS(NormalizeInput(origin_end_indexes, input_dims));
-  index_input.start_indexes.clear(); index_input.end_indexes.clear(); index_input.strides_indexes.clear();
+  index_input.start_indexes.clear();
+  index_input.end_indexes.clear();
+  index_input.strides_indexes.clear();
   int64_t start_index_pos = 0L;
   for (size_t i = 0UL; i < input_dims.size(); i++) {
     if (IsInEllipsisMaskRange(ellipsis_mask_range, static_cast<int64_t>(i))) {
@@ -239,12 +240,12 @@ Status FillMissionIndex(const std::pair<int64_t, int64_t> &ellipsis_mask_range,
       }
       continue;
     }
-    index_input.start_indexes.emplace_back(
-        EXPECT_SYMBOL_LT(origin_start_indexes[start_index_pos], input_dims[i])
-        ? origin_start_indexes[start_index_pos] : input_dims[i]);
-    index_input.end_indexes.emplace_back(
-        EXPECT_SYMBOL_LT(origin_end_indexes[start_index_pos], input_dims[i])
-        ? origin_end_indexes[start_index_pos] : input_dims[i]);
+    index_input.start_indexes.emplace_back(EXPECT_SYMBOL_LT(origin_start_indexes[start_index_pos], input_dims[i])
+                                               ? origin_start_indexes[start_index_pos]
+                                               : input_dims[i]);
+    index_input.end_indexes.emplace_back(EXPECT_SYMBOL_LT(origin_end_indexes[start_index_pos], input_dims[i])
+                                             ? origin_end_indexes[start_index_pos]
+                                             : input_dims[i]);
     index_input.strides_indexes.emplace_back(origin_strides_indexes[start_index_pos]);
     start_index_pos++;
   }
@@ -367,11 +368,16 @@ graphStatus GetValueFromInputData(const gert::InferSymbolShapeContext *context, 
 Status GetStridedSliceIndexInput(const gert::InferSymbolShapeContext *context, StrdedSliceIndexInputs &index_input,
                                  size_t stride_index, bool is_stride_optional = false) {
   auto ret = GetValueFromInputData(context, kStartInputIndex, index_input.start_indexes);
-  if (ret != SUCCESS) { return ret; }
+  if (ret != SUCCESS) {
+    return ret;
+  }
   ret = GetValueFromInputData(context, kEndInputIndex, index_input.end_indexes);
-  if (ret != SUCCESS) { return ret; }
-  return (is_stride_optional && context->GetInputSymbolTensor(stride_index) == nullptr) ?
-    SUCCESS : GetValueFromInputData(context, stride_index, index_input.strides_indexes);
+  if (ret != SUCCESS) {
+    return ret;
+  }
+  return (is_stride_optional && context->GetInputSymbolTensor(stride_index) == nullptr)
+             ? SUCCESS
+             : GetValueFromInputData(context, stride_index, index_input.strides_indexes);
 }
 
 Status ConstructAxis(const gert::InferSymbolShapeContext *context, int64_t input_dim_num, std::vector<int64_t> &axes) {
@@ -389,8 +395,8 @@ Status ConstructAxis(const gert::InferSymbolShapeContext *context, int64_t input
       GELOGI("Axis value for node %s is not const.", context->GetNodeName());
       return UNSUPPORTED;
     }
-    GE_ASSERT_TRUE(value < input_dim_num && value >= -input_dim_num, "Invalid axis value %lld for node %s.",
-                   value, context->GetNodeName());
+    GE_ASSERT_TRUE(value < input_dim_num && value >= -input_dim_num, "Invalid axis value %lld for node %s.", value,
+                   context->GetNodeName());
     axes.push_back(value >= 0 ? value : value + input_dim_num);
     GELOGD("Get const value %lld and add new axes value %lld for node %s.", value, axes.back(), context->GetNodeName());
   }
@@ -403,7 +409,8 @@ Status ConstructBeginList(const gert::InferSymbolShapeContext *context, const st
   std::vector<Expression> begin_values;
   const graphStatus ret = GetValueFromInputData(context, kStartInputIndex, begin_values);
   if (ret != SUCCESS) {
-    GELOGI("Begin list is not available for node %s, error code %u.", context->GetNodeName(), static_cast<uint32_t>(ret));
+    GELOGI("Begin list is not available for node %s, error code %u.", context->GetNodeName(),
+           static_cast<uint32_t>(ret));
     return ret;
   }
   for (size_t i = 0UL; i < axes.size() && i < x_dims.size(); ++i) {
@@ -585,22 +592,24 @@ IMPL_OP_INFER_SYMBOL_SHAPE_INNER(StridedSliceV2).InferSymbolShape(InferShape4Str
 Expression CalculateBeginValue(const Expression &begin_input, const Expression &cur_axis_input_size,
                                const Expression &step_value) {
   int64_t step_const = 0;
-  const auto clip_upper = (step_value.GetConstValue(step_const) && step_const < 0) ?
-    cur_axis_input_size - Symbol(1) : cur_axis_input_size;
-  Expression normalized_begin = (EXPECT_SYMBOL_LT(begin_input, kSymbolZero)) ?
-      (begin_input + cur_axis_input_size) : begin_input;
-  return (EXPECT_SYMBOL_LT(normalized_begin, kSymbolZero)) ? kSymbolZero :
-      (EXPECT_SYMBOL_LT(clip_upper, normalized_begin)) ? clip_upper : normalized_begin;
+  const auto clip_upper =
+      (step_value.GetConstValue(step_const) && step_const < 0) ? cur_axis_input_size - Symbol(1) : cur_axis_input_size;
+  Expression normalized_begin =
+      (EXPECT_SYMBOL_LT(begin_input, kSymbolZero)) ? (begin_input + cur_axis_input_size) : begin_input;
+  return (EXPECT_SYMBOL_LT(normalized_begin, kSymbolZero))  ? kSymbolZero
+         : (EXPECT_SYMBOL_LT(clip_upper, normalized_begin)) ? clip_upper
+                                                            : normalized_begin;
 }
 
 Expression CalculateEndValue(const Expression &end_input, const Expression &cur_axis_input_size,
                              const Expression &step_value) {
   int64_t step_const = 0;
   const auto clip_lower = (step_value.GetConstValue(step_const) && step_const < 0) ? Symbol(-1) : kSymbolZero;
-  Expression normalized_end = (EXPECT_SYMBOL_LT(end_input, kSymbolZero)) ?
-      (end_input + cur_axis_input_size) : end_input;
-  return (EXPECT_SYMBOL_LT(normalized_end, clip_lower)) ? clip_lower :
-      (EXPECT_SYMBOL_LT(cur_axis_input_size, normalized_end)) ? cur_axis_input_size : normalized_end;
+  Expression normalized_end =
+      (EXPECT_SYMBOL_LT(end_input, kSymbolZero)) ? (end_input + cur_axis_input_size) : end_input;
+  return (EXPECT_SYMBOL_LT(normalized_end, clip_lower))            ? clip_lower
+         : (EXPECT_SYMBOL_LT(cur_axis_input_size, normalized_end)) ? cur_axis_input_size
+                                                                   : normalized_end;
 }
 
 void CalculateOutputDimsForV3(const std::vector<int64_t> &axes, const std::vector<Expression> &input_x_dims,
@@ -609,16 +618,18 @@ void CalculateOutputDimsForV3(const std::vector<int64_t> &axes, const std::vecto
     const int64_t axis_value = axes[i];
     const Expression step_value = i < index_input.strides_indexes.size() ? index_input.strides_indexes[i] : Symbol(1);
     const Expression begin_value =
-        i < index_input.start_indexes.size() ?
-        CalculateBeginValue(index_input.start_indexes[i], input_x_dims[axis_value], step_value) : Symbol(0);
+        i < index_input.start_indexes.size()
+            ? CalculateBeginValue(index_input.start_indexes[i], input_x_dims[axis_value], step_value)
+            : Symbol(0);
     const Expression end_value =
-        i < index_input.end_indexes.size() ?
-        CalculateEndValue(index_input.end_indexes[i], input_x_dims[axis_value], step_value) : input_x_dims[axis_value];
+        i < index_input.end_indexes.size()
+            ? CalculateEndValue(index_input.end_indexes[i], input_x_dims[axis_value], step_value)
+            : input_x_dims[axis_value];
     Expression cur_out_size = sym::Ceiling((end_value - begin_value) / step_value);
     cur_out_size = (EXPECT_SYMBOL_LT(cur_out_size, kSymbolZero)) ? kSymbolZero : cur_out_size;
     GELOGD("Axe index %zu, begin symbol %s, end symbol %s, step symbol %s, outdim symbol %s", i,
-           begin_value.Serialize().get(), end_value.Serialize().get(),
-           step_value.Serialize().get(), cur_out_size.Serialize().get());
+           begin_value.Serialize().get(), end_value.Serialize().get(), step_value.Serialize().get(),
+           cur_out_size.Serialize().get());
     output_dims[axis_value] = cur_out_size;
   }
 }

@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 import unittest
-import numpy as np
+
 import dataflow as df
-import dataflow.utils.log as df_log
 import dataflow.dflow_wrapper as dwrapper
+import dataflow.utils.log as df_log
+import numpy as np
 
 PARAM_INVALID = 145000
 NOT_INIT = 145001
@@ -89,9 +90,7 @@ class TestDataFlow(unittest.TestCase):
         self.assertEqual(t._tensor_desc, tensor_desc)
         print(t)
         a = np.array([[1, 0, 2, 4]], dtype=np.int32)
-        strided_array = np.lib.stride_tricks.as_strided(
-            a, shape=(1, 2), strides=(16, 8)
-        )
+        strided_array = np.lib.stride_tricks.as_strided(a, shape=(1, 2), strides=(16, 8))
         self.assertRaises(df.DfException, df.Tensor, strided_array)
         try:
             df.Tensor(strided_array)
@@ -141,12 +140,8 @@ class TestDataFlow(unittest.TestCase):
 
     def test_dataflow(self):
         df_log.set_log_level(df_log.INFO)
-        data = df.FlowData(
-            name="test_flow_graph_data", schema=df.TensorDesc(df.DT_FLOAT16, [])
-        )
-        data1 = df.FlowData(
-            name="test_flow_graph_data1", schema=df.TensorDesc(df.DT_FLOAT16, [])
-        )
+        data = df.FlowData(name="test_flow_graph_data", schema=df.TensorDesc(df.DT_FLOAT16, []))
+        data1 = df.FlowData(name="test_flow_graph_data1", schema=df.TensorDesc(df.DT_FLOAT16, []))
         flow_node = df.FlowNode(2, 1, "test_flow_graph_node")
         compile_config_path = "./func.json"
         func_pp = df.FuncProcessPoint(compile_config_path, "funcxxx")
@@ -209,9 +204,7 @@ class TestDataFlow(unittest.TestCase):
         self.assertEqual(ret, 0)
         ret = graph.feed_data({data: np.array(1, dtype=np.float16)})
         self.assertEqual(ret, 0)
-        ret = graph.feed_data(
-            {data: df.Tensor(1, tensor_desc=df.TensorDesc(df.DT_FLOAT16, []))}
-        )
+        ret = graph.feed_data({data: df.Tensor(1, tensor_desc=df.TensorDesc(df.DT_FLOAT16, []))})
         self.assertEqual(ret, 0)
         self.assertRaises(df.DfException, df.TensorDesc, "", [])
         try:

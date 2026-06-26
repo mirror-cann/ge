@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ std::vector<ge::AscendString> SplitToStrVector(const char *data_ptr, const size_
   std::vector<ge::AscendString> res;
   const size_t byte_num_per_ele = data_size / ele_num;
   for (size_t i = 0UL; i < ele_num; ++i) {
-    (void) res.emplace_back(data_ptr + i * byte_num_per_ele);
+    (void)res.emplace_back(data_ptr + i * byte_num_per_ele);
   }
   return res;
 }
@@ -43,34 +43,31 @@ bool CheckMulOverflow(int64_t a, int64_t b) {
 }
 }  // namespace
 
-ge::Status LLMTensor::Init(uintptr_t data_ptr,
-                           size_t data_size,
-                           ge::DataType data_type,
-                           std::vector<int64_t> &dims,
+ge::Status LLMTensor::Init(uintptr_t data_ptr, size_t data_size, ge::DataType data_type, std::vector<int64_t> &dims,
                            ge::Tensor &tensor) {
   ge::TensorDesc desc(ge::Shape(dims), ge::FORMAT_ND, data_type);
-  (void) tensor.SetTensorDesc(desc);
+  (void)tensor.SetTensorDesc(desc);
   if (data_type == ge::DataType::DT_STRING) {
     const int64_t shape_size = desc.GetShape().GetShapeSize();
     const size_t ele_num = shape_size < 0L ? 1UL : static_cast<size_t>(shape_size);
     const auto &string_vec = SplitToStrVector(reinterpret_cast<const char *>(data_ptr), data_size, ele_num);
-    (void) tensor.SetData(string_vec);
+    (void)tensor.SetData(string_vec);
   } else {
-    (void) tensor.SetData(reinterpret_cast<const uint8_t *>(data_ptr), data_size);
+    (void)tensor.SetData(reinterpret_cast<const uint8_t *>(data_ptr), data_size);
   }
   return ge::SUCCESS;
 }
 
 void LLMTensor::ComputeStrides(ssize_t item_size, const std::vector<int64_t> &dims, std::vector<ssize_t> &strides) {
   if (!dims.empty()) {
-    (void) strides.emplace_back(item_size);
+    (void)strides.emplace_back(item_size);
     auto stride = static_cast<int64_t>(item_size);
     for (auto it = dims.crbegin(); it != (dims.crend() - 1); it++) {
       if (CheckMulOverflow(stride, *it)) {
         throw std::overflow_error("Compute stride overflow.");
       }
       stride *= *it;
-      (void) strides.emplace_back(static_cast<ssize_t>(stride));
+      (void)strides.emplace_back(static_cast<ssize_t>(stride));
     }
     std::reverse(strides.begin(), strides.end());
   }
@@ -78,16 +75,12 @@ void LLMTensor::ComputeStrides(ssize_t item_size, const std::vector<int64_t> &di
 
 int64_t LLMTensor::CalcTensorSize(const std::vector<int64_t> &shape, int32_t data_type) {
   int64_t tensor_size = -1;
-  (void) llm::LLMUtils::CalcTensorMemSize(shape,
-                                            static_cast<ge::DataType>(data_type),
-                                            tensor_size);
+  (void)llm::LLMUtils::CalcTensorMemSize(shape, static_cast<ge::DataType>(data_type), tensor_size);
   return tensor_size;
 }
 
-std::vector<uintptr_t> LLMTensor::BuildNpuTensors(const std::vector<int64_t> &shape,
-                                                  int32_t data_type,
-                                                  size_t tensor_size,
-                                                  const std::vector<uintptr_t> &addresses) {
+std::vector<uintptr_t> LLMTensor::BuildNpuTensors(const std::vector<int64_t> &shape, int32_t data_type,
+                                                  size_t tensor_size, const std::vector<uintptr_t> &addresses) {
   ge::TensorDesc tensor_desc(ge::Shape(shape), ge::FORMAT_ND, static_cast<ge::DataType>(data_type));
   tensor_desc.SetPlacement(ge::Placement::kPlacementDevice);
   std::vector<uintptr_t> tensor_ids;
@@ -113,50 +106,50 @@ py::memoryview LLMTensor::ToReadonlyMemoryView(ge::Tensor &tensor) {
 
   switch (data_type) {
     case ge::DT_BOOL: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<bool>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<bool>::value, dims, strides,
+                                         true);
     }
     case ge::DT_INT8: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int8_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int8_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_UINT8: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint8_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint8_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_FLOAT16:
     case ge::DT_BF16:
     case ge::DT_INT16: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int16_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int16_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_UINT16: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint16_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint16_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_INT32: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int32_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int32_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_UINT32: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint32_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint32_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_INT64: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int64_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<int64_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_UINT64: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint64_t>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<uint64_t>::value, dims,
+                                         strides, true);
     }
     case ge::DT_FLOAT: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<float>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<float>::value, dims,
+                                         strides, true);
     }
     case ge::DT_DOUBLE: {
-      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<double>::value,
-        dims, strides, true);
+      return py::memoryview::from_buffer(tensor.GetData(), item_size, py::format_descriptor<double>::value, dims,
+                                         strides, true);
     }
     default: {
       return py::memoryview::from_memory(tensor.GetData(), tensor.GetSize(), true);
@@ -166,7 +159,7 @@ py::memoryview LLMTensor::ToReadonlyMemoryView(ge::Tensor &tensor) {
 
 uintptr_t LLMTensor::BuildTensor(uintptr_t data_ptr, size_t data_size, int32_t data_type, std::vector<int64_t> &dims) {
   ge::Tensor tensor;
-  (void) LLMTensor::Init(data_ptr, data_size, static_cast<ge::DataType>(data_type), dims, tensor);
+  (void)LLMTensor::Init(data_ptr, data_size, static_cast<ge::DataType>(data_type), dims, tensor);
   return AddTensor(tensor);
 }
 
@@ -191,7 +184,7 @@ std::vector<std::string> LLMTensor::GetStringTensor(uintptr_t tensor_id) {
   if (tensor->GetData() != nullptr) {
     for (size_t i = 0UL; i < ele_num; ++i) {
       auto head = reinterpret_cast<const ge::StringHead *>(tensor->GetData()) + i;
-      (void) tensor_strs.emplace_back(reinterpret_cast<const char *>(tensor->GetData() + head->addr));
+      (void)tensor_strs.emplace_back(reinterpret_cast<const char *>(tensor->GetData() + head->addr));
     }
   }
   return tensor_strs;
@@ -250,11 +243,10 @@ std::vector<TensorIdAndDesc> LLMTensor::TensorsToTensorIdAndDescs(const std::vec
   std::vector<TensorIdAndDesc> results;
   for (auto &tensor : tensors) {
     auto tensor_id = LLMTensor::AddTensor(tensor);
-    auto tensor_tuple = std::make_tuple(tensor_id,
-                                        static_cast<int32_t>(tensor.GetDataType()),
+    auto tensor_tuple = std::make_tuple(tensor_id, static_cast<int32_t>(tensor.GetDataType()),
                                         tensor.GetTensorDesc().GetShape().GetDims());
     results.emplace_back(std::move(tensor_tuple));
   }
   return results;
 }
-}  // namespace ge
+}  // namespace llm

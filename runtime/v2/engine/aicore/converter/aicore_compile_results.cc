@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -88,7 +88,8 @@ ge::Status BuildBinData(const ge::NodePtr &node, const std::string &kernel_key, 
   bin_data->version = 0U;
   bin_data->length = kernel_bin->GetBinDataSize();
   FE_ASSERT_TRUE(bin_size > sizeof(*bin_data));
-  FE_ASSERT_EOK(memcpy_s(&(bin_data->placeholder), bin_size - sizeof(*bin_data), kernel_bin->GetBinData(), bin_data->length));
+  FE_ASSERT_EOK(
+      memcpy_s(&(bin_data->placeholder), bin_size - sizeof(*bin_data), kernel_bin->GetBinData(), bin_data->length));
   bin_data->data = nullptr;
   return ge::SUCCESS;
 }
@@ -176,8 +177,8 @@ bg::ValueHolderPtr SinkFFTSStaManualNodeBin(const ge::NodePtr &node, const bg::V
                                             const AttrKeys &keys) {
   std::string kernel_name;
   (void)ge::AttrUtils::GetStr(node->GetOpDesc(), keys.kernel_name_key, keys.raw_kernel_name_key, kernel_name);
-  GELOGD("Node[%s] kernel_attr: %s, kernel: %s", node->GetOpDesc()->GetNamePtr(),
-         keys.kernel_name_key.c_str(), kernel_name.c_str());
+  GELOGD("Node[%s] kernel_attr: %s, kernel: %s", node->GetOpDesc()->GetNamePtr(), keys.kernel_name_key.c_str(),
+         kernel_name.c_str());
   auto kernel_name_h = bg::ValueHolder::CreateConst(kernel_name.c_str(), kernel_name.size() + 1, true);
   std::vector<bg::ValueHolderPtr> sink_inputs;
   sink_inputs.emplace_back(kernel_name_h);
@@ -193,8 +194,8 @@ bg::ValueHolderPtr SinkFFTSStaManualNodeBin(const ge::NodePtr &node, const bg::V
   return bg::ValueHolder::CreateSingleDataOutput("SinkFFTSStaManualNodeBin", sink_inputs);
 }
 
-bool BuildAutoNodeBinData(std::vector<ge::OpKernelBinPtr> &kernel_bin_ptr_vec,
-                          std::vector<std::string> &magic_vec, std::vector<bg::ValueHolderPtr> &bin_vec) {
+bool BuildAutoNodeBinData(std::vector<ge::OpKernelBinPtr> &kernel_bin_ptr_vec, std::vector<std::string> &magic_vec,
+                          std::vector<bg::ValueHolderPtr> &bin_vec) {
   for (size_t i = 0; i < magic_vec.size(); ++i) {
     auto kernel_bin = kernel_bin_ptr_vec[i];
     auto tvm_magic_str = magic_vec[i];
@@ -312,8 +313,7 @@ ge::Status SinkStaticMixNode(const ge::NodePtr &node, std::vector<bg::ValueHolde
     const std::string attr_kernel_name = prefix + node->GetOpDesc()->GetName() + "_kernelname";
     std::string kernel_name;
     (void)ge::AttrUtils::GetStr(node->GetOpDesc(), attr_kernel_name, "_kernelname", kernel_name);
-    GELOGD("[%s]attr: %s, kernel: %s.", node->GetOpDesc()->GetNamePtr(),
-           attr_kernel_name.c_str(), kernel_name.c_str());
+    GELOGD("[%s]attr: %s, kernel: %s.", node->GetOpDesc()->GetNamePtr(), attr_kernel_name.c_str(), kernel_name.c_str());
     auto kernel_name_h = bg::ValueHolder::CreateConst(kernel_name.c_str(), kernel_name.size() + 1, true);
     sink_inputs.emplace_back(kernel_name_h);
     auto prefix_holder = bg::ValueHolder::CreateConst(prefix.c_str(), prefix.size() + 1, true);
@@ -359,8 +359,8 @@ gert::kernel::MIX_KERNEL_REQ_TYPE GetMixAiCoreKernelType(const ge::OpDescPtr &op
   bool is_enhanced_kernel = false;
   (void)ge::AttrUtils::GetBool(op_desc, kEnhancedMixKernle, is_enhanced_kernel);
   bool is_dynamic = (IsAllKernelTask(op_desc) && (!tiling_ret.empty() || is_static_and_reuse_binary));
-  GELOGD("op %s:%s is_dynamic flag is %u and is_enhanced_kernel flag is %u.", op_desc->GetNamePtr(), op_desc->GetTypePtr(), is_dynamic,
-         is_enhanced_kernel);
+  GELOGD("op %s:%s is_dynamic flag is %u and is_enhanced_kernel flag is %u.", op_desc->GetNamePtr(),
+         op_desc->GetTypePtr(), is_dynamic, is_enhanced_kernel);
   if (is_enhanced_kernel) {
     return is_dynamic ? gert::kernel::MIX_KERNEL_REQ_TYPE::ENHANCED_MIX_DYNAMIC
                       : gert::kernel::MIX_KERNEL_REQ_TYPE::ENHANCED_MIX_SINGLE_KERNEL;
@@ -379,11 +379,8 @@ bg::ValueHolderPtr SinkBinForAicore(const ge::NodePtr &node,
     return nullptr;
   }
   return BuildBinData(node, *task_def,
-                      AttrKeys{ge::OP_EXTATTR_NAME_TBE_KERNEL,
-                               ge::TVM_ATTR_NAME_MAGIC,
-                               ge::TVM_ATTR_NAME_METADATA,
-                               node->GetName() + "_kernelname",
-                               "_kernelname"});
+                      AttrKeys{ge::OP_EXTATTR_NAME_TBE_KERNEL, ge::TVM_ATTR_NAME_MAGIC, ge::TVM_ATTR_NAME_METADATA,
+                               node->GetName() + "_kernelname", "_kernelname"});
 }
 
 bg::ValueHolderPtr SinkFFTSStaAutoNodeBin(const ge::NodePtr &node) {
@@ -403,10 +400,8 @@ bg::ValueHolderPtr SinkFFTSStaAutoNodeBin(const ge::NodePtr &node) {
   }
   std::vector<std::string> tbe_kernel_name_vec;
   std::vector<std::string> meta_data_vec;
-  (void)ge::AttrUtils::GetListStr(node->GetOpDesc(),
-                                  ge::ATTR_NAME_THREAD_TBE_KERNEL_NAME, tbe_kernel_name_vec);
-  (void)ge::AttrUtils::GetListStr(node->GetOpDesc(),
-                                  ge::TVM_ATTR_NAME_THREAD_METADATA, meta_data_vec);
+  (void)ge::AttrUtils::GetListStr(node->GetOpDesc(), ge::ATTR_NAME_THREAD_TBE_KERNEL_NAME, tbe_kernel_name_vec);
+  (void)ge::AttrUtils::GetListStr(node->GetOpDesc(), ge::TVM_ATTR_NAME_THREAD_METADATA, meta_data_vec);
   size_t kernel_num = tbe_kernel_name_vec.size();
   if (kernel_num != kernel_bin_ptr_vec.size() || meta_data_vec.size() != kernel_num) {
     GELOGE(ge::FAILED, "Kernel name size[%zu] not equal kernel size[%zu]", tbe_kernel_name_vec.size(),
@@ -433,21 +428,16 @@ bg::ValueHolderPtr SinkFFTSStaAutoNodeBin(const ge::NodePtr &node) {
 
 bg::ValueHolderPtr SinkBinForFFTSAicore(const ge::NodePtr &node, std::vector<bg::ValueHolderPtr> &tiling_ret) {
   return SinkBinForFFTS(node, tiling_ret,
-                        AttrKeys{ge::OP_EXTATTR_NAME_TBE_KERNEL,
-                                 ge::TVM_ATTR_NAME_MAGIC,
-                                 ge::TVM_ATTR_NAME_METADATA,
-                                 node->GetName() + "_kernelname",
-                                 "_kernelname"});
+                        AttrKeys{ge::OP_EXTATTR_NAME_TBE_KERNEL, ge::TVM_ATTR_NAME_MAGIC, ge::TVM_ATTR_NAME_METADATA,
+                                 node->GetName() + "_kernelname", "_kernelname"});
 }
 
 bg::ValueHolderPtr SinkFFTSAtomicBin(const ge::NodePtr &node) {
   std::vector<bg::ValueHolderPtr> tiling_ret;
-  return SinkBinForFFTS(node, tiling_ret,
-                        AttrKeys{ge::EXT_ATTR_ATOMIC_TBE_KERNEL,
-                                 ge::ATOMIC_ATTR_TVM_MAGIC,
-                                 ge::ATOMIC_ATTR_TVM_METADATA,
-                                 node->GetName() + "_atomic_kernelname",
-                                 "_atomic_kernelname"});
+  return SinkBinForFFTS(
+      node, tiling_ret,
+      AttrKeys{ge::EXT_ATTR_ATOMIC_TBE_KERNEL, ge::ATOMIC_ATTR_TVM_MAGIC, ge::ATOMIC_ATTR_TVM_METADATA,
+               node->GetName() + "_atomic_kernelname", "_atomic_kernelname"});
 }
 
 bg::ValueHolderPtr SinkAtomicBin(const ge::NodePtr &node, const LoweringGlobalData::NodeCompileResult *compile_result) {
@@ -456,11 +446,8 @@ bg::ValueHolderPtr SinkAtomicBin(const ge::NodePtr &node, const LoweringGlobalDa
     return nullptr;
   }
   return BuildBinData(node, *task_def,
-                      AttrKeys{ge::EXT_ATTR_ATOMIC_TBE_KERNEL,
-                               ge::ATOMIC_ATTR_TVM_MAGIC,
-                               ge::ATOMIC_ATTR_TVM_METADATA,
-                               node->GetName() + "_atomic_kernelname",
-                               "_atomic_kernelname"});
+                      AttrKeys{ge::EXT_ATTR_ATOMIC_TBE_KERNEL, ge::ATOMIC_ATTR_TVM_MAGIC, ge::ATOMIC_ATTR_TVM_METADATA,
+                               node->GetName() + "_atomic_kernelname", "_atomic_kernelname"});
 }
 
 bg::ValueHolderPtr SinkBinForMixAiCore(const ge::NodePtr &node, std::vector<bg::ValueHolderPtr> &tiling_ret) {
@@ -483,8 +470,8 @@ bg::ValueHolderPtr SinkBinForMixAiCore(const ge::NodePtr &node, std::vector<bg::
     GELOGD("Static and reuse binary");
     is_static_and_reuse_binary = true;
   }
-  gert::kernel::MIX_KERNEL_REQ_TYPE kernel_type = GetMixAiCoreKernelType(node->GetOpDesc(), tiling_ret,
-                                                                         is_static_and_reuse_binary);
+  gert::kernel::MIX_KERNEL_REQ_TYPE kernel_type =
+      GetMixAiCoreKernelType(node->GetOpDesc(), tiling_ret, is_static_and_reuse_binary);
   size_t kernel_type_value = static_cast<size_t>(kernel_type);
   auto kernel_type_holder = bg::ValueHolder::CreateConst(&kernel_type_value, sizeof(kernel_type_value));
   sink_inputs.emplace_back(kernel_type_holder);
@@ -507,9 +494,9 @@ bg::ValueHolderPtr SinkBinForMixAiCore(const ge::NodePtr &node, std::vector<bg::
         sink_inputs.emplace_back(tiling_ret[TilingContext::kOutputTilingKey]);
         if (tiling_ret.size() == ((static_cast<size_t>(TilingContext::kOutputNum) << 1) + 1)) {
           sink_inputs.emplace_back(tiling_ret[(static_cast<size_t>(TilingContext::kOutputNum) +
-                                             static_cast<size_t>(TilingContext::kOutputTilingKey))]);
+                                               static_cast<size_t>(TilingContext::kOutputTilingKey))]);
         } else {
-        sink_inputs.emplace_back(tiling_ret[TilingContext::kOutputTilingKey]);
+          sink_inputs.emplace_back(tiling_ret[TilingContext::kOutputTilingKey]);
         }
       }
       if (SinkDynamicMixNode(node, sink_inputs, names_prefix) == ge::FAILED) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,19 +22,24 @@
 #include "opskernel_executor/ops_kernel_executor_manager.h"
 #include "macro_utils/dt_public_unscope.h"
 
-
 namespace ge {
 namespace {
 class HcclOpsKernelInfoStore : public OpsKernelInfoStore {
  public:
   HcclOpsKernelInfoStore() = default;
-  Status Initialize(const std::map<std::string, std::string> &options) override { return SUCCESS; }
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    return SUCCESS;
+  }
   // close opsKernelInfoStore
-  Status Finalize() override { return SUCCESS; }
+  Status Finalize() override {
+    return SUCCESS;
+  }
   // get all opsKernelInfo
   void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {}
   // whether the opsKernelInfoStore is supported based on the operator attribute
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override { return true; }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override {
+    return true;
+  }
   Status UnloadTask(GETaskInfo &task) {
     return SUCCESS;
   }
@@ -43,10 +48,8 @@ class HcclOpsKernelInfoStore : public OpsKernelInfoStore {
 
 class HcclTaskInfoTest : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(HcclTaskInfoTest, Calculate_Update_Args) {
@@ -110,7 +113,7 @@ TEST_F(HcclTaskInfoTest, Calculate_Update_Args) {
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
   model.SetDumpProperties(dump_properties);
-  std::vector<int64_t> host_args2({0,0,0});
+  std::vector<int64_t> host_args2({0, 0, 0});
   // model.allocation_ids_to_active_base_addr_.clear();
   // model.allocation_ids_to_active_base_addr_.push_back(12405233);
   // model.allocation_ids_to_active_base_addr_.push_back(12406543);
@@ -119,7 +122,8 @@ TEST_F(HcclTaskInfoTest, Calculate_Update_Args) {
   allocation_ids_to_active_base_addr_vec.push_back(12405233);
   allocation_ids_to_active_base_addr_vec.push_back(12406543);
   allocation_ids_to_active_base_addr_vec.push_back(12405409);
-  ret = hccl_task_info.UpdateHostArgs(allocation_ids_to_active_base_addr_vec, static_cast<void *>(host_args2.data()), 3 * sizeof(int64_t));
+  ret = hccl_task_info.UpdateHostArgs(allocation_ids_to_active_base_addr_vec, static_cast<void *>(host_args2.data()),
+                                      3 * sizeof(int64_t));
   EXPECT_EQ(ret, SUCCESS);
   hccl_task_info.InsertDumpOp("input");
   hccl_task_info.InsertDumpOp("output");
@@ -128,8 +132,9 @@ TEST_F(HcclTaskInfoTest, Calculate_Update_Args) {
   hccl_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.clear();
   hccl_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v1);
   hccl_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v2);
-  std::vector<int64_t> host_args({0,0});
-  ret = hccl_task_info.UpdateHostArgs(allocation_ids_to_active_base_addr_vec, static_cast<void *>(host_args.data()), 2 * sizeof(int64_t));
+  std::vector<int64_t> host_args({0, 0});
+  ret = hccl_task_info.UpdateHostArgs(allocation_ids_to_active_base_addr_vec, static_cast<void *>(host_args.data()),
+                                      2 * sizeof(int64_t));
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(host_args[0], 12405353);
   EXPECT_EQ(host_args[1], 12405409);
@@ -140,11 +145,11 @@ TEST_F(HcclTaskInfoTest, Calculate_Update_Args) {
 TEST_F(HcclTaskInfoTest, dsa_dump_test) {
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -236,22 +241,21 @@ TEST_F(HcclTaskInfoTest, dsa_dump_test) {
   task_info.support_refresh_ = true;
   task_info.PostDumpProcess(task_def);
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
   free(ValueToPtr(args[1].dev_addr));
 }
 
-
 TEST_F(HcclTaskInfoTest, dsa_dump_on_watcher_test) {
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -321,7 +325,7 @@ TEST_F(HcclTaskInfoTest, dsa_dump_on_watcher_test) {
 
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("output");
-  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"test"}); // dsa is layer op on watcher mode
+  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"test"});  // dsa is layer op on watcher mode
   model.SetDumpProperties(dump_properties);
 
   std::vector<uint64_t> active_mem_base_addr;
@@ -346,7 +350,7 @@ TEST_F(HcclTaskInfoTest, dsa_dump_on_watcher_test) {
   task_info.support_refresh_ = true;
   task_info.PostDumpProcess(task_def);
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));
@@ -356,11 +360,11 @@ TEST_F(HcclTaskInfoTest, dsa_dump_on_watcher_test) {
 TEST_F(HcclTaskInfoTest, dsa_dump_addr_refresh_test_not_support_fresh) {
   domi::TaskDef task_def;
   DSATaskInfo task_info;
-  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{},{},{}}), PARAM_INVALID);
+  EXPECT_EQ(task_info.Init(task_def, nullptr, {}, {}, {{}, {}, {}}), PARAM_INVALID);
 
   DavinciModel model(0, nullptr);
   task_def.set_stream_id(0);
-  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{},{},{}}), FAILED);
+  EXPECT_EQ(task_info.Init(task_def, &model, {}, {}, {{}, {}, {}}), FAILED);
 
   model.stream_list_.push_back((void *)0x12345);
   model.runtime_param_.mem_size = 10240;
@@ -429,7 +433,7 @@ TEST_F(HcclTaskInfoTest, dsa_dump_addr_refresh_test_not_support_fresh) {
   dsa_task_args->set_input2_value_or_addr("2");
 
   model.is_op_debug_reg_ = true;
-  
+
   task_info.support_refresh_ = true;
   TaskRunParam task_run_param = {};
   EXPECT_EQ(task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
@@ -454,7 +458,7 @@ TEST_F(HcclTaskInfoTest, dsa_dump_addr_refresh_test_not_support_fresh) {
   EXPECT_EQ(task_info.dump_args_, 0);
 
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
   free(ValueToPtr(args[0].dev_addr));

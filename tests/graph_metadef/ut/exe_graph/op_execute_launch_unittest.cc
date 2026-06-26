@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,29 +14,29 @@
 namespace gert {
 class OpExecuteLaunchContextUT : public testing::Test {};
 TEST_F(OpExecuteLaunchContextUT, GetInputOutputTest) {
-  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
+  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},   // shape
                               {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
-                              kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
+                              kOnDeviceHbm,                               // placement
+                              ge::DT_FLOAT16,                             // data type
                               (void *)0x12345};
-  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x234565};
-  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x45678};
-  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnHost,                                // placement
+                              kOnHost,                                     // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x12345};
-  gert::Tensor in_tensor_5 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_5 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnHost,                                // placement
+                              kOnHost,                                     // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x123345};
   gert::Tensor out_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
@@ -55,22 +55,22 @@ TEST_F(OpExecuteLaunchContextUT, GetInputOutputTest) {
                                ge::DT_FLOAT16,                              // data type
                                (void *)0x642354};
 
-    void *op_api_params = (void *)0x12;
-    auto ws_addr_vector = ContinuousVector::Create<TensorData *>(3);
-    auto *ws_addr_cont_vec = reinterpret_cast<TypedContinuousVector<TensorData *> *>(ws_addr_vector.get());
-    ws_addr_cont_vec->SetSize(3);
-    auto tensor_data_addr = static_cast<TensorData**>(ws_addr_cont_vec->MutableData());
-    auto td1 = TensorData((void *)0x34, nullptr);
-    auto td2 = TensorData((void *)0x35, nullptr);
-    auto td3 = TensorData((void *)0x36, nullptr);
-    tensor_data_addr[0] = &td1;
-    tensor_data_addr[1] = &td2;
-    tensor_data_addr[2] = &td3;
-    auto ws_size_vector = ContinuousVector::Create<size_t>(1);
-    auto *ws_size_cont_vec = reinterpret_cast<TypedContinuousVector<size_t> *>(ws_size_vector.get());
-    ws_size_cont_vec->MutableData()[0] = 32U;
-    ws_size_cont_vec->SetSize(1);
-    rtStream stream = (void *)0x56;
+  void *op_api_params = (void *)0x12;
+  auto ws_addr_vector = ContinuousVector::Create<TensorData *>(3);
+  auto *ws_addr_cont_vec = reinterpret_cast<TypedContinuousVector<TensorData *> *>(ws_addr_vector.get());
+  ws_addr_cont_vec->SetSize(3);
+  auto tensor_data_addr = static_cast<TensorData **>(ws_addr_cont_vec->MutableData());
+  auto td1 = TensorData((void *)0x34, nullptr);
+  auto td2 = TensorData((void *)0x35, nullptr);
+  auto td3 = TensorData((void *)0x36, nullptr);
+  tensor_data_addr[0] = &td1;
+  tensor_data_addr[1] = &td2;
+  tensor_data_addr[2] = &td3;
+  auto ws_size_vector = ContinuousVector::Create<size_t>(1);
+  auto *ws_size_cont_vec = reinterpret_cast<TypedContinuousVector<size_t> *>(ws_size_vector.get());
+  ws_size_cont_vec->MutableData()[0] = 32U;
+  ws_size_cont_vec->SetSize(1);
+  rtStream stream = (void *)0x56;
   auto op_execute_holder = OpExecuteLaunchContextFaker()
                                .IrInstanceNum({1, 2, 1, 0, 1})
                                .IrOutputInstanceNum({2, 1})
@@ -157,4 +157,4 @@ TEST_F(OpExecuteLaunchContextUT, GetInputOutputTest) {
   ASSERT_EQ(workspace_sizes->GetData()[0], 32U);
   ASSERT_EQ(context->GetStream(), stream);
 }
-}
+}  // namespace gert

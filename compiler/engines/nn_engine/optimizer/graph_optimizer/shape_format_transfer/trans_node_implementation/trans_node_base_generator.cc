@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,9 +25,9 @@ namespace fe {
 namespace {
 const std::string kAssign = "Assign";
 const std::string kStageAddEgFreshTransInfo = "[GraphOptJdgInst][ShapeTrans][AddEgFreshTransInfo]";
-const std::unordered_set<ge::Format> kBaseFormatOf3D = {
-  ge::FORMAT_NCDHW, ge::FORMAT_NDHWC, ge::FORMAT_DHWCN, ge::FORMAT_DHWNC};
-}
+const std::unordered_set<ge::Format> kBaseFormatOf3D = {ge::FORMAT_NCDHW, ge::FORMAT_NDHWC, ge::FORMAT_DHWCN,
+                                                        ge::FORMAT_DHWNC};
+}  // namespace
 TransNodeBaseGenerator::TransNodeBaseGenerator(FEOpsKernelInfoStorePtr fe_ops_store_ptr, TransInfoPtr trans_info_ptr)
     : trans_info_ptr_(trans_info_ptr), fe_ops_store_info_ptr_(fe_ops_store_ptr) {}
 
@@ -40,14 +40,14 @@ ge::OpDescPtr TransNodeBaseGenerator::CreateBasicOpDescForTransNode(const string
 
   ge::OpDescPtr op_desc_ptr = nullptr;
   FE_MAKE_SHARED(op_desc_ptr = std::make_shared<ge::OpDesc>(op_name_temp.str().c_str(), op_type), return nullptr);
-  FE_CHECK(op_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[ShapeTrans][AddEgFreshTransInfo] Create op desc failed."), return nullptr);
+  FE_CHECK(op_desc_ptr == nullptr, REPORT_FE_ERROR("[ShapeTrans][AddEgFreshTransInfo] Create op desc failed."),
+           return nullptr);
   FE_LOGD("Create op [%s].", op_desc_ptr->GetName().c_str());
   return op_desc_ptr;
 }
 
-void TransNodeBaseGenerator::GetGroupIdFromSrcOrDst(ge::OpDescPtr &op_desc_ptr,
-    uint32_t &parallel_group_id, uint32_t &heavy_op_parallel_group_id) {
+void TransNodeBaseGenerator::GetGroupIdFromSrcOrDst(ge::OpDescPtr &op_desc_ptr, uint32_t &parallel_group_id,
+                                                    uint32_t &heavy_op_parallel_group_id) {
   if (IsHeavyOp(op_desc_ptr)) {
     ge::AttrUtils::GetInt(op_desc_ptr, ge::ATTR_NAME_PARALLEL_GROUP_ID, heavy_op_parallel_group_id);
   } else {
@@ -56,18 +56,18 @@ void TransNodeBaseGenerator::GetGroupIdFromSrcOrDst(ge::OpDescPtr &op_desc_ptr,
 }
 
 void TransNodeBaseGenerator::SetNodeParallelGroupId(ge::OpDescPtr &op_desc_ptr, ge::OpDescPtr &src_op_desc,
-      ge::OpDescPtr &dst_op_desc) {
+                                                    ge::OpDescPtr &dst_op_desc) {
   uint32_t parallel_group_id = DefaultGroupID;
   uint32_t heavy_op_parallel_group_id = DefaultGroupID;
   GetGroupIdFromSrcOrDst(src_op_desc, parallel_group_id, heavy_op_parallel_group_id);
   GetGroupIdFromSrcOrDst(dst_op_desc, parallel_group_id, heavy_op_parallel_group_id);
   if (heavy_op_parallel_group_id != static_cast<uint32_t>(DefaultGroupID)) {
-    FE_LOGD("Create op [%s], set group ID from heavy op; group ID is %u.",
-        op_desc_ptr->GetName().c_str(), heavy_op_parallel_group_id);
+    FE_LOGD("Create op [%s], set group ID from heavy op; group ID is %u.", op_desc_ptr->GetName().c_str(),
+            heavy_op_parallel_group_id);
     ge::AttrUtils::SetInt(op_desc_ptr, ge::ATTR_NAME_PARALLEL_GROUP_ID, heavy_op_parallel_group_id);
   } else if (parallel_group_id != static_cast<uint32_t>(DefaultGroupID)) {
-    FE_LOGD("Create op [%s], set group Id from general op; the group Id is %u.",
-        op_desc_ptr->GetName().c_str(), parallel_group_id);
+    FE_LOGD("Create op [%s], set group Id from general op; the group Id is %u.", op_desc_ptr->GetName().c_str(),
+            parallel_group_id);
     ge::AttrUtils::SetInt(op_desc_ptr, ge::ATTR_NAME_PARALLEL_GROUP_ID, parallel_group_id);
   }
 }
@@ -81,7 +81,7 @@ Status TransNodeBaseGenerator::SetTensorDescInfo(ge::OpDescPtr &op_desc_ptr) con
   bool is_from_const_op = false;
   (void)ge::AttrUtils::GetBool(trans_info_ptr_->src_op_desc, kIsComeFromConstOp, is_from_const_op);
   bool is_src_from_const_op = is_from_const_op || trans_info_ptr_->src_op_desc->GetType() == CONSTANT ||
-          trans_info_ptr_->src_op_desc->GetType() == CONSTANTOP;
+                              trans_info_ptr_->src_op_desc->GetType() == CONSTANTOP;
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kIsComeFromConstOp, is_src_from_const_op);
   for (auto output_tensor : op_desc_ptr->GetAllOutputsDescPtr()) {
     output_tensor->SetOriginFormat(trans_info_ptr_->src_out_original_format);
@@ -89,8 +89,7 @@ Status TransNodeBaseGenerator::SetTensorDescInfo(ge::OpDescPtr &op_desc_ptr) con
     if (!is_src_from_const_op) {
       GraphPassUtil::SetOutputDescAttr(trans_info_ptr_->src_out_tensor_desc_ptr,
                                        static_cast<int64_t>(trans_info_ptr_->src_anchor->GetIdx()),
-                                       trans_info_ptr_->src_op_desc,
-                                       output_tensor);
+                                       trans_info_ptr_->src_op_desc, output_tensor);
     }
   }
   return SUCCESS;
@@ -138,8 +137,8 @@ Status TransNodeBaseGenerator::SetNewShapeRange(const ge::OpDescPtr &op_desc_ptr
 }
 
 Status TransNodeBaseGenerator::AddNecessaryPeerNodes(ge::ComputeGraph &fused_graph, ge::NodePtr new_node) const {
-  (void) fused_graph;
-  (void) new_node;
+  (void)fused_graph;
+  (void)new_node;
   return SUCCESS;
 }
 
@@ -157,7 +156,7 @@ Status TransNodeBaseGenerator::AddEdgesAndFreshTransInfo(ge::ComputeGraph &fused
    * The variable from the output of Assign will depend on the
    * AssignAdd or AssignSub. Only after calculating AssignAdd and
    * AssignSub we can execute X.
-   * If Insert a node A between Assgin and X.
+   * If Insert a node A between Assign and X.
    * Every control edge to the node X should be
    * moved to the node A. So we use InsertNodeBefore. */
   if (trans_info_ptr_->src_op_desc_type == kAssign || InsertNodeBeforeJudge()) {
@@ -244,8 +243,8 @@ bool TransNodeBaseGenerator::InsertNodeBeforeJudge() const {
       insert_node_before_flage = ref_origin_name_set.count(src_peer_input_nodes.at(0)->GetName()) != 0;
     }
   }
-  insert_node_before_flage = insert_node_before_flage ||
-      ref_origin_name_set.count(trans_info_ptr_->src_node_ptr->GetName());
+  insert_node_before_flage =
+      insert_node_before_flage || ref_origin_name_set.count(trans_info_ptr_->src_node_ptr->GetName());
   return insert_node_before_flage;
 }
 
@@ -305,8 +304,7 @@ Status TransNodeBaseGenerator::TransformDimsWithFormat(bool increasing_flag) con
   return SUCCESS;
 }
 
-bool TransNodeBaseGenerator::TransNodeCheckAccuracySupported(const ge::OpDescPtr &op_desc_ptr,
-                                                             bool real_query) const {
+bool TransNodeBaseGenerator::TransNodeCheckAccuracySupported(const ge::OpDescPtr &op_desc_ptr, bool real_query) const {
   FE_CHECK_NOTNULL(fe_ops_store_info_ptr_);
 
   /* Check trans-nodes supported in cache */
@@ -332,8 +330,7 @@ bool TransNodeBaseGenerator::Is3DFormat(const ge::Format &format) {
 bool TransNodeBaseGenerator::TransNodeCheckSupportedByFormatTune(ge::ComputeGraph &fused_graph,
                                                                  const ge::OpDescPtr &op_desc_ptr) {
   bool is_need_re_precompile = false;
-  if (ge::AttrUtils::GetBool(fused_graph, NEED_RE_PRECOMPILE, is_need_re_precompile) &&
-      is_need_re_precompile) {
+  if (ge::AttrUtils::GetBool(fused_graph, NEED_RE_PRECOMPILE, is_need_re_precompile) && is_need_re_precompile) {
     FE_LOGD("[FormatTune][ShapeTrans][CheckSupported] Graph[%s] get attr NEED_RE_PRECOMPILE.",
             fused_graph.GetName().c_str());
     if (!TransNodeCheckAccuracySupported(op_desc_ptr, true)) {

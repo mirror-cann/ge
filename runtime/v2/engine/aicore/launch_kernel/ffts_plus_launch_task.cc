@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ void DumpFftsPlusTask(void *const desc_buf, const size_t desc_buf_len) {
     uint32_t *const buf = static_cast<uint32_t *>(desc_buf) + (i * kDescBufLen);
     for (size_t j = 0UL; j < kDescBufLen; ++j) {
       if (buf[j] > 0U) {
-        ss << "idx:[" << std::dec << j << "]=[0x" << std::setfill('0') << std::setw(kHexDumpWidth) << std::hex
-           << buf[j] << "]";
+        ss << "idx:[" << std::dec << j << "]=[0x" << std::setfill('0') << std::setw(kHexDumpWidth) << std::hex << buf[j]
+           << "]";
       }
     }
     GELOGD("Dump FftsPlusTask-The %zu context: [%s]", i, ss.str().c_str());
@@ -81,11 +81,11 @@ ge::graphStatus LaunchFFTSPlusTaskNoCopy(KernelContext *context) {
     return ge::GRAPH_SUCCESS;
   }
   auto stream = context->GetInputValue<rtStream_t>(static_cast<size_t>(0));
-  auto task_info_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(1));
+  auto task_info_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(1));
   FE_ASSERT_NOTNULL(task_info_para);
-  auto host_task_info = reinterpret_cast<TransTaskInfo*>(task_info_para->host_addr);
+  auto host_task_info = reinterpret_cast<TransTaskInfo *>(task_info_para->host_addr);
   FE_ASSERT_NOTNULL(host_task_info);
-  auto dev_task_info = reinterpret_cast<TransTaskInfo*>(task_info_para->dev_addr);
+  auto dev_task_info = reinterpret_cast<TransTaskInfo *>(task_info_para->dev_addr);
   FE_ASSERT_NOTNULL(dev_task_info);
   size_t buf_offset = host_task_info->offsets[static_cast<size_t>(InfoStType::kDescBuf)];
   void *ori_desc_buf = const_cast<void *>(host_task_info->rt_task_info.descBuf);
@@ -96,8 +96,9 @@ ge::graphStatus LaunchFFTSPlusTaskNoCopy(KernelContext *context) {
          host_task_info->rt_task_info.descBufLen);
   host_task_info->rt_task_info.descAddrType = RT_FFTS_PLUS_CTX_DESC_ADDR_TYPE_DEVICE;
   // need set descBufAddrType with 1 to tell rts not h2d desc buf
-  const uint32_t dump_flag = (host_task_info->rt_task_info.fftsPlusDumpInfo.loadDumpInfo == nullptr ?
-    RT_KERNEL_DEFAULT : RT_KERNEL_FFTSPLUS_DYNAMIC_SHAPE_DUMPFLAG);
+  const uint32_t dump_flag = (host_task_info->rt_task_info.fftsPlusDumpInfo.loadDumpInfo == nullptr
+                                  ? RT_KERNEL_DEFAULT
+                                  : RT_KERNEL_FFTSPLUS_DYNAMIC_SHAPE_DUMPFLAG);
   GE_ASSERT_EQ(ge::rtFftsPlusTaskLaunchWithFlag(&host_task_info->rt_task_info, stream, dump_flag), RT_ERROR_NONE);
   host_task_info->rt_task_info.descBuf = ori_desc_buf;
   GELOGD("Update descbuf to origin: %lx.", ori_desc_buf);

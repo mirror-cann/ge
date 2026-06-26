@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,8 +71,8 @@ ge::graphStatus CopyWeightFromFileAsync(const void *const curr_dev_ptr, const Fi
     }
     GELOGI("copy %zu bytes to memory.", copy_len_once);
     void *const cur_dev_ptr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(curr_dev_ptr) + used_memory);
-    const aclError rts_error = aclrtMemcpyAsync(cur_dev_ptr, left_size - used_memory,
-        &compress_nodes[0U], copy_len_once, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream);
+    const aclError rts_error = aclrtMemcpyAsync(cur_dev_ptr, left_size - used_memory, &compress_nodes[0U],
+                                                copy_len_once, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream);
     if (rts_error != ACL_SUCCESS) {
       GELOGE(ge::GRAPH_FAILED, "copy failed, result code = %d.", rts_error);
       ret = RT_ERROR_TO_GE_STATUS(rts_error);
@@ -87,8 +87,8 @@ ge::graphStatus CopyWeightFromFileAsync(const void *const curr_dev_ptr, const Fi
 }
 
 ge::graphStatus AllocHbmMemForFileConstant(const size_t tensor_size, KernelContext *context) {
-  auto gert_allocator = context->GetInputValue<gert::GertAllocator *>(
-      static_cast<size_t>(FileConstantKernelInputIdx::kAllocatorIdx));
+  auto gert_allocator =
+      context->GetInputValue<gert::GertAllocator *>(static_cast<size_t>(FileConstantKernelInputIdx::kAllocatorIdx));
   KERNEL_CHECK_NOTNULL(gert_allocator);
   auto tensor_data =
       context->GetOutputPointer<GertTensorData>(static_cast<size_t>(FileConstantKernelOutputIdx::kOutAddrIdx));
@@ -96,9 +96,9 @@ ge::graphStatus AllocHbmMemForFileConstant(const size_t tensor_size, KernelConte
   auto mem_block = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(tensor_size));
   KERNEL_CHECK_NOTNULL(mem_block);
   KERNEL_CHECK(mem_block->GetAddr() != nullptr, "malloc failed, tensor size=%zu", tensor_size);
-  *tensor_data = TensorUtils::ToGertTensorData(
-      mem_block, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
-  KERNEL_TRACE(TRACE_STR_ALLOC_MEM", tensor size %zu", gert_allocator->GetStreamId(), mem_block, mem_block->GetAddr(),
+  *tensor_data =
+      TensorUtils::ToGertTensorData(mem_block, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
+  KERNEL_TRACE(TRACE_STR_ALLOC_MEM ", tensor size %zu", gert_allocator->GetStreamId(), mem_block, mem_block->GetAddr(),
                mem_block->GetSize(), tensor_size);
   return ge::GRAPH_SUCCESS;
 }
@@ -174,8 +174,7 @@ ge::graphStatus FileConstantKernel(KernelContext *context) {
     StorageShape shape;
     GE_ASSERT_SUCCESS(var_mgr->GetVarShapeAndMemory(var_id, shape, tmp_td),
                       "Var manager %p get variable '%s' shape and memory failed", var_mgr, var_id);
-    auto gtd =
-        context->GetOutputPointer<GertTensorData>(static_cast<size_t>(FileConstantKernelOutputIdx::kOutAddrIdx));
+    auto gtd = context->GetOutputPointer<GertTensorData>(static_cast<size_t>(FileConstantKernelOutputIdx::kOutAddrIdx));
     GE_ASSERT_NOTNULL(gtd);
     auto gert_allocator =
         context->GetInputValue<GertAllocator *>(static_cast<size_t>(FileConstantKernelInputIdx::kAllocatorIdx));
@@ -213,8 +212,7 @@ ge::graphStatus FileConstantKernel(KernelContext *context) {
 
 // user set FileConstant device memory via aclmdlSetExternalWeightAddress
 static ge::graphStatus FileConstantUserMemKernel(KernelContext *context) {
-  const auto user_mem =
-      context->GetInputValue<void *>(static_cast<size_t>(FileConstantUserMemKernelInput::kUserMem));
+  const auto user_mem = context->GetInputValue<void *>(static_cast<size_t>(FileConstantUserMemKernelInput::kUserMem));
   GE_ASSERT_NOTNULL(user_mem);
   const auto mem_size =
       context->GetInputValue<size_t>(static_cast<size_t>(FileConstantUserMemKernelInput::kUserMemSize));

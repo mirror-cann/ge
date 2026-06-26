@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 # content of test_sample.py
-import unittest
 import ctypes
-from llm_datadist_v1.utils.utils import (check_uint64, check_int64,check_int32,
-                                      check_uint32, check_list_int32, check_uint16, check_uint8)
+import unittest
+
+from llm_datadist_v1.utils.utils import (
+    check_int32,
+    check_int64,
+    check_list_int32,
+    check_uint8,
+    check_uint16,
+    check_uint32,
+    check_uint64,
+)
 
 
 class TensorUt(unittest.TestCase):
@@ -24,7 +32,6 @@ class TensorUt(unittest.TestCase):
 
     def tearDown(self) -> None:
         print("End ", self._testMethodName)
-
 
     def test_check_exception(self):
         with self.assertRaises(ValueError):

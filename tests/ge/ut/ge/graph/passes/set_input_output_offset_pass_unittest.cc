@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,18 +19,18 @@
 using namespace domi;
 using namespace ge;
 
-class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
-{
+class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
+
  public:
-/*
-*
-*              Data
-*               |
-*             Conv2D
-*/
+  /*
+   *
+   *              Data
+   *               |
+   *             Conv2D
+   */
   void MakeGraphDataInParent1(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -53,12 +53,12 @@ class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
 
-/*
-*
-*              Data
-*               |\
-*             AllReduce
-*/
+  /*
+   *
+   *              Data
+   *               |\
+   *             AllReduce
+   */
   void MakeGraphDataInParent2(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -83,13 +83,13 @@ class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(1));
   }
 
-/*
-*              Add
-*               |
-*          Phonyconcat
-*             /     \
-*           relu   Netoutput
-*/
+  /*
+   *              Add
+   *               |
+   *          Phonyconcat
+   *             /     \
+   *           relu   Netoutput
+   */
   void MakeGraphDataInParent3(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -127,11 +127,11 @@ class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
     GraphUtils::AddEdge(phony_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
 
-/* 设置一个Graph，使其拥有如下网络结构
-*          HcomBroadcast
-*               |
-*           Netoutput
-*/
+  /* 设置一个Graph，使其拥有如下网络结构
+   *          HcomBroadcast
+   *               |
+   *           Netoutput
+   */
   void MakeGraphDataInParent4(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -156,10 +156,10 @@ class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
     GraphUtils::AddEdge(hcom_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
   /* 设置一个Graph，使其拥有如下网络结构
-  *          HcomBroadcast
-  *           /    |
-  *               Netoutput
-  */
+   *          HcomBroadcast
+   *           /    |
+   *               Netoutput
+   */
   void HcomOutputSuspend(ComputeGraphPtr &graph) {
     auto desc_ptr = MakeShared<ge::GeTensorDesc>();
     auto desc = *desc_ptr;
@@ -186,7 +186,7 @@ class UTEST_graph_passes_set_input_output_offset_pass : public testing::Test
   }
 };
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_succ){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_succ) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   MakeGraphDataInParent1(graph);
   graph->TopologicalSorting();
@@ -195,7 +195,7 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_succ){
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_failed){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_failed) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   MakeGraphDataInParent2(graph);
   graph->TopologicalSorting();
@@ -204,7 +204,7 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetInputOffset_failed){
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForConcat_succ){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForConcat_succ) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   MakeGraphDataInParent3(graph);
   graph->TopologicalSorting();
@@ -218,7 +218,7 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForConcat
   EXPECT_TRUE(opdesc->HasAttr(ATTR_ZERO_COPY_BASIC_OFFSET));
 }
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_succ){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_succ) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   MakeGraphDataInParent4(graph);
   graph->TopologicalSorting();
@@ -227,7 +227,7 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_s
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_HcomOutputSuspend){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_HcomOutputSuspend) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   HcomOutputSuspend(graph);
   graph->TopologicalSorting();
@@ -236,7 +236,7 @@ TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_H
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_HcomOutputNotConnectNetoutput){
+TEST_F(UTEST_graph_passes_set_input_output_offset_pass, SetOutputOffsetForHcom_HcomOutputNotConnectNetoutput) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   HcomOutputSuspend(graph);
   graph->TopologicalSorting();

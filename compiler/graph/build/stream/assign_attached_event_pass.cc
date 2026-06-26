@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@ const std::string RES_TYPE_EVENT = "event";
 const std::string ATTACHED_SYNC_RES_TYPE = "_attached_sync_res_type";
 const std::string ATTACHED_SYNC_RES_KEY = "_attached_sync_res_key";
 const std::string ATTR_NAME_ATTACHED_SYNC_RES_INFO = "_attached_sync_res_info";
-}
+}  // namespace
 namespace ge {
 Status AssignAttachedEventPass::Run(const ComputeGraphPtr &graph, uint32_t &event_num) {
   GE_ASSERT_NOTNULL(graph);
@@ -70,16 +70,14 @@ Status AssignAttachedEventPass::CheckAndGetAttachedEventInfo(const OpDescPtr &op
     AttachedEventInfo cur_attached_event_info;
     cur_attached_event_info.attached_policy = GROUP_POLICY;
     cur_attached_event_info.attached_group_name = DEFAULT_EVENT_INFO_GROUP_NAME;
-    cur_attached_event_info.attached_resource_type = 0U; // 默认类型
-    cur_attached_event_info.attached_resource_num = 1U; // 默认数
+    cur_attached_event_info.attached_resource_type = 0U;  // 默认类型
+    cur_attached_event_info.attached_resource_num = 1U;   // 默认数
     std::string res_key;
-    res_key.append(op_desc->GetName())
-           .append("_attr_")
-           .append(std::to_string(attr_cnt++));
-    (void)AttrUtils::GetStr(attr, ATTACHED_SYNC_RES_KEY, res_key); // 不设属性默认不复用
+    res_key.append(op_desc->GetName()).append("_attr_").append(std::to_string(attr_cnt++));
+    (void)AttrUtils::GetStr(attr, ATTACHED_SYNC_RES_KEY, res_key);  // 不设属性默认不复用
     cur_attached_event_info.attached_reuse_key = res_key;
     GELOGD("Op [%s %s] get [%s] successfully.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
-            cur_attached_event_info.ToString(RES_TYPE_EVENT).c_str());
+           cur_attached_event_info.ToString(RES_TYPE_EVENT).c_str());
 
     attached_event_info.emplace_back(cur_attached_event_info);
   }
@@ -109,44 +107,44 @@ Status AssignAttachedEventPass::CheckAndGetAttachedEventInfoV2(const ge::OpDescP
   }
   for (auto &attr : res_info_attrs) {
     auto res_type = static_cast<int64_t>(SyncResType::kSyncResInvalid);
-    (void) AttrUtils::GetInt(attr, ATTR_NAME_ATTACHED_RESOURCE_TYPE, res_type);
+    (void)AttrUtils::GetInt(attr, ATTR_NAME_ATTACHED_RESOURCE_TYPE, res_type);
     if (res_type != static_cast<int64_t>(SyncResType::kSyncResEvent)) {
       GELOGI("Resource type [%d] is not equal to event type[%d], will not assign attached event", res_type,
              static_cast<int64_t>(SyncResType::kSyncResEvent));
       continue;
     }
     AttachedEventInfoV2 cur_attached_event_info;
-    (void) AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_NAME, cur_attached_event_info.name);
-    (void) AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_event_info.reuse_key);
+    (void)AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_NAME, cur_attached_event_info.name);
+    (void)AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_event_info.reuse_key);
     cur_attached_event_info.reuse_key =
         CalcuSyncResourceReuseKey(cur_attached_event_info.name, cur_attached_event_info.reuse_key, op_desc);
     // 更新计算后的reuse_key
-    (void) AttrUtils::SetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_event_info.reuse_key);
-    (void) AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, cur_attached_event_info.required);
+    (void)AttrUtils::SetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_event_info.reuse_key);
+    (void)AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, cur_attached_event_info.required);
 
     GELOGD("Op [%s %s] get [%s] successfully.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
            cur_attached_event_info.ToString(RES_TYPE_EVENT).c_str());
 
     attached_event_info.emplace_back(cur_attached_event_info);
   }
-  (void) AttrUtils::SetListNamedAttrs(op_desc, ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, res_info_attrs);
+  (void)AttrUtils::SetListNamedAttrs(op_desc, ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST, res_info_attrs);
   return SUCCESS;
 }
 
 Status AssignAttachedEventPass::SetAttachedEventV2(const OpDescPtr &op_desc, const std::string &reuse_key,
-                                                 int64_t &event_id) {
+                                                   int64_t &event_id) {
   GE_ASSERT_NOTNULL(op_desc);
   std::vector<NamedAttrs> attached_sync_res_info_list_from_attr;
   GELOGD("Try set attached event id %d with reuse_key %s, op %s [%s]", event_id, reuse_key.c_str(),
          op_desc->GetName().c_str(), op_desc->GetType().c_str());
   if (!AttrUtils::GetListNamedAttrs(op_desc, ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
-                                   attached_sync_res_info_list_from_attr)) {
+                                    attached_sync_res_info_list_from_attr)) {
     return ge::SUCCESS;
   }
 
   for (auto &attr : attached_sync_res_info_list_from_attr) {
     std::string reuse_key_from_attr;
-    (void) AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, reuse_key_from_attr);
+    (void)AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, reuse_key_from_attr);
     GELOGD("Try to set event id, reuse key is %s, reuse_key_from_attr is %s", reuse_key.c_str(),
            reuse_key_from_attr.c_str());
     if (reuse_key != reuse_key_from_attr) {

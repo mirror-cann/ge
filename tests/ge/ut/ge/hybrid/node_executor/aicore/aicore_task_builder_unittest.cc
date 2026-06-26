@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[2];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 class UtestAiCoreTaskBuilder : public testing::Test {
@@ -62,7 +62,7 @@ TEST_F(UtestAiCoreTaskBuilder, test_load_aicpu_task) {
   task_def1->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   domi::KernelDef *kernel_def1 = task_def1->mutable_kernel();
   domi::KernelContext *context1 = kernel_def1->mutable_context();
-  context1->set_kernel_type(6);    // ccKernelType::AI_CPU
+  context1->set_kernel_type(6);  // ccKernelType::AI_CPU
   kernel_def1->set_args(reinterpret_cast<const char *>(&args), args.head.length);
   kernel_def1->set_args_size(args.head.length);
   task_defs.emplace_back(*task_def1);
@@ -77,14 +77,14 @@ TEST_F(UtestAiCoreTaskBuilder, test_load_aicpu_task) {
   task_def2->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   auto kernel_def2 = task_def2->mutable_kernel_with_handle();
   auto context2 = kernel_def2->mutable_context();
-  context2->set_kernel_type(2);    // ccKernelType::TE
+  context2->set_kernel_type(2);  // ccKernelType::TE
   task_defs.emplace_back(*task_def2);
 
   domi::TaskDef *task_def3 = model_task_def->add_task();
   task_def3->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   domi::KernelDef *kernel_def3 = task_def3->mutable_kernel();
   domi::KernelContext *context3 = kernel_def3->mutable_context();
-  context3->set_kernel_type(2);    // ccKernelType::TE
+  context3->set_kernel_type(2);  // ccKernelType::TE
   task_defs.emplace_back(*task_def3);
   std::unique_ptr<AiCoreNodeTask> aicore_task = MakeUnique<AiCoreNodeTask>();
   AiCoreTaskBuilder builder(node, task_defs, hybrid_model, *aicore_task);
@@ -103,7 +103,7 @@ TEST_F(UtestAiCoreTaskBuilder, load_atomic_workspace) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("workspace", DATA);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   NodePtr node = graph->AddNode(op_desc);
-  
+
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   HybridModel hybrid_model(ge_root_model);
@@ -127,4 +127,4 @@ TEST_F(UtestAiCoreTaskBuilder, load_atomic_workspace) {
   op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info);
   EXPECT_EQ(builder.LoadAtomicWorkspace(), ge::SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

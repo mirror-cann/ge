@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,9 @@ void LinkEdge(NodePtr src_node, int32_t src_index, NodePtr dst_node, int32_t dst
   }
 }
 
-NodePtr CreateNode(OpDescPtr op, ComputeGraphPtr owner_graph) { return owner_graph->AddNode(op); }
+NodePtr CreateNode(OpDescPtr op, ComputeGraphPtr owner_graph) {
+  return owner_graph->AddNode(op);
+}
 
 void CompareShape(const vector<int64_t> &shape1, const vector<int64_t> &shape2) {
   EXPECT_EQ(shape1.size(), shape2.size());
@@ -197,12 +199,12 @@ TEST(UtestGeModelSerialize, simple) {
   TensorUtils::SetSize(tensor_desc, 100);
   node1_op->SetAttr("node_key7", GeAttrValue::CreateFrom<GeTensorDesc>(tensor_desc));
   node1_op->SetAttr("node_key8", GeAttrValue::CreateFrom<std::vector<GeTensorDesc>>(
-                                    {GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_INT32),
-                                     GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_UINT32),
-                                     GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_INT64),
-                                     GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_UINT64),
-                                     GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_BOOL),
-                                     GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_DOUBLE)}));
+                                     {GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_INT32),
+                                      GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_UINT32),
+                                      GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_INT64),
+                                      GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_UINT64),
+                                      GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_BOOL),
+                                      GeTensorDesc(GeShape({2, 2, 2}), FORMAT_NCHW, DT_DOUBLE)}));
 
   LinkEdge(input, 0, node1, 0);
   LinkEdge(w1, 0, node1, 1);
@@ -656,8 +658,7 @@ TEST(UtestGeModelSerialize, test_invalid_attrs) {
     input_op->AddOutputDesc(GeTensorDesc(GeShape({12, 32, 64, 64}), FORMAT_NCHW, DT_FLOAT));
 
     NamedAttrs named_attrs;
-    EXPECT_EQ(named_attrs.SetAttr("key1",
-                                  GeAttrValue::CreateFrom<proto::GraphDef>(proto::GraphDef())), GRAPH_SUCCESS);
+    EXPECT_EQ(named_attrs.SetAttr("key1", GeAttrValue::CreateFrom<proto::GraphDef>(proto::GraphDef())), GRAPH_SUCCESS);
     GeAttrValue value;
     EXPECT_EQ(named_attrs.GetAttr("key1", value), GRAPH_SUCCESS);
     EXPECT_TRUE(!value.IsEmpty());
@@ -671,9 +672,8 @@ TEST(UtestGeModelSerialize, test_invalid_attrs) {
     input_op->AddOutputDesc(GeTensorDesc(GeShape({12, 32, 64, 64}), FORMAT_NCHW, DT_FLOAT));
 
     NamedAttrs named_attrs;
-    EXPECT_EQ(named_attrs.
-              SetAttr("key1",
-                      GeAttrValue::CreateFrom<std::vector<proto::GraphDef>>({proto::GraphDef()})), GRAPH_SUCCESS);
+    EXPECT_EQ(named_attrs.SetAttr("key1", GeAttrValue::CreateFrom<std::vector<proto::GraphDef>>({proto::GraphDef()})),
+              GRAPH_SUCCESS);
     GeAttrValue value;
     EXPECT_EQ(named_attrs.GetAttr("key1", value), GRAPH_SUCCESS);
     EXPECT_TRUE(!value.IsEmpty());
@@ -1038,4 +1038,3 @@ TEST(UTEST_ge_model_unserialize, test_invalid_attr) {
     graph_def.SerializeToArray(buffer.GetData(), static_cast<int>(buffer.GetSize()));
   }
 }
-

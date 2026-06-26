@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,27 +23,25 @@ using OpFormatDtypeUpdateTensorDescBasePtr = std::shared_ptr<OpFormatDtypeUpdate
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
 struct FormatTuneInfo {
-ge::NodePtr &node;
-const size_t &anchor_index;
-ge::Format &new_format;
-const bool &is_input;
+  ge::NodePtr &node;
+  const size_t &anchor_index;
+  ge::Format &new_format;
+  const bool &is_input;
 };
 
 class OpCompilerFormatTune {
  public:
-  explicit OpCompilerFormatTune(const std::string& engine_name);
+  explicit OpCompilerFormatTune(const std::string &engine_name);
   ~OpCompilerFormatTune();
 
-  Status SetTuneFormatReq(ge::ComputeGraph& graph, const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr);
+  Status SetTuneFormatReq(ge::ComputeGraph &graph, const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr);
 
-  bool IsNeedTuneFormat(const ge::NodePtr &node,
-                        const OpKernelInfoPtr &op_kernel_info_ptr,
+  bool IsNeedTuneFormat(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
                         std::vector<int64_t> &input_tuneformat_index_vec,
                         std::vector<int64_t> &output_tuneformat_index_vec) const;
 
   void GetMatchedIndexVec(std::map<std::string, std::vector<ge::DataType>> &datatype_map,
-                          const OpKernelInfoPtr &op_kernel_info_ptr,
-                          const ge::OpDescPtr &op_desc_ptr);
+                          const OpKernelInfoPtr &op_kernel_info_ptr, const ge::OpDescPtr &op_desc_ptr);
 
   Status GetFormatSolutionSpace(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
                                 const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr,
@@ -83,23 +81,24 @@ class OpCompilerFormatTune {
 
   Status UpdateTuneFormatByNodeAttrInner(ge::ComputeGraph &graph);
 
-  Status ReplacePldAndEnd(std::map<std::string, ge::NodePtr> &ori_node_map,
-                          ge::ComputeGraphPtr &graph_ptr);
+  Status ReplacePldAndEnd(std::map<std::string, ge::NodePtr> &ori_node_map, ge::ComputeGraphPtr &graph_ptr);
 
   Status UpdateTuneFormatByNodeAttr(ge::ComputeGraph &graph);
-  
+
   static bool GetTuneKnowledgeResult(const ge::NodePtr &node, const std::vector<std::string> &op_unique_keys,
                                      const std::map<std::string, std::string> &search_config,
                                      std::string &kb_result_str);
+
  private:
   bool IsFftsPlusThreadReuseOp(const ge::NodePtr &node) const;
   bool HasTuneFormatSwitch(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
-    std::vector<int64_t> &input_tuneformat_index_vec, std::vector<int64_t> &output_tuneformat_index_vec) const;
+                           std::vector<int64_t> &input_tuneformat_index_vec,
+                           std::vector<int64_t> &output_tuneformat_index_vec) const;
 
   std::string engine_name_;
   std::vector<int32_t> matched_format_index_vec;
 };
 using OpCompilerFormatTunePtr = std::shared_ptr<OpCompilerFormatTune>;
-}
+}  // namespace fe
 
-#endif // FUSION_ENGINE_OPTIMIZER_GRAPH_OPTIMIZER_OP_COMPILER_OP_FORMAT_TUNE_H_
+#endif  // FUSION_ENGINE_OPTIMIZER_GRAPH_OPTIMIZER_OP_COMPILER_OP_FORMAT_TUNE_H_

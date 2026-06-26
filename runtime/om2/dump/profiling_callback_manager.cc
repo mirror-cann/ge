@@ -15,8 +15,7 @@
 #include "framework/common/debug/ge_log.h"
 #include "framework/runtime/dump/profiling_config.h"
 
-extern "C" void RegisterOm2ProfilingCommandNotifier(
-    void (*notifier)(const void *, uint32_t)) __attribute__((weak));
+extern "C" void RegisterOm2ProfilingCommandNotifier(void (*notifier)(const void *, uint32_t)) __attribute__((weak));
 
 namespace ge {
 namespace dump {
@@ -71,13 +70,13 @@ ProfilingCallbackManager &ProfilingCallbackManager::GetInstance() {
 Status ProfilingCallbackManager::GlobalInit() {
   GELOGD("ProfilingCallbackManager initialized, registering to OM1 profiling notifier.");
   if (::RegisterOm2ProfilingCommandNotifier != nullptr) {
-    ::RegisterOm2ProfilingCommandNotifier([](const void *data, uint32_t len) {
-      ProfilingCallbackManager::NotifyProfilingCommand(data, len);
-    });
+    ::RegisterOm2ProfilingCommandNotifier(
+        [](const void *data, uint32_t len) { ProfilingCallbackManager::NotifyProfilingCommand(data, len); });
     GELOGD("Register OM2 profiling notifier to OM1 succeeded.");
   } else {
-    GELOGD("RegisterOm2ProfilingCommandNotifier is not available, "
-           "OM2 profiling config will not be forwarded from OM1.");
+    GELOGD(
+        "RegisterOm2ProfilingCommandNotifier is not available, "
+        "OM2 profiling config will not be forwarded from OM1.");
   }
   return SUCCESS;
 }
@@ -121,10 +120,12 @@ void ProfilingCallbackManager::HandleCtrlSwitch(const void *ctrl_data, uint32_t 
       if (!BuildProfilingOptions(*command, options)) {
         return;
       }
-      GELOGD("Start OM2 profiling, model_load=%u, model_execute=%u, task_time=%u, task_time_l1=%u, op_detail=%u, "
-             "device=%u, device_ids=%s", options.model_load_enabled, options.model_execute_enabled,
-             options.task_time_enabled, options.task_time_l1_enabled, options.op_detail_enabled,
-             options.device_enabled, options.config_params[kDeviceIdList].c_str());
+      GELOGD(
+          "Start OM2 profiling, model_load=%u, model_execute=%u, task_time=%u, task_time_l1=%u, op_detail=%u, "
+          "device=%u, device_ids=%s",
+          options.model_load_enabled, options.model_execute_enabled, options.task_time_enabled,
+          options.task_time_l1_enabled, options.op_detail_enabled, options.device_enabled,
+          options.config_params[kDeviceIdList].c_str());
       const Status ret = ProfilingConfig::Instance().Enable(options);
       GELOGD("Start OM2 profiling result, ret=%u", ret);
       break;

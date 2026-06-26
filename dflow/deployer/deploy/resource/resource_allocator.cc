@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,9 +24,8 @@ Status ResourceAllocator::AllocateResources(const FlowModelPtr &flow_model,
     bool filter_flag = true;
     GE_CHK_STATUS_RET_NOLOG(CheckAndFilterByCompileResource(device_info, filter_flag, compile_resource));
     if (filter_flag) {
-      device_info_list.emplace_back(DeployPlan::DeviceInfo(device_info->GetDeviceType(),
-                                                           device_info->GetNodeId(),
-                                                           device_info->GetDeviceId()));
+      device_info_list.emplace_back(
+          DeployPlan::DeviceInfo(device_info->GetDeviceType(), device_info->GetNodeId(), device_info->GetDeviceId()));
       device_index_set.insert(device_info->ToIndex());
     }
   }
@@ -41,9 +40,8 @@ Status ResourceAllocator::AllocateResources(const FlowModelPtr &flow_model,
 
 Status ResourceAllocator::UpdateDeviceInfo(std::vector<DeployPlan::DeviceInfo> &device_info_list) {
   for (auto &plan_device_info : device_info_list) {
-    auto device_info = ResourceManager::GetInstance().GetDeviceInfo(plan_device_info.GetNodeId(),
-                                                                    plan_device_info.GetDeviceId(),
-                                                                    plan_device_info.GetType());
+    auto device_info = ResourceManager::GetInstance().GetDeviceInfo(
+        plan_device_info.GetNodeId(), plan_device_info.GetDeviceId(), plan_device_info.GetType());
     GE_CHECK_NOTNULL(device_info);
     plan_device_info.SetOsId(device_info->GetOsId());
     plan_device_info.SetHcomDeviceId(device_info->GetHcomDeviceId());
@@ -56,8 +54,9 @@ void ResourceAllocator::SetCheckCompileResource(const FlowModelPtr &flow_model) 
   if (compile_resource_ == nullptr) {
     GELOGI("compile resource is nullptr");
   }
-  if (compile_resource_ == nullptr || ((compile_resource_ != nullptr) &&
-      compile_resource_->host_resource_type.empty() && compile_resource_->logic_dev_id_to_res_type.empty())) {
+  if (compile_resource_ == nullptr ||
+      ((compile_resource_ != nullptr) && compile_resource_->host_resource_type.empty() &&
+       compile_resource_->logic_dev_id_to_res_type.empty())) {
     GELOGI("Need't to check compile resource info");
     return;
   }
@@ -108,8 +107,8 @@ Status ResourceAllocator::CheckAndFilterByCompileResource(const DeviceInfo *devi
              iter_deploy->second.c_str(), iter_compile->second.c_str(), device_index.c_str());
       return FAILED;
     }
-    GELOGI("Device %s, type:%s is same in both compile resource and current resource config.",
-           device_index.c_str(), iter_deploy->second.c_str());
+    GELOGI("Device %s, type:%s is same in both compile resource and current resource config.", device_index.c_str(),
+           iter_deploy->second.c_str());
   }
   return SUCCESS;
 }
@@ -121,7 +120,7 @@ Status ResourceAllocator::CheckAfterFilterDevice(const std::set<std::string> &de
   GE_CHECK_NOTNULL(compile_resource_);
   for (const auto &logic_dev_id : compile_resource_->logic_dev_id_to_res_type) {
     if (device_index.count(logic_dev_id.first) == 0) {
-      GELOGE(FAILED, "Cannot fount logic device id %s from compile resource in curent env.",
+      GELOGE(FAILED, "Cannot found logic device id %s from compile resource in current env.",
              logic_dev_id.first.c_str());
       return FAILED;
     }

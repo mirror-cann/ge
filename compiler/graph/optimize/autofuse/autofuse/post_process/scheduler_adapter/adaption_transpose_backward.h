@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 namespace ge {
 namespace asc_adapt {
 inline Status InsertTransposeToNode(AscGraph &asc_graph, const NodePtr &node,
-                                       std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
+                                    std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
   ViewOpAttrInfo attr_info;
   attr_info.transpose_info = transpose_info;
   GE_ASSERT_SUCCESS(InsertViewOpNodes(asc_graph, node, attr_info));
@@ -211,9 +211,9 @@ inline Status CheckAllInputsHaveTranspose(
     GE_ASSERT_SUCCESS(BackendUtils::FindPrefaceLoadNodes(peer_out_anchor, load_nodes));
     if (load_nodes.empty()) {
       is_all_transpose_load = false;
-      GELOGI("peer out node %s(%s) has no peer out loads: graph %s node %s(%s).",
-             peer_out_node->GetName().c_str(), peer_out_node->GetType().c_str(), asc_graph.GetName().c_str(),
-             node->GetName().c_str(), node->GetType().c_str());
+      GELOGI("peer out node %s(%s) has no peer out loads: graph %s node %s(%s).", peer_out_node->GetName().c_str(),
+             peer_out_node->GetType().c_str(), asc_graph.GetName().c_str(), node->GetName().c_str(),
+             node->GetType().c_str());
     }
     for (auto &load_node : load_nodes) {
       auto it = fallback_node_to_transpose_info.find(load_node);

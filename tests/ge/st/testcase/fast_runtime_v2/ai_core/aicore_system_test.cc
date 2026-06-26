@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,17 +79,18 @@ class AutofuseTestGraphBuilder {
       (void)ge::AttrUtils::SetStr(fused_graph_node->GetOpDesc(), "bin_file_path", bin_path);
       (void)ge::AttrUtils::SetStr(fused_graph_node1->GetOpDesc(), "bin_file_path", bin_path);
     }
-    if (all_sym_num >=0) {
+    if (all_sym_num >= 0) {
       (void)ge::AttrUtils::SetInt(graph, "_all_symbol_num", all_sym_num);
     }
     if (infer_shape_cache_key.size() == 2) {
-      (void)ge::AttrUtils::SetStr(
-          fused_graph_node->GetOpDesc(), "_symbol_infer_shape_cache_key", infer_shape_cache_key[0]);
-      (void)ge::AttrUtils::SetStr(
-          fused_graph_node1->GetOpDesc(), "_symbol_infer_shape_cache_key", infer_shape_cache_key[1]);
+      (void)ge::AttrUtils::SetStr(fused_graph_node->GetOpDesc(), "_symbol_infer_shape_cache_key",
+                                  infer_shape_cache_key[0]);
+      (void)ge::AttrUtils::SetStr(fused_graph_node1->GetOpDesc(), "_symbol_infer_shape_cache_key",
+                                  infer_shape_cache_key[1]);
     }
     return graph;
   }
+
  private:
   std::string bin_path;
   int64_t all_sym_num = -1;
@@ -103,10 +104,10 @@ struct FakeArgsInfo {
 };
 
 void GlobalDataWithArgsInfo(const NodePtr &aicore_node, LoweringGlobalData &origin_global_data,
-                                          std::vector<std::vector<FakeArgsInfo>> &args_infos) {
+                            std::vector<std::vector<FakeArgsInfo>> &args_infos) {
   LoweringGlobalData::NodeCompileResult aicore_node_compile_result;
   auto task_defs = origin_global_data.FindCompiledResult(aicore_node)->GetTaskDefs();
-  if (task_defs.size() !=args_infos.size()) {
+  if (task_defs.size() != args_infos.size()) {
     GELOGE(ge::PARAM_INVALID,
            "task_defs.size()[%zu] must be equal to args_infos.size()[%zu], return origin global data instead.",
            task_defs.size(), args_infos.size());
@@ -228,7 +229,7 @@ ge::ComputeGraphPtr BuildInferShapeNode(bool sup_empty, bool unknown_dim) {
   GE_ASSERT_NOTNULL(graph);
   graph->TopologicalSorting();
   auto add_node = graph->FindFirstNodeMatchType("Add");
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{0,1}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{0, 1}};
   (void)ge::AttrUtils::SetListListInt(add_node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   std::vector<std::vector<int64_t>> dyn_out_vv = {{}};
   (void)ge::AttrUtils::SetListListInt(add_node->GetOpDesc(), kDynamicOutputsIndexes, dyn_out_vv);
@@ -280,8 +281,8 @@ size_t GetNodeCountWithGraphStage(const ge::ExecuteGraphPtr &exe_graph, const st
 enum class TilingType { kV3Tiling, kV4Tiling, kGert2Tiling };
 
 class AICoreLoweringST : public testing::Test {
-  public:
-   KernelRegistry &registry = KernelRegistry::GetInstance();
+ public:
+  KernelRegistry &registry = KernelRegistry::GetInstance();
   bg::GraphFrame *root_frame = nullptr;
   void SetUp() {
     ge::MemManager::Instance().Initialize({0, RT_MEMORY_HBM});
@@ -290,13 +291,14 @@ class AICoreLoweringST : public testing::Test {
     while (bg::ValueHolder::PopGraphFrame() != nullptr) {
     }
   }
+
  public:
   void TestFallibleTiling(bool rollback, TilingType tiling_type, bool rollback_fail = false, bool is_mix = false) {
     auto graph = BuildFallibleTilingNodeComputeGraph(is_mix);
     bool add_aicpu = !rollback_fail;
 
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false, add_aicpu).Build(2);
+    auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false, add_aicpu).Build(2);
     ASSERT_NE(graph, nullptr);
     auto add = graph->FindNode("add1");
     ASSERT_NE(add, nullptr);
@@ -351,7 +353,8 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -397,7 +400,7 @@ class AICoreLoweringST : public testing::Test {
   void TestFallibleTiling1(bool rollback, TilingType tiling_type, bool is_mix = false) {
     auto graph = BuildFallibleTilingNodeComputeGraph(is_mix);
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", false, true).Build(2);
+    auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", false, true).Build(2);
     ASSERT_NE(graph, nullptr);
     auto add = graph->FindNode("add1");
     ASSERT_NE(add, nullptr);
@@ -452,7 +455,8 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -491,7 +495,7 @@ class AICoreLoweringST : public testing::Test {
     data1->GetOpDesc()->MutableInputDesc(0)->GetShapeRange(range);
     std::cout << range.size() << std::endl;
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", false).Build();
+    auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", false).Build();
     ASSERT_NE(graph, nullptr);
     auto op_impl = const_cast<OpImplKernelRegistry::OpImplFunctionsV2 *>(
         DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Add"));
@@ -525,7 +529,8 @@ class AICoreLoweringST : public testing::Test {
     }
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -555,7 +560,7 @@ class AICoreLoweringST : public testing::Test {
   void TestNodeWithOptAndDynamic1() {
     auto graph = BuildFallibleTilingNodeComputeGraph(false);
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false, false).Build(2);
+    auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false, false).Build(2);
     ASSERT_NE(graph, nullptr);
 
     auto add_node = graph->FindFirstNodeMatchType("Add");
@@ -605,7 +610,8 @@ class AICoreLoweringST : public testing::Test {
     auto outputs = FakeTensors({1, 2, 3, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
@@ -694,8 +700,8 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeBase) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
-                                    inputs.size(),outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
+                                    outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
@@ -803,8 +809,8 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeTilingParse) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
-                                    inputs.size(),outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
+                                    outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
@@ -853,8 +859,8 @@ TEST_F(AICoreLoweringST, TestAutofuseNodeDlopenAutofuseSoNodeCheck) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
-                                    inputs.size(),outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
+                                    outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("AscBackend", "LaunchKernelWithHandle"), 2);
   Shape expect_out_shape{5, 6, 4};
@@ -903,8 +909,8 @@ TEST_F(AICoreLoweringST, AutofuseInferKernelTraceTest) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ess->Clear();
-  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(),
-                                    inputs.size(),outputs.GetTensorList(), outputs.size()),
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
+                                    outputs.GetTensorList(), outputs.size()),
             ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 

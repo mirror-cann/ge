@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 
 namespace fe {
 namespace {
-bool IsScalarInputShape(const ge::GeShape& shape) {
+bool IsScalarInputShape(const ge::GeShape &shape) {
   return shape.IsScalar() || (shape.GetDimNum() == 1 && shape.GetDim(0) == 1);
 }
 
@@ -52,8 +52,8 @@ Status SetElemWiseSliceInfoExCheckParam(const ge::OpDesc::Vistor<ge::GeTensorDes
   input_more_dims_size = is_input0_more ? input0_dim_size : input1_dim_size;
   int32_t out_dim_size = static_cast<int32_t>(op_output_desc_list.at(0)->GetShape().GetDims().size());
   if (input_more_dims_size != out_dim_size) {
-    FE_LOGW("SetElemWiseSliceInfoExCheckParam input_more_dims_size:%d != out_dim_size:%d",
-            input_more_dims_size, out_dim_size);
+    FE_LOGW("SetElemWiseSliceInfoExCheckParam input_more_dims_size:%d != out_dim_size:%d", input_more_dims_size,
+            out_dim_size);
     return FAILED;
   }
   diff = std::abs(input0_dim_size - input1_dim_size);
@@ -74,12 +74,10 @@ void InitializeStrategy(const ge::OpDescPtr &op_desc, size_t size, bool is_input
   }
 }
 
-void GenOneStrategy(size_t tensor_index, const std::vector<int64_t>& axis,
-                    const ge::GeTensorDescPtr& tensor_desc,
+void GenOneStrategy(size_t tensor_index, const std::vector<int64_t> &axis, const ge::GeTensorDescPtr &tensor_desc,
                     vector<vector<int64_t>> &all_strategies) {
   if (tensor_index >= all_strategies.size()) {
-    FE_LOGW("tensor index %zu is larger than the size of strategies(%zu).",
-            tensor_index, all_strategies.size());
+    FE_LOGW("tensor index %zu is larger than the size of strategies(%zu).", tensor_index, all_strategies.size());
     return;
   }
   vector<int64_t> one_strategy;
@@ -98,8 +96,7 @@ void GenOneStrategy(size_t tensor_index, const std::vector<int64_t>& axis,
 void SetCutInfoAttr(const ge::OpDescPtr &op_desc, size_t size, bool is_input,
                     const vector<vector<int64_t>> &all_strategies) {
   for (size_t i = 0; i < size; i++) {
-    auto tensor_desc =
-        is_input ? op_desc->MutableInputDesc(i) : op_desc->MutableOutputDesc(i);
+    auto tensor_desc = is_input ? op_desc->MutableInputDesc(i) : op_desc->MutableOutputDesc(i);
     if (tensor_desc == nullptr) {
       continue;
     }
@@ -110,16 +107,16 @@ void SetCutInfoAttr(const ge::OpDescPtr &op_desc, size_t size, bool is_input,
     (void)ge::AttrUtils::SetListListInt(tensor_desc, "_cut_info", current_stgy);
   }
 }
-} // namespace
+}  // namespace
 
 const size_t kSplitSize = 2;
 const int8_t kAxisHIndex = 2;
 const int8_t kAxisWIndex = 3;
 const int64_t kAxesValue = 4;
 
-static const vector<string> LIST_OF_SUPPORT_L1_OP = {"Conv2D", "DepthwiseConv2D", "Deconvolution", "Pooling",
-                                                     "FullyConnection", "AscendQuant", "ConcatV2D", "Eltwise", "Scale",
-                                                     "BNInference", "BNInferenceD"};
+static const vector<string> LIST_OF_SUPPORT_L1_OP = {"Conv2D",          "DepthwiseConv2D", "Deconvolution", "Pooling",
+                                                     "FullyConnection", "AscendQuant",     "ConcatV2D",     "Eltwise",
+                                                     "Scale",           "BNInference",     "BNInferenceD"};
 static const string ADD = "Add";
 const std::map<SlicePattern, FillupSliceInfoPtr> OpSliceUtil::split_info_map_ = {
     {ELEMENT_WISE, std::make_shared<FillupSliceInfo>(FillupElemwiseSliceInfo)},
@@ -151,8 +148,8 @@ Status OpSliceUtil::SetOpSliceInfo(const ge::NodePtr &node, const SlicePattern &
   }
   ge::GeShape output_shape = output_tensor_ptr->GetShape();
   if (output_shape.IsUnknownDimNum()) {
-    FE_LOGD("The dim num of op[%s, %s]'s output is unknown. No need to generate slice info.",
-            op_name.c_str(), op_type.c_str());
+    FE_LOGD("The dim num of op[%s, %s]'s output is unknown. No need to generate slice info.", op_name.c_str(),
+            op_type.c_str());
     return SUCCESS;
   }
 
@@ -206,12 +203,13 @@ Status OpSliceUtil::SetOpSliceInfo(const ge::NodePtr &node, const SlicePattern &
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::FillupElemwiseSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool& sup_sw) {
+Status OpSliceUtil::FillupElemwiseSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool &sup_sw) {
   FE_LOGD("Start to set node[%s]'s slice pattern as elemwise.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
   Status ret = SetElemWiseSliceInfo(op_desc_ptr, axis_split_maps, false, sup_sw);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   op_calc_info.SetAxisSplitMaps(axis_split_maps);
@@ -225,7 +223,7 @@ Status OpSliceUtil::FillupElemwiseSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInf
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::FillupElemwiseBroadcastSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info,
-                                                     const bool& sup_sw) {
+                                                     const bool &sup_sw) {
   // slice info of elemwise-broadcast is the same as elemwise by now
   FE_LOGD("Start to set node[%s]'s slice pattern as elemwise-broadcast.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
@@ -248,13 +246,14 @@ Status OpSliceUtil::FillupElemwiseBroadcastSliceInfo(ge::OpDescPtr op_desc_ptr, 
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::FillupBroadcastSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool& sup_sw) {
+Status OpSliceUtil::FillupBroadcastSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool &sup_sw) {
   // slice info of broadcast is the same as elemwise by now
   FE_LOGD("Start to set node[%s]'s slice pattern as broadcast.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
   Status ret = SetElemWiseSliceInfo(op_desc_ptr, axis_split_maps, false, sup_sw, true);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   op_calc_info.SetAxisSplitMaps(axis_split_maps);
@@ -268,13 +267,14 @@ Status OpSliceUtil::FillupBroadcastSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcIn
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::FillupSlidingWindowSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info,
-                                                 const bool& sup_sw) {
+                                                 const bool &sup_sw) {
   // In sliding-window, the slice information is fixed and must be in the following format:
   FE_LOGD("Start to set node[%s]'s slice pattern as sliding-window.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
   Status ret = SetSlidingWindowSliceInfo(op_desc_ptr, axis_split_maps, sup_sw);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   op_calc_info.SetAxisSplitMaps(axis_split_maps);
@@ -288,13 +288,14 @@ Status OpSliceUtil::FillupSlidingWindowSliceInfo(ge::OpDescPtr op_desc_ptr, OpCa
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::FillupSlidingWindowDeconvSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info,
-                                                       const bool& sup_sw) {
+                                                       const bool &sup_sw) {
   // slice info of liding-window-deconv is the same as liding-window by now
   FE_LOGD("Start to set node[%s]'s slice pattern as sliding-window-deconv.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
   Status ret = SetSlidingWindowDeconvSliceInfo(op_desc_ptr, axis_split_maps, sup_sw);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   op_calc_info.SetAxisSplitMaps(axis_split_maps);
@@ -307,7 +308,7 @@ Status OpSliceUtil::FillupSlidingWindowDeconvSliceInfo(ge::OpDescPtr op_desc_ptr
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::FillupCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool& sup_sw) {
+Status OpSliceUtil::FillupCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool &sup_sw) {
   // In cube-matmul, the slice information is fixed and must be in the following format:
   FE_LOGD("Start to set node[%s]'s slice pattern as cube-matmul.", op_desc_ptr->GetName().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
@@ -315,7 +316,8 @@ Status OpSliceUtil::FillupCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcI
   FE_CHECK_NOTNULL(op_desc_ptr->GetInputDescPtr(0));
   Status ret = SetCubeMatmulSliceInfo(op_desc_ptr, axis_split_maps, sup_sw);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   // cube matmul node should have more than 2 inputs
@@ -354,13 +356,14 @@ Status OpSliceUtil::FillupCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcI
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::FillupReduceSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool& sup_sw) {
-  FE_LOGD("Start setting node [%s, %s]'s slice pattern as reduce.",
-          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+Status OpSliceUtil::FillupReduceSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo &op_calc_info, const bool &sup_sw) {
+  FE_LOGD("Start setting node [%s, %s]'s slice pattern as reduce.", op_desc_ptr->GetName().c_str(),
+          op_desc_ptr->GetType().c_str());
   std::vector<AxisSplitMap> axis_split_maps;
   Status ret = SetReduceSliceInfo(op_desc_ptr, axis_split_maps, sup_sw);
   if (ret != SUCCESS) {
-    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.", op_desc_ptr->GetName().c_str());
+    FE_LOGD("Parsing operation slice information for node [%s] did not match; slice information was not set.",
+            op_desc_ptr->GetName().c_str());
     return SUCCESS;
   }
   op_calc_info.SetAxisSplitMaps(axis_split_maps);
@@ -375,7 +378,7 @@ Status OpSliceUtil::FillupReduceSliceInfo(ge::OpDescPtr op_desc_ptr, OpCalcInfo 
  */
 
 Status OpSliceUtil::FillupResizeSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCalcInfo &op_calc_info,
-                                          const bool& sup_sw) {
+                                          const bool &sup_sw) {
   (void)op_desc_ptr;
   (void)op_calc_info;
   (void)sup_sw;
@@ -390,7 +393,7 @@ Status OpSliceUtil::FillupResizeSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCal
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::FillupScatterSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCalcInfo &op_calc_info,
-                                           const bool& sup_sw) {
+                                           const bool &sup_sw) {
   (void)op_desc_ptr;
   (void)op_calc_info;
   (void)sup_sw;
@@ -405,7 +408,7 @@ Status OpSliceUtil::FillupScatterSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCa
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::FillupSegmentSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCalcInfo &op_calc_info,
-                                           const bool& sup_sw) {
+                                           const bool &sup_sw) {
   (void)op_desc_ptr;
   (void)op_calc_info;
   (void)sup_sw;
@@ -413,8 +416,8 @@ Status OpSliceUtil::FillupSegmentSliceInfo(ge::OpDescPtr op_desc_ptr, const OpCa
   return SUCCESS;
 }
 
-void OpSliceUtil::SetInputSplitInfo(AxisSplitMap& axis_split_map, const int8_t& input_index, const int8_t& input_axis,
-                                    const bool& sup_sw) {
+void OpSliceUtil::SetInputSplitInfo(AxisSplitMap &axis_split_map, const int8_t &input_index, const int8_t &input_axis,
+                                    const bool &sup_sw) {
   InputSplitInfo input_split_info;
   if (!input_split_info.Initialize()) {
     REPORT_FE_ERROR("[OpSliceUtil][SetInSplitInfo] input_split_info initialize failed");
@@ -433,8 +436,8 @@ void OpSliceUtil::SetInputSplitInfo(AxisSplitMap& axis_split_map, const int8_t& 
   axis_split_map.AddInputSplitInfo(input_split_info);
 }
 
-void OpSliceUtil::SetInputReduceInfo(AxisReduceMap& axis_reduce_map, const int8_t& input_index, const int8_t& input_axis,
-                                     const bool& sup_sw) {
+void OpSliceUtil::SetInputReduceInfo(AxisReduceMap &axis_reduce_map, const int8_t &input_index,
+                                     const int8_t &input_axis, const bool &sup_sw) {
   InputReduceInfo input_reduce_info;
   if (!input_reduce_info.Initialize()) {
     REPORT_FE_ERROR("[OpSliceUtil][SetInRduInfo] input_reduce_info initialize failed");
@@ -453,8 +456,8 @@ void OpSliceUtil::SetInputReduceInfo(AxisReduceMap& axis_reduce_map, const int8_
   axis_reduce_map.AddInputReduceInfo(input_reduce_info);
 }
 
-void OpSliceUtil::SetOutputSplitInfo(AxisSplitMap& axis_split_map, const int8_t& output_index, const int8_t& output_axis,
-                                     const bool& sup_sw) {
+void OpSliceUtil::SetOutputSplitInfo(AxisSplitMap &axis_split_map, const int8_t &output_index,
+                                     const int8_t &output_axis, const bool &sup_sw) {
   OutputSplitInfo output_split_info;
   if (!output_split_info.Initialize()) {
     REPORT_FE_ERROR("[OpSliceUtil][SetOutSplitInfo] output_split_info initialize failed");
@@ -473,8 +476,8 @@ void OpSliceUtil::SetOutputSplitInfo(AxisSplitMap& axis_split_map, const int8_t&
   axis_split_map.AddOutputSplitInfo(output_split_info);
 }
 
-void OpSliceUtil::SetOutputReduceInfo(AxisReduceMap& axis_reduce_map, const int8_t& output_index,
-                                      const OpReduceType& reduce_type, const bool& is_atomic) {
+void OpSliceUtil::SetOutputReduceInfo(AxisReduceMap &axis_reduce_map, const int8_t &output_index,
+                                      const OpReduceType &reduce_type, const bool &is_atomic) {
   OutputReduceInfo output_reduce_info;
   if (!output_reduce_info.Initialize()) {
     REPORT_FE_ERROR("[OpSliceUtil][SetOutRdcInfo] output_reduce_info initialize failed");
@@ -486,7 +489,8 @@ void OpSliceUtil::SetOutputReduceInfo(AxisReduceMap& axis_reduce_map, const int8
   axis_reduce_map.AddOutputReduceInfo(output_reduce_info);
 }
 
-bool OpSliceUtil::IsInputDynamicDim(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &input_desc_vec, const uint32_t &dim_index) {
+bool OpSliceUtil::IsInputDynamicDim(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &input_desc_vec,
+                                    const uint32_t &dim_index) {
   if (input_desc_vec.empty()) {
     return false;
   }
@@ -510,10 +514,9 @@ bool OpSliceUtil::IsInputDynamicDim(ge::OpDesc::Vistor<ge::GeTensorDescPtr> &inp
  *  @param   [in|out] input and output indexes/axes | slice info
  *  @return  SUCCESS or FAILED
  */
-void OpSliceUtil::SetMultiAxisSplitMap(AxisSplitMap& axis_split_map,
-                                       const int8_t& first_index, const int8_t& first_axis,
-                                       const int8_t& output_index, const int8_t& output_axis, const bool& sup_sw,
-                                       const int8_t second_index, const int8_t second_axis) {
+void OpSliceUtil::SetMultiAxisSplitMap(AxisSplitMap &axis_split_map, const int8_t &first_index,
+                                       const int8_t &first_axis, const int8_t &output_index, const int8_t &output_axis,
+                                       const bool &sup_sw, const int8_t second_index, const int8_t second_axis) {
   SetInputSplitInfo(axis_split_map, first_index, first_axis, sup_sw);
 
   if (second_index > -1 && second_axis > -1) {
@@ -528,7 +531,8 @@ Status OpSliceUtil::CheckElemwiseInputAndOutputNum(ge::OpDescPtr op_desc_ptr, co
   auto op_input_desc_list = op_desc_ptr->GetAllInputsDescPtr();
   auto op_output_desc_list = op_desc_ptr->GetAllOutputsDescPtr();
   if (op_output_desc_list.size() != 1 && !has_scalar) {
-    FE_LOGW("Node [%s] has %zu outputs, which is not equal to one.", op_desc_ptr->GetName().c_str(), op_output_desc_list.size());
+    FE_LOGW("Node [%s] has %zu outputs, which is not equal to one.", op_desc_ptr->GetName().c_str(),
+            op_output_desc_list.size());
     return FAILED;
   }
   if (op_input_desc_list.empty()) {
@@ -536,8 +540,8 @@ Status OpSliceUtil::CheckElemwiseInputAndOutputNum(ge::OpDescPtr op_desc_ptr, co
     return FAILED;
   }
   if (dim_size == 0) {
-    FE_LOGW("Node [%s]'s output has %zu output dimensions, cannot set split info.",
-            op_desc_ptr->GetName().c_str(), dim_size);
+    FE_LOGW("Node [%s]'s output has %zu output dimensions, cannot set split info.", op_desc_ptr->GetName().c_str(),
+            dim_size);
     return FAILED;
   }
   // dim number of shape and format of all inputs and outputs should be the same.
@@ -547,19 +551,22 @@ Status OpSliceUtil::CheckElemwiseInputAndOutputNum(ge::OpDescPtr op_desc_ptr, co
       continue;
     }
     auto op_input_desc_primary_format =
-            static_cast<ge::Format>(ge::GetPrimaryFormat(op_input_desc_list.at(index)->GetFormat()));
+        static_cast<ge::Format>(ge::GetPrimaryFormat(op_input_desc_list.at(index)->GetFormat()));
     if (op_input_desc_primary_format != op_output_format) {
-      FE_LOGW("Node [%s]'s input format [%s] does not match the output format [%s]; we need to call SetElemWiseSliceInfoEx to configure it.",
-              op_desc_ptr->GetName().c_str(), ge::TypeUtils::FormatToSerialString(op_input_desc_primary_format).c_str(),
-              ge::TypeUtils::FormatToSerialString(op_output_format).c_str());
+      FE_LOGW(
+          "Node [%s]'s input format [%s] does not match the output format [%s]; we need to call SetElemWiseSliceInfoEx "
+          "to configure it.",
+          op_desc_ptr->GetName().c_str(), ge::TypeUtils::FormatToSerialString(op_input_desc_primary_format).c_str(),
+          ge::TypeUtils::FormatToSerialString(op_output_format).c_str());
       return FAILED;
     }
     if (input_shape.IsUnknownDimNum()) {
       continue;
     }
     if ((input_shape.GetDimNum() != 0 || !has_scalar) && input_shape.GetDimNum() != dim_size) {
-      FE_LOGW("Node [%s]'s input dimension size [%zu] is not equal to its output size [%zu]; cannot set split information.",
-              op_desc_ptr->GetName().c_str(), input_shape.GetDimNum(), dim_size);
+      FE_LOGW(
+          "Node [%s]'s input dimension size [%zu] is not equal to its output size [%zu]; cannot set split information.",
+          op_desc_ptr->GetName().c_str(), input_shape.GetDimNum(), dim_size);
       return FAILED;
     }
   }
@@ -568,7 +575,7 @@ Status OpSliceUtil::CheckElemwiseInputAndOutputNum(ge::OpDescPtr op_desc_ptr, co
 }
 
 Status OpSliceUtil::SetElemWiseSliceInfoEx(const ge::OpDescPtr &op_desc_ptr,
-                                           std::vector<AxisSplitMap>& axis_split_maps) {
+                                           std::vector<AxisSplitMap> &axis_split_maps) {
   auto op_input_desc_list = op_desc_ptr->GetAllInputsDescPtr();
   auto op_output_desc_list = op_desc_ptr->GetAllOutputsDescPtr();
   int32_t intput_more_dims_idx = 0;
@@ -628,8 +635,8 @@ Status OpSliceUtil::SetElemWiseSliceInfoEx(const ge::OpDescPtr &op_desc_ptr,
  *  @param   [in|out] node & has scalar or not | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::SetElemWiseSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap>& axis_split_maps,
-                                         bool has_scalar, const bool& sup_sw, bool is_filter_dynamic) {
+Status OpSliceUtil::SetElemWiseSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap> &axis_split_maps,
+                                         bool has_scalar, const bool &sup_sw, bool is_filter_dynamic) {
   auto op_input_desc_list = op_desc_ptr->GetAllInputsDescPtr();
   auto op_output_desc_list = op_desc_ptr->GetAllOutputsDescPtr();
   if (op_output_desc_list.empty()) {
@@ -637,8 +644,7 @@ Status OpSliceUtil::SetElemWiseSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<
     return FAILED;
   }
   auto output0 = op_output_desc_list.at(0);
-  FE_CHECK(output0 == nullptr, FE_LOGW("%s's output 0 is nullptr.", op_desc_ptr->GetName().c_str()),
-           return FAILED;);
+  FE_CHECK(output0 == nullptr, FE_LOGW("%s's output 0 is nullptr.", op_desc_ptr->GetName().c_str()), return FAILED;);
 
   size_t dim_size = output0->GetShape().GetDimNum();
   ge::Format op_output_format = static_cast<ge::Format>(ge::GetPrimaryFormat(output0->GetFormat()));
@@ -708,11 +714,12 @@ void OpSliceUtil::SetInputSplitInfo(const ge::OpDescPtr &op_desc_ptr, AxisSplitM
   for (uint32_t index = 0; index < op_input_desc_list.size(); index++) {
     auto dims = op_input_desc_list.at(index)->GetShape().GetDims();
     if (dims.empty()) {
-      FE_LOGD("Node [%s]'s %u input dimension size is zero; cannot set split information.", op_desc_ptr->GetName().c_str(), index);
+      FE_LOGD("Node [%s]'s %u input dimension size is zero; cannot set split information.",
+              op_desc_ptr->GetName().c_str(), index);
       continue;
     }
 
-    int64_t dim_size = static_cast<int64_t>(dims.size()) ;
+    int64_t dim_size = static_cast<int64_t>(dims.size());
     bool condition = (has_scalar && axis >= 0 && axis < dim_size && dims.at(axis) == 1);
     if (condition) {
       continue;
@@ -721,18 +728,16 @@ void OpSliceUtil::SetInputSplitInfo(const ge::OpDescPtr &op_desc_ptr, AxisSplitM
   }
 }
 
-void OpSliceUtil::SetOutputSplitInfo(const ge::OpDescPtr &op_desc_ptr, AxisSplitMap &axis_split_map,
-                                     const int8_t &axis,
+void OpSliceUtil::SetOutputSplitInfo(const ge::OpDescPtr &op_desc_ptr, AxisSplitMap &axis_split_map, const int8_t &axis,
                                      bool has_scalar, const bool &sup_sw) {
   auto op_output_desc_list = op_desc_ptr->GetAllOutputsDescPtr();
   for (uint32_t index = 0; index < op_output_desc_list.size(); index++) {
     auto dims = op_output_desc_list.at(index)->GetShape().GetDims();
     if (dims.empty()) {
-      FE_LOGD("Node [%s]'s %u output dim size is zero, cannot set split info.",
-              op_desc_ptr->GetName().c_str(), index);
+      FE_LOGD("Node [%s]'s %u output dim size is zero, cannot set split info.", op_desc_ptr->GetName().c_str(), index);
       continue;
     }
-    int64_t dim_size = static_cast<int64_t>(dims.size()) ;
+    int64_t dim_size = static_cast<int64_t>(dims.size());
     bool condition = (has_scalar && axis >= 0 && axis < dim_size && dims.at(axis) == 1);
     if (condition) {
       continue;
@@ -747,8 +752,8 @@ void OpSliceUtil::SetOutputSplitInfo(const ge::OpDescPtr &op_desc_ptr, AxisSplit
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::SetSlidingWindowSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap>& axis_split_maps,
-                                              const bool& sup_sw) {
+Status OpSliceUtil::SetSlidingWindowSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap> &axis_split_maps,
+                                              const bool &sup_sw) {
   (void)op_desc_ptr;
   AxisSplitMap axis_split_map_cut_n;
   if (!axis_split_map_cut_n.Initialize()) {
@@ -791,7 +796,7 @@ Status OpSliceUtil::SetSlidingWindowSliceInfo(ge::OpDescPtr op_desc_ptr, std::ve
  *  @return  SUCCESS or FAILED
  */
 Status OpSliceUtil::SetSlidingWindowDeconvSliceInfo(ge::OpDescPtr op_desc_ptr,
-                                                    std::vector<AxisSplitMap>& axis_split_maps, const bool& sup_sw) {
+                                                    std::vector<AxisSplitMap> &axis_split_maps, const bool &sup_sw) {
   (void)op_desc_ptr;
   AxisSplitMap axis_split_map_cut_n;
   if (!axis_split_map_cut_n.Initialize()) {
@@ -834,8 +839,8 @@ Status OpSliceUtil::SetSlidingWindowDeconvSliceInfo(ge::OpDescPtr op_desc_ptr,
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::SetCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap>& axis_split_maps,
-                                           const bool& sup_sw) {
+Status OpSliceUtil::SetCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap> &axis_split_maps,
+                                           const bool &sup_sw) {
   FE_CHECK_NOTNULL(op_desc_ptr->GetInputDescPtr(0));
   auto input_format = static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc_ptr->GetInputDescPtr(0)->GetFormat()));
   if (input_format == ge::FORMAT_NC1HWC0) {
@@ -880,8 +885,8 @@ Status OpSliceUtil::SetCubeMatmulSliceInfo(ge::OpDescPtr op_desc_ptr, std::vecto
  *  @param   [in|out] node | slice info
  *  @return  SUCCESS or FAILED
  */
-Status OpSliceUtil::SetReduceSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap>& axis_split_maps,
-                                       const bool& sup_sw) {
+Status OpSliceUtil::SetReduceSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<AxisSplitMap> &axis_split_maps,
+                                       const bool &sup_sw) {
   std::vector<int64_t> axes_vec;
   (void)ge::AttrUtils::GetListInt(op_desc_ptr, "axes", axes_vec);
   FE_LOGD("Axes attribute is [%s].", StringUtils::IntegerVecToString(axes_vec).c_str());
@@ -893,15 +898,16 @@ Status OpSliceUtil::SetReduceSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<Ax
     return FAILED;
   }
   if (op_output_desc_list.size() != 1) {
-    FE_LOGW("Node [%s] has %zu outputs, which is not equal to one.", op_desc_ptr->GetName().c_str(), op_output_desc_list.size());
+    FE_LOGW("Node [%s] has %zu outputs, which is not equal to one.", op_desc_ptr->GetName().c_str(),
+            op_output_desc_list.size());
     return FAILED;
   }
   auto op_output_primary_format = static_cast<ge::Format>(ge::GetPrimaryFormat(op_output_desc_list.at(0)->GetFormat()));
   size_t dim_size = op_input_desc_list.at(0)->GetShape().GetDims().size();
   size_t out_dim_size = op_output_desc_list.at(0)->GetShape().GetDims().size();
   if (dim_size == 0) {
-    FE_LOGW("Node [%s]'s input has %zu input dimension size; cannot set split information.", op_desc_ptr->GetName().c_str(),
-            dim_size);
+    FE_LOGW("Node [%s]'s input has %zu input dimension size; cannot set split information.",
+            op_desc_ptr->GetName().c_str(), dim_size);
     return FAILED;
   }
   ModifyAxex(axes_vec, static_cast<int64_t>(dim_size));
@@ -911,7 +917,7 @@ Status OpSliceUtil::SetReduceSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<Ax
   // do not set slice info for reduce axes
   for (uint32_t index = 0; index < op_input_desc_list.size(); index++) {
     auto op_input_primary_format =
-            static_cast<ge::Format>(ge::GetPrimaryFormat(op_input_desc_list.at(index)->GetFormat()));
+        static_cast<ge::Format>(ge::GetPrimaryFormat(op_input_desc_list.at(index)->GetFormat()));
     if (op_input_primary_format != op_output_primary_format) {
       FE_LOGW("Node [%s]'s input format [%s] does not match the output format [%s], unable to set split info.",
               op_desc_ptr->GetName().c_str(), ge::TypeUtils::FormatToSerialString(op_input_primary_format).c_str(),
@@ -931,7 +937,8 @@ Status OpSliceUtil::SetReduceSliceInfo(ge::OpDescPtr op_desc_ptr, std::vector<Ax
       continue;
     }
     if (IsInputDynamicDim(op_input_desc_list, dim_num)) {
-      FE_LOGD("The dim index [%zu] of all inputs is a dynamic dimension. Slice information will be generated.", dim_num);
+      FE_LOGD("The dim index [%zu] of all inputs is a dynamic dimension. Slice information will be generated.",
+              dim_num);
       continue;
     }
     for (size_t index = 0; index < op_input_desc_list.size(); index++) {

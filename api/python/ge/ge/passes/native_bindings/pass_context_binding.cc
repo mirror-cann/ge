@@ -26,18 +26,26 @@ std::string GetOptionValueWrapper(CustomPassContext &context, const std::string 
 
 void BindPassContext(py::module_ &m) {
   py::class_<CustomPassContext>(m, "PassContext", "Pass context view on Python side")
-      .def("get_pass_name", [](CustomPassContext &context) -> std::string {
-        return AscendStringToString(context.GetPassName());
-      }, py::return_value_policy::reference_internal, "Get pass name")
-      .def("get_error_message", [](CustomPassContext &context) -> std::string {
-        return AscendStringToString(context.GetErrorMessage());
-      }, py::return_value_policy::reference_internal, "Get error message")
-      .def("set_error_message", [](CustomPassContext &context, const std::string &error_message) {
-        context.SetErrorMessage(StringToAscendString(error_message));
-      }, "Set error message")
-      .def("set_pass_name", [](CustomPassContext &context, const std::string &pass_name) {
-        context.SetPassName(StringToAscendString(pass_name));
-      }, "Set pass name")
+      .def(
+          "get_pass_name",
+          [](CustomPassContext &context) -> std::string { return AscendStringToString(context.GetPassName()); },
+          py::return_value_policy::reference_internal, "Get pass name")
+      .def(
+          "get_error_message",
+          [](CustomPassContext &context) -> std::string { return AscendStringToString(context.GetErrorMessage()); },
+          py::return_value_policy::reference_internal, "Get error message")
+      .def(
+          "set_error_message",
+          [](CustomPassContext &context, const std::string &error_message) {
+            context.SetErrorMessage(StringToAscendString(error_message));
+          },
+          "Set error message")
+      .def(
+          "set_pass_name",
+          [](CustomPassContext &context, const std::string &pass_name) {
+            context.SetPassName(StringToAscendString(pass_name));
+          },
+          "Set pass name")
       .def("get_option_value", &GetOptionValueWrapper, "Get compilation option");
 }
 

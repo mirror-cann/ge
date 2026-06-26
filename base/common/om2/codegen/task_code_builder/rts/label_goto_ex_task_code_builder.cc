@@ -26,21 +26,21 @@ Status LabelGotoExTaskCodeBuilder::Contribute(TaskSemanticContributeContext &con
                  "[OM2][Get][Attr] %s in op:%s(%s) fail.", ATTR_NAME_LABEL_SWITCH_INDEX.c_str(),
                  header_.op_name.c_str(), context.op_desc->GetType().c_str());
   GE_ASSERT_TRUE(label_index_ < context.runtime->label_num,
-                "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num,
-                label_index_, context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+                 "[OM2][Check][Param] label list size:%u, cur:%u, op:%s(%s).", context.runtime->label_num, label_index_,
+                 context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
   // memory type
   memory_type_ = rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, static_cast<uint32_t>(sizeof(uint64_t)));
   // stream
-  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num,
-                "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, header_.stream_id);
+  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
+                 context.runtime->stream_num, header_.stream_id);
 
   GELOGI("memory_type: %u, stream_id %u, op_index %ld", memory_type_, header_.stream_id, header_.op_index);
   return SUCCESS;
 }
 
 Status LabelGotoExTaskCodeBuilder::RenderInitResource(std::vector<BodyItem> &items) {
-  items.push_back(ChkStatus(ast_.Call("CreateLabelListForLabelGotoEx",
-                                      {header_.op_index, static_cast<int64_t>(label_index_)})));
+  items.push_back(
+      ChkStatus(ast_.Call("CreateLabelListForLabelGotoEx", {header_.op_index, static_cast<int64_t>(label_index_)})));
   return SUCCESS;
 }
 
@@ -49,20 +49,22 @@ Status LabelGotoExTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &ite
   auto index_value = ast_.Var("void *", op_head + "index_value");
   auto branch_index = ast_.Var("constexpr uint64_t", op_head + "branch_index");
   auto label_goto_ex_label_list = ast_.Var("auto", "label_goto_ex_label_list_");
-  items.push_back(ast_.Comment("============================= " + header_.op_name +
-                               " ==============================="));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
   items.push_back(ast_.VarDecl(index_value, nullptr));
-  items.push_back(ChkStatus(ast_.Call("MallocDeviceMemory",
-                                      {index_value, ast_.Sizeof("uint64_t"), static_cast<int64_t>(memory_type_), dev_dynamic_mem_ptrs_})));
+  items.push_back(
+      ChkStatus(ast_.Call("MallocDeviceMemory", {index_value, ast_.Sizeof("uint64_t"),
+                                                 static_cast<int64_t>(memory_type_), dev_dynamic_mem_ptrs_})));
   items.push_back(ast_.VarDecl(branch_index, 0));
   items.push_back(ChkStatus(AclrtMemcpy(index_value, ast_.Sizeof("uint64_t"), branch_index.Addr(),
                                         ast_.Sizeof("uint64_t"), "ACL_MEMCPY_HOST_TO_DEVICE")));
-  items.push_back(ChkStatus(ast_.Call("KernelLabelGotoExDistribute", {
-      index_value,
-      1,
-      label_goto_ex_label_list[static_cast<int32_t>(header_.op_index)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-  })));
+  items.push_back(ChkStatus(
+      ast_.Call("KernelLabelGotoExDistribute", {
+                                                   index_value,
+                                                   1,
+                                                   label_goto_ex_label_list[static_cast<int32_t>(header_.op_index)],
+                                                   stream_list_[static_cast<int32_t>(header_.stream_id)],
+                                               })));
   return SUCCESS;
 }
 
@@ -71,11 +73,11 @@ Status LabelGotoExTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &ite
   auto max_value = ast_.Var("uint32_t", "maxValue");
   auto label_list = ast_.Var("aclrtLabelList", "labelList");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelLabelGotoExDistribute",
-                                      {ptr, max_value, label_list, stream}, "aclError", {
-      ChkStatus(AclrtSwitchLabelByIndex(ptr, max_value, label_list, stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelLabelGotoExDistribute", {ptr, max_value, label_list, stream}, "aclError",
+                                      {
+                                          ChkStatus(AclrtSwitchLabelByIndex(ptr, max_value, label_list, stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

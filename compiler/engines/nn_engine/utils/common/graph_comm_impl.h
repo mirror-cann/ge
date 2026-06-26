@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,7 @@ class GraphCommImpl {
                           const int32_t &edge_type, const std::unordered_set<ge::NodePtr> &fus_node_set,
                           bool is_tuning_mode) const;
 
-  Status GetAllOutEdgeList(const ge::NodePtr &node,
-                           std::vector<std::pair<ge::AnchorPtr, ge::AnchorPtr>> &out_edge_pair,
+  Status GetAllOutEdgeList(const ge::NodePtr &node, std::vector<std::pair<ge::AnchorPtr, ge::AnchorPtr>> &out_edge_pair,
                            const int32_t &edge_type, const std::unordered_set<ge::NodePtr> &fus_node_set) const;
 
   Status MergeFusionNodeInputCtrlEdgeList(const ge::NodePtr &fus_node,

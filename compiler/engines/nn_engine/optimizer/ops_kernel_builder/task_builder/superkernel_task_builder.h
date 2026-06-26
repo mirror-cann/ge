@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,10 +19,12 @@ class SuperkernelTaskBuilder {
  public:
   static Status GenerateKernelTask(const ge::Node &node, const ge::RunContext &context,
                                    std::vector<domi::TaskDef> &task_defs);
-  static Status GenerateSuperKernelTask(const ge::Node &node,
-                                        ge::RunContext &context, std::vector<domi::TaskDef> &tasks);
+  static Status GenerateSuperKernelTask(const ge::Node &node, ge::RunContext &context,
+                                        std::vector<domi::TaskDef> &tasks);
   static Status GenerateSubKernelTask(const ge::ComputeGraphPtr &sub_graph, ge::RunContext &context,
-      std::vector<ge::Node *> &sub_nodes, std::vector<std::vector<domi::TaskDef>> &sub_tasks);
+                                      std::vector<ge::Node *> &sub_nodes,
+                                      std::vector<std::vector<domi::TaskDef>> &sub_tasks);
+
  private:
   static Status DoSubKernelCompile(ge::ComputeGraphPtr &sub_graph);
   static Status DoSuperKernelCompile(const ge::Node &parent_node, const ScopeNodeIdMap &fusion_nodes_map);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,25 +40,39 @@ class FusionTaskInfo : public TaskInfo {
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                            TaskRunParam &task_run_param) override;
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
   Status Distribute() override;
   Status GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos) override;
 
-  uint32_t GetTaskID() const override { return task_id_; }
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
   int64_t ParseOpIndex(const domi::TaskDef &task_def) const override;
 
   void GetTilingKeyAndData(uint32_t &tiling_key, std::string &tiling_data) const override;
 
   // dfx func
-  void ResetArgsEx() { rt_args_ex_ = rtFusionArgsEx_t{}; }
+  void ResetArgsEx() {
+    rt_args_ex_ = rtFusionArgsEx_t{};
+  }
   void PostProcess(const domi::TaskDef &task_def) override;
-  bool CallSaveDumpInfo() const override  { return call_save_dump_; }
-  uintptr_t GetDumpArgs() const override { return static_cast<uintptr_t>(PtrToValue(dump_args_)); }
-  uintptr_t GetArgs() const override { return static_cast<uintptr_t>(PtrToValue(rt_args_ex_.args) ); }
-  size_t GetArgSize() const override { return static_cast<size_t>(rt_args_ex_.argsSize); }
+  bool CallSaveDumpInfo() const override {
+    return call_save_dump_;
+  }
+  uintptr_t GetDumpArgs() const override {
+    return static_cast<uintptr_t>(PtrToValue(dump_args_));
+  }
+  uintptr_t GetArgs() const override {
+    return static_cast<uintptr_t>(PtrToValue(rt_args_ex_.args));
+  }
+  size_t GetArgSize() const override {
+    return static_cast<size_t>(rt_args_ex_.argsSize);
+  }
   std::map<uint64_t, uint64_t> GetCustToRelevantOffset() const override {
     return cust_to_relevant_offset_;
   }
@@ -82,8 +96,7 @@ class FusionTaskInfo : public TaskInfo {
   bool HasOverflowAddr(const OpDescPtr &op_desc) const;
   Status AssembleIoByArgsFormat(const ArgsFormatInfo &args_format_info);
   Status AssembleShapeInfoAddrs(const std::vector<ArgDesc> &dynamic_args_desc,
-                                const std::vector<size_t> &level2_addr_idx,
-                                const ArgsFormatInfo &args_format_info);
+                                const std::vector<size_t> &level2_addr_idx, const ArgsFormatInfo &args_format_info);
 
   Status SetAicoreTaskHandle(rtAicoreFusionInfo_t &aicore_fusion_info);
   Status SetAicoreTaskStubFunc(rtAicoreFusionInfo_t &aicore_fusion_info);
@@ -93,7 +106,7 @@ class FusionTaskInfo : public TaskInfo {
   Status AppendInputOutputAddrByInstanceIndex(size_t ins_idx, bool is_input);
   Status AppendInputOutputAddr(size_t ir_idx, bool is_input, const ArgsFormatInfo &args_format_info);
 
-  Status SetAIcoreLaunchAttrs(const domi::LaunchConfig& cfg, rtAicoreFusionInfo_t &aicore_fusion_info);
+  Status SetAIcoreLaunchAttrs(const domi::LaunchConfig &cfg, rtAicoreFusionInfo_t &aicore_fusion_info);
 
   Status SetTvmTaskZeroCopy(const OpDescPtr &op_desc, const std::vector<uint64_t> &virtual_io_addrs, void *args) const;
 
@@ -102,7 +115,7 @@ class FusionTaskInfo : public TaskInfo {
   uint32_t task_id_{0U};
   uint32_t stream_id_{0U};
   ModelTaskType task_type_ = ModelTaskType::MODEL_TASK_KERNEL;
-  OpDescPtr op_desc_;   // Clear after distribute.
+  OpDescPtr op_desc_;  // Clear after distribute.
   DavinciModel *davinci_model_{nullptr};
 
   bool is_all_kernel_{false};

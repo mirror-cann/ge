@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,8 +13,7 @@
 namespace fe {
 void SubGraphFormatDtypeUpdate::UpdateFormat(ge::NodePtr node_ptr, const int &index, const bool &is_input) {
   auto owner_graph = node_ptr->GetOwnerComputeGraph();
-  FE_CHECK(owner_graph == nullptr,
-           FE_LOGW("Owner graph of node %s is null.", node_ptr->GetName().c_str()), return);
+  FE_CHECK(owner_graph == nullptr, FE_LOGW("Owner graph of node %s is null.", node_ptr->GetName().c_str()), return);
   string graph_name = owner_graph->GetName();
   string node_name = node_ptr->GetName();
   ge::OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -56,16 +55,18 @@ Status SubGraphFormatDtypeUpdate::UpdateDtypeOfRelatedEdges(const ge::GeTensorDe
   std::unordered_set<ge::RefCell, ge::RefCellHash> reflections;
   auto status = reflection_builder_ptr_->LookUpRefRelations(key, reflections);
   if (status != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Node[%s]: failed to look up reference relations for %s %d.",
-                    node_name.c_str(), IS_INPUT_TO_STRING(in_out_flag == ge::NODE_IN), index);
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Node[%s]: failed to look up reference relations for %s %d.",
+        node_name.c_str(), IS_INPUT_TO_STRING(in_out_flag == ge::NODE_IN), index);
     return FAILED;
   }
 
   // 2. update all related edges
   RelationUpdateInfo relation_update_info = {tensor_desc.GetDataType(), ATTR_NAME_DTYPE_IS_UPDATED, 1};
   if (UpdateDtypeOfRelatedEdges(reflections, relation_update_info) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Failed to update related edges for Graph[%s], Node[%s].",
-                    graph_name.c_str(), node_name.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][UpdFmtAndDtype][UpdDtype] Failed to update related edges for Graph[%s], Node[%s].",
+        graph_name.c_str(), node_name.c_str());
     return FAILED;
   }
   return SUCCESS;

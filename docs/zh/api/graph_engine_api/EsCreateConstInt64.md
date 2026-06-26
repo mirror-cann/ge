@@ -112,4 +112,3 @@ std::vector<int64_t> data = {1, 2, 3};
 std::vector<int64_t> dims = {3};
 auto const_tensor = EsCreateConstInt64(graph, data.data(), dims.data(), dims.size());
 ```
-

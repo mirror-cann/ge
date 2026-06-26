@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ using namespace std;
 using namespace testing;
 
 namespace ge {
-namespace ge_local{
+namespace ge_local {
 namespace {
 /*
  *    data0   data1
@@ -48,10 +48,10 @@ ComputeGraphPtr GetBitcastGraph(const std::vector<int64_t> &input_shape, const g
       OP_CFG("Bitcast").TensorDesc(FORMAT_NCHW, bitcast_out_dtype, bitcast_out_shape).Attr("type", bitcast_out_dtype);
 
   DEF_GRAPH(g) {
-                 CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
-                 CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
-                 CHAIN(NODE("add", add_0)->NODE("bitcast", bitcast_0)->NODE("netoutput", "Netoutput"));
-               };
+    CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
+    CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
+    CHAIN(NODE("add", add_0)->NODE("bitcast", bitcast_0)->NODE("netoutput", "Netoutput"));
+  };
 
   auto graph = ToGeGraph(g);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -76,14 +76,12 @@ Status TestBitcastWhenCalcOpRunningParam(const std::vector<int64_t> &input_shape
   GE_ASSERT_EQ(reuse_input_flag, !graph_unknown_flag);
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 class UtestGeLocalOpsKernelBuilder : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestGeLocalOpsKernelBuilder, Normal) {
@@ -116,7 +114,8 @@ TEST_F(UtestGeLocalOpsKernelBuilder, Normal) {
   EXPECT_EQ(p->CalcOpRunningParam(*test_node2), FAILED);
   ConstGeTensorPtr value = make_shared<const GeTensor>();
   int32_t const_value = 0;
-  GeTensorPtr weight_value = make_shared<GeTensor>(te_desc1, reinterpret_cast<uint8_t *>(&const_value), sizeof(int32_t));
+  GeTensorPtr weight_value =
+      make_shared<GeTensor>(te_desc1, reinterpret_cast<uint8_t *>(&const_value), sizeof(int32_t));
   AttrUtils::SetTensor(const_opdesc, "value", weight_value);
   OpDescPtr date_opdesc = std::make_shared<OpDesc>("Data", "Data");
   OpDescPtr empty_opdesc = nullptr;
@@ -197,8 +196,7 @@ TEST_F(UtestGeLocalOpsKernelBuilder, GenerateTask) {
 TEST_F(UtestGeLocalOpsKernelBuilder, SetSizeForStringInput) {
   auto p = std::make_shared<GeLocalOpsKernelBuilder>();
   DEF_GRAPH(test1) {
-    auto add1 = OP_CFG("Add").TensorDesc(FORMAT_ND, DT_STRING, {200, 200, 3})
-                           .Attr("_op_max_shape", "200,200,3");
+    auto add1 = OP_CFG("Add").TensorDesc(FORMAT_ND, DT_STRING, {200, 200, 3}).Attr("_op_max_shape", "200,200,3");
     auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_STRING, {0});
     auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_STRING, {0});
     CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("add_1", add1));
@@ -241,7 +239,7 @@ TEST_F(UtestGeLocalOpsKernelBuilder, DynamicGraph_Bitcast_OutputNotReuseInput) {
 }
 
 /*
- *  mul1 mul2 mul3 mul4  
+ *  mul1 mul2 mul3 mul4
  *    \    |   |   /
  *     phony_concat
  *          |
@@ -256,10 +254,14 @@ ComputeGraphPtr GetPhonyConcatComputeGraph() {
     auto mul2 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul3 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul4 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
-    auto phony_concat = OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{3, 1}).Attr("N", std::vector<int64_t>{2, 2});
+    auto phony_concat =
+        OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{3, 1}).Attr("N", std::vector<int64_t>{2, 2});
 
-    CHAIN(NODE("mul1", mul1)->EDGE(0, 0)->NODE("phony_concat", phony_concat)->
-          NODE("add", add)->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("mul1", mul1)
+              ->EDGE(0, 0)
+              ->NODE("phony_concat", phony_concat)
+              ->NODE("add", add)
+              ->NODE("netoutput", "NetOutput"));
     CHAIN(NODE("mul2", mul2)->EDGE(0, 1)->NODE("phony_concat", phony_concat));
     CHAIN(NODE("mul3", mul3)->EDGE(0, 2)->NODE("phony_concat", phony_concat));
     CHAIN(NODE("mul4", mul4)->EDGE(0, 3)->NODE("phony_concat", phony_concat));
@@ -294,7 +296,7 @@ ComputeGraphPtr GetPhonyConcatComputeGraph() {
 }
 
 /*
- *     mul1   mul2  
+ *     mul1   mul2
  *       \    /
  *     phony_concat
  *          |
@@ -307,10 +309,14 @@ ComputeGraphPtr GetPhonyConcatNot32AlignComputeGraph() {
     auto add = OP_CFG("Add").TensorDesc(FORMAT_ND, DT_INT8, {4, 3});
     auto mul1 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_INT8, {2, 3});
     auto mul2 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_INT8, {2, 3});
-    auto phony_concat = OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{0}).Attr("N", std::vector<int64_t>{2});
+    auto phony_concat =
+        OP_CFG("PhonyConcat").Attr("concat_dim", std::vector<int64_t>{0}).Attr("N", std::vector<int64_t>{2});
 
-    CHAIN(NODE("mul1", mul1)->EDGE(0, 0)->NODE("phony_concat", phony_concat)->
-          NODE("add", add)->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("mul1", mul1)
+              ->EDGE(0, 0)
+              ->NODE("phony_concat", phony_concat)
+              ->NODE("add", add)
+              ->NODE("netoutput", "NetOutput"));
     CHAIN(NODE("mul2", mul2)->EDGE(0, 1)->NODE("phony_concat", phony_concat));
   };
 
@@ -359,7 +365,9 @@ ComputeGraphPtr GetPhonySplitComputeGraph() {
     auto mul2 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul3 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
     auto mul4 = OP_CFG("Mul").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 2, 4, 8});
-    auto phony_split = OP_CFG("PhonySplit").Attr("split_dim", std::vector<int64_t>{1, 3}).Attr("num_split", std::vector<int64_t>{2, 2});
+    auto phony_split = OP_CFG("PhonySplit")
+                           .Attr("split_dim", std::vector<int64_t>{1, 3})
+                           .Attr("num_split", std::vector<int64_t>{2, 2});
 
     CHAIN(NODE("add", add)->NODE("phony_split", phony_split)->NODE("mul1", mul1)->NODE("netoutput", "NetOutput"));
     CHAIN(NODE("phony_split", phony_split)->NODE("mul2", mul2)->NODE("netoutput", "NetOutput"));
@@ -408,22 +416,26 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PhonyConcatCalcOffset) {
   EXPECT_EQ(p->CalcOpRunningParam(*node_phony_concat), SUCCESS);
 
   std::vector<int64_t> outputs_offset;
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 64);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 512);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 576);
@@ -458,22 +470,26 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PhonyConcatCalcOffsetNotKeepOffset) {
   EXPECT_EQ(p->CalcOpRunningParam(*node_phony_concat), SUCCESS);
 
   std::vector<int64_t> outputs_offset;
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
@@ -497,10 +513,14 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PhonyConcatSkipProcess) {
   EXPECT_EQ(p->CalcOpRunningParam(*node_phony_concat), SUCCESS);
 
   std::vector<int64_t> outputs_offset;
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), false);
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), false);
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), false);
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset), false);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            false);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            false);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            false);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_output_offset_list_for_continuous", outputs_offset),
+            false);
 }
 
 TEST_F(UtestGeLocalOpsKernelBuilder, PhonySplitCalcOffset) {
@@ -516,22 +536,26 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PhonySplitCalcOffset) {
   EXPECT_EQ(p->CalcOpRunningParam(*node_phony_split), SUCCESS);
 
   std::vector<int64_t> inputs_offset;
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset),
+            true);
   EXPECT_EQ(inputs_offset.size(), 1);
   if (inputs_offset.size() == 1) {
     EXPECT_EQ(inputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset),
+            true);
   EXPECT_EQ(inputs_offset.size(), 1);
   if (inputs_offset.size() == 1) {
     EXPECT_EQ(inputs_offset[0], 64);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset),
+            true);
   EXPECT_EQ(inputs_offset.size(), 1);
   if (inputs_offset.size() == 1) {
     EXPECT_EQ(inputs_offset[0], 512);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_input_offset_list_for_continuous", inputs_offset),
+            true);
   EXPECT_EQ(inputs_offset.size(), 1);
   if (inputs_offset.size() == 1) {
     EXPECT_EQ(inputs_offset[0], 576);
@@ -553,22 +577,26 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PhonySplitCalcOffsetNotKeepOffset) {
   EXPECT_EQ(p->CalcOpRunningParam(*node_phony_split), SUCCESS);
 
   std::vector<int64_t> outputs_offset;
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul1->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul2->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul3->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
   }
-  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset), true);
+  EXPECT_EQ(ge::AttrUtils::GetListInt(node_mul4->GetOpDesc(), "_input_offset_list_for_continuous", outputs_offset),
+            true);
   EXPECT_EQ(outputs_offset.size(), 1);
   if (outputs_offset.size() == 1) {
     EXPECT_EQ(outputs_offset[0], 0);
@@ -635,5 +663,5 @@ TEST_F(UtestGeLocalOpsKernelBuilder, PartitionedCall_CheckSize_32Padding) {
   ge::TensorUtils::GetSize(*output_tensor_desc, mem_size);
   EXPECT_EQ(mem_size, 320032);
 }
-}
-} // namespace ge
+}  // namespace ge_local
+}  // namespace ge

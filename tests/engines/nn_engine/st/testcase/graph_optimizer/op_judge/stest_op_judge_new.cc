@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,28 +49,25 @@ using OpSetterPtr = std::shared_ptr<OpSetter>;
 
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
-class STEST_fusion_engine_op_judge_new : public testing::Test
-{
-protected:
-  void SetUp()
-  {
-    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+class STEST_fusion_engine_op_judge_new : public testing::Test {
+ protected:
+  void SetUp() {
+    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
     tbe_op_store_adapter_ptr->GetOpSpecificInfo = GetOpSpecificInfoSub;
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
     fe_ops_kernel_info_store_ptr_cce_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo cce_custom {
-            4,
-            "cce-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_general_opinfo",
-            ""};
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            ""};
+    FEOpsStoreInfo cce_custom{
+        4, "cce-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_general_opinfo",
+        ""};
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -90,18 +87,15 @@ protected:
 
     op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
     op_format_dtype_judge_ptr_->Initialize();
-
   }
 
-  void TearDown()
-  {
-
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_cce_;
   RefRelationsPtr reflection_builder_ptr_;
   OpFormatDtypeJudgePtr op_format_dtype_judge_ptr_;
-protected:
+
+ protected:
   static bool GetOpSpecificInfoSub(const te::TbeOpInfo &tbeOpInfo, std::string &opCoreTypeString) {
     nlohmann::json op_specific_info;
     op_specific_info["core_type_value"] = "AiCore,MIX";
@@ -110,7 +104,6 @@ protected:
   }
 
   static void CreateOneOpGraph(ComputeGraphPtr graph) {
-
     OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
 
     // add descriptor
@@ -200,7 +193,7 @@ protected:
     OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
 
     // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
+    vector<int64_t> dims = {1, 2, 3, 4};
     GeShape shape(dims);
 
     GeTensorDesc in_desc1(shape);
@@ -214,7 +207,6 @@ protected:
     out_desc1.SetFormat(FORMAT_HWCN);
     out_desc1.SetDataType(DT_FLOAT16);
     relu_op->AddOutputDesc("y", out_desc1);
-
 
     GeTensorDesc in_desc2(shape);
     in_desc2.SetOriginFormat(FORMAT_FRACTAL_Z);
@@ -233,8 +225,7 @@ protected:
     GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
-  static void CreateThreeOpGraph(ComputeGraphPtr graph)
-  {
+  static void CreateThreeOpGraph(ComputeGraphPtr graph) {
     // 创建Node
     OpDescPtr square01 = std::make_shared<OpDesc>("square01", "Square");
     OpDescPtr square02 = std::make_shared<OpDesc>("square02", "Square");
@@ -296,7 +287,6 @@ protected:
 
     GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
-
 
   static void CreateTwoMultiOpGraph(ComputeGraphPtr graph) {
     // 创建Node
@@ -361,95 +351,93 @@ protected:
     GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
-  void ConstructAndCheck3(const std::string &op_type, ge::DataType original,
-    ge::DataType input_expect, ge::DataType output_expect,
-    bool check_result_expect, Status set_result_expect,
-    const std::string &op_name = "G1") {
-  std::cout << op_type << std::endl;
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr g_op = std::make_shared<OpDesc>(op_name, op_type);
+  void ConstructAndCheck3(const std::string &op_type, ge::DataType original, ge::DataType input_expect,
+                          ge::DataType output_expect, bool check_result_expect, Status set_result_expect,
+                          const std::string &op_name = "G1") {
+    std::cout << op_type << std::endl;
+    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+    OpDescPtr g_op = std::make_shared<OpDesc>(op_name, op_type);
 
-  //add descriptor
-  vector<int64_t> dim({4, 33, 12, 16});
-  GeShape shape(dim);
-  GeTensorDesc tensor_desc(shape);
-  tensor_desc.SetOriginFormat(FORMAT_NCHW);
-  tensor_desc.SetFormat(FORMAT_NCHW);
-  tensor_desc.SetDataType(original);
-  tensor_desc.SetOriginDataType(original);
+    // add descriptor
+    vector<int64_t> dim({4, 33, 12, 16});
+    GeShape shape(dim);
+    GeTensorDesc tensor_desc(shape);
+    tensor_desc.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc.SetFormat(FORMAT_NCHW);
+    tensor_desc.SetDataType(original);
+    tensor_desc.SetOriginDataType(original);
 
-  g_op->AddInputDesc("x", tensor_desc);
-  g_op->AddOutputDesc("z", tensor_desc);
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
-  ge::NodePtr g_node = graph->AddNode(g_op);
-  string reason;
-  bool check_result = fe_ops_kernel_info_store_ptr_->CheckSupported(g_node, reason);
-  EXPECT_EQ(check_result, check_result_expect);
+    g_op->AddInputDesc("x", tensor_desc);
+    g_op->AddOutputDesc("z", tensor_desc);
+    ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+    ge::NodePtr g_node = graph->AddNode(g_op);
+    string reason;
+    bool check_result = fe_ops_kernel_info_store_ptr_->CheckSupported(g_node, reason);
+    EXPECT_EQ(check_result, check_result_expect);
 
-  Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
-  ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
-  EXPECT_EQ(ret1, set_result_expect);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetFormat(), FORMAT_NCHW);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), input_expect);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetFormat(), FORMAT_NCHW);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), output_expect);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim);
-}
+    Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+    ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
+    EXPECT_EQ(ret1, set_result_expect);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetFormat(), FORMAT_NCHW);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), input_expect);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetFormat(), FORMAT_NCHW);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), output_expect);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim);
+  }
 
-void ConstructAndCheckHasFatherNode(const std::string &op_type, ge::DataType father_dtype, ge::DataType original,
-    ge::DataType input_expect, ge::DataType output_expect,
-    bool check_result_expect, Status set_result_expect,
-    const std::string &father_type = "CubeHif8SupportHif8") {
-  std::cout << father_type << " -> " << op_type << std::endl;
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr f_op = std::make_shared<OpDesc>("G0", father_type);
-  OpDescPtr g_op = std::make_shared<OpDesc>("G1", op_type);
+  void ConstructAndCheckHasFatherNode(const std::string &op_type, ge::DataType father_dtype, ge::DataType original,
+                                      ge::DataType input_expect, ge::DataType output_expect, bool check_result_expect,
+                                      Status set_result_expect,
+                                      const std::string &father_type = "CubeHif8SupportHif8") {
+    std::cout << father_type << " -> " << op_type << std::endl;
+    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+    OpDescPtr f_op = std::make_shared<OpDesc>("G0", father_type);
+    OpDescPtr g_op = std::make_shared<OpDesc>("G1", op_type);
 
-  vector<int64_t> dim_f({4, 33, 12, 16});
-  GeShape shape_f(dim_f);
-  GeTensorDesc tensor_desc_f(shape_f);
-  tensor_desc_f.SetOriginFormat(FORMAT_NCHW);
-  tensor_desc_f.SetFormat(FORMAT_NCHW);
-  tensor_desc_f.SetDataType(father_dtype);
-  tensor_desc_f.SetOriginDataType(father_dtype);
-  f_op->AddInputDesc("x", tensor_desc_f);
-  f_op->AddOutputDesc("z", tensor_desc_f);
-  ge::AttrUtils::SetInt(f_op, FE_IMPLY_TYPE, 6);
-  ge::NodePtr f_node = graph->AddNode(f_op);
+    vector<int64_t> dim_f({4, 33, 12, 16});
+    GeShape shape_f(dim_f);
+    GeTensorDesc tensor_desc_f(shape_f);
+    tensor_desc_f.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc_f.SetFormat(FORMAT_NCHW);
+    tensor_desc_f.SetDataType(father_dtype);
+    tensor_desc_f.SetOriginDataType(father_dtype);
+    f_op->AddInputDesc("x", tensor_desc_f);
+    f_op->AddOutputDesc("z", tensor_desc_f);
+    ge::AttrUtils::SetInt(f_op, FE_IMPLY_TYPE, 6);
+    ge::NodePtr f_node = graph->AddNode(f_op);
 
-  vector<int64_t> dim({4, 33, 12, 16});
-  GeShape shape(dim);
-  GeTensorDesc tensor_desc(shape);
-  tensor_desc.SetOriginFormat(FORMAT_NCHW);
-  tensor_desc.SetFormat(FORMAT_NCHW);
-  tensor_desc.SetDataType(original);
-  tensor_desc.SetOriginDataType(original);
-  g_op->AddInputDesc("x", tensor_desc);
-  g_op->AddOutputDesc("z", tensor_desc);
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
-  ge::NodePtr g_node = graph->AddNode(g_op);
+    vector<int64_t> dim({4, 33, 12, 16});
+    GeShape shape(dim);
+    GeTensorDesc tensor_desc(shape);
+    tensor_desc.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc.SetFormat(FORMAT_NCHW);
+    tensor_desc.SetDataType(original);
+    tensor_desc.SetOriginDataType(original);
+    g_op->AddInputDesc("x", tensor_desc);
+    g_op->AddOutputDesc("z", tensor_desc);
+    ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+    ge::NodePtr g_node = graph->AddNode(g_op);
 
-  GraphUtils::AddEdge(f_node->GetOutDataAnchor(0), g_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(f_node->GetOutDataAnchor(0), g_node->GetInDataAnchor(0));
 
-  string reason;
-  bool check_result = fe_ops_kernel_info_store_ptr_->CheckSupported(g_node, reason);
-  EXPECT_EQ(check_result, check_result_expect);
+    string reason;
+    bool check_result = fe_ops_kernel_info_store_ptr_->CheckSupported(g_node, reason);
+    EXPECT_EQ(check_result, check_result_expect);
 
-  Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
-  ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
-  EXPECT_EQ(ret1, set_result_expect);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetFormat(), FORMAT_NCHW);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), input_expect);
-  EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetFormat(), FORMAT_NCHW);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), output_expect);
-  EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim);
-}
+    Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+    ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
+    EXPECT_EQ(ret1, set_result_expect);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetFormat(), FORMAT_NCHW);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), input_expect);
+    EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetFormat(), FORMAT_NCHW);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), output_expect);
+    EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim);
+  }
 };
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_nchw_c04_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_nchw_c04_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr conv_op = std::make_shared<OpDesc>("conv", "ConvTempC04");
 
@@ -469,7 +457,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_nchw_c04_succ)
   conv_op->AddInputDesc("w", in_desc2);
   conv_op->AddOutputDesc("y", in_desc1);
   NodePtr conv_node = graph->AddNode(conv_op);
-  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(conv_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(conv_node, "tbe-custom");
@@ -482,8 +470,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_nchw_c04_succ)
   EXPECT_EQ(conv_op_desc->GetOutputDesc(0).GetShape().GetDims(), new_dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_vector_op_5hd)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_vector_op_5hd) {
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr test_op = std::make_shared<OpDesc>("test1", "TestVec5HD");
@@ -497,7 +484,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_vector_op_5hd)
   test_op->AddInputDesc("x", in_desc1);
   test_op->AddOutputDesc("y", in_desc1);
   NodePtr test_node = graph->AddNode(test_op);
-  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(test_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(test_node, "tbe-custom");
@@ -508,8 +495,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_vector_op_5hd)
   EXPECT_EQ(test_op_desc->GetOutputDesc(0).GetShape().GetDims(), new_dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd) {
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr test_op = std::make_shared<OpDesc>("test1", "TestCube5HD");
@@ -523,7 +509,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd)
   test_op->AddInputDesc("x", in_desc1);
   test_op->AddOutputDesc("y", in_desc1);
   NodePtr test_node = graph->AddNode(test_op);
-  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(test_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(test_node, "tbe-custom");
@@ -534,8 +520,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd)
   EXPECT_EQ(test_op_desc->GetOutputDesc(0).GetShape().GetDims(), new_dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd_c016)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd_c016) {
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 0;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr test_op = std::make_shared<OpDesc>("test1", "TestCube5HD");
@@ -549,7 +534,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd_c016)
   test_op->AddInputDesc("x", in_desc1);
   test_op->AddOutputDesc("y", in_desc1);
   NodePtr test_node = graph->AddNode(test_op);
-  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(test_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(test_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(test_node, "tbe-custom");
@@ -560,8 +545,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_cube_op_5hd_c016)
   EXPECT_EQ(test_op_desc->GetOutputDesc(0).GetShape().GetDims(), new_dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_nhwc_c04_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_nhwc_c04_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr conv_op = std::make_shared<OpDesc>("conv", "ConvTempC04");
 
@@ -581,8 +565,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_nhwc_c04_succ)
   conv_op->AddInputDesc("w", in_desc2);
   conv_op->AddOutputDesc("y", in_desc1);
   NodePtr conv_node = graph->AddNode(conv_op);
-  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);//TBE
-
+  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(conv_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(conv_node, "tbe-custom");
@@ -595,8 +578,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_nhwc_c04_succ)
   EXPECT_EQ(conv_op_desc->GetOutputDesc(0).GetShape().GetDims(), new_dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, judge_hwcn_c04_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, judge_hwcn_c04_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr conv_op = std::make_shared<OpDesc>("conv", "ConvTempC04");
 
@@ -616,8 +598,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_hwcn_c04_succ)
   conv_op->AddInputDesc("w", in_desc2);
   conv_op->AddOutputDesc("y", in_desc1);
   NodePtr conv_node = graph->AddNode(conv_op);
-  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);//TBE
-
+  ge::AttrUtils::SetInt(conv_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(conv_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(conv_node, "tbe-custom");
@@ -632,12 +613,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, judge_hwcn_c04_succ)
 
 /* Test SetDtypeAndFormatByPrecisionMode on op G without predecessor node
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Fp*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({1, 2, 3, 4, 5});
   GeShape shape(dim);
 
@@ -647,7 +627,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ)
   tensor_desc.SetDataType(DT_FLOAT);
   g_op->AddInputDesc("x", tensor_desc);
   g_op->AddOutputDesc("z", tensor_desc);
-
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -662,12 +641,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ)
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_optional)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_optional) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "GV9");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({1, 2, 3, 4, 5});
   GeShape shape(dim);
 
@@ -679,7 +657,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_optional)
   g_op->AddInputDesc("x", tensor_desc);
   g_op->AddInputDesc("y", data_desc_in_valid);
   g_op->AddOutputDesc("z", tensor_desc);
-
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -696,12 +673,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_optional)
 
 /* Test SetDtypeAndFormatByPrecisionMode on op G without predecessor node
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Fp*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
 
@@ -711,13 +687,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed)
   tensor_desc.SetDataType(DT_FLOAT);
   g_op->AddInputDesc("x", tensor_desc);
   g_op->AddOutputDesc("z", tensor_desc);
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
   ASSERT_EQ(ret, fe::SUCCESS);
-  vector<int64_t> dim_result({4, 3, 12, 16,16});
+  vector<int64_t> dim_result({4, 3, 12, 16, 16});
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), DT_FLOAT);
   EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim_result);
@@ -725,19 +700,17 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed)
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result);
-
 }
 
 /* Test SetDtypeAndFormatByPrecisionMode on op ConvTemp without predecessor node
  * The First input name is correct as ops kernel info store
  * The second and output is not correct. But we still consider they are qualified by the
  * structure of input and output. */
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_without_input2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_without_input2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("ConvTemp", "ConvTemp");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
 
   vector<int64_t> dim1({1, 16, 64, 64});
   GeShape shape1(dim1);
@@ -763,12 +736,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   tensor_desco.SetDataType(DT_FLOAT);
   g_op->AddOutputDesc("yqwe", tensor_desco);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
   vector<int64_t> dim1_5_d({1, 1, 64, 64, 16});
   vector<int64_t> dim2_fz({49, 4, 16, 16});
   vector<int64_t> dimo_5_d({1, 4, 30, 30, 16});
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -788,15 +761,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dimo_5_d);
-
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -807,8 +778,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_01
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -826,12 +798,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_01
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_autofese_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_autofese_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "AscBackend");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -842,8 +813,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_au
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -857,12 +829,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_au
   EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim_result);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_autofuse)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_autofuse) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "AscBackend");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -873,7 +844,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_autofuse)
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->JudgeInSubGraph(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -881,12 +853,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_autofuse)
 
 /* Test SetDtypeAndFormatByPrecisionMode on op G without predecessor node
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Fp*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_and_dtype_changed)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_and_dtype_changed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -896,7 +867,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_and_dtype_
   g_op->AddInputDesc("x", tensor_desc);
   g_op->AddOutputDesc("z", tensor_desc);
   ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
-
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -911,12 +881,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_and_dtype_
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_failed_format_changed_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_failed_format_changed_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -928,7 +897,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_failed_format_changed_
   ge::NodePtr g_node = graph->AddNode(g_op);
 
   ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 7);
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -952,13 +922,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_failed_format_changed_
  * and pick the first Dtype belongs to this format.
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Fp
  * Op H1 format is FORMAT_NC1HWC0 and Dtype is Fp */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("H1", "H");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -981,7 +950,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_01)
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -1008,7 +976,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_01)
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_h);
 }
 
-
 /* Test SetDtypeAndFormatByPrecisionMode on op G and H, relation in graph is
  * G->H. G is the father of H. G's format after OpFormatDtypeJudge will become NC1HWC0.
  * H's format is NCHW, and its op kernel supports NCHW and NC1HWC0. Due to
@@ -1018,13 +985,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_01)
  * and pick the first Dtype belongs to this format.
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Fp
  * Op H1 format is FORMAT_NC1HWC0 and Dtype is Fp */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_02)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("I1", "I");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -1048,7 +1014,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_02)
   ge::NodePtr h_node = graph->AddNode(h_op);
 
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -1079,13 +1044,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_02)
 
 /*  Below is a test case from interface JudgeOp(). The pre-condition and check spot
  * is the same as set_two_nodes_format_dtype_02 */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("I1", "I");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -1094,7 +1058,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03)
   tensor_desc.SetDataType(DT_FLOAT);
   g_op->AddInputDesc("x", tensor_desc);
   g_op->AddOutputDesc("z", tensor_desc);
-  //ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
   vector<int64_t> dim_i({1, 2, 3, 4});
@@ -1105,12 +1069,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03)
   tensor_desc_i.SetDataType(DT_FLOAT16);
   h_op->AddInputDesc("x", tensor_desc_i);
   h_op->AddOutputDesc("z", tensor_desc_i);
-  //ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
 
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -1128,7 +1093,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03)
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result);
 
   vector<int64_t> dim_result_h({1, 4, 2, 3});
-  vector<int64_t> dim_result_h5_d({1, 1, 2, 3,32});
+  vector<int64_t> dim_result_h5_d({1, 1, 2, 3, 32});
   EXPECT_EQ(h_op->GetInputDesc(0).GetFormat(), FORMAT_NHWC);
   EXPECT_EQ(h_op->GetInputDesc(0).GetDataType(), DT_FLOAT);
   EXPECT_EQ(h_op->GetInputDesc(0).GetShape().GetDims(), dim_i);
@@ -1138,9 +1103,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_03)
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_h);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   config.is_init_ = false;
 
@@ -1149,7 +1112,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype)
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   vector<FEOpsStoreInfo> &op_store_info_vector = Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_;
-  for (auto it = op_store_info_vector.begin(); it != op_store_info_vector.end(); ) {
+  for (auto it = op_store_info_vector.begin(); it != op_store_info_vector.end();) {
     if ((*it).op_impl_type == EN_IMPL_HW_GENERAL_CCE) {
       it = op_store_info_vector.erase(it);
     } else {
@@ -1171,7 +1134,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype)
   in_desc_ptr->supported_dtypes_.emplace_back(DT_FLOAT);
   in_desc_ptr->supported_dtypes_.emplace_back(DT_FLOAT16);
   info_ptr_act->input_infos_.emplace_back(in_desc_ptr);
-  info_ptr_bn->input_infos_.emplace_back( in_desc_ptr);
+  info_ptr_bn->input_infos_.emplace_back(in_desc_ptr);
 
   InputOrOutputInfoPtr out_desc_ptr = std::make_shared<fe::InputOrOutputInfo>("y");
   out_desc_ptr->supported_formats_.emplace_back(FORMAT_NC1HWC0);
@@ -1185,10 +1148,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype)
   SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(ops_store_info);
   sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("Activation", info_ptr_act));
   sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("BatchNorm", info_ptr_bn));
-  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.emplace(std::make_pair("aicore-tbe-builtin", sub_ops_kernel_ptr));
+  OpsKernelManager::Instance(AI_CORE_NAME)
+      .sub_ops_kernel_map_.emplace(std::make_pair("aicore-tbe-builtin", sub_ops_kernel_ptr));
 
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
+  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr =
+      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   Status ret = op_format_dtype_judge_ptr->Judge(*(graph.get()));
   ret = op_format_dtype_judge_ptr->SetFormat(*(graph.get()));
 
@@ -1208,8 +1173,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_succ_dtype)
   }
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_fail)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_fail) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateTwoInvalidOpGraph(graph);
 
@@ -1236,60 +1200,62 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_dtype_and_format_fail)
   SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(ops_store_info);
   sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("Activation", info_ptr_act));
   sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("BatchNorm", info_ptr_bn));
-  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.emplace(std::make_pair("tbe-builtin", sub_ops_kernel_ptr));
+  OpsKernelManager::Instance(AI_CORE_NAME)
+      .sub_ops_kernel_map_.emplace(std::make_pair("tbe-builtin", sub_ops_kernel_ptr));
 
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
+  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr =
+      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   Status ret = op_format_dtype_judge_ptr->Judge(*(graph.get()));
   ret = op_format_dtype_judge_ptr->SetFormat(*(graph.get()));
 
   EXPECT_EQ(fe::SUCCESS, ret);
-
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableDtypeVec)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableDtypeVec) {
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   OpDtypeRiseMatcherPtr op_dtype_rise_matcher = std::make_shared<OpDtypeRiseMatcher>();
   ge::DataType dtype_to_be_found = ge::DT_INT64;
-  vector<ge::DataType> input_dtype_vec_ops_kernel = {DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64};
-  vector<uint32_t> matched_index_vec = {0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-  op_dtype_rise_matcher->FindSuitableDtype(input_dtype_vec_ops_kernel, dtype_to_be_found, matched_index_vec, ge::DT_MAX);
+  vector<ge::DataType> input_dtype_vec_ops_kernel = {DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64,   DT_FLOAT, DT_FLOAT16,
+                                                     DT_INT32, DT_INT64,   DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64,
+                                                     DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64};
+  vector<uint32_t> matched_index_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  op_dtype_rise_matcher->FindSuitableDtype(input_dtype_vec_ops_kernel, dtype_to_be_found, matched_index_vec,
+                                           ge::DT_MAX);
   EXPECT_EQ(matched_index_vec.size(), 4);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableDtypeVec2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableDtypeVec2) {
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   OpDtypeRiseMatcherPtr op_dtype_rise_matcher = std::make_shared<OpDtypeRiseMatcher>();
   ge::DataType dtype_to_be_found = ge::DT_INT64;
-  vector<ge::DataType> input_dtype_vec_ops_kernel = {DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64, DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64};
-  vector<uint32_t> matched_index_vec = {0, 1, 2,3};
-  op_dtype_rise_matcher->FindSuitableDtype(input_dtype_vec_ops_kernel, dtype_to_be_found, matched_index_vec, ge::DT_MAX);
+  vector<ge::DataType> input_dtype_vec_ops_kernel = {DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64,   DT_FLOAT, DT_FLOAT16,
+                                                     DT_INT32, DT_INT64,   DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64,
+                                                     DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT64};
+  vector<uint32_t> matched_index_vec = {0, 1, 2, 3};
+  op_dtype_rise_matcher->FindSuitableDtype(input_dtype_vec_ops_kernel, dtype_to_be_found, matched_index_vec,
+                                           ge::DT_MAX);
   EXPECT_EQ(matched_index_vec.size(), 1);
-
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableFormatVec)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, FindSuitableFormatVec) {
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   OpFormatMatcherPtr op_format_matcher = std::make_shared<OpFormatMatcher>();
   ge::Format format_to_be_found = ge::FORMAT_NHWC;
-  vector<ge::Format> foramt_vec = {ge::FORMAT_NHWC, ge::FORMAT_NHWC, ge::FORMAT_NHWC, ge::FORMAT_NHWC,
-                                   ge::FORMAT_ND, ge::FORMAT_ND, ge::FORMAT_ND, ge::FORMAT_ND,
+  vector<ge::Format> foramt_vec = {ge::FORMAT_NHWC,    ge::FORMAT_NHWC,    ge::FORMAT_NHWC,    ge::FORMAT_NHWC,
+                                   ge::FORMAT_ND,      ge::FORMAT_ND,      ge::FORMAT_ND,      ge::FORMAT_ND,
                                    ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0,
-                                   ge::FORMAT_NCHW,ge::FORMAT_NCHW,ge::FORMAT_NCHW,ge::FORMAT_NCHW};
-  vector<uint32_t> matched_index_vec = {0, 1, 2,3};
+                                   ge::FORMAT_NCHW,    ge::FORMAT_NCHW,    ge::FORMAT_NCHW,    ge::FORMAT_NCHW};
+  vector<uint32_t> matched_index_vec = {0, 1, 2, 3};
   op_format_matcher->FindSuitableFormat(foramt_vec, format_to_be_found, FORMAT_NCHW, matched_index_vec);
   EXPECT_EQ(matched_index_vec.size(), 4);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op = std::make_shared<OpDesc>("relu", "GWithoutReshapeType");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim1({7});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
@@ -1297,7 +1263,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_01)
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({2,3});
+  vector<int64_t> dim2({2, 3});
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1308,7 +1274,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_01)
   op->AddOutputDesc("z", output);
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -1316,309 +1283,26 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_01)
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
 
-  vector<int64_t> dim_result1({1,1,1,1,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({1,1,2,3,16});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_02)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("mat1", "MatMul");
-
-  //add descriptor
-  vector<int64_t> dim1({7});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2({2,3});
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-
-  vector<int64_t> dim_result1({1,1,1,1,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({1,1,2,3,16});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_03)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "GWithoutReshapeType");
-
-  //add descriptor
-  vector<int64_t> dim1({4,5,6});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2({5,6,7,8});
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-
-  vector<int64_t> dim_result1({1,1,4,5,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({5,1,6,7,16});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_04)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMul");
-
-  //add descriptor
-  vector<int64_t> dim1({5,6});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2({5,6,7,8});
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-
-  vector<int64_t> dim_result1({1,1,5,6,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({5,1,6,7,16});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_05)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "GWithoutReshapeType");
-
-  //add descriptor
-  vector<int64_t> dim1({});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2;
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-
-  vector<int64_t> dim_result1({});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_06)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
-
-  //add descriptor
-  vector<int64_t> dim1({1,2,3,4});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2;
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-
-  vector<int64_t> dim_result1({1,1,2,3,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_01)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
-
-  //add descriptor
-  vector<int64_t> dim1({7});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2({2,3});
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-  vector<int64_t> dim_result1({7,1,1,1,16});
-  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
-
-  vector<int64_t> dim_result2({1,1,2,3,16});
-  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
-}
-
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_02)
-{
-  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("mat1", "MatMulWithReshapeType");
-
-  //add descriptor
-  vector<int64_t> dim1({7});
-  GeShape shape1(dim1);
-  GeTensorDesc input(shape1);
-  input.SetOriginFormat(FORMAT_NHWC);
-  input.SetFormat(FORMAT_NHWC);
-  input.SetDataType(DT_FLOAT);
-
-  vector<int64_t> dim2({2,3});
-  GeShape shape2(dim2);
-  GeTensorDesc output(shape2);
-  output.SetOriginFormat(FORMAT_NHWC);
-  output.SetFormat(FORMAT_NHWC);
-  output.SetDataType(DT_FLOAT);
-
-  op->AddInputDesc("x", input);
-  op->AddOutputDesc("z", output);
-  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
-  ge::NodePtr g_node = graph->AddNode(op);
-
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
-
-  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
-  ASSERT_EQ(ret1, fe::SUCCESS);
-  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
-  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
-  ASSERT_EQ(ret2, fe::SUCCESS);
-  vector<int64_t> dim_result1({1,1,1,1,16});
+  vector<int64_t> dim_result1({1, 1, 1, 1, 16});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
   vector<int64_t> dim_result2({1, 1, 2, 3, 16});
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_03)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
+  OpDescPtr op = std::make_shared<OpDesc>("mat1", "MatMul");
 
-  //add descriptor
-  vector<int64_t> dim1({4,5,6});
+  // add descriptor
+  vector<int64_t> dim1({7});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
   input.SetOriginFormat(FORMAT_NHWC);
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({5,6,7,8});
+  vector<int64_t> dim2({2, 3});
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1630,35 +1314,35 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_03)
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
   Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
-  vector<int64_t> dim_result1({4,5,6});
+
+  vector<int64_t> dim_result1({1, 1, 1, 1, 16});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
-  vector<int64_t> dim_result2({5,1,6,7,16});
+  vector<int64_t> dim_result2({1, 1, 2, 3, 16});
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_04)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMulWithReshapeType");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "GWithoutReshapeType");
 
-  //add descriptor
-  vector<int64_t> dim1({5,6});
+  // add descriptor
+  vector<int64_t> dim1({4, 5, 6});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
   input.SetOriginFormat(FORMAT_NHWC);
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({3,4});
+  vector<int64_t> dim2({5, 6, 7, 8});
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1670,27 +1354,67 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_04)
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
   Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
+
+  vector<int64_t> dim_result1({1, 1, 4, 5, 16});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({5, 1, 6, 7, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_04) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMul");
+
+  // add descriptor
+  vector<int64_t> dim1({5, 6});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({5, 6, 7, 8});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+
   vector<int64_t> dim_result1({1, 1, 5, 6, 16});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
-  vector<int64_t> dim_result2({1, 1, 3, 4, 16});
+  vector<int64_t> dim_result2({5, 1, 6, 7, 16});
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_05)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_05) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "GWithoutReshapeType");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim1({});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
@@ -1710,13 +1434,15 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_05)
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
   Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
+
   vector<int64_t> dim_result1({});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
@@ -1724,20 +1450,19 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_05)
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_06)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_06) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
 
-  //add descriptor
-  vector<int64_t> dim1({7,8});
+  // add descriptor
+  vector<int64_t> dim1({1, 2, 3, 4});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
   input.SetOriginFormat(FORMAT_NHWC);
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({2,3});
+  vector<int64_t> dim2;
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1749,34 +1474,35 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_06)
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
   Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
-  vector<int64_t> dim_result1({7,1,1,1,16});
+
+  vector<int64_t> dim_result1({1, 1, 2, 3, 16});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
-  vector<int64_t> dim_result2({1,1,2,3,16});
+  vector<int64_t> dim_result2({});
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_07)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMulWithReshapeType");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
 
-  //add descriptor
-  vector<int64_t> dim1({5,6});
+  // add descriptor
+  vector<int64_t> dim1({7});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
   input.SetOriginFormat(FORMAT_NHWC);
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({3,4});
+  vector<int64_t> dim2({2, 3});
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1787,7 +1513,126 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_07)
   op->AddOutputDesc("z", output);
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({7, 1, 1, 1, 16});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({1, 1, 2, 3, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_02) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("mat1", "MatMulWithReshapeType");
+
+  // add descriptor
+  vector<int64_t> dim1({7});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({2, 3});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({1, 1, 1, 1, 16});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({1, 1, 2, 3, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_03) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
+
+  // add descriptor
+  vector<int64_t> dim1({4, 5, 6});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({5, 6, 7, 8});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({4, 5, 6});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({5, 1, 6, 7, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_04) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMulWithReshapeType");
+
+  // add descriptor
+  vector<int64_t> dim1({5, 6});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({3, 4});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -1801,22 +1646,58 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_07)
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_08)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_05) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
 
-  //add descriptor
-  vector<int64_t> dim1({7,8});
+  // add descriptor
+  vector<int64_t> dim1({});
   GeShape shape1(dim1);
   GeTensorDesc input(shape1);
   input.SetOriginFormat(FORMAT_NHWC);
   input.SetFormat(FORMAT_NHWC);
   input.SetDataType(DT_FLOAT);
 
-  vector<int64_t> dim2({2,3});
+  vector<int64_t> dim2;
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_06) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
+
+  // add descriptor
+  vector<int64_t> dim1({7, 8});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({2, 3});
   GeShape shape2(dim2);
   GeTensorDesc output(shape2);
   output.SetOriginFormat(FORMAT_NHWC);
@@ -1827,38 +1708,115 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_08)
   op->AddOutputDesc("z", output);
   ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
   ge::NodePtr g_node = graph->AddNode(op);
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
   Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
   ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
   ASSERT_EQ(ret2, fe::SUCCESS);
-  vector<int64_t> dim_result1({7,1,1,1,16});
+  vector<int64_t> dim_result1({7, 1, 1, 1, 16});
   EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
 
-  vector<int64_t> dim_result2({1,1,2,3,16});
+  vector<int64_t> dim_result2({1, 1, 2, 3, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_07) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "MatMulWithReshapeType");
+
+  // add descriptor
+  vector<int64_t> dim1({5, 6});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({3, 4});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({1, 1, 5, 6, 16});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({1, 1, 3, 4, 16});
+  EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
+}
+
+TEST_F(STEST_fusion_engine_op_judge_new, set_op_shape_dim_by_reshape_type_08) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
+  OpDescPtr op = std::make_shared<OpDesc>("relu", "G");
+
+  // add descriptor
+  vector<int64_t> dim1({7, 8});
+  GeShape shape1(dim1);
+  GeTensorDesc input(shape1);
+  input.SetOriginFormat(FORMAT_NHWC);
+  input.SetFormat(FORMAT_NHWC);
+  input.SetDataType(DT_FLOAT);
+
+  vector<int64_t> dim2({2, 3});
+  GeShape shape2(dim2);
+  GeTensorDesc output(shape2);
+  output.SetOriginFormat(FORMAT_NHWC);
+  output.SetFormat(FORMAT_NHWC);
+  output.SetDataType(DT_FLOAT);
+
+  op->AddInputDesc("x", input);
+  op->AddOutputDesc("z", output);
+  ge::AttrUtils::SetInt(op, "_fe_imply_type", static_cast<int>(EN_IMPL_HW_TBE));
+  ge::NodePtr g_node = graph->AddNode(op);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+
+  Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
+  ASSERT_EQ(ret1, fe::SUCCESS);
+  Status ret2 = op_format_dtype_judge_ptr_->Judge(*(graph.get()));
+  ret2 = op_format_dtype_judge_ptr_->SetFormat(*(graph.get()));
+  ASSERT_EQ(ret2, fe::SUCCESS);
+  vector<int64_t> dim_result1({7, 1, 1, 1, 16});
+  EXPECT_EQ(op->GetInputDesc(0).GetShape().GetDims(), dim_result1);
+
+  vector<int64_t> dim_result2({1, 1, 2, 3, 16});
   EXPECT_EQ(op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
 /*  Test Op Convolution with  three input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_01)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr p1_op = std::make_shared<OpDesc>("PlaceHolder1", "PlaceHolder");
   OpDescPtr p2_op = std::make_shared<OpDesc>("PlaceHolder2", "PlaceHolder");
   OpDescPtr p3_op = std::make_shared<OpDesc>("PlaceHolder3", "PlaceHolder");
   OpDescPtr c1_op = std::make_shared<OpDesc>("ConvTemp1", "ConvTemp");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_p1({3, 7, 17, 17});
   vector<int64_t> exp_dim_p1({3, 1, 17, 17, 16});
-  vector<int64_t> dim_p2({6,7,2,2});
-  vector<int64_t> exp_dim_p2{ 4, 1, 16, 16 };
+  vector<int64_t> dim_p2({6, 7, 2, 2});
+  vector<int64_t> exp_dim_p2{4, 1, 16, 16};
   vector<int64_t> dim_p3({});
-  vector<int64_t> dim_c1_out({3,6,5,5});
-  vector<int64_t> exp_dim_c1_out{ 3, 1, 5, 5, 16 };
-  vector<int64_t> dim_p4({1,1,1,1});
+  vector<int64_t> dim_c1_out({3, 6, 5, 5});
+  vector<int64_t> exp_dim_c1_out{3, 1, 5, 5, 16};
+  vector<int64_t> dim_p4({1, 1, 1, 1});
 
   GeShape shape_p1(dim_p1);
   GeShape shape_p2(dim_p2);
@@ -1887,7 +1845,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_01)
   p1_op->AddOutputDesc("y", tensor_desc_p1);
   p2_op->AddOutputDesc("y", tensor_desc_p2);
 
-  //ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr p1_node = graph->AddNode(p1_op);
   ge::NodePtr p2_node = graph->AddNode(p2_op);
 
@@ -1900,7 +1858,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_01)
 
   GraphUtils::AddEdge(p1_node->GetOutDataAnchor(0), c1_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(p2_node->GetOutDataAnchor(0), c1_node->GetInDataAnchor(1));
-  //GraphUtils::AddEdge(p3_node->GetOutDataAnchor(0), C1Node->GetInDataAnchor(2));
+  // GraphUtils::AddEdge(p3_node->GetOutDataAnchor(0), C1Node->GetInDataAnchor(2));
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(c1_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(c1_node, "tbe-custom");
@@ -1924,23 +1882,22 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_01)
 }
 
 /*  Test Op Convolution with  three input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_02)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr p1_op = std::make_shared<OpDesc>("PlaceHolder1", "PlaceHolder");
   OpDescPtr p2_op = std::make_shared<OpDesc>("PlaceHolder2", "Op1");
   OpDescPtr p3_op = std::make_shared<OpDesc>("PlaceHolder3", "Op2");
   OpDescPtr c1_op = std::make_shared<OpDesc>("ConvTemp1", "ConvTempSeq");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_p1({3, 7, 17, 17});
   vector<int64_t> dim5hd_p1_cce({17, 17, 3, 7});
   vector<int64_t> exp_dim5hd_p1_cce({17, 2, 3, 7, 16});
-  vector<int64_t> dim_p2({6,7,2,2});
+  vector<int64_t> dim_p2({6, 7, 2, 2});
   vector<int64_t> dim_p3({});
-  vector<int64_t> dim_c1_out({3,6,5,5});
-  vector<int64_t> exp_dim_c1_out({3,1,5,5,16});
-  vector<int64_t> dim_p4({1,1,1,1});
+  vector<int64_t> dim_c1_out({3, 6, 5, 5});
+  vector<int64_t> exp_dim_c1_out({3, 1, 5, 5, 16});
+  vector<int64_t> dim_p4({1, 1, 1, 1});
 
   GeShape shape_p1(dim_p1);
   GeShape shape_p2(dim_p2);
@@ -1974,7 +1931,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_02)
   p2_op->AddOutputDesc("y", tensor_desc_p2);
   p2_op->AddOutputDesc("y", tensor_desc_p3);
 
-  //ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr p1_node = graph->AddNode(p1_op);
   ge::NodePtr p2_node = graph->AddNode(p2_op);
   ge::NodePtr p3_node = graph->AddNode(p3_op);
@@ -2012,21 +1969,20 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_02)
 }
 
 /*  Test Op Convolution with  three input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_03)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr p1_op = std::make_shared<OpDesc>("PlaceHolder1", "Const");
   OpDescPtr p2_op = std::make_shared<OpDesc>("PlaceHolder2", "PlaceHolder");
   OpDescPtr p3_op = std::make_shared<OpDesc>("PlaceHolder3", "Variable");
   OpDescPtr c1_op = std::make_shared<OpDesc>("ConvTemp1", "ConvTempSeq");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_p1({3, 7, 17, 17});
-  vector<int64_t> dim_p2({6,7,2,2});
+  vector<int64_t> dim_p2({6, 7, 2, 2});
   vector<int64_t> dim_p3({});
-  vector<int64_t> dim_c1_out({3,6,5,5});
-  vector<int64_t> exp_dim_c1_out({3,1,5,5,16});
-  vector<int64_t> dim_p4({1,1,1,1});
+  vector<int64_t> dim_c1_out({3, 6, 5, 5});
+  vector<int64_t> exp_dim_c1_out({3, 1, 5, 5, 16});
+  vector<int64_t> dim_p4({1, 1, 1, 1});
 
   GeShape shape_p1(dim_p1);
   GeShape shape_p2(dim_p2);
@@ -2057,7 +2013,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_03)
   p2_op->AddOutputDesc("y", tensor_desc_p2);
   p2_op->AddOutputDesc("y", tensor_desc_p3);
 
-  //ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr p1_node = graph->AddNode(p1_op);
   ge::NodePtr p2_node = graph->AddNode(p2_op);
   ge::NodePtr p3_node = graph->AddNode(p3_op);
@@ -2072,7 +2028,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_03)
   GraphUtils::AddEdge(p1_node->GetOutDataAnchor(0), c1_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(p2_node->GetOutDataAnchor(0), c1_node->GetInDataAnchor(1));
   GraphUtils::AddEdge(p3_node->GetOutDataAnchor(0), c1_node->GetInDataAnchor(2));
-
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(c1_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(c1_node, "tbe-custom");
@@ -2099,13 +2054,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_convolution_format_dtype_03)
 /* Below is a test case from interface JudgeOp(). Test Tbe MD
  * It will update its format to original format after op_judge and will not update to ND.
  * And there will be no cast op because Op Judge make dtype the same. */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_07)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_07) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr m1_op = std::make_shared<OpDesc>("M1", "M");
   OpDescPtr m2_op = std::make_shared<OpDesc>("M2", "M");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2128,20 +2082,19 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_07)
   tensor_desc_o.SetFormat(FORMAT_NCHW);
   tensor_desc_o.SetDataType(DT_DOUBLE);
   m2_op->AddOutputDesc("z", tensor_desc_i);
-  //ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
+  // ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr m2_node = graph->AddNode(m2_op);
 
   GraphUtils::AddEdge(m1_node->GetOutDataAnchor(0), m2_node->GetInDataAnchor(0));
-  FEOpsStoreInfo tbe_custom {
-          6,
-          "tbe-custom",
-          EN_IMPL_HW_TBE,
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-          ""};
+  FEOpsStoreInfo tbe_custom{
+      6, "tbe-custom", EN_IMPL_HW_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      ""};
   vector<FEOpsStoreInfo> store_info;
   store_info.emplace_back(tbe_custom);
   Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   TransNodeManagerPtr trans_op_insert_ptr = std::make_shared<TransNodeManager>(fe_ops_kernel_info_store_ptr_);
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
@@ -2188,7 +2141,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_07)
   EXPECT_EQ(m2_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_h);
 }
 
-
 /* Test SetDtypeAndFormatByPrecisionMode on op G1 and G2, relation in graph is
  * G1->G2. G1 is the father of G2. G's format after OpFormatDtypeJudge will become NC1HWC0.
  * G2's format is NHWC, and its op kernel supports only NC1HWC0. Due to
@@ -2198,13 +2150,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_07)
  * and pick the first Dtype belongs to this format.
  * After OpFormatDtypeJudge, Op G1 format is FORMAT_NC1HWC0 and Dtype is Float.
  * Op G2 format is FORMAT_NC1HWC0 and Dtype is Float. And also there shape is updated. */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_08)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_08) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr g_op2 = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2227,7 +2178,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_08)
   ge::AttrUtils::SetInt(g_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(g_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2253,14 +2203,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_08)
   EXPECT_EQ(g_op2->GetOutputDesc(0).GetShape().GetDims(), dim_result_n_c1_hw_c0);
 }
 
-/* Almost the same Test senario as 08, but this is for tbe and will set shape to 5D*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_09)
-{
+/* Almost the same Test scenario as 08, but this is for tbe and will set shape to 5D*/
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_09) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr g_op2 = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2310,13 +2259,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_09)
 }
 
 /* NCHW->NC1HWC0, this case for tbe and will set shape to 5D */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_10)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_10) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr g_op2 = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2339,7 +2287,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_10)
   ge::AttrUtils::SetInt(g_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(g_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2365,15 +2312,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_10)
   EXPECT_EQ(g_op2->GetOutputDesc(0).GetShape().GetDims(), dim_result_n_c1_hw_c0);
 }
 
-
 /* NHWC->NCHW, this case is for tbe and the shape will be transformed.*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_11)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_11) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr b_op = std::make_shared<OpDesc>("B1", "B");
   OpDescPtr b_op2 = std::make_shared<OpDesc>("B2", "B");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2396,7 +2341,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_11)
   ge::AttrUtils::SetInt(b_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(b_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2422,15 +2366,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_11)
   EXPECT_EQ(b_op2->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w);
 }
 
-
 /* NC1HWC0->NCHW, this case is for tbe and the shape will be transformed.*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_12)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_12) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr b_op = std::make_shared<OpDesc>("B1", "B");
   OpDescPtr b_op2 = std::make_shared<OpDesc>("B2", "B");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 99, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2453,7 +2395,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_12)
   ge::AttrUtils::SetInt(b_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(b_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2479,15 +2420,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_12)
   EXPECT_EQ(b_op2->GetOutputDesc(0).GetShape().GetDims(), dim_h);
 }
 
-
 /* NC1HWC0->NHWC, this case is for tbe and the shape will be transformed.*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_13)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_13) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr d_op = std::make_shared<OpDesc>("D1", "D");
   OpDescPtr d_op2 = std::make_shared<OpDesc>("D2", "D");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 99, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2510,7 +2449,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_13)
   ge::AttrUtils::SetInt(d_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(d_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2536,15 +2474,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_13)
   EXPECT_EQ(d_op2->GetOutputDesc(0).GetShape().GetDims(), dim_result_nhw_c2);
 }
 
-
 /* NC1HWC0->NHWC, this case is for tbe and the shape will be transformed.*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_14)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_14) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr d_op = std::make_shared<OpDesc>("D1", "D");
   OpDescPtr d_op2 = std::make_shared<OpDesc>("D2", "D");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2567,7 +2503,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_14)
   ge::AttrUtils::SetInt(d_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(d_op2);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -2593,13 +2528,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_14)
 }
 
 /* NC1HWC0->NHWC, this case is for tbe and the shape will be transformed.*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_15)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_15) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr MatMulOp = std::make_shared<OpDesc>("MatMul", "MatMul");
   OpDescPtr ReluOp = std::make_shared<OpDesc>("Relu", "Relu");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2623,9 +2557,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_15)
   ge::NodePtr ReluNode = graph->AddNode(ReluOp);
   GraphUtils::AddEdge(MatMulNode->GetOutDataAnchor(0), ReluNode->GetInDataAnchor(0));
 
-
-
-  Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(MatMulNode, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret1 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(MatMulNode, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(MatMulNode, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(ReluNode, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret2 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(ReluNode, "tbe-custom");
@@ -2650,12 +2583,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_15)
 
 /* Test SetDtypeAndFormatByPrecisionMode on op ConvTemp (TBE_builtin) without predecessor node
  * Set Shape of Fragz as {HWC1, N/16, 16, C0} from NCHW for fp16 input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("ConvTemp", "ConvTemp");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
 
   vector<int64_t> dim1({1, 65, 64, 64});
   GeShape shape1(dim1);
@@ -2688,12 +2620,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   tensor_desco.SetDataType(DT_FLOAT);
   g_op->AddOutputDesc("yasd", tensor_desco);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  //Set Special Fragz shape
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  // Set Special Fragz shape
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
-  vector<int64_t> dim_result_x = {1,5,64,64,16};
+  vector<int64_t> dim_result_x = {1, 5, 64, 64, 16};
   ASSERT_EQ(ret, fe::SUCCESS);
   ASSERT_EQ(g_op->GetAllInputsDesc().size(), 3);
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(0).GetFormat()), FORMAT_NC1HWC0);
@@ -2708,7 +2640,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   EXPECT_EQ(g_op->GetInputDesc(2).GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(g_op->GetInputDesc(2).GetDataType(), DT_FLOAT);
 
-  vector<int64_t> dim_result_o = {1,4,30,30,16};
+  vector<int64_t> dim_result_o = {1, 4, 30, 30, 16};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_o);
@@ -2716,12 +2648,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
 
 /* Test SetDtypeAndFormatByPrecisionMode on op ConvTemp (TBE_builtin) without predecessor node
  * Set Shape of Fragz as {HWC1, N/16, 16, C0} from NHWC for int8 input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("ConvTemp", "ConvTemp");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
 
   vector<int64_t> dim1({1, 66, 64, 64});
   GeShape shape1(dim1);
@@ -2754,18 +2685,18 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   tensor_desco.SetDataType(DT_INT8);
   g_op->AddOutputDesc("yasd", tensor_desco);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
   ASSERT_EQ(ret, fe::SUCCESS);
   ASSERT_EQ(g_op->GetAllInputsDesc().size(), 3);
-  vector<int64_t> dim_result_x = {1,3,64,64,32};
+  vector<int64_t> dim_result_x = {1, 3, 64, 64, 32};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetInputDesc(0).GetDataType(), DT_INT8);
   EXPECT_EQ(g_op->GetInputDesc(0).GetShape().GetDims(), dim_result_x);
 
-  vector<int64_t> dim_result_w = {266,4,16,32};
+  vector<int64_t> dim_result_w = {266, 4, 16, 32};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(1).GetFormat()), FORMAT_FRACTAL_Z);
   EXPECT_EQ(g_op->GetInputDesc(1).GetDataType(), DT_INT8);
   EXPECT_EQ(g_op->GetInputDesc(1).GetShape().GetDims(), dim_result_w);
@@ -2773,21 +2704,19 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   EXPECT_EQ(g_op->GetInputDesc(2).GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(g_op->GetInputDesc(2).GetDataType(), DT_FLOAT16);
 
-  vector<int64_t> dim_result_o = {1,2,30,30,32};
+  vector<int64_t> dim_result_o = {1, 2, 30, 30, 32};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_INT8);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_o);
-
 }
 
 /* Test SetDtypeAndFormatByPrecisionMode on op ConvTemp (TBE_builtin) without predecessor node
  * Set Shape of Fragz as {HWC1, N/16, 16, C0} from HWCN for fp16 input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_3)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("ConvTemp", "ConvTemp");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
 
   vector<int64_t> dim1({1, 65, 64, 64});
   GeShape shape1(dim1);
@@ -2820,12 +2749,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   tensor_desco.SetDataType(DT_FLOAT);
   g_op->AddOutputDesc("yasd", tensor_desco);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  //Set Special Fragz shape
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  // Set Special Fragz shape
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
-  vector<int64_t> dim_result_x = {64,4,1,65,16};
+  vector<int64_t> dim_result_x = {64, 4, 1, 65, 16};
   ASSERT_EQ(ret, fe::SUCCESS);
   ASSERT_EQ(g_op->GetAllInputsDesc().size(), 3);
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(0).GetFormat()), FORMAT_NC1HWC0);
@@ -2840,7 +2769,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   EXPECT_EQ(g_op->GetInputDesc(2).GetFormat(), FORMAT_HWCN);
   EXPECT_EQ(g_op->GetInputDesc(2).GetDataType(), DT_FLOAT);
 
-  vector<int64_t> dim_result_o = {30,2,1,64,16};
+  vector<int64_t> dim_result_o = {30, 2, 1, 64, 16};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_o);
@@ -2848,12 +2777,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
 
 /* Test SetDtypeAndFormatByPrecisionMode on op ConvTemp (TBE_builtin) without predecessor node
  * Set Shape of NCHW as from Fz for fp16 input*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_4)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Conv_Tbe_4) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("ConvTempFz", "ConvTempFz");
   ge::NodePtr g_node = graph->AddNode(g_op);
-  //add descriptor
+  // add descriptor
 
   vector<int64_t> dim1({1, 65, 64, 64});
   GeShape shape1(dim1);
@@ -2886,12 +2814,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   tensor_desco.SetDataType(DT_FLOAT);
   g_op->AddOutputDesc("yasd", tensor_desco);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  //Set Special Fragz shape
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  // Set Special Fragz shape
 
   Status ret = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
-  vector<int64_t> dim_result_x = {64,4,1,65,16};
+  vector<int64_t> dim_result_x = {64, 4, 1, 65, 16};
   ASSERT_EQ(ret, fe::SUCCESS);
   ASSERT_EQ(g_op->GetAllInputsDesc().size(), 3);
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetInputDesc(0).GetFormat()), FORMAT_NC1HWC0);
@@ -2906,17 +2834,17 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_input_format_succ_format_changed_Co
   EXPECT_EQ(g_op->GetInputDesc(2).GetFormat(), FORMAT_HWCN);
   EXPECT_EQ(g_op->GetInputDesc(2).GetDataType(), DT_FLOAT);
 
-  vector<int64_t> dim_result_o = {1,4,30,30,16};
+  vector<int64_t> dim_result_o = {1, 4, 30, 30, 16};
   EXPECT_EQ(ge::GetPrimaryFormat(g_op->GetOutputDesc(0).GetFormat()), FORMAT_NC1HWC0);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(g_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_o);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, origin_format_discontinuous){
+TEST_F(STEST_fusion_engine_op_judge_new, origin_format_discontinuous) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr d_op1 = std::make_shared<OpDesc>("D1", "Sqrt");
   OpDescPtr d_op2 = std::make_shared<OpDesc>("D2", "BiasAdd");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({1, 2, 3, 4});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -2940,7 +2868,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, origin_format_discontinuous){
   ge::AttrUtils::SetInt(d_op2, FE_IMPLY_TYPE, 6);
   ge::NodePtr d_node2 = graph->AddNode(d_op2);
   GraphUtils::AddEdge(d_node1->GetOutDataAnchor(0), d_node2->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(d_node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(d_node1, "tbe-custom");
@@ -2969,15 +2896,14 @@ TEST_F(STEST_fusion_engine_op_judge_new, origin_format_discontinuous){
   EXPECT_EQ(d_op2->GetOutputDesc(0).GetShape().GetDims(), dim_result_nhw_c);
 }
 
-/* Almost the same Test senario as 08, but this is for tbe and will set shape to 5D*/
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_reshape_type_not_equal)
-{
+/* Almost the same Test scenario as 08, but this is for tbe and will set shape to 5D*/
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_reshape_type_not_equal) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr g_op2 = std::make_shared<OpDesc>("G2", "G");
 
-  //for G's output 4,33 means HW
-  //for G's input 4,33 mean NC
+  // for G's output 4,33 means HW
+  // for G's input 4,33 mean NC
   vector<int64_t> dim({4, 33});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3028,19 +2954,17 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_reshape_type_not_e
 }
 
 /* Test function GenerateInitialMatchedIndexVec */
-TEST_F(STEST_fusion_engine_op_judge_new, test_func_Generate_initial_matched_index_vec)
-{
-  FormatDtypeQuerierPtr format_dtype_querier_ptr =
-          std::make_shared<FormatDtypeQuerier>(AI_CORE_NAME);
-  OpFormatDtypeStrategyManagerPtr strategy_manager_ptr=
-          std::make_shared<OpFormatDtypeStrategyManager>(fe::AI_CORE_NAME, format_dtype_querier_ptr);
+TEST_F(STEST_fusion_engine_op_judge_new, test_func_Generate_initial_matched_index_vec) {
+  FormatDtypeQuerierPtr format_dtype_querier_ptr = std::make_shared<FormatDtypeQuerier>(AI_CORE_NAME);
+  OpFormatDtypeStrategyManagerPtr strategy_manager_ptr =
+      std::make_shared<OpFormatDtypeStrategyManager>(fe::AI_CORE_NAME, format_dtype_querier_ptr);
   bool is_matched_index_vec_inited = false;
   vector<uint32_t> matched_index_vec;
   std::vector<ge::Format> input_format_vec = {ge::FORMAT_ND, ge::FORMAT_NCHW};
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("matmul", "MatMul");
-  //for G's output 4,33 means HW
-  //for G's input 4,33 mean NC
+  // for G's output 4,33 means HW
+  // for G's input 4,33 mean NC
   vector<int64_t> dim({4, 33});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3056,16 +2980,14 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_func_Generate_initial_matched_inde
             fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, skip_speical_cast_on_non_es_board)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, skip_speical_cast_on_non_es_board) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr a_op = std::make_shared<OpDesc>("a", "A");
   OpDescPtr cast_op = std::make_shared<OpDesc>("cast", "Cast");
 
-
   OpDescPtr netoutput_op = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc_input(shape);
@@ -3090,12 +3012,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, skip_speical_cast_on_non_es_board)
   netoutput_op->AddOutputDesc("z", tensor_desc_output);
   ge::NodePtr netoutput_node = graph->AddNode(netoutput_op);
 
-
   GraphUtils::AddEdge(cast_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(a_node->GetOutDataAnchor(0), cast_node->GetInDataAnchor(0));
-  ge::AttrUtils::SetInt(netoutput_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(netoutput_op, FE_IMPLY_TYPE, 6);  // TBE
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -3112,16 +3034,14 @@ TEST_F(STEST_fusion_engine_op_judge_new, skip_speical_cast_on_non_es_board)
   EXPECT_EQ(cast_op->GetOutputDesc(0).GetShape().GetDims(), dim);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, force_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, force_fp16) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr a_op = std::make_shared<OpDesc>("a", "A");
   OpDescPtr a2_op = std::make_shared<OpDesc>("a2", "A");
 
-
   OpDescPtr netoutput_op = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({100, 2, 3, 512, 4});
   GeShape shape(dim);
   GeTensorDesc tensor_desc_input(shape);
@@ -3148,11 +3068,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, force_fp16)
 
   GraphUtils::AddEdge(a2_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(a_node->GetOutDataAnchor(0), a2_node->GetInDataAnchor(0));
-  ge::AttrUtils::SetInt(netoutput_op, FE_IMPLY_TYPE, 6);//TBE
+  ge::AttrUtils::SetInt(netoutput_op, FE_IMPLY_TYPE, 6);  // TBE
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   PlatformUtils::Instance().soc_version_ = "Ascend910B2";
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
@@ -3179,8 +3100,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, force_fp16)
   EXPECT_EQ(a2_op->GetOutputDesc(0).GetShape().GetDims(), dim_result2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3188,7 +3108,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp16)
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3211,7 +3131,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp16)
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3238,8 +3157,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp16)
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3247,7 +3165,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "GSupportBf16Fp16");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3270,7 +3188,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3297,8 +3214,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_bf16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_bf16) {
   fe::InitPlatformInfo("Ascend910B2", true);
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
@@ -3307,7 +3223,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "GSupportBf16Fp16");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3330,7 +3246,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3357,16 +3272,14 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_bf16_notsupported)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_bf16_notsupported) {
   fe::InitPlatformInfo("Ascend910B", true);
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   EXPECT_EQ(op_format_dtype_judge_ptr_->Initialize(), fe::FAILED);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_lowprecision)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_to_lowprecision) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_LOWPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3374,7 +3287,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3397,7 +3310,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3424,9 +3336,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_fp32_t
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3434,7 +3344,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "GWhite");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "GBlack");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3457,7 +3367,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3484,9 +3393,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to_bf16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to_bf16) {
   fe::InitPlatformInfo("Ascend910B2", true);
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
@@ -3495,7 +3402,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "GWhite");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "GBlack");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3518,7 +3425,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3545,8 +3451,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_allow_mix_to
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_keep_oringin)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_keep_oringin) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3554,7 +3459,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_keep_oringin
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "GSupportBf16Fp16");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3578,7 +3483,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_keep_oringin
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
 
-
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(h_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
@@ -3597,8 +3501,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_keep_oringin
 }
 
 /* Original format is consecutive */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP32;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3606,7 +3509,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_1
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3629,7 +3532,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_1
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3656,8 +3558,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_1
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 /* Original format is consecutive */
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP32;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3665,7 +3566,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_2
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G2");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G2");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3688,7 +3589,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_2
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3715,8 +3615,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_force_fp32_2
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_fp32out_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_fp32out_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = CUBE_FP16IN_FP32OUT;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3724,7 +3623,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3747,7 +3646,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3774,8 +3672,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_fp32out_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_fp32out_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = CUBE_FP16IN_FP32OUT;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3783,7 +3680,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   OpDescPtr g_op = std::make_shared<OpDesc>("G1", "G2");
   OpDescPtr h_op = std::make_shared<OpDesc>("G2", "G2");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -3806,7 +3703,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   ge::AttrUtils::SetInt(h_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(h_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
@@ -3833,8 +3729,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_two_nodes_format_dtype_cube_fp16in_
   EXPECT_EQ(h_op->GetOutputDesc(0).GetShape().GetDims(), dim_result_nch_w_to_NC1_hw_c0_2);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3849,7 +3744,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -3893,11 +3788,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16)
   ASSERT_EQ(ret5, fe::SUCCESS);
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
-  //G2 check no support dtypes. so return config context 1
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
+  // G2 check no support dtypes. so return config context 1
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
 
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
@@ -3906,7 +3799,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16)
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -3917,8 +3809,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16)
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -3933,7 +3824,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -3978,11 +3869,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1)
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  //G2 check no support dtypes. so return config context 1
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                        DT_FLOAT16, DT_FLOAT16};
+  // G2 check no support dtypes. so return config context 1
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -3990,7 +3879,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1)
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4001,8 +3889,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_1)
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4017,7 +3904,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4061,11 +3948,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2)
   ASSERT_EQ(ret5, fe::SUCCESS);
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
-   //G2 check no support dtypes. so return config context 1
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16,};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16,};
+  // G2 check no support dtypes. so return config context 1
+  vector<ge::DataType> result_input = {
+      DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+  };
+  vector<ge::DataType> result_output = {
+      DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+  };
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4073,7 +3962,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2)
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4084,8 +3972,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp16_2)
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_LOWERPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4100,7 +3987,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4145,10 +4032,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4156,7 +4041,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4167,8 +4051,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_LOWERPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4183,7 +4066,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4228,10 +4111,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4239,7 +4120,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4250,8 +4130,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerprecision_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_LOWERPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4266,7 +4145,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4311,10 +4190,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4322,7 +4199,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4333,8 +4209,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_lowerpr
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4349,7 +4224,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4393,11 +4268,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   ASSERT_EQ(ret5, fe::SUCCESS);
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
-  //G2 check no support dtypes. so return config context 1
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_FLOAT16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                        DT_FLOAT16, DT_FLOAT};
+  // G2 check no support dtypes. so return config context 1
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4405,7 +4278,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4416,8 +4288,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4432,7 +4303,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4476,11 +4347,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   ASSERT_EQ(ret5, fe::SUCCESS);
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
-  //G2 check no support dtypes. so return config context 1
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                        DT_BF16, DT_BF16};
+  // G2 check no support dtypes. so return config context 1
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4488,7 +4357,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4499,8 +4367,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp16_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4515,7 +4382,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4560,10 +4427,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4571,7 +4436,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4582,8 +4446,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_fp
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4598,7 +4461,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4643,10 +4506,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_UINT8, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_UINT8, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_UINT8, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_UINT8, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4654,7 +4515,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4665,8 +4525,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4681,7 +4540,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4726,10 +4585,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4737,7 +4594,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4748,8 +4604,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4764,7 +4619,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4809,10 +4664,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                        DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4820,7 +4673,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4831,8 +4683,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_3)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_3) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4840,23 +4691,20 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   OpDescPtr g1_op = std::make_shared<OpDesc>("G1", "GFp16Fp1632Fp1632");
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateTwoInputOneOutputNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g1_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g1_node, "tbe-custom");
   ASSERT_EQ(ret1, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT16, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT16, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
 
   EXPECT_EQ(g1_op->GetInputDesc(1).GetDataType(), result_input[0]);
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_input[0]);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_4)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf16_4) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4864,22 +4712,20 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_bf
   OpDescPtr g1_op = std::make_shared<OpDesc>("G1", "GFp16Fp1632Fp32");
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateTwoInputOneOutputNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g1_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g1_node, "tbe-custom");
   ASSERT_EQ(ret1, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT16, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT16, DT_BF16, DT_UINT8, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
 
   EXPECT_EQ(g1_op->GetInputDesc(1).GetDataType(), result_input[0]);
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_input[4]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_LOWPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4894,7 +4740,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -4939,10 +4785,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -4950,7 +4794,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -4961,9 +4804,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_LOWPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -4978,7 +4819,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5023,10 +4864,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -5034,7 +4873,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -5045,8 +4883,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to_lowprecision_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_FP32_TO_LOWPRECISION;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5061,7 +4898,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5106,10 +4943,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -5117,7 +4952,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -5128,8 +4962,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_allow_fp32_to
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP32;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5144,7 +4977,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5189,10 +5022,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32)
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_FLOAT16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_FLOAT16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -5200,7 +5031,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32)
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -5211,8 +5041,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_float_force_fp32)
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5227,7 +5056,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5272,30 +5101,26 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin)
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_FLOAT, DT_FLOAT, DT_BF16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
-  //EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
-  //EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
+  // EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
+  // EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
   EXPECT_EQ(g4_op->GetInputDesc(0).GetDataType(), result_input[3]);
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
-  //EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
+  // EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
 
-
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
-  //EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
-  //EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
+  // EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
+  // EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
   EXPECT_EQ(g5_op->GetOutputDesc(0).GetDataType(), result_output[4]);
-  //EXPECT_EQ(g6_op->GetOutputDesc(0).GetDataType(), result_output[5]);
+  // EXPECT_EQ(g6_op->GetOutputDesc(0).GetDataType(), result_output[5]);
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_1) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   config.enable_aclnn_ = true;
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
@@ -5312,7 +5137,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_1)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5357,22 +5182,19 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_1)
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_FLOAT16, DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
-  //EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
+  // EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
   EXPECT_EQ(g4_op->GetInputDesc(0).GetDataType(), result_input[3]);
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
 
-
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
-  //EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
+  // EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
   EXPECT_EQ(g5_op->GetOutputDesc(0).GetDataType(), result_output[4]);
   EXPECT_EQ(g6_op->GetOutputDesc(0).GetDataType(), result_output[5]);
@@ -5380,8 +5202,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_1)
   config.enable_aclnn_ = false;
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
@@ -5397,7 +5218,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5442,10 +5263,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2)
   ASSERT_EQ(ret6, fe::SUCCESS);
   ASSERT_EQ(ret7, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16,
-                                        DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -5453,7 +5272,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2)
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
   EXPECT_EQ(g7_op->GetInputDesc(0).GetDataType(), result_input[6]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -5464,18 +5282,16 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_2)
   EXPECT_EQ(g7_op->GetOutputDesc(0).GetDataType(), result_output[6]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_3)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_3) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
- 
+
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = MUST_KEEP_ORIGIN_DTYPE;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   OpDescPtr g3_op = std::make_shared<OpDesc>("Mul", "Mul");
   (void)ge::AttrUtils::SetBool(g3_op, kMustPromoteFlag, true);
- 
- 
+
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_INT32;
   ge::DataType dtype2 = DT_FLOAT16;
@@ -5491,8 +5307,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_keep_oringin_3)
   EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5517,7 +5332,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5571,23 +5386,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -5607,17 +5429,15 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
   ASSERT_EQ(ret16, fe::SUCCESS);
   ASSERT_EQ(ret17, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_MAX, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT, DT_UINT8, DT_FLOAT, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT, DT_MAX, DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
-                                       DT_FLOAT16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_MAX, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT, DT_UINT8, DT_FLOAT, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT, DT_MAX, DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
-                                       DT_FLOAT16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT,   DT_UINT8,   DT_MAX,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
+                                       DT_UINT8,   DT_FLOAT,   DT_FLOAT, DT_FLOAT16, DT_FLOAT,   DT_MAX,
+                                       DT_FLOAT16, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT,   DT_UINT8,   DT_MAX,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
+                                        DT_UINT8,   DT_FLOAT,   DT_FLOAT, DT_FLOAT16, DT_FLOAT,   DT_MAX,
+                                        DT_FLOAT16, DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
-  //EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
+  // EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
   EXPECT_EQ(g4_op->GetInputDesc(0).GetDataType(), result_input[3]);
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
@@ -5626,17 +5446,16 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
   EXPECT_EQ(g9_op->GetInputDesc(0).GetDataType(), result_input[8]);
   EXPECT_EQ(g10_op->GetInputDesc(0).GetDataType(), result_input[9]);
   EXPECT_EQ(g11_op->GetInputDesc(0).GetDataType(), result_input[10]);
-  //EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
+  // EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
   EXPECT_EQ(g13_op->GetInputDesc(0).GetDataType(), result_input[12]);
   EXPECT_EQ(g14_op->GetInputDesc(0).GetDataType(), result_input[13]);
   EXPECT_EQ(g15_op->GetInputDesc(0).GetDataType(), result_input[14]);
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
 
-
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
-  //EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
+  // EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
   EXPECT_EQ(g5_op->GetOutputDesc(0).GetDataType(), result_output[4]);
   EXPECT_EQ(g6_op->GetOutputDesc(0).GetDataType(), result_output[5]);
@@ -5645,7 +5464,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
   EXPECT_EQ(g9_op->GetOutputDesc(0).GetDataType(), result_output[8]);
   EXPECT_EQ(g10_op->GetOutputDesc(0).GetDataType(), result_output[9]);
   EXPECT_EQ(g11_op->GetOutputDesc(0).GetDataType(), result_output[10]);
-  //EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
+  // EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
   EXPECT_EQ(g13_op->GetOutputDesc(0).GetDataType(), result_output[12]);
   EXPECT_EQ(g14_op->GetOutputDesc(0).GetDataType(), result_output[13]);
   EXPECT_EQ(g15_op->GetOutputDesc(0).GetDataType(), result_output[14]);
@@ -5653,9 +5472,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16)
   EXPECT_EQ(g17_op->GetOutputDesc(0).GetDataType(), result_output[16]);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5680,7 +5497,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5734,23 +5551,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -5770,17 +5594,15 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
   ASSERT_EQ(ret16, fe::SUCCESS);
   ASSERT_EQ(ret17, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_MAX, DT_FLOAT16, DT_FLOAT16,
-                                       DT_BF16, DT_BF16, DT_BF16, DT_FLOAT, DT_FLOAT16,
-                                       DT_FLOAT, DT_UINT8, DT_BF16, DT_BF16, DT_BF16,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_MAX, DT_FLOAT16, DT_FLOAT16,
-                                        DT_BF16, DT_BF16, DT_BF16, DT_FLOAT, DT_FLOAT16,
-                                        DT_FLOAT, DT_UINT8, DT_BF16, DT_BF16, DT_BF16,
-                                        DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_MAX,   DT_FLOAT16, DT_FLOAT16, DT_BF16,
+                                       DT_BF16,  DT_BF16, DT_FLOAT, DT_FLOAT16, DT_FLOAT,   DT_UINT8,
+                                       DT_BF16,  DT_BF16, DT_BF16,  DT_BF16,    DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_MAX,   DT_FLOAT16, DT_FLOAT16, DT_BF16,
+                                        DT_BF16,  DT_BF16, DT_FLOAT, DT_FLOAT16, DT_FLOAT,   DT_UINT8,
+                                        DT_BF16,  DT_BF16, DT_BF16,  DT_BF16,    DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
-  //EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
+  // EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
   EXPECT_EQ(g4_op->GetInputDesc(0).GetDataType(), result_input[3]);
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
   EXPECT_EQ(g6_op->GetInputDesc(0).GetDataType(), result_input[5]);
@@ -5789,17 +5611,16 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
   EXPECT_EQ(g9_op->GetInputDesc(0).GetDataType(), result_input[8]);
   EXPECT_EQ(g10_op->GetInputDesc(0).GetDataType(), result_input[9]);
   EXPECT_EQ(g11_op->GetInputDesc(0).GetDataType(), result_input[10]);
-  //EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
+  // EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
   EXPECT_EQ(g13_op->GetInputDesc(0).GetDataType(), result_input[12]);
   EXPECT_EQ(g14_op->GetInputDesc(0).GetDataType(), result_input[13]);
   EXPECT_EQ(g15_op->GetInputDesc(0).GetDataType(), result_input[14]);
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
 
-
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
-  //EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
+  // EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
   EXPECT_EQ(g5_op->GetOutputDesc(0).GetDataType(), result_output[4]);
   EXPECT_EQ(g6_op->GetOutputDesc(0).GetDataType(), result_output[5]);
@@ -5808,7 +5629,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
   EXPECT_EQ(g9_op->GetOutputDesc(0).GetDataType(), result_output[8]);
   EXPECT_EQ(g10_op->GetOutputDesc(0).GetDataType(), result_output[9]);
   EXPECT_EQ(g11_op->GetOutputDesc(0).GetDataType(), result_output[10]);
-  //EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
+  // EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
   EXPECT_EQ(g13_op->GetOutputDesc(0).GetDataType(), result_output[12]);
   EXPECT_EQ(g14_op->GetOutputDesc(0).GetDataType(), result_output[13]);
   EXPECT_EQ(g15_op->GetOutputDesc(0).GetDataType(), result_output[14]);
@@ -5816,9 +5637,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_1)
   EXPECT_EQ(g17_op->GetOutputDesc(0).GetDataType(), result_output[16]);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5843,7 +5662,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -5897,23 +5716,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -5933,14 +5759,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
   ASSERT_EQ(ret16, fe::SUCCESS);
   ASSERT_EQ(ret17, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT, DT_UINT8, DT_FLOAT, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT, DT_UINT8, DT_FLOAT, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT,   DT_UINT8,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
+                                       DT_UINT8,   DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+                                       DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT,   DT_UINT8,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT,
+                                        DT_UINT8,   DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+                                        DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -5958,7 +5782,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
   EXPECT_EQ(g15_op->GetInputDesc(0).GetDataType(), result_input[14]);
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -5981,8 +5804,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_2)
 
 // test for net in gray, input fp32-> GWhite -> GBlackSupportFp32Bf16 -> GWhiteSupportBf16Fp16 -> G
 // the fllows output is        fp32 -> fp16 ->  fp32                  -> fp16                  -> fp16
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_3)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_3) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_FP16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -5994,7 +5816,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_3)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -6021,9 +5843,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_3)
   ASSERT_EQ(ret3, fe::SUCCESS);
   ASSERT_EQ(ret4, fe::SUCCESS);
 
-
-  vector<ge::DataType> result_input = { DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16 };
-  vector<ge::DataType> result_output = { DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16 };
+  vector<ge::DataType> result_input = {DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -6035,8 +5856,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_fp16_3)
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -6061,7 +5881,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -6115,23 +5935,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -6151,16 +5978,14 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
   ASSERT_EQ(ret16, fe::SUCCESS);
   ASSERT_EQ(ret17, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_MAX, DT_BF16, DT_BF16, DT_UINT8,
-                                       DT_FLOAT, DT_BF16, DT_FLOAT, DT_FLOAT, DT_UINT8,
-                                       DT_FLOAT, DT_MAX, DT_BF16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_MAX, DT_BF16, DT_BF16, DT_UINT8,
-                                       DT_FLOAT, DT_BF16, DT_FLOAT, DT_FLOAT, DT_UINT8,
-                                       DT_FLOAT, DT_MAX, DT_BF16, DT_BF16, DT_FLOAT,
-                                       DT_BF16, DT_FLOAT};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_MAX,   DT_BF16,  DT_BF16,  DT_UINT8, DT_FLOAT,
+                                       DT_BF16,  DT_FLOAT, DT_FLOAT, DT_UINT8, DT_FLOAT, DT_MAX,
+                                       DT_BF16,  DT_BF16,  DT_FLOAT, DT_BF16,  DT_FLOAT};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_MAX,   DT_BF16,  DT_BF16,  DT_UINT8, DT_FLOAT,
+                                        DT_BF16,  DT_FLOAT, DT_FLOAT, DT_UINT8, DT_FLOAT, DT_MAX,
+                                        DT_BF16,  DT_BF16,  DT_FLOAT, DT_BF16,  DT_FLOAT};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
-  //EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
+  // EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
   EXPECT_EQ(g4_op->GetInputDesc(0).GetDataType(), result_input[3]);
   EXPECT_EQ(g5_op->GetInputDesc(0).GetDataType(), result_input[4]);
@@ -6170,16 +5995,15 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
   EXPECT_EQ(g9_op->GetInputDesc(0).GetDataType(), result_input[8]);
   EXPECT_EQ(g10_op->GetInputDesc(0).GetDataType(), result_input[9]);
   EXPECT_EQ(g11_op->GetInputDesc(0).GetDataType(), result_input[10]);
-  //EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
+  // EXPECT_EQ(g12_op->GetInputDesc(0).GetDataType(), result_input[11]);
   EXPECT_EQ(g13_op->GetInputDesc(0).GetDataType(), result_input[12]);
   EXPECT_EQ(g14_op->GetInputDesc(0).GetDataType(), result_input[13]);
   EXPECT_EQ(g15_op->GetInputDesc(0).GetDataType(), result_input[14]);
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
 
-
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
-  //EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
+  // EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
   EXPECT_EQ(g3_op->GetOutputDesc(0).GetDataType(), result_output[2]);
   EXPECT_EQ(g4_op->GetOutputDesc(0).GetDataType(), result_output[3]);
   EXPECT_EQ(g5_op->GetOutputDesc(0).GetDataType(), result_output[4]);
@@ -6189,7 +6013,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
   EXPECT_EQ(g9_op->GetOutputDesc(0).GetDataType(), result_output[8]);
   EXPECT_EQ(g10_op->GetOutputDesc(0).GetDataType(), result_output[9]);
   EXPECT_EQ(g11_op->GetOutputDesc(0).GetDataType(), result_output[10]);
-  //EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
+  // EXPECT_EQ(g12_op->GetOutputDesc(0).GetDataType(), result_output[11]);
   EXPECT_EQ(g13_op->GetOutputDesc(0).GetDataType(), result_output[12]);
   EXPECT_EQ(g14_op->GetOutputDesc(0).GetDataType(), result_output[13]);
   EXPECT_EQ(g15_op->GetOutputDesc(0).GetDataType(), result_output[14]);
@@ -6197,9 +6021,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16)
   EXPECT_EQ(g17_op->GetOutputDesc(0).GetDataType(), result_output[16]);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -6221,12 +6043,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
   OpDescPtr g15_op = std::make_shared<OpDesc>("G15", "GBlack");
   OpDescPtr g16_op = std::make_shared<OpDesc>("G16", "GWhite");
   OpDescPtr g17_op = std::make_shared<OpDesc>("G17", "G");
-  //test for int32 input
+  // test for int32 input
   OpDescPtr g18_op = std::make_shared<OpDesc>("G18", "GWhite");
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_BF16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -6282,25 +6104,33 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-  Status ret18 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g18_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret18 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g18_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret18 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g18_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -6321,14 +6151,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
   ASSERT_EQ(ret17, fe::SUCCESS);
   ASSERT_EQ(ret18, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_BF16, DT_BF16, DT_UINT8,
-                                       DT_BF16, DT_BF16, DT_BF16, DT_FLOAT, DT_UINT8,
-                                       DT_FLOAT, DT_BF16, DT_BF16, DT_BF16, DT_BF16,
-                                       DT_BF16, DT_BF16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_BF16, DT_BF16, DT_UINT8,
-                                       DT_BF16, DT_BF16, DT_BF16, DT_FLOAT, DT_UINT8,
-                                       DT_FLOAT, DT_BF16, DT_BF16, DT_BF16, DT_BF16,
-                                       DT_BF16, DT_BF16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_BF16, DT_BF16,  DT_BF16,  DT_UINT8, DT_BF16,
+                                       DT_BF16,  DT_BF16, DT_FLOAT, DT_UINT8, DT_FLOAT, DT_BF16,
+                                       DT_BF16,  DT_BF16, DT_BF16,  DT_BF16,  DT_BF16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_BF16, DT_BF16,  DT_BF16,  DT_UINT8, DT_BF16,
+                                        DT_BF16,  DT_BF16, DT_FLOAT, DT_UINT8, DT_FLOAT, DT_BF16,
+                                        DT_BF16,  DT_BF16, DT_BF16,  DT_BF16,  DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -6347,7 +6175,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
   EXPECT_EQ(g18_op->GetInputDesc(0).GetDataType(), DT_INT8);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -6369,9 +6196,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_1)
   EXPECT_EQ(g18_op->GetInputDesc(0).GetDataType(), DT_INT8);
 }
 
-
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -6396,7 +6221,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT16;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -6450,23 +6275,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
   ret8 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g8_node, "tbe-custom");
   Status ret9 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g9_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret9 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g9_node, "tbe-custom");
-  Status ret10 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret10 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g10_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret10 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g10_node, "tbe-custom");
-  Status ret11 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret11 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g11_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret11 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g11_node, "tbe-custom");
-  Status ret12 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret12 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g12_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret12 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g12_node, "tbe-custom");
-  Status ret13 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret13 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g13_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret13 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g13_node, "tbe-custom");
-  Status ret14 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret14 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g14_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret14 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g14_node, "tbe-custom");
-  Status ret15 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret15 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g15_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret15 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g15_node, "tbe-custom");
-  Status ret16 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret16 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g16_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret16 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g16_node, "tbe-custom");
-  Status ret17 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
+  Status ret17 =
+      op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g17_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret17 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g17_node, "tbe-custom");
-
 
   ASSERT_EQ(ret1, fe::SUCCESS);
   ASSERT_EQ(ret2, fe::SUCCESS);
@@ -6486,14 +6318,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
   ASSERT_EQ(ret16, fe::SUCCESS);
   ASSERT_EQ(ret17, fe::SUCCESS);
 
-  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8, DT_BF16, DT_UINT8, DT_FLOAT16,
-                                       DT_FLOAT, DT_BF16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16,
-                                       DT_FLOAT16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_FLOAT16,
-                                       DT_BF16, DT_FLOAT16};
-  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8, DT_BF16, DT_UINT8, DT_FLOAT16,
-                                        DT_FLOAT, DT_BF16, DT_FLOAT, DT_FLOAT16, DT_FLOAT16,
-                                        DT_FLOAT16, DT_FLOAT16, DT_BF16, DT_FLOAT16, DT_FLOAT16,
-                                        DT_BF16, DT_FLOAT16};
+  vector<ge::DataType> result_input = {DT_FLOAT, DT_UINT8,   DT_BF16,    DT_UINT8,   DT_FLOAT16, DT_FLOAT,
+                                       DT_BF16,  DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+                                       DT_BF16,  DT_FLOAT16, DT_FLOAT16, DT_BF16,    DT_FLOAT16};
+  vector<ge::DataType> result_output = {DT_FLOAT, DT_UINT8,   DT_BF16,    DT_UINT8,   DT_FLOAT16, DT_FLOAT,
+                                        DT_BF16,  DT_FLOAT,   DT_FLOAT16, DT_FLOAT16, DT_FLOAT16, DT_FLOAT16,
+                                        DT_BF16,  DT_FLOAT16, DT_FLOAT16, DT_BF16,    DT_FLOAT16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -6511,7 +6341,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
   EXPECT_EQ(g15_op->GetInputDesc(0).GetDataType(), result_input[14]);
   EXPECT_EQ(g16_op->GetInputDesc(0).GetDataType(), result_input[15]);
   EXPECT_EQ(g17_op->GetInputDesc(0).GetDataType(), result_input[16]);
-
 
   EXPECT_EQ(g1_op->GetOutputDesc(0).GetDataType(), result_output[0]);
   EXPECT_EQ(g2_op->GetOutputDesc(0).GetDataType(), result_output[1]);
@@ -6534,8 +6363,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_2)
 
 // test for net in gray, input fp32-> GWhite -> GBlackSupportFp32Bf16 -> GWhiteSupportBf16Fp16 -> G
 // the fllows output is        fp32 -> bf16 ->  fp32                  -> bf16                  -> bf16
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_3)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_3) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
@@ -6547,7 +6375,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_3)
 
   vector<int64_t> dim({4, 33, 12, 16});
   ge::DataType dtype = DT_FLOAT;
-  //add descriptor
+  // add descriptor
   CreateSetOneNode(g1_op, dim, dtype);
   ge::NodePtr g1_node = graph->AddNode(g1_op);
   CreateSetOneNode(g2_op, dim, dtype);
@@ -6574,9 +6402,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_3)
   ASSERT_EQ(ret3, fe::SUCCESS);
   ASSERT_EQ(ret4, fe::SUCCESS);
 
-
-  vector<ge::DataType> result_input = { DT_BF16, DT_FLOAT, DT_BF16, DT_BF16 };
-  vector<ge::DataType> result_output = { DT_BF16, DT_FLOAT, DT_BF16, DT_BF16 };
+  vector<ge::DataType> result_input = {DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
+  vector<ge::DataType> result_output = {DT_BF16, DT_FLOAT, DT_BF16, DT_BF16};
   EXPECT_EQ(g1_op->GetInputDesc(0).GetDataType(), result_input[0]);
   EXPECT_EQ(g2_op->GetInputDesc(0).GetDataType(), result_input[1]);
   EXPECT_EQ(g3_op->GetInputDesc(0).GetDataType(), result_input[2]);
@@ -6590,13 +6417,13 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_3)
 
 // test for net in gray, input fp32-> G     -> Cast -> GWhite -> Cast1 -> GWhite
 // the fllows output is        fp32 -> bf16 ->  fp32                  -> bf16                  -> bf16
-TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_4)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_4) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   /* Stub Cast in Black list */
-  SubOpInfoStorePtr subOpInfoStorePtr = OpsKernelManager::Instance(AI_CORE_NAME).GetSubOpsKernelByStoreName("tbe-custom");
+  SubOpInfoStorePtr subOpInfoStorePtr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetSubOpsKernelByStoreName("tbe-custom");
   OpKernelInfoPtr opKernelInfoPtr = subOpInfoStorePtr->GetOpKernelByOpType(fe::CAST);
   opKernelInfoPtr->op_param_vec_[static_cast<size_t>(OP_KERNEL_PARAM::PrecisionPolicy)] = static_cast<int64_t>(BLACK);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -6606,7 +6433,7 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_4)
   OpDescPtr cast1_op = std::make_shared<OpDesc>("Cast1", "Cast");
   OpDescPtr u_op = std::make_shared<OpDesc>("G3", "GWhite");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -6666,7 +6493,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, set_nodes_IO_dtypes_mix_bf16_4)
   GraphUtils::AddEdge(h_node->GetOutDataAnchor(0), cast1_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(cast1_node->GetOutDataAnchor(0), u_node->GetInDataAnchor(0));
 
-
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(h_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
@@ -6713,7 +6539,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, get_lx_core_type_with_dynamic_success) 
   op_kernel_info_ptr->op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::CoreType)] = "dynamic";
   op_kernel_info_ptr->impl_type_ = EN_IMPL_HW_TBE;
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
   Status ret = op_impl_type_judge_ptr->GetLXCoreType(relu_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 
@@ -6741,7 +6568,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, get_lx_core_type_with_dynamic_failed_00
   op_kernel_info_ptr->op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::CoreType)] = "dynamic";
   op_kernel_info_ptr->impl_type_ = EN_IMPL_HW_TBE;
 
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
   Status ret = op_impl_type_judge_ptr->GetLXCoreType(relu_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 }
@@ -6787,7 +6615,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_ffts_only_support_nz
   EXPECT_EQ(ge::GetPrimaryFormat(bm->MutableInputDesc(0)->GetFormat()), ge::FORMAT_FRACTAL_NZ);
   EXPECT_EQ(fe::SUCCESS, ret);
 }
-
 
 TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_no_ffts_only_support_nz) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -6848,7 +6675,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_ffts_select_nhwc) {
   bm->AddInputDesc(tensor_desc);
   bm->AddOutputDesc(tensor_desc);
 
-
   ge::AttrUtils::SetInt(bm, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
   NodePtr bm_node = graph->AddNode(bm);
 
@@ -6858,7 +6684,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_ffts_select_nhwc) {
   EXPECT_EQ(bm->MutableInputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
   EXPECT_EQ(fe::SUCCESS, ret);
 }
-
 
 TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_no_ffts_select_nz) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -6876,7 +6701,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_filter_format_no_ffts_select_nz) {
   bm->AddInputDesc(tensor_desc);
   bm->AddInputDesc(tensor_desc);
   bm->AddOutputDesc(tensor_desc);
-
 
   ge::AttrUtils::SetInt(bm, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
   NodePtr bm_node = graph->AddNode(bm);
@@ -7054,12 +6878,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_format_mode_NDNZ_failed) {
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select_dtype_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select_dtype_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("Complex32Op", "Complex32Op");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7071,8 +6894,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -7085,12 +6909,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_COMPLEX32);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select_dtype_succ1)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select_dtype_succ1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("Complex32Op", "Complex32Op1");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7102,8 +6925,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -7116,12 +6940,11 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_and_select
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_FLOAT);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_fail)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_fail) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("Complex32Op", "Complex32Op2");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7133,19 +6956,19 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex32_check_support_fail)
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select_dtype_succ)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select_dtype_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("Complex64Op", "Complex64Op");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7157,8 +6980,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -7171,13 +6995,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select
   EXPECT_EQ(g_op->GetOutputDesc(0).GetDataType(), DT_COMPLEX64);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select_dtype_succ_forcefp32)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select_dtype_succ_forcefp32) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g_op = std::make_shared<OpDesc>("Complex64Op", "Complex64Op");
   string bak_precision_mode = ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE];
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = FORCE_FP32;
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7189,8 +7012,9 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select
   g_op->AddOutputDesc("z", tensor_desc);
   ge::NodePtr g_node = graph->AddNode(g_op);
 
-  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);//TBE
-  OpImplTypeJudgePtr op_impl_type_judge_ptr = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+  ge::AttrUtils::SetInt(g_op, FE_IMPLY_TYPE, 6);  // TBE
+  OpImplTypeJudgePtr op_impl_type_judge_ptr =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
 
   Status ret1 = op_impl_type_judge_ptr->MultiThreadJudge(*(graph.get()));
   ASSERT_EQ(ret1, fe::SUCCESS);
@@ -7208,8 +7032,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_complex64_check_support_and_select
 TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_1) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   EXPECT_EQ(config.IsEnableAclnn(), false);
-  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)>
-      env_str_param_vec_bac = config.env_str_param_vec_;
+  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_bac =
+      config.env_str_param_vec_;
   mmSetEnv("ENABLE_ACLNN", "true", 1);
   config.InitParamFromEnv();
   EXPECT_EQ(config.IsEnableAclnn(), true);
@@ -7252,30 +7076,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_1)
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::DEFAULT);
   OpSetterPtr op_setter_ptr = std::make_shared<OpSetter>(AI_CORE_NAME);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulSupportAclnn");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::SUPPORT_ACLNN);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_support_aclnn_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_support_aclnn_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulAclnnOnly");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::ACLNN_ONLY);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_aclnn_only_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      true);
+                bm_aclnn_only_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            true);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulAclnnXXX");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::DEFAULT);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_aclnn_xxx_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_aclnn_xxx_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
   Status ret = op_format_dtype_judge_ptr_->Judge(*graph);
   ret = op_format_dtype_judge_ptr_->SetFormat(*graph);
   EXPECT_EQ(fe::SUCCESS, ret);
@@ -7293,8 +7117,8 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_1)
 TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_2) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   EXPECT_EQ(config.IsEnableAclnn(), false);
-  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)>
-      env_str_param_vec_bac = config.env_str_param_vec_;
+  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_bac =
+      config.env_str_param_vec_;
   mmSetEnv("ENABLE_ACLNN", "true", 1);
   config.InitParamFromEnv();
   EXPECT_EQ(config.IsEnableAclnn(), true);
@@ -7337,30 +7161,30 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_2)
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMul");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::DEFAULT);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulSupportAclnn");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::SUPPORT_ACLNN);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_support_aclnn_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_support_aclnn_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulAclnnOnly");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::ACLNN_ONLY);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_aclnn_only_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      true);
+                bm_aclnn_only_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            true);
   op_kernel_info_ptr =
       OpsKernelManager::Instance(fe::AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "BatchMatMulAclnnXXX");
   EXPECT_EQ(op_kernel_info_ptr->GetAclnnSupportType(), AclnnSupportType::DEFAULT);
   EXPECT_EQ(op_setter_ptr->SetAclnnAttr(
-      bm_aclnn_xxx_node, 3, op_kernel_info_ptr,
-      op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
-      false);
+                bm_aclnn_xxx_node, 3, op_kernel_info_ptr,
+                op_format_dtype_judge_ptr_->op_format_dtype_strategy_manager_ptr_->GetPrecisionMode()),
+            false);
 
   Status ret = op_format_dtype_judge_ptr_->Judge(*graph);
   ret = op_format_dtype_judge_ptr_->SetFormat(*graph);
@@ -7377,14 +7201,15 @@ TEST_F(STEST_fusion_engine_op_judge_new, test_judge_format_and_dtype_by_aclnn_2)
 }
 
 TEST_F(STEST_fusion_engine_op_judge_new, PromoteTypeMatch) {
-  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
+  OpFormatDtypeJudgePtr op_format_dtype_judge_ptr =
+      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::OpDescPtr op_desc_ptr = make_shared<ge::OpDesc>("axpy", "AxpyV2");
   ge::NodePtr test_node = graph->AddNode(op_desc_ptr);
 
   ge::Format format_5dh_16 = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, 5));
-  std::vector<int64_t> dims_nchw{10,20,15,15};
-  std::vector<int64_t> dims_5hd{10,2,15,15,16};
+  std::vector<int64_t> dims_nchw{10, 20, 15, 15};
+  std::vector<int64_t> dims_5hd{10, 2, 15, 15, 16};
   ge::GeShape shape_nchw(dims_nchw);
   ge::GeShape shape_5hd(dims_5hd);
   ge::GeTensorDesc tensor_desc(shape_5hd, format_5dh_16, ge::DT_FLOAT16);
@@ -7408,15 +7233,12 @@ TEST_F(STEST_fusion_engine_op_judge_new, PromoteTypeMatch) {
             fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_cube)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_cube) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kCubeHif8;
   Configuration::Instance(fe::AI_CORE_NAME).fp16_op_type_list_ = {"CubeHif8SupportHif8", "CubeHif8SupportF16",
-    "CubeHif8SupportF32"};
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+                                                                  "CubeHif8SupportF32"};
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // original_dtype = DT_HIFLOAT8
   ConstructAndCheck3("CubeHif8SupportHif8", ge::DT_HIFLOAT8, ge::DT_HIFLOAT8, ge::DT_HIFLOAT8, true, fe::SUCCESS);
@@ -7440,13 +7262,10 @@ TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_cube)
   ConstructAndCheck3("CubeHif8SupportF32", ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_non_cube)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_non_cube) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kCubeHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // original_dtype = DT_BF16
   ConstructAndCheck3("CubeHif8SupportF16", ge::DT_BF16, ge::DT_BF16, ge::DT_BF16, true, fe::SUCCESS);
@@ -7462,13 +7281,10 @@ TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_for_non_cube)
   ConstructAndCheck3("CubeHif8SupportF32", ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_white_list)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_white_list) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kMixedHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // original_dtype = DT_HIFLOAT8
   ConstructAndCheck3("Hif8SupportHif8WhiteList", ge::DT_HIFLOAT8, ge::DT_HIFLOAT8, ge::DT_HIFLOAT8, true, fe::SUCCESS);
@@ -7492,13 +7308,10 @@ TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_white_list)
   ConstructAndCheck3("Hif8SupportF32WhiteList", ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_black_list)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_black_list) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kMixedHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // original_dtype = DT_BF16
   ConstructAndCheck3("Hif8SupportF16BlackList", ge::DT_BF16, ge::DT_BF16, ge::DT_BF16, true, fe::SUCCESS);
@@ -7514,57 +7327,51 @@ TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_black_list)
   ConstructAndCheck3("Hif8SupportF32BlackList", ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_gray_list_has_father)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_gray_list_has_father) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kMixedHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // father_dtype = DT_HIFLOAT8
-  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8",ge::DT_HIFLOAT8, ge::DT_FLOAT16,
-                                 ge::DT_HIFLOAT8, ge::DT_FLOAT16, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF16",ge::DT_HIFLOAT8, ge::DT_BF16,
-                                 ge::DT_BF16, ge::DT_BF16, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_HIFLOAT8, ge::DT_FLOAT,
-                                 ge::DT_FLOAT, ge::DT_FLOAT, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8", ge::DT_HIFLOAT8, ge::DT_FLOAT16, ge::DT_HIFLOAT8,
+                                 ge::DT_FLOAT16, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF16", ge::DT_HIFLOAT8, ge::DT_BF16, ge::DT_BF16, ge::DT_BF16, true,
+                                 fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_HIFLOAT8, ge::DT_FLOAT, ge::DT_FLOAT, ge::DT_FLOAT, true,
+                                 fe::SUCCESS);
   // father_dtype = DT_BF16
-  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8",ge::DT_BF16, ge::DT_HIFLOAT8,
-                                 ge::DT_BF16, ge::DT_HIFLOAT8, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF16",ge::DT_BF16, ge::DT_FLOAT,
-                                 ge::DT_BF16, ge::DT_FLOAT, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_BF16, ge::DT_FLOAT16,
-                                 ge::DT_FLOAT, ge::DT_FLOAT16, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8", ge::DT_BF16, ge::DT_HIFLOAT8, ge::DT_BF16, ge::DT_HIFLOAT8,
+                                 true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF16", ge::DT_BF16, ge::DT_FLOAT, ge::DT_BF16, ge::DT_FLOAT, true,
+                                 fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_BF16, ge::DT_FLOAT16, ge::DT_FLOAT, ge::DT_FLOAT16, true,
+                                 fe::SUCCESS);
   // father_dtype = DT_FLOAT16
-  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8",ge::DT_FLOAT16, ge::DT_HIFLOAT8,
-                                 ge::DT_FLOAT16, ge::DT_HIFLOAT8, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF16",ge::DT_FLOAT16, ge::DT_FLOAT,
-                                 ge::DT_FLOAT16, ge::DT_FLOAT, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_FLOAT16, ge::DT_FLOAT16,
-                                 ge::DT_FLOAT, ge::DT_FLOAT16, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8", ge::DT_FLOAT16, ge::DT_HIFLOAT8, ge::DT_FLOAT16,
+                                 ge::DT_HIFLOAT8, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF16", ge::DT_FLOAT16, ge::DT_FLOAT, ge::DT_FLOAT16, ge::DT_FLOAT, true,
+                                 fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_FLOAT16, ge::DT_FLOAT16, ge::DT_FLOAT, ge::DT_FLOAT16,
+                                 true, fe::SUCCESS);
   // father_dtype = DT_FLOAT
-  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8",ge::DT_FLOAT, ge::DT_HIFLOAT8,
-                                 ge::DT_FLOAT, ge::DT_HIFLOAT8, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF16",ge::DT_FLOAT, ge::DT_FLOAT,
-                                 ge::DT_FLOAT, ge::DT_FLOAT, true, fe::SUCCESS);
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_FLOAT, ge::DT_FLOAT16,
-                                 ge::DT_FLOAT, ge::DT_FLOAT16, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportHif8", ge::DT_FLOAT, ge::DT_HIFLOAT8, ge::DT_FLOAT, ge::DT_HIFLOAT8,
+                                 true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF16", ge::DT_FLOAT, ge::DT_FLOAT, ge::DT_FLOAT, ge::DT_FLOAT, true,
+                                 fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_FLOAT, ge::DT_FLOAT16, ge::DT_FLOAT, ge::DT_FLOAT16, true,
+                                 fe::SUCCESS);
   // father_dtype = DT_INT32
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_INT32, ge::DT_FLOAT,
-                                 ge::DT_INT32, ge::DT_FLOAT, true, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_INT32, ge::DT_FLOAT, ge::DT_INT32, ge::DT_FLOAT, true,
+                                 fe::SUCCESS);
   // father_dtype = DT_INT8
-  ConstructAndCheckHasFatherNode("CubeHif8SupportF32",ge::DT_INT8, ge::DT_INT8,
-                                 ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
+  ConstructAndCheckHasFatherNode("CubeHif8SupportF32", ge::DT_INT8, ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false,
+                                 fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_gray_list_no_father)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_gray_list_no_father) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kMixedHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
   // original_dtype = DT_BF16
   ConstructAndCheck3("CubeHif8SupportF16", ge::DT_BF16, ge::DT_BF16, ge::DT_BF16, true, fe::SUCCESS);
@@ -7580,20 +7387,17 @@ TEST_F(STEST_fusion_engine_op_judge_new, mixed_hif8_gray_list_no_father)
   ConstructAndCheck3("CubeHif8SupportF32", ge::DT_INT8, ge::DT_FLOAT, ge::DT_FLOAT, false, fe::SUCCESS);
 }
 
-TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_with_keep_dtype)
-{
+TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_with_keep_dtype) {
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = "";
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE_V2] = kCubeHif8;
-  op_format_dtype_judge_ptr_ =
-      std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME,
-                                           reflection_builder_ptr_);
+  op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
   op_format_dtype_judge_ptr_->Initialize();
 
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr g1_op = std::make_shared<OpDesc>("G1", "CubeHif8SupportHif8");
   OpDescPtr g2_op = std::make_shared<OpDesc>("G2", "CubeHif8SupportHif8");
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim({4, 33, 12, 16});
   GeShape shape(dim);
   GeTensorDesc tensor_desc(shape);
@@ -7607,7 +7411,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_with_keep_dtype)
   ge::AttrUtils::SetInt(g1_op, KEEP_DTYPE, 1);
   ge::NodePtr g_node = graph->AddNode(g1_op);
 
-
   vector<int64_t> dim_h({1, 2, 3, 4});
   GeShape shape_h(dim_h);
   GeTensorDesc tensor_desc_h(shape_h);
@@ -7620,7 +7423,6 @@ TEST_F(STEST_fusion_engine_op_judge_new, cube_hif8_with_keep_dtype)
   ge::AttrUtils::SetInt(g2_op, FE_IMPLY_TYPE, 6);
   ge::NodePtr h_node = graph->AddNode(g2_op);
   GraphUtils::AddEdge(g_node->GetOutDataAnchor(0), h_node->GetInDataAnchor(0));
-
 
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(g_node, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(g_node, "tbe-custom");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@
 
 namespace gert {
 using namespace ge;
-class VariableConverterUt : public bg::BgTestAutoCreate3StageFrame {
-};
+class VariableConverterUt : public bg::BgTestAutoCreate3StageFrame {};
 
 #define CHECK_VARIABLE_LOWER_RESULT(lower_result)          \
   do {                                                     \
@@ -43,7 +42,7 @@ class VariableConverterUt : public bg::BgTestAutoCreate3StageFrame {
 TEST_F(VariableConverterUt, LowerSameNameVariableTwice) {
   auto graph = SingleNodeGraphBuilder("g", "Variable").NumInputs(0).NumOutputs(1).Build();
   auto variable = graph->FindFirstNodeMatchType("Variable");
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
 
@@ -52,14 +51,16 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto lower_var1 = LoweringVariable(variable, lower_input);
   CHECK_VARIABLE_LOWER_RESULT(lower_var1);
 
-  ASSERT_EQ(bg::ValueHolder::GetCurrentExecuteGraph()->GetAllNodes().size(), 7U);  // stream + l1_allocator + l2_allocator + id + session + split
+  ASSERT_EQ(bg::ValueHolder::GetCurrentExecuteGraph()->GetAllNodes().size(),
+            7U);  // stream + l1_allocator + l2_allocator + id + session + split
   ASSERT_EQ(lower_var1.out_shapes.front()->GetFastNode()->GetType(), "Init");
 
   // Lower same name variable
   auto lower_var2 = LoweringVariable(variable, lower_input);
   CHECK_VARIABLE_LOWER_RESULT(lower_var2);
 
-  ASSERT_EQ(bg::ValueHolder::GetCurrentExecuteGraph()->GetAllNodes().size(), 7U);  // nodes unchanged as unique var resource
+  ASSERT_EQ(bg::ValueHolder::GetCurrentExecuteGraph()->GetAllNodes().size(),
+            7U);  // nodes unchanged as unique var resource
   ASSERT_EQ(lower_var2.out_shapes.front()->GetFastNode()->GetType(), "Init");
 
   ASSERT_EQ(lower_var1.out_shapes.front()->GetFastNode(), lower_var2.out_shapes.front()->GetFastNode());
@@ -73,7 +74,7 @@ TEST_F(VariableConverterUt, AllocOutputMemoryForRefVariableNode) {
   auto desc2 = foo->GetOpDesc()->MutableOutputDesc(1);
   ge::AttrUtils::SetStr(desc2, ge::REF_VAR_SRC_VAR_NAME, "var_2");
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
 
@@ -99,7 +100,7 @@ TEST_F(VariableConverterUt, AllocOutputMemoryForRefNode) {
   auto desc2 = foo->GetOpDesc()->MutableOutputDesc(1);
 
   ge::AttrUtils::SetBool(foo->GetOpDesc(), ge::ATTR_NAME_REFERENCE, true);
-  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED); // Unfed optional input
+  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED);  // Unfed optional input
   foo->GetOpDesc()->MutableInputDesc(1)->SetFormat(FORMAT_RESERVED);
   ASSERT_NE(foo->GetOpDesc()->GetAllInputsSize(), foo->GetOpDesc()->GetInputsSize());
 
@@ -110,10 +111,10 @@ TEST_F(VariableConverterUt, AllocOutputMemoryForRefNode) {
   input_names["z"] = 2;
   auto &output_names = foo->GetOpDesc()->MutableAllOutputName();
   output_names.clear();
-  output_names["x"] = 0; // Ref from input 0 but also assigned to variable
-  output_names["z"] = 1; // Ref from input 2
+  output_names["x"] = 0;  // Ref from input 0 but also assigned to variable
+  output_names["z"] = 1;  // Ref from input 2
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -103,6 +103,7 @@ class ProcessPointCompileConfig {
   void AddUdfFuncInfo(const std::string &func_name, const std::vector<uint32_t> &input_indices,
                       const std::vector<uint32_t> &output_indices);
   ge::Status CheckAndConstructBufCfg(const std::map<ge::AscendString, ge::AscendString> &options);
+
  private:
   ge::Status CheckBufCfgValue(const BufCfg &buf_cfg) const;
   ge::Status CheckBufPoolCfgJson(nlohmann::json buf_cfg_json) const;
@@ -166,13 +167,13 @@ class FlowGraphManager {
                           std::vector<FlowDataInfo> &flow_data_infos) const;
 
   void SetCacheEngineMode(bool cache_engine_mode);
+
  private:
   ge::dflow::FlowData CreateFlowData(std::string data_name, const int64_t index,
                                      const ge::TensorDesc &tensor_desc) const;
   ge::dflow::FlowNode CreateFlowNode(const std::string &node_name, uint32_t input_num, uint32_t output_num,
                                      const std::string &compile_config, const FunctionPpSetter &pp_setter) const;
-  ge::Status GenerateUniquePathStr(const FlowNodeDef &flow_node_def,
-                                   const std::vector<int32_t> &device_ids);
+  ge::Status GenerateUniquePathStr(const FlowNodeDef &flow_node_def, const std::vector<int32_t> &device_ids);
 
   uint64_t cluster_id_;
   bool cache_engine_mode_ = false;

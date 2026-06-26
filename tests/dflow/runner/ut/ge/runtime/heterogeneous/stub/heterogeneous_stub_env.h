@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,9 +25,7 @@ namespace ge {
 namespace stub {
 class MockExchangeService : public ExchangeService {
  public:
-  Status CreateQueue(int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     queue_id = queue_id_gen_++;
     return DoCreateQueue();
@@ -59,10 +57,7 @@ class MockExchangeService : public ExchangeService {
   Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout) override {
     return SUCCESS;
   }
-  Status Dequeue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 void *const data,
-                 const size_t size,
+  Status Dequeue(const int32_t device_id, const uint32_t queue_id, void *const data, const size_t size,
                  ControlInfo &control_info) override {
     return SUCCESS;
   }
@@ -72,9 +67,7 @@ class MockExchangeService : public ExchangeService {
     return SUCCESS;
   }
 
-  Status DequeueTensor(const int32_t device_id,
-                       const uint32_t queue_id,
-                       GeTensor &tensor,
+  Status DequeueTensor(const int32_t device_id, const uint32_t queue_id, GeTensor &tensor,
                        ControlInfo &control_info) override {
     return 0;
   }
@@ -111,13 +104,14 @@ class MockExecutionRuntime : public ExecutionRuntime {
 class MockRemoteDeployer : public RemoteDeployer {
  public:
   explicit MockRemoteDeployer(const NodeConfig &node_config) : RemoteDeployer(node_config) {}
-  MOCK_METHOD2(Process, Status(deployer::DeployerRequest & , deployer::DeployerResponse & ));
+  MOCK_METHOD2(Process, Status(deployer::DeployerRequest &, deployer::DeployerResponse &));
 };
 
 class MockExecutorMessageClient : public ExecutorMessageClient {
  public:
   MockExecutorMessageClient() : ExecutorMessageClient(0) {}
-  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp, int64_t timeout) override {
+  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp,
+                     int64_t timeout) override {
     return SUCCESS;
   }
 };
@@ -132,7 +126,7 @@ class MockPneExecutorClient : public BuiltinExecutorClient {
     return SUCCESS;
   }
 };
-}  // namespace
+}  // namespace stub
 
 class HeterogeneousStubEnv {
  public:
@@ -142,4 +136,4 @@ class HeterogeneousStubEnv {
 };
 }  // namespace ge
 
-#endif //D_AIR_TESTS_UT_GE_RUNTIME_HETEROGENEOUS_STUB_HETEROGENEOUS_STUB_ENV_H_
+#endif  // D_AIR_TESTS_UT_GE_RUNTIME_HETEROGENEOUS_STUB_HETEROGENEOUS_STUB_ENV_H_

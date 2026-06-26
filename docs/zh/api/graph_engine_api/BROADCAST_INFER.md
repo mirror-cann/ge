@@ -101,4 +101,3 @@ IMPLEMT_INFERFUNC(RightShift, RightShiftInfer) {
   return BROADCAST_INFER("x", "y", "z")(op);
 }
 ```
-

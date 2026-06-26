@@ -17,10 +17,8 @@
 namespace ge {
 namespace es {
 namespace history {
-bool LoadHistoryWindowVersions(const std::string &pkg_dir,
-                               const std::string &baseline_version,
-                               std::vector<VersionMeta> &window_versions,
-                               std::string &error_msg) {
+bool LoadHistoryWindowVersions(const std::string &pkg_dir, const std::string &baseline_version,
+                               std::vector<VersionMeta> &window_versions, std::string &error_msg) {
   std::vector<VersionMeta> all_versions;
   try {
     all_versions = HistoryRegistryReader::LoadIndex(pkg_dir);

@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ RUN wget https://cmake.org/files/v3.16/cmake-3.16.7-Linux-x86_64.tar.gz \
 RUN wget https://github.com/ccup/lcov/archive/refs/tags/add_lcov.tar.gz -O add_lcov.tar.gz \
 	&& mkdir -p /opt/addlcov1.0.0 \
 	&& tar -xvf add_lcov.tar.gz -C /opt/addlcov1.0.0 \
-	&& mv /opt/addlcov1.0.0/lcov-add_lcov/bin/lcov /usr/bin/addlcov 
+	&& mv /opt/addlcov1.0.0/lcov-add_lcov/bin/lcov /usr/bin/addlcov
 
 RUN mkdir /var/run/sshd \
     && echo "root:root" | chpasswd \

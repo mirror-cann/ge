@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,32 +27,32 @@
 #include "register/graph_optimizer/fusion_common/unknown_shape_utils.h"
 #include "graph/ge_context.h"
 
- /*
-      Data      NZ
-        |
-      Bitcast   NZ
-        |
-      GMM       ND
- */
+/*
+     Data      NZ
+       |
+     Bitcast   NZ
+       |
+     GMM       ND
+*/
 
 namespace fe {
 
-  static const string USERSEMANTICINFERENCE_PASS_NAME = "UserSemanticInferencePass";
-  static const char *BITCAST = "Bitcast";
-  static const char *Data = "Data";
-  static const std::string PATTERN_BITCAST = "Bitcast";
-  static const std::string PATTERN_DATA = "Data";
-  static const std::string FUSED_OP_TYPE = "GroupedMatmul";
-  static const std::string PATTERN_PYPTO = "pypto";
+static const string USERSEMANTICINFERENCE_PASS_NAME = "UserSemanticInferencePass";
+static const char *BITCAST = "Bitcast";
+static const char *Data = "Data";
+static const std::string PATTERN_BITCAST = "Bitcast";
+static const std::string PATTERN_DATA = "Data";
+static const std::string FUSED_OP_TYPE = "GroupedMatmul";
+static const std::string PATTERN_PYPTO = "pypto";
 
-  static const std::set<ge::Format> dataOutputFormatSet = {ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_NZ_C0_8,
-                                                           ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
+static const std::set<ge::Format> dataOutputFormatSet = {ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_NZ_C0_8,
+                                                         ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
 
 vector<FusionPattern *> UserSemanticInferencePass::DefinePatterns() {
   vector<FusionPattern *> patterns;
   FusionPattern *pattern = new (std::nothrow) FusionPattern("UserSemanticInferencePass");
-  FE_CHECK(pattern == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."), return patterns);
+  FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."),
+           return patterns);
   pattern->AddOpDesc(PATTERN_BITCAST, {BITCAST})
       .AddOpDesc(PATTERN_DATA, {Data})
       .SetInputs(PATTERN_BITCAST, {PATTERN_DATA})
@@ -61,8 +61,8 @@ vector<FusionPattern *> UserSemanticInferencePass::DefinePatterns() {
   patterns.push_back(pattern);
 
   FusionPattern *pattern2 = new (std::nothrow) FusionPattern("UserSemanticInferencePass2");
-  FE_CHECK(pattern2 == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."), return patterns);
+  FE_CHECK(pattern2 == nullptr, REPORT_FE_ERROR("[GraphOpt][NdOpti][DefPtn] Failed to create a new object."),
+           return patterns);
   pattern2->AddOpDesc(PATTERN_PYPTO, {"LightningIndexerPrologPto", "DeekseekIndexerAttentionPto"})
       .SetOutput(PATTERN_PYPTO);
 
@@ -113,7 +113,7 @@ Status UserSemanticInferencePass::FusionForPyPTO(const ge::NodePtr &pyptoNode) c
   return SUCCESS;
 }
 
-Status UserSemanticInferencePass::Fusion([[maybe_unused]] ge::ComputeGraph& graph, Mapping& mapping,
+Status UserSemanticInferencePass::Fusion([[maybe_unused]] ge::ComputeGraph &graph, Mapping &mapping,
                                          [[maybe_unused]] vector<ge::NodePtr> &fusionNodes) {
   ge::NodePtr pyptoNode = GetNodeFromMapping(PATTERN_PYPTO, mapping);
   if (pyptoNode != nullptr) {
@@ -129,8 +129,8 @@ Status UserSemanticInferencePass::Fusion([[maybe_unused]] ge::ComputeGraph& grap
     ge::Format dataOutputFormat = static_cast<ge::Format>(ge::GetPrimaryFormat(bitcastInputTensor->GetFormat()));
     if (dataOutputFormatSet.find(dataOutputFormat) == dataOutputFormatSet.end() ||
         !ge::AttrUtils::HasAttr(dataOpDesc, "_enable_storage_format_spread")) {
-        FE_LOGD("BitcastInput format is not NZ or data node do not with _enable_storage_format_spread attribute.");
-        return NOT_CHANGED;
+      FE_LOGD("BitcastInput format is not NZ or data node do not with _enable_storage_format_spread attribute.");
+      return NOT_CHANGED;
     }
     FE_LOGD("BitcastInput format is NZ.");
     auto bitcastOutNode = bitcastOutNodes.at(0);
@@ -156,7 +156,7 @@ Status UserSemanticInferencePass::Fusion([[maybe_unused]] ge::ComputeGraph& grap
         }
         inTensor->SetFormat(inTensorFormat);
         inTensor->SetShape(inTensorShape);
-        FE_LOGD("Op[%s] checksupport unsuccess.", bitcastOutNode->GetName().c_str());
+        FE_LOGD("Op[%s] checksupport unsuccessful.", bitcastOutNode->GetName().c_str());
       }
     }
   }
@@ -164,6 +164,6 @@ Status UserSemanticInferencePass::Fusion([[maybe_unused]] ge::ComputeGraph& grap
   return NOT_CHANGED;
 }
 
-REG_PASS(USERSEMANTICINFERENCE_PASS_NAME, BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS,
-         UserSemanticInferencePass, SINGLE_SCENE_OPEN | FE_PASS);
-}
+REG_PASS(USERSEMANTICINFERENCE_PASS_NAME, BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, UserSemanticInferencePass,
+         SINGLE_SCENE_OPEN | FE_PASS);
+}  // namespace fe

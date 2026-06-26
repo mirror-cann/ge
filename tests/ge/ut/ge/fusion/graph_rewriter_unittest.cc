@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@
 #include "ge/fusion/graph_rewriter.h"
 
 namespace ge {
-namespace fusion{
+namespace fusion {
 namespace {
 using AnchorDesc = std::pair<NodePtr, int64_t>;
 SubgraphBoundary BuildBoundary(const std::vector<std::vector<AnchorDesc>> &inputs,
@@ -49,13 +49,11 @@ SubgraphBoundary BuildBoundary(const std::vector<std::vector<AnchorDesc>> &input
   }
   return boundary;
 }
-} // namespace
+}  // namespace
 class UtestMatchReplacer : public testing::Test {
  public:
-  static void SetUpTestSuite() {
-  }
-  static void TearDownTestSuite() {
-  }
+  static void SetUpTestSuite() {}
+  static void TearDownTestSuite() {}
 };
 
 /**
@@ -74,7 +72,7 @@ class UtestMatchReplacer : public testing::Test {
  *
  */
 TEST_F(UtestMatchReplacer, InvalidBoundary_NotSelfContained) {
-  ComputeGraphPtr target_compute_graph =  gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
   // build replacement graph
@@ -94,12 +92,11 @@ TEST_F(UtestMatchReplacer, InvalidBoundary_NotSelfContained) {
     if (node->GetType() == "Relu") {
       relu = node;
     }
-
   }
   SubgraphBoundary subgraph = BuildBoundary({{{abs, 0}}}, {{relu, 0}});
   gert::GertRuntimeStub runtime_stub;
   EXPECT_NE(SubgraphRewriter::Replace(subgraph, *replace_graph), SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "Boundary is not self contained")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "Boundary is not self contained") >= 0);
 }
 
 /**
@@ -117,10 +114,10 @@ TEST_F(UtestMatchReplacer, InvalidBoundary_NotSelfContained) {
 
 */
 TEST_F(UtestMatchReplacer, InvalidBoundary_HasMultiOwnerGraph) {
-  ComputeGraphPtr target_compute_graph =  gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
-  ComputeGraphPtr target_compute_graph1 =  gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
+  ComputeGraphPtr target_compute_graph1 = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
   auto target_graph1 = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
   // build replacement graph
@@ -151,7 +148,8 @@ TEST_F(UtestMatchReplacer, InvalidBoundary_HasMultiOwnerGraph) {
 
   gert::GertRuntimeStub runtime_stub;
   EXPECT_NE(SubgraphRewriter::Replace(subgraph, *replace_graph), SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "as output node of boundary, is not in same graph with others")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(
+                  DLOG_ERROR, "as output node of boundary, is not in same graph with others") >= 0);
 }
 
 /**
@@ -164,7 +162,7 @@ TEST_F(UtestMatchReplacer, InvalidBoundary_HasMultiOwnerGraph) {
  *       out
  */
 TEST_F(UtestMatchReplacer, SingleNode_1Input_1Output_Replace) {
-  ComputeGraphPtr target_compute_graph =  gert::ShareGraph::LstmpGraph();
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
   GraphUtils::DumpGEGraphToOnnx(*target_compute_graph, "tests");
 
@@ -185,7 +183,7 @@ TEST_F(UtestMatchReplacer, SingleNode_1Input_1Output_Replace) {
     }
     // set stream label on transdata
     AttrUtils::SetStr(node->GetOpDesc(), public_attr::USER_STREAM_LABEL, "test_label");
-    auto boundary = BuildBoundary({{{node, 0}}}, {{node,0}});
+    auto boundary = BuildBoundary({{{node, 0}}}, {{node, 0}});
     subgraphs.emplace_back(std::move(boundary));
   }
   for (const auto &boundary : subgraphs) {
@@ -196,7 +194,8 @@ TEST_F(UtestMatchReplacer, SingleNode_1Input_1Output_Replace) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -238,7 +237,7 @@ TEST_F(UtestMatchReplacer, SingleNode_1Input_1Output_Replace) {
  *      out                       out
  */
 TEST_F(UtestMatchReplacer, TwoNode_2Input_1Output_WithConst_Replace) {
-  ComputeGraphPtr target_compute_graph =  gert::ShareGraph::LstmpGraph();
+  ComputeGraphPtr target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
   // build replacement
@@ -246,7 +245,8 @@ TEST_F(UtestMatchReplacer, TwoNode_2Input_1Output_WithConst_Replace) {
   std::vector<int64_t> x_reshape_shape({3});
   auto replace_graph_builder = es::EsGraphBuilder("replace");
   auto replace_esb_graph = replace_graph_builder.GetCGraphBuilder();
-  auto add_const = EsCreateConstInt64(replace_esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
+  auto add_const = EsCreateConstInt64(replace_esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(),
+                                      x_reshape_shape.size());
   auto add_tensor = EsAdd(EsCreateGraphInput(replace_esb_graph, 0), add_const);
   replace_esb_graph->SetGraphOutput(EsRelu(add_tensor), 0);
   auto replace_graph = replace_graph_builder.BuildAndReset();
@@ -277,8 +277,7 @@ TEST_F(UtestMatchReplacer, TwoNode_2Input_1Output_WithConst_Replace) {
     }
     if (node->GetType() == "Relu") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Add"}}),
-                "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Add"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"DynamicRNNV3"}}), "success");
     }
     if (node->GetType() == "Add") {
@@ -354,8 +353,7 @@ TEST_F(UtestMatchReplacer, InputMultiConsumer_1Input_2Output_Replace) {
     }
     if (node->GetType() == "Add") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"},{"Abs"}}),
-                "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {"Abs"}}), "success");
     }
   }
 }
@@ -381,7 +379,7 @@ TEST_F(UtestMatchReplacer, ProducerHasConsumerOutOfBoundary) {
   auto target_esb_graph = target_graph_builder.GetCGraphBuilder();
   auto data = EsCreateGraphInput(target_esb_graph, 0);
   auto abs = EsAbs(data);
-  auto exp = EsExp(abs,0,0,0);
+  auto exp = EsExp(abs, 0, 0, 0);
   auto relu = EsRelu(abs);
   auto add = EsAdd(exp, relu);
   auto cast = EsCast(data, DT_INT64);
@@ -424,8 +422,7 @@ TEST_F(UtestMatchReplacer, ProducerHasConsumerOutOfBoundary) {
     }
     if (node->GetType() == "Add") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"},{"Abs"}}),
-                "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {"Abs"}}), "success");
     }
   }
 }
@@ -451,7 +448,7 @@ TEST_F(UtestMatchReplacer, ReplaceDataConnectToNetoutput) {
   auto target_esb_graph = target_graph_builder.GetCGraphBuilder();
   auto data = EsCreateGraphInput(target_esb_graph, 0);
   auto abs = EsAbs(data);
-  auto exp = EsExp(abs,0,0,0);
+  auto exp = EsExp(abs, 0, 0, 0);
   auto relu = EsRelu(abs);
   auto add = EsAdd(exp, relu);
   auto cast = EsCast(data, DT_INT64);
@@ -493,25 +490,24 @@ TEST_F(UtestMatchReplacer, ReplaceDataConnectToNetoutput) {
     }
     if (node->GetType() == "Add") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Data"},{"Abs"}}),
-                "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Data"}, {"Abs"}}), "success");
     }
   }
 }
 
 /**
  * N to 0
-  * pattern graph:    target graph:          replace graph:
-  *
-  *    data                data                 data
-  *     |                   |                   /   \
-  *    abs1                abs1               netoutput
-  *   /   \               /  \
-  *  exp  relu          exp   relu
-  *                       \   /
-  *                       add
-  *                        |
-  *                     netoutput
+ * pattern graph:    target graph:          replace graph:
+ *
+ *    data                data                 data
+ *     |                   |                   /   \
+ *    abs1                abs1               netoutput
+ *   /   \               /  \
+ *  exp  relu          exp   relu
+ *                       \   /
+ *                       add
+ *                        |
+ *                     netoutput
  */
 TEST_F(UtestMatchReplacer, delete_nodes_in_boundary) {
   ComputeGraphPtr target_compute_graph = gert::ShareGraph::BuildStaticAbsReluExpAddNodeGraph();
@@ -546,8 +542,7 @@ TEST_F(UtestMatchReplacer, delete_nodes_in_boundary) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "Add") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Data"},{"Data"}}),
-                "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Data"}, {"Data"}}), "success");
     }
   }
 }
@@ -584,8 +579,8 @@ TEST_F(UtestMatchReplacer, ReplaceWithCtxSuccess) {
     if (!AttrUtils::GetListStr(node->GetOpDesc(), "pass_name", pass_names)) {
       continue;
     }
-    has_rewrite_pass_name =
-      has_rewrite_pass_name || (std::find(pass_names.begin(), pass_names.end(), "rewrite_ctx_pass") != pass_names.end());
+    has_rewrite_pass_name = has_rewrite_pass_name ||
+                            (std::find(pass_names.begin(), pass_names.end(), "rewrite_ctx_pass") != pass_names.end());
   }
   EXPECT_TRUE(has_rewrite_pass_name);
 }
@@ -691,13 +686,15 @@ TEST_F(UtestMatchReplacer, InvalidReplacement_has_cycle) {
   replace_esb_graph->SetGraphOutput(relu_r, 0);
   replace_esb_graph->SetGraphOutput(abs_r, 1);
   auto replace_graph = replace_graph_builder.BuildAndReset();
-  GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu_r->GetProducer())->GetOutControlAnchor(), NodeAdapter::GNode2Node(abs_r->GetProducer())->GetInControlAnchor());
-  GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs_r->GetProducer())->GetOutControlAnchor(), NodeAdapter::GNode2Node(relu_r->GetProducer())->GetInControlAnchor());
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu_r->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(abs_r->GetProducer())->GetInControlAnchor());
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs_r->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(relu_r->GetProducer())->GetInControlAnchor());
 
   // replace
   gert::GertRuntimeStub runtime_stub;
   EXPECT_NE(SubgraphRewriter::Replace(boundary, *replace_graph), SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "There may exist cycle on replacement graph")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "There may exist cycle on replacement graph") >= 0);
 }
 
 /**
@@ -744,7 +741,7 @@ TEST_F(UtestMatchReplacer, InvalidReplacement_InputSizeNotMatch) {
   // replace
   gert::GertRuntimeStub runtime_stub;
   EXPECT_NE(SubgraphRewriter::Replace(boundary, *replace_graph), SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "not equal with Boundary input size")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "not equal with Boundary input size") >= 0);
 }
 
 /**
@@ -788,7 +785,7 @@ TEST_F(UtestMatchReplacer, InvalidReplacement_OutputSizeNotMatch) {
   // replace
   gert::GertRuntimeStub runtime_stub;
   EXPECT_NE(SubgraphRewriter::Replace(boundary, *replace_graph), SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "not equal with Boundary output size")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "not equal with Boundary output size") >= 0);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

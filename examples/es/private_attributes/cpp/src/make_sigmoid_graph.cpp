@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,30 +19,29 @@
 using namespace ge;
 using namespace ge::es;
 namespace {
-  es::EsTensorHolder MakeSigmoidAddGraph(es::EsTensorHolder input) {
-    /*
-    REG_OP(Sigmoid)
-      .INPUT(x, TensorType::UnaryDataType())
-      .OUTPUT(y, TensorType::UnaryDataType())
-      .OP_END_FACTORY_REG(Sigmoid)
-    */
-    //
-    auto sigmoid0 = Sigmoid(input);
-    sigmoid0.SetAttrForNode("_stream_label", "label_0");
-    auto sigmoid1 = Sigmoid(input);
-    // 添加私有属性
-    sigmoid1.SetAttrForNode("node_rank", static_cast<int64_t>(1));
-    sigmoid1.SetAttrForNode("execution_priority", static_cast<int64_t>(2));
-    sigmoid1.SetAttrForNode("memory_optimization", true);
-    sigmoid1.SetAttrForNode("_stream_label", "label_1");
-    auto add = Add(sigmoid0, sigmoid1);
-    return add;
-  }
+es::EsTensorHolder MakeSigmoidAddGraph(es::EsTensorHolder input) {
+  /*
+  REG_OP(Sigmoid)
+    .INPUT(x, TensorType::UnaryDataType())
+    .OUTPUT(y, TensorType::UnaryDataType())
+    .OP_END_FACTORY_REG(Sigmoid)
+  */
+  //
+  auto sigmoid0 = Sigmoid(input);
+  sigmoid0.SetAttrForNode("_stream_label", "label_0");
+  auto sigmoid1 = Sigmoid(input);
+  // 添加私有属性
+  sigmoid1.SetAttrForNode("node_rank", static_cast<int64_t>(1));
+  sigmoid1.SetAttrForNode("execution_priority", static_cast<int64_t>(2));
+  sigmoid1.SetAttrForNode("memory_optimization", true);
+  sigmoid1.SetAttrForNode("_stream_label", "label_1");
+  auto add = Add(sigmoid0, sigmoid1);
+  return add;
 }
+}  // namespace
 namespace es_showcase {
 
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -85,7 +84,7 @@ std::unique_ptr<ge::Graph> MakeSigmoidAddGraphByEs() {
   auto input = graph_builder->CreateInput(0, "input", ge::DT_FLOAT, ge::FORMAT_ND, {2, 3});
   auto result = MakeSigmoidAddGraph(input);
   // 3、设置输出
-  (void) graph_builder->SetOutput(result, 0);
+  (void)graph_builder->SetOutput(result, 0);
   // 4、构建图
   return graph_builder->BuildAndReset();
 }

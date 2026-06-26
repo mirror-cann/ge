@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -132,10 +132,12 @@ REGISTER_KERNEL(BuildTensorStorage)
     .RunFunc(BuildTensor)
     .OutputsCreator(CreateBuildTensorOutputs)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
-REGISTER_KERNEL(BuildTensor).RunFunc(BuildTensor)
+REGISTER_KERNEL(BuildTensor)
+    .RunFunc(BuildTensor)
     .OutputsCreator(CreateBuildTensorOutputs)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
-REGISTER_KERNEL(BuildRefTensor).RunFunc(BuildRefTensor)
+REGISTER_KERNEL(BuildRefTensor)
+    .RunFunc(BuildRefTensor)
     .OutputsCreator(CreateBuildTensorOutputs)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
@@ -221,9 +223,7 @@ REGISTER_KERNEL(SplitDataTensor)
     .OutputsCreator(SplitTensorOutputsCreator)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
-REGISTER_KERNEL(SplitConstTensor)
-    .RunFunc(SplitConstTensor)
-    .OutputsCreator(SplitTensorOutputsCreator);
+REGISTER_KERNEL(SplitConstTensor).RunFunc(SplitConstTensor).OutputsCreator(SplitTensorOutputsCreator);
 
 /**
  * SplitTensorForOutputData专门为OutputData开发，因此SplitTensorForOutputData与SplitTensor的不同点：
@@ -252,7 +252,7 @@ ge::graphStatus SplitTensorForOutputData(KernelContext *context) {
     const std::vector<std::string> key{"reason"};
     const std::vector<std::string> val{reason};
     REPORT_PREDEFINED_ERR_MSG("E13031", std::vector<const ge::char_t *>({"reason"}),
-                               std::vector<const ge::char_t *>({reason.c_str()}));
+                              std::vector<const ge::char_t *>({reason.c_str()}));
     return ge::PARAM_INVALID;
   }
 
@@ -269,7 +269,7 @@ ge::graphStatus SplitTensorForOutputData(KernelContext *context) {
     const std::vector<std::string> key{"reason"};
     const std::vector<std::string> val{reason};
     REPORT_PREDEFINED_ERR_MSG("E13031", std::vector<const ge::char_t *>({"reason"}),
-                               std::vector<const ge::char_t *>({reason.c_str()}));
+                              std::vector<const ge::char_t *>({reason.c_str()}));
     return ge::PARAM_INVALID;
   }
   out_shape_tensor->SetDataType(tensor->GetDataType());
@@ -285,7 +285,8 @@ ge::graphStatus SplitTensorForOutputData(KernelContext *context) {
 REGISTER_KERNEL(SplitTensorForOutputData)
     .RunFunc(SplitTensorForOutputData)
     .OutputsCreator(SplitTensorOutputsCreator)
-    .ConcurrentCriticalSectionKey(kKernelUseMemory);;
+    .ConcurrentCriticalSectionKey(kKernelUseMemory);
+;
 
 ge::graphStatus BuildShapeTensorData(KernelContext *context) {
   ge::DataType out_data_type;

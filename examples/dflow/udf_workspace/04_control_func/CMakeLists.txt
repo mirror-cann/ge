@@ -12,15 +12,15 @@ cmake_minimum_required(VERSION 3.14)
 PROJECT(UDF)
 if ("x${RESOURCE_TYPE}" STREQUAL "xAscend")
     message(STATUS "ascend compiler enter.")
-    # if unsupport current resource type, please uncomment the next line.
-    # message(FATAL_ERROR "unsupport compile Ascend target!")
+    # if unsupported current resource type, please uncomment the next line.
+    # message(FATAL_ERROR "unsupported compile Ascend target!")
 elseif ("x${RESOURCE_TYPE}" STREQUAL "xAarch")
     message(STATUS "Aarch64 compiler enter.")
-    # if unsupport current resource type, please uncomment the next line.
+    # if unsupported current resource type, please uncomment the next line.
     # message(FATAL_ERROR "Unsupport compile aarch64 target!")
 else ()
     message(STATUS "x86 compiler enter.")
-    # if unsupport current resource type, please uncomment the next line.
+    # if unsupported current resource type, please uncomment the next line.
     # message(FATAL_ERROR "Unsupport compile x86 target!")
 endif ()
 

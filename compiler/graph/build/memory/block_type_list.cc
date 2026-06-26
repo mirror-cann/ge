@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ std::string GetNodeAttrStr(const NodeMemAttr &attr) {
 }
 
 bool IsNextNodeCleanInput(const Node *const node, const int32_t out_index) {
-  const auto judge_func = [] (const Node *const cur_node, int32_t in_index) {
+  const auto judge_func = [](const Node *const cur_node, int32_t in_index) {
     (void)in_index;
     const auto op_desc = cur_node->GetOpDescBarePtr();
     if (op_desc != nullptr) {
@@ -58,9 +58,9 @@ bool IsNextNodeCleanInput(const Node *const node, const int32_t out_index) {
   }
   return false;
 }
-}
-std::vector<std::vector<bool>> NodeMemAttrConflictRegister::conflict_matrix_(static_cast<size_t>(NodeMemAttr::kMaxLen),
-    std::vector<bool>(static_cast<size_t>(NodeMemAttr::kMaxLen), false));
+}  // namespace
+std::vector<std::vector<bool>> NodeMemAttrConflictRegister::conflict_matrix_(
+    static_cast<size_t>(NodeMemAttr::kMaxLen), std::vector<bool>(static_cast<size_t>(NodeMemAttr::kMaxLen), false));
 REGISTER_NODE_MEM_ATTR_CONFLICT(NodeMemAttr::kData, NodeMemAttr::kConcentrateAtomic);
 
 void BlockTypeList::swap(ge::BlockTypeList &other) noexcept {
@@ -123,8 +123,8 @@ NodeMemAttrVector NodeMemAttrUtils::GetNodeMemAttrs(const NodeTypeIndex &node_ty
     attrs.emplace_back(NodeMemAttr::kData);
   }
 
-  if ((node_type_index.mem_type_ == kOutput) && IsConcentrateAtomic(node_type_index.node_,
-                                                                    static_cast<int32_t>(node_type_index.index_))) {
+  if ((node_type_index.mem_type_ == kOutput) &&
+      IsConcentrateAtomic(node_type_index.node_, static_cast<int32_t>(node_type_index.index_))) {
     attrs.emplace_back(NodeMemAttr::kConcentrateAtomic);
   }
   return attrs;
@@ -158,4 +158,4 @@ std::string NodeMemAttrUtils::GetAttrStr(const NodeTypeIndex &node_type_index) {
   }
   return ss.str();
 }
-} // namespace ge
+}  // namespace ge

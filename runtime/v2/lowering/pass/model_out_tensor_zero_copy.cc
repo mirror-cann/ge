@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -112,8 +112,12 @@ ge::graphStatus AppendInputForAllocNode(ge::FastNode *alloc_node, int32_t output
   GE_ASSERT_SUCCESS(ge::FastNodeUtils::AppendInputEdgeInfo(alloc_node, alloc_input_num + 1U));
   std::string inner_data_name;
   static std::atomic<uint64_t> id{0U};
-  inner_data_name.append("OutputData_").append(std::to_string(output_index)).append("_").append(graph->GetName())
-                 .append("_InnerData_").append(std::to_string(id.fetch_add(1U)));
+  inner_data_name.append("OutputData_")
+      .append(std::to_string(output_index))
+      .append("_")
+      .append(graph->GetName())
+      .append("_InnerData_")
+      .append(std::to_string(id.fetch_add(1U)));
   GELOGI("AppendInputForAllocNode create InnerData:%s", inner_data_name.c_str());
   auto op_desc = ge::MakeShared<ge::OpDesc>(inner_data_name, kInnerData);
   GE_ASSERT_NOTNULL(op_desc);

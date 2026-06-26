@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,14 +15,14 @@
 namespace {
 constexpr const char *kInvlaidSocVersion = "invalid_version";
 constexpr const char *kInvlaidInitSocVersion = "invalid_init_version";
-}
+}  // namespace
 
-fe::PlatformInfoManager& fe::PlatformInfoManager::Instance() {
+fe::PlatformInfoManager &fe::PlatformInfoManager::Instance() {
   static fe::PlatformInfoManager pf;
   return pf;
 }
 
-fe::PlatformInfoManager& fe::PlatformInfoManager::GeInstance() {
+fe::PlatformInfoManager &fe::PlatformInfoManager::GeInstance() {
   static fe::PlatformInfoManager pf;
   return pf;
 }
@@ -36,11 +36,9 @@ uint32_t fe::PlatformInfoManager::GetPlatformInstanceByDevice(const uint32_t &de
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::GetPlatformInfo(const std::string SoCVersion,
-                                                  PlatformInfo &platform_info,
+uint32_t fe::PlatformInfoManager::GetPlatformInfo(const std::string SoCVersion, PlatformInfo &platform_info,
                                                   OptionalInfo &opti_compilation_info) {
-  static std::unordered_set<std::string> socSet{"Ascend910B1", "Ascend910B2",
-                                                "Ascend910B3", "Ascend910B4"};
+  static std::unordered_set<std::string> socSet{"Ascend910B1", "Ascend910B2", "Ascend910B3", "Ascend910B4"};
   const bool jit_compile = (socSet.find(SoCVersion) != socSet.cend()) ? false : true;
   platform_info.soc_info.ai_core_cnt = 32;
   platform_info.soc_info.vector_core_cnt = 32;
@@ -49,18 +47,19 @@ uint32_t fe::PlatformInfoManager::GetPlatformInfo(const std::string SoCVersion,
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::GetPlatformInfoWithOutSocVersion(fe::PlatformInfo&, fe::OptionalInfo&) {
+uint32_t fe::PlatformInfoManager::GetPlatformInfoWithOutSocVersion(fe::PlatformInfo &, fe::OptionalInfo &) {
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::GetPlatformInfoWithOutSocVersion(fe::PlatFormInfos&, fe::OptionalInfos&) {
+uint32_t fe::PlatformInfoManager::GetPlatformInfoWithOutSocVersion(fe::PlatFormInfos &, fe::OptionalInfos &) {
   return 0U;
 }
 
 fe::PlatformInfoManager::PlatformInfoManager() {}
 fe::PlatformInfoManager::~PlatformInfoManager() {}
 
-uint32_t fe::PlatformInfoManager::GetPlatformInfos(const std::string SoCVersion, fe::PlatFormInfos&, fe::OptionalInfos&) {
+uint32_t fe::PlatformInfoManager::GetPlatformInfos(const std::string SoCVersion, fe::PlatFormInfos &,
+                                                   fe::OptionalInfos &) {
   if (SoCVersion == kInvlaidSocVersion) {
     return 1U;
   }
@@ -72,16 +71,16 @@ uint32_t fe::PlatformInfoManager::GetPlatformInfos(const std::string SoCVersion,
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::UpdatePlatformInfos(fe::PlatFormInfos&) {
+uint32_t fe::PlatformInfoManager::UpdatePlatformInfos(fe::PlatFormInfos &) {
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::UpdatePlatformInfos(const std::string &soc_version, fe::PlatFormInfos&) {
+uint32_t fe::PlatformInfoManager::UpdatePlatformInfos(const std::string &soc_version, fe::PlatFormInfos &) {
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::UpdateRuntimePlatformInfosByDevice(
-    const uint32_t &device_id, fe::PlatFormInfos &platform_infos) {
+uint32_t fe::PlatformInfoManager::UpdateRuntimePlatformInfosByDevice(const uint32_t &device_id,
+                                                                     fe::PlatFormInfos &platform_infos) {
   return 0U;
 }
 
@@ -92,18 +91,19 @@ uint32_t fe::PlatformInfoManager::InitRuntimePlatformInfos(const string &soc_ver
 
   if (soc_version == "test_instance_constant_soc_version") {
     // test for GeInstance or Instance
-    runtime_init_flag_ = true;;
+    runtime_init_flag_ = true;
+    ;
   }
   return 0U;
 }
 
-uint32_t fe::PlatformInfoManager::GetRuntimePlatformInfosByDevice(
-    const uint32_t &device_id, fe::PlatFormInfos &platform_infos, bool need_deep_copy) {
+uint32_t fe::PlatformInfoManager::GetRuntimePlatformInfosByDevice(const uint32_t &device_id,
+                                                                  fe::PlatFormInfos &platform_infos,
+                                                                  bool need_deep_copy) {
   return 0U;
 }
 
-
-void fe::PlatformInfoManager::SetOptionalCompilationInfo(fe::OptionalInfos&) {}
+void fe::PlatformInfoManager::SetOptionalCompilationInfo(fe::OptionalInfos &) {}
 
 uint32_t fe::PlatFormInfos::GetCoreNum() const {
   return 8U;
@@ -122,34 +122,31 @@ std::string fe::PlatFormInfos::SaveToBuffer() {
   return "";
 }
 
-bool fe::PlatFormInfos::GetPlatformRes(std::string const&, std::string const& key, std::string &val) {
+bool fe::PlatFormInfos::GetPlatformRes(std::string const &, std::string const &key, std::string &val) {
   if (key == "Short_SoC_version") {
     val = "Ascend910B";
   }
   return true;
 }
 
-bool fe::PlatFormInfos::GetPlatformRes(std::string const&, std::map<std::string, std::string, std::less<std::string>,
-                                       std::allocator<std::pair<std::string const, std::string> > >&) {
+bool fe::PlatFormInfos::GetPlatformRes(std::string const &,
+                                       std::map<std::string, std::string, std::less<std::string>,
+                                                std::allocator<std::pair<std::string const, std::string> > > &) {
   return true;
 }
 
-void fe::PlatFormInfos::SetPlatformRes(std::string const&, std::map<std::string, std::string, std::less<std::string>,
-                                       std::allocator<std::pair<std::string const, std::string> > >&) {
-}
+void fe::PlatFormInfos::SetPlatformRes(std::string const &,
+                                       std::map<std::string, std::string, std::less<std::string>,
+                                                std::allocator<std::pair<std::string const, std::string> > > &) {}
 
-bool fe::PlatFormInfos::GetPlatformResWithLock(std::string const &label,
-                                               std::map<std::string, std::string, std::less<std::string>,
-                                               std::allocator<std::pair<std::string const, std::string> > > &res) {
+bool fe::PlatFormInfos::GetPlatformResWithLock(
+    std::string const &label, std::map<std::string, std::string, std::less<std::string>,
+                                       std::allocator<std::pair<std::string const, std::string> > > &res) {
   if (label == "SoCInfo") {
     res = {{"ai_core_cnt", "24"}, {"vector_core_cnt", "24"}, {"cube_core_cnt", "24"}};
   } else if (label == "DtypeMKN") {
-    res = {{"DT_UINT8", "16,32,16"},
-        {"DT_INT8", "16,32,16"},
-        {"DT_INT4", "16,64,16"},
-        {"DT_INT2", "16,128,16"},
-        {"DT_UINT2", "16,128,16"},
-        {"DT_UINT1", "16,256,16"}};
+    res = {{"DT_UINT8", "16,32,16"}, {"DT_INT8", "16,32,16"},   {"DT_INT4", "16,64,16"},
+           {"DT_INT2", "16,128,16"}, {"DT_UINT2", "16,128,16"}, {"DT_UINT1", "16,256,16"}};
   }
   return true;
 }
@@ -167,17 +164,15 @@ bool fe::PlatFormInfos::GetPlatformResWithLock(const string &label, const string
   return true;
 }
 
-void fe::PlatFormInfos::SetPlatformResWithLock(std::string const&,
-                                               std::map<std::string, std::string, std::less<std::string>,
-                                               std::allocator<std::pair<std::string const, std::string> > >&) {
-}
+void fe::PlatFormInfos::SetPlatformResWithLock(
+    std::string const &, std::map<std::string, std::string, std::less<std::string>,
+                                  std::allocator<std::pair<std::string const, std::string> > > &) {}
 
 uint32_t fe::PlatFormInfos::GetCoreNumWithLock() const {
   return 8U;
 }
 
-void fe::OptionalInfos::SetSocVersion(std::string) {
-}
+void fe::OptionalInfos::SetSocVersion(std::string) {}
 
 void fe::OptionalInfos::SetAICoreNum(unsigned int) {}
 
@@ -195,16 +190,15 @@ uint32_t fe::PlatFormInfos::GetCoreNumByType(const std::string &core_type) {
 
 class PlatformManagerV2 {
  public:
-  static PlatformManagerV2& Instance();
-  uint32_t GetSocSpec(const std::string&, const std::string&, const std::string&, std::string&);
+  static PlatformManagerV2 &Instance();
+  uint32_t GetSocSpec(const std::string &, const std::string &, const std::string &, std::string &);
 };
 
-PlatformManagerV2& PlatformManagerV2::Instance() {
+PlatformManagerV2 &PlatformManagerV2::Instance() {
   static PlatformManagerV2 inst;
   return inst;
 }
 
-uint32_t PlatformManagerV2::GetSocSpec(const std::string&, const std::string&,
-                                        const std::string&, std::string&) {
+uint32_t PlatformManagerV2::GetSocSpec(const std::string &, const std::string &, const std::string &, std::string &) {
   return 0U;
 }

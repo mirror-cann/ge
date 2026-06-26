@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,8 @@ DevMemValueHolderPtr AllocHostCpuOutputMemory(const ge::NodePtr &node, const IoI
   inputs.emplace_back(io_info.output_sizes[index]);
   auto allocator_holder = global_data.GetOrCreateAllocator({kOnHost, AllocatorUsage::kAllocNodeWorkspace});
   inputs.emplace_back(allocator_holder);
-  // 这里需要input shape/addr 的连接保证控制关系，和后续compute结点的输入相同，使内存申请结点和后续的compute结点是同折叠init、或同不折叠的
+  // 这里需要input shape/addr
+  // 的连接保证控制关系，和后续compute结点的输入相同，使内存申请结点和后续的compute结点是同折叠init、或同不折叠的
   // 若内存申请被折叠，compute不折叠，且compute被冻结，则此时会有精度问题
   inputs.insert(inputs.cend(), io_info.input_shapes.cbegin(), io_info.input_shapes.cend());
   inputs.insert(inputs.cend(), io_info.input_addrs.cbegin(), io_info.input_addrs.cend());
@@ -71,8 +72,8 @@ const std::vector<DevMemValueHolderPtr> AllocHostCpuOutputsMemory(const ge::Node
       }
       auto ref_input_index = iter->second;
       if (ref_input_index >= io_info.input_addrs.size()) {
-        GELOGE(ge::FAILED, "Node %s output %zu ref from input %zu exceed input addrs num %zu",
-               node->GetName().c_str(), i, ref_input_index, io_info.input_addrs.size());
+        GELOGE(ge::FAILED, "Node %s output %zu ref from input %zu exceed input addrs num %zu", node->GetName().c_str(),
+               i, ref_input_index, io_info.input_addrs.size());
         return output_addrs;
       }
       output_addrs[i] = io_info.input_addrs[ref_input_index];
@@ -82,7 +83,7 @@ const std::vector<DevMemValueHolderPtr> AllocHostCpuOutputsMemory(const ge::Node
     return bg::AllocOutputMemory(kOnHost, node, io_info.output_sizes, io_info.input_addrs, global_data);
   }
 }
-} // namespace
+}  // namespace
 
 ValueHolderPtr UpdateAicpuIoAddr(const ValueHolderPtr &args_handler,
                                  const std::vector<DevMemValueHolderPtr> input_addrs,
@@ -94,9 +95,9 @@ ValueHolderPtr UpdateAicpuIoAddr(const ValueHolderPtr &args_handler,
   return ValueHolder::CreateSingleDataOutput("UpdateAicpuIoAddr", inputs);
 }
 
-std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(
-    const ge::NodePtr &node, const std::vector<DevMemValueHolderPtr> &input_addrs,
-    TensorPlacement empty_input_placement) {
+std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(const ge::NodePtr &node,
+                                                                const std::vector<DevMemValueHolderPtr> &input_addrs,
+                                                                TensorPlacement empty_input_placement) {
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(node->GetOpDescBarePtr());
   const auto input_num = node->GetOpDescBarePtr()->GetAllInputsSize();
@@ -109,9 +110,8 @@ std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(
 
   std::vector<ValueHolderPtr> inputs(input_addrs.cbegin(), input_addrs.cend());
   inputs.emplace_back(ValueHolder::CreateConst(&empty_input_placement, sizeof(empty_input_placement)));
-  auto expanded_input_addrs =
-      DevMemValueHolder::CreateDataOutput("ExpandAicpuOptionalInputAddrs", inputs, input_num,
-                                          node->GetOpDescBarePtr()->GetStreamId());
+  auto expanded_input_addrs = DevMemValueHolder::CreateDataOutput("ExpandAicpuOptionalInputAddrs", inputs, input_num,
+                                                                  node->GetOpDescBarePtr()->GetStreamId());
   for (auto &addr : expanded_input_addrs) {
     GE_ASSERT_NOTNULL(addr);
     addr->SetPlacement(empty_input_placement);
@@ -119,10 +119,8 @@ std::vector<DevMemValueHolderPtr> ExpandAicpuOptionalInputAddrs(
   return expanded_input_addrs;
 }
 
-ValueHolderPtr AicpuTfLaunchKernel(const ValueHolderPtr &args_handler,
-                                   const ValueHolderPtr &stream,
-                                   const ValueHolderPtr &bin_handler,
-                                   const ge::NodePtr node) {
+ValueHolderPtr AicpuTfLaunchKernel(const ValueHolderPtr &args_handler, const ValueHolderPtr &stream,
+                                   const ValueHolderPtr &bin_handler, const ge::NodePtr node) {
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(args_handler);
   inputs.emplace_back(stream);
@@ -136,7 +134,7 @@ ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const Val
                                    const ValueHolderPtr &block_dim, const domi::KernelDef &kernel_def,
                                    const ge::OpDescPtr &op_desc, const ValueHolderPtr &ext_info_handler,
                                    const ValueHolderPtr &bin_handle, const ge::NodePtr node) {
-  const uint32_t kernel_type = kernel_def.context().kernel_type();	
+  const uint32_t kernel_type = kernel_def.context().kernel_type();
   // for cust aicpu task
   if (static_cast<ge::ccKernelType>(kernel_type) == ge::ccKernelType::CUST_AI_CPU) {
     const std::lock_guard<std::mutex> lk(cust_op_mutex);
@@ -158,7 +156,7 @@ ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const Val
         return {launch_cust_local};
       });
     }
-  }  
+  }
   (void)op_desc;
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(args_handler);
@@ -170,12 +168,11 @@ ValueHolderPtr AicpuCCLaunchKernel(const ValueHolderPtr &args_handler, const Val
   inputs.emplace_back(bin_handle);
   const auto &node_type = node->GetType();
   inputs.emplace_back(ValueHolder::CreateConst(node_type.c_str(), node_type.size() + 1U, true));
-  auto launch_cc =  ValueHolder::CreateSingleDataOutput("AicpuLaunchCCKernel", inputs);
+  auto launch_cc = ValueHolder::CreateSingleDataOutput("AicpuLaunchCCKernel", inputs);
   return launch_cc;
 }
 
-ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuArgs &args,
-                                           const IoInfo &io_info,
+ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuArgs &args, const IoInfo &io_info,
                                            const std::vector<ValueHolderPtr> &origin_input_shapes,
                                            const ValueHolderPtr &expanded_input_shapes_holder,
                                            LoweringGlobalData &global_data,
@@ -201,8 +198,7 @@ ValueHolderPtr AicpuHostComputeByCpuKernel(const ge::NodePtr &node, const AicpuA
   return compute_holder;
 }
 
-ValueHolderPtr AicpuHostExecFuncProcess(const AicpuHostProcFunc &func,
-                                        const IoInfo &io_info,
+ValueHolderPtr AicpuHostExecFuncProcess(const AicpuHostProcFunc &func, const IoInfo &io_info,
                                         const std::vector<DevMemValueHolderPtr> &output_addrs) {
   std::vector<ValueHolderPtr> inputs;
   inputs.insert(inputs.cend(), io_info.input_shapes.cbegin(), io_info.input_shapes.cend());

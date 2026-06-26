@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -133,8 +133,8 @@ KernelRunContextFaker &KernelRunContextFaker::Outputs(std::vector<void *> output
   outputs_ = std::move(outputs);
   return *this;
 }
-KernelRunContextFaker &
-KernelRunContextFaker::NodeAttrs(std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
+KernelRunContextFaker &KernelRunContextFaker::NodeAttrs(
+    std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
   attrs_ = std::move(keys_to_value);
   return *this;
 }
@@ -187,7 +187,8 @@ InferSymbolShapeContextFaker &InferSymbolShapeContextFaker::NodeOutputTd(int32_t
   return *this;
 }
 
-InferSymbolShapeContextFaker &InferSymbolShapeContextFaker::NodeAttrs(std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
+InferSymbolShapeContextFaker &InferSymbolShapeContextFaker::NodeAttrs(
+    std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
   base_faker_.NodeAttrs(std::move(keys_to_value));
   return *this;
 }
@@ -224,7 +225,7 @@ InferShapeRangeContextFaker &InferShapeRangeContextFaker::OutputShapeRanges(std:
   return *this;
 }
 FakeKernelContextHolder InferShapeRangeContextFaker::Build() const {
-    return base_faker_.Build();
+  return base_faker_.Build();
 }
 InferDataTypeContextFaker &InferDataTypeContextFaker::NodeIoNum(size_t input_num, size_t output_num) {
   base_faker_.KernelIONum(input_num + kInputsAppendEnd, output_num);
@@ -243,7 +244,7 @@ InferDataTypeContextFaker &InferDataTypeContextFaker::OutputDataTypes(std::vecto
   return *this;
 }
 FakeKernelContextHolder InferDataTypeContextFaker::Build() const {
-  auto context_holder =  base_faker_.Build();
+  auto context_holder = base_faker_.Build();
   auto origin_context = context_holder.GetContext<KernelContext>();
   for (size_t i = 0U; i < inputs_.size(); ++i) {
     memcpy_s(origin_context->MutableInputPointer<void *>(i), sizeof(void *), inputs_[i], sizeof(ge::DataType));
@@ -302,7 +303,7 @@ void TilingContextFaker::UpdateInputs() {
   }
   inputs.push_back(compile_info_);  // kInputsCompileInfo
   inputs.push_back(platform_info_);
-  inputs.push_back(nullptr);        // kInputsTilingFunc
+  inputs.push_back(nullptr);  // kInputsTilingFunc
   base_faker_.Inputs(std::move(inputs));
 }
 
@@ -322,7 +323,8 @@ OpExecuteContextFaker &OpExecuteContextFaker::OutputTensor(std::vector<gert::Ten
   return *this;
 }
 
-OpExecuteContextFaker &OpExecuteContextFaker::OutputMem(std::shared_ptr<std::vector<gert::GertMemBlock *>> &output_block_memory) {
+OpExecuteContextFaker &OpExecuteContextFaker::OutputMem(
+    std::shared_ptr<std::vector<gert::GertMemBlock *>> &output_block_memory) {
   output_block_memory_ = output_block_memory;
   return *this;
 }
@@ -361,7 +363,6 @@ OpExecuteContextFaker &OpExecuteContextFaker::GlobalVecCoreNum(int64_t *global_v
   return *this;
 }
 
-
 void OpExecuteContextFaker::UpdateInputs() {
   std::vector<void *> inputs;
   for (const auto input_tensor : input_tensor_) {
@@ -374,10 +375,10 @@ void OpExecuteContextFaker::UpdateInputs() {
   inputs.push_back(stream_);
   inputs.push_back(execute_option_);
   inputs.push_back(execute_func_);
-  inputs.push_back(reinterpret_cast<void*>(*op_aicore_num_));
-  inputs.push_back(reinterpret_cast<void*>(*op_vec_core_num_));
-  inputs.push_back(reinterpret_cast<void*>(*global_aicore_num_));
-  inputs.push_back(reinterpret_cast<void*>(*global_vec_core_num_));
+  inputs.push_back(reinterpret_cast<void *>(*op_aicore_num_));
+  inputs.push_back(reinterpret_cast<void *>(*op_vec_core_num_));
+  inputs.push_back(reinterpret_cast<void *>(*global_aicore_num_));
+  inputs.push_back(reinterpret_cast<void *>(*global_vec_core_num_));
   base_faker_.Inputs(std::move(inputs));
 }
 
@@ -422,7 +423,7 @@ OpExecutePrepareContextFaker &OpExecutePrepareContextFaker::OpApiParams(void *pa
   param_ = param;
   return *this;
 }
-OpExecutePrepareContextFaker &OpExecutePrepareContextFaker::WorkspaceSize(uint8_t* ws_size_vec) {
+OpExecutePrepareContextFaker &OpExecutePrepareContextFaker::WorkspaceSize(uint8_t *ws_size_vec) {
   ws_size_ = ws_size_vec;
   return *this;
 }
@@ -473,17 +474,17 @@ OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::OpApiParams(void *para
   param_ = param;
   return *this;
 }
-OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::WorkspaceSize(uint8_t* ws_size_vec) {
+OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::WorkspaceSize(uint8_t *ws_size_vec) {
   ws_size_ = ws_size_vec;
   return *this;
 }
 
-OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::WorkspaceAddr(uint8_t* ws_addr_vec) {
+OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::WorkspaceAddr(uint8_t *ws_addr_vec) {
   ws_addr_ = ws_addr_vec;
   return *this;
 }
 
-OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::Stream(void* stream) {
+OpExecuteLaunchContextFaker &OpExecuteLaunchContextFaker::Stream(void *stream) {
   stream_ = stream;
   return *this;
 }
@@ -530,7 +531,8 @@ EagerOpExecutionContextFaker &EagerOpExecutionContextFaker::OutputTensor(std::ve
   return *this;
 }
 
-EagerOpExecutionContextFaker &EagerOpExecutionContextFaker::OutputMem(std::shared_ptr<std::vector<gert::GertMemBlock *>> &output_block_memory) {
+EagerOpExecutionContextFaker &EagerOpExecutionContextFaker::OutputMem(
+    std::shared_ptr<std::vector<gert::GertMemBlock *>> &output_block_memory) {
   output_block_memory_ = output_block_memory;
   return *this;
 }

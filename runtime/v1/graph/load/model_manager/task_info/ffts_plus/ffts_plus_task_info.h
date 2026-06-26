@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,26 +24,34 @@ class FftsPlusTaskInfo : public TaskInfo {
   FftsPlusTaskInfo() = default;
   ~FftsPlusTaskInfo() override = default;
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
   Status Distribute() override;
   Status Release() override;
-  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                        void *const host_args, const size_t host_args_max_len) override;
+  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
+                        const size_t host_args_max_len) override;
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                            TaskRunParam &task_run_param) override;
   Status GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos) override;
-  uint32_t GetTaskID() const override { return task_id_; }
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
   Status CalculateTilingDataSize(const OpDescPtr &op_desc, const bool is_atomic_op_type);
   Status HandleSoftSyncOp(const uint32_t op_index, const OpDescPtr &op_desc) const;
 
-  bool CallSaveDumpInfo() const override { return true; }
+  bool CallSaveDumpInfo() const override {
+    return true;
+  }
 
   void PostProcess(const domi::TaskDef &task_def) override;
 
-  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const override { return fusion_op_info_; }
+  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const override {
+    return fusion_op_info_;
+  }
   int64_t ParseOpIndex(const domi::TaskDef &task_def) const override;
 
   std::map<uint64_t, uint64_t> GetCustToRelevantOffset() const override {
@@ -65,8 +73,7 @@ class FftsPlusTaskInfo : public TaskInfo {
   Status LoadCustAicpuSo(const OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def) const;
   Status InitShapeInfosArgs(const domi::FftsPlusCtxDef &ctx_def) const;
   Status ParseArgsFormat(const domi::FftsPlusCtxDef &ctx_def) const;
-  Status TilingDataHandle(const domi::FftsPlusCtxDef &ctx_def,
-                          const OpDescPtr &op_desc) const;
+  Status TilingDataHandle(const domi::FftsPlusCtxDef &ctx_def, const OpDescPtr &op_desc) const;
   Status InitTilingInfo();
   Status InitArgsBaseInfo(const PisToArgs &args);
   void InitDescBufInfo();
@@ -83,9 +90,9 @@ class FftsPlusTaskInfo : public TaskInfo {
   uint8_t *pis_args_host_base_{nullptr};
 
   // ioaddr_base
-  uint8_t *args_{nullptr}; // runtime args memory
+  uint8_t *args_{nullptr};  // runtime args memory
   uint8_t *args_host_{nullptr};
-  size_t args_size_{0U}; // runtime args memory length
+  size_t args_size_{0U};  // runtime args memory length
   size_t dsa_workspace_size_{0U};
   // ascend aicpu
   size_t bin_args_size_{0UL};
@@ -111,7 +118,7 @@ class FftsPlusTaskInfo : public TaskInfo {
   size_t tiling_data_len_{0U};
   ArgsPlacement args_placement_{ArgsPlacement::kArgsPlacementHbm};
 
-  std::vector<uint64_t> l0_dump_list_; // 保存task内所有context的size info
+  std::vector<uint64_t> l0_dump_list_;  // 保存task内所有context的size info
 };
 }  // namespace ge
 #endif  // GE_GRAPH_LOAD_MODEL_MANAGER_TASK_INFO_FFTS_PLUS_TASK_INFO_H_

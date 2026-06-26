@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,14 +14,13 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace ops {
-OpParamDef::OpParamDef(const char *name) : impl_(new(std::nothrow) OpParamDefImpl) {
+OpParamDef::OpParamDef(const char *name) : impl_(new (std::nothrow) OpParamDefImpl) {
   OpParamDefImpl::Construct(this, name);
 }
 
-OpParamDef::OpParamDef(const OpParamDef &def) : impl_(new(std::nothrow) OpParamDefImpl) {
+OpParamDef::OpParamDef(const OpParamDef &def) : impl_(new (std::nothrow) OpParamDefImpl) {
   OpParamDefImpl::Construct(this, def);
 }
-
 
 OpParamDef &OpParamDef::operator=(const OpParamDef &def) {
   return this->impl_->Eq(this, def);
@@ -153,13 +152,11 @@ OpParamDef &OpParamDef::OutputShapeDependOnCompute() {
   return this->impl_->OutputShapeDependOnCompute(this);
 }
 
-OpParamDef &OpParamDef::Follow(const char *paramName)
-{
+OpParamDef &OpParamDef::Follow(const char *paramName) {
   return this->impl_->Follow(this, paramName);
 }
- 
-OpParamDef &OpParamDef::Follow(const char *paramName, FollowType ftype)
-{
+
+OpParamDef &OpParamDef::Follow(const char *paramName, FollowType ftype) {
   return this->impl_->Follow(this, paramName, ftype);
 }
 

@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "formats/format_transfers/format_transfer_dhwcn_fractal_z_3D.h"
 
@@ -92,14 +91,17 @@ Status TransFormatDhwckToFz3D(const TransArgs &args, TransResult &result) {
 
   const std::shared_ptr<uint8_t> dst(new (std::nothrow) uint8_t[dst_size], std::default_delete<uint8_t[]>());
   if (dst == nullptr) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Allocate][DSTMemory]Failed to allocate memory "
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "[Allocate][DSTMemory]Failed to allocate memory "
            "for dst buf %" PRId64 " when trans format from %s to %s",
            dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
            TypeUtils::FormatToSerialString(args.dst_format).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Failed to allocate memory for dst buf %" PRId64 " "
-                      "when trans format from %s to %s",
-                      dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                      TypeUtils::FormatToSerialString(args.dst_format).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to allocate memory for dst buf %" PRId64
+                         " "
+                         "when trans format from %s to %s",
+                         dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str());
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
 
@@ -114,8 +116,8 @@ Status TransFormatDhwckToFz3D(const TransArgs &args, TransResult &result) {
               const int64_t dst_offset = dst_idx * data_size;
               const auto pad_zero = (((c1i * c0) + c0i) >= c) || (n1n0i >= n);
               const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
-                                            ? (dst_size - dst_offset)
-                                            : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+                                              ? (dst_size - dst_offset)
+                                              : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
               errno_t ret;
               if (pad_zero) {
                 ret = memset_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), 0,
@@ -126,11 +128,15 @@ Status TransFormatDhwckToFz3D(const TransArgs &args, TransResult &result) {
                                args.data + (src_idx * data_size), static_cast<size_t>(data_size));
               }
               if (ret != EOK) {
-                GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Operate][DSTMemory]Failed at "
+                GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+                       "[Operate][DSTMemory]Failed at "
                        "offset %" PRId64 ", error-code %d, pad mode %d",
-		       dst_offset, ret, static_cast<int32_t>(pad_zero));
-                REPORT_INNER_ERR_MSG("E19999", "Failed to operate dst memory at offset %" PRId64 ", error-code %d, "
-				  "pad mode %d", dst_offset, ret, static_cast<int32_t>(pad_zero));
+                       dst_offset, ret, static_cast<int32_t>(pad_zero));
+                REPORT_INNER_ERR_MSG("E19999",
+                                     "Failed to operate dst memory at offset %" PRId64
+                                     ", error-code %d, "
+                                     "pad mode %d",
+                                     dst_offset, ret, static_cast<int32_t>(pad_zero));
                 return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
               }
             }

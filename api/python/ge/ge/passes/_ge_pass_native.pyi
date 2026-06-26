@@ -84,7 +84,7 @@ class PassContext:
 class PatternMatcherConfig:
     """
     Configuration for pattern matcher behaviour (const value match, IR attrs, etc.).
-    
+
     **Example**
 
         class TestPass(PatternFusionPass):

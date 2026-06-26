@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,8 +37,8 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
-} // namespace
+} __attribute__((packed));
+}  // namespace
 
 class AicpuKernelLaunchUT : public testing::Test {
  public:
@@ -57,7 +57,7 @@ TEST_F(AicpuKernelLaunchUT, test_run_launch_tf_kernel) {
   args_handler.SetBlockOp(true);
   rtEvent_t rtEvent = reinterpret_cast<void *>(1);
   args_handler.SetRtEvent(rtEvent);
-  args_handler.BuildTfArgs(arg_data , task_info, ext_info_size, 0, 0);
+  args_handler.BuildTfArgs(arg_data, task_info, ext_info_size, 0, 0);
   run_context.value_holder[0].Set(&args_handler, nullptr);
 
   auto temp_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[20]);
@@ -98,13 +98,14 @@ TEST_F(AicpuKernelLaunchUT, test_FillLaunchArgs) {
 
   ExceptionDumpUint dump_unit;
   ExecutorExceptionDumpInfoWrapper wrapper(&dump_unit);
-  ASSERT_EQ(registry.FindKernelFuncs("BuildHostCCArgs")->exception_dump_info_filler(run_context, wrapper), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildHostCCArgs")->exception_dump_info_filler(run_context, wrapper),
+            ge::GRAPH_SUCCESS);
   EXPECT_EQ(dump_unit.is_host_args, true);
 }
 
 TEST_F(AicpuKernelLaunchUT, test_create_and_destroy_session) {
   auto run_context = BuildKernelRunContext(1, 1);
-  uint64_t session_id  = 1;
+  uint64_t session_id = 1;
   run_context.value_holder[0].Set(reinterpret_cast<void *>(session_id), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("EnsureCreateTfSession")->run_func(run_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("EnsureCreateTfSession")->run_func(run_context), ge::GRAPH_SUCCESS);
@@ -147,7 +148,8 @@ TEST_F(AicpuKernelLaunchUT, test_build_aicpu_args) {
   alloc_handle_context.value_holder[9].Set(reinterpret_cast<void *>(is_block_op), nullptr);
   alloc_handle_context.value_holder[10].Set(reinterpret_cast<void *>(event_id), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->run_func(alloc_handle_context), ge::GRAPH_SUCCESS);
 
   auto ext_handle = alloc_handle_context.GetContext<KernelContext>()->GetOutputPointer<AicpuExtInfoHandler>(0U);
@@ -156,7 +158,7 @@ TEST_F(AicpuKernelLaunchUT, test_build_aicpu_args) {
   auto tf_run_context = BuildKernelRunContext(13, 1);
   static std::shared_ptr<STR_FWK_OP_KERNEL> str_fwkop_kernel_ptr;
   str_fwkop_kernel_ptr = std::make_shared<STR_FWK_OP_KERNEL>();
-  str_fwkop_kernel_ptr->fwkKernelType = 0;// FMK_KERNEL_TYPE_TF;
+  str_fwkop_kernel_ptr->fwkKernelType = 0;  // FMK_KERNEL_TYPE_TF;
   aicpu::FWKAdapter::FWKOperateParam *str_tf_kernel = &(str_fwkop_kernel_ptr->fwkKernelBase.fwk_kernel);
   str_tf_kernel->opType = aicpu::FWKAdapter::FWK_ADPT_KERNEL_RUN;
   str_tf_kernel->sessionID = 2;
@@ -214,7 +216,7 @@ TEST_F(AicpuKernelLaunchUT, test_build_aicpu_args) {
   cc_run_context.value_holder[10].Set(reinterpret_cast<void *>(kernel_name_size), nullptr);
   cc_run_context.value_holder[11].Set(const_cast<char *>(so_name.c_str()), nullptr);
   cc_run_context.value_holder[12].Set(reinterpret_cast<void *>(so_name_size), nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("BuildCCArgs")->outputs_creator(nullptr, cc_run_context),  ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildCCArgs")->outputs_creator(nullptr, cc_run_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildCCArgs")->run_func(cc_run_context), ge::GRAPH_SUCCESS);
 
   auto host_run_context = BuildKernelRunContext(6, 1);
@@ -225,7 +227,7 @@ TEST_F(AicpuKernelLaunchUT, test_build_aicpu_args) {
   host_run_context.value_holder[4].Set(reinterpret_cast<void *>(args.size()), nullptr);
   host_run_context.value_holder[5].Set(reinterpret_cast<void *>(ext_size), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("BuildHostCCArgs")->outputs_creator(nullptr, host_run_context),  ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildHostCCArgs")->outputs_creator(nullptr, host_run_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildHostCCArgs")->run_func(host_run_context), ge::GRAPH_SUCCESS);
 }
 
@@ -236,7 +238,7 @@ TEST_F(AicpuKernelLaunchUT, test_run_launch_cc_kernel_with_block) {
   std::string so_name = "libcpu_kernels.so";
   std::string kernel_name = "RunCpuKernel";
   size_t ext_info_size = 200;
-  args_handler.BuildCCArgs(arg_data , kernel_name, so_name, ext_info_size);
+  args_handler.BuildCCArgs(arg_data, kernel_name, so_name, ext_info_size);
   args_handler.SetBlockOp(true);
   rtEvent_t rt_event = reinterpret_cast<void *>(0x01);
   args_handler.SetRtEvent(rt_event);
@@ -263,7 +265,8 @@ TEST_F(AicpuKernelLaunchUT, test_alloc_hostcpu_output_memory) {
   run_context.value_holder[0].Set((void *)size, nullptr);
   run_context.value_holder[1].Set((void *)(&host_gert_mem_allocator_), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("AllocHostCpuOutputMemory")->outputs_creator(nullptr, run_context),  ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("AllocHostCpuOutputMemory")->outputs_creator(nullptr, run_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("AllocHostCpuOutputMemory")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
@@ -305,7 +308,7 @@ TEST_F(AicpuKernelLaunchUT, test_run_new_launch_cc_kernel) {
   std::string so_name = "libcpu_kernels.so";
   std::string kernel_name = "RunCpuKernel";
   size_t ext_info_size = 200;
-  args_handler.BuildCCArgs(arg_data , kernel_name, so_name, ext_info_size);
+  args_handler.BuildCCArgs(arg_data, kernel_name, so_name, ext_info_size);
   args_handler.SetBlockOp(true);
   rtEvent_t rt_event = reinterpret_cast<void *>(0x01);
   args_handler.SetRtEvent(rt_event);
@@ -336,7 +339,7 @@ TEST_F(AicpuKernelLaunchUT, test_run_new_launch_tf_kernel) {
   args_handler.SetBlockOp(true);
   rtEvent_t rtEvent = reinterpret_cast<void *>(1);
   args_handler.SetRtEvent(rtEvent);
-  args_handler.BuildTfArgs(arg_data , task_info, ext_info_size, 0, 0);
+  args_handler.BuildTfArgs(arg_data, task_info, ext_info_size, 0, 0);
   run_context.value_holder[0].Set(&args_handler, nullptr);
 
   auto temp_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[20]);
@@ -365,12 +368,8 @@ TEST_F(AicpuKernelLaunchUT, test_run_new_launch_tf_kernel) {
 }
 
 TEST_F(AicpuKernelLaunchUT, test_expand_optional_input_addrs_keep_ir_order) {
-  auto run_context = KernelRunContextFaker()
-  .KernelIONum(3, 3)
-      .NodeIoNum(2, 0)
-      .IrInputNum(3)
-      .IrInstanceNum({1U, 0U, 1U})
-      .Build();
+  auto run_context =
+      KernelRunContextFaker().KernelIONum(3, 3).NodeIoNum(2, 0).IrInputNum(3).IrInstanceNum({1U, 0U, 1U}).Build();
 
   auto input0_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[16]);
   auto input2_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[32]);
@@ -405,12 +404,8 @@ TEST_F(AicpuKernelLaunchUT, test_expand_optional_input_addrs_keep_ir_order) {
 }
 
 TEST_F(AicpuKernelLaunchUT, test_expand_optional_input_addrs_use_output_num_as_total_slots) {
-  auto run_context = KernelRunContextFaker()
-  .KernelIONum(3, 3)
-      .NodeIoNum(3, 0)
-      .IrInputNum(2)
-      .IrInstanceNum({1U, 1U})
-      .Build();
+  auto run_context =
+      KernelRunContextFaker().KernelIONum(3, 3).NodeIoNum(3, 0).IrInputNum(2).IrInstanceNum({1U, 1U}).Build();
 
   auto input0_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[16]);
   auto input1_addr = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[32]);

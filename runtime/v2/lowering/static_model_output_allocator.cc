@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,8 +47,8 @@ ge::Status GetDataNodes(const ge::ComputeGraph &graph, std::map<int64_t, int32_t
         GE_ASSERT(ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_INDEX, index));
       }
       const auto logic_address = op_desc->GetOutputOffset();
-      GE_ASSERT_TRUE(!logic_address.empty(), "data node[%s] output offsets is empty",
-                     node->GetNamePtr(), logic_address.size());
+      GE_ASSERT_TRUE(!logic_address.empty(), "data node[%s] output offsets is empty", node->GetNamePtr(),
+                     logic_address.size());
       GE_ASSERT(ordered_data_nodes.emplace(index, logic_address[0U]).second, "Duplicated data index %d on graph %s",
                 index, graph.GetName().c_str());
     }
@@ -69,8 +69,8 @@ ge::Status GetVarNodes(const ge::ComputeGraph &graph, std::map<int64_t, ge::Node
       const auto op_desc = node->GetOpDescBarePtr();
       GE_ASSERT_NOTNULL(op_desc);
       const auto logic_address = op_desc->GetOutputOffset();
-      GE_ASSERT_TRUE(!logic_address.empty(), "node[%s] output offsets is empty",
-                     node->GetNamePtr(), logic_address.size());
+      GE_ASSERT_TRUE(!logic_address.empty(), "node[%s] output offsets is empty", node->GetNamePtr(),
+                     logic_address.size());
       address_2_node.emplace(logic_address[0], node);
     }
   }
@@ -86,8 +86,7 @@ ge::Status CalcTensorSize(const ge::ConstGeTensorDescPtr &ge_tensor_desc, uint64
   return ge::SUCCESS;
 }
 
-ge::Status ConstructParam(const ge::InDataAnchor *in_data_anchor,
-                          ParseParam &param) {
+ge::Status ConstructParam(const ge::InDataAnchor *in_data_anchor, ParseParam &param) {
   GE_CHECK_NOTNULL(in_data_anchor);
   const auto &out_data_anchor = in_data_anchor->GetPeerOutAnchor();
   GE_CHECK_NOTNULL(out_data_anchor);
@@ -100,8 +99,8 @@ ge::Status ConstructParam(const ge::InDataAnchor *in_data_anchor,
 
   const auto input_offset = param.op_desc->GetInputOffset();
   GE_ASSERT_TRUE(static_cast<size_t>(param.input_index) < input_offset.size(),
-                 "node: %s input_index: %d, input_offset size: %zu",
-                 param.op_desc->GetNamePtr(), param.input_index, input_offset.size());
+                 "node: %s input_index: %d, input_offset size: %zu", param.op_desc->GetNamePtr(), param.input_index,
+                 input_offset.size());
   param.input_address = input_offset[param.input_index];
 
   // 连接const的逻辑地址获取和其他的不一样
@@ -188,15 +187,15 @@ ge::graphStatus StaticModelOutputAllocator::ParseReuseOutputs(ParseParam &param)
       reuse_output_info.reuse_type = OutputReuseType::kReuseOutput;
       reuse_output_info.reuse_index = iter_and_inserted.first->second;
       param.output_reuse_infos.emplace_back(std::move(reuse_output_info));
-      GELOGD("[%s] output [%d] reuse output [%d], data_offset: %ld.",
-             param.op_desc->GetNamePtr(), param.input_index, iter_and_inserted.first->second, param.input_address);
+      GELOGD("[%s] output [%d] reuse output [%d], data_offset: %ld.", param.op_desc->GetNamePtr(), param.input_index,
+             iter_and_inserted.first->second, param.input_address);
     }
   }
   return ge::SUCCESS;
 }
 
 ge::Status StaticModelOutputAllocator::ParseModelOutputReuseInfo(ParseParam &param) {
-  std::vector<ParseFunc> funcs {
+  std::vector<ParseFunc> funcs{
       StaticModelOutputAllocator::ParseReuseOutputs,  // 静态子图的某个输出可能复用静态子图的其他输出
       StaticModelOutputAllocator::ParseRefOutputs,    // 静态子图的某个输出可能复用const输出
       StaticModelOutputAllocator::ParseReuseInputs,   // 静态子图的某个输出可能复用静态子图某个输入
@@ -251,39 +250,35 @@ LowerResult StaticModelOutputAllocator::AllocAllOutputs(const std::vector<Output
   size_t malloced_index = 0U;
   size_t ref_output_index = 0U;
   size_t ref_var_index = 0U;
-  for (const auto& output_info : output_reuse_infos) {
+  for (const auto &output_info : output_reuse_infos) {
     all_output_tensor_descs.emplace_back(output_info.ge_tensor_desc_ptr);
     if (!output_info.is_reuse) {
       LOWER_REQUIRE(malloced_index < malloced_output_addr_holders.size(),
-                    "index:%zu, malloced_output_addr_holders size:%zu",
-                    malloced_index, malloced_output_addr_holders.size());
+                    "index:%zu, malloced_output_addr_holders size:%zu", malloced_index,
+                    malloced_output_addr_holders.size());
       all_output_holders.emplace_back(malloced_output_addr_holders[malloced_index++]);
       continue;
     }
 
     switch (output_info.reuse_type) {
       case OutputReuseType::kRefOutput:
-        LOWER_REQUIRE(ref_output_index < ref_output_addr_holders.size(),
-                      "index:%zu, ref_output_addr_holders size:%zu",
+        LOWER_REQUIRE(ref_output_index < ref_output_addr_holders.size(), "index:%zu, ref_output_addr_holders size:%zu",
                       ref_output_index, ref_output_addr_holders.size());
         all_output_holders.emplace_back(ref_output_addr_holders[ref_output_index++]);
         break;
       case OutputReuseType::kRefVariable:
-        LOWER_REQUIRE(ref_var_index < ref_var_addr_holders.size(),
-                      "index:%zu, ref_var_addr_holders size:%zu",
+        LOWER_REQUIRE(ref_var_index < ref_var_addr_holders.size(), "index:%zu, ref_var_addr_holders size:%zu",
                       ref_var_index, ref_var_addr_holders.size());
         all_output_holders.emplace_back(ref_var_addr_holders[ref_var_index++]);
         break;
       case OutputReuseType::kReuseInput:
         LOWER_REQUIRE(static_cast<size_t>(output_info.reuse_index) < input_addrs_.size(),
-                      "index:%d, input_addrs size:%zu",
-                      output_info.reuse_index, input_addrs_.size());
+                      "index:%d, input_addrs size:%zu", output_info.reuse_index, input_addrs_.size());
         all_output_holders.emplace_back(input_addrs_[output_info.reuse_index]);
         break;
       case OutputReuseType::kReuseOutput:
         LOWER_REQUIRE(static_cast<size_t>(output_info.reuse_index) < all_output_holders.size(),
-                      "index:%d, all_output_holders size:%zu",
-                      output_info.reuse_index, all_output_holders.size());
+                      "index:%d, all_output_holders size:%zu", output_info.reuse_index, all_output_holders.size());
         all_output_holders.emplace_back(all_output_holders[output_info.reuse_index]);
         break;
       case OutputReuseType::kNoReuse:
@@ -300,7 +295,7 @@ LowerResult StaticModelOutputAllocator::AllocAllOutputs(const std::vector<Output
 std::vector<bg::DevMemValueHolderPtr> StaticModelOutputAllocator::AllocAllOutputsForRefOutputType(
     const std::vector<OutputReuseInfo> &output_reuse_infos) const {
   std::vector<kernel::MemoryBaseTypeOffset> mem_base_types_offsets;
-  for (const auto& outputs_info : output_reuse_infos) {
+  for (const auto &outputs_info : output_reuse_infos) {
     if (!outputs_info.is_reuse) {
       continue;
     }
@@ -375,7 +370,7 @@ std::vector<bg::DevMemValueHolderPtr> StaticModelOutputAllocator::AllocAllOutput
 std::vector<bg::ValueHolderPtr> StaticModelOutputAllocator::GetNoReuseOutputsSize(
     const std::vector<OutputReuseInfo> &output_reuse_infos) {
   std::vector<bg::ValueHolderPtr> size_holders;
-  for (const auto& output_info : output_reuse_infos) {
+  for (const auto &output_info : output_reuse_infos) {
     if (output_info.is_reuse) {
       continue;
     }
@@ -389,4 +384,4 @@ std::vector<bg::ValueHolderPtr> StaticModelOutputAllocator::GetNoReuseOutputsSiz
   }
   return size_holders;
 }
-} // namespace gert
+}  // namespace gert

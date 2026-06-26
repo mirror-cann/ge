@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,7 +101,7 @@ bool CmpOutputsNum(std::string output1, std::string output2) {
   return std::strtol(output1.substr(strlen).c_str(), nullptr, BASE) <
          std::strtol(output2.substr(strlen).c_str(), nullptr, BASE);
 }
-bool CheckInputSubStr(const std::string& op_desc_input_name, const std::string& info_input_name) {
+bool CheckInputSubStr(const std::string &op_desc_input_name, const std::string &info_input_name) {
   auto length_of_info_input_to_name = static_cast<uint32_t>(info_input_name.length());
   auto length_of_op_desc_input_name = static_cast<uint32_t>(op_desc_input_name.length());
   if (length_of_info_input_to_name > length_of_op_desc_input_name) {
@@ -121,8 +121,8 @@ bool CheckInputSubStr(const std::string& op_desc_input_name, const std::string& 
         /* In other cases, we consider this input name of op_desc is illegal.
          * Digits should only appears at the end of name
          * as index. */
-        FE_LOGW("Illegal input name [%s] in opdesc during comparison with inputname [%s].",
-                op_desc_input_name.c_str(), info_input_name.c_str());
+        FE_LOGW("Illegal input name [%s] in opdesc during comparison with inputname [%s].", op_desc_input_name.c_str(),
+                info_input_name.c_str());
         return false;
       }
     } else {
@@ -131,8 +131,8 @@ bool CheckInputSubStr(const std::string& op_desc_input_name, const std::string& 
   }
 }
 
-Status GenerateUnionFormatAndDtype(const vector<ge::Format>& old_formats, const vector<ge::DataType>& old_data_types,
-                                   vector<ge::Format>& new_formats, vector<ge::DataType>& new_data_types) {
+Status GenerateUnionFormatAndDtype(const vector<ge::Format> &old_formats, const vector<ge::DataType> &old_data_types,
+                                   vector<ge::Format> &new_formats, vector<ge::DataType> &new_data_types) {
   size_t old_formats_size = old_formats.size();
   size_t old_dtypes_size = old_data_types.size();
   if (old_formats.empty() || old_data_types.empty()) {

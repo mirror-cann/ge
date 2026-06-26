@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,27 +77,49 @@ class UtestGraphPassesFoldingKernelFillKernel : public testing::Test {
   shared_ptr<Kernel> kernel;
 };
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillFloatShape2And3) { EXPECT_TestShape2And3<float, int32_t>(DT_FLOAT); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillFloatShape2And3) {
+  EXPECT_TestShape2And3<float, int32_t>(DT_FLOAT);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, fill_int8_shape_2_3) { EXPECT_TestShape2And3<int8_t, int32_t>(DT_INT8); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, fill_int8_shape_2_3) {
+  EXPECT_TestShape2And3<int8_t, int32_t>(DT_INT8);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt16Shape2And3) { EXPECT_TestShape2And3<int16_t, int32_t>(DT_INT16); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt16Shape2And3) {
+  EXPECT_TestShape2And3<int16_t, int32_t>(DT_INT16);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt32Shape2And3) { EXPECT_TestShape2And3<int32_t, int32_t>(DT_INT32); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt32Shape2And3) {
+  EXPECT_TestShape2And3<int32_t, int32_t>(DT_INT32);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt64Shape2And3) { EXPECT_TestShape2And3<int64_t, int32_t>(DT_INT64); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillInt64Shape2And3) {
+  EXPECT_TestShape2And3<int64_t, int32_t>(DT_INT64);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint8Shape2And3) { EXPECT_TestShape2And3<uint8_t, int32_t>(DT_UINT8); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint8Shape2And3) {
+  EXPECT_TestShape2And3<uint8_t, int32_t>(DT_UINT8);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint16Shape2And3) { EXPECT_TestShape2And3<uint16_t, int32_t>(DT_UINT16); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint16Shape2And3) {
+  EXPECT_TestShape2And3<uint16_t, int32_t>(DT_UINT16);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint32Shape2And3) { EXPECT_TestShape2And3<uint32_t, int32_t>(DT_UINT32); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint32Shape2And3) {
+  EXPECT_TestShape2And3<uint32_t, int32_t>(DT_UINT32);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint64Shape2And3) { EXPECT_TestShape2And3<uint64_t, int32_t>(DT_UINT64); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillUint64Shape2And3) {
+  EXPECT_TestShape2And3<uint64_t, int32_t>(DT_UINT64);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillDoubleShape2And3) { EXPECT_TestShape2And3<double, int32_t>(DT_DOUBLE); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillDoubleShape2And3) {
+  EXPECT_TestShape2And3<double, int32_t>(DT_DOUBLE);
+}
 
-TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillFloat16Shape2And3) { EXPECT_TestShape2And3<fp16_t, int32_t>(DT_FLOAT16); }
+TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillFloat16Shape2And3) {
+  EXPECT_TestShape2And3<fp16_t, int32_t>(DT_FLOAT16);
+}
 
 TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillBoolShape2And3) {
   ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
@@ -316,29 +338,29 @@ TEST_F(UtestGraphPassesFoldingKernelFillKernel, FillDimsMulDataTypeOverflow) {
 
 TEST_F(UtestGraphPassesFoldingKernelFillKernel, OutputdescUnknown) {
   ge::OpDescPtr op_dims = std::make_shared<ge::OpDesc>();
-  vector <int64_t> dims_vec = {2};
-  vector <int32_t> dims_value_vec = {2, 3};
+  vector<int64_t> dims_vec = {2};
+  vector<int32_t> dims_value_vec = {2, 3};
   GeTensorDesc dims_tensor_desc(GeShape(dims_vec), FORMAT_NCHW, DT_INT32);
-  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *) dims_value_vec.data(),
+  GeTensorPtr dim_tensor = std::make_shared<GeTensor>(dims_tensor_desc, (uint8_t *)dims_value_vec.data(),
                                                       dims_value_vec.size() * sizeof(int32_t));
   OpDescUtils::SetWeights(op_dims, dim_tensor);
 
   ge::OpDescPtr op_value = std::make_shared<ge::OpDesc>();
-  vector <uint8_t> data_vec = {1};
+  vector<uint8_t> data_vec = {1};
   GeTensorDesc value_tensor_desc(GeShape(), FORMAT_NCHW, DT_BOOL);
   GeTensorPtr value_tensor =
-          std::make_shared<GeTensor>(value_tensor_desc, (uint8_t *) data_vec.data(), data_vec.size() * sizeof(bool));
+      std::make_shared<GeTensor>(value_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(bool));
   OpDescUtils::SetWeights(op_value, value_tensor);
 
   op_desc_ptr->AddInputDesc(dims_tensor_desc);
   op_desc_ptr->AddInputDesc(value_tensor_desc);
 
-  vector <int64_t> out_vec = {-1, -1};
+  vector<int64_t> out_vec = {-1, -1};
   GeTensorDesc out_tensor_desc(GeShape(out_vec), FORMAT_NCHW, DT_INT32);
   op_desc_ptr->AddOutputDesc(out_tensor_desc);
 
-  std::vector <ge::ConstGeTensorPtr> input = {dim_tensor, value_tensor};
-  std::vector <GeTensorPtr> outputs;
+  std::vector<ge::ConstGeTensorPtr> input = {dim_tensor, value_tensor};
+  std::vector<GeTensorPtr> outputs;
   Status status = kernel->Compute(op_desc_ptr, input, outputs);
   EXPECT_EQ(NOT_CHANGED, status);
   status = kernel->Compute(nullptr, input, outputs);

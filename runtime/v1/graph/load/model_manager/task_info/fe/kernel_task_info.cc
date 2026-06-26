@@ -56,7 +56,7 @@ constexpr size_t kArgsInputAddr = 1U;
 constexpr size_t kArgsOutputDesc = 2U;
 constexpr size_t kArgsOutputAddr = 3U;
 constexpr size_t kArgsAttrHandle = 4U;
-constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
+constexpr uint32_t k2BitsMask = 0x00000003U;  // 2  bits, 0000,0011
 
 constexpr int64_t kDefaultDimInfo = 0x100000001;
 constexpr uint64_t kDefaultShapeNum = 0x100000000U;
@@ -67,7 +67,8 @@ constexpr uint64_t kLevel2BitFlagWithShape = 0x0200000000000000UL;
 constexpr uint64_t kLevel2BitFlagTilingData = 0x0300000000000000UL;
 
 bool IsAllKernel(const ModelTaskType task_type) {
-  return (task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL) || (task_type == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL);
+  return (task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL) ||
+         (task_type == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL);
 }
 
 void AppendShapeDesc(const ge::GeTensorDesc &tensor_desc, std::vector<int64_t> &shape_infos) {
@@ -96,20 +97,19 @@ void GetAddrAlignedGertTensorSize(size_t &io_aligned_offset, size_t &double_alig
   double_aliged_tensor_size = ge::MemSizeAlign(double_aliged_tensor_size, static_cast<uint32_t>(sizeof(uint64_t)));
 }
 
-ge::Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc,
-                                const int64_t origin_tiling_data_size,
+ge::Status GetMemCheckStartSize(const ge::OpDescPtr &op_desc, const int64_t origin_tiling_data_size,
                                 int64_t &memcheck_start_size) {
   int64_t ori_param_size = 0LL;
   (void)ge::AttrUtils::GetInt(op_desc, optiling::kOriOpParaSize, ori_param_size);
   if (ori_param_size > 0LL) {
     // tik场景下TilingAppendMem添加的数据需要从偏移为ori_param_size的地址开始添加，此处需要将DataSize设置成ori_param_size
     GE_ASSERT_TRUE(origin_tiling_data_size <= ori_param_size);
-    GELOGI("Current tiling data size: %zu, set ori_para_size to %lld by attr, op_name: %s",
-          origin_tiling_data_size, ori_param_size, op_desc->GetNamePtr());
+    GELOGI("Current tiling data size: %zu, set ori_para_size to %lld by attr, op_name: %s", origin_tiling_data_size,
+           ori_param_size, op_desc->GetNamePtr());
   } else {
     ori_param_size = ((origin_tiling_data_size + sizeof(int64_t) - 1UL) / sizeof(int64_t)) * sizeof(int64_t);
     GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by aligned by %zu, op_name: %s",
-          origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
+           origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
   }
   memcheck_start_size = ori_param_size - origin_tiling_data_size;
   return ge::SUCCESS;
@@ -138,8 +138,8 @@ void FormatArgsException(uint64_t *host_addr, const std::vector<int64_t> &args_s
 
   for (size_t index = 0UL; index < shape_size.size(); index++) {
     *addr = static_cast<uint64_t>(shape_size[index]);
-    GELOGI("[TilingAppendDfxInfo] shape idx[%zu], val[%llu], atomic index[%llu]",
-      args_size.size() + index, *addr, atomic_index);
+    GELOGI("[TilingAppendDfxInfo] shape idx[%zu], val[%llu], atomic index[%llu]", args_size.size() + index, *addr,
+           atomic_index);
     addr++;
   }
 
@@ -148,16 +148,15 @@ void FormatArgsException(uint64_t *host_addr, const std::vector<int64_t> &args_s
 
 ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
                                      const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
-                                     std::vector<int64_t> &args_size_vec,
-                                     std::vector<int64_t> &shape_size_vec) {
+                                     std::vector<int64_t> &args_size_vec, std::vector<int64_t> &shape_size_vec) {
   auto input_descs = op_desc->GetAllInputsDescPtr();
 
- // 更新size以及shape
+  // 更新size以及shape
   for (size_t i = 0U; i < args_idx_to_io_idx_vec.size(); i++) {
     size_t io_index = args_idx_to_io_idx_vec[i].io_index;
     size_t args_index = args_idx_to_io_idx_vec[i].args_index;
-    GE_ASSERT(args_index < args_size_vec.size(),
-      "args index [%zu] not less than args list size [%zu]", args_index, args_size_vec.size());
+    GE_ASSERT(args_index < args_size_vec.size(), "args index [%zu] not less than args list size [%zu]", args_index,
+              args_size_vec.size());
 
     if (args_idx_to_io_idx_vec[i].args_role == optiling::ArgsRole::kInput) {
       const auto tensor = input_descs.at(io_index);
@@ -165,7 +164,7 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
       int64_t tensor_size = 0;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(*tensor, tensor_size));
       GELOGI("Update input tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-        op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       AppendShapeInfo(tensor->GetShape(), shape_size_vec);
@@ -174,7 +173,7 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
       int64_t tensor_size = 0L;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(tensor, tensor_size));
       GELOGI("Update output tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-          op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       shape_size_vec.push_back(0);
@@ -183,10 +182,8 @@ ge::Status UpdateDfxArgsAndShapeSize(const ge::OpDescPtr &op_desc,
   return ge::SUCCESS;
 }
 
-ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
-                            const optiling::OpRunInfoV2 &run_info,
-                            const std::vector<ge::ArgDesc> &arg_descs,
-                            std::string &dfx_info) {
+ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc, const optiling::OpRunInfoV2 &run_info,
+                            const std::vector<ge::ArgDesc> &arg_descs, std::string &dfx_info) {
   GELOGI("Start to construct dfx info for node: %s.", op_desc == nullptr ? "null" : op_desc->GetNamePtr());
   bool is_mem_check_enable = false;
   (void)ge::AttrUtils::GetBool(op_desc, optiling::kMemoryCheck, is_mem_check_enable);
@@ -203,18 +200,18 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
   std::vector<optiling::ArgsIndexToIoIndex> args_idx_to_io_idx_vec;
   if (!arg_descs.empty()) {
     GE_ASSERT_SUCCESS(
-      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
-  } else  {
-    GELOGI("OP [%s] not has formatted args_format. input desc size [%zu], out desc size [%zu]",
-      op_desc->GetNamePtr(),input_descs.size(), op_desc->GetOutputsSize());
-    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(input_descs.size(),
-      op_desc->GetOutputsSize(), args_size_vec, args_idx_to_io_idx_vec));
+        optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
+  } else {
+    GELOGI("OP [%s] not has formatted args_format. input desc size [%zu], out desc size [%zu]", op_desc->GetNamePtr(),
+           input_descs.size(), op_desc->GetOutputsSize());
+    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(input_descs.size(), op_desc->GetOutputsSize(),
+                                                                        args_size_vec, args_idx_to_io_idx_vec));
   }
 
   std::vector<int64_t> shape_size_vec;
   GE_ASSERT_SUCCESS(UpdateDfxArgsAndShapeSize(op_desc, args_idx_to_io_idx_vec, args_size_vec, shape_size_vec));
-  (void)args_size_vec.insert(args_size_vec.cend(),
-      run_info.GetAllWorkspaces().cbegin(), run_info.GetAllWorkspaces().cend());
+  (void)args_size_vec.insert(args_size_vec.cend(), run_info.GetAllWorkspaces().cbegin(),
+                             run_info.GetAllWorkspaces().cend());
 
   // tiling data为0的场景 或者args Size 为0的场景，直接返回
   const int64_t tiling_data_size = static_cast<int64_t>(run_info.GetAllTilingData().str().size());
@@ -237,9 +234,9 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
       max_size = static_cast<int64_t>(kMaxTilingDataSize);
     }
 
-    const auto memcheck_info_capcity = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
-    GELOGI("Get memcheck info capcity: %zu, op_name: %s", memcheck_info_capcity, op_desc->GetNamePtr());
-    const auto memcheck_data_holder = gert::TilingData::CreateCap(memcheck_info_capcity);
+    const auto memcheck_info_capacity = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
+    GELOGI("Get memcheck info capacity: %zu, op_name: %s", memcheck_info_capacity, op_desc->GetNamePtr());
+    const auto memcheck_data_holder = gert::TilingData::CreateCap(memcheck_info_capacity);
     auto memcheck_data = reinterpret_cast<gert::TilingData *>(memcheck_data_holder.get());
     int64_t memcheck_start_size = 0L;
     GE_ASSERT_SUCCESS(GetMemCheckStartSize(op_desc, tiling_data_size, memcheck_start_size));
@@ -250,8 +247,8 @@ ge::Status ConstructDfxInfo(const ge::OpDescPtr &op_desc,
       GELOGI("[TilingAppendDfxInfo] size idx[%zu], val[%lld]", i, args_size_vec[i]);
     }
     GE_ASSERT_SUCCESS(memcheck_data->Append(args_size_vec.data(), args_size_vec.size()));
-    GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld",
-      op_desc->GetNamePtr(), memcheck_data->GetDataSize(), memcheck_start_size);
+    GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld", op_desc->GetNamePtr(),
+           memcheck_data->GetDataSize(), memcheck_start_size);
     dfx_info = std::string(reinterpret_cast<ge::char_t *>(memcheck_data->GetData()), memcheck_data->GetDataSize());
   }
 
@@ -290,24 +287,25 @@ static bool IsWspAddrFolded(const OpDescPtr &op_desc) {
 void KernelTaskInfo::UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs) {
   // todo: model args manager功能适配完毕后, 此处新增input_data_addrs_和iow_addrs.input_logic_addrs相等的校验
   for (size_t i = 0UL; i < input_data_addrs_.size(); i++) {
-    input_data_addrs_[i] = (iow_addrs.input_logic_addrs.empty())
-        ? input_data_addrs_[i] : iow_addrs.input_logic_addrs[i].logic_addr;
-    input_mem_types_[i] = (iow_addrs.input_logic_addrs.empty())
-        ? input_mem_types_[i] : iow_addrs.input_logic_addrs[i].memory_type;
+    input_data_addrs_[i] =
+        (iow_addrs.input_logic_addrs.empty()) ? input_data_addrs_[i] : iow_addrs.input_logic_addrs[i].logic_addr;
+    input_mem_types_[i] =
+        (iow_addrs.input_logic_addrs.empty()) ? input_mem_types_[i] : iow_addrs.input_logic_addrs[i].memory_type;
   }
 
   for (size_t i = 0UL; i < output_data_addrs_.size(); i++) {
-    output_data_addrs_[i] = (iow_addrs.output_logic_addrs.empty())
-        ? output_data_addrs_[i] : iow_addrs.output_logic_addrs[i].logic_addr;
-    output_mem_types_[i] = (iow_addrs.output_logic_addrs.empty())
-        ? output_mem_types_[i] : iow_addrs.output_logic_addrs[i].memory_type;
+    output_data_addrs_[i] =
+        (iow_addrs.output_logic_addrs.empty()) ? output_data_addrs_[i] : iow_addrs.output_logic_addrs[i].logic_addr;
+    output_mem_types_[i] =
+        (iow_addrs.output_logic_addrs.empty()) ? output_mem_types_[i] : iow_addrs.output_logic_addrs[i].memory_type;
   }
 
   for (size_t i = 0UL; i < workspace_addrs_.size(); i++) {
-    workspace_addrs_[i] = (iow_addrs.workspace_logic_addrs.empty())
-        ? workspace_addrs_[i] : iow_addrs.workspace_logic_addrs[i].logic_addr;
+    workspace_addrs_[i] =
+        (iow_addrs.workspace_logic_addrs.empty()) ? workspace_addrs_[i] : iow_addrs.workspace_logic_addrs[i].logic_addr;
     workspace_mem_types_[i] = (iow_addrs.workspace_logic_addrs.empty())
-        ? workspace_mem_types_[i] : iow_addrs.workspace_logic_addrs[i].memory_type;
+                                  ? workspace_mem_types_[i]
+                                  : iow_addrs.workspace_logic_addrs[i].memory_type;
   }
 }
 
@@ -316,8 +314,8 @@ aclrtBinHandle KernelTaskInfo::GetBinHandle(const domi::TaskDef &task_def) const
     auto kernel_handles_manager = davinci_model_->GetKernelHandlesManager(KernelHandleType::kAicore);
     GE_ASSERT_NOTNULL(kernel_handles_manager);
     KernelRegisterInfo register_info;
-    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(op_desc_,
-        is_separately_clean_task_, davinci_model_->GetModelId(), register_info));
+    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(
+        op_desc_, is_separately_clean_task_, davinci_model_->GetModelId(), register_info));
     const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
     return kernel_handles_manager->GetOrRegisterKernel(register_info, bin_name);
   }
@@ -325,8 +323,8 @@ aclrtBinHandle KernelTaskInfo::GetBinHandle(const domi::TaskDef &task_def) const
     auto kernel_handles_manager = davinci_model_->GetKernelHandlesManager(KernelHandleType::kCustAicpu);
     GE_ASSERT_NOTNULL(kernel_handles_manager);
     KernelRegisterInfo register_info;
-    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructTilingDeviceRegisterInfo(task_def.kernel().so_name(),
-        davinci_model_->GetModelId(), register_info));
+    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructTilingDeviceRegisterInfo(
+        task_def.kernel().so_name(), davinci_model_->GetModelId(), register_info));
     const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
     auto tiling_device_bin_handle = kernel_handles_manager->GetOrRegisterKernel(register_info, bin_name);
     ModelManager::GetInstance().SetPlatformBinHandle(tiling_device_bin_handle);
@@ -345,19 +343,20 @@ aclrtBinHandle KernelTaskInfo::GetBinHandle(const domi::TaskDef &task_def) const
     GE_ASSERT_NOTNULL(kernel_handles_manager);
     KernelRegisterInfo register_info;
     const std::string op_kernel_lib = (kernel_type_ == ccKernelType::AI_CPU_KFC) ? "KFCKernel" : "AICPUKernel";
-    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo(op_desc_->GetType(),
-        task_def.kernel().so_name(), task_def.kernel().kernel_name(), op_kernel_lib, register_info));
+    GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo(
+        op_desc_->GetType(), task_def.kernel().so_name(), task_def.kernel().kernel_name(), op_kernel_lib,
+        register_info));
     const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
     return kernel_handles_manager->GetOrRegisterKernel(register_info, bin_name);
   }
-  GELOGW("[%s][%s] task type: %u, kernel type: %u is not support bin handle.",
-      op_desc_->GetNamePtr(), op_desc_->GetTypePtr(), task_type_, kernel_type_);
+  GELOGW("[%s][%s] task type: %u, kernel type: %u is not support bin handle.", op_desc_->GetNamePtr(),
+         op_desc_->GetTypePtr(), task_type_, kernel_type_);
   return nullptr;
 }
 
 void KernelTaskInfo::SetExceptionCallback(aclrtBinHandle bin_handle) {
   const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
-    static_cast<gert::OppImplVersionTag>(op_desc_->GetOppImplVersion()));
+      static_cast<gert::OppImplVersionTag>(op_desc_->GetOppImplVersion()));
   if (space_registry == nullptr) {
     GELOGW("GetSpaceRegistry returned nullptr for node %s", op_desc_->GetNamePtr());
     return;
@@ -366,7 +365,9 @@ void KernelTaskInfo::SetExceptionCallback(aclrtBinHandle bin_handle) {
   if (op_impl != nullptr) {
     auto exception_func = op_impl->exception_func;
     if (exception_func != nullptr) {
-      GE_CHK_RT_EXEC(rtBinarySetExceptionCallback(bin_handle, reinterpret_cast<rtOpExceptionCallback>(exception_func), nullptr), return);
+      GE_CHK_RT_EXEC(
+          rtBinarySetExceptionCallback(bin_handle, reinterpret_cast<rtOpExceptionCallback>(exception_func), nullptr),
+          return);
       GELOGI("Set exception callback for node %s.", op_desc_->GetNamePtr());
     } else {
       GELOGW("No exception callback found for node %s.", op_desc_->GetNamePtr());
@@ -385,8 +386,7 @@ aclrtFuncHandle KernelTaskInfo::GetFuncHandle(const domi::TaskDef &task_def) {
     return KernelHandleUtils::GetFuncHandle(bin_handle, tiling_key_);
   }
   if (kernel_type_ == ccKernelType::CUST_AI_CPU) {
-    return KernelHandleUtils::GetCustAicpuFuncHandle(bin_handle,
-        op_desc_->GetType(), task_def.kernel().kernel_name());
+    return KernelHandleUtils::GetCustAicpuFuncHandle(bin_handle, op_desc_->GetType(), task_def.kernel().kernel_name());
   }
   if (ModelUtils::IsAICoreKernel(kernel_type_)) {
     std::string attr_kernel_name;
@@ -398,7 +398,7 @@ aclrtFuncHandle KernelTaskInfo::GetFuncHandle(const domi::TaskDef &task_def) {
     std::string kernel_name;
     (void)AttrUtils::GetStr(op_desc_, attr_kernel_name, "_kernelname", kernel_name);
     GELOGD("[%s][%s] get kernel name: %s from attr: %s.", op_desc_->GetNamePtr(), op_desc_->GetTypePtr(),
-        kernel_name.c_str(), attr_kernel_name.c_str());
+           kernel_name.c_str(), attr_kernel_name.c_str());
     return KernelHandleUtils::GetFuncHandle(bin_handle, kernel_name);
   }
   if ((kernel_type_ == ccKernelType::AI_CPU_KFC) || (kernel_type_ == ccKernelType::AI_CPU)) {
@@ -407,9 +407,8 @@ aclrtFuncHandle KernelTaskInfo::GetFuncHandle(const domi::TaskDef &task_def) {
   return nullptr;
 }
 
-Status KernelTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                            const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                            const IowAddrs &iow_addrs) {
+Status KernelTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
+                            const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
   GE_CHECK_NOTNULL(davinci_model);
   (void)persistent_workspace;
   davinci_model_ = davinci_model;
@@ -423,28 +422,28 @@ Status KernelTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const d
   }
   // om兼容场景，新流程已经归一到custaicpu
   if ((task_type_ == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL) && (kernel_type_ == ccKernelType::AI_CPU)) {
-    GELOGI("[%s][%s] Tiling device built in kernel no need init func handle",
-        op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    GELOGI("[%s][%s] Tiling device built in kernel no need init func handle", op_desc_->GetNamePtr(),
+           op_desc_->GetTypePtr());
   } else {
     func_handle_ = GetFuncHandle(task_def);
     GE_ASSERT_NOTNULL(func_handle_);
   }
   io_addr_mem_types_.resize(io_addrs_.size(), static_cast<uint64_t>(MemoryAppType::kMemoryTypeFix));
   GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), io_addrs_,
-      io_addr_mem_types_, {op_desc_->GetName(), op_desc_->GetType()}));
+                                                io_addr_mem_types_, {op_desc_->GetName(), op_desc_->GetType()}));
 
-  if ((kernel_type_ == ccKernelType::AI_CPU) ||
-      (kernel_type_ == ccKernelType::CUST_AI_CPU) ||
+  if ((kernel_type_ == ccKernelType::AI_CPU) || (kernel_type_ == ccKernelType::CUST_AI_CPU) ||
       (kernel_type_ == ccKernelType::AI_CPU_KFC)) {
     uint32_t pls = static_cast<uint32_t>(args_placement_);
     GE_ASSERT_TRUE(args[pls].len >= args_offset_from_pls_);
-    const errno_t sec_ret = memcpy_s(ValueToPtr(PtrToValue(args[pls].host_addr) + args_offset_from_pls_), args[pls].len - args_offset_from_pls_,
-      args_addr_.data(), static_cast<size_t>(args_size_));
+    const errno_t sec_ret =
+        memcpy_s(ValueToPtr(PtrToValue(args[pls].host_addr) + args_offset_from_pls_),
+                 args[pls].len - args_offset_from_pls_, args_addr_.data(), static_cast<size_t>(args_size_));
     GE_ASSERT_EOK(sec_ret, "[Call][Memcpy] failed, size:%zu, ret:%d", args[pls].len, sec_ret);
   }
 
-  GELOGI("KernelTaskInfo Init Success, node :%s, logic stream id: %u, stream: %p.",
-    op_desc_->GetName().c_str(), task_def.stream_id(), stream_);
+  GELOGI("KernelTaskInfo Init Success, node :%s, logic stream id: %u, stream: %p.", op_desc_->GetName().c_str(),
+         task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -476,7 +475,7 @@ Status KernelTaskInfo::InitKernel(const domi::TaskDef &task_def, const PisToArgs
     ret = InitAicpuTask(op_desc_, kernel_def);
   } else {
     REPORT_INNER_ERR_MSG("E19999", "Node op:%s(%s) kernel type invalid", op_desc_->GetName().c_str(),
-                       op_desc_->GetType().c_str());
+                         op_desc_->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Node op:%s(%s) kernel type invalid", op_desc_->GetName().c_str(),
            op_desc_->GetType().c_str());
     return ret;
@@ -525,7 +524,8 @@ Status KernelTaskInfo::InitKernelByContext(const domi::TaskDef &task_def, const 
   GE_CHECK_NOTNULL(operator_);
 
   if (context.origin_op_index_size() > CC_FUSION_OP_MAX) {
-    REPORT_INNER_ERR_MSG("E19999", "origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s), check invalid",
+    REPORT_INNER_ERR_MSG(
+        "E19999", "origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s), check invalid",
         context.origin_op_index_size(), CC_FUSION_OP_MAX, op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param]invalid, origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s)",
            context.origin_op_index_size(), CC_FUSION_OP_MAX, op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
@@ -535,7 +535,8 @@ Status KernelTaskInfo::InitKernelByContext(const domi::TaskDef &task_def, const 
   kernel_type_ = static_cast<ccKernelType>(context.kernel_type());
   GELOGD("KernelTaskInfo init start, kernel_type: %d.", static_cast<int32_t>(kernel_type_));
   if ((kernel_type_ == ccKernelType::AI_CPU) || (kernel_type_ == ccKernelType::CUST_AI_CPU)) {
-    args_offset_from_pls_ = ge::MemSizeAlign(sizeof(aicpu::AicpuParamHead), sizeof(uintptr_t)) - sizeof(aicpu::AicpuParamHead);
+    args_offset_from_pls_ =
+        ge::MemSizeAlign(sizeof(aicpu::AicpuParamHead), sizeof(uintptr_t)) - sizeof(aicpu::AicpuParamHead);
   }
   ctx_.opIndex = context.op_index();
 
@@ -560,7 +561,7 @@ Status KernelTaskInfo::InitKernelByContext(const domi::TaskDef &task_def, const 
 void KernelTaskInfo::UpdateTaskId() {
   if (davinci_model_ != nullptr) {
     GE_CHK_RT_EXEC(aclrtGetThreadLastTaskId(&task_id_), return);
-    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)), return);
+    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)), return);
     GELOGD("UpdateTaskId:UpdateTaskId [%u], stream id [%u]:", task_id_, stream_id_);
   }
 }
@@ -588,12 +589,13 @@ Status KernelTaskInfo::DistributeTask() {
   launch_kernel_param.launch_config.block_dim_offset = block_dim_offset_;
   launch_kernel_param.launch_config.is_block_task_prefetch = is_block_task_prefetch_;
   launch_kernel_param.launch_config.is_data_dump = is_data_dump_;
-  if ((task_type_ == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL) || (task_type_ == ModelTaskType::MODEL_TASK_VECTOR_KERNEL)) {
+  if ((task_type_ == ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL) ||
+      (task_type_ == ModelTaskType::MODEL_TASK_VECTOR_KERNEL)) {
     launch_kernel_param.launch_config.engine_type = ACL_RT_ENGINE_TYPE_AIV;
   }
   bool op_exec_never_timeout = false;
-  if (AttrUtils::GetBool(op_desc_, public_attr::OP_EXEC_NEVER_TIMEOUT, op_exec_never_timeout)
-      && op_exec_never_timeout) {
+  if (AttrUtils::GetBool(op_desc_, public_attr::OP_EXEC_NEVER_TIMEOUT, op_exec_never_timeout) &&
+      op_exec_never_timeout) {
     launch_kernel_param.launch_config.time_out = 0;
     GELOGI("op %s type %s set never timeout", op_name.c_str(), op_desc_->GetTypePtr());
   }
@@ -603,7 +605,8 @@ Status KernelTaskInfo::DistributeTask() {
   CacheLastTaskExtendInfoIfCollective(op_name, op_desc_->GetType());
   if (IsAllKernel(task_type_) || ModelUtils::IsAICoreKernel(kernel_type_)) {
     std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
-    std::shared_ptr<TilingContextAddr> tiling_context_addr = op_desc_->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
+    std::shared_ptr<TilingContextAddr> tiling_context_addr =
+        op_desc_->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
     if (tiling_context_addr != nullptr) {
       auto sink_info = MakeShared<TilingSinkTaskInfo>();
       GE_ASSERT_NOTNULL(sink_info);
@@ -625,13 +628,13 @@ Status KernelTaskInfo::Distribute() {
   GELOGI("KernelTaskInfo Distribute Start, op: %s", op_desc_->GetName().c_str());
   if (davinci_model_ != nullptr && davinci_model_->IsDumpOpWithAdump()) {
     GELOGD("Both overflow detection and persistent stream unlimited enabled, disable dump for op %s",
-            op_desc_ ? op_desc_->GetName().c_str() : "unknown");
+           op_desc_ ? op_desc_->GetName().c_str() : "unknown");
     dump_flag_ &= ~RT_KERNEL_DUMPFLAG;
     is_data_dump_ = false;
   }
   const TaskProfGuarder prof_guarder(this);
-  const bool is_built_tiling_device = (kernel_type_ == ccKernelType::AI_CPU)
-      && (task_type_ == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL);
+  const bool is_built_tiling_device =
+      (kernel_type_ == ccKernelType::AI_CPU) && (task_type_ == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL);
   if (is_built_tiling_device) {
     // Use the 5th and 6th bits of dump_flag_ indicate the value of topic_type.
     // xxxxxxxx xxxxxxxx xxxxxxxx xx00xxxx: DEVICE_ONLY
@@ -656,11 +659,12 @@ Status KernelTaskInfo::Distribute() {
       return FAILED;
     }
   }
-  GELOGI("KernelTaskInfo Distribute Success, op: %s, taskid: %d, blockdim: %d, "
-         "streamid: %u, stream: %p, dump_flag: %u",
-         op_desc_->GetName().c_str(), task_id_, block_dim_, stream_id_, stream_, dump_flag_);
+  GELOGI(
+      "KernelTaskInfo Distribute Success, op: %s, taskid: %d, blockdim: %d, "
+      "streamid: %u, stream: %p, dump_flag: %u",
+      op_desc_->GetName().c_str(), task_id_, block_dim_, stream_id_, stream_, dump_flag_);
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
     operator_.reset();
     super_kernel_op_desc_.reset();
     sk_sub_operator_.reset();
@@ -675,11 +679,11 @@ Status KernelTaskInfo::UpdateRunInfoByTilingResult(const optiling::utils::OpRunI
   local_memory_size_ = run_info->GetLocalMemorySize();
   const auto workspaces = run_info->GetAllWorkspaces();
   op_desc_->SetWorkspaceBytes(workspaces);
-  GELOGI(
-      "Update run info of %s, block dim: %u, tiling key: %" PRIu64 ", clear atomic: %d, workspace size: %zu, "
-      "local memory size: %u.",
-      op_desc_->GetName().c_str(), block_dim_, tiling_key_, static_cast<int32_t>(clear_atomic_), workspaces.size(),
-      local_memory_size_);
+  GELOGI("Update run info of %s, block dim: %u, tiling key: %" PRIu64
+         ", clear atomic: %d, workspace size: %zu, "
+         "local memory size: %u.",
+         op_desc_->GetName().c_str(), block_dim_, tiling_key_, static_cast<int32_t>(clear_atomic_), workspaces.size(),
+         local_memory_size_);
 
   return SUCCESS;
 }
@@ -757,7 +761,7 @@ Status KernelTaskInfo::DistributeWaitTaskForAicpuBlockingOp() const {
   }
 
   uint32_t timeout = 0xffffffff;
-  (void) AttrUtils::GetInt(op_desc_, ATTR_NAME_BLOCKING_OP_TIMEOUT, timeout);
+  (void)AttrUtils::GetInt(op_desc_, ATTR_NAME_BLOCKING_OP_TIMEOUT, timeout);
   if (timeout != 0xffffffff) {
     GE_CHK_ACL_RET(aclrtStreamWaitEventWithTimeout(stream_, rt_event, static_cast<int32_t>(timeout)));
   } else {
@@ -781,7 +785,7 @@ void KernelTaskInfo::GetAtomicOutAddrs(const std::vector<uint64_t> &output_data_
                                        std::vector<uint64_t> &atomic_output_data_addrs,
                                        std::vector<uint64_t> &atomic_output_addr_mem_types) const {
   std::vector<int64_t> atomic_output_indices;
-  (void) AttrUtils::GetListInt(op_desc_, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)AttrUtils::GetListInt(op_desc_, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
   for (const int64_t output_index : atomic_output_indices) {
     if (output_index < static_cast<int64_t>(output_data_addrs.size())) {
       atomic_output_data_addrs.push_back(output_data_addrs[static_cast<size_t>(output_index)]);
@@ -789,7 +793,6 @@ void KernelTaskInfo::GetAtomicOutAddrs(const std::vector<uint64_t> &output_data_
     }
   }
 }
-
 
 void KernelTaskInfo::GetAtomicWorkspaceAddrs(const std::vector<uint64_t> &workspace_data_addrs,
                                              std::vector<uint64_t> &atomic_workspace_data_addrs) const {
@@ -808,7 +811,7 @@ void KernelTaskInfo::GetAtomicWorkspaceAddrs(const std::vector<uint64_t> &worksp
   if (AttrUtils::GetNamedAttrs(op_desc_, EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspaces)) {
     std::vector<int64_t> value;
     const std::string &op_name = op_desc_->GetName();
-    (void) AttrUtils::GetListInt(workspaces, op_name, value);
+    (void)AttrUtils::GetListInt(workspaces, op_name, value);
     for (auto &index : value) {
       if (index < static_cast<int64_t>(workspace_data_addrs.size())) {
         atomic_workspace_data_addrs.push_back(workspace_data_addrs[static_cast<size_t>(index)]);
@@ -841,8 +844,8 @@ Status KernelTaskInfo::SetIoAddrsForCustomized() {
   (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), mem_types.cbegin(), mem_types.cend());
   size_t args_size = 0UL;
   GE_ASSERT_TRUE(!ge::MulOverflow(io_addrs_.size(), kAddressLen, args_size));
-  GE_ASSERT_SUCCESS(InitArgsAddr(tensor_device_addrs, PtrToPtr<uint64_t, uint8_t>(io_addrs_.data()),
-                                 io_addr_mem_types_, args_size));
+  GE_ASSERT_SUCCESS(
+      InitArgsAddr(tensor_device_addrs, PtrToPtr<uint64_t, uint8_t>(io_addrs_.data()), io_addr_mem_types_, args_size));
   return SUCCESS;
 }
 
@@ -893,8 +896,8 @@ Status KernelTaskInfo::SetIoAddrs() {
   (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), mem_types.cbegin(), mem_types.cend());
   size_t args_size = 0UL;
   GE_ASSERT_TRUE(!ge::MulOverflow(io_addrs_.size(), kAddressLen, args_size));
-  GE_ASSERT_SUCCESS(InitArgsAddr(tensor_device_addrs, PtrToPtr<uint64_t, uint8_t>(io_addrs_.data()),
-                                 io_addr_mem_types_, args_size));
+  GE_ASSERT_SUCCESS(
+      InitArgsAddr(tensor_device_addrs, PtrToPtr<uint64_t, uint8_t>(io_addrs_.data()), io_addr_mem_types_, args_size));
   return SUCCESS;
 }
 
@@ -1017,8 +1020,8 @@ Status KernelTaskInfo::AssembleShapeInfoAddrs(const std::vector<ArgDesc> &dynami
     GE_ASSERT(level2_addr_idx[i] < io_addrs_.size());
     // addr to ptr offset
     io_addrs_[level2_addr_idx[i]] = PtrToValue(args_) + static_cast<uint64_t>(ptr_offset_idx * sizeof(uint64_t));
-    GELOGD("Set ptr_offset idx:[%zu], addr:[%" PRIx64 "] io index:[%zu]",
-      ptr_offset_idx, io_addrs_[level2_addr_idx[i]], level2_addr_idx[i]);
+    GELOGD("Set ptr_offset idx:[%zu], addr:[%" PRIx64 "] io index:[%zu]", ptr_offset_idx, io_addrs_[level2_addr_idx[i]],
+           level2_addr_idx[i]);
     // copy shape_infos
     (void)io_addrs_.insert(io_addrs_.cend(), shape_info.cbegin(), shape_info.cend());
     (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), shape_info.size(), kAbsoluteMemType);
@@ -1062,7 +1065,7 @@ Status KernelTaskInfo::GetTilingSinkAtomicIndex(bool &is_args_exception_enable, 
 
   // 获取args desc, ffts+ 走老的l0 exception dump流程
   std::vector<ArgDesc> arg_descs;
-  if(davinci_model_->GetAndEraseTilingSinkTaskArgDescs(op_index_, arg_descs) != SUCCESS) {
+  if (davinci_model_->GetAndEraseTilingSinkTaskArgDescs(op_index_, arg_descs) != SUCCESS) {
     GELOGW("op index: %u cannot find sink task args descs.", op_index_);
     return SUCCESS;
   }
@@ -1072,7 +1075,7 @@ Status KernelTaskInfo::GetTilingSinkAtomicIndex(bool &is_args_exception_enable, 
   std::vector<int64_t> args_size_vec;
   std::vector<optiling::ArgsIndexToIoIndex> args_idx_to_io_idx_vec;
   GE_ASSERT_SUCCESS(
-    optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc_, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
+      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc_, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
 
   std::vector<int64_t> shape_size_vec;
   GE_ASSERT_SUCCESS(UpdateDfxArgsAndShapeSize(op_desc_, args_idx_to_io_idx_vec, args_size_vec, shape_size_vec));
@@ -1083,28 +1086,28 @@ Status KernelTaskInfo::GetTilingSinkAtomicIndex(bool &is_args_exception_enable, 
     switch (arg_descs[idx].addr_type) {
       case AddrType::WORKSPACE: {
         if (arg_descs[idx].ir_idx < 0) {
-           args_size_vec.insert(args_size_vec.cend(), ws_bytes.cbegin(), ws_bytes.cend());
+          args_size_vec.insert(args_size_vec.cend(), ws_bytes.cbegin(), ws_bytes.cend());
         } else {
           const size_t ir_idx = static_cast<size_t>(arg_descs[idx].ir_idx);
-          GE_ASSERT(ir_idx < ws_bytes.size(), "workspace ir_idx:[%zu] is output of range, max_size:[%zu]",
-                    ir_idx, ws_bytes.size());
+          GE_ASSERT(ir_idx < ws_bytes.size(), "workspace ir_idx:[%zu] is output of range, max_size:[%zu]", ir_idx,
+                    ws_bytes.size());
           args_size_vec.push_back(ws_bytes[ir_idx]);
         }
         break;
       }
       default:
         break;
-	  }
+    }
   }
 
-  if (args_size_vec.size() == 0U ) {
+  if (args_size_vec.size() == 0U) {
     GELOGW("op index: %u args size is 0.", op_index_);
     return SUCCESS;
   }
 
   size_t total_size = args_size_vec.size() + shape_size_vec.size();
   uint64_t *host_addr = ge::PtrToPtr<void, uint64_t>(Adx::AdumpGetDFXInfoAddrForStatic(total_size, atomic_index));
-  GE_ASSERT_NOTNULL(host_addr, "total size[%zu], automic index[%" PRIu64 "].", total_size, atomic_index);
+  GE_ASSERT_NOTNULL(host_addr, "total size[%zu], atomic index[%" PRIu64 "].", total_size, atomic_index);
   FormatArgsException(host_addr, args_size_vec, shape_size_vec, atomic_index);
   is_args_exception_enable = true;
 
@@ -1140,8 +1143,8 @@ Status KernelTaskInfo::AssembleTilingContextArgs(const ArgDesc &arg_desc,
         uint64_t atomic_index = 0UL;
         GE_ASSERT_SUCCESS(GetTilingSinkAtomicIndex(is_args_exception_enable, atomic_index));
 
-        GE_ASSERT_SUCCESS(ArgsFormatUtils::SinkTilingContext(node, *davinci_model_, index_to_tensor,
-                          platform_infos_addr, is_args_exception_enable, atomic_index));
+        GE_ASSERT_SUCCESS(ArgsFormatUtils::SinkTilingContext(
+            node, *davinci_model_, index_to_tensor, platform_infos_addr, is_args_exception_enable, atomic_index));
         tiling_context_addr = op_desc_->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
         GE_ASSERT_NOTNULL(tiling_context_addr, "Failed to sink tiling context.");
       }
@@ -1183,8 +1186,8 @@ Status KernelTaskInfo::AssembleTilingSinkTensors(std::map<size_t, gert::AddrRefr
   const auto args = (task_type_ != ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL)
                         ? PtrToValue(args_)
                         : (PtrToValue(args_) + sizeof(aicpu::AicpuParamHead));
-  GELOGI("tiling sink task[%u] args[0x%" PRIx64 "] for [%s]",
-    static_cast<uint32_t>(task_type_), args, op_desc_->GetNamePtr());
+  GELOGI("tiling sink task[%u] args[0x%" PRIx64 "] for [%s]", static_cast<uint32_t>(task_type_), args,
+         op_desc_->GetNamePtr());
   for (auto tiling_idx : args_format_holder_.tiling_depends_input_idx) {
     index_to_tensor[tiling_idx].device_addr = args + rt_tensor_size * tensor_cnt + rt_tensor_offset;
     gert::Tensor *host_tensor =
@@ -1216,15 +1219,15 @@ Status KernelTaskInfo::AppendWorkspaceAddr(int32_t ir_idx) {
                                     workspace_mem_types_.cend());
   } else {
     const size_t idx = static_cast<size_t>(ir_idx);
-    GE_ASSERT(idx < workspace_addrs_.size(), "workspace index[%zu] is output of workspace addrs range[%zu]",
-              idx, workspace_addrs_.size());
+    GE_ASSERT(idx < workspace_addrs_.size(), "workspace index[%zu] is output of workspace addrs range[%zu]", idx,
+              workspace_addrs_.size());
     AppendIoAddr(workspace_addrs_[idx], workspace_mem_types_[idx]);
     GELOGI("op[%s], workspace_addrs_[%zu] = 0x%" PRIx64 ", workspace_mem_types_[%zu] = %" PRIu64,
-      op_desc_->GetName().c_str(), idx, workspace_addrs_[idx], idx, workspace_mem_types_[idx]);
+           op_desc_->GetName().c_str(), idx, workspace_addrs_[idx], idx, workspace_mem_types_[idx]);
     if (task_type_ == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL && kernel_type_ == ccKernelType::CUST_AI_CPU) {
       const std::vector<int64_t> v_workspace_bytes = op_desc_->GetWorkspaceBytes();
-      GE_ASSERT(idx < v_workspace_bytes.size(), "workspace index[%zu] is output of workspace bytes range[%zu]",
-                idx, v_workspace_bytes.size());
+      GE_ASSERT(idx < v_workspace_bytes.size(), "workspace index[%zu] is output of workspace bytes range[%zu]", idx,
+                v_workspace_bytes.size());
       AppendIoAddr(v_workspace_bytes[idx], kAbsoluteMemType);
       GELOGI("preprocess custom op[%s], v_workspace_bytes[%zu] = %" PRId64, op_desc_->GetName().c_str(), idx,
              v_workspace_bytes[idx]);
@@ -1249,8 +1252,8 @@ Status KernelTaskInfo::AppendInputOutputAddr(size_t ir_idx, bool is_input) {
   std::vector<uint64_t> &types = is_input ? input_mem_types_ : output_mem_types_;
   const size_t cust_offset = is_input ? 0U : input_data_addrs_.size();
   for (size_t i = 0UL; i < range_pair.second; ++i, ++begin_idx) {
-    GE_ASSERT(begin_idx < addrs.size(), "ir_idx:[%zu], begin_index [%zu] is out of range, max_size:[%zu].",
-              ir_idx, begin_idx, addrs.size());
+    GE_ASSERT(begin_idx < addrs.size(), "ir_idx:[%zu], begin_index [%zu] is out of range, max_size:[%zu].", ir_idx,
+              begin_idx, addrs.size());
     cust_to_relevant_offset_[begin_idx + cust_offset] = io_addrs_.size();
     AppendIoAddr(addrs[begin_idx], types[begin_idx]);
   }
@@ -1259,15 +1262,13 @@ Status KernelTaskInfo::AppendInputOutputAddr(size_t ir_idx, bool is_input) {
 
 Status KernelTaskInfo::AppendInputOutputAddrByInstanceIndex(size_t ins_idx, bool is_input) {
   if (is_input) {
-    GE_ASSERT_TRUE(ins_idx < input_data_addrs_.size(),
-                   "Instance idx [%zu] is invalid, input_size:[%zu]",
-                   ins_idx, input_data_addrs_.size());
+    GE_ASSERT_TRUE(ins_idx < input_data_addrs_.size(), "Instance idx [%zu] is invalid, input_size:[%zu]", ins_idx,
+                   input_data_addrs_.size());
     cust_to_relevant_offset_[ins_idx] = io_addrs_.size();
     AppendIoAddr(input_data_addrs_[ins_idx], input_mem_types_[ins_idx]);
   } else {
-    GE_ASSERT_TRUE(ins_idx < output_data_addrs_.size(),
-                   "Instance idx [%zu] is invalid, output_size:[%zu]",
-                   ins_idx, output_data_addrs_.size());
+    GE_ASSERT_TRUE(ins_idx < output_data_addrs_.size(), "Instance idx [%zu] is invalid, output_size:[%zu]", ins_idx,
+                   output_data_addrs_.size());
     cust_to_relevant_offset_[input_data_addrs_.size() + ins_idx] = io_addrs_.size();
     AppendIoAddr(output_data_addrs_[ins_idx], output_mem_types_[ins_idx]);
   }
@@ -1364,7 +1365,7 @@ Status KernelTaskInfo::AssembleIoByArgsFormat() {
         break;
       }
       case AddrType::FFTS_ADDR: {
-        void* mode_addr_ptr = nullptr;
+        void *mode_addr_ptr = nullptr;
         GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
         AppendIoAddr(reinterpret_cast<uint64_t>(mode_addr_ptr), kAbsoluteMemType);
         break;
@@ -1519,10 +1520,9 @@ Status KernelTaskInfo::GetcontinuousArgsRefreshInfo(std::vector<TaskArgsRefreshI
 }
 
 Status KernelTaskInfo::UpdateNoncontinuousArgs(const size_t offset, const std::vector<uint64_t> &active_mem_base_addr,
-                                               void *const host_args,
-                                               const size_t host_args_len) {
+                                               void *const host_args, const size_t host_args_len) {
   GELOGD("kernel_type:%d, task_id:%u, offset:%zu, io_addrs_size:%zu, args_size:%u, host_args_len:%zu.",
-      static_cast<int32_t>(kernel_type_), task_id_, offset, io_addrs_.size(), args_size_, host_args_len);
+         static_cast<int32_t>(kernel_type_), task_id_, offset, io_addrs_.size(), args_size_, host_args_len);
   GE_ASSERT_TRUE(static_cast<size_t>(args_size_) > offset);
   const size_t addr_size = static_cast<size_t>(args_size_) - offset;
   GE_ASSERT_SUCCESS(args_io_addrs_updater_.SetArgIoAddrs(active_mem_base_addr, &args_addr_[offset], addr_size));
@@ -1579,8 +1579,7 @@ Status KernelTaskInfo::UpdateDumpInfos(void *const host_args, const size_t host_
   return SUCCESS;
 }
 
-Status KernelTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                                      void *const host_args,
+Status KernelTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                                       const size_t host_args_max_len) {
   GELOGI("KernelTaskInfo::UpdateArgs in.");
   GE_CHECK_NOTNULL(davinci_model_);
@@ -1628,11 +1627,11 @@ Status KernelTaskInfo::CopyTilingDataIfNeeded() {
   if (is_soft_sync_op_ && IsAllKernel(task_type_)) {
     run_info = MakeShared<optiling::utils::OpRunInfo>(0, false, 0);
     GE_CHECK_NOTNULL(run_info);
-    GE_CHK_STATUS_RET(optiling::SoftSyncOpRtParseAndTiling(
-                          *operator_, davinci_model_->MutablePlatformInfo(), *run_info,
-                          davinci_model_->GetSpaceRegistry(
-                              static_cast<gert::OppImplVersionTag>(op_desc_->GetOppImplVersion()))),
-                      "Recall tiling for soft sync op: %s failed.", op_desc_->GetNamePtr());
+    GE_CHK_STATUS_RET(
+        optiling::SoftSyncOpRtParseAndTiling(
+            *operator_, davinci_model_->MutablePlatformInfo(), *run_info,
+            davinci_model_->GetSpaceRegistry(static_cast<gert::OppImplVersionTag>(op_desc_->GetOppImplVersion()))),
+        "Recall tiling for soft sync op: %s failed.", op_desc_->GetNamePtr());
     GE_CHK_STATUS_RET(UpdateRunInfoByTilingResult(run_info.get()), "Update run info by tiling result failed.");
     // 软同步操作后会刷新runInfo，需要重新memcheck
     GELOGD("OpName: %s update schedule mode from tiling info: %u", op_desc_->GetNamePtr(),
@@ -1653,7 +1652,7 @@ Status KernelTaskInfo::CopyTilingDataIfNeeded() {
       if (!skip_append_dfx_info) {
         std::string dfx_info;
         GE_CHK_STATUS_RET(ConstructDfxInfo(op_desc_, *run_info, args_format_holder_.arg_descs, dfx_info),
-            "ConstructDfxInfo failed for node: %s, skip append dfx info.", op_desc_->GetNamePtr());
+                          "ConstructDfxInfo failed for node: %s, skip append dfx info.", op_desc_->GetNamePtr());
         tiling_data += dfx_info;
       }
     }
@@ -1661,14 +1660,14 @@ Status KernelTaskInfo::CopyTilingDataIfNeeded() {
     tiling_data_addr_ = davinci_model_->MallocDynamicMemory(tiling_data_size_);
     GE_CHECK_NOTNULL(tiling_data_addr_);
     GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr_, tiling_data_size_, tiling_data.data(), tiling_data.size(),
-        ACL_MEMCPY_HOST_TO_DEVICE));
+                               ACL_MEMCPY_HOST_TO_DEVICE));
     GELOGI("Success to update tiling data to io_addr of %s, addr: %p, size: %zu.", op_desc_->GetNamePtr(),
            tiling_data_addr_, tiling_data.size());
   }
   return SUCCESS;
 }
 
-Status KernelTaskInfo::FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  NodePtr &sub_node) const {
+Status KernelTaskInfo::FindSkSubNode(const OpDescPtr &sk_op, const int32_t id, NodePtr &sub_node) const {
   GE_ASSERT_NOTNULL(sk_op);
   ComputeGraphPtr sub_graph = nullptr;
   sub_graph = sk_op->TryGetExtAttr("_sk_sub_graph", sub_graph);
@@ -1709,8 +1708,8 @@ Status KernelTaskInfo::PreprocessForSkNode() {
   sk_sub_operator_ = MakeShared<Operator>(OpDescUtils::CreateOperatorFromNode(sub_node));
   op_desc_ = sub_node->GetOpDesc();
   args_format_holder_.arg_descs = sub_arg_descs;
-  GELOGI("current sk node %s, inner op_desc replace to %s",
-         super_kernel_op_desc_->GetNamePtr(), op_desc_->GetNamePtr());
+  GELOGI("current sk node %s, inner op_desc replace to %s", super_kernel_op_desc_->GetNamePtr(),
+         op_desc_->GetNamePtr());
   return SUCCESS;
 }
 
@@ -1736,7 +1735,7 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
   }
 
   uint32_t op_index = context.op_index();
-  // Called before Init. Assign necessary vaiables.
+  // Called before Init. Assign necessary variables.
   op_desc_ = (op_desc_ != nullptr) ? op_desc_ : davinci_model->GetOpByIndex(context.op_index());
   GE_CHECK_NOTNULL(op_desc_);
   super_kernel_op_desc_ = (op_desc_->GetType() == "SuperKernel") ? op_desc_ : nullptr;
@@ -1749,8 +1748,8 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
     GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(op_desc_, context.args_format(), args_format_holder_.arg_descs),
                       "Formatted args [%s] parsed failed.", context.args_format().c_str());
     GE_ASSERT_SUCCESS(PreprocessForSkNode());
-    GE_ASSERT_SUCCESS(ParseArgsFormat(op_index, davinci_model),
-      "ParseArgsFormat failed, op:[%s].", op_desc_->GetNamePtr());
+    GE_ASSERT_SUCCESS(ParseArgsFormat(op_index, davinci_model), "ParseArgsFormat failed, op:[%s].",
+                      op_desc_->GetNamePtr());
     const size_t format_args_size = GetArgsSizeByFormat() + extra_name_size;
     args_size_ = std::max(args_size_, static_cast<uint32_t>(format_args_size));
     if (task_type_ == ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL && kernel_type_ == ccKernelType::CUST_AI_CPU) {
@@ -1767,7 +1766,7 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
 
   const RuntimeParam &rts_param = davinci_model->GetRuntimeParam();
   input_data_addrs_ =
-    ModelUtils::GetInputAddrsValue(rts_param, op_desc_, input_mem_types_, is_optional_input_placeholder_);
+      ModelUtils::GetInputAddrsValue(rts_param, op_desc_, input_mem_types_, is_optional_input_placeholder_);
   if (!context.args_format().empty()) {
     // args format场景，GetOutputAddrsValue返回的地址数量和输出anchor数量保持一致，可选输出需要使用空地址占位
     output_data_addrs_ = ModelUtils::GetOutputAddrsValue(rts_param, op_desc_, output_mem_types_, true);
@@ -1794,13 +1793,15 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
     if ((ex_handle != nullptr) && (ex_handle->GetDeployTypeFlag() == static_cast<int32_t>(RT_KERNEL_HOST_ONLY))) {
       args_placement_ = ArgsPlacement::kArgsPlacementHostSvm;
     }
-    append_size = sizeof(uintptr_t); //多申请8字节，用来做aicpuhead结构体的对齐
+    append_size = sizeof(uintptr_t);  // 多申请8字节，用来做aicpuhead结构体的对齐
   } else if (kernel_type_ == ccKernelType::CUSTOMIZED) {
     customized_args_info_.kernel_def_args_size = args_size_;
     GE_ASSERT_SUCCESS(UpdateArgsSizeWithCustomized(op_desc_));
   }
-  task_run_param.args_descs.push_back({static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_),
-      static_cast<uint32_t>(sizeof(uintptr_t))) + append_size), args_placement_});
+  task_run_param.args_descs.push_back(
+      {static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_), static_cast<uint32_t>(sizeof(uintptr_t))) +
+                            append_size),
+       args_placement_});
   const bool is_wsp_addr_folded = IsWspAddrFolded(op_desc_);
   GELOGD(
       "Get args size[%u] of op[%s], is_wsp_addr_folded[%d], is known node[%d], "
@@ -1814,7 +1815,7 @@ Status KernelTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciM
 Status KernelTaskInfo::InitTVMContext(const domi::KernelContext &context) {
   if ((context.args_offset().size() / sizeof(uint16_t)) < 1U) {
     REPORT_INNER_ERR_MSG("E19999", "args_offset().size():%zu / sizeof(uint16_t) less than 1, op:%s(%s), check invalid",
-                       context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+                         context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     GELOGE(FAILED, "[Check][Param]invalid, args_offset().size():%zu / sizeof(uint16_t) less than 1, op:%s(%s)",
            context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     return FAILED;
@@ -1854,7 +1855,7 @@ Status KernelTaskInfo::InitArgsAddr(const std::vector<uint64_t> &tensor_device_a
   size_t addr_size_max = kAddressLen * tensor_device_addrs.size();
   if ((args_size <= io_addr_offset_) || (args_size_max < addr_size_max)) {
     REPORT_INNER_ERR_MSG("E19999", "offset:%zu >= argsSize:%zu or content:%zu beyond applied memory:%zu, check invalid",
-                       io_addr_offset_, args_size, addr_size_max, args_size_max);
+                         io_addr_offset_, args_size, addr_size_max, args_size_max);
     GELOGE(FAILED, "[Check][Param] offset:%zu >= argsSize:%u or content:%zu beyond applied memory:%zu, check invalid",
            io_addr_offset_, args_size, addr_size_max, args_size_max);
     return FAILED;
@@ -1904,12 +1905,11 @@ Status KernelTaskInfo::InitArgsAddr(const std::vector<uint64_t> &tensor_device_a
     const auto dev_addr_table = PtrToPtr<uint8_t, void>(
         PtrAdd(PtrToPtr<void, uint8_t>(args_), static_cast<size_t>(args_size_), addrs_table_offset));
     *address_to_addrs_table = PtrToValue(dev_addr_table);
-    sec_ret = memcpy_s(&io_addr[addrs_table_offset], args_size - addrs_table_offset,
-                       tensor_device_addrs.data(),
+    sec_ret = memcpy_s(&io_addr[addrs_table_offset], args_size - addrs_table_offset, tensor_device_addrs.data(),
                        addr_size_max);
   }
-  GE_ASSERT_TRUE(sec_ret == EOK, "[Call][Memcpy] failed, size:%zu, ret:%#x, has_overflow_addr:%d.",
-                 args_size_max, sec_ret, static_cast<int32_t>(has_overflow_addr));
+  GE_ASSERT_TRUE(sec_ret == EOK, "[Call][Memcpy] failed, size:%zu, ret:%#x, has_overflow_addr:%d.", args_size_max,
+                 sec_ret, static_cast<int32_t>(has_overflow_addr));
   return SUCCESS;
 }
 
@@ -1918,8 +1918,8 @@ Status KernelTaskInfo::InitTVMTask(const domi::KernelDefWithHandle &kernel_def) 
   GE_CHK_STATUS_RET_NOLOG(InitTVMContext(kernel_def.context()));
   node_info_ = kernel_def.node_info() + "/";
   schedule_mode_ = static_cast<uint8_t>(kernel_def.schedule_mode() & k2BitsMask);
-  GELOGD("OpName: %s set schedule mode from kernel def: %u",
-      op_desc_->GetName().c_str(), static_cast<uint32_t>(schedule_mode_));
+  GELOGD("OpName: %s set schedule mode from kernel def: %u", op_desc_->GetName().c_str(),
+         static_cast<uint32_t>(schedule_mode_));
   return InitTVMTask();
 }
 
@@ -1939,14 +1939,13 @@ Status KernelTaskInfo::InitTVMTask(const domi::KernelDef &kernel_def) {
   }
 
   schedule_mode_ = static_cast<uint8_t>(kernel_def.schedule_mode() & k2BitsMask);
-  GELOGD("OpName: %s set schedule mode from kernel def: %u",
-      op_desc_->GetName().c_str(), static_cast<uint32_t>(schedule_mode_));
+  GELOGD("OpName: %s set schedule mode from kernel def: %u", op_desc_->GetName().c_str(),
+         static_cast<uint32_t>(schedule_mode_));
   return InitTVMTask();
 }
 
 bool KernelTaskInfo::HasOverflowAddr(const OpDescPtr &op_desc) const {
-  return (davinci_model_->GetOverflowAddr() != nullptr) &&
-         AttrUtils::HasAttr(op_desc, GLOBALWORKSPACE_TYPE);
+  return (davinci_model_->GetOverflowAddr() != nullptr) && AttrUtils::HasAttr(op_desc, GLOBALWORKSPACE_TYPE);
 }
 
 Status KernelTaskInfo::InitTVMTask() {
@@ -1975,8 +1974,8 @@ Status KernelTaskInfo::SetTvmTaskZeroCopy(const OpDescPtr &op_desc, const std::v
         const uint64_t session_id = davinci_model_->GetRuntimeParam().session_id;
         if ((davinci_model_->GetRuntimeParam().var_size > 0U) &&
             VarManager::Instance(session_id)->IsVarAddr(input_offsets[args_index] - inner_offset)) {
-          GELOGI("Node:%s input:%" PRIu64 " is var, no need zero copy refresh.",
-            op_desc->GetName().c_str(), args_index);
+          GELOGI("Node:%s input:%" PRIu64 " is var, no need zero copy refresh.", op_desc->GetName().c_str(),
+                 args_index);
           continue;
         }
       }
@@ -1989,8 +1988,7 @@ Status KernelTaskInfo::SetTvmTaskZeroCopy(const OpDescPtr &op_desc, const std::v
     need_raw_data_list.resize(zero_copy_args_index.size(), false);
     GE_CHK_STATUS_RET(davinci_model_->Mapping2BundleZeroCopy(op_desc, zero_copy_args_offset, need_raw_data_list,
                                                              static_cast<size_t>(args_size_), args_addr_.data(), args_,
-                                                             own_args_memory_,
-                                                             IsAllKernel(task_type_)),
+                                                             own_args_memory_, IsAllKernel(task_type_)),
                       "Failed mapping zero copy task for %s to bundle task", op_desc->GetName().c_str());
   }
   return SUCCESS;
@@ -2022,17 +2020,20 @@ Status KernelTaskInfo::InitAICPUCustomTask(const OpDescPtr &op_desc, const domi:
   ctx_.argsOffset.resize(kCustomAicpuArgsLen);
 
   if ((context.args_offset().size() / sizeof(uint16_t)) < kCustomAicpuArgsLen) {
-    REPORT_INNER_ERR_MSG("E19999", "context.args_offset().size():%zu / sizeof(uint16_t) is less than "
-                       "kCustomAicpuArgsLen:%u, op:%s(%s), check invalid", context.args_offset().size(),
-                       kCustomAicpuArgsLen, op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param] context.args_offset().size():%zu / sizeof(uint16_t) is less than "
-           "kCustomAicpuArgsLen:%u, op:%s(%s)", context.args_offset().size(), kCustomAicpuArgsLen,
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "context.args_offset().size():%zu / sizeof(uint16_t) is less than "
+                         "kCustomAicpuArgsLen:%u, op:%s(%s), check invalid",
+                         context.args_offset().size(), kCustomAicpuArgsLen, op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] context.args_offset().size():%zu / sizeof(uint16_t) is less than "
+           "kCustomAicpuArgsLen:%u, op:%s(%s)",
+           context.args_offset().size(), kCustomAicpuArgsLen, op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
 
   GE_ASSERT_EOK(memcpy_s(ctx_.argsOffset.data(), (sizeof(uint16_t) * kCustomAicpuArgsLen), context.args_offset().data(),
-      (sizeof(uint16_t) * kCustomAicpuArgsLen)));
+                         (sizeof(uint16_t) * kCustomAicpuArgsLen)));
 
   const Status ret = StoreInputOutputTensor(input_data_addrs_, output_data_addrs_, ModelUtils::GetInputDescs(op_desc),
                                             ModelUtils::GetOutputDescs(op_desc));
@@ -2045,24 +2046,24 @@ Status KernelTaskInfo::InitAICPUCustomTask(const OpDescPtr &op_desc, const domi:
   Buffer buffer;
   if (!AttrUtils::GetBytes(op_desc, ATTR_NAME_OPATTR, buffer)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", ATTR_NAME_OPATTR.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_OPATTR.c_str(),
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_OPATTR.c_str(), op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return FAILED;
   }
 
   const uint64_t op_attr_size = static_cast<uint64_t>(buffer.GetSize());
   if (op_attr_size == 0U) {
-    REPORT_INNER_ERR_MSG("E19999", "Attr:%s in op:%s(%s) size is 0, check invalid",
-                       ATTR_NAME_OPATTR.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Attr:%s in op:%s(%s) size is 0, check invalid", ATTR_NAME_OPATTR.c_str(),
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] param op_attr_size is out of range, op:%s", op_desc->GetName().c_str());
     return PARAM_INVALID;
   }
 
   custom_info_.attr_handle = davinci_model_->MallocDynamicMemory(op_attr_size);
   GE_ASSERT_NOTNULL(custom_info_.attr_handle);
-  GE_CHK_ACL_RET(aclrtMemcpy(custom_info_.attr_handle, op_attr_size, buffer.GetData(), op_attr_size,
-      ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(
+      aclrtMemcpy(custom_info_.attr_handle, op_attr_size, buffer.GetData(), op_attr_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
   GE_ASSERT_TRUE((io_addrs_.size() * kAddressLen) >= kernel_def.args().size());
   const errno_t sec_ret =
@@ -2075,10 +2076,11 @@ Status KernelTaskInfo::InitAICPUCustomTask(const OpDescPtr &op_desc, const domi:
 
   for (uint32_t i = 0U; i < kCustomAicpuArgsLen; ++i) {
     if (kernel_def.args().size() < (static_cast<size_t>(ctx_.argsOffset[static_cast<size_t>(i)]) + sizeof(uint64_t))) {
-      REPORT_INNER_ERR_MSG("E19999", "ctx.argsOffset[%u]: %u + sizeof(uint64_t): %zu >= kernelDef.args().size():%zu, "
-                         "op:%s(%s) check invalid", i, static_cast<uint32_t>(ctx_.argsOffset[static_cast<size_t>(i)]),
-                         sizeof(uint64_t), kernel_def.args().size(),
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "ctx.argsOffset[%u]: %u + sizeof(uint64_t): %zu >= kernelDef.args().size():%zu, "
+                           "op:%s(%s) check invalid",
+                           i, static_cast<uint32_t>(ctx_.argsOffset[static_cast<size_t>(i)]), sizeof(uint64_t),
+                           kernel_def.args().size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
       GELOGE(FAILED, "[Check][Param] ctx.argsOffset[%u]:%u + sizeof(uint64_t):%zu >= kernelDef.args().size():%zu", i,
              static_cast<uint32_t>(ctx_.argsOffset[static_cast<size_t>(i)]), sizeof(uint64_t),
              kernel_def.args().size());
@@ -2103,13 +2105,11 @@ Status KernelTaskInfo::InitAICPUCustomTask(const OpDescPtr &op_desc, const domi:
   std::stringstream ss;
   ss << "customized io_addrs info are size:" << io_addrs_.size()
      << ", arg_0 offset/pos/addr:" << ctx_.argsOffset[kArgsInputDesc] << "/" << input_desc_pos << "/"
-     << io_addrs_[input_desc_pos]
-     << ", arg_1 offset/pos/addr:" << ctx_.argsOffset[kArgsInputAddr] << "/" << input_addr_pos << "/"
-     << io_addrs_[input_addr_pos]
+     << io_addrs_[input_desc_pos] << ", arg_1 offset/pos/addr:" << ctx_.argsOffset[kArgsInputAddr] << "/"
+     << input_addr_pos << "/" << io_addrs_[input_addr_pos]
      << ", arg_2 offset/pos/addr:" << ctx_.argsOffset[kArgsOutputDesc] << "/" << output_desc_pos << "/"
-     << io_addrs_[output_desc_pos]
-     << ", arg_3 offset/pos/addr:" << ctx_.argsOffset[kArgsOutputAddr] << "/" << output_addr_pos << "/"
-     << io_addrs_[output_addr_pos]
+     << io_addrs_[output_desc_pos] << ", arg_3 offset/pos/addr:" << ctx_.argsOffset[kArgsOutputAddr] << "/"
+     << output_addr_pos << "/" << io_addrs_[output_addr_pos]
      << ", arg_4 offset/pos/addr:" << ctx_.argsOffset[kArgsAttrHandle] << "/" << attr_handle_pos << "/"
      << io_addrs_[attr_handle_pos];
   GELOGD("%s ", ss.str().c_str());
@@ -2117,12 +2117,10 @@ Status KernelTaskInfo::InitAICPUCustomTask(const OpDescPtr &op_desc, const domi:
   const std::vector<bool> need_raw_data_list = ModelUtils::GetInputTensorNeedRawData(op_desc);
   davinci_model_->SetZeroCopyAddr(op_desc, input_data_addrs_, input_data_addrs_.data(),
                                   static_cast<uintptr_t>(PtrToValue(custom_info_.input_addrs)),
-                                  input_data_addrs_.size() * kAddressLen, 0U,
-                                  need_raw_data_list);
+                                  input_data_addrs_.size() * kAddressLen, 0U, need_raw_data_list);
   davinci_model_->SetZeroCopyAddr(op_desc, output_data_addrs_, output_data_addrs_.data(),
                                   static_cast<uintptr_t>(PtrToValue(custom_info_.output_addrs)),
-                                  output_data_addrs_.size() * kAddressLen, 0U,
-                                  {});
+                                  output_data_addrs_.size() * kAddressLen, 0U, {});
   return SUCCESS;
 }
 
@@ -2229,8 +2227,8 @@ Status KernelTaskInfo::InitAicpuKfcTask(const domi::KernelDef &kernel_def) {
 
   args_ = ValueToPtr(PtrToValue(args_) + args_format_holder_.sink_tensor_size);
 
-  GELOGD("Init AicpuKfc Kernel successfully, Op:[%s], sink_tensor_size:[%zu]. ",
-      op_desc_->GetNamePtr(), args_format_holder_.sink_tensor_size);
+  GELOGD("Init AicpuKfc Kernel successfully, Op:[%s], sink_tensor_size:[%zu]. ", op_desc_->GetNamePtr(),
+         args_format_holder_.sink_tensor_size);
   GE_CHK_STATUS_RET(AssembleArgs(io_addrs_), "[Assemble][Addrs] failed, node: %s", op_desc_->GetName().c_str());
   return SUCCESS;
 }
@@ -2258,11 +2256,11 @@ void KernelTaskInfo::InitFusionDumpInfo(const OpDescPtr &op_desc, const domi::Ta
     fusion_op_info_.emplace_back(fusion_op_info);
   }
 
-  if ((davinci_model_->OpNeedDump(op_desc) && (!is_separately_clean_task_)) || davinci_model_->OpNeedPrint(op_desc)
-    || davinci_model_->OpNeedSetDumpFlagOnWatcherModel(op_desc->GetName())) {
+  if ((davinci_model_->OpNeedDump(op_desc) && (!is_separately_clean_task_)) || davinci_model_->OpNeedPrint(op_desc) ||
+      davinci_model_->OpNeedSetDumpFlagOnWatcherModel(op_desc->GetName())) {
     GELOGD("Op %s init dump flag", op_desc->GetName().c_str());
     dump_flag_ = IsL1OrUBFusionOp(op_desc) ? static_cast<uint32_t>(RT_FUSION_KERNEL_DUMPFLAG)
-                                       : static_cast<uint32_t>(RT_KERNEL_DUMPFLAG);
+                                           : static_cast<uint32_t>(RT_KERNEL_DUMPFLAG);
     is_data_dump_ = true;
   }
 }
@@ -2331,15 +2329,15 @@ Status KernelTaskInfo::InitAicpuTaskExtInfo(const std::string &ext_info) {
       if (is_optional_input_placeholder_ && (input_desc == nullptr)) continue;
       GE_CHECK_NOTNULL(input_desc);
       GE_CHK_STATUS_RET(ex_handle->UpdateInputShapeAndType(i, *input_desc),
-                        "[Call][UpdateInputShapeAndType] Input[%u] update input shape failed, op:%s.",
-                        i, op_desc_->GetName().c_str());
+                        "[Call][UpdateInputShapeAndType] Input[%u] update input shape failed, op:%s.", i,
+                        op_desc_->GetName().c_str());
     }
     for (uint32_t j = 0U; j < static_cast<uint32_t>(op_desc_->GetOutputsSize()); j++) {
       const auto output_desc = op_desc_->MutableOutputDesc(j);
       GE_CHECK_NOTNULL(output_desc);
       GE_CHK_STATUS_RET(ex_handle->UpdateOutputShapeAndType(j, *output_desc),
-                        "[Call][UpdateOutputShapeAndType] Output[%u] update output shape failed, op:%s.",
-                        j, op_desc_->GetName().c_str());
+                        "[Call][UpdateOutputShapeAndType] Output[%u] update output shape failed, op:%s.", j,
+                        op_desc_->GetName().c_str());
     }
   }
 
@@ -2360,12 +2358,12 @@ Status KernelTaskInfo::InitAicpuTaskExtInfo(const std::string &ext_info) {
   }
 
   (void)AttrUtils::GetBool(op_desc_, ATTR_NAME_IS_BLOCKING_OP, is_blocking_aicpu_op_);
-  GELOGI(
-      "op:%s ext_info: session_id: %" PRIu64 ", deploy_type_flag: %d, qos_level_flag: %u, all_shape: %d, "
-      "aicpu_workspace_type: %d, is_blocking_op:%d",
-      op_desc_->GetName().c_str(), davinci_model_->GetSessionId(), deploy_type_flag_, qos_level_flag_,
-      static_cast<int32_t>(all_shape), static_cast<int32_t>(has_space_type),
-      static_cast<int32_t>(is_blocking_aicpu_op_));
+  GELOGI("op:%s ext_info: session_id: %" PRIu64
+         ", deploy_type_flag: %d, qos_level_flag: %u, all_shape: %d, "
+         "aicpu_workspace_type: %d, is_blocking_op:%d",
+         op_desc_->GetName().c_str(), davinci_model_->GetSessionId(), deploy_type_flag_, qos_level_flag_,
+         static_cast<int32_t>(all_shape), static_cast<int32_t>(has_space_type),
+         static_cast<int32_t>(is_blocking_aicpu_op_));
 
   if (UpdateEventIdForAicpuBlockingOp(*ex_handle) != SUCCESS) {
     GELOGE(FAILED, "[Call][UpdateEventIdForAicpuBlockingOp] failed for op:%s(%s)", op_desc_->GetName().c_str(),
@@ -2381,13 +2379,13 @@ Status KernelTaskInfo::UpdateExtraInfo(const hybrid::AicpuExtInfoHandler &ext_ha
     aicpu_ext_info_addr_ = davinci_model_->MallocDynamicMemory(ext_handle.GetExtInfoLen(), RT_MEMORY_HOST_SVM);
     GE_ASSERT_NOTNULL(aicpu_ext_info_addr_);
     GE_CHK_ACL_RET(aclrtMemcpy(aicpu_ext_info_addr_, ext_handle.GetExtInfoLen(), ext_handle.GetExtInfo(),
-        ext_handle.GetExtInfoLen(), ACL_MEMCPY_HOST_TO_HOST));
+                               ext_handle.GetExtInfoLen(), ACL_MEMCPY_HOST_TO_HOST));
     GELOGI("op %s use host mem %p for ext info", op_desc_->GetName().c_str(), aicpu_ext_info_addr_);
   } else {
     aicpu_ext_info_addr_ = davinci_model_->MallocDynamicMemory(ext_handle.GetExtInfoLen());
     GE_ASSERT_NOTNULL(aicpu_ext_info_addr_);
     GE_CHK_ACL_RET(aclrtMemcpy(aicpu_ext_info_addr_, ext_handle.GetExtInfoLen(), ext_handle.GetExtInfo(),
-        ext_handle.GetExtInfoLen(), ACL_MEMCPY_HOST_TO_DEVICE));
+                               ext_handle.GetExtInfoLen(), ACL_MEMCPY_HOST_TO_DEVICE));
     GELOGI("op %s use device mem %p for ext info with flag %d", op_desc_->GetName().c_str(), aicpu_ext_info_addr_,
            deploy_type_flag_);
   }
@@ -2405,7 +2403,7 @@ Status KernelTaskInfo::StoreInputOutputTensor(const std::vector<uint64_t> &input
     custom_info_.input_descs = davinci_model_->MallocDynamicMemory(total_desc_size);
     GE_ASSERT_NOTNULL(custom_info_.input_descs);
     GE_CHK_ACL_RET(aclrtMemcpy(custom_info_.input_descs, total_desc_size, input_descs.data(), total_desc_size,
-        ACL_MEMCPY_HOST_TO_DEVICE));
+                               ACL_MEMCPY_HOST_TO_DEVICE));
 
     // inputAddrs
     GE_ASSERT_TRUE(customized_args_info_.input_addr_offset <= args_size_);
@@ -2420,7 +2418,7 @@ Status KernelTaskInfo::StoreInputOutputTensor(const std::vector<uint64_t> &input
     custom_info_.output_descs = davinci_model_->MallocDynamicMemory(total_desc_size);
     GE_ASSERT_NOTNULL(custom_info_.output_descs);
     GE_CHK_ACL_RET(aclrtMemcpy(custom_info_.output_descs, total_desc_size, output_descs.data(),
-        sizeof(ccAICPUTensor) * output_size, ACL_MEMCPY_HOST_TO_DEVICE));
+                               sizeof(ccAICPUTensor) * output_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
     // outputAddrs
     GE_ASSERT_TRUE(customized_args_info_.output_addr_offset <= args_size_);
@@ -2448,8 +2446,8 @@ Status KernelTaskInfo::AssembleKernelNamesAndLaunch() {
       launch_addr_ = davinci_model_->MallocDynamicMemory(total_launch_size, RT_MEMORY_HOST_SVM);
     }
     GE_ASSERT_NOTNULL(launch_addr_);
-    GE_CHK_ACL_RET(aclrtMemcpy(launch_addr_, launch_info.size(), launch_info.c_str(),
-        launch_info.size(), ACL_MEMCPY_HOST_TO_HOST));
+    GE_CHK_ACL_RET(aclrtMemcpy(launch_addr_, launch_info.size(), launch_info.c_str(), launch_info.size(),
+                               ACL_MEMCPY_HOST_TO_HOST));
     launch_name.soName = PtrToPtr<void, const char>(launch_addr_);
     launch_name.kernelName = PtrAdd(PtrToPtr<void, const char>(launch_addr_), total_launch_size, so_name_.size());
     launch_name.opName =
@@ -2462,8 +2460,8 @@ Status KernelTaskInfo::AssembleKernelNamesAndLaunch() {
     GELOGI("Using host mem info: kernel_name_arg_ %p, so_name_host_ %p, kernel_name_host_ %p, op_name_host_ %p",
            kernel_name_arg_, launch_name.soName, launch_name.kernelName, launch_name.opName);
     GE_CHK_ACL_RET(aclrtMemcpy(kernel_name_arg_, sizeof(rtKernelLaunchNames_t),
-        PtrToPtr<rtKernelLaunchNames_t, void>(&launch_name), sizeof(rtKernelLaunchNames_t),
-        ACL_MEMCPY_HOST_TO_HOST));
+                               PtrToPtr<rtKernelLaunchNames_t, void>(&launch_name), sizeof(rtKernelLaunchNames_t),
+                               ACL_MEMCPY_HOST_TO_HOST));
   } else {
     launch_name.soName = so_name_.c_str();
     launch_name.kernelName = kernel_name_.c_str();
@@ -2546,9 +2544,8 @@ Status KernelTaskInfo::UpdateArgsSizeWithCustomized(const OpDescPtr &op_desc) {
   customized_args_info_.input_addr_offset = args_size_;
   GE_ASSERT_TRUE(!AddOverflow(args_size_, customized_args_info_.input_addr_size, args_size_));
 
-  GE_ASSERT_TRUE(
-      !ge::MulOverflow(ModelUtils::GetOutputDescs(op_desc).size(),
-                       kAddressLen, customized_args_info_.output_addr_size));
+  GE_ASSERT_TRUE(!ge::MulOverflow(ModelUtils::GetOutputDescs(op_desc).size(), kAddressLen,
+                                  customized_args_info_.output_addr_size));
   customized_args_info_.output_addr_offset = args_size_;
   GE_ASSERT_TRUE(!AddOverflow(args_size_, customized_args_info_.input_addr_size, args_size_));
 
@@ -2571,7 +2568,7 @@ Status KernelTaskInfo::ParseAicpuExtInfoHandler(const OpDescPtr &op_desc, const 
   (void)AttrUtils::GetInt(op_desc, ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
   const auto unknown_type = static_cast<UnknowShapeOpType>(unknown_shape_type_val);
   const uint32_t num_inputs =
-    static_cast<uint32_t>(is_optional_input_placeholder_ ? op_desc->GetAllInputsSize() : op_desc->GetInputsSize());
+      static_cast<uint32_t>(is_optional_input_placeholder_ ? op_desc->GetAllInputsSize() : op_desc->GetInputsSize());
   const uint32_t num_outputs = static_cast<uint32_t>(op_desc->GetOutputsSize());
 
   ex_handle = MakeUnique<hybrid::AicpuExtInfoHandler>(op_desc->GetName(), num_inputs, num_outputs, unknown_type);

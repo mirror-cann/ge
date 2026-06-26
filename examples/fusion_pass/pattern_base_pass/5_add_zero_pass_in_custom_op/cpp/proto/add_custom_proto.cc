@@ -9,6 +9,4 @@
  */
 
 #include "add_custom_proto.h"
-namespace ge {
-
-}
+namespace ge {}

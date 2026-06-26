@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,8 @@ struct OpL2DataInfo {
 
 // data allocation info in l2 buffer
 struct TensorL2AllocInfo {
-  TensorL2DataInfo data;    // init data info
-  uint64_t l2PageNum;  // available l2 buffer size
+  TensorL2DataInfo data;  // init data info
+  uint64_t l2PageNum;     // available l2 buffer size
   int32_t data_in_l2_id;
   uint64_t data_in_l2_addr;  // l2 addr
 
@@ -76,7 +76,9 @@ using TensorL2AllocPair = std::pair<uint64_t, TensorL2AllocInfo>;
 using TensorL2AllocMap = std::map<uint64_t, TensorL2AllocInfo>;
 
 struct OpL2AllocInfo {
-  ~OpL2AllocInfo() { clear(); }
+  ~OpL2AllocInfo() {
+    clear();
+  }
   void clear() {
     standing_data.clear();
     input.clear();

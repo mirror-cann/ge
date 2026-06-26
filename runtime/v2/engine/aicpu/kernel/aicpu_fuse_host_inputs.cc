@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ constexpr size_t kMaxTotalHostLen = 128U;
 ge::graphStatus CopyTensorToDevice(KernelContext *context, const GertTensorData &src_tensor, const size_t src_len,
                                    const size_t dst_len, GertTensorData &dst_tensor) {
   auto stream = context->GetInputValue<rtStream_t>(static_cast<size_t>(AicpuFuseHostInputs::kStream));
-  auto gert_allocator = context->MutableInputPointer<GertAllocator>(
-      static_cast<size_t>(AicpuFuseHostInputs::kAllocator));
+  auto gert_allocator =
+      context->MutableInputPointer<GertAllocator>(static_cast<size_t>(AicpuFuseHostInputs::kAllocator));
   GE_ASSERT_NOTNULL(gert_allocator);
 
   auto mem_block = reinterpret_cast<memory::MultiStreamMemBlock *>(gert_allocator->Malloc(dst_len));
@@ -58,7 +58,7 @@ ge::graphStatus CopyTensorToDevice(KernelContext *context, const GertTensorData 
 }
 }  // namespace
 ge::graphStatus CreateOutputForAicpuFuseHost(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   for (size_t i = 0U; i < context->GetOutputNum(); ++i) {
     auto chain = context->GetOutput(i);
     auto tensor_data = ge::MakeUnique<GertTensorData>(0, kOnHost, -1, nullptr);
@@ -79,7 +79,7 @@ ge::graphStatus AicpuFuseHost(KernelContext *context) {
   const size_t output_num = context->GetOutputNum();
   args_handle->ResetHostInputInfo();
   for (size_t i = 0U; i < output_num; ++i) {
-    const auto addr_index = static_cast<size_t>(AicpuFuseHostInputs::kAddrAndLengthStart) +  i * kSizeOfCopyToDevice;
+    const auto addr_index = static_cast<size_t>(AicpuFuseHostInputs::kAddrAndLengthStart) + i * kSizeOfCopyToDevice;
     const auto tensor_data = context->GetInputPointer<GertTensorData>(addr_index);
     const auto out_tensor_data = context->GetOutputPointer<GertTensorData>(i);
     GE_ASSERT_NOTNULL(tensor_data);
@@ -88,20 +88,20 @@ ge::graphStatus AicpuFuseHost(KernelContext *context) {
     if (TensorPlacementUtils::IsOnDevice(tensor_data->GetPlacement())) {
       out_tensor_data->ShareFrom(*tensor_data);
     } else if (TensorPlacementUtils::IsOnHost(tensor_data->GetPlacement())) {
-      const auto tensor_size = context->GetInputValue<size_t>(addr_index + 1U); // tensor size offset
-      const auto storage_shape = context->GetInputPointer<StorageShape>(addr_index + 2U); // shape offset
-      const auto data_type = context->GetInputValue<ge::DataType>(addr_index + 3U); // dtype offset
+      const auto tensor_size = context->GetInputValue<size_t>(addr_index + 1U);            // tensor size offset
+      const auto storage_shape = context->GetInputPointer<StorageShape>(addr_index + 2U);  // shape offset
+      const auto data_type = context->GetInputValue<ge::DataType>(addr_index + 3U);        // dtype offset
       GE_ASSERT_NOTNULL(storage_shape);
 
       const auto &src_shape = storage_shape->GetStorageShape();
       const auto host_tensor_size = ge::GetSizeInBytes(src_shape.GetShapeSize(), data_type);
       GE_ASSERT_TRUE(host_tensor_size >= 0);
-      const size_t align_size = ge::RoundUp(static_cast<uint64_t>(host_tensor_size),
-                                            args_handle->GetInputAddrAlignBytes());
+      const size_t align_size =
+          ge::RoundUp(static_cast<uint64_t>(host_tensor_size), args_handle->GetInputAddrAlignBytes());
       if (args_handle->GetHostInputSize() + align_size <= kMaxTotalHostLen) {
         out_tensor_data->SetPlacement(kOnHost);
-        GE_ASSERT_SUCCESS(args_handle->AddHostInput(*(input_indexes + i), tensor_data->GetAddr(), host_tensor_size,
-                                                    align_size));
+        GE_ASSERT_SUCCESS(
+            args_handle->AddHostInput(*(input_indexes + i), tensor_data->GetAddr(), host_tensor_size, align_size));
       } else {
         GELOGD("Total host memory input size larger than range is %zu, no need optimize", kMaxTotalHostLen);
         GE_ASSERT_SUCCESS(CopyTensorToDevice(context, *tensor_data, static_cast<size_t>(host_tensor_size), tensor_size,

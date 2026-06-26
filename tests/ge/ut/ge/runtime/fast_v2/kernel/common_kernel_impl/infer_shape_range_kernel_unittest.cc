@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,27 +22,29 @@ namespace gert {
 namespace kernel {
 ge::graphStatus InferShapeRange(KernelContext *context);
 ge::graphStatus CreateTensorRangesAndShapeRanges(KernelContext *context);
-}
+}  // namespace kernel
 struct InferShapeRangeKernelTest : public testing::Test {
-  KernelRegistry& registry = KernelRegistry::GetInstance();
+  KernelRegistry &registry = KernelRegistry::GetInstance();
 };
 
-ge::graphStatus CopyInferShapeRange(InferShapeRangeContext* context){
+ge::graphStatus CopyInferShapeRange(InferShapeRangeContext *context) {
   auto input = context->GetInputShapeRange(0);
   auto output = context->GetOutputShapeRange(0);
   *output = *input;
   return ge::GRAPH_SUCCESS;
 }
 
-UINT32 StubInfershapeRange(InferShapeRangeContext *context){
+UINT32 StubInfershapeRange(InferShapeRangeContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
 TEST_F(InferShapeRangeKernelTest, FindInferShapeRangeFunc_Success) {
   auto run_context = BuildKernelRunContext(2, 3);
   const char *node_type = "stub_infer_shape_range";
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape_range
-      = StubInfershapeRange;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
+      ->infer_shape_range = StubInfershapeRange;
   auto space_registry = std::make_shared<OpImplSpaceRegistryV2>();
   ASSERT_NE(space_registry, nullptr);
   space_registry->CreateOrGetOpImpl(node_type)->infer_shape_range = StubInfershapeRange;
@@ -50,9 +52,11 @@ TEST_F(InferShapeRangeKernelTest, FindInferShapeRangeFunc_Success) {
   run_context.value_holder[0].Set(const_cast<char *>(node_type), nullptr);
   run_context.value_holder[1].Set(space_registry.get(), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("FindInferShapeRangeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
-  ASSERT_EQ(run_context.value_holder[2].GetValue<void *>(), reinterpret_cast<void*>(StubInfershapeRange));
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape_range
-      = nullptr;
+  ASSERT_EQ(run_context.value_holder[2].GetValue<void *>(), reinterpret_cast<void *>(StubInfershapeRange));
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
+      ->infer_shape_range = nullptr;
 }
 
 TEST_F(InferShapeRangeKernelTest, FindInferShapeRangeFunc_InputEmptyFailed) {
@@ -73,7 +77,7 @@ TEST_F(InferShapeRangeKernelTest, FindInferShapeRangeFunc_Failed) {
   ASSERT_NE(registry.FindKernelFuncs("FindInferShapeRangeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-UINT32 StubFailedInfershapeRange(InferShapeContext *){
+UINT32 StubFailedInfershapeRange(InferShapeContext *) {
   return 0x01;
 }
 
@@ -90,7 +94,7 @@ TEST_F(InferShapeRangeKernelTest, InferShapeRange_InferFuncNotExistFailed) {
 
 TEST_F(InferShapeRangeKernelTest, InferShapeRange_InferFuncFailed) {
   auto run_context = BuildKernelRunContext(2, 3);
-  run_context.value_holder[1].Set(reinterpret_cast<void*>(StubFailedInfershapeRange), nullptr);
+  run_context.value_holder[1].Set(reinterpret_cast<void *>(StubFailedInfershapeRange), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("InferShapeRange")->run_func(run_context), 0x01);
   registry.FindKernelFuncs("InferShapeRange")->trace_printer(run_context);
 }
@@ -103,8 +107,7 @@ TEST_F(InferShapeRangeKernelTest, CreateTensorRangesAndShapeRanges_Success) {
   run_context.value_holder[1].Set(reinterpret_cast<void *>(&input2), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("CreateTensorRangesAndShapeRanges")->outputs_creator(nullptr, run_context),
             ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("CreateTensorRangesAndShapeRanges")->run_func(run_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateTensorRangesAndShapeRanges")->run_func(run_context), ge::GRAPH_SUCCESS);
 
   auto out1 = run_context.value_holder[2].GetPointer<Range<Shape>>();
   auto out2 = run_context.value_holder[3].GetPointer<Range<Shape>>();
@@ -122,13 +125,11 @@ TEST_F(InferShapeRangeKernelTest, InferShapeRange_BuildOutputsSuccess) {
   Shape min{2, 8, 224, 224};
   Shape max{2, 8, 224, 16, 16};
   auto input1 = Range<Shape>(&min, &max);
-  auto run_context = KernelRunContextFaker().IrInstanceNum({1}).NodeIoNum(1,1).KernelIONum(2, 3).Build();
+  auto run_context = KernelRunContextFaker().IrInstanceNum({1}).NodeIoNum(1, 1).KernelIONum(2, 3).Build();
   run_context.value_holder[0].Set(reinterpret_cast<void *>(&input1), nullptr);
   run_context.value_holder[1].Set(reinterpret_cast<void *>(StubInfershapeRange), nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("InferShapeRange")->outputs_creator(nullptr, run_context),
-            ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("InferShapeRange")->run_func(run_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("InferShapeRange")->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("InferShapeRange")->run_func(run_context), ge::GRAPH_SUCCESS);
   registry.FindKernelFuncs("InferShapeRange")->trace_printer(run_context);
   auto out1 = run_context.value_holder[2].GetPointer<Range<Shape>>();
   auto out2 = run_context.value_holder[3].GetPointer<Shape>();
@@ -156,8 +157,7 @@ TEST_F(InferShapeRangeKernelTest, CreateTensorRangesAndShapeRanges_InputChangeSu
   StorageShape actual_input2 = {{6, 8}, {2, 4}};
   run_context.value_holder[0].Set(reinterpret_cast<void *>(&actual_input1), nullptr);
   run_context.value_holder[1].Set(reinterpret_cast<void *>(&actual_input2), nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("CreateTensorRangesAndShapeRanges")->run_func(run_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateTensorRangesAndShapeRanges")->run_func(run_context), ge::GRAPH_SUCCESS);
 
   auto out1 = run_context.value_holder[2].GetPointer<Range<Shape>>();
   auto out2 = run_context.value_holder[3].GetPointer<Range<Shape>>();
@@ -170,4 +170,4 @@ TEST_F(InferShapeRangeKernelTest, CreateTensorRangesAndShapeRanges_InputChangeSu
   run_context.FreeValue(2);
   run_context.FreeValue(3);
 }
-}
+}  // namespace gert

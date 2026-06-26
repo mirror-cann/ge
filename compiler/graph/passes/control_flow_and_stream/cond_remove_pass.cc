@@ -25,7 +25,7 @@ const uint32_t kFalseIndex = 0;
 /// Extra 1 byte store '\0'
 const size_t kStrHeadLen = sizeof(ge::StringHead) + 1U;
 const int32_t kInvalidRetVal = -1;
-}
+}  // namespace
 
 namespace ge {
 Status CondRemovePass::Run(NodePtr &node) {
@@ -84,10 +84,10 @@ Status CondRemovePass::RemoveDeadCondLink(const int32_t index, const NodePtr &no
   GE_ASSERT_NOTNULL(peerout_anchor);
   if (GraphUtils::RemoveEdge(peerout_anchor, in_anchor) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Remove edge between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-                      peerout_anchor->GetOwnerNode()->GetName().c_str(),
-                      peerout_anchor->GetOwnerNode()->GetType().c_str(), peerout_anchor->GetIdx(),
-                      in_anchor->GetOwnerNode()->GetName().c_str(), in_anchor->GetOwnerNode()->GetType().c_str(),
-                      in_anchor->GetIdx());
+                         peerout_anchor->GetOwnerNode()->GetName().c_str(),
+                         peerout_anchor->GetOwnerNode()->GetType().c_str(), peerout_anchor->GetIdx(),
+                         in_anchor->GetOwnerNode()->GetName().c_str(), in_anchor->GetOwnerNode()->GetType().c_str(),
+                         in_anchor->GetIdx());
     GELOGE(FAILED, "[Remove][Edge] from node %s index %d to node %s index %d.",
            peerout_anchor->GetOwnerNode()->GetName().c_str(), peerout_anchor->GetIdx(),
            in_anchor->GetOwnerNode()->GetName().c_str(), in_anchor->GetIdx());
@@ -101,8 +101,8 @@ Status CondRemovePass::GetCaseChosenBranch(const NodePtr &node, const uint32_t c
   uint32_t subgraph_names_size = static_cast<uint32_t>(node->GetOpDesc()->GetSubgraphInstanceNames().size());
   uint32_t cond_index_new = cond_index;
   if (subgraph_names_size == 0) {
-    REPORT_INNER_ERR_MSG("E19999", "subgraph size of op:%s(%s) is 0, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "subgraph size of op:%s(%s) is 0, check invalid", node->GetName().c_str(),
+                         node->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Node %s has none subgraph.", node->GetName().c_str());
     return ge::FAILED;
   }
@@ -112,8 +112,8 @@ Status CondRemovePass::GetCaseChosenBranch(const NodePtr &node, const uint32_t c
   }
   const auto &chosen_branch_name = node->GetOpDesc()->GetSubgraphInstanceName(cond_index_new);
   if (chosen_branch_name.empty()) {
-    REPORT_INNER_ERR_MSG("E19999", "Get subgraph name from op:%s(%s) by index:%u failed",
-                       node->GetName().c_str(), node->GetType().c_str(), cond_index_new);
+    REPORT_INNER_ERR_MSG("E19999", "Get subgraph name from op:%s(%s) by index:%u failed", node->GetName().c_str(),
+                         node->GetType().c_str(), cond_index_new);
     GELOGE(FAILED, "[Get][SubGraph] Node %s has no subgraph, index is %u.", node->GetName().c_str(), cond_index_new);
     return ge::FAILED;
   }
@@ -124,13 +124,12 @@ Status CondRemovePass::GetCaseChosenBranch(const NodePtr &node, const uint32_t c
   return ge::SUCCESS;
 }
 
-Status CondRemovePass::GetIfChosenBranch(const NodePtr &node, const uint32_t cond,
-                                         ComputeGraphPtr &compute_graph) {
+Status CondRemovePass::GetIfChosenBranch(const NodePtr &node, const uint32_t cond, ComputeGraphPtr &compute_graph) {
   uint32_t subgraph_names_size = static_cast<uint32_t>(node->GetOpDesc()->GetSubgraphInstanceNames().size());
   uint32_t cond_index_new = 0;
   if (subgraph_names_size == 0) {
-    REPORT_INNER_ERR_MSG("E19999", "subgraph size of op:%s(%s) is 0, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "subgraph size of op:%s(%s) is 0, check invalid", node->GetName().c_str(),
+                         node->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Node %s has none subgraph.", node->GetName().c_str());
     return ge::FAILED;
   }
@@ -140,16 +139,15 @@ Status CondRemovePass::GetIfChosenBranch(const NodePtr &node, const uint32_t con
   }
   const auto &chosen_branch_name = node->GetOpDesc()->GetSubgraphInstanceName(cond_index_new);
   if (chosen_branch_name.empty()) {
-    REPORT_INNER_ERR_MSG("E19999", "Get subgraph name from op:%s(%s) by index:%u failed",
-                       node->GetName().c_str(), node->GetType().c_str(), cond_index_new);
+    REPORT_INNER_ERR_MSG("E19999", "Get subgraph name from op:%s(%s) by index:%u failed", node->GetName().c_str(),
+                         node->GetType().c_str(), cond_index_new);
     GELOGE(FAILED, "[Get][SubGraph] Node %s has no subgraph, index is %u.", node->GetName().c_str(), cond_index_new);
     return ge::FAILED;
   }
   auto chosen_graph = GraphUtils::FindRootGraph(node->GetOwnerComputeGraph())->GetSubgraph(chosen_branch_name);
   if (chosen_graph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999",
-                       "Find subgraph by name:%s from node:%s(%s)'s root_graph failed",
-                       chosen_branch_name.c_str(), node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Find subgraph by name:%s from node:%s(%s)'s root_graph failed",
+                         chosen_branch_name.c_str(), node->GetName().c_str(), node->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Cannot find branch %s in node %s's parent graph %s.", chosen_branch_name.c_str(),
            node->GetName().c_str(), node->GetOwnerComputeGraph()->GetName().c_str());
     return ge::FAILED;
@@ -172,35 +170,34 @@ int32_t CondRemovePass::GetCondIndex(const GeTensor *tensor) {
     case DT_STRING:
       return (tensor_size > kStrHeadLen) ? kTrueIndex : kFalseIndex;
     case DT_BOOL:
-      return (tensor_size >= sizeof(bool)) ?
-        static_cast<int32_t>(*reinterpret_cast<const bool *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(bool)) ? static_cast<int32_t>(*reinterpret_cast<const bool *>(data_ptr))
+                                           : kInvalidRetVal;
     case DT_FLOAT:
-      return (tensor_size >= sizeof(float)) ?
-        static_cast<int32_t>(*reinterpret_cast<const float *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(float)) ? static_cast<int32_t>(*reinterpret_cast<const float *>(data_ptr))
+                                            : kInvalidRetVal;
     case DT_DOUBLE:
-      return (tensor_size >= sizeof(double)) ?
-        static_cast<int32_t>(*reinterpret_cast<const double *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(double)) ? static_cast<int32_t>(*reinterpret_cast<const double *>(data_ptr))
+                                             : kInvalidRetVal;
     case DT_INT8:
     case DT_UINT8:
     case DT_HIFLOAT8:
     case DT_HIFLOAT4:
     case DT_FLOAT8_E5M2:
     case DT_FLOAT8_E4M3FN:
-      return (tensor_size >= sizeof(uint8_t)) ?
-        static_cast<int32_t>(*data_ptr) : kInvalidRetVal;
+      return (tensor_size >= sizeof(uint8_t)) ? static_cast<int32_t>(*data_ptr) : kInvalidRetVal;
     case DT_FLOAT16:
     case DT_INT16:
     case DT_UINT16:
-      return (tensor_size >= sizeof(int16_t)) ?
-        static_cast<int32_t>(*reinterpret_cast<const int16_t *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(int16_t)) ? static_cast<int32_t>(*reinterpret_cast<const int16_t *>(data_ptr))
+                                              : kInvalidRetVal;
     case DT_INT32:
     case DT_UINT32:
-      return (tensor_size >= sizeof(int32_t)) ?
-        static_cast<int32_t>(*reinterpret_cast<const int32_t *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(int32_t)) ? static_cast<int32_t>(*reinterpret_cast<const int32_t *>(data_ptr))
+                                              : kInvalidRetVal;
     case DT_INT64:
     case DT_UINT64:
-      return (tensor_size >= sizeof(int64_t)) ?
-        static_cast<int32_t>(*reinterpret_cast<const int64_t *>(data_ptr)) : kInvalidRetVal;
+      return (tensor_size >= sizeof(int64_t)) ? static_cast<int32_t>(*reinterpret_cast<const int64_t *>(data_ptr))
+                                              : kInvalidRetVal;
     default:
       return (tensor_size >= sizeof(uint8_t)) ? static_cast<int32_t>(*data_ptr) : kInvalidRetVal;
   }
@@ -254,8 +251,7 @@ bool CondRemovePass::CheckIfCondConstInput(const OutDataAnchorPtr &cond_out_anch
   return true;
 }
 
-Status CondRemovePass::ReplaceIfCaseNodeWithPartitioncall(const NodePtr &node,
-                                                          const ComputeGraphPtr &save_branch) {
+Status CondRemovePass::ReplaceIfCaseNodeWithPartitioncall(const NodePtr &node, const ComputeGraphPtr &save_branch) {
   // Add compute graph to new node
   const auto &input_desc_size = node->GetOpDesc()->GetInputsSize();
   const auto &output_desc_size = node->GetOpDesc()->GetOutputsSize();
@@ -273,14 +269,13 @@ Status CondRemovePass::ReplaceIfCaseNodeWithPartitioncall(const NodePtr &node,
                                                                          : input_anchor->GetIdx()));
       if (ret != ge::GRAPH_SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-                          peerout_anchor->GetOwnerNode()->GetName().c_str(),
-                          peerout_anchor->GetOwnerNode()->GetType().c_str(), peerout_anchor->GetIdx(),
-                          partitioncall_node->GetName().c_str(),
-                          partitioncall_node->GetType().c_str(), input_anchor->GetIdx());
+                             peerout_anchor->GetOwnerNode()->GetName().c_str(),
+                             peerout_anchor->GetOwnerNode()->GetType().c_str(), peerout_anchor->GetIdx(),
+                             partitioncall_node->GetName().c_str(), partitioncall_node->GetType().c_str(),
+                             input_anchor->GetIdx());
         GELOGE(FAILED, "[Add][Edge] failed, from node:%s idx:%d to node:%s idx:%d, input num:%zu, output num:%zu",
                peerout_anchor->GetOwnerNode()->GetName().c_str(), peerout_anchor->GetIdx(),
-               partitioncall_node->GetName().c_str(), input_anchor->GetIdx(), input_desc_size,
-               output_desc_size);
+               partitioncall_node->GetName().c_str(), input_anchor->GetIdx(), input_desc_size, output_desc_size);
         return FAILED;
       }
     }
@@ -291,9 +286,9 @@ Status CondRemovePass::ReplaceIfCaseNodeWithPartitioncall(const NodePtr &node,
     for (const auto &peerin_anchor : output_anchor->GetPeerAnchors()) {
       if (GraphUtils::RemoveEdge(node->GetOutAnchor(output_anchor->GetIdx()), peerin_anchor) != ge::GRAPH_SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Remove edge between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-                          node->GetName().c_str(), node->GetType().c_str(), output_anchor->GetIdx(),
-                          peerin_anchor->GetOwnerNode()->GetName().c_str(),
-                          peerin_anchor->GetOwnerNode()->GetType().c_str(), peerin_anchor->GetIdx());
+                             node->GetName().c_str(), node->GetType().c_str(), output_anchor->GetIdx(),
+                             peerin_anchor->GetOwnerNode()->GetName().c_str(),
+                             peerin_anchor->GetOwnerNode()->GetType().c_str(), peerin_anchor->GetIdx());
         GELOGE(FAILED, "[Remove][Edge] failed, from node:%s idx:%d to node:%s idx:%d, input num:%zu, output num:%zu",
                node->GetName().c_str(), output_anchor->GetIdx(), peerin_anchor->GetOwnerNode()->GetName().c_str(),
                peerin_anchor->GetIdx(), input_desc_size, output_desc_size);
@@ -302,10 +297,9 @@ Status CondRemovePass::ReplaceIfCaseNodeWithPartitioncall(const NodePtr &node,
       if (GraphUtils::AddEdge(partitioncall_node->GetOutAnchor(output_anchor->GetIdx()), peerin_anchor) !=
           ge::GRAPH_SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Remove edge between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-                          partitioncall_node->GetName().c_str(),
-                          partitioncall_node->GetType().c_str(), output_anchor->GetIdx(),
-                          peerin_anchor->GetOwnerNode()->GetName().c_str(),
-                          peerin_anchor->GetOwnerNode()->GetType().c_str(), peerin_anchor->GetIdx());
+                             partitioncall_node->GetName().c_str(), partitioncall_node->GetType().c_str(),
+                             output_anchor->GetIdx(), peerin_anchor->GetOwnerNode()->GetName().c_str(),
+                             peerin_anchor->GetOwnerNode()->GetType().c_str(), peerin_anchor->GetIdx());
         GELOGE(FAILED, "[Add][Edge] failed, from node:%s idx:%d to node:%s idx:%d, input num:%zu, output num:%zu",
                partitioncall_node->GetName().c_str(), output_anchor->GetIdx(),
                peerin_anchor->GetOwnerNode()->GetName().c_str(), peerin_anchor->GetIdx(), input_desc_size,
@@ -394,4 +388,4 @@ Status CondRemovePass::GetCondInfo(const NodePtr &node, ComputeGraphPtr &graph, 
 }
 
 REG_PASS_OPTION("CondRemovePass").LEVELS(OoLevel::kO1).SWITCH_OPT(ge::OO_DEAD_CODE_ELIMINATION);
-}
+}  // namespace ge

@@ -8,9 +8,9 @@
 
 ```
 ├── src
-│   ├──fuse_matmul_add_pass.cpp  // pass实现文件 
+│   ├──fuse_matmul_add_pass.cpp  // pass实现文件
 ├── CMakeLists.txt               // 编译脚本
-├── data         
+├── data
 │   ├──tensorflow_generate.py    // 生成.pb格式的TensorFlow模型用于离线推理
 |   ├──tf_forward.py             // TF在线构出原图后进行自定义pass和其他框架内置pass优化，然后执行优化后的图得到结果
 ```
@@ -153,4 +153,3 @@
        Find dst node: Add.
        FuseMatMulAndAddPass end.
        ```
-

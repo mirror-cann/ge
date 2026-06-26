@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,6 +31,7 @@ namespace ge {
 class UtDeviceDebugConfig : public testing::Test {
  public:
   UtDeviceDebugConfig() {}
+
  protected:
   void SetUp() override {
     GEContext().Init();
@@ -48,7 +49,7 @@ const std::vector<std::string> kLogEnvNames = {kLogLevelEnvName, kLogEventEnable
 const char_t *const kDumpoff = "off";
 const char_t *const kDumpOn = "on";
 constexpr const char_t *kExceptionDumpPath = "NPU_COLLECT_PATH_EXE";
-}
+}  // namespace
 
 TEST_F(UtDeviceDebugConfig, DeviceDebugConfigMasterLogEncodeDecode) {
   // init log env
@@ -78,7 +79,7 @@ TEST_F(UtDeviceDebugConfig, DeviceDebugConfigMasterLogEncodeDecode) {
   EXPECT_EQ(args_option.empty(), true);
   EXPECT_EQ(env_option.size(), kLogEnvNames.size());
   for (size_t id = 0; id < kLogEnvNames.size(); id++) {
-    EXPECT_EQ(env_option[kLogEnvNames[id]] ==  std::to_string(expect_env_val++), true);
+    EXPECT_EQ(env_option[kLogEnvNames[id]] == std::to_string(expect_env_val++), true);
   }
 
   for (const auto &env_name : kLogEnvNames) {
@@ -120,7 +121,7 @@ TEST_F(UtDeviceDebugConfig, DeviceDebugConfigMasterDumpEncodeDecode) {
   EXPECT_EQ(args_option[OPTION_EXEC_ENABLE_DUMP_DEBUG].empty(), true);
   EXPECT_EQ(args_option[OPTION_EXEC_DUMP_STEP] == conf.dump_step, true);
   EXPECT_EQ(args_option[kHostMasterPidName] == std::to_string(getpid()), true);
-  EXPECT_EQ(args_option[OPTION_EXEC_DUMP_MODE] ==  conf.dump_mode, true);
+  EXPECT_EQ(args_option[OPTION_EXEC_DUMP_MODE] == conf.dump_mode, true);
 }
 
 TEST_F(UtDeviceDebugConfig, DeviceDebugConfigMasterDumpEncodeDecodeExceptionDump) {
@@ -189,21 +190,18 @@ TEST_F(UtDeviceDebugConfig, DeviceDebugConfigUtilsEncodeDecode) {
       {"InvalidEnv", "4"},
   };
   std::map<std::string, std::string> args_option = {
-      {OPTION_EXEC_ENABLE_DUMP, "0"},
-      {OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-      {kHostMasterPidName, "2"},
-      {OPTION_EXEC_DUMP_STEP, "3"},
-      {OPTION_EXEC_DUMP_MODE, "4"},
+      {OPTION_EXEC_ENABLE_DUMP, "0"}, {OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"}, {kHostMasterPidName, "2"},
+      {OPTION_EXEC_DUMP_STEP, "3"},   {OPTION_EXEC_DUMP_MODE, "4"},
   };
   setenv(kLogLevelEnvName.c_str(), env_option[kLogLevelEnvName].c_str(), 1);
   setenv(kLogEventEnableEnvName.c_str(), env_option[kLogEventEnableEnvName].c_str(), 1);
   setenv(kLogHostFileNumEnvName.c_str(), env_option[kLogHostFileNumEnvName].c_str(), 1);
 
-  char_t * level_val = std::getenv(kLogLevelEnvName.c_str());
+  char_t *level_val = std::getenv(kLogLevelEnvName.c_str());
   EXPECT_EQ(atoi(level_val), 1);
-  char_t * log_enable = std::getenv(kLogEventEnableEnvName.c_str());
+  char_t *log_enable = std::getenv(kLogEventEnableEnvName.c_str());
   EXPECT_EQ(atoi(log_enable), 2);
-  char_t * log_host_file_num = std::getenv(kLogHostFileNumEnvName.c_str());
+  char_t *log_host_file_num = std::getenv(kLogHostFileNumEnvName.c_str());
   EXPECT_EQ(atoi(log_host_file_num), 3);
 
   // set args option
@@ -226,5 +224,4 @@ TEST_F(UtDeviceDebugConfig, DeviceDebugConfigUtilsEncodeDecode) {
   EXPECT_EQ(daemon.args_option_[OPTION_EXEC_DUMP_MODE] == args_option[OPTION_EXEC_DUMP_MODE], true);
 }
 
-}
-
+}  // namespace ge

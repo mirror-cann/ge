@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,6 @@ const std::map<DataFlowAttrType, FlowAttrUtil::SetAttrFunc> FlowAttrUtil::set_at
     {DataFlowAttrType::COUNT_BATCH, &FlowAttrUtil::SetCountBatchAttr},
     {DataFlowAttrType::TIME_BATCH, &FlowAttrUtil::SetTimeBatchAttr},
 };
-
 
 bool FlowAttrUtil::CheckAttrsIsSupport(const std::vector<DataFlowInputAttr> &attrs) {
   bool count_batch = false;
@@ -78,13 +77,14 @@ graphStatus FlowAttrUtil::SetCountBatchAttr(const void *const attr_value, GeTens
 
   GE_ASSERT_TRUE(ge::AttrUtils::SetBool(tensor_desc, ATTR_NAME_COUNT_BATCH_PADDING, count_batch->padding));
 
-  GE_ASSERT_TRUE(ge::AttrUtils::SetBool(tensor_desc, ATTR_NAME_COUNT_BATCH_DROP_REMAINDER,
-                                        count_batch->drop_remainder));
+  GE_ASSERT_TRUE(
+      ge::AttrUtils::SetBool(tensor_desc, ATTR_NAME_COUNT_BATCH_DROP_REMAINDER, count_batch->drop_remainder));
 
-  GELOGI("set count batch attr: batch_size(%ld), slide_stride(%ld), timeout(%ld), "
-         "batch_dim(%ld), flag(%d), padding(%d), drop_remainder(%d)", count_batch->batch_size,
-         count_batch->slide_stride, count_batch->timeout, count_batch->batch_dim, count_batch->flag,
-         count_batch->padding, count_batch->drop_remainder);
+  GELOGI(
+      "set count batch attr: batch_size(%ld), slide_stride(%ld), timeout(%ld), "
+      "batch_dim(%ld), flag(%d), padding(%d), drop_remainder(%d)",
+      count_batch->batch_size, count_batch->slide_stride, count_batch->timeout, count_batch->batch_dim,
+      count_batch->flag, count_batch->padding, count_batch->drop_remainder);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -110,10 +110,11 @@ graphStatus FlowAttrUtil::SetTimeBatchAttr(const void *const attr_value, GeTenso
 
   GE_ASSERT_TRUE(ge::AttrUtils::SetBool(tensor_desc, ATTR_NAME_TIME_BATCH_DROP_REMAINDER, time_batch->drop_remainder));
 
-  GELOGI("set time batch attr: time_window(%ld), time_interval(%ld), timeout(%ld), "
-         "batch_dim(%ld), flag(%d), padding(%d), drop_remainder(%d)", time_batch->time_window,
-         time_batch->time_interval, time_batch->timeout, time_batch->batch_dim, time_batch->flag,
-         time_batch->padding, time_batch->drop_remainder);
+  GELOGI(
+      "set time batch attr: time_window(%ld), time_interval(%ld), timeout(%ld), "
+      "batch_dim(%ld), flag(%d), padding(%d), drop_remainder(%d)",
+      time_batch->time_window, time_batch->time_interval, time_batch->timeout, time_batch->batch_dim, time_batch->flag,
+      time_batch->padding, time_batch->drop_remainder);
   return ge::GRAPH_SUCCESS;
 }
 

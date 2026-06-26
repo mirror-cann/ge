@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ ge::graphStatus AlignWorkspaceSizes(KernelContext *context);
 ge::graphStatus UpdateIOShapeToOp(KernelContext *context, ge::Operator &op);
 ge::graphStatus UpdateTilingOutputsToContext(const optiling::OpRunInfoV2 &op_run_info, KernelContext *context);
 
- /*
+/*
  * outputs, find tiling func v1的outputs以如下顺序排列：
  * outputs[0]: tiling-version
  * outputs[1]: tiling-parse-func
@@ -132,8 +132,8 @@ ge::graphStatus AddTilingCache(KernelContext *context, const TilingCacheKey &key
                                CacheableTilingFwkData &cacheable_fwk_data);
 
 inline ge::graphStatus BuildTilingOutputs(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
-  //todo tilingfunc
+  (void)node;
+  // todo tilingfunc
   auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
   auto node_type = extend_context->GetNodeType();
   auto tiling_data_av = context->GetOutput(TilingContext::kOutputTilingData);
@@ -166,6 +166,6 @@ inline ge::graphStatus BuildTilingOutputs(const ge::FastNode *node, KernelContex
   workspace_av->SetWithDefaultDeleter<uint8_t[]>(workspace_size.release());
   return ge::GRAPH_SUCCESS;
 }
-} // namespace kernel
-} // namespace gert
-#endif // AIR_CXX_RUNTIME_V2_KERNEL_TILING_H_
+}  // namespace kernel
+}  // namespace gert
+#endif  // AIR_CXX_RUNTIME_V2_KERNEL_TILING_H_

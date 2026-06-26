@@ -52,8 +52,7 @@ class GraphFuseInspectorUtils {
    * @return SUCCESS: 上报成功; FAILED: 上报失败
    * @since 9.1.0(2026-06)
    */
-  static Status ReportFuse(const std::vector<GNode> &nodes_before_fuse,
-                           const std::vector<GNode> &nodes_after_fuse,
+  static Status ReportFuse(const std::vector<GNode> &nodes_before_fuse, const std::vector<GNode> &nodes_after_fuse,
                            CustomPassContext &ctx);
 };
 }  // namespace fusion

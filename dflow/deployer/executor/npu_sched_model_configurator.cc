@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,14 +22,13 @@ namespace {
 constexpr int32_t kDefaultPriority = 0;
 constexpr uint32_t kKernelBlockDim = 1U;
 constexpr const char *kKernelNameModelConfig = "AicpuModelConfig";
-}
+}  // namespace
 
 Status NpuSchedModelConfigurator::SetModelConfig(const AicpuModelConfig &config) {
   GELOGD("Start to configure model:%u.", config.model_id);
   std::vector<uint8_t> task_args;
   GE_CHK_STATUS_RET(BuildModelConfigTask(config, task_args), "Fail to init task args.");
-  GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameModelConfig, task_args),
-                    "Fail to execute kernel.");
+  GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameModelConfig, task_args), "Fail to execute kernel.");
   GELOGD("Success to configure model:%u.", config.model_id);
   return SUCCESS;
 }
@@ -46,19 +45,18 @@ Status NpuSchedModelConfigurator::BuildModelConfigTask(const AicpuModelConfig &c
   return SUCCESS;
 }
 
-Status NpuSchedModelConfigurator::ExecuteKernel(const std::string &kernel_name,
-                                                const std::vector<uint8_t> &task_args) {
+Status NpuSchedModelConfigurator::ExecuteKernel(const std::string &kernel_name, const std::vector<uint8_t> &task_args) {
   aclrtStream stream = nullptr;
   DF_CHK_ACL_RET(aclrtCreateStream(&stream));
   DF_MAKE_GUARD_ACLSTREAM(stream);
   rtArgsEx_t args_info = {};
   args_info.args = const_cast<void *>(static_cast<const void *>(task_args.data()));
   args_info.argsSize = static_cast<uint32_t>(task_args.size());
-  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr, kernel_name.c_str(), kKernelBlockDim,
-      &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
+  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(nullptr, kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream,
+                                          RT_KERNEL_DEFAULT));
   GELOGD("Success to launch kernel, kernel name = %s", kernel_name.c_str());
   DF_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   GELOGD("Success to sync stream, kernel name = %s", kernel_name.c_str());
   return SUCCESS;
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,13 +23,11 @@
 
 namespace fe {
 const std::string kAssociatedAttr = "AssociatedTask_";
-const uint64_t kDefaultL2CacheSize = 8388608; // 8*1024*1024
+const uint64_t kDefaultL2CacheSize = 8388608;  // 8*1024*1024
 
-GenerateCMOTypeBase::GenerateCMOTypeBase() {
-}
+GenerateCMOTypeBase::GenerateCMOTypeBase() {}
 
-void GenerateCMOTypeBase::AddToNodeCmoAttr(const ge::OpDescPtr &op_desc,
-                                           const std::string &cmo_type,
+void GenerateCMOTypeBase::AddToNodeCmoAttr(const ge::OpDescPtr &op_desc, const std::string &cmo_type,
                                            const std::vector<CmoAttr> &attr_vec) const {
   map<std::string, std::vector<CmoAttr>> cmo{};
   cmo = op_desc->TryGetExtAttr(kOpExtattrNameCmo, cmo);
@@ -66,8 +64,8 @@ bool GenerateCMOTypeBase::CheckParentOpIsAiCore(const ge::InDataAnchorPtr &in_an
 }
 
 bool GenerateCMOTypeBase::ReadIsLifeCycleEnd(const ge::NodePtr &node, const ge::InDataAnchorPtr &in_anchor) const {
-  auto idx        = in_anchor->GetIdx();
-  auto op_desc    = node->GetOpDesc();
+  auto idx = in_anchor->GetIdx();
+  auto op_desc = node->GetOpDesc();
   auto input_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(idx));
   if (input_desc == nullptr) {
     return false;
@@ -117,7 +115,7 @@ int64_t GenerateCMOTypeBase::GetInputTensorSize(const ge::OpDescPtr &op_desc) co
   for (size_t i = 0; i < inputs_size; i++) {
     ge::GeTensorDescPtr tensor_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(i));
     if (tensor_desc == nullptr) {
-      FE_LOGW("paramater tensor_desc should not be nullptr at index(%zu)", i);
+      FE_LOGW("parameter tensor_desc should not be nullptr at index(%zu)", i);
       continue;
     }
     CalcTotalTensorSize(tensor_desc, total_tensor_size);
@@ -131,7 +129,7 @@ int64_t GenerateCMOTypeBase::GetOutputTensorSize(const ge::OpDescPtr &op_desc) c
   for (size_t i = 0; i < outputs_size; i++) {
     ge::GeTensorDescPtr tensor_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(i));
     if (tensor_desc == nullptr) {
-      FE_LOGW("paramater tensor_desc should not be nullptr at index(%zu)", i);
+      FE_LOGW("parameter tensor_desc should not be nullptr at index(%zu)", i);
       continue;
     }
     CalcTotalTensorSize(tensor_desc, total_tensor_size);
@@ -184,4 +182,4 @@ uint64_t GenerateCMOTypeBase::GetCacheSize() const {
   }
   return cache_size;
 }
-} // namespace fe
+}  // namespace fe

@@ -49,6 +49,7 @@ class GeApiTimeoutStub : public llm::CacheEngineGeApi {
     }
     return ge::SUCCESS;
   }
+
  private:
   std::vector<bool> first_times = std::vector<bool>(static_cast<int>(llm::FlowFuncType::kMax), true);
 };
@@ -60,23 +61,22 @@ class LlmDataDistSTest : public ::testing::Test {
     ASSERT_TRUE(llm::GeApi::instance_ != nullptr);
   }
   // 在测试类中进行清理工作，如果需要的话
-  void TearDown() override {
-  }
+  void TearDown() override {}
 
   static std::map<ge::AscendString, ge::AscendString> GetOptions(const std::string &role,
                                                                  const std::string &deploy_cluster_info) {
     char_t numa_config_path[4096];
     if (role == "Prompt") {
-      (void) mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_prompt.json", numa_config_path, 4096);
+      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_prompt.json",
+                       numa_config_path, 4096);
     } else {
-      (void) mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_decoder.json", numa_config_path, 4096);
+      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_decoder.json",
+                       numa_config_path, 4096);
     }
     LLMLOGI("numa_config_path:%s", numa_config_path);
     std::map<ge::AscendString, ge::AscendString> options = {
-        {"ge.socVersion", "TestSocType2"},
-        {"ge.graphRunMode", "0"},
-        {llm::LLM_OPTION_ROLE, role.c_str()},
-        {llm::LLM_OPTION_CLUSTER_INFO, deploy_cluster_info.c_str()},
+        {"ge.socVersion", "TestSocType2"},          {"ge.graphRunMode", "0"},
+        {llm::LLM_OPTION_ROLE, role.c_str()},       {llm::LLM_OPTION_CLUSTER_INFO, deploy_cluster_info.c_str()},
         {"RESOURCE_CONFIG_PATH", numa_config_path},
     };
     return options;
@@ -123,10 +123,9 @@ TEST_F(LlmDataDistSTest, TestIgnoreTransId) {
   llm::PullCacheParam pull_cache_param{};
   pull_cache_param.prompt_blocks = {0LU, 1LU};
   pull_cache_param.decoder_blocks = {2LU, 3LU};
-  EXPECT_EQ(llm_datadist.PullKvBlocks(cache_key,
-                                      tmp_cached_tensors,
-                                      pull_cache_param.prompt_blocks,
-                                      pull_cache_param.decoder_blocks), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PullKvBlocks(cache_key, tmp_cached_tensors, pull_cache_param.prompt_blocks,
+                                      pull_cache_param.decoder_blocks),
+            ge::SUCCESS);
   llm_datadist.Finalize();
 }
 
@@ -205,10 +204,9 @@ TEST_F(LlmDataDistSTest, Decoder) {
   llm::PullCacheParam pull_cache_param{};
   pull_cache_param.prompt_blocks = {0LU, 1LU};
   pull_cache_param.decoder_blocks = {2LU, 3LU};
-  EXPECT_EQ(llm_datadist.PullKvBlocks(cache_key,
-                                      tmp_cached_tensors,
-                                      pull_cache_param.prompt_blocks,
-                                      pull_cache_param.decoder_blocks), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PullKvBlocks(cache_key, tmp_cached_tensors, pull_cache_param.prompt_blocks,
+                                      pull_cache_param.decoder_blocks),
+            ge::SUCCESS);
 
   // test pull by cache id
   CacheIndex cache_key_by_id{};
@@ -225,12 +223,8 @@ TEST_F(LlmDataDistSTest, Decoder) {
     tmp_cached_tensors.tensor_addrs.emplace_back(reinterpret_cast<uintptr_t>(src_buffers[i].data()));
     cached_tensors.tensor_addrs.emplace_back(reinterpret_cast<uintptr_t>(dst_buffers[i].data()));
   }
-  EXPECT_EQ(llm_datadist.CopyKvBlocks(tmp_cached_tensors,
-                                      cached_tensors,
-                                      {0, 2},
-                                      {{1, 3}}), ge::SUCCESS);
-  EXPECT_EQ(llm_datadist.CopyKvCache(tmp_cached_tensors,
-                                     cached_tensors), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.CopyKvBlocks(tmp_cached_tensors, cached_tensors, {0, 2}, {{1, 3}}), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.CopyKvCache(tmp_cached_tensors, cached_tensors), ge::SUCCESS);
   EXPECT_EQ(llm_datadist.DeallocateCache(tmp_cached_tensors.cache_id), ge::SUCCESS);
   EXPECT_EQ(llm_datadist.DeallocateCache(cached_tensors.cache_id), ge::SUCCESS);
   EXPECT_EQ(llm_datadist.UnlinkLlmClusters(clusters, rets), ge::SUCCESS);
@@ -292,11 +286,7 @@ TEST_F(LlmDataDistSTest, TestPush) {
   KvCacheExtParam ext_param{};
   ext_param.src_layer_range = std::make_pair(0, 0);
   ext_param.dst_layer_range = std::make_pair(0, 0);
-  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors,
-                                      dst_cache_index,
-                                      {0U, 1U},
-                                      {0U, 1U},
-                                      ext_param), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors, dst_cache_index, {0U, 1U}, {0U, 1U}, ext_param), ge::SUCCESS);
 
   EXPECT_EQ(llm_datadist.PushKvCache(cached_tensors, dst_cache_index, 0, -1, ext_param), ge::SUCCESS);
 
@@ -339,40 +329,24 @@ TEST_F(LlmDataDistSTest, TestPushWithRangeAndTensorNumV1) {
 
   CacheIndex dst_cache_index{prompt_cluster_id, dst_cached_tensors.cache_id};
   KvCacheExtParam ext_param{};
-  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors,
-                                      dst_cache_index,
-                                      {0U, 1U},
-                                      {0U, 1U},
-                                      ext_param), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors, dst_cache_index, {0U, 1U}, {0U, 1U}, ext_param), ge::SUCCESS);
 
   EXPECT_EQ(llm_datadist.PushKvCache(cached_tensors, dst_cache_index, 0, -1, ext_param), ge::SUCCESS);
 
   ext_param.src_layer_range = std::make_pair(0, 1);
   ext_param.dst_layer_range = std::make_pair(0, 1);
   ext_param.tensor_num_per_layer = 1;
-  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors,
-                                      dst_cache_index,
-                                      {0U, 1U},
-                                      {0U, 1U},
-                                      ext_param), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors, dst_cache_index, {0U, 1U}, {0U, 1U}, ext_param), ge::SUCCESS);
 
   EXPECT_EQ(llm_datadist.PushKvCache(cached_tensors, dst_cache_index, 0, -1, ext_param), ge::SUCCESS);
 
   ext_param.tensor_num_per_layer = 2;
-  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors,
-                                      dst_cache_index,
-                                      {0U, 1U},
-                                      {0U, 1U},
-                                      ext_param), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors, dst_cache_index, {0U, 1U}, {0U, 1U}, ext_param), ge::SUCCESS);
 
   EXPECT_EQ(llm_datadist.PushKvCache(cached_tensors, dst_cache_index, 0, -1, ext_param), ge::SUCCESS);
   // no real udf, which check the numer, so here is eq
   ext_param.tensor_num_per_layer = 3;
-  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors,
-                                      dst_cache_index,
-                                      {0U, 1U},
-                                      {0U, 1U},
-                                      ext_param), ge::SUCCESS);
+  EXPECT_EQ(llm_datadist.PushKvBlocks(cached_tensors, dst_cache_index, {0U, 1U}, {0U, 1U}, ext_param), ge::SUCCESS);
 
   EXPECT_EQ(llm_datadist.PushKvCache(cached_tensors, dst_cache_index, 0, -1, ext_param), ge::SUCCESS);
 
@@ -386,7 +360,7 @@ TEST_F(LlmDataDistSTest, TestPullWithRangeAndTensorNumV1) {
   setenv("HCCL_RDMA_SL", "5", 1);
   uint64_t prompt_cluster_id = 0U;
   uint64_t decoder_cluster_id = 1U;
-  
+
   LlmDataDist llm_datadist(decoder_cluster_id, LlmRole::kDecoder);
   std::map<AscendString, AscendString> options;
   options[llm_datadist::OPTION_DEVICE_ID] = "1";

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@
 namespace {
 const ge::char_t *const kDumpOutput = "output";
 const ge::char_t *const kDumpInput = "input";
-}
+}  // namespace
 namespace ge {
 constexpr uint32_t kZeroIndex = 0U;
 constexpr int32_t kValidTypeSize = 1;
@@ -45,9 +45,8 @@ HcclTaskInfo::~HcclTaskInfo() {
   args_ = nullptr;
 }
 
-Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                          const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                          const IowAddrs &iow_addrs) {
+Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
+                          const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
   GELOGI("HcclTaskInfo Init Start.");
   (void)persistent_workspace;
   GE_CHECK_NOTNULL(davinci_model);
@@ -70,8 +69,8 @@ Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
   hccl_op_desc_ = davinci_model_->GetOpByIndex(op_index);
   GE_CHECK_NOTNULL(hccl_op_desc_);
   GELOGI("model_id=%u, HcclTaskInfo Init, logical stream id: %u, op_index is: %u, op:%s(%s)",
-         davinci_model_->GetModelId(), logic_stream_id_, op_index,
-         hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+         davinci_model_->GetModelId(), logic_stream_id_, op_index, hccl_op_desc_->GetName().c_str(),
+         hccl_op_desc_->GetType().c_str());
   GetPrivateDefByTaskDef(hccl_op_desc_, task_def);
 
   // Create the kernel hccl infos
@@ -83,87 +82,85 @@ Status HcclTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
   // Only in Horovod scenario should get the inputName and GeShape
   auto ret = HcomOmeUtil::GetHorovodInputs(hccl_op_desc_, kernel_hccl_infos_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Get][HorovodInputs] fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(ret, "[Get][HorovodInputs] fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return ret;
   }
   Status dmrt = HcomOmeUtil::GetHcclDataType(hccl_op_desc_, kernel_hccl_infos_);
   if (dmrt != SUCCESS) {
-    GELOGE(dmrt, "[Get][HcomDataType] fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(dmrt, "[Get][HcomDataType] fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return dmrt;
   }
   dmrt = HcomOmeUtil::GetHcclCount(hccl_op_desc_, kernel_hccl_infos_);
   if (dmrt != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call GetHcclCount fail for op:%s(%s)",
-                      hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
-    GELOGE(dmrt, "[Get][HcomCount] fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Call GetHcclCount fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+                         hccl_op_desc_->GetType().c_str());
+    GELOGE(dmrt, "[Get][HcomCount] fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return dmrt;
   }
   // Only HCOMBROADCAST, HCOMGATHER and HVDCALLBACKBROADCAST need to get the rootId
   dmrt = HcomOmeUtil::GetAllRootId(hccl_op_desc_, kernel_hccl_infos_);
   if (dmrt != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call GetAllRootId fail for op:%s(%s)",
-                      hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
-    GELOGE(dmrt, "[Get][RootId] fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Call GetAllRootId fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+                         hccl_op_desc_->GetType().c_str());
+    GELOGE(dmrt, "[Get][RootId] fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return dmrt;
   }
 
   // GE's new process: hccl declares the number of streams required, creates a stream by GE, and sends it to hccl
   ret = SetFollowStream(hccl_op_desc_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Set][Stream] Fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(ret, "[Set][Stream] Fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
     return ret;
   }
   UpdateIoAndWorkspaceAddrs(iow_addrs);
 
-  const auto args_placement = ((args_mem_type_ & RT_MEMORY_TS) == 0U)
-      ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
+  const auto args_placement =
+      ((args_mem_type_ & RT_MEMORY_TS) == 0U) ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
   GE_ASSERT_TRUE((args[static_cast<size_t>(args_placement)].dev_addr != 0U),
-                 "[Check][Param] Op:%s, args_placement:%d, dev addr is nullptr.",
-                 hccl_op_desc_->GetName().c_str(), args_placement);
+                 "[Check][Param] Op:%s, args_placement:%d, dev addr is nullptr.", hccl_op_desc_->GetName().c_str(),
+                 args_placement);
   args_ = ValueToPtr(args[static_cast<size_t>(args_placement)].dev_addr);
   GELOGI("Known node %s args addr %p.", hccl_op_desc_->GetName().c_str(), args_);
 
-  GE_CHK_STATUS_RET(InitZeroCopyInfos(hccl_op_desc_, hccl_def),
-                    "Init ZeroCopyInfos failed, node:%s(%s).",
+  GE_CHK_STATUS_RET(InitZeroCopyInfos(hccl_op_desc_, hccl_def), "Init ZeroCopyInfos failed, node:%s(%s).",
                     hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
 
   ret = SetAddrs(hccl_op_desc_, kernel_hccl_infos_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Set][Addrs] Fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(ret, "[Set][Addrs] Fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
     return ret;
   }
   // GE's new process: hccl declares the need for Workspace size, and GE allocates Workspace
   ret = SetWorkspace(hccl_op_desc_, kernel_hccl_infos_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Set][Workspace] Fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(ret, "[Set][Workspace] Fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return ret;
   }
 
   // set hccl op overflow detection addr
   ret = SetOverflowAddrs(hccl_op_desc_, kernel_hccl_infos_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Set][OverflowAddrs] Fail for op:%s(%s)",
-        hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGE(ret, "[Set][OverflowAddrs] Fail for op:%s(%s)", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     return ret;
   }
 
-  GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(),
-      io_addrs_, io_addr_mem_types_, {hccl_op_desc_->GetName(), hccl_op_desc_->GetType()}));
+  GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), io_addrs_,
+                                                io_addr_mem_types_,
+                                                {hccl_op_desc_->GetName(), hccl_op_desc_->GetType()}));
   GE_CHECK_NOTNULL(ops_kernel_store_);
   GETaskInfo ge_task;
   TransToGETaskInfo(ge_task);
   const auto result = ops_kernel_store_->PrepareTaskAsync(ge_task);
   GE_CHK_BOOL_RET_STATUS(result == HCCL_SUCCESS, INTERNAL_ERROR, "[Prepare][Task] fail, return ret:%u", result);
   GELOGI("model_id=%u, HcclTaskInfo Init Success, prepare task success for op:%s(%s), logic stream id: %u, stream: %p.",
-      davinci_model_->GetModelId(), hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str(),
-      task_def.stream_id(), stream_);
+         davinci_model_->GetModelId(), hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str(),
+         task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -193,7 +190,7 @@ Status HcclTaskInfo::GetTaskIowPaRemapInfos(std::vector<IowPaRemapInfo> &infos) 
 
     iow_pa_remap_info.policy = PaRemapPolicy::KSupport;
     if (!(IsFeatureBaseRefreshable(davinci_model_)) ||
-      (mem_allocation_and_offset[i].type == MemAllocation::Type::ABSOLUTE)) {
+        (mem_allocation_and_offset[i].type == MemAllocation::Type::ABSOLUTE)) {
       iow_pa_remap_info.policy = PaRemapPolicy::KNoSupport;
       infos.emplace_back(std::move(iow_pa_remap_info));
     }
@@ -238,11 +235,11 @@ Status HcclTaskInfo::SetFollowStream(const ConstOpDescPtr &op_desc) {
         return RT_ERROR_TO_GE_STATUS(ret);
       }
     }
-    GELOGI("model_id=%u, Initialize hccl slave stream success, hcclStreamNum =%" PRId64,
-           davinci_model_->GetModelId(), hccl_stream_num);
+    GELOGI("model_id=%u, Initialize hccl slave stream success, hcclStreamNum =%" PRId64, davinci_model_->GetModelId(),
+           hccl_stream_num);
   } else {
     GELOGI("model_id=%u, need to create follow stream for %s with new mainstream %" PRId64 ".",
-      davinci_model_->GetModelId(), op_desc->GetName().c_str(), main_stream_id);
+           davinci_model_->GetModelId(), op_desc->GetName().c_str(), main_stream_id);
     const auto ret = CreateStream(hccl_stream_num, main_stream_id);
     if (ret != SUCCESS) {
       GELOGE(RT_FAILED, "[Create][Stream] for %s failed, stream id:%" PRId64 ", stream num:%" PRId64 ".",
@@ -272,7 +269,7 @@ Status HcclTaskInfo::CreateStream(const int64_t stream_num, const int64_t main_s
 
     // Create slave stream, inactive by default, activated by hccl
     GE_CHK_ACL_RET(aclmdlRIBindStream(davinci_model_->GetRtModelHandle(), stream,
-                                     static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
+                                      static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
     GELOGD("hccl_stream addr is=%p", stream);
     davinci_model_->SaveHcclFollowStream(main_stream_id, stream);
   }
@@ -284,16 +281,16 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
   if (!davinci_model_->OpNeedDump(hccl_op_desc_->GetName())) {
     return SUCCESS;
   }
-  GELOGI("Data Dump is on, dump op fo node: %s, type: %s, stream flag: %u.",
-         hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str(), stream_flag_);
+  GELOGI("Data Dump is on, dump op for node: %s, type: %s, stream flag: %u.", hccl_op_desc_->GetName().c_str(),
+         hccl_op_desc_->GetType().c_str(), stream_flag_);
   auto hccl_dump_properties = davinci_model_->GetDumpProperties();
   DumpOp *dump_op = nullptr;
   if (dump_mode == kDumpInput) {
     if (hccl_dump_properties.GetDumpMode() == kDumpOutput) {
       return SUCCESS;
     }
-    GELOGI("Insert input dump op fo node: %s, type: %s.",
-           hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGI("Insert input dump op for node: %s, type: %s.", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     hccl_dump_properties.ClearOpDebugFlag();
     hccl_dump_properties.SetDumpMode(kDumpInput);
     dump_op = &input_hccl_dump_;
@@ -301,8 +298,8 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
     if (hccl_dump_properties.GetDumpMode() == kDumpInput) {
       return SUCCESS;
     }
-    GELOGI("Insert output dump op fo node: %s, type: %s.",
-           hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+    GELOGI("Insert output dump op for node: %s, type: %s.", hccl_op_desc_->GetName().c_str(),
+           hccl_op_desc_->GetType().c_str());
     hccl_dump_properties.ClearOpDebugFlag();
     hccl_dump_properties.SetDumpMode(kDumpOutput);
     dump_op = &output_hccl_dump_;
@@ -315,25 +312,27 @@ Status HcclTaskInfo::InsertDumpOp(const std::string &dump_mode) {
   for (size_t i = 0UL; i < hccl_op_desc_->GetInputsSize(); i++) {
     input_addrs.push_back(static_cast<uintptr_t>(io_addrs_[i]));
   }
-  for (size_t i = hccl_op_desc_->GetInputsSize();
-      i < hccl_op_desc_->GetOutputsSize() + hccl_op_desc_->GetInputsSize(); i++) {
+  for (size_t i = hccl_op_desc_->GetInputsSize(); i < hccl_op_desc_->GetOutputsSize() + hccl_op_desc_->GetInputsSize();
+       i++) {
     output_addrs.push_back(static_cast<uintptr_t>(io_addrs_[i]));
   }
   dump_op->SetDumpInfo(hccl_dump_properties, hccl_op_desc_, input_addrs, output_addrs, stream_);
   if (davinci_model_->IsKnownNode()) {
     dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(), 0U, 0U);
   } else {
-    dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(), davinci_model_->GetLoopPerIter(), davinci_model_->GetLoopCond());
+    dump_op->SetLoopAddr(davinci_model_->GetGlobalStep(), davinci_model_->GetLoopPerIter(),
+                         davinci_model_->GetLoopCond());
   }
-  dump_op->SetDynamicModelInfo(davinci_model_->GetDumpModelName(), davinci_model_->GetOmName(), davinci_model_->GetDumpModelId());
+  dump_op->SetDynamicModelInfo(davinci_model_->GetDumpModelName(), davinci_model_->GetOmName(),
+                               davinci_model_->GetDumpModelId());
   dump_op->SetRootGraphName(davinci_model_->GetRootGraphName());
   return dump_op->LaunchDumpOp(false, (stream_flag_ & RT_STREAM_FORCE_COPY) == 0U);
 }
 
 Status HcclTaskInfo::Distribute() {
   GE_ASSERT_NOTNULL(hccl_op_desc_);
-  GELOGI("HcclTaskInfo Distribute Start, op %s, type %s",
-      hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+  GELOGI("HcclTaskInfo Distribute Start, op %s, type %s", hccl_op_desc_->GetName().c_str(),
+         hccl_op_desc_->GetType().c_str());
   if (ops_kernel_store_ == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Check param ops_kernel_store_ nullptr");
     GELOGE(INTERNAL_ERROR, "[Check][Param] ops kernel store is null.");
@@ -350,7 +349,7 @@ Status HcclTaskInfo::Distribute() {
   }
   const auto result = ops_kernel_store_->LoadTask(ge_task);
   GE_CHK_BOOL_RET_STATUS((result == HCCL_SUCCESS), INTERNAL_ERROR, "call hccl op:%s(%s) load task fail",
-      hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
+                         hccl_op_desc_->GetName().c_str(), hccl_op_desc_->GetType().c_str());
   CacheLastTaskExtendInfoIfCollective(hccl_op_desc_->GetName(), hccl_op_desc_->GetType());
   if (InsertDumpOp(kDumpOutput) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Insert hccl output dump op fail");
@@ -362,8 +361,8 @@ Status HcclTaskInfo::Distribute() {
   }
 
   is_support_redistribute_ = true;
-  GELOGI("HcclTaskInfo %s(%s) Distribute Success, stream: %p.",
-    hccl_op_desc_->GetNamePtr(), hccl_op_desc_->GetTypePtr(), stream_);
+  GELOGI("HcclTaskInfo %s(%s) Distribute Success, stream: %p.", hccl_op_desc_->GetNamePtr(),
+         hccl_op_desc_->GetTypePtr(), stream_);
   return SUCCESS;
 }
 
@@ -415,24 +414,24 @@ void HcclTaskInfo::PostProcess(const domi::TaskDef &task_def) {
     return;
   }
   const auto task_type = static_cast<ModelTaskType>(task_def.type());
-  if (davinci_model_->GetOpDugReg() || davinci_model_->OpNeedDump(op_desc->GetName())
-    || davinci_model_->OpNeedDumpOnWatcherModel(op_desc->GetName())) {
+  if (davinci_model_->GetOpDugReg() || davinci_model_->OpNeedDump(op_desc->GetName()) ||
+      davinci_model_->OpNeedDumpOnWatcherModel(op_desc->GetName())) {
     for (size_t i = 0U; i < hccl_dump_infos_.size(); i++) {
       const auto sdma_op_desc = MakeShared<OpDesc>(op_desc->GetName(), op_desc->GetType());
       GE_CHECK_NOTNULL_JUST_RETURN(sdma_op_desc);
 
       // sdma dump format always are FORMAT_ND
-      const std::vector<int64_t> input_dims = { static_cast<int64_t>(hccl_dump_infos_[i].input_size) / type_size };
+      const std::vector<int64_t> input_dims = {static_cast<int64_t>(hccl_dump_infos_[i].input_size) / type_size};
       GeTensorDesc input_desc(GeShape(input_dims), FORMAT_ND, src_data_type);
       TensorUtils::SetSize(input_desc, static_cast<int64_t>(hccl_dump_infos_[i].input_size));
       (void)sdma_op_desc->AddInputDesc(input_desc);
-      const std::vector<int64_t> output_dims = { static_cast<int64_t>(hccl_dump_infos_[i].output_size) / type_size };
+      const std::vector<int64_t> output_dims = {static_cast<int64_t>(hccl_dump_infos_[i].output_size) / type_size};
       GeTensorDesc output_desc(GeShape(output_dims), FORMAT_ND, src_data_type);
       TensorUtils::SetSize(output_desc, static_cast<int64_t>(hccl_dump_infos_[i].output_size));
       (void)sdma_op_desc->AddOutputDesc(output_desc);
 
-      const std::vector<uintptr_t> args{ static_cast<uintptr_t>(PtrToValue(hccl_dump_infos_[i].input_addr)),
-                                         static_cast<uintptr_t>(PtrToValue(hccl_dump_infos_[i].output_addr)) };
+      const std::vector<uintptr_t> args{static_cast<uintptr_t>(PtrToValue(hccl_dump_infos_[i].input_addr)),
+                                        static_cast<uintptr_t>(PtrToValue(hccl_dump_infos_[i].output_addr))};
       FirstLevelAddressInfo first_level_address_info{true, args};
 
       davinci_model_->SaveDumpTask({hccl_dump_infos_[i].task_id, hccl_dump_infos_[i].stream_id, 0U, 0U}, sdma_op_desc,
@@ -464,11 +463,10 @@ Status HcclTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciMod
   const auto output_size = op_desc->GetOutputsSize();
   const auto workspace_size = op_desc->GetWorkspaceBytes().size();
   const uint32_t args_size = static_cast<uint32_t>(sizeof(void *) * (input_size + output_size + workspace_size));
-  args_mem_type_ =
-    davinci_model->IsArgsUpdateByDeviceAicpu() ? RT_MEMORY_HBM : rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, args_size);
+  args_mem_type_ = davinci_model->IsArgsUpdateByDeviceAicpu() ? RT_MEMORY_HBM
+                                                              : rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, args_size);
   GELOGI("memory_type: %u", args_mem_type_);
-  pls_ = ((args_mem_type_ & RT_MEMORY_TS) == 0U)
-      ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
+  pls_ = ((args_mem_type_ & RT_MEMORY_TS) == 0U) ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
   task_run_param.args_descs.push_back({static_cast<int64_t>(args_size), pls_});
   const RuntimeParam &rts_param = davinci_model->GetRuntimeParam();
   input_data_addrs_ = ModelUtils::GetInputAddrs(rts_param, op_desc, input_mem_types_);
@@ -481,8 +479,8 @@ Status HcclTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciMod
     task_run_param.parsed_output_addrs.push_back({PtrToValue(output_data_addrs_[i]), output_mem_types_[i], true, {0}});
   }
   for (size_t i = 0UL; i < workspace_addrs_.size(); i++) {
-    task_run_param.parsed_workspace_addrs.push_back({PtrToValue(workspace_addrs_[i]), workspace_mem_types_[i],
-                                                    true, {0}});
+    task_run_param.parsed_workspace_addrs.push_back(
+        {PtrToValue(workspace_addrs_[i]), workspace_mem_types_[i], true, {0}});
   }
 
   return SUCCESS;
@@ -492,25 +490,29 @@ void HcclTaskInfo::UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs) {
   // todo: model args manager功能适配完毕后, 此处新增input_data_addrs_和iow_addrs.input_logic_addrs相等的校验
   for (size_t i = 0UL; i < input_data_addrs_.size(); i++) {
     input_data_addrs_[i] = (iow_addrs.input_logic_addrs.empty())
-        ? input_data_addrs_[i] : ValueToPtr(iow_addrs.input_logic_addrs[i].logic_addr);
-    input_mem_types_[i] = (iow_addrs.input_logic_addrs.empty())
-        ? input_mem_types_[i] : iow_addrs.input_logic_addrs[i].memory_type;
+                               ? input_data_addrs_[i]
+                               : ValueToPtr(iow_addrs.input_logic_addrs[i].logic_addr);
+    input_mem_types_[i] =
+        (iow_addrs.input_logic_addrs.empty()) ? input_mem_types_[i] : iow_addrs.input_logic_addrs[i].memory_type;
     is_refresh_addr_op_ |= ModelUtils::IsSuppoprtAddrRefreshable(input_mem_types_[i]);
   }
 
   for (size_t i = 0UL; i < output_data_addrs_.size(); i++) {
     output_data_addrs_[i] = (iow_addrs.output_logic_addrs.empty())
-        ? output_data_addrs_[i] : ValueToPtr(iow_addrs.output_logic_addrs[i].logic_addr);
-    output_mem_types_[i] = (iow_addrs.output_logic_addrs.empty())
-        ? output_mem_types_[i] : iow_addrs.output_logic_addrs[i].memory_type;
+                                ? output_data_addrs_[i]
+                                : ValueToPtr(iow_addrs.output_logic_addrs[i].logic_addr);
+    output_mem_types_[i] =
+        (iow_addrs.output_logic_addrs.empty()) ? output_mem_types_[i] : iow_addrs.output_logic_addrs[i].memory_type;
     is_refresh_addr_op_ |= ModelUtils::IsSuppoprtAddrRefreshable(output_mem_types_[i]);
   }
 
   for (size_t i = 0UL; i < workspace_addrs_.size(); i++) {
     workspace_addrs_[i] = (iow_addrs.workspace_logic_addrs.empty())
-        ? workspace_addrs_[i] : ValueToPtr(iow_addrs.workspace_logic_addrs[i].logic_addr);
+                              ? workspace_addrs_[i]
+                              : ValueToPtr(iow_addrs.workspace_logic_addrs[i].logic_addr);
     workspace_mem_types_[i] = (iow_addrs.workspace_logic_addrs.empty())
-        ? workspace_mem_types_[i] : iow_addrs.workspace_logic_addrs[i].memory_type;
+                                  ? workspace_mem_types_[i]
+                                  : iow_addrs.workspace_logic_addrs[i].memory_type;
     is_refresh_addr_op_ |= ModelUtils::IsSuppoprtAddrRefreshable(workspace_mem_types_[i]);
   }
 
@@ -527,8 +529,8 @@ void HcclTaskInfo::UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs) {
   GELOGI("HcclTaskInfo::is refresh addr op:%d.", is_refresh_addr_op_);
 }
 
-Status HcclTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                                    void *const host_args, const size_t host_args_max_len) {
+Status HcclTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
+                                    const size_t host_args_max_len) {
   GELOGI("HcclTaskInfo::UpdateArgs in.");
   GE_ASSERT_SUCCESS(args_io_addrs_updater_.SetArgIoAddrs(active_mem_base_addr, host_args, host_args_max_len));
   if (davinci_model_->OpNeedDump(hccl_op_desc_->GetName())) {
@@ -542,10 +544,10 @@ Status HcclTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base
          i < hccl_op_desc_->GetOutputsSize() + hccl_op_desc_->GetInputsSize(); i++) {
       output_addrs.push_back(static_cast<uintptr_t>(host_args_tmp[i]));
     }
-    GE_CHK_STATUS_RET(input_hccl_dump_.UpdateAddrs(input_addrs, {}),
-                      "[Update][HcclDumpAddrs] fail! op:%s", hccl_op_desc_->GetName().c_str());
-    GE_CHK_STATUS_RET(output_hccl_dump_.UpdateAddrs({}, output_addrs),
-                      "[Update][HcclDumpAddrs] fail! op:%s", hccl_op_desc_->GetName().c_str());
+    GE_CHK_STATUS_RET(input_hccl_dump_.UpdateAddrs(input_addrs, {}), "[Update][HcclDumpAddrs] fail! op:%s",
+                      hccl_op_desc_->GetName().c_str());
+    GE_CHK_STATUS_RET(output_hccl_dump_.UpdateAddrs({}, output_addrs), "[Update][HcclDumpAddrs] fail! op:%s",
+                      hccl_op_desc_->GetName().c_str());
   }
   GELOGI("HcclTaskInfo::UpdateArgs success.");
   return SUCCESS;
@@ -566,10 +568,10 @@ Status HcclTaskInfo::UpdateDumpInfos(void *const host_args, const size_t host_ar
     for (size_t i = input_size; i < (output_size + input_size); i++) {
       output_addrs.push_back(static_cast<uintptr_t>(host_args_tmp[i]));
     }
-    GE_CHK_STATUS_RET(input_hccl_dump_.UpdateAddrs(input_addrs, {}),
-                      "[Update][HcclDumpAddrs] fail! op:%s", hccl_op_desc_->GetName().c_str());
-    GE_CHK_STATUS_RET(output_hccl_dump_.UpdateAddrs({}, output_addrs),
-                      "[Update][HcclDumpAddrs] fail! op:%s", hccl_op_desc_->GetName().c_str());
+    GE_CHK_STATUS_RET(input_hccl_dump_.UpdateAddrs(input_addrs, {}), "[Update][HcclDumpAddrs] fail! op:%s",
+                      hccl_op_desc_->GetName().c_str());
+    GE_CHK_STATUS_RET(output_hccl_dump_.UpdateAddrs({}, output_addrs), "[Update][HcclDumpAddrs] fail! op:%s",
+                      hccl_op_desc_->GetName().c_str());
     GELOGI("HcclTaskInfo::UpdateDumpInfos success.");
   }
 
@@ -588,7 +590,7 @@ bool HcclTaskInfo::IsReduceOp(const std::string &hccl_type) const {
 
 bool HcclTaskInfo::UpdateOutputAddr(const std::string &hccl_type) const {
   return ((hccl_type == HCOMALLGATHER) || (hccl_type == HCOMRECEIVE) || (hccl_type == HVDCALLBACKALLGATHER) ||
-          (hccl_type == HCOMALLTOALLV) || (hccl_type == HCOMALLTOALLVC)  || (hccl_type == HCOMALLTOALL) ||
+          (hccl_type == HCOMALLTOALLV) || (hccl_type == HCOMALLTOALLVC) || (hccl_type == HCOMALLTOALL) ||
           (hccl_type == HCOMALLGATHERV) || (hccl_type == HCOMGATHER));
 }
 
@@ -624,8 +626,8 @@ Status HcclTaskInfo::SetAddrs(const std::shared_ptr<OpDesc> &op_desc,
     if (UpdateOutputAddr(hccl_type)) {
       kernel_hccl_infos[i].outputDataAddr = output_data_addr;
     } else if (IsReduceOp(hccl_type)) {
-      GE_CHK_STATUS_RET(HcomOmeUtil::GetHcclOperationType(op_desc, op_type),
-                        "[Get][HcomOperationType] fail! op:%s", op_desc->GetName().c_str());
+      GE_CHK_STATUS_RET(HcomOmeUtil::GetHcclOperationType(op_desc, op_type), "[Get][HcomOperationType] fail! op:%s",
+                        op_desc->GetName().c_str());
       kernel_hccl_infos[i].outputDataAddr = output_data_addr;
       kernel_hccl_infos[i].opType = op_type;
     } else {
@@ -664,17 +666,18 @@ void HcclTaskInfo::GetPrivateDefByTaskDef(const OpDescPtr &op_desc, const domi::
   // Get privateDef and opsKernelStorePtr from taskDef and save them in taskInfo
   GELOGI("get custom info in modelTaskDef.");
   ops_kernel_store_ = op_desc->TryGetExtAttr<OpsKernelExecutor *>("OpsKernelInfoStorePtr", nullptr);
-  if ((ops_kernel_store_ == nullptr) &&
-      (OpsKernelExecutorManager::GetInstance().GetExecutor(op_desc->GetOpKernelLibName(), ops_kernel_store_) !=
-          SUCCESS)) {
+  if ((ops_kernel_store_ == nullptr) && (OpsKernelExecutorManager::GetInstance().GetExecutor(
+                                             op_desc->GetOpKernelLibName(), ops_kernel_store_) != SUCCESS)) {
     return;
   }
   const std::string &private_def_temp = task.private_def();
   if ((!private_def_temp.empty()) && (private_def_temp.size() <= static_cast<size_t>(UINT32_MAX))) {
     private_def_len_ = static_cast<uint32_t>(private_def_temp.size());
-    GE_CHK_RT_EXEC(ge::AclrtMallocHost(&private_def_, static_cast<uint64_t>(private_def_len_), GE_MODULE_NAME_U16), return);
+    GE_CHK_RT_EXEC(ge::AclrtMallocHost(&private_def_, static_cast<uint64_t>(private_def_len_), GE_MODULE_NAME_U16),
+                   return);
     GE_CHK_RT_EXEC(aclrtMemcpy(private_def_, static_cast<uint64_t>(private_def_len_), task.private_def().c_str(),
-        static_cast<uint64_t>(private_def_len_), ACL_MEMCPY_HOST_TO_HOST), return);
+                               static_cast<uint64_t>(private_def_len_), ACL_MEMCPY_HOST_TO_HOST),
+                   return);
     GELOGI("The first address of the custom info, privateDef=%p.", private_def_);
   }
 }
@@ -715,8 +718,8 @@ Status HcclTaskInfo::SetWorkspace(const std::shared_ptr<OpDesc> &op_desc,
     if (workspace_mem_size_tmp != 0U) {
       workspace_mem_size = workspace_mem_size_tmp;
       if (IsFeatureBaseRefreshable(davinci_model_)) {
-        workspace_addr = ValueToPtr(PtrToValue(args_) +
-                                    ((op_desc->GetInputsSize() + op_desc->GetOutputsSize()) * sizeof(uint64_t)));
+        workspace_addr =
+            ValueToPtr(PtrToValue(args_) + ((op_desc->GetInputsSize() + op_desc->GetOutputsSize()) * sizeof(uint64_t)));
       } else {
         workspace_addr = workspace_addrs_.empty() ? nullptr : workspace_addrs_[0U];
       }
@@ -860,8 +863,8 @@ Status HcclTaskInfo::AssembleAttachedRtStream(GETaskInfo &ge_task_info) const {
     if (stream_id < 0) {
       continue;
     }
-    GE_ASSERT(static_cast<size_t>(stream_id) < stream_list.size(), "[%s]'s attached stream_id [%" PRId64 "] is invalid.",
-              hccl_op_desc_->GetNamePtr(), stream_id);
+    GE_ASSERT(static_cast<size_t>(stream_id) < stream_list.size(),
+              "[%s]'s attached stream_id [%" PRId64 "] is invalid.", hccl_op_desc_->GetNamePtr(), stream_id);
     ge_task_info.rt_attached_streams.push_back(stream_list[stream_id]);
     GELOGI("[%s] get rt stream [%p] by logic stream [%" PRId64 "] successfully", hccl_op_desc_->GetNamePtr(),
            stream_list[stream_id], stream_id);

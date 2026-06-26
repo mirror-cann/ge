@@ -41,7 +41,7 @@ class UtestCondRemovePass : public testing::Test {
     return op_desc;
   }
 
-  Status RunGraphPass(const GeTensorDesc &tensor_desc, const ComputeGraphPtr &graph){
+  Status RunGraphPass(const GeTensorDesc &tensor_desc, const ComputeGraphPtr &graph) {
     NodePtr data_node = graph->AddNode(CreateOpDesc("data", DATA, tensor_desc, 1, tensor_desc, 1));
     NodePtr if_node = graph->AddNode(CreateOpDesc("if", IF, tensor_desc, 2, tensor_desc, 1));
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), if_node->GetInDataAnchor(0)), SUCCESS);
@@ -276,9 +276,9 @@ TEST_F(UtestCondRemovePass, case_const_multidata_succ) {
   case_node->GetOpDesc()->AddSubgraphName(case3_name);
   case_node->GetOpDesc()->SetSubgraphInstanceName(2, case3_name);
 
-  (void) graph->AddSubGraph(case1_graph);
-  (void) graph->AddSubGraph(case2_graph);
-  (void) graph->AddSubGraph(case3_graph);
+  (void)graph->AddSubGraph(case1_graph);
+  (void)graph->AddSubGraph(case2_graph);
+  (void)graph->AddSubGraph(case3_graph);
   CondRemovePass cond_pass;
   EXPECT_EQ(cond_pass.Run(case_node), SUCCESS);
 }
@@ -288,7 +288,7 @@ GeTensorPtr ConstructTensorPtr(DataType dtype) {
   vector<T> data_vec = {0};
   GeTensorDesc tensor_desc(GeShape(), ge::FORMAT_NCHW, dtype);
   GeTensorPtr value_tensor =
-    std::make_shared<GeTensor>(tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(T));
+      std::make_shared<GeTensor>(tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(T));
   return value_tensor;
 }
 
@@ -341,9 +341,7 @@ TEST_F(UtestCondRemovePass, test_get_idx_succ) {
 void BuildAndCheckConstScalerIfGraphWithDataType(DataType dtype, void *value, bool should_take) {
   GeTensorDesc desc(GeShape(), FORMAT_NCHW, dtype);
   auto tensor = std::make_shared<GeTensor>(desc, static_cast<uint8_t *>(value), GetSizeByDataType(dtype));
-  auto const_0 = OP_CFG(CONSTANT).TensorDesc(desc.GetFormat(), dtype, {}).OutCnt(1)
-                              .Weight(tensor)
-                              .Build("const_0");
+  auto const_0 = OP_CFG(CONSTANT).TensorDesc(desc.GetFormat(), dtype, {}).OutCnt(1).Weight(tensor).Build("const_0");
   DEF_GRAPH(taken) {
     CHAIN(NODE("data_0", DATA)->NODE("output_0", NETOUTPUT));
   };

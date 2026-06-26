@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -381,14 +381,13 @@ void UtestComputeGraphBuilder::BuildNodes(graphStatus &error_code, std::string &
   return ComputeGraphBuilder::BuildNodes(error_code, error_msg);
 }
 
-} // namespace
+}  // namespace
 
 class UtestGraphUtils : public testing::Test {
  protected:
   void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(UtestGraphUtils, DumpGEGraphUserGraphNameNull_AscendWorkPathNotNull) {
@@ -412,7 +411,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphUserGraphNameNull_AscendWorkPathNotNull) {
 TEST_F(UtestGraphUtils, DumpGEGraphToOnnxNotAlways) {
   unsetenv("DUMP_GRAPH_PATH");
   const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-  (void) setenv(kDumpGraphLevel, "4", 1);
+  (void)setenv(kDumpGraphLevel, "4", 1);
   ComputeGraph compute_graph("test_graph0");
   compute_graph.SetGraphID(0);
   const std::string suffit = "always_dump";
@@ -457,7 +456,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphToOnnxAlways) {
 
 TEST_F(UtestGraphUtils, DumpGEGraphToOnnxByPath) {
   const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-  (void) setenv(kDumpGraphLevel, "4", 1);
+  (void)setenv(kDumpGraphLevel, "4", 1);
   ComputeGraph compute_graph("test_graph0");
   compute_graph.SetGraphID(0);
   const std::string suffix = "aaa/bbb.ccc\\ddd";
@@ -498,15 +497,15 @@ TEST_F(UtestGraphUtils, DumpGEGraphWithDumpGEGraphInvalid) {
 }
 
 /*
-*               var                               var
-*  atomicclean  |  \                             |   \
-*         \\    |   assign                       |   assign
-*          \\   |   //         =======>          |   //
-*           allreduce                         identity  atomicclean
-*             |                                 |       //
-*            netoutput                        allreduce
-*                                               |
-*                                           netoutput
+ *               var                               var
+ *  atomicclean  |  \                             |   \
+ *         \\    |   assign                       |   assign
+ *          \\   |   //         =======>          |   //
+ *           allreduce                         identity  atomicclean
+ *             |                                 |       //
+ *            netoutput                        allreduce
+ *                                               |
+ *                                           netoutput
  */
 TEST_F(UtestGraphUtils, InsertNodeBefore_DoNotMoveCtrlEdgeFromAtomicClean) {
   // build test graph
@@ -519,7 +518,7 @@ TEST_F(UtestGraphUtils, InsertNodeBefore_DoNotMoveCtrlEdgeFromAtomicClean) {
   const auto &identity = builder.AddNode("identity", "Identity", 1, 1);
 
   builder.AddDataEdge(var, 0, assign, 0);
-  builder.AddDataEdge(var,0,allreduce,0);
+  builder.AddDataEdge(var, 0, allreduce, 0);
   builder.AddControlEdge(assign, allreduce);
   builder.AddControlEdge(atomic_clean, allreduce);
   auto graph = builder.GetGraph();
@@ -583,16 +582,20 @@ TEST_F(UtestGraphUtils, ReplaceEdgeSrc) {
   const auto &node2 = builder.AddNode("node2", "node", 1, 1);
   const auto &node3 = builder.AddNode("node3", "node", 1, 1);
   builder.AddDataEdge(node0, 0, node2, 0);
-  ASSERT_EQ(GraphUtils::ReplaceEdgeSrc(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0),
-                                       node1->GetOutDataAnchor(0)), GRAPH_SUCCESS);
-  ASSERT_NE(GraphUtils::ReplaceEdgeSrc(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0),
-                                       node3->GetOutDataAnchor(0)), GRAPH_SUCCESS);
+  ASSERT_EQ(
+      GraphUtils::ReplaceEdgeSrc(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0), node1->GetOutDataAnchor(0)),
+      GRAPH_SUCCESS);
+  ASSERT_NE(
+      GraphUtils::ReplaceEdgeSrc(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0), node3->GetOutDataAnchor(0)),
+      GRAPH_SUCCESS);
 
   builder.AddControlEdge(node0, node2);
   ASSERT_EQ(GraphUtils::ReplaceEdgeSrc(node0->GetOutControlAnchor(), node2->GetInControlAnchor(),
-                                       node1->GetOutControlAnchor()), GRAPH_SUCCESS);
+                                       node1->GetOutControlAnchor()),
+            GRAPH_SUCCESS);
   ASSERT_NE(GraphUtils::ReplaceEdgeSrc(node0->GetOutControlAnchor(), node2->GetInControlAnchor(),
-                                       node3->GetOutControlAnchor()), GRAPH_SUCCESS);
+                                       node3->GetOutControlAnchor()),
+            GRAPH_SUCCESS);
 }
 
 TEST_F(UtestGraphUtils, ReplaceEdgeDst) {
@@ -602,16 +605,20 @@ TEST_F(UtestGraphUtils, ReplaceEdgeDst) {
   const auto &node2 = builder.AddNode("node2", "node", 1, 1);
   const auto &node3 = builder.AddNode("node3", "node", 1, 1);
   builder.AddDataEdge(node0, 0, node2, 0);
-  ASSERT_EQ(GraphUtils::ReplaceEdgeDst(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0),
-                                       node1->GetInDataAnchor(0)), GRAPH_SUCCESS);
-  ASSERT_NE(GraphUtils::ReplaceEdgeDst(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0),
-                                       node3->GetInDataAnchor(0)), GRAPH_SUCCESS);
+  ASSERT_EQ(
+      GraphUtils::ReplaceEdgeDst(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0), node1->GetInDataAnchor(0)),
+      GRAPH_SUCCESS);
+  ASSERT_NE(
+      GraphUtils::ReplaceEdgeDst(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0), node3->GetInDataAnchor(0)),
+      GRAPH_SUCCESS);
 
   builder.AddControlEdge(node0, node2);
   ASSERT_EQ(GraphUtils::ReplaceEdgeDst(node0->GetOutControlAnchor(), node2->GetInControlAnchor(),
-                                       node1->GetInControlAnchor()), GRAPH_SUCCESS);
+                                       node1->GetInControlAnchor()),
+            GRAPH_SUCCESS);
   ASSERT_NE(GraphUtils::ReplaceEdgeDst(node0->GetOutControlAnchor(), node2->GetInControlAnchor(),
-                                       node3->GetInControlAnchor()), GRAPH_SUCCESS);
+                                       node3->GetInControlAnchor()),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -676,7 +683,7 @@ TEST_F(UtestGraphUtils, BuildSubgraphWithNodes) {
   ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   ASSERT_EQ(GraphUtils::BuildSubgraphWithNodes(graph, {}, "subgraph1"), nullptr);
 
-  std::set<NodePtr> nodes = { data1, add2, add3, add4, add5, cast2 };
+  std::set<NodePtr> nodes = {data1, add2, add3, add4, add5, cast2};
   ASSERT_EQ(GraphUtils::BuildSubgraphWithNodes(graph, nodes, "subgraph1"), nullptr);
 
   ASSERT_TRUE(AttrUtils::SetStr(graph, "_session_graph_id", "_session_graph_id"));
@@ -740,7 +747,6 @@ TEST_F(UtestGraphUtils, BuildGraphFromNodes_case0) {
   ASSERT_FALSE(graph_output->GetInControlNodes().empty());
   ASSERT_EQ((*graph_output->GetInControlNodes().begin())->GetType(), "Square");
 }
-
 
 TEST_F(UtestGraphUtils, SingleOpScene) {
   auto builder1 = ut::GraphBuilder("root");
@@ -808,7 +814,6 @@ TEST_F(UtestGraphUtils, UnfoldSubgraph_InnerDataHasOutControl) {
   ASSERT_EQ(GraphUtils::UnfoldSubgraph(subgraph, filter), GRAPH_SUCCESS);
   ASSERT_EQ(graph->GetAllSubgraphs().size(), 0);
   ASSERT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-
 }
 
 TEST_F(UtestGraphUtils, UnfoldSubgraph_ForPartition) {
@@ -832,8 +837,9 @@ TEST_F(UtestGraphUtils, UnfoldSubgraph_ForPartition) {
     }
     return graph->GetGraphUnknownFlag();
   };
-  ASSERT_EQ(GraphUtils::UnfoldGraph(subgraph, new_graph, new_graph->FindNode(subgraph->GetParentNode()->GetName()),
-                                       filter), GRAPH_SUCCESS);
+  ASSERT_EQ(
+      GraphUtils::UnfoldGraph(subgraph, new_graph, new_graph->FindNode(subgraph->GetParentNode()->GetName()), filter),
+      GRAPH_SUCCESS);
   ASSERT_NE(node_size_before_unfold, new_graph->GetDirectNode().size());
 }
 
@@ -876,11 +882,11 @@ TEST_F(UtestGraphUtils, InsertNodeAfter) {
   std::vector<ComputeGraphPtr> independent_compile_subgraphs;
   ASSERT_EQ(GraphUtils::InsertNodeAfter(node0->GetOutDataAnchor(0), {}, node1, 0, 0), GRAPH_FAILED);
 }
-  TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixIsFalse) {
-    std::string suffix;
-    bool ret = GraphUtils::NoNeedDumpGraphBySuffix(suffix);
-    EXPECT_EQ(ret, true);
-  }
+TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixIsFalse) {
+  std::string suffix;
+  bool ret = GraphUtils::NoNeedDumpGraphBySuffix(suffix);
+  EXPECT_EQ(ret, true);
+}
 
 TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel0) {
   const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
@@ -890,45 +896,45 @@ TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel0) {
   unsetenv(kDumpGraphLevel);
 }
 
-  TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel1) {
-    const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-    (void)setenv(kDumpGraphLevel, "1", 1);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix(""), true);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("Build"), false);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), false);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("OptimizeSubGraph"), true);
-    unsetenv(kDumpGraphLevel);
-  }
+TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel1) {
+  const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
+  (void)setenv(kDumpGraphLevel, "1", 1);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix(""), true);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("Build"), false);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), false);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("OptimizeSubGraph"), true);
+  unsetenv(kDumpGraphLevel);
+}
 
-  TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel2) {
-    const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-    (void) setenv(kDumpGraphLevel, "2", 1);
-    for (const auto &graph_name : kGeDumpWhitelistFullName) {
-      EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix(graph_name), false);
-    }
-    for (const auto &graph_name : kGeDumpWhitelistKeyName) {
-      EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("_" + graph_name), false);
-    }
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("PreRunAfterOptimizeGraphPrepare"), true);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("RunCustomAfterInferShape_sub_graph"), true);
-    unsetenv(kDumpGraphLevel);
+TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel2) {
+  const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
+  (void)setenv(kDumpGraphLevel, "2", 1);
+  for (const auto &graph_name : kGeDumpWhitelistFullName) {
+    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix(graph_name), false);
   }
+  for (const auto &graph_name : kGeDumpWhitelistKeyName) {
+    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("_" + graph_name), false);
+  }
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("PreRunAfterOptimizeGraphPrepare"), true);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("RunCustomAfterInferShape_sub_graph"), true);
+  unsetenv(kDumpGraphLevel);
+}
 
-  TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel3) {
-    const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-    (void)setenv(kDumpGraphLevel, "3", 1);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("Build"), false);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), true);
-    unsetenv(kDumpGraphLevel);
-  }
+TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel3) {
+  const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
+  (void)setenv(kDumpGraphLevel, "3", 1);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("Build"), false);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), true);
+  unsetenv(kDumpGraphLevel);
+}
 
-  TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel4) {
-    const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
-    (void)setenv(kDumpGraphLevel, "4", 1);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("PreRunBegin"), false);
-    EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), true);
-    unsetenv(kDumpGraphLevel);
-  }
+TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixLevel4) {
+  const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
+  (void)setenv(kDumpGraphLevel, "4", 1);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("PreRunBegin"), false);
+  EXPECT_EQ(GraphUtils::NoNeedDumpGraphBySuffix("test"), true);
+  unsetenv(kDumpGraphLevel);
+}
 
 TEST_F(UtestGraphUtils, NoNeedDumpGraphBySuffixWhitelist) {
   const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
@@ -1058,14 +1064,13 @@ TEST_F(UtestGraphUtils, DumpGEGraphNoOptionsSucc) {
   bool state = GraphUtils::LoadGEGraph("./ge_test_graph_options_wt_0001.txt", *com_graph1);
   ASSERT_EQ(state, true);
   ASSERT_EQ(com_graph1->GetAllNodesSize(), 4);
-  //check graph option
+  // check graph option
   ge::NamedAttrs graphOptions;
-  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "GraphOptions", graphOptions),false);
+  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "GraphOptions", graphOptions), false);
   ge::NamedAttrs sessionOptions;
-  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "SessionOptions", sessionOptions),false);
+  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "SessionOptions", sessionOptions), false);
   ge::NamedAttrs globalOptions;
-  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "GlobalOptions", globalOptions),false);
-
+  EXPECT_EQ(AttrUtils::GetNamedAttrs(com_graph1, "GlobalOptions", globalOptions), false);
 }
 
 TEST_F(UtestGraphUtils, DumpGEGraphOptionsSucc) {
@@ -1124,7 +1129,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsSucc) {
   bool state = GraphUtils::LoadGEGraph("./ge_test_graph_options_wt_0002.txt", *com_graph1);
   ASSERT_EQ(state, true);
   ASSERT_EQ(com_graph1->GetAllNodesSize(), 4);
-  //check graph option
+  // check graph option
   ge::NamedAttrs graphOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "GraphOptions", graphOptions));
   EXPECT_EQ(graphOptions.GetName(), "GraphOptions");
@@ -1135,7 +1140,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsSucc) {
   EXPECT_EQ(graphOptions.GetAttr("pk2", av), GRAPH_SUCCESS);
   EXPECT_NE(av.Get<std::string>(), nullptr);
   EXPECT_EQ(*av.Get<std::string>(), "pv2");
-  //check session option
+  // check session option
   ge::NamedAttrs sessionOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "SessionOptions", sessionOptions));
   EXPECT_EQ(sessionOptions.GetName(), "SessionOptions");
@@ -1146,7 +1151,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsSucc) {
   EXPECT_EQ(sessionOptions.GetAttr("sk2", av), GRAPH_SUCCESS);
   EXPECT_NE(av.Get<std::string>(), nullptr);
   EXPECT_EQ(*av.Get<std::string>(), "sv2");
-  //check global option
+  // check global option
   ge::NamedAttrs globalOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "GlobalOptions", globalOptions));
   EXPECT_EQ(globalOptions.GetName(), "GlobalOptions");
@@ -1214,7 +1219,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsLevelNot4) {
   bool state = GraphUtils::LoadGEGraph("./ge_test_graph_options_wt_0004.txt", *com_graph1);
   ASSERT_EQ(state, true);
   ASSERT_EQ(com_graph1->GetAllNodesSize(), 4);
-  //check graph option
+  // check graph option
   ge::NamedAttrs graphOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "GraphOptions", graphOptions));
   EXPECT_EQ(graphOptions.GetName(), "GraphOptions");
@@ -1225,7 +1230,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsLevelNot4) {
   EXPECT_EQ(graphOptions.GetAttr("pk2", av), GRAPH_SUCCESS);
   EXPECT_NE(av.Get<std::string>(), nullptr);
   EXPECT_EQ(*av.Get<std::string>(), "pv2");
-  //check session option
+  // check session option
   ge::NamedAttrs sessionOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "SessionOptions", sessionOptions));
   EXPECT_EQ(sessionOptions.GetName(), "SessionOptions");
@@ -1236,7 +1241,7 @@ TEST_F(UtestGraphUtils, DumpGEGraphOptionsLevelNot4) {
   EXPECT_EQ(sessionOptions.GetAttr("sk2", av), GRAPH_SUCCESS);
   EXPECT_NE(av.Get<std::string>(), nullptr);
   EXPECT_EQ(*av.Get<std::string>(), "sv2");
-  //check global option
+  // check global option
   ge::NamedAttrs globalOptions;
   EXPECT_TRUE(AttrUtils::GetNamedAttrs(com_graph1, "GlobalOptions", globalOptions));
   EXPECT_EQ(globalOptions.GetName(), "GlobalOptions");
@@ -1312,13 +1317,9 @@ TEST_F(UtestGraphUtils, CheckDumpGraphNum) {
   auto graph_builder0 = ut::GraphBuilder("test_graph0");
   const auto &node0 = graph_builder0.AddNode("data0", DATA, 1, 1);
   const auto &graph0 = graph_builder0.GetGraph();
-  EXPECT_NO_THROW(
-    GraphUtils::DumpGEGrph(graph0, "./", "1");
-    GraphUtils::DumpGEGrph(graph0, "./", "1");
-    GraphUtils::DumpGEGrph(graph0, "./", "1");
-    GraphUtils::DumpGEGrph(graph0, "./", "1");
-    GraphUtils::DumpGEGrph(graph0, "./", "1");
-  );
+  EXPECT_NO_THROW(GraphUtils::DumpGEGrph(graph0, "./", "1"); GraphUtils::DumpGEGrph(graph0, "./", "1");
+                  GraphUtils::DumpGEGrph(graph0, "./", "1"); GraphUtils::DumpGEGrph(graph0, "./", "1");
+                  GraphUtils::DumpGEGrph(graph0, "./", "1"););
 }
 
 TEST_F(UtestGraphUtils, CopyRootComputeGraph) {
@@ -1395,7 +1396,7 @@ TEST_F(UtestGraphUtils, CopyComputeGraphWithoutSubGraphRepeat) {
   NodePtr case0_node = dst_compute_graph->FindNode("case0");
   ASSERT_NE(case0_node, nullptr);
   const auto &names = case0_node->GetOpDesc()->GetSubgraphInstanceNames();
-  for (const auto &name:names) {
+  for (const auto &name : names) {
     EXPECT_EQ(name, "");
   }
   ASSERT_EQ(dst_compute_graph->GetSubgraph("sub1"), nullptr);
@@ -1445,7 +1446,7 @@ TEST_F(UtestGraphUtils, CopyComputeGraphWithAttrFilter) {
   ASSERT_EQ("fake_attr_value", str_value);
   auto add_node_dst = dst_compute_graph->FindNode("Add");
   ASSERT_NE(add_node_dst, nullptr);
-  // other node has all attr copyed
+  // other node has all attr copied
   ASSERT_TRUE(AttrUtils::GetStr(add_node_dst->GetOpDesc(), "fake_attr_name", str_value));
   ASSERT_TRUE(AttrUtils::GetStr(add_node_dst->GetOpDesc(), ATTR_NAME_WEIGHTS, str_value));
 
@@ -1579,7 +1580,7 @@ TEST_F(UtestGraphUtils, RemoveEdgeAnchorPtrIsNull) {
 
 TEST_F(UtestGraphUtils, RemoveEdgeOutDataAnchorPtrIsNull) {
   OutDataAnchorPtr src;
-  InControlAnchorPtr  dst;
+  InControlAnchorPtr dst;
   int ret = GraphUtils::RemoveEdge(src, dst);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
@@ -1602,8 +1603,7 @@ TEST_F(UtestGraphUtils, InsertNodeBetweenDataAnchorsSuccess) {
   NodePtr new_node(node1);
   builder.AddDataEdge(node0, 0, node2, 0);
   builder.AddControlEdge(node0, node2);
-  int ret = GraphUtils::InsertNodeBetweenDataAnchors(node0->GetOutDataAnchor(0),
-                                                     node2->GetInDataAnchor(0), new_node);
+  int ret = GraphUtils::InsertNodeBetweenDataAnchors(node0->GetOutDataAnchor(0), node2->GetInDataAnchor(0), new_node);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -1744,7 +1744,7 @@ TEST_F(UtestGraphUtils, InsertNodeBeforeInsertCodeGetInDataAnchorFail) {
   const auto &identity = builder.AddNode("identity", "Identity", 1, 1);
 
   builder.AddDataEdge(var, 0, assign, 0);
-  builder.AddDataEdge(var,0,allreduce,0);
+  builder.AddDataEdge(var, 0, allreduce, 0);
   builder.AddControlEdge(assign, allreduce);
   builder.AddControlEdge(atomic_clean, allreduce);
   auto graph = builder.GetGraph();
@@ -1766,7 +1766,6 @@ TEST_F(UtestGraphUtils, RemoveJustNodeFail) {
   int ret = GraphUtils::RemoveJustNode(compute_graph, node0);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
-
 
 TEST_F(UtestGraphUtils, LoadGEGraphComputeGraphIsNull) {
   char_t *file = nullptr;
@@ -1796,15 +1795,13 @@ TEST_F(UtestGraphUtils, ReadProtoFromTextFileFileIsNull) {
 }
 
 TEST_F(UtestGraphUtils, DumpGEGraphToOnnxForLongName) {
-  EXPECT_NO_THROW(
-    setenv("DUMP_GE_GRAPH", "1", 1);
-    ComputeGraph compute_graph("test_graph0");
-    const std::string suffit = "ge_proto_00000001_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.pbtxt";
-    ge::GraphUtils::DumpGEGraphToOnnx(compute_graph, suffit);
-    setenv("DUMP_GE_GRAPH", "1", 1);
-  );
+  EXPECT_NO_THROW(setenv("DUMP_GE_GRAPH", "1", 1); ComputeGraph compute_graph("test_graph0");
+                  const std::string suffit =
+                      "ge_proto_00000001_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                      "AAAAAAAAAAAAAAAAA"
+                      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.pbtxt";
+                  ge::GraphUtils::DumpGEGraphToOnnx(compute_graph, suffit); setenv("DUMP_GE_GRAPH", "1", 1););
 }
 
 TEST_F(UtestGraphUtils, IsolateNodeNodeIsNull) {
@@ -1957,11 +1954,9 @@ TEST_F(UtestGraphUtils, ReplaceNodesSuccess_all_data_anchors_and_keep_old_in_dat
   EXPECT_EQ(graph_builder0.GetGraph()->GetDirectNodesSize(), 9);
   std::vector<int> inputs_map{1, 0};
   std::vector<int> outputs_map{4};
-  int ret =
-      GraphUtils::CopyNodesInDataAnchors({relu_abs_add}, {relu0, relu1, abs0, abs1, add}, inputs_map);
+  int ret = GraphUtils::CopyNodesInDataAnchors({relu_abs_add}, {relu0, relu1, abs0, abs1, add}, inputs_map);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
-  ret =
-      GraphUtils::ReplaceNodesOutDataAnchors({relu_abs_add}, {relu0, relu1, abs0, abs1, add}, outputs_map);
+  ret = GraphUtils::ReplaceNodesOutDataAnchors({relu_abs_add}, {relu0, relu1, abs0, abs1, add}, outputs_map);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   // 输出数据关系移动，输入数据关系拷贝
   EXPECT_EQ(relu_abs_add->GetOutDataNodesSize(), 1U);
@@ -2408,8 +2403,7 @@ TEST_F(UtestGraphUtils, CopyComputeGraphDepthGreaterThanKCopyGraphMaxRecursionDe
 TEST_F(UtestGraphUtils, CopyMembersSrcComputerGraphIsNull) {
   ComputeGraphPtr dst_compute_graph = std::make_shared<ComputeGraph>("Test1");
   std::unordered_map<std::string, NodePtr> all_new_nodes;
-  int ret =
-      GraphUtils::CopyMembers(nullptr, dst_compute_graph, all_new_nodes);
+  int ret = GraphUtils::CopyMembers(nullptr, dst_compute_graph, all_new_nodes);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
@@ -2426,7 +2420,7 @@ TEST_F(UtestGraphUtils, CloneGraph) {
   const auto &node0 = builder.AddNode("node0", DATA, 1, 1);
   const auto &node1 = builder.AddNode("node1", NETOUTPUT, 1, 1);
   auto graph = builder.GetGraph();
-  (void) AttrUtils::SetStr(graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   std::string prefix;
   std::vector<NodePtr> input_nodes;
   std::vector<NodePtr> output_nodes;
@@ -2980,7 +2974,7 @@ TEST_F(UtestGraphUtils, BuildExistNodesTest) {
   builder.AddNode(opdsc);
   EXPECT_EQ(builder.exist_nodes_.size(), 1);
   builder.BuildExistNodes(err, msg);
-  EXPECT_TRUE(err ==  GRAPH_FAILED);
+  EXPECT_TRUE(err == GRAPH_FAILED);
   EXPECT_NE(msg, "");
 
   err = GRAPH_SUCCESS;
@@ -3016,7 +3010,7 @@ TEST_F(UtestGraphUtils, CompleteGraphBuilderBuilder) {
   std::string msg = "";
 
   complete_builder.Build(err, msg);
-  EXPECT_TRUE(err ==  GRAPH_SUCCESS);
+  EXPECT_TRUE(err == GRAPH_SUCCESS);
   EXPECT_EQ(msg, "");
 }
 
@@ -3025,7 +3019,7 @@ TEST_F(UtestGraphUtils, CompleteGraphBuilderBuildGraphTargets) {
   graphStatus err = GRAPH_SUCCESS;
   std::string msg = "";
 
-  //node_names_ is null
+  // node_names_ is null
   complete_builder.AddTarget("Data_1");
   complete_builder.BuildGraphTargets(err, msg);
   EXPECT_EQ(err, GRAPH_FAILED);
@@ -3125,13 +3119,13 @@ TEST_F(UtestGraphUtils, AddRetValNodesTest) {
   graphStatus err = GRAPH_SUCCESS;
   std::string msg = "";
 
-  //node_names_ is null
+  // node_names_ is null
   complete_builder.graph_outputs_.push_back(pair<std::string, uint32_t>("Data_1", 0));
   complete_builder.AddRetValNodes(err, msg);
   EXPECT_EQ(err, GRAPH_FAILED);
   EXPECT_EQ(msg, "AddRetValNode failed: node Data_1 does not exist in graph.");
 
-  //node_names_ node is nullptr
+  // node_names_ node is nullptr
   err = GRAPH_SUCCESS;
   msg = "";
   complete_builder.node_names_.insert(pair<std::string, NodePtr>("Data_1", nullptr));
@@ -3139,7 +3133,7 @@ TEST_F(UtestGraphUtils, AddRetValNodesTest) {
   EXPECT_EQ(err, GRAPH_FAILED);
   EXPECT_EQ(msg, "AddRetValNode failed: node is NULL.");
 
-  //node_names_ node is not nullptr
+  // node_names_ node is not nullptr
   auto builder = ut::GraphBuilder("test2");
   auto node = builder.AddNode("node", DATA, 1, 0);
   complete_builder.owner_graph_ = node->GetOwnerComputeGraph();
@@ -3246,7 +3240,6 @@ TEST_F(UtestGraphUtils, PostProcessTest) {
   EXPECT_EQ(msg, "Copy attr _dynamic_shape_partitioned failed.");
 }
 
-
 TEST_F(UtestGraphUtils, GetRefMappingTest) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test0");
   auto op_desc = std::make_shared<OpDesc>("node1", "node1");
@@ -3262,12 +3255,12 @@ TEST_F(UtestGraphUtils, ComputeGraphBuilderBuildNodesTest) {
   graphStatus err = GRAPH_SUCCESS;
   std::string msg = "";
 
-  //owner_graph_ is null
+  // owner_graph_ is null
   utest_graph_builder.BuildNodes(err, msg);
   EXPECT_EQ(err, GRAPH_FAILED);
   EXPECT_EQ(msg, "graph is NULL.");
 
-  //nodes_ is null
+  // nodes_ is null
   auto builder = ut::GraphBuilder("test1");
   auto node1 = builder.AddNode("node1", DATA, 1, 1);
   auto owner_graph = node1->GetOwnerComputeGraph();
@@ -3279,7 +3272,6 @@ TEST_F(UtestGraphUtils, ComputeGraphBuilderBuildNodesTest) {
   EXPECT_EQ(err, GRAPH_FAILED);
   EXPECT_EQ(msg, "op_desc is NULL.");
 }
-
 
 TEST_F(UtestGraphUtils, FindNodeByTypeFromAllGraphs) {
   auto graph = BuildGraphWithSubGraph();
@@ -3650,9 +3642,9 @@ TEST_F(UtestGraphUtils, InsertNodeBeforeOpdesc) {
   const auto &allreduce = builder.AddNode("allreduce", "HcomAllReduce", 1, 1);
   const auto &atomic_clean = builder.AddNode("atomic_clean", ATOMICADDRCLEAN, 0, 0);
   const auto &netoutput1 = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
- // const auto &identity = builder.AddNode("identity", "Identity", 1, 1);
+  // const auto &identity = builder.AddNode("identity", "Identity", 1, 1);
   builder.AddDataEdge(var, 0, assign, 0);
-  builder.AddDataEdge(var, 0, allreduce,0);
+  builder.AddDataEdge(var, 0, allreduce, 0);
   builder.AddControlEdge(assign, allreduce);
   builder.AddControlEdge(atomic_clean, allreduce);
   auto graph = builder.GetGraph();
@@ -3728,8 +3720,8 @@ TEST_F(UtestGraphUtils, Single_output_2_multi_inputs) {
   builder.AddControlEdge(relu6, netoutput);
   auto graph = builder.GetGraph();
 
-  std::vector<std::string> expected_dfs_names =
-      {"Data1", "Data2", "Add", "Relu6", "Relu5", "Relu4", "Relu3", "Relu2", "Relu1", "Netoutput"};
+  std::vector<std::string> expected_dfs_names = {"Data1", "Data2", "Add",   "Relu6", "Relu5",
+                                                 "Relu4", "Relu3", "Relu2", "Relu1", "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   std::vector<std::string> dfs_names;
   for (auto &node : graph->GetAllNodes()) {
@@ -4105,13 +4097,13 @@ TEST_F(UtestGraphUtils, CanReplace_2inputs_Success) {
     Data    Data
     |        |
   - Relu    Relu                                    Data   Data
- |    |       |                                      |   /  |    
- |   Cast0   Cast             Add0 -->              Add    Relu   
- |    \     /                                        \     /       
- |----> Add  ---- Relu                                 Add  
-         / \         |                                         
+ |    |       |                                      |   /  |
+ |   Cast0   Cast             Add0 -->              Add    Relu
+ |    \     /                                        \     /
+ |----> Add  ---- Relu                                 Add
+         / \         |
   Cast <-    Add1 ----
-                                                   
+
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithGraphControlEdge) {
   auto builder = ut::GraphBuilder("test_expand_node_with_graph");
@@ -4279,10 +4271,10 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphControlEdge) {
   - Relu    Relu                                    Data   Data         then:  Data           else: Data
  |    |       |                                       |     |                    |                   |
  |   Cast0   Cast             Add1 -->                |     |                   Relu                Cast
- |    \     /                                          \    /             
- |----> Add  ---- Relu                                   If          ->  
-         / \         |                                         
-  Cast <-    Add1 ----                                 
+ |    \     /                                          \    /
+ |----> Add  ---- Relu                                   If          ->
+         / \         |
+  Cast <-    Add1 ----
 
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithGraphWithSubGraph) {
@@ -4354,7 +4346,7 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphWithSubGraph) {
   std::vector<std::pair<NodePtr, int32_t>> else_graph_output_nodes{{else_graph_cast0, 0}};
   else_graph->SetOutputSize(1U);
   else_graph->SetGraphOutNodesInfo(else_graph_output_nodes);
- 
+
   auto sub_graph = sub_builder.GetGraph();
   std::vector<std::pair<NodePtr, int32_t>> sub_output_nodes{{sub_if, 0}};
   sub_graph->SetOutputSize(1U);
@@ -4480,7 +4472,7 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphNodeInSubGraph) {
   std::vector<std::pair<NodePtr, int32_t>> else_graph_output_nodes{{else_graph_cast0, 0}};
   else_graph->SetOutputSize(1U);
   else_graph->SetGraphOutNodesInfo(else_graph_output_nodes);
- 
+
   auto graph = builder.GetGraph();
   std::vector<std::pair<NodePtr, int32_t>> output_nodes{{if_op, 0}};
   graph->SetOutputSize(1U);
@@ -4558,7 +4550,7 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphNodeInSubGraph) {
   const auto add_out_data_anchor = sub_add_node->GetOutDataAnchor(0);
   ASSERT_NE(add_out_data_anchor, nullptr);
   const auto peer_in_add_out_data_anchors = add_out_data_anchor->GetPeerInDataAnchors();
-  EXPECT_EQ(peer_in_add_out_data_anchors.size(), 1); // 连给子图NetOutput
+  EXPECT_EQ(peer_in_add_out_data_anchors.size(), 1);  // 连给子图NetOutput
   const auto output_node_info = then_graph->GetGraphOutNodesInfo();
   EXPECT_EQ(output_node_info.size(), 1);
   EXPECT_EQ(output_node_info[0].first, sub_add_node);
@@ -4569,15 +4561,15 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphNodeInSubGraph) {
     Data    Data
     |        |
    Relu    Relu                                    Data   Data
-     |       |                                      |     |    
+     |       |                                      |     |
     Cast0   Cast   Data            Clip -->         |     |
-      \     /      |                                  \    /       
+      \     /      |                                  \    /
         Clip ------                                    Clip
-         |   \  
-         |    ---- Relu                                   
-        / \          |                                         
+         |   \
+         |    ---- Relu
+        / \          |
   Cast <-    Add1 ----
-                                                   
+
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithGraphInputNotMatch) {
   auto builder = ut::GraphBuilder("test_expand_node_with_graph");
@@ -4699,13 +4691,13 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithGraphInputNotMatch) {
     Data    Data
     |        |
   - Relu    Relu                                    Data   Data
- |    |       |                                      |   /  |    
- |   Cast0   Cast             Add0 -->              Add    Relu   
- |    \     /                                        \     /  |     
+ |    |       |                                      |   /  |
+ |   Cast0   Cast             Add0 -->              Add    Relu
+ |    \     /                                        \     /  |
  |----> Add  ---- Relu                                 Add    |
-         / \         |                                     NetOutput  
-  Cast <-    Add1 ----                                        
-                                                   
+         / \         |                                     NetOutput
+  Cast <-    Add1 ----
+
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithNetOutput) {
   auto builder = ut::GraphBuilder("test_expand_node_with_graph");
@@ -4875,13 +4867,13 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithNetOutput) {
     Data    Data
     |        |
   - Relu    Relu                                    Data   Data
- |    |       |                                    / |   /  |    
- |   Cast0   Cast             Add0 -->            |  Add    Relu   
- |    \     /                                     \   \     /       
- |----> Add  ---- Relu                             --   Add  
-         / \         |                                         
+ |    |       |                                    / |   /  |
+ |   Cast0   Cast             Add0 -->            |  Add    Relu
+ |    \     /                                     \   \     /
+ |----> Add  ---- Relu                             --   Add
+         / \         |
   Cast <-    Add1 ----
-                                                   
+
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithDataControl) {
   auto builder = ut::GraphBuilder("test_expand_node_with_graph");
@@ -5050,8 +5042,8 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithDataControl) {
     |        |      |
     \        |     /                                           Data    Data   Data
           identity                                --->          \      /  \     /
-          /      \                                                Add0       Add1      
-        Relu0   Relu1                                         
+          /      \                                                Add0       Add1
+        Relu0   Relu1
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithOutputNotMatch) {
   auto builder = ut::GraphBuilder("test_expand_node_output_not_match");
@@ -5172,8 +5164,8 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithOutputNotMatch) {
     |        |         |
     \        |   /     Relu                                        Data    Data   Data
           identity     |                           --->              \      /  \     /
-                \     /                                                Add0       Add1      
-                 Add                                
+                \     /                                                Add0       Add1
+                 Add
 */
 TEST_F(UtestGraphUtils, TestExpandNodeWithOutputWithOutNodeInfos) {
   auto builder = ut::GraphBuilder("test_expand_node_output_not_match");
@@ -5249,7 +5241,7 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithOutputWithOutNodeInfos) {
   const auto add0_out_data_anchor = sub_add0_node->GetOutDataAnchor(0);
   ASSERT_NE(add0_out_data_anchor, nullptr);
   const auto peer_in_add0_out_data_anchors = add0_out_data_anchor->GetPeerInDataAnchors();
-  EXPECT_EQ(peer_in_add0_out_data_anchors.size(), 1UL); // 连接NetOutput
+  EXPECT_EQ(peer_in_add0_out_data_anchors.size(), 1UL);  // 连接NetOutput
 
   const auto sub_add1_node = graph->FindNode("sub_add1");
   EXPECT_EQ(sub_add1_node, sub_add1);
@@ -5266,7 +5258,7 @@ TEST_F(UtestGraphUtils, TestExpandNodeWithOutputWithOutNodeInfos) {
   const auto add1_out_data_anchor = sub_add1_node->GetOutDataAnchor(0);
   ASSERT_NE(add1_out_data_anchor, nullptr);
   const auto peer_in_add1_out_data_anchors = add1_out_data_anchor->GetPeerInDataAnchors();
-  EXPECT_EQ(peer_in_add1_out_data_anchors.size(), 2); // 连接NetOutput
+  EXPECT_EQ(peer_in_add1_out_data_anchors.size(), 2);  // 连接NetOutput
   EXPECT_EQ(peer_in_add1_out_data_anchors.at(0)->GetOwnerNode()->GetName(), "add0");
 
   // 验证输出NodeInfo
@@ -5418,7 +5410,6 @@ TEST_F(UtestGraphUtils, IsolateNodeNodeWithNoOpOptimize_SetIoMap_NoOutAnchr) {
     graph_builder.AddDataEdge(del_node, i, n, 0);
   }
   auto graph = graph_builder.GetGraph();
-
 
   auto node = graph->FindNode("del_node");
   setenv("DUMP_GE_GRAPH", "1", 1);

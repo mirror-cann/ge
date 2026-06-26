@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ std::unique_ptr<float[]> GetRandomFloat(std::initializer_list<int64_t> shape) {
 
 GeTensorPtr CreateTensor_8_3_224_224(float *tensor_data) {
   auto tensor = std::make_shared<GeTensor>();
-  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_data), 8*3*224*224*sizeof(float));
+  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_data), 8 * 3 * 224 * 224 * sizeof(float));
   GeTensorDesc td;
   td.SetShape(GeShape(std::vector<int64_t>({8, 3, 224, 224})));
   td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 224, 224})));
@@ -46,13 +46,13 @@ GeTensorPtr CreateTensor_8_3_224_224(float *tensor_data) {
 }
 
 void ExpectTensorEqual_8_3_224_224(ConstGeTensorPtr out_tensor, float *tensor_data) {
-  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t*>(tensor_data));
-  EXPECT_EQ(out_tensor->GetData().size(), 8*3*224*224*sizeof(float));
-  for (size_t i = 0; i < 8*3*224*224; ++i) {
+  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t *>(tensor_data));
+  EXPECT_EQ(out_tensor->GetData().size(), 8 * 3 * 224 * 224 * sizeof(float));
+  for (size_t i = 0; i < 8 * 3 * 224 * 224; ++i) {
     EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(out_tensor->GetData().data())[i], tensor_data[i]);
   }
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({8,3,224,224}));
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({8,3,224,224}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({8, 3, 224, 224}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 224, 224}));
   EXPECT_EQ(out_tensor->GetTensorDesc().GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
@@ -64,7 +64,7 @@ void ExpectTensorEqual_8_3_224_224(ConstGeTensorPtr out_tensor, float *tensor_da
 
 GeTensorPtr CreateTensor_5d_8_3_224_224(float *tensor_data) {
   auto tensor = std::make_shared<GeTensor>();
-  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_data), 8*1*224*224*16*sizeof(float));
+  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_data), 8 * 1 * 224 * 224 * 16 * sizeof(float));
   GeTensorDesc td;
   td.SetShape(GeShape(std::vector<int64_t>({8, 1, 224, 224, 16})));
   td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 224, 224})));
@@ -78,13 +78,13 @@ GeTensorPtr CreateTensor_5d_8_3_224_224(float *tensor_data) {
 }
 
 void ExpectTensorEqual_5d_8_3_224_224(ConstGeTensorPtr out_tensor, float *tensor_data) {
-  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t*>(tensor_data));
-  EXPECT_EQ(out_tensor->GetData().size(), 8*1*224*224*16*sizeof(float));
-  for (size_t i = 0; i < 8*1*224*224*16; ++i) {
+  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t *>(tensor_data));
+  EXPECT_EQ(out_tensor->GetData().size(), 8 * 1 * 224 * 224 * 16 * sizeof(float));
+  for (size_t i = 0; i < 8 * 1 * 224 * 224 * 16; ++i) {
     EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(out_tensor->GetData().data())[i], tensor_data[i]);
   }
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({8,1,224,224,16}));
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({8,3,224,224}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({8, 1, 224, 224, 16}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 224, 224}));
   EXPECT_EQ(out_tensor->GetTensorDesc().GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
@@ -100,8 +100,8 @@ ComputeGraphPtr CreateGraph_1_1_224_224(float *tensor_data) {
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
   auto const1 = builder.AddNode("const1", "Const", {}, {"y"});
   GeTensorDesc const1_td;
-  const1_td.SetShape(GeShape({1,1,224,224}));
-  const1_td.SetOriginShape(GeShape({1,1,224,224}));
+  const1_td.SetShape(GeShape({1, 1, 224, 224}));
+  const1_td.SetOriginShape(GeShape({1, 1, 224, 224}));
   const1_td.SetFormat(FORMAT_NCHW);
   const1_td.SetOriginFormat(FORMAT_NCHW);
   const1_td.SetDataType(DT_FLOAT);
@@ -160,8 +160,8 @@ void ExpectEqGraph_1_1_224_224(const ConstComputeGraphPtr &graph, float *tensor_
   EXPECT_EQ(data1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
 
@@ -171,8 +171,8 @@ void ExpectEqGraph_1_1_224_224(const ConstComputeGraphPtr &graph, float *tensor_
   EXPECT_EQ(const1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
 
@@ -180,14 +180,13 @@ void ExpectEqGraph_1_1_224_224(const ConstComputeGraphPtr &graph, float *tensor_
   EXPECT_TRUE(AttrUtils::GetTensor(const1->GetOpDesc(), "value", tensor));
   EXPECT_EQ(tensor->GetTensorDesc().GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(tensor->GetTensorDesc().GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(tensor->GetTensorDesc().GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(tensor->GetTensorDesc().GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(tensor->GetTensorDesc().GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
   EXPECT_EQ(tensor->GetTensorDesc().GetOriginDataType(), DT_FLOAT);
-  for (size_t i = 0; i < 224*224; ++i) {
+  for (size_t i = 0; i < 224 * 224; ++i) {
     EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(tensor->GetData().data())[i], tensor_data[i]);
   }
-
 
   EXPECT_EQ(add1->GetOpDesc()->GetName(), "add1");
   EXPECT_EQ(add1->GetType(), "Add");
@@ -195,20 +194,20 @@ void ExpectEqGraph_1_1_224_224(const ConstComputeGraphPtr &graph, float *tensor_
   EXPECT_EQ(add1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
 
@@ -218,8 +217,8 @@ void ExpectEqGraph_1_1_224_224(const ConstComputeGraphPtr &graph, float *tensor_
   EXPECT_EQ(netoutput1->GetOpDesc()->GetOutputsSize(), 0);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetShape(), GeShape({1,1,224,224}));
-  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetShape(), GeShape({1, 1, 224, 224}));
+  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginDataType(), DT_FLOAT);
 
@@ -236,14 +235,14 @@ ComputeGraphPtr CreateGraph_5d_1_1_224_224(float *tensor_data) {
   auto data1 = builder.AddNode("data1", "Data", {}, {"y"});
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
   data1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
 
   auto const1 = builder.AddNode("const1", "Const", {}, {"y"});
   const1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  const1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  const1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
   GeTensorDesc const1_td;
-  const1_td.SetShape(GeShape({1,1,224,224}));
-  const1_td.SetOriginShape(GeShape({1,1,224,224}));
+  const1_td.SetShape(GeShape({1, 1, 224, 224}));
+  const1_td.SetOriginShape(GeShape({1, 1, 224, 224}));
   const1_td.SetFormat(FORMAT_NCHW);
   const1_td.SetOriginFormat(FORMAT_NCHW);
   const1_td.SetDataType(DT_FLOAT);
@@ -254,14 +253,14 @@ ComputeGraphPtr CreateGraph_5d_1_1_224_224(float *tensor_data) {
 
   auto add1 = builder.AddNode("add1", "Add", {"x1", "x2"}, {"y"});
   add1->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  add1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  add1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
   add1->GetOpDesc()->MutableInputDesc(1)->SetFormat(FORMAT_NC1HWC0);
-  add1->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({1,1,224,224,16}));
+  add1->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({1, 1, 224, 224, 16}));
   add1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  add1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  add1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
   auto netoutput1 = builder.AddNode("NetOutputNode", "NetOutput", {"x"}, {});
   netoutput1->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  netoutput1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  netoutput1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
 
   builder.AddDataEdge(data1, 0, add1, 0);
   builder.AddDataEdge(const1, 0, add1, 1);
@@ -291,8 +290,8 @@ void ExpectEqGraph_5d_1_1_224_224(const ConstComputeGraphPtr &graph, float *tens
   EXPECT_EQ(data1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(data1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
 
@@ -302,23 +301,22 @@ void ExpectEqGraph_5d_1_1_224_224(const ConstComputeGraphPtr &graph, float *tens
   EXPECT_EQ(const1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(const1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
-//
-//  ConstGeTensorPtr tensor;
-//  EXPECT_TRUE(AttrUtils::GetTensor(const1->GetOpDesc(), "value", tensor));
-//  EXPECT_EQ(tensor->GetTensorDesc().GetFormat(), FORMAT_NCHW);
-//  EXPECT_EQ(tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
-//  EXPECT_EQ(tensor->GetTensorDesc().GetShape(), GeShape({1,1,224,224}));
-//  EXPECT_EQ(tensor->GetTensorDesc().GetOriginShape(), GeShape({1,1,224,224}));
-//  EXPECT_EQ(tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
-//  EXPECT_EQ(tensor->GetTensorDesc().GetOriginDataType(), DT_FLOAT);
-//  for (size_t i = 0; i < 224*224; ++i) {
-//    EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(tensor->GetData().data())[i], tensor_data[i]);
-//  }
-
+  //
+  //  ConstGeTensorPtr tensor;
+  //  EXPECT_TRUE(AttrUtils::GetTensor(const1->GetOpDesc(), "value", tensor));
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetFormat(), FORMAT_NCHW);
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetShape(), GeShape({1,1,224,224}));
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetOriginShape(), GeShape({1,1,224,224}));
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
+  //  EXPECT_EQ(tensor->GetTensorDesc().GetOriginDataType(), DT_FLOAT);
+  //  for (size_t i = 0; i < 224*224; ++i) {
+  //    EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(tensor->GetData().data())[i], tensor_data[i]);
+  //  }
 
   EXPECT_EQ(add1->GetOpDesc()->GetName(), "add1");
   EXPECT_EQ(add1->GetType(), "Add");
@@ -326,20 +324,20 @@ void ExpectEqGraph_5d_1_1_224_224(const ConstComputeGraphPtr &graph, float *tens
   EXPECT_EQ(add1->GetOpDesc()->GetOutputsSize(), 1);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x1")->GetOriginDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetInputDescPtr("x2")->GetOriginDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetDataType(), DT_FLOAT);
   EXPECT_EQ(add1->GetOpDesc()->GetOutputDesc("y").GetOriginDataType(), DT_FLOAT);
 
@@ -349,8 +347,8 @@ void ExpectEqGraph_5d_1_1_224_224(const ConstComputeGraphPtr &graph, float *tens
   EXPECT_EQ(netoutput1->GetOpDesc()->GetOutputsSize(), 0);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginFormat(), FORMAT_NCHW);
-  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetShape(), GeShape({1,1,224,224,16}));
-  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginShape(), GeShape({1,1,224,224}));
+  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetShape(), GeShape({1, 1, 224, 224, 16}));
+  EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginShape(), GeShape({1, 1, 224, 224}));
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetDataType(), DT_FLOAT);
   EXPECT_EQ(netoutput1->GetOpDesc()->GetInputDescPtr("x")->GetOriginDataType(), DT_FLOAT);
 
@@ -361,7 +359,7 @@ void ExpectEqGraph_5d_1_1_224_224(const ConstComputeGraphPtr &graph, float *tens
   EXPECT_EQ(add1->GetOutNodes().size(), 1);
   EXPECT_TRUE(ExpectConnected(add1, 0, netoutput1, 0));
 }
-}
+}  // namespace
 class AttrUtilsUt : public testing::Test {};
 
 TEST_F(AttrUtilsUt, HasAttrOk) {
@@ -418,7 +416,7 @@ TEST_F(AttrUtilsUt, SetGetInt_ExceedsLimit) {
 TEST_F(AttrUtilsUt, SetGetListIntOk1) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<int32_t>({1,2,3})));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<int32_t>({1, 2, 3})));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -427,15 +425,15 @@ TEST_F(AttrUtilsUt, SetGetListIntOk1) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3}));
-  EXPECT_EQ(i32, std::vector<int32_t>({1,2,3}));
-  EXPECT_EQ(ui32, std::vector<uint32_t>({1,2,3}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3}));
+  EXPECT_EQ(i32, std::vector<int32_t>({1, 2, 3}));
+  EXPECT_EQ(ui32, std::vector<uint32_t>({1, 2, 3}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListIntOk2) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<uint32_t>({1,2,3})));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<uint32_t>({1, 2, 3})));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -444,15 +442,15 @@ TEST_F(AttrUtilsUt, SetGetListIntOk2) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3}));
-  EXPECT_EQ(i32, std::vector<int32_t>({1,2,3}));
-  EXPECT_EQ(ui32, std::vector<uint32_t>({1,2,3}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3}));
+  EXPECT_EQ(i32, std::vector<int32_t>({1, 2, 3}));
+  EXPECT_EQ(ui32, std::vector<uint32_t>({1, 2, 3}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListIntOk3) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<int64_t>({1,2,3})));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", std::vector<int64_t>({1, 2, 3})));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -461,15 +459,15 @@ TEST_F(AttrUtilsUt, SetGetListIntOk3) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3}));
-  EXPECT_EQ(i32, std::vector<int32_t>({1,2,3}));
-  EXPECT_EQ(ui32, std::vector<uint32_t>({1,2,3}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3}));
+  EXPECT_EQ(i32, std::vector<int32_t>({1, 2, 3}));
+  EXPECT_EQ(ui32, std::vector<uint32_t>({1, 2, 3}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListIntOk4) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1,2,3}));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1, 2, 3}));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -478,15 +476,15 @@ TEST_F(AttrUtilsUt, SetGetListIntOk4) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3}));
-  EXPECT_EQ(i32, std::vector<int32_t>({1,2,3}));
-  EXPECT_EQ(ui32, std::vector<uint32_t>({1,2,3}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3}));
+  EXPECT_EQ(i32, std::vector<int32_t>({1, 2, 3}));
+  EXPECT_EQ(ui32, std::vector<uint32_t>({1, 2, 3}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListInt_ExceedsLimit1) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1,2,3, 0xffffffffffff}));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1, 2, 3, 0xffffffffffff}));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -495,13 +493,13 @@ TEST_F(AttrUtilsUt, SetGetListInt_ExceedsLimit1) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_FALSE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_FALSE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3,0xffffffffffff}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3, 0xffffffffffff}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListInt_ExceedsLimit2) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1,2,3, 0xffffffff}));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1, 2, 3, 0xffffffff}));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
@@ -510,24 +508,24 @@ TEST_F(AttrUtilsUt, SetGetListInt_ExceedsLimit2) {
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_FALSE(AttrUtils::GetListInt(op_desc, "abc2", i32));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3,0xffffffff}));
-  EXPECT_EQ(ui32, std::vector<uint32_t>({1,2,3,0xffffffff}));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3, 0xffffffff}));
+  EXPECT_EQ(ui32, std::vector<uint32_t>({1, 2, 3, 0xffffffff}));
 }
 
 TEST_F(AttrUtilsUt, SetGetListInt_ExceedsLimit3) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1,2,3, -1}));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "abc2", {1, 2, 3, -1}));
 
   std::vector<int64_t> i64;
   std::vector<int32_t> i32;
-  //std::vector<uint32_t> ui32;
+  // std::vector<uint32_t> ui32;
 
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i64));
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "abc2", i32));
-  //EXPECT_FALSE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
-  EXPECT_EQ(i64, std::vector<int64_t>({1,2,3,-1}));
-  //EXPECT_EQ(i32, std::vector<int32_t>({1,2,3,-1}));
+  // EXPECT_FALSE(AttrUtils::GetListInt(op_desc, "abc2", ui32));
+  EXPECT_EQ(i64, std::vector<int64_t>({1, 2, 3, -1}));
+  // EXPECT_EQ(i32, std::vector<int32_t>({1,2,3,-1}));
 }
 
 TEST_F(AttrUtilsUt, SetGetFloatOk) {
@@ -542,7 +540,7 @@ TEST_F(AttrUtilsUt, SetGetFloatOk) {
 TEST_F(AttrUtilsUt, SetGetListFloatOk) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListFloat(op_desc, "abc", std::vector<float>({3.1415,4.1415,5.1415926})));
+  EXPECT_TRUE(AttrUtils::SetListFloat(op_desc, "abc", std::vector<float>({3.1415, 4.1415, 5.1415926})));
   std::vector<float> f;
   EXPECT_TRUE(AttrUtils::GetListFloat(op_desc, "abc", f));
   EXPECT_EQ(f.size(), 3);
@@ -566,7 +564,7 @@ TEST_F(AttrUtilsUt, SetGetBoolOk) {
 TEST_F(AttrUtilsUt, SetGetListBoolOk) {
   auto op_desc = std::make_shared<OpDesc>();
 
-  EXPECT_TRUE(AttrUtils::SetListBool(op_desc, "abc", std::vector<bool>({true,false,false,true})));
+  EXPECT_TRUE(AttrUtils::SetListBool(op_desc, "abc", std::vector<bool>({true, false, false, true})));
   std::vector<bool> b;
   EXPECT_TRUE(AttrUtils::GetListBool(op_desc, "abc", b));
   EXPECT_EQ(b.size(), 4);
@@ -600,8 +598,8 @@ TEST_F(AttrUtilsUt, SetGetListStrOk) {
 TEST_F(AttrUtilsUt, SetGetTensorDescOk) {
   auto op_desc = std::make_shared<OpDesc>();
   GeTensorDesc td;
-  td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-  td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+  td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+  td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
   td.SetFormat(FORMAT_NC1HWC0);
   td.SetOriginFormat(FORMAT_NCHW);
   td.SetDataType(DT_FLOAT16);
@@ -612,8 +610,8 @@ TEST_F(AttrUtilsUt, SetGetTensorDescOk) {
 
   GeTensorDesc td1;
   EXPECT_TRUE(AttrUtils::GetTensorDesc(op_desc, "abc", td1));
-  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
   EXPECT_EQ(td1.GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(td1.GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(td1.GetDataType(), DT_FLOAT16);
@@ -626,8 +624,8 @@ TEST_F(AttrUtilsUt, SetGetTensorDescOk) {
 TEST_F(AttrUtilsUt, SetGetTensorDescOk_CopyValidation1) {
   auto op_desc = std::make_shared<OpDesc>();
   GeTensorDesc td;
-  td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-  td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+  td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+  td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
   td.SetFormat(FORMAT_NC1HWC0);
   td.SetOriginFormat(FORMAT_NCHW);
   td.SetDataType(DT_FLOAT16);
@@ -645,8 +643,8 @@ TEST_F(AttrUtilsUt, SetGetTensorDescOk_CopyValidation1) {
 
   GeTensorDesc td1;
   EXPECT_TRUE(AttrUtils::GetTensorDesc(op_desc, "abc", td1));
-  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
   EXPECT_EQ(td1.GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(td1.GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(td1.GetDataType(), DT_FLOAT16);
@@ -659,8 +657,8 @@ TEST_F(AttrUtilsUt, SetGetTensorDescOk_CopyValidation1) {
 TEST_F(AttrUtilsUt, SetGetTensorDescOk_CopyValidation2) {
   auto op_desc = std::make_shared<OpDesc>();
   GeTensorDesc td;
-  td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-  td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+  td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+  td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
   td.SetFormat(FORMAT_NC1HWC0);
   td.SetOriginFormat(FORMAT_NCHW);
   td.SetDataType(DT_FLOAT16);
@@ -679,8 +677,8 @@ TEST_F(AttrUtilsUt, SetGetTensorDescOk_CopyValidation2) {
   td1.SetOriginDataType(DT_INT16);
   AttrUtils::SetStr(&td1, "bcd", "adasdfasdf");
 
-  EXPECT_EQ(td.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-  EXPECT_EQ(td.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+  EXPECT_EQ(td.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+  EXPECT_EQ(td.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
   EXPECT_EQ(td.GetFormat(), FORMAT_NC1HWC0);
   EXPECT_EQ(td.GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(td.GetDataType(), DT_FLOAT16);
@@ -694,8 +692,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk) {
   auto op_desc = std::make_shared<OpDesc>();
   std::vector<GeTensorDesc> tds(5);
   for (auto &td : tds) {
-    td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-    td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+    td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+    td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
     td.SetFormat(FORMAT_NC1HWC0);
     td.SetOriginFormat(FORMAT_NCHW);
     td.SetDataType(DT_FLOAT16);
@@ -708,8 +706,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk) {
   std::vector<GeTensorDesc> tds1;
   EXPECT_TRUE(AttrUtils::GetListTensorDesc(op_desc, "abc", tds1));
   for (auto &td1 : tds1) {
-    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-    EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+    EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
     EXPECT_EQ(td1.GetFormat(), FORMAT_NC1HWC0);
     EXPECT_EQ(td1.GetOriginFormat(), FORMAT_NCHW);
     EXPECT_EQ(td1.GetDataType(), DT_FLOAT16);
@@ -724,8 +722,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk_CopyValidation1) {
   auto op_desc = std::make_shared<OpDesc>();
   std::vector<GeTensorDesc> tds(5);
   for (auto &td : tds) {
-    td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-    td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+    td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+    td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
     td.SetFormat(FORMAT_NC1HWC0);
     td.SetOriginFormat(FORMAT_NCHW);
     td.SetDataType(DT_FLOAT16);
@@ -747,8 +745,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk_CopyValidation1) {
   std::vector<GeTensorDesc> tds1;
   EXPECT_TRUE(AttrUtils::GetListTensorDesc(op_desc, "abc", tds1));
   for (auto &td1 : tds1) {
-    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-    EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+    EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
     EXPECT_EQ(td1.GetFormat(), FORMAT_NC1HWC0);
     EXPECT_EQ(td1.GetOriginFormat(), FORMAT_NCHW);
     EXPECT_EQ(td1.GetDataType(), DT_FLOAT16);
@@ -763,8 +761,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk_CopyValidation2) {
   auto op_desc = std::make_shared<OpDesc>();
   std::vector<GeTensorDesc> tds(5);
   for (auto &td : tds) {
-    td.SetShape(GeShape(std::vector<int64_t>({8,1,128,128,16})));
-    td.SetOriginShape(GeShape(std::vector<int64_t>({8,3,128,128})));
+    td.SetShape(GeShape(std::vector<int64_t>({8, 1, 128, 128, 16})));
+    td.SetOriginShape(GeShape(std::vector<int64_t>({8, 3, 128, 128})));
     td.SetFormat(FORMAT_NC1HWC0);
     td.SetOriginFormat(FORMAT_NCHW);
     td.SetDataType(DT_FLOAT16);
@@ -785,8 +783,8 @@ TEST_F(AttrUtilsUt, SetGetListTensorDescOk_CopyValidation2) {
     AttrUtils::SetStr(&td1, "bcd", "adasdfasdf");
   }
   for (auto &td : tds) {
-    EXPECT_EQ(td.GetShape().GetDims(), std::vector<int64_t>({8,1,128,128,16}));
-    EXPECT_EQ(td.GetOriginShape().GetDims(), std::vector<int64_t>({8,3,128,128}));
+    EXPECT_EQ(td.GetShape().GetDims(), std::vector<int64_t>({8, 1, 128, 128, 16}));
+    EXPECT_EQ(td.GetOriginShape().GetDims(), std::vector<int64_t>({8, 3, 128, 128}));
     EXPECT_EQ(td.GetFormat(), FORMAT_NC1HWC0);
     EXPECT_EQ(td.GetOriginFormat(), FORMAT_NCHW);
     EXPECT_EQ(td.GetDataType(), DT_FLOAT16);
@@ -830,9 +828,9 @@ TEST_F(AttrUtilsUt, SetGetTensorOk1_CopyValidation1) {
   auto tensor = CreateTensor_8_3_224_224(tensor_data.get());
 
   EXPECT_TRUE(AttrUtils::SetTensor(op_desc, "abc", tensor));
-  tensor->MutableData().SetData(reinterpret_cast<uint8_t *>(tensor_data1.get()), 16*3*224*224*sizeof(float));
-  tensor->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({16,3,224,224})));
-  tensor->MutableTensorDesc().SetOriginShape(GeShape(std::vector<int64_t>({16,3,224,224})));
+  tensor->MutableData().SetData(reinterpret_cast<uint8_t *>(tensor_data1.get()), 16 * 3 * 224 * 224 * sizeof(float));
+  tensor->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({16, 3, 224, 224})));
+  tensor->MutableTensorDesc().SetOriginShape(GeShape(std::vector<int64_t>({16, 3, 224, 224})));
 
   ConstGeTensorPtr out_tensor;
   EXPECT_TRUE(AttrUtils::GetTensor(op_desc, "abc", out_tensor));
@@ -851,21 +849,22 @@ TEST_F(AttrUtilsUt, SetGetTensorOk1_MultipleGet) {
   GeTensorPtr out_tensor = nullptr;
   EXPECT_TRUE(AttrUtils::MutableTensor(op_desc, "abc", out_tensor));
   EXPECT_NE(out_tensor, nullptr);
-  out_tensor->MutableData().SetData(reinterpret_cast<uint8_t *>(tensor_data1.get()), 16*3*224*224*sizeof(float));
-  out_tensor->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({16,3,224,224})));
-  out_tensor->MutableTensorDesc().SetOriginShape(GeShape(std::vector<int64_t>({16,3,224,224})));
+  out_tensor->MutableData().SetData(reinterpret_cast<uint8_t *>(tensor_data1.get()),
+                                    16 * 3 * 224 * 224 * sizeof(float));
+  out_tensor->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({16, 3, 224, 224})));
+  out_tensor->MutableTensorDesc().SetOriginShape(GeShape(std::vector<int64_t>({16, 3, 224, 224})));
 
   out_tensor = nullptr;
   EXPECT_TRUE(AttrUtils::MutableTensor(op_desc, "abc", out_tensor));
   EXPECT_NE(out_tensor, nullptr);
 
-  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t*>(tensor_data1.get()));
-  EXPECT_EQ(out_tensor->GetData().size(), 16*3*224*224*sizeof(float));
-  for (size_t i = 0; i < 16*3*224*224; ++i) {
+  EXPECT_NE(const_cast<uint8_t *>(out_tensor->GetData().data()), reinterpret_cast<uint8_t *>(tensor_data1.get()));
+  EXPECT_EQ(out_tensor->GetData().size(), 16 * 3 * 224 * 224 * sizeof(float));
+  for (size_t i = 0; i < 16 * 3 * 224 * 224; ++i) {
     EXPECT_FLOAT_EQ(reinterpret_cast<const float *>(out_tensor->GetData().data())[i], tensor_data1.get()[i]);
   }
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({16,3,224,224}));
-  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({16,3,224,224}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetShape().GetDims(), std::vector<int64_t>({16, 3, 224, 224}));
+  EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginShape().GetDims(), std::vector<int64_t>({16, 3, 224, 224}));
   EXPECT_EQ(out_tensor->GetTensorDesc().GetFormat(), FORMAT_NCHW);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(out_tensor->GetTensorDesc().GetDataType(), DT_FLOAT);
@@ -876,9 +875,9 @@ TEST_F(AttrUtilsUt, SetGetTensorOk1_MultipleGet) {
 }
 
 TEST_F(AttrUtilsUt, SetGetListTensor) {
-  auto data1 = GetRandomFloat({8,3,224,224});
-  auto data2 = GetRandomFloat({8,1,224,224,16});
-  auto data3 = GetRandomFloat({8,3,224,224});
+  auto data1 = GetRandomFloat({8, 3, 224, 224});
+  auto data2 = GetRandomFloat({8, 1, 224, 224, 16});
+  auto data3 = GetRandomFloat({8, 3, 224, 224});
   auto tensor1 = CreateTensor_8_3_224_224(data1.get());
   auto tensor2 = CreateTensor_5d_8_3_224_224(data2.get());
   auto tensor3 = CreateTensor_8_3_224_224(data3.get());
@@ -916,10 +915,10 @@ TEST_F(AttrUtilsUt, SetGetListTensor) {
 }
 
 TEST_F(AttrUtilsUt, SetGetListTensor_MutableOk) {
-  auto data1 = GetRandomFloat({8,3,224,224});
-  auto data2 = GetRandomFloat({8,1,224,224,16});
-  auto data3 = GetRandomFloat({8,3,224,224});
-  auto data4 = GetRandomFloat({8,1,224,224,16});
+  auto data1 = GetRandomFloat({8, 3, 224, 224});
+  auto data2 = GetRandomFloat({8, 1, 224, 224, 16});
+  auto data3 = GetRandomFloat({8, 3, 224, 224});
+  auto data4 = GetRandomFloat({8, 1, 224, 224, 16});
   auto tensor1 = CreateTensor_8_3_224_224(data1.get());
   auto tensor2 = CreateTensor_5d_8_3_224_224(data2.get());
   auto tensor3 = CreateTensor_8_3_224_224(data3.get());
@@ -929,8 +928,9 @@ TEST_F(AttrUtilsUt, SetGetListTensor_MutableOk) {
 
   std::vector<GeTensorPtr> out_tensors;
   EXPECT_TRUE(AttrUtils::MutableListTensor(op_desc, "abc", out_tensors));
-  out_tensors[2]->MutableData().SetData(reinterpret_cast<uint8_t *>(data4.get()), 8*1*224*224*16*sizeof(float));
-  out_tensors[2]->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({8,1,224,224,16})));
+  out_tensors[2]->MutableData().SetData(reinterpret_cast<uint8_t *>(data4.get()),
+                                        8 * 1 * 224 * 224 * 16 * sizeof(float));
+  out_tensors[2]->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({8, 1, 224, 224, 16})));
   out_tensors[2]->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   out_tensors.clear();
 
@@ -942,18 +942,18 @@ TEST_F(AttrUtilsUt, SetGetListTensor_MutableOk) {
 }
 
 TEST_F(AttrUtilsUt, SetGetListTensor_CopyValidation) {
-  auto data1 = GetRandomFloat({8,3,224,224});
-  auto data2 = GetRandomFloat({8,1,224,224,16});
-  auto data3 = GetRandomFloat({8,3,224,224});
-  auto data4 = GetRandomFloat({8,1,224,224,16});
+  auto data1 = GetRandomFloat({8, 3, 224, 224});
+  auto data2 = GetRandomFloat({8, 1, 224, 224, 16});
+  auto data3 = GetRandomFloat({8, 3, 224, 224});
+  auto data4 = GetRandomFloat({8, 1, 224, 224, 16});
   auto tensor1 = CreateTensor_8_3_224_224(data1.get());
   auto tensor2 = CreateTensor_5d_8_3_224_224(data2.get());
   auto tensor3 = CreateTensor_8_3_224_224(data3.get());
 
   auto op_desc = std::make_shared<OpDesc>();
   EXPECT_TRUE(AttrUtils::SetListTensor(op_desc, "abc", {tensor1, tensor2, tensor3}));
-  tensor3->MutableData().SetData(reinterpret_cast<uint8_t *>(data4.get()), 8*1*224*224*16*sizeof(float));
-  tensor3->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({8,1,224,224,16})));
+  tensor3->MutableData().SetData(reinterpret_cast<uint8_t *>(data4.get()), 8 * 1 * 224 * 224 * 16 * sizeof(float));
+  tensor3->MutableTensorDesc().SetShape(GeShape(std::vector<int64_t>({8, 1, 224, 224, 16})));
   tensor3->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
 
   std::vector<ConstGeTensorPtr> out_tensors;
@@ -965,7 +965,7 @@ TEST_F(AttrUtilsUt, SetGetListTensor_CopyValidation) {
 }
 
 TEST_F(AttrUtilsUt, SetGetGraphGraph) {
-  auto const_data = GetRandomFloat({1,1,224,224});
+  auto const_data = GetRandomFloat({1, 1, 224, 224});
   auto holder = std::make_shared<ComputeGraph>("holder");
 
   {
@@ -981,13 +981,13 @@ TEST_F(AttrUtilsUt, SetGetGraphGraph) {
 }
 
 TEST_F(AttrUtilsUt, SetGraphGraph_CopyValidation) {
-  auto const_data = GetRandomFloat({1,1,224,224});
+  auto const_data = GetRandomFloat({1, 1, 224, 224});
   auto holder = std::make_shared<ComputeGraph>("holder");
 
   auto graph = CreateGraph_1_1_224_224(const_data.get());
   EXPECT_TRUE(AttrUtils::SetGraph(holder, "abc", graph));
   graph->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
-  graph->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,224,224,16}));
+  graph->FindNode("data1")->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 224, 224, 16}));
 
   ComputeGraphPtr out_graph = nullptr;
   EXPECT_TRUE(AttrUtils::GetGraph(holder, "abc", out_graph));
@@ -997,9 +997,9 @@ TEST_F(AttrUtilsUt, SetGraphGraph_CopyValidation) {
 }
 
 TEST_F(AttrUtilsUt, SetGetListGraphGraph) {
-  auto const_data1 = GetRandomFloat({1,1,224,224,16});
-  auto const_data2 = GetRandomFloat({1,1,224,224,16});
-  auto const_data3 = GetRandomFloat({1,1,224,224});
+  auto const_data1 = GetRandomFloat({1, 1, 224, 224, 16});
+  auto const_data2 = GetRandomFloat({1, 1, 224, 224, 16});
+  auto const_data3 = GetRandomFloat({1, 1, 224, 224});
   auto holder = std::make_shared<ComputeGraph>("holder");
 
   {
@@ -1031,7 +1031,7 @@ TEST_F(AttrUtilsUt, SimpleTest) {
 
 TEST_F(AttrUtilsUt, SetGetBytes) {
   GeTensorDesc td;
-  auto data = GetRandomFloat({1,2,3,4});
+  auto data = GetRandomFloat({1, 2, 3, 4});
   auto b1 = Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data.get()), sizeof(float) * 1 * 2 * 3 * 4);
   EXPECT_TRUE(AttrUtils::SetBytes(&td, "abc", b1));
   Buffer b2;
@@ -1043,7 +1043,7 @@ TEST_F(AttrUtilsUt, SetGetBytes) {
 
 TEST_F(AttrUtilsUt, SetGetBytes_ZeroCopy) {
   GeTensorDesc td;
-  auto data = GetRandomFloat({1,2,3,4});
+  auto data = GetRandomFloat({1, 2, 3, 4});
   auto b1 = Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data.get()), sizeof(float) * 1 * 2 * 3 * 4);
   auto addr = b1.data();
   EXPECT_TRUE(AttrUtils::SetZeroCopyBytes(&td, "abc", std::move(b1)));
@@ -1055,7 +1055,7 @@ TEST_F(AttrUtilsUt, SetGetBytes_ZeroCopy) {
 
 TEST_F(AttrUtilsUt, SetGetBytes_CopyValidation) {
   GeTensorDesc td;
-  auto data = GetRandomFloat({1,2,3,4});
+  auto data = GetRandomFloat({1, 2, 3, 4});
   auto b1 = Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data.get()), sizeof(float) * 1 * 2 * 3 * 4);
   EXPECT_TRUE(AttrUtils::SetBytes(&td, "abc", b1));
   b1.ClearBuffer();
@@ -1070,11 +1070,9 @@ TEST_F(AttrUtilsUt, SetGetListBytes) {
   auto data1 = GetRandomFloat({20});
   auto data2 = GetRandomFloat({40});
   auto data3 = GetRandomFloat({90});
-  std::vector<Buffer> bufs = {
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)
-  };
+  std::vector<Buffer> bufs = {Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)};
   EXPECT_TRUE(AttrUtils::SetListBytes(&td, "abc", bufs));
   std::vector<Buffer> out_bufs;
   EXPECT_TRUE(AttrUtils::GetListBytes(&td, "abc", out_bufs));
@@ -1091,11 +1089,9 @@ TEST_F(AttrUtilsUt, SetGetListBytes_CopyValidation) {
   auto data1 = GetRandomFloat({20});
   auto data2 = GetRandomFloat({40});
   auto data3 = GetRandomFloat({90});
-  std::vector<Buffer> bufs = {
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)
-  };
+  std::vector<Buffer> bufs = {Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)};
 
   EXPECT_TRUE(AttrUtils::SetListBytes(&td, "abc", bufs));
   bufs[0].ClearBuffer();
@@ -1119,11 +1115,9 @@ TEST_F(AttrUtilsUt, SetGetListBytes_ZeroCopy) {
   auto data1 = GetRandomFloat({20});
   auto data2 = GetRandomFloat({40});
   auto data3 = GetRandomFloat({90});
-  std::vector<Buffer> bufs = {
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
-      Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)
-  };
+  std::vector<Buffer> bufs = {Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data1.get()), sizeof(float) * 20),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data2.get()), sizeof(float) * 40),
+                              Buffer::CopyFrom(reinterpret_cast<uint8_t *>(data3.get()), sizeof(float) * 90)};
   EXPECT_TRUE(AttrUtils::SetZeroCopyListBytes(&td, "abc", bufs));
   std::vector<Buffer> out_bufs;
   EXPECT_TRUE(AttrUtils::GetZeroCopyListBytes(&td, "abc", out_bufs));
@@ -1135,13 +1129,12 @@ TEST_F(AttrUtilsUt, SetGetListBytes_ZeroCopy) {
 
 TEST_F(AttrUtilsUt, SetGetListListInt) {
   auto op_desc = std::make_shared<OpDesc>();
-  EXPECT_TRUE(AttrUtils::SetListListInt(op_desc,
-                                        "abc",
-                                        std::vector<std::vector<int64_t>>({{1, 2, 3}, {4, 4, 5}, {2, 2}})));
+  EXPECT_TRUE(
+      AttrUtils::SetListListInt(op_desc, "abc", std::vector<std::vector<int64_t>>({{1, 2, 3}, {4, 4, 5}, {2, 2}})));
   std::vector<std::vector<int64_t>> vec;
   EXPECT_TRUE(AttrUtils::GetListListInt(op_desc, "abc", vec));
   EXPECT_EQ(vec, std::vector<std::vector<int64_t>>({{1, 2, 3}, {4, 4, 5}, {2, 2}}));
-  //支持同名类型覆写
+  // 支持同名类型覆写
   EXPECT_TRUE(AttrUtils::SetInt(op_desc, "abc", 100));
   int64_t index;
   EXPECT_TRUE(AttrUtils::GetInt(op_desc, "abc", index));
@@ -1150,7 +1143,8 @@ TEST_F(AttrUtilsUt, SetGetListListInt) {
 
 TEST_F(AttrUtilsUt, SetGetListListFloat) {
   auto op_desc = std::make_shared<OpDesc>();
-  EXPECT_TRUE(AttrUtils::SetListListFloat(op_desc, "abc", std::vector<std::vector<float>>({{1.1,2.9,3.14},{4.122,43.4,5.55},{2.1,2.0}})));
+  EXPECT_TRUE(AttrUtils::SetListListFloat(
+      op_desc, "abc", std::vector<std::vector<float>>({{1.1, 2.9, 3.14}, {4.122, 43.4, 5.55}, {2.1, 2.0}})));
   std::vector<std::vector<float>> vec;
   EXPECT_TRUE(AttrUtils::GetListListFloat(op_desc, "abc", vec));
   EXPECT_EQ(vec.size(), 3);
@@ -1248,10 +1242,11 @@ TEST_F(AttrUtilsUt, SetGetNamedAttrs_AttachedNotifyInfo) {
   // 这个名字不太重要
   nas.SetName("nas0");
   // 下面的map的key涉及到跨组件的named_attr的进一步解析，所以需要按照约定字符串填写
-  static const std::unordered_map<std::string, std::string>
-      nas_infos = {{ge::ATTR_NAME_ATTACHED_NOTIFY_POLICY, "group"}, {ge::ATTR_NAME_ATTACHED_NOTIFY_KEY, "kfc_notify"},
-                   {ge::ATTR_NAME_ATTACHED_NOTIFY_TYPE, "on_device"}};
-  for (const auto &pair: nas_infos) {
+  static const std::unordered_map<std::string, std::string> nas_infos = {
+      {ge::ATTR_NAME_ATTACHED_NOTIFY_POLICY, "group"},
+      {ge::ATTR_NAME_ATTACHED_NOTIFY_KEY, "kfc_notify"},
+      {ge::ATTR_NAME_ATTACHED_NOTIFY_TYPE, "on_device"}};
+  for (const auto &pair : nas_infos) {
     AttrUtils::SetStr(nas, pair.first, pair.second);
   }
   // nas填充好之后，使用ATTR_NAME_ATTACHED_NOTIFY_INFO设置到opdesc上

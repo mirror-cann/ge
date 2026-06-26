@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,11 +33,11 @@ using namespace testing;
 using namespace ge;
 
 class RuntimeMock : public gert::RuntimeStubImpl {
-public:
-  rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint32_t maxLen) override {
+ public:
+  rtError_t rtGetSocSpec(const char *label, const char *key, char *val, const uint32_t maxLen) override {
     (void)label;
     (void)key;
-    (void)strcpy_s(val, maxLen, "fake"); // 用例不应该走自动融合
+    (void)strcpy_s(val, maxLen, "fake");  // 用例不应该走自动融合
     return RT_ERROR_NONE;
   }
 };
@@ -89,10 +89,10 @@ TEST_F(JitExecutorUT, CreateJitExecutor_Success) {
   auto jit_executor = JitExecutor::Create(graph_manager, task_queue, order, compile_context, cmc, tmp_mutex);
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 校验卸载资源成功
   EXPECT_EQ(jit_executor->Finalize(), SUCCESS);
@@ -165,15 +165,15 @@ TEST_F(JitExecutorUT, Run_DynamicShape_NoSlice_Success) {
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 4 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
   TensorDesc td(Shape(shape_dim), FORMAT_NCHW, DT_FLOAT);
-  td.SetOriginShape(Shape(shape_dim)); // todo check tfa set origin shape?
+  td.SetOriginShape(Shape(shape_dim));  // todo check tfa set origin shape?
   Tensor tensor(td);
   std::vector<Tensor> inputs{tensor};
   std::vector<Tensor> outputs;
@@ -249,7 +249,7 @@ TEST_F(JitExecutorUT, RunGraphAsyncAutoFuseFallback) {
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
     aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
-                            aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
+                              aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex) {
       return ACL_ERROR_RT_FEATURE_NOT_SUPPORT;
     }
   };
@@ -328,7 +328,7 @@ TEST_F(JitExecutorUT, Run_StaticShape_NoSlice_Success) {
   uint32_t user_graph_id = 0u;
   auto graph = JitShareGraph::AllNormalNodesStaticShape();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph.get());
-  
+
   ExecutionOrder order({user_graph_id, compute_graph});
   CompileContext compile_context(graph_manager);
   CompiledModelCache cmc(user_graph_id, compile_context, graph_manager);
@@ -339,15 +339,15 @@ TEST_F(JitExecutorUT, Run_StaticShape_NoSlice_Success) {
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 4 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
   TensorDesc td(Shape(shape_dim), FORMAT_NCHW, DT_FLOAT);
-  td.SetOriginShape(Shape(shape_dim)); // todo check tfa set origin shape?
+  td.SetOriginShape(Shape(shape_dim));  // todo check tfa set origin shape?
   Tensor tensor(td);
   std::vector<Tensor> inputs{tensor};
   std::vector<Tensor> outputs;
@@ -400,10 +400,10 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_one_reshape_node) {
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 3 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
@@ -554,10 +554,10 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_one_reshape_two_relu_
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 3 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
@@ -614,10 +614,10 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_two_reshape_node) {
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 3 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
@@ -669,10 +669,10 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_two_reshape_one_const
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 3 准备执行接口的入参并触发执行
   std::vector<int64_t> shape_dim = {2, 3, 3, 2};
@@ -705,7 +705,7 @@ TEST_F(JitExecutorUT, run_success_when_input_graph_contain_two_reshape_one_const
 }
 
 // 该用例放开需要解决：1、unique算子原型中默认的attr定义；2、unique三类算子执行报错；3、切图前未作infershape
-//TEST_F(JitExecutorUT, run_success_add_unique) {
+// TEST_F(JitExecutorUT, run_success_add_unique) {
 //  // 1 准备构造jit executor的入参
 //  uint64_t session_id = 0;
 //  InnerSession inner_session(session_id, {});
@@ -779,13 +779,13 @@ TEST_F(JitExecutorUT, guard_hit_success_and_miss_success_when_input_graph_contai
   EXPECT_NE(jit_executor, nullptr);
   // 校验本次创建jit executor申请了1个stream，注册了1个device allocator
   auto &rts_stub = gert_stub_.GetAclRuntimeStub();
-  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1); // required 1 stream
+  EXPECT_EQ(rts_stub.GetAllRtStreams().size(), 1);  // required 1 stream
   auto stream = rts_stub.GetAllRtStreams().at(0);
   auto allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  EXPECT_NE(allocator, nullptr); // required 1 allocator
+  EXPECT_NE(allocator, nullptr);  // required 1 allocator
 
   // 4 准备执行接口的入参并触发执行
-  std::vector<int64_t> shape_dim = {2, 3, 3, 2}; // 第一次出发guard命中场景
+  std::vector<int64_t> shape_dim = {2, 3, 3, 2};  // 第一次出发guard命中场景
   TensorDesc td(Shape(shape_dim), FORMAT_NCHW, DT_FLOAT);
   td.SetOriginShape(Shape(shape_dim));
   Tensor tensor(td);
@@ -805,7 +805,7 @@ TEST_F(JitExecutorUT, guard_hit_success_and_miss_success_when_input_graph_contai
   EXPECT_EQ(jit_executor->RunWithCallback(std::move(task)), SUCCESS);
   EXPECT_TRUE(!jit_executor->IsUserGraphNeedRebuild());
 
-  std::vector<int64_t> shape_dim2 = {2, 3, 3, 1};// 第二次触发guard miss场景
+  std::vector<int64_t> shape_dim2 = {2, 3, 3, 1};  // 第二次触发guard miss场景
   TensorDesc td2(Shape(shape_dim2), FORMAT_NCHW, DT_FLOAT);
   td2.SetOriginShape(Shape(shape_dim2));
   Tensor tensor2(td2);
@@ -822,7 +822,7 @@ TEST_F(JitExecutorUT, guard_hit_success_and_miss_success_when_input_graph_contai
 TEST_F(JitExecutorUT, test_autofuse_flag_slice_schedule_open) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v2=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, true);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -830,7 +830,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_slice_schedule_open) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_error_option_name) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -838,7 +838,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_with_error_option_name) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_error_option_value) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=1;--experimental_enable_jit_executor_v2=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -846,7 +846,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_with_error_option_value) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_long_option) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v23=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -854,7 +854,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_with_long_option) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_slice_schedule_close) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true;--experimental_enable_jit_executor_v2=false", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -862,7 +862,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_with_slice_schedule_close) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_autofuse_close) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=false;--experimental_enable_jit_executor_v2=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }
@@ -870,7 +870,7 @@ TEST_F(JitExecutorUT, test_autofuse_flag_with_autofuse_close) {
 TEST_F(JitExecutorUT, test_autofuse_flag_with_not_set_slice_schedule) {
   mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true", 1);
   const bool enable_slice_schedule = (ge::GetAutofuseFlagValue("--enable_autofuse") == "true") &&
-      (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
+                                     (ge::GetAutofuseFlagValue("--experimental_enable_jit_executor_v2") == "true");
   EXPECT_EQ(enable_slice_schedule, false);
   unsetenv("AUTOFUSE_FLAGS");
 }

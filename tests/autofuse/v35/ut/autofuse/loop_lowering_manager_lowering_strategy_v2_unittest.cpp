@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,8 @@ es::Tensor CreateConst(es::Graph &graph, ge::DataType dtype, const std::vector<i
 }
 
 class LoopGraphLoweringStrategyUTV2 : public testing::Test {
-public:
-protected:
+ public:
+ protected:
   void SetUp() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
     ge::PlatformContext::GetInstance().Reset();
@@ -84,7 +84,7 @@ TEST_F(LoopGraphLoweringStrategyUTV2, SkipSplitAsDisabled) {
     auto data = es_graph_->CreateInput(0, "data", nullptr);
     data.SetSymbolShape({"6", "s1", "s2"});
     auto split_dim = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{1});
-    auto outputs = es::Split(split_dim,data, 2);
+    auto outputs = es::Split(split_dim, data, 2);
     outputs[0].SetSymbolShape({"3", "s1", "s2"});
     outputs[1].SetSymbolShape({"3", "s1", "s2"});
     es_graph_->SetOutput(outputs[0], 0);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,9 +65,7 @@ using namespace testing;
 using namespace ge;
 
 namespace gert {
-namespace {
-
-}  // namespace
+namespace {}  // namespace
 
 ge::graphStatus TilingTestSuccess(TilingContext *tiling_context) {
   tiling_context->SetTilingKey(0);
@@ -92,7 +90,8 @@ ge::graphStatus InferShapeTest1(InferShapeContext *context) {
   auto input_shape_1 = *context->GetInputShape(1);
   auto output_shape = context->GetOutputShape(0);
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
-    GELOGE(ge::PARAM_INVALID, "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+    GELOGE(ge::PARAM_INVALID,
+           "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
            context->GetNodeName(), input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     return ge::GRAPH_FAILED;
   }
@@ -110,7 +109,8 @@ ge::graphStatus InferEmptyShape(InferShapeContext *context) {
   auto input_shape_1 = *context->GetInputShape(1);
   auto output_shape = context->GetOutputShape(0);
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
-    GELOGE(ge::PARAM_INVALID, "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+    GELOGE(ge::PARAM_INVALID,
+           "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
            context->GetNodeName(), input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     return ge::GRAPH_FAILED;
   }
@@ -155,13 +155,12 @@ ge::graphStatus InferShapeTest2(InferShapeContext *context) {
 
 // 本用例需要特殊适配，不是仅仅load default space registry就可以的
 class FFTSLoweringST : public testing::Test {
-
-  void SetUp() override {
-  }
+  void SetUp() override {}
   void TearDown() override {
     while (bg::ValueHolder::PopGraphFrame() != nullptr) {
     }
   }
+
  public:
   void TestFFTSSingleLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data, bool expect,
                               std::vector<JudgeInfo> &judge_v) {
@@ -191,29 +190,30 @@ class FFTSLoweringST : public testing::Test {
 
     EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
     FakeTensors inputs = FakeTensors({4, 4, 4, 4}, 2);
-    auto output = TensorFaker().Shape({4,4,4,4}).DataType(ge::DT_INT64).Build();
+    auto output = TensorFaker().Shape({4, 4, 4, 4}).DataType(ge::DT_INT64).Build();
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
-    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                      outputs.data(), outputs.size()),
+    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                      outputs.size()),
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
     EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CONV2D_T", "FFTSNodeThread"), 1);
 
     Shape expect_out_shape = {4, 4, 4, 4};
-    EXPECT_EQ(outputs.data
-              ()[0]->GetShape().GetStorageShape(), expect_out_shape);
+    EXPECT_EQ(outputs.data()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
     aclrtDestroyStream(stream);
   }
-  void TestFFTSLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data, const bool dump_flag, bool is_empty) {
+  void TestFFTSLowering(GeRootModelPtr &root_model, LoweringGlobalData &global_data, const bool dump_flag,
+                        bool is_empty) {
     auto graph = root_model->GetRootGraph();
     ASSERT_NE(graph, nullptr);
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
@@ -231,16 +231,17 @@ class FFTSLoweringST : public testing::Test {
 
     EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
     FakeTensors inputs = FakeTensors({4, 4, 4, 4}, 3);
-    auto output = TensorFaker().Shape({4,4,4,4}).DataType(ge::DT_INT64).Build();
+    auto output = TensorFaker().Shape({4, 4, 4, 4}).DataType(ge::DT_INT64).Build();
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
-    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                      outputs.data(), outputs.size()),
+    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                      outputs.size()),
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
@@ -278,16 +279,17 @@ class FFTSLoweringST : public testing::Test {
 
     EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
     FakeTensors inputs = FakeTensors({6, 4, 4, 4}, 2);
-    auto output = TensorFaker().Shape({3,4,4,4}).DataType(ge::DT_INT64).Build();
+    auto output = TensorFaker().Shape({3, 4, 4, 4}).DataType(ge::DT_INT64).Build();
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
-    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                      outputs.data(), outputs.size()),
+    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                      outputs.size()),
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
@@ -318,16 +320,17 @@ class FFTSLoweringST : public testing::Test {
 
     EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
     FakeTensors inputs = FakeTensors({6, 4, 4, 4}, 2);
-    auto output = TensorFaker().Shape({3,4,4,4}).DataType(ge::DT_INT64).Build();
+    auto output = TensorFaker().Shape({3, 4, 4, 4}).DataType(ge::DT_INT64).Build();
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
-    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                      outputs.data(), outputs.size()),
+    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                      outputs.size()),
               ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
@@ -363,7 +366,8 @@ class FFTSLoweringST : public testing::Test {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
                                       outputs.size()),
@@ -394,7 +398,7 @@ class FFTSLoweringST : public testing::Test {
  *
  **********************************************************************************************************************/
 static void BuildFftsPlusSingleOpGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &ffts_plus_graph,
-    TBEKernelStore *kernel_store = nullptr) {
+                                       TBEKernelStore *kernel_store = nullptr) {
   uint32_t mem_offset = 0U;
   DEF_GRAPH(g1) {
     CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
@@ -404,7 +408,8 @@ static void BuildFftsPlusSingleOpGraph(ComputeGraphPtr &root_graph, ComputeGraph
   root_graph->SetGraphUnknownFlag(true);
   SetUnknownOpKernel(root_graph, mem_offset, true);
 
-  AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH, "ffts_plus");
+  AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH,
+                    "ffts_plus");
   AttrUtils::SetInt(root_graph->FindNode("_arg_0")->GetOpDesc(), "index", 0);
   AttrUtils::SetInt(root_graph->FindNode("_arg_1")->GetOpDesc(), "index", 1);
 
@@ -412,9 +417,9 @@ static void BuildFftsPlusSingleOpGraph(ComputeGraphPtr &root_graph, ComputeGraph
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto conv_0 = OP_CFG("CONV2D_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("sgt_graph/_arg_0", data_0)
               ->EDGE(0, 0)
               ->NODE("sgt_graph/Conv2D", conv_0)
@@ -465,7 +470,7 @@ TEST_F(FFTSLoweringST, ffts_plus_lowering_single_fail) {
   TBEKernelStore tbe_kernel_store;
   BuildFftsPlusSingleOpGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -475,7 +480,7 @@ TEST_F(FFTSLoweringST, ffts_plus_lowering_single_fail) {
   ctx_def_0.set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_LABEL));
   (void)ctx_def_0.mutable_label_ctx();
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 

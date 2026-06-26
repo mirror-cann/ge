@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,8 @@ class BufferPoolMemoryPass : public GraphPass {
     int64_t offset_end = 0;
     bool is_last_input = true;
     bool is_first_in_group = true;
-    BufferPoolNodeItem(const NodePtr &buffer_n, const NodePtr &calc_n, const NodePtr &pre_buffer_n,
-                       int64_t size, int64_t start, int64_t end, bool last)
+    BufferPoolNodeItem(const NodePtr &buffer_n, const NodePtr &calc_n, const NodePtr &pre_buffer_n, int64_t size,
+                       int64_t start, int64_t end, bool last)
         : node(std::move(buffer_n)),
           out_calc_node(std::move(calc_n)),
           pre_buffer_pool_node(std::move(pre_buffer_n)),
@@ -89,18 +89,13 @@ class BufferPoolMemoryPass : public GraphPass {
                               const std::unordered_map<int64_t, int64_t> &buffer_pool_size_map,
                               const std::unordered_map<NodePtr, NodePtr> &buffer_node_to_calc);
 
-  Status AllocateSpaceInBufferPool(const BufferPool &buffer_pool,
-                                   const std::vector<NodePtr> &calc_nodes_in_pool);
+  Status AllocateSpaceInBufferPool(const BufferPool &buffer_pool, const std::vector<NodePtr> &calc_nodes_in_pool);
 
-  Status AllocateSpaceForBufferPoolNode(int64_t &next_start,
-                                        const BufferPool &buffer_pool,
-                                        BufferPoolNodeItem &buffer_pool_node_item,
-                                        const int64_t group_total_mem_size,
+  Status AllocateSpaceForBufferPoolNode(int64_t &next_start, const BufferPool &buffer_pool,
+                                        BufferPoolNodeItem &buffer_pool_node_item, const int64_t group_total_mem_size,
                                         std::queue<BufferPoolNodeItem> &node_mem_range_in_pool);
 
-  NodePtr GetOffsetAndDependency(int64_t &next_start,
-                                 int64_t total_mem_size,
-                                 int64_t buffer_pool_size,
+  NodePtr GetOffsetAndDependency(int64_t &next_start, int64_t total_mem_size, int64_t buffer_pool_size,
                                  const std::unordered_map<NodePtr, NodePtr> &buffer_node_to_calc,
                                  std::queue<BufferPoolNodeItem> &nodes_in_buffer) const;
 
@@ -117,8 +112,7 @@ class BufferPoolMemoryPass : public GraphPass {
       std::unordered_map<NodePtr, std::vector<BufferPoolNodeItem>> &calc_node_to_buffer_node_items);
 
   static bool HasDependency(const NodePtr &from_node, const NodePtr &to_node);
-  static bool FindOrBackward(const NodePtr &target_node,
-                             std::vector<NodePtr> &nodes,
+  static bool FindOrBackward(const NodePtr &target_node, std::vector<NodePtr> &nodes,
                              std::unordered_set<const Node *> &visited);
   void GroupBufferPoolNodes();
   void DoGroupBufferPoolNodes(std::vector<NodePtr> &calc_nodes,

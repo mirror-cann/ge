@@ -135,7 +135,7 @@ TP（Tensor Parallel）图是指通过张量并行方式在多卡上运行的图
       .REQUIRED_ATTR(reduction, String)
       .REQUIRED_ATTR(group, String)
       .ATTR(fusion, Int, 1)
-      .ATTR(fusion_id, Int, -1) 
+      .ATTR(fusion_id, Int, -1)
       .OP_END_FACTORY_REG(HcomAllReduce)
 ```
 其对应的函数原型为：

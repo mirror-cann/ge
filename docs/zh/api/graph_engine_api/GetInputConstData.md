@@ -91,4 +91,3 @@ graphStatus GetInputConstData(const int32_t index, Tensor &data) const
 ## 约束说明<a name="zh-cn_topic_0235751031_section38092103"></a>
 
 无
-

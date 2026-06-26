@@ -74,13 +74,14 @@ class ExternalAllocatorUtStub : public Allocator {
   uint32_t GetMallocAdviseCnt() {
     return malloc_advise_cnt;
   }
+
  private:
   uint32_t malloc_cnt = 0;
   uint32_t malloc_advise_cnt = 0;
 };
 void MockGenerateTask() {
   auto aicore_func = [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-     if (node.GetType() == CONSTANT) {
+    if (node.GetType() == CONSTANT) {
       return SUCCESS;
     }
 
@@ -118,32 +119,31 @@ void MockGenerateTask() {
   MockForGenerateTask("RTSLib", rts_func);
 }
 
-Status GenerateTaskForMemCopyAyncTsMemory(const Node &node,
-                                          RunContext &run_context,
+Status GenerateTaskForMemCopyAyncTsMemory(const Node &node, RunContext &run_context,
                                           std::vector<domi::TaskDef> &tasks) {
-    if ((node.GetType() != MEMCPYASYNC) && (node.GetType() != IDENTITY)) {
-      return SUCCESS;
-    }
-
-    if (node.GetType() == IDENTITY) {
-      std::vector<int64_t> memtype_list = {RT_MEMORY_TS};
-      auto op_desc = node.GetOpDesc();
-      (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list);
-    }
-
-    domi::TaskDef task_def;
-    task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_MEMCPY_ASYNC));
-    auto kernel_def = task_def.mutable_memcpy_async();
-    kernel_def->set_op_index(node.GetOpDesc()->GetId());
-    kernel_def->set_kind(RT_MEMCPY_ADDR_DEVICE_TO_DEVICE);
-    uint8_t *membase =  run_context.dataMemBase;
-    kernel_def->set_src((uintptr_t)membase + node.GetOpDesc()->GetInputOffset()[0]);
-    if (node.GetType() == IDENTITY) {
-      kernel_def->set_dst_max(1000);
-    }
-    kernel_def->set_dst((uintptr_t)membase + node.GetOpDesc()->GetOutputOffset()[0]);
-    tasks.emplace_back(task_def);
+  if ((node.GetType() != MEMCPYASYNC) && (node.GetType() != IDENTITY)) {
     return SUCCESS;
+  }
+
+  if (node.GetType() == IDENTITY) {
+    std::vector<int64_t> memtype_list = {RT_MEMORY_TS};
+    auto op_desc = node.GetOpDesc();
+    (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list);
+  }
+
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_MEMCPY_ASYNC));
+  auto kernel_def = task_def.mutable_memcpy_async();
+  kernel_def->set_op_index(node.GetOpDesc()->GetId());
+  kernel_def->set_kind(RT_MEMCPY_ADDR_DEVICE_TO_DEVICE);
+  uint8_t *membase = run_context.dataMemBase;
+  kernel_def->set_src((uintptr_t)membase + node.GetOpDesc()->GetInputOffset()[0]);
+  if (node.GetType() == IDENTITY) {
+    kernel_def->set_dst_max(1000);
+  }
+  kernel_def->set_dst((uintptr_t)membase + node.GetOpDesc()->GetOutputOffset()[0]);
+  tasks.emplace_back(task_def);
+  return SUCCESS;
 }
 
 class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
@@ -174,10 +174,10 @@ class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
 FakeOpsKernelInfoStore g_fake_ops_kernel_info_store;
 
 Status GenerateTaskForHcomAllReduce(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
-  std::cout << "======node.GetType():" << node.GetType()  << std::endl;
+  std::cout << "======node.GetType():" << node.GetType() << std::endl;
   if (node.GetType() != "HcomAllReduce") {
-      std::cout << "*****return***"<< std::endl;
-      return SUCCESS;
+    std::cout << "*****return***" << std::endl;
+    return SUCCESS;
   }
 
   domi::TaskDef task_def;
@@ -197,10 +197,10 @@ Status GenerateTaskForHcomAllReduce(const Node &node, RunContext &run_context, s
 }
 
 Status GenerateTaskForHcomAllToAll(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
-  std::cout << "======node.GetType():" << node.GetType()  << std::endl;
+  std::cout << "======node.GetType():" << node.GetType() << std::endl;
   if (node.GetType() != "HcomAllToAll") {
-      std::cout << "*****return***"<< std::endl;
-      return SUCCESS;
+    std::cout << "*****return***" << std::endl;
+    return SUCCESS;
   }
 
   domi::TaskDef task_def;
@@ -230,9 +230,7 @@ void SetSubGraph(ComputeGraphPtr &parent_graph, NodePtr &parent_node, ComputeGra
   parent_graph->AddSubgraph(sub_graph->GetName(), sub_graph);
 }
 
-Status GenerateTaskForMemCopyAync(const Node &node,
-                                  RunContext &run_context,
-                                  std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForMemCopyAync(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if ((node.GetType() != MEMCPYASYNC) && (node.GetType() != IDENTITY)) {
     return SUCCESS;
   }
@@ -241,78 +239,70 @@ Status GenerateTaskForMemCopyAync(const Node &node,
   auto kernel_def = task_def.mutable_memcpy_async();
   kernel_def->set_op_index(node.GetOpDesc()->GetId());
   kernel_def->set_kind(RT_MEMCPY_ADDR_DEVICE_TO_DEVICE);
-  uint8_t *membase =  run_context.dataMemBase;
+  uint8_t *membase = run_context.dataMemBase;
   kernel_def->set_src((uintptr_t)membase + node.GetOpDesc()->GetInputOffset()[0]);
   kernel_def->set_dst((uintptr_t)membase + node.GetOpDesc()->GetOutputOffset()[0]);
   tasks.emplace_back(task_def);
   return SUCCESS;
 }
 
-Status GenerateTaskForAicpu(const Node &node,
-                            RunContext &run_context,
-                            std::vector<domi::TaskDef> &tasks) {
-    if (node.GetType() != NEG) {
-      return SUCCESS;
-    }
-
-    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(0));
+Status GenerateTaskForAicpu(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
+  if (node.GetType() != NEG) {
     return SUCCESS;
+  }
+
+  tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(0));
+  return SUCCESS;
 }
 
-Status GenerateTaskForDsa(const Node &node,
-                          RunContext &run_context,
-                          std::vector<domi::TaskDef> &tasks) {
-    if (node.GetType() != "DSARandomNormal") {
-      return SUCCESS;
-    }
-
-    auto op_desc = node.GetOpDesc();
-    op_desc->SetWorkspace({1308, 1458});
-    op_desc->SetWorkspaceBytes({150, 150});
-
-    domi::TaskDef task_def;
-    task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_DSA));
-    domi::DSATaskDef *dsa_task = task_def.mutable_dsa_task();
-
-    dsa_task->set_op_index(op_desc->GetId());
-    dsa_task->set_start(1);
-    dsa_task->set_sqe_type(1);
-    dsa_task->set_distribution_type(1);
-    dsa_task->set_data_type(1);
-    dsa_task->set_alg_type(1);
-    dsa_task->set_input_vld(1);
-    dsa_task->set_input_value_addr_flag(0);
-    dsa_task->set_input1_value_or_ptr(0);
-    dsa_task->set_input2_value_or_ptr(0);
-    dsa_task->set_seed_value_or_ptr(0);
-    dsa_task->set_random_count_value_or_ptr(0);
-
-    tasks.emplace_back(task_def);
+Status GenerateTaskForDsa(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
+  if (node.GetType() != "DSARandomNormal") {
     return SUCCESS;
+  }
+
+  auto op_desc = node.GetOpDesc();
+  op_desc->SetWorkspace({1308, 1458});
+  op_desc->SetWorkspaceBytes({150, 150});
+
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_DSA));
+  domi::DSATaskDef *dsa_task = task_def.mutable_dsa_task();
+
+  dsa_task->set_op_index(op_desc->GetId());
+  dsa_task->set_start(1);
+  dsa_task->set_sqe_type(1);
+  dsa_task->set_distribution_type(1);
+  dsa_task->set_data_type(1);
+  dsa_task->set_alg_type(1);
+  dsa_task->set_input_vld(1);
+  dsa_task->set_input_value_addr_flag(0);
+  dsa_task->set_input1_value_or_ptr(0);
+  dsa_task->set_input2_value_or_ptr(0);
+  dsa_task->set_seed_value_or_ptr(0);
+  dsa_task->set_random_count_value_or_ptr(0);
+
+  tasks.emplace_back(task_def);
+  return SUCCESS;
 }
 
-Status GenerateTaskForStreamSwitch(const Node &node,
-                          RunContext &run_context,
-                          std::vector<domi::TaskDef> &tasks) {
-    if (node.GetType() != STREAMSWITCH) {
-      return SUCCESS;
-    }
-
-    domi::TaskDef task_def;
-    task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_SWITCH));
-    auto kernel_def = task_def.mutable_stream_switch();
-    kernel_def->set_op_index(node.GetOpDesc()->GetId());
-    tasks.emplace_back(task_def);
-
+Status GenerateTaskForStreamSwitch(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
+  if (node.GetType() != STREAMSWITCH) {
     return SUCCESS;
+  }
+
+  domi::TaskDef task_def;
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_SWITCH));
+  auto kernel_def = task_def.mutable_stream_switch();
+  kernel_def->set_op_index(node.GetOpDesc()->GetId());
+  tasks.emplace_back(task_def);
+
+  return SUCCESS;
 }
 
-Status GenerateTaskForRts(const Node &node,
-                          RunContext &run_context,
-                          std::vector<domi::TaskDef> &tasks) {
-    Status ret = GenerateTaskForMemCopyAync(node, run_context, tasks);
-    ret = GenerateTaskForStreamSwitch(node, run_context, tasks);
-    return ret;
+Status GenerateTaskForRts(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
+  Status ret = GenerateTaskForMemCopyAync(node, run_context, tasks);
+  ret = GenerateTaskForStreamSwitch(node, run_context, tasks);
+  return ret;
 }
 
 /**
@@ -331,37 +321,54 @@ Graph BuildReshapeGraph() {
   for_each(data_vec.begin(), data_vec.end(), [&](int64_t &data) { dims_size *= data; });
   vector<int32_t> data_value_vec = {1, 2, 3, 4, 5};
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_INT32);
-  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *) data_value_vec.data(),
+  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
                                                        data_value_vec.size() * sizeof(int32_t));
 
-  auto data = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4, 5}).InCnt(1).OutCnt(1).InNames({"x"})
-                      .OutNames({"y"}).Build("data");
-  auto const1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT32, {5}).InCnt(1).OutCnt(1).InNames({"x"})
-                      .OutNames({"y"}).Weight(data_tensor).Build("const1");
-  auto reshape = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).InNames({"x1", "x2"}).OutNames({"y"})
-                      .TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5}).Build("reshape");
-  auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5})
-                      .InNames({"x"}).OutNames({"y"}).Build("relu");
+  auto data = OP_CFG(DATA)
+                  .TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4, 5})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto const1 = OP_CFG(CONSTANT)
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, {5})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Weight(data_tensor)
+                    .Build("const1");
+  auto reshape = OP_CFG(RESHAPE)
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x1", "x2"})
+                     .OutNames({"y"})
+                     .TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5})
+                     .Build("reshape");
+  auto relu = OP_CFG(RELU)
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5})
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("relu");
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data)
-              ->EDGE(0, 0)
-              ->NODE(reshape)
-              ->NODE(relu)
-              ->NODE("netoutput", netoutput));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(reshape)->NODE(relu)->NODE("netoutput", netoutput));
     CHAIN(NODE(const1)->EDGE(0, 1)->NODE("reshape"));
   };
   auto ge_graph = ToGeGraph(g1);
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(ge_graph);
-  compute_graph->FindNode("data")->GetOpDesc()->MutableOutputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({2, 3, 4, 5})));
-  compute_graph->FindNode("reshape")->GetOpDesc()->MutableInputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({2, 3, 4, 5})));
-  compute_graph->FindNode("reshape")->GetOpDesc()->MutableOutputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
-  compute_graph->FindNode("relu")->GetOpDesc()->MutableInputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
+  compute_graph->FindNode("data")->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({2, 3, 4, 5})));
+  compute_graph->FindNode("reshape")->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({2, 3, 4, 5})));
+  compute_graph->FindNode("reshape")->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
+  compute_graph->FindNode("relu")->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
   return ge_graph;
 }
 
@@ -414,7 +421,7 @@ Status CompileAndGetFixedSize(Session &session, uint32_t graph_id, size_t &hbm_f
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   EXPECT_EQ(all_feature_memory.size(), 2U);
   for (const auto &feature_mem : all_feature_memory) {
     if (feature_mem->IsFixed() && (feature_mem->GetType() == MemoryType::MEMORY_TYPE_DEFAULT)) {
@@ -434,7 +441,7 @@ Status SetModelVarSize(Session &session, uint32_t graph_id) {
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -447,8 +454,7 @@ Status SetModelVarSize(Session &session, uint32_t graph_id) {
   return SUCCESS;
 }
 
-void ConstructIOTensor(std::vector<ge::Tensor> &inputs,
-                                std::vector<ge::Tensor> &outputs) {
+void ConstructIOTensor(std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs) {
   std::vector<int64_t> input_data_1(2 * 2, 0);
   TensorDesc desc_1(Shape({2, 2}));
   desc_1.SetPlacement(Placement::kPlacementDevice);
@@ -478,7 +484,7 @@ void ConstructIOTensor(std::vector<ge::Tensor> &inputs,
   outputs.emplace_back(output_tensor_2);
 }
 
-}
+}  // namespace
 
 class FmMemoryRefreshTest : public testing::Test {
  protected:
@@ -685,19 +691,19 @@ TEST_F(FmMemoryRefreshTest, invalid_options) {
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
   Session session(options);
-  EXPECT_EQ(session.GetSessionId(), ori_session_id + 1); // create success with id 0
+  EXPECT_EQ(session.GetSessionId(), ori_session_id + 1);  // create success with id 0
 
   options.clear();
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "invalid");
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
   Session session1(options);
-  EXPECT_EQ(session1.GetSessionId(), 0); // create failed and not increase id
+  EXPECT_EQ(session1.GetSessionId(), 0);  // create failed and not increase id
 
   options.clear();
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "2");
   Session session2(options);
-  EXPECT_EQ(session2.GetSessionId(), 0); // create failed and not increase id
+  EXPECT_EQ(session2.GetSessionId(), 0);  // create failed and not increase id
 }
 /*
  * 用例描述: option配置地址可刷新但netOutpus不可零拷贝场景
@@ -742,14 +748,14 @@ TEST_F(FmMemoryRefreshTest, fm_memory_refresh_with_outputs_nozerocopy) {
   output_tensor_1.SetData(output_data_1.data(), 96);
   outputs.emplace_back(output_tensor_1);
 
-  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
+  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(),
+                                       (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
-  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(), (uint64_t *)(outputs[1].GetData() +
-    outputs[1].GetSize()));
-  EXPECT_NE(output_data0, invalid_output); // 非原始全F内容
+  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(),
+                                     (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
+  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(),
+                                     (uint64_t *)(outputs[1].GetData() + outputs[1].GetSize()));
+  EXPECT_NE(output_data0, invalid_output);  // 非原始全F内容
   EXPECT_EQ(output_data0, output_data1);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
@@ -777,7 +783,6 @@ TEST_F(FmMemoryRefreshTest, AtomicNodeConnectNetoutput_ZeroCopy) {
   options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
   Session session(options);
 
-
   auto graph = ShareGraph::BuildAtomicNodeConnectNetoutput();
   uint32_t graph_id = 1;
   session.AddGraph(graph_id, graph);
@@ -796,14 +801,14 @@ TEST_F(FmMemoryRefreshTest, AtomicNodeConnectNetoutput_ZeroCopy) {
   output_tensor_1.SetData(output_data_1.data(), 96);
   outputs.emplace_back(output_tensor_1);
 
-  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
+  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(),
+                                       (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
-  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(), (uint64_t *)(outputs[1].GetData() +
-    outputs[1].GetSize()));
-  EXPECT_EQ(output_data0, invalid_output); // 原始全F内容
+  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(),
+                                     (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
+  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(),
+                                     (uint64_t *)(outputs[1].GetData() + outputs[1].GetSize()));
+  EXPECT_EQ(output_data0, invalid_output);  // 原始全F内容
   EXPECT_EQ(output_data0, output_data1);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
@@ -848,15 +853,15 @@ TEST_F(FmMemoryRefreshTest, AtomicNodeConnectNetoutputThroughRefNode_ZeroCopy) {
   output_tensor_1.SetData(output_data_1.data(), 96);
   outputs.emplace_back(output_tensor_1);
 
-  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
+  std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(),
+                                       (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
 
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-    outputs[0].GetSize()));
-  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(), (uint64_t *)(outputs[1].GetData() +
-    outputs[1].GetSize()));
-  EXPECT_EQ(output_data0, invalid_output); // 原始全F内容
+  std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(),
+                                     (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
+  std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(),
+                                     (uint64_t *)(outputs[1].GetData() + outputs[1].GetSize()));
+  EXPECT_EQ(output_data0, invalid_output);  // 原始全F内容
   EXPECT_EQ(output_data0, output_data1);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
@@ -884,7 +889,6 @@ TEST_F(FmMemoryRefreshTest, DavinciModelGetRefreshableOption_Success_WhenStaticM
   std::map<std::string, std::string> options;
   options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
-
 
   /*
    * 用例设置了GE_USE_STATIC_MEMORY环境变量，需要在用例结束后取消设置。如果不加大括号，那么会先执行取消设置，再执行到Session析构，
@@ -915,8 +919,8 @@ TEST_F(FmMemoryRefreshTest, DavinciModelGetRefreshableOption_Success_WhenStaticM
     output_tensor_1.SetData(output_data_1.data(), 96);
     outputs.emplace_back(output_tensor_1);
 
-    std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-                                                                                        outputs[0].GetSize()));
+    std::vector<uint64_t> invalid_output((uint64_t *)outputs[0].GetData(),
+                                         (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
     EXPECT_EQ(SUCCESS, session.BuildGraph(graph_id, inputs));
     Synchronizer sync;
     auto ret = session.RunGraphAsync(graph_id, inputs, [&sync](Status run_ret, std::vector<ge::Tensor> &) {
@@ -925,10 +929,10 @@ TEST_F(FmMemoryRefreshTest, DavinciModelGetRefreshableOption_Success_WhenStaticM
     });
     EXPECT_EQ(ret, SUCCESS);
     sync.WaitFor(5);
-    std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(), (uint64_t *)(outputs[0].GetData() +
-                                                                                      outputs[0].GetSize()));
-    std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(), (uint64_t *)(outputs[1].GetData() +
-                                                                                      outputs[1].GetSize()));
+    std::vector<uint64_t> output_data0((uint64_t *)outputs[0].GetData(),
+                                       (uint64_t *)(outputs[0].GetData() + outputs[0].GetSize()));
+    std::vector<uint64_t> output_data1((uint64_t *)outputs[1].GetData(),
+                                       (uint64_t *)(outputs[1].GetData() + outputs[1].GetSize()));
     EXPECT_EQ(output_data0, output_data1);
     unsetenv("GE_DAVINCI_MODEL_PROFILING");
   }
@@ -1087,17 +1091,17 @@ TEST_F(FmMemoryRefreshTest, fm_memory_refresh_with_check_tensor_size) {
 }
 
 /* 用例描述: 混用
-* 预置条件：
-* 1. 构造符合compile接口编译的模型
-*
-* 测试步骤：
-* 1. ir构造计算图
-* 2. Compile接口模型编译
-* 3. RunGraph/RunGraphAsync/BuildGraph接口重复编译或执行相同的graphid
-*
-* 预期结果：
-* 1. 模型执行失败
-*/
+ * 预置条件：
+ * 1. 构造符合compile接口编译的模型
+ *
+ * 测试步骤：
+ * 1. ir构造计算图
+ * 2. Compile接口模型编译
+ * 3. RunGraph/RunGraphAsync/BuildGraph接口重复编译或执行相同的graphid
+ *
+ * 预期结果：
+ * 1. 模型执行失败
+ */
 TEST_F(FmMemoryRefreshTest, compile_graph_incompatible_with_other_apis) {
   std::map<AscendString, AscendString> options;
   Session session(options);
@@ -1117,7 +1121,7 @@ TEST_F(FmMemoryRefreshTest, compile_graph_incompatible_with_other_apis) {
   std::mutex mu;
   std::condition_variable cv;
   bool done = false;
-  auto callback = [&] (Status status, std::vector<ge::Tensor> &outputs) {
+  auto callback = [&](Status status, std::vector<ge::Tensor> &outputs) {
     std::unique_lock<std::mutex> lk(mu);
     done = true;
     ret = status;
@@ -1125,12 +1129,9 @@ TEST_F(FmMemoryRefreshTest, compile_graph_incompatible_with_other_apis) {
   };
   session.RunGraphAsync(graph_id, inputs, callback);
   std::unique_lock<std::mutex> lk(mu);
-  cv.wait_for(lk, std::chrono::seconds(1), [&]() {
-    return done;
-  });
+  cv.wait_for(lk, std::chrono::seconds(1), [&]() { return done; });
   EXPECT_NE(ret, SUCCESS);
 }
-
 
 /*
  * 用例描述: 未进行编译机调用新增的查询summary、设置刷新地址的API
@@ -1193,7 +1194,7 @@ TEST_F(FmMemoryRefreshTest, fixed_feature_memory_base_test) {
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -1204,10 +1205,10 @@ TEST_F(FmMemoryRefreshTest, fixed_feature_memory_base_test) {
   uint64_t mem = 0UL;
   std::vector<std::vector<int64_t>> sub_mem_infos;
   std::vector<int64_t> sub_mem_offset;
-  sub_mem_offset.emplace_back(0x2U);// mem_type RT_MEMORY_HBM 0x2U
-  sub_mem_offset.emplace_back((int64_t)(&mem));// mem_offset_base
-  sub_mem_offset.emplace_back(sizeof(mem)); // mem_size
-  sub_mem_offset.emplace_back(1UL); // is_fixed_addr_prior
+  sub_mem_offset.emplace_back(0x2U);             // mem_type RT_MEMORY_HBM 0x2U
+  sub_mem_offset.emplace_back((int64_t)(&mem));  // mem_offset_base
+  sub_mem_offset.emplace_back(sizeof(mem));      // mem_size
+  sub_mem_offset.emplace_back(1UL);              // is_fixed_addr_prior
   sub_mem_infos.emplace_back(sub_mem_offset);
   AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_infos);
 
@@ -1229,7 +1230,7 @@ TEST_F(FmMemoryRefreshTest, fixed_feature_memory_base_test) {
   EXPECT_NE(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0));
   EXPECT_NE(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(), 0));
   EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(),
-      refreshable_feature_size));
+                                                                     refreshable_feature_size));
   EXPECT_NE(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
   runtime_stub.Clear();
 }
@@ -1289,7 +1290,7 @@ TEST_F(FmMemoryRefreshTest, get_summary_unsupport_dynamic_input) {
   std::vector<uint8_t> fix_feature_mem(20, 0);
   EXPECT_NE(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
   EXPECT_NE(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
-  /* fix Feature Memor support dynamic */
+  /* fix Feature Memory support dynamic */
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fix_feature_mem.data(), 20));
   EXPECT_NE(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
 }
@@ -1305,7 +1306,6 @@ TEST_F(FmMemoryRefreshTest, repeated_set_const_base_failed) {
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
   Session session(options);
-
 
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -1364,7 +1364,6 @@ TEST_F(FmMemoryRefreshTest, unrefreshable_graph_update_fm_failed) {
   options1.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
   Session session1(options1);
 
-
   auto graph = ShareGraph::BuildSwitchMergeGraph();
   uint32_t graph_id = 0;
   EXPECT_EQ(session1.AddGraph(graph_id, graph, options1), SUCCESS);
@@ -1390,8 +1389,8 @@ TEST_F(FmMemoryRefreshTest, unrefreshable_graph_update_fm_failed) {
   EXPECT_EQ(SUCCESS, summary1->GetFeatureMemorySize(feature_size));
   std::vector<uint8_t> feature_mem(feature_size, 0);
   // unfreshable graph
-  EXPECT_EQ(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size)); // set success
-  EXPECT_NE(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size)); // repeated
+  EXPECT_EQ(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));  // set success
+  EXPECT_NE(SUCCESS, session1.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));  // repeated
   // Update Graph Feature Memory cannot set fix memory
   std::vector<uint8_t> fix_feature_mem(20, 0);
   EXPECT_NE(SUCCESS, session1.SetGraphFixedFeatureMemoryBase(graph_id, fix_feature_mem.data(), 20));
@@ -1914,43 +1913,25 @@ TEST_F(FmMemoryRefreshTest, check_input_output_reuse_mem_04) {
 Graph BuildRefDataReuseMemGraph() {
   std::vector<int64_t> shape{1, 4, 8, 8};
   auto data_0 = OP_CFG("RefData")
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_0");
 
   vector<int32_t> data_value(1 * 4 * 8 * 8, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -1962,7 +1943,7 @@ Graph BuildRefDataReuseMemGraph() {
 }
 
 // When IO allocation mode is ByGE, RefData is not supported in the graph.
-TEST_F(FmMemoryRefreshTest, check_ref_data_and_io_allocation_mode)  {
+TEST_F(FmMemoryRefreshTest, check_ref_data_and_io_allocation_mode) {
   GertRuntimeStub runtime_stub;
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_GRAPH_IO_MEM_ALLOC_MODE, "ByGE");
@@ -1971,13 +1952,13 @@ TEST_F(FmMemoryRefreshTest, check_ref_data_and_io_allocation_mode)  {
   // add graph
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, PARAM_INVALID);
   runtime_stub.Clear();
 }
 
-TEST_F(FmMemoryRefreshTest, ref_data_reuse_mem_01)  {
+TEST_F(FmMemoryRefreshTest, ref_data_reuse_mem_01) {
   GertRuntimeStub runtime_stub;
 
   std::map<AscendString, AscendString> options;
@@ -1996,7 +1977,7 @@ TEST_F(FmMemoryRefreshTest, ref_data_reuse_mem_01)  {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -2058,43 +2039,25 @@ TEST_F(FmMemoryRefreshTest, ref_data_reuse_mem_01)  {
 Graph BuildAippDataReuseMemGraph() {
   std::vector<int64_t> shape{1, 4, 8, 8};
   auto data_0 = OP_CFG(AIPP_DATA_TYPE)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_0");
 
   vector<int32_t> data_value(1 * 4 * 8 * 8, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -2105,7 +2068,7 @@ Graph BuildAippDataReuseMemGraph() {
   return ToGeGraph(g1);
 }
 
-TEST_F(FmMemoryRefreshTest, aipp_data_reuse_mem_01)  {
+TEST_F(FmMemoryRefreshTest, aipp_data_reuse_mem_01) {
   GertRuntimeStub runtime_stub;
 
   std::map<AscendString, AscendString> options;
@@ -2124,7 +2087,7 @@ TEST_F(FmMemoryRefreshTest, aipp_data_reuse_mem_01)  {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -2184,44 +2147,22 @@ TEST_F(FmMemoryRefreshTest, aipp_data_reuse_mem_01)  {
  */
 Graph BuildIoReuseMemGraph() {
   std::vector<int64_t> shape{1, 4, 8, 8};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   vector<int32_t> data_value(1 * 4 * 8 * 8, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -2231,7 +2172,6 @@ Graph BuildIoReuseMemGraph() {
 
   return ToGeGraph(g1);
 }
-
 
 /*
  * 用例描述: 加载执行静态地址可刷新模型，使用外部申请的FM地址, 配置复用输入输出内存, 输入输出内存被整段复用
@@ -2258,7 +2198,7 @@ Graph BuildIoReuseMemGraph() {
  * 2. 模型执行成功
  * 3. 输入输出被复用，FM size = 0
  */
-TEST_F(FmMemoryRefreshTest, p2p_workspace_not_reuse_io_01)  {
+TEST_F(FmMemoryRefreshTest, p2p_workspace_not_reuse_io_01) {
   GertRuntimeStub runtime_stub;
 
   std::map<AscendString, AscendString> options;
@@ -2272,11 +2212,11 @@ TEST_F(FmMemoryRefreshTest, p2p_workspace_not_reuse_io_01)  {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto node = compute_graph->FindNode("add_1");
   auto op_desc = node->GetOpDesc();
-  //op_desc->SetWorkspace({0,0});
+  // op_desc->SetWorkspace({0,0});
   op_desc->SetWorkspaceBytes({32, 32});
 
   std::vector<int64_t> workspace_memtype_list = {RT_MEMORY_P2P_DDR, RT_MEMORY_HBM};
-  vector<int32_t> workspace_no_reuse_scope = { 1, 1 };
+  vector<int32_t> workspace_no_reuse_scope = {1, 1};
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, workspace_memtype_list);
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
 
@@ -2288,7 +2228,7 @@ TEST_F(FmMemoryRefreshTest, p2p_workspace_not_reuse_io_01)  {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -2344,7 +2284,7 @@ TEST_F(FmMemoryRefreshTest, p2p_workspace_not_reuse_io_01)  {
  * 2. 模型执行成功
  * 3. 输入输出被复用，FM size = 0
  */
-TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_01)  {
+TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_01) {
   GertRuntimeStub runtime_stub;
 
   std::map<AscendString, AscendString> options;
@@ -2363,7 +2303,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_01)  {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -2416,12 +2356,8 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_01)  {
  */
 Graph BuildIoReuseMemGraphContinous() {
   std::vector<int64_t> shape{1, 4, 8, 8};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   vector<int32_t> data_value(1 * 4 * 8 * 8, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
@@ -2429,37 +2365,31 @@ Graph BuildIoReuseMemGraphContinous() {
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
   auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
-      .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
-      .Build("add_1");
+                   .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
+                   .Build("add_1");
 
   auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
-      .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
-      .Build("add_2");
+                   .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
+                   .Build("add_2");
 
   auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
-      .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
-      .Build("add_3");
+                   .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
+                   .Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -2513,7 +2443,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_continous) {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 }
@@ -2558,8 +2488,8 @@ struct FakeFmMemoryOpsKernelBuilder : FakeOpsKernelBuilder {
       // If mem size has been set, no need reset.
       if ((TensorUtils::GetSize(output_tensor, mem_size) == GRAPH_SUCCESS) && (mem_size > 0)) {
         GELOGD("Op[%s:%s] out[%zu] mem size has been set, no need calc again, format=%s, data_type=%s, mem_size=%ld.",
-              name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-              TypeUtils::DataTypeToSerialString(data_type).c_str(), mem_size);
+               name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+               TypeUtils::DataTypeToSerialString(data_type).c_str(), mem_size);
         continue;
       }
 
@@ -2568,29 +2498,30 @@ struct FakeFmMemoryOpsKernelBuilder : FakeOpsKernelBuilder {
       if ((TensorUtils::CalcTensorMemSize(output_shape, format, data_type, output_mem_size) != GRAPH_SUCCESS) ||
           (output_mem_size < 0)) {
         GELOGE(FAILED,
-              "[Calc][TensorMemSize] fail for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
-              name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
-              TypeUtils::DataTypeToSerialString(data_type).c_str());
+               "[Calc][TensorMemSize] fail for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
+               name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
+               TypeUtils::DataTypeToSerialString(data_type).c_str());
         REPORT_INNER_ERR_MSG(
-          "E19999", "CalcTensorMemSize failed for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
-          name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
-          TypeUtils::DataTypeToSerialString(data_type).c_str());
+            "E19999",
+            "CalcTensorMemSize failed for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
+            name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
+            TypeUtils::DataTypeToSerialString(data_type).c_str());
         return FAILED;
       }
       // +32 之后做32字节对齐
       int64_t align_size = (output_mem_size + 32 + 32 - 1UL) / 32 * 32;
       GELOGI("**Calc op[%s:%s] out[%zu] mem size is %ld, align_size=%ld, format=%s, data_type=%s.", name.c_str(),
-            type.c_str(), i, output_mem_size, align_size, TypeUtils::FormatToSerialString(format).c_str(),
-            TypeUtils::DataTypeToSerialString(data_type).c_str());
+             type.c_str(), i, output_mem_size, align_size, TypeUtils::FormatToSerialString(format).c_str(),
+             TypeUtils::DataTypeToSerialString(data_type).c_str());
 
       TensorUtils::SetSize(output_tensor, align_size);
       if (op_desc->UpdateOutputDesc(static_cast<uint32_t>(i), output_tensor) != GRAPH_SUCCESS) {
         GELOGE(FAILED, "[Update][OutputDesc] fail for op[%s:%s] out[%zu] desc , format=%s, data_type=%s.", name.c_str(),
-              type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-              TypeUtils::DataTypeToSerialString(data_type).c_str());
+               type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+               TypeUtils::DataTypeToSerialString(data_type).c_str());
         REPORT_INNER_ERR_MSG("E19999", "UpdateOutputDesc failed for op[%s:%s] out[%zu] desc , format=%s, data_type=%s.",
-                          name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-                          TypeUtils::DataTypeToSerialString(data_type).c_str());
+                             name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+                             TypeUtils::DataTypeToSerialString(data_type).c_str());
         return FAILED;
       }
     }
@@ -2631,50 +2562,30 @@ struct FakeFmMemoryOpsKernelBuilder : FakeOpsKernelBuilder {
  *   add2             0             992             1024// reuse data1
  *   add3             1024          992             1024
  */
-//[data_0] optype[Data] output[0] offset to [0] size[1024] realsize[1024] noalignsize[992] life time begin[0] life time end[2] child[0:1:0:1:1]
-//[add_2] optype[Add] output[0] offset to [0] size[1024] realsize[1024] noalignsize[992] life time begin[3] life time end[4] child[1:1:0:0:1]
-//[add_3] optype[Add] output[0] offset to [1024] size[1024] realsize[1024] noalignsize[992] life time begin[4] life time end[4294967295] child[0:1:0:1:1]
-//[add_1] optype[Add] output[0] offset to [1024] size[1024] realsize[1024] noalignsize[992] life time begin[2] life time end[3] child[1:1:0:0:1] isref[0]
+//[data_0] optype[Data] output[0] offset to [0] size[1024] realsize[1024] noalignsize[992] life time begin[0] life time
+// end[2] child[0:1:0:1:1] [add_2] optype[Add] output[0] offset to [0] size[1024] realsize[1024] noalignsize[992] life
+// time begin[3] life time end[4] child[1:1:0:0:1] [add_3] optype[Add] output[0] offset to [1024] size[1024]
+// realsize[1024] noalignsize[992] life time begin[4] life time end[4294967295] child[0:1:0:1:1] [add_1] optype[Add]
+// output[0] offset to [1024] size[1024] realsize[1024] noalignsize[992] life time begin[2] life time end[3]
+// child[1:1:0:0:1] isref[0]
 Graph BuildIoReuseMemGraphzeroCopy() {
   std::vector<int64_t> shape{1, 4, 2, 124};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_UINT8, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_UINT8, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   vector<uint8_t> data_value(1 * 4 * 2 * 124, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_UINT8);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(uint8_t));
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_UINT8, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_UINT8, shape).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_UINT8, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_UINT8, shape).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_UINT8, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_UINT8, shape).InCnt(2).OutCnt(1).Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -2711,7 +2622,7 @@ Graph BuildIoReuseMemGraphzeroCopy() {
  * 2. 模型执行成功
  * 3. 输入输出被复用，FM size = 0
  */
-TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_zero_copy)  {
+TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_zero_copy) {
   GertRuntimeStub runtime_stub;
   /* noalignsize 和real size不一致场景的构造打桩 */
   auto fake_builder1 = std::make_shared<FakeFmMemoryOpsKernelBuilder>("AiCoreLib");
@@ -2735,7 +2646,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_zero_copy)  {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -2788,7 +2699,6 @@ struct FakeAicoreLibOpsKernelBuilder : FakeOpsKernelBuilder {
 class MockIoMemReuse {
  public:
   explicit MockIoMemReuse() {
-
     auto infer_fun = [](Operator &op) -> graphStatus {
       // info shape实现
       auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
@@ -2811,27 +2721,28 @@ class MockIoMemReuse {
     OpKernelBinPtr tbeKernelPtr = std::make_shared<OpKernelBin>("test_tvm", std::move(buffer));
 
     ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine")
-         .KernelInfoStore("AiCoreLib")
-         .GraphOptimizer("AIcoreEngine")
-         .KernelBuilder(ops_kernel_builder)
-         .KernelBuilder(aicore_engine_builder))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(pc_infer_fun))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun)
-                  .AttrsDef(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-                  .AttrsDef(ATTR_NAME_KERNEL_BIN_ID, "_mem_fake_id")
-                  .ExtAttrsDef(OP_EXTATTR_NAME_TBE_KERNEL, tbeKernelPtr));
-
+        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .KernelBuilder(ops_kernel_builder)
+                     .KernelBuilder(aicore_engine_builder))
+        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(pc_infer_fun))
+        .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(ADD)
+                     .InfoStoreAndBuilder("AiCoreLib")
+                     .InferShape(infer_fun)
+                     .AttrsDef(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                     .AttrsDef(ATTR_NAME_KERNEL_BIN_ID, "_mem_fake_id")
+                     .ExtAttrsDef(OP_EXTATTR_NAME_TBE_KERNEL, tbeKernelPtr));
   }
 
   virtual ~MockIoMemReuse() {
@@ -2872,45 +2783,26 @@ class MockIoMemReuse {
  */
 Graph BuildIoReuseMemGraph2() {
   std::vector<int64_t> shape{8, 8, 8, 8};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   auto data_01 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_01");
+                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("data_01");
 
   // add1-5
-  auto add_1 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_3");
 
-  auto add_4 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_4");
+  auto add_4 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_4");
 
-  auto add_5 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_5");
+  auto add_5 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_5");
 
   std::vector<int64_t> cons_shape{2, 2, 2, 2};
   vector<int32_t> data_value(2 * 2 * 2 * 2, 0);
@@ -2920,17 +2812,16 @@ Graph BuildIoReuseMemGraph2() {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3)
-          ->EDGE(0, 0)
-          ->NODE(add_4)
-          ->EDGE(0, 0)
-          ->NODE(add_5)
-          );
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->EDGE(0, 0)
+              ->NODE(add_2)
+              ->EDGE(0, 0)
+              ->NODE(add_3)
+              ->EDGE(0, 0)
+              ->NODE(add_4)
+              ->EDGE(0, 0)
+              ->NODE(add_5));
 
     CHAIN(NODE(data_01)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -2946,7 +2837,7 @@ Graph BuildIoReuseMemGraph2() {
 // add2 add4生命周期不重叠，都从data1的起始地址开始复用
 TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_02) {
   GertRuntimeStub runtime_stub;
-  MockIoMemReuse  mock_io_reuse_mem;
+  MockIoMemReuse mock_io_reuse_mem;
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -2962,7 +2853,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_02) {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
   // check reuse mem reusult
@@ -3026,50 +2917,26 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_02) {
  */
 Graph BuildIoReuseMemGraph3() {
   std::vector<int64_t> shape{8, 8, 8, 8};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   auto data_01 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_01");
+                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("data_01");
 
   // add1-5
-  auto add_1 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id")
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id").Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_2_fake_id")
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_2_fake_id").Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_3_fake_id")
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_3_fake_id").Build("add_3");
 
-  auto add_4 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_4_fake_id")
-      .Build("add_4");
+  auto add_4 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_4_fake_id").Build("add_4");
 
-  auto add_5 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_5_fake_id")
-      .Build("add_5");
+  auto add_5 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_5_fake_id").Build("add_5");
 
   std::vector<int64_t> cons_shape{2, 2, 2, 2};
   vector<int32_t> data_value(2 * 2 * 2 * 2, 0);
@@ -3079,17 +2946,16 @@ Graph BuildIoReuseMemGraph3() {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3)
-          ->EDGE(0, 0)
-          ->NODE(add_4)
-          ->EDGE(0, 0)
-          ->NODE(add_5)
-          );
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->EDGE(0, 0)
+              ->NODE(add_2)
+              ->EDGE(0, 0)
+              ->NODE(add_3)
+              ->EDGE(0, 0)
+              ->NODE(add_4)
+              ->EDGE(0, 0)
+              ->NODE(add_5));
 
     CHAIN(NODE(data_01)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -3112,7 +2978,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
   Session session(options);
 
-  MockIoMemReuse  mock_io_reuse_mem;
+  MockIoMemReuse mock_io_reuse_mem;
 
   auto graph = BuildIoReuseMemGraph3();
 
@@ -3122,7 +2988,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -3149,11 +3015,11 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
     const auto add4_output_size_list = ModelUtils::GetOutputSize(add4_op_desc);
     const auto add4_output_offset_list = add4_op_desc->GetOutputOffset();
 
-    bool expect1 = (add2_output_offset_list[0] >= data1_output_offset_list[0])
-                   && (add2_output_offset_list[0] < (data1_output_offset_list[0] + data1_output_size_list[0]));
+    bool expect1 = (add2_output_offset_list[0] >= data1_output_offset_list[0]) &&
+                   (add2_output_offset_list[0] < (data1_output_offset_list[0] + data1_output_size_list[0]));
     EXPECT_EQ(expect1, true);
-    bool expect2 = (add4_output_offset_list[0] >= data1_output_offset_list[0])
-                   && (add4_output_offset_list[0] < (data1_output_offset_list[0] + data1_output_size_list[0]));
+    bool expect2 = (add4_output_offset_list[0] >= data1_output_offset_list[0]) &&
+                   (add4_output_offset_list[0] < (data1_output_offset_list[0] + data1_output_size_list[0]));
     EXPECT_EQ(expect2, true);
 
     EXPECT_EQ((add2_output_offset_list[0] != add4_output_offset_list[0]), true);
@@ -3174,8 +3040,9 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   // set fm memory base
   std::vector<uint8_t> weight_mem(weight_size, 0);
   std::vector<uint8_t> feature_mem(feature_size, 0);
-  std::cout << "======weight_size:" << weight_size << ", feature_size:" << feature_size << ", weight_mem:"<< std::hex
-      << (uintptr_t)weight_mem.data() << ", feature_mem:"<< std::hex << (uintptr_t)feature_mem.data() << std::endl;
+  std::cout << "======weight_size:" << weight_size << ", feature_size:" << feature_size << ", weight_mem:" << std::hex
+            << (uintptr_t)weight_mem.data() << ", feature_mem:" << std::hex << (uintptr_t)feature_mem.data()
+            << std::endl;
 
   EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
   EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
@@ -3207,10 +3074,10 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   // check addr refresh
   uint64_t data1_addr = PtrToValue(input_data_1.data());
   std::cout << "======data1_addr:" << data1_addr << std::endl;
-  std::cout << "======GetRtMemcpyRecords size:"
-    << runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords().size() << std::endl;
+  std::cout << "======GetRtMemcpyRecords size:" << runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords().size()
+            << std::endl;
 
-  std::vector<uint64_t>  task_io_addr;
+  std::vector<uint64_t> task_io_addr;
   for (const auto &args : runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords()) {
     std::cout << "=== host args ===" << std::endl;
     uint64_t *host_args_base = (uint64_t *)args.src_address;
@@ -3243,9 +3110,9 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_03) {
   // get add4 output addr
   uint64_t add4_out_addr = task_io_addr[11];
 
-EXPECT_EQ(data1_out_addr, add2_out_addr);
-EXPECT_EQ(data1_out_addr + 512, add4_out_addr);
-runtime_stub.Clear();
+  EXPECT_EQ(data1_out_addr, add2_out_addr);
+  EXPECT_EQ(data1_out_addr + 512, add4_out_addr);
+  runtime_stub.Clear();
 }
 
 /**
@@ -3282,50 +3149,22 @@ runtime_stub.Clear();
  */
 Graph BuildIoReuseMemGraph4() {
   std::vector<int64_t> shape{2, 2, 2, 2};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
-  auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_1");
+  auto data_1 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).Build("data_1");
 
   // add1-5
-  auto add_1 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id")
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id").Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_2_fake_id")
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_2_fake_id").Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_3_fake_id")
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_3_fake_id").Build("add_3");
 
-  auto add_4 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_4_fake_id")
-      .Build("add_4");
+  auto add_4 = OP_CFG(ADD).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_4_fake_id").Build("add_4");
 
-  auto mul_1 = OP_CFG(MUL)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_mul_1_fake_id")
-      .Build("mul_1");
+  auto mul_1 = OP_CFG(MUL).InCnt(2).OutCnt(1).Attr(ATTR_NAME_KERNEL_BIN_ID, "_mul_1_fake_id").Build("mul_1");
 
   std::vector<int64_t> cons_shape{2, 2, 2, 2};
   vector<int32_t> data_value(2 * 2 * 2 * 2, 0);
@@ -3335,17 +3174,16 @@ Graph BuildIoReuseMemGraph4() {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3)
-          ->EDGE(0, 0)
-          ->NODE(add_4)
-          ->EDGE(0, 0)
-          ->NODE(mul_1)
-          );
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->EDGE(0, 0)
+              ->NODE(add_2)
+              ->EDGE(0, 0)
+              ->NODE(add_3)
+              ->EDGE(0, 0)
+              ->NODE(add_4)
+              ->EDGE(0, 0)
+              ->NODE(mul_1));
 
     CHAIN(NODE(data_1)->EDGE(0, 1)->NODE(add_1));
 
@@ -3385,7 +3223,6 @@ void ConstructInputOutputTensorForIoReuseMemGraph(std::vector<ge::Tensor> &input
 class MockMulInfoShape {
  public:
   explicit MockMulInfoShape() {
-
     auto add_infer_fun = [](Operator &op) -> graphStatus {
       auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
       auto output_desc = op_desc->MutableOutputDesc(0);
@@ -3404,23 +3241,23 @@ class MockMulInfoShape {
     auto ops_kernel_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AiCoreLib");
     auto aicore_engine_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AIcoreEngine");
     ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine")
-         .KernelInfoStore("AiCoreLib")
-         .GraphOptimizer("AIcoreEngine")
-         .KernelBuilder(ops_kernel_builder)
-         .KernelBuilder(aicore_engine_builder))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(add_infer_fun))
-         .Install(FakeOp(MUL).InfoStoreAndBuilder("AiCoreLib").InferShape(mul_infer_fun))
-         .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"));
+        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .KernelBuilder(ops_kernel_builder)
+                     .KernelBuilder(aicore_engine_builder))
+        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(add_infer_fun))
+        .Install(FakeOp(MUL).InfoStoreAndBuilder("AiCoreLib").InferShape(mul_infer_fun))
+        .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"));
   }
 
   virtual ~MockMulInfoShape() {
@@ -3432,7 +3269,7 @@ class MockMulInfoShape {
 // 测试net output被复用的场景
 TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
   GertRuntimeStub runtime_stub;
-  MockMulInfoShape  mock_mul_info_shape;
+  MockMulInfoShape mock_mul_info_shape;
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -3448,7 +3285,7 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -3480,16 +3317,16 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
     const auto mul1_output_offset_list = mul1_op_desc->GetOutputOffset();
 
     // check reuse result
-    bool expect1 = (add1_output_offset_list[0] >= mul1_output_offset_list[0])
-                   && (add1_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
+    bool expect1 = (add1_output_offset_list[0] >= mul1_output_offset_list[0]) &&
+                   (add1_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
     EXPECT_EQ(expect1, true);
 
-    bool expect2 = (add2_output_offset_list[0] >= mul1_output_offset_list[0])
-                   && (add2_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
+    bool expect2 = (add2_output_offset_list[0] >= mul1_output_offset_list[0]) &&
+                   (add2_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
     EXPECT_EQ(expect2, true);
 
-    bool expect3 = (add3_output_offset_list[0] >= mul1_output_offset_list[0])
-                   && (add3_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
+    bool expect3 = (add3_output_offset_list[0] >= mul1_output_offset_list[0]) &&
+                   (add3_output_offset_list[0] < (mul1_output_offset_list[0] + mul1_output_size_list[0]));
     EXPECT_EQ(expect3, true);
 
     EXPECT_EQ((add1_output_offset_list[0] != add2_output_offset_list[0]), true);
@@ -3509,8 +3346,9 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
   // set fm memory base
   std::vector<uint8_t> weight_mem(weight_size, 0);
   std::vector<uint8_t> feature_mem(feature_size, 0);
-  std::cout << "======weight_size:" << weight_size << ", feature_size:" << feature_size << ", weight_mem:"<< std::hex
-       << (uintptr_t)weight_mem.data() << ", feature_mem:"<< std::hex << (uintptr_t)feature_mem.data() << std::endl;
+  std::cout << "======weight_size:" << weight_size << ", feature_size:" << feature_size << ", weight_mem:" << std::hex
+            << (uintptr_t)weight_mem.data() << ", feature_mem:" << std::hex << (uintptr_t)feature_mem.data()
+            << std::endl;
 
   EXPECT_EQ(SUCCESS, session.SetGraphConstMemoryBase(graph_id, weight_mem.data(), weight_size));
   EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
@@ -3544,10 +3382,10 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
   // check addr refresh
   uint64_t data1_addr = PtrToValue(input_data_1.data());
   std::cout << "======data1_addr:" << data1_addr << std::endl;
-  std::cout << "======GetRtMemcpyRecords size:"
-    << runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords().size() << std::endl;
+  std::cout << "======GetRtMemcpyRecords size:" << runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords().size()
+            << std::endl;
 
-  std::vector<uint64_t>  task_io_addr;
+  std::vector<uint64_t> task_io_addr;
   for (const auto &args : runtime_stub.GetAclRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t *host_args_base = (uint64_t *)args.src_address;
     for (size_t i = 0U; i < (args.copy_len / sizeof(uint64_t)); i++) {
@@ -3615,43 +3453,25 @@ TEST_F(FmMemoryRefreshTest, data_input_output_reuse_mem_04) {
 Graph BuildAnnDataReuseMemGraph() {
   std::vector<int64_t> shape{1, 4, 8, 8};
   auto data_0 = OP_CFG(ANN_DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_0");
 
   vector<int32_t> data_value(1 * 4 * 8 * 8, 0);
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
   auto const_1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const_1");
 
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_3");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE(add_3));
 
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -3662,7 +3482,7 @@ Graph BuildAnnDataReuseMemGraph() {
   return ToGeGraph(g1);
 }
 
-TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_01)  {
+TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_01) {
   GertRuntimeStub runtime_stub;
 
   std::map<AscendString, AscendString> options;
@@ -3674,14 +3494,14 @@ TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_01)  {
   auto graph = BuildRefDataReuseMemGraph();
 
   std::map<AscendString, AscendString> graph_options;
-  graph_options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "0,1"); // "1":for error branch
-  graph_options.emplace(ge::OPTION_OUTPUT_REUSE_MEM_INDEXES, "0,1"); // "1":for error branch
+  graph_options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "0,1");   // "1":for error branch
+  graph_options.emplace(ge::OPTION_OUTPUT_REUSE_MEM_INDEXES, "0,1");  // "1":for error branch
 
   // add graph
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -3750,7 +3570,6 @@ TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_invalid_input_index) {
   uint32_t graph_id = 1;
   EXPECT_NE(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-
   runtime_stub.Clear();
 }
 TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_out_of_range_input_index) {
@@ -3770,7 +3589,6 @@ TEST_F(FmMemoryRefreshTest, ann_data_reuse_mem_out_of_range_input_index) {
 
   uint32_t graph_id = 1;
   EXPECT_NE(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
-
 
   runtime_stub.Clear();
 }
@@ -3807,7 +3625,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_single_execution) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -3833,9 +3651,9 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_single_execution) {
   const auto add2_op_desc = compute_graph->FindNode("add_2")->GetOpDesc();
   AttrUtils::SetListStr(add1_op_desc, "_hccl_group_id_list", {"group0", "group1"});
   AttrUtils::SetListStr(add2_op_desc, "_hccl_group_id_list", {"group1", "group2", "group3"});
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void*)1), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void*)2), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void*)3), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void *)1), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void *)2), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void *)3), GRAPH_SUCCESS);
 
   const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
   EXPECT_NE(summary, nullptr);
@@ -3910,7 +3728,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_fm_unchanged_and_multiple_execution
 
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -3923,7 +3741,6 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_fm_unchanged_and_multiple_execution
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
   options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");
   Session session(options);
-
 
   auto graph = ShareGraph::BuildSwitchMergeGraphWithMultiAddNodes();
   uint32_t graph_id = 1;
@@ -4000,7 +3817,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_fm_changed_and_multiple_executions)
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4100,7 +3917,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_fm_changed_and_multiple_executions)
  * 1.argstable的一致性和正确性均为成功, Add1~Add4，mul_1发生args table刷新
  */
 TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_single_execution) {
-  MockMulInfoShape  mock_mul_info_shape;
+  MockMulInfoShape mock_mul_info_shape;
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
   gert::GertRuntimeStub runtime_stub;
@@ -4193,7 +4010,7 @@ TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_single_execution) {
  * 1.二次执行时，argstable的一致性和正确性均为成功，Add1~Add4，mul_1不发生args table刷新
  */
 TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_data_unchanged_and_multiple_executions) {
-  MockMulInfoShape  mock_mul_info_shape;
+  MockMulInfoShape mock_mul_info_shape;
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
   gert::GertRuntimeStub runtime_stub;
@@ -4251,7 +4068,6 @@ TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_data_unchanged_and_multiple_execu
   runtime_stub.Clear();
 }
 
-
 /**
  * 用例描述：图的IO复用场景， 图的IO地址段发生变化，多次执行模型，args table正确
  *
@@ -4292,7 +4108,7 @@ TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_data_unchanged_and_multiple_execu
  * 1.二次执行时，argstable的一致性和正确性均为成功，Add1~Add4，mul_1发生args table刷新
  */
 TEST_F(FmMemoryRefreshTest, data_reuse_ok_when_data_changed_and_multiple_executions) {
-  MockMulInfoShape  mock_mul_info_shape;
+  MockMulInfoShape mock_mul_info_shape;
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
   gert::GertRuntimeStub runtime_stub;
@@ -4380,7 +4196,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_aicpu_op_single_execution) {
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpu);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4522,7 +4338,7 @@ TEST_F(FmMemoryRefreshTest, fm_reuse_ok_when_dsa_op_single_execution) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   MockForGenerateTask("DSAEngine", GenerateTaskForDsa);
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4608,7 +4424,7 @@ TEST_F(FmMemoryRefreshTest, paremap_fm_not_support_refresh_when_dsa_op_single_ex
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   MockForGenerateTask("DSAEngine", GenerateTaskForDsa);
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4696,12 +4512,12 @@ TEST_F(FmMemoryRefreshTest, paremap_fm_not_support_refresh_when_dsa_op_single_ex
  *
  * 预期结果
  * 1. 一致性校验成功
-*/
+ */
 TEST_F(FmMemoryRefreshTest, rts_operater_directly_connect_to_data_node) {
   MockForGenerateTask("RTSLib", GenerateTaskForRts);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4773,7 +4589,7 @@ TEST_F(FmMemoryRefreshTest, rts_operater_directly_connect_to_data_node) {
  */
 TEST_F(FmMemoryRefreshTest, no_task_args_associate_user_model_io) {
   GertRuntimeStub runtime_stub;
-  MockIoMemReuse  mock_io_reuse_mem;
+  MockIoMemReuse mock_io_reuse_mem;
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -4783,7 +4599,7 @@ TEST_F(FmMemoryRefreshTest, no_task_args_associate_user_model_io) {
 
   auto graph = ShareGraph::NetoutputNotSupportZeroCopy();
 
-  // comile graph
+  // compile graph
   uint32_t graph_id = 1;
   session.AddGraph(graph_id, graph);
   auto ret = session.CompileGraph(graph_id);
@@ -4819,7 +4635,8 @@ TEST_F(FmMemoryRefreshTest, no_task_args_associate_user_model_io) {
   std::vector<int32_t> output_data_1_x(1 * 4 * 2 * 124, 0);
   TensorDesc output_desc_1_x(Shape({1, 4, 2, 124}));
   ge::Tensor output_tensor_1_x{output_desc_1_x};
-  output_tensor_1_x.SetData(reinterpret_cast<uint8_t *>(output_data_1_x.data()), output_data_1_x.size() * sizeof(int32_t));
+  output_tensor_1_x.SetData(reinterpret_cast<uint8_t *>(output_data_1_x.data()),
+                            output_data_1_x.size() * sizeof(int32_t));
   outputs_x.emplace_back(output_tensor_1_x);
 
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs_x, outputs_x));
@@ -4855,7 +4672,7 @@ TEST_F(FmMemoryRefreshTest, dsa_operater_directly_connect_to_netoutput) {
 
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -4942,7 +4759,7 @@ TEST_F(FmMemoryRefreshTest, dsa_operater_directly_connect_to_netoutput) {
 // 2.图2·编译失败
 TEST_F(FmMemoryRefreshTest, host_scheduling_summary_check) {
   GertRuntimeStub runtime_stub;
-  MockIoMemReuse  mock_io_reuse_mem;
+  MockIoMemReuse mock_io_reuse_mem;
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -4961,7 +4778,7 @@ TEST_F(FmMemoryRefreshTest, host_scheduling_summary_check) {
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -4986,14 +4803,14 @@ TEST_F(FmMemoryRefreshTest, host_scheduling_summary_check) {
   EXPECT_TRUE(num == 1);
   EXPECT_EQ(summary->GetEventNum(num), FAILED);
   EXPECT_TRUE(num == 0);
-  //check outputshapes
+  // check outputshapes
   std::vector<ge::Shape> shapes;
   EXPECT_EQ(summary->GetOutputShapes(shapes), FAILED);
   EXPECT_EQ(shapes.size(), 0U);
   std::vector<ge::DataType> dtypes;
   EXPECT_EQ(summary->GetOutputDtypes(dtypes), FAILED);
   EXPECT_EQ(dtypes.size(), 0U);
-  //check ioindex
+  // check ioindex
   std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
   EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), FAILED);
   EXPECT_EQ(io_indexes.size(), 0U);
@@ -5170,45 +4987,26 @@ TEST_F(FmMemoryRefreshTest, zero_copy_ok_when_input_directly_connected_to_output
  */
 Graph BuildTsMemGraph() {
   std::vector<int64_t> shape{8, 8, 8, 8};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
   auto data_01 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_01");
+                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("data_01");
 
   // add1-5
-  auto add_1 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_3");
 
-  auto add_4 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_4");
+  auto add_4 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_4");
 
-  auto add_5 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_5");
+  auto add_5 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_5");
 
   std::vector<int64_t> memtype_list = {RT_MEMORY_TS};
   auto id_1 = OP_CFG("Identity").InCnt(1).OutCnt(1).Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list).Build("id_1");
@@ -5221,17 +5019,16 @@ Graph BuildTsMemGraph() {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3)
-          ->EDGE(0, 0)
-          ->NODE(add_4)
-          ->EDGE(0, 0)
-          ->NODE(add_5)
-          );
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->EDGE(0, 0)
+              ->NODE(add_2)
+              ->EDGE(0, 0)
+              ->NODE(add_3)
+              ->EDGE(0, 0)
+              ->NODE(add_4)
+              ->EDGE(0, 0)
+              ->NODE(add_5));
 
     CHAIN(NODE(data_01)->EDGE(0, 1)->NODE(add_1));
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_2));
@@ -5239,8 +5036,8 @@ Graph BuildTsMemGraph() {
     CHAIN(NODE(const_1)->EDGE(0, 1)->NODE(add_4));
     CHAIN(NODE(add_2)->EDGE(0, 1)->NODE(add_5)->EDGE(0, 0)->NODE("output_1", NETOUTPUT));
     CHAIN(NODE(const_1)->EDGE(0, 0)->NODE(id_1)->EDGE(0, 1)->NODE("output_1", NETOUTPUT));
-    //ADD_OUTPUT(add_5, 0);
-    //ADD_OUTPUT(id_1, 0);
+    // ADD_OUTPUT(add_5, 0);
+    // ADD_OUTPUT(id_1, 0);
   };
 
   auto graph = ToGeGraph(g1);
@@ -5273,12 +5070,12 @@ TEST_F(FmMemoryRefreshTest, memcpy_dst_is_ts_mem) {
   auto graph = BuildTsMemGraph();
 
   std::map<AscendString, AscendString> graph_options;
-  //graph_options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "1");
-  // add graph
+  // graph_options.emplace(ge::OPTION_INPUT_REUSE_MEM_INDEXES, "1");
+  //  add graph
   uint32_t graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
-  // comile graph
+  // compile graph
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -5313,7 +5110,6 @@ TEST_F(FmMemoryRefreshTest, memcpy_dst_is_ts_mem) {
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 }
 
-
 /*
                         g1
 
@@ -5335,7 +5131,7 @@ Graph BuildHcomGraph1() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
                     .InCnt(2)
@@ -5381,7 +5177,7 @@ Graph BuildHcomAllToAllGraph() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLTOALL)
                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
                     .InCnt(2)
@@ -5438,10 +5234,10 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0001) {
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
   std::vector<uint8_t> refreshable_feature_mem(refreshable_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << ", refreshable_feature_mem:" << std::hex
-      << (uintptr_t)refreshable_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data()
+            << ", refreshable_feature_mem:" << std::hex << (uintptr_t)refreshable_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -5453,14 +5249,14 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0001) {
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
   // update fm memory base
   EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(),
-      refreshable_feature_size));
+                                                                     refreshable_feature_size));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   // check addr refresh
-  std::cout << "======GetRtMemcpyRecords size:"
-    << runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size() << std::endl;
+  std::cout << "======GetRtMemcpyRecords size:" << runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size()
+            << std::endl;
 
-  std::vector<uint64_t>  task_io_addr;
+  std::vector<uint64_t> task_io_addr;
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     std::cout << "=== host args ===" << std::endl;
     uint64_t *host_args_base = (uint64_t *)args.src_address;
@@ -5502,31 +5298,31 @@ Graph BuildHcomGraphWithP2pAndHbmFixedMemory() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(2)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-      .Build("hcom_1");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(2)
+                    .OutCnt(2)
+                    .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                    .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                    .Build("hcom_1");
   std::vector<int64_t> p2p_memtype_list = {RT_MEMORY_P2P_DDR, RT_MEMORY_P2P_DDR};
   auto hcom_2 = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(2)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, p2p_memtype_list)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, p2p_memtype_list)
-      .Build("hcom_2");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(2)
+                    .OutCnt(2)
+                    .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, p2p_memtype_list)
+                    .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, p2p_memtype_list)
+                    .Build("hcom_2");
   auto add = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(add));
-                  CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 1)->NODE(add)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
-                  CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(hcom_1)->EDGE(1, 1)->NODE("output_1", "NetOutput"));
-                  CHAIN(NODE(add)->EDGE(0, 0)->NODE(hcom_2)->NODE("output_1", "NetOutput"));
-                  CHAIN(NODE(add)->EDGE(0, 1)->NODE(hcom_2)->NODE("output_1", "NetOutput"));
-                };
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(add));
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 1)->NODE(add)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(hcom_1)->EDGE(1, 1)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(add)->EDGE(0, 0)->NODE(hcom_2)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(add)->EDGE(0, 1)->NODE(hcom_2)->NODE("output_1", "NetOutput"));
+  };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -5586,22 +5382,22 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   std::vector<int64_t> shape = {2, 2};  // NCHW
   // sub1
   auto data_sub1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_sub1");
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                       .Attr(ATTR_NAME_INDEX, 0)
+                       .Build("data_sub1");
   data_sub1->SetOutputOffset({32});
 
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_MODIFY_INPUT, true)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-      .Build("hcom_1");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_MODIFY_INPUT, true)
+                    .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                    .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                    .Build("hcom_1");
 
   hcom_1->SetOpKernelLibName("ops_kernel_info_hccl");
   hcom_1->SetWorkspace({0});
@@ -5613,13 +5409,13 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   std::vector<int64_t> memtype_list_p2p = {RT_MEMORY_P2P_DDR};
   auto add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add1");
   auto hcom_1_p2p = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_MODIFY_INPUT, true)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list_p2p)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list_p2p)
-      .Build("hcom_1_p2p");
+                        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr(ATTR_NAME_MODIFY_INPUT, true)
+                        .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list_p2p)
+                        .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list_p2p)
+                        .Build("hcom_1_p2p");
 
   hcom_1_p2p->SetOpKernelLibName("ops_kernel_info_hccl");
   hcom_1_p2p->SetWorkspace({0});
@@ -5628,31 +5424,31 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   hcom_1_p2p->SetOutputOffset({32});
   ge::AttrUtils::SetBool(hcom_1_p2p, ATTR_NAME_IS_FIXED_ADDR_PRIOR, true);
   auto sub_1_netoutput = OP_CFG(ge::NETOUTPUT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Build("sub_1_netoutput");
+                             .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                             .InCnt(1)
+                             .OutCnt(1)
+                             .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
+                             .Build("sub_1_netoutput");
   sub_1_netoutput->SetInputOffset({0});
 
   // sub2
   auto data_sub2 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_sub2");
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                       .Attr(ATTR_NAME_INDEX, 0)
+                       .Build("data_sub2");
   data_sub2->SetOutputOffset({64});
 
   auto hcom_2 = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_MODIFY_INPUT, true)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-      .Build("hcom_2");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_MODIFY_INPUT, true)
+                    .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                    .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                    .Build("hcom_2");
 
   hcom_2->SetOpKernelLibName("ops_kernel_info_hccl");
   hcom_2->SetWorkspace({0});
@@ -5662,13 +5458,13 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   ge::AttrUtils::SetBool(hcom_2, ATTR_NAME_IS_FIXED_ADDR_PRIOR, true);
 
   auto hcom_2_p2p = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_MODIFY_INPUT, true)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list_p2p)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list_p2p)
-      .Build("hcom_2_p2p");
+                        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr(ATTR_NAME_MODIFY_INPUT, true)
+                        .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list_p2p)
+                        .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list_p2p)
+                        .Build("hcom_2_p2p");
 
   auto add2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add2");
   hcom_2_p2p->SetOpKernelLibName("ops_kernel_info_hccl");
@@ -5679,27 +5475,27 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   ge::AttrUtils::SetBool(hcom_2_p2p, ATTR_NAME_IS_FIXED_ADDR_PRIOR, true);
 
   auto sub_2_netoutput = OP_CFG(ge::NETOUTPUT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Build("sub_2_netoutput");
+                             .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                             .InCnt(1)
+                             .OutCnt(1)
+                             .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
+                             .Build("sub_2_netoutput");
   sub_2_netoutput->SetInputOffset({16});
 
   // root
   auto data_1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_1");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_1");
 
   auto data_2 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_2");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 1)
+                    .Build("data_2");
 
   auto rank = OP_CFG("Rank").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("rank");
   rank->SetOpKernelLibName(ge::kEngineNameAiCore.c_str());
@@ -5716,19 +5512,19 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
   root_netoutput->SetSrcIndex({0, 1});
 
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE(data_sub1)->NODE(hcom_1)->EDGE(0, 0)->NODE(add1)->NODE(hcom_1_p2p)->NODE(sub_1_netoutput));
-                     CHAIN(NODE(hcom_1)->EDGE(0, 1)->NODE(add1));
-                   };
+    CHAIN(NODE(data_sub1)->NODE(hcom_1)->EDGE(0, 0)->NODE(add1)->NODE(hcom_1_p2p)->NODE(sub_1_netoutput));
+    CHAIN(NODE(hcom_1)->EDGE(0, 1)->NODE(add1));
+  };
 
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE(data_sub2)->NODE(hcom_2)->EDGE(0, 0)->NODE(add2)->NODE(hcom_2_p2p)->NODE(sub_2_netoutput));
-                     CHAIN(NODE(hcom_2)->EDGE(0, 1)->NODE(add2));
-                   };
+    CHAIN(NODE(data_sub2)->NODE(hcom_2)->EDGE(0, 0)->NODE(add2)->NODE(hcom_2_p2p)->NODE(sub_2_netoutput));
+    CHAIN(NODE(hcom_2)->EDGE(0, 1)->NODE(add2));
+  };
 
   DEF_GRAPH(root) {
-                    CHAIN(NODE(data_1)->NODE(rank)->NODE(known_op1)->NODE(root_netoutput));
-                    CHAIN(NODE(data_2)->NODE(known_op2)->NODE(root_netoutput));
-                  };
+    CHAIN(NODE(data_1)->NODE(rank)->NODE(known_op1)->NODE(root_netoutput));
+    CHAIN(NODE(data_2)->NODE(known_op2)->NODE(root_netoutput));
+  };
 
   auto graph = ToGeGraph(root);
   auto root_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
@@ -5773,7 +5569,6 @@ Graph BuildUnknownHcomGraphWithP2pAndHbmFixedMemory() {
  * 3. 通过info日志校验执行过程中申请了p2p,hbm fixed内存，执行完成后释放了内存
  */
 TEST_F(FmMemoryRefreshTest, UserNotSetFixedFeatureMemory_GeMallocHbmAndP2pFixedMemoryByDefault_Success) {
-
   GertRuntimeStub runtime_stub;
 
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHcomAllReduce);
@@ -5795,7 +5590,7 @@ TEST_F(FmMemoryRefreshTest, UserNotSetFixedFeatureMemory_GeMallocHbmAndP2pFixedM
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -5819,7 +5614,8 @@ TEST_F(FmMemoryRefreshTest, UserNotSetFixedFeatureMemory_GeMallocHbmAndP2pFixedM
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_TRUE(find_log > 0);
@@ -5827,9 +5623,13 @@ TEST_F(FmMemoryRefreshTest, UserNotSetFixedFeatureMemory_GeMallocHbmAndP2pFixedM
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -5865,7 +5665,8 @@ TEST_F(FmMemoryRefreshTest, MultiStaticGraphWithFixedFeatureMemory_staticMemoryP
   session.AddGraph(graph_1_id, graph1);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
 
   auto graph2 = BuildHcomGraphWithP2pAndHbmFixedMemory();
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph2);
@@ -5883,7 +5684,8 @@ TEST_F(FmMemoryRefreshTest, MultiStaticGraphWithFixedFeatureMemory_staticMemoryP
   session.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+            SUCCESS);
 
   // graph1 run
   std::vector<ge::Tensor> inputs;
@@ -5895,9 +5697,11 @@ TEST_F(FmMemoryRefreshTest, MultiStaticGraphWithFixedFeatureMemory_staticMemoryP
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_1_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
@@ -5905,31 +5709,39 @@ TEST_F(FmMemoryRefreshTest, MultiStaticGraphWithFixedFeatureMemory_staticMemoryP
   // graph2 run
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_2_id, nullptr, inputs, outputs));
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_2 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
   // 加载第二张图，就不会创建物理内存池对象了
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
   EXPECT_FALSE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
   EXPECT_FALSE(find_log > 0);
 
   // graph1 unload
   EXPECT_EQ(session.RemoveGraph(graph_1_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
   EXPECT_TRUE(find_log > 0);
 
   // graph2 unload
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(session.RemoveGraph(graph_2_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -5937,7 +5749,8 @@ TEST_F(FmMemoryRefreshTest, MultiStaticGraphWithFixedFeatureMemory_staticMemoryP
 }
 
 /*
- * 用例描述: 配置动静态图复用，多张动态图， 图中fix优先内存大小不一样，先加载大的，再加载小的，预期使用session级fix优先内存池，内存大小从小扩展到大
+ * 用例描述: 配置动静态图复用，多张动态图，
+ 图中fix优先内存大小不一样，先加载大的，再加载小的，预期使用session级fix优先内存池，内存大小从小扩展到大
 
  * 测试步骤：
  * 1. 构造动态shape静态子图，图上有要求fixed地址的算子，同时包含hbm和p2p两种fixed内存类型
@@ -5965,7 +5778,8 @@ TEST_F(FmMemoryRefreshTest, MultiDynamicGraphWithFixedFeatureMemory_staticMemory
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_1_id);
 
   auto graph2 = BuildUnknownHcomGraphWithP2pAndHbmFixedMemory();
@@ -5982,7 +5796,8 @@ TEST_F(FmMemoryRefreshTest, MultiDynamicGraphWithFixedFeatureMemory_staticMemory
   session.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_2_id);
 
   std::vector<ge::Tensor> inputs;
@@ -5995,38 +5810,52 @@ TEST_F(FmMemoryRefreshTest, MultiDynamicGraphWithFixedFeatureMemory_staticMemory
   // run graph2
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_2_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_HBM");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_2 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*AllocFixedFeatureMemory");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("success to add ctrl edge from davinci_model_finalizer to free node: FreeFixedFeatureMemory_");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "success to add ctrl edge from davinci_model_finalizer to free node: FreeFixedFeatureMemory_");
   EXPECT_TRUE(find_log > 0);
 
   // run graph1
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_1_id, nullptr, inputs, outputs));
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   // 加载第二张图，就不会创建物理内存池对象了
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
   EXPECT_FALSE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
   EXPECT_FALSE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*AllocFixedFeatureMemory");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("success to add ctrl edge from davinci_model_finalizer to free node: FreeFixedFeatureMemory_");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "success to add ctrl edge from davinci_model_finalizer to free node: FreeFixedFeatureMemory_");
   EXPECT_TRUE(find_log > 0);
   // graph1 unload
   runtime_stub.GetSlogStub().Clear();
@@ -6056,7 +5885,8 @@ TEST_F(FmMemoryRefreshTest, MultiDynamicGraphWithFixedFeatureMemory_staticMemory
 }
 
 /*
- * 用例描述: 配置动静态图复用，动态图+静态图， 图中fix优先内存大小不一样，先加载大的，再加载小的，预期使用session级fix优先内存池，内存大小从小扩展到大
+ * 用例描述: 配置动静态图复用，动态图+静态图，
+ 图中fix优先内存大小不一样，先加载大的，再加载小的，预期使用session级fix优先内存池，内存大小从小扩展到大
 
  * 测试步骤：
  * 1. 构造动态shape静态子图 静态图，图上有要求fixed地址的算子，同时包含hbm和p2p两种fixed内存类型
@@ -6084,7 +5914,8 @@ TEST_F(FmMemoryRefreshTest, DynamicAndStaticGraphWithFixedFeatureMemory_staticMe
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_1_id);
 
   std::vector<ge::Tensor> inputs;
@@ -6097,13 +5928,18 @@ TEST_F(FmMemoryRefreshTest, DynamicAndStaticGraphWithFixedFeatureMemory_staticMe
   // run graph1
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_1_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_HBM");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, hbm_size .*, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*AllocFixedFeatureMemory");
   EXPECT_TRUE(find_log > 0);
@@ -6114,23 +5950,28 @@ TEST_F(FmMemoryRefreshTest, DynamicAndStaticGraphWithFixedFeatureMemory_staticMe
   session.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+            SUCCESS);
 
   runtime_stub.GetSlogStub().Clear();
   std::vector<ge::Tensor> graph_2_inputs;
   std::vector<ge::Tensor> graph_2_outputs;
   ConstructInputOutputTensor(graph_2_inputs, graph_2_outputs, 4);
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_2_id, nullptr, graph_2_inputs, graph_2_outputs));
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_2 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
   // 加载第二张图，就不会创建物理内存池对象了
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
   EXPECT_FALSE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
   EXPECT_FALSE(find_log > 0);
 
   // graph1 unload
@@ -6142,9 +5983,11 @@ TEST_F(FmMemoryRefreshTest, DynamicAndStaticGraphWithFixedFeatureMemory_staticMe
   // graph2 unload
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(session.RemoveGraph(graph_2_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_HBM, addr");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "free fixed_feature_memory by session allocator, rts memory type: RT_MEMORY_P2P_DDR, addr");
   EXPECT_TRUE(find_log > 0);
 
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
@@ -6183,7 +6026,8 @@ TEST_F(FmMemoryRefreshTest, MultiSessionDynamicAndStaticGraphWithFixedFeatureMem
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_1_id);
 
   std::vector<ge::Tensor> inputs;
@@ -6207,7 +6051,9 @@ TEST_F(FmMemoryRefreshTest, MultiSessionDynamicAndStaticGraphWithFixedFeatureMem
   session2.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session2, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(
+      CompileAndGetFixedSize(session2, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+      SUCCESS);
 
   runtime_stub.GetSlogStub().Clear();
   std::vector<ge::Tensor> graph_2_inputs;
@@ -6255,7 +6101,8 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_SetGraphFixedFeatureMemoryBaseAd
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   EXPECT_NE(session.SetGraphFixedFeatureMemoryBase(graph_1_id, nullptr, 0), SUCCESS);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 
@@ -6265,7 +6112,8 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_SetGraphFixedFeatureMemoryBaseAd
 }
 
 /*
- * 用例描述: 配置动静态图复用，多张动态图和静态图，其中一张图用户自己设置了fix优先内存,预期这张图不使用session级fix优先内存池
+ * 用例描述:
+ 配置动静态图复用，多张动态图和静态图，其中一张图用户自己设置了fix优先内存,预期这张图不使用session级fix优先内存池
 
  * 测试步骤：
  * 1. 构造动态shape静态子图和静态图，图上有要求fixed地址的算子
@@ -6292,7 +6140,8 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_UserSetFixedFeatureMemory) {
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_1_id);
 
   std::vector<ge::Tensor> inputs;
@@ -6305,17 +6154,21 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_UserSetFixedFeatureMemory) {
   // run graph1
   runtime_stub.GetSlogStub().Clear();
   std::vector<uint8_t> user_alloc_hbm_fixed_feature_mem(graph_1_hbm_fixed_feature_size, 0);
-  session.SetGraphFixedFeatureMemoryBase(graph_1_id, &user_alloc_hbm_fixed_feature_mem[0], graph_1_hbm_fixed_feature_size);
+  session.SetGraphFixedFeatureMemoryBase(graph_1_id, &user_alloc_hbm_fixed_feature_mem[0],
+                                         graph_1_hbm_fixed_feature_size);
   std::vector<uint8_t> user_alloc_p2p_fixed_feature_mem(graph_1_p2p_fixed_feature_size, 0);
-  session.SetGraphFixedFeatureMemoryBaseWithType(graph_1_id, MemoryType::MEMORY_TYPE_P2P, &user_alloc_p2p_fixed_feature_mem[0], graph_1_p2p_fixed_feature_size);
+  session.SetGraphFixedFeatureMemoryBaseWithType(graph_1_id, MemoryType::MEMORY_TYPE_P2P,
+                                                 &user_alloc_p2p_fixed_feature_mem[0], graph_1_p2p_fixed_feature_size);
 
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_1_id, nullptr, inputs, outputs));
   std::string reg = "create session allocator, typeid.* session_id: " + std::to_string(session.GetSessionId());
   auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(reg.c_str());
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   // run graph2
   Session session2(options);
@@ -6324,7 +6177,9 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_UserSetFixedFeatureMemory) {
   session2.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session2, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(
+      CompileAndGetFixedSize(session2, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+      SUCCESS);
 
   runtime_stub.GetSlogStub().Clear();
   std::vector<ge::Tensor> graph_2_inputs;
@@ -6334,16 +6189,20 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_UserSetFixedFeatureMemory) {
   reg = "create session allocator, typeid.* session_id: " + std::to_string(session2.GetSessionId());
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(reg.c_str());
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_P2P_DDR, addr: ");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
+  find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("get fixed_feature_memory success, type: RT_MEMORY_HBM, addr: ");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_2 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
   // 加载第二张图，就不会创建物理内存池对象了
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 2");
   EXPECT_FALSE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "CreateAllocator:Create PhysicalMemoryAllocator success device id:0, memory_type: 17");
   EXPECT_FALSE(find_log > 0);
 
   // graph1 unload
@@ -6388,7 +6247,8 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_ExternalAllocator) {
   session.AddGraph(graph_1_id, graph);
   size_t graph_1_hbm_fixed_feature_size = 0U;
   size_t graph_1_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_1_id, graph_1_hbm_fixed_feature_size, graph_1_p2p_fixed_feature_size),
+            SUCCESS);
   SetModelVarSize(session, graph_1_id);
 
   std::vector<ge::Tensor> inputs;
@@ -6401,13 +6261,19 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_ExternalAllocator) {
   // run graph1
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_1_id, stream, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_HBM");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or session "
+      "fixed base allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*GetUserAllocatorOrFixedBaseAllocator_.*get external allocator");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*GetUserAllocatorOrFixedBaseAllocator_.*get external allocator");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*GetUserAllocatorOrFixedBaseAllocator_.*ger or create fixed base expandable allocator");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*GetUserAllocatorOrFixedBaseAllocator_.*ger or create fixed base expandable allocator");
   EXPECT_TRUE(find_log > 0);
 
   // run graph2
@@ -6416,7 +6282,8 @@ TEST_F(FmMemoryRefreshTest, staticMemoryPolicy4_ExternalAllocator) {
   session.AddGraph(graph_2_id, graph2);
   size_t graph_2_hbm_fixed_feature_size = 0U;
   size_t graph_2_p2p_fixed_feature_size = 0U;
-  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size), SUCCESS);
+  EXPECT_EQ(CompileAndGetFixedSize(session, graph_2_id, graph_2_hbm_fixed_feature_size, graph_2_p2p_fixed_feature_size),
+            SUCCESS);
 
   runtime_stub.GetSlogStub().Clear();
   std::vector<ge::Tensor> graph_2_inputs;
@@ -6476,7 +6343,7 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemory_GeMallocP2pFixedMem
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -6503,17 +6370,23 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemory_GeMallocP2pFixedMem
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemoryIfNeed:no need to malloc fixed_feature_memory base, type:RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemoryIfNeed:no need to malloc fixed_feature_memory base, type:RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -6553,7 +6426,7 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserNotSetFixedFeatureMemory_GeMallocHbm
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -6564,14 +6437,13 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserNotSetFixedFeatureMemory_GeMallocHbm
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 7));
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 1536));
 
-
   // get graph summary
   const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
   EXPECT_NE(summary, nullptr);
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -6620,13 +6492,18 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserNotSetFixedFeatureMemory_GeMallocHbm
   dlog_setlevel(GE_MODULE_NAME, 0, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner allocator. type: RT_MEMORY_HBM");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner "
+      "allocator. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner "
+      "allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 
@@ -6668,7 +6545,7 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserOnlySetHbmFixedFeatureMemory_GeMallo
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -6679,14 +6556,13 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserOnlySetHbmFixedFeatureMemory_GeMallo
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 7));
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 1536));
 
-
   // get graph summary
   const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
   EXPECT_NE(summary, nullptr);
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -6738,13 +6614,17 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserOnlySetHbmFixedFeatureMemory_GeMallo
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner allocator. type: RT_MEMORY_P2P_DDR");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner "
+      "allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr 0x.*, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 
@@ -6786,7 +6666,7 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserSetHbmFixedFeatureMemoryNullptr_GeMa
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -6797,14 +6677,13 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserSetHbmFixedFeatureMemoryNullptr_GeMa
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 7));
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 1536));
 
-
   // get graph summary
   const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
   EXPECT_NE(summary, nullptr);
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -6856,13 +6735,17 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserSetHbmFixedFeatureMemoryNullptr_GeMa
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
+  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:no need to malloc fixed_feature_memory base. type: RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner allocator. type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "MallocFixedFeatureMemOnInitRootIfNeed:need to malloc fixed_feature_memory base by user allocator or inner "
+      "allocator. type: RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("graph_1 use p2p_fixed_mem_base");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr .*, hbm_size 0, p2p_addr 0x");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "KernelTrace.*DavinciModelCreate_.* fixed_feature_memory hbm_addr .*, hbm_size 0, p2p_addr 0x");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 
@@ -6885,7 +6768,6 @@ TEST_F(FmMemoryRefreshTest, UnknownGraphUserSetHbmFixedFeatureMemoryNullptr_GeMa
  * 3. 通过info日志校验执行过程中申请了p2p  fixed内存，执行完成后释放了内存
  */
 TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemoryNullptr_GeMallocP2pFixedMemoryByDefault_Success) {
-
   GertRuntimeStub runtime_stub;
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHcomAllReduce);
   std::map<AscendString, AscendString> options;
@@ -6906,7 +6788,7 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemoryNullptr_GeMallocP2pF
   size_t fix_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -6932,9 +6814,12 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemoryNullptr_GeMallocP2pF
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_FALSE(find_log > 0);
@@ -6942,9 +6827,13 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemoryNullptr_GeMallocP2pF
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -6953,7 +6842,8 @@ TEST_F(FmMemoryRefreshTest, UserOnlySetHbmFixedFeatureMemoryNullptr_GeMallocP2pF
 
 /*
  * 用例描述: GE默认申请Fixed feature内存与UpdateGraphFeatureMemoryBase接口的组合场景，
-纯静态图，存在fixed feature memory，用户没有设置fixed地址，RunGraph后调用UpdateGraphFeatureMemoryBase接口，然后再次RunGraph
+纯静态图，存在fixed feature
+memory，用户没有设置fixed地址，RunGraph后调用UpdateGraphFeatureMemoryBase接口，然后再次RunGraph
 
  * 测试步骤：
  * 1. 构造静态图，图上有要求fixed地址的算子，同时包含hbm和p2p两种fixed内存类型
@@ -6990,7 +6880,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7014,9 +6904,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:fixed_feature_memory base is not set by user, return true, memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:fixed_feature_memory base is not set by user, return true, memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_TRUE(find_log > 0);
@@ -7028,9 +6921,13 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7076,7 +6973,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7104,9 +7001,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   EXPECT_EQ(session.UpdateGraphFeatureMemoryBase(graph_id, &feature_base[0], feature_size), SUCCESS);
 
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_FALSE(find_log > 0);
@@ -7114,9 +7014,13 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7124,7 +7028,8 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphFeatureMemor
 }
 /*
  * 用例描述: GE默认申请Fixed feature内存与UpdateGraphRefreshableFeatureMemoryBase接口的组合场景，
-纯静态图，存在fixed feature memory，用户没有设置fixed地址，RunGraph后调用UpdateGraphRefreshableFeatureMemoryBase接口，然后再次RunGraph
+纯静态图，存在fixed feature
+memory，用户没有设置fixed地址，RunGraph后调用UpdateGraphRefreshableFeatureMemoryBase接口，然后再次RunGraph
 
  * 测试步骤：
  * 1. 构造静态图，图上有要求fixed地址的算子，同时包含hbm和p2p两种fixed内存类型
@@ -7161,7 +7066,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphRefreshableF
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7185,9 +7090,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphRefreshableF
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
   runtime_stub.GetSlogStub().Clear();
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_TRUE(find_log > 0);
@@ -7195,13 +7103,18 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_UpdateGraphRefreshableF
   EXPECT_TRUE(find_log > 0);
 
   std::vector<uint8_t> feature_base(refreshable_feature_size, 0);
-  EXPECT_EQ(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &feature_base[0], refreshable_feature_size), SUCCESS);
+  EXPECT_EQ(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &feature_base[0], refreshable_feature_size),
+            SUCCESS);
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7234,7 +7147,8 @@ TEST_F(FmMemoryRefreshTest, SetGraphFixedFeatureMemoryBaseWithType_P2pNullptr_No
   auto ret = session.CompileGraph(graph_id);
   EXPECT_EQ(ret, SUCCESS);
 
-  ASSERT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_P2P, nullptr, 0), GE_GRAPH_UNSUPPORTED);
+  ASSERT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_P2P, nullptr, 0),
+            GE_GRAPH_UNSUPPORTED);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
   runtime_stub.Clear();
 }
@@ -7252,7 +7166,8 @@ TEST_F(FmMemoryRefreshTest, SetGraphFixedFeatureMemoryBaseWithType_P2pNullptr_No
  * 预期结果：
  * 1. 通过summary拿到的P2p,hbm fixed feature memory size非0
  * 2. 模型执行成功
- * 3. 通过info日志校验执行过程中申请了p2p  fixed内存，执行完成后释放了内存。校验使用外置allocator申请了hbm fixed内存，并正常释放
+ * 3. 通过info日志校验执行过程中申请了p2p  fixed内存，执行完成后释放了内存。校验使用外置allocator申请了hbm
+fixed内存，并正常释放
  */
 TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Success) {
   GertRuntimeStub runtime_stub;
@@ -7276,7 +7191,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Succe
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7303,9 +7218,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Succe
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
   EXPECT_EQ(SUCCESS, session.RegisterExternalAllocator(stream, external_allocator));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("bytes success using external allocator");
   EXPECT_TRUE(find_log > 0);
@@ -7313,9 +7231,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Succe
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by external allocator success");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by external allocator success");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7351,7 +7272,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Succe
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7373,25 +7294,25 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryByDefault_ExternalAllocator_Succe
   gert_inputs.resize(2);
   gert_outputs.resize(4);
   std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_2.data()};
 
   for (size_t i = 0; i < 4; i++) {
-    gert_outputs[i] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                                // placement
-                          ge::DT_INT32,                              // data type
-                          nullptr};
+    gert_outputs[i] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       nullptr};
   }
   ge::diagnoseSwitch::DisableDumper();
   runtime_stub.Clear();
@@ -7426,7 +7347,7 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryForExecute_ExternalAllocator_Succ
   EXPECT_EQ(SUCCESS, summary->GetFixedFeatureMemorySize(fix_feature_size));
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
 
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7450,18 +7371,18 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryForExecute_ExternalAllocator_Succ
   std::vector<gert::Tensor> gert_outputs;
   gert_inputs.resize(2);
   std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 0);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(1, 0);
-  gert_inputs[1] = {{{1}, {1}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[1] = {{{1}, {1}},                                  // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_2.data()};
   runtime_stub.Clear();
   // 通过info日志检查执行过程的正确性
   dlog_setlevel(GE_MODULE_NAME, 1, 0);
@@ -7471,30 +7392,33 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryForExecute_ExternalAllocator_Succ
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs));
   EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
   gert_outputs.resize(4);
-  gert_outputs[0] = {{{0}, {0}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            nullptr};
-  gert_outputs[1] = {{{0}, {0}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            nullptr};
-  gert_outputs[2] = {{{0}, {0}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            nullptr};
-  gert_outputs[3] = {{{0}, {0}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            nullptr};
+  gert_outputs[0] = {{{0}, {0}},                                  // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
+  gert_outputs[1] = {{{0}, {0}},                                  // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
+  gert_outputs[2] = {{{0}, {0}},                                  // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
+  gert_outputs[3] = {{{0}, {0}},                                  // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     nullptr};
   EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: RT_MEMORY_HBM");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "IsNeedMallocFixedFeatureMemByType:user set fixed_feature_memory base nullptr, return false, memory type: "
+      "RT_MEMORY_HBM");
   EXPECT_FALSE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("bytes success using external allocator");
   EXPECT_TRUE(find_log > 0);
@@ -7502,9 +7426,12 @@ TEST_F(FmMemoryRefreshTest, GeMallocFixedMemoryForExecute_ExternalAllocator_Succ
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by external allocator success");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by external allocator success");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7548,7 +7475,7 @@ TEST_F(FmMemoryRefreshTest, GeNotMallocFixedMemory_UserUpdateFeatureMemory) {
   size_t feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
   std::vector<uint8_t> feature_base(feature_size, 0);
-  const auto all_feature_memory =summary->GetAllFeatureMemoryTypeSize();
+  const auto all_feature_memory = summary->GetAllFeatureMemoryTypeSize();
   ASSERT_EQ(all_feature_memory.size(), 2U);
   size_t hbm_fixed_feature_size = 0U;
   size_t p2p_fixed_feature_size = 0U;
@@ -7574,51 +7501,52 @@ TEST_F(FmMemoryRefreshTest, GeNotMallocFixedMemory_UserUpdateFeatureMemory) {
   rtStream_t stream = (rtStream_t)0x1;
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
   std::vector<gert::Tensor> gert_inputs;
-      std::vector<gert::Tensor> gert_outputs;
-      gert_inputs.resize(2);
-      gert_outputs.resize(4);
-      std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 0);
-      gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) input_data_1.data()};
+  std::vector<gert::Tensor> gert_outputs;
+  gert_inputs.resize(2);
+  gert_outputs.resize(4);
+  std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 0);
+  gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_1.data()};
 
-      std::vector<int32_t> input_data_2(1, 0);
-      gert_inputs[1] = {{{1}, {1}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) input_data_2.data()};
-      std::vector<uint8_t> output_data_1(96, 0xFF);
-      gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) output_data_1.data()};
-      std::vector<uint8_t> output_data_2(96, 0xFF);
-      gert_outputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) output_data_2.data()};
-      std::vector<uint8_t> output_data_3(96, 0xFF);
-      gert_outputs[2] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) output_data_3.data()};
-      std::vector<uint8_t> output_data_4(96, 0xFF);
-      gert_outputs[3] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) output_data_4.data()};
+  std::vector<int32_t> input_data_2(1, 0);
+  gert_inputs[1] = {{{1}, {1}},                                  // shape
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                    gert::kOnDeviceHbm,                          // placement
+                    ge::DT_INT32,                                // data type
+                    (void *)input_data_2.data()};
+  std::vector<uint8_t> output_data_1(96, 0xFF);
+  gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_1.data()};
+  std::vector<uint8_t> output_data_2(96, 0xFF);
+  gert_outputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_2.data()};
+  std::vector<uint8_t> output_data_3(96, 0xFF);
+  gert_outputs[2] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_3.data()};
+  std::vector<uint8_t> output_data_4(96, 0xFF);
+  gert_outputs[3] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_4.data()};
   EXPECT_EQ(SUCCESS, session.RegisterExternalAllocator(stream, external_allocator));
   EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, &feature_base[0], feature_size));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, stream, inputs, outputs));
   EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
-  auto find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
+  auto find_log =
+      runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_P2P_DDR.*");
   EXPECT_TRUE(find_log > 0);
   find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("malloc fixed_feature_memory success, type: RT_MEMORY_HBM.*");
   EXPECT_FALSE(find_log > 0);
@@ -7626,7 +7554,9 @@ TEST_F(FmMemoryRefreshTest, GeNotMallocFixedMemory_UserUpdateFeatureMemory) {
   EXPECT_TRUE(find_log > 0);
 
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
-  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex("FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: RT_MEMORY_P2P_DDR");
+  find_log = runtime_stub.GetSlogStub().FindInfoLogRegex(
+      "FreeFixedFeatureMemoryIfNeed:free fixed_feature_memory by inner allocator success, rts memory type: "
+      "RT_MEMORY_P2P_DDR");
   EXPECT_TRUE(find_log > 0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7676,7 +7606,8 @@ TEST_F(FmMemoryRefreshTest, UpdateGraphRefreshableFeatureMemoryBase_Failed_WhenU
   size_t refreshable_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
   std::vector<uint8_t> ref_feature_base(refreshable_feature_size, 0);
-  EXPECT_EQ(PARAM_INVALID, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &ref_feature_base[0], refreshable_feature_size));
+  EXPECT_EQ(PARAM_INVALID,
+            session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &ref_feature_base[0], refreshable_feature_size));
 
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
   runtime_stub.Clear();
@@ -7718,7 +7649,8 @@ TEST_F(FmMemoryRefreshTest, UpdateGraphFeatureMemoryBase_Failed_WhenUpdateGraphR
   size_t refreshable_feature_size;
   EXPECT_EQ(SUCCESS, summary->GetRefreshableFeatureMemorySize(refreshable_feature_size));
   std::vector<uint8_t> ref_feature_base(refreshable_feature_size, 0);
-  EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &ref_feature_base[0], refreshable_feature_size));
+  EXPECT_EQ(SUCCESS,
+            session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, &ref_feature_base[0], refreshable_feature_size));
 
   size_t feature_size;
   EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
@@ -7751,7 +7683,7 @@ Graph BuildHcomGraph2() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
                     .InCnt(2)
@@ -7811,10 +7743,10 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0002) {
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
   std::vector<uint8_t> refreshable_feature_mem(refreshable_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << ", refreshable_feature_mem:" << std::hex
-      << (uintptr_t)refreshable_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data()
+            << ", refreshable_feature_mem:" << std::hex << (uintptr_t)refreshable_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -7826,7 +7758,7 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0002) {
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
   // update fm memory base
   EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(),
-      refreshable_feature_size));
+                                                                     refreshable_feature_size));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -7868,10 +7800,10 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0003) {
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
   std::vector<uint8_t> refreshable_feature_mem(refreshable_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << ", refreshable_feature_mem:" << std::hex
-      << (uintptr_t)refreshable_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data()
+            << ", refreshable_feature_mem:" << std::hex << (uintptr_t)refreshable_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -7915,10 +7847,10 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0004) {
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
   std::vector<uint8_t> refreshable_feature_mem(refreshable_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << ", refreshable_feature_mem:" << std::hex
-      << (uintptr_t)refreshable_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data()
+            << ", refreshable_feature_mem:" << std::hex << (uintptr_t)refreshable_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -7929,14 +7861,14 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0004) {
   runtime_stub.Clear();
   // update fm memory base
   EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(),
-      refreshable_feature_size));
+                                                                     refreshable_feature_size));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   // check addr refresh
-  std::cout << "======GetRtMemcpyRecords size:"
-    << runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size() << std::endl;
+  std::cout << "======GetRtMemcpyRecords size:" << runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords().size()
+            << std::endl;
 
-  std::vector<uint64_t>  task_io_addr;
+  std::vector<uint64_t> task_io_addr;
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     std::cout << "=== host args ===" << std::endl;
     uint64_t *host_args_base = (uint64_t *)args.src_address;
@@ -7959,7 +7891,7 @@ Graph BuildHcomGraph4() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
                     .InCnt(2)
@@ -7967,16 +7899,23 @@ Graph BuildHcomGraph4() {
                     .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
                     .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
                     .Build("hcom_1");
-  auto add = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1)
+  auto add = OP_CFG(ADD)
+                 .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                 .InCnt(2)
+                 .OutCnt(1)
                  .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
                  .Build("add");
-  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1)
+  auto add_2 = OP_CFG(ADD)
+                   .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                   .InCnt(2)
+                   .OutCnt(1)
                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
                    .Build("add_2");
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE(add_2)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
-    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 1)->NODE(add)->EDGE(0, 1)->NODE(add_2)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 1)->NODE(add)->EDGE(0, 1)->NODE(add_2)->EDGE(0, 0)->NODE(
+        "output_1", "NetOutput"));
     CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(hcom_1)->EDGE(1, 1)->NODE("output_1", "NetOutput"));
   };
 
@@ -8026,10 +7965,10 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0005) {
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
   std::vector<uint8_t> refreshable_feature_mem(refreshable_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << ", refreshable_feature_mem:" << std::hex
-      << (uintptr_t)refreshable_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data()
+            << ", refreshable_feature_mem:" << std::hex << (uintptr_t)refreshable_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -8041,7 +7980,7 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_static_0005) {
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
   // update fm memory base
   EXPECT_EQ(SUCCESS, session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, refreshable_feature_mem.data(),
-      refreshable_feature_size));
+                                                                     refreshable_feature_size));
   EXPECT_EQ(SUCCESS, session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs));
 
   OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
@@ -8078,12 +8017,12 @@ Graph BuildHcomGraph3() {
   std::vector<int64_t> shape = {2, 2};  // NCHW
   // sub1
   auto data_sub1 = OP_CFG("Data")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-                    .Attr(ATTR_NAME_INDEX, 0)
-                    .Build("data_sub1");
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                       .Attr(ATTR_NAME_INDEX, 0)
+                       .Build("data_sub1");
   data_sub1->SetOutputOffset({32});
 
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
@@ -8112,13 +8051,13 @@ Graph BuildHcomGraph3() {
 
   // sub2
   auto data_sub2 = OP_CFG("Data")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-                    .Attr(ATTR_NAME_INDEX, 0)
-                    .Build("data_sub2");
-   data_sub2->SetOutputOffset({64});
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                       .Attr(ATTR_NAME_INDEX, 0)
+                       .Build("data_sub2");
+  data_sub2->SetOutputOffset({64});
 
   auto hcom_2 = OP_CFG(HCOMALLREDUCE)
                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
@@ -8238,7 +8177,7 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_dynamic_0001) {
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -8248,7 +8187,6 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_dynamic_0001) {
   EXPECT_NE(ge_model, nullptr);
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 5));
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_VAR_SIZE, 1536));
-
 
   // get graph summary
   const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
@@ -8262,9 +8200,9 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_dynamic_0001) {
   EXPECT_NE(SUCCESS, summary->GetFeatureMemoryBaseRefreshable(is_refreshable));
 
   std::vector<uint8_t> fixed_feature_mem(fix_feature_size, 0);
-  std::cout << "======fix_feature_size:" << fix_feature_size << ", refreshable_feature_size:"
-      << refreshable_feature_size << ", feature_size:" << feature_size <<", fixed_feature_mem:"<< std::hex
-      << (uintptr_t)fixed_feature_mem.data() << std::endl;
+  std::cout << "======fix_feature_size:" << fix_feature_size
+            << ", refreshable_feature_size:" << refreshable_feature_size << ", feature_size:" << feature_size
+            << ", fixed_feature_mem:" << std::hex << (uintptr_t)fixed_feature_mem.data() << std::endl;
   // set fixed fm memory base
   EXPECT_EQ(SUCCESS, session.SetGraphFixedFeatureMemoryBase(graph_id, fixed_feature_mem.data(), fix_feature_size));
 
@@ -8306,10 +8244,9 @@ TEST_F(FmMemoryRefreshTest, set_fixed_fm_memory_dynamic_0001) {
 }
 
 Graph BuildDataNetoutputGraph() {
-  auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0)
-                .TensorDesc(FORMAT_NCHW, DT_FLOAT, {64}).Build("_data_0");
-  auto output_0 = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1)
-                      .Build("_output_0");
+  auto data_0 =
+      OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_NCHW, DT_FLOAT, {64}).Build("_data_0");
+  auto output_0 = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("_output_0");
 
   DEF_GRAPH(simple_d2o) {
     CHAIN(NODE(data_0)->NODE(output_0));
@@ -8319,9 +8256,8 @@ Graph BuildDataNetoutputGraph() {
   return graph;
 }
 
-
-Status GenerateTaskForMemcpyAddrAsync(const Node &node, RunContext &run_context,
-                                      std::vector<domi::TaskDef> &tasks, std::string (*builder)(size_t)) {
+Status GenerateTaskForMemcpyAddrAsync(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks,
+                                      std::string (*builder)(size_t)) {
   if ((node.GetType() != MEMCPYADDRASYNC)) {
     return SUCCESS;
   }
@@ -8380,7 +8316,7 @@ void EXPECT_CheckMemcpyAddrAsync(bool update_io) {
   std::unique_ptr<ArgsChecker> args_checker;
 
   std::map<AscendString, AscendString> options = {
-    { OPTION_BUILD_GRAPH_MODE, "offline" },
+      {OPTION_BUILD_GRAPH_MODE, "offline"},
   };
   Session session(options);
 
@@ -8451,7 +8387,6 @@ TEST_F(FmMemoryRefreshTest, memcpy_async_addr_david_update_io) {
   EXPECT_CheckMemcpyAddrAsync(true);
 }
 
-
 TEST_F(FmMemoryRefreshTest, hcom_all_to_all_test) {
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHcomAllToAll);
   std::map<AscendString, AscendString> options;
@@ -8485,7 +8420,8 @@ TEST_F(FmMemoryRefreshTest, hcom_all_to_all_test) {
     output_shape_range->SetMax(const_cast<gert::Shape *>(input_shape_range->GetMax()));
     return GRAPH_SUCCESS;
   };
-  IMPL_OP(HcomAllToAll).InferShape(infer_shape_func)
+  IMPL_OP(HcomAllToAll)
+      .InferShape(infer_shape_func)
       .InferDataType(infer_data_type_func)
       .InferShapeRange(infer_shape_range_func);
 

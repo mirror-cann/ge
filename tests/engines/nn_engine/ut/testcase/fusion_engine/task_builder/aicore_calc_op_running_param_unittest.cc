@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,21 +37,17 @@ using namespace fe;
 using namespace ffts;
 using namespace ge;
 
-class UTEST_AiCoreCalcOpRunningParamTest : public testing::Test
-{
-protected:
-	void SetUp()
-	{
-		node_ = CreateNode();
+class UTEST_AiCoreCalcOpRunningParamTest : public testing::Test {
+ protected:
+  void SetUp() {
+    node_ = CreateNode();
     nodedy_ = CreateDyNode();
     slice_info_ptr_ = node_->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr_);
     aicore_ops_kernel_builder_ptr_ = make_shared<fe::AICoreOpsKernelBuilder>();
     auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
     gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
-	}
-	void TearDown() {
-
-	}
+  }
+  void TearDown() {}
   static void SetSliceInfo(ffts::ThreadSliceMapPtr &slice_info_ptr) {
     slice_info_ptr->slice_instance_num = 2;
     slice_info_ptr->thread_mode = 1;
@@ -87,48 +83,46 @@ protected:
     slice_info_ptr->input_tensor_indexes.emplace_back(0);
     slice_info_ptr->output_tensor_indexes.emplace_back(0);
   }
-  static NodePtr CreateNode()
-	{
-		FeTestOpDescBuilder builder;
-		builder.SetName("test_tvm_");
-		builder.SetType("conv");
-		builder.SetInputs({ 1 });
-		builder.SetOutputs({ 1 });
-		builder.AddInputDesc({ 2, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-		builder.AddOutputDesc({ 2, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-		auto node = builder.Finish();
+  static NodePtr CreateNode() {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm_");
+    builder.SetType("conv");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({2, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({2, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    auto node = builder.Finish();
 
     ffts::ThreadSliceMapPtr slice_info_ptr = make_shared<ffts::ThreadSliceMap>();
-		SetSliceInfo(slice_info_ptr);
-		node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
+    SetSliceInfo(slice_info_ptr);
+    node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
     return node;
   }
-  static NodePtr CreateDyNode()
-	{
-		FeTestOpDescBuilder builder;
-		builder.SetName("test_tvm_dy");
-		builder.SetType("conv");
-		builder.SetInputs({ 1 });
-		builder.SetOutputs({ 1 });
-		builder.AddInputDesc({ -1, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-		builder.AddOutputDesc({ -1, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-		auto node = builder.Finish();
+  static NodePtr CreateDyNode() {
+    FeTestOpDescBuilder builder;
+    builder.SetName("test_tvm_dy");
+    builder.SetType("conv");
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({-1, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({-1, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    auto node = builder.Finish();
     ffts::ThreadSliceMapPtr slice_info_ptr = make_shared<ffts::ThreadSliceMap>();
-		SetSliceInfo(slice_info_ptr);
-		node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
+    SetSliceInfo(slice_info_ptr);
+    node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
     return node;
   }
-public:
-	ge::NodePtr node_{ nullptr };
-  ge::NodePtr nodedy_{ nullptr };
-	ffts::ThreadSliceMapPtr slice_info_ptr_{ nullptr };
-  std::shared_ptr<fe::AICoreOpsKernelBuilder> aicore_ops_kernel_builder_ptr_{ nullptr };
+
+ public:
+  ge::NodePtr node_{nullptr};
+  ge::NodePtr nodedy_{nullptr};
+  ffts::ThreadSliceMapPtr slice_info_ptr_{nullptr};
+  std::shared_ptr<fe::AICoreOpsKernelBuilder> aicore_ops_kernel_builder_ptr_{nullptr};
 };
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSuccess)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSuccess) {
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::SUCCESS, ret);
+  EXPECT_EQ(ffts::SUCCESS, ret);
 
   for (auto const &anchor : node_->GetAllOutDataAnchors()) {
     const uint32_t anchor_index = static_cast<uint32_t>(anchor->GetIdx());
@@ -140,11 +134,10 @@ TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSuccess)
   }
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamManualMode)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamManualMode) {
   slice_info_ptr_->thread_mode = 0;
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::SUCCESS, ret);
+  EXPECT_EQ(ffts::SUCCESS, ret);
 
   for (auto const &anchor : node_->GetAllOutDataAnchors()) {
     const uint32_t anchor_index = static_cast<uint32_t>(anchor->GetIdx());
@@ -158,10 +151,9 @@ TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamManualMode)
   slice_info_ptr_->thread_mode = 1;
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamDynamicShape)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamDynamicShape) {
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*nodedy_);
-	EXPECT_EQ(ffts::SUCCESS, ret);
+  EXPECT_EQ(ffts::SUCCESS, ret);
 
   for (auto const &anchor : node_->GetAllOutDataAnchors()) {
     const uint32_t anchor_index = static_cast<uint32_t>(anchor->GetIdx());
@@ -173,29 +165,26 @@ TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamDynamicShape)
   }
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSliceNumIs0)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSliceNumIs0) {
   slice_info_ptr_->slice_instance_num = 0;
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::FAILED, ret);
+  EXPECT_EQ(ffts::FAILED, ret);
   slice_info_ptr_->slice_instance_num = 2;
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSliceNullptr)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamSliceNullptr) {
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
-	node_->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
+  node_->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::SUCCESS, ret);
+  EXPECT_EQ(ffts::SUCCESS, ret);
 
   node_->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr_);
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamCalcOutputFail)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamCalcOutputFail) {
   slice_info_ptr_->output_tensor_slice.clear();
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::FAILED, ret);
+  EXPECT_EQ(ffts::FAILED, ret);
   for (auto const &anchor : node_->GetAllOutDataAnchors()) {
     const uint32_t anchor_index = static_cast<uint32_t>(anchor->GetIdx());
     const ge::GeTensorDescPtr &tensor_desc_ptr = node_->GetOpDesc()->MutableOutputDesc(anchor_index);
@@ -206,10 +195,8 @@ TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamCalcOutputFail)
   }
 }
 
-TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamCalcInputFailNoEffect)
-{
+TEST_F(UTEST_AiCoreCalcOpRunningParamTest, CalcOpRunningParamCalcInputFailNoEffect) {
   slice_info_ptr_->input_tensor_slice.clear();
   Status ret = aicore_ops_kernel_builder_ptr_->CalcOpRunningParam(*node_);
-	EXPECT_EQ(ffts::SUCCESS, ret);
+  EXPECT_EQ(ffts::SUCCESS, ret);
 }
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,9 @@ class PortableOp;
 struct FixedFeatureMemory {
   std::string ToString() const {
     std::stringstream ss;
-    ss << "rts memory type: " << MemTypeUtils::ToString(type) << ", addr: " << std::hex << addr << ", size: "
-       << std::dec << size << ", user_alloc: " << user_alloc << ", ge_alloc: " << ge_alloc << ", block: "
-       << std::hex << block << ", session_allocator: " << std::dec << is_session_allocator
+    ss << "rts memory type: " << MemTypeUtils::ToString(type) << ", addr: " << std::hex << addr
+       << ", size: " << std::dec << size << ", user_alloc: " << user_alloc << ", ge_alloc: " << ge_alloc
+       << ", block: " << std::hex << block << ", session_allocator: " << std::dec << is_session_allocator
        << ", session_id: " << session_id;
     return ss.str();
   }
@@ -45,10 +45,10 @@ struct FixedFeatureMemory {
   bool ge_alloc;
   bool is_session_allocator;
   uint64_t session_id;
-  MemBlock *block; // 外置allocator调用malloc返回MemBlock指针，释放内存时使用
+  MemBlock *block;  // 外置allocator调用malloc返回MemBlock指针，释放内存时使用
 };
 
- class GeRootModel : public std::enable_shared_from_this<GeRootModel> {
+class GeRootModel : public std::enable_shared_from_this<GeRootModel> {
  public:
   GeRootModel() = default;
   ~GeRootModel() = default;
@@ -70,26 +70,42 @@ struct FixedFeatureMemory {
     (void)model_ids_.emplace_back(model_id);
   }
 
-  uint32_t GetModelId() const { return model_id_; }
+  uint32_t GetModelId() const {
+    return model_id_;
+  }
 
-  void SetIsSpecificStream(const bool is_specific_stream) { is_specific_stream_ = is_specific_stream; }
+  void SetIsSpecificStream(const bool is_specific_stream) {
+    is_specific_stream_ = is_specific_stream;
+  }
 
-  bool IsSpecificStream() const { return is_specific_stream_; }
+  bool IsSpecificStream() const {
+    return is_specific_stream_;
+  }
 
-  std::vector<uint32_t> GetAllModelId() const { return model_ids_; }
+  std::vector<uint32_t> GetAllModelId() const {
+    return model_ids_;
+  }
 
-  void ClearAllModelId() { model_ids_.clear(); }
+  void ClearAllModelId() {
+    model_ids_.clear();
+  }
 
   Status CheckIsUnknownShape(bool &is_dynamic_shape) const;
 
-  void SetWeightSize(const int64_t weight_size) { total_weight_size_ = weight_size; }
-  int64_t GetWeightSize() const { return total_weight_size_; }
+  void SetWeightSize(const int64_t weight_size) {
+    total_weight_size_ = weight_size;
+  }
+  int64_t GetWeightSize() const {
+    return total_weight_size_;
+  }
 
   void SetFlattenGraph(const ComputeGraphPtr &flatten_graph) {
     const std::lock_guard<std::mutex> lock(model_ids_mutex_);
     flatten_graph_ = flatten_graph;
   }
-  ComputeGraphPtr GetFlattenGraph() const { return flatten_graph_; }
+  ComputeGraphPtr GetFlattenGraph() const {
+    return flatten_graph_;
+  }
 
   void SetNodesToTaskDef(const std::unordered_map<ge::NodePtr, std::vector<domi::TaskDef>> &nodes_2_task_def) {
     const std::lock_guard<std::mutex> lock(model_ids_mutex_);
@@ -132,9 +148,13 @@ struct FixedFeatureMemory {
     return file_constant_weight_dir_;
   }
 
-  uint32_t GetCurModelId() const { return cur_model_id_; }
+  uint32_t GetCurModelId() const {
+    return cur_model_id_;
+  }
 
-  void SetCurModelId(uint32_t model_id) { cur_model_id_ = model_id; }
+  void SetCurModelId(uint32_t model_id) {
+    cur_model_id_ = model_id;
+  }
 
   const std::map<rtMemType_t, FixedFeatureMemory> &GetFixedFeatureMemory() const {
     return fixed_feature_mems_;
@@ -144,8 +164,7 @@ struct FixedFeatureMemory {
     return fixed_feature_mems_;
   }
 
-  Status GetSummaryFeatureMemory(std::vector<FeatureMemoryPtr> &all_feature_memory,
-                                 size_t &hbm_fixed_feature_mem);
+  Status GetSummaryFeatureMemory(std::vector<FeatureMemoryPtr> &all_feature_memory, size_t &hbm_fixed_feature_mem);
 
   bool IsNeedMallocFixedFeatureMem() const;
   bool IsNeedMallocFixedFeatureMemByType(const rtMemType_t rt_mem_type) const;
@@ -224,7 +243,8 @@ struct FixedFeatureMemory {
   bool all_feature_memory_init_flag_ = false;
   std::vector<FeatureMemoryPtr> all_feature_memory_;
   std::map<rtMemType_t, FixedFeatureMemory> fixed_feature_mems_;
-  HostResourceCenterPtr host_resource_center_ = ge::MakeShared<HostResourceCenter>();;
+  HostResourceCenterPtr host_resource_center_ = ge::MakeShared<HostResourceCenter>();
+  ;
   std::unordered_set<std::string> op_master_device_so_set_{};
   std::unordered_set<std::string> autofuse_so_set_{};
   std::unordered_set<std::string> custom_op_so_set_{};

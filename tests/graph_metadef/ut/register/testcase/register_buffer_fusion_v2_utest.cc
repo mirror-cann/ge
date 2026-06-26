@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,6 @@ using namespace domi;
 using namespace fe;
 using namespace ge;
 
-
 namespace fe {
 namespace buffer_fusion_reg_v2 {
 static const string STREAM_LABEL = "_stream_label";
@@ -62,7 +61,7 @@ using TaskL2FusionInfo_t = struct TagTaskL2FusionInfo {
   uint32_t is_used;
 };
 using L2FusionInfoPtr = std::shared_ptr<TaskL2FusionInfo_t>;
-}
+}  // namespace buffer_fusion_reg_v2
 
 class TbeCommonRules2FusionPass : public BufferFusionPassBase {
  public:
@@ -71,7 +70,6 @@ class TbeCommonRules2FusionPass : public BufferFusionPassBase {
   ~TbeCommonRules2FusionPass() override = default;
 
  protected:
-
   /*
    * @brief:  define a common ub fusion pattern:
    * (StrideRead) -> Convolution -> (Dequant) -> Elewise*N -> Quant -> (StrideWrite)
@@ -96,13 +94,11 @@ class TbeCommonRules2FusionPass : public BufferFusionPassBase {
    */
   Status GetFusionNodes(const BufferFusionMapping &mapping, vector<ge::NodePtr> &fusion_nodes) override;
 
-
   Status PostFusion(const ge::NodePtr &fused_node) override {
     return FAILED;
   }
 
  private:
-
   static int CountOtherOutput(vector<ge::NodePtr> dequant_nodes, vector<ge::NodePtr> elem_wise_nodes);
 
   static bool JudgeElemShapeInScopeLessThanOutScope(const vector<ge::NodePtr> &pre_elemwise_nodes,
@@ -120,16 +116,15 @@ const string PATTERN_STRIDEWRITE = "strideWrite";      // NOLINT
 const string PATTERN_OTHER_INPUT = "otherInput";       // NOLINT
 const string PATTERN_OUTPUT = "output";                // NOLINT
 
-const vector<string> ELEM_WISE_WHITE_LIST = {"Eltwise", "LeakyRelu", "Vadd", "Relu",
-                                             "Relu6", "Relu6D", "PRelu",
-                                             "Add", "Mul", "Softplus", "Sigmoid", "Mish",
-                                             "Minimum", "Tanh", "Swish"};  // NOLINT
+const vector<string> ELEM_WISE_WHITE_LIST = {"Eltwise", "LeakyRelu", "Vadd",    "Relu", "Relu6",
+                                             "Relu6D",  "PRelu",     "Add",     "Mul",  "Softplus",
+                                             "Sigmoid", "Mish",      "Minimum", "Tanh", "Swish"};  // NOLINT
 
 const int MAX_OP_COUNT = 20;
 const int MAX_ELEMWISE_COUNT = 5;
 const int INPUT_MAX_SIZE = 2;
 const int kConvOutputMaxSize = 2;
-}
+}  // namespace
 
 #define UT_CHECK(cond, log_func, return_expr) \
   do {                                        \
@@ -145,45 +140,46 @@ const int kConvOutputMaxSize = 2;
       GE_LOGE("Parameter[%s] must not be null.", #val); \
       return fe::PARAM_INVALID;                         \
     }                                                   \
-  } while (0)3
+  } while (0) 3
 
 /*
-* @brief:  define a common ub fusion pattern:
-* (StrideRead) -> Convolution -> (Dequant) -> Elewise*N -> Quant -> (StrideWrite)
-*
-* pattern limits:
-* 1. StrideRead, StrideWrite, Dequant are optional, Conv2D and Quant are required.
-* 2. Elewise supports LeakyRelu, Vadd, Relu, Relu6, Prelu, Add, Mul. The number of Elewise can be 0 to 5.
-* 3. There are two outputs from Dequant or Elewise, one is int8 or int4, the other is fp16.
-*
-*
-* fusion node: (StrideRead), Convolution, (AscendDequant), Elewise, AscendQuant,
-*
-* @return BufferFusionPattern: return all valid patterns.
-*/
+ * @brief:  define a common ub fusion pattern:
+ * (StrideRead) -> Convolution -> (Dequant) -> Elewise*N -> Quant -> (StrideWrite)
+ *
+ * pattern limits:
+ * 1. StrideRead, StrideWrite, Dequant are optional, Conv2D and Quant are required.
+ * 2. Elewise supports LeakyRelu, Vadd, Relu, Relu6, Prelu, Add, Mul. The number of Elewise can be 0 to 5.
+ * 3. There are two outputs from Dequant or Elewise, one is int8 or int4, the other is fp16.
+ *
+ *
+ * fusion node: (StrideRead), Convolution, (AscendDequant), Elewise, AscendQuant,
+ *
+ * @return BufferFusionPattern: return all valid patterns.
+ */
 vector<BufferFusionPattern *> TbeCommonRules2FusionPass::DefinePatterns() {
   vector<BufferFusionPattern *> patterns;
   string pass_name = "TbeCommonRules2FusionPass";
-  auto *pattern = new(std::nothrow) BufferFusionPattern(pass_name, MAX_OP_COUNT);
-  UT_CHECK((pattern == nullptr),
-           GE_LOGE("[SubGraphOpt][CommonRules2Fus][DefPtn] New an object failed."), return patterns);
+  auto *pattern = new (std::nothrow) BufferFusionPattern(pass_name, MAX_OP_COUNT);
+  UT_CHECK((pattern == nullptr), GE_LOGE("[SubGraphOpt][CommonRules2Fus][DefPtn] New an object failed."),
+           return patterns);
   GELOGD("Start to define %s pass pattern.", pass_name.c_str());
-  pattern->AddOpDesc(PATTERN_STRIDEREAD, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                     TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+  pattern
+      ->AddOpDesc(PATTERN_STRIDEREAD, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_CONVOLUTION, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_DEQUANT, {OP_PATTERN_DEQUANT}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_OTHER_INPUT, {TBE_PATTERN_INPUT_NODE}, TBE_PATTERN_NUM_NONE,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_ELEMWISE, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_NONE,
-                 MAX_ELEMWISE_COUNT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_QUANT, {OP_PATTERN_QUANT}, TBE_PATTERN_NUM_DEFAULT,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_STRIDEWRITE, {OP_PATTERN_STRIDED_WRITE}, TBE_PATTERN_NUM_NONE,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_OTHER_INPUT, {TBE_PATTERN_INPUT_NODE}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_ELEMWISE, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_NONE, MAX_ELEMWISE_COUNT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_QUANT, {OP_PATTERN_QUANT}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_STRIDEWRITE, {OP_PATTERN_STRIDED_WRITE}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .SetHead({PATTERN_STRIDEREAD, PATTERN_CONVOLUTION, PATTERN_DEPTHWISECONV})
       .SetOutputs(PATTERN_STRIDEREAD, {PATTERN_CONVOLUTION, PATTERN_DEPTHWISECONV})
       .SetOutputs(PATTERN_CONVOLUTION, {PATTERN_DEQUANT}, TBE_OUTPUT_BRANCH_SINGLE, true, true)
@@ -206,7 +202,7 @@ int TbeCommonRules2FusionPass::CountOtherOutput(vector<ge::NodePtr> dequant_node
     if (elem_wise_node->GetOutDataNodes().empty()) {
       continue;
     }
-    int other_elt_wise_out = (int) (elem_wise_node->GetOutDataNodes().size() - 1);
+    int other_elt_wise_out = (int)(elem_wise_node->GetOutDataNodes().size() - 1);
     other_out_count += other_elt_wise_out;
   }
 
@@ -229,7 +225,7 @@ bool TbeCommonRules2FusionPass::JudgeElemShapeInScopeLessThanOutScope(const vect
     return false;
   }
   ge::NodePtr cur_node = pre_elemwise_nodes[0];
-  for (auto &elemwise_node: elemwise_nodes) {
+  for (auto &elemwise_node : elemwise_nodes) {
     ge::NodePtr pre_node = cur_node;
     cur_node = elemwise_node;
     if (cur_node->GetOpDesc()->GetInputsSize() != INPUT_MAX_SIZE) {
@@ -258,8 +254,10 @@ bool TbeCommonRules2FusionPass::JudgeElemShapeInScopeLessThanOutScope(const vect
     } else {
       for (size_t i = 0; i < in_scope_dims.size(); i++) {
         if (in_scope_dims[i] < out_scope_dims[i]) {
-          GELOGD("Elem_wise[node: %s] dims[%zu]: the value of in_scope is less than out_scope. in_scope : %ld,"
-                 " out_scope : %ld", cur_node->GetName().c_str(), i, in_scope_dims[i], out_scope_dims[i]);
+          GELOGD(
+              "Elem_wise[node: %s] dims[%zu]: the value of in_scope is less than out_scope. in_scope : %ld,"
+              " out_scope : %ld",
+              cur_node->GetName().c_str(), i, in_scope_dims[i], out_scope_dims[i]);
           return true;
         }
       }
@@ -269,11 +267,11 @@ bool TbeCommonRules2FusionPass::JudgeElemShapeInScopeLessThanOutScope(const vect
 }
 
 /*
-* @brief: parse nodes matched in mapping and call DoFusion
-* @param [in] graph: original graph
-* @param [out] mapping: nodes matched by pattern
-* @return bool: fusion status ok or not.
-*/
+ * @brief: parse nodes matched in mapping and call DoFusion
+ * @param [in] graph: original graph
+ * @param [out] mapping: nodes matched by pattern
+ * @return bool: fusion status ok or not.
+ */
 Status TbeCommonRules2FusionPass::GetFusionNodes(const BufferFusionMapping &mapping,
                                                  vector<ge::NodePtr> &fusion_nodes) {
   fusion_nodes = GetMatchedNodes(mapping);
@@ -296,8 +294,8 @@ Status TbeCommonRules2FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
   size_t conv_output_size = conv_depthwise_nodes[0]->GetOutDataNodes().size();
   // conv outputs size is more than 2, skip fused
   if (conv_output_size > kConvOutputMaxSize) {
-    GELOGD("node: %s, outputs is more than 2, size is: %zu.",
-           conv_depthwise_nodes[0]->GetName().c_str(), conv_output_size);
+    GELOGD("node: %s, outputs is more than 2, size is: %zu.", conv_depthwise_nodes[0]->GetName().c_str(),
+           conv_output_size);
     fusion_nodes.clear();
     return ge::GRAPH_SUCCESS;
   }
@@ -321,15 +319,14 @@ Status TbeCommonRules2FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
   }
 
   // if elewise has 2 input and inscope's shape less than outscope's shape, skip fusion
-  bool dequant_flag = !dequant_nodes.empty() &&
-                      JudgeElemShapeInScopeLessThanOutScope(dequant_nodes, elem_wise_nodes);
+  bool dequant_flag = !dequant_nodes.empty() && JudgeElemShapeInScopeLessThanOutScope(dequant_nodes, elem_wise_nodes);
   if (dequant_flag) {
     GELOGD("dequant_nodes exist, Elemwise node has 2 inputs and in scope shape is less than outscope");
     fusion_nodes.clear();
     return ge::GRAPH_SUCCESS;
   }
-  bool no_dequant_flag = dequant_nodes.empty() &&
-                         JudgeElemShapeInScopeLessThanOutScope(conv_depthwise_nodes, elem_wise_nodes);
+  bool no_dequant_flag =
+      dequant_nodes.empty() && JudgeElemShapeInScopeLessThanOutScope(conv_depthwise_nodes, elem_wise_nodes);
   if (no_dequant_flag) {
     GELOGD("no dequant_nodes, Elemwise node has 2 inputs and in scope shape is less than outscope");
     fusion_nodes.clear();
@@ -339,7 +336,7 @@ Status TbeCommonRules2FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
   // check whether the EltWise op is in the whitelist or inputsizes less then 3(only support single or double in)
   for (const auto &elem_wise_node : elem_wise_nodes) {
     bool support_flag = find(ELEM_WISE_WHITE_LIST.begin(), ELEM_WISE_WHITE_LIST.end(), elem_wise_node->GetType()) ==
-                        ELEM_WISE_WHITE_LIST.end() ||
+                            ELEM_WISE_WHITE_LIST.end() ||
                         elem_wise_node->GetOpDesc()->GetInputsSize() > INPUT_MAX_SIZE;
     if (support_flag) {
       fusion_nodes.clear();
@@ -356,7 +353,8 @@ Status TbeCommonRules2FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
     if (node_ptr != fusion_nodes.end()) {
       fusion_nodes.erase(node_ptr);
     }
-    GELOGD("Quant is not the last node of the matched pattern, \
+    GELOGD(
+        "Quant is not the last node of the matched pattern, \
             but has multi outpts, erase last node stride_write.");
   }
   return ge::GRAPH_SUCCESS;
@@ -374,47 +372,44 @@ class ConveragePass : public BufferFusionPassBase {
   ~ConveragePass() override {}
 
  protected:
-
   /*
-  * @brief:  define common rules0 ops fusion pattern
-  *
-  *   (StrideRead) + conv2_d + (dequant) + ele-wise*N + (quant) + (StrideWrite)
-  *   restriction: 1.each node must be single output and single reference
-  *                2.the range of N is 0 to 5
-  *                3.allow multiple input, but only one input can be fusion
-  *
-  * @return BufferFusionPattern: return all valid patterns.
-  */
+   * @brief:  define common rules0 ops fusion pattern
+   *
+   *   (StrideRead) + conv2_d + (dequant) + ele-wise*N + (quant) + (StrideWrite)
+   *   restriction: 1.each node must be single output and single reference
+   *                2.the range of N is 0 to 5
+   *                3.allow multiple input, but only one input can be fusion
+   *
+   * @return BufferFusionPattern: return all valid patterns.
+   */
   vector<BufferFusionPattern *> DefinePatterns() override {
     vector<BufferFusionPattern *> patterns;
     string pass_name = "ConveragePass";
-    BufferFusionPattern *pattern = new(std::nothrow) BufferFusionPattern(pass_name, 10);
-    UT_CHECK((pattern == nullptr),
-             GE_LOGE("[SubGraphOpt][CommonRules0Fus][DefPtn] New an object failed."),
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pass_name, 10);
+    UT_CHECK((pattern == nullptr), GE_LOGE("[SubGraphOpt][CommonRules0Fus][DefPtn] New an object failed."),
              return patterns);
     GELOGD("Start to define %s pass pattern.", pass_name.c_str());
     // define pattern rules
-    pattern->AddOpDesc("", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                       TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
 
-    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_DEFAULT,
-                       TBE_PATTERN_NUM_NONE, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_NONE,
+                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
 
-    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                       TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
-    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                       TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
-    pattern->AddOpDesc("head1", {OP_PATTERN_STRIDED_READ}, 2,
-                       3, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
-    pattern->AddOpDesc("head2", {OP_PATTERN_STRIDED_READ}, 1,
-                       1, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("test", {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("head1", {OP_PATTERN_STRIDED_READ}, 2, 3, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc("head2", {OP_PATTERN_STRIDED_READ}, 1, 1, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
 
-    pattern->AddOpDesc(PATTERN_CONV, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
-                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-        .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE,
-                   TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
-    pattern->AddOpDesc(PATTERN_STRIDED_READ, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                       TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern
+        ->AddOpDesc(PATTERN_CONV, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                    TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+        .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
+    pattern->AddOpDesc(PATTERN_STRIDED_READ, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                       TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE);
 
     pattern->SetOutputs("", {PATTERN_CONV, PATTERN_DEPTHWISECONV});
     pattern->SetOutputs("1", {PATTERN_CONV, PATTERN_DEPTHWISECONV});
@@ -422,7 +417,6 @@ class ConveragePass : public BufferFusionPassBase {
     pattern->SetOutputs(PATTERN_STRIDED_READ, {PATTERN_STRIDED_READ});
     pattern->SetOutputs(PATTERN_STRIDED_READ, {PATTERN_CONV, PATTERN_DEPTHWISECONV});
     pattern->SetOutputs(PATTERN_STRIDED_READ, {PATTERN_CONV, PATTERN_DEPTHWISECONV});
-
 
     vector<string> heads;
     pattern->SetHead(heads);
@@ -453,17 +447,16 @@ class TbeCommonRules0FusionPass : public BufferFusionPassBase {
   ~TbeCommonRules0FusionPass() override {}
 
  protected:
-
   /*
-  * @brief:  define common rules0 ops fusion pattern
-  *
-  *   (StrideRead) + conv2_d + (dequant) + ele-wise*N + (quant) + (StrideWrite)
-  *   restriction: 1.each node must be single output and single reference
-  *                2.the range of N is 0 to 5
-  *                3.allow multiple input, but only one input can be fusion
-  *
-  * @return BufferFusionPattern: return all valid patterns.
-  */
+   * @brief:  define common rules0 ops fusion pattern
+   *
+   *   (StrideRead) + conv2_d + (dequant) + ele-wise*N + (quant) + (StrideWrite)
+   *   restriction: 1.each node must be single output and single reference
+   *                2.the range of N is 0 to 5
+   *                3.allow multiple input, but only one input can be fusion
+   *
+   * @return BufferFusionPattern: return all valid patterns.
+   */
   vector<BufferFusionPattern *> DefinePatterns() override;
 
   /*
@@ -475,12 +468,10 @@ class TbeCommonRules0FusionPass : public BufferFusionPassBase {
   Status GetFusionNodes(const BufferFusionMapping &mapping, vector<ge::NodePtr> &fusion_nodes) override;
 
  private:
-
   static bool DealWithSameInAndOutScopeDimSize(const vector<int64_t> &in_scope_dims,
                                                const vector<int64_t> &out_scope_dims,
-                                               const vector<ge::NodePtr> &elemwise_nodes,
-                                               const ge::NodePtr &cur_node, const size_t &i,
-                                               vector<ge::NodePtr> &fusion_node);
+                                               const vector<ge::NodePtr> &elemwise_nodes, const ge::NodePtr &cur_node,
+                                               const size_t &i, vector<ge::NodePtr> &fusion_node);
 
   static bool JudgeElemShapeInScopeLessThanOutScope(const vector<ge::NodePtr> &pre_elemwise_nodes,
                                                     const vector<ge::NodePtr> &elemwise_nodes,
@@ -492,14 +483,12 @@ class TbeCommonRules0FusionPass : public BufferFusionPassBase {
 namespace {
 
 // white list of OP_PATTERN_ELEMWISE
-static const vector<string> WHITELIST_OF_OP_PATTERN_ELEMWISE = {
-    "Eltwise", "LeakyRelu", "Vadd", "Relu", "Relu6", "Relu6D",
-    "PRelu", "Add", "Mul", "Softplus", "Sigmoid", "Mish", "Minimum",
-    "Tanh", "Swish"};
+static const vector<string> WHITELIST_OF_OP_PATTERN_ELEMWISE = {"Eltwise", "LeakyRelu", "Vadd",    "Relu", "Relu6",
+                                                                "Relu6D",  "PRelu",     "Add",     "Mul",  "Softplus",
+                                                                "Sigmoid", "Mish",      "Minimum", "Tanh", "Swish"};
 // black list of OP_PATTERN_ELEMWISE
-static const vector<string> BLACKLIST_OF_OP_PATTERN_ELEMWISE = {
-    "ReluGradV2"};
-}
+static const vector<string> BLACKLIST_OF_OP_PATTERN_ELEMWISE = {"ReluGradV2"};
+}  // namespace
 
 /*
  * @brief:  define common rules0 ops fusion pattern
@@ -514,28 +503,28 @@ static const vector<string> BLACKLIST_OF_OP_PATTERN_ELEMWISE = {
 vector<BufferFusionPattern *> TbeCommonRules0FusionPass::DefinePatterns() {
   vector<BufferFusionPattern *> patterns;
   string pass_name = "TbeCommonRules0FusionPass";
-  BufferFusionPattern *pattern = new(std::nothrow) BufferFusionPattern(pass_name, FUSION_OP_NUM_MAX);
-  UT_CHECK((pattern == nullptr),
-           GE_LOGE("[SubGraphOpt][CommonRules0Fus][DefPtn] New an object failed."),
+  BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pass_name, FUSION_OP_NUM_MAX);
+  UT_CHECK((pattern == nullptr), GE_LOGE("[SubGraphOpt][CommonRules0Fus][DefPtn] New an object failed."),
            return patterns);
   GELOGD("Start to define %s pass pattern.", pass_name.c_str());
   // define pattern rules
-  pattern->AddOpDesc(PATTERN_STRIDED_READ, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE,
-                     TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+  pattern
+      ->AddOpDesc(PATTERN_STRIDED_READ, {OP_PATTERN_STRIDED_READ}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_CONV, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_DEPTHWISECONV, {OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_DEQUANT, {OP_PATTERN_DEQUANT}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_ELEMWISE, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_MAX,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .AddOpDesc(PATTERN_QUANT, {OP_PATTERN_QUANT}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
                  TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_STRIDED_WRITE, {OP_PATTERN_STRIDED_WRITE}, TBE_PATTERN_NUM_NONE,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
-      .AddOpDesc(PATTERN_OTHER_INPUT, {TBE_PATTERN_INPUT_NODE}, TBE_PATTERN_NUM_DEFAULT,
-                 TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_STRIDED_WRITE, {OP_PATTERN_STRIDED_WRITE}, TBE_PATTERN_NUM_NONE, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
+      .AddOpDesc(PATTERN_OTHER_INPUT, {TBE_PATTERN_INPUT_NODE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
+                 TBE_PATTERN_GROUPID_INVALID, IGNORE_SHAPE_TYPE)
       .SetHead({PATTERN_STRIDED_READ, PATTERN_CONV, PATTERN_DEPTHWISECONV})
       .SetOutputs(PATTERN_STRIDED_READ, {PATTERN_CONV, PATTERN_DEPTHWISECONV})
       .SetOutputs(PATTERN_CONV, {PATTERN_DEQUANT}, TBE_OUTPUT_BRANCH_SINGLE, true)
@@ -574,8 +563,7 @@ static bool IsInWhiteListOfOpPatternElemwise(vector<ge::NodePtr> &elemwise_nodes
     auto op_type =
         find(WHITELIST_OF_OP_PATTERN_ELEMWISE.begin(), WHITELIST_OF_OP_PATTERN_ELEMWISE.end(), elemwise_type);
     if (op_type == WHITELIST_OF_OP_PATTERN_ELEMWISE.end()) {
-      GELOGD("node:%s[type:%s] not in elemwise white_list.",
-             elemwise_node->GetName().c_str(), elemwise_type.c_str());
+      GELOGD("node:%s[type:%s] not in elemwise white_list.", elemwise_node->GetName().c_str(), elemwise_type.c_str());
       node_ptr = elemwise_node;
       return false;
     }
@@ -614,8 +602,10 @@ bool TbeCommonRules0FusionPass::DealWithSameInAndOutScopeDimSize(const vector<in
                                                                  vector<ge::NodePtr> &fusion_nodes) {
   for (size_t j = 0; j < in_scope_dims.size(); j++) {
     if (in_scope_dims[j] < out_scope_dims[j]) {
-      GELOGD("Elem_wise[node: %s] dims[%zu] : the value of in_scope is less than out_scope. in_scope : %ld,"
-             " out_scope : %ld", cur_node->GetName().c_str(), j, in_scope_dims[j], out_scope_dims[j]);
+      GELOGD(
+          "Elem_wise[node: %s] dims[%zu] : the value of in_scope is less than out_scope. in_scope : %ld,"
+          " out_scope : %ld",
+          cur_node->GetName().c_str(), j, in_scope_dims[j], out_scope_dims[j]);
       vector<ge::NodePtr> new_elemwise_nodes;
       for (size_t z = i; z < elemwise_nodes.size(); z++) {
         new_elemwise_nodes.push_back(elemwise_nodes[z]);
@@ -711,14 +701,16 @@ Status TbeCommonRules0FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
   // if elewise has 2 input and inscope's shape less than outscope's shape, skip fusion
   if (!dequant_nodes.empty()) {
     if (JudgeElemShapeInScopeLessThanOutScope(dequant_nodes, elemwise_nodes, fusion_nodes)) {
-      GELOGD("dequant_nodes exist, Elemwise node has 2 inputs and in scope shape is less than outscope, try to fuse"
-             " before elemwise nodes");
+      GELOGD(
+          "dequant_nodes exist, Elemwise node has 2 inputs and in scope shape is less than outscope, try to fuse"
+          " before elemwise nodes");
       return ge::GRAPH_SUCCESS;
     }
   } else {
     if (JudgeElemShapeInScopeLessThanOutScope(conv_depthwise_nodes, elemwise_nodes, fusion_nodes)) {
-      GELOGD("no dequant_nodes, Elemwise node has 2 inputs and in scope shape is less than outscope, try to fuse"
-             " before elemwise nodes");
+      GELOGD(
+          "no dequant_nodes, Elemwise node has 2 inputs and in scope shape is less than outscope, try to fuse"
+          " before elemwise nodes");
       return ge::GRAPH_SUCCESS;
     }
   }
@@ -759,41 +751,35 @@ Status TbeCommonRules0FusionPass::GetFusionNodes(const BufferFusionMapping &mapp
 
 class UTestBufferFusionPassReg : public testing::Test {
  public:
-
  protected:
+  void SetUp() {}
 
-  void SetUp() {
-
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 using BufferFusionFn = BufferFusionPassBase *(*)();
 
 class TestBufferFusionPass : public BufferFusionPassBase {
  protected:
-
   vector<BufferFusionPattern *> DefinePatterns() override {
     return {};
   };
 };
 
 fe::BufferFusionPassBase *BufferFunc1() {
-  auto ret = new(std::nothrow) TestBufferFusionPass();
+  auto ret = new (std::nothrow) TestBufferFusionPass();
   ret->SetName("1");
   return ret;
 }
 
 fe::BufferFusionPassBase *BufferFunc2() {
-  auto ret = new(std::nothrow) TestBufferFusionPass();
+  auto ret = new (std::nothrow) TestBufferFusionPass();
   ret->SetName("2");
   return ret;
 }
 
 fe::BufferFusionPassBase *BufferFunc3() {
-  auto ret = new(std::nothrow) TestBufferFusionPass();
+  auto ret = new (std::nothrow) TestBufferFusionPass();
   ret->SetName("3");
   return ret;
 }
@@ -801,12 +787,12 @@ fe::BufferFusionPassBase *BufferFunc3() {
 TEST_F(UTestBufferFusionPassReg, test_case_01) {
   auto pass_desc = BufferFusionPassRegistry::GetInstance().GetPassDesc(CUSTOM_AI_CORE_BUFFER_FUSION_PASS);
   auto init_size = pass_desc.size();
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS1", BufferFunc1, 0);
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS2", BufferFunc2, 1);
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS3", BufferFunc3, 0xffffffff);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS1", BufferFunc1,
+                                                       0);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS2", BufferFunc2,
+                                                       1);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(CUSTOM_AI_CORE_BUFFER_FUSION_PASS, "CUSTOM_PASS3", BufferFunc3,
+                                                       0xffffffff);
 
   pass_desc = BufferFusionPassRegistry::GetInstance().GetPassDesc(CUSTOM_AI_CORE_BUFFER_FUSION_PASS);
   EXPECT_EQ(pass_desc.size(), init_size + 3);
@@ -828,12 +814,12 @@ TEST_F(UTestBufferFusionPassReg, test_case_01) {
 
   pass_desc = BufferFusionPassRegistry::GetInstance().GetPassDesc(BUILT_IN_AI_CORE_BUFFER_FUSION_PASS);
   init_size = pass_desc.size();
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS1", BufferFunc1, 0);
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS2", BufferFunc2, 1);
-  BufferFusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS3", BufferFunc3, 0xffffffff);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS1",
+                                                       BufferFunc1, 0);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS2",
+                                                       BufferFunc2, 1);
+  BufferFusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, "BUILT_IN_PASS3",
+                                                       BufferFunc3, 0xffffffff);
 
   auto pass_desc2 = BufferFusionPassRegistry::GetInstance().GetPassDesc(BUILT_IN_AI_CORE_BUFFER_FUSION_PASS);
   EXPECT_EQ(pass_desc2.size(), init_size + 3);
@@ -854,15 +840,13 @@ TEST_F(UTestBufferFusionPassReg, test_case_01) {
   EXPECT_EQ(buffer_fusion_pass_base_ptr6->GetName(), "3");
 }
 
-
 TEST_F(UTestBufferFusionPassReg, test_case_02) {
-  REG_BUFFER_FUSION_PASS("", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS,
-                         TbeCommonRules0FusionPass, 0);
+  REG_BUFFER_FUSION_PASS("", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, TbeCommonRules0FusionPass, 0);
 
-  REG_BUFFER_FUSION_PASS("MetadefBufferFusionPassTest", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS,
-                         TbeCommonRules0FusionPass, 1);
-  REG_BUFFER_FUSION_PASS("MetadefBufferFusionPassTest", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS,
-                         TbeCommonRules0FusionPass, 2);
+  REG_BUFFER_FUSION_PASS("MetadefBufferFusionPassTest", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, TbeCommonRules0FusionPass,
+                         1);
+  REG_BUFFER_FUSION_PASS("MetadefBufferFusionPassTest", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, TbeCommonRules0FusionPass,
+                         2);
 
   REG_BUFFER_FUSION_PASS("MetadefBufferFusionPassTest1", BUILT_IN_VECTOR_CORE_BUFFER_FUSION_PASS,
                          TbeCommonRules0FusionPass, 0xffff);
@@ -892,4 +876,4 @@ TEST_F(UTestBufferFusionPassReg, test_post_fusion) {
   std::shared_ptr<BufferFusionPassBase> common2 = std::make_shared<TbeCommonRules2FusionPass>();
   EXPECT_EQ(common2->PostFusion(nullptr), FAILED);
 }
-}
+}  // namespace fe

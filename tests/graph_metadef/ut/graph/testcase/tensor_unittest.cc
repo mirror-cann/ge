@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,7 @@
 namespace ge {
 class TensorUtilsUT : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
   void TearDown() {}
 };
 
@@ -37,7 +36,7 @@ TEST_F(TensorUtilsUT, CopyConstruct1_NullTensorDef) {
   t1.SetData(vec);
   GeTensor t2 = TensorUtils::CreateShareTensor(t1);
   t1.impl_->tensor_def_.GetProtoOwner();
-// The copy construct share tensor_data_, do not share tensor_desc
+  // The copy construct share tensor_data_, do not share tensor_desc
   ASSERT_EQ(t1.impl_->tensor_def_.GetProtoOwner(), nullptr);
   ASSERT_EQ(t1.impl_->tensor_def_.GetProtoMsg(), nullptr);
   ASSERT_EQ(t1.impl_->tensor_data_.impl_->tensor_descriptor_, t1.impl_->desc_.impl_);
@@ -307,7 +306,7 @@ TEST_F(TensorUtilsUT, ConstData) {
   ASSERT_EQ(tensor_desc1.GetFormat(), FORMAT_NCHW);
 
   // copy
-  std::size_t big_size = SECUREC_MEM_MAX_LEN+1;
+  std::size_t big_size = SECUREC_MEM_MAX_LEN + 1;
   std::unique_ptr<uint8_t[]> big_data = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[big_size]);
   TensorDesc tensor_desc2;
   tensor_desc2.SetFormat(FORMAT_NCHW);
@@ -381,10 +380,10 @@ TEST_F(TensorUtilsUT, TensorSetAndGetMetaInfoGeneral) {
 
 TEST_F(TensorUtilsUT, TensorSetAndResetData) {
   Tensor tensor;
-  EXPECT_EQ(tensor.ResetData(nullptr, 0UL, [](uint8_t *ptr) {delete[] ptr;}), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(tensor.ResetData(nullptr, 0UL, [](uint8_t *ptr) { delete[] ptr; }), ge::GRAPH_SUCCESS);
 
   uint8_t *data_ptr = new uint8_t[10];
-  EXPECT_EQ(tensor.ResetData(data_ptr, 10,[](uint8_t *ptr) {delete[] ptr;}), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(tensor.ResetData(data_ptr, 10, [](uint8_t *ptr) { delete[] ptr; }), ge::GRAPH_SUCCESS);
   EXPECT_EQ(tensor.GetData(), data_ptr);
 
   uint8_t *data_ptr2 = new uint8_t[20];

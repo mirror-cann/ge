@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,6 +40,7 @@ class MasterModelDeployer : public ModelDeployer {
 
   Status GetDeviceMeshIndex(const int32_t device_id, std::vector<int32_t> &node_mesh_index) override;
   Status GetValidLogicDeviceId(std::string &device_id) override;
+
  private:
   using ConstSubmodelInfoPtr = const DeployPlan::SubmodelInfo *;
   struct DeployedModel {
@@ -67,11 +68,9 @@ class MasterModelDeployer : public ModelDeployer {
     bool profiling_on;
   };
 
-  static Status GetDynamicSchedModelIoQueueIds(const DeployPlan &deploy_plan,
-                                               const ExchangeRoute &route,
+  static Status GetDynamicSchedModelIoQueueIds(const DeployPlan &deploy_plan, const ExchangeRoute &route,
                                                DeployResult &deploy_result);
-  static Status GetModelIoQueueAttrs(const DeployPlan &deploy_plan,
-                                     const ExchangeRoute &route,
+  static Status GetModelIoQueueAttrs(const DeployPlan &deploy_plan, const ExchangeRoute &route,
                                      DeployResult &deploy_result);
   static void UndeployModel(DeployedModel &deployed_model);
   Status InitFlowGwInfo();
@@ -86,8 +85,7 @@ class MasterModelDeployer : public ModelDeployer {
   static void SetTrimmingModelInstanceNames(
       const std::map<std::string, std::vector<std::string>> &org_model_instance_names,
       std::vector<std::unordered_set<std::string>> &processed_model_instance_names);
-  static Status GetBroadcastInputQueueAttrs(const DeployPlan &deploy_plan,
-                                            const ExchangeRoute &route,
+  static Status GetBroadcastInputQueueAttrs(const DeployPlan &deploy_plan, const ExchangeRoute &route,
                                             std::vector<std::vector<DeployQueueAttr>> &broadcast_input_queue_attrs);
   void AbnormalStatusMonitorInitialize();
   void AbnormalStatusMonitorFinalize();
@@ -95,7 +93,7 @@ class MasterModelDeployer : public ModelDeployer {
   void IncDeployingRootModelNum();
   void DecreaseDeployingRootModelNum();
   void DelCallback(const uint32_t root_model_id);
-  DeployPlan::AbnormalStatusCallbackInfo* GetAbnormalStatusCallbackInfo();
+  DeployPlan::AbnormalStatusCallbackInfo *GetAbnormalStatusCallbackInfo();
   void SetDynamicSchedFlag(bool flag);
   void AddDeployedModelInfo(uint32_t root_model_id);
   void DelDeployedModelInfo(uint32_t root_model_id);

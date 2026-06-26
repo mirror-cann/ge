@@ -1,54 +1,53 @@
 # aclTensorDesc<a name="ZH-CN_TOPIC_0000001312400493"></a>
 
--   **[aclCreateTensorDesc](aclCreateTensorDesc.md)**  
+-   **[aclCreateTensorDesc](aclCreateTensorDesc.md)**
 
--   **[aclDestroyTensorDesc](aclDestroyTensorDesc.md)**  
+-   **[aclDestroyTensorDesc](aclDestroyTensorDesc.md)**
 
--   **[aclGetTensorDescType](aclGetTensorDescType.md)**  
+-   **[aclGetTensorDescType](aclGetTensorDescType.md)**
 
--   **[aclGetTensorDescFormat](aclGetTensorDescFormat.md)**  
+-   **[aclGetTensorDescFormat](aclGetTensorDescFormat.md)**
 
--   **[aclGetTensorDescSize](aclGetTensorDescSize.md)**  
+-   **[aclGetTensorDescSize](aclGetTensorDescSize.md)**
 
--   **[aclGetTensorDescElementCount](aclGetTensorDescElementCount.md)**  
+-   **[aclGetTensorDescElementCount](aclGetTensorDescElementCount.md)**
 
--   **[aclGetTensorDescNumDims](aclGetTensorDescNumDims.md)**  
+-   **[aclGetTensorDescNumDims](aclGetTensorDescNumDims.md)**
 
--   **[aclGetTensorDescDim（废弃）](aclGetTensorDescDim（废弃）.md)**  
+-   **[aclGetTensorDescDim（废弃）](aclGetTensorDescDim（废弃）.md)**
 
--   **[aclGetTensorDescDimV2](aclGetTensorDescDimV2.md)**  
+-   **[aclGetTensorDescDimV2](aclGetTensorDescDimV2.md)**
 
--   **[aclGetTensorDescDimRange](aclGetTensorDescDimRange.md)**  
+-   **[aclGetTensorDescDimRange](aclGetTensorDescDimRange.md)**
 
--   **[aclSetTensorDescName](aclSetTensorDescName.md)**  
+-   **[aclSetTensorDescName](aclSetTensorDescName.md)**
 
--   **[aclGetTensorDescName](aclGetTensorDescName.md)**  
+-   **[aclGetTensorDescName](aclGetTensorDescName.md)**
 
--   **[aclTransTensorDescFormat](aclTransTensorDescFormat.md)**  
+-   **[aclTransTensorDescFormat](aclTransTensorDescFormat.md)**
 
--   **[aclSetTensorStorageShape（废弃）](aclSetTensorStorageShape（废弃）.md)**  
+-   **[aclSetTensorStorageShape（废弃）](aclSetTensorStorageShape（废弃）.md)**
 
--   **[aclSetTensorStorageFormat（废弃）](aclSetTensorStorageFormat（废弃）.md)**  
+-   **[aclSetTensorStorageFormat（废弃）](aclSetTensorStorageFormat（废弃）.md)**
 
--   **[aclSetTensorOriginShape](aclSetTensorOriginShape.md)**  
+-   **[aclSetTensorOriginShape](aclSetTensorOriginShape.md)**
 
--   **[aclSetTensorOriginFormat](aclSetTensorOriginFormat.md)**  
+-   **[aclSetTensorOriginFormat](aclSetTensorOriginFormat.md)**
 
--   **[aclSetTensorShape](aclSetTensorShape.md)**  
+-   **[aclSetTensorShape](aclSetTensorShape.md)**
 
--   **[aclSetTensorFormat](aclSetTensorFormat.md)**  
+-   **[aclSetTensorFormat](aclSetTensorFormat.md)**
 
--   **[aclSetTensorShapeRange](aclSetTensorShapeRange.md)**  
+-   **[aclSetTensorShapeRange](aclSetTensorShapeRange.md)**
 
--   **[aclSetTensorDynamicInput](aclSetTensorDynamicInput.md)**  
+-   **[aclSetTensorDynamicInput](aclSetTensorDynamicInput.md)**
 
--   **[aclGetTensorDescByIndex](aclGetTensorDescByIndex.md)**  
+-   **[aclGetTensorDescByIndex](aclGetTensorDescByIndex.md)**
 
--   **[aclGetTensorDescAddress](aclGetTensorDescAddress.md)**  
+-   **[aclGetTensorDescAddress](aclGetTensorDescAddress.md)**
 
--   **[aclSetTensorConst](aclSetTensorConst.md)**  
+-   **[aclSetTensorConst](aclSetTensorConst.md)**
 
--   **[aclSetTensorPlaceMent](aclSetTensorPlaceMent.md)**  
+-   **[aclSetTensorPlaceMent](aclSetTensorPlaceMent.md)**
 
--   **[aclSetTensorValueRange](aclSetTensorValueRange.md)**  
-
+-   **[aclSetTensorValueRange](aclSetTensorValueRange.md)**

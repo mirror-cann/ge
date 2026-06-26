@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,20 +31,20 @@ struct KernelRunContextHolder {
   KernelRunContextHolder() = default;
   KernelRunContextHolder(KernelRunContextHolder &&) = default;
   KernelRunContextHolder &operator=(KernelRunContextHolder &&) = default;
-  template<typename T>
+  template <typename T>
   T *GetContext() {
-    return reinterpret_cast<T*>(context);
+    return reinterpret_cast<T *>(context);
   }
   ComputeNodeInfo *MutableComputeNodeInfo() {
     return reinterpret_cast<ComputeNodeInfo *>(compute_node_info_holder.get());
   }
 
-  operator KernelContext*(){
+  operator KernelContext *() {
     return GetContext<KernelContext>();
   }
 
-  void FreeValue(size_t index){
-    if(index < value_holder.size()){
+  void FreeValue(size_t index) {
+    if (index < value_holder.size()) {
       value_holder[index].Set(nullptr, nullptr);
     }
   }
@@ -174,8 +174,8 @@ class TilingContextFaker {
   TilingContextFaker &CompileInfo(void *compile_info);
   TilingContextFaker &TilingData(void *tiling_data);
   TilingContextFaker &Workspace(ContinuousVector *workspace);
-  TilingContextFaker &TilingFwkData(void* fwk_data);
-  TilingContextFaker &Deterministic(void* deterministic);
+  TilingContextFaker &TilingFwkData(void *fwk_data);
+  TilingContextFaker &Deterministic(void *deterministic);
 
   KernelRunContextHolder Build() const;
 
@@ -195,4 +195,4 @@ class TilingContextFaker {
   void *deterministic_level_ = nullptr;
 };
 }  // namespace gert
-#endif  //AIR_CXX_TESTS_UT_GE_RUNTIME_V2_FAKER_KERNEL_RUN_CONTEXT_FACKER_H_
+#endif  // AIR_CXX_TESTS_UT_GE_RUNTIME_V2_FAKER_KERNEL_RUN_CONTEXT_FACKER_H_

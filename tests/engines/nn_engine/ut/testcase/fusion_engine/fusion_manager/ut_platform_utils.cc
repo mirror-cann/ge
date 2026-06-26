@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@
 using namespace std;
 using namespace fe;
 
-class PlatFormUtilsUT: public testing::Test
-{
+class PlatFormUtilsUT : public testing::Test {
  protected:
   static void SetUpTestCase() {
     std::cout << "PlatFormUtilsUT SetUpTestCase" << std::endl;
@@ -37,11 +36,10 @@ class PlatFormUtilsUT: public testing::Test
   static void TearDownTestCase() {
     std::cout << "PlatFormUtilsUT TearDownTestCase" << std::endl;
   }
-// AUTO GEN PLEASE DO NOT MODIFY IT
+  // AUTO GEN PLEASE DO NOT MODIFY IT
 };
 
-TEST_F(PlatFormUtilsUT, init_success_case_cloud)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_cloud) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::AICORE_NUM, "10");
@@ -69,7 +67,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_cloud)
   EXPECT_EQ(instance.IsDCSoc(), false);
   EXPECT_EQ(instance.GetAICoreNum(), 10);
   EXPECT_EQ(instance.IsHardwareSupportCoreSync(), false);
-  std::vector<uint32_t> vir_type_list = {2,4,8,16};
+  std::vector<uint32_t> vir_type_list = {2, 4, 8, 16};
   EXPECT_EQ(instance.GetVirTypeList(), vir_type_list);
 
   PlatFormInfos platform_infos;
@@ -91,8 +89,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_cloud)
   EXPECT_EQ(optional_info.l1_fusion_flag, "false");
 }
 
-TEST_F(PlatFormUtilsUT, init_success_case_mini)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_mini) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::BUFFER_OPTIMIZE, "l1_optimize");
@@ -141,8 +138,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_mini)
   EXPECT_EQ(optional_info.l1_fusion_flag, "true");
 }
 
-TEST_F(PlatFormUtilsUT, init_success_case_ascend310p)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_ascend310p) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::CORE_TYPE, "VectorCore");
@@ -170,7 +166,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_ascend310p)
   EXPECT_EQ(instance.IsDCSoc(), true);
   EXPECT_EQ(instance.GetAICoreNum(), 10);
   EXPECT_EQ(instance.IsHardwareSupportCoreSync(), false);
-  std::vector<uint32_t> vir_type_list = {1,2,4,8};
+  std::vector<uint32_t> vir_type_list = {1, 2, 4, 8};
   EXPECT_EQ(instance.GetVirTypeList(), vir_type_list);
 
   PlatFormInfos platform_infos;
@@ -192,8 +188,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_ascend310p)
   EXPECT_EQ(optional_info.l1_fusion_flag, "true");
 }
 
-TEST_F(PlatFormUtilsUT, init_success_case_ascend910b)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_ascend910b) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::BUFFER_OPTIMIZE, "l1_optimize");
@@ -220,7 +215,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_ascend910b)
   EXPECT_EQ(instance.IsDCSoc(), false);
   EXPECT_EQ(instance.GetAICoreNum(), 24);
   EXPECT_EQ(instance.IsHardwareSupportCoreSync(), true);
-  std::vector<uint32_t> vir_type_list = {2,3,6,12,24};
+  std::vector<uint32_t> vir_type_list = {2, 3, 6, 12, 24};
   EXPECT_EQ(instance.GetVirTypeList(), vir_type_list);
 
   PlatFormInfos platform_infos;
@@ -242,8 +237,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_ascend910b)
   EXPECT_EQ(optional_info.l1_fusion_flag, "true");
 }
 
-TEST_F(PlatFormUtilsUT, init_success_case_ascend310b)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_ascend310b) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::BUFFER_OPTIMIZE, "l1_optimize");
@@ -292,8 +286,7 @@ TEST_F(PlatFormUtilsUT, init_success_case_ascend310b)
   EXPECT_EQ(optional_info.l1_fusion_flag, "true");
 }
 
-TEST_F(PlatFormUtilsUT, init_success_case_nano)
-{
+TEST_F(PlatFormUtilsUT, init_success_case_nano) {
   PlatformUtils instance;
   std::map<std::string, std::string> options;
   options.emplace(ge::BUFFER_OPTIMIZE, "l1_optimize");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,20 +67,19 @@ namespace ge {
 constexpr int64_t kMemtypeHostCompileIndependent = 2;
 REG_OP(FakeOpForSingleOp)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT8}))
-        .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT8}))
-        .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .OPTIONAL_INPUT(offset_w, TensorType({DT_INT8}))
-        .ATTR(transpose_x1, Bool, false)
-        .ATTR(transpose_x2, Bool, false)
-        .ATTR(offset_x, Int, 0)
-        .OP_END_FACTORY_REG(FakeOpForSingleOp);
+    .INPUT(x2, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT8}))
+    .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .OPTIONAL_INPUT(offset_w, TensorType({DT_INT8}))
+    .ATTR(transpose_x1, Bool, false)
+    .ATTR(transpose_x2, Bool, false)
+    .ATTR(offset_x, Int, 0)
+    .OP_END_FACTORY_REG(FakeOpForSingleOp);
 
 namespace {
 using GenerateTaskFun = std::function<Status(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks)>;
 constexpr size_t kHostMemInputIndex = 0U;
-void ResetFlags() {
-}
+void ResetFlags() {}
 bool IsFile(const std::string &filename) {
   struct stat buffer;
   return (stat(filename.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
@@ -110,7 +109,7 @@ int RemoveFileAndDirectory(const std::string &path) {
           return result;
         }
       }
-        // It is a file
+      // It is a file
       else if ((0 != strcmp(p_dirent->d_name, ".")) && (0 != strcmp(p_dirent->d_name, ".."))) {
         result = remove(file_name.c_str());
         if (result < 0) {
@@ -127,7 +126,7 @@ int RemoveFileAndDirectory(const std::string &path) {
 }
 
 bool IsLogValid(std::vector<gert::OneLog> logs, const std::string &expected_log) {
-  for (auto &log :logs) {
+  for (auto &log : logs) {
     std::string content = log.content;
     if (content.find(expected_log) != std::string::npos) {
       return true;
@@ -141,13 +140,10 @@ Status CompileSingleOpByAtc(const std::string &json_path) {
   Mkdir(test_dir.c_str());
   std::string json_path_arg = "--singleop=" + json_path;
   std::string output_arg = "--output=" + test_dir;
-  const char *argv[] = {"atc",
-                        "--soc_version=Ascend310",
-                        "--log=error",
-                        json_path_arg.c_str(),
-                        output_arg.c_str(),
+  const char *argv[] = {
+      "atc", "--soc_version=Ascend310", "--log=error", json_path_arg.c_str(), output_arg.c_str(),
   };
-  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), (char **) argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), (char **)argv);
   ResetFlags();
   return ret;
 }
@@ -192,9 +188,7 @@ Status GenerateTaskForAiCpuDependCompute(const Node &node, RunContext &run_conte
   return SUCCESS;
 }
 
-Status GenerateTaskForAiCore(const Node &node,
-                             RunContext &run_context,
-                             std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForAiCore(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != RELU) {
     return SUCCESS;
   }
@@ -214,9 +208,7 @@ Status GenerateTaskForMixAiCore(const Node &node, RunContext &run_context, std::
   return SUCCESS;
 }
 
-Status GenerateTaskForDynamicAiCore(const Node &node,
-                                    RunContext &run_context,
-                                    std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForDynamicAiCore(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != RELU) {
     return SUCCESS;
   }
@@ -225,9 +217,7 @@ Status GenerateTaskForDynamicAiCore(const Node &node,
   return SUCCESS;
 }
 
-Status GenerateTaskForDynamicAiCoreV2(const Node &node,
-                                      RunContext &run_context,
-                                      std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForDynamicAiCoreV2(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != RELU) {
     return SUCCESS;
   }
@@ -236,8 +226,7 @@ Status GenerateTaskForDynamicAiCoreV2(const Node &node,
   return SUCCESS;
 }
 
-Status GenerateTaskForDynamicAiCoreWithAtomicAddrClean(const Node &node,
-                                                       RunContext &run_context,
+Status GenerateTaskForDynamicAiCoreWithAtomicAddrClean(const Node &node, RunContext &run_context,
                                                        std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != RELU) {
     return SUCCESS;
@@ -248,9 +237,7 @@ Status GenerateTaskForDynamicAiCoreWithAtomicAddrClean(const Node &node,
   return SUCCESS;
 }
 
-Status GenerateTaskForMixl2(const Node &node,
-                            RunContext &run_context,
-                            std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForMixl2(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != PRELU) {
     return SUCCESS;
   }
@@ -259,9 +246,7 @@ Status GenerateTaskForMixl2(const Node &node,
   return SUCCESS;
 }
 
-Status GenerateTaskForMemcpyAsync(const Node &node,
-                                  RunContext &run_context,
-                                  std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForMemcpyAsync(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != MEMCPYASYNC) {
     return SUCCESS;
   }
@@ -292,8 +277,7 @@ Status GenerateTaskForNpuClearFloatStatus(const Node &node, RunContext &run_cont
   return SUCCESS;
 }
 
-Status GenerateTaskForNpuGetFloatStatus(const Node &node, RunContext &run_context,
-                                        std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForNpuGetFloatStatus(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != NPUGETFLOATSTATUS) {
     return SUCCESS;
   }
@@ -336,8 +320,7 @@ Status GenerateTaskForNpuGetFloatDebugStatus(const Node &node, RunContext &run_c
   return SUCCESS;
 }
 
-Status GenerateTaskForDsa(const Node &node, RunContext &run_context,
-                          std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForDsa(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   domi::TaskDef task_def;
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_DSA));
   auto dsa_task = task_def.mutable_dsa_task();
@@ -356,8 +339,8 @@ Status GenerateTaskForDsa(const Node &node, RunContext &run_context,
     dsa_task->set_seed_value_or_ptr(0);
     dsa_task->set_random_count_value_or_ptr(0);
   } else {
-    node.GetOpDesc()->SetWorkspace({0,0});
-    node.GetOpDesc()->SetWorkspaceBytes({0,0});
+    node.GetOpDesc()->SetWorkspace({0, 0});
+    node.GetOpDesc()->SetWorkspaceBytes({0, 0});
     dsa_task->set_input1_value_or_ptr(1);
     dsa_task->set_seed_value_or_ptr(1);
     dsa_task->set_random_count_value_or_ptr(1);
@@ -378,8 +361,7 @@ class SingleOpTest : public testing::Test {
     GEFinalize();
     ReInitGe();
     BenchEnv::Init();
-    optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op,
-                                            const optiling::OpCompileInfoV2 &compile_info,
+    optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op, const optiling::OpCompileInfoV2 &compile_info,
                                             optiling::OpRunInfoV2 &run_info) -> bool {
       run_info.SetWorkspaces({1024});
       return true;
@@ -401,8 +383,7 @@ class SingleOpTest : public testing::Test {
     GeExecutor::ReleaseResource();
     aclrtDestroyStream(stream_);
     GEFinalize();
-    ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
-
+    ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   }
 
   uint64_t model_id = 0;
@@ -515,10 +496,8 @@ class SingleOpTest : public testing::Test {
     }
   }
 
-  void CreateInputsAndOutputs(OpDescPtr &op_desc,
-                              std::vector<GeTensorDesc> &input_desc,
-                              std::vector<DataBuffer> &inputs,
-                              std::vector<GeTensorDesc> &output_desc,
+  void CreateInputsAndOutputs(OpDescPtr &op_desc, std::vector<GeTensorDesc> &input_desc,
+                              std::vector<DataBuffer> &inputs, std::vector<GeTensorDesc> &output_desc,
                               std::vector<DataBuffer> &outputs) {
     for (const auto &tensor_desc : op_desc->GetAllInputsDescPtr()) {
       bool is_const = false;
@@ -716,7 +695,8 @@ TEST_F(SingleOpTest, test_delete_resource) {
   ASSERT_NE(res, nullptr);
   auto new_op = MakeUnique<SingleOp>(res, &res->stream_mu_, res->stream_);
   res->op_map_[op_id] = std::move(new_op);
-  auto new_dynamic_op = MakeUnique<DynamicSingleOp>(&res->tensor_pool_, res->resource_id_, &res->stream_mu_, res->stream_);
+  auto new_dynamic_op =
+      MakeUnique<DynamicSingleOp>(&res->tensor_pool_, res->resource_id_, &res->stream_mu_, res->stream_);
   res->dynamic_op_map_[op_id] = std::move(new_dynamic_op);
   ASSERT_EQ(ge::GeExecutor::UnloadSingleOp(op_id), SUCCESS);
   ASSERT_EQ(ge::GeExecutor::UnloadDynamicSingleOp(op_id), SUCCESS);
@@ -732,11 +712,10 @@ UINT32 StubTilingParse(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreator() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreator() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
-
 
 TEST_F(SingleOpTest, TestStaticAiCore) {
   MockForGenerateTask("AiCoreLib", GenerateTaskForAiCore);
@@ -878,8 +857,8 @@ UINT32 StubTilingParseMixST(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreatorMixST() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreatorMixST() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -900,8 +879,8 @@ TEST_F(SingleOpTest, TestMixl2StaticOp) {
   AttrUtils::SetInt(op_desc, "op_para_size", 512);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("0/_tvmbin",
-  std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "0/_tvmbin", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
 
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice});
   // EXPECT_NE(RunStaticTestCast(op_desc), SUCCESS);
@@ -909,7 +888,6 @@ TEST_F(SingleOpTest, TestMixl2StaticOp) {
   EXPECT_EQ(RunStaticTestCast(op_desc), SUCCESS);
   ge::diagnoseSwitch::DisableProfiling();
 }
-
 
 TEST_F(SingleOpTest, TestMixl2StaticOp_WithL0ExceptionDump) {
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
@@ -932,8 +910,8 @@ TEST_F(SingleOpTest, TestMixl2StaticOp_WithL0ExceptionDump) {
   AttrUtils::SetInt(op_desc, "op_para_size", 512);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("0/_tvmbin",
-  std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "0/_tvmbin", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
 
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice});
   AttrUtils::SetStr(op_desc, ATTR_NAME_ALIAS_ENGINE_NAME, "mix_l2");
@@ -942,10 +920,10 @@ TEST_F(SingleOpTest, TestMixl2StaticOp_WithL0ExceptionDump) {
 
   // check size info
   uint64_t *size_info = (uint64_t *)runtime_stub.GetRtsRuntimeStub().GetLiteEceptionArgs()[0];
-  EXPECT_EQ(*(size_info + 1), 6U);  // all_len, index 2~7
-  EXPECT_EQ(*(size_info + 2), 0U);  // ctxid, 0
-  EXPECT_EQ(*(size_info + 3), 24U); // args table size, input1(8byte) | output1(8byte) | tilling(8byte)
-  EXPECT_EQ(*(size_info + 4), 3U);  // size num, input1(1)| output1(1)|tilling(1)
+  EXPECT_EQ(*(size_info + 1), 6U);   // all_len, index 2~7
+  EXPECT_EQ(*(size_info + 2), 0U);   // ctxid, 0
+  EXPECT_EQ(*(size_info + 3), 24U);  // args table size, input1(8byte) | output1(8byte) | tilling(8byte)
+  EXPECT_EQ(*(size_info + 4), 3U);   // size num, input1(1)| output1(1)|tilling(1)
   EXPECT_EQ(*(size_info + 5), 64U);  // input1 size, 64
   EXPECT_EQ(*(size_info + 6), 64U);  // output1 size, 74
   EXPECT_EQ(*(size_info + 7), 0x0300000000000008UL);  // tiling size, high32 bit: size type, low 32bit: data size
@@ -984,8 +962,8 @@ TEST_F(SingleOpTest, TestMixl2StaticOp_SaveExceptionDumpInfo_WithExceptionDumpOn
   AttrUtils::SetInt(op_desc, "op_para_size", 512);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("0/_tvmbin",
-                                             std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "0/_tvmbin", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
 
   // EXPECT_NE(RunStaticTestCast(op_desc), SUCCESS);
   AttrUtils::SetStr(op_desc, ATTR_NAME_ALIAS_ENGINE_NAME, "mix_l2");
@@ -1001,7 +979,6 @@ TEST_F(SingleOpTest, TestMixl2StaticOp_SaveExceptionDumpInfo_WithExceptionDumpOn
   ge::DumpStub::GetInstance().ClearOpInfos();
   ge::diagnoseSwitch::DisableDumper();
 }
-
 
 TEST_F(SingleOpTest, TestMixl2StaticOpHostMem) {
   MockForGenerateTask("mix_l2", GenerateTaskForMixl2);
@@ -1200,7 +1177,6 @@ TEST_F(SingleOpTest, TestTfDependRange) {
   MockForGenerateTask("AicpuLib", fun);
   MockForGenerateTask("aicpu_tf_kernel", fun);
 
-
   auto runtime_stub = std::make_shared<MockRuntime>();
   RuntimeStub::SetInstance(runtime_stub);
   EXPECT_CALL(*runtime_stub, rtKernelLaunchEx).WillRepeatedly(testing::Invoke(MockRtKernelLaunchEx));
@@ -1353,7 +1329,8 @@ TEST_F(SingleOpTest, TestInvalidInputDesc) {
 }
 
 TEST_F(SingleOpTest, TestInvalidInputDescDtypeAndFormat) {
-  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_input_desc_dtype_and_format.json"), SUCCESS);
+  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_input_desc_dtype_and_format.json"),
+            SUCCESS);
 }
 
 TEST_F(SingleOpTest, TestInvalidOutputDesc) {
@@ -1393,11 +1370,13 @@ TEST_F(SingleOpTest, TestInvalidUnknownRankWithRange) {
 }
 
 TEST_F(SingleOpTest, TestInvalidUnknownShapeRange) {
-  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_unknown_shape_range_mismatch.json"), SUCCESS);
+  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_unknown_shape_range_mismatch.json"),
+            SUCCESS);
 }
 
 TEST_F(SingleOpTest, TestInvalidUnknownShapeNumRange) {
-  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_unknown_shape_num_range_mismatch.json"), SUCCESS);
+  EXPECT_NE(CompileSingleOpByAtc("st_run_data/json/single_op/exception/invalid_unknown_shape_num_range_mismatch.json"),
+            SUCCESS);
 }
 
 TEST_F(SingleOpTest, TestOpManyAttrs) {
@@ -1456,7 +1435,7 @@ TEST_F(SingleOpTest, RecoverIrDefinition_singlop_online) {
   auto root_graph = root_model->GetRootGraph();
   EXPECT_NE(root_graph, nullptr);
   NodePtr conv2d = nullptr;
-  for (const auto &node : root_graph->GetAllNodes()){
+  for (const auto &node : root_graph->GetAllNodes()) {
     if (node->GetName() == "conv2d") {
       conv2d = node;
       break;
@@ -1466,7 +1445,8 @@ TEST_F(SingleOpTest, RecoverIrDefinition_singlop_online) {
   auto ir_inputs = conv2d->GetOpDesc()->GetIrInputs();
   auto ir_attr_names = conv2d->GetOpDesc()->GetIrAttrNames();
   const std::vector<std::string> target_ir_input = {"x", "filter", "bias", "offset_w"};
-  const std::vector<std::string> target_ir_attr_name = {"strides", "pads", "dilations", "groups", "data_format", "offset_x"};
+  const std::vector<std::string> target_ir_attr_name = {"strides", "pads",        "dilations",
+                                                        "groups",  "data_format", "offset_x"};
   EXPECT_EQ(ir_inputs.size(), target_ir_input.size());
   for (size_t i = 0U; i < ir_inputs.size(); ++i) {
     EXPECT_EQ(ir_inputs[i].first, target_ir_input[i]);
@@ -1588,16 +1568,16 @@ TEST_F(SingleOpTest, TestStaticAiCore_LoadAndExecuteMultipleTimesOk_WithoutExter
 }
 
 /**
-* 用例描述：静态shape单算子加载并执行，不设置外置allocator
-*
-* 测试步骤：
-* 1. 构造SinlgeOp
-* 2. rt接口打桩，返回失败
-* 3. load & execute
-*
-* 预期结果：
-* 1. 执行失败
-*/
+ * 用例描述：静态shape单算子加载并执行，不设置外置allocator
+ *
+ * 测试步骤：
+ * 1. 构造SinlgeOp
+ * 2. rt接口打桩，返回失败
+ * 3. load & execute
+ *
+ * 预期结果：
+ * 1. 执行失败
+ */
 TEST_F(SingleOpTest, TestStaticAiCore_LoadAndExecuteFailed_WithoutExternalAllocator) {
   MockForGenerateTask("AiCoreLib", GenerateTaskForAiCore);
   MockForGenerateTask("AIcoreEngine", GenerateTaskForAiCore);
@@ -1692,7 +1672,7 @@ TEST_F(SingleOpTest, TestStaticAiCore_L0Exception_Ok) {
 
 TEST_F(SingleOpTest, TestStaticMixAiCore_L0Exception_Ok) {
   MockForGenerateTask("AiCoreLib", GenerateTaskForMixAiCore);
-      MockForGenerateTask("AIcoreEngine", GenerateTaskForMixAiCore);
+  MockForGenerateTask("AIcoreEngine", GenerateTaskForMixAiCore);
   auto op_desc = CreateOp(RELU);
   AttrUtils::SetBool(op_desc, ge::ATTR_NAME_STATIC_TO_DYNAMIC_SOFT_SYNC_OP, true);
   AttrUtils::SetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AiCore");
@@ -1787,9 +1767,9 @@ TEST_F(SingleOpTest, dump_op_debug_on_and_set_op_switch) {
   EXPECT_EQ(DumpManager::GetInstance().GetDumpProperties(0).IsSingleOpNeedDump(), true);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);

@@ -101,4 +101,3 @@ Status RunGraphDistribute(uint32_t graph_id, const std::map<int32_t, std::vector
 
 -   对于graph\_id中的全量输入，输入顺序约束为：模型data输入 + batch\_index + kv。
 -   对于graph\_id中的增量输入，输入顺序约束为：模型data输入 + kv。
-

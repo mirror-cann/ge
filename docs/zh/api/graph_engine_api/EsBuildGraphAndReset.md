@@ -90,4 +90,3 @@ EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 auto *tensor = EsCreateGraphInput(graph, 0);
 EsCGraph *build_graph = EsBuildGraphAndReset(graph);
 ```
-

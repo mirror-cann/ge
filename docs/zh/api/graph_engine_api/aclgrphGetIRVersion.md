@@ -97,4 +97,3 @@ graphStatus aclgrphGetIRVersion(int32_t *major_version, int32_t *minor_version, 
 ## 约束说明<a name="zh-cn_topic_0235751031_section38092103"></a>
 
 入参建议采用整型引用的方式调用接口，如传入整型空指针，则会验空返回失败。
-

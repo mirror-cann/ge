@@ -27,21 +27,16 @@ struct ProfilingData {
 
 class ProfilingParser {
  public:
-  static graphStatus Parse(const std::string &csv_path,
-                           std::unordered_map<std::string, ProfilingData> &profiles);
+  static graphStatus Parse(const std::string &csv_path, std::unordered_map<std::string, ProfilingData> &profiles);
+
  private:
-  static int32_t FindColumnIndex(const std::vector<std::string> &headers,
-                                  const std::string &column_name);
+  static int32_t FindColumnIndex(const std::vector<std::string> &headers, const std::string &column_name);
 
-  static void CalculateCoreCounts(const std::string &task_type,
-                                   uint32_t block_num,
-                                   uint32_t mix_block_num,
-                                   size_t &cube_block_num,
-                                   size_t &vec_block_num);
+  static void CalculateCoreCounts(const std::string &task_type, uint32_t block_num, uint32_t mix_block_num,
+                                  size_t &cube_block_num, size_t &vec_block_num);
 
-  static graphStatus ParseRow(const std::vector<std::string> &fields,
-                               const std::vector<int32_t> &col_indices,
-                               ProfilingData &data);
+  static graphStatus ParseRow(const std::vector<std::string> &fields, const std::vector<int32_t> &col_indices,
+                              ProfilingData &data);
 };
 
 }  // namespace minidag

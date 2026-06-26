@@ -111,4 +111,3 @@ EsGraphBuilder builder("test_graph");
 std::vector<int64_t> vec64 = {1, 2, 3};
 auto v1 = builder.CreateVector(vec64);
 ```
-

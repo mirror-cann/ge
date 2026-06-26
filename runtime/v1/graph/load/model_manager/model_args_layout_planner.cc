@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@ constexpr size_t kUBAlignedLen = 32U;
 
 namespace {
 constexpr std::array<const char *, static_cast<size_t>(AddrUseFor::kEnd) + 1U> g_addr_use_for_str = {
-    "Addr use for args",     // kAddrUseForArgs
+    "Addr use for args",                  // kAddrUseForArgs
     "Addr use for persistent workspace",  // kAddrUseForPersistentWorkspace
     "Unknown"};
 
@@ -31,7 +31,7 @@ const char_t *GetAddrUseForStr(AddrUseFor addr_use_for) {
   }
   return g_addr_use_for_str[i];
 }
-}
+}  // namespace
 
 ModelArgsLayoutPlanner::ModelArgsLayoutPlanner(
     const vector<TaskArgsRefreshTypeClassifier::TaskRefreshType> &task_indexes_to_refresh_type,
@@ -75,11 +75,12 @@ UpdateTriggerType ModelArgsLayoutPlanner::GetTriggerTypeByTaskIndex(size_t index
 }
 
 Status ModelArgsLayoutPlanner::PlanPartitions(PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
-    const AddrUseFor &addr_use_for) const {
+                                              const AddrUseFor &addr_use_for) const {
   placements_to_partitions_to_len = {};
   for (size_t i = 0U; i < task_indexes_to_param_.size(); ++i) {
-    auto &args_descs_to_plan = (addr_use_for == AddrUseFor::kAddrUseForArgs) ?
-        task_indexes_to_param_[i].args_descs : task_indexes_to_param_[i].persistent_workspace_descs;
+    auto &args_descs_to_plan = (addr_use_for == AddrUseFor::kAddrUseForArgs)
+                                   ? task_indexes_to_param_[i].args_descs
+                                   : task_indexes_to_param_[i].persistent_workspace_descs;
     for (const auto &args_desc : args_descs_to_plan) {
       const size_t pi = static_cast<size_t>(args_desc.placement);
       const size_t tti = static_cast<size_t>(GetTriggerTypeByTaskIndex(i));
@@ -90,8 +91,8 @@ Status ModelArgsLayoutPlanner::PlanPartitions(PlacementsToPartitionsToLenType &p
 
   // 添加随路拷贝的partition
   if (host_input_size_ > 0) {
-    placements_to_partitions_to_len[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)][static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput)] =
-      host_input_size_;
+    placements_to_partitions_to_len[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)]
+                                   [static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput)] = host_input_size_;
   }
   return SUCCESS;
 }
@@ -99,10 +100,10 @@ Status ModelArgsLayoutPlanner::PlanPartitions(PlacementsToPartitionsToLenType &p
 Status ModelArgsLayoutPlanner::MergePlacements(PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
                                                MergePolicy &merge_policy) const {
   merge_policy = {
-      ArgsPlacement::kEnd,              // hbm不做合并
-      ArgsPlacement::kEnd,              // ts不做合并
-      ArgsPlacement::kArgsPlacementHbm, // sqe合并到hbm中
-      ArgsPlacement::kEnd               // host_svm不做合并
+      ArgsPlacement::kEnd,               // hbm不做合并
+      ArgsPlacement::kEnd,               // ts不做合并
+      ArgsPlacement::kArgsPlacementHbm,  // sqe合并到hbm中
+      ArgsPlacement::kEnd                // host_svm不做合并
   };
 
   for (size_t src_pi = 0U; src_pi < static_cast<size_t>(ArgsPlacement::kEnd); ++src_pi) {
@@ -121,26 +122,26 @@ Status ModelArgsLayoutPlanner::MergePlacements(PlacementsToPartitionsToLenType &
   return SUCCESS;
 }
 
-Status ModelArgsLayoutPlanner::AlignPartitions(PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
+Status ModelArgsLayoutPlanner::AlignPartitions(
+    PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
     PlacementsToPartitionsToLenType &placements_to_partitions_to_align_offset) const {
   placements_to_partitions_to_align_offset = {};
   for (size_t pi = 0U; pi < static_cast<size_t>(ArgsPlacement::kEnd); ++pi) {
     for (size_t tti = 0U; tti < static_cast<size_t>(UpdateTriggerType::kEnd); ++tti) {
-        if (placements_to_partitions_to_len[pi][tti] == 0) {
-          placements_to_partitions_to_align_offset[pi][tti] = 0;
-          continue;
-        }
+      if (placements_to_partitions_to_len[pi][tti] == 0) {
+        placements_to_partitions_to_align_offset[pi][tti] = 0;
+        continue;
+      }
 
-        /* partition长度需要64字节对齐，因为memcpy_async的地址需要64字节对齐
-         * 芯片约束，从GM搬运数据到UB时，最低拷贝数据量为32字节
-         * 当partition尾部task的args table实际可访问的device内存长度小于32时，GM搬运该task的args table到UB时会产生读越界错误
-         * 修改方案为每个partion都补上32字节后再做64字节对齐
-         */
-        const int64_t align_size =
-          ge::MemSizeAlign(static_cast<size_t>(placements_to_partitions_to_len[pi][tti]) + kUBAlignedLen,
-                           kPartitionAlignLen);
-        placements_to_partitions_to_align_offset[pi][tti] = align_size - placements_to_partitions_to_len[pi][tti];
-        placements_to_partitions_to_len[pi][tti] = align_size;
+      /* partition长度需要64字节对齐，因为memcpy_async的地址需要64字节对齐
+       * 芯片约束，从GM搬运数据到UB时，最低拷贝数据量为32字节
+       * 当partition尾部task的args table实际可访问的device内存长度小于32时，GM搬运该task的args
+       * table到UB时会产生读越界错误 修改方案为每个partion都补上32字节后再做64字节对齐
+       */
+      const int64_t align_size = ge::MemSizeAlign(
+          static_cast<size_t>(placements_to_partitions_to_len[pi][tti]) + kUBAlignedLen, kPartitionAlignLen);
+      placements_to_partitions_to_align_offset[pi][tti] = align_size - placements_to_partitions_to_len[pi][tti];
+      placements_to_partitions_to_len[pi][tti] = align_size;
     }
   }
 
@@ -149,8 +150,7 @@ Status ModelArgsLayoutPlanner::AlignPartitions(PlacementsToPartitionsToLenType &
 
 Status ModelArgsLayoutPlanner::PlanTasks(
     const PlacementsToPartitionsToLenType &placements_to_partitions_to_len,
-    const PlacementsToPartitionsToLenType &placements_to_partitions_to_align_offset,
-    const MergePolicy &merge_policy,
+    const PlacementsToPartitionsToLenType &placements_to_partitions_to_align_offset, const MergePolicy &merge_policy,
     std::vector<SmallVector<TaskArgsLayoutResult, kTaskArgsLayoutResultSize>> &task_indexes_to_arg_results,
     const AddrUseFor &addr_use_for) const {
   PlacementsToPartitionsToLenType placements_to_partitions_to_offset;
@@ -165,8 +165,9 @@ Status ModelArgsLayoutPlanner::PlanTasks(
 
   task_indexes_to_arg_results.resize(task_indexes_to_param_.size());
   for (size_t i = 0U; i < task_indexes_to_param_.size(); ++i) {
-    auto &args_descs_to_plan = (addr_use_for == AddrUseFor::kAddrUseForArgs) ?
-        task_indexes_to_param_[i].args_descs : task_indexes_to_param_[i].persistent_workspace_descs;
+    auto &args_descs_to_plan = (addr_use_for == AddrUseFor::kAddrUseForArgs)
+                                   ? task_indexes_to_param_[i].args_descs
+                                   : task_indexes_to_param_[i].persistent_workspace_descs;
     for (const auto &args_desc : args_descs_to_plan) {
       // args_desc.args_len == 0 是允许的，自管理args的task会返回一个长度为0的args_desc
       // 对于args_len == 0的args，只有trigger type是有效的，其他字段随心生成就可以了
@@ -189,8 +190,8 @@ Status ModelArgsLayoutPlanner::PlanTasks(
 
   // offset 增加随路拷贝的长度
   if (host_input_size_ > 0) {
-    auto &offset =
-      placements_to_partitions_to_offset[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)][static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput)];
+    auto &offset = placements_to_partitions_to_offset[static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)]
+                                                     [static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput)];
     GE_ASSERT_TRUE(!AddOverflow(offset, host_input_size_, offset));
   }
 
@@ -199,9 +200,10 @@ Status ModelArgsLayoutPlanner::PlanTasks(
     GE_ASSERT_EQ(placements_to_partitions_to_offset[i][0U] + placements_to_partitions_to_align_offset[i][0U],
                  placements_to_partitions_to_len[i][0U]);
     for (size_t j = 1U; j < static_cast<size_t>(UpdateTriggerType::kEnd); ++j) {
-      GE_ASSERT_EQ(placements_to_partitions_to_offset[i][j] + placements_to_partitions_to_align_offset[i][j] - (
-                   placements_to_partitions_to_offset[i][j - 1U] + placements_to_partitions_to_align_offset[i][j - 1U]),
-                   placements_to_partitions_to_len[i][j]);
+      GE_ASSERT_EQ(
+          placements_to_partitions_to_offset[i][j] + placements_to_partitions_to_align_offset[i][j] -
+              (placements_to_partitions_to_offset[i][j - 1U] + placements_to_partitions_to_align_offset[i][j - 1U]),
+          placements_to_partitions_to_len[i][j]);
     }
   }
 

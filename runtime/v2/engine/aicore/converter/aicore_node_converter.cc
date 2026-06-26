@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -115,8 +115,7 @@ bg::ValueHolderPtr CreateVectorHolder(const std::vector<int64_t> &workspaces) {
 }
 
 RunCfg CollectRunConfig(const ge::NodePtr &node, const LowerInput &lower_input, const domi::TaskDef *task_def,
-                        std::vector<bg::ValueHolderPtr> &output_shapes, std::vector<bg::ValueHolderPtr>& launch_arg)
-{
+                        std::vector<bg::ValueHolderPtr> &output_shapes, std::vector<bg::ValueHolderPtr> &launch_arg) {
   RunCfg run_cfg;
   const auto &op_desc = node->GetOpDesc();
   bool sta_tiling_depend = false;
@@ -231,7 +230,7 @@ bool IsThirdClassOp(const ge::OpDescPtr &op_desc) {
     return false;
   }
   int32_t unknown_shape_type_val = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  (void)ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
   return static_cast<ge::UnknowShapeOpType>(unknown_shape_type_val) == ge::DEPEND_SHAPE_RANGE;
 }
 
@@ -336,7 +335,7 @@ static ge::Status LoadAtomicWorkspace(const ge::OpDescPtr &op_desc) {
 }
 
 static ge::Status GetCleanIndexes(const ge::NodePtr &node, std::vector<int64_t> &clean_workspace_indexes,
-                           std::vector<int64_t> &clean_output_indexes) {
+                                  std::vector<int64_t> &clean_output_indexes) {
   const auto &op_desc = node->GetOpDesc();
   GELOGI("Begin to do atomic optiling for op[%s, %s].", op_desc->GetNamePtr(), op_desc->GetTypePtr());
   if (LoadAtomicWorkspace(op_desc) != ge::SUCCESS) {
@@ -360,7 +359,7 @@ ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_n
   // add data node for workspace
   ge::OpDescPtr workspace_data_op_desc = nullptr;
   GE_MAKE_SHARED(workspace_data_op_desc = std::make_shared<ge::OpDesc>(clean_node->GetName() + "_Data_0", "Data"),
-      return ge::FAILED);
+                 return ge::FAILED);
   FE_ASSERT_NOTNULL(workspace_data_op_desc);
   if (workspace_data_op_desc->AddOutputDesc(ge::GeTensorDesc()) != ge::SUCCESS) {
     GELOGE(ge::FAILED, "workspace_data_op_desc add output desc failed");
@@ -378,8 +377,9 @@ ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_n
   // add data node for output
   for (size_t i = 0U; i < output_size; ++i) {
     ge::OpDescPtr data_op_desc = nullptr;
-    GE_MAKE_SHARED(data_op_desc = std::make_shared<ge::OpDesc>(clean_node->GetName() + "_Data_" + std::to_string(i + 1),
-                                                               "Data"), return ge::FAILED);
+    GE_MAKE_SHARED(
+        data_op_desc = std::make_shared<ge::OpDesc>(clean_node->GetName() + "_Data_" + std::to_string(i + 1), "Data"),
+        return ge::FAILED);
     FE_ASSERT_NOTNULL(data_op_desc);
     if (data_op_desc->AddOutputDesc(ge::GeTensorDesc()) != ge::SUCCESS) {
       GELOGE(ge::FAILED, "data_op_desc add output desc failed, i = %zu", i);
@@ -418,10 +418,11 @@ ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node, const bg::AtomicLowe
   FE_ASSERT_NOTNULL(ori_op_desc);
   if (ori_op_desc->HasAttr(kMemSetAttrKey)) {
     GE_MAKE_SHARED(atomic_op_desc = std::make_shared<ge::OpDesc>(origin_node->GetName() + "_MemSet", "MemSet"),
-                                                                 return nullptr);
+                   return nullptr);
   } else {
-    GE_MAKE_SHARED(atomic_op_desc = std::make_shared<ge::OpDesc>(origin_node->GetName() + "_AtomicClean",
-                                                                 "DynamicAtomicAddrClean"), return nullptr);
+    GE_MAKE_SHARED(atomic_op_desc =
+                       std::make_shared<ge::OpDesc>(origin_node->GetName() + "_AtomicClean", "DynamicAtomicAddrClean"),
+                   return nullptr);
   }
   if (atomic_op_desc == nullptr) {
     return nullptr;
@@ -456,7 +457,7 @@ ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node, const bg::AtomicLowe
   (void)ge::AttrUtils::GetListInt(ori_op_desc, kTbeOpAtomicInt64Values, init_value_int64_list);
   (void)ge::AttrUtils::GetListFloat(ori_op_desc, kTbeOpAtomicFloatValues, init_value_float_list);
   GELOGD("Set attr to atomic with size:%zu %zu %zu.", dtype_list.size(), init_value_int64_list.size(),
-          init_value_float_list.size());
+         init_value_float_list.size());
   std::vector<int64_t> mem_size_vector = {-1};
   (void)ge::AttrUtils::SetListInt(atomic_op_desc, ge::ATTR_NAME_ATOMIC_MEMSET_SIZES, mem_size_vector);
   (void)ge::AttrUtils::SetListInt(atomic_op_desc, ge::ATTR_NAME_ATOMIC_MEMSET_DTYPES, dtype_list);
@@ -488,8 +489,8 @@ ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node, const bg::AtomicLowe
 }
 
 static bg::ValueHolderPtr LaunchAtomic(const ge::NodePtr &node, const LowerInput &lower_input,
-                                const LoweringGlobalData::NodeCompileResult *compile_result,
-                                const bg::AtomicLoweringArg &atomic_lowering_arg) {
+                                       const LoweringGlobalData::NodeCompileResult *compile_result,
+                                       const bg::AtomicLoweringArg &atomic_lowering_arg) {
   if (compile_result == nullptr || compile_result->task_defs.size() < AtomicTaskdefMinNum) {
     return nullptr;
   }
@@ -562,39 +563,39 @@ static bg::ValueHolderPtr LaunchAtomic(const ge::NodePtr &node, const LowerInput
   bg::ValueHolderPtr launch_arg = nullptr;
   if (static_cast<ge::ModelTaskType>(task_def->type()) == ge::ModelTaskType::MODEL_TASK_ALL_KERNEL) {
     launch_arg = bg::AtomicLaunchKernelWithHandle(
-      {lower_input.global_data->GetStream(),
-      atomic_bin,
-      atomic_tiling_ret[TilingContext::kOutputBlockDim],
-      atomic_tiling_ret[TilingContext::kOutputScheduleMode],
-      atomic_tiling_ret[TilingContext::kOutputLocalMemorySize],
-      atomic_workspaces_addr,
-      shapebuffer_addr,
-      qos,
-      {},
-      {},
-      atomic_node,
-      lower_input.global_data,
-      dfx_holder,
-      atomic_tiling_ret[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)]},
-      atomic_tiling_ret[TilingContext::kOutputTilingKey],
-      CreateVectorHolder(workspace_indexes), output_clean_addrs, atomic_lowering_arg.workspaces_addrs);
+        {lower_input.global_data->GetStream(),
+         atomic_bin,
+         atomic_tiling_ret[TilingContext::kOutputBlockDim],
+         atomic_tiling_ret[TilingContext::kOutputScheduleMode],
+         atomic_tiling_ret[TilingContext::kOutputLocalMemorySize],
+         atomic_workspaces_addr,
+         shapebuffer_addr,
+         qos,
+         {},
+         {},
+         atomic_node,
+         lower_input.global_data,
+         dfx_holder,
+         atomic_tiling_ret[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)]},
+        atomic_tiling_ret[TilingContext::kOutputTilingKey], CreateVectorHolder(workspace_indexes), output_clean_addrs,
+        atomic_lowering_arg.workspaces_addrs);
   } else {
     launch_arg = bg::AtomicLaunchKernelWithFlag(
-      {lower_input.global_data->GetStream(),
-       atomic_bin,
-       atomic_tiling_ret[TilingContext::kOutputBlockDim],
-       atomic_tiling_ret[TilingContext::kOutputScheduleMode],
-       atomic_tiling_ret[TilingContext::kOutputLocalMemorySize],
-       atomic_workspaces_addr,
-       shapebuffer_addr,
-       qos,
-       {},
-       {},
-       atomic_node,
-       lower_input.global_data,
-       dfx_holder,
-       atomic_tiling_ret[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)]},
-      CreateVectorHolder(workspace_indexes), output_clean_addrs, atomic_lowering_arg.workspaces_addrs);
+        {lower_input.global_data->GetStream(),
+         atomic_bin,
+         atomic_tiling_ret[TilingContext::kOutputBlockDim],
+         atomic_tiling_ret[TilingContext::kOutputScheduleMode],
+         atomic_tiling_ret[TilingContext::kOutputLocalMemorySize],
+         atomic_workspaces_addr,
+         shapebuffer_addr,
+         qos,
+         {},
+         {},
+         atomic_node,
+         lower_input.global_data,
+         dfx_holder,
+         atomic_tiling_ret[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)]},
+        CreateVectorHolder(workspace_indexes), output_clean_addrs, atomic_lowering_arg.workspaces_addrs);
   }
   // 6. free memory, add dependency
   auto free_holder = bg::FreeWorkspaceMem(kOnDeviceHbm, atomic_workspaces_addr);
@@ -604,8 +605,8 @@ static bg::ValueHolderPtr LaunchAtomic(const ge::NodePtr &node, const LowerInput
 }
 
 static bg::ValueHolderPtr LaunchStaticAtomic(const ge::NodePtr &node, const LowerInput &lower_input,
-                                      const LoweringGlobalData::NodeCompileResult *compile_result,
-                                      const bg::AtomicLoweringArg &atomic_lowering_arg) {
+                                             const LoweringGlobalData::NodeCompileResult *compile_result,
+                                             const bg::AtomicLoweringArg &atomic_lowering_arg) {
   if (compile_result == nullptr || compile_result->task_defs.size() < AtomicTaskdefMinNum) {
     return nullptr;
   }
@@ -677,7 +678,8 @@ static bg::ValueHolderPtr LaunchStaticAtomic(const ge::NodePtr &node, const Lowe
 }
 
 bg::ValueHolderPtr LaunchAtomicByType(const ge::NodePtr &node, const LowerInput &lower_input,
-    const LoweringGlobalData::NodeCompileResult *compile_result, const bg::AtomicLoweringArg &atomic_lowering_arg) {
+                                      const LoweringGlobalData::NodeCompileResult *compile_result,
+                                      const bg::AtomicLoweringArg &atomic_lowering_arg) {
   bg::ValueHolderPtr atomic_launch_holder = nullptr;
   std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = nullptr;
   tiling_info = node->GetOpDesc()->TryGetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, tiling_info);
@@ -697,10 +699,10 @@ bg::ValueHolderPtr ReportErrInRunning(const LowerInput &lower_input) {
 }
 
 static std::vector<bg::DevMemValueHolderPtr> RollbackAiCpuProc(const ge::NodePtr &node, const LowerInput &lower_input,
-                                                        const std::vector<bg::ValueHolderPtr> &output_shapes) {
+                                                               const std::vector<bg::ValueHolderPtr> &output_shapes) {
   auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-  auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+  auto output_addrs =
+      bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs, *(lower_input.global_data));
   auto op_desc = node->GetOpDesc();
   // todo need common interface
   std::string kernel_lib_name;
@@ -726,26 +728,27 @@ static std::vector<bg::DevMemValueHolderPtr> RollbackAiCpuProc(const ge::NodePtr
   return ret;
 }
 
-static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithHandle(const ge::NodePtr &node, const LowerInput &lower_input,
-                                                           std::vector<bg::ValueHolderPtr> &output_shapes,
-                                                           ProcArgs &proc_arg) {
+static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithHandle(const ge::NodePtr &node,
+                                                                  const LowerInput &lower_input,
+                                                                  std::vector<bg::ValueHolderPtr> &output_shapes,
+                                                                  ProcArgs &proc_arg) {
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICore);
   if (task_def == nullptr) {
     return {};
   }
   // 3. alloc memory
-  bg::DevMemValueHolderPtr workspaces_addr = bg::AllocAiCoreWorkspaceMem(node, kOnDeviceHbm,
-      proc_arg.tiling_ret[TilingContext::kOutputWorkspace], *(lower_input.global_data));
+  bg::DevMemValueHolderPtr workspaces_addr = bg::AllocAiCoreWorkspaceMem(
+      node, kOnDeviceHbm, proc_arg.tiling_ret[TilingContext::kOutputWorkspace], *(lower_input.global_data));
   auto shapebuffer_addr = bg::AllocShapeBufferMem(kOnDeviceHbm, node, *(lower_input.global_data));
   auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-  auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+  auto output_addrs =
+      bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs, *(lower_input.global_data));
 
   // 4. memset or atomic clean
-  bg::ValueHolderPtr atomic_launch_holder = LaunchAtomicByType(node, lower_input, compile_result,
-                                                               {proc_arg.tiling_ret[TilingContext::kOutputWorkspace],
-                                                                workspaces_addr, output_sizes, output_addrs});
+  bg::ValueHolderPtr atomic_launch_holder = LaunchAtomicByType(
+      node, lower_input, compile_result,
+      {proc_arg.tiling_ret[TilingContext::kOutputWorkspace], workspaces_addr, output_sizes, output_addrs});
   // 5. sink bin
   auto node_bin = SinkBinForAicore(node, compile_result);
 
@@ -782,8 +785,8 @@ static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithHandle(const ge::Node
   proc_arg.ordered_holders.emplace_back(launch_arg_ref);
 
   // 8. Set output shape from shape buffer for third class op, and add dependency
-  auto ref_out_shapes = SetOutputShape(node, shapebuffer_addr, launch_arg_ref, lower_input.global_data->GetStream(),
-                                       output_shapes);
+  auto ref_out_shapes =
+      SetOutputShape(node, shapebuffer_addr, launch_arg_ref, lower_input.global_data->GetStream(), output_shapes);
   if (!ref_out_shapes.empty()) {
     /* If "SetOutputShape" in bg::If subgraph, ref_out_shapes connect to next node will across graph.
      * So we do not add bg::If if this node is third class op. */
@@ -801,9 +804,9 @@ static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithHandle(const ge::Node
   return output_addrs;
 }
 
-static std::vector<bg::DevMemValueHolderPtr> LoweringWithHandleProc(const ge::NodePtr &node, const LowerInput &lower_input,
-                                                             ProcArgs &proc_arg,
-                                                             std::vector<bg::ValueHolderPtr> &output_shapes) {
+static std::vector<bg::DevMemValueHolderPtr> LoweringWithHandleProc(const ge::NodePtr &node,
+                                                                    const LowerInput &lower_input, ProcArgs &proc_arg,
+                                                                    std::vector<bg::ValueHolderPtr> &output_shapes) {
   // 2. tiling
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
   auto platform_info_vec = bg::AppendCoreTypeToPlatform(node, lower_input.global_data);
@@ -873,7 +876,7 @@ static LowerResult LoweringAiCoreNodeWithHandle(const ge::NodePtr &node, const L
         LoweringWithHandleProc(node, lower_input, proc_arg, output_shapes);
     if (output_addrs.empty()) {
       if (node == nullptr || node->GetOpDesc() == nullptr || node->GetOpDesc()->GetOutputsSize() != 0) {
-        return {HyperStatus::ErrorStatus(static_cast<const char*>("Lowering with handle failed")), {}, {}, {}};
+        return {HyperStatus::ErrorStatus(static_cast<const char *>("Lowering with handle failed")), {}, {}, {}};
       }
     }
     if (proc_arg.atomic_launch != nullptr) {
@@ -889,8 +892,8 @@ static LowerResult LoweringAiCoreNodeWithHandle(const ge::NodePtr &node, const L
       cond,
       [&node, &output_shapes, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
         auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-        auto result = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+        auto result = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs,
+                                            *(lower_input.global_data));
         std::vector<bg::ValueHolderPtr> ret(result.begin(), result.end());
         return ret;
       },
@@ -901,27 +904,27 @@ static LowerResult LoweringAiCoreNodeWithHandle(const ge::NodePtr &node, const L
       },
       node->GetOpDesc()->GetStreamId());
   if (if_outputs.size() != output_shapes.size() || if_outputs.empty()) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Lowering with handle failed")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Lowering with handle failed")), {}, {}, {}};
   }
   return {HyperStatus::Success(), {if_outputs[0]}, output_shapes, if_outputs};
 }
 
 static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithFlag(const ge::NodePtr &node, const LowerInput &lower_input,
-                                                         std::vector<bg::ValueHolderPtr> &output_shapes,
-                                                         ProcArgs &proc_arg) {
+                                                                std::vector<bg::ValueHolderPtr> &output_shapes,
+                                                                ProcArgs &proc_arg) {
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   // 3. alloc memory
-  bg::DevMemValueHolderPtr workspaces_addr = bg::AllocAiCoreWorkspaceMem(node,
-      kOnDeviceHbm, proc_arg.tiling_ret[TilingContext::kOutputWorkspace], *(lower_input.global_data));
+  bg::DevMemValueHolderPtr workspaces_addr = bg::AllocAiCoreWorkspaceMem(
+      node, kOnDeviceHbm, proc_arg.tiling_ret[TilingContext::kOutputWorkspace], *(lower_input.global_data));
   auto shapebuffer_addr = bg::AllocShapeBufferMem(kOnDeviceHbm, node, *(lower_input.global_data));
   auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-  auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+  auto output_addrs =
+      bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs, *(lower_input.global_data));
 
   // 4. memset or atomic clean
-  bg::ValueHolderPtr atomic_launch_holder = LaunchAtomicByType(node, lower_input, compile_result,
-                                                               {proc_arg.tiling_ret[TilingContext::kOutputWorkspace],
-                                                                workspaces_addr, output_sizes, output_addrs});
+  bg::ValueHolderPtr atomic_launch_holder = LaunchAtomicByType(
+      node, lower_input, compile_result,
+      {proc_arg.tiling_ret[TilingContext::kOutputWorkspace], workspaces_addr, output_sizes, output_addrs});
   // 5. sink bin
   auto bin = SinkBinForAicore(node, compile_result);
 
@@ -944,8 +947,8 @@ static std::vector<bg::DevMemValueHolderPtr> AicoreProcWithFlag(const ge::NodePt
   proc_arg.ordered_holders.emplace_back(launch_holder);
 
   // 8. Set output shape from shape buffer for third class op, and add dependency
-  auto ref_out_shapes = SetOutputShape(node, shapebuffer_addr, launch_holder, lower_input.global_data->GetStream(),
-                                       output_shapes);
+  auto ref_out_shapes =
+      SetOutputShape(node, shapebuffer_addr, launch_holder, lower_input.global_data->GetStream(), output_shapes);
   if (!ref_out_shapes.empty()) {
     output_shapes = ref_out_shapes;
     proc_arg.ordered_holders.insert(proc_arg.ordered_holders.end(), ref_out_shapes.begin(), ref_out_shapes.end());
@@ -994,9 +997,9 @@ static std::vector<bg::ValueHolderPtr> WithFlagTilingProc(const ge::NodePtr &nod
                      proc_arg.launch_arg[static_cast<size_t>(AllocLaunchArgOutputs::kRtArg)]});
 }
 
-static std::vector<bg::DevMemValueHolderPtr> LoweringWithFlagProc(const ge::NodePtr &node, const LowerInput &lower_input,
-                                                           ProcArgs &proc_arg,
-                                                           std::vector<bg::ValueHolderPtr> &output_shapes) {
+static std::vector<bg::DevMemValueHolderPtr> LoweringWithFlagProc(const ge::NodePtr &node,
+                                                                  const LowerInput &lower_input, ProcArgs &proc_arg,
+                                                                  std::vector<bg::ValueHolderPtr> &output_shapes) {
   // 2. tiling
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
   auto platform_info_vec = bg::AppendCoreTypeToPlatform(node, lower_input.global_data);
@@ -1040,7 +1043,7 @@ static std::vector<bg::DevMemValueHolderPtr> LoweringWithFlagProc(const ge::Node
     proc_arg.ordered_holders.emplace_back(output_addrs[0]);
   }
   FE_ASSERT_TRUE(!proc_arg.tiling_ret.empty());
-  if(!node->GetOpDesc()->HasAttr(optiling::COMPILE_INFO_JSON)) {
+  if (!node->GetOpDesc()->HasAttr(optiling::COMPILE_INFO_JSON)) {
     return output_addrs;
   }
   FE_ASSERT_NOTNULL(proc_arg.tiling_ret[TilingContext::kOutputTilingData]);
@@ -1066,7 +1069,7 @@ static LowerResult LoweringAiCoreNodeWithFlag(const ge::NodePtr &node, const Low
         LoweringWithFlagProc(node, lower_input, proc_arg, output_shapes);
     if (output_addrs.empty()) {
       if (node == nullptr || node->GetOpDesc() == nullptr || node->GetOpDesc()->GetOutputsSize() != 0) {
-        return {HyperStatus::ErrorStatus(static_cast<const char*>("Lowering with flag failed")), {}, {}, {}};
+        return {HyperStatus::ErrorStatus(static_cast<const char *>("Lowering with flag failed")), {}, {}, {}};
       }
     }
     if (proc_arg.atomic_launch != nullptr) {
@@ -1081,8 +1084,8 @@ static LowerResult LoweringAiCoreNodeWithFlag(const ge::NodePtr &node, const Low
       cond,
       [&node, &output_shapes, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
         auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-        auto result = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+        auto result = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs,
+                                            *(lower_input.global_data));
         std::vector<bg::ValueHolderPtr> ret(result.begin(), result.end());
         return ret;
       },
@@ -1092,8 +1095,8 @@ static LowerResult LoweringAiCoreNodeWithFlag(const ge::NodePtr &node, const Low
         return ret;
       },
       node->GetOpDesc()->GetStreamId());
-  if (if_outputs.size() != output_shapes.size()  || if_outputs.empty()) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Lowering with flag failed")), {}, {}, {}};
+  if (if_outputs.size() != output_shapes.size() || if_outputs.empty()) {
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Lowering with flag failed")), {}, {}, {}};
   }
   return {HyperStatus::Success(), {if_outputs[0]}, output_shapes, if_outputs};
 }
@@ -1111,8 +1114,8 @@ LowerResult LoweringStaticAicoreNode(const ge::NodePtr &node, const LowerInput &
   const auto &op_desc = node->GetOpDesc();
   auto output_shapes = CreateOutputShapes(op_desc);
   auto output_sizes = bg::CalcTensorSize(node, output_shapes);
-  auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+  auto output_addrs =
+      bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs, *(lower_input.global_data));
 
   // 2. init bin and block_dim
   auto bin = SinkBinForAicore(node, compile_result);
@@ -1122,9 +1125,10 @@ LowerResult LoweringStaticAicoreNode(const ge::NodePtr &node, const LowerInput &
   auto shapebuffer_addr = bg::ValueHolder::CreateConst(&tensor_data, sizeof(gert::GertTensorData *));
 
   RunCfg run_cfg = CollectRunConfig(node, lower_input, task_def, output_shapes, launch_arg);
-  if (run_cfg.block_dim == nullptr || run_cfg.schedule_mode == nullptr || 
-    run_cfg.local_mem_size == nullptr || run_cfg.workspaces_size == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char *>("CollectRunConfig failed, invalid run_cfg.")), {}, {}, {}};
+  if (run_cfg.block_dim == nullptr || run_cfg.schedule_mode == nullptr || run_cfg.local_mem_size == nullptr ||
+      run_cfg.workspaces_size == nullptr) {
+    return {
+        HyperStatus::ErrorStatus(static_cast<const char *>("CollectRunConfig failed, invalid run_cfg.")), {}, {}, {}};
   }
   auto workspaces_size = run_cfg.workspaces_size;
   auto workspaces_addr = bg::AllocAiCoreWorkspaceMem(node, kOnDeviceHbm, workspaces_size, *(lower_input.global_data));
@@ -1132,8 +1136,8 @@ LowerResult LoweringStaticAicoreNode(const ge::NodePtr &node, const LowerInput &
   // 4. memset or atomic clean
   bg::ValueHolderPtr atomic_launch_holder = nullptr;
   if (op_desc->HasAttr(optiling::ATOMIC_COMPILE_INFO_JSON)) {
-    atomic_launch_holder = LaunchAtomic(node, lower_input, compile_result,
-                                        {workspaces_size, workspaces_addr, output_sizes, output_addrs});
+    atomic_launch_holder =
+        LaunchAtomic(node, lower_input, compile_result, {workspaces_size, workspaces_addr, output_sizes, output_addrs});
   } else {
     GELOGD("Node %s has no ATOMIC_COMPILE_INFO_JSON.", op_desc->GetName().c_str());
     atomic_launch_holder = LaunchStaticAtomic(node, lower_input, compile_result,
@@ -1148,10 +1152,11 @@ LowerResult LoweringStaticAicoreNode(const ge::NodePtr &node, const LowerInput &
   DfxExeArg dfx_exe_arg = GetOpDfxExeArg(node);
   auto dfx_holder = bg::ValueHolder::CreateConst(&dfx_exe_arg, sizeof(dfx_exe_arg));
   // 6. launch
-  auto launch_holder = bg::LaunchKernelWithFlag({lower_input.global_data->GetStream(), bin, run_cfg.block_dim,
-       run_cfg.schedule_mode, run_cfg.local_mem_size, workspaces_addr, shapebuffer_addr, qos, lower_input.input_shapes,
-       output_shapes, node, lower_input.global_data, dfx_holder, run_cfg.tiling_input_launch_arg},
-       lower_input.input_addrs, output_addrs);
+  auto launch_holder = bg::LaunchKernelWithFlag(
+      {lower_input.global_data->GetStream(), bin, run_cfg.block_dim, run_cfg.schedule_mode, run_cfg.local_mem_size,
+       workspaces_addr, shapebuffer_addr, qos, lower_input.input_shapes, output_shapes, node, lower_input.global_data,
+       dfx_holder, run_cfg.tiling_input_launch_arg},
+      lower_input.input_addrs, output_addrs);
   std::vector<bg::ValueHolderPtr> order_holders = {launch_holder};
   // 7. free memory, add dependency
   auto free_holder = bg::FreeWorkspaceMem(kOnDeviceHbm, workspaces_addr);
@@ -1175,8 +1180,9 @@ LowerResult LoweringAiCoreNode(const ge::NodePtr &node, const LowerInput &lower_
   }
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   if (compile_result == nullptr) {
-    REPORT_PREDEFINED_ERR_MSG("E22001", std::vector<const char *>({"opname", "optype"}),
-                              std::vector<const char *>({node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str()}));
+    REPORT_PREDEFINED_ERR_MSG(
+        "E22001", std::vector<const char *>({"opname", "optype"}),
+        std::vector<const char *>({node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str()}));
     GELOGE(ge::PARAM_INVALID, "Can not find compile result for node %s type %s", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find compile result")), {}, {}, {}};

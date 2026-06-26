@@ -100,4 +100,3 @@ Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendStr
 </tr>
 </tbody>
 </table>
-

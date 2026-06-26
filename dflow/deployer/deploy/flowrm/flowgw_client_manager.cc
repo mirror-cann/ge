@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,17 +13,13 @@
 #include "common/subprocess/subprocess_manager.h"
 
 namespace ge {
-FlowGwClient *FlowGwClientManager::CreateClient(int32_t device_id,
-                                                int32_t device_type,
-                                                const std::vector<int32_t> &res_ids,
-                                                bool is_proxy) const {
-  return new (std::nothrow)FlowGwClient(device_id, device_type, res_ids, is_proxy);
+FlowGwClient *FlowGwClientManager::CreateClient(int32_t device_id, int32_t device_type,
+                                                const std::vector<int32_t> &res_ids, bool is_proxy) const {
+  return new (std::nothrow) FlowGwClient(device_id, device_type, res_ids, is_proxy);
 }
 
-FlowGwClient *FlowGwClientManager::GetOrCreateClient(int32_t device_id,
-                                                     int32_t device_type,
-                                                     const std::vector<int32_t> &res_ids,
-                                                     bool is_proxy) {
+FlowGwClient *FlowGwClientManager::GetOrCreateClient(int32_t device_id, int32_t device_type,
+                                                     const std::vector<int32_t> &res_ids, bool is_proxy) {
   auto key = std::make_pair(device_id, device_type);
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -32,8 +28,8 @@ FlowGwClient *FlowGwClientManager::GetOrCreateClient(int32_t device_id,
       return clients_[it->second].get();
     }
   }
-  GELOGI("Begin to create client, device_id = %d, device_type = %d, res_ids = %s.",
-         device_id, device_type, ToString(res_ids).c_str());
+  GELOGI("Begin to create client, device_id = %d, device_type = %d, res_ids = %s.", device_id, device_type,
+         ToString(res_ids).c_str());
   auto client = CreateClient(device_id, device_type, res_ids, is_proxy);
   if (client == nullptr) {
     GELOGE(FAILED, "Failed to create flowgw client.");
@@ -54,8 +50,8 @@ FlowGwClient *FlowGwClientManager::GetOrCreateClient(int32_t device_id,
     device_to_client_index_[res_key] = clients_.size() - 1U;
   }
   device_to_client_index_[key] = clients_.size() - 1U;
-  GEEVENT("FlowGw client initialized successfully, device_id = %d, device_type = %d, res_ids = %s.",
-          device_id, device_type, ToString(res_ids).c_str());
+  GEEVENT("FlowGw client initialized successfully, device_id = %d, device_type = %d, res_ids = %s.", device_id,
+          device_type, ToString(res_ids).c_str());
   return clients_.back().get();
 }
 
@@ -71,9 +67,7 @@ FlowGwClient *FlowGwClientManager::GetClient(int32_t device_id, int32_t device_t
   return nullptr;
 }
 
-Status FlowGwClientManager::GetHcomHandle(int32_t device_id,
-                                          int32_t device_type,
-                                          uint64_t &handle) {
+Status FlowGwClientManager::GetHcomHandle(int32_t device_id, int32_t device_type, uint64_t &handle) {
   auto client = GetClient(device_id, device_type);
   GE_CHECK_NOTNULL(client);
   return client->GetOrCreateHcomHandle(handle);
@@ -90,20 +84,16 @@ Status FlowGwClientManager::WaitAllClientConfigEffect() {
   return SUCCESS;
 }
 
-Status FlowGwClientManager::CreateFlowGwGroup(
-    int32_t device_id,
-    int32_t device_type,
-    const std::vector<const ExchangeEndpoint *> &endpoint_list,
-    int32_t &group_id) {
+Status FlowGwClientManager::CreateFlowGwGroup(int32_t device_id, int32_t device_type,
+                                              const std::vector<const ExchangeEndpoint *> &endpoint_list,
+                                              int32_t &group_id) {
   auto client = GetClient(device_id, device_type);
   GE_CHECK_NOTNULL(client);
   GE_CHK_STATUS_RET(client->CreateFlowGwGroup(endpoint_list, group_id), "Failed to create flowgw group.");
   return SUCCESS;
 }
 
-Status FlowGwClientManager::DestroyFlowGwGroup(int32_t device_id,
-                                               int32_t device_type,
-                                               int32_t group_id) {
+Status FlowGwClientManager::DestroyFlowGwGroup(int32_t device_id, int32_t device_type, int32_t group_id) {
   auto client = GetClient(device_id, device_type);
   GE_CHECK_NOTNULL(client);
   GE_CHK_STATUS_RET(client->DestroyFlowGwGroup(group_id), "Failed to destroy flowgw group.");
@@ -120,24 +110,22 @@ Status FlowGwClientManager::SelectTargetClientIndex(const FlowGwClient::RouteDev
     target_device_type = route_device_info.dst_device_type;
   }
   const std::lock_guard<std::mutex> lock(mutex_);
-  const auto &it =  device_to_client_index_.find(std::make_pair(target_device_id, target_device_type));
+  const auto &it = device_to_client_index_.find(std::make_pair(target_device_id, target_device_type));
   GE_CHK_BOOL_RET_STATUS(it != device_to_client_index_.cend(), FAILED,
                          "Failed to get target client, src device_id = %d, src device_type = %d, "
                          "dst device_id = %d, dst device_type = %d, "
                          "target device_id = %d, target device_type = %d",
                          route_device_info.src_device_id, route_device_info.src_device_type,
-                         route_device_info.dst_device_id, route_device_info.dst_device_type,
-                         target_device_id, target_device_type);
+                         route_device_info.dst_device_id, route_device_info.dst_device_type, target_device_id,
+                         target_device_type);
   client_index = it->second;
   return SUCCESS;
 }
 
 Status FlowGwClientManager::BindQueues(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes) {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) {
   GELOGI("[Bind][Routes], routes size = %zu", queue_routes.size());
-  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *,
-                                         const ExchangeEndpoint *>>> index_to_routes;
+  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>>> index_to_routes;
   for (size_t i = 0U; i < queue_routes.size(); ++i) {
     FlowGwClient::RouteDeviceInfo device_info = {};
     device_info.src_device_id = queue_routes[i].first->device_id;
@@ -145,8 +133,7 @@ Status FlowGwClientManager::BindQueues(
     device_info.src_device_type = queue_routes[i].first->device_type;
     device_info.dst_device_type = queue_routes[i].second->device_type;
     size_t client_index = 0U;
-    GE_CHK_STATUS_RET(SelectTargetClientIndex(device_info, client_index),
-                      "Failed to select target client index.");
+    GE_CHK_STATUS_RET(SelectTargetClientIndex(device_info, client_index), "Failed to select target client index.");
     index_to_routes[client_index].emplace_back(queue_routes[i]);
   }
 
@@ -158,11 +145,9 @@ Status FlowGwClientManager::BindQueues(
 }
 
 Status FlowGwClientManager::UnbindQueues(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes) {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) {
   GELOGI("[Unbind][Routes], routes size = %zu", queue_routes.size());
-  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *,
-                                         const ExchangeEndpoint *>>> index_to_routes;
+  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>>> index_to_routes;
   for (size_t i = 0U; i < queue_routes.size(); ++i) {
     FlowGwClient::RouteDeviceInfo device_info = {};
     device_info.src_device_id = queue_routes[i].first->device_id;
@@ -170,8 +155,7 @@ Status FlowGwClientManager::UnbindQueues(
     device_info.src_device_type = queue_routes[i].first->device_type;
     device_info.dst_device_type = queue_routes[i].second->device_type;
     size_t client_index = 0U;
-    GE_CHK_STATUS_RET(SelectTargetClientIndex(device_info, client_index),
-                      "Failed to select target client index.");
+    GE_CHK_STATUS_RET(SelectTargetClientIndex(device_info, client_index), "Failed to select target client index.");
     index_to_routes[client_index].emplace_back(queue_routes[i]);
   }
 
@@ -183,11 +167,9 @@ Status FlowGwClientManager::UnbindQueues(
 }
 
 Status FlowGwClientManager::UpdateExceptionRoutes(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &exception_routes,
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &exception_routes,
     std::map<int32_t, std::shared_ptr<ExchangeEndpoint>> &endpoints) {
-  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *,
-                                         const ExchangeEndpoint *>>> index_to_routes;
+  std::map<size_t, std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>>> index_to_routes;
   for (size_t i = 0U; i < exception_routes.size(); ++i) {
     FlowGwClient::RouteDeviceInfo exception_device_info = {};
     exception_device_info.src_device_id = exception_routes[i].first->device_id;
@@ -197,10 +179,11 @@ Status FlowGwClientManager::UpdateExceptionRoutes(
     size_t client_index = 0U;
     GE_CHK_STATUS_RET(SelectTargetClientIndex(exception_device_info, client_index),
                       "[UpdateExceptionRoutes] Failed to select target client index.");
-    GELOGI("[UpdateExceptionRoutes] find exception route client index, src endpoint = %s, dst endpoint = %s,"
-           " client_index = %d.",
-           exception_routes[i].first->DebugString().c_str(), exception_routes[i].second->DebugString().c_str(),
-           client_index);
+    GELOGI(
+        "[UpdateExceptionRoutes] find exception route client index, src endpoint = %s, dst endpoint = %s,"
+        " client_index = %d.",
+        exception_routes[i].first->DebugString().c_str(), exception_routes[i].second->DebugString().c_str(),
+        client_index);
     index_to_routes[client_index].emplace_back(exception_routes[i]);
   }
 
@@ -232,7 +215,7 @@ Status FlowGwClientManager::Finalize() {
   for (const auto &client : clients_) {
     threads.emplace_back([&client]() {
       GE_CHK_STATUS(client->DestroyHcomHandle(), "Failed to destroy hcom handle.");
-      (void) client->Finalize();
+      (void)client->Finalize();
     });
   }
   for (auto &th : threads) {
@@ -247,7 +230,7 @@ Status FlowGwClientManager::Finalize() {
 }
 
 void FlowGwClientManager::ResponseDeviceInfoFormat(deployer::DeployerResponse &response,
-    const std::unique_ptr<FlowGwClient> &client) const {
+                                                   const std::unique_ptr<FlowGwClient> &client) const {
   auto dev_status = response.mutable_heartbeat_response()->add_device_status();
   dev_status->set_device_id(client->GetDeviceId());
   dev_status->set_device_type(client->GetDeviceType());
@@ -269,8 +252,8 @@ void FlowGwClientManager::GetFlowGwStatus(deployer::DeployerResponse &response) 
       continue;
     } else if ((status == ProcStatus::EXITED) || (status == ProcStatus::STOPPED)) {
       const std::string status_str = status == ProcStatus::EXITED ? "exited" : "stopped";
-      GELOGW("Queue schedule %s, device id[%d], device type[%d].", status_str.c_str(),
-          client->GetDeviceId(), client->GetDeviceType());
+      GELOGW("Queue schedule %s, device id[%d], device type[%d].", status_str.c_str(), client->GetDeviceId(),
+             client->GetDeviceType());
       ResponseDeviceInfoFormat(response, client);
       client->SetExceptionFlag();
     } else {

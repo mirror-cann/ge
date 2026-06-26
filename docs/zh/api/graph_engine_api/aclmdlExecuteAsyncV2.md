@@ -96,4 +96,3 @@ aclError aclmdlExecuteAsyncV2(uint32_t modelId, const aclmdlDataset *input, aclm
 ## 约束说明<a name="section96219408320"></a>
 
 约束与[aclmdlExecuteAsync](aclmdlExecuteAsync.md)一致。
-

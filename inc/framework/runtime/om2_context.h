@@ -31,12 +31,20 @@ class Om2ThreadLocalContext {
   ~Om2ThreadLocalContext() = default;
 
   // Stream synchronization timeout management
-  void SetStreamSyncTimeout(int32_t timeout) { stream_sync_timeout_ = timeout; }
-  int32_t StreamSyncTimeout() const { return stream_sync_timeout_; }
+  void SetStreamSyncTimeout(int32_t timeout) {
+    stream_sync_timeout_ = timeout;
+  }
+  int32_t StreamSyncTimeout() const {
+    return stream_sync_timeout_;
+  }
 
   // Reserved for future extension: event synchronization timeout
-  void SetEventSyncTimeout(int32_t timeout) { event_sync_timeout_ = timeout; }
-  int32_t EventSyncTimeout() const { return event_sync_timeout_; }
+  void SetEventSyncTimeout(int32_t timeout) {
+    event_sync_timeout_ = timeout;
+  }
+  int32_t EventSyncTimeout() const {
+    return event_sync_timeout_;
+  }
 
  private:
   int32_t stream_sync_timeout_ = -1;  // Default value consistent with GEContext
@@ -49,7 +57,7 @@ class Om2ThreadLocalContext {
  *
  * @return Reference to the thread-local Om2ThreadLocalContext instance
  */
-VISIBILITY_EXPORT Om2ThreadLocalContext& GetOm2ThreadLocalContext();
+VISIBILITY_EXPORT Om2ThreadLocalContext &GetOm2ThreadLocalContext();
 
 }  // namespace gert
 

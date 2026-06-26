@@ -35,7 +35,7 @@ if(BUILD_OPEN_PROJECT)
         ${AIR_CODE_DIR}/inc/graph_metadef
         ${METADEF_DIR}/inc
     )
- 
+
     target_link_libraries(hcom_gradient_split_tune   PRIVATE
         -Wl,--no-as-needed
         hccl_headers
@@ -59,7 +59,7 @@ else()
         ${TOP_DIR}/open_source/json/include
         ${TOP_DIR}/abl/mmpa/inc/mmpa
     )
- 
+
     target_link_libraries(hcom_gradient_split_tune   PRIVATE
         $<BUILD_INTERFACE:ge_intf_pub>
         $<BUILD_INTERFACE:slog_headers>

@@ -10,5 +10,5 @@ layer {
   name: "abs"
   type: "AbsVal"
   bottom: "data"
-  top: "abs_out" 
+  top: "abs_out"
 }

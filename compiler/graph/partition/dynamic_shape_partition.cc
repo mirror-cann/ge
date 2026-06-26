@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,8 +93,7 @@ Status ParseShapeRangeAttr(const OpDescPtr &op_desc, bool &has_shape_range_attr,
     for (size_t i = 0UL; i < max_shape_list.size(); i++) {
       auto tensor = op_desc->GetOutputDescPtr(static_cast<uint32_t>(i));
       if (tensor == nullptr) {
-        GELOGE(PARAM_INVALID, "Op[%s] Invalid shape range attr, tensor[%zu] nullptr",
-               op_desc->GetName().c_str(), i);
+        GELOGE(PARAM_INVALID, "Op[%s] Invalid shape range attr, tensor[%zu] nullptr", op_desc->GetName().c_str(), i);
         has_shape_range_attr = false;
         return PARAM_INVALID;
       }
@@ -153,11 +152,11 @@ Status IsSupportTilingSink(gert::DataDependentInterpreter &ddi, bool &is_support
   }
 
   // 判断算子是否支持tiling下沉在aicpu上执行
-  GE_ASSERT_SUCCESS(ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_AICPU),
-                                                       is_support));
+  GE_ASSERT_SUCCESS(
+      ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_AICPU), is_support));
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 using Cluster = DynamicShapeCluster;
 using ClusterPtr = std::shared_ptr<Cluster>;
@@ -261,8 +260,10 @@ Status DynamicShapePartitioner::IsGraphNeedUnknownShapePartition(bool &need_unkn
         (!is_need_iteration)) {
       GetRootGraph()->SetGraphUnknownFlag(true);
     }
-    GELOGD("graph %s, known shape node size[%zu], option max threshold[%ld], has special node status[%s],"
-        "iteration status[%s].", GetRootGraph()->GetName().c_str(), known_shape_nodes_.size(), max_threshold,
+    GELOGD(
+        "graph %s, known shape node size[%zu], option max threshold[%ld], has special node status[%s],"
+        "iteration status[%s].",
+        GetRootGraph()->GetName().c_str(), known_shape_nodes_.size(), max_threshold,
         has_special_node_ ? "true" : "false", is_need_iteration ? "true" : "false");
     need_unknown_shape_partition = false;
     return SUCCESS;
@@ -274,8 +275,8 @@ Status DynamicShapePartitioner::IsGraphNeedUnknownShapePartition(bool &need_unkn
   if (is_single_op) {
     need_unknown_shape_partition = false;
     for (const auto &sub_node : GetRootGraph()->GetDirectNode()) {
-      GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]",
-             sub_node->GetName().c_str(), GetRootGraph()->GetName().c_str());
+      GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]", sub_node->GetName().c_str(),
+             GetRootGraph()->GetName().c_str());
       (void)AttrUtils::SetBool(sub_node->GetOpDesc(), kOwnerGraphIsUnknown, true);
     }
     for (const auto &graph : GetRootGraph()->GetAllSubgraphs()) {
@@ -284,9 +285,9 @@ Status DynamicShapePartitioner::IsGraphNeedUnknownShapePartition(bool &need_unkn
     return SUCCESS;
   }
   for (const auto &sub_node : GetRootGraph()->GetDirectNode()) {
-      GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]",
-             sub_node->GetName().c_str(), GetRootGraph()->GetName().c_str());
-      (void)AttrUtils::SetBool(sub_node->GetOpDesc(), kOwnerGraphIsUnknown, true);
+    GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]", sub_node->GetName().c_str(),
+           GetRootGraph()->GetName().c_str());
+    (void)AttrUtils::SetBool(sub_node->GetOpDesc(), kOwnerGraphIsUnknown, true);
   }
   GE_ASSERT_TRUE(AttrUtils::SetBool(*GetRootGraph(), ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true),
                  "[Set][Attr] dynamic shape partitioned flag on root graph %s failed.",
@@ -298,15 +299,15 @@ Status DynamicShapePartitioner::IsGraphNeedUnknownShapePartition(bool &need_unkn
 void DynamicShapePartitioner::SetRootGraphUnknown() const {
   GetRootGraph()->SetGraphUnknownFlag(true);
   for (const auto &sub_node : GetRootGraph()->GetDirectNode()) {
-    GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]",
-           sub_node->GetName().c_str(), GetRootGraph()->GetName().c_str());
+    GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]", sub_node->GetName().c_str(),
+           GetRootGraph()->GetName().c_str());
     (void)AttrUtils::SetBool(sub_node->GetOpDesc(), kOwnerGraphIsUnknown, true);
   }
   for (const auto &sub_graph : GetRootGraph()->GetAllSubgraphs()) {
     sub_graph->SetGraphUnknownFlag(true);
     for (const auto &sub_node : sub_graph->GetDirectNode()) {
-      GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]",
-             sub_node->GetName().c_str(), sub_graph->GetName().c_str());
+      GELOGD("Set OwnerGraphIsUnknow attr to node[%s], graph [%s]", sub_node->GetName().c_str(),
+             sub_graph->GetName().c_str());
       (void)AttrUtils::SetBool(sub_node->GetOpDesc(), kOwnerGraphIsUnknown, true);
     }
   }
@@ -353,9 +354,8 @@ Status DynamicShapePartitioner::Initialize() {
   return SUCCESS;
 }
 
-Status DynamicShapePartitioner::GetMultiBatchIndependCompileGraphs(
-    const ComputeGraphPtr &compute_graph,
-    std::vector<ComputeGraphPtr> &independ_graphs) {
+Status DynamicShapePartitioner::GetMultiBatchIndependCompileGraphs(const ComputeGraphPtr &compute_graph,
+                                                                   std::vector<ComputeGraphPtr> &independ_graphs) {
   bool enable_dynamic_batch = false;
   (void)ge::AttrUtils::GetBool(compute_graph, "_enable_dynamic_batch", enable_dynamic_batch);
   if (!enable_dynamic_batch) {
@@ -411,8 +411,7 @@ bool DynamicShapePartitioner::IsNeedMarkDynamicTilingDepend(const NodePtr &node)
       if (ge::OpDescUtils::GetInputConstData(op, static_cast<uint32_t>(i)) != nullptr) {
         continue;
       }
-      GELOGI("Input[%zu] of node: %s is dyanmic tilingDependent, index: %zu",
-             i, node->GetName().c_str(), index);
+      GELOGI("Input[%zu] of node: %s is dynamic tilingDependent, index: %zu", i, node->GetName().c_str(), index);
       return true;
     }
   }
@@ -446,8 +445,7 @@ Status DynamicShapePartitioner::Partition() {
                           "[Get][GetMultiBatchIndependCompileGraphs]failed, graph name:%s",
                           GetRootGraph()->GetName().c_str());
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::GetIndependentCompileGraphs(GetRootGraph(), independent_compile_graphs),
-                          "[Get][IndependentCompileGraph]failed, graph name:%s",
-                          GetRootGraph()->GetName().c_str());
+                          "[Get][IndependentCompileGraph]failed, graph name:%s", GetRootGraph()->GetName().c_str());
   auto root_graph = GetRootGraph();  // save root_graph_ for recovery
   for (const auto &graph : independent_compile_graphs) {
     // independent compile graph is which need to be partitioned, so set root_graph_ by independent compile graph
@@ -466,7 +464,7 @@ Status DynamicShapePartitioner::Partition() {
     GELOGD("%s", DebugString().c_str());
     if (status != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Call partition impl failed in dynamic shape partition, graph:%s",
-                         GetRootGraph()->GetName().c_str());
+                           GetRootGraph()->GetName().c_str());
       GELOGE(status, "[Call][PartitionImpl] Failed dynamic shape partition graph:%s, ret:%s",
              GetRootGraph()->GetName().c_str(), DebugString().c_str());
       ClearResource();
@@ -475,7 +473,7 @@ Status DynamicShapePartitioner::Partition() {
     GELOGD("Finish dynamic shape partition graph %s.", GetRootGraph()->GetName().c_str());
     ClearResource();
   }
-  SetRootGraph(root_graph); // recovery root_graph_
+  SetRootGraph(root_graph);  // recovery root_graph_
   GE_DUMP(GetRootGraph(), "After_DSP");
   return SUCCESS;
 }
@@ -504,7 +502,7 @@ Status DynamicShapePartitioner::CtrlEdgeTransfer() const {
           continue;
         }
 
-        GELOGD("start to tranfer ctrl edge for const node [%s]", n->GetName().c_str());
+        GELOGD("start to transfer ctrl edge for const node [%s]", n->GetName().c_str());
 
         for (auto &in_control_node : n->GetInControlNodes()) {
           GE_CHECK_NOTNULL(in_control_node);
@@ -800,9 +798,7 @@ Status DynamicShapePartitioner::MergeClusters() {
 }
 
 Status DynamicShapePartitioner::MergeClustersInput() {
-  const auto filter = [](const std::shared_ptr<BaseCluster> &cluster) {
-    return cluster->IsInputNode();
-  };
+  const auto filter = [](const std::shared_ptr<BaseCluster> &cluster) { return cluster->IsInputNode(); };
   const auto unique_cluster = GetUniqueClusters(filter);
   if (unique_cluster.empty()) {
     return SUCCESS;
@@ -869,11 +865,9 @@ Status DynamicShapePartitioner::MergeIdConsistantCluster() {
     auto last_cluster = unique_cluster[i - 1UL];
     GE_ASSERT_NOTNULL(last_cluster);
     // 当type不一致，且是最后一个算子时
-    if ((last_cluster->GetTypeIndex() != cluster->GetTypeIndex()) ||
-        (i == unique_cluster.size() - 1UL)) {
+    if ((last_cluster->GetTypeIndex() != cluster->GetTypeIndex()) || (i == unique_cluster.size() - 1UL)) {
       // 末尾的静态算子需要加一个
-      size_t static_cluster_num =
-          cluster->GetTypeIndex() != kUnknownShapeTypeIndex ? cluster_num + 1UL : cluster_num;
+      size_t static_cluster_num = cluster->GetTypeIndex() != kUnknownShapeTypeIndex ? cluster_num + 1UL : cluster_num;
       // 当last_cluster的type是静态，且个数小于static_model_ops_lower_limit_时，需要将其做合并
       if ((last_cluster->GetTypeIndex() == kKnownShapeTypeIndex) &&
           (static_cluster_num < static_cast<size_t>(static_model_ops_lower_limit_))) {
@@ -883,8 +877,7 @@ Status DynamicShapePartitioner::MergeIdConsistantCluster() {
         last_cluster->SetTypeIndex(kUnknownShapeTypeIndex);
         cluster = last_cluster;
         cluster_num++;
-        auto last_dynamic_cluster =
-            i < cluster_num ? nullptr : unique_cluster[i - cluster_num];
+        auto last_dynamic_cluster = i < cluster_num ? nullptr : unique_cluster[i - cluster_num];
         // 当静态cluster的前面存在动态cluster时，需要将其也合并进来
         if (last_dynamic_cluster != nullptr) {
           MergeClusters(last_dynamic_cluster, cluster);
@@ -1012,7 +1005,7 @@ bool NoTilingCheckInputNodeUpdateShape(const ConstNodePtr &node) {
   }
   return true;
 }
-} // namespace
+}  // namespace
 
 bool DynamicShapePartitioner::IsNodeSupportNoTiling(const ConstNodePtr &node) {
   auto op_desc = node->GetOpDesc();
@@ -1040,8 +1033,8 @@ bool DynamicShapePartitioner::IsNodeSupportNoTiling(const ConstNodePtr &node) {
     (void)AttrUtils::GetListStr(op_desc, ATTR_NAME_OP_TILING_INLINE_ENGINE, tiling_inline_engine);
     auto it = find(tiling_inline_engine.begin(), tiling_inline_engine.end(), op_engine_name);
     if (it == tiling_inline_engine.end()) {
-      GELOGD("Op[%s] not support no tiling, cause engine[%s] not support tiling inline.",
-             op_desc->GetName().c_str(), op_engine_name.c_str());
+      GELOGD("Op[%s] not support no tiling, cause engine[%s] not support tiling inline.", op_desc->GetName().c_str(),
+             op_engine_name.c_str());
       return false;
     }
 
@@ -1050,8 +1043,8 @@ bool DynamicShapePartitioner::IsNodeSupportNoTiling(const ConstNodePtr &node) {
     (void)AttrUtils::GetListStr(op_desc, ATTR_NAME_OP_EXPORT_SHAPE_ENGINE, update_shape_engine);
     it = find(update_shape_engine.begin(), update_shape_engine.end(), op_engine_name);
     if (it == update_shape_engine.end()) {
-      GELOGD("Op[%s] not support no tiling, cause engine[%s] not support update shape.",
-             op_desc->GetName().c_str(), op_engine_name.c_str());
+      GELOGD("Op[%s] not support no tiling, cause engine[%s] not support update shape.", op_desc->GetName().c_str(),
+             op_engine_name.c_str());
       return false;
     }
   } else {
@@ -1153,8 +1146,8 @@ Status DynamicShapePartitioner::MarkOpNoTiling(const NodePtr &node, bool no_tili
         auto peer_op_desc = peer_node->GetOpDesc();
         auto peer_tensor = peer_op_desc->MutableInputDesc(peer_anchor->GetIdx());
         (void)AttrUtils::SetListInt(peer_tensor, ATTR_NAME_TENSOR_MAX_SHAPE, max_shape_list[i]);
-        GELOGD("No tiling set max shape for peer node[%s] tensor[%d]",
-               peer_op_desc->GetName().c_str(), peer_anchor->GetIdx());
+        GELOGD("No tiling set max shape for peer node[%s] tensor[%d]", peer_op_desc->GetName().c_str(),
+               peer_anchor->GetIdx());
       }
     }
   }
@@ -1168,7 +1161,8 @@ bool DynamicShapePartitioner::IsNodeSupportAddrRefresh(const NodePtr &node) cons
   bool is_support_addr_refresh = true;
   bool got = AttrUtils::GetBool(node->GetOpDescBarePtr(), kIsSupportAddrRefresh, is_support_addr_refresh);
   if (got && (!is_support_addr_refresh)) {
-    GELOGI("Mark node[%s,%s] force unknown as it does not support address refresh", node->GetNamePtr(), node->GetTypePtr());
+    GELOGI("Mark node[%s,%s] force unknown as it does not support address refresh", node->GetNamePtr(),
+           node->GetTypePtr());
     (void)ge::AttrUtils::SetBool(node->GetOpDescBarePtr(), ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
     return false;
   }
@@ -1192,8 +1186,8 @@ Status DynamicShapePartitioner::JudgeUnknownShapeForTilingDependNode(const NodeP
   }
   // 判断是否支持host计算
   bool is_support = false;
-  GE_ASSERT_SUCCESS(ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_HOST),
-                                                       is_support));
+  GE_ASSERT_SUCCESS(
+      ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_HOST), is_support));
   GE_ASSERT_TRUE(is_support);
   GE_ASSERT_SUCCESS(IsSupportTilingSink(ddi, is_support));
   if (is_support) {
@@ -1215,10 +1209,10 @@ bool DynamicShapePartitioner::IsSpecialNode(const OpDescPtr &op_desc) const {
   const auto type = op_desc->GetType();
   // 当前Special Node 只是用来进行对包含子图的节点进行判断，后续其他特殊的节点可以在此函数中进行扩展适配
   // StreamActive,StreamSwitch,StreamMerge,Enter,RefEnter,NextIteration,RefNextIteration V2当前未注册调度，此处屏蔽
-  const bool is_special_node = ((!op_desc->GetSubgraphInstanceNames().empty()) || (type == PARTITIONEDCALL) ||
-      (type == CASE) || (type == IF) || (type == WHILE) || (type == STREAMACTIVE) ||(type == STREAMSWITCH) ||
-      (type == STREAMMERGE) || (type == ENTER) || (type == REFENTER) || (type == NEXTITERATION) ||
-      (type == REFNEXTITERATION));
+  const bool is_special_node =
+      ((!op_desc->GetSubgraphInstanceNames().empty()) || (type == PARTITIONEDCALL) || (type == CASE) || (type == IF) ||
+       (type == WHILE) || (type == STREAMACTIVE) || (type == STREAMSWITCH) || (type == STREAMMERGE) ||
+       (type == ENTER) || (type == REFENTER) || (type == NEXTITERATION) || (type == REFNEXTITERATION));
   return is_special_node;
 }
 
@@ -1238,8 +1232,9 @@ Status DynamicShapePartitioner::CollectSpreadUnknownShapeNodes(NodePtr node) {
       }
     }
   } else {
-    // 与支持tilingDepend 功能不冲突，unknown_shape_nodes_ 如果已经赋值，则在函数IsGraphNeedUnknownShapePartition中不会使用
-    // 如下的known_shape_nodes_ 和 has_special_node_ 进行功能判断
+    // 与支持tilingDepend 功能不冲突，unknown_shape_nodes_
+    // 如果已经赋值，则在函数IsGraphNeedUnknownShapePartition中不会使用 如下的known_shape_nodes_ 和 has_special_node_
+    // 进行功能判断
     auto opdesc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(opdesc, "[Get][OpDesc] Opdesc is nullptr.");
     known_shape_nodes_.insert(node);
@@ -1299,8 +1294,8 @@ Status DynamicShapePartitioner::IsUnknownShapeNode(NodePtr node, bool &is_unknow
       is_unknown = true;
       GE_CHK_STATUS_RET(MarkOpNoTiling(node, false), "[Call][MarkOpNoTiling] failed for node[%s].",
                         node->GetName().c_str());
-      GELOGD("Mark node %s unknown as subgraph unknown, owner node is_shape_unknown[%d].",
-             node->GetName().c_str(), is_shape_unknown);
+      GELOGD("Mark node %s unknown as subgraph unknown, owner node is_shape_unknown[%d].", node->GetName().c_str(),
+             is_shape_unknown);
       return SUCCESS;
     }
   }
@@ -1323,8 +1318,7 @@ Status DynamicShapePartitioner::IsUnknownShapeGraph(const ComputeGraphPtr &graph
                       "[Call][IsUnknownShapeNode]Failed check node %s shape on graph %s.", node->GetName().c_str(),
                       graph->GetName().c_str());
     if (is_unknown) {
-      GELOGD("Mark graph %s unknown as contains unknown node %s.",
-             graph->GetName().c_str(), node->GetName().c_str());
+      GELOGD("Mark graph %s unknown as contains unknown node %s.", graph->GetName().c_str(), node->GetName().c_str());
       return SUCCESS;
     }
   }
@@ -1338,8 +1332,8 @@ std::string DynamicShapePartitioner::GetSubgraphName(const BaseCluster &cluster)
   bool is_input = cluster.IsInputNode();
   std::string known_name = (is_unknown_shape ? "_unknow" : "_know");
   std::string sub_graph_name_patten = (is_input ? "_input" : known_name);
-  std::string sub_graph_name = GetRootGraph()->GetName() + "_sub_" + std::to_string(cluster.UniqueId()) +
-                               sub_graph_name_patten;
+  std::string sub_graph_name =
+      GetRootGraph()->GetName() + "_sub_" + std::to_string(cluster.UniqueId()) + sub_graph_name_patten;
   return sub_graph_name;
 }
 
@@ -1388,8 +1382,7 @@ std::string DynamicShapePartitioner::GetPartitionName() const {
   return "DynamicShapePartitioner";
 }
 
-Status DynamicShapePartitioner::CheckIfSubgraphUnknown(const ComputeGraphPtr &graph,
-                                                       bool &is_unknown_shape) const {
+Status DynamicShapePartitioner::CheckIfSubgraphUnknown(const ComputeGraphPtr &graph, bool &is_unknown_shape) const {
   bool forced_unknown = false;
   is_unknown_shape = false;
   for (const auto &node : graph->GetDirectNode()) {
@@ -1485,7 +1478,8 @@ void DynamicShapeCluster::Merge(std::shared_ptr<BaseCluster> other) {
     SetTypeIndex(other->GetTypeIndex());
     GELOGD(
         "Set cluster[%zu] type index[%d] to other cluster[%zu] type index[%d], as other is unknown and this cluster is "
-        "not unknown", Id(), GetTypeIndex(), other->Id(), other->GetTypeIndex());
+        "not unknown",
+        Id(), GetTypeIndex(), other->Id(), other->GetTypeIndex());
   }
   GELOGD("Merge cluster[%zu] to other cluster[%zu].", Id(), other->Id());
 }

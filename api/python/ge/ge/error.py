@@ -19,8 +19,13 @@ from ge._capi.pygeapi_wrapper import geapi_lib
 class GeError(RuntimeError):
     """Runtime error raised for GE C API failures."""
 
-    def __init__(self, message: str, error_message: str = None, api_name: str = None,
-                 context: dict = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        error_message: str = None,
+        api_name: str = None,
+        context: dict = None,
+    ) -> None:
         super().__init__(message)
         self.error_message = error_message
         self.api_name = api_name
@@ -48,4 +53,9 @@ def raise_ge_error(api_name: str, status: int = None, **context) -> None:
     if error_message:
         message_parts.append(error_message)
 
-    raise GeError("; ".join(message_parts), error_message=error_message, api_name=api_name, context=context)
+    raise GeError(
+        "; ".join(message_parts),
+        error_message=error_message,
+        api_name=api_name,
+        context=context,
+    )

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,7 @@ class UTEST_nano_dbg_data : public testing::Test {
     GenGeModel();
   }
   void TearDown() {}
-  void GenGeModel()
-  {
+  void GenGeModel() {
     auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_INT64, {1});
     auto data2 = OP_CFG(CONSTANT).TensorDesc(FORMAT_ND, DT_INT64, {1});
     auto data3 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_INT64, {1});
@@ -54,7 +53,7 @@ class UTEST_nano_dbg_data : public testing::Test {
     op_desc_->SetOutputOffset({2048, 2048});
     for (int i = 0; i < 2; ++i) {
       auto output_tensor = op_desc_->MutableOutputDesc(i);
-      output_tensor->SetShape(GeShape({1,4,4,8}));
+      output_tensor->SetShape(GeShape({1, 4, 4, 8}));
       output_tensor->SetOriginShape(GeShape());
       output_tensor->SetDataType(DT_INT64);
       TensorUtils::SetSize(*output_tensor, 64);
@@ -79,7 +78,7 @@ class UTEST_nano_dbg_data : public testing::Test {
     op_desc_->SetWorkspace({});
     op_desc_->SetWorkspaceBytes(std::vector<int64_t>{32});
 
-    const static std::set<std::string> kGeLocalTypes{ DATA, CONSTANT, VARIABLE, NETOUTPUT };
+    const static std::set<std::string> kGeLocalTypes{DATA, CONSTANT, VARIABLE, NETOUTPUT};
     op_desc_->SetOpKernelLibName((kGeLocalTypes.count(ADD) > 0U) ? "DNN_VM_GE_LOCAL_OP_STORE" : "DNN_VM_RTS_OP_STORE");
 
     op_desc_->SetIsInputConst({true});
@@ -97,10 +96,10 @@ class UTEST_nano_dbg_data : public testing::Test {
  public:
   GeModelPtr ge_model_;
   OpDescPtr op_desc_;
+
  private:
   ComputeGraphPtr graph_;
   std::shared_ptr<domi::ModelTaskDef> model_task_;
-
 };
 
 TEST_F(UTEST_nano_dbg_data, dsa_dbg) {
@@ -425,7 +424,7 @@ TEST_F(UTEST_nano_dbg_data, DbgSuspended) {
   (void)add1_op->SetExtAttr("task_addr_offset", output_offset);
   add1_op->SetOutputOffset({2048});
   auto output_tensor = add1_op->MutableOutputDesc(0);
-  output_tensor->SetShape(GeShape({1,4,4,8}));
+  output_tensor->SetShape(GeShape({1, 4, 4, 8}));
   output_tensor->SetOriginShape(GeShape());
   output_tensor->SetDataType(DT_INT64);
   TensorUtils::SetSize(*output_tensor, 64);
@@ -444,7 +443,7 @@ TEST_F(UTEST_nano_dbg_data, DbgSuspended) {
   (void)add2_op->SetExtAttr("task_addr_offset", output_offset);
   add2_op->SetOutputOffset({2048});
   auto output2_tensor = add2_op->MutableOutputDesc(0);
-  output2_tensor->SetShape(GeShape({1,4,4,8}));
+  output2_tensor->SetShape(GeShape({1, 4, 4, 8}));
   output2_tensor->SetOriginShape(GeShape());
   output2_tensor->SetDataType(DT_INT64);
   TensorUtils::SetSize(*output2_tensor, 64);
@@ -460,12 +459,11 @@ TEST_F(UTEST_nano_dbg_data, DbgSuspended) {
     TensorUtils::SetSize(*input_desc, 64);
   }
 
-
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_model->SetGraph(graph);
 
   std::shared_ptr<domi::ModelTaskDef> model_task = std::make_shared<domi::ModelTaskDef>();
-  //add two task for add1&add2
+  // add two task for add1&add2
   domi::TaskDef *task1 = model_task->add_task();
   domi::TaskDef *task2 = model_task->add_task();
   task1->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));

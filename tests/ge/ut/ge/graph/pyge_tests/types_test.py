@@ -17,12 +17,10 @@ Types 功能测试 - 使用 pytest 框架
 """
 
 import pytest
-import sys
-import os
 
 # 添加 ge 到 Python 路径
 try:
-    from ge.graph.types import DataType, AttrValueType, Placement
+    from ge.graph.types import AttrValueType, DataType, Placement
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -108,7 +106,6 @@ class TestDataType:
         assert DataType.DT_INT32 in data_types
         assert DataType.DT_STRING in data_types
 
-
     def test_data_type_enum_repr(self):
         """测试 DataType 枚举 repr"""
         # 测试枚举 repr
@@ -160,7 +157,6 @@ class TestAttrValueType:
         assert AttrValueType.VT_STRING in attr_data_types
         assert AttrValueType.VT_FLOAT in attr_data_types
         assert AttrValueType.VT_LIST_STRING in attr_data_types
-
 
     def test_attr_data_type_enum_repr(self):
         """测试 AttrValueType 枚举 repr"""
@@ -214,27 +210,33 @@ class TestAttrValueType:
         attr.set_list_string(["hello", "world"])
         assert attr.get_value_type() == AttrValueType.VT_LIST_STRING
 
-    @pytest.mark.parametrize("data_type", [
-        DataType.DT_FLOAT,
-        DataType.DT_INT32,
-        DataType.DT_INT64,
-        DataType.DT_BOOL,
-        DataType.DT_STRING
-    ])
+    @pytest.mark.parametrize(
+        "data_type",
+        [
+            DataType.DT_FLOAT,
+            DataType.DT_INT32,
+            DataType.DT_INT64,
+            DataType.DT_BOOL,
+            DataType.DT_STRING,
+        ],
+    )
     def test_data_type_enum_parametrized(self, data_type):
         """测试 DataType 枚举参数化"""
         assert isinstance(data_type, DataType)
         assert isinstance(data_type, int)
         assert data_type.value >= 0
 
-    @pytest.mark.parametrize("attr_data_type", [
-        AttrValueType.VT_STRING,
-        AttrValueType.VT_FLOAT,
-        AttrValueType.VT_BOOL,
-        AttrValueType.VT_INT,
-        AttrValueType.VT_LIST_STRING,
-        AttrValueType.VT_LIST_FLOAT
-    ])
+    @pytest.mark.parametrize(
+        "attr_data_type",
+        [
+            AttrValueType.VT_STRING,
+            AttrValueType.VT_FLOAT,
+            AttrValueType.VT_BOOL,
+            AttrValueType.VT_INT,
+            AttrValueType.VT_LIST_STRING,
+            AttrValueType.VT_LIST_FLOAT,
+        ],
+    )
     def test_attr_data_type_enum_parametrized(self, attr_data_type):
         """测试 AttrValueType 枚举参数化"""
         assert isinstance(attr_data_type, AttrValueType)

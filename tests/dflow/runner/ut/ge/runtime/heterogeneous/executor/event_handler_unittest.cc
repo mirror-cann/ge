@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,6 +93,7 @@ static int32_t HcomDestroy() {
 class MockDynamicModelExecutor : public DynamicModelExecutor {
  public:
   explicit MockDynamicModelExecutor(bool is_host) : DynamicModelExecutor(is_host) {};
+
  private:
   virtual Status DoLoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph) {
     return SUCCESS;
@@ -102,6 +103,7 @@ class MockDynamicModelExecutor : public DynamicModelExecutor {
 class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
  public:
   explicit MockProxyDynamicModelExecutor() : ProxyDynamicModelExecutor() {};
+
  private:
   Status DoLoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph) override {
     return SUCCESS;
@@ -114,6 +116,7 @@ class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
 class MockModelHandle : public ExecutorContext::ModelHandle {
  public:
   MockModelHandle() : ModelHandle() {}
+
  protected:
   unique_ptr<DynamicModelExecutor> CreateDynamicModelExecutor(bool is_host) override {
     return MakeUnique<MockDynamicModelExecutor>(is_host);
@@ -159,8 +162,8 @@ class ModelHandleMock2 : public ExecutorContext::ModelHandle {
 
   MOCK_METHOD1(ClearModel, Status(const int32_t));
   MOCK_METHOD2(ExceptionNotify, Status(uint32_t, uint64_t));
-  MOCK_METHOD2(GetModelRuntimeIdOrHandle, Status(std::vector<uint32_t> &,
-    std::vector<ExecutorContext::ModelHandle *> &));
+  MOCK_METHOD2(GetModelRuntimeIdOrHandle,
+               Status(std::vector<uint32_t> &, std::vector<ExecutorContext::ModelHandle *> &));
 };
 
 class MockMmpa : public MmpaStubApiGe {
@@ -171,8 +174,7 @@ class MockMmpa : public MmpaStubApiGe {
   }
 
   void *DlOpen(const char *file_name, int32_t mode) {
-    if (std::string(file_name) == "libaicpu_scheduler.so" ||
-        std::string(file_name) == "libhost_aicpu_scheduler.so" ||
+    if (std::string(file_name) == "libaicpu_scheduler.so" || std::string(file_name) == "libhost_aicpu_scheduler.so" ||
         std::string(file_name) == "libhccl.so") {
       return (void *)0x12345678;
     }
@@ -180,7 +182,7 @@ class MockMmpa : public MmpaStubApiGe {
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 0;
     }
     return dlclose(handle);
@@ -200,13 +202,11 @@ class ExecutionContextMock : public ExecutorContext {
   MOCK_CONST_METHOD1(CreateInputStream, unique_ptr<std::istream>(const string &));
   MOCK_METHOD2(GetOrCreateModelHandle, ModelHandle *(uint32_t, uint32_t));
 };
-}
+}  // namespace
 class EventHandlerTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
-  void TearDown() override {
-  }
+  void SetUp() override {}
+  void TearDown() override {}
 
   void BuildModel(ModelBufferData &model_buffer_data) {
     vector<std::string> engine_list = {"AIcoreEngine"};
@@ -304,7 +304,8 @@ TEST_F(EventHandlerTest, TestEventHandler) {
 
   auto mock_model_handle = MakeUnique<ModelHandleMock>();
   auto &ref_mock_handle = *mock_model_handle;
-  auto mock_create_model_handle = [&mock_model_handle](uint32_t root_model_id, uint32_t model_id) -> ExecutorContext::ModelHandle * {
+  auto mock_create_model_handle = [&mock_model_handle](uint32_t root_model_id,
+                                                       uint32_t model_id) -> ExecutorContext::ModelHandle * {
     return mock_model_handle.get();
   };
   EXPECT_CALL(mock_context, GetOrCreateModelHandle).WillRepeatedly(testing::Invoke(mock_create_model_handle));
@@ -334,8 +335,8 @@ TEST_F(EventHandlerTest, TestEventHandlerClearModel) {
   uint32_t modelId = 0U;
   ModelHandleMock2 *modelHandleMockPtr = new ModelHandleMock2();
   handler.context_->model_handles_[rootModelId].emplace(modelId, modelHandleMockPtr);
-  auto &modelHandle = *reinterpret_cast<ModelHandleMock2 *>(
-    handler.context_->model_handles_[rootModelId][modelId].get());
+  auto &modelHandle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[rootModelId][modelId].get());
 
   deployer::ExecutorRequest request;
   deployer::ExecutorResponse response;
@@ -346,58 +347,51 @@ TEST_F(EventHandlerTest, TestEventHandlerClearModel) {
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  auto mock_get_clear_model_handle =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+  auto mock_get_clear_model_handle = [&modelHandle](
+                                         std::vector<uint32_t> &davinci_model_runtime_ids,
+                                         std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
   clear_model_request->set_clear_msg_type(2);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
   auto mock_get_clear_model_handle2 =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+      [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
+                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     dynamic_model_handles.emplace_back(&modelHandle);
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
   clear_model_request->set_clear_msg_type(2);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Return(FAILED));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
@@ -409,27 +403,25 @@ TEST_F(EventHandlerTest, TestEventHandlerClearModel) {
   AclRuntimeStub::SetInstance(alc_runtime_stub);
 
   auto mock_get_clear_model_handle3 =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+      [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
+                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     davinci_model_runtime_ids.emplace_back(0U);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle3));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle3));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
   auto mock_get_clear_model_handle4 =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+      [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
+                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     davinci_model_runtime_ids.emplace_back(0U);
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle4));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle4));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
@@ -441,15 +433,13 @@ TEST_F(EventHandlerTest, TestEventHandlerClearModel) {
   auto model_handle = MakeShared<ExecutorContext::ModelHandle>();
   std::vector<uint32_t> davinci_model_runtime_ids;
   std::vector<ExecutorContext::ModelHandle *> dynamic_model_handles;
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), FAILED);
-  
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), FAILED);
+
   EXPECT_NE(model_handle->DoUnloadModel(UINT32_MAX), SUCCESS);
   model_handle->dynamic_model_executor_ = model_handle->CreateProxyDynamicModelExecutor();
   EXPECT_NE(model_handle->dynamic_model_executor_.get(), nullptr);
   model_handle->is_dynamic_proxy_controlled_ = true;
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), SUCCESS);
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), SUCCESS);
   EXPECT_EQ(dynamic_model_handles.size(), 1U);
   EXPECT_EQ(davinci_model_runtime_ids.size(), 1U);
 
@@ -461,8 +451,7 @@ TEST_F(EventHandlerTest, TestEventHandlerClearModel) {
   ModelManager::GetInstance().InsertModel(davinci_model_id, shared_model);
   dynamic_model_handles.clear();
   davinci_model_runtime_ids.clear();
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), SUCCESS);
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), SUCCESS);
   EXPECT_EQ(dynamic_model_handles.size(), 0U);
   EXPECT_EQ(davinci_model_runtime_ids.size(), 1U);
 
@@ -533,7 +522,7 @@ TEST_F(EventHandlerTest, CreateProxyDynamicModelExecutor_Success) {
 TEST_F(EventHandlerTest, LoadDynamicModelWithQ_Failed) {
   auto options = GetThreadLocalContext().GetAllOptions();
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  GE_MAKE_GUARD(recover_cfg, [&options](){
+  GE_MAKE_GUARD(recover_cfg, [&options]() {
     MmpaStub::GetInstance().Reset();
     GetThreadLocalContext().SetGraphOption(options);
   });
@@ -571,7 +560,7 @@ TEST_F(EventHandlerTest, LoadDynamicModelWithQ_Failed) {
 TEST_F(EventHandlerTest, LoadDynamicModelWithQ_Success) {
   auto options = GetThreadLocalContext().GetAllOptions();
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  GE_MAKE_GUARD(recover_cfg, [&options](){
+  GE_MAKE_GUARD(recover_cfg, [&options]() {
     MmpaStub::GetInstance().Reset();
     GetThreadLocalContext().SetGraphOption(options);
   });
@@ -596,7 +585,8 @@ TEST_F(EventHandlerTest, LoadDynamicModelWithQ_Success) {
   EventHandler handler;
   EXPECT_EQ(handler.Initialize(), SUCCESS);
   handler.context_ = MakeUnique<MockExecutorContext>();
-  auto pne_model = StubModels::BuildRootModel(root_graph, false);;
+  auto pne_model = StubModels::BuildRootModel(root_graph, false);
+  ;
   handler.context_->LocalContext().AddLocalModel(0, 0, pne_model);
   ASSERT_FALSE(handler.context_.get() == nullptr);
   auto ret = handler.BatchLoadModels(request);
@@ -622,10 +612,10 @@ TEST_F(EventHandlerTest, TestExceptionNotify) {
   ModelHandleMock2 *invoke_model_handle_mock_ptr = new ModelHandleMock2();
   handler.context_->model_handles_[root_model_id].emplace(model_id, model_handle_mock_ptr);
   handler.context_->model_handles_[root_model_id].emplace(invoke_model_id, invoke_model_handle_mock_ptr);
-  auto &model_handle = *reinterpret_cast<ModelHandleMock2 *>(
-      handler.context_->model_handles_[root_model_id][model_id].get());
-  auto &invoke_model_handle = *reinterpret_cast<ModelHandleMock2 *>(
-      handler.context_->model_handles_[root_model_id][invoke_model_id].get());
+  auto &model_handle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[root_model_id][model_id].get());
+  auto &invoke_model_handle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[root_model_id][invoke_model_id].get());
   invoke_model_handle.is_invoked_nn_ = true;
 
   deployer::ExecutorRequest request;
@@ -644,25 +634,22 @@ TEST_F(EventHandlerTest, TestExceptionNotify) {
 
   exception_notify_request->set_root_model_id(root_model_id);
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(SUCCESS));
-  auto mock_get_model_handle2 =
-      [&model_handle](std::vector<uint32_t> &davinci_model_runtime_ids,
-                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        dynamic_model_handles.emplace_back(&model_handle);
-        dynamic_model_handles.emplace_back(&model_handle);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_model_handle2));
+  auto mock_get_model_handle2 = [&model_handle](
+                                    std::vector<uint32_t> &davinci_model_runtime_ids,
+                                    std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+    dynamic_model_handles.emplace_back(&model_handle);
+    dynamic_model_handles.emplace_back(&model_handle);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_model_handle2));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Return(FAILED));
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Return(FAILED));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_model_handle2));
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_model_handle2));
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(FAILED));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
@@ -672,26 +659,23 @@ TEST_F(EventHandlerTest, TestExceptionNotify) {
   auto alc_runtime_stub = std::make_shared<AclRuntimeMock>();
   AclRuntimeStub::SetInstance(alc_runtime_stub);
 
-  auto mock_get_clear_model_handle3 =
-      [](std::vector<uint32_t> &davinci_model_runtime_ids,
-                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        davinci_model_runtime_ids.emplace_back(0U);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_clear_model_handle3));
+  auto mock_get_clear_model_handle3 = [](std::vector<uint32_t> &davinci_model_runtime_ids,
+                                         std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+    davinci_model_runtime_ids.emplace_back(0U);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle3));
   handler.HandleEvent(request, response);
   EXPECT_NE(response.error_code(), SUCCESS);
 
   auto mock_get_clear_model_handle4 =
       [&model_handle](std::vector<uint32_t> &davinci_model_runtime_ids,
-                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        davinci_model_runtime_ids.emplace_back(0U);
-        dynamic_model_handles.emplace_back(&model_handle);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_clear_model_handle4));
+                      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+    davinci_model_runtime_ids.emplace_back(0U);
+    dynamic_model_handles.emplace_back(&model_handle);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle4));
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(FAILED));
   handler.HandleEvent(request, response);
   EXPECT_NE(response.error_code(), SUCCESS);

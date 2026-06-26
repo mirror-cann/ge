@@ -44,14 +44,20 @@ using AicpuSessionInfo = SessionInfo;
 
 static void SyncKernelNameFromOpDesc(const GeModelPtr &ge_model) {
   auto model_task_def = ge_model->GetModelTaskDefPtr();
-  if (model_task_def == nullptr) { return; }
+  if (model_task_def == nullptr) {
+    return;
+  }
   const auto &graph = ge_model->GetGraph();
-  if (graph == nullptr) { return; }
+  if (graph == nullptr) {
+    return;
+  }
   for (int i = 0; i < model_task_def->task_size(); ++i) {
     auto *task_def = model_task_def->mutable_task(i);
     for (const auto &node : graph->GetDirectNode()) {
       auto op_desc = node->GetOpDesc();
-      if (op_desc == nullptr) { continue; }
+      if (op_desc == nullptr) {
+        continue;
+      }
       std::string kernel_name;
       if (ge::AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
         task_def->mutable_kernel()->set_kernel_name(kernel_name);
@@ -555,8 +561,7 @@ GeRootModelPtr CreateGeRootModelWithAicpuEmptyShape() {
 
   gert::GeModelBuilder builder(graph);
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
-  auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .BuildGeRootModel();
+  auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false)).BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);
@@ -954,8 +959,8 @@ GeRootModelPtr CreateGeRootModelWithMemcpyAddrAsyncConstTensor() {
   memcpy_addr_task->set_stream_id(0U);
   auto *memcpy_async_def = memcpy_addr_task->mutable_memcpy_async();
   memcpy_async_def->set_op_index(2);
-  memcpy_async_def->set_src(kWeightBase + 0U);   // weight_base + data_offset(0) => kConstTensor
-  memcpy_async_def->set_dst(2048U);               // FM address => kOutputInstance
+  memcpy_async_def->set_src(kWeightBase + 0U);  // weight_base + data_offset(0) => kConstTensor
+  memcpy_async_def->set_dst(2048U);             // FM address => kOutputInstance
   memcpy_async_def->set_dst_max(1024U);
   memcpy_async_def->set_count(512U);
   memcpy_async_def->set_kind(1U);
@@ -4153,7 +4158,8 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForArgs_Ok) {
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
   // New table-driven patterns in DispatchOp
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("OP_ARG_TILING"), std::string::npos);
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("KernelTaskDistribute(ordered_io_addrs"), std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("KernelTaskDistribute(ordered_io_addrs"),
+            std::string::npos);
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("OP_ARG_EVENT_ADDR"), std::string::npos);
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("OP_ARG_OVERFLOW_ADDR"), std::string::npos);
   EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("OP_ARG_FFTS_ADDR"), std::string::npos);
@@ -4245,20 +4251,15 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForMemcpyAsync_IoRefresh_Ok) 
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
 
   // io_refresh_ path generates iow_addr variable via FlattenHostArgs
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("_iow_addr"),
-            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("_iow_addr"), std::string::npos);
   // io_refresh_ path uses args_table_ for addr refresh
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("args_table_.GetArgsInfo"),
-            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("args_table_.GetArgsInfo"), std::string::npos);
   // io_refresh_ path: src points to dev_addr (not inline address)
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ValueToPtr"),
-            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("ValueToPtr"), std::string::npos);
   // io_refresh_ path forces RT_MEMCPY_ADDR_DEVICE_TO_DEVICE (kind 4)
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("rtMemcpyKind_t"),
-            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("rtMemcpyKind_t"), std::string::npos);
   // KernelMemcpyAsyncDistribute helper should still be generated
-  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("KernelMemcpyAsyncDistribute"),
-            std::string::npos);
+  EXPECT_NE(outputs[GeneratedFileIndex::kLoadingAndRunningFile].find("KernelMemcpyAsyncDistribute"), std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForCmoBarrierTask_Ok) {
@@ -4553,9 +4554,8 @@ struct GetRtAddressTestContext {
 TEST_F(ProgramGeneratorUt, GetRtAddress_Placeholder_ReturnsSuccess) {
   GetRtAddressTestContext ctx;
   AddrSemantic addr_node;
-  EXPECT_EQ(
-      Om2ModelUtils::GetRtAddress(*ctx.context, std::numeric_limits<uintptr_t>::max(), addr_node, true, 0U),
-      SUCCESS);
+  EXPECT_EQ(Om2ModelUtils::GetRtAddress(*ctx.context, std::numeric_limits<uintptr_t>::max(), addr_node, true, 0U),
+            SUCCESS);
 }
 
 TEST_F(ProgramGeneratorUt, GetRtAddress_InMemRange_SetsOutputInstance) {
@@ -4787,7 +4787,8 @@ TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreAssertDfxSetsL0RawFl
   ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
 
   const auto &load_run = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
-  EXPECT_NE(load_run.find("Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf"), std::string::npos);
+  EXPECT_NE(load_run.find("Om2L0TaskRawInfo l0_info = {1U, op->task_data.aicore.l0.need_assert_or_printf"),
+            std::string::npos);
 }
 
 TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSourceForAicoreWithoutArgsFormat_Ok) {
@@ -5334,15 +5335,12 @@ GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
   auto graph = gert::ShareGraph::AicoreStaticGraph();
   graph->TopologicalSorting();
   gert::GeModelBuilder builder(graph);
-  auto ge_root_model =
-      builder
-          .AddTaskDef(
-              "Add",
-              gert::AiCoreTaskDefFaker("add_stub")
-                  .AtomicStubNum("add_atomic_stub")
-                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
-          .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
-          .BuildGeRootModel();
+  auto ge_root_model = builder
+                           .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub")
+                                                  .AtomicStubNum("add_atomic_stub")
+                                                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
+                           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+                           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);

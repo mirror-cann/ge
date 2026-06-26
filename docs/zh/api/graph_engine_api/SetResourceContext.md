@@ -73,4 +73,3 @@ graphStatus类型：GRAPH\_SUCCESS，代表成功；GRAPH\_FAILED，代表失败
 ## 约束说明<a name="zh-cn_topic_0000001265084814_section1286618413401"></a>
 
 若使用[Create](Create.md)接口创建InferenceContext时未传入resource context管理器指针，则该接口返回失败。
-

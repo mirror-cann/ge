@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,9 +56,14 @@ ge::graphStatus UpdateIoArgsInfo(RtKernelLaunchArgsEx &rt_args, int16_t relative
       FE_ASSERT_TRUE(
           !ge::AddOverflow(static_cast<int64_t>(io_arg->arg_offset), relative_arg_offset, rectified_arg_offset));
       FE_ASSERT_TRUE(rectified_arg_offset >= 0);
-      IoArgsInfo::IoArg rectified_io_arg = {static_cast<size_t>(rectified_arg_offset), io_arg->start_index,
-                                            io_arg->arg_num, io_arg->is_input, true, io_arg->folded_first,
-                                            io_arg->dyn_desc, io_arg->data_size};
+      IoArgsInfo::IoArg rectified_io_arg = {static_cast<size_t>(rectified_arg_offset),
+                                            io_arg->start_index,
+                                            io_arg->arg_num,
+                                            io_arg->is_input,
+                                            true,
+                                            io_arg->folded_first,
+                                            io_arg->dyn_desc,
+                                            io_arg->data_size};
       io_args_info.SetIoArgByIndex(idx, rectified_io_arg);
     }
   }
@@ -128,7 +133,7 @@ bool RtKernelLaunchArgsEx::CalcTotalSize(const RtKernelLaunchArgsEx::ComputeNode
                                          const ArgsInfosDesc &args_info_desc, RtKernelLaunchArgsEx::ArgsDesc &args_desc,
                                          size_t &total_size) {
   FE_ASSERT_TRUE(node_desc.ArgsCountValid());
-  // reserve IoArgsInfo at the begining of args
+  // reserve IoArgsInfo at the beginning of args
   total_size = 0U;
   const auto io_arg_num = args_info_desc.GetArgsInfoNum();
   FE_ASSERT_TRUE(!ge::AddOverflow(total_size, io_arg_num * sizeof(IoArgsInfo::IoArg), total_size));
@@ -236,7 +241,7 @@ std::unique_ptr<uint8_t[]> RtKernelLaunchArgsEx::MakeCopy() {
   auto new_arg_holder = ge::MakeUnique<uint8_t[]>(total_size_);
   FE_ASSERT_NOTNULL(new_arg_holder);
   FE_ASSERT_EOK(memcpy_s(new_arg_holder.get(), total_size_, GetBase(), total_size_));
-  auto& new_arg = *reinterpret_cast<RtKernelLaunchArgsEx *>(new_arg_holder.get());
+  auto &new_arg = *reinterpret_cast<RtKernelLaunchArgsEx *>(new_arg_holder.get());
   const auto args_info_num = new_arg.args_info_desc_.GetArgsInfoNum();
   new_arg.io_args_info_.Init(args_info_num, new_arg.data);
   // 1. update base, base.argsSize, base.hasTiling will be updated before launch
@@ -358,8 +363,8 @@ ge::graphStatus RtKernelLaunchArgsEx::AlignHostInputSize() {
                                   align_copy_flow_size));
   FE_ASSERT_TRUE(align_copy_flow_size >= copy_flow_size);
   FE_ASSERT_TRUE(!ge::AddOverflow(host_input_data_size_, align_copy_flow_size - copy_flow_size, host_input_data_size_));
-  GELOGD("After aligning the host input data size is %zu, the original host input data size was %zu.", align_copy_flow_size,
-         host_input_data_size_);
+  GELOGD("After aligning the host input data size is %zu, the original host input data size was %zu.",
+         align_copy_flow_size, host_input_data_size_);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -379,8 +384,14 @@ ge::Status RtKernelLaunchArgsEx::InitIoArgsInfo(const ArgsInfosDesc &args_info_d
     GELOGD("Args_info init, idx[%zu], start_index:%d.", arg_idx, args_info->start_index);
     if (args_info->start_index == -1 || args_info->start_index == 0xFFFF) {
       auto arg_offset = args_input_addr_offset + real_arg_idx * sizeof(TensorAddress);
-      IoArgsInfo::IoArg io_arg = {static_cast<size_t>(arg_offset), args_info->start_index, arg_num, is_input, false,
-                                  args_info->folded_first, args_info->dyn_desc, args_info->data_size};
+      IoArgsInfo::IoArg io_arg = {static_cast<size_t>(arg_offset),
+                                  args_info->start_index,
+                                  arg_num,
+                                  is_input,
+                                  false,
+                                  args_info->folded_first,
+                                  args_info->dyn_desc,
+                                  args_info->data_size};
       io_args_info_.SetIoArgByIndex(arg_idx, io_arg);
       ++real_arg_idx;
       continue;
@@ -596,13 +607,14 @@ ge::graphStatus SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDes
   auto base_addr = static_cast<void *>(base_in_64);
   auto dim_num = shape.IsScalar() ? 1U : shape.GetDimNum();
   if (dim_num > MAX_DIM_NUM) {
-    GELOGE(ge::FAILED, "Dynamic io %ld has dim_num[%zu] exceeding MAX_DIM_NUM[%zu], "
+    GELOGE(ge::FAILED,
+           "Dynamic io %ld has dim_num[%zu] exceeding MAX_DIM_NUM[%zu], "
            "which would cause buffer overflow in folded desc layout.",
            dyn_desc.io_index, dim_num, MAX_DIM_NUM);
     return ge::GRAPH_FAILED;
   }
   static_cast<uint32_t *>(base_addr)[0] = static_cast<uint32_t>(dim_num);  // dim num
-  static_cast<uint32_t *>(base_addr)[1] = 1;                                // cnt
+  static_cast<uint32_t *>(base_addr)[1] = 1;                               // cnt
   for (size_t i = 0; i < dim_num; ++i) {
     GELOGD("Io: %ld dim[%zu] with val[%ld].", dyn_desc.io_index, i, shape.GetDim(i));
     base_in_64[1 + i] = shape.IsScalar() ? 1 : shape.GetDim(i);

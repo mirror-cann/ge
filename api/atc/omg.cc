@@ -42,10 +42,12 @@ namespace {
 const std::string kGraphDefaultName = "domi_default";
 const std::string kScopeIdAttr = "fusion_scope";
 const char *const kOutputTypeSample = "The parameter is invalid. Valid format \"opname:index:dtype\".";
-const char *const kOutputTypeSupport = "The value must be FP32, FP16, UINT8, INT8. A node can only have one type. "
-                                       "The correct example is: --output_type=FP32.";
-const char *const kOutputTypeError = "In the mode of specified node, the correct example is: node1:0:FP16;node2:0:FP32."
-                                     "The nodes set in --output_type must be found in --out_nodes.";
+const char *const kOutputTypeSupport =
+    "The value must be FP32, FP16, UINT8, INT8. A node can only have one type. "
+    "The correct example is: --output_type=FP32.";
+const char *const kOutputTypeError =
+    "In the mode of specified node, the correct example is: node1:0:FP16;node2:0:FP32."
+    "The nodes set in --output_type must be found in --out_nodes.";
 const size_t kNodeNameIndex = 0;
 const size_t kIndexStrIndex = 1;
 const size_t kDTValueIndex = 2;
@@ -74,8 +76,10 @@ const std::set<std::string> kOmBlackFields = {"output",      "data_offset", "dat
                                               "memory_size", "weight_size", "size", "bt",        "quantize_factor"};
 
 static std::map<std::string, ge::DataType> output_type_str_to_datatype = {
-    {"FP32", ge::DT_FLOAT}, {"FP16", ge::DT_FLOAT16}, {"UINT8", ge::DT_UINT8}, {"INT8", ge::DT_INT8},
-    {"HIF8", ge::DT_HIFLOAT8}, {"HIF4", ge::DT_HIFLOAT4}, {"FP8E5M2", ge::DT_FLOAT8_E5M2}, {"FP8E4M3FN", ge::DT_FLOAT8_E4M3FN},
+    {"FP32", ge::DT_FLOAT},          {"FP16", ge::DT_FLOAT16},
+    {"UINT8", ge::DT_UINT8},         {"INT8", ge::DT_INT8},
+    {"HIF8", ge::DT_HIFLOAT8},       {"HIF4", ge::DT_HIFLOAT4},
+    {"FP8E5M2", ge::DT_FLOAT8_E5M2}, {"FP8E4M3FN", ge::DT_FLOAT8_E4M3FN},
 };
 
 static bool CheckInputTrueOrFalse(const std::string &s, const std::string &atc_param) {
@@ -84,8 +88,8 @@ static bool CheckInputTrueOrFalse(const std::string &s, const std::string &atc_p
   } else {
     REPORT_PREDEFINED_ERR_MSG("E10005", std::vector<const char *>({"parameter", "value"}),
                               std::vector<const char *>({atc_param.c_str(), s.c_str()}));
-    GELOGE(PARAM_INVALID, "[Check][Param]Input parameter[--%s]'s value[%s] must be true or false.",
-           atc_param.c_str(), s.c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Input parameter[--%s]'s value[%s] must be true or false.", atc_param.c_str(),
+           s.c_str());
     return false;
   }
 }
@@ -131,8 +135,10 @@ static domi::Status CheckInputShapeNode(const ComputeGraphPtr &graph, bool is_dy
         GE_CHECK_NOTNULL(tensor_desc);
         for (auto dim : tensor_desc->GetShape().GetDims()) {
           if (dim < 0) {
-            GELOGE(PARAM_INVALID, "[Check][Param]Input op [%s] shape %ld is negative, "
-                   "maybe you should set input_shape to specify its shape", node->GetName().c_str(), dim);
+            GELOGE(PARAM_INVALID,
+                   "[Check][Param]Input op [%s] shape %ld is negative, "
+                   "maybe you should set input_shape to specify its shape",
+                   node->GetName().c_str(), dim);
             const std::string reason =
                 "The shapes of inputs contain -1 in the model. You may need to set input shape to specify its shape.";
             REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
@@ -147,9 +153,8 @@ static domi::Status CheckInputShapeNode(const ComputeGraphPtr &graph, bool is_dy
   return CheckUserInputShape(graph);
 }
 
-void AddAttrsForInputNodes(const std::vector<std::string> &adjust_fp16_format_vec,
-                           const std::string &fp16_nodes_name, uint32_t index,
-                           const OpDescPtr &op_desc) {
+void AddAttrsForInputNodes(const std::vector<std::string> &adjust_fp16_format_vec, const std::string &fp16_nodes_name,
+                           uint32_t index, const OpDescPtr &op_desc) {
   if (AttrUtils::SetStr(op_desc, ATTR_ATC_USER_DEFINE_DATATYPE, TypeUtils::DataTypeToSerialString(DT_FLOAT16))) {
     if ((index < adjust_fp16_format_vec.size()) && (adjust_fp16_format_vec[index] == "true")) {
       GELOGI("This node [%s] should be set NC1HWC0", fp16_nodes_name.c_str());
@@ -169,8 +174,10 @@ static domi::Status CheckInputFp16Nodes(const ComputeGraphPtr &graph, const std:
     for (auto &s : adjust_fp16_format_vec) {
       StringUtils::Trim(s);
       if (!CheckInputTrueOrFalse(s, "is_input_adjust_hw_layout")) {
-        GELOGE(PARAM_INVALID, "[Check][Param]Invalid Param, is_input_adjust_hw_layout only support true/false:"
-               "but is [%s]", is_input_adjust_hw_layout.c_str());
+        GELOGE(PARAM_INVALID,
+               "[Check][Param]Invalid Param, is_input_adjust_hw_layout only support true/false:"
+               "but is [%s]",
+               is_input_adjust_hw_layout.c_str());
         return PARAM_INVALID;
       }
     }
@@ -214,8 +221,10 @@ static domi::Status ParseOutputFp16NodesFormat(const std::string &is_output_fp16
   for (auto &is_fp16 : node_format_vec) {
     StringUtils::Trim(is_fp16);
     if (!CheckInputTrueOrFalse(is_fp16, "is_output_adjust_hw_layout")) {
-      GELOGE(PARAM_INVALID, "[Check][Param]Invalid Param, is_output_adjust_hw_layout "
-             "only support true/false: but is [%s]", is_output_fp16.c_str());
+      GELOGE(PARAM_INVALID,
+             "[Check][Param]Invalid Param, is_output_adjust_hw_layout "
+             "only support true/false: but is [%s]",
+             is_output_fp16.c_str());
       return PARAM_INVALID;
     }
     if (is_fp16 == "false") {
@@ -286,7 +295,8 @@ domi::Status StringToInt(std::string &str, int32_t &value) {
   try {
     if (!CheckDigitStr(str)) {
       GELOGE(PARAM_INVALID, "[Check][Param]Invalid of digit std::string: %s ", str.c_str());
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
           std::vector<const char *>({"--output_type", str.c_str(), "The value is not a positive integer."}));
       return PARAM_INVALID;
     }
@@ -315,10 +325,11 @@ domi::Status VerifyOutputTypeAndOutNodes(std::vector<std::string> &out_type_vec)
   }
   for (uint32_t i = 0; i < out_type_vec.size(); ++i) {
     if (out_nodes_info.find(out_type_vec[i]) == out_nodes_info.end()) {
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                std::vector<const char *>({"--output_type", out_type_vec[i].c_str(), kOutputTypeError}));
-      GELOGE(FAILED, "[Check][Param]Invalid value for --output_type[%s], %s.",
-             out_type_vec[i].c_str(), kOutputTypeError);
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+          std::vector<const char *>({"--output_type", out_type_vec[i].c_str(), kOutputTypeError}));
+      GELOGE(FAILED, "[Check][Param]Invalid value for --output_type[%s], %s.", out_type_vec[i].c_str(),
+             kOutputTypeError);
       return FAILED;
     }
   }
@@ -330,15 +341,15 @@ domi::Status CheckOutPutDataTypeSupport(const std::string &output_type) {
   if (it == output_type_str_to_datatype.cend()) {
     REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                               std::vector<const char *>({"--output_type", output_type.c_str(), kOutputTypeSupport}));
-    GELOGE(PARAM_INVALID, "[Check][Param]Invalid value for --output_type[%s], %s.",
-           output_type.c_str(), kOutputTypeSupport);
+    GELOGE(PARAM_INVALID, "[Check][Param]Invalid value for --output_type[%s], %s.", output_type.c_str(),
+           kOutputTypeSupport);
     return FAILED;
   }
   return SUCCESS;
 }
 
-domi::Status ParseOutputType(const std::string &output_type, std::map<std::string,
-                       std::vector<std::string>> &output_node_dt_map) {
+domi::Status ParseOutputType(const std::string &output_type,
+                             std::map<std::string, std::vector<std::string>> &output_node_dt_map) {
   if (output_type.find(':') == std::string::npos) {
     GELOGI("output_type is not multiple nodes, means all out nodes");
     return CheckOutPutDataTypeSupport(output_type);
@@ -367,8 +378,8 @@ domi::Status ParseOutputType(const std::string &output_type, std::map<std::strin
     if (it == output_type_str_to_datatype.cend()) {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                                 std::vector<const char *>({"--output_type", dt_value.c_str(), kOutputTypeSupport}));
-      GELOGE(ge::PARAM_INVALID, "[Parse][Param]Invalid value for --output_type[%s], %s.",
-             dt_value.c_str(), kOutputTypeSupport);
+      GELOGE(ge::PARAM_INVALID, "[Parse][Param]Invalid value for --output_type[%s], %s.", dt_value.c_str(),
+             kOutputTypeSupport);
       return FAILED;
     }
     const ge::DataType tmp_dt = it->second;
@@ -394,10 +405,11 @@ domi::Status CheckOutNode(ge::OpDescPtr op_desc, int32_t index) {
            "[Check][Param]out_node [%s] output index:%d must be smaller "
            "than node output size:%d and cannot be negative",
            op_desc->GetName().c_str(), index, out_size);
-    std::string fail_reason = "Output index:\"" + to_string(index) + "\" must be smaller than output size:" +
-                              to_string(out_size) + " and cannot be negative.";
-    REPORT_PREDEFINED_ERR_MSG("E10003", std::vector<const char *>({"parameter", "value", "reason"}),
-                              std::vector<const char *>({"out_nodes", op_desc->GetName().c_str(), fail_reason.c_str()}));
+    std::string fail_reason = "Output index:\"" + to_string(index) +
+                              "\" must be smaller than output size:" + to_string(out_size) + " and cannot be negative.";
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10003", std::vector<const char *>({"parameter", "value", "reason"}),
+        std::vector<const char *>({"out_nodes", op_desc->GetName().c_str(), fail_reason.c_str()}));
     return FAILED;
   }
   return SUCCESS;
@@ -566,8 +578,7 @@ domi::Status GetOutputLeaf(NodePtr node, std::vector<std::pair<ge::NodePtr, int3
 /// @return SUCCESS: parse successfully; PARAM_INVALID：parse failed
 ///
 domi::Status InitDomiOmgContext(const std::string &input_shape, const std::string &input_format,
-                                const std::string &net_format,
-                                bool is_dynamic_input) {
+                                const std::string &net_format, bool is_dynamic_input) {
   (void)net_format;
   // Clear omgcontext data first
   domi::GetContext().input_dims.clear();
@@ -582,11 +593,13 @@ domi::Status InitDomiOmgContext(const std::string &input_shape, const std::strin
     if (iter != ge::input_format_str_to_geformat.cend()) {
       domi::GetContext().format = iter->second;
     } else {
-      (void)REPORT_PREDEFINED_ERR_MSG(
-          "E10061", std::vector<const char *>({"value", "parameter", "expected_value"}),
-          std::vector<const char *>({input_format.c_str(), "input_format", "ND, NCHW, NHWC, CHWN, NC1HWC0 or NHWC1C0"}));
-      GELOGE(PARAM_INVALID, "[Check][Param]Input format %s not support, "
-             "expect ND/NCHW/NHWC/CHWN/NC1HWC0/NHWC1C0.", input_format.c_str());
+      (void)REPORT_PREDEFINED_ERR_MSG("E10061", std::vector<const char *>({"value", "parameter", "expected_value"}),
+                                      std::vector<const char *>({input_format.c_str(), "input_format",
+                                                                 "ND, NCHW, NHWC, CHWN, NC1HWC0 or NHWC1C0"}));
+      GELOGE(PARAM_INVALID,
+             "[Check][Param]Input format %s not support, "
+             "expect ND/NCHW/NHWC/CHWN/NC1HWC0/NHWC1C0.",
+             input_format.c_str());
       return PARAM_INVALID;
     }
   }
@@ -596,11 +609,12 @@ domi::Status InitDomiOmgContext(const std::string &input_shape, const std::strin
     return SUCCESS;
   }
 
-  // Analyze the input shape paramete
+  // Analyze the input shape parameter
   std::map<std::string, std::vector<int64_t>> &shape_map = domi::GetContext().input_dims;
 
   if (!ge::ParseInputShape(input_shape, domi::GetContext().input_dims, domi::GetContext().user_input_dims,
-                           is_dynamic_input) || shape_map.empty()) {
+                           is_dynamic_input) ||
+      shape_map.empty()) {
     const std::string reason = "failed to parse the input shape.";
     REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"value", "parameter", "reason"}),
                               std::vector<const char *>({input_shape.c_str(), "input_shape", reason.c_str()}));
@@ -674,22 +688,22 @@ domi::Status ParseOutNodes(const std::string &out_nodes) {
             "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
             std::vector<const char *>(
                 {"--out_nodes", out_nodes.c_str(), "Only one of index, top_name and output_name can be used."}));
-        GELOGE(PARAM_INVALID, "[Parse][Param]This out_nodes str must be all index or tensor_name, "
-                              "while the actual input is %s", out_nodes.c_str());
+        GELOGE(PARAM_INVALID,
+               "[Parse][Param]This out_nodes str must be all index or tensor_name, "
+               "while the actual input is %s",
+               out_nodes.c_str());
         return PARAM_INVALID;
       }
     }
   } catch (std::invalid_argument &) {
     GELOGE(PARAM_INVALID, "[Parse][Param]Invalid of out_nodes: %s ", out_nodes.c_str());
-    REPORT_PREDEFINED_ERR_MSG(
-            "E10014", std::vector<const char *>({"parameter", "value"}),
-            std::vector<const char *>({"--out_nodes", out_nodes.c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("E10014", std::vector<const char *>({"parameter", "value"}),
+                              std::vector<const char *>({"--out_nodes", out_nodes.c_str()}));
     return PARAM_INVALID;
   } catch (std::out_of_range &) {
     GELOGE(PARAM_INVALID, "[Parse][Param]Invalid of out_nodes: %s ", out_nodes.c_str());
-    REPORT_PREDEFINED_ERR_MSG(
-            "E10013", std::vector<const char *>({"parameter", "value"}),
-            std::vector<const char *>({"--out_nodes", out_nodes.c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("E10013", std::vector<const char *>({"parameter", "value"}),
+                              std::vector<const char *>({"--out_nodes", out_nodes.c_str()}));
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -788,12 +802,11 @@ FMK_FUNC_HOST_VISIBILITY domi::Status ParseGraph(ge::Graph &graph, const std::ma
     // divided by ":"
     PropertiesManager::Instance().SetPropertyDelimiter(OP_CONF_DELIMITER);
     // Parsing the op_conf configuration item file
-    GE_IF_BOOL_EXEC(!PropertiesManager::Instance().Init(op_conf),
-                    REPORT_PREDEFINED_ERR_MSG(
-                            "E10003", std::vector<const char *>({"parameter", "value", "reason"}),
-                            std::vector<const char *>({"op_name_map", op_conf, "File content error."}));
-                    GELOGE(FAILED, "[Invoke][Init]op_name_map init failed!");
-                    return FAILED);
+    GE_IF_BOOL_EXEC(
+        !PropertiesManager::Instance().Init(op_conf),
+        REPORT_PREDEFINED_ERR_MSG("E10003", std::vector<const char *>({"parameter", "value", "reason"}),
+                                  std::vector<const char *>({"op_name_map", op_conf, "File content error."}));
+        GELOGE(FAILED, "[Invoke][Init]op_name_map init failed!"); return FAILED);
     // Return map and put it into ATC global variable
     domi::GetContext().op_conf_map = PropertiesManager::Instance().GetPropertyMap();
   }
@@ -931,11 +944,8 @@ FMK_FUNC_HOST_VISIBILITY void PrintModelInfo(ge::proto::ModelDef *model_def, uin
   // original atc cmdline
   iter = model_attr_map->find(ATTR_MODEL_ATC_CMDLINE);
   auto cmdline = (iter != model_attr_map->end()) ? iter->second.s() : "";
-  std::cout << "Original Atc command line: "
-            << cmdline << std::endl
-            << "system   info: "
-            <<  ATTR_MODEL_ATC_VERSION
-            << "[" << atc_version << "], "
+  std::cout << "Original Atc command line: " << cmdline << std::endl
+            << "system   info: " << ATTR_MODEL_ATC_VERSION << "[" << atc_version << "], "
             << "soc_version"
             << "[" << soc_version << "], "
             << "framework_type"
@@ -950,23 +960,16 @@ FMK_FUNC_HOST_VISIBILITY void PrintModelInfo(ge::proto::ModelDef *model_def, uin
   auto stream_num = (iter != model_attr_map->end()) ? iter->second.i() : -1;
   iter = model_attr_map->find(ATTR_MODEL_EVENT_NUM);
   auto event_num = (iter != model_attr_map->end()) ? iter->second.i() : -1;
-  std::cout << "resource info: "
-            << ATTR_MODEL_MEMORY_SIZE
-            << "[" << memory_size << " B], "
-            << ATTR_MODEL_WEIGHT_SIZE
-            << "[" << weight_size << " B], "
-            << ATTR_MODEL_STREAM_NUM
-            << "[" << stream_num << "], "
-            << ATTR_MODEL_EVENT_NUM
-            << "[" << event_num << "]."
-            << std::endl;
+  std::cout << "resource info: " << ATTR_MODEL_MEMORY_SIZE << "[" << memory_size << " B], " << ATTR_MODEL_WEIGHT_SIZE
+            << "[" << weight_size << " B], " << ATTR_MODEL_STREAM_NUM << "[" << stream_num << "], "
+            << ATTR_MODEL_EVENT_NUM << "[" << event_num << "]." << std::endl;
 
   // om info
   iter = model_attr_map->find("om_info_list");
   if (iter == model_attr_map->end()) {
     std::cout << "Display Model Info failed, attr \"om_info_list\" is not found in om, check the version is matched."
               << std::endl;
-    std::cout << "============ Display Model Info end   ============"  << std::endl;
+    std::cout << "============ Display Model Info end   ============" << std::endl;
     return;
   }
   auto list_size = iter->second.list().i_size();
@@ -985,10 +988,10 @@ FMK_FUNC_HOST_VISIBILITY void PrintModelInfo(ge::proto::ModelDef *model_def, uin
               << "so_store_size"
               << "[" << iter->second.list().i(kSoStoreIndex) << " B]." << std::endl;
   } else {
-    std::cout << "Display Model Info error, please check!"  << std::endl;
+    std::cout << "Display Model Info error, please check!" << std::endl;
   };
 
-  std::cout << "============ Display Model Info end   ============"  << std::endl;
+  std::cout << "============ Display Model Info end   ============" << std::endl;
 }
 
 FMK_FUNC_HOST_VISIBILITY domi::Status ConvertOm(const char *model_file, const char *json_file, bool is_covert_to_json) {
@@ -1049,8 +1052,8 @@ FMK_FUNC_HOST_VISIBILITY domi::Status ConvertOm(const char *model_file, const ch
     } while (false);
     return ret;
   } catch (const std::exception &e) {
-    const std::string reason = "an exception occurred while converting om file " + std::string(model_file) +
-        ": " + e.what();
+    const std::string reason =
+        "an exception occurred while converting om file " + std::string(model_file) + ": " + e.what();
     REPORT_PREDEFINED_ERR_MSG("E10059", std::vector<const char *>({"stage", "reason"}),
                               std::vector<const char *>({"Convert om model to JSON", reason.c_str()}));
     GELOGE(FAILED, "[Save][Model]Convert om model to json failed, exception message : %s.", e.what());
@@ -1080,8 +1083,8 @@ FMK_FUNC_HOST_VISIBILITY domi::Status ConvertPbtxtToJson(const char *model_file,
     }
     return SUCCESS;
   } catch (const std::exception &e) {
-    const std::string reason = "an exception occurred while converting pbtxt file " + std::string(model_file) +
-        ": " + e.what();
+    const std::string reason =
+        "an exception occurred while converting pbtxt file " + std::string(model_file) + ": " + e.what();
     REPORT_PREDEFINED_ERR_MSG("E10059", std::vector<const char *>({"stage", "reason"}),
                               std::vector<const char *>({"Convert pbtxt to JSON", reason.c_str()}));
     GELOGE(FAILED, "[Save][pbtxt]Convert pbtxt to json failed, exception message : %s.", e.what());
@@ -1106,7 +1109,8 @@ FMK_FUNC_HOST_VISIBILITY domi::Status ConvertFwkModelToJson(const domi::Framewor
       std::vector<const char *>(
           {"--framework", std::to_string(framework).c_str(),
            "The framework must be selected from {0(Caffe), 3(TensorFlow), 5(Onnx)} when model is set to 1(JSON)."}));
-  GELOGE(PARAM_INVALID, "[Check][Param]Input parameter[--framework] is mandatory "
+  GELOGE(PARAM_INVALID,
+         "[Check][Param]Input parameter[--framework] is mandatory "
          "and it's value must be: 0(Caffe) 3(TensorFlow) or 5(Onnx).");
   return PARAM_INVALID;
 }
@@ -1123,8 +1127,7 @@ FMK_FUNC_HOST_VISIBILITY domi::Status DumpInfershapeJson(const ge::Graph &graph,
   if (buffer.GetData() != nullptr) {
     std::string str(PtrToPtr<void, char>(buffer.GetData()), buffer.GetSize());
     if (!ge_proto.ParseFromString(str)) {
-      REPORT_PREDEFINED_ERR_MSG("E13005", std::vector<const char *>({"file"}),
-                                std::vector<const char *>({json_file}));
+      REPORT_PREDEFINED_ERR_MSG("E13005", std::vector<const char *>({"file"}), std::vector<const char *>({json_file}));
       GELOGE(GRAPH_FAILED, "[Invoke][ParseFromString] failed.");
       return FAILED;
     }

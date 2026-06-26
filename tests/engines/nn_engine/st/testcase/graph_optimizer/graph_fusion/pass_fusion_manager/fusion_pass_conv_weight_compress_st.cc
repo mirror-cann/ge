@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,12 +35,12 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-class WeightCompressOptimizeUtilityST: public ge::OptimizeUtility {
+class WeightCompressOptimizeUtilityST : public ge::OptimizeUtility {
  public:
   WeightCompressOptimizeUtilityST() {}
   virtual ~WeightCompressOptimizeUtilityST() override {}
 
-  ge::Status InferShape(ComputeGraph &compute_graph) override{
+  ge::Status InferShape(ComputeGraph &compute_graph) override {
     return ge::SUCCESS;
   }
 
@@ -54,126 +54,124 @@ class WeightCompressOptimizeUtilityST: public ge::OptimizeUtility {
 #endif
 };
 
-class fusion_pass_conv_weight_compress_st : public testing::Test
-{
-public:
+class fusion_pass_conv_weight_compress_st : public testing::Test {
+ public:
   FEGraphOptimizerPtr graph_optimizer_ptr;
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr;
   std::shared_ptr<OpCompilerNormal> op_compiler_ptr;
-protected:
-    void SetUp()
-    {
-      ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(AI_CORE_NAME);
-      FEOpsStoreInfo tbe_custom {
-              2,
-              "tbe-custom",
-              EN_IMPL_CUSTOM_TBE,
-              GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-              GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-              false,
-              false,
-              false};
 
-      vector<FEOpsStoreInfo> store_info = {tbe_custom};
-      Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-      OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
-      map<string, string> options;
-      ops_kernel_info_store_ptr->Initialize(options);
-      WeightCompressOptimizeUtilityST *optimize_utility_stub = new WeightCompressOptimizeUtilityST();
-      graph_optimizer_ptr = make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr, AI_CORE_NAME);
-      op_compiler_ptr = make_shared<OpCompilerNormal>("normal compiler", AI_CORE_NAME, nullptr);
+ protected:
+  void SetUp() {
+    ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(AI_CORE_NAME);
+    FEOpsStoreInfo tbe_custom{
+        2,
+        "tbe-custom",
+        EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        false,
+        false,
+        false};
+
+    vector<FEOpsStoreInfo> store_info = {tbe_custom};
+    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+    OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+    map<string, string> options;
+    ops_kernel_info_store_ptr->Initialize(options);
+    WeightCompressOptimizeUtilityST *optimize_utility_stub = new WeightCompressOptimizeUtilityST();
+    graph_optimizer_ptr = make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr, AI_CORE_NAME);
+    op_compiler_ptr = make_shared<OpCompilerNormal>("normal compiler", AI_CORE_NAME, nullptr);
+  }
+  void TearDown() {}
+
+ protected:
+  static ComputeGraphPtr CreateGraphWithOneConv(DataType data_type, int32_t type = 0, bool is_dynamic = false,
+                                                std::vector<int64_t> dim = {4, 4, 4, 4}) {
+    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+    OpDescPtr op_desc_data = std::make_shared<OpDesc>("data", "Data");
+    OpDescPtr op_desc_const1 = std::make_shared<OpDesc>("const1", "Const");
+    OpDescPtr op_desc_const2 = std::make_shared<OpDesc>("const2", "Const");
+    OpDescPtr op_desc_conv = std::make_shared<OpDesc>("conv", "Conv2D");
+    OpDescPtr op_desc_relu = std::make_shared<OpDesc>("relu", "Relu");
+
+    // add descriptor
+    if (is_dynamic) {
+      dim[1] = -1;
     }
-    void TearDown()
-    {
+    GeShape shape(dim);
+    GeTensorDesc out_desc(shape);
+    out_desc.SetFormat(FORMAT_NCHW);
+    out_desc.SetOriginFormat(FORMAT_NCHW);
+    out_desc.SetDataType(data_type);
+    out_desc.SetOriginDataType(data_type);
 
+    op_desc_data->AddOutputDesc(out_desc);
+    op_desc_const1->AddOutputDesc(out_desc);
+    op_desc_const2->AddOutputDesc(out_desc);
+    op_desc_conv->AddInputDesc(out_desc);
+    op_desc_conv->AddInputDesc(out_desc);
+    op_desc_conv->AddInputDesc(out_desc);
+    op_desc_conv->AddOutputDesc(out_desc);
+    op_desc_relu->AddInputDesc(out_desc);
+    op_desc_relu->AddOutputDesc(out_desc);
+
+    NodePtr node_data = graph->AddNode(op_desc_data);
+    NodePtr node_const1 = graph->AddNode(op_desc_const1);
+    NodePtr node_const2 = graph->AddNode(op_desc_const2);
+    NodePtr node_conv = graph->AddNode(op_desc_conv);
+    NodePtr node_relu = graph->AddNode(op_desc_relu);
+
+    if (!is_dynamic) {
+      ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>();
+      tensor->SetTensorDesc(out_desc);
+      auto data_size = out_desc.GetShape().GetShapeSize() * ge::GetSizeByDataType(out_desc.GetDataType());
+      unique_ptr<uint8_t[]> value(new (std::nothrow) uint8_t[data_size]);
+      (void)memset_s(value.get(), data_size, 1, data_size);
+      (void)tensor->SetData(reinterpret_cast<uint8_t *>(value.get()), data_size);
+      std::vector<ge::GeTensorPtr> weight_tensors = {tensor};
+      (void)OpDescUtils::SetWeights(node_const1, weight_tensors);
     }
 
-protected:
-  static ComputeGraphPtr CreateGraphWithOneConv(DataType data_type, int32_t type=0, bool is_dynamic=false,
-                                                std::vector<int64_t> dim={4, 4, 4, 4})
-  {
-      ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-      OpDescPtr op_desc_data = std::make_shared<OpDesc>("data", "Data");
-      OpDescPtr op_desc_const1 = std::make_shared<OpDesc>("const1", "Const");
-      OpDescPtr op_desc_const2 = std::make_shared<OpDesc>("const2", "Const");
-      OpDescPtr op_desc_conv = std::make_shared<OpDesc>("conv", "Conv2D");
-      OpDescPtr op_desc_relu = std::make_shared<OpDesc>("relu", "Relu");
-
-      //add descriptor
-      if (is_dynamic) {
-        dim[1] = -1;
-      }
-      GeShape shape(dim);
-      GeTensorDesc out_desc(shape);
-      out_desc.SetFormat(FORMAT_NCHW);
-      out_desc.SetOriginFormat(FORMAT_NCHW);
-      out_desc.SetDataType(data_type);
-      out_desc.SetOriginDataType(data_type);
-
-      op_desc_data->AddOutputDesc(out_desc);
-      op_desc_const1->AddOutputDesc(out_desc);
-      op_desc_const2->AddOutputDesc(out_desc);
-      op_desc_conv->AddInputDesc(out_desc);
-      op_desc_conv->AddInputDesc(out_desc);
-      op_desc_conv->AddInputDesc(out_desc);
-      op_desc_conv->AddOutputDesc(out_desc);
-      op_desc_relu->AddInputDesc(out_desc);
-      op_desc_relu->AddOutputDesc(out_desc);
-
-      NodePtr node_data = graph->AddNode(op_desc_data);
-      NodePtr node_const1 = graph->AddNode(op_desc_const1);
-      NodePtr node_const2 = graph->AddNode(op_desc_const2);
-      NodePtr node_conv = graph->AddNode(op_desc_conv);
-      NodePtr node_relu = graph->AddNode(op_desc_relu);
-
-      if (!is_dynamic) {
-        ge::GeTensorPtr tensor = std::make_shared<ge::GeTensor>();
-        tensor->SetTensorDesc(out_desc);
-        auto data_size = out_desc.GetShape().GetShapeSize() * ge::GetSizeByDataType(out_desc.GetDataType());
-        unique_ptr<uint8_t[]> value(new(std::nothrow) uint8_t[data_size]);
-        (void)memset_s(value.get(), data_size, 1, data_size);
-        (void)tensor->SetData(reinterpret_cast<uint8_t *>(value.get()), data_size);
-        std::vector<ge::GeTensorPtr> weight_tensors = {tensor};
-        (void)OpDescUtils::SetWeights(node_const1, weight_tensors);
-      }
-
-      if (type == 1) {
-        ge::AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
-        GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
-        GraphUtils::AddEdge(node_relu->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
-      } if (type == 2) {
-        ge::AttrUtils::SetInt(op_desc_conv, ATTR_NAME_GROUPS, 2);
-        GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
-        GraphUtils::AddEdge(node_relu->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
-      } if (type == 3) {
-        AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
-        GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
-        GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
-        GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_data->GetOutControlAnchor(), node_conv->GetInControlAnchor());
-        GraphUtils::AddEdge(node_conv->GetOutControlAnchor(), node_relu->GetInControlAnchor());
-      } else if (type == 4) {
-        GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
-        GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
-        GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
-      } else {
-        AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
-        GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
-        GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
-        GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
-        GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
-      }
-      return graph;
+    if (type == 1) {
+      ge::AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
+      GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
+      GraphUtils::AddEdge(node_relu->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
+    }
+    if (type == 2) {
+      ge::AttrUtils::SetInt(op_desc_conv, ATTR_NAME_GROUPS, 2);
+      GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
+      GraphUtils::AddEdge(node_relu->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
+    }
+    if (type == 3) {
+      AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
+      GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
+      GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
+      GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_data->GetOutControlAnchor(), node_conv->GetInControlAnchor());
+      GraphUtils::AddEdge(node_conv->GetOutControlAnchor(), node_relu->GetInControlAnchor());
+    } else if (type == 4) {
+      GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
+      GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
+      GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+    } else {
+      AttrUtils::SetBool(node_conv->GetOpDesc(), ATTR_NAME_COMPRESS_WEIGHT, true);
+      GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_conv->GetInDataAnchor(0));
+      GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_conv->GetInDataAnchor(1));
+      GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_conv->GetInDataAnchor(2));
+      GraphUtils::AddEdge(node_conv->GetOutDataAnchor(0), node_relu->GetInDataAnchor(0));
+    }
+    return graph;
   }
 
-  static ComputeGraphPtr CreateGraphWithOneConvCompress(int64_t weight_compress_type = 0)
-  {
+  static ComputeGraphPtr CreateGraphWithOneConvCompress(int64_t weight_compress_type = 0) {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     OpDescPtr op_desc_data = std::make_shared<OpDesc>("data", "Data");
     OpDescPtr op_desc_quant = std::make_shared<OpDesc>("quant", "AscendQuant");
@@ -182,7 +180,7 @@ protected:
     OpDescPtr op_desc_relu = std::make_shared<OpDesc>("relu", "Relu");
     OpDescPtr op_desc_const = std::make_shared<OpDesc>("const", "Const");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim(4, 4);
     GeShape shape(dim);
     GeTensorDesc out_desc(shape);
@@ -234,35 +232,31 @@ protected:
   }
 };
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case1)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case1) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_FLOAT);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case2)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case2) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case3)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case3) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 0, true);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case4)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case4) {
   PlatformInfo platform_info;
   platform_info.soc_info.ai_core_cnt = 32;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -270,44 +264,40 @@ TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case4)
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = soc_version;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
 
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case5)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case5) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 1);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
 
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case6)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case6) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 2);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
 
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case7)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_success_case7) {
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 3);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
 
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case1)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case1) {
   ComputeGraphPtr graph = CreateGraphWithOneConvCompress();
   size_t size_before = graph->GetDirectNode().size();
   FE_LOGD("The number of nodes before is %zu.", size_before);
@@ -322,7 +312,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case1)
   }
 
   bool find_compress = false;
-  vector<int64_t> param_vec = {2,128};
+  vector<int64_t> param_vec = {2, 128};
   vector<int64_t> index_shape = {128};
   for (NodePtr node : graph->GetDirectNode()) {
     OpDescPtr op_desc = node->GetOpDesc();
@@ -355,10 +345,9 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case1)
 }
 
 namespace fe {
-  extern void ProcCompressOpMemType(const ge::NodePtr &node);
+extern void ProcCompressOpMemType(const ge::NodePtr &node);
 }
-TEST_F(fusion_pass_conv_weight_compress_st, ProcCompressOpMemType_case)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, ProcCompressOpMemType_case) {
   ComputeGraphPtr graph = CreateGraphWithOneConvCompress();
   auto conv_node = graph->FindNode("conv_compress");
   auto relu_node = graph->FindNode("relu");
@@ -369,8 +358,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, ProcCompressOpMemType_case)
   EXPECT_EQ(memory_type.size(), conv_node->GetOpDesc()->GetInputsSize());
   ProcCompressOpMemType(relu_node);
 }
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case1)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case1) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 1;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -378,14 +366,12 @@ TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case1)
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::SparseMatrixWeight)] = 1;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case2)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case2) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 0;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -393,14 +379,12 @@ TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case2)
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::SparseMatrixWeight)] = 1;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-
-TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case3)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case3) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 1;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -408,13 +392,12 @@ TEST_F(fusion_pass_conv_weight_compress_st, fusion_sparsity_case3)
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::SparseMatrixWeight)] = 0;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8);
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case2)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case2) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 1;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -433,7 +416,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case2)
     EXPECT_EQ(fe::SUCCESS, status);
   }
 
-  std::cout <<"xxxxxxx num = " << graph->GetDirectNode().size()<< std::endl;
+  std::cout << "xxxxxxx num = " << graph->GetDirectNode().size() << std::endl;
   EXPECT_EQ(fe::SUCCESS, status);
   bool find_compress = false;
   for (NodePtr node : graph->GetDirectNode()) {
@@ -451,8 +434,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case2)
   EXPECT_EQ(find_compress, true);
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case3)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case3) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 1;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -471,7 +453,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case3)
     status = op_compiler_ptr->InsertCompressOp(node);
     EXPECT_EQ(fe::SUCCESS, status);
   }
-  std::cout <<"xxxxxxx num = " << graph->GetDirectNode().size()<< std::endl;
+  std::cout << "xxxxxxx num = " << graph->GetDirectNode().size() << std::endl;
   EXPECT_EQ(fe::SUCCESS, status);
   bool find_compress = false;
   for (NodePtr node : graph->GetDirectNode()) {
@@ -490,8 +472,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case3)
 }
 
 // get attr weight compress type valid
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case4)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case4) {
   PlatformInfo platform_info;
   platform_info.ai_core_spec.sparsity = 0;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -511,7 +492,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case4)
   }
 
   bool find_compress = false;
-  vector<int64_t> param_vec = {2,128};
+  vector<int64_t> param_vec = {2, 128};
   vector<int64_t> index_shape = {128};
   for (NodePtr node : graph->GetDirectNode()) {
     OpDescPtr op_desc = node->GetOpDesc();
@@ -543,8 +524,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case4)
 }
 
 // can not get attr
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case5)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case5) {
   ComputeGraphPtr graph = CreateGraphWithOneConvCompress(-1);
   size_t size_before = graph->GetDirectNode().size();
   FE_LOGD("The number of nodes before is %zu.", size_before);
@@ -564,8 +544,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case5)
 }
 
 // get attr weight compress type invalid
-TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case6)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case6) {
   ComputeGraphPtr graph = CreateGraphWithOneConvCompress(3);
   size_t size_before = graph->GetDirectNode().size();
   FE_LOGD("The number of nodes before is %zu.", size_before);
@@ -585,8 +564,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, insert_compress_case6)
 }
 
 // weight data is not not multiple of 512 -> disable compress
-TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case1)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case1) {
   PlatformInfo platform_info;
   platform_info.soc_info.ai_core_cnt = 32;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -595,7 +573,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case1)
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::CompressWeight)] = 1;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 0, false, {16, 16, 1});
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 
@@ -612,8 +590,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case1)
   }
 }
 
-TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case2)
-{
+TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case2) {
   PlatformInfo platform_info;
   platform_info.soc_info.ai_core_cnt = 32;
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
@@ -622,7 +599,7 @@ TEST_F(fusion_pass_conv_weight_compress_st, weight_compress_judge_case2)
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::CompressWeight)] = 1;
   ComputeGraphPtr graph = CreateGraphWithOneConv(ge::DT_INT8, 0, false, {16, 16, 2});
   ConvWeightCompressFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 

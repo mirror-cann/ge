@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,8 @@ namespace es {
  * @return 配置好的生成器管理器
  */
 std::unique_ptr<GeneratorManager> CreateGenerators(const std::string &module_name, const std::string &guard_prefix,
-                                                  const std::string &history_registry, const std::string &release_version) {
+                                                   const std::string &history_registry,
+                                                   const std::string &release_version) {
   // 外部统一捕获make_unique失败等异常
   auto manager = std::make_unique<GeneratorManager>();
 
@@ -84,8 +85,7 @@ std::vector<OpDescPtr> CollectAndSortAllOps() {
  */
 void GenAllOps(GeneratorManager &manager,
                std::unordered_map<std::string, std::vector<std::string>> &unsupported_reasons_to_ops,
-               std::vector<std::string> &exclude_ops,
-               size_t &supported_num) {
+               std::vector<std::string> &exclude_ops, size_t &supported_num) {
   auto all_ops = CollectAndSortAllOps();
   if (all_ops.empty()) {
     std::cerr << "ERROR: no ops to generate, please check the ops proto path constructed from env ASCEND_OPP_PATH:"
@@ -177,8 +177,8 @@ void GeneratePerUtilFiles(const std::string &output_dir, GeneratorManager &manag
 
   std::cout << "Generated util files:" << std::endl;
   std::cout << "  " << manager.GetUtilGenerator()->GetGeneratorName() << ":" << std::endl;
-  for (const auto &util_name: manager.GetUtilGenerator()->GetUtilFileNames()) {
-    std::cout << "    " << output_dir<< util_name << std::endl;
+  for (const auto &util_name : manager.GetUtilGenerator()->GetUtilFileNames()) {
+    std::cout << "    " << output_dir << util_name << std::endl;
   }
 }
 
@@ -190,8 +190,7 @@ void GeneratePerUtilFiles(const std::string &output_dir, GeneratorManager &manag
  * @param release_version 当前版本号
  * @return 初始化后的生成器管理器
  */
-std::unique_ptr<GeneratorManager> InitializeGenerators(const std::string &module_name,
-                                                       const std::string &guard_prefix,
+std::unique_ptr<GeneratorManager> InitializeGenerators(const std::string &module_name, const std::string &guard_prefix,
                                                        const std::string &history_registry,
                                                        const std::string &release_version) {
   return CreateGenerators(module_name, guard_prefix, history_registry, release_version);
@@ -233,7 +232,8 @@ void ProcessOutputDirectory(std::string &output_dir) {
  * @param output_dir 输出目录
  * @param manager 生成器管理器
  */
-void ExecuteCodeGeneration(const std::string &output_dir, GeneratorManager &manager, std::vector<std::string> &exclude_ops) {
+void ExecuteCodeGeneration(const std::string &output_dir, GeneratorManager &manager,
+                           std::vector<std::string> &exclude_ops) {
   // 生成所有算子的代码
   Gen(manager, exclude_ops);
 
@@ -297,7 +297,7 @@ std::vector<std::string> ParseExcludeGenOps(const std::string &exclude_ops_str) 
  * @param branch_name 分支名
  */
 void GenerateHistoryRegistry(const std::string &output_dir, const std::string &release_version,
-                            const std::string &release_date, const std::string &branch_name) {
+                             const std::string &release_date, const std::string &branch_name) {
   auto all_ops = CollectAndSortAllOps();
   if (all_ops.empty()) {
     std::cerr << "ERROR: no ops to generate, please check the ops proto path constructed from env ASCEND_OPP_PATH:"
@@ -305,7 +305,8 @@ void GenerateHistoryRegistry(const std::string &output_dir, const std::string &r
     return;
   }
 
-  ge::es::history::HistoryRegistryWriter::WriteRegistry(output_dir, release_version, release_date, branch_name, all_ops);
+  ge::es::history::HistoryRegistryWriter::WriteRegistry(output_dir, release_version, release_date, branch_name,
+                                                        all_ops);
 }
 
 /**
@@ -315,8 +316,8 @@ void GenerateHistoryRegistry(const std::string &output_dir, const std::string &r
  */
 void GenerateCode(const std::string &output_dir, const GenEsbOptions &options) {
   // 1. 初始化代码生成器
-  auto manager = InitializeGenerators(options.module_name, options.h_guard_prefix,
-                                                               options.history_registry, options.release_version);
+  auto manager = InitializeGenerators(options.module_name, options.h_guard_prefix, options.history_registry,
+                                      options.release_version);
 
   // 2. 生成聚合文件头部
   GenerateAggregateHeaders(*manager);

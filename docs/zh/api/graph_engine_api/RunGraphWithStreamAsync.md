@@ -119,4 +119,3 @@ Status RunGraphWithStreamAsync(uint32_t graph_id, void *stream, const std::vecto
 -   得到输出运行结果前，需要通过**aclrtSynchronizeStream**接口保证Stream上的任务已经执行完。
 
     接口详细说明请参见《应用开发指南 \(C&C++\)》。
-

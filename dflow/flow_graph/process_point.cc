@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@
 namespace ge {
 namespace dflow {
 class ProcessPointImpl {
-public:
+ public:
   ProcessPointImpl(const char_t *pp_name, ProcessPointType pp_type)
       : pp_name_(pp_name), pp_type_(pp_type), json_file_path_() {}
   ~ProcessPointImpl() = default;
@@ -43,7 +43,7 @@ public:
     return json_file_path_.c_str();
   }
 
-private:
+ private:
   std::string pp_name_;
   const ProcessPointType pp_type_;
   std::string json_file_path_;
@@ -89,9 +89,9 @@ void ProcessPoint::SetCompileConfigFile(const char_t *json_file_path) {
   if (json_file_path == nullptr) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
            this->GetProcessPointName());
-    REPORT_INNER_ERR_MSG("E18888",
-                       "SetCompileConfigFile failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
-                       this->GetProcessPointName());
+    REPORT_INNER_ERR_MSG(
+        "E18888", "SetCompileConfigFile failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
+        this->GetProcessPointName());
     return;
   }
   return impl_->SetCompileConfig(json_file_path);
@@ -106,7 +106,7 @@ const char_t *ProcessPoint::GetCompileConfig() const {
 }
 
 class GraphPpImpl {
-public:
+ public:
   GraphPpImpl(const char_t *pp_name, const GraphBuilder &builder) : pp_name_(pp_name), builder_(builder) {}
   ~GraphPpImpl() = default;
 
@@ -125,7 +125,8 @@ public:
     };
     return graph_builder;
   }
-private:
+
+ private:
   std::string pp_name_;
   GraphBuilder builder_;
 };
@@ -156,8 +157,8 @@ GraphPp &GraphPp::SetCompileConfig(const char_t *json_file_path) {
     GELOGE(GRAPH_FAILED, "[Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
            this->GetProcessPointName());
     REPORT_INNER_ERR_MSG("E18888",
-                       "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
-                       this->GetProcessPointName());
+                         "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
+                         this->GetProcessPointName());
     return *this;
   }
 
@@ -193,7 +194,7 @@ GraphBuilder GraphPp::GetGraphBuilder() const {
 }
 
 class FlowGraphPpImpl {
-public:
+ public:
   FlowGraphPpImpl(const char_t *pp_name, const FlowGraphBuilder &builder) : pp_name_(pp_name), builder_(builder) {}
   ~FlowGraphPpImpl() = default;
 
@@ -213,7 +214,8 @@ public:
     };
     return graph_build;
   }
-private:
+
+ private:
   std::string pp_name_;
   FlowGraphBuilder builder_;
 };
@@ -246,8 +248,8 @@ FlowGraphPp &FlowGraphPp::SetCompileConfig(const char_t *json_file_path) {
     GELOGE(GRAPH_FAILED, "[Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
            this->GetProcessPointName());
     REPORT_INNER_ERR_MSG("E18888",
-                       "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
-                       this->GetProcessPointName());
+                         "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
+                         this->GetProcessPointName());
     return *this;
   }
 
@@ -283,7 +285,7 @@ GraphBuilder FlowGraphPp::GetGraphBuilder() const {
 }
 
 class FunctionPpImpl {
-public:
+ public:
   FunctionPpImpl() = default;
   ~FunctionPpImpl() = default;
 
@@ -297,7 +299,7 @@ public:
       GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] AddInvokedClosure failed for graphpp graph builder is nullptr.");
       return GRAPH_PARAM_INVALID;
     }
-    (void) invoked_closures_.emplace(name, graph_pp);
+    (void)invoked_closures_.emplace(name, graph_pp);
     GELOGI("AddInvokedClosure key(%s), pp name(%s).", name, graph_pp.GetProcessPointName());
     return GRAPH_SUCCESS;
   }
@@ -312,7 +314,7 @@ public:
       GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] AddInvokedClosure failed for flowgraphpp graph builder is nullptr.");
       return GRAPH_PARAM_INVALID;
     }
-    (void) invoked_flow_closures_.emplace(name, flow_graph_pp);
+    (void)invoked_flow_closures_.emplace(name, flow_graph_pp);
     GELOGI("AddInvokedClosure key(%s), pp name(%s).", name, flow_graph_pp.GetProcessPointName());
     return GRAPH_SUCCESS;
   }
@@ -328,8 +330,8 @@ public:
         const auto &graph_pp = dynamic_cast<const GraphPp &>(pp);
         return AddInvokedClosure(name, graph_pp);
       } catch (const std::exception &e) {
-        GELOGE(GRAPH_PARAM_INVALID, "ProcessPointType is Graph %s, but dynamic_cast to GraphPP exception, error=%s.", name,
-               e.what());
+        GELOGE(GRAPH_PARAM_INVALID, "ProcessPointType is Graph %s, but dynamic_cast to GraphPP exception, error=%s.",
+               name, e.what());
         return GRAPH_PARAM_INVALID;
       }
     }
@@ -339,8 +341,9 @@ public:
         const auto &flow_graph_pp = dynamic_cast<const FlowGraphPp &>(pp);
         return AddInvokedClosure(name, flow_graph_pp);
       } catch (const std::exception &e) {
-        GELOGE(GRAPH_PARAM_INVALID, "ProcessPointType is FlowGraph %s, but dynamic_cast to FlowGraphPP exception, error=%s.",
-               name, e.what());
+        GELOGE(GRAPH_PARAM_INVALID,
+               "ProcessPointType is FlowGraph %s, but dynamic_cast to FlowGraphPP exception, error=%s.", name,
+               e.what());
         return GRAPH_PARAM_INVALID;
       }
     }
@@ -366,7 +369,7 @@ public:
     return invoked_flow_closures_;
   }
 
-  template<typename T>
+  template <typename T>
   bool SetAttrValue(const char_t *name, T &&value) {
     if (name == nullptr) {
       GELOGE(GRAPH_FAILED, "name is null.");
@@ -383,7 +386,8 @@ public:
     AddInvokedPps(process_point);
     AddFunctionPpInitPara(process_point);
   }
-private:
+
+ private:
   void AddInvokedPps(dataflow::ProcessPoint &process_point);
   void AddFunctionPpInitPara(dataflow::ProcessPoint &process_point);
   graphStatus CheckInvokeName(const char_t *name) const;
@@ -487,8 +491,8 @@ FunctionPp &FunctionPp::SetCompileConfig(const char_t *json_file_path) {
     GELOGE(GRAPH_FAILED, "[Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
            this->GetProcessPointName());
     REPORT_INNER_ERR_MSG("E18888",
-                       "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
-                       this->GetProcessPointName());
+                         "SetCompileConfig failed: [Check][Param] ProcessPoint(%s)'s compile config json is nullptr.",
+                         this->GetProcessPointName());
     return *this;
   }
 
@@ -523,7 +527,8 @@ FunctionPp &FunctionPp::SetInitParam(const char_t *attr_name, const char_t *valu
 
   if (value == nullptr) {
     GELOGE(GRAPH_FAILED, "[Check][Param] Set init param value is nullptr, check failed.");
-    REPORT_INNER_ERR_MSG("E18888", "SetInitParam failed: [Check][Param] Set init param value is nullptr, check failed.");
+    REPORT_INNER_ERR_MSG("E18888",
+                         "SetInitParam failed: [Check][Param] Set init param value is nullptr, check failed.");
     return *this;
   }
 
@@ -770,7 +775,7 @@ const std::map<const ge::string, const GraphPp> &FlowGraphUtils::GetInvokedClosu
     static std::map<const std::string, const GraphPp> empty_map;
     return empty_map;
   }
-    return func_pp->impl_->GetInvokedClosures();
+  return func_pp->impl_->GetInvokedClosures();
 }
 
 const std::map<const ge::string, const FlowGraphPp> &FlowGraphUtils::GetInvokedFlowClosures(const FunctionPp *func_pp) {
@@ -778,7 +783,7 @@ const std::map<const ge::string, const FlowGraphPp> &FlowGraphUtils::GetInvokedF
     static std::map<const std::string, const FlowGraphPp> empty_map;
     return empty_map;
   }
-    return func_pp->impl_->GetInvokedFlowClosures();
+  return func_pp->impl_->GetInvokedFlowClosures();
 }
 }  // namespace dflow
 }  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,8 @@ OpDtypeReduceMatcher::OpDtypeReduceMatcher() : OpDtypeMatcherBase() {}
 OpDtypeReduceMatcher::~OpDtypeReduceMatcher() {}
 
 Status OpDtypeReduceMatcher::FindSuitableDtype(const vector<ge::DataType> &op_kernel_dtype_vec,
-    const ge::DataType &expected_dtype, vector<uint32_t> &matched_index_vec,
-    const ge::DataType &forbidden_dtype) {
+                                               const ge::DataType &expected_dtype, vector<uint32_t> &matched_index_vec,
+                                               const ge::DataType &forbidden_dtype) {
   auto expected_dtype_iter = DATATYPE_PRIORITY_MAP_AMPLIFIED.find(expected_dtype);
   if (expected_dtype_iter == DATATYPE_PRIORITY_MAP_AMPLIFIED.end()) {
     FE_LOGD("the dtype %s is not found in DATATYPE_PRIORITY_MAP_AMPLIFIED.",
@@ -59,9 +59,9 @@ Status OpDtypeReduceMatcher::FindSuitableDtype(const vector<ge::DataType> &op_ke
     }
 
     // 1. the priority gap between the op_kernel data type
-    // and the exptected data type
+    // and the expected data type
     int32_t prio_gap_reduce = op_kernel_dtype_iter->second - expected_dtype_iter->second;
-    // 2. the exptected data type is equal to the op_kernel data type
+    // 2. the expected data type is equal to the op_kernel data type
     if (prio_gap_reduce > LOW_GAP_AMPLIFIED && prio_gap_reduce < HIGH_GAP_AMPLIFIED) {
       if (priority_index_map.find(prio_gap_reduce) != priority_index_map.end()) {
         FE_ADD_OVERFLOW(prio_gap_reduce, prio_gap_increment_value, prio_gap_reduce);

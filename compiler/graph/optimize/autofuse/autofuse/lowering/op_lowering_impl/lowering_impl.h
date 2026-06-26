@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,22 +32,23 @@ graphStatus LowerReduction(const NodePtr &node, loop::ReduceType reduce_type);
  * 功能：
  * 1. 当断言失败时，先存储 node_name + 不能融合原因
  * 2. 再调用原有GE_WARN_ASSERT执行断言逻辑
- * 
+ *
  * @param exp 断言表达式（同GE_WARN_ASSERT）
  * @param node 节点指针（必须是ge::Node*类型，用于获取node_name）
  * @param reason 不能融合原因（字符串常量/变量）
  */
-#define LOWERING_WARN_RECORD_REASON(exp, node, fmt, ...)                                      \
-  do {                                                                                        \
-    if (!(exp)) {                                                                             \
-      std::string node_name = (node != nullptr) ? node->GetName() : "unknown_node";           \
-      char reason_buf[256] = {0};                                                             \
-      auto ret = snprintf_s(reason_buf, sizeof(reason_buf), sizeof(reason_buf) - 1U, fmt, ##__VA_ARGS__);\
-      GE_ASSERT_TRUE(ret >= 0, "snprintf_s failed, ret: %d", ret);                            \
-      std::string reason = reason_buf;                                                        \
-      GraphFusionReasonStore::CountNodeFuseFailReason(node_name, reason, GraphFusionReasonStore::FailReasonCategory::NODE_INFO_ERROR); \
-      GE_WARN_ASSERT(exp);                                                                    \
-    }                                                                                         \
+#define LOWERING_WARN_RECORD_REASON(exp, node, fmt, ...)                                                            \
+  do {                                                                                                              \
+    if (!(exp)) {                                                                                                   \
+      std::string node_name = (node != nullptr) ? node->GetName() : "unknown_node";                                 \
+      char reason_buf[256] = {0};                                                                                   \
+      auto ret = snprintf_s(reason_buf, sizeof(reason_buf), sizeof(reason_buf) - 1U, fmt, ##__VA_ARGS__);           \
+      GE_ASSERT_TRUE(ret >= 0, "snprintf_s failed, ret: %d", ret);                                                  \
+      std::string reason = reason_buf;                                                                              \
+      GraphFusionReasonStore::CountNodeFuseFailReason(node_name, reason,                                            \
+                                                      GraphFusionReasonStore::FailReasonCategory::NODE_INFO_ERROR); \
+      GE_WARN_ASSERT(exp);                                                                                          \
+    }                                                                                                               \
   } while (false)
 
 #define REGISTER_LOWERING(T)                           \

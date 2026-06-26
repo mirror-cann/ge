@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ void AddCompileResultByGNode(ComputeGraphPtr &cg, ge::GNode *gnode, bool atomic,
     JitShareGraph::AddCompileResult(node, atomic, compile_info_json);
   }
 }
-} // namespace
+}  // namespace
 
 void JitShareGraph::AddCompileResult(const ge::NodePtr &node, bool atomic, const char *compile_info_json) {
   AttrUtils::SetStr(node->GetOpDesc(), "compile_info_json", compile_info_json);
@@ -76,12 +76,14 @@ UniqueGraphPtr JitShareGraph::AllNormalNodes(const std::vector<int64_t> &input_d
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 
@@ -103,12 +105,14 @@ UniqueGraphPtr JitShareGraph::AllNormalNodesStaticShape() {
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 /**
@@ -164,9 +168,10 @@ UniqueGraphPtr JitShareGraph::OneReshapeNodeWithHostInput(const std::vector<int6
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 /**
@@ -180,7 +185,8 @@ UniqueGraphPtr JitShareGraph::OneReshapeNodeWithHostInput(const std::vector<int6
  *        |
  *    netoutput
  **/
-UniqueGraphPtr JitShareGraph::OneReshapeNode(const std::vector<int64_t> &input1_dims, const std::vector<int64_t> &input2_dims) {
+UniqueGraphPtr JitShareGraph::OneReshapeNode(const std::vector<int64_t> &input1_dims,
+                                             const std::vector<int64_t> &input2_dims) {
   es::EsGraphBuilder es_graph("test_graph");
   auto data = es_graph.CreateInput(0, "data0", nullptr);
   auto data1 = es_graph.CreateInput(1, "data1", nullptr);
@@ -200,12 +206,14 @@ UniqueGraphPtr JitShareGraph::OneReshapeNode(const std::vector<int64_t> &input1_
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 /**
@@ -232,12 +240,14 @@ UniqueGraphPtr JitShareGraph::OneReshapeNodeTwoRelu() {
   es::EsGraphBuilder::SetOutput(relu1, 1);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 /**
@@ -266,12 +276,14 @@ UniqueGraphPtr JitShareGraph::TwoReshapeNodeTwoRelu() {
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 
@@ -316,12 +328,14 @@ UniqueGraphPtr JitShareGraph::OneAddNode() {
   es::EsGraphBuilder::SetOutput(add, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, add.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, add.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, add.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, add.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
 
@@ -348,18 +362,21 @@ UniqueGraphPtr JitShareGraph::OneConstTwoReshapeNodeTwoRelu() {
   auto reshape = es::Reshape(relu, data1, 4, 4);
   std::vector<int64_t> const_data0 = {2, 3, 3, 2};
   std::vector<int64_t> const_dim = {4};
-  es::EsTensorHolder const_node(EsCreateConstInt64(es_graph.GetCGraphBuilder(), const_data0.data(), const_dim.data(), const_dim.size()));
+  es::EsTensorHolder const_node(
+      EsCreateConstInt64(es_graph.GetCGraphBuilder(), const_data0.data(), const_dim.data(), const_dim.size()));
   auto reshape1 = es::Reshape(reshape, const_node, 4, 4);
   auto relu1 = es::Relu(reshape1);
   es::EsGraphBuilder::SetOutput(relu1, 0);
   auto graph = es_graph.BuildAndReset();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
-  AddCompileResultByGNode(cg, relu.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
-  AddCompileResultByGNode(cg, relu1.GetProducer(), true,
-                   "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
-                   "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
+  AddCompileResultByGNode(
+      cg, relu1.GetProducer(), true,
+      "{\"vars\": {\"srcFormat\": \"NCHW\", \"dstFormat\": \"NC1HWC0\", \"dType\": \"float16\", "
+      "\"ub_size\": 126464, \"block_dim\": 32, \"input_size\": 0, \"hidden_size\": 0, \"group\": 1}}");
   return graph;
 }
-} // ge
+}  // namespace ge

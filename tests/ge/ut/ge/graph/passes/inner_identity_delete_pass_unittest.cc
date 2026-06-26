@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 using namespace ge;
 
 class UtestGraphPassesInnerIdentityDeletePass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -134,21 +134,21 @@ TEST_F(UtestGraphPassesInnerIdentityDeletePass, InnerIdentityDelete4) {
 TEST_F(UtestGraphPassesInnerIdentityDeletePass, InnerIdentityDelete5) {
   DEF_GRAPH(g1) {
     auto assign1 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign1");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign1");
     auto assign2 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign2");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign2");
     auto identity1 = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity1");
     auto identity2 = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity2");
     CHAIN(NODE("relu", RELU)->NODE(identity1)->NODE(assign1)->CTRL_EDGE()->NODE(assign2));
@@ -249,20 +249,21 @@ TEST_F(UtestGraphPassesInnerIdentityDeletePass, InnerIdentityCannotDelete1) {
 TEST_F(UtestGraphPassesInnerIdentityDeletePass, NanoCannotDelete1) {
   DEF_GRAPH(g1) {
     auto assign = OP_CFG(ASSIGN)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-        .InCnt(2)
-        .OutCnt(1)
-        .InNames({"ref", "value"})
-        .OutNames({"ref"})
-        .Attr(ATTR_NAME_REFERENCE, true)
-        .Build("assign");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                      .InCnt(2)
+                      .OutCnt(1)
+                      .InNames({"ref", "value"})
+                      .OutNames({"ref"})
+                      .Attr(ATTR_NAME_REFERENCE, true)
+                      .Build("assign");
     auto identity = OP_CFG(IDENTITY)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr("_inner_identity", true)
-        .OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2)
-        .Build("identity");
-    CHAIN(NODE("data1", DATA)->NODE("transdata", TRANSDATA)->NODE(identity)->NODE(assign)->NODE("net_output", NETOUTPUT));
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr("_inner_identity", true)
+                        .OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2)
+                        .Build("identity");
+    CHAIN(
+        NODE("data1", DATA)->NODE("transdata", TRANSDATA)->NODE(identity)->NODE(assign)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE(assign));
   };
   auto compute_graph = ToComputeGraph(g1);
@@ -275,19 +276,19 @@ TEST_F(UtestGraphPassesInnerIdentityDeletePass, NanoCannotDelete1) {
 TEST_F(UtestGraphPassesInnerIdentityDeletePass, NanoCannotDelete2) {
   DEF_GRAPH(g1) {
     auto test_op = OP_CFG("TESTOP")
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-        .InCnt(2)
-        .OutCnt(2)
-        .InNames({"ref1", "ref2"})
-        .OutNames({"ref1", "ref2"})
-        .Attr(ATTR_NAME_REFERENCE, true)
-        .Build("test_op");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(2)
+                       .InNames({"ref1", "ref2"})
+                       .OutNames({"ref1", "ref2"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("test_op");
     auto identity1 = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity1");
     auto identity2 = OP_CFG(IDENTITY).InCnt(1).OutCnt(1).Attr("_inner_identity", true).Build("identity2");
-    auto transdata1 = OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2).
-        Build("transdata1");
-    auto transdata2 = OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2).
-        Build("transdata2");
+    auto transdata1 =
+        OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2).Build("transdata1");
+    auto transdata2 =
+        OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).OutputAttr(0, ATTR_NAME_TENSOR_MEMORY_SCOPE, 2).Build("transdata2");
     CHAIN(NODE("data1", DATA)->NODE(identity1)->NODE(transdata1)->NODE(test_op)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data1")->NODE(identity2)->NODE(transdata2)->EDGE(0, 1)->NODE(test_op));
   };

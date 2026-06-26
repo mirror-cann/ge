@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include <cstddef>
 #include <iomanip>
@@ -35,7 +34,7 @@ enum class SplitArgIndex {
   kInputXShape,
   kOutputTensor
 };
-} // namespace
+}  // namespace
 
 Shape UpdateShape(const Shape old_shape, int32_t axis) {
   Shape each_shape_data;
@@ -54,8 +53,8 @@ Shape UpdateShape(const Shape old_shape, int32_t axis) {
 
 ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
   GELOGD("StoreTensorInfoToSequence begin");
-  auto inner_tensor_shape = context->GetInputPointer<TypedContinuousVector<Shape>>
-        (static_cast<size_t>(SplitArgIndex::kInnerShapes));
+  auto inner_tensor_shape =
+      context->GetInputPointer<TypedContinuousVector<Shape>>(static_cast<size_t>(SplitArgIndex::kInnerShapes));
   if (inner_tensor_shape == nullptr) {
     GELOGE(ge::PARAM_INVALID, "Get inner shape failed");
     REPORT_INNER_ERR_MSG("E39999", "Get inner shape failed");
@@ -64,8 +63,7 @@ ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
 
   auto input_num = context->GetInputValue<int32_t>(static_cast<size_t>(SplitArgIndex::kInputNum));
   auto keep_dims = context->GetInputValue<int32_t>(static_cast<size_t>(SplitArgIndex::kKeepDims));
-  auto input_x_storage_shape = context->GetInputPointer<StorageShape>(
-      static_cast<size_t>(SplitArgIndex::kInputXShape));
+  auto input_x_storage_shape = context->GetInputPointer<StorageShape>(static_cast<size_t>(SplitArgIndex::kInputXShape));
   if (input_x_storage_shape == nullptr) {
     GELOGE(ge::PARAM_INVALID, "Get tensor shape failed");
     REPORT_INNER_ERR_MSG("E39999", "Get tensor shape failed");
@@ -82,15 +80,15 @@ ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
   // tensor vec after split
   auto shape_num = inner_tensor_shape->GetSize();
   auto shape_data = inner_tensor_shape->GetData();
-  auto inner_tensor_addrs = context->MutableInputPointer<TypedContinuousVector<TensorData*>>(
-        static_cast<size_t>(SplitArgIndex::kInnerTensorDatas));
+  auto inner_tensor_addrs = context->MutableInputPointer<TypedContinuousVector<TensorData *>>(
+      static_cast<size_t>(SplitArgIndex::kInnerTensorDatas));
   if (inner_tensor_addrs == nullptr) {
     GELOGE(ge::PARAM_INVALID, "Get tensor data addrs failed");
     REPORT_INNER_ERR_MSG("E39999", "Get tensor data addrs failed");
     return ge::PARAM_INVALID;
   }
 
-  auto extend_ctx = reinterpret_cast<ExtendedKernelContext*>(context);
+  auto extend_ctx = reinterpret_cast<ExtendedKernelContext *>(context);
   auto input_x_desc = extend_ctx->GetInputDesc(0);
   if (input_x_desc == nullptr) {
     GELOGE(ge::PARAM_INVALID, "Get input x desc failed");
@@ -111,8 +109,7 @@ ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
   ResourceMgrPtr rm;
   SessionMgr::GetInstance()->GetRm(session_id, container_id, rm);
   uint64_t handle = rm->GetHandle();
-  GELOGD("handle=%llu, shape_num=%u, session_id=%u, container_id=%u",
-         handle, shape_num, session_id, container_id);
+  GELOGD("handle=%llu, shape_num=%u, session_id=%u, container_id=%u", handle, shape_num, session_id, container_id);
   rm->StoreStepHandle(handle);
   rm->Create(handle, tensor_seq);
   StorageShape store_shape;
@@ -125,7 +122,7 @@ ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
         GELOGE(ge::INTERNAL_ERROR, "inner addr is a null pointer");
         REPORT_INNER_ERR_MSG("E39999", "inner addr is a null pointer");
         return ge::INTERNAL_ERROR;
-      }  
+      }
       tensor_seq->Add(data_type, *inner_tensor_addrs->MutableData()[i], store_shape);
       continue;
     }
@@ -138,18 +135,17 @@ ge::graphStatus StoreTensorInfoToSequence(KernelContext *context) {
       GELOGE(ge::INTERNAL_ERROR, "inner addr is a null pointer");
       REPORT_INNER_ERR_MSG("E39999", "inner addr is a null pointer");
       return ge::INTERNAL_ERROR;
-    }  
+    }
     tensor_seq->Add(data_type, *inner_tensor_addrs->MutableData()[i], store_shape);
   }
 
-  auto output_tensor = context->MutableInputPointer<Tensor>(
-      static_cast<size_t>(SplitArgIndex::kOutputTensor));
+  auto output_tensor = context->MutableInputPointer<Tensor>(static_cast<size_t>(SplitArgIndex::kOutputTensor));
   if ((output_tensor == nullptr) || (output_tensor->GetData<uint64_t>() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "rm is a null pointer");
     REPORT_INNER_ERR_MSG("E39999", "rm is a null pointer");
     return ge::PARAM_INVALID;
   }
-  uint64_t* data_ptr = output_tensor->GetData<uint64_t>();
+  uint64_t *data_ptr = output_tensor->GetData<uint64_t>();
   *data_ptr = handle;
   GELOGD("StoreTensorInfoToSequence end");
   return ge::GRAPH_SUCCESS;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,8 +42,7 @@ bool PassUtils::IsConstant(const ConstNodePtr &node) {
 }
 
 Status PassUtils::SetOutNodeWeight(const OutDataAnchorPtr &out_data_anchor, const NodePtr &src_node) {
-  GE_IF_BOOL_EXEC(src_node == nullptr,
-                  REPORT_INNER_ERR_MSG("E19999", "Param src_node is nullptr, check invalid");
+  GE_IF_BOOL_EXEC(src_node == nullptr, REPORT_INNER_ERR_MSG("E19999", "Param src_node is nullptr, check invalid");
                   GELOGE(PARAM_INVALID, "[Check][Param] src_node is nullptr"); return PARAM_INVALID);
   if (!IsConstant(src_node)) {
     return SUCCESS;
@@ -51,18 +50,20 @@ Status PassUtils::SetOutNodeWeight(const OutDataAnchorPtr &out_data_anchor, cons
 
   auto weights = OpDescUtils::MutableWeights(src_node);
   if (weights.empty()) {
-    REPORT_INNER_ERR_MSG("E19999", "Weight of node:%s(%s) is empty, check invalid",
-                       src_node->GetName().c_str(), src_node->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param] Weight of node:%s(%s) is empty",
-           src_node->GetName().c_str(), src_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Weight of node:%s(%s) is empty, check invalid", src_node->GetName().c_str(),
+                         src_node->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] Weight of node:%s(%s) is empty", src_node->GetName().c_str(),
+           src_node->GetType().c_str());
     return PARAM_INVALID;
   }
 
   auto weight = weights.at(0);
   auto src_in_ctrl = src_node->GetInControlAnchor();
   if ((src_in_ctrl == nullptr) || (out_data_anchor == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Param out_data_anchor or in control anchor in Param src_node:%s(%s) is nullptr, "
-                       "check invalid", src_node->GetName().c_str(), src_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Param out_data_anchor or in control anchor in Param src_node:%s(%s) is nullptr, "
+                         "check invalid",
+                         src_node->GetName().c_str(), src_node->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Param out_data_anchor or in control anchor in Param src_node:%s(%s) is nullptr",
            src_node->GetName().c_str(), src_node->GetType().c_str());
     return FAILED;
@@ -82,10 +83,9 @@ Status PassUtils::SetOutNodeWeight(const OutDataAnchorPtr &out_data_anchor, cons
       dst_op_desc->SetIsInputConst(is_input_const);
     }
 
-    GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_data_anchor, dst_in_data),
-                            "[Remove][Edge] between %s and %s failed",
-                            out_data_anchor->GetOwnerNode()->GetName().c_str(),
-                            dst_in_data->GetOwnerNode()->GetName().c_str());
+    GE_CHK_GRAPH_STATUS_RET(
+        GraphUtils::RemoveEdge(out_data_anchor, dst_in_data), "[Remove][Edge] between %s and %s failed",
+        out_data_anchor->GetOwnerNode()->GetName().c_str(), dst_in_data->GetOwnerNode()->GetName().c_str());
     graphStatus ret = OpDescUtils::AddConstOpToAnchor(dst_in_data, weight);
     if (ret != SUCCESS) {
       return ret;
@@ -111,10 +111,9 @@ Status PassUtils::SetOutNodeWeight(const OutDataAnchorPtr &out_data_anchor, cons
   /// Op1 - - - > Op2
   for (const auto &dst_in_ctrl : out_data_anchor->GetPeerInControlAnchors()) {
     for (const auto &src_out_control_anchor : src_out_control_anchors) {
-      GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(src_out_control_anchor, dst_in_ctrl),
-                              "[Add][ControlEdge] between %s and %s failed",
-                              src_out_control_anchor->GetOwnerNode()->GetName().c_str(),
-                              dst_in_ctrl->GetOwnerNode()->GetName().c_str());
+      GE_CHK_GRAPH_STATUS_RET(
+          GraphUtils::AddEdge(src_out_control_anchor, dst_in_ctrl), "[Add][ControlEdge] between %s and %s failed",
+          src_out_control_anchor->GetOwnerNode()->GetName().c_str(), dst_in_ctrl->GetOwnerNode()->GetName().c_str());
     }
   }
 
@@ -147,30 +146,30 @@ Status PassUtils::RemoveBranch(const NodePtr &node, std::vector<NodePtr> &delete
         }
         auto dst_node = dst_in_anchor->GetOwnerNode();
         std::string node_type;
-        GE_CHK_STATUS_RET(GetOriginalType(dst_node, node_type),
-                          "[Get][OriginalType] of node:%s failed", dst_node->GetName().c_str());
+        GE_CHK_STATUS_RET(GetOriginalType(dst_node, node_type), "[Get][OriginalType] of node:%s failed",
+                          dst_node->GetName().c_str());
         if (node_type == NETOUTPUT) {
           if (dst_in_anchor->IsTypeOf<InDataAnchor>()) {
-            REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) nactive branch connected to NetOutput with data anchor, "
-                               "check invalid", node->GetName().c_str(), node->GetType().c_str());
+            REPORT_INNER_ERR_MSG("E19999",
+                                 "Node:%s(%s) nactive branch connected to NetOutput with data anchor, "
+                                 "check invalid",
+                                 node->GetName().c_str(), node->GetType().c_str());
             GELOGE(INTERNAL_ERROR, "[Check][Param] [%s] Inactive branch connected to NetOutput with data anchor.",
                    node->GetName().c_str());
             return INTERNAL_ERROR;
           } else {
             // safe to unlink control edges
-            GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(src_out_anchor, dst_in_anchor),
-                                    "[Remove][Edge] between %s and %s failed",
-                                    src_out_anchor->GetOwnerNode()->GetName().c_str(),
-                                    dst_in_anchor->GetOwnerNode()->GetName().c_str());
+            GE_CHK_GRAPH_STATUS_RET(
+                GraphUtils::RemoveEdge(src_out_anchor, dst_in_anchor), "[Remove][Edge] between %s and %s failed",
+                src_out_anchor->GetOwnerNode()->GetName().c_str(), dst_in_anchor->GetOwnerNode()->GetName().c_str());
             end_nodes.push_back(dst_node);
           }
         } else if ((node_type == MERGE) || (node_type == REFMERGE)) {
           /// Unlink connection between the inactive branch and Merge/NetOutput.
           /// The removal of inactive nodes will be handled in PrunePass
-          GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(src_out_anchor, dst_in_anchor),
-                                  "[Remove][Edge] between %s and %s failed",
-                                  src_out_anchor->GetOwnerNode()->GetName().c_str(),
-                                  dst_in_anchor->GetOwnerNode()->GetName().c_str());
+          GE_CHK_GRAPH_STATUS_RET(
+              GraphUtils::RemoveEdge(src_out_anchor, dst_in_anchor), "[Remove][Edge] between %s and %s failed",
+              src_out_anchor->GetOwnerNode()->GetName().c_str(), dst_in_anchor->GetOwnerNode()->GetName().c_str());
           end_nodes.push_back(dst_node);
           GELOGD("Reach the end merge node %s, the branch removing stop", dst_node->GetName().c_str());
         } else {
@@ -241,7 +240,7 @@ int32_t PassUtils::GetUniqueInDataAnchorIndex(const NodePtr &node_ptr) {
   }
 
   REPORT_INNER_ERR_MSG("E19999", "Failed to find in data anchor of node:%s(%s) with a valid peer out node",
-                     node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+                       node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
   GELOGE(INTERNAL_ERROR, "[Check][Param] Failed to find in data anchor of node:%s(%s) with a valid peer out node",
          node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
   return invalid_index;
@@ -261,7 +260,7 @@ Status PassUtils::UnlinkNodeWithControlCopy(NodePtr &node, int32_t index) {
   auto out_data_anchor = in_data_anchor->GetPeerOutAnchor();
   if (out_data_anchor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Index:%d in data anchor of node:%s(%s), its peer anchor is nullptr, check invalid",
-                       index, node->GetName().c_str(), node->GetType().c_str());
+                         index, node->GetName().c_str(), node->GetType().c_str());
     GELOGE(FAILED, "[Get][PeerOutAnchor] failed, Index:%d in data anchor of node:%s(%s), its peer anchor is nullptr.",
            index, node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
@@ -273,11 +272,10 @@ Status PassUtils::UnlinkNodeWithControlCopy(NodePtr &node, int32_t index) {
   // link father_node's in control nodes to node
   if (GraphUtils::CopyInCtrlEdges(father_node, node) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Copy in control edge from node:%s(%s) to node:%s(%s) failed",
-                      father_node->GetName().c_str(), father_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed",
-           father_node->GetName().c_str(), father_node->GetType().c_str(),
-           node->GetName().c_str(), node->GetType().c_str());
+                         father_node->GetName().c_str(), father_node->GetType().c_str(), node->GetName().c_str(),
+                         node->GetType().c_str());
+    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed", father_node->GetName().c_str(),
+           father_node->GetType().c_str(), node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -293,14 +291,13 @@ Status PassUtils::RemoveInactiveBranchToMerge(const OutDataAnchorPtr &inactive_o
   for (const auto &dst_anchor : inactive_output_anchor->GetPeerAnchors()) {
     auto dst_node = dst_anchor->GetOwnerNode();
     std::string dst_node_type;
-    GE_CHK_STATUS_RET(GetOriginalType(dst_node, dst_node_type),
-                      "[Get][OriginalType] of node:%s failed", dst_node->GetName().c_str());
+    GE_CHK_STATUS_RET(GetOriginalType(dst_node, dst_node_type), "[Get][OriginalType] of node:%s failed",
+                      dst_node->GetName().c_str());
     if ((dst_node_type == MERGE) || (dst_node_type == REFMERGE)) {
       GELOGD("[%s] Switch connected directly to Merge", inactive_output_anchor->GetOwnerNode()->GetName().c_str());
       GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(inactive_output_anchor, dst_anchor),
                               "[Remove][Edge] between %s and %s failed",
-                              inactive_output_anchor->GetOwnerNode()->GetName().c_str(),
-                              dst_node->GetName().c_str());
+                              inactive_output_anchor->GetOwnerNode()->GetName().c_str(), dst_node->GetName().c_str());
       end_nodes.emplace_back(dst_node);
       continue;
     }
@@ -314,21 +311,17 @@ Status PassUtils::RemoveInactiveBranchToMerge(const OutDataAnchorPtr &inactive_o
 }
 
 std::set<std::string> PassUtils::GetDisabledOptimizations() {
-  static const std::set<std::string> kDisableOptimizationWhitelist{
-      "RemoveSameConstPass",
-      "ConstantFoldingPass",
-      "TransOpWithoutReshapeFusionPass"
-  };
+  static const std::set<std::string> kDisableOptimizationWhitelist{"RemoveSameConstPass", "ConstantFoldingPass",
+                                                                   "TransOpWithoutReshapeFusionPass"};
   std::string option_value;
-  if ((GetContext().GetOption(OPTION_DISABLE_OPTIMIZATIONS, option_value) != GRAPH_SUCCESS) ||
-      option_value.empty()) {
+  if ((GetContext().GetOption(OPTION_DISABLE_OPTIMIZATIONS, option_value) != GRAPH_SUCCESS) || option_value.empty()) {
     GELOGD("Option [%s] is not set or is empty", OPTION_DISABLE_OPTIMIZATIONS);
     return {};
   }
   GELOGD("Option [%s] = [%s]", OPTION_DISABLE_OPTIMIZATIONS, option_value.c_str());
   std::set<std::string> disabled_optimizations;
   for (auto &optimization : StringUtils::Split(option_value, ',')) {
-    (void) StringUtils::Trim(option_value);
+    (void)StringUtils::Trim(option_value);
     if (!option_value.empty()) {
       if (kDisableOptimizationWhitelist.find(optimization) == kDisableOptimizationWhitelist.cend()) {
         GELOGW("Optimization [%s] is not allowed to disable", optimization.c_str());
@@ -409,8 +402,8 @@ Status PassUtils::UpdateRefAttr(const ComputeGraphPtr &graph) {
     }
     if (is_ref) {
       AttrUtils::SetBool(op_desc, ATTR_NAME_REFERENCE, is_ref);
-      GELOGI("param [node] %s is reference node, set attribute %s to be true.",
-             node->GetName().c_str(), ATTR_NAME_REFERENCE.c_str());
+      GELOGI("param [node] %s is reference node, set attribute %s to be true.", node->GetName().c_str(),
+             ATTR_NAME_REFERENCE.c_str());
     }
   }
   return SUCCESS;

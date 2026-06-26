@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,18 +24,15 @@
 #include "ge/ge_error_codes.h"
 #include "exe_graph/lowering/frame_selector.h"
 #include "common/opskernel/ops_kernel_info_types.h"
-#include "mmpa/mmpa_api.h" // 临时引用，待删除
+#include "mmpa/mmpa_api.h"  // 临时引用，待删除
 
 namespace gert {
 namespace {
 constexpr int64_t kUnknownDimNum = -2;
 const std::set<ge::ModelTaskType> TBE_TASK_SET = {
-    ge::ModelTaskType::MODEL_TASK_KERNEL,
-    ge::ModelTaskType::MODEL_TASK_VECTOR_KERNEL,
-    ge::ModelTaskType::MODEL_TASK_ALL_KERNEL,
-    ge::ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL
-};
-}
+    ge::ModelTaskType::MODEL_TASK_KERNEL, ge::ModelTaskType::MODEL_TASK_VECTOR_KERNEL,
+    ge::ModelTaskType::MODEL_TASK_ALL_KERNEL, ge::ModelTaskType::MODEL_TASK_VECTOR_ALL_KERNEL};
+}  // namespace
 std::vector<bg::ValueHolderPtr> NodeConverterUtils::CreateOutputShapes(const ge::OpDescPtr &op_desc) {
   std::vector<ge::ConstGeTensorDescPtr> output_tensor_descs;
   for (size_t i = 0U; i < op_desc->GetOutputsSize(); ++i) {
@@ -50,7 +47,8 @@ std::vector<bg::ValueHolderPtr> NodeConverterUtils::CreateOutputShapes(
   std::vector<bg::ValueHolderPtr> outputs;
   for (const auto &output_desc : output_tensor_descs) {
     Tensor shape_tensor;
-    auto output_shape = NodeConverterUtils::CreateOutputShape(output_desc);;
+    auto output_shape = NodeConverterUtils::CreateOutputShape(output_desc);
+    ;
     outputs.emplace_back(output_shape);
   }
   return outputs;
@@ -84,19 +82,19 @@ bg::ValueHolderPtr NodeConverterUtils::CreateOutputShape(const ge::ConstGeTensor
   return CreateShapeTensor(shape, tensor_desc);
 }
 
-std::vector<bg::ValueHolderPtr> GetOrCreateInputFeeds(
-    LoweringGlobalData *global_data, const ge::ComputeGraphPtr &graph) {
+std::vector<bg::ValueHolderPtr> GetOrCreateInputFeeds(LoweringGlobalData *global_data,
+                                                      const ge::ComputeGraphPtr &graph) {
   GE_ASSERT_NOTNULL(graph);
   int32_t data_num = static_cast<int32_t>(ge::GraphUtilsEx::GetUserInputDataNodes(graph).size());
   GE_ASSERT_NOTNULL(global_data);
   const std::string feed_tensors_key = graph->GetName() + "_input_feed_tensors";
-  return global_data->GetOrCreateUniqueValueHolder(feed_tensors_key,
-      [&data_num] ()->std::vector<bg::ValueHolderPtr> {
-        std::vector<bg::ValueHolderPtr> feed_tensors;
-        for (int32_t i = 0; i < data_num; i++) {
-          feed_tensors.emplace_back(bg::ValueHolder::CreateFeed(i));
-        }
-        return feed_tensors;});
+  return global_data->GetOrCreateUniqueValueHolder(feed_tensors_key, [&data_num]() -> std::vector<bg::ValueHolderPtr> {
+    std::vector<bg::ValueHolderPtr> feed_tensors;
+    for (int32_t i = 0; i < data_num; i++) {
+      feed_tensors.emplace_back(bg::ValueHolder::CreateFeed(i));
+    }
+    return feed_tensors;
+  });
 }
 
 Shape NodeConverterUtils::GetShapeFromGeShape(const ge::GeShape &ge_shape) {
@@ -114,7 +112,7 @@ Shape NodeConverterUtils::GetShapeFromGeShape(const ge::GeShape &ge_shape) {
 
 inline bool IsAICpuTaskdef(ge::ccKernelType kernel_type) {
   return (kernel_type == ge::ccKernelType::AI_CPU) || (kernel_type == ge::ccKernelType::CUST_AI_CPU) ||
-      (kernel_type == ge::ccKernelType::HOST_CPU);
+         (kernel_type == ge::ccKernelType::HOST_CPU);
 }
 
 const domi::TaskDef *GetTaskdefByType(const ge::NodePtr &node, std::vector<const domi::TaskDef *> &aicore_task_defs,
@@ -132,8 +130,8 @@ const domi::TaskDef *GetTaskdefByType(const ge::NodePtr &node, std::vector<const
     return aicore_task_defs.empty() ? nullptr : aicore_task_defs.back();
   }
   if (aicore_task_defs.size() != ge::kNumTaskWithAtomicAddrCleanTask) {
-    GELOGD("Node[%s] Expect %zu tasks, but got %zu",
-           node->GetName().c_str(), ge::kNumTaskWithAtomicAddrCleanTask, aicore_task_defs.size());
+    GELOGD("Node[%s] Expect %zu tasks, but got %zu", node->GetName().c_str(), ge::kNumTaskWithAtomicAddrCleanTask,
+           aicore_task_defs.size());
     return nullptr;
   }
   return aicore_task_defs.front();
@@ -148,9 +146,8 @@ const domi::TaskDef *GetTaskDef(const ge::NodePtr &node, const LoweringGlobalDat
     const auto task_type = static_cast<ge::ModelTaskType>(task_def.type());
     if (TBE_TASK_SET.count(task_type) == 1) {
       bool is_sta_kernel = (task_type == ge::ModelTaskType::MODEL_TASK_KERNEL) ||
-          (task_type == ge::ModelTaskType::MODEL_TASK_VECTOR_KERNEL);
-      const auto &context =
-          is_sta_kernel ? task_def.kernel().context() : task_def.kernel_with_handle().context();
+                           (task_type == ge::ModelTaskType::MODEL_TASK_VECTOR_KERNEL);
+      const auto &context = is_sta_kernel ? task_def.kernel().context() : task_def.kernel_with_handle().context();
       const auto kernel_type = static_cast<ge::ccKernelType>(context.kernel_type());
       if (kernel_type == ge::ccKernelType::TE || kernel_type == ge::ccKernelType::MIX_AICORE ||
           kernel_type == ge::ccKernelType::MIX_VECTOR_CORE) {
@@ -182,8 +179,7 @@ std::vector<bg::ValueHolderPtr> CreateOutputShapes(const ge::OpDescPtr &op_desc)
   return outputs;
 }
 
-std::vector<bg::ValueHolderPtr> CreateInputOutputShapes(bool is_input, bool is_orishape,
-                                                        const ge::OpDescPtr &op_desc) {
+std::vector<bg::ValueHolderPtr> CreateInputOutputShapes(bool is_input, bool is_orishape, const ge::OpDescPtr &op_desc) {
   std::vector<bg::ValueHolderPtr> shapes;
   size_t num = is_input ? op_desc->GetInputsSize() : op_desc->GetOutputsSize();
   for (size_t i = 0U; i < num; ++i) {
@@ -204,18 +200,17 @@ std::vector<bg::ValueHolderPtr> CreateInputOutputShapes(bool is_input, bool is_o
   return shapes;
 }
 
-std::vector<bg::ValueHolderPtr> CalcInputOutputTensorSize(bool is_input, bool is_orishape,
-                                                          const ge::NodePtr &node,
+std::vector<bg::ValueHolderPtr> CalcInputOutputTensorSize(bool is_input, bool is_orishape, const ge::NodePtr &node,
                                                           const std::vector<bg::ValueHolderPtr> &shapes) {
   std::vector<bg::ValueHolderPtr> shapes_sizes;
   for (size_t i = 0U; i < shapes.size(); ++i) {
-    const auto &td = is_input ? node->GetOpDescBarePtr()->GetInputDescPtr(static_cast<int32_t>(i)) :
-                     node->GetOpDescBarePtr()->GetOutputDescPtr(static_cast<int32_t>(i));
+    const auto &td = is_input ? node->GetOpDescBarePtr()->GetInputDescPtr(static_cast<int32_t>(i))
+                              : node->GetOpDescBarePtr()->GetOutputDescPtr(static_cast<int32_t>(i));
     if (td == nullptr) {
       return {};
     }
-    auto shape_size = is_orishape ? bg::CalcTensorSizeFromShape(td->GetDataType(), shapes[i]) :
-                                    bg::CalcTensorSizeFromStorage(td->GetDataType(), shapes[i]);
+    auto shape_size = is_orishape ? bg::CalcTensorSizeFromShape(td->GetDataType(), shapes[i])
+                                  : bg::CalcTensorSizeFromStorage(td->GetDataType(), shapes[i]);
     if (shape_size == nullptr) {
       return {};
     }
@@ -259,4 +254,4 @@ bool GetDfxOptFlagByType(const ge::NodePtr node, OpDfxOpt opt_type) {
   }
   return false;
 }
-} // namespace gert
+}  // namespace gert

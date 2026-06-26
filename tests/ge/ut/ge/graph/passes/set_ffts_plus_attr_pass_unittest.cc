@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,8 @@
 using namespace testing;
 
 namespace ge {
-static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &dsp_graph, ComputeGraphPtr &ffts_graph) {
+static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &dsp_graph,
+                                  ComputeGraphPtr &ffts_graph) {
   DEF_GRAPH(g1) {
     CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
     CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
@@ -39,16 +40,20 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
   auto dsp_graph_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   auto dsp_graph_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
   DEF_GRAPH(g2) {
-    CHAIN(NODE("dsp_graph/_arg_0", dsp_graph_data_0)->EDGE(0, 0)
-              ->NODE("dsp_graph/trans_TransData_0", IDENTITY)->EDGE(0, 0)
-              ->NODE("dsp_graph/PartitionedCall_0", PARTITIONEDCALL)->EDGE(0, 0)
-              ->NODE("dsp_graph/trans_TransData_2", IDENTITY)->EDGE(0, 0)
-              ->NODE("dsp_graph/Node_Output", NETOUTPUT)
-    );
-    CHAIN(NODE("dsp_graph/_arg_1", dsp_graph_data_1)->EDGE(0, 0)
-              ->NODE("dsp_graph/trans_TransData_1", IDENTITY)->EDGE(0, 1)
-              ->NODE("dsp_graph/PartitionedCall_0")
-    );
+    CHAIN(NODE("dsp_graph/_arg_0", dsp_graph_data_0)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_0", IDENTITY)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/PartitionedCall_0", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_2", IDENTITY)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/Node_Output", NETOUTPUT));
+    CHAIN(NODE("dsp_graph/_arg_1", dsp_graph_data_1)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_1", IDENTITY)
+              ->EDGE(0, 1)
+              ->NODE("dsp_graph/PartitionedCall_0"));
   };
 
   dsp_graph = ToComputeGraph(g2);
@@ -63,21 +68,23 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
 
   auto sgt_graph_data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   auto sgt_graph_data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-  auto sgt_graph_conv_0 = OP_CFG(CONV2D).Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-      .Attr(ATTR_NAME_IMPLY_TYPE, 1)           // domi::ImplyType::TVM
-      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-  auto sgt_graph_relu_0 = OP_CFG(RELU).Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-      .Attr(ATTR_NAME_IMPLY_TYPE, 1)
-      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+  auto sgt_graph_conv_0 = OP_CFG(CONV2D)
+                              .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                              .Attr(ATTR_NAME_IMPLY_TYPE, 1)  // domi::ImplyType::TVM
+                              .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+  auto sgt_graph_relu_0 = OP_CFG(RELU)
+                              .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                              .Attr(ATTR_NAME_IMPLY_TYPE, 1)
+                              .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
   DEF_GRAPH(g3) {
-    CHAIN(NODE("sgt_graph/_arg_0", sgt_graph_data_0)->EDGE(0, 0)
-              ->NODE("sgt_graph/Conv2D", sgt_graph_conv_0)->EDGE(0, 0)
-              ->NODE("sgt_graph/Relu", sgt_graph_relu_0)->EDGE(0, 0)
-              ->NODE("sgt_graph/Node_Output", NETOUTPUT)
-    );
-    CHAIN(NODE("sgt_graph/_arg_1", sgt_graph_data_1)->EDGE(0, 1)
+    CHAIN(NODE("sgt_graph/_arg_0", sgt_graph_data_0)
+              ->EDGE(0, 0)
               ->NODE("sgt_graph/Conv2D", sgt_graph_conv_0)
-    );
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Relu", sgt_graph_relu_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Node_Output", NETOUTPUT));
+    CHAIN(NODE("sgt_graph/_arg_1", sgt_graph_data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", sgt_graph_conv_0));
   };
 
   ffts_graph = ToComputeGraph(g3);
@@ -93,7 +100,6 @@ class UtestGraphPassesSetFftsPlusAttrPass : public Test {
 
   void TearDown() {}
 };
-
 
 TEST_F(UtestGraphPassesSetFftsPlusAttrPass, pass_run_success) {
   ComputeGraphPtr root_graph;
@@ -114,4 +120,3 @@ TEST_F(UtestGraphPassesSetFftsPlusAttrPass, pass_run_success) {
   }
 }
 }  // namespace ge
-

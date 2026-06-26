@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,23 +34,21 @@ Status FlowRouteManager::GenerateRouteId(int64_t &route_id) {
   return SUCCESS;
 }
 
-void FlowRouteManager::UndeployRoute(const FlowRouteType &route_type,
-                                     int64_t route_id,
+void FlowRouteManager::UndeployRoute(const FlowRouteType &route_type, int64_t route_id,
                                      FlowGwClientManager &client_manager) {
   std::lock_guard<std::mutex> lk(mu_);
   auto it = exchange_routes_.find(route_type);
   if (it != exchange_routes_.end()) {
     auto route_it = it->second.find(route_id);
     if (route_it != it->second.end()) {
-      (void) HeterogeneousExchangeDeployer::Undeploy(HService::GetInstance(), route_it->second, client_manager);
+      (void)HeterogeneousExchangeDeployer::Undeploy(HService::GetInstance(), route_it->second, client_manager);
       exchange_routes_[route_type].erase(route_it);
       return;
     }
   }
 }
 
-void FlowRouteManager::UpdateExceptionRoutes(const FlowRouteType &route_type,
-                                             int64_t route_id,
+void FlowRouteManager::UpdateExceptionRoutes(const FlowRouteType &route_type, int64_t route_id,
                                              FlowGwClientManager &client_manager,
                                              const std::vector<FlowGwClient::ExceptionDeviceInfo> &devices) {
   std::lock_guard<std::mutex> lk(mu_);
@@ -58,8 +56,7 @@ void FlowRouteManager::UpdateExceptionRoutes(const FlowRouteType &route_type,
   if (it != exchange_routes_.end()) {
     auto route_it = it->second.find(route_id);
     if (route_it != it->second.end()) {
-      (void) HeterogeneousExchangeDeployer::UpdateExceptionRoutes(route_it->second,
-                                                                  client_manager, devices);
+      (void)HeterogeneousExchangeDeployer::UpdateExceptionRoutes(route_it->second, client_manager, devices);
       return;
     }
   }

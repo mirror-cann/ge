@@ -69,8 +69,7 @@ int32_t GetProducerOutIndex() const
 ## 调用示例<a name="section16305113853313"></a>
 
 ```
-  auto builder = std::make_unique<ge::EsGraphBuilder>("graph");  
+  auto builder = std::make_unique<ge::EsGraphBuilder>("graph");
   auto tensor0 = builder->CreateInput(0);
   int32_t = tensor0.GetProducerOutIndex(); // 获取输出tensor0的输出索引
 ```
-

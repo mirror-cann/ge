@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,12 +65,13 @@ Status GraphFusionPassBase::Run(ge::ComputeGraph &graph) {
   }
   // do matching and fusion for each pattern
   bool final_changed = false;
-  for (const FusionPattern * const pattern : patterns) {
+  for (const FusionPattern *const pattern : patterns) {
     if (pattern != nullptr) {
       bool changed = false;
       const Status ret = RunOnePattern(graph, *pattern, changed);
       if (ret != SUCCESS) {
-        GELOGW("[RunFusionPass][Check] Run pattern %s failed, the graph was not modified by it.", pattern->GetName().c_str());
+        GELOGW("[RunFusionPass][Check] Run pattern %s failed, the graph was not modified by it.",
+               pattern->GetName().c_str());
         return ret;
       }
       final_changed = final_changed || changed;
@@ -159,7 +160,7 @@ Status GraphFusionPassBase::RunOnePattern(ge::ComputeGraph &graph, const FusionP
  * 5. if all the Ops in pattern are matched successfully, return the mapping of PatternOp and GraphNode
  */
 bool GraphFusionPassBase::MatchAll(const ge::ComputeGraph &graph, const FusionPattern &pattern,
-    Mappings &mappings) const {
+                                   Mappings &mappings) const {
   std::vector<ge::NodePtr> matched_output_nodes;
 
   // find all the output nodes of pattern in the graph based on Op type

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,10 +49,10 @@ const char_t *const kDumpGEGraph = "DUMP_GE_GRAPH";
 const char_t *const kDumpGraphLevel = "DUMP_GRAPH_LEVEL";
 const char_t *const kDumpGraphFormat = "DUMP_GRAPH_FORMAT";
 
-enum class DumpGraphLevel:int64_t {
+enum class DumpGraphLevel : int64_t {
   kDumpGraphLevel1 = 1,
 };
-} // namespace
+}  // namespace
 
 bool IsStrNotNum(const std::string &val) {
   return std::any_of(val.begin(), val.end(), [](char c) { return !isdigit(c); });
@@ -60,9 +60,8 @@ bool IsStrNotNum(const std::string &val) {
 
 bool NeedDumpGraphByWhitelist(const std::string &env_val, const std::string &suffix) {
   const auto &whitelist_names = StringUtils::Split(env_val, '|');
-  return std::any_of(whitelist_names.begin(), whitelist_names.end(), [&](const std::string &name) {
-    return suffix.find(name) != std::string::npos;
-  });
+  return std::any_of(whitelist_names.begin(), whitelist_names.end(),
+                     [&](const std::string &name) { return suffix.find(name) != std::string::npos; });
 }
 
 bool NoNeedDumpGraphBySuffix(const std::string &suffix) {
@@ -97,7 +96,6 @@ std::string GetDumpFormatStr(DumpFormat dump_format) {
       return "unknown";
   }
 }
-
 
 bool IsDumpFormatMatch(DumpFormat dump_format, const std::string &env_dump_format) {
   std::string lower_env_dump_format = env_dump_format;
@@ -143,7 +141,7 @@ bool IsDumpGraphLevel1() {
     return false;
   }
   auto dump_level = (dump_graph_level[0U] != '\0') ? std::strtol(&(dump_graph_level[0U]), nullptr, kBaseOfIntegerValue)
-                                                : static_cast<int64_t>(ge::DumpLevel::NO_DUMP);
+                                                   : static_cast<int64_t>(ge::DumpLevel::NO_DUMP);
   if (dump_level == static_cast<int64_t>(ge::DumpLevel::DUMP_ALL)) {
     return true;
   }
@@ -152,13 +150,13 @@ bool IsDumpGraphLevel1() {
 
 std::stringstream GetDumpGraphPrefixAndCreateDir(const std::string &module_name) {
   std::stringstream stream_file_name;
-  char_t npu_collect_path[MMPA_MAX_PATH] = { '\0' };
+  char_t npu_collect_path[MMPA_MAX_PATH] = {'\0'};
   INT32 res = mmGetEnv(kNpuCollectPath, &(npu_collect_path[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
   if (res == EN_OK) {
     const std::string base_path_str(npu_collect_path);
     stream_file_name << base_path_str << "/extra-info/graph/" << mmGetPid() << "_" << GetContext().DeviceId() << "/";
   } else {
-    char_t dump_graph_path[MMPA_MAX_PATH] = { '\0' };
+    char_t dump_graph_path[MMPA_MAX_PATH] = {'\0'};
     res = mmGetEnv(kDumpGraphPath, &(dump_graph_path[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
     if (res == EN_OK) {
       const std::string dump_graph_path_str(dump_graph_path);
@@ -206,9 +204,7 @@ bool IsNormalFormat(const std::vector<std::string> &parts) {
 
 void ParseTypePart(const std::string &part, std::string &type, int32_t &count) {
   // 找到第一个非数字字符的位置
-  auto it = std::find_if(part.begin(), part.end(), [](char c) {
-    return !::isdigit(c);
-  });
+  auto it = std::find_if(part.begin(), part.end(), [](char c) { return !::isdigit(c); });
 
   if (it == part.begin()) {
     // 没有数字前缀，计数为1
@@ -222,7 +218,8 @@ void ParseTypePart(const std::string &part, std::string &type, int32_t &count) {
   }
 }
 
-std::vector<std::pair<std::string, int32_t>> CountTypes(const std::vector<std::string>& parts, int32_t start_idx, int32_t end_idx = -1) {
+std::vector<std::pair<std::string, int32_t>> CountTypes(const std::vector<std::string> &parts, int32_t start_idx,
+                                                        int32_t end_idx = -1) {
   std::vector<std::pair<std::string, int32_t>> type_list;
   int32_t actual_end = (end_idx == -1) ? static_cast<int32_t>(parts.size()) : end_idx;
 
@@ -232,7 +229,7 @@ std::vector<std::pair<std::string, int32_t>> CountTypes(const std::vector<std::s
     ParseTypePart(parts[i], type, count);
 
     bool found = false;
-    for (auto& p : type_list) {
+    for (auto &p : type_list) {
       if (p.first == type) {
         p.second += count;
         found = true;
@@ -246,9 +243,9 @@ std::vector<std::pair<std::string, int32_t>> CountTypes(const std::vector<std::s
   return type_list;
 }
 
-std::string CountToStr(const std::vector<std::pair<std::string, int32_t>>& type_list) {
+std::string CountToStr(const std::vector<std::pair<std::string, int32_t>> &type_list) {
   std::string result;
-  for (const auto& pair : type_list) {
+  for (const auto &pair : type_list) {
     if (!result.empty()) {
       result += "_";
     }
@@ -531,8 +528,8 @@ Status AutofuseUtils::SerilizeAscBackend(ge::Node *node_ptr, std::string &output
     auto new_node = ConvertAscBackendNodeToAscGraphNode(compute_graph, node);
     GE_ASSERT_NOTNULL(new_node);
     std::vector<std::pair<ge::NodePtr, int32_t>> pre_nodes;
-    GE_ASSERT_SUCCESS(BackendUtils::CreateSubGraphInput(compute_graph, new_node, node->GetAllInDataAnchorsSize(),
-                                                        pre_nodes, false));
+    GE_ASSERT_SUCCESS(
+        BackendUtils::CreateSubGraphInput(compute_graph, new_node, node->GetAllInDataAnchorsSize(), pre_nodes, false));
     std::vector<uint32_t> node_output_index;
     GE_ASSERT_SUCCESS(GetNodeOutputIndex(node, node_output_index));
     GE_ASSERT_SUCCESS(
@@ -575,8 +572,8 @@ Status AutofuseUtils::SerilizeAscBackend(ge::Node *node_ptr, std::string &output
   return SUCCESS;
 }
 
-Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &compute_graph,
-                                                   const NodePtr &node, std::string &output, bool isHash) {
+Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &compute_graph, const NodePtr &node,
+                                                   std::string &output, bool isHash) {
   nlohmann::json symbol_info;
   auto root_graph = GraphUtils::FindRootGraph(node->GetOwnerComputeGraph());
   GE_ASSERT_NOTNULL(root_graph);
@@ -613,7 +610,8 @@ Status AutofuseUtils::SerializeAndPackComputeGraph(const ComputeGraphPtr &comput
   for (const auto &sym_2_src : shape_env_attr->GetAllSym2Src()) {
     std::string sym_str(sym_2_src.first.Serialize().get());
     symbol_info[sym_str.c_str()] = sym_2_src.second->GetSourceStr();
-    GELOGD("Serial symbol_to_source, symbol: %s, source: %s", sym_str.c_str(), sym_2_src.second->GetSourceStr().c_str());
+    GELOGD("Serial symbol_to_source, symbol: %s, source: %s", sym_str.c_str(),
+           sym_2_src.second->GetSourceStr().c_str());
   }
 
   nlohmann::json json_obj;
@@ -787,7 +785,7 @@ bool AutofuseUtils::IsSplitType(const std::string &node_type) {
 }
 
 Status AutofuseUtils::DelOneNodeInGraph(const ComputeGraphPtr &graph, const NodePtr &node) {
-// 把node前后的节点连接起来
+  // 把node前后的节点连接起来
   const auto in_data_anchor = node->GetInDataAnchor(0);
   GE_ASSERT_NOTNULL(in_data_anchor);
   const auto out_data_anchor = node->GetOutDataAnchor(0);
@@ -801,12 +799,11 @@ Status AutofuseUtils::DelOneNodeInGraph(const ComputeGraphPtr &graph, const Node
     GE_ASSERT_GRAPH_SUCCESS(ge::GraphUtils::AddEdge(src_anchor, dst_anchor));
   }
 
-// 删除del node和边
+  // 删除del node和边
   GELOGD("Remove node: %s(%s) from graph:%s.", node->GetName().c_str(), node->GetType().c_str(),
          graph->GetName().c_str());
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, node),
-                          "[Remove][JustNode] failed, graph:%s, node:%s.", graph->GetName().c_str(),
-                          node->GetName().c_str());
+  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, node), "[Remove][JustNode] failed, graph:%s, node:%s.",
+                          graph->GetName().c_str(), node->GetName().c_str());
   NodeUtils::UnlinkAll(*node);
   return SUCCESS;
 }
@@ -820,7 +817,8 @@ bool AutofuseUtils::CheckAndMulDetect(const std::vector<Expression> &long_dims,
   Expression total = Symbol(1);
   for (size_t i = 0U; i < short_dims.size(); ++i) {
     while (dims_idx < long_dims.size()) {
-      if (((i < short_dims.size()) && (SymbolicUtils::StaticCheckEq(short_dims[i], long_dims[dims_idx]) == ge::TriBool::kTrue)) &&
+      if (((i < short_dims.size()) &&
+           (SymbolicUtils::StaticCheckEq(short_dims[i], long_dims[dims_idx]) == ge::TriBool::kTrue)) &&
           (SymbolicUtils::StaticCheckEq(total, Symbol(1)) == ge::TriBool::kTrue ||
            SymbolicUtils::StaticCheckEq(total, short_dims[sort_idx]) == ge::TriBool::kTrue)) {
         ++dims_idx;
@@ -939,7 +937,7 @@ std::string AutofuseUtils::SimplifyNodeName(const std::string &node_name) {
   // 1. 拆分node_name为各个部分
   std::vector<std::string> parts = StringUtils::Split(node_name, '_');
   if (parts.empty()) {
-    return node_name; // 空输入直接返回
+    return node_name;  // 空输入直接返回
   }
   // 2. 判断是哪种格式的node_name
   if (IsFusedFormat(parts)) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,11 +49,14 @@ const std::string kConv2DOffset = "Conv2DOffset";
 const std::string kConv2DOffsetBias = "Conv2DOffsetBias";
 
 class DefaultCounter : public Counter {
-public:
+ public:
   DefaultCounter() = default;
   ~DefaultCounter() override = default;
-  int64_t NextId() override { return id_++;};
-private:
+  int64_t NextId() override {
+    return id_++;
+  };
+
+ private:
   int64_t id_ = 0;
 };
 
@@ -99,7 +102,7 @@ class AutofuseUtils {
     return result;
   }
 
-  template<typename T>
+  template <typename T>
   static std::string VectorToStr(const std::vector<T> *vec) {
     if (vec == nullptr) {
       return "nullptr";
@@ -131,8 +134,7 @@ class AutofuseUtils {
   }
 
   // 获取 npu_arch 并调用 CommonInferDtype
-  static Status CallAscirCommonInferDtype(const std::string &op_type,
-                                          const std::vector<DataType> &input_dtypes,
+  static Status CallAscirCommonInferDtype(const std::string &op_type, const std::vector<DataType> &input_dtypes,
                                           std::vector<DataType> &expect_output_dtypes) {
     std::string npu_arch;
     GE_ASSERT_SUCCESS(ge::PlatformContext::GetInstance().GetCurrentPlatformString(npu_arch));
@@ -188,14 +190,14 @@ class AutofuseUtils {
   static std::vector<const ge::Node *> GetComputeOps(const std::vector<const ge::Node *> &nodes);
 
   /**
-  * @brief 处理node_name的核心接口
-  * 支持两种格式的node_name处理：
-  * 1. autofuse_fused_数字_xxx 格式（包含concat分割）
-  * 2. autofuse_数字_xxx 格式（直接统计）
-  * 支持多次调用的累加统计
-  * @param node_name 输入的节点名称，格式：autofuse_xx_数字_type1_type2_type3...
-  * @return 处理后的节点名称（去重统计后）
-  */
+   * @brief 处理node_name的核心接口
+   * 支持两种格式的node_name处理：
+   * 1. autofuse_fused_数字_xxx 格式（包含concat分割）
+   * 2. autofuse_数字_xxx 格式（直接统计）
+   * 支持多次调用的累加统计
+   * @param node_name 输入的节点名称，格式：autofuse_xx_数字_type1_type2_type3...
+   * @return 处理后的节点名称（去重统计后）
+   */
   static std::string SimplifyNodeName(const std::string &node_name);
 
  private:

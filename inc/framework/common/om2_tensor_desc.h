@@ -55,8 +55,8 @@ class VISIBILITY_EXPORT Om2TensorDesc {
   size_t GetByteSize() const;
 
  private:
- DataType data_type_ = DT_UNDEFINED;
- Format format_ = FORMAT_ND;
+  DataType data_type_ = DT_UNDEFINED;
+  Format format_ = FORMAT_ND;
   std::vector<int64_t> dims_;
   std::string name_;
   std::vector<std::pair<int64_t, int64_t>> shape_range_;
@@ -66,4 +66,3 @@ class VISIBILITY_EXPORT Om2TensorDesc {
 }  // namespace ge
 
 #endif  // AIR_CXX_FRAMEWORK_COMMON_OM2_TENSOR_DESC_H_
-

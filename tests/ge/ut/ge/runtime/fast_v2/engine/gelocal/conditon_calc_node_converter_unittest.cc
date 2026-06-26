@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -98,8 +98,8 @@ TEST_F(ConditionCalcNodeConverterUT, DataDependentHbmOutput) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(main_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(main_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
 
   auto tds = ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "BuildUnmanagedTensorData");
@@ -120,12 +120,10 @@ TEST_F(ConditionCalcNodeConverterUT, DataDependentHbmOutput) {
   ASSERT_EQ(ccs.size(), 1);
   auto cc = ccs[0];
   ASSERT_NE(cc, nullptr);
-  EXPECT_EQ(
-      FastNodeTopoChecker(cc).StrictConnectFrom({
-          {"BuildTensor"},
-          {"AllocMemHbm"},
-          {"InnerData"}  // FindKernelFunc被折叠到init图了，这里体现为InnerData，下一步checker考虑添加跨越子图查找的方法
-      }),
-      "success");
+  EXPECT_EQ(FastNodeTopoChecker(cc).StrictConnectFrom({
+                {"BuildTensor"}, {"AllocMemHbm"}, {"InnerData"}
+                // FindKernelFunc被折叠到init图了，这里体现为InnerData，下一步checker考虑添加跨越子图查找的方法
+            }),
+            "success");
 }
 }  // namespace gert

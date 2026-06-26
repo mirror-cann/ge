@@ -104,4 +104,3 @@ EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 int64_t vec_64_data[] = {1, 2, 3, 4};
 auto *vector64 = EsCreateVectorInt64(graph, vec_64_data, 4);
 ```
-

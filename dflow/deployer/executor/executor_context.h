@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,12 +73,10 @@ class ExecutorContext {
                                              std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles);
     virtual Status ClearModel(const int32_t clear_type);
     virtual Status ExceptionNotify(uint32_t type, uint64_t trans_id);
+
    protected:
-    virtual Status DoLoadModel(const ModelData &model_data,
-                               const ComputeGraphPtr &root_graph,
-                               const LoadParam &params);
-    virtual Status DoLoadModelWithQ(const ModelData &model_data,
-                                    const ComputeGraphPtr &root_graph,
+    virtual Status DoLoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph, const LoadParam &params);
+    virtual Status DoLoadModelWithQ(const ModelData &model_data, const ComputeGraphPtr &root_graph,
                                     const LoadParam &params);
 
     virtual Status DoUnloadModel(uint32_t model_id);
@@ -95,7 +93,7 @@ class ExecutorContext {
     ModelData model_data_;
     bool model_data_from_cache_ = false;
     ComputeGraphPtr root_graph_;
-    int32_t execute_times_ = -1; // execute times
+    int32_t execute_times_ = -1;                // execute times
     bool is_dynamic_proxy_controlled_ = false;  // control dynamic model execution by proxy process
     bool is_invoked_nn_ = false;
     bool enable_exception_catch_ = false;

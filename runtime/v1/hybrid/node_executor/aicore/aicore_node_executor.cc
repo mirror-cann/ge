@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,11 +42,9 @@ Status BuildAicoreNodeTask(const NodePtr &node, const std::vector<domi::TaskDef>
 }
 }  // namespace
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::AICORE, AiCoreNodeExecutor);
-AiCoreNodeTask::AiCoreNodeTask() : NodeTask() {
-}
+AiCoreNodeTask::AiCoreNodeTask() : NodeTask() {}
 AiCoreNodeTask::AiCoreNodeTask(std::vector<std::unique_ptr<AiCoreOpTask>> &&tasks)
-    : NodeTask(), tasks_(std::move(tasks)) {
-}
+    : NodeTask(), tasks_(std::move(tasks)) {}
 
 Status AiCoreNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node, shared_ptr<NodeTask> &task) const {
   GE_CHECK_NOTNULL(node);
@@ -65,7 +63,7 @@ Status AiCoreNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &nod
         GELOGE(FAILED, "[Get][Task_defs]Task_defs is empty for node (%s(%s)), check invalid", node->GetName().c_str(),
                node->GetType().c_str());
         REPORT_INNER_ERR_MSG("E19999", "Task_defs is empty for node (%s(%s)), check invalid", node->GetName().c_str(),
-                          node->GetType().c_str());
+                             node->GetType().c_str());
         return FAILED;
       }
       const std::vector<domi::TaskDef> empty_task_defs;
@@ -97,8 +95,7 @@ Status AiCoreNodeTask::ExecuteAsync(TaskContext &context, const std::function<vo
   }
 
   if (origin_fused_graph_exec_) {
-    GELOGI("The task of Aicore Node[%s] will switch to origin fused graph execution.",
-           context.GetNodeName());
+    GELOGI("The task of Aicore Node[%s] will switch to origin fused graph execution.", context.GetNodeName());
     origin_fused_graph_exec_ = false;
     return fused_task_->ExecuteAsync(context, done_callback);
   }
@@ -112,8 +109,7 @@ Status AiCoreNodeTask::ExecuteAsync(TaskContext &context, const std::function<vo
       GE_CHK_STATUS_RET_NOLOG((*it)->LaunchKernel(context.GetStream()));
       GE_CHK_STATUS_RET_NOLOG(CheckOverflow(context));
       GE_CHECK_NOTNULL(context.GetExecutionContext()->model);
-      GELOGD("[DEBUG_TASK_INFO : Executor Task] %s/%s %s",
-             context.GetExecutionContext()->model->GetModelName().c_str(),
+      GELOGD("[DEBUG_TASK_INFO : Executor Task] %s/%s %s", context.GetExecutionContext()->model->GetModelName().c_str(),
              (*it)->GetName().empty() ? (*it)->GetLogName().c_str() : (*it)->GetName().c_str(),
              BuildTaskUtils::GetTaskInfo(context).c_str());
       // save profiling data
@@ -185,8 +181,7 @@ Status AiCoreNodeTask::SelectBin(TaskContext &task_context, const GraphExecution
       origin_fused_graph_exec_ = true;
       return SUCCESS;
     } else {
-      GELOGE(FAILED, "Node %s cannot find cacheitem and any supported executor.",
-             task_context.GetNodeName());
+      GELOGE(FAILED, "Node %s cannot find cacheitem and any supported executor.", task_context.GetNodeName());
       return FAILED;
     }
   }
@@ -299,7 +294,7 @@ Status AiCoreNodeTask::CheckOverflow(TaskContext &context) const {
     if ((rt_ret == ACL_ERROR_RT_AICORE_OVER_FLOW) || (rt_ret == ACL_ERROR_RT_AIVEC_OVER_FLOW)) {
       context.SetOverFlow(true);
       (void)aclrtGetThreadLastTaskId(context.MutableTaskId());
-      (void)aclrtStreamGetId(context.GetStream(), reinterpret_cast<int32_t*>(context.MutableStreamId()));
+      (void)aclrtStreamGetId(context.GetStream(), reinterpret_cast<int32_t *>(context.MutableStreamId()));
       GELOGW("Dynamic shape op %s is over flow", context.GetNodeName());
       return SUCCESS;
     } else if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {

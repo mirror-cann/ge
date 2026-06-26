@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,9 +60,7 @@ std::vector<char> CreateStubBin() {
     std::cout << "file:" << op_bin_path << "does not exist or is unaccessible." << std::endl;
     return buf;
   }
-  GE_MAKE_GUARD(file_guard, [&file]() {
-    (void)file.close();
-  });
+  GE_MAKE_GUARD(file_guard, [&file]() { (void)file.close(); });
   const std::streampos begin = file.tellg();
   (void)file.seekg(0, std::ios::end);
   const std::streampos end = file.tellg();
@@ -82,7 +80,7 @@ static void CheckDbgFileTLv(const std::string &filename) {
   ctx << fs.rdbuf();
   fs.close();
 
-  string  dbg_tlv = ctx.str();
+  string dbg_tlv = ctx.str();
   const char *buff = dbg_tlv.c_str();
   size_t buff_size = dbg_tlv.length();
 
@@ -113,9 +111,8 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_Nano) {
   auto graph = ShareGraph::AtcNanoGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin1"))
-                              .FakeTbeBin({"Add"})
-                              .BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin1")).FakeTbeBin({"Add"}).BuildGeRootModel();
   auto ge_model_map = ge_root_model->GetSubgraphInstanceNameToModel();
   auto ge_model = ge_model_map[graph->GetName()];
   auto model_task_def = ge_model->GetModelTaskDefPtr();
@@ -156,9 +153,8 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
   auto graph = ShareGraph::AtcNanoGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin1"))
-                              .FakeTbeBin({"Add"})
-                              .BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin1")).FakeTbeBin({"Add"}).BuildGeRootModel();
 
   auto ge_model_map = ge_root_model->GetSubgraphInstanceNameToModel();
   auto model = ge_model_map[graph->GetName()];
@@ -214,7 +210,8 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoHostFunc) {
   vec4.push_back(5.6);
   vec4.push_back(7.8);
   test_listlist_float.push_back(vec4);
-  op_desc->SetAttr("list_list_float_test", GeAttrValue::CreateFrom<std::vector<std::vector<float>>>(test_listlist_float));
+  op_desc->SetAttr("list_list_float_test",
+                   GeAttrValue::CreateFrom<std::vector<std::vector<float>>>(test_listlist_float));
 
   TBEKernelStore tbe_kernel_store;
   const auto kernel = MakeShared<OpKernelBin>("test", CreateStubBin());
@@ -818,8 +815,8 @@ TEST_F(ModelHelperTest, SaveToOmRootModel_For_NanoFIFOtest) {
   EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
   unsetenv("LD_LIBRARY_PATH");
   mmSetEnv("LD_LIBRARY_PATH", old_env, 1);
-//  int64_t *a = nullptr;
-//  EXPECT_EQ(*a, 16);
+  //  int64_t *a = nullptr;
+  //  EXPECT_EQ(*a, 16);
 }
 
 TEST_F(ModelHelperTest, SaveToOm_for_SplitAndUpgraded_Opp) {

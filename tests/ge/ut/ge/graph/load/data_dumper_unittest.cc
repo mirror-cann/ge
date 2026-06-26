@@ -36,9 +36,9 @@ void ResetAdumpCall() {
 }
 }  // namespace
 
-int32_t Adx::AdumpDumpTensorWithCfg(const std::string& op_type, const std::string& op_name,
-                                        const std::vector<Adx::TensorInfo>& tensors,
-                                        rtStream_t stream, const Adx::DumpCfg& cfg) {
+int32_t Adx::AdumpDumpTensorWithCfg(const std::string &op_type, const std::string &op_name,
+                                    const std::vector<Adx::TensorInfo> &tensors, rtStream_t stream,
+                                    const Adx::DumpCfg &cfg) {
   g_adump_call.call_count++;
   g_adump_call.op_type = op_type;
   g_adump_call.op_name = op_name;
@@ -222,7 +222,7 @@ TEST_F(UtestDataDumper, SetWorkSpaceAddrForPrint_OneOpDescMultipleOpListElements
   data_dumper.UnloadDumpInfo();
 
   int match_count = 0;
-  for (const auto& print_task : data_dumper.op_print_list_) {
+  for (const auto &print_task : data_dumper.op_print_list_) {
     if (print_task.op != nullptr && print_task.op->GetId() == op_desc->GetId()) {
       EXPECT_EQ(print_task.space_addr.size(), space_addrs.size());
       for (size_t j = 0; j < space_addrs.size(); ++j) {
@@ -268,7 +268,7 @@ TEST_F(UtestDataDumper, SetWorkSpaceAddr_OneOpDescMultipleOpListElements) {
   data_dumper.UnloadDumpInfo();
 
   int match_count = 0;
-  for (const auto& task : data_dumper.op_list_) {
+  for (const auto &task : data_dumper.op_list_) {
     if (task.op != nullptr && task.op->GetId() == op_desc->GetId()) {
       EXPECT_EQ(task.space_addr.size(), space_addrs.size());
       for (size_t j = 0; j < space_addrs.size(); ++j) {
@@ -523,10 +523,12 @@ TEST_F(UtestDataDumper, DumpOutput_test) {
       "],\"original_node\":\"\",\"core_num\":[],\"cutType\":[{\"splitCutIndex\":1,\"reduceCutIndex\":2,\"cutId\":3}],"
       "\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_"
       "nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],"
-      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
-      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
       "\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":["
@@ -620,10 +622,12 @@ TEST_F(UtestDataDumper, DumpInput_test) {
       "],\"original_node\":\"\",\"core_num\":[],\"cutType\":[{\"splitCutIndex\":1,\"reduceCutIndex\":2,\"cutId\":3}],"
       "\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_"
       "nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],"
-      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
-      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
       "\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":["
@@ -910,7 +914,7 @@ TEST_F(UtestDataDumper, SaveDumpTask_CallsAdump) {
   // 使用有效 shape 确保大小非零
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
   // 显式设置大小，避免 GetTensorSizeInBytes 失败
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->AddOutputDesc(tensor);
 
@@ -943,7 +947,7 @@ TEST_F(UtestDataDumper, SavePrintDumpTask_CallsAdump) {
 
   OpDescPtr op_desc = CreateOpDesc("print_op", "Print");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->SetWorkspaceBytes({64});
 
@@ -976,7 +980,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_NormalMode) {
   dumper.dump_properties_.SetDumpMode("all");
 
   OpDescPtr op_desc = CreateOpDesc("normal_op", "Normal");
-  GeTensorDesc tensor(GeShape({2,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({2, 3}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddInputDesc(tensor);
   op_desc->AddOutputDesc(tensor);
   op_desc->SetWorkspaceBytes({64});
@@ -986,7 +990,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_NormalMode) {
   // 临时禁用 Adump 条件，避免 SaveDumpTask 自动调用
   bool saved_overflow = dumper.overflow_enabled_;
   dumper.overflow_enabled_ = false;
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, true, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, true, fake_stream);
   dumper.overflow_enabled_ = saved_overflow;
 
   // 设置工作空间地址
@@ -1000,10 +1004,10 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_NormalMode) {
   EXPECT_EQ(ret, SUCCESS);
 
   EXPECT_EQ(g_adump_call.call_count, 1);
-  const auto& tensors = g_adump_call.tensors;
+  const auto &tensors = g_adump_call.tensors;
   EXPECT_EQ(tensors.size(), 3);
   bool has_workspace = false;
-  for (const auto& t : tensors) {
+  for (const auto &t : tensors) {
     if (t.type == Adx::TensorType::WORKSPACE) has_workspace = true;
   }
   EXPECT_TRUE(has_workspace);
@@ -1031,10 +1035,10 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_InputBlacklist) {
 
   ResetAdumpCall();
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x12345678);
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   EXPECT_EQ(g_adump_call.call_count, 1);
-  const auto& tensors = g_adump_call.tensors;
+  const auto &tensors = g_adump_call.tensors;
   // 只有第二个输入（索引1）被保留
   EXPECT_EQ(tensors.size(), 1);
   EXPECT_EQ(tensors[0].type, Adx::TensorType::INPUT);
@@ -1064,10 +1068,10 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_OutputBlacklist) {
 
   ResetAdumpCall();
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x12345678);
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   EXPECT_EQ(g_adump_call.call_count, 1);
-  const auto& tensors = g_adump_call.tensors;
+  const auto &tensors = g_adump_call.tensors;
   // 只有第二个输出（索引1）被保留
   EXPECT_EQ(tensors.size(), 1);
   EXPECT_EQ(tensors[0].type, Adx::TensorType::OUTPUT);
@@ -1090,7 +1094,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_StreamNull) {
 
   // 传入 stream = nullptr
   rtStream_t null_stream = nullptr;
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, null_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, null_stream);
 
   // DumpOpWithAdump 应返回失败，所以 Adump 不会被调用
   EXPECT_EQ(g_adump_call.call_count, 0);
@@ -1112,7 +1116,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_SkipDataNode) {
   op_desc->AddInputDesc(tensor);
 
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x12345678);
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   // 由于是 Data 节点且 op_debug 开启，应跳过，Adump 不被调用
   EXPECT_EQ(g_adump_call.call_count, 0);
@@ -1130,7 +1134,7 @@ TEST_F(UtestDataDumper, LoadDumpInfo_AdumpEnabled) {
 
   // 添加一个 dummy op，但 LoadDumpInfo 应提前返回，不会构建任务
   OpDescPtr op_desc = CreateOpDesc("conv", "conv");
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0);
 
   Status ret = dumper.LoadDumpInfo();
   EXPECT_EQ(ret, SUCCESS);
@@ -1152,22 +1156,21 @@ TEST_F(UtestDataDumper, Adump_InputNode) {
   // 创建输入节点（data_op）和主节点（consumer_op）
   OpDescPtr data_op = CreateOpDesc("data", "Data");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
-  data_op->AddOutputDesc(tensor);   // data 有一个输出
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
+  data_op->AddOutputDesc(tensor);  // data 有一个输出
 
   OpDescPtr consumer_op = CreateOpDesc("conv", "conv");
   consumer_op->AddInputDesc(tensor);  // consumer 有一个输入
 
   // 直接插入 input_map_ 映射：表示 consumer 的输入索引 0 来自 data_op 的输出索引 0
-  dumper.input_map_.insert({consumer_op->GetName(),
-                            {data_op, 0, 0}});  // data_op, input_anchor_index=0, output_anchor_index=0
+  dumper.input_map_.insert(
+      {consumer_op->GetName(), {data_op, 0, 0}});  // data_op, input_anchor_index=0, output_anchor_index=0
 
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x2222);
   ResetAdumpCall();
 
   // 保存主任务（consumer_op），此时内部会遍历 input_map_ 中匹配 consumer 的条目，并处理输入节点
-  dumper.SaveDumpTask({0, 0, 0, 0}, consumer_op, 0x1000, {}, {},
-                      ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, consumer_op, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   // 验证 Adump 被调用两次（主算子一次，输入节点一次）
   EXPECT_EQ(g_adump_call.call_count, 1);
@@ -1181,9 +1184,9 @@ TEST_F(UtestDataDumper, FillInputTensorInfos_WithOriginShape) {
   dumper.SetModelId(123);
 
   OpDescPtr op_desc = CreateOpDesc("test_op", "Test");
-  GeTensorDesc tensor(GeShape({1,2,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
   // 设置 origin shape
-  GeShape origin_shape({4,5,6});
+  GeShape origin_shape({4, 5, 6});
   tensor.SetOriginShape(origin_shape);
   op_desc->AddInputDesc(tensor);
 
@@ -1204,8 +1207,8 @@ TEST_F(UtestDataDumper, FillOutputTensorInfos_WithOriginShape) {
   dumper.SetModelId(123);
 
   OpDescPtr op_desc = CreateOpDesc("test_op", "Test");
-  GeTensorDesc tensor(GeShape({1,2,3}), FORMAT_NCHW, DT_FLOAT);
-  GeShape origin_shape({4,5,6});
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
+  GeShape origin_shape({4, 5, 6});
   tensor.SetOriginShape(origin_shape);
   op_desc->AddOutputDesc(tensor);
 
@@ -1245,7 +1248,7 @@ TEST_F(UtestDataDumper, FillRawTensorInfos_EdgeCases) {
   DataDumper dumper(&rts_param);
 
   OpDescPtr op_desc = CreateOpDesc("test_op", "Test");
-  GeTensorDesc tensor(GeShape({1,2,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 24);
   op_desc->AddInputDesc(tensor);
   op_desc->AddOutputDesc(tensor);
@@ -1290,7 +1293,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_EmptyTensors) {
   dumper.dump_properties_.SetModelDumpBlacklistMap(blacklist);
 
   OpDescPtr op_desc = CreateOpDesc("test_op", "Test");
-  GeTensorDesc tensor(GeShape({1,2,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddOutputDesc(tensor);
   // 没有输入，输出被过滤，所以 tensors 为空
   ResetAdumpCall();
@@ -1318,7 +1321,7 @@ TEST_F(UtestDataDumper, DumpOpWithAdump_StreamNull_Fail) {
   dumper.dump_properties_.SetDumpMode("output");
 
   OpDescPtr op_desc = CreateOpDesc("test_op", "Test");
-  GeTensorDesc tensor(GeShape({1,2,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2, 3}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddOutputDesc(tensor);
 
   ResetAdumpCall();

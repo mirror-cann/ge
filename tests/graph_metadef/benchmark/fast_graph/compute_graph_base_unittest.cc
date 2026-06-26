@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -1377,7 +1377,7 @@ static void New_Graph_AddNodeAndUpdateIo(benchmark::State &state) {
   int new_num = state.range(0);
   std::shared_ptr<OpDesc> op_desc[node_num] = {nullptr};
   OpDescCreate(node_num, op_desc, io_num);
-  FastNode *node  = compute_graph->AddNode(op_desc[0]);
+  FastNode *node = compute_graph->AddNode(op_desc[0]);
 
   for (auto _ : state) {
     auto ret = FastNodeUtils::AppendInputEdgeInfo(node, new_num);
@@ -1394,7 +1394,7 @@ static void New_Graph_AddNodeAndUpdateOutput_Step(benchmark::State &state) {
   int new_num = state.range(0);
   std::shared_ptr<OpDesc> op_desc[node_num] = {nullptr};
   OpDescCreate(node_num, op_desc, io_num);
-  FastNode *node  = compute_graph->AddNode(op_desc[0]);
+  FastNode *node = compute_graph->AddNode(op_desc[0]);
 
   const GeTensorDesc data_desc(GeShape(), FORMAT_ND, DT_FLOAT);
   for (int i = op_desc[0]->GetOutputsSize(); i < new_num; ++i) {
@@ -1417,7 +1417,7 @@ static void New_Graph_AddNodeAndUpdateInput_Step(benchmark::State &state) {
   int new_num = state.range(0);
   std::shared_ptr<OpDesc> op_desc[node_num] = {nullptr};
   OpDescCreate(node_num, op_desc, io_num);
-  FastNode *node  = compute_graph->AddNode(op_desc[0]);
+  FastNode *node = compute_graph->AddNode(op_desc[0]);
 
   const GeTensorDesc data_desc(GeShape(), FORMAT_ND, DT_FLOAT);
   for (int i = op_desc[0]->GetOutputsSize(); i < new_num; ++i) {
@@ -1439,7 +1439,7 @@ static void OLD_Graph_AddNodeAndUpdateIo(benchmark::State &state) {
   int io_num = 10;
   std::shared_ptr<OpDesc> op_desc[node_num] = {nullptr};
   OpDescCreate(node_num, op_desc, io_num);
-  NodePtr node  = compute_graph->AddNode(op_desc[0]);
+  NodePtr node = compute_graph->AddNode(op_desc[0]);
   int new_num = state.range(0);
 
   for (auto _ : state) {

@@ -76,4 +76,3 @@ uint32_t Init(ge::AscendString&) {
 
 REGISTER_OP_LIB(vendor_1).RegOpLibInit(Init); // 注册厂商名为vendor_1的初始化函数Init
 ```
-

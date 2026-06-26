@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,68 +69,65 @@ void SetDefaultTensorDesc(GeTensorDescPtr &tensor_desc) {
 }
 
 void SetAtomicDataTypeList(const NodePtr &atomic_node, const std::vector<int32_t> &data_types) {
-  (void) AttrUtils::SetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_DTYPES, data_types);
+  (void)AttrUtils::SetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_DTYPES, data_types);
 }
 
 void SetAtomicIntValList(const NodePtr &atomic_node, const std::vector<int32_t> &int_list) {
-  (void) AttrUtils::SetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, int_list);
+  (void)AttrUtils::SetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, int_list);
 }
 
 void SetAtomicFloatValList(const NodePtr &atomic_node, const std::vector<float32_t> &float_list) {
-  (void) AttrUtils::SetListFloat(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, float_list);
+  (void)AttrUtils::SetListFloat(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, float_list);
 }
 
 std::vector<int32_t> GetAtomicDataTypeList(const NodePtr &atomic_node) {
   std::vector<int32_t> data_type_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_DTYPES, data_type_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_DTYPES, data_type_list);
   return data_type_list;
 }
 
 std::vector<int32_t> GetMemsetDataTypeList(const NodePtr &atomic_node) {
   std::vector<int32_t> data_type_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_DTYPES, data_type_list);
   return data_type_list;
 }
 
 std::vector<int32_t> GetAtomicIntValList(const NodePtr &atomic_node) {
   std::vector<int32_t> int_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, int_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, int_list);
   return int_list;
 }
 
 std::vector<int32_t> GetMemsetIntValList(const NodePtr &atomic_node) {
   std::vector<int32_t> int_list;
-  (void) AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
+  (void)AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_INT, int_list);
   return int_list;
 }
 
 std::vector<float32_t> GetAtomicFloatValList(const NodePtr &atomic_node) {
   std::vector<float32_t> float_list;
-  (void) AttrUtils::GetListFloat(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, float_list);
+  (void)AttrUtils::GetListFloat(atomic_node->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, float_list);
   return float_list;
 }
 
 std::vector<float32_t> GetMemsetFloatValList(const NodePtr &atomic_node) {
   std::vector<float32_t> float_list;
-  (void) AttrUtils::GetListFloat(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_FLOAT, float_list);
+  (void)AttrUtils::GetListFloat(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_VALUES_FLOAT, float_list);
   return float_list;
 }
 
 std::vector<int64_t> GetAtomicAddrList(const NodePtr &atomic_node) {
   std::vector<int64_t> mem_start_vector;
-  (void) ge::AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_AUTOMIC_ADD_START, mem_start_vector);
+  (void)ge::AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_AUTOMIC_ADD_START, mem_start_vector);
   return mem_start_vector;
 }
 std::vector<int64_t> GetAtomicMemSizeList(const NodePtr &atomic_node) {
   std::vector<int64_t> mem_size_vector;
-  (void) ge::AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_SIZES, mem_size_vector);
+  (void)ge::AttrUtils::GetListInt(atomic_node->GetOpDesc(), ATTR_NAME_ATOMIC_MEMSET_SIZES, mem_size_vector);
   return mem_size_vector;
 }
 
-void SetTensorSize(const GeShape &shape,
-                   const Format format,
-                   const DataType data_type,
-                   GeTensorDesc &tensor_desc) {
+void SetTensorSize(const GeShape &shape, const Format format, const DataType data_type, GeTensorDesc &tensor_desc) {
   int64_t tensor_size = 0;
   TensorUtils::CalcTensorMemSize(shape, format, data_type, tensor_size);
   TensorUtils::SetSize(tensor_desc, tensor_size);
@@ -149,41 +146,40 @@ void UpdateGraphTensorSize(ComputeGraphPtr &graph) {
     }
   }
 }
-}
+}  // namespace
 
 class UtestGraphMemAssigner : public testing::Test {
  public:
-    ge::ComputeGraphPtr BuildGraphWithVar(int64_t session_id) {
-      // init
-      MemManager::Instance().Initialize(std::vector<rtMemType_t>({RT_MEMORY_HBM}));
-      VarManager::Instance(session_id)->Init(0, 0, 0, 0);
-      ge::ut::GraphBuilder builder("graph");
-      auto var_input = builder.AddNode("var", "Variable", 1, 1);
-      auto const_input = builder.AddNode("const", "Const", 1, 1);
-      auto assign = builder.AddNode("assgin", "Assign", 2, 1);
-      // add link
-      builder.AddDataEdge(var_input, 0, assign, 0);
-      builder.AddDataEdge(const_input, 0, assign, 1);
-      // set offset
-      var_input->GetOpDesc()->SetOutputOffset({10000});
-      const_input->GetOpDesc()->SetOutputOffset({1000});
-      assign->GetOpDesc()->SetInputOffset({10100, 1000});
-      assign->GetOpDesc()->SetOutputOffset({10100});
-      // set inner offset
-      int64_t inner_offset = 100;
-      ge::AttrUtils::SetInt(assign->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_INNER_OFFSET, inner_offset);
-      ge::AttrUtils::SetInt(assign->GetOpDesc()->MutableOutputDesc(0), ATTR_NAME_INNER_OFFSET, inner_offset);
-      // add var addr
-      VarManager::Instance(session_id)->var_resource_->var_offset_map_.emplace(10000, RT_MEMORY_HBM);
+  ge::ComputeGraphPtr BuildGraphWithVar(int64_t session_id) {
+    // init
+    MemManager::Instance().Initialize(std::vector<rtMemType_t>({RT_MEMORY_HBM}));
+    VarManager::Instance(session_id)->Init(0, 0, 0, 0);
+    ge::ut::GraphBuilder builder("graph");
+    auto var_input = builder.AddNode("var", "Variable", 1, 1);
+    auto const_input = builder.AddNode("const", "Const", 1, 1);
+    auto assign = builder.AddNode("assign", "Assign", 2, 1);
+    // add link
+    builder.AddDataEdge(var_input, 0, assign, 0);
+    builder.AddDataEdge(const_input, 0, assign, 1);
+    // set offset
+    var_input->GetOpDesc()->SetOutputOffset({10000});
+    const_input->GetOpDesc()->SetOutputOffset({1000});
+    assign->GetOpDesc()->SetInputOffset({10100, 1000});
+    assign->GetOpDesc()->SetOutputOffset({10100});
+    // set inner offset
+    int64_t inner_offset = 100;
+    ge::AttrUtils::SetInt(assign->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_INNER_OFFSET, inner_offset);
+    ge::AttrUtils::SetInt(assign->GetOpDesc()->MutableOutputDesc(0), ATTR_NAME_INNER_OFFSET, inner_offset);
+    // add var addr
+    VarManager::Instance(session_id)->var_resource_->var_offset_map_.emplace(10000, RT_MEMORY_HBM);
 
-      return builder.GetGraph();
-    }
+    return builder.GetGraph();
+  }
 
-protected:
-    void SetUp() {}
-    void TearDown() {}
+ protected:
+  void SetUp() {}
+  void TearDown() {}
 };
-
 
 NodePtr UtAddNode(ComputeGraphPtr &graph, std::string name, std::string type, int in_cnt, int out_cnt) {
   auto op_desc = std::make_shared<OpDesc>(name, type);
@@ -256,19 +252,19 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemory_multi_output_continuou
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   auto hcom1 = OP_CFG(HCOMALLREDUCE)
-                  .InCnt(2)
-                  .OutCnt(2)
-                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                  .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
   auto hcom2 = OP_CFG(HCOMALLREDUCE)
-                .InCnt(2)
-                .OutCnt(2)
-                .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA);
   auto data2 = OP_CFG(DATA);
@@ -295,27 +291,26 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemory_multi_output_continuou
   vec1.push_back(10);
   compute_graph->FindNode("hcom_1")->GetOpDesc()->SetOutputOffset(vec1);
   auto node_hcom2 = compute_graph->FindNode("hcom_2");
-  EXPECT_EQ(graph_mem_assigner.AssignContinuousInputMemory(node_hcom2, 0, true),
-            SUCCESS);
+  EXPECT_EQ(graph_mem_assigner.AssignContinuousInputMemory(node_hcom2, 0, true), SUCCESS);
 }
 
 TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemory_multi_output_continuous) {
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   auto hcom1 = OP_CFG(HCOMALLREDUCE)
-                  .InCnt(2)
-                  .OutCnt(2)
-                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                  .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
   auto hcom2 = OP_CFG(HCOMALLREDUCE)
-                .InCnt(2)
-                .OutCnt(2)
-                .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA);
   auto data2 = OP_CFG(DATA);
@@ -425,19 +420,19 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemory_Failed_SameOutAnchorTo
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   auto hcom1 = OP_CFG(HCOMALLREDUCE)
-                  .InCnt(2)
-                  .OutCnt(2)
-                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                  .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                  .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
   auto hcom2 = OP_CFG(HCOMALLREDUCE)
-                .InCnt(2)
-                .OutCnt(2)
-                .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
-                .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-                .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 224, 224})
+                   .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA);
   auto data2 = OP_CFG(DATA);
@@ -516,7 +511,8 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryWithOffset) {
   std::vector<int64_t> offsets_of_continuous = {0};
   AttrUtils::SetListInt(node4->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, offsets_of_continuous);
   GraphMemoryAssigner graph_mem_assigner2(graph2);
-  graph_mem_assigner2.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
+  graph_mem_assigner2.memory_offset_.insert(
+      std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
 
   node3->GetOpDesc()->SetOutputOffset({100});
   node4->GetOpDesc()->SetOutputOffset({0});
@@ -530,10 +526,11 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryFailedIdx) {
   auto node2 = UtAddNode(graph, "data2", DATA, 1, 1);
   node2->GetOutDataAnchor(0)->SetIdx(10);
   EXPECT_EQ(node1->GetInDataAnchor(0)->LinkFrom(node2->GetOutDataAnchor(0)), GRAPH_SUCCESS);
-  std::vector<int64_t> offsets_of_fusion = {1,2,3};
+  std::vector<int64_t> offsets_of_fusion = {1, 2, 3};
   AttrUtils::SetListInt(node2->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_of_fusion);
   GraphMemoryAssigner graph_mem_assigner(graph);
-  graph_mem_assigner.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
+  graph_mem_assigner.memory_offset_.insert(
+      std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
 
   EXPECT_EQ(graph_mem_assigner.AssignContinuousInputMemory(node1, 2, true), FAILED);
 
@@ -542,10 +539,11 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryFailedIdx) {
   auto node4 = UtAddNode(graph2, "data4", DATA, 1, 1);
   node4->GetOutDataAnchor(0)->SetIdx(10);
   EXPECT_EQ(node3->GetInDataAnchor(0)->LinkFrom(node4->GetOutDataAnchor(0)), GRAPH_SUCCESS);
-  std::vector<int64_t> offsets_of_continuous = {1,2,3};
+  std::vector<int64_t> offsets_of_continuous = {1, 2, 3};
   AttrUtils::SetListInt(node4->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_LIST_FOR_CONTINUOUS, offsets_of_continuous);
   GraphMemoryAssigner graph_mem_assigner2(graph2);
-  graph_mem_assigner2.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
+  graph_mem_assigner2.memory_offset_.insert(
+      std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
   EXPECT_NE(graph_mem_assigner2.AssignContinuousInputMemory(node3, 2, true), SUCCESS);
 }
 
@@ -554,10 +552,11 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryFailed) {
   auto node1 = UtAddNode(graph, "data1", DATA, 1, 1);
   auto node2 = UtAddNode(graph, "data2", DATA, 1, 1);
   EXPECT_EQ(node1->GetInDataAnchor(0)->LinkFrom(node2->GetOutDataAnchor(0)), GRAPH_SUCCESS);
-  std::vector<int64_t> offsets_of_fusion = {1,2,3};
+  std::vector<int64_t> offsets_of_fusion = {1, 2, 3};
   AttrUtils::SetListInt(node2->GetOpDesc(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_of_fusion);
   GraphMemoryAssigner graph_mem_assigner(graph);
-  graph_mem_assigner.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
+  graph_mem_assigner.memory_offset_.insert(
+      std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset((rtMemType_t)2, (size_t)1024)));
   EXPECT_NE(graph_mem_assigner.AssignContinuousInputMemory(node1, 2, true), SUCCESS);
 }
 
@@ -586,12 +585,12 @@ TEST_F(UtestGraphMemAssigner, CheckOffset) {
   auto node4 = UtAddNode(graph, "data4", DATA, 1, 1);
   EXPECT_EQ(node1->GetInDataAnchor(0)->LinkFrom(node4->GetOutDataAnchor(0)), GRAPH_SUCCESS);
   GraphMemoryAssigner graph_mem_assigner(graph);
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   EXPECT_EQ(graph_mem_assigner.CheckOffset(), SUCCESS);
   ge::ComputeGraphPtr graph2 = std::make_shared<ge::ComputeGraph>("graph2");
   auto node2 = UtAddNode(graph2, "data2", DATA, 1, 1);
   GraphMemoryAssigner graph_mem_assigner2(graph2);
-  graph_mem_assigner2.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner2.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   auto vec1 = std::vector<int64_t>();
   auto vec2 = std::vector<int64_t>();
   vec1.push_back(1);
@@ -609,7 +608,7 @@ TEST_F(UtestGraphMemAssigner, CheckOffset) {
   ge::ComputeGraphPtr graph3 = std::make_shared<ge::ComputeGraph>("graph3");
   auto node3 = UtAddNode(graph3, "iden3", IDENTITY, 1, 1);
   GraphMemoryAssigner graph_mem_assigner3(graph3);
-  graph_mem_assigner3.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner3.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   vec1.push_back(1);
   vec2.push_back(1);
   node3->GetOpDesc()->SetInputOffset(vec1);
@@ -636,7 +635,7 @@ TEST_F(UtestGraphMemAssigner, CheckOffset_UnfedOptionalInput_CheckSuccess) {
 
   auto node = graph->AddNode(op_desc);
   GraphMemoryAssigner graph_mem_assigner3(graph);
-  graph_mem_assigner3.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner3.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   auto vec1 = std::vector<int64_t>();
   auto vec2 = std::vector<int64_t>();
   vec1.push_back(1);
@@ -650,7 +649,7 @@ TEST_F(UtestGraphMemAssigner, CheckOffset_Workspace) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   auto node = UtAddNode(graph, "data", DATA, 1, 1);
   GraphMemoryAssigner graph_mem_assigner(graph);
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   auto vec1 = std::vector<int64_t>();
   auto vec2 = std::vector<int64_t>();
   auto vec3 = std::vector<int64_t>();
@@ -736,18 +735,9 @@ TEST_F(UtestGraphMemAssigner, CheckInputIsSupportAtomic) {
  */
 TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_CheckAttrs_Success) {
   DEF_GRAPH(graph) {
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto fake_type2_op1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
     CHAIN(NODE("data", atomic_memset)->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
     CHAIN(NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
   };
@@ -797,22 +787,16 @@ TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_CheckAttrs_Success) {
 
 TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_AppendAtomicCleanAttr) {
   DEF_GRAPH(graph) {
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("atomic_memset", atomic_memset)->Ctrl()->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
+    CHAIN(NODE("atomic_memset", atomic_memset)
+              ->Ctrl()
+              ->NODE("atomic_node", fake_type2_op1)
+              ->NODE("Node_Output", net_output));
   };
   auto root_graph = ToComputeGraph(graph);
   UpdateGraphTensorSize(root_graph);
@@ -837,29 +821,17 @@ TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_AppendAtomicCleanAttr) {
 
 TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_AppendMultiAtomicCleanAttr) {
   DEF_GRAPH(graph) {
-                     auto atomic_memset = OP_CFG(MEMSET)
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-                     auto fake_type2_op1 = OP_CFG("AtomicNode")
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-                     auto fake_type2_op2 = OP_CFG("AtomicNode")
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-                     auto net_output = OP_CFG(NETOUTPUT)
-                         .InCnt(1)
-                         .OutCnt(1)
-                         .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-                     CHAIN(NODE("data", atomic_memset)->Ctrl()->NODE("atomic_node1", fake_type2_op1)->NODE("Node_Output", net_output));
-                     CHAIN(NODE("data", atomic_memset)->Ctrl()->NODE("atomic_node2", fake_type2_op2)->NODE("Node_Output", net_output));
-                   };
+    CHAIN(NODE("data", atomic_memset)->Ctrl()->NODE("atomic_node1", fake_type2_op1)->NODE("Node_Output", net_output));
+    CHAIN(NODE("data", atomic_memset)->Ctrl()->NODE("atomic_node2", fake_type2_op2)->NODE("Node_Output", net_output));
+  };
   auto root_graph = ToComputeGraph(graph);
   UpdateGraphTensorSize(root_graph);
   GraphMemoryAssigner graph_mem_assigner(root_graph);
@@ -885,7 +857,7 @@ TEST_F(UtestGraphMemAssigner, SetAtomicCleanOffset_AppendMultiAtomicCleanAttr) {
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, {0}), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node2->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, {0}), true);
 
-  EXPECT_EQ(graph_mem_assigner.SetAtomicCleanOffset(),SUCCESS);
+  EXPECT_EQ(graph_mem_assigner.SetAtomicCleanOffset(), SUCCESS);
   std::vector<int64_t> mem_type_list;
   ASSERT_TRUE(ge::AttrUtils::GetListInt(atomic_memset->GetOpDesc(), ATTR_NAME_WORKSPACE_TYPE_LIST, mem_type_list));
   ASSERT_EQ(mem_type_list.size(), 2U);
@@ -1018,28 +990,16 @@ TEST_F(UtestGraphMemAssigner, PhonyConcatWithSameInputThrougRefNode_AssignSucces
 
 TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryWithAtomicProcess) {
   DEF_GRAPH(graph) {
-     auto atomic_memset = OP_CFG(MEMSET)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, {16});
-     auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-     auto fake_type2_op1 = OP_CFG("HcomNode")
-         .InCnt(2)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("HcomNode").InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-     CHAIN(NODE("data", data)->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
-     CHAIN(NODE("data", data)->NODE("atomic_node", fake_type2_op1));
-     CTRL_CHAIN(NODE("memset", atomic_memset)->NODE("atomic_node", fake_type2_op1));
+    CHAIN(NODE("data", data)->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
+    CHAIN(NODE("data", data)->NODE("atomic_node", fake_type2_op1));
+    CTRL_CHAIN(NODE("memset", atomic_memset)->NODE("atomic_node", fake_type2_op1));
   };
   auto root_graph = ToComputeGraph(graph);
   GraphMemoryAssigner graph_mem_assigner(root_graph);
@@ -1057,8 +1017,7 @@ TEST_F(UtestGraphMemAssigner, AssignContinuousInputMemoryWithAtomicProcess) {
   auto atomic_memset = root_graph->FindFirstNodeMatchType(MEMSET);
   AttrUtils::SetBool(atomic_node->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node->GetOpDesc(), ATOMIC_ATTR_INPUT_INDEX, {-1}), true);
-  EXPECT_EQ(graph_mem_assigner.AssignContinuousInputMemory(atomic_node, ContinuousType::kTypeInput, false),
-      SUCCESS);
+  EXPECT_EQ(graph_mem_assigner.AssignContinuousInputMemory(atomic_node, ContinuousType::kTypeInput, false), SUCCESS);
 }
 
 TEST_F(UtestGraphMemAssigner, CheckContinuousMemType) {
@@ -1090,34 +1049,19 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemory) {
 
 TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryMergeNodesAttrs) {
   DEF_GRAPH(ge_graph) {
-   auto atomic_memset = OP_CFG(MEMSET)
-       .InCnt(1)
-       .OutCnt(1)
-       .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-   auto node1 = OP_CFG("AtomicNode")
-       .InCnt(1)
-       .OutCnt(1)
-       .TensorDesc(FORMAT_ND, DT_INT32, {16});
-   auto node2 = OP_CFG("AtomicNode")
-       .InCnt(1)
-       .OutCnt(1)
-       .TensorDesc(FORMAT_ND, DT_INT32, {16});
-   auto node3 = OP_CFG("AtomicNode")
-       .InCnt(1)
-       .OutCnt(1)
-       .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node2 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node3 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-   auto net_output = OP_CFG(NETOUTPUT)
-       .InCnt(1)
-       .OutCnt(1)
-       .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-   CHAIN(NODE("atomic_node0", node1)->NODE("Node_Output", net_output));
-   CHAIN(NODE("atomic_node1", node2)->NODE("Node_Output", net_output));
-   CHAIN(NODE("atomic_node2", node3)->NODE("Node_Output", net_output));
-   CHAIN(NODE("atomic_memset", atomic_memset)->NODE("Node_Output", net_output));
- };
+    CHAIN(NODE("atomic_node0", node1)->NODE("Node_Output", net_output));
+    CHAIN(NODE("atomic_node1", node2)->NODE("Node_Output", net_output));
+    CHAIN(NODE("atomic_node2", node3)->NODE("Node_Output", net_output));
+    CHAIN(NODE("atomic_memset", atomic_memset)->NODE("Node_Output", net_output));
+  };
   auto graph = ToComputeGraph(ge_graph);
   UpdateGraphTensorSize(graph);
   GraphMemoryAssigner graph_mem_assigner(graph);
@@ -1141,7 +1085,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryMergeNodesAttrs) {
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node1->GetOpDesc(), "atomic_output_index", value), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node2->GetOpDesc(), "atomic_output_index", value), true);
   // init graph_mem_assigner
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   MemoryOffset memory_offset(RT_MEMORY_HBM, 0UL, 0x10);
   graph_mem_assigner.memory_offset_.emplace(RT_MEMORY_HBM, memory_offset);
   EXPECT_EQ(graph_mem_assigner.ReAssignAtomicMemory(), SUCCESS);
@@ -1159,28 +1103,13 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryMergeNodesAttrs) {
 
 TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesAttrs) {
   DEF_GRAPH(ge_graph) {
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto node1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto node2 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto node3 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node2 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node3 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("atomic_node0", node1)->NODE("Node_Output", net_output));
     CHAIN(NODE("atomic_node1", node2)->NODE("Node_Output", net_output));
@@ -1220,7 +1149,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesAttrs) {
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node0->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, {0}), true);
   EXPECT_EQ(AttrUtils::SetListFloat(atomic_node1->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, {0.1}), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node2->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, {0}), true);
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
 
   EXPECT_EQ(graph_mem_assigner.ReAssignAtomicMemory(), SUCCESS);
   EXPECT_EQ(graph_mem_assigner.SetAtomicCleanOffset(), SUCCESS);
@@ -1237,28 +1166,13 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesAttrs) {
 
 TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesMultiAttrs) {
   DEF_GRAPH(ge_graph) {
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto node1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto node2 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto node3 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node2 = OP_CFG("AtomicNode").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto node3 = OP_CFG("AtomicNode").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("atomic_node0", node1)->NODE("Node_Output", net_output));
     CHAIN(NODE("atomic_node0", node1)->NODE("Node_Output", net_output));
@@ -1276,7 +1190,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesMultiAttrs) {
   auto atomic_node2 = graph->FindNode("atomic_node2");
   auto atomic_memset = graph->FindNode("atomic_memset");
   atomic_node0->GetOpDesc()->SetOutputOffset({0, 16});
-  atomic_node1->GetOpDesc()->SetOutputOffset({32,48});
+  atomic_node1->GetOpDesc()->SetOutputOffset({32, 48});
   atomic_node2->GetOpDesc()->SetOutputOffset({64, 80});
 
   EXPECT_EQ(atomic_memset->GetOutControlAnchor()->LinkTo(atomic_node0->GetInControlAnchor()), GRAPH_SUCCESS);
@@ -1285,7 +1199,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesMultiAttrs) {
   EXPECT_EQ(AttrUtils::SetBool(atomic_node0->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true), true);
   EXPECT_EQ(AttrUtils::SetBool(atomic_node1->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true), true);
   EXPECT_EQ(AttrUtils::SetBool(atomic_node2->GetOpDesc(), ATOMIC_ATTR_IS_ATOMIC_NODE, true), true);
-  std::vector<uint32_t> value{0,1};
+  std::vector<uint32_t> value{0, 1};
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node0->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, value), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node1->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, value), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node2->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, value), true);
@@ -1300,7 +1214,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryWithOutMergeNodesMultiAttrs) {
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node0->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, {0, 0}), true);
   EXPECT_EQ(AttrUtils::SetListFloat(atomic_node1->GetOpDesc(), TBE_OP_ATOMIC_FLOAT_VALUES, {0.1, 0.1}), true);
   EXPECT_EQ(AttrUtils::SetListInt(atomic_node2->GetOpDesc(), TBE_OP_ATOMIC_INT64_VALUES, {0, 0}), true);
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
 
   EXPECT_EQ(graph_mem_assigner.ReAssignAtomicMemory(), SUCCESS);
   EXPECT_EQ(graph_mem_assigner.SetAtomicCleanOffset(), SUCCESS);
@@ -1348,7 +1262,7 @@ TEST_F(UtestGraphMemAssigner, ReAssignAtomicMemoryConnectToNetoutput) {
   std::vector<int32_t> is_connecting_output;
   AttrUtils::SetListInt(node2->GetOpDesc(), "_is_connected_to_netoutput", is_connecting_output);
   GraphMemoryAssigner graph_mem_assigner(graph);
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   graph_mem_assigner.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(2, MemoryOffset(1, 0)));
   graph_mem_assigner.memory_offset_.insert(std::make_pair<int64_t, MemoryOffset>(17, MemoryOffset(17, 2000)));
   EXPECT_EQ(graph_mem_assigner.CheckAtomicNodeIsSupportRef(node2), true);
@@ -1436,7 +1350,7 @@ TEST_F(UtestGraphMemAssigner, AssignAtomicOutputMemory) {
   GraphMemoryAssigner graph_mem_assigner(graph);
   std::vector<int64_t> real_atomic_sizes;
 
-  graph_mem_assigner.mem_assigner_.reset(new(std::nothrow) HybridMemAssigner(graph));
+  graph_mem_assigner.mem_assigner_.reset(new (std::nothrow) HybridMemAssigner(graph));
   std::map<int64_t, std::vector<int64_t>> mem_type_to_offset_end;
   std::map<int64_t, std::vector<int64_t>> mem_type_to_real_atomic_sizes;
   EXPECT_EQ(graph_mem_assigner.AssignAtomicOutputMemory(node, mem_type_to_offset_end, mem_type_to_real_atomic_sizes),
@@ -1527,9 +1441,9 @@ TEST_F(UtestGraphMemAssigner, SetInputOffset) {
 
 TEST_F(UtestGraphMemAssigner, UpdateOpInputOffset) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
-  auto node = UtAddNode(graph, "hcom", HCOMBROADCAST , 3, 1);
-  auto node1 = UtAddNode(graph, "hcom1", HCOMBROADCAST , 1, 1);
-  auto node2 = UtAddNode(graph, "var2", VARIABLE , 1, 1);
+  auto node = UtAddNode(graph, "hcom", HCOMBROADCAST, 3, 1);
+  auto node1 = UtAddNode(graph, "hcom1", HCOMBROADCAST, 1, 1);
+  auto node2 = UtAddNode(graph, "var2", VARIABLE, 1, 1);
   EXPECT_EQ(node->GetInDataAnchor(0)->LinkFrom(node1->GetOutDataAnchor(0)), GRAPH_SUCCESS);
   EXPECT_EQ(node->GetInDataAnchor(1)->LinkFrom(node2->GetOutDataAnchor(0)), GRAPH_SUCCESS);
   GraphMemoryAssigner graph_mem_assigner(graph);
@@ -1556,17 +1470,17 @@ TEST_F(UtestGraphMemAssigner, UpdateOpInputOffset_with_cut_const) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("sub_graph");
   root_graph->AddSubgraph(graph);
 
-  auto const_0 = UtAddNode(root_graph, "const_0", CONSTANT , 0, 1);
+  auto const_0 = UtAddNode(root_graph, "const_0", CONSTANT, 0, 1);
   const_0->GetOpDescBarePtr()->SetOutputOffset({1024});
-  auto partitioned_call = UtAddNode(root_graph, "partitioned_call", PARTITIONEDCALL , 1, 1);
+  auto partitioned_call = UtAddNode(root_graph, "partitioned_call", PARTITIONEDCALL, 1, 1);
   partitioned_call->GetOpDesc()->SetSubgraphInstanceName(0, graph->GetName());
   EXPECT_EQ(partitioned_call->GetInDataAnchor(0)->LinkFrom(const_0->GetOutDataAnchor(0)), GRAPH_SUCCESS);
   graph->SetParentGraph(root_graph);
   graph->SetParentNode(partitioned_call);
 
-  auto data_0 = UtAddNode(graph, "data_0", DATA , 0, 1);
+  auto data_0 = UtAddNode(graph, "data_0", DATA, 0, 1);
   data_0->GetOpDescBarePtr()->SetOutputOffset({1024});
-  auto data_1 = UtAddNode(graph, "data_1", DATA , 0, 1);
+  auto data_1 = UtAddNode(graph, "data_1", DATA, 0, 1);
   data_1->GetOpDescBarePtr()->SetOutputOffset({1024});
   auto add0 = UtAddNode(graph, "add_lxslice0", ADD, 1, 1);
   auto add1 = UtAddNode(graph, "add_lxslice1", ADD, 1, 1);
@@ -1599,10 +1513,10 @@ TEST_F(UtestGraphMemAssigner, UpdateOpInputOffset_with_cut_const) {
 
 TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_nested_static_subgraph) {
   ge::ComputeGraphPtr root_graph = std::make_shared<ge::ComputeGraph>("root_graph");
-  auto dynamic_const = UtAddNode(root_graph, "dynamic_const", CONSTANT , 0, 1);
+  auto dynamic_const = UtAddNode(root_graph, "dynamic_const", CONSTANT, 0, 1);
   dynamic_const->GetOpDescBarePtr()->SetOutputOffset({0});
   root_graph->SetGraphUnknownFlag(true);
-  auto partitioned_call_1 = UtAddNode(root_graph, "partitioned_call1", PARTITIONEDCALL , 1, 1);
+  auto partitioned_call_1 = UtAddNode(root_graph, "partitioned_call1", PARTITIONEDCALL, 1, 1);
   EXPECT_EQ(partitioned_call_1->GetInDataAnchor(0)->LinkFrom(dynamic_const->GetOutDataAnchor(0)), GRAPH_SUCCESS);
 
   ge::ComputeGraphPtr static_sub_graph1 = std::make_shared<ge::ComputeGraph>("sub_graph_1");
@@ -1612,14 +1526,14 @@ TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_nested_static_subgraph
   static_sub_graph1->SetParentNode(partitioned_call_1);
   root_graph->AddSubgraph(static_sub_graph1);
 
-  auto data_0 = UtAddNode(static_sub_graph1, "data_0", DATA , 0, 1);
+  auto data_0 = UtAddNode(static_sub_graph1, "data_0", DATA, 0, 1);
   data_0->GetOpDescBarePtr()->SetOutputOffset({1024});
   TensorUtils::SetDataOffset(*dynamic_const->GetOpDescBarePtr()->MutableOutputDesc(0), 0);
 
   (void)AttrUtils::SetInt(data_0->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   (void)AttrUtils::SetInt(*data_0->GetOpDescBarePtr()->MutableOutputDesc(0), ATTR_NAME_INNER_OFFSET, 0);
 
-  auto partitioned_call_2 = UtAddNode(static_sub_graph1, "partitioned_call2", PARTITIONEDCALL , 1, 1);
+  auto partitioned_call_2 = UtAddNode(static_sub_graph1, "partitioned_call2", PARTITIONEDCALL, 1, 1);
   EXPECT_EQ(partitioned_call_2->GetInDataAnchor(0)->LinkFrom(data_0->GetOutDataAnchor(0)), GRAPH_SUCCESS);
   ge::ComputeGraphPtr static_sub_graph2 = std::make_shared<ge::ComputeGraph>("sub_graph_2");
   partitioned_call_2->GetOpDesc()->AddSubgraphName(static_sub_graph2->GetName());
@@ -1628,14 +1542,13 @@ TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_nested_static_subgraph
   static_sub_graph2->SetParentNode(partitioned_call_2);
   root_graph->AddSubgraph(static_sub_graph2);
 
-  auto data_1 = UtAddNode(static_sub_graph2, "data_1", DATA , 0, 1);
+  auto data_1 = UtAddNode(static_sub_graph2, "data_1", DATA, 0, 1);
   data_1->GetOpDescBarePtr()->SetOutputOffset({1024});
   (void)AttrUtils::SetInt(data_1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   (void)AttrUtils::SetInt(*data_1->GetOpDescBarePtr()->MutableOutputDesc(0), ATTR_NAME_INNER_OFFSET, 0);
 
   GraphMemoryAssigner graph_mem_assigner(static_sub_graph2);
   EXPECT_EQ(graph_mem_assigner.UpdateOpInputOffset(data_1), SUCCESS);
-
 
   int64_t const_offset{0L};
   TensorUtils::GetDataOffset(dynamic_const->GetOpDescBarePtr()->GetOutputDesc(0), const_offset);
@@ -1648,9 +1561,9 @@ TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_nested_static_subgraph
 
 TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_parent_input_var) {
   ge::ComputeGraphPtr root_graph = std::make_shared<ge::ComputeGraph>("root_graph");
-  auto var_0 = UtAddNode(root_graph, "var_0", VARIABLE , 0, 1);
+  auto var_0 = UtAddNode(root_graph, "var_0", VARIABLE, 0, 1);
   var_0->GetOpDescBarePtr()->SetOutputOffset({1024});
-  auto partitioned_call = UtAddNode(root_graph, "partitioned_call", PARTITIONEDCALL , 1, 1);
+  auto partitioned_call = UtAddNode(root_graph, "partitioned_call", PARTITIONEDCALL, 1, 1);
   EXPECT_EQ(partitioned_call->GetInDataAnchor(0)->LinkFrom(var_0->GetOutDataAnchor(0)), GRAPH_SUCCESS);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("sub_graph");
@@ -1660,9 +1573,9 @@ TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_parent_input_var) {
   graph->SetParentNode(partitioned_call);
   root_graph->AddSubgraph(graph);
 
-  auto data_0 = UtAddNode(graph, "data_0", DATA , 0, 1);
-  data_0->GetOpDescBarePtr()->SetOutputOffset({0}); // default as 0
-  auto data_1 = UtAddNode(graph, "data_1", DATA , 0, 1);
+  auto data_0 = UtAddNode(graph, "data_0", DATA, 0, 1);
+  data_0->GetOpDescBarePtr()->SetOutputOffset({0});  // default as 0
+  auto data_1 = UtAddNode(graph, "data_1", DATA, 0, 1);
   data_1->GetOpDescBarePtr()->SetOutputOffset({1024});
   auto add0 = UtAddNode(graph, "add_lxslice0", ADD, 1, 1);
   auto add1 = UtAddNode(graph, "add_lxslice1", ADD, 1, 1);
@@ -1687,18 +1600,21 @@ TEST_F(UtestGraphMemAssigner, UpdateDataOutputOffset_with_parent_input_var) {
 
   std::vector<int64_t> output_offset = data_0->GetOpDescBarePtr()->GetOutputOffset();
   EXPECT_TRUE(!output_offset.empty());
-  EXPECT_EQ(output_offset[0], 1024); // expect same as var
+  EXPECT_EQ(output_offset[0], 1024);  // expect same as var
 }
 
-TEST_F(UtestGraphMemAssigner, static_graph_no_split) { // split默认打开了
+TEST_F(UtestGraphMemAssigner, static_graph_no_split) {  // split默认打开了
   std::string memory_optimization_policy = "MemoryPriority";
   const auto old_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
   auto new_options = old_options;
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
   auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224});
-  auto hcom2 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+  auto hcom2 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 50, 1024, 1024});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 64, 1024, 1024});
@@ -1706,12 +1622,12 @@ TEST_F(UtestGraphMemAssigner, static_graph_no_split) { // split默认打开了
   auto data4 = OP_CFG("Print");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -1733,15 +1649,18 @@ TEST_F(UtestGraphMemAssigner, static_graph_no_split) { // split默认打开了
   ge::GetThreadLocalContext().SetGlobalOption(old_options);
 }
 
-TEST_F(UtestGraphMemAssigner, small_static_sub_graph_no_split) { // 静态子图，小于阀值，不分段
+TEST_F(UtestGraphMemAssigner, small_static_sub_graph_no_split) {  // 静态子图，小于阀值，不分段
   std::string memory_optimization_policy = "MemoryPriority";
   const auto old_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
   auto new_options = old_options;
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
   auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 1});
-  auto hcom2 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 1})
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+  auto hcom2 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 1})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 50, 1024, 1});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 64, 1024, 1});
@@ -1749,19 +1668,19 @@ TEST_F(UtestGraphMemAssigner, small_static_sub_graph_no_split) { // 静态子图
   auto data4 = OP_CFG("Print");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
   };
 
   auto graph = ToComputeGraph(g1);
   UpdateGraphTensorSize(graph);
   graph->TopologicalSorting();
   bool dynamic_shape_partition = true;
-  (void) ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
+  (void)ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
 
   std::map<std::string, std::string> option;
   Graph2SubGraphInfoList subgraphs;
@@ -1785,8 +1704,11 @@ TEST_F(UtestGraphMemAssigner, large_static_sub_graph_split_no_atomic) {
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
   auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224});
-  auto hcom2 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+  auto hcom2 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 50, 1024, 512});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 64, 1024, 512});
@@ -1794,19 +1716,19 @@ TEST_F(UtestGraphMemAssigner, large_static_sub_graph_split_no_atomic) {
   auto data4 = OP_CFG("Print");
 
   DEF_GRAPH(g1) {
-      CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 1)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
   };
 
   auto graph = ToComputeGraph(g1);
   UpdateGraphTensorSize(graph);
   graph->TopologicalSorting();
   bool dynamic_shape_partition = true;
-  (void) ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
+  (void)ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
 
   std::map<std::string, std::string> option;
   Graph2SubGraphInfoList subgraphs;
@@ -1836,16 +1758,21 @@ TEST_F(UtestGraphMemAssigner, large_static_sub_graph_split) {
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
   auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(3).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 32});
-  auto hcom2 = OP_CFG(HCOMALLREDUCE).InCnt(3).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 32})
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
-  auto hcom3 = OP_CFG(HCOMALLREDUCE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 32})
-    .Attr(ATTR_NAME_CONTINUOUS_INPUT, true).Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
+  auto hcom2 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(3)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 32})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+  auto hcom3 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 32})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                   .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true);
 
   std::vector<uint32_t> value{0};
-  auto cast0 = OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 512})
-    .Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
-  auto cast1 = OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 512})
-    .Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
+  auto cast0 = OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 512}).Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
+  auto cast1 = OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 512}).Attr(ATOMIC_ATTR_IS_ATOMIC_NODE, true);
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 50, 512, 512});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 512});
   auto data5 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 32, 512, 1024});
@@ -1854,16 +1781,16 @@ TEST_F(UtestGraphMemAssigner, large_static_sub_graph_split) {
   auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
   auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
   DEF_GRAPH(g1) {
-      CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("cast_0", cast0)->EDGE(0, 1)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("cast_1", cast1)->EDGE(0, 2)->NODE("hcom_1", hcom1));
-      CHAIN(NODE("hcom_1", hcom1)->EDGE(1, 0)->NODE("hcom_3", hcom3));
-      CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("data_5", data5)->EDGE(0, 2)->NODE("hcom_2", hcom2));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
-      CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
-      CHAIN(NODE("atomic_memset", atomic_memset)->NODE("Node_Output", net_output));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("cast_0", cast0)->EDGE(0, 1)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("cast_1", cast1)->EDGE(0, 2)->NODE("hcom_1", hcom1));
+    CHAIN(NODE("hcom_1", hcom1)->EDGE(1, 0)->NODE("hcom_3", hcom3));
+    CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("data_5", data5)->EDGE(0, 2)->NODE("hcom_2", hcom2));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(0, 0)->NODE("data_3", data3));
+    CHAIN(NODE("hcom_2", hcom2)->EDGE(1, 0)->NODE("data_4", data4));
+    CHAIN(NODE("atomic_memset", atomic_memset)->NODE("Node_Output", net_output));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -1880,7 +1807,7 @@ TEST_F(UtestGraphMemAssigner, large_static_sub_graph_split) {
   UpdateGraphTensorSize(graph);
   graph->TopologicalSorting();
   bool dynamic_shape_partition = true;
-  (void) ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
+  (void)ge::AttrUtils::SetBool(graph, ge::ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, dynamic_shape_partition);
 
   std::map<std::string, std::string> option;
   Graph2SubGraphInfoList subgraphs;
@@ -1912,16 +1839,18 @@ TEST_F(UtestGraphMemAssigner, static_graph_split) {
   new_options.insert(std::make_pair(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy));
   ge::GetThreadLocalContext().SetGlobalOption(new_options);
   auto hcom1 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224});
-  auto hcom2 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
+  auto hcom2 = OP_CFG(HCOMALLREDUCE)
+                   .InCnt(2)
+                   .OutCnt(2)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1024, 1024, 224})
+                   .Attr(ATTR_NAME_CONTINUOUS_INPUT, true);
 
   auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 50, 1024, 1024});
   auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 64, 1024, 1024});
   auto data3 = OP_CFG("Print");
   auto data4 = OP_CFG("Print");
 
-  DEF_GRAPH(g1)
-  {
+  DEF_GRAPH(g1) {
     CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("hcom_1", hcom1));
     CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("hcom_1", hcom1));
     CHAIN(NODE("hcom_1", hcom1)->EDGE(0, 0)->NODE("hcom_2", hcom2));
@@ -1944,7 +1873,8 @@ TEST_F(UtestGraphMemAssigner, static_graph_split) {
   ge::Model model;
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
-  EXPECT_EQ(builder.BuildModelDefForMem(model), SUCCESS);  EXPECT_NE(runtime_stub.GetSlogStub().FindLog(DLOG_INFO, "weight_offset_:"), -1);  // logs for test case
+  EXPECT_EQ(builder.BuildModelDefForMem(model), SUCCESS);
+  EXPECT_NE(runtime_stub.GetSlogStub().FindLog(DLOG_INFO, "weight_offset_:"), -1);  // logs for test case
   std::vector<std::vector<int64_t>> sub_mem_offsets;
   ge::AttrUtils::GetListListInt(&model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_offsets);
   EXPECT_EQ(sub_mem_offsets.size(), 4U);
@@ -1954,15 +1884,15 @@ TEST_F(UtestGraphMemAssigner, static_graph_split) {
 TEST_F(UtestGraphMemAssigner, ConstConnectNoPaddingContinuousOutput_CheckOutputOffset) {
   vector<int64_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   auto const2 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   auto split_node = graph->FindNode("split");
@@ -1998,15 +1928,15 @@ TEST_F(UtestGraphMemAssigner, ConstConnectNoPaddingContinuousOutput_CheckOutputO
 TEST_F(UtestGraphMemAssigner, ConstConnectPhonySplit_CheckOutputOffset) {
   vector<int64_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}));
-  GeTensorPtr const_tensor1 =
-      std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   auto const2 = OP_CFG(CONSTANTOP).Weight(const_tensor1);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("const2", const2)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("const1", const1)->NODE("split", PHONYSPLIT)->NODE("a", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("split", PHONYSPLIT)->NODE("b", RELU)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   auto split_node = graph->FindNode("split");
@@ -2053,9 +1983,14 @@ TEST_F(UtestGraphMemAssigner, ConstConnectPhonySplit_CheckOutputOffset) {
 TEST_F(UtestGraphMemAssigner, PhonyConcatConnectToHcomBroadCast_CheckOffsetSuccess) {
   auto hcombroadcast = OP_CFG(HCOMBROADCAST).Attr(ATTR_NAME_REFERENCE, true).InNames({"x", "y"}).OutNames({"x", "y"});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("d", ADD));
-                  CHAIN(NODE("b", CAST)->NODE("c", CAST)->NODE("pc", PHONYCONCAT)->NODE("hcombroadcast", hcombroadcast)->NODE("d", ADD)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("a", CAST)->NODE("hcombroadcast", hcombroadcast)->NODE("d", ADD));
+    CHAIN(NODE("b", CAST)
+              ->NODE("c", CAST)
+              ->NODE("pc", PHONYCONCAT)
+              ->NODE("hcombroadcast", hcombroadcast)
+              ->NODE("d", ADD)
+              ->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToComputeGraph(g1);
   auto pc_node = graph->FindNode("pc");
@@ -2076,4 +2011,4 @@ TEST_F(UtestGraphMemAssigner, PhonyConcatConnectToHcomBroadCast_CheckOffsetSucce
   auto a_node = graph->FindNode("a");
   EXPECT_FALSE(MemReuseUtils::IsAllOutRefAllInput(a_node));
 }
-} // namespace ge
+}  // namespace ge

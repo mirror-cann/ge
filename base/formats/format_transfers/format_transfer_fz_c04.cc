@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ namespace {
 constexpr int64_t kMaxDimsNumC = 4;
 constexpr int64_t kC04 = 4;
 constexpr int64_t kC0Size = 16;
-constexpr int64_t kCubeK = 16; // 当前硬件为固定值
+constexpr int64_t kCubeK = 16;  // 当前硬件为固定值
 
 Status CheckGroupsSupport(const int32_t groups) {
   // 这里的语义不是group为0，是fe在group为1的场景下，为了保证subformat的兼容性，影响面降低，把subformat置为0.
@@ -64,17 +64,21 @@ Status GetTotalDataSize(const std::vector<int64_t> &shape_4d, const int64_t dtyp
   int64_t t1, t2 = 0;
   GE_ASSERT_TRUE(!MulOverflow(h_o, w_o, t1),
                  "[Check][Shape]Failed, "
-                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]", h_o, w_o);
+                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]",
+                 h_o, w_o);
   GE_ASSERT_TRUE(!MulOverflow(n_o, c_o, t2),
                  "[Check][Shape]Failed, "
-                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]", n_o, c_o);
+                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]",
+                 n_o, c_o);
   int64_t total_ele_cnt = 0;
   GE_ASSERT_TRUE(!MulOverflow(t1, t2, total_ele_cnt),
                  "[Check][Shape]Failed, "
-                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]", t1, t2);
+                 "int64 mul overflow.A[%" PRId64 "], B[%" PRId64 "]",
+                 t1, t2);
   GE_ASSERT_TRUE(!MulOverflow(total_ele_cnt, static_cast<int64_t>(dtype_size), total_size),
                  "[Check][Shape]Failed, "
-                 "int64 mul overflow.A[%" PRId64 "], B[%d]", total_ele_cnt, dtype_size);
+                 "int64 mul overflow.A[%" PRId64 "], B[%d]",
+                 total_ele_cnt, dtype_size);
   return SUCCESS;
 }
 
@@ -129,12 +133,12 @@ Status TransFormatNchwToFzC04(const TransArgs &args, TransResult &result) {
   auto ret = ge::formats::Transpose(data, args.src_shape, args.src_data_type, perm_arg_1, trans_result_1);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Trans][Formats]Failed from NCHW to HWCN, src_shape %s, src_data_type %s",
-           ShapeToString(args.src_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Failed to trans formats from NCHW to HWCN, src_shape %s, "
-                      "src_data_type %s",
-                      ShapeToString(args.src_shape).c_str(),
-                      TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+           ShapeToString(args.src_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to trans formats from NCHW to HWCN, src_shape %s, "
+                         "src_data_type %s",
+                         ShapeToString(args.src_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
     return ret;
   }
 
@@ -142,10 +146,11 @@ Status TransFormatNchwToFzC04(const TransArgs &args, TransResult &result) {
   args_tmp.src_shape = expect_shape;
   args_tmp.data = trans_result_1.data.get();
   // check size it should be same with original
-  const int64_t sum_size = n * c * h * w * dtype_size; // before has do check about mul
+  const int64_t sum_size = n * c * h * w * dtype_size;  // before has do check about mul
   const size_t expect_size = static_cast<size_t>(sum_size);
   if (trans_result_1.length != expect_size) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Shape]size %zu is not match expect size %zu "
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[Check][Shape]size %zu is not match expect size %zu "
            "after transpose",
            trans_result_1.length, expect_size);
     return ACL_ERROR_GE_PARAM_INVALID;
@@ -167,20 +172,24 @@ Status TransFormatNchwToFzC04(const TransArgs &args, TransResult &result) {
 
   const std::shared_ptr<uint8_t> dst(new (std::nothrow) uint8_t[dst_size], std::default_delete<uint8_t[]>());
   if (dst == nullptr) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "Failed to alloc the memory for dst buf %" PRId64 " "
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "Failed to alloc the memory for dst buf %" PRId64
+           " "
            "when trans format from %s to %s",
            dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
            TypeUtils::FormatToSerialString(args.dst_format).c_str());
-    REPORT_INNER_ERR_MSG("E19999",  "Failed to alloc the memory for dst buf %" PRId64 " "
-                      "when trans format from %s to %s",
-                      dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                      TypeUtils::FormatToSerialString(args.dst_format).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to alloc the memory for dst buf %" PRId64
+                         " "
+                         "when trans format from %s to %s",
+                         dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str());
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
   const auto retMem = memset_s(dst.get(), static_cast<size_t>(dst_size), 0, static_cast<size_t>(dst_size));
   if (retMem != EOK) {
-    GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Set][Memory]Failed, dst buf %" PRId64 ", error_code %d",
-           dst_size, retMem);
+    GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Set][Memory]Failed, dst buf %" PRId64 ", error_code %d", dst_size,
+           retMem);
     REPORT_INNER_ERR_MSG("E19999", "Set memory failed, dst buf %" PRId64 ", error_code %d", dst_size, retMem);
     return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
   }
@@ -195,10 +204,16 @@ Status TransFormatNchwToFzC04(const TransArgs &args, TransResult &result) {
         memcpy_s(PtrAdd(p_dst, static_cast<size_t>(dst_size), static_cast<size_t>(k) * static_cast<size_t>(stride)),
                  static_cast<size_t>(protected_size), p_start + (k * block), static_cast<size_t>(block));
     if (cpy_ret != EOK) {
-      GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Set][Memcpy]Failed, block %" PRId64 ", stride %" PRId64 ", "
-             "protect_size %" PRId64 ", error_code %d", block, stride, protected_size, cpy_ret);
-      REPORT_INNER_ERR_MSG("E19999", "[Set][Memcpy]Failed, block %" PRId64 ", stride %" PRId64 ", "
-                        "protect_size %" PRId64 ", error_code %d", block, stride, protected_size, cpy_ret);
+      GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+             "[Set][Memcpy]Failed, block %" PRId64 ", stride %" PRId64
+             ", "
+             "protect_size %" PRId64 ", error_code %d",
+             block, stride, protected_size, cpy_ret);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "[Set][Memcpy]Failed, block %" PRId64 ", stride %" PRId64
+                           ", "
+                           "protect_size %" PRId64 ", error_code %d",
+                           block, stride, protected_size, cpy_ret);
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     protected_size = protected_size - stride;
@@ -232,8 +247,10 @@ Status PaddingNC(const TransArgs &args, TransArgs &args_tmp, std::shared_ptr<uin
   const auto w = src_shape.at(kNchwW);
 
   if (c > kMaxDimsNumC) {
-    GELOGE(ACL_ERROR_GE_SHAPE_INVALID, "[Check][Shape]Invalid dim c num[%lu]. "
-           "It should be in (0,4]", c);
+    GELOGE(ACL_ERROR_GE_SHAPE_INVALID,
+           "[Check][Shape]Invalid dim c num[%lu]. "
+           "It should be in (0,4]",
+           c);
     return ACL_ERROR_GE_SHAPE_INVALID;
   }
 
@@ -254,10 +271,12 @@ Status PaddingNC(const TransArgs &args, TransArgs &args_tmp, std::shared_ptr<uin
     return SUCCESS;
   }
   dst.reset(new (std::nothrow) uint8_t[dst_size], std::default_delete<uint8_t[]>());
-  GE_ASSERT_NOTNULL(dst, "Failed to alloc the memory for dst buf %" PRId64 " when "
-           "trans format from %s to %s",
-           dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
-           TypeUtils::FormatToSerialString(args.dst_format).c_str());
+  GE_ASSERT_NOTNULL(dst,
+                    "Failed to alloc the memory for dst buf %" PRId64
+                    " when "
+                    "trans format from %s to %s",
+                    dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                    TypeUtils::FormatToSerialString(args.dst_format).c_str());
   auto ret = memset_s(dst.get(), static_cast<size_t>(dst_size), 0, static_cast<size_t>(dst_size));
   GE_ASSERT_EOK(ret, "[Set][Memory]Failed, dst buf %" PRId64 ", error_code %d", dst_size, ret);
 
@@ -271,13 +290,19 @@ Status PaddingNC(const TransArgs &args, TransArgs &args_tmp, std::shared_ptr<uin
     for (int64_t j = 0; j < c; j++) {
       const int64_t dst_offset = ((i * c_o * h_o * w_o) + (j * h_o * w_o)) * dtype_size;
       ret = memcpy_s(PtrAdd(p_dst, static_cast<size_t>(dst_size), static_cast<size_t>(dst_offset)),
-                     static_cast<size_t>(protected_size),
-                     p_start + (((i * c * h * w) + (j * h * w)) * dtype_size), static_cast<size_t>(block));
+                     static_cast<size_t>(protected_size), p_start + (((i * c * h * w) + (j * h * w)) * dtype_size),
+                     static_cast<size_t>(block));
       if (ret != EOK) {
-        GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Set][Memcpy]Failed, block %" PRId64 ", "
-               "protect_size %" PRId64 ", error_code %d", block, protected_size, ret);
-        REPORT_INNER_ERR_MSG("E19999", "[Set][Memcpy]Failed, block %" PRId64 ", protect_size %" PRId64 ", "
-                          "error_code %d", block, protected_size, ret);
+        GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+               "[Set][Memcpy]Failed, block %" PRId64
+               ", "
+               "protect_size %" PRId64 ", error_code %d",
+               block, protected_size, ret);
+        REPORT_INNER_ERR_MSG("E19999",
+                             "[Set][Memcpy]Failed, block %" PRId64 ", protect_size %" PRId64
+                             ", "
+                             "error_code %d",
+                             block, protected_size, ret);
         return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
       }
       protected_size = protected_size - block;
@@ -327,7 +352,7 @@ Status TransFormatFzC04ToHwcn(const TransArgs &args, TransResult &result) {
     return GRAPH_FAILED;
   }
   std::shared_ptr<uint8_t> dst(new (std::nothrow) uint8_t[dst_size], std::default_delete<uint8_t[]>());
-  GE_ASSERT_NOTNULL(dst, "Failed to allcoate memory for dst buf [%lld] when trans format from [%s] to [%s]", dst_size,
+  GE_ASSERT_NOTNULL(dst, "Failed to allocate memory for dst buf [%lld] when trans format from [%s] to [%s]", dst_size,
                     TypeUtils::FormatToSerialString(args.src_format).c_str(),
                     TypeUtils::FormatToSerialString(args.dst_format).c_str());
   GE_ASSERT_EOK(memset_s(dst.get(), static_cast<size_t>(dst_size), 0, static_cast<size_t>(dst_size)));
@@ -363,8 +388,8 @@ Status FormatTransfer4DToFZC04::BuildTransArgsNchwToFzC04(const ge::formats::Tra
     return SUCCESS;
   }
   ge::formats::TransArgs src_to_nchw_args = src_dst_args;
-  src_to_nchw_args.dst_format = static_cast<Format>(GetFormatFromSub(FORMAT_NCHW,
-                                                                     GetSubFormat(src_dst_args.dst_sub_format)));
+  src_to_nchw_args.dst_format =
+      static_cast<Format>(GetFormatFromSub(FORMAT_NCHW, GetSubFormat(src_dst_args.dst_sub_format)));
   src_to_nchw_args.dst_primary_format = FORMAT_NCHW;
   if (!ge::formats::IsTransFormatSupport(src_to_nchw_args)) {
     GELOGE(ACL_ERROR_GE_FORMAT_INVALID, "Not support trans format from %s to %s.",
@@ -380,11 +405,15 @@ Status FormatTransfer4DToFZC04::BuildTransArgsNchwToFzC04(const ge::formats::Tra
   GE_ASSERT_SUCCESS(ge::formats::TransDataFormat(src_to_nchw_args, nchw_result_holder));
 
   std::vector<int64_t> dst_shape;
-  nchw_dst_args = {nchw_result_holder.data.get(), FORMAT_NCHW, src_dst_args.dst_format,
+  nchw_dst_args = {nchw_result_holder.data.get(),
+                   FORMAT_NCHW,
+                   src_dst_args.dst_format,
                    FORMAT_NCHW,
                    src_dst_args.dst_primary_format,
                    FORMAT_RESERVED,
-                   src_dst_args.dst_sub_format, kC0Size, kC0Size,
+                   src_dst_args.dst_sub_format,
+                   kC0Size,
+                   kC0Size,
                    nchw_shape,
                    dst_shape,
                    src_dst_args.src_data_type};
@@ -398,9 +427,9 @@ Status FormatTransfer4DToFZC04::TransShapeFromSrcToNchw(const Format src_format,
   if (src_primary_format == FORMAT_NCHW) {
     return SUCCESS;
   }
-  ge::formats::TransArgs args{nullptr, src_format, FORMAT_NCHW, src_primary_format, FORMAT_NCHW,
-                              FORMAT_RESERVED, FORMAT_RESERVED, kC0Size, kC0Size,
-                              src_shape,  nchw_shape,  data_type};
+  ge::formats::TransArgs args{nullptr,     src_format,      FORMAT_NCHW,     src_primary_format,
+                              FORMAT_NCHW, FORMAT_RESERVED, FORMAT_RESERVED, kC0Size,
+                              kC0Size,     src_shape,       nchw_shape,      data_type};
   if (!ge::formats::IsTransFormatSupport(args)) {
     GELOGE(ACL_ERROR_GE_FORMAT_INVALID, "Not support trans shape from %s to %s",
            ge::TypeUtils::FormatToSerialString(src_format).c_str(),
@@ -419,7 +448,7 @@ Status FormatTransfer4DToFZC04::TransFormat(const TransArgs &args, TransResult &
   if (CheckGroupsSupport(GetSubFormat(static_cast<int32_t>(args.dst_format))) != SUCCESS) {
     return UNSUPPORTED;
   }
-  
+
   TransArgs nchw_to_dst_args = args;
   // try build nchw_to_dst_args
   TransResult src_nchw_result;
@@ -435,8 +464,7 @@ Status FormatTransfer4DToFZC04::TransFormat(const TransArgs &args, TransResult &
   }
 
   std::vector<int64_t> expect_shape;
-  ret = TransShape(args_tmp.src_format, args_tmp.src_shape, args_tmp.src_data_type,
-                   args_tmp.dst_format, expect_shape);
+  ret = TransShape(args_tmp.src_format, args_tmp.src_shape, args_tmp.src_data_type, args_tmp.dst_format, expect_shape);
   if (ret != SUCCESS) {
     return ret;
   }
@@ -471,7 +499,7 @@ Status FormatTransfer4DToFZC04::TransShape(const Format src_format, const std::v
 }
 
 /*
- * FzC04 axises: (Ceil(kC0*h*w*C1/16), N1, N0, 16), which N1 = 16, C0 = 4, N1 = Ceil(N/N0), C1 = Ceil(C/C0)
+ * FzC04 axes: (Ceil(kC0*h*w*C1/16), N1, N0, 16), which N1 = 16, C0 = 4, N1 = Ceil(N/N0), C1 = Ceil(C/C0)
  */
 Status FormatTransferFZC04To4D::TransFormat(const TransArgs &args, TransResult &result) {
   GELOGD("Begin to trans format from %s to %s, src shape %s, data type %s, dst shape %s",

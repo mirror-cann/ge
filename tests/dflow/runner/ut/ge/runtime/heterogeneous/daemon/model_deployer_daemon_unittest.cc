@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -104,13 +104,13 @@ class MockMmpaDeployer : public MmpaStubApiGe {
   void *DlOpen(const char *fileName, int32_t mode) override {
     std::cout << "dlopen stub file name = " << fileName << std::endl;
     if (std::string(fileName) == "libtsdclient.so") {
-      return (void *) 0xFFFFFFFF;
+      return (void *)0xFFFFFFFF;
     }
     return dlopen(fileName, mode);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0xFFFFFFFF) {
+    if (handle == (void *)0xFFFFFFFF) {
       return 0;
     }
     return dlclose(handle);
@@ -118,7 +118,7 @@ class MockMmpaDeployer : public MmpaStubApiGe {
 
   void *get_tsd_capability_func_ = (void *)&TsdCapabilityGet;
 };
-}
+}  // namespace
 
 class ModelDeployerDaemonUnittest : public testing::Test {
  protected:
@@ -174,4 +174,4 @@ TEST_F(ModelDeployerDaemonUnittest, TestInitializeAndFinalizeSubDeployerOnCpu) {
   }
   EXPECT_EQ(ret, SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

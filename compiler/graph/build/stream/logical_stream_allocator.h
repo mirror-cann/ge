@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,10 +30,10 @@ namespace ge {
   CLASS(const CLASS &) = delete;         \
   CLASS &operator=(const CLASS &) = delete
 
-#define OPTIMIZE_BY_STRUCTURE_PASS_DEFAULT_FUNC(CLASS)  \
-  CLASS() : OptimizeByTopoPass(#CLASS) {} \
-  ~CLASS() override = default;           \
-  CLASS(const CLASS &) = delete;         \
+#define OPTIMIZE_BY_STRUCTURE_PASS_DEFAULT_FUNC(CLASS) \
+  CLASS() : OptimizeByTopoPass(#CLASS) {}              \
+  ~CLASS() override = default;                         \
+  CLASS(const CLASS &) = delete;                       \
   CLASS &operator=(const CLASS &) = delete
 
 // Base stream class.
@@ -113,7 +113,7 @@ class AssignByDependencyPass : public LogicalStreamPass {
   std::vector<std::pair<SubgraphPtr, SubgraphPtr>> reused_subgraphs_;
 
   mutable std::unordered_set<SubgraphPtr> visited_subgraphs_;
-  bool is_memory_priority_ {false};
+  bool is_memory_priority_{false};
 };
 
 // All nodes in the graph are assigned the same stream.
@@ -171,8 +171,9 @@ class AllReduceParallelPass : public LogicalStreamPass {
  public:
   STREAM_PASS_DEFAULT_FUNC(AllReduceParallelPass);
   Status Run(ComputeGraphPtr graph, const std::vector<SubgraphPtr> &subgraphs, Context &context) override;
+
  private:
-  bool IsHcomNode(const std::string& node_type) const;
+  bool IsHcomNode(const std::string &node_type) const;
   int64_t GetFusion(const NodePtr &node) const;
 };
 

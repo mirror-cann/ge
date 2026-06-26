@@ -68,4 +68,3 @@ const char *aclmdlGetTensorRealName(const aclmdlDesc *modelDesc, const char *nam
 返回指向tensor真实名称的指针，该指针的生命周期与modelDesc相同，若modelDesc资源被销毁，则该指针指向的内容也会自动被销毁。
 
 若modelDesc或name为空，则返回nullptr。
-

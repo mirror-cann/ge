@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,8 +70,8 @@ TEST_F(ModelV2ExecutorBuilderUT, BuildFromSingleNodeGraph) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -108,8 +108,8 @@ TEST_F(ModelV2ExecutorBuilderUT, RefsHasTheSameAddr) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -166,8 +166,8 @@ TEST_F(ModelV2ExecutorBuilderUT, CustomOpRegistryKeepsAliveAfterRootModelRelease
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
     auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                         .SetModelDescHolder(&model_desc_holder)
+                         .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
     ASSERT_NE(exe_graph, nullptr);
 
     model_executor = ModelV2Executor::Create(exe_graph, root_model);
@@ -190,8 +190,8 @@ TEST_F(ModelV2ExecutorBuilderUT, BuildFromFrameworkOpSingleNodeGraph) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -223,8 +223,8 @@ TEST_F(ModelV2ExecutorBuilderUT, BuildVarialbeGraph) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -258,8 +258,8 @@ TEST_F(ModelV2ExecutorBuilderUT, BuildVarialbeGraph_Failed_SessionIdNotEqual) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -282,8 +282,8 @@ TEST_F(ModelV2ExecutorBuilderUT, BuildVarialbeGraph_ModelV2ExecutorCreateWithRtS
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_ExeGraph");
 
@@ -359,13 +359,9 @@ TEST_F(ModelV2ExecutorBuilderUT, CheckIoReuseAddrs_EmptyPairs_Success) {
 
   // io_same_addr_pairs_ 为空，校验应通过
   auto input0 =
-      FakeValue<Tensor>(Tensor{{{256}, {256}},
-        {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                       kOnDeviceHbm, ge::DT_FLOAT16, 0});
+      FakeValue<Tensor>(Tensor{{{256}, {256}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, 0});
   auto output0 =
-      FakeValue<Tensor>(Tensor{{{256}, {256}},
-        {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-        kOnDeviceHbm, ge::DT_FLOAT16, 0});
+      FakeValue<Tensor>(Tensor{{{256}, {256}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, 0});
 
   Tensor *inputs[] = {input0.holder.get()};
   Tensor *outputs[] = {output0.holder.get()};
@@ -403,7 +399,6 @@ TEST_F(ModelV2ExecutorBuilderUT, CheckIoReuseAddrs_SameAddress_Success) {
                        .SetModelDescHolder(&model_desc_holder)
                        .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
-
 
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
@@ -525,7 +520,8 @@ TEST_F(ModelV2ExecutorBuilderUT, CheckIoReuseAddrs_OutputIndexOutOfRange_Fail) {
   auto output0 = FakeValue<Tensor>(Tensor{{{256}, {256}},
                                           {ge::FORMAT_ND, ge::FORMAT_ND, {}},
                                           kOnDeviceHbm,
-                                          ge::DT_FLOAT16, reinterpret_cast<void *>(0x1000)});
+                                          ge::DT_FLOAT16,
+                                          reinterpret_cast<void *>(0x1000)});
 
   Tensor *inputs[] = {input0.holder.get()};
   Tensor *outputs[] = {output0.holder.get()};  // 只有1个输出，但配置索引为5
@@ -634,9 +630,11 @@ TEST_F(ModelV2ExecutorBuilderUT, CheckIoReuseAddrs_NullInputsOutputs_Success) {
             ge::GRAPH_SUCCESS);
 
   // 测试数量为 0
-  auto input0 = FakeValue<Tensor>(
-      Tensor{{{256}, {256}}, {ge::FORMAT_ND,
-        ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, reinterpret_cast<void *>(0x1000)});
+  auto input0 = FakeValue<Tensor>(Tensor{{{256}, {256}},
+                                         {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                         kOnDeviceHbm,
+                                         ge::DT_FLOAT16,
+                                         reinterpret_cast<void *>(0x1000)});
   Tensor *inputs[] = {input0.holder.get()};
 
   EXPECT_EQ(ModelV2ExecutorTestHelper::CheckIoReuseAddrs(model_executor.get(), inputs, 0, nullptr, 0),

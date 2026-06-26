@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,7 +96,7 @@ ComputeGraphPtr BuildComputeGraphWithNetOutput() {
   auto graph = builder.GetGraph();
   return graph;
 }
-} // namespace
+}  // namespace
 class UtestGraph : public testing::Test {
  protected:
   void SetUp() {}
@@ -117,14 +117,16 @@ struct ExpectNodeInfo {
                  const std::map<int32_t, std::pair<std::string, int32_t>> &in_input_node_name,
                  const std::map<int32_t, std::vector<std::pair<std::string, int32_t>>> &in_output_node_name,
                  const std::vector<std::string> &in_control_input_node_name,
-                 const std::vector<std::string> &in_control_output_node_name,
-                 const int32_t in_input_desc_size,
+                 const std::vector<std::string> &in_control_output_node_name, const int32_t in_input_desc_size,
                  const int32_t in_output_desc_size)
-    : name(in_name), type(in_type), input_node_name(in_input_node_name),
-      output_node_name(in_output_node_name),
-      control_input_node_name(in_control_input_node_name),
-      control_output_node_name(in_control_output_node_name),
-      input_desc_size(in_input_desc_size), output_desc_size(in_output_desc_size) {}
+      : name(in_name),
+        type(in_type),
+        input_node_name(in_input_node_name),
+        output_node_name(in_output_node_name),
+        control_input_node_name(in_control_input_node_name),
+        control_output_node_name(in_control_output_node_name),
+        input_desc_size(in_input_desc_size),
+        output_desc_size(in_output_desc_size) {}
 };
 
 static ComputeGraphPtr BuildSubComputeGraph() {
@@ -136,8 +138,7 @@ static ComputeGraphPtr BuildSubComputeGraph() {
   return graph;
 }
 
-static void CheckNodeResult(const ComputeGraphPtr &compute_graph,
-    std::vector<ExpectNodeInfo> &expect_result) {
+static void CheckNodeResult(const ComputeGraphPtr &compute_graph, std::vector<ExpectNodeInfo> &expect_result) {
   EXPECT_EQ(compute_graph->GetDirectNodesSize(), expect_result.size());
   size_t i = 0UL;
   for (const auto &node : compute_graph->GetDirectNode()) {
@@ -172,7 +173,7 @@ static void CheckNodeResult(const ComputeGraphPtr &compute_graph,
     ASSERT_EQ(peer_out_control_anchors.size(), expect_result[i].control_input_node_name.size());
     for (size_t control_out_index = 0UL; control_out_index < peer_out_control_anchors.size(); control_out_index++) {
       EXPECT_EQ(expect_result[i].control_input_node_name.at(control_out_index),
-          peer_out_control_anchors.at(control_out_index)->GetOwnerNode()->GetName());
+                peer_out_control_anchors.at(control_out_index)->GetOwnerNode()->GetName());
     }
     const auto out_control_anchor = node->GetOutControlAnchor();
     ASSERT_NE(out_control_anchor, nullptr);
@@ -180,7 +181,7 @@ static void CheckNodeResult(const ComputeGraphPtr &compute_graph,
     ASSERT_EQ(peer_in_control_anchors.size(), expect_result[i].control_output_node_name.size());
     for (size_t control_in_index = 0UL; control_in_index < peer_in_control_anchors.size(); control_in_index++) {
       EXPECT_EQ(expect_result[i].control_output_node_name[control_in_index],
-          peer_in_control_anchors.at(control_in_index)->GetOwnerNode()->GetName());
+                peer_in_control_anchors.at(control_in_index)->GetOwnerNode()->GetName());
     }
     const auto op_desc = node->GetOpDesc();
     ASSERT_NE(op_desc, nullptr);
@@ -290,16 +291,12 @@ TEST_F(UtestGraph, copy_graph_02) {
   ASSERT_NE(cp_add_node2, add_node2);
 }
 
-REG_OP(Mul)
-    .OP_END_FACTORY_REG(Mul)
-IMPL_INFER_VALUE_RANGE_FUNC(Mul, func){
+REG_OP(Mul).OP_END_FACTORY_REG(Mul) IMPL_INFER_VALUE_RANGE_FUNC(Mul, func) {
   std::cout << "test" << std::endl;
   return GRAPH_SUCCESS;
 }
 
-REG_OP(Test2)
-    .OP_END_FACTORY_REG(Test2)
-IMPL_INFER_VALUE_RANGE_FUNC(Test2, func2){
+REG_OP(Test2).OP_END_FACTORY_REG(Test2) IMPL_INFER_VALUE_RANGE_FUNC(Test2, func2) {
   std::cout << "test" << std::endl;
   return GRAPH_SUCCESS;
 }
@@ -486,9 +483,7 @@ TEST_F(UtestGraph, RefDataInSubgraph_IsRefFromInnerData_MultiPeerInCtrl_InvalidG
   EXPECT_NE(GraphUtils::CheckIsRefFromOther(out_data_anchor, node, is_ref_from_other), GRAPH_SUCCESS);
 }
 
-REG_OP(Shape)
-    .OP_END_FACTORY_REG(Shape)
-IMPL_INFER_VALUE_RANGE_FUNC(Shape, ShapeValueInfer){
+REG_OP(Shape).OP_END_FACTORY_REG(Shape) IMPL_INFER_VALUE_RANGE_FUNC(Shape, ShapeValueInfer) {
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   auto output_tensor_desc = op_desc->MutableOutputDesc(0);
   std::vector<std::pair<int64_t, int64_t>> in_shape_range;
@@ -506,8 +501,8 @@ TEST_F(UtestGraph, test_value_range_infer_and_set_get) {
   auto graph = std::make_shared<ComputeGraph>("test_graph");
   auto shape_op_desc = std::make_shared<OpDesc>("node_name", op_type);
   GeTensorDesc tensor_desc(GeShape({-1, -1, 4, 192}), ge::FORMAT_NCHW, DT_INT32);
-  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 100), make_pair(1, 240),
-                                                          make_pair(4, 4),   make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 100), make_pair(1, 240), make_pair(4, 4),
+                                                          make_pair(192, 192)};
   tensor_desc.SetShapeRange(shape_range);
   shape_op_desc->AddInputDesc(tensor_desc);
   GeTensorDesc out_tensor_desc(GeShape({4}), ge::FORMAT_NCHW, DT_INT32);
@@ -674,7 +669,7 @@ TEST_F(UtestGraph, SetOutputs_string) {
   std::string op_n3 = std::string("op3");
 
   std::vector<std::pair<Operator, std::string>> outputs = {make_pair(op1, op_n1), make_pair(op2, op_n2),
-                                                          make_pair(op3, op_n3)};
+                                                           make_pair(op3, op_n3)};
   graph.SetOutputs(outputs);
   EXPECT_EQ(graph.GetAllNodes().size(), 1);
 }
@@ -696,7 +691,7 @@ TEST_F(UtestGraph, SetOutputs_AscendString) {
   AscendString op_n3 = AscendString("op3");
 
   std::vector<std::pair<Operator, AscendString>> outputs = {make_pair(op1, op_n1), make_pair(op2, op_n2),
-                                                          make_pair(op3, op_n3)};
+                                                            make_pair(op3, op_n3)};
   graph.SetOutputs(outputs);
   EXPECT_EQ(graph.GetAllNodes().size(), 1);
 }
@@ -714,15 +709,15 @@ TEST_F(UtestGraph, SetOutputs_Index) {
   Operator op1 = Operator("add");
   Operator op2 = Operator("op2");
   Operator op3 = Operator("op3");
-  std::vector<size_t> vec_index1 = {0,1,2};
+  std::vector<size_t> vec_index1 = {0, 1, 2};
   std::vector<size_t> vec_index2 = {0};
   std::vector<size_t> vec_index3 = {0};
 
-  std::vector<std::pair<Operator, std::vector<size_t>>> outputs = {make_pair(op1, vec_index1),
-    make_pair(op2, vec_index2),  make_pair(op3, vec_index3)};
+  std::vector<std::pair<Operator, std::vector<size_t>>> outputs = {
+      make_pair(op1, vec_index1), make_pair(op2, vec_index2), make_pair(op3, vec_index3)};
   graph2.SetOutputs(outputs);
   graph.SetOutputs(outputs);
-  EXPECT_EQ(graph.GetAllNodes().size(), 2); // add + netoutput
+  EXPECT_EQ(graph.GetAllNodes().size(), 2);  // add + netoutput
 }
 
 TEST_F(UtestGraph, SetTargets) {
@@ -737,7 +732,7 @@ TEST_F(UtestGraph, SetTargets) {
   Operator op1 = Operator("add");
   Operator op2 = Operator("op2");
   Operator op3 = Operator("op3");
-  std::vector<size_t> vec_index1 = {0,1,2};
+  std::vector<size_t> vec_index1 = {0, 1, 2};
   std::vector<size_t> vec_index2 = {0};
   std::vector<size_t> vec_index3 = {0};
 
@@ -745,7 +740,7 @@ TEST_F(UtestGraph, SetTargets) {
 
   graph2.SetTargets(targets);
   graph.SetTargets(targets);
-  EXPECT_EQ(graph.GetAllNodes().size(), 2); // add + netoutput
+  EXPECT_EQ(graph.GetAllNodes().size(), 2);  // add + netoutput
 }
 
 TEST_F(UtestGraph, SetNeedIteration) {
@@ -807,7 +802,7 @@ TEST_F(UtestGraph, AddRemoveEdge1) {
   GNode node2 = graph.AddNodeByOp(op2);
   GNode node3 = graph.AddNodeByOp(op3);
 
-  auto ret =graph.AddDataEdge(node1, 0, node2, 0);
+  auto ret = graph.AddDataEdge(node1, 0, node2, 0);
   EXPECT_EQ(ret, GRAPH_FAILED);
   ret = graph.AddControlEdge(node2, node3);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
@@ -815,7 +810,7 @@ TEST_F(UtestGraph, AddRemoveEdge1) {
   EXPECT_EQ(ret, GRAPH_FAILED);
 
   graph2.AddNodeByOp(op1);
-  ret =graph2.AddDataEdge(node1, 0, node2, 0);
+  ret = graph2.AddDataEdge(node1, 0, node2, 0);
   EXPECT_EQ(ret, GRAPH_FAILED);
   ret = graph2.AddControlEdge(node2, node3);
   EXPECT_EQ(ret, GRAPH_FAILED);
@@ -835,7 +830,7 @@ TEST_F(UtestGraph, AddRemoveEdge2) {
   GNode node1 = nodes[0];
   GNode node2;
 
-  auto ret =graph.AddDataEdge(node1, 0, node2, 0);
+  auto ret = graph.AddDataEdge(node1, 0, node2, 0);
   EXPECT_EQ(ret, GRAPH_FAILED);
   ret = graph.RemoveEdge(node1, 0, node2, 0);
   EXPECT_EQ(ret, GRAPH_FAILED);
@@ -885,9 +880,8 @@ TEST_F(UtestGraph, ConstructFromInputs1) {
 }
 
 REG_OP(Phony0)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(value, Tensor, Tensor())
     .OP_END_FACTORY_REG(Phony0);
 
@@ -898,13 +892,11 @@ REG_OP(Phony1)
     .OP_END_FACTORY_REG(Phony1);
 
 REG_OP(Phony2)
-    .INPUT(x,
-           TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                       DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                          DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(axis, Int, 0)
     .ATTR(num_axes, Int, -1)
     .OP_END_FACTORY_REG(Phony2);
@@ -959,20 +951,22 @@ TEST_F(UtestGraph, LoadFromSerializedModelArray_InvalidParams) {
   EXPECT_NE(graph.LoadFromSerializedModelArray(nullptr, 0), GRAPH_SUCCESS);
 
   std::string serialized;
-  EXPECT_NE(graph.LoadFromSerializedModelArray(reinterpret_cast<const uint8_t*>(serialized.c_str()), 0), GRAPH_SUCCESS);
+  EXPECT_NE(graph.LoadFromSerializedModelArray(reinterpret_cast<const uint8_t *>(serialized.c_str()), 0),
+            GRAPH_SUCCESS);
 
   serialized = "abc";
-  EXPECT_NE(graph.LoadFromSerializedModelArray(reinterpret_cast<const uint8_t*>(serialized.c_str()), serialized.size()), GRAPH_SUCCESS);
+  EXPECT_NE(
+      graph.LoadFromSerializedModelArray(reinterpret_cast<const uint8_t *>(serialized.c_str()), serialized.size()),
+      GRAPH_SUCCESS);
 }
 
-
-std::vector<std::string> CreateOpDef(ge::proto::GraphDef *def, const std::string &type, const std::vector<std::string> &inputs,
-                                     size_t num_outputs, std::vector<std::string> subgraphs = {}) {
+std::vector<std::string> CreateOpDef(ge::proto::GraphDef *def, const std::string &type,
+                                     const std::vector<std::string> &inputs, size_t num_outputs,
+                                     std::vector<std::string> subgraphs = {}) {
   auto name = type + std::to_string(def->op_size());
   auto *op_def = def->add_op();
   op_def->set_name(name);
   op_def->set_type(type);
-
 
   auto op_desc_attr = op_def->mutable_attr();
   proto::AttrDef input_desc_name;
@@ -996,14 +990,14 @@ std::vector<std::string> CreateOpDef(ge::proto::GraphDef *def, const std::string
     output_desc_index.mutable_list()->add_i(i);
   }
 
-  (void) op_desc_attr->insert({"_input_name_key", input_desc_name});
-  (void) op_desc_attr->insert({"_input_name_value", input_desc_index});
+  (void)op_desc_attr->insert({"_input_name_key", input_desc_name});
+  (void)op_desc_attr->insert({"_input_name_value", input_desc_index});
 
-  (void) op_desc_attr->insert({"_output_name_key", output_desc_name});
-  (void) op_desc_attr->insert({"_output_name_value", output_desc_index});
+  (void)op_desc_attr->insert({"_output_name_key", output_desc_name});
+  (void)op_desc_attr->insert({"_output_name_value", output_desc_index});
 
   for (auto &subgraph : subgraphs) {
-      op_def->add_subgraph_name(subgraph);
+    op_def->add_subgraph_name(subgraph);
   }
 
   if (num_outputs == 0) {
@@ -1013,16 +1007,14 @@ std::vector<std::string> CreateOpDef(ge::proto::GraphDef *def, const std::string
   return outputs;
 }
 
-
-std::string GetStringBeforeColon(const std::string& str) {
-    size_t pos = str.find(':');
-    if (pos != std::string::npos) {
-        return str.substr(0, pos);
-    } else {
-        return str;
-    }
+std::string GetStringBeforeColon(const std::string &str) {
+  size_t pos = str.find(':');
+  if (pos != std::string::npos) {
+    return str.substr(0, pos);
+  } else {
+    return str;
+  }
 }
-
 
 void AssertOpMatch(ge::ComputeGraphPtr &compute_graph, const std::vector<std::string> &op,
                    const std::vector<std::string> &inputs, size_t num_outputs) {
@@ -1053,7 +1045,6 @@ void AssertOpMatch(ge::ComputeGraphPtr &compute_graph, const std::vector<std::st
     index++;
   }
 }
-
 
 TEST_F(UtestGraph, LoadFromSerializedModelArray_NoSubGraph) {
   ge::proto::ModelDef model_def;
@@ -1220,8 +1211,8 @@ TEST_F(UtestGraph, ErrorCodeCheck) {
 
   EXPECT_EQ(strcmp(GE_GET_ERRORNO_STR(ge::END_OF_SEQUENCE).c_str(), "End of sequence!"), 0);
   EXPECT_EQ(strcmp(GE_GET_ERRORNO_STR(ge::FAILED).c_str(), "failed"), 0);
-  EXPECT_EQ(strcmp(GE_GET_ERRORNO_STR(ge::GE_GRAPH_SAVE_WEIGHTS_FAILED).c_str(),
-    "OMG Save Weights to Model failed."), 0);
+  EXPECT_EQ(strcmp(GE_GET_ERRORNO_STR(ge::GE_GRAPH_SAVE_WEIGHTS_FAILED).c_str(), "OMG Save Weights to Model failed."),
+            0);
 }
 
 TEST_F(UtestGraph, GetName) {
@@ -1312,9 +1303,9 @@ TEST_F(UtestGraph, SaveInvalidPath) {
     \    |   /    /  |
       ConcatV2 --    |       DATA
      |   \          /         |
-     |     IdentityN    -------  
+     |     IdentityN    -------
      \         |
-      ---- MatmulV2                                          
+      ---- MatmulV2
 */
 TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   ge::Operator data1 = ge::Operator("Data_0", "Data");
@@ -1369,30 +1360,30 @@ TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   std::vector<std::string> control_output_node_name;
   std::vector<std::pair<std::string, int32_t>> temp_vector = {{"ConcatV2_0", 0}};
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("ConcatV2_0", 2));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Constant_0", "Constant",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 0, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Constant_0", "Constant", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 0, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("ConcatV2_0", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("IdentityN_0", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
   control_output_node_name.emplace_back("ConcatV2_0");
-  expect_node_info.emplace_back(ExpectNodeInfo("Variable_0", "Variable",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Variable_0", "Variable", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("Data_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("Data_1", 0)));
@@ -1404,8 +1395,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   control_input_node_name.emplace_back("Variable_0");
   control_output_node_name.clear();
   control_output_node_name.emplace_back("MatmulV2_0");
-  expect_node_info.emplace_back(ExpectNodeInfo("ConcatV2_0", "ConcatV2",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 3, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("ConcatV2_0", "ConcatV2", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 3, 1));
 
   input_node_name.clear();
   temp_vector.clear();
@@ -1414,8 +1405,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   output_node_name.emplace(std::make_pair(0, temp_vector));
   control_input_node_name.clear();
   control_output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_2", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_2", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("ConcatV2_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("Variable_0", 0)));
@@ -1431,8 +1422,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   temp_vector.emplace_back(std::make_pair("MatmulV2_0", 2));
   output_node_name.emplace(std::make_pair(2, temp_vector));
   control_input_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("IdentityN_0", "IdentityN",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 3, 3));
+  expect_node_info.emplace_back(ExpectNodeInfo("IdentityN_0", "IdentityN", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 3, 3));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("IdentityN_0", 0)));
@@ -1440,19 +1431,19 @@ TEST_F(UtestGraph, TestGenerateGraphWithControlEdge) {
   input_node_name.emplace(std::make_pair(2, std::make_pair("IdentityN_0", 2)));
   output_node_name.clear();
   control_input_node_name.emplace_back("ConcatV2_0");
-  expect_node_info.emplace_back(ExpectNodeInfo("MatmulV2_0", "MatmulV2",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 4, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("MatmulV2_0", "MatmulV2", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 4, 1));
   CheckNodeResult(compute_graph, expect_node_info);
   EXPECT_EQ(compute_graph->GetInputSize(), 3);
 }
 
 /*
-  Data Data Data 
-   |     |    |                               
-    \    |   /            branch0:                          branch1:                 branch1_0:          branch1_1:         
+  Data Data Data
+   |     |    |
+    \    |   /            branch0:                          branch1:                 branch1_0:          branch1_1:
         If                    DATA     DATA                 DATA   DATA                   DATA             DATA
          |                      \       /                     |    /                        |                |
-        Relu                      Add                           if                        Relu             Relu                                                  
+        Relu                      Add                           if                        Relu             Relu
 */
 TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   ge::Operator data_0 = ge::Operator("Data_0", "Data");
@@ -1474,7 +1465,7 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   if_op.SubgraphRegister("else_branch", false);
   if_op.SubgraphCountRegister("then_branch", 1);
   if_op.SubgraphCountRegister("else_branch", 1);
-  if_op.SetSubgraphBuilder("then_branch", 0, [] ()->Graph {
+  if_op.SetSubgraphBuilder("then_branch", 0, []() -> Graph {
     ge::Operator then_branch_data_0 = ge::Operator("then_branch_data_0", "Data");
     ge::Operator then_branch_data_1 = ge::Operator("then_branch_data_1", "Data");
     ge::Operator add_0 = ge::Operator("Add_0", "Add");
@@ -1492,7 +1483,7 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
     EXPECT_EQ(GraphUtilsEx::CreateGraphFromOperatorWithStableTopo(graph, then_branch_ops), SUCCESS);
     return graph;
   });
-  if_op.SetSubgraphBuilder("else_branch", 0, [] ()->Graph {
+  if_op.SetSubgraphBuilder("else_branch", 0, []() -> Graph {
     ge::Operator else_branch_data_0 = ge::Operator("else_branch_data_0", "Data");
     ge::Operator else_branch_data_1 = ge::Operator("else_branch_data_1", "Data");
     ge::Operator if_op_1 = ge::Operator("else_branch_if", "If");
@@ -1507,7 +1498,7 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
     if_op_1.SubgraphRegister("else_branch", false);
     if_op_1.SubgraphCountRegister("then_branch", 1);
     if_op_1.SubgraphCountRegister("else_branch", 1);
-    if_op_1.SetSubgraphBuilder("then_branch", 0, [] ()->Graph {
+    if_op_1.SetSubgraphBuilder("then_branch", 0, []() -> Graph {
       ge::Operator if_1_then_branch_data_0 = ge::Operator("if_1_then_branch_data_0", "Data");
       ge::Operator if_1_then_branch_relu = ge::Operator("if_1_then_branch_relu", "Relu");
       if_1_then_branch_data_0.InputRegister("x");
@@ -1520,7 +1511,7 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
       EXPECT_EQ(GraphUtilsEx::CreateGraphFromOperatorWithStableTopo(graph, if_1_then_branch_ops), SUCCESS);
       return graph;
     });
-    if_op_1.SetSubgraphBuilder("else_branch", 0, [] ()->Graph {
+    if_op_1.SetSubgraphBuilder("else_branch", 0, []() -> Graph {
       ge::Operator if_1_else_branch_data_0 = ge::Operator("if_1_else_branch_data_0", "Data");
       ge::Operator if_1_else_branch_relu = ge::Operator("if_1_else_branch_relu", "Relu");
       if_1_else_branch_data_0.InputRegister("x");
@@ -1560,22 +1551,22 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   std::vector<std::string> control_output_node_name;
   std::vector<std::pair<std::string, int32_t>> temp_vector = {{"If_0", 0}};
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("If_0", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("If_0", 2));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_2", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_2", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("Data_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("Data_1", 0)));
@@ -1584,14 +1575,14 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Relu_0", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("If_0", "If",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 3, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("If_0", "If", input_node_name, output_node_name, control_input_node_name,
+                                               control_output_node_name, 3, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("If_0", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("Relu_0", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Relu_0", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
   graph_expect_info.emplace("stable_sort_graph_with_subgraph", expect_node_info);
 
   // if_0_then_branch
@@ -1600,21 +1591,21 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   temp_vector.clear();
   temp_vector.emplace_back(std::make_pair("Add_0", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("then_branch_data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("then_branch_data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Add_0", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("then_branch_data_1", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("then_branch_data_1", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("then_branch_data_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("then_branch_data_1", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("Add_0", "Add",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 2, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Add_0", "Add", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 2, 1));
   graph_expect_info.emplace("if_op_then_branch", expect_node_info);
 
   // if_0_else_branch
@@ -1624,20 +1615,20 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("else_branch_if", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("else_branch_if", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_data_1", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_data_1", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("else_branch_data_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("else_branch_data_1", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_if", "If",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 2, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("else_branch_if", "If", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 2, 1));
   graph_expect_info.emplace("if_op_else_branch", expect_node_info);
 
   // if_1_then_branch
@@ -1647,13 +1638,13 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("if_1_then_branch_relu", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("if_1_then_branch_data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("if_1_then_branch_data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("if_1_then_branch_data_0", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("if_1_then_branch_relu", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("if_1_then_branch_relu", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
   graph_expect_info.emplace("if_1_then_branch", expect_node_info);
   // if_1_else_branch
   expect_node_info.clear();
@@ -1662,13 +1653,13 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("if_1_else_branch_relu", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("if_1_else_branch_data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("if_1_else_branch_data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.emplace(std::make_pair(0, std::make_pair("if_1_else_branch_data_0", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("if_1_else_branch_relu", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("if_1_else_branch_relu", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
   graph_expect_info.emplace("if_1_else_branch", expect_node_info);
 
   EXPECT_EQ(compute_graph->GetName(), "stable_sort_graph_with_subgraph");
@@ -1690,12 +1681,12 @@ TEST_F(UtestGraph, TestGenerateGraphWithSubGraph) {
   Relu  Relu    Relu
    |     |       |  \
   Cast  Cast -- Add  Cast
-   \    /        
-    Add                               
+   \    /
+    Add
 */
 TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   ge::Operator data_0 = ge::Operator("Data_0", "Data");
-  ge::Operator data_1 = ge::Operator("Data_1","Data");
+  ge::Operator data_1 = ge::Operator("Data_1", "Data");
   ge::Operator const_op = ge::Operator("Constant_0", "Constant");
   ge::Operator relu_0 = ge::Operator("Relu_0", "Relu");
   ge::Operator relu_1 = ge::Operator("Relu_1", "Relu");
@@ -1754,30 +1745,30 @@ TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   std::vector<std::string> control_output_node_name;
   std::vector<std::pair<std::string, int32_t>> temp_vector = {{"Relu_0", 0}};
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_0", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Relu_2", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Constant_0", "Constant",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 0, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Constant_0", "Constant", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 0, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Relu_1", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Data_1", "Data", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   temp_vector.clear();
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Cast_0", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
   input_node_name.emplace(std::make_pair(0, std::make_pair("Data_0", 0)));
-  expect_node_info.emplace_back(ExpectNodeInfo("Relu_0", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Relu_0", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Data_1", 0)));
@@ -1785,8 +1776,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Cast_1", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Relu_1", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Relu_1", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Constant_0", 0)));
@@ -1795,8 +1786,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   temp_vector.emplace_back(std::make_pair("Cast_2", 0));
   temp_vector.emplace_back(std::make_pair("Add_0", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Relu_2", "Relu",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Relu_2", "Relu", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Relu_0", 0)));
@@ -1804,8 +1795,8 @@ TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   output_node_name.clear();
   temp_vector.emplace_back(std::make_pair("Add_1", 0));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Cast_0", "Cast",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Cast_0", "Cast", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Relu_1", 0)));
@@ -1814,26 +1805,26 @@ TEST_F(UtestGraph, TestGenerateGraphWithOutputMultiRef) {
   temp_vector.emplace_back(std::make_pair("Add_0", 0));
   temp_vector.emplace_back(std::make_pair("Add_1", 1));
   output_node_name.emplace(std::make_pair(0, temp_vector));
-  expect_node_info.emplace_back(ExpectNodeInfo("Cast_1", "Cast",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Cast_1", "Cast", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Relu_2", 0)));
   output_node_name.clear();
-  expect_node_info.emplace_back(ExpectNodeInfo("Cast_2", "Cast",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 1, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Cast_2", "Cast", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 1, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Cast_1", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("Relu_2", 0)));
-  expect_node_info.emplace_back(ExpectNodeInfo("Add_0", "Add",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 2, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Add_0", "Add", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 2, 1));
 
   input_node_name.clear();
   input_node_name.emplace(std::make_pair(0, std::make_pair("Cast_0", 0)));
   input_node_name.emplace(std::make_pair(1, std::make_pair("Cast_1", 0)));
-  expect_node_info.emplace_back(ExpectNodeInfo("Add_1", "Add",
-      input_node_name, output_node_name, control_input_node_name, control_output_node_name, 2, 1));
+  expect_node_info.emplace_back(ExpectNodeInfo("Add_1", "Add", input_node_name, output_node_name,
+                                               control_input_node_name, control_output_node_name, 2, 1));
   CheckNodeResult(compute_graph, expect_node_info);
   EXPECT_EQ(compute_graph->GetInputSize(), 2);
 }
@@ -1849,7 +1840,7 @@ TEST_F(UtestGraph, TestSameNameNode_fail) {
 
   auto node_0 = Operator(op_name, op_type);
   auto node_1 = Operator(op_name, op_type);
-  std::vector<Operator> ops_0 = { node_0, node_1 };
+  std::vector<Operator> ops_0 = {node_0, node_1};
   EXPECT_EQ(GraphUtilsEx::CreateGraphFromOperator("graph_with_same_name_node", ops_0), nullptr);
 
   auto node_2 = Operator(op_name, op_type);
@@ -1861,7 +1852,7 @@ TEST_F(UtestGraph, TestSameNameNode_fail) {
     builder.AddNode(op_name, op_type, 0, 1);
     return GraphUtilsEx::CreateGraphFromComputeGraph(builder.GetGraph());
   });
-  std::vector<Operator> ops_1 = { node_2 };
+  std::vector<Operator> ops_1 = {node_2};
   EXPECT_EQ(GraphUtilsEx::CreateGraphFromOperator("graph_with_same_name_node_in_subgraph", ops_1), nullptr);
 }
 // extern "C" wrapper functions to avoid C++ name mangling
@@ -2065,16 +2056,9 @@ TEST_F(UtestGraph, TestDumpOnnxGraphToOstream) {
   google::protobuf::TextFormat::ParseFromString(stream.str(), &onnx_model_proto);
   EXPECT_STREQ(onnx_model_proto.graph().name().c_str(), "graph");
 }
-REG_OP(subTest)
-    .INPUT(inx, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .GRAPH(subgraph)
-    .OP_END_FACTORY_REG(subTest);
+REG_OP(subTest).INPUT(inx, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).GRAPH(subgraph).OP_END_FACTORY_REG(subTest);
 
-REG_OP(dataOp)
-    .OUTPUT(y, TensorType::ALL())
-    .ATTR(value, Int, 0)
-    .OP_END_FACTORY_REG(dataOp);
+REG_OP(dataOp).OUTPUT(y, TensorType::ALL()).ATTR(value, Int, 0).OP_END_FACTORY_REG(dataOp);
 
 TEST_F(UtestGraph, TestGraphFindNodeByName_failure) {
   Graph graph_invalid("graph_invalid");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,7 @@ namespace {
 // todo 把注册做成stub的庄能力，不影响其他流程
 IMPL_OP(AddTilingDepend).TilingInputsDataDependency({1});
 IMPL_OP(AddTilingDependPlacementHasAicpu)
-  .TilingInputsDataDependency({1}, {gert::TilingPlacement::TILING_ON_HOST, gert::TilingPlacement::TILING_ON_AICPU});
+    .TilingInputsDataDependency({1}, {gert::TilingPlacement::TILING_ON_HOST, gert::TilingPlacement::TILING_ON_AICPU});
 
 GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, Format format = FORMAT_NCHW,
                                  DataType data_type = DT_FLOAT) {
@@ -57,7 +57,9 @@ GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, Format fo
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape = {1, 1, 224, 224}, Format format = FORMAT_NCHW,
                             DataType data_type = DT_FLOAT) {
@@ -100,12 +102,9 @@ class UtestDynamicShapePartition : public testing::Test {
 TEST_F(UtestDynamicShapePartition, single_op_scene_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
 
-  NodePtr node1 =
-      NodeBuilder("node1", CONSTANTOP).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
-  NodePtr add_n_node =
-      NodeBuilder("add_n_node", ADDN).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
-  NodePtr node2 =
-      NodeBuilder("node2", RELU).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
+  NodePtr node1 = NodeBuilder("node1", CONSTANTOP).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
+  NodePtr add_n_node = NodeBuilder("add_n_node", ADDN).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
+  NodePtr node2 = NodeBuilder("node2", RELU).AddInputDesc({-1}).AddOutputDesc({-1}).Build(graph);
   GraphUtils::AddEdge(node1->GetOutDataAnchor(0), add_n_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(add_n_node->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
@@ -119,10 +118,14 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
 
   ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root");
-  NodePtr node1_root =
-      NodeBuilder("node1", CONSTANTOP).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({-1, -1, 224, 224}).Build(root_graph);
-  NodePtr add_n_node_root =
-      NodeBuilder("add_n_node", ADDN).AddInputDesc({-1, -1, 224, 224}).AddOutputDesc({-1, -1, 224, 224}).Build(root_graph);
+  NodePtr node1_root = NodeBuilder("node1", CONSTANTOP)
+                           .AddInputDesc({1, 1, 224, 224})
+                           .AddOutputDesc({-1, -1, 224, 224})
+                           .Build(root_graph);
+  NodePtr add_n_node_root = NodeBuilder("add_n_node", ADDN)
+                                .AddInputDesc({-1, -1, 224, 224})
+                                .AddOutputDesc({-1, -1, 224, 224})
+                                .Build(root_graph);
   NodePtr node2_root =
       NodeBuilder("node2", RELU).AddInputDesc({-1, -1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(root_graph);
 
@@ -142,7 +145,6 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success) {
   GraphUtils::AddEdge(add_n_node->GetOutControlAnchor(), node2->GetInControlAnchor());
   GraphUtils::AddEdge(add_n_node->GetOutControlAnchor(), node4->GetInControlAnchor());
   GraphUtils::AddEdge(node4->GetOutControlAnchor(), node2->GetInControlAnchor());
-
 
   GraphUtils::AddEdge(node1_root->GetOutDataAnchor(0), add_n_node_root->GetInDataAnchor(0));
   GraphUtils::AddEdge(add_n_node_root->GetOutDataAnchor(0), node2_root->GetInDataAnchor(0));
@@ -166,60 +168,32 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success) {
 
 TEST_F(UtestDynamicShapePartition, TestSingleOpWithSubGraph) {
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_0) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE("branch_0_Node_Output", net_output));
   };
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -232,38 +206,22 @@ TEST_F(UtestDynamicShapePartition, TestSingleOpWithSubGraph) {
   sub_graph->SetParentGraph(sub_graph_b1);
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b0->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b0->GetName());
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(1, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -296,60 +254,32 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphUnKnownShape) {
   const auto old_level = ge::SlogStub::GetInstance()->GetLevel();
   ge::SlogStub::GetInstance()->SetLevel(DLOG_INFO);
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_0) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE("branch_0_Node_Output", net_output));
   };
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -362,38 +292,22 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphUnKnownShape) {
   sub_graph->SetParentGraph(sub_graph_b1);
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b0->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b0->GetName());
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(1, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -423,60 +337,32 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphUnKnownShape) {
 
 TEST_F(UtestDynamicShapePartition, TestSubGraphForceUnKnownShape) {
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_0) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE("branch_0_Node_Output", net_output));
   };
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -489,38 +375,22 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphForceUnKnownShape) {
   sub_graph->SetParentGraph(sub_graph_b1);
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b0->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b0->GetName());
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(1, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -548,60 +418,32 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphForceUnKnownShape) {
 
 TEST_F(UtestDynamicShapePartition, TestSubGraphHostCpuNode) {
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_0) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE("branch_0_Node_Output", net_output));
   };
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -614,38 +456,22 @@ TEST_F(UtestDynamicShapePartition, TestSubGraphHostCpuNode) {
   sub_graph->SetParentGraph(sub_graph_b1);
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b0->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b0->GetName());
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(1, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -720,7 +546,6 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
   auto const_01 = NodeBuilder("const_01", CONSTANT).AddOutputDesc({1}).Build(graph);
   auto const_11 = NodeBuilder("const_11", CONSTANT).AddOutputDesc({1}).Build(graph);
 
-
   auto less2 = NodeBuilder("less2", LESS).AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
   auto active2 = NodeBuilder("active2", STREAMACTIVE).Build(graph);
   auto switch_t2 = NodeBuilder("switch_t2", STREAMSWITCH).AddInputDesc({1}).AddInputDesc({1}).Build(graph);
@@ -755,7 +580,6 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
   GraphUtils::AddEdge(active1->GetOutControlAnchor(), switch_t->GetInControlAnchor());
   GraphUtils::AddEdge(active1->GetOutControlAnchor(), switch_f->GetInControlAnchor());
 
-
   GraphUtils::AddEdge(data1->GetOutDataAnchor(0), less2->GetInDataAnchor(0));
   GraphUtils::AddEdge(square3->GetOutDataAnchor(0), less2->GetInDataAnchor(1));
   GraphUtils::AddEdge(less2->GetOutDataAnchor(0), switch_t2->GetInDataAnchor(0));
@@ -765,7 +589,6 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
   GraphUtils::AddEdge(less2->GetOutControlAnchor(), active2->GetInControlAnchor());
   GraphUtils::AddEdge(active2->GetOutControlAnchor(), switch_t2->GetInControlAnchor());
   GraphUtils::AddEdge(active2->GetOutControlAnchor(), switch_f2->GetInControlAnchor());
-
 
   GraphUtils::AddEdge(switch_f2->GetOutControlAnchor(), add2->GetInControlAnchor());
   GraphUtils::AddEdge(less2->GetOutDataAnchor(0), add2->GetInDataAnchor(0));
@@ -781,7 +604,6 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
 
   GraphUtils::AddEdge(switch_t->GetOutControlAnchor(), less2->GetInControlAnchor());
   GraphUtils::AddEdge(switch_f->GetOutControlAnchor(), relu1->GetInControlAnchor());
-
 
   GraphUtils::AddEdge(merge2->GetOutDataAnchor(0), merge1->GetInDataAnchor(0));
   GraphUtils::AddEdge(merge2->GetOutControlAnchor(), active_f1->GetInControlAnchor());
@@ -814,7 +636,7 @@ TEST_F(UtestDynamicShapePartition, merge_control_flow_group) {
   EXPECT_EQ(graph->impl_->sub_graph_.size(), 0);
   DynamicShapePartitioner partitioner(graph);
   EXPECT_EQ(partitioner.Partition(), SUCCESS);
-  EXPECT_EQ(graph->impl_->sub_graph_.size(), 3);   // input  less1  unknown
+  EXPECT_EQ(graph->impl_->sub_graph_.size(), 3);  // input  less1  unknown
 }
 
 TEST_F(UtestDynamicShapePartition, mark_unknown_shape_nodes) {
@@ -823,10 +645,15 @@ TEST_F(UtestDynamicShapePartition, mark_unknown_shape_nodes) {
   auto data = NodeBuilder("data", DATA).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
   auto const_op = NodeBuilder("const", CONSTANT).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
   auto const_op2 = NodeBuilder("const2", CONSTANT).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
-  auto add_tiling_depend = NodeBuilder("add", "AddTilingDepend").AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
-  auto add_tiling_depend2 = NodeBuilder("add2", "AddTilingDepend").AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
+  auto add_tiling_depend =
+      NodeBuilder("add", "AddTilingDepend").AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
+  auto add_tiling_depend2 =
+      NodeBuilder("add2", "AddTilingDepend").AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
   auto add_tiling_depend3 = NodeBuilder("add3", "AddTilingDependPlacementHasAicpu")
-                                        .AddInputDesc({1}).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
+                                .AddInputDesc({1})
+                                .AddInputDesc({1})
+                                .AddOutputDesc({1})
+                                .Build(graph);
   auto where = NodeBuilder("where", WHERE).AddInputDesc({1}).AddOutputDesc({1}).Build(graph);
   auto output = NodeBuilder("output", NETOUTPUT).AddInputDesc({1}).Build(graph);
 
@@ -836,8 +663,7 @@ TEST_F(UtestDynamicShapePartition, mark_unknown_shape_nodes) {
   ge::GeTensorDesc const_desc0(GeShape(known_shape), ge::FORMAT_ND, DT_INT32);
   uint8_t c_data[40] = {0};
   c_data[0] = 8;
-  ge::ConstGeTensorPtr const_tensor =
-          std::make_shared<GeTensor>(const_desc0, c_data, 40);
+  ge::ConstGeTensorPtr const_tensor = std::make_shared<GeTensor>(const_desc0, c_data, 40);
   ge::AttrUtils::SetTensor(const_op->GetOpDesc(), ge::ATTR_NAME_WEIGHTS, const_tensor);
   const_op2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(known_shape));
   ge::AttrUtils::SetTensor(const_op2->GetOpDesc(), ge::ATTR_NAME_WEIGHTS, const_tensor);
@@ -1000,7 +826,7 @@ TEST_F(UtestDynamicShapePartition, test_node_support_no_tiling) {
   std::vector<int64_t> known_shape = {2, 5};
   where->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(known_shape));
   EXPECT_EQ(partitioner.IsNodeSupportNoTiling(where), true);
-  
+
   std::vector<int64_t> unknown_shape = {-1, 2};
   where->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(unknown_shape));
   EXPECT_EQ(partitioner.IsNodeSupportNoTiling(where), false);
@@ -1028,8 +854,7 @@ TEST_F(UtestDynamicShapePartition, test_node_support_no_tiling_01) {
   EXPECT_EQ(partitioner.IsNodeSupportNoTiling(data), true);
 }
 
-TEST_F(UtestDynamicShapePartition, special_process_resource_op)
-{
+TEST_F(UtestDynamicShapePartition, special_process_resource_op) {
   auto add_1 = OP_CFG(ADD);
   auto add_2 = OP_CFG(ADD);
   auto add_3 = OP_CFG(ADD);
@@ -1051,18 +876,25 @@ TEST_F(UtestDynamicShapePartition, special_process_resource_op)
   auto square3 = OP_CFG(SQUARE);
   auto square4 = OP_CFG(SQUARE);
   auto op_ptr = OP_CFG(DATA)
-    .InCnt(1)
-    .OutCnt(1)
-    .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-    .Attr("compile_info_key", "ddd")
-    .Attr("compile_info_json", "cccc")
-    .Attr("_force_unknown_shape", true)
-    .Build("data3");
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                    .Attr("compile_info_key", "ddd")
+                    .Attr("compile_info_json", "cccc")
+                    .Attr("_force_unknown_shape", true)
+                    .Build("data3");
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", data1)->EDGE(0, 0)->NODE("add_1", add_1)->EDGE(0, 0)
-          ->NODE("add_2", add_2)->EDGE(0, 0)->NODE("add_3", add_3)
-          ->NODE("add_4", add_4)->EDGE(0, 0)->NODE("add_5", add_5)
-          ->NODE("add_6", add_6));
+    CHAIN(NODE("data1", data1)
+              ->EDGE(0, 0)
+              ->NODE("add_1", add_1)
+              ->EDGE(0, 0)
+              ->NODE("add_2", add_2)
+              ->EDGE(0, 0)
+              ->NODE("add_3", add_3)
+              ->NODE("add_4", add_4)
+              ->EDGE(0, 0)
+              ->NODE("add_5", add_5)
+              ->NODE("add_6", add_6));
 
     CHAIN(NODE("data2", data2)->EDGE(0, 1)->NODE("add_1", add_1));
     CHAIN(NODE("data2", data2)->EDGE(0, 1)->NODE("add_2", add_2));
@@ -1083,18 +915,16 @@ TEST_F(UtestDynamicShapePartition, special_process_resource_op)
     CHAIN(NODE("stack1", stack)->EDGE(0, 0)->NODE("stackpop1", stackpop1));
     CHAIN(NODE("add_4", add_4)->EDGE(0, 1)->NODE("stackpush1", stackpush1));
     CHAIN(NODE("stackpop1", stackpop1)->EDGE(0, 1)->NODE("add_6", add_6));
-
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
-   for (auto &node : graph->GetAllNodes()) {
-     if (node->GetName() == "stack" || node->GetName() == "stackpush" || node->GetName() == "stackpop") {
-       (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_DATA_FLOW_HANDLE, 1);
-     }
-     if (node->GetName() == "stack1" || node->GetName() == "stackpush1" || node->GetName() == "stackpop1") {
-       (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_DATA_FLOW_HANDLE, 2);
-     }
-
-   }
+  for (auto &node : graph->GetAllNodes()) {
+    if (node->GetName() == "stack" || node->GetName() == "stackpush" || node->GetName() == "stackpop") {
+      (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_DATA_FLOW_HANDLE, 1);
+    }
+    if (node->GetName() == "stack1" || node->GetName() == "stackpush1" || node->GetName() == "stackpop1") {
+      (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_DATA_FLOW_HANDLE, 2);
+    }
+  }
   AttrUtils::SetStr(*graph, ATTR_NAME_SESSION_GRAPH_ID, "session_graph_id");
   DynamicShapePartitioner partitioner(graph);
   EXPECT_EQ(partitioner.Partition(), SUCCESS);
@@ -1118,12 +948,19 @@ TEST_F(UtestDynamicShapePartition, merge_known_shape_first_success) {
   auto static_5 = OP_CFG(RELU);
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("dyn_1", dyn_1)->EDGE(0, 0)->NODE("static_1", static_1)->EDGE(0, 0)
-                            ->NODE("static_2", static_2)->EDGE(0, 0)->NODE("static_3", static_3)
-                            ->NODE("static_4", static_4)->EDGE(0, 0)->NODE("static_5", static_5)
-                            ->NODE("dyn_2", dyn_2));
-                  CHAIN(NODE("dyn_1", dyn_1)->EDGE(0, 1)->NODE("dyn_2", dyn_2));
-                };
+    CHAIN(NODE("dyn_1", dyn_1)
+              ->EDGE(0, 0)
+              ->NODE("static_1", static_1)
+              ->EDGE(0, 0)
+              ->NODE("static_2", static_2)
+              ->EDGE(0, 0)
+              ->NODE("static_3", static_3)
+              ->NODE("static_4", static_4)
+              ->EDGE(0, 0)
+              ->NODE("static_5", static_5)
+              ->NODE("dyn_2", dyn_2));
+    CHAIN(NODE("dyn_1", dyn_1)->EDGE(0, 1)->NODE("dyn_2", dyn_2));
+  };
   ComputeGraphPtr graph = ToComputeGraph(g1);
 
   for (auto &node : graph->GetAllNodes()) {
@@ -1146,8 +983,12 @@ TEST_F(UtestDynamicShapePartition, merge_small_known_shape_to_unknown_success) {
   auto static_2 = OP_CFG(RELU);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("static_1", static_1)->EDGE(0, 0)->NODE("dyn_1", dyn_1)->EDGE(0, 0)
-              ->NODE("dyn_2", dyn_2)->NODE("static_2", static_2));
+    CHAIN(NODE("static_1", static_1)
+              ->EDGE(0, 0)
+              ->NODE("dyn_1", dyn_1)
+              ->EDGE(0, 0)
+              ->NODE("dyn_2", dyn_2)
+              ->NODE("static_2", static_2));
     CHAIN(NODE("dyn_1", dyn_1)->EDGE(0, 1)->NODE("dyn_2", dyn_2));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -1177,10 +1018,14 @@ TEST_F(UtestDynamicShapePartition, run_on_host_return_success) {
   ge::GetThreadLocalContext().SetGraphOption(config);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
   ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root");
-  NodePtr node1_root =
-      NodeBuilder("node1", CONSTANTOP).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({-1, -1, 224, 224}).Build(root_graph);
-  NodePtr add_n_node_root =
-      NodeBuilder("add_n_node", ADDN).AddInputDesc({-1, -1, 224, 224}).AddOutputDesc({-1, -1, 224, 224}).Build(root_graph);
+  NodePtr node1_root = NodeBuilder("node1", CONSTANTOP)
+                           .AddInputDesc({1, 1, 224, 224})
+                           .AddOutputDesc({-1, -1, 224, 224})
+                           .Build(root_graph);
+  NodePtr add_n_node_root = NodeBuilder("add_n_node", ADDN)
+                                .AddInputDesc({-1, -1, 224, 224})
+                                .AddOutputDesc({-1, -1, 224, 224})
+                                .Build(root_graph);
   NodePtr node2_root =
       NodeBuilder("node2", RELU).AddInputDesc({-1, -1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(root_graph);
 
@@ -1200,7 +1045,6 @@ TEST_F(UtestDynamicShapePartition, run_on_host_return_success) {
   GraphUtils::AddEdge(add_n_node->GetOutControlAnchor(), node2->GetInControlAnchor());
   GraphUtils::AddEdge(add_n_node->GetOutControlAnchor(), node4->GetInControlAnchor());
   GraphUtils::AddEdge(node4->GetOutControlAnchor(), node2->GetInControlAnchor());
-
 
   GraphUtils::AddEdge(node1_root->GetOutDataAnchor(0), add_n_node_root->GetInDataAnchor(0));
   GraphUtils::AddEdge(add_n_node_root->GetOutDataAnchor(0), node2_root->GetInDataAnchor(0));
@@ -1269,22 +1113,11 @@ TEST_F(UtestDynamicShapePartition, host_scheduling_static) {
 
 TEST_F(UtestDynamicShapePartition, partition_unknown_graph_only_contain_data_netoutput) {
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto data2 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data2 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
   };
@@ -1313,22 +1146,11 @@ TEST_F(UtestDynamicShapePartition, partition_unknown_graph_set_static_model_ops_
   options[OPTION_STATIC_MODEL_OPS_LOWER_LIMIT] = "-1";
   ge::GetThreadLocalContext().SetGraphOption(options);
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto neg = OP_CFG(NEG)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+    auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("data1", data1)->NODE("neg", neg)->NODE("net_output", net_output));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -1356,22 +1178,11 @@ TEST_F(UtestDynamicShapePartition, partition_unknown_graph_set_static_model_ops_
   options[OPTION_STATIC_MODEL_OPS_LOWER_LIMIT] = "10";
   ge::GetThreadLocalContext().SetGraphOption(options);
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto neg = OP_CFG(NEG)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+    auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("data1", data1)->NODE("neg", neg)->NODE("net_output", net_output));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -1399,22 +1210,11 @@ TEST_F(UtestDynamicShapePartition, partition_unknown_graph_set_invalid_static_mo
   options[OPTION_STATIC_MODEL_OPS_LOWER_LIMIT] = "";
   ge::GetThreadLocalContext().SetGraphOption(options);
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto neg = OP_CFG(NEG)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+    auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("data1", data1)->NODE("neg", neg)->NODE("net_output", net_output));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -1433,29 +1233,19 @@ TEST_F(UtestDynamicShapePartition, partition_unknown_graph_set_invalid_static_mo
 TEST_F(UtestDynamicShapePartition, partition_mark_support_addr_refresh) {
   constexpr char_t kIsSupportAddrRefresh[] = "_is_support_addr_refresh";
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {10,10});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {10, 10});
 
     auto neg = OP_CFG(NEG)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(kIsSupportAddrRefresh, false)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {10,10})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(kIsSupportAddrRefresh, false)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {10, 10})
+                   .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto neg1 = OP_CFG(NEG)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {10,10})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+    auto neg1 =
+        OP_CFG(NEG).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {10, 10}).Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("data1", data1)->NODE("neg", neg)->NODE("neg1", neg1)->NODE("net_output", net_output));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -1485,12 +1275,9 @@ ComputeGraphPtr BuildCaseSubGraph(const bool is_multi_batch) {
   auto data4 = gert::NodeBuilder("data4", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 3).Output().Build(main_graph);
   auto data_shape = gert::NodeBuilder("shape_data", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 4).Output().Build(main_graph);
   GeTensor weight;
-  //std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
-  std::vector<int32_t> const_data = {8, 4, 4, 0, 0, 0, 0, 0,
-                                     100, 100, 10, 0, 0, 0, 0, 0,
-                                     8, 4, 4, 0, 0, 0, 0, 0,
-                                     100, 100, 10, 0, 0, 0, 0, 0,
-                                     100, 100, 10, 0, 0, 0, 0, 0};
+  // std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
+  std::vector<int32_t> const_data = {8, 4, 4, 0, 0,   0,   0,  0, 100, 100, 10, 0, 0,   0,   0,  0, 8, 4, 4, 0,
+                                     0, 0, 0, 0, 100, 100, 10, 0, 0,   0,   0,  0, 100, 100, 10, 0, 0, 0, 0, 0};
 
   weight.SetData((uint8_t *)const_data.data(), const_data.size() * sizeof(int32_t));
   GeTensorDesc weight_desc;
@@ -1499,10 +1286,11 @@ ComputeGraphPtr BuildCaseSubGraph(const bool is_multi_batch) {
   weight.SetTensorDesc(weight_desc);
 
   auto shape_const = gert::NodeBuilder("shape_const", ge::CONSTANT).Attr("value", weight).Output().Build(main_graph);
-  auto mapIndex = gert::NodeBuilder("mapIndex", "MapIndex").Input(data_shape).Input(shape_const).Output().Build(main_graph);
+  auto mapIndex =
+      gert::NodeBuilder("mapIndex", "MapIndex").Input(data_shape).Input(shape_const).Output().Build(main_graph);
 
   auto sub_builder_case = [](uint32_t index) {
-    std::string graph_name = "branch" + std::to_string(index); 
+    std::string graph_name = "branch" + std::to_string(index);
     auto graph = std::make_shared<ge::ComputeGraph>(graph_name);
     auto data = gert::NodeBuilder("data_branch" + std::to_string(index), ge::DATA)
                     .Attr(ge::ATTR_NAME_INDEX, 0)
@@ -1510,26 +1298,29 @@ ComputeGraphPtr BuildCaseSubGraph(const bool is_multi_batch) {
                     .Output()
                     .Build(graph);
     auto data2 = gert::NodeBuilder("data2_branch" + std::to_string(index), ge::DATA)
-                    .Attr(ge::ATTR_NAME_INDEX, 1)
-                    .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
-                    .Output()
-                    .Build(graph);
+                     .Attr(ge::ATTR_NAME_INDEX, 1)
+                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
+                     .Output()
+                     .Build(graph);
     auto data3 = gert::NodeBuilder("data3_branch" + std::to_string(index), ge::DATA)
-                    .Attr(ge::ATTR_NAME_INDEX, 2)
-                    .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 3)
-                    .Output()
-                    .Build(graph);
+                     .Attr(ge::ATTR_NAME_INDEX, 2)
+                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 3)
+                     .Output()
+                     .Build(graph);
     auto data4 = gert::NodeBuilder("data4_branch" + std::to_string(index), ge::DATA)
-                    .Attr(ge::ATTR_NAME_INDEX, 3)
-                    .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 4)
+                     .Attr(ge::ATTR_NAME_INDEX, 3)
+                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 4)
+                     .Output()
+                     .Build(graph);
+    auto add1 =
+        gert::NodeBuilder("add1_branch" + std::to_string(index), ADD).Input(data).Input(data2).Output().Build(graph);
+    auto add2 =
+        gert::NodeBuilder("add2_branch" + std::to_string(index), ADD).Input(add1).Input(data3).Output().Build(graph);
+    auto add3 = gert::NodeBuilder("add3_branch" + std::to_string(index), "AddTilingDepend")
+                    .Input(add2)
+                    .Input(data4)
                     .Output()
                     .Build(graph);
-    auto add1 = gert::NodeBuilder("add1_branch" + std::to_string(index), ADD)
-                                  .Input(data).Input(data2).Output().Build(graph);
-    auto add2 = gert::NodeBuilder("add2_branch" + std::to_string(index), ADD)
-                                  .Input(add1).Input(data3).Output().Build(graph); 
-    auto add3 = gert::NodeBuilder("add3_branch" + std::to_string(index), "AddTilingDepend")
-                                  .Input(add2).Input(data4).Output().Build(graph);
     RecoverOpDescIrDefinition(add3->GetOpDesc(), "Add");
     auto output = gert::NodeBuilder("output_branch" + std::to_string(index), ge::NETOUTPUT).Input(add3).Build(graph);
     graph->SetGraphID(20);
@@ -1538,12 +1329,17 @@ ComputeGraphPtr BuildCaseSubGraph(const bool is_multi_batch) {
   };
 
   auto case_node = gert::NodeBuilder("case", "Case")
-          .Input(mapIndex).Input(data).Input(data2).Input(data3).Input(data4).Output()
-          .Output()
-          .Attr("batch0", sub_builder_case(0))
-          .Attr("batch1", sub_builder_case(1))
-          .AttrBool(ATTR_INSERT_BY_MBATCH, is_multi_batch)
-          .Build(main_graph);
+                       .Input(mapIndex)
+                       .Input(data)
+                       .Input(data2)
+                       .Input(data3)
+                       .Input(data4)
+                       .Output()
+                       .Output()
+                       .Attr("batch0", sub_builder_case(0))
+                       .Attr("batch1", sub_builder_case(1))
+                       .AttrBool(ATTR_INSERT_BY_MBATCH, is_multi_batch)
+                       .Build(main_graph);
   auto output = gert::NodeBuilder("output", ge::NETOUTPUT).Input(case_node).Build(main_graph);
   AttrUtils::SetStr(*main_graph, ATTR_NAME_SESSION_GRAPH_ID, "session_graph_id");
   (void)ge::AttrUtils::SetBool(*main_graph, "_enable_dynamic_batch", is_multi_batch);
@@ -1594,20 +1390,55 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_bfs) 
   auto add2 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 2, 2});
   auto add3 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, -1, 2, 2});
   auto variable1 = OP_CFG(VARIABLE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 2, 2});
-  auto ref_data = OP_CFG(REFDATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 2, 2}).Attr("ref_var_src_var_name", "variable1");
+  auto ref_data =
+      OP_CFG(REFDATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 2, 2}).Attr("ref_var_src_var_name", "variable1");
   auto add4 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, -1, 2, 2});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data0", data0)->EDGE(0, 0)->NODE("cast1", cast1)->EDGE(0, 0)->
-        NODE("relu1", relu1)->EDGE(0, 0)->NODE("relu2", relu2)->EDGE(0, 0)->NODE("relu3", relu3));
-    CHAIN(NODE("data1", data0)->EDGE(0, 0)->NODE("cast2", cast2)->EDGE(0, 0)->
-        NODE("relu4", relu4)->EDGE(0, 0)->NODE("relu5", relu5)->EDGE(0, 0)->NODE("relu6", relu6)->
-        EDGE(0, 0)->NODE("add1", add1)->EDGE(0, 0)->NODE("add3", add3));
-    CHAIN(NODE("const2", const2)->EDGE(0, 0)->NODE("cast3", cast3)->EDGE(0, 0)->
-        NODE("relu7", relu7)->EDGE(0, 0)->NODE("relu8", relu8)->EDGE(0, 0)->NODE("relu9", relu9));
-    CHAIN(NODE("const3", const3)->EDGE(0, 0)->NODE("cast4", cast4)->EDGE(0, 0)->
-        NODE("relu10", relu10)->EDGE(0, 0)->NODE("relu11", relu11)->EDGE(0, 0)->NODE("relu12", relu12)->
-        EDGE(0, 0)->NODE("add2", add2)->EDGE(0, 1)->NODE("add3", add3));
+    CHAIN(NODE("data0", data0)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("relu1", relu1)
+              ->EDGE(0, 0)
+              ->NODE("relu2", relu2)
+              ->EDGE(0, 0)
+              ->NODE("relu3", relu3));
+    CHAIN(NODE("data1", data0)
+              ->EDGE(0, 0)
+              ->NODE("cast2", cast2)
+              ->EDGE(0, 0)
+              ->NODE("relu4", relu4)
+              ->EDGE(0, 0)
+              ->NODE("relu5", relu5)
+              ->EDGE(0, 0)
+              ->NODE("relu6", relu6)
+              ->EDGE(0, 0)
+              ->NODE("add1", add1)
+              ->EDGE(0, 0)
+              ->NODE("add3", add3));
+    CHAIN(NODE("const2", const2)
+              ->EDGE(0, 0)
+              ->NODE("cast3", cast3)
+              ->EDGE(0, 0)
+              ->NODE("relu7", relu7)
+              ->EDGE(0, 0)
+              ->NODE("relu8", relu8)
+              ->EDGE(0, 0)
+              ->NODE("relu9", relu9));
+    CHAIN(NODE("const3", const3)
+              ->EDGE(0, 0)
+              ->NODE("cast4", cast4)
+              ->EDGE(0, 0)
+              ->NODE("relu10", relu10)
+              ->EDGE(0, 0)
+              ->NODE("relu11", relu11)
+              ->EDGE(0, 0)
+              ->NODE("relu12", relu12)
+              ->EDGE(0, 0)
+              ->NODE("add2", add2)
+              ->EDGE(0, 1)
+              ->NODE("add3", add3));
     CHAIN(NODE("relu3")->EDGE(0, 1)->NODE("add1"));
     CHAIN(NODE("relu9")->EDGE(0, 1)->NODE("add2"));
     CHAIN(NODE("variable1", variable1)->NODE("ref_data", ref_data));
@@ -1617,7 +1448,7 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_bfs) 
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "0";
@@ -1684,12 +1515,12 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_bfs2)
     CHAIN(NODE("cast3")->EDGE(0, 0)->NODE("relu3", relu3));
     CHAIN(NODE("relu1")->EDGE(0, 0)->NODE("addn", addn));
     CHAIN(NODE("relu2")->EDGE(0, 1)->NODE("addn", addn));
-    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));    
+    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));
   };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "0";
@@ -1751,12 +1582,12 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_dfs) 
     CHAIN(NODE("cast3")->EDGE(0, 0)->NODE("relu3", relu3));
     CHAIN(NODE("relu1")->EDGE(0, 0)->NODE("addn", addn));
     CHAIN(NODE("relu2")->EDGE(0, 1)->NODE("addn", addn));
-    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));    
+    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));
   };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "1";
@@ -1819,12 +1650,12 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_rdfs)
     CHAIN(NODE("cast3")->EDGE(0, 0)->NODE("relu3", relu3));
     CHAIN(NODE("relu1")->EDGE(0, 0)->NODE("addn", addn));
     CHAIN(NODE("relu2")->EDGE(0, 1)->NODE("addn", addn));
-    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));    
+    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));
   };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "2";
@@ -1887,12 +1718,12 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_cente
     CHAIN(NODE("cast3")->EDGE(0, 0)->NODE("relu3", relu3));
     CHAIN(NODE("relu1")->EDGE(0, 0)->NODE("addn", addn));
     CHAIN(NODE("relu2")->EDGE(0, 1)->NODE("addn", addn));
-    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));    
+    CHAIN(NODE("relu3")->EDGE(0, 2)->NODE("addn", addn));
   };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "2";
@@ -1960,7 +1791,7 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_tail_
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-  (void) AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*compute_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   // bfs排序
   std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
   graph_options[OPTION_TOPOSORTING_MODE] = "2";
@@ -2000,4 +1831,4 @@ TEST_F(UtestDynamicShapePartition, not_single_op_scene_success_stable_topo_tail_
   graph_options[OPTION_TOPOSORTING_MODE] = "0";
   GetThreadLocalContext().SetGraphOption(graph_options);
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -88,7 +88,7 @@ Status ModelCache::Init(const ComputeGraphPtr &root_graph, GraphRebuildStateCtrl
   GELOGI("Cache is enable, cache_dir=%s, graph_key=%s.", cache_dir_.c_str(), cache_index_.graph_key.c_str());
   if (!CheckFileExist(cache_dir_)) {
     REPORT_PREDEFINED_ERR_MSG("E13026", std::vector<const char_t *>({"pathname", "reason"}),
-                       std::vector<const char_t *>({cache_dir_.c_str(), "The cache directory does not exist."}));
+                              std::vector<const char_t *>({cache_dir_.c_str(), "The cache directory does not exist."}));
     GELOGE(PARAM_INVALID, "Init cache failed, as cache dir[%s] does not exist.", cache_dir_.c_str());
     return PARAM_INVALID;
   }
@@ -110,21 +110,20 @@ Status ModelCache::Init(const ComputeGraphPtr &root_graph, GraphRebuildStateCtrl
   const std::string lock_file = cache_dir_ + cache_index_.graph_key + kLockFileName;
   GE_CHK_STATUS_RET(TryLockFile(lock_file, lock_file_fd_), "Try lock cache dir by locking file failed.");
   GE_WARN_ASSERT_GRAPH_SUCCESS(InitCacheFileInfo(), "Fail to init cache file info, cache_dir=%s, graph_key=%s.",
-      cache_dir_.c_str(), cache_index_.graph_key.c_str());
+                               cache_dir_.c_str(), cache_index_.graph_key.c_str());
   session_id_ = root_graph->GetSessionID();
   graph_id_ = root_graph->GetGraphID();
   cache_enable_ = true;
-  const auto &external_weight_manager =
-      ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
+  const auto &external_weight_manager = ExternalWeightManagerPool::Instance().GetManager(GetContext().SessionId());
   GE_CHECK_NOTNULL(external_weight_manager);
   std::string weight_dir = ExternalWeightManager::GetWeightPathFromOption();
-  if(weight_dir.empty()){
+  if (weight_dir.empty()) {
     weight_dir = cache_dir_ + kFinalWeightDirName;
   }
   external_weight_manager->SetWeightPath(weight_dir);
   GELOGI("Init end, cache_dir=%s, graph_key=%s, cache_file=%s, index_file=%s, cache manual check=%d, weight_dir=%s.",
-         cache_dir_.c_str(), cache_index_.graph_key.c_str(), cache_index_.cache_file_name.c_str(),
-         index_file_.c_str(), static_cast<int32_t>(cache_manual_check_), weight_dir.c_str());
+         cache_dir_.c_str(), cache_index_.graph_key.c_str(), cache_index_.cache_file_name.c_str(), index_file_.c_str(),
+         static_cast<int32_t>(cache_manual_check_), weight_dir.c_str());
   return SUCCESS;
 }
 
@@ -143,16 +142,15 @@ Status ModelCache::InitCacheFileInfo() {
     if (CheckFileExist(om_name)) {
       cache_index_.cache_file_name = om_name;
       matched_file_list_.emplace_back(cache_index_);
-      GELOGI("No index file[%s] found in cache dir[%s], matched om[%s] directly.",
-             index_file_.c_str(), cache_dir_.c_str(), om_name.c_str());
+      GELOGI("No index file[%s] found in cache dir[%s], matched om[%s] directly.", index_file_.c_str(),
+             cache_dir_.c_str(), om_name.c_str());
       return SUCCESS;
     }
   }
   return InitCacheFileByIdx(cache_dir_);
 }
 
-Status ModelCache::ReadIndex(const std::string &index_file,
-                             std::vector<CacheFileIdx> &cache_file_list) const {
+Status ModelCache::ReadIndex(const std::string &index_file, std::vector<CacheFileIdx> &cache_file_list) const {
   nlohmann::json json_obj;
   GE_CHK_STATUS_RET(ReadJsonFile(index_file, json_obj), "Failed to read cache index file[%s].", index_file.c_str());
   try {
@@ -183,19 +181,18 @@ Status ModelCache::InitCacheFileByIdx(const std::string &cache_path) {
   // if index is exist, gen file name.
   if (CheckFileExist(index_file_)) {
     std::vector<CacheFileIdx> cache_file_list;
-    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list),
-                      "Failed to read cache index list from file:%s", index_file_.c_str());
+    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list), "Failed to read cache index list from file:%s",
+                      index_file_.c_str());
     for (const auto &idx : cache_file_list) {
       if (idx.graph_key == cache_index_.graph_key) {
-        GE_WARN_ASSERT(CheckFileExist(idx.cache_file_name),
-            "cache file[%s] in cache index file[%s] is not exists.",
-            idx.cache_file_name.c_str(), index_file_.c_str());
+        GE_WARN_ASSERT(CheckFileExist(idx.cache_file_name), "cache file[%s] in cache index file[%s] is not exists.",
+                       idx.cache_file_name.c_str(), index_file_.c_str());
         GE_WARN_ASSERT((idx.var_desc_file_name.empty() || CheckFileExist(idx.cache_file_name)),
-            "var desc file[%s] in cache index file[%s] is not exists.",
-            idx.var_desc_file_name.c_str(), index_file_.c_str());
+                       "var desc file[%s] in cache index file[%s] is not exists.", idx.var_desc_file_name.c_str(),
+                       index_file_.c_str());
         GELOGI("Matched graph_key[%s] success, cache om file = %s, cache var desc file = %s, cache dir = %s.",
-               cache_index_.graph_key.c_str(), idx.cache_file_name.c_str(),
-               idx.var_desc_file_name.c_str(), cache_path.c_str());
+               cache_index_.graph_key.c_str(), idx.cache_file_name.c_str(), idx.var_desc_file_name.c_str(),
+               cache_path.c_str());
         matched_file_list_.emplace_back(idx);
       }
     }
@@ -205,8 +202,8 @@ Status ModelCache::InitCacheFileByIdx(const std::string &cache_path) {
     // not found, need generate a new file.
     GenerateCacheFile();
     GELOGI("No graph_key[%s] found in cache index file[%s], generate cache om file[%s], var desc file[%s]",
-           cache_index_.graph_key.c_str(), index_file_.c_str(),
-           cache_index_.cache_file_name.c_str(), cache_index_.var_desc_file_name.c_str());
+           cache_index_.graph_key.c_str(), index_file_.c_str(), cache_index_.cache_file_name.c_str(),
+           cache_index_.var_desc_file_name.c_str());
   }
   return SUCCESS;
 }
@@ -216,14 +213,12 @@ Status ModelCache::RenewVarDesc(uint64_t session_id, const VarDescCache &update_
     const auto &var_name = it.first;
     GE_CHECK_NOTNULL(VarManager::Instance(session_id));
     GE_CHK_STATUS_RET(ge::VarManager::Instance(session_id)->RenewCurVarDesc(var_name, it.second),
-                      "[Renew][Descriptor] for node:%s failed, session_id:%lu",
-                      var_name.c_str(), session_id);
+                      "[Renew][Descriptor] for node:%s failed, session_id:%lu", var_name.c_str(), session_id);
   }
   return SUCCESS;
 }
 
-Status ModelCache::RenewVarDesc(uint64_t session_id,
-                                const std::string &var_name,
+Status ModelCache::RenewVarDesc(uint64_t session_id, const std::string &var_name,
                                 const VarTransRoad &fusion_road) const {
   if (kDataUnChangedNodeType.empty()) {
     kDataUnChangedNodeType = {RESHAPE, REFORMAT, SQUEEZEV2, UNSQUEEZEV2};
@@ -244,8 +239,7 @@ Status ModelCache::RenewVarDesc(uint64_t session_id,
   return SUCCESS;
 }
 
-Status ModelCache::RefreshVariableDesc(const ComputeGraphPtr &root_graph,
-                                       const VarDescCache &update_var_desc) {
+Status ModelCache::RefreshVariableDesc(const ComputeGraphPtr &root_graph, const VarDescCache &update_var_desc) {
   const uint64_t session_id = root_graph->GetSessionID();
   const uint32_t graph_id = root_graph->GetGraphID();
   GE_CHK_STATUS_RET(RenewVarDesc(session_id, update_var_desc), "Failed to renew var desc.");
@@ -263,8 +257,8 @@ Status ModelCache::RefreshVariableDesc(const ComputeGraphPtr &root_graph,
                       "Failed to refresh trans_roads of var[%s]", var_name.c_str());
     GE_CHK_STATUS_RET_NOLOG(VarManager::Instance(session_id)->SetChangedGraphId(var_name, graph_id));
     var_accelerate_ctrl_->SetStateChanged(var_name);
-    GE_CHK_STATUS_RET(RenewVarDesc(session_id, var_name, trans_roads),
-                      "Failed to refresh trans_roads of var[%s]", var_name.c_str());
+    GE_CHK_STATUS_RET(RenewVarDesc(session_id, var_name, trans_roads), "Failed to refresh trans_roads of var[%s]",
+                      var_name.c_str());
     GELOGI("Refresh var[%s] desc and trans_roads success.", var_name.c_str());
   }
   return SUCCESS;
@@ -301,8 +295,7 @@ void ModelCache::InitVarDescFromProto(const deployer::VarDescInfo &desc_proto, V
     var_desc.staged_var_desc_map[x.first] = tensor_desc;
   }
   GELOGI("Var match info, var desc size = %zu, trans road size = %zu, changed var names size = %zu",
-         desc_proto.cur_var_tensor_desc_map().size(),
-         desc_proto.var_to_trans_road().size(),
+         desc_proto.cur_var_tensor_desc_map().size(), desc_proto.var_to_trans_road().size(),
          var_desc.changed_var_names.size());
 }
 
@@ -327,9 +320,7 @@ bool ModelCache::CompareVarDesc(uint64_t session_id, const VarDescCache &var_des
   return true;
 }
 
-Status ModelCache::MatchVariableDesc(uint64_t session_id,
-                                     const std::string &var_desc_file_name,
-                                     bool &matched,
+Status ModelCache::MatchVariableDesc(uint64_t session_id, const std::string &var_desc_file_name, bool &matched,
                                      VarDescCache &update_var_desc) {
   if (var_desc_file_name.empty()) {
     GELOGD("The file of var desc[%s] does not exist, no need match var desc.", var_desc_file_name.c_str());
@@ -338,8 +329,8 @@ Status ModelCache::MatchVariableDesc(uint64_t session_id,
   }
 
   std::string real_path = RealPath(var_desc_file_name.c_str());
-  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), FAILED,
-                         "The path[%s] of var desc cache file is invalid.", var_desc_file_name.c_str());
+  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), FAILED, "The path[%s] of var desc cache file is invalid.",
+                         var_desc_file_name.c_str());
   std::ifstream file_stream(real_path, std::ifstream::in);
   GE_CHK_BOOL_RET_STATUS(file_stream.is_open(), FAILED, "[Open][File] %s failed.", real_path.c_str());
   deployer::VarMatchInfo var_match_info;
@@ -378,10 +369,7 @@ Status ModelCache::TryMatchVarDescWithCache(bool &is_matched, VarDescCache &upda
   }
 
   for (const auto &index : matched_file_list_) {
-    GE_CHK_STATUS_RET(MatchVariableDesc(session_id_,
-                                        index.var_desc_file_name,
-                                        is_matched,
-                                        update_var_desc),
+    GE_CHK_STATUS_RET(MatchVariableDesc(session_id_, index.var_desc_file_name, is_matched, update_var_desc),
                       "Failed to match var desc.");
     if (is_matched) {
       cache_index_ = index;
@@ -398,11 +386,12 @@ Status ModelCache::TryLoadModelFromCache(const ComputeGraphPtr &root_graph, GeRo
     return SUCCESS;
   }
 
-  GE_DISMISSABLE_GUARD(record_var_desc, ([this]() {
-    if (VarManager::Instance(session_id_) != nullptr) {
-      GE_CHK_STATUS(VarManager::Instance(session_id_)->VarDescInfoToSerial(session_id_, var_desc_before_compile_));
-    }
-  }));
+  GE_DISMISSABLE_GUARD(
+      record_var_desc, ([this]() {
+        if (VarManager::Instance(session_id_) != nullptr) {
+          GE_CHK_STATUS(VarManager::Instance(session_id_)->VarDescInfoToSerial(session_id_, var_desc_before_compile_));
+        }
+      }));
   bool is_need_load = true;
   GE_CHK_STATUS_RET(CheckCacheFile(root_graph, is_need_load), "Check file can be loaded failed.");
   if (!is_need_load) {
@@ -414,11 +403,12 @@ Status ModelCache::TryLoadModelFromCache(const ComputeGraphPtr &root_graph, GeRo
   GE_CHK_STATUS_RET(LoadToGeRootModel(cache_index_.cache_file_name, ge_root_model),
                     "Failed to load model, cache_file:%s", cache_index_.cache_file_name.c_str());
   std::string option_external_weight_dir = ExternalWeightManager::GetWeightPathFromOption();
-  if(option_external_weight_dir.empty()){
+  if (option_external_weight_dir.empty()) {
     option_external_weight_dir = cache_dir_ + "/weight/";
   }
   GE_CHK_STATUS_RET(AssignConstantVarMem(ge_root_model, option_external_weight_dir, session_id_, graph_id_),
-      "Failed to assign constant mem for cache model, cache_file:%s", cache_index_.cache_file_name.c_str());
+                    "Failed to assign constant mem for cache model, cache_file:%s",
+                    cache_index_.cache_file_name.c_str());
   GE_ASSERT_SUCCESS(UpdateGeModelSessionId(ge_root_model, session_id_), "Failed to update ge model session id");
   std::string session_graph_id;
   if (AttrUtils::GetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, session_graph_id)) {
@@ -458,8 +448,8 @@ Status ModelCache::LoadToGeRootModel(const std::string &model_path, GeRootModelP
   return SUCCESS;
 }
 
-Status ModelCache::AssignConstantVarMem(const GeRootModelPtr &ge_root_model,
-    const std::string &model_path, const uint64_t session_id, const uint32_t graph_id) {
+Status ModelCache::AssignConstantVarMem(const GeRootModelPtr &ge_root_model, const std::string &model_path,
+                                        const uint64_t session_id, const uint32_t graph_id) {
   const auto root_graph = ge_root_model->GetRootGraph();
   std::set<ComputeGraph *> refreshed_graphs;
   GE_CHK_STATUS_RET(FileConstantUtils::SetExternalPath(root_graph, model_path), "Failed to set external path:%s.",
@@ -479,15 +469,14 @@ Status ModelCache::UpdateGeModelSessionId(const GeRootModelPtr &ge_root_model, c
     (void)AttrUtils::GetInt(ge_model, MODEL_ATTR_SESSION_ID, old_session_id);
     if (old_session_id != session_id) {
       GE_ASSERT_TRUE(AttrUtils::SetInt(ge_model, MODEL_ATTR_SESSION_ID, session_id));
-      GELOGI("update ge model[%s] session id from %llu to %llu",
-             ge_model->GetName().c_str(), old_session_id, session_id);
+      GELOGI("update ge model[%s] session id from %llu to %llu", ge_model->GetName().c_str(), old_session_id,
+             session_id);
     }
   }
   return SUCCESS;
 }
 
-Status ModelCache::UpdateSessionGraphId(const GeRootModelPtr &ge_root_model,
-                                        const std::string &session_graph_id) {
+Status ModelCache::UpdateSessionGraphId(const GeRootModelPtr &ge_root_model, const std::string &session_graph_id) {
   const auto &root_graph = ge_root_model->GetRootGraph();
   GE_CHECK_NOTNULL(root_graph, ", model root graph is null");
   std::string old_session_graph_id;
@@ -505,8 +494,7 @@ Status ModelCache::UpdateSessionGraphId(const GeRootModelPtr &ge_root_model,
          old_session_graph_id.c_str(), session_graph_id.c_str());
   bool refreshed;
   GE_CHK_STATUS_RET(ModelHelper::UpdateSessionGraphId(root_graph, session_graph_id, refreshed),
-                    "update graph[%s] session graph id failed",
-                    root_graph->GetName().c_str());
+                    "update graph[%s] session graph id failed", root_graph->GetName().c_str());
   return SUCCESS;
 }
 
@@ -519,8 +507,7 @@ Status ModelCache::CheckCacheFile(const ComputeGraphPtr &root_graph, bool &need_
     GELOGI("cache var desc file is not matched, cannot load cache.");
     return SUCCESS;
   }
-  GE_CHK_STATUS_RET(RefreshVariableDesc(root_graph, update_var_desc),
-                    "Failed to refresh variable desc.");
+  GE_CHK_STATUS_RET(RefreshVariableDesc(root_graph, update_var_desc), "Failed to refresh variable desc.");
   need_load = true;
   return SUCCESS;
 }
@@ -574,31 +561,24 @@ Status ModelCache::SaveVarDescToFile() {
 
   const mmMode_t kAccess = static_cast<mmMode_t>(static_cast<uint32_t>(M_IRUSR) | static_cast<uint32_t>(M_IWUSR));
   const int32_t fd = mmOpen2(cache_index_.var_desc_file_name.c_str(),
-                             static_cast<int32_t>(static_cast<uint32_t>(M_WRONLY) |
-                                                  static_cast<uint32_t>(M_CREAT) |
+                             static_cast<int32_t>(static_cast<uint32_t>(M_WRONLY) | static_cast<uint32_t>(M_CREAT) |
                                                   static_cast<uint32_t>(O_TRUNC)),
                              kAccess);
   GE_CHK_BOOL_RET_STATUS(fd >= 0, FAILED, "Failed to open file, path = %s", cache_index_.var_desc_file_name.c_str());
-  (void) mmClose(fd);
-  GE_DISMISSABLE_GUARD(file_guard, [this]() {
-    (void) std::remove(cache_index_.var_desc_file_name.c_str());
-  });
+  (void)mmClose(fd);
+  GE_DISMISSABLE_GUARD(file_guard, [this]() { (void)std::remove(cache_index_.var_desc_file_name.c_str()); });
   std::ofstream file_stream(cache_index_.var_desc_file_name, std::ios::out | std::ios::binary);
-  GE_CHK_BOOL_RET_STATUS(file_stream.good(),
-                         FAILED,
-                         "Failed to open file for write, path = %s",
+  GE_CHK_BOOL_RET_STATUS(file_stream.good(), FAILED, "Failed to open file for write, path = %s",
                          cache_index_.var_desc_file_name.c_str());
   file_stream << match_info_str;
-  GE_CHK_BOOL_RET_STATUS(file_stream.good(), FAILED,
-                         "Failed to write cache desc file[%s], error msg = %s",
+  GE_CHK_BOOL_RET_STATUS(file_stream.good(), FAILED, "Failed to write cache desc file[%s], error msg = %s",
                          cache_index_.var_desc_file_name.c_str(), strerror(errno));
   GE_DISMISS_GUARD(file_guard);
-  GELOGI("Save var descs to cache file[%s] success, before cache var desc size = %zu, "
-         "after cache var desc size = %zu, cache_size = %zu",
-         cache_index_.var_desc_file_name.c_str(),
-         var_desc_before_compile_.cur_var_tensor_desc_map().size(),
-         var_desc_after_compile.cur_var_tensor_desc_map().size(),
-         match_info_str.size());
+  GELOGI(
+      "Save var descs to cache file[%s] success, before cache var desc size = %zu, "
+      "after cache var desc size = %zu, cache_size = %zu",
+      cache_index_.var_desc_file_name.c_str(), var_desc_before_compile_.cur_var_tensor_desc_map().size(),
+      var_desc_after_compile.cur_var_tensor_desc_map().size(), match_info_str.size());
   return SUCCESS;
 }
 
@@ -657,8 +637,7 @@ Status ModelCache::SaveModelToGeRootModel(GeRootModelPtr &ge_root_model, const s
   GE_CHK_STATUS_RET(ret, "Failed to serialize model, model_name=%s", ge_root_model->GetModelName().c_str());
   ret = FileSaver::SaveToFile(cache_file_name, model_buff.data.get(), model_buff.length);
   GE_CHK_STATUS_RET(ret, "Failed to save model, model_name=%s, file_name=%s, length=%lu.",
-                    ge_root_model->GetModelName().c_str(), cache_file_name.c_str(),
-                    model_buff.length);
+                    ge_root_model->GetModelName().c_str(), cache_file_name.c_str(), model_buff.length);
   GELOGI("save to ge root model success, model_name=%s, file_name=%s.", ge_root_model->GetModelName().c_str(),
          cache_file_name.c_str());
   return SUCCESS;
@@ -666,7 +645,7 @@ Status ModelCache::SaveModelToGeRootModel(GeRootModelPtr &ge_root_model, const s
 
 Status ModelCache::SerializeModel(const GeRootModelPtr &ge_root_model, ModelBufferData &model_buff) {
   bool is_unknown_shape = false;
-  (void) ge_root_model->CheckIsUnknownShape(is_unknown_shape);
+  (void)ge_root_model->CheckIsUnknownShape(is_unknown_shape);
   ModelHelper model_helper;
   model_helper.SetSaveMode(false);
   GE_CHK_STATUS_RET(model_helper.SaveToOmRootModel(ge_root_model, "no-output.om", model_buff, is_unknown_shape),
@@ -700,15 +679,14 @@ Status ModelCache::SaveCacheIndexFile() const {
   std::vector<CacheFileIdx> cache_file_list;
   bool file_exist = CheckFileExist(index_file_);
   if (file_exist) {
-    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list),
-                      "Failed to read cache index list from file:%s", index_file_.c_str());
+    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list), "Failed to read cache index list from file:%s",
+                      index_file_.c_str());
   }
   CacheFileIdx new_cache_index = cache_index_;
   GE_CHK_STATUS_RET(GetRealFileName(new_cache_index.cache_file_name), "Get real cache file name failed by[%s].",
                     cache_index_.cache_file_name.c_str());
   if (!new_cache_index.var_desc_file_name.empty()) {
-    GE_CHK_STATUS_RET(GetRealFileName(new_cache_index.var_desc_file_name),
-                      "Get real cache file name failed by[%s].",
+    GE_CHK_STATUS_RET(GetRealFileName(new_cache_index.var_desc_file_name), "Get real cache file name failed by[%s].",
                       cache_index_.var_desc_file_name.c_str());
   }
   cache_file_list.emplace_back(new_cache_index);
@@ -721,8 +699,7 @@ Status ModelCache::SaveCacheIndexFile() const {
   }
 
   if (!file_exist) {
-    GE_CHK_STATUS_RET(CreateIndexFile(index_file_), "Failed to create index file:%s",
-                      index_file_.c_str());
+    GE_CHK_STATUS_RET(CreateIndexFile(index_file_), "Failed to create index file:%s", index_file_.c_str());
   }
   GE_CHK_STATUS_RET(WriteJsonFile(index_file_, json_obj), "Failed to write cache index file[%s].", index_file_.c_str());
   GELOGI("save cache file index success, index file:%s", index_file_.c_str());
@@ -733,8 +710,8 @@ Status ModelCache::CreateIndexFile(const std::string &index_file) {
   auto open_mode = static_cast<mmMode_t>(M_IRUSR | M_IWUSR);
   auto open_flag = M_RDWR | M_CREAT;
   int32_t fd = mmOpen2(index_file.c_str(), open_flag, open_mode);
-  GE_CHK_BOOL_RET_STATUS(((fd != EN_ERROR) && (fd != EN_INVALID_PARAM)), FAILED,
-                         "Create index file[%s] failed, fd=%d.", index_file.c_str(), fd);
+  GE_CHK_BOOL_RET_STATUS(((fd != EN_ERROR) && (fd != EN_INVALID_PARAM)), FAILED, "Create index file[%s] failed, fd=%d.",
+                         index_file.c_str(), fd);
   (void)mmClose(fd);
   return SUCCESS;
 }

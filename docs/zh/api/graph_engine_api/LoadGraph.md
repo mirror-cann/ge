@@ -104,4 +104,3 @@ Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendStr
 通过LoadGraph加载的Stream，和通过[ExecuteGraphWithStreamAsync](ExecuteGraphWithStreamAsync.md)接口运行时使用的Stream，推荐是同一条Stream，如果不是同一条Stream，需要在LoadGraph后，对加载使用的Stream调用流同步接口“aclrtSynchronizeStream”完成同步。
 
 接口详细说明请参见《应用开发指南 \(C&C++\)》。
-

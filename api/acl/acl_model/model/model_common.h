@@ -20,68 +20,61 @@
 #include "framework/runtime/rt_session.h"
 
 // Common enums for tensor/dims operations
-enum class TensorType : std::uint8_t {
-    INPUT_TENSOR_TYPE = 0,
-    OUTPUT_TENSOR_TYPE
-};
+enum class TensorType : std::uint8_t { INPUT_TENSOR_TYPE = 0, OUTPUT_TENSOR_TYPE };
 
-enum class DimsType : std::uint8_t {
-    DIMS_TYPE_V1 = 0,
-    DIMS_TYPE_V2
-};
+enum class DimsType : std::uint8_t { DIMS_TYPE_V1 = 0, DIMS_TYPE_V2 };
 
 namespace acl {
-aclError GetDynamicTensorInfoHelp(aclmdlDesc* const modelDesc, const int32_t dynamicType,
-                                  const std::vector<std::vector<int64_t>>& batchInfo);
+aclError GetDynamicTensorInfoHelp(aclmdlDesc *const modelDesc, const int32_t dynamicType,
+                                  const std::vector<std::vector<int64_t>> &batchInfo);
 
-aclError GetCurGearIndex(const aclmdlDesc* const modelDesc, const std::vector<uint64_t>& shapeInfo,
-                         const int32_t dynamicType, size_t& curGearIndex);
+aclError GetCurGearIndex(const aclmdlDesc *const modelDesc, const std::vector<uint64_t> &shapeInfo,
+                         const int32_t dynamicType, size_t &curGearIndex);
 
-aclError GetCurOuputShapeInfo(const aclmdlDesc* const modelDesc, const size_t index,
-                              const size_t curGearIndex, aclmdlIODims* const dims);
+aclError GetCurOuputShapeInfo(const aclmdlDesc *const modelDesc, const size_t index, const size_t curGearIndex,
+                              aclmdlIODims *const dims);
 
-aclError GetModelOutputShapeInfoHelp(aclmdlDesc* const modelDesc,
-                                     std::vector<std::string>& geDynamicOutputShape);
+aclError GetModelOutputShapeInfoHelp(aclmdlDesc *const modelDesc, std::vector<std::string> &geDynamicOutputShape);
 
-bool TransConvertTensorNameToLegal(const aclmdlDesc* const modelDesc, std::string& tensorName);
+bool TransConvertTensorNameToLegal(const aclmdlDesc *const modelDesc, std::string &tensorName);
 
-void GetConvertTensorName(const aclmdlDesc* const modelDesc, const size_t idx,
-                          const TensorType tensorType, std::string& convertName);
+void GetConvertTensorName(const aclmdlDesc *const modelDesc, const size_t idx, const TensorType tensorType,
+                          std::string &convertName);
 
-aclError GetTensorDescNameToDims(const aclmdlDesc* const modelDesc, const std::string& realName,
-                                 const TensorType tensorType, const size_t idx, aclmdlIODims* const dims);
+aclError GetTensorDescNameToDims(const aclmdlDesc *const modelDesc, const std::string &realName,
+                                 const TensorType tensorType, const size_t idx, aclmdlIODims *const dims);
 
-aclError GetDims(const aclmdlDesc* const modelDesc, const TensorType tensorType, const DimsType dimsType,
-                 const size_t idx, aclmdlIODims* const dims);
+aclError GetDims(const aclmdlDesc *const modelDesc, const TensorType tensorType, const DimsType dimsType,
+                 const size_t idx, aclmdlIODims *const dims);
 
-const char_t* GetRealTensorName(const aclmdlDesc* const modelDesc, const std::string& tensorName);
+const char_t *GetRealTensorName(const aclmdlDesc *const modelDesc, const std::string &tensorName);
 
 // Bundle 子模型信息
 struct BundleSubModelInfo {
-    size_t workSize = 0U;
-    size_t weightSize = 0U;
-    size_t offset = 0U;
-    size_t modelSize = 0U;
+  size_t workSize = 0U;
+  size_t weightSize = 0U;
+  size_t offset = 0U;
+  size_t modelSize = 0U;
 };
 
 // Bundle 模型信息
 struct BundleModelInfo {
-    bool isInit = false; // aclmdlBundleInit scene means true
-    std::shared_ptr<gert::RtSession> rtSession;
-    size_t varSize = 0U;
-    std::string fromFilePath;
-    std::shared_ptr<const uint8_t> bundleModelData;
-    size_t bundleModelSize = 0U;
-    std::vector<BundleSubModelInfo> subModelInfos;
-    std::vector<uint32_t> loadedSubModelId; // aclmdlBundleGetModelId use this when aclmdlBundleLoadFromxx is called
-    std::set<uint32_t> loadedSubModelIdSet;
+  bool isInit = false;  // aclmdlBundleInit scene means true
+  std::shared_ptr<gert::RtSession> rtSession;
+  size_t varSize = 0U;
+  std::string fromFilePath;
+  std::shared_ptr<const uint8_t> bundleModelData;
+  size_t bundleModelSize = 0U;
+  std::vector<BundleSubModelInfo> subModelInfos;
+  std::vector<uint32_t> loadedSubModelId;  // aclmdlBundleGetModelId use this when aclmdlBundleLoadFromxx is called
+  std::set<uint32_t> loadedSubModelIdSet;
 };
 
 // Tensor name conversion constants
-constexpr const char_t* TENSOR_NAME_PREFIX = "acl";
-constexpr const char_t* TENSOR_INPUT_STR = "input";
-constexpr const char_t* TENSOR_OUTPUT_STR = "output";
-constexpr const char_t* MODEL_ID_STR = "modelId";
+constexpr const char_t *TENSOR_NAME_PREFIX = "acl";
+constexpr const char_t *TENSOR_INPUT_STR = "input";
+constexpr const char_t *TENSOR_OUTPUT_STR = "output";
+constexpr const char_t *MODEL_ID_STR = "modelId";
 constexpr size_t TENSOR_NAME_ATTR_NUM = 5U;
 
 // FP16 constants shared by acl_aipp.cpp and acl_aipp_om2.cpp
@@ -120,30 +113,30 @@ constexpr float32_t VR_CHN_MIN = -65504.0F;
 constexpr float32_t VR_CHN_MAX = 65504.0F;
 
 inline bool IsRoundOne(const uint64_t man, const uint16_t truncLen) {
-    const uint16_t shiftOut = truncLen - 2U;
-    uint64_t mask = 0x4U;
-    uint64_t mask1 = 0x2U;
-    uint64_t mask2;
+  const uint16_t shiftOut = truncLen - 2U;
+  uint64_t mask = 0x4U;
+  uint64_t mask1 = 0x2U;
+  uint64_t mask2;
 
-    mask = mask << static_cast<uint64_t>(shiftOut);
-    mask1 = mask1 << static_cast<uint64_t>(shiftOut);
-    mask2 = mask1 - 1U;
-    const bool lastBit = ((man & mask) > 0U);
-    const bool truncHigh = ((man & mask1) > 0U);
-    const bool truncLeft = ((man & mask2) > 0U);
-    return (truncHigh && (truncLeft || lastBit));
+  mask = mask << static_cast<uint64_t>(shiftOut);
+  mask1 = mask1 << static_cast<uint64_t>(shiftOut);
+  mask2 = mask1 - 1U;
+  const bool lastBit = ((man & mask) > 0U);
+  const bool truncHigh = ((man & mask1) > 0U);
+  const bool truncLeft = ((man & mask2) > 0U);
+  return (truncHigh && (truncLeft || lastBit));
 }
 
-inline void Fp16Normalize(int16_t& expo, uint16_t& man) {
-    if (expo >= FP16_MAX_EXP) {
-        expo = FP16_MAX_EXP - 1;
-        man = static_cast<uint16_t>(FP16_MAX_MAN);
-    }
-    if ((expo == 0) && (static_cast<int16_t>(man) == FP16_MAN_HIDE_BIT)) {
-        expo++;
-        man = 0U;
-    }
+inline void Fp16Normalize(int16_t &expo, uint16_t &man) {
+  if (expo >= FP16_MAX_EXP) {
+    expo = FP16_MAX_EXP - 1;
+    man = static_cast<uint16_t>(FP16_MAX_MAN);
+  }
+  if ((expo == 0) && (static_cast<int16_t>(man) == FP16_MAN_HIDE_BIT)) {
+    expo++;
+    man = 0U;
+  }
 }
-} // namespace acl
+}  // namespace acl
 
-#endif // ACL_MODEL_SRC_MODEL_MODEL_COMMON_H_
+#endif  // ACL_MODEL_SRC_MODEL_MODEL_COMMON_H_

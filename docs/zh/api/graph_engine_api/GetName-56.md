@@ -83,4 +83,3 @@ graphStatus GetName(ge::AscendString &name) const
 ## 约束说明<a name="section10221162313489"></a>
 
 无
-

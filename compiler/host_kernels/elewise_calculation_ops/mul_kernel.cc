@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -189,7 +189,7 @@ Status ComplexCompute(const OpDescPtr op_desc_ptr, const std::vector<ConstGeTens
       GELOGE(PARAM_INVALID, "Result of mul is overflow.");
       return PARAM_INVALID;
     }
-    buf[i * kComplexWidth]= xr_yr - xi_yi;        // complex real part
+    buf[i * kComplexWidth] = xr_yr - xi_yi;          // complex real part
     buf[(i * kComplexWidth) + 1UL] = xr_yi + xi_yr;  // complex imaginary part
   }
 
@@ -227,17 +227,17 @@ Status MulKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<ConstGe
       return ComplexCompute<float>(op_desc_ptr, input, v_output);
     case DT_COMPLEX128:
       return ComplexCompute<double>(op_desc_ptr, input, v_output);
-    SET_BCAST_COMPUTE_CASE(DT_INT8, int8_t);
-    SET_BCAST_COMPUTE_CASE(DT_INT16, int16_t);
-    SET_BCAST_COMPUTE_CASE(DT_INT32, int32_t);
-    SET_BCAST_COMPUTE_CASE(DT_INT64, int64_t);
-    SET_BCAST_COMPUTE_CASE(DT_UINT8, uint8_t);
-    SET_BCAST_COMPUTE_CASE(DT_UINT16, uint16_t);
-    SET_BCAST_COMPUTE_CASE(DT_UINT32, uint32_t);
-    SET_BCAST_COMPUTE_CASE(DT_UINT64, uint64_t);
-    SET_BCAST_COMPUTE_CASE(DT_FLOAT16, fp16_t);
-    SET_BCAST_COMPUTE_CASE(DT_FLOAT, float);
-    SET_BCAST_COMPUTE_CASE(DT_DOUBLE, double);
+      SET_BCAST_COMPUTE_CASE(DT_INT8, int8_t);
+      SET_BCAST_COMPUTE_CASE(DT_INT16, int16_t);
+      SET_BCAST_COMPUTE_CASE(DT_INT32, int32_t);
+      SET_BCAST_COMPUTE_CASE(DT_INT64, int64_t);
+      SET_BCAST_COMPUTE_CASE(DT_UINT8, uint8_t);
+      SET_BCAST_COMPUTE_CASE(DT_UINT16, uint16_t);
+      SET_BCAST_COMPUTE_CASE(DT_UINT32, uint32_t);
+      SET_BCAST_COMPUTE_CASE(DT_UINT64, uint64_t);
+      SET_BCAST_COMPUTE_CASE(DT_FLOAT16, fp16_t);
+      SET_BCAST_COMPUTE_CASE(DT_FLOAT, float);
+      SET_BCAST_COMPUTE_CASE(DT_DOUBLE, double);
     default:
       ret = NOT_CHANGED;
       break;
@@ -298,7 +298,8 @@ Status MulKernel::MulCheck(const std::vector<ConstGeTensorPtr> &input) const {
   GE_CHECK_NOTNULL(input_x2);
   // check whether there is data in Tensor
   if (input_x1->GetData().size() == 0 || input_x2->GetData().size() == 0) {
-    GELOGI("Data size check skipped: empty input. x1: %zu, x2: %zu", input_x1->GetData().size(), input_x2->GetData().size());
+    GELOGI("Data size check skipped: empty input. x1: %zu, x2: %zu", input_x1->GetData().size(),
+           input_x2->GetData().size());
     return NOT_CHANGED;
   }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,11 +30,11 @@
 #include "transfer_shape_utils.h"
 #include "graph_optimizer/dynamic_shape_optimizer/fuzzy_compiler/input_node_generalize.h"
 
+using fe::StringUtils;
 using ge::GeAttrValue;
 using std::map;
 using std::string;
 using std::vector;
-using fe::StringUtils;
 
 namespace fe {
 namespace {
@@ -60,7 +60,7 @@ void SetReason(string reason_str, OpNotSupportedReasonID id, UnSupportedReason &
   reason.reason += reason_str;
   reason.reason_id = static_cast<uint64_t>(id);
 }
-} // namespace
+}  // namespace
 
 /*
  *  @namespace fe
@@ -74,14 +74,13 @@ template <typename T>
 bool FindValueInVector(T &value, const GeAttrValue &op_desc_attr, const vector<GeAttrValue> &info_op_attr);
 
 SubOpsStore::SubOpsStore(const std::string &engine_name)
-    : init_flag_(false),
-      engine_name_(engine_name),
-      sub_store_info_(),
-      format_dtype_querier_ptr_(nullptr) {}
+    : init_flag_(false), engine_name_(engine_name), sub_store_info_(), format_dtype_querier_ptr_(nullptr) {}
 
 SubOpsStore::~SubOpsStore() {}
 
-void SubOpsStore::SetSubStoreInfo(const FEOpsStoreInfo &sub_store_info) { sub_store_info_ = (sub_store_info); }
+void SubOpsStore::SetSubStoreInfo(const FEOpsStoreInfo &sub_store_info) {
+  sub_store_info_ = (sub_store_info);
+}
 
 Status SubOpsStore::InitializeSubStore() {
   if (init_flag_) {
@@ -91,8 +90,7 @@ Status SubOpsStore::InitializeSubStore() {
 
   FE_LOGD("Initialize %s SubOpsStore begin.", sub_store_info_.fe_ops_store_name.c_str());
 
-  FE_MAKE_SHARED(format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(engine_name_),
-      return FAILED);
+  FE_MAKE_SHARED(format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(engine_name_), return FAILED);
   FE_CHECK_NOTNULL(format_dtype_querier_ptr_);
 
   FE_LOGI("Initialize %s SubOpsStore finished.", sub_store_info_.fe_ops_store_name.c_str());
@@ -158,7 +156,8 @@ bool SubOpsStore::PrecisionReduceToBf16(const bool &black_list_op, const fe::Pre
 }
 
 bool SubOpsStore::CheckPrecisionReduce(const ge::DataType &desc_dtype, const ge::DataType &stored_dtype,
-    const int64_t &keep_dtype, const bool &black_list_op, const fe::PrecisionMode &precision_mode) const {
+                                       const int64_t &keep_dtype, const bool &black_list_op,
+                                       const fe::PrecisionMode &precision_mode) const {
   // dtype match
   if (desc_dtype == stored_dtype) {
     return true;
@@ -183,8 +182,9 @@ bool SubOpsStore::CheckPrecisionReduce(const ge::DataType &desc_dtype, const ge:
 }
 
 void SubOpsStore::JudgeNeedUpdateDtype(const fe::PrecisionMode &precision_mode,
-    const ge::GeTensorDescPtr &tensor_desc_ptr, const vector<ge::DataType> &support_data_types,
-    const ge::OpDescPtr &op_desc_ptr, const InputOrOutputInfoPtr &input_or_output_info_ptr) const {
+                                       const ge::GeTensorDescPtr &tensor_desc_ptr,
+                                       const vector<ge::DataType> &support_data_types, const ge::OpDescPtr &op_desc_ptr,
+                                       const InputOrOutputInfoPtr &input_or_output_info_ptr) const {
   if (precision_mode == fe::PrecisionMode::ENUM_ALLOW_FP32_TO_FP16) {
     FE_LOGD("Current precision mode is allow_fp32_tofp16, start checking.");
     if (tensor_desc_ptr->GetDataType() == ge::DT_FLOAT &&
@@ -223,8 +223,8 @@ bool SubOpsStore::CheckPromoteTypeSupport(const vector<ge::DataType> &support_da
   }
   ge::DataType target_type = ge::DT_UNDEFINED;
   for (size_t i = 0; i < info.promote_input_list.size(); ++i) {
-    if (std::find(info.promote_input_list[i].begin(), info.promote_input_list[i].end(),
-        info.cur_idx) != info.promote_input_list[i].end()) {
+    if (std::find(info.promote_input_list[i].begin(), info.promote_input_list[i].end(), info.cur_idx) !=
+        info.promote_input_list[i].end()) {
       target_type = info.promote_target_type[i];
       break;
     }
@@ -238,7 +238,7 @@ bool SubOpsStore::CheckPromoteTypeSupport(const vector<ge::DataType> &support_da
       return true;
     }
   }
-  return false;                                          
+  return false;
 }
 
 bool SubOpsStore::CheckDtypeSupported(const ge::NodePtr &node, const ge::GeTensorDescPtr &tensor_desc_ptr,
@@ -247,19 +247,19 @@ bool SubOpsStore::CheckDtypeSupported(const ge::NodePtr &node, const ge::GeTenso
                                       const SupportedFormatAndDtype &info) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   const std::string &op_type = op_desc_ptr->GetType();
-  FE_CHECK(tensor_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkTensor]cTensorDescPtr is nullptr."), return false);
+  FE_CHECK(tensor_desc_ptr == nullptr, REPORT_FE_ERROR("[ChkSpt][FEChk][ChkTensor]cTensorDescPtr is nullptr."),
+           return false);
   FE_CHECK(input_or_output_info_ptr == nullptr,
            REPORT_FE_ERROR("[ChkSpt][FEChk][ChkTensor] InputOrOutputInfoPtr is nullptr."), return false);
   ge::DataType desc_dtype = tensor_desc_ptr->GetDataType();
-  /* For those configurated as keep-dtype, we will not allow precision loss. */
+  /* For those configured as keep-dtype, we will not allow precision loss. */
   int64_t keep_dtype = 0;
   (void)ge::AttrUtils::GetInt(*(op_desc_ptr.get()), KEEP_DTYPE, keep_dtype);
   fe::PrecisionMode precision_mode = fe::PrecisionMode::ENUM_UNDEFINED;
   FeGraphUtils::GetPrecisionModeFromGraph(*(node->GetOwnerComputeGraph()), precision_mode);
   PrecisionPolicy op_kernel_policy = info.op_kernel_info_ptr->GetPrecisionPolicy();
-  PrecisionPolicy op_precision_policy = Configuration::Instance(engine_name_).GetPrecisionPolicy(
-      op_desc_ptr->GetType(), op_kernel_policy);
+  PrecisionPolicy op_precision_policy =
+      Configuration::Instance(engine_name_).GetPrecisionPolicy(op_desc_ptr->GetType(), op_kernel_policy);
   bool black_list_op = op_precision_policy == BLACK;
 
   JudgeNeedUpdateDtype(precision_mode, tensor_desc_ptr, support_data_types, op_desc_ptr, input_or_output_info_ptr);
@@ -271,23 +271,20 @@ bool SubOpsStore::CheckDtypeSupported(const ge::NodePtr &node, const ge::GeTenso
     }
   }
   if (CheckPromoteTypeSupport(support_data_types, info)) {
-    FE_LOGD("Check promote dtype support for op[%s:%s] success, cur input tensor [%s].",
-      op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), input_or_output_info_ptr->GetUniqueName().c_str());
+    FE_LOGD("Check promote dtype support for op[%s:%s] success, cur input tensor [%s].", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr(), input_or_output_info_ptr->GetUniqueName().c_str());
     (void)ge::AttrUtils::SetBool(op_desc_ptr, kMustPromoteFlag, true);
     return true;
   }
   FE_LOGD("Check dtype for op[%s:%s] tensor %s, dtype %s, support data types is %s, precision_mode is %u unsuccessful",
-      op_desc_ptr->GetNamePtr(),
-      op_desc_ptr->GetTypePtr(),
-      input_or_output_info_ptr->GetUniqueName().c_str(),
-      ge::TypeUtils::DataTypeToSerialString(desc_dtype).c_str(),
-      GetStrByDataTypeVec(support_data_types).c_str(),
-      precision_mode);
+          op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), input_or_output_info_ptr->GetUniqueName().c_str(),
+          ge::TypeUtils::DataTypeToSerialString(desc_dtype).c_str(), GetStrByDataTypeVec(support_data_types).c_str(),
+          precision_mode);
   return false;
 }
 
-bool SubOpsStore::CheckAccuracyDtypeSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr,
-                                              uint32_t type_index, InputOrOutputInfoPtr input_or_output_info_ptr,
+bool SubOpsStore::CheckAccuracyDtypeSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr, uint32_t type_index,
+                                              InputOrOutputInfoPtr input_or_output_info_ptr,
                                               const vector<ge::DataType> &support_data_types) const {
   FE_CHECK(c_tensor_desc_ptr == nullptr,
            REPORT_FE_ERROR("[ChkSpt][FEChk][ChkAccurDtypeSup] cTensorDescPtr is nullptr."), return false);
@@ -310,11 +307,12 @@ bool SubOpsStore::CheckFormatSupported(const ge::NodePtr &node, ge::ConstGeTenso
                                        InputOrOutputInfoPtr input_or_output_info_ptr,
                                        const vector<ge::Format> &support_formats) const {
   FE_CHECK(c_tensor_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkFmtSpt] cTensorDescPtr of %s is nullptr.",
-                           node->GetName().c_str()), return false);
-  FE_CHECK(input_or_output_info_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkFmtSpt] InputOrOutputInfoPtr of %s is nullptr.",
-                           node->GetName().c_str()), return false);
+           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkFmtSpt] cTensorDescPtr of %s is nullptr.", node->GetName().c_str()),
+           return false);
+  FE_CHECK(
+      input_or_output_info_ptr == nullptr,
+      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkFmtSpt] InputOrOutputInfoPtr of %s is nullptr.", node->GetName().c_str()),
+      return false);
   uint32_t tensor_index = input_or_output_info_ptr->GetIndex();
   // TBE plugin: the op_info_format_vec may be empty
   if (support_formats.empty()) {
@@ -327,9 +325,8 @@ bool SubOpsStore::CheckFormatSupported(const ge::NodePtr &node, ge::ConstGeTenso
     return true;
   }
 
-  FE_LOGD("The format in tensor [named %s, index %u] of node %s is %s.",
-          input_or_output_info_ptr->GetName().c_str(), tensor_index,
-          node->GetName().c_str(), FormatToStr(desc_format).c_str());
+  FE_LOGD("The format in tensor [named %s, index %u] of node %s is %s.", input_or_output_info_ptr->GetName().c_str(),
+          tensor_index, node->GetName().c_str(), FormatToStr(desc_format).c_str());
   for (auto &op_info_format : support_formats) {
     if (IsSupportedTransType(desc_format, op_info_format)) {
       FE_LOGD("Check format successfully! Formats %s in op info lib supports this tensor [named %s, index %u].",
@@ -344,22 +341,22 @@ bool SubOpsStore::CheckFormatSupported(const ge::NodePtr &node, ge::ConstGeTenso
 
 bool SubOpsStore::CheckSubformatSupported(const ge::NodePtr &node, int64_t groups,
                                           const InputOrOutputInfoPtr &input_or_output_info_ptr,
-                                          const string &tensor_name,
-                                          SupportedFormatAndDtype &info) const {
-  FE_CHECK(input_or_output_info_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkSubfmtSpt] InputOrOutputInfoPtr of %s is nullptr.",
-                           node->GetName().c_str()), return false);
+                                          const string &tensor_name, SupportedFormatAndDtype &info) const {
+  FE_CHECK(
+      input_or_output_info_ptr == nullptr,
+      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkSubfmtSpt] InputOrOutputInfoPtr of %s is nullptr.", node->GetName().c_str()),
+      return false);
   if (groups > UINT16_MAX) {
     REPORT_FE_ERROR("[ChkSpt][FEChk][ChkSubfmtSpt] Node[%s]'s groups[%ld] exceeds the maximum supported value.",
                     node->GetName().c_str(), groups);
     return false;
   }
   auto support_format_vec = info.suppport_formats_map[tensor_name];
-  auto support_sub_format_vec =  info.suppport_sub_formats_map[tensor_name];
+  auto support_sub_format_vec = info.suppport_sub_formats_map[tensor_name];
   for (auto &format : support_format_vec) {
     if (std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(), format) ==
-      FE_GROUP_RELA_FORMAT_VECTOR.end()) {
-        return true;
+        FE_GROUP_RELA_FORMAT_VECTOR.end()) {
+      return true;
     }
   }
   if (support_sub_format_vec.empty()) {
@@ -381,16 +378,16 @@ bool SubOpsStore::CheckSubformatSupported(const ge::NodePtr &node, int64_t group
             node->GetName().c_str(), StringUtils::IntegerVecToString(support_sub_format_vec).c_str(), groups);
     return false;
   }
-  FE_LOGD("Check subformat successfully! Groups %ld in op info lib supports this tensor [named %s, index %u].",
-          groups, input_or_output_info_ptr->GetName().c_str(), tensor_index);
+  FE_LOGD("Check subformat successfully! Groups %ld in op info lib supports this tensor [named %s, index %u].", groups,
+          input_or_output_info_ptr->GetName().c_str(), tensor_index);
   return true;
 }
 
-bool SubOpsStore::CheckAccuracyFormatSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr,
-                                               uint32_t type_index, InputOrOutputInfoPtr input_or_output_info_ptr,
+bool SubOpsStore::CheckAccuracyFormatSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr, uint32_t type_index,
+                                               InputOrOutputInfoPtr input_or_output_info_ptr,
                                                const vector<ge::Format> &support_formats) const {
-  FE_CHECK(c_tensor_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkAccurFmtSpt] cTensorDescPtr is nullptr."), return false);
+  FE_CHECK(c_tensor_desc_ptr == nullptr, REPORT_FE_ERROR("[ChkSpt][FEChk][ChkAccurFmtSpt] cTensorDescPtr is nullptr."),
+           return false);
   FE_CHECK(input_or_output_info_ptr == nullptr,
            REPORT_FE_ERROR("[ChkSpt][FEChk][ChkAccurFmtSpt] InputOrOutputInfoPtr is nullptr."), return false);
   ge::Format desc_format = static_cast<ge::Format>(ge::GetPrimaryFormat(c_tensor_desc_ptr->GetFormat()));
@@ -402,16 +399,15 @@ bool SubOpsStore::CheckAccuracyFormatSupported(ge::ConstGeTensorDescPtr c_tensor
 }
 
 bool SubOpsStore::VerifyFormatC0Val(const ge::OpDescPtr &op_desc_ptr, const ge::ConstGeTensorDescPtr &tensor_desc_ptr) {
-  FE_CHECK(op_desc_ptr == nullptr,
-           FE_LOGW("[ChkSpt][FEChk][ChkAccurC0Val] op_desc_ptr is nullptr."), return false);
+  FE_CHECK(op_desc_ptr == nullptr, FE_LOGW("[ChkSpt][FEChk][ChkAccurC0Val] op_desc_ptr is nullptr."), return false);
   // only check C0 for cast node
   // ge may try to swap position of transdata and cast, and check whether they can do it.
   // for fp16 and fp32, the c0 for cast is always 16. cast from 5HD,fp16(c0=16) to 5HD,fp32(c0=8) is not support
   if (op_desc_ptr->GetType() != CAST) {
     return true;
   }
-  FE_CHECK(tensor_desc_ptr == nullptr,
-           FE_LOGW("[ChkSpt][FEChk][ChkAccurC0Val] tensor_desc_ptr is nullptr."), return false);
+  FE_CHECK(tensor_desc_ptr == nullptr, FE_LOGW("[ChkSpt][FEChk][ChkAccurC0Val] tensor_desc_ptr is nullptr."),
+           return false);
   // only check while data type is fp32
   if (tensor_desc_ptr->GetDataType() != ge::DT_FLOAT || !tensor_desc_ptr->GetShape().IsUnknownShape()) {
     return true;
@@ -424,8 +420,8 @@ bool SubOpsStore::VerifyFormatC0Val(const ge::OpDescPtr &op_desc_ptr, const ge::
   int64_t c0_val = transformer::TransferShapeUtils::GetC0ByDtype(tensor_desc_ptr->GetDataType());
   if (current_c0_val != c0_val) {
     FE_LOGW("C0 val of data type[%s] should be [%ld], but current c0 val from format is [%ld]. Cast op is [%s].",
-            ge::TypeUtils::DataTypeToSerialString(tensor_desc_ptr->GetDataType()).c_str(),
-            c0_val, current_c0_val, op_desc_ptr->GetNamePtr());
+            ge::TypeUtils::DataTypeToSerialString(tensor_desc_ptr->GetDataType()).c_str(), c0_val, current_c0_val,
+            op_desc_ptr->GetNamePtr());
   }
   return current_c0_val == c0_val;
 }
@@ -588,8 +584,8 @@ bool SubOpsStore::CheckAttrSupport(const ge::NodePtr &node, const OpKernelInfo &
 bool SubOpsStore::CheckParamType(const ge::NodePtr &node, OpKernelInfoPtr op_kernel_info_ptr,
                                  const map<uint32_t, string> &input_index_name_map,
                                  const map<uint32_t, string> &output_index_name_map, std::string &reason) const {
-  FE_CHECK(op_kernel_info_ptr == nullptr,
-           REPORT_FE_ERROR("[ChkSpt][FEChk][ChkParmType] opKernelInfoPtr is nullptr."), return false);
+  FE_CHECK(op_kernel_info_ptr == nullptr, REPORT_FE_ERROR("[ChkSpt][FEChk][ChkParmType] opKernelInfoPtr is nullptr."),
+           return false);
   auto &all_input_info_vector = op_kernel_info_ptr->GetAllInputInfo();
   auto &all_output_info_vector = op_kernel_info_ptr->GetAllOutputInfo();
   if (!CheckAllTensorsParamType(node, true, all_input_info_vector, input_index_name_map, reason)) {
@@ -615,7 +611,7 @@ bool SubOpsStore::CheckAllTensorsParamType(const ge::NodePtr &node, bool is_inpu
     }
     if ((tensor_info->GetParamType() == REQUIRED) && (counter != 1)) {
       reason_oss << "the quantity of required " << IS_INPUT_TO_STRING(is_input);
-      reason_oss <<  "[" << tensor_info->GetName() << "] is not one";
+      reason_oss << "[" << tensor_info->GetName() << "] is not one";
       reason = reason_oss.str();
       FE_LOGD("%s [%d] which named [%s] is required but its quantity is [%d] instead of 1. node is [%s] [%s].",
               IS_INPUT_TO_STRING(is_input), index, tensor_info->GetName().c_str(), counter, op_desc.GetName().c_str(),
@@ -641,16 +637,13 @@ void SubOpsStore::LogAllFormatAndDtype(const SupportedFormatAndDtype &info, cons
   auto all_data_type = StringUtils::IntegerVecToString(info.support_data_types_map.at(tensor_name));
   auto all_formats = StringUtils::IntegerVecToString(info.suppport_formats_map.at(tensor_name));
   reason_oss << "All supported data type and format of tensor " << tensor_name << " is: "
-             << "Data Type: " << all_data_type
-             << "Format:" << all_formats;
+             << "Data Type: " << all_data_type << "Format:" << all_formats;
   reason = reason_oss.str();
 }
 
 bool SubOpsStore::CheckFormatAndDtypeNormalMode(const ge::NodePtr &node, const std::string &name,
-                                                const ge::GeTensorDescPtr &tensor_desc,
-                                                SupportedFormatAndDtype &info,
-                                                const bool &is_force_dtype_support,
-                                                std::string &reason) const {
+                                                const ge::GeTensorDescPtr &tensor_desc, SupportedFormatAndDtype &info,
+                                                const bool &is_force_dtype_support, std::string &reason) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   ge::OpDesc &op_desc = *(op_desc_ptr.get());
   std::ostringstream reason_oss;
@@ -720,17 +713,14 @@ bool SubOpsStore::CheckFormatAndDtypeNormalMode(const ge::NodePtr &node, const s
   }
   if (groups > GROUPS_DEFAULT_VALUE && !CheckSubformatSupported(node, groups, tensor_kernel, tensor_name, info)) {
     FE_LOGD("[ChkSpt][FEChk][ChkTensor][Node %s, type %s] %s %s's group [%ld] is not supported by ops kernel.",
-            op_desc.GetName().c_str(), op_desc.GetType().c_str(), in_or_out.c_str(), tensor_name.c_str(),
-            groups);
+            op_desc.GetName().c_str(), op_desc.GetType().c_str(), in_or_out.c_str(), tensor_name.c_str(), groups);
     return false;
   }
   return true;
 }
 
-bool SubOpsStore::CheckInputConstValueDepend(const ge::NodePtr &node,
-                                             const string &input_name,
-                                             const uint32_t &in_index,
-                                             SupportedFormatAndDtype &info) const {
+bool SubOpsStore::CheckInputConstValueDepend(const ge::NodePtr &node, const string &input_name,
+                                             const uint32_t &in_index, SupportedFormatAndDtype &info) const {
   std::ostringstream reason_oss;
   InputOrOutputInfoPtr tensor_kernel;
   if (info.op_kernel_info_ptr->GetTensorInfoByName(info.is_input, input_name, tensor_kernel) != SUCCESS) {
@@ -792,8 +782,8 @@ bool SubOpsStore::CheckInputSupported(const ge::NodePtr &node, uint32_t input_si
     if (input_index_name_map_iter == info.input_index_name_map.cend()) {
       reason_oss << "the name of input[" << in_index << "] is not found";
       info.reason = reason_oss.str();
-      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkInSpt] Cannot find the input index %u in map whose size is %zu",
-                      in_index, info.input_index_name_map.size());
+      REPORT_FE_ERROR("[ChkSpt][FEChk][ChkInSpt] Cannot find the input index %u in map whose size is %zu", in_index,
+                      info.input_index_name_map.size());
       return false;
     }
     string input_name = input_index_name_map_iter->second;
@@ -921,8 +911,8 @@ bool SubOpsStore::CheckAllTensorsSupportedAccurateMode(const ge::NodePtr &node, 
   auto output_size = static_cast<uint32_t>(all_output_desc_ptr_vistor.size());
 
   UnSupportedReason reason_tmp;
-  bool ret = GetInputOutputNameMap(node, info.op_kernel_info_ptr, info.input_index_name_map,
-                                   info.output_index_name_map, reason_tmp);
+  bool ret = GetInputOutputNameMap(node, info.op_kernel_info_ptr, info.input_index_name_map, info.output_index_name_map,
+                                   reason_tmp);
   if (!ret) {
     info.reason = reason_tmp.reason;
     return false;
@@ -967,7 +957,7 @@ bool SubOpsStore::CheckOpSupported(const ge::NodePtr &node_ptr, const bool &is_d
     return true;
   }
   OpStoreAdapterPtr op_store_adapter =
-          OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(sub_store_info_.op_impl_type);
+      OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(sub_store_info_.op_impl_type);
   if (op_store_adapter == nullptr) {
     REPORT_FE_ERROR("[GraphOpt][SubChk][GetTbeAdap] Failed to get op adapter by op impl type[%ld].",
                     sub_store_info_.op_impl_type);
@@ -992,7 +982,7 @@ bool SubOpsStore::CheckOpSupported(const ge::NodePtr &node_ptr, const bool &is_d
 }
 
 void SubOpsStore::SetAttrParamTypeList(const ge::OpDescPtr &op_desc, const OpKernelInfoPtr &op_kernel_info_ptr,
-    const SupportedFormatAndDtype &info) const {
+                                       const SupportedFormatAndDtype &info) const {
   std::vector<uint32_t> input_type_list;
   std::vector<std::string> input_name_list;
   for (const auto &index_name : info.input_index_name_map) {
@@ -1023,8 +1013,8 @@ void SubOpsStore::SetAttrParamTypeList(const ge::OpDescPtr &op_desc, const OpKer
   }
   (void)ge::AttrUtils::SetListInt(op_desc, kOutputParaTypeList, output_type_list);
   (void)ge::AttrUtils::SetListStr(op_desc, kOutputNameList, output_name_list);
-  FE_LOGD("[GraphOpt][SetAttrParamType] Finish to set attr para_type_list for op[%s, %s].",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  FE_LOGD("[GraphOpt][SetAttrParamType] Finish to set attr para_type_list for op[%s, %s].", op_desc->GetName().c_str(),
+          op_desc->GetType().c_str());
   return;
 }
 
@@ -1033,8 +1023,8 @@ void SubOpsStore::TransInputNameToIdx(const std::vector<std::string> &promote_it
   std::vector<int> promote_item_vec;
   for (const auto &input_name : promote_item) {
     int idx = node->GetOpDesc()->GetInputIndexByName(input_name);
-    FE_LOGD("Trans input name [%s] to index[%d] for node[%s, %s].",
-            input_name.c_str(), idx, node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGD("Trans input name [%s] to index[%d] for node[%s, %s].", input_name.c_str(), idx, node->GetNamePtr(),
+            node->GetTypePtr());
     promote_item_vec.emplace_back(idx);
   }
   if (promote_item_vec.size() > 1) {
@@ -1042,9 +1032,9 @@ void SubOpsStore::TransInputNameToIdx(const std::vector<std::string> &promote_it
   }
 }
 
-
 bool SubOpsStore::ParsePromoteStr(const PromoteTypeVal &promote_type_val, const ge::NodePtr &node,
-    const OpKernelInfoPtr &op_kernel_info_ptr, std::vector<std::vector<int>> &promote_list) const {
+                                  const OpKernelInfoPtr &op_kernel_info_ptr,
+                                  std::vector<std::vector<int>> &promote_list) const {
   if (!promote_type_val.is_dynamic) {
     for (const auto &promote_item : promote_type_val.promote_val) {
       TransInputNameToIdx(promote_item, node, promote_list);
@@ -1052,7 +1042,7 @@ bool SubOpsStore::ParsePromoteStr(const PromoteTypeVal &promote_type_val, const 
     return true;
   }
   OpStoreAdapterPtr op_store_adapter =
-          OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(sub_store_info_.op_impl_type);
+      OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(sub_store_info_.op_impl_type);
   if (op_store_adapter == nullptr) {
     REPORT_FE_ERROR("[GraphOpt][SubChk][GetTbeAdap] Failed to get op adapter by op impl type[%ld].",
                     sub_store_info_.op_impl_type);
@@ -1087,8 +1077,7 @@ bool SubOpsStore::ParsePromoteStr(const PromoteTypeVal &promote_type_val, const 
 
 void SubOpsStore::GetPromoteInputList(const ge::NodePtr &node, SupportedFormatAndDtype &info) const {
   if (info.op_kernel_info_ptr == nullptr) {
-    FE_LOGW("Node[%s, %s] op kernel info ptr is nullptr, unexpected.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGW("Node[%s, %s] op kernel info ptr is nullptr, unexpected.", node->GetNamePtr(), node->GetTypePtr());
     return;
   }
   PromoteTypeVal promote_type_val;
@@ -1097,8 +1086,8 @@ void SubOpsStore::GetPromoteInputList(const ge::NodePtr &node, SupportedFormatAn
     return;
   }
   if (!ParsePromoteStr(promote_type_val, node, info.op_kernel_info_ptr, info.promote_input_list)) {
-    FE_LOGW("Node[%s, %s] get promote type val from get_op_specific_info is null.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGW("Node[%s, %s] get promote type val from get_op_specific_info is null.", node->GetNamePtr(),
+            node->GetTypePtr());
     return;
   }
 }
@@ -1114,8 +1103,8 @@ void SubOpsStore::GetPromoteFlag(const ge::NodePtr &node, SupportedFormatAndDtyp
     const auto &input_desc_0 = node->GetOpDesc()->MutableInputDesc(promote_index[0]);
     const auto &input_desc_1 = node->GetOpDesc()->MutableInputDesc(promote_index[1]);
     if (input_desc_0 == nullptr || input_desc_1 == nullptr) {
-      FE_LOGW("Node[%s, %s] get inputDesc by promote input idx [%u, %u] is nullptr.",
-              node->GetNamePtr(), node->GetTypePtr(), promote_index[0], promote_index[1]);
+      FE_LOGW("Node[%s, %s] get inputDesc by promote input idx [%u, %u] is nullptr.", node->GetNamePtr(),
+              node->GetTypePtr(), promote_index[0], promote_index[1]);
       return;
     }
 
@@ -1129,14 +1118,14 @@ void SubOpsStore::GetPromoteFlag(const ge::NodePtr &node, SupportedFormatAndDtyp
     size_t inputs_size = node->GetOpDesc()->GetAllInputsSize();
     for (size_t i = 2; i < promote_index.size(); ++i) {
       if (static_cast<size_t>(promote_index[i]) >= inputs_size) {
-        FE_LOGW("Node[%s, %s] promote input idx [%u] is invalid, while inputs size is %zu.",
-                node->GetNamePtr(), node->GetTypePtr(), promote_index[i], inputs_size);
+        FE_LOGW("Node[%s, %s] promote input idx [%u] is invalid, while inputs size is %zu.", node->GetNamePtr(),
+                node->GetTypePtr(), promote_index[i], inputs_size);
         return;
       }
       const auto &input_desc = node->GetOpDesc()->MutableInputDesc(promote_index[i]);
       if (input_desc == nullptr) {
-        FE_LOGW("Node[%s, %s] get inputDesc by promote input idx [%u] is nullptr.",
-                node->GetNamePtr(), node->GetTypePtr(), promote_index[i]);
+        FE_LOGW("Node[%s, %s] get inputDesc by promote input idx [%u] is nullptr.", node->GetNamePtr(),
+                node->GetTypePtr(), promote_index[i]);
         return;
       }
       auto cur_dtype = input_desc->GetDataType();
@@ -1152,8 +1141,7 @@ void SubOpsStore::GetPromoteFlag(const ge::NodePtr &node, SupportedFormatAndDtyp
 void SubOpsStore::FeedPromoteInfo(const ge::NodePtr &node, SupportedFormatAndDtype &info) const {
   GetPromoteInputList(node, info);
   if (info.promote_input_list.empty()) {
-    FE_LOGW("Node[%s, %s] get promote input list from ge is empty.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGW("Node[%s, %s] get promote input list from ge is empty.", node->GetNamePtr(), node->GetTypePtr());
     return;
   }
   GetPromoteFlag(node, info);
@@ -1161,15 +1149,14 @@ void SubOpsStore::FeedPromoteInfo(const ge::NodePtr &node, SupportedFormatAndDty
     (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kMustPromoteFlag, info.promote_flag);
     node->GetOpDesc()->SetExtAttr(kPromoteInfo, info.promote_input_list);
   }
-  FE_LOGD("Node[%s, %s] promote flag is %d, target dtype vec size is %zu.",
-          node->GetNamePtr(), node->GetTypePtr(), info.promote_flag, info.promote_target_type.size());
+  FE_LOGD("Node[%s, %s] promote flag is %d, target dtype vec size is %zu.", node->GetNamePtr(), node->GetTypePtr(),
+          info.promote_flag, info.promote_target_type.size());
 }
 
 bool SubOpsStore::PrepareFormatAndDtypeInfo(const ge::NodePtr &node, const bool &check_unknown_shape,
-                                            CheckSupportParam &check_param,
-                                            SupportedFormatAndDtype &info) const {
-  if (!GetInputOutputNameMap(node, check_param.op_kernel_ptr, info.input_index_name_map,
-                             info.output_index_name_map, check_param.unsupport_reason)) {
+                                            CheckSupportParam &check_param, SupportedFormatAndDtype &info) const {
+  if (!GetInputOutputNameMap(node, check_param.op_kernel_ptr, info.input_index_name_map, info.output_index_name_map,
+                             check_param.unsupport_reason)) {
     return false;
   }
   FeedPromoteInfo(node, info);
@@ -1202,10 +1189,8 @@ bool SubOpsStore::PrepareFormatAndDtypeInfo(const ge::NodePtr &node, const bool 
 }
 
 bool SubOpsStore::CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSupportMode &check_mode,
-                                         uint32_t input_size, uint32_t output_size,
-                                         const bool &is_force_dtype_support,
-                                         SupportedFormatAndDtype &info,
-                                         CheckSupportParam &check_param) const {
+                                         uint32_t input_size, uint32_t output_size, const bool &is_force_dtype_support,
+                                         SupportedFormatAndDtype &info, CheckSupportParam &check_param) const {
   ge::OpDesc &op_desc = *(node->GetOpDesc().get());
   if (check_mode == CheckSupportMode::ACCURACY_MODE) {
     if (!CheckAllTensorsSupportedAccurateMode(node, info)) {
@@ -1218,14 +1203,14 @@ bool SubOpsStore::CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSup
 
   if (!CheckInputSupported(node, input_size, is_force_dtype_support, info)) {
     SetReason(info.reason, OpNotSupportedReasonID::EN_INPUTS_NOT_SUPPORT, check_param.unsupport_reason);
-    FE_LOGD("Node %s, type %s's input is not supported in %s.", op_desc.GetName().c_str(),
-            op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str());
+    FE_LOGD("Node %s, type %s's input is not supported in %s.", op_desc.GetName().c_str(), op_desc.GetType().c_str(),
+            sub_store_info_.fe_ops_store_name.c_str());
     return false;
   }
   if (!CheckOutputSupported(node, output_size, is_force_dtype_support, info)) {
     SetReason(info.reason, OpNotSupportedReasonID::EN_OUTPUTS_NOT_SUPPORT, check_param.unsupport_reason);
-    FE_LOGD("Node %s, type %s's output is not supported in %s.", op_desc.GetName().c_str(),
-            op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str());
+    FE_LOGD("Node %s, type %s's output is not supported in %s.", op_desc.GetName().c_str(), op_desc.GetType().c_str(),
+            sub_store_info_.fe_ops_store_name.c_str());
     return false;
   }
   return true;
@@ -1240,10 +1225,9 @@ bool SubOpsStore::CheckAttrsAndParamType(const ge::NodePtr &node, const Supporte
     return false;
   }
   // input or output dynamic can have more than 1, required must equal 1, optional not check
-  if (!CheckParamType(node, check_param.op_kernel_ptr, info.input_index_name_map,
-                      info.output_index_name_map, check_param.unsupport_reason.reason)) {
-    check_param.unsupport_reason.reason_id =
-        static_cast<uint64_t>(OpNotSupportedReasonID::EN_PARAM_TYPE_NOT_SUPPORT);
+  if (!CheckParamType(node, check_param.op_kernel_ptr, info.input_index_name_map, info.output_index_name_map,
+                      check_param.unsupport_reason.reason)) {
+    check_param.unsupport_reason.reason_id = static_cast<uint64_t>(OpNotSupportedReasonID::EN_PARAM_TYPE_NOT_SUPPORT);
     FE_LOGD("Parameter type is not supported in %s.", sub_store_info_.fe_ops_store_name.c_str());
     return false;
   }
@@ -1271,8 +1255,7 @@ bool SubOpsStore::CheckSubStoreSupported(const ge::NodePtr &node, const CheckSup
   bool is_force_dtype_support = false;
   (void)ge::AttrUtils::GetBool(op_desc_ptr, kForceDtypeSupportFlag, is_force_dtype_support);
 
-  if (!CheckFormatDtypeByMode(node, check_mode, input_size, output_size,
-                              is_force_dtype_support, info, check_param)) {
+  if (!CheckFormatDtypeByMode(node, check_mode, input_size, output_size, is_force_dtype_support, info, check_param)) {
     return false;
   }
 
@@ -1290,9 +1273,9 @@ bool SubOpsStore::CheckSubStoreSupported(const ge::NodePtr &node, const CheckSup
     (void)ge::AttrUtils::SetBool(op_desc_ptr, IS_GE_OP, true);
   }
 
-  FE_LOGD("[ChkSpt][FEChk][%s][Node %s, type %s] is support by op store [%s] by check_mode %u.",
-          check_type.c_str(), op_desc.GetName().c_str(), op_desc.GetType().c_str(),
-          sub_store_info_.fe_ops_store_name.c_str(), static_cast<uint32_t>(check_mode));
+  FE_LOGD("[ChkSpt][FEChk][%s][Node %s, type %s] is support by op store [%s] by check_mode %u.", check_type.c_str(),
+          op_desc.GetName().c_str(), op_desc.GetType().c_str(), sub_store_info_.fe_ops_store_name.c_str(),
+          static_cast<uint32_t>(check_mode));
   return true;
 }
 
@@ -1310,8 +1293,8 @@ bool SubOpsStore::CheckCustomizeDtype(const ge::OpDescPtr &op_desc, const Suppor
   }
 
   FE_LOGD("Op customize dtype is found for op[%s, %s]. Input dtype size is %zu, output dtype size is %zu.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-          op_cust_dtypes.input_dtypes.size(), op_cust_dtypes.output_dtypes.size());
+          op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_cust_dtypes.input_dtypes.size(),
+          op_cust_dtypes.output_dtypes.size());
   vector<bool> filer_index(info.support_data_types_map.begin()->second.size(), true);
   FilterDtypesByCustom(op_cust_dtypes.input_dtypes, info.input_index_name_map, info, true, filer_index);
   FilterDtypesByCustom(op_cust_dtypes.output_dtypes, info.output_index_name_map, info, false, filer_index);
@@ -1320,10 +1303,8 @@ bool SubOpsStore::CheckCustomizeDtype(const ge::OpDescPtr &op_desc, const Suppor
   return is_force_dtype_support;
 }
 
-void SubOpsStore::FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes,
-                                       const IndexNameMap &index_map,
-                                       const SupportedFormatAndDtype &info,
-                                       const bool &is_input,
+void SubOpsStore::FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes, const IndexNameMap &index_map,
+                                       const SupportedFormatAndDtype &info, const bool &is_input,
                                        vector<bool> &filer_index) const {
   for (size_t i = 0; i < cust_dtypes.size(); i++) {
     if (cust_dtypes[i] == ge::DT_UNDEFINED) {
@@ -1340,7 +1321,7 @@ void SubOpsStore::FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes,
     }
 
     map<string, vector<ge::DataType>>::const_iterator iter_name =
-            info.support_data_types_map.find(tensor_kernel->GetUniqueName());
+        info.support_data_types_map.find(tensor_kernel->GetUniqueName());
     if (iter_name == info.support_data_types_map.cend()) {
       continue;
     }
@@ -1352,10 +1333,8 @@ void SubOpsStore::FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes,
   }
 }
 
-Status SubOpsStore::GetSupportFormatAndDtype(const ge::NodePtr &node,
-                                             const OpKernelInfoPtr &op_kernel_info_ptr,
-                                             const bool &is_dynamic_check,
-                                             FormatDtypeInfo &format_dtype_info) const {
+Status SubOpsStore::GetSupportFormatAndDtype(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                             const bool &is_dynamic_check, FormatDtypeInfo &format_dtype_info) const {
   return this->format_dtype_querier_ptr_->GetSupportFormatAndDtype(op_kernel_info_ptr, node, is_dynamic_check,
                                                                    format_dtype_info);
 }

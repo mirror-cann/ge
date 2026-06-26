@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,8 +21,8 @@
 #include "common/fe_report_error.h"
 
 namespace fe {
-const uint32_t kFlockRecursiveIntvl = 10; // 10 milliseconds
-const uint32_t kFlockRecursiveCntMax = 6000; // 1mins 6000*10 milliseconds
+const uint32_t kFlockRecursiveIntvl = 10;     // 10 milliseconds
+const uint32_t kFlockRecursiveCntMax = 6000;  // 1mins 6000*10 milliseconds
 
 std::string RealPath(const std::string &path) {
   if (path.empty()) {
@@ -36,7 +36,7 @@ std::string RealPath(const std::string &path) {
 
   // PATH_MAX is the system marco，indicate the maximum length for file path
   // pclint check，one param in stack can not exceed 1K bytes
-  char *resoved_path = new(std::nothrow) char[PATH_MAX];
+  char *resoved_path = new (std::nothrow) char[PATH_MAX];
   if (resoved_path == nullptr) {
     FE_LOGI("New resoved_path not successfully.");
     return "";
@@ -46,7 +46,7 @@ std::string RealPath(const std::string &path) {
   std::string res = "";
 
   // path not exists or not allowed to read，return nullptr
-  // path exists and readable, return the resoved path
+  // path exists and readable, return the resolved path
   if (realpath(path.c_str(), resoved_path) != nullptr) {
     res = resoved_path;
   } else {
@@ -77,8 +77,7 @@ Status FcntlLockFile(const std::string &file, int fd, int type, uint32_t recursi
   return SUCCESS;
 }
 
-void LogOpenFileErrMsg(const std::string &file)
-{
+void LogOpenFileErrMsg(const std::string &file) {
   ErrorMessageDetail err_msg(EM_OPEN_FILE_FAILED, {file});
   ReportErrorMessage(err_msg);
 }

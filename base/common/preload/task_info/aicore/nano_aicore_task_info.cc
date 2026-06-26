@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -97,12 +97,12 @@ void GenParamBufDesc(const OpDescPtr &op_desc, const PreTaskInput &pre_task_inpu
   GELOGD("success generate param buf desc.");
 }
 
-void GenerateNanoAiCoreStaticTaskDesc(rtHwtsStaticTaskDesc_t &hwts_static_task_desc,
-                                      const OpDescPtr &op_desc, ModelTaskType task_type) {
+void GenerateNanoAiCoreStaticTaskDesc(rtHwtsStaticTaskDesc_t &hwts_static_task_desc, const OpDescPtr &op_desc,
+                                      ModelTaskType task_type) {
   hwts_static_task_desc.type = static_cast<uint16_t>(NanoTaskDescType::NANO_AI_CORE);
   bool sw_enable = false;
   (void)ge::AttrUtils::GetBool(op_desc, "_slow_context_switch", sw_enable);
-  GELOGD("get attr _slow_context_switch success, sw_enable is [%s]", sw_enable? "true" : "false");
+  GELOGD("get attr _slow_context_switch success, sw_enable is [%s]", sw_enable ? "true" : "false");
   hwts_static_task_desc.sw = sw_enable;
   string switch_buffer_type;
   if (ge::AttrUtils::GetStr(op_desc, "_switch_buffer_type", switch_buffer_type)) {
@@ -110,7 +110,8 @@ void GenerateNanoAiCoreStaticTaskDesc(rtHwtsStaticTaskDesc_t &hwts_static_task_d
     hwts_static_task_desc.uf = static_cast<uint16_t>(switch_buffer_type.compare("UF") == 0 ? 1U : 0U);
   }
 
-  if ((task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX) || (task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO)) {
+  if ((task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX) ||
+      (task_type == ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO)) {
     hwts_static_task_desc.conds = static_cast<uint16_t>(DEFAULT_INFO_VALUE_ONE);
   }
 
@@ -121,7 +122,8 @@ void GenerateNanoAiCoreStaticTaskDesc(rtHwtsStaticTaskDesc_t &hwts_static_task_d
   }
 }
 
-bool PreValidTaskDescInfo(PreTaskResult &result, const OpDescPtr &op_desc, const std::unique_ptr<PreTaskDescInfo> &pre_task_desc_info) {
+bool PreValidTaskDescInfo(PreTaskResult &result, const OpDescPtr &op_desc,
+                          const std::unique_ptr<PreTaskDescInfo> &pre_task_desc_info) {
   if (op_desc == nullptr) {
     result.status = PreTaskStatus::ErrorStatus("op_desc is nullptr.");
     return false;
@@ -133,7 +135,7 @@ bool PreValidTaskDescInfo(PreTaskResult &result, const OpDescPtr &op_desc, const
   }
   return true;
 }
-} // namespace
+}  // namespace
 
 PreTaskResult GenerateNanoAiCoreTask(const domi::TaskDef &task_def, const OpDescPtr &op_desc,
                                      const PreTaskInput &pre_task_input) {

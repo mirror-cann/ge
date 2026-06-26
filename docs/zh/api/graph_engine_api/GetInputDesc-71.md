@@ -83,4 +83,3 @@ TensorDesc GetInputDesc(uint32_t index) const
 ## 约束说明<a name="section51200735"></a>
 
 无。
-

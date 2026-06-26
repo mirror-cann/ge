@@ -80,4 +80,3 @@ TensorDesc GetDynamicInputDesc(const char_t *name, uint32_t index) const
 ## 约束说明<a name="section31719739"></a>
 
 无。
-

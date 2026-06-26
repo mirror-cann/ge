@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -75,7 +75,7 @@ class TestWhereKernel : public Kernel {
 REGISTER_COMPUTE_NODE_KERNEL(WhereDynamic2Static, TestWhereKernel);
 
 class TestWhereKernelAicpu : public Kernel {
-public:
+ public:
   Status Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge::ConstGeTensorPtr> &input,
                  std::vector<ge::GeTensorPtr> &v_output) override {
     auto output = std::make_shared<GeTensor>();
@@ -601,7 +601,7 @@ ComputeGraphPtr BuildWrongGraph7() {
 
   builder.AddDataEdge(data1, 0, add, 0);
   builder.AddDataEdge(data2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -622,7 +622,7 @@ ComputeGraphPtr BuildWrongGraph8() {
 
   builder.AddDataEdge(const1, 0, add, 0);
   builder.AddDataEdge(const2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -652,7 +652,7 @@ ComputeGraphPtr BuildPotentialConstGraph() {
 
   builder.AddDataEdge(shape1, 0, add, 0);
   builder.AddDataEdge(shape2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -679,12 +679,13 @@ ComputeGraphPtr BuildPotentialConstGraph2() {
   ConstantUtils::MarkPotentialConst(shape2->GetOpDesc(), {0}, {tensor});
   auto add = builder.AddNode("add", WrongYes3, 2, 1);
   ConstantUtils::MarkPotentialConst(add->GetOpDesc(), {0}, {tensor});
-  AttrUtils::SetStr(add->GetOpDesc(), "_source_pass_of_potential_const", "ConstantFoldingPass"); // mark potential from constant folding pass
+  AttrUtils::SetStr(add->GetOpDesc(), "_source_pass_of_potential_const",
+                    "ConstantFoldingPass");  // mark potential from constant folding pass
   auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
 
   builder.AddDataEdge(shape1, 0, add, 0);
   builder.AddDataEdge(shape2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -731,7 +732,7 @@ ComputeGraphPtr BuildWhereDynamicGraph() {
 TEST_F(UtestGraphPassesConstantFoldingPass, test_folding_free_attrs) {
   auto graph = BuildGraph1();
   NodePtr constNode = graph->FindNode("const1");
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 3);
@@ -740,7 +741,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, test_folding_free_attrs) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, folding_addn) {
   auto graph = BuildGraph1();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -758,7 +759,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, folding_addn) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, folding_without_one_const) {
   auto graph = BuildGraph2();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -779,7 +780,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, folding_without_one_const) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, folding_with_const_control_edges) {
   auto graph = BuildGraph5();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -798,7 +799,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, folding_with_const_control_edges) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, continues_fold) {
   auto graph = BuildGraph6();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -816,7 +817,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, continues_fold) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, multiple_output) {
   auto graph = BuildGraph7();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -844,7 +845,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, multiple_output) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, not_change1) {
   auto graph = BuildGraph8();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -854,7 +855,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, not_change1) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, not_change2) {
   auto graph = BuildGraph9();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -863,7 +864,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, not_change2) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, folding_size) {
   auto graph = BuildGraph10();
-  names_to_pass.push_back( {"ConstantFoldingPass", new DimensionComputePass});
+  names_to_pass.push_back({"ConstantFoldingPass", new DimensionComputePass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -877,46 +878,46 @@ TEST_F(UtestGraphPassesConstantFoldingPass, folding_size) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely1) {
   auto graph = BuildWrongGraph1();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
 }
 
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely2) {
   auto graph = BuildWrongGraph2();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), INTERNAL_ERROR);
 }
 
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely3) {
   auto graph = BuildWrongGraph3();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), INTERNAL_ERROR);
 }
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely4) {
   auto graph = BuildWrongGraph4();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), INTERNAL_ERROR);
 }
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely5) {
   auto graph = BuildWrongGraph5();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
 }
 TEST_F(UtestGraphPassesConstantFoldingPass, unlikely6) {
   auto graph = BuildWrongGraph6();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
 }
 
 TEST_F(UtestGraphPassesConstantFoldingPass, not_constant_input_ignore_pass) {
   auto graph = BuildWrongGraph7();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 4);
@@ -931,7 +932,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, attr_need_ignore_pass) {
 
 TEST_F(UtestGraphPassesConstantFoldingPass, test_run_mark_potential_const) {
   auto graph = BuildPotentialConstGraph();
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 4);
@@ -951,7 +952,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, test_run_unmark_potential_const) {
   // destructor of constant_folding_pass is invoked automatically
   NamesToPass local_names_to_pass;
   ConstantFoldingPass constant_folding_pass;
-  local_names_to_pass.push_back( {"ConstantFoldingPass", &constant_folding_pass});
+  local_names_to_pass.push_back({"ConstantFoldingPass", &constant_folding_pass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(local_names_to_pass), SUCCESS);
   constant_folding_pass.GetGeConstantFoldingPerfStatistic();
@@ -967,7 +968,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, test_kernel_computed_shape_changed_o
   EXPECT_FALSE(ConstantUtils::IsPotentialConst(where_node->GetOpDesc()));
   auto netoutput_node = graph->FindNode("netoutput");
   EXPECT_EQ(netoutput_node->GetOpDesc()->GetInputDesc(0).GetShape().GetDim(0), -1);
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 3);
@@ -1038,7 +1039,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, test_not_fold) {
   EXPECT_EQ(ret, SUCCESS);
   auto graph = BuildGraph2();
   NodePtr constNode = graph->FindNode("const1");
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 6);
@@ -1048,7 +1049,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, Don_Not_Constat_Folding) {
   auto graph = BuildGraph1();
   auto addn1 = graph->FindNode("addn1");
   (void)AttrUtils::SetBool(addn1->GetOpDesc(), ATTR_NAME_DO_NOT_CONSTANT_FOLDING, true);
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -1060,7 +1061,7 @@ TEST_F(UtestGraphPassesConstantFoldingPass, IgnoreFolding_Ok_OutputShapeIsUnknow
   const auto where_node = graph->FindNode("where");
   ASSERT_NE(where_node, nullptr);
   ASSERT_NE(where_node->GetOpDesc(), nullptr);
-  names_to_pass.push_back( {"ConstantFoldingPass", new ConstantFoldingPass});
+  names_to_pass.push_back({"ConstantFoldingPass", new ConstantFoldingPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 3);

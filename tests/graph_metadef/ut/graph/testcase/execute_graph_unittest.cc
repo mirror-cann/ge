@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -1430,7 +1430,6 @@ TEST_F(UtestExecuteGraph, EdgeAndNodeOwner) {
     }
   }
 
-
   for (int i = 0; i < node_num; ++i) {
     auto &edges = node[i]->GetAllInDataEdgesRef();
     for (auto edge : edges) {
@@ -1494,9 +1493,7 @@ TEST_F(UtestExecuteGraph, GetAllNodes_ok_with_filter) {
   auto graph = ExecuteSharedGraph::BuildGraphWithSubGraph();
   const auto &nodes = graph->GetAllNodes();
   EXPECT_EQ(nodes.size(), 9U);
-  const auto &filter_func = [](const FastNode *node) ->bool {
-    return node->GetType() == "Data";
-  };
+  const auto &filter_func = [](const FastNode *node) -> bool { return node->GetType() == "Data"; };
   const auto &filted_nodes = graph->GetAllNodes(filter_func);
   EXPECT_EQ(filted_nodes.size(), 3U);
 }
@@ -1535,6 +1532,6 @@ TEST_F(UtestExecuteGraph, SortNodes_Order_ok) {
   }
   auto it1 = map_in_edge_num.find(node4);
   EXPECT_NE(it1, map_in_edge_num.end());
-  EXPECT_EQ(it1->second, 7); // 4 data edge + 3 control edge
+  EXPECT_EQ(it1->second, 7);  // 4 data edge + 3 control edge
 }
 }  // namespace ge

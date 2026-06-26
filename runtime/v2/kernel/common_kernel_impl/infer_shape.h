@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,7 @@ enum class CompatibleInferShapeOrRangeInputIndex {
 };
 
 inline ge::graphStatus TransformOutputShape(const ComputeNodeInfo *compute_node_info,
-                                            const CompileTimeTensorDesc *output_td,
-                                            StorageShape *storage_shape) {
+                                            const CompileTimeTensorDesc *output_td, StorageShape *storage_shape) {
   auto expand_dims = output_td->GetExpandDimsType();
   GE_CHK_STATUS_RET(expand_dims.Expand(storage_shape->GetOriginShape(), storage_shape->MutableStorageShape()),
                     "Node %s fail to expand dims.", compute_node_info->GetNodeName());
@@ -63,8 +62,8 @@ inline ge::graphStatus TransformAllOutputsShape(const ComputeNodeInfo *compute_n
     GE_ASSERT_NOTNULL(output_td);
     GE_ASSERT_NOTNULL(storage_shape);
     GE_CHK_STATUS_RET(TransformOutputShape(compute_node_info, output_td, storage_shape),
-                      "Fail to transfer node %s %zu output shape according format.",
-                      compute_node_info->GetNodeName(), index);
+                      "Fail to transfer node %s %zu output shape according format.", compute_node_info->GetNodeName(),
+                      index);
   }
   return ge::GRAPH_SUCCESS;
 }
@@ -85,7 +84,7 @@ inline ge::graphStatus InferCustomOpShapeFromInput(InferShapeContext *context) {
 }
 
 inline ge::graphStatus BuildInferShapeOutputs(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
   GE_ASSERT_NOTNULL(extend_context);
   for (size_t index = 0; index < context->GetOutputNum(); index++) {
@@ -93,33 +92,33 @@ inline ge::graphStatus BuildInferShapeOutputs(const ge::FastNode *node, KernelCo
     GE_ASSERT_NOTNULL(chain);
     auto output_desc = extend_context->GetOutputDesc(index);
     GE_ASSERT_NOTNULL(output_desc);
-    chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
-        output_desc->GetFormat(), output_desc->GetDataType()));
+    chain->SetWithDefaultDeleter(new (std::nothrow)
+                                     Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType()));
   }
   return ge::GRAPH_SUCCESS;
 }
 
 /**
-   * 用于在Kernel Trace中打印输入Shape信息
-   * @param context 执行时context数据
-   * @param input_range_start_index 标识输入shape在context中的起始index
-   * @return 返回输入shape拼接后的字符
-   */
+ * 用于在Kernel Trace中打印输入Shape信息
+ * @param context 执行时context数据
+ * @param input_range_start_index 标识输入shape在context中的起始index
+ * @return 返回输入shape拼接后的字符
+ */
 std::string PrintInputShapeInfo(const KernelContext *const context, const size_t &input_shape_start_index);
 
 /**
-   * 用于在Kernel Trace中打印输出Shape信息
-   * @param context 执行时context数据
-   * @return 返回输出shape拼接后的字符
-   */
+ * 用于在Kernel Trace中打印输出Shape信息
+ * @param context 执行时context数据
+ * @return 返回输出shape拼接后的字符
+ */
 std::string PrintOutputShapeInfo(const KernelContext *const context);
 
 /**
-   * 用于在Kernel Trace中打印结点名字
-   * @param context 执行时context数据
-   * @return 返回节点名
-   */
+ * 用于在Kernel Trace中打印结点名字
+ * @param context 执行时context数据
+ * @return 返回节点名
+ */
 std::string PrintNodeType(const KernelContext *context);
-} // namespace kernel
-} // namespace gert
-#endif // AIR_CXX_RUNTIME_V2_KERNEL_INFER_SHAPE_H_
+}  // namespace kernel
+}  // namespace gert
+#endif  // AIR_CXX_RUNTIME_V2_KERNEL_INFER_SHAPE_H_

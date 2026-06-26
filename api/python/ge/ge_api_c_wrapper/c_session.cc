@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,8 +55,10 @@ class PyCallbackMemBlock : public ge::MemBlock {
  public:
   PyCallbackMemBlock(const std::shared_ptr<PyCallbackAllocator> &owner, void *addr, size_t size, void *py_handle)
       : ge::MemBlock(*owner, addr, size), owner_(owner), py_handle_(py_handle) {}
+
  private:
   std::shared_ptr<PyCallbackAllocator> owner_;
+
  public:
   void *py_handle_;
 };
@@ -231,11 +233,10 @@ Status GeApiWrapper_Session_RegisterDefaultAllocator(const Session *session, con
   return session->RegisterExternalAllocator(stream, allocator);
 }
 
-Status GeApiWrapper_Session_RegisterExternalAllocator(
-    const Session *session, const void *stream,
-    PyMallocFunc malloc_fn, PyFreeFunc free_fn,
-    PyGetAddrFunc get_addr_fn,
-    PyOnDestroyFunc on_destroy_fn, void *prevent_gc_handle) {
+Status GeApiWrapper_Session_RegisterExternalAllocator(const Session *session, const void *stream,
+                                                      PyMallocFunc malloc_fn, PyFreeFunc free_fn,
+                                                      PyGetAddrFunc get_addr_fn, PyOnDestroyFunc on_destroy_fn,
+                                                      void *prevent_gc_handle) {
   GE_ASSERT_NOTNULL(session);
   GE_ASSERT_NOTNULL(stream);
   GE_ASSERT_NOTNULL(malloc_fn);

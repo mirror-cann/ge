@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,10 +33,10 @@ class TransformerTransferShapeUT : public testing::Test {
   void EXPECT_RunTransferShape(const ge::Format &origin_format, const ge::Format &format, const ge::DataType &dtype,
                                const bool &expect_ret, const vector<int64_t> &dims, const vector<int64_t> &expect_dim,
                                bool only_test_first_interface = false) {
-    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format << ", dtype=" << dtype
-              << ", dim size=" << dims.size() << std::endl;
+    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format
+              << ", dtype=" << dtype << ", dim size=" << dims.size() << std::endl;
     ge::GeShape shape(dims);
-    ShapeAndFormat shape_and_format_info {shape, origin_format, format, dtype};
+    ShapeAndFormat shape_and_format_info{shape, origin_format, format, dtype};
     ShapeTransferAccordingToFormat shape_transfer;
     bool ret = shape_transfer.GetShapeAccordingToFormat(shape_and_format_info);
     EXPECT_EQ(ret, expect_ret);
@@ -90,10 +90,10 @@ class TransformerTransferShapeUT : public testing::Test {
                                const ge::DataType &dtype, const bool &expect_ret, const vector<int64_t> &dims,
                                const vector<int64_t> &expect_dim, bool only_test_first_interface = false,
                                const int64_t &m0_val = 16) {
-    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format << ", dtype=" << dtype
-              << ", dim size=" << dims.size() << std::endl;
+    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format
+              << ", dtype=" << dtype << ", dim size=" << dims.size() << std::endl;
     ge::GeShape shape(dims);
-    ShapeAndFormat shape_and_format_info {shape, origin_format, format, dtype};
+    ShapeAndFormat shape_and_format_info{shape, origin_format, format, dtype};
     ShapeTransferAccordingToFormat shape_transfer;
     bool ret = shape_transfer.GetShapeAccordingToFormat(op_desc, shape_and_format_info);
     EXPECT_EQ(ret, expect_ret);
@@ -146,11 +146,12 @@ class TransformerTransferShapeUT : public testing::Test {
     }
   }
 
-  void RunTransferShapeWithExtAxis(const ge::OpDescPtr &op_desc, const ge::Format &origin_format, const ge::Format &format,
-                        const ge::DataType &dtype, const bool &expect_ret, const vector<int64_t> &dims,
-                        const vector<int64_t> &expect_dim, const int64_t &m0_val = 16) {
-    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format << ", dtype=" << dtype
-              << ", dim size=" << dims.size() << ", m0 value=" << m0_val << std::endl;
+  void RunTransferShapeWithExtAxis(const ge::OpDescPtr &op_desc, const ge::Format &origin_format,
+                                   const ge::Format &format, const ge::DataType &dtype, const bool &expect_ret,
+                                   const vector<int64_t> &dims, const vector<int64_t> &expect_dim,
+                                   const int64_t &m0_val = 16) {
+    std::cout << "EXPECT_RunTransferShape: origin_format=" << origin_format << ", format=" << format
+              << ", dtype=" << dtype << ", dim size=" << dims.size() << ", m0 value=" << m0_val << std::endl;
 
     ShapeTransferAccordingToFormat shape_transfer;
     ExtAxisValue ext_axis;
@@ -228,17 +229,27 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nchw) {
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWC0, DT_INT2, true, {512, 1, 5, 5}, {4, 5, 5, 128});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWC0, DT_INT4, true, {512, 1, 5, 5}, {8, 5, 5, 64});
 
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT8, true, {18, 512, 5, 5}, {16, 5, 5, 2, 32, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT8, true, {18, 512, 5, 5},
+                          {16, 5, 5, 2, 32, 32});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT8, true, {18, 512, 5, 5}, {16, 5, 5, 2, 32, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT16, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT16, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT32, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT32, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_FLOAT, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_FLOAT16, true, {18, 512, 5, 5}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT1, true, {18, 512, 5, 5}, {2, 5, 5, 2, 256, 256});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT2, true, {18, 512, 5, 5}, {4, 5, 5, 2, 128, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT2, true, {18, 512, 5, 5}, {4, 5, 5, 2, 128, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT16, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT16, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT32, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT32, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_FLOAT, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_FLOAT16, true, {18, 512, 5, 5},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT1, true, {18, 512, 5, 5},
+                          {2, 5, 5, 2, 256, 256});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_UINT2, true, {18, 512, 5, 5},
+                          {4, 5, 5, 2, 128, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT2, true, {18, 512, 5, 5},
+                          {4, 5, 5, 2, 128, 128});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, DT_INT4, true, {18, 512, 5, 5}, {8, 5, 5, 2, 64, 64});
 
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0_C04, DT_UINT8, true, {8, 512, 5, 5}, {8, 128, 5, 5, 4});
@@ -281,7 +292,8 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nchw) {
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_INT4, true, {48, 3, 5, 5}, {2, 3, 16, 64});
 
   int32_t group = 16;
-  ge::Format target_format = static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
+  ge::Format target_format =
+      static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_UINT8, true, {48, 512, 5, 5}, {6400, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_INT8, true, {48, 512, 5, 5}, {6400, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_UINT16, true, {48, 512, 5, 5}, {12800, 3, 16, 16});
@@ -316,7 +328,8 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nchw_unknow_shape) {
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z, DT_FLOAT16, true, {-1, -1, -1, -1}, {-1, -1, 16, 16});
 
   int32_t group = 16;
-  ge::Format target_format = static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
+  ge::Format target_format =
+      static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_FLOAT16, true, {48, 512, -1, 5}, {-1, 3, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_FLOAT16, true, {-1, 512, 5, 5}, {800, -1, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, target_format, DT_FLOAT16, true, {48, -1, 5, 5}, {-1, 3, 16, 16});
@@ -324,13 +337,18 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nchw_unknow_shape) {
 
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {-1, 3, 5, 5}, {7, -1, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, 5, 5}, {7, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, -1, 5}, {-1, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, 5, -1}, {-1, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, -1, 5},
+                          {-1, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, 5, -1},
+                          {-1, 3, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, 3, -1, 5}, {-1, 3, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, 3, 5, -1}, {-1, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, 3, -1, -1}, {-1, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, -1, -1}, {-1, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {-1, -1, -1, -1}, {-1, -1, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, 3, -1, -1},
+                          {-1, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {48, -1, -1, -1},
+                          {-1, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, DT_FLOAT16, true, {-1, -1, -1, -1},
+                          {-1, -1, 16, 16});
 }
 
 TEST_F(TransformerTransferShapeUT, transfer_shape_from_hwcn) {
@@ -375,17 +393,27 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_hwcn) {
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWC0, DT_INT2, true, {5, 5, 1, 512}, {4, 5, 5, 128});
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWC0, DT_INT4, true, {5, 5, 1, 512}, {8, 5, 5, 64});
 
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT8, true, {5, 5, 512, 18}, {16, 5, 5, 2, 32, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT8, true, {5, 5, 512, 18},
+                          {16, 5, 5, 2, 32, 32});
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT8, true, {5, 5, 512, 18}, {16, 5, 5, 2, 32, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT16, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT16, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT32, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT32, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_FLOAT, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_FLOAT16, true, {5, 5, 512, 18}, {32, 5, 5, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT1, true, {5, 5, 512, 18}, {2, 5, 5, 2, 256, 256});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT2, true, {5, 5, 512, 18}, {4, 5, 5, 2, 128, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT2, true, {5, 5, 512, 18}, {4, 5, 5, 2, 128, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT16, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT16, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT32, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT32, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_FLOAT, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_FLOAT16, true, {5, 5, 512, 18},
+                          {32, 5, 5, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT1, true, {5, 5, 512, 18},
+                          {2, 5, 5, 2, 256, 256});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_UINT2, true, {5, 5, 512, 18},
+                          {4, 5, 5, 2, 128, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT2, true, {5, 5, 512, 18},
+                          {4, 5, 5, 2, 128, 128});
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_C1HWNCoC0, DT_INT4, true, {5, 5, 512, 18}, {8, 5, 5, 2, 64, 64});
 
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0_C04, DT_UINT8, true, {5, 5, 512, 8}, {8, 128, 5, 5, 4});
@@ -415,7 +443,8 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_hwcn) {
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z, DT_INT4, true, {5, 5, 512, 48}, {200, 3, 16, 64});
 
   int32_t group = 16;
-  ge::Format target_format = static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
+  ge::Format target_format =
+      static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z), group));
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, target_format, DT_UINT8, true, {5, 5, 512, 48}, {6400, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, target_format, DT_INT8, true, {5, 5, 512, 48}, {6400, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_HWCN, target_format, DT_UINT16, true, {5, 5, 512, 48}, {12800, 3, 16, 16});
@@ -437,17 +466,28 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_ncdhw) {
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT64, true, {5, 6}, {5, 6});
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT8, true, {5, 6, 7}, {5, 6, 7});
 
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT8, true, {8, 512, 9, 5, 5}, {8, 9, 16, 5, 5, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT8, true, {8, 512, 9, 5, 5}, {8, 9, 16, 5, 5, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT16, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT16, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT32, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT32, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_FLOAT, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_FLOAT16, true, {8, 512, 9, 5, 5}, {8, 9, 32, 5, 5, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT1, true, {8, 512, 9, 5, 5}, {8, 9, 2, 5, 5, 256});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT2, true, {8, 512, 9, 5, 5}, {8, 9, 4, 5, 5, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT2, true, {8, 512, 9, 5, 5}, {8, 9, 4, 5, 5, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT8, true, {8, 512, 9, 5, 5},
+                          {8, 9, 16, 5, 5, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT8, true, {8, 512, 9, 5, 5},
+                          {8, 9, 16, 5, 5, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT16, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT16, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT32, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT32, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_FLOAT, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_FLOAT16, true, {8, 512, 9, 5, 5},
+                          {8, 9, 32, 5, 5, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT1, true, {8, 512, 9, 5, 5},
+                          {8, 9, 2, 5, 5, 256});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_UINT2, true, {8, 512, 9, 5, 5},
+                          {8, 9, 4, 5, 5, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT2, true, {8, 512, 9, 5, 5},
+                          {8, 9, 4, 5, 5, 128});
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, DT_INT4, true, {8, 512, 9, 5, 5}, {8, 9, 8, 5, 5, 64});
 
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_NDHWC, DT_FLOAT16, true, {8, 512, 9, 5, 15}, {8, 9, 5, 15, 512});
@@ -466,34 +506,59 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_ncdhw) {
   EXPECT_RunTransferShape(ge::FORMAT_DHWNC, ge::FORMAT_NDHWC, DT_FLOAT16, true, {8, 512, 9, 5, 15}, {5, 8, 512, 9, 15});
   EXPECT_RunTransferShape(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, DT_FLOAT16, true, {8, 512, 9, 5, 15}, {8, 512, 9, 15, 5});
 
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT8, true, {48, 512, 3, 5, 5}, {1200, 3, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT8, true, {48, 512, 3, 5, 5}, {1200, 3, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT16, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT16, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT32, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT32, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_FLOAT, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_FLOAT16, true, {48, 512, 3, 5, 5}, {2400, 3, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT1, true, {48, 512, 3, 5, 5}, {150, 3, 16, 256});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT2, true, {48, 512, 3, 5, 5}, {300, 3, 16, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT2, true, {48, 512, 3, 5, 5}, {300, 3, 16, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT4, true, {48, 512, 3, 5, 5}, {600, 3, 16, 64});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT8, true, {48, 512, 3, 5, 5},
+                          {1200, 3, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT8, true, {48, 512, 3, 5, 5},
+                          {1200, 3, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT16, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT16, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT32, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT32, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_FLOAT, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_FLOAT16, true, {48, 512, 3, 5, 5},
+                          {2400, 3, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT1, true, {48, 512, 3, 5, 5},
+                          {150, 3, 16, 256});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_UINT2, true, {48, 512, 3, 5, 5},
+                          {300, 3, 16, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT2, true, {48, 512, 3, 5, 5},
+                          {300, 3, 16, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D, DT_INT4, true, {48, 512, 3, 5, 5},
+                          {600, 3, 16, 64});
 
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT8, true, {90, 512, 3, 5, 5}, {450, 16, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT8, true, {90, 512, 3, 5, 5}, {450, 16, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT16, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT16, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT32, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT32, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_FLOAT, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_FLOAT16, true, {90, 512, 3, 5, 5}, {450, 32, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT1, true, {90, 512, 3, 5, 5}, {450, 2, 16, 256});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT2, true, {90, 512, 3, 5, 5}, {450, 4, 16, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT2, true, {90, 512, 3, 5, 5}, {450, 4, 16, 128});
-  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT4, true, {90, 512, 3, 5, 5}, {450, 8, 16, 64});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT8, true, {90, 512, 3, 5, 5},
+                          {450, 16, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT8, true, {90, 512, 3, 5, 5},
+                          {450, 16, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT16, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT16, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT32, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT32, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_FLOAT, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_FLOAT16, true, {90, 512, 3, 5, 5},
+                          {450, 32, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT1, true, {90, 512, 3, 5, 5},
+                          {450, 2, 16, 256});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_UINT2, true, {90, 512, 3, 5, 5},
+                          {450, 4, 16, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT2, true, {90, 512, 3, 5, 5},
+                          {450, 4, 16, 128});
+  EXPECT_RunTransferShape(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE, DT_INT4, true, {90, 512, 3, 5, 5},
+                          {450, 8, 16, 64});
 
   int32_t group = 16;
-  ge::Format target_format = static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z_3D), group));
+  ge::Format target_format =
+      static_cast<ge::Format>(GetFormatFromSub(static_cast<int32_t>(ge::FORMAT_FRACTAL_Z_3D), group));
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, target_format, DT_UINT8, true, {48, 512, 3, 5, 5}, {19200, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, target_format, DT_INT8, true, {48, 512, 3, 5, 5}, {19200, 3, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_NCDHW, target_format, DT_UINT16, true, {48, 512, 3, 5, 5}, {38400, 3, 16, 16});
@@ -535,21 +600,36 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_nz) {
 
   transformer::TransferShapeUtils::m0_list_.fill(1);
   RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {34}, {1, 34, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {34, 1}, {1, 34, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT, true, {18, 34}, {3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT8, true, {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT8, true, {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT16, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT16, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT32, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT32, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT1, true, {1, 18, 134}, {1, 1, 18, 1, 256}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT2, true, {1, 18, 134}, {1, 2, 18, 1, 128}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT2, true, {1, 18, 134}, {1, 2, 18, 1, 128}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT4, true, {1, 18, 134}, {1, 3, 18, 1, 64}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {8, 1000}, {63, 8, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {34, 1}, {1, 34, 1, 16},
+                              1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT, true, {18, 34}, {3, 18, 1, 16},
+                              1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT8, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT8, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT32, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT32, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT1, true, {1, 18, 134},
+                              {1, 1, 18, 1, 256}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_UINT2, true, {1, 18, 134},
+                              {1, 2, 18, 1, 128}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT2, true, {1, 18, 134},
+                              {1, 2, 18, 1, 128}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, DT_INT4, true, {1, 18, 134},
+                              {1, 3, 18, 1, 64}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ, DT_FLOAT16, true, {8, 1000},
+                              {63, 8, 1, 16}, 1);
   transformer::TransferShapeUtils::m0_list_.fill(16);
 }
 
@@ -559,58 +639,52 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_nz_C0_16) {
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true, {18, 34}, {3, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT8, true, {1, 18, 34}, {1, 3, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT8, true, {1, 18, 34}, {1, 3, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT16, true,
-                          {1, 18, 34}, {1, 3, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT16, true, {1, 18, 34}, {1, 3, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT16, true, {1, 18, 34}, {1, 3, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT32, true,
-                          {1, 18, 34}, {1, 3, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT32, true, {1, 18, 34}, {1, 3, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT32, true, {1, 18, 34}, {1, 3, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true, {1, 18, 34}, {1, 3, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true,
-                          {1, 18, 34}, {1, 3, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT1, true,
-                          {1, 18, 134}, {1, 9, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT2, true,
-                          {1, 18, 134}, {1, 9, 2, 16, 16});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT2, true,
-                          {1, 18, 134}, {1, 9, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {1, 18, 34}, {1, 3, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT1, true, {1, 18, 134}, {1, 9, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT2, true, {1, 18, 134}, {1, 9, 2, 16, 16});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT2, true, {1, 18, 134}, {1, 9, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT4, true, {1, 18, 134}, {1, 9, 2, 16, 16});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {-2}, {-2}, true);
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {8, 1000}, {63, 1, 16, 16});
 
   transformer::TransferShapeUtils::m0_list_.fill(1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true,
-                              {34}, {1, 34, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true,
-                              {34, 1}, {1, 34, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true,
-                              {18, 34}, {3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT8, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT8, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT16, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT16, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT32, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT32, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true,
-                              {1, 18, 34}, {1, 3, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT1, true,
-                              {1, 18, 134}, {1, 9, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT2, true,
-                              {1, 18, 134}, {1, 9, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT2, true,
-                              {1, 18, 134}, {1, 9, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT4, true,
-                              {1, 18, 134}, {1, 9, 18, 1, 16}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true,
-                              {8, 1000}, {63, 8, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {34},
+                              {1, 34, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {34, 1},
+                              {1, 34, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true, {18, 34},
+                              {3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT8, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT8, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT32, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT32, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {1, 18, 34},
+                              {1, 3, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT1, true, {1, 18, 134},
+                              {1, 9, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_UINT2, true, {1, 18, 134},
+                              {1, 9, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT2, true, {1, 18, 134},
+                              {1, 9, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_16, DT_INT4, true, {1, 18, 134},
+                              {1, 9, 18, 1, 16}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_16, DT_FLOAT16, true, {8, 1000},
+                              {63, 8, 1, 16}, 1);
   transformer::TransferShapeUtils::m0_list_.fill(16);
 }
 
@@ -620,58 +694,52 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_nz_C0_32) {
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true, {18, 34}, {2, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT8, true, {1, 18, 34}, {1, 2, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT8, true, {1, 18, 34}, {1, 2, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT16, true,
-                          {1, 18, 34}, {1, 2, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT16, true, {1, 18, 34}, {1, 2, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT16, true, {1, 18, 34}, {1, 2, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT32, true,
-                          {1, 18, 34}, {1, 2, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT32, true, {1, 18, 34}, {1, 2, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT32, true, {1, 18, 34}, {1, 2, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true, {1, 18, 34}, {1, 2, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true,
-                          {1, 18, 34}, {1, 2, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT1, true,
-                          {1, 18, 134}, {1, 5, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT2, true,
-                          {1, 18, 134}, {1, 5, 2, 16, 32});
-  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT2, true,
-                          {1, 18, 134}, {1, 5, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {1, 18, 34}, {1, 2, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT1, true, {1, 18, 134}, {1, 5, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT2, true, {1, 18, 134}, {1, 5, 2, 16, 32});
+  EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT2, true, {1, 18, 134}, {1, 5, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT4, true, {1, 18, 134}, {1, 5, 2, 16, 32});
   EXPECT_RunTransferShape(ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {-2}, {-2}, true);
   EXPECT_RunTransferShape(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {8, 1000}, {32, 1, 16, 32});
 
   transformer::TransferShapeUtils::m0_list_.fill(1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true,
-                              {34}, {1, 34, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true,
-                              {34, 1}, {1, 34, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true,
-                              {18, 34}, {2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT8, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT8, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT16, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT16, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT32, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT32, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true,
-                              {1, 18, 34}, {1, 2, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT1, true,
-                              {1, 18, 134}, {1, 5, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT2, true,
-                              {1, 18, 134}, {1, 5, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT2, true,
-                              {1, 18, 134}, {1, 5, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT4, true,
-                              {1, 18, 134}, {1, 5, 18, 1, 32}, 1);
-  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true,
-                              {8, 1000}, {32, 8, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {34},
+                              {1, 34, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {34, 1},
+                              {1, 34, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true, {18, 34},
+                              {2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT8, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT8, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT16, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT16, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT32, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT32, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {1, 18, 34},
+                              {1, 2, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT1, true, {1, 18, 134},
+                              {1, 5, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_UINT2, true, {1, 18, 134},
+                              {1, 5, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT2, true, {1, 18, 134},
+                              {1, 5, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ_C0_32, DT_INT4, true, {1, 18, 134},
+                              {1, 5, 18, 1, 32}, 1);
+  RunTransferShapeWithExtAxis(nullptr, ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_NZ_C0_32, DT_FLOAT16, true, {8, 1000},
+                              {32, 8, 1, 32}, 1);
   transformer::TransferShapeUtils::m0_list_.fill(16);
   transformer::TransferShapeUtils::GetC0Value(DT_FLOAT, ge::FORMAT_FRACTAL_NZ_C0_2);
   transformer::TransferShapeUtils::GetC0Value(DT_FLOAT, ge::FORMAT_FRACTAL_NZ_C0_8);
@@ -731,35 +799,47 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_zn_rnn) {
   (void)ge::AttrUtils::SetInt(op_desc, "hidden_size", 40);
   (void)ge::AttrUtils::SetInt(op_desc, "state_size", -1);
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {128}, {128});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {70, 128}, {5, 9, 16, 16});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {70, 128}, {5, 3, 16, 256});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {70, 128}, {5, 3, 16, 128});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {70, 128},
+                          {5, 9, 16, 16});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {70, 128},
+                          {5, 3, 16, 256});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {70, 128},
+                          {5, 3, 16, 128});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {70, 128}, {5, 3, 16, 64});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {70, 128}, {5, 6, 16, 32});
 
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {9, 40, 128},
-                   {9, 3, 9, 16, 16});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {9, 40, 128}, {9, 3, 3, 16, 256});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {9, 40, 128}, {9, 3, 3, 16, 128});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {9, 40, 128}, {9, 3, 3, 16, 64});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {9, 40, 128}, {9, 3, 6, 16, 32});
+                          {9, 3, 9, 16, 16});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {9, 40, 128},
+                          {9, 3, 3, 16, 256});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {9, 40, 128},
+                          {9, 3, 3, 16, 128});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {9, 40, 128},
+                          {9, 3, 3, 16, 64});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {9, 40, 128},
+                          {9, 3, 6, 16, 32});
 
   (void)ge::AttrUtils::SetInt(op_desc, "state_size", 70);
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {128}, {128});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {70, 128}, {5, 9, 16, 16});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {70, 128}, {5, 3, 16, 256});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {70, 128}, {5, 3, 16, 128});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {70, 128},
+                          {5, 9, 16, 16});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {70, 128},
+                          {5, 3, 16, 256});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {70, 128},
+                          {5, 3, 16, 128});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {70, 128}, {5, 3, 16, 64});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {70, 128}, {5, 6, 16, 32});
 
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_FLOAT16, true, {9, 100, 128},
-                   {9, 7, 9, 16, 16});
+                          {9, 7, 9, 16, 16});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT1, true, {9, 100, 128},
-                   {9, 7, 3, 16, 256});
+                          {9, 7, 3, 16, 256});
   EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_UINT2, true, {9, 100, 128},
-                   {9, 7, 3, 16, 128});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {9, 100, 128}, {9, 7, 3, 16, 64});
-  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {9, 100, 128}, {9, 7, 6, 16, 32});
+                          {9, 7, 3, 16, 128});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT4, true, {9, 100, 128},
+                          {9, 7, 3, 16, 64});
+  EXPECT_RunTransferShape(op_desc, ge::FORMAT_ND, ge::FORMAT_FRACTAL_ZN_RNN, DT_INT8, true, {9, 100, 128},
+                          {9, 7, 6, 16, 32});
 }
 
 TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_nd_rnn_bias) {
@@ -790,22 +870,22 @@ TEST_F(TransformerTransferShapeUT, transfer_shape_from_nd_to_nd_rnn_bias) {
 }
 
 TEST_F(TransformerTransferShapeUT, transfer_shape_from_nyuva) {
-    ShapeTransferAccordingToFormat shape_transfer;
-    gert::Shape current_shape;
-    vector<int64_t> dims = {42, 63, 3};
-    vector<int64_t> expect_dim = {48, 64, 3};
-    for (const int64_t &d : dims) {
-      current_shape.AppendDim(d);
+  ShapeTransferAccordingToFormat shape_transfer;
+  gert::Shape current_shape;
+  vector<int64_t> dims = {42, 63, 3};
+  vector<int64_t> expect_dim = {48, 64, 3};
+  for (const int64_t &d : dims) {
+    current_shape.AppendDim(d);
+  }
+  bool ret = shape_transfer.TransferShape(ge::FORMAT_NYUV, ge::FORMAT_NYUV_A, DT_INT8, current_shape);
+  EXPECT_EQ(ret, true);
+  if (ret) {
+    vector<int64_t> new_dim;
+    for (size_t i = 0; i < current_shape.GetDimNum(); ++i) {
+      new_dim.push_back(current_shape.GetDim(i));
     }
-    bool ret = shape_transfer.TransferShape(ge::FORMAT_NYUV, ge::FORMAT_NYUV_A, DT_INT8, current_shape);
-    EXPECT_EQ(ret, true);
-    if (ret) {
-      vector<int64_t> new_dim;
-      for (size_t i = 0; i < current_shape.GetDimNum(); ++i) {
-        new_dim.push_back(current_shape.GetDim(i));
-      }
-      EXPECT_EQ(new_dim, expect_dim);
-    }
+    EXPECT_EQ(new_dim, expect_dim);
+  }
 }
 
 TEST_F(TransformerTransferShapeUT, get_aligned_shape_and_transfer_dim_1) {
@@ -1072,7 +1152,7 @@ TEST_F(TransformerTransferShapeUT, get_aligned_shape_and_transfer_dim_13) {
   transformer::AxisIndexMapping axis_index_mapping;
   ret = transformer::TransferShapeUtils::TransferDims(transfor_dims_info, axis_index_mapping);
   EXPECT_EQ(ret, true);
-  std::vector<std::vector<int32_t>> tmp1 = {{0},{1, 2}};
+  std::vector<std::vector<int32_t>> tmp1 = {{0}, {1, 2}};
   std::vector<std::vector<int32_t>> tmp2 = {{-1, 0, -1}, {1}, {1}, {-1}};
   EXPECT_EQ(axis_index_mapping.src_to_dst_transfer_dims, tmp1);
   EXPECT_EQ(axis_index_mapping.dst_to_src_transfer_dims, tmp2);
@@ -1093,4 +1173,4 @@ TEST_F(TransformerTransferShapeUT, get_aligned_shape_and_transfer_dim_13) {
 //   gert::Shape shape_2 = {3, 4, 5, 6};
 //   shape_transfer_ext.TransferShape(ge::FORMAT_ND, ge::FORMAT_ND, DT_INT8, shape_1, shape_2, op_value);
 // }
-}  // namespace ge
+}  // namespace transformer

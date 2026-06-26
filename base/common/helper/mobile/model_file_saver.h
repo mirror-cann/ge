@@ -21,23 +21,19 @@
 namespace ge {
 
 class ModelFileSaver {
-public:
-    ModelFileSaver() = default;
+ public:
+  ModelFileSaver() = default;
 
-    ~ModelFileSaver() = default;
+  ~ModelFileSaver() = default;
 
-public:
-    Status SaveCompiledModelToFile(
-        std::shared_ptr<CompiledModel> model,
-        const char* output_model_file,
-        const char* output_weight_dir,
-        bool save_weights_as_external_data = false) const;
+ public:
+  Status SaveCompiledModelToFile(std::shared_ptr<CompiledModel> model, const char *output_model_file,
+                                 const char *output_weight_dir, bool save_weights_as_external_data = false) const;
 
-    Status SaveWeightBufferToFile(
-        const char* output_weight_dir,
-        const std::map<std::string, ge::BaseBuffer>& weights_list_external) const;
+  Status SaveWeightBufferToFile(const char *output_weight_dir,
+                                const std::map<std::string, ge::BaseBuffer> &weights_list_external) const;
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_MODEL_FILE_SAVER_H
+#endif  // BASE_COMMON_HELPER_MOBILE_MODEL_FILE_SAVER_H

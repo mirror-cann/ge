@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ Status CpuSchedEventDispatcher::Initialize(int32_t device_id, bool host_exec_fla
   const std::string kHostAicpu = "libhost_aicpu_scheduler.so";
   const std::string aicpu_so_name = host_exec_flag_ ? kHostAicpu : kAicpu;
   aicpu_handle_ = mmDlopen(aicpu_so_name.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-      static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+                                                                       static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
   if (aicpu_handle_ == nullptr) {
     GELOGW("Dispatcher dlopen %s failed with error %s.", aicpu_so_name.c_str(), mmDlerror());
     return SUCCESS;
@@ -53,7 +53,7 @@ Status CpuSchedEventDispatcher::Initialize(int32_t device_id, bool host_exec_fla
   init_param.profilingMode = PROFILING_CLOSE;
   const std::string kInitFunc = "InitCpuScheduler";
   const auto init_func =
-      reinterpret_cast<int32_t (*)(const CpuSchedInitParam * const)>(mmDlsym(aicpu_handle_, kInitFunc.c_str()));
+      reinterpret_cast<int32_t (*)(const CpuSchedInitParam *const)>(mmDlsym(aicpu_handle_, kInitFunc.c_str()));
   GE_CHECK_NOTNULL(init_func);
   auto ret = init_func(&init_param);
   GE_CHK_BOOL_RET_STATUS(ret == 0, FAILED, "Failed to invoke InitHostAICPUScheduler, ret = %d", ret);
@@ -82,8 +82,8 @@ Status CpuSchedEventDispatcher::OnInputsReady(rtEschedEventSummary_t &in_event) 
   }
 
   auto callback = [model_id, this](Status status, void *req_mbuf, void *resp_mbuf) {
-    (void) req_mbuf;
-    (void) resp_mbuf;
+    (void)req_mbuf;
+    (void)resp_mbuf;
     OnModelExecuted(model_id, status);
     if (status != SUCCESS) {
       GELOGE(FAILED, "Execute model failed, model_id = %u", model_id);
@@ -111,8 +111,8 @@ void CpuSchedEventDispatcher::ProcessEvents() {
       continue;
     }
     if (ret != RT_ERROR_NONE) {
-      GELOGE(RT_FAILED, "Failed to invoke rtEschedWaitEvent, device_id = %d, group_id = %u, ret = 0x%X",
-             device_id_, event_group_id_, ret);
+      GELOGE(RT_FAILED, "Failed to invoke rtEschedWaitEvent, device_id = %d, group_id = %u, ret = 0x%X", device_id_,
+             event_group_id_, ret);
       running_ = false;
       return;
     }
@@ -130,7 +130,7 @@ void CpuSchedEventDispatcher::ProcessEvents() {
 
 Status CpuSchedEventDispatcher::OnModelExecuted(uint32_t model_id, Status status) const {
   // notify aicpu-sd
-  (void) model_id;
+  (void)model_id;
   GELOGD("Notify model execution ended, model_id = %u, status = %u.", model_id, status);
   AICPUSubEventInfo sub_event_info{};
   sub_event_info.modelId = model_id;
@@ -139,7 +139,7 @@ Status CpuSchedEventDispatcher::OnModelExecuted(uint32_t model_id, Status status
   rtEschedEventSummary_t event_info{};
   event_info.eventId = RT_EVENT_AICPU_MSG;
   event_info.pid = aicpu_sd_pid_;
-  event_info.grpId = 0U;  // aicpu event group
+  event_info.grpId = 0U;                             // aicpu event group
   event_info.subeventId = kAiCpuSubEventIdEndGraph;  // AICPU_SUB_EVENT_END_GRAPH
   event_info.msg = reinterpret_cast<char_t *>(&sub_event_info);
   event_info.msgLen = sizeof(sub_event_info);
@@ -147,8 +147,8 @@ Status CpuSchedEventDispatcher::OnModelExecuted(uint32_t model_id, Status status
     event_info.dstEngine = static_cast<uint32_t>(RT_MQ_DST_ENGINE_CCPU_HOST);
   }
 
-  GE_CHK_STATUS_RET(RtsApiUtils::EschedSubmitEvent(device_id_, event_info),
-                    "[Send][Event] failed, device_id = %d", device_id_);
+  GE_CHK_STATUS_RET(RtsApiUtils::EschedSubmitEvent(device_id_, event_info), "[Send][Event] failed, device_id = %d",
+                    device_id_);
   GELOGD("[Send][Event] succeeded, device_id = %d", device_id_);
   return SUCCESS;
 }
@@ -161,13 +161,12 @@ void CpuSchedEventDispatcher::Finalize() {
 
   if (aicpu_handle_ != nullptr) {
     const std::string kStopFunc = "StopCPUScheduler";
-    const auto stop_func =
-        reinterpret_cast<int32_t (*)(const uint32_t deviceId,
-                                     const pid_t hostPid)>(mmDlsym(aicpu_handle_, kStopFunc.c_str()));
+    const auto stop_func = reinterpret_cast<int32_t (*)(const uint32_t deviceId, const pid_t hostPid)>(
+        mmDlsym(aicpu_handle_, kStopFunc.c_str()));
     if (stop_func != nullptr) {
-      (void) stop_func(device_id_, aicpu_sd_pid_);
+      (void)stop_func(device_id_, aicpu_sd_pid_);
     }
-    (void) mmDlclose(aicpu_handle_);
+    (void)mmDlclose(aicpu_handle_);
     aicpu_handle_ = nullptr;
   }
 }

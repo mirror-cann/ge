@@ -41,8 +41,8 @@ bool CanRemoveAllControlEdges(const NodePtr &const_node) {
     return false;
   }
   // 检查每个数据输出节点是否都以所有控制边输入源为数据输入
-  for (const auto &data_out_node: const_node->GetOutDataNodes()) {
-    for (const auto &ctrl_src: ctrl_srcs) {
+  for (const auto &data_out_node : const_node->GetOutDataNodes()) {
+    for (const auto &ctrl_src : ctrl_srcs) {
       if (!IsCtrlSrcDataInputTo(ctrl_src, data_out_node)) {
         GELOGD("Cannot remove control edges: data output node %s does not have ctrl_src %s as data input",
                data_out_node->GetNamePtr(), ctrl_src->GetNamePtr());
@@ -57,21 +57,20 @@ bool CanRemoveAllControlEdges(const NodePtr &const_node) {
 // 移除单个 Const 节点的所有冗余控制边
 graphStatus RemoveRedundantControlEdges(const NodePtr &const_node, bool &changed) {
   if (!CanRemoveAllControlEdges(const_node)) {
-    return GRAPH_SUCCESS; // 不满足条件不算错误
+    return GRAPH_SUCCESS;  // 不满足条件不算错误
   }
 
   const auto &out_nodes = const_node->GetOutDataNodes();
   std::vector<NodePtr> ctrl_srcs_to_remove;
-  for (const auto &ctrl_src_node: const_node->GetInControlNodes()) {
+  for (const auto &ctrl_src_node : const_node->GetInControlNodes()) {
     ctrl_srcs_to_remove.push_back(ctrl_src_node);
   }
   // 删除所有控制边
-  for (const auto &ctrl_src_node: ctrl_srcs_to_remove) {
-    auto ret = GraphUtils::RemoveEdge(ctrl_src_node->GetOutControlAnchor(),
-                                      const_node->GetInControlAnchor());
+  for (const auto &ctrl_src_node : ctrl_srcs_to_remove) {
+    auto ret = GraphUtils::RemoveEdge(ctrl_src_node->GetOutControlAnchor(), const_node->GetInControlAnchor());
     if (ret != GRAPH_SUCCESS) {
-      GELOGE(GRAPH_FAILED, "Failed to remove control edge from %s to %s",
-             ctrl_src_node->GetNamePtr(), const_node->GetNamePtr());
+      GELOGE(GRAPH_FAILED, "Failed to remove control edge from %s to %s", ctrl_src_node->GetNamePtr(),
+             const_node->GetNamePtr());
       return ret;
     }
     GELOGI("Removed redundant control edge: %s -ctrl-> %s (all %zu outputs contain all ctrl inputs)",
@@ -80,15 +79,14 @@ graphStatus RemoveRedundantControlEdges(const NodePtr &const_node, bool &changed
   changed = true;
   return GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 graphStatus RedundantControlEdgeRemovePass::Run(const ComputeGraphPtr &graph, bool &changed) const {
   GE_ASSERT_NOTNULL(graph);
 
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     GE_ASSERT_NOTNULL(node);
-    if (!IsConstNode(node) || !HasIncomingControlEdges(node) ||
-        node->GetOutDataNodesSize() == 0UL) {
+    if (!IsConstNode(node) || !HasIncomingControlEdges(node) || node->GetOutDataNodesSize() == 0UL) {
       continue;
     }
     GE_ASSERT_SUCCESS(RemoveRedundantControlEdges(node, changed), "Failed to remove control edges for node: %s",
@@ -97,4 +95,4 @@ graphStatus RedundantControlEdgeRemovePass::Run(const ComputeGraphPtr &graph, bo
 
   return GRAPH_SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

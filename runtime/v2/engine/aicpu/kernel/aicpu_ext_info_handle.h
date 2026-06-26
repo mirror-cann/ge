@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,7 @@ class AicpuExtInfoHandler {
  public:
   AicpuExtInfoHandler(const std::string &node_name, const uint32_t input_num, const uint32_t output_num,
                       const ge::UnknowShapeOpType unknown_type)
-      : node_name_(node_name), input_num_(input_num), output_num_(output_num), unknown_type_(unknown_type) {
-  }
+      : node_name_(node_name), input_num_(input_num), output_num_(output_num), unknown_type_(unknown_type) {}
 
   ~AicpuExtInfoHandler() = default;
 
@@ -46,7 +45,7 @@ class AicpuExtInfoHandler {
   uint32_t GetOutputNum() const {
     return output_num_;
   }
-  WorkSpaceInfo* GetWorkSpaceInfo() const {
+  WorkSpaceInfo *GetWorkSpaceInfo() const {
     return workspace_info_;
   }
 
@@ -66,8 +65,12 @@ class AicpuExtInfoHandler {
   ge::Status CopyH2D(const rtStream_t stream);
   ge::Status CopyOutputShapeForThirdOp();
 
-  int32_t GetDeployTypeFlag() const { return deploy_type_flag_; }
-  uint32_t GeQosLevelFlag() const { return qos_level_flag_; }
+  int32_t GetDeployTypeFlag() const {
+    return deploy_type_flag_;
+  }
+  uint32_t GeQosLevelFlag() const {
+    return qos_level_flag_;
+  }
 
  private:
   ge::Status ParseExtShapeType(AicpuExtInfo &aicpu_ext_info) const;
@@ -115,4 +118,4 @@ class AicpuExtInfoHandler {
   size_t output_shape_len_ = 0U;
 };
 }  // namespace gert
-#endif // AIR_CXX_RUNTIME_V2_KERNEL_LAUNCH_KERNEL_AICPU_AICPU_EXT_INFO_H_
+#endif  // AIR_CXX_RUNTIME_V2_KERNEL_LAUNCH_KERNEL_AICPU_AICPU_EXT_INFO_H_

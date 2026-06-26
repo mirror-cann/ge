@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,13 +27,14 @@ namespace formats {
 namespace {
 const size_t kDimDValueBNdFNz = 2U;  // dim d-value between Nd and FractalZz
 
-
 const size_t kFNzDimCountBackwardsW0 = 1U;
 const size_t kFNzDimCountBackwardsW0H0 = 2U;
 const size_t kFNzDimCountBackwardsW0H0H1 = 3U;
 const size_t kFNzDimCountBackwardsW0H0H1W1 = 4U;
 
-bool IsDataTypeSupportForTransShapeToFracNz(const DataType data_type) { return GetSizeByDataType(data_type) > 0; }
+bool IsDataTypeSupportForTransShapeToFracNz(const DataType data_type) {
+  return GetSizeByDataType(data_type) > 0;
+}
 
 using ShapeVector = std::vector<int64_t>;
 bool CheckShapeForTransShapeToFracNz(const Format format, const ShapeVector &shape) {
@@ -77,10 +78,8 @@ Status TransShapeToFracNz(const ShapeVector &src_shape, const int64_t &w0, Shape
     hw_shape.push_back(DIM_DEFAULT_VALUE);
     hw_shape.push_back(src_shape[static_cast<size_t>(kNhwcN)]);
     if (!IsShapeValid(dst_shape)) {
-      GELOGE(ACL_ERROR_GE_SHAPE_INVALID, "[Check][DSTShape]Failed, dst shape %s",
-             ShapeToString(dst_shape).c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Failed to check dst shape %s",
-                        ShapeToString(dst_shape).c_str());
+      GELOGE(ACL_ERROR_GE_SHAPE_INVALID, "[Check][DSTShape]Failed, dst shape %s", ShapeToString(dst_shape).c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Failed to check dst shape %s", ShapeToString(dst_shape).c_str());
       return ACL_ERROR_GE_SHAPE_INVALID;
     }
   } else {
@@ -100,10 +99,8 @@ Status TransShapeToFracNz(const ShapeVector &src_shape, const int64_t &w0, Shape
     hw_shape.push_back(src_shape[size - num_dims_backwards_wh]);
     hw_shape.push_back(src_shape[size - num_dims_backwards_w]);
     if (!IsShapeValid(dst_shape)) {
-      GELOGE(ACL_ERROR_GE_SHAPE_INVALID, "[Check][DSTShape]Failed, dst shape %s",
-             ShapeToString(dst_shape).c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Failed to check dst shape %s",
-                        ShapeToString(dst_shape).c_str());
+      GELOGE(ACL_ERROR_GE_SHAPE_INVALID, "[Check][DSTShape]Failed, dst shape %s", ShapeToString(dst_shape).c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Failed to check dst shape %s", ShapeToString(dst_shape).c_str());
       return ACL_ERROR_GE_SHAPE_INVALID;
     }
   }
@@ -114,12 +111,12 @@ Status CheckShapeRelationForTransShapeToFracNz(const TransArgs &args, ShapeVecto
   ShapeVector expect_src_shape;
   const auto ret = TransShapeToFracNz(args.dst_shape, args.src_c0_format, expect_src_shape, hw_shape);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Transfer][ShapeToFracNz]Failed, shape from %s to %s, shape %s to %s, "
-           "data type %s, error_code:%u", TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-           TypeUtils::FormatToSerialString(args.src_format).c_str(),
-           ShapeToString(args.dst_shape).c_str(),
-           ShapeToString(args.src_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str(), ret);
+    GELOGE(ret,
+           "[Transfer][ShapeToFracNz]Failed, shape from %s to %s, shape %s to %s, "
+           "data type %s, error_code:%u",
+           TypeUtils::FormatToSerialString(args.dst_format).c_str(),
+           TypeUtils::FormatToSerialString(args.src_format).c_str(), ShapeToString(args.dst_shape).c_str(),
+           ShapeToString(args.src_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str(), ret);
     return ret;
   }
   if (!IsTransShapeSrcCorrect(args, expect_src_shape)) {
@@ -138,14 +135,17 @@ Status TransFormatFromNdToFracNz(const TransArgs &args, TransResult &result, con
 
   const std::shared_ptr<uint8_t> dst(new (std::nothrow) uint8_t[dst_size](), std::default_delete<uint8_t[]>());
   if (dst == nullptr) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Allocate][DSTMemory]Failed to allocate memory "
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "[Allocate][DSTMemory]Failed to allocate memory "
            "for dst buf %" PRId64 " when trans format from %s to %s",
            dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
            TypeUtils::FormatToSerialString(args.dst_format).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Failed to allocate memory for dst buf %" PRId64 " "
-                      "trans format from %s to %s",
-                      dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                      TypeUtils::FormatToSerialString(args.dst_format).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to allocate memory for dst buf %" PRId64
+                         " "
+                         "trans format from %s to %s",
+                         dst_size, TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str());
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
 
@@ -174,16 +174,20 @@ Status TransFormatFromNdToFracNz(const TransArgs &args, TransResult &result, con
       for (int64_t w1_idx = 0; w1_idx < num_w1; w1_idx++) {
         const auto dst_offset = (h1h0_head + (w1_idx * h1h0w0)) * size;
         const auto src_offset = (src_h_head + (w1_idx * w0)) * size;
-        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN)) ?
-                                    (dst_size - dst_offset) : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
+                                        ? (dst_size - dst_offset)
+                                        : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
         GE_CHECK_GE(protected_size, 0);
         const auto ret = memcpy_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), args.data + src_offset,
                                   static_cast<size_t>(size) * static_cast<size_t>(w0));
         if (ret != EOK) {
-          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,"[Operate][DSTMemory]Failed at offset %" PRId64 ", "
-                 "error-code %d", dst_offset, ret);
+          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+                 "[Operate][DSTMemory]Failed at offset %" PRId64
+                 ", "
+                 "error-code %d",
+                 dst_offset, ret);
           REPORT_INNER_ERR_MSG("E19999", "Failed to operate dst memory at offset %" PRId64 ", error-code %d",
-                            dst_offset, ret);
+                               dst_offset, ret);
           return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
         }
       }
@@ -192,16 +196,20 @@ Status TransFormatFromNdToFracNz(const TransArgs &args, TransResult &result, con
         const auto src_w_idx = w1_head + w0_idx;
         const auto dst_offset = (h1h0_head + (num_w1 * h1h0w0) + w0_idx) * size;
         const auto src_offset = (src_h_head + src_w_idx) * size;
-        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN)) ?
-                                    (dst_size - dst_offset) : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
+                                        ? (dst_size - dst_offset)
+                                        : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
         GE_CHECK_GE(protected_size, 0);
         const auto ret = memcpy_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), args.data + src_offset,
                                   static_cast<size_t>(size));
         if (ret != EOK) {
-          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,"[Operate][DSTMemory]Failed at offset %" PRId64 ", "
-                 "error-code %d", dst_offset, ret);
+          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+                 "[Operate][DSTMemory]Failed at offset %" PRId64
+                 ", "
+                 "error-code %d",
+                 dst_offset, ret);
           REPORT_INNER_ERR_MSG("E19999", "Failed to operate dst memory at offset %" PRId64 ", error-code %d",
-                            dst_offset, ret);
+                               dst_offset, ret);
           return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
         }
       }
@@ -222,14 +230,16 @@ Status TransFormatFromFracNzToNd(const TransArgs &args, TransResult &result, con
 
   const std::shared_ptr<uint8_t> dst(new (std::nothrow) uint8_t[dst_size], std::default_delete<uint8_t[]>());
   if (dst == nullptr) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Allocate][DSTMemory]Failed to trans format "
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "[Allocate][DSTMemory]Failed to trans format "
            "from %s to %s, memory for dst buf %" PRId64 "",
            TypeUtils::FormatToSerialString(args.src_format).c_str(),
            TypeUtils::FormatToSerialString(args.dst_format).c_str(), dst_size);
-    REPORT_INNER_ERR_MSG("E19999", "Failed to trans format from %s to %s and allocate memory "
-                      "for dst buf %" PRId64 "",
-                      TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                      TypeUtils::FormatToSerialString(args.dst_format).c_str(), dst_size);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Failed to trans format from %s to %s and allocate memory "
+                         "for dst buf %" PRId64 "",
+                         TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str(), dst_size);
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
 
@@ -257,17 +267,20 @@ Status TransFormatFromFracNzToNd(const TransArgs &args, TransResult &result, con
       for (int64_t w1_idx = 0; w1_idx < num_w1; w1_idx++) {
         const auto src_offset = (h1h0_head + (w1_idx * h1h0w0)) * size;
         const auto dst_offset = (dst_h_head + (w1_idx * w0)) * size;
-        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN)) ?
-                                    (dst_size - dst_offset) : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
+                                        ? (dst_size - dst_offset)
+                                        : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
         GE_CHECK_GE(protected_size, 0);
         const auto ret = memcpy_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), args.data + src_offset,
                                   (static_cast<size_t>(size) * static_cast<size_t>(w0)));
         if (ret != EOK) {
-          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Operate][DSTMemory]Failed at offset %" PRId64 ", "
+          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+                 "[Operate][DSTMemory]Failed at offset %" PRId64
+                 ", "
                  "error-code %d",
                  dst_offset, ret);
           REPORT_INNER_ERR_MSG("E19999", "Failed to operate dst memory at offset %" PRId64 ", error-code %d",
-                            dst_offset, ret);
+                               dst_offset, ret);
           return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
         }
       }
@@ -276,17 +289,23 @@ Status TransFormatFromFracNzToNd(const TransArgs &args, TransResult &result, con
         const auto dst_w_idx = w1_head + w0_idx;
         const auto src_offset = (h1h0_head + (num_w1 * h1h0w0) + w0_idx) * size;
         const auto dst_offset = (dst_h_head + dst_w_idx) * size;
-        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN)) ?
-                                    (dst_size - dst_offset) : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
+                                        ? (dst_size - dst_offset)
+                                        : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
         GE_CHECK_GE(protected_size, 0);
         const auto ret = memcpy_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), args.data + src_offset,
                                   static_cast<size_t>(size));
         if (ret != EOK) {
-          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Operate][DSTMemory]Failed at offset %" PRId64 ", "
+          GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+                 "[Operate][DSTMemory]Failed at offset %" PRId64
+                 ", "
                  "error-code %d",
                  dst_offset, ret);
-          REPORT_INNER_ERR_MSG("E19999", "Failed to operate dst memory at offset %" PRId64 ", "
-			    "error-code %d", dst_offset, ret);
+          REPORT_INNER_ERR_MSG("E19999",
+                               "Failed to operate dst memory at offset %" PRId64
+                               ", "
+                               "error-code %d",
+                               dst_offset, ret);
           return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
         }
       }
@@ -304,17 +323,15 @@ Status FormatTransferFractalNz::TransFormat(const TransArgs &args, TransResult &
            "[Check][Datatype]Failed, trans format from %s to %s, src shape %s, dst shape %s, "
            "data type %s is not supported",
            TypeUtils::FormatToSerialString(args.src_format).c_str(),
-           TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-           ShapeToString(args.src_shape).c_str(),
-           ShapeToString(args.dst_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check datatype failed, trans format from %s to %s, src shape %s, "
-                       "dst shape %s, data type %s is not supported",
-                       TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                       TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-                       ShapeToString(args.src_shape).c_str(),
-                       ShapeToString(args.dst_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+           TypeUtils::FormatToSerialString(args.dst_format).c_str(), ShapeToString(args.src_shape).c_str(),
+           ShapeToString(args.dst_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check datatype failed, trans format from %s to %s, src shape %s, "
+                         "dst shape %s, data type %s is not supported",
+                         TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str(),
+                         ShapeToString(args.src_shape).c_str(), ShapeToString(args.dst_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
     return ACL_ERROR_GE_DATATYPE_INVALID;
   }
   if ((!CheckShapeForTransShapeToFracNz(args.src_primary_format, args.src_shape)) || (!IsShapeValid(args.dst_shape))) {
@@ -322,17 +339,15 @@ Status FormatTransferFractalNz::TransFormat(const TransArgs &args, TransResult &
            "[Check][Shape]Failed, trans format from %s to %s, "
            "src shape %s, dst shape %s, data type %s is not supported",
            TypeUtils::FormatToSerialString(args.src_primary_format).c_str(),
-           TypeUtils::FormatToSerialString(args.dst_primary_format).c_str(),
-           ShapeToString(args.src_shape).c_str(),
-           ShapeToString(args.dst_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check shape failed, trans format from %s to %s, "
-                       "src shape %s, dst shape %s, data type %s is not supported",
-                       TypeUtils::FormatToSerialString(args.src_primary_format).c_str(),
-                       TypeUtils::FormatToSerialString(args.dst_primary_format).c_str(),
-                       ShapeToString(args.src_shape).c_str(),
-                       ShapeToString(args.dst_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+           TypeUtils::FormatToSerialString(args.dst_primary_format).c_str(), ShapeToString(args.src_shape).c_str(),
+           ShapeToString(args.dst_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check shape failed, trans format from %s to %s, "
+                         "src shape %s, dst shape %s, data type %s is not supported",
+                         TypeUtils::FormatToSerialString(args.src_primary_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_primary_format).c_str(),
+                         ShapeToString(args.src_shape).c_str(), ShapeToString(args.dst_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
     return ACL_ERROR_GE_SHAPE_INVALID;
   }
   GELOGD("Begin to trans format from %s to %s, src shape %s, dst shape %s, data type %s",
@@ -362,15 +377,14 @@ Status FormatTransferFractalNz::TransShape(const Format src_format, const std::v
            "[Check][Datatype]Failed, trans format from %s to %s, src shape %s, "
            "data type %s is not supported",
            TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-           TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-           ShapeToString(src_shape).c_str(),
+           TypeUtils::FormatToSerialString(dst_primary_format).c_str(), ShapeToString(src_shape).c_str(),
            TypeUtils::DataTypeToSerialString(data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check datatype failed, trans format from %s to %s, src shape %s, "
-                       "data type %s is not supported",
-                       TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-                       TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-                       ShapeToString(src_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check datatype failed, trans format from %s to %s, src shape %s, "
+                         "data type %s is not supported",
+                         TypeUtils::FormatToSerialString(src_primary_format).c_str(),
+                         TypeUtils::FormatToSerialString(dst_primary_format).c_str(), ShapeToString(src_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(data_type).c_str());
     return ACL_ERROR_GE_DATATYPE_INVALID;
   }
   if (!CheckShapeForTransShapeToFracNz(src_primary_format, src_shape)) {
@@ -378,15 +392,14 @@ Status FormatTransferFractalNz::TransShape(const Format src_format, const std::v
            "[Check][Shape]Failed, trans format from %s to %s, src shape %s, "
            "data type %s is not supported",
            TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-           TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-           ShapeToString(src_shape).c_str(),
+           TypeUtils::FormatToSerialString(dst_primary_format).c_str(), ShapeToString(src_shape).c_str(),
            TypeUtils::DataTypeToSerialString(data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check shape failed, trans format from %s to %s, src shape %s, "
-                       "data type %s is not supported",
-                       TypeUtils::FormatToSerialString(src_primary_format).c_str(),
-                       TypeUtils::FormatToSerialString(dst_primary_format).c_str(),
-                       ShapeToString(src_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check shape failed, trans format from %s to %s, src shape %s, "
+                         "data type %s is not supported",
+                         TypeUtils::FormatToSerialString(src_primary_format).c_str(),
+                         TypeUtils::FormatToSerialString(dst_primary_format).c_str(), ShapeToString(src_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(data_type).c_str());
     return ACL_ERROR_GE_SHAPE_INVALID;
   }
   ShapeVector hw_shape;
@@ -400,17 +413,15 @@ Status FormatTransferFractalNzND::TransFormat(const TransArgs &args, TransResult
            "[Check][Datatype]Failed, trans format from %s to %s, src shape %s, dst shape %s, "
            "data type %s is not supported",
            TypeUtils::FormatToSerialString(args.src_format).c_str(),
-           TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-           ShapeToString(args.src_shape).c_str(),
-           ShapeToString(args.dst_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check datatype failed, trans format from %s to %s, src shape %s, "
-                       "dst shape %s, data type %s is not supported",
-                       TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                       TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-                       ShapeToString(args.src_shape).c_str(),
-                       ShapeToString(args.dst_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+           TypeUtils::FormatToSerialString(args.dst_format).c_str(), ShapeToString(args.src_shape).c_str(),
+           ShapeToString(args.dst_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check datatype failed, trans format from %s to %s, src shape %s, "
+                         "dst shape %s, data type %s is not supported",
+                         TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str(),
+                         ShapeToString(args.src_shape).c_str(), ShapeToString(args.dst_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
     return ACL_ERROR_GE_DATATYPE_INVALID;
   }
 
@@ -419,17 +430,15 @@ Status FormatTransferFractalNzND::TransFormat(const TransArgs &args, TransResult
            "[Check][Shape]Failed, trans format from %s to %s, src shape %s, dst shape %s, "
            "data type %s is not supported",
            TypeUtils::FormatToSerialString(args.src_format).c_str(),
-           TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-           ShapeToString(args.src_shape).c_str(),
-           ShapeToString(args.dst_shape).c_str(),
-           TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Check shape failed, trans format from %s to %s, src shape %s, "
-                       "dst shape %s, data type %s is not supported",
-                       TypeUtils::FormatToSerialString(args.src_format).c_str(),
-                       TypeUtils::FormatToSerialString(args.dst_format).c_str(),
-                       ShapeToString(args.src_shape).c_str(),
-                       ShapeToString(args.dst_shape).c_str(),
-                       TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+           TypeUtils::FormatToSerialString(args.dst_format).c_str(), ShapeToString(args.src_shape).c_str(),
+           ShapeToString(args.dst_shape).c_str(), TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Check shape failed, trans format from %s to %s, src shape %s, "
+                         "dst shape %s, data type %s is not supported",
+                         TypeUtils::FormatToSerialString(args.src_format).c_str(),
+                         TypeUtils::FormatToSerialString(args.dst_format).c_str(),
+                         ShapeToString(args.src_shape).c_str(), ShapeToString(args.dst_shape).c_str(),
+                         TypeUtils::DataTypeToSerialString(args.src_data_type).c_str());
     return ACL_ERROR_GE_SHAPE_INVALID;
   }
   GELOGD("Begin to trans format from %s to %s, src shape %s, dst shape %s, data type %s",

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -75,18 +75,18 @@ std::vector<loop::KernelBox> GetNodeKernelBoxes(const NodePtr &node) {
 bool KernelBoxHasSliceAndReduce(const NodePtr &node) {
   bool kernelbox_has_slice_ops = false;
   std::vector<loop::KernelBox> kernel_boxes = GetNodeKernelBoxes(node);
-  for (auto &kernel_box : kernel_boxes) { 
+  for (auto &kernel_box : kernel_boxes) {
     if (kernel_box.NumSlices() != 0U) {
       kernelbox_has_slice_ops = true;
-      GELOGI("kernelbox has slice node: %s", kernel_box.DebugString().c_str());      
+      GELOGI("kernelbox has slice node: %s", kernel_box.DebugString().c_str());
       break;
     }
   }
   if (kernelbox_has_slice_ops == false) {
     return false;
-  }  
+  }
   bool out_node_is_reduce = false;
-  for (auto out_node : node->GetOutNodes()) {  
+  for (auto out_node : node->GetOutNodes()) {
     GE_ASSERT_NOTNULL(out_node);
     if (find(reduce_types.begin(), reduce_types.end(), out_node->GetType()) != reduce_types.end()) {
       out_node_is_reduce = true;
@@ -111,7 +111,8 @@ std::string WhyRealizeByNodeCategory(const ge::NodePtr &node) {
   return "";
 }
 
-std::string WhyRealizeByKernelBoxCategory(loop::KernelBox &kernel_box, const LoweringConfig &config, size_t kernelbox_num) {
+std::string WhyRealizeByKernelBoxCategory(loop::KernelBox &kernel_box, const LoweringConfig &config,
+                                          size_t kernelbox_num) {
   if (kernel_box.NumOps() == config.max_loop_ops) {
     return "num loop ops reach limited " + std::to_string(config.max_loop_ops);
   }
@@ -147,42 +148,40 @@ std::string WhyRealizeByKernelBoxCategory(loop::KernelBox &kernel_box, const Low
   return "";
 }
 
-bool IsInputAnchorEmptyTensor(const ge::InDataAnchorPtr& in_anchor) {
+bool IsInputAnchorEmptyTensor(const ge::InDataAnchorPtr &in_anchor) {
   std::vector<Expression> dims;
   GE_WARN_ASSERT(loop::GetBufferShape(in_anchor, dims) == GRAPH_SUCCESS);
   const auto zero = ge::Symbol(0);
-  return std::any_of(dims.begin(), dims.end(), [&](const Expression &dim) {
-    return dim.Simplify() == zero;
-  });
+  return std::any_of(dims.begin(), dims.end(), [&](const Expression &dim) { return dim.Simplify() == zero; });
 }
 
-bool IsOutputAnchorEmptyTensor(const ge::OutDataAnchor* out_anchor) {
+bool IsOutputAnchorEmptyTensor(const ge::OutDataAnchor *out_anchor) {
   std::vector<Expression> dims;
   GE_WARN_ASSERT(loop::GetBufferShape(out_anchor, dims) == GRAPH_SUCCESS);
   const auto zero = ge::Symbol(0);
-  return std::any_of(dims.begin(), dims.end(), [&](const Expression &dim) {
-    return dim.Simplify() == zero;
-  });
+  return std::any_of(dims.begin(), dims.end(), [&](const Expression &dim) { return dim.Simplify() == zero; });
 }
 
 bool IsViewNodeShouldLowering(vector<const ge::Node *> origin_nodes) {
   if (origin_nodes.size() != 1) {
     for (const auto &node : origin_nodes) {
-      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "View node num exceed one, Fall back lowering.",
-                                                      GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+      GraphFusionReasonStore::CountNodeFuseFailReason(
+          node->GetName(), "View node num exceed one, Fall back lowering.",
+          GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     }
     return false;
   }
   auto node = origin_nodes.at(0);
   if (node->GetType() != "Reshape") {
-    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Now only support single reshape node lowering, Fall back lowering.",
-                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    GraphFusionReasonStore::CountNodeFuseFailReason(
+        node->GetName(), "Now only support single reshape node lowering, Fall back lowering.",
+        GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     return false;
   }
-  if (!node->GetOutControlNodes().empty() || !node->GetInControlNodes().empty() ||
-      (node->GetOutDataNodesSize() != 1)) {
-    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "View node has control edge, or node has multi output anchor, Fall back lowering.",
-                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+  if (!node->GetOutControlNodes().empty() || !node->GetInControlNodes().empty() || (node->GetOutDataNodesSize() != 1)) {
+    GraphFusionReasonStore::CountNodeFuseFailReason(
+        node->GetName(), "View node has control edge, or node has multi output anchor, Fall back lowering.",
+        GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     return false;
   }
   return true;
@@ -246,7 +245,8 @@ string CreateAscbackendName(loop::KernelBox &kernel_box, CounterPtr counter) {
   return ascbackend_name;
 }
 
-graphStatus BuildOpForKernelBox(loop::KernelBox &kernel_box, CounterPtr counter, shared_ptr<loop::AscOverrides> asc_graph, af::Operator &asc_op) {
+graphStatus BuildOpForKernelBox(loop::KernelBox &kernel_box, CounterPtr counter,
+                                shared_ptr<loop::AscOverrides> asc_graph, af::Operator &asc_op) {
   std::string asc_op_name = CreateAscbackendName(kernel_box, counter);
   GE_WARN_ASSERT(!asc_op_name.empty(), "CreateAscbackendName failed, asc_op_name is empty.");
   GE_ASSERT_NOTNULL(asc_graph->GetOutput());
@@ -281,8 +281,8 @@ bool IsNodeShouldLowering(const NodePtr &node) {
     return false;
   }
   bool disable_autofuse_scope;
-  if ((AttrUtils::GetBool(node->GetOpDesc(), "_disable_autofuse_scope", disable_autofuse_scope))
-      && disable_autofuse_scope) {
+  if ((AttrUtils::GetBool(node->GetOpDesc(), "_disable_autofuse_scope", disable_autofuse_scope)) &&
+      disable_autofuse_scope) {
     GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "it is in disable autofuse scope",
                                                     GraphFusionReasonStore::FailReasonCategory::NODE_INFO_ERROR);
     return false;
@@ -290,27 +290,31 @@ bool IsNodeShouldLowering(const NodePtr &node) {
 
   const auto &skip_node_types = AutoFuseConfig::LoweringConfig().skip_node_types;
   const auto &skip_node_names = AutoFuseConfig::LoweringConfig().skip_node_names;
-  
+
   if (!skip_node_types.empty() && skip_node_types.find(node->GetType()) != skip_node_types.end()) {
-    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), node->GetType() + " is in skip list",
-                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    GraphFusionReasonStore::CountNodeFuseFailReason(
+        node->GetName(), node->GetType() + " is in skip list",
+        GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     return false;
   }
-  
+
   if (!skip_node_names.empty() && skip_node_names.find(node->GetName()) != skip_node_names.end()) {
-    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), node->GetName() + " is in skip list",
-                                                    GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+    GraphFusionReasonStore::CountNodeFuseFailReason(
+        node->GetName(), node->GetName() + " is in skip list",
+        GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     return false;
   }
 
   auto in_anchors = node->GetAllInDataAnchors();
   auto out_anchors = node->GetAllOutDataAnchors();
-  bool is_indata_empty = std::any_of(in_anchors.begin(), in_anchors.end(), [](const InDataAnchorPtr& in_anchor) -> bool {
-    return (in_anchor != nullptr && IsInputAnchorEmptyTensor(in_anchor));
-  });
-  bool is_outdata_empty = std::any_of(out_anchors.begin(), out_anchors.end(), [](const OutDataAnchorPtr& out_anchor) -> bool {
-    return (out_anchor != nullptr && IsOutputAnchorEmptyTensor(out_anchor.get()));
-  });
+  bool is_indata_empty =
+      std::any_of(in_anchors.begin(), in_anchors.end(), [](const InDataAnchorPtr &in_anchor) -> bool {
+        return (in_anchor != nullptr && IsInputAnchorEmptyTensor(in_anchor));
+      });
+  bool is_outdata_empty =
+      std::any_of(out_anchors.begin(), out_anchors.end(), [](const OutDataAnchorPtr &out_anchor) -> bool {
+        return (out_anchor != nullptr && IsOutputAnchorEmptyTensor(out_anchor.get()));
+      });
   // 空 -> 非空 不lowering
   if (is_indata_empty && !is_outdata_empty) {
     GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "it is in empty tensor to nonempty tensor",
@@ -373,9 +377,8 @@ graphStatus LoweringManager::GetFusedOriginComputeGraph(const AutoFuseAttrs &att
   GE_ASSERT_NOTNULL(graph);
   std::map<const OutDataAnchor *, OutDataAnchorPtr> origin_to_replaced;
   std::vector<const ge::Node *> origin_ge_nodes = attrs.GetOriginNodes();
-  std::sort(origin_ge_nodes.begin(), origin_ge_nodes.end(), [](const ge::Node *a, const ge::Node *b) {
-    return a->GetOpDesc()->GetId() < b->GetOpDesc()->GetId();
-  });
+  std::sort(origin_ge_nodes.begin(), origin_ge_nodes.end(),
+            [](const ge::Node *a, const ge::Node *b) { return a->GetOpDesc()->GetId() < b->GetOpDesc()->GetId(); });
   for (auto &node : origin_ge_nodes) {
     GE_ASSERT(LoweringUtils::GetOriginToReplaced(node, graph, origin_to_replaced) == GRAPH_SUCCESS);
   }
@@ -394,8 +397,9 @@ graphStatus LoweringManager::GetFusedOriginComputeGraph(const AutoFuseAttrs &att
   return GRAPH_SUCCESS;
 }
 
-OpDescPtr LoweringManager::BuildOpDescForKernelBox(
-  loop::KernelBox &kernel_box, std::vector<const ge::OutDataAnchor *> &origin_inputs, CounterPtr counter) {
+OpDescPtr LoweringManager::BuildOpDescForKernelBox(loop::KernelBox &kernel_box,
+                                                   std::vector<const ge::OutDataAnchor *> &origin_inputs,
+                                                   CounterPtr counter) {
   auto *anchor = const_cast<ge::OutDataAnchor *>(kernel_box.TargetBuffer());
   GE_ASSERT_NOTNULL(anchor);
   std::string graph_name = loop::BufferName(anchor) + "_graph";
@@ -405,7 +409,7 @@ OpDescPtr LoweringManager::BuildOpDescForKernelBox(
   GE_WARN_ASSERT(asc_graph != nullptr,
                  "Fall back lowering for node scope: %s. As Realize AscendC IR graph for kernel box %s failed",
                  kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
-  
+
   GE_WARN_ASSERT_GRAPH_SUCCESS(LoweringUtils::CheckSpecialFuseType(kernel_box, asc_graph),
                                "Fall back lowering, reason is showed above.");
   LoweringUtils::PrintReadableAscGraph(*asc_graph->SharedGraph());
@@ -461,9 +465,10 @@ graphStatus LoweringManager::FusedSubgraphLoopToAscBackendOp(
       std::vector<const OutDataAnchor *> inputs;
       auto op_desc = BuildOpDescForKernelBox(kernel_box, inputs, counter);
       if (op_desc == nullptr) {  // Maybe trigger by unsupported asc dtype, we never failed lowering
-        GELOGW("Fall back lowering for node scope: %s. As failed to build AscendC IR node,"
-               "we need to drop kernel box %s for buffer %s", kernel_box.DebugString().c_str(),
-               kernel_box.Name().c_str(), loop::BufferName(target_buffer).c_str());
+        GELOGW(
+            "Fall back lowering for node scope: %s. As failed to build AscendC IR node,"
+            "we need to drop kernel box %s for buffer %s",
+            kernel_box.DebugString().c_str(), kernel_box.Name().c_str(), loop::BufferName(target_buffer).c_str());
         continue;
       }
       auto asc_node = graph->InsertNode(expect_position, op_desc);
@@ -497,7 +502,8 @@ graphStatus LoweringManager::FusedSubgraphLoopToAscBackendOp(
   return GRAPH_SUCCESS;
 }
 
-graphStatus LoweringManager::FusedLoopToAscBackendOp(const ComputeGraphPtr &graph, const AscBackendFuseConfig &config, CounterPtr counter) {
+graphStatus LoweringManager::FusedLoopToAscBackendOp(const ComputeGraphPtr &graph, const AscBackendFuseConfig &config,
+                                                     CounterPtr counter) {
   GE_ASSERT_NOTNULL(graph);
   GELOGI("Start fuse lowered graph %s to AscendC IR", graph->GetName().c_str());
   std::map<const ge::OutDataAnchor *, ge::OutDataAnchor *> ascend_out_to_asc_out;
@@ -511,7 +517,8 @@ graphStatus LoweringManager::FusedLoopToAscBackendOp(const ComputeGraphPtr &grap
       GE_ASSERT_SUCCESS(FusedSubgraphLoopToAscBackendOp(subgraph, config, ascend_out_to_asc_out, counter));
     } else {
       GELOGD("Used default counter.");
-      GE_ASSERT_SUCCESS(FusedSubgraphLoopToAscBackendOp(subgraph, config, ascend_out_to_asc_out, default_counter.get()));
+      GE_ASSERT_SUCCESS(
+          FusedSubgraphLoopToAscBackendOp(subgraph, config, ascend_out_to_asc_out, default_counter.get()));
     }
   }
   return GRAPH_SUCCESS;
@@ -540,8 +547,9 @@ graphStatus LoweringManager::LowerImpl(const NodePtr &node) {
   auto iter = lowerings_.find(op_type);
   if (iter == lowerings_.end()) {
     if (!OpTypeUtils::IsConstNode(node->GetType()) && !OpTypeUtils::IsDataNode(node->GetType())) {
-      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), op_type + " No lowering registered",
-                                                      GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+      GraphFusionReasonStore::CountNodeFuseFailReason(
+          node->GetName(), op_type + " No lowering registered",
+          GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
     }
     return FallbackLowering(node);
   }
@@ -557,9 +565,10 @@ graphStatus LoweringManager::LoweringGraph(const ComputeGraphPtr &graph, const L
     GE_ASSERT_NOTNULL(node->GetOpDesc());
     GraphFusionReasonStore::AddCurrentGraphNode(node->GetName(), node->GetType());
     if (!IsNodeShouldLowering(node) || Lowering(node) != GRAPH_SUCCESS) {
-      GELOGD("Fallback lowering for node %s, type %s, as: This node should not lowering, "
-             "or not register lowering func, or unable to imply lowering",
-             node->GetName().c_str(), node->GetType().c_str());
+      GELOGD(
+          "Fallback lowering for node %s, type %s, as: This node should not lowering, "
+          "or not register lowering func, or unable to imply lowering",
+          node->GetName().c_str(), node->GetType().c_str());
       (void)FallbackLowering(node);
       continue;
     }
@@ -572,38 +581,44 @@ graphStatus LoweringManager::PostPrecessAfterLoweringNode(const NodePtr &node, c
   std::vector<loop::KernelBox> kernel_boxes = GetNodeKernelBoxes(node);
   // Fallback just like realize all output kernel box persistent if any kernel box is invalid
   if (IsAnyKernelBoxIsExtern(kernel_boxes)) {
-    GELOGI("Fallback lowering for node %s, type %s as has external kernel box",
-           node->GetName().c_str(), node->GetType().c_str());
+    GELOGI("Fallback lowering for node %s, type %s as has external kernel box", node->GetName().c_str(),
+           node->GetType().c_str());
     FallbackLowering(node);
     return GRAPH_SUCCESS;
   }
 
   if (!IsAllKernelBoxIsSupport(kernel_boxes)) {
-    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Fallback lowering, has dtype unsupported kernel box",
+    GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(),
+                                                    "Fallback lowering, has dtype unsupported kernel box",
                                                     GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
     FallbackLowering(node);
     return GRAPH_SUCCESS;
   }
 
   if (LoweringUtils::IsAnyKernelBoxOversize(kernel_boxes, config) || LoweringUtils::IsNodeCoreNumDif(node)) {
-    GELOGI("Try re-lowering for node %s, type %s after realize inputs as kernel box is oversize, or this node"
-           "different core num scope with after nodes.",
-           node->GetName().c_str(), node->GetType().c_str());
+    GELOGI(
+        "Try re-lowering for node %s, type %s after realize inputs as kernel box is oversize, or this node"
+        "different core num scope with after nodes.",
+        node->GetName().c_str(), node->GetType().c_str());
     if (RealizeInputsAndLowering(node) != GRAPH_SUCCESS) {
       GELOGI("Fallback lowering for node %s, type %s after input realization", node->GetName().c_str(),
              node->GetType().c_str());
-      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "lowered failed after realize inputs, "
-                                                      "maybe kernel box is oversize, or this node has "
-                                                      "different core num scope with after nodes",
-                                                      GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+      GraphFusionReasonStore::CountNodeFuseFailReason(
+          node->GetName(),
+          "lowered failed after realize inputs, "
+          "maybe kernel box is oversize, or this node has "
+          "different core num scope with after nodes",
+          GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
       (void)FallbackLowering(node);
       return GRAPH_SUCCESS;
     }
     kernel_boxes = GetNodeKernelBoxes(node);
     if (LoweringUtils::IsAnyKernelBoxOversize(kernel_boxes, config)) {
-      GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Fallbacl lowering, lowered failed after realize inputs, "
-                                                      "as kernel box still oversize after origin kernel box is oversize",
-                                                      GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
+      GraphFusionReasonStore::CountNodeFuseFailReason(
+          node->GetName(),
+          "Fallbacl lowering, lowered failed after realize inputs, "
+          "as kernel box still oversize after origin kernel box is oversize",
+          GraphFusionReasonStore::FailReasonCategory::TEMPORARILY_NOT_SUPPORTED);
       (void)FallbackLowering(node);
       return GRAPH_SUCCESS;
     }

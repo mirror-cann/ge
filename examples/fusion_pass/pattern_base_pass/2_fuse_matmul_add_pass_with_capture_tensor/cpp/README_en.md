@@ -131,7 +131,7 @@ This sample demonstrates capture tensor functionality using MatMul+Add fusion to
 
        ```python
        python torch_forward_1.py
-       ```  
+       ```
 
     - For torch_forward_1.py, log shows:
 

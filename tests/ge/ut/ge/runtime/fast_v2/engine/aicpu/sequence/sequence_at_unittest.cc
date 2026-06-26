@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ TEST_F(SequenceAtUT, success) {
   InitTestFrames();
   auto graph = ge::ToComputeGraph(g1);
   auto split_to_sequence_op_desc = graph->FindNode("SequenceAtNode")->GetOpDesc();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -48,8 +48,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_TRUE(data2_ret.result.IsSuccess());
 
   LowerInput input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-                          &global_data};
+                      {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                      &global_data};
   auto sequence_ret = LoweringSequenceAt(graph->FindNode("SequenceAtNode"), input);
   ASSERT_TRUE(sequence_ret.result.IsSuccess());
   ASSERT_EQ(sequence_ret.out_shapes.size(), 1);
@@ -64,11 +64,11 @@ TEST_F(SequenceAtUT, failed) {
   InitTestFrames();
   auto graph = ge::ToComputeGraph(g1);
   auto split_to_sequence_op_desc = graph->FindNode("SequenceAtNode")->GetOpDesc();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
-  LowerInput input = {{nullptr},{nullptr},&global_data};
+  LowerInput input = {{nullptr}, {nullptr}, &global_data};
   auto sequence_ret = LoweringSequenceAt(graph->FindNode("SequenceAtNode"), input);
   ASSERT_FALSE(sequence_ret.result.IsSuccess());
 }

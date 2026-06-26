@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,10 +21,10 @@
 #include "common/fe_log.h"
 namespace fe {
 
-using std::string;
 using std::map;
-using std::vector;
 using std::set;
+using std::string;
+using std::vector;
 
 /*
  * types of rule config file
@@ -39,7 +39,8 @@ enum class RuleType {
 };
 
 const std::map<RuleType, std::string> RULE_TYPE_STRING_MAP{
-  {RuleType::BUILT_IN_GRAPH_RULE, "built-in-graph-rule"}, {RuleType::CUSTOM_GRAPH_RULE, "custom-graph-rule"},
+    {RuleType::BUILT_IN_GRAPH_RULE, "built-in-graph-rule"},
+    {RuleType::CUSTOM_GRAPH_RULE, "custom-graph-rule"},
 };
 
 std::string GetRuleTypeString(RuleType rule_type);
@@ -64,9 +65,9 @@ using FusionRuleAttrValuePtr = std::shared_ptr<FusionRuleAttrValue>;
  * only provide 'Get' functions
  */
 /** @brief implement the fuctions of data structure of fusion rules which are
-*        read from config file.
-*        Provide methods of fusion rules for the match of input graph and
-*        fusion rules. */
+ *        read from config file.
+ *        Provide methods of fusion rules for the match of input graph and
+ *        fusion rules. */
 class FusionRulePattern {
  public:
   FusionRulePattern();

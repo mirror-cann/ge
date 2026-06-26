@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,10 +24,10 @@ namespace {
 void IncIterationCount(uint64_t &iteration) {
   ++iteration;
   if (iteration == UINT64_MAX) {
-      iteration = 1U;
+    iteration = 1U;
   }
 }
-}
+}  // namespace
 
 namespace ge {
 namespace hybrid {
@@ -50,7 +50,7 @@ Status NodeState::Init() {
   const auto op = OpDescUtils::CreateOperatorFromNode(node_item_.node->shared_from_this());
   GE_CHECK_NOTNULL(subgraph_context_->GetExecutionContext());
   OpDescUtils::SetRuntimeContextToOperator(op, &subgraph_context_->GetExecutionContext()->runtime_context_);
-  auto tmp_op = std::unique_ptr<Operator>(new(std::nothrow) Operator(op));
+  auto tmp_op = std::unique_ptr<Operator>(new (std::nothrow) Operator(op));
   GE_CHECK_NOTNULL(tmp_op);
   stage_op_map_[subgraph_context_->GetExecutionContext()->stage_id] = std::move(tmp_op);
   return SUCCESS;
@@ -62,8 +62,8 @@ void NodeState::Reset() {
   iteration_count_ = 0U;
   ctrl_scheduled_ = 0U;
   data_scheduled_ = 0U;
-  merge_index_ = -1; // Use for Execute (Reset after Executed).
-  switch_index_ = -1; // Use for Schedule (Reset after Prepared).
+  merge_index_ = -1;   // Use for Execute (Reset after Executed).
+  switch_index_ = -1;  // Use for Schedule (Reset after Prepared).
   skip_infershape_ = false;
   root_tensor_values_.clear();
   task_context_->Reset();
@@ -76,18 +76,13 @@ Status NodeState::AwaitDependShapes(const GraphExecutionContext &context) const 
 
   PROFILING_SCOPE_CONST(GetProfilingIndex(), profiling::kInferShapeWaitDependShape);
   for (auto &src_node : node_item_.dependents_for_shape_inference) {
-    GELOGI("[%s] Start to wait for data dependent node: %s",
-           node_item_.NodeName().c_str(),
+    GELOGI("[%s] Start to wait for data dependent node: %s", node_item_.NodeName().c_str(),
            src_node->GetName().c_str());
-    RECORD_SHAPE_INFERENCE_EVENT(&context,
-                                 node_item_.NodeName().c_str(),
-                                 "[AwaitNodeDone] [%s] Start",
+    RECORD_SHAPE_INFERENCE_EVENT(&context, node_item_.NodeName().c_str(), "[AwaitNodeDone] [%s] Start",
                                  src_node->GetName().c_str());
     HYBRID_CHK_STATUS_RET(subgraph_context_->Await(src_node), "[Call][Await] [%s] Await node failed.",
                           src_node->GetName().c_str());
-    RECORD_SHAPE_INFERENCE_EVENT(&context,
-                                 node_item_.NodeName().c_str(),
-                                 "[AwaitNodeDone] [%s] End",
+    RECORD_SHAPE_INFERENCE_EVENT(&context, node_item_.NodeName().c_str(), "[AwaitNodeDone] [%s] End",
                                  src_node->GetName().c_str());
     GELOGI("[%s] Done waiting node.", src_node->GetName().c_str());
   }
@@ -102,22 +97,15 @@ Status NodeState::AwaitInputTensors(const GraphExecutionContext &context) const 
 
   PROFILING_SCOPE_CONST(GetProfilingIndex(), profiling::kInferShapeWaitInputTensor);
   for (auto &src_node : node_item_.dependents_for_execution) {
-    GELOGD("[%s] Start to wait for data dependent node: [%s]",
-           node_item_.NodeName().c_str(),
+    GELOGD("[%s] Start to wait for data dependent node: [%s]", node_item_.NodeName().c_str(),
            src_node->GetName().c_str());
-    RECORD_EXECUTION_EVENT(&context,
-                           node_item_.NodeName().c_str(),
-                           "[AwaitNodeDone] [%s] Start",
+    RECORD_EXECUTION_EVENT(&context, node_item_.NodeName().c_str(), "[AwaitNodeDone] [%s] Start",
                            src_node->GetName().c_str());
 
-    HYBRID_CHK_STATUS_RET(subgraph_context_->Await(src_node),
-                          "[Call][Await] [%s] Await node [%s] failed.",
-                          GetName().c_str(),
-                          src_node->GetName().c_str());
+    HYBRID_CHK_STATUS_RET(subgraph_context_->Await(src_node), "[Call][Await] [%s] Await node [%s] failed.",
+                          GetName().c_str(), src_node->GetName().c_str());
 
-    RECORD_EXECUTION_EVENT(&context,
-                           node_item_.NodeName().c_str(),
-                           "[AwaitNodeDone] [%s] End",
+    RECORD_EXECUTION_EVENT(&context, node_item_.NodeName().c_str(), "[AwaitNodeDone] [%s] End",
                            src_node->GetName().c_str());
     GELOGD("[%s] Done waiting node: [%s]", node_item_.NodeName().c_str(), src_node->GetName().c_str());
   }
@@ -244,12 +232,12 @@ void NodeState::ScheduleContext(const NodeState &node_state) {
       active_count_ = frame_state_.active_count_;
     }
   } else if (node_state.node_item_.IsExitOp()) {
-    GELOGD("[%s]{active: %lu, iteration: %lu} frame{active: %lu, iteration: %lu} "
-           "[%s]{active: %lu, iteration: %lu} parent{active: %lu, iteration: %lu}",
-           GetName().c_str(), active_count_, iteration_count_, frame_state_.active_count_,
-           frame_state_.iteration_count_, node_state.GetName().c_str(), node_state.frame_state_.active_count_,
-           node_state.frame_state_.iteration_count_, node_state.frame_state_.parent_frame_->active_count_,
-           node_state.frame_state_.parent_frame_->iteration_count_);
+    GELOGD(
+        "[%s]{active: %lu, iteration: %lu} frame{active: %lu, iteration: %lu} "
+        "[%s]{active: %lu, iteration: %lu} parent{active: %lu, iteration: %lu}",
+        GetName().c_str(), active_count_, iteration_count_, frame_state_.active_count_, frame_state_.iteration_count_,
+        node_state.GetName().c_str(), node_state.frame_state_.active_count_, node_state.frame_state_.iteration_count_,
+        node_state.frame_state_.parent_frame_->active_count_, node_state.frame_state_.parent_frame_->iteration_count_);
     if (node_state.frame_state_.parent_frame_->iteration_count_ != iteration_count_) {
       ResetContext(node_state.frame_state_.parent_frame_->iteration_count_);
     }
@@ -289,12 +277,12 @@ Status NodeState::NodeScheduled(const std::function<void(const NodeItem *)> &rea
 }
 
 bool NodeState::IsScheduleReady() const {
-  GELOGD("[%s] iteration[%lu] data[input: %zu, scheduled: %u], ctrl[input: %zu+%zu, scheduled: %u]",
-         GetName().c_str(), iteration_count_, node_item_.data_recv_.size(), data_scheduled_,
-         node_item_.ctrl_recv_.size(), node_item_.GetMergeCtrl((iteration_count_ == 0U) ? 0U : 1U), ctrl_scheduled_);
+  GELOGD("[%s] iteration[%lu] data[input: %zu, scheduled: %u], ctrl[input: %zu+%zu, scheduled: %u]", GetName().c_str(),
+         iteration_count_, node_item_.data_recv_.size(), data_scheduled_, node_item_.ctrl_recv_.size(),
+         node_item_.GetMergeCtrl((iteration_count_ == 0U) ? 0U : 1U), ctrl_scheduled_);
   if (node_item_.IsMergeOp()) {
-    if (ctrl_scheduled_ != (node_item_.GetMergeCtrl((iteration_count_ == 0U) ? 0U : 1U) +
-                            node_item_.ctrl_recv_.size())) {
+    if (ctrl_scheduled_ !=
+        (node_item_.GetMergeCtrl((iteration_count_ == 0U) ? 0U : 1U) + node_item_.ctrl_recv_.size())) {
       return false;
     }
 
@@ -331,10 +319,10 @@ void NodeState::SetDataSchedule(const NodeState &node_state, const std::function
   }
 
   if (IsScheduleReady()) {
-    data_scheduled_ = static_cast<uint32_t>(node_item_.root_data_.size()) +
-                      static_cast<uint32_t>(node_item_.enter_data_.size());
-    ctrl_scheduled_ = static_cast<uint32_t>(node_item_.root_ctrl_.size()) +
-                      static_cast<uint32_t>(node_item_.enter_ctrl_.size());
+    data_scheduled_ =
+        static_cast<uint32_t>(node_item_.root_data_.size()) + static_cast<uint32_t>(node_item_.enter_data_.size());
+    ctrl_scheduled_ =
+        static_cast<uint32_t>(node_item_.root_ctrl_.size()) + static_cast<uint32_t>(node_item_.enter_ctrl_.size());
     ready(&node_item_);
   }
 }
@@ -350,10 +338,10 @@ void NodeState::SetCtrlSchedule(const NodeState &node_state, const std::function
   ++ctrl_scheduled_;
 
   if (IsScheduleReady()) {
-    data_scheduled_ = static_cast<uint32_t>(node_item_.root_data_.size()) +
-                      static_cast<uint32_t>(node_item_.enter_data_.size());
-    ctrl_scheduled_ = static_cast<uint32_t>(node_item_.root_ctrl_.size()) +
-                      static_cast<uint32_t>(node_item_.enter_ctrl_.size());
+    data_scheduled_ =
+        static_cast<uint32_t>(node_item_.root_data_.size()) + static_cast<uint32_t>(node_item_.enter_data_.size());
+    ctrl_scheduled_ =
+        static_cast<uint32_t>(node_item_.root_ctrl_.size()) + static_cast<uint32_t>(node_item_.enter_ctrl_.size());
     ready(&node_item_);
   }
 }
@@ -366,7 +354,7 @@ void NodeState::RunNextIteration() {
 
 void NodeState::RunStreamActive() {
   const std::lock_guard<std::mutex> lk(mu_);
-  if (node_item_.ctrl_send_.empty()) {   // Not for Loop Enter or Loop Next.
+  if (node_item_.ctrl_send_.empty()) {  // Not for Loop Enter or Loop Next.
     return;
   }
   switch_index_ = 0;
@@ -378,8 +366,8 @@ void NodeState::RunStreamActive() {
   } else {
     IncIterationCount(frame_state_.iteration_count_);
   }
-  GELOGD("Node[%s] current iteration: %lu, frame active: %lu, frame iteration: %lu",
-         GetName().c_str(), iteration_count_, frame_state_.active_count_, frame_state_.iteration_count_);
+  GELOGD("Node[%s] current iteration: %lu, frame active: %lu, frame iteration: %lu", GetName().c_str(),
+         iteration_count_, frame_state_.active_count_, frame_state_.iteration_count_);
 }
 
 void NodeState::SetScheduleFuture(std::future<Status> &&future) {

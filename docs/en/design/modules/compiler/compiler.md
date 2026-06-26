@@ -12,24 +12,24 @@ flowchart LR
         A1[Graph Normalization] --> A2[Shape Inference]
         A2 --> A3[Quantization Preparation]
     end
-    
+
     subgraph S2["Stage 2: Graph Optimization"]
         B1[General Optimization<br/>CSE/Constant Folding/DCE] --> B2[Fusion Optimization<br/>Pattern+Auto Fusion]
         B2 --> B3[Precision/Format Adjustment]
     end
-    
+
     subgraph S3["Stage 3: Engine Partition"]
         C1[Engine Assignment] --> C2[Composite Engine Partition]
         C2 --> C3[Atomic Engine Partition]
         C3 --> C4[Subgraph Optimization]
     end
-    
+
     subgraph S4["Stage 4: Build"]
         D1[Stream Allocation] --> D2[Memory Planning]
         D2 --> D3[Task Generation]
         D3 --> D4[Model Serialization]
     end
-    
+
     S1 --> S2 --> S3 --> S4
 ```
 
@@ -56,7 +56,7 @@ flowchart TD
     B --> C[BuildModel: Compilation Entry]
     C --> D[OptimizeGraph: Graph Optimization]
     C --> E[BuildGraph: Build]
-    
+
     D --> D1[PreRunOptimizeOriginalGraph]
     D1 --> D1a[CustomPass BeforeInferShape]
     D1a --> D1b[PrepareInit: Initialization Preparation]
@@ -71,7 +71,7 @@ flowchart TD
     D1j --> D1k[RefineRunningFormat: Format Adjustment]
     D1k --> D1l[OptimizeStage1: Pass Batch 1]
     D1l --> D1m[OptimizeAfterStage1: Engine-level Post-optimization]
-    
+
     D --> D2[PreRunOptimizeSubGraph]
     D2 --> D2a[ProcessNullableOutput]
     D2a --> D2b[OptimizeSubgraph: Partition+Subgraph Optimization]
@@ -82,14 +82,14 @@ flowchart TD
     D2b4 --> D2b5[AtomicEngine Partition]
     D2b5 --> D2b6[Multi-thread Subgraph Optimization]
     D2b6 --> D2b7[MergeSubgraph: Merge Subgraphs]
-    
+
     D --> D3[PreRunAfterOptimizeSubGraph]
     D3 --> D3a[OptimizeWholeGraph: Whole Graph Engine Optimization]
     D3a --> D3b[OptimizeStage2: Pass Batch 2]
     D3b --> D3c[OptimizeGraphBeforeBuild: Pre-build Optimization]
     D3c --> D3d[MemConflictProc: Memory Conflict Handling]
     D3d --> D3e[Build: Build]
-    
+
     E --> E1[Weight External Processing]
     E1 --> E2[IR Definition Recovery]
     E2 --> E3[GraphBuilder.Build]
@@ -225,42 +225,42 @@ classDiagram
         +CaptureTensor(NodeIo)
         +GetCapturedTensors()
     }
-    
+
     class PatternMatcher {
         +MatchNext() MatchResult
         -PatternMatcherImpl impl_
     }
-    
+
     class PatternMatcherImpl {
         +Initialize() Status
         +MatchNext() MatchResult
         -MatchBranchByOutTensor() bool
         -UpdateAllMatchCoordinates() Status
     }
-    
+
     class NodeMatcher {
         <<interface>>
         +IsMatch(Node, Node) bool
     }
-    
+
     class DataMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class ConstantMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class NormalNodeMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class MatchResult {
         +GetMatchedNode() Status
         +AppendNodeMatchPair() Status
         +ToSubgraphBoundary() SubgraphBoundary
     }
-    
+
     PatternMatcher --> Pattern
     PatternMatcher --> PatternMatcherImpl
     PatternMatcherImpl --> NodeMatcher
@@ -397,14 +397,14 @@ flowchart TD
     B2 -->|Dynamic Shape| B3[BuildForDynamicShapeGraph]
     B2 -->|Known Shape| B4[BuildForKnownShapeGraph]
     B2 -->|Unknown Shape| B5[BuildForUnknownShapeGraph]
-    
+
     B3 --> B6[ModelBuilder.PreBuildModel]
     B6 --> B7[ModelBuilder.BuildModelForGetTask]
     B7 --> B8[TaskGenerator.GetTaskInfo]
-    
+
     B4 --> B9[SecondPartition: Second Partitioning]
     B9 --> B6
-    
+
     B5 --> B10[DynamicStreamAllocator]
     B10 --> B11[TaskGenerator]
 ```
@@ -427,14 +427,14 @@ flowchart TD
     SA[StreamAllocator] --> SA1[AssignLogicalStreams: Logical Stream Allocation]
     SA1 --> SA2[InsertSyncNodes: Insert Sync Nodes]
     SA2 --> SA3[SplitStreamAndRefreshTaskDef: Stream Split and Refresh]
-    
+
     SA1 --> SA1a[Allocate logical streams by engine and parallelism]
     SA1a --> SA1b[Support stream labels and attached streams]
-    
+
     SA2 --> SA2a{Use Notify?}
     SA2a -->|Yes| SA2b[InsertSyncNodesWithNotify]
     SA2a -->|No| SA2c[InsertSyncEvents: Insert Event Sync]
-    
+
     SA3 --> SA3a[Split streams by task count]
     SA3a --> SA3b[Refresh physical stream ID]
     SA3b --> SA3c[Update StreamActive nodes]
@@ -465,16 +465,16 @@ flowchart TD
     MA1 --> MA2[AssignVarMemory: Variable Memory]
     MA2 --> MA3[HybridMemAssigner: Hybrid Memory Allocation]
     MA3 --> MA4[BlockMemAssigner: Block Memory Allocation]
-    
+
     MA4 --> MA4a[Analyze tensor lifecycle]
     MA4a --> MA4b[Build memory block reuse graph]
     MA4b --> MA4c[Allocate offsets]
-    
+
     MA1 --> MA5[AssignZeroCopyMemory: Zero Copy Memory]
     MA1 --> MA6[ReAssignContinuousMemory: Continuous Memory]
     MA1 --> MA7[AssignReferenceMemory: Reference Memory]
     MA1 --> MA8[SetAtomicCleanOffset: Atomic Clear]
-    
+
     MA --> MA9[SetInputOffset: Set Input Offset]
     MA --> MA10[CheckOffset: Offset Validation]
 ```

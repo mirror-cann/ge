@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,64 +29,80 @@ class CtrlFlowDynamicTest : public testing::Test {
   void SetUp() {
     GeExecutor::Initialize({});
 
-    //NodeExecutorManager::GetInstance().engine_mapping_.clear();
-    //auto &engine_mapping = NodeExecutorManager::GetInstance().engine_mapping_;
-    //engine_mapping.emplace("DNN_VM_RTS_OP_STORE", NodeExecutorManager::ExecutorType::RTS);
-    //engine_mapping.emplace("DNN_VM_GE_LOCAL_OP_STORE", NodeExecutorManager::ExecutorType::GE_LOCAL);
+    // NodeExecutorManager::GetInstance().engine_mapping_.clear();
+    // auto &engine_mapping = NodeExecutorManager::GetInstance().engine_mapping_;
+    // engine_mapping.emplace("DNN_VM_RTS_OP_STORE", NodeExecutorManager::ExecutorType::RTS);
+    // engine_mapping.emplace("DNN_VM_GE_LOCAL_OP_STORE", NodeExecutorManager::ExecutorType::GE_LOCAL);
     //
-    //NodeExecutorManager::GetInstance().executors_.clear();
-    //auto &task_executor = NodeExecutorManager::GetInstance().executors_;
-    //task_executor.emplace(NodeExecutorManager::ExecutorType::RTS, std::unique_ptr<NodeExecutor>(new RtsNodeExecutor()));
-    //task_executor.emplace(NodeExecutorManager::ExecutorType::GE_LOCAL, std::unique_ptr<NodeExecutor>(new GeLocalNodeExecutor()));
+    // NodeExecutorManager::GetInstance().executors_.clear();
+    // auto &task_executor = NodeExecutorManager::GetInstance().executors_;
+    // task_executor.emplace(NodeExecutorManager::ExecutorType::RTS, std::unique_ptr<NodeExecutor>(new
+    // RtsNodeExecutor())); task_executor.emplace(NodeExecutorManager::ExecutorType::GE_LOCAL,
+    // std::unique_ptr<NodeExecutor>(new GeLocalNodeExecutor()));
   }
   void TearDown() {
-    //NodeExecutorManager::GetInstance().engine_mapping_.clear();
-    //NodeExecutorManager::GetInstance().executors_.clear();
+    // NodeExecutorManager::GetInstance().engine_mapping_.clear();
+    // NodeExecutorManager::GetInstance().executors_.clear();
 
     GeExecutor::FinalizeEx();
   }
 };
 
 /**
-*             |
-*           Merge
-*          /     \.
-*  Active /       \ Active
-*        /         \.
-*       Add       Sub
-*      |   \     /   |
-*      |    \ _ /    |
-*      |    /   \    |
-*      |   /     \   |
-*    Switch       Switch
-*     |   \       /   |
-*     |    \     /    |
-*     |    Active     |
-*     |     \  /      |
-*     |     Less      |
-*     |     /   \     |
-*     |    /     \    |
-*      Data       Data
-*/
+ *             |
+ *           Merge
+ *          /     \.
+ *  Active /       \ Active
+ *        /         \.
+ *       Add       Sub
+ *      |   \     /   |
+ *      |    \ _ /    |
+ *      |    /   \    |
+ *      |   /     \   |
+ *    Switch       Switch
+ *     |   \       /   |
+ *     |    \     /    |
+ *     |    Active     |
+ *     |     \  /      |
+ *     |     Less      |
+ *     |     /   \     |
+ *     |    /     \    |
+ *      Data       Data
+ */
 static void BuildSampleCondGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   DEF_GRAPH(g0) {
     const auto add_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     const auto sub_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     const auto less_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-    CHAIN(NODE("_arg_0", DATA)->NODE("add", add_node)->NODE("merge", STREAMMERGE)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(
+        NODE("_arg_0", DATA)->NODE("add", add_node)->NODE("merge", STREAMMERGE)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
     CHAIN(NODE("const_0", CONSTANT)->NODE("add"));
     CHAIN(NODE("_arg_1", DATA)->NODE("sub", sub_node)->NODE("merge"));
     CHAIN(NODE("const_1", CONSTANT)->NODE("sub"));
 
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_0")->EDGE(0, 0)->NODE("less", less_node)->EDGE(0, 0)->NODE("Less/StreamSwitch_t", switch_t)->CTRL_EDGE()->NODE("add"));
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    CHAIN(NODE("_arg_0")
+              ->EDGE(0, 0)
+              ->NODE("less", less_node)
+              ->EDGE(0, 0)
+              ->NODE("Less/StreamSwitch_t", switch_t)
+              ->CTRL_EDGE()
+              ->NODE("add"));
     CHAIN(NODE("const_0")->EDGE(0, 1)->NODE("Less/StreamSwitch_t"));
-    CHAIN(NODE("_arg_1")->EDGE(0, 1)->NODE("less", less_node)->EDGE(0, 0)->NODE("Less/StreamSwitch_f", switch_f)->CTRL_EDGE()->NODE("sub"));
+    CHAIN(NODE("_arg_1")
+              ->EDGE(0, 1)
+              ->NODE("less", less_node)
+              ->EDGE(0, 0)
+              ->NODE("Less/StreamSwitch_f", switch_f)
+              ->CTRL_EDGE()
+              ->NODE("sub"));
     CHAIN(NODE("const_1")->EDGE(0, 1)->NODE("Less/StreamSwitch_f"));
 
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
@@ -104,7 +120,8 @@ static void BuildSampleCondGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   SetUnknownOpKernel(graph, mem_offset, true);
 }
 
-void BuildGraphModel(const ComputeGraphPtr &graph, uint32_t mem_offset, GeModelPtr &ge_model, TBEKernelStore &tbe_kernel_store) {
+void BuildGraphModel(const ComputeGraphPtr &graph, uint32_t mem_offset, GeModelPtr &ge_model,
+                     TBEKernelStore &tbe_kernel_store) {
   InitConstantNode(graph, "const_0", 1);
   InitConstantNode(graph, "const_1", 0);
 
@@ -245,5 +262,4 @@ TEST_F(CtrlFlowDynamicTest, ctrl_flow_dynamic_execute) {
   runtime2_env[0] = {'1'};
   mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
 }
-} // namespace ge
-
+}  // namespace ge

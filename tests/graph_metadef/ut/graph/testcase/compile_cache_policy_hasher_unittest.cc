@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ class UtestCompileCachePolicyHasher : public testing::Test {
 };
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderConstrutFromPtr) {
-  uint8_t data1[2] = {0U,1U};
+  uint8_t data1[2] = {0U, 1U};
   BinaryHolder holder1(data1, sizeof(data1));
   const uint8_t *dataPtr = holder1.GetDataPtr();
   ASSERT_NE(dataPtr, nullptr);
@@ -30,7 +30,7 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderConstrutFromPtr) {
 }
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderCopyConstrut) {
-  uint8_t data1[2] = {0U,1U};
+  uint8_t data1[2] = {0U, 1U};
   BinaryHolder holder1(data1, sizeof(data1));
   const uint8_t *dataPtr = holder1.GetDataPtr();
   ASSERT_NE(dataPtr, nullptr);
@@ -46,7 +46,7 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderCopyConstrut) {
 }
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderMoveConstrut) {
-  uint8_t data1[2] = {0U,1U};
+  uint8_t data1[2] = {0U, 1U};
   BinaryHolder holder1(data1, sizeof(data1));
 
   BinaryHolder holder2 = std::move(holder1);
@@ -87,8 +87,8 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHoldercreateFromUniquePtrFail) {
 }
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderEqual) {
-  uint8_t data1[8] = {0U,1U,2U,3U,4U,5U,6U,7U};
-  uint8_t data2[8] = {0U,1U,2U,3U,4U,5U,6U,7U};
+  uint8_t data1[8] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U};
+  uint8_t data2[8] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U};
 
   BinaryHolder holder1(data1, sizeof(data1));
   const uint8_t *dataPtr = holder1.GetDataPtr();
@@ -101,8 +101,8 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderEqual) {
 }
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderDiffBecauseLength) {
-  uint8_t data1[8] = {0U,1U,2U,3U,4U,5U,6U,7U};
-  uint8_t data2[9] = {0U,1U,2U,3U,4U,5U,7U,9U,11U};
+  uint8_t data1[8] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U};
+  uint8_t data2[9] = {0U, 1U, 2U, 3U, 4U, 5U, 7U, 9U, 11U};
 
   BinaryHolder holder1(data1, sizeof(data1));
   ASSERT_EQ(holder1.GetDataLen(), sizeof(data1));
@@ -112,8 +112,8 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderDiffBecauseLength) {
 }
 
 TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderDiffBecauseVaule) {
-  uint8_t data1[8] = {0U,1U,2U,3U,4U,5U,6U,7U};
-  uint8_t data2[8] = {1U,1U,2U,3U,4U,5U,6U,7U};
+  uint8_t data1[8] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U};
+  uint8_t data2[8] = {1U, 1U, 2U, 3U, 4U, 5U, 6U, 7U};
 
   BinaryHolder holder1(data1, sizeof(data1));
   ASSERT_EQ(holder1.GetDataLen(), sizeof(data1));
@@ -122,7 +122,7 @@ TEST_F(UtestCompileCachePolicyHasher, TestBinaryHolderDiffBecauseVaule) {
   ASSERT_EQ((holder1 != holder2), true);
 }
 
-TEST_F(UtestCompileCachePolicyHasher, TestGetCacheDescHashWithoutShape) { 
+TEST_F(UtestCompileCachePolicyHasher, TestGetCacheDescHashWithoutShape) {
   CompileCacheDescPtr cache_desc = std::make_shared<CompileCacheDesc>();
   cache_desc->SetOpType("1111");
   TensorInfoArgs tensor_info_args(FORMAT_ND, FORMAT_ND, DT_BF16);
@@ -132,4 +132,4 @@ TEST_F(UtestCompileCachePolicyHasher, TestGetCacheDescHashWithoutShape) {
   CacheHashKey id_another = cache_desc->GetCacheDescHash();
   ASSERT_NE(id, id_another);
 }
-}
+}  // namespace ge

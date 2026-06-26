@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,22 +26,20 @@ using namespace ge;
 
 using DataTaskBuilderPtr = shared_ptr<DataTaskBuilder>;
 using OutTaskBuilderPtr = shared_ptr<OutTaskBuilder>;
-class DataTaskBUildeUTEST : public testing::Test
-{
-protected:
-  void SetUp()
-  {
+class DataTaskBUildeUTEST : public testing::Test {
+ protected:
+  void SetUp() {
     data_task_builder_ptr_ = make_shared<DataTaskBuilder>();
     out_manual_task_builder_ptr_ = make_shared<OutTaskBuilder>();
     ffts_plus_def_ptr_ = make_shared<domi::FftsPlusCtxDef>();
   }
-  void TearDown() {
-  }
-public:
+  void TearDown() {}
+
+ public:
   DataTaskBuilderPtr data_task_builder_ptr_;
   OutTaskBuilderPtr out_manual_task_builder_ptr_;
   std::shared_ptr<domi::FftsPlusCtxDef> ffts_plus_def_ptr_;
-  NodePtr node_{ nullptr };
+  NodePtr node_{nullptr};
 };
 
 TEST_F(DataTaskBUildeUTEST, UpdateSrcSlotAndPfBm_suc) {

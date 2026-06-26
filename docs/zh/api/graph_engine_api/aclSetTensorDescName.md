@@ -64,4 +64,3 @@ void aclSetTensorDescName(aclTensorDesc *desc, const char *name)
 ## 返回值说明<a name="section16701877239"></a>
 
 无
-

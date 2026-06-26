@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,13 +21,11 @@ namespace {
 bool IsCubeMatMul(const ge::GeTensorDescPtr &input0, const ge::GeTensorDescPtr &input1) {
   const ge::GeShape &input0_shape = input0->GetShape();
   const ge::GeShape &input1_shape = input1->GetShape();
-  if (input0_shape.GetDimNum() < kMinMatMulDimCnt ||
-      input1_shape.GetDimNum() < kMinMatMulDimCnt) {
+  if (input0_shape.GetDimNum() < kMinMatMulDimCnt || input1_shape.GetDimNum() < kMinMatMulDimCnt) {
     return false;
   }
 
-  if (input0->GetFormat() != ge::FORMAT_FRACTAL_NZ ||
-      input1->GetFormat() != ge::FORMAT_FRACTAL_NZ) {
+  if (input0->GetFormat() != ge::FORMAT_FRACTAL_NZ || input1->GetFormat() != ge::FORMAT_FRACTAL_NZ) {
     return false;
   }
 
@@ -37,10 +35,9 @@ bool IsCubeMatMul(const ge::GeTensorDescPtr &input0, const ge::GeTensorDescPtr &
 
   return true;
 }
-}
+}  // namespace
 
-Status MatMulEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDesc &op_desc,
-                                     uint64_t &exec_time) {
+Status MatMulEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDesc &op_desc, uint64_t &exec_time) {
   auto input0 = op_desc.MutableInputDesc(kInput0Index);
   auto input1 = op_desc.MutableInputDesc(kInput1Index);
   FE_CHECK_NOTNULL(input0);
@@ -90,8 +87,8 @@ Status MatMulEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpD
   FE_MUL_OVERFLOW(cycle, cube_n, cycle);
   FE_MUL_OVERFLOW(cycle, batch, cycle);
   exec_time = BasicEstimator::CalcTimeByCycle(platform_info, cycle);
-  FE_LOGD("Matmul batch[%lu], cube_m[%lu], cube_k[%lu], cube_n[%lu], execution time and cycle are %lu and %lu.",
-          batch, cube_m, cube_k, cube_n, exec_time, cycle);
+  FE_LOGD("Matmul batch[%lu], cube_m[%lu], cube_k[%lu], cube_n[%lu], execution time and cycle are %lu and %lu.", batch,
+          cube_m, cube_k, cube_n, exec_time, cycle);
   return SUCCESS;
 }
-}
+}  // namespace fe

@@ -90,4 +90,3 @@ Status GetCapturedTensor(size_t capture_idx, NodeIo &node_output) const
 ## 约束说明<a name="section38092103"></a>
 
 无
-

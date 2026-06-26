@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,9 +48,9 @@ static aclError ModelLoadFromFileWithMem(const aclmdlConfigHandle *handle, uint3
   uint32_t id = 0U;
   ret = GeLoadModelFromData(&id, &data);
   if (ret != SUCCESS) {
-      FreeModelData(&data);
-      ACL_LOG_CALL_ERROR("load model from data failed, ret[%u]", ret);
-      return ret;
+    FreeModelData(&data);
+    ACL_LOG_CALL_ERROR("load model from data failed, ret[%u]", ret);
+    return ret;
   }
 
   *modelId = id;
@@ -77,8 +77,8 @@ static aclError ModelLoadFromMemWithMem(const aclmdlConfigHandle *handle, uint32
   uint32_t id = 0U;
   Status ret = GeLoadModelFromData(&id, &data);
   if (ret != SUCCESS) {
-      ACL_LOG_CALL_ERROR("load model from data failed, ret[%u].", ret);
-      return ret;
+    ACL_LOG_CALL_ERROR("load model from data failed, ret[%u].", ret);
+    return ret;
   }
 
   *modelId = id;
@@ -113,8 +113,8 @@ static aclError SetExecHandle(const aclmdlExecConfigHandle *handle, aclrtStream 
   return ACL_SUCCESS;
 }
 
-static aclError ModelExecute(const uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output,
-                             const bool sync, aclrtStream stream, const aclmdlExecConfigHandle *handle) {
+static aclError ModelExecute(const uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output, const bool sync,
+                             aclrtStream stream, const aclmdlExecConfigHandle *handle) {
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(input);
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(output);
   ExecHandleDesc execDesc = {0};
@@ -154,8 +154,8 @@ aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelI
       break;
     }
     default:
-      ACL_LOG_INNER_ERROR("load type[%zu] is invalid, it should be in [%d, %d]",
-          handle->mdlLoadType, ACL_MDL_LOAD_FROM_FILE, ACL_MDL_LOAD_FROM_MEM_WITH_MEM);
+      ACL_LOG_INNER_ERROR("load type[%zu] is invalid, it should be in [%d, %d]", handle->mdlLoadType,
+                          ACL_MDL_LOAD_FROM_FILE, ACL_MDL_LOAD_FROM_MEM_WITH_MEM);
       return ACL_ERROR_INVALID_PARAM;
   }
   if (ret != ACL_SUCCESS) {

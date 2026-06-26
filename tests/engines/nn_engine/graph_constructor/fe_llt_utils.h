@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,37 +19,36 @@
 
 namespace fe {
 class EnvVarGuard {
-public:
-    EnvVarGuard(const mmEnvId var_name, const char* new_value) 
-        : var_name_(var_name), saved_value_(nullptr) {
-        MM_SYS_GET_ENV(var_name_, saved_value_);
-        int32_t err = 0;
-        MM_SYS_SET_ENV(var_name_, new_value, 1, err);
+ public:
+  EnvVarGuard(const mmEnvId var_name, const char *new_value) : var_name_(var_name), saved_value_(nullptr) {
+    MM_SYS_GET_ENV(var_name_, saved_value_);
+    int32_t err = 0;
+    MM_SYS_SET_ENV(var_name_, new_value, 1, err);
+  }
+
+  void Restore() {
+    if (!restored_) {
+      int32_t err = 0;
+      if (saved_value_ != nullptr) {
+        MM_SYS_SET_ENV(var_name_, saved_value_, 1, err);
+      } else {
+        MM_SYS_SET_ENV(var_name_, "", 1, err);
+      }
+      restored_ = true;
     }
-    
-    void Restore() {
-        if (!restored_) {
-            int32_t err = 0;
-            if (saved_value_ != nullptr) {
-                MM_SYS_SET_ENV(var_name_, saved_value_, 1, err);
-            } else {
-                MM_SYS_SET_ENV(var_name_, "", 1, err);
-            }
-            restored_ = true;
-        }
-    }
-    
-    ~EnvVarGuard() {
-        Restore();
-    }
-    
-    EnvVarGuard(const EnvVarGuard&) = delete;
-    EnvVarGuard& operator=(const EnvVarGuard&) = delete;
-    
-private:
-    mmEnvId var_name_;
-    const char_t* saved_value_;
-    bool restored_ = false;
+  }
+
+  ~EnvVarGuard() {
+    Restore();
+  }
+
+  EnvVarGuard(const EnvVarGuard &) = delete;
+  EnvVarGuard &operator=(const EnvVarGuard &) = delete;
+
+ private:
+  mmEnvId var_name_;
+  const char_t *saved_value_;
+  bool restored_ = false;
 };
 std::string GetCodeDir();
 std::string GetGraphPath(const std::string &graph_name);
@@ -63,9 +62,9 @@ void FillWeightValue(const ge::ComputeGraphPtr &graph);
 void FillGraphNodeParaType(const ge::ComputeGraphPtr &graph, fe::OpParamType type = fe::OpParamType::REQUIRED);
 void FillNodeParaType(const ge::NodePtr &node, fe::OpParamType type = fe::OpParamType::REQUIRED);
 void CreateDir(const std::string &path);
-void CreateFileAndFillContent(const std::string fileName,
-                              nlohmann::json json_obj = nlohmann::json::object(), const bool flag = false);
+void CreateFileAndFillContent(const std::string fileName, nlohmann::json json_obj = nlohmann::json::object(),
+                              const bool flag = false);
 void CreateAndCopyJsonFile();
 void DelJsonFile();
-}
+}  // namespace fe
 #endif  // AIR_TEST_ENGINES_NNENG_GRAPH_CONSTRUCTOR_FE_LLT_UTILS_H_

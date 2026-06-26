@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 #include "exe_graph/runtime/infer_shape_context.h"
 
 namespace gert {
-template<typename T>
+template <typename T>
 ge::graphStatus ReshapeInferShapeImpl(const T *reshape_dims, const Shape &x_shape, Shape &output_shape,
                                       int32_t reshape_size) {
   constexpr T UNKNOWN_DIM = -1;
@@ -31,7 +31,6 @@ ge::graphStatus ReshapeInferShapeImpl(const T *reshape_dims, const Shape &x_shap
       output_shape.SetDim(i, reshape_dims[i]);
       output_shapesize *= reshape_dims[i];
     } else {
-
       output_shape.SetDim(i, 1);
       unknown_dim_idx = i;
     }
@@ -42,8 +41,8 @@ ge::graphStatus ReshapeInferShapeImpl(const T *reshape_dims, const Shape &x_shap
     output_shape.SetDim(unknown_dim_idx, x_shape_size / output_shapesize);
     return ge::GRAPH_SUCCESS;
   }
-  GELOGE(ge::FAILED, "unknown_dim_idx[%zu], output_shapesize[%lld], x_shape_size[%lld]",
-    unknown_dim_idx, output_shapesize, x_shape_size);
+  GELOGE(ge::FAILED, "unknown_dim_idx[%zu], output_shapesize[%lld], x_shape_size[%lld]", unknown_dim_idx,
+         output_shapesize, x_shape_size);
   return ge::GRAPH_FAILED;
 }
 ge::graphStatus InferShapeForReshape(InferShapeContext *context) {
@@ -94,10 +93,10 @@ ge::graphStatus InferShapeForShapeN(InferShapeContext *context) {
 }
 IMPL_OP(Shape).InferShape(InferShapeForShapeN);
 
-ge::graphStatus InferShapeForUnsqueeze(gert::InferShapeContext* context) {
+ge::graphStatus InferShapeForUnsqueeze(gert::InferShapeContext *context) {
   const auto x_shape = context->GetInputShape(0);
   auto y_shape = context->GetOutputShape(0);
-  const gert::RuntimeAttrs* attrs = context->GetAttrs();
+  const gert::RuntimeAttrs *attrs = context->GetAttrs();
   GE_CHECK_NOTNULL(attrs);
   auto axes = attrs->GetAttrPointer<gert::TypedContinuousVector<int64_t>>(0);
 

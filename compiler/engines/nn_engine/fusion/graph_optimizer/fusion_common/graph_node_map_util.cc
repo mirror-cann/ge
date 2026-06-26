@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,8 +77,7 @@ Status GraphNodeMapUtil::ReCreateNodeTypeMapInGraph(ge::ComputeGraph &graph) {
 
   string op_type;
   NodeTypeMapPtr node_type_map_ptr = node_map_info->node_type_map;
-  FE_CHECK(node_type_map_ptr == nullptr, FE_LOGW("Cannot retrieve node_type_map from the graph."),
-           return SUCCESS);
+  FE_CHECK(node_type_map_ptr == nullptr, FE_LOGW("Cannot retrieve node_type_map from the graph."), return SUCCESS);
   node_type_map_ptr->clear();
   for (auto &node_ptr : graph.GetDirectNode()) {
     op_type = GetRealNodeType(node_ptr->GetOpDesc());

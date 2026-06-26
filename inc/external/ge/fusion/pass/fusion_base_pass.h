@@ -35,6 +35,6 @@ class FusionBasePass {
    */
   virtual ~FusionBasePass() = default;
 };
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge
 #endif  // INC_EXTERNAL_GE_GRAPH_FUSION_FUSION_BASE_PASS_H

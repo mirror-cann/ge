@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,8 +50,9 @@ std::unique_ptr<uint8_t[]> ReadBufferFromAttr(const ge::ExecuteGraph *const exe_
   }
   return buffer_data;
 }
-}
-extern ge::ExecuteGraphPtr LoadExecuteGraphFromModelFile(const ge::char_t *const model_path, ge::graphStatus &error_code);
+}  // namespace
+extern ge::ExecuteGraphPtr LoadExecuteGraphFromModelFile(const ge::char_t *const model_path,
+                                                         ge::graphStatus &error_code);
 class ModelConverterUT : public bg::BgTest {
  protected:
   void SetUp() override {
@@ -71,9 +72,9 @@ TEST_F(ModelConverterUT, LoadExecuteGraphFromModelFile) {
   ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
   auto name_2_sub_models = ge_root_model->GetSubgraphInstanceNameToModel();
   EXPECT_EQ(name_2_sub_models.size(), 1);
   auto root_model = name_2_sub_models[graph->GetName()];
@@ -109,9 +110,9 @@ TEST_F(ModelConverterUT, LoadModelDescFromRootModel) {
   auto graph = ShareGraph::BuildTwoAddNodeGraph();
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
   auto name_2_sub_models = ge_root_model->GetSubgraphInstanceNameToModel();
   EXPECT_EQ(name_2_sub_models.size(), 1);
   auto root_model = name_2_sub_models[graph->GetName()];
@@ -177,7 +178,7 @@ TEST_F(ModelConverterUT, LoweringGlobalDataKeepsCustomOpRegistryAfterRootModelRe
 }
 
 TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForStreamNotEnough) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   gert::CreateVersionInfo();
   int64_t stream_num = 1;
   int64_t event_num = 0;
@@ -187,12 +188,12 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForStreamNotEnough) {
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Relu"})
-      .BuildGeRootModel();
+                           .SetRootModelEventNum(event_num)
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Relu"})
+                           .BuildGeRootModel();
 
   ModelConverter model_converter;
   LoweringOption lowering_opt;
@@ -200,8 +201,7 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForStreamNotEnough) {
   StreamAllocator stream_allocator;
   EventAllocator event_allocator;
   NotifyAllocator notify_allocator;
-  ModelConverter::Args args{lowering_opt, &stream_allocator,
-                            &event_allocator, &notify_allocator, nullptr};
+  ModelConverter::Args args{lowering_opt, &stream_allocator, &event_allocator, &notify_allocator, nullptr};
   auto exe_graph = model_converter.ConvertGeModelToExecuteGraph(ge_root_model, args);
 
   auto buffer_data = ReadBufferFromAttr(exe_graph.get(), kModelDesc);
@@ -227,12 +227,12 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForRtsInterfaceReturnFai
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Relu"})
-      .BuildGeRootModel();
+                           .SetRootModelEventNum(event_num)
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Relu"})
+                           .BuildGeRootModel();
 
   ModelConverter model_converter;
   LoweringOption lowering_opt;
@@ -240,8 +240,7 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForRtsInterfaceReturnFai
   StreamAllocator stream_allocator;
   EventAllocator event_allocator;
   NotifyAllocator notify_allocator;
-  ModelConverter::Args args{lowering_opt, &stream_allocator,
-                            &event_allocator, &notify_allocator, nullptr};
+  ModelConverter::Args args{lowering_opt, &stream_allocator, &event_allocator, &notify_allocator, nullptr};
   auto exe_graph = model_converter.ConvertGeModelToExecuteGraph(ge_root_model, args);
 
   auto buffer_data = ReadBufferFromAttr(exe_graph.get(), kModelDesc);
@@ -257,7 +256,7 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamForRtsInterfaceReturnFai
 }
 
 TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamWithStaticSubModelForStreamNotEnough) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "4", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "4", 0);  // only has 1 stream
   gert::CreateVersionInfo();
   int64_t stream_num = 1;
   int64_t event_num = 0;
@@ -267,18 +266,17 @@ TEST_F(ModelConverterUT, ConvertWithRollBackSingleStreamWithStaticSubModelForStr
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("TransData", AiCoreTaskDefFaker("TransDataStubName"))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubName"))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubName"))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   ModelConverter model_converter;
   LoweringOption lowering_opt;
   StreamAllocator stream_allocator;
   EventAllocator event_allocator;
   NotifyAllocator notify_allocator;
-  ModelConverter::Args args{lowering_opt, &stream_allocator,
-                            &event_allocator, &notify_allocator, nullptr};
+  ModelConverter::Args args{lowering_opt, &stream_allocator, &event_allocator, &notify_allocator, nullptr};
   auto exe_graph = model_converter.ConvertGeModelToExecuteGraph(ge_root_model, args);
 
   auto buffer_data = ReadBufferFromAttr(exe_graph.get(), kModelDesc);

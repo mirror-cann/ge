@@ -218,7 +218,7 @@ flowchart LR
         S2 --> S3[rtModelExecute]
         S3 --> S4[rtStreamSynchronize]
     end
-    
+
     subgraph NnExecute["NnExecute Mode (On-demand Execution)"]
         H1[Caller Thread] --> H2[CopyModelData]
         H2 --> H3[rtModelExecute]

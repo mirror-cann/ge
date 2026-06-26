@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ bool HasLoad(const NodePtr &node) {
   GE_ASSERT_NOTNULL(attr);
   for (const auto &subnode : attr->GetAscGraph()->GetAllNodes()) {
     if (subnode->GetType() == kLoadType) {
-      return  true;
+      return true;
     }
   }
   return false;
@@ -43,23 +43,21 @@ bool TransposeFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2
 }
 
 bool TransposeFusionStrategy::CheckBroadcastNodeFusion(const NodePtr &node1, const NodePtr &node2,
-    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
+                                                       const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
   auto const backend_spec = optimize::BackendSpec::GetInstance();
   uint32_t transpose_mode = backend_spec->transpose_mode;
-  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) { // 1:非normal模式
+  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
     // a5单独的融合控制逻辑
     return false;
   }
   // a3单独的融合控制逻辑
   // 1、如果另一个节点是Brc节点，则不能融合
-  if (BackendUtils::IsOnlyPointwise(node1) &&
-      attr2->HasFuseType(loop::FuseType::kTranspose) &&
+  if (BackendUtils::IsOnlyPointwise(node1) && attr2->HasFuseType(loop::FuseType::kTranspose) &&
       (!BackendUtils::IsNodeAllInputsAreSimplestLoad(node1))) {
     GELOGD("Transpose don't support fusion with Broadcast type node.");
     return true;
   }
-  if (BackendUtils::IsOnlyPointwise(node2) &&
-      attr1->HasFuseType(loop::FuseType::kTranspose) &&
+  if (BackendUtils::IsOnlyPointwise(node2) && attr1->HasFuseType(loop::FuseType::kTranspose) &&
       (!BackendUtils::IsNodeAllInputsAreSimplestLoad(node2))) {
     GELOGD("Transpose don't support fusion with Broadcast type node.");
     return true;
@@ -68,7 +66,7 @@ bool TransposeFusionStrategy::CheckBroadcastNodeFusion(const NodePtr &node1, con
 }
 
 bool TransposeFusionStrategy::CheckVerticalFusion(const NodePtr &node1, const NodePtr &node2,
-    const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
+                                                  const AutoFuseAttrs *attr1, const AutoFuseAttrs *attr2) const {
   // transpose和elementwise融合(A3、A5共同逻辑)
   // 1、仅支持垂直融合
   if (!BackendUtils::IsVertical(node1, node2)) {
@@ -91,12 +89,12 @@ bool TransposeFusionStrategy::CheckVerticalFusion(const NodePtr &node1, const No
     return true;
   }
 
-  GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s]"
-         "Transpose can only undergo vertical fusion with Pointwise.",
-         node1->GetName().c_str(), node1->GetType().c_str(),
-         node2->GetName().c_str(), node2->GetType().c_str(),
-         ge::NotFuseReasonCode(ge::NotFuseReason::kTransposeCanNotFuseWithNotPointWise));
+  GELOGI(
+      "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s]"
+      "Transpose can only undergo vertical fusion with Pointwise.",
+      node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
+      ge::NotFuseReasonCode(ge::NotFuseReason::kTransposeCanNotFuseWithNotPointWise));
   return false;
 }
 REGISTER_FUSION_STRATEGY(TransposeFusionStrategy, loop::FuseType::kTranspose);
-}
+}  // namespace ge

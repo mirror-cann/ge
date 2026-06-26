@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,7 @@
 namespace ge {
 BinaryGraphBuilder BinaryPartitioner::graph_builder_;
 
-Status BinaryPartitioner::Partition(const ComputeGraphPtr &graph, 
-                                    const std::vector<NodePtr> &infered_nodes,
+Status BinaryPartitioner::Partition(const ComputeGraphPtr &graph, const std::vector<NodePtr> &infered_nodes,
                                     PartionResult &p_ret) {
   GE_ASSERT_NOTNULL(graph);
   if (infered_nodes.empty()) {
@@ -59,7 +58,7 @@ Status BinaryPartitioner::Partition(const ComputeGraphPtr &graph,
   return ret;
 }
 
-std::vector<NodePtr> BinaryPartitioner::GetRemainingNodes(const ComputeGraphPtr &graph, 
+std::vector<NodePtr> BinaryPartitioner::GetRemainingNodes(const ComputeGraphPtr &graph,
                                                           const std::vector<NodePtr> &infered_nodes) {
   std::vector<NodePtr> uninfer_nodes;
   for (const auto &node : graph->GetDirectNode()) {
@@ -78,17 +77,17 @@ std::vector<NodePtr> BinaryPartitioner::GetRemainingNodes(const ComputeGraphPtr 
 bool BinaryPartitioner::CheckNodesContainsCycle(const std::vector<NodePtr> &infered_nodes,
                                                 const std::vector<NodePtr> &uninfer_nodes) {
   for (const auto &node : infered_nodes) {
-    GELOGD("infered node:%s", node->GetName().c_str());
+    GELOGD("inferred node:%s", node->GetName().c_str());
     for (auto &out_data_node : node->GetInDataNodes()) {
       if (std::count(uninfer_nodes.begin(), uninfer_nodes.end(), out_data_node) != 0) {
-        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is infered node:%s input",
+        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is inferred node:%s input",
                out_data_node->GetName().c_str(), node->GetName().c_str());
         return true;
       }
     }
     for (auto &out_control_node : node->GetInControlNodes()) {
       if (std::count(uninfer_nodes.begin(), uninfer_nodes.end(), out_control_node) != 0) {
-        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is infered node:%s input",
+        GELOGE(ge::FAILED, "CheckNodesContainsCycle node:%s is uninfered, but it is inferred node:%s input",
                out_control_node->GetName().c_str(), node->GetName().c_str());
         return true;
       }

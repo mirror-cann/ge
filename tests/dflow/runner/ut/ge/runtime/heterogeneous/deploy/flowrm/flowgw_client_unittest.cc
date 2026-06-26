@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,20 +31,20 @@ class MockMmpa : public MmpaStubApiGe {
     std::cout << "func name:" << func_name << " begin to stub\n";
     if (std::string(func_name) == "TsdInitFlowGw") {
       std::cout << "func name:" << func_name << " stub success, addr = " << &TsdInitFlowGw << std::endl;
-      return (void *) &TsdInitFlowGw;
+      return (void *)&TsdInitFlowGw;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdFileLoad") {
-      return (void *) &TsdFileLoad;
+      return (void *)&TsdFileLoad;
     }
     std::cout << "func name:" << func_name << " not stub\n";
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
 
   void *DlOpen(const char *fileName, int32_t mode) override {
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
   int32_t DlClose(void *handle) override {
     return 0L;
@@ -65,11 +65,12 @@ class MockFlowGwClient : public FlowGwClient {
       : FlowGwClient(device_id, device_type, res_ids, is_proxy) {};
   MOCK_METHOD2(KillProcess, int32_t(pid_t, int32_t));
 };
-}
+}  // namespace
 
 class UtFlowGwClient : public testing::Test {
  public:
   UtFlowGwClient() {}
+
  protected:
   void SetUp() override {
     MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -80,7 +81,8 @@ class UtFlowGwClient : public testing::Test {
   }
 
   static void SetConfigEnv(const std::string &path) {
-    std::string config_path = PathUtils::Join({EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data", path});
+    std::string config_path =
+        PathUtils::Join({EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data", path});
     setenv("RESOURCE_CONFIG_PATH", config_path.c_str(), 1);
     EXPECT_EQ(Configurations::GetInstance().InitInformation(), SUCCESS);
   }
@@ -105,8 +107,7 @@ TEST_F(UtFlowGwClient, run_Exception) {
   EXPECT_EQ(flowgw_client.Initialize(), SUCCESS);
   flowgw_client.SetExceptionFlag();
   const std::set<uint32_t> model_ids;
-  EXPECT_EQ(flowgw_client.ClearFlowgwModelData(model_ids, 1),
-      SUCCESS);
+  EXPECT_EQ(flowgw_client.ClearFlowgwModelData(model_ids, 1), SUCCESS);
   flowgw_client.Finalize();
 }
 
@@ -127,7 +128,7 @@ TEST_F(UtFlowGwClient, DataGwProcStatusChange) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
   SubprocessManager::GetInstance().excpt_handle_callbacks_.clear();
   EXPECT_EQ(flowgw_client.Initialize(), SUCCESS);
-  for(auto callback : SubprocessManager::GetInstance().excpt_handle_callbacks_){
+  for (auto callback : SubprocessManager::GetInstance().excpt_handle_callbacks_) {
     callback.second(ProcStatus::NORMAL);
   }
   SubprocessManager::GetInstance().Finalize();
@@ -135,8 +136,7 @@ TEST_F(UtFlowGwClient, DataGwProcStatusChange) {
 
 TEST_F(UtFlowGwClient, run_GrantQueueForRoute) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
-  std::pair<const ExchangeEndpoint *,
-            const ExchangeEndpoint *> queue_route;
+  std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *> queue_route;
   ExchangeEndpoint src = {};
   ExchangeEndpoint dst = {};
   src.type = ExchangeEndpointType::kEndpointTypeQueue;
@@ -154,8 +154,7 @@ TEST_F(UtFlowGwClient, run_GrantQueueForRoute) {
 
 TEST_F(UtFlowGwClient, run_BindQueues) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
-  std::vector<std::pair<const ExchangeEndpoint *,
-                        const ExchangeEndpoint *>> queue_routes;
+  std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> queue_routes;
   ExchangeEndpoint src = {};
   ExchangeEndpoint dst = {};
   src.type = ExchangeEndpointType::kEndpointTypeQueue;
@@ -182,8 +181,7 @@ TEST_F(UtFlowGwClient, run_GrantQueue) {
 
 TEST_F(UtFlowGwClient, run_UnbindQueues) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
-  std::vector<std::pair<const ExchangeEndpoint *,
-                        const ExchangeEndpoint *>> queue_routes;
+  std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> queue_routes;
   ExchangeEndpoint src = {};
   ExchangeEndpoint dst = {};
   src.type = ExchangeEndpointType::kEndpointTypeQueue;
@@ -284,7 +282,6 @@ TEST_F(UtFlowGwClient, run_GetHostIp) {
   EXPECT_EQ(ge::NetworkManager::GetInstance().GetDataPanelIp(ip), SUCCESS);
 }
 
-
 TEST_F(UtFlowGwClient, run_CreateDataGwGroup) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
   ExchangeEndpoint endpoint = {};
@@ -348,7 +345,6 @@ TEST_F(UtFlowGwClient, run_init_and_finalize) {
   EXPECT_EQ(ge::NetworkManager::GetInstance().Finalize(), SUCCESS);
 }
 
-
 TEST_F(UtFlowGwClient, run_get_data_gw_status) {
   FlowGwClient flowgw_client(0, 0, {0}, false);
   EXPECT_EQ(flowgw_client.Initialize(), SUCCESS);
@@ -374,4 +370,4 @@ TEST_F(UtFlowGwClient, run_config_sched_info_to_flowgw) {
   auto ret = flowgw_client.ConfigSchedInfoToDataGw(0, 1, 2, 3, 0, true);
   ASSERT_EQ(ret, SUCCESS);
 }
-}
+}  // namespace ge

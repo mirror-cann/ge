@@ -109,4 +109,3 @@ aclError aclmdlLoadFromMemWithMem(const void *model, size_t modelSize, uint32_t 
 ## 参考资源<a name="section102931557183812"></a>
 
 当前还提供了[aclmdlSetConfigOpt](aclmdlSetConfigOpt.md)接口、[aclmdlLoadWithConfig](aclmdlLoadWithConfig.md)接口来实现模型加载，通过配置对象中的属性来区分，在加载模型时是从文件加载，还是从内存加载，以及内存是由系统内部管理，还是由用户管理。
-

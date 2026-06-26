@@ -82,4 +82,3 @@ ge::Status SetStorageShape(const ge::Shape &shape)
 ## 约束说明<a name="section24049039"></a>
 
 无
-

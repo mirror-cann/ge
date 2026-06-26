@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,10 +96,9 @@ Status InnerPpLoader::LoadModel(const DataFlowGraph &data_flow_graph, const std:
   uint32_t graph_id = root_graph->GetGraphID();
   std::string file_constant_weight_dir;
   GE_ASSERT_SUCCESS(FileConstantUtils::GetExternalWeightDirFromOmPath(model_path, file_constant_weight_dir));
-  GE_CHK_STATUS_RET(
-      FlowModelOmLoader::RefreshModel(flow_model, file_constant_weight_dir, session_id, graph_id),
-      "Failed to assign constant mem for model");
-  // change to offline session graph id to avoid conflit with other model pp.
+  GE_CHK_STATUS_RET(FlowModelOmLoader::RefreshModel(flow_model, file_constant_weight_dir, session_id, graph_id),
+                    "Failed to assign constant mem for model");
+  // change to offline session graph id to avoid conflict with other model pp.
   const std::string offline_session_graph_id = "-1_" + std::to_string(graph_id);
   GE_CHK_STATUS_RET(FlowModelHelper::UpdateSessionGraphId(flow_model, offline_session_graph_id),
                     "Failed to update flow model session graph id, session_graph_id:%s",

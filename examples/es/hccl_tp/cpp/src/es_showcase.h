@@ -13,8 +13,8 @@
 #include "graph/graph.h"
 
 namespace es_showcase {
-  std::unique_ptr<ge::Graph> MakePfaHcomGraphByEs();
-  void MakePfaHcomGraphByEsAndDump();
-  int MakePfaHcomGraphByEsAndRun();
-}
-#endif //SAMPLES_ES_SHOWCASE_MAKE_PFA_HCOM_H_
+std::unique_ptr<ge::Graph> MakePfaHcomGraphByEs();
+void MakePfaHcomGraphByEsAndDump();
+int MakePfaHcomGraphByEsAndRun();
+}  // namespace es_showcase
+#endif  // SAMPLES_ES_SHOWCASE_MAKE_PFA_HCOM_H_

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,15 +13,13 @@
 """
 operation function manager
 """
+
 import functools
 
-from tbe import tvm
-import tbe.dsl as tbe
 import tbe.common.platform as tbe_platform
-from tbe.common.register.class_manager import Operator
-from tbe.common.register.class_manager import OpCompute
-from tbe.common.register.class_manager import OpClassify
-
+import tbe.dsl as tbe
+from tbe import tvm
+from tbe.common.register.class_manager import OpClassify, OpCompute, Operator
 
 # op compute func dict
 _op_computes = {}
@@ -40,14 +38,17 @@ def cast_in_to_fp32(ori_inputs):
     """
     cast input dtype from bfloat16 to float32
     """
+
     def need_cast_to_fp32(tensor):
         """
         check platform support bfloat16
         """
         tensor_dtype = tensor.dtype.lower()
-        return  tensor_dtype == "bfloat16" and \
-                not tbe_platform.api_check_support("tbe.dsl.vadd", "bfloat16") and \
-                tbe_platform.intrinsic_check_support("Intrinsic_vconv", "bf162f32")
+        return (
+            tensor_dtype == "bfloat16"
+            and not tbe_platform.api_check_support("tbe.dsl.vadd", "bfloat16")
+            and tbe_platform.intrinsic_check_support("Intrinsic_vconv", "bf162f32")
+        )
 
     from tbe.dsl.base import operation
 
@@ -80,6 +81,7 @@ def cast_res_to_bf16(ori_outputs, ori_args):
     """
     cast output dtype from float32 to bfloat16
     """
+
     def float32_process(data):
         """
         deal with src dtype float32 case
@@ -153,6 +155,7 @@ def register_op_compute(op_type, op_mode="dynamic", support_fusion=True, **kwarg
         raise RuntimeError("register op compute failed, op_type is none")
     global _op_computes
     global _op_register_pattern
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -169,6 +172,7 @@ def register_op_compute(op_type, op_mode="dynamic", support_fusion=True, **kwarg
             _op_register_pattern.pop(op_type)
         _op_computes[(op_type, op_mode)] = OpCompute(support_fusion, wrapper)
         return wrapper
+
     return decorator
 
 
@@ -204,12 +208,15 @@ def register_operator(op_type, pattern=None, trans_bool_to_s8=True):
     if not trans_bool_to_s8:
         _op_no_trans_bool_to_s8[op_type] = "True"
     global _operators
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
         _operators[op_type] = Operator(pattern, wrapper)
         return wrapper
+
     return decorator
 
 
@@ -239,6 +246,7 @@ def register_param_generalization(op_type):
     if op_type is None:
         raise RuntimeError("register generalization func failed, op_type is none")
     global _generalization
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -246,6 +254,7 @@ def register_param_generalization(op_type):
 
         _generalization[op_type] = wrapper
         return wrapper
+
     return decorator
 
 
@@ -278,20 +287,21 @@ def register_classify_processor(pattern=None, op_type=None, support_type="input"
         raise RuntimeError("Register op classify processor failed, pattern or op_type is none!")
     support_types = ("input", "all")
     if support_type not in support_types:
-        raise RuntimeError("Unsupported type, it must be "
-                           "one of ('input', 'all') and the data type "
-                           "must be string ")
+        raise RuntimeError("Unsupported type, it must be one of ('input', 'all') and the data type must be string ")
     global _op_pattern_classifys
     global _op_type_classifys
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
         if pattern is not None:
             _op_pattern_classifys[pattern] = OpClassify(pattern, support_type, wrapper)
         if op_type is not None:
             _op_type_classifys[op_type] = OpClassify(op_type, support_type, wrapper)
         return wrapper
+
     return decorator
 
 

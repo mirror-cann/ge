@@ -15,59 +15,54 @@
 #include "utils.h"
 
 class AclInstance {
-public:
-    AclInstance(const char *aclConfigPath)
-    {
-        CHECK(aclInit(aclConfigPath));
-    }
-    ~AclInstance()
-    {
-        CHECK(aclFinalize());
-    }
+ public:
+  AclInstance(const char *aclConfigPath) {
+    CHECK(aclInit(aclConfigPath));
+  }
+  ~AclInstance() {
+    CHECK(aclFinalize());
+  }
 };
 
 class AclStream {
-public:
-    AclStream()
-    {
-        CHECK(aclrtCreateStream(&stream_));
-    }
-    ~AclStream()
-    {
-        CHECK(aclrtDestroyStream(stream_));
-        stream_ = nullptr;
-    }
-private:
-    aclrtStream stream_;
+ public:
+  AclStream() {
+    CHECK(aclrtCreateStream(&stream_));
+  }
+  ~AclStream() {
+    CHECK(aclrtDestroyStream(stream_));
+    stream_ = nullptr;
+  }
+
+ private:
+  aclrtStream stream_;
 };
 
 class AclContext {
-public:
-    AclContext(int32_t deviceId)
-    {
-        CHECK(aclrtCreateContext(&context_, deviceId));
-    }
-    ~AclContext()
-    {
-        CHECK(aclrtDestroyContext(context_));
-    }
-private:
-    aclrtContext context_;
+ public:
+  AclContext(int32_t deviceId) {
+    CHECK(aclrtCreateContext(&context_, deviceId));
+  }
+  ~AclContext() {
+    CHECK(aclrtDestroyContext(context_));
+  }
+
+ private:
+  aclrtContext context_;
 };
 
 class AclDevice {
-public:
-    AclDevice(int32_t deviceId)
-    {
-        deviceId_ = deviceId;
-        CHECK(aclrtSetDevice(deviceId_));
-    }
-    ~AclDevice()
-    {
-        CHECK(aclrtResetDevice(deviceId_));
-    }
-private:
-    int32_t deviceId_;
+ public:
+  AclDevice(int32_t deviceId) {
+    deviceId_ = deviceId;
+    CHECK(aclrtSetDevice(deviceId_));
+  }
+  ~AclDevice() {
+    CHECK(aclrtResetDevice(deviceId_));
+  }
+
+ private:
+  int32_t deviceId_;
 };
 
 #endif  // SAMPLE_ACL_COMMON_SAMPLE_DEVICE_H_

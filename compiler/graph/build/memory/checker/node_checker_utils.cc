@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,8 @@ const std::string kNoPaddingContinuousInputAttrErrorLog =
     "attr _output_offset_list_for_continuous and _output_offset_for_buffer_fusion can only have one. Moreover, "
     "all input nodes either have or do not have the attr _output_offset_list_for_continuous at the same time";
 
-const std::string kNoPaddingContinuousOutputAttrErrorLog = "all output nodes either have or do not have the attr"
+const std::string kNoPaddingContinuousOutputAttrErrorLog =
+    "all output nodes either have or do not have the attr"
     " _input_offset_list_for_continuous at the same time";
 
 void GetDimIndexAttr(const Node *const node, std::stringstream &ss) {
@@ -129,7 +130,8 @@ Status CalcSizeWithDimIndex(const OpDesc *op_desc, const GeTensorDesc &output_de
   const auto new_shape = GeShape(output_dims);
   GE_ASSERT_SUCCESS(ge::TensorUtils::CalcTensorMemSize(new_shape, out_format, data_type, output_mem_size));
   GE_ASSERT_TRUE(output_mem_size >= 0,
-                 "After calculating, tensor memory size:%" PRId64 " invalid, less than 0. "
+                 "After calculating, tensor memory size:%" PRId64
+                 " invalid, less than 0. "
                  "new shape:%s, format:%s, dtype:%s, maybe has dynamic shape",
                  output_mem_size, new_shape.ToString().c_str(), TypeUtils::FormatToSerialString(out_format).c_str(),
                  TypeUtils::DataTypeToSerialString(data_type).c_str());
@@ -174,8 +176,7 @@ Status ChangeToNoAlignSizeIfNeed(const OutDataAnchor *const out_data_anchor, int
   // NoPaddingContinuousInput node input, mem_size need use no-aligned size
   InDataAnchor *continous_node_in_anchor = nullptr;
   for (const auto peer_in : out_data_anchor->GetPeerInDataAnchorsPtr()) {
-    if (!MemLayoutConflictUtil::IsContinuousInputThroughRefNode(peer_in, true,
-                                                                continous_node_in_anchor)) {
+    if (!MemLayoutConflictUtil::IsContinuousInputThroughRefNode(peer_in, true, continous_node_in_anchor)) {
       continue;
     }
     GE_ASSERT_NOTNULL(continous_node_in_anchor);
@@ -183,8 +184,9 @@ Status ChangeToNoAlignSizeIfNeed(const OutDataAnchor *const out_data_anchor, int
     GE_ASSERT_NOTNULL(op_desc);
     size_t no_aligned_size = 0U;
     GE_CHK_STATUS_RET(MemReuseUtils::GetOutputNoAlignSize(*op_desc, static_cast<uint32_t>(out_data_anchor->GetIdx()),
-        no_aligned_size), "Get node_name:%s, output_index:%d no align size failed", op_desc->GetNamePtr(),
-        out_data_anchor->GetIdx());
+                                                          no_aligned_size),
+                      "Get node_name:%s, output_index:%d no align size failed", op_desc->GetNamePtr(),
+                      out_data_anchor->GetIdx());
     GE_ASSERT_TRUE(no_aligned_size < static_cast<size_t>(std::numeric_limits<int64_t>::max()));
     mem_size = static_cast<int64_t>(no_aligned_size);
   }
@@ -296,8 +298,9 @@ Status NodeCheckerUtils::ErrorLogAllInputs(const NodeCheckerParam &param) {
   GetFirstOutputShape(param.node, ss);
   GetDimIndexAttr(param.node, ss);
   REPORT_INNER_ERR_MSG("E19999", "node: %s(%s), %s, input nodes size: %zu%s",
-                     NodeCheckerUtils::NodeName(param.node).c_str(), param.node->GetTypePtr(),
-                     SpecialNodeTypeStr(param.type), param.node->GetOpDescBarePtr()->GetInputsSize(), ss.str().c_str());
+                       NodeCheckerUtils::NodeName(param.node).c_str(), param.node->GetTypePtr(),
+                       SpecialNodeTypeStr(param.type), param.node->GetOpDescBarePtr()->GetInputsSize(),
+                       ss.str().c_str());
   GELOGE(FAILED, "node: %s(%s), %s, input nodes size: %zu%s", NodeCheckerUtils::NodeName(param.node).c_str(),
          param.node->GetTypePtr(), SpecialNodeTypeStr(param.type), param.node->GetOpDescBarePtr()->GetInputsSize(),
          ss.str().c_str());
@@ -321,16 +324,22 @@ Status NodeCheckerUtils::ErrorLogAllInputs(const NodeCheckerParam &param) {
     GE_ASSERT_SUCCESS(NodeCheckerUtils::GetOutputOffset(peer_node->GetOpDescBarePtr(), out_index, offset),
                       "peer_node: %s, out_index: %d", peer_node->GetNamePtr(), out_index);
 
-    REPORT_INNER_ERR_MSG("E19999", "input %d: [%s out %d, offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: "
-        "%" PRId64 ", no_aligned_size: %zu, shape: [%s] %s%s]", in_data_anchor->GetIdx(), NodeName(peer_node).c_str(),
-        out_index, offset, size, aligned_size, no_aligned_size, out_tensor->GetShape().ToString().c_str(),
-        TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
-        GetAttrsForNoPaddingContinuousInput(peer_node, out_index).c_str());
-    GELOGE(FAILED, "input %d: [%s out %d, offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64 ","
-        " no_aligned_size: %zu, shape: [%s] %s%s]", in_data_anchor->GetIdx(), NodeName(peer_node).c_str(), out_index,
-        offset, size, aligned_size, no_aligned_size, out_tensor->GetShape().ToString().c_str(),
-        TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
-        GetAttrsForNoPaddingContinuousInput(peer_node, out_index).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "input %d: [%s out %d, offset: %" PRId64 ", get size: %" PRId64
+                         ", 512_aligned_size: "
+                         "%" PRId64 ", no_aligned_size: %zu, shape: [%s] %s%s]",
+                         in_data_anchor->GetIdx(), NodeName(peer_node).c_str(), out_index, offset, size, aligned_size,
+                         no_aligned_size, out_tensor->GetShape().ToString().c_str(),
+                         TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
+                         GetAttrsForNoPaddingContinuousInput(peer_node, out_index).c_str());
+    GELOGE(FAILED,
+           "input %d: [%s out %d, offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64
+           ","
+           " no_aligned_size: %zu, shape: [%s] %s%s]",
+           in_data_anchor->GetIdx(), NodeName(peer_node).c_str(), out_index, offset, size, aligned_size,
+           no_aligned_size, out_tensor->GetShape().ToString().c_str(),
+           TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
+           GetAttrsForNoPaddingContinuousInput(peer_node, out_index).c_str());
   }
   return SUCCESS;
 }
@@ -341,8 +350,8 @@ Status NodeCheckerUtils::ErrorLogAllOutputs(const NodeCheckerParam &param) {
   std::stringstream ss;
   GetFirstInputShape(node, ss);
   REPORT_INNER_ERR_MSG("E19999", "node: %s(%s), %s, output nodes size: %zu%s", NodeCheckerUtils::NodeName(node).c_str(),
-                     node->GetTypePtr(), SpecialNodeTypeStr(param.type), node->GetOpDescBarePtr()->GetOutputsSize(),
-                     ss.str().c_str());
+                       node->GetTypePtr(), SpecialNodeTypeStr(param.type), node->GetOpDescBarePtr()->GetOutputsSize(),
+                       ss.str().c_str());
   GELOGE(FAILED, "node: %s(%s), %s, output nodes size: %zu%s", NodeCheckerUtils::NodeName(node).c_str(),
          node->GetTypePtr(), SpecialNodeTypeStr(param.type), node->GetOpDescBarePtr()->GetOutputsSize(),
          ss.str().c_str());
@@ -359,14 +368,21 @@ Status NodeCheckerUtils::ErrorLogAllOutputs(const NodeCheckerParam &param) {
                       node->GetNamePtr(), out_index);
     (void)NodeCheckerUtils::GetOutputOffset(node->GetOpDescBarePtr(), out_index, offset);
 
-    REPORT_INNER_ERR_MSG("E19999", "output %d: [offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64 ","
-        " no_aligned_size: %zu, shape: [%s] %s%s]", out_index, offset, size, aligned_size, no_aligned_size,
-        out_tensor->GetShape().ToString().c_str(), TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
-        GetAttrsForNoPaddingContinuousOutput(out_data_anchor).c_str());
-    GELOGE(FAILED, "output %d: [offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64 ","
-        " no_aligned_size: %zu, shape: [%s] %s%s]", out_index, offset, size, aligned_size, no_aligned_size,
-        out_tensor->GetShape().ToString().c_str(), TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
-        GetAttrsForNoPaddingContinuousOutput(out_data_anchor).c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "output %d: [offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64
+                         ","
+                         " no_aligned_size: %zu, shape: [%s] %s%s]",
+                         out_index, offset, size, aligned_size, no_aligned_size,
+                         out_tensor->GetShape().ToString().c_str(),
+                         TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
+                         GetAttrsForNoPaddingContinuousOutput(out_data_anchor).c_str());
+    GELOGE(FAILED,
+           "output %d: [offset: %" PRId64 ", get size: %" PRId64 ", 512_aligned_size: %" PRId64
+           ","
+           " no_aligned_size: %zu, shape: [%s] %s%s]",
+           out_index, offset, size, aligned_size, no_aligned_size, out_tensor->GetShape().ToString().c_str(),
+           TypeUtils::DataTypeToSerialString(out_tensor->GetDataType()).c_str(),
+           GetAttrsForNoPaddingContinuousOutput(out_data_anchor).c_str());
   }
   return SUCCESS;
 }
@@ -399,7 +415,7 @@ Status NodeCheckerUtils::CheckNoPaddingContinuousInputNodeAttrs(const Node *cons
         in_node->GetOpDescBarePtr(), ATTR_NAME_OUTPUT_OFFSET_FOR_BUFFER_FUSION, offsets_for_fusion);
     if ((has_offset_list && has_lx_fusion_attr) || (first_in_node_has_attr != has_offset_list)) {
       REPORT_INNER_ERR_MSG("E19999", "as input nodes for %s(%s), %s", NodeCheckerUtils::NodeName(node).c_str(),
-                         node->GetTypePtr(), kNoPaddingContinuousInputAttrErrorLog.c_str());
+                           node->GetTypePtr(), kNoPaddingContinuousInputAttrErrorLog.c_str());
       GELOGE(FAILED, "as input nodes for %s(%s), %s", NodeCheckerUtils::NodeName(node).c_str(), node->GetTypePtr(),
              kNoPaddingContinuousInputAttrErrorLog.c_str());
       NodeCheckerParam param{node->GetOwnerComputeGraph(), node, kSpecialNodeTypeNoPaddingContinuousInput};
@@ -445,7 +461,7 @@ Status NodeCheckerUtils::CheckNoPaddingContinuousOutputNodeAttrs(const Node *con
 
     if (has_offset_list != first_out_node_has_attr) {
       REPORT_INNER_ERR_MSG("E19999", "as output nodes for %s(%s), %s", NodeCheckerUtils::NodeName(node).c_str(),
-                         node->GetTypePtr(), kNoPaddingContinuousOutputAttrErrorLog.c_str());
+                           node->GetTypePtr(), kNoPaddingContinuousOutputAttrErrorLog.c_str());
       GELOGE(FAILED, "as output nodes for %s(%s), %s", NodeCheckerUtils::NodeName(node).c_str(), node->GetTypePtr(),
              kNoPaddingContinuousOutputAttrErrorLog.c_str());
       NodeCheckerParam param{node->GetOwnerComputeGraph(), node, kSpecialNodeTypeNoPaddingContinuousOutput};
@@ -510,8 +526,8 @@ Status NodeCheckerUtils::GetInputSize(const Node *const node, const int32_t inde
   GE_ASSERT_NOTNULL(peer_out_anchor);
   const auto in_node = peer_out_anchor->GetOwnerNode();
   GE_ASSERT_NOTNULL(in_node);
-  GE_ASSERT_SUCCESS(MemReuseUtils::GetTensorSize(*in_tensor_desc, mem_size),
-                    "node %s get %d input tensor size failed", node->GetNamePtr(), index);
+  GE_ASSERT_SUCCESS(MemReuseUtils::GetTensorSize(*in_tensor_desc, mem_size), "node %s get %d input tensor size failed",
+                    node->GetNamePtr(), index);
 
   InDataAnchor *continous_node_in_anchor = nullptr;
   if (MemLayoutConflictUtil::IsContinuousInputThroughRefNode(in_anchor_ptr, true, continous_node_in_anchor)) {

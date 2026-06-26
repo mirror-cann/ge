@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ using namespace bg;
 constexpr const char *kDataNodeCounter = "DataNodeCounter";
 namespace {
 template <typename T>
-std::string Shape2String(const T& shape) {
+std::string Shape2String(const T &shape) {
   std::ostringstream oss;
   oss << "[";
   if (shape.GetDimNum() > 0) {
@@ -73,7 +73,7 @@ const ge::GeTensor *GetWeightFromResourceCenter(const ge::NodePtr &node, gert::L
   GE_ASSERT_NOTNULL(weight_resource);
   return weight_resource->GetWeight();
 }
-} // namespace
+}  // namespace
 
 void SetFeedDataPlacement(const ge::NodePtr &node, const bg::ValueHolderPtr &address, int32_t index) {
   bool is_host_tensor = false;
@@ -99,7 +99,7 @@ std::unique_ptr<Tensor> CreateExecuteTensorFromCompute(const ge::GeTensor *tenso
   StorageShape exe_shape;
   VecToSmallVec(tensor->GetTensorDesc().GetOriginShape().GetDims(), exe_shape.MutableOriginShape());
   VecToSmallVec(tensor->GetTensorDesc().GetShape().GetDims(), exe_shape.MutableStorageShape());
-  // todo pading in storage format
+  // todo padding in storage format
   StorageFormat exe_format(tensor->GetTensorDesc().GetOriginFormat(), tensor->GetTensorDesc().GetFormat(),
                            ExpandDimsType());
   auto exe_tensor =
@@ -141,8 +141,9 @@ LowerResult LoweringConstNode(const ge::NodePtr &node, const LowerInput &lower_i
     auto const_holder = ValueHolder::CreateConst(exe_tensor.get(), sizeof(Tensor));
     const int64_t logical_stream_id = op_desc->GetStreamId();
     auto stream_id_holder = bg::ValueHolder::CreateConst(&logical_stream_id, sizeof(logical_stream_id));
-    auto split_outputs = DevMemValueHolder::CreateDataOutput(kernel::kSplitConstTensor, {const_holder, stream_id_holder},
-                                                             static_cast<size_t>(kernel::SplitTensorOutputs::kNum), 0);
+    auto split_outputs =
+        DevMemValueHolder::CreateDataOutput(kernel::kSplitConstTensor, {const_holder, stream_id_holder},
+                                            static_cast<size_t>(kernel::SplitTensorOutputs::kNum), 0);
     if (split_outputs.size() != static_cast<size_t>(kernel::SplitTensorOutputs::kNum)) {
       GELOGE(ge::FAILED, "Failed to create SplitTensor");
       return {};
@@ -166,24 +167,24 @@ LowerResult LoweringConstNode(const ge::NodePtr &node, const LowerInput &lower_i
       HyperStatus::Success(), {}, {outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kShape)]}, {output_addr}};
 }
 
-ge::Status GetConstPlaceHolderAttr(const ge::OpDescPtr &op_desc, void* &data_addr,
-                                   int64_t &data_length, StorageShape &out_shape) {
+ge::Status GetConstPlaceHolderAttr(const ge::OpDescPtr &op_desc, void *&data_addr, int64_t &data_length,
+                                   StorageShape &out_shape) {
   uint8_t *addr = nullptr;
   GE_ASSERT_GRAPH_SUCCESS(GetConstPlaceHolderAddr(op_desc, addr));
   data_addr = static_cast<void *>(addr);
-  vector<int64_t > shape;
+  vector<int64_t> shape;
   GE_ASSERT_TRUE(ge::AttrUtils::GetListInt(op_desc, "origin_shape", shape));
-  vector<int64_t > storage_shape;
+  vector<int64_t> storage_shape;
   GE_ASSERT_TRUE(ge::AttrUtils::GetListInt(op_desc, "storage_shape", storage_shape));
   for (const auto &dim : storage_shape) {
-      (void)out_shape.MutableStorageShape().AppendDim(dim);
+    (void)out_shape.MutableStorageShape().AppendDim(dim);
   }
   for (const auto &dim : shape) {
-      (void)out_shape.MutableOriginShape().AppendDim(dim);
+    (void)out_shape.MutableOriginShape().AppendDim(dim);
   }
   GE_ASSERT_TRUE(ge::AttrUtils::GetInt(op_desc, "size", data_length));
-  GELOGI("[Lowering] op %s, addr ptr is %p, shape is [%s], storage_shape is [%s].", op_desc->GetNamePtr(),
-         data_addr, ge::formats::JoinToString(shape).c_str(), ge::formats::JoinToString(storage_shape).c_str());
+  GELOGI("[Lowering] op %s, addr ptr is %p, shape is [%s], storage_shape is [%s].", op_desc->GetNamePtr(), data_addr,
+         ge::formats::JoinToString(shape).c_str(), ge::formats::JoinToString(storage_shape).c_str());
   return ge::SUCCESS;
 }
 
@@ -197,15 +198,15 @@ LowerResult LoweringConstPlaceHolderNode(const ge::NodePtr &node, const LowerInp
   int64_t data_length = 0L;
   LOWER_REQUIRE_SUCCESS(GetConstPlaceHolderAttr(op_desc, data_addr, data_length, out_shape),
                         "Node [%s] failed to get info from attr", node->GetNamePtr());
-  gert::GertTensorData tensorData(data_addr, static_cast<size_t>(data_length),
-                                  gert::TensorPlacement::kOnDeviceHbm, op_desc->GetStreamId());
-  auto const_place_holder_outputs = FrameSelector::OnInitRoot([&tensorData, &op_desc,
-                                                               &out_shape]() -> std::vector<ValueHolderPtr> {
-      const auto shape_holder = NodeConverterUtils::CreateOutputShape(op_desc->GetOutputDescPtr(0U), out_shape);
-      auto const_place_holder = DevMemValueHolder::CreateConst(&tensorData,
-                                                               sizeof(tensorData), op_desc->GetStreamId());
-      return {shape_holder, const_place_holder};
-  });
+  gert::GertTensorData tensorData(data_addr, static_cast<size_t>(data_length), gert::TensorPlacement::kOnDeviceHbm,
+                                  op_desc->GetStreamId());
+  auto const_place_holder_outputs =
+      FrameSelector::OnInitRoot([&tensorData, &op_desc, &out_shape]() -> std::vector<ValueHolderPtr> {
+        const auto shape_holder = NodeConverterUtils::CreateOutputShape(op_desc->GetOutputDescPtr(0U), out_shape);
+        auto const_place_holder =
+            DevMemValueHolder::CreateConst(&tensorData, sizeof(tensorData), op_desc->GetStreamId());
+        return {shape_holder, const_place_holder};
+      });
 
   CONVERTER_CHECK_HOLDERS_ALL_OK(const_place_holder_outputs, 2U);
   auto address = std::dynamic_pointer_cast<bg::DevMemValueHolder>(const_place_holder_outputs[1U]);
@@ -235,7 +236,7 @@ LowerResult LoweringDataNode(const ge::NodePtr &node, const LowerInput &lower_in
 
   auto feed_tensors = GetOrCreateInputFeeds(global_data, node->GetOwnerComputeGraph());
   GE_ASSERT_TRUE(index < static_cast<int32_t>(feed_tensors.size()),
-      "Data index:%d should less than feed tensor size: %zu.", index, feed_tensors.size());
+                 "Data index:%d should less than feed tensor size: %zu.", index, feed_tensors.size());
   const auto feed_tensor = feed_tensors[index];
   GE_ASSERT_NOTNULL(feed_tensor);
 
@@ -246,15 +247,16 @@ LowerResult LoweringDataNode(const ge::NodePtr &node, const LowerInput &lower_in
   }
   const int64_t logic_stream_id = op_desc->GetStreamId();
 
-  AllocatorDesc allocator_desc = {static_cast<TensorPlacement>(feed_tensor->GetPlacement()), AllocatorUsage::kAllocNodeWorkspace};
+  AllocatorDesc allocator_desc = {static_cast<TensorPlacement>(feed_tensor->GetPlacement()),
+                                  AllocatorUsage::kAllocNodeWorkspace};
   auto outputs = FrameSelector::OnInitRoot([&lower_input, &allocator_desc]() -> std::vector<ValueHolderPtr> {
     auto init_allocator = lower_input.global_data->GetOrCreateAllocator(allocator_desc);
     return {init_allocator};
   });
   auto allocator = outputs[0];
-  auto split_outputs = DevMemValueHolder::CreateDataOutput(kernel::kSplitDataTensor, {feed_tensor, allocator},
-                                                           static_cast<size_t>(kernel::SplitTensorOutputs::kNum),
-                                                           logic_stream_id);
+  auto split_outputs =
+      DevMemValueHolder::CreateDataOutput(kernel::kSplitDataTensor, {feed_tensor, allocator},
+                                          static_cast<size_t>(kernel::SplitTensorOutputs::kNum), logic_stream_id);
   CONVERTER_CHECK_HOLDERS_ALL_OK(split_outputs, static_cast<size_t>(kernel::SplitTensorOutputs::kNum));
   auto address = split_outputs[static_cast<size_t>(kernel::SplitTensorOutputs::kTensorData)];
   SetFeedDataPlacement(node, address, index);
@@ -319,8 +321,7 @@ ValueHolderPtr GetInputDataShape(const ge::NodePtr &input_node, const LowerInput
   return result->shape;
 }
 
-ge::Status GetMultiBatchInputShapeAndIndex(const ge::NodePtr &node,
-                                           const LowerInput &lower_input,
+ge::Status GetMultiBatchInputShapeAndIndex(const ge::NodePtr &node, const LowerInput &lower_input,
                                            std::vector<std::vector<int32_t>> &shape_index_vec,
                                            std::vector<ValueHolderPtr> &get_cur_shape_input) {
   const auto graph = node->GetOwnerComputeGraphBarePtr();
@@ -363,22 +364,21 @@ DevMemValueHolderPtr CreateShapeDataAddr(const ge::NodePtr &node, const LowerInp
   auto index_const = CreateConstVecHolder(shape_index_vec);
   GE_ASSERT_NOTNULL(index_const);
   input_value_holder.emplace_back(index_const);
-  input_value_holder.insert(input_value_holder.cend(),
-      get_cur_shape_input.cbegin(), get_cur_shape_input.cend());
+  input_value_holder.insert(input_value_holder.cend(), get_cur_shape_input.cbegin(), get_cur_shape_input.cend());
   const auto node_desc = node->GetOpDescBarePtr();
   if (node_desc == nullptr) {
     return nullptr;
   }
-  auto cur_shape_value_holder = bg::DevMemValueHolder::CreateSingleDataOutput("GetCurDynamicShape",
-      input_value_holder, node_desc->GetStreamId());
+  auto cur_shape_value_holder =
+      bg::DevMemValueHolder::CreateSingleDataOutput("GetCurDynamicShape", input_value_holder, node_desc->GetStreamId());
   GE_ASSERT_NOTNULL(cur_shape_value_holder);
   cur_shape_value_holder->SetPlacement(kOnHost);
   return cur_shape_value_holder;
 }
 
 ValueHolderPtr CreateShapeDataShape(const ge::NodePtr &node) {
-    const auto &output_desc = node->GetOpDescBarePtr()->GetOutputDescPtr(0UL);
-    return NodeConverterUtils::CreateOutputShape(output_desc);
+  const auto &output_desc = node->GetOpDescBarePtr()->GetOutputDescPtr(0UL);
+  return NodeConverterUtils::CreateOutputShape(output_desc);
 }
 
 LowerResult LoweringMultiBatchShapeDataNode(const ge::NodePtr &node, const LowerInput &lower_input) {

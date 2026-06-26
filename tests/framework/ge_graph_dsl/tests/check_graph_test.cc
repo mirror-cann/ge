@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,12 +29,16 @@ class CheckGraphTest : public testing::Test {
   EG_NS::GraphEasyExecutor executor;
 
  protected:
-  void SetUp() { EG_NS::GraphLayout::GetInstance().Config(executor, nullptr); }
+  void SetUp() {
+    EG_NS::GraphLayout::GetInstance().Config(executor, nullptr);
+  }
   void TearDown() {}
 };
 
 TEST_F(CheckGraphTest, test_ge_graph_dump_is_work) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   DUMP_GRAPH_WHEN("after_build");
   GraphDumperRegistry::GetDumper().Dump(ToComputeGraph(g1), "after_build");
@@ -46,7 +50,9 @@ TEST_F(CheckGraphTest, test_ge_graph_dump_is_work) {
 }
 
 TEST_F(CheckGraphTest, test_ge_graph_dump_two_phase) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
   DEF_GRAPH(g2) {
     CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
     CTRL_CHAIN(NODE("data2", DATA)->NODE("add", ADD));
@@ -69,7 +75,9 @@ TEST_F(CheckGraphTest, test_ge_graph_dump_two_phase) {
 }
 
 TEST_F(CheckGraphTest, test_ge_graph_dump_one_phase_two_times) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
   DEF_GRAPH(g2) {
     CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
     CTRL_CHAIN(NODE("data2", DATA)->NODE("add", ADD));
@@ -87,7 +95,9 @@ TEST_F(CheckGraphTest, test_ge_graph_dump_one_phase_two_times) {
 }
 
 TEST_F(CheckGraphTest, test_check_phases_is_work) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   DUMP_GRAPH_WHEN("before_build");
   GraphDumperRegistry::GetDumper().Dump(ToComputeGraph(g1), "after_build");
@@ -96,7 +106,9 @@ TEST_F(CheckGraphTest, test_check_phases_is_work) {
 }
 
 TEST_F(CheckGraphTest, test_check_one_phase_dump_another_not_dump) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   DUMP_GRAPH_WHEN("before_build");
   GraphDumperRegistry::GetDumper().Dump(ToComputeGraph(g1), "before_build");
@@ -109,7 +121,9 @@ TEST_F(CheckGraphTest, test_check_one_phase_dump_another_not_dump) {
 }
 
 TEST_F(CheckGraphTest, test_model_serialize_and_unserialize_success) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
   auto ge_graph = ToGeGraph(g1);
 
   ge::Model model("", "");

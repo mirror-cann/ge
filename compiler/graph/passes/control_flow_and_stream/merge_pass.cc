@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,9 +39,9 @@ Status MergePass::Run(NodePtr &node) {
 
   if (node->GetAllOutDataAnchors().empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Param node:%s(%s) all data anchor size is 0, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param] Param node:%s(%s) all data anchor size is 0",
-           node->GetName().c_str(), node->GetType().c_str());
+                         node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] Param node:%s(%s) all data anchor size is 0", node->GetName().c_str(),
+           node->GetType().c_str());
     return PARAM_INVALID;
   }
 
@@ -127,19 +127,16 @@ Status MergePass::ChangeIndexToConstant(const NodePtr &node, int32_t value_index
   }
   NodePtr const_node = graph->InsertNode(node, constant_op_desc);
   if (const_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      constant_op_desc->GetName().c_str(), constant_op_desc->GetType().c_str(),
-                      graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", constant_op_desc->GetName().c_str(),
+                         constant_op_desc->GetType().c_str(), graph->GetName().c_str());
     return FAILED;
   }
 
   // Change peer in anchors from value_index to new Constant node
   if (GraphUtils::ReplaceNodeAnchors(const_node, node, {}, {1}) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      const_node->GetName().c_str(), const_node->GetType().c_str());
-    GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
+    REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+                         node->GetType().c_str(), const_node->GetName().c_str(), const_node->GetType().c_str());
+    GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str(),
            const_node->GetName().c_str(), const_node->GetType().c_str());
     return FAILED;
   }
@@ -147,9 +144,8 @@ Status MergePass::ChangeIndexToConstant(const NodePtr &node, int32_t value_index
   GE_CHECK_NOTNULL(out_control_anchor);
   // Add control anchor between Merge and Constant
   if (out_control_anchor->LinkTo(const_node->GetInControlAnchor()) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) link control to op:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      const_node->GetName().c_str(), const_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) link control to op:%s(%s) failed", node->GetName().c_str(),
+                         node->GetType().c_str(), const_node->GetName().c_str(), const_node->GetType().c_str());
     return FAILED;
   }
 
@@ -187,14 +183,13 @@ Status MergePass::CreateConstByValue(const NodePtr &node, int32_t value_index, O
 
   GE_IF_BOOL_EXEC(!AttrUtils::SetTensor(op_desc, ATTR_NAME_WEIGHTS, const_tensor_ptr),
                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                                    op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
                   GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
                   return FAILED);
 
   // 4. set Constant output desc
-  GE_CHK_GRAPH_STATUS_RET(op_desc->AddOutputDesc(original_out_tensor_desc),
-                          "[Add][OutputDesc] to op:%s(%s) failed",
+  GE_CHK_GRAPH_STATUS_RET(op_desc->AddOutputDesc(original_out_tensor_desc), "[Add][OutputDesc] to op:%s(%s) failed",
                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
   return SUCCESS;
 }

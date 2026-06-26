@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,7 +76,7 @@ bool CheckConsumerFusibleWithProducer(const ge::NodePtr &producer, const ge::Nod
           producer->GetName().c_str());
   return false;
 }
-} // namespace
+}  // namespace
 
 AutomaticBufferFusion::AutomaticBufferFusion(std::unique_ptr<ConnectionMatrix> connection_matrix)
     : max_out_branch_num_(MAX_OUT_BRANCH_NUMBER),
@@ -191,7 +191,7 @@ AutomaticBufferFusion::NodeSet AutomaticBufferFusion::ComputeAllUnFusibleNodes(g
        * all these four nodes will be fused to one. The size of fusible nodes
        * is four.
        *
-       * The total of duplicated nodes is 1 (only need to duplicate the prodcuer
+       * The total of duplicated nodes is 1 (only need to duplicate the producer
        * once no matter how many consumers are unfusible).
        * Duplication is because there are some consumers which can
        * not be fused and they need the original output of the producer. We must
@@ -247,7 +247,8 @@ bool AutomaticBufferFusion::IsScopeIdValid(const ge::NodePtr &node, int64_t &sco
   if (ScopeAllocator::GetScopeAttr(node->GetOpDesc(), scope_id)) {
     FE_LOGD("Node %s is a fusion node with a scope_id of %ld.", node->GetName().c_str(), scope_id);
     if (scope_id <= scope_id_lower_bound_) {
-      FE_LOGD("Node %s is fused; skipping this node. The lower bound is %ld.", node->GetName().c_str(), scope_id_lower_bound_);
+      FE_LOGD("Node %s is fused; skipping this node. The lower bound is %ld.", node->GetName().c_str(),
+              scope_id_lower_bound_);
       return false;
     }
   } else {
@@ -325,7 +326,7 @@ bool AutomaticBufferFusion::CheckLoopExistAfterFusion(const ge::NodePtr &produce
       /* Check whether there is a path from output to any node in consumer's scope */
       int64_t output_scope_id = -2;
       (void)ScopeAllocator::GetScopeAttr(output->GetOpDesc(), output_scope_id);
-      if (output_scope_id == producer_scope_id) { // Inner output from the same scope_id with producer_scope_id, Ignore
+      if (output_scope_id == producer_scope_id) {  // Inner output from the same scope_id with producer_scope_id, Ignore
         continue;
       }
       std::vector<ge::NodePtr> all_outputs;
@@ -364,8 +365,8 @@ void AutomaticBufferFusion::FuseOneProducer(ge::ComputeGraph &graph, const ge::N
       continue;
     }
     if (!OpSliceUtil::IsSgtInfoConsistant(consumer, producer)) {
-      FE_LOGD("Consumer %s and producer %s do not have the same sgt info.",
-              consumer->GetName().c_str(), producer->GetName().c_str());
+      FE_LOGD("Consumer %s and producer %s do not have the same sgt info.", consumer->GetName().c_str(),
+              producer->GetName().c_str());
       continue;
     }
     FE_LOGD("Fusing consumer %s with producer %s.", consumer->GetName().c_str(), producer->GetName().c_str());
@@ -560,13 +561,13 @@ Status AutomaticBufferFusion::SetAndRecordScopeId(const ge::NodePtr &node, int64
     scope_id_nodes_map_.emplace(std::make_pair(scope_id, scope_info));
   } else {
     if (iter->second.is_dynamic_impl != is_dynamic_impl) {
-      FE_LOGD("Cannot fuse %s with scope %ld. Dynamic implementation types are %d and %d.",
-              node->GetName().c_str(), scope_id, iter->second.is_dynamic_impl, is_dynamic_impl);
+      FE_LOGD("Cannot fuse %s with scope %ld. Dynamic implementation types are %d and %d.", node->GetName().c_str(),
+              scope_id, iter->second.is_dynamic_impl, is_dynamic_impl);
       return SUCCESS;
     }
 
     if (iter->second.nodes.size() > MAX_NODE_NUMBER_IN_ONE_SCOPE) {
-      FE_LOGW("Total element wise fusion op number is greater than %zu!", MAX_NODE_NUMBER_IN_ONE_SCOPE+1);
+      FE_LOGW("Total element wise fusion op number is greater than %zu!", MAX_NODE_NUMBER_IN_ONE_SCOPE + 1);
       return FAILED;
     }
 
@@ -645,7 +646,7 @@ bool AutomaticBufferFusion::IsFusible(const ge::NodePtr &node, std::string &op_p
   bool result = IsTbeOp(node) && !IsDumpableOp(node->GetOpDesc()) && GetOpAttrPattern(node, op_pattern) &&
                 (op_pattern == OP_PATTERN_ELEMWISE || op_pattern == OP_PATTERN_BROAD_CAST);
   auto opdesc = node->GetOpDesc();
-  
+
   string matched_pass_name;
   if (ge::AttrUtils::GetStr(opdesc, kPassNameUbAttr, matched_pass_name) && !matched_pass_name.empty()) {
     return false;
@@ -657,7 +658,8 @@ bool AutomaticBufferFusion::IsFusible(const ge::NodePtr &node, std::string &op_p
   }
   bool add_n_condition = opdesc->GetType() == "AddN" && node->GetAllInDataAnchorsSize() > MAX_OUT_BRANCH_NUMBER;
   /* Restrict that one AddN can only contain 6 input tensors. */
-  FE_CHECK(add_n_condition, FE_LOGD("AddN %s has more than 6 inputs, skipping it.", node->GetName().c_str()), return false);
+  FE_CHECK(add_n_condition, FE_LOGD("AddN %s has more than 6 inputs, skipping it.", node->GetName().c_str()),
+           return false);
   return result;
 }
-}
+}  // namespace fe

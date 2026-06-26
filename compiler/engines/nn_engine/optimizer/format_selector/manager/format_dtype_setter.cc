@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,13 +18,13 @@ namespace {
 constexpr size_t kConvMinInputSize = 2;
 constexpr uint32_t kMaxDepth = 5;
 const std::string kSetFormatDtypeThreadPrefix = "judge_1_";
-}
+}  // namespace
 
-FormatDtypeSetter::FormatDtypeSetter(const std::string& engine_name) : FormatDtypeManagerBase(engine_name) {}
+FormatDtypeSetter::FormatDtypeSetter(const std::string &engine_name) : FormatDtypeManagerBase(engine_name) {}
 
 FormatDtypeSetter::~FormatDtypeSetter() {}
 
-Status FormatDtypeSetter::SetSupportFormatDtype(const ge::ComputeGraph& graph) const {
+Status FormatDtypeSetter::SetSupportFormatDtype(const ge::ComputeGraph &graph) const {
   FE_TIMECOST_START(SetSupportFormatDtype);
   for (const ge::NodePtr &node : graph.GetAllNodes()) {
     Status result = SetSupportFormatDtypeByNode(node);
@@ -70,12 +70,13 @@ Status FormatDtypeSetter::MultiThreadSetSupportFormatDtype(const ge::ComputeGrap
     }
   }
   FE_TIMECOST_END(MultiThreadSetSupportFormatDtype,
-      "MultiThreadSetSupportFormatDtype during FEGraphOptimizer::OptimizeOriginalGraph");
+                  "MultiThreadSetSupportFormatDtype during FEGraphOptimizer::OptimizeOriginalGraph");
   return SUCCESS;
 }
 
 Status FormatDtypeSetter::MultiThreadSetSupportFormatDtypeOneNode(ge::NodePtr &node_ptr,
-    FormatDtypeSetter *format_dtype_setter_ptr, const ge::GEThreadLocalContext &ge_context) {
+                                                                  FormatDtypeSetter *format_dtype_setter_ptr,
+                                                                  const ge::GEThreadLocalContext &ge_context) {
   FE_CHECK_NOTNULL(format_dtype_setter_ptr);
   ge::GetThreadLocalContext() = ge_context;
   Status result = format_dtype_setter_ptr->SetSupportFormatDtypeByNode(node_ptr);
@@ -86,11 +87,10 @@ Status FormatDtypeSetter::MultiThreadSetSupportFormatDtypeOneNode(ge::NodePtr &n
   return SUCCESS;
 }
 
-void FormatDtypeSetter::JudgeFirstLayerConv(const ge::NodePtr& node, const ge::OpDescPtr& op_desc) const {
+void FormatDtypeSetter::JudgeFirstLayerConv(const ge::NodePtr &node, const ge::OpDescPtr &op_desc) const {
   bool enable_small_channel = Configuration::Instance(GetEngineName()).IsEnableSmallChannel();
   bool first_lay_conv2d = ((op_desc->GetType() == CONV2D || op_desc->GetType() == DEPTHWISECONV2D) &&
-                          node->GetAllInDataAnchors().size() >= kConvMinInputSize &&
-                          enable_small_channel);
+                           node->GetAllInDataAnchors().size() >= kConvMinInputSize && enable_small_channel);
   if (!first_lay_conv2d) {
     FE_LOGD("This op %s is not first layer conv2d.", op_desc->GetName().c_str());
     return;
@@ -99,15 +99,18 @@ void FormatDtypeSetter::JudgeFirstLayerConv(const ge::NodePtr& node, const ge::O
   JudgeFirstLayerConvForTrain(node, op_desc);
 }
 
-void FormatDtypeSetter::JudgeFirstLayerConvForInfer(const ge::NodePtr& node, const ge::OpDescPtr& op_desc) const {
+void FormatDtypeSetter::JudgeFirstLayerConvForInfer(const ge::NodePtr &node, const ge::OpDescPtr &op_desc) const {
   auto in_data_anchor = node->GetInDataAnchor(0);
   auto data_node = FusionTurbo::GetPeerOutNode(node, 0);
   auto weight_node = FusionTurbo::GetPeerOutNode(node, 1);
   if (data_node != nullptr && weight_node != nullptr) {
     auto peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
     /* Peer in data anchors is 1 is the necessary condition. Because
-      * we do not have transdata supporting NC1HWC0_C04 to 4D. */
-    if (peer_out_anchor == nullptr) { FE_LOGE("peer_out_anchor is nullptr."); return; }
+     * we do not have transdata supporting NC1HWC0_C04 to 4D. */
+    if (peer_out_anchor == nullptr) {
+      FE_LOGE("peer_out_anchor is nullptr.");
+      return;
+    }
     if (peer_out_anchor->GetPeerInDataAnchors().size() != 1) {
       return;
     }
@@ -116,11 +119,9 @@ void FormatDtypeSetter::JudgeFirstLayerConvForInfer(const ge::NodePtr& node, con
     std::string father_op_type = father_op_desc->GetType();
 
     bool weight_qualified = CheckWeightTypeQualified(weight_node, CONSTANT);
-    FE_LOGD("This op %s predecessor on the first edge is %s.", op_desc->GetNamePtr(),
-            father_op_desc->GetNamePtr());
+    FE_LOGD("This op %s predecessor on the first edge is %s.", op_desc->GetNamePtr(), father_op_desc->GetNamePtr());
     /* First layer means the op in front of  */
-    FE_LOGD("Weight qualification result is %u, father_op_type is %s.",
-            weight_qualified, father_op_type.c_str());
+    FE_LOGD("Weight qualification result is %u, father_op_type is %s.", weight_qualified, father_op_type.c_str());
     if (weight_qualified && father_op_type == AIPP) {
       FE_LOGD("This op %s is the first layer conv.", op_desc->GetName().c_str());
       (void)ge::AttrUtils::SetBool(op_desc, IS_FIRST_LAYER_CONV_FOR_OP, true);
@@ -144,7 +145,7 @@ void FormatDtypeSetter::JudgeFirstLayerConvForInfer(const ge::NodePtr& node, con
   }
 }
 
-void FormatDtypeSetter::JudgeFirstLayerConvForTrain(const ge::NodePtr& node, const ge::OpDescPtr& op_desc) const {
+void FormatDtypeSetter::JudgeFirstLayerConvForTrain(const ge::NodePtr &node, const ge::OpDescPtr &op_desc) const {
   FE_LOGD("JudgeFirstLayerConvForTrain enter.");
   uint32_t depth = 0;
   ge::NodePtr data = nullptr;
@@ -175,8 +176,8 @@ void FormatDtypeSetter::JudgeFirstLayerConvForTrain(const ge::NodePtr& node, con
     FE_LOGD("GetFirstLayerConv2DDW conv2d_dw = nullptr");
     return;
   }
-  FE_LOGD("This node %s and relate dw %s is the first layer conv and dw.",
-          op_desc->GetName().c_str(), conv2d_dw->GetName().c_str());
+  FE_LOGD("This node %s and relate dw %s is the first layer conv and dw.", op_desc->GetName().c_str(),
+          conv2d_dw->GetName().c_str());
   (void)ge::AttrUtils::SetBool(conv2d_dw->GetOpDesc(), IS_FIRST_LAYER_CONV, true);
   (void)ge::AttrUtils::SetBool(op_desc, IS_FIRST_LAYER_CONV, true);
 }
@@ -202,8 +203,7 @@ bool FormatDtypeSetter::GetFirstLayerConv2DInputData(const ge::NodePtr &node, ge
   depth++;
   auto father = in_data_anchor->GetPeerOutAnchor()->GetOwnerNode();
   if (father->GetType() == CONV2D) {
-    FE_LOGD("Father of %s is already Conv2D(%s).", node->GetName().c_str(),
-            father->GetName().c_str());
+    FE_LOGD("Father of %s is already Conv2D(%s).", node->GetName().c_str(), father->GetName().c_str());
     return false;
   }
   return GetFirstLayerConv2DInputData(father, data, depth);
@@ -225,8 +225,7 @@ bool FormatDtypeSetter::GetFirstLayerConv2DWeight(const ge::NodePtr &node, ge::N
 }
 
 void FormatDtypeSetter::GetFirstLayerConv2DDW(const ge::NodePtr &data, ge::NodePtr &conv2d_dw,
-                                              const ge::NodePtr &conv2d_node,
-                                              uint32_t depth, bool &find_flag) const {
+                                              const ge::NodePtr &conv2d_node, uint32_t depth, bool &find_flag) const {
   if (find_flag) {
     FE_LOGD("GetFirstLayerConv2DDW get conv2ddw conv2d_node:%s", conv2d_dw->GetName().c_str());
     return;
@@ -253,12 +252,12 @@ void FormatDtypeSetter::GetFirstLayerConv2DDW(const ge::NodePtr &data, ge::NodeP
 }
 
 Status FormatDtypeSetter::SetSupportFormatDtypeByNode(ge::NodePtr node_ptr) const {
-    HeavyFormatInfo heavy_foramt_info;
-    return SetSupportFormatDtypeByNode(node_ptr, heavy_foramt_info);
+  HeavyFormatInfo heavy_foramt_info;
+  return SetSupportFormatDtypeByNode(node_ptr, heavy_foramt_info);
 }
 
 Status FormatDtypeSetter::SetSupportFormatDtypeByNode(ge::NodePtr node_ptr,
-                                                      const HeavyFormatInfo& heavy_format_info) const {
+                                                      const HeavyFormatInfo &heavy_format_info) const {
   // 1. check the node_ptr and the op_desc_ptr
   FE_CHECK_NOTNULL(node_ptr);
   ge::OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
@@ -276,7 +275,7 @@ Status FormatDtypeSetter::SetSupportFormatDtypeByNode(ge::NodePtr node_ptr,
   // 3. get op_kernel_info_ptr by op_impl_type and op_type
   OpImplType op_impl_type = static_cast<OpImplType>(imply_type);
   OpKernelInfoPtr op_kernel_info_ptr =
-          OpsKernelManager::Instance(GetEngineName()).GetOpKernelInfoByOpType(op_impl_type, op_type);
+      OpsKernelManager::Instance(GetEngineName()).GetOpKernelInfoByOpType(op_impl_type, op_type);
   if (op_kernel_info_ptr == nullptr) {
     FE_LOGW("Engine[%s] not support op_impl_type[%ld].", GetEngineName().c_str(), op_impl_type);
     return SUCCESS;
@@ -327,8 +326,8 @@ void FormatDtypeSetter::SetTensorDtype(const ge::OpDescPtr &op_desc, const bool 
       continue;
     }
     tensor_desc_ptr->SetDataType(data_type);
-    FE_LOGI("%s[%zu]'s data type of op[%s, %s] has been set to [%s].", is_input ? "Input" : "Output",
-            i, op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+    FE_LOGI("%s[%zu]'s data type of op[%s, %s] has been set to [%s].", is_input ? "Input" : "Output", i,
+            op_desc->GetName().c_str(), op_desc->GetType().c_str(),
             ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
   }
 }

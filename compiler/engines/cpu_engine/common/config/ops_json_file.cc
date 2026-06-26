@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,10 +19,10 @@ using namespace nlohmann;
 using namespace ::aicpu::FWKAdapter;
 
 namespace {
-const int kMaxWorkspaceSize = 1 * 500 * 1024; // for 500KB
-const int DEFAULT_WROKSPACE_SIZE = 2048; // 2048 is for 2KB
+const int kMaxWorkspaceSize = 1 * 500 * 1024;  // for 500KB
+const int DEFAULT_WROKSPACE_SIZE = 2048;       // 2048 is for 2KB
 const int DEFAULT_DEVICE_IMPLEMENT_TYPE = 2;
-}
+}  // namespace
 
 namespace aicpu {
 OpsJsonFile &OpsJsonFile::Instance() {
@@ -70,8 +70,7 @@ bool OpsJsonFile::ConvertInputOutputInfo(const json &old_json, const string &op_
   struct InOutInfo info;
   bool ret = ParseInputOutput(old_json, info);
   AICPU_IF_BOOL_EXEC((!ret),
-                     AICPU_REPORT_INNER_ERR_MSG("Call OpsJsonFile::ParseInputOutput failed, op[%s].",
-                                                op_name.c_str());
+                     AICPU_REPORT_INNER_ERR_MSG("Call OpsJsonFile::ParseInputOutput failed, op[%s].", op_name.c_str());
                      return false)
   new_json[kKernelConfigOpInfo][kKernelConfigFormat] = info.in_output_format;
   new_json[kKernelConfigOpInfo][kKernelConfigDataType] = info.in_output_type;
@@ -188,8 +187,9 @@ OpsJsonFile::ConvertResult OpsJsonFile::ConvertExtendedOpInfo(json &new_json, co
   // ops support optional input placeholder flag
   bool optional_input_placeholder = false;
   buff = new_json[kKernelConfigOpInfo][kKernelConfigOptionalInputPlaceholder];
-  AICPU_IF_BOOL_EXEC((!CheckAndGetBoolValue(buff, op_name, "optionalInputPlaceholder", optional_input_placeholder, true)),
-                     return ConvertResult::kFinished);
+  AICPU_IF_BOOL_EXEC(
+      (!CheckAndGetBoolValue(buff, op_name, "optionalInputPlaceholder", optional_input_placeholder, true)),
+      return ConvertResult::kFinished);
   new_json[kKernelConfigOpInfo][kKernelConfigOptionalInputPlaceholder] = optional_input_placeholder;
   return ConvertResult::kSuccess;
 }
@@ -204,8 +204,7 @@ bool OpsJsonFile::ParseInputOutput(const json &json_read, InOutInfo &in_out_info
   const string output_str = "output";
   const string dynamic_input_str = "dynamic_input";
   const string dynamic_output_str = "dynamic_output";
-  for (json::const_iterator iter = json_read.cbegin(); iter != json_read.cend();
-       ++iter) {
+  for (json::const_iterator iter = json_read.cbegin(); iter != json_read.cend(); ++iter) {
     const string key = iter.key();
     // json_read maybe include key inputn or outputn (n is a number satisfied n
     // >=0,such as input0, output2,...) this judgement ensures that the next
@@ -216,18 +215,15 @@ bool OpsJsonFile::ParseInputOutput(const json &json_read, InOutInfo &in_out_info
 
     if ((strncmp(key.c_str(), input_str.c_str(), input_str.size()) == 0) ||
         (strncmp(key.c_str(), output_str.c_str(), output_str.size()) == 0) ||
-        (strncmp(key.c_str(), dynamic_input_str.c_str(),
-                 dynamic_input_str.size()) == 0) ||
-        (strncmp(key.c_str(), dynamic_output_str.c_str(),
-                 dynamic_output_str.size()) == 0)) {
+        (strncmp(key.c_str(), dynamic_input_str.c_str(), dynamic_input_str.size()) == 0) ||
+        (strncmp(key.c_str(), dynamic_output_str.c_str(), dynamic_output_str.size()) == 0)) {
       json json_key = json_read[key];
       auto iter_format = json_key.find(kKernelConfigFormat);
       if (iter_format != json_key.end()) {
         string format = iter_format.value().get<string>();
         AICPU_IF_BOOL_EXEC(
             (format != "ND") && (format != "NHWC") && (format != "NCHW"),
-            AICPU_REPORT_INNER_ERR_MSG(
-              "Invalid format[%s], should be ND, NHWC or NCHW.", format.c_str());
+            AICPU_REPORT_INNER_ERR_MSG("Invalid format[%s], should be ND, NHWC or NCHW.", format.c_str());
             return false)
         format_result[key] = format;
       }
@@ -261,32 +257,29 @@ bool OpsJsonFile::ParseInputOutput(const json &json_read, InOutInfo &in_out_info
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetComputeCost(const json &buff, const string &op_name,
-                                         int &compute_cost) const {
+bool OpsJsonFile::CheckAndGetComputeCost(const json &buff, const string &op_name, int &compute_cost) const {
   if (!buff.empty()) {
     aicpu::State state = StringToNum(buff.get<string>(), compute_cost);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.",
-            buff.get<string>().c_str(), kKernelConfigComputeCost.c_str(),
-            op_name.c_str(), state.msg.c_str());
-        return false;
+      AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.", buff.get<string>().c_str(),
+                                 kKernelConfigComputeCost.c_str(), op_name.c_str(), state.msg.c_str());
+      return false;
     }
     return true;
   } else {
-    AICPU_REPORT_INNER_ERR_MSG("[%s] is empty, op[%s].",
-        kKernelConfigComputeCost.c_str(), op_name.c_str());
+    AICPU_REPORT_INNER_ERR_MSG("[%s] is empty, op[%s].", kKernelConfigComputeCost.c_str(), op_name.c_str());
     return false;
   }
 }
 
-bool OpsJsonFile::CheckAndGetOpsFlag(const json &buff, const string &op_name,
-                                     string &ops_flag) const {
+bool OpsJsonFile::CheckAndGetOpsFlag(const json &buff, const string &op_name, string &ops_flag) const {
   if (!buff.empty()) {
     ops_flag = buff.get<string>();
     int is_open = ops_flag.compare("OPS_FLAG_OPEN");
     int is_close = ops_flag.compare("OPS_FLAG_CLOSE");
     if ((is_open != 0) && (is_close != 0)) {
-      AICPU_REPORT_INNER_ERR_MSG("Invalid op_info.opsFlag[%s], should be "
+      AICPU_REPORT_INNER_ERR_MSG(
+          "Invalid op_info.opsFlag[%s], should be "
           "OPS_FLAG_OPEN or OPS_FLAG_CLOSE, op[%s].",
           ops_flag.c_str(), op_name.c_str());
       return false;
@@ -297,15 +290,13 @@ bool OpsJsonFile::CheckAndGetOpsFlag(const json &buff, const string &op_name,
       ops_flag = kOpsFlagClose;
     }
   } else {
-    AICPUE_LOGI("Read kernel json file, op[%s], op_info.opsFlag is empty.",
-                op_name.c_str());
+    AICPUE_LOGI("Read kernel json file, op[%s], op_info.opsFlag is empty.", op_name.c_str());
     ops_flag = kOpsFlagEmpty;
   }
   return true;
 }
 
-void OpsJsonFile::ConvertTopicType(const std::string &topic_type_str,
-                                   FWKExtTopicType &topic_type) const {
+void OpsJsonFile::ConvertTopicType(const std::string &topic_type_str, FWKExtTopicType &topic_type) const {
   topic_type = FWK_ADPT_TOPIC_INVALID;
   if (topic_type_str == kTopicTypeDeviceOnly) {
     topic_type = FWK_ADPT_TOPIC_DEVICE_ONLY;
@@ -318,14 +309,14 @@ void OpsJsonFile::ConvertTopicType(const std::string &topic_type_str,
   }
 }
 
-bool OpsJsonFile::CheckAndGetTopicType(const nlohmann::json &buff,
-                                       const std::string &op_name,
+bool OpsJsonFile::CheckAndGetTopicType(const nlohmann::json &buff, const std::string &op_name,
                                        FWKExtTopicType &topic_type) const {
   if (!buff.empty()) {
     ConvertTopicType(buff.get<string>(), topic_type);
     AICPUE_LOGI("Read kernel json file, opName:[%s], topicType:[%d].", op_name.c_str(), static_cast<int>(topic_type));
     if (topic_type == FWK_ADPT_TOPIC_INVALID) {
-      AICPU_REPORT_INNER_ERR_MSG("Read kernel json file, opName:[%s], topicType:[%d] is invalid, "
+      AICPU_REPORT_INNER_ERR_MSG(
+          "Read kernel json file, opName:[%s], topicType:[%d] is invalid, "
           "only support [DEVICE_ONLY/DEVICE_FIRST/HOST_ONLY/HOST_FIRST].",
           op_name.c_str(), static_cast<int>(topic_type));
       return false;
@@ -337,8 +328,7 @@ bool OpsJsonFile::CheckAndGetTopicType(const nlohmann::json &buff,
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetResource(const nlohmann::json &buff,
-                                      const std::string &op_name,
+bool OpsJsonFile::CheckAndGetResource(const nlohmann::json &buff, const std::string &op_name,
                                       std::string &resource) const {
   if (!buff.empty()) {
     resource = buff.get<string>();
@@ -346,10 +336,11 @@ bool OpsJsonFile::CheckAndGetResource(const nlohmann::json &buff,
     for (size_t i = 0; i < resourceList.size(); i++) {
       if ((resourceList[i] != kResourceQueue) && (resourceList[i] != kResourceChannel) &&
           (resourceList[i] != kResourceVdecChannel)) {
-        AICPU_REPORT_INNER_ERR_MSG("Read kernel json file, opName:[%s], resource:[%s] is invalid, "
+        AICPU_REPORT_INNER_ERR_MSG(
+            "Read kernel json file, opName:[%s], resource:[%s] is invalid, "
             "only support [%s/%s/%s].",
-            op_name.c_str(), resource.c_str(), kResourceQueue.c_str(),
-            kResourceChannel.c_str(), kResourceVdecChannel.c_str());
+            op_name.c_str(), resource.c_str(), kResourceQueue.c_str(), kResourceChannel.c_str(),
+            kResourceVdecChannel.c_str());
         return false;
       }
     }
@@ -366,36 +357,31 @@ bool OpsJsonFile::CheckAndGetBoolValue(const json &buff, const string &op_name, 
       return true;
     } else {
       AICPU_REPORT_INNER_ERR_MSG("invalid op_info.%s[%s], should be False or True, op[%s].", field_str.c_str(),
-                               buff.get<string>().c_str(), op_name.c_str());
+                                 buff.get<string>().c_str(), op_name.c_str());
       return false;
     }
   } else if (use_default) {
     AICPUE_LOGD("op_info.%s is empty, use default value[%d], op[%s].", field_str.c_str(), value, op_name.c_str());
     return true;
   } else {
-    AICPU_REPORT_INNER_ERR_MSG("op_info.%s is empty, op[%s].",
-        field_str.c_str(), op_name.c_str());
+    AICPU_REPORT_INNER_ERR_MSG("op_info.%s is empty, op[%s].", field_str.c_str(), op_name.c_str());
     return false;
   }
 }
 
 // check and get shape type field from kernel info
-bool OpsJsonFile::CheckAndGetShapeType(const json &buff, const string &op_name,
-                                       int &shape_type) const {
+bool OpsJsonFile::CheckAndGetShapeType(const json &buff, const string &op_name, int &shape_type) const {
   if (!buff.empty()) {
     aicpu::State state = StringToNum(buff.get<string>(), shape_type);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.",
-            buff.get<string>().c_str(), kKernelConfigShapeType.c_str(),
-            op_name.c_str(), state.msg.c_str());
-        return false;
+      AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.", buff.get<string>().c_str(),
+                                 kKernelConfigShapeType.c_str(), op_name.c_str(), state.msg.c_str());
+      return false;
     }
-    if ((shape_type < static_cast<int>(ge::DEPEND_IN_SHAPE)) ||
-        (shape_type > static_cast<int>(ge::DEPEND_COMPUTE))) {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "invalid shape type[%d], should be in[%d, %d], op[%s].", shape_type,
-          static_cast<int>(ge::DEPEND_IN_SHAPE),
-          static_cast<int>(ge::DEPEND_COMPUTE), op_name.c_str());
+    if ((shape_type < static_cast<int>(ge::DEPEND_IN_SHAPE)) || (shape_type > static_cast<int>(ge::DEPEND_COMPUTE))) {
+      AICPU_REPORT_INNER_ERR_MSG("invalid shape type[%d], should be in[%d, %d], op[%s].", shape_type,
+                                 static_cast<int>(ge::DEPEND_IN_SHAPE), static_cast<int>(ge::DEPEND_COMPUTE),
+                                 op_name.c_str());
       return false;
     }
   } else {
@@ -408,125 +394,102 @@ bool OpsJsonFile::CheckAndGetShapeType(const json &buff, const string &op_name,
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetNonessentialBoolValue(const json &buff,
-                                                   const string &op_name,
-                                                   const string &field_str,
+bool OpsJsonFile::CheckAndGetNonessentialBoolValue(const json &buff, const string &op_name, const string &field_str,
                                                    bool &value) const {
   if (!buff.empty()) {
     if (StringToBool(buff.get<string>(), value).state != ge::SUCCESS) {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "invalid op_info.%s[%s], should be False or True, op[%s].",
-          field_str.c_str(), buff.get<string>().c_str(), op_name.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("invalid op_info.%s[%s], should be False or True, op[%s].", field_str.c_str(),
+                                 buff.get<string>().c_str(), op_name.c_str());
       return false;
     }
   }
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetFormatAgnostic(const json &buff,
-                                            const string &op_name,
-                                            const string &field_str,
+bool OpsJsonFile::CheckAndGetFormatAgnostic(const json &buff, const string &op_name, const string &field_str,
                                             bool &value) const {
   if (!buff.empty()) {
     aicpu::State state = StringToBool(buff.get<string>(), value);
     if (state.state == ge::SUCCESS) {
       return true;
     } else {
-      AICPU_REPORT_INNER_ERR_MSG("Call StringToBool failed, %s. [%s] must be False"
+      AICPU_REPORT_INNER_ERR_MSG(
+          "Call StringToBool failed, %s. [%s] must be False"
           " or True in op info store file, op[%s]",
           state.msg.c_str(), field_str.c_str(), op_name.c_str());
       return false;
     }
   } else {
-    AICPUE_LOGD("Read kernel json file, op[%s], op_info.%s is empty.",
-                op_name.c_str(), field_str.c_str());
+    AICPUE_LOGD("Read kernel json file, op[%s], op_info.%s is empty.", op_name.c_str(), field_str.c_str());
     return true;
   }
 }
 
 // check and get workspace size from kernel info
-bool OpsJsonFile::CheckAndGetWorkspaceSize(const nlohmann::json &buff,
-                                           const std::string &op_name,
+bool OpsJsonFile::CheckAndGetWorkspaceSize(const nlohmann::json &buff, const std::string &op_name,
                                            int &workspace_size) const {
   if (!buff.empty()) {
     aicpu::State state = StringToNum(buff.get<string>(), workspace_size);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.",
-            kKernelConfigWorkspaceSize.c_str(), buff.get<string>().c_str(),
-            op_name.c_str(), state.msg.c_str());
-        return false;
+      AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.", kKernelConfigWorkspaceSize.c_str(),
+                                 buff.get<string>().c_str(), op_name.c_str(), state.msg.c_str());
+      return false;
     }
-    workspace_size *= 1024; // 1024 is for kb
+    workspace_size *= 1024;  // 1024 is for kb
     if (workspace_size < 0) {
-      AICPU_REPORT_INNER_ERR_MSG("invalid %s[%d] should be in (0, %d). op[%s]",
-          kKernelConfigWorkspaceSize.c_str(), workspace_size, kMaxWorkspaceSize,
-          op_name.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("invalid %s[%d] should be in (0, %d). op[%s]", kKernelConfigWorkspaceSize.c_str(),
+                                 workspace_size, kMaxWorkspaceSize, op_name.c_str());
       return false;
     } else if (workspace_size > kMaxWorkspaceSize) {
       AICPUE_LOGW("workspaceSize is morn than 500kb and set it to 500kb");
       workspace_size = kMaxWorkspaceSize;
     }
   } else {
-    AICPUE_LOGD(
-        "Read kernel json file, op[%s], op_info.workspaceSize is empty and use default value[2KB]",
-        op_name.c_str());
+    AICPUE_LOGD("Read kernel json file, op[%s], op_info.workspaceSize is empty and use default value[2KB]",
+                op_name.c_str());
     workspace_size = DEFAULT_WROKSPACE_SIZE;
   }
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetBlockDimByIndex(const json &buff, const string &op_name,
-                                             int &blockIndex) const {
+bool OpsJsonFile::CheckAndGetBlockDimByIndex(const json &buff, const string &op_name, int &blockIndex) const {
   if (!buff.empty()) {
     aicpu::State state = StringToNum(buff.get<string>(), blockIndex);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.",
-            buff.get<string>().c_str(), kKernelConfigBlockDimByIndex.c_str(),
-            op_name.c_str(), state.msg.c_str());
-        return false;
+      AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.", buff.get<string>().c_str(),
+                                 kKernelConfigBlockDimByIndex.c_str(), op_name.c_str(), state.msg.c_str());
+      return false;
     }
   } else {
-      AICPUE_LOGD("[%s] is empty, op[%s].",
-                  kKernelConfigBlockDimByIndex.c_str(), op_name.c_str());
+    AICPUE_LOGD("[%s] is empty, op[%s].", kKernelConfigBlockDimByIndex.c_str(), op_name.c_str());
   }
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetImplementType(const json &buff, const string &op_name,
-                                           int &implement_type) const {
+bool OpsJsonFile::CheckAndGetImplementType(const json &buff, const string &op_name, int &implement_type) const {
   if (!buff.empty()) {
     aicpu::State state = StringToNum(buff.get<string>(), implement_type);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.",
-            buff.get<string>().c_str(), kKernelConfigImplementType.c_str(),
-            op_name.c_str(), state.msg.c_str());
-        return false;
+      AICPU_REPORT_INNER_ERR_MSG("Convert %s[%s] to int for op[%s] failed, %s.", buff.get<string>().c_str(),
+                                 kKernelConfigImplementType.c_str(), op_name.c_str(), state.msg.c_str());
+      return false;
     }
   } else {
-      AICPUE_LOGD("[%s] is empty, op[%s].", kKernelConfigImplementType.c_str(), op_name.c_str());
+    AICPUE_LOGD("[%s] is empty, op[%s].", kKernelConfigImplementType.c_str(), op_name.c_str());
   }
   return true;
 }
 
-bool OpsJsonFile::CheckAndGetSlicePattern(const nlohmann::json &buff,
-                                          const std::string &op_name,
+bool OpsJsonFile::CheckAndGetSlicePattern(const nlohmann::json &buff, const std::string &op_name,
                                           std::string &slice_pattern) const {
-  static const unordered_set<string> patternSet = {"elemwise",
-                                                   "elemwiseBroadcast",
-                                                   "broadcast",
-                                                   "slidingWindow",
-                                                   "slidingWindowDeconv",
-                                                   "cubeMatmul",
-                                                   "reduce",
-                                                   "resize",
-                                                   "scatter",
-                                                   "segment"};
+  static const unordered_set<string> patternSet = {
+      "elemwise", "elemwiseBroadcast", "broadcast", "slidingWindow", "slidingWindowDeconv", "cubeMatmul", "reduce",
+      "resize",   "scatter",           "segment"};
   if (!buff.empty()) {
     slice_pattern = buff.get<string>();
     if (patternSet.count(slice_pattern) == 0) {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Read kernel json file, opName:[%s], slice_pattern:[%s] is invalid.",
-          op_name.c_str(), slice_pattern.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("Read kernel json file, opName:[%s], slice_pattern:[%s] is invalid.", op_name.c_str(),
+                                 slice_pattern.c_str());
       return false;
     }
   }
@@ -535,10 +498,10 @@ bool OpsJsonFile::CheckAndGetSlicePattern(const nlohmann::json &buff,
 }
 
 template <typename T>
-inline void Assignment(T &varible, const string &key, const json &json_read) {
+inline void Assignment(T &variable, const string &key, const json &json_read) {
   auto iter = json_read.find(key);
   if (iter != json_read.end()) {
-    varible = iter.value().get<T>();
+    variable = iter.value().get<T>();
   }
 }
 
@@ -594,7 +557,7 @@ void from_json(const json &json_read, OpFullInfo &op_info) {
   Assignment(op_info.implementType, kKernelConfigImplementType, json_read);
 
   Assignment(op_info.optionalInputPlaceholder, kKernelConfigOptionalInputPlaceholder, json_read);
-  
+
   // param[inOutputFormat]
   auto iter = json_read.find(kKernelConfigFormat);
   if (iter != json_read.end()) {
@@ -610,8 +573,7 @@ void from_json(const json &json_read, OpFullInfo &op_info) {
   iter = json_read.find(kKernelConfigDataType);
   if (iter != json_read.end()) {
     json data_type_json = iter.value();
-    for (json::iterator it = data_type_json.begin(); it != data_type_json.end();
-         ++it) {
+    for (json::iterator it = data_type_json.begin(); it != data_type_json.end(); ++it) {
       string in_output_name = it.key();
       string in_output_data_type = it.value().get<string>();
       op_info.inOutDataType[in_output_name] = in_output_data_type;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,10 +60,8 @@ class TaskContext {
 
   Status SetOutput(const int32_t index, const TensorValue &tensor_in) const;
   bool HasAllocated(const int32_t idx) const;
-  Status AllocateOutput(const int32_t idx,
-                        const GeTensorDesc &tensor_desc_in,
-                        TensorValue **const tensor_out,
-                        const AllocationAttr * const attr = nullptr) const;
+  Status AllocateOutput(const int32_t idx, const GeTensorDesc &tensor_desc_in, TensorValue **const tensor_out,
+                        const AllocationAttr *const attr = nullptr) const;
   Status AllocateOutputs(AllocationAttr *const attr = nullptr) const;
   Status AllocateWorkspaces();
   Status AllocateWorkspace(const size_t alloc_size, void *&alloc_buffer, void *const ori_addr = nullptr);
@@ -72,7 +70,7 @@ class TaskContext {
 
   bool IsDumpEnabled() const;
 
-  const DumpProperties& GetDumpProperties() const;
+  const DumpProperties &GetDumpProperties() const;
 
   GraphExecutionContext *GetExecutionContext() const {
     return execution_context_;
@@ -90,7 +88,7 @@ class TaskContext {
   uint32_t GetTaskId() const;
 
   uint32_t GetStreamId() const;
-  
+
   uint32_t *MutableTaskId() {
     return &task_id_;
   }
@@ -107,10 +105,13 @@ class TaskContext {
   bool IsForceInferShape() const;
   void SetForceInferShape(const bool force_infer_shape);
 
-  const std::vector<TaskDescInfo>& GetProfilingTaskDescInfo() const { return task_desc_info; }
-  Status SaveProfilingTaskDescInfo(const std::string &task_type,  const uint32_t block_dim,
-                                   const std::string &op_type);
-  void ClearProfilingTaskDescInfo() { task_desc_info.clear(); }
+  const std::vector<TaskDescInfo> &GetProfilingTaskDescInfo() const {
+    return task_desc_info;
+  }
+  Status SaveProfilingTaskDescInfo(const std::string &task_type, const uint32_t block_dim, const std::string &op_type);
+  void ClearProfilingTaskDescInfo() {
+    task_desc_info.clear();
+  }
 
   bool SkipSufficiencyOfInputCheck(const int32_t index) const {
     return skip_sufficiency_of_input_check_.count(index) != 0ULL;
@@ -120,16 +121,20 @@ class TaskContext {
     return extra_op_info_;
   }
 
-  TaskContext(GraphExecutionContext *const execution_context,
-              NodeState *const node_state,
+  TaskContext(GraphExecutionContext *const execution_context, NodeState *const node_state,
               SubgraphContext *const subgraph_context);
-  void SetContextHandle(void *const handle) { handle_ = handle; }
-  void *GetContextHandle() const { return handle_; }
+  void SetContextHandle(void *const handle) {
+    handle_ = handle;
+  }
+  void *GetContextHandle() const {
+    return handle_;
+  }
+
  private:
   void *handle_ = nullptr;
   static std::string TensorDesc2String(const GeTensorDesc &desc);
   Status AllocateTensor(const GeTensorDesc &tensor_desc_in, TensorValue &tensor_out,
-                        const AllocationAttr * const attr) const;
+                        const AllocationAttr *const attr) const;
 
   NodeState *const node_state_;
   const NodeItem *const node_item_;
@@ -151,4 +156,4 @@ class TaskContext {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_KERNEL_TASK_CONTEXT_H_
+#endif  // GE_HYBRID_KERNEL_TASK_CONTEXT_H_

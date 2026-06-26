@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ const string kConfigItemSeparator = ",";
 namespace aicpu {
 ConfigFile &ConfigFile::GetInstance() {
   static ConfigFile instance;
-  return instance;  //lint !e1413
+  return instance;  // lint !e1413
 }
 
 string ConfigFile::Trim(const string &source, const char delims) const {
@@ -62,11 +62,10 @@ aicpu::State ConfigFile::LoadFile(const string &file_name) {
         continue;
       }
       // parse "key = value" pair, if "=" non-exist,skip this line
-      auto pos_trenner = timed_line.find('=');  //lint !e1101
+      auto pos_trenner = timed_line.find('=');  // lint !e1101
       if (pos_trenner == string::npos) {
-        AICPU_REPORT_INNER_ERR_MSG(
-            "invalid item[%s], should be contain '=', file[%s]",
-            timed_line.c_str(), file_name.c_str());
+        AICPU_REPORT_INNER_ERR_MSG("invalid item[%s], should be contain '=', file[%s]", timed_line.c_str(),
+                                   file_name.c_str());
         continue;
       }
 
@@ -82,8 +81,8 @@ aicpu::State ConfigFile::LoadFile(const string &file_name) {
     f.close();
 
     if (data_map_.empty()) {
-      return aicpu::State(ge::FAILED, Stringcat("cannot parse out the normative",
-          " configuration k-v items from file[", file_name, "]"));
+      return aicpu::State(ge::FAILED, Stringcat("cannot parse out the normative", " configuration k-v items from file[",
+                                                file_name, "]"));
     }
     is_load_file_ = true;
   }
@@ -91,7 +90,7 @@ aicpu::State ConfigFile::LoadFile(const string &file_name) {
 }
 
 bool ConfigFile::GetValue(const string &key, string &value) const {
-  auto iter = data_map_.find(key);  //lint !e1101
+  auto iter = data_map_.find(key);  // lint !e1101
   if (iter == data_map_.end()) {
     return false;
   }
@@ -106,8 +105,7 @@ void ConfigFile::SetValue(const string &key, string &value) {
   }
 }
 
-void ConfigFile::SplitValue(const string &str, vector<string> &result,
-                            const set<string> &blacklist) const {
+void ConfigFile::SplitValue(const string &str, vector<string> &result, const set<string> &blacklist) const {
   // Easy to intercept the last piece of data
   string strs = str + kConfigItemSeparator;
 

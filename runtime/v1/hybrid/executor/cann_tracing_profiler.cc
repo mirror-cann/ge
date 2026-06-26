@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ size_t CalcArgIndex(size_t total_num, ExecuteArgIndex arg_index) {
   size_t tensor_num = total_num - static_cast<size_t>(ExecuteArgIndex::kNum);
   return tensor_num + static_cast<size_t>(static_cast<int64_t>(arg_index) * -1 - 1);
 }
-}
+}  // namespace
 
 void CannTracingProfiler::Init() {
   const auto execution_data =
@@ -84,14 +84,10 @@ ge::Status CannTracingProfiler::ReportTraceInfo(uint16_t tag_id, const Node *nod
     auto trace_info = node_ids_to_attrs_[node->node_id];
     logic_stream_id = trace_info.logic_stream_id;
     GE_ASSERT_NOTNULL(rt_streams_);
-    cur_stream =
-        *(reinterpret_cast<aclrtStream *>(rt_streams_->MutableData()) + static_cast<size_t>(logic_stream_id));
+    cur_stream = *(reinterpret_cast<aclrtStream *>(rt_streams_->MutableData()) + static_cast<size_t>(logic_stream_id));
   }
   rtProfTraceUserData userData = {
-    .id = iteration_num_,
-    .model_id = static_cast<uint64_t>(extend_info_.model_id),
-    .tag_id = tag_id
-  };
+      .id = iteration_num_, .model_id = static_cast<uint64_t>(extend_info_.model_id), .tag_id = tag_id};
   GE_ASSERT_RT_OK(aclrtProfTrace(&userData, sizeof(rtProfTraceUserData), cur_stream));
   GELOGD(
       "Profiling Step Info TraceTask execute async success, index_id = %llu, model_id = %u, tag_id = %u, "
@@ -108,7 +104,7 @@ ge::Status CannTracingProfiler::ReportStartTraceInfo(const Node *node) {
       GE_ASSERT_SUCCESS(ReportTraceInfo(kFpBeginLogId, node));
     }
 
-    if (trace_info.start_log_id > 0LL) { // all reduce and get next
+    if (trace_info.start_log_id > 0LL) {  // all reduce and get next
       GE_ASSERT_SUCCESS(ReportTraceInfo(static_cast<uint16_t>(trace_info.start_log_id), node));
     }
   }
@@ -122,12 +118,12 @@ ge::Status CannTracingProfiler::ReportEndTraceInfo(const Node *node) {
     auto trace_info = node_ids_to_attrs_[node->node_id];
     // 编译时的逻辑是只要是all reduce都会打上bp的标签
     if (trace_info.is_bp) {
-      if (trace_info.start_log_id > 0LL) { // all reduce end
+      if (trace_info.start_log_id > 0LL) {  // all reduce end
         GE_ASSERT_SUCCESS(ReportTraceInfo(static_cast<uint16_t>(trace_info.start_log_id + 1LL), node));
-      } else { // bp
+      } else {  // bp
         GE_ASSERT_SUCCESS(ReportTraceInfo(kBpEndLogId, node));
       }
-    } else if (trace_info.start_log_id > 0LL) { // get next end
+    } else if (trace_info.start_log_id > 0LL) {  // get next end
       GE_ASSERT_SUCCESS(ReportTraceInfo(static_cast<uint16_t>(trace_info.start_log_id + 1LL), node));
     }
   }
@@ -156,4 +152,4 @@ void CannTracingProfiler::OnExecuteEvent(int32_t sub_exe_graph_type, CannTracing
     profiler->IncreaseIterationNum();
   }
 }
-}
+}  // namespace gert

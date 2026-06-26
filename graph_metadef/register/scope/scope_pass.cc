@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -186,8 +186,8 @@ bool ScopeBasePass::ScopeBasePassImpl::MatchAllBatches(const ScopeTree *scope_tr
       for (auto &result : last_results) {
         AscendString result_name;
         AscendString tmp_name;
-        (void) result->Name(result_name);
-        (void) tmp->Name(tmp_name);
+        (void)result->Name(result_name);
+        (void)tmp->Name(tmp_name);
         if ((result_name.GetLength() <= tmp_name.GetLength()) && (tmp_name.Find(result_name) == 0U)) {
           rollback = false;
           break;
@@ -278,11 +278,11 @@ Status ScopeBasePass::ScopeBasePassImpl::PrintFusionScopeInfo(std::shared_ptr<Sc
   const std::unordered_map<std::string, FusionScopesResult *> &final_results = impl_scope_graph->FusionScopesResults();
   for (auto &result : final_results) {
     if (result.second == nullptr) {
-       GELOGE(PARAM_INVALID, "Fusion scope is nullptr.");
-       return PARAM_INVALID;
+      GELOGE(PARAM_INVALID, "Fusion scope is nullptr.");
+      return PARAM_INVALID;
     }
     AscendString name;
-    (void) result.second->Name(name);
+    (void)result.second->Name(name);
     GELOGI("FusionScope:%s", name.GetString());
     auto &impl = result.second->impl_;
     const std::map<std::string, std::vector<int32_t>> &inputs = impl->GetInputs();
@@ -307,7 +307,7 @@ Status ScopeBasePass::ScopeBasePassImpl::PrintFusionScopeInfo(std::shared_ptr<Sc
         return PARAM_INVALID;
       }
       AscendString scope_name;
-      (void) scope->Name(scope_name);
+      (void)scope->Name(scope_name);
       GELOGI("FusionScope GetScope:%s", scope_name.GetString());
     }
 
@@ -317,7 +317,7 @@ Status ScopeBasePass::ScopeBasePassImpl::PrintFusionScopeInfo(std::shared_ptr<Sc
         return PARAM_INVALID;
       }
       AscendString node_name;
-      (void) node->GetName(node_name);
+      (void)node->GetName(node_name);
       GELOGI("FusionScope Node:%s", node_name.GetString());
     }
   }

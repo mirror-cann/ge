@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,15 +24,13 @@
 #include "rt_error_codes.h"
 #include "../../../graph_constructor/graph_constructor.h"
 
-
 using namespace std;
 using namespace fe;
 using namespace ge;
 using FftsTaskBuilderAdapterPtr = shared_ptr<FftsTaskBuilderAdapter>;
 using FftsTaskBuilderPtr = shared_ptr<FftsTaskBuilder>;
 
-static void DestroyContext(TaskBuilderContext &context) {
-}
+static void DestroyContext(TaskBuilderContext &context) {}
 
 class FFTSTaskBuilderAdapterSTest : public testing::Test {
  protected:
@@ -60,29 +58,28 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
         vector<int64_t> temp = shape[j];
         vector<ffts::DimRange> vdr;
         for (size_t z = 0; z < temp.size() - 1;) {
-            ffts::DimRange dr;
-            dr.lower = temp[z];
-            dr.higher = temp[z + 1];
-            vdr.push_back(dr);
-            z = z + 2;
+          ffts::DimRange dr;
+          dr.lower = temp[z];
+          dr.higher = temp[z + 1];
+          vdr.push_back(dr);
+          z = z + 2;
         }
         vector<vector<ffts::DimRange>> threadSlice;
         threadSlice.push_back(vdr);
         tensor_slice.push_back(threadSlice);
       }
     }
-    return ;
+    return;
   }
 
-  NodePtr CreateNode()
-  {
+  NodePtr CreateNode() {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("test_tvm");
 
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-    NodePtr node =  builder.Finish();
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    NodePtr node = builder.Finish();
     for (auto anchor : node->GetAllInDataAnchors()) {
       ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
     }
@@ -90,7 +87,7 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
       ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
     }
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
@@ -112,21 +109,20 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
     node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, thread_slice_map_ptr);
     return node;
   }
-  NodePtr CreateDynAndOptNode()
-  {
+  NodePtr CreateDynAndOptNode() {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("test_tvm");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input0");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input1");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input2");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input30");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input31");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input4");
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output0");
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output10");
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output20");
-    NodePtr node =  builder.Finish();
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input0");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input1");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input2");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input30");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input31");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input4");
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output0");
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output10");
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output20");
+    NodePtr node = builder.Finish();
     for (auto anchor : node->GetAllInDataAnchors()) {
       ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
     }
@@ -145,7 +141,7 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
     op_desc->AppendIrOutput("__output2", ge::kIrOutputDynamic);
 
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
@@ -177,22 +173,21 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
     return node;
   }
 
-  NodePtr CreateDynAndOptNode1()
-  {
+  NodePtr CreateDynAndOptNode1() {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("test_tvm");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input00");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input01");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input1");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input2");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input30");
-    builder.AddInputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input4");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input00");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input01");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input1");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input2");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input30");
+    builder.AddInputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__input4");
 
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output00");
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output1");
-    builder.AddOutputDesc({288,32,16,16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output20");
-    NodePtr node =  builder.Finish();
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output00");
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output1");
+    builder.AddOutputDesc({288, 32, 16, 16}, ge::FORMAT_NCHW, ge::DT_FLOAT, 10, "__output20");
+    NodePtr node = builder.Finish();
     for (auto anchor : node->GetAllInDataAnchors()) {
       ge::AnchorUtils::SetStatus(anchor, ge::ANCHOR_DATA);
     }
@@ -213,7 +208,7 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
     op_desc->AppendIrOutput("__output2", ge::kIrOutputDynamic);
 
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(node->GetName(), std::move(buffer));
     node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     ge::AttrUtils::SetStr(node->GetOpDesc(), "_kernelname", "my_kernel");
@@ -244,13 +239,12 @@ class FFTSTaskBuilderAdapterSTest : public testing::Test {
     node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, thread_slice_map_ptr);
     return node;
   }
-  static TaskBuilderContext CreateContext()
-  {
+  static TaskBuilderContext CreateContext() {
     TaskBuilderContext context;
     context.dataMemSize = 100;
-    context.dataMemBase = (uint8_t *) (intptr_t) 1000;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
     context.weightMemSize = 200;
-    context.weightMemBase = (uint8_t *) (intptr_t) 1100;
+    context.weightMemBase = (uint8_t *)(intptr_t)1100;
     context.weightBufferHost = Buffer(20);
 
     return context;
@@ -266,7 +260,7 @@ TEST_F(FFTSTaskBuilderAdapterSTest, Init_Workspace_SUCCESS) {
   vector<int64_t> work_space = {1, 2};
   int64_t non_tail_workspace_size = 1;
   (void)ge::AttrUtils::SetInt(ffts_task_builder_adapter_ptr->op_desc_, fe::NON_TAIL_WORKSPACE_SIZE,
-  non_tail_workspace_size);
+                              non_tail_workspace_size);
   ffts_task_builder_adapter_ptr->op_desc_->SetWorkspaceBytes(work_space_bytes);
   ffts_task_builder_adapter_ptr->op_desc_->SetWorkspace(work_space);
   Status ret = ffts_task_builder_adapter_ptr->InitWorkspace();
@@ -290,7 +284,7 @@ TEST_F(FFTSTaskBuilderAdapterSTest, Init_workspace_failed) {
   ffts_task_builder_adapter_ptr->workspace_sizes_.clear();
   int64_t invalid_workspace_size = 10;
   (void)ge::AttrUtils::SetInt(ffts_task_builder_adapter_ptr->op_desc_, fe::NON_TAIL_WORKSPACE_SIZE,
-      invalid_workspace_size);
+                              invalid_workspace_size);
   auto ret = ffts_task_builder_adapter_ptr->Init();
   EXPECT_NE(fe::SUCCESS, ret);
 }
@@ -324,7 +318,8 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef) {
   vector<void *> input_addrs(6, nullptr);
   vector<void *> output_addrs(3, nullptr);
   ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 0);
-  ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 0xFFFFFFFFU);
+  ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR,
+                                              0xFFFFFFFFU);
   ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 1);
   ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 2);
   ffts_task_builder_adapter_ptr->FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 3);
@@ -339,13 +334,13 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef) {
   ffts_task_builder->manual_thread_param_.output_addrs = output_addrs;
   ffts_task_builder->manual_thread_param_.kernel_args_info = ffts_task_builder_adapter_ptr->kernel_args_info_;
 
-  (void) ge::AttrUtils::SetInt(node->GetOpDesc(), kModeInArgsFirstField, 1);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kModeInArgsFirstField, 1);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), fe::kAttrDynamicParamMode, fe::kFoldedWithDesc);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), fe::kAttrOptionalInputMode, fe::kGenPlaceholder);
   auto op_desc = node->GetOpDesc();
 
-  std::vector<uint32_t> input_type_list = {0,1,0,2,2,0};
-  std::vector<uint32_t> output_type_list = {0,2,2};
+  std::vector<uint32_t> input_type_list = {0, 1, 0, 2, 2, 0};
+  std::vector<uint32_t> output_type_list = {0, 2, 2};
   std::vector<std::string> input_name_list = {"__input0", "__input1", "__input2", "__input3", "__input3", "__input4"};
   (void)ge::AttrUtils::SetListStr(op_desc, kInputNameList, input_name_list);
   (void)ge::AttrUtils::SetListInt(op_desc, kInputParaTypeList, input_type_list);
@@ -358,14 +353,13 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef) {
   auto ret = ffts_task_builder->GenMixL2CtxDef(op_desc, ctx);
   EXPECT_EQ(ret, fe::SUCCESS);
   std::vector<std::vector<int64_t>> dyn_io_vv;
-  std::vector<std::vector<int64_t>> ep_dyn_io_vv = {{3,4}};
+  std::vector<std::vector<int64_t>> ep_dyn_io_vv = {{3, 4}};
   (void)ge::AttrUtils::GetListListInt(node->GetOpDesc(), kDyInputsIndexes, dyn_io_vv);
   EXPECT_NE(dyn_io_vv, ep_dyn_io_vv);
-  ep_dyn_io_vv = {{1},{2}};
+  ep_dyn_io_vv = {{1}, {2}};
   (void)ge::AttrUtils::GetListListInt(node->GetOpDesc(), kDyOutputsIndexes, dyn_io_vv);
   EXPECT_NE(dyn_io_vv, ep_dyn_io_vv);
 }
-
 
 TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef1) {
   auto node = CreateDynAndOptNode1();
@@ -386,10 +380,9 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef1) {
   ffts_task_builder->manual_thread_param_.kernel_args_info = ffts_task_builder_adapter_ptr->kernel_args_info_;
 
   auto op_desc = node->GetOpDesc();
-  (void) ge::AttrUtils::SetInt(op_desc, kModeInArgsFirstField, 1);
+  (void)ge::AttrUtils::SetInt(op_desc, kModeInArgsFirstField, 1);
   (void)ge::AttrUtils::SetStr(op_desc, fe::kAttrDynamicParamMode, fe::kFoldedWithDesc);
   (void)ge::AttrUtils::SetStr(op_desc, fe::kAttrOptionalInputMode, fe::kGenPlaceholder);
-
 
   (void)ge::AttrUtils::SetInt(op_desc, kOpKernelAllInputSize, 7);
 
@@ -398,8 +391,8 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef1) {
   std::vector<std::string> output_name_list = {"__output0", "__output1", "__output2"};
   (void)ge::AttrUtils::SetListStr(op_desc, kOutputNameList, output_name_list);
 
-  std::vector<uint32_t> input_type_list = {2,2,0,1,2,1};
-  std::vector<uint32_t> output_type_list = {2,0,2};
+  std::vector<uint32_t> input_type_list = {2, 2, 0, 1, 2, 1};
+  std::vector<uint32_t> output_type_list = {2, 0, 2};
   (void)ge::AttrUtils::SetListInt(op_desc, kInputParaTypeList, input_type_list);
   (void)ge::AttrUtils::SetListInt(op_desc, kOutputParaTypeList, output_type_list);
   (void)ge::AttrUtils::SetBool(op_desc, "_unknown_shape", true);
@@ -407,13 +400,14 @@ TEST_F(FFTSTaskBuilderAdapterSTest, gen_dyn_and_opt_mix_l2_taskdef1) {
   auto ret = ffts_task_builder->GenMixL2CtxDef(node->GetOpDesc(), ctx);
   EXPECT_EQ(ret, fe::SUCCESS);
   std::vector<std::vector<int64_t>> dyn_io_vv;
-  std::vector<std::vector<int64_t>> ep_dyn_io_vv = {{0,1},{4}};
+  std::vector<std::vector<int64_t>> ep_dyn_io_vv = {{0, 1}, {4}};
   (void)ge::AttrUtils::GetListListInt(op_desc, kDyInputsIndexes, dyn_io_vv);
   EXPECT_NE(dyn_io_vv, ep_dyn_io_vv);
-  ep_dyn_io_vv = {{0},{2}};
+  ep_dyn_io_vv = {{0}, {2}};
   (void)ge::AttrUtils::GetListListInt(op_desc, kDyOutputsIndexes, dyn_io_vv);
   EXPECT_NE(dyn_io_vv, ep_dyn_io_vv);
   domi::FftsPlusMixAicAivCtxDef *mix_aic_aiv_ctx_def = ctx->mutable_mix_aic_aiv_ctx();
   auto args_str = mix_aic_aiv_ctx_def->args_format();
-  EXPECT_STRNE(args_str.c_str(), "{i_desc0}{i1*}{i2*}{i_desc3}{i4*}{i5*}{i6*}{o_desc0}{o1*}{o_desc2}{ws*}{t_ffts.tail}");
+  EXPECT_STRNE(args_str.c_str(),
+               "{i_desc0}{i1*}{i2*}{i_desc3}{i4*}{i5*}{i6*}{o_desc0}{o1*}{o_desc2}{ws*}{t_ffts.tail}");
 }

@@ -32,7 +32,7 @@ check_lcov_version_ge() {
     local expected_minor="$2"
     local current_major=$(get_lcov_major_version)
     local current_minor=$(get_lcov_minor_version)
-    
+
     if [ "$current_major" -gt "$expected_major" ] 2>/dev/null; then
         return 0
     elif [ "$current_major" -eq "$expected_major" ] 2>/dev/null; then
@@ -56,7 +56,7 @@ get_lcov_parallel_params() {
     if [ -z "$thread_count" ]; then
         thread_count=4
     fi
-    
+
     if check_lcov_version_ge 2 3; then
         # lcov 2.3 使用 --parallel N 格式
         # lcov 2.4+ 使用 --parallel --thread-count N 格式
@@ -94,7 +94,7 @@ detect_lcov_ignore_errors() {
 get_lcov_parallel_ignore_errors() {
     local major=$(get_lcov_major_version)
     local minor=$(get_lcov_minor_version)
-    
+
     # child 错误类型只在 lcov >= 2.3 的并行模式下有效
     # empty 错误类型处理没有 .gcda 文件的目录
     if [ "$major" -ge 2 ] 2>/dev/null; then
@@ -110,7 +110,7 @@ get_lcov_parallel_ignore_errors() {
 
 get_lcov_base_ignore_errors() {
     local major=$(get_lcov_major_version)
-    
+
     # 基础错误处理（用于非并行模式），包含 empty
     if [ "$major" -ge 2 ] 2>/dev/null; then
         echo "--ignore-errors inconsistent,negative,mismatch,empty"
@@ -119,7 +119,7 @@ get_lcov_base_ignore_errors() {
 
 get_lcov_unexecuted_blocks_param() {
     local major=$(get_lcov_major_version)
-    
+
     if [ "$major" -ge 2 ] 2>/dev/null; then
         echo "--rc geninfo_unexecuted_blocks=1"
     fi
@@ -127,7 +127,7 @@ get_lcov_unexecuted_blocks_param() {
 
 get_genhtml_ignore_errors() {
     local major=$(get_lcov_major_version)
-    
+
     if [ "$major" -ge 2 ] 2>/dev/null; then
         echo "--ignore-errors inconsistent,corrupt"
     fi

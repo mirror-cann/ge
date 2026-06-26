@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,17 +26,15 @@
 namespace ge {
 namespace {
 constexpr uint32_t kMaxExecutorShutdownWaitTimeInSec = 60;
-constexpr const char_t * const kArgsKeyBaseDir = "--base_dir";
-constexpr const char_t * const kArgsKeyMsgQueueDeviceId = "--msg_queue_device_id";
+constexpr const char_t *const kArgsKeyBaseDir = "--base_dir";
+constexpr const char_t *const kArgsKeyMsgQueueDeviceId = "--msg_queue_device_id";
 
 PneExecutorClientCreatorRegistrar<BuiltinExecutorClient> __attribute__((unused)) npu_client_reg(PNE_ID_NPU);
 PneExecutorClientCreatorRegistrar<HostCpuExecutorClient> __attribute__((unused)) cpu_client_reg(PNE_ID_CPU);
 }  // namespace
 
 BuiltinExecutorClient::BuiltinExecutorClient(int32_t device_id, bool is_host)
-    : PneExecutorClient(device_id), is_host_(is_host),
-      sub_proc_stat_(ProcStatus::NORMAL) {
-}
+    : PneExecutorClient(device_id), is_host_(is_host), sub_proc_stat_(ProcStatus::NORMAL) {}
 
 Status BuiltinExecutorClient::Initialize() {
   if (GetContext().device_type != static_cast<int32_t>(CPU)) {
@@ -45,7 +43,7 @@ Status BuiltinExecutorClient::Initialize() {
     param.deviceId = static_cast<uint32_t>(GetDeviceId());
     param.type = MsprofConfigParamType::DEV_CHANNEL_RESOURCE;
     param.value = 1;
-    (void) MsprofSetConfig(0, reinterpret_cast<const char *>(&param), sizeof(param));
+    (void)MsprofSetConfig(0, reinterpret_cast<const char *>(&param), sizeof(param));
   }
   GE_CHK_STATUS_RET(ForAndInit(GetDeviceId(), message_client_), "Failed to fork and init");
   heartbeat_listening_ = true;
@@ -61,7 +59,7 @@ Status BuiltinExecutorClient::Finalize() {
   heartbeat_listening_ = false;
   if (message_client_ != nullptr) {
     // notify queue wake up
-    (void) message_client_->NotifyFinalize();
+    (void)message_client_->NotifyFinalize();
   }
   Shutdown();
   message_client_.reset();
@@ -94,10 +92,8 @@ Status BuiltinExecutorClient::ForAndInit(int32_t device_id, std::unique_ptr<Exec
   return SUCCESS;
 }
 
-Status BuiltinExecutorClient::DoForkChildProcess(int32_t device_id,
-                                                 uint32_t req_msg_queue_id,
-                                                 uint32_t rsp_msg_queue_id,
-                                                 const std::string &group_name) {
+Status BuiltinExecutorClient::DoForkChildProcess(int32_t device_id, uint32_t req_msg_queue_id,
+                                                 uint32_t rsp_msg_queue_id, const std::string &group_name) {
   std::string bin_dir;
   SubprocessManager::SubprocessConfig config{};
   config.process_type = is_host_ ? PNE_ID_CPU : PNE_ID_NPU;
@@ -111,12 +107,9 @@ Status BuiltinExecutorClient::DoForkChildProcess(int32_t device_id,
   }
   const std::string enable = "1";
   config.envs.emplace("AICPU_ADD_BUFFERGROUP", enable);
-  config.args = {process_name,
-                 group_name,
-                 std::to_string(req_msg_queue_id),
-                 std::to_string(rsp_msg_queue_id),
+  config.args = {process_name, group_name, std::to_string(req_msg_queue_id), std::to_string(rsp_msg_queue_id),
                  std::to_string(device_id)};
-  (void) GenerateKvArgs(config.kv_args);
+  (void)GenerateKvArgs(config.kv_args);
   GE_CHK_STATUS_RET_NOLOG(SubprocessManager::GetInstance().ForkSubprocess(config, pid_));
   // watch subprocess
   GELOGI("Start to watch subprocess, pid[%d].", static_cast<int32_t>(pid_));
@@ -143,7 +136,7 @@ Status BuiltinExecutorClient::LoadModel(deployer::ExecutorRequest_BatchLoadModel
           PNE_ID_NPU.c_str(), GetPid(), load_model_desc.graph_id(), GetDeployerPid(), GetDeviceId());
   *executor_request.mutable_batch_load_model_message() = load_model_desc;
   deployer::ExecutorResponse executor_response;
-  constexpr int64_t kTimeoutSec = 8400; // s
+  constexpr int64_t kTimeoutSec = 8400;  // s
   GE_CHK_STATUS_RET(message_client_->SendRequest(executor_request, executor_response, kTimeoutSec),
                     "[Load][Model] Failed to send request");
   if (executor_response.error_code() != SUCCESS) {
@@ -162,12 +155,11 @@ Status BuiltinExecutorClient::UpdateProfilingFromExecutor(deployer::ExecutorRequ
   deployer::ExecutorRequest executor_request;
   *executor_request.mutable_update_prof_message() = prof_message;
   deployer::ExecutorResponse executor_response;
-  constexpr int64_t kTimeoutSec = 300; // s
+  constexpr int64_t kTimeoutSec = 300;  // s
   GE_CHK_STATUS_RET(message_client_->SendRequest(executor_request, executor_response, kTimeoutSec),
                     "[Update][profiling] Failed to send request to executor, device_id = %d", GetDeviceId());
   GE_CHK_BOOL_RET_STATUS(executor_response.error_code() == SUCCESS, FAILED,
-                         "[Update][profiling] failed, error message=%s.",
-                         executor_response.error_message().c_str());
+                         "[Update][profiling] failed, error message=%s.", executor_response.error_message().c_str());
   return SUCCESS;
 }
 
@@ -178,12 +170,12 @@ Status BuiltinExecutorClient::UnloadModel(uint32_t model_id) {
   GE_CHECK_NOTNULL(exec_req_body);
   exec_req_body->set_model_id(model_id);
   deployer::ExecutorResponse executor_response;
-  constexpr int64_t kTimeoutSec = 300; // s
+  constexpr int64_t kTimeoutSec = 300;  // s
   GE_CHK_STATUS_RET(message_client_->SendRequest(executor_request, executor_response, kTimeoutSec),
                     "[Unload][Model] Failed to send request to executor, device_id = %d", GetDeviceId());
   if (executor_response.error_code() != SUCCESS) {
-    GELOGE(FAILED, "[Unload][Model] failed, request = %s, error_message = %s",
-           exec_req_body->DebugString().c_str(), executor_response.error_message().c_str());
+    GELOGE(FAILED, "[Unload][Model] failed, request = %s, error_message = %s", exec_req_body->DebugString().c_str(),
+           executor_response.error_message().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -204,10 +196,11 @@ Status BuiltinExecutorClient::ClearModelRunningData(uint32_t model_id, int32_t t
   clear_req_body->set_clear_msg_type(type);
 
   deployer::ExecutorResponse executor_response;
-  constexpr int64_t kTimeoutSec = 60; // s
+  constexpr int64_t kTimeoutSec = 60;  // s
   GE_CHK_STATUS_RET(message_client_->SendRequest(executor_request, executor_response, kTimeoutSec),
                     "[ClearModelExceptionData] Failed to send request to executor, device_id = %d, "
-                    "root_model_id = %u, msg_type = %d", GetDeviceId(), model_id, type);
+                    "root_model_id = %u, msg_type = %d",
+                    GetDeviceId(), model_id, type);
   if (executor_response.error_code() != SUCCESS) {
     GELOGE(FAILED, "[ClearModelExceptionData] failed, request = %s, error_message = %s",
            clear_req_body->DebugString().c_str(), executor_response.error_message().c_str());
@@ -274,10 +267,9 @@ Status BuiltinExecutorClient::GetPidOwningIoQueues(int32_t &pid) {
   // load model on aicpu, need to add group for aicpu
   if (GetContext().device_type != static_cast<int32_t>(CPU)) {
     const auto &group_name = MemoryGroupManager::GetInstance().GetRemoteMemGroupName(GetDeviceId());
-    GE_CHK_STATUS_RET(MemoryGroupManager::GetInstance().RemoteMemGrpAddProc(GetDeviceId(),
-                                                                            group_name,
-                                                                            aicpu_pid_, false, true),
-                      "Failed to add group for aicpu, pid = %d", aicpu_pid_);
+    GE_CHK_STATUS_RET(
+        MemoryGroupManager::GetInstance().RemoteMemGrpAddProc(GetDeviceId(), group_name, aicpu_pid_, false, true),
+        "Failed to add group for aicpu, pid = %d", aicpu_pid_);
   }
   return SUCCESS;
 }
@@ -306,10 +298,10 @@ Status BuiltinExecutorClient::DoGrantQueues(int32_t pid, const std::vector<Deplo
     if (it != queue_info.cend()) {
       continue;
     }
-    GE_CHK_STATUS_RET(FlowGwClient::GrantQueue(static_cast<uint32_t>(queue_attr.device_id), queue_attr.queue_id,
-                                               pid, GrantType::kReadAndWrite),
-                      "Grant queue failed, device id=%d, queue id=%u, pid = %d",
-                      queue_attr.device_id, queue_attr.queue_id, pid);
+    GE_CHK_STATUS_RET(FlowGwClient::GrantQueue(static_cast<uint32_t>(queue_attr.device_id), queue_attr.queue_id, pid,
+                                               GrantType::kReadAndWrite),
+                      "Grant queue failed, device id=%d, queue id=%u, pid = %d", queue_attr.device_id,
+                      queue_attr.queue_id, pid);
     queue_info.emplace(key);
   }
   return SUCCESS;

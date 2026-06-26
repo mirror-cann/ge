@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,15 +33,21 @@ class TestOpsKernelInfoStore : public OpsKernelInfoStore {
 
   ~TestOpsKernelInfoStore() override = default;
 
-  Status Initialize(const map<string, string> &options)  { return ge::SUCCESS; }
-  Status Finalize() override { return ge::SUCCESS; }
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const { return true; }
+  Status Initialize(const map<string, string> &options) {
+    return ge::SUCCESS;
+  }
+  Status Finalize() override {
+    return ge::SUCCESS;
+  }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const {
+    return true;
+  }
   bool CheckAccuracySupported(const ge::NodePtr &node, std::string &un_supported_reason,
                               const bool realQuery = false) const {
     bool is_support = false;
     AttrUtils::GetBool(node->GetOpDesc(), "is_supported", is_support);
     if (is_support) {
-     return true;
+      return true;
     }
 
     if (!un_supported_reason.empty()) {
@@ -55,19 +61,25 @@ class TestOpsKernelInfoStore : public OpsKernelInfoStore {
     un_supported_reason = "not_supported";
     return false;
   }
-  Status CalcOpRunningParam(Node &node) { return ge::SUCCESS; }
-  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks)  {
-    return ge::SUCCESS; }
+  Status CalcOpRunningParam(Node &node) {
+    return ge::SUCCESS;
+  }
+  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) {
+    return ge::SUCCESS;
+  }
   Status CompileOp(vector<ge::NodePtr> &node_vec) {
-    for (const auto &node:node_vec){
+    for (const auto &node : node_vec) {
       bool has_attr = node->GetOpDesc()->HasAttr("compile_fail");
       if (has_attr) {
         return false;
       }
       return true;
     }
-    return ge::SUCCESS; }
-  void GetAllOpsKernelInfo(map<string, OpInfo> &infos) const { return; }
+    return ge::SUCCESS;
+  }
+  void GetAllOpsKernelInfo(map<string, OpInfo> &infos) const {
+    return;
+  }
 
   std::vector<OpInfo> GetOpsKernelInfoStore(const std::string &name) {
     return empty_op_info_;
@@ -75,7 +87,7 @@ class TestOpsKernelInfoStore : public OpsKernelInfoStore {
   OpInfo test_op = {"DNN_VM_TF", "ge_local", 0, false, false, true};
   std::vector<OpInfo> empty_op_info_{test_op};
 };
-}
+}  // namespace
 
 class UtestCompileNodesPass : public testing::Test {
  protected:
@@ -88,7 +100,7 @@ class UtestCompileNodesPass : public testing::Test {
     GEFinalize();
   }
   void BuildGraph() {
-    GeTensorDesc td(GeShape({2,2,2,2}), ge::FORMAT_NCHW, ge::DT_INT16);
+    GeTensorDesc td(GeShape({2, 2, 2, 2}), ge::FORMAT_NCHW, ge::DT_INT16);
 
     auto pre_op_desc = std::make_shared<OpDesc>("pre", "Constant");
     pre_op_desc->AddOutputDesc(td);
@@ -282,7 +294,7 @@ TEST_F(UtestCompileNodesPass, compile_nodes_succ) {
   instancePtr->OpsKernelManagerObj().ops_kernel_store_.insert(std::make_pair("aicore_kernel", opkernel));
 
   graph_ = std::make_shared<ComputeGraph>("g");
-  GeTensorDesc td(GeShape({2,2,2,2}), ge::FORMAT_NCHW, ge::DT_INT16);
+  GeTensorDesc td(GeShape({2, 2, 2, 2}), ge::FORMAT_NCHW, ge::DT_INT16);
   auto test_op_desc = std::make_shared<OpDesc>("pre", "test_node");
   test_op_desc->AddOutputDesc(td);
   (void)ge::AttrUtils::SetBool(test_op_desc, "compile_fail", false);

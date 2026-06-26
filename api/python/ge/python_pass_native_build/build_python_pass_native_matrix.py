@@ -17,8 +17,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -65,13 +65,23 @@ def _repo_root() -> Path:
     raise RuntimeError("Cannot locate repository root")
 
 
-def _run(command: Sequence[str], cwd: Optional[Path] = None,
-         extra_env: Optional[Dict[str, str]] = None) -> subprocess.CompletedProcess:
+def _run(
+    command: Sequence[str],
+    cwd: Optional[Path] = None,
+    extra_env: Optional[Dict[str, str]] = None,
+) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     if extra_env:
         env.update(extra_env)
-    return subprocess.run(command, cwd=os.fspath(cwd) if cwd is not None else None, env=env,
-                          text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    return subprocess.run(
+        command,
+        cwd=os.fspath(cwd) if cwd is not None else None,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
 
 
 def _python_tag(python: str) -> Optional[Tuple[str, str]]:
@@ -154,7 +164,11 @@ def _conda_env_roots() -> List[Path]:
             _add_conda_env_root(roots, exe.parents[1] / "envs")
 
     home = Path.home()
-    for root in (home / "miniconda3" / "envs", home / "anaconda3" / "envs", home / ".conda" / "envs"):
+    for root in (
+        home / "miniconda3" / "envs",
+        home / "anaconda3" / "envs",
+        home / ".conda" / "envs",
+    ):
         _add_conda_env_root(roots, root)
     return roots
 
@@ -174,7 +188,11 @@ def _discover_pythons(explicit_pythons: Sequence[str], requested_tags: Sequence[
     requested = set(requested_tags or SUPPORTED_TAGS)
     discovered: Dict[str, str] = {}
     seen = set()
-    for python in [*explicit_pythons, *_candidate_python_commands(), *_conda_python_candidates()]:
+    for python in [
+        *explicit_pythons,
+        *_candidate_python_commands(),
+        *_conda_python_candidates(),
+    ]:
         python_path = shutil.which(python)
         if python_path is None:
             candidate_path = Path(python)
@@ -247,16 +265,21 @@ print(json.dumps({
         library = None
     if pybind_include is not None and not pybind_include.is_dir():
         pybind_include = None
-    return PythonBuildInfo(tag=tag, executable=info.get("executable", python),
-                           version=info.get("version", ""), include_dir=include_dir,
-                           library=library, pybind_include=pybind_include)
+    return PythonBuildInfo(
+        tag=tag,
+        executable=info.get("executable", python),
+        version=info.get("version", ""),
+        include_dir=include_dir,
+        library=library,
+        pybind_include=pybind_include,
+    )
 
 
 def _read_make_variable(path: Path, name: str) -> List[str]:
     prefix = f"{name} = "
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith(prefix):
-            return shlex.split(line[len(prefix):])
+            return shlex.split(line[len(prefix) :])
     return []
 
 
@@ -278,8 +301,9 @@ def _load_target_build_info(build_dir: Path, relative_dir: str, target_name: str
 def _python_include_args(_target: TargetBuildInfo, python_info: PythonBuildInfo) -> List[str]:
     pybind_include = python_info.pybind_include
     if pybind_include is None:
-        raise RuntimeError(f"Cannot find pybind11 include for {python_info.executable}. "
-                           "Please install pybind11 for this Python.")
+        raise RuntimeError(
+            f"Cannot find pybind11 include for {python_info.executable}. Please install pybind11 for this Python."
+        )
     # Keep the selected Python/pybind11 includes ahead of the parent build includes. Otherwise a matrix build can
     # accidentally pick the parent build Python headers when compiling another cp tag.
     return ["-I", os.fspath(python_info.include_dir), "-I", os.fspath(pybind_include)]
@@ -312,8 +336,12 @@ def _filter_python_related_includes(tokens: Sequence[str]) -> List[str]:
 
 
 def _compile_base_args(target: TargetBuildInfo, python_info: PythonBuildInfo) -> List[str]:
-    return target.defines + _python_include_args(target, python_info) + \
-        _filter_python_related_includes(target.includes) + target.flags
+    return (
+        target.defines
+        + _python_include_args(target, python_info)
+        + _filter_python_related_includes(target.includes)
+        + target.flags
+    )
 
 
 def _is_werror_flag(flag: str) -> bool:
@@ -346,29 +374,44 @@ def _compiler_command(args: argparse.Namespace) -> List[str]:
     return command
 
 
-def _can_compile_python_header(args: argparse.Namespace, target: TargetBuildInfo,
-                               output_dir: Path, python_info: PythonBuildInfo) -> Tuple[bool, str]:
+def _can_compile_python_header(
+    args: argparse.Namespace,
+    target: TargetBuildInfo,
+    output_dir: Path,
+    python_info: PythonBuildInfo,
+) -> Tuple[bool, str]:
     output_dir.mkdir(parents=True, exist_ok=True)
     source = output_dir / "check_python_header.cc"
     obj = output_dir / "check_python_header.o"
     major, minor = _version_from_tag(python_info.tag)
-    source.write_text(textwrap.dedent(f"""
+    source.write_text(
+        textwrap.dedent(f"""
         #include <Python.h>
         #if PY_MAJOR_VERSION != {major} || PY_MINOR_VERSION != {minor}
         #error "Python header version does not match target tag"
         #endif
         int ge_python_header_probe() {{ return PY_MAJOR_VERSION; }}
-        """), encoding="utf-8")
-    command = _compiler_command(args) + _compile_base_args(target, python_info) + \
-              ["-c", os.fspath(source), "-o", os.fspath(obj)]
+        """),
+        encoding="utf-8",
+    )
+    command = (
+        _compiler_command(args)
+        + _compile_base_args(target, python_info)
+        + ["-c", os.fspath(source), "-o", os.fspath(obj)]
+    )
     completed = _run(command, cwd=target.cwd)
     if completed.returncode == 0:
         return True, ""
     return False, completed.stdout.strip()
 
 
-def _compile_sources(args: argparse.Namespace, target: TargetBuildInfo, sources: Sequence[Path],
-                     output_dir: Path, python_info: PythonBuildInfo) -> List[Path]:
+def _compile_sources(
+    args: argparse.Namespace,
+    target: TargetBuildInfo,
+    sources: Sequence[Path],
+    output_dir: Path,
+    python_info: PythonBuildInfo,
+) -> List[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     temp_dir = output_dir / "tmp"
     cache_dir = output_dir / "ccache"
@@ -412,7 +455,7 @@ def _filter_rpath(token: str, removed_paths: List[str]) -> Optional[str]:
     if not token.startswith(prefix):
         return token
     kept_paths = []
-    for path in token[len(prefix):].split(":"):
+    for path in token[len(prefix) :].split(":"):
         if _looks_like_python_lib_dir(path):
             removed_paths.append(path)
         else:
@@ -428,8 +471,12 @@ class LinkRewriteReport:
     removed_python_paths: List[str]
 
 
-def _rewrite_link_args(target: TargetBuildInfo, output: Path, objects: Sequence[Path],
-                       python_info: PythonBuildInfo) -> Tuple[List[str], LinkRewriteReport]:
+def _rewrite_link_args(
+    target: TargetBuildInfo,
+    output: Path,
+    objects: Sequence[Path],
+    python_info: PythonBuildInfo,
+) -> Tuple[List[str], LinkRewriteReport]:
     args = target.link_args[1:] if target.link_args else []
     rewritten: List[str] = []
     replaced_libpython_args: List[str] = []
@@ -491,35 +538,35 @@ def _format_optional_path(path: Optional[Path]) -> str:
 def _link_command_has_python(command: Sequence[str]) -> bool:
     return (
         any(_is_libpython_arg(token) for token in command)
-        or any(
-            token.startswith("-L") and _looks_like_python_lib_dir(token[2:])
-            for token in command
-            if len(token) > 2
-        )
+        or any(token.startswith("-L") and _looks_like_python_lib_dir(token[2:]) for token in command if len(token) > 2)
         or any(
             token.startswith("-Wl,-rpath,")
-            and any(
-                _looks_like_python_lib_dir(path)
-                for path in token[len("-Wl,-rpath,"):].split(":")
-            )
+            and any(_looks_like_python_lib_dir(path) for path in token[len("-Wl,-rpath,") :].split(":"))
             for token in command
         )
     )
 
 
-def _link_shared(args: argparse.Namespace, target: TargetBuildInfo, output: Path, objects: Sequence[Path],
-                 python_info: PythonBuildInfo) -> None:
+def _link_shared(
+    args: argparse.Namespace,
+    target: TargetBuildInfo,
+    output: Path,
+    objects: Sequence[Path],
+    python_info: PythonBuildInfo,
+) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     link_args, report = _rewrite_link_args(target, output, objects, python_info)
     command = [args.cxx_compiler] + link_args
     completed = _run(command, cwd=target.cwd)
     if completed.returncode != 0:
         raise RuntimeError(f"Link failed for {output} with {python_info.executable}:\n{completed.stdout}")
-    print(f"Linked {python_info.tag} {output.name}: output[{output}], "
-          f"python_link[{'yes' if _link_command_has_python(command) else 'no'}], "
-          f"selected_libpython[{_format_optional_path(python_info.library)}], "
-          f"replaced_libpython[{_format_list(report.replaced_libpython_args)}], "
-          f"stripped_python_paths[{_format_list(report.removed_python_paths)}]")
+    print(
+        f"Linked {python_info.tag} {output.name}: output[{output}], "
+        f"python_link[{'yes' if _link_command_has_python(command) else 'no'}], "
+        f"selected_libpython[{_format_optional_path(python_info.library)}], "
+        f"replaced_libpython[{_format_list(report.replaced_libpython_args)}], "
+        f"stripped_python_paths[{_format_list(report.removed_python_paths)}]"
+    )
 
 
 def _write_manifest(artifact_dir: Path, python_info: PythonBuildInfo, platform_tag: str, bridge_abi: int) -> None:
@@ -545,14 +592,17 @@ def _write_manifest(artifact_dir: Path, python_info: PythonBuildInfo, platform_t
 
 
 def _log_python_build_info(python_info: PythonBuildInfo) -> None:
-    print(f"Build {python_info.tag} native artifacts with python[{python_info.executable}], "
-          f"version[{python_info.version}], include[{python_info.include_dir}], "
-          f"libpython[{_format_optional_path(python_info.library)}], "
-          f"pybind11[{_format_optional_path(python_info.pybind_include)}], link_python[yes], rpath_python[no]")
+    print(
+        f"Build {python_info.tag} native artifacts with python[{python_info.executable}], "
+        f"version[{python_info.version}], include[{python_info.include_dir}], "
+        f"libpython[{_format_optional_path(python_info.library)}], "
+        f"pybind11[{_format_optional_path(python_info.pybind_include)}], link_python[yes], rpath_python[no]"
+    )
 
 
-def _strip_optional_werror(tag: str, bridge_target: TargetBuildInfo,
-                           native_target: TargetBuildInfo) -> Tuple[TargetBuildInfo, TargetBuildInfo]:
+def _strip_optional_werror(
+    tag: str, bridge_target: TargetBuildInfo, native_target: TargetBuildInfo
+) -> Tuple[TargetBuildInfo, TargetBuildInfo]:
     bridge_target, removed_bridge_flags = _without_werror(bridge_target)
     native_target, removed_native_flags = _without_werror(native_target)
     removed_flags = removed_bridge_flags + removed_native_flags
@@ -560,8 +610,9 @@ def _strip_optional_werror(tag: str, bridge_target: TargetBuildInfo,
     return bridge_target, native_target
 
 
-def _build_native_artifacts(args: argparse.Namespace, python_info: PythonBuildInfo,
-                            is_current_tag: bool) -> Optional[Path]:
+def _build_native_artifacts(
+    args: argparse.Namespace, python_info: PythonBuildInfo, is_current_tag: bool
+) -> Optional[Path]:
     tag_work_dir = args.work_dir / python_info.tag
     if args.fresh and tag_work_dir.exists():
         shutil.rmtree(tag_work_dir)
@@ -572,19 +623,40 @@ def _build_native_artifacts(args: argparse.Namespace, python_info: PythonBuildIn
     native_target = _load_target_build_info(args.build_dir, "api/python/ge/ge/passes", "_ge_pass_native")
     if not is_current_tag:
         bridge_target, native_target = _strip_optional_werror(python_info.tag, bridge_target, native_target)
-    header_ok, header_error = _can_compile_python_header(args, bridge_target,
-                                                         tag_work_dir / "header_probe", python_info)
+    header_ok, header_error = _can_compile_python_header(
+        args, bridge_target, tag_work_dir / "header_probe", python_info
+    )
     if not header_ok:
-        print(f"Skip {python_info.tag}: Python development headers are not usable for {python_info.executable}:\n"
-              f"{header_error}", file=sys.stderr)
+        print(
+            f"Skip {python_info.tag}: Python development headers are not usable for {python_info.executable}:\n"
+            f"{header_error}",
+            file=sys.stderr,
+        )
         return None
-    bridge_objects = _compile_sources(args, bridge_target, [args.source_dir / BRIDGE_SOURCE],
-                                      tag_work_dir / "bridge_obj", python_info)
+    bridge_objects = _compile_sources(
+        args,
+        bridge_target,
+        [args.source_dir / BRIDGE_SOURCE],
+        tag_work_dir / "bridge_obj",
+        python_info,
+    )
     native_sources = [args.source_dir / source for source in NATIVE_SOURCES]
     native_objects = _compile_sources(args, native_target, native_sources, tag_work_dir / "native_obj", python_info)
 
-    _link_shared(args, bridge_target, artifact_dir / "libge_python_pass_bridge.so", bridge_objects, python_info)
-    _link_shared(args, native_target, artifact_dir / "_ge_pass_native.so", native_objects, python_info)
+    _link_shared(
+        args,
+        bridge_target,
+        artifact_dir / "libge_python_pass_bridge.so",
+        bridge_objects,
+        python_info,
+    )
+    _link_shared(
+        args,
+        native_target,
+        artifact_dir / "_ge_pass_native.so",
+        native_objects,
+        python_info,
+    )
     _write_manifest(artifact_dir, python_info, args.platform_tag, args.bridge_abi)
     return artifact_dir
 
@@ -594,11 +666,16 @@ def _build_wheel(args: argparse.Namespace, tag: str, artifact_dir: Path) -> Path
     command = [
         sys.executable,
         os.fspath(script),
-        "--artifact-dir", os.fspath(artifact_dir),
-        "--python-tag", tag,
-        "--platform-tag", args.platform_tag,
-        "--wheel-platform", args.wheel_platform,
-        "--output-dir", os.fspath(args.dist_dir),
+        "--artifact-dir",
+        os.fspath(artifact_dir),
+        "--python-tag",
+        tag,
+        "--platform-tag",
+        args.platform_tag,
+        "--wheel-platform",
+        args.wheel_platform,
+        "--output-dir",
+        os.fspath(args.dist_dir),
     ]
     completed = _run(command)
     if completed.returncode != 0:
@@ -624,14 +701,23 @@ def _build_one(args: argparse.Namespace, tag: str, python: str, is_current_tag: 
         return []
     python_info = _query_python_build_info(tag, python)
     if python_info is None:
-        print(f"Skip {tag}: cannot resolve Python development include for {python}", file=sys.stderr)
+        print(
+            f"Skip {tag}: cannot resolve Python development include for {python}",
+            file=sys.stderr,
+        )
         return []
     if python_info.library is None:
-        print(f"Skip {tag}: cannot resolve libpython for {python_info.executable}", file=sys.stderr)
+        print(
+            f"Skip {tag}: cannot resolve libpython for {python_info.executable}",
+            file=sys.stderr,
+        )
         return []
     if python_info.pybind_include is None:
-        print(f"Skip {tag}: cannot resolve pybind11 include for {python_info.executable}. "
-              f"Please install pybind11 for this Python.", file=sys.stderr)
+        print(
+            f"Skip {tag}: cannot resolve pybind11 include for {python_info.executable}. "
+            f"Please install pybind11 for this Python.",
+            file=sys.stderr,
+        )
         return []
     _log_python_build_info(python_info)
     copied = _copy_current_wheel(args, tag)
@@ -647,14 +733,27 @@ def _build_one(args: argparse.Namespace, tag: str, python: str, is_current_tag: 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=_repo_root())
-    parser.add_argument("--build-dir", type=Path, required=True,
-                        help="Parent CMake build directory. The matrix builder reuses its generated flags/link data.")
+    parser.add_argument(
+        "--build-dir",
+        type=Path,
+        required=True,
+        help="Parent CMake build directory. The matrix builder reuses its generated flags/link data.",
+    )
     parser.add_argument("--work-dir", type=Path, default=None)
     parser.add_argument("--dist-dir", type=Path, default=None)
-    parser.add_argument("--python", action="append", default=[],
-                        help="Optional Python executable to include before PATH and Conda probing.")
-    parser.add_argument("--tag", action="append", choices=SUPPORTED_TAGS, default=[],
-                        help="Optional supported Python tag filter.")
+    parser.add_argument(
+        "--python",
+        action="append",
+        default=[],
+        help="Optional Python executable to include before PATH and Conda probing.",
+    )
+    parser.add_argument(
+        "--tag",
+        action="append",
+        choices=SUPPORTED_TAGS,
+        default=[],
+        help="Optional supported Python tag filter.",
+    )
     parser.add_argument("--platform-tag", required=True)
     parser.add_argument("--wheel-platform", required=True)
     parser.add_argument("--bridge-abi", type=int, required=True)
@@ -697,7 +796,10 @@ def main() -> None:
         except Exception as err:
             if is_current_tag:
                 raise
-            print(f"Skip optional {tag}: native wheel build failed for {python}:\n{err}", file=sys.stderr)
+            print(
+                f"Skip optional {tag}: native wheel build failed for {python}:\n{err}",
+                file=sys.stderr,
+            )
             continue
         built_wheels.extend(tag_wheels)
         if tag_wheels:

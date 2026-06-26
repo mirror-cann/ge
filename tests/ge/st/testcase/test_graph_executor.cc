@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -85,7 +85,7 @@ static void MockGenerateTask() {
   MockForGenerateTask("AiCoreLib", aicore_func);
   MockForGenerateTask("AIcoreEngine", aicore_func);
 }
-}
+}  // namespace
 
 class StestGraphExecutor : public testing::Test {
  protected:
@@ -106,7 +106,7 @@ class StestGraphExecutor : public testing::Test {
 namespace {
 const std::string kAttrNameAtomicWspMode = "wspMode";
 const std::string kWspFoldedMode = "folded";
-}
+}  // namespace
 
 TEST_F(StestGraphExecutor, execute_graph_sync_multi) {
   VarManager::Instance(0)->Init(0, 0, 0, 0);
@@ -132,7 +132,7 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -161,7 +161,7 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -190,8 +190,8 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -271,11 +271,8 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi) {
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(0U), SUCCESS);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(1U), SUCCESS);
 }
-void AddTask(shared_ptr<domi::ModelTaskDef> &model_task_def,
-             const int32_t stream_id,
-             const std::string &stub_func_name,
-             const size_t args_size,
-             const NodePtr &task_node) {
+void AddTask(shared_ptr<domi::ModelTaskDef> &model_task_def, const int32_t stream_id, const std::string &stub_func_name,
+             const size_t args_size, const NodePtr &task_node) {
   // add task def
   domi::TaskDef *task_def = model_task_def->add_task();
   task_def->set_stream_id(stream_id);
@@ -301,24 +298,12 @@ TEST_F(StestGraphExecutor, execute_graph_sync_multi_atomic_memset) {
   VarManager::Instance(0)->SetMemoryMallocSize(options, 1024UL * 1024UL * 1024UL);
 
   DEF_GRAPH(graph) {
-   auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
     CTRL_CHAIN(NODE("memset", atomic_memset)->NODE("atomic_node", fake_type2_op1));
     CHAIN(NODE("args0", data0)->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
@@ -408,24 +393,12 @@ TEST_F(StestGraphExecutor, execute_graph_async_with_gert_tensor_multi_atomic_mem
   VarManager::Instance(0)->SetMemoryMallocSize(options, 1024UL * 1024UL * 1024UL);
 
   DEF_GRAPH(graph) {
-   auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto atomic_memset = OP_CFG(MEMSET)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto atomic_memset = OP_CFG(MEMSET).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("AtomicNode")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("AtomicNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
     CTRL_CHAIN(NODE("memset", atomic_memset)->NODE("atomic_node", fake_type2_op1));
     CHAIN(NODE("args0", data0)->NODE("atomic_node", fake_type2_op1)->NODE("Node_Output", net_output));
@@ -502,21 +475,22 @@ TEST_F(StestGraphExecutor, execute_graph_async_with_gert_tensor_multi_atomic_mem
   std::vector<gert::Tensor> gert_inputs;
   vector<uint8_t> inputs_data(512, 0);
   gert_inputs.resize(1);
-  gert_inputs[0] =  {{{4, 4}, {4, 4}},                            // shape
-                     {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},      // format
-                     gert::kOnDeviceHbm,                          // placement
-                     ge::DT_FLOAT,                                // data type
-                     (void *) inputs_data.data()};
+  gert_inputs[0] = {{{4, 4}, {4, 4}},                        // shape
+                    {ge::FORMAT_NCHW, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnDeviceHbm,                      // placement
+                    ge::DT_FLOAT,                            // data type
+                    (void *)inputs_data.data()};
 
   // 异步执行的output size需要调用时确定?
   std::vector<gert::Tensor> gert_outputs;
   gert_outputs.resize(1);
   vector<uint8_t> outputs_data(512, 0);
   gert_outputs[0].SetSize(4);
-  gert_outputs[0].MutableTensorData().SetAddr((void *) inputs_data.data(), nullptr);
+  gert_outputs[0].MutableTensorData().SetAddr((void *)inputs_data.data(), nullptr);
 
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(1);
-  EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, gert_inputs, gert_outputs), SUCCESS);
+  EXPECT_EQ(graph_executer.ExecuteGraphWithStream(nullptr, graph_node, ge_root_model, gert_inputs, gert_outputs),
+            SUCCESS);
   EXPECT_EQ(ModelManager::GetInstance().DeleteModel(0U), SUCCESS);
   EXPECT_EQ(aclrtFree(goverflow_addr), ACL_SUCCESS);
 }
@@ -544,7 +518,7 @@ TEST_F(StestGraphExecutor, execute_graph_async_multi) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -571,7 +545,7 @@ TEST_F(StestGraphExecutor, execute_graph_async_multi) {
     kernel_def->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_def->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -600,8 +574,8 @@ TEST_F(StestGraphExecutor, execute_graph_async_multi) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({5120});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -669,4 +643,4 @@ TEST_F(StestGraphExecutor, InvalidBrachInfoTest) {
   ret = model.GetRealOutputSizeOfCase(graph, 0, node_case);
   EXPECT_NE(ret, SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

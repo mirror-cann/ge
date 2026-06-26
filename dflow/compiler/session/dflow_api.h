@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,8 +39,7 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] options graph options
    * @return Status result of function
    */
-  Status AddGraph(uint32_t graph_id, const FlowGraph &graph,
-                  const std::map<AscendString, AscendString> &options = {});
+  Status AddGraph(uint32_t graph_id, const FlowGraph &graph, const std::map<AscendString, AscendString> &options = {});
 
   /**
    * @brief remove a graph of the session with specific session id
@@ -54,7 +53,7 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] graph_id graph id
    * @param [in] inputs input data
    * @return Status result of function
-  */
+   */
   Status BuildGraph(uint32_t graph_id, const std::vector<Tensor> &inputs);
 
   /**
@@ -81,8 +80,8 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] timeout data feed timeout(ms), -1 means never timeout
    * @return Status result of function
    */
-  Status FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                           const std::vector<Tensor> &inputs, const DataFlowInfo &info, int32_t timeout);
+  Status FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes, const std::vector<Tensor> &inputs,
+                           const DataFlowInfo &info, int32_t timeout);
 
   /**
    * @brief Feed input data to graph.
@@ -133,8 +132,7 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] timeout data fetch timeout(ms), -1 means never timeout
    * @return Status result of function
    */
-  Status FetchDataFlowGraph(uint32_t graph_id, std::vector<Tensor> &outputs, DataFlowInfo &info,
-                            int32_t timeout);
+  Status FetchDataFlowGraph(uint32_t graph_id, std::vector<Tensor> &outputs, DataFlowInfo &info, int32_t timeout);
   /**
    * @brief Fetch graph output data in order.
    * @param [in] graph_id graph id
@@ -144,8 +142,8 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] timeout data fetch timeout(ms), -1 means never timeout
    * @return Status result of function
    */
-  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                            std::vector<Tensor> &outputs, DataFlowInfo &info, int32_t timeout);
+  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes, std::vector<Tensor> &outputs,
+                            DataFlowInfo &info, int32_t timeout);
 
   /**
    * @brief Fetch graph output data in order.
@@ -155,12 +153,12 @@ class GE_FUNC_VISIBILITY DFlowSession {
    * @param [in] timeout data fetch timeout(ms), -1 means never timeout
    * @return Status result of function
    */
-  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                            std::vector<FlowMsgPtr> &outputs, int32_t timeout);
+  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes, std::vector<FlowMsgPtr> &outputs,
+                            int32_t timeout);
 
  private:
   std::shared_ptr<DFlowSessionImpl> dflow_session_impl_;
 };
-} // namespace dflow
-} // namespace ge
+}  // namespace dflow
+}  // namespace ge
 #endif  // DFLOW_INC_EXTERNAL_DFLOW_API_H_

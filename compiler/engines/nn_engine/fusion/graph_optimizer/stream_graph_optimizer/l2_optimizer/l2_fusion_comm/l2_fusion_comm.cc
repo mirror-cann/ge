@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,7 @@ void L2FusionComm::GetL2HardwareSet(L2BufferInfo &l2) {
 Status L2FusionComm::CalcTensorSize(const ge::GeTensorDesc &tensor_desc, int64_t &tensor_size) {
   // verify the tensor
   FE_CHECK(TensorComputeUtil::VerifyTensor(tensor_desc) != SUCCESS,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][CaclTensorSize] Failed to verify this tensor."),
-           return FAILED);
+           REPORT_FE_ERROR("[StreamOpt][L2Opt][CaclTensorSize] Failed to verify this tensor."), return FAILED);
 
   int64_t element_cnt;
   FE_CHECK(TensorComputeUtil::GetElementCountByMultiply(tensor_desc, element_cnt) != SUCCESS,
@@ -43,7 +42,8 @@ Status L2FusionComm::CalcTensorSize(const ge::GeTensorDesc &tensor_desc, int64_t
   int32_t output_real_calc_flag = 0;
   FE_CHECK(
       TensorComputeUtil::GetTensorSizeByDataType(element_cnt, data_type, tensor_size, output_real_calc_flag) != SUCCESS,
-      REPORT_FE_ERROR("[StreamOpt][L2Opt][CalcTensorSize] Failed to calculate tensor size using element count and data type."),
+      REPORT_FE_ERROR(
+          "[StreamOpt][L2Opt][CalcTensorSize] Failed to calculate tensor size using element count and data type."),
       return FAILED);
   return SUCCESS;
 }
@@ -58,8 +58,7 @@ Status L2FusionComm::GetGraphDataSize(const ge::OpDescPtr &op_desc, const ge::Ge
     if (ge::AttrUtils::GetBool(op_desc, AIPP_CONV_FLAG, support_aipp) && support_aipp) {
       int64_t size = 0;
       FE_CHECK(ge::TensorUtils::GetSize(tensor_desc, size) != ge::GRAPH_SUCCESS,
-               REPORT_FE_ERROR("[StreamOpt][L2Opt][GetGphDataSize] Get size failed!"),
-               return FAILED);
+               REPORT_FE_ERROR("[StreamOpt][L2Opt][GetGphDataSize] Get size failed!"), return FAILED);
       data_size = size;
       return SUCCESS;
     }
@@ -93,7 +92,8 @@ Status L2FusionComm::GetGraphDataSize(const ge::NodePtr &node, const size_t &ten
 
       if (is_dual_output) {
         FE_CHECK(GetGraphDataSize(peer_out_op_desc, output_tensor, OUTPUT_DATA, data_size) != SUCCESS,
-                 REPORT_FE_ERROR("[StreamOpt][L2Opt][GetGphDataSize] GetGraphDataSize operation failed."), return FAILED);
+                 REPORT_FE_ERROR("[StreamOpt][L2Opt][GetGphDataSize] GetGraphDataSize operation failed."),
+                 return FAILED);
         return SUCCESS;
       }
     }
@@ -123,8 +123,8 @@ void L2FusionComm::DisplayOpL2DataInfo(const std::vector<OpL2DataInfo> &l2_data_
 
 void L2FusionComm::DisplayTensorL2DataInfo(const TensorL2DataMap &tensor_l2_map) {
   for (TensorL2DataMap::const_iterator iter = tensor_l2_map.begin(); iter != tensor_l2_map.end(); ++iter) {
-    FE_LOGD("L2 tensor data: Data id[%lu], ddr addr[%lu], data size[%ld].",
-            iter->second.id, iter->second.ddr_addr, iter->second.data_size);
+    FE_LOGD("L2 tensor data: Data id[%lu], ddr addr[%lu], data size[%ld].", iter->second.id, iter->second.ddr_addr,
+            iter->second.data_size);
   }
 }
 
@@ -132,13 +132,13 @@ void L2FusionComm::DisplayTensorL2AllocInfo(const TensorL2AllocMap &input, rtL2C
                                             const TensorL2AllocMap &tensor_alloc_map) {
   int64_t page_size = L2_SIZE / PAGE_NUM;
   for (auto it = tensor_alloc_map.cbegin(); it != tensor_alloc_map.cend(); ++it) {
-    FE_LOGD("Data_id = %lu, data_in_l2_id = %d, if_input = %u, data_size = %u.",
-            it->first, it->second.data_in_l2_id, (uint32_t)(input.count(it->first)),
-            l2ctrl.data[it->second.data_in_l2_id].L2_data_section_size);
+    FE_LOGD("Data_id = %lu, data_in_l2_id = %d, if_input = %u, data_size = %u.", it->first, it->second.data_in_l2_id,
+            (uint32_t)(input.count(it->first)), l2ctrl.data[it->second.data_in_l2_id].L2_data_section_size);
     FE_LOGD("l2PageN = %lu, l2_addr0 = %lu, l2Addr=%lu, ddr_addr_key = %lu, ddr_addr = %lu.", it->second.l2PageNum,
             it->second.data_in_l2_addr - (l2ctrl.data[it->second.data_in_l2_id].L2_page_offset_base) * page_size,
             it->second.data_in_l2_addr, it->first, l2ctrl.data[it->second.data_in_l2_id].L2_mirror_addr);
-    FE_LOGD("offset = %2u, previous_offset = %2d", static_cast<uint32_t>(l2ctrl.data[it->second.data_in_l2_id].L2_page_offset_base),
+    FE_LOGD("offset = %2u, previous_offset = %2d",
+            static_cast<uint32_t>(l2ctrl.data[it->second.data_in_l2_id].L2_page_offset_base),
             static_cast<int32_t>(l2ctrl.data[it->second.data_in_l2_id].prev_L2_page_offset_base));
   }
 }
@@ -149,8 +149,8 @@ void L2FusionComm::DisplayOpL2AllocInfo(const OpL2AllocMap &l2_alloc_map) {
     const OpL2AllocInfo &l2_info = it->second;
 
     FE_LOGD("Node[%u, %s] l2ctrl.size = %lu.", l2_info.node_id, l2_info.node_name.c_str(), l2ctrl.size);
-    FE_LOGD("Input size[%zu], output size[%zu], converge size[%zu], standing size[%zu].",
-            l2_info.input.size(), l2_info.output.size(), l2_info.converge.size(), l2_info.standing_data.size());
+    FE_LOGD("Input size[%zu], output size[%zu], converge size[%zu], standing size[%zu].", l2_info.input.size(),
+            l2_info.output.size(), l2_info.converge.size(), l2_info.standing_data.size());
 
     FE_LOGD("The following is the standing allocation information.");
     DisplayTensorL2AllocInfo(l2_info.input, l2ctrl, l2_info.standing_data);

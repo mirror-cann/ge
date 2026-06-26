@@ -30,7 +30,7 @@ using namespace fusion;
 // 融合说明：本例识别上图中左边的MatMul+Add结构并通过图修改接口替换为右边的单个GEMM节点
 class FuseMatMulAndAddPass : public PatternFusionPass {
  protected:
-  //在定义 pattern 时，按序capture MatMul 和 Add 的输入 tensor
+  // 在定义 pattern 时，按序capture MatMul 和 Add 的输入 tensor
   const int64_t kMatMulCaptureIdx = 0l;
   const int64_t kAddCaptureIdx = 1l;
   std::vector<PatternUniqPtr> Patterns() override {
@@ -43,8 +43,7 @@ class FuseMatMulAndAddPass : public PatternFusionPass {
     auto add0 = es::Add(matmul0, c0);
     auto graph0 = graph_builder0.BuildAndReset({add0});
     auto pattern0 = std::make_unique<Pattern>(std::move(*graph0));
-    pattern0->CaptureTensor({*matmul0.GetProducer(),0})
-            .CaptureTensor({*add0.GetProducer(),0});
+    pattern0->CaptureTensor({*matmul0.GetProducer(), 0}).CaptureTensor({*add0.GetProducer(), 0});
     patterns.emplace_back(std::move(pattern0));
 
     auto graph_builder1 = es::EsGraphBuilder("pattern1");
@@ -53,8 +52,7 @@ class FuseMatMulAndAddPass : public PatternFusionPass {
     auto add1 = es::Add(matmul1, c1);
     auto graph1 = graph_builder1.BuildAndReset({add1});
     auto pattern1 = std::make_unique<Pattern>(std::move(*graph1));
-    pattern1->CaptureTensor({*matmul1.GetProducer(),0})
-            .CaptureTensor({*add1.GetProducer(),0});
+    pattern1->CaptureTensor({*matmul1.GetProducer(), 0}).CaptureTensor({*add1.GetProducer(), 0});
     patterns.emplace_back(std::move(pattern1));
 
     return patterns;
@@ -62,15 +60,15 @@ class FuseMatMulAndAddPass : public PatternFusionPass {
   bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result) override {
     std::cout << "Define MeetRequirements for FuseMatMulAndAddPass in capture tensor sample" << std::endl;
     NodeIo add_node;
-    match_result->GetCapturedTensor(kAddCaptureIdx,add_node);
+    match_result->GetCapturedTensor(kAddCaptureIdx, add_node);
 
     TensorDesc add_input0_desc;
     add_node.node.GetInputDesc(0, add_input0_desc);
     TensorDesc add_input1_desc;
     add_node.node.GetInputDesc(1, add_input1_desc);
-    //check dtype
+    // check dtype
     if (add_input0_desc.GetDataType() != DT_FLOAT || add_input1_desc.GetDataType() != DT_FLOAT) {
-      std::cout << "Only support Add inputs are fp32"<<std::endl;
+      std::cout << "Only support Add inputs are fp32" << std::endl;
       return false;
     }
     return true;

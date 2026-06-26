@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,9 +53,9 @@
 namespace optiling {
 class TilingSymbolEvalContext;
 class SymbolTilingParseContext;
-using TilingFunc = ge::graphStatus(*)(TilingSymbolEvalContext *);
-using GetTilingDataFunc = size_t(*)();
-using TilingParse = ge::graphStatus(*)(SymbolTilingParseContext *);
+using TilingFunc = ge::graphStatus (*)(TilingSymbolEvalContext *);
+using GetTilingDataFunc = size_t (*)();
+using TilingParse = ge::graphStatus (*)(SymbolTilingParseContext *);
 namespace {
 const std::string kCompileInfoJson = "compile_info_json";
 constexpr size_t kMaxTilingDataSize = 16UL * 1024UL;
@@ -73,8 +73,9 @@ const std::string kMatMulBatchMatmulNodeType = "BatchMatMulV3";
 const std::string kConv2DNodeType = "Conv2DV2";
 constexpr int32_t kSocVersionLen = 50;
 
-gert::KernelContextHolder BuildTilingParseContextHolder(const ge::OpDescPtr &op_desc, const char_t * const compile_info,
-    const fe::PlatFormInfos &platform_infos, const gert::OpImplKernelRegistry::OpImplFunctions * const funcs) {
+gert::KernelContextHolder BuildTilingParseContextHolder(
+    const ge::OpDescPtr &op_desc, const char_t *const compile_info, const fe::PlatFormInfos &platform_infos,
+    const gert::OpImplKernelRegistry::OpImplFunctions *const funcs) {
   std::vector<std::pair<void *, gert::Chain::Deleter>> tiling_parse_outputs(1, std::make_pair(nullptr, nullptr));
   tiling_parse_outputs[0].first = funcs->compile_info_creator();
   tiling_parse_outputs[0].second = funcs->compile_info_deleter;
@@ -86,7 +87,7 @@ gert::KernelContextHolder BuildTilingParseContextHolder(const ge::OpDescPtr &op_
       .Build(op_desc);
 }
 
-ge::graphStatus FindImplFuncs(const char * const op_type, const gert::OpImplKernelRegistry::OpImplFunctions *&funcs,
+ge::graphStatus FindImplFuncs(const char *const op_type, const gert::OpImplKernelRegistry::OpImplFunctions *&funcs,
                               const gert::OpImplSpaceRegistryV2Ptr &space_registry) {
   if (space_registry == nullptr) {
     GELOGE(ge::GRAPH_FAILED, "Invalid space registry!");
@@ -116,8 +117,9 @@ ge::graphStatus ConvertFromContextToRunInfo(gert::KernelContext *kernel_context,
   run_info.AddTilingData(reinterpret_cast<ge::char_t *>(tiling_data->GetData()), tiling_data->GetDataSize());
   auto ws = kernel_context->GetOutputPointer<gert::ContinuousVector>(gert::TilingContext::kOutputWorkspace);
   GE_ASSERT_NOTNULL(ws);
-  std::vector<int64_t> workspaces(reinterpret_cast<const size_t *>(ws->GetData()),
-                                  ge::PtrAdd(reinterpret_cast<const size_t *>(ws->GetData()), std::numeric_limits<size_t>::max(), ws->GetSize()));
+  std::vector<int64_t> workspaces(
+      reinterpret_cast<const size_t *>(ws->GetData()),
+      ge::PtrAdd(reinterpret_cast<const size_t *>(ws->GetData()), std::numeric_limits<size_t>::max(), ws->GetSize()));
 
   run_info.SetWorkspaces(workspaces);
   run_info.SetTilingCond(tiling_context->GetTilingCond());
@@ -194,8 +196,8 @@ ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_n
   }
   const auto workspace_data_node = graph->AddNode(workspace_data_op_desc);
   GE_CHECK_NOTNULL(workspace_data_node);
-  ge::graphStatus ret = ge::GraphUtils::AddEdge(workspace_data_node->GetOutDataAnchor(0),
-                                                clean_node->GetInDataAnchor(0));
+  ge::graphStatus ret =
+      ge::GraphUtils::AddEdge(workspace_data_node->GetOutDataAnchor(0), clean_node->GetInDataAnchor(0));
   if (ret != ge::SUCCESS) {
     GELOGE(ge::FAILED, "add edge between [%s] and [%s] failed", workspace_data_node->GetName().c_str(),
            clean_node->GetName().c_str());
@@ -293,7 +295,7 @@ ge::Status AssembleAtomicCompileInfoJson(const ge::OpDescPtr &op_desc, std::stri
     compile_info_json = nlohmann::json::parse(op_compile_info_json);
   } catch (nlohmann::json::parse_error &ex) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to set compile_info_value to json of op[%s]. op_compile_info_json:%s",
-                      op_desc->GetName().c_str(), op_compile_info_json.c_str());
+                         op_desc->GetName().c_str(), op_compile_info_json.c_str());
     GELOGE(ge::FAILED, "Failed to set compile_info_value to json of op[%s]. op_compile_info_json:%s",
            op_desc->GetName().c_str(), op_compile_info_json.c_str());
     return ge::FAILED;
@@ -306,8 +308,8 @@ ge::Status AssembleAtomicCompileInfoJson(const ge::OpDescPtr &op_desc, std::stri
 }
 
 ge::graphStatus UpdateNodeShapeBySliceInfo(const ffts::ThreadSliceMapDyPtr &slice_info_ptr,
-                                           const ge::OpDescPtr &op_desc,
-                                           const uint32_t thread_id, vector<int64_t> &ori_shape, bool &same_shape) {
+                                           const ge::OpDescPtr &op_desc, const uint32_t thread_id,
+                                           vector<int64_t> &ori_shape, bool &same_shape) {
   if ((thread_id >= slice_info_ptr->input_tensor_slice.size()) ||
       (thread_id >= slice_info_ptr->output_tensor_slice.size())) {
     REPORT_INNER_ERR_MSG("E19999", "Update node shape thread id(%u) err.", thread_id);
@@ -377,7 +379,7 @@ ge::graphStatus UpdateNodeShapeBack(const ge::OpDescPtr &op_desc, const ffts::Th
 }
 
 void UpdateCoreNumByCoreType(const ge::OpDescPtr &op_desc, fe::PlatFormInfos &platform_infos) {
-  const std::string * const core_type = ge::AttrUtils::GetStr(op_desc, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE);
+  const std::string *const core_type = ge::AttrUtils::GetStr(op_desc, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE);
   // The old OM model does not have cube_vector_core_type attribute, only has sgt_cube_vector attribute,
   // so make it compatible here. By default, all OM models are AIC.
 #ifdef __GNUC__
@@ -391,7 +393,7 @@ void UpdateCoreNumByCoreType(const ge::OpDescPtr &op_desc, fe::PlatFormInfos &pl
   }
 #endif
 }
-} // namespace
+}  // namespace
 
 bool EnableRt2Tiling(const ge::OpDescPtr &op_desc) {
   GE_ASSERT_NOTNULL(op_desc);
@@ -407,8 +409,8 @@ bool EnableRt2Tiling(const ge::OpDescPtr &op_desc) {
     GELOGD("RT1 optiling function is found by op type[%s].", op_type.c_str());
     return false;
   }
-  const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance()
-    .GetSpaceRegistry(static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
+  const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
+      static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
   if ((space_registry != nullptr) && (space_registry->GetOpImpl(op_type.c_str()) != nullptr) &&
       (space_registry->GetOpImpl(op_type.c_str())->tiling != nullptr) &&
       (space_registry->GetOpImpl(op_type.c_str())->tiling_parse != nullptr)) {
@@ -489,12 +491,12 @@ static ge::graphStatus AtomicCleanRtParseAndTiling(const ge::NodePtr &origin_nod
   }
   const gert::KernelContextHolder tiling_context_holder =
       gert::AtomicTilingContextBuilder()
-        .CompileInfo(*parse_context_holder->context_->GetOutputPointer<void **>(0))
-        .CleanWorkspaceSizes(reinterpret_cast<gert::ContinuousVector *>(clean_workspace_size.get()))
-        .CleanOutputSizes(output_clean_size)
-        .TilingData(tiling_data.get())
-        .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-        .Build(op);
+          .CompileInfo(*parse_context_holder->context_->GetOutputPointer<void **>(0))
+          .CleanWorkspaceSizes(reinterpret_cast<gert::ContinuousVector *>(clean_workspace_size.get()))
+          .CleanOutputSizes(output_clean_size)
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .Build(op);
   const gert::OpImplKernelRegistry::OpImplFunctions *funcs;
   GE_ASSERT_GRAPH_SUCCESS(FindImplFuncs(op_desc->GetType().c_str(), funcs, space_registry));
   GE_CHECK_NOTNULL(tiling_context_holder.context_);
@@ -503,7 +505,7 @@ static ge::graphStatus AtomicCleanRtParseAndTiling(const ge::NodePtr &origin_nod
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const compile_info,
+ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t *const compile_info,
                                  const fe::PlatFormInfos &platform_infos, const OutputsConvertorFun &callback,
                                  const gert::OpImplSpaceRegistryV2Ptr &space_registry) {
   ParseContextHolderPtr parse_context_holder = nullptr;
@@ -519,7 +521,7 @@ ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const co
   }
 
   std::array<char_t, static_cast<size_t>(kSocVersionLen)> soc_version{};
-  const char* soc_name = aclrtGetSocName();
+  const char *soc_name = aclrtGetSocName();
   if (soc_name == nullptr) {
     GE_CHK_RT_RET(ACL_ERROR_FAILURE);
   }
@@ -535,7 +537,8 @@ ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const co
 
   // 如果配置了算子级核数，更新到副本PlatformInfos中，后续用副本，防止影响其他算子
   bool is_op_core_num_set = false;
-  GE_ASSERT_SUCCESS(ge::CoreNumUtils::UpdatePlatformInfosWithOpDesc(platform_info, op_desc, platform_infos_bak, is_op_core_num_set));
+  GE_ASSERT_SUCCESS(
+      ge::CoreNumUtils::UpdatePlatformInfosWithOpDesc(platform_info, op_desc, platform_infos_bak, is_op_core_num_set));
 
   const auto aligned_max_size = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
   const auto tiling_data = gert::TilingData::CreateCap(aligned_max_size);
@@ -550,13 +553,12 @@ ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const co
 
   /*
    * 后续切换OpTilingContextBuilder时，出于兼容性考虑（新GE包+老metadef包），建议deterministic_level的设置通过调用纯C弱符号接口
-   * gert_TilingContextBuilder_SetDeterministicLevel实现，调用前可以通过该符号是否为空或者aclsysGetVersionNum > 80500000 (8.5.0)
-   * 判断是否是支持该能力的metadef版本。
+   * gert_TilingContextBuilder_SetDeterministicLevel实现，调用前可以通过该符号是否为空或者aclsysGetVersionNum > 80500000
+   * (8.5.0) 判断是否是支持该能力的metadef版本。
    */
   auto context_builder = gert::TilingContextBuilder();
   const gert::KernelContextHolder tiling_context_holder =
-      context_builder
-          .CompileInfo(*parse_context_holder->context_->GetOutputPointer<void **>(0))
+      context_builder.CompileInfo(*parse_context_holder->context_->GetOutputPointer<void **>(0))
           .PlatformInfo(&platform_infos_bak)
           .TilingData(tiling_data.get())
           .Deterministic(deterministic)
@@ -575,7 +577,7 @@ ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const co
 }
 
 static ge::graphStatus NormalAicoreNodeTiling(const ge::Operator &op, const fe::PlatFormInfos &platform_infos,
-                                       const OutputsConvertorFun &callback) {
+                                              const OutputsConvertorFun &callback) {
   auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   const std::string *op_compile_info_json = ge::AttrUtils::GetStr(op_desc, COMPILE_INFO_JSON);
   if (op_compile_info_json == nullptr) {
@@ -608,7 +610,7 @@ static ge::graphStatus BuildGraphInputShape(const ge::GeTensorDesc &tensor_desc,
 }
 
 static ge::graphStatus AutofuseNodeCreateInput(const std::vector<ge::NodePtr> &data_input_nodes,
-                                               std::vector<void*> &inputs_holder) {
+                                               std::vector<void *> &inputs_holder) {
   for (const auto &data_node : data_input_nodes) {
     int64_t index = -1;
     (void)ge::AttrUtils::GetInt(data_node->GetOpDesc(), ge::ATTR_NAME_INDEX, index);
@@ -625,16 +627,16 @@ static ge::graphStatus AutofuseNodeCreateInput(const std::vector<ge::NodePtr> &d
   return ge::GRAPH_SUCCESS;
 }
 
-static gert::KernelContextHolder DoTilingParse(
-    const fe::PlatFormInfos &platform_infos, const ge::OpDescPtr &op_desc, void *handle) {
+static gert::KernelContextHolder DoTilingParse(const fe::PlatFormInfos &platform_infos, const ge::OpDescPtr &op_desc,
+                                               void *handle) {
   const std::string tiling_parse_func_name("TilingParse");
-  TilingParse const tiling_parse_func =
-      reinterpret_cast<TilingParse>(mmDlsym(handle, tiling_parse_func_name.c_str()));
+  TilingParse const tiling_parse_func = reinterpret_cast<TilingParse>(mmDlsym(handle, tiling_parse_func_name.c_str()));
   GE_ASSERT_NOTNULL(tiling_parse_func);
-  auto autofuse_tiling_parse_context_holder = gert::KernelRunContextBuilder()
-      .Inputs({reinterpret_cast<void *>(const_cast<fe::PlatFormInfos *>(&platform_infos))})
-      .Outputs({nullptr})
-      .Build(op_desc);
+  auto autofuse_tiling_parse_context_holder =
+      gert::KernelRunContextBuilder()
+          .Inputs({reinterpret_cast<void *>(const_cast<fe::PlatFormInfos *>(&platform_infos))})
+          .Outputs({nullptr})
+          .Build(op_desc);
   auto autofuse_tiling_parse_context = autofuse_tiling_parse_context_holder.context_;
   GE_ASSERT_NOTNULL(autofuse_tiling_parse_context);
   GE_ASSERT_SUCCESS(tiling_parse_func(reinterpret_cast<SymbolTilingParseContext *>(autofuse_tiling_parse_context)));
@@ -682,9 +684,7 @@ static ge::graphStatus AutofuseNodeTiling(const ge::Operator &op, const fe::Plat
   GE_ASSERT_NOTNULL(op_desc);
   auto handle = DlopenAutofuseSo(op_desc);
   GE_ASSERT_NOTNULL(handle);
-  GE_MAKE_GUARD(close_handle, [&handle]() {
-    (void)mmDlclose(handle);
-  });
+  GE_MAKE_GUARD(close_handle, [&handle]() { (void)mmDlclose(handle); });
 
   auto tiling_parse_context_holder = DoTilingParse(platform_infos, op_desc, handle);
   auto tiling_parse_data = GetTilingData(tiling_parse_context_holder);
@@ -709,13 +709,12 @@ static ge::graphStatus AutofuseNodeTiling(const ge::Operator &op, const fe::Plat
       static_cast<void *>(tiling_data_holder.get());
 
   const auto input_data_size = data_input_nodes.size();
-  const auto autofuse_tiling_context_holder =
-      gert::KernelRunContextBuilder()
-          .Inputs({reinterpret_cast<void*>(input_data_size)})
-          .Inputs(inputs_holder)
-          .Inputs({tiling_parse_data})
-          .Outputs(outputs_holder)
-          .Build(node->GetOpDesc());
+  const auto autofuse_tiling_context_holder = gert::KernelRunContextBuilder()
+                                                  .Inputs({reinterpret_cast<void *>(input_data_size)})
+                                                  .Inputs(inputs_holder)
+                                                  .Inputs({tiling_parse_data})
+                                                  .Outputs(outputs_holder)
+                                                  .Build(node->GetOpDesc());
   GE_ASSERT_NOTNULL(autofuse_tiling_context_holder.context_);
   std::string tiling_func_name = is_cube ? "TilingFuncVec" : "TilingFunc";
   TilingFunc const tiling_func = reinterpret_cast<TilingFunc>(mmDlsym(handle, tiling_func_name.c_str()));
@@ -727,7 +726,7 @@ static ge::graphStatus AutofuseNodeTiling(const ge::Operator &op, const fe::Plat
 }
 
 static ge::graphStatus HandleCubeTilingCallback(gert::KernelContext *kernel_context, OpRunInfoV2 &run_info,
-                                                  size_t &wk_size, uint32_t &aic_num) {
+                                                size_t &wk_size, uint32_t &aic_num) {
   auto tiling_context = reinterpret_cast<gert::TilingContext *>(kernel_context);
   GE_ASSERT_NOTNULL(tiling_context);
   size_t *workspaces_size = tiling_context->GetWorkspaceSizes(1);
@@ -832,8 +831,8 @@ ge::graphStatus AicoreRtParseAndTiling(const ge::Operator &op, const fe::PlatFor
   if (ge::OpTypeUtils::IsAutofuseNode(op_desc)) {
     fe::PlatFormInfos ge_platform_infos;
     fe::OptionalInfos opti_compilation_info;
-    GE_ASSERT_GRAPH_SUCCESS(fe::PlatformInfoManager::GeInstance()
-                                .GetPlatformInfoWithOutSocVersion(ge_platform_infos, opti_compilation_info));
+    GE_ASSERT_GRAPH_SUCCESS(fe::PlatformInfoManager::GeInstance().GetPlatformInfoWithOutSocVersion(
+        ge_platform_infos, opti_compilation_info));
     ge::ComputeGraphPtr matmul_subgraph = nullptr;
     matmul_subgraph = op_desc->TryGetExtAttr(kMatMulSubgraphName, matmul_subgraph);
     if (matmul_subgraph != nullptr) {
@@ -875,10 +874,10 @@ ge::graphStatus SoftSyncOpRtParseAndTiling(const ge::Operator &op, fe::PlatFormI
   }
   GELOGD("Call tiling for soft sync op: %s, type: %s.", op_desc->GetName().c_str(), op_desc->GetType().c_str());
   UpdateCoreNumByCoreType(op_desc, platform_infos);
-  const std::string * const op_compile_info_json = ge::AttrUtils::GetStr(op_desc, kCompileInfoJson);
+  const std::string *const op_compile_info_json = ge::AttrUtils::GetStr(op_desc, kCompileInfoJson);
   GE_CHECK_NOTNULL(op_compile_info_json);
 
-  const auto callback = [&run_info](gert::KernelContext *kernel_context)->ge::graphStatus {
+  const auto callback = [&run_info](gert::KernelContext *kernel_context) -> ge::graphStatus {
     return ConvertFromContextToRunInfo(kernel_context, run_info);
   };
 
@@ -918,15 +917,14 @@ ge::graphStatus AtomicRtParseAndTiling(const ge::Operator &op, const fe::PlatFor
   // parse compile info
   std::string op_compile_info_json;
   const auto atomic_op_desc = atomic_clean_node->GetOpDesc();
-  GE_ASSERT_TRUE(
-      ge::AttrUtils::GetStr(origin_node->GetOpDesc(), attr_name, op_compile_info_json),
-      "Op[%s] does not have attr[%s].", origin_node->GetName().c_str(), attr_name.c_str());
+  GE_ASSERT_TRUE(ge::AttrUtils::GetStr(origin_node->GetOpDesc(), attr_name, op_compile_info_json),
+                 "Op[%s] does not have attr[%s].", origin_node->GetName().c_str(), attr_name.c_str());
   GE_ASSERT_SUCCESS(AssembleAtomicCompileInfoJson(atomic_op_desc, op_compile_info_json));
   GE_ASSERT_TRUE(ge::AttrUtils::SetStr(atomic_op_desc, attr_name, op_compile_info_json));
 
   const auto atomic_clean_op = ge::OpDescUtils::CreateOperatorFromNode(atomic_clean_node);
   // parse and tiling
-  const auto callback = [&run_info](gert::KernelContext *kernel_context)->ge::graphStatus {
+  const auto callback = [&run_info](gert::KernelContext *kernel_context) -> ge::graphStatus {
     return ConvertFromContextToRunInfo(kernel_context, run_info);
   };
   return AtomicCleanRtParseAndTiling(node, atomic_clean_op, platform_infos, output_clean_size, callback);
@@ -947,7 +945,7 @@ ge::graphStatus FftsRtParseAndTiling(const ge::Operator &op, const fe::PlatFormI
     REPORT_INNER_ERR_MSG("E19999", "Slice num not equal.");
     return ge::GRAPH_FAILED;
   }
-  vector<int64_t> ori_shape; // save original shape
+  vector<int64_t> ori_shape;  // save original shape
   uint32_t thread_id = 0U;
   op_run_infos.resize(ffts::kSgtTillingNum);
   bool same_shape = true;
@@ -961,7 +959,7 @@ ge::graphStatus FftsRtParseAndTiling(const ge::Operator &op, const fe::PlatFormI
     const ge::graphStatus rc = AicoreRtParseAndTiling(op, platform_infos, op_run_infos[i]);
     if (rc != ge::GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "OpParaCalculateV2 failed, op_type:%s, op_name:%s", op_desc->GetType().c_str(),
-                        op_desc->GetName().c_str());
+                           op_desc->GetName().c_str());
       return rc;
     }
     if (same_shape) {
@@ -982,16 +980,12 @@ ge::graphStatus GetDeterministicLevel(int32_t &deterministic_level) {
   auto ret = ge::ConvertToInt32(deterministic_level_str, deterministic_level);
   if (ret != ge::SUCCESS || deterministic_level < 0 || deterministic_level > 2) {
     std::string readable_name = ge::GEThreadLocalContext().GetReadableName("ge.deterministicLevel");
-    std::string error_msg =
-        "Valid values for " + readable_name + " are {0,1,2}.";
+    std::string error_msg = "Valid values for " + readable_name + " are {0,1,2}.";
     GELOGE(ge::FAILED, "Valid values for %s are {0,1,2}, given value is %s", readable_name.c_str(),
            deterministic_level_str.c_str());
-    (void) REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-                                     std::vector<const char_t *>(
-                                         {
-                                           readable_name.c_str(), deterministic_level_str.c_str(),
-                                               error_msg.c_str()
-                                         }));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
+        std::vector<const char_t *>({readable_name.c_str(), deterministic_level_str.c_str(), error_msg.c_str()}));
     return ge::GRAPH_FAILED;
   }
   return ge::GRAPH_SUCCESS;

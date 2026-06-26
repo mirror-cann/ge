@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ const char_t *const kMaxSize = "max_size";
 const std::unordered_set<std::string> kDataFlowSources = {STACK};
 const std::unordered_set<std::string> kDataFlowOperations = {STACKPUSH, STACKPOP, STACKCLOSE};
 inline bool IsDataFlowSource(const std::string &op_type) {
-  return kDataFlowSources.count(op_type) !=  0UL;
+  return kDataFlowSources.count(op_type) != 0UL;
 }
 inline bool IsDataFlowOperations(const std::string &op_type) {
   return kDataFlowOperations.count(op_type) != 0UL;
@@ -49,8 +49,7 @@ Status DataFlowPreparePass::Run(ge::ComputeGraphPtr graph) {
       NodePtr data_flow_src;
       const auto ret = GetResourceInputNode(node, 0, data_flow_src);
       if (ret != SUCCESS) {
-        GELOGE(INTERNAL_ERROR, "[Get][Resource]node:%s, type:%s.",
-               node->GetName().c_str(), node->GetType().c_str());
+        GELOGE(INTERNAL_ERROR, "[Get][Resource]node:%s, type:%s.", node->GetName().c_str(), node->GetType().c_str());
         return INTERNAL_ERROR;
       }
       GE_ASSERT_NOTNULL(data_flow_src);
@@ -75,16 +74,15 @@ void DataFlowPreparePass::SetMaxSize(const NodePtr &node) {
       if (weight_data != nullptr) {
         const int64_t max_size = static_cast<int64_t>(*weight_data);
         (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_DATA_FLOW_MAX_SIZE, max_size);
-        GELOGD("Data flow node:%s, type:%s, get max size %ld.",
-               node->GetName().c_str(), node->GetType().c_str(), max_size);
+        GELOGD("Data flow node:%s, type:%s, get max size %ld.", node->GetName().c_str(), node->GetType().c_str(),
+               max_size);
       } else {
-        GELOGW("Data flow max_size weight data is nullptr, node:%s, type:%s",
-               node->GetName().c_str(), node->GetType().c_str());
+        GELOGW("Data flow max_size weight data is nullptr, node:%s, type:%s", node->GetName().c_str(),
+               node->GetType().c_str());
       }
     } else {
-      GELOGW("Data flow max_size type is not int32, node:%s, type:%s, data_type:%s",
-             node->GetName().c_str(), node->GetType().c_str(),
-             TypeUtils::DataTypeToSerialString(tensor_desc.GetDataType()).c_str());
+      GELOGW("Data flow max_size type is not int32, node:%s, type:%s, data_type:%s", node->GetName().c_str(),
+             node->GetType().c_str(), TypeUtils::DataTypeToSerialString(tensor_desc.GetDataType()).c_str());
     }
   } else {
     GELOGI("Data flow max_size is not const, node:%s, type:%s", node->GetName().c_str(), node->GetType().c_str());
@@ -123,10 +121,7 @@ Status DataFlowPreparePass::GetResourceInputNode(const NodePtr &node, const int3
   // Before the framework supported resource classes, here is a list of known transients to make the scene concrete.
   // A map of <type <out_index, in_index>>, indicate relationship of resource pass through in and out
   static const std::unordered_map<std::string, std::unordered_map<int32_t, int32_t>> kPassThroughResourceIoMap = {
-      {REFIDENTITY, {{0, 0}}},
-      {ENTER, {{0, 0}}},
-      {SWITCH, {{0, 0}, {1, 0}}}
-  };
+      {REFIDENTITY, {{0, 0}}}, {ENTER, {{0, 0}}}, {SWITCH, {{0, 0}, {1, 0}}}};
 
   NodePtr in_node = node;
   int32_t input_index = in_idx;
@@ -136,8 +131,8 @@ Status DataFlowPreparePass::GetResourceInputNode(const NodePtr &node, const int3
     in_node = in_node_idx.first;
     const int32_t peer_out_index = in_node_idx.second;
     if (in_node == nullptr || peer_out_index == -1) {
-      GELOGE(INTERNAL_ERROR, "[Get][ResourceInput]Invalid input, node:%s, input index:%d",
-             node->GetType().c_str(), input_index);
+      GELOGE(INTERNAL_ERROR, "[Get][ResourceInput]Invalid input, node:%s, input index:%d", node->GetType().c_str(),
+             input_index);
       return INTERNAL_ERROR;
     }
     const auto iter = kPassThroughResourceIoMap.find(in_node->GetType());
@@ -146,8 +141,8 @@ Status DataFlowPreparePass::GetResourceInputNode(const NodePtr &node, const int3
       if (idx_iter != iter->second.end()) {
         input_index = idx_iter->second;
       } else {
-        GELOGE(INTERNAL_ERROR, "[Get][ResourceInput]type:%s, output index:%d",
-               in_node->GetType().c_str(), peer_out_index);
+        GELOGE(INTERNAL_ERROR, "[Get][ResourceInput]type:%s, output index:%d", in_node->GetType().c_str(),
+               peer_out_index);
         return INTERNAL_ERROR;
       }
     } else {
@@ -165,8 +160,8 @@ Status DataFlowPreparePass::SetHandle(const std::map<std::string, std::unordered
     for (const auto &data_flow_op : item.second) {
       GE_CHECK_NOTNULL(data_flow_op);
       (void)AttrUtils::SetInt(data_flow_op->GetOpDesc(), ATTR_NAME_DATA_FLOW_HANDLE, handle);
-      GELOGD("Data flow op handle %ld, node:%s, type:%s", handle,
-             data_flow_op->GetName().c_str(), data_flow_op->GetType().c_str());
+      GELOGD("Data flow op handle %ld, node:%s, type:%s", handle, data_flow_op->GetName().c_str(),
+             data_flow_op->GetType().c_str());
     }
   }
   return SUCCESS;

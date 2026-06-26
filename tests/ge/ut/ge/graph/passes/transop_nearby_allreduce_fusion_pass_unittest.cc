@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,9 @@ namespace {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const string &name, const string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const string &name, const string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, Format format, DataType data_type, size_t count = 1) {
     GeTensorDesc tensor_desc;
     tensor_desc.SetShape(GeShape(vector<int64_t>(shape)));
@@ -56,7 +58,9 @@ class NodeBuilder {
   OpDescPtr op_desc_;
 };
 
-ComputeGraphPtr GetGraph1() { return nullptr; }
+ComputeGraphPtr GetGraph1() {
+  return nullptr;
+}
 
 ComputeGraphPtr GetGraph2() {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -177,7 +181,7 @@ ComputeGraphPtr GetGraph7(size_t symmetric_transdata_num, size_t asymmetric_tran
   ///          \         |           /       /           /
   ///                HcomAllReduce
   ///          /         |           \       \           \.
- ///     TransData   TransData     ...       RealDiv     ...
+  ///     TransData   TransData     ...       RealDiv     ...
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   NodePtr allreduce =
       NodeBuilder("allreduce6", HCOMALLREDUCE)
@@ -373,14 +377,14 @@ TEST(UtestTransopNearbyAllreduceFusionPass, RunFailed) {
 
 static ComputeGraphPtr BuildGraph() {
   DEF_GRAPH(transopGraph) {
-                            CHAIN(NODE("trans0", TRANSDATA)->EDGE(0U, 0U)->NODE("trans1", TRANSDATA));
-                            CHAIN(NODE("trans1", TRANSDATA)->EDGE(0U, 1U)->NODE("trans2", TRANSDATA));
-                            CHAIN(NODE("trans2", TRANSDATA)->EDGE(0U, 1U)->NODE("trans3", TRANSDATA));
+    CHAIN(NODE("trans0", TRANSDATA)->EDGE(0U, 0U)->NODE("trans1", TRANSDATA));
+    CHAIN(NODE("trans1", TRANSDATA)->EDGE(0U, 1U)->NODE("trans2", TRANSDATA));
+    CHAIN(NODE("trans2", TRANSDATA)->EDGE(0U, 1U)->NODE("trans3", TRANSDATA));
 
-                            CHAIN(NODE("cast0", CAST)->EDGE(0U, 0U)->NODE("cast1", SWITCH));
-                            CHAIN(NODE("cast1", CAST)->EDGE(0U, 0U)->NODE("cast2", CAST));
-                            CHAIN(NODE("cast1", CAST)->EDGE(0U, 0U)->NODE("cast3", CAST));
-                          };
+    CHAIN(NODE("cast0", CAST)->EDGE(0U, 0U)->NODE("cast1", SWITCH));
+    CHAIN(NODE("cast1", CAST)->EDGE(0U, 0U)->NODE("cast2", CAST));
+    CHAIN(NODE("cast1", CAST)->EDGE(0U, 0U)->NODE("cast3", CAST));
+  };
 
   const auto graph = ToGeGraph(transopGraph);
   const auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -426,7 +430,6 @@ TEST(UtestTransopNearbyAllreduceFusionPass, RemoveNearbyPairedTransOpsFailed) {
   EXPECT_EQ(ret, SUCCESS);
   cast1->impl_->in_data_anchors_[0U] = anchor;
 }
-
 
 }  // namespace
 }  // namespace ge

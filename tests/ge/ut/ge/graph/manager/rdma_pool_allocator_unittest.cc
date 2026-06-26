@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ class UtestRdmaPoolAllocatorTest : public testing::Test {
 TEST_F(UtestRdmaPoolAllocatorTest, RdmaPoolAllocator) {
   RdmaPoolAllocator allocator(RT_MEMORY_HBM);
   (void)allocator.Initialize();
-  (void)allocator.InitMemory(1024*1024);
+  (void)allocator.InitMemory(1024 * 1024);
   uint32_t device_id = 0;
   uint8_t *addr = allocator.Malloc(1024, device_id);
   uint64_t base_addr;
@@ -108,4 +108,4 @@ TEST_F(UtestRdmaPoolAllocatorTest, get_baseaddr) {
   MemManager::Instance().Finalize();
 }
 
-} // namespace ge
+}  // namespace ge

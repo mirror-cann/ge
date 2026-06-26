@@ -22,10 +22,10 @@ char *StringDepthCpy(const uint32_t len, const void *srcAddr) {
     return NULL;
   }
   errno_t ret = memcpy_s(name, len + 1, srcAddr, len);
-    if (ret != 0) {
-      (void)mmFree(name);
-      name = NULL;
-      return NULL;
+  if (ret != 0) {
+    (void)mmFree(name);
+    name = NULL;
+    return NULL;
   }
   name[len] = '\0';
   GELOGI("StringDepthCpy name[%s].", name);
@@ -86,9 +86,9 @@ uint32_t ParseAndProcSubTlvListU32(uint8_t *subTlvList, uint32_t subTlvlistLen, 
     offset += sizeof(struct TlvHead);
     GELOGI("total len [%u] tlv len[%u] type[%u] offset[%zu].", subTlvlistLen, tlv->len, tlv->type, offset);
     if (!CheckTlvLenValid(subTlvlistLen, offset, tlv->len)) {
-       GELOGE(ACL_ERROR_GE_PARAM_INVALID, "check tlv len failed.");
-       ret = ACL_ERROR_GE_INTERNAL_ERROR;
-       break;
+      GELOGE(ACL_ERROR_GE_PARAM_INVALID, "check tlv len failed.");
+      ret = ACL_ERROR_GE_INTERNAL_ERROR;
+      break;
     }
     TlvProcPair *tlvProc = FindTlvProc(parseTlvNum, TlvProcList, tlv->type);
     if (tlvProc != NULL) {

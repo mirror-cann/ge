@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,9 +48,8 @@ int64_t DivisionCeiling(int64_t dividend, int64_t divisor) {
   }
 }
 
-Status AxisUtil::GetAxisValueByOriginFormat(const ge::Format& format, const vector<int64_t>& dim_vec,
-                                            const int64_t& c0, vector<int64_t>& axis_value,
-                                            vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByOriginFormat(const ge::Format &format, const vector<int64_t> &dim_vec, const int64_t &c0,
+                                            vector<int64_t> &axis_value, vector<int64_t> &nd_value) {
   auto iter_get_axis_func = get_axis_value_func_map.find(format);
   if (iter_get_axis_func == get_axis_value_func_map.end()) {
     FE_LOGW("Cannot get axis value of old format %u!", format);
@@ -62,7 +61,7 @@ Status AxisUtil::GetAxisValueByOriginFormat(const ge::Format& format, const vect
   return (*get_axis_func)(dim_vec, c0, axis_value, nd_value);
 }
 
-bool AxisUtil::HasAxisValueFunc(const ge::Format& format) {
+bool AxisUtil::HasAxisValueFunc(const ge::Format &format) {
   auto iter_get_axis_func = get_axis_value_func_map.find(format);
   if (iter_get_axis_func == get_axis_value_func_map.end()) {
     FE_LOGW("Cannot get axis value of format %u!", format);
@@ -71,13 +70,13 @@ bool AxisUtil::HasAxisValueFunc(const ge::Format& format) {
   return true;
 }
 
-Status AxisUtil::CheckParams(const vector<int64_t>& original_dim_vec, const int64_t &c0, vector<int64_t>& nd_value,
-                             const size_t& dim_default_size = DIM_DEFAULT_SIZE) {
+Status AxisUtil::CheckParams(const vector<int64_t> &original_dim_vec, const int64_t &c0, vector<int64_t> &nd_value,
+                             const size_t &dim_default_size = DIM_DEFAULT_SIZE) {
   nd_value = original_dim_vec;
 
   size_t dim_size = original_dim_vec.size();
   if (dim_size < dim_default_size) {
-    /* Before this funcion, we should call function PadDimensionTo4. */
+    /* Before this function, we should call function PadDimensionTo4. */
     FE_LOGW("Dimension size %zu is invalid.", dim_size);
     return FAILED;
   }
@@ -89,8 +88,8 @@ Status AxisUtil::CheckParams(const vector<int64_t>& original_dim_vec, const int6
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByND(const vector<int64_t>& original_dim_vec, const int64_t &c0,
-                                  vector<int64_t>& axis_value_b, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByND(const vector<int64_t> &original_dim_vec, const int64_t &c0,
+                                  vector<int64_t> &axis_value_b, vector<int64_t> &nd_value) {
   if (axis_value_b.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -113,8 +112,8 @@ Status AxisUtil::GetAxisValueByND(const vector<int64_t>& original_dim_vec, const
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByNCHW(const vector<int64_t>& original_dim_vec, const int64_t &c0,
-                                    vector<int64_t>& axis_value_a, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByNCHW(const vector<int64_t> &original_dim_vec, const int64_t &c0,
+                                    vector<int64_t> &axis_value_a, vector<int64_t> &nd_value) {
   if (axis_value_a.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -139,8 +138,8 @@ Status AxisUtil::GetAxisValueByNCHW(const vector<int64_t>& original_dim_vec, con
   return SUCCESS;
 }
 
-Status AxisUtil::GetOriginAxisAttribute(const ge::OpDesc& op_desc, const ge::GeShape shape,
-                                        vector<int64_t>& axis_index_vec) {
+Status AxisUtil::GetOriginAxisAttribute(const ge::OpDesc &op_desc, const ge::GeShape shape,
+                                        vector<int64_t> &axis_index_vec) {
   if (!ge::AttrUtils::GetListInt(op_desc, AXES_ATTR_NAME, axis_index_vec)) {
     FE_LOGW("Cannot get reduce op [%s] axis or its value is empty!", op_desc.GetName().c_str());
     return FAILED;
@@ -160,15 +159,15 @@ Status AxisUtil::GetOriginAxisAttribute(const ge::OpDesc& op_desc, const ge::GeS
   size_t size = axis_index_vec.size();
   for (size_t i = 0; i != size; ++i) {
     if (axis_index_vec[i] < 0) {
-        axis_index_vec[i] = axis_index_vec[i] + shape.GetDimNum();
+      axis_index_vec[i] = axis_index_vec[i] + shape.GetDimNum();
     }
     FE_LOGD("Reduce op [%s] axis value is %ld.", op_desc.GetName().c_str(), axis_index_vec[i]);
   }
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByNHWC(const vector<int64_t>& original_dim_vec, const int64_t &c0,
-                                    vector<int64_t>& axis_value_c, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByNHWC(const vector<int64_t> &original_dim_vec, const int64_t &c0,
+                                    vector<int64_t> &axis_value_c, vector<int64_t> &nd_value) {
   if (axis_value_c.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -193,8 +192,8 @@ Status AxisUtil::GetAxisValueByNHWC(const vector<int64_t>& original_dim_vec, con
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByNC1HWC0(const vector<int64_t>& original_dim_vec_a, const int64_t &c0,
-                                       vector<int64_t>& axis_value_j, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByNC1HWC0(const vector<int64_t> &original_dim_vec_a, const int64_t &c0,
+                                       vector<int64_t> &axis_value_j, vector<int64_t> &nd_value) {
   if (axis_value_j.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -227,8 +226,8 @@ Status AxisUtil::GetAxisValueByNC1HWC0(const vector<int64_t>& original_dim_vec_a
 
 /* !!!!Deprecated!!!! For current stage, we consider fz as nchw.
  * Actually, it is {HWC/16, N, 16,16} */
-Status AxisUtil::GetAxisValueByFz(const vector<int64_t>& original_dim_vec_b, const int64_t &c0,
-                                  vector<int64_t>& axis_value_f, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByFz(const vector<int64_t> &original_dim_vec_b, const int64_t &c0,
+                                  vector<int64_t> &axis_value_f, vector<int64_t> &nd_value) {
   if (axis_value_f.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -251,8 +250,8 @@ Status AxisUtil::GetAxisValueByFz(const vector<int64_t>& original_dim_vec_b, con
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByHWCN(const vector<int64_t>& original_dim_vec, const int64_t &c0,
-                                    vector<int64_t>& axis_value_d, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByHWCN(const vector<int64_t> &original_dim_vec, const int64_t &c0,
+                                    vector<int64_t> &axis_value_d, vector<int64_t> &nd_value) {
   if (axis_value_d.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -277,8 +276,8 @@ Status AxisUtil::GetAxisValueByHWCN(const vector<int64_t>& original_dim_vec, con
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByCHWN(const vector<int64_t>& original_dim_vec, const int64_t &c0,
-                                    vector<int64_t>& axis_value_e, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByCHWN(const vector<int64_t> &original_dim_vec, const int64_t &c0,
+                                    vector<int64_t> &axis_value_e, vector<int64_t> &nd_value) {
   if (axis_value_e.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -303,8 +302,8 @@ Status AxisUtil::GetAxisValueByCHWN(const vector<int64_t>& original_dim_vec, con
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByNDHWC(const vector<int64_t>& original_dim_vec_c, const int64_t &c0,
-                                     vector<int64_t>& axis_value_f, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByNDHWC(const vector<int64_t> &original_dim_vec_c, const int64_t &c0,
+                                     vector<int64_t> &axis_value_f, vector<int64_t> &nd_value) {
   if (axis_value_f.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -330,8 +329,8 @@ Status AxisUtil::GetAxisValueByNDHWC(const vector<int64_t>& original_dim_vec_c, 
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByNCDHW(const vector<int64_t>& original_dim_vec_d, const int64_t &c0,
-                                     vector<int64_t>& axis_value_g, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByNCDHW(const vector<int64_t> &original_dim_vec_d, const int64_t &c0,
+                                     vector<int64_t> &axis_value_g, vector<int64_t> &nd_value) {
   if (axis_value_g.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -357,8 +356,8 @@ Status AxisUtil::GetAxisValueByNCDHW(const vector<int64_t>& original_dim_vec_d, 
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByDHWCN(const vector<int64_t>& original_dim_vec_e, const int64_t &c0,
-                                     vector<int64_t>& axis_value_h, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByDHWCN(const vector<int64_t> &original_dim_vec_e, const int64_t &c0,
+                                     vector<int64_t> &axis_value_h, vector<int64_t> &nd_value) {
   if (axis_value_h.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;
@@ -384,8 +383,8 @@ Status AxisUtil::GetAxisValueByDHWCN(const vector<int64_t>& original_dim_vec_e, 
   return SUCCESS;
 }
 
-Status AxisUtil::GetAxisValueByDHWNC(const vector<int64_t>& original_dim_vec_f, const int64_t &c0,
-                                     vector<int64_t>& axis_value_i, vector<int64_t>& nd_value) {
+Status AxisUtil::GetAxisValueByDHWNC(const vector<int64_t> &original_dim_vec_f, const int64_t &c0,
+                                     vector<int64_t> &axis_value_i, vector<int64_t> &nd_value) {
   if (axis_value_i.empty()) {
     FE_LOGW("AxisValue is empty!");
     return SUCCESS;

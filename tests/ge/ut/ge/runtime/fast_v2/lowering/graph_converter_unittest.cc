@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -175,7 +175,7 @@ TEST_F(GraphConverterUT, OrderedHolders_ConnectOk) {
   ASSERT_NE(graph, nullptr);
   graph->TopologicalSorting();
   SetGraphOutShapeRange(graph);
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false, false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph =
@@ -302,7 +302,7 @@ TEST_F(GraphConverterUT, OrderedHoldersConnectOk_BothFromInitNode) {
 TEST_F(GraphConverterUT, LoweringSingleNodeGraph) {
   auto graph = ShareGraph::BuildSingleNodeGraph();
   graph->TopologicalSorting();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build();
@@ -322,7 +322,7 @@ TEST_F(GraphConverterUT, LoweringSingleNodeGraph_NoDataDependent_Ok) {
   auto reshape = graph->FindNode("add1");
 
   graph->TopologicalSorting();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build();
@@ -360,7 +360,7 @@ TEST_F(GraphConverterUT, LoweringSingleNodeGraph_DataDependent_LessIrInputs_Fail
   auto reshape = graph->FindNode("add1");
 
   graph->TopologicalSorting();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Reshape", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build();
@@ -389,7 +389,6 @@ TEST_F(GraphConverterUT, LoweringSingleNodeGraph_FailedThenSuccess) {
       GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph1, nullptr);
 }
-
 
 TEST_F(GraphConverterUT, LoweringLstmppGraphOk) {
   auto graph = ShareGraph::LstmpGraph();
@@ -483,7 +482,7 @@ TEST_F(GraphConverterUT, ReportErrorWhenConstDataOnMainGraph) {
   auto graph = ShareGraph::BuildHostCpuDataFlowGraph();
   graph->FindNode("add1")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   graph->TopologicalSorting();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   ASSERT_NE(graph, nullptr);
 
@@ -509,7 +508,7 @@ TEST_F(GraphConverterUT, ConvertComputeGraphToExecuteGraph_SaveAtomicInputsInCom
   auto graph = ShareGraph::AicoreStaticGraph(is_with_atomic);
   graph->TopologicalSorting();
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", true).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph =
@@ -534,7 +533,7 @@ TEST_F(GraphConverterUT, ConvertComputeGraphToExecuteGraph_SaveAtomicInputsInCom
   AddCompileResult(add1, true);
   graph->TopologicalSorting();
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithoutHandleAiCore("Add", true).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph =
@@ -663,8 +662,7 @@ TEST_F(GraphConverterUT, MultiStream_LoweringTwoNodeCrossStreamWithValueDepend) 
   auto graph = ShareGraph::MultiStreamWithHostMemAccessCrossStream(stream_num, event_num);
   graph->TopologicalSorting();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data =
-      GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build(stream_num, event_num);
   auto exe_graph =
@@ -719,8 +717,7 @@ TEST_F(GraphConverterUT, MultiStream_LoweringFristEventSync) {
   auto graph = ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(stream_num, event_num);
   graph->TopologicalSorting();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data =
-      GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   ASSERT_NE(graph, nullptr);
   auto model_desc_holder = ModelDescHolderFaker().Build(stream_num, event_num);
   auto exe_graph =
@@ -797,9 +794,7 @@ TEST_F(GraphConverterUT, LoweringGraph_DataWithRefNode_OK) {
   graph->TopologicalSorting();
 
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model)
-                         .FakeWithHandleAiCore("Assign", false)
-                         .Build();
+  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Assign", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph =
       GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);

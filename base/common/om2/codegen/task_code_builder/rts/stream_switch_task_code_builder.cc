@@ -27,69 +27,72 @@ Status StreamSwitchTaskCodeBuilder::Contribute(TaskSemanticContributeContext &co
 
   // cond
   GE_ASSERT_TRUE(AttrUtils::GetInt(context.op_desc, ATTR_NAME_STREAM_SWITCH_COND, cond_),
-                "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_STREAM_SWITCH_COND.c_str(),
-                context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+                 "[Get][Attr] %s in op:%s(%s) fail", ATTR_NAME_STREAM_SWITCH_COND.c_str(),
+                 context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
 
   // true_stream
   std::vector<uint32_t> active_stream_list;
   GE_ASSERT_TRUE(AttrUtils::GetListInt(context.op_desc, ATTR_NAME_ACTIVE_STREAM_LIST, active_stream_list) &&
-                active_stream_list.size() == kTrueBranchStreamNum_1,
-                "[Get][Attr] %s in op:%s fail, active_stream_list.size():%zu", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
-                context.op_desc->GetName().c_str(), active_stream_list.size());
+                     active_stream_list.size() == kTrueBranchStreamNum_1,
+                 "[Get][Attr] %s in op:%s fail, active_stream_list.size():%zu", ATTR_NAME_ACTIVE_STREAM_LIST.c_str(),
+                 context.op_desc->GetName().c_str(), active_stream_list.size());
   true_stream_id_ = active_stream_list.front();
   GE_ASSERT_TRUE(true_stream_id_ < context.runtime->stream_num,
-                "[OM2][Check][Param] active_stream_index:%zu in op:%s(%s) >= stream list size:%u in model",
-                static_cast<size_t>(true_stream_id_), context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str(),
-                context.runtime->stream_num);
+                 "[OM2][Check][Param] active_stream_index:%zu in op:%s(%s) >= stream list size:%u in model",
+                 static_cast<size_t>(true_stream_id_), context.op_desc->GetName().c_str(),
+                 context.op_desc->GetType().c_str(), context.runtime->stream_num);
   // stream
-  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num,
-                 "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, header_.stream_id);
+  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
+                 context.runtime->stream_num, header_.stream_id);
 
   // data_type
   if (context.op_desc->HasAttr(ATTR_NAME_SWITCH_DATA_TYPE) &&
       !AttrUtils::GetInt(context.op_desc, ATTR_NAME_SWITCH_DATA_TYPE, data_type_)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail, attribute value not int",
-                        ATTR_NAME_SWITCH_DATA_TYPE.c_str(), context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
-    GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail, attribute value not int",
-            ATTR_NAME_SWITCH_DATA_TYPE.c_str(), context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
+                         ATTR_NAME_SWITCH_DATA_TYPE.c_str(), context.op_desc->GetName().c_str(),
+                         context.op_desc->GetType().c_str());
+    GELOGE(FAILED, "[Get][Attr] %s in op:%s(%s) fail, attribute value not int", ATTR_NAME_SWITCH_DATA_TYPE.c_str(),
+           context.op_desc->GetName().c_str(), context.op_desc->GetType().c_str());
     return FAILED;
   }
-  GELOGI("Stream Switch Task Codegen: op[%s], cond_[%u], true stream id[%" PRIu64 "], stream id[%u], data type[%" PRId64 "].",
+  GELOGI("Stream Switch Task Codegen: op[%s], cond_[%u], true stream id[%" PRIu64 "], stream id[%u], data type[%" PRId64
+         "].",
          context.op_desc->GetName().c_str(), cond_, static_cast<uint64_t>(true_stream_id_), header_.stream_id,
          data_type_);
   return SUCCESS;
 }
 
 Status StreamSwitchTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
   for (const auto &input_addr_node : input_addr_nodes_) {
-    GE_ASSERT_TRUE(input_addr_node.tensor_info.has_value(),
-                   "[OM2] StreamSwitch input tensor info is required for %s.",
+    GE_ASSERT_TRUE(input_addr_node.tensor_info.has_value(), "[OM2] StreamSwitch input tensor info is required for %s.",
                    input_addr_node.symbol_hint.c_str());
     const auto &tensor_info = *input_addr_node.tensor_info;
     const std::string shape_var_name = input_addr_node.symbol_hint + "_shape";
     items.push_back(
         ast_.VarDecl("std::vector<int64_t>", shape_var_name, ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
-    const auto device_addr = (input_addr_node.kind == AddrValueKind::kConstTensor && input_addr_node.const_index.has_value())
-                                 ? Arg(constants_[static_cast<int64_t>(*input_addr_node.const_index)])
-                                 : Arg(GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset));
-    items.push_back(ast_.VarDecl("Om2Tensor", input_addr_node.symbol_hint, ast_.Call("BuildOm2Tensor", {
-        device_addr,
-        ast_.ULong(tensor_info.size),
-        tensor_info.data_type,
-        tensor_info.format,
-        ast_.Var("std::vector<int64_t>", shape_var_name).Data(),
-        ast_.Var("std::vector<int64_t>", shape_var_name).Size()})));
+    const auto device_addr =
+        (input_addr_node.kind == AddrValueKind::kConstTensor && input_addr_node.const_index.has_value())
+            ? Arg(constants_[static_cast<int64_t>(*input_addr_node.const_index)])
+            : Arg(GetAddr(total_dev_mem_ptr_, input_addr_node.mem_offset));
+    items.push_back(ast_.VarDecl(
+        "Om2Tensor", input_addr_node.symbol_hint,
+        ast_.Call("BuildOm2Tensor", {device_addr, ast_.ULong(tensor_info.size), tensor_info.data_type,
+                                     tensor_info.format, ast_.Var("std::vector<int64_t>", shape_var_name).Data(),
+                                     ast_.Var("std::vector<int64_t>", shape_var_name).Size()})));
   }
-  items.push_back(ChkStatus(ast_.Call("KernelStreamSwitchDistribute", {
-      ast_.Str(header_.op_name),
-      ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[0].symbol_hint).Attr("device_address")}),
-      ast_.StaticCast("aclrtCondition", static_cast<int64_t>(cond_)),
-      ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[1].symbol_hint).Attr("device_address")}),
-      stream_list_[static_cast<int32_t>(true_stream_id_)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-      ast_.StaticCast("aclrtCompareDataType", data_type_),
-  })));
+  items.push_back(ChkStatus(ast_.Call(
+      "KernelStreamSwitchDistribute",
+      {
+          ast_.Str(header_.op_name),
+          ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[0].symbol_hint).Attr("device_address")}),
+          ast_.StaticCast("aclrtCondition", static_cast<int64_t>(cond_)),
+          ast_.Call("ValueToPtr", {ast_.Var("auto", input_addr_nodes_[1].symbol_hint).Attr("device_address")}),
+          stream_list_[static_cast<int32_t>(true_stream_id_)],
+          stream_list_[static_cast<int32_t>(header_.stream_id)],
+          ast_.StaticCast("aclrtCompareDataType", data_type_),
+      })));
   return SUCCESS;
 }
 
@@ -101,8 +104,9 @@ Status StreamSwitchTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &it
   auto true_stream = ast_.Var("aclrtStream", "true_stream");
   auto stream = ast_.Var("aclrtStream", "stream");
   auto data_type = ast_.Var("aclrtCompareDataType", "data_type");
-  items.push_back(ast_.DefineFunction("KernelStreamSwitchDistribute",
-      {op_name, input_ptr, cond, value_ptr, true_stream, stream, data_type}, "aclError", {
+  items.push_back(ast_.DefineFunction(
+      "KernelStreamSwitchDistribute", {op_name, input_ptr, cond, value_ptr, true_stream, stream, data_type}, "aclError",
+      {
           ChkRt(RtSetTaskTag(op_name)),
           ChkRt(AclrtSwitchStream(input_ptr, cond, value_ptr, data_type, true_stream, stream)),
           ast_.Return("ACL_SUCCESS"),

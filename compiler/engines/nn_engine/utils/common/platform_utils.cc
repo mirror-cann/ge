@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,55 +24,47 @@ namespace fe {
 namespace {
 const int32_t kDecimal = 10;
 const size_t kAicVersionSize = 3;
-constexpr const char* kShortSocVersionAscend310P = "Ascend310P";
-constexpr const char* kSocVersionAscend910 = "Ascend910";
-constexpr const char* kSocVersionAscend910A = "Ascend910A";
+constexpr const char *kShortSocVersionAscend310P = "Ascend310P";
+constexpr const char *kSocVersionAscend910 = "Ascend910";
+constexpr const char *kSocVersionAscend910A = "Ascend910A";
 const std::unordered_set<std::string> kValidCoreTypes = {"AiCore", "VectorCore"};
 
 // maps aic version to ISA arch VERSION
-const std::map<int32_t, ISAArchVersion> kAicIsaArchVersionMap {
-        {100, ISAArchVersion::EN_ISA_ARCH_V100},
-        {200, ISAArchVersion::EN_ISA_ARCH_V200},
-        {202, ISAArchVersion::EN_ISA_ARCH_V200},
-        {210, ISAArchVersion::EN_ISA_ARCH_V200},
-        {220, ISAArchVersion::EN_ISA_ARCH_V220},
-        {300, ISAArchVersion::EN_ISA_ARCH_V300},
-        {310, ISAArchVersion::EN_ISA_ARCH_V300},
-        {350, ISAArchVersion::EN_ISA_ARCH_V350}
-};
-const std::map<ISAArchVersion, std::string> kIsaArchVersionMapStr {
-        {ISAArchVersion::EN_ISA_ARCH_V100, "v100"},
-        {ISAArchVersion::EN_ISA_ARCH_V200, "v200"},
-        {ISAArchVersion::EN_ISA_ARCH_V220, "v220"},
-        {ISAArchVersion::EN_ISA_ARCH_V300, "v300"},
-        {ISAArchVersion::EN_ISA_ARCH_V350, "v350"}
-};
-}
+const std::map<int32_t, ISAArchVersion> kAicIsaArchVersionMap{
+    {100, ISAArchVersion::EN_ISA_ARCH_V100}, {200, ISAArchVersion::EN_ISA_ARCH_V200},
+    {202, ISAArchVersion::EN_ISA_ARCH_V200}, {210, ISAArchVersion::EN_ISA_ARCH_V200},
+    {220, ISAArchVersion::EN_ISA_ARCH_V220}, {300, ISAArchVersion::EN_ISA_ARCH_V300},
+    {310, ISAArchVersion::EN_ISA_ARCH_V300}, {350, ISAArchVersion::EN_ISA_ARCH_V350}};
+const std::map<ISAArchVersion, std::string> kIsaArchVersionMapStr{{ISAArchVersion::EN_ISA_ARCH_V100, "v100"},
+                                                                  {ISAArchVersion::EN_ISA_ARCH_V200, "v200"},
+                                                                  {ISAArchVersion::EN_ISA_ARCH_V220, "v220"},
+                                                                  {ISAArchVersion::EN_ISA_ARCH_V300, "v300"},
+                                                                  {ISAArchVersion::EN_ISA_ARCH_V350, "v350"}};
+}  // namespace
 
-const std::map<PlatformUtils::PlatformInfoItem, PlatformUtils::PmItemParseFunc> PlatformUtils::kPmItemParseFuncMap {
-        {PlatformUtils::PlatformInfoItem::IsaArchVersion, &PlatformUtils::ParseIsaArchVersion},
-        {PlatformUtils::PlatformInfoItem::SupportFixpipe, &PlatformUtils::ParseSupportFixpipe},
-        {PlatformUtils::PlatformInfoItem::FixpipeSupportMultiOutput, &PlatformUtils::ParseFixpipeSupportMultiOutput},
-        {PlatformUtils::PlatformInfoItem::ContextSwitch, &PlatformUtils::ParseContextSwitch},
-        {PlatformUtils::PlatformInfoItem::DsaWorkspaceSize, &PlatformUtils::ParseDsaWorkspaceSize},
-        {PlatformUtils::PlatformInfoItem::FftsMode, &PlatformUtils::ParseFftsMode},
-        {PlatformUtils::PlatformInfoItem::CubeVecState, &PlatformUtils::ParseCubeVecState},
-        {PlatformUtils::PlatformInfoItem::AllowHf32, &PlatformUtils::ParseAllowHf32},
-        {PlatformUtils::PlatformInfoItem::CubeHighPrecison, &PlatformUtils::ParseCubeHighPrecison},
-        {PlatformUtils::PlatformInfoItem::L2Type, &PlatformUtils::ParseL2Type},
-        {PlatformUtils::PlatformInfoItem::L2CacheMode, &PlatformUtils::ParseL2CacheMode},
-        {PlatformUtils::PlatformInfoItem::SupportVectorEngine, &PlatformUtils::ParseSupportVectorEngine},
-        {PlatformUtils::PlatformInfoItem::SpecifiedMemBase, &PlatformUtils::ParseSpecifiedMemBase},
-        {PlatformUtils::PlatformInfoItem::HardwareCoreSync, &PlatformUtils::ParseHardwareCoreSync},
-        {PlatformUtils::PlatformInfoItem::PaddingSize, &PlatformUtils::ParsePaddingSize},
-        {PlatformUtils::PlatformInfoItem::NpuArch, &PlatformUtils::ParseNpuArch}
-};
+const std::map<PlatformUtils::PlatformInfoItem, PlatformUtils::PmItemParseFunc> PlatformUtils::kPmItemParseFuncMap{
+    {PlatformUtils::PlatformInfoItem::IsaArchVersion, &PlatformUtils::ParseIsaArchVersion},
+    {PlatformUtils::PlatformInfoItem::SupportFixpipe, &PlatformUtils::ParseSupportFixpipe},
+    {PlatformUtils::PlatformInfoItem::FixpipeSupportMultiOutput, &PlatformUtils::ParseFixpipeSupportMultiOutput},
+    {PlatformUtils::PlatformInfoItem::ContextSwitch, &PlatformUtils::ParseContextSwitch},
+    {PlatformUtils::PlatformInfoItem::DsaWorkspaceSize, &PlatformUtils::ParseDsaWorkspaceSize},
+    {PlatformUtils::PlatformInfoItem::FftsMode, &PlatformUtils::ParseFftsMode},
+    {PlatformUtils::PlatformInfoItem::CubeVecState, &PlatformUtils::ParseCubeVecState},
+    {PlatformUtils::PlatformInfoItem::AllowHf32, &PlatformUtils::ParseAllowHf32},
+    {PlatformUtils::PlatformInfoItem::CubeHighPrecison, &PlatformUtils::ParseCubeHighPrecison},
+    {PlatformUtils::PlatformInfoItem::L2Type, &PlatformUtils::ParseL2Type},
+    {PlatformUtils::PlatformInfoItem::L2CacheMode, &PlatformUtils::ParseL2CacheMode},
+    {PlatformUtils::PlatformInfoItem::SupportVectorEngine, &PlatformUtils::ParseSupportVectorEngine},
+    {PlatformUtils::PlatformInfoItem::SpecifiedMemBase, &PlatformUtils::ParseSpecifiedMemBase},
+    {PlatformUtils::PlatformInfoItem::HardwareCoreSync, &PlatformUtils::ParseHardwareCoreSync},
+    {PlatformUtils::PlatformInfoItem::PaddingSize, &PlatformUtils::ParsePaddingSize},
+    {PlatformUtils::PlatformInfoItem::NpuArch, &PlatformUtils::ParseNpuArch}};
 
 PlatformUtils::PlatformUtils() : is_init_(false), ai_core_num_(0) {}
 
 PlatformUtils::~PlatformUtils() {}
 
-PlatformUtils& PlatformUtils::Instance() {
+PlatformUtils &PlatformUtils::Instance() {
   static PlatformUtils platform_utils;
   return platform_utils;
 }
@@ -89,11 +81,11 @@ Status PlatformUtils::Initialize(const std::map<string, string> &options) {
     soc_version_ = iter->second;
     if (soc_version_ == fe::kSocVersionAscend910) {
       FE_LOGI("The soc_version is Ascend910, it will be replaced by Ascend910A.");
-      soc_version_ =  fe::kSocVersionAscend910A;
+      soc_version_ = fe::kSocVersionAscend910A;
     }
   } else {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-        {soc_version_, ge::SOC_VERSION, "soc_version is not configured or is empty"});
+                               {soc_version_, ge::SOC_VERSION, "soc_version is not configured or is empty"});
     ReportErrorMessage(err_msg);
     FE_LOGE("Parameter ge.soc_version is not present in options or has an empty value.");
     return FAILED;
@@ -130,8 +122,10 @@ Status PlatformUtils::InitPlatformInfo(PlatformInfoManager &platform_inst,
   OptionalInfo optional_info;
   if (platform_inst.GetPlatformInfo(soc_version_, platform_info, optional_info) != SUCCESS) {
     FE_LOGE("[FusionMngr][InitPlatCfg] Cannot find platform config file by soc version[%s].", soc_version_.c_str());
-    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-        {soc_version_, ge::SOC_VERSION, "The corresponding platform configuration file cannot be found based on the configured soc_version"});
+    ErrorMessageDetail err_msg(
+        EM_INPUT_OPTION_INVALID,
+        {soc_version_, ge::SOC_VERSION,
+         "The corresponding platform configuration file cannot be found based on the configured soc_version"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -140,8 +134,10 @@ Status PlatformUtils::InitPlatformInfo(PlatformInfoManager &platform_inst,
   OptionalInfos optional_infos;
   if (platform_inst.GetPlatformInfos(soc_version_, platform_infos, optional_infos) != SUCCESS) {
     FE_LOGE("[PlatformUtils][Init] Cannot find platform config file by soc version[%s].", soc_version_.c_str());
-    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-        {soc_version_, ge::SOC_VERSION, "The corresponding platform configuration file cannot be found based on the configured soc_version"});
+    ErrorMessageDetail err_msg(
+        EM_INPUT_OPTION_INVALID,
+        {soc_version_, ge::SOC_VERSION,
+         "The corresponding platform configuration file cannot be found based on the configured soc_version"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -155,8 +151,7 @@ Status PlatformUtils::InitPlatformInfo(PlatformInfoManager &platform_inst,
   return SUCCESS;
 }
 
-Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> &options,
-                                       PlatFormInfos &platform_infos,
+Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> &options, PlatFormInfos &platform_infos,
                                        OptionalInfo &optional_info, OptionalInfos &optional_infos) const {
   optional_info.soc_version = soc_version_;
   optional_infos.SetSocVersion(soc_version_);
@@ -169,10 +164,9 @@ Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> 
     FE_LOGD("Param[%s] of options is [%s].", ge::CORE_TYPE.c_str(), iter->second.c_str());
     if (kValidCoreTypes.count(iter->second) == 0) {
       ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-          {iter->second, ge::CORE_TYPE, "Only AI Core or Vector Core is supported"});
+                                 {iter->second, ge::CORE_TYPE, "Only AI Core or Vector Core is supported"});
       ReportErrorMessage(err_msg);
-      FE_LOGE("[PlatformUtils][Init] Invalid param value [%s] for [%s].",
-              iter->second.c_str(), ge::CORE_TYPE.c_str());
+      FE_LOGE("[PlatformUtils][Init] Invalid param value [%s] for [%s].", iter->second.c_str(), ge::CORE_TYPE.c_str());
       return FAILED;
     }
     core_type = iter->second;
@@ -209,7 +203,7 @@ Status PlatformUtils::InitOptionalInfo(const std::map<std::string, std::string> 
     if (aicore_num <= 0 || (std::to_string(aicore_num) != iter->second)) {
       std::string aicore_num_config = ge::GetContext().GetReadableName(ge::AICORE_NUM);
       ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-          {iter->second, aicore_num_config, "The AI core num should be a positive integer"});
+                                 {iter->second, aicore_num_config, "The AI core num should be a positive integer"});
       ReportErrorMessage(err_msg);
       REPORT_FE_ERROR("[FusionMngr][ChkOptiCmpt] The aicore_num should be positive integer.");
       return FAILED;
@@ -329,7 +323,8 @@ int64_t PlatformUtils::ParseFixpipeSupportMultiOutput(PlatFormInfos &platform_in
   bool is_fixpipe_support_multi_output = true;
   std::string is_fixpipe_support_multi_output_str;
   if (platform_infos.GetPlatformRes("AICoreintrinsicDtypeMap", "Intrinsic_fix_pipe_support_multiple_output",
-      is_fixpipe_support_multi_output_str) && !is_fixpipe_support_multi_output_str.empty()) {
+                                    is_fixpipe_support_multi_output_str) &&
+      !is_fixpipe_support_multi_output_str.empty()) {
     FE_LOGD("Parameter[fixpipe_support_multi_output] of AICoreintrinsicDtypeMap from platform is [%s].",
             is_fixpipe_support_multi_output_str.c_str());
     StringUtils::ToLowerString(is_fixpipe_support_multi_output_str);
@@ -509,8 +504,7 @@ int64_t PlatformUtils::ParsePaddingSize(PlatFormInfos &platform_infos) {
 
 bool PlatformUtils::ParsePaddingSizeFromPlatFormInfos(PlatFormInfos &platform_infos, int64_t &padding_size) {
   std::string padding_size_str;
-  if (!platform_infos.GetPlatformResWithLock(kCfgAICoreSpec, kPaddingSize, padding_size_str))
-    return false;
+  if (!platform_infos.GetPlatformResWithLock(kCfgAICoreSpec, kPaddingSize, padding_size_str)) return false;
   FE_LOGD("Parameter[padding_size] from platform is %s.", padding_size_str.c_str());
   int64_t padding_size_tmp;
   try {
@@ -535,11 +529,10 @@ int64_t PlatformUtils::HandlePaddingSizeByNpuArch(PlatFormInfos &platform_infos)
   try {
     npu_arch = stoi(npu_arch_str);
   } catch (...) {
-    FE_LOGW("Convert %s to int value unsuccess, use default value.", npu_arch_str.c_str());
+    FE_LOGW("Convert %s to int value unsuccessful, use default value.", npu_arch_str.c_str());
     npu_arch = static_cast<int32_t>(NpuArch::DAV_RESV);
   }
-  switch (static_cast<NpuArch>(npu_arch))
-  {
+  switch (static_cast<NpuArch>(npu_arch)) {
     case NpuArch::DAV_3510:
       padding_size = DEFAULT_DATA_MEMORY_ALIGN_SIZE;
       break;
@@ -579,11 +572,11 @@ Status PlatformUtils::Finalize() {
   return SUCCESS;
 }
 
-const std::string& PlatformUtils::GetSocVersion() const {
+const std::string &PlatformUtils::GetSocVersion() const {
   return soc_version_;
 }
 
-const std::string& PlatformUtils::GetShortSocVersion() const {
+const std::string &PlatformUtils::GetShortSocVersion() const {
   return short_soc_version_;
 }
 
@@ -664,7 +657,7 @@ bool PlatformUtils::IsSpecifiedMemBase() const {
   return static_cast<bool>(pm_item_vec_[static_cast<size_t>(PlatformInfoItem::SpecifiedMemBase)]);
 }
 
-bool PlatformUtils::IsHardwareSupportCoreSync() const  {
+bool PlatformUtils::IsHardwareSupportCoreSync() const {
   return static_cast<bool>(pm_item_vec_[static_cast<size_t>(PlatformInfoItem::HardwareCoreSync)]);
 }
 
@@ -683,4 +676,4 @@ const std::vector<uint32_t> &PlatformUtils::GetVirTypeList() const {
 uint32_t PlatformUtils::GetAICoreNum() const {
   return ai_core_num_;
 }
-}
+}  // namespace fe

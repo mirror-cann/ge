@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,15 +11,14 @@
 #include "op_dtype_selection_strategy_force_fp16.h"
 
 namespace fe {
-OpDtypeSelectionStrategyForceFp16::OpDtypeSelectionStrategyForceFp16(
-    FormatDtypeQuerierPtr format_dtype_querier_ptr, OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr)
-    : OpDtypeSeletionStrategyBase(format_dtype_querier_ptr),
-      op_dtype_rise_matcher_ptr_(op_dtype_rise_matcher_ptr) {}
+OpDtypeSelectionStrategyForceFp16::OpDtypeSelectionStrategyForceFp16(FormatDtypeQuerierPtr format_dtype_querier_ptr,
+                                                                     OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr)
+    : OpDtypeSeletionStrategyBase(format_dtype_querier_ptr), op_dtype_rise_matcher_ptr_(op_dtype_rise_matcher_ptr) {}
 
 OpDtypeSelectionStrategyForceFp16::~OpDtypeSelectionStrategyForceFp16() {}
 
 /* In this mode we will match the dtype fp16 first. If the */
-Status OpDtypeSelectionStrategyForceFp16::Run(FormatDtypeSelectionBasicInfo& basic_info,
+Status OpDtypeSelectionStrategyForceFp16::Run(FormatDtypeSelectionBasicInfo &basic_info,
                                               ForbiddenDtype forbidden_dtype) {
   FE_CHECK_NOTNULL(basic_info.node);
   auto cur_op_desc_ptr = basic_info.node->GetOpDesc();
@@ -43,9 +42,8 @@ Status OpDtypeSelectionStrategyForceFp16::Run(FormatDtypeSelectionBasicInfo& bas
 
   FE_LOGD("Op %s: matches the dtype in force_fp16 mode; the expected dtype is %u.", cur_op_desc_name.c_str(),
           origin_dtype);
-  Status match_origin_dtype_res =
-      op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
-                                        basic_info.matched_index_vec, forbidden_dtype);
+  Status match_origin_dtype_res = op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
+                                                                    basic_info.matched_index_vec, forbidden_dtype);
   /* if force fp16 match failed, we will use the data type that it supports and
    * will not return FAILED. */
   if (match_origin_dtype_res != SUCCESS) {
@@ -54,4 +52,4 @@ Status OpDtypeSelectionStrategyForceFp16::Run(FormatDtypeSelectionBasicInfo& bas
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

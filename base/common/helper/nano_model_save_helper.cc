@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@
 #include "base/err_msg.h"
 
 namespace {
-  constexpr uint32_t KAlignBytes8 = 8U;
+constexpr uint32_t KAlignBytes8 = 8U;
 }
 
 namespace ge {
@@ -73,9 +73,9 @@ Status NanoModelSaveHelper::SaveToExeOmModel(const GeModelPtr &ge_model, const s
            "[Save][Model]GraphBuilder SaveModel received invalid file name prefix, "
            "model %s",
            ge_model->GetName().c_str());
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"value", "parameter", "reason"}),
-                      std::vector<const char *>({ge_model->GetName().c_str(), "output_file",
-                      "the file name prefix is empty"}));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"value", "parameter", "reason"}),
+        std::vector<const char *>({ge_model->GetName().c_str(), "output_file", "the file name prefix is empty"}));
     return FAILED;
   }
 

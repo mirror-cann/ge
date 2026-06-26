@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,7 @@ Status GraphLoader::UnloadModel(const uint32_t model_id) {
 
 Status GraphLoader::LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &ge_root_model,
                                     const GraphNodePtr &graph_node, const uint32_t device_id,
-                                    const error_message::ErrorManagerContext &error_context,
-                                    const aclrtStream stream) {
+                                    const error_message::ErrorManagerContext &error_context, const aclrtStream stream) {
   error_message::SetErrMgrContext(error_context);
   GELOGI("Load model online begin.");
   if (ge_root_model == nullptr) {
@@ -45,9 +44,7 @@ Status GraphLoader::LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &ge
   }
 
   GE_CHK_STATUS_RET(ModelUtils::SetDevice(device_id), "[Call][SetDevice] failed, device_id:%u", device_id);
-  GE_MAKE_GUARD(reset_device, [&device_id]() {
-    GE_CHK_STATUS(ModelUtils::ResetDevice(device_id));
-  });
+  GE_MAKE_GUARD(reset_device, [&device_id]() { GE_CHK_STATUS(ModelUtils::ResetDevice(device_id)); });
 
   auto &model_mgr = ModelManager::GetInstance();
   GE_CHK_STATUS_RET_NOLOG(model_mgr.LoadModelOnline(model_id, ge_root_model, graph_node, device_id, stream));
@@ -149,14 +146,13 @@ Status GraphLoader::LoadModelWithoutQ(uint32_t &model_id, const GeRootModelPtr &
 /// @param [in] model_queue_param: params and queue ids and create from user.
 /// @return: 0 for success / others for fail
 ///
-Status GraphLoader::LoadModelWithQueueParam(uint32_t &model_id,
-                                            const GeRootModelPtr &root_model,
+Status GraphLoader::LoadModelWithQueueParam(uint32_t &model_id, const GeRootModelPtr &root_model,
                                             const ModelQueueParam &model_queue_param,
                                             const bool need_update_session_id) {
   GELOGI("Load model with queue and params begin, model_id:%u.", model_id);
   // For ACL, Open Device from App.
-  const auto ret = ModelManager::GetInstance().LoadModelWithQueueParam(model_id, root_model, model_queue_param,
-                                                                       0, need_update_session_id);
+  const auto ret = ModelManager::GetInstance().LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0,
+                                                                       need_update_session_id);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Load][Model] with queue and params failed, model_id:%u.", model_id);
     return ret;
@@ -185,9 +181,8 @@ Status GraphLoader::LoadModelWithQueueParam(uint32_t &model_id, const ModelData 
 Status GraphLoader::ExecuteModel(const uint32_t model_id, aclrtStream const stream, const bool async_mode,
                                  const InputData &input_data, const std::vector<GeTensorDesc> &input_desc,
                                  OutputData &output_data, std::vector<GeTensorDesc> &output_desc) {
-  const auto ret = ModelManager::GetInstance().ExecuteModel(model_id, stream, async_mode,
-                                                            input_data, input_desc, output_data, output_desc,
-                                                            {}, {});
+  const auto ret = ModelManager::GetInstance().ExecuteModel(model_id, stream, async_mode, input_data, input_desc,
+                                                            output_data, output_desc, {}, {});
   if (ret != SUCCESS) {
     GELOGE(ret, "[Execute][Model] failed, model_id:%u.", model_id);
     return ret;
@@ -207,22 +202,22 @@ Status GraphLoader::GetModelDescInfoFromMem(const ModelData &model_data, ModelIn
   while (offset < static_cast<size_t>(partition.size)) {
     ModelDescTlvConfig config;
     GE_ASSERT_SUCCESS(CheckUint64AddOverflow(offset, sizeof(uint32_t)),
-                   "[Check][Param] offset:%" PRIu64 " is beyond the UINT64_MAX", offset);
+                      "[Check][Param] offset:%" PRIu64 " is beyond the UINT64_MAX", offset);
     GE_CHECK_LE((offset + sizeof(uint32_t)), static_cast<size_t>(partition.size));
     const uint32_t type =
-              *PtrToPtr<void, const uint32_t>(ValueToPtr(PtrToValue(partition.data) + static_cast<uint64_t>(offset)));
-    
+        *PtrToPtr<void, const uint32_t>(ValueToPtr(PtrToValue(partition.data) + static_cast<uint64_t>(offset)));
+
     config.type = static_cast<int32_t>(type);
     offset += sizeof(uint32_t);
     GE_ASSERT_SUCCESS(CheckUint64AddOverflow(offset, sizeof(uint32_t)),
-                   "[Check][Param] offset:%" PRIu64 " is beyond the UINT64_MAX", offset);
+                      "[Check][Param] offset:%" PRIu64 " is beyond the UINT64_MAX", offset);
     GE_CHECK_LE((offset + sizeof(uint32_t)), static_cast<size_t>(partition.size));
     const uint32_t len =
-              *PtrToPtr<void, const uint32_t>(ValueToPtr(PtrToValue(partition.data) + static_cast<uint64_t>(offset)));
+        *PtrToPtr<void, const uint32_t>(ValueToPtr(PtrToValue(partition.data) + static_cast<uint64_t>(offset)));
     config.length = len;
     offset += sizeof(uint32_t);
-    GELOGD("get current type %u, length is %u, total size is %zu, base ptr is %p",
-           type, len, partition.size, partition.data);
+    GELOGD("get current type %u, length is %u, total size is %zu, base ptr is %p", type, len, partition.size,
+           partition.data);
     config.value = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(partition.data) + static_cast<uint64_t>(offset)));
     GE_ASSERT_SUCCESS(CheckUint64AddOverflow(offset, static_cast<uint64_t>(len)),
                       "[Check][Param] offset:%" PRIu64 " is beyond the UINT64_MAX, len:%u", offset, len);
@@ -243,17 +238,15 @@ Status GraphLoader::GetModelDescInfoFromMem(const ModelData &model_data, ModelIn
   };
   for (auto &cfg : tlv_config) {
     const auto it = GetModelInOutInfoFuncMap.find(static_cast<ModelDescType>(cfg.type));
-    GE_IF_BOOL_EXEC(it == GetModelInOutInfoFuncMap.end(),
-                  GELOGE(FAILED, "get type failed, type is %d", cfg.type);
-                  return FAILED);
+    GE_IF_BOOL_EXEC(it == GetModelInOutInfoFuncMap.end(), GELOGE(FAILED, "get type failed, type is %d", cfg.type);
+                    return FAILED);
     GELOGD("start to analyze type is %d, len is %u", cfg.type, cfg.length);
     GE_CHK_STATUS_RET_NOLOG(it->second(cfg.value, static_cast<size_t>(cfg.length), info));
   }
   return SUCCESS;
 }
 
-Status GraphLoader::GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id)
-{
+Status GraphLoader::GetRuntimeModelId(const uint32_t model_id, uint32_t &model_runtime_id) {
   return ModelManager::GetInstance().GetRuntimeModelId(model_id, model_runtime_id);
 }
 }  // namespace ge

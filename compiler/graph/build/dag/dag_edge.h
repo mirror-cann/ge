@@ -23,8 +23,7 @@ class DAGNode;
 
 class DAGEdge {
  public:
-  DAGEdge(std::shared_ptr<DAGNode> src_node, int32_t src_port,
-          std::shared_ptr<DAGNode> dst_node, int32_t dst_port);
+  DAGEdge(std::shared_ptr<DAGNode> src_node, int32_t src_port, std::shared_ptr<DAGNode> dst_node, int32_t dst_port);
   std::shared_ptr<DAGNode> GetSrcNode() const;
   int32_t GetSrcPort() const;
   std::shared_ptr<DAGNode> GetDstNode() const;

@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ elif [ "$(expr substr "$(uname -s)" 1 10)" == "MINGW32_NT" ] || [ "$(expr substr
     #running on Windows
     docker_cmd="winpty docker"
     MOUNT_PROJECT_HOME=/${MOUNT_PROJECT_HOME}
-    docker_work_dir=//code/Turing/graphEngine  
-    docker_bash_dir=//bin/bash 
+    docker_work_dir=//code/Turing/graphEngine
+    docker_bash_dir=//bin/bash
 elif [ "$(expr substr "$(uname -s)" 1 5)" == "Linux" ]; then
     #running on Linux
     docker_cmd=docker
     MOUNT_PROJECT_HOME=${PROJECT_HOME}
-    docker_work_dir=//code/Turing/graphEngine   
+    docker_work_dir=//code/Turing/graphEngine
     docker_bash_dir=//bin/bash
 fi
 
@@ -74,10 +74,10 @@ function enter_docker_env(){
 
 function resert_docker_env(){
     if test -z "$(docker ps -a |grep ${DOCKER_BUILD_ENV_NAME})"; then
-        echo "no runing container for graphengine build"
+        echo "no running container for graphengine build"
     elif test -z "$(docker ps |grep ${DOCKER_BUILD_ENV_NAME})"; then
         $docker_cmd rm ${DOCKER_BUILD_ENV_NAME}
-    else 
+    else
         $docker_cmd stop  ${DOCKER_BUILD_ENV_NAME}
         $docker_cmd rm ${DOCKER_BUILD_ENV_NAME}
     fi
@@ -116,7 +116,7 @@ function parse_args(){
         case "$1" in
             -b | --build)
                 build_docker_image
-                ;; 
+                ;;
             -p | --pull)
                 pull_docker_image
                 ;;

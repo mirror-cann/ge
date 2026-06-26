@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,9 @@ class UTestFusionPriorityManagerPrecise : public testing::Test {
  protected:
   static void SetUpTestCase() {
     Configuration::Instance(fe::AI_CORE_NAME).ascend_ops_path_ =
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
     Configuration::Instance(fe::VECTOR_CORE_NAME).ascend_ops_path_ =
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config/";
   }
   static void TearDownTestCase() {
     Configuration::Instance(fe::AI_CORE_NAME).InitLibPath();
@@ -52,7 +52,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestVectorCoreEngine_242to248) {
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager(fe::VECTOR_CORE_NAME, fusion_rule_mgr_ptr);
   manager.Initialize();
-  
+
   vector<FusionPassOrRule> custom_pass_or_rule_vec;
   Status status = manager.InitCustomPasses(false, custom_pass_or_rule_vec);
   EXPECT_EQ(status, SUCCESS);
@@ -64,7 +64,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestInvalidEngine_245to248) {
   ops_kernel_info_store_ptr->Initialize(options);
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager("InvalidEngine", fusion_rule_mgr_ptr);
-  
+
   vector<FusionPassOrRule> custom_pass_or_rule_vec;
   Status status = manager.InitCustomPasses(false, custom_pass_or_rule_vec);
   EXPECT_EQ(status, FAILED);
@@ -77,7 +77,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestGetGraphFusionPassesAndRulesComple
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager(fe::AI_CORE_NAME, fusion_rule_mgr_ptr);
   manager.Initialize();
-  
+
   vector<FusionPassOrRule> custom_pass_or_rule_vec;
   vector<FusionPassOrRule> built_in_pass_or_rule_vec;
   Status status = manager.GetGraphFusionPassesAndRules(false, custom_pass_or_rule_vec, built_in_pass_or_rule_vec);
@@ -91,7 +91,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestInitBuiltInPassesVectorCore_278to2
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager(fe::VECTOR_CORE_NAME, fusion_rule_mgr_ptr);
   manager.Initialize();
-  
+
   vector<FusionPassOrRule> built_in_pass_or_rule_vec;
   Status status = manager.InitBuiltInPasses(false, built_in_pass_or_rule_vec);
   EXPECT_EQ(status, SUCCESS);
@@ -104,7 +104,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestSortBufferFusionVectorCore) {
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager(fe::VECTOR_CORE_NAME, fusion_rule_mgr_ptr);
   manager.Initialize();
-  
+
   Status status = manager.SortBufferFusion();
   EXPECT_EQ(status, SUCCESS);
 }
@@ -116,7 +116,7 @@ TEST_F(UTestFusionPriorityManagerPrecise, TestSortGraphFusionComplete) {
   FusionRuleManagerPtr fusion_rule_mgr_ptr = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr);
   FusionPriorityManager manager(fe::AI_CORE_NAME, fusion_rule_mgr_ptr);
   manager.Initialize();
-  
+
   Status status = manager.SortGraphFusion();
   EXPECT_EQ(status, FAILED);
 }

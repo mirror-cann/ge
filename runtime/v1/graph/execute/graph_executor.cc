@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,7 @@ Status GraphExecutor::SetDynamicSize(const uint32_t model_id, const std::vector<
 }
 
 Status GraphExecutor::PrepareOutput(const std::vector<InputOutputDescInfo> &output_desc,
-  std::vector<gert::Tensor> &output_tensor) const {
+                                    std::vector<gert::Tensor> &output_tensor) const {
   for (size_t i = 0UL; i < output_desc.size(); ++i) {
     GeTensor ge_tensor;
     ge_tensor.MutableTensorDesc().SetShape(GeShape(output_desc[i].shape_info.dims));
@@ -91,8 +91,7 @@ Status GraphExecutor::ExecuteGraph(const GraphId graph_id, const GeRootModelPtr 
   GE_CHECK_NOTNULL(ge_root_model);
   GE_CHK_STATUS_RET_NOLOG(ModelManager::GetInstance().ModelSubscribe(graph_id));
   Status ret = SUCCESS;
-  ret = SyncExecuteModel(ge_root_model->GetModelId(), input_tensor, output_tensor,
-                         error_message::GetErrMgrContext());
+  ret = SyncExecuteModel(ge_root_model->GetModelId(), input_tensor, output_tensor, error_message::GetErrMgrContext());
   if (ret != SUCCESS) {
     GELOGE(GE_GRAPH_SYNC_MODEL_FAILED, "[SyncExecute][Model] Error! graph id:%u", graph_id);
     return GE_GRAPH_SYNC_MODEL_FAILED;
@@ -100,7 +99,8 @@ Status GraphExecutor::ExecuteGraph(const GraphId graph_id, const GeRootModelPtr 
   return SUCCESS;
 }
 
-Status GraphExecutor::ExecuteGraphAsync(const GeRootModelPtr &ge_root_model, const std::shared_ptr<RunArgs> &args) const {
+Status GraphExecutor::ExecuteGraphAsync(const GeRootModelPtr &ge_root_model,
+                                        const std::shared_ptr<RunArgs> &args) const {
   GraphId graph_id = args->graph_id;
   GELOGI("[GraphExecutor] Start to async execute graph, graph_id=%u", graph_id);
   GE_CHECK_NOTNULL(ge_root_model);
@@ -369,8 +369,7 @@ Status GraphExecutor::GetOpDescInfo(const uint32_t device_id, const uint32_t str
                                     OpDescInfo &op_desc_info) {
   const auto ret = ModelManager::GetInstance().GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Get][OpDescInfo] failed, device_id:%u, stream_id:%u, task_id:%u.",
-           device_id, stream_id, task_id);
+    GELOGE(ret, "[Get][OpDescInfo] failed, device_id:%u, stream_id:%u, task_id:%u.", device_id, stream_id, task_id);
     return ret;
   }
   return SUCCESS;

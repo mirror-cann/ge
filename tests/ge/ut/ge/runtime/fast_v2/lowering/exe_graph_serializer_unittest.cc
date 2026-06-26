@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,11 @@ TEST_F(ExeGraphSerializerUT, SerializeModelDesc_Success) {
   bg::BufferPool bp;
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build(2, 1);
   model_desc_holder.SetOutputNodeName({"add:0"});
-  ASSERT_EQ(ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SetModelDescHolder(&model_desc_holder).SerializeModelDesc(bp), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ExeGraphSerializer(*frame)
+                .SetComputeGraph(compute_graph)
+                .SetModelDescHolder(&model_desc_holder)
+                .SerializeModelDesc(bp),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(bp.GetSize() >= 1);
   auto model_desc = reinterpret_cast<const ModelDesc *>(bp.GetBufById(bp.GetSize() - 1));
   ASSERT_NE(model_desc, nullptr);
@@ -93,7 +97,11 @@ TEST_F(ExeGraphSerializerUT, SerializeModelDesc_Success_Without_ATTR_NAME_ORIGIN
   bg::BufferPool bp;
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build(2, 1);
   model_desc_holder.SetOutputNodeName({"add:0"});
-  ASSERT_EQ(ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SetModelDescHolder(&model_desc_holder).SerializeModelDesc(bp), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ExeGraphSerializer(*frame)
+                .SetComputeGraph(compute_graph)
+                .SetModelDescHolder(&model_desc_holder)
+                .SerializeModelDesc(bp),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(bp.GetSize() >= 1);
   auto model_desc = reinterpret_cast<const ModelDesc *>(bp.GetBufById(bp.GetSize() - 1));
   ASSERT_NE(model_desc, nullptr);
@@ -132,7 +140,11 @@ TEST_F(ExeGraphSerializerUT, SerializeModelDesc_Failed) {
   auto frame = bg::ValueHolder::GetCurrentFrame();
   bg::BufferPool bp;
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build(2, 1);
-  ASSERT_EQ(ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SetModelDescHolder(&model_desc_holder).SerializeModelDesc(bp), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ExeGraphSerializer(*frame)
+                .SetComputeGraph(compute_graph)
+                .SetModelDescHolder(&model_desc_holder)
+                .SerializeModelDesc(bp),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(bp.GetSize() >= 1);
   auto model_desc = reinterpret_cast<const ModelDesc *>(bp.GetBufById(bp.GetSize() - 1));
   ASSERT_NE(model_desc, nullptr);
@@ -151,14 +163,18 @@ TEST_F(ExeGraphSerializerUT, SerializeModelDesc_CheckInputOrder) {
   ASSERT_NE(data1_node, nullptr);
   ASSERT_TRUE(ge::AttrUtils::SetInt(data1_node->GetOpDesc(), ge::ATTR_NAME_INDEX, 200));
 
-  auto data2_node = compute_graph->FindNode("data2");  
+  auto data2_node = compute_graph->FindNode("data2");
   ASSERT_NE(data2_node, nullptr);
   ASSERT_TRUE(ge::AttrUtils::SetInt(data2_node->GetOpDesc(), ge::ATTR_NAME_INDEX, 100));
 
   auto frame = bg::ValueHolder::GetCurrentFrame();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   bg::BufferPool bp;
-  ASSERT_EQ(ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SetModelDescHolder(&model_desc_holder).SerializeModelDesc(bp), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ExeGraphSerializer(*frame)
+                .SetComputeGraph(compute_graph)
+                .SetModelDescHolder(&model_desc_holder)
+                .SerializeModelDesc(bp),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(bp.GetSize() >= 1);
   auto model_desc = reinterpret_cast<const ModelDesc *>(bp.GetBufById(bp.GetSize() - 1));
   ASSERT_NE(model_desc, nullptr);
@@ -178,7 +194,11 @@ TEST_F(ExeGraphSerializerUT, SerializeModelDesc_CheckInputOrder) {
 
   ASSERT_TRUE(ge::AttrUtils::SetInt(data1_node->GetOpDesc(), ge::ATTR_NAME_INDEX, 100));
   ASSERT_TRUE(ge::AttrUtils::SetInt(data2_node->GetOpDesc(), ge::ATTR_NAME_INDEX, 200));
-  ASSERT_EQ(ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SetModelDescHolder(&model_desc_holder).SerializeModelDesc(bp), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(ExeGraphSerializer(*frame)
+                .SetComputeGraph(compute_graph)
+                .SetModelDescHolder(&model_desc_holder)
+                .SerializeModelDesc(bp),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(bp.GetSize() >= 1);
   model_desc = reinterpret_cast<const ModelDesc *>(bp.GetBufById(bp.GetSize() - 1));
   ASSERT_NE(model_desc, nullptr);

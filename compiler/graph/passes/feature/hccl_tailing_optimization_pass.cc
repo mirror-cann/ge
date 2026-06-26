@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,10 +56,9 @@ Status HcclTailingOptimizationPass::CopyControlEdgesForTransOp(NodePtr &first_tr
 
   for (auto &src_out_ctrl_anchor : src_out_ctrl_anchors) {
     if (!src_out_ctrl_anchor->IsLinkedWith(dst_in_ctrl_anchor)) {
-      GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(src_out_ctrl_anchor, dst_in_ctrl_anchor),
-                              "[Add][Edge] between %s->%s failed",
-                              src_out_ctrl_anchor->GetOwnerNode()->GetName().c_str(),
-                              first_trans_op->GetName().c_str());
+      GE_CHK_GRAPH_STATUS_RET(
+          GraphUtils::AddEdge(src_out_ctrl_anchor, dst_in_ctrl_anchor), "[Add][Edge] between %s->%s failed",
+          src_out_ctrl_anchor->GetOwnerNode()->GetName().c_str(), first_trans_op->GetName().c_str());
     }
   }
 

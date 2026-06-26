@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,26 +48,25 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
 };
-
 
 int32_t g_so_addr = 0;
 class MockMmpa1 : public ge::MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
     if (string("libmodel_deployer.so") == file_name) {
-      return (void *) &g_so_addr;
+      return (void *)&g_so_addr;
     }
     return MmpaStubApiGe::DlOpen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
@@ -98,7 +97,6 @@ class GeFakeOpsKernelBuilder : public OpsKernelBuilder {
 
 class UtestGeApiDflow : public testing::Test {
  protected:
-
   static void SetUpTestSuite() {
     // Init running dir env
     ge::DirEnv::GetInstance().InitEngineConfJson();
@@ -119,9 +117,9 @@ class UtestGeApiDflow : public testing::Test {
       env = env_ptr;
       unsetenv("LD_PRELOAD");
     }
-    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
     GetThreadLocalContext().SetGlobalOption({});
     GetThreadLocalContext().SetSessionOption({});
     GetThreadLocalContext().SetGraphOption({});
@@ -201,7 +199,7 @@ namespace {
 
 ge::dflow::FlowGraph BuildFlowGraph() {
   std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-  (void) system(cmd.c_str());
+  (void)system(cmd.c_str());
   {
     std::ofstream cmakefile("./temp/CMakeLists.txt");
     cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -241,7 +239,7 @@ ge::dflow::FlowGraph BuildFlowGraph() {
   flow_graph.SetInputs(inputsOperator).SetOutputs(outputsOperator);
   return flow_graph;
 }
-}
+}  // namespace
 
 TEST_F(UtestGeApiDflow, feed_graph_without_run) {
   gert::GertRuntimeStub rtstub;
@@ -416,7 +414,7 @@ TEST_F(UtestGeApiDflow, feed_graph_by_flow_msg) {
   Session session1(options);
   GraphId graph_id = 1;
 
-  // not initilized
+  // not initialized
   auto tensor_msg = FlowBufferFactory::AllocTensorMsg({3, 3, 3}, DT_FLOAT);
   EXPECT_EQ(session1.FeedDataFlowGraph(graph_id, {tensor_msg, tensor_msg}, 0), FAILED);
   EXPECT_EQ(GEInitialize(options), SUCCESS);

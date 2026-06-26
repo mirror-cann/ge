@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ constexpr size_t kDebugP2pSize = 8UL;
 }  // namespace
 std::mutex OpdebugRegister::mu_;
 std::map<aclrtStream, std::unique_ptr<OpDebugTask>> OpdebugRegister::op_debug_tasks_;
-std::map<aclrtStream, uint32_t>  OpdebugRegister::stream_ref_count_;
+std::map<aclrtStream, uint32_t> OpdebugRegister::stream_ref_count_;
 
 OpDebugTask::~OpDebugTask() {
   if (op_debug_addr_ != nullptr) {
@@ -85,17 +85,18 @@ Status OpdebugRegister::CreateOpDebugTaskByStream(aclrtStream const stream, cons
   auto &op_debug_task = op_debug_tasks_[stream];
   op_debug_task = MakeUnique<OpDebugTask>();
   GE_CHECK_NOTNULL(op_debug_task);
-  GE_CHK_ACL_RET(ge::AclrtMallocForTaskScheduler(&op_debug_task->op_debug_addr_, kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMallocForTaskScheduler(&op_debug_task->op_debug_addr_, kOpDebugMemorySize,
+                                                 ACL_MEM_MALLOC_HUGE_FIRST, GE_MODULE_NAME_U16));
   GE_CHK_RT_RET(rtDebugRegisterForStream(stream, op_debug_mode, op_debug_task->op_debug_addr_,
                                          &op_debug_task->debug_stream_id_, &op_debug_task->debug_task_id_));
   return SUCCESS;
 }
 
-Status OpdebugRegister::MallocP2PDebugMem(const void * const op_debug_addr) {
+Status OpdebugRegister::MallocP2PDebugMem(const void *const op_debug_addr) {
   const uint64_t debug_addrs_tmp = PtrToValue(op_debug_addr);
   GE_CHK_ACL_RET(ge::AclrtMalloc(&p2p_debug_addr_, kDebugP2pSize, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_CHK_ACL_RET(aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(
+      aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   return SUCCESS;
 }
 
@@ -105,11 +106,12 @@ Status OpdebugRegister::RegisterDebugForStream(aclrtStream const stream, const u
   GE_CHK_STATUS_RET(CreateOpDebugTaskByStream(stream, op_debug_mode));
   auto &op_debug_task = op_debug_tasks_[stream];
 
-  GELOGD("debug_task_id:%u, debug_stream_id:%u in stream overflow.",
-         op_debug_task->debug_task_id_, op_debug_task->debug_stream_id_);
+  GELOGD("debug_task_id:%u, debug_stream_id:%u in stream overflow.", op_debug_task->debug_task_id_,
+         op_debug_task->debug_stream_id_);
 
   GE_CHK_STATUS_RET(MallocP2PDebugMem(op_debug_task->op_debug_addr_));
-  GE_CHK_STATUS_RET(data_dumper.SaveOpDebugId(op_debug_task->debug_task_id_, op_debug_task->debug_stream_id_, p2p_debug_addr_, true));
+  GE_CHK_STATUS_RET(
+      data_dumper.SaveOpDebugId(op_debug_task->debug_task_id_, op_debug_task->debug_stream_id_, p2p_debug_addr_, true));
   return SUCCESS;
 }
 
@@ -139,8 +141,8 @@ void OpdebugRegister::UnregisterDebugForStream(aclrtStream const stream) {
 }
 
 Status OpdebugRegister::MallocMemForOpdebug() {
-  aclError rt_ret = aclrtMallocForTaskScheduler(&op_debug_addr_,
-      kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, nullptr);
+  aclError rt_ret =
+      aclrtMallocForTaskScheduler(&op_debug_addr_, kOpDebugMemorySize, ACL_MEM_MALLOC_HUGE_FIRST, nullptr);
   if (rt_ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "[Call][aclrtMallocForTaskScheduler]Failed, ret %d", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMallocForTaskScheduler failed, ret %d", rt_ret);
@@ -155,8 +157,8 @@ Status OpdebugRegister::MallocMemForOpdebug() {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMalloc failed, ret %d", rt_ret);
     return RT_ERROR_TO_GE_STATUS(rt_ret);
   }
-  rt_ret = aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t),
-      &debug_addrs_tmp, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE);
+  rt_ret =
+      aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "[Call][aclrtMemcpy]To p2p_addr error %d", rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy to p2p_addr error %d", rt_ret);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,7 +82,7 @@ TEST_F(AclNNOpExecuteKernelUT, AclNNOpExecuteKernelUT_TwoStages_GetSpaceRegistry
   failed_run_context2.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
   failed_run_context2.value_holder[1].Set(nullptr, nullptr);
   ASSERT_NE(find_func->run_func(failed_run_context2), ge::SUCCESS);
-  
+
   DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry_bak);
 }
 }  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,24 +46,26 @@ using namespace ge;
 
 using OpSetterPtr = std::shared_ptr<OpSetter>;
 class TBE_ELTWISE_FUSION_SLICE_INFO_UNITTEST : public testing::Test {
-public:
+ public:
   using AttrDefMap = ::google::protobuf::Map<::std::string, AttrDef>;
 
-protected:
-  static void SetUpTestCase() { std::cout << "UB fusion SetUp" << std::endl; }
+ protected:
+  static void SetUpTestCase() {
+    std::cout << "UB fusion SetUp" << std::endl;
+  }
 
-  static void TearDownTestCase() { std::cout << "UB fusion TearDown" << std::endl; }
+  static void TearDownTestCase() {
+    std::cout << "UB fusion TearDown" << std::endl;
+  }
 
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_slice_op_info/slice_success",
-            ""};
+    FEOpsStoreInfo tbe_custom{6, "tbe-custom", EN_IMPL_HW_TBE,
+                              GetCodeDir() +
+                                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                                  "tbe_slice_op_info/slice_success",
+                              ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -79,7 +81,7 @@ protected:
   }
 
   void SetTvmType(ge::OpDescPtr opdef) {
-    ge::AttrUtils::SetInt(opdef, ge::ATTR_NAME_IMPLY_TYPE,static_cast<int64_t>(domi::ImplyType::TVM));
+    ge::AttrUtils::SetInt(opdef, ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM));
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
@@ -104,7 +106,7 @@ protected:
     ge::AttrUtils::SetInt(eltwise1, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     ge::AttrUtils::SetInt(eltwise2, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     // add descriptor
-    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,ge::DT_FLOAT16);
+    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
@@ -121,7 +123,7 @@ protected:
     NodePtr eltwise2_node = graph->AddNode(eltwise2);
     NodePtr end_node = graph->AddNode(end);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(eltwise1_node->GetName(), std::move(buffer));
     eltwise1_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), eltwise1_node->GetInDataAnchor(0));
@@ -142,11 +144,12 @@ TEST_F(TBE_ELTWISE_FUSION_SLICE_INFO_UNITTEST, pass_case1) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-          std::make_shared<FusionPriorityManager>("engineName", nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
-          std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
   uint32_t id = 0;
   cerr << endl;
   cerr << "TBE_ELTWISE_FUSION_SLICE_INFO_UNITTEST::pass_case1 UB fusion before" << endl;
@@ -171,7 +174,7 @@ TEST_F(TBE_ELTWISE_FUSION_SLICE_INFO_UNITTEST, pass_case1) {
   cerr << endl;
   cerr << "TBE_ELTWISE_FUSION_SLICE_INFO_UNITTEST::pass_case1 UB fusion result" << endl;
   for (auto &node : graph_out->GetDirectNode()) {
-    cerr  << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
     if (node->GetOpDesc()->GetType() == "Eltwise" && node->GetName() == "eltwise1eltwise2") {
       AttrUtils::GetStr(node->GetOpDesc(), OP_SLICE_INFO, op_slice_info);
       cerr << "op slice info is :   " << endl << op_slice_info << endl;

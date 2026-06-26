@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@ void ScopeFusionPassRegistry::ScopeFusionPassRegistryImpl::RegisterScopeFusionPa
   const std::lock_guard<std::mutex> lock(mu_);
   const auto iter = std::find(pass_names_.begin(), pass_names_.end(), pass_name);
   if (iter != pass_names_.end()) {
-    GELOGW("[Register][Check] ScopeFusionPass %s already exists and will not be overwritten",
-           pass_name.c_str());
+    GELOGW("[Register][Check] ScopeFusionPass %s already exists and will not be overwritten", pass_name.c_str());
     return;
   }
 
@@ -70,8 +69,8 @@ std::vector<std::string> ScopeFusionPassRegistry::ScopeFusionPassRegistryImpl::G
   return all_passes;
 }
 
-bool ScopeFusionPassRegistry::ScopeFusionPassRegistryImpl::SetPassEnableFlag(
-    const std::string pass_name, const bool flag) {
+bool ScopeFusionPassRegistry::ScopeFusionPassRegistryImpl::SetPassEnableFlag(const std::string pass_name,
+                                                                             const bool flag) {
   const std::lock_guard<std::mutex> lock(mu_);
   const auto it = create_fn_packs_.find(pass_name);
   if (it == create_fn_packs_.end()) {
@@ -103,7 +102,7 @@ ScopeFusionPassRegistry::ScopeFusionPassRegistry() {
 
 ScopeFusionPassRegistry::~ScopeFusionPassRegistry() = default;
 
-ScopeFusionPassRegistry& ScopeFusionPassRegistry::GetInstance() {
+ScopeFusionPassRegistry &ScopeFusionPassRegistry::GetInstance() {
   static ScopeFusionPassRegistry instance;
   return instance;
 }
@@ -118,8 +117,7 @@ void ScopeFusionPassRegistry::RegisterScopeFusionPass(const std::string &pass_na
   impl_->RegisterScopeFusionPass(pass_name, create_fn, is_general);
 }
 
-void ScopeFusionPassRegistry::RegisterScopeFusionPass(const char_t *pass_name, CreateFn create_fn,
-                                                      bool is_general) {
+void ScopeFusionPassRegistry::RegisterScopeFusionPass(const char_t *pass_name, CreateFn create_fn, bool is_general) {
   if (impl_ == nullptr) {
     GELOGE(ge::MEMALLOC_FAILED, "Failed to register %s, ScopeFusionPassRegistry is not properly initialized.",
            pass_name);

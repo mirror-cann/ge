@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,27 +52,45 @@ class BaseNodePass {
 
   virtual ~BaseNodePass() = default;
 
-  const std::vector<NodePtr> &GetNodesNeedRePass() { return nodes_need_re_pass_; }
+  const std::vector<NodePtr> &GetNodesNeedRePass() {
+    return nodes_need_re_pass_;
+  }
 
-  const OrderedNodeSet &GetNodesNeedRePassImmediately() { return nodes_need_re_pass_immediately_; }
+  const OrderedNodeSet &GetNodesNeedRePassImmediately() {
+    return nodes_need_re_pass_immediately_;
+  }
 
   const OrderedNodeSet &GetGlobalNodesNeedRePassImmediately() {
     return global_nodes_need_repass_immediately_;
   }
 
-  const std::unordered_set<NodePtr> &GetNodesDeleted() { return nodes_deleted_; }
+  const std::unordered_set<NodePtr> &GetNodesDeleted() {
+    return nodes_deleted_;
+  }
 
-  const std::unordered_set<NodePtr> &GetNodesSuspend() { return nodes_suspend_; }
+  const std::unordered_set<NodePtr> &GetNodesSuspend() {
+    return nodes_suspend_;
+  }
 
-  const OrderedNodeSet &GetNodesResume() { return nodes_resume_; }
+  const OrderedNodeSet &GetNodesResume() {
+    return nodes_resume_;
+  }
 
-  virtual Status OnSuspendNodesLeaked() { return SUCCESS; }
+  virtual Status OnSuspendNodesLeaked() {
+    return SUCCESS;
+  }
 
-  virtual Status OnFinishGraph(ComputeGraphPtr &root_graph, std::vector<NodePtr> &node_to_be_repass) { return SUCCESS; }
+  virtual Status OnFinishGraph(ComputeGraphPtr &root_graph, std::vector<NodePtr> &node_to_be_repass) {
+    return SUCCESS;
+  }
 
-  void SetOption(NodePassOption option, const std::string &value) { options_[option] = value; }
+  void SetOption(NodePassOption option, const std::string &value) {
+    options_[option] = value;
+  }
 
-  void ClearOptions() { options_.clear(); }
+  void ClearOptions() {
+    options_.clear();
+  }
 
   void Init() {
     nodes_need_re_pass_.clear();
@@ -107,13 +125,17 @@ class BaseNodePass {
   /// change a node connections, and you want to make sure the node will be
   /// optimized by other passes, call this function.
   /// @param node
-  void AddRePassNode(const NodePtr &node) { nodes_need_re_pass_.emplace_back(node); }
+  void AddRePassNode(const NodePtr &node) {
+    nodes_need_re_pass_.emplace_back(node);
+  }
 
   /// Add a node to be optimized immediately again. If you add a new node to the graph, or
   /// change a node connections, and you want to make sure the node will be
   /// optimized by other passes, call this function.
   /// @param node
-  void AddImmediateRePassNode(const NodePtr &node) { nodes_need_re_pass_immediately_.insert(node); }
+  void AddImmediateRePassNode(const NodePtr &node) {
+    nodes_need_re_pass_immediately_.insert(node);
+  }
 
   /// Add a node to be optimized again which belongs to other sub_graph. If you add a new node to the graph, or
   /// change a node connections, and you want to make sure the node will be
@@ -157,7 +179,9 @@ class BaseNodePass {
   /// time. You can add the deleted nodes by calling this function, to stop the
   /// next iterations.
   /// @param node
-  void AddNodeDeleted(const NodePtr &node) { nodes_deleted_.insert(node); }
+  void AddNodeDeleted(const NodePtr &node) {
+    nodes_deleted_.insert(node);
+  }
 
   /// If you postpone a node from the graph, especially following node. The remain
   /// iterate passes will stop process on the postpone node(if it can be
@@ -165,11 +189,17 @@ class BaseNodePass {
   /// time. You can add the postpone nodes by calling this function, to stop the
   /// next iterations.
   /// @param node
-  void AddNodeSuspend(const NodePtr &node) { nodes_suspend_.insert(node); }
+  void AddNodeSuspend(const NodePtr &node) {
+    nodes_suspend_.insert(node);
+  }
 
-  void AddNodeResume(const NodePtr &node) { nodes_resume_.insert(node); }
+  void AddNodeResume(const NodePtr &node) {
+    nodes_resume_.insert(node);
+  }
 
-  bool OptionExists(NodePassOption option) { return options_.count(option) > 0; }
+  bool OptionExists(NodePassOption option) {
+    return options_.count(option) > 0;
+  }
 
  private:
   std::vector<NodePtr> nodes_need_re_pass_;
@@ -196,12 +226,12 @@ class GEPass {
 
   Status AddPassAfterGraphOptimized(const NamesToPass &names_to_passes);
   /*
-  * todo
-  * OneGraph: nodes_deleted, nodes_seen, nodes_passed, nodes_suspended
-  * RePass: nodes_re_pass
-  * GraphOneTime: nodes_last
-  * NodeOneTime: nodes_re_pass_immediately, nodes_resume
-  */
+   * todo
+   * OneGraph: nodes_deleted, nodes_seen, nodes_passed, nodes_suspended
+   * RePass: nodes_re_pass
+   * GraphOneTime: nodes_last
+   * NodeOneTime: nodes_re_pass_immediately, nodes_resume
+   */
   struct GraphLevelState {
     std::unordered_set<NodePtr> nodes_deleted;
     std::unordered_set<Node *> nodes_seen;
@@ -263,8 +293,8 @@ class GEPass {
   GEPass(ComputeGraphPtr &graph, ComputeGraphPtr &root_graph, RepassNodesPtr &repass_on_root_graph, int32_t depth)
       : depth_(depth), graph_(graph), root_graph_(root_graph), repass_nodes_on_root_graph_(repass_on_root_graph) {}
 
-  Status RunPassesNodeOnce(NodePtr &node, const NamesToPass &names_to_passes,
-                           GraphLevelState &graph_state, RepassLevelState &rp_state);
+  Status RunPassesNodeOnce(NodePtr &node, const NamesToPass &names_to_passes, GraphLevelState &graph_state,
+                           RepassLevelState &rp_state);
   Status RunPassesGraphRepass(const NamesToPass &names_to_passes, GraphLevelState &graph_state);
   Status RunPassesOneGraph(const NamesToPass &names_to_passes);
   Status RunPassesOnSubGraph(const NodePtr &node, const NamesToPass &names_to_passes, bool &has_sub_graph);
@@ -274,14 +304,14 @@ class GEPass {
   Status RunPassesAfterFinishGraph(GraphLevelState &graph_state);
   void AddGlobalImmediateRepassNodeToQueueIfSeen(GraphLevelState &graph_state) const;
   bool IsCurrentPassRootGraph() const {
-      return graph_ == root_graph_;
+    return graph_ == root_graph_;
   }
   static NamesToPass FilterDisabledOptimizations(const NamesToPass &names_to_passes);
 
   int32_t depth_;
   ComputeGraphPtr graph_;
   ComputeGraphPtr root_graph_;
-  RepassNodesPtr repass_nodes_on_root_graph_; // only root GE PASS owns it
+  RepassNodesPtr repass_nodes_on_root_graph_;  // only root GE PASS owns it
   NamesToPass pass_after_graph_;
 };
 }  // namespace ge

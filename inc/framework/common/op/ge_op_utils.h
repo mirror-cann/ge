@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,8 +66,7 @@ class GE_FUNC_VISIBILITY OpUtils {
   /// @return enum of tagCCAippInputFormat
   ///
 
-  static Status ConvertAippParams(const GeAttrValue::NamedAttrs &aipp_attr,
-                                  domi::AippOpParams &aipp_params);
+  static Status ConvertAippParams(const GeAttrValue::NamedAttrs &aipp_attr, domi::AippOpParams &aipp_params);
   template <typename T>
   static void SliceData(const std::vector<char_t *> &input, const int64_t chunk_size, std::vector<char_t *> &output,
                         const int64_t begin, const int64_t out_dim, const int64_t stride);
@@ -76,10 +75,9 @@ class GE_FUNC_VISIBILITY OpUtils {
                                   const std::vector<char_t *> &chunk_output, GeTensor *const output);
   template <typename T>
   static Status SetOutputSliceDataByDataType(void *const data, const int64_t data_size,
-                                             const std::vector<int64_t> &input_dims,
-                                             const std::vector<int64_t> &begin,
-                                             const std::vector<int64_t> &output_dims,
-                                             ge::GeTensor *const output, const std::vector<int64_t> &stride);
+                                             const std::vector<int64_t> &input_dims, const std::vector<int64_t> &begin,
+                                             const std::vector<int64_t> &output_dims, ge::GeTensor *const output,
+                                             const std::vector<int64_t> &stride);
   static Status SetOutputSliceData(void *const data, const int64_t data_size, const int32_t data_type,
                                    const std::vector<int64_t> &input_dims, const std::vector<int64_t> &begin,
                                    const std::vector<int64_t> &output_dims, GeTensor *const output,

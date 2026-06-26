@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ class CompliantNodeBuilder::IrInputDefV2::Impl {
 
 CompliantNodeBuilder::IrInputDefV2::IrInputDefV2() : impl_(new (std::nothrow) Impl()) {}
 
-CompliantNodeBuilder::IrInputDefV2::IrInputDefV2(const char_t *name, IrInputType ir_input_type,
-                                                 const char_t *symbol_id)
+CompliantNodeBuilder::IrInputDefV2::IrInputDefV2(const char_t *name, IrInputType ir_input_type, const char_t *symbol_id)
     : impl_(new (std::nothrow) Impl{ToString(name), ir_input_type, ToString(symbol_id)}) {}
 
 CompliantNodeBuilder::IrInputDefV2::~IrInputDefV2() {
@@ -189,8 +188,7 @@ CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2() : impl_(new (std::nothrow) Impl
 
 CompliantNodeBuilder::IrAttrDefV2::IrAttrDefV2(const char_t *attr_name, IrAttrType ir_attr_type,
                                                const char_t *attr_data_type, const AttrValue &attr_default_value)
-    : impl_(new (std::nothrow) Impl{ToString(attr_name), ir_attr_type, ToString(attr_data_type), attr_default_value}) {
-}
+    : impl_(new (std::nothrow) Impl{ToString(attr_name), ir_attr_type, ToString(attr_data_type), attr_default_value}) {}
 
 CompliantNodeBuilder::IrAttrDefV2::~IrAttrDefV2() {
   delete impl_;
@@ -289,8 +287,8 @@ class CompliantNodeBuilder::CompliantNodeBuilderImpl {
     }
     ir_def_inputs_.reserve(input_ir_def_num);
     for (size_t i = 0U; i < input_ir_def_num; ++i) {
-      ir_def_inputs_.push_back({input_ir_def[i].GetName(), input_ir_def[i].GetInputType(),
-                                input_ir_def[i].GetSymbolId()});
+      ir_def_inputs_.push_back(
+          {input_ir_def[i].GetName(), input_ir_def[i].GetInputType(), input_ir_def[i].GetSymbolId()});
     }
   }
   void IrDefOutputsV2(const IrOutputDefV2 *output_ir_def, size_t output_ir_def_num) {
@@ -300,8 +298,8 @@ class CompliantNodeBuilder::CompliantNodeBuilderImpl {
     }
     ir_def_outputs_.reserve(output_ir_def_num);
     for (size_t i = 0U; i < output_ir_def_num; ++i) {
-      ir_def_outputs_.push_back({output_ir_def[i].GetName(), output_ir_def[i].GetOutputType(),
-                                 output_ir_def[i].GetSymbolId()});
+      ir_def_outputs_.push_back(
+          {output_ir_def[i].GetName(), output_ir_def[i].GetOutputType(), output_ir_def[i].GetSymbolId()});
     }
   }
   void IrDefAttrsV2(const IrAttrDefV2 *attr_ir_def, size_t attr_ir_def_num) {
@@ -453,8 +451,7 @@ CompliantNodeBuilder &CompliantNodeBuilder::IrDefAttrs(std::vector<IrAttrDef> at
   impl_->IrDefAttrs(attr_ir_def);
   return *this;
 }
-CompliantNodeBuilder &CompliantNodeBuilder::IrDefInputsV2(const IrInputDefV2 *input_ir_def,
-                                                          size_t input_ir_def_num) {
+CompliantNodeBuilder &CompliantNodeBuilder::IrDefInputsV2(const IrInputDefV2 *input_ir_def, size_t input_ir_def_num) {
   impl_->IrDefInputsV2(input_ir_def, input_ir_def_num);
   return *this;
 }

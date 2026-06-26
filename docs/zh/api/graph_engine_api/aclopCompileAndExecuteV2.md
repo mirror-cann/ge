@@ -172,4 +172,3 @@ aclrtStream stream)
     -   若可获取到准确的输出Shape，则使用准确的输出Shape来构造outputDesc参数，作为aclopCompileAndExecuteV2的输入。该场景下，aclopCompileAndExecuteV2接口是**异步接口**，对于异步接口，调用接口成功仅表示任务下发成功，不表示任务执行成功。调用该接口后，需调用同步等待接口（例如，aclrtSynchronizeStream）确保任务已执行完成。
     -   若无法获取准确的输出Shape，仅能获取输出Shape范围，则使用Shape最大值来构造outputDesc参数，作为aclopCompileAndExecuteV2的输入。该场景下，在调用aclopCompileAndExecuteV2接口执行算子后，系统内部会计算出准确的输出Shape，通过aclopCompileAndExecuteV2接口的outputDesc参数输出，此时aclopCompileAndExecuteV2接口是**同步接口**。
     -   （该场景预留）若无法获取准确的输出Shape以及Shape范围，则需由用户预估一个最大的Shape来构造outputDesc参数，作为aclopCompileAndExecuteV2的输入。该场景下，在调用aclopCompileAndExecuteV2接口执行算子后，系统内部会计算出准确的输出Shape，通过aclopCompileAndExecuteV2接口的outputDesc参数输出，此时aclopCompileAndExecuteV2接口是**同步接口**。
-

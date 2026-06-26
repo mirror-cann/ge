@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under terms and conditionsverions of 
+ * This program is free software, you can redistribute it and/or modify it under terms and conditionsverions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to License for details. You may not use this file except in compliance with License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,7 +56,7 @@ graphStatus InferShapeForDynamicStitch(gert::InferSymbolShapeContext *context) {
     GE_ASSERT_NOTNULL(indices_tensor);
     const auto indices_tensor_val = indices_tensor->GetSymbolicValue();
     GE_ASSERT_NOTNULL(indices_tensor_val);
-    for (const auto &tensor: *indices_tensor_val) {
+    for (const auto &tensor : *indices_tensor_val) {
       out_shape_dims[0] = sym::Max(out_shape_dims[0], tensor);
     }
   }

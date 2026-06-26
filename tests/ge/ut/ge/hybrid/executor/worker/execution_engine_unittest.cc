@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,13 +29,11 @@ using namespace testing;
 using namespace ge;
 using namespace hybrid;
 
-
 class UtestExecutionEngine : public testing::Test {
  protected:
   void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 namespace {
 const int kIntBase = 10;
@@ -92,7 +90,7 @@ TEST_F(UtestExecutionEngine, ExecuteAsync_without_kernel_task) {
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   HybridModel hybrid_model(ge_root_model);
-  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new(std::nothrow)GraphItem());
+  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new (std::nothrow) GraphItem());
   execution_context.model = &hybrid_model;
   execution_context.profiling_level = 1;
   FakeGraphItem graph_item(node);
@@ -107,7 +105,8 @@ TEST_F(UtestExecutionEngine, ExecuteAsync_without_kernel_task) {
   executor.InitCallback(node_state, callback);
   ExecutionEngine execution_engine;
   ProfilingProperties::Instance().is_load_profiling_ = true;
-  EXPECT_EQ(execution_engine.ExecuteAsync(*node_state, node_state->GetTaskContext(), execution_context, callback), INTERNAL_ERROR);
+  EXPECT_EQ(execution_engine.ExecuteAsync(*node_state, node_state->GetTaskContext(), execution_context, callback),
+            INTERNAL_ERROR);
 }
 
 TEST_F(UtestExecutionEngine, ExecuteAsync_without_callback_and_kernel_task) {
@@ -122,7 +121,7 @@ TEST_F(UtestExecutionEngine, ExecuteAsync_without_callback_and_kernel_task) {
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   HybridModel hybrid_model(ge_root_model);
-  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new(std::nothrow)GraphItem());
+  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new (std::nothrow) GraphItem());
   execution_context.model = &hybrid_model;
   FakeGraphItem graph_item(node, DEPEND_SHAPE_RANGE);
   SubgraphContext subgraph_context(&graph_item, &execution_context);
@@ -159,7 +158,6 @@ TEST_F(UtestExecutionEngine, ExecuteAsync_without_callback_and_kernel_task) {
   std::vector<TaskDescInfo> task_desc_info;
   EXPECT_EQ(node_done_callback.GetTaskDescInfo(*node_state->GetTaskContext(), node, task_desc_info), SUCCESS);
 
-
   ShapeInferenceEngine shape_infer_engine(&execution_context, true);
   shape_infer_engine.Config(&subgraph_context);
   EXPECT_EQ(shape_infer_engine.DoInferShape(*node_state), GRAPH_FAILED);
@@ -185,7 +183,7 @@ TEST_F(UtestExecutionEngine, NodeDoneCallback_SaveDumpOpInfo) {
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   HybridModel hybrid_model(ge_root_model);
-  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new(std::nothrow)GraphItem());
+  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new (std::nothrow) GraphItem());
   execution_context.model = &hybrid_model;
   FakeGraphItem graph_item(node, DEPEND_SHAPE_RANGE);
   SubgraphContext subgraph_context(&graph_item, &execution_context);

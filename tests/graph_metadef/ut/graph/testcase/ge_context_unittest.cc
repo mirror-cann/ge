@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ using Json = nlohmann::json;
 class GeContextUt : public testing::Test {};
 
 void SetIROptionToShowName(std::string &option_name_map, const std::string &ir_option, const std::string &show_name) {
-  std::string json = "\"" + ir_option + "\": \"" + show_name +"\",\n";
+  std::string json = "\"" + ir_option + "\": \"" + show_name + "\",\n";
   option_name_map += json;
   return;
 }
@@ -107,7 +107,7 @@ TEST_F(GeContextUt, Plus) {
   GetThreadLocalContext().SetSessionOption(session_option9);
   EXPECT_EQ(cont.GetInputFusionSize(), 25600U);
 
-   // value:  0
+  // value:  0
   std::map<std::string, std::string> session_option10{{OPTION_EXEC_INPUT_FUSION_SIZE, "0"}};
   GetThreadLocalContext().SetGraphOption(session_option10);
   EXPECT_EQ(cont.GetInputFusionSize(), 0U);
@@ -199,8 +199,7 @@ TEST_F(GeContextUt, GetOo_Ok) {
       {"ge.oo.ctx_test_option", "false"},
   };
   auto &oopt = GetContext().GetOo();
-  EXPECT_EQ(oopt.Initialize(session_option, OptionRegistry::GetInstance().GetRegisteredOptTable()),
-            GRAPH_SUCCESS);
+  EXPECT_EQ(oopt.Initialize(session_option, OptionRegistry::GetInstance().GetRegisteredOptTable()), GRAPH_SUCCESS);
   std::string value;
   EXPECT_EQ(oopt.GetValue("ge.oo.ctx_test_option", value), GRAPH_SUCCESS);
   EXPECT_EQ(value, "false");

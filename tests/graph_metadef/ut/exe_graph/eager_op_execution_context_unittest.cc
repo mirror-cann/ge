@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,20 +20,20 @@
 
 namespace ge {
 REG_OP(node)
-.INPUT(x, TensorType::ALL())
-.INPUT(y, TensorType::ALL())
-.OUTPUT(x, TensorType::ALL())
-.OUTPUT(z, TensorType::ALL())
-.OP_END_FACTORY_REG(node);
+    .INPUT(x, TensorType::ALL())
+    .INPUT(y, TensorType::ALL())
+    .OUTPUT(x, TensorType::ALL())
+    .OUTPUT(z, TensorType::ALL())
+    .OP_END_FACTORY_REG(node);
 }
 
 class CustomOpAllocatorFaker : public gert::AllocatorFaker {
-public:
+ public:
   gert::TensorData MallocTensorDataFromL1(size_t size) override {
     return gert::TensorData(MallocL1(size), nullptr, size, gert::kOnDeviceHbm);
   }
 
-private:
+ private:
   std::vector<std::unique_ptr<uint8_t[]>> l1_blocks_;
 
   gert::TensorAddress MallocL1(size_t size) {
@@ -54,7 +54,6 @@ class EagerOpExecutionContextUT : public testing::Test {
   void SetUp() override {
     BuildIn2Out2Case();
     BuildDynamicInputCase();
-
   }
   void TearDown() override {
     in_2_out_2_case_.Finalize();
@@ -75,18 +74,20 @@ class EagerOpExecutionContextUT : public testing::Test {
       }
     }
   };
+
  protected:
   ContextTestCaseHolder in_2_out_2_case_;
   ContextTestCaseHolder dynamic_input_case_;
+
  private:
   void BuildIn2Out2Case() {
     in_2_out_2_case_.input_tensors.resize(2);
-    in_2_out_2_case_.input_tensors[0] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
+    in_2_out_2_case_.input_tensors[0] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},   // shape
                                          {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
-                                         kOnDeviceHbm,                                // placement
-                                         ge::DT_FLOAT16,                              // data type
+                                         kOnDeviceHbm,                               // placement
+                                         ge::DT_FLOAT16,                             // data type
                                          (void *)0x12345};
-    in_2_out_2_case_.input_tensors[1] = {{{2, 2, 3, 8}, {2, 2, 3, 8}},    // shape
+    in_2_out_2_case_.input_tensors[1] = {{{2, 2, 3, 8}, {2, 2, 3, 8}},                // shape
                                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                                          kOnDeviceHbm,                                // placement
                                          ge::DT_FLOAT16,                              // data type
@@ -106,62 +107,64 @@ class EagerOpExecutionContextUT : public testing::Test {
     in_2_out_2_case_.workspace_mems = std::make_shared<std::vector<gert::GertMemBlock *>>();
     in_2_out_2_case_.workspace_mems->reserve(1UL);
 
-    in_2_out_2_case_.context_holder = EagerOpExecutionContextFaker()
-                                          .IrInstanceNum({1, 1})
-                                          //.IrOutputInstanceNum({1, 1})
-                                          .NodeIoNum(2, 2)
-                                          .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-                                          .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .InputTensor({&in_2_out_2_case_.input_tensors[0], &in_2_out_2_case_.input_tensors[1]})
-                                          .OutputTensor({&in_2_out_2_case_.output_tensors[0], &in_2_out_2_case_.output_tensors[1]})
-                                          .OutputMem(in_2_out_2_case_.workspace_mems)
-                                          .Allocator(&in_2_out_2_case_.gert_allocator)
-                                          .Stream(static_cast<void *>(&in_2_out_2_case_.stream_int))
-                                          .Build();
+    in_2_out_2_case_.context_holder =
+        EagerOpExecutionContextFaker()
+            .IrInstanceNum({1, 1})
+            //.IrOutputInstanceNum({1, 1})
+            .NodeIoNum(2, 2)
+            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .InputTensor({&in_2_out_2_case_.input_tensors[0], &in_2_out_2_case_.input_tensors[1]})
+            .OutputTensor({&in_2_out_2_case_.output_tensors[0], &in_2_out_2_case_.output_tensors[1]})
+            .OutputMem(in_2_out_2_case_.workspace_mems)
+            .Allocator(&in_2_out_2_case_.gert_allocator)
+            .Stream(static_cast<void *>(&in_2_out_2_case_.stream_int))
+            .Build();
   }
   void BuildDynamicInputCase() {
     dynamic_input_case_.input_tensors.resize(2);
-    dynamic_input_case_.input_tensors[0] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
-                                         {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
-                                         kOnDeviceHbm,                                // placement
-                                         ge::DT_FLOAT16,                              // data type
-                                         (void *)0x12345};
-    dynamic_input_case_.input_tensors[1] = {{{2, 2, 3, 8}, {2, 2, 3, 8}},    // shape
-                                         {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                         kOnDeviceHbm,                                // placement
-                                         ge::DT_FLOAT16,                              // data type
-                                         (void *)0x234565};
+    dynamic_input_case_.input_tensors[0] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},   // shape
+                                            {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
+                                            kOnDeviceHbm,                               // placement
+                                            ge::DT_FLOAT16,                             // data type
+                                            (void *)0x12345};
+    dynamic_input_case_.input_tensors[1] = {{{2, 2, 3, 8}, {2, 2, 3, 8}},                // shape
+                                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                                            kOnDeviceHbm,                                // placement
+                                            ge::DT_FLOAT16,                              // data type
+                                            (void *)0x234565};
     dynamic_input_case_.output_tensors.resize(2);
     dynamic_input_case_.output_tensors[0] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
-                                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                          kOnDeviceHbm,                                // placement
-                                          ge::DT_FLOAT16,                              // data type
-                                          nullptr};
+                                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                                             kOnDeviceHbm,                                // placement
+                                             ge::DT_FLOAT16,                              // data type
+                                             nullptr};
     dynamic_input_case_.output_tensors[1] = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
-                                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                          kOnDeviceHbm,                                // placement
-                                          ge::DT_FLOAT16,                              // data type
-                                          nullptr};
+                                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                                             kOnDeviceHbm,                                // placement
+                                             ge::DT_FLOAT16,                              // data type
+                                             nullptr};
     dynamic_input_case_.stream_int = 1;
     dynamic_input_case_.workspace_mems = std::make_shared<std::vector<gert::GertMemBlock *>>();
     dynamic_input_case_.workspace_mems->reserve(1UL);
 
-    dynamic_input_case_.context_holder = EagerOpExecutionContextFaker()
-                                          .IrInstanceNum({0, 2})
-                                          //.IrOutputInstanceNum({1, 1})
-                                          .NodeIoNum(2, 2)
-                                          .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-                                          .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                                          .InputTensor({&dynamic_input_case_.input_tensors[0], &dynamic_input_case_.input_tensors[1]})
-                                          .OutputTensor({&dynamic_input_case_.output_tensors[0], &dynamic_input_case_.output_tensors[1]})
-                                          .OutputMem(dynamic_input_case_.workspace_mems)
-                                          .Allocator(&dynamic_input_case_.gert_allocator)
-                                          .Stream(static_cast<void *>(&dynamic_input_case_.stream_int))
-                                          .Build();
+    dynamic_input_case_.context_holder =
+        EagerOpExecutionContextFaker()
+            .IrInstanceNum({0, 2})
+            //.IrOutputInstanceNum({1, 1})
+            .NodeIoNum(2, 2)
+            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+            .InputTensor({&dynamic_input_case_.input_tensors[0], &dynamic_input_case_.input_tensors[1]})
+            .OutputTensor({&dynamic_input_case_.output_tensors[0], &dynamic_input_case_.output_tensors[1]})
+            .OutputMem(dynamic_input_case_.workspace_mems)
+            .Allocator(&dynamic_input_case_.gert_allocator)
+            .Stream(static_cast<void *>(&dynamic_input_case_.stream_int))
+            .Build();
   }
 };
 
@@ -230,9 +233,8 @@ TEST_F(EagerOpExecutionContextUT, MallocOutputTensorOk) {
   ASSERT_NE(context, nullptr);
   std::initializer_list<int64_t> origin_shape = {2, 1, 3, 4};
   std::initializer_list<int64_t> storage_shape = {1, 2, 3, 4};
-  auto output_tensor0 =
-      context->MallocOutputTensor(1, {origin_shape, storage_shape}, {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()},
-                                  ge::DT_FLOAT16);
+  auto output_tensor0 = context->MallocOutputTensor(1, {origin_shape, storage_shape},
+                                                    {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()}, ge::DT_FLOAT16);
   ASSERT_NE(output_tensor0, nullptr);
   EXPECT_EQ(output_tensor0->GetOriginShape(), origin_shape);
   EXPECT_EQ(output_tensor0->GetStorageShape(), storage_shape);
@@ -259,9 +261,8 @@ TEST_F(EagerOpExecutionContextUT, MallocOutputError) {
   ASSERT_NE(context, nullptr);
   std::initializer_list<int64_t> origin_shape = {2, 1, 3, 4};
   std::initializer_list<int64_t> storage_shape = {1, 2, 3, 4};
-  auto output_tensor =
-      context->MallocOutputTensor(0, {origin_shape, storage_shape}, {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()},
-                                  ge::DT_FLOAT16);
+  auto output_tensor = context->MallocOutputTensor(0, {origin_shape, storage_shape},
+                                                   {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()}, ge::DT_FLOAT16);
   EXPECT_EQ(output_tensor, nullptr);
 }
 
@@ -271,8 +272,7 @@ TEST_F(EagerOpExecutionContextUT, MallocOutputTensorNotReuseWorkspaceAddr) {
   ASSERT_EQ(in_2_out_2_case_.output_tensors[1].GetAddr(), nullptr);
 
   auto output_tensor = context->MallocOutputTensor(1, {{2, 2}, {2, 2}},
-                                                  {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()},
-                                                  ge::DT_FLOAT16);
+                                                   {ge::FORMAT_ND, ge::FORMAT_ND, ExpandDimsType()}, ge::DT_FLOAT16);
   ASSERT_NE(output_tensor, nullptr);
   auto output_addr = output_tensor->GetAddr();
   ASSERT_NE(output_addr, nullptr);
@@ -318,6 +318,4 @@ TEST_F(EagerOpExecutionContextUT, MakeOutputRefInputError) {
   ASSERT_EQ(output_tensor, nullptr);
 }
 
-
-}
-
+}  // namespace gert

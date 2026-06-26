@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -202,8 +202,7 @@ class OpsJsonFile {
    * @param topic_type_str origin topic type
    * @param topic_type output topic type
    */
-  void ConvertTopicType(const std::string &topic_type_str,
-                        FWKAdapter::FWKExtTopicType &topic_type) const;
+  void ConvertTopicType(const std::string &topic_type_str, FWKAdapter::FWKExtTopicType &topic_type) const;
 
   /**
    * parse input output format from json read from tf_kernel.json
@@ -222,8 +221,7 @@ class OpsJsonFile {
    * @param compute_cost compute cost value
    * @return whether parse compute_cost successfully
    */
-  bool CheckAndGetComputeCost(const nlohmann::json &buff,
-                              const std::string &op_name, int &compute_cost) const;
+  bool CheckAndGetComputeCost(const nlohmann::json &buff, const std::string &op_name, int &compute_cost) const;
 
   /**
    * Check and get required boolean field from tf_kernel.json
@@ -246,9 +244,8 @@ class OpsJsonFile {
    * @param value parsed bool value
    * @return whether parse bool value successfully
    */
-  bool CheckAndGetFormatAgnostic(const nlohmann::json &buff,
-                                 const std::string &op_name,
-                                 const std::string &field_str, bool &value) const;
+  bool CheckAndGetFormatAgnostic(const nlohmann::json &buff, const std::string &op_name, const std::string &field_str,
+                                 bool &value) const;
 
   /**
    * Check and get shape type field from kernel info
@@ -257,8 +254,7 @@ class OpsJsonFile {
    * @param shape_type shape type for op
    * @return whether parse shape_type successfully
    */
-  bool CheckAndGetShapeType(const nlohmann::json &buff,
-                            const std::string &op_name, int &shape_type) const;
+  bool CheckAndGetShapeType(const nlohmann::json &buff, const std::string &op_name, int &shape_type) const;
 
   /**
    * Check and get nonessential boolean field from tf_kernel.json
@@ -268,10 +264,8 @@ class OpsJsonFile {
    * @param value parsed bool value
    * @return whether parse bool value successfully
    */
-  bool CheckAndGetNonessentialBoolValue(const nlohmann::json &buff,
-                                        const std::string &op_name,
-                                        const std::string &field_str,
-                                        bool &value) const;
+  bool CheckAndGetNonessentialBoolValue(const nlohmann::json &buff, const std::string &op_name,
+                                        const std::string &field_str, bool &value) const;
 
   /**
    * Check whether read data from tf_kernel.json successfully
@@ -280,8 +274,7 @@ class OpsJsonFile {
    * @param ops_flag op flag
    * @return whether get bool value successfully
    */
-  bool CheckAndGetOpsFlag(const nlohmann::json &buff, const std::string &op_name,
-                          std::string &ops_flag) const;
+  bool CheckAndGetOpsFlag(const nlohmann::json &buff, const std::string &op_name, std::string &ops_flag) const;
 
   /**
    * Check and get workspace size from kernel info
@@ -290,8 +283,7 @@ class OpsJsonFile {
    * @param workspace_size shape type for op
    * @return whether check workspace_size successfully
    */
-  bool CheckAndGetWorkspaceSize(const nlohmann::json &buff,
-                                const std::string &op_name, int &workspace_size) const;
+  bool CheckAndGetWorkspaceSize(const nlohmann::json &buff, const std::string &op_name, int &workspace_size) const;
 
   /**
    * Check and get topic type from kernel info
@@ -300,12 +292,10 @@ class OpsJsonFile {
    * @param topic_type output topic type
    * @return whether check topic_type successfully
    */
-  bool CheckAndGetTopicType(const nlohmann::json &buff,
-                            const std::string &op_name,
+  bool CheckAndGetTopicType(const nlohmann::json &buff, const std::string &op_name,
                             FWKAdapter::FWKExtTopicType &topic_type) const;
 
-  bool CheckAndGetSlicePattern(const nlohmann::json &buff,
-                               const std::string &op_name,
+  bool CheckAndGetSlicePattern(const nlohmann::json &buff, const std::string &op_name,
                                std::string &slice_pattern) const;
 
   /**
@@ -315,9 +305,7 @@ class OpsJsonFile {
    * @param resource output resource
    * @return whether check resource successfully
    */
-  bool CheckAndGetResource(const nlohmann::json &buff,
-                           const std::string &op_name,
-                           std::string &resource) const;
+  bool CheckAndGetResource(const nlohmann::json &buff, const std::string &op_name, std::string &resource) const;
 
   /**
    * Check and get blockIndex from kernel info
@@ -326,8 +314,7 @@ class OpsJsonFile {
    * @param blockIndex output blockIndex
    * @return whether check blockIndex successfully
    */
-  bool CheckAndGetBlockDimByIndex(const nlohmann::json &buff,
-                                  const std::string &op_name, int &blockIndex) const;
+  bool CheckAndGetBlockDimByIndex(const nlohmann::json &buff, const std::string &op_name, int &blockIndex) const;
 
   /**
    * Check and get implement type from kernel info
@@ -336,10 +323,9 @@ class OpsJsonFile {
    * @param implement_type output implement_type
    * @return whether check implement_type successfully
    */
-  bool CheckAndGetImplementType(const nlohmann::json &buff,
-                                const std::string &op_name, int &implement_type) const;
+  bool CheckAndGetImplementType(const nlohmann::json &buff, const std::string &op_name, int &implement_type) const;
 };
-                       
+
 /**
  * OpInfoDescs json to struct object function
  * @param json_read read json handle

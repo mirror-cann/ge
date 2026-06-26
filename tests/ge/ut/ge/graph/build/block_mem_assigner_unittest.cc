@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,9 @@ using namespace testing;
 namespace ge {
 using namespace block_mem_ut;
 namespace {
-ge::OpDescPtr CreateOpWithWsSize(const string &name, int64_t wsByte, const string &type = "some",
-                                 int64_t size = 1024, std::vector<int64_t> shape = {1, 1, 16, 8},
-                                 Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT) {
+ge::OpDescPtr CreateOpWithWsSize(const string &name, int64_t wsByte, const string &type = "some", int64_t size = 1024,
+                                 std::vector<int64_t> shape = {1, 1, 16, 8}, Format format = FORMAT_NCHW,
+                                 DataType data_type = DT_FLOAT) {
   ge::OpDescPtr op_def = std::make_shared<ge::OpDesc>(name, type);
   auto desc_temp_ptr = std::make_shared<ge::GeTensorDesc>();
   desc_temp_ptr->SetShape(GeShape(shape));
@@ -65,17 +65,15 @@ bool CheckIntersection(const std::vector<int64_t> &left_range, const std::vector
   }
   return true;
 }
-}
+}  // namespace
 class UtestBlockMemAssigner : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 
   class FakBlockMemAssigner : public BlockMemAssigner {
    public:
-    FakBlockMemAssigner(MemAssistInfo &mem_assist_info) : BlockMemAssigner(mem_assist_info){};
+    FakBlockMemAssigner(MemAssistInfo &mem_assist_info) : BlockMemAssigner(mem_assist_info) {};
 
    public:
     virtual Status GetMemoryRanges(std::vector<int64_t> &ranges) override {
@@ -87,28 +85,27 @@ class UtestBlockMemAssigner : public testing::Test {
 };
 
 TEST_F(UtestBlockMemAssigner, Normal) {
-    EXPECT_NO_THROW(auto p1 = std::make_shared<MemoryBlock>(reuse_strategy_, 1024));
-    auto p1 = std::make_shared<MemoryBlock>(reuse_strategy_, 1024);
-    EXPECT_EQ(p1->Size(), 1024);
+  EXPECT_NO_THROW(auto p1 = std::make_shared<MemoryBlock>(reuse_strategy_, 1024));
+  auto p1 = std::make_shared<MemoryBlock>(reuse_strategy_, 1024);
+  EXPECT_EQ(p1->Size(), 1024);
 }
 
 TEST_F(UtestBlockMemAssigner, AssignOutputMemoryWithReuse) {
-    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
-    auto node = builder->AddNode("node", DATA, 1, 1);
-    ComputeGraphPtr compute_graph = builder->GetGraph();
-    MemAssistInfo mem_assist_info;
-    mem_assist_info.compute_graph = compute_graph;
-    auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
-    std::vector<int64_t> ranges;
-    p1->op_reuse_env_valid_ = true;
-    EXPECT_EQ(p1->AssignOutputMemoryWithReuse(node, ranges), SUCCESS);
-    std::vector<int64_t> memorys_type;
-    ge::AttrUtils::SetListInt(node->GetOpDesc(), "_output_memory_type", memorys_type);
-    EXPECT_EQ(p1->AssignOutputMemoryWithReuse(node, ranges), INTERNAL_ERROR);
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  auto node = builder->AddNode("node", DATA, 1, 1);
+  ComputeGraphPtr compute_graph = builder->GetGraph();
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = compute_graph;
+  auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  std::vector<int64_t> ranges;
+  p1->op_reuse_env_valid_ = true;
+  EXPECT_EQ(p1->AssignOutputMemoryWithReuse(node, ranges), SUCCESS);
+  std::vector<int64_t> memorys_type;
+  ge::AttrUtils::SetListInt(node->GetOpDesc(), "_output_memory_type", memorys_type);
+  EXPECT_EQ(p1->AssignOutputMemoryWithReuse(node, ranges), INTERNAL_ERROR);
 }
 
-TEST_F(UtestBlockMemAssigner, AssignOutputMemoryWithReuseL1)
-{
+TEST_F(UtestBlockMemAssigner, AssignOutputMemoryWithReuseL1) {
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &add = root_builder.AddNode("add", ADD, 0, 1);
   std::vector<int64_t> memorys_type = {RT_MEMORY_L1};
@@ -127,72 +124,72 @@ TEST_F(UtestBlockMemAssigner, AssignOutputMemoryWithReuseL1)
 }
 
 TEST_F(UtestBlockMemAssigner, AssignMemoryWithReuse) {
-    const char *const OP_NO_REUSE_MEM = "OP_NO_REUSE_MEM";
-    setenv(OP_NO_REUSE_MEM, "FusedMulAddN,BatchNorm", 1);
-    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
-    ASSERT_NE(builder, nullptr);
-    auto node = builder->AddNode("node", DATA, 1, 1);
-    ASSERT_NE(node, nullptr);
-    ComputeGraphPtr root_graph = builder->GetGraph();
-    ASSERT_NE(root_graph, nullptr);
-    auto p1_sub_builder = block_mem_ut::GraphBuilder("partitioncall_0_sub");
-    const auto &partitioncall_0_const1 = p1_sub_builder.AddNode("partitioncall_0_const1", CONSTANT, 0, 1);
-    const auto &partitioncall_0_netoutput = p1_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 1);
-    const auto &sub_graph = p1_sub_builder.GetGraph();
-    sub_graph->SetParentNode(node);
-    sub_graph->SetParentGraph(root_graph);
-    ASSERT_EQ(root_graph->AddSubgraph(sub_graph->GetName(), sub_graph), SUCCESS);
-    MemAssistInfo mem_assist_info;
-    mem_assist_info.compute_graph = sub_graph;
-    auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
-    std::vector<int64_t> ranges;
-    std::vector<int64_t> tvm_workspace_memory_type;
-    tvm_workspace_memory_type.push_back(1);
-    AttrUtils::SetListInt(partitioncall_0_const1->GetOpDesc(), "tvm_workspace_type", tvm_workspace_memory_type);
-    EXPECT_NO_THROW(p1->AssignMemoryWithReuse(ranges));
+  const char *const OP_NO_REUSE_MEM = "OP_NO_REUSE_MEM";
+  setenv(OP_NO_REUSE_MEM, "FusedMulAddN,BatchNorm", 1);
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  ASSERT_NE(builder, nullptr);
+  auto node = builder->AddNode("node", DATA, 1, 1);
+  ASSERT_NE(node, nullptr);
+  ComputeGraphPtr root_graph = builder->GetGraph();
+  ASSERT_NE(root_graph, nullptr);
+  auto p1_sub_builder = block_mem_ut::GraphBuilder("partitioncall_0_sub");
+  const auto &partitioncall_0_const1 = p1_sub_builder.AddNode("partitioncall_0_const1", CONSTANT, 0, 1);
+  const auto &partitioncall_0_netoutput = p1_sub_builder.AddNode("partitioncall_0_netoutput", NETOUTPUT, 1, 1);
+  const auto &sub_graph = p1_sub_builder.GetGraph();
+  sub_graph->SetParentNode(node);
+  sub_graph->SetParentGraph(root_graph);
+  ASSERT_EQ(root_graph->AddSubgraph(sub_graph->GetName(), sub_graph), SUCCESS);
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = sub_graph;
+  auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  std::vector<int64_t> ranges;
+  std::vector<int64_t> tvm_workspace_memory_type;
+  tvm_workspace_memory_type.push_back(1);
+  AttrUtils::SetListInt(partitioncall_0_const1->GetOpDesc(), "tvm_workspace_type", tvm_workspace_memory_type);
+  EXPECT_NO_THROW(p1->AssignMemoryWithReuse(ranges));
 
-    auto p2 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
-    EXPECT_NO_THROW(p2->AssignMemoryWithReuse(ranges));
-    unsetenv(OP_NO_REUSE_MEM);
+  auto p2 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  EXPECT_NO_THROW(p2->AssignMemoryWithReuse(ranges));
+  unsetenv(OP_NO_REUSE_MEM);
 }
 
 TEST_F(UtestBlockMemAssigner, Assign) {
-    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
-    auto node = builder->AddNode("node", DATA, 1, 1);
-    ComputeGraphPtr compute_graph = builder->GetGraph();
-    MemAssistInfo mem_assist_info;
-    mem_assist_info.compute_graph = compute_graph;
-    auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
-    EXPECT_EQ(p1->Assign(), SUCCESS);
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  auto node = builder->AddNode("node", DATA, 1, 1);
+  ComputeGraphPtr compute_graph = builder->GetGraph();
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = compute_graph;
+  auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  EXPECT_EQ(p1->Assign(), SUCCESS);
 }
 
 TEST_F(UtestBlockMemAssigner, GetWorkSpaceMemoryType) {
-    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
-    auto node = builder->AddNode("node", DATA, 1, 1);
-    ComputeGraphPtr compute_graph = builder->GetGraph();
-    MemAssistInfo mem_assist_info;
-    mem_assist_info.compute_graph = compute_graph;
-    auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
-    uint64_t memory_type;
-    std::vector<bool> workspace_reuse_flag;
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  auto node = builder->AddNode("node", DATA, 1, 1);
+  ComputeGraphPtr compute_graph = builder->GetGraph();
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.compute_graph = compute_graph;
+  auto p1 = std::make_shared<FakBlockMemAssigner>(mem_assist_info);
+  uint64_t memory_type;
+  std::vector<bool> workspace_reuse_flag;
 
-    size_t no_reuse_scope_size = 3;
-    size_t index = 0U;
-    bool is_p2p_memory = true;
-    bool session_scope_memory = true;
-    memory_type = p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory,
-                                             workspace_reuse_flag);
-    EXPECT_EQ(memory_type, RT_MEMORY_P2P_DDR);
+  size_t no_reuse_scope_size = 3;
+  size_t index = 0U;
+  bool is_p2p_memory = true;
+  bool session_scope_memory = true;
+  memory_type =
+      p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory, workspace_reuse_flag);
+  EXPECT_EQ(memory_type, RT_MEMORY_P2P_DDR);
 
-    is_p2p_memory = false;
-    memory_type = p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory,
-                                             workspace_reuse_flag);
-    EXPECT_EQ(memory_type, (kSessionScopeMemory | RT_MEMORY_HBM));
+  is_p2p_memory = false;
+  memory_type =
+      p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory, workspace_reuse_flag);
+  EXPECT_EQ(memory_type, (kSessionScopeMemory | RT_MEMORY_HBM));
 
-    session_scope_memory = false;
-    memory_type = p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory,
-                                             workspace_reuse_flag);
-    EXPECT_EQ(memory_type, RT_MEMORY_HBM);
+  session_scope_memory = false;
+  memory_type =
+      p1->GetWorkSpaceMemoryType(no_reuse_scope_size, index, is_p2p_memory, session_scope_memory, workspace_reuse_flag);
+  EXPECT_EQ(memory_type, RT_MEMORY_HBM);
 }
 
 TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock) {
@@ -258,8 +255,7 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_data_out_anchor_null) {
   EXPECT_EQ(p1->IsZeroCopyBlock(node, 1, false), false);
 }
 
-TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_dsa)
-{
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_dsa) {
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &add = root_builder.AddNode("add", ADD, 0, 1);
   const auto &netout = root_builder.AddNode("NETOUTPUT", NETOUTPUT, 1, 1);
@@ -276,8 +272,7 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_dsa)
   EXPECT_EQ(p1->IsZeroCopyBlock(netout, 0, false), true);
 }
 
-TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl)
-{
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl) {
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &add = root_builder.AddNode("add", ADD, 0, 1);
   const auto &netout = root_builder.AddNode("NETOUTPUT", NETOUTPUT, 1, 1);
@@ -293,8 +288,7 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl)
   EXPECT_EQ(p1->IsZeroCopyBlock(add, 0, false), false);
 }
 
-TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl_with_dynamic)
-{
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl_with_dynamic) {
   ge::GetThreadLocalContext().SetGraphOption({{"ge.exec.static_model_addr_fixed", "1"}});
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &add = root_builder.AddNode("add", ADD, 0, 1);
@@ -313,8 +307,7 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_hccl_with_dynamic)
   ge::GetThreadLocalContext().SetGraphOption({{}});
 }
 
-TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_addhccl)
-{
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_addhccl) {
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &add = root_builder.AddNode("add", ADD, 0, 1);
   const auto &addhccl = root_builder.AddNode("hccl", ADD, 0, 1);
@@ -332,8 +325,7 @@ TEST_F(UtestBlockMemAssigner, IsZeroCopyBlock_unsupport_addhccl)
   EXPECT_EQ(p1->IsZeroCopyBlock(add, 0, false), false);
 }
 
-TEST_F(UtestBlockMemAssigner, IsZeroCopyBlockWithSubgraph)
-{
+TEST_F(UtestBlockMemAssigner, IsZeroCopyBlockWithSubgraph) {
   // root graph builder
   auto root_builder = block_mem_ut::GraphBuilder("root_graph");
   const auto &data = root_builder.AddNode("data", DATA, 0, 1);
@@ -463,8 +455,7 @@ TEST_F(UtestBlockMemAssigner, SubgraphDataStreamIsDifferentWithInput_CheckReuse)
   ge::ComputeGraphPtr graph = BuildSubGraphWithDiffStream();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -519,8 +510,7 @@ TEST_F(UtestBlockMemAssigner, SingleOutputConnectMultiStreamAndRefNode_CheckBloc
   ge::ComputeGraphPtr graph = BuildSingleOutputConnectMultiStreamAndRefNode();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -564,15 +554,15 @@ TEST_F(UtestBlockMemAssigner, SingleOutputConnectMultiStreamAndRefNode_CheckBloc
 //
 // 与上面用例的区别在于多了一个RefNode2，并且RefNode2的stream与a是相同的。
 //
-// 要解决的问题: 在问题代码中，ReleaseMemory时，a所在block最后一个节点是RefNode2, e去释放a的block时，不会走到need_process_diff_stream的分支中，
+// 要解决的问题: 在问题代码中，ReleaseMemory时，a所在block最后一个节点是RefNode2,
+// e去释放a的block时，不会走到need_process_diff_stream的分支中，
 // 导致a的block的GetLifeEnd函数拿到的life_end是错误的。应该是f，实际是e。
 //
 TEST_F(UtestBlockMemAssigner, SingleOutputConnectMultiStreamAndRefNode_LastRefNodeSameStream_CheckBlockOutStreamCount) {
   ge::ComputeGraphPtr graph = BuildSingleOutputConnectMultiStreamAndRefNode3();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -604,23 +594,22 @@ TEST_F(UtestBlockMemAssigner, SingleOutputConnectMultiStreamAndRefNode_LastRefNo
 //      |                   |                        |
 //      b (stream 1)-ctr-> RefNode (stream 0)  +--> RefNode2 (stream 2)
 //      |                    |                 |     |
-//      |                    c (stream 0)     ctrl    e (stream 2)(a的终点错误的找到e，正确的应该找到f，f作为流1，流0回到流2的终点)
-//      |                    |                |       |
-//      |                    d (stream 0) ----+      ctrl
-//      |                    |                        |
+//      |                    c (stream 0)     ctrl    e (stream
+//      2)(a的终点错误的找到e，正确的应该找到f，f作为流1，流0回到流2的终点) |                    |                | | |
+//      d (stream 0) ----+      ctrl |                    |                        |
 //      +---------------------+------------------------+
 //      f (stream 2)
 //      |
 //   netoutput
 //
-// 要看护的场景，在e(7)释放a所在block时，GetNodeMaxLife中返回的值应该时符号和diff stream最大的值，但是由于逻辑错误，导致返回值比symbol的还小。
+// 要看护的场景，在e(7)释放a所在block时，GetNodeMaxLife中返回的值应该时符号和diff
+// stream最大的值，但是由于逻辑错误，导致返回值比symbol的还小。
 //
 TEST_F(UtestBlockMemAssigner, SingleOutputConnectMultiStreamAndRefNode_LifeEndIsBiggerThanSymbolMax) {
   ge::ComputeGraphPtr graph = BuildSingleOutputConnectMultiStreamAndRefNode2();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -689,8 +678,7 @@ TEST_F(UtestBlockMemAssigner, SeperateAtomicCleanAndContinousInput) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -706,8 +694,8 @@ TEST_F(UtestBlockMemAssigner, SeperateAtomicCleanAndContinousInput) {
         continue;
       }
       if ((node.node_->GetOpDesc()->GetName() == "A") && (node.index_ == 1)) {
-        //此用例校验连续内存的复用关系
-        //Node[A] stream[1] output[1]'s life time is max of [2][2][4294967295], node_io[C], stream_id[3]
+        // 此用例校验连续内存的复用关系
+        // Node[A] stream[1] output[1]'s life time is max of [2][2][4294967295], node_io[C], stream_id[3]
         EXPECT_EQ(block->NodeTypeIndexList().back().out_stream_count_, 1U);
         EXPECT_EQ(block->GetLifeEnd(1), kMaxLifeTime);
         EXPECT_EQ(block->GetLifeEnd(3), 2);
@@ -737,18 +725,18 @@ TEST_F(UtestBlockMemAssigner, SeperateAtomicCleanAndContinousInput) {
   EXPECT_TRUE(has_checked);
 }
 
-  /**
-   *            A:1
-   *          ___|___
-   *         |       |
-   *        B:2     C:2
-   *         |       |
-   *         |      D:2
-   *         |_______|
-   *             |
-   *            E:1
-   */
-  // check stream 1 lifend
+/**
+ *            A:1
+ *          ___|___
+ *         |       |
+ *        B:2     C:2
+ *         |       |
+ *         |      D:2
+ *         |_______|
+ *             |
+ *            E:1
+ */
+// check stream 1 lifend
 TEST_F(UtestBlockMemAssigner, ContinousOutputResueLifeCheck) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_continuous_output_reuse");
   const string &type = "some";
@@ -788,8 +776,7 @@ TEST_F(UtestBlockMemAssigner, ContinousOutputResueLifeCheck) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -805,8 +792,8 @@ TEST_F(UtestBlockMemAssigner, ContinousOutputResueLifeCheck) {
         continue;
       }
       if ((node.node_->GetOpDesc()->GetName() == "A") && (node.index_ == 0)) {
-        //此用例校验连续内存的复用关系
-        //Node[A] stream[1] output[0]'s life time is max of [1][1][4], node_io[B], stream_id[2].
+        // 此用例校验连续内存的复用关系
+        // Node[A] stream[1] output[0]'s life time is max of [1][1][4], node_io[B], stream_id[2].
         //[A] optype[some] output[0] life time begin[0] life time end[4]
         EXPECT_EQ(block->NodeTypeIndexList().back().out_stream_count_, 1U);
         EXPECT_EQ(block->GetLifeEnd(1), 4);
@@ -814,9 +801,9 @@ TEST_F(UtestBlockMemAssigner, ContinousOutputResueLifeCheck) {
       }
 
       if (node.node_->GetOpDesc()->GetName() == "B") {
-        //此用例校验普通内存的复用关系
-        //Node[B] stream[2] output[0]'s life time is max of [4][4][4294967295], node_io[E], stream_id[1].
-        //name[B] optype[some] output[0] life time begin[1] life time end[4--4294967295]
+        // 此用例校验普通内存的复用关系
+        // Node[B] stream[2] output[0]'s life time is max of [4][4][4294967295], node_io[E], stream_id[1].
+        // name[B] optype[some] output[0] life time begin[1] life time end[4--4294967295]
         EXPECT_EQ(block->NodeTypeIndexList().back().out_stream_count_, 1U);
         EXPECT_EQ(block->GetLifeEnd(1), 4);
         EXPECT_EQ(block->GetLifeEnd(2), kMaxLifeTime);
@@ -827,18 +814,18 @@ TEST_F(UtestBlockMemAssigner, ContinousOutputResueLifeCheck) {
   EXPECT_TRUE(has_checked);
 }
 
-  /**
-   *            A:1
-   *          ___|___
-   *         |       |
-   *        B:2     C:2
-   *         |       |
-   *         |      D:2
-   *         |_______|
-   *             |
-   *            E:1
-   */
-  // check stream 1 lifend
+/**
+ *            A:1
+ *          ___|___
+ *         |       |
+ *        B:2     C:2
+ *         |       |
+ *         |      D:2
+ *         |_______|
+ *             |
+ *            E:1
+ */
+// check stream 1 lifend
 TEST_F(UtestBlockMemAssigner, FixedAddrPriorCheck) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_fixed_addr_reuse");
   const string &type = "some";
@@ -877,8 +864,7 @@ TEST_F(UtestBlockMemAssigner, FixedAddrPriorCheck) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -894,8 +880,7 @@ TEST_F(UtestBlockMemAssigner, DT_VARIANT_NotPostReuse) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
 
   std::vector<int64_t> ranges;
@@ -956,7 +941,8 @@ TEST_F(UtestBlockMemAssigner, MatchNoReuseType) {
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = builder->GetGraph();
   EXPECT_EQ(GraphUtils::GetRefMapping(mem_assist_info.compute_graph, mem_assist_info.symbol_to_anchors,
-                                      mem_assist_info.anchor_to_symbol), GRAPH_SUCCESS);
+                                      mem_assist_info.anchor_to_symbol),
+            GRAPH_SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   BinaryBlockMemAssigner mem_assigner(mem_assist_info);
 
@@ -973,7 +959,7 @@ TEST_F(UtestBlockMemAssigner, MatchNoReuseType) {
 }
 
 TEST_F(UtestBlockMemAssigner, ContinousInputToDiffStreamsNotPostReuse) {
-ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_continuous_input_reuse");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_continuous_input_reuse");
   /**
    *          a:0  b:1
    *           |___|  \
@@ -1014,8 +1000,7 @@ ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph_continuous
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
@@ -1094,7 +1079,8 @@ TEST_F(UtestBlockMemAssigner, DataOutDiffStream) {
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = builder->GetGraph();
   EXPECT_EQ(GraphUtils::GetRefMapping(mem_assist_info.compute_graph, mem_assist_info.symbol_to_anchors,
-                                      mem_assist_info.anchor_to_symbol), GRAPH_SUCCESS);
+                                      mem_assist_info.anchor_to_symbol),
+            GRAPH_SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   BinaryBlockMemAssigner mem_assigner(mem_assist_info);
   std::vector<int64_t> range_ceils;
@@ -1118,7 +1104,8 @@ TEST_F(UtestBlockMemAssigner, DataOutSameStream) {
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = builder->GetGraph();
   EXPECT_EQ(GraphUtils::GetRefMapping(mem_assist_info.compute_graph, mem_assist_info.symbol_to_anchors,
-                                      mem_assist_info.anchor_to_symbol), GRAPH_SUCCESS);
+                                      mem_assist_info.anchor_to_symbol),
+            GRAPH_SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   BinaryBlockMemAssigner mem_assigner(mem_assist_info);
   std::vector<int64_t> range_ceils;
@@ -1205,8 +1192,7 @@ TEST_F(UtestBlockMemAssigner, GetRealStreamIdForParentNode_Success) {
   ge::ComputeGraphPtr graph = BuildSubGraphWithDiffStream();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1251,8 +1237,7 @@ TEST_F(UtestBlockMemAssigner, KnownSubGraphOutputReuse) {
   auto graph = root_graph->GetAllSubgraphs().front();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1290,8 +1275,7 @@ TEST_F(UtestBlockMemAssigner, RefNodeConnectContinuousNode) {
   auto graph = BuildRefNodeConnectContinuousInputNode();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1329,8 +1313,7 @@ TEST_F(UtestBlockMemAssigner, SingleNoPaddingContinuousConnectContinuousNode) {
   auto graph = BuildSingleNoPaddingContinuousConnectContinuousInputNode();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1369,14 +1352,14 @@ TEST_F(UtestBlockMemAssigner, SingleNoPaddingContinuousConnectContinuousNode) {
  *            g(6)
  *  topo id: b is smaller than c
  *  size: a/PhonyConcat 8M, b/d 4M, others 2k
- *  预期a和d不复用，d所在block的same_stream_标记为false，以前就修改了，可以看  UtestMemoryAssignerTest, DiffMergeInputNodesNotReuse
+ *  预期a和d不复用，d所在block的same_stream_标记为false，以前就修改了，可以看  UtestMemoryAssignerTest,
+ * DiffMergeInputNodesNotReuse
  */
 TEST_F(UtestBlockMemAssigner, NoPaddingContinuousInput_MultiInputDiffStream) {
   auto graph = BuildNoPaddingContinuousMultiInputDiffStream();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1396,7 +1379,8 @@ TEST_F(UtestBlockMemAssigner, NoPaddingContinuousInput_MultiInputDiffStream) {
   ASSERT_EQ(a_out_offsets.size(), 1);
   ASSERT_EQ(d_out_offsets.size(), 1);
 
-  auto reuse = CheckIntersection({a_out_offsets.at(0), a_out_offsets.at(0) + 8 * 1024 * 1024 - 1}, {d_out_offsets.at(0), d_out_offsets.at(0) + 4 * 1024 * 1024});
+  auto reuse = CheckIntersection({a_out_offsets.at(0), a_out_offsets.at(0) + 8 * 1024 * 1024 - 1},
+                                 {d_out_offsets.at(0), d_out_offsets.at(0) + 4 * 1024 * 1024});
   std::cout << "z_out_offset: " << a_out_offsets.at(0) << " , e_out_offset: " << d_out_offsets.at(0) << std::endl;
   EXPECT_FALSE(reuse);
 }
@@ -1422,8 +1406,7 @@ TEST_F(UtestBlockMemAssigner, NoPaddingContinuousInputAndMultiStream_FirstInputN
   auto graph = BuildNoPaddingContinuousAndMultiStreamGraph();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
   std::vector<int64_t> ranges;
@@ -1443,7 +1426,8 @@ TEST_F(UtestBlockMemAssigner, NoPaddingContinuousInputAndMultiStream_FirstInputN
   ASSERT_EQ(a_out_offsets.size(), 1);
   ASSERT_EQ(d_out_offsets.size(), 1);
 
-  auto reuse = CheckIntersection({a_out_offsets.at(0), a_out_offsets.at(0) + 8 * 1024 * 1024}, {d_out_offsets.at(0), d_out_offsets.at(0) + 4 * 1024 * 1024});
+  auto reuse = CheckIntersection({a_out_offsets.at(0), a_out_offsets.at(0) + 8 * 1024 * 1024},
+                                 {d_out_offsets.at(0), d_out_offsets.at(0) + 4 * 1024 * 1024});
   std::cout << "z_out_offset: " << a_out_offsets.at(0) << " , e_out_offset: " << d_out_offsets.at(0) << std::endl;
   EXPECT_FALSE(reuse);
 }
@@ -1477,8 +1461,7 @@ TEST_F(UtestBlockMemAssigner, GetRealStreamIdForParentNode_NestingAndDiffStream)
   ge::ComputeGraphPtr graph = BuildNestingWrapperWithSubgraphNodeDiffStream();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1543,15 +1526,14 @@ TEST_F(UtestBlockMemAssigner, GetDiffStreamEdgeLife_Success_CheckAllEdge) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
   std::vector<int64_t> ranges;
   BinaryBlockMemAssigner assigner(mem_assist_info);
   assigner.SetReuseStrategy(ReuseStrategy{false, true, false, true});
-  
+
   ASSERT_EQ(assigner.GetMemoryRanges(ranges), SUCCESS);
   ASSERT_EQ(assigner.in_stream_edges_[1][0].size(), 1U);
   ASSERT_EQ(assigner.in_stream_edges_[2][0].size(), 1U);
@@ -1608,8 +1590,7 @@ TEST_F(UtestBlockMemAssigner, GetDiffStreamEdgeLife_Success_EraseIntersectedEdge
   MemConflictShareGraph::TopologicalSortingMock(graph, {"a", "b", "c", "d", "e"});
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1662,8 +1643,7 @@ TEST_F(UtestBlockMemAssigner, GetDiffStreamEdgeLife_Success_CheckOutEdge) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1694,8 +1674,7 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_AsFirstAndSecondInput) {
   auto graph = block_mem_ut::BuildPhonyConcatWithSameInputThrougRefNode();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1731,8 +1710,7 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_PhonyConcat) {
   auto graph = BuildNoPaddingContinuousAndMultiStreamGraph();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1767,8 +1745,7 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_Hcom_WithoutLxFusion) {
   auto graph = BuildSingleNoPaddingContinuousConnectContinuousInputNode();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1808,8 +1785,7 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_Hcom_WithLxFusion) {
 
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1842,8 +1818,7 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_Cascaded_Success) {
   auto graph = MemConflictShareGraph::BuildNoPaddingContinuousInCascadedGraph();
   MemAssistInfo mem_assist_info;
   mem_assist_info.compute_graph = graph;
-  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors,
-                                       mem_assist_info.anchor_to_symbol);
+  auto ret = GraphUtils::GetRefMapping(graph, mem_assist_info.symbol_to_anchors, mem_assist_info.anchor_to_symbol);
   EXPECT_EQ(ret, SUCCESS);
   BlockMemAssigner::PreparationForAssign(mem_assist_info);
 
@@ -1885,26 +1860,26 @@ TEST_F(UtestBlockMemAssigner, GetNoNeedAssignMemoryFlag_Cascaded_Success) {
   EXPECT_TRUE(no_need_assign_memory_flag);
 }
 
-  TEST_F(UtestBlockMemAssigner, CanReuseZeroCopyBlock_unsupport_custom) {
-    auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
-    auto n = builder->AddNode("node", DATA, 1, 1);
-    auto custom_node = builder->AddNode("custom_node", ADD, 1, 1);
-    builder->AddDataEdge(n, 0, custom_node, 0);
+TEST_F(UtestBlockMemAssigner, CanReuseZeroCopyBlock_unsupport_custom) {
+  auto builder = std::make_shared<block_mem_ut::GraphBuilder>("graph");
+  auto n = builder->AddNode("node", DATA, 1, 1);
+  auto custom_node = builder->AddNode("custom_node", ADD, 1, 1);
+  builder->AddDataEdge(n, 0, custom_node, 0);
 
-    NodeIndexIO node_index_io(n, 0, kOut);
-    NodeIndexIO custom_node_index_io(custom_node, 0, kIn);
-    MemAssistInfo mem_assist_info;
-    mem_assist_info.anchor_to_symbol[node_index_io.ToString()] = node_index_io.ToString();
+  NodeIndexIO node_index_io(n, 0, kOut);
+  NodeIndexIO custom_node_index_io(custom_node, 0, kIn);
+  MemAssistInfo mem_assist_info;
+  mem_assist_info.anchor_to_symbol[node_index_io.ToString()] = node_index_io.ToString();
 
-    std::list<NodeIndexIO> symbol_list;
-    symbol_list.push_back(custom_node_index_io);
-    mem_assist_info.symbol_to_anchors.insert(pair<std::string, std::list<NodeIndexIO>>("node_out_0", symbol_list));
+  std::list<NodeIndexIO> symbol_list;
+  symbol_list.push_back(custom_node_index_io);
+  mem_assist_info.symbol_to_anchors.insert(pair<std::string, std::list<NodeIndexIO>>("node_out_0", symbol_list));
 
-    custom_node->GetOpDesc()->SetOpKernelLibName(ge::kCustomOpKernelLibName.c_str());
+  custom_node->GetOpDesc()->SetOpKernelLibName(ge::kCustomOpKernelLibName.c_str());
 
-    BinaryBlockMemAssigner mem_assigner(mem_assist_info);
-    bool is_reuse_zero_copy = true;
-    EXPECT_EQ(mem_assigner.GetAllRefCount(node_index_io, is_reuse_zero_copy), 1);
-    EXPECT_EQ(is_reuse_zero_copy, false);
-  }
-} // namespace ge
+  BinaryBlockMemAssigner mem_assigner(mem_assist_info);
+  bool is_reuse_zero_copy = true;
+  EXPECT_EQ(mem_assigner.GetAllRefCount(node_index_io, is_reuse_zero_copy), 1);
+  EXPECT_EQ(is_reuse_zero_copy, false);
+}
+}  // namespace ge

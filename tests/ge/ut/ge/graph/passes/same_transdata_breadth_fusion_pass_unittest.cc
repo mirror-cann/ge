@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,17 +26,17 @@ using namespace std;
 
 namespace {
 REG_OP(Cast)
-.INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                      DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                      DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* input tensor */
-.OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                       DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                       DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* output tensor */
-.ATTR(dst_type, Int, 0)
-.ATTR(truncate, Bool, false)
-.OP_END_FACTORY_REG(Cast)
+    .INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                          DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                          DT_QUINT16, DT_QINT32})) /* input tensor */
+    .OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                           DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                           DT_QUINT16, DT_QINT32})) /* output tensor */
+    .ATTR(dst_type, Int, 0)
+    .ATTR(truncate, Bool, false)
+    .OP_END_FACTORY_REG(Cast)
 
-struct NodeIO {
+        struct NodeIO {
   std::string node_nmae;
   std::vector<uint32_t> in_indexes;
   std::vector<uint32_t> out_indexes;
@@ -69,8 +69,8 @@ bool CheckTensorDesc(const ComputeGraphPtr &root_graph, std::vector<NodeIO> &nod
     for (const auto index : node_io.in_indexes) {
       if (index >= node->GetOpDesc()->GetInputsSize()) {
         std::cout << "========================================" << std::endl;
-        std::cout << node_io.node_nmae << " input[" << index << "] is larger than actual inputs size: "
-                  <<  node->GetOpDesc()->GetInputsSize() << std::endl;
+        std::cout << node_io.node_nmae << " input[" << index
+                  << "] is larger than actual inputs size: " << node->GetOpDesc()->GetInputsSize() << std::endl;
         std::cout << "========================================" << std::endl;
         GE_DUMP(root_graph, "CheckTensorDesc_failed");
         return false;
@@ -88,8 +88,8 @@ bool CheckTensorDesc(const ComputeGraphPtr &root_graph, std::vector<NodeIO> &nod
     for (const auto index : node_io.out_indexes) {
       if (index >= node->GetOpDesc()->GetOutputsSize()) {
         std::cout << "========================================" << std::endl;
-        std::cout << node_io.node_nmae << " output[" << index << "] is larger than actual outputs size: "
-                  <<  node->GetOpDesc()->GetOutputsSize() << std::endl;
+        std::cout << node_io.node_nmae << " output[" << index
+                  << "] is larger than actual outputs size: " << node->GetOpDesc()->GetOutputsSize() << std::endl;
         std::cout << "========================================" << std::endl;
         GE_DUMP(root_graph, "CheckTensorDesc_failed");
         return false;
@@ -258,8 +258,8 @@ bool CheckConnection(const ComputeGraphPtr &graph, std::vector<NodeOutIndex> &pa
     }
     if (path[i].second >= firt_node->GetOutDataNodesAndAnchors().size()) {
       std::cout << "========================================" << std::endl;
-      std::cout << path[i].first << " index: " << path[i].second << " is larger than  actrual output size: "
-                << firt_node->GetOutDataNodesAndAnchors().size()
+      std::cout << path[i].first << " index: " << path[i].second
+                << " is larger than  actrual output size: " << firt_node->GetOutDataNodesAndAnchors().size()
                 << ", i: " << i << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(graph, "CheckConnection_failed");
@@ -268,9 +268,9 @@ bool CheckConnection(const ComputeGraphPtr &graph, std::vector<NodeOutIndex> &pa
     auto first_out = firt_node->GetOutDataAnchor(path[i].second);
     if (first_out == nullptr) {
       std::cout << "========================================" << std::endl;
-      std::cout << path[i].first << " index: " << path[i].second << " out_anchor is null. output size: "
-                << firt_node->GetOutDataNodesAndAnchors().size()
-                << ", i: " << i << std::endl;
+      std::cout << path[i].first << " index: " << path[i].second
+                << " out_anchor is null. output size: " << firt_node->GetOutDataNodesAndAnchors().size() << ", i: " << i
+                << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(graph, "CheckConnection_failed");
       return false;
@@ -302,7 +302,8 @@ bool CheckConnection(const ComputeGraphPtr &graph, std::vector<std::vector<NodeO
   return true;
 }
 
-bool SetTransDataTensorDesc(const ComputeGraphPtr &root_graph, const std::vector<std::string> &node_names, Format format = FORMAT_NCL) {
+bool SetTransDataTensorDesc(const ComputeGraphPtr &root_graph, const std::vector<std::string> &node_names,
+                            Format format = FORMAT_NCL) {
   GeTensorDesc tensor_desc{GeShape{{2022, 2023}}, format, DT_FLOAT16};
   std::map<std::string, NodePtr> all_transdata_map;
   for (auto &node : root_graph->GetAllNodes()) {
@@ -357,14 +358,16 @@ bool AddParentIndexForNetoutput(ComputeGraphPtr &root_graph, NetoutputParentInde
   }
   return true;
 }
-}
+}  // namespace
 
 class StubKernelInfoStore : public ge::OpsKernelInfoStore {
  public:
   Status Initialize(const std::map<std::string, std::string> &options) override {
     return 0U;
   }
-  Status Finalize() override {return true;};
+  Status Finalize() override {
+    return true;
+  };
   void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {}
   virtual bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override {
     return true;
@@ -406,6 +409,7 @@ class UtestGraphPassesSameTransdataBreadthFusionPass : public testing::Test {
     auto instance = GELib::GetInstance();
     instance->Finalize();
   }
+
  protected:
   void SetUp() {
     global_options_ = ge::GetThreadLocalContext().GetAllGlobalOptions();
@@ -428,7 +432,9 @@ class UtestGraphPassesSameTransdataBreadthFusionPass : public testing::Test {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
@@ -442,7 +448,9 @@ class NodeBuilder {
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) { return graph->AddNode(op_desc_); }
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
+    return graph->AddNode(op_desc_);
+  }
 
  private:
   ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
@@ -480,9 +488,9 @@ static void CreateGraph(ComputeGraphPtr &graph) {
                                      .Build(graph);
   // sinh1
   ge::NodePtr node_sinh_1 = NodeBuilder("node_sinh_1", SINH)
-                              .AddInputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
-                              .AddOutputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
-                              .Build(graph);
+                                .AddInputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   // cast2
   ge::NodePtr node_cast_2 = NodeBuilder("node_cast_2", CAST)
                                 .AddInputDesc({2, 16, 2, 2}, FORMAT_NCHW, DT_BOOL)
@@ -498,9 +506,9 @@ static void CreateGraph(ComputeGraphPtr &graph) {
 
   // sinh2
   ge::NodePtr node_sinh_2 = NodeBuilder("node_sinh_2", SINH)
-                              .AddInputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
-                              .AddOutputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
-                              .Build(graph);
+                                .AddInputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({2, 1, 2, 2, 16}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // add edge
   ge::GraphUtils::AddEdge(node_data->GetOutDataAnchor(0), node_cast_1->GetInDataAnchor(0));
@@ -539,16 +547,19 @@ static void CreateGraph(ComputeGraphPtr &graph) {
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataFromSubGraph_AddNewData_DoFusion) {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_cast", CAST)->NODE("sub_transdata", TRANSDATA)
-                               ->NODE("sub_add0", ADD)->NODE("netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_data", sub_data)->EDGE(0, 0)->NODE("sub_add1", ADD)->NODE("netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_cast", CAST)
+              ->NODE("sub_transdata", TRANSDATA)
+              ->NODE("sub_add0", ADD)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_data", sub_data)->EDGE(0, 0)->NODE("sub_add1", ADD)->NODE("netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
 
   sub_1.Layout();
   const auto compute_graph = ToComputeGraph(g1);
@@ -619,23 +630,28 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataFromSubSubGraph_AddNewData_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->EDGE(0, 0)->NODE("sub_sub_add1", ADD)
-                                   ->NODE("sub_sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("sub_sub_add1", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -648,14 +664,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "sub_sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0, 1}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0, 1}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
   SameTransdataBreadthFusionPass pass;
 
@@ -664,16 +678,14 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 
   UtPaths root_graph_path = {{{"data", 0}, {"sub_sub_transdata", 0}, {"cast", 0}},
                              {{"data", 0}, {"partitioned_call", 0}},
-                             {{"sub_sub_transdata", 0}, {"partitioned_call", 0}}
-  };
+                             {{"sub_sub_transdata", 0}, {"partitioned_call", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   std::vector<NodeOutIndex> path2 = {{"sub_data", 0}, {"sub_partitioned_call", 0}, {"sub_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_1, path2));
 
   UtPaths paths3{{{"sub_sub_data", 0}, {"sub_sub_add1", 0}},
-                 {{"sub_sub_1_transdata_fusion_arg_1", 0}, {"sub_sub_cast", 0}, {"sub_sub_add0", 0}}
-  };
+                 {{"sub_sub_1_transdata_fusion_arg_1", 0}, {"sub_sub_cast", 0}, {"sub_sub_add0", 0}}};
   ASSERT_TRUE(CheckConnection(sub_sub_graph_1, paths3));
 
   std::vector<NodeIO> check_nodes = {{"cast", {0}, {0}},
@@ -684,12 +696,11 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_sub_cast", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}},
-      {"sub_sub_data", {}, {0}},
-      {"sub_data", {0}, {0}},
-      {"partitioned_call", {0}, {0}},
-      {"sub_partitioned_call", {0}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}},
+                                           {"sub_sub_data", {}, {0}},
+                                           {"sub_data", {0}, {0}},
+                                           {"partitioned_call", {0}, {0}},
+                                           {"sub_partitioned_call", {0}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -716,14 +727,14 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
  *     if (has two subgraph) [改动点]新增了一个输入
  *
  * if_subgraph               then_subgraph
- * +------------------+      +-------------------------------------------------+ [改动点]新增了一个data, transdata被提取出去
- * | data--cast-add   |      |             +--add                              |
+ * +------------------+      +-------------------------------------------------+ [改动点]新增了一个data,
+ * transdata被提取出去 | data--cast-add   |      |             +--add                              |
  * +------------------+      |             |                                   |
  *                           | data--cast--+--partitioned_call--cast-netoutput |
  *                           |                    |                            |
- *                           |  +-----------------------------------------+    | [改动点]新增了一个data, transdata被提取出去
- *                           |  | data------------ cast--add--netoutput   |    |
- *                           |  +-----------------------------------------+    |
+ *                           |  +-----------------------------------------+    | [改动点]新增了一个data,
+ * transdata被提取出去 |  | data------------ cast--add--netoutput   |    | | +-----------------------------------------+
+ * |
  *                           +-------------------------------------------------+
  *
  * 关注点：data节点，对应父节点的输入有可能是新增的，校验数据类型
@@ -735,30 +746,38 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
   ge::GetThreadLocalContext().SetSessionOption({});
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_add", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_add", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-                     CHAIN(NODE("if_sub_data", if_sub_data)->NODE("if_cast", CAST)->NODE("if_add", ADD)
-                               ->NODE("if_sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("if_sub_data", if_sub_data)
+              ->NODE("if_cast", CAST)
+              ->NODE("if_add", ADD)
+              ->NODE("if_sub_netoutput", NETOUTPUT));
+  };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_cast1", CAST)->EDGE(0, 0)
-                                  ->NODE("then_transdata", TRANSDATA)
-                                  ->NODE("then_add", ADD)->NODE("then_sub_netoutput", NETOUTPUT));
-                        CHAIN(NODE("then_cast1", CAST)->EDGE(0, 0)
-                                  ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                                  ->NODE("then_cast2", CAST)->NODE("then_sub_netoutput", NETOUTPUT));
-                    };
+    CHAIN(NODE("then_sub_data", then_sub_data)
+              ->NODE("then_cast1", CAST)
+              ->EDGE(0, 0)
+              ->NODE("then_transdata", TRANSDATA)
+              ->NODE("then_add", ADD)
+              ->NODE("then_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("then_cast1", CAST)
+              ->EDGE(0, 0)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("then_cast2", CAST)
+              ->NODE("then_sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("transdata", TRANSDATA)->NODE("cast", CAST)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("if", IF, if_sub, then_sub)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("transdata", TRANSDATA)->NODE("cast", CAST)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("if", IF, if_sub, then_sub)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   if_sub.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -773,10 +792,10 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
   compute_graph->TopologicalSorting();
-  std::vector<std::string> fp16_nodes {"data", "transdata", "if_sub_data", "then_sub_data"};
+  std::vector<std::string> fp16_nodes{"data", "transdata", "if_sub_data", "then_sub_data"};
   SetDataTypeForNode(compute_graph, fp16_nodes, DT_FLOAT16);
 
-  std::vector<std::string> fp16_nodes_inputs {"cast", "if", "if_cast", "then_cast1"};
+  std::vector<std::string> fp16_nodes_inputs{"cast", "if", "if_cast", "then_cast1"};
   SetDataTypeForNodeInputs(compute_graph, fp16_nodes_inputs, DT_FLOAT16);
 
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
@@ -790,10 +809,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
   ge::graphStatus status = pass.Run(compute_graph);
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
-  UtPaths root_graph_path = {{{"data", 0}, {"transdata", 0}, {"cast", 0}},
-                             {{"data", 0}, {"if", 0}},
-                             {{"transdata", 0}, {"if", 0}}
-  };
+  UtPaths root_graph_path = {
+      {{"data", 0}, {"transdata", 0}, {"cast", 0}}, {{"data", 0}, {"if", 0}}, {{"transdata", 0}, {"if", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   const auto if_sub_graph = compute_graph->GetSubgraph("if_sub");
@@ -801,32 +818,24 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
   std::vector<NodeOutIndex> path2 = {{"if_sub_data", 0}, {"if_cast", 0}, {"if_add", 0}};
   ASSERT_TRUE(CheckConnection(if_sub_graph, path2));
 
-  UtPaths paths3{{{"sub_sub_data", 0}, {"sub_sub_cast", 0}, {"sub_sub_add", 0}}
-  };
+  UtPaths paths3{{{"sub_sub_data", 0}, {"sub_sub_cast", 0}, {"sub_sub_add", 0}}};
   ASSERT_TRUE(CheckConnection(sub_sub_graph_1, paths3));
 
   UtPaths path4 = {{{"then_sub_transdata_fusion_arg_1", 0}, {"then_cast1", 0}, {"then_add", 0}},
                    {{"then_cast1", 0}, {"sub_partitioned_call", 0}}};
   ASSERT_TRUE(CheckConnection(then_sub_graph, path4));
 
-
-  std::vector<NodeIO> check_nodes = {
-                                     {"if", {1}, {}},
+  std::vector<NodeIO> check_nodes = {{"if", {1}, {}},
                                      {"then_sub_transdata_fusion_arg_1", {0}, {0}},
                                      {"then_cast1", {0}, {0}},
                                      {"sub_partitioned_call", {0}, {}},
                                      {"sub_sub_data", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}},
-      {"if", {0}, {}},
-      {"if_sub_data", {0}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}}, {"if", {0}, {}}, {"if_sub_data", {0}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 
-  std::vector<NodeIO> data_type_fp16_nodes = {
-      {"if", {1}, {}},
-      {"then_sub_transdata_fusion_arg_1", {0}, {0}}};
+  std::vector<NodeIO> data_type_fp16_nodes = {{"if", {1}, {}}, {"then_sub_transdata_fusion_arg_1", {0}, {0}}};
   ASSERT_TRUE(CheckNodesDataType(compute_graph, data_type_fp16_nodes, DT_FLOAT16));
 }
 
@@ -848,19 +857,25 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, IfTwoSubgraphs_NotFuse) {
 
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-                      CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)
-                                ->NODE("if_sub_netoutput", NETOUTPUT));
-                      CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_transdata", TRANSDATA)->NODE("if_relu", RELU)->Ctrl()
-                                ->NODE("if_sub_netoutput", NETOUTPUT));
-                    };
+    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("if_transdata", TRANSDATA)
+              ->NODE("if_relu", RELU)
+              ->Ctrl()
+              ->NODE("if_sub_netoutput", NETOUTPUT));
+  };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
-                      };
+    CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("if", IF, if_sub, then_sub)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+  };
 
   auto compute_graph = ToComputeGraph(g1);
   const auto then_sub_graph = compute_graph->GetSubgraph("then_sub");
@@ -916,21 +931,25 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, IfTwoSubgraphs_NotFuse) {
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataFromSubSubGraph_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_cast", CAST)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_cast", CAST)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -943,14 +962,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "sub_sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
   SameTransdataBreadthFusionPass pass;
 
@@ -958,8 +975,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   UtPaths root_graph_path = {{{"data", 0}, {"sub_sub_transdata", 0}, {"cast", 0}},
-                             {{"sub_sub_transdata", 0}, {"partitioned_call", 0}}
-  };
+                             {{"sub_sub_transdata", 0}, {"partitioned_call", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   std::vector<NodeOutIndex> path2 = {{"sub_data", 0}, {"sub_cast", 0}, {"sub_partitioned_call", 0}};
@@ -976,11 +992,9 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_sub_cast", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
-
 
 /*
  *  data--cast--transdata--netoutput
@@ -1015,22 +1029,26 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataFromSubGraphAndSubSubGraph_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_cast", CAST)
-                                   ->NODE("sub_sub_transdata", TRANSDATA)
-                                   ->NODE("sub_sub_add0", ADD)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)
+              ->NODE("sub_sub_cast", CAST)
+              ->NODE("sub_sub_transdata", TRANSDATA)
+              ->NODE("sub_sub_add0", ADD)
+              ->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_cast1", CAST)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_cast1", CAST)->EDGE(0, 0)->NODE("sub_transdata", TRANSDATA)->NODE("sub_cast2", CAST));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_cast1", CAST)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_cast1", CAST)->EDGE(0, 0)->NODE("sub_transdata", TRANSDATA)->NODE("sub_cast2", CAST));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1043,14 +1061,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "sub_transdata", "sub_sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
   SameTransdataBreadthFusionPass pass;
 
@@ -1058,8 +1074,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   UtPaths root_graph_path = {{{"data", 0}, {"sub_transdata", 0}, {"cast", 0}},
-                             {{"sub_transdata", 0}, {"partitioned_call", 0}}
-  };
+                             {{"sub_transdata", 0}, {"partitioned_call", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   UtPaths path2 = {{{"sub_data", 0}, {"sub_cast1", 0}, {"sub_partitioned_call", 0}},
@@ -1077,8 +1092,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_sub_cast", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1111,19 +1125,22 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataThroughSubSubGraph_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_cast", CAST)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_transdata", TRANSDATA)->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_cast", CAST)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_transdata", TRANSDATA)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1136,14 +1153,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "sub_transdata"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   SameTransdataBreadthFusionPass pass;
@@ -1151,27 +1166,22 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   UtPaths root_graph_path = {{{"data", 0}, {"sub_transdata", 0}, {"cast", 0}},
-                             {{"sub_transdata", 0}, {"partitioned_call", 0}}
-  };
+                             {{"sub_transdata", 0}, {"partitioned_call", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
-  std::vector<NodeOutIndex> path2 = {{"sub_data", 0}, {"sub_cast", 0}, {"sub_partitioned_call", 0}, {"sub_netoutput", 0}};
+  std::vector<NodeOutIndex> path2 = {
+      {"sub_data", 0}, {"sub_cast", 0}, {"sub_partitioned_call", 0}, {"sub_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_1, path2));
 
   UtPaths paths3{{{"sub_sub_data", 0}, {"sub_sub_netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(sub_sub_graph_1, paths3));
 
-  std::vector<NodeIO> check_nodes = {{"cast", {0}, {0}},
-                                     {"sub_sub_data", {}, {0}},
-                                     {"sub_sub_netoutput", {0}, {}},
-                                     {"sub_data", {0}, {0}},
-                                     {"partitioned_call", {0}, {}},
-                                     {"sub_partitioned_call", {0}, {0}}};
+  std::vector<NodeIO> check_nodes = {
+      {"cast", {0}, {0}},     {"sub_sub_data", {}, {0}},     {"sub_sub_netoutput", {0}, {}},
+      {"sub_data", {0}, {0}}, {"partitioned_call", {0}, {}}, {"sub_partitioned_call", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}},
-      {"partitioned_call", {}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}}, {"partitioned_call", {}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1207,23 +1217,26 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
  * |               +-----------------+                |
  * +--------------------------------------------------+
  */
-TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataThroughSubSubGraph_AddNewData_DoFusion) {
+TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
+       DiffGraph_ExtractTransdataThroughSubSubGraph_AddNewData_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_transdata", TRANSDATA)->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_partitioned_call", PARTITIONEDCALL)->EDGE(0, 0)->NODE("mul", MUL));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_transdata", TRANSDATA)
+              ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_partitioned_call", PARTITIONEDCALL)->EDGE(0, 0)->NODE("mul", MUL));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1236,31 +1249,31 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "sub_transdata"}));
-  SetDataTypeForNode(compute_graph, {"data", "partitioned_call", "sub_data", "sub_partitioned_call", "sub_transdata",
-                                    "sub_sub_data", "sub_sub_netoutput"}, DT_FLOAT16);
+  SetDataTypeForNode(compute_graph,
+                     {"data", "partitioned_call", "sub_data", "sub_partitioned_call", "sub_transdata", "sub_sub_data",
+                      "sub_sub_netoutput"},
+                     DT_FLOAT16);
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   SameTransdataBreadthFusionPass pass;
   ge::graphStatus status = pass.Run(compute_graph);
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
-  UtPaths root_graph_path = {{{"data", 0}, {"sub_transdata", 0}, {"cast", 0}},
-                             {{"sub_transdata", 0}, {"partitioned_call", 0}},
-                             {{"data", 0}, {"partitioned_call", 1}},
+  UtPaths root_graph_path = {
+      {{"data", 0}, {"sub_transdata", 0}, {"cast", 0}},
+      {{"sub_transdata", 0}, {"partitioned_call", 0}},
+      {{"data", 0}, {"partitioned_call", 1}},
   };
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   UtPaths path2 = {{{"sub_data", 0}, {"sub_partitioned_call", 1}, {"sub_netoutput", 0}},
-                   {{"sub_1_transdata_fusion_arg_1", 0}, {"sub_partitioned_call", 0}, {"mul", 0}}
-  };
+                   {{"sub_1_transdata_fusion_arg_1", 0}, {"sub_partitioned_call", 0}, {"mul", 0}}};
   ASSERT_TRUE(CheckConnection(sub_graph_1, path2));
 
   UtPaths paths3{{{"sub_sub_data", 0}, {"sub_sub_netoutput", 0}},
@@ -1275,15 +1288,13 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_sub_netoutput", {1}, {}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}},
-      {"partitioned_call", {0}, {}},
-      {"sub_data", {0}, {0}},
-      {"sub_partitioned_call", {0}, {0}},
-      {"sub_netoutput", {0}, {}},
-      {"sub_sub_data", {0}, {0}},
-      {"sub_sub_netoutput", {0}, {0}}
-  };
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}},
+                                           {"partitioned_call", {0}, {}},
+                                           {"sub_data", {0}, {0}},
+                                           {"sub_partitioned_call", {0}, {0}},
+                                           {"sub_netoutput", {0}, {}},
+                                           {"sub_sub_data", {0}, {0}},
+                                           {"sub_sub_netoutput", {0}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 
   std::vector<NodeIO> check_dtype_nodes = {{"sub_sub_netoutput", {1}, {}},
@@ -1322,19 +1333,23 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataThroughDoubleSubGraph_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1347,14 +1362,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "transdata1"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   SameTransdataBreadthFusionPass pass;
@@ -1362,8 +1375,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   UtPaths root_graph_path = {{{"data", 0}, {"transdata1", 0}, {"cast", 0}},
-                             {{"transdata1", 0}, {"partitioned_call", 0}, {"netoutput", 0}}
-  };
+                             {{"transdata1", 0}, {"partitioned_call", 0}, {"netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   std::vector<NodeOutIndex> path2 = {{"sub_data", 0}, {"sub_partitioned_call", 0}, {"sub_netoutput", 0}};
@@ -1381,8 +1393,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_partitioned_call", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}}};
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1414,23 +1425,28 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
  * |      +-----------------+            |
  * +-------------------------------------+
  */
-TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataThroughDoubleSubGraph_AddNewData_DoFusion) {
+TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
+       DiffGraph_ExtractTransdataThroughDoubleSubGraph_AddNewData_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->EDGE(0, 0)->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->EDGE(0, 0)->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
@@ -1443,14 +1459,12 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   sub_sub_1_graph->SetParentNode(sub_partitioned_call_node);
   compute_graph->AddSubGraph(sub_sub_1_graph);
 
-
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"transdata", "transdata1"}));
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   SameTransdataBreadthFusionPass pass;
@@ -1458,8 +1472,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   UtPaths root_graph_path = {{{"data", 0}, {"transdata1", 0}, {"cast", 0}},
-                             {{"transdata1", 0}, {"partitioned_call", 1}, {"netoutput", 0}}
-  };
+                             {{"transdata1", 0}, {"partitioned_call", 1}, {"netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   UtPaths path2 = {{{"sub_data", 0}, {"sub_partitioned_call", 0}, {"sub_netoutput", 0}},
@@ -1479,16 +1492,14 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                                      {"sub_sub_1_transdata_fusion_arg_1", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {
-      {"data", {}, {0}},
-      {"sub_sub_data", {}, {0}},
-      {"sub_sub_netoutput", {0}, {}},
-      {"sub_data", {0}, {0}},
-      {"sub_partitioned_call", {0}, {0}},
-      {"sub_netoutput", {0}, {}},
-      {"partitioned_call", {0}, {0}},
-      {"netoutput", {0,2}, {}}
-  };
+  std::vector<NodeIO> not_changed_nodes = {{"data", {}, {0}},
+                                           {"sub_sub_data", {}, {0}},
+                                           {"sub_sub_netoutput", {0}, {}},
+                                           {"sub_data", {0}, {0}},
+                                           {"sub_partitioned_call", {0}, {0}},
+                                           {"sub_netoutput", {0}, {}},
+                                           {"partitioned_call", {0}, {0}},
+                                           {"netoutput", {0, 2}, {}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1538,22 +1549,23 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataToSubGraph_DoFusion) {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_mul", MUL)->NODE("sub_transdata", TRANSDATA)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_cast", CAST)->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_add", ADD)->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 3)->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_mul", MUL)
+              ->NODE("sub_transdata", TRANSDATA)
+              ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_cast", CAST)->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_add", ADD)->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 3)->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("mul1", MUL)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)
-                            ->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("mul2", MUL)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata2", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("mul1", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("mul2", MUL)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata2", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
@@ -1572,8 +1584,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   UtPaths root_graph_path = {{{"data", 0}, {"partitioned_call", 0}, {"mul1", 0}, {"netoutput", 0}},
                              {{"partitioned_call", 1}, {"netoutput", 0}},
                              {{"partitioned_call", 3}, {"netoutput", 0}},
-                             {{"partitioned_call", 2}, {"mul2", 0}, {"netoutput", 0}}
-  };
+                             {{"partitioned_call", 2}, {"mul2", 0}, {"netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   UtPaths path2 = {{{"sub_data", 0}, {"sub_mul", 0}, {"sub_add", 0}, {"sub_netoutput", 0}},
@@ -1582,19 +1593,13 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                    {{"sub_transdata", 0}, {"sub_netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(sub_graph_1, path2));
 
-  std::vector<NodeIO> check_nodes = {{"sub_cast", {0}, {0}},
-                                     {"partitioned_call", {}, {1,3}},
-                                     {"sub_netoutput", {1,3}, {}}};
+  std::vector<NodeIO> check_nodes = {
+      {"sub_cast", {0}, {0}}, {"partitioned_call", {}, {1, 3}}, {"sub_netoutput", {1, 3}, {}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
   std::vector<NodeIO> not_changed_nodes = {
-      {"sub_data", {0}, {0}},
-      {"sub_mul", {0}, {0}},
-      {"sub_add", {0}, {0}},
-      {"sub_netoutput", {2}, {}},
-      {"partitioned_call", {}, {0,2}},
-      {"mul2", {0}, {0}}
-  };
+      {"sub_data", {0}, {0}},           {"sub_mul", {0}, {0}}, {"sub_add", {0}, {0}}, {"sub_netoutput", {2}, {}},
+      {"partitioned_call", {}, {0, 2}}, {"mul2", {0}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1653,30 +1658,32 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdataToSubSubGraph_DoFusion) {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_mul", MUL)->NODE("sub_transdata", TRANSDATA)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_cast", CAST)->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_add", ADD)->NODE("sub_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub_mul")->EDGE(0, 3)->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_mul", MUL)
+              ->NODE("sub_transdata", TRANSDATA)
+              ->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_cast", CAST)->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 0)->NODE("sub_add", ADD)->NODE("sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub_mul")->EDGE(0, 3)->NODE("sub_netoutput", NETOUTPUT));
+  };
   const auto middle_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(middle_sub) {
-                          CHAIN(NODE("middle_data", middle_data)->NODE("middle_partitioned_call", PARTITIONEDCALL, sub_1)
-                                    ->NODE("middle_netoutput",NETOUTPUT));
-                          CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput",NETOUTPUT));
-                          CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput",NETOUTPUT));
-                          CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput",NETOUTPUT));
-                        };
+    CHAIN(NODE("middle_data", middle_data)
+              ->NODE("middle_partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("middle_netoutput", NETOUTPUT));
+    CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput", NETOUTPUT));
+    CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput", NETOUTPUT));
+    CHAIN(NODE("middle_partitioned_call", PARTITIONEDCALL)->NODE("middle_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("partitioned_call", PARTITIONEDCALL, middle_sub)
-                            ->NODE("mul1", MUL)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)
-                            ->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("mul2", MUL)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata2", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("partitioned_call", PARTITIONEDCALL, middle_sub)
+              ->NODE("mul1", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("mul2", MUL)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("transdata2", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   auto sub1_graph = ToComputeGraph(sub_1);
@@ -1702,8 +1709,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
   UtPaths root_graph_path = {{{"data", 0}, {"partitioned_call", 0}, {"mul1", 0}, {"netoutput", 0}},
                              {{"partitioned_call", 1}, {"netoutput", 0}},
                              {{"partitioned_call", 3}, {"netoutput", 0}},
-                             {{"partitioned_call", 2}, {"mul2", 0}, {"netoutput", 0}}
-  };
+                             {{"partitioned_call", 2}, {"mul2", 0}, {"netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, root_graph_path));
 
   UtPaths path2 = {{{"sub_data", 0}, {"sub_mul", 0}, {"sub_add", 0}, {"sub_netoutput", 0}},
@@ -1712,19 +1718,13 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
                    {{"sub_transdata", 0}, {"sub_netoutput", 0}}};
   ASSERT_TRUE(CheckConnection(sub1_graph, path2));
 
-  std::vector<NodeIO> check_nodes = {{"sub_cast", {0}, {0}},
-                                     {"partitioned_call", {}, {1,3}},
-                                     {"sub_netoutput", {1,3}, {}}};
+  std::vector<NodeIO> check_nodes = {
+      {"sub_cast", {0}, {0}}, {"partitioned_call", {}, {1, 3}}, {"sub_netoutput", {1, 3}, {}}};
   ASSERT_TRUE(CheckTensorDesc(compute_graph, check_nodes));
 
   std::vector<NodeIO> not_changed_nodes = {
-      {"sub_data", {0}, {0}},
-      {"sub_mul", {0}, {0}},
-      {"sub_add", {0}, {0}},
-      {"sub_netoutput", {2}, {}},
-      {"partitioned_call", {}, {0,2}},
-      {"mul2", {0}, {0}}
-  };
+      {"sub_data", {0}, {0}},           {"sub_mul", {0}, {0}}, {"sub_add", {0}, {0}}, {"sub_netoutput", {2}, {}},
+      {"partitioned_call", {}, {0, 2}}, {"mul2", {0}, {0}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(compute_graph, not_changed_nodes));
 }
 
@@ -1754,39 +1754,50 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, DiffGraph_ExtractTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_CanNotExtractTransdataToSubGraph_NoFusion) {
   const auto sub1_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub1_data", sub1_data)->EDGE(0, 0)->NODE("sub1_trans", ADD)
-                               ->NODE("sub1_mul", ADD)->NODE("sub1_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub1_data", sub1_data)
+              ->EDGE(0, 0)
+              ->NODE("sub1_trans", ADD)
+              ->NODE("sub1_mul", ADD)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
 
   const auto sub2_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub2_data", sub2_data)->EDGE(0, 0)->NODE("sub2_mul1", ADD)
-                               ->NODE("sub2_mul2", ADD)->NODE("sub2_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub2_data", sub2_data)
+              ->EDGE(0, 0)
+              ->NODE("sub2_mul1", ADD)
+              ->NODE("sub2_mul2", ADD)
+              ->NODE("sub2_netoutput", NETOUTPUT));
+  };
 
   const auto sub3_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_3) {
-                     CHAIN(NODE("sub3_data", sub3_data)->NODE("sub3_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub3_data", sub3_data)->EDGE(0, 0)->NODE("sub3_mul1", ADD)
-                               ->NODE("sub3_mul2", ADD)->NODE("sub3_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub3_data", sub3_data)->NODE("sub3_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub3_data", sub3_data)
+              ->EDGE(0, 0)
+              ->NODE("sub3_mul1", ADD)
+              ->NODE("sub3_mul2", ADD)
+              ->NODE("sub3_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("case", CASE, sub_1, sub_2, sub_3)
-                            ->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("case", CASE)->EDGE(1, 0)->NODE("add", ADD));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, sub_1, sub_2, sub_3)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("case", CASE)->EDGE(1, 0)->NODE("add", ADD));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
 
-  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0, 1}},
-                                        {"sub2_netoutput", {0, 1}},
-                                        {"sub3_netoutput", {0, 1}}};
+  NetoutputParentIndexes parent_indexes{
+      {"sub1_netoutput", {0, 1}}, {"sub2_netoutput", {0, 1}}, {"sub3_netoutput", {0, 1}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, parent_indexes));
   SameTransdataBreadthFusionPass pass;
-//  ge::graphStatus status = pass.Run(compute_graph);
-//  EXPECT_EQ(ge::GRAPH_SUCCESS, status);
+  //  ge::graphStatus status = pass.Run(compute_graph);
+  //  EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
   const auto sub_graph_1 = compute_graph->GetSubgraph("sub_1");
   ASSERT_NE(sub_graph_1, nullptr);
@@ -1828,32 +1839,41 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_CanNotExtra
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_CanNotExtractTransdataToSubSubGraph_NoFusion) {
   const auto sub1_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_add", ADD));
-                     CHAIN(NODE("sub1_add", ADD)->NODE("sub1_cast", CAST)->NODE("sub1_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub1_add", ADD)->EDGE(0, 0)->NODE("sub1_trans", TRANSDATA)
-                               ->NODE("sub1_mul", ADD)->NODE("sub1_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_add", ADD));
+    CHAIN(NODE("sub1_add", ADD)->NODE("sub1_cast", CAST)->NODE("sub1_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub1_add", ADD)
+              ->EDGE(0, 0)
+              ->NODE("sub1_trans", TRANSDATA)
+              ->NODE("sub1_mul", ADD)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
 
   const auto sub2_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub2_data", sub2_data)->EDGE(0, 0)->NODE("sub2_mul1", ADD)
-                               ->NODE("sub2_mul2", ADD)->NODE("sub2_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub2_data", sub2_data)
+              ->EDGE(0, 0)
+              ->NODE("sub2_mul1", ADD)
+              ->NODE("sub2_mul2", ADD)
+              ->NODE("sub2_netoutput", NETOUTPUT));
+  };
 
   const auto middle_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(middle_sub) {
-                  CHAIN(NODE("middle_data", middle_data)->EDGE(0, 0)->NODE("middle_case", CASE, sub_1, sub_2)
-                            ->NODE("middle_netoutput", NETOUTPUT));
-                  CHAIN(NODE("middle_case", CASE)->EDGE(1, 0)->NODE("middle_add", ADD)
-                            ->NODE("middle_netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("middle_data", middle_data)
+              ->EDGE(0, 0)
+              ->NODE("middle_case", CASE, sub_1, sub_2)
+              ->NODE("middle_netoutput", NETOUTPUT));
+    CHAIN(NODE("middle_case", CASE)->EDGE(1, 0)->NODE("middle_add", ADD)->NODE("middle_netoutput", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("partitioned_call", PARTITIONEDCALL, middle_sub)
-                            ->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("partitioned_call", PARTITIONEDCALL, middle_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   const auto middle_sub_graph = compute_graph->GetSubgraph("middle_sub");
@@ -1874,9 +1894,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_CanNotExtra
   sub2_graph->SetParentNode(middle_case_node);
   compute_graph->AddSubGraph(sub2_graph);
 
-  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0, 1}},
-                                        {"sub2_netoutput", {0, 1}},
-                                        {"middle_netoutput", {0, 1}}};
+  NetoutputParentIndexes parent_indexes{
+      {"sub1_netoutput", {0, 1}}, {"sub2_netoutput", {0, 1}}, {"middle_netoutput", {0, 1}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, parent_indexes));
   SameTransdataBreadthFusionPass pass;
   ge::graphStatus status = pass.Run(compute_graph);
@@ -1928,30 +1947,43 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_CanNotExtra
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_TwoSameTransdataGroups_DoFusion) {
   const auto sub1_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_cast", CAST)->NODE("sub1_transdata", TRANSDATA)
-                               ->NODE("sub1_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub1_data", sub1_data)
+              ->NODE("sub1_cast", CAST)
+              ->NODE("sub1_transdata", TRANSDATA)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
 
   const auto sub2_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_cast1", CAST)->NODE("sub2_cast2", CAST)
-                               ->NODE("sub2_transdata", TRANSDATA)->NODE("sub2_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub2_data", sub2_data)
+              ->NODE("sub2_cast1", CAST)
+              ->NODE("sub2_cast2", CAST)
+              ->NODE("sub2_transdata", TRANSDATA)
+              ->NODE("sub2_netoutput", NETOUTPUT));
+  };
 
   const auto sub3_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_3) {
-                     CHAIN(NODE("sub3_data", sub3_data)->NODE("sub3_transdata", TRANSDATA)->NODE("sub3_add", ADD)
-                               ->NODE("sub3_transdata2", TRANSDATA)->NODE("sub3_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub3_data", sub3_data)
+              ->NODE("sub3_transdata", TRANSDATA)
+              ->NODE("sub3_add", ADD)
+              ->NODE("sub3_transdata2", TRANSDATA)
+              ->NODE("sub3_netoutput", NETOUTPUT));
+  };
   const auto sub4_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_4) {
-                     CHAIN(NODE("sub4_data", sub4_data)->NODE("sub4_transdata", TRANSDATA)->NODE("sub4_add", ADD)
-                               ->NODE("sub4_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub4_data", sub4_data)
+              ->NODE("sub4_transdata", TRANSDATA)
+              ->NODE("sub4_add", ADD)
+              ->NODE("sub4_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("case", CASE, sub_1, sub_2, sub_3, sub_4)
-                            ->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, sub_1, sub_2, sub_3, sub_4)
+              ->NODE("mul", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
@@ -1959,10 +1991,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_TwoSameTran
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub1_transdata", "sub2_transdata"}));
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub3_transdata", "sub4_transdata"}, FORMAT_CN));
 
-  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0}},
-                                        {"sub2_netoutput", {0}},
-                                        {"sub3_netoutput", {0}},
-                                        {"sub4_netoutput", {0}}};
+  NetoutputParentIndexes parent_indexes{
+      {"sub1_netoutput", {0}}, {"sub2_netoutput", {0}}, {"sub3_netoutput", {0}}, {"sub4_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, parent_indexes));
   SameTransdataBreadthFusionPass pass;
   ge::graphStatus status = pass.Run(compute_graph);
@@ -1984,7 +2014,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_TwoSameTran
 
   const auto sub_graph_3 = compute_graph->GetSubgraph("sub_3");
   ASSERT_NE(sub_graph_3, nullptr);
-  std::vector<NodeOutIndex> path4 = {{"sub_3_transdata_fusion_arg_1", 0}, {"sub3_add", 0}, {"sub3_transdata2", 0}, {"sub3_netoutput", 0}};
+  std::vector<NodeOutIndex> path4 = {
+      {"sub_3_transdata_fusion_arg_1", 0}, {"sub3_add", 0}, {"sub3_transdata2", 0}, {"sub3_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_3, path4));
 
   const auto sub_graph_4 = compute_graph->GetSubgraph("sub_4");
@@ -1992,7 +2023,6 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_TwoSameTran
   std::vector<NodeOutIndex> path5 = {{"sub_4_transdata_fusion_arg_1", 0}, {"sub4_add", 0}, {"sub4_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_4, path5));
 }
-
 
 /*
  *  data--case--mul--netoutput
@@ -2023,45 +2053,56 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_TwoSameTran
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_OneTransdataGroup_DoFusion) {
   const auto sub1_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_cast", CAST)->NODE("sub1_transdata", TRANSDATA)
-                               ->NODE("sub1_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub1_data", sub1_data)
+              ->NODE("sub1_cast", CAST)
+              ->NODE("sub1_transdata", TRANSDATA)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
 
   const auto sub2_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_cast", CAST)->NODE("sub2_transdata", TRANSDATA)
-                               ->NODE("sub2_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub2_data", sub2_data)
+              ->NODE("sub2_cast", CAST)
+              ->NODE("sub2_transdata", TRANSDATA)
+              ->NODE("sub2_netoutput", NETOUTPUT));
+  };
 
   const auto sub3_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_3) {
-                     CHAIN(NODE("sub3_data", sub3_data)->NODE("sub3_cast", CAST)->NODE("sub3_transdata1", TRANSDATA)
-                               ->NODE("sub3_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub3_data", sub3_data)->EDGE(0, 0)->NODE("sub3_transdata2", TRANSDATA)->NODE("sub3_add", ADD));
-                     CHAIN(NODE("sub3_data", sub3_data)->EDGE(0, 0)->NODE("sub3_transdata3", TRANSDATA)->NODE("sub3_apply_momentum", ADD));
-                   };
+    CHAIN(NODE("sub3_data", sub3_data)
+              ->NODE("sub3_cast", CAST)
+              ->NODE("sub3_transdata1", TRANSDATA)
+              ->NODE("sub3_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub3_data", sub3_data)->EDGE(0, 0)->NODE("sub3_transdata2", TRANSDATA)->NODE("sub3_add", ADD));
+    CHAIN(
+        NODE("sub3_data", sub3_data)->EDGE(0, 0)->NODE("sub3_transdata3", TRANSDATA)->NODE("sub3_apply_momentum", ADD));
+  };
   const auto sub4_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_4) {
-                     CHAIN(NODE("sub4_data", sub4_data)->NODE("sub4_cast", CAST)->NODE("sub4_transdata1", TRANSDATA)
-                               ->NODE("sub4_netoutput", NETOUTPUT));
-                     CHAIN(NODE("sub4_data", sub4_data)->EDGE(0, 0)->NODE("sub4_transdata2", TRANSDATA)->NODE("sub4_add", ADD));
-                     CHAIN(NODE("sub4_data", sub4_data)->EDGE(0, 0)->NODE("sub4_transdata3", TRANSDATA)->NODE("sub4_apply_momentum", ADD));
-                   };
+    CHAIN(NODE("sub4_data", sub4_data)
+              ->NODE("sub4_cast", CAST)
+              ->NODE("sub4_transdata1", TRANSDATA)
+              ->NODE("sub4_netoutput", NETOUTPUT));
+    CHAIN(NODE("sub4_data", sub4_data)->EDGE(0, 0)->NODE("sub4_transdata2", TRANSDATA)->NODE("sub4_add", ADD));
+    CHAIN(
+        NODE("sub4_data", sub4_data)->EDGE(0, 0)->NODE("sub4_transdata3", TRANSDATA)->NODE("sub4_apply_momentum", ADD));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("case", CASE, sub_1, sub_2, sub_3, sub_4)
-                            ->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, sub_1, sub_2, sub_3, sub_4)
+              ->NODE("mul", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
-  ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub1_transdata", "sub2_transdata",
-                                                     "sub3_transdata1", "sub3_transdata2", "sub3_transdata3",
-                                                     "sub4_transdata1", "sub4_transdata2", "sub4_transdata3"}));
+  ASSERT_TRUE(SetTransDataTensorDesc(
+      compute_graph, {"sub1_transdata", "sub2_transdata", "sub3_transdata1", "sub3_transdata2", "sub3_transdata3",
+                      "sub4_transdata1", "sub4_transdata2", "sub4_transdata3"}));
 
-  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0}},
-                                        {"sub2_netoutput", {0}},
-                                        {"sub3_netoutput", {0}},
-                                        {"sub4_netoutput", {0}}};
+  NetoutputParentIndexes parent_indexes{
+      {"sub1_netoutput", {0}}, {"sub2_netoutput", {0}}, {"sub3_netoutput", {0}}, {"sub4_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, parent_indexes));
   SameTransdataBreadthFusionPass pass;
   ge::graphStatus status = pass.Run(compute_graph);
@@ -2137,25 +2178,36 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_OneTransdat
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_HaveNotFusedTransdata_DoFusion) {
   const auto sub1_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub1_data", sub1_data)->NODE("sub1_cast", CAST)->NODE("sub1_transdata", TRANSDATA)
-                               ->NODE("sub1_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub1_data", sub1_data)
+              ->NODE("sub1_cast", CAST)
+              ->NODE("sub1_transdata", TRANSDATA)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
 
   const auto sub2_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("sub2_data", sub2_data)->NODE("sub2_cast1", CAST)->NODE("sub2_cast2", CAST)
-                               ->NODE("sub2_transdata", TRANSDATA)->NODE("sub2_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub2_data", sub2_data)
+              ->NODE("sub2_cast1", CAST)
+              ->NODE("sub2_cast2", CAST)
+              ->NODE("sub2_transdata", TRANSDATA)
+              ->NODE("sub2_netoutput", NETOUTPUT));
+  };
 
   const auto sub3_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_3) {
-                     CHAIN(NODE("sub3_data", sub3_data)->NODE("sub3_transdata1", TRANSDATA)->NODE("sub3_add", ADD)
-                               ->NODE("sub3_transdata2", TRANSDATA)->NODE("sub3_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub3_data", sub3_data)
+              ->NODE("sub3_transdata1", TRANSDATA)
+              ->NODE("sub3_add", ADD)
+              ->NODE("sub3_transdata2", TRANSDATA)
+              ->NODE("sub3_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("case", CASE, sub_1, sub_2, sub_3)
-                            ->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, sub_1, sub_2, sub_3)
+              ->NODE("mul", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   sub_1.Layout();
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
@@ -2163,16 +2215,13 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_HaveNotFuse
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub1_transdata", "sub2_transdata"}));
   ASSERT_TRUE(SetTransDataTensorDesc(compute_graph, {"sub3_transdata1"}, FORMAT_CN));
 
-  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0}},
-                                        {"sub2_netoutput", {0}},
-                                        {"sub3_netoutput", {0}}};
+  NetoutputParentIndexes parent_indexes{{"sub1_netoutput", {0}}, {"sub2_netoutput", {0}}, {"sub3_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, parent_indexes));
   SameTransdataBreadthFusionPass pass;
   ge::graphStatus status = pass.Run(compute_graph);
   EXPECT_EQ(ge::GRAPH_SUCCESS, status);
 
-  UtPaths paths1{{{"data", 0}, {"sub1_transdata", 0}, {"case", 0}, {"mul", 0}},
-                 {{"data", 0}, {"case", 0}, {"mul", 0}}};
+  UtPaths paths1{{{"data", 0}, {"sub1_transdata", 0}, {"case", 0}, {"mul", 0}}, {{"data", 0}, {"case", 0}, {"mul", 0}}};
   ASSERT_TRUE(CheckConnection(compute_graph, paths1));
 
   const auto sub_graph_1 = compute_graph->GetSubgraph("sub_1");
@@ -2182,12 +2231,14 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_HaveNotFuse
 
   const auto sub_graph_2 = compute_graph->GetSubgraph("sub_2");
   ASSERT_NE(sub_graph_2, nullptr);
-  std::vector<NodeOutIndex> path3 = {{"sub_2_transdata_fusion_arg_1", 0}, {"sub2_cast1", 0}, {"sub2_cast2", 0}, {"sub2_netoutput", 0}};
+  std::vector<NodeOutIndex> path3 = {
+      {"sub_2_transdata_fusion_arg_1", 0}, {"sub2_cast1", 0}, {"sub2_cast2", 0}, {"sub2_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_2, path3));
 
   const auto sub_graph_3 = compute_graph->GetSubgraph("sub_3");
   ASSERT_NE(sub_graph_3, nullptr);
-  std::vector<NodeOutIndex> path4 = {{"sub3_data", 0}, {"sub3_transdata1", 0}, {"sub3_add", 0}, {"sub3_transdata2", 0}, {"sub3_netoutput", 0}};
+  std::vector<NodeOutIndex> path4 = {
+      {"sub3_data", 0}, {"sub3_transdata1", 0}, {"sub3_add", 0}, {"sub3_transdata2", 0}, {"sub3_netoutput", 0}};
   ASSERT_TRUE(CheckConnection(sub_graph_3, path4));
 }
 
@@ -2204,15 +2255,19 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, MultiSubGraph_HaveNotFuse
  *                    |ctrl   |ctrl
  * op--transdata----cast------mul--netoutput
  *
- * transdata should not fusion cause in contrl not same
+ * transdata should not fusion cause in control not same
  */
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckNoLoop) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata1", TRANSDATA)
-                            ->NODE("mul", MUL)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0,0))->NODE("transdata2", TRANSDATA)->NODE("netoutput", NETOUTPUT);
-                  CHAIN(NODE("data2", DATA)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast", CAST)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("mul", MUL)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)->EDGE(0, 0))->NODE("transdata2", TRANSDATA)->NODE("netoutput", NETOUTPUT);
+    CHAIN(NODE("data2", DATA)->NODE("add", ADD)->NODE("netoutput", NETOUTPUT));
+  };
   auto compute_graph = ToComputeGraph(g1);
   auto cast_node = compute_graph->FindNode("cast");
   ASSERT_NE(cast_node, nullptr);
@@ -2236,7 +2291,6 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckNo
   ASSERT_TRUE(CheckConnection(compute_graph, paths1));
 }
 
-
 /*
  *                     ctrl
  * a--+--transdata1---b---transdata2--c
@@ -2251,14 +2305,20 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckNo
  *                 +-----c
  * 如果保留transdata2会成环
  *
- * transdata should not fusion cause in contrl not same
+ * transdata should not fusion cause in control not same
  */
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_GetKeepTransdataPathIndex_CheckNoLoop) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", DATA)->EDGE(0, 0)->NODE("transdata1", TRANSDATA)
-                            ->NODE("b", MUL)->Ctrl()->NODE("transdata2", TRANSDATA)->EDGE(0, 0)->NODE("c", MUL));
-                  CHAIN(NODE("a", DATA)->EDGE(0, 0))->NODE("transdata2", TRANSDATA);
-                };
+    CHAIN(NODE("a", DATA)
+              ->EDGE(0, 0)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("b", MUL)
+              ->Ctrl()
+              ->NODE("transdata2", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("c", MUL));
+    CHAIN(NODE("a", DATA)->EDGE(0, 0))->NODE("transdata2", TRANSDATA);
+  };
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
 
@@ -2285,11 +2345,17 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_GetKeep
  */
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckDataType) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast1", CAST)->NODE("transdata1", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0,0)->NODE("cast2", CAST)->NODE("transdata2", TRANSDATA)
-                      ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast1", CAST)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("cast2", CAST)
+              ->NODE("transdata2", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
 
@@ -2347,8 +2413,9 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckDa
  *
  * test5
  * case的两个子图，子图1中data连接netoutput/可融合节点/不可融合节点，子图2 data连接Netoutput。
- * 子图1netoutput对应的实际输出为不可融合节点。子图2netoutput对应的实际输出为可融合节点。校验子图1中新增了data节点，且parent index正确，
- * 子图1中netoutput没有新增输入。子图2中也新增了data节点连接到netoutput上，且parent index正确，子图2中原data节点如果没有输出边就删除。
+ * 子图1netoutput对应的实际输出为不可融合节点。子图2netoutput对应的实际输出为可融合节点。校验子图1中新增了data节点，且parent
+ * index正确， 子图1中netoutput没有新增输入。子图2中也新增了data节点连接到netoutput上，且parent
+ * index正确，子图2中原data节点如果没有输出边就删除。
  *
  *
  * AddNewPathToTransdataForDiffGraph
@@ -2362,7 +2429,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraphDoFusion_CheckDa
  *
  * test3
  * 递归场景，head连接partitioned_call1，子图1中data连接netoutput，实际输出连接partitioned_call2,
- * 子图2中data连接可融合和不可融合共两个节点。校验两个partioned_call都新增了输入，且两个子图中都新增了data节点，且parent index正确。
+ * 子图2中data连接可融合和不可融合共两个节点。校验两个partioned_call都新增了输入，且两个子图中都新增了data节点，且parent
+ * index正确。
  *
  */
 
@@ -2386,43 +2454,41 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, CheckOpSupported_Failed_W
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_INT16)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_INT16).Build(graph);
 
   ge::NodePtr cast1 = NodeBuilder("cast1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT16)
+                          .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
 
   ge::NodePtr cast2 = NodeBuilder("cast2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                          .Build(graph);
 
   ge::NodePtr cast3 = NodeBuilder("cast3", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT16)
+                          .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
 
   ge::NodePtr transdata1 = NodeBuilder("transdata1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                               .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_FLOAT16)
+                               .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                               .Build(graph);
   ge::NodePtr transdata2 = NodeBuilder("transdata2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                               .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NCHW, DT_FLOAT16)
+                               .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                               .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_softmax_2 = NodeBuilder("softemax_2", SOFTMAX)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                   .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                   .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                   .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast3->GetInDataAnchor(0));
@@ -2432,7 +2498,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, CheckOpSupported_Failed_W
   ge::GraphUtils::AddEdge(cast3->GetOutDataAnchor(0), transdata2->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata2->GetOutDataAnchor(0), node_softmax_2->GetInDataAnchor(0));
 
-  //set tensor desc
+  // set tensor desc
   ASSERT_TRUE(SetTransDataTensorDesc(graph, {"transdata1", "transdata2"}));
 
   ge::SameTransdataBreadthFusionPass pass;
@@ -2475,38 +2541,37 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_DoFusion_HeadCo
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d =
+      NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr node_5d_2_4hd_1 = NodeBuilder("5d_2_4d_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .Build(graph);
   ge::NodePtr node_5d_2_4hd_2 = NodeBuilder("5d_2_4d_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_softmax_2 = NodeBuilder("softemax_2", SOFTMAX)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                   .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                   .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                   .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), node_5d_2_4hd_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), node_5d_2_4hd_2->GetInDataAnchor(0));
@@ -2515,7 +2580,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_DoFusion_HeadCo
   ge::GraphUtils::AddEdge(cast_fp32_2_fp16_1->GetOutDataAnchor(0), node_relu_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp32_2_fp16_2->GetOutDataAnchor(0), node_softmax_2->GetInDataAnchor(0));
 
-  //set tensor desc
+  // set tensor desc
   ASSERT_TRUE(SetTransDataTensorDesc(graph, {"5d_2_4d_1", "5d_2_4d_2"}));
 
   ge::SameTransdataBreadthFusionPass pass;
@@ -2523,7 +2588,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_DoFusion_HeadCo
   EXPECT_EQ(status, SUCCESS);
   EXPECT_EQ(node_4d->GetOutDataNodes().size(), 1);
 
-  // check connetion
+  // check connection
   std::vector<NodeOutIndex> path = {{"node_4d", 0}, {"5d_2_4d_2", 0}, {"cast_4d_fp32_2_fp16_2", 0}};
   ASSERT_TRUE(CheckConnection(graph, path));
   std::vector<NodeOutIndex> path2 = {{"node_4d", 0}, {"5d_2_4d_2", 0}, {"cast_4d_fp32_2_fp16_1", 0}};
@@ -2533,8 +2598,7 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_DoFusion_HeadCo
   std::vector<NodeIO> check_nodes = {{"5d_2_4d_2", {}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {{"node_4d", {}, {0}},
-                                           {"5d_2_4d_2", {0}, {}}};
+  std::vector<NodeIO> not_changed_nodes = {{"node_4d", {}, {0}}, {"5d_2_4d_2", {0}, {}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(graph, not_changed_nodes));
 }
 
@@ -2558,42 +2622,40 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata_no_out) {
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_3 = NodeBuilder("4d_2_5hd_3", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), node_4d_2_5hd_2->GetInDataAnchor(0));
@@ -2622,47 +2684,45 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SeGraph_CastConnectToOthe
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -2701,40 +2761,37 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_no_transdata) {
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr transpose_1 = NodeBuilder("transpose_1", TRANSPOSE)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-      .Build(graph);
-
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr transpose_2 = NodeBuilder("transpose_2", TRANSPOSE)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), transpose_2->GetInDataAnchor(0));
@@ -2770,49 +2827,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_different_transdata)
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
-
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_3 = NodeBuilder("4d_2_5hd_3", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -2842,35 +2896,32 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata2_cast1_sim
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_4d_fp32_2_fp16", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
-
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), node_4d_2_5hd_2->GetInDataAnchor(0));
@@ -2906,49 +2957,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata3_cast2_sim
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
-
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_3 = NodeBuilder("4d_2_5hd_3", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -2989,50 +3037,49 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata3_cast2_anc
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
   ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                            .Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
-
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_3 = NodeBuilder("4d_2_5hd_3", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(1), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3071,42 +3118,40 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata2_cast3) {
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3122,7 +3167,6 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata2_cast3) {
   EXPECT_EQ(node_4d->GetOutDataNodes().size(), 1);
   EXPECT_EQ(node_4d_2_5hd_2->GetOutDataNodes().size(), 2);
 }
-
 
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_HeadConnectToThreeCast_DoFusion) {
   /*
@@ -3143,57 +3187,55 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_HeadConnectToTh
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_3 = NodeBuilder("cast_4d_fp32_2_fp16_3", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_3 = NodeBuilder("4d_2_5hd_3", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3220,7 +3262,8 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_HeadConnectToTh
   std::vector<NodeOutIndex> path2 = {{"node_4d", 0}, {"4d_2_5hd_3", 0}, {"cast_4d_fp32_2_fp16_3", 0}};
   ASSERT_TRUE(CheckConnection(graph, path2));
 
-  std::vector<NodeOutIndex> path3 = {{"node_4d", 0}, {"4d_2_5hd_3", 0}, {"cast_4d_fp32_2_fp16_2", 0}, {"cast_fp16_2_int8", 0}};
+  std::vector<NodeOutIndex> path3 = {
+      {"node_4d", 0}, {"4d_2_5hd_3", 0}, {"cast_4d_fp32_2_fp16_2", 0}, {"cast_fp16_2_int8", 0}};
   ASSERT_TRUE(CheckConnection(graph, path3));
 
   std::vector<NodeIO> check_nodes = {{"cast_4d_fp32_2_fp16_1", {0}, {0}},
@@ -3229,11 +3272,9 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_HeadConnectToTh
                                      {"cast_fp16_2_int8", {0}, {0}}};
   ASSERT_TRUE(CheckTensorDesc(graph, check_nodes));
 
-  std::vector<NodeIO> not_changed_nodes = {{"node_4d", {}, {0}},
-                                           {"4d_2_5hd_3", {0}, {}}};
+  std::vector<NodeIO> not_changed_nodes = {{"node_4d", {}, {0}}, {"4d_2_5hd_3", {0}, {}}};
   ASSERT_TRUE(CheckNotChangedTensorDesc(graph, not_changed_nodes));
 }
-
 
 TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_CastConnectToOtherNode_NoFusion) {
   /*
@@ -3248,48 +3289,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, SameGraph_CastConnectToOt
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3327,48 +3366,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata_out_contro
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3409,48 +3446,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata_out_data_c
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3491,48 +3526,46 @@ TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_transdata_out_contro
   */
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));
@@ -3561,58 +3594,57 @@ Node4D--cast--|---cast---cast---transdata---B
                                       |
                                       |---C
  */
-TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass, test_one_more_transop_between_normal_op_and_subgraph_not_change) {
+TEST_F(UtestGraphPassesSameTransdataBreadthFusionPass,
+       test_one_more_transop_between_normal_op_and_subgraph_not_change) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   // Node4D
-  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("node_4d", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT).Build(graph);
   // cast fp32 -> fp32
   ge::NodePtr cast_fp32_2_fp32_1 = NodeBuilder("cast_4d_fp32_2_fp32_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .Build(graph);
 
   // cast fp32 -> fp16
   ge::NodePtr cast_fp32_2_fp16_1 = NodeBuilder("cast_4d_fp32_2_fp16_1", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_4d_fp32_2_fp16_2", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr cast_fp16_2_int8 = NodeBuilder("cast_fp16_2_int8", CAST)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                     .Build(graph);
 
   ge::NodePtr node_4d_2_5hd_1 = NodeBuilder("4d_2_5hd_1", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                    .Build(graph);
   ge::NodePtr node_4d_2_5hd_2 = NodeBuilder("4d_2_5hd_2", TRANSDATA)
-      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                    .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT8)
+                                    .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                    .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
-      .Build(graph);
-      
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_INT8)
+                                .Build(graph);
+
   ge::GraphUtils::AddEdge(node_4d->GetOutDataAnchor(0), cast_fp32_2_fp32_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp32_2_fp32_1->GetOutDataAnchor(0), cast_fp32_2_fp16_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp32_2_fp32_1->GetOutDataAnchor(0), cast_fp32_2_fp16_2->GetInDataAnchor(0));

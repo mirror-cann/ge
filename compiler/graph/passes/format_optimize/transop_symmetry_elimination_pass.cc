@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ bool Nc1hwc02NchwAreSymmetry(const ge::NodePtr &src_node, const ge::NodePtr &dst
   GE_ASSERT_TRUE(dst_in_dims.size() == NCHW_DIM_NUM);
   const bool is_hw_size_equal = !is_src_out_dims_unknown && !is_dst_in_dims_unknown &&
                                 ((src_out_dims[NCHW_H_AXIS] * src_out_dims[NCHW_W_AXIS]) ==
-                                (dst_in_dims[NCHW_H_AXIS] * dst_in_dims[NCHW_W_AXIS]));
+                                 (dst_in_dims[NCHW_H_AXIS] * dst_in_dims[NCHW_W_AXIS]));
 
   const bool is_c_axis_same = (src_out_dims[NCHW_C_AXIS] == dst_in_dims[NCHW_C_AXIS]);
   // NCHW -> NC1HWC0 src dst shapesize not equal means padding
@@ -101,11 +101,13 @@ Status TransOpSymmetryEliminationPass::Run(NodePtr &node) {
       GE_CHECK_NOTNULL(peer_in_anchor);
       GE_CHECK_NOTNULL(peer_in_anchor->GetOwnerNode());
       GE_CHECK_NOTNULL(peer_in_anchor->GetOwnerNode()->GetOpDesc());
-      if (!CheckCanBeEliminated(node, peer_in_anchor)) { continue; }
+      if (!CheckCanBeEliminated(node, peer_in_anchor)) {
+        continue;
+      }
       auto dst_node = peer_in_anchor->GetOwnerNode();
       Status ret = EliminateTransOp(node, out_anchor, dst_node, peer_in_anchor);
       if (ret != SUCCESS) {
-        // if eliminate failed ,it should't break precess, so give a warning here
+        // if eliminate failed ,it shouldn't break process, so give a warning here
         GELOGW("Eliminate %s and %s failed, ignore current pass.", node->GetName().c_str(),
                dst_node->GetName().c_str());
         return ret;
@@ -132,9 +134,10 @@ bool TransOpSymmetryEliminationPass::CheckCanBeEliminated(const ge::NodePtr &src
     GE_CHECK_NOTNULL(src_node->GetOpDesc());
     auto unknown_dims_num = GetUnknownDimsNum(src_node->GetOpDesc()->GetInputDesc(0));
     if (unknown_dims_num != 0 && (unknown_dims_num == UNKNOWN_DIM_NUM || unknown_dims_num > 1)) {
-      GELOGD("Pre node %s is reshape op which input is dynamic shape and has more than one unknown dimension. "
-             "Ignore pass.",
-             src_node->GetName().c_str());
+      GELOGD(
+          "Pre node %s is reshape op which input is dynamic shape and has more than one unknown dimension. "
+          "Ignore pass.",
+          src_node->GetName().c_str());
       return false;
     }
   } else if (src_node->GetType() == ge::TRANSPOSED) {
@@ -157,7 +160,7 @@ bool TransOpSymmetryEliminationPass::CheckCanBeEliminated(const ge::NodePtr &src
     (void)AttrUtils::GetListInt(dst_node->GetOpDesc(), ATTR_NAME_AXIS, dst_axis);
 
     if (src_axis != dst_axis) {
-      GELOGD("Src node %s aixs not equal with dst node %s. Ignore pass.", src_node->GetName().c_str(),
+      GELOGD("Src node %s axis not equal with dst node %s. Ignore pass.", src_node->GetName().c_str(),
              dst_node->GetName().c_str());
       return false;
     }
@@ -209,15 +212,16 @@ bool TransOpSymmetryEliminationPass::DescAreSymmetry(const NodePtr &src_node, co
     is_symmetry = IsTransdataMemLayoutSymmetry(src_node, dst_node);
   }
 
-  GELOGI("Desc check ret is %d."
+  GELOGI(
+      "Desc check ret is %d."
       "Src node %s input type: %s primary_format: %s sub_format: %d shape: [%s], origin_shape: [%s],"
       "output primary_format: %s. Dst node %s input primary_format: %s,"
       "output type: %s primary_format: %s sub_format: %d shape: [%s], origin_shape: [%s].",
       is_symmetry, src_node->GetName().c_str(), TypeUtils::DataTypeToSerialString(src_input_dtype).c_str(),
       TypeUtils::FormatToSerialString(src_input_format).c_str(), GetSubFormat(src_input_format),
       formats::ShapeToString(src_input_shape).c_str(), formats::ShapeToString(src_input_origin_shape).c_str(),
-      TypeUtils::FormatToSerialString(src_output_format).c_str(),
-      dst_node->GetName().c_str(), TypeUtils::FormatToSerialString(dst_input_format).c_str(),
+      TypeUtils::FormatToSerialString(src_output_format).c_str(), dst_node->GetName().c_str(),
+      TypeUtils::FormatToSerialString(dst_input_format).c_str(),
       TypeUtils::DataTypeToSerialString(dst_output_dtype).c_str(),
       TypeUtils::FormatToSerialString(dst_output_format).c_str(), GetSubFormat(dst_output_format),
       formats::ShapeToString(dst_output_shape).c_str(), formats::ShapeToString(dst_output_origin_shape).c_str());
@@ -234,12 +238,13 @@ bool TransOpSymmetryEliminationPass::IsTransdataMemLayoutSymmetry(const NodePtr 
   GE_CHECK_NOTNULL(dst_in_desc);
   GE_CHECK_NOTNULL(dst_out_desc);
 
-  const bool is_format_dt_shapesize_continuously = ((src_in_desc->GetFormat() == dst_out_desc->GetFormat()) &&
-      (src_out_desc->GetFormat() == dst_in_desc->GetFormat()) &&
-      (src_in_desc->GetDataType() == dst_out_desc->GetDataType()) &&
-      (src_out_desc->GetDataType() == dst_in_desc->GetDataType()) &&
-      (src_in_desc->GetShape().GetShapeSize() == dst_out_desc->GetShape().GetShapeSize()) &&
-      (src_out_desc->GetShape().GetShapeSize() == dst_in_desc->GetShape().GetShapeSize()));
+  const bool is_format_dt_shapesize_continuously =
+      ((src_in_desc->GetFormat() == dst_out_desc->GetFormat()) &&
+       (src_out_desc->GetFormat() == dst_in_desc->GetFormat()) &&
+       (src_in_desc->GetDataType() == dst_out_desc->GetDataType()) &&
+       (src_out_desc->GetDataType() == dst_in_desc->GetDataType()) &&
+       (src_in_desc->GetShape().GetShapeSize() == dst_out_desc->GetShape().GetShapeSize()) &&
+       (src_out_desc->GetShape().GetShapeSize() == dst_in_desc->GetShape().GetShapeSize()));
   if (!is_format_dt_shapesize_continuously) {
     return false;
   }
@@ -264,7 +269,7 @@ bool TransOpSymmetryEliminationPass::IsTransdataMemLayoutSymmetry(const NodePtr 
   return false;
 }
 
-int32_t TransOpSymmetryEliminationPass::GetUnknownDimsNum(const GeTensorDesc& node_desc) {
+int32_t TransOpSymmetryEliminationPass::GetUnknownDimsNum(const GeTensorDesc &node_desc) {
   //
   //  unknown_dims_num != 0 , is dynamic shape
   //  unknown_dims_num = UNKNOWN_DIM_NUM , all dims are unknown
@@ -273,8 +278,12 @@ int32_t TransOpSymmetryEliminationPass::GetUnknownDimsNum(const GeTensorDesc& no
   int32_t unknown_dims_num = 0;
   auto ge_shape = node_desc.GetShape();
   for (const auto dim : ge_shape.GetDims()) {
-    if (dim == UNKNOWN_DIM_NUM) { return UNKNOWN_DIM_NUM; }
-    if (dim == UNKNOWN_DIM) { ++unknown_dims_num; }
+    if (dim == UNKNOWN_DIM_NUM) {
+      return UNKNOWN_DIM_NUM;
+    }
+    if (dim == UNKNOWN_DIM) {
+      ++unknown_dims_num;
+    }
   }
   return unknown_dims_num;
 }
@@ -294,10 +303,16 @@ bool TransOpSymmetryEliminationPass::JudgeTransposeDBack2Raw(const NodePtr &src_
   std::vector<int64_t> dst_node_perm;
   (void)AttrUtils::GetListInt(dst_node->GetOpDesc(), ge::PERMUTE_ATTR_PERM, dst_node_perm);
 
-  if (src_node_perm.size() != dst_node_perm.size()) { return false; }
+  if (src_node_perm.size() != dst_node_perm.size()) {
+    return false;
+  }
   for (size_t src_index = 0; src_index < src_node_perm.size(); ++src_index) {
-    if (dst_node_perm[src_index] >= static_cast<int64_t>(src_node_perm.size())) { return false; }
-    if (static_cast<int64_t>(src_index) != src_node_perm[dst_node_perm[src_index]]) { return false; }
+    if (dst_node_perm[src_index] >= static_cast<int64_t>(src_node_perm.size())) {
+      return false;
+    }
+    if (static_cast<int64_t>(src_index) != src_node_perm[dst_node_perm[src_index]]) {
+      return false;
+    }
   }
   return true;
 }
@@ -308,16 +323,14 @@ Status TransOpSymmetryEliminationPass::EliminateTransOp(NodePtr &src_node, const
   // 1.Unlink T1->T2
   auto ret = src_out_anchor->Unlink(dst_in_anchor);
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999",
-                      "Op:%s(%s) out index:%d unlink from op:%s(%s) in index:%d failed",
-                      src_out_anchor->GetOwnerNode()->GetName().c_str(),
-                      src_out_anchor->GetOwnerNode()->GetType().c_str(), src_out_anchor->GetIdx(),
-                      dst_in_anchor->GetOwnerNode()->GetName().c_str(),
-                      dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
+    REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) out index:%d unlink from op:%s(%s) in index:%d failed",
+                         src_out_anchor->GetOwnerNode()->GetName().c_str(),
+                         src_out_anchor->GetOwnerNode()->GetType().c_str(), src_out_anchor->GetIdx(),
+                         dst_in_anchor->GetOwnerNode()->GetName().c_str(),
+                         dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
     GELOGE(FAILED, "[Unlink][DataAnchor] from %s(%s)(index:%d) to %s(%s)(index:%d) failed.",
-           src_out_anchor->GetOwnerNode()->GetName().c_str(),
-           src_out_anchor->GetOwnerNode()->GetType().c_str(), src_out_anchor->GetIdx(),
-           dst_in_anchor->GetOwnerNode()->GetName().c_str(),
+           src_out_anchor->GetOwnerNode()->GetName().c_str(), src_out_anchor->GetOwnerNode()->GetType().c_str(),
+           src_out_anchor->GetIdx(), dst_in_anchor->GetOwnerNode()->GetName().c_str(),
            dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
     return ret;
   }
@@ -330,14 +343,12 @@ Status TransOpSymmetryEliminationPass::EliminateTransOp(NodePtr &src_node, const
   ret = GraphUtils::AddEdge(in_anchor->GetPeerOutAnchor(), dst_in_anchor);
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%d) and op:%s(%s)(index:%d) failed",
-                      pre_normal_node->GetName().c_str(), pre_normal_node->GetType().c_str(),
-                      in_anchor->GetPeerOutAnchor()->GetIdx(),
-                      dst_in_anchor->GetOwnerNode()->GetName().c_str(),
-                      dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
+                         pre_normal_node->GetName().c_str(), pre_normal_node->GetType().c_str(),
+                         in_anchor->GetPeerOutAnchor()->GetIdx(), dst_in_anchor->GetOwnerNode()->GetName().c_str(),
+                         dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
     GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:%d) and op:%s(%s)(index:%d) failed",
            pre_normal_node->GetName().c_str(), pre_normal_node->GetType().c_str(),
-           in_anchor->GetPeerOutAnchor()->GetIdx(),
-           dst_in_anchor->GetOwnerNode()->GetName().c_str(),
+           in_anchor->GetPeerOutAnchor()->GetIdx(), dst_in_anchor->GetOwnerNode()->GetName().c_str(),
            dst_in_anchor->GetOwnerNode()->GetType().c_str(), dst_in_anchor->GetIdx());
     return ret;
   }
@@ -345,42 +356,42 @@ Status TransOpSymmetryEliminationPass::EliminateTransOp(NodePtr &src_node, const
   ret = GraphUtils::CopyInCtrlEdges(src_node, dst_node);
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Copy in control edge from node:%s(%s) to node:%s(%s) failed",
-                      src_node->GetName().c_str(), src_node->GetType().c_str(),
-                      dst_node->GetName().c_str(), dst_node->GetType().c_str());
-    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed",
-           src_node->GetName().c_str(), src_node->GetType().c_str(),
-           dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                         src_node->GetName().c_str(), src_node->GetType().c_str(), dst_node->GetName().c_str(),
+                         dst_node->GetType().c_str());
+    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed", src_node->GetName().c_str(),
+           src_node->GetType().c_str(), dst_node->GetName().c_str(), dst_node->GetType().c_str());
     return ret;
   }
   // 4.Add control edge from T1 other input to T2, like reshape second input
   for (const auto &in_node : src_node->GetInDataNodes()) {
-    if (in_node->GetName() == pre_normal_node->GetName()) { continue; }
+    if (in_node->GetName() == pre_normal_node->GetName()) {
+      continue;
+    }
     ret = GraphUtils::AddEdge(in_node->GetOutControlAnchor(), dst_node->GetInControlAnchor());
     if (ret != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add control edge between op:%s(%s) and op:%s(%s) failed",
-                        in_node->GetName().c_str(), in_node->GetType().c_str(),
-                        dst_node->GetName().c_str(), dst_node->GetType().c_str());
-      GELOGE(FAILED, "[Add][ControlEdge] between op:%s(%s) and op:%s(%s) failed",
-             in_node->GetName().c_str(), in_node->GetType().c_str(),
-             dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                           in_node->GetName().c_str(), in_node->GetType().c_str(), dst_node->GetName().c_str(),
+                           dst_node->GetType().c_str());
+      GELOGE(FAILED, "[Add][ControlEdge] between op:%s(%s) and op:%s(%s) failed", in_node->GetName().c_str(),
+             in_node->GetType().c_str(), dst_node->GetName().c_str(), dst_node->GetType().c_str());
       return ret;
     }
   }
   // 5.IsolateAndDelete T2, A will link to B automatically, and all control edge will also relink.
   ret = IsolateAndDeleteNode(dst_node, {0});
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed",
-                      dst_node->GetName().c_str(), dst_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[IsolateAndDelete][Node] failed, node name:%s, node type:%s ",
-           dst_node->GetName().c_str(), dst_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed", dst_node->GetName().c_str(),
+                         dst_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[IsolateAndDelete][Node] failed, node name:%s, node type:%s ", dst_node->GetName().c_str(),
+           dst_node->GetType().c_str());
     return ret;
   }
   GELOGI("Trans op symmetry eliminate successfully. Node %s has been removed.", dst_node->GetName().c_str());
   // 6.If T1 has no data out, isolate and deleted it.
   ret = RemoveTransOpWithoutOutput(pre_normal_node, src_node);
   if (ret != GRAPH_SUCCESS) {
-    GELOGE(ret, "[Call][RemoveTransOpWithoutOutput] for node:%s(%s) failed",
-           src_node->GetName().c_str(), src_node->GetType().c_str());
+    GELOGE(ret, "[Call][RemoveTransOpWithoutOutput] for node:%s(%s) failed", src_node->GetName().c_str(),
+           src_node->GetType().c_str());
     return ret;
   }
   return SUCCESS;
@@ -391,8 +402,8 @@ Status TransOpSymmetryEliminationPass::RemoveTransOpWithoutOutput(NodePtr &pre_n
     Status ret = GraphUtils::CopyOutCtrlEdges(trans_node, pre_node);
     if (ret != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Copy out control edge from node:%s(%s) to node:%s(%s) failed",
-                        trans_node->GetName().c_str(), trans_node->GetType().c_str(),
-                        pre_node->GetName().c_str(), pre_node->GetType().c_str());
+                           trans_node->GetName().c_str(), trans_node->GetType().c_str(), pre_node->GetName().c_str(),
+                           pre_node->GetType().c_str());
       GELOGE(FAILED, "[Copy][OutCtrlEdges] from %s to %s failed.", trans_node->GetName().c_str(),
              pre_node->GetName().c_str());
       return ret;

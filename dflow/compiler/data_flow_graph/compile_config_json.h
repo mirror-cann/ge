@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,10 +35,10 @@ class CompileConfigJson {
   };
 
   struct BufCfg {
-    uint32_t total_size;   // total pool size
-    uint32_t blk_size;     // min size alloced at once
-    uint32_t max_buf_size; // max size alloced at once
-    std::string page_type; // page type:normal or huge
+    uint32_t total_size;    // total pool size
+    uint32_t blk_size;      // min size alloced at once
+    uint32_t max_buf_size;  // max size alloced at once
+    std::string page_type;  // page type:normal or huge
   };
 
   struct FunctionPpConfig {
@@ -109,8 +109,7 @@ class CompileConfigJson {
   static Status ReadModelPpConfigFromJsonFile(const std::string &file_path, ModelPpConfig &model_pp_config);
   static Status ReadToolchainFromJsonFile(const std::string &file_path,
                                           std::map<std::string, std::string> &toolchain_map);
-  static Status ReadDeployInfoFromJsonFile(const std::string &file_path,
-                                           DeployConfigInfo &deploy_conf);
+  static Status ReadDeployInfoFromJsonFile(const std::string &file_path, DeployConfigInfo &deploy_conf);
   static Status GetResourceTypeFromNumaConfig(std::set<std::string> &resource_types);
 
  private:

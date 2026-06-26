@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ Status CaffeReshapeParser::ParseParams(const Message *op_src, ge::OpDescPtr &op)
 
   if (!reshape_parameter.has_shape()) {
     REPORT_INNER_ERR_MSG("E19999", "Reshape has no shape info, ret fail, layer name = %s, layer type= %s",
-                       layer->name().c_str(), layer->type().c_str());
+                         layer->name().c_str(), layer->type().c_str());
     GELOGE(FAILED, "[Check][Param]Reshape has no shape info, ret fail, layer name = %s, layer type= %s",
            layer->name().c_str(), layer->type().c_str());
     return FAILED;
@@ -122,8 +122,9 @@ Status CaffeReshapeParser::AddConstInput(ge::NodePtr &node) {
   for (size_t i = 0; i < dims_size; ++i) {
     data[i] = attr_shape[i];
   }
-  GE_IF_BOOL_EXEC(constTensor->SetData(PtrToPtr<int64_t, uint8_t>(data.get()), dims_size * sizeof(int64_t)) !=
-                  ge::GRAPH_SUCCESS, GELOGW("SetData failed for GeTensor."););  // no need to return
+  GE_IF_BOOL_EXEC(
+      constTensor->SetData(PtrToPtr<int64_t, uint8_t>(data.get()), dims_size * sizeof(int64_t)) != ge::GRAPH_SUCCESS,
+      GELOGW("SetData failed for GeTensor."););  // no need to return
 
   // construct const node and add edge
   auto const_opdesc = ge::OpDescUtils::CreateConstOp(constTensor);
@@ -136,10 +137,10 @@ Status CaffeReshapeParser::AddConstInput(ge::NodePtr &node) {
   GE_CHECK_NOTNULL(in_archor_ptr);
   state = ge::GraphUtils::AddEdge(out_archor_ptr, in_archor_ptr);
   if (state != ge::GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "AddEdge failed of from Node %s to Node %s",
-                      const_node->GetName().c_str(), node->GetName().c_str());
-    GELOGE(FAILED, "[Add][Edge] failed of from Node %s to Node %s",
-           const_node->GetName().c_str(), node->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "AddEdge failed of from Node %s to Node %s", const_node->GetName().c_str(),
+                         node->GetName().c_str());
+    GELOGE(FAILED, "[Add][Edge] failed of from Node %s to Node %s", const_node->GetName().c_str(),
+           node->GetName().c_str());
     return domi::FAILED;
   }
   return SUCCESS;

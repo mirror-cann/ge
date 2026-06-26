@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,6 @@
 #include "exe_graph/lowering/value_holder_utils.h"
 #include "lowering_utils.h"
 
-
 namespace gert {
 namespace {
 constexpr char const *kUbOriginGraphAttrKey = "_original_fusion_graph";
@@ -61,8 +60,9 @@ HyperStatus CollectLowerResultOfInDataNodes(const ge::NodePtr &node, int32_t inp
       return HyperStatus::ErrorStatus(
           static_cast<const char *>(
               "Failed to construct LowerInput for node %s, because cannot find the lower result on input node name:%s,"
-              " type:%s, engine:%s."), node->GetNamePtr(), peer_node->GetNamePtr(), peer_node->GetTypePtr(),
-              peer_node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
+              " type:%s, engine:%s."),
+          node->GetNamePtr(), peer_node->GetNamePtr(), peer_node->GetTypePtr(),
+          peer_node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
     }
 
     bool is_data_dependent = false;
@@ -74,8 +74,8 @@ HyperStatus CollectLowerResultOfInDataNodes(const ge::NodePtr &node, int32_t inp
     }
     bool is_tiling_dependent = false;
     if (!is_data_dependent) {
-      auto tiling_ret = ddi.IsTilingInputDataDependent(static_cast<int32_t>(lower_input.input_shapes.size()),
-          is_tiling_dependent);
+      auto tiling_ret =
+          ddi.IsTilingInputDataDependent(static_cast<int32_t>(lower_input.input_shapes.size()), is_tiling_dependent);
       if (tiling_ret != ge::SUCCESS) {
         return HyperStatus::ErrorStatus(
             static_cast<const char *>("Failed to get tiling dependent flag for node %s, src node %s, input index %zu"),
@@ -785,8 +785,8 @@ const LowerResult *LoweringComputeGraph(const ge::ComputeGraphPtr &graph, Loweri
     GE_ASSERT_NOTNULL(node);
     auto lowering_reg_data = GetNodeConvertData(node);
     GE_ASSERT_TRUE((lowering_reg_data != nullptr) && (lowering_reg_data->converter != nullptr),
-                   "Failed to get lowering func for node name[%s], node type[%s], engine[%s]",
-                   node->GetNamePtr(), node->GetTypePtr(), node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
+                   "Failed to get lowering func for node name[%s], node type[%s], engine[%s]", node->GetNamePtr(),
+                   node->GetTypePtr(), node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
 
     LowerInput inputs{{}, {}, &global_data};
     OrderInputs order_inputs;
@@ -854,9 +854,7 @@ const LowerResult *ConvertComputeSubgraphToExecuteGraph(const ge::ComputeGraphPt
 ge::ExecuteGraphPtr GraphConverter::ConvertComputeGraphToExecuteGraph(const ge::ComputeGraphPtr &graph,
                                                                       const LoweringOption &optimize_option,
                                                                       LoweringGlobalData &global_data) const {
-  GE_MAKE_GUARD(clear_graph_frame, []() {
-    bg::ValueHolder::ClearGraphFrameResource();
-  });
+  GE_MAKE_GUARD(clear_graph_frame, []() { bg::ValueHolder::ClearGraphFrameResource(); });
   GE_TIMESTAMP_START(ConvertComputeGraphToExecuteGraphAll);
   GE_ASSERT_NOTNULL(graph);
   GE_DUMP(graph, "ComputeGraphBeforeLowering");

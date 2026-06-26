@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,22 +41,37 @@ class TestOpsKernelInfoStore : public OpsKernelInfoStore {
 
   ~TestOpsKernelInfoStore() override = default;
 
-  Status Initialize(const map<string, string> &options)  { return ge::SUCCESS; }
-  Status Finalize() override { return ge::SUCCESS; }
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const { return true; }
-  Status CalcOpRunningParam(Node &node) { return ge::SUCCESS; }
-  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks)  {
-    return ge::SUCCESS; }
-  Status CompileOp(vector<ge::NodePtr> &node_vec) { return ge::SUCCESS; }
-  void GetAllOpsKernelInfo(map<string, OpInfo> &infos) const { return; }
-  std::vector<OpInfo> GetOpsKernelInfoStore(const std::string &name) { return empty_op_info_; }
+  Status Initialize(const map<string, string> &options) {
+    return ge::SUCCESS;
+  }
+  Status Finalize() override {
+    return ge::SUCCESS;
+  }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const {
+    return true;
+  }
+  Status CalcOpRunningParam(Node &node) {
+    return ge::SUCCESS;
+  }
+  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) {
+    return ge::SUCCESS;
+  }
+  Status CompileOp(vector<ge::NodePtr> &node_vec) {
+    return ge::SUCCESS;
+  }
+  void GetAllOpsKernelInfo(map<string, OpInfo> &infos) const {
+    return;
+  }
+  std::vector<OpInfo> GetOpsKernelInfoStore(const std::string &name) {
+    return empty_op_info_;
+  }
   OpInfo test_op = {"DNN_VM_TF", "ge_local", 0, false, false, true};
   std::vector<OpInfo> empty_op_info_{test_op};
 };
-}
+}  // namespace
 class UtestGraphPassesAtomicAddrCleanPass : public Test {
-public:
-void SetUp() {
+ public:
+  void SetUp() {
     std::string path = GetModelPath();
     path.append("plugin/nnengine/ge_config/");
     std::string json_path = path + "engine_conf.json";
@@ -72,10 +87,14 @@ void SetUp() {
     }
     std::ofstream ofs(json_tmp_path.c_str(), std::ios::out);
     ofs << "{\"schedule_units\":[{\"id\":\"TS_1\",\"name\":\"scheduler\",\"cal_engines\":"
-        << "[{\"id\":\"AIcoreEngine\",\"name\":\"AICORE\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":false}"
-        << ",{\"id\":\"DNN_VM_GE_LOCAL\",\"name\":\"GE_LOCAL\",\"independent\":false,\"skip_assign_stream\":true,\"attach\":true}"
-        << ",{\"id\":\"DNN_VM_HOST_CPU\",\"name\":\"HOST_CPU\",\"independent\":false,\"skip_assign_stream\":true,\"attach\":true}"
-        << ",{\"id\":\"DNN_VM_AICPU\",\"name\":\"AICPU\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":true}"
+        << "[{\"id\":\"AIcoreEngine\",\"name\":\"AICORE\",\"independent\":false,\"skip_assign_stream\":false,"
+           "\"attach\":false}"
+        << ",{\"id\":\"DNN_VM_GE_LOCAL\",\"name\":\"GE_LOCAL\",\"independent\":false,\"skip_assign_stream\":true,"
+           "\"attach\":true}"
+        << ",{\"id\":\"DNN_VM_HOST_CPU\",\"name\":\"HOST_CPU\",\"independent\":false,\"skip_assign_stream\":true,"
+           "\"attach\":true}"
+        << ",{\"id\":\"DNN_VM_AICPU\",\"name\":\"AICPU\",\"independent\":false,\"skip_assign_stream\":false,\"attach\":"
+           "true}"
         << ",{\"id\":\"DNN_HCCL\",\"name\":\"HCCL\",\"independent\":true,\"skip_assign_stream\":false,\"attach\":false}"
         << "]}]}";
     ofs.flush();
@@ -97,7 +116,7 @@ void SetUp() {
 
   UtestGraphPassesAtomicAddrCleanPass() {
     graph_ = std::make_shared<ComputeGraph>("test");
-    GeShape shape = GeShape({1,1,224,224});
+    GeShape shape = GeShape({1, 1, 224, 224});
     default_tensor_desc_ = std::make_shared<GeTensorDesc>();
     default_tensor_desc_->SetShape(shape);
     default_tensor_desc_->SetFormat(FORMAT_NCHW);
@@ -398,7 +417,8 @@ TEST_F(UtestGraphPassesAtomicAddrCleanPass, GraphWithTwoHcomAllReduceAtomicNode)
   EXPECT_EQ(ret, SUCCESS);
   // data+two allreduce one atomic clean
   EXPECT_EQ(1, CountOfAtomicMemsetNode());
-  EXPECT_EQ(node2->GetInControlAnchor()->GetPeerOutControlAnchors().size(), 1); // Op2 only has 1 control edge from atomic node
+  EXPECT_EQ(node2->GetInControlAnchor()->GetPeerOutControlAnchors().size(),
+            1);  // Op2 only has 1 control edge from atomic node
 }
 
 /*
@@ -700,7 +720,7 @@ TEST_F(UtestGraphPassesAtomicAddrCleanPass, GraphWithTwoAtomicNode_Failed) {
   graph_->AddInputNode(node1);
   (void)AttrUtils::SetStr(graph_, ATTR_NAME_SESSION_GRAPH_ID, "012");
 
-  //MOCKER_CPP(&AtomicAddrCleanPass::LinkToAtomicNode).stubs().will(returnValue(FAILED));
+  // MOCKER_CPP(&AtomicAddrCleanPass::LinkToAtomicNode).stubs().will(returnValue(FAILED));
   auto ret = atomic_clean_pass_.Run(graph_);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(2, CountOfAtomicMemsetNode());

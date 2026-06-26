@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -35,26 +35,23 @@ struct InferenceParams {
 };
 
 class ModelInference {
-public:
+ public:
   class Builder;
   explicit ModelInference(const InferenceParams &inference_params);
   ~ModelInference();
 
   ge::Status Init();
-  using Callback = std::function<void(
-      std::shared_ptr<std::vector<gert::Tensor>> outputs,
-      std::shared_ptr<std::vector<gert::Tensor>> inputs,
-      bool status,
-      long long exec_us // 执行时延（微秒）
-      )>;
+  using Callback = std::function<void(std::shared_ptr<std::vector<gert::Tensor>> outputs,
+                                      std::shared_ptr<std::vector<gert::Tensor>> inputs, bool status,
+                                      long long exec_us  // 执行时延（微秒）
+                                      )>;
 
   ge::Status RunGraphAsync(const std::shared_ptr<std::vector<gert::Tensor>> &host_inputs,
-                           const std::shared_ptr<std::vector<gert::Tensor>> &host_outputs,
-                           const Callback &callback);
+                           const std::shared_ptr<std::vector<gert::Tensor>> &host_outputs, const Callback &callback);
 
   class Builder {
-  public:
-    explicit Builder(const std::string& modelPath, const std::string& modelType);
+   public:
+    explicit Builder(const std::string &modelPath, const std::string &modelType);
     Builder &AiCoreNum(const std::string &aiCoreNum);
     Builder &InputBatchCopy(bool enableBatchH2D);
     Builder &MultiInstanceNum(int32_t multiInstanceNum);
@@ -62,11 +59,11 @@ public:
     Builder &GraphParserParams(const std::map<ge::AscendString, ge::AscendString> &parserParams);
     std::unique_ptr<ModelInference> Build();
 
-  private:
+   private:
     InferenceParams infer_params_;
   };
 
-private:
+ private:
   struct GraphWorker {
     int32_t deviceId;
     uint32_t graphId;
@@ -120,6 +117,6 @@ struct MemcpyBatchParam {
   std::vector<size_t> attrsIndexes;
   size_t numAttrs;
 };
-} // namespace gerec
+}  // namespace gerec
 
 #endif  // MODELINFERENCE_H

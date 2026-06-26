@@ -74,4 +74,3 @@ aclError aclmdlGetDescFromMem(aclmdlDesc *modelDesc, const void *model, size_t m
 ## 返回值说明<a name="section2803172342117"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

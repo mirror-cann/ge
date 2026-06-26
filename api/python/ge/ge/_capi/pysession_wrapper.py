@@ -3,17 +3,16 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 import ctypes
 import os
-import sys
 
 from ._lib_loader import load_lib_from_path
 
@@ -42,14 +41,23 @@ c_func_t_on_destroy = ctypes.CFUNCTYPE(None, c_void_p)
 session_lib.GeApiWrapper_Session_CreateSession.argtypes = []
 session_lib.GeApiWrapper_Session_CreateSession.restype = c_void_p
 
-session_lib.GeApiWrapper_Session_CreateSessionWithOptions.argtypes = [c_p_to_char_p, c_p_to_char_p, c_int]
+session_lib.GeApiWrapper_Session_CreateSessionWithOptions.argtypes = [
+    c_p_to_char_p,
+    c_p_to_char_p,
+    c_int,
+]
 session_lib.GeApiWrapper_Session_CreateSessionWithOptions.restype = c_void_p
 
 session_lib.GeApiWrapper_Session_AddGraph.argtypes = [c_void_p, c_uint32, c_void_p]
 session_lib.GeApiWrapper_Session_AddGraph.restype = c_uint32
 
 session_lib.GeApiWrapper_Session_AddGraphWithOptions.argtypes = [
-    c_void_p, c_uint32, c_void_p, c_p_to_char_p, c_p_to_char_p, c_int
+    c_void_p,
+    c_uint32,
+    c_void_p,
+    c_p_to_char_p,
+    c_p_to_char_p,
+    c_int,
 ]
 session_lib.GeApiWrapper_Session_AddGraphWithOptions.restype = c_uint32
 
@@ -57,14 +65,23 @@ session_lib.GeApiWrapper_Session_RemoveGraph.argtypes = [c_void_p, c_uint32]
 session_lib.GeApiWrapper_Session_RemoveGraph.restype = c_uint32
 
 session_lib.GeApiWrapper_Session_RunGraph.argtypes = [
-    c_void_p, c_uint32, c_p_to_void_p, c_int, ctypes.POINTER(ctypes.POINTER(c_void_p)),
-    ctypes.POINTER(c_size_t)
+    c_void_p,
+    c_uint32,
+    c_p_to_void_p,
+    c_int,
+    ctypes.POINTER(ctypes.POINTER(c_void_p)),
+    ctypes.POINTER(c_size_t),
 ]
 session_lib.GeApiWrapper_Session_RunGraph.restype = c_uint32
 
 session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync.argtypes = [
-    c_void_p, c_uint32, c_void_p, c_p_to_void_p, c_int, ctypes.POINTER(ctypes.POINTER(c_void_p)),
-    ctypes.POINTER(c_size_t)
+    c_void_p,
+    c_uint32,
+    c_void_p,
+    c_p_to_void_p,
+    c_int,
+    ctypes.POINTER(ctypes.POINTER(c_void_p)),
+    ctypes.POINTER(c_size_t),
 ]
 session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync.restype = c_uint32
 
@@ -74,17 +91,27 @@ session_lib.GeApiWrapper_Session_FreeTensorArray.restype = None
 session_lib.GeApiWrapper_Session_DestroySession.argtypes = [c_void_p]
 session_lib.GeApiWrapper_Session_DestroySession.restype = None
 
-session_lib.GeApiWrapper_Session_RegisterDefaultAllocator.argtypes = [c_void_p, c_void_p]
+session_lib.GeApiWrapper_Session_RegisterDefaultAllocator.argtypes = [
+    c_void_p,
+    c_void_p,
+]
 session_lib.GeApiWrapper_Session_RegisterDefaultAllocator.restype = c_uint32
 
 session_lib.GeApiWrapper_Session_RegisterExternalAllocator.argtypes = [
-    c_void_p, c_void_p,
-    c_func_t_malloc, c_func_t_free, c_func_t_get_addr,
-    c_func_t_on_destroy, c_void_p
+    c_void_p,
+    c_void_p,
+    c_func_t_malloc,
+    c_func_t_free,
+    c_func_t_get_addr,
+    c_func_t_on_destroy,
+    c_void_p,
 ]
 session_lib.GeApiWrapper_Session_RegisterExternalAllocator.restype = c_uint32
 
-session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.argtypes = [c_void_p, c_void_p]
+session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.argtypes = [
+    c_void_p,
+    c_void_p,
+]
 session_lib.GeApiWrapper_Session_UnregisterExternalAllocator.restype = c_uint32
 
 session_lib.GeApiWrapper_HasExternalAllocator.argtypes = [c_void_p]

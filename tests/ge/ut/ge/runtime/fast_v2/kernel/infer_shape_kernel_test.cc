@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ namespace gert {
 namespace kernel {
 ge::graphStatus InferShape(KernelContext *context);
 ge::graphStatus SetOutputShape(KernelContext *context);
-}
+}  // namespace kernel
 struct InferShapeKernelTest : public testing::Test {
   KernelRegistry &registry = KernelRegistry::GetInstance();
 };
@@ -51,7 +51,7 @@ class Rt2CustomShapeInferOp : public ge::ShapeInferOp {
 
 class Rt2CustomNoShapeInferOp : public ge::BaseCustomOp {};
 
-ge::graphStatus CopyInferShape(InferShapeContext* context){
+ge::graphStatus CopyInferShape(InferShapeContext *context) {
   auto input = context->GetInputShape(0);
   auto output = context->GetOutputShape(0);
   *output = *input;
@@ -59,17 +59,20 @@ ge::graphStatus CopyInferShape(InferShapeContext* context){
 }
 
 TEST_F(InferShapeKernelTest, test_infershape_without_padding) {
-  gert::Tensor input_shape_tensor = {{{1,2,2,256}, {1,2,2,256}},    // shape
+  gert::Tensor input_shape_tensor = {{{1, 2, 2, 256}, {1, 2, 2, 256}},      // shape
                                      {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                                     kOnDeviceHbm,                                // placement
-                                     ge::DT_FLOAT16,                              // data type
+                                     kOnDeviceHbm,                          // placement
+                                     ge::DT_FLOAT16,                        // data type
                                      (void *)0x0};
   Tensor output;
-  auto run_context = InferShapeContextFaker().NodeIoNum(1,1)
-                     .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
-                     .InputShapes({&input_shape_tensor}).OutputShapes({&output}).Build();
+  auto run_context = InferShapeContextFaker()
+                         .NodeIoNum(1, 1)
+                         .NodeOutputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_NCHW)
+                         .InputShapes({&input_shape_tensor})
+                         .OutputShapes({&output})
+                         .Build();
   run_context.value_holder[0].Set(&input_shape_tensor, nullptr);
-  run_context.value_holder[1].Set((void*)CopyInferShape, nullptr);
+  run_context.value_holder[1].Set((void *)CopyInferShape, nullptr);
   run_context.value_holder[2].Set(&output, nullptr);
 
   ASSERT_EQ(kernel::InferShape(run_context), ge::GRAPH_SUCCESS);
@@ -87,16 +90,15 @@ TEST_F(InferShapeKernelTest, test_infershape_with_transshape_success) {
   StorageShape input{{8, 512, 5, 5}, {8, 512, 5, 5}};
   StorageShape output;
 
-  auto run_context = InferShapeContextFaker().NodeIoNum(1,1)
-                     .InputShapes({&input}).OutputShapes({&output}).Build();
+  auto run_context = InferShapeContextFaker().NodeIoNum(1, 1).InputShapes({&input}).OutputShapes({&output}).Build();
   auto &compute_info = *run_context.MutableComputeNodeInfo();
-  auto output_td = const_cast<CompileTimeTensorDesc*>(compute_info.GetOutputTdInfo(0));
+  auto output_td = const_cast<CompileTimeTensorDesc *>(compute_info.GetOutputTdInfo(0));
   output_td->SetDataType(ge::DT_INT32);
   output_td->SetStorageFormat(ge::FORMAT_NC1HWC0);
   output_td->SetOriginFormat(ge::FORMAT_NCHW);
 
   run_context.value_holder[0].Set(&input, nullptr);
-  run_context.value_holder[1].Set((void*)CopyInferShape, nullptr);
+  run_context.value_holder[1].Set((void *)CopyInferShape, nullptr);
   run_context.value_holder[2].Set(&output, nullptr);
 
   ASSERT_EQ(registry.FindKernelFuncs("InferShape")->run_func(run_context), ge::GRAPH_SUCCESS);
@@ -118,19 +120,19 @@ TEST_F(InferShapeKernelTest, test_infershape_with_padding_and_transshape) {
   StorageShape input{{8, 512, 5}, {8, 512, 5}};
   StorageShape output;
 
-  auto run_context = InferShapeContextFaker().NodeIoNum(1,1).InputShapes({&input}).OutputShapes({&output}).Build();
+  auto run_context = InferShapeContextFaker().NodeIoNum(1, 1).InputShapes({&input}).OutputShapes({&output}).Build();
   auto &compute_info = *run_context.MutableComputeNodeInfo();
-  auto output_td = const_cast<CompileTimeTensorDesc*>(compute_info.GetOutputTdInfo(0));
+  auto output_td = const_cast<CompileTimeTensorDesc *>(compute_info.GetOutputTdInfo(0));
   output_td->SetDataType(ge::DT_INT32);
   // get int_reshape_type
   // get reshape type 此处模拟FE调用transformer中方法获取int类型的reshape type
-  int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, origin_shape.size(),
-                                                                    "NCH");
+  int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0,
+                                                                               origin_shape.size(), "NCH");
   output_td->SetExpandDimsType(ExpandDimsType(int_reshape_type));
   output_td->SetOriginFormat(ge::FORMAT_NCHW);
   output_td->SetStorageFormat(ge::FORMAT_NC1HWC0);
   run_context.value_holder[0].Set(&input, nullptr);
-  run_context.value_holder[1].Set((void*)CopyInferShape, nullptr);
+  run_context.value_holder[1].Set((void *)CopyInferShape, nullptr);
   run_context.value_holder[2].Set(&output, nullptr);
 
   ASSERT_EQ(registry.FindKernelFuncs("InferShape")->run_func(run_context), ge::GRAPH_SUCCESS);
@@ -146,13 +148,13 @@ TEST_F(InferShapeKernelTest, test_infershape_with_transshape_failed) {
   StorageShape input{{8, 512, 5, 5}, {8, 512, 5, 5}};
   StorageShape output;
 
-  auto run_context = InferShapeContextFaker().NodeIoNum(1,1).InputShapes({&input}).OutputShapes({&output}).Build();
+  auto run_context = InferShapeContextFaker().NodeIoNum(1, 1).InputShapes({&input}).OutputShapes({&output}).Build();
   auto &compute_info = *run_context.MutableComputeNodeInfo();
-  auto output_td = const_cast<CompileTimeTensorDesc*>(compute_info.GetOutputTdInfo(0));
+  auto output_td = const_cast<CompileTimeTensorDesc *>(compute_info.GetOutputTdInfo(0));
   output_td->SetDataType(ge::DT_INT32);
-  output_td->SetStorageFormat(ge::FORMAT_RESERVED);// invalid format, will cause transfershape fail
+  output_td->SetStorageFormat(ge::FORMAT_RESERVED);  // invalid format, will cause transfershape fail
   run_context.value_holder[0].Set(&input, nullptr);
-  run_context.value_holder[1].Set((void*)CopyInferShape, nullptr);
+  run_context.value_holder[1].Set((void *)CopyInferShape, nullptr);
   run_context.value_holder[2].Set(&output, nullptr);
 
   ASSERT_EQ(registry.FindKernelFuncs("InferShape")->run_func(run_context), ge::GRAPH_FAILED);
@@ -162,28 +164,28 @@ TEST_F(InferShapeKernelTest, transfershape_with_the_same_origin_format_and_stora
   StorageShape input{{8, 512, 5, 5, 4}, {8, 512, 5, 5, 4}};
   StorageShape output;
 
-  auto run_context = InferShapeContextFaker().NodeIoNum(1,1).InputShapes({&input}).OutputShapes({&output}).Build();
+  auto run_context = InferShapeContextFaker().NodeIoNum(1, 1).InputShapes({&input}).OutputShapes({&output}).Build();
   auto &compute_info = *run_context.MutableComputeNodeInfo();
-  auto output_td = const_cast<CompileTimeTensorDesc*>(compute_info.GetOutputTdInfo(0));
+  auto output_td = const_cast<CompileTimeTensorDesc *>(compute_info.GetOutputTdInfo(0));
   output_td->SetDataType(ge::DT_INT32);
   output_td->SetStorageFormat(ge::FORMAT_NHWC);
   output_td->SetOriginFormat(ge::FORMAT_NHWC);
   run_context.value_holder[0].Set(&input, nullptr);
-  run_context.value_holder[1].Set((void*)CopyInferShape, nullptr);
+  run_context.value_holder[1].Set((void *)CopyInferShape, nullptr);
   run_context.value_holder[2].Set(&output, nullptr);
 
   ASSERT_EQ(registry.FindKernelFuncs("InferShape")->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-UINT32 StubInfershape(InferShapeContext *){
+UINT32 StubInfershape(InferShapeContext *) {
   return ge::GRAPH_SUCCESS;
 }
 
 TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_success) {
   auto run_context = BuildKernelRunContext(2, 1);
   const char *node_type = "stub_infershape";
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape
-      = StubInfershape;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape =
+      StubInfershape;
 
   auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
   ASSERT_NE(space_registry, nullptr);
@@ -192,9 +194,9 @@ TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_success) {
   run_context.value_holder[0].Set(const_cast<char *>(node_type), nullptr);
   run_context.value_holder[1].Set(space_registry.get(), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("FindInferShapeFunc")->run_func(run_context), ge::GRAPH_SUCCESS);
-  ASSERT_EQ(run_context.value_holder[2].GetValue<void *>(), reinterpret_cast<void*>(StubInfershape));
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape
-      = nullptr;
+  ASSERT_EQ(run_context.value_holder[2].GetValue<void *>(), reinterpret_cast<void *>(StubInfershape));
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->infer_shape =
+      nullptr;
 }
 
 TEST_F(InferShapeKernelTest, test_find_InferShapeFunc_input_empty) {
@@ -233,13 +235,14 @@ TEST_F(InferShapeKernelTest, infer_shape_uses_input_custom_op) {
   StorageShape input{{2, 3, 4}, {2, 3, 4}};
   Tensor output;
   auto infer_shape_func = kernel::InferCustomOpShapeFromInput;
-  auto run_context = KernelRunContextFaker().KernelIONum(3, 1)
-                                           .NodeIoNum(1, 1)
-                                           .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-                                           .Inputs({&input, static_cast<ge::BaseCustomOp *>(&custom_op),
-                                                    reinterpret_cast<void *>(infer_shape_func)})
-                                           .Outputs({&output})
-                                           .Build();
+  auto run_context =
+      KernelRunContextFaker()
+          .KernelIONum(3, 1)
+          .NodeIoNum(1, 1)
+          .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+          .Inputs({&input, static_cast<ge::BaseCustomOp *>(&custom_op), reinterpret_cast<void *>(infer_shape_func)})
+          .Outputs({&output})
+          .Build();
 
   const auto funcs = registry.FindKernelFuncs("InferShape");
   ASSERT_NE(funcs, nullptr);
@@ -252,13 +255,14 @@ TEST_F(InferShapeKernelTest, infer_shape_fails_when_custom_op_has_no_shape_infer
   StorageShape input{{2, 3, 4}, {2, 3, 4}};
   Tensor output;
   auto infer_shape_func = kernel::InferCustomOpShapeFromInput;
-  auto run_context = KernelRunContextFaker().KernelIONum(3, 1)
-                                           .NodeIoNum(1, 1)
-                                           .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-                                           .Inputs({&input, static_cast<ge::BaseCustomOp *>(&custom_op),
-                                                    reinterpret_cast<void *>(infer_shape_func)})
-                                           .Outputs({&output})
-                                           .Build();
+  auto run_context =
+      KernelRunContextFaker()
+          .KernelIONum(3, 1)
+          .NodeIoNum(1, 1)
+          .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+          .Inputs({&input, static_cast<ge::BaseCustomOp *>(&custom_op), reinterpret_cast<void *>(infer_shape_func)})
+          .Outputs({&output})
+          .Build();
 
   const auto funcs = registry.FindKernelFuncs("InferShape");
   ASSERT_NE(funcs, nullptr);
@@ -276,10 +280,11 @@ TEST_F(InferShapeKernelTest, test_InferShape_extend_info_is_null) {
   KernelRunContext run_context;
   run_context.compute_node_info = nullptr;
   run_context.kernel_extend_info = nullptr;
-  ASSERT_NE(registry.FindKernelFuncs("InferShape")->run_func(reinterpret_cast<KernelContext*>(&run_context)), ge::GRAPH_SUCCESS);
+  ASSERT_NE(registry.FindKernelFuncs("InferShape")->run_func(reinterpret_cast<KernelContext *>(&run_context)),
+            ge::GRAPH_SUCCESS);
 }
 
-UINT32 StubFailedInfershape(InferShapeContext *){
+UINT32 StubFailedInfershape(InferShapeContext *) {
   return 0x01;
 }
 
@@ -296,20 +301,17 @@ TEST_F(InferShapeKernelTest, test_InferShape_infer_fun_not_exist) {
 
 TEST_F(InferShapeKernelTest, test_InferShape_infer_fun_return_failed) {
   auto run_context = BuildKernelRunContext(2, 1);
-  run_context.value_holder[1].Set(reinterpret_cast<void*>(StubFailedInfershape), nullptr);
+  run_context.value_holder[1].Set(reinterpret_cast<void *>(StubFailedInfershape), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("InferShape")->run_func(run_context), 0x01);
 }
 
 TEST_F(InferShapeKernelTest, test_set_output_shape_success_001) {
-  uint64_t shape_data[18] = {
-      2147483652, 5,  6,  7,  8,  1,  1, 1, 1,
-      2147483653, 11, 12, 13, 14, 15, 1, 1, 1
-  };
-  size_t shapebuffer_addr_size = 2 * sizeof(uint64_t) * 26;  
+  uint64_t shape_data[18] = {2147483652, 5, 6, 7, 8, 1, 1, 1, 1, 2147483653, 11, 12, 13, 14, 15, 1, 1, 1};
+  size_t shapebuffer_addr_size = 2 * sizeof(uint64_t) * 26;
   auto shape_tensor_data = std::make_unique<GertTensorData>(shape_data, shapebuffer_addr_size, kTensorPlacementEnd, -1);
   auto run_context = KernelRunContextFaker().KernelIONum(1, 2).NodeIoNum(1, 2).Build();
-  StorageShape output1{{1,2,3,4}, {1,2,3,4}};
-  StorageShape output2{{1,2,3,4}, {1,2,3,4}};
+  StorageShape output1{{1, 2, 3, 4}, {1, 2, 3, 4}};
+  StorageShape output2{{1, 2, 3, 4}, {1, 2, 3, 4}};
   run_context.value_holder[0].Set(shape_tensor_data.get(), nullptr);
   run_context.value_holder[1].Set(&output1, nullptr);
   run_context.value_holder[2].Set(&output2, nullptr);
@@ -343,15 +345,12 @@ TEST_F(InferShapeKernelTest, test_set_output_shape_success_001) {
 }
 
 TEST_F(InferShapeKernelTest, test_set_output_shape_success_002) {
-  uint32_t shape_data[36] = {
-      4, 5,  6,  7,  8,  1,  1, 1, 1,
-      5, 11, 12, 13, 14, 15, 1, 1, 1
-  };
+  uint32_t shape_data[36] = {4, 5, 6, 7, 8, 1, 1, 1, 1, 5, 11, 12, 13, 14, 15, 1, 1, 1};
   size_t shapebuffer_addr_size = 2 * sizeof(uint64_t) * 9;
   auto shape_tensor_data = std::make_unique<GertTensorData>(shape_data, shapebuffer_addr_size, kTensorPlacementEnd, -1);
   auto run_context = KernelRunContextFaker().KernelIONum(1, 2).NodeIoNum(1, 2).Build();
-  StorageShape output1{{1,2,3,4}, {1,2,3,4}};
-  StorageShape output2{{1,2,3,4}, {1,2,3,4}};
+  StorageShape output1{{1, 2, 3, 4}, {1, 2, 3, 4}};
+  StorageShape output2{{1, 2, 3, 4}, {1, 2, 3, 4}};
   run_context.value_holder[0].Set(shape_tensor_data.get(), nullptr);
   run_context.value_holder[1].Set(&output1, nullptr);
   run_context.value_holder[2].Set(&output2, nullptr);
@@ -385,15 +384,12 @@ TEST_F(InferShapeKernelTest, test_set_output_shape_success_002) {
 }
 
 TEST_F(InferShapeKernelTest, test_set_output_shape_fail_001) {
-  uint64_t shape_data[18] = {
-      2147483698, 5,  6,  7,  8,  1,  1, 1, 1,
-      2147483698, 11, 12, 13, 14, 15, 1, 1, 1
-  };
+  uint64_t shape_data[18] = {2147483698, 5, 6, 7, 8, 1, 1, 1, 1, 2147483698, 11, 12, 13, 14, 15, 1, 1, 1};
   size_t shapebuffer_addr_size = 2 * sizeof(uint64_t) * 9;
   auto shape_tensor_data = std::make_unique<GertTensorData>(shape_data, shapebuffer_addr_size, kTensorPlacementEnd, -1);
   auto run_context = KernelRunContextFaker().KernelIONum(1, 2).NodeIoNum(1, 2).Build();
-  StorageShape output1{{1,2,3,4}, {1,2,3,4}};
-  StorageShape output2{{1,2,3,4}, {1,2,3,4}};
+  StorageShape output1{{1, 2, 3, 4}, {1, 2, 3, 4}};
+  StorageShape output2{{1, 2, 3, 4}, {1, 2, 3, 4}};
   run_context.value_holder[0].Set(shape_tensor_data.get(), nullptr);
   run_context.value_holder[1].Set(&output1, nullptr);
   run_context.value_holder[2].Set(&output2, nullptr);
@@ -401,16 +397,15 @@ TEST_F(InferShapeKernelTest, test_set_output_shape_fail_001) {
 }
 
 TEST_F(InferShapeKernelTest, test_set_output_shape_fail_002) {
-  uint32_t shape_data[36] = {50, 5,  6,  7,  8,  1,  1, 1, 1,
-                             50, 11, 12, 13, 14, 15, 1, 1, 1};
+  uint32_t shape_data[36] = {50, 5, 6, 7, 8, 1, 1, 1, 1, 50, 11, 12, 13, 14, 15, 1, 1, 1};
   size_t shapebuffer_addr_size = 2 * sizeof(uint64_t) * 9;
   auto shape_tensor_data = std::make_unique<GertTensorData>(shape_data, shapebuffer_addr_size, kTensorPlacementEnd, -1);
   auto run_context = KernelRunContextFaker().KernelIONum(1, 2).NodeIoNum(1, 2).Build();
-  StorageShape output1{{1,2,3,4}, {1,2,3,4}};
-  StorageShape output2{{1,2,3,4}, {1,2,3,4}};
+  StorageShape output1{{1, 2, 3, 4}, {1, 2, 3, 4}};
+  StorageShape output2{{1, 2, 3, 4}, {1, 2, 3, 4}};
   run_context.value_holder[0].Set(shape_tensor_data.get(), nullptr);
   run_context.value_holder[1].Set(&output1, nullptr);
   run_context.value_holder[2].Set(&output2, nullptr);
   ASSERT_EQ(kernel::SetOutputShape(run_context), ge::GRAPH_FAILED);
 }
-}
+}  // namespace gert

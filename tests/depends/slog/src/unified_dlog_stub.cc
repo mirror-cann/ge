@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "plog.h"
 #include "slog_stub.h"
@@ -16,7 +15,7 @@
 #ifndef LOG_CPP
 extern "C" {
 #endif
-#endif // __cplusplus
+#endif  // __cplusplus
 
 void dav_log(int module_id, const char *fmt, ...) {}
 
@@ -99,19 +98,19 @@ int CheckLogLevel(int moduleId, int log_level_check) {
 }
 
 /**
-* @ingroup plog
-* @brief DlogReportInitialize: init log in service process before all device setting.
-* @return: 0: SUCCEED, others: FAILED
-*/
+ * @ingroup plog
+ * @brief DlogReportInitialize: init log in service process before all device setting.
+ * @return: 0: SUCCEED, others: FAILED
+ */
 int DlogReportInitialize() {
   return 0;
 }
 
 /**
-* @ingroup plog
-* @brief DlogReportFinalize: release log resource in service process after all device reset.
-* @return: 0: SUCCEED, others: FAILED
-*/
+ * @ingroup plog
+ * @brief DlogReportFinalize: release log resource in service process after all device reset.
+ * @return: 0: SUCCEED, others: FAILED
+ */
 int DlogReportFinalize() {
   return 0;
 }
@@ -127,7 +126,6 @@ int DlogReportStart(int devId, int mode) {
 }
 
 void DlogFlush() {}
-
 
 void DlogVaList(int module_id, int level, const char *fmt, va_list valist) {
   auto log_level = dlog_getlevel(module_id, nullptr);
@@ -159,5 +157,5 @@ void DlogVaList(int module_id, int level, const char *fmt, va_list valist) {
 #ifdef __cplusplus
 #ifndef LOG_CPP
 }
-#endif // LOG_CPP
-#endif // __cplusplus
+#endif  // LOG_CPP
+#endif  // __cplusplus

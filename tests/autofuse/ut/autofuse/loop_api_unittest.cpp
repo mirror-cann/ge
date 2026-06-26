@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -415,9 +415,8 @@ TEST_F(LoopApiUT, BroadcastWithAllKind) {
   std::vector<Expression> dst_dims = {Symbol(2), Symbol(3), Symbol(4)};
   auto broadcast_box0 = loop::Broadcast(box, src_dims, dst_dims);
 
-  std::vector<loop::BroadcastOp::DimKind> status = {loop::BroadcastOp::DimKind::NEW_AXIS,
-                                                    loop::BroadcastOp::DimKind::NORMAL,
-                                                    loop::BroadcastOp::DimKind::BROADCAST};
+  std::vector<loop::BroadcastOp::DimKind> status = {
+      loop::BroadcastOp::DimKind::NEW_AXIS, loop::BroadcastOp::DimKind::NORMAL, loop::BroadcastOp::DimKind::BROADCAST};
   auto broadcast_box1 = loop::Broadcast(box, status);
 
   EXPECT_EQ(broadcast_box0.Readable(),
@@ -651,8 +650,7 @@ TEST_F(LoopApiUT, StoreReductionAllDim) {
 
   auto box0 = loop::Load(reduce->GetInDataAnchor(0));
   std::vector<Expression> src_dims = {Symbol("s1"), Symbol("s2"), Symbol("s3")};
-  auto reduce_box =
-      loop::StoreReduction(loop::ReduceType::SUM, reduce->GetOutDataAnchor(0), box0, src_dims, {0, 1, 2});
+  auto reduce_box = loop::StoreReduction(loop::ReduceType::SUM, reduce->GetOutDataAnchor(0), box0, src_dims, {0, 1, 2});
 
   EXPECT_FALSE(reduce_box.IsExternKernel());
 }
@@ -673,8 +671,7 @@ TEST_F(LoopApiUT, StoreReductionAllDimKeepDim) {
 
   auto box0 = loop::Load(reduce->GetInDataAnchor(0));
   std::vector<Expression> src_dims = {Symbol("s1"), Symbol("s2"), Symbol("s3")};
-  auto reduce_box =
-      loop::StoreReduction(loop::ReduceType::SUM, reduce->GetOutDataAnchor(0), box0, src_dims, {0, 1, 2});
+  auto reduce_box = loop::StoreReduction(loop::ReduceType::SUM, reduce->GetOutDataAnchor(0), box0, src_dims, {0, 1, 2});
 
   EXPECT_FALSE(reduce_box.IsExternKernel());
 }
@@ -697,7 +694,7 @@ TEST_F(LoopApiUT, StorePackPositiveDim) {
   std::vector<ge::InDataAnchorPtr> inputs = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1)};
   auto kernel_box = loop::StorePack(pack->GetOutDataAnchor(0), inputs, 0);
   EXPECT_TRUE(!kernel_box.IsExternKernel());
-  EXPECT_EQ(kernel_box.Readable(),R"(tmp0 = ops.Load("data0:0")
+  EXPECT_EQ(kernel_box.Readable(), R"(tmp0 = ops.Load("data0:0")
 tmp1 = ops.Load("data1:0")
 tmp2 = ops.StoreConcat("Pack_0:0", [tmp0, tmp1], concat_dim=0)
 )");
@@ -721,7 +718,7 @@ TEST_F(LoopApiUT, StorePackNegDim) {
   std::vector<ge::InDataAnchorPtr> inputs = {pack->GetInDataAnchor(0), pack->GetInDataAnchor(1)};
   auto kernel_box = loop::StorePack(pack->GetOutDataAnchor(0), inputs, -2);
   EXPECT_TRUE(!kernel_box.IsExternKernel());
-  EXPECT_EQ(kernel_box.Readable(),R"(tmp0 = ops.Load("data0:0")
+  EXPECT_EQ(kernel_box.Readable(), R"(tmp0 = ops.Load("data0:0")
 tmp1 = ops.Load("data1:0")
 tmp2 = ops.StoreConcat("Pack_0:0", [tmp0, tmp1], concat_dim=0)
 )");

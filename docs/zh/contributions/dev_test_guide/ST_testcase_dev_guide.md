@@ -50,7 +50,7 @@ ST的测试范围是一个特性，从大模块角度（例如编译时、执行
 图优化的过程中会阶段性地dump图，可以通过dump某个阶段图对图上节点、连边关系、属性等校验。配对使用DUMP_GRAPH_WHEN、CHECK_GRAPH这两个宏。第一个宏指定了dump哪个阶段的图，第二个宏里可以写图校验逻辑。
 ```c++
 /**
- * 
+ *
  *       Variable(2, 3, 4, 5)                      Relu3(1,2,3,4,5)
  *          /            \                             /        \
  *     TransData      TransData                    TransData    summary
@@ -58,7 +58,7 @@ ST的测试范围是一个特性，从大模块角度（例如编译时、执行
  *   Relu(1,2,3,4,5)  Relu(1,2,3,4,5)            Variable(2, 3, 4, 5)
  *          \            /                             |
  *             NetOutput -------------------------------
- * 
+ *
  * 用例描述:经过Summary优化，Summary算子被删除，其输入节点作为整网输出连接到Netoutput上
  * 预置条件：
  * 1. 注册Summary算子的图

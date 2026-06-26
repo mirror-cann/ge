@@ -77,8 +77,8 @@ Status CmoAddrOp::AddArgsFormatDescInfo(domi::CmoAddrTaskDef *const cmoAddrDef) 
 
   const auto retErr = rtGetSocSpec("version", "Chip_type", chipType, kMaxValueLen);
   if (retErr != RT_ERROR_NONE) {
-      RTS_REPORT_INNER_ERROR("Cannot get Chip_type, ret=%d", retErr);
-      return retErr;
+    RTS_REPORT_INNER_ERROR("Cannot get Chip_type, ret=%d", retErr);
+    return retErr;
   }
   RTS_LOGI("Chip_type is [%s]", chipType);
   std::string res;

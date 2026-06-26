@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,7 +74,7 @@ std::unique_ptr<uint8_t[]> GetContinuousVector2DByVector2D(const std::vector<std
 // input 0 host 输入，input 1 device 输入，1 随路拷贝
 TEST_F(CopyFlowLaunchKernelTest, CopyFlowLaunch_1H1D) {
   auto tensor_holder1 = TensorFaker().Placement(kOnHost).Shape({}).DataType(ge::DT_INT32).Value<int32_t>({2}).Build();
-  auto shape1 = tensor_holder1.GetTensor()->GetShape();/**/
+  auto shape1 = tensor_holder1.GetTensor()->GetShape(); /**/
   auto data_type1 = tensor_holder1.GetTensor()->GetDataType();
   auto size1 = ge::RoundUp(ge::GetSizeInBytes(shape1.GetStorageShape().GetShapeSize(), data_type1), 512);
 

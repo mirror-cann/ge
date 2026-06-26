@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,7 @@ using namespace ge;
 namespace gert {
 namespace kernel {
 namespace {
-constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
+constexpr uint32_t k2BitsMask = 0x00000003U;  // 2  bits, 0000,0011
 enum class MixKernel {
   kMixArgs,  // begin at kIoAddrs + 2 * kIoNum
   kNotifyIds
@@ -53,10 +53,10 @@ enum class MixKernel {
 static_assert(std::is_standard_layout<RtKernelLaunchArgsEx>::value, "The class RtKernelLaunchArgsEx must be a POD");
 const char *kLaunchArgsTypeName[static_cast<uint32_t>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd)] = {
     "ArgsCompiledArgs", "ArgsInputsAddr", "ArgsOutputsAddr", "ShapeBufferAddr",
-    "WorkspacesAddr", "TilingDataAddr", "OverflowAddr", "TilingData",
+    "WorkspacesAddr",   "TilingDataAddr", "OverflowAddr",    "TilingData",
 };
 static_assert(sizeof(kLaunchArgsTypeName) / sizeof(kLaunchArgsTypeName[0]) ==
-              static_cast<uint32_t>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd),
+                  static_cast<uint32_t>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd),
               "The count of names in kLaunchArgsTypeName must match with ArgsType");
 
 struct MixVectorProf {
@@ -77,8 +77,9 @@ std::string PrintStreamIdAndTaskId(const KernelContext *context) {
   std::stringstream ss;
   uint32_t stream_id = 0U;
   uint32_t flip_task_id = 0U;
-  if ((aclrtGetThreadLastTaskId(&flip_task_id) == RT_ERROR_NONE) && (aclrtStreamGetId(stream, reinterpret_cast<int32_t*>(&stream_id)) == ACL_SUCCESS)) {
-    const uint32_t task_id = flip_task_id & 0xFFFF; // lower 16bits
+  if ((aclrtGetThreadLastTaskId(&flip_task_id) == RT_ERROR_NONE) &&
+      (aclrtStreamGetId(stream, reinterpret_cast<int32_t *>(&stream_id)) == ACL_SUCCESS)) {
+    const uint32_t task_id = flip_task_id & 0xFFFF;  // lower 16bits
     const uint32_t flip_num = flip_task_id >> 16U;   // high 16bits
     ss << "stream_id=" << stream_id << ", task_id=" << task_id << ", flip_num=" << flip_num
        << ", flip_task_id=" << flip_task_id;
@@ -206,8 +207,8 @@ std::vector<std::string> PrintLaunchArgs(const KernelContext *context) {
   std::stringstream ss;
   ss << "Launch function arguments: "
      << "Handle " << std::hex << handle << ", block dim " << *block_dim << ", args " << args->GetBase() << ", stream "
-     << stream << ", schedule mode: " << std::to_string(cfg->schemMode) << ", local mem size: "
-     << std::to_string(cfg->localMemorySize);
+     << stream << ", schedule mode: " << std::to_string(cfg->schemMode)
+     << ", local mem size: " << std::to_string(cfg->localMemorySize);
   msgs.emplace_back(ss.str());
   msgs.emplace_back(PrintStreamIdAndTaskId(context));
   msgs.emplace_back(PrintArgsGeneralInfo(args));
@@ -239,8 +240,7 @@ struct MixTaskPara {
   int64_t sub_offset;
 };
 
-struct ArgsSizeInfo
-{
+struct ArgsSizeInfo {
   ge::SmallVector<uint64_t, 8U> in_outputs_size;
   uint32_t size;
   bool is_mix;
@@ -262,8 +262,8 @@ ge::graphStatus UpdateOverflowAddr(RtKernelLaunchArgsEx &args) {
   return ge::GRAPH_SUCCESS;
 }
 
-bool UpdateL0WorkspaceInfo(const KernelContext *context, const gert::DfxExeArg* exe_arg,
-                                      ge::SmallVector<uint64_t, 8U> &in_outputs_size, uint32_t &size) {
+bool UpdateL0WorkspaceInfo(const KernelContext *context, const gert::DfxExeArg *exe_arg,
+                           ge::SmallVector<uint64_t, 8U> &in_outputs_size, uint32_t &size) {
   auto workspace = context->MutableInputPointer<ContinuousVector>(static_cast<size_t>(InputCommon::kWorkspaceAddr));
   FE_ASSERT_NOTNULL(workspace);
   size_t work_size = workspace->GetSize();
@@ -281,7 +281,8 @@ bool UpdateL0WorkspaceInfo(const KernelContext *context, const gert::DfxExeArg* 
 }
 
 static ge::graphStatus CalcuArgsSizeInfo(const IoArgsInfo &io_args_info, const size_t io_num,
-    const KernelContext *context, const int32_t addr_start, ArgsSizeInfo &args_size_info) {
+                                         const KernelContext *context, const int32_t addr_start,
+                                         ArgsSizeInfo &args_size_info) {
   const size_t io_arg_num = io_args_info.GetIoArgNum();
   for (size_t args_info_idx = 0U; args_info_idx < io_arg_num; ++args_info_idx) {
     auto io_arg = io_args_info.GetIoArgByIndex(args_info_idx);
@@ -294,7 +295,8 @@ static ge::graphStatus CalcuArgsSizeInfo(const IoArgsInfo &io_args_info, const s
       args_size_info.in_outputs_size.emplace_back(0UL);
     } else {
       if (io_arg->folded_first) {
-        uint64_t in_val = (static_cast<uint64_t>(L0DumpType::kFoldedWithDesc) << kDumpTypeBitNum) | io_arg->dyn_desc.dyn_num;
+        uint64_t in_val =
+            (static_cast<uint64_t>(L0DumpType::kFoldedWithDesc) << kDumpTypeBitNum) | io_arg->dyn_desc.dyn_num;
         GELOGD("Dynamic idx:%d with num %u, report val:%lx.", io_arg->start_index, io_arg->dyn_desc.dyn_num, in_val);
         args_size_info.in_outputs_size.emplace_back(in_val);
         ++args_size_info.size;
@@ -315,7 +317,8 @@ static ge::graphStatus CalcuArgsSizeInfo(const IoArgsInfo &io_args_info, const s
 // | atomic_idx |  num(32b)  |   64bit    |  size(56b) |dy_num(56b) |  size(56b) |  size(56b) |  size(56b) |
 //                           |   offset   |
 ge::graphStatus SaveAicoreL0ExceptionDump(const IoArgsInfo &io_args_info, const size_t io_num,
-    const KernelContext *context, const int32_t addr_start, gert::GertTensorData *shape_buffer) {
+                                          const KernelContext *context, const int32_t addr_start,
+                                          gert::GertTensorData *shape_buffer) {
   auto exe_arg = context->GetInputPointer<gert::DfxExeArg>(static_cast<size_t>(InputCommon::kDfxArgs));
   FE_ASSERT_NOTNULL(exe_arg);
   if (!exe_arg->need_assert) {
@@ -350,7 +353,7 @@ ge::graphStatus SaveAicoreL0ExceptionDump(const IoArgsInfo &io_args_info, const 
 }
 
 static ge::graphStatus UpdateEachArgsInfo(const KernelContext *context, const gert::IoArgsInfo &io_args_info,
-                                   const int32_t &addr_start, const size_t &io_num, RtKernelLaunchArgsEx &args) {
+                                          const int32_t &addr_start, const size_t &io_num, RtKernelLaunchArgsEx &args) {
   auto io_arg_num = io_args_info.GetIoArgNum();
   auto host_addr = args.GetArgsPointer<uint8_t>(RtKernelLaunchArgsEx::ArgsType::kHostInputData);
   FE_ASSERT_NOTNULL(host_addr);
@@ -423,15 +426,15 @@ ge::graphStatus UpdateArgs(const KernelContext *context, const int32_t addr_star
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t addr_start, const int32_t workspaceIndex, RtKernelLaunchArgsEx &args) {
+ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t addr_start, const int32_t workspaceIndex,
+                                 RtKernelLaunchArgsEx &args) {
   // todo 部分和 UpdateArgs 重复的代码可考虑提取
   auto &tiling_data = args.GetTilingData();
   FE_RETURN_IF_ERROR(args.UpdateBaseByTilingSize(tiling_data.GetDataSize()));
   FE_RETURN_IF_ERROR(args.UpdateBaseArgsSize());
 
   auto io_num = context->GetInputPointer<size_t>(static_cast<int32_t>(InputCommon::kIoNum));
-  auto ws_indexes =
-      context->GetInputPointer<TypedContinuousVector<int64_t>>(workspaceIndex);
+  auto ws_indexes = context->GetInputPointer<TypedContinuousVector<int64_t>>(workspaceIndex);
   if (io_num == nullptr || ws_indexes == nullptr) {
     return ge::GRAPH_FAILED;
   }
@@ -467,8 +470,7 @@ ge::graphStatus UpdateAtomicArgs(const KernelContext *context, const int32_t add
 
 ge::graphStatus AicoreHandleUpdateGeExceptionDumpInfo(const KernelContext *context,
                                                       gert::ExceptionDumpInfoWrapper &wrapper) {
-  auto workspace =
-      context->MutableInputPointer<ContinuousVector>(static_cast<size_t>(InputCommon::kWorkspaceAddr));
+  auto workspace = context->MutableInputPointer<ContinuousVector>(static_cast<size_t>(InputCommon::kWorkspaceAddr));
   FE_ASSERT_NOTNULL(workspace);
   // workspace
   size_t work_size = workspace->GetSize();
@@ -477,16 +479,16 @@ ge::graphStatus AicoreHandleUpdateGeExceptionDumpInfo(const KernelContext *conte
     FE_ASSERT_NOTNULL(workspace_addrs_data[i]);
     uintptr_t workspace_addr = ge::PtrToValue(workspace_addrs_data[i]->GetAddr());
     int64_t addr_size = static_cast<int64_t>(workspace_addrs_data[i]->GetSize());
-    GELOGD("Add workspace, index: %zu, workspace_addr: %lu, addr_size: %ld, work_size: %zu.",
-           i, static_cast<uint64_t>(workspace_addr), addr_size, work_size);
+    GELOGD("Add workspace, index: %zu, workspace_addr: %lu, addr_size: %ld, work_size: %zu.", i,
+           static_cast<uint64_t>(workspace_addr), addr_size, work_size);
     wrapper.AddWorkspace(workspace_addr, addr_size);
   }
 
   // args
   auto args = context->GetInputPointer<RtKernelLaunchArgsEx>(static_cast<size_t>(InputCommon::kRtArg));
   FE_ASSERT_NOTNULL(args);
-  uintptr_t args_addr = reinterpret_cast<uintptr_t>(
-                        args->GetArgsPointer<TensorAddress>(RtKernelLaunchArgsEx::ArgsType::kArgsInputsAddr));
+  uintptr_t args_addr =
+      reinterpret_cast<uintptr_t>(args->GetArgsPointer<TensorAddress>(RtKernelLaunchArgsEx::ArgsType::kArgsInputsAddr));
   size_t args_size = static_cast<size_t>(args->GetBase()->argsSize);
   GELOGD("Add host args, args_addr:%lu, args_size:%zu.", static_cast<uint64_t>(args_addr), args_size);
   wrapper.SetHostArgs(args_addr, args_size);
@@ -494,18 +496,18 @@ ge::graphStatus AicoreHandleUpdateGeExceptionDumpInfo(const KernelContext *conte
   return ge::GRAPH_SUCCESS;
 }
 
-MixTaskPara CalcMixTaskParaByType(const MixLaunchArgs &launch_args, const MixCoreArgs* mix_args) {
+MixTaskPara CalcMixTaskParaByType(const MixLaunchArgs &launch_args, const MixCoreArgs *mix_args) {
   MixTaskPara para;
-  GELOGD("Before calc mix-type[%u], blk[%ld], ai_core[%ld], all_core[%ld].", mix_args->mix_type,
-         launch_args.block_dim, mix_args->ai_core_num, mix_args->all_core_num);
+  GELOGD("Before calc mix-type[%u], blk[%ld], ai_core[%ld], all_core[%ld].", mix_args->mix_type, launch_args.block_dim,
+         mix_args->ai_core_num, mix_args->all_core_num);
   if (launch_args.block_dim <= mix_args->ai_core_num) {
     para.need_sub_task = false;
     para.main_offset = 0;
     para.main_blk_dim = launch_args.block_dim;
   } else if (mix_args->mix_type == MixType::MIX_VECTOR_CORE) {
     para.main_offset = 0;
-    para.main_blk_dim = (launch_args.block_dim * mix_args->ai_core_num + mix_args->ai_core_num - 1) /
-                        mix_args->all_core_num;
+    para.main_blk_dim =
+        (launch_args.block_dim * mix_args->ai_core_num + mix_args->ai_core_num - 1) / mix_args->all_core_num;
     para.sub_offset = para.main_blk_dim;
     para.sub_blk_dim = launch_args.block_dim - para.main_blk_dim;
   } else {
@@ -517,7 +519,7 @@ MixTaskPara CalcMixTaskParaByType(const MixLaunchArgs &launch_args, const MixCor
   mix_prof_data.main_blk_dim = para.main_blk_dim;
   mix_prof_data.sub_blk_dim = para.sub_blk_dim;
   GELOGD("After calculating sub_offset[%ld], main_blk_dim[%ld], sub_blk_dim[%ld].", para.sub_offset, para.main_blk_dim,
-          para.sub_blk_dim);
+         para.sub_blk_dim);
   return para;
 }
 
@@ -526,18 +528,20 @@ ge::graphStatus LaunchMixMainTask(MixLaunchArgs &launch_args, MixTaskPara &mix_p
   if (launch_args.is_dynamic) {
     launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
     FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
-        launch_args.arg_ex, launch_args.smDesc, launch_args.stream, launch_args.cfgInfo));
+                                             launch_args.arg_ex, launch_args.smDesc, launch_args.stream,
+                                             launch_args.cfgInfo));
   } else {
     launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
     FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
-        launch_args.smDesc, launch_args.stream, launch_args.flags, launch_args.cfgInfo));
+                                           launch_args.smDesc, launch_args.stream, launch_args.flags,
+                                           launch_args.cfgInfo));
   }
   mix_prof_data.main_end_time = MsprofSysCycleTime();
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArgs launch_args,
-                                      int32_t addr_start, const RtKernelLaunchArgsEx &args) {
+ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArgs launch_args, int32_t addr_start,
+                                      const RtKernelLaunchArgsEx &args) {
   auto io_num = context->GetInputValue<size_t>(static_cast<size_t>(InputCommon::kIoNum));
   int32_t mix_start = addr_start + (io_num << 1);
   auto mix_args = context->GetInputPointer<MixCoreArgs>(mix_start);
@@ -564,21 +568,24 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
     launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
     mix_prof_data.main_begin_time = MsprofSysCycleTime();
     FE_CHK_RT_RET(rtKernelLaunchWithHandleV2(launch_args.handle, launch_args.tiling_key, mix_para.main_blk_dim,
-        launch_args.arg_ex, launch_args.smDesc, launch_args.stream, launch_args.cfgInfo));
+                                             launch_args.arg_ex, launch_args.smDesc, launch_args.stream,
+                                             launch_args.cfgInfo));
     mix_prof_data.main_end_time = MsprofSysCycleTime();
     FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
     // sub
     launch_args.cfgInfo->blockDimOffset = mix_para.sub_offset;
     mix_prof_data.sub_begin_time = MsprofSysCycleTime();
     FE_CHK_RT_RET(rtVectorCoreKernelLaunchWithHandle(launch_args.handle, launch_args.tiling_key, mix_para.sub_blk_dim,
-        launch_args.arg_ex, launch_args.smDesc, sub_stream, launch_args.cfgInfo));
+                                                     launch_args.arg_ex, launch_args.smDesc, sub_stream,
+                                                     launch_args.cfgInfo));
     mix_prof_data.sub_end_time = MsprofSysCycleTime();
   } else {
     // main
     launch_args.cfgInfo->blockDimOffset = mix_para.main_offset;
     mix_prof_data.main_begin_time = MsprofSysCycleTime();
     FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(launch_args.handle, mix_para.main_blk_dim, launch_args.arg_ex,
-        launch_args.smDesc, launch_args.stream, launch_args.flags, launch_args.cfgInfo));
+                                           launch_args.smDesc, launch_args.stream, launch_args.flags,
+                                           launch_args.cfgInfo));
     mix_prof_data.main_end_time = MsprofSysCycleTime();
     FE_ASSERT_GRAPH_SUCCESS(SaveAicoreL0ExceptionDump(io_args_info, io_num, context, addr_start, shape_buffer));
     // sub
@@ -590,7 +597,8 @@ ge::graphStatus ProcMixVectorCoreTask(const KernelContext *context, MixLaunchArg
   }
   FE_CHK_RT_RET(aclrtRecordNotify(rt_notify2, sub_stream));
   FE_CHK_RT_RET(aclrtWaitAndResetNotify(rt_notify2, launch_args.stream, UINT32_MAX));
-  GELOGI("Mix vector core launched main/sub block dim [%ld][%ld] successfully", mix_para.main_blk_dim, mix_para.sub_blk_dim);
+  GELOGI("Mix vector core launched main/sub block dim [%ld][%ld] successfully", mix_para.main_blk_dim,
+         mix_para.sub_blk_dim);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -638,9 +646,10 @@ ge::graphStatus AiCoreLaunchKernelWithHandle(KernelContext *context) {
   }
   return AICoreDfxPrintProc(context, stream);
 }
-REGISTER_KERNEL(LaunchKernelWithHandle).RunFunc(AiCoreLaunchKernelWithHandle).TracePrinter(PrintLaunchArgs).
-    ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo);
-
+REGISTER_KERNEL(LaunchKernelWithHandle)
+    .RunFunc(AiCoreLaunchKernelWithHandle)
+    .TracePrinter(PrintLaunchArgs)
+    .ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo);
 
 ge::graphStatus AiCoreLaunchMixKernelWithHandle(KernelContext *context) {
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
@@ -662,8 +671,8 @@ ge::graphStatus AiCoreLaunchMixKernelWithHandle(KernelContext *context) {
   cfg->schemMode = static_cast<uint8_t>(schedule_mode & k2BitsMask);
   int32_t addr_start = static_cast<int32_t>(WithHandle::kIoAddrs);
   FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
-  auto ret = ProcMixVectorCoreTask(context, {true, handle, dev_fun, *block_dim, args->GetBase(), nullptr,
-                                                 stream, 0U, cfg}, addr_start, *args);
+  auto ret = ProcMixVectorCoreTask(
+      context, {true, handle, dev_fun, *block_dim, args->GetBase(), nullptr, stream, 0U, cfg}, addr_start, *args);
   FE_RETURN_IF_ERROR(ret);
   return AICoreDfxPrintProc(context, stream);
 }
@@ -680,8 +689,11 @@ ge::graphStatus FillMixVectorProfilingInfo(const KernelContext *context, Profili
   GELOGI("Mix vector core report profiling data success");
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(LaunchMixKernelWithHandle).RunFunc(AiCoreLaunchMixKernelWithHandle).TracePrinter(PrintLaunchArgs).
-    ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo).ProfilingInfoFiller(FillMixVectorProfilingInfo);
+REGISTER_KERNEL(LaunchMixKernelWithHandle)
+    .RunFunc(AiCoreLaunchMixKernelWithHandle)
+    .TracePrinter(PrintLaunchArgs)
+    .ExceptionDumpInfoFiller(AicoreHandleUpdateGeExceptionDumpInfo)
+    .ProfilingInfoFiller(FillMixVectorProfilingInfo);
 
 ge::graphStatus AiCoreLaunchKernelWithFlag(KernelContext *context) {
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
@@ -722,12 +734,14 @@ ge::graphStatus AiCoreLaunchMixKernelWithFlag(KernelContext *context) {
   cfg->localMemorySize = local_mem_size;
   int32_t addr_start = static_cast<int32_t>(WithArgs::kIoAddrs);
   FE_RETURN_IF_ERROR(UpdateArgs(context, addr_start, *args));
-  auto ret = ProcMixVectorCoreTask(context, {false, handle, 0U, *block_dim, args->GetBase(), nullptr,
-                                                 stream, 0U, cfg}, addr_start, *args);
+  auto ret = ProcMixVectorCoreTask(context, {false, handle, 0U, *block_dim, args->GetBase(), nullptr, stream, 0U, cfg},
+                                   addr_start, *args);
   FE_RETURN_IF_ERROR(ret);
   return AICoreDfxPrintProc(context, stream);
 }
-REGISTER_KERNEL(LaunchMixKernelWithFlag).RunFunc(AiCoreLaunchMixKernelWithFlag).TracePrinter(PrintLaunchArgs)
+REGISTER_KERNEL(LaunchMixKernelWithFlag)
+    .RunFunc(AiCoreLaunchMixKernelWithFlag)
+    .TracePrinter(PrintLaunchArgs)
     .ProfilingInfoFiller(FillMixVectorProfilingInfo);
 
 ge::graphStatus FillAtomicAiCoreProfilingInfo(const KernelContext *context, ProfilingInfoWrapper &prof_info) {
@@ -753,7 +767,8 @@ ge::graphStatus AtomicAiCoreLaunchKernelWithHandle(KernelContext *context) {
   FE_ASSERT_NOTNULL(args);
   auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
   cfg->localMemorySize = local_mem_size;
-  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomicHandle::kIoAddrs), static_cast<int32_t>(WithAtomicHandle::kWorkspaceIndex), *args));
+  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomicHandle::kIoAddrs),
+                                      static_cast<int32_t>(WithAtomicHandle::kWorkspaceIndex), *args));
   auto ret = rtKernelLaunchWithHandleV2(handle, dev_fun, *block_dim, args->GetBase(), nullptr, stream, cfg);
   if (ret != RT_ERROR_NONE) {
     GELOGE(ret, "Failed to launch kernel with handle");
@@ -761,8 +776,10 @@ ge::graphStatus AtomicAiCoreLaunchKernelWithHandle(KernelContext *context) {
   }
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(AtomicLaunchKernelWithHandle).RunFunc(AtomicAiCoreLaunchKernelWithHandle).TracePrinter(PrintLaunchArgs)
-.ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
+REGISTER_KERNEL(AtomicLaunchKernelWithHandle)
+    .RunFunc(AtomicAiCoreLaunchKernelWithHandle)
+    .TracePrinter(PrintLaunchArgs)
+    .ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
 
 ge::graphStatus AtomicAiCoreLaunchKernelWithFlag(KernelContext *context) {
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(InputCommon::kStream));
@@ -779,11 +796,14 @@ ge::graphStatus AtomicAiCoreLaunchKernelWithFlag(KernelContext *context) {
   FE_ASSERT_NOTNULL(args);
   auto local_mem_size = context->GetInputValue<uint32_t>(static_cast<uint32_t>(InputCommon::kLocalMemSize));
   cfg->localMemorySize = local_mem_size;
-  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomic::kIoAddrs), static_cast<int32_t>(WithAtomic::kWorkspaceIndex), *args));
+  FE_RETURN_IF_ERROR(UpdateAtomicArgs(context, static_cast<int32_t>(WithAtomic::kIoAddrs),
+                                      static_cast<int32_t>(WithAtomic::kWorkspaceIndex), *args));
   FE_CHK_RT_RET(rtKernelLaunchWithFlagV2(handle, *block_dim, args->GetBase(), nullptr, stream, 0U, cfg));
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(AtomicLaunchKernelWithFlag).RunFunc(AtomicAiCoreLaunchKernelWithFlag).TracePrinter(PrintLaunchArgs)
-  .ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
+REGISTER_KERNEL(AtomicLaunchKernelWithFlag)
+    .RunFunc(AtomicAiCoreLaunchKernelWithFlag)
+    .TracePrinter(PrintLaunchArgs)
+    .ProfilingInfoFiller(FillAtomicAiCoreProfilingInfo);
 }  // namespace kernel
 }  // namespace gert

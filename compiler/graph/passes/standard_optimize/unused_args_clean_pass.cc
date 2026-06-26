@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,7 @@ bool UnusedArgsCleanPass::UnusedInputTensor(const std::map<ComputeGraphPtr, std:
   for (const auto &item : graph_nodes) {
     const auto &nodes = item.second;
     const auto it = nodes.find(parent_index);
-    if (it == nodes.end()) {    // not used.
+    if (it == nodes.end()) {  // not used.
       continue;
     }
 
@@ -92,15 +92,16 @@ bool UnusedArgsCleanPass::UnusedInputTensor(const std::map<ComputeGraphPtr, std:
 /// @param [out] graph_nodes: Data groups of subgraph.
 /// @return 0: SUCCESS / others: FAILED
 ///
-Status UnusedArgsCleanPass::ClassifyDataNodes(const ComputeGraphPtr &graph, const OpDescPtr &func_desc,
+Status UnusedArgsCleanPass::ClassifyDataNodes(
+    const ComputeGraphPtr &graph, const OpDescPtr &func_desc,
     std::map<ComputeGraphPtr, std::map<uint32_t, NodePtr>> &graph_nodes) const {
   for (const auto &name : func_desc->GetSubgraphInstanceNames()) {
     const auto &subgraph = graph->GetSubgraph(name);
     if (subgraph == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Get subgraph from graph:%s by name:%s failed",
-                        graph->GetName().c_str(), name.c_str());
-      GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] from graph:%s by name:%s failed",
-             graph->GetName().c_str(), name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get subgraph from graph:%s by name:%s failed", graph->GetName().c_str(),
+                           name.c_str());
+      GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] from graph:%s by name:%s failed", graph->GetName().c_str(),
+             name.c_str());
       return GE_GRAPH_EMPTY_SUBGRAPH;
     }
 
@@ -113,7 +114,7 @@ Status UnusedArgsCleanPass::ClassifyDataNodes(const ComputeGraphPtr &graph, cons
       uint32_t parent_index = 0;
       if (!AttrUtils::GetInt(data->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
         REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                          data->GetName().c_str(), data->GetType().c_str());
+                             data->GetName().c_str(), data->GetType().c_str());
         GELOGE(FAILED, "[Get][Attr] %s from op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
                data->GetName().c_str(), data->GetType().c_str());
         return FAILED;
@@ -137,7 +138,8 @@ Status UnusedArgsCleanPass::ClassifyDataNodes(const ComputeGraphPtr &graph, cons
 /// @return 0: SUCCESS / others: FAILED
 ///
 Status UnusedArgsCleanPass::UpdateInputTensor(const std::map<ComputeGraphPtr, std::map<uint32_t, NodePtr>> &graph_nodes,
-    const NodePtr &func_node, uint32_t parent_index, uint32_t unused_num) const {
+                                              const NodePtr &func_node, uint32_t parent_index,
+                                              uint32_t unused_num) const {
   if (unused_num == 0) {
     return SUCCESS;
   }
@@ -146,16 +148,16 @@ Status UnusedArgsCleanPass::UpdateInputTensor(const std::map<ComputeGraphPtr, st
   for (const auto &item : graph_nodes) {
     const auto &nodes = item.second;
     const auto it = nodes.find(parent_index);
-    if (it == nodes.end()) {    // not used.
+    if (it == nodes.end()) {  // not used.
       continue;
     }
     const auto data = it->second;
 
     if (!AttrUtils::SetInt(data->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, update_index)) {
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                        data->GetName().c_str(), data->GetType().c_str());
-      GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-             data->GetName().c_str(), data->GetType().c_str());
+                           data->GetName().c_str(), data->GetType().c_str());
+      GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(), data->GetName().c_str(),
+             data->GetType().c_str());
       return FAILED;
     }
   }
@@ -172,16 +174,14 @@ Status UnusedArgsCleanPass::UpdateInputTensor(const std::map<ComputeGraphPtr, st
   (void)func_desc->UpdateInputDesc(update_index, old_desc);
 
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(out_anchor, new_anchor),
-                          "[Add][Edge] between %s(index:%d) and %s(index:%d) failed",
-                          out_node->GetName().c_str(), out_anchor->GetIdx(),
-                          func_node->GetName().c_str(), update_index);
-  GELOGI("Add edge success, func node: %s, node: %s, parent index: %u, update index: %u",
-         func_node->GetName().c_str(), out_node->GetName().c_str(), parent_index, update_index);
+                          "[Add][Edge] between %s(index:%d) and %s(index:%d) failed", out_node->GetName().c_str(),
+                          out_anchor->GetIdx(), func_node->GetName().c_str(), update_index);
+  GELOGI("Add edge success, func node: %s, node: %s, parent index: %u, update index: %u", func_node->GetName().c_str(),
+         out_node->GetName().c_str(), parent_index, update_index);
 
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, old_anchor),
-                          "[Remove][Edge] between %s(index:%d) and %s(index:%d) failed",
-                          out_node->GetName().c_str(), out_anchor->GetIdx(),
-                          func_node->GetName().c_str(), parent_index);
+                          "[Remove][Edge] between %s(index:%d) and %s(index:%d) failed", out_node->GetName().c_str(),
+                          out_anchor->GetIdx(), func_node->GetName().c_str(), parent_index);
   GELOGI("Remove edge success, func node: %s, node: %s", func_node->GetName().c_str(), out_node->GetName().c_str());
 
   return SUCCESS;
@@ -201,14 +201,13 @@ Status UnusedArgsCleanPass::RemoveInputTensor(const std::map<ComputeGraphPtr, st
     const auto &graph = item.first;
     const auto &nodes = item.second;
     const auto it = nodes.find(parent_index);
-    if (it == nodes.end()) {    // not used.
+    if (it == nodes.end()) {  // not used.
       continue;
     }
 
     const auto &data = it->second;
-    GE_CHK_GRAPH_STATUS_RET(graph->RemoveNode(data),
-                            "[Remove][Node] %s from graph:%s failed",
-                            data->GetName().c_str(), graph->GetName().c_str());
+    GE_CHK_GRAPH_STATUS_RET(graph->RemoveNode(data), "[Remove][Node] %s from graph:%s failed", data->GetName().c_str(),
+                            graph->GetName().c_str());
     GELOGI("Remove Node: %s %s", graph->GetName().c_str(), data->GetName().c_str());
   }
 
@@ -219,15 +218,14 @@ Status UnusedArgsCleanPass::RemoveInputTensor(const std::map<ComputeGraphPtr, st
   const auto &out_node = out_anchor->GetOwnerNode();
 
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(out_anchor, old_anchor),
-                          "[Remove][Edge] between %s(index:%d) and %s(index:%d) failed",
-                          out_node->GetName().c_str(), out_anchor->GetIdx(),
-                          func_node->GetName().c_str(), parent_index);
+                          "[Remove][Edge] between %s(index:%d) and %s(index:%d) failed", out_node->GetName().c_str(),
+                          out_anchor->GetIdx(), func_node->GetName().c_str(), parent_index);
   GELOGI("Remove edge: %s %s", out_node->GetName().c_str(), func_node->GetName().c_str());
 
   if (out_node->GetInDataNodes().size() == 0 && out_node->GetOutAllNodes().size() == 0) {
     GE_CHK_GRAPH_STATUS_RET(out_node->GetOwnerComputeGraph()->RemoveNode(out_node),
-                            "[Remove][Node] %s from graph:%s failed",
-                            out_node->GetName().c_str(), out_node->GetOwnerComputeGraph()->GetName().c_str());
+                            "[Remove][Node] %s from graph:%s failed", out_node->GetName().c_str(),
+                            out_node->GetOwnerComputeGraph()->GetName().c_str());
   }
   return SUCCESS;
 }

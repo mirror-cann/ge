@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,8 @@ bool CheckNodesIsExist(const ComputeGraphPtr &graph, const std::vector<NodePtr> 
  *                      |
  *                  netoutput
  */
-void BuildDynamicGraphAndNodes(ComputeGraphPtr &graph, std::vector<NodePtr> &infered_nodes, std::vector<NodePtr> &uninfer_nodes) {
+void BuildDynamicGraphAndNodes(ComputeGraphPtr &graph, std::vector<NodePtr> &infered_nodes,
+                               std::vector<NodePtr> &uninfer_nodes) {
   auto builder = ut::GraphBuilder("Origin_Graph");
   const auto &data1 = builder.AddNode("data1", DATA, 1, 1);
   const auto &const1 = builder.AddNode("const1", CONSTANTOP, 0, 1);
@@ -113,7 +114,7 @@ TEST_F(BinaryPartitionerUT, return_failed_when_input_nodes_contain_cycle) {
   // build cycle
   auto add1 = graph->FindNode("add1");
   auto it = std::find(infered_nodes.begin(), infered_nodes.end(), add1);
-  infered_nodes.erase(it); // remove node add1
+  infered_nodes.erase(it);  // remove node add1
 
   PartionResult partition_result;
   auto ret = BinaryPartitioner::Partition(graph, infered_nodes, partition_result);

@@ -61,8 +61,8 @@ HcclResult GetBinaryPathByDlAddr(std::string &binaryPath) {
   mmDlInfo infos;
   // 使用HcomGetRankSize函数地址作为参考点，获取包含该函数的动态库路径
   mmDladdr(reinterpret_cast<void *>(HcomGetRankSize), &infos);
-  CHK_PRT_RET(infos.dli_fname == nullptr, HCCL_ERROR("[AIV][SKGetAlgPath][%s]get path of libhccl_plf.so failed", __func__),
-              HCCL_E_UNAVAIL);
+  CHK_PRT_RET(infos.dli_fname == nullptr,
+              HCCL_ERROR("[AIV][SKGetAlgPath][%s]get path of libhccl_plf.so failed", __func__), HCCL_E_UNAVAIL);
 
   // 将路径转换为绝对路径，解析符号链接
   char resolvedPath[PATH_MAX];
@@ -70,13 +70,13 @@ HcclResult GetBinaryPathByDlAddr(std::string &binaryPath) {
     HCCL_ERROR("[AIV][SKGetAlgPath][%s]path %s is not a valid real path", __func__, infos.dli_fname);
     return HCCL_E_INTERNAL;
   }
-  
+
   // 从完整路径中提取上级目录路径（向上跳过一级目录）
   std::string linkPath = resolvedPath;
   uint32_t linkPathSize = linkPath.length();
   uint32_t escapeLinkNum = 0;
   std::string midLinkPath;
-  
+
   // 反转字符串以便从后向前查找目录分隔符
   std::reverse(linkPath.begin(), linkPath.end());
   for (uint32_t i = 0; i < linkPathSize; i++) {
@@ -89,7 +89,7 @@ HcclResult GetBinaryPathByDlAddr(std::string &binaryPath) {
       break;
     }
   }
-  
+
   // 恢复字符串顺序并提取上级目录路径
   std::reverse(linkPath.begin(), linkPath.end());
   binaryPath = linkPath.substr(0, linkPath.size() - midLinkPath.size());
@@ -110,7 +110,7 @@ void GetBinaryPathByLdLibraryPath(const std::string &libPath, const size_t mid, 
   // 提取路径段（跳过冒号）
   binaryPath = libPath.substr(libPath.rfind(":", mid) + 1, diff - 1);
 }
-} // namespace
+}  // namespace
 
 namespace hccl {
 const u32 DEFAULT_TASK_NUM = 254;
@@ -230,9 +230,10 @@ ge::Status HcomOpsKernelBuilder::CalcOpRunningParam(ge::Node &node) {
               ge::INTERNAL_ERROR);
 
   ret = SetSuperKernelScopeAttr(node);
-  CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] SetSuperKernelScopeAttr failed.", HCOM_ERROR_CODE(ret)),
-              ge::INTERNAL_ERROR);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] SetSuperKernelScopeAttr failed.", HCOM_ERROR_CODE(ret)),
+      ge::INTERNAL_ERROR);
 
   HcomSetWorkflowMode(lastWorkflowMode);
   return ge::SUCCESS;
@@ -252,11 +253,11 @@ HcclCMDType HcomOpsKernelBuilder::GetOpType(const std::string &sCollectiveType) 
 
 // 检查SuperKernel资格以验证算子是否满足SuperKernel处理条件
 HcclResult HcomOpsKernelBuilder::CheckSuperKernelEligibility(ge::Node &node, const ge::OpDescPtr &opDescPtr,
-                                                            std::string &sCollectiveType,
-                                                            std::string &superKernelScope, HcclCMDType &opType,
-                                                            bool &needProcess) const {
+                                                             std::string &sCollectiveType,
+                                                             std::string &superKernelScope, HcclCMDType &opType,
+                                                             bool &needProcess) const {
   needProcess = false;
-  
+
   // 步骤1：检查算子描述是否有效
   if (!opDescPtr) {
     HCCL_WARNING("desc of node[%s] is null.", node.GetName().c_str());
@@ -284,7 +285,7 @@ HcclResult HcomOpsKernelBuilder::CheckSuperKernelEligibility(ge::Node &node, con
   CHK_PRT_RET(
       !bRet,
       HCCL_ERROR("[HcomOpsKernelBuilder][SetSuperKernelScopeAttr]node [%s] GetStr superKernelScope failed, op type[%s]",
-                node.GetName().c_str(), sCollectiveType.c_str()),
+                 node.GetName().c_str(), sCollectiveType.c_str()),
       HCCL_E_PARA);
 
   // 步骤5：检查算子是否在AIV SuperKernel支持列表中
@@ -292,7 +293,7 @@ HcclResult HcomOpsKernelBuilder::CheckSuperKernelEligibility(ge::Node &node, con
   bool isSupportOP = AivSuperKernelMap.find(opType) != AivSuperKernelMap.end();
   if (!isSupportOP || optionFeatureBaseRefreshable_ == 1) {
     HCCL_WARNING("super kernel not support opType[%d] optionFeatureBaseRefreshable_[%d]", opType,
-                optionFeatureBaseRefreshable_);
+                 optionFeatureBaseRefreshable_);
     opDescPtr->DelAttr("_super_kernel_scope");
     return HCCL_SUCCESS;
   }
@@ -302,8 +303,9 @@ HcclResult HcomOpsKernelBuilder::CheckSuperKernelEligibility(ge::Node &node, con
 }
 
 HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrFor950(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
-                                                              HcclDataType dataType, const std::string &algName,
-                                                              std::string &funcName, const std::string & binPath) const {
+                                                                   HcclDataType dataType, const std::string &algName,
+                                                                   std::string &funcName,
+                                                                   const std::string &binPath) const {
   auto itMap = AivSuperKernelMapV2.find(opType);
   auto it = (itMap->second).find(algName);
   if (it != (itMap->second).end()) {
@@ -327,8 +329,8 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrFor950(const ge::OpD
 }
 
 HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrForDeter(const ge::OpDescPtr &opDescPtr, HcclCMDType opType,
-                                                              const std::string &algName, std::string &funcName,
-                                                              const std::string & binPath) const {
+                                                                     const std::string &algName, std::string &funcName,
+                                                                     const std::string &binPath) const {
   auto itMap = AivSuperKernelDeterMap.find(opType);
   auto it = (itMap->second).find(algName);
   if (it != (itMap->second).end()) {
@@ -399,7 +401,8 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrs(const ge::OpDescPt
   if (ge::AttrUtils::GetStr(opDescPtr, "bin_file_path", binFilePath)) {
     char resolvedPath[PATH_MAX];
     if (realpath(binFilePath.c_str(), resolvedPath) == nullptr) {
-      HCCL_ERROR("[AIV][SetAivSuperKernelBinaryAttrs]path %s is not supported by superkernel for unsupported data type", binFilePath.c_str());
+      HCCL_ERROR("[AIV][SetAivSuperKernelBinaryAttrs]path %s is not supported by superkernel for unsupported data type",
+                 binFilePath.c_str());
       return HCCL_E_INTERNAL;
     }
   }
@@ -408,8 +411,9 @@ HcclResult HcomOpsKernelBuilder::SetAivSuperKernelBinaryAttrs(const ge::OpDescPt
 
 // 设置SuperKernel Block维度以计算并设置AIV核数（block维度）
 HcclResult HcomOpsKernelBuilder::SetSuperKernelBlockDim(const ge::OpDescPtr &opDescPtr, const std::string &group,
-                                                        HcclCMDType opType, u64 count, void *counts, HcclDataType dataType,
-                                                        u32 aivCoreLimit, char *algName, u32 rankSize) const {
+                                                        HcclCMDType opType, u64 count, void *counts,
+                                                        HcclDataType dataType, u32 aivCoreLimit, char *algName,
+                                                        u32 rankSize) const {
   // 计算AIV核数
   u32 blockDim;
   bool openSourceTag = false;
@@ -419,11 +423,11 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelBlockDim(const ge::OpDescPtr &opD
   } else {
     CHK_RET(HcomCalcAivCoreNum(group.c_str(), opType, count, counts, dataType, aivCoreLimit, algName, &blockDim));
   }
-  
+
   // 设置block维度属性
   ge::AttrUtils::SetInt(opDescPtr, "hcom_block_dim", blockDim);
-  HCCL_INFO("[HcomOpsKernelBuilder][%s] rankSize[%u] aivCoreLimit[%u] blockDim[%u]", __func__, rankSize,
-            aivCoreLimit, blockDim);
+  HCCL_INFO("[HcomOpsKernelBuilder][%s] rankSize[%u] aivCoreLimit[%u] blockDim[%u]", __func__, rankSize, aivCoreLimit,
+            blockDim);
   return HCCL_SUCCESS;
 }
 
@@ -441,7 +445,7 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   if (!needProcess) {
     return HCCL_SUCCESS;
   }
-  
+
   // 步骤2：调用JudgeIsAivMode函数获后续SetAivSuperKernelBinaryAttrs和SetSuperKernelBlockDim接口所需参数
   bool ifAiv = false;
   int64_t hcomComm = 0;
@@ -453,26 +457,26 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
-  
+
   // 用于判断是否走 Aiv 的参数准备
-  CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
-          count, counts, dataType, opType, reduction, aivCoreLimit)); 
+  CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize, count, counts, dataType, opType,
+                                reduction, aivCoreLimit));
   void *countsPtr = counts.data();
   bool openSourceTag = false;
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     CHK_RET(HcceSelectAlgGraphMode(sGroup.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
   } else {
-    #ifdef HCOM_SELECT_ALG_POINTER_MODE
-      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
-                            algName));
-    #else
-      // 默认模式：使用旧接口（传引用）
-      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
-                            algName));
-    #endif
+#ifdef HCOM_SELECT_ALG_POINTER_MODE
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
+                          algName));
+#else
+    // 默认模式：使用旧接口（传引用）
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+                          algName));
+#endif
   }
-  
+
   if (!ifAiv) {
     HCCL_INFO("no support aiv, del superKernelScope attr");
     opDescPtr->DelAttr("_super_kernel_scope");
@@ -482,9 +486,10 @@ HcclResult HcomOpsKernelBuilder::SetSuperKernelScopeAttr(ge::Node &node) {
   // 步骤3：设置superkernel二进制属性并计算block维度
   std::string funcName;
   CHK_RET(SetAivSuperKernelBinaryAttrs(opDescPtr, opType, dataType, algName, funcName));
-  CHK_RET(SetSuperKernelBlockDim(opDescPtr, sGroup, opType, count, countsPtr, dataType, aivCoreLimit, algName, rankSize));
+  CHK_RET(
+      SetSuperKernelBlockDim(opDescPtr, sGroup, opType, count, countsPtr, dataType, aivCoreLimit, algName, rankSize));
   HCCL_INFO("[HcomOpsKernelBuilder][SetSuperKernelScopeAttr] Support SPK Optype[%s] funcName[%s]",
-              sCollectiveType.c_str(), funcName.c_str());
+            sCollectiveType.c_str(), funcName.c_str());
   return HCCL_SUCCESS;
 }
 
@@ -501,7 +506,7 @@ HcclResult HcomOpsKernelBuilder::SKGetAlgPath(HcclCMDType opType, std::string &b
     HCCL_WARNING("[AIV][SKGetAlgPath]ENV:LD_LIBRARY_PATH lack fwkacllib/lib64");
     return GetBinaryPathByDlAddr(binaryPath);
   }
-  
+
   // 从LD_LIBRARY_PATH中提取包含fwkacllib/lib64的路径段
   GetBinaryPathByLdLibraryPath(libPath, mid, binaryPath);
   return HCCL_SUCCESS;
@@ -537,7 +542,8 @@ HcclResult HcomOpsKernelBuilder::GetSuperKernelFromDesc(const ge::OpDescPtr &op,
   return HCCL_SUCCESS;
 }
 
-ge::Status HcomOpsKernelBuilder::GenerateTask([[maybe_unused]] const ge::Node &node, [[maybe_unused]] ge::RunContext &runContext,
+ge::Status HcomOpsKernelBuilder::GenerateTask([[maybe_unused]] const ge::Node &node,
+                                              [[maybe_unused]] ge::RunContext &runContext,
                                               std::vector<domi::TaskDef> &taskDefList) {
   bool unknownShapeNode = false;
   CHK_PRT_RET((ge::NodeUtils::GetNodeUnknownShapeStatus(node, unknownShapeNode) != ge::GRAPH_SUCCESS),
@@ -680,7 +686,8 @@ ge::Status HcomOpsKernelBuilder::GenerateTask([[maybe_unused]] const ge::Node &n
 }
 
 // 获取算子的counts，为后续选择算法和设置核数做准备
-HcclResult HcomOpsKernelBuilder::GetCountsFromOpDesc(const ge::Node &node, std::vector<int64_t> &counts, HcclCMDType opType) const {
+HcclResult HcomOpsKernelBuilder::GetCountsFromOpDesc(const ge::Node &node, std::vector<int64_t> &counts,
+                                                     HcclCMDType opType) const {
   if (opType == HcclCMDType::HCCL_CMD_ALLGATHER_V) {
     std::vector<int64_t> sendCounts;
     std::vector<int64_t> recvDispls;
@@ -711,8 +718,8 @@ HcclResult HcomOpsKernelBuilder::TaskDefSetNumBlocks(const ge::Node &node, domi:
   if (ge::AttrUtils::GetInt(node.GetOpDesc(), "hccl_aiv_core_num", numBlocks)) {
     domi::KernelHcclDef *kernelDefHccl = taskDef.mutable_kernel_hccl();
     CHK_PRT_RET((kernelDefHccl == nullptr),
-              HCCL_ERROR("[Generate][Task]node[%s]: kernelDefHccl is null.", node.GetOpDesc()->GetName().c_str()),
-              HCCL_E_PTR);
+                HCCL_ERROR("[Generate][Task]node[%s]: kernelDefHccl is null.", node.GetOpDesc()->GetName().c_str()),
+                HCCL_E_PTR);
 
     kernelDefHccl->set_aiv_block_dim(numBlocks);
     HCCL_INFO("[TaskDefSetNumBlocks] %s set numBlocks %d success", sCollectiveType.c_str(), numBlocks);
@@ -767,12 +774,14 @@ HcclResult HcomOpsKernelBuilder::TaskDefSetNumBlocks(const ge::Node &node, domi:
   std::vector<int64_t> counts;
   CHK_RET(GetCountsFromOpDesc(node, counts, opType));
   void *countsPtr = counts.data();
-  #ifdef HCOM_SELECT_ALG_POINTER_MODE
-    CHK_RET(HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
-  #else
-    // 默认模式：使用旧接口（传引用）
-    CHK_RET(HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv, algName));
-  #endif
+#ifdef HCOM_SELECT_ALG_POINTER_MODE
+  CHK_RET(
+      HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
+#else
+  // 默认模式：使用旧接口（传引用）
+  CHK_RET(
+      HcomSelectAlg(comm, group.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv, algName));
+#endif
 
   // 非AIV算法不设置核数
   if (!ifAiv) {
@@ -821,7 +830,7 @@ HcclResult HcomOpsKernelBuilder::GenerateTaskPrivateDef(const ge::Node &node,
 }
 
 HcclResult HcomOpsKernelBuilder::HcomCalcOpRunningParam(ge::Node &node) {
-  HCCL_INFO("calculate hccl runing parameters start.");
+  HCCL_INFO("calculate hccl running parameters start.");
 
   std::string sCollectiveType;
   std::string sGroup;
@@ -837,8 +846,8 @@ HcclResult HcomOpsKernelBuilder::HcomCalcOpRunningParam(ge::Node &node) {
 }
 
 HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType,
-                                                         std::string &sGroup, u32 &streamNum,
-                                                         u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum) {
+                                                        std::string &sGroup, u32 &streamNum, u64 &opMemSize,
+                                                        u32 &taskNum, u32 &aivCoreNum) {
   std::vector<int64_t> sendCountMatrix;
   std::vector<int64_t> sendCounts;
   std::vector<int64_t> sendDispls;
@@ -857,22 +866,22 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     HCCL_INFO("[HcomCalcOpRunningParam] enter opensource produce");
-    
+
     OpParamGraphModePtr opParamPtr = nullptr;
     CHK_RET(HcceCreateOpParamGraphMode(&opParamPtr));
     // 使用RAII模式管理资源
     OpParamGraphModeGuard opParamGuard(opParamPtr);
-    
+
     // 设置Op参数
-    CHK_RET(SetHcclOpParam(node, &hcomOpParam, opParamPtr, sCollectiveType, sendCounts,
-                         sendDispls, recvCounts, recvDispls));
+    CHK_RET(SetHcclOpParam(node, &hcomOpParam, opParamPtr, sCollectiveType, sendCounts, sendDispls, recvCounts,
+                           recvDispls));
     HCCL_INFO("[HcomCalcOpRunningParam] enter opensource produce");
     if (IsOfflineCompilation() || hcomOpParam.groupListSize != 0) {
       CHK_RET(HcceCalcOpResOfflineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
     } else {
       CHK_RET(HcceCalcOpResOnlineGraphMode(opParamPtr, &opMemSize, &streamNum, &taskNum, &aivCoreNum));
     }
-    
+
     // 算法是否为aiv
     bool ifAiv = false;
     int64_t hcomComm = 0;
@@ -885,11 +894,12 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
     HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
     u32 aivCoreLimit = 0;
     char algName[ALG_NAME_MAX_LEN];
-    
+
     // 用于判断是否走 Aiv 的参数准备
-    CHK_RET(PrepareSelectAivParam(const_cast<ge::Node &>(node), sCollectiveType, hcomComm, sGroupAiv, rankSize,
-            count, counts, dataType, opType, reduction, aivCoreLimit)); 
-    CHK_RET(HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
+    CHK_RET(PrepareSelectAivParam(const_cast<ge::Node &>(node), sCollectiveType, hcomComm, sGroupAiv, rankSize, count,
+                                  counts, dataType, opType, reduction, aivCoreLimit));
+    CHK_RET(
+        HcceSelectAlgGraphMode(sGroupAiv.c_str(), count, dataType, reduction, opType, aivCoreLimit, &ifAiv, algName));
 
     if (ifAiv) {
       HCCL_INFO("[HcomOpsKernelBuilder][HcomCalcOpRunningParam] Aiv mode no need for substream.");
@@ -901,11 +911,11 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
     }
 
     if (!ge::AttrUtils::SetInt(node.GetOpDesc(), "hccl_aiv_core_num", static_cast<int64_t>(aivCoreNum))) {
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set aivCore number[%llu] to OpDesc failed.", 
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set aivCore number[%llu] to OpDesc failed.",
                  HCOM_ERROR_CODE(HCCL_E_PARA), hcomOpParam.opType, aivCoreNum);
       return HCCL_E_INTERNAL;
     }
-    
+
     HCCL_INFO("[HcomOpsKernelBuilder][HcomCalcOpRunningParam] end opensource produce");
   } else {
     HcomResResponse hcomResResponse;
@@ -923,8 +933,8 @@ HcclResult HcomOpsKernelBuilder::CalcOpRunningResources(const ge::Node &node, st
 }
 
 HcclResult HcomOpsKernelBuilder::SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
-                                                              const std::string &sGroup, u32 &streamNum,
-                                                              u64 opMemSize, u32 taskNum) {
+                                                             const std::string &sGroup, u32 &streamNum, u64 opMemSize,
+                                                             u32 taskNum) {
   std::string nodeName = node.GetName();
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_SEND || sCollectiveType == HCCL_KERNEL_OP_TYPE_RECEIVE ||
       (sCollectiveType == HCCL_KERNEL_OP_TYPE_BROADCAST && nodeName.find(NO_CALCULATION) != std::string::npos)) {
@@ -933,8 +943,8 @@ HcclResult HcomOpsKernelBuilder::SetOpRunningParamAttributes(ge::Node &node, con
   }
 
   if (ge::AttrUtils::SetInt(node.GetOpDesc(), "used_stream_num", streamNum) == false) {
-    HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set stream number[%llu] to OpDesc failed.", 
-               HCCL_E_PARA, sCollectiveType.c_str(), streamNum);
+    HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] op[%s]: set stream number[%llu] to OpDesc failed.", HCCL_E_PARA,
+               sCollectiveType.c_str(), streamNum);
     return HCCL_E_INTERNAL;
   }
 
@@ -943,36 +953,37 @@ HcclResult HcomOpsKernelBuilder::SetOpRunningParamAttributes(ge::Node &node, con
   CHK_RET(HcomOpUtils::GetTensorCleanTaskNum(node, sCollectiveType, cleanTaskNum));
   taskNum += cleanTaskNum;
   if (ge::AttrUtils::SetInt(node.GetOpDesc(), "_hccl_task_num", taskNum) == false) {
-    HCCL_ERROR("[HcomCalc][OpRunningParam]errNo[0x%016llx] op[%s]: set _hccl_task_num to OpDesc failed.", 
-               HCCL_E_PARA, sCollectiveType.c_str());
+    HCCL_ERROR("[HcomCalc][OpRunningParam]errNo[0x%016llx] op[%s]: set _hccl_task_num to OpDesc failed.", HCCL_E_PARA,
+               sCollectiveType.c_str());
     return HCCL_E_PARA;
   }
 
   CHK_RET(SetOpWorkerSpaceForKnowShape(node, opMemSize));
-  
-  HcclResult ret = SetOpMemAttr(node, node.GetOpDesc()->GetType(), opMemSize);
-  CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set node[%s] mem attr failed.", 
-                         ret, node.GetName().c_str()),
-              HCCL_E_INTERNAL);
 
-  HCCL_INFO("[Calc][OpRunningParam] node[%s] calculate hccl runing parameters completed. "
-            "stream num:[%llu], workspace size:[%llu]bytes",
-            node.GetName().c_str(), streamNum, opMemSize);
+  HcclResult ret = SetOpMemAttr(node, node.GetOpDesc()->GetType(), opMemSize);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set node[%s] mem attr failed.", ret, node.GetName().c_str()),
+      HCCL_E_INTERNAL);
+
+  HCCL_INFO(
+      "[Calc][OpRunningParam] node[%s] calculate hccl running parameters completed. "
+      "stream num:[%llu], workspace size:[%llu]bytes",
+      node.GetName().c_str(), streamNum, opMemSize);
   HCCL_INFO("GetAndSetTaskNum success. task num:[%llu]", taskNum);
 
   // 设置output size 大小
   ret = SetOpOutputMemSize(node, sCollectiveType.c_str());
-  CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] output size failed.", 
-                         ret, sCollectiveType.c_str()),
-              HCCL_E_INTERNAL);
+  CHK_PRT_RET(
+      ret != HCCL_SUCCESS,
+      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] output size failed.", ret, sCollectiveType.c_str()),
+      HCCL_E_INTERNAL);
 
   // 设定atomic index参数
   ret = SetOpAtomicInputIndex(node, sCollectiveType.c_str());
   CHK_PRT_RET(ret != HCCL_SUCCESS,
-              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] atomic input index failed.", 
-                         ret, sCollectiveType.c_str()),
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set op[%s] atomic input index failed.", ret,
+                         sCollectiveType.c_str()),
               HCCL_E_INTERNAL);
 
   CHK_RET(SetAttachedStreamInfoList(node, sGroup));
@@ -981,10 +992,11 @@ HcclResult HcomOpsKernelBuilder::SetOpRunningParamAttributes(ge::Node &node, con
 }
 
 // PrepareSelectAivParam函数，返回多个计算参数用于判断是否支持AIV展开模式
-HcclResult HcomOpsKernelBuilder::PrepareSelectAivParam(ge::Node &node, const std::string& sCollectiveType,
-                                                int64_t &hcomComm, std::string &sGroup, u32 &rankSize,
-                                                u64 &count, std::vector<int64_t> &counts, HcclDataType &dataType, HcclCMDType &opType,
-                                                HcclReduceOp &reduction, u32 &aivCoreLimit) {
+HcclResult HcomOpsKernelBuilder::PrepareSelectAivParam(ge::Node &node, const std::string &sCollectiveType,
+                                                       int64_t &hcomComm, std::string &sGroup, u32 &rankSize,
+                                                       u64 &count, std::vector<int64_t> &counts, HcclDataType &dataType,
+                                                       HcclCMDType &opType, HcclReduceOp &reduction,
+                                                       u32 &aivCoreLimit) {
   auto const opDescPtr = node.GetOpDesc();
   // 获取通信域标识符
   CHK_RET(GetCommFromOpDesc(opDescPtr, hcomComm, sGroup));
@@ -1023,14 +1035,13 @@ HcclResult HcomOpsKernelBuilder::PrepareSelectAivParam(ge::Node &node, const std
   // 获取 counts
   CHK_RET(GetCountsFromOpDesc(node, counts, opType));
 
-  HCCL_INFO("[%s] hcomComm[%d], group[%s], count[%u], counts[%zu], dataType[%u], reduction[%u], opType[%u]",
-            __func__, hcomComm, sGroup.c_str(), count, counts.size(), dataType, reduction, opType);
+  HCCL_INFO("[%s] hcomComm[%d], group[%s], count[%u], counts[%zu], dataType[%u], reduction[%u], opType[%u]", __func__,
+            hcomComm, sGroup.c_str(), count, counts.size(), dataType, reduction, opType);
   return HCCL_SUCCESS;
 }
 
 // JudgeIsAivMode函数，返回是否走 Aiv 模式
-HcclResult HcomOpsKernelBuilder::JudgeIsAivMode(ge::Node &node, const std::string& sCollectiveType,
-                                                bool &ifAiv) {
+HcclResult HcomOpsKernelBuilder::JudgeIsAivMode(ge::Node &node, const std::string &sCollectiveType, bool &ifAiv) {
   int64_t hcomComm = 0;
   std::string sGroup;
   u32 rankSize = 0;
@@ -1041,22 +1052,22 @@ HcclResult HcomOpsKernelBuilder::JudgeIsAivMode(ge::Node &node, const std::strin
   HcclReduceOp reduction = HcclReduceOp::HCCL_REDUCE_SUM;
   u32 aivCoreLimit = 0;
   char algName[ALG_NAME_MAX_LEN];
-  
+
   // 用于判断是否走 Aiv 的参数准备
-  CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize,
-          count, counts, dataType, opType, reduction, aivCoreLimit));
+  CHK_RET(PrepareSelectAivParam(node, sCollectiveType, hcomComm, sGroup, rankSize, count, counts, dataType, opType,
+                                reduction, aivCoreLimit));
   // 判断是否走 Aiv
   DevType devType = HcomGetDeviceType();
   if (devType != DevType::DEV_TYPE_950) {
     void *countsPtr = counts.data();
-    #ifdef HCOM_SELECT_ALG_POINTER_MODE
-      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
+#ifdef HCOM_SELECT_ALG_POINTER_MODE
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, &ifAiv,
                           algName));
-    #else
-      // 默认模式：使用旧接口（传引用）
-      CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
+#else
+    // 默认模式：使用旧接口（传引用）
+    CHK_RET(HcomSelectAlg(hcomComm, sGroup.c_str(), count, countsPtr, dataType, reduction, opType, aivCoreLimit, ifAiv,
                           algName));
-    #endif
+#endif
   } else {
     // 950按照原先流程，如果是 SuperKernel 那就肯定是 Aiv 模式了
     std::string superKernel{};
@@ -1088,7 +1099,7 @@ HcclResult HcomOpsKernelBuilder::SetAttachedStreamInfoList(ge::Node &node, const
   std::vector<ge::GeAttrValue::NAMED_ATTRS> attachedStreamInfo;
 
   // 判断是否是 AIV 展开模式
-  bool ifAiv = false;  //离线模式默认没有AIV
+  bool ifAiv = false;  // 离线模式默认没有AIV
   if (!IsOfflineCompilation()) {
     CHK_PRT(JudgeIsAivMode(node, node.GetOpDesc()->GetType(), ifAiv));
   }
@@ -1129,8 +1140,9 @@ HcclResult HcomOpsKernelBuilder::SetOpWorkerSpaceForKnowShape(ge::Node &node, u6
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelBuilder::GetCrackParamsInfo([[maybe_unused]] const ge::Node &node, u32 tensorNum, int64_t *tensorOffset,
-                                                    int64_t *tensorSize, int64_t *crackOffset, int64_t *crackSize) const {
+HcclResult HcomOpsKernelBuilder::GetCrackParamsInfo([[maybe_unused]] const ge::Node &node, u32 tensorNum,
+                                                    int64_t *tensorOffset, int64_t *tensorSize, int64_t *crackOffset,
+                                                    int64_t *crackSize) const {
   auto op = node.GetOpDesc();
   CHK_PTR_NULL(op);
   // 获取缝隙的offset和size
@@ -1138,18 +1150,23 @@ HcclResult HcomOpsKernelBuilder::GetCrackParamsInfo([[maybe_unused]] const ge::N
     // 获取padding_size
     ge::GeTensorDesc inputTensor = op->GetInputDesc(i);
     int64_t tensorSizeTemp = 0;
-    CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, tensorSizeTemp) != ge::GRAPH_SUCCESS),
-      HCCL_ERROR("[HcomOpsKernelBuilder][GetCrackParamsInfo]Get tensorSize failed"), HCCL_E_PARA);
+    CHK_PRT_RET((ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(inputTensor, tensorSizeTemp) !=
+                 ge::GRAPH_SUCCESS),
+                HCCL_ERROR("[HcomOpsKernelBuilder][GetCrackParamsInfo]Get tensorSize failed"), HCCL_E_PARA);
     // crackOffset基于LoadTask的inputaddr偏移，而不是基于基地址偏移
     crackOffset[i] = tensorOffset[i] + tensorSize[i] - tensorOffset[0];
     tensorSizeTemp = (tensorSizeTemp + TENSOR_ALIGNMENT_512 - 1) / TENSOR_ALIGNMENT_512 * TENSOR_ALIGNMENT_512;
     if (tensorSizeTemp >= tensorSize[i]) {
       crackSize[i] = tensorSizeTemp - tensorSize[i];
-      HCCL_INFO("[HcomOpsKernelBuilder][GetCrackParamsInfo]The tensorSize obtained through the GE interface is [%lld B], "\
-        "and the original tensorSize is [%lld B]", tensorSizeTemp, tensorSize[i]);
+      HCCL_INFO(
+          "[HcomOpsKernelBuilder][GetCrackParamsInfo]The tensorSize obtained through the GE interface is [%lld B], "
+          "and the original tensorSize is [%lld B]",
+          tensorSizeTemp, tensorSize[i]);
     } else {
-      HCCL_ERROR("[HcomOpsKernelBuilder][GetCrackParamsInfo]The value of tensorSizeTemp[%lld B] obtained through" \
-        "the GE interface is less than that of tensorSize[%lld B]", tensorSizeTemp, tensorSize[i]);
+      HCCL_ERROR(
+          "[HcomOpsKernelBuilder][GetCrackParamsInfo]The value of tensorSizeTemp[%lld B] obtained through"
+          "the GE interface is less than that of tensorSize[%lld B]",
+          tensorSizeTemp, tensorSize[i]);
       return HCCL_E_PARA;
     }
   }
@@ -1325,7 +1342,7 @@ HcclResult HcomOpsKernelBuilder::SetOpMemAttr(ge::Node &node, const std::string 
                 HCCL_E_PARA);
     HCCL_INFO("node[%s] set attr [reference]: %u", node.GetName().c_str(), true);
 
-    // 算子属性为reference时，为减少GE的内存分配，设置 ouput 复用 input 内存
+    // 算子属性为reference时，为减少GE的内存分配，设置 output 复用 input 内存
     for (uint32_t i = 0; i < static_cast<uint32_t>(node.GetOpDesc()->GetOutputsSize()); i++) {
       auto outDescPtr = node.GetOpDesc()->MutableOutputDesc(i);
       CHK_SMART_PTR_NULL(outDescPtr);
@@ -1641,8 +1658,7 @@ HcclResult HcomOpsKernelBuilder::CopyReduceScatterVParamsToDef(
 
   // 前端输入空tensor时，sendCounts为空，此时不需要将sendCounts、sendDispls、recvCount复制到privateDefBuf中，直接返回成功即可。
   if (sendCounts.empty()) {
-    HCCL_WARNING("[HcomOpsKernelBuilder][%s] The value of sendCounts or sendDispls or recvCount is empty.",
-                 __func__);
+    HCCL_WARNING("[HcomOpsKernelBuilder][%s] The value of sendCounts or sendDispls or recvCount is empty.", __func__);
     return HCCL_SUCCESS;
   }
   CHK_SAFETY_FUNC_RET(memcpy_s(privateDefBuf.paramsInfo.sendCounts, ALLTOALLV_RANK_MAX_NUM * sizeof(u64),
@@ -1931,30 +1947,28 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
   HcclResult ret;
   sCollectiveType = node.GetOpDesc()->GetType();
   ret = CheckSupportedOP(sCollectiveType);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[HcomOpsKernelBuilder][OpRunningParam]errNo[0x%016llx] op type[%s] is not supported.", ret, sCollectiveType.c_str()),
-      HCCL_E_NOT_SUPPORT);
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[HcomOpsKernelBuilder][OpRunningParam]errNo[0x%016llx] op type[%s] is not supported.", ret,
+                         sCollectiveType.c_str()),
+              HCCL_E_NOT_SUPPORT);
   // 补充参数
   u64 count = 0;
   HcclDataType dataType = HCCL_DATA_TYPE_RESERVED;
   u32 aivCoreLimit = 0;
-  
+
   // 计算Aiv参数
- 	CHK_RET(GetAivParam(node, sCollectiveType, aivCoreLimit));
+  CHK_RET(GetAivParam(node, sCollectiveType, aivCoreLimit));
   // 设置aiv参数
   ret = HcceSetAivSelectOpParamGraphMode(opParam, aivCoreLimit);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set aivParam failed.", HCOM_ERROR_CODE(ret)),
-      ret);
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set aivParam failed.", HCOM_ERROR_CODE(ret)), ret);
   // 设置 opType
   ret = HcceSetOpParamGraphModeOpType(opParam, sCollectiveType.c_str());
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[HcomOpsKernelBuilder][OpRunningParam]errNo[0x%016llx] set op type[%s] failed.", HCOM_ERROR_CODE(ret), sCollectiveType.c_str()),
-      ret);
-  
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[HcomOpsKernelBuilder][OpRunningParam]errNo[0x%016llx] set op type[%s] failed.",
+                         HCOM_ERROR_CODE(ret), sCollectiveType.c_str()),
+              ret);
+
   // 补充参数
   ret = HcomOpUtils::ConversionOpDataType(node.GetOpDesc(), sCollectiveType, dataType);
   CHK_PRT_RET(
@@ -1962,10 +1976,8 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
       HCCL_ERROR("[Get][OpWorkspaceMemSize]op[%s]: get data type failed. ret[%d]", sCollectiveType.c_str(), ret), ret);
 
   ret = HcceSetOpParamGraphModeDataType(opParam, dataType);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set data type failed.", HCOM_ERROR_CODE(ret)),
-      ret);
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set data type failed.", HCOM_ERROR_CODE(ret)), ret);
 
   // 设置 rankSize
   int64_t hcomComm = 0;
@@ -2016,11 +2028,10 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
               ret);
   ret = HcceSetOpParamGraphModeDataCount(opParam, &count);
   HCCL_INFO("Count[%llu]", count);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
-      ret);
-  
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
+              ret);
+
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_REDUCESCATTERV) {
     // reducescatterv复用HcomOpParam的All2AllDataDes字段
     CHK_RET(
@@ -2032,10 +2043,9 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
     }
     ret = HcceSetOpParamGraphModeDataCount(opParam, &count);
     HCCL_INFO("REDUCESCATTERV Count[%llu]", count);
-    CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
-      ret);
+    CHK_PRT_RET(ret != HCCL_SUCCESS,
+                HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
+                ret);
   }
 
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLGATHERV) {
@@ -2044,10 +2054,9 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
     count = *std::max_element(recvCounts.begin(), recvCounts.end());
     ret = HcceSetOpParamGraphModeDataCount(opParam, &count);
     HCCL_INFO("ALLGATHERV Count[%llu]", count);
-    CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
-      ret);
+    CHK_PRT_RET(ret != HCCL_SUCCESS,
+                HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
+                ret);
   }
 
   if (sCollectiveType == HCCL_KERNEL_OP_TYPE_ALLTOALLV) {
@@ -2071,24 +2080,24 @@ HcclResult HcomOpsKernelBuilder::SetHcclOpParam(const ge::Node &node, HcomOpPara
     count = *std::max_element(sendCounts.begin(), sendCounts.end());
     ret = HcceSetOpParamGraphModeDataCount(opParam, &count);
     HCCL_INFO("ALLTOALLV Count[%llu]", count);
-    CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
-      ret);
+    CHK_PRT_RET(ret != HCCL_SUCCESS,
+                HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set count[%d] failed.", HCOM_ERROR_CODE(ret), count),
+                ret);
   }
-  
+
   // 获取cclbuffer size
   u64 cclBuffSize;
   CHK_RET(GetCCLBufferAvailableSize(cclBuffSize));
   ret = HcceSetOpParamGraphModeHCCLBufferSize(opParam, &cclBuffSize);
-  CHK_PRT_RET(
-      ret != HCCL_SUCCESS,
-      HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set cclBuffSize[%llu] failed.", HCOM_ERROR_CODE(ret), cclBuffSize),
-      ret);
+  CHK_PRT_RET(ret != HCCL_SUCCESS,
+              HCCL_ERROR("[Calc][OpRunningParam]errNo[0x%016llx] set cclBuffSize[%llu] failed.", HCOM_ERROR_CODE(ret),
+                         cclBuffSize),
+              ret);
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomOpsKernelBuilder::GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) const {
+HcclResult HcomOpsKernelBuilder::GetAivParam(const ge::Node &node, std::string &sCollectiveType,
+                                             u32 &aivCoreLimit) const {
   CHK_RET(HcomOpUtils::GetAivCoreLimit(node.GetOpDesc(), sCollectiveType, aivCoreLimit));
   return HCCL_SUCCESS;
 }

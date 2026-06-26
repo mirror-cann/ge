@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ void FakeMultiDimsEngine(GeRunningEnvFaker &ge_env) {
   ge_env.InstallDefault();
   ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
 }
-}
+}  // namespace
 
 TEST_F(MultiDimsSTest, MultiBatch) {
   GeRunningEnvFaker ge_env;
@@ -48,25 +48,26 @@ TEST_F(MultiDimsSTest, MultiBatch) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_1");
   auto path = ModelFactory::GenerateModel_1();
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--out_nodes=relu:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=FP32",
-                  "--virtual_type=0",
-                  "--input_shape=data1:-1,3,16,16",
-                  "--dynamic_batch_size=1,2,4,8",
-                  "--input_shape_range=",
-                  };
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=1",  // FrameworkType
+      "--out_nodes=relu:0",
+      "--soc_version=Ascend310",
+      "--input_format=NCHW",
+      "--output_type=FP32",
+      "--virtual_type=0",
+      "--input_shape=data1:-1,3,16,16",
+      "--dynamic_batch_size=1,2,4,8",
+      "--input_shape_range=",
+  };
   DUMP_GRAPH_WHEN("PreRunAfterPrepare")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   /*
    *
    * root graph:
@@ -116,25 +117,26 @@ TEST_F(MultiDimsSTest, MultiBatch_empty_tensor) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_1");
   auto path = ModelFactory::GenerateModel_1();
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--out_nodes=relu:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=FP32",
-                  "--virtual_type=0",
-                  "--input_shape=data1:-1,3,16,16",
-                  "--dynamic_batch_size=0,2,4,8",
-                  "--input_shape_range=",
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=1",  // FrameworkType
+      "--out_nodes=relu:0",
+      "--soc_version=Ascend310",
+      "--input_format=NCHW",
+      "--output_type=FP32",
+      "--virtual_type=0",
+      "--input_shape=data1:-1,3,16,16",
+      "--dynamic_batch_size=0,2,4,8",
+      "--input_shape_range=",
   };
   DUMP_GRAPH_WHEN("PreRunAfterPrepare")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 
   CHECK_GRAPH(PreRunAfterPrepare) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 7);
@@ -155,22 +157,23 @@ TEST_F(MultiDimsSTest, MultiBatch_switch) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_3");
   auto path = ModelFactory::GenerateModel_switch();
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--input_format=ND",
-                  "--input_shape=data1:-1,3,4,5;data2:1",
-                  "--dynamic_dims=1;2;4;8",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=1",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--input_format=ND",
+      "--input_shape=data1:-1,3,4,5;data2:1",
+      "--dynamic_dims=1;2;4;8",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   CHECK_GRAPH(PreRunAfterBuild) {
     std::set<uint32_t> events;
-    for (const auto &node: graph->GetAllNodes()) {
+    for (const auto &node : graph->GetAllNodes()) {
       if (node->GetType() == "Send") {
         const auto &op_desc = node->GetOpDesc();
         uint32_t event_id = 0;
@@ -291,41 +294,56 @@ TEST_F(MultiDimsSTest, test_pass_migration) {
 }
 
 using GetGraphCallback = std::function<std::unique_ptr<google::protobuf::Message>(
-  const google::protobuf::Message *root_proto, const std::string &graph)>;
+    const google::protobuf::Message *root_proto, const std::string &graph)>;
 class CaffeModelParser : public domi::ModelParser {
-  public:
-    CaffeModelParser(){}
-    ~CaffeModelParser(){}
-    domi::Status Parse(const char *file, ge::Graph &graph){
-      (void)file;
-      std::vector<int64_t> shape{8, 4, -1};
-      DEF_GRAPH(test_graph) {
-        auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape).Attr(ATTR_NAME_INDEX, 0);
-        auto square = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
-        auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
-        CHAIN(NODE("Data", data)->NODE("Square", square)->NODE("NetOutput", netoutput));
-      };
-      auto cgp = ToComputeGraph(test_graph);
+ public:
+  CaffeModelParser() {}
+  ~CaffeModelParser() {}
+  domi::Status Parse(const char *file, ge::Graph &graph) {
+    (void)file;
+    std::vector<int64_t> shape{8, 4, -1};
+    DEF_GRAPH(test_graph) {
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape).Attr(ATTR_NAME_INDEX, 0);
+      auto square = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
+      auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
+      CHAIN(NODE("Data", data)->NODE("Square", square)->NODE("NetOutput", netoutput));
+    };
+    auto cgp = ToComputeGraph(test_graph);
 
-      graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
-      return SUCCESS;
-    }
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
-                                              ge::ComputeGraphPtr &graph){return SUCCESS;}
-    ge::DataType ConvertToGeDataType(const uint32_t type){return DT_FLOAT;}
-    domi::Status ParseAllGraph(const google::protobuf::Message *root_proto,
-                                              ge::ComputeGraphPtr &root_graph){return SUCCESS;}
+    graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
+                                      ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  ge::DataType ConvertToGeDataType(const uint32_t type) {
+    return DT_FLOAT;
+  }
+  domi::Status ParseAllGraph(const google::protobuf::Message *root_proto, ge::ComputeGraphPtr &root_graph) {
+    return SUCCESS;
+  }
 };
 
 class CaffeWeightsParser : public domi::WeightsParser {
-  public:
-    CaffeWeightsParser(){}
-    ~CaffeWeightsParser(){}
-    domi::Status Parse(const char *file, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *input, uint32_t lengt, ge::ComputeGraphPtr &graph){return SUCCESS;}
+ public:
+  CaffeWeightsParser() {}
+  ~CaffeWeightsParser() {}
+  domi::Status Parse(const char *file, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *input, uint32_t length, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
 };
 
 std::shared_ptr<domi::ModelParser> FuncTest() {
@@ -366,7 +384,8 @@ TEST_F(MultiDimsSTest, test_parse_graph) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool is_dynamic_input = false;
-  Status ret = ParseGraph(graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
+  Status ret =
+      ParseGraph(graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
   EXPECT_EQ(ret, PARAM_INVALID);
 
   domi::ModelParserFactory::Instance()->creator_map_.clear();
@@ -374,4 +393,4 @@ TEST_F(MultiDimsSTest, test_parse_graph) {
   system("rm -rf ./ut_graph1.txt");
   system("rm -rf ./ut_graph2.txt");
 }
-}
+}  // namespace ge

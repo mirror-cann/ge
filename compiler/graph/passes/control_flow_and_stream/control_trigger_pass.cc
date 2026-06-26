@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -64,15 +64,15 @@ Status ControlTriggerPass::HandleDynamicCtrlEdges(ComputeGraphPtr &graph, NodePt
       NodePtr constant = (branch_flag ? iter2->second.second : iter2->second.first);
       if ((GraphUtils::RemoveEdge(in_ctrl_node->GetOutControlAnchor(), node->GetInControlAnchor()) != GRAPH_SUCCESS) ||
           (GraphUtils::AddEdge(in_ctrl_node->GetOutControlAnchor(), constant->GetInControlAnchor()) != GRAPH_SUCCESS)) {
-        REPORT_INNER_ERR_MSG("E19999", "Remove control edge between op:%s(%s) and op:%s(%s), then "
-                          "add control edge between op:%s(%s) and op:%s(%s) failed",
-                          in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
-                          node->GetName().c_str(), node->GetType().c_str(),
-                          in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
-                          constant->GetName().c_str(), constant->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Remove control edge between op:%s(%s) and op:%s(%s), then "
+                             "add control edge between op:%s(%s) and op:%s(%s) failed",
+                             in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(), node->GetName().c_str(),
+                             node->GetType().c_str(), in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
+                             constant->GetName().c_str(), constant->GetType().c_str());
         GELOGE(FAILED, "[Replace][CtrlEdge] failed, remove edge:%s->%s, add edge:%s->%s.",
-               in_ctrl_node->GetName().c_str(), node->GetName().c_str(),
-               in_ctrl_node->GetName().c_str(), constant->GetName().c_str());
+               in_ctrl_node->GetName().c_str(), node->GetName().c_str(), in_ctrl_node->GetName().c_str(),
+               constant->GetName().c_str());
         return FAILED;
       }
 
@@ -82,8 +82,8 @@ Status ControlTriggerPass::HandleDynamicCtrlEdges(ComputeGraphPtr &graph, NodePt
   }
 
   if (InsertOppositeBranch(graph, node, in_ctrl_node, switch_node, branch_flag) != SUCCESS) {
-    GELOGE(FAILED, "[Insert][OppositeBranch] failed, node:%s, in_ctrl_node:%s.",
-           node->GetName().c_str(), in_ctrl_node->GetName().c_str());
+    GELOGE(FAILED, "[Insert][OppositeBranch] failed, node:%s, in_ctrl_node:%s.", node->GetName().c_str(),
+           in_ctrl_node->GetName().c_str());
     return FAILED;
   }
 
@@ -244,16 +244,16 @@ Status ControlTriggerPass::InsertOppositeBranch(ComputeGraphPtr &graph, NodePtr 
 
   NodePtr merge_node = InsertMergeNode(graph, node, in_ctrl_node, data_desc, switch_cond_map_[switch_node]);
   if (merge_node == nullptr) {
-    GELOGE(FAILED, "[Insert][MergeNode] failed, node:%s, in_ctrl_node:%s.",
-           node->GetName().c_str(), in_ctrl_node->GetName().c_str());
+    GELOGE(FAILED, "[Insert][MergeNode] failed, node:%s, in_ctrl_node:%s.", node->GetName().c_str(),
+           in_ctrl_node->GetName().c_str());
     return FAILED;
   }
 
   NodePtr const_f = InsertConstNode(graph, merge_node, data_desc, false);
   NodePtr const_t = InsertConstNode(graph, merge_node, data_desc, true);
   if ((const_f == nullptr) || (const_t == nullptr)) {
-    GELOGE(FAILED, "[Insert][ConstNode] failed, graph:%s, merge_node:%s.",
-           graph->GetName().c_str(), merge_node->GetName().c_str());
+    GELOGE(FAILED, "[Insert][ConstNode] failed, graph:%s, merge_node:%s.", graph->GetName().c_str(),
+           merge_node->GetName().c_str());
     return FAILED;
   }
 
@@ -262,37 +262,34 @@ Status ControlTriggerPass::InsertOppositeBranch(ComputeGraphPtr &graph, NodePtr 
   uint32_t new_idx = branch_flag ? SWITCH_FALSE_OUTPUT : SWITCH_TRUE_OUTPUT;
 
   const std::string identity_name = switch_desc->GetName() + "_" + IDENTITY;
-  NodePtr identity_node = InsertIdentityNode(graph, identity_name,
-      switch_desc->GetOutputDesc(new_idx), switch_node);
+  NodePtr identity_node = InsertIdentityNode(graph, identity_name, switch_desc->GetOutputDesc(new_idx), switch_node);
   if (identity_node == nullptr) {
-    GELOGE(FAILED, "[Insert][IdentityNode] name:%s failed, graph:%s.",
-           identity_name.c_str(), graph->GetName().c_str());
+    GELOGE(FAILED, "[Insert][IdentityNode] name:%s failed, graph:%s.", identity_name.c_str(), graph->GetName().c_str());
     return FAILED;
   }
 
   if (GraphUtils::AddEdge(in_ctrl_node->GetOutControlAnchor(), orig_const->GetInControlAnchor()) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add control edge between op:%s(%s) and op:%s(%s) failed",
-                      in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
-                      orig_const->GetName().c_str(), orig_const->GetType().c_str());
+                         in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
+                         orig_const->GetName().c_str(), orig_const->GetType().c_str());
     GELOGE(FAILED, "[Add][CtrlEdge] failed, %s->%s.", in_ctrl_node->GetName().c_str(), orig_const->GetName().c_str());
     return FAILED;
   }
   if (GraphUtils::AddEdge(switch_node->GetOutDataAnchor(new_idx), identity_node->GetInDataAnchor(0)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%u) and op:%s(%s)(index:0) failed",
-                      switch_node->GetName().c_str(), switch_node->GetType().c_str(), new_idx,
-                      identity_node->GetName().c_str(), identity_node->GetType().c_str());
+                         switch_node->GetName().c_str(), switch_node->GetType().c_str(), new_idx,
+                         identity_node->GetName().c_str(), identity_node->GetType().c_str());
     GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:%u) and op:%s(%s)(index:0) failed",
-           switch_node->GetName().c_str(), switch_node->GetType().c_str(), new_idx,
-           identity_node->GetName().c_str(), identity_node->GetType().c_str());
+           switch_node->GetName().c_str(), switch_node->GetType().c_str(), new_idx, identity_node->GetName().c_str(),
+           identity_node->GetType().c_str());
     return FAILED;
   }
   if (GraphUtils::AddEdge(identity_node->GetOutControlAnchor(), new_const->GetInControlAnchor()) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add control edge between op:%s(%s) and op:%s(%s) failed",
-                      identity_node->GetName().c_str(), identity_node->GetType().c_str(),
-                      new_const->GetName().c_str(), new_const->GetType().c_str());
-    GELOGE(FAILED, "[Add][ControlEdge] between op:%s(%s) and op:%s(%s) failed",
-           identity_node->GetName().c_str(), identity_node->GetType().c_str(),
-           new_const->GetName().c_str(), new_const->GetType().c_str());
+                         identity_node->GetName().c_str(), identity_node->GetType().c_str(),
+                         new_const->GetName().c_str(), new_const->GetType().c_str());
+    GELOGE(FAILED, "[Add][ControlEdge] between op:%s(%s) and op:%s(%s) failed", identity_node->GetName().c_str(),
+           identity_node->GetType().c_str(), new_const->GetName().c_str(), new_const->GetType().c_str());
     return FAILED;
   }
 
@@ -335,34 +332,33 @@ NodePtr ControlTriggerPass::InsertMergeNode(ComputeGraphPtr &graph, NodePtr &nod
 
   if ((op_desc->AddInputDesc(data_desc) != GRAPH_SUCCESS) || (op_desc->AddInputDesc(data_desc) != GRAPH_SUCCESS) ||
       (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS) || (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed.",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed.", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return nullptr;
   }
 
   GELOGI("Create Merge op:%s.", name.c_str());
   NodePtr merge_node = graph->AddNode(op_desc);
   if (merge_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
 
   if ((GraphUtils::RemoveEdge(in_ctrl_node->GetOutControlAnchor(), node->GetInControlAnchor()) != GRAPH_SUCCESS) ||
       (GraphUtils::AddEdge(merge_node->GetOutControlAnchor(), node->GetInControlAnchor()) != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Remove control edge between op:%s(%s) and op:%s(%s), then "
-                      "add control edge between op:%s(%s) and op:%s(%s) failed",
-                      in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      merge_node->GetName().c_str(), merge_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Replace][CtrlEdge] failed, remove edge:%s->%s, add edge:%s->%s",
-           in_ctrl_node->GetName().c_str(), node->GetName().c_str(),
-           merge_node->GetName().c_str(), node->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Remove control edge between op:%s(%s) and op:%s(%s), then "
+                         "add control edge between op:%s(%s) and op:%s(%s) failed",
+                         in_ctrl_node->GetName().c_str(), in_ctrl_node->GetType().c_str(), node->GetName().c_str(),
+                         node->GetType().c_str(), merge_node->GetName().c_str(), merge_node->GetType().c_str(),
+                         node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(FAILED, "[Replace][CtrlEdge] failed, remove edge:%s->%s, add edge:%s->%s", in_ctrl_node->GetName().c_str(),
+           node->GetName().c_str(), merge_node->GetName().c_str(), node->GetName().c_str());
     return nullptr;
   }
 
@@ -396,38 +392,38 @@ NodePtr ControlTriggerPass::InsertConstNode(ComputeGraphPtr &graph, NodePtr &mer
   }
   if (!AttrUtils::SetTensor(op_desc, ATTR_NAME_WEIGHTS, const_value)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(), op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return nullptr;
   }
 
   if (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][OutputDesc] to op:%s(%s) failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][OutputDesc] to op:%s(%s) failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return nullptr;
   }
 
   GELOGI("Create Const op: %s", name.c_str());
   NodePtr const_node = graph->AddNode(op_desc);
   if (const_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
 
   uint32_t out_idx = (flag ? SWITCH_TRUE_OUTPUT : SWITCH_FALSE_OUTPUT);
   if (GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), merge_node->GetInDataAnchor(out_idx)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:%u) failed",
-                      const_node->GetName().c_str(), const_node->GetType().c_str(),
-                      merge_node->GetName().c_str(), merge_node->GetType().c_str(), out_idx);
+                         const_node->GetName().c_str(), const_node->GetType().c_str(), merge_node->GetName().c_str(),
+                         merge_node->GetType().c_str(), out_idx);
     GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:%u) failed",
-           const_node->GetName().c_str(), const_node->GetType().c_str(),
-           merge_node->GetName().c_str(), merge_node->GetType().c_str(), out_idx);
+           const_node->GetName().c_str(), const_node->GetType().c_str(), merge_node->GetName().c_str(),
+           merge_node->GetType().c_str(), out_idx);
     return nullptr;
   }
 
@@ -442,8 +438,7 @@ NodePtr ControlTriggerPass::InsertConstNode(ComputeGraphPtr &graph, NodePtr &mer
 /// @return NodePtr
 ///
 NodePtr ControlTriggerPass::InsertIdentityNode(ComputeGraphPtr &graph, const std::string &name,
-                                               const GeTensorDesc &data_desc,
-                                               NodePtr &switch_node) const {
+                                               const GeTensorDesc &data_desc, NodePtr &switch_node) const {
   OpDescPtr op_desc = MakeShared<OpDesc>(name, IDENTITY);
   if (op_desc == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "New OpDesc failed");
@@ -452,20 +447,20 @@ NodePtr ControlTriggerPass::InsertIdentityNode(ComputeGraphPtr &graph, const std
   }
 
   if ((op_desc->AddInputDesc(data_desc) != GRAPH_SUCCESS) || (op_desc->AddOutputDesc(data_desc) != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input or output desc to op:%s(%s) failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][GeTensorDesc] to op:%s(%s) failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return nullptr;
   }
 
   GELOGI("Create Identity op:%s.", name.c_str());
   NodePtr identity_node = graph->InsertNode(switch_node, op_desc);
   if (identity_node == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str(), graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str(), graph->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Add][Node] %s(%s) to graph:%s failed", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), graph->GetName().c_str());
     return nullptr;
   }
 
@@ -490,8 +485,10 @@ Status ControlTriggerPass::FindPredInput(const NodePtr &switch_node) {
   GE_CHECK_NOTNULL(in_cond_anchor, "Index:%u in anchor of switch_node:%s(%s) is nullptr, check invalid",
                    SWITCH_PRED_INPUT, switch_node->GetName().c_str(), switch_node->GetType().c_str());
   OutDataAnchorPtr pred_cond_anchor = in_cond_anchor->GetPeerOutAnchor();
-  GE_CHECK_NOTNULL(pred_cond_anchor, "Index:%u in anchor of switch_node:%s(%s), it's peer anchor is nullptr, "
-                   "check invalid", SWITCH_PRED_INPUT, switch_node->GetName().c_str(), switch_node->GetType().c_str());
+  GE_CHECK_NOTNULL(pred_cond_anchor,
+                   "Index:%u in anchor of switch_node:%s(%s), it's peer anchor is nullptr, "
+                   "check invalid",
+                   SWITCH_PRED_INPUT, switch_node->GetName().c_str(), switch_node->GetType().c_str());
 
   switch_cond_map_[switch_node] = pred_cond_anchor->GetOwnerNode();
   return SUCCESS;

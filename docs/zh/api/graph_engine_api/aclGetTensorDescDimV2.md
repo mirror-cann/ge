@@ -77,4 +77,3 @@ aclError aclGetTensorDescDimV2(const aclTensorDesc *desc, size_t index, int64_t 
 ## 约束说明<a name="section166778544516"></a>
 
 当[aclGetTensorDescNumDims](aclGetTensorDescNumDims.md)接口的返回值为ACL\_UNKNOWN\_RANK时，表示动态Shape场景下维度个数未知，则不能调用aclGetTensorDescDimV2接口获取指定维度的大小。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,11 +26,12 @@ Status OpDtypeMatcherBase::Match(const vector<ge::DataType> &op_kernel_dtype_vec
 }
 
 Status OpDtypeMatcherBase::FindSuitableDtype(const vector<ge::DataType> &op_kernel_dtype_vec,
-    const ge::DataType &expected_dtype, vector<uint32_t> &matched_index_vec, const ge::DataType &dtype_forbid) {
-  (void) op_kernel_dtype_vec;
-  (void) expected_dtype;
-  (void) matched_index_vec;
-  (void) dtype_forbid;
+                                             const ge::DataType &expected_dtype, vector<uint32_t> &matched_index_vec,
+                                             const ge::DataType &dtype_forbid) {
+  (void)op_kernel_dtype_vec;
+  (void)expected_dtype;
+  (void)matched_index_vec;
+  (void)dtype_forbid;
   return SUCCESS;
 }
 Status OpDtypeMatcherBase::FindAccuracyDtype(const vector<ge::DataType> &op_kernel_dtype_vec,
@@ -39,7 +40,7 @@ Status OpDtypeMatcherBase::FindAccuracyDtype(const vector<ge::DataType> &op_kern
   auto op_kernel_dtype_vec_size = op_kernel_dtype_vec.size();
   vector<uint32_t> priority_index_vec;
   for (auto iter = matched_index_vec.begin(); iter != matched_index_vec.end();
-    /* iter will not increase automatically */) {
+       /* iter will not increase automatically */) {
     uint32_t index = *iter;
     if (index >= op_kernel_dtype_vec_size) {
       iter = matched_index_vec.erase(iter);

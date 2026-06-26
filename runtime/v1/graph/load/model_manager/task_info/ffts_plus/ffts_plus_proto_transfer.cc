@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,8 +45,8 @@ constexpr int32_t kAutoTailAivCtxIndex = 3;
 constexpr int32_t kAutoMixAicAivCtxPcNum = 4;
 constexpr size_t kAicAivCtxPcAddrNum = 1U;
 
-constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
-constexpr uint32_t k5BitsMask = 0x0000001FU;   // 5  bits, 0001,1111
+constexpr uint32_t k2BitsMask = 0x00000003U;  // 2  bits, 0000,0011
+constexpr uint32_t k5BitsMask = 0x0000001FU;  // 5  bits, 0001,1111
 
 constexpr uint32_t k16BitsMask = 0x0000FFFFU;  // 16 bits, 1111,1111,1111,1111
 
@@ -55,7 +55,7 @@ constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;  // 32 bits, 1111,1111,1111,1111,1
 
 constexpr size_t KDumpListArgsTableSizeIndex = 1U;
 constexpr size_t KDumpListSizeNumIndex = 2U;
-constexpr size_t kDumpListSizeInfoIndex = 3U; // context_id | args tabe size | size num | size info
+constexpr size_t kDumpListSizeInfoIndex = 3U;  // context_id | args tabe size | size num | size info
 
 constexpr uint64_t kBitFlag8 = 0x00FFFFFFFFFFFFFFUL;
 constexpr uint64_t kLevel2BitFlagWithShape = 0x0200000000000000UL;
@@ -76,8 +76,8 @@ const std::set<rtFftsPlusContextType_t> kSaveArgsCtxType = {
     RT_CTX_TYPE_MIX_AIC,
     RT_CTX_TYPE_MIX_AIV,
 };
-constexpr uint32_t kModeInArgsFirstFieldVal0 = 0U; // mode addr at args field
-constexpr uint32_t kArgsSkipFirstField = 1U; // mix ctx args first addr is not input/output addr
+constexpr uint32_t kModeInArgsFirstFieldVal0 = 0U;  // mode addr at args field
+constexpr uint32_t kArgsSkipFirstField = 1U;        // mix ctx args first addr is not input/output addr
 constexpr uint32_t kSaveTaskAddr = 1U;
 }  // namespace
 
@@ -91,21 +91,20 @@ void CleanRtFftsPlusTask(rtFftsPlusTaskInfo_t &ffts_plus_task_info) noexcept {
   ffts_plus_task_info.fftsPlusSqe = nullptr;
   ffts_plus_task_info.descBuf = nullptr;
 }
-std::map<rtFftsPlusContextType_t, FftsPlusProtoTransfer::CtxHandle> FftsPlusProtoTransfer::init_ctx_fun_ {
-  { RT_CTX_TYPE_AICORE, &FftsPlusProtoTransfer::InitAicAivCtx },
-  { RT_CTX_TYPE_AIV, &FftsPlusProtoTransfer::InitAicAivCtx },
-  { RT_CTX_TYPE_WRITE_VALUE, &FftsPlusProtoTransfer::InitWriteValueCtx },
-  { RT_CTX_TYPE_MIX_AIC, &FftsPlusProtoTransfer::InitMixAicAivCtx },
-  { RT_CTX_TYPE_MIX_AIV, &FftsPlusProtoTransfer::InitMixAicAivCtx },
-  { RT_CTX_TYPE_SDMA, &FftsPlusProtoTransfer::InitSdmaCtx },
-  { RT_CTX_TYPE_FLUSH_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-  { RT_CTX_TYPE_INVALIDATE_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-  { RT_CTX_TYPE_WRITEBACK_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-  { RT_CTX_TYPE_AICPU, &FftsPlusProtoTransfer::InitAicpuCtx },
-  { RT_CTX_TYPE_COND_SWITCH, &FftsPlusProtoTransfer::InitCondSwitchCtx },
-  { RT_CTX_TYPE_CASE_SWITCH, &FftsPlusProtoTransfer::InitCaseCtx },
-  { RT_CTX_TYPE_DSA, &FftsPlusProtoTransfer::InitDsaCtx }
-};
+std::map<rtFftsPlusContextType_t, FftsPlusProtoTransfer::CtxHandle> FftsPlusProtoTransfer::init_ctx_fun_{
+    {RT_CTX_TYPE_AICORE, &FftsPlusProtoTransfer::InitAicAivCtx},
+    {RT_CTX_TYPE_AIV, &FftsPlusProtoTransfer::InitAicAivCtx},
+    {RT_CTX_TYPE_WRITE_VALUE, &FftsPlusProtoTransfer::InitWriteValueCtx},
+    {RT_CTX_TYPE_MIX_AIC, &FftsPlusProtoTransfer::InitMixAicAivCtx},
+    {RT_CTX_TYPE_MIX_AIV, &FftsPlusProtoTransfer::InitMixAicAivCtx},
+    {RT_CTX_TYPE_SDMA, &FftsPlusProtoTransfer::InitSdmaCtx},
+    {RT_CTX_TYPE_FLUSH_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_INVALIDATE_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_WRITEBACK_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_AICPU, &FftsPlusProtoTransfer::InitAicpuCtx},
+    {RT_CTX_TYPE_COND_SWITCH, &FftsPlusProtoTransfer::InitCondSwitchCtx},
+    {RT_CTX_TYPE_CASE_SWITCH, &FftsPlusProtoTransfer::InitCaseCtx},
+    {RT_CTX_TYPE_DSA, &FftsPlusProtoTransfer::InitDsaCtx}};
 
 Status FftsPlusProtoTransfer::Transfer(const OpDescPtr &op_desc, const domi::FftsPlusTaskDef &ffts_plus_task_def,
                                        rtFftsPlusTaskInfo_t &ffts_plus_task_info, uint8_t *const desc_buf,
@@ -143,8 +142,8 @@ Status FftsPlusProtoTransfer::Transfer(const OpDescPtr &op_desc, const domi::Fft
     ffts_plus_task_info.fftsPlusSqe = ffts_plus_sqe;
     const size_t buffer_len = ctx_total_size;
     GE_CHECK_GE(desc_buf_len, buffer_len);
-    GELOGI("Init ctx begin, node %s, args_base=0x%" PRIx64 ", ctx_num=%d",
-      op_desc->GetName().c_str(), args_base_, ctx_num);
+    GELOGI("Init ctx begin, node %s, args_base=0x%" PRIx64 ", ctx_num=%d", op_desc->GetName().c_str(), args_base_,
+           ctx_num);
     GE_CHK_STATUS_RET_NOLOG(InitFftsPlusCtx(ffts_plus_task_def, desc_buf, ctx_num));
   }
 
@@ -209,8 +208,7 @@ Status FftsPlusProtoTransfer::InitFftsPlusCtx(const domi::FftsPlusTaskDef &task_
     if (op_desc_ != nullptr) {
       GE_CHK_STATUS_RET_NOLOG(InitOpRunInfo(tiling_data_pos, tiling_addr_base_.data()));
       std::vector<std::string> orig_names;
-      if (AttrUtils::GetListStr(op_desc_, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, orig_names) &&
-          (!orig_names.empty())) {
+      if (AttrUtils::GetListStr(op_desc_, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, orig_names) && (!orig_names.empty())) {
         FusionOpInfo fusion_op_info;
         fusion_op_info.stream_id = logic_stream_id_;
         fusion_op_info.op_index = ctx_def.op_index();
@@ -273,7 +271,7 @@ Status FftsPlusProtoTransfer::InitOpRunInfo(size_t &tiling_data_pos, uint8_t *ti
     const auto rd_len = tiling_stream.rdbuf()->sgetn(cur_data_buf, static_cast<int64_t>(tiling_data_len));
     if (static_cast<size_t>(rd_len) != tiling_data_len) {
       GELOGE(INTERNAL_ERROR, "Copy tiling data failed, data pos: %zu, tiling size: %zu, rd_len: %" PRId64 ".",
-        tiling_data_pos, tiling_data_len, rd_len);
+             tiling_data_pos, tiling_data_len, rd_len);
       return INTERNAL_ERROR;
     }
     GELOGD("Copy tiling data, op_name is %s, tiling addr is %p, data pos: %zu, tiling size: %zu.",
@@ -284,12 +282,12 @@ Status FftsPlusProtoTransfer::InitOpRunInfo(size_t &tiling_data_pos, uint8_t *ti
                      "Tiling addr base size: %zu should not less than tiling data pos: %zu add tiling data len: %zu",
                      tiling_addr_base_.size(), tiling_data_pos, tiling_data_len);
       const size_t buffer_size = tiling_addr_base_.size() - tiling_data_pos - tiling_data_len;
-      GE_ASSERT_RT_OK(rtMemcpy(memcheck_info_buf, buffer_size, memcheck_info.data(), memcheck_info_size,
-                               RT_MEMCPY_HOST_TO_HOST),
-                               "Copy memcheck info to tiling buf failed, buffer_size: %zu, memcheck_info_size: %zu",
-                               buffer_size, memcheck_info_size);
+      GE_ASSERT_RT_OK(
+          rtMemcpy(memcheck_info_buf, buffer_size, memcheck_info.data(), memcheck_info_size, RT_MEMCPY_HOST_TO_HOST),
+          "Copy memcheck info to tiling buf failed, buffer_size: %zu, memcheck_info_size: %zu", buffer_size,
+          memcheck_info_size);
       GELOGD("Copy memcheck info, op_name is %s, memcheck addr is %p, data pos: %zu, memcheck size: %zu.",
-          op_desc_->GetName().c_str(), memcheck_info_buf, tiling_data_pos + tiling_data_len, memcheck_info_size);
+             op_desc_->GetName().c_str(), memcheck_info_buf, tiling_data_pos + tiling_data_len, memcheck_info_size);
     }
     memcheck_info_cache.emplace(std::make_pair(memcheck_info, tiling_data_pos));
     block_dim_ = tiling_info->GetBlockDim();
@@ -387,7 +385,7 @@ Status FftsPlusProtoTransfer::InitManualAicAivCtx(const domi::FftsPlusCtxDef &ta
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kManualAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
-                       kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(FAILED, "[Check][Param] Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
            kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
     return FAILED;
@@ -427,7 +425,7 @@ Status FftsPlusProtoTransfer::InitAutoAicAivCtx(const domi::FftsPlusAicAivCtxDef
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kAutoAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
-                       kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(FAILED, "[Check][Param] Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
            kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
     return FAILED;
@@ -474,7 +472,7 @@ Status FftsPlusProtoTransfer::InitWriteValueCtx(const domi::FftsPlusCtxDef &task
   if ((run_addr_handle_ != nullptr) &&
       (run_addr_handle_(static_cast<uintptr_t>(ctx_def.write_addr_base()), write_addr_base, mem_type) != SUCCESS)) {
     GELOGE(INTERNAL_ERROR, "[Check][GetRtAddress] failed, logic write addr base is 0x%" PRIx64 ".",
-      ctx_def.write_addr_base());
+           ctx_def.write_addr_base());
     return INTERNAL_ERROR;
   }
   ctx->writeAddressBaseL = static_cast<uint32_t>(PtrToValue(write_addr_base) & k32BitsMask);
@@ -553,7 +551,7 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
         GE_ASSERT(iter != ir_input_2_range.end());
         level0_addr_idx.push_back(ffts_plus_args_helper_->GetIoAddrSize());
         ffts_plus_args_helper_->AppendAbsoluteAddrs(
-            0, "ptr_to_shape_desc_" + std::to_string(static_cast<int64_t>(arg_desc.addr_type))); // place holder
+            0, "ptr_to_shape_desc_" + std::to_string(static_cast<int64_t>(arg_desc.addr_type)));  // place holder
         dynamic_addr_start_idxes.emplace_back(addr_idx, iter->second.first);
         level1_addr_cnt.push_back(iter->second.second);
         addr_idx += iter->second.second;  // 动态输入的数量
@@ -610,8 +608,8 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
             GE_ASSERT_SUCCESS(ArgsFormatUtils::GetHcomHiddenInputs(op_desc_, *davinci_model_, context_addrs));
           }
           GE_ASSERT_TRUE(ir_idx < context_addrs.size());
-          ffts_plus_args_helper_->AppendAbsoluteAddrs(
-              reinterpret_cast<uint64_t>(context_addrs[ir_idx]), "hidden input");
+          ffts_plus_args_helper_->AppendAbsoluteAddrs(reinterpret_cast<uint64_t>(context_addrs[ir_idx]),
+                                                      "hidden input");
           l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());
         }
         ++addr_idx;
@@ -646,7 +644,7 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
         auto iter = ir_output_2_range.find(ir_idx);
         GE_ASSERT(iter != ir_output_2_range.end());
         const auto &range_pair = iter->second;
-        size_t begin_idx = range_pair.first + op_desc_->GetInputsSize(); // 添加了input的偏移的
+        size_t begin_idx = range_pair.first + op_desc_->GetInputsSize();  // 添加了input的偏移的
         for (size_t i = 0UL; i < range_pair.second; ++i) {
           const int32_t idx = static_cast<int32_t>(addr_idx);
           GE_ASSERT(idx < ctx_def.task_addr_size(), "Invalid index %d, addrs size %zu.", idx, ctx_def.task_addr_size());
@@ -681,8 +679,8 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
         break;
       }
       case AddrType::CUSTOM_VALUE: {
-        ffts_plus_args_helper_->AppendAbsoluteAddrs(
-            *reinterpret_cast<const uint64_t *>(arg_desc.reserved), "custom_value");
+        ffts_plus_args_helper_->AppendAbsoluteAddrs(*reinterpret_cast<const uint64_t *>(arg_desc.reserved),
+                                                    "custom_value");
         l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());
         ++addr_idx;
         break;
@@ -714,7 +712,7 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
         GE_ASSERT(idx < ctx_def.task_addr_size(), "Invalid index %d, addrs size %zu.", idx, ctx_def.task_addr_size());
         ffts_plus_args_helper_->AppendIoAddrs(ctx_def.task_addr(idx));
         const size_t input_output_size = op_desc_->GetInputsSize() + op_desc_->GetOutputsSize();
-        l0_dump_list_.push_back(input_output_size + workspace_idx); // index
+        l0_dump_list_.push_back(input_output_size + workspace_idx);  // index
         ++addr_idx;
         ++workspace_idx;
         break;
@@ -737,7 +735,7 @@ Status FftsPlusProtoTransfer::ConstructArgsFromFormat(const domi::FftsPlusMixAic
     }
 
     GELOGI("Node[%s] io desc idx[%zu], io desc val[%" PRIu64 "], offset idx[%zu], level1 addr cnt[%zu]",
-      op_desc_->GetNamePtr(), level0_addr_idx[idx], offset_addr, ptr_offset_idx, level1_addr_cnt[idx]);
+           op_desc_->GetNamePtr(), level0_addr_idx[idx], offset_addr, ptr_offset_idx, level1_addr_cnt[idx]);
     for (size_t dyn_idx = 0UL; dyn_idx < level1_addr_cnt[idx]; ++dyn_idx) {
       const int32_t dyn_addr_idx = static_cast<int32_t>(dyn_idx + dynamic_addr_start_idxes[idx].first);
       GE_ASSERT(dyn_addr_idx < ctx_def.task_addr_size(), "addr index:[%d] is out of range", dyn_addr_idx);
@@ -767,9 +765,9 @@ Status FftsPlusProtoTransfer::InitManualMixAicAivCtx(const domi::FftsPlusMixAicA
                                                      rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx) {
   CtxInfo ctx_info = {};
   ffts_plus_args_helper_->GetCtxInfo(ctx_info);
-  l0_dump_list_.push_back(ctx_info.ctx_id); // ctx_id
-  l0_dump_list_.push_back(0U); // args table size place holder
-  l0_dump_list_.push_back(0U); // size num place holder
+  l0_dump_list_.push_back(ctx_info.ctx_id);  // ctx_id
+  l0_dump_list_.push_back(0U);               // args table size place holder
+  l0_dump_list_.push_back(0U);               // size num place holder
 
   ArgsFormatHolder format_holder;
   size_t tiling_data_len = 0U;
@@ -806,7 +804,7 @@ Status FftsPlusProtoTransfer::InitManualMixAicAivCtx(const domi::FftsPlusMixAicA
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (static_cast<size_t>(ctx_def.kernel_name_size()) != prefix_size) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusMixAicAivCtxDef should be %zu, but %d exactly",
-                       prefix_size, ctx_def.kernel_name_size());
+                         prefix_size, ctx_def.kernel_name_size());
     GELOGE(FAILED, "[Check][Param] Size of kernel_name in FftsPlusMixAicAivCtxDef should be %zu, but %d exactly",
            prefix_size, ctx_def.kernel_name_size());
     return FAILED;
@@ -898,7 +896,7 @@ Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAiv
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kAutoMixAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusMixAicAivCtxDef should be %d, but %d exactly",
-                       kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(FAILED, "[Check][Param] Size of kernel_name in FftsPlusMixAicAivCtxDef should be %d, but %d exactly",
            kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
     return FAILED;
@@ -908,10 +906,9 @@ Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAiv
   void *non_tail_aic_task_start_pc = nullptr;
   if (addr_pref_handle_ != nullptr) {
     std::vector<std::pair<void *, uint32_t>> non_tail_aic_addr_pref_cnt;
-    GE_CHK_STATUS_RET(addr_pref_handle_(op_desc_, ctx_def.kernel_name(kAutoNonTailAicCtxIndexVal0), "",
-                                        non_tail_aic_addr_pref_cnt),
-                      "Get addr and pref cnt failed, kernel_name=%s",
-                      ctx_def.kernel_name(kAutoNonTailAicCtxIndexVal0).c_str());
+    GE_CHK_STATUS_RET(
+        addr_pref_handle_(op_desc_, ctx_def.kernel_name(kAutoNonTailAicCtxIndexVal0), "", non_tail_aic_addr_pref_cnt),
+        "Get addr and pref cnt failed, kernel_name=%s", ctx_def.kernel_name(kAutoNonTailAicCtxIndexVal0).c_str());
     GE_ASSERT_EQ(non_tail_aic_addr_pref_cnt.size(), kAicAivCtxPcAddrNum);
     non_tail_aic_task_start_pc = non_tail_aic_addr_pref_cnt[0].first;
     non_tail_aic_i_cache_prefetch_cnt = non_tail_aic_addr_pref_cnt[0].second;
@@ -940,10 +937,9 @@ Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAiv
   void *non_tail_aiv_task_start_pc = nullptr;
   if (addr_pref_handle_ != nullptr) {
     std::vector<std::pair<void *, uint32_t>> non_tail_aiv_addr_pref_cnt;
-    GE_CHK_STATUS_RET(addr_pref_handle_(op_desc_, ctx_def.kernel_name(kAutoNonTailAivCtxIndexVal2), "",
-                                        non_tail_aiv_addr_pref_cnt),
-                      "Get addr and pref cnt failed, kernel_name=%s",
-                      ctx_def.kernel_name(kAutoNonTailAivCtxIndexVal2).c_str());
+    GE_CHK_STATUS_RET(
+        addr_pref_handle_(op_desc_, ctx_def.kernel_name(kAutoNonTailAivCtxIndexVal2), "", non_tail_aiv_addr_pref_cnt),
+        "Get addr and pref cnt failed, kernel_name=%s", ctx_def.kernel_name(kAutoNonTailAivCtxIndexVal2).c_str());
     GE_ASSERT_EQ(non_tail_aiv_addr_pref_cnt.size(), kAicAivCtxPcAddrNum);
     non_tail_aiv_task_start_pc = non_tail_aiv_addr_pref_cnt[0].first;
     non_tail_aiv_i_cache_prefetch_cnt = non_tail_aiv_addr_pref_cnt[0].second;
@@ -1042,9 +1038,11 @@ Status FftsPlusProtoTransfer::InitAicpuCtx(const domi::FftsPlusCtxDef &task_def,
 
   const size_t user_data_len = sizeof(ctx->usrData) / sizeof(uint32_t);
   if (user_data_len < static_cast<uint64_t>(kRequiredUserDataNum)) {
-    REPORT_INNER_ERR_MSG("E19999", "Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
-                       kRequiredUserDataNum, static_cast<uint64_t>(user_data_len));
-    GELOGE(FAILED, "[Check][Param] Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
+                         kRequiredUserDataNum, static_cast<uint64_t>(user_data_len));
+    GELOGE(FAILED,
+           "[Check][Param] Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
            kRequiredUserDataNum, user_data_len);
     return FAILED;
   }
@@ -1148,7 +1146,7 @@ Status FftsPlusProtoTransfer::InitAicpuFwkExtInfo(const OpDescPtr &op_desc, cons
   std::shared_ptr<hybrid::AicpuExtInfoHandler> ext_handle;
   GE_CHK_STATUS_RET_NOLOG(InitAicpuTaskExtInfo(op_desc, ext_info, ext_handle));
   if (ext_handle == nullptr) {
-    return SUCCESS; // ext_info is empty.
+    return SUCCESS;  // ext_info is empty.
   }
 
   void *aicpu_ext_info_addr = davinci_model_->MallocDynamicMemory(ext_handle->GetExtInfoLen());
@@ -1171,10 +1169,10 @@ Status FftsPlusProtoTransfer::InitAicpuFwkExtInfo(const OpDescPtr &op_desc, cons
   addr = davinci_model_->MallocDynamicMemory(sizeof(STR_FWK_OP_KERNEL));
   GE_ASSERT_NOTNULL(addr);
   ext_info_addrs_.emplace_back(addr);
-  GE_CHK_RT_RET(rtMemcpy(addr, sizeof(STR_FWK_OP_KERNEL), static_cast<void *>(fwk_op_kernel),
-                         sizeof(STR_FWK_OP_KERNEL), RT_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_RT_RET(rtMemcpy(addr, sizeof(STR_FWK_OP_KERNEL), static_cast<void *>(fwk_op_kernel), sizeof(STR_FWK_OP_KERNEL),
+                         RT_MEMCPY_HOST_TO_DEVICE));
   GELOGI("Init aicpu fwk op context info Success. session id: %" PRIu64,
-    fwk_op_kernel->fwkKernelBase.fwk_kernel.sessionID);
+         fwk_op_kernel->fwkKernelBase.fwk_kernel.sessionID);
   return SUCCESS;
 }
 
@@ -1256,8 +1254,7 @@ Status FftsPlusProtoTransfer::InitAicpuTaskExtInfo(const OpDescPtr &op_desc, con
   const uint32_t num_outputs = static_cast<uint32_t>(op_desc->GetOutputsSize());
   ext_handle = MakeShared<hybrid::AicpuExtInfoHandler>(op_desc->GetName(), num_inputs, num_outputs, unknown_type);
   GE_CHK_BOOL_RET_STATUS(ext_handle != nullptr, FAILED, "[Malloc][Memory] for aicpu_ext_handle failed!");
-  GE_CHK_STATUS_RET(ext_handle->Parse(ext_info),
-                    "[Parse][KernelExtInfo] failed, kernel_ext_info_size=%zu, op:%s.",
+  GE_CHK_STATUS_RET(ext_handle->Parse(ext_info), "[Parse][KernelExtInfo] failed, kernel_ext_info_size=%zu, op:%s.",
                     ext_info.size(), op_desc->GetName().c_str());
   GE_CHK_STATUS_RET(ext_handle->UpdateSessionInfoId(aicpu_get_session_id_()),
                     "[Update][SessionInfoSessionId] failed, op:%s", op_desc->GetName().c_str());
@@ -1266,8 +1263,8 @@ Status FftsPlusProtoTransfer::InitAicpuTaskExtInfo(const OpDescPtr &op_desc, con
   const bool need_update = davinci_model_->IsFeatureBaseRefreshable() || davinci_model_->HasZeroCopyAddr(op_desc);
   // 1 means static(no need update), 0 means dynamic(need_update)
   GE_CHK_STATUS_RET(ext_handle->UpdateExecuteMode(!need_update), "[Update][ExecuteMode] failed.");
-  GELOGD("Node [%s] update aicpu_task ext_info bit_map execute mode to %d.",
-         op_desc->GetNamePtr(), static_cast<int32_t>(!need_update));
+  GELOGD("Node [%s] update aicpu_task ext_info bit_map execute mode to %d.", op_desc->GetNamePtr(),
+         static_cast<int32_t>(!need_update));
   bool all_shape = false;
   (void)AttrUtils::GetBool(op_desc, kAicpuAllshape, all_shape);
   if (all_shape) {
@@ -1276,15 +1273,15 @@ Status FftsPlusProtoTransfer::InitAicpuTaskExtInfo(const OpDescPtr &op_desc, con
       const auto input_desc = op_desc->MutableInputDesc(i);
       GE_CHECK_NOTNULL(input_desc);
       GE_CHK_STATUS_RET(ext_handle->UpdateInputShapeAndType(i, *input_desc),
-                        "[Call][UpdateInputShapeAndType] Input[%u] update input shape failed, op:%s.",
-                        i, op_desc->GetName().c_str());
+                        "[Call][UpdateInputShapeAndType] Input[%u] update input shape failed, op:%s.", i,
+                        op_desc->GetName().c_str());
     }
     for (uint32_t j = 0U; j < num_outputs; j++) {
       const auto output_desc = op_desc->MutableOutputDesc(j);
       GE_CHECK_NOTNULL(output_desc);
       GE_CHK_STATUS_RET(ext_handle->UpdateOutputShapeAndType(j, *output_desc),
-                        "[Call][UpdateOutputShapeAndType] Output[%u] update output shape failed, op:%s.",
-                        j, op_desc->GetName().c_str());
+                        "[Call][UpdateOutputShapeAndType] Output[%u] update output shape failed, op:%s.", j,
+                        op_desc->GetName().c_str());
     }
   }
   bool is_blocking_aicpu_op = false;
@@ -1296,8 +1293,8 @@ Status FftsPlusProtoTransfer::InitAicpuTaskExtInfo(const OpDescPtr &op_desc, con
   }
 
   if (UpdateEventIdForAicpuBlockingOp(op_desc, ext_handle) != SUCCESS) {
-    GELOGE(FAILED, "[Call][UpdateEventIdForAicpuBlockingOp] failed for op:%s(%s)",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(FAILED, "[Call][UpdateEventIdForAicpuBlockingOp] failed for op:%s(%s)", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -1323,7 +1320,7 @@ Status FftsPlusProtoTransfer::UpdateEventIdForAicpuBlockingOp(
   uint32_t event_id = 0U;
   if (get_event_id_(op_desc, event_id) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Get event id failed for op:%s(%s).", op_desc->GetName().c_str(),
-                      op_desc->GetType().c_str());
+                         op_desc->GetType().c_str());
     GELOGE(FAILED, "[Get][EventId] Get event id failed for op:%s(%s)", op_desc->GetName().c_str(),
            op_desc->GetType().c_str());
     return FAILED;
@@ -1344,16 +1341,16 @@ Status FftsPlusProtoTransfer::CopyTaskInfoToWorkspace(const OpDescPtr &op_desc, 
   const std::vector<void *> workspace_data_addrs = ModelUtils::GetWorkspaceDataAddrs(runtime_param_, op_desc);
   if (workspace_data_addrs.empty() || workspace_data_sizes.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) workspace addr:%zu or size:%zu empty, check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                       workspace_data_addrs.size(), workspace_data_sizes.size());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), workspace_data_addrs.size(),
+                         workspace_data_sizes.size());
     GELOGE(FAILED, "[Check][Param] Node:%s invalid workspace, addrs is %zu, size is %zu.", op_desc->GetName().c_str(),
            workspace_data_addrs.size(), workspace_data_sizes.size());
     return FAILED;
   }
 
   if (workspace_data_addrs[0U] == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) workspace addr is nullptr, check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) workspace addr is nullptr, check invalid", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] Node:%s workspace addrs is null.", op_desc->GetName().c_str());
     return FAILED;
   }
@@ -1361,25 +1358,27 @@ Status FftsPlusProtoTransfer::CopyTaskInfoToWorkspace(const OpDescPtr &op_desc, 
   if ((workspace_data_sizes[0U] < static_cast<int64_t>(task_info_addr_size)) ||
       (workspace_data_sizes[0U] > static_cast<int64_t>(runtime_param_.mem_size))) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Node:%s(%s) workspace size:%" PRId64 " < task info size:%zu or workspace size > total mem "
-                       "size %" PRIu64 ", check invalid",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(), workspace_data_sizes[0U],
-                       task_info_addr_size, runtime_param_.mem_size);
+                         "Node:%s(%s) workspace size:%" PRId64
+                         " < task info size:%zu or workspace size > total mem "
+                         "size %" PRIu64 ", check invalid",
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), workspace_data_sizes[0U],
+                         task_info_addr_size, runtime_param_.mem_size);
     GELOGE(FAILED,
-           "[Check][Param] Node:%s workspace size is %" PRId64 ", task info size is %zu or workspace size > total mem "
+           "[Check][Param] Node:%s workspace size is %" PRId64
+           ", task info size is %zu or workspace size > total mem "
            "size %" PRIu64 ", check invalid",
            op_desc->GetName().c_str(), workspace_data_sizes[0U], task_info_addr_size, runtime_param_.mem_size);
     return FAILED;
   }
 
-  GE_CHK_RT_RET(rtMemcpy(workspace_data_addrs[0U], static_cast<uint64_t>(workspace_data_sizes[0U]),
-                         task_info_addr, static_cast<uint64_t>(task_info_addr_size), RT_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_RT_RET(rtMemcpy(workspace_data_addrs[0U], static_cast<uint64_t>(workspace_data_sizes[0U]), task_info_addr,
+                         static_cast<uint64_t>(task_info_addr_size), RT_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
 
-Status FftsPlusProtoTransfer::InitAicpuIoAddrs(const OpDescPtr &op_desc, const uint64_t io_addr,
-                                               const size_t io_size, const size_t addr_inner_offset) const {
+Status FftsPlusProtoTransfer::InitAicpuIoAddrs(const OpDescPtr &op_desc, const uint64_t io_addr, const size_t io_size,
+                                               const size_t addr_inner_offset) const {
   std::vector<uint64_t> mem_types;
   std::vector<uint64_t> io_addrs = ModelUtils::GetInputAddrsValue(runtime_param_, op_desc, mem_types);
   GE_ASSERT_EQ(mem_types.size(), io_addrs.size());
@@ -1396,8 +1395,8 @@ Status FftsPlusProtoTransfer::InitAicpuIoAddrs(const OpDescPtr &op_desc, const u
     GELOGI("Node[%s] type[%s] index[%zu], input addr=%" PRIx64 ", thread_offset:[%" PRIu64 "]", op_desc->GetNamePtr(),
            op_desc->GetTypePtr(), i, io_addrs[i], step);
     io_addrs[i] += step;
-    GE_CHK_STATUS_RET(ffts_plus_args_helper_->AppendAicpuAddrs(io_addrs[i], mem_types[i],
-                                                               addr_inner_offset + i * sizeof(uint64_t)));
+    GE_CHK_STATUS_RET(
+        ffts_plus_args_helper_->AppendAicpuAddrs(io_addrs[i], mem_types[i], addr_inner_offset + i * sizeof(uint64_t)));
   }
 
   GELOGI("Node[%s] type[%s] io_addrs size is [%zu]", op_desc->GetNamePtr(), op_desc->GetTypePtr(), io_addrs.size());
@@ -1405,9 +1404,10 @@ Status FftsPlusProtoTransfer::InitAicpuIoAddrs(const OpDescPtr &op_desc, const u
     const size_t addrs_size = sizeof(uint64_t) * io_addrs.size();
     const errno_t sec_ret = memcpy_s(ValueToPtr(io_addr), io_size, io_addrs.data(), addrs_size);
     if (sec_ret != EOK) {
-      REPORT_INNER_ERR_MSG("E19999", "Call memcpy_s fail, io_size:%zu, addrs_size:%" PRIu64 ", ret:%d",
-                        io_size, static_cast<uint64_t>(addrs_size), sec_ret);
-      GELOGE(FAILED, "[Call][Memcpy] failed, io_size:%zu, addrs_size:%" PRIu64 ", ret:%d", io_size, addrs_size, sec_ret);
+      REPORT_INNER_ERR_MSG("E19999", "Call memcpy_s fail, io_size:%zu, addrs_size:%" PRIu64 ", ret:%d", io_size,
+                           static_cast<uint64_t>(addrs_size), sec_ret);
+      GELOGE(FAILED, "[Call][Memcpy] failed, io_size:%zu, addrs_size:%" PRIu64 ", ret:%d", io_size, addrs_size,
+             sec_ret);
       return FAILED;
     }
   }
@@ -1424,7 +1424,7 @@ Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &task
   if ((run_addr_handle_ != nullptr) &&
       (run_addr_handle_(static_cast<uintptr_t>(ctx_def.load_addr0_base()), addr_base_0, mem_type) != SUCCESS)) {
     GELOGE(INTERNAL_ERROR, "[Check][GetRtAddress] failed, logic load addr0 base is 0x%" PRIx64 ".",
-      ctx_def.load_addr0_base());
+           ctx_def.load_addr0_base());
     return INTERNAL_ERROR;
   }
   ctx->loadAddress0BaseL = static_cast<uint32_t>(PtrToValue(addr_base_0) & k32BitsMask);
@@ -1434,7 +1434,7 @@ Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &task
   if ((run_addr_handle_ != nullptr) &&
       (run_addr_handle_(static_cast<uintptr_t>(ctx_def.load_addr1_base()), addr_base_1, mem_type) != SUCCESS)) {
     GELOGE(INTERNAL_ERROR, "[Check][GetRtAddress] failed, logic load addr1 base is 0x%" PRIx64 ".",
-      ctx_def.load_addr1_base());
+           ctx_def.load_addr1_base());
     return INTERNAL_ERROR;
   }
   ctx->loadAddress1BaseL = static_cast<uint32_t>(PtrToValue(addr_base_1) & k32BitsMask);
@@ -1458,7 +1458,7 @@ Status FftsPlusProtoTransfer::InitCaseCtx(const domi::FftsPlusCtxDef &task_def,
   if ((run_addr_handle_ != nullptr) &&
       (run_addr_handle_(static_cast<uintptr_t>(ctx_def.load_addr0_base()), addr_base_0, mem_type) != SUCCESS)) {
     GELOGE(INTERNAL_ERROR, "[Check][GetRtAddress] failed, logic load addr0 base is 0x%" PRIx64 ".",
-      ctx_def.load_addr0_base());
+           ctx_def.load_addr0_base());
     return INTERNAL_ERROR;
   }
   ctx->loadAddress0BaseL = static_cast<uint32_t>(PtrToValue(addr_base_0) & k32BitsMask);
@@ -1468,7 +1468,7 @@ Status FftsPlusProtoTransfer::InitCaseCtx(const domi::FftsPlusCtxDef &task_def,
   if ((run_addr_handle_ != nullptr) &&
       (run_addr_handle_(static_cast<uintptr_t>(ctx_def.load_addr1_base()), addr_base_1, mem_type) != SUCCESS)) {
     GELOGE(INTERNAL_ERROR, "[Check][GetRtAddress] failed, logic load addr1 base is 0x%" PRIx64 ".",
-      ctx_def.load_addr1_base());
+           ctx_def.load_addr1_base());
     return INTERNAL_ERROR;
   }
   ctx->loadAddress1BaseL = static_cast<uint32_t>(PtrToValue(addr_base_1) & k32BitsMask);
@@ -1507,7 +1507,7 @@ Status FftsPlusProtoTransfer::GetThreadIoAddr(ge::AttrHolder &obj, const T &ctx_
     sub_offset = sub_offsets[static_cast<size_t>(thread_id)];
     set_info = "from ge";
     std::vector<uint32_t> ctx_id_vec;
-    (void) AttrUtils::GetListInt(obj, kAttrCtxIdList, ctx_id_vec);
+    (void)AttrUtils::GetListInt(obj, kAttrCtxIdList, ctx_id_vec);
     if (static_cast<size_t>(thread_id) < ctx_id_vec.size()) {
       ffts_plus_args_helper_->SaveLevel2Offset(ctx_id_vec[static_cast<size_t>(thread_id)], sub_offset);
     }
@@ -1617,8 +1617,7 @@ Status FftsPlusProtoTransfer::GetAndCheckDsaAddr(
   return SUCCESS;
 }
 
-Status FftsPlusProtoTransfer::InitDsaWorkSpace(const OpDescPtr &op_desc,
-                                               const domi::FftsPlusDsaCtxDef &ctx_def,
+Status FftsPlusProtoTransfer::InitDsaWorkSpace(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
                                                const std::vector<std::pair<uint64_t, uint64_t>> &input_datas) const {
   const auto workspace_size = ModelUtils::GetWorkspaceSize(op_desc);
   GE_CHECK_SIZE(workspace_size.size());
@@ -1664,8 +1663,8 @@ Status FftsPlusProtoTransfer::AssembleDsaWorkSpaceByInput(const OpDescPtr &op_de
       input_addr.push_back(input_data_addrs[kDSAArgsInputAddrSize - 1U]);
     }
     GE_CHK_RT_RET(rtMemcpy(ValueToPtr(workspace_input_addr),
-                           static_cast<uint64_t>(workspace_size[workspace_size.size() -1U]),
-                           input_addr.data(), sizeof(uint64_t) * input_addr.size(), RT_MEMCPY_HOST_TO_DEVICE));
+                           static_cast<uint64_t>(workspace_size[workspace_size.size() - 1U]), input_addr.data(),
+                           sizeof(uint64_t) * input_addr.size(), RT_MEMCPY_HOST_TO_DEVICE));
   } else {
     uint64_t input_data[2] = {0U, 0U};
     const std::string &input1 = ctx_def.args().input1_value_or_addr();
@@ -1684,7 +1683,7 @@ Status FftsPlusProtoTransfer::AssembleDsaWorkSpaceByInput(const OpDescPtr &op_de
       }
     }
     GE_CHK_RT_RET(rtMemcpy(ValueToPtr(workspace_input_addr),
-                           static_cast<uint64_t>(workspace_size[workspace_size.size() -1U]), &input_data[0U],
+                           static_cast<uint64_t>(workspace_size[workspace_size.size() - 1U]), &input_data[0U],
                            sizeof(input_data), RT_MEMCPY_HOST_TO_DEVICE));
   }
   return SUCCESS;
@@ -1693,45 +1692,30 @@ Status FftsPlusProtoTransfer::AssembleDsaWorkSpaceByInput(const OpDescPtr &op_de
 void FftsPlusProtoTransfer::AppendDsaCtxLevel1RrefreshInfo(const OpDescPtr &op_desc,
                                                            const domi::FftsPlusDsaCtxDef &ctx_def,
                                                            rtFftsPlusDsaCtx_t *const ctx) {
-  AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.output_data_refresh_infos[0],
-                              &(ctx->dsaCfgResultAddrHigh),
-                              &(ctx->dsaCfgResultAddrLow),
-                              op_desc,
-                              Level1AddrType::DSA_OUTPUT);
+  AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.output_data_refresh_infos[0], &(ctx->dsaCfgResultAddrHigh),
+                              &(ctx->dsaCfgResultAddrLow), op_desc, Level1AddrType::DSA_OUTPUT);
 
   if (dsa_update_ctx_helper_.workspace_data_refresh_infos.size() == kDSAWorkspaceAddrSize) {
-    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.workspace_data_refresh_infos[0],
-                                &(ctx->dsaCfgStateAddrHigh),
-                                &(ctx->dsaCfgStateAddrLow),
-                                op_desc,
-                                Level1AddrType::DSA_WORKSPACE);
+    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.workspace_data_refresh_infos[0], &(ctx->dsaCfgStateAddrHigh),
+                                &(ctx->dsaCfgStateAddrLow), op_desc, Level1AddrType::DSA_WORKSPACE);
   } else {
     AppendCtxLevel1RrefreshInfo(
-      dsa_update_ctx_helper_.input_data_refresh_infos[dsa_update_ctx_helper_.input_data_refresh_infos.size() - 1U],
-      &(ctx->dsaCfgStateAddrHigh),
-      &(ctx->dsaCfgStateAddrLow),
-      op_desc,
-      Level1AddrType::DSA_INPUT);
+        dsa_update_ctx_helper_.input_data_refresh_infos[dsa_update_ctx_helper_.input_data_refresh_infos.size() - 1U],
+        &(ctx->dsaCfgStateAddrHigh), &(ctx->dsaCfgStateAddrLow), op_desc, Level1AddrType::DSA_INPUT);
   }
 
   if (ctx_def.seed_value_or_ptr() == kDSASetInputAddr) {
-    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.input_data_refresh_infos[1],
-                                &(ctx->dsaCfgSeedHigh),
-                                &(ctx->dsaCfgSeedLow),
-                                op_desc,
-                                Level1AddrType::DSA_INPUT);
+    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.input_data_refresh_infos[1], &(ctx->dsaCfgSeedHigh),
+                                &(ctx->dsaCfgSeedLow), op_desc, Level1AddrType::DSA_INPUT);
   }
 
   if (ctx_def.random_count_value_or_ptr() == kDSASetInputAddr) {
-    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.input_data_refresh_infos[0],
-                                &(ctx->dsaCfgNumberHigh),
-                                &(ctx->dsaCfgNumberLow),
-                                op_desc,
-                                Level1AddrType::DSA_INPUT);
+    AppendCtxLevel1RrefreshInfo(dsa_update_ctx_helper_.input_data_refresh_infos[0], &(ctx->dsaCfgNumberHigh),
+                                &(ctx->dsaCfgNumberLow), op_desc, Level1AddrType::DSA_INPUT);
   }
 
-  GELOGI("%s %s append dsa context level1 refresh ino success.",
-     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  GELOGI("%s %s append dsa context level1 refresh ino success.", op_desc->GetName().c_str(),
+         op_desc->GetType().c_str());
 }
 
 void FftsPlusProtoTransfer::AssembleDsaCtxByRealAddr(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
@@ -1819,10 +1803,8 @@ Status FftsPlusProtoTransfer::InitDsaCtx(const domi::FftsPlusCtxDef &task_def,
   return SUCCESS;
 }
 
-void FftsPlusProtoTransfer::AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInfo &info,
-                                                        const uint32_t *addr_high,
-                                                        const uint32_t *addr_low,
-                                                        const OpDescPtr &op_desc,
+void FftsPlusProtoTransfer::AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInfo &info, const uint32_t *addr_high,
+                                                        const uint32_t *addr_low, const OpDescPtr &op_desc,
                                                         const Level1AddrType addr_type) {
   TaskArgsRefreshInfo info_high_32_bit = {
       info.id,
@@ -1830,10 +1812,9 @@ void FftsPlusProtoTransfer::AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInf
       0UL,
       PtrToValue(PtrToPtr<uint32_t, void>(addr_high)) - static_cast<uint64_t>(pis_args_host_base_),
       ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrHigh32Bit
-  };
-  GELOGI("%s %s addr type:%d, high32 level1 refresh info:[%s]", op_desc->GetName().c_str(),
-         op_desc->GetType().c_str(), static_cast<int16_t>(addr_type), info_high_32_bit.ToString().c_str());
+      ArgsFormatPolicy::kAddrHigh32Bit};
+  GELOGI("%s %s addr type:%d, high32 level1 refresh info:[%s]", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+         static_cast<int16_t>(addr_type), info_high_32_bit.ToString().c_str());
   ctx_level1_refresh_info_list_.emplace_back(std::move(info_high_32_bit));
 
   TaskArgsRefreshInfo info_low_32_bit = {
@@ -1842,17 +1823,15 @@ void FftsPlusProtoTransfer::AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInf
       0UL,
       PtrToValue(PtrToPtr<uint32_t, void>(addr_low)) - static_cast<uint64_t>(pis_args_host_base_),
       ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrLow32Bit
-  };
-  GELOGI("%s %s addr type:%d, low32 level1 refresh info:[%s]", op_desc->GetName().c_str(),
-         op_desc->GetType().c_str(), static_cast<int16_t>(addr_type), info_low_32_bit.ToString().c_str());
+      ArgsFormatPolicy::kAddrLow32Bit};
+  GELOGI("%s %s addr type:%d, low32 level1 refresh info:[%s]", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+         static_cast<int16_t>(addr_type), info_low_32_bit.ToString().c_str());
   ctx_level1_refresh_info_list_.emplace_back(std::move(info_low_32_bit));
 }
 
 Status FftsPlusProtoTransfer::GenCtxLevel1RefreshInfo(const AddrType2CtxAddrInfo &addr_type_2_ctx_addr_infos,
                                                       const std::vector<TaskArgsRefreshInfo> &args_fresh_infos,
-                                                      const size_t start_idx,
-                                                      const size_t real_addr_size,
+                                                      const size_t start_idx, const size_t real_addr_size,
                                                       std::vector<TaskArgsRefreshInfo> &ctx_level1_args_fresh_infos) {
   GE_ASSERT_TRUE(addr_type_2_ctx_addr_infos.size() == real_addr_size,
                  "Level1 addr_size [%zu] mismatches with ctx size:[%zu].", real_addr_size,
@@ -1868,27 +1847,27 @@ Status FftsPlusProtoTransfer::GenCtxLevel1RefreshInfo(const AddrType2CtxAddrInfo
       case Level1AddrType::CMO_ADDR: {
         rtFftsPlusDataCtx_t *const ctx = PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusDataCtx_t>(ctx_addr_info.rts_ctx);
         GE_CHECK_NOTNULL(ctx);
-        AppendCtxLevel1RrefreshInfo(args_refresh_info,
-          &(ctx->addressBaseH), &(ctx->addressBaseL), op_desc, Level1AddrType::CMO_ADDR);
+        AppendCtxLevel1RrefreshInfo(args_refresh_info, &(ctx->addressBaseH), &(ctx->addressBaseL), op_desc,
+                                    Level1AddrType::CMO_ADDR);
         break;
       }
       case Level1AddrType::SDMA_SRC: {
         rtFftsPlusSdmaCtx_t *const ctx = PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusSdmaCtx_t>(ctx_addr_info.rts_ctx);
         GE_CHECK_NOTNULL(ctx);
-        AppendCtxLevel1RrefreshInfo(args_refresh_info,
-          &(ctx->sourceAddressBaseH), &(ctx->sourceAddressBaseL), op_desc, Level1AddrType::SDMA_SRC);
+        AppendCtxLevel1RrefreshInfo(args_refresh_info, &(ctx->sourceAddressBaseH), &(ctx->sourceAddressBaseL), op_desc,
+                                    Level1AddrType::SDMA_SRC);
         break;
       }
       case Level1AddrType::SDMA_DST: {
         rtFftsPlusSdmaCtx_t *const ctx = PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusSdmaCtx_t>(ctx_addr_info.rts_ctx);
-        AppendCtxLevel1RrefreshInfo(args_refresh_info,
-          &(ctx->destinationAddressBaseH), &(ctx->destinationAddressBaseL), op_desc, Level1AddrType::SDMA_DST);
+        AppendCtxLevel1RrefreshInfo(args_refresh_info, &(ctx->destinationAddressBaseH), &(ctx->destinationAddressBaseL),
+                                    op_desc, Level1AddrType::SDMA_DST);
         break;
       }
       case Level1AddrType::DSA_INPUT: {
         dsa_update_ctx_helper_.input_data_refresh_infos.emplace_back(args_refresh_info);
-        GELOGI("%s %s get input data refresh info, allocation id %u, offset %" PRIu64,
-               op_desc->GetName().c_str(), op_desc->GetType().c_str(), args_refresh_info.id, args_refresh_info.offset);
+        GELOGI("%s %s get input data refresh info, allocation id %u, offset %" PRIu64, op_desc->GetName().c_str(),
+               op_desc->GetType().c_str(), args_refresh_info.id, args_refresh_info.offset);
         break;
       }
       case Level1AddrType::DSA_WORKSPACE: {
@@ -1899,8 +1878,8 @@ Status FftsPlusProtoTransfer::GenCtxLevel1RefreshInfo(const AddrType2CtxAddrInfo
       }
       case Level1AddrType::DSA_OUTPUT: {
         dsa_update_ctx_helper_.output_data_refresh_infos.emplace_back(args_refresh_info);
-        GELOGI("%s %s get output data refresh info, allocation id %u, offset %" PRIu64,
-               op_desc->GetName().c_str(), op_desc->GetType().c_str(), args_refresh_info.id, args_refresh_info.offset);
+        GELOGI("%s %s get output data refresh info, allocation id %u, offset %" PRIu64, op_desc->GetName().c_str(),
+               op_desc->GetType().c_str(), args_refresh_info.id, args_refresh_info.offset);
         if (dsa_update_ctx_helper_.IsAllRealAddrReady()) {
           rtFftsPlusDsaCtx_t *const ctx = PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusDsaCtx_t>(ctx_addr_info.rts_ctx);
           GE_CHECK_NOTNULL(ctx);
@@ -1917,9 +1896,8 @@ Status FftsPlusProtoTransfer::GenCtxLevel1RefreshInfo(const AddrType2CtxAddrInfo
     }
   }
 
-  ctx_level1_args_fresh_infos.insert(ctx_level1_args_fresh_infos.end(),
-                                    ctx_level1_refresh_info_list_.begin(),
-                                    ctx_level1_refresh_info_list_.end());
+  ctx_level1_args_fresh_infos.insert(ctx_level1_args_fresh_infos.end(), ctx_level1_refresh_info_list_.begin(),
+                                     ctx_level1_refresh_info_list_.end());
   ctx_level1_refresh_info_list_.clear();
   return SUCCESS;
 }
@@ -1977,8 +1955,8 @@ Status FftsPlusProtoTransfer::UpdateCtxLevel1Addrs(const AddrType2CtxAddrInfo &a
       }
       case Level1AddrType::DSA_OUTPUT: {
         dsa_update_ctx_helper_.output_data_addrs.emplace_back(real_addr);
-        GELOGI("[IMAS] %s %s get real output data addr %" PRIu64, op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-               real_addr);
+        GELOGI("[IMAS] %s %s get real output data addr %" PRIu64, op_desc->GetName().c_str(),
+               op_desc->GetType().c_str(), real_addr);
         if (dsa_update_ctx_helper_.IsAllRealAddrReady()) {
           rtFftsPlusDsaCtx_t *const ctx = PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusDsaCtx_t>(ctx_addr_info.rts_ctx);
           GE_CHECK_NOTNULL(ctx);

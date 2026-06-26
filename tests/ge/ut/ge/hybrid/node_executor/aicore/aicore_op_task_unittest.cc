@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,7 +46,7 @@ struct DummyCompileInfo {
   int64_t tiling_cond;
   std::vector<int64_t> c;
 };
-}
+}  // namespace
 
 class UtestAiCoreOpTask : public testing::Test {
  protected:
@@ -112,7 +112,6 @@ TEST_F(UtestAiCoreOpTask, UpdateOutputsShape_success) {
 
   EXPECT_EQ(task1->Init(node, task_def), ge::SUCCESS);
 
-
   node = graph->AddNode(op_desc);
   std::unique_ptr<NodeItem> new_node;
   ASSERT_EQ(NodeItem::Create(node, new_node), SUCCESS);
@@ -135,7 +134,7 @@ TEST_F(UtestAiCoreOpTask, UpdateOutputsShape_success) {
 
   auto node_state = subgraph_context.GetNodeState(node_item);
   ASSERT_NE(node_state, nullptr);
-  auto outputs_shape = reinterpret_cast<uint32_t(*)[9]>(task1->shape_buffer_->GetData());
+  auto outputs_shape = reinterpret_cast<uint32_t (*)[9]>(task1->shape_buffer_->GetData());
   outputs_shape[0][0] = 2;
   outputs_shape[0][1] = 1;
   outputs_shape[0][2] = 2;
@@ -280,14 +279,10 @@ TEST_F(UtestAiCoreOpTask, TestUpdateTilingInfo) {
   graphStatus (*tiling_parse_func)(::gert::TilingParseContext *) =
       [](gert::TilingParseContext *parse_context) -> graphStatus { return GRAPH_SUCCESS; };
 
-  typedef void* (*CreateCompileInfo)();
+  typedef void *(*CreateCompileInfo)();
   typedef void (*DeleteCompileInfo)(void *obj);
-  CreateCompileInfo create_compile_info = []() -> void *{
-    return new int64_t();
-  };
-  DeleteCompileInfo delete_compile_info = [](void *obj) -> void {
-    delete (int64_t*)obj;
-  };
+  CreateCompileInfo create_compile_info = []() -> void * { return new int64_t(); };
+  DeleteCompileInfo delete_compile_info = [](void *obj) -> void { delete (int64_t *)obj; };
   auto op_impl_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MyAdd");
   op_impl_func->tiling = op_tiling_func;
   op_impl_func->tiling_parse = reinterpret_cast<gert::KernelRegistry::KernelFunc>(tiling_parse_func);
@@ -444,16 +439,14 @@ TEST_F(UtestAiCoreOpTask, TestUpdateArgsWithHostMemInput) {
   ASSERT_NE(task->args_ex_.hostInputInfoPtr, nullptr);
   ASSERT_EQ(task->args_ex_.hostInputInfoNum, 2);
 
-  uint64_t *addr = PtrToPtr<void, uint64_t>(ValueToPtr(PtrToValue(task->args_ex_.args) +
-                                                       task->args_ex_.hostInputInfoPtr[0].addrOffset));
-  uint64_t host_mem_data_addr = PtrToValue(task->args_ex_.args) +
-                                task->args_ex_.hostInputInfoPtr[0].dataOffset;
+  uint64_t *addr = PtrToPtr<void, uint64_t>(
+      ValueToPtr(PtrToValue(task->args_ex_.args) + task->args_ex_.hostInputInfoPtr[0].addrOffset));
+  uint64_t host_mem_data_addr = PtrToValue(task->args_ex_.args) + task->args_ex_.hostInputInfoPtr[0].dataOffset;
   EXPECT_EQ(*addr, host_mem_data_addr);
 
-  addr = PtrToPtr<void, uint64_t>(ValueToPtr(PtrToValue(task->args_ex_.args) +
-                                             task->args_ex_.hostInputInfoPtr[1].addrOffset));
-  host_mem_data_addr = PtrToValue(task->args_ex_.args) +
-                       task->args_ex_.hostInputInfoPtr[1].dataOffset;
+  addr = PtrToPtr<void, uint64_t>(
+      ValueToPtr(PtrToValue(task->args_ex_.args) + task->args_ex_.hostInputInfoPtr[1].addrOffset));
+  host_mem_data_addr = PtrToValue(task->args_ex_.args) + task->args_ex_.hostInputInfoPtr[1].dataOffset;
   EXPECT_EQ(*addr, host_mem_data_addr);
 }
 TEST_F(UtestAiCoreOpTask, TestUpdateArgsWithOverflow) {

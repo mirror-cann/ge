@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,7 @@
 #include "subscriber/profiler/cann_profiler_v2.h"
 #include "macro_utils/dt_public_unscope.h"
 namespace gert {
-namespace kernel {
-}
+namespace kernel {}
 using namespace kernel;
 
 class FFTSAtomicKernelTestUT : public testing::Test {
@@ -47,7 +46,7 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   auto work_space_vector = reinterpret_cast<ContinuousVector *>(work_space.get());
   work_space_vector->SetSize(4);
   auto work_space_ptr = reinterpret_cast<memory::FftsMemBlock **>(work_space_vector->MutableData());
-    for (size_t i = 0; i < work_space_vector->GetSize(); i++) {
+  for (size_t i = 0; i < work_space_vector->GetSize(); i++) {
     work_space_ptr[i] = level_2_allocator->Malloc(2);
   }
 
@@ -60,7 +59,8 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   memory::SingleStreamL2Allocator single_stream_l2_allocator{&stub_allocator};
   memory::MultiStreamMemBlock ms_block;
   ms_block.ReInit(&single_stream_l2_allocator, &mem_block, memory::BlockAllocType(memory::BlockAllocType::kNorm, 0U));
-  GertTensorData workspace_gtd = GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
+  GertTensorData workspace_gtd =
+      GertTensorData(ms_block.GetAddr(), ms_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
   auto l1_work_space_ptr = reinterpret_cast<GertTensorData **>(l1_work_space_vector->MutableData());
   for (size_t i = 0; i < l1_work_space_vector->GetSize(); i++) {
     l1_work_space_ptr[i] = &workspace_gtd;
@@ -73,17 +73,20 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   AICoreSinkRet sink_ret;
 
   auto run_context = BuildKernelRunContext(static_cast<size_t>(AtomArgsInKey::kNUM) + 3, 1);
-  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
-  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size), nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim),
+                                                                               nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::WINDOW_SIZE)].Set(reinterpret_cast<void *>(window_size),
+                                                                                nullptr);
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::SINK_RET)].Set(&sink_ret, nullptr);
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::WORK_ADDR)].Set(work_space_vector, nullptr);
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::THREAD_PARAM)].Set(&thread_param, nullptr);
   uint32_t proc_type = static_cast<uint32_t>(AtomProcType::DY_SLICE_OP);
-  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::PROC_TYPE)].Set(reinterpret_cast<void *>(proc_type), nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::PROC_TYPE)].Set(reinterpret_cast<void *>(proc_type),
+                                                                              nullptr);
   auto work_clear = ContinuousVector::Create<int64_t>(2);
   auto work_clear_vec = reinterpret_cast<ContinuousVector *>(work_clear.get());
   work_clear_vec->SetSize(2);
-  auto work_clear_ptr = reinterpret_cast<int64_t*>(work_clear_vec->MutableData());
+  auto work_clear_ptr = reinterpret_cast<int64_t *>(work_clear_vec->MutableData());
   for (size_t i = 0; i < work_clear_vec->GetSize(); i++) {
     work_clear_ptr[i] = i + 1;
   }
@@ -92,7 +95,7 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   auto out_clear = ContinuousVector::Create<int64_t>(2);
   auto out_clear_vec = reinterpret_cast<ContinuousVector *>(out_clear.get());
   out_clear_vec->SetSize(2);
-  auto out_clear_ptr = reinterpret_cast<int64_t*>(out_clear_vec->MutableData());
+  auto out_clear_ptr = reinterpret_cast<int64_t *>(out_clear_vec->MutableData());
   for (size_t i = 0; i < out_clear_vec->GetSize(); i++) {
     out_clear_ptr[i] = i;
   }
@@ -101,7 +104,7 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   auto out_type = ContinuousVector::Create<uint32_t>(2);
   auto out_type_vec = reinterpret_cast<ContinuousVector *>(out_type.get());
   out_type_vec->SetSize(2);
-  auto out_type_ptr = reinterpret_cast<uint32_t*>(out_type_vec->MutableData());
+  auto out_type_ptr = reinterpret_cast<uint32_t *>(out_type_vec->MutableData());
   out_type_ptr[0] = 0;
   out_type_ptr[1] = 1;
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::OUT_MEM_TYPE)].Set(out_type_vec, nullptr);
@@ -131,19 +134,17 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   auto rt_arg = RtFFTSKernelLaunchArgs::Create(tmp_node, node_desc, total_size);
   node_para.host_addr = rt_arg.get();
   char *mem_2 = new char[total_size];
-  node_para.dev_addr = (void*)mem_2;
+  node_para.dev_addr = (void *)mem_2;
   AICoreSubTaskFlush flush_data;
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::IO_START) + 2].Set(&flush_data, nullptr);
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::ARGS_PARA)].Set(&node_para, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->outputs_creator(nullptr, run_context),
-  ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->run_func(run_context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->run_func(run_context), ge::GRAPH_SUCCESS);
   EXPECT_FALSE(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->trace_printer(run_context).empty());
   auto context = run_context.GetContext<KernelContext>();
-  auto args_para = context->GetInputValue<NodeMemPara*>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
+  auto args_para = context->GetInputValue<NodeMemPara *>(static_cast<size_t>(AtomArgsInKey::ARGS_PARA));
   auto rt_args = reinterpret_cast<RtFFTSKernelLaunchArgs *>(args_para->host_addr);
-  uintptr_t *args_base_addr = static_cast<uintptr_t*>(rt_args->GetArgBase());
+  uintptr_t *args_base_addr = static_cast<uintptr_t *>(rt_args->GetArgBase());
   size_t args_pos = rt_args->GetAtomArgsPos();
   uintptr_t *args_host_data = &args_base_addr[args_pos];
   uintptr_t a = args_host_data[2];
@@ -151,10 +152,10 @@ TEST_F(FFTSAtomicKernelTestUT, test_ffts_atomic_update_args) {
   ASSERT_EQ(a, b);
 
   proc_type = static_cast<uint32_t>(AtomProcType::DY_OP);
-  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::PROC_TYPE)].Set(reinterpret_cast<void *>(proc_type), nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomArgsInKey::PROC_TYPE)].Set(reinterpret_cast<void *>(proc_type),
+                                                                              nullptr);
   run_context.value_holder[static_cast<size_t>(AtomArgsInKey::WORK_ADDR)].Set(l1_work_space_vector, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->run_func(run_context),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("FFTSUpdateAtomicArgs")->run_func(run_context), ge::GRAPH_SUCCESS);
   a = args_host_data[2];
   b = ge::PtrToValue(l1_work_space_ptr[1]->GetAddr());
   ASSERT_EQ(a, b);
@@ -186,30 +187,34 @@ TEST_F(FFTSAtomicKernelTestUT, test_atomic_update_context) {
     ctx_ids_ptr[i] = i;
   }
 
-  auto run_context = KernelRunContextFaker().KernelIONum(static_cast<size_t>(AtomUpdateKey::RESERVED), 0).
-      NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(static_cast<size_t>(AtomUpdateKey::RESERVED), 0)
+                         .NodeIoNum(2, 2)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
   run_context.value_holder[static_cast<size_t>(AtomUpdateKey::FLUSH_DATA)].Set(&flush_data, nullptr);
   run_context.value_holder[static_cast<size_t>(AtomUpdateKey::AICORE_CTX)].Set(ctx_ids_vec, nullptr);
   uint32_t block_dim = 48;
-  run_context.value_holder[static_cast<size_t>(AtomUpdateKey::BLOCK_DIM)].Set(reinterpret_cast<void *>(block_dim), nullptr);
-  run_context.value_holder[static_cast<size_t>(AtomUpdateKey::TAIL_BLOCK_DIM)].Set(reinterpret_cast<void *>(block_dim), nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomUpdateKey::BLOCK_DIM)].Set(reinterpret_cast<void *>(block_dim),
+                                                                              nullptr);
+  run_context.value_holder[static_cast<size_t>(AtomUpdateKey::TAIL_BLOCK_DIM)].Set(reinterpret_cast<void *>(block_dim),
+                                                                                   nullptr);
 
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(4);
-  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t) ;
+  size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   auto *buff_ptr = &task_info_ptr->args[buf_offset];
   for (int i = 0; i < 4; ++i) {
-  buff_ptr += sizeof(rtFftsPlusComCtx_t);
-  auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(buff_ptr);
+    buff_ptr += sizeof(rtFftsPlusComCtx_t);
+    auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_AIV;
   }
   rtFftsPlusTaskInfo_t task_inf;
@@ -230,19 +235,22 @@ TEST_F(FFTSAtomicKernelTestUT, test_atomic_update_context) {
   CannProfilingInfoWrapper prof_info(&info);
   ASSERT_EQ(registry.FindKernelFuncs("AtomicUpdateContext")->profiling_info_filler(run_context, prof_info),
             ge::GRAPH_SUCCESS);
-  ASSERT_EQ(prof_info.add_infos_[static_cast<size_t>(NodeProfInfoType::kOriginalNode)]->
-            node_basic_info.data.nodeBasicInfo.blockDim, 48);
+  ASSERT_EQ(prof_info.add_infos_[static_cast<size_t>(NodeProfInfoType::kOriginalNode)]
+                ->node_basic_info.data.nodeBasicInfo.blockDim,
+            48);
 }
 
 TEST_F(FFTSAtomicKernelTestUT, test_calc_atomic_out_shape_size) {
-auto run_context = KernelRunContextFaker().KernelIONum(2, 2).
-        NodeIoNum(2,3).IrInputNum(2)
-    .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-    .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-    .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-    .NodeOutputTd(2, ge::DT_FLOAT, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-    .Build();
+  auto run_context = KernelRunContextFaker()
+                         .KernelIONum(2, 2)
+                         .NodeIoNum(2, 3)
+                         .IrInputNum(2)
+                         .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .NodeOutputTd(2, ge::DT_FLOAT, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                         .Build();
 
   auto clear_index = ContinuousVector::Create<int64_t>(2);
   auto clear_index_vec = reinterpret_cast<ContinuousVector *>(clear_index.get());

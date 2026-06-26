@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,9 +24,9 @@
 
 namespace ge {
 // external_weight option values
-constexpr const char *kExternalWeightDisabled = "0";           // 禁用外置权重
-constexpr const char *kExternalWeightEnabled = "1";            // 启用外置权重，每个权重单独导出
-constexpr const char *kExternalWeightCombined = "2";           // 启用外置权重，所有权重合并导出到同一文件
+constexpr const char *kExternalWeightDisabled = "0";  // 禁用外置权重
+constexpr const char *kExternalWeightEnabled = "1";   // 启用外置权重，每个权重单独导出
+constexpr const char *kExternalWeightCombined = "2";  // 启用外置权重，所有权重合并导出到同一文件
 
 using ConstNodeWeightHashList = std::vector<std::pair<NodePtr, std::pair<GeTensorPtr, std::string>>>;
 
@@ -185,7 +185,8 @@ class FileConstantUtils {
   /// @param [in] all_in_one
   /// @return Status
   static Status ConvertToFileConstants(const ConstNodeWeightHashList &const_to_weight_hash_list,
-                                       const std::string &weight_dir, FileConstantMeta &meta, const bool all_in_one=false);
+                                       const std::string &weight_dir, FileConstantMeta &meta,
+                                       const bool all_in_one = false);
   /// @brief save all const weight to file with multi threads
   /// @param [in] const_to_weight_hash_list
   /// @param [in] external_weight_dir
@@ -210,9 +211,8 @@ class FileConstantUtils {
   /// @param [out] new_weights_written
   /// @param [out] reused_weights_count
   /// @return Status
-  static Status SaveWeightsAndMetadata(const ConstNodeWeightHashList &const_to_weight_hash_list,
-                                       FileConstantMeta &meta, std::ofstream &ofs,
-                                       const std::string &weight_path, size_t &offset,
+  static Status SaveWeightsAndMetadata(const ConstNodeWeightHashList &const_to_weight_hash_list, FileConstantMeta &meta,
+                                       std::ofstream &ofs, const std::string &weight_path, size_t &offset,
                                        size_t &new_weights_written, size_t &reused_weights_count);
 
   /// @brief write weight data with padding to align 512 bytes
@@ -221,8 +221,8 @@ class FileConstantUtils {
   /// @param [in] size
   /// @param [in,out] offset
   /// @return Status
-  static Status WriteWeightWithPadding(std::ofstream &ofs, const uint8_t *weight_data_ptr,
-                                       const size_t size, size_t &offset);
+  static Status WriteWeightWithPadding(std::ofstream &ofs, const uint8_t *weight_data_ptr, const size_t size,
+                                       size_t &offset);
 
   /// @brief change all fileconstant nodes attr location in graph
   /// @param [in] compute_graph
@@ -244,6 +244,6 @@ class FileConstantUtils {
   /// @return void
   static void GetValidFullPath(const std::string &dir_name, const std::string &file_name, std::string &full_name);
 };
-}
+}  // namespace ge
 
-#endif // INC_FRAMEWORK_COMMON_FILE_CONSTANT_UTILS_H
+#endif  // INC_FRAMEWORK_COMMON_FILE_CONSTANT_UTILS_H

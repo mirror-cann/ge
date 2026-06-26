@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@
 
 namespace ge {
 namespace test {
-template<typename T>
+template <typename T>
 inline bool Comparison(T lhd, T rhd) {
   return (lhd == rhd);
 }
@@ -45,7 +45,7 @@ inline bool Comparison(double lhd, double rhd) {
 /// but the unit test cannot load the libopsproto.so,
 /// that registers the operator's infer-shape function,
 /// so you need to set the output shape and type yourself.
-template<typename T>
+template <typename T>
 static bool ConstructOpDesc(const vector<vector<int64_t>> &i_shape_dims, const vector<vector<int64_t>> &o_shape_dims,
                             const vector<vector<T>> &i_data, DataType in_dt, DataType out_dt,
                             vector<ConstGeTensorPtr> &inputs, shared_ptr<OpDesc> &op_desc_ptr) {
@@ -72,9 +72,9 @@ static bool ConstFoldingKernelCheckShapeAndOutput(string &op_type, const vector<
                                                   const vector<vector<int64_t>> &o_shape_dims,
                                                   const vector<vector<OT>> &o_data, DataType out_dt) {
 #ifndef CHECK_NOT_EQ_RETURN_FALSE
-#define CHECK_NOT_EQ_RETURN_FALSE(expr)     \
-  if (!(expr)) {                            \
-    return false;                           \
+#define CHECK_NOT_EQ_RETURN_FALSE(expr) \
+  if (!(expr)) {                        \
+    return false;                       \
   }
 
   vector<ConstGeTensorPtr> inputs;

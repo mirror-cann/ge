@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ Status MarkInferShapeMergeKey(const ComputeGraphPtr &graph) {
     const auto op_desc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);
     std::string infer_key;
-    for (size_t i = 0U; i < op_desc->GetOutputsSize(); i++){
+    for (size_t i = 0U; i < op_desc->GetOutputsSize(); i++) {
       auto symbol_attr = op_desc->GetOutputDesc(i).GetAttrsGroup<SymbolicDescAttr>();
       if (symbol_attr == nullptr) {
         continue;
@@ -73,7 +73,7 @@ Status MarkAllSymNum(const ComputeGraphPtr &graph) {
   GELOGD("[%s] all symbol num is: %zu.", graph->GetName().c_str(), all_sym_num);
   return GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 Status SymbolicInfoPostProcessor::Run(const ComputeGraphPtr &graph) {
   GE_ASSERT_SUCCESS(MarkAllSymNum(graph));
   GE_ASSERT_SUCCESS(MarkInferShapeMergeKey(graph));
@@ -82,4 +82,4 @@ Status SymbolicInfoPostProcessor::Run(const ComputeGraphPtr &graph) {
   GE_ASSERT_SUCCESS(guard_codegen.GuardFuncCodegenAndCompile(graph));
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

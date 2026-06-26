@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,7 +49,7 @@ Status DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(const DataFlowGraph &d
   std::string redundant_logic_device_id;
   GE_CHK_STATUS_RET(GetConfigDeployInfo(deploy_logic_device_map, device_id_to_mem_cfg, dynamic_schedule_enable,
                                         invoke_deploy_map, deploy_info_path),
-                                        "Get data flow config deploy info failed.");
+                    "Get data flow config deploy info failed.");
   (void)root_graph->SetExtAttr(ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG, device_id_to_mem_cfg);
   if (data_flow_graph.IsRootDataFlow()) {
     (void)AttrUtils::SetBool(root_graph, ATTR_NAME_DATA_FLOW_DYNAMIC_SCHEDULE_CFG, dynamic_schedule_enable);
@@ -83,10 +83,8 @@ Status DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(const DataFlowGraph &d
                              node->GetName().c_str());
       GELOGI("set attr[%s] value[%s] for node[%s] success.", ATTR_NAME_LOGIC_DEV_ID.c_str(), logic_device_id.c_str(),
              node->GetName().c_str());
-      GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(op_desc, ATTR_NAME_REDUNDANT_LOGIC_DEV_ID,
-                                               redundant_logic_device_id),
-                             FAILED,
-                             "set attr[%s] to node[%s] failed", ATTR_NAME_REDUNDANT_LOGIC_DEV_ID.c_str(),
+      GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(op_desc, ATTR_NAME_REDUNDANT_LOGIC_DEV_ID, redundant_logic_device_id),
+                             FAILED, "set attr[%s] to node[%s] failed", ATTR_NAME_REDUNDANT_LOGIC_DEV_ID.c_str(),
                              node->GetName().c_str());
       GELOGI("set attr[%s] value[%s] for node[%s] success.", ATTR_NAME_REDUNDANT_LOGIC_DEV_ID.c_str(),
              redundant_logic_device_id.c_str(), node->GetName().c_str());
@@ -141,10 +139,9 @@ Status DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(const DataFlowGraph &d
       std::vector<std::string> invoke_deploy_infos;
       const auto &invoke_names = iter->second;
       (void)GetInvokeDeployInfos(invoke_names, deploy_logic_device_map, invoke_deploy_infos);
-      GE_CHK_BOOL_RET_STATUS(AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS,
-                             invoke_deploy_infos), FAILED,
-                             "set attr[%s] to node[%s] failed", ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS,
-                             node->GetName().c_str());
+      GE_CHK_BOOL_RET_STATUS(
+          AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS, invoke_deploy_infos), FAILED,
+          "set attr[%s] to node[%s] failed", ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS, node->GetName().c_str());
       GELOGI("set attr[%s] size[%zu] for node[%s] success.", ATTR_NAME_DATA_FLOW_INVOKE_DEPLOY_INFOS,
              invoke_deploy_infos.size(), node->GetName().c_str());
     }
@@ -153,10 +150,8 @@ Status DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(const DataFlowGraph &d
   return SUCCESS;
 }
 
-Status DataFlowGraphAutoDeployer::GetNodeDeployName(const DataFlowGraph &data_flow_graph,
-                                                    const OpDescPtr &op_desc,
-                                                    std::string &node_deploy_name,
-                                                    int32_t depth) {
+Status DataFlowGraphAutoDeployer::GetNodeDeployName(const DataFlowGraph &data_flow_graph, const OpDescPtr &op_desc,
+                                                    std::string &node_deploy_name, int32_t depth) {
   constexpr int32_t kMaxDepth = 16;
   if (depth >= kMaxDepth) {
     GELOGE(FAILED, "Depth limit (%d) reached.", depth);
@@ -184,9 +179,9 @@ Status DataFlowGraphAutoDeployer::GetNodeDeployName(const DataFlowGraph &data_fl
 }
 
 Status DataFlowGraphAutoDeployer::GetInvokeDeployInfos(
-           const std::vector<std::pair<std::string, std::string>> &invoke_names,
-           const std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-           std::vector<std::string> &invoke_deploy_infos) {
+    const std::vector<std::pair<std::string, std::string>> &invoke_names,
+    const std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
+    std::vector<std::string> &invoke_deploy_infos) {
   for (const auto &invoke_name : invoke_names) {
     auto find_ret = deploy_logic_device_map.find(invoke_name.first);
     if (find_ret != deploy_logic_device_map.end()) {
@@ -273,11 +268,9 @@ Status DataFlowGraphAutoDeployer::UpdateFlowFuncDeployInfo(const DataFlowGraph &
       GE_CHK_STATUS_RET(compile_results.GetItem(attr.first).GetValue<ge::NamedAttrs>(current_compile_result),
                         "Get pp[%s]'s compile result failed.", attr.first.c_str());
 
-      GE_CHK_BOOL_RET_STATUS(ge::AttrUtils::SetNamedAttrs(iter->second,
-                                                          ATTR_NAME_DATA_FLOW_COMPILER_RESULT,
-                                                          current_compile_result),
-                             FAILED, "Set pp[%s]'s attr[%s] to graph failed.",
-                             attr.first.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
+      GE_CHK_BOOL_RET_STATUS(
+          ge::AttrUtils::SetNamedAttrs(iter->second, ATTR_NAME_DATA_FLOW_COMPILER_RESULT, current_compile_result),
+          FAILED, "Set pp[%s]'s attr[%s] to graph failed.", attr.first.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
       GELOGI("Set pp[%s]'s attr[%s] to graph success.", attr.first.c_str(), ATTR_NAME_DATA_FLOW_COMPILER_RESULT);
 
       ge::NamedAttrs runnable_resources_info;
@@ -386,8 +379,8 @@ Status DataFlowGraphAutoDeployer::CheckAndExpandLogicDeviceIds(const std::string
   std::vector<std::string> split_list = StringUtils::Split(logic_device_id_list, ',');
   for (const auto &logic_device_id_conf : split_list) {
     if (!std::regex_match(logic_device_id_conf, range_config_regex)) {
-      GELOGE(FAILED, "config logic_device_list[%s] is invalid, logic_device_id_conf=%s",
-             logic_device_id_list.c_str(), logic_device_id_conf.c_str());
+      GELOGE(FAILED, "config logic_device_list[%s] is invalid, logic_device_id_conf=%s", logic_device_id_list.c_str(),
+             logic_device_id_conf.c_str());
       return FAILED;
     }
     if (logic_device_id_conf.find("~") == std::string::npos) {
@@ -412,11 +405,9 @@ Status DataFlowGraphAutoDeployer::ExpandRangeConfig(
   for (auto &batch_deploy_info : batch_deploy_info_list) {
     std::string resolved_logic_device_id_list;
     std::string resolved_redundant_logic_device_id_list;
-    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(batch_deploy_info.logic_device_list,
-                                              resolved_logic_device_id_list),
+    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(batch_deploy_info.logic_device_list, resolved_logic_device_id_list),
                       "GetExpandLogicDeviceIds failed, flow_node_list[%s], logic_device_list[%s]",
-                      ToString(batch_deploy_info.flow_node_list).c_str(),
-                      batch_deploy_info.logic_device_list.c_str());
+                      ToString(batch_deploy_info.flow_node_list).c_str(), batch_deploy_info.logic_device_list.c_str());
     if (!batch_deploy_info.redundant_logic_device_list.empty()) {
       GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(batch_deploy_info.redundant_logic_device_list,
                                                 resolved_redundant_logic_device_id_list),
@@ -425,9 +416,8 @@ Status DataFlowGraphAutoDeployer::ExpandRangeConfig(
                         batch_deploy_info.redundant_logic_device_list.c_str());
     }
     GELOGI("expand nodes %s logic devices list[%s] to [%s], redundant logic devices list[%s] to [%s]",
-           ToString(batch_deploy_info.flow_node_list).c_str(),
-           batch_deploy_info.logic_device_list.c_str(), resolved_logic_device_id_list.c_str(),
-           batch_deploy_info.redundant_logic_device_list.c_str(),
+           ToString(batch_deploy_info.flow_node_list).c_str(), batch_deploy_info.logic_device_list.c_str(),
+           resolved_logic_device_id_list.c_str(), batch_deploy_info.redundant_logic_device_list.c_str(),
            resolved_redundant_logic_device_id_list.c_str());
     batch_deploy_info.logic_device_list = resolved_logic_device_id_list;
     batch_deploy_info.redundant_logic_device_list = resolved_redundant_logic_device_id_list;
@@ -459,17 +449,16 @@ Status DataFlowGraphAutoDeployer::GetSortedLogicDeviceIds(const std::string &ori
     const auto device_id_vector = StringUtils::Split(logic_device_id, ':');
     device_id_list.emplace_back(device_id_vector);
   }
-  std::sort(device_id_list.begin(), device_id_list.end(),
-            [](std::vector<std::string> &a, std::vector<std::string> &b) {
-              for (size_t i = 0; i < a.size() && i < b.size(); i++) {
-                if (a[i].length() != b[i].length()) {
-                  return (a[i].length() < b[i].length());
-                } else if (a[i] != b[i]) {
-                  return (a[i] < b[i]);
-                }
-              }
-              return (a.size() < b.size());
-            });
+  std::sort(device_id_list.begin(), device_id_list.end(), [](std::vector<std::string> &a, std::vector<std::string> &b) {
+    for (size_t i = 0; i < a.size() && i < b.size(); i++) {
+      if (a[i].length() != b[i].length()) {
+        return (a[i].length() < b[i].length());
+      } else if (a[i] != b[i]) {
+        return (a[i] < b[i]);
+      }
+    }
+    return (a.size() < b.size());
+  });
 
   for (const auto &device_id : device_id_list) {
     std::string logic_device_id;
@@ -491,14 +480,14 @@ Status DataFlowGraphAutoDeployer::GetSortedLogicDeviceIds(const std::string &ori
 Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceForInvoke(
     std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
     std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
-    const std::vector<CompileConfigJson::InvokeDeployInfo> &invoke_deploy_infos,
-    const std::string &flow_node_name, const bool dynamic_schedule_enable) {
+    const std::vector<CompileConfigJson::InvokeDeployInfo> &invoke_deploy_infos, const std::string &flow_node_name,
+    const bool dynamic_schedule_enable) {
   for (const auto &invoke_node : invoke_deploy_infos) {
     std::vector<std::pair<std::string, std::string>> flow_node_invoke = invoke_deploy_map[flow_node_name];
     const auto node_invoke_name = flow_node_name + "/" + invoke_node.invoke_name;
     auto iter = std::find_if(flow_node_invoke.begin(), flow_node_invoke.end(),
                              [&node_invoke_name](const std::pair<std::string, std::string> &pair) {
-                              return pair.first == node_invoke_name;
+                               return pair.first == node_invoke_name;
                              });
     if (iter != flow_node_invoke.end()) {
       GELOGE(FAILED, "invoke[%s] repeat config on node [%s]", invoke_node.invoke_name.c_str(), flow_node_name.c_str());
@@ -521,8 +510,8 @@ Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceForInvoke(
     } else {
       invoke_deploy_device.first = invoke_node.logic_device_list.empty() ? "" : invoke_node.logic_device_list;
       if (dynamic_schedule_enable) {
-        invoke_deploy_device.second = invoke_node.redundant_logic_device_list.empty() ? "" :
-                                      invoke_node.redundant_logic_device_list;
+        invoke_deploy_device.second =
+            invoke_node.redundant_logic_device_list.empty() ? "" : invoke_node.redundant_logic_device_list;
         if (!invoke_node.redundant_logic_device_list.empty()) {
           invoke_deploy_device.first.append(",");
           invoke_deploy_device.first.append(invoke_deploy_device.second);
@@ -558,19 +547,20 @@ Status DataFlowGraphAutoDeployer::GetDeployLogicDeviceFromBatchInfo(
           deploy_logic_device.first.append(deploy_logic_device.second);
         }
       }
-      GE_CHK_STATUS_RET(GetDeployLogicDeviceForInvoke(deploy_logic_device_map, invoke_deploy_map,
-                        batch_deploy_info.invoke_deploy_infos, flow_node, dynamic_schedule_enable),
-                        "GetDeployLogicDeviceForInvoke failed for node[%s].", flow_node.c_str());
+      GE_CHK_STATUS_RET(
+          GetDeployLogicDeviceForInvoke(deploy_logic_device_map, invoke_deploy_map,
+                                        batch_deploy_info.invoke_deploy_infos, flow_node, dynamic_schedule_enable),
+          "GetDeployLogicDeviceForInvoke failed for node[%s].", flow_node.c_str());
     }
   }
   return SUCCESS;
 }
 
 Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
-  std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-  std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg, bool &dynamic_schedule_enable,
-  std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
-  const std::string &deploy_info_str) {
+    std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
+    std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg, bool &dynamic_schedule_enable,
+    std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
+    const std::string &deploy_info_str) {
   // deploy_info_str: 1. kDeployInfoFile;file.json 2. logic_device_list;redundant_device_list
   const auto pos = deploy_info_str.find_first_of(';');
   if (deploy_info_str.empty() || (pos == std::string::npos)) {
@@ -586,9 +576,8 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
 
   CompileConfigJson::DeployConfigInfo deploy_config;
 
-  GE_CHK_STATUS_RET(
-      CompileConfigJson::ReadDeployInfoFromJsonFile(deploy_info_file, deploy_config),
-      "read deploy info json file failed, path=%s", deploy_info_file.c_str());
+  GE_CHK_STATUS_RET(CompileConfigJson::ReadDeployInfoFromJsonFile(deploy_info_file, deploy_config),
+                    "read deploy info json file failed, path=%s", deploy_info_file.c_str());
   GELOGI("read deploy info from file[%s] success.", deploy_info_file.c_str());
   dynamic_schedule_enable = deploy_config.dynamic_schedule_enable;
 
@@ -604,16 +593,15 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
     deploy_logic_device_map[deploy_info.flow_node_name].first = deploy_info.logic_device_id;
     (void)logic_device_ids.insert(deploy_info.logic_device_id);
   }
-  
-  GE_CHK_STATUS_RET(GetDeployLogicDeviceFromBatchInfo(deploy_logic_device_map, logic_device_ids, invoke_deploy_map,
-                                                      deploy_config.batch_deploy_info_list,
-                                                      deploy_config.dynamic_schedule_enable),
-                    "Get deploy logic device from batch info failed in file[%s].", deploy_info_str.c_str());
+
+  GE_CHK_STATUS_RET(
+      GetDeployLogicDeviceFromBatchInfo(deploy_logic_device_map, logic_device_ids, invoke_deploy_map,
+                                        deploy_config.batch_deploy_info_list, deploy_config.dynamic_schedule_enable),
+      "Get deploy logic device from batch info failed in file[%s].", deploy_info_str.c_str());
   if (!deploy_config.keep_logic_device_order) {
     for (auto &deploy_logic_device : deploy_logic_device_map) {
       std::string resolved_logic_device_id_list;
-      GE_CHK_STATUS_RET(GetSortedLogicDeviceIds(deploy_logic_device.second.first,
-                        resolved_logic_device_id_list),
+      GE_CHK_STATUS_RET(GetSortedLogicDeviceIds(deploy_logic_device.second.first, resolved_logic_device_id_list),
                         "GetSortedLogicDeviceIds failed, logic_device_list[%s]",
                         deploy_logic_device.second.first.c_str());
       deploy_logic_device.second.first = resolved_logic_device_id_list;
@@ -625,8 +613,7 @@ Status DataFlowGraphAutoDeployer::GetConfigDeployInfo(
 }
 
 Status DataFlowGraphAutoDeployer::CheckAndProcessMemCfg(
-    const std::vector<CompileConfigJson::FlowNodeBatchMemCfg> &mem_size_cfg,
-    const std::set<std::string> &logic_dev_ids,
+    const std::vector<CompileConfigJson::FlowNodeBatchMemCfg> &mem_size_cfg, const std::set<std::string> &logic_dev_ids,
     std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg) {
   if (mem_size_cfg.empty()) {
     GELOGD("Memory limit is not set by user config json.");
@@ -635,11 +622,11 @@ Status DataFlowGraphAutoDeployer::CheckAndProcessMemCfg(
   int32_t std_mem_size = 0U;
   int32_t shared_mem_size = 0U;
   for (const auto &mem_cfg : mem_size_cfg) {
-    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.std_mem_size, std_mem_size),
-                      "Convert std memory size %s failed.", mem_cfg.std_mem_size.c_str());
+    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.std_mem_size, std_mem_size), "Convert std memory size %s failed.",
+                      mem_cfg.std_mem_size.c_str());
     GE_ASSERT_TRUE(std_mem_size > 0, "std memory[%d] should be set greater than zero", std_mem_size);
-    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.shared_mem_size, shared_mem_size),
-                      "Convert std memory size %s failed.", mem_cfg.shared_mem_size.c_str());
+    GE_CHK_STATUS_RET(ConvertToInt32(mem_cfg.shared_mem_size, shared_mem_size), "Convert std memory size %s failed.",
+                      mem_cfg.shared_mem_size.c_str());
     GE_ASSERT_TRUE(shared_mem_size > 0, "std memory[%d] should be set greater than zero", shared_mem_size);
     std::vector<std::string> expand_logic_device_ids;
     GE_CHK_STATUS_RET(CheckAndExpandLogicDeviceIds(mem_cfg.logic_device_list, expand_logic_device_ids),
@@ -661,7 +648,8 @@ Status DataFlowGraphAutoDeployer::CheckAndProcessMemCfg(
   return SUCCESS;
 }
 
-Status DataFlowGraphAutoDeployer::SetMemCfgRecord(const uint32_t &std_mem_size, const uint32_t &shared_mem_size,
+Status DataFlowGraphAutoDeployer::SetMemCfgRecord(
+    const uint32_t &std_mem_size, const uint32_t &shared_mem_size,
     const std::vector<std::string> &expand_logic_device_ids,
     std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg) {
   for (const auto &logic_device_str : expand_logic_device_ids) {
@@ -679,8 +667,7 @@ Status DataFlowGraphAutoDeployer::SetMemCfgRecord(const uint32_t &std_mem_size, 
   return SUCCESS;
 }
 
-Status DataFlowGraphAutoDeployer::ExpandDeployInfoStr(const std::string &deploy_info_str,
-                                                      bool is_sub_dataflow,
+Status DataFlowGraphAutoDeployer::ExpandDeployInfoStr(const std::string &deploy_info_str, bool is_sub_dataflow,
                                                       std::string &resolved_logic_device_id_list,
                                                       std::string &resolved_redundant_logic_device_id_list,
                                                       bool &is_expand) {
@@ -700,22 +687,18 @@ Status DataFlowGraphAutoDeployer::ExpandDeployInfoStr(const std::string &deploy_
     redundant_device_id_list = deploy_infos[1];
   }
   if (!device_id_list.empty()) {
-    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(device_id_list,
-                                              resolved_logic_device_id_list),
-                      "GetExpandLogicDeviceIds failed, logic_device_list[%s]",
-                      device_id_list.c_str());
+    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(device_id_list, resolved_logic_device_id_list),
+                      "GetExpandLogicDeviceIds failed, logic_device_list[%s]", device_id_list.c_str());
     is_expand = true;
   }
   if (!redundant_device_id_list.empty()) {
-    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(redundant_device_id_list,
-                                              resolved_redundant_logic_device_id_list),
+    GE_CHK_STATUS_RET(GetExpandLogicDeviceIds(redundant_device_id_list, resolved_redundant_logic_device_id_list),
                       "GetExpandLogicDeviceIds failed, redundant_logic_device_list[%s]",
                       redundant_device_id_list.c_str());
     is_expand = true;
   }
   GELOGI("Deploy info str %s logic devices list[%s] to [%s], redundant logic devices list[%s] to [%s]",
-         deploy_info_str.c_str(),
-         device_id_list.c_str(), resolved_logic_device_id_list.c_str(),
+         deploy_info_str.c_str(), device_id_list.c_str(), resolved_logic_device_id_list.c_str(),
          redundant_device_id_list.c_str(), resolved_redundant_logic_device_id_list.c_str());
 
   return SUCCESS;
@@ -729,8 +712,7 @@ Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescP
 }
 
 Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescPtr &flow_node_op_desc,
-                                                                   const DataFlowGraph &graph,
-                                                                   bool is_redundant) {
+                                                                   const DataFlowGraph &graph, bool is_redundant) {
   std::string logic_device_list;
   std::string redundant_logic_device_list;
   (void)AttrUtils::GetStr(flow_node_op_desc, ATTR_NAME_LOGIC_DEV_ID, logic_device_list);
@@ -747,7 +729,7 @@ Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescP
   std::vector<std::string> subgraph_deploy_infos;
   if (logic_device_id.empty()) {
     GELOGD("flow node[%s] has not set logic device id, no need update, redundant flag[%d].",
-      flow_node_op_desc->GetName().c_str(), static_cast<int32_t>(is_redundant));
+           flow_node_op_desc->GetName().c_str(), static_cast<int32_t>(is_redundant));
     return SUCCESS;
   }
 
@@ -780,16 +762,18 @@ Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescP
     if (is_host && graph.IsInvokedGraph(subgraph->GetName())) {
       // udf call nn at host, assign nn to first device.
       assign_logic_device_id = "0:0:0:0";
-      GELOGI("udf logic device id[%s] is at host, so change subgraph[%s] logic device id to first device[%s], " \
-             "redundant flag[%d].",
-             logic_device_id.c_str(), subgraph->GetName().c_str(), assign_logic_device_id.c_str(),
-             static_cast<int32_t>(is_redundant));
+      GELOGI(
+          "udf logic device id[%s] is at host, so change subgraph[%s] logic device id to first device[%s], "
+          "redundant flag[%d].",
+          logic_device_id.c_str(), subgraph->GetName().c_str(), assign_logic_device_id.c_str(),
+          static_cast<int32_t>(is_redundant));
     }
     if (!is_host && graph.IsInvokedGraph(subgraph->GetName())) {
       const auto logic_dev_ids = StringUtils::Split(logic_device_list, ',');
       const auto redundant_logic_dev_ids = StringUtils::Split(redundant_logic_device_list, ',');
-      const auto logic_dev_num = redundant_logic_device_list.empty() ? logic_dev_ids.size()
-                                 : logic_dev_ids.size() - redundant_logic_dev_ids.size();
+      const auto logic_dev_num = redundant_logic_device_list.empty()
+                                     ? logic_dev_ids.size()
+                                     : logic_dev_ids.size() - redundant_logic_dev_ids.size();
       std::string subgraph_deploy_info = "";
       const auto &invoke_key = graph.GetInvokedGraphKey(subgraph->GetName());
       const auto &usr_invoke_key = graph.GetInvokedKeyOriginName(invoke_key);
@@ -797,15 +781,15 @@ Status DataFlowGraphAutoDeployer::UpdateFlowNodeSubGraphDeployInfo(const OpDescP
       if (iter != invoke_key_to_subgraph_name.end()) {
         subgraph_deploy_info = iter->second;
       }
-      GE_CHK_STATUS_RET(HandleInvokedSubgraph(subgraph, logic_dev_num, subgraph_deploy_info,
-                        is_redundant, assign_logic_device_id), "handle subgraph [%s] deploy info failed for node[%s]",
-                        subgraph->GetName().c_str(), flow_node_op_desc->GetName().c_str());
+      GE_CHK_STATUS_RET(
+          HandleInvokedSubgraph(subgraph, logic_dev_num, subgraph_deploy_info, is_redundant, assign_logic_device_id),
+          "handle subgraph [%s] deploy info failed for node[%s]", subgraph->GetName().c_str(),
+          flow_node_op_desc->GetName().c_str());
     }
     GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(subgraph, attr_name, assign_logic_device_id), FAILED,
-                           "set attr[%s] to subgraph[%s] failed", attr_name.c_str(),
-                           subgraph->GetName().c_str());
-    GELOGI("set subgraph[%s] logic device id[%s], redundant flag[%d].",
-           subgraph->GetName().c_str(), assign_logic_device_id.c_str(), static_cast<int32_t>(is_redundant));
+                           "set attr[%s] to subgraph[%s] failed", attr_name.c_str(), subgraph->GetName().c_str());
+    GELOGI("set subgraph[%s] logic device id[%s], redundant flag[%d].", subgraph->GetName().c_str(),
+           assign_logic_device_id.c_str(), static_cast<int32_t>(is_redundant));
   }
   return SUCCESS;
 }
@@ -824,23 +808,24 @@ Status DataFlowGraphAutoDeployer::HandleInvokedSubgraph(const ComputeGraphPtr &s
   std::string resolved_redundant_logic_device_id_list;
   bool is_expand = false;
   GE_CHK_STATUS_RET(ExpandDeployInfoStr(subgraph_deploy_info, is_data_flow_graph, resolved_logic_device_id_list,
-                    resolved_redundant_logic_device_id_list, is_expand),
+                                        resolved_redundant_logic_device_id_list, is_expand),
                     "Get subgraph[%s] config deploy info failed.", subgraph->GetName().c_str());
   if (is_data_flow_graph) {
-    GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(subgraph, ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS,
-                           subgraph_deploy_info), FAILED,
-                           "set attr[%s] to subgraph[%s] failed", ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS,
-                           subgraph->GetName().c_str());
+    GE_CHK_BOOL_RET_STATUS(
+        AttrUtils::SetStr(subgraph, ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS, subgraph_deploy_info), FAILED,
+        "set attr[%s] to subgraph[%s] failed", ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS,
+        subgraph->GetName().c_str());
     GELOGI("set subgraph[%s] attr[%s] value[%s] success.", subgraph->GetName().c_str(),
            ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS, subgraph_deploy_info.c_str());
   }
-  
+
   if (is_expand && !is_redundant) {
     assign_logic_device_id = resolved_logic_device_id_list;
     const auto nn_logic_dev_ids = StringUtils::Split(resolved_logic_device_id_list, ',');
     const auto nn_redundant_logic_dev_ids = StringUtils::Split(resolved_redundant_logic_device_id_list, ',');
-    const auto nn_logic_dev_num = resolved_redundant_logic_device_id_list.empty() ? nn_logic_dev_ids.size()
-                                  : nn_logic_dev_ids.size() - nn_redundant_logic_dev_ids.size();
+    const auto nn_logic_dev_num = resolved_redundant_logic_device_id_list.empty()
+                                      ? nn_logic_dev_ids.size()
+                                      : nn_logic_dev_ids.size() - nn_redundant_logic_dev_ids.size();
     if (!is_data_flow_graph && (logic_dev_num != nn_logic_dev_num)) {
       GELOGE(FAILED, "Config nn[%s]'s instance num is not equal to parent flow node's instance num",
              subgraph->GetName().c_str());

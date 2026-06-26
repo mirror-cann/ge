@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,8 +56,7 @@ ge::graphStatus CreateCopyFlowLaunchTensorData(const FastNode *node, KernelConte
 ge::graphStatus CopyTensorToDevice(KernelContext *context, const size_t copy_index) {
   auto stream = context->GetInputValue<aclrtStream>(static_cast<size_t>(CopyFlowLaunchInputs::kStream));
   auto gert_allocator =
-      context->MutableInputPointer<GertAllocator>(
-          static_cast<size_t>(CopyFlowLaunchInputs::kAllocator));
+      context->MutableInputPointer<GertAllocator>(static_cast<size_t>(CopyFlowLaunchInputs::kAllocator));
   GE_ASSERT_NOTNULL(gert_allocator);
   auto addr_index = copy_index * kSizeOfCopyToDevice + static_cast<size_t>(CopyFlowLaunchInputs::kAddrAndLengthStart);
   auto tensor_data = context->GetInputValue<gert::GertTensorData *>(addr_index);
@@ -73,15 +72,15 @@ ge::graphStatus CopyTensorToDevice(KernelContext *context, const size_t copy_ind
   KERNEL_CHECK_NOTNULL(mem_block);
   KERNEL_CHECK(mem_block->GetAddr() != nullptr, "malloc failed, tensor size=%zu", tensor_size);
   KERNEL_TRACE_ALLOC_MEM(gert_allocator->GetStreamId(), mem_block, mem_block->GetAddr(), mem_block->GetSize());
-  *out_tensor_data = TensorUtils::ToGertTensorData(
-      mem_block, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
+  *out_tensor_data =
+      TensorUtils::ToGertTensorData(mem_block, gert_allocator->GetPlacement(), gert_allocator->GetStreamId());
 
   auto host_tensor_size = ge::GetSizeInBytes(src_storage_shape->GetStorageShape().GetShapeSize(), data_type);
   GELOGD("StreamCopyH2D, host addr %p, host tensor size %zu, device addr %p, alloc device size %zu",
          tensor_data->GetAddr(), host_tensor_size, mem_block->GetAddr(), tensor_size);
   if (host_tensor_size > 0U) {
     GE_ASSERT_RT_OK(aclrtMemcpyAsync(mem_block->GetAddr(), tensor_size, tensor_data->GetAddr(), host_tensor_size,
-        ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
+                                     ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   }
   out_tensor_data->SetPlacement(kOnDeviceHbm);
 
@@ -105,7 +104,8 @@ ge::graphStatus CopyFlowLaunch(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
 
-  auto args = context->MutableInputPointer<gert::RtKernelLaunchArgsEx>(static_cast<size_t>(CopyFlowLaunchInputs::kRtArg));
+  auto args =
+      context->MutableInputPointer<gert::RtKernelLaunchArgsEx>(static_cast<size_t>(CopyFlowLaunchInputs::kRtArg));
   GE_CHECK_NOTNULL(args);
   // 更新host input data的offset，从图上保证先做tiling，然后 CopyFlowLaunch 进行随路拷贝
   GE_ASSERT_SUCCESS(args->UpdateMergedCopyInfo());

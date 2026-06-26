@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,57 +42,48 @@ class UtestOnnxParser : public testing::Test {
   void RegisterCustomOp();
 };
 
-static Status ParseParams(const google::protobuf::Message* op_src, ge::Operator& op_dest) {
+static Status ParseParams(const google::protobuf::Message *op_src, ge::Operator &op_dest) {
   return SUCCESS;
 }
 
-static Status ParseParamByOpFunc(const ge::Operator &op_src, ge::Operator& op_dest) {
+static Status ParseParamByOpFunc(const ge::Operator &op_src, ge::Operator &op_dest) {
   return SUCCESS;
 }
 
-Status ParseSubgraphPostFnIf(const std::string& subgraph_name, const ge::Graph& graph) {
+Status ParseSubgraphPostFnIf(const std::string &subgraph_name, const ge::Graph &graph) {
   domi::AutoMappingSubgraphIOIndexFunc auto_mapping_subgraph_index_func =
       domi::FrameworkRegistry::Instance().GetAutoMappingSubgraphIOIndexFunc(domi::ONNX);
   if (auto_mapping_subgraph_index_func == nullptr) {
-    std::cout<<"auto mapping if subgraph func is nullptr!"<<std::endl;
+    std::cout << "auto mapping if subgraph func is nullptr!" << std::endl;
     return FAILED;
   }
-  return auto_mapping_subgraph_index_func(graph,
-                                          [&](int data_index, int &parent_index) -> Status {
-                                            parent_index = data_index + 1;
-                                            return SUCCESS;
-                                          },
-                                          [&](int output_index, int &parent_index) -> Status {
-                                            parent_index = output_index;
-                                            return SUCCESS;
-                                          });
+  return auto_mapping_subgraph_index_func(
+      graph,
+      [&](int data_index, int &parent_index) -> Status {
+        parent_index = data_index + 1;
+        return SUCCESS;
+      },
+      [&](int output_index, int &parent_index) -> Status {
+        parent_index = output_index;
+        return SUCCESS;
+      });
 }
 
 void UtestOnnxParser::RegisterCustomOp() {
-  REGISTER_CUSTOM_OP("Conv2D")
-  .FrameworkType(domi::ONNX)
-  .OriginOpType("ai.onnx::11::Conv")
-  .ParseParamsFn(ParseParams);
+  REGISTER_CUSTOM_OP("Conv2D").FrameworkType(domi::ONNX).OriginOpType("ai.onnx::11::Conv").ParseParamsFn(ParseParams);
 
   // register if op info to GE
   REGISTER_CUSTOM_OP("If")
-  .FrameworkType(domi::ONNX)
-  .OriginOpType({"ai.onnx::9::If",
-                 "ai.onnx::10::If",
-                 "ai.onnx::11::If",
-                 "ai.onnx::12::If",
-                 "ai.onnx::13::If"})
-  .ParseParamsFn(ParseParams)
-  .ParseParamsByOperatorFn(ParseParamByOpFunc)
-  .ParseSubgraphPostFn(ParseSubgraphPostFnIf);
+      .FrameworkType(domi::ONNX)
+      .OriginOpType({"ai.onnx::9::If", "ai.onnx::10::If", "ai.onnx::11::If", "ai.onnx::12::If", "ai.onnx::13::If"})
+      .ParseParamsFn(ParseParams)
+      .ParseParamsByOperatorFn(ParseParamByOpFunc)
+      .ParseSubgraphPostFn(ParseSubgraphPostFnIf);
 
-  REGISTER_CUSTOM_OP("Add")
-  .FrameworkType(domi::ONNX)
-      .OriginOpType("ai.onnx::11::Add")
-      .ParseParamsFn(ParseParams);
+  REGISTER_CUSTOM_OP("Add").FrameworkType(domi::ONNX).OriginOpType("ai.onnx::11::Add").ParseParamsFn(ParseParams);
 
   REGISTER_CUSTOM_OP("Identity")
-  .FrameworkType(domi::ONNX)
+      .FrameworkType(domi::ONNX)
       .OriginOpType("ai.onnx::11::Identity")
       .ParseParamsFn(ParseParams);
   std::vector<OpRegistrationData> reg_datas = domi::OpRegistry::Instance()->registrationDatas;
@@ -105,16 +96,16 @@ void UtestOnnxParser::RegisterCustomOp() {
 
 ge::onnx::GraphProto CreateOnnxGraph() {
   ge::onnx::GraphProto onnx_graph;
-  ::ge::onnx::NodeProto* node_const1 = onnx_graph.add_node();
-  ::ge::onnx::NodeProto* node_const2 = onnx_graph.add_node();
-  ::ge::onnx::NodeProto* node_add = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_const1 = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_const2 = onnx_graph.add_node();
+  ::ge::onnx::NodeProto *node_add = onnx_graph.add_node();
   node_const1->set_op_type(kOpTypeConstant);
   node_const2->set_op_type(kOpTypeConstant);
   node_add->set_op_type("Add");
 
-  ::ge::onnx::AttributeProto* attr = node_const1->add_attribute();
+  ::ge::onnx::AttributeProto *attr = node_const1->add_attribute();
   attr->set_name(ge::kAttrNameValue);
-  ::ge::onnx::TensorProto* tensor_proto = attr->mutable_t();
+  ::ge::onnx::TensorProto *tensor_proto = attr->mutable_t();
   tensor_proto->set_data_location(ge::onnx::TensorProto_DataLocation_EXTERNAL);
   attr = node_const1->add_attribute();
 
@@ -276,10 +267,10 @@ TEST_F(UtestOnnxParser, onnx_parser_to_json) {
   OnnxWeightsParser onnx_weight_parser;
   char *file1 = nullptr;
   ge::Graph graph1;
-  ret =  onnx_weight_parser.Parse(file1, graph1);
+  ret = onnx_weight_parser.Parse(file1, graph1);
   EXPECT_EQ(ret, SUCCESS);
 
-  ret =  onnx_weight_parser.ParseFromMemory(data, size, graph);
+  ret = onnx_weight_parser.ParseFromMemory(data, size, graph);
   EXPECT_EQ(ret, SUCCESS);
 
   ret1 = onnx_weight_parser.HasError();
@@ -300,8 +291,7 @@ TEST_F(UtestOnnxParser, onnx_parser_const_data_type) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, OnnxModelParser_ConvertToGeDataType_test)
-{
+TEST_F(UtestOnnxParser, OnnxModelParser_ConvertToGeDataType_test) {
   OnnxModelParser model_parser;
   uint32_t type = OnnxDataType::FLOAT;
 
@@ -313,9 +303,7 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ConvertToGeDataType_test)
   EXPECT_EQ(ret, ge::DataType::DT_UNDEFINED);
 }
 
-
-TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test)
-{
+TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test) {
   OnnxConstantParser constant_parser;
   ge::onnx::TensorProto tensor_proto;
   tensor_proto.set_data_type(ge::DataType::DT_UNDEFINED);
@@ -349,12 +337,11 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test_bool)
-{
+TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test_bool) {
   OnnxConstantParser constant_parser;
   ge::onnx::TensorProto tensor_proto;
   tensor_proto.set_data_type(OnnxDataType::INT32);
-  ge::Tensor tensor ;
+  ge::Tensor tensor;
   TensorDesc tensor_desc = tensor.GetTensorDesc();
   tensor_desc.SetDataType(ge::DataType::DT_BOOL);
   tensor.SetTensorDesc(tensor_desc);
@@ -362,12 +349,9 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ParseConvertData_test_bool)
   tensor_proto.set_raw_data("Test");
   Status ret = constant_parser.ParseConvertData(tensor_proto, tensor, count);
   EXPECT_EQ(ret, SUCCESS);
-
 }
 
-
-TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertTensor_test)
-{
+TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertTensor_test) {
   OnnxConstantParser constant_parser;
   ge::onnx::NodeProto input_node;
   ge::onnx::AttributeProto *attribute = input_node.add_attribute();
@@ -387,8 +371,7 @@ TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertTensor_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertDataType_test)
-{
+TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertDataType_test) {
   OnnxConstantParser constant_parser;
   ge::onnx::NodeProto input_node;
   ge::onnx::AttributeProto *attribute = input_node.add_attribute();
@@ -404,8 +387,7 @@ TEST_F(UtestOnnxParser, OnnxConstantParser_ParseConvertDataType_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, FileConstantGetTensorProto)
-{
+TEST_F(UtestOnnxParser, FileConstantGetTensorProto) {
   OnnxFileConstantParser parser;
   ge::onnx::NodeProto input_node;
   ge::onnx::TensorProto tensor_proto;
@@ -423,8 +405,7 @@ TEST_F(UtestOnnxParser, FileConstantGetTensorProto)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, FileConstantParseShape)
-{
+TEST_F(UtestOnnxParser, FileConstantParseShape) {
   OnnxFileConstantParser parser;
   ge::onnx::TensorProto tensor_proto;
   tensor_proto.add_dims(4);
@@ -443,8 +424,7 @@ TEST_F(UtestOnnxParser, FileConstantParseShape)
   }
 }
 
-TEST_F(UtestOnnxParser, FileConstantParseDataType)
-{
+TEST_F(UtestOnnxParser, FileConstantParseDataType) {
   OnnxFileConstantParser parser;
   ge::onnx::TensorProto tensor_proto;
   tensor_proto.set_data_type(OnnxDataType::UNDEFINED);
@@ -462,8 +442,7 @@ TEST_F(UtestOnnxParser, FileConstantParseDataType)
   EXPECT_EQ(attr_value, ge::DataType::DT_UINT8);
 }
 
-TEST_F(UtestOnnxParser, FileConstantParseAttr)
-{
+TEST_F(UtestOnnxParser, FileConstantParseAttr) {
   OnnxFileConstantParser parser;
   ge::onnx::StringStringEntryProto string_proto;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("file_constant", "FileConstant");
@@ -488,13 +467,11 @@ TEST_F(UtestOnnxParser, FileConstantParseAttr)
   EXPECT_EQ(offset_value, 123);
 }
 
-TEST_F(UtestOnnxParser, FileConstantParsePath)
-{
+TEST_F(UtestOnnxParser, FileConstantParsePath) {
   OnnxFileConstantParser parser;
   ge::onnx::TensorProto tensor_proto;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("file_constant", "FileConstant");
   ge::Operator op = ge::OpDescUtils::CreateOperatorFromOpDesc(op_desc_src);
-
 
   // without location, error
   auto ret = parser.ParsePath(tensor_proto, op);
@@ -522,8 +499,7 @@ TEST_F(UtestOnnxParser, FileConstantParsePath)
   EXPECT_EQ(attr_value, "/usr/local");
 }
 
-TEST_F(UtestOnnxParser, FileConstantParseParam)
-{
+TEST_F(UtestOnnxParser, FileConstantParseParam) {
   OnnxFileConstantParser parser;
   ge::onnx::NodeProto input_node;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("file_constant", "FileConstant");
@@ -573,8 +549,7 @@ TEST_F(UtestOnnxParser, FileConstantParseParam)
   EXPECT_EQ(dtype, ge::DataType::DT_UINT16);
 }
 
-TEST_F(UtestOnnxParser, OnnxModelParser_ParseInput_test)
-{
+TEST_F(UtestOnnxParser, OnnxModelParser_ParseInput_test) {
   OnnxModelParser model_parser;
   ge::onnx::ModelProto model_proto;
   ge::onnx::GraphProto graph = model_proto.graph();
@@ -588,8 +563,7 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ParseInput_test)
   EXPECT_EQ(ret, domi::FAILED);
 }
 
-TEST_F(UtestOnnxParser, OnnxModelParser_ParseConstant_test)
-{
+TEST_F(UtestOnnxParser, OnnxModelParser_ParseConstant_test) {
   OnnxModelParser model_parser;
   ge::onnx::GraphProto onnx_graph = CreateOnnxGraph();
 
@@ -598,21 +572,20 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ParseConstant_test)
   EXPECT_EQ(type, kFileConstant);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_ConstructOriType)
-{
+TEST_F(UtestOnnxParser, onnx_test_ConstructOriType) {
   ge::onnx::ModelProto model_proto;
-  ge::onnx::GraphProto* graph = model_proto.mutable_graph();
-  ge::onnx::NodeProto* add_node = graph->add_node();
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
+  ge::onnx::NodeProto *add_node = graph->add_node();
   add_node->set_op_type("Add");
   add_node->set_domain("ai.onnx");
 
-  OnnxModelParser onnx_parser ;
+  OnnxModelParser onnx_parser;
   onnx_parser.domain_verseion_["ai.onnx"] = 11;
   string ori_type;
   Status ret = onnx_parser.ConstructOriType(add_node, ori_type);
   EXPECT_EQ(ret, domi::SUCCESS);
 
-  ge::onnx::NodeProto* add_node1 = graph->add_node();
+  ge::onnx::NodeProto *add_node1 = graph->add_node();
   add_node1->set_op_type("Add1");
   add_node1->set_domain("add.onnx");
   string op_type;
@@ -624,10 +597,9 @@ TEST_F(UtestOnnxParser, onnx_test_ConstructOriType)
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator)
-{
+TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator) {
   ge::onnx::ModelProto model_proto;
-  ge::onnx::GraphProto* graph = model_proto.mutable_graph();
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
   ge::onnx::NodeProto *node_proto = graph->add_node();
   node_proto->set_op_type("Add1");
   node_proto->set_domain("add.onnx");
@@ -641,11 +613,10 @@ TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_ModelParseToGraph)
-{
+TEST_F(UtestOnnxParser, onnx_test_ModelParseToGraph) {
   OnnxModelParser modelParser;
   ge::onnx::ModelProto model_proto;
-  ge::onnx::OperatorSetIdProto* op_st = model_proto.add_opset_import();
+  ge::onnx::OperatorSetIdProto *op_st = model_proto.add_opset_import();
   op_st->set_domain("ai.onnx");
   op_st->set_version(11);
 
@@ -655,8 +626,7 @@ TEST_F(UtestOnnxParser, onnx_test_ModelParseToGraph)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_SetExternalPath)
-{
+TEST_F(UtestOnnxParser, onnx_test_SetExternalPath) {
   OnnxModelParser modelParser;
   ge::onnx::ModelProto model_proto;
   auto ret = modelParser.SetExternalPath("", model_proto);
@@ -664,22 +634,22 @@ TEST_F(UtestOnnxParser, onnx_test_SetExternalPath)
 
   ge::onnx::GraphProto &graph_proto = const_cast<ge::onnx::GraphProto &>(model_proto.graph());
   graph_proto.add_initializer();
-  ge::onnx::TensorProto* tensor_proto = graph_proto.add_initializer();
+  ge::onnx::TensorProto *tensor_proto = graph_proto.add_initializer();
   tensor_proto->set_data_location(ge::onnx::TensorProto_DataLocation::TensorProto_DataLocation_EXTERNAL);
   tensor_proto->add_external_data();
   ge::onnx::StringStringEntryProto *string_proto = tensor_proto->add_external_data();
   string_proto->set_key("location");
   string_proto->set_value("if.onnx");
 
-  ge::onnx::NodeProto* node_const = graph_proto.add_node();
+  ge::onnx::NodeProto *node_const = graph_proto.add_node();
   node_const->set_op_type(kOpTypeConstant);
-  ge::onnx::AttributeProto* attr = node_const->add_attribute();
+  ge::onnx::AttributeProto *attr = node_const->add_attribute();
   attr = node_const->add_attribute();
   attr->set_name(kAttrNameValue);
   tensor_proto = attr->mutable_t();
   tensor_proto->set_data_location(ge::onnx::TensorProto_DataLocation::TensorProto_DataLocation_DEFAULT);
 
-  ge::onnx::NodeProto* node_const_1 = graph_proto.add_node();
+  ge::onnx::NodeProto *node_const_1 = graph_proto.add_node();
   node_const_1->set_op_type(kOpTypeConstant);
   attr = node_const_1->add_attribute();
   attr->set_name(kAttrNameValue);
@@ -693,8 +663,7 @@ TEST_F(UtestOnnxParser, onnx_test_SetExternalPath)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_ParseFromMemory)
-{
+TEST_F(UtestOnnxParser, onnx_test_ParseFromMemory) {
   OnnxModelParser modelParser;
   char *data = nullptr;
   uint32_t size = 1;
@@ -704,8 +673,7 @@ TEST_F(UtestOnnxParser, onnx_test_ParseFromMemory)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_Parse)
-{
+TEST_F(UtestOnnxParser, onnx_test_Parse) {
   OnnxModelParser modelParser;
   const char *file = nullptr;
   ge::Graph graph;
@@ -714,8 +682,7 @@ TEST_F(UtestOnnxParser, onnx_test_Parse)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_GetModelFromMemory)
-{
+TEST_F(UtestOnnxParser, onnx_test_GetModelFromMemory) {
   OnnxModelParser modelParser;
   const char *data = "ut/parser/testcase/onnx_parser_testcase";
   uint32_t size = 1;
@@ -728,10 +695,9 @@ TEST_F(UtestOnnxParser, onnx_test_GetModelFromMemory)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator_SetTensorData)
-{
+TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator_SetTensorData) {
   ge::onnx::ModelProto model_proto;
-  ge::onnx::GraphProto* graph = model_proto.mutable_graph();
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
   ge::onnx::NodeProto *node_proto = graph->add_node();
   node_proto->set_op_type("Add1");
   node_proto->set_domain("add.onnx");
@@ -745,10 +711,9 @@ TEST_F(UtestOnnxParser, onnx_test_TransNodeToOperator_SetTensorData)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestOnnxParser, onnx_test_const_input_op)
-{
+TEST_F(UtestOnnxParser, onnx_test_const_input_op) {
   ge::onnx::ModelProto model_proto;
-  ge::onnx::GraphProto* graph = model_proto.mutable_graph();
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
   ge::onnx::NodeProto *node_proto = graph->add_node();
   node_proto->set_op_type("Constant");
   node_proto->set_domain("const.onnx");
@@ -767,8 +732,8 @@ TEST_F(UtestOnnxParser, onnx_test_const_input_op)
 
 TEST_F(UtestOnnxParser, onnx_test_initializer_name) {
   ge::onnx::ModelProto model_proto;
-  ge::onnx::GraphProto* graph = model_proto.mutable_graph();
-  ge::onnx::TensorProto* initializer = graph->add_initializer();
+  ge::onnx::GraphProto *graph = model_proto.mutable_graph();
+  ge::onnx::TensorProto *initializer = graph->add_initializer();
   const std::string name = "test";
   initializer->set_name(name);
 
@@ -796,4 +761,4 @@ TEST_F(UtestOnnxParser, OnnxModelParser_ParseOnnxModelStableSort) {
   ge::Graph graph("stable_topo");
   EXPECT_EQ(model_parser.Parse(model_file.c_str(), graph), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

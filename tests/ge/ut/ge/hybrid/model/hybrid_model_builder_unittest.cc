@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,37 +68,37 @@ static NodePtr CreateFileConstantNode(const ComputeGraphPtr &graph, const string
   op_desc->AddOutputDesc(GeTensorDesc());
   GeTensorPtr value = std::make_shared<GeTensor>(GeTensorDesc(), 64);
   (void)AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, name);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "shape", shape));
   return graph->AddNode(op_desc);
 }
 
 TEST_F(UtestHybridModelBuilder, normal_hybrid_model_build) {
-/*******************************************************************************
- *    Enter1(another loop)
- *       |
- *      Exit         Identify
- *        \         /       \.        Enter3
- *         \       /         \.        |
- *          Switch           Add <-- Constant
- *         /     |            |
- * Active /      |            |
- *       /       |            |
- *  LoopCond     |            |
- *      \        |            |
- *       \       |            |
- *        \      |            |
- *       Less    |            |
- *          \    |       NextIteration
- *           \   |            |
- *            \  |            |   Active
- *            Merge <---------|
- *              |
- *              |   Active
- *              |
- *            Enter
- ******************************************************************************/
+  /*******************************************************************************
+   *    Enter1(another loop)
+   *       |
+   *      Exit         Identify
+   *        \         /       \.        Enter3
+   *         \       /         \.        |
+   *          Switch           Add <-- Constant
+   *         /     |            |
+   * Active /      |            |
+   *       /       |            |
+   *  LoopCond     |            |
+   *      \        |            |
+   *       \       |            |
+   *        \      |            |
+   *       Less    |            |
+   *          \    |       NextIteration
+   *           \   |            |
+   *            \  |            |   Active
+   *            Merge <---------|
+   *              |
+   *              |   Active
+   *              |
+   *            Enter
+   ******************************************************************************/
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
@@ -394,7 +394,7 @@ TEST_F(UtestHybridModelBuilder, init_host_var_with_host_mem) {
   std::map<std::string, string> options;
   options["ge.exec.placement"] = "HOST";
   GetThreadLocalContext().SetGraphOption(options);
-  hybrid_model_builder.var_manager_  = VarManager::Instance(0);
+  hybrid_model_builder.var_manager_ = VarManager::Instance(0);
   ASSERT_NE(hybrid_model.GetVariableNode("host_params"), nullptr);
   EXPECT_EQ(hybrid_model_builder.InitVariableTensors(), SUCCESS);
   EXPECT_EQ(hybrid_model_builder.hybrid_model_.variable_tensors_.size(), 1);
@@ -430,7 +430,7 @@ TEST_F(UtestHybridModelBuilder, init_host_var_with_host_shared_mem) {
   info.op_name = "host_params";
   HostMemManager::Instance().var_memory_base_map_["host_params"] = info;
 
-  hybrid_model_builder.var_manager_  = VarManager::Instance(0);
+  hybrid_model_builder.var_manager_ = VarManager::Instance(0);
   EXPECT_EQ(hybrid_model_builder.InitVariableTensors(), SUCCESS);
   EXPECT_EQ(hybrid_model_builder.hybrid_model_.variable_tensors_.size(), 1);
   HostMemManager::Instance().var_memory_base_map_.clear();
@@ -456,7 +456,7 @@ TEST_F(UtestHybridModelBuilder, InitModelMemOnHost) {
   options["ge.exec.placement"] = "HOST";
   GetThreadLocalContext().SetGraphOption(options);
 
-  hybrid_model_builder.var_manager_  = VarManager::Instance(0);
+  hybrid_model_builder.var_manager_ = VarManager::Instance(0);
   EXPECT_EQ(hybrid_model_builder.InitModelMem(), SUCCESS);
   HostMemManager::Instance().var_memory_base_map_.clear();
 }
@@ -489,14 +489,14 @@ TEST_F(UtestHybridModelBuilder, TestInitHcclExecutorOnDemand) {
 }
 
 TEST_F(UtestHybridModelBuilder, copy_graph_success) {
-ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-HybridModel hybrid_model(ge_root_model);
-HybridModelBuilder hybrid_model_builder(hybrid_model);
+  HybridModel hybrid_model(ge_root_model);
+  HybridModelBuilder hybrid_model_builder(hybrid_model);
 
-Status st = hybrid_model_builder.CopyGraph();
-EXPECT_EQ(st, SUCCESS);
+  Status st = hybrid_model_builder.CopyGraph();
+  EXPECT_EQ(st, SUCCESS);
 }
 
 TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type) {
@@ -521,7 +521,7 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type) {
 
   {
     OpDescPtr op_desc = std::make_shared<OpDesc>("data", DATA);
-    GeTensorDesc tensor_desc(GeShape(),FORMAT_NHWC,DT_FLOAT);
+    GeTensorDesc tensor_desc(GeShape(), FORMAT_NHWC, DT_FLOAT);
     TensorUtils::SetSize(tensor_desc, 512);
     op_desc->AddInputDesc(tensor_desc);
     op_desc->AddOutputDesc(tensor_desc);
@@ -537,7 +537,7 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type) {
 
   {
     OpDescPtr op_desc = std::make_shared<OpDesc>("related_aipp_data", AIPPDATA);
-    GeTensorDesc tensor_desc(GeShape(),FORMAT_NHWC,DT_FLOAT);
+    GeTensorDesc tensor_desc(GeShape(), FORMAT_NHWC, DT_FLOAT);
     TensorUtils::SetSize(tensor_desc, 512);
     op_desc->AddInputDesc(tensor_desc);
     op_desc->AddOutputDesc(tensor_desc);
@@ -597,7 +597,7 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type_static_mode) {
   aipp_attr.SetAttr("support_rotation", GeAttrValue::CreateFrom<int64_t>(1));
 
   OpDescPtr data_op_desc = std::make_shared<OpDesc>("data", DATA);
-  GeTensorDesc data_tensor_desc(GeShape(),FORMAT_NHWC,DT_FLOAT);
+  GeTensorDesc data_tensor_desc(GeShape(), FORMAT_NHWC, DT_FLOAT);
   TensorUtils::SetSize(data_tensor_desc, 512);
   data_op_desc->AddInputDesc(data_tensor_desc);
   data_op_desc->AddOutputDesc(data_tensor_desc);
@@ -646,7 +646,7 @@ TEST_F(UtestHybridModelBuilder, init_data_aipp_info_and_type_failed) {
   aipp_attr.SetAttr("support_rotation", GeAttrValue::CreateFrom<int64_t>(1));
 
   OpDescPtr data_op_desc = std::make_shared<OpDesc>("data", DATA);
-  GeTensorDesc data_tensor_desc(GeShape(),FORMAT_NHWC,DT_FLOAT);
+  GeTensorDesc data_tensor_desc(GeShape(), FORMAT_NHWC, DT_FLOAT);
   TensorUtils::SetSize(data_tensor_desc, 512);
   data_op_desc->AddInputDesc(data_tensor_desc);
   data_op_desc->AddOutputDesc(data_tensor_desc);
@@ -716,7 +716,7 @@ TEST_F(UtestHybridModelBuilder, build_node_with_fused_graph_success) {
   auto abs1 = CreateNode(*sub_graph, "abs", ABSVAL, 1, 1);
   auto output1 = CreateNode(*sub_graph, "output1", "_RetVal", 1, 0);
   abs1->GetOpDesc()->SetOpInferDepends({"__input0"});
-  
+
   AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   AttrUtils::SetInt(output1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
   GraphUtils::AddEdge(data1->GetOutDataAnchor(0), abs1->GetInDataAnchor(0));
@@ -784,8 +784,9 @@ TEST_F(UtestHybridModelBuilder, build_node_with_fused_graph_success) {
   auto dst_tensor_desc = dst_op_desc->MutableInputDesc(static_cast<uint32_t>(dst_input_idx));
   bool has_val = AttrUtils::HasAttr(dst_tensor_desc, ATTR_NAME_VALUE);
   EXPECT_EQ(has_val, true);
-  EXPECT_EQ(hybrid_model_builder.LoadKnownNodeItem(*hybrid_model.root_graph_item_.get(), fused_node, fused_node->GetOpDesc()),
-            SUCCESS);
+  EXPECT_EQ(
+      hybrid_model_builder.LoadKnownNodeItem(*hybrid_model.root_graph_item_.get(), fused_node, fused_node->GetOpDesc()),
+      SUCCESS);
   std::vector<domi::TaskDef> task_def_list;
   EXPECT_EQ(hybrid_model_builder.GenerateArProfilingTask(fused_node->GetOpDesc(), 1, task_def_list), SUCCESS);
   EXPECT_EQ(hybrid_model_builder.LoadKnownShapedSubgraph(*graph, *fused_node_item), FAILED);
@@ -844,7 +845,7 @@ TEST_F(UtestHybridModelBuilder, test_hybrid_get_method) {
   HybridModel hybrid_model(ge_root_model);
   GeTensorDesc desc;
   auto output_desc = std::make_shared<GeTensorDesc>(GeShape({1, -1, 3, 4}), FORMAT_FRACTAL_Z);
-  output_desc->SetShapeRange({{1,10},{2,10},{3,10},{4,10}});
+  output_desc->SetShapeRange({{1, 10}, {2, 10}, {3, 10}, {4, 10}});
   uint32_t format_res = 0;
   InputOutputDescInfo output_desc_info;
   hybrid_model.CreateOutput(output_desc, output_desc_info, format_res);
@@ -904,38 +905,20 @@ TEST_F(UtestHybridModelBuilder, test_hybrid_check_host_mem_input_optimization) {
 
 TEST_F(UtestHybridModelBuilder, normal_hybrid_model_build_on_host) {
   DEF_GRAPH(graph1) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto var1 = OP_CFG(VARIABLEV2)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto var1 = OP_CFG(VARIABLEV2).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("_arg_0", data_0)->NODE("fused_op1", fake_type2_op1)
+    CHAIN(NODE("_arg_0", data_0)
+              ->NODE("fused_op1", fake_type2_op1)
               ->NODE("fused_op2", fake_type2_op2)
               ->NODE("fused_op3", fake_type2_op3)
               ->NODE("Node_Output", net_output));

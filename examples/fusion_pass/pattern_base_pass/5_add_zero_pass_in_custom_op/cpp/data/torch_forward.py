@@ -11,14 +11,15 @@
 # ----------------------------------------------------------------------------
 
 from typing import Any
+
 import torch
 import torch.nn as nn
 import torch_npu
 import torchair
 from torch.library import impl
+from torch_npu.op_plugin.meta._meta_registrations import m
 from torchair import register_fx_node_ge_converter
 from torchair.ge import Tensor
-from torch_npu.op_plugin.meta._meta_registrations import m
 
 
 # 实现Meta推导函数
@@ -36,7 +37,7 @@ def convert_npu_add_custom(x: Tensor, y: Tensor, z: Tensor = None, meta_outputs:
             "x": x,
             "y": y,
         },
-        outputs=['z']
+        outputs=["z"],
     )
 
 
@@ -56,8 +57,8 @@ if __name__ == "__main__":
     npu_backend = torchair.get_npu_backend(compiler_config=config)
 
     length = [8, 2048]
-    x = torch.rand(length, device='npu', dtype=torch.float16)
-    y = torch.rand(length, device='npu', dtype=torch.float16)
+    x = torch.rand(length, device="npu", dtype=torch.float16)
+    y = torch.rand(length, device="npu", dtype=torch.float16)
     model = torch.compile(model, backend=npu_backend)
     res = model(x, y)
     print(res)

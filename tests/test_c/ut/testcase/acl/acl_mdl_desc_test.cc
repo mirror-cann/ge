@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 
 #define protected public
 #define private public
@@ -35,9 +34,8 @@ using namespace testing;
 
 class AclMdlDescTest : public testing::Test {
  protected:
-  void SetUp(){
-    ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_))
-        .WillByDefault(Invoke(mmMalloc_Normal_Invoke));
+  void SetUp() {
+    ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillByDefault(Invoke(mmMalloc_Normal_Invoke));
   }
 
   void TearDown() {
@@ -109,7 +107,7 @@ Status GetModelDescInfo_Invoke(uint32_t modelId, ModelInOutInfo *info) {
   EmplaceBackVector(&(tDesc3.dims), &dim5);
   EmplaceBackVector(&info->input_desc, &tDesc3);
 
-  //dims over than ACL_MAX_DIM_CNT
+  // dims over than ACL_MAX_DIM_CNT
   ModelInOutTensorDesc tDesc4;
   const char *name = "33";
   tDesc4.name = (char *)malloc(strlen(name) + 1);
@@ -140,8 +138,7 @@ Status LoadDataFromFile_Fail_Invoke(const char *modelPath, ModelData *data) {
   return ACL_ERROR_GE_FAILURE;
 }
 
-Status GetModelDescInfoFromMem_Invoke(const ModelData *modelData,
-                                      ModelInOutInfo *info) {
+Status GetModelDescInfoFromMem_Invoke(const ModelData *modelData, ModelInOutInfo *info) {
   (void)modelData;
   InitVector(&info->input_desc, sizeof(ModelInOutTensorDesc));
   SetVectorDestroyItem(&info->input_desc, ModelInfoDestroyStub);
@@ -187,8 +184,7 @@ Status GetModelDescInfoFromMem_Invoke(const ModelData *modelData,
   return SUCCESS;
 }
 
-Status GetModelDescInfoFromMem_Fail_Invoke(const ModelData *modelData,
-                                           ModelInOutInfo *info) {
+Status GetModelDescInfoFromMem_Fail_Invoke(const ModelData *modelData, ModelInOutInfo *info) {
   (void)modelData;
   (void)info;
   return ACL_ERROR_GE_FAILURE;
@@ -216,13 +212,10 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetDesc_Sussess) {
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclError ret = aclmdlGetDesc(desc, 1);
-  aclmdlTensorDesc *tensorDesc1 =
-      (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
-  aclmdlTensorDesc *tensorDesc2 =
-      (aclmdlTensorDesc *)VectorAt(&desc->outputDesc, 0);
+  aclmdlTensorDesc *tensorDesc1 = (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
+  aclmdlTensorDesc *tensorDesc2 = (aclmdlTensorDesc *)VectorAt(&desc->outputDesc, 0);
   const char *name1 = "1";
   const char *name2 = "2";
   EXPECT_EQ(*name1, *(tensorDesc1->name));
@@ -258,14 +251,11 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetDescFromFile_Sussess) {
   EXPECT_NE(desc, nullptr);
   const char *path = "/home";
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _))
-      .WillOnce(Return(SUCCESS));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-              GetModelDescInfoFromMem(_, _))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
       .WillOnce(Invoke(GetModelDescInfoFromMem_Invoke));
   aclError ret = aclmdlGetDescFromFile(desc, path);
-  aclmdlTensorDesc *tensorDesc1 =
-      (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
+  aclmdlTensorDesc *tensorDesc1 = (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
   const char *name1 = "1";
   EXPECT_EQ(*name1, *(tensorDesc1->name));
   EXPECT_EQ(2, tensorDesc1->size);
@@ -289,12 +279,10 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetDescFromMem_Sussess) {
   const int modelValue = 1;
   const int *model = &modelValue;
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-              GetModelDescInfoFromMem(_, _))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
       .WillOnce(Invoke(GetModelDescInfoFromMem_Invoke));
   aclError ret = aclmdlGetDescFromMem(desc, &model, 1024);
-  aclmdlTensorDesc *tensorDesc1 =
-      (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
+  aclmdlTensorDesc *tensorDesc1 = (aclmdlTensorDesc *)VectorAt(&desc->inputDesc, 0);
   const char *name1 = "1";
   EXPECT_EQ(*name1, *(tensorDesc1->name));
   EXPECT_EQ(2, tensorDesc1->size);
@@ -331,10 +319,8 @@ TEST_F(AclMdlDescTest, Test_GE_GetModelDescInfoFromMem_Fail) {
   EXPECT_NE(desc, nullptr);
   const char *path = "/home";
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _))
-      .WillOnce(Return(SUCCESS));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-              GetModelDescInfoFromMem(_, _))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
       .WillOnce(Invoke(GetModelDescInfoFromMem_Fail_Invoke));
   aclError file_ret = aclmdlGetDescFromFile(desc, path);
   EXPECT_EQ(file_ret, ACL_ERROR_GE_FAILURE);
@@ -345,8 +331,7 @@ TEST_F(AclMdlDescTest, Test_GE_GetModelDescInfoFromMem_Fail) {
   EXPECT_NE(desc1, nullptr);
   const int modelValue = 1;
   const int *model = &modelValue;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-              GetModelDescInfoFromMem(_, _))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
       .WillOnce(Invoke(GetModelDescInfoFromMem_Fail_Invoke));
   aclError mem_ret = aclmdlGetDescFromMem(desc1, &model, 1024);
   EXPECT_EQ(mem_ret, ACL_ERROR_GE_FAILURE);
@@ -407,10 +392,10 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputSizeByIndex_Success) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetInputSizeByIndex_Fail) {
-  //1. modelDesc is NULL
+  // 1. modelDesc is NULL
   size_t ret = aclmdlGetInputSizeByIndex(nullptr, 0);
   EXPECT_EQ(ret, 0);
-  //2. only one input, index is invalid
+  // 2. only one input, index is invalid
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
   InitVector(&desc->inputDesc, sizeof(aclmdlTensorDesc));
@@ -644,8 +629,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputDims_paramNull) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetInputDims_paramErr) {
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
@@ -666,8 +650,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputDims_paramErr) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetInputDims_normal) {
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
@@ -685,8 +668,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputDims_normal) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetOutputDims) {
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
@@ -805,7 +787,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_GetRealTensorNamesSucc_input
   EXPECT_NE(mdlDesc, nullptr);
   aclmdlIODims dims0;
   aclmdlIODims dims1;
-  //aclmdlIODims dims2;
+  // aclmdlIODims dims2;
   mdlDesc->modelId = 0;
   aclmdlGetInputDims(mdlDesc, 0, &dims0);
   aclmdlGetInputDims(mdlDesc, 1, &dims1);
@@ -825,9 +807,10 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_GetRealTensorNamesSucc_outpu
   aclmdlDesc *mdlDesc = ModelDescConstruct_For_GetRealTensorName();
   EXPECT_NE(mdlDesc, nullptr);
 
-  const char *name = "output_dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsai"
-  "hdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdia"
-  "soidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
+  const char *name =
+      "output_dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsai"
+      "hdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdia"
+      "soidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
 
   const char *str = aclmdlGetTensorRealName(mdlDesc, name);
   EXPECT_STREQ(str, name);
@@ -840,8 +823,8 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_abnormal_TransTensorNameToRe
   aclmdlDesc *mdlDesc = ModelDescConstruct_For_GetRealTensorName();
   EXPECT_NE(mdlDesc, nullptr);
   mdlDesc->modelId = 0;
-  // cannot find name in tensorDesc->name, and name shoule incdlue _input_ or _output_.
-  const char* str = aclmdlGetTensorRealName(mdlDesc, "xxxdwdfefesdasd");
+  // cannot find name in tensorDesc->name, and name should incdlue _input_ or _output_.
+  const char *str = aclmdlGetTensorRealName(mdlDesc, "xxxdwdfefesdasd");
   EXPECT_EQ(str, nullptr);
 
   // failed before index judgement, strlen(name) <= the strlen of acl_modelId_xx_input(output)_,
@@ -856,7 +839,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_abnormal_TransTensorNameToRe
   EXPECT_NE(mdlDesc, nullptr);
   mdlDesc->modelId = 0;
   // when called TransTensorNameToReal, str after acl_modelId_0_input_ is not digit
-  const char* str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_xxxx");
+  const char *str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_xxxx");
   EXPECT_EQ(str, nullptr);
 
   aclError ret = aclmdlDestroyDesc(mdlDesc);
@@ -868,7 +851,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_abnormal_TransTensorNameToRe
   EXPECT_NE(mdlDesc, nullptr);
   mdlDesc->modelId = 0;
   // index is digit, but prefix acl_modelId_x_input_ is consistent with generated format(acl_modelId_x_input_).
-  const char* str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_x_input_0");
+  const char *str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_x_input_0");
   EXPECT_EQ(str, nullptr);
   aclError ret = aclmdlDestroyDesc(mdlDesc);
   EXPECT_EQ(ret, ACL_SUCCESS);
@@ -878,7 +861,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_abnormal_TransTensorNameToRe
   aclmdlDesc *mdlDesc = ModelDescConstruct_For_GetRealTensorName();
   EXPECT_NE(mdlDesc, nullptr);
   mdlDesc->modelId = 0;
-  //name format is right, index not found in real inputdesc or outputdesc
+  // name format is right, index not found in real inputdesc or outputdesc
   const char *str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_11");
   EXPECT_EQ(str, nullptr);
 
@@ -891,9 +874,10 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetRealTensorName_TransTensorNameToRealSucc) {
   EXPECT_NE(mdlDesc, nullptr);
   mdlDesc->modelId = 0;
   const char *str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_0");
-  EXPECT_STREQ(str, "output_dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsai"
-      "hdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdia"
-      "soidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda");
+  EXPECT_STREQ(str,
+               "output_dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsai"
+               "hdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdia"
+               "soidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda");
   aclError ret = aclmdlDestroyDesc(mdlDesc);
   EXPECT_EQ(ret, ACL_SUCCESS);
 }
@@ -903,11 +887,11 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputIndexByName_abnormal) {
   EXPECT_NE(desc, nullptr);
 
   size_t idx = 0;
-  //1. modelDesc/name/index must not be null
+  // 1. modelDesc/name/index must not be null
   aclError ret = aclmdlGetInputIndexByName(NULL, "2", &idx);
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-  //2. no input named "2"
+  // 2. no input named "2"
   ret = aclmdlGetInputIndexByName(desc, "2", &idx);
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
@@ -916,8 +900,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputIndexByName_abnormal) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetInputIndexByName_normal) {
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
@@ -938,8 +921,7 @@ TEST_F(AclMdlDescTest, Test_aclmdlGetInputIndexByName_normal) {
 }
 
 TEST_F(AclMdlDescTest, Test_aclmdlGetOutputIndexByName) {
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _))
-      .WillOnce(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _)).WillOnce(Invoke(GetModelDescInfo_Invoke));
   aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 

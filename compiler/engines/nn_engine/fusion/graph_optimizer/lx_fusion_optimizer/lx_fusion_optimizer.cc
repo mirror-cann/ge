@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,11 +32,12 @@ constexpr char const *L2_FUSION_PRE_OPTIMIZER_FUNC_NAME = "L2FusionPreOptimize";
 constexpr char const *L2_FUSION_OPTIMIZER_FUNC_NAME = "L2FusionOptimize";
 constexpr char const *L2_RECOVERY_FUNC_NAME = "L2Recovery";
 constexpr char const *LX_FUSION_FINALIZE_FUNC_NAME = "LxFusionFinalize";
-}
+}  // namespace
 LxFusionOptimizer::LxFusionOptimizer(const FusionPriorityMgrPtr &fusion_priority_mgr,
                                      const OpsKernelInfoStorePtr &ops_kernel_info_store)
-                                     : init_flag_(false), fusion_priority_mgr_ptr_(fusion_priority_mgr),
-                                       ops_kernel_info_store_ptr_(ops_kernel_info_store) {}
+    : init_flag_(false),
+      fusion_priority_mgr_ptr_(fusion_priority_mgr),
+      ops_kernel_info_store_ptr_(ops_kernel_info_store) {}
 LxFusionOptimizer::~LxFusionOptimizer() {}
 
 Status LxFusionOptimizer::Initialize() {
@@ -69,24 +70,24 @@ Status LxFusionOptimizer::InitFunctions() {
   FE_CHECK_NOTNULL(lx_fusion_plugin_manager_);
   // 2. get the functions of l1 fusion
   Status ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &, AOEOption>(
-          L1_FUSION_OPTIMIZER_FUNC_NAME, l1_fusion_optimizer_func_);
+      L1_FUSION_OPTIMIZER_FUNC_NAME, l1_fusion_optimizer_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", L1_FUSION_OPTIMIZER_FUNC_NAME);
     return FAILED;
   }
 
   ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &, const std::vector<ge::NodePtr> &,
-          std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *>(
-          L1_RECOVERY_FUNC_NAME, l1_recovery_func_);
+                                               std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *>(
+      L1_RECOVERY_FUNC_NAME, l1_recovery_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", L1_RECOVERY_FUNC_NAME);
     return FAILED;
   }
 
   // 3. get the functions of l2 pre optimize function
-  ret = lx_fusion_plugin_manager_
-          ->GetFunction<tune::Status, ge::ComputeGraph &, AOEOption, const std::vector<std::string> &,
-                  std::vector<PassChangeInfo> &>(L2_FUSION_PRE_OPTIMIZER_FUNC_NAME, l2_fusion_pre_optimizer_func_);
+  ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &, AOEOption,
+                                               const std::vector<std::string> &, std::vector<PassChangeInfo> &>(
+      L2_FUSION_PRE_OPTIMIZER_FUNC_NAME, l2_fusion_pre_optimizer_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", L2_FUSION_PRE_OPTIMIZER_FUNC_NAME);
     return FAILED;
@@ -94,22 +95,22 @@ Status LxFusionOptimizer::InitFunctions() {
 
   // 4. get the functions of l2 optimize function
   ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &, AOEOption>(
-          L2_FUSION_OPTIMIZER_FUNC_NAME, l2_fusion_optimizer_func_);
+      L2_FUSION_OPTIMIZER_FUNC_NAME, l2_fusion_optimizer_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", L2_FUSION_OPTIMIZER_FUNC_NAME);
     return FAILED;
   }
 
   ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &, const std::vector<ge::NodePtr> &,
-          std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *>(
-          L2_RECOVERY_FUNC_NAME, l2_recovery_func_);
+                                               std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *>(
+      L2_RECOVERY_FUNC_NAME, l2_recovery_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", L2_RECOVERY_FUNC_NAME);
     return FAILED;
   }
 
-  ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &>(
-          LX_FUSION_FINALIZE_FUNC_NAME, lx_fusion_finalize_func_);
+  ret = lx_fusion_plugin_manager_->GetFunction<tune::Status, ge::ComputeGraph &>(LX_FUSION_FINALIZE_FUNC_NAME,
+                                                                                 lx_fusion_finalize_func_);
   if (ret != SUCCESS) {
     FE_LOGW("Failed to retrieve the function %s from the plugin.", LX_FUSION_FINALIZE_FUNC_NAME);
     return FAILED;
@@ -135,13 +136,14 @@ Status LxFusionOptimizer::Finalize() {
   return SUCCESS;
 }
 
-Status LxFusionOptimizer::LxFusionOptimize(ge::ComputeGraph& graph, LxFusionOptimizeResult& buffer_ret,
+Status LxFusionOptimizer::LxFusionOptimize(ge::ComputeGraph &graph, LxFusionOptimizeResult &buffer_ret,
                                            bool &need_re_compile) {
   if (DoLxFusionOptimize(graph, buffer_ret) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][BufFusProc][LxFusOpt] Failed to perform lx fusion for graph %s.", graph.GetName().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][BufFusProc][LxFusOpt] Failed to perform lx fusion for graph %s.",
+                    graph.GetName().c_str());
     return FAILED;
   }
-  
+
   if (OptimizeConcatCAxis(graph, need_re_compile) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][BufFusProc][LxFusOpt] Failed to do concat c optimize for graph %s.",
                     graph.GetName().c_str());
@@ -166,7 +168,7 @@ LxFusionOptimizeResult LxFusionOptimizer::GenerateLxFusionOptimizeResult(const S
   return LxFusionOptimizeResult::NO_FUSION_STRATEGY;
 }
 
-Status LxFusionOptimizer::DoLxFusionOptimize(ge::ComputeGraph& graph, LxFusionOptimizeResult &buffer_ret) {
+Status LxFusionOptimizer::DoLxFusionOptimize(ge::ComputeGraph &graph, LxFusionOptimizeResult &buffer_ret) {
   // 1. if find any unknown shape node, return success
   if (FeGraphCommon::IsUnknownGraph(graph.shared_from_this())) {
     FE_LOGI("Graph [%s] contains unknown shape op, cannot do lx fusion optimize.", graph.GetName().c_str());
@@ -216,7 +218,7 @@ Status LxFusionOptimizer::DoLxFusionOptimize(ge::ComputeGraph& graph, LxFusionOp
   return SUCCESS;
 }
 
-Status LxFusionOptimizer::L2FusionOptimize(ge::ComputeGraph& graph, const OptimizeConfig &optimize_config) {
+Status LxFusionOptimizer::L2FusionOptimize(ge::ComputeGraph &graph, const OptimizeConfig &optimize_config) {
   if (l2_fusion_pre_optimizer_func_ == nullptr) {
     FE_LOGW("Parameter[l2_fusion_pre_optimizer_func_] must not be null.");
     return tune::NO_FUSION_STRATEGY;
@@ -225,8 +227,8 @@ Status LxFusionOptimizer::L2FusionOptimize(ge::ComputeGraph& graph, const Optimi
   fusion_priority_mgr_ptr_->GetFusionPassNameBySwitch(UB_FUSION, false, close_pass_vec);
   FE_LOGD("The closed ub fusion passes are: %s.", StringUtils::StrVecToString(close_pass_vec).c_str());
   std::vector<PassChangeInfo> pass_info_vec;
-  Status l2_pre_buffer_ret = l2_fusion_pre_optimizer_func_(graph, optimize_config.aoe_option,
-                                                           close_pass_vec, pass_info_vec);
+  Status l2_pre_buffer_ret =
+      l2_fusion_pre_optimizer_func_(graph, optimize_config.aoe_option, close_pass_vec, pass_info_vec);
   if (l2_pre_buffer_ret == tune::SUCCESS || l2_pre_buffer_ret == tune::HIT_FUSION_STRATEGY) {
     UpdateFusionTimesAndSliceInfo(graph, pass_info_vec);
     if (l2_fusion_optimizer_func_ == nullptr) {
@@ -252,7 +254,7 @@ Status LxFusionOptimizer::L2FusionOptimize(ge::ComputeGraph& graph, const Optimi
   }
 }
 
-void LxFusionOptimizer::UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph& graph,
+void LxFusionOptimizer::UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph &graph,
                                                       const std::vector<PassChangeInfo> &pass_info_vec) const {
   if (pass_info_vec.empty()) {
     return;
@@ -276,12 +278,12 @@ void LxFusionOptimizer::UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph& gr
       if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id) &&
           std::find(scope_ids.begin(), scope_ids.end(), scope_id) != scope_ids.end()) {
         scope_nodes_map[scope_id].push_back(node);
-        // clear op slice info, otherwise op slice info will not be gernerated in following code
+        // clear op slice info, otherwise op slice info will not be generated in following code
         (void)node->GetOpDesc()->DelAttr(FUSION_OP_SLICE_INFO);
       }
     }
     BufferFusionPassBasePtr buffer_fusion_pass_ptr =
-            fusion_priority_mgr_ptr_->GetBufferFusionByPassName(pass_info.pass_name);
+        fusion_priority_mgr_ptr_->GetBufferFusionByPassName(pass_info.pass_name);
     for (std::pair<const int64_t, std::vector<ge::NodePtr>> &nodes_pair : scope_nodes_map) {
       CalcSliceUtils::CalcSliceInfo(buffer_fusion_pass_ptr, nodes_pair.second);
     }
@@ -289,8 +291,7 @@ void LxFusionOptimizer::UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph& gr
 }
 
 void LxFusionOptimizer::GetLxfusionOptimizeConfig(OptimizeConfig &optimize_config) {
-  optimize_config.enable_superkernel_plus =
-          Configuration::Instance(AI_CORE_NAME).IsEnableSuperkernelPlus();
+  optimize_config.enable_superkernel_plus = Configuration::Instance(AI_CORE_NAME).IsEnableSuperkernelPlus();
   FE_LOGD("lxfusion enable super kernel plus is %d.", optimize_config.enable_superkernel_plus);
   optimize_config.aoe_option = AOE_OPT_USE_KB;
   std::string license_aoe_val;
@@ -307,11 +308,12 @@ void LxFusionOptimizer::GetLxfusionOptimizeConfig(OptimizeConfig &optimize_confi
   FE_LOGD("lxfusion license aoe: %d.", optimize_config.aoe_option);
 }
 
-Status LxFusionOptimizer::OptimizeConcatCAxis(ge::ComputeGraph& graph, bool &need_re_compile) const {
+Status LxFusionOptimizer::OptimizeConcatCAxis(ge::ComputeGraph &graph, bool &need_re_compile) const {
   GraphFusionPtr graph_fusion_ptr = nullptr;
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = nullptr;
   FE_MAKE_SHARED(graph_fusion_ptr = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_,
-      fusion_priority_mgr_ptr_), return FAILED);
+                                                                  fusion_priority_mgr_ptr_),
+                 return FAILED);
   Status ret = graph_fusion_ptr->RunGraphFusionPassByType("OptimizeConcatCAxis", graph, BUILT_IN_AFTER_BUFFER_OPTIMIZE);
   if (ret != SUCCESS) {
     return ret;
@@ -320,14 +322,14 @@ Status LxFusionOptimizer::OptimizeConcatCAxis(ge::ComputeGraph& graph, bool &nee
   return SUCCESS;
 }
 
-Status LxFusionOptimizer::LxFusionRecovery(ge::ComputeGraph& graph,
-                                           const std::vector<ge::NodePtr>& buff_fus_compile_failed_nodes,
+Status LxFusionOptimizer::LxFusionRecovery(ge::ComputeGraph &graph,
+                                           const std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes,
                                            std::vector<ge::NodePtr> &buff_fus_rollback_nodes,
                                            std::vector<ge::NodePtr> &buff_fus_to_del_nodes) {
   for (const auto &node : buff_fus_compile_failed_nodes) {
     if (node->GetOpDesc()->HasAttr(kFusionOpBuildOptions)) {
       (void)node->GetOpDesc()->DelAttr(kFusionOpBuildOptions);
-      FE_LOGD("Del the fixpipe_fusion attr from unsuccess UB fusion node %s", node->GetName().c_str());
+      FE_LOGD("Del the fixpipe_fusion attr from unsuccessful UB fusion node %s", node->GetName().c_str());
     }
   }
   tune::Status ret_pass = tune::SUCCESS;
@@ -338,22 +340,22 @@ Status LxFusionOptimizer::LxFusionRecovery(ge::ComputeGraph& graph,
       FE_LOGW("Parameter[l1_recovery_func_] must not be null.");
       return SUCCESS;
     }
-    ret_pass = l1_recovery_func_(graph, buff_fus_compile_failed_nodes,
-                                 &buff_fus_rollback_nodes, &buff_fus_to_del_nodes);
+    ret_pass =
+        l1_recovery_func_(graph, buff_fus_compile_failed_nodes, &buff_fus_rollback_nodes, &buff_fus_to_del_nodes);
   } else if (Configuration::Instance(AI_CORE_NAME).EnableL2Fusion()) {
     // ADD L2 block rollback
     if (l2_recovery_func_ == nullptr) {
       FE_LOGW("Parameter[l2_recovery_func_] must not be null.");
       return SUCCESS;
     }
-    ret_pass = l2_recovery_func_(graph, buff_fus_compile_failed_nodes,
-                                 &buff_fus_rollback_nodes, &buff_fus_to_del_nodes);
+    ret_pass =
+        l2_recovery_func_(graph, buff_fus_compile_failed_nodes, &buff_fus_rollback_nodes, &buff_fus_to_del_nodes);
   } else {
     return SUCCESS;
   }
 
   bool recovery_status =
-          (ret_pass != tune::SUCCESS || buff_fus_rollback_nodes.empty() || buff_fus_to_del_nodes.empty());
+      (ret_pass != tune::SUCCESS || buff_fus_rollback_nodes.empty() || buff_fus_to_del_nodes.empty());
   if (recovery_status) {
     REPORT_FE_ERROR("[SubGraphOpt][Compile][Recovery] Failed to recover graph %s. Result is %d.",
                     graph.GetName().c_str(), recovery_status);
@@ -374,4 +376,4 @@ Status LxFusionOptimizer::LxFusionFinalize(ge::ComputeGraph &graph) {
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

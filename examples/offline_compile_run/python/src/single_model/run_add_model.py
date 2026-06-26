@@ -10,7 +10,6 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 import acl
-
 from common import (
     DEVICE_ID,
     check_ret,
@@ -18,7 +17,7 @@ from common import (
     copy_inputs_to_acl_dataset,
     create_sample_inputs,
     prepare_acl_mdl_dataset,
-    release_acl_mdl_dataset
+    release_acl_mdl_dataset,
 )
 
 
@@ -52,7 +51,10 @@ class AclModelRunner:
     def forward(self, inputs):
         print("[Info] 执行模型推理")
         copy_inputs_to_acl_dataset(self.input_data, inputs)
-        check_ret("acl.mdl.execute", acl.mdl.execute(self.model_id, self.input_dataset, self.output_dataset))
+        check_ret(
+            "acl.mdl.execute",
+            acl.mdl.execute(self.model_id, self.input_dataset, self.output_dataset),
+        )
         return collect_acl_model_outputs(self.model_desc, self.output_data)
 
     def release(self) -> None:

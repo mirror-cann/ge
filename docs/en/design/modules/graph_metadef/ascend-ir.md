@@ -18,7 +18,7 @@ classDiagram
         +TopologicalSorting()
         +GetAllNodes()
     }
-    
+
     class Node {
         -OpDescPtr op_desc_
         -InDataAnchor[] in_data_anchors_
@@ -26,7 +26,7 @@ classDiagram
         -InControlAnchor in_ctrl_
         -OutControlAnchor out_ctrl_
     }
-    
+
     class OpDesc {
         -vector~GeTensorDescPtr~ inputs_desc_
         -vector~GeTensorDescPtr~ outputs_desc_
@@ -34,18 +34,18 @@ classDiagram
         -AttrStore attrs_
         -OpMetadata meta_data_
     }
-    
+
     class GeTensorDesc {
         -GeShape shape_
         -DataType data_type_
         -Format format_
         -GeTensorDescImplPtr impl_
     }
-    
+
     ComputeGraph "1" *-- "*" Node : contains
     Node "1" *-- "1" OpDesc : holds
     OpDesc "1" *-- "*" GeTensorDesc : describes
-    
+
     class Anchor {
         <<abstract>>
         -vector~weak_ptr~Anchor~~ peer_anchors_
@@ -53,18 +53,18 @@ classDiagram
         +Unlink()
         +GetPeerAnchors()
     }
-    
+
     class InDataAnchor {
         Only one peer allowed
     }
-    
+
     class OutDataAnchor {
         Multiple peers allowed
     }
-    
+
     class InControlAnchor
     class OutControlAnchor
-    
+
     Anchor <|-- InDataAnchor
     Anchor <|-- OutDataAnchor
     Anchor <|-- InControlAnchor

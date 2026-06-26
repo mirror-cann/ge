@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,13 +23,9 @@ constexpr uint8_t kBodyBranchIndex = 1U;
 
 using SubGraphSolveConflictCall = std::function<Status(const NodePtr &ctrl_node)>;
 std::map<std::string, SubGraphSolveConflictCall> CtrlNodeConflict::get_subgraph_solve_call = {
-  {IF, CtrlNodeConflict::SolveIfConflict},
-  {STATELESSIF, CtrlNodeConflict::SolveIfConflict},
-  {CASE, CtrlNodeConflict::SolveCaseConflict},
-  {STATELESSCASE, CtrlNodeConflict::SolveCaseConflict},
-  {WHILE, CtrlNodeConflict::SolveWhileConflict},
-  {STATELESSWHILE, CtrlNodeConflict::SolveWhileConflict}
-};
+    {IF, CtrlNodeConflict::SolveIfConflict},       {STATELESSIF, CtrlNodeConflict::SolveIfConflict},
+    {CASE, CtrlNodeConflict::SolveCaseConflict},   {STATELESSCASE, CtrlNodeConflict::SolveCaseConflict},
+    {WHILE, CtrlNodeConflict::SolveWhileConflict}, {STATELESSWHILE, CtrlNodeConflict::SolveWhileConflict}};
 
 Status CtrlNodeConflict::SolveIfConflict(const NodePtr &ctrl_node) {
   const auto then_graph = NodeUtils::GetSubgraph(*ctrl_node, kThenBranchIndex);
@@ -112,8 +108,10 @@ Status CtrlNodeConflict::InsertInputIdentity(const ComputeGraphPtr &graph, const
   }
 
   GE_ASSERT_SUCCESS(SolveNodesConflict(graph, in_data_anchors), "[Call][SolveOneNodeConflict] failed.");
-  GELOGI("[MemConflict][Conflict] Data to netoutput with exchange order, inserted identity node"
-         " at input of while_body [%s].", graph->GetName().c_str());
+  GELOGI(
+      "[MemConflict][Conflict] Data to netoutput with exchange order, inserted identity node"
+      " at input of while_body [%s].",
+      graph->GetName().c_str());
   return SUCCESS;
 }
 
@@ -130,7 +128,7 @@ Status CtrlNodeConflict::InsertOutputIdentity(const ComputeGraphPtr &graph, cons
     if (MemLayoutConflictUtil::IsSkipInsert(in_data_anchor)) {
       continue;
     }
-    
+
     in_data_anchors.emplace_back(in_data_anchor);
   }
 
@@ -157,9 +155,10 @@ Status CtrlNodeConflict::InsertOutputIdentity(const ComputeGraphPtr &graph, cons
     ++index;
   }
 
-  GELOGI("[MemConflict][Conflict] To ensure execute order to avoid overwriting input,"
-         " inserted identity node[%s] at output of while_body[%s].",
-         identity_node->GetNamePtr(), graph->GetName().c_str());
+  GELOGI(
+      "[MemConflict][Conflict] To ensure execute order to avoid overwriting input,"
+      " inserted identity node[%s] at output of while_body[%s].",
+      identity_node->GetNamePtr(), graph->GetName().c_str());
   return SUCCESS;
 }
 
@@ -169,9 +168,9 @@ Status CtrlNodeConflict::SolveWhileConflict(const NodePtr &ctrl_node) {
 
   std::vector<NodePtr> data_nodes_change;
   std::set<uint32_t> bypass_index_no_change;
-  GE_ASSERT_SUCCESS(MemLayoutConflictUtil::GetWhileBodyDataToNetoutputNodes(
-                      while_body, data_nodes_change, bypass_index_no_change),
-                      "[Call][GetWhileBodyDataToNetoutputNodes] failed.");
+  GE_ASSERT_SUCCESS(
+      MemLayoutConflictUtil::GetWhileBodyDataToNetoutputNodes(while_body, data_nodes_change, bypass_index_no_change),
+      "[Call][GetWhileBodyDataToNetoutputNodes] failed.");
 
   const auto netoutput = while_body->GetOrUpdateNetOutputNode();
   GE_CHECK_NOTNULL(netoutput);
@@ -195,11 +194,11 @@ Status CtrlNodeConflict::SolveCtrlNodeSubGraphConflict(const ComputeGraphPtr &gr
     const auto node_type = node->GetType();
     if (get_subgraph_solve_call.find(node_type) != get_subgraph_solve_call.end()) {
       GE_ASSERT_SUCCESS(get_subgraph_solve_call[node_type](node),
-                        "[Call]subgraph_solve_call failed, node name: %s, node type: %s.",
-                        node->GetName().c_str(), node->GetType().c_str());
+                        "[Call]subgraph_solve_call failed, node name: %s, node type: %s.", node->GetName().c_str(),
+                        node->GetType().c_str());
     }
   }
 
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,20 +39,17 @@ class HybridModelAsyncExecutor {
   Status Init(const aclrtStream stream = nullptr);
 
   // dflow
-  Status Execute(const std::vector<DataBuffer> &inputs,
-                 const std::vector<GeTensorDesc> &input_desc,
-                 std::vector<DataBuffer> &outputs,
-                 std::vector<GeTensorDesc> &output_desc,
+  Status Execute(const std::vector<DataBuffer> &inputs, const std::vector<GeTensorDesc> &input_desc,
+                 std::vector<DataBuffer> &outputs, std::vector<GeTensorDesc> &output_desc,
                  aclrtStream stream = nullptr);
 
   Status Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
 
   Status ExecuteWithStreamAsync(const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs,
-                 aclrtStream stream = nullptr);
-  
-  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                               std::vector<gert::Tensor> &outputs,
-                                               aclrtStream stream = nullptr);
+                                aclrtStream stream = nullptr);
+
+  Status ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
+                                aclrtStream stream = nullptr);
 
   Status Start(const std::shared_ptr<ModelListener> &listener);
 
@@ -64,15 +61,25 @@ class HybridModelAsyncExecutor {
 
   Status EnqueueData(const std::shared_ptr<RunArgs> &args);
 
-  uint32_t GetDataInputerSize() const { return data_inputer_->Size(); }
+  uint32_t GetDataInputerSize() const {
+    return data_inputer_->Size();
+  }
 
-  bool GetRunningFlag() const { return running_flag_; }
+  bool GetRunningFlag() const {
+    return running_flag_;
+  }
 
-  void SetRunningFlag(const bool flag) { running_flag_ = flag; }
+  void SetRunningFlag(const bool flag) {
+    running_flag_ = flag;
+  }
 
-  const GraphExecutionContext *GeContext() const { return executor_->GetContext(); }
+  const GraphExecutionContext *GeContext() const {
+    return executor_->GetContext();
+  }
 
-  GraphExecutionContext *GeContext() {return executor_->GetContext(); }
+  GraphExecutionContext *GeContext() {
+    return executor_->GetContext();
+  }
 
  private:
   Status RunInternal();
@@ -101,4 +108,4 @@ class HybridModelAsyncExecutor {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_EXECUTOR_MODEL_HYBRID_MODEL_ASYNC_EXECUTOR_H_
+#endif  // GE_HYBRID_EXECUTOR_MODEL_HYBRID_MODEL_ASYNC_EXECUTOR_H_

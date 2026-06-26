@@ -31,7 +31,7 @@ class BaseCustomOp {
 };
 
 class PortableOp : virtual public BaseCustomOp {
-public:
+ public:
   /**
    * 序列化自定义算子的 kernel bin 数据
    * @param buffer 输出的二进制数据，由算子自定义格式，GE 不解析只透传
@@ -123,7 +123,7 @@ using CustomOpCreateFunc = ge::BaseCustomOp *(*)();
  * 通常配合 REG_AUTO_MAPPING_OP 宏静态注册算子类型和创建函数。
  */
 class CustomOpCreatorRegister {
-public:
+ public:
   CustomOpCreatorRegister(const AscendString &operator_type, const BaseOpCreator &op_creator);
   CustomOpCreatorRegister(const AscendString &operator_type, const CustomOpCreateFunc op_creator);
   ~CustomOpCreatorRegister() = default;
@@ -132,9 +132,11 @@ public:
 
 #define REG_JOIN(g_register, y) g_register##y
 #define REG_AUTO_MAPPING_OP(custom_op_class) REG_AUTO_MAPPING_OP_UNIQ(__COUNTER__, custom_op_class)
-#define REG_AUTO_MAPPING_OP_UNIQ(ctr, custom_op_class)                                            \
-  static ge::BaseCustomOp *REG_JOIN(custom_op_pull_creator, ctr)() { return new custom_op_class(); } \
-  static const ge::CustomOpCreatorRegister REG_JOIN(custom_op_register, ctr)(                    \
-      #custom_op_class, REG_JOIN(custom_op_pull_creator, ctr))
+#define REG_AUTO_MAPPING_OP_UNIQ(ctr, custom_op_class)                                         \
+  static ge::BaseCustomOp *REG_JOIN(custom_op_pull_creator, ctr)() {                           \
+    return new custom_op_class();                                                              \
+  }                                                                                            \
+  static const ge::CustomOpCreatorRegister REG_JOIN(custom_op_register, ctr)(#custom_op_class, \
+                                                                             REG_JOIN(custom_op_pull_creator, ctr))
 
 #endif  // METADEF_CXX_INC_GRAPH_BASE_CUSTOM_OP_H

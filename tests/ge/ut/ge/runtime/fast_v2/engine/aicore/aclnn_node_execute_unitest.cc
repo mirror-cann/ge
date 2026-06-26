@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,7 @@ graphStatus InferShapeForAdd(gert::InferShapeContext *context) {
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
     auto min_num = std::min(input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     if (min_num != 1) {
-      GELOGE(PARAM_INVALID,
-             "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+      GELOGE(PARAM_INVALID, "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
              input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     } else {
       if (input_shape_1.GetDimNum() > 1) {
@@ -106,7 +105,7 @@ static void *CreateCompileInfo() {
 static void DeleteCompileInfo(void *const obj) {
   delete reinterpret_cast<AddCompileInfo *>(obj);
 }
-}
+}  // namespace
 class AclnnNodeExeUTest : public testing::Test {
  public:
   void SetUp() override {
@@ -181,7 +180,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   constexpr int32_t kEnvNoOverwrite = 0;
   int32_t mmRet = 0;
   MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 
   auto graph = ShareGraph::BuildTwoAddNodeGraph();
   auto add1 = graph->FindNode("add1");
@@ -257,7 +256,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   AclnnNodeExeUTest::execute_op_prepare_call_times = 0;
   AclnnNodeExeUTest::execute_op_launch_call_times = 0;
   dlog_setlevel(0, 3, 0);
-  (void) mmRet;
+  (void)mmRet;
 }
 
 TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
@@ -265,10 +264,10 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
   constexpr int32_t kEnvNoOverwrite = 0;
   int32_t mmRet = 0;
   MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 
   auto op_impl = const_cast<OpImplKernelRegistry::OpImplFunctionsV2 *>(
-        DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Add"));
+      DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Add"));
   ASSERT_NE(op_impl, nullptr);
   // 改成整体式执行
   op_impl->op_execute_func = OpExecuteDoNothing;
@@ -339,8 +338,8 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "ExecuteOpLaunch"), 0);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "ExecuteOpFunc"), 2);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "BuildDualStageAclnnOpFwkData"), 0);
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "FreeMemory"), 2); // 0
-  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "FreeMemoryHoldAddr"), 0); // 2
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "FreeMemory"), 2);          // 0
+  EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("Add", "FreeMemoryHoldAddr"), 0);  // 2
 
   multi_thread_ed->scheduler->Dump();
   runtime_stub.Clear();
@@ -349,7 +348,7 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOps) {
   AclnnNodeExeUTest::execute_op_launch_call_times = 0;
 
   MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
-  (void) mmRet;
+  (void)mmRet;
   dlog_setlevel(0, 3, 0);
 }
 
@@ -358,10 +357,10 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOpsWithInvalidCore
   constexpr int32_t kEnvNoOverwrite = 0;
   int32_t mmRet = 0;
   MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 
   auto op_impl = const_cast<OpImplKernelRegistry::OpImplFunctionsV2 *>(
-        DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Add"));
+      DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Add"));
   ASSERT_NE(op_impl, nullptr);
   // 改成整体式执行
   op_impl->op_execute_func = OpExecuteDoNothing;
@@ -384,8 +383,8 @@ TEST_F(AclnnNodeExeUTest, MultiThreadExecutor_Ok_OneStageAclnnOpsWithInvalidCore
   ASSERT_EQ(exe_graph, nullptr);
 
   MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
-  (void) mmRet;
+  (void)mmRet;
   dlog_setlevel(0, 3, 0);
 }
 
-} // gert
+}  // namespace gert

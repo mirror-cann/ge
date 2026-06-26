@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -16,14 +16,14 @@
 测试 ge 模块各个组件之间的集成功能
 """
 
-import pytest
-import sys
 import os
+
+import pytest
 
 # 需要添加 ge 到 Python 路径，否则会报错
 try:
     from ge.es.graph_builder import GraphBuilder, TensorHolder
-    from ge.graph import Graph, Node, DumpFormat
+    from ge.graph import DumpFormat, Graph, Node
     from ge.graph.types import DataType, Format
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
@@ -40,12 +40,7 @@ class TestIntegration:
     def test_graph_builder_to_graph_integration(self, builder):
         """测试 GraphBuilder 到 Graph 的基本集成"""
         # 创建输入
-        input_tensor = builder.create_input(
-            index=0,
-            name="input",
-            data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
-        )
+        input_tensor = builder.create_input(index=0, name="input", data_type=DataType.DT_FLOAT, shape=[1, 3, 224, 224])
 
         # 创建常量
         const_tensor = builder.create_const_float(1.0)
@@ -63,12 +58,7 @@ class TestIntegration:
     def test_graph_nodes_validation(self, builder):
         """测试图中节点的验证"""
         # 创建输入
-        input_tensor = builder.create_input(
-            index=0,
-            name="input",
-            data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
-        )
+        input_tensor = builder.create_input(index=0, name="input", data_type=DataType.DT_FLOAT, shape=[1, 3, 224, 224])
 
         # 创建常量
         const_tensor = builder.create_const_float(1.0)
@@ -110,12 +100,7 @@ class TestIntegration:
     def test_graph_dump_to_onnx(self, builder):
         """测试图dump到ONNX功能"""
         # 创建输入
-        input_tensor = builder.create_input(
-            index=0,
-            name="input",
-            data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
-        )
+        input_tensor = builder.create_input(index=0, name="input", data_type=DataType.DT_FLOAT, shape=[1, 3, 224, 224])
 
         # 创建常量
         const_tensor = builder.create_const_float(1.0)
@@ -127,9 +112,8 @@ class TestIntegration:
         graph = builder.build_and_reset()
 
         # 测试 dump 到 ONNX 功能
-        import tempfile
-        import os
         import re
+        import tempfile
 
         # 创建临时目录进行测试
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -140,12 +124,13 @@ class TestIntegration:
                 graph.dump_to_file(format=DumpFormat.kOnnx, suffix=test_suffix)
 
                 # 在指定目录中查找文件
-                temp_dir_files = [f for f in os.listdir(temp_dir) if f.startswith('ge_onnx_') and f.endswith('.pbtxt')]
-                assert len(
-                    temp_dir_files) > 0, f"Expected ge_onnx_*.pbtxt file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
+                temp_dir_files = [f for f in os.listdir(temp_dir) if f.startswith("ge_onnx_") and f.endswith(".pbtxt")]
+                assert len(temp_dir_files) > 0, (
+                    f"Expected ge_onnx_*.pbtxt file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
+                )
 
                 # 验证文件名格式（包含suffix）
-                expected_pattern_with_suffix = r'ge_onnx_\d+_graph_\d+_' + re.escape(test_suffix) + r'\.pbtxt$'
+                expected_pattern_with_suffix = r"ge_onnx_\d+_graph_\d+_" + re.escape(test_suffix) + r"\.pbtxt$"
                 found_valid_file_with_suffix = False
                 for file in temp_dir_files:
                     if re.match(expected_pattern_with_suffix, file):
@@ -154,13 +139,17 @@ class TestIntegration:
                         print(f"Found valid ONNX file with suffix: {file}")
                         break
 
-                assert found_valid_file_with_suffix, f"No file matching pattern {expected_pattern_with_suffix} found. Files: {temp_dir_files}"
+                assert found_valid_file_with_suffix, (
+                    f"No file matching pattern {expected_pattern_with_suffix} found. Files: {temp_dir_files}"
+                )
 
                 # 验证文件内容不为空
-                with open(expected_file, 'r') as f:
+                with open(expected_file, "r") as f:
                     content = f.read()
                     assert len(content) > 0, "Dumped ONNX file should not be empty"
-                    assert "node" in content.lower() or "graph" in content.lower(), "Dumped file should contain graph structure"
+                    assert "node" in content.lower() or "graph" in content.lower(), (
+                        "Dumped file should contain graph structure"
+                    )
 
                 print(f"Successfully dumped graph to ONNX format: {expected_file}")
                 print(f"File size: {len(content)} bytes")
@@ -278,7 +267,7 @@ class TestIntegration:
             index=0,
             name="test_input",
             data_type=DataType.DT_FLOAT,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
 
         # 测试设置方法
@@ -288,7 +277,7 @@ class TestIntegration:
 
     def test_error_handling_integration(self, builder):
         """测试错误处理集成"""
-        # 测试无效参数  
+        # 测试无效参数
         with pytest.raises(TypeError):
             builder.create_input("invalid")
 
@@ -372,20 +361,18 @@ class TestIntegration:
         s = str(graph)
         assert isinstance(s, str)
         assert len(s) > 0
-        assert ("graph" in s.lower())
+        assert "graph" in s.lower()
 
     def test_save_to_air(self, builder):
         # 创建简单的图
         input_tensor = builder.create_input(0)
         builder.set_graph_output(input_tensor, 0)
         graph = builder.build_and_reset()
-        
 
         # 测试 dump 到 AIR 功能
         import tempfile
-        import os
-        import re
-          # 创建临时目录进行测试
+
+        # 创建临时目录进行测试
         with tempfile.TemporaryDirectory() as temp_dir:
             # 测试指定路径和后缀
             filename = f"{temp_dir}/ut_graph1.txt"
@@ -393,25 +380,22 @@ class TestIntegration:
 
             # 在指定目录中查找文件
             temp_dir_files = [f for f in os.listdir(temp_dir) if f.endswith("ut_graph1.txt")]
-            assert len(
-                temp_dir_files) > 0, f"Expected file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
+            assert len(temp_dir_files) > 0, f"Expected file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
             # 验证文件内容不为空
-            with open(filename, 'rb') as f:
+            with open(filename, "rb") as f:
                 content = f.read()
                 assert len(content) > 0, "Dumped AIR file should not be empty"
-                
+
     def test_load_from_air(self, builder):
         # 创建简单的图
         input_tensor = builder.create_input(0)
         builder.set_graph_output(input_tensor, 0)
         graph = builder.build_and_reset()
-        
 
         # 测试 dump 到 AIR 功能
         import tempfile
-        import os
-        import re
-          # 创建临时目录进行测试
+
+        # 创建临时目录进行测试
         with tempfile.TemporaryDirectory() as temp_dir:
             # 测试指定路径和后缀
             filename = f"{temp_dir}/ut_graph2.txt"
@@ -419,9 +403,8 @@ class TestIntegration:
 
             # 在指定目录中查找文件
             temp_dir_files = [f for f in os.listdir(temp_dir) if f.endswith("ut_graph2.txt")]
-            assert len(
-                temp_dir_files) > 0, f"Expected file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
-            with open(filename, 'rb') as f:
+            assert len(temp_dir_files) > 0, f"Expected file not found in {temp_dir}. Found: {os.listdir(temp_dir)}"
+            with open(filename, "rb") as f:
                 content = f.read()
                 assert len(content) > 0, "Dumped AIR file should not be empty"
             tmp_graph = Graph("tmp_graph_name")

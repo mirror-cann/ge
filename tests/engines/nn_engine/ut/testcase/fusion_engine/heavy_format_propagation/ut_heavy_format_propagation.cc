@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,14 +34,12 @@ using namespace fe;
 
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 using HeavyFormatPropagationPtr = std::shared_ptr<HeavyFormatPropagation>;
-class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
-{
+class UTEST_fusion_engine_heavy_format_distribution : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo heavy_op_info {
+    FEOpsStoreInfo heavy_op_info{
         6,
         "tbe-builtin",
         EN_IMPL_HW_TBE,
@@ -61,174 +59,169 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
   }
 
-  void TearDown()
-  {
-
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   RefRelationsPtr reflection_builder_ptr_;
+
  protected:
-    static void CreateConv3dGraph01(ComputeGraphPtr graph) {
-        /*           Data(NCDHW)          Varable(NCDHW)
-         *             \                   /        \
-         *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NCDHW)
-         *               |   Const(NCDHW)
-         *               |   /
-         *              BiasAdd(NCDHW)
-         * */
-        // Conv3D
-        OpDescPtr data_op = std::make_shared<OpDesc>("data", fe::DATA);
-        vector<int64_t> data_dims = {1, 2, 3, 4, 5};
-        GeTensorDesc data_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
-        data_tensor_desc.SetOriginShape(GeShape(data_dims));
-        data_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        data_op->AddOutputDesc(data_tensor_desc);
-        data_op->AddInputDesc(data_tensor_desc);
-        auto data_node = graph->AddNode(data_op);
+  static void CreateConv3dGraph01(ComputeGraphPtr graph) {
+    /*           Data(NCDHW)          Variable(NCDHW)
+     *             \                   /        \
+     *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NCDHW)
+     *               |   Const(NCDHW)
+     *               |   /
+     *              BiasAdd(NCDHW)
+     * */
+    // Conv3D
+    OpDescPtr data_op = std::make_shared<OpDesc>("data", fe::DATA);
+    vector<int64_t> data_dims = {1, 2, 3, 4, 5};
+    GeTensorDesc data_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
+    data_tensor_desc.SetOriginShape(GeShape(data_dims));
+    data_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    data_op->AddOutputDesc(data_tensor_desc);
+    data_op->AddInputDesc(data_tensor_desc);
+    auto data_node = graph->AddNode(data_op);
 
-        OpDescPtr variable_op = std::make_shared<OpDesc>("varibale", fe::VARIABLE);
-        vector<int64_t> variable_dims = {6, 7, 8, 9, 10};
-        GeTensorDesc variable_tensor_desc(GeShape(variable_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
-        variable_tensor_desc.SetOriginShape(GeShape(variable_dims));
-        variable_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        variable_op->AddOutputDesc(variable_tensor_desc);
-        variable_op->AddInputDesc(variable_tensor_desc);
-        auto variable_node = graph->AddNode(variable_op);
+    OpDescPtr variable_op = std::make_shared<OpDesc>("variable", fe::VARIABLE);
+    vector<int64_t> variable_dims = {6, 7, 8, 9, 10};
+    GeTensorDesc variable_tensor_desc(GeShape(variable_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
+    variable_tensor_desc.SetOriginShape(GeShape(variable_dims));
+    variable_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    variable_op->AddOutputDesc(variable_tensor_desc);
+    variable_op->AddInputDesc(variable_tensor_desc);
+    auto variable_node = graph->AddNode(variable_op);
 
-        OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv3d", "Conv3D");
-        GeTensorDesc conv_tensor_desc(GeShape({1, 3, 1, 4, 5, 16}), ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16);
-        conv_tensor_desc.SetOriginShape(GeShape(data_dims));
-        conv_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        GeTensorDesc conv_tensor_desc_weight(GeShape({720, 1, 16, 16}), ge::FORMAT_FRACTAL_Z_3D, ge::DT_FLOAT16);
-        conv_tensor_desc_weight.SetOriginShape(GeShape(variable_dims));
-        conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NCDHW);
-        conv_o_p->AddInputDesc(conv_tensor_desc);
-        conv_o_p->AddInputDesc(conv_tensor_desc_weight);
-        conv_o_p->AddOutputDesc(conv_tensor_desc);
-        auto conv_node = graph->AddNode(conv_o_p);
-        ge::AttrUtils::SetInt(conv_o_p, FE_IMPLY_TYPE, 6);
+    OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv3d", "Conv3D");
+    GeTensorDesc conv_tensor_desc(GeShape({1, 3, 1, 4, 5, 16}), ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16);
+    conv_tensor_desc.SetOriginShape(GeShape(data_dims));
+    conv_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    GeTensorDesc conv_tensor_desc_weight(GeShape({720, 1, 16, 16}), ge::FORMAT_FRACTAL_Z_3D, ge::DT_FLOAT16);
+    conv_tensor_desc_weight.SetOriginShape(GeShape(variable_dims));
+    conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NCDHW);
+    conv_o_p->AddInputDesc(conv_tensor_desc);
+    conv_o_p->AddInputDesc(conv_tensor_desc_weight);
+    conv_o_p->AddOutputDesc(conv_tensor_desc);
+    auto conv_node = graph->AddNode(conv_o_p);
+    ge::AttrUtils::SetInt(conv_o_p, FE_IMPLY_TYPE, 6);
 
-        // ApplyMomentum
-        OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am1", "ApplyMomentum");
-        GeTensorDesc am_tensor_desc(GeShape(variable_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
-        am_tensor_desc.SetOriginShape(GeShape(variable_dims));
-        am_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        apply_momentum_op->AddOutputDesc(am_tensor_desc);
-        for (uint32_t i = 0;  i < 5; i++) {
-            apply_momentum_op->AddInputDesc(am_tensor_desc);
-        }
-        auto am_node = graph->AddNode(apply_momentum_op);
-        ge::AttrUtils::SetInt(apply_momentum_op, FE_IMPLY_TYPE, 6);
-
-
-        // BiasAdd
-        OpDescPtr const_op = std::make_shared<OpDesc>("const1", fe::CONSTANT);
-        GeTensorDesc const_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
-        const_tensor_desc.SetOriginShape(GeShape(data_dims));
-        const_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        const_op->AddInputDesc(const_tensor_desc);
-        const_op->AddOutputDesc(const_tensor_desc);
-        auto const_node = graph->AddNode(const_op);
-
-        OpDescPtr bias_add_op = std::make_shared<OpDesc>("biassAdd", "BiasAdd");
-        GeTensorDesc bias_add_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
-        bias_add_tensor_desc.SetOriginShape(GeShape(data_dims));
-        bias_add_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
-        bias_add_op->AddInputDesc(bias_add_tensor_desc);
-        bias_add_op->AddInputDesc(const_tensor_desc);
-        bias_add_op->AddOutputDesc(bias_add_tensor_desc);
-        auto biass_add_node = graph->AddNode(bias_add_op);
-        ge::AttrUtils::SetInt(bias_add_op, FE_IMPLY_TYPE, 6);
-
-        GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(0));
-        GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(1));
-        GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(0));
-        GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(1));
-        GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
+    // ApplyMomentum
+    OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am1", "ApplyMomentum");
+    GeTensorDesc am_tensor_desc(GeShape(variable_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
+    am_tensor_desc.SetOriginShape(GeShape(variable_dims));
+    am_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    apply_momentum_op->AddOutputDesc(am_tensor_desc);
+    for (uint32_t i = 0; i < 5; i++) {
+      apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
+    auto am_node = graph->AddNode(apply_momentum_op);
+    ge::AttrUtils::SetInt(apply_momentum_op, FE_IMPLY_TYPE, 6);
 
+    // BiasAdd
+    OpDescPtr const_op = std::make_shared<OpDesc>("const1", fe::CONSTANT);
+    GeTensorDesc const_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
+    const_tensor_desc.SetOriginShape(GeShape(data_dims));
+    const_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    const_op->AddInputDesc(const_tensor_desc);
+    const_op->AddOutputDesc(const_tensor_desc);
+    auto const_node = graph->AddNode(const_op);
 
-    static void CreateConv3dGraph02(ComputeGraphPtr graph) {
-        /*           Data(NDCHW)          Varable(NDCHW)
-         *             \                   /        \
-         *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NDCHW)
-         *               |   Const
-         *               |   /
-         *              BiasAdd
-         * */
-        // Conv3D
-        OpDescPtr data_op = std::make_shared<OpDesc>("data", fe::DATA);
-        vector<int64_t> data_dims = {1, 2, 3, 4, 5};
-        GeTensorDesc data_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
-        data_tensor_desc.SetOriginShape(GeShape(data_dims));
-        data_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        data_op->AddOutputDesc(data_tensor_desc);
-        data_op->AddInputDesc(data_tensor_desc);
-        auto data_node = graph->AddNode(data_op);
+    OpDescPtr bias_add_op = std::make_shared<OpDesc>("biassAdd", "BiasAdd");
+    GeTensorDesc bias_add_tensor_desc(GeShape(data_dims), ge::FORMAT_NCDHW, ge::DT_FLOAT16);
+    bias_add_tensor_desc.SetOriginShape(GeShape(data_dims));
+    bias_add_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
+    bias_add_op->AddInputDesc(bias_add_tensor_desc);
+    bias_add_op->AddInputDesc(const_tensor_desc);
+    bias_add_op->AddOutputDesc(bias_add_tensor_desc);
+    auto biass_add_node = graph->AddNode(bias_add_op);
+    ge::AttrUtils::SetInt(bias_add_op, FE_IMPLY_TYPE, 6);
 
-        OpDescPtr variable_op = std::make_shared<OpDesc>("variabel", fe::VARIABLE);
-        vector<int64_t> variable_dims = {6, 7, 8, 9, 10};
-        GeTensorDesc variable_tensor_desc(GeShape(variable_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
-        variable_tensor_desc.SetOriginShape(GeShape(variable_dims));
-        variable_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        variable_op->AddOutputDesc(variable_tensor_desc);
-        variable_op->AddInputDesc(variable_tensor_desc);
-        auto variable_node = graph->AddNode(variable_op);
+    GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
+  }
 
-        OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv3d", "Conv3D");
-        GeTensorDesc conv_tensor_desc(GeShape({1, 2, 1, 3, 4, 16}), ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16);
-        conv_tensor_desc.SetOriginShape(GeShape(data_dims));
-        conv_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        GeTensorDesc conv_tensor_desc_weight(GeShape({504, 1, 16, 16}), ge::FORMAT_FRACTAL_Z_3D, ge::DT_FLOAT16);
-        conv_tensor_desc_weight.SetOriginShape(GeShape(variable_dims));
-        conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NDHWC);
-        conv_o_p->AddInputDesc(conv_tensor_desc);
-        conv_o_p->AddInputDesc(conv_tensor_desc_weight);
-        conv_o_p->AddOutputDesc(conv_tensor_desc);
-        auto conv_node = graph->AddNode(conv_o_p);
-        ge::AttrUtils::SetInt(conv_o_p, FE_IMPLY_TYPE, 6);
+  static void CreateConv3dGraph02(ComputeGraphPtr graph) {
+    /*           Data(NDCHW)          Variable(NDCHW)
+     *             \                   /        \
+     *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NDCHW)
+     *               |   Const
+     *               |   /
+     *              BiasAdd
+     * */
+    // Conv3D
+    OpDescPtr data_op = std::make_shared<OpDesc>("data", fe::DATA);
+    vector<int64_t> data_dims = {1, 2, 3, 4, 5};
+    GeTensorDesc data_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
+    data_tensor_desc.SetOriginShape(GeShape(data_dims));
+    data_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    data_op->AddOutputDesc(data_tensor_desc);
+    data_op->AddInputDesc(data_tensor_desc);
+    auto data_node = graph->AddNode(data_op);
 
-        // ApplyMomentum
-        OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am1", "ApplyMomentum");
-        GeTensorDesc am_tensor_desc(GeShape(variable_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
-        am_tensor_desc.SetOriginShape(GeShape(variable_dims));
-        am_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        apply_momentum_op->AddOutputDesc(am_tensor_desc);
-        for (uint32_t i = 0;  i < 5; i++) {
-            apply_momentum_op->AddInputDesc(am_tensor_desc);
-        }
-        auto am_node = graph->AddNode(apply_momentum_op);
-        ge::AttrUtils::SetInt(apply_momentum_op, FE_IMPLY_TYPE, 6);
+    OpDescPtr variable_op = std::make_shared<OpDesc>("variabel", fe::VARIABLE);
+    vector<int64_t> variable_dims = {6, 7, 8, 9, 10};
+    GeTensorDesc variable_tensor_desc(GeShape(variable_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
+    variable_tensor_desc.SetOriginShape(GeShape(variable_dims));
+    variable_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    variable_op->AddOutputDesc(variable_tensor_desc);
+    variable_op->AddInputDesc(variable_tensor_desc);
+    auto variable_node = graph->AddNode(variable_op);
 
+    OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv3d", "Conv3D");
+    GeTensorDesc conv_tensor_desc(GeShape({1, 2, 1, 3, 4, 16}), ge::FORMAT_NDC1HWC0, ge::DT_FLOAT16);
+    conv_tensor_desc.SetOriginShape(GeShape(data_dims));
+    conv_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    GeTensorDesc conv_tensor_desc_weight(GeShape({504, 1, 16, 16}), ge::FORMAT_FRACTAL_Z_3D, ge::DT_FLOAT16);
+    conv_tensor_desc_weight.SetOriginShape(GeShape(variable_dims));
+    conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NDHWC);
+    conv_o_p->AddInputDesc(conv_tensor_desc);
+    conv_o_p->AddInputDesc(conv_tensor_desc_weight);
+    conv_o_p->AddOutputDesc(conv_tensor_desc);
+    auto conv_node = graph->AddNode(conv_o_p);
+    ge::AttrUtils::SetInt(conv_o_p, FE_IMPLY_TYPE, 6);
 
-        // BiasAdd
-        OpDescPtr const_op = std::make_shared<OpDesc>("const1", fe::CONSTANT);
-        GeTensorDesc const_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
-        const_tensor_desc.SetOriginShape(GeShape(data_dims));
-        const_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        const_op->AddInputDesc(const_tensor_desc);
-        const_op->AddOutputDesc(const_tensor_desc);
-        auto const_node = graph->AddNode(const_op);
-
-        OpDescPtr bias_add_op = std::make_shared<OpDesc>("biassAdd", "BiasAdd");
-        GeTensorDesc bias_add_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
-        bias_add_tensor_desc.SetOriginShape(GeShape(data_dims));
-        bias_add_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
-        bias_add_op->AddInputDesc(bias_add_tensor_desc);
-        bias_add_op->AddInputDesc(const_tensor_desc);
-        bias_add_op->AddOutputDesc(bias_add_tensor_desc);
-        auto biass_add_node = graph->AddNode(bias_add_op);
-        ge::AttrUtils::SetInt(bias_add_op, FE_IMPLY_TYPE, 6);
-
-        GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(0));
-        GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(1));
-        GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(0));
-        GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(1));
-        GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
+    // ApplyMomentum
+    OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am1", "ApplyMomentum");
+    GeTensorDesc am_tensor_desc(GeShape(variable_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
+    am_tensor_desc.SetOriginShape(GeShape(variable_dims));
+    am_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    apply_momentum_op->AddOutputDesc(am_tensor_desc);
+    for (uint32_t i = 0; i < 5; i++) {
+      apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
+    auto am_node = graph->AddNode(apply_momentum_op);
+    ge::AttrUtils::SetInt(apply_momentum_op, FE_IMPLY_TYPE, 6);
+
+    // BiasAdd
+    OpDescPtr const_op = std::make_shared<OpDesc>("const1", fe::CONSTANT);
+    GeTensorDesc const_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
+    const_tensor_desc.SetOriginShape(GeShape(data_dims));
+    const_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    const_op->AddInputDesc(const_tensor_desc);
+    const_op->AddOutputDesc(const_tensor_desc);
+    auto const_node = graph->AddNode(const_op);
+
+    OpDescPtr bias_add_op = std::make_shared<OpDesc>("biassAdd", "BiasAdd");
+    GeTensorDesc bias_add_tensor_desc(GeShape(data_dims), ge::FORMAT_NDHWC, ge::DT_FLOAT16);
+    bias_add_tensor_desc.SetOriginShape(GeShape(data_dims));
+    bias_add_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
+    bias_add_op->AddInputDesc(bias_add_tensor_desc);
+    bias_add_op->AddInputDesc(const_tensor_desc);
+    bias_add_op->AddOutputDesc(bias_add_tensor_desc);
+    auto biass_add_node = graph->AddNode(bias_add_op);
+    ge::AttrUtils::SetInt(bias_add_op, FE_IMPLY_TYPE, 6);
+
+    GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), biass_add_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
+  }
 
   static void CreateConv3dGraph03(ComputeGraphPtr graph) {
-    /*           Data(NCDHW)          Varable(NCDHW)
+    /*           Data(NCDHW)          Variable(NCDHW)
      *             \                   /        \
      *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NCDHW)
      *               |   Const(NCDHW)
@@ -328,7 +321,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
   }
 
   static void CreateConv3dGraph04(ComputeGraphPtr graph) {
-    /*           Data(NCDHW)          Varable(NCDHW)
+    /*           Data(NCDHW)          Variable(NCDHW)
      *             \                   /        \
      *        Conv3D (NDC1HWC0,FRACTAL_Z_3D)   ApplyMomentum(NCDHW)
      *               |   Const(NCDHW)
@@ -454,7 +447,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -494,7 +487,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginFormat(format);
     am_tensor_desc.SetShapeRange(range1);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -505,7 +498,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
   }
 
   static void CreateReduceOpGraph(ComputeGraphPtr graph, ge::Format format, ge::GeShape &shape,
-      std::vector<int64_t> axis_value) {
+                                  std::vector<int64_t> axis_value) {
     /*     Conv(shape {3, 1, 5, 6, 16})
      *            /                  \
      *     reduce_op (NCHW,shape 3, 4, 5, 6)
@@ -587,7 +580,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -597,15 +590,14 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
   }
 
-
   static void CreateThreeGraphWithScalar_1(ComputeGraphPtr graph) {
     /*              Const(Scalar, shape {3,4,5,6})
      *        /                     \
      *  conv (NC1HWC0,shape{})         a.m. (NCHW)
      *  After distribution, the input of a.m. will become NC1HWC0*/
     OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
-    GeTensorDesc const_tensor_desc(GeShape({3,4,5,6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
-    const_tensor_desc.SetOriginShape(GeShape({3,4,5,6}));
+    GeTensorDesc const_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
+    const_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     const_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     const_op->AddOutputDesc(const_tensor_desc);
     const_op->AddInputDesc(const_tensor_desc);
@@ -626,7 +618,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -635,7 +627,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), conv_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
   }
-
 
   static void CreateThreeGraphWithScalar_2(ComputeGraphPtr graph) {
     /*              Const(shape {3,4,5,6})
@@ -645,8 +636,8 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
      *  conv (NC1HWC0,shape{})         a.m.1(NCHW)
      *  After distribution, the input of a.m. will still be NCHW */
     OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
-    GeTensorDesc const_tensor_desc(GeShape({3,4,5,6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
-    const_tensor_desc.SetOriginShape(GeShape({3,4,5,6}));
+    GeTensorDesc const_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
+    const_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     const_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     const_op->AddOutputDesc(const_tensor_desc);
     const_op->AddInputDesc(const_tensor_desc);
@@ -667,7 +658,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -678,7 +669,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc2.SetOriginShape(GeShape());
     am_tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op2->AddOutputDesc(am_tensor_desc2);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op2->AddInputDesc(am_tensor_desc2);
     }
     auto am_node_2 = graph->AddNode(apply_momentum_op2);
@@ -689,14 +680,13 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
   }
 
-
   static void CreateThreeGraphWithL2LossAndAddN(ComputeGraphPtr graph) {
-     /* conv2_d_back_prop_filter(Fragz)      Conv2D(NC1HWC0)
-      *          |                       /
-      *        a.m.(NCHW)          L2Loss (NCHW)
-      *               \           /
-      *                 AddN(NCHW)
-      *  After distribution, the input and output of a.m. will become Fragz */
+    /* conv2_d_back_prop_filter(Fragz)      Conv2D(NC1HWC0)
+     *          |                       /
+     *        a.m.(NCHW)          L2Loss (NCHW)
+     *               \           /
+     *                 AddN(NCHW)
+     *  After distribution, the input and output of a.m. will become Fragz */
     OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv2d", "Conv2D");
     GeTensorDesc conv_tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     conv_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
@@ -734,7 +724,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -752,7 +742,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(am_node->GetOutDataAnchor(0), addn_Node->GetInDataAnchor(0));
     GraphUtils::AddEdge(conv_back_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
   }
-
 
   static void CreateThreeGraphWithL2LossAndAddN_1(ComputeGraphPtr graph) {
     /* conv2_d_back_prop_filter(Fragz)      Conv2D(NC1HWC0)
@@ -798,7 +787,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -817,7 +806,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(conv_back_node->GetOutDataAnchor(0), am_node->GetInDataAnchor(0));
   }
 
-
   static void CreateThreeGraphWithBiasAdd(ComputeGraphPtr graph) {
     /* conv2_d_back_prop_filter(Fragz)
      *          |
@@ -830,7 +818,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -899,7 +887,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     GraphUtils::AddEdge(conv_back_node->GetOutDataAnchor(0), trans_node->GetInDataAnchor(0));
   }
 
-
   static void CreateThreeGraphWithTransData_2(ComputeGraphPtr graph) {
     /* conv2_d_back_prop_filter(Fragz)
      *          |
@@ -959,13 +946,12 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     auto l2loss_node = graph->AddNode(l2_loss_op);
     ge::AttrUtils::SetInt(l2_loss_op, FE_IMPLY_TYPE, 6);
 
-
     OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am", "ApplyMomentum");
     GeTensorDesc am_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -1023,7 +1009,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     conv_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
-
     GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
     conv_tensor_desc_weight.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NCHW);
@@ -1038,7 +1023,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -1049,7 +1034,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am2_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am2_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op2->AddOutputDesc(am2_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op2->AddInputDesc(am_tensor_desc);
     }
     auto am_node2 = graph->AddNode(apply_momentum_op2);
@@ -1060,7 +1045,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am3_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am3_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op3->AddOutputDesc(am3_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op3->AddInputDesc(am_tensor_desc);
     }
     auto am_node3 = graph->AddNode(apply_momentum_op3);
@@ -1103,7 +1088,6 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     conv_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
-
     GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
     conv_tensor_desc_weight.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NCHW);
@@ -1118,7 +1102,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -1126,7 +1110,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op2 = std::make_shared<OpDesc>("am2", "ApplyMomentum");
     apply_momentum_op2->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op2->AddInputDesc(am_tensor_desc);
     }
     auto am_node2 = graph->AddNode(apply_momentum_op2);
@@ -1134,7 +1118,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op3 = std::make_shared<OpDesc>("am3", "ApplyMomentum");
     apply_momentum_op3->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op3->AddInputDesc(am_tensor_desc);
     }
     auto am_node3 = graph->AddNode(apply_momentum_op3);
@@ -1142,7 +1126,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op4 = std::make_shared<OpDesc>("am4", "ApplyMomentum");
     apply_momentum_op4->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op4->AddInputDesc(am_tensor_desc);
     }
     auto am_node4 = graph->AddNode(apply_momentum_op4);
@@ -1150,7 +1134,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op5 = std::make_shared<OpDesc>("am5", "ApplyMomentum");
     apply_momentum_op5->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op5->AddInputDesc(am_tensor_desc);
     }
     auto am_node5 = graph->AddNode(apply_momentum_op5);
@@ -1173,12 +1157,11 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
      *  conv (Fz)         a.m. (NCHW)  a.m.3,4,5,6(NCHW)
      *                          |       ////
      *                         a.m.2 (NCHW)
-   *                        /   |   \
-   *                    a.m.7  a.m.8 a.m.9
+     *                        /   |   \
+     *                    a.m.7  a.m.8 a.m.9
      *  After distribution, the input of a.m. will become NC1HWC0*/
     OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
-    GeTensorDesc const_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW,
-                                   ge::DT_FLOAT16);
+    GeTensorDesc const_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
     const_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     const_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     const_op->AddOutputDesc(const_tensor_desc);
@@ -1186,8 +1169,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     auto const_node = graph->AddNode(const_op);
 
     OpDescPtr data_op = std::make_shared<OpDesc>("data", "Data");
-    GeTensorDesc data_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW,
-                                  ge::DT_FLOAT16);
+    GeTensorDesc data_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
     data_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     data_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     data_op->AddOutputDesc(data_tensor_desc);
@@ -1195,14 +1177,11 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     auto data_node = graph->AddNode(data_op);
 
     OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv2d", "Conv2D");
-    GeTensorDesc conv_tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,
-                                  ge::DT_FLOAT16);
+    GeTensorDesc conv_tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     conv_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
-
-    GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}),
-                                         ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
+    GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
     conv_tensor_desc_weight.SetOriginShape(GeShape({3, 4, 5, 6}));
     conv_tensor_desc_weight.SetOriginFormat(ge::FORMAT_NCHW);
     conv_o_p->AddInputDesc(conv_tensor_desc);
@@ -1212,12 +1191,11 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
     ge::AttrUtils::SetInt(conv_o_p, FE_IMPLY_TYPE, 6);
 
     OpDescPtr apply_momentum_op = std::make_shared<OpDesc>("am1", "ApplyMomentum");
-    GeTensorDesc am_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW,
-                                ge::DT_FLOAT16);
+    GeTensorDesc am_tensor_desc(GeShape({3, 4, 5, 6}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -1225,7 +1203,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op2 = std::make_shared<OpDesc>("am2", "ApplyMomentum");
     apply_momentum_op2->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op2->AddInputDesc(am_tensor_desc);
     }
     auto am_node2 = graph->AddNode(apply_momentum_op2);
@@ -1233,7 +1211,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op3 = std::make_shared<OpDesc>("am3", "ApplyMomentum");
     apply_momentum_op3->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op3->AddInputDesc(am_tensor_desc);
     }
     auto am_node3 = graph->AddNode(apply_momentum_op3);
@@ -1241,7 +1219,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op4 = std::make_shared<OpDesc>("am4", "ApplyMomentum");
     apply_momentum_op4->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op4->AddInputDesc(am_tensor_desc);
     }
     auto am_node4 = graph->AddNode(apply_momentum_op4);
@@ -1249,7 +1227,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op5 = std::make_shared<OpDesc>("am5", "ApplyMomentum");
     apply_momentum_op5->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op5->AddInputDesc(am_tensor_desc);
     }
     auto am_node5 = graph->AddNode(apply_momentum_op5);
@@ -1257,7 +1235,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op6 = std::make_shared<OpDesc>("am6", "ApplyMomentum");
     apply_momentum_op6->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op6->AddInputDesc(am_tensor_desc);
     }
     auto am_node6 = graph->AddNode(apply_momentum_op6);
@@ -1265,7 +1243,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op7 = std::make_shared<OpDesc>("am7", "ApplyMomentum");
     apply_momentum_op7->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op7->AddInputDesc(am_tensor_desc);
     }
     auto am_node7 = graph->AddNode(apply_momentum_op7);
@@ -1273,7 +1251,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op8 = std::make_shared<OpDesc>("am8", "ApplyMomentum");
     apply_momentum_op8->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op8->AddInputDesc(am_tensor_desc);
     }
     auto am_node8 = graph->AddNode(apply_momentum_op8);
@@ -1281,7 +1259,7 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
 
     OpDescPtr apply_momentum_op9 = std::make_shared<OpDesc>("am9", "ApplyMomentum");
     apply_momentum_op9->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op9->AddInputDesc(am_tensor_desc);
     }
     auto am_node9 = graph->AddNode(apply_momentum_op9);
@@ -1303,19 +1281,19 @@ class UTEST_fusion_engine_heavy_format_distribution : public testing::Test
   }
 };
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nchw_0_to_nc1hwc0)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nchw_0_to_nc1hwc0) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  auto reduced_shape = ge::GeShape({4,5,6});
+  auto reduced_shape = ge::GeShape({4, 5, 6});
   CreateReduceOpGraph(graph, ge::FORMAT_NCHW, reduced_shape, {0});
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim5_h_d_reduce = {1, 1, 5, 6, 16};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2D") {
       auto opdesc = node->GetOpDesc();
 
@@ -1346,22 +1324,22 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nchw_0_to_nc1hwc0
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nhwc_12_to_nc1hwc0)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nhwc_12_to_nc1hwc0) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   auto reduced_shape = ge::GeShape({3, 1, 1, 6});
-  CreateReduceOpGraph(graph, ge::FORMAT_NHWC, reduced_shape, {1,2});
+  CreateReduceOpGraph(graph, ge::FORMAT_NHWC, reduced_shape, {1, 2});
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
-  vector<int64_t> result_dim5_hd_conv = { 3, 1, 5, 6, 16};
+  vector<int64_t> result_dim5_hd_conv = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim5_h_d = {3, 1, 4, 5, 16};
   vector<int64_t> result_dim5_h_d_reduce = {3, 1, 1, 1, 16};
   vector<int64_t> result_dim5_h_d_cos = {3, 1, 1, 1, 16};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2D") {
       auto opdesc = node->GetOpDesc();
 
@@ -1392,64 +1370,64 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_nhwc_12_to_nc1hwc
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_hwcn_12_to_nc1hwc0)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_hwcn_12_to_nc1hwc0) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  auto reduced_shape = ge::GeShape({3,6});
-  CreateReduceOpGraph(graph, ge::FORMAT_HWCN, reduced_shape, {1,2});
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  auto reduced_shape = ge::GeShape({3, 6});
+  CreateReduceOpGraph(graph, ge::FORMAT_HWCN, reduced_shape, {1, 2});
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
-  vector<int64_t> result_dim5_hd_conv = { 3, 1, 5, 6, 16};
+  vector<int64_t> result_dim5_hd_conv = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim5_h_d = {4, 1, 1, 5, 16};
   vector<int64_t> result_dim5_h_d_reduce = {4, 1, 1, 1, 16};
-//  for(auto node : graph->GetDirectNode()) {
-//    if (node->GetType() == "Conv2D") {
-//      auto opdesc = node->GetOpDesc();
-//
-//      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
-//      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-//      EXPECT_EQ(result_dim5_hd_conv, opdesc->GetOutputDesc(0).GetShape().GetDims());
-//    }
-//    if (node->GetType() == "ReduceOp") {
-//      auto opdesc = node->GetOpDesc();
-//      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
-//      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
-//      EXPECT_EQ(result_dim5_h_d, opdesc->GetInputDesc(0).GetShape().GetDims());
-//
-//      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
-//      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-//      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetOutputDesc(0).GetShape().GetDims());
-//    }
-//    if (node->GetType() == "Cosh") {
-//      auto opdesc = node->GetOpDesc();
-//      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
-//      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
-//      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetInputDesc(0).GetShape().GetDims());
-//      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-//      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetOutputDesc(0).GetShape().GetDims());
-//    }
-//  }
+  //  for(auto node : graph->GetDirectNode()) {
+  //    if (node->GetType() == "Conv2D") {
+  //      auto opdesc = node->GetOpDesc();
+  //
+  //      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
+  //      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+  //      EXPECT_EQ(result_dim5_hd_conv, opdesc->GetOutputDesc(0).GetShape().GetDims());
+  //    }
+  //    if (node->GetType() == "ReduceOp") {
+  //      auto opdesc = node->GetOpDesc();
+  //      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
+  //      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
+  //      EXPECT_EQ(result_dim5_h_d, opdesc->GetInputDesc(0).GetShape().GetDims());
+  //
+  //      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
+  //      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+  //      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetOutputDesc(0).GetShape().GetDims());
+  //    }
+  //    if (node->GetType() == "Cosh") {
+  //      auto opdesc = node->GetOpDesc();
+  //      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
+  //      EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
+  //      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetInputDesc(0).GetShape().GetDims());
+  //      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+  //      EXPECT_EQ(result_dim5_h_d_reduce, opdesc->GetOutputDesc(0).GetShape().GetDims());
+  //    }
+  //  }
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_chwn_12_to_nc1hwc0)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_chwn_12_to_nc1hwc0) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   auto reduced_shape = ge::GeShape({3, 1, 1, 6});
-  CreateReduceOpGraph(graph, ge::FORMAT_CHWN, reduced_shape, {1,2});
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  CreateReduceOpGraph(graph, ge::FORMAT_CHWN, reduced_shape, {1, 2});
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
-  vector<int64_t> result_dim5_hd_conv = { 3, 1, 5, 6, 16};
+  vector<int64_t> result_dim5_hd_conv = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim5_h_d = {6, 1, 4, 5, 16};
   vector<int64_t> result_dim5_h_d_reduce = {6, 1, 1, 1, 16};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2D") {
       auto opdesc = node->GetOpDesc();
 
@@ -1480,15 +1458,15 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, reduceop_chwn_12_to_nc1hwc
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_01)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraph(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "ApplyMomentumA") {
       auto opdesc = node->GetOpDesc();
       vector<int64_t> result_dim = {3, 1, 5, 6, 16};
@@ -1510,41 +1488,39 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
   }
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_01_option)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_01_option) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraph(graph);
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2D") {
       GeTensorDesc data_desc_invalid({}, FORMAT_RESERVED, DT_UNDEFINED);
       auto opdesc = node->GetOpDesc();
       opdesc->UpdateInputDesc(0, data_desc_invalid);
-
     }
   }
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_02)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateFiveGraph(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     vector<int64_t> result_original_dim = {3, 4, 5, 6};
     vector<int64_t> result_dim = {30, 1, 16, 16};
     if (node->GetName() == "am1") {
@@ -1596,16 +1572,15 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_03)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateSevenGraph(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     vector<int64_t> result_original_dim = {3, 4, 5, 6};
     vector<int64_t> result_dim = {30, 1, 16, 16};
     if (node->GetName() == "am1") {
@@ -1678,16 +1653,15 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_04)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_04) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateElevenGraph(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     vector<int64_t> result_original_dim = {3, 4, 5, 6};
     vector<int64_t> result_dim = {30, 1, 16, 16};
     if (node->GetName() == "am1") {
@@ -1772,15 +1746,15 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_05)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_05) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateElevenGraph(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     vector<int64_t> result_original_dim = {3, 4, 5, 6};
     vector<int64_t> result_dim = {30, 1, 16, 16};
     if (node->GetName() == "am1") {
@@ -1842,7 +1816,7 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_original_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
     }
-    if (node->GetName() == "am7"|| node->GetName() == "am8"||node->GetName() == "am9") {
+    if (node->GetName() == "am7" || node->GetName() == "am8" || node->GetName() == "am9") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
@@ -1875,17 +1849,16 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithScalar(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "ApplyMomentum") {
       auto opdesc = node->GetOpDesc();
 
@@ -1907,26 +1880,24 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
   }
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06_1)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06_1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithScalar_1(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "ApplyMomentum") {
       auto opdesc = node->GetOpDesc();
 
@@ -1947,26 +1918,24 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim_none, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
   }
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06_2)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_06_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithScalar_2(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim_none = {};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "am") {
       auto opdesc = node->GetOpDesc();
 
@@ -1994,29 +1963,26 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim_none, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
   }
 
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_07)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_07) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithL2LossAndAddN(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
-  vector<int64_t> result_dim5_hd_l2_loss = {1,1,1,1,16};
+  vector<int64_t> result_dim5_hd_l2_loss = {1, 1, 1, 1, 16};
   vector<int64_t> scalar = {1};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "am") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
@@ -2038,7 +2004,6 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim5_h_d, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
     if (node->GetType() == "L2Loss") {
       auto opdesc = node->GetOpDesc();
@@ -2046,7 +2011,6 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_ND, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(scalar, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
     if (node->GetType() == "AddN") {
       auto opdesc = node->GetOpDesc();
@@ -2061,21 +2025,20 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_08)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_08) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithL2LossAndAddN_1(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
-  vector<int64_t> result_dim5_hd_l2_loss = {1,1,1,1,16};
+  vector<int64_t> result_dim5_hd_l2_loss = {1, 1, 1, 1, 16};
   vector<int64_t> scalar = {};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "am") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
@@ -2097,7 +2060,6 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NC1HWC0, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(result_dim5_h_d, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
     if (node->GetType() == "L2Loss") {
       auto opdesc = node->GetOpDesc();
@@ -2105,11 +2067,10 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_NCHW, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(scalar, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
     if (node->GetType() == "AddN") {
       auto opdesc = node->GetOpDesc();
-      vector<int64_t> dim_fz_add_n = {1,1,16,16};
+      vector<int64_t> dim_fz_add_n = {1, 1, 16, 16};
       EXPECT_EQ(ge::FORMAT_NCHW, opdesc->GetInputDesc(0).GetFormat());
       EXPECT_EQ(ge::FORMAT_NCHW, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
@@ -2120,20 +2081,19 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_09)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_09) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithL2LossAndMul(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
   vector<int64_t> scalar = {1};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "am") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
@@ -2156,7 +2116,6 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
       EXPECT_EQ(ge::FORMAT_ND, opdesc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
       EXPECT_EQ(scalar, opdesc->GetOutputDesc(0).GetShape().GetDims());
-
     }
     if (node->GetType() == "Mul") {
       auto opdesc = node->GetOpDesc();
@@ -2173,20 +2132,19 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_10)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_10) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithBiasAdd(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
   vector<int64_t> scalar = {1};
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "am") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
@@ -2216,20 +2174,19 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_11)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_11) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithTransData(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
   vector<int64_t> scalar = {1};
-  for(auto node : graph->GetDirectNode()) {
-
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2DBackpropInput") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
@@ -2258,21 +2215,19 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_12)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_12) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithTransData_2(graph);
 
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
   vector<int64_t> result_dim = {3, 4, 5, 6};
   vector<int64_t> result_dim5_h_d = {3, 1, 5, 6, 16};
   vector<int64_t> result_dim_fz = {30, 1, 16, 16};
   vector<int64_t> scalar = {1};
-  for(auto node : graph->GetDirectNode()) {
-
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "Conv2DBackpropInput") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_FRACTAL_Z, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
@@ -2301,8 +2256,7 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_unknown_shape)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_unknown_shape) {
   for (auto format : FE_ORIGIN_FORMAT_VECTOR) {
     if (format == ge::FORMAT_ND) {
       continue;
@@ -2310,10 +2264,11 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     CreateUnknownShapeGraph(graph, format);
 
-    HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-    heavt_format_propagator->Initialize();
+    HeavyFormatPropagationPtr heavt_format_propagator =
+        std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+    heavt_format_propagator->Initalize();
     Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-    for(auto node : graph->GetDirectNode()) {
+    for (auto node : graph->GetDirectNode()) {
       if (node->GetType() == "ApplyMomentumA") {
         auto opdesc = node->GetOpDesc();
         vector<int64_t> result_dim = {-1, 4, 5, 6};
@@ -2342,81 +2297,81 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
 }
 
 // NCDHW-->NDC1HWC0/FRACTAL_3D
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_01)
-{
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-    CreateConv3dGraph01(graph);
-    HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-    heavt_format_propagator->Initialize();
-    Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_01) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  CreateConv3dGraph01(graph);
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
+  Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
 
-    vector<int64_t> result6d_dim = {1, 3, 1, 4, 5, 16};
-    vector<int64_t> result_fz3d_dim = {720, 1, 16, 16};
+  vector<int64_t> result6d_dim = {1, 3, 1, 4, 5, 16};
+  vector<int64_t> result_fz3d_dim = {720, 1, 16, 16};
 
-    for(auto node : graph->GetDirectNode()) {
-        if (node->GetType() == "BiasAdd") {
-            auto opdesc = node->GetOpDesc();
-            EXPECT_EQ(ge::FORMAT_NDC1HWC0, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
-            EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
-            EXPECT_EQ(result6d_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
-        }
-
-        if (node->GetType() == "ApplyMomentum") {
-            auto opdesc = node->GetOpDesc();
-            EXPECT_EQ(ge::FORMAT_FRACTAL_Z_3D, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
-            EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
-            EXPECT_EQ(result_fz3d_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
-        }
+  for (auto node : graph->GetDirectNode()) {
+    if (node->GetType() == "BiasAdd") {
+      auto opdesc = node->GetOpDesc();
+      EXPECT_EQ(ge::FORMAT_NDC1HWC0, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
+      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
+      EXPECT_EQ(result6d_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
     }
 
-    EXPECT_EQ(fe::SUCCESS, ret);
+    if (node->GetType() == "ApplyMomentum") {
+      auto opdesc = node->GetOpDesc();
+      EXPECT_EQ(ge::FORMAT_FRACTAL_Z_3D, ge::GetPrimaryFormat(opdesc->GetInputDesc(0).GetFormat()));
+      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
+      EXPECT_EQ(result_fz3d_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
+    }
+  }
+
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
 // NDHWC-->NDC1HWC0/FRACTAL_3D
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_02)
-{
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-    CreateConv3dGraph02(graph);
-    HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
-    Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_02) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  CreateConv3dGraph02(graph);
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
+  Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
 
-    vector<int64_t> result6d_dim = {1, 2, 1, 3, 4, 16};
-    vector<int64_t> result_fz3d_dim = {504, 1, 16, 16};
+  vector<int64_t> result6d_dim = {1, 2, 1, 3, 4, 16};
+  vector<int64_t> result_fz3d_dim = {504, 1, 16, 16};
 
-    for(auto node : graph->GetDirectNode()) {
-        if (node->GetType() == "BiasAdd") {
-            auto opdesc = node->GetOpDesc();
-            EXPECT_EQ(ge::FORMAT_NDC1HWC0, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
-            EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-            EXPECT_EQ(result6d_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-        }
-
-        if (node->GetType() == "ApplyMomentum") {
-            auto opdesc = node->GetOpDesc();
-            EXPECT_EQ(ge::FORMAT_FRACTAL_Z_3D, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
-            EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-            EXPECT_EQ(result_fz3d_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-        }
+  for (auto node : graph->GetDirectNode()) {
+    if (node->GetType() == "BiasAdd") {
+      auto opdesc = node->GetOpDesc();
+      EXPECT_EQ(ge::FORMAT_NDC1HWC0, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
+      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+      EXPECT_EQ(result6d_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
     }
-    EXPECT_EQ(fe::SUCCESS, ret);
+
+    if (node->GetType() == "ApplyMomentum") {
+      auto opdesc = node->GetOpDesc();
+      EXPECT_EQ(ge::FORMAT_FRACTAL_Z_3D, ge::GetPrimaryFormat(opdesc->GetOutputDesc(0).GetFormat()));
+      EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+      EXPECT_EQ(result_fz3d_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
+    }
+  }
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
 /* Need expand dims*/
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_03)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateConv3dGraph03(graph);
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
 
-  vector<int64_t> result6d_dim_1 = {1, 1, 4, 1, 1, 16}; //ori {55} C
-  vector<int64_t> result6d_dim_2 = {1, 66, 4, 1, 1, 16}; //ori {55, 66} CD
-  vector<int64_t> result6d_dim_3 = {1, 66, 4, 77, 1, 16}; //ori {55, 66, 77} CDH
-  vector<int64_t> result6d_dim_4 = {1, 66, 4, 77, 88, 16}; //ori {55, 66, 77, 88} CDHW
+  vector<int64_t> result6d_dim_1 = {1, 1, 4, 1, 1, 16};     // ori {55} C
+  vector<int64_t> result6d_dim_2 = {1, 66, 4, 1, 1, 16};    // ori {55, 66} CD
+  vector<int64_t> result6d_dim_3 = {1, 66, 4, 77, 1, 16};   // ori {55, 66, 77} CDH
+  vector<int64_t> result6d_dim_4 = {1, 66, 4, 77, 88, 16};  // ori {55, 66, 77, 88} CDHW
 
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "biasAdd1") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_NDC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
@@ -2446,20 +2401,20 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
 }
 
 /* Need expand dims*/
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_04)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_3d_04) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateConv3dGraph03(graph);
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
 
-  vector<int64_t> result6d_dim_1 = {1, 1, 4, 1, 1, 16}; //ori {55} C
-  vector<int64_t> result6d_dim_2 = {1, 1, 5, 1, 55, 16}; //ori {55, 66} WC
-  vector<int64_t> result6d_dim_3 = {1, 1, 5, 55, 66, 16}; //ori {55, 66, 77} HWC
-  vector<int64_t> result6d_dim_4 = {1, 55, 6, 66, 77, 16}; //ori {55, 66, 77, 88} DHWC
+  vector<int64_t> result6d_dim_1 = {1, 1, 4, 1, 1, 16};     // ori {55} C
+  vector<int64_t> result6d_dim_2 = {1, 1, 5, 1, 55, 16};    // ori {55, 66} WC
+  vector<int64_t> result6d_dim_3 = {1, 1, 5, 55, 66, 16};   // ori {55, 66, 77} HWC
+  vector<int64_t> result6d_dim_4 = {1, 55, 6, 66, 77, 16};  // ori {55, 66, 77, 88} DHWC
 
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetName() == "biasAdd1") {
       auto opdesc = node->GetOpDesc();
       EXPECT_EQ(ge::FORMAT_NDC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
@@ -2488,20 +2443,20 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_find_samename_variablenodes_fail)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_find_samename_variablenodes_fail) {
   NodePtr node = nullptr;
   vector<ge::NodePtr> var_nodes;
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   heavt_format_propagator->FindSameNameVariableNodes(node, var_nodes);
   EXPECT_EQ(var_nodes.size(), 0);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_get_nextnode_info_fail)
-{
-  HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  heavt_format_propagator->Initialize();
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_get_nextnode_info_fail) {
+  HeavyFormatPropagationPtr heavt_format_propagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  heavt_format_propagator->Initalize();
   std::deque<NodeInfoPtr> next_node_queue;
   ge::OutDataAnchorPtr peer_out_anchor = nullptr;
   const NodeInfoPtr curr_node_info;
@@ -2549,48 +2504,46 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, refresh_heavy_op_c0_val) {
   EXPECT_EQ(ge::HasC0Format(netout_op2->GetInputDescPtr(0)->GetFormat()), true);
 }
 
-//TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_unknown_shape)
+// TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_unknown_shape)
 //{
-//  for (auto format : FE_ORIGIN_FORMAT_VECTOR) {
-//    if (format == ge::FORMAT_ND) {
-//      continue;
-//    }
-//    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-//    CreateUnknownShapeGraph(graph, format);
+//   for (auto format : FE_ORIGIN_FORMAT_VECTOR) {
+//     if (format == ge::FORMAT_ND) {
+//       continue;
+//     }
+//     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+//     CreateUnknownShapeGraph(graph, format);
 //
-//    HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-//    heavt_format_propagator->Initialize();
-//    Status ret = heavt_format_propagator->PropagateHeavyFormat(*(graph.get()));
-//    for(auto node : graph->GetDirectNode()) {
-//      if (node->GetType() == "ApplyMomentumA") {
-//        auto opdesc = node->GetOpDesc();
-//        vector<int64_t> result_dim = {-1, 4, 5, 6};
-//        EXPECT_EQ(format, opdesc->GetInputDesc(0).GetFormat());
-//        EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
-//        EXPECT_EQ(result_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
-//      }
-//      if (node->GetType() == "Const") {
-//        auto opdesc = node->GetOpDesc();
-//        vector<int64_t> result_dim = {3, 4, 5, 6};
-//        EXPECT_EQ(ge::FORMAT_NCHW, opdesc->GetOutputDesc(0).GetFormat());
-//        EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-//        EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-//      }
-//      if (node->GetType() == "Conv2D") {
-//        auto opdesc = node->GetOpDesc();
-//        vector<int64_t> result_dim = {3, 1, 5, 6, 16};
-//        EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
-//        EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
-//        EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
-//        EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
-//      }
-//    }
-//    EXPECT_EQ(fe::SUCCESS, ret);
-//  }
-//}
+//     HeavyFormatPropagationPtr heavt_format_propagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME,
+//     reflection_builder_ptr_); heavt_format_propagator->Initalize(); Status ret =
+//     heavt_format_propagator->PropagateHeavyFormat(*(graph.get())); for(auto node : graph->GetDirectNode()) {
+//       if (node->GetType() == "ApplyMomentumA") {
+//         auto opdesc = node->GetOpDesc();
+//         vector<int64_t> result_dim = {-1, 4, 5, 6};
+//         EXPECT_EQ(format, opdesc->GetInputDesc(0).GetFormat());
+//         EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetInputDesc(0).GetDataType());
+//         EXPECT_EQ(result_dim, opdesc->GetInputDesc(0).GetShape().GetDims());
+//       }
+//       if (node->GetType() == "Const") {
+//         auto opdesc = node->GetOpDesc();
+//         vector<int64_t> result_dim = {3, 4, 5, 6};
+//         EXPECT_EQ(ge::FORMAT_NCHW, opdesc->GetOutputDesc(0).GetFormat());
+//         EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+//         EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
+//       }
+//       if (node->GetType() == "Conv2D") {
+//         auto opdesc = node->GetOpDesc();
+//         vector<int64_t> result_dim = {3, 1, 5, 6, 16};
+//         EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetInputDesc(0).GetFormat());
+//         EXPECT_EQ(ge::FORMAT_NC1HWC0, opdesc->GetOutputDesc(0).GetFormat());
+//         EXPECT_EQ(ge::DT_FLOAT16, opdesc->GetOutputDesc(0).GetDataType());
+//         EXPECT_EQ(result_dim, opdesc->GetOutputDesc(0).GetShape().GetDims());
+//       }
+//     }
+//     EXPECT_EQ(fe::SUCCESS, ret);
+//   }
+// }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_heavy_format)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_heavy_format) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr mm_in_nchw_out_nchw = std::make_shared<OpDesc>("mm_in_nchw_out_nchw", "MatMulV2");
   OpDescPtr mm_in_fz_out_nchw = std::make_shared<OpDesc>("mm_in_fz_out_nchw", "MatMulV2");
@@ -2598,7 +2551,7 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   OpDescPtr mm_ffts = std::make_shared<OpDesc>("mm_ffts", "MatMulV2");
 
   // add descriptor
-  ge::GeShape shape({2,4,9,16});
+  ge::GeShape shape({2, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -2622,7 +2575,6 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   mm_in_nchw_out_fz->AddOutputDesc(tensor_desc2);
   NodePtr mm_in_nchw_out_fz_node = graph->AddNode(mm_in_nchw_out_fz);
 
-
   mm_ffts->AddInputDesc(tensor_desc1);
   mm_ffts->AddInputDesc(tensor_desc1);
   mm_ffts->AddOutputDesc(tensor_desc1);
@@ -2638,13 +2590,12 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(is_heavy_format_mm, false);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_ffts)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_ffts) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr mm_ffts = std::make_shared<OpDesc>("mm_ffts", "MatMulV2");
 
   // add descriptor
-  ge::GeShape shape({2,4,9,16});
+  ge::GeShape shape({2, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -2661,13 +2612,12 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(is_allow_nz_mm, false);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_allow_nz)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_allow_nz) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr mm = std::make_shared<OpDesc>("mm", "MatMulV2");
 
   // add descriptor
-  ge::GeShape shape({2,4,9,16});
+  ge::GeShape shape({2, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -2682,19 +2632,23 @@ TEST_F(UTEST_fusion_engine_heavy_format_distribution, heavy_format_distribution_
   EXPECT_EQ(is_allow_nz_mm, true);
 }
 
-TEST_F(UTEST_fusion_engine_heavy_format_distribution, is_heavy_format_consistent_with_ori)
-{
+TEST_F(UTEST_fusion_engine_heavy_format_distribution, is_heavy_format_consistent_with_ori) {
   OpDescPtr conv_o_p = std::make_shared<OpDesc>("conv2d", "Conv2D");
-  GeTensorDescPtr conv_tensor_desc = std::make_shared<GeTensorDesc>(GeShape({3, 1, 6, 16}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
+  GeTensorDescPtr conv_tensor_desc =
+      std::make_shared<GeTensorDesc>(GeShape({3, 1, 6, 16}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
   conv_tensor_desc->SetOriginShape(GeShape({3, 4, 5, 6}));
   conv_tensor_desc->SetOriginFormat(ge::FORMAT_NHWC);
-  bool bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc, ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16, conv_o_p);
+  bool bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc, ge::FORMAT_FRACTAL_Z,
+                                                                        ge::DT_FLOAT16, conv_o_p);
   EXPECT_EQ(bres, false);
-  bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc, ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16, conv_o_p);
+  bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc, ge::FORMAT_FRACTAL_NZ,
+                                                                   ge::DT_FLOAT16, conv_o_p);
   EXPECT_EQ(bres, true);
-  GeTensorDescPtr conv_tensor_desc1 = std::make_shared<GeTensorDesc>(GeShape({3, 1, 6, 16}), ge::FORMAT_NHWC, ge::DT_INT64);
+  GeTensorDescPtr conv_tensor_desc1 =
+      std::make_shared<GeTensorDesc>(GeShape({3, 1, 6, 16}), ge::FORMAT_NHWC, ge::DT_INT64);
   conv_tensor_desc1->SetOriginShape(GeShape({3, 4, 5, 6}));
   conv_tensor_desc1->SetOriginFormat(ge::FORMAT_NHWC);
-  bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc1, ge::FORMAT_FRACTAL_NZ, ge::DT_FLOAT16, conv_o_p);
+  bres = HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(conv_tensor_desc1, ge::FORMAT_FRACTAL_NZ,
+                                                                   ge::DT_FLOAT16, conv_o_p);
   EXPECT_EQ(bres, false);
 }

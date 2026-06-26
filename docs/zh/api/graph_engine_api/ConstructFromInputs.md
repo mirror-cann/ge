@@ -99,4 +99,3 @@ GraphPtr graph;
 graph =  Graph::ConstructFromInputs(inputs, graph_name);
 graph->SetOutputs(outputs);
 ```
-

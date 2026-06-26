@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ class MockMmpaForFlockFailed : public MmpaStubApiGe {
     return INT32_MAX;
   }
 };
-}
+}  // namespace
 static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   auto op_desc = std::make_shared<ge::OpDesc>(name, type);
   op_desc->SetStreamId(0);
@@ -54,7 +54,7 @@ static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
 namespace fileconstant {
 class DModelListener : public ModelListener {
  public:
-  DModelListener(){};
+  DModelListener() {};
   uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result, std::vector<gert::Tensor> &outputs) {
     return 0;
   }
@@ -111,7 +111,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_Op_OK) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -128,7 +128,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_Op_OK) {
   EXPECT_TRUE(AttrUtils::SetListInt(op_desc2, "shape", shape));
   op_desc2->AddOutputDesc(tensor_desc);
   op_desc2->SetOutputOffset({128});
-  graph->AddNode(op_desc2); // test ExternalWeightManager::CheckAndSetWeightLoaded
+  graph->AddNode(op_desc2);  // test ExternalWeightManager::CheckAndSetWeightLoaded
 
   std::unique_ptr<float[]> float_buf(new float[16]);
   std::string file_name = "tmp_weight_file.bin";
@@ -164,7 +164,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_WeightCombined_OK)
   model.file_constant_weight_dir_ = "./";
 
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant0", FILECONSTANT);
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
@@ -203,7 +203,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_WeightCombined_OK)
             model.runtime_param_.fileconstant_addr_mapping.end());
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(1)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 
   VarManager::Instance(0U)->var_resource_ = MakeShared<VarResource>(0U);
   EXPECT_EQ(model.InitNodes(graph), SUCCESS);
@@ -220,7 +220,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_IndividualWeights_
   model.file_constant_weight_dir_ = "./";
 
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant0", FILECONSTANT);
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
@@ -264,7 +264,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_IndividualWeights_
             model.runtime_param_.fileconstant_addr_mapping.end());
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(1)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 
   VarManager::Instance(0U)->var_resource_ = MakeShared<VarResource>(0U);
   EXPECT_EQ(model.InitNodes(graph), SUCCESS);
@@ -282,7 +282,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_IndividualWeights2
   model.file_constant_weight_dir_ = "./";
 
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant0", FILECONSTANT);
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
@@ -340,7 +340,7 @@ TEST_F(StestFileConstantUtilTransfer, Preprocess_Fileconstant_IndividualWeights2
             model.runtime_param_.fileconstant_addr_mapping.end());
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(256)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 
   VarManager::Instance(0U)->var_resource_ = MakeShared<VarResource>(0U);
   EXPECT_EQ(model.InitNodes(graph), SUCCESS);
@@ -599,5 +599,5 @@ TEST_F(StestFileConstantUtilTransfer, Refresh_Relative_File_Path_Success) {
   EXPECT_TRUE(AttrUtils::GetStr(file_const_op, ATTR_NAME_LOCATION, file_name));
   EXPECT_EQ(file_name, "weight.bin");
 }
-}
-}
+}  // namespace fileconstant
+}  // namespace ge

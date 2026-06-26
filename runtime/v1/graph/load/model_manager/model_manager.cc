@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,8 +59,8 @@ constexpr size_t kSoNameMaxSize = 100U;
 constexpr uint32_t kNullSoNameOffset = 0xFFFFFFFF;
 constexpr uint16_t kNeverTimeout = 0xFFFF;
 constexpr uint64_t kOfflineSessionId = 0U;
-constexpr uint32_t kTriggerScanIntervalMs = 5U; // millisconds
-constexpr uint32_t kRecordIntervalMs = 60000U; // millisconds
+constexpr uint32_t kTriggerScanIntervalMs = 5U;  // millisconds
+constexpr uint32_t kRecordIntervalMs = 60000U;   // millisconds
 constexpr uint32_t kRecordTimes = 4U;
 
 const std::string kCmdTypeDump = "dump";
@@ -141,7 +141,8 @@ Status CreateHbmManager(void *block, gert::TensorOperateType operate_type, void 
   GE_ASSERT_NOTNULL(block);
   auto mem_block = reinterpret_cast<ge::MemBlock *>(block);
   GE_ASSERT((operate_type == gert::kGetTensorAddress || operate_type == gert::kFreeTensor ||
-    operate_type == gert::kPlusShareCount), "Unexpected operate type %d", static_cast<int32_t>(operate_type));
+             operate_type == gert::kPlusShareCount),
+            "Unexpected operate type %d", static_cast<int32_t>(operate_type));
   if (operate_type == gert::kGetTensorAddress) {
     GE_ASSERT_NOTNULL(out);
     *out = mem_block->GetAddr();
@@ -155,22 +156,21 @@ Status CreateHbmManager(void *block, gert::TensorOperateType operate_type, void 
   return SUCCESS;
 }
 
-Status MallocOutputMemBlock(const GraphId &graph_id, ge::Allocator *allocator,
-                            const size_t tensor_size, ge::MemBlock *&mem_block) {
+Status MallocOutputMemBlock(const GraphId &graph_id, ge::Allocator *allocator, const size_t tensor_size,
+                            ge::MemBlock *&mem_block) {
   mem_block = allocator->Malloc(tensor_size);
   GE_ASSERT((mem_block != nullptr), "malloc output memory failed by allocator, graph_id:%u.", graph_id);
   GE_ASSERT((mem_block->GetAddr() != nullptr),
             "malloc output memory failed by allocator, output memory addr is null, graph_id:%u.", graph_id);
-  GELOGI("Alloc output memory success by allocator, mem_block:%p, addr:%p, size:%zu.", mem_block,
-         mem_block->GetAddr(), tensor_size);
+  GELOGI("Alloc output memory success by allocator, mem_block:%p, addr:%p, size:%zu.", mem_block, mem_block->GetAddr(),
+         tensor_size);
   return SUCCESS;
 }
 
 Status BindOutputMemBlock(const size_t tensor_size, ge::MemBlock *const mem_block, GeTensor &ge_tensor) {
   const auto deleter = [mem_block](const uint8_t *device_data) {
     (void)device_data;
-    GELOGI("Free output memory which alloc by allocator, mem_block:%p, addr:%p.", mem_block,
-           mem_block->GetAddr());
+    GELOGI("Free output memory which alloc by allocator, mem_block:%p, addr:%p.", mem_block, mem_block->GetAddr());
     mem_block->Free();
   };
   GE_ASSERT_SUCCESS(ge_tensor.SetData(static_cast<uint8_t *>(mem_block->GetAddr()), tensor_size, deleter));
@@ -179,8 +179,7 @@ Status BindOutputMemBlock(const size_t tensor_size, ge::MemBlock *const mem_bloc
 }
 
 std::shared_ptr<DavinciModel> CreateDavinciModelFromRootModel(const GeRootModelPtr &root_model,
-                                                              const GeModelPtr &ge_model,
-                                                              const int32_t priority) {
+                                                              const GeModelPtr &ge_model, const int32_t priority) {
   const auto davinci_model = MakeShared<DavinciModel>(priority, nullptr);
   if ((davinci_model == nullptr) || (root_model == nullptr) || (ge_model == nullptr)) {
     return davinci_model;
@@ -213,7 +212,7 @@ Status SetNetOutputTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph
 }
 
 Status ModelManager::GetOutputAllocator(const uint32_t model_id, const aclrtStream stream,
-                                          ge::Allocator *&allocator_ptr) {
+                                        ge::Allocator *&allocator_ptr) {
   AllocatorPtr allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
   if (allocator != nullptr) {
     GELOGI("Get external allocator for outputs, stream:%p, model_id:%u.", stream, model_id);
@@ -227,8 +226,8 @@ Status ModelManager::GetOutputAllocator(const uint32_t model_id, const aclrtStre
   }
   auto *allocators = iter->second.GetAllocator("", stream);
   GE_ASSERT_NOTNULL(allocators, "get built-in allocator failed, model_id:%u.", model_id);
-  auto *device_allocator = allocators->GetAllocator(gert::kOnDeviceHbm,
-                                                  static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
+  auto *device_allocator =
+      allocators->GetAllocator(gert::kOnDeviceHbm, static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
   GE_ASSERT_NOTNULL(device_allocator, "get device allocator failed, model_id:%u.", model_id);
   GELOGI("Get built-in allocator for outputs, stream:%p, model_id:%u.", stream, model_id);
   allocator_ptr = device_allocator;
@@ -297,8 +296,8 @@ Status MallocFeatureMemory(const GraphId &graph_id, const uint32_t model_id, con
   MemBlock *mem_block = nullptr;
   if (feature_mem.first != nullptr) {
     mem_block = external_allocator->MallocAdvise(size, const_cast<void *>(feature_mem.first));
-    GE_ASSERT((mem_block != nullptr),
-              "malloc advise feature memory failed by external allocator, graph_id:%u.", graph_id);
+    GE_ASSERT((mem_block != nullptr), "malloc advise feature memory failed by external allocator, graph_id:%u.",
+              graph_id);
   } else {
     mem_block = external_allocator->Malloc(size);
     GE_ASSERT((mem_block != nullptr), "malloc feature memory failed by external allocator, graph_id:%u.", graph_id);
@@ -317,9 +316,10 @@ Status MallocFeatureMemory(const GraphId &graph_id, const uint32_t model_id, con
     graph_node->SetFeatureMemoryBase(memory, size);
   }
   graph_node->SetFeatureMemBlock(mem_block);
-  GELOGI("Update graph feature memory base success by external allocator, block:%p, memory:%p, size:%zu, graph_id:%u, "
-         "refreshable_feature_mem_size:%zu, feature_mem_size:%zu",
-         mem_block, memory, size, graph_id, refreshable_feature_mem_size, feature_mem_size);
+  GELOGI(
+      "Update graph feature memory base success by external allocator, block:%p, memory:%p, size:%zu, graph_id:%u, "
+      "refreshable_feature_mem_size:%zu, feature_mem_size:%zu",
+      mem_block, memory, size, graph_id, refreshable_feature_mem_size, feature_mem_size);
   return SUCCESS;
 }
 
@@ -331,8 +331,11 @@ Status CalcTensorSizeByShape(const GeShape &shape, DataType data_type, size_t &r
     uint32_t type_size = 0U;
     GE_ASSERT_TRUE(ge::TypeUtils::GetDataTypeLength(data_type, type_size));
     if (ge::MulOverflow(shape_size, static_cast<int64_t>(type_size), cal_size)) {
-      GELOGE(ge::GRAPH_FAILED, "[Calc][TensorSizeByShape] shape_size[%" PRId64 "] "
-        "multiplied by type_size[%u] overflowed!", shape_size, type_size);
+      GELOGE(ge::GRAPH_FAILED,
+             "[Calc][TensorSizeByShape] shape_size[%" PRId64
+             "] "
+             "multiplied by type_size[%u] overflowed!",
+             shape_size, type_size);
       return ge::FAILED;
     }
   } else {
@@ -349,7 +352,7 @@ Status CalcTensorSizeByShape(const GeShape &shape, DataType data_type, size_t &r
   return ge::SUCCESS;
 }
 
-Status CreateGertTensor(const GeTensorDescPtr ge_tensor_desc, gert::Tensor &gert_tensor)  {
+Status CreateGertTensor(const GeTensorDescPtr ge_tensor_desc, gert::Tensor &gert_tensor) {
   gert_tensor.MutableStorageShape().SetDimNum(ge_tensor_desc->GetShape().GetDimNum());
   for (size_t i = 0U; i < ge_tensor_desc->GetShape().GetMutableDims().size(); ++i) {
     gert_tensor.MutableStorageShape().SetDim(i, ge_tensor_desc->GetShape().GetDim(i));
@@ -368,20 +371,20 @@ Status CreateGertTensor(const GeTensorDescPtr ge_tensor_desc, gert::Tensor &gert
   return SUCCESS;
 }
 
-Status ModelManager::EnsureTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                                      const uint32_t model_id, const aclrtStream stream,
-                                      ModelOutputTensorInfo &info) {
+Status ModelManager::EnsureTensorInfo(const GraphId &graph_id, const GraphNodePtr &graph_node, const uint32_t model_id,
+                                      const aclrtStream stream, ModelOutputTensorInfo &info) {
   GE_ASSERT_SUCCESS(SetNetOutputTensorInfo(graph_id, graph_node));
   info.ret_tensor_size = graph_node->GetTensorSize();
   info.ge_tensor_descs = graph_node->GetGeTensorDescPtr();
-  GE_ASSERT((info.ret_tensor_size.size() == info.ge_tensor_descs.size()), "tensor info invalid, graph_id:%u.", graph_id);
+  GE_ASSERT((info.ret_tensor_size.size() == info.ge_tensor_descs.size()), "tensor info invalid, graph_id:%u.",
+            graph_id);
   GE_ASSERT_SUCCESS(GetOutputAllocator(model_id, stream, info.allocator_ptr));
   return SUCCESS;
 }
 
 Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                                          const uint32_t model_id, const aclrtStream stream,
-                                          std::vector<gert::Tensor> &outputs) {
+                                         const uint32_t model_id, const aclrtStream stream,
+                                         std::vector<gert::Tensor> &outputs) {
   if (graph_node->IsAppRefreshFeatureMemory() || graph_node->IsAppRefreshConstMemory()) {
     GELOGI("Outputs memory base has been set by app, graph_id:%u.", graph_id);
     return SUCCESS;
@@ -390,7 +393,9 @@ Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNod
   ModelOutputTensorInfo info;
   bool ensure_tensor_info_initialized = false;
   auto EnsureInfo = [&]() -> Status {
-    if (ensure_tensor_info_initialized) { return SUCCESS; }
+    if (ensure_tensor_info_initialized) {
+      return SUCCESS;
+    }
     GE_ASSERT_SUCCESS(EnsureTensorInfo(graph_id, graph_node, model_id, stream, info));
     ensure_tensor_info_initialized = true;
     return SUCCESS;
@@ -405,7 +410,9 @@ Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNod
   }
   // check each output, skip if already has memory, allocate if not
   for (size_t i = 0UL; i < outputs.size(); i++) {
-    if (outputs[i].GetSize() != 0 && outputs[i].GetAddr() != nullptr) { continue; }
+    if (outputs[i].GetSize() != 0 && outputs[i].GetAddr() != nullptr) {
+      continue;
+    }
     GE_ASSERT_SUCCESS(EnsureInfo());
     GE_ASSERT((info.ret_tensor_size.size() == outputs.size()), "tensor info invalid, graph_id:%u.", graph_id);
 
@@ -415,17 +422,17 @@ Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNod
     auto mem_block = info.allocator_ptr->Malloc(info.ret_tensor_size[i]);
     GE_ASSERT((mem_block != nullptr), "malloc output memory failed by allocator, graph_id:%u.", graph_id);
     GE_ASSERT((mem_block->GetAddr() != nullptr),
-        "malloc output memory failed by allocator, output memory addr is null, graph_id:%u.", graph_id);
+              "malloc output memory failed by allocator, output memory addr is null, graph_id:%u.", graph_id);
     outputs[i].SetData(gert::TensorData{mem_block, CreateHbmManager, mem_block->GetSize(), outputs[i].GetPlacement()});
-    GELOGI("Alloc output memory success by allocator, mem_block:%p, addr:%p, size:%u.", mem_block,
-            mem_block->GetAddr(), info.ret_tensor_size[i]);
+    GELOGI("Alloc output memory success by allocator, mem_block:%p, addr:%p, size:%u.", mem_block, mem_block->GetAddr(),
+           info.ret_tensor_size[i]);
   }
   return SUCCESS;
 }
 
 Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNodePtr &graph_node,
-                                          const uint32_t model_id, const aclrtStream stream,
-                                          std::vector<GeTensor> &outputs) {
+                                         const uint32_t model_id, const aclrtStream stream,
+                                         std::vector<GeTensor> &outputs) {
   if (graph_node->IsAppRefreshFeatureMemory() || graph_node->IsAppRefreshConstMemory()) {
     GELOGI("Outputs memory base has been set by app, graph_id:%u.", graph_id);
     return SUCCESS;
@@ -434,7 +441,9 @@ Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNod
   ModelOutputTensorInfo info;
   bool tensor_info_initialized = false;
   auto EnsureInfo = [&]() -> Status {
-    if (tensor_info_initialized) { return SUCCESS; }
+    if (tensor_info_initialized) {
+      return SUCCESS;
+    }
     GE_ASSERT_SUCCESS(EnsureTensorInfo(graph_id, graph_node, model_id, stream, info));
     tensor_info_initialized = true;
     return SUCCESS;
@@ -448,7 +457,9 @@ Status ModelManager::MallocOutputsMemory(const GraphId &graph_id, const GraphNod
   }
   // check each output, skip if already has memory, allocate if not
   for (size_t i = 0UL; i < outputs.size(); i++) {
-    if (outputs[i].GetData().GetSize() != 0) { continue; }
+    if (outputs[i].GetData().GetSize() != 0) {
+      continue;
+    }
     GE_ASSERT_SUCCESS(EnsureInfo());
 
     GE_ASSERT((info.ret_tensor_size.size() == outputs.size()), "tensor info invalid, graph_id:%u.", graph_id);
@@ -471,12 +482,11 @@ void FreeFeatureMemory(const ge::GraphNodePtr &graph_node) {
 
 std::string ModelManager::record_file_name_;
 std::mutex ModelManager::weights_mem_mtx_;
-std::unordered_map<std::string, ModelManager::SharedWeightAddrInfo>
-    ModelManager::weights_mem_ids_to_addr_info_;
+std::unordered_map<std::string, ModelManager::SharedWeightAddrInfo> ModelManager::weights_mem_ids_to_addr_info_;
 
 ModelManager &ModelManager::GetInstance() {
   static const std::shared_ptr<ModelManager> instance_ptr =
-      std::shared_ptr<ModelManager>(new (std::nothrow) ModelManager, [](ModelManager *){});
+      std::shared_ptr<ModelManager>(new (std::nothrow) ModelManager, [](ModelManager *) {});
   // 老代码可能存在单例析构顺序问题，所以使用shared_ptr保证不提前释放。
   // 下面增加空指针校验，instance_ptr为空指针时，再返回局部静态变量（这应该算极端场景）。
   CHECK_FALSE_EXEC(instance_ptr != nullptr, static ModelManager instance; return instance);
@@ -506,12 +516,13 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
   param_base.fwkKernelBase.fwk_kernel.opType = op_type;
   param_base.fwkKernelBase.fwk_kernel.sessionID = session_id;
   if (op_type == aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_KERNEL_DESTROY) {
-    const std::string model_key = std::to_string(session_id) + "_" + std::to_string(model_id) + "_" +
-                                  std::to_string(sub_model_id);
+    const std::string model_key =
+        std::to_string(session_id) + "_" + std::to_string(model_id) + "_" + std::to_string(sub_model_id);
     const std::lock_guard<std::recursive_mutex> lk(map_mutex_);
     const auto iter = model_aicpu_kernel_.find(model_key);
     if (iter != model_aicpu_kernel_.end()) {
-      GELOGD("kernel destroy session_id %" PRIu64 ", model_id %u, sub_model_id %u.", session_id, model_id, sub_model_id);
+      GELOGD("kernel destroy session_id %" PRIu64 ", model_id %u, sub_model_id %u.", session_id, model_id,
+             sub_model_id);
       std::vector<uint64_t> v_aicpu_kernel = model_aicpu_kernel_.at(model_key);
       // Insert size of aicpu kernel vector in the first element
       (void)v_aicpu_kernel.insert(v_aicpu_kernel.cbegin(), v_aicpu_kernel.size());
@@ -521,11 +532,11 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
       GE_CHK_ACL_RET(ge::AclrtMalloc(&aicpu_kernel_addr, kernel_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
       allocated_mem.emplace_back(aicpu_kernel_addr);
 
-      GE_CHK_ACL_RET(aclrtMemcpy(aicpu_kernel_addr, kernel_size, v_aicpu_kernel.data(), kernel_size,
-          ACL_MEMCPY_HOST_TO_DEVICE));
+      GE_CHK_ACL_RET(
+          aclrtMemcpy(aicpu_kernel_addr, kernel_size, v_aicpu_kernel.data(), kernel_size, ACL_MEMCPY_HOST_TO_DEVICE));
       param_base.fwkKernelBase.fwk_kernel.kernelID = PtrToValue(aicpu_kernel_addr);
       // In the scene of loading once and running many times, the kernel needs to be destroyed many times,
-      // and connot be removed from kernel map.
+      // and cannot be removed from kernel map.
     }
   }
 
@@ -537,8 +548,8 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
 
   GE_CHK_ACL_RET(aclrtCreateStream(&stream));
   KernelRegisterInfo register_info;
-  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo("TfSessionTask",
-      "libtf_kernels.so", "TFOperateAPI", "TFKernel", register_info));
+  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo("TfSessionTask", "libtf_kernels.so",
+                                                                          "TFOperateAPI", "TFKernel", register_info));
   AicpuKernelHandlesManager aicpu_kernel_handles_manager;
   const auto bin_name = aicpu_kernel_handles_manager.GenerateKey(register_info);
   auto bin_handle = aicpu_kernel_handles_manager.GetOrRegisterKernel(register_info, bin_name);
@@ -556,8 +567,7 @@ Status ModelManager::KernelLaunchEx(const aicpu::FWKAdapter::FWKOperateType op_t
   return SUCCESS;
 }
 
-Status ModelManager::DestroyAicpuSessionForDevice(const uint64_t session_id,
-                                                  const uint32_t device_id,
+Status ModelManager::DestroyAicpuSessionForDevice(const uint64_t session_id, const uint32_t device_id,
                                                   const bool need_set_device) {
   GELOGI("DestroyAicpuSession device id:%u", device_id);
   if (need_set_device) {
@@ -598,9 +608,9 @@ void ModelManager::DestroyAicpuSession(const uint64_t session_id, const bool sin
     }
     if (DestroyAicpuSessionForDevice(session_id, device_id, !has_ctx) == SUCCESS) {
       GELOGI("The session: %" PRIu64 " destroyed, device id:%u", session_id, device_id);
-      (void) iter->second.erase(device_id);
+      (void)iter->second.erase(device_id);
       if (iter->second.empty()) {
-        (void) sess_id_to_device_ids_.erase(iter);
+        (void)sess_id_to_device_ids_.erase(iter);
       }
     }
   } else {
@@ -613,10 +623,10 @@ void ModelManager::DestroyAicpuSession(const uint64_t session_id, const bool sin
       }
     }
     if (iter->second.empty()) {
-      (void) sess_id_to_device_ids_.erase(iter);
+      (void)sess_id_to_device_ids_.erase(iter);
     }
     if (has_ctx) {
-      (void) aclrtSetCurrentContext(ctx);
+      (void)aclrtSetCurrentContext(ctx);
     }
   }
 }
@@ -644,16 +654,16 @@ Status ModelManager::DestroyAicpuKernel(const uint64_t session_id, const uint32_
                                         const uint32_t sub_model_id) {
   GELOGD("destroy aicpu kernel in session id %" PRIu64 ", model_id %u.", session_id, model_id);
   const std::lock_guard<std::recursive_mutex> lk(map_mutex_);
-  const std::string model_key = std::to_string(session_id) + "_" + std::to_string(model_id) + "_" +
-                                std::to_string(sub_model_id);
+  const std::string model_key =
+      std::to_string(session_id) + "_" + std::to_string(model_id) + "_" + std::to_string(sub_model_id);
   if (model_aicpu_kernel_.find(model_key) != model_aicpu_kernel_.end()) {
-    const Status ret = KernelLaunchEx(aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_KERNEL_DESTROY, session_id, model_id,
-                                      sub_model_id);
+    const Status ret =
+        KernelLaunchEx(aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_KERNEL_DESTROY, session_id, model_id, sub_model_id);
     if (ret != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Call KernelLaunchEx fail, model_id:%u, sub_model_id:%u, session_id:%" PRIu64 "",
-                        model_id, sub_model_id, session_id);
-      GELOGE(FAILED, "[Call][KernelLaunchEx] fail, model_id:%u, sub_model_id:%u, session_id:%" PRIu64,
-             model_id, sub_model_id, session_id);
+                           model_id, sub_model_id, session_id);
+      GELOGE(FAILED, "[Call][KernelLaunchEx] fail, model_id:%u, sub_model_id:%u, session_id:%" PRIu64, model_id,
+             sub_model_id, session_id);
       return FAILED;
     }
   }
@@ -663,13 +673,13 @@ Status ModelManager::DestroyAicpuKernel(const uint64_t session_id, const uint32_
 void ModelManager::CreateAicpuKernel(const uint64_t session_id, const uint32_t model_id, const uint32_t sub_model_id,
                                      const uint64_t kernel_id) {
   const std::lock_guard<std::recursive_mutex> lk(map_mutex_);
-  const std::string model_key = std::to_string(session_id) + "_" + std::to_string(model_id) + "_" +
-                                std::to_string(sub_model_id);
+  const std::string model_key =
+      std::to_string(session_id) + "_" + std::to_string(model_id) + "_" + std::to_string(sub_model_id);
   const auto it = model_aicpu_kernel_.find(model_key);
   if (it != model_aicpu_kernel_.cend()) {
     it->second.push_back(kernel_id);
   } else {
-    model_aicpu_kernel_[model_key] = { kernel_id };
+    model_aicpu_kernel_[model_key] = {kernel_id};
   }
 }
 
@@ -703,12 +713,9 @@ Status ModelManager::SetDynamicSize(const uint32_t model_id, const std::vector<u
   return SUCCESS;
 }
 
-Status ModelManager::DoLoadHybridModelOnline(const uint32_t model_id,
-                                             const ModelData &model,
-                                             const uint32_t device_id,
+Status ModelManager::DoLoadHybridModelOnline(const uint32_t model_id, const ModelData &model, const uint32_t device_id,
                                              const GeRootModelPtr &ge_root_model,
-                                             const std::shared_ptr<ModelListener> &listener,
-                                             const aclrtStream stream) {
+                                             const std::shared_ptr<ModelListener> &listener, const aclrtStream stream) {
   auto hybrid_model = hybrid::HybridDavinciModel::Create(ge_root_model);
   GE_CHECK_NOTNULL(hybrid_model);
   hybrid_model->SetListener(listener);
@@ -824,10 +831,12 @@ Status ModelManager::LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &g
 
   param.weight_base = reinterpret_cast<uintptr_t>(const_mem.first);
   param.weight_size = const_mem.second;
-  GELOGI("param init: mem_base:[0x%llx], mem_size[%zu], weight_base:[0x%llx], weight_size[%zu],"
-         " fixed_feature_memory[0x%llx], fixed_mem_size[%zu], p2p_fixed_feature_memory[0x%llx],"
-         " p2p_fixed_mem_size[%zu].", param.mem_base, param.mem_size, param.weight_base, param.weight_size,
-         param.fixed_mem_base, param.fixed_mem_size, param.p2p_fixed_mem_base, param.p2p_fixed_mem_size);
+  GELOGI(
+      "param init: mem_base:[0x%llx], mem_size[%zu], weight_base:[0x%llx], weight_size[%zu],"
+      " fixed_feature_memory[0x%llx], fixed_mem_size[%zu], p2p_fixed_feature_memory[0x%llx],"
+      " p2p_fixed_mem_size[%zu].",
+      param.mem_base, param.mem_size, param.weight_base, param.weight_size, param.fixed_mem_base, param.fixed_mem_size,
+      param.p2p_fixed_mem_base, param.p2p_fixed_mem_size);
   davinci_model->SetNoFrozenInputIndexes(graph_node->GetFrozenInputIndex());
   const Status result = davinci_model->Init(param);
   if (result != SUCCESS) {
@@ -842,7 +851,6 @@ Status ModelManager::LoadModelOnline(uint32_t &model_id, const GeRootModelPtr &g
 
   return SUCCESS;
 }
-
 
 void ModelManager::InsertModel(const uint32_t model_id, const std::shared_ptr<DavinciModel> &davinci_model) {
   GE_CHK_BOOL_EXEC(davinci_model != nullptr, return, "[Check][Param] davinci_model ptr is null, id:%u", model_id);
@@ -866,8 +874,8 @@ Status ModelManager::DeleteModel(const uint32_t id) {
     const auto it = model_map_.find(id);
     if (it != model_map_.end()) {
       const uint64_t session_id = it->second->GetSessionId();
-      const std::string model_key = std::to_string(session_id) + "_" + std::to_string(id)  + "_" +
-                                    std::to_string(it->second->SubModelId());
+      const std::string model_key =
+          std::to_string(session_id) + "_" + std::to_string(id) + "_" + std::to_string(it->second->SubModelId());
       (void)model_aicpu_kernel_.erase(model_key);
       davinci_model_delay_destruction = it->second;
       (void)model_map_.erase(it);
@@ -956,9 +964,7 @@ Status ModelManager::SyncExecuteModel(const uint32_t model_id, const std::vector
   GE_CHECK_NOTNULL(model);
   const auto device_id = model->GetDeviceId();
   GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-    GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
-  });
+  GE_MAKE_GUARD(reset_device, [device_id]() { GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id))); });
   GE_CHK_STATUS_RET(model->NnExecute(nullptr, false, inputs, outputs));
   GELOGI("Execute model %u success, device id is %d.", model_id, device_id);
   GELOGI("UpdateOutputTensorShape for model:[%u] success.", model_id);
@@ -976,7 +982,7 @@ Status ModelManager::DataInputTensor(const uint32_t model_id, const std::shared_
   if (hybrid_model != nullptr) {
     GE_CHECK_NOTNULL(args);
     GE_CHK_STATUS_RET(hybrid_model->EnqueueData(args),
-                    "[Enqueue][Data] Data queue is full, please call again later, model_id:%u", model_id);
+                      "[Enqueue][Data] Data queue is full, please call again later, model_id:%u", model_id);
     return SUCCESS;
   }
   const auto &model = GetModel(model_id);
@@ -1004,8 +1010,8 @@ Status ModelManager::Start(const uint32_t model_id) {
   }
 
   const auto &davinci_model = GetModel(model_id);
-  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID,
-                         "[Get][Model] failed, Invalid model id %u to start! ", model_id);
+  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID, "[Get][Model] failed, Invalid model id %u to start! ",
+                         model_id);
 
   const auto status = davinci_model->ModelRunStart();
   if (status == SUCCESS) {
@@ -1032,8 +1038,8 @@ Status ModelManager::Stop(const uint32_t model_id) {
   }
 
   const auto &davinci_model = GetModel(model_id);
-  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID,
-                         "[Get][Model] failed, Invalid model id %u to stop!", model_id);
+  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID, "[Get][Model] failed, Invalid model id %u to stop!",
+                         model_id);
 
   const auto status = davinci_model->ModelRunStop();
   if (status == SUCCESS) {
@@ -1053,8 +1059,10 @@ Status ModelManager::Stop(const uint32_t model_id) {
 ///
 Status ModelManager::HandleCommand(const Command &cmd_info) {
   static const std::map<std::string, std::function<uint32_t(const Command &)>> cmds = {
-      {kCmdTypeDump, &HandleDumpCommand}, {kCmdTypeProfInit, &HandleProfInitCommand},
-      {kCmdTypeProfFinalize, &HandleProfFinalizeCommand}, {kCmdTypeProfStart, &HandleProfStartCommand},
+      {kCmdTypeDump, &HandleDumpCommand},
+      {kCmdTypeProfInit, &HandleProfInitCommand},
+      {kCmdTypeProfFinalize, &HandleProfFinalizeCommand},
+      {kCmdTypeProfStart, &HandleProfStartCommand},
       {kCmdTypeProfStop, &HandleProfStopCommand},
       {kCmdTypeProfModelSubscribe, &HandleProfModelSubscribeCommand},
       {kCmdTypeProfModelUnsubscribe, &HandleProfModelUnsubscribeCommand}};
@@ -1071,8 +1079,9 @@ Status ModelManager::HandleCommand(const Command &cmd_info) {
 
 Status ModelManager::GetModelIdByCmd(const Command &cmd_info, uint32_t &model_id) {
   if (cmd_info.cmd_params.size() < kCmdParSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu < kCmdParSize:%zu, Command::cmd_type:%s, check invalid",
-                       cmd_info.cmd_params.size(), kCmdParSize, cmd_info.cmd_type.c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Command::cmd_params.size:%zu < kCmdParSize:%zu, Command::cmd_type:%s, check invalid",
+                         cmd_info.cmd_params.size(), kCmdParSize, cmd_info.cmd_type.c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] When the cmd_type is '%s', the size of cmd_params must larger than 2.",
            cmd_info.cmd_type.c_str());
     return PARAM_INVALID;
@@ -1156,15 +1165,17 @@ Status ModelManager::HandleProfStartCommand(const Command &cmd_info) {
   }
 
   if (cmd_info.cmd_params.size() < kProfStartCmdParaSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu < %zu, check invalid",
-                       cmd_info.cmd_params.size(), kProfStartCmdParaSize);
-    GELOGE(PARAM_INVALID, "[Check][Param] When the cmd_type is 'profile start', "
-           "the size:%zu of cmd_params must larger than 2.", cmd_info.cmd_params.size());
+    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu < %zu, check invalid", cmd_info.cmd_params.size(),
+                         kProfStartCmdParaSize);
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] When the cmd_type is 'profile start', "
+           "the size:%zu of cmd_params must larger than 2.",
+           cmd_info.cmd_params.size());
     return PARAM_INVALID;
   }
   if (cmd_info.cmd_params.size() > kProfCmdParaMaxSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu > %zu, check invalid",
-                       cmd_info.cmd_params.size(), kProfCmdParaMaxSize);
+    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu > %zu, check invalid", cmd_info.cmd_params.size(),
+                         kProfCmdParaMaxSize);
     GELOGE(PARAM_INVALID, "[Check][Param] Command param size[%zu] larger than max[1000].", cmd_info.cmd_params.size());
     return PARAM_INVALID;
   }
@@ -1195,21 +1206,23 @@ Status ModelManager::HandleProfStopCommand(const Command &cmd_info) {
   }
 
   if (cmd_info.cmd_params.size() < kProfStartCmdParaSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu < %zu, check invalid",
-                       cmd_info.cmd_params.size(), kProfStartCmdParaSize);
-    GELOGE(PARAM_INVALID, "[Check][Param] When the cmd_type is 'profile stop', "
-           "the size:%zu of cmd_params must larger than 2.", cmd_info.cmd_params.size());
+    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu < %zu, check invalid", cmd_info.cmd_params.size(),
+                         kProfStartCmdParaSize);
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] When the cmd_type is 'profile stop', "
+           "the size:%zu of cmd_params must larger than 2.",
+           cmd_info.cmd_params.size());
     return PARAM_INVALID;
   }
   if (cmd_info.cmd_params.size() > kProfCmdParaMaxSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu > %zu, check invalid",
-                       cmd_info.cmd_params.size(), kProfCmdParaMaxSize);
+    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu > %zu, check invalid", cmd_info.cmd_params.size(),
+                         kProfCmdParaMaxSize);
     GELOGE(PARAM_INVALID, "[Check][Param] Command param size[%zu] larger than max[1000].", cmd_info.cmd_params.size());
     return PARAM_INVALID;
   }
 
   std::map<std::string, std::string> cmd_params_map;
-  constexpr uint32_t step = 2U; // cmd params saved as: { key1, val1, key2, val2, key3, val3 }
+  constexpr uint32_t step = 2U;  // cmd params saved as: { key1, val1, key2, val2, key3, val3 }
   for (size_t i = 0U; i < cmd_info.cmd_params.size(); i += step) {
     if ((i + 1U) >= cmd_info.cmd_params.size()) {  // +1 for value.
       break;
@@ -1227,7 +1240,7 @@ Status ModelManager::HandleProfStopCommand(const Command &cmd_info) {
 static Status ParserPara(const Command &cmd_info, const std::string &dump_key, std::string &dump_value) {
   auto iter = std::find(cmd_info.cmd_params.begin(), cmd_info.cmd_params.end(), dump_key);
   if (iter != cmd_info.cmd_params.end()) {
-    ++iter; // cmd params saved as: { key1, val1, key2, val2, key3, val3 }
+    ++iter;  // cmd params saved as: { key1, val1, key2, val2, key3, val3 }
     if (iter == cmd_info.cmd_params.end()) {
       REPORT_INNER_ERR_MSG("E19999", "dump_key:%s can't find in Command::cmd_param, check invalid", dump_key.c_str());
       GELOGE(PARAM_INVALID, "[Check][Param] dump_key:%s can't find in cmd_param, check invalid", dump_key.c_str());
@@ -1240,9 +1253,12 @@ static Status ParserPara(const Command &cmd_info, const std::string &dump_key, s
 
 Status ModelManager::HandleDumpCommand(const Command &cmd_info) {
   if ((cmd_info.cmd_params.size() % kDumpCmdPairSize) != 0U) {
-    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu MOD 2 != 0, check invalid", cmd_info.cmd_params.size());
-    GELOGE(PARAM_INVALID, "[Check][Param] When the cmd_type is 'dump', "
-           "the size:%zu of cmd_params must be a even number.", cmd_info.cmd_params.size());
+    REPORT_INNER_ERR_MSG("E19999", "Command::cmd_params.size:%zu MOD 2 != 0, check invalid",
+                         cmd_info.cmd_params.size());
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] When the cmd_type is 'dump', "
+           "the size:%zu of cmd_params must be a even number.",
+           cmd_info.cmd_params.size());
     return PARAM_INVALID;
   }
 
@@ -1311,8 +1327,8 @@ Status ModelManager::GetMaxUsedMemory(const uint32_t model_id, uint64_t &max_siz
   }
 
   const auto &davinci_model = GetModel(model_id);
-  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID,
-                         "[Get][Model] failed, Invalid model id:%u!", model_id);
+  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID, "[Get][Model] failed, Invalid model id:%u!",
+                         model_id);
 
   max_size = davinci_model->TotalMemSize();
   return SUCCESS;
@@ -1321,8 +1337,8 @@ Status ModelManager::GetMaxUsedMemory(const uint32_t model_id, uint64_t &max_siz
 Status ModelManager::GetInputOutputDescInfo(const uint32_t model_id, std::vector<InputOutputDescInfo> &input_desc,
                                             std::vector<InputOutputDescInfo> &output_desc) {
   const auto &davinci_model = GetModel(model_id);
-  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID,
-                         "[Get][Model] failed, Invalid model id %u!", model_id);
+  GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, PARAM_INVALID, "[Get][Model] failed, Invalid model id %u!",
+                         model_id);
 
   return davinci_model->GetInputOutputDescInfo(input_desc, output_desc);
 }
@@ -1403,8 +1419,7 @@ Status ModelManager::GetUserDesignateShapeOrder(const uint32_t model_id,
   return SUCCESS;
 }
 
-Status ModelManager::GetCurrentShape(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                                     int32_t &dynamic_type) {
+Status ModelManager::GetCurrentShape(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
   const auto &davinci_model = GetModel(model_id);
   GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
                          "[Get][Model] Failed, Invalid Model ID %u!", model_id);
@@ -1456,19 +1471,19 @@ Status ModelManager::GetAippInfo(const uint32_t model_id, const uint32_t index, 
   }
   const auto &davinci_model = GetModel(model_id);
   GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
-      "[Get][Model] failed, invalid model_id is %u.", model_id);
+                         "[Get][Model] failed, invalid model_id is %u.", model_id);
   return davinci_model->GetAippInfo(index, aipp_info);
 }
 
-Status ModelManager::GetAippType(const uint32_t model_id, const uint32_t index,
-                                 InputAippType &type, size_t &aipp_index) {
+Status ModelManager::GetAippType(const uint32_t model_id, const uint32_t index, InputAippType &type,
+                                 size_t &aipp_index) {
   const auto &hybrid_davinci_model = GetHybridModel(model_id);
   if (hybrid_davinci_model != nullptr) {
     return hybrid_davinci_model->GetAippType(index, type, aipp_index);
   }
   const auto &davinci_model = GetModel(model_id);
   GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
-      "[Get][Model] failed, invalid model_id is %u.", model_id);
+                         "[Get][Model] failed, invalid model_id is %u.", model_id);
   return davinci_model->GetAippType(index, type, aipp_index);
 }
 
@@ -1588,9 +1603,8 @@ Status ModelManager::LoadModelWithQ(uint32_t &model_id, const ModelData &model_d
   return LoadModelWithQueueParam(model_id, model_helper.GetGeRootModel(), model_queue_param, model_data.priority);
 }
 
-Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id,
-                               const ModelData &model_data,
-                               const ModelQueueParam &model_queue_param) {
+Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id, const ModelData &model_data,
+                                             const ModelQueueParam &model_queue_param) {
   ModelHelper model_helper;
   const Status ret = model_helper.LoadModel(model_data);
   if (ret != SUCCESS) {
@@ -1600,10 +1614,8 @@ Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id,
   return LoadModelWithQueueParam(model_id, model_helper.GetGeRootModel(), model_queue_param, model_data.priority);
 }
 
-Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id,
-                                             const GeRootModelPtr &root_model,
-                                             const ModelQueueParam &model_queue_param,
-                                             const int32_t priority,
+Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id, const GeRootModelPtr &root_model,
+                                             const ModelQueueParam &model_queue_param, const int32_t priority,
                                              const bool need_update_session_id) {
   if (IsNeedHybridLoad(*root_model)) {
     REPORT_INNER_ERR_MSG("E19999", "Dynamic shaped graphs are not currently supported by LoadModelWithQ");
@@ -1654,8 +1666,7 @@ Status ModelManager::LoadModelWithQueueParam(uint32_t &model_id,
   davinci_model->SetNeedModelConfig(model_queue_param.need_model_config);
   davinci_model->SetModelUuid(model_queue_param.model_uuid);
   davinci_model->SetStatusQueue(model_queue_param.status_output_queue);
-  davinci_model->SetNeedReportStatus((model_queue_param.is_dynamic_sched &&
-    model_queue_param.need_report_status));
+  davinci_model->SetNeedReportStatus((model_queue_param.is_dynamic_sched && model_queue_param.need_report_status));
 
   davinci_model->SetInputFusionOffsets(model_queue_param.input_fusion_offsets);
   SetDumpProperties(davinci_model);
@@ -1773,13 +1784,13 @@ Status ModelManager::UpdateFeatureMemoryBase(const uint32_t model_id, const uint
 
   size_t used_size = 0U;
   GE_ASSERT_SUCCESS(davinci_model->UpdateHbmFmMemBases(mem_base, size, used_size));
-  GELOGI("Update feature memory base success, model_id:%u, mem_base:%#lx, mem_size:%zu, used_mem_size:%zu",
-    model_id, mem_base, size, used_size);
+  GELOGI("Update feature memory base success, model_id:%u, mem_base:%#lx, mem_size:%zu, used_mem_size:%zu", model_id,
+         mem_base, size, used_size);
   return SUCCESS;
 }
 
-Status ModelManager::PaRemapped(const uint32_t model_id, const uint64_t va, const uint64_t new_pa,
-                                const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) {
+Status ModelManager::PaRemapped(const uint32_t model_id, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                                std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) {
   const auto &hybrid_davinci_model = GetHybridModel(model_id);
   GE_IF_BOOL_EXEC(hybrid_davinci_model != nullptr,
                   GELOGW("[Check][Model] Not support dynamic model, model_id:%u", model_id);
@@ -1825,7 +1836,7 @@ void GetGeTensorDescs(const std::vector<GeTensor> &tensors, std::vector<GeTensor
   };
   (void)std::all_of(tensors.cbegin(), tensors.cend(), accum_tensors);
 }
-}
+}  // namespace
 
 Status ModelManager::ExecuteModelAsync(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
                                        const std::vector<GeTensor> &input_tensor,
@@ -1866,10 +1877,8 @@ Status ModelManager::ExecuteModelAsync(const uint32_t model_id, const aclrtStrea
 }
 
 Status ModelManager::ExecuteModel(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
-                                  const std::vector<GeTensor> &input_tensor,
-                                  std::vector<GeTensor> &output_tensor) {
-  GE_ASSERT_SUCCESS(ExecuteModelAsync(model_id, stream, async_mode,
-      input_tensor, output_tensor));
+                                  const std::vector<GeTensor> &input_tensor, std::vector<GeTensor> &output_tensor) {
+  GE_ASSERT_SUCCESS(ExecuteModelAsync(model_id, stream, async_mode, input_tensor, output_tensor));
   auto model = GetModel(model_id);
   if (model != nullptr) {
     model->UpdateOutputTensorShape(output_tensor);
@@ -1879,8 +1888,8 @@ Status ModelManager::ExecuteModel(const uint32_t model_id, const aclrtStream str
 }
 
 Status ModelManager::ExecuteModelWithStream(const uint32_t model_id, const aclrtStream stream, const bool async_mode,
-                                  const std::vector<gert::Tensor> &input_tensor,
-                                  std::vector<gert::Tensor> &output_tensor) {
+                                            const std::vector<gert::Tensor> &input_tensor,
+                                            std::vector<gert::Tensor> &output_tensor) {
   const auto &davinci_model = GetModel(model_id);
   GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
                          "[Get][Model] Invalid model id %u, check whether model has been loaded or not.", model_id);
@@ -1902,9 +1911,8 @@ Status ModelManager::ExecuteModelWithStreamAsync(const uint32_t model_id, const 
   if (external_allocator != nullptr) {
     is_refreshable = graph_node->IsFeatureBaseRefreshable();
     if (is_refreshable) {
-      GE_ASSERT_SUCCESS(
-          MallocFeatureMemory(graph_node->GetGraphId(), model_id, graph_node, external_allocator),
-          "malloc feature memory failed, graph_id:%u.", graph_node->GetGraphId());
+      GE_ASSERT_SUCCESS(MallocFeatureMemory(graph_node->GetGraphId(), model_id, graph_node, external_allocator),
+                        "malloc feature memory failed, graph_id:%u.", graph_node->GetGraphId());
     }
   }
   GE_ASSERT_SUCCESS(MallocOutputsMemory(graph_node->GetGraphId(), graph_node, model_id, stream, output_tensor),
@@ -1956,7 +1964,7 @@ Status ModelManager::CreateAicpuSession(const uint64_t session_id) {
   if (it == device_ids.cend()) {
     const Status ret = KernelLaunchEx(aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_SESSION_CREATE, session_id, 0U, 0U);
     if (ret == SUCCESS) {
-      (void) device_ids.insert(static_cast<uint32_t>(device_id));
+      (void)device_ids.insert(static_cast<uint32_t>(device_id));
       GELOGI("The session:%" PRIu64 " create success on device:%d", session_id, device_id);
     }
     return ret;
@@ -2329,7 +2337,6 @@ Status ModelManager::LaunchBuiltinAicpuSo(const uint32_t device_id) {
   return SUCCESS;
 }
 
-
 ///
 /// @ingroup ge
 /// @brief get model memory size and weight
@@ -2346,7 +2353,7 @@ Status ModelManager::GetModelMemAndWeightSize(const ModelData &model, size_t &me
     GELOGE(FAILED, "[Parse][ModelContent] failed!");
     return ACL_ERROR_GE_PARAM_INVALID;
   }
-  const ModelFileHeader * const mdl_file_header = PtrToPtr<void, ModelFileHeader>(model.model_data);
+  const ModelFileHeader *const mdl_file_header = PtrToPtr<void, ModelFileHeader>(model.model_data);
   const bool is_dynamic_model = ModelParserBase::IsDynamicModel(*mdl_file_header);
   const size_t model_num = is_dynamic_model ? mdl_file_header->model_num : 1U;
   // load partition table
@@ -2402,8 +2409,8 @@ Status ModelManager::GetModelMemAndWeightSize(const ModelData &model, size_t &me
     }
   }
   mem_size = model_task_def.memory_size();
-  GELOGD("Query size for static model success, model num:%zu, weight size:%zu bytes, work size:%zu bytes.",
-         model_num, weight_size, mem_size);
+  GELOGD("Query size for static model success, model num:%zu, weight size:%zu bytes, work size:%zu bytes.", model_num,
+         weight_size, mem_size);
   return SUCCESS;
 }
 
@@ -2411,8 +2418,7 @@ void ModelManager::GenModelId(uint32_t &id) {
   id = max_model_id_.fetch_add(1);
 }
 
-Status ModelManager::GetOrigInputInfo(const uint32_t model_id, const uint32_t index,
-                                      OriginInputInfo &orig_input_info) {
+Status ModelManager::GetOrigInputInfo(const uint32_t model_id, const uint32_t index, OriginInputInfo &orig_input_info) {
   const auto &davinci_model = GetModel(model_id);
   GE_CHK_BOOL_RET_STATUS(davinci_model != nullptr, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID,
                          "[Get][Model] failed, invalid model_id is %u.", model_id);
@@ -2436,14 +2442,12 @@ bool ModelManager::IsDynamicShape(const uint32_t model_id) {
 }
 
 Status ModelManager::SyncExecuteHybridModel(const uint32_t model_id, const std::vector<gert::Tensor> &inputs,
-                                      std::vector<gert::Tensor> &outputs) {
+                                            std::vector<gert::Tensor> &outputs) {
   const auto &model = GetHybridModel(model_id);
   GE_ASSERT_NOTNULL(model);
   const auto device_id = model->GetDeviceId();
   GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-    GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
-  });
+  GE_MAKE_GUARD(reset_device, [device_id]() { GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id))); });
   return model->Execute(inputs, outputs);
 }
 
@@ -2454,8 +2458,8 @@ Status ModelManager::GetOpDescInfo(const uint32_t device_id, const uint32_t stre
     if (davinci_model->GetDeviceId() == device_id) {
       GELOGI("[Get][OpDescInfo] Start to GetOpDescInfo of device_id %u in davinci model.", device_id);
       if (davinci_model->GetOpDescInfo(stream_id, task_id, desc_info)) {
-        GELOGI("[Get][OpDescInfo] Find specific node of stream_id %u, task_id %u in davinci model.",
-               stream_id, task_id);
+        GELOGI("[Get][OpDescInfo] Find specific node of stream_id %u, task_id %u in davinci model.", stream_id,
+               task_id);
         return SUCCESS;
       }
     }
@@ -2465,8 +2469,8 @@ Status ModelManager::GetOpDescInfo(const uint32_t device_id, const uint32_t stre
     if (hybrid_model->GetDeviceId() == device_id) {
       GELOGI("[Get][OpDescInfo] Start to GetOpDescInfo of device_id %u in hybrid model.", device_id);
       if (hybrid_model->GetOpDescInfo(stream_id, task_id, desc_info)) {
-        GELOGI("[Get][OpDescInfo] Find specific node of stream_id: %u, task_id: %u in hybrid model.",
-               stream_id, task_id);
+        GELOGI("[Get][OpDescInfo] Find specific node of stream_id: %u, task_id: %u in hybrid model.", stream_id,
+               task_id);
         return SUCCESS;
       }
     }
@@ -2522,8 +2526,8 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
     GE_CHK_ACL_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
     allocated_mem.push_back(d_op_type_name);
-    GE_CHK_RT(aclrtMemcpy(d_op_type_name, op_type.length(), op_type.c_str(),
-        op_type.length(), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_RT(
+        aclrtMemcpy(d_op_type_name, op_type.length(), op_type.c_str(), op_type.length(), ACL_MEMCPY_HOST_TO_DEVICE));
     op_info.opType = PtrToValue(d_op_type_name);
     op_info.opLen = op_type.length();
     op_info.kernelsType = CPU_KERNEL;
@@ -2537,16 +2541,15 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
     GE_CHK_ACL_RET(ge::AclrtMalloc(&d_op_type_name, op_type.length(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
 
     allocated_mem.push_back(d_op_type_name);
-    GE_CHK_RT(aclrtMemcpy(d_op_type_name, op_type.size(), op_type.c_str(),
-        op_type.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_RT(aclrtMemcpy(d_op_type_name, op_type.size(), op_type.c_str(), op_type.size(), ACL_MEMCPY_HOST_TO_DEVICE));
     op_info.opType = PtrToValue(d_op_type_name);
     op_info.opLen = op_type.size();
     op_info.kernelsType = TF_KERNEL;
     req_aicpu_op_info_list.emplace_back(op_info);
   }
   GELOGI("Need check aicpu op nums from attr:[%zu], real nums:[%zu].", op_nums, req_aicpu_op_info_list.size());
-  GE_CHK_RT(aclrtMemcpy(d_req_op_list, sizeof(SysOpInfo) * req_aicpu_op_info_list.size(),
-      req_aicpu_op_info_list.data(), sizeof(SysOpInfo) * req_aicpu_op_info_list.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_RT(aclrtMemcpy(d_req_op_list, sizeof(SysOpInfo) * req_aicpu_op_info_list.size(), req_aicpu_op_info_list.data(),
+                        sizeof(SysOpInfo) * req_aicpu_op_info_list.size(), ACL_MEMCPY_HOST_TO_DEVICE));
 
   SysOpCheckInfo op_check_info_req{};
   SysOpCheckResp op_check_info_res{};
@@ -2570,22 +2573,19 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
 
   aclrtStream stream = nullptr;
   GE_CHK_ACL_RET(aclrtCreateStream(&stream));
-  GE_MAKE_GUARD(stream_guard, [&stream]() {
-    GE_CHK_RT(aclrtDestroyStream(stream));
-  });
+  GE_MAKE_GUARD(stream_guard, [&stream]() { GE_CHK_RT(aclrtDestroyStream(stream)); });
   rtArgsEx_t args_info = {};
   args_info.args = const_cast<void *>(static_cast<void *>(args.get()));
   args_info.argsSize = args_size;
   args_info.isNoNeedH2DCopy = 0U;
-  GE_CHK_RT(rtCpuKernelLaunchWithFlag(nullptr,
-      kernel_name.c_str(), 1U, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
+  GE_CHK_RT(
+      rtCpuKernelLaunchWithFlag(nullptr, kernel_name.c_str(), 1U, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
 
   GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
 
   // Check the response
   const void *const d_op_check_info_res = ValueToPtr(PtrToValue(args.get()) + op_check_info_req.offSetLen);
-  ret = memcpy_s(&op_check_info_res, sizeof(SysOpCheckResp),
-                 d_op_check_info_res, sizeof(SysOpCheckResp));
+  ret = memcpy_s(&op_check_info_res, sizeof(SysOpCheckResp), d_op_check_info_res, sizeof(SysOpCheckResp));
   GE_CHK_BOOL_RET_STATUS(ret == EOK, FAILED, "copy check info res failed");
 
   if (op_check_info_res.isWithoutJson) {
@@ -2599,19 +2599,19 @@ Status ModelManager::LaunchKernelCheckAicpuOp(const std::vector<std::string> &ai
     std::vector<ReturnCode> res_ret_code_list(res_op_nums);
     std::vector<SysOpInfo> res_aicpu_op_info_list(res_op_nums);
     GE_CHK_RT(aclrtMemcpy(res_ret_code_list.data(), sizeof(ReturnCode) * res_op_nums,
-        ValueToPtr(op_check_info_res.returnCodeList), sizeof(ReturnCode) * res_op_nums,
-        ACL_MEMCPY_DEVICE_TO_HOST));
+                          ValueToPtr(op_check_info_res.returnCodeList), sizeof(ReturnCode) * res_op_nums,
+                          ACL_MEMCPY_DEVICE_TO_HOST));
     GE_CHK_RT(aclrtMemcpy(res_aicpu_op_info_list.data(), sizeof(SysOpInfo) * res_op_nums,
-        ValueToPtr(op_check_info_res.sysOpInfoList), sizeof(SysOpInfo) * res_op_nums,
-        ACL_MEMCPY_DEVICE_TO_HOST));
+                          ValueToPtr(op_check_info_res.sysOpInfoList), sizeof(SysOpInfo) * res_op_nums,
+                          ACL_MEMCPY_DEVICE_TO_HOST));
     std::string fail_reason;
     for (uint64_t i = 0U; i < res_op_nums; i++) {
       const SysOpInfo &aicpu_info = res_aicpu_op_info_list.at(i);
       GELOGI("Not support aicpu op type: %" PRIu64 ", kernel_type:%d, opLen:%" PRIu64 ", ret_code:%d",
-          aicpu_info.opType, aicpu_info.kernelsType, aicpu_info.opLen, res_ret_code_list.at(i));
+             aicpu_info.opType, aicpu_info.kernelsType, aicpu_info.opLen, res_ret_code_list.at(i));
       std::vector<char> op_name(kOpNameMaxSize);
       GE_CHK_RT(aclrtMemcpy(op_name.data(), kOpNameMaxSize, ValueToPtr(aicpu_info.opType), aicpu_info.opLen,
-          ACL_MEMCPY_DEVICE_TO_HOST));
+                            ACL_MEMCPY_DEVICE_TO_HOST));
       const std::string kernel_type = (aicpu_info.kernelsType == TF_KERNEL) ? "TF_KERNEL" : "CPU_KERNEL";
       fail_reason += "op_type: " + std::string(op_name.data()) + " kernel_type: " + kernel_type +
                      " ret code:" + std::to_string(res_ret_code_list.at(i)) + "<0: op_type, 1: format, 2: datatype>\n";
@@ -2714,8 +2714,7 @@ void ModelManager::RecordTsSnapshot() {
         const uint32_t wait_interval = (i < kRecordTimes) ? kRecordIntervalMs : kTriggerScanIntervalMs;
         const std::chrono::milliseconds wait_for_ms(static_cast<uint32_t>(wait_interval));
         std::unique_lock<std::mutex> lk(monitor_mtx_);
-        (void)monitor_cv_.wait_for(lk, wait_for_ms,
-                                   [this]() -> bool { return stop_monitor_; });
+        (void)monitor_cv_.wait_for(lk, wait_for_ms, [this]() -> bool { return stop_monitor_; });
       }
       (void)mmUnlink(trigger_file_name_.c_str());
     } else {
@@ -2759,8 +2758,7 @@ void ModelManager::ClearMonitorThread() {
 }
 
 void ModelManager::getDevMsgCallback(const char_t *const msg, const uint32_t len) {
-  constexpr int32_t open_flags = static_cast<int32_t>(static_cast<uint32_t>(M_CREAT) |
-                                                      static_cast<uint32_t>(M_WRONLY) |
+  constexpr int32_t open_flags = static_cast<int32_t>(static_cast<uint32_t>(M_CREAT) | static_cast<uint32_t>(M_WRONLY) |
                                                       static_cast<uint32_t>(M_APPEND));
   const INT32 record_fd = mmOpen(record_file_name_.c_str(), open_flags);
   if ((record_fd == EN_INVALID_PARAM) || (record_fd == EN_ERROR)) {
@@ -2833,24 +2831,22 @@ void ModelManager::TryAutoDumpDebugJson(const std::shared_ptr<DavinciModel> &dav
 
   const aclError acl_ret = aclmdlRIDebugJsonPrint(davinci_model->GetRtModelHandle(), file_path.c_str(), 0U);
   if (acl_ret != ACL_SUCCESS) {
-    GELOGW("[Auto][DumpDebugJson] aclmdlRIDebugJsonPrint failed, ret:%d, graph_id:%u, file_path:%s.",
-           acl_ret, graph_id, file_path.c_str());
+    GELOGW("[Auto][DumpDebugJson] aclmdlRIDebugJsonPrint failed, ret:%d, graph_id:%u, file_path:%s.", acl_ret, graph_id,
+           file_path.c_str());
     return;
   }
 
   GELOGI("[Auto][DumpDebugJson] auto dump success, graph_id:%u, file_path:%s.", graph_id, file_path.c_str());
 }
 
-Status ModelManager::GetDumpDebugJsonOutputPath(
-  const uint32_t graph_id,
-  std::string& file_path) const {
+Status ModelManager::GetDumpDebugJsonOutputPath(const uint32_t graph_id, std::string &file_path) const {
   std::string output_dir;
-  const char_t* npu_collect_path = nullptr;
+  const char_t *npu_collect_path = nullptr;
   MM_SYS_GET_ENV(MM_ENV_NPU_COLLECT_PATH, npu_collect_path);
   if ((npu_collect_path != nullptr) && (npu_collect_path[0] != '\0')) {
     output_dir = std::string(npu_collect_path) + kPathSeparator + kDumpGraphSubPath;
   } else {
-    const char_t* dump_graph_path = nullptr;
+    const char_t *dump_graph_path = nullptr;
     MM_SYS_GET_ENV(MM_ENV_DUMP_GRAPH_PATH, dump_graph_path);
     if ((dump_graph_path != nullptr) && (dump_graph_path[0] != '\0')) {
       output_dir = dump_graph_path;
@@ -2863,34 +2859,30 @@ Status ModelManager::GetDumpDebugJsonOutputPath(
     }
   }
 
-  GE_CHK_BOOL_RET_STATUS(CreateDirectory(output_dir) == 0, FAILED,
-                         "[Create][Directory] failed, output_dir:%s.", output_dir.c_str());
+  GE_CHK_BOOL_RET_STATUS(CreateDirectory(output_dir) == 0, FAILED, "[Create][Directory] failed, output_dir:%s.",
+                         output_dir.c_str());
 
   const std::time_t now = std::time(nullptr);
   static std::atomic<uint64_t> dump_seq(0UL);
   const uint64_t unique_seq = ++dump_seq;
   std::stringstream file_name_stream;
-  file_name_stream << output_dir << kPathSeparator << kDumpDebugJsonFilePrefix
-    << graph_id << "_" << static_cast<long long>(now) << "_" << mmGetPid() << "_" << unique_seq << ".json";
+  file_name_stream << output_dir << kPathSeparator << kDumpDebugJsonFilePrefix << graph_id << "_"
+                   << static_cast<long long>(now) << "_" << mmGetPid() << "_" << unique_seq << ".json";
   file_path = file_name_stream.str();
   return SUCCESS;
 }
 
 Status ModelManager::ReadDumpDebugJsonFile(const std::string &file_path, std::string &json_result) const {
   const std::string real_path = RealPath(file_path.c_str());
-  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), FAILED,
-                         "[RealPath][File] failed, file_path:%s.", file_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), FAILED, "[RealPath][File] failed, file_path:%s.", file_path.c_str());
   std::ifstream ifs(real_path, std::ios::in | std::ios::binary);
-  GE_CHK_BOOL_RET_STATUS(ifs.is_open(), FAILED,
-                         "[Open][File] failed, file_path:%s.", real_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(ifs.is_open(), FAILED, "[Open][File] failed, file_path:%s.", real_path.c_str());
 
   std::stringstream content_stream;
   content_stream << ifs.rdbuf();
-  GE_CHK_BOOL_RET_STATUS(!ifs.fail(), FAILED,
-                         "[Read][File] stream failed, file_path:%s.", real_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(!ifs.fail(), FAILED, "[Read][File] stream failed, file_path:%s.", real_path.c_str());
   json_result = content_stream.str();
-  GE_CHK_BOOL_RET_STATUS(!json_result.empty(), FAILED,
-                         "[Read][File] failed, file_path:%s.", real_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(!json_result.empty(), FAILED, "[Read][File] failed, file_path:%s.", real_path.c_str());
   return SUCCESS;
 }
 
@@ -2900,8 +2892,8 @@ void ModelManager::TryCleanupDumpDebugJsonFile(const std::string &file_path) con
   }
 }
 
-Status ModelManager::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id,
-                                        uint32_t flags, AscendString &json_result) {
+Status ModelManager::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
+                                        AscendString &json_result) {
   json_result = AscendString("");
 
   const auto &davinci_model = GetModel(model_id);
@@ -2924,8 +2916,8 @@ Status ModelManager::DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id,
   const Status read_status = ReadDumpDebugJsonFile(file_path, tmp_json);
   TryCleanupDumpDebugJsonFile(file_path);
   GE_CHK_BOOL_RET_STATUS(read_status == SUCCESS, read_status,
-                         "[Read][DumpDebugJsonFile] failed, model_id:%u, graph_id:%u, file_path:%s.",
-                         model_id, graph_id, file_path.c_str());
+                         "[Read][DumpDebugJsonFile] failed, model_id:%u, graph_id:%u, file_path:%s.", model_id,
+                         graph_id, file_path.c_str());
   json_result = AscendString(tmp_json.c_str(), tmp_json.length());
 
   return SUCCESS;
@@ -3023,18 +3015,18 @@ uint8_t *ModelManager::MallocWeightsMem(const std::string &weights_mem_id, const
     weights_mem_ids_to_addr_info_[weights_mem_id].shared_num++;
     weight_mem_base = weights_mem_ids_to_addr_info_[weights_mem_id].weight_addr_;
     GELOGI("[WeightsMem][Reuse] weights mem id[%s] reuse memory addr[0x%" PRIx64 "] mem_size[%zu]",
-      weights_mem_id.c_str(), weight_mem_base, weights_size);
+           weights_mem_id.c_str(), weight_mem_base, weights_size);
   } else {
     auto &mem_instance = MemManager::Instance().MemInstance(RT_MEMORY_HBM);
     const std::string purpose("weights memory in inference network");
     weight_mem_base = mem_instance.MallocMemory(purpose, weights_size, device_id);
     GELOGI("[WeightsMem][Malloc] weights mem id[%s] malloc memory addr[0x%" PRIx64 "] mem_size[%zu]",
-      weights_mem_id.c_str(), weight_mem_base, weights_size);
+           weights_mem_id.c_str(), weight_mem_base, weights_size);
     if (GetGraphMaxParallelModelNum() > 1) {
       weights_mem_ids_to_addr_info_[weights_mem_id].shared_num++;
       weights_mem_ids_to_addr_info_[weights_mem_id].weight_addr_ = weight_mem_base;
       GELOGI("[WeightsMem][Store] weights mem id[%s] store memory addr[0x%" PRIx64 "] mem_size[%zu]",
-        weights_mem_id.c_str(), weight_mem_base, weights_size);
+             weights_mem_id.c_str(), weight_mem_base, weights_size);
     }
   }
   return weight_mem_base;
@@ -3055,15 +3047,16 @@ Status ModelManager::FreeWeightsMem(const std::string &weights_mem_id, const uin
              weights_mem_id.c_str(), weights_mem_base, shared_num);
       weights_mem_ids_to_addr_info_.erase(weights_mem_id);
     } else {
-      GELOGI("[WeightsMem][NotFree] weights mem id[%s] no need free memory addr[0x%" PRIx64 "] as shared num is %" PRIu64,
+      GELOGI("[WeightsMem][NotFree] weights mem id[%s] no need free memory addr[0x%" PRIx64
+             "] as shared num is %" PRIu64,
              weights_mem_id.c_str(), weights_mem_base, shared_num);
       --shared_num;
     }
   } else {
     GE_ASSERT_SUCCESS(mem_instance.FreeMemory(PtrToPtr<uint8_t, void>(weights_mem_base), device_id),
                       "failed to free Weight.");
-    GELOGI("[WeightsMem][Free] weights mem id[%s] free memory addr[0x%" PRIx64 "]",
-      weights_mem_id.c_str(), weights_mem_base);
+    GELOGI("[WeightsMem][Free] weights mem id[%s] free memory addr[0x%" PRIx64 "]", weights_mem_id.c_str(),
+           weights_mem_base);
   }
   return SUCCESS;
 }

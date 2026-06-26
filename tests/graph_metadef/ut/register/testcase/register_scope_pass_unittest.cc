@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@
 
 using namespace ge;
 class UtestScopePass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -91,11 +91,11 @@ TEST_F(UtestScopePass, ScopesResultRegister) {
 
 namespace {
 class ScopePass1 : public ScopeBasePass {
-public:
+ public:
   ScopePattern *scoPattern1;
   ScopePattern *scoPattern2;
 
-protected:
+ protected:
   std::vector<ScopeFusionPatterns> DefinePatterns() {
     std::vector<std::vector<std::vector<ScopePattern *>>> scoPattern;
     std::vector<std::vector<ScopePattern *>> scoPatternSub;
@@ -116,18 +116,16 @@ protected:
   std::string PassName() {
     return std::string("passName1");
   }
-  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph,
-                               std::vector<ScopesResult> &results) {
+  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph, std::vector<ScopesResult> &results) {
     return SUCCESS;
   }
-  void GenerateFusionResult(const std::vector<Scope *> &scopes,
-                            FusionScopesResult *fusion_rlt) {
+  void GenerateFusionResult(const std::vector<Scope *> &scopes, FusionScopesResult *fusion_rlt) {
     return;
   }
 };
 
 class ScopePass2 : public ScopeBasePass {
-protected:
+ protected:
   std::vector<ScopeFusionPatterns> DefinePatterns() {
     std::vector<std::vector<std::vector<ScopePattern *>>> scoPattern;
     return scoPattern;
@@ -135,22 +133,20 @@ protected:
   std::string PassName() {
     return std::string("passName2");
   }
-  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph,
-                               std::vector<ScopesResult> &results) {
+  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph, std::vector<ScopesResult> &results) {
     return FAILED;
   }
-  void GenerateFusionResult(const std::vector<Scope *> &scopes,
-                            FusionScopesResult *fusion_rlt) {
+  void GenerateFusionResult(const std::vector<Scope *> &scopes, FusionScopesResult *fusion_rlt) {
     return;
   }
 };
 
 class ScopePass3 : public ScopeBasePass {
-public:
+ public:
   ScopePattern *scoPattern1;
   ScopePattern *scoPattern2;
 
-protected:
+ protected:
   std::vector<ScopeFusionPatterns> DefinePatterns() {
     std::vector<std::vector<std::vector<ScopePattern *>>> scoPattern;
     std::vector<std::vector<ScopePattern *>> scoPatternSub;
@@ -171,22 +167,20 @@ protected:
   std::string PassName() {
     return std::string("passName1");
   }
-  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph,
-                               std::vector<ScopesResult> &results) {
+  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph, std::vector<ScopesResult> &results) {
     return FAILED;
   }
-  void GenerateFusionResult(const std::vector<Scope *> &scopes,
-                            FusionScopesResult *fusion_rlt) {
+  void GenerateFusionResult(const std::vector<Scope *> &scopes, FusionScopesResult *fusion_rlt) {
     return;
   }
 };
 
 class ScopePass4 : public ScopeBasePass {
-public:
+ public:
   ScopePattern *scoPattern1;
   ScopePattern *scoPattern2;
 
-protected:
+ protected:
   std::vector<ScopeFusionPatterns> DefinePatterns() {
     std::vector<std::vector<std::vector<ScopePattern *>>> scoPattern;
     std::vector<std::vector<ScopePattern *>> scoPatternSub;
@@ -207,19 +201,16 @@ protected:
   std::string PassName() {
     return std::string("passName1");
   }
-  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph,
-                               std::vector<ScopesResult> &results) {
+  Status LastMatchScopesAndOPs(std::shared_ptr<ScopeGraph> &scope_graph, std::vector<ScopesResult> &results) {
     ScopesResult Scope1;
     results.push_back(Scope1);
     return SUCCESS;
   }
-  void GenerateFusionResult(const std::vector<Scope *> &scopes,
-                            FusionScopesResult *fusion_rlt) {
+  void GenerateFusionResult(const std::vector<Scope *> &scopes, FusionScopesResult *fusion_rlt) {
     fusion_rlt->impl_->SetType(kScopeInvalidType);
     return;
   }
 };
-
 
 void CreateGraph(domi::tensorflow::GraphDef &graph_def) {
   // 1. add node
@@ -286,7 +277,7 @@ void CreateGraph(domi::tensorflow::GraphDef &graph_def) {
   retval1->add_input("add1:0");
   retval2->add_input("mul2:0");
 }
-}
+}  // namespace
 
 TEST_F(UtestScopePass, ScopePassRun1) {
   // no scope match
@@ -443,8 +434,7 @@ TEST_F(UtestScopePass, MatchOneScope) {
 
   std::vector<Scope *> results;
   ScopePass1 scoBasePass;
-  for (auto scope : scopes)
-  {
+  for (auto scope : scopes) {
     retBool = scoBasePass.impl_->MatchOneScope(&scoPattern, scope, results);
     EXPECT_EQ(retBool, false);
   }

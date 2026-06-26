@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,35 +66,59 @@ struct DsaUpdateCtxHelper {
 
 class FftsPlusProtoTransfer {
  public:
-  FftsPlusProtoTransfer(const uintptr_t args_base,
-                        FftsPlusArgsHelper *const ffts_plus_args_helper,
+  FftsPlusProtoTransfer(const uintptr_t args_base, FftsPlusArgsHelper *const ffts_plus_args_helper,
                         const RuntimeParam &rts_param, std::vector<void *> &ext_args)
-    : args_base_(args_base),
-      ffts_plus_args_helper_(ffts_plus_args_helper), ext_info_addrs_(ext_args),
-      runtime_param_(rts_param) {
-  }
+      : args_base_(args_base),
+        ffts_plus_args_helper_(ffts_plus_args_helper),
+        ext_info_addrs_(ext_args),
+        runtime_param_(rts_param) {}
   ~FftsPlusProtoTransfer() = default;
 
   Status Transfer(const OpDescPtr &op_desc, const domi::FftsPlusTaskDef &ffts_plus_task_def,
                   rtFftsPlusTaskInfo_t &ffts_plus_task_info, uint8_t *const desc_buf = nullptr,
                   const size_t desc_buf_len = 0UL);
 
-  void SetRunAddrHandle(const FftsRunAddrHandle &handle) { run_addr_handle_ = handle; }
-  void SetAddrPrefHandle(const FftsAddrPrefHandle &handle) { addr_pref_handle_ = handle; }
-  void SetFindNodeHandle(const FftsFindNodeHandle &handle) { find_node_handle_ = handle; }
-  void SetSaveCtxArgsHandle(const FftsSaveCtxArgsHandle &handle) { save_ctx_args_handle_ = handle; }
-  void SetGetSessionId(const std::function<uint64_t(void)> &handle) { aicpu_get_session_id_ = handle; }
-  void SetCreateAicpuSession(const FftsCreateAicpuSession &handle) { create_aicpu_session_ = handle; }
-  void SetLoadCustAicpuSo(const FftsLoadCustAiCpuSo &handle) { load_cust_aicpu_so_ = handle; }
-  void SetSaveAicpuCtxHandle(const FftsSaveAicpuCtxHandle &handle) { save_aicpu_ctx_handle_ = handle; }
-  void SetGetEventIdHandle(const FftsGetEventIdHandle &handle) { get_event_id_ = handle; }
-  void SetIsDumpHandle(const FftsIsDumpHandle &handle) { is_dump_ = handle; }
-  void SetSaveL0DumpInfoHandle(const FftsSaveL0DumpInfoHandle &handle) { save_l0_dump_info_handle_ = handle; }
-  void SetDavinciModel(DavinciModel *davinci_model) { davinci_model_ = davinci_model; }
-  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const { return fusion_op_info_; }
+  void SetRunAddrHandle(const FftsRunAddrHandle &handle) {
+    run_addr_handle_ = handle;
+  }
+  void SetAddrPrefHandle(const FftsAddrPrefHandle &handle) {
+    addr_pref_handle_ = handle;
+  }
+  void SetFindNodeHandle(const FftsFindNodeHandle &handle) {
+    find_node_handle_ = handle;
+  }
+  void SetSaveCtxArgsHandle(const FftsSaveCtxArgsHandle &handle) {
+    save_ctx_args_handle_ = handle;
+  }
+  void SetGetSessionId(const std::function<uint64_t(void)> &handle) {
+    aicpu_get_session_id_ = handle;
+  }
+  void SetCreateAicpuSession(const FftsCreateAicpuSession &handle) {
+    create_aicpu_session_ = handle;
+  }
+  void SetLoadCustAicpuSo(const FftsLoadCustAiCpuSo &handle) {
+    load_cust_aicpu_so_ = handle;
+  }
+  void SetSaveAicpuCtxHandle(const FftsSaveAicpuCtxHandle &handle) {
+    save_aicpu_ctx_handle_ = handle;
+  }
+  void SetGetEventIdHandle(const FftsGetEventIdHandle &handle) {
+    get_event_id_ = handle;
+  }
+  void SetIsDumpHandle(const FftsIsDumpHandle &handle) {
+    is_dump_ = handle;
+  }
+  void SetSaveL0DumpInfoHandle(const FftsSaveL0DumpInfoHandle &handle) {
+    save_l0_dump_info_handle_ = handle;
+  }
+  void SetDavinciModel(DavinciModel *davinci_model) {
+    davinci_model_ = davinci_model;
+  }
+  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const {
+    return fusion_op_info_;
+  }
   Status GenCtxLevel1RefreshInfo(const AddrType2CtxAddrInfo &addr_type_2_ctx_addr_infos,
-                                 const std::vector<TaskArgsRefreshInfo> &args_fresh_infos,
-                                 const size_t start_idx,
+                                 const std::vector<TaskArgsRefreshInfo> &args_fresh_infos, const size_t start_idx,
                                  const size_t real_addr_size,
                                  std::vector<TaskArgsRefreshInfo> &ctx_level1_args_fresh_infos);
   Status UpdateCtxLevel1Addrs(const AddrType2CtxAddrInfo &addr_type_2_ctx_addr_infos,
@@ -107,7 +131,10 @@ class FftsPlusProtoTransfer {
    * @param addr_pref_cnt
    */
   static void ExpandMixOnlyInfos(const OpDesc &op_desc, std::vector<std::pair<void *, uint32_t>> &addr_pref_cnt);
-  void SetPisArgsHostBase(const uintptr_t pis_args_host_base) { pis_args_host_base_ = pis_args_host_base; }
+  void SetPisArgsHostBase(const uintptr_t pis_args_host_base) {
+    pis_args_host_base_ = pis_args_host_base;
+  }
+
  private:
   Status UpdateEventIdForAicpuBlockingOp(const OpDescPtr &op_desc,
                                          const std::shared_ptr<ge::hybrid::AicpuExtInfoHandler> &ext_handle) const;
@@ -123,10 +150,10 @@ class FftsPlusProtoTransfer {
 
   Status InitMixAicAivCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx);
   Status InitManualMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-                                const std::vector<std::string> &kernel_name_prefixes,
-                                rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx = 0);
-  Status InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-                              rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx = 0) const;
+                                const std::vector<std::string> &kernel_name_prefixes, rtFftsPlusMixAicAivCtx_t &ctx,
+                                const int32_t start_idx = 0);
+  Status InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def, rtFftsPlusMixAicAivCtx_t &ctx,
+                              const int32_t start_idx = 0) const;
 
   Status InitSdmaCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
 
@@ -151,14 +178,10 @@ class FftsPlusProtoTransfer {
   void GetScheduleModeFromRunInfo(uint32_t &schedule_mode) const;
   Status InitDsaCtx(const domi::FftsPlusCtxDef &task_def, rtFftsPlusComCtx_t *const com_ctx) const;
 
-  void AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInfo &info,
-                                   const uint32_t *addr_high,
-                                   const uint32_t *addr_low,
-                                   const OpDescPtr &op_desc,
-                                   const Level1AddrType addr_type);
+  void AppendCtxLevel1RrefreshInfo(const TaskArgsRefreshInfo &info, const uint32_t *addr_high, const uint32_t *addr_low,
+                                   const OpDescPtr &op_desc, const Level1AddrType addr_type);
 
-  void AppendDsaCtxLevel1RrefreshInfo(const OpDescPtr &op_desc,
-                                      const domi::FftsPlusDsaCtxDef &ctx_def,
+  void AppendDsaCtxLevel1RrefreshInfo(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
                                       rtFftsPlusDsaCtx_t *const ctx);
 
   void AssembleDsaCtxByRealAddr(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
@@ -177,8 +200,7 @@ class FftsPlusProtoTransfer {
   void SaveFirstLevelAddressDumpInfo(const OpDescPtr &op_desc, const std::vector<uint64_t> &input_data_addrs,
                                      const std::vector<uint64_t> &output_data_addrs) const;
 
-  Status InitDsaWorkSpace(const OpDescPtr &op_desc,
-                          const domi::FftsPlusDsaCtxDef &ctx_def,
+  Status InitDsaWorkSpace(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
                           const std::vector<std::pair<uint64_t, uint64_t>> &input_datas) const;
 
   Status AssembleDsaWorkSpaceByInput(const OpDescPtr &op_desc, const domi::FftsPlusDsaCtxDef &ctx_def,
@@ -187,10 +209,10 @@ class FftsPlusProtoTransfer {
 
   void InitAdditionalData(const domi::FftsPlusTaskDef &task_def);
 
-  template<typename T>
+  template <typename T>
   Status InitThreadIoAddrs(const T &ctx_def, const uint32_t thread_dim, const int32_t start_idx = 0) const;
 
-  template<typename T>
+  template <typename T>
   Status GetThreadIoAddr(ge::AttrHolder &obj, const T &ctx_def, std::vector<uint64_t> &addr_offset,
                          const uint32_t thread_id, const int32_t idx, const int32_t start_idx) const;
 
@@ -200,7 +222,7 @@ class FftsPlusProtoTransfer {
 
   ge::OpDescPtr op_desc_;
   uintptr_t pis_args_host_base_{0U};
-  uintptr_t args_base_{0U};     // runtime args memory
+  uintptr_t args_base_{0U};  // runtime args memory
   FftsPlusArgsHelper *ffts_plus_args_helper_{nullptr};
 
   // for static shape reuse tiling data
@@ -208,8 +230,8 @@ class FftsPlusProtoTransfer {
   std::vector<uint8_t> tiling_addr_base_;
   uint8_t *tiling_addr_base_dev_{nullptr};
   uint32_t block_dim_ = 0U;
-  std::unordered_map<std::shared_ptr<optiling::OpRunInfoV2>,
-      std::unordered_map<std::string, size_t>> tiling_info_addr_pos_;
+  std::unordered_map<std::shared_ptr<optiling::OpRunInfoV2>, std::unordered_map<std::string, size_t>>
+      tiling_info_addr_pos_;
   int32_t device_id_{0};
 
   std::vector<void *> &ext_info_addrs_;
@@ -227,29 +249,29 @@ class FftsPlusProtoTransfer {
   FftsSaveL0DumpInfoHandle save_l0_dump_info_handle_{nullptr};
   DsaUpdateCtxHelper dsa_update_ctx_helper_;
   std::vector<TaskArgsRefreshInfo> ctx_level1_refresh_info_list_;
-  std::function<uint64_t(void)> aicpu_get_session_id_ = []()->uint64_t { return 0U; };
-  FftsCreateAicpuSession create_aicpu_session_ = [](STR_FWK_OP_KERNEL &kernel_def)->uint64_t {
+  std::function<uint64_t(void)> aicpu_get_session_id_ = []() -> uint64_t { return 0U; };
+  FftsCreateAicpuSession create_aicpu_session_ = [](STR_FWK_OP_KERNEL &kernel_def) -> uint64_t {
     (void)kernel_def;
     return 0U;
   };
-  FftsLoadCustAiCpuSo load_cust_aicpu_so_ =
-      [](const OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &kernel_def)->uint64_t {
-        (void)op_desc;
-        (void)kernel_def;
-        return 0U;
-      };
-  FftsSaveAicpuCtxHandle save_aicpu_ctx_handle_ =
-      [](const OpDescPtr &op_desc, const domi::aicpuKernelDef &kernel_def)->uint64_t {
-        (void)op_desc;
-        (void)kernel_def;
-        return 0U;
-      };
+  FftsLoadCustAiCpuSo load_cust_aicpu_so_ = [](const OpDescPtr &op_desc,
+                                               const domi::FftsPlusAicpuCtxDef &kernel_def) -> uint64_t {
+    (void)op_desc;
+    (void)kernel_def;
+    return 0U;
+  };
+  FftsSaveAicpuCtxHandle save_aicpu_ctx_handle_ = [](const OpDescPtr &op_desc,
+                                                     const domi::aicpuKernelDef &kernel_def) -> uint64_t {
+    (void)op_desc;
+    (void)kernel_def;
+    return 0U;
+  };
 
-  using CtxHandle = std::function<Status(FftsPlusProtoTransfer *, const domi::FftsPlusCtxDef &,
-                                         rtFftsPlusComCtx_t *const)>;
+  using CtxHandle =
+      std::function<Status(FftsPlusProtoTransfer *, const domi::FftsPlusCtxDef &, rtFftsPlusComCtx_t *const)>;
   static std::map<rtFftsPlusContextType_t, CtxHandle> init_ctx_fun_;
 
-  std::vector<uint64_t> l0_dump_list_; // 保存当前处理的context的size info
+  std::vector<uint64_t> l0_dump_list_;  // 保存当前处理的context的size info
 };
 }  // namespace ge
 #endif  // GE_GRAPH_LOAD_MODEL_MANAGER_TASK_INFO_FFTS_PLUS_PROTO_TRANSFER_H_

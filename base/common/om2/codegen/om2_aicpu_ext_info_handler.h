@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,9 +30,8 @@ using AicpuSessionInfo = SessionInfo;
 class Om2AicpuExtInfoHandler {
  public:
   Om2AicpuExtInfoHandler(const std::string &node_name, const uint32_t input_num, const uint32_t output_num,
-                      const UnknowShapeOpType unknown_type)
-      : node_name_(node_name), input_num_(input_num), output_num_(output_num), unknown_type_(unknown_type) {
-  }
+                         const UnknowShapeOpType unknown_type)
+      : node_name_(node_name), input_num_(input_num), output_num_(output_num), unknown_type_(unknown_type) {}
 
   ~Om2AicpuExtInfoHandler() = default;
 
@@ -122,4 +121,4 @@ class Om2AicpuExtInfoHandler {
 };
 }  // namespace om2
 }  // namespace ge
-#endif // AIR_CXX_BASE_COMMON_OM2_AICPU_EXT_INFO_HANDLER_H_
+#endif  // AIR_CXX_BASE_COMMON_OM2_AICPU_EXT_INFO_HANDLER_H_

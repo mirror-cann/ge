@@ -45,23 +45,22 @@ class LLMDataDistV2STest : public ::testing::Test {
     ASSERT_TRUE(llm::GeApi::instance_ != nullptr);
   }
   // 在测试类中进行清理工作，如果需要的话
-  void TearDown() override {
-  }
+  void TearDown() override {}
 
   static std::map<ge::AscendString, ge::AscendString> GetOptions(const std::string &role,
                                                                  const std::string &deploy_cluster_info) {
     char_t numa_config_path[4096];
     if (role == "Prompt") {
-      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_prompt.json", numa_config_path, 4096);
+      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_prompt.json",
+                       numa_config_path, 4096);
     } else {
-      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_decoder.json", numa_config_path, 4096);
+      (void)mmRealPath("../tests/dflow/llm_datadist/st/testcase/llm_datadist/json_file/numa_config_decoder.json",
+                       numa_config_path, 4096);
     }
     LLMLOGI("numa_config_path:%s", numa_config_path);
     std::map<ge::AscendString, ge::AscendString> options = {
-        {"ge.socVersion", "TestSocType2"},
-        {"ge.graphRunMode", "0"},
-        {llm::LLM_OPTION_ROLE, role.c_str()},
-        {llm::LLM_OPTION_CLUSTER_INFO, deploy_cluster_info.c_str()},
+        {"ge.socVersion", "TestSocType2"},          {"ge.graphRunMode", "0"},
+        {llm::LLM_OPTION_ROLE, role.c_str()},       {llm::LLM_OPTION_CLUSTER_INFO, deploy_cluster_info.c_str()},
         {"RESOURCE_CONFIG_PATH", numa_config_path},
     };
     return options;
@@ -178,7 +177,6 @@ TEST_F(LLMDataDistV2STest, Decoder) {
 }
 
 TEST_F(LLMDataDistV2STest, SafeFinalize) {
-
   ge::LlmEngineOptionBuilder builder;
   auto options = builder.Role(llm::RoleType::DECODER).NumStages(1).Build();
   llm::LLMDataDist llm_engine(0);
@@ -236,7 +234,7 @@ TEST_F(LLMDataDistV2STest, SwitchRoleSuccess) {
 TEST_F(LLMDataDistV2STest, Init_WithDeviceIdAndRankId) {
   ge::LlmEngineOptionBuilder builder;
   llm::LLMDataDist llm_engine(0);
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {OPTION_EXEC_DEVICE_ID, "1"},
       {OPTION_EXEC_RANK_ID, "1"},
       {llm::LLM_OPTION_ROLE, "Decoder"},
@@ -248,7 +246,7 @@ TEST_F(LLMDataDistV2STest, Init_WithDeviceIdAndRankId) {
 TEST_F(LLMDataDistV2STest, Init_WithDeviceId) {
   ge::LlmEngineOptionBuilder builder;
   llm::LLMDataDist llm_engine(0);
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {OPTION_EXEC_DEVICE_ID, "1"},
       {llm::LLM_OPTION_ROLE, "Decoder"},
       {llm::LLM_OPTION_CLUSTER_INFO, R"({"cluster_id": 0, "logic_device_id": ["0:0:0:0"]})"},
@@ -299,7 +297,7 @@ TEST_F(LLMDataDistV2STest, SwapBlocks) {
 TEST_F(LLMDataDistV2STest, Init_Failed) {
   ge::LlmEngineOptionBuilder builder;
   llm::LLMDataDist llm_engine(0);
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {OPTION_EXEC_DEVICE_ID, "1"},
       {OPTION_EXEC_RANK_ID, "1"},
       {llm::LLM_OPTION_ROLE, "Decoder"},

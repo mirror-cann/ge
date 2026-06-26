@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,11 +18,11 @@
 
 namespace ge {
 namespace {
-  const std::unordered_set<std::string> kDataFlowPartitionerDataFlowOps = {STACK, STACKPUSH, STACKPOP, STACKCLOSE};
-  inline bool IsDataFlowOps(const std::string &op_type) {
-    return (kDataFlowPartitionerDataFlowOps.count(op_type) != 0UL);
-  }
-} // namespace
+const std::unordered_set<std::string> kDataFlowPartitionerDataFlowOps = {STACK, STACKPUSH, STACKPOP, STACKCLOSE};
+inline bool IsDataFlowOps(const std::string &op_type) {
+  return (kDataFlowPartitionerDataFlowOps.count(op_type) != 0UL);
+}
+}  // namespace
 
 Status DynamicDataFlowPartitionerPass::Run(const ge::ComputeGraphPtr &graph,
                                            const std::vector<std::shared_ptr<BaseCluster>> &sorted_unique_clusters,
@@ -135,4 +135,4 @@ void DynamicDataFlowPartitionerPass::ClearDataFlowsource() {
   unknown_data_flow_ops_.clear();
   data_flow_ops_attr_.clear();
 }
-} // namespace ge
+}  // namespace ge

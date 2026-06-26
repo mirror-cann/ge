@@ -17,7 +17,7 @@ extern "C" {
 #endif
 void SetMsprofEnable(bool flag);
 int32_t MsprofCtrlHandleFunc(uint32_t dataType, void *data, uint32_t dataLen);
-GE_FUNC_VISIBILITY  bool DbgGetprofEnable(void);
+GE_FUNC_VISIBILITY bool DbgGetprofEnable(void);
 GE_FUNC_VISIBILITY Status DbgProfInit(const char *cfg);
 GE_FUNC_VISIBILITY Status DbgProfReportDataProcess(uint32_t modelId, char *om);
 GE_FUNC_VISIBILITY Status DbgProfDeInit(void);

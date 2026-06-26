@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,52 +74,82 @@ class PneModel {
     submodels_ = std::move(submodels);
   }
 
-  inline void SetModelType(const std::string &type) { model_type_ = type; }
+  inline void SetModelType(const std::string &type) {
+    model_type_ = type;
+  }
 
-  inline const std::string &GetModelType() const { return model_type_; }
+  inline const std::string &GetModelType() const {
+    return model_type_;
+  }
 
-  inline void SetModelName(const std::string &model_name) { model_name_ = model_name; }
+  inline void SetModelName(const std::string &model_name) {
+    model_name_ = model_name;
+  }
 
-  inline const std::string &GetModelName() const { return model_name_; }
+  inline const std::string &GetModelName() const {
+    return model_name_;
+  }
 
-  inline void SetNormalizedModelName(const std::string &model_name) { normalized_model_name_ = model_name; }
+  inline void SetNormalizedModelName(const std::string &model_name) {
+    normalized_model_name_ = model_name;
+  }
 
-  inline const std::string &GetNormalizedModelName() const { return normalized_model_name_; }
+  inline const std::string &GetNormalizedModelName() const {
+    return normalized_model_name_;
+  }
 
-  inline void SetRootGraph(const ComputeGraphPtr &graph) { root_graph_ = graph; }
+  inline void SetRootGraph(const ComputeGraphPtr &graph) {
+    root_graph_ = graph;
+  }
 
-  inline const ComputeGraphPtr &GetRootGraph() const { return root_graph_; }
+  inline const ComputeGraphPtr &GetRootGraph() const {
+    return root_graph_;
+  }
 
   inline void SetModelRelation(std::shared_ptr<ModelRelation> model_relation) {
     model_relation_ = std::move(model_relation);
   }
 
-  inline std::shared_ptr<ModelRelation> GetModelRelation() const { return model_relation_; }
+  inline std::shared_ptr<ModelRelation> GetModelRelation() const {
+    return model_relation_;
+  }
 
   inline void SetDeployResource(std::shared_ptr<ModelDeployResource> deploy_resource) {
     deploy_resource_ = std::move(deploy_resource);
   }
 
-  inline std::shared_ptr<ModelDeployResource> GetDeployResource() const { return deploy_resource_; }
+  inline std::shared_ptr<ModelDeployResource> GetDeployResource() const {
+    return deploy_resource_;
+  }
 
   inline void SetCompileResource(std::shared_ptr<ModelCompileResource> compile_resource) {
     compile_resource_ = std::move(compile_resource);
   }
 
-  inline std::shared_ptr<ModelCompileResource> GetCompileResource() const { return compile_resource_; }
+  inline std::shared_ptr<ModelCompileResource> GetCompileResource() const {
+    return compile_resource_;
+  }
 
-  inline void SetDeviceId(const int32_t device_id) { device_id_ = device_id; }
+  inline void SetDeviceId(const int32_t device_id) {
+    device_id_ = device_id;
+  }
 
-  inline int32_t GetDeviceId() const { return device_id_; }
+  inline int32_t GetDeviceId() const {
+    return device_id_;
+  }
 
  public:
   virtual Status SerializeModel(ModelBufferData &model_buff) = 0;
 
   virtual Status UnSerializeModel(const ModelBufferData &model_buff) = 0;
 
-  virtual void SetModelId(const uint32_t model_id) { model_id_ = model_id; }
+  virtual void SetModelId(const uint32_t model_id) {
+    model_id_ = model_id;
+  }
 
-  virtual uint32_t GetModelId() const { return model_id_; }
+  virtual uint32_t GetModelId() const {
+    return model_id_;
+  }
 
   virtual std::string GetLogicDeviceId() const;
 
@@ -127,13 +157,21 @@ class PneModel {
 
   virtual std::string GetRedundantLogicDeviceId() const;
 
-  virtual std::string GetSavedModelPath() const { return saved_model_path_; }
+  virtual std::string GetSavedModelPath() const {
+    return saved_model_path_;
+  }
 
-  virtual void SetSavedModelPath(const std::string &saved_model_path) { saved_model_path_ = saved_model_path; }
+  virtual void SetSavedModelPath(const std::string &saved_model_path) {
+    saved_model_path_ = saved_model_path;
+  }
 
-  virtual bool GetIsBuiltinModel() const { return is_builtin_model_; }
+  virtual bool GetIsBuiltinModel() const {
+    return is_builtin_model_;
+  }
 
-  virtual void SetIsBuiltinModel(const bool is_builtin) { is_builtin_model_ = is_builtin; }
+  virtual void SetIsBuiltinModel(const bool is_builtin) {
+    is_builtin_model_ = is_builtin;
+  }
 
   virtual Status SetRedundantLogicDeviceId(const std::string &logic_device_id);
 

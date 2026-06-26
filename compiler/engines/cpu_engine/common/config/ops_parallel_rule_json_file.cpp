@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,26 +17,22 @@ using namespace nlohmann;
 using namespace ::aicpu::FWKAdapter;
 
 namespace aicpu {
-OpsParallelRuleJsonFile &OpsParallelRuleJsonFile::Instance()
-{
+OpsParallelRuleJsonFile &OpsParallelRuleJsonFile::Instance() {
   static OpsParallelRuleJsonFile instance;
   return instance;
 }
 
-aicpu::State OpsParallelRuleJsonFile::ParseUnderPath(const string &file_path, json &json_read) const
-{
+aicpu::State OpsParallelRuleJsonFile::ParseUnderPath(const string &file_path, json &json_read) const {
   aicpu::State ret = ReadJsonFile(file_path, json_read);
   if (ret.state != ge::SUCCESS) {
-    AICPUE_LOGW("Read kernel json file failed, file_path[%s].",
-                file_path.c_str());
+    AICPUE_LOGW("Read kernel json file failed, file_path[%s].", file_path.c_str());
     return aicpu::State(ge::SUCCESS);
   }
   // inner error
   return ConvertOpsParallelRuleJsonFormat(json_read) ? aicpu::State(ge::SUCCESS) : aicpu::State(ge::FAILED);
 }
 
-bool OpsParallelRuleJsonFile::ConvertOpsParallelRuleJsonFormat(json &json_read) const
-{
+bool OpsParallelRuleJsonFile::ConvertOpsParallelRuleJsonFormat(json &json_read) const {
   AICPUE_LOGI("Start convert ops parallel rule json.");
   for (auto it = json_read.cbegin(); it != json_read.cend(); ++it) {
     json new_json = it.value();
@@ -47,9 +43,8 @@ bool OpsParallelRuleJsonFile::ConvertOpsParallelRuleJsonFormat(json &json_read) 
     new_json[kOpsParallelRule] = ops_parallel_rule;
     json ops_name_list;
     bool ret = ParseOpsNameList(it.value(), ops_name_list);
-    AICPU_IF_BOOL_EXEC((!ret),
-        AICPU_REPORT_INNER_ERR_MSG("Call OpsParallelRuleJsonFile::ParseOpsNameList failed.");
-        return false)
+    AICPU_IF_BOOL_EXEC((!ret), AICPU_REPORT_INNER_ERR_MSG("Call OpsParallelRuleJsonFile::ParseOpsNameList failed.");
+                       return false)
     new_json[kOpNameList] = ops_name_list;
     json_read = new_json;
     AICPUE_LOGI("Convert ops parallel json [rule:%s]success.", kOpsParallelRule.c_str());
@@ -60,8 +55,7 @@ bool OpsParallelRuleJsonFile::ConvertOpsParallelRuleJsonFormat(json &json_read) 
   return false;
 }
 
-bool OpsParallelRuleJsonFile::ParseOpsNameList(const json &json_read, json &ops_name_list) const
-{
+bool OpsParallelRuleJsonFile::ParseOpsNameList(const json &json_read, json &ops_name_list) const {
   json list_result;
   const string ops_list_str = kOpNameList;
   for (json::const_iterator iter = json_read.cbegin(); iter != json_read.cend(); ++iter) {
@@ -81,16 +75,14 @@ bool OpsParallelRuleJsonFile::ParseOpsNameList(const json &json_read, json &ops_
 }
 
 template <typename T>
-inline void Assignment(T &varible, const string &key, const json &json_read)
-{
+inline void Assignment(T &varible, const string &key, const json &json_read) {
   auto iter = json_read.find(key);
   if (iter != json_read.end()) {
     varible = iter.value().get<T>();
   }
 }
 
-void from_json(const nlohmann::json &json_read, OpsParallelInfo &ops_rule_info)
-{
+void from_json(const nlohmann::json &json_read, OpsParallelInfo &ops_rule_info) {
   auto iter = json_read.find(kOpNameList);
   if (iter == json_read.end()) {
     return;
@@ -113,8 +105,7 @@ void from_json(const nlohmann::json &json_read, OpsParallelInfo &ops_rule_info)
   }
 }
 
-void from_json(const nlohmann::json &json_read, RuleInfoDesc &rule_info_desc)
-{
+void from_json(const nlohmann::json &json_read, RuleInfoDesc &rule_info_desc) {
   Assignment(rule_info_desc.rule_name, kOpsParallelRule, json_read);
   Assignment(rule_info_desc.rule_info, kOpNameList, json_read);
 }

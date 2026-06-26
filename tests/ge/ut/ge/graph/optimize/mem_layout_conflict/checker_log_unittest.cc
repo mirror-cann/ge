@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@ class UtestCheckerLogUtil : public testing::Test {
 
 TEST_F(UtestCheckerLogUtil, CheckNodeIndexIoStr) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU));
-                };
+    CHAIN(NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto a = graph->FindNode("a");
@@ -36,59 +36,79 @@ TEST_F(UtestCheckerLogUtil, CheckNodeIndexIoStr) {
 
 TEST_F(UtestCheckerLogUtil, CheckNodeIndexIoStr_Len200) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU));
-                };
+    CHAIN(NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto a = graph->FindNode("a");
   ASSERT_NE(a, nullptr);
-  a->GetOpDesc()->SetName("200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  a->GetOpDesc()->SetName(
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   NodeIndexIO node_index_io{a, 0U, kOut};
   auto str = CheckerLog::ToStr(node_index_io);
-  EXPECT_STRCASEEQ(str.c_str(), "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_0_out_0");
+  EXPECT_STRCASEEQ(
+      str.c_str(),
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_0_out_0");
 }
 
 TEST_F(UtestCheckerLogUtil, CheckNodeIndexIoStr_Len205) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("a", RELU));
-                };
+    CHAIN(NODE("a", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto a = graph->FindNode("a");
   ASSERT_NE(a, nullptr);
-  a->GetOpDesc()->SetName("200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  a->GetOpDesc()->SetName(
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   NodeIndexIO node_index_io{a, 0U, kOut};
   auto str = CheckerLog::ToStr(node_index_io);
-  EXPECT_STRCASEEQ(str.c_str(), "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_0_out_0");
+  EXPECT_STRCASEEQ(
+      str.c_str(),
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_0_out_0");
 }
 
 TEST_F(UtestCheckerLogUtil, CheckInDataAnchorToStr_Len205) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("b", RELU)->NODE("a", RELU)->NODE("c", RELU));
-                };
+    CHAIN(NODE("b", RELU)->NODE("a", RELU)->NODE("c", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto a = graph->FindNode("a");
   ASSERT_NE(a, nullptr);
-  a->GetOpDesc()->SetName("200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  a->GetOpDesc()->SetName(
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   auto in_anchor = a->GetInDataAnchor(0);
   ASSERT_NE(in_anchor, nullptr);
   auto str = CheckerLog::ToStr(in_anchor);
-  EXPECT_STRCASEEQ(str.c_str(), "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_1_in_0");
+  EXPECT_STRCASEEQ(
+      str.c_str(),
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_1_in_0");
 }
 
 TEST_F(UtestCheckerLogUtil, CheckOutDataAnchorToStr_Len205) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("b", RELU)->NODE("a", RELU)->NODE("c", RELU));
-                };
+    CHAIN(NODE("b", RELU)->NODE("a", RELU)->NODE("c", RELU));
+  };
   auto graph = ToComputeGraph(g1);
   graph->TopologicalSorting();
   auto a = graph->FindNode("a");
   ASSERT_NE(a, nullptr);
-  a->GetOpDesc()->SetName("200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  a->GetOpDesc()->SetName(
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   auto anchor = a->GetOutDataAnchor(0);
   ASSERT_NE(anchor, nullptr);
   auto str = CheckerLog::ToStr(anchor);
-  EXPECT_STRCASEEQ(str.c_str(), "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_1_out_0");
+  EXPECT_STRCASEEQ(
+      str.c_str(),
+      "200aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...TopoId_1_out_0");
 }
-} // namespace ge
+}  // namespace ge

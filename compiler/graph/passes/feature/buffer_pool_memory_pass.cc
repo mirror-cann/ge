@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ namespace {
 const size_t kBufferPoolNodeInSize = 1;
 const size_t kBufferPoolNodeOutSize = 1;
 constexpr const char_t *kOpNameSplitD = "SplitD";
-} // namespace
+}  // namespace
 
 Status BufferPoolMemoryPass::Run(ComputeGraphPtr graph) {
   if (graph == nullptr) {
@@ -56,8 +56,7 @@ Status BufferPoolMemoryPass::Run(ComputeGraphPtr graph) {
     GELOGE(FAILED, "[Copy][Output]Graph:%s.", graph->GetName().c_str());
     return FAILED;
   }
-  GE_CHK_BOOL_RET_STATUS(DisableBufferPreventingCycle(graph) == SUCCESS,
-                         FAILED,
+  GE_CHK_BOOL_RET_STATUS(DisableBufferPreventingCycle(graph) == SUCCESS, FAILED,
                          "Failed to invoke DisableBufferPreventingCycle");
   ret = GetBufferPoolAndPeerCalcNodes(graph);
   if (ret != SUCCESS) {
@@ -119,10 +118,15 @@ Status BufferPoolMemoryPass::CheckBufferPoolSize(int64_t total_size, int64_t poo
     calc_total_size[pool_id] += total_size;
   }
   if (calc_total_size[pool_id] > buffer_pool_size) {
-    GELOGE(INTERNAL_ERROR, "[Check][Size]The memory required at the same is greater than buffer pool size, "
-          "pool id:%" PRId64 ", pool size:%" PRId64 ", required size:%" PRId64 ".", pool_id, buffer_pool_size, calc_total_size[pool_id]);
-    REPORT_INNER_ERR_MSG("E19999", "The memory required at the same is greater than buffer pool size, pool id:%" PRId64 ","
-                       " pool size:%" PRId64 ", required size:%" PRId64 ".", pool_id, buffer_pool_size, calc_total_size[pool_id]);
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Size]The memory required at the same is greater than buffer pool size, "
+           "pool id:%" PRId64 ", pool size:%" PRId64 ", required size:%" PRId64 ".",
+           pool_id, buffer_pool_size, calc_total_size[pool_id]);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "The memory required at the same is greater than buffer pool size, pool id:%" PRId64
+                         ","
+                         " pool size:%" PRId64 ", required size:%" PRId64 ".",
+                         pool_id, buffer_pool_size, calc_total_size[pool_id]);
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -132,9 +136,9 @@ Status BufferPoolMemoryPass::TryToFixNodeOrder(NodePtr &pre_node, NodePtr &curr_
   auto pre_node_graph = pre_node->GetOwnerComputeGraph();
   auto curr_node_graph = curr_node->GetOwnerComputeGraph();
   std::string pre_node_stream_label;
-  (void) AttrUtils::GetStr(pre_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, pre_node_stream_label);
+  (void)AttrUtils::GetStr(pre_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, pre_node_stream_label);
   std::string curr_node_stream_label;
-  (void) AttrUtils::GetStr(curr_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, curr_node_stream_label);
+  (void)AttrUtils::GetStr(curr_node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, curr_node_stream_label);
   not_change = true;
   if ((pre_node_graph == curr_node_graph) &&
       ((pre_node_stream_label == curr_node_stream_label) || pre_node_stream_label.empty())) {
@@ -143,7 +147,7 @@ Status BufferPoolMemoryPass::TryToFixNodeOrder(NodePtr &pre_node, NodePtr &curr_
     if (ret != GRAPH_SUCCESS) {
       GELOGE(INTERNAL_ERROR, "[Add][Edge]Src:%s, dst:%s.", pre_node->GetName().c_str(), curr_node->GetName().c_str());
       REPORT_INNER_ERR_MSG("E19999", "Failed to add ctrl edge from %s to %s.", pre_node->GetName().c_str(),
-                        curr_node->GetName().c_str());
+                           curr_node->GetName().c_str());
       return INTERNAL_ERROR;
     }
     not_change = false;
@@ -158,12 +162,14 @@ Status BufferPoolMemoryPass::TryToFixNodeOrder(NodePtr &pre_node, NodePtr &curr_
     if (pre_op_desc->GetId() > cur_op_desc->GetId()) {
       GELOGE(INTERNAL_ERROR, "[Check][Dependency]Invalid dependency, pre node:%s, curr node:%s.",
              pre_node->GetName().c_str(), curr_node->GetName().c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Invalid dependency, pre node:%s, curr node:%s.",
-                         pre_node->GetName().c_str(), curr_node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Invalid dependency, pre node:%s, curr node:%s.", pre_node->GetName().c_str(),
+                           curr_node->GetName().c_str());
       return INTERNAL_ERROR;
     }
-    GELOGI("[Check][Dependency]The two nodes are located in sub graphs of different parent nodes and meet the "
-           "dependency relationship. pre:%s, curr:%s.", pre_node->GetName().c_str(), curr_node->GetName().c_str());
+    GELOGI(
+        "[Check][Dependency]The two nodes are located in sub graphs of different parent nodes and meet the "
+        "dependency relationship. pre:%s, curr:%s.",
+        pre_node->GetName().c_str(), curr_node->GetName().c_str());
   }
   return SUCCESS;
 }
@@ -172,12 +178,12 @@ Status BufferPoolMemoryPass::InsertMemCpyNodeAfter(NodePtr &node) const {
   auto out_anchor = node->GetOutDataAnchor(kBufferPoolNodeOutIndex);
   OpDescBuilder op_desc_builder(node->GetName() + "_memcpy_async", MEMCPYASYNC);
   auto mem_copy_op = op_desc_builder.AddInput("x", node->GetOpDesc()->GetOutputDesc(kBufferPoolNodeOutIndex))
-    .AddOutput("y", node->GetOpDesc()->GetOutputDesc(kBufferPoolNodeOutIndex))
-    .Build();
+                         .AddOutput("y", node->GetOpDesc()->GetOutputDesc(kBufferPoolNodeOutIndex))
+                         .Build();
   std::string batch_label;
   bool get_attr = AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_STREAM_LABEL, batch_label);
   if (get_attr && !batch_label.empty()) {
-    (void) AttrUtils::SetStr(mem_copy_op, ATTR_NAME_STREAM_LABEL, batch_label);
+    (void)AttrUtils::SetStr(mem_copy_op, ATTR_NAME_STREAM_LABEL, batch_label);
   }
   GE_ASSERT_NOTNULL(out_anchor);
   auto peer_in_anchors = out_anchor->GetPeerInDataAnchors();
@@ -213,9 +219,12 @@ Status BufferPoolMemoryPass::CopyOutForMultiUsedOutput(ComputeGraphPtr &graph) c
         changed = true;
         GELOGI("[Insert][Node]Insert mem copy node after %s.", node->GetName().c_str());
       } else {
-        GELOGE(PARAM_INVALID, "[Check][InputOutput]Only support single input and single output, "
-               "node:%s.", node->GetName().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Only support single input and single output, node:%s.", node->GetName().c_str());
+        GELOGE(PARAM_INVALID,
+               "[Check][InputOutput]Only support single input and single output, "
+               "node:%s.",
+               node->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Only support single input and single output, node:%s.",
+                             node->GetName().c_str());
         return PARAM_INVALID;
       }
     }
@@ -244,15 +253,14 @@ Status BufferPoolMemoryPass::GetBufferPoolAndPeerCalcNodes(const ComputeGraphPtr
         const auto calc_node = BypassRefIoNodes(node);
         GE_CHECK_NOTNULL(calc_node);
         std::string batch_label;
-        (void) AttrUtils::GetStr(calc_node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
+        (void)AttrUtils::GetStr(calc_node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
         peer_buffer_node_item_[batch_label][calc_node].emplace_back(in_node, 0, 0);
         buffer_node_to_calc_[batch_label][in_node] = calc_node;
         if (unique_calc_nodes[batch_label][buffer_pool_id].count(calc_node) == 0) {
           calc_nodes_[batch_label][buffer_pool_id].emplace_back(calc_node);
           unique_calc_nodes[batch_label][buffer_pool_id].insert(calc_node);
         }
-        GELOGI("[Get][BufferNode]Calc node:%s, pool node:%s.",
-               calc_node->GetName().c_str(),
+        GELOGI("[Get][BufferNode]Calc node:%s, pool node:%s.", calc_node->GetName().c_str(),
                in_node->GetName().c_str());
         Status ret = SetBufferPoolSize(batch_label, buffer_pool_id, buffer_pool_size);
         if (ret != SUCCESS) {
@@ -268,10 +276,14 @@ Status BufferPoolMemoryPass::GetBufferPoolAndPeerCalcNodes(const ComputeGraphPtr
 Status BufferPoolMemoryPass::SetBufferPoolSize(const std::string &batch_label, int64_t id, int64_t size) {
   auto iter = buffer_pool_size_[batch_label].find(id);
   if (iter != buffer_pool_size_[batch_label].end() && iter->second != size) {
-    GELOGE(PARAM_INVALID, "[Check][BufferPoolSize]Get different size with the same id, "
-           "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".", id, iter->second, size);
-    REPORT_INNER_ERR_MSG("E19999", "Get different size with the same id, "
-                       "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".", id, iter->second, size);
+    GELOGE(PARAM_INVALID,
+           "[Check][BufferPoolSize]Get different size with the same id, "
+           "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".",
+           id, iter->second, size);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Get different size with the same id, "
+                         "id:%" PRId64 ", original size:%" PRId64 ", this size:%" PRId64 ".",
+                         id, iter->second, size);
     return PARAM_INVALID;
   }
   buffer_pool_size_[batch_label][id] = size;
@@ -281,8 +293,7 @@ Status BufferPoolMemoryPass::SetBufferPoolSize(const std::string &batch_label, i
 Status BufferPoolMemoryPass::AllocateAllBufferPoolSpace() {
   for (const auto &iter : calc_nodes_) {
     std::string batch_label = iter.first;
-    Status ret = AllocateSpaceInBatch(calc_nodes_[batch_label],
-                                      buffer_pool_size_[batch_label],
+    Status ret = AllocateSpaceInBatch(calc_nodes_[batch_label], buffer_pool_size_[batch_label],
                                       buffer_node_to_calc_[batch_label]);
     if (ret != SUCCESS) {
       GELOGE(ret, "[Alloc][InBatch]Batch_label:%s.", batch_label.c_str());
@@ -294,10 +305,9 @@ Status BufferPoolMemoryPass::AllocateAllBufferPoolSpace() {
   return SUCCESS;
 }
 
-Status BufferPoolMemoryPass::AllocateSpaceInBatch(
-    const std::map<int64_t, std::vector<NodePtr>> &calc_nodes,
-    const std::unordered_map<int64_t, int64_t> &buffer_pool_size_map,
-    const std::unordered_map<NodePtr, NodePtr> &buffer_node_to_calc) {
+Status BufferPoolMemoryPass::AllocateSpaceInBatch(const std::map<int64_t, std::vector<NodePtr>> &calc_nodes,
+                                                  const std::unordered_map<int64_t, int64_t> &buffer_pool_size_map,
+                                                  const std::unordered_map<NodePtr, NodePtr> &buffer_node_to_calc) {
   for (const auto &calc_node_in_pool : calc_nodes) {
     int64_t pool_id = calc_node_in_pool.first;
     int64_t buffer_pool_size = buffer_pool_size_map.at(pool_id);
@@ -308,7 +318,7 @@ Status BufferPoolMemoryPass::AllocateSpaceInBatch(
     if (ret != SUCCESS) {
       GELOGE(ret, "[Alloc][InBufferPool]Pool id:%" PRId64 ", pool size:%" PRId64 ".", pool_id, buffer_pool_size);
       REPORT_INNER_ERR_MSG("E19999", "Failed to allocate space in buffer pool, id:%" PRId64 ", pool size:%" PRId64 ".",
-                         pool_id, buffer_pool_size);
+                           pool_id, buffer_pool_size);
       return ret;
     }
     GELOGI("[Alloc][InBufferPool]Alloc space in buffer pool successfully, pool id:%" PRId64 ".", pool_id);
@@ -316,9 +326,8 @@ Status BufferPoolMemoryPass::AllocateSpaceInBatch(
   return SUCCESS;
 }
 
-Status BufferPoolMemoryPass::AllocateSpaceInBufferPool(
-    const BufferPool &buffer_pool,
-    const std::vector<NodePtr> &calc_nodes_in_pool) {
+Status BufferPoolMemoryPass::AllocateSpaceInBufferPool(const BufferPool &buffer_pool,
+                                                       const std::vector<NodePtr> &calc_nodes_in_pool) {
   int64_t pool_id = buffer_pool.pool_id;
   int64_t buffer_pool_size = buffer_pool.pool_size;
   int64_t next_start = 0;
@@ -337,8 +346,7 @@ Status BufferPoolMemoryPass::AllocateSpaceInBufferPool(
         auto peer_buffer_node = node_item.node;
         GE_CHECK_NOTNULL(peer_buffer_node);
         int64_t total_size = 0;
-        GE_CHK_STATUS_RET(GetMemorySize(peer_buffer_node, total_size),
-                          "[Get][MemSize]Node:%s, calc_node:%s.",
+        GE_CHK_STATUS_RET(GetMemorySize(peer_buffer_node, total_size), "[Get][MemSize]Node:%s, calc_node:%s.",
                           peer_buffer_node->GetName().c_str(), calc_node->GetName().c_str());
         total_sizes.emplace_back(total_size);
         FMK_INT64_ADDCHECK(group_total_mem_size, total_size);
@@ -350,15 +358,15 @@ Status BufferPoolMemoryPass::AllocateSpaceInBufferPool(
       }
       for (size_t i = 0U; i < node_item_group.node_items.size(); ++i) {
         const auto &peer_buffer_node = node_item_group.node_items[i].node;
-        bool is_last_input = (input_buffer_node_num == peer_buffer_node_items.size()) &&
-            (i == node_item_group.node_items.size() - 1U);
-        BufferPoolNodeItem buffer_pool_node_item(peer_buffer_node, calc_node, pre_buffer_pool_node,
-                                                 total_sizes[i], 0, 0, is_last_input);
+        bool is_last_input =
+            (input_buffer_node_num == peer_buffer_node_items.size()) && (i == node_item_group.node_items.size() - 1U);
+        BufferPoolNodeItem buffer_pool_node_item(peer_buffer_node, calc_node, pre_buffer_pool_node, total_sizes[i], 0,
+                                                 0, is_last_input);
         buffer_pool_node_item.is_first_in_group = (i == 0U);
         GE_CHK_STATUS_RET(AllocateSpaceForBufferPoolNode(next_start, buffer_pool, buffer_pool_node_item,
                                                          group_total_mem_size, node_mem_range_in_pool),
-                          "[Alloc][ForNode]Pool node:%s, calc_node:%s.",
-                          peer_buffer_node->GetName().c_str(), calc_node->GetName().c_str());
+                          "[Alloc][ForNode]Pool node:%s, calc_node:%s.", peer_buffer_node->GetName().c_str(),
+                          calc_node->GetName().c_str());
         pre_buffer_pool_node = peer_buffer_node;
       }
     }
@@ -366,8 +374,7 @@ Status BufferPoolMemoryPass::AllocateSpaceInBufferPool(
   return SUCCESS;
 }
 
-Status BufferPoolMemoryPass::AllocateSpaceForBufferPoolNode(int64_t &next_start,
-                                                            const BufferPool &buffer_pool,
+Status BufferPoolMemoryPass::AllocateSpaceForBufferPoolNode(int64_t &next_start, const BufferPool &buffer_pool,
                                                             BufferPoolNodeItem &buffer_pool_node_item,
                                                             const int64_t group_total_mem_size,
                                                             std::queue<BufferPoolNodeItem> &node_mem_range_in_pool) {
@@ -391,24 +398,21 @@ Status BufferPoolMemoryPass::AllocateSpaceForBufferPoolNode(int64_t &next_start,
   if (buffer_pool_node_item.is_last_input) {
     const auto &calc_node = buffer_pool_node_item.out_calc_node;
     const auto logic_event = GenerateEventId(buffer_node->GetName(), stream_ctrl_event_);
-    node_event_multiplexing_[buffer_node].push_back(string("SendTo;" + calc_node->GetName() +
-        ";" + std::to_string(logic_event)));
+    node_event_multiplexing_[buffer_node].push_back(
+        string("SendTo;" + calc_node->GetName() + ";" + std::to_string(logic_event)));
     mem_ctrl_event_.emplace(calc_node->GetName(), logic_event);
     GELOGI("[Alloc][ForNode]Buffer pool node %s send to %s, offset start:%" PRId64 ", send event id:%u.",
-           buffer_node->GetName().c_str(), calc_node->GetName().c_str(),
-           buffer_pool_node_item.offset_start, logic_event);
+           buffer_node->GetName().c_str(), calc_node->GetName().c_str(), buffer_pool_node_item.offset_start,
+           logic_event);
   }
-  const auto mem_size_needed = buffer_pool_node_item.is_first_in_group ?
-                               group_total_mem_size : buffer_pool_node_item.total_size;
-  NodePtr dependent_calc_node = GetOffsetAndDependency(next_start,
-                                                       mem_size_needed,
-                                                       buffer_pool.pool_size,
-                                                       buffer_pool.buffer_node_to_calc,
-                                                       node_mem_range_in_pool);
+  const auto mem_size_needed =
+      buffer_pool_node_item.is_first_in_group ? group_total_mem_size : buffer_pool_node_item.total_size;
+  NodePtr dependent_calc_node = GetOffsetAndDependency(next_start, mem_size_needed, buffer_pool.pool_size,
+                                                       buffer_pool.buffer_node_to_calc, node_mem_range_in_pool);
   if (buffer_pool_node_item.is_first_in_group && (dependent_calc_node != nullptr)) {
     GE_CHK_STATUS_RET(FixTheTimingOfDependentNodes(dependent_calc_node, buffer_node),
-                      "[Fix][Timing]Pool_id:%" PRId64 ", pool node:%s, dependent node:%s.",
-                      buffer_pool.pool_id, buffer_node->GetName().c_str(), dependent_calc_node->GetName().c_str());
+                      "[Fix][Timing]Pool_id:%" PRId64 ", pool node:%s, dependent node:%s.", buffer_pool.pool_id,
+                      buffer_node->GetName().c_str(), dependent_calc_node->GetName().c_str());
   }
 
   buffer_pool_node_item.offset_start = next_start;
@@ -463,9 +467,8 @@ uint32_t BufferPoolMemoryPass::GenerateEventId(const std::string &node_name,
   return logic_event;
 }
 
-NodePtr BufferPoolMemoryPass::GetOffsetAndDependency(int64_t &next_start,
-    int64_t total_mem_size,
-    int64_t buffer_pool_size,
+NodePtr BufferPoolMemoryPass::GetOffsetAndDependency(
+    int64_t &next_start, int64_t total_mem_size, int64_t buffer_pool_size,
     const std::unordered_map<NodePtr, NodePtr> &buffer_node_to_calc,
     std::queue<BufferPoolMemoryPass::BufferPoolNodeItem> &nodes_in_buffer) const {
   // The buffer pool can no longer fit this Tensor and needs to turn back.
@@ -510,16 +513,16 @@ Status BufferPoolMemoryPass::FixTheTimingOfDependentNodes(NodePtr &dependent_cal
   bool not_change = false;
   Status ret = TryToFixNodeOrder(dependent_calc_node, curr_pool_node, not_change);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Fix][NodeOrder]Src:%s, dst:%s.",
-           dependent_calc_node->GetName().c_str(), curr_pool_node->GetName().c_str());
+    GELOGE(ret, "[Fix][NodeOrder]Src:%s, dst:%s.", dependent_calc_node->GetName().c_str(),
+           curr_pool_node->GetName().c_str());
     return ret;
   }
   if (not_change) {
     return SUCCESS;
   }
   uint32_t logic_event = GenerateEventId(dependent_calc_node->GetName(), mem_ctrl_event_);
-  node_event_multiplexing_[curr_pool_node].push_back(string("RecvFrom;" + dependent_calc_node->GetName() +
-      ";" + std::to_string(logic_event)));
+  node_event_multiplexing_[curr_pool_node].push_back(
+      string("RecvFrom;" + dependent_calc_node->GetName() + ";" + std::to_string(logic_event)));
   stream_ctrl_event_.emplace(curr_pool_node->GetName(), logic_event);
   GELOGI("[Fix][Timing]Add ctrl edge for buffer pool memory from %s to %s, buffer pool node recv event:%u.",
          dependent_calc_node->GetName().c_str(), curr_pool_node->GetName().c_str(), logic_event);
@@ -542,10 +545,9 @@ Status BufferPoolMemoryPass::SetResultOfMemoryAndEvent() {
   for (const auto &node_and_logical_offset : buffer_node_logical_offset_) {
     const auto &node = node_and_logical_offset.first;
     const auto &logical_offset = node_and_logical_offset.second;
-    GE_CHK_BOOL_RET_STATUS(AttrUtils::SetListInt(node->GetOpDesc(),
-                                                 ATTR_NAME_BUFFER_POOL_NODE_SIZE_AND_OFFSET,
-                                                 logical_offset),
-                           INTERNAL_ERROR, "[Set][Attr]Node:%s.", node->GetName().c_str());
+    GE_CHK_BOOL_RET_STATUS(
+        AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_NODE_SIZE_AND_OFFSET, logical_offset),
+        INTERNAL_ERROR, "[Set][Attr]Node:%s.", node->GetName().c_str());
   }
   return SUCCESS;
 }
@@ -561,8 +563,7 @@ bool BufferPoolMemoryPass::HasDependency(const NodePtr &from_node, const NodePtr
   return false;
 }
 
-bool BufferPoolMemoryPass::FindOrBackward(const NodePtr &target_node,
-                                          std::vector<NodePtr> &nodes,
+bool BufferPoolMemoryPass::FindOrBackward(const NodePtr &target_node, std::vector<NodePtr> &nodes,
                                           std::unordered_set<const Node *> &visited) {
   std::vector<NodePtr> in_nodes;
   std::unordered_set<const Node *> unique_in_nodes;
@@ -619,23 +620,20 @@ Status BufferPoolMemoryPass::DoCheckAndDisable(
         continue;
       }
 
-      if (HasDependency(cur_node, pre_buffer_pool_node)) { // reversed dependency
-        GELOGW("Cannot add control edge, would cause cycle: [%s]->[%s]",
-               pre_buffer_pool_node->GetName().c_str(),
+      if (HasDependency(cur_node, pre_buffer_pool_node)) {  // reversed dependency
+        GELOGW("Cannot add control edge, would cause cycle: [%s]->[%s]", pre_buffer_pool_node->GetName().c_str(),
                cur_node->GetName().c_str());
         GELOGW("[%s] remove buffer pool attrs", cur_node->GetName().c_str());
         const auto &op_desc = cur_node->GetOpDesc();
         GE_CHECK_NOTNULL(op_desc);
-        (void) op_desc->DelAttr(ATTR_NAME_BUFFER_POOL_SIZE);
-        (void) op_desc->DelAttr(ATTR_NAME_BUFFER_POOL_ID);
+        (void)op_desc->DelAttr(ATTR_NAME_BUFFER_POOL_SIZE);
+        (void)op_desc->DelAttr(ATTR_NAME_BUFFER_POOL_ID);
         continue;  // do not update pre_buffer_pool_node
       }
       if (!pre_buffer_pool_node->GetOutControlAnchor()->IsLinkedWith(cur_node->GetInControlAnchor())) {
-        GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(pre_buffer_pool_node->GetOutControlAnchor(),
-                                                    cur_node->GetInControlAnchor()),
-                                "Failed to add edge: [%s]->[%s]",
-                                pre_buffer_pool_node->GetName().c_str(),
-                                cur_node->GetName().c_str());
+        GE_CHK_GRAPH_STATUS_RET(
+            GraphUtils::AddEdge(pre_buffer_pool_node->GetOutControlAnchor(), cur_node->GetInControlAnchor()),
+            "Failed to add edge: [%s]->[%s]", pre_buffer_pool_node->GetName().c_str(), cur_node->GetName().c_str());
         edges_added.emplace_back(pre_buffer_pool_node, cur_node);
       }
       pre_buffer_pool_node = cur_node;
@@ -643,7 +641,7 @@ Status BufferPoolMemoryPass::DoCheckAndDisable(
   }
   // rollback
   for (const auto &edge : edges_added) {
-    (void) GraphUtils::RemoveEdge(edge.first->GetOutControlAnchor(), edge.second->GetInControlAnchor());
+    (void)GraphUtils::RemoveEdge(edge.first->GetOutControlAnchor(), edge.second->GetInControlAnchor());
   }
   return SUCCESS;
 }
@@ -661,8 +659,7 @@ void BufferPoolMemoryPass::GroupBufferPoolNodes() {
 }
 
 void BufferPoolMemoryPass::DoGroupBufferPoolNodes(
-    std::vector<NodePtr> &calc_nodes,
-    std::unordered_map<NodePtr, std::vector<BufferPoolNodeItem>> &buffer_node_items) {
+    std::vector<NodePtr> &calc_nodes, std::unordered_map<NodePtr, std::vector<BufferPoolNodeItem>> &buffer_node_items) {
   std::map<NodePtr, std::vector<BufferPoolNodeItem>> all_parent_buffer_node_items;
   std::vector<NodePtr> to_remove;
   std::vector<NodePtr> real_calc_nodes;
@@ -716,8 +713,8 @@ NodePtr BufferPoolMemoryPass::BypassRefIoNodes(const NodePtr &node) {
 
   auto calc_node = GetLastOutDataNode(node);
   GE_ASSERT_NOTNULL(calc_node);
-  GELOGI("%s(%s) output memory could ref input memory, after bypassing it, calc node = %s",
-         node->GetNamePtr(), op_type.c_str(), calc_node->GetNamePtr());
+  GELOGI("%s(%s) output memory could ref input memory, after bypassing it, calc node = %s", node->GetNamePtr(),
+         op_type.c_str(), calc_node->GetNamePtr());
   return calc_node;
 }
 

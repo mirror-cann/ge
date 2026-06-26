@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,14 +30,14 @@ bg::DevMemValueHolderPtr AllocOutputMem(const ge::NodePtr &node, const FFTSLower
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
   if ((subgraph_outputs_idx == nullptr) || (subgraph_outputs_idx->count(0UL) == 0UL)) {
     // use l2_allocator
-    output_addrs = bg::AllocateFftsMems(lower_input.ffts_mem_allocator, node->GetOpDesc()->GetStreamId(),
-                                        {l2_alloc_size});
+    output_addrs =
+        bg::AllocateFftsMems(lower_input.ffts_mem_allocator, node->GetOpDesc()->GetStreamId(), {l2_alloc_size});
     output_mem_type = 1U;
   } else {
     // use l1_allocator
     auto output_size = CalcOutTensorSize(node, 0, output_shape);
-    output_addrs = bg::AllocMemories(kOnDeviceHbm, {output_size}, *(lower_input.global_data),
-                                     node->GetOpDesc()->GetStreamId());
+    output_addrs =
+        bg::AllocMemories(kOnDeviceHbm, {output_size}, *(lower_input.global_data), node->GetOpDesc()->GetStreamId());
     output_mem_type = 0U;
   }
   std::vector<uint32_t> mem_pool_types{output_mem_type};

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,7 @@ TEST_F(UtestKernelExTaskInfo, success_kernel_ex_task_init) {
 
   DavinciModel model(0, nullptr);
   model.logical_mem_allocations_.clear();
-  MemAllocation not_change_mem_item = {0, 0U, UINT64_MAX,
-                                      ge::MemAllocation::Type::ABSOLUTE, 0U};
+  MemAllocation not_change_mem_item = {0, 0U, UINT64_MAX, ge::MemAllocation::Type::ABSOLUTE, 0U};
   model.logical_mem_allocations_.emplace_back(not_change_mem_item);
 
   EXPECT_EQ(kernel_ex_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), FAILED);
@@ -91,7 +90,7 @@ TEST_F(UtestKernelExTaskInfo, success_kernel_ex_task_init) {
   kernel_ex_task_info.Release();
 
   ZeroCopyOffset zero_copy_offset_input0;
-  kernel_ex_task_info.io_addrs_= {ValueToPtr(0x01), ValueToPtr(0x02)};
+  kernel_ex_task_info.io_addrs_ = {ValueToPtr(0x01), ValueToPtr(0x02)};
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data;
   virtual_addr_out_data[0x01].emplace_back(0x11111);
   virtual_addr_out_data[0x02].emplace_back(0x22222);
@@ -174,10 +173,9 @@ TEST_F(UtestKernelExTaskInfo, success_kernel_ex_task_info_copy) {
   kernel_ex_def->set_args(args_info.data(), sizeof(STR_FWK_OP_KERNEL));
   kernel_ex_def->set_args_size(sizeof(STR_FWK_OP_KERNEL));
 
-  model.op_list_[0]->SetWorkspace({1308});   // offset
-  model.op_list_[0]->SetWorkspaceBytes({150});    // length
+  model.op_list_[0]->SetWorkspace({1308});      // offset
+  model.op_list_[0]->SetWorkspaceBytes({150});  // length
   EXPECT_EQ(kernel_ex_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), SUCCESS);
-
 
   int len = sizeof(hybrid::AicpuExtInfo) + sizeof(hybrid::AsyncWaitInfo);
   vector<char> aicpu_ext_info(len, 0);
@@ -189,7 +187,7 @@ TEST_F(UtestKernelExTaskInfo, success_kernel_ex_task_info_copy) {
 
   free(ValueToPtr(args[0].dev_addr));
   task_def.clear_kernel_ex();
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0;
   kernel_ex_task_info.Release();
 }
@@ -204,24 +202,24 @@ TEST_F(UtestKernelExTaskInfo, init_with_zero_copy) {
   DavinciModel model(0, nullptr);
   model.SetFeatureBaseRefreshable(false);
   model.runtime_param_.mem_size = 2048U;
-  model.runtime_param_.zero_copy_size = 2048U; // 全部都是io mem allocation
+  model.runtime_param_.zero_copy_size = 2048U;  // 全部都是io mem allocation
 
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
 
-  MemAllocation input_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base), 8U,
-                                        ge::MemAllocation::Type::INPUT, 0, 0};
+  MemAllocation input_mem_allocation = {
+      0, static_cast<uint64_t>(model.runtime_param_.mem_base), 8U, ge::MemAllocation::Type::INPUT, 0, 0};
   model.logical_mem_allocations_.emplace_back(input_mem_allocation);
 
-  MemAllocation output_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U, 8U,
-                                         ge::MemAllocation::Type::OUTPUT, 0, 0};
+  MemAllocation output_mem_allocation = {
+      0, static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U, 8U, ge::MemAllocation::Type::OUTPUT, 0, 0};
   model.logical_mem_allocations_.emplace_back(output_mem_allocation);
 
-  iow_addrs.input_logic_addrs = {{static_cast<uint64_t>(model.runtime_param_.mem_base),
-    (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo}};
+  iow_addrs.input_logic_addrs = {
+      {static_cast<uint64_t>(model.runtime_param_.mem_base), (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo}};
 
-  iow_addrs.output_logic_addrs = {{static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U,
-    (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo}};
+  iow_addrs.output_logic_addrs = {
+      {static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U, (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo}};
 
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
@@ -237,8 +235,8 @@ TEST_F(UtestKernelExTaskInfo, init_with_zero_copy) {
   kernel_ex_def.set_task_info_size(task_info.size());
   kernel_ex_def.set_op_index(0U);
   model.op_list_[0] = CreateOpDesc("FrameworkOp", "FrameworkOp");
-  model.op_list_[0]->SetWorkspace({1308});   // offset
-  model.op_list_[0]->SetWorkspaceBytes({150});    // length
+  model.op_list_[0]->SetWorkspace({1308});      // offset
+  model.op_list_[0]->SetWorkspaceBytes({150});  // length
   GeTensorDesc input_desc;
   EXPECT_TRUE(ge::AttrUtils::SetInt(input_desc, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0));
   EXPECT_EQ(model.op_list_[0]->AddInputDesc(input_desc), GRAPH_SUCCESS);
@@ -256,9 +254,9 @@ TEST_F(UtestKernelExTaskInfo, init_with_zero_copy) {
     kernel_ex_task_info.deploy_type_flag_ = RT_KERNEL_DEVICE_FIRST;
     EXPECT_EQ(kernel_ex_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), SUCCESS);
     EXPECT_EQ(PtrToValue(kernel_ex_task_info.input_data_addrs_[0]),
-      static_cast<uint64_t>(model.runtime_param_.mem_base));
+              static_cast<uint64_t>(model.runtime_param_.mem_base));
     EXPECT_EQ(PtrToValue(kernel_ex_task_info.output_data_addrs_[0]),
-      static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U);
+              static_cast<uint64_t>(model.runtime_param_.mem_base) + 8U);
 
     EXPECT_EQ(kernel_ex_task_info.input_addr_mem_types_[0], (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo);
     EXPECT_EQ(kernel_ex_task_info.output_addr_mem_types_[0], (uint64_t)ge::MemoryAppType::kMemoryTypeModelIo);
@@ -294,8 +292,8 @@ TEST_F(UtestKernelExTaskInfo, init_for_known_node) {
   kernel_ex_def.set_task_info_size(task_info.size());
   kernel_ex_def.set_op_index(0U);
   model.op_list_[0] = CreateOpDesc("FrameworkOp", "FrameworkOp");
-  model.op_list_[0]->SetWorkspace({1308});   // offset
-  model.op_list_[0]->SetWorkspaceBytes({150});    // length
+  model.op_list_[0]->SetWorkspace({1308});      // offset
+  model.op_list_[0]->SetWorkspaceBytes({150});  // length
   GeTensorDesc input_desc;
   EXPECT_TRUE(ge::AttrUtils::SetInt(input_desc, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0));
   EXPECT_EQ(model.op_list_[0]->AddInputDesc(input_desc), GRAPH_SUCCESS);
@@ -304,8 +302,7 @@ TEST_F(UtestKernelExTaskInfo, init_for_known_node) {
 
   {
     model.logical_mem_allocations_.clear();
-    MemAllocation not_change_mem_item = {0, 0U, UINT64_MAX,
-                                       ge::MemAllocation::Type::ABSOLUTE, 0U};
+    MemAllocation not_change_mem_item = {0, 0U, UINT64_MAX, ge::MemAllocation::Type::ABSOLUTE, 0U};
     model.logical_mem_allocations_.emplace_back(not_change_mem_item);
 
     KernelExTaskInfo kernel_ex_task_info;
@@ -357,11 +354,12 @@ TEST_F(UtestKernelExTaskInfo, init_for_known_node_host_only) {
   host_svm_mem_info.logic_memory_base = kMemoryHostSVMFeatureMapLogicBase;
   host_svm_mem_info.memory_type = RT_MEMORY_HOST_SVM;
   host_svm_mem_info.memory_key = "_svm";
-  host_svm_mem_info.memory_base =
-      PtrToPtr<void, uint8_t>(MemoryAllocator(RT_MEMORY_HOST_SVM).MallocMemory(host_svm_mem_info.memory_key, host_svm_mem_info.memory_size));
+  host_svm_mem_info.memory_base = PtrToPtr<void, uint8_t>(
+      MemoryAllocator(RT_MEMORY_HOST_SVM).MallocMemory(host_svm_mem_info.memory_key, host_svm_mem_info.memory_size));
   model.runtime_param_.host_mem_base = PtrToValue(host_svm_mem_info.memory_base);
   MemAllocation host_mem_allocation = {1, static_cast<uint64_t>(model.runtime_param_.host_mem_base),
-                                     (uint64_t)host_svm_mem_info.memory_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+                                       (uint64_t)host_svm_mem_info.memory_size, ge::MemAllocation::Type::FEATURE_MAP,
+                                       0U};
   model.logical_mem_allocations_.emplace_back(host_mem_allocation);
   model.runtime_param_.memory_infos[RT_MEMORY_HOST_SVM] = std::move(host_svm_mem_info);
 
@@ -379,10 +377,10 @@ TEST_F(UtestKernelExTaskInfo, init_for_known_node_host_only) {
   kernel_ex_def.set_task_info_size(task_info.size());
   kernel_ex_def.set_op_index(0U);
   model.op_list_[0] = CreateOpDesc("FrameworkOp", "FrameworkOp", 1, 1);
-  model.op_list_[0]->SetWorkspace({1308});   // offset
-  model.op_list_[0]->SetWorkspaceBytes({150});    // length
-//  GeTensorDesc input_desc;
-//  EXPECT_TRUE(ge::AttrUtils::SetInt(input_desc, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0));
+  model.op_list_[0]->SetWorkspace({1308});      // offset
+  model.op_list_[0]->SetWorkspaceBytes({150});  // length
+                                                //  GeTensorDesc input_desc;
+  //  EXPECT_TRUE(ge::AttrUtils::SetInt(input_desc, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 0));
 
   model.op_list_[0]->SetInputOffset({kMemoryHostSVMFeatureMapLogicBase + 0U});
   model.op_list_[0]->SetOutputOffset({kMemoryHostSVMFeatureMapLogicBase + 1024U});
@@ -395,12 +393,14 @@ TEST_F(UtestKernelExTaskInfo, init_for_known_node_host_only) {
     TaskRunParam task_run_param = {};
     EXPECT_EQ(kernel_ex_task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
     EXPECT_EQ(task_run_param.args_descs.size(), 1);
-    EXPECT_EQ(task_run_param.args_descs[0].args_len, sizeof(uint64_t) * 3); // 刷新归一流程多增加了8字节
+    EXPECT_EQ(task_run_param.args_descs[0].args_len, sizeof(uint64_t) * 3);  // 刷新归一流程多增加了8字节
     EXPECT_EQ(task_run_param.args_descs[0].placement, ArgsPlacement::kArgsPlacementHbm);
     EXPECT_EQ(task_run_param.parsed_input_addrs.size(), 1U);
     EXPECT_EQ(task_run_param.parsed_output_addrs.size(), 1U);
-    EXPECT_EQ(task_run_param.parsed_input_addrs[0].logic_addr, PtrToValue(PtrToPtr<uint8_t, void>(host_svm_mem_info.memory_base)));
-    EXPECT_EQ(task_run_param.parsed_output_addrs[0].logic_addr,  PtrToValue(PtrToPtr<uint8_t, void>(host_svm_mem_info.memory_base))+ 1024);
+    EXPECT_EQ(task_run_param.parsed_input_addrs[0].logic_addr,
+              PtrToValue(PtrToPtr<uint8_t, void>(host_svm_mem_info.memory_base)));
+    EXPECT_EQ(task_run_param.parsed_output_addrs[0].logic_addr,
+              PtrToValue(PtrToPtr<uint8_t, void>(host_svm_mem_info.memory_base)) + 1024);
     EXPECT_EQ(task_run_param.parsed_input_addrs[0].memory_type, RT_MEMORY_HOST_SVM);
     EXPECT_EQ(task_run_param.parsed_output_addrs[0].memory_type, RT_MEMORY_HOST_SVM);
     EXPECT_EQ(task_run_param.parsed_input_addrs[0].support_refresh, true);
@@ -439,7 +439,7 @@ TEST_F(UtestKernelExTaskInfo, kernel_ex_task_info_calculate_args) {
   GeTensorDesc descout(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT16);
   TensorUtils::SetSize(descout, 32);
   EXPECT_EQ(model.op_list_[0]->AddOutputDesc(descout), GRAPH_SUCCESS);
-  model.op_list_[0]->SetOutputOffset({24});// offset
+  model.op_list_[0]->SetOutputOffset({24});  // offset
   model.runtime_param_.mem_size = 1024;
   EXPECT_EQ(kernel_ex_task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
 }
@@ -453,12 +453,12 @@ TEST_F(UtestKernelExTaskInfo, kernel_ex_task_ext_info_without_topic_type) {
   KernelExTaskInfo kernel_ex_task_info;
   kernel_ex_task_info.davinci_model_ = &model;
   EXPECT_EQ(kernel_ex_task_info.InitTaskExtInfo(ext_info, op_desc), SUCCESS);
-  EXPECT_EQ(kernel_ex_task_info.deploy_type_flag_, 0); // if not set by extra info, default is 0
+  EXPECT_EQ(kernel_ex_task_info.deploy_type_flag_, 0);  // if not set by extra info, default is 0
   kernel_ex_task_info.Release();
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_update_addr) {
-  const string ext_info = {3,0,0,0,4,0,0,0,4,0,0,0};
+  const string ext_info = {3, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -470,7 +470,7 @@ TEST_F(UtestKernelExTaskInfo, parse_update_addr) {
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_1) {
-  const string ext_info = {7,0,0,0,4,0,0,0,0,0,0,0};
+  const string ext_info = {7, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -482,7 +482,7 @@ TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_1) {
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_2) {
-  const string ext_info = {7,0,0,0,4,0,0,0,1*16,0,0,0};
+  const string ext_info = {7, 0, 0, 0, 4, 0, 0, 0, 1 * 16, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -494,7 +494,7 @@ TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_2) {
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_3) {
-  const string ext_info = {7,0,0,0,4,0,0,0,2*16,0,0,0};
+  const string ext_info = {7, 0, 0, 0, 4, 0, 0, 0, 2 * 16, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -506,7 +506,7 @@ TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_3) {
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_4) {
-  const string ext_info = {7,0,0,0,4,0,0,0,3*16,0,0,0};
+  const string ext_info = {7, 0, 0, 0, 4, 0, 0, 0, 3 * 16, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -526,7 +526,7 @@ TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_4) {
 // xxxxxxxx xxxxxxxx xxxx1000 xxxxxxxx: qos on, level=0(min level)
 // xxxxxxxx xxxxxxxx xxxx1111 xxxxxxxx: qos on, level=7(max level)
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_5) {
-  const string ext_info = {7,0,0,0,4,0,0,0,4*16,9,0,0}; // little enddian
+  const string ext_info = {7, 0, 0, 0, 4, 0, 0, 0, 4 * 16, 9, 0, 0};  // little enddian
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -534,12 +534,12 @@ TEST_F(UtestKernelExTaskInfo, parse_topic_type_success_5) {
   KernelExTaskInfo kernel_ex_task_info;
   kernel_ex_task_info.davinci_model_ = &model;
   EXPECT_EQ(kernel_ex_task_info.InitTaskExtInfo(ext_info, op_desc), SUCCESS);
-  EXPECT_EQ(kernel_ex_task_info.deploy_type_flag_, 0x00); // 0x40&0x30 >> 4
+  EXPECT_EQ(kernel_ex_task_info.deploy_type_flag_, 0x00);  // 0x40&0x30 >> 4
   kernel_ex_task_info.Release();
 }
 
 TEST_F(UtestKernelExTaskInfo, parse_topic_type_failed_1) {
-  const string ext_info = {7,0,0,0,2,0,0,0,2,0,0,0};
+  const string ext_info = {7, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0};
   const OpDescPtr op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   AttrUtils::SetBool(op_desc, "_AllShape", true);
 
@@ -554,11 +554,11 @@ TEST_F(UtestKernelExTaskInfo, blocking_aicpu_op) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -598,11 +598,11 @@ TEST_F(UtestKernelExTaskInfo, blocking_aicpu_op_fail_01) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -634,11 +634,11 @@ TEST_F(UtestKernelExTaskInfo, blocking_aicpu_op_fail_02) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -691,8 +691,8 @@ TEST_F(UtestKernelExTaskInfo, testUpdateArgs) {
   kernel_ex_def->set_args_size(sizeof(STR_FWK_OP_KERNEL));
 
   model.op_list_[0] = CreateOpDesc("FrameworkOp", "FrameworkOp");
-  model.op_list_[0]->SetWorkspace({1308});   // offset
-  model.op_list_[0]->SetWorkspaceBytes({150});    // length
+  model.op_list_[0]->SetWorkspace({1308});      // offset
+  model.op_list_[0]->SetWorkspaceBytes({150});  // length
 
   PisToArgs args;
   args[0].dev_addr = PtrToValue(malloc(1024));
@@ -786,7 +786,7 @@ TEST_F(UtestKernelExTaskInfo, dump_op_with_adump_enabled) {
   EXPECT_EQ(kernel_ex_task_info.InitTaskExtInfo(kernel_ex_def.kernel_ext_info(), op_desc), SUCCESS);
 
   // 6. 设置必要的成员，使 Distribute 能顺利执行
-  kernel_ex_task_info.func_handle_ = reinterpret_cast<void*>(0x12000);  // 模拟有效函数句柄
+  kernel_ex_task_info.func_handle_ = reinterpret_cast<void *>(0x12000);  // 模拟有效函数句柄
   // 分配一个简单的 kernel 参数缓冲区（避免空指针）
   std::vector<uint8_t> dummy_buf(64, 0);
   kernel_ex_task_info.kernel_buf_ = dummy_buf.data();

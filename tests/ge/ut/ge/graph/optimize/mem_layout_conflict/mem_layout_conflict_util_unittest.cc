@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,7 +96,7 @@ TEST_F(UtestMemLayoutConflictUtil, Get_if_conflict_anchors_success) {
  *       netoutput
  *
  * subgraph x
- * +----------------------+ 
+ * +----------------------+
  * | datax_1--netoutputx |
  * | datax_2             |
  * | datax_3             |
@@ -108,33 +108,38 @@ TEST_F(UtestMemLayoutConflictUtil, Get_case_conflict_anchors_success) {
   const auto data1_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data1_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph1) {
-                        CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data1_2", data1_2));
-                        CHAIN(NODE("data1_3", data1_3));
-                      };
+    CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data1_2", data1_2));
+    CHAIN(NODE("data1_3", data1_3));
+  };
   const auto data2_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data2_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data2_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph2) {
-                        CHAIN(NODE("data2_1", data2_1));
-                        CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data2_3", data2_3));
-                      };
+    CHAIN(NODE("data2_1", data2_1));
+    CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data2_3", data2_3));
+  };
   const auto data3_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data3_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data3_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph3) {
-                        CHAIN(NODE("data3_1", data3_1));
-                        CHAIN(NODE("data3_2", data3_2));
-                        CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3_1", data3_1));
+    CHAIN(NODE("data3_2", data3_2));
+    CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("case", CASE, subgraph1, subgraph2, subgraph3)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
-                  CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, subgraph1, subgraph2, subgraph3)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
+    CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
+  };
   auto graph = ToComputeGraph(g1);
 
   EXPECT_TRUE(MemLayoutConflictUtil::IsCtrlNodeSubgraphExistMemConflictSymbol(graph));
@@ -169,23 +174,20 @@ TEST_F(UtestMemLayoutConflictUtil, TraverseRefChainReverse_Success) {
   auto graph = MemConflictShareGraph::BuildConnectToNoPaddingContinuousInputThroughtRefNodeGraph();
   auto refnode = graph->FindNode("refnode");
   ASSERT_NE(refnode, nullptr);
-  bool ret = MemLayoutConflictUtil::TraverseRefChainReverse(refnode.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "a";
-  });
+  bool ret = MemLayoutConflictUtil::TraverseRefChainReverse(
+      refnode.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "a"; });
   EXPECT_TRUE(ret);
 
   auto pc = graph->FindNode("pc");
   ASSERT_NE(pc, nullptr);
-  ret = MemLayoutConflictUtil::TraverseRefChainReverse(pc.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "a";
-  });
+  ret = MemLayoutConflictUtil::TraverseRefChainReverse(
+      pc.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "a"; });
   EXPECT_TRUE(ret);
 
   auto b = graph->FindNode("b");
   ASSERT_NE(b, nullptr);
-  ret = MemLayoutConflictUtil::TraverseRefChainReverse(b.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "a";
-  });
+  ret = MemLayoutConflictUtil::TraverseRefChainReverse(
+      b.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "a"; });
   EXPECT_FALSE(ret);
 }
 
@@ -200,21 +202,18 @@ TEST_F(UtestMemLayoutConflictUtil, TraverseRefChain_Success) {
   auto graph = MemConflictShareGraph::BuildConnectToNoPaddingContinuousInputThroughtRefNodeGraph();
   auto refnode = graph->FindNode("refnode");
   ASSERT_NE(refnode, nullptr);
-  bool ret = MemLayoutConflictUtil::TraverseRefChain(refnode.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "pc";
-  });
+  bool ret = MemLayoutConflictUtil::TraverseRefChain(
+      refnode.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "pc"; });
   EXPECT_TRUE(ret);
 
   auto pc = graph->FindNode("pc");
   ASSERT_NE(pc, nullptr);
-  ret = MemLayoutConflictUtil::TraverseRefChain(pc.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "pc";
-  });
+  ret = MemLayoutConflictUtil::TraverseRefChain(
+      pc.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "pc"; });
   EXPECT_TRUE(ret);
 
-  ret = MemLayoutConflictUtil::TraverseRefChain(pc.get(), 0, [] (const Node *node, int32_t out_index) {
-    return node->GetName() == "B";
-  });
+  ret = MemLayoutConflictUtil::TraverseRefChain(
+      pc.get(), 0, [](const Node *node, int32_t out_index) { return node->GetName() == "B"; });
   EXPECT_FALSE(ret);
 }
 
@@ -311,8 +310,8 @@ TEST_F(UtestMemLayoutConflictUtil, IsConnectToContinuousOutputNode_Success) {
   auto b = graph->FindNode("b");
   ASSERT_NE(b, nullptr);
   OutDataAnchor *continuous_output_node = nullptr;
-  EXPECT_TRUE(MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(
-      b->GetInDataAnchor(0)->GetPeerOutAnchor().get(), false, continuous_output_node));
+  EXPECT_TRUE(MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(b->GetInDataAnchor(0)->GetPeerOutAnchor().get(),
+                                                                      false, continuous_output_node));
   EXPECT_STRCASEEQ(continuous_output_node->GetOwnerNodeBarePtr()->GetName().c_str(), "hcom");
 }
 /*
@@ -327,8 +326,8 @@ TEST_F(UtestMemLayoutConflictUtil, IsConnectToContinuousOutputNode_Success_Nopad
   auto b = graph->FindNode("b");
   ASSERT_NE(b, nullptr);
   OutDataAnchor *continuous_output_node = nullptr;
-  EXPECT_TRUE(MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(
-      b->GetInDataAnchor(0)->GetPeerOutAnchor().get(), true, continuous_output_node));
+  EXPECT_TRUE(MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(b->GetInDataAnchor(0)->GetPeerOutAnchor().get(),
+                                                                      true, continuous_output_node));
   EXPECT_STRCASEEQ(continuous_output_node->GetOwnerNodeBarePtr()->GetName().c_str(), "split");
 }
 
@@ -351,4 +350,4 @@ TEST_F(UtestMemLayoutConflictUtil, GetRealInputs_Success) {
   auto in_nodes = MemLayoutConflictUtil::GetAllRealInPeer(hcombroadcast);
   ASSERT_EQ(in_nodes.size(), 1U);
 }
-} // namespace ge
+}  // namespace ge

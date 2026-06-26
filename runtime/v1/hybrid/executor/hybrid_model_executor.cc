@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,19 +20,18 @@ namespace {
 constexpr int32_t kDataOutputFirstIndex = 0;
 constexpr uint32_t kPlaceDeviceData = 1U;
 const size_t kValAlignment = 64U;
-}
+}  // namespace
 
 Status HybridModelExecutor::InitInputDesc() {
   int32_t input_index = 0;
   for (const auto &input_node : model_->GetRootGraphItem()->GetInputNodes()) {
-    GELOGD("Init input[%u], node = %s, is_dynamic = %d", input_index,
-           input_node->NodeName().c_str(), static_cast<int32_t>(input_node->is_dynamic));
+    GELOGD("Init input[%u], node = %s, is_dynamic = %d", input_index, input_node->NodeName().c_str(),
+           static_cast<int32_t>(input_node->is_dynamic));
     auto output_desc = input_node->MutableOutputDesc(kDataOutputFirstIndex);
     GE_CHECK_NOTNULL(output_desc);
     int64_t tensor_size = -1;
     if (!input_node->is_dynamic) {
-      GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetSize(*output_desc, tensor_size),
-                              "[Get][Size] from %s failed",
+      GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetSize(*output_desc, tensor_size), "[Get][Size] from %s failed",
                               input_node->NodeName().c_str());
 
       if (tensor_size == 0) {
@@ -57,8 +56,8 @@ Status HybridModelExecutor::SyncVarData() const {
   if (global_step_var != nullptr) {
     std::vector<uint64_t> v_step;
     v_step.push_back(iterator_count_);
-    GE_CHK_ACL_RET(aclrtMemcpy(global_step_var->MutableData(), global_step_var->GetSize(),
-        v_step.data(), v_step.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+    GE_CHK_ACL_RET(aclrtMemcpy(global_step_var->MutableData(), global_step_var->GetSize(), v_step.data(),
+                               v_step.size() * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
   } else {
     GELOGD("No GLOBAL_STEP variable was found.");
   }
@@ -80,25 +79,26 @@ Status HybridModelExecutor::PrepareDynamicInput(HybridModelExecutor::ExecuteArgs
         break;
       }
       // range[k].second can be -1
-      const bool is_out_of_range = (shape.GetDim(k) < range[k].first) ||
-                                    ((range[k].second >= 0) && (shape.GetDim(k) > range[k].second));
+      const bool is_out_of_range =
+          (shape.GetDim(k) < range[k].first) || ((range[k].second >= 0) && (shape.GetDim(k) > range[k].second));
       if (is_out_of_range) {
         GELOGE(PARAM_INVALID,
                "[Check][Range]Dim out of range, shape idx = %zu, dim idx = %zu,"
                "dim = %ld, range = [%ld, %ld], model_id = %u.",
                input_index, k, shape.GetDim(k), range[k].first, range[k].second, model_id_);
         REPORT_INNER_ERR_MSG("E19999",
-                           "Dim out of range, shape idx = %zu, dim idx = %zu, dim = %" PRId64 ","
-                           "range = [%" PRId64 ", %" PRId64 "], model_id = %u.",
-                           input_index, k, shape.GetDim(k), range[k].first, range[k].second, model_id_);
+                             "Dim out of range, shape idx = %zu, dim idx = %zu, dim = %" PRId64
+                             ","
+                             "range = [%" PRId64 ", %" PRId64 "], model_id = %u.",
+                             input_index, k, shape.GetDim(k), range[k].first, range[k].second, model_id_);
         return PARAM_INVALID;
       }
     }
   }
   tensor_desc->SetShape(shape);
   tensor_desc->SetOriginShape(shape);
-  GELOGD("Update shape[%s] of input[%zu] to [%s]",
-         shape.ToString().c_str(), input_index, tensor_desc->MutableShape().ToString().c_str());
+  GELOGD("Update shape[%s] of input[%zu] to [%s]", shape.ToString().c_str(), input_index,
+         tensor_desc->MutableShape().ToString().c_str());
   if (tensor_desc->GetDataType() == DT_STRING) {
     tensor_size = static_cast<int64_t>(data_buf.length);
   } else {
@@ -118,8 +118,10 @@ Status HybridModelExecutor::CopyDataToExecutArgs(const int64_t tensor_size, Hybr
   const auto mem_size = static_cast<uint64_t>(tensor_size);
   if (mem_size < data_buf.length) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "input data size(%" PRIu64 ") does not match model required size(%" PRIu64 "), "
-		                   "ret failed, model_id = %u.", data_buf.length, mem_size, model_id_);
+                         "input data size(%" PRIu64 ") does not match model required size(%" PRIu64
+                         "), "
+                         "ret failed, model_id = %u.",
+                         data_buf.length, mem_size, model_id_);
     GELOGE(PARAM_INVALID,
            "[Check][Size]input data size(%lu) does not match model required size(%lu), ret failed, model_id = %u.",
            data_buf.length, mem_size, model_id_);
@@ -143,25 +145,20 @@ Status HybridModelExecutor::CopyDataToExecutArgs(const int64_t tensor_size, Hybr
   GELOGD("To copy input data for input[%zu]", input_index);
   if (data_buf.length > 0U) {
     GELOGI("[IMAS]CopyPlainData memcpy graph_%u type[F] output[%zu] memaddr[%p] mem_size[%zu] datasize[%lu]",
-           model_->GetRootGraph() != nullptr ? model_->GetRootGraph()->GetGraphID() : 0,
-           input_index,
-           args.inputs[input_index].GetData(),
-           mem_size,
-           data_buf.length);
-    GE_CHK_ACL_RET(aclrtMemcpy(args.inputs[input_index].MutableData(), mem_size, data_buf.data,
-        data_buf.length, ACL_MEMCPY_HOST_TO_DEVICE));
+           model_->GetRootGraph() != nullptr ? model_->GetRootGraph()->GetGraphID() : 0, input_index,
+           args.inputs[input_index].GetData(), mem_size, data_buf.length);
+    GE_CHK_ACL_RET(aclrtMemcpy(args.inputs[input_index].MutableData(), mem_size, data_buf.data, data_buf.length,
+                               ACL_MEMCPY_HOST_TO_DEVICE));
   }
   return SUCCESS;
 }
 
-Status HybridModelExecutor::PrepareExecuteArgs(const InputData &current_data,
-                                               HybridModelExecutor::ExecuteArgs &args) {
+Status HybridModelExecutor::PrepareExecuteArgs(const InputData &current_data, HybridModelExecutor::ExecuteArgs &args) {
   if (current_data.blobs.size() < index_to_tensor_desc_.size()) {
-    GELOGE(PARAM_INVALID,
-           "[Check][Size]Blob size mismatches, expect at least %zu, but got %zu, model_id = %u",
+    GELOGE(PARAM_INVALID, "[Check][Size]Blob size mismatches, expect at least %zu, but got %zu, model_id = %u",
            index_to_tensor_desc_.size(), current_data.blobs.size(), model_id_);
     REPORT_INNER_ERR_MSG("E19999", "Blob size mismatches, expect at least %zu, but got %zu, model_id = %u.",
-                       index_to_tensor_desc_.size(), current_data.blobs.size(), model_id_);
+                         index_to_tensor_desc_.size(), current_data.blobs.size(), model_id_);
     return PARAM_INVALID;
   }
 
@@ -173,9 +170,10 @@ Status HybridModelExecutor::PrepareExecuteArgs(const InputData &current_data,
       if (input_index >= current_data.shapes.size()) {
         GELOGE(PARAM_INVALID,
                "[Check][Range]Shape index out of range, index = %zu, shape size = "
-	             "%zu model_id = %u.", input_index, current_data.shapes.size(), model_id_);
+               "%zu model_id = %u.",
+               input_index, current_data.shapes.size(), model_id_);
         REPORT_INNER_ERR_MSG("E19999", "Shape index out of range, index = %zu, shape size = %zu, model_id = %u.",
-                           input_index, current_data.shapes.size(), model_id_);
+                             input_index, current_data.shapes.size(), model_id_);
         return PARAM_INVALID;
       }
       const GeShape shape(current_data.shapes[input_index]);
@@ -218,7 +216,8 @@ Status HybridModelExecutor::OnComputeDone(const uint32_t data_index, const uint3
 
 /*
  *  args是输入，output_data和outputs是输出
- *  1. 根据shape重新计算大小，申请host内存，并把数据从args中拷贝过去。这块内存生命周期由outputs管理，output_data只是引用。
+ *  1.
+ * 根据shape重新计算大小，申请host内存，并把数据从args中拷贝过去。这块内存生命周期由outputs管理，output_data只是引用。
  *     为什么还需要重新计算大小呢？难道是担心args中的size是加了padding了？
  *  2. shape使用args.output_desc上的，更新到outputs中。
  */
@@ -232,8 +231,8 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
            "[Check][Size]Output sizes mismatch. From op_desc = %zu, and from output tensors = %zu, model_id = %u.",
            output_tensor_desc_list.size(), output_tensors.size(), model_id_);
     REPORT_INNER_ERR_MSG("E19999",
-                       "Output sizes mismatch. From op_desc = %zu, and from output tensors = %zu, model_id = %u.",
-                       output_tensor_desc_list.size(), output_tensors.size(), model_id_);
+                         "Output sizes mismatch. From op_desc = %zu, and from output tensors = %zu, model_id = %u.",
+                         output_tensor_desc_list.size(), output_tensors.size(), model_id_);
     return INTERNAL_ERROR;
   }
 
@@ -247,30 +246,25 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
     if (tensor_desc->GetDataType() == DT_STRING) {
       output_size = static_cast<int64_t>(output_tensor.GetSize());
     } else {
-      GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(tensor_desc->GetShape(),
-                                                             tensor_desc->GetFormat(),
-                                                             tensor_desc->GetDataType(),
-                                                             output_size),
-                              "[Calc][TensorMemSize]Failed for output[%zu]. shape = [%s], type = %s, format = %s",
-                              i,
+      GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(tensor_desc->GetShape(), tensor_desc->GetFormat(),
+                                                             tensor_desc->GetDataType(), output_size),
+                              "[Calc][TensorMemSize]Failed for output[%zu]. shape = [%s], type = %s, format = %s", i,
                               tensor_desc->GetShape().ToString().c_str(),
                               TypeUtils::DataTypeToSerialString(tensor_desc->GetDataType()).c_str(),
                               TypeUtils::FormatToSerialString(tensor_desc->GetFormat()).c_str());
     }
-    GELOGD("Got tensor size for output[%zu] successfully. shape = [%s], type = %s, format = %s, size = %ld",
-           i,
+    GELOGD("Got tensor size for output[%zu] successfully. shape = [%s], type = %s, format = %s, size = %ld", i,
            tensor_desc->GetShape().ToString().c_str(),
            TypeUtils::DataTypeToSerialString(tensor_desc->GetDataType()).c_str(),
-           TypeUtils::FormatToSerialString(tensor_desc->GetFormat()).c_str(),
-           output_size);
+           TypeUtils::FormatToSerialString(tensor_desc->GetFormat()).c_str(), output_size);
 
     GE_CHECK_GE(output_size, 0);
     if (output_tensor.GetSize() < static_cast<size_t>(output_size)) {
       GELOGE(INTERNAL_ERROR,
-             "[Check][Size]output[%zu] tensor size(%zu) is not enough for output shape [%s], model_id = %u.",
-             i, output_tensor.GetSize(), tensor_desc->GetShape().ToString().c_str(), model_id_);
+             "[Check][Size]output[%zu] tensor size(%zu) is not enough for output shape [%s], model_id = %u.", i,
+             output_tensor.GetSize(), tensor_desc->GetShape().ToString().c_str(), model_id_);
       REPORT_INNER_ERR_MSG("E19999", "output[%zu] tensor size(%zu) is not enough for output shape [%s] model_id = %u",
-                         i, output_tensor.GetSize(), tensor_desc->GetShape().ToString().c_str(), model_id_);
+                           i, output_tensor.GetSize(), tensor_desc->GetShape().ToString().c_str(), model_id_);
       return INTERNAL_ERROR;
     }
 
@@ -289,7 +283,7 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
         GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), output_tensor.GetData(),
-            static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
+                                   static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor(ge_tensor_desc);
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
         output_data->blobs.emplace_back(data_buf, static_cast<uint32_t>(output_size), false);
@@ -318,7 +312,7 @@ Status HybridModelExecutor::CopyOutputs(HybridModelExecutor::ExecuteArgs &args, 
  *  2. shape使用executor_outputs上的，更新到outputs中。
  */
 Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executor_outputs,
-  std::vector<gert::Tensor> &uer_outputs) const {
+                                        std::vector<gert::Tensor> &uer_outputs) const {
   uer_outputs.clear();
   uer_outputs.reserve(executor_outputs.size());
   for (size_t i = 0U; i < executor_outputs.size(); ++i) {
@@ -329,12 +323,9 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
     if (arg_output.GetDataType() == DT_STRING) {
       output_size = static_cast<int64_t>(arg_output.GetSize());
     } else {
-      GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(ge_shape,
-                                                             arg_output.GetStorageFormat(),
-                                                             arg_output.GetDataType(),
-                                                             output_size),
-                              "[Calc][TensorMemSize]Failed for output[%zu]. shape = [%s], type = %s, format = %s",
-                              i,
+      GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(ge_shape, arg_output.GetStorageFormat(),
+                                                             arg_output.GetDataType(), output_size),
+                              "[Calc][TensorMemSize]Failed for output[%zu]. shape = [%s], type = %s, format = %s", i,
                               ge_shape.ToString().c_str(),
                               TypeUtils::DataTypeToSerialString(arg_output.GetDataType()).c_str(),
                               TypeUtils::FormatToSerialString(arg_output.GetStorageFormat()).c_str());
@@ -346,10 +337,10 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
     GE_CHECK_GE(output_size, 0);
     if (arg_output.GetSize() < static_cast<size_t>(output_size)) {
       GELOGE(INTERNAL_ERROR,
-             "[Check][Size]output[%zu] tensor size(%zu) is not enough for output shape [%s], model_id = %u.",
-             i, arg_output.GetSize(), ge_shape.ToString().c_str(), model_id_);
+             "[Check][Size]output[%zu] tensor size(%zu) is not enough for output shape [%s], model_id = %u.", i,
+             arg_output.GetSize(), ge_shape.ToString().c_str(), model_id_);
       REPORT_INNER_ERR_MSG("E19999", "output[%zu] tensor size(%zu) is not enough for output shape [%s] model_id = %u",
-                         i, arg_output.GetSize(), ge_shape.ToString().c_str(), model_id_);
+                           i, arg_output.GetSize(), ge_shape.ToString().c_str(), model_id_);
       return INTERNAL_ERROR;
     }
 
@@ -366,7 +357,7 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
         auto data_buf = aligned_ptr->MutableGet();
         GE_CHECK_NOTNULL(data_buf);
         GE_CHK_ACL_RET(aclrtMemcpy(data_buf, static_cast<uint64_t>(output_size), arg_output.GetAddr(),
-            static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
+                                   static_cast<uint64_t>(output_size), ACL_MEMCPY_DEVICE_TO_HOST));
         GeTensor ge_tensor;
         ge_tensor.SetData(aligned_ptr, static_cast<size_t>(output_size));
         gert::Tensor host_tensor;
@@ -382,19 +373,19 @@ Status HybridModelExecutor::CopyOutputs(const std::vector<gert::Tensor> &executo
       }
     } else {
       gert::Tensor copy_tensor(arg_output.GetShape(), arg_output.GetFormat(), gert::TensorPlacement::kOnHost,
-        arg_output.GetDataType(), nullptr);
+                               arg_output.GetDataType(), nullptr);
       GELOGW("Output [%zu] is empty. shape size = [%ld]", i, arg_output.GetStorageShape().GetShapeSize());
       uer_outputs.emplace_back(std::move(copy_tensor));
     }
     GELOGD("Output[%zu] added, type = %s, shape = [%s], size = %ld", i,
-           TypeUtils::DataTypeToSerialString(arg_output.GetDataType()).c_str(),
-           ge_shape.ToString().c_str(), output_size);
+           TypeUtils::DataTypeToSerialString(arg_output.GetDataType()).c_str(), ge_shape.ToString().c_str(),
+           output_size);
   }
   return SUCCESS;
 }
 
 void HybridModelExecutor::GenDataInputOutputData(const uint32_t model_id, const std::vector<gert::Tensor> &inputs,
-    InputData &input_data, OutputData &output_data) const {
+                                                 InputData &input_data, OutputData &output_data) const {
   input_data.model_id = model_id;
   input_data.timeout = 0U;
   input_data.timestamp = 0U;
@@ -405,8 +396,9 @@ void HybridModelExecutor::GenDataInputOutputData(const uint32_t model_id, const 
     DataBuffer data_blob;
     data_blob.data = ValueToPtr(PtrToValue(inputs[i].GetAddr()));
     data_blob.length = inputs[i].GetSize();
-    data_blob.placement = static_cast<uint32_t>(gert::TensorPlacementUtils::IsOnDevice(inputs[i].GetPlacement()) ?
-      Placement::kPlacementDevice : Placement::kPlacementHost);
+    data_blob.placement = static_cast<uint32_t>(gert::TensorPlacementUtils::IsOnDevice(inputs[i].GetPlacement())
+                                                    ? Placement::kPlacementDevice
+                                                    : Placement::kPlacementHost);
     input_data.blobs.push_back(data_blob);
   }
   output_data.model_id = model_id;
@@ -414,10 +406,8 @@ void HybridModelExecutor::GenDataInputOutputData(const uint32_t model_id, const 
 }
 
 // 当前几个执行器的处理逻辑一致，放到了基类实现，后面实现不同可以在子类中重新实现
-Status HybridModelExecutor::HandleResult(const Status exec_ret,
-                                         const uint32_t data_id,
-                                         HybridModelExecutor::ExecuteArgs &args,
-                                         OutputData *const output_data,
+Status HybridModelExecutor::HandleResult(const Status exec_ret, const uint32_t data_id,
+                                         HybridModelExecutor::ExecuteArgs &args, OutputData *const output_data,
                                          std::shared_ptr<ModelListener> listener) const {
   GELOGD("Start to handle result. model id = %u, data index = %u, execution ret = %u", model_id_, data_id, exec_ret);
   std::vector<ge::Tensor> output_tensor_info_list;
@@ -446,8 +436,8 @@ Status HybridModelExecutor::HandleResult(const Status exec_ret,
 
 // 当前几个执行器的处理逻辑一致，放到了基类实现，后面实现不同可以在子类中重新实现
 Status HybridModelExecutor::HandleResult(const Status exec_ret, const uint32_t data_id,
-  HybridModelExecutor::CtrlArgs &ctrl_args, std::vector<gert::Tensor> &outputs,
-  std::shared_ptr<ModelListener> listener) const {
+                                         HybridModelExecutor::CtrlArgs &ctrl_args, std::vector<gert::Tensor> &outputs,
+                                         std::shared_ptr<ModelListener> listener) const {
   GELOGD("Start to handle result. model id = %u, data index = %u, execution ret = %u", model_id_, data_id, exec_ret);
   std::vector<gert::Tensor> host_outputs;
   if (ctrl_args.is_eos) {
@@ -490,8 +480,7 @@ Status HybridModelExecutor::ExecuteWithStreamAsync(const std::vector<GeTensor> &
 }
 
 Status HybridModelExecutor::ExecuteWithStreamAsync(const std::vector<gert::Tensor> &inputs,
-                                                                  std::vector<gert::Tensor> &outputs,
-                                                                  const aclrtStream stream) {
+                                                   std::vector<gert::Tensor> &outputs, const aclrtStream stream) {
   (void)inputs;
   (void)outputs;
   (void)stream;
@@ -522,4 +511,4 @@ Status HybridModelExecutor::BuildDeviceTensor(TensorValue &output_tensor, GeTens
   return SUCCESS;
 }
 }  // namespace hybrid
-}
+}  // namespace ge

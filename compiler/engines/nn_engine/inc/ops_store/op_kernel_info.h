@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,25 +21,25 @@
 #include "common/aicore_util_types.h"
 #include "common/opskernel/ops_kernel_info_types.h"
 
-#define GenerateOpKernelFlagFunc(flag_item)                             \
-bool Is##flag_item() const {                                            \
-  return op_flag_vec_[static_cast<size_t>(OP_KERNEL_FLAG::flag_item)];  \
-}
+#define GenerateOpKernelFlagFunc(flag_item)                              \
+  bool Is##flag_item() const {                                           \
+    return op_flag_vec_[static_cast<size_t>(OP_KERNEL_FLAG::flag_item)]; \
+  }
 
-#define GenerateOpKernelParamFunc(param_type, param_item)                                           \
-param_type Get##param_item() const {                                                                \
-  return static_cast<param_type>(op_param_vec_[static_cast<size_t>(OP_KERNEL_PARAM::param_item)]);  \
-}
+#define GenerateOpKernelParamFunc(param_type, param_item)                                            \
+  param_type Get##param_item() const {                                                               \
+    return static_cast<param_type>(op_param_vec_[static_cast<size_t>(OP_KERNEL_PARAM::param_item)]); \
+  }
 
-#define GenerateOpKernelStrParamFunc(param_item)                                  \
-const std::string& Get##param_item() const {                                      \
-  return op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::param_item)]; \
-}
+#define GenerateOpKernelStrParamFunc(param_item)                                    \
+  const std::string &Get##param_item() const {                                      \
+    return op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::param_item)]; \
+  }
 
-#define GenerateOpKernelStrParamVecFunc(param_item)                                  \
-const std::vector<std::string>& Get##param_item##Vec() const {                            \
-  return op_str_param_2_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::param_item)];  \
-}
+#define GenerateOpKernelStrParamVecFunc(param_item)                                   \
+  const std::vector<std::string> &Get##param_item##Vec() const {                      \
+    return op_str_param_2_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::param_item)]; \
+  }
 
 namespace fe {
 using AttrTypePair = std::pair<std::string, ge::GeAttrValue::ValueType>;
@@ -98,20 +98,20 @@ class InputOrOutputInfo {
   explicit InputOrOutputInfo(std::string name);
   ~InputOrOutputInfo();
 
-  const std::string& GetName() const;
-  const bool& GetIsInput() const;
+  const std::string &GetName() const;
+  const bool &GetIsInput() const;
   uint32_t GetIndex() const;
-  const vector<ge::DataType>& GetDataType() const;
-  const vector<ge::Format>& GetFormat() const;
-  const vector<uint32_t>& GetSubformat() const;
-  const vector<ge::DataType>& GetUnknownShapeDataType() const;
-  const vector<ge::Format>& GetUnknownShapeFormat() const;
+  const vector<ge::DataType> &GetDataType() const;
+  const vector<ge::Format> &GetFormat() const;
+  const vector<uint32_t> &GetSubformat() const;
+  const vector<ge::DataType> &GetUnknownShapeDataType() const;
+  const vector<ge::Format> &GetUnknownShapeFormat() const;
   OpParamType GetParamType() const;
   bool GetTuneFormatSwitch() const;
   OpConstValueDepend GetConstValueDepend() const;
-  const std::string& GetReshapeType() const;
+  const std::string &GetReshapeType() const;
   void SetReshapeType(const std::string &reshape_type);
-  const std::string& GetUniqueName() const;
+  const std::string &GetUniqueName() const;
 
  private:
   bool is_input_;    /* whether it's input or output. true means input */
@@ -136,7 +136,8 @@ class InputOrOutputInfo {
 
   bool op_tune_format_switch_; /* weather input or output need tuneformat */
 
-  OpConstValueDepend op_const_value_depend_; /* Whether the node of other end of input or output is const or constant. */
+  OpConstValueDepend
+      op_const_value_depend_; /* Whether the node of other end of input or output is const or constant. */
 
   /* Data formats that are supported by this op. The size of supported_formats_
    * should strictly be the same as supported_dtypes_. If not, program will report error
@@ -178,19 +179,19 @@ class AttrInfo {
   explicit AttrInfo(const std::string &attr_name);
   ~AttrInfo();
 
-  const std::string& GetAttrName() const;
+  const std::string &GetAttrName() const;
 
-  const ge::GeAttrValue::ValueType& GetAttrDType() const;
+  const ge::GeAttrValue::ValueType &GetAttrDType() const;
 
-  const bool& GetSupportAllValue() const;
+  const bool &GetSupportAllValue() const;
 
   bool GetIsRequired() const;
 
-  const std::vector<ge::GeAttrValue>& GetSupportedAttrValueVector() const;
+  const std::vector<ge::GeAttrValue> &GetSupportedAttrValueVector() const;
 
-  const bool& GetDefaultValueDefinedFlag() const;
+  const bool &GetDefaultValueDefinedFlag() const;
 
-  const ge::GeAttrValue& GetDefaultValue() const;
+  const ge::GeAttrValue &GetDefaultValue() const;
 
  private:
   std::string attr_name_;
@@ -238,10 +239,10 @@ class OpKernelInfo {
   OpKernelInfo(const std::string &op_type, const OpImplType &impl_type);
   ~OpKernelInfo();
 
-  const std::string& GetOpType() const;
+  const std::string &GetOpType() const;
   OpImplType GetOpStoreImplType() const;
 
-  const std::string& GetOpsPathNamePrefix() const;
+  const std::string &GetOpsPathNamePrefix() const;
 
   /* Now all AttrInfo are stored in a vector, so we offer a find function(loop in vector)
    * for specific attribute with name attr_name to get its Attr Value Type or Attr
@@ -252,12 +253,12 @@ class OpKernelInfo {
 
   /* In other cases, we only provide an interface to get vector of whole attr information.
    * Outside callers can do loop in this vector and get information. */
-  const std::vector<AttrInfoPtr>& GetVecAttrInfo() const;
+  const std::vector<AttrInfoPtr> &GetVecAttrInfo() const;
 
-  const ge::OpInfo& GetOpInfo() const;
+  const ge::OpInfo &GetOpInfo() const;
 
-  const std::vector<InputOrOutputInfoPtr>& GetAllInputInfo() const;
-  const std::vector<InputOrOutputInfoPtr>& GetAllOutputInfo() const;
+  const std::vector<InputOrOutputInfoPtr> &GetAllInputInfo() const;
+  const std::vector<InputOrOutputInfoPtr> &GetAllOutputInfo() const;
   /* The following function is an interface for operations
    * which is the same for input and output. */
   Status GetTensorInfoByName(const bool &isinput, const std::string &tensor_name,
@@ -272,38 +273,35 @@ class OpKernelInfo {
   std::vector<std::vector<int64_t>> GetOutputIplaceInfo() const;
   void SetOutputIplaceInfo(std::vector<std::vector<int64_t>> &output_inplace_ability);
 
-  GenerateOpKernelFlagFunc(NeedCheckSupport)
-  GenerateOpKernelFlagFunc(HeavyOp)
-  GenerateOpKernelFlagFunc(SoftSyncOp)
-  GenerateOpKernelFlagFunc(SupportDynamicShape)
-  GenerateOpKernelFlagFunc(InputMemContinues)
-  GenerateOpKernelFlagFunc(OutputMemContinues)
+  GenerateOpKernelFlagFunc(NeedCheckSupport) GenerateOpKernelFlagFunc(HeavyOp) GenerateOpKernelFlagFunc(SoftSyncOp)
+      GenerateOpKernelFlagFunc(SupportDynamicShape) GenerateOpKernelFlagFunc(InputMemContinues)
+          GenerateOpKernelFlagFunc(OutputMemContinues)
 
-  GenerateOpKernelParamFunc(OpPattern, OpPattern)
-  GenerateOpKernelParamFunc(JitCompile, JitCompileType)
-  GenerateOpKernelParamFunc(SlicePattern, OpSlicePattern)
-  GenerateOpKernelParamFunc(PrecisionPolicy, PrecisionPolicy)
-  GenerateOpKernelParamFunc(RangeLimitType, RangeLimitType)
-  GenerateOpKernelParamFunc(DynamicRankType, DynamicRankType)
-  GenerateOpKernelParamFunc(DynamicCompileStatic, DynamicCompileStatic)
-  GenerateOpKernelParamFunc(AclnnSupportType, AclnnSupportType)
-  GenerateOpKernelParamFunc(MultiKernelSupportType, MultiKernelSupportType)
-  GenerateOpKernelParamFunc(VectorCoreType, EnableVectorCore)
+              GenerateOpKernelParamFunc(OpPattern, OpPattern) GenerateOpKernelParamFunc(JitCompile, JitCompileType)
+                  GenerateOpKernelParamFunc(SlicePattern, OpSlicePattern)
+                      GenerateOpKernelParamFunc(PrecisionPolicy, PrecisionPolicy)
+                          GenerateOpKernelParamFunc(RangeLimitType, RangeLimitType)
+                              GenerateOpKernelParamFunc(DynamicRankType, DynamicRankType)
+                                  GenerateOpKernelParamFunc(DynamicCompileStatic, DynamicCompileStatic)
+                                      GenerateOpKernelParamFunc(AclnnSupportType, AclnnSupportType)
+                                          GenerateOpKernelParamFunc(MultiKernelSupportType, MultiKernelSupportType)
+                                              GenerateOpKernelParamFunc(VectorCoreType, EnableVectorCore)
 
-  GenerateOpKernelStrParamFunc(OpImpPath)
-  GenerateOpKernelStrParamFunc(CoreType)
-  GenerateOpKernelStrParamFunc(OpImplSwitch)
-  GenerateOpKernelStrParamFunc(PrebuildPattern)
+                                                  GenerateOpKernelStrParamFunc(OpImpPath)
+                                                      GenerateOpKernelStrParamFunc(CoreType)
+                                                          GenerateOpKernelStrParamFunc(OpImplSwitch)
+                                                              GenerateOpKernelStrParamFunc(PrebuildPattern)
 
-  GenerateOpKernelStrParamVecFunc(CoreType)
-  GenerateOpKernelStrParamVecFunc(OpImplSwitch)
+                                                                  GenerateOpKernelStrParamVecFunc(CoreType)
+                                                                      GenerateOpKernelStrParamVecFunc(OpImplSwitch)
 
-  bool IsDynamicCompileStatic() const;
+                                                                          bool IsDynamicCompileStatic() const;
   bool IsSupportDynamicRank() const;
   void SetOpImpPath(const std::string &op_imp_path);
-  const std::vector<std::string>& GetReferTensorNameVec() const;
+  const std::vector<std::string> &GetReferTensorNameVec() const;
   bool IsOpFileNull() const;
   bool IsMultiKernelSupport() const;
+
  private:
   bool init_flag_;
   std::string op_type_;

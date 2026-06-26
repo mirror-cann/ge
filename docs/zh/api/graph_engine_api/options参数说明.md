@@ -361,7 +361,7 @@
 <pre class="screen" id="zh-cn_topic_0000002245680161_screen4404181322810"><a name="zh-cn_topic_0000002245680161_screen4404181322810"></a><a name="zh-cn_topic_0000002245680161_screen4404181322810"></a>{"ge.inputShape",<strong id="zh-cn_topic_0000002245680161_b5424193420242"><a name="zh-cn_topic_0000002245680161_b5424193420242"></a><a name="zh-cn_topic_0000002245680161_b5424193420242"></a> "input_name1:</strong>;input_name2:16,32,208,208<strong id="zh-cn_topic_0000002245680161_b1715151104119"><a name="zh-cn_topic_0000002245680161_b1715151104119"></a><a name="zh-cn_topic_0000002245680161_b1715151104119"></a>"</strong>}</pre>
 <p id="zh-cn_topic_0000002245680161_p4526182514289"><a name="zh-cn_topic_0000002245680161_p4526182514289"></a><a name="zh-cn_topic_0000002245680161_p4526182514289"></a>上述示例中的<strong id="zh-cn_topic_0000002245680161_b1610241016434"><a name="zh-cn_topic_0000002245680161_b1610241016434"></a><a name="zh-cn_topic_0000002245680161_b1610241016434"></a>input_name1</strong>为可选配置<strong id="zh-cn_topic_0000002245680161_b8102110114310"><a name="zh-cn_topic_0000002245680161_b8102110114310"></a><a name="zh-cn_topic_0000002245680161_b8102110114310"></a>。</strong></p>
 </li><li>动态分档场景<p id="zh-cn_topic_0000002245680161_p91481505267"><a name="zh-cn_topic_0000002245680161_p91481505267"></a><a name="zh-cn_topic_0000002245680161_p91481505267"></a>shape为标量的输入，必须配置。例如模型有三个输入，shape信息分别为A:[-1,32,208,208]、<strong id="zh-cn_topic_0000002245680161_b10898728182611"><a name="zh-cn_topic_0000002245680161_b10898728182611"></a><a name="zh-cn_topic_0000002245680161_b10898728182611"></a>B:[]</strong>、C:[16,64,208,208]，则配置示例为（A为动态分档输入，此处以设置动态维度档位为例）：</p>
-<pre class="screen" id="zh-cn_topic_0000002245680161_screen1941843045918"><a name="zh-cn_topic_0000002245680161_screen1941843045918"></a><a name="zh-cn_topic_0000002245680161_screen1941843045918"></a>{"ge.inputShape", "A:-1,32,208,208;<strong id="zh-cn_topic_0000002245680161_b161281391449"><a name="zh-cn_topic_0000002245680161_b161281391449"></a><a name="zh-cn_topic_0000002245680161_b161281391449"></a>B:</strong>;C:16,64,208,208"}, 
+<pre class="screen" id="zh-cn_topic_0000002245680161_screen1941843045918"><a name="zh-cn_topic_0000002245680161_screen1941843045918"></a><a name="zh-cn_topic_0000002245680161_screen1941843045918"></a>{"ge.inputShape", "A:-1,32,208,208;<strong id="zh-cn_topic_0000002245680161_b161281391449"><a name="zh-cn_topic_0000002245680161_b161281391449"></a><a name="zh-cn_topic_0000002245680161_b161281391449"></a>B:</strong>;C:16,64,208,208"},
 {"ge.dynamicDims", "1;2;4"} </pre>
 </li></ul>
 </li></ul>
@@ -430,7 +430,7 @@
 
 ## 算子编译与图编译<a name="section7719145610561"></a>
 
-**表 1** 
+**表 1**
 
 <a name="table346512775815"></a>
 <table><thead align="left"><tr id="zh-cn_topic_0000002210480336_row12247013356"><th class="cellrowborder" valign="top" width="14.39%" id="mcps1.2.5.1.1"><p id="zh-cn_topic_0000002210480336_p3681132911170"><a name="zh-cn_topic_0000002210480336_p3681132911170"></a><a name="zh-cn_topic_0000002210480336_p3681132911170"></a>Options key</p>
@@ -600,7 +600,7 @@ ai_core_cnt=24
 <tbody><tr id="zh-cn_topic_0000002210640124_row92247011357"><td class="cellrowborder" valign="top" width="14.39%" headers="mcps1.1.5.1.1 "><p id="zh-cn_topic_0000002210640124_p149641320143014"><a name="zh-cn_topic_0000002210640124_p149641320143014"></a><a name="zh-cn_topic_0000002210640124_p149641320143014"></a>ge.exec.enable_exception_dump</p>
 </td>
 <td class="cellrowborder" valign="top" width="71.14%" headers="mcps1.1.5.1.2 "><div class="p" id="zh-cn_topic_0000002210640124_p16488193921920"><a name="zh-cn_topic_0000002210640124_p16488193921920"></a><a name="zh-cn_topic_0000002210640124_p16488193921920"></a>是否dump异常算子数据。<a name="zh-cn_topic_0000002210640124_ul9575844131614"></a><a name="zh-cn_topic_0000002210640124_ul9575844131614"></a><ul id="zh-cn_topic_0000002210640124_ul9575844131614"><li>0：（默认值）关闭异常算子数据dump功能。</li><li>1：开启普通exception dump（L1 exception dump），dump异常算子的输入输出数据、tensor描述信息（shape、dtype、format等）以及workspace信息。<p id="zh-cn_topic_0000002210640124_p1359812266431"><a name="zh-cn_topic_0000002210640124_p1359812266431"></a><a name="zh-cn_topic_0000002210640124_p1359812266431"></a>dump数据存储路径优先级为：NPU_COLLECT_PATH&gt;ASCEND_WORK_PATH&gt;默认路径（指当前脚本执行路径的extra-info目录）</p>
-</li><li>2：开启Lite execption dump（L0 exception dump），dump异常算子的输入输出数据、workspace信息、Tiling信息。<p id="zh-cn_topic_0000002210640124_p15091719104510"><a name="zh-cn_topic_0000002210640124_p15091719104510"></a><a name="zh-cn_topic_0000002210640124_p15091719104510"></a>dump数据存储路径优先级为：ASCEND_WORK_PATH&gt;默认路径（指当前脚本执行路径的/extra-info/data-dump/&lt;device_id&gt;目录）</p>
+</li><li>2：开启Lite exception dump（L0 exception dump），dump异常算子的输入输出数据、workspace信息、Tiling信息。<p id="zh-cn_topic_0000002210640124_p15091719104510"><a name="zh-cn_topic_0000002210640124_p15091719104510"></a><a name="zh-cn_topic_0000002210640124_p15091719104510"></a>dump数据存储路径优先级为：ASCEND_WORK_PATH&gt;默认路径（指当前脚本执行路径的/extra-info/data-dump/&lt;device_id&gt;目录）</p>
 </li></ul>
 <div class="note" id="zh-cn_topic_0000002210640124_note178391845173816"><a name="zh-cn_topic_0000002210640124_note178391845173816"></a><a name="zh-cn_topic_0000002210640124_note178391845173816"></a><span class="notetitle"> 说明： </span><div class="notebody"><a name="zh-cn_topic_0000002210640124_ul44368458474"></a><a name="zh-cn_topic_0000002210640124_ul44368458474"></a><ul id="zh-cn_topic_0000002210640124_ul44368458474"><li>若配置了环境变量NPU_COLLECT_PATH，不论配置项“ge.exec.enable_exception_dump”的取值如何，仅收集普通exception dump信息，包括异常算子的输入数据和输出数据，且dump数据存储在环境变量NPU_COLLECT_PATH的指定目录下。</li><li>L1 exception dump即普通exception dump，L0 exception dump即Lite exception dump（轻量化的exception dump），两者都会导出算子输入输出、workspace数据等信息，但相比L0 exception dump，L1 exception dump的信息更多，开启L1 exception dump时，会在Host应用类日志文件（即plog日志）中打印出来各tensor的dtype等信息，还会把算子相关的算子名、kernel都打印出来。</li></ul>
 </div></div>
@@ -834,7 +834,7 @@ rtStreamSynchronizeWithTimeout execute failed....</pre>
      ]
   },
   "white-list": {                  // 白名单
-     "to-remove": [                // 白名单算子转换为灰名单算子 
+     "to-remove": [                // 白名单算子转换为灰名单算子
      "Conv2D"
      ],
      "to-add": [                   // 黑名单或灰名单算子转换为白名单算子
@@ -1524,7 +1524,7 @@ OpType::Relu:InputDtype:float16,int8,OutputDtype:float16,int8</pre>
 <div class="note" id="zh-cn_topic_0000002210480380_note19893746105618"><a name="zh-cn_topic_0000002210480380_note19893746105618"></a><a name="zh-cn_topic_0000002210480380_note19893746105618"></a><span class="notetitle"> 说明： </span><div class="notebody"><a name="zh-cn_topic_0000002210480380_ul986682992911"></a><a name="zh-cn_topic_0000002210480380_ul986682992911"></a><ul id="zh-cn_topic_0000002210480380_ul986682992911"><li>若没有指定节点名，则节点默认按照index顺序存储，存储示例如下：<p id="zh-cn_topic_0000002210480380_p2274222576"><a name="zh-cn_topic_0000002210480380_p2274222576"></a><a name="zh-cn_topic_0000002210480380_p2274222576"></a>xxx_0，xxx_1，xxx_2，……</p>
 <p id="zh-cn_topic_0000002210480380_p14274722579"><a name="zh-cn_topic_0000002210480380_p14274722579"></a><a name="zh-cn_topic_0000002210480380_p14274722579"></a>其中下划线后为节点在网络脚本中的定义顺序索引，节点会按照此索引的字母顺序进行排布，所以当节点的个数大于10时，则排序为“xxx_0 -&gt; xxx_10 -&gt; xxx_2 -&gt; xxx_3”，网络脚本中定义索引为10的节点排在了索引为2的节点前面，导致定义的shape range与实际输入的节点不匹配。</p>
 <p id="zh-cn_topic_0000002210480380_p7541643155711"><a name="zh-cn_topic_0000002210480380_p7541643155711"></a><a name="zh-cn_topic_0000002210480380_p7541643155711"></a>为避免此问题，当节点的输入个数大于10时，建议在网络脚本中指定节点的名称，则节点会以指定的名称进行命名，实现shape range与节点名称的关联。</p>
-</li><li>如果该参数与ge.dynamicDims同时配置，示例如下：<pre class="screen" id="zh-cn_topic_0000002210480380_screen2778239113212"><a name="zh-cn_topic_0000002210480380_screen2778239113212"></a><a name="zh-cn_topic_0000002210480380_screen2778239113212"></a>std::map&lt;ge::AscendString, ge::AscendString&gt; ge_options = 
+</li><li>如果该参数与ge.dynamicDims同时配置，示例如下：<pre class="screen" id="zh-cn_topic_0000002210480380_screen2778239113212"><a name="zh-cn_topic_0000002210480380_screen2778239113212"></a><a name="zh-cn_topic_0000002210480380_screen2778239113212"></a>std::map&lt;ge::AscendString, ge::AscendString&gt; ge_options =
      {{"ge.inputShape", "data:1,1,40,-1;label:1,-1;mask:-1,-1" },
       {"ge.dynamicDims", "20,20,1,1;40,40,2,2;80,60,4,4"},
         <em id="zh-cn_topic_0000002210480380_i556701243517"><a name="zh-cn_topic_0000002210480380_i556701243517"></a><a name="zh-cn_topic_0000002210480380_i556701243517"></a>xxx</em>
@@ -1571,4 +1571,3 @@ OpType::Relu:InputDtype:float16,int8,OutputDtype:float16,int8</pre>
 </tr>
 </tbody>
 </table>
-

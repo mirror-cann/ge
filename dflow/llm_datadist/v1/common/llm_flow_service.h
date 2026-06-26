@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@
 #include "acl/acl.h"
 
 namespace llm {
-template<typename T>
+template <typename T>
 struct TaskContext {
   T output;
   std::vector<std::chrono::steady_clock::time_point> time_points;
@@ -57,9 +57,7 @@ class LlmWorker {
                            const std::map<ge::AscendString, ge::AscendString> &options,
                            const std::vector<int32_t> &device_ids);
 
-  ge::Status RunFlowFunc(FlowFuncType flow_func_type,
-                         size_t flow_func_index,
-                         const std::vector<ge::Tensor> &inputs,
+  ge::Status RunFlowFunc(FlowFuncType flow_func_type, size_t flow_func_index, const std::vector<ge::Tensor> &inputs,
                          std::vector<ge::Tensor> &outputs,
                          std::vector<std::chrono::steady_clock::time_point> &time_points) const;
 
@@ -87,16 +85,11 @@ class SpmdLinkManager : public LinkManager {
   void SetAllGeApis(const std::vector<GeApi *> &all_ge_apis);
 
  protected:
-  ge::Status FeedInputs(const uint32_t graph_id,
-                        const std::vector<uint32_t> &indices,
-                        const std::vector<ge::Tensor> &inputs,
-                        const int32_t timeout,
-                        bool is_link) override;
-  ge::Status FetchOutputs(const uint32_t graph_id,
-                          const std::vector<uint32_t> &indices,
-                          std::vector<ge::Tensor> &outputs,
-                          int64_t timeout,
-                          uint64_t transaction_id) override;
+  ge::Status FeedInputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                        const std::vector<ge::Tensor> &inputs, const int32_t timeout, bool is_link) override;
+  ge::Status FetchOutputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                          std::vector<ge::Tensor> &outputs, int64_t timeout, uint64_t transaction_id) override;
+
  private:
   std::vector<GeApi *> all_ge_apis_;
 };
@@ -115,27 +108,19 @@ class LlmFlowService {
   void Finalize();
 
   ge::Status InitializeUdf() const;
-  ge::Status Allocate(const CacheDesc &cache_desc,
-                      const std::vector<CacheKey> &cache_keys,
-                      Cache &cache) const;
+  ge::Status Allocate(const CacheDesc &cache_desc, const std::vector<CacheKey> &cache_keys, Cache &cache) const;
   ge::Status Deallocate(int64_t cache_id) const;
   ge::Status RemoveCacheIndex(const CacheKey &cache_key) const;
-  ge::Status PullCache(int64_t cache_id,
-                       const CacheKey &cache_key,
-                       const PullCacheParam &pull_cache_param,
+  ge::Status PullCache(int64_t cache_id, const CacheKey &cache_key, const PullCacheParam &pull_cache_param,
                        uint32_t num_tensors) const;
   ge::Status TransferCache(const TransferCacheConfig &transfer_cache_config,
                            const TransferBlockConfig &transfer_block_config) const;
   ge::Status SwapBlocks(const Cache &src, const Cache &dst, const SwapBlockParam &swap_param,
                         const std::vector<int32_t> &device_ids);
-  ge::Status CopyCache(const CacheEntry &src_cache_entry,
-                       const CacheEntry &dst_cache_entry,
-                       const CopyCacheParam &copy_cache_param,
-                       const std::vector<int32_t> &device_ids);
+  ge::Status CopyCache(const CacheEntry &src_cache_entry, const CacheEntry &dst_cache_entry,
+                       const CopyCacheParam &copy_cache_param, const std::vector<int32_t> &device_ids);
   ge::Status CopyCache(const CopyCacheParam &copy_cache_param) const;
-  ge::Status GetCacheTensors(int64_t cache_id,
-                             std::vector<ge::Tensor> &outputs,
-                             int32_t tensor_index) const;
+  ge::Status GetCacheTensors(int64_t cache_id, std::vector<ge::Tensor> &outputs, int32_t tensor_index) const;
   ge::Status CheckLinkStatus(uint64_t remote_cluster_id) const;
   ge::Status LinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
                           const int32_t timeout);
@@ -153,39 +138,31 @@ class LlmFlowService {
   static ge::Status GetAndCheckFutures(std::vector<std::future<ge::Status>> &futures);
   void SetLinkManagerIo(const std::string &role);
 
-  template<typename T>
-  ge::Status RunSingle(const LlmWorker &worker,
-                       std::pair<FlowFuncType, size_t> flow_func_type_and_index,
+  template <typename T>
+  ge::Status RunSingle(const LlmWorker &worker, std::pair<FlowFuncType, size_t> flow_func_type_and_index,
                        const std::vector<ge::Tensor> &inputs,
                        const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
                        TaskContext<T> &task_context) const;
 
-  template<typename T>
-  ge::Status RunMulti(FlowFuncType flow_func_type,
-                      size_t flow_func_index,
-                      const std::vector<ge::Tensor> &inputs,
+  template <typename T>
+  ge::Status RunMulti(FlowFuncType flow_func_type, size_t flow_func_index, const std::vector<ge::Tensor> &inputs,
                       const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
                       std::vector<TaskContext<T>> &per_device_task_context) const;
 
-  template<typename T>
-  ge::Status RunFlowFunc(FlowFuncType flow_func_type,
-                         const std::vector<ge::Tensor> &inputs,
+  template <typename T>
+  ge::Status RunFlowFunc(FlowFuncType flow_func_type, const std::vector<ge::Tensor> &inputs,
                          const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
                          std::vector<TaskContext<T>> &per_device_task_context) const;
 
-  template<typename T>
+  template <typename T>
   static ge::Tensor BuildTensor(const T &req_info, const size_t req_size = sizeof(T));
-  static ge::Status ConvertToStatus(size_t device_index,
-                                    const std::vector<ge::Tensor> &output_tensors,
+  static ge::Status ConvertToStatus(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                     ge::Status &status);
-  static ge::Status ConvertAllocateResult(size_t device_index,
-                                          const std::vector<ge::Tensor> &output_tensors,
+  static ge::Status ConvertAllocateResult(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                           CacheAllocateResult &result);
-  static ge::Status ConvertToTensor(size_t device_index,
-                                    const std::vector<ge::Tensor> &output_tensors,
+  static ge::Status ConvertToTensor(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                     ge::Tensor &tensor);
-  static ge::Status ConvertToTensorSummary(size_t device_index,
-                                           const std::vector<ge::Tensor> &output_tensors,
+  static ge::Status ConvertToTensorSummary(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                            int32_t &num_tensors);
 
   std::string role_;

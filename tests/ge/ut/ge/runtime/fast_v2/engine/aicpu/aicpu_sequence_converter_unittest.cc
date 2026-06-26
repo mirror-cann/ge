@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,7 @@ using namespace ge;
 namespace gert {
 class AicpuSequenceConverterUT : public bg::BgTestAutoCreate3StageFrame {};
 /*
- *       NetOutput     
+ *       NetOutput
  *          |
  *   splitToSequence
  *    /            \
@@ -51,7 +51,7 @@ TEST_F(AicpuSequenceConverterUT, ConvertSplitToSequenceNode) {
   auto split_to_sequence_op_desc = graph->FindNode("splitToSequence")->GetOpDesc();
   AttrUtils::SetInt(split_to_sequence_op_desc, "axis", 1);
   AttrUtils::SetInt(split_to_sequence_op_desc, "keep_dims", 1);
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -68,8 +68,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_TRUE(data2_ret.result.IsSuccess());
 
   LowerInput input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-                          &global_data};
+                      {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                      &global_data};
   auto sequence_ret = LoweringSplitToSeuqnece(graph->FindNode("splitToSequence"), input);
   ASSERT_TRUE(sequence_ret.result.IsSuccess());
   ASSERT_EQ(sequence_ret.out_addrs.size(), 1);
@@ -84,11 +84,12 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
                                                       sequence_ret.order_holders)
                            ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
-  auto split_sequence = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "StoreSplitTensorToSequence");
+  auto split_sequence =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "StoreSplitTensorToSequence");
   ASSERT_NE(split_sequence, nullptr);
   auto session_input_node = split_sequence->GetInDataNodes().at(0);
   ASSERT_NE(session_input_node, nullptr);
-  ASSERT_EQ(session_input_node->GetType(), "InnerData"); // GetSessionId在init图
+  ASSERT_EQ(session_input_node->GetType(), "InnerData");  // GetSessionId在init图
 
   ge::DumpGraph(execute_graph.get(), "GeneralSplitToSequenceExe");
 }

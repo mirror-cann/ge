@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,8 +47,8 @@ static const trans_pose_map kTransposeMap = {
 };
 
 Status SetTransposeOrder(ge::Format input_format, ge::Format output_format,
-                         const std::map<ge::Format, uint32_t>& format_index_map,
-                         const std::vector<std::vector<std::vector<int64_t>>>& perm_value_vector,
+                         const std::map<ge::Format, uint32_t> &format_index_map,
+                         const std::vector<std::vector<std::vector<int64_t>>> &perm_value_vector,
                          ge::OpDescPtr op_desc_ptr) {
   auto input_iter = format_index_map.find(input_format);
   if (input_iter == format_index_map.end()) {
@@ -110,7 +110,7 @@ void SetTransposeOrder(ge::Format input_format, ge::Format output_format, ge::Op
     SetTransposeOrder(input_format, output_format, FORMAT_INDEX_MAP, PERM_VALUE_VECTOR, op_desc_ptr);
   }
 }
-} // namespace
+}  // namespace
 
 TransNodeTransposeGenerator::TransNodeTransposeGenerator(FEOpsKernelInfoStorePtr fe_ops_store_ptr,
                                                          TransInfoPtr trans_info_ptr)
@@ -129,7 +129,7 @@ Status TransNodeTransposeGenerator::AddTransNode(ge::ComputeGraph &fused_graph, 
   auto trans_pose = kTransposeMap.find(trans_info_ptr->strategy_id);
   if (trans_pose != kTransposeMap.end()) {
     if (trans_pose->second == ge::FORMAT_MAX) {
-      /* In Other Cases, we will not tranform by transpose op */
+      /* In Other Cases, we will not transform by transpose op */
       out_format_new_node = trans_info_ptr->src_out_primary_format;
       out_sub_format = trans_info_ptr->src_out_sub_format;
     } else {
@@ -143,11 +143,8 @@ Status TransNodeTransposeGenerator::AddTransNode(ge::ComputeGraph &fused_graph, 
 
 void TransNodeTransposeGenerator::GetNewShape(ge::OpDescPtr &op_desc_ptr, ge::Format format, ge::DataType dtype,
                                               ge::GeShape &newshape) {
-  ShapeAndFormat output_shape_and_format_info = {trans_info_ptr_->src_out_shape,
-                                                 newshape,
-                                                 trans_info_ptr_->src_out_primary_format,
-                                                 format,
-                                                 dtype};
+  ShapeAndFormat output_shape_and_format_info = {trans_info_ptr_->src_out_shape, newshape,
+                                                 trans_info_ptr_->src_out_primary_format, format, dtype};
   /* Update output shape of transpose based on it's imple type */
   (void)GetShapeAccordingToFormat(output_shape_and_format_info);
 
@@ -173,7 +170,8 @@ Status TransNodeTransposeGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, 
   ge::Format input_format = static_cast<ge::Format>(
       ge::GetFormatFromSub(trans_info_ptr_->src_out_primary_format, trans_info_ptr_->src_out_sub_format));
   if (op_desc_ptr->AddInputDesc(TRANSPOSE_INPUT_NAME, ge::GeTensorDesc(trans_info_ptr_->src_out_shape, input_format,
-                                                                       trans_info_ptr_->src_out_data_type)) != SUCCESS) {
+                                                                       trans_info_ptr_->src_out_data_type)) !=
+      SUCCESS) {
     FE_LOGD("CreateTransPoseOp: op [TransPose]: add input desc unsuccessful.");
     return FAILED;
   }
@@ -198,8 +196,9 @@ Status TransNodeTransposeGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, 
   // insert new op need add attr ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES for data dump
   std::vector<std::string> original_names;
   if (!ge::AttrUtils::SetListStr(op_desc_ptr, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_names)) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][AddOpAndNd] Node[%s]: Failed to set attribute datadump_original_op_names.",
-                    op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][ShapeTrans][AddOpAndNd] Node[%s]: Failed to set attribute datadump_original_op_names.",
+        op_desc_ptr->GetName().c_str());
     return FAILED;
   }
 
@@ -250,7 +249,7 @@ Status TransNodeTransposeGenerator::SetTensorDescInfo(ge::OpDescPtr &op_desc_ptr
   bool is_from_const_op = false;
   (void)ge::AttrUtils::GetBool(trans_info_ptr_->src_op_desc, kIsComeFromConstOp, is_from_const_op);
   bool is_src_from_const_op = is_from_const_op || trans_info_ptr_->src_op_desc->GetType() == CONSTANT ||
-          trans_info_ptr_->src_op_desc->GetType() == CONSTANTOP;
+                              trans_info_ptr_->src_op_desc->GetType() == CONSTANTOP;
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kIsComeFromConstOp, is_src_from_const_op);
   for (auto output_tensor : op_desc_ptr->GetAllOutputsDescPtr()) {
     output_tensor->SetOriginFormat(trans_info_ptr_->src_out_original_format);
@@ -258,8 +257,7 @@ Status TransNodeTransposeGenerator::SetTensorDescInfo(ge::OpDescPtr &op_desc_ptr
     if (!is_src_from_const_op) {
       GraphPassUtil::SetOutputDescAttr(trans_info_ptr_->src_out_tensor_desc_ptr,
                                        static_cast<int64_t>(trans_info_ptr_->src_anchor->GetIdx()),
-                                       trans_info_ptr_->src_op_desc,
-                                       output_tensor);
+                                       trans_info_ptr_->src_op_desc, output_tensor);
     }
   }
   return SUCCESS;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 namespace {
 const uint32_t kRangeCeilInterval = 2;
 const uint32_t kLogBase = 2;
-const int64_t kLargeBlockSize = 8388608;   // 8 * 1024 * 1024
+const int64_t kLargeBlockSize = 8388608;  // 8 * 1024 * 1024
 const int64_t kLargeBlockRangeSize = 2;
 }  // namespace
 
@@ -66,24 +66,28 @@ Status BinaryBlockMemAssigner::GetMemoryRanges(std::vector<int64_t> &range_ceils
     return SUCCESS;
   }
   if (all_memory_size.front() <= 0) {
-    GELOGE(FAILED, "[Check][MemRangeStep]first mem_range_step:%" PRId64 " less than 0,invalid,"
-          "maybe has dynamic shape in graph", all_memory_size.front());
-    REPORT_INNER_ERR_MSG("E19999", "first mem_range_step:%" PRId64 " less than 0,invalid,"
-          "maybe has dynamic shape in graph", all_memory_size.front());
+    GELOGE(FAILED,
+           "[Check][MemRangeStep]first mem_range_step:%" PRId64
+           " less than 0,invalid,"
+           "maybe has dynamic shape in graph",
+           all_memory_size.front());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "first mem_range_step:%" PRId64
+                         " less than 0,invalid,"
+                         "maybe has dynamic shape in graph",
+                         all_memory_size.front());
     return FAILED;
   }
   // Memory size is 512 aligned, so it is not necessary to take less than 512
   int64_t min_memory_size = (all_memory_size.back() > MEM_ALIGN_SIZE) ? MEM_ALIGN_SIZE : all_memory_size.front();
-  auto range_number = static_cast<size_t>(
-    ceil(log(all_memory_size.back() / static_cast<double>(min_memory_size)) / log(kLogBase)));
+  auto range_number =
+      static_cast<size_t>(ceil(log(all_memory_size.back() / static_cast<double>(min_memory_size)) / log(kLogBase)));
   range_number = (range_number == 0) ? 1 : range_number;
   GELOGD("Range number: %zu", range_number);
 
   std::vector<std::vector<int64_t>> ranges(range_number);
-  GE_CHK_BOOL_EXEC((range_number != 0),
-    REPORT_INNER_ERR_MSG("E19999", "inner data[range_number] is 0, judge invalid");
-    return PARAM_INVALID,
-    "[Check][RangeNumber]inner data is 0, judge invalid.");
+  GE_CHK_BOOL_EXEC((range_number != 0), REPORT_INNER_ERR_MSG("E19999", "inner data[range_number] is 0, judge invalid");
+                   return PARAM_INVALID, "[Check][RangeNumber]inner data is 0, judge invalid.");
   size_t range_number_limit = all_memory_size.size() / range_number;
   int64_t range_ceil = all_memory_size.back();
   const int64_t align_size = (range_ceil > MEM_ALIGN_SIZE) ? MEM_ALIGN_SIZE : 0;

@@ -118,4 +118,3 @@ int64_t dims[] = {3};
 auto es_tensor =
     EsCreateEsCTensorFromFile(file_path.c_str(), dims, 1, C_DT_INT64, C_FORMAT_ALL);
 ```
-

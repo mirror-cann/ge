@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@
 #include "engine/aicore/fe_rt2_common.h"
 
 namespace gert {
-constexpr size_t kMaxHostInputDataLen = 128U;  // 64 aligned
+constexpr size_t kMaxHostInputDataLen = 128U;    // 64 aligned
 constexpr size_t kHostInputDataAlginSize = 32U;  // 32 alignd
 struct DynDesc {
   bool is_group_first{false};
@@ -160,6 +160,7 @@ class IoArgsInfo {
     auto io_args_base = static_cast<const IoArg *>(io_arg_data_);
     return (io_args_base + idx);
   }
+
  private:
   size_t io_arg_num_;
   IoArg *io_arg_data_;
@@ -167,17 +168,17 @@ class IoArgsInfo {
 static_assert(std::is_standard_layout<IoArgsInfo>::value, "The class IoArgsInfo must be a POD");
 
 /*
-   * RTS KernelLaunch到Device的args组成：
-   *   |compiled-args| <--- rtArgsEx_t::args基址
-   *   |inputs-addr|
-   *   |outputs-addr|
-   *   |shape-buffer-addr|
-   *   |workspaces-addr|
-   *   |tiling-data-addr|
-   *   |overflow-addr|
-   *   |tiling data|
-   *   |host input data|
-   */
+ * RTS KernelLaunch到Device的args组成：
+ *   |compiled-args| <--- rtArgsEx_t::args基址
+ *   |inputs-addr|
+ *   |outputs-addr|
+ *   |shape-buffer-addr|
+ *   |workspaces-addr|
+ *   |tiling-data-addr|
+ *   |overflow-addr|
+ *   |tiling data|
+ *   |host input data|
+ */
 struct RtKernelLaunchArgsEx {
  public:
   enum class ArgsType {
@@ -194,11 +195,7 @@ struct RtKernelLaunchArgsEx {
     // add new args here
     kArgsTypeEnd
   };
-  enum class TilingCacheStatus {
-    kDisabled,
-    kMissed,
-    kHit
-  };
+  enum class TilingCacheStatus { kDisabled, kMissed, kHit };
   struct HostInputInfo {
     void *host_input_addr;
     const ContinuousVector *inputs_index;
@@ -263,7 +260,7 @@ struct RtKernelLaunchArgsEx {
   }
 
   template <typename T>
-  const T *GetArgsPointer(ArgsType args_type) const{
+  const T *GetArgsPointer(ArgsType args_type) const {
     if (args_type > ArgsType::kArgsTypeEnd) {
       return nullptr;
     }
@@ -390,7 +387,7 @@ struct RtKernelLaunchArgsEx {
     args_cache_info_.cache_status = cache_status;
   }
 
-  void SetTilingCache(void* tiling_cache) {
+  void SetTilingCache(void *tiling_cache) {
     args_cache_info_.tiling_cache = tiling_cache;
   }
 
@@ -412,27 +409,18 @@ struct RtKernelLaunchArgsEx {
   ArgsCacheInfo args_cache_info_;
   size_t host_input_data_size_;
   size_t back_fill_secondary_addr_num_;  // 需要回刷的地址数量
-  size_t merged_copy_size_;   // 需要合并拷贝的动态TensorList
+  size_t merged_copy_size_;              // 需要合并拷贝的动态TensorList
   size_t total_size_;
-  uint8_t data[8]; // data layout: | IoArgsInfo::io_arg_data_ | rtArgsEx_t::args
+  uint8_t data[8];  // data layout: | IoArgsInfo::io_arg_data_ | rtArgsEx_t::args
 };
 static_assert(std::is_standard_layout<RtKernelLaunchArgsEx>::value, "The class RtKernelLaunchArgsEx must be a POD");
 #ifndef _MSC_VER  // TilingData 里有构造函数和赋值运算符，导致MSVC编译器判定POD失败
 static_assert(std::is_pod<RtKernelLaunchArgsEx>::value, "The class RtKernelLaunchArgsEx must be a POD");
 #endif
 
-enum class AllocLaunchArgInputs {
-  kNodeDesc,
-  kArgsInfoDesc
-};
+enum class AllocLaunchArgInputs { kNodeDesc, kArgsInfoDesc };
 
-enum class AllocLaunchArgOutputs {
-  kHolder,
-  kRtArg,
-  kRtArgArgsBase,
-  kTilingDataBase,
-  kNum
-};
+enum class AllocLaunchArgOutputs { kHolder, kRtArg, kRtArgArgsBase, kTilingDataBase, kNum };
 ge::graphStatus ProcFoldedDescArgs(const ge::NodePtr &compute_node, std::vector<ArgsInfosDesc::ArgsInfo> &args_infos);
 ge::graphStatus SetDynShape(const Shape &shape, uint8_t *host_addr, const DynDesc &dyn_desc, size_t &shape_offset);
 void AssignDynamicDesc(DynDesc &dyn_desc, size_t j, int64_t index, size_t dyn_num);

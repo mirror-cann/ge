@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,8 +15,7 @@
 
 namespace nnopbase {
 namespace {
-ge::graphStatus GetStr(const std::tuple<const uint8_t*, const uint8_t*> &input, std::string &str)
-{
+ge::graphStatus GetStr(const std::tuple<const uint8_t *, const uint8_t *> &input, std::string &str) {
   const uint8_t *start = std::get<0U>(input);
   const uint8_t *end = std::get<1U>(input);
   if ((end < start) || (start == nullptr) || (end == nullptr)) {
@@ -29,8 +28,7 @@ ge::graphStatus GetStr(const std::tuple<const uint8_t*, const uint8_t*> &input, 
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus ParseJson(const std::tuple<const uint8_t*, const uint8_t*> &input, nlohmann::json &res)
-{
+ge::graphStatus ParseJson(const std::tuple<const uint8_t *, const uint8_t *> &input, nlohmann::json &res) {
   std::string jsonStr;
   GE_ASSERT_GRAPH_SUCCESS(GetStr(input, jsonStr));
   try {
@@ -42,8 +40,7 @@ ge::graphStatus ParseJson(const std::tuple<const uint8_t*, const uint8_t*> &inpu
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus ParseBinary(const std::tuple<const uint8_t*, const uint8_t*> &input, Binary &binaryInfo)
-{
+ge::graphStatus ParseBinary(const std::tuple<const uint8_t *, const uint8_t *> &input, Binary &binaryInfo) {
   const uint8_t *start = std::get<0U>(input);
   const uint8_t *end = std::get<1U>(input);
   if ((end < start) || (start == nullptr) || (end == nullptr)) {
@@ -60,11 +57,10 @@ ge::graphStatus ParseBinary(const std::tuple<const uint8_t*, const uint8_t*> &in
   GELOGD("Parse binary info, addr is %p, len is %us.", binaryInfo.content, binaryInfo.len);
   return ge::GRAPH_SUCCESS;
 }
-} // namepsace
+}  // namespace
 
 void OpBinaryResourceManager::AddOpFuncHandle(const ge::AscendString &opType,
-                                              const std::vector<void *> &opResourceHandle)
-{
+                                              const std::vector<void *> &opResourceHandle) {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = resourceHandle_.find(opType);
   if (it != resourceHandle_.end()) {
@@ -77,9 +73,8 @@ void OpBinaryResourceManager::AddOpFuncHandle(const ge::AscendString &opType,
 }
 
 // 首个信息一定存在，是算子描述json，后续是成对的二进制信息
-ge::graphStatus OpBinaryResourceManager::AddBinary(const ge::AscendString &opType,
-    const std::vector<std::tuple<const uint8_t*, const uint8_t*>> &opBinary)
-{
+ge::graphStatus OpBinaryResourceManager::AddBinary(
+    const ge::AscendString &opType, const std::vector<std::tuple<const uint8_t *, const uint8_t *>> &opBinary) {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = opBinaryDesc_.find(opType);
   if (it != opBinaryDesc_.end()) {
@@ -98,9 +93,9 @@ ge::graphStatus OpBinaryResourceManager::AddBinary(const ge::AscendString &opTyp
     nlohmann::json binaryDesc;
     Binary binaryInfo;
     GE_ASSERT_GRAPH_SUCCESS(ParseJson(opBinary[i], binaryDesc), "Parse op %s binary json file [%zu] failed!",
-                            opType.GetString(), i / 2U); // 2 for idx
+                            opType.GetString(), i / 2U);  // 2 for idx
     GE_ASSERT_GRAPH_SUCCESS(ParseBinary(opBinary[i + 1U], binaryInfo), "Parse op %s binary file [%zu] failed!",
-                            opType.GetString(), i / 2U); // 2 for idx
+                            opType.GetString(), i / 2U);  // 2 for idx
 
     std::string filePath;
     try {
@@ -127,14 +122,13 @@ ge::graphStatus OpBinaryResourceManager::AddBinary(const ge::AscendString &opTyp
       keyToPath_[key.c_str()] = filePath.c_str();
     }
 
-    i += 2U; // 2 for json & binary
+    i += 2U;  // 2 for json & binary
   }
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus OpBinaryResourceManager::AddRuntimeKB(const ge::AscendString &opType,
-    const std::vector<std::tuple<const uint8_t*, const uint8_t*>> &opRuntimeKb)
-{
+ge::graphStatus OpBinaryResourceManager::AddRuntimeKB(
+    const ge::AscendString &opType, const std::vector<std::tuple<const uint8_t *, const uint8_t *>> &opRuntimeKb) {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = runtimeKb_.find(opType);
   if (it != runtimeKb_.end()) {
@@ -149,15 +143,14 @@ ge::graphStatus OpBinaryResourceManager::AddRuntimeKB(const ge::AscendString &op
   return ge::GRAPH_SUCCESS;
 }
 
-const std::map<const ge::AscendString, nlohmann::json> &OpBinaryResourceManager::GetAllOpBinaryDesc() const
-{
+const std::map<const ge::AscendString, nlohmann::json> &OpBinaryResourceManager::GetAllOpBinaryDesc() const {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   GELOGI("Get all op binary desc, num is %zu.", opBinaryDesc_.size());
   return opBinaryDesc_;
 }
 
-ge::graphStatus OpBinaryResourceManager::GetOpBinaryDesc(const ge::AscendString &opType, nlohmann::json &binDesc) const
-{
+ge::graphStatus OpBinaryResourceManager::GetOpBinaryDesc(const ge::AscendString &opType,
+                                                         nlohmann::json &binDesc) const {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = opBinaryDesc_.find(opType);
   if (it == opBinaryDesc_.end()) {
@@ -171,8 +164,7 @@ ge::graphStatus OpBinaryResourceManager::GetOpBinaryDesc(const ge::AscendString 
 }
 
 ge::graphStatus OpBinaryResourceManager::GetOpBinaryDescByPath(const ge::AscendString &jsonFilePath,
-                                                               std::tuple<nlohmann::json, Binary> &binInfo) const
-{
+                                                               std::tuple<nlohmann::json, Binary> &binInfo) const {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = pathToBinary_.find(jsonFilePath);
   if (it == pathToBinary_.end()) {
@@ -185,8 +177,7 @@ ge::graphStatus OpBinaryResourceManager::GetOpBinaryDescByPath(const ge::AscendS
 }
 
 ge::graphStatus OpBinaryResourceManager::GetOpBinaryDescByKey(const ge::AscendString &simplifiedKey,
-                                                              std::tuple<nlohmann::json, Binary> &binInfo) const
-{
+                                                              std::tuple<nlohmann::json, Binary> &binInfo) const {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = keyToPath_.find(simplifiedKey);
   const auto &simplified = simplifiedKey;
@@ -199,8 +190,7 @@ ge::graphStatus OpBinaryResourceManager::GetOpBinaryDescByKey(const ge::AscendSt
 }
 
 ge::graphStatus OpBinaryResourceManager::GetOpRuntimeKB(const ge::AscendString &opType,
-                                                        std::vector<ge::AscendString> &kbList) const
-{
+                                                        std::vector<ge::AscendString> &kbList) const {
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &it = runtimeKb_.find(opType);
   if (it == runtimeKb_.end()) {
@@ -211,4 +201,4 @@ ge::graphStatus OpBinaryResourceManager::GetOpRuntimeKB(const ge::AscendString &
   GELOGI("Get op %s RuntimeKB info, num is %zu.", opType.GetString(), kbList.size());
   return ge::GRAPH_SUCCESS;
 }
-} // nnopbase
+}  // namespace nnopbase

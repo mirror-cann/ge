@@ -33,7 +33,7 @@ def _collect_files(files: Iterable[Path], subdir: str) -> List[Tuple[str, bytes]
 
 
 def _split_encoded_content(encoded_content: str) -> str:
-    chunks = [encoded_content[index:index + 76] for index in range(0, len(encoded_content), 76)]
+    chunks = [encoded_content[index : index + 76] for index in range(0, len(encoded_content), 76)]
     return "\n".join(f'        "{chunk}"' for chunk in chunks)
 
 
@@ -44,14 +44,14 @@ def _build_resource_module(resources: Dict[str, bytes]) -> str:
         "# -----------------------------------------------------------------------------------------------------------",
         "# Copyright (c) 2026 Huawei Technologies Co., Ltd.",
         "# This program is free software, you can redistribute it and/or modify it under the terms and conditions of",
-        "# CANN Open Software License Agreement Version 2.0 (the \"License\").",
+        '# CANN Open Software License Agreement Version 2.0 (the "License").',
         "# Please refer to the License for details. You may not use this file except in compliance with the License.",
-        "# THIS SOFTWARE IS PROVIDED ON AN \"AS IS\" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,",
+        '# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,',
         "# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.",
         "# See LICENSE in the root of the software repository for the full text of the License.",
         "# -----------------------------------------------------------------------------------------------------------",
         "",
-        "\"\"\"Generated fallback source resources for GE Python pass.\"\"\"",
+        '"""Generated fallback source resources for GE Python pass."""',
         "",
         "import base64",
         "import gzip",
@@ -64,21 +64,23 @@ def _build_resource_module(resources: Dict[str, bytes]) -> str:
         lines.append(f"    {rel_path!r}: (")
         lines.append(_split_encoded_content(encoded_content))
         lines.append("    ),")
-    lines.extend([
-        "}",
-        "",
-        "",
-        "def materialize(output_root: Path) -> None:",
-        "    output_root = Path(output_root)",
-        "    for rel_path, encoded_content in _RESOURCES.items():",
-        "        rel = Path(rel_path)",
-        "        if rel.is_absolute() or \"..\" in rel.parts:",
-        "            raise RuntimeError(f\"Invalid fallback resource path: {rel_path}\")",
-        "        dst = output_root / rel",
-        "        dst.parent.mkdir(parents=True, exist_ok=True)",
-        "        dst.write_bytes(gzip.decompress(base64.b64decode(encoded_content)))",
-        "",
-    ])
+    lines.extend(
+        [
+            "}",
+            "",
+            "",
+            "def materialize(output_root: Path) -> None:",
+            "    output_root = Path(output_root)",
+            "    for rel_path, encoded_content in _RESOURCES.items():",
+            "        rel = Path(rel_path)",
+            '        if rel.is_absolute() or ".." in rel.parts:',
+            '            raise RuntimeError(f"Invalid fallback resource path: {rel_path}")',
+            "        dst = output_root / rel",
+            "        dst.parent.mkdir(parents=True, exist_ok=True)",
+            "        dst.write_bytes(gzip.decompress(base64.b64decode(encoded_content)))",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -86,7 +88,7 @@ def _read_make_variable(makefile: Path, name: str) -> List[str]:
     prefix = f"{name} = "
     for line in makefile.read_text(encoding="utf-8").splitlines():
         if line.startswith(prefix):
-            return shlex.split(line[len(prefix):])
+            return shlex.split(line[len(prefix) :])
     return []
 
 
@@ -161,7 +163,7 @@ def _rewrite_link_path_list(arg: str, prefix: str, cann_root: Path) -> Optional[
     if not arg.startswith(prefix):
         return arg
     kept: List[str] = []
-    for path_item in arg[len(prefix):].split(":"):
+    for path_item in arg[len(prefix) :].split(":"):
         mapped = _map_library_dir(path_item, cann_root)
         if mapped is not None and mapped not in kept:
             kept.append(mapped)
@@ -297,15 +299,19 @@ def _load_target_config(build_dir: Path, cann_root: Path, spec: _FallbackTargetS
     flags_make = target_dir / "flags.make"
     link_txt = target_dir / "link.txt"
     if not flags_make.is_file() or not link_txt.is_file():
-        raise RuntimeError(
-            f"Cannot find generated build metadata for target {spec.target_name} under {target_dir}")
+        raise RuntimeError(f"Cannot find generated build metadata for target {spec.target_name} under {target_dir}")
 
     cxx_defines = _read_make_variable(flags_make, "CXX_DEFINES")
-    cxx_includes = ["-I", f"@FALLBACK_ROOT@/{spec.local_include_dir}"] + \
-        _rewrite_include_args(_read_make_variable(flags_make, "CXX_INCLUDES"), cann_root)
+    cxx_includes = [
+        "-I",
+        f"@FALLBACK_ROOT@/{spec.local_include_dir}",
+    ] + _rewrite_include_args(_read_make_variable(flags_make, "CXX_INCLUDES"), cann_root)
     cxx_flags = _read_make_variable(flags_make, "CXX_FLAGS")
-    link_args = _rewrite_link_args(shlex.split(link_txt.read_text(encoding="utf-8")),
-                                   build_dir / spec.relative_dir, cann_root)
+    link_args = _rewrite_link_args(
+        shlex.split(link_txt.read_text(encoding="utf-8")),
+        build_dir / spec.relative_dir,
+        cann_root,
+    )
     return {
         "output": spec.output_name,
         "cxx_defines": cxx_defines,
@@ -322,13 +328,25 @@ def _build_config(args: argparse.Namespace) -> dict:
         "bridge_abi": args.bridge_abi,
         "targets": {
             "bridge": _load_target_config(
-                build_dir, cann_root,
-                _FallbackTargetSpec("compiler", "ge_python_pass_bridge",
-                                    "libge_python_pass_bridge.so", "include/bridge")),
+                build_dir,
+                cann_root,
+                _FallbackTargetSpec(
+                    "compiler",
+                    "ge_python_pass_bridge",
+                    "libge_python_pass_bridge.so",
+                    "include/bridge",
+                ),
+            ),
             "native": _load_target_config(
-                build_dir, cann_root,
-                _FallbackTargetSpec("api/python/ge/ge/passes", "_ge_pass_native",
-                                    "_ge_pass_native.so", "include/native")),
+                build_dir,
+                cann_root,
+                _FallbackTargetSpec(
+                    "api/python/ge/ge/passes",
+                    "_ge_pass_native",
+                    "_ge_pass_native.so",
+                    "include/native",
+                ),
+            ),
         },
     }
 
@@ -354,17 +372,16 @@ def main() -> None:
     output_dir.mkdir(parents=True)
 
     resources = dict(
-        _collect_files(args.bridge_source, "src/bridge") +
-        _collect_files(args.bridge_header, "include/bridge") +
-        _collect_files(args.native_source, "src/native") +
-        _collect_files(args.native_header, "include/native")
+        _collect_files(args.bridge_source, "src/bridge")
+        + _collect_files(args.bridge_header, "include/bridge")
+        + _collect_files(args.native_source, "src/native")
+        + _collect_files(args.native_header, "include/native")
     )
 
     config = _build_config(args)
     config_bytes = json.dumps(config, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     (output_dir / "build_config.json").write_bytes(config_bytes)
-    (output_dir / "_sources.py").write_text(
-        _build_resource_module(resources), encoding="utf-8")
+    (output_dir / "_sources.py").write_text(_build_resource_module(resources), encoding="utf-8")
     (output_dir / "__init__.py").write_text("", encoding="utf-8")
 
 

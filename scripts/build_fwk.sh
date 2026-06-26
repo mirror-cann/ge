@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ checkopts()
         ENABLE_TEST="True"
         CMAKE_BUILD_TYPE="GCOV"
         BUILD_RELATIVE_PATH=build_ut
-        ;;      
+        ;;
       O)
         ENABLE_GE_ST="on"
         ENABLE_TEST="True"
@@ -374,7 +374,7 @@ if [ ! -z "$ONLY_BUILD" ];then
 fi
 export LD_LIBRARY_PATH=${BUILD_PATH}/tests/depends/aoe/:$LD_LIBRARY_PATH
 if [[ "X$ENABLE_GE_UT" = "Xon" ]] || [[ "X$ENABLE_RT2_UT" = "Xon" ]] || [[ "X$ENABLE_PYTHON_UT" = "Xon" ]] || [[ "X$ENABLE_PARSER_UT" = "Xon" ]] || [[ "X$ENABLE_DFLOW_UT" = "Xon" ]]; then
-    COV_DIRS=()   
+    COV_DIRS=()
     COV_DIRS+=("${BUILD_PATH}/api")
     COV_DIRS+=("${BUILD_PATH}/base")
     #execute ut testcase with mem leaks by default

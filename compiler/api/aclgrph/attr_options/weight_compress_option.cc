@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,14 +28,15 @@ graphStatus WeightCompressFunc(const ComputeGraphPtr &graph, const std::string &
   std::string real_path = RealPath(cfg_path.c_str());
   if (real_path.empty()) {
     GELOGE(GRAPH_PARAM_INVALID, "[Get][Path]Cannot get real path for %s.", cfg_path.c_str());
-    REPORT_PREDEFINED_ERR_MSG("E10410", std::vector<const char_t *>({"cfgpath"}), std::vector<const char_t *>({cfg_path.c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("E10410", std::vector<const char_t *>({"cfgpath"}),
+                              std::vector<const char_t *>({cfg_path.c_str()}));
     return GRAPH_PARAM_INVALID;
   }
   std::ifstream ifs(real_path);
   if (!ifs.is_open()) {
     GELOGE(GRAPH_FAILED, "[Open][File] %s failed", cfg_path.c_str());
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char_t *>({"file", "errmsg"}),
-                       std::vector<const char_t *>({cfg_path.c_str(), "Open file failed"}));
+                              std::vector<const char_t *>({cfg_path.c_str(), "Open file failed"}));
     return GRAPH_FAILED;
   }
 
@@ -68,9 +69,8 @@ graphStatus WeightCompressFunc(const ComputeGraphPtr &graph, const std::string &
     }
   }
   if (!node_names.empty()) {
-    REPORT_PREDEFINED_ERR_MSG(
-        "W11002", std::vector<const char *>({"filename", "opnames"}),
-        std::vector<const char *>({real_path.c_str(), node_names.c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("W11002", std::vector<const char *>({"filename", "opnames"}),
+                              std::vector<const char *>({real_path.c_str(), node_names.c_str()}));
     GELOGW("In the compression weight configuration file [%s], some nodes do not exist in the graph: %s.",
            real_path.c_str(), node_names.c_str());
   }

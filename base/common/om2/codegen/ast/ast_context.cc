@@ -17,7 +17,7 @@
 namespace {
 constexpr size_t kBlockSize = 16UL * 1024UL;
 constexpr size_t kMemAlignSize = 8UL;
-}
+}  // namespace
 
 namespace ge {
 AstNodePool::~AstNodePool() {

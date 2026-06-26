@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,10 +59,10 @@ tune::Status L2FusionPreOptimizer3(ge::ComputeGraph &, AOEOption, const std::vec
 FusionPriorityMgrPtr fusion_priority_mgr;
 FEOpsKernelInfoStorePtr ops_kernel_info_store;
 BufferOptimize buffer_optimize;
-}
+}  // namespace
 
 class LxFusionOptimizerUT : public testing::Test {
-public:
+ public:
   static void SetUpTestCase() {
     FEOpsKernelInfoStorePtr ops_kernel_info_store = std::make_shared<FEOpsKernelInfoStore>();
     FusionRuleManagerPtr fusion_rule_mgr = std::make_shared<FusionRuleManager>(ops_kernel_info_store);
@@ -74,7 +74,7 @@ public:
   }
   static void TearDownTestCase() {
     Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-            static_cast<int64_t>(buffer_optimize);
+        static_cast<int64_t>(buffer_optimize);
   }
   // 统一 mock l1/l2 fusion 函数，通过 graph attr 读取返回值
   static void MockL1FusionByAttr(LxFusionOptimizerPtr &opt) {
@@ -85,10 +85,8 @@ public:
     };
   }
   static void MockL2FusionByAttr(LxFusionOptimizerPtr &opt) {
-    opt->l2_fusion_pre_optimizer_func_ = [](ge::ComputeGraph &, AOEOption,
-        const std::vector<std::string> &, std::vector<PassChangeInfo> &) -> tune::Status {
-      return tune::SUCCESS;
-    };
+    opt->l2_fusion_pre_optimizer_func_ = [](ge::ComputeGraph &, AOEOption, const std::vector<std::string> &,
+                                            std::vector<PassChangeInfo> &) -> tune::Status { return tune::SUCCESS; };
     opt->l2_fusion_optimizer_func_ = [](ge::ComputeGraph &g, AOEOption) -> tune::Status {
       int64_t ret_val = tune::NO_FUSION_STRATEGY;
       (void)AttrUtils::GetInt(&g, "_l2_fusion_ret", ret_val);
@@ -102,7 +100,8 @@ public:
 };
 
 TEST_F(LxFusionOptimizerUT, init_and_finalize) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   EXPECT_EQ(lx_fusion_optimizer->Finalize(), fe::SUCCESS);
@@ -112,7 +111,8 @@ TEST_F(LxFusionOptimizerUT, init_and_finalize) {
 }
 
 TEST_F(LxFusionOptimizerUT, lx_fusion_Finalize) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   lx_fusion_optimizer->lx_fusion_finalize_func_ = [](ge::ComputeGraph &g) -> tune::Status {
@@ -128,7 +128,8 @@ TEST_F(LxFusionOptimizerUT, lx_fusion_Finalize) {
 }
 
 TEST_F(LxFusionOptimizerUT, l1_fusion_recovery) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
@@ -140,14 +141,15 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_recovery) {
   std::vector<ge::NodePtr> buff_fus_rollback_nodes = {node};
   std::vector<ge::NodePtr> buff_fus_to_del_nodes = {node};
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
-  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes,
-                                                     buff_fus_rollback_nodes, buff_fus_to_del_nodes);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
+  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes, buff_fus_rollback_nodes,
+                                                     buff_fus_to_del_nodes);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
 TEST_F(LxFusionOptimizerUT, l2_fusion_recovery) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc = std::make_shared<OpDesc>("relu", "Relu");
@@ -159,19 +161,20 @@ TEST_F(LxFusionOptimizerUT, l2_fusion_recovery) {
   std::vector<ge::NodePtr> buff_fus_rollback_nodes = {node};
   std::vector<ge::NodePtr> buff_fus_to_del_nodes = {node};
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L2_OPTIMIZE);
-  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes,
-                                                     buff_fus_rollback_nodes, buff_fus_to_del_nodes);
+      static_cast<int64_t>(EN_L2_OPTIMIZE);
+  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes, buff_fus_rollback_nodes,
+                                                     buff_fus_to_del_nodes);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
 TEST_F(LxFusionOptimizerUT, lx_fusion_Func_not_init) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   auto tmp_path = Configuration::Instance(AI_CORE_NAME).lib_path_;
   Configuration::Instance(AI_CORE_NAME).lib_path_ = "test_empty_path";
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
-  
+
   OptimizeConfig oCfg;
   lx_fusion_optimizer->L2FusionOptimize(*graph, oCfg);
   LxFusionOptimizeResult res = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
@@ -182,7 +185,8 @@ TEST_F(LxFusionOptimizerUT, lx_fusion_Func_not_init) {
 }
 
 TEST_F(LxFusionOptimizerUT, l1_fusion_Func_not_init_recovery) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   auto tmp_path = Configuration::Instance(AI_CORE_NAME).lib_path_;
   Configuration::Instance(AI_CORE_NAME).lib_path_ = "test_empty_path";
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
@@ -196,9 +200,9 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_Func_not_init_recovery) {
   std::vector<ge::NodePtr> buff_fus_rollback_nodes = {node};
   std::vector<ge::NodePtr> buff_fus_to_del_nodes = {node};
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
-  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes,
-                                                     buff_fus_rollback_nodes, buff_fus_to_del_nodes);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
+  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes, buff_fus_rollback_nodes,
+                                                     buff_fus_to_del_nodes);
 
   LxFusionOptimizeResult res = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
   lx_fusion_optimizer->DoLxFusionOptimize(*graph, res);
@@ -207,7 +211,8 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_Func_not_init_recovery) {
 }
 
 TEST_F(LxFusionOptimizerUT, l2_fusion_Func_not_init_recovery) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   auto tmp_path = Configuration::Instance(AI_CORE_NAME).lib_path_;
   Configuration::Instance(AI_CORE_NAME).lib_path_ = "test_empty_path";
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
@@ -221,15 +226,16 @@ TEST_F(LxFusionOptimizerUT, l2_fusion_Func_not_init_recovery) {
   std::vector<ge::NodePtr> buff_fus_rollback_nodes = {node};
   std::vector<ge::NodePtr> buff_fus_to_del_nodes = {node};
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L2_OPTIMIZE);
-  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes,
-                                                     buff_fus_rollback_nodes, buff_fus_to_del_nodes);
+      static_cast<int64_t>(EN_L2_OPTIMIZE);
+  Status ret = lx_fusion_optimizer->LxFusionRecovery(*graph, buff_fus_compile_failed_nodes, buff_fus_rollback_nodes,
+                                                     buff_fus_to_del_nodes);
   Configuration::Instance(AI_CORE_NAME).lib_path_ = tmp_path;
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
 TEST_F(LxFusionOptimizerUT, l1_fusion_failed) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   MockL1FusionByAttr(lx_fusion_optimizer);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -241,7 +247,7 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_failed) {
   AttrUtils::SetInt(graph, "_l2_fusion_ret", tune::SUCCESS);
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   LxFusionOptimizeResult lx_ret = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
   bool need_re_compile = false;
   Status ret = lx_fusion_optimizer->LxFusionOptimize(*graph, lx_ret, need_re_compile);
@@ -249,7 +255,8 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_failed) {
 }
 
 TEST_F(LxFusionOptimizerUT, l2_fusion_failed) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   MockL1L2FusionByAttr(lx_fusion_optimizer);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -261,7 +268,7 @@ TEST_F(LxFusionOptimizerUT, l2_fusion_failed) {
   AttrUtils::SetInt(graph, "_l2_fusion_ret", tune::FAILED);
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   LxFusionOptimizeResult lx_ret = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
   bool need_re_compile = false;
   Status ret = lx_fusion_optimizer->LxFusionOptimize(*graph, lx_ret, need_re_compile);
@@ -272,7 +279,7 @@ TEST_F(LxFusionOptimizerUT, generate_lxfusion_optimize_result_1) {
   Status l1_buffer_ret = tune::SUCCESS;
   Status l2_buffer_ret = tune::HIT_FUSION_STRATEGY;
   LxFusionOptimizeResult opt_ret =
-          LxFusionOptimizer::GenerateLxFusionOptimizeResult(tune::SUCCESS, tune::HIT_FUSION_STRATEGY);
+      LxFusionOptimizer::GenerateLxFusionOptimizeResult(tune::SUCCESS, tune::HIT_FUSION_STRATEGY);
   EXPECT_EQ(opt_ret, LxFusionOptimizeResult::BOTH_FUSION_STRATEGY);
 
   opt_ret = LxFusionOptimizer::GenerateLxFusionOptimizeResult(tune::HIT_FUSION_STRATEGY, tune::SUCCESS);
@@ -435,7 +442,8 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_4) {
 }
 
 TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_5) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   lx_fusion_optimizer->l2_fusion_pre_optimizer_func_ = L2FusionPreOptimizer2;
   lx_fusion_optimizer->l2_fusion_optimizer_func_ = [](ge::ComputeGraph &g, AOEOption) -> tune::Status {
@@ -445,7 +453,7 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_5) {
   };
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L2_OPTIMIZE);
+      static_cast<int64_t>(EN_L2_OPTIMIZE);
   FusionStatisticRecorder::Instance().buffer_fusion_info_map_.clear();
 
   LxFusionOptimizeResult buffer_ret = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
@@ -488,7 +496,8 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_5) {
 }
 
 TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_6) {
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fusion_priority_mgr, ops_kernel_info_store);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   lx_fusion_optimizer->l2_fusion_pre_optimizer_func_ = L2FusionPreOptimizer3;
   lx_fusion_optimizer->l2_fusion_optimizer_func_ = [](ge::ComputeGraph &g, AOEOption) -> tune::Status {
@@ -498,7 +507,7 @@ TEST_F(LxFusionOptimizerUT, l1_fusion_pass_changed_case_6) {
   };
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L2_OPTIMIZE);
+      static_cast<int64_t>(EN_L2_OPTIMIZE);
   FusionStatisticRecorder::Instance().buffer_fusion_info_map_.clear();
 
   LxFusionOptimizeResult buffer_ret = LxFusionOptimizeResult::NO_FUSION_STRATEGY;
@@ -547,8 +556,7 @@ class ConcatCOptimizeFusionPassTest : public PatternFusionBasePass {
     FusionPattern *pattern = new (std::nothrow) FusionPattern("ConcatCOptimizeFusionPassTest");
     FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatCOptFus][DfnPtn] Fail to new an object."),
              return patterns);
-    pattern->AddOpDesc("concat", {"ConcatD"})
-        .SetOutput("concat");
+    pattern->AddOpDesc("concat", {"ConcatD"}).SetOutput("concat");
     patterns.push_back(pattern);
     return patterns;
   }
@@ -562,56 +570,59 @@ TEST_F(LxFusionOptimizerUT, lx_fusion_optimize_case_7) {
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr_;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-  std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-      fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
   std::vector<FusionPassOrRule> pass_vec;
   auto create_func = []() -> ::fe::GraphPass * { return new (std::nothrow) ConcatCOptimizeFusionPassTest(); };
   FusionPassRegistry::PassDesc pass_desc = {0, create_func};
-  fe::FusionPassOrRule pass_or_rule("ConcatCOptimizeFusionPassTest", BUILT_IN_AFTER_BUFFER_OPTIMIZE,
-                                    PASS_METHOD, 4000, pass_desc);
+  fe::FusionPassOrRule pass_or_rule("ConcatCOptimizeFusionPassTest", BUILT_IN_AFTER_BUFFER_OPTIMIZE, PASS_METHOD, 4000,
+                                    pass_desc);
   pass_vec.emplace_back(pass_or_rule);
-  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->sorted_graph_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = pass_vec;
+  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_
+      ->sorted_graph_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = pass_vec;
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config.json";
   Configuration::Instance(fe::AI_CORE_NAME).ascend_ops_path_ =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/fusion_config.json";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/fusion_config.json";
   std::string allStr = "ALL";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-  std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-      ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(
+      fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
 
   std::map<std::string, std::string> context_maps;
-  std::string fusion_switch_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+  std::string fusion_switch_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   if (RealPath(fusion_switch_file_path).empty()) {
-    fusion_switch_file_path = "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+    fusion_switch_file_path =
+        "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   }
   context_maps.insert(std::make_pair("ge.fusionSwitchFile", fusion_switch_file_path));
   context_maps.insert(std::make_pair("ge.build_inner_model", "false"));
   ge::GetThreadLocalContext().SetGraphOption(context_maps);
-  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->sorted_graph_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = pass_vec;
+  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_
+      ->sorted_graph_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = pass_vec;
 
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
-  LxFusionOptimizerPtr lx_fusion_optimizer = std::make_shared<LxFusionOptimizer>(fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_, ops_kernel_info_store_ptr_);
+  LxFusionOptimizerPtr lx_fusion_optimizer =
+      std::make_shared<LxFusionOptimizer>(fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_, ops_kernel_info_store_ptr_);
   EXPECT_EQ(lx_fusion_optimizer->Initialize(), fe::SUCCESS);
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc = std::make_shared<OpDesc>("concat", "ConcatD");
   GeTensorDesc output_desc;
@@ -623,4 +634,4 @@ TEST_F(LxFusionOptimizerUT, lx_fusion_optimize_case_7) {
   Status status = lx_fusion_optimizer->LxFusionOptimize(*graph, buffer_ret, need_re_compile);
   EXPECT_EQ(status, fe::FAILED);
 }
-}
+}  // namespace fe

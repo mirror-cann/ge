@@ -181,8 +181,8 @@ TEST_F(HistoryRegistryReaderUT, LoadMetadataReadsVersionMeta) {
 
 TEST_F(HistoryRegistryReaderUT, LoadMetadataMissingFileThrows) {
   ExpectRuntimeErrorContains(
-    [&]() { (void)HistoryRegistryReader::LoadMetadata(fixture_root_, "NonExistentVersion"); },
-    "Failed to load metadata.json: cannot open file: " + fixture_root_ + "registry/NonExistentVersion/metadata.json");
+      [&]() { (void)HistoryRegistryReader::LoadMetadata(fixture_root_, "NonExistentVersion"); },
+      "Failed to load metadata.json: cannot open file: " + fixture_root_ + "registry/NonExistentVersion/metadata.json");
 }
 
 TEST_F(HistoryRegistryReaderUT, LoadMetadataReleaseVersionMismatchThrows) {
@@ -311,10 +311,10 @@ TEST_F(HistoryRegistryReaderUT, SelectWindowVersionsCurrentNotInListReturnsEmpty
 
 TEST_F(HistoryRegistryReaderUT, SelectWindowVersionsCurrentVersionEmptyUsesCurrentDateAnchor) {
   std::vector<VersionMeta> all = {
-    {"v_old", BuildDateFromOffsetDays(-500), ""},
-    {"v_in_window", BuildDateFromOffsetDays(-120), ""},
-    {"v_recent", BuildDateFromOffsetDays(-1), ""},
-    {"v_future", BuildDateFromOffsetDays(7), ""},
+      {"v_old", BuildDateFromOffsetDays(-500), ""},
+      {"v_in_window", BuildDateFromOffsetDays(-120), ""},
+      {"v_recent", BuildDateFromOffsetDays(-1), ""},
+      {"v_future", BuildDateFromOffsetDays(7), ""},
   };
   ASSERT_FALSE(all[0].release_date.empty());
   ASSERT_FALSE(all[1].release_date.empty());

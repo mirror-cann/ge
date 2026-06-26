@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,15 +31,9 @@ static std::set<std::string> tf_support_input_format = {"NCHW", "NHWC", "ND", "N
 static std::set<std::string> onnx_support_input_format = {"NCHW", "ND", "NCDHW"};
 
 static std::map<std::string, domi::domiTensorFormat_t> input_format_str_to_geformat = {
-    {"ND", domi::DOMI_TENSOR_ND},
-    {"NCHW", domi::DOMI_TENSOR_NCHW},
-    {"NHWC", domi::DOMI_TENSOR_NHWC},
-    {"CHWN", domi::DOMI_TENSOR_CHWN},
-    {"NC1HWC0", domi::DOMI_TENSOR_NC1HWC0},
-    {"NHWC1C0", domi::DOMI_TENSOR_NHWC1C0},
-    {"NCDHW", domi::DOMI_TENSOR_NCDHW},
-    {"NDHWC", domi::DOMI_TENSOR_NDHWC}
-};
+    {"ND", domi::DOMI_TENSOR_ND},       {"NCHW", domi::DOMI_TENSOR_NCHW},       {"NHWC", domi::DOMI_TENSOR_NHWC},
+    {"CHWN", domi::DOMI_TENSOR_CHWN},   {"NC1HWC0", domi::DOMI_TENSOR_NC1HWC0}, {"NHWC1C0", domi::DOMI_TENSOR_NHWC1C0},
+    {"NCDHW", domi::DOMI_TENSOR_NCDHW}, {"NDHWC", domi::DOMI_TENSOR_NDHWC}};
 static const std::string kEnableCompressWeightTrue = "1";
 static const std::string kEnableCompressWeightFalse = "0";
 
@@ -51,11 +45,11 @@ constexpr char const *kAutoFuseEnableOption = "--enable_autofuse";
 constexpr char const *kSliceScheduleOption = "--experimental_enable_jit_executor_v2";
 
 /*
-* @brief 获取环境变量AUTOFUSE_FLAGS中对应option的值，比如AUTOFUSE_FLAGS="--enable_autofuse=true", 
-* 那么调用GetAutofuseFlagValue("--enable_autofuse"),便会返回true字符串
-* @param option 需要解析的option的名字
-* @return 返回对应字符串的值
-*/
+ * @brief 获取环境变量AUTOFUSE_FLAGS中对应option的值，比如AUTOFUSE_FLAGS="--enable_autofuse=true",
+ * 那么调用GetAutofuseFlagValue("--enable_autofuse"),便会返回true字符串
+ * @param option 需要解析的option的名字
+ * @return 返回对应字符串的值
+ */
 std::string GetAutofuseFlagValue(const std::string &option);
 
 bool CheckDynamicBatchSizeInputShapeValid(std::map<std::string, std::vector<int64_t>> shape_map,
@@ -80,10 +74,10 @@ Status CheckAndTransferInputShapeToRange(std::string &input_shape, std::string &
                                          std::string &dynamic_batch_size, std::string &dynamic_image_size,
                                          std::string &dynamic_dims);
 /*
-* @brief 获取ge.inputHintShape中对应option的值, 并将其转化为GeShape
-* @out_param option_shape 从option中解析的字符串转成成的Shape
-* @return 成功返回GRAPH_SUCCESS, 失败返回FAILED
-*/
+ * @brief 获取ge.inputHintShape中对应option的值, 并将其转化为GeShape
+ * @out_param option_shape 从option中解析的字符串转成成的Shape
+ * @return 成功返回GRAPH_SUCCESS, 失败返回FAILED
+ */
 Status ParseHintInputShape(std::vector<GeShape> &option_shape);
 
 Status ParserShapeRangeByName(std::string &input_shape, std::string &input_shape_range);
@@ -127,7 +121,8 @@ Status CheckModifyMixlistParamValid(const std::string &precision_mode, const std
 Status CheckAllowHF32ParamValid(const std::string &allow_hf32);
 Status CheckInputFormat(const std::string &input_format);
 Status CheckKeepTypeParamValid(const std::string &keep_dtype);
-void PrintOptionMap(const std::map<std::string, std::string> &options, std::string tips, const size_t max_line_length = 800U);
+void PrintOptionMap(const std::map<std::string, std::string> &options, std::string tips,
+                    const size_t max_line_length = 800U);
 void EraseEndSemicolon(std::string &param);
 Status UpdateDataOpShape(const OpDescPtr &op, std::map<std::string, std::vector<int64_t>> &shape_map);
 Status UpdateDataOpShapeRange(
@@ -155,9 +150,9 @@ Status CheckOutputReuseInputMemIndexesOption(const ComputeGraphPtr &compute_grap
                                              const std::map<std::string, std::string> &options);
 bool ParseSingleShapeRange(std::string &shape_range, std::vector<std::pair<int64_t, int64_t>> &shape_range_vec);
 std::string SupportedHostEnvCpuList(std::unordered_set<std::string> &supported_os_cpu);
-std::string SupportedHostEnvOsList(std::unordered_map<std::string, std::unordered_set<std::string>>
-                                   &opp_supported_os_cpu);
+std::string SupportedHostEnvOsList(
+    std::unordered_map<std::string, std::unordered_set<std::string>> &opp_supported_os_cpu);
 bool EnableSliceSchedule();
 bool IsGraphSupportSliceSchedule(const ComputeGraphPtr &graph, const std::map<std::string, std::string> &options);
-}
+}  // namespace ge
 #endif  // FRAMEWORK_DOMI_ATC_IR_COMMON_H_

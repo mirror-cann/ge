@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ NodePtr GraphBuilder::AddNode(const std::string &name, const std::string &type, 
     op_desc->AddOutputDesc(tensor_desc->Clone());
   }
   // to make ut pass. set default infer func.
-  op_desc->AddInferFunc([](Operator &op) {return GRAPH_SUCCESS;});
+  op_desc->AddInferFunc([](Operator &op) { return GRAPH_SUCCESS; });
   return graph_->AddNode(op_desc);
 }
 
@@ -50,9 +50,10 @@ void GraphBuilder::AddDataEdge(const NodePtr &src_node, int src_idx, const NodeP
 void GraphBuilder::AddControlEdge(const NodePtr &src_node, const NodePtr &dst_node) {
   GraphUtils::AddEdge(src_node->GetOutControlAnchor(), dst_node->GetInControlAnchor());
 }
-void GraphBuilder::AddPartitionedCall(const ComputeGraphPtr &graph, const std::string &call_name, const ComputeGraphPtr &subgraph) {
+void GraphBuilder::AddPartitionedCall(const ComputeGraphPtr &graph, const std::string &call_name,
+                                      const ComputeGraphPtr &subgraph) {
   const auto &call_node = graph->FindNode(call_name);
-  if (call_node ==nullptr) {
+  if (call_node == nullptr) {
     return;
   }
   call_node->GetOpDesc()->RegisterSubgraphIrName("f", SubgraphType::kStatic);

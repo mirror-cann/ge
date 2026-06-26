@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,12 +14,11 @@
 #include "graph/operator_reg.h"
 
 namespace ge {
-REG_OP(test)
-    .OP_END_FACTORY_REG(test)
-} //namespace ge
+REG_OP(test).OP_END_FACTORY_REG(test)
+}  // namespace ge
 
 class UtestInferAxisSliceRegister : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -35,7 +34,7 @@ TEST_F(UtestInferAxisSliceRegister, InferAxisSliceFuncRegister_success) {
   INFER_AXIS_TYPE_INFO_REG(test, InferAxisTypeInfoFunc);
   EXPECT_NE(ge::OperatorFactoryImpl::operator_infer_axis_type_info_funcs_->find("test"),
             ge::OperatorFactoryImpl::operator_infer_axis_type_info_funcs_->end());
- 
+
   INFER_AXIS_SLICE_FUNC_REG(test, InferAxisSliceFunc);
   EXPECT_NE(ge::OperatorFactoryImpl::operator_infer_axis_slice_funcs_->find("test"),
             ge::OperatorFactoryImpl::operator_infer_axis_slice_funcs_->end());

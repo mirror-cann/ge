@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,8 +29,8 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class GenerateCMOTypeManagerTest : public testing::Test{
-protected:
+class GenerateCMOTypeManagerTest : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     cout << "GenerateCmoTypeManagerTest SetUp" << endl;
   }
@@ -86,7 +86,7 @@ TEST_F(GenerateCMOTypeManagerTest, GenerateType) {
   op_desc_ptr3->AddInputDesc("input1", data_tensor_desc2);
   op_desc_ptr3->AddOutputDesc("output1", data_tensor_desc1);
   op_desc_ptr4->AddInputDesc("input1", data_tensor_desc2);
-  
+
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
   NodePtr node1 = graph->AddNode(op_desc_ptr1);
   NodePtr node2 = graph->AddNode(op_desc_ptr2);
@@ -109,7 +109,7 @@ TEST_F(GenerateCMOTypeManagerTest, GenerateType) {
   AttrUtils::SetInt(node2->GetOpDesc(), ATTR_NAME_OP_READ_WRITE_INDEX, 1);
   AttrUtils::SetInt(node3->GetOpDesc(), ATTR_NAME_OP_READ_WRITE_INDEX, 2);
   AttrUtils::SetInt(node4->GetOpDesc(), ATTR_NAME_OP_READ_WRITE_INDEX, 3);
- 
+
   std::vector<int64_t> workspace{222};
   node1->GetOpDesc()->SetWorkspace(workspace);
 
@@ -127,7 +127,7 @@ TEST_F(GenerateCMOTypeManagerTest, GenerateType) {
   std::map<uint32_t, std::map<int64_t, ge::NodePtr>> stream_node_map;
   auto cmo_manager_ptr = std::make_shared<GenerateCMOTypeManager>();
   cmo_manager_ptr->Initialize();
-  for (auto& node_ptr : graph->GetDirectNode()) {
+  for (auto &node_ptr : graph->GetDirectNode()) {
     cmo_manager_ptr->GenerateType(node_ptr, stream_ctls, prefetch_cache_map, stream_node_map);
   }
   map<std::string, std::vector<CmoAttr>> cmo;

@@ -10,4 +10,3 @@ struct InputTensorInfo {
   int64_t length;                   // tensor length
 };
 ```
-

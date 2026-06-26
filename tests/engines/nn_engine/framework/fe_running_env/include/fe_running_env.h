@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,6 +49,7 @@ class FeRunningEnv {
   static string GetNetworkPath(const string &network_name);
 
   static std::map<std::string, std::vector<domi::TaskDef>> tasks_map;
+
  private:
   void InjectFe();
 
@@ -75,5 +76,5 @@ class FeRunningEnv {
   std::map<ge::AscendString, ge::AscendString> ascend_options_;
   string ascend_path_;
 };
-}
-#endif //AIR_TEST_ENGINES_NNENG_FRAMEWORK_FE_RUNNING_ENV_INCLUDE_FE_RUNNING_ENV_H_
+}  // namespace fe_env
+#endif  // AIR_TEST_ENGINES_NNENG_FRAMEWORK_FE_RUNNING_ENV_INCLUDE_FE_RUNNING_ENV_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,17 +59,9 @@ class UtestExecutorUtils : public testing::Test {
 
 TEST(UtestExecutorUtils, test_if_has_host_mem_input) {
   DEF_GRAPH(single_op) {
-    auto op_ptr = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PLACEMENT, 2)
-        .Build("data1");
+    auto op_ptr = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_PLACEMENT, 2).Build("data1");
 
-    auto transdata1 = OP_CFG(TRANSDATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PLACEMENT, 2)
-        .Build("transdata1");
+    auto transdata1 = OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_PLACEMENT, 2).Build("transdata1");
 
     CHAIN(NODE(op_ptr)->NODE(transdata1));
   };
@@ -109,8 +101,8 @@ TEST(UtestExecutorUtils, test_update_host_mem_input_args_util_for_hybrid) {
   size_t host_mem_input_data_offset_in_args = 3 * sizeof(void *);
 
   vector<rtHostInputInfo_t> host_inputs;
-  auto ret = ExecutorUtils::UpdateHostMemInputArgs(context, io_addrs, io_addrs_size,
-                                                   host_mem_input_data_offset_in_args, host_inputs, false);
+  auto ret = ExecutorUtils::UpdateHostMemInputArgs(context, io_addrs, io_addrs_size, host_mem_input_data_offset_in_args,
+                                                   host_inputs, false);
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -137,11 +129,11 @@ TEST(UtestExecutorUtils, test_assemble_reuse_binary_args_empty_tiling) {
   GeTensorDesc tensor_desc;
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddInputDesc(tensor_desc);
-  
+
   optiling::utils::OpRunInfo run_info;
   run_info.SetBlockDim(1);
   run_info.SetTilingKey(0);
-  
+
   rtArgsEx_t args_ex;
   auto ret = ExecutorUtils::AssembleReuseBinaryArgs(op_desc, run_info, args_ex);
   EXPECT_EQ(ret, SUCCESS);
@@ -151,12 +143,12 @@ TEST(UtestExecutorUtils, test_has_host_mem_input_no_host_mem) {
   auto graph = make_shared<ComputeGraph>("graph");
   auto op_desc = make_shared<OpDesc>("Add", "Add");
   GeTensorDesc tensor_desc;
-  
+
   tensor_desc.SetPlacement(ge::kPlacementDevice);
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
-  
+
   EXPECT_FALSE(ExecutorUtils::HasHostMemInput(op_desc));
 }
 
@@ -165,6 +157,6 @@ TEST(UtestExecutorUtils, test_has_host_mem_input_empty_inputs) {
   auto op_desc = make_shared<OpDesc>("Add", "Add");
   GeTensorDesc tensor_desc;
   op_desc->AddOutputDesc(tensor_desc);
-  
+
   EXPECT_FALSE(ExecutorUtils::HasHostMemInput(op_desc));
 }

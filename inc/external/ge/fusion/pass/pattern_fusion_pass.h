@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,9 +74,9 @@ class PatternFusionPass : public FusionBasePass {
    * @return
    * @since 8.5.0(2025-12)
    */
-virtual GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) = 0;
+  virtual GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result) = 0;
 
-  private:
+ private:
   std::unique_ptr<PatternMatcherConfig> match_config_;
 };
 
@@ -126,8 +126,7 @@ class PatternFusionPassV2 : public FusionBasePass {
    * 相比 V1，本钩子可读取 pass_context 获取配置项 / 写入错误信息后再决策。
    * @since 9.1.0(2026-05)
    */
-  virtual bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result,
-                                CustomPassContext &pass_context);
+  virtual bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result, CustomPassContext &pass_context);
 
   /**
    * 返回与 match_result 对应的替换子图。子类可向 pass_context 写入错误信息后返回 nullptr 终止替换。
@@ -150,6 +149,6 @@ class PatternFusionPassV2 : public FusionBasePass {
       ::ge::fusion::FusionPassRegistrationData((pass_name)).CreatePassFn([]() -> ::ge::fusion::FusionBasePass * { \
         return new (std::nothrow) pass_class();                                                                   \
       })
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge
 #endif  // INC_EXTERNAL_GE_GRAPH_PATTERN_FUSION_PASS_H

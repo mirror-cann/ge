@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,9 +47,8 @@ graphStatus NoOpInferFunc(Operator &) {
 }
 }  // namespace
 class UtestDecomposePass : public testing::Test {
-public:
-  static void SetUpTestSuite() {
-  }
+ public:
+  static void SetUpTestSuite() {}
   static void TearDownTestSuite() {}
 };
 /**
@@ -63,8 +62,9 @@ public:
 TEST_F(UtestDecomposePass, SingleNode_1Input_1Output) {
   // define pass
   class TransDataToReluPass : public DecomposePass {
-  TransDataToReluPass(const std::vector<AscendString> &op_types): DecomposePass(op_types) {}
-  protected:
+    TransDataToReluPass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+
+   protected:
     std::unique_ptr<Graph> Replacement(const GNode &matched_node) override {
       auto replace_graph = ge::es::EsGraphBuilder("replacement");
       auto esb_graph = replace_graph.GetCGraphBuilder();
@@ -87,7 +87,8 @@ TEST_F(UtestDecomposePass, SingleNode_1Input_1Output) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -112,8 +113,7 @@ TEST_F(UtestDecomposePass, SingleNode_1Input_1Output) {
       // check pass_name attr
       const std::string kPassName = "pass_name";
       std::vector<std::string> pass_names;
-      const bool has_pass_name_attr =
-          ge::AttrUtils::GetListStr(node->GetOpDesc(), kPassName, pass_names);
+      const bool has_pass_name_attr = ge::AttrUtils::GetListStr(node->GetOpDesc(), kPassName, pass_names);
       EXPECT_TRUE(has_pass_name_attr);
       EXPECT_TRUE(pass_names.size() == 1);
       EXPECT_STREQ(pass_names[0].c_str(), "TransDataToReluPass");
@@ -127,6 +127,7 @@ TEST_F(UtestDecomposePass, NotMeetRequirement_NOT_CHANGE) {
   class TransDataToReluPass : public DecomposePass {
    public:
     TransDataToReluPass(const std::vector<AscendString> &op_type) : DecomposePass(op_type) {}
+
    protected:
     bool MeetRequirements(const GNode &matched_node) override {
       return false;
@@ -156,12 +157,13 @@ TEST_F(UtestDecomposePass, NotMeetRequirement_NOT_CHANGE) {
 TEST_F(UtestDecomposePass, ReplacementInvalid_Failed) {
   // define pass
   class TransDataToReluPass : public DecomposePass {
-    TransDataToReluPass(const std::vector<AscendString> &op_types): DecomposePass(op_types) {}
+    TransDataToReluPass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+
    protected:
     bool MeetRequirements(const GNode &matched_node) override {
       return true;
     }
-    std::unique_ptr<Graph> Replacement(const GNode &matched_node) override { // WRONG REPLACEMENT
+    std::unique_ptr<Graph> Replacement(const GNode &matched_node) override {  // WRONG REPLACEMENT
       auto replace_graph = ge::es::EsGraphBuilder("replacement");
       auto esb_graph = replace_graph.GetCGraphBuilder();
       auto data = EsCreateGraphInput(esb_graph, 0);
@@ -186,6 +188,7 @@ TEST_F(UtestDecomposePass, InferShapeForReplacementGraph_BasicShapeDtypeInfer) {
   class TransDataInferShapePass : public DecomposePass {
    public:
     TransDataInferShapePass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+
    protected:
     std::unique_ptr<Graph> Replacement(const GNode &matched_node) override {
       // The matched Add node has 2 inputs, so the replacement must declare 2
@@ -222,8 +225,7 @@ TEST_F(UtestDecomposePass, InferShapeForReplacementGraph_BasicShapeDtypeInfer) {
       (void)GraphUtils::AddEdge(data0->GetOutDataAnchor(0), relu->GetInDataAnchor(0));
       (void)GraphUtils::AddEdge(relu->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
 
-      auto replacement_graph =
-          std::make_unique<Graph>(GraphUtilsEx::CreateGraphFromComputeGraph(replacement));
+      auto replacement_graph = std::make_unique<Graph>(GraphUtilsEx::CreateGraphFromComputeGraph(replacement));
       EXPECT_EQ(InferShapeUtil::InferShape(*replacement_graph, matched_node), SUCCESS);
       return replacement_graph;
     }
@@ -260,5 +262,5 @@ TEST_F(UtestDecomposePass, InferShapeForReplacementGraph_BasicShapeDtypeInfer) {
   EXPECT_EQ(relu_shape.GetDim(2), 3);
   EXPECT_EQ(relu_out_desc.GetDataType(), DT_FLOAT16);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

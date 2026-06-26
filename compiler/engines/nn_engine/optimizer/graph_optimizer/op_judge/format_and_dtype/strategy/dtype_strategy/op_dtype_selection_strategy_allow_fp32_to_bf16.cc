@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,12 +30,10 @@ void OpDtypeSelectionStrategyAllowFp32ToBf16::ProcessReduceMatch(const vector<ge
   std::string cur_op_desc_type = cur_op_desc_ptr->GetType();
 
   if (origin_dtype == ge::DT_FLOAT) {
-    match_origin_dtype_res =
-        op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, origin_dtype, basic_info.matched_index_vec,
-                                            forbidden_dtype);
+    match_origin_dtype_res = op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, origin_dtype,
+                                                                 basic_info.matched_index_vec, forbidden_dtype);
     if (match_origin_dtype_res == SUCCESS) {
-      FE_LOGD("Op[name=%s,type=%s]: Process reduce match success", cur_op_desc_name.c_str(),
-              cur_op_desc_type.c_str());
+      FE_LOGD("Op[name=%s,type=%s]: Process reduce match success", cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
     }
   } else if (origin_dtype == ge::DT_BF16) {
     match_origin_dtype_res = op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, origin_dtype,
@@ -73,8 +71,7 @@ Status OpDtypeSelectionStrategyAllowFp32ToBf16::Run(SelectionBasicInfo &basic_in
     // 1.match datatype with origin datatype using reducing mode, in this mode
     // we will allow the precision reduce from fp32 to bf16 or fp16 to bf16
     FE_LOGD("Precision loss is allowed, try to match low precision dtype.");
-    ProcessReduceMatch(input_or_output_dtype_vec, origin_dtype, basic_info, forbidden_dtype,
-                       match_origin_dtype_res);
+    ProcessReduceMatch(input_or_output_dtype_vec, origin_dtype, basic_info, forbidden_dtype, match_origin_dtype_res);
   }
 
   if (match_origin_dtype_res == SUCCESS) {

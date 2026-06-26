@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,6 @@ bg::ValueHolderPtr CalAutoThreadParam(const ge::NodePtr &node, const FFTSLowerIn
   inputs.emplace_back(thread_ret[static_cast<size_t>(SliceShapeIndex::kNotLastOutShapes)]);
   return bg::ValueHolder::CreateSingleDataOutput("AICpuGetAutoThreadParam", inputs);
 }
-
 
 }  // namespace
 
@@ -581,7 +580,7 @@ LowerResult LoweringFFTSAiCpuNode(const ge::NodePtr &node, const FFTSLowerInput 
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E19999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
   if (node->GetOpDescBarePtr()->GetOpKernelLibName() == ge::kEngineNameAiCpuTf) {

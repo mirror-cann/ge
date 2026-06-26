@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,10 +28,10 @@ class VISIBILITY_EXPORT ResourceGuard {
 };
 
 /*
-* 这里将原来的resource guard平移为子类，
-* 若后续有诉求需要拆分model上使用的resource guarder和sub exe graph上使用的resource guard
-* 可以再行拆分
-*/
+ * 这里将原来的resource guard平移为子类，
+ * 若后续有诉求需要拆分model上使用的resource guarder和sub exe graph上使用的resource guard
+ * 可以再行拆分
+ */
 class VISIBILITY_EXPORT TopologicalResourceGuard : public ResourceGuard {
  public:
   void ResetAnyValue(std::unique_ptr<uint8_t[]> any_values, size_t count);
@@ -73,5 +73,5 @@ class VISIBILITY_EXPORT TopologicalResourceGuard : public ResourceGuard {
   std::unique_ptr<uint8_t[]> watchers_array_guarder_;
   std::unique_ptr<void, decltype(&free)> ready_queue_guarder_{nullptr, nullptr};
 };
-}
+}  // namespace gert
 #endif  // AIR_CXX_INC_FRAMEWORK_RUNTIME_EXE_GRAPH_RESOURCE_GUARD_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,9 +17,7 @@
 
 namespace gert {
 namespace {
-const std::map<const std::string, ExecTaskType> critical_to_types = {
-    {kKernelUseMemory, ExecTaskType::MEMORY}
-};
+const std::map<const std::string, ExecTaskType> critical_to_types = {{kKernelUseMemory, ExecTaskType::MEMORY}};
 // 内存线程->普通线程断流水场景：
 // 1. AllocHostCpuOutputMemory -> PackHostKernel
 // 2. PackHostKernel ->IdentityAddr -> BuildTensor -> InferShape
@@ -34,7 +32,7 @@ bool IsBrokenNormalToMemoryWaterFlowNode(const char *const node_type) {
 bool IsMemoryToNormalWaterFlowNode(const char *const node_type) {
   return IsExecuteOpPrepareNode(node_type);
 }
-}
+}  // namespace
 
 void KernelTags::Reset(size_t node_num, size_t thread_num) {
   thread_num_ = thread_num;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -167,7 +167,9 @@ TEST_F(UtestGeOpdesc, ge_test_opdesc_attrs) {
   EXPECT_EQ(1, op_desc->GetAllAttrs().size() - defautl_attr_size);
 }
 
-graphStatus InferFunctionStub(Operator &op) { return GRAPH_FAILED; }
+graphStatus InferFunctionStub(Operator &op) {
+  return GRAPH_FAILED;
+}
 
 TEST_F(UtestGeOpdesc, ge_test_opdesc_call_infer_func_failed) {
   GeTensorDesc ge_tensor_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_FLOAT16);
@@ -184,7 +186,9 @@ TEST_F(UtestGeOpdesc, ge_test_opdesc_call_infer_func_failed) {
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
-graphStatus InferFunctionSuccessStub(Operator &op) { return GRAPH_SUCCESS; }
+graphStatus InferFunctionSuccessStub(Operator &op) {
+  return GRAPH_SUCCESS;
+}
 
 TEST_F(UtestGeOpdesc, ge_test_opdesc_call_infer_func_success) {
   auto addn_op_desc = std::make_shared<OpDesc>("AddN", "AddN");

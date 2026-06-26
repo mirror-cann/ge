@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,26 +39,27 @@ EsIdentityNOutput MyEsIdentityN(EsCTensorHolder **x, int64_t x_num) {
   auto ge_graph = builder.GetGraph();
 
   // 2. 根据算子原型构建合法Node实例并设置IR信息到节点上
-  auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType("IdentityN")
-      .Name( builder.GenerateNodeName("IdentityN").GetString())
-      .IrDefInputsV2({
-          {"x", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
-      })
-      .IrDefOutputsV2({
-          {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
-      })
-      .IrDefAttrsV2({
-      })
-      .InstanceDynamicInputNum("x", static_cast<int32_t>(x_num))
-      .InstanceDynamicOutputNum("y", static_cast<int32_t>(y_num))
-      .Build();
+  auto node = ge::es::CompliantNodeBuilder(ge_graph)
+                  .OpType("IdentityN")
+                  .Name(builder.GenerateNodeName("IdentityN").GetString())
+                  .IrDefInputsV2({
+                      {"x", ge::es::CompliantNodeBuilder::kEsIrInputDynamic, ""},
+                  })
+                  .IrDefOutputsV2({
+                      {"y", ge::es::CompliantNodeBuilder::kEsIrOutputDynamic, ""},
+                  })
+                  .IrDefAttrsV2({})
+                  .InstanceDynamicInputNum("x", static_cast<int32_t>(x_num))
+                  .InstanceDynamicOutputNum("y", static_cast<int32_t>(y_num))
+                  .Build();
 
   // 3. 完成图上入参和Node实例的连边
   if ((x != nullptr) && (x_num > 0)) {
     for (int64_t i = 0; i < x_num; ++i) {
       auto one_x = x[i];
       ES_ASSERT_NOTNULL(one_x);
-      ES_ASSERT_GRAPH_SUCCESS(ge::es::AddEdgeAndUpdatePeerDesc(*ge_graph, one_x->GetProducer(), one_x->GetOutIndex(), node, 0 + i));
+      ES_ASSERT_GRAPH_SUCCESS(
+          ge::es::AddEdgeAndUpdatePeerDesc(*ge_graph, one_x->GetProducer(), one_x->GetOutIndex(), node, 0 + i));
     }
   }
 

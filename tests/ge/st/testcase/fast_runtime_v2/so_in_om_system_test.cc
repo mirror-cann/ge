@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,7 @@ const string kInner = "built-in";
 const string kx86OpsProtoPath = "/op_proto/lib/linux/x86_64/";
 const string kx86OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
 const string kaarch64OpsProtoPath = "/op_proto/lib/linux/aarch64/";
-std::map<std::string, std::string> options {{ge::OPTION_HOST_ENV_CPU, "x86_64"}, {ge::OPTION_HOST_ENV_OS, "linux"}};
+std::map<std::string, std::string> options{{ge::OPTION_HOST_ENV_CPU, "x86_64"}, {ge::OPTION_HOST_ENV_OS, "linux"}};
 void FreeModelData(ge::ModelData &model_data) {
   delete[] static_cast<ge::char_t *>(model_data.model_data);
   model_data.model_data = nullptr;
@@ -211,7 +211,7 @@ class MockMmpa : public MmpaStubApiGe {
     return EN_OK;
   }
 };
-}
+}  // namespace
 
 class SoInOmST : public testing::Test {
  protected:
@@ -260,9 +260,9 @@ TEST_F(SoInOmST, RunPackageSoLoad_0001) {
     ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
     graph->TopologicalSorting();
     auto ge_root_model = GeModelBuilder(graph)
-        .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-        .FakeTbeBin({"Add"})
-        .BuildGeRootModel();
+                             .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                             .FakeTbeBin({"Add"})
+                             .BuildGeRootModel();
 
     auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
     ge::graphStatus error_code = ge::GRAPH_FAILED;
@@ -271,7 +271,8 @@ TEST_F(SoInOmST, RunPackageSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -308,7 +309,7 @@ TEST_F(SoInOmST, RunPackageSoLoad_0001) {
  * 3. 模型加载、执行
  *
  * 预期结果：
- * 1. defalut so 加载so失败，waring日志
+ * 1. default so 加载so失败，waring日志
  * 2. 模型执行失败
  */
 #if 0
@@ -381,7 +382,8 @@ TEST_F(SoInOmST, OmSoLoad_0001) {
                              .FakeTbeBin({"Add"})
                              .BuildGeRootModel();
 
-    auto model_data = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
+    auto model_data =
+        ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
     GE_MAKE_GUARD(release_model_data, [&model_data] {
       if (model_data.model_data != nullptr) {
         FreeModelData(model_data);
@@ -394,7 +396,8 @@ TEST_F(SoInOmST, OmSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -522,9 +525,9 @@ TEST_F(SoInOmST, OmSoLoad_0003) {
   ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
 
   auto model_data =
       ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
@@ -582,9 +585,9 @@ TEST_F(SoInOmST, OmSoLoad_0004) {
   ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
 
   auto model_data =
       ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
@@ -633,9 +636,9 @@ TEST_F(SoInOmST, OmSoLoad_0005) {
   ge::AttrUtils::SetBool(graph, ge::ATTR_SINGLE_OP_SCENE, true);
   graph->TopologicalSorting();
   auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .BuildGeRootModel();
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .BuildGeRootModel();
 
   auto model_data =
       ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeSoInOmFile(CreateDlSymFaildEnvInfoFunc, opp_path);
@@ -706,7 +709,8 @@ TEST_F(SoInOmST, MultiSoLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor = stream_executor->GetOrCreateLoaded(stream, {stream, nullptr});
     ASSERT_NE(model_executor, nullptr);
@@ -850,12 +854,13 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
     ge::AttrUtils::SetBool(graph1, ge::ATTR_SINGLE_OP_SCENE, true);
     graph1->TopologicalSorting();
     auto ge_root_model1 = GeModelBuilder(graph1)
-        .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-        .FakeTbeBin({"Add"})
-        .BuildGeRootModel();
+                              .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                              .FakeTbeBin({"Add"})
+                              .BuildGeRootModel();
 
-    auto model_data1 =
-        ModelDataFaker().GeRootModel(ge_root_model1).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
+    auto model_data1 = ModelDataFaker()
+                           .GeRootModel(ge_root_model1)
+                           .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
     GE_MAKE_GUARD(release_model_data, [&model_data1] {
       if (model_data1.model_data != nullptr) {
         FreeModelData(model_data1);
@@ -867,7 +872,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -887,12 +893,13 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
       ge::AttrUtils::SetBool(graph2, ge::ATTR_SINGLE_OP_SCENE, true);
       graph2->TopologicalSorting();
       auto ge_root_model2 = GeModelBuilder(graph2)
-          .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-          .FakeTbeBin({"Add"})
-          .BuildGeRootModel();
+                                .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                                .FakeTbeBin({"Add"})
+                                .BuildGeRootModel();
 
-      auto model_data2 =
-          ModelDataFaker().GeRootModel(ge_root_model2).BuildUnknownShapeSoInOmFile(CreateOpmasterSo2EnvInfoFunc, opp_path);
+      auto model_data2 = ModelDataFaker()
+                             .GeRootModel(ge_root_model2)
+                             .BuildUnknownShapeSoInOmFile(CreateOpmasterSo2EnvInfoFunc, opp_path);
       GE_MAKE_GUARD(release_model_data2, [&model_data2] {
         if (model_data2.model_data != nullptr) {
           FreeModelData(model_data2);
@@ -904,7 +911,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0001) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+                RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -965,8 +973,9 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
                               .FakeTbeBin({"Add"})
                               .BuildGeRootModel();
 
-    auto model_data1 =
-        ModelDataFaker().GeRootModel(ge_root_model1).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
+    auto model_data1 = ModelDataFaker()
+                           .GeRootModel(ge_root_model1)
+                           .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
     GE_MAKE_GUARD(release_model_data, [&model_data1] {
       if (model_data1.model_data != nullptr) {
         FreeModelData(model_data1);
@@ -978,7 +987,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1001,8 +1011,9 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
                               .FakeTbeBin({"Add"})
                               .BuildGeRootModel();
 
-    auto model_data2 =
-        ModelDataFaker().GeRootModel(ge_root_model2).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
+    auto model_data2 = ModelDataFaker()
+                           .GeRootModel(ge_root_model2)
+                           .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
     GE_MAKE_GUARD(release_model_data2, [&model_data2] {
       if (model_data2.model_data != nullptr) {
         FreeModelData(model_data2);
@@ -1014,7 +1025,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0002) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream2;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
     ASSERT_NE(model_executor2, nullptr);
@@ -1069,12 +1081,13 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
     ge::AttrUtils::SetBool(graph1, ge::ATTR_SINGLE_OP_SCENE, true);
     graph1->TopologicalSorting();
     auto ge_root_model1 = GeModelBuilder(graph1)
-        .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-        .FakeTbeBin({"Add"})
-        .BuildGeRootModel();
+                              .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                              .FakeTbeBin({"Add"})
+                              .BuildGeRootModel();
 
-    auto model_data1 =
-        ModelDataFaker().GeRootModel(ge_root_model1).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
+    auto model_data1 = ModelDataFaker()
+                           .GeRootModel(ge_root_model1)
+                           .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
     GE_MAKE_GUARD(release_model_data, [&model_data1] {
       if (model_data1.model_data != nullptr) {
         FreeModelData(model_data1);
@@ -1086,7 +1099,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1110,8 +1124,9 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
                                 .FakeTbeBin({"Add"})
                                 .BuildGeRootModel();
 
-      auto model_data2 =
-          ModelDataFaker().GeRootModel(ge_root_model2).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
+      auto model_data2 = ModelDataFaker()
+                             .GeRootModel(ge_root_model2)
+                             .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
       GE_MAKE_GUARD(release_model_data2, [&model_data2] {
         if (model_data2.model_data != nullptr) {
           FreeModelData(model_data2);
@@ -1123,7 +1138,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0003) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+                RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);
@@ -1301,12 +1317,13 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
     ge::AttrUtils::SetBool(graph1, ge::ATTR_SINGLE_OP_SCENE, true);
     graph1->TopologicalSorting();
     auto ge_root_model1 = GeModelBuilder(graph1)
-        .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-        .FakeTbeBin({"Add"})
-        .BuildGeRootModel();
+                              .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                              .FakeTbeBin({"Add"})
+                              .BuildGeRootModel();
 
-    auto model_data1 =
-        ModelDataFaker().GeRootModel(ge_root_model1).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
+    auto model_data1 = ModelDataFaker()
+                           .GeRootModel(ge_root_model1)
+                           .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path);
     GE_MAKE_GUARD(release_model_data, [&model_data1] {
       if (model_data1.model_data != nullptr) {
         FreeModelData(model_data1);
@@ -1318,7 +1335,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
     ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
     rtStream_t stream1;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream1, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
 
     auto model_executor1 = stream_executor1->GetOrCreateLoaded(stream1, {stream1, nullptr});
     ASSERT_NE(model_executor1, nullptr);
@@ -1338,12 +1356,13 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
       ge::AttrUtils::SetBool(graph2, ge::ATTR_SINGLE_OP_SCENE, true);
       graph2->TopologicalSorting();
       auto ge_root_model2 = GeModelBuilder(graph2)
-          .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-          .FakeTbeBin({"Add"})
-          .BuildGeRootModel();
+                                .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                                .FakeTbeBin({"Add"})
+                                .BuildGeRootModel();
 
-      auto model_data2 =
-          ModelDataFaker().GeRootModel(ge_root_model2).BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
+      auto model_data2 = ModelDataFaker()
+                             .GeRootModel(ge_root_model2)
+                             .BuildUnknownShapeSoInOmFile(CreateOpmasterSo1EnvInfoFunc, opp_path, true);
       GE_MAKE_GUARD(release_model_data2, [&model_data2] {
         if (model_data2.model_data != nullptr) {
           FreeModelData(model_data2);
@@ -1355,7 +1374,8 @@ TEST_F(SoInOmST, ParallelOmLoad_0005) {
       ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 
       rtStream_t stream2;
-      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+      ASSERT_EQ(aclrtCreateStreamWithConfig(&stream2, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+                RT_ERROR_NONE);
 
       auto model_executor2 = stream_executor2->GetOrCreateLoaded(stream2, {stream2, nullptr});
       ASSERT_NE(model_executor2, nullptr);

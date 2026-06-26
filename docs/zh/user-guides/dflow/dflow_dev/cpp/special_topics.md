@@ -6,7 +6,7 @@
 
 进行UDF开发的流程如下图所示。
 
-**图1**  UDF开发流程  
+**图1**  UDF开发流程
 ![](figures/UDF开发流程.png "UDF开发流程")
 
 开发步骤详解如表1所示。
@@ -45,7 +45,7 @@ UDF工程分成如下几类，请根据使用场景进行创建。
 
 ```cpp
 ├── 01_udf_add
-│ ├── CMakeLists.txt    
+│ ├── CMakeLists.txt
 │ └── add_flow_func.cpp // 单func接口定义的add函数
 ├── 02_udf_call_add_nn
 │ ├── CMakeLists.txt
@@ -131,7 +131,7 @@ class AddFlowFunc: public MetaFlowFunc{};
             FLOW_FUNC_LOG_ERROR("add must have 2 inputs, but %zu", inputMsgs.size());
             return FLOW_FUNC_ERR_PARAM_INVALID;
         }
-    
+
         // invalid input
         auto inputFlowMsg1 = inputFlowMsgs[0];
         auto inputFlowMsg2 = inputFlowMsgs[1];
@@ -167,7 +167,7 @@ class AddFlowFunc: public MetaFlowFunc{};
         FLOW_FUNC_LOG_ERROR("MsgType is not Tensor.");
         return -1;
     }
-    
+
     ```
 
 **UDF实现文件（通过调用NN实现自定义功能）**
@@ -227,7 +227,7 @@ class CallNnFlowFunc: public MetaFlowFunc{}
     // 其中dependKey_是类CallNnFlowFunc定义的私有数据成员：
     private:
         std::string dependKey_{"invoke_graph"};
-    
+
     ```
 
 **UDF注册**
@@ -316,7 +316,7 @@ class AddFlowFunc: public MetaMultiFunc{};
                 dst[i] = src1[i] + src2[i];
             }
             /* 如果想使能上面三行代码运算的TPRT并发，可以使用下面五行代码替换上面三行代码（如下示例使用的是ParallelFor，也可以使用Submit+Wait。）
-            std::function<void(const int64_t index)> func = [src1, src2, dst] 
+            std::function<void(const int64_t index)> func = [src1, src2, dst]
                (const int64_t index) {
                 dst[index] = src1[index] + src2[index];
             };
@@ -340,7 +340,7 @@ class AddFlowFunc: public MetaMultiFunc{};
             UdfTprt::Wait();
             */
         }
-    
+
         template<typename T>
         void Add1(T *src1, T *src2, void *dst, size_t count)
         {
@@ -408,7 +408,7 @@ class AddFlowFunc: public MetaMultiFunc{};
                 // 从Tensor中获取shape信息
                 auto &inputShape1 = inputTensor1->GetShape();
                 auto &inputShape2 = inputTensor2->GetShape();
-    
+
                 // 校验两个输入tensor的shape是否一致
                 if (inputShape1 != inputShape2) {
                     FLOW_FUNC_LOG_ERROR("input shape not be same");
@@ -424,7 +424,7 @@ class AddFlowFunc: public MetaMultiFunc{};
                 // 从Tensor中获取tensor的数据大小
                 auto dataSize1 = inputTensor1->GetDataSize();
                 auto dataSize2 = inputTensor2->GetDataSize();
-    
+
                 if (dataSize1 == 0) {
                     return runContext->SetOutput(0, outputMsg);
                 }
@@ -491,7 +491,7 @@ class AddFlowFunc: public MetaMultiFunc{};
                 // 从Tensor中获取data type
                 auto inputDataType1 = inputTensor1->GetDataType();
                 auto inputDataType2 = inputTensor2->GetDataType();
-    
+
                 // 校验两个输入的data type是否一致
                 if (inputDataType1 != inputDataType2) {
                     FLOW_FUNC_LOG_ERROR("allow Tensor msg failed");
@@ -500,7 +500,7 @@ class AddFlowFunc: public MetaMultiFunc{};
                 // 从tensor中获取shape信息
                 auto &inputShape1 = inputTensor1->GetShape();
                 auto &inputShape2 = inputTensor2->GetShape();
-    
+
                 // 校验两个输入tensor的shape是否一致
                 if (inputShape1 != inputShape2) {
                     FLOW_FUNC_LOG_ERROR("input shape not be same");
@@ -556,7 +556,7 @@ class AddFlowFunc: public MetaMultiFunc{};
             FLOW_FUNC_LOG_ERROR("MsgType is not Tensor.");
             return -1;
         }
-    
+
     private:
         TensorDataType outDataType_;
         std::mutex countMutex_;
@@ -692,11 +692,11 @@ FLOW_FUNC_REGISTRAR(CallNnFlowFunc)
     ```cpp
     // 构造DataFlow的FlowGraph图
     dflow::FlowGraph flow_graph("flow_graph");
-    
+
     // 构造输入节点
     auto data0 = dflow::FlowData("Data0", 0);
     auto data1 = dflow::FlowData("Data1", 1);
-    
+
     auto node0 = dflow::FlowNode("node0", 2, 1).SetInput(0, data0).SetInput(1, data1);
     // function_pp
     auto pp0 = dflow::FunctionPp("func_pp0")
@@ -783,7 +783,7 @@ IR构图示例：
     auto data4 = op::Data("Data4").set_attr_index(3);
 
     float inputData1[2] = {1,1};
-    Tensor input1(TensorDesc(ge::Shape({2}), FORMAT_ND, DT_FLOAT), (uint8_t *)inputData1, 2 * sizeof(float));  
+    Tensor input1(TensorDesc(ge::Shape({2}), FORMAT_ND, DT_FLOAT), (uint8_t *)inputData1, 2 * sizeof(float));
     input.push_back(input1);
 
     float inputData2[2] = {1,1};
@@ -791,7 +791,7 @@ IR构图示例：
     input.push_back(input2);
 
     float inputData3[2] = {1,1};
-    Tensor input3(TensorDesc(ge::Shape({2}), FORMAT_ND, DT_FLOAT), (uint8_t *)inputData3, 2 * sizeof(float));  
+    Tensor input3(TensorDesc(ge::Shape({2}), FORMAT_ND, DT_FLOAT), (uint8_t *)inputData3, 2 * sizeof(float));
     input.push_back(input3);
 
     float inputData4[2] = {1,1};
@@ -800,7 +800,7 @@ IR构图示例：
 
     auto OP_Reciprocal = op::Reciprocal("Reciprocal").set_input_x(data1);
     // 设置flow属性,op
-    
+
     const std::string ATTR_NAME_FLOW_ATTR = "_flow_attr";
     const std::string ATTR_NAME_FLOW_ATTR_DEPTH= "_flow_attr_depth";
     const std::string ATTR_NAME_FLOW_ATTR_ENQUEUE_POLICY = "_flow_attr_enqueue_policy";
@@ -822,13 +822,13 @@ IR构图示例：
     OP_Add.SetAttr(ATTR_NAME_FLOW_ATTR_DEPTH.c_str(), static_cast<int32_t>(16));
     AscendString policy2("OVERWRITE");
     OP_Add.SetAttr(ATTR_NAME_FLOW_ATTR_ENQUEUE_POLICY.c_str(), policy2);
-    
+
     auto OP_Sub = op::Sub("Sub").set_input_x1(data3).set_input_x2(data4);
 
     auto OP_Mul = op::Mul("Mul").set_input_x1(OP_Add).set_input_x2(OP_Sub);
     auto partition1 = op::PartitionedCall("partitio_001")
  .create_dynamic_input_args(1)
- .set_dynamic_input_args(0, OP_Mul)  
+ .set_dynamic_input_args(0, OP_Mul)
  .create_dynamic_output_output(1)
  .set_subgraph_builder_f(build_graph1);
     // 设置flow属性,PartitionedCall
@@ -836,7 +836,7 @@ IR构图示例：
     partition1.SetAttr(ATTR_NAME_FLOW_ATTR_DEPTH.c_str(), static_cast<int32_t>(16));
     AscendString policy3("FIFO");
     partition1.SetAttr(ATTR_NAME_FLOW_ATTR_ENQUEUE_POLICY.c_str(), policy3);
-    
+
     auto result_output = op::Add("Add2").set_input_x1(partition1).set_input_x2(partition1);
     // 设置flow属性,input+output
     result_output.SetInputAttr(0,ATTR_NAME_FLOW_ATTR.c_str(), true);
@@ -847,7 +847,7 @@ IR构图示例：
     result_output.SetOutputAttr(0,ATTR_NAME_FLOW_ATTR_DEPTH.c_str(), static_cast<int32_t>(32));
     AscendString policy5("OVERWRITE");
     result_output.SetOutputAttr(0,ATTR_NAME_FLOW_ATTR_ENQUEUE_POLICY.c_str(), policy5);
-    
+
     std::vector<Operator> inputs{data1,data2,data3,data4};
 
     std::vector<Operator> outputs{result_output};
@@ -930,7 +930,7 @@ auto = session->AddGraph(0, graph, graph_options);
 
 ```json
 {
-   
+
    "keep_logic_device_order": false,
    "batch_deploy_info": [
         {
@@ -940,7 +940,7 @@ auto = session->AddGraph(0, graph, graph_options);
         {
             "flow_node_list": ["flowNode3"],
             "logic_device_list": "0:0:1:1"
- 
+
         },
         {
             "flow_node_list": ["flowNode4"],
@@ -1006,7 +1006,7 @@ auto = session->AddGraph(0, graph, graph_options);
     std::map<ge::AscendString, ge::AscendString> graph_options = {{"ge.graph_key", "test_graph_001"}};
     auto = session->AddGraph(0, graph, graph_options);
     ...
-    
+
     ```
 
      **表1**  参数解释
@@ -1015,24 +1015,24 @@ auto = session->AddGraph(0, graph, graph_options);
      |--|--|
      |ge.graph_compiler_cache_dir|图编译磁盘缓存目录，和ge.graph_key配合使用，ge.graph_compiler_cache_dir和ge.graph_key同时配置非空时，图编译磁盘缓存功能生效。<br>配置的缓存目录需要存在，否则会导致编译失败。<br>图发生变化后，原来的缓存文件不可用，用户需要手动删除缓存目录中的缓存文件，包括模型缓存文件、索引文件和变量格式文件，重新编译生成缓存文件。|
      |ge.graph_key|图唯一标识，建议取值只包含大小写字母（A-Z，a-z）、数字（0-9）、下划线（_）、中划线（-）并且长度不超过128。不满足条件时，系统会报错。|
-    
+
     说明：对于ge.graph_compiler_cache_dir，如果用户需要减少缓存恢复时间，可以在该目录下增加配置文件"cache.conf"。示例如下。
 
     ```sh
-    {  
-     "cache_manual_check":true,  
+    {
+     "cache_manual_check":true,
      "cache_debug_mode":true
     }
-    ```    
+    ```
 
     - cache_manual_check：是否开启缓存手工检查模式。配置为true时，表示当图发生变化再次编译时，需要手工删除DataFlow子图缓存文件夹下对应的子图缓存文件。
 
     - cache_debug_mode：是否开启缓存调试模式。配置为true时，不会生成整图缓存的文件（包括模型缓存文件、索引文件和变量格式文件，具体内容请参考"缓存文件生成规则"）。
-    
+
     编译完成后，会在指定的目录下生成缓存文件。具体内容请参考“缓存文件生成规则”。
 
 2. 图发生变化后，如果需要重新编译。请参考如下步骤。
-   
+
    **说明:**
    <br>图变化包括：修改graphpp对应的graph或config.json、修改UDF的实现文件和修改部署信息。
    <br>如果ge.graph\_compiler\_cache\_dir配置了"cache.conf"，并且cache\_debug\_mode=true，则不需要手工删除图缓存的文件。
@@ -1117,7 +1117,7 @@ DataFlow离线编译是指在开发环境编译，在运行环境上加载和部
                         .........
                         "devList":[
                           {
-                          "ipaddr":"XX.XX.XX.XX",     
+                          "ipaddr":"XX.XX.XX.XX",
                           "port":2509,
                           "deviceIdList":[0,1],
                           "resourceType":"Ascend",

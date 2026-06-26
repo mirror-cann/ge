@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@
 using namespace std;
 
 namespace fe {
-class STestFeWholeProcess310P3: public testing::Test
-{
+class STestFeWholeProcess310P3 : public testing::Test {
  protected:
   static void SetUpTestCase() {
     auto &fe_env = fe_env::FeRunningEnv::Instance();
@@ -72,82 +71,82 @@ TEST_F(STestFeWholeProcess310P3, test_mul_single_op_fp16) {
                       ∧        (0,0)
                       └───────────────────────────────────────────────────────────────────────────────────────────┐
                                                                                                                   │
-┌────────┐  (0,0)   ┌────────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────┐  (0,0)   ┌─────────────┐  (0,0)   ┌────────┐
-│ data0  │ ───────> │ quant  │ ───────> │    conv2d    │ ───────> │ dequant │ ───────> │ reduce_mean │ ───────> │ quant1 │
-└────────┘          └────────┘          └──────────────┘          └─────────┘          └─────────────┘          └────────┘
-                                          ∧
-                                          │ (0,1)
-                                          │
-                                        ┌──────────────┐
-                                        │ const_conv2d │
-                                        └──────────────┘
+┌────────┐  (0,0)   ┌────────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────┐  (0,0)   ┌─────────────┐  (0,0) ┌────────┐
+│ data0  │ ───────> │ quant  │ ───────> │    conv2d    │ ───────> │ dequant │ ───────> │ reduce_mean │ ───────> │ quant1
+│ └────────┘          └────────┘          └──────────────┘          └─────────┘          └─────────────┘ └────────┘ ∧ │
+(0,1) │ ┌──────────────┐ │ const_conv2d │ └──────────────┘
  */
 /* Data->Conv2D->Quant->Relu->MatMul->NetOutput */
 TEST_F(STestFeWholeProcess310P3, test_matmul_quant) {
   /* This case uses real compilation environment. */
   te::TeStub::GetInstance().SetImpl(std::make_shared<te::RealTimeCompilation>());
   auto &fe_env = fe_env::FeRunningEnv::Instance();
-  const auto data0 = OP_CFG(DATA)
-      .TensorDesc(ge::FORMAT_NHWC, ge::DT_FLOAT, {8, 10, 10, 1536});
+  const auto data0 = OP_CFG(DATA).TensorDesc(ge::FORMAT_NHWC, ge::DT_FLOAT, {8, 10, 10, 1536});
 
-  const auto const_conv2d = OP_CFG(CONSTANT)
-      .TensorDesc(ge::FORMAT_HWCN, ge::DT_INT8, {1, 1, 1536, 2048});
+  const auto const_conv2d = OP_CFG(CONSTANT).TensorDesc(ge::FORMAT_HWCN, ge::DT_INT8, {1, 1, 1536, 2048});
 
   std::vector<int64_t> strides = {1, 1, 1, 1};
   std::vector<int64_t> dilations = {1, 1, 1, 1};
   std::vector<int64_t> pads = {0, 0, 0, 0};
   const auto conv2d = OP_CFG(CONV2D)
-      .InCnt(2).OutCnt(1)
-      .Attr("strides", strides)
-      .Attr("pads", pads)
-      .Attr("data_format", "NHWC")
-      .Attr("groups", 1)
-      .Attr("offset_x", 1)
-      .Attr("dilations", dilations)
-      .TensorDesc(ge::FORMAT_NHWC, ge::DT_FLOAT, {}).Build("conv2d");
+                          .InCnt(2)
+                          .OutCnt(1)
+                          .Attr("strides", strides)
+                          .Attr("pads", pads)
+                          .Attr("data_format", "NHWC")
+                          .Attr("groups", 1)
+                          .Attr("offset_x", 1)
+                          .Attr("dilations", dilations)
+                          .TensorDesc(ge::FORMAT_NHWC, ge::DT_FLOAT, {})
+                          .Build("conv2d");
 
   const auto matmul = OP_CFG("MatMulV2")
-      .InCnt(2).OutCnt(1)
-      .Attr("transpose_x1", false)
-      .Attr("transpose_x2", false)
-      .Attr("offset_x", 0)
-      .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {}).Build("matmul");
+                          .InCnt(2)
+                          .OutCnt(1)
+                          .Attr("transpose_x1", false)
+                          .Attr("transpose_x2", false)
+                          .Attr("offset_x", 0)
+                          .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {})
+                          .Build("matmul");
 
   const auto reduce_mean = OP_CFG("ReduceMean")
-      .InCnt(1).OutCnt(1)
-      .Attr("keep_dims", false)
-      .Attr("noop_with_empty_axes", true)
-      .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
+                               .InCnt(1)
+                               .OutCnt(1)
+                               .Attr("keep_dims", false)
+                               .Attr("noop_with_empty_axes", true)
+                               .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
 
   float scale = 1.0;
   float offset = 0.0;
   const auto quant = OP_CFG(ASCEND_QUANT)
-      .Attr("scale", scale)
-      .Attr("offset", offset)
-      .InCnt(1).OutCnt(1)
-      .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
+                         .Attr("scale", scale)
+                         .Attr("offset", offset)
+                         .InCnt(1)
+                         .OutCnt(1)
+                         .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
 
   const auto quant1 = OP_CFG(ASCEND_QUANT)
-      .Attr("scale", scale)
-      .Attr("offset", offset)
-      .InCnt(1).OutCnt(1)
-      .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
+                          .Attr("scale", scale)
+                          .Attr("offset", offset)
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
 
   const auto dequant = OP_CFG(ASCEND_DEQUANT)
-      .Attr("sqrt_mode", false)
-      .Attr("relu_flag", false)
-      .InCnt(1).OutCnt(1)
-      .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
+                           .Attr("sqrt_mode", false)
+                           .Attr("relu_flag", false)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .TensorDesc(ge::FORMAT_ND, ge::DT_FLOAT, {});
 
-  const auto const1 = OP_CFG(CONSTANT)
-      .TensorDesc(ge::FORMAT_NHWC, ge::DT_INT8, {2048, 32});
+  const auto const1 = OP_CFG(CONSTANT).TensorDesc(ge::FORMAT_NHWC, ge::DT_INT8, {2048, 32});
 
   DEF_GRAPH(graph_1) {
-      CHAIN(NODE("data0", data0)->NODE("quant", quant)->NODE(conv2d));
-      CHAIN(NODE("const_conv2d", const_conv2d)->EDGE(0, 1)->NODE(conv2d));
-      CHAIN(NODE(conv2d)->NODE("dequant", dequant)->NODE("reduce_mean", reduce_mean)->
-            NODE("quant1", quant1)->NODE(matmul));
-      CHAIN(NODE("const1", const1)->EDGE(0, 1)->NODE(matmul)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data0", data0)->NODE("quant", quant)->NODE(conv2d));
+    CHAIN(NODE("const_conv2d", const_conv2d)->EDGE(0, 1)->NODE(conv2d));
+    CHAIN(
+        NODE(conv2d)->NODE("dequant", dequant)->NODE("reduce_mean", reduce_mean)->NODE("quant1", quant1)->NODE(matmul));
+    CHAIN(NODE("const1", const1)->EDGE(0, 1)->NODE(matmul)->NODE("netoutput", NETOUTPUT));
   };
 
   auto graph = ge::ToComputeGraph(graph_1);
@@ -159,7 +158,7 @@ TEST_F(STestFeWholeProcess310P3, test_matmul_quant) {
       input1->SetFormat(ge::FORMAT_HWCN);
     }
     if (node->GetName() == "dequant") {
-      unique_ptr<uint64_t[]> data(new(std::nothrow) uint64_t[2048]);
+      unique_ptr<uint64_t[]> data(new (std::nothrow) uint64_t[2048]);
       ge::GeTensorDesc weight(ge::GeShape({2048}), ge::FORMAT_NHWC, ge::DT_UINT64);
       WeightInfo w(weight, data.get());
       fe::FusionTurbo ft(graph);
@@ -167,7 +166,7 @@ TEST_F(STestFeWholeProcess310P3, test_matmul_quant) {
     }
 
     if (node->GetName() == "reduce_mean") {
-      unique_ptr<int32_t[]> data(new(std::nothrow) int32_t[2]);
+      unique_ptr<int32_t[]> data(new (std::nothrow) int32_t[2]);
       data[0] = 1;
       data[1] = 2;
       ge::GeTensorDesc weight(ge::GeShape({2}), ge::FORMAT_ND, ge::DT_INT32);
@@ -237,10 +236,11 @@ TEST_F(STestFeWholeProcess310P3, test_unsortedsegmentsum) {
   string network_path = fe_env::FeRunningEnv::GetNetworkPath("unsortedsegmentsum.txt");
   bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
   ASSERT_EQ(state, true);
-  EXPECT_EQ(graph->GetName(), "unsortedsegmentsum_L2_xlsx_16_31_139_16_fp16_int32_0d0_1d0_0d0_100d0_u_ND_16_xfun_0_stream.pb");
+  EXPECT_EQ(graph->GetName(),
+            "unsortedsegmentsum_L2_xlsx_16_31_139_16_fp16_int32_0d0_1d0_0d0_100d0_u_ND_16_xfun_0_stream.pb");
   EXPECT_EQ(graph->GetDirectNode().size(), 4);
   std::map<string, string> session_options;
   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
   fe_env.Run(graph, session_options);
 }
-}
+}  // namespace fe

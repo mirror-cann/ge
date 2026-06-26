@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -181,21 +181,21 @@ TEST_F(UtestGraphPassesFoldingKernelSliceDKernel, OutputSliceDataBool) {
   x_dims.push_back(1);
   int32_t start = 1;
   vector<int64_t> dims_vec_0;
-  vector<int32_t> data_vec_0 (8, start);
+  vector<int32_t> data_vec_0(8, start);
   GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
-  ConstGeTensorPtr x_tensor = 
+  ConstGeTensorPtr x_tensor =
       std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
   void *data = reinterpret_cast<void *>(const_cast<uint8_t *>(x_tensor->GetData().data()));
   dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
-  Status ret = OpUtils::SetOutputSliceData(data, 32, DT_BOOL, x_dims, begin_list, size_list,
-                                    output_ptr.get(), stride_list);
+  Status ret =
+      OpUtils::SetOutputSliceData(data, 32, DT_BOOL, x_dims, begin_list, size_list, output_ptr.get(), stride_list);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
   EXPECT_EQ(SUCCESS, ret);
 }
 
 TEST_F(UtestGraphPassesFoldingKernelSliceDKernel, CheckOutputDims1) {
   OpDescPtr op_desc_ptr = nullptr;
-  std::vector<int64_t> output_dims = {1,1,1};
+  std::vector<int64_t> output_dims = {1, 1, 1};
 
   SliceDKernel slice_d_kernel;
   Status status = slice_d_kernel.CheckOutputDims(output_dims, op_desc_ptr);

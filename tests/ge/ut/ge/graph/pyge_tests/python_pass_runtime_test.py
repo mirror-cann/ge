@@ -17,8 +17,8 @@ import sys
 import types
 from pathlib import Path
 
-from ge.passes import runtime
 from ge.passes import _artifact_utils as artifact_utils
+from ge.passes import runtime
 
 
 def _write_codegen_config(codegen_dir: Path, content: str = "{}") -> None:

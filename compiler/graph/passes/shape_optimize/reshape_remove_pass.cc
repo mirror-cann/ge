@@ -1,17 +1,17 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include "graph/passes/shape_optimize/reshape_remove_pass.h"
 
-#include  <map>
-#include  <string>
+#include <map>
+#include <string>
 
 #include "framework/common/util.h"
 #include "framework/common/framework_types_internal.h"
@@ -23,11 +23,7 @@ namespace ge {
 namespace {
 const int32_t kReshapeDataIndex = 0;
 const int32_t kReshapeShapeIndex = 1;
-enum OpHashValue {
-  kReshapeType = 0,
-  kReformatType = 1,
-  kOpNoDelete = -1
-};
+enum OpHashValue { kReshapeType = 0, kReformatType = 1, kOpNoDelete = -1 };
 
 std::map<std::string, OpHashValue> kToBeDeleteOp = {{RESHAPE, kReshapeType}, {REFORMAT, kReformatType}};
 // todo 临时方案，不应该判断节点类型，应该找到这类节点的共同点，或者最终把reshape全部删除
@@ -88,7 +84,7 @@ bool IsOutputOfSubGraph(const ge::NodePtr &node) {
   }
   return false;
 }
-}
+}  // namespace
 
 Status ReshapeRemovePass::Run(NodePtr &node) {
   GE_CHECK_NOTNULL(node);
@@ -103,8 +99,7 @@ Status ReshapeRemovePass::Run(NodePtr &node) {
       bool is_shape_unknown = false;
       if (NodeUtils::GetNodeUnknownShapeStatus(*node, is_shape_unknown) == GRAPH_SUCCESS) {
         if (is_shape_unknown) {
-          GELOGI("op:%s is unknown shape, cannot be deleted.",
-                 node->GetName().c_str());
+          GELOGI("op:%s is unknown shape, cannot be deleted.", node->GetName().c_str());
           return SUCCESS;
         }
       }

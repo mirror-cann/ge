@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -100,16 +100,16 @@ TEST_F(SmallVectorUt, ConstructorCorrectSizeAndCap) {
   int32_t expect_vec4_10[6] = {10, 10, 10, 10, 10, 10};
   EXPECT_EQ(memcmp(vec4.data(), expect_vec4_10, sizeof(expect_vec4_10)), 0);
 
-  SmallVector<int32_t, 5> vec6({1,2,3});
+  SmallVector<int32_t, 5> vec6({1, 2, 3});
   EXPECT_EQ(vec6.size(), 3);
   EXPECT_EQ(vec6.capacity(), 5);
-  int32_t expect_vec6_10[] = {1,2,3};
+  int32_t expect_vec6_10[] = {1, 2, 3};
   EXPECT_EQ(memcmp(vec6.data(), expect_vec6_10, sizeof(expect_vec6_10)), 0);
 
-  SmallVector<int32_t, 5> vec7({1,2,3,4,5,6});
+  SmallVector<int32_t, 5> vec7({1, 2, 3, 4, 5, 6});
   EXPECT_EQ(vec7.size(), 6);
   EXPECT_GE(vec7.capacity(), 6);
-  int32_t expect_vec7_10[] = {1,2,3,4,5,6};
+  int32_t expect_vec7_10[] = {1, 2, 3, 4, 5, 6};
   EXPECT_EQ(memcmp(vec7.data(), expect_vec7_10, sizeof(expect_vec7_10)), 0);
 }
 
@@ -993,18 +993,18 @@ TEST_F(SmallVectorUt, InsertMid_Multiple_NotExpandCap) {
 TEST_F(SmallVectorUt, InsertListOk) {
   SmallVector<int64_t, 10> vec1;
   vec1.insert(vec1.end(), {1, 2, 3, 4, 5});
-  int64_t expect1[] = {1,2,3,4,5};
+  int64_t expect1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(vec1.size(), 5);
   EXPECT_EQ(memcmp(vec1.data(), expect1, sizeof(expect1)), 0);
 
   vec1.insert(vec1.begin(), {10, 20, 30});
-  int64_t expect2[] = {10,20,30,1,2,3,4,5};
+  int64_t expect2[] = {10, 20, 30, 1, 2, 3, 4, 5};
   EXPECT_EQ(vec1.size(), 8);
   EXPECT_EQ(memcmp(vec1.data(), expect2, sizeof(expect2)), 0);
 
   // expand
   vec1.insert(vec1.begin() + 3, {100, 20, 30});
-  int64_t expect3[] = {10,20,30,100,20,30,1,2,3,4,5};
+  int64_t expect3[] = {10, 20, 30, 100, 20, 30, 1, 2, 3, 4, 5};
   EXPECT_EQ(vec1.size(), 11);
   EXPECT_GE(vec1.capacity(), 11);
   EXPECT_EQ(memcmp(vec1.data(), expect3, sizeof(expect3)), 0);
@@ -1034,32 +1034,32 @@ TEST_F(SmallVectorUt, EmplaceOk) {
 }
 
 TEST_F(SmallVectorUt, EraseOk) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.erase(vec1.begin());
   EXPECT_EQ(vec1.size(), 6);
-  int64_t vec1_expect_1[] = {2,3,4,5,6,7};
+  int64_t vec1_expect_1[] = {2, 3, 4, 5, 6, 7};
   EXPECT_EQ(memcmp(vec1.data(), vec1_expect_1, sizeof(vec1_expect_1)), 0);
 
   vec1.erase(vec1.begin() + 2);
   EXPECT_EQ(vec1.size(), 5);
-  int64_t vec1_expect_2[] = {2,3,5,6,7};
+  int64_t vec1_expect_2[] = {2, 3, 5, 6, 7};
   EXPECT_EQ(memcmp(vec1.data(), vec1_expect_2, sizeof(vec1_expect_2)), 0);
 }
 
 TEST_F(SmallVectorUt, EraseAllOk) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.erase(vec1.begin(), vec1.end());
   EXPECT_EQ(vec1.size(), 0);
 }
 
 TEST_F(SmallVectorUt, EraseEmptyOk) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.erase(vec1.begin(), vec1.begin());
   EXPECT_EQ(vec1.size(), 7);
-  int64_t vec1_expect_1[] = {1,2,3,4,5,6,7};
+  int64_t vec1_expect_1[] = {1, 2, 3, 4, 5, 6, 7};
   EXPECT_EQ(memcmp(vec1.data(), vec1_expect_1, sizeof(vec1_expect_1)), 0);
 }
 
@@ -1074,11 +1074,11 @@ TEST_F(SmallVectorUt, Erase_CallCorrectConstructor) {
 }
 
 TEST_F(SmallVectorUt, PopBackOk) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.pop_back();
   EXPECT_EQ(vec1.size(), 6);
-  int64_t expect[] = {1,2,3,4,5,6};
+  int64_t expect[] = {1, 2, 3, 4, 5, 6};
   EXPECT_EQ(memcmp(vec1.data(), expect, sizeof(expect)), 0);
 }
 
@@ -1093,16 +1093,16 @@ TEST_F(SmallVectorUt, PopBack_CallDestructor) {
 }
 
 TEST_F(SmallVectorUt, ResizeOk1) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.resize(9);
-  int64_t expect_1[] = {1,2,3,4,5,6,7,0,0};
+  int64_t expect_1[] = {1, 2, 3, 4, 5, 6, 7, 0, 0};
   EXPECT_EQ(vec1.size(), 9);
   EXPECT_EQ(memcmp(vec1.data(), expect_1, sizeof(expect_1)), 0);
 
   // expand
   vec1.resize(11);
-  int64_t expect_2[] = {1,2,3,4,5,6,7,0,0,0,0};
+  int64_t expect_2[] = {1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0};
   EXPECT_EQ(vec1.size(), 11);
   EXPECT_EQ(memcmp(vec1.data(), expect_2, sizeof(expect_2)), 0);
 
@@ -1118,15 +1118,15 @@ TEST_F(SmallVectorUt, ResizeOk1) {
 }
 
 TEST_F(SmallVectorUt, ResizeOk2) {
-  SmallVector<int64_t, 10> vec1{1,2,3,4,5,6,7};
+  SmallVector<int64_t, 10> vec1{1, 2, 3, 4, 5, 6, 7};
 
   vec1.resize(5);
-  int64_t expect_1[] = {1,2,3,4,5};
+  int64_t expect_1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(vec1.size(), 5);
   EXPECT_EQ(memcmp(vec1.data(), expect_1, sizeof(expect_1)), 0);
 
   vec1.resize(7);
-  int64_t expect_2[] = {1,2,3,4,5,0,0};
+  int64_t expect_2[] = {1, 2, 3, 4, 5, 0, 0};
   EXPECT_EQ(vec1.size(), 7);
   EXPECT_EQ(memcmp(vec1.data(), expect_2, sizeof(expect_2)), 0);
 }
@@ -1160,26 +1160,26 @@ TEST_F(SmallVectorUt, ResizeOk1_CallCorrectConstructor) {
 }
 
 TEST_F(SmallVectorUt, PushBackOk1) {
-  SmallVector<int64_t, 5> vec1({1,2,3});
+  SmallVector<int64_t, 5> vec1({1, 2, 3});
   vec1.push_back(10);
   EXPECT_EQ(vec1.size(), 4);
-  int64_t expect_1[] = {1,2,3,10};
+  int64_t expect_1[] = {1, 2, 3, 10};
   EXPECT_EQ(memcmp(vec1.data(), expect_1, sizeof(expect_1)), 0);
 }
 
 TEST_F(SmallVectorUt, PushBackExpandOk2) {
-  SmallVector<int64_t, 5> vec1({1,2,3,4,5});
+  SmallVector<int64_t, 5> vec1({1, 2, 3, 4, 5});
   vec1.push_back(10);
   EXPECT_EQ(vec1.size(), 6);
-  int64_t expect_1[] = {1,2,3,4,5,10};
+  int64_t expect_1[] = {1, 2, 3, 4, 5, 10};
   EXPECT_EQ(memcmp(vec1.data(), expect_1, sizeof(expect_1)), 0);
 }
 
 TEST_F(SmallVectorUt, PushBackExpandOk3) {
-  SmallVector<int64_t, 5> vec1({1,2,3,4,5,6});
+  SmallVector<int64_t, 5> vec1({1, 2, 3, 4, 5, 6});
   vec1.push_back(10);
   EXPECT_EQ(vec1.size(), 7);
-  int64_t expect_1[] = {1,2,3,4,5,6,10};
+  int64_t expect_1[] = {1, 2, 3, 4, 5, 6, 10};
   EXPECT_EQ(memcmp(vec1.data(), expect_1, sizeof(expect_1)), 0);
 }
 
@@ -1199,54 +1199,54 @@ TEST_F(SmallVectorUt, PushBack_CallCorrectConstructor) {
   EXPECT_EQ(FuncCounter::GetClearDestructTimes(), 5);
   EXPECT_TRUE(FuncCounter::AllTimesZero());
 
-    FuncCounter::Clear();
-    vec1.push_back(std::move(fc));
-    EXPECT_EQ(FuncCounter::GetClearMoveConstructTimes(), 1);
-    EXPECT_TRUE(FuncCounter::AllTimesZero());
+  FuncCounter::Clear();
+  vec1.push_back(std::move(fc));
+  EXPECT_EQ(FuncCounter::GetClearMoveConstructTimes(), 1);
+  EXPECT_TRUE(FuncCounter::AllTimesZero());
 }
 
 TEST_F(SmallVectorUt, SwapOk1) {
-  SmallVector<int32_t, 10> vec1{1,2,3,4,5000};
-  SmallVector<int32_t, 10> vec2{6,7,8,9000};
+  SmallVector<int32_t, 10> vec1{1, 2, 3, 4, 5000};
+  SmallVector<int32_t, 10> vec2{6, 7, 8, 9000};
 
   vec1.swap(vec2);
 
   EXPECT_EQ(vec1.size(), 4);
-  int32_t expect_2[] = {6,7,8,9000};
+  int32_t expect_2[] = {6, 7, 8, 9000};
   EXPECT_EQ(memcmp(vec1.data(), expect_2, sizeof(expect_2)), 0);
 
   EXPECT_EQ(vec2.size(), 5);
-  int32_t expect_1[] = {1,2,3,4,5000};
+  int32_t expect_1[] = {1, 2, 3, 4, 5000};
   EXPECT_EQ(memcmp(vec2.data(), expect_1, sizeof(expect_1)), 0);
 }
 
 TEST_F(SmallVectorUt, SwapOk2) {
-  SmallVector<int32_t, 2> vec1{1,2,3,4,5000};
-  SmallVector<int32_t, 2> vec2{6,7,8,9000};
+  SmallVector<int32_t, 2> vec1{1, 2, 3, 4, 5000};
+  SmallVector<int32_t, 2> vec2{6, 7, 8, 9000};
 
   vec1.swap(vec2);
 
   EXPECT_EQ(vec1.size(), 4);
-  int32_t expect_2[] = {6,7,8,9000};
+  int32_t expect_2[] = {6, 7, 8, 9000};
   EXPECT_EQ(memcmp(vec1.data(), expect_2, sizeof(expect_2)), 0);
 
   EXPECT_EQ(vec2.size(), 5);
-  int32_t expect_1[] = {1,2,3,4,5000};
+  int32_t expect_1[] = {1, 2, 3, 4, 5000};
   EXPECT_EQ(memcmp(vec2.data(), expect_1, sizeof(expect_1)), 0);
 }
 
 TEST_F(SmallVectorUt, SwapOk3) {
-  SmallVector<int32_t, 4> vec1{1,2,3,4,5000};
-  SmallVector<int32_t, 4> vec2{6,7,8,9000};
+  SmallVector<int32_t, 4> vec1{1, 2, 3, 4, 5000};
+  SmallVector<int32_t, 4> vec2{6, 7, 8, 9000};
 
   vec1.swap(vec2);
 
   EXPECT_EQ(vec1.size(), 4);
-  int32_t expect_2[] = {6,7,8,9000};
+  int32_t expect_2[] = {6, 7, 8, 9000};
   EXPECT_EQ(memcmp(vec1.data(), expect_2, sizeof(expect_2)), 0);
 
   EXPECT_EQ(vec2.size(), 5);
-  int32_t expect_1[] = {1,2,3,4,5000};
+  int32_t expect_1[] = {1, 2, 3, 4, 5000};
   EXPECT_EQ(memcmp(vec2.data(), expect_1, sizeof(expect_1)), 0);
 }
 
@@ -1269,12 +1269,12 @@ TEST_F(SmallVectorUt, SwapOk3_ConstructTimes) {
 }
 
 TEST_F(SmallVectorUt, CompareOperator) {
-  SmallVector<int32_t, 4> vec1({1,2,3,4});
-  SmallVector<int32_t, 4> vec2({1,2,3,4});
-  SmallVector<int32_t, 5> vec3({1,2,3,4,5});
-  SmallVector<int32_t, 5> vec4({1,2,3,5});
-  SmallVector<int32_t, 4> vec5({1,2,3,5});
-  SmallVector<int32_t, 4> vec6({1,2,3,4,5});
+  SmallVector<int32_t, 4> vec1({1, 2, 3, 4});
+  SmallVector<int32_t, 4> vec2({1, 2, 3, 4});
+  SmallVector<int32_t, 5> vec3({1, 2, 3, 4, 5});
+  SmallVector<int32_t, 5> vec4({1, 2, 3, 5});
+  SmallVector<int32_t, 4> vec5({1, 2, 3, 5});
+  SmallVector<int32_t, 4> vec6({1, 2, 3, 4, 5});
 
   EXPECT_TRUE(vec1 == vec2);
   EXPECT_FALSE(vec1 == vec3);
@@ -1308,7 +1308,7 @@ TEST_F(SmallVectorUt, ReserveOk1) {
 }
 
 TEST_F(SmallVectorUt, ReserveOk2) {
-  SmallVector<int32_t, 4> vec1{1,2,3};
+  SmallVector<int32_t, 4> vec1{1, 2, 3};
   EXPECT_EQ(vec1.size(), 3);
   EXPECT_EQ(vec1.capacity(), 4);
 
@@ -1326,16 +1326,16 @@ TEST_F(SmallVectorUt, ReserveOk2) {
 }  // namespace ge
 
 namespace test_open {
-  using ge::SmallVector;
-  class OpenSmallVectorUt : public testing::Test {};
+using ge::SmallVector;
+class OpenSmallVectorUt : public testing::Test {};
 
-  TEST_F(OpenSmallVectorUt, CompareOperator) {
-  SmallVector<int32_t, 4> vec1({1,2,3,4});
-  SmallVector<int32_t, 4> vec2({1,2,3,4});
-  SmallVector<int32_t, 5> vec3({1,2,3,4,5});
-  SmallVector<int32_t, 5> vec4({1,2,3,5});
-  SmallVector<int32_t, 4> vec5({1,2,3,5});
-  SmallVector<int32_t, 4> vec6({1,2,3,4,5});
+TEST_F(OpenSmallVectorUt, CompareOperator) {
+  SmallVector<int32_t, 4> vec1({1, 2, 3, 4});
+  SmallVector<int32_t, 4> vec2({1, 2, 3, 4});
+  SmallVector<int32_t, 5> vec3({1, 2, 3, 4, 5});
+  SmallVector<int32_t, 5> vec4({1, 2, 3, 5});
+  SmallVector<int32_t, 4> vec5({1, 2, 3, 5});
+  SmallVector<int32_t, 4> vec6({1, 2, 3, 4, 5});
 
   EXPECT_TRUE(vec1 == vec2);
   EXPECT_FALSE(vec1 == vec3);
@@ -1353,4 +1353,4 @@ namespace test_open {
   EXPECT_TRUE(vec3 < vec4);
   EXPECT_TRUE(vec3 <= vec4);
 }
-} // namespace test_open
+}  // namespace test_open

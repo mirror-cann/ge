@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@
 namespace fe {
 class ReduceFormatProcess : public FormatProcessBase {
  public:
-  ReduceFormatProcess(){};
+  ReduceFormatProcess() {};
   ~ReduceFormatProcess() override {};
 
   /**
@@ -38,8 +38,8 @@ class ReduceFormatProcess : public FormatProcessBase {
    * @return
    */
   virtual bool CheckOriginFormatAndShape(const vector<ge::Format> &input_formats,
-                                         const vector<ge::Format> &output_formats,
-                                         const vector<ge::GeShape> &shapes, const size_t &dim);
+                                         const vector<ge::Format> &output_formats, const vector<ge::GeShape> &shapes,
+                                         const size_t &dim);
 
  protected:
   bool CheckContainReduceAxis(const ge::OpDesc &op_desc, const vector<ge::Format> &formats,
@@ -49,7 +49,7 @@ class ReduceFormatProcess : public FormatProcessBase {
                        const vector<ge::Format> &support_in_formats, const vector<ge::Format> &support_out_formats,
                        FormatProccessResult &result) const;
 
-  static bool CheckNdFormat(const vector<ge::Format>& formats);
+  static bool CheckNdFormat(const vector<ge::Format> &formats);
 
   const string LAST_AXIS_NAME = "last";
   const string LASTBUTONE_AXIS_NAME = "lastButOne";

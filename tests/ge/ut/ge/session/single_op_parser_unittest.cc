@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,7 +96,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_02) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -160,7 +161,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_03) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -206,7 +208,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_04) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -252,7 +255,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_05) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -298,7 +302,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_06) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -344,7 +349,8 @@ TEST_F(UtestOmg, ParseSingleOpListTest_07) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
@@ -390,15 +396,20 @@ TEST_F(UtestOmg, ParseSingleOpListTest_08) {
         }
       ]
     }
-])" << endl << R"(EOF)";
+])" << endl
+          << R"(EOF)";
   system(sstream.str().c_str());
   std::vector<SingleOpBuildParam> op_list;
   Status ret = SingleOpParser::ParseSingleOpList(file, op_list);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(op_list.size(), 1);
-  EXPECT_EQ(op_list[0].op_desc->GetName(), "123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789k123456789l123456789m");
+  EXPECT_EQ(op_list[0].op_desc->GetName(),
+            "123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456"
+            "789k123456789l123456789m");
   EXPECT_EQ(op_list[0].op_desc->GetType(), "Add");
-  EXPECT_EQ(op_list[0].file_name, "123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789k123456789l12345678.om");
+  EXPECT_EQ(op_list[0].file_name,
+            "123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456"
+            "789k123456789l12345678.om");
   EXPECT_EQ(op_list[0].compile_flag, 0);
   system(("rm " + file).c_str());
 }
@@ -444,7 +455,7 @@ TEST_F(UtestOmg, SetShapeRangeTest) {
 }
 
 TEST_F(UtestOmg, ValidateTest) {
-  //input_desc:!tensor_desc.GetValidFlag()
+  // input_desc:!tensor_desc.GetValidFlag()
   SingleOpDesc op_desc;
   op_desc.op = "test";
   SingleOpTensorDesc input_tensor_desc;
@@ -453,7 +464,7 @@ TEST_F(UtestOmg, ValidateTest) {
   bool ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //input_desc:tensor_desc.type == DT_UNDEFINED && tensor_desc.format != FORMAT_RESERVED
+  // input_desc:tensor_desc.type == DT_UNDEFINED && tensor_desc.format != FORMAT_RESERVED
   op_desc.input_desc.clear();
   input_tensor_desc.is_valid = true;
   input_tensor_desc.type = ge::DT_UNDEFINED;
@@ -462,7 +473,7 @@ TEST_F(UtestOmg, ValidateTest) {
   ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //output_desc:!tensor_desc.GetValidFlag()
+  // output_desc:!tensor_desc.GetValidFlag()
   op_desc.input_desc.clear();
   SingleOpTensorDesc output_tensor_desc;
   output_tensor_desc.is_valid = false;
@@ -470,7 +481,7 @@ TEST_F(UtestOmg, ValidateTest) {
   ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //output_desc:tensor_desc.type == DT_UNDEFINED
+  // output_desc:tensor_desc.type == DT_UNDEFINED
   op_desc.output_desc.clear();
   output_tensor_desc.is_valid = true;
   output_tensor_desc.type = ge::DT_UNDEFINED;
@@ -478,7 +489,7 @@ TEST_F(UtestOmg, ValidateTest) {
   ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //output_desc:tensor_desc.format == FORMAT_RESERVED
+  // output_desc:tensor_desc.format == FORMAT_RESERVED
   op_desc.output_desc.clear();
   output_tensor_desc.is_valid = true;
   output_tensor_desc.type = ge::DT_FLOAT16;
@@ -487,14 +498,14 @@ TEST_F(UtestOmg, ValidateTest) {
   ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //attr.name.empty()
+  // attr.name.empty()
   op_desc.output_desc.clear();
   SingleOpAttr op_attr;
   op_desc.attrs.push_back(op_attr);
   ret = SingleOpParser::Validate(op_desc);
   EXPECT_EQ(ret, false);
 
-  //attr.value.IsEmpty()
+  // attr.value.IsEmpty()
   op_desc.attrs.clear();
   op_attr.name = "test1";
   op_desc.attrs.push_back(op_attr);
@@ -544,7 +555,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   nlohmann::json j;
   SingleOpAttr op_attr;
 
-  //it == kAttrTypeDict.end()
+  // it == kAttrTypeDict.end()
   j["name"] = "test";
   j["type"] = "test";
   j["value"] = "";
@@ -552,7 +563,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test");
   EXPECT_EQ(op_attr.type, "test");
 
-  //VT_BOOL
+  // VT_BOOL
   j.clear();
   j["name"] = "test2";
   j["type"] = "bool";
@@ -561,7 +572,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test2");
   EXPECT_EQ(op_attr.type, "bool");
 
-  //VT_INT
+  // VT_INT
   j.clear();
   j["name"] = "test3";
   j["type"] = "int";
@@ -570,7 +581,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test3");
   EXPECT_EQ(op_attr.type, "int");
 
-  //VT_FLOAT
+  // VT_FLOAT
   j.clear();
   j["name"] = "test4";
   j["type"] = "float";
@@ -579,7 +590,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test4");
   EXPECT_EQ(op_attr.type, "float");
 
-  //VT_STRING
+  // VT_STRING
   j.clear();
   j["name"] = "test5";
   j["type"] = "string";
@@ -588,7 +599,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test5");
   EXPECT_EQ(op_attr.type, "string");
 
-  //VT_LIST_BOOL
+  // VT_LIST_BOOL
   j.clear();
   j["name"] = "test6";
   j["type"] = "list_bool";
@@ -597,7 +608,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test6");
   EXPECT_EQ(op_attr.type, "list_bool");
 
-  //VT_LIST_INT
+  // VT_LIST_INT
   j.clear();
   j["name"] = "test7";
   j["type"] = "list_int";
@@ -606,7 +617,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test7");
   EXPECT_EQ(op_attr.type, "list_int");
 
-  //VT_LIST_FLOAT
+  // VT_LIST_FLOAT
   j.clear();
   j["name"] = "test8";
   j["type"] = "list_float";
@@ -615,7 +626,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test8");
   EXPECT_EQ(op_attr.type, "list_float");
 
-  //VT_LIST_STRING
+  // VT_LIST_STRING
   j.clear();
   j["name"] = "test9";
   j["type"] = "list_string";
@@ -624,7 +635,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test9");
   EXPECT_EQ(op_attr.type, "list_string");
 
-  //VT_LIST_LIST_INT
+  // VT_LIST_LIST_INT
   j.clear();
   j["name"] = "test10";
   j["type"] = "list_list_int";
@@ -633,7 +644,7 @@ TEST_F(UtestOmg, VerifyOpInputOutputSizeByIrTest) {
   EXPECT_EQ(op_attr.name, "test10");
   EXPECT_EQ(op_attr.type, "list_list_int");
 
-  //VT_DATA_TYPE
+  // VT_DATA_TYPE
   j.clear();
   j["name"] = "test11";
   j["type"] = "data_type";
@@ -648,13 +659,13 @@ TEST_F(UtestOmg, TransConstValueTest) {
   nlohmann::json j;
   SingleOpTensorDesc desc;
 
-  //DT_INT8
+  // DT_INT8
   desc.type = ge::DT_INT8;
   j["const_value"] = {1, 2};
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_INT16
+  // DT_INT16
   desc.const_value_size = 0;
   desc.type = ge::DT_INT16;
   j.clear();
@@ -662,7 +673,7 @@ TEST_F(UtestOmg, TransConstValueTest) {
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_INT32
+  // DT_INT32
   desc.const_value_size = 0;
   desc.type = ge::DT_INT32;
   j.clear();
@@ -670,7 +681,7 @@ TEST_F(UtestOmg, TransConstValueTest) {
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_INT64
+  // DT_INT64
   desc.const_value_size = 0;
   desc.type = ge::DT_INT64;
   j.clear();
@@ -678,7 +689,7 @@ TEST_F(UtestOmg, TransConstValueTest) {
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_FLOAT16
+  // DT_FLOAT16
   desc.const_value_size = 0;
   desc.type = ge::DT_FLOAT16;
   j.clear();
@@ -686,7 +697,7 @@ TEST_F(UtestOmg, TransConstValueTest) {
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_FLOAT
+  // DT_FLOAT
   desc.const_value_size = 0;
   desc.type = ge::DT_FLOAT;
   j.clear();
@@ -694,7 +705,7 @@ TEST_F(UtestOmg, TransConstValueTest) {
   TransConstValue(type_str, j, desc);
   EXPECT_NE(desc.const_value_size, 0);
 
-  //DT_DOUBLE
+  // DT_DOUBLE
   desc.const_value_size = 0;
   desc.type = ge::DT_DOUBLE;
   j.clear();
@@ -703,4 +714,4 @@ TEST_F(UtestOmg, TransConstValueTest) {
   EXPECT_NE(desc.const_value_size, 0);
 }
 
-} // namespace
+}  // namespace ge

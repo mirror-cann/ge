@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,10 +31,10 @@ using namespace std;
 
 namespace aicpu {
 namespace {
-  const string OP_SEQUENCEINSERT = "SequenceInsert";
-  const string OP_ADD = "Add";
-  const string OP_CONCATFROMSEQUENCE = "ConcatFromSequence";
-  const string OP_NETOUTPUT = "NetOutput";
+const string OP_SEQUENCEINSERT = "SequenceInsert";
+const string OP_ADD = "Add";
+const string OP_CONCATFROMSEQUENCE = "ConcatFromSequence";
+const string OP_NETOUTPUT = "NetOutput";
 class UTEST_graph_passes_concatFromSequence_pass : public testing::Test {
  protected:
   OpDescPtr CreateOpDesc(const std::string name, const std::string type, uint32_t input_num, uint32_t output_num) {
@@ -62,7 +62,7 @@ class UTEST_graph_passes_concatFromSequence_pass : public testing::Test {
     return num;
   }
 };
-} // namespace
+}  // namespace
 
 TEST_F(UTEST_graph_passes_concatFromSequence_pass, concatFromSequence_pass_run_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -72,7 +72,8 @@ TEST_F(UTEST_graph_passes_concatFromSequence_pass, concatFromSequence_pass_run_s
   NodePtr sequenceInsert_node = graph->AddNode(CreateOpDesc("sequenceInsert", OP_SEQUENCEINSERT, 3, 1));
   NodePtr output_node = graph->AddNode(CreateOpDesc("Node_Output", OP_NETOUTPUT, 1, 1));
 
-  EXPECT_EQ(GraphUtils::AddEdge(sequenceInsert_node->GetOutDataAnchor(0), concatFromSequence_node->GetInDataAnchor(0)), SUCCESS);
+  EXPECT_EQ(GraphUtils::AddEdge(sequenceInsert_node->GetOutDataAnchor(0), concatFromSequence_node->GetInDataAnchor(0)),
+            SUCCESS);
   EXPECT_EQ(GraphUtils::AddEdge(concatFromSequence_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(1)), SUCCESS);
   EXPECT_EQ(GraphUtils::AddEdge(add_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
 
@@ -90,7 +91,8 @@ TEST_F(UTEST_graph_passes_concatFromSequence_pass, concatFromSequence_pass_new_a
 
   auto new_axis = 1;
   AttrUtils::SetInt(concatFromSequence_node->GetOpDesc(), "new_axis", new_axis);
-  EXPECT_EQ(GraphUtils::AddEdge(sequenceInsert_node->GetOutDataAnchor(0), concatFromSequence_node->GetInDataAnchor(0)), SUCCESS);
+  EXPECT_EQ(GraphUtils::AddEdge(sequenceInsert_node->GetOutDataAnchor(0), concatFromSequence_node->GetInDataAnchor(0)),
+            SUCCESS);
   EXPECT_EQ(GraphUtils::AddEdge(concatFromSequence_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(1)), SUCCESS);
   EXPECT_EQ(GraphUtils::AddEdge(add_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
 
@@ -98,4 +100,4 @@ TEST_F(UTEST_graph_passes_concatFromSequence_pass, concatFromSequence_pass_new_a
   EXPECT_EQ(concatFromSequence_pass.Run(*graph), SUCCESS);
 }
 
-} // namespace aicpu
+}  // namespace aicpu

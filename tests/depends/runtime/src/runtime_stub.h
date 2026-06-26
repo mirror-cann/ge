@@ -11,7 +11,6 @@
 #ifndef __INC_LLT_RUNTIME_STUB_H
 #define __INC_LLT_RUNTIME_STUB_H
 
-
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -37,36 +36,32 @@ class RuntimeStub {
  public:
   virtual ~RuntimeStub() = default;
 
-  static RuntimeStub* GetInstance();
+  static RuntimeStub *GetInstance();
 
   static void SetInstance(const std::shared_ptr<RuntimeStub> &instance) {
     instance_ = instance;
   }
 
-  static void Install(RuntimeStub*);
-  static void UnInstall(RuntimeStub*);
+  static void Install(RuntimeStub *);
+  static void UnInstall(RuntimeStub *);
 
   static void Reset() {
     SetMockRtGetDeviceWay(0);
     instance_.reset();
   }
 
-//  virtual void LaunchTaskToStream(TaskTypeOnStream task_type, rtStream_t stream) {};
+  //  virtual void LaunchTaskToStream(TaskTypeOnStream task_type, rtStream_t stream) {};
 
   virtual rtError_t rtKernelLaunchEx(void *args, uint32_t args_size, uint32_t flags, rtStream_t stream) {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtKernelLaunch(const void *stub_func,
-                                   uint32_t block_dim,
-                                   void *args,
-                                   uint32_t args_size,
-                                   rtSmDesc_t *sm_desc,
-                                   rtStream_t stream) {
+  virtual rtError_t rtKernelLaunch(const void *stub_func, uint32_t block_dim, void *args, uint32_t args_size,
+                                   rtSmDesc_t *sm_desc, rtStream_t stream) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtKernelLaunchWithFlag(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                                   rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag) {
+                                           rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
@@ -81,12 +76,12 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtCpuKernelLaunchWithFlag(const void *soName, const void *kernelName, uint32_t blockDim,
-                                                const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
-                                                uint32_t flags);
+                                              const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
+                                              uint32_t flags);
 
   virtual rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t blockDim,
-                                                  const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
-                                                  uint32_t flags) {
+                                                const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
+                                                uint32_t flags) {
     return RT_ERROR_NONE;
   }
 
@@ -100,7 +95,7 @@ class RuntimeStub {
                                                 const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
 
   virtual rtError_t rtKernelLaunchWithHandle(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
-                                     rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
+                                             rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
     return RT_ERROR_NONE;
   }
 
@@ -116,8 +111,7 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-  {
+  virtual rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
     return RT_ERROR_NONE;
   }
 
@@ -132,10 +126,10 @@ class RuntimeStub {
   }
 
   virtual rtError_t rtRegisterAllKernel(const rtDevBinary_t *bin, void **handle) {
-    *handle = (void*)0x12345678;
+    *handle = (void *)0x12345678;
     return RT_ERROR_NONE;
   }
-  virtual rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **handle){
+  virtual rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **handle) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtStreamSynchronizeWithTimeout(rtStream_t stm, int32_t timeout);
@@ -153,19 +147,15 @@ class RuntimeStub {
   virtual rtError_t rtMemcpyAsyncWithCfgV2(void *dst, uint64_t dest_max, const void *src, uint64_t count,
                                            rtMemcpyKind_t kind, rtStream_t stm, const rtTaskCfgInfo_t *cfgInfo);
 
-  virtual rtError_t rtMemcpyAsyncPtr(void *memcpyAddrInfo, uint64_t destMax, uint64_t count,
-                                     rtMemcpyKind_t kind, rtStream_t stream, uint32_t qosCfg);
+  virtual rtError_t rtMemcpyAsyncPtr(void *memcpyAddrInfo, uint64_t destMax, uint64_t count, rtMemcpyKind_t kind,
+                                     rtStream_t stream, uint32_t qosCfg);
 
   virtual rtError_t rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId);
 
-  virtual rtError_t rtEschedWaitEvent(int32_t device_id,
-                                      uint32_t group_id,
-                                      uint32_t thread_id,
-                                      int32_t timeout,
+  virtual rtError_t rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                                       rtEschedEventSummary_t *event);
 
-  virtual rtError_t rtRegTaskFailCallbackByModule(const char *moduleName,
-                                                  rtTaskFailCallback callback);
+  virtual rtError_t rtRegTaskFailCallbackByModule(const char *moduleName, rtTaskFailCallback callback);
 
   virtual rtError_t rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf);
 
@@ -188,9 +178,7 @@ class RuntimeStub {
 
   virtual rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total);
 
-  virtual rtError_t rtMemGrpCacheAlloc(const char *name,
-                                       int32_t devId,
-                                       const rtMemGrpCacheAllocPara *para);
+  virtual rtError_t rtMemGrpCacheAlloc(const char *name, int32_t devId, const rtMemGrpCacheAllocPara *para);
 
   virtual rtError_t rtBuffAlloc(uint64_t size, void **buff);
   virtual rtError_t rtMbufAlloc(rtMbufPtr_t *mbuf, uint64_t size);
@@ -200,8 +188,7 @@ class RuntimeStub {
   virtual rtError_t rtDeviceReset(int32_t device);
   virtual rtError_t rtModelCheckCompatibility(const char_t *OmSoCVersion, const char_t *OMArchVersion);
 
-  virtual rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt,
-                                          rtStream_t stm) {
+  virtual rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt, rtStream_t stm) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtSetExceptionExtInfo(const rtArgsSizeInfo_t *const sizeInfo) {
@@ -219,11 +206,11 @@ class RuntimeStub {
 
   virtual rtError_t rtsDeviceGetCapability(int32_t deviceId, int32_t devFeatureType, int32_t *val);
 
-  virtual rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag){
+  virtual rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag) {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtModelExecuteSync(rtModel_t model, rtStream_t stream, uint32_t flag, int32_t timeout){
+  virtual rtError_t rtModelExecuteSync(rtModel_t model, rtStream_t stream, uint32_t flag, int32_t timeout) {
     return RT_ERROR_NONE;
   }
 
@@ -233,11 +220,12 @@ class RuntimeStub {
 
   virtual rtError_t rtStreamCreate(rtStream_t *stream, int32_t priority);
   virtual rtError_t rtStreamCreateWithFlags(rtStream_t *stream, int32_t priority, uint32_t flags);
-  virtual rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t * const streamCount);
+  virtual rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t *const streamCount);
   virtual rtError_t rtStreamDestroyForce(rtStream_t stream);
   virtual rtError_t rtStreamDestroy(rtStream_t stream);
   virtual rtError_t rtStreamSetMode(rtStream_t stm, const uint64_t stmMode);
-  virtual rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc, void *userData);
+  virtual rtError_t rtBinarySetExceptionCallback(rtBinHandle binHandle, rtOpExceptionCallback exceptionFunc,
+                                                 void *userData);
   virtual rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) {
     return RT_ERROR_NONE;
   }
@@ -245,29 +233,29 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtReserveMemAddress(void** devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags);
+  virtual rtError_t rtReserveMemAddress(void **devPtr, size_t size, size_t alignment, void *devAddr, uint64_t flags);
 
-  virtual rtError_t rtReleaseMemAddress(void* devPtr) {
+  virtual rtError_t rtReleaseMemAddress(void *devPtr) {
     delete[] (uint8_t *)devPtr;
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags);
+  virtual rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags);
 
   virtual rtError_t rtFreePhysical(rtDrvMemHandle handle) {
     delete[] (uint8_t *)handle;
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtMapMem(void* devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
+  virtual rtError_t rtMapMem(void *devPtr, size_t size, size_t offset, rtDrvMemHandle handle, uint64_t flags) {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtUnmapMem(void* devPtr) {
+  virtual rtError_t rtUnmapMem(void *devPtr) {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtCtxGetCurrentDefaultStream(rtStream_t* stm);
+  virtual rtError_t rtCtxGetCurrentDefaultStream(rtStream_t *stm);
 
   virtual rtError_t rtDatadumpInfoLoad(const void *dump_info, uint32_t length) {
     return RT_ERROR_NONE;
@@ -278,15 +266,14 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName,
-                                     rtFuncHandle *funcHandle) {
+  virtual rtError_t rtsFuncGetByName(const rtBinHandle binHandle, const char *kernelName, rtFuncHandle *funcHandle) {
     uint64_t stub_func_addr = 0x1600;
     *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t * const funcName,
-                                       const char_t * const kernelName, rtFuncHandle *funcHandle) {
+  virtual rtError_t rtsRegisterCpuFunc(const rtBinHandle binHandle, const char_t *const funcName,
+                                       const char_t *const kernelName, rtFuncHandle *funcHandle) {
     uint64_t stub_func_addr = 0x1600;
     *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
     return RT_ERROR_NONE;
@@ -294,8 +281,7 @@ class RuntimeStub {
 
   virtual rtError_t rtGetDevice(int32_t *deviceId);
 
-  virtual rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry,
-      rtFuncHandle *funcHandle) {
+  virtual rtError_t rtsFuncGetByEntry(const rtBinHandle binHandle, const uint64_t funcEntry, rtFuncHandle *funcHandle) {
     uint64_t stub_func_addr = 0x1700;
     *funcHandle = reinterpret_cast<void *>(static_cast<uintptr_t>(stub_func_addr));
     return RT_ERROR_NONE;
@@ -306,13 +292,15 @@ class RuntimeStub {
   }
 
   virtual rtError_t rtsLaunchKernelWithDevArgs(rtFuncHandle funcHandle, uint32_t blockDim, rtStream_t stm,
-      rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize, void *reserve) {
+                                               rtKernelLaunchCfg_t *cfg, const void *args, uint32_t argsSize,
+                                               void *reserve) {
     return RT_ERROR_NONE;
   }
 
   virtual rtError_t rtsGetHardwareSyncAddr(void **addr) {
     return RT_ERROR_NONE;
   }
+
  private:
   static std::mutex mutex_;
   static std::shared_ptr<RuntimeStub> instance_;
@@ -327,14 +315,15 @@ class RuntimeStub {
 };
 
 class EnvGuard {
-public:
+ public:
   EnvGuard(const char *key, const char *value) : key_(key) {
     mmSetEnv(key, value, 1);
   }
   ~EnvGuard() {
     unsetenv(key_.c_str());
   }
-private:
+
+ private:
   const std::string key_;
 };
 }  // namespace ge
@@ -347,25 +336,25 @@ void rtStubTearDown();
 // Control rtMemQueueQuery return value for testing
 void SetMemQueueEntityType(uint32_t type);
 
-#define RTS_STUB_SETUP()    \
-do {                        \
-  rtStubTearDown();         \
-} while (0)
+#define RTS_STUB_SETUP() \
+  do {                   \
+    rtStubTearDown();    \
+  } while (0)
 
 #define RTS_STUB_TEARDOWN() \
-do {                        \
-  rtStubTearDown();         \
-} while (0)
+  do {                      \
+    rtStubTearDown();       \
+  } while (0)
 
-#define RTS_STUB_RETURN_VALUE(FUNC, TYPE, VALUE)                          \
-do {                                                                      \
-  g_Stub_##FUNC##_RETURN.emplace(g_Stub_##FUNC##_RETURN.begin(), VALUE);  \
-} while (0)
+#define RTS_STUB_RETURN_VALUE(FUNC, TYPE, VALUE)                           \
+  do {                                                                     \
+    g_Stub_##FUNC##_RETURN.emplace(g_Stub_##FUNC##_RETURN.begin(), VALUE); \
+  } while (0)
 
-#define RTS_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, VALUE)                          \
-do {                                                                              \
-  g_Stub_##FUNC##_OUT_##NAME.emplace(g_Stub_##FUNC##_OUT_##NAME.begin(), VALUE);  \
-} while (0)
+#define RTS_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, VALUE)                           \
+  do {                                                                             \
+    g_Stub_##FUNC##_OUT_##NAME.emplace(g_Stub_##FUNC##_OUT_##NAME.begin(), VALUE); \
+  } while (0)
 
 extern std::string g_runtime_stub_mock;
 extern std::string g_runtime_stub_mock_v2;
@@ -417,4 +406,4 @@ RTS_STUB_RETURN_EXTERN(rtGetDeviceInfo, rtError_t);
 #ifdef __cplusplus
 }
 #endif
-#endif // __INC_LLT_RUNTIME_STUB_H
+#endif  // __INC_LLT_RUNTIME_STUB_H

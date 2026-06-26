@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,27 +28,26 @@ bool HasTokenIntersection(const std::set<std::string> &a, const std::set<std::st
 
 const std::map<ParamCxxKind, std::set<std::string>> &GetTypicalTokenTable() {
   static const std::map<ParamCxxKind, std::set<std::string>> kTable = {
-    {ParamCxxKind::kEsTensorLikeRef, {"tensor", "nullptr", "0", "0.0"}},
-    {ParamCxxKind::kTensorHolderRef, {"tensor"}},
-    {ParamCxxKind::kTensorHoldersVecRef, {"tensor_vec"}},
-    {ParamCxxKind::kDataType, {"dtype"}},
-    {ParamCxxKind::kTensorUniquePtr, {"tensor_ptr", "nullptr"}},
-    {ParamCxxKind::kListIntRef, {"list_int"}},
-    {ParamCxxKind::kListFloatRef, {"list_float"}},
-    {ParamCxxKind::kListBoolRef, {"list_bool"}},
-    {ParamCxxKind::kListTypeRef, {"list_type"}},
-    {ParamCxxKind::kListListIntRef, {"list_list_int"}},
-    {ParamCxxKind::kListStringRef, {"list_string"}},
-    {ParamCxxKind::kGraphUniquePtr, {"graph_ptr", "nullptr"}},
-    {ParamCxxKind::kGraphsVec, {"graph_vec"}},
-    {ParamCxxKind::kGraphBuilderRef, {"graph_builder"}},
-    {ParamCxxKind::kGraphBuilderPtr, {"graph_builder", "nullptr"}},
-    {ParamCxxKind::kInt64, {"int", "number", "0"}},
-    {ParamCxxKind::kFloat, {"float", "number", "0", "0.0"}},
-    {ParamCxxKind::kBool, {"bool", "0"}},
-    {ParamCxxKind::kCString, {"string", "\"xx\""}},
-    {ParamCxxKind::kNullptrT, {"nullptr"}}
-  };
+      {ParamCxxKind::kEsTensorLikeRef, {"tensor", "nullptr", "0", "0.0"}},
+      {ParamCxxKind::kTensorHolderRef, {"tensor"}},
+      {ParamCxxKind::kTensorHoldersVecRef, {"tensor_vec"}},
+      {ParamCxxKind::kDataType, {"dtype"}},
+      {ParamCxxKind::kTensorUniquePtr, {"tensor_ptr", "nullptr"}},
+      {ParamCxxKind::kListIntRef, {"list_int"}},
+      {ParamCxxKind::kListFloatRef, {"list_float"}},
+      {ParamCxxKind::kListBoolRef, {"list_bool"}},
+      {ParamCxxKind::kListTypeRef, {"list_type"}},
+      {ParamCxxKind::kListListIntRef, {"list_list_int"}},
+      {ParamCxxKind::kListStringRef, {"list_string"}},
+      {ParamCxxKind::kGraphUniquePtr, {"graph_ptr", "nullptr"}},
+      {ParamCxxKind::kGraphsVec, {"graph_vec"}},
+      {ParamCxxKind::kGraphBuilderRef, {"graph_builder"}},
+      {ParamCxxKind::kGraphBuilderPtr, {"graph_builder", "nullptr"}},
+      {ParamCxxKind::kInt64, {"int", "number", "0"}},
+      {ParamCxxKind::kFloat, {"float", "number", "0", "0.0"}},
+      {ParamCxxKind::kBool, {"bool", "0"}},
+      {ParamCxxKind::kCString, {"string", "\"xx\""}},
+      {ParamCxxKind::kNullptrT, {"nullptr"}}};
   return kTable;
 }
 }  // namespace

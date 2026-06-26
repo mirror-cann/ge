@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -97,9 +97,9 @@ TEST_F(BgIrAttrsUT, CreateAttrBufferSuccessOpLossAttr) {
   auto attr_buffer = bg::CreateAttrBuffer(node, attr_size);
   size_t gt_attr_size = sizeof(RuntimeAttrsDef);
   EXPECT_EQ(attr_size, gt_attr_size);
-  auto base = reinterpret_cast<size_t*>(attr_buffer.get());
+  auto base = reinterpret_cast<size_t *>(attr_buffer.get());
   EXPECT_EQ(base[0], 0U);
-  EXPECT_EQ(base[1], 0U); // todo 原始用例，没加预留字段之前，base[1]为啥能取到值
+  EXPECT_EQ(base[1], 0U);  // todo 原始用例，没加预留字段之前，base[1]为啥能取到值
 }
 
 TEST_F(BgIrAttrsUT, CreateListListIntAttrBuffer_Int64Ok) {
@@ -199,9 +199,8 @@ TEST_F(BgIrAttrsUT, CreateListStringAttrBuffer) {
   size_t attr_size;
   auto attr_buffer = bg::CreateAttrBuffer(node, attr_size);
   auto attr_def = reinterpret_cast<RuntimeAttrsDef *>(attr_buffer.get());
-  auto base =
-    reinterpret_cast<const gert::ContinuousVector *>(ge::PtrToPtr<const RuntimeAttrsDef, const uint8_t>(attr_def)
-        + attr_def->offset[0]);
+  auto base = reinterpret_cast<const gert::ContinuousVector *>(
+      ge::PtrToPtr<const RuntimeAttrsDef, const uint8_t>(attr_def) + attr_def->offset[0]);
   ASSERT_NE(base, nullptr);
   size_t str_attrs_len = 0U;
   for (const auto &str_attr : str_atts) {

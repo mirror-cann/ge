@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -180,9 +180,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape4_fp16) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_ND, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 17, 4}, {2, 2, 1, 2, 16, 16}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_ND,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {2, 2, 17, 4},
+                 {2, 2, 1, 2, 16, 16},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(TransDataFormat(args, result), SUCCESS);
@@ -198,9 +207,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape4_fp16) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
-  TransArgs args2{
-      reinterpret_cast<uint8_t *>(ret), src_format2, dst_format2, FORMAT_FRACTAL_NZ, FORMAT_ND, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 1, 2, 16, 16}, {2, 2, 17, 4}, DT_FLOAT16};
+  TransArgs args2{reinterpret_cast<uint8_t *>(ret),
+                  src_format2,
+                  dst_format2,
+                  FORMAT_FRACTAL_NZ,
+                  FORMAT_ND,
+                  FORMAT_RESERVED,
+                  FORMAT_RESERVED,
+                  16,
+                  16,
+                  {2, 2, 1, 2, 16, 16},
+                  {2, 2, 17, 4},
+                  DT_FLOAT16};
   TransResult result2;
   FormatTransferFractalNzND transfer2;
   EXPECT_EQ(TransDataFormat(args2, result2), SUCCESS);
@@ -210,7 +228,7 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape4_fp16) {
   }
   EXPECT_EQ(
       transfer2.TransShape(args2.src_format, args2.src_shape, args2.src_data_type, args2.dst_format, args2.dst_shape),
-                           ACL_ERROR_GE_FORMAT_INVALID);
+      ACL_ERROR_GE_FORMAT_INVALID);
 }
 
 TEST_F(UtestFormatTransferNdFractNz, nd_shape5_fp16) {
@@ -514,9 +532,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape5_fp16) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_ND, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-                 FORMAT_RESERVED, 16, 16, {2, 2, 2, 17, 4},
-                 {2, 2, 2, 1, 2, 16, 16}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_ND,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {2, 2, 2, 17, 4},
+                 {2, 2, 2, 1, 2, 16, 16},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(TransDataFormat(args, result), SUCCESS);
@@ -532,8 +559,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape5_fp16) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
-  TransArgs args2{reinterpret_cast<uint8_t *>(ret), src_format2, dst_format2, FORMAT_FRACTAL_NZ, FORMAT_ND,
-                  FORMAT_RESERVED, FORMAT_RESERVED, 16, 16, {2, 2, 2, 1, 2, 16, 16}, {2, 2, 2, 17, 4},  DT_FLOAT16};
+  TransArgs args2{reinterpret_cast<uint8_t *>(ret),
+                  src_format2,
+                  dst_format2,
+                  FORMAT_FRACTAL_NZ,
+                  FORMAT_ND,
+                  FORMAT_RESERVED,
+                  FORMAT_RESERVED,
+                  16,
+                  16,
+                  {2, 2, 2, 1, 2, 16, 16},
+                  {2, 2, 2, 17, 4},
+                  DT_FLOAT16};
   TransResult result2;
   FormatTransferFractalNzND transfer2;
   EXPECT_EQ(TransDataFormat(args2, result2), SUCCESS);
@@ -2657,9 +2694,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_ND, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 17, 4}, {2, 2, 1, 2, 16, 16}, DT_FLOAT};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_ND,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {2, 2, 17, 4},
+                 {2, 2, 1, 2, 16, 16},
+                 DT_FLOAT};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(TransDataFormat(args, result), SUCCESS);
@@ -2675,9 +2721,18 @@ TEST_F(UtestFormatTransferNdFractNz, nd_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_ND, FORMAT_RESERVED, 5));
-  TransArgs args2{
-      reinterpret_cast<uint8_t *>(ret), src_format2, dst_format2, FORMAT_FRACTAL_NZ, FORMAT_ND, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 1, 2, 16, 16}, {2, 2, 17, 4}, DT_FLOAT};
+  TransArgs args2{reinterpret_cast<uint8_t *>(ret),
+                  src_format2,
+                  dst_format2,
+                  FORMAT_FRACTAL_NZ,
+                  FORMAT_ND,
+                  FORMAT_RESERVED,
+                  FORMAT_RESERVED,
+                  16,
+                  16,
+                  {2, 2, 1, 2, 16, 16},
+                  {2, 2, 17, 4},
+                  DT_FLOAT};
   TransResult result2;
   FormatTransferFractalNzND transfer2;
   EXPECT_EQ(TransDataFormat(args2, result2), SUCCESS);
@@ -4803,9 +4858,18 @@ TEST_F(UtestFormatTransferNdFractNz, nchw_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NCHW, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_NZ, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
-      {2, 2, 17, 4}, {2, 2, 1, 2, 16, 16}, DT_FLOAT};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {2, 2, 17, 4},
+                 {2, 2, 1, 2, 16, 16},
+                 DT_FLOAT};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(TransDataFormat(args, result), SUCCESS);
@@ -4821,9 +4885,18 @@ TEST_F(UtestFormatTransferNdFractNz, nchw_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NCHW, FORMAT_RESERVED, 5));
-  TransArgs args2{
-      reinterpret_cast<uint8_t *>(ret), src_format2, dst_format2, FORMAT_FRACTAL_NZ, FORMAT_NCHW, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 1, 2, 16, 16}, {2, 2, 17, 4}, DT_FLOAT};
+  TransArgs args2{reinterpret_cast<uint8_t *>(ret),
+                  src_format2,
+                  dst_format2,
+                  FORMAT_FRACTAL_NZ,
+                  FORMAT_NCHW,
+                  FORMAT_RESERVED,
+                  FORMAT_RESERVED,
+                  16,
+                  16,
+                  {2, 2, 1, 2, 16, 16},
+                  {2, 2, 17, 4},
+                  DT_FLOAT};
   TransResult result2;
   FormatTransferFractalNzND transfer2;
   EXPECT_EQ(TransDataFormat(args2, result2), SUCCESS);
@@ -6947,9 +7020,18 @@ TEST_F(UtestFormatTransferNdFractNz, nhwc_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_NHWC, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 4, 17}, {2, 2, 2, 1, 16, 16}, DT_FLOAT};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_NHWC,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {2, 2, 4, 17},
+                 {2, 2, 2, 1, 16, 16},
+                 DT_FLOAT};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(TransDataFormat(args, result), SUCCESS);
@@ -6965,9 +7047,18 @@ TEST_F(UtestFormatTransferNdFractNz, nhwc_shape4_fp32) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args2{
-      reinterpret_cast<uint8_t *>(ret), src_format2, dst_format2, FORMAT_FRACTAL_NZ, FORMAT_NHWC, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {2, 2, 2, 1, 16, 16}, {2, 2, 4, 17}, DT_FLOAT};
+  TransArgs args2{reinterpret_cast<uint8_t *>(ret),
+                  src_format2,
+                  dst_format2,
+                  FORMAT_FRACTAL_NZ,
+                  FORMAT_NHWC,
+                  FORMAT_RESERVED,
+                  FORMAT_RESERVED,
+                  16,
+                  16,
+                  {2, 2, 2, 1, 16, 16},
+                  {2, 2, 4, 17},
+                  DT_FLOAT};
   TransResult result2;
   FormatTransferFractalNzND transfer2;
   EXPECT_EQ(TransDataFormat(args2, result2), SUCCESS);
@@ -6984,9 +7075,18 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_shape) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_NHWC, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {1, 4, 4}, {1, 1, 1, 16, 16}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_NHWC,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {1, 4, 4},
+                 {1, 1, 1, 16, 16},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(transfer.TransFormat(args, result), ACL_ERROR_GE_SHAPE_INVALID);
@@ -7001,9 +7101,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_data_type) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_NHWC,
-                 FORMAT_FRACTAL_NZ, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {
                      1,
                      1,
@@ -7026,9 +7132,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_format) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_HWCN,
-                 FORMAT_FRACTAL_NZ, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {1, 1, 4, 4},
                  {1, 1, 1, 1, 16, 16},
                  DT_FLOAT16};
@@ -7046,9 +7158,18 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_dst_shape) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_NHWC, FORMAT_FRACTAL_NZ, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {1, 1, 4, 4}, {1, 1, 16, 16}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_NHWC,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {1, 1, 4, 4},
+                 {1, 1, 16, 16},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNz transfer;
   EXPECT_EQ(transfer.TransFormat(args, result), ACL_ERROR_GE_SHAPE_INVALID);
@@ -7063,9 +7184,18 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_dst_shape2) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_FRACTAL_NZ, FORMAT_NHWC, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {1, 1, 1, 1, 16, 16}, {1, 4, 4}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {1, 1, 1, 1, 16, 16},
+                 {1, 4, 4},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNzND transfer;
   EXPECT_EQ(transfer.TransFormat(args, result), ACL_ERROR_GE_SHAPE_INVALID);
@@ -7078,9 +7208,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_data_type2) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_FRACTAL_NZ,
-                 FORMAT_NHWC, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {1, 1, 1, 16, 16},
                  {
                      1,
@@ -7101,9 +7237,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_data_type3) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_FRACTAL_NZ,
-                 FORMAT_NHWC, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {1, 1, 1, 16, 16},
                  {
                      1,
@@ -7124,9 +7266,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_dst_format2) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_FRACTAL_NZ,
-                 FORMAT_HWCN, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_HWCN,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {1, 1, 1, 1, 16, 16},
                  {1, 1, 4, 4},
                  DT_FLOAT16};
@@ -7143,9 +7291,18 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_shape2) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_FRACTAL_NZ, FORMAT_NHWC, FORMAT_RESERVED,
-      FORMAT_RESERVED, 16, 16, {1, 1, 16, 16}, {1, 1, 4, 4}, DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_FRACTAL_NZ,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 {1, 1, 16, 16},
+                 {1, 1, 4, 4},
+                 DT_FLOAT16};
   TransResult result;
   FormatTransferFractalNzND transfer;
   EXPECT_EQ(transfer.TransFormat(args, result), ACL_ERROR_GE_SHAPE_INVALID);
@@ -7158,9 +7315,15 @@ TEST_F(UtestFormatTransferNdFractNz, invalid_src_dst_shape_relation) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_NZ, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NHWC, FORMAT_RESERVED, 5));
-  TransArgs args{reinterpret_cast<uint8_t *>(data), src_format, dst_format,
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
                  FORMAT_FRACTAL_NZ,
-                 FORMAT_NHWC, FORMAT_RESERVED, FORMAT_RESERVED, 16, 16,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
                  {1, 1, 2, 1, 16, 16},
                  {1, 1, 17, 15},
                  DT_FLOAT16};

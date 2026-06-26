@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,21 +24,18 @@ namespace gert {
 namespace kernel {
 ge::graphStatus GetCurDynamicShapeFunc(KernelContext *context) {
   const size_t input_size = context->GetInputNum();
-  auto input_and_unknown_dim_index =
-      context->GetInputValue<ContinuousVectorVector *>(
+  auto input_and_unknown_dim_index = context->GetInputValue<ContinuousVectorVector *>(
       static_cast<size_t>(GetCurDynamicShapeInput::kUnknownShapeIndex));
   GE_ASSERT_TRUE(input_size ==
-      (input_and_unknown_dim_index->GetSize() + static_cast<size_t>(GetCurDynamicShapeInput::kEnd)));
+                 (input_and_unknown_dim_index->GetSize() + static_cast<size_t>(GetCurDynamicShapeInput::kEnd)));
   auto tensor_data =
-      context->GetOutputPointer<GertTensorData>(
-      static_cast<size_t>(GetCurDynamicShapeOutputs::kTensorData));
+      context->GetOutputPointer<GertTensorData>(static_cast<size_t>(GetCurDynamicShapeOutputs::kTensorData));
   GE_ASSERT_NOTNULL(tensor_data);
   auto current_shape = reinterpret_cast<int32_t *>(tensor_data->GetAddr());
   GE_ASSERT_NOTNULL(current_shape);
   size_t index = 0UL;
   for (size_t i = 0UL; i < input_and_unknown_dim_index->GetSize(); i++) {
-    auto storage_shape =
-        context->GetInputPointer<StorageShape>(static_cast<size_t>(GetCurDynamicShapeInput::kEnd) + i);
+    auto storage_shape = context->GetInputPointer<StorageShape>(static_cast<size_t>(GetCurDynamicShapeInput::kEnd) + i);
     GE_ASSERT_NOTNULL(storage_shape);
     auto unknown_dim_index = input_and_unknown_dim_index->Get(i);
     size_t unknown_dim_index_size = unknown_dim_index->GetSize();
@@ -58,15 +55,14 @@ ge::graphStatus BuildCurDynamicShapesOutput(const ge::FastNode *node, KernelCont
   (void)node;
   const auto data_type_size = ge::GetSizeByDataType(ge::DataType::DT_INT32);
   GE_ASSERT_TRUE(data_type_size > 0, "get data type size failed, data_type_size:%d", data_type_size);
-  auto storage_shape =
-      context->GetInputPointer<StorageShape>(static_cast<size_t>(GetCurDynamicShapeInput::kShape));
+  auto storage_shape = context->GetInputPointer<StorageShape>(static_cast<size_t>(GetCurDynamicShapeInput::kShape));
   GE_ASSERT_NOTNULL(storage_shape);
   auto output_shape = storage_shape->GetStorageShape();
   const auto output_shape_dim = output_shape.GetDimNum();
   GE_ASSERT_TRUE(output_shape_dim == 1UL);
   size_t malloc_buffer_size = 0U;
-  GE_ASSERT_TRUE(!ge::MulOverflow(static_cast<size_t>(data_type_size),
-      static_cast<size_t>(output_shape.GetDim(0UL)), malloc_buffer_size));
+  GE_ASSERT_TRUE(!ge::MulOverflow(static_cast<size_t>(data_type_size), static_cast<size_t>(output_shape.GetDim(0UL)),
+                                  malloc_buffer_size));
   GE_ASSERT_TRUE(!ge::AddOverflow(malloc_buffer_size, sizeof(GertTensorData), malloc_buffer_size));
 
   auto chain = context->GetOutput(static_cast<size_t>(GetCurDynamicShapeOutputs::kTensorData));
@@ -74,8 +70,7 @@ ge::graphStatus BuildCurDynamicShapesOutput(const ge::FastNode *node, KernelCont
   auto out_data = ge::MakeUnique<uint8_t[]>(malloc_buffer_size);
   GE_ASSERT_NOTNULL(out_data);
   new (out_data.get())
-      GertTensorData(out_data.get() + sizeof(GertTensorData),
-      malloc_buffer_size - sizeof(GertTensorData), kOnHost, -1);
+      GertTensorData(out_data.get() + sizeof(GertTensorData), malloc_buffer_size - sizeof(GertTensorData), kOnHost, -1);
   chain->SetWithDefaultDeleter<uint8_t[]>(out_data.release());
   return ge::GRAPH_SUCCESS;
 }
@@ -103,5 +98,5 @@ REGISTER_KERNEL(GetCurDynamicShape)
     .RunFunc(GetCurDynamicShapeFunc)
     .OutputsCreator(BuildCurDynamicShapesOutput)
     .TracePrinter(PrintCurDynamicShape);
-}
-}
+}  // namespace kernel
+}  // namespace gert

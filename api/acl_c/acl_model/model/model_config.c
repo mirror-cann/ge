@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,7 +11,6 @@
 #include "model_config.h"
 #include "log_inner.h"
 #include "model_desc_internal.h"
-
 
 typedef aclError (*CheckMdlConfigFunc)(const void *const, const size_t);
 typedef aclError (*SetMdlConfigFunc)(aclmdlConfigHandle *const, const void *const);
@@ -32,10 +31,9 @@ static aclError CheckMdlLoadType(const void *const attrValue, const size_t value
     return ACL_ERROR_INVALID_PARAM;
   }
   const size_t type = *((const size_t *)attrValue);
-  if ((type < (size_t)ACL_MDL_LOAD_FROM_FILE) ||
-      (type > (size_t)ACL_MDL_LOAD_FROM_MEM_WITH_MEM)) {
-    ACL_LOG_INNER_ERROR("type[%zu] is invalid, it should be in [%d, %d]",
-        type, ACL_MDL_LOAD_FROM_FILE, ACL_MDL_LOAD_FROM_MEM_WITH_MEM);
+  if ((type < (size_t)ACL_MDL_LOAD_FROM_FILE) || (type > (size_t)ACL_MDL_LOAD_FROM_MEM_WITH_MEM)) {
+    ACL_LOG_INNER_ERROR("type[%zu] is invalid, it should be in [%d, %d]", type, ACL_MDL_LOAD_FROM_FILE,
+                        ACL_MDL_LOAD_FROM_MEM_WITH_MEM);
     return ACL_ERROR_INVALID_PARAM;
   }
   ACL_LOG_INFO("check loadType[%zu] success.", type);
@@ -78,8 +76,8 @@ static aclError SetMdlLoadMemPtr(aclmdlConfigHandle *const handle, const void *c
 static aclError CheckMdlLoadSizeAttr(const void *const attrValue, const size_t valueSize) {
   (void)attrValue;
   if (valueSize != sizeof(size_t)) {
-      ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu", valueSize, sizeof(size_t));
-      return ACL_ERROR_INVALID_PARAM;
+    ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu", valueSize, sizeof(size_t));
+    return ACL_ERROR_INVALID_PARAM;
   }
   return ACL_SUCCESS;
 }
@@ -199,35 +197,34 @@ static aclError SetMdlLoadFifoTaskSize(aclmdlConfigHandle *const handle, const v
 }
 
 static SetMdlConfigParamFuncMap g_setMdlConfigMap[] = {
-  {ACL_MDL_PRIORITY_INT32, {NULL, NULL}},
-  {ACL_MDL_LOAD_TYPE_SIZET, {CheckMdlLoadType, SetMdlLoadType}},
-  {ACL_MDL_PATH_PTR, {CheckMdlLoadPtrAttrEx, SetMdlLoadPath}},
-  {ACL_MDL_MEM_ADDR_PTR, {CheckMdlLoadPtrAttrEx, SetMdlLoadMemPtr}},
-  {ACL_MDL_MEM_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadMemSize}},
-  {ACL_MDL_WEIGHT_ADDR_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadWeightPtr}},
-  {ACL_MDL_WEIGHT_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadWeightSize}},
-  {ACL_MDL_WORKSPACE_ADDR_PTR, {NULL, NULL}},
-  {ACL_MDL_WORKSPACE_SIZET, {NULL, NULL}},
-  {ACL_MDL_INPUTQ_NUM_SIZET, {NULL, NULL}},
-  {ACL_MDL_INPUTQ_ADDR_PTR, {NULL, NULL}},
-  {ACL_MDL_OUTPUTQ_NUM_SIZET, {NULL, NULL}},
-  {ACL_MDL_OUTPUTQ_ADDR_PTR, {NULL, NULL}},
-  {ACL_MDL_WORKSPACE_MEM_OPTIMIZE, {NULL, NULL}},
-  {ACL_MDL_WEIGHT_PATH_PTR, {NULL, NULL}},
-  {ACL_MDL_MODEL_DESC_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadModelDescPtr}},
-  {ACL_MDL_MODEL_DESC_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadModelDescSize}},
-  {ACL_MDL_KERNEL_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadKernelPtr}},
-  {ACL_MDL_KERNEL_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadKernelSize}},
-  {ACL_MDL_KERNEL_ARGS_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadKernelArgsPtr}},
-  {ACL_MDL_KERNEL_ARGS_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadKernelArgsSize}},
-  {ACL_MDL_STATIC_TASK_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadStaticTaskPtr}},
-  {ACL_MDL_STATIC_TASK_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadStaticTaskSize}},
-  {ACL_MDL_DYNAMIC_TASK_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadDynamicTaskPtr}},
-  {ACL_MDL_DYNAMIC_TASK_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadDynamicTaskSize}},
-  {ACL_MDL_MEM_MALLOC_POLICY_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadMemType}},
-  {ACL_MDL_FIFO_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadFifoTaskPtr}},
-  {ACL_MDL_FIFO_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadFifoTaskSize}}
-};
+    {ACL_MDL_PRIORITY_INT32, {NULL, NULL}},
+    {ACL_MDL_LOAD_TYPE_SIZET, {CheckMdlLoadType, SetMdlLoadType}},
+    {ACL_MDL_PATH_PTR, {CheckMdlLoadPtrAttrEx, SetMdlLoadPath}},
+    {ACL_MDL_MEM_ADDR_PTR, {CheckMdlLoadPtrAttrEx, SetMdlLoadMemPtr}},
+    {ACL_MDL_MEM_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadMemSize}},
+    {ACL_MDL_WEIGHT_ADDR_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadWeightPtr}},
+    {ACL_MDL_WEIGHT_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadWeightSize}},
+    {ACL_MDL_WORKSPACE_ADDR_PTR, {NULL, NULL}},
+    {ACL_MDL_WORKSPACE_SIZET, {NULL, NULL}},
+    {ACL_MDL_INPUTQ_NUM_SIZET, {NULL, NULL}},
+    {ACL_MDL_INPUTQ_ADDR_PTR, {NULL, NULL}},
+    {ACL_MDL_OUTPUTQ_NUM_SIZET, {NULL, NULL}},
+    {ACL_MDL_OUTPUTQ_ADDR_PTR, {NULL, NULL}},
+    {ACL_MDL_WORKSPACE_MEM_OPTIMIZE, {NULL, NULL}},
+    {ACL_MDL_WEIGHT_PATH_PTR, {NULL, NULL}},
+    {ACL_MDL_MODEL_DESC_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadModelDescPtr}},
+    {ACL_MDL_MODEL_DESC_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadModelDescSize}},
+    {ACL_MDL_KERNEL_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadKernelPtr}},
+    {ACL_MDL_KERNEL_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadKernelSize}},
+    {ACL_MDL_KERNEL_ARGS_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadKernelArgsPtr}},
+    {ACL_MDL_KERNEL_ARGS_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadKernelArgsSize}},
+    {ACL_MDL_STATIC_TASK_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadStaticTaskPtr}},
+    {ACL_MDL_STATIC_TASK_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadStaticTaskSize}},
+    {ACL_MDL_DYNAMIC_TASK_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadDynamicTaskPtr}},
+    {ACL_MDL_DYNAMIC_TASK_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadDynamicTaskSize}},
+    {ACL_MDL_MEM_MALLOC_POLICY_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadMemType}},
+    {ACL_MDL_FIFO_PTR, {CheckMdlLoadPtrAttr, SetMdlLoadFifoTaskPtr}},
+    {ACL_MDL_FIFO_SIZET, {CheckMdlLoadSizeAttr, SetMdlLoadFifoTaskSize}}};
 
 static bool CheckMdlLoadConfigFromFile(const aclmdlConfigHandle *const handle) {
   if ((handle->attrState & ACL_MDL_PATH_PTR_BIT) == 0) {
@@ -272,8 +269,8 @@ bool CheckMdlConfigHandle(const aclmdlConfigHandle *const handle) {
   return true;
 }
 
-aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
-                            const void *attrValue, size_t valueSize) {
+aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr, const void *attrValue,
+                            size_t valueSize) {
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(attrValue);
   SetMdlConfigParamFunc paramFunc;

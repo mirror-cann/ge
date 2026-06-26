@@ -29,15 +29,14 @@ class DataDumpImpl {
   DataDumpImpl();
   ~DataDumpImpl();
 
-  Status SaveTask(const Om2TaskInfo& task_info, ModelTaskType task_type,
-                  rtStream_t stream, bool is_op_debug);
+  Status SaveTask(const Om2TaskInfo &task_info, ModelTaskType task_type, rtStream_t stream, bool is_op_debug);
 
-  Status BuildAndLoadOpMappingInfo(const ModelDumpInfo& model_info);
+  Status BuildAndLoadOpMappingInfo(const ModelDumpInfo &model_info);
 
   void Clear();
 
   // Overflow dump 相关信息
-  void SetOpDebugInfo(uint32_t task_id, uint32_t stream_id, void* debug_addr);
+  void SetOpDebugInfo(uint32_t task_id, uint32_t stream_id, void *debug_addr);
 
  private:
   struct InnerTensorInfo {
@@ -68,32 +67,31 @@ class DataDumpImpl {
     std::vector<uint64_t> workspace_sizes;
   };
 
-  Status ExecuteLoadDumpInfo(const toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+  Status ExecuteLoadDumpInfo(const toolkit::aicpu::dump::OpMappingInfo &op_mapping_info);
 
-  Status BuildOpMappingBasicInfo(const ModelDumpInfo& model_info,
-                                  toolkit::aicpu::dump::OpMappingInfo& op_mapping_info);
+  Status BuildOpMappingBasicInfo(const ModelDumpInfo &model_info, toolkit::aicpu::dump::OpMappingInfo &op_mapping_info);
 
-  Status BuildTaskList(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const;
+  Status BuildTaskList(toolkit::aicpu::dump::OpMappingInfo &op_mapping_info) const;
 
-  void BuildTaskInputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
+  void BuildTaskInputs(const InnerDumpInfo &dump_info, toolkit::aicpu::dump::Task &task) const;
 
-  void BuildTaskOutputs(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
+  void BuildTaskOutputs(const InnerDumpInfo &dump_info, toolkit::aicpu::dump::Task &task) const;
 
-  void BuildTaskWorkspaces(const InnerDumpInfo& dump_info, toolkit::aicpu::dump::Task& task) const;
+  void BuildTaskWorkspaces(const InnerDumpInfo &dump_info, toolkit::aicpu::dump::Task &task) const;
 
-  void BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo& op_mapping_info) const;
+  void BuildOpDebugTask(toolkit::aicpu::dump::OpMappingInfo &op_mapping_info) const;
 
   std::vector<InnerDumpInfo> task_list_;
   toolkit::aicpu::dump::OpMappingInfo op_mapping_info_;
-  void* dev_mem_load_ = nullptr;
-  void* step_id_dev_addr_ = nullptr;
+  void *dev_mem_load_ = nullptr;
+  void *step_id_dev_addr_ = nullptr;
   bool load_flag_ = false;
 
   // Overflow dump 相关成员
   bool is_op_debug_ = false;
   uint32_t op_debug_task_id_ = 0U;
   uint32_t op_debug_stream_id_ = 0U;
-  void* op_debug_addr_ = nullptr;
+  void *op_debug_addr_ = nullptr;
 };
 
 }  // namespace dump

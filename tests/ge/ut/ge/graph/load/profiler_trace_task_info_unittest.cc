@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ TEST_F(UtestProfilerTraceTaskInfo, task_init_infer) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   EXPECT_EQ(task_info.Init(*task, &model), SUCCESS);
 }
@@ -54,7 +54,7 @@ TEST_F(UtestProfilerTraceTaskInfo, test_init_train) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   EXPECT_EQ(task_info.Init(*task, &model), SUCCESS);
 }
 
@@ -71,7 +71,7 @@ TEST_F(UtestProfilerTraceTaskInfo, test_distribute) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   task_info.Init(*task, &model);
   domi::GetContext().is_online_model = true;
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
@@ -91,7 +91,7 @@ TEST_F(UtestProfilerTraceTaskInfo, test_distribute_out_range) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   task_info.Init(*task, &model);
   task_info.log_id_ = 30000U;
   EXPECT_EQ(task_info.Distribute(), SUCCESS);
@@ -108,7 +108,7 @@ TEST_F(UtestProfilerTraceTaskInfo, TestDistribute_MockFail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   task_info.Init(*task, &model);
   task_info.log_id_ = 10001;
   mmSetEnv("CONSTANT_FOLDING_PASS", "mock_fail", 1);

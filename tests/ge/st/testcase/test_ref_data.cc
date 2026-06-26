@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,55 +63,56 @@ class FakeFormatsWithSubgraphOptimizer : public FakeGraphOptimizer {
     return *this;
   }
 
-   Status OptimizeOriginalGraphJudgeInsert(ComputeGraph &root_graph) override {
-     std::queue<NodePtr> nodes;
-     std::set<NodePtr> seen_nodes;
-     std::vector<ComputeGraphPtr> root_and_all_sub_graphs;
-     root_and_all_sub_graphs.emplace_back(root_graph.shared_from_this());
-     std::vector<ComputeGraphPtr> subgraphs = root_graph.GetAllSubgraphs();
-     root_and_all_sub_graphs.insert(root_and_all_sub_graphs.end(), subgraphs.cbegin(), subgraphs.cend());
+  Status OptimizeOriginalGraphJudgeInsert(ComputeGraph &root_graph) override {
+    std::queue<NodePtr> nodes;
+    std::set<NodePtr> seen_nodes;
+    std::vector<ComputeGraphPtr> root_and_all_sub_graphs;
+    root_and_all_sub_graphs.emplace_back(root_graph.shared_from_this());
+    std::vector<ComputeGraphPtr> subgraphs = root_graph.GetAllSubgraphs();
+    root_and_all_sub_graphs.insert(root_and_all_sub_graphs.end(), subgraphs.cbegin(), subgraphs.cend());
 
-     for (const auto &subgraph : subgraphs) {
-       for (const auto &node : subgraph->GetDirectNode()) {
-         if (node->GetInDataNodes().size() == 0) {
-           nodes.emplace(node);
-           seen_nodes.insert(node);
-         }
-       }
+    for (const auto &subgraph : subgraphs) {
+      for (const auto &node : subgraph->GetDirectNode()) {
+        if (node->GetInDataNodes().size() == 0) {
+          nodes.emplace(node);
+          seen_nodes.insert(node);
+        }
+      }
 
-       while(!nodes.empty()) {
-         auto node = std::move(nodes.front());
-         nodes.pop();
+      while (!nodes.empty()) {
+        auto node = std::move(nodes.front());
+        nodes.pop();
 
-         for (auto &src_anchor : node->GetAllOutDataAnchors()) {
-           auto src_format = GetSrcFormat(node, src_anchor->GetIdx());
-           node->GetOpDesc()->MutableOutputDesc(src_anchor->GetIdx())->SetFormat(src_format.format);
-           node->GetOpDesc()->MutableOutputDesc(src_anchor->GetIdx())->SetShape(src_format.shape);
+        for (auto &src_anchor : node->GetAllOutDataAnchors()) {
+          auto src_format = GetSrcFormat(node, src_anchor->GetIdx());
+          node->GetOpDesc()->MutableOutputDesc(src_anchor->GetIdx())->SetFormat(src_format.format);
+          node->GetOpDesc()->MutableOutputDesc(src_anchor->GetIdx())->SetShape(src_format.shape);
 
-           for (auto &dst_anchor : src_anchor->GetPeerInDataAnchors()) {
-             auto dst_node = dst_anchor->GetOwnerNode();
-             if (seen_nodes.insert(dst_node).second) {
-               nodes.push(dst_node);
-             }
+          for (auto &dst_anchor : src_anchor->GetPeerInDataAnchors()) {
+            auto dst_node = dst_anchor->GetOwnerNode();
+            if (seen_nodes.insert(dst_node).second) {
+              nodes.push(dst_node);
+            }
 
-             auto dst_format = GetDstFormat(dst_node, dst_anchor->GetIdx());
-             dst_node->GetOpDesc()->MutableInputDesc(dst_anchor->GetIdx())->SetFormat(dst_format.format);
-             dst_node->GetOpDesc()->MutableInputDesc(dst_anchor->GetIdx())->SetShape(dst_format.shape);
+            auto dst_format = GetDstFormat(dst_node, dst_anchor->GetIdx());
+            dst_node->GetOpDesc()->MutableInputDesc(dst_anchor->GetIdx())->SetFormat(dst_format.format);
+            dst_node->GetOpDesc()->MutableInputDesc(dst_anchor->GetIdx())->SetShape(dst_format.shape);
 
-             if (dst_format.format != src_format.format) {
-               InsertTransdata(*subgraph, src_anchor, src_format, dst_anchor, dst_format);
-             }
-           }
-         }
-         for (const auto &out_ctrl_node : node->GetOutControlNodes()) {
-           if (seen_nodes.insert(out_ctrl_node).second) {
-             nodes.push(out_ctrl_node);
-           }
-         }
-       }
-     }
-     return SUCCESS;
-   }
+            if (dst_format.format != src_format.format) {
+              InsertTransdata(*subgraph, src_anchor, src_format, dst_anchor, dst_format);
+            }
+          }
+        }
+        for (const auto &out_ctrl_node : node->GetOutControlNodes()) {
+          if (seen_nodes.insert(out_ctrl_node).second) {
+            nodes.push(out_ctrl_node);
+          }
+        }
+      }
+    }
+    return SUCCESS;
+  }
+
  private:
   FormatInfo GetSrcFormat(const NodePtr &src_node, int32_t out_index) {
     auto iter = op_names_to_format_.find(src_node->GetName());
@@ -138,8 +139,7 @@ class FakeFormatsWithSubgraphOptimizer : public FakeGraphOptimizer {
     auto td = dst_node->GetOpDesc()->GetInputDescPtr(in_index);
     return {td->GetFormat(), td->GetShape()};
   }
-  void InsertTransdata(ComputeGraph &graph,
-                       const OutDataAnchorPtr &src_anchor, const FormatInfo &src_format,
+  void InsertTransdata(ComputeGraph &graph, const OutDataAnchorPtr &src_anchor, const FormatInfo &src_format,
                        const InDataAnchorPtr &dst_anchor, const FormatInfo &dst_format) {
     std::string name = "transdata_" + std::to_string(transdata_index_++);
     auto op_desc = MakeShared<OpDesc>(name, TRANSDATA);
@@ -157,12 +157,12 @@ class FakeFormatsWithSubgraphOptimizer : public FakeGraphOptimizer {
     src_anchor->LinkTo(node->GetInDataAnchor(0));
     node->GetOutDataAnchor(0)->LinkTo(dst_anchor);
   }
+
  private:
   std::map<std::string, InferredOpFormat> op_types_to_format_;
   std::map<std::string, InferredOpFormat> op_names_to_format_;
   std::atomic<int32_t> transdata_index_{0};
 };
-
 
 struct FakeAicoreLibOpsKernelBuilder : FakeOpsKernelBuilder {
  public:
@@ -193,31 +193,23 @@ void Fake5DNodeEngine(GeRunningEnvFaker &ge_env) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByType(
-      CONV2D, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({4,1,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))}
-          }
-      });
-    ffo->OpFormatByType(
-      ASSIGN, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({4,1,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))}
-          }
-      });
+  ffo->OpFormatByType(CONV2D, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))},
+                                       {dst_format, GeShape(std::vector<int64_t>({4, 1, 16, 16}))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))}}});
+  ffo->OpFormatByType(ASSIGN, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))},
+                                       {dst_format, GeShape(std::vector<int64_t>({4, 1, 16, 16}))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))}}});
   ge_env.InstallDefault();
-    ge_env.Install(FakeEngine("AiCoreLib")
-                       .GraphOptimizer("FormatOp", ffo)
-                       .KernelBuilder(ops_kernel_builder)
-                       .KernelBuilder(aicore_engine_builder));
+  ge_env.Install(FakeEngine("AiCoreLib")
+                     .GraphOptimizer("FormatOp", ffo)
+                     .KernelBuilder(ops_kernel_builder)
+                     .KernelBuilder(aicore_engine_builder));
 }
 
 /*
@@ -268,7 +260,7 @@ void RunAndCheckInitVarGraph(Session &session) {
  *            |
  *          conv2d2
  *          /    \
- *      assign   data2        
+ *      assign   data2
  *      /     \
  *   conv2d1  refdata2
  *    /   \
@@ -286,15 +278,15 @@ void RunAndCheckTrainGraph(Session &session) {
   EXPECT_EQ(ret, SUCCESS);
 
   // 5.run graph with stream async
-  rtStream_t stream = 0;// todo
+  rtStream_t stream = 0;  // todo
   Synchronizer sync;
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs;
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // data2
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({2,2,3,2}))); // refdata1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({2,2,3,2}))); // refdata2
-  g1_outputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // output
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));   // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));   // data2
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({2, 2, 3, 2})));     // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({2, 2, 3, 2})));     // refdata2
+  g1_outputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));  // output
   ret = session.RunGraphWithStreamAsync(3, stream, g1_inputs, g1_outputs);
   EXPECT_EQ(ret, SUCCESS);
   sync.WaitFor(5);
@@ -323,10 +315,10 @@ void RunAndCheckTrainGraph(Session &session) {
       output_offsets = node->GetOpDesc()->GetOutputOffset();
       input_offsets = node->GetOpDesc()->GetInputOffset();
       for (size_t i = 0; i < input_offsets.size(); ++i) {
-        std::cout<<node->GetName().c_str()<< " input offset:" << input_offsets[i] <<std::endl;
+        std::cout << node->GetName().c_str() << " input offset:" << input_offsets[i] << std::endl;
       }
       for (size_t i = 0; i < output_offsets.size(); ++i) {
-        std::cout<<node->GetName().c_str()<< " output offset:" << output_offsets[i] <<std::endl;
+        std::cout << node->GetName().c_str() << " output offset:" << output_offsets[i] << std::endl;
       }
     }
 
@@ -370,11 +362,10 @@ void RunAndCheckTrainGraphWithUserDefinedStorageFormat(Session &session) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
-
 
   // 6.校验结果
   // 6.1 check offset
@@ -417,21 +408,18 @@ void ResetCastNodeInputAndOutputDescDataType(ComputeGraphPtr sub_graph, const st
 ComputeGraphPtr BuildGraphVarPartitionedCallWithSubgraph(bool main_graph_dynamic_flag, bool partition_dynamic_flag,
                                                          const std::vector<int64_t> &shape) {
   auto variable = OP_CFG(REFDATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("variable");
-  auto partition = OP_CFG(PARTITIONEDCALL)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(5)
-      .Build("partitioncall");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("variable");
+  auto partition =
+      OP_CFG(PARTITIONEDCALL).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(5).Build("partitioncall");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE(variable)->NODE(partition)->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE(variable)->NODE(partition)->NODE("NetOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -443,12 +431,12 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithSubgraph(bool main_graph_dynamic
 
   auto sub_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->EDGE(0, 1)->NODE("NetOutput1"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast3", CAST)->EDGE(0, 2)->NODE("NetOutput1"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast4", CAST)->EDGE(0, 3)->NODE("NetOutput1"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast5", CAST)->EDGE(0, 4)->NODE("NetOutput1"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->EDGE(0, 1)->NODE("NetOutput1"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast3", CAST)->EDGE(0, 2)->NODE("NetOutput1"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast4", CAST)->EDGE(0, 3)->NODE("NetOutput1"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE("cast5", CAST)->EDGE(0, 4)->NODE("NetOutput1"));
+    };
     return ToComputeGraph(g);
   }();
   sub_graph->SetName("sub");
@@ -640,8 +628,8 @@ TEST_F(RefDataSt, refdata_in_while_subgraph_compile) {
   Synchronizer sync;
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs(1);
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({}))); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({})));              // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));  // refdata1
   ret = session.BuildGraph(3, g1_inputs);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -723,10 +711,10 @@ TEST_F(RefDataSt, refdata_in_subgraph_compile) {
   // 4.run graph with stream async
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs(1);
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({}))); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({})));              // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));  // refdata1
   ret = session.BuildGraph(3, g1_inputs);
-  //EXPECT_EQ(ret, SUCCESS);
+  // EXPECT_EQ(ret, SUCCESS);
 
   // 5.校验结果
   // 5.1 check offset
@@ -796,8 +784,8 @@ TEST_F(RefDataSt, refdata_has_transdata_assign_in_subgraph_compile) {
   // 4.run graph with stream async
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs(1);
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({}))); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({})));              // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));  // refdata1
   ret = session.BuildGraph(3, g1_inputs);
   // EXPECT_EQ(ret, SUCCESS); todo
 
@@ -847,10 +835,8 @@ TEST_F(RefDataSt, refdata_has_transdata_assign_in_subgraph_compile) {
  *       netoutput
  */
 TEST_F(RefDataSt, refdata_connect_to_hccl_need_memcpy) {
-  auto infer_fun = [](Operator &op) -> graphStatus {
-    return GRAPH_SUCCESS;
-  };
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  auto infer_fun = [](Operator &op) -> graphStatus { return GRAPH_SUCCESS; };
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -860,11 +846,14 @@ TEST_F(RefDataSt, refdata_connect_to_hccl_need_memcpy) {
   ge_env.Reset();
   // 置fake引擎和算子
   std::vector<FakeEngine> default_engines = {
-      FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl).GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer"),
+      FakeEngine("DNN_HCCL")
+          .KernelInfoStore(kEngineNameHccl)
+          .GraphOptimizer("hccl_graph_optimizer")
+          .GraphOptimizer("hvd_graph_optimizer"),
       FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"),
       FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore(kEngineNameGeLocal).GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER"),
   };
-  for (auto& fake_engine : default_engines) {
+  for (auto &fake_engine : default_engines) {
     ge_env.Install(fake_engine);
   }
 
@@ -892,22 +881,17 @@ TEST_F(RefDataSt, refdata_connect_to_hccl_need_memcpy) {
   // 4.run graph with stream async
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs(1);
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({}))); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16}))); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({})));              // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));  // refdata1
   ret = session.BuildGraph(3, g1_inputs);
   EXPECT_EQ(ret, SUCCESS);
 
   // 5.校验结果
   // 5.1 check offset
   CHECK_GRAPH(AfterAssignResource) {
-    EXPECT_EQ(
-        gert::SummaryChecker(graph).StrictDirectNodeTypes(
-            {{"RefData", 2},
-             {"Identity", 2},
-             {"MemcpyAddrAsync", 2},
-             {"HcomAllReduce", 1},
-             {"NetOutput", 1}}),
-        "success");
+    EXPECT_EQ(gert::SummaryChecker(graph).StrictDirectNodeTypes(
+                  {{"RefData", 2}, {"Identity", 2}, {"MemcpyAddrAsync", 2}, {"HcomAllReduce", 1}, {"NetOutput", 1}}),
+              "success");
     for (const auto &node : graph->GetDirectNode()) {
       if (node->GetType() == "HcomAllReduce") {
         EXPECT_EQ(gert::NodeTopoChecker(node).StrictConnectFrom({{"MemcpyAddrAsync"}, {"MemcpyAddrAsync"}}), "success");
@@ -972,8 +956,8 @@ TEST_F(RefDataSt, refdata_with_unsupport_user_defined_inner_format_compile) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_FRACTAL_ZN_RNN);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_NE(ret, SUCCESS);
 }
@@ -1018,7 +1002,6 @@ TEST_F(RefDataSt, refdata_with_user_defined_inner_format_compile_and_expand_dims
   // 5.run graph with stream async
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
-
 
   // 6.校验结果
   // 6.1 check offset
@@ -1069,7 +1052,7 @@ TEST_F(RefDataSt, refdata_connect_unknownshape_parittion_skip_split) {
   EXPECT_EQ(ret, SUCCESS);
 
   // 4.compile graph
-  ret = session.CompileGraph(3); // dont care about result
+  ret = session.CompileGraph(3);  // dont care about result
 
   // 5.校验结果
   // 5.1 check offset
@@ -1095,22 +1078,22 @@ TEST_F(RefDataSt, refdata_in_dynamic_graph_connect_knownshape_parittion_with_sto
   auto ops_kernel_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AiCoreLib");
   auto aicore_engine_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AIcoreEngine");
   ge_env.Reset()
-       .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeEngine("AIcoreEngine")
-       .KernelInfoStore("AiCoreLib")
-       .GraphOptimizer("AIcoreEngine")
-       .KernelBuilder(ops_kernel_builder)
-       .KernelBuilder(aicore_engine_builder))
-       .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-       .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-       .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib"))
-       .Install(FakeOp(CAST).InfoStoreAndBuilder("AiCoreLib"));
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine")
+                   .KernelInfoStore("AiCoreLib")
+                   .GraphOptimizer("AIcoreEngine")
+                   .KernelBuilder(ops_kernel_builder)
+                   .KernelBuilder(aicore_engine_builder))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp(CAST).InfoStoreAndBuilder("AiCoreLib"));
 
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
@@ -1151,7 +1134,7 @@ TEST_F(RefDataSt, refdata_in_dynamic_graph_connect_knownshape_parittion_with_sto
   EXPECT_EQ(ret, SUCCESS);
 
   // 4.compile graph
-  ret = session.CompileGraph(graph_id); // dont care about result
+  ret = session.CompileGraph(graph_id);  // dont care about result
   EXPECT_EQ(ret, SUCCESS);
 
   // 6.校验结果

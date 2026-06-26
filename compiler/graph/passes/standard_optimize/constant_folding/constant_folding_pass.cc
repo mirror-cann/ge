@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ const int64_t kShapeCalNum = 8;
 const char *const kKernelLibName = "aicpu_ascend_kernel";
 const char *const kOpsFlagClose = "0";
 const char *const kPassName = "ConstantFoldingPass";
-}
+}  // namespace
 
 bool ConstantFoldingPass::NeedIgnorePass(const NodePtr &node) {
   if (folding_pass::IsNoNeedConstantFolding(node)) {
@@ -63,7 +63,7 @@ Status ConstantFoldingPass::ComputePotentialWeight(NodePtr &node, std::vector<Ge
     return NOT_CHANGED;
   }
   std::string memory_optimization_policy;
-  (void) ge::GetContext().GetOption(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy);
+  (void)ge::GetContext().GetOption(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy);
   // check input nodes has potential const
   for (const auto &node_2_anchor : input_nodes_2_out_anchors) {
     if (ConstantUtils::IsPotentialConst(node_2_anchor.first->GetOpDesc())) {
@@ -73,8 +73,7 @@ Status ConstantFoldingPass::ComputePotentialWeight(NodePtr &node, std::vector<Ge
     if (memory_optimization_policy == kMemoryPriority) {
       // in case input const node has multiple connect edge, do not fold when use memory priority policy.
       const int64_t shape_size = node_2_anchor.first->GetOpDesc()->GetOutputDesc(0).GetShape().GetShapeSize();
-      if ((shape_size > kShapeCalNum) &&
-          (node_2_anchor.second->GetPeerInDataNodesSize() > 1U)) {
+      if ((shape_size > kShapeCalNum) && (node_2_anchor.second->GetPeerInDataNodesSize() > 1U)) {
         GELOGI("In MemoryPriority mode, ignore constant folding for node:%s when const node has multiple out edges.",
                node->GetName().c_str());
         return NOT_CHANGED;
@@ -133,8 +132,7 @@ Status ConstantFoldingPass::ComputeWithHostCpuKernel(const NodePtr &node, const 
   return RunOpKernel(node, inputs, outputs);
 }
 
-Status ConstantFoldingPass::RunOpKernel(const NodePtr &node,
-                                        const std::vector<ConstGeTensorPtr> &inputs,
+Status ConstantFoldingPass::RunOpKernel(const NodePtr &node, const std::vector<ConstGeTensorPtr> &inputs,
                                         std::vector<GeTensorPtr> &outputs) {
   const std::string op_type = NodeUtils::GetNodeType(node);
   auto kernel = OpKernelRegistry::GetInstance().CreateHostCpuOp(op_type);

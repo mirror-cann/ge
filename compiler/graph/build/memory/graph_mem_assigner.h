@@ -37,21 +37,20 @@ struct MemoryOffset {
 
 struct CleanDataTypeValue {
   bool operator==(const CleanDataTypeValue &other) const {
-    return (data_type == other.data_type) &&
-           (int_val == other.int_val) &&
+    return (data_type == other.data_type) && (int_val == other.int_val) &&
            std::fabs(float_val - other.float_val) <= std::numeric_limits<float>::epsilon();
   }
-  int32_t data_type; // atomic_node通过TBE_OP_ATOMIC_DTYPES属性指定的数据类型，默认float
-  int64_t int_val; // atomic_node通过TBE_OP_ATOMIC_INT64_VALUES属性指定的初始值
-  float32_t float_val; // atomic_node通过TBE_OP_ATOMIC_FLOAT_VALUES属性指定的初始值，默认0.0
+  int32_t data_type;    // atomic_node通过TBE_OP_ATOMIC_DTYPES属性指定的数据类型，默认float
+  int64_t int_val;      // atomic_node通过TBE_OP_ATOMIC_INT64_VALUES属性指定的初始值
+  float32_t float_val;  // atomic_node通过TBE_OP_ATOMIC_FLOAT_VALUES属性指定的初始值，默认0.0
 };
 
 struct CleanMemInfo {
-  std::string ToStr() const{
+  std::string ToStr() const {
     std::stringstream ss;
     ss << "offset: " << offset << ", size: " << size << ", mem_type: " << memory_type
-       << ", data_type: " << type_val.data_type << ", int_value: "
-       << type_val.int_val << ", float_value: " << type_val.float_val;
+       << ", data_type: " << type_val.data_type << ", int_value: " << type_val.int_val
+       << ", float_value: " << type_val.float_val;
     return ss.str();
   }
   // 为了保存在std::set中，按照offset从小到大排序
@@ -67,7 +66,7 @@ struct CleanMemInfo {
   }
 
   bool CanMerge(const CleanMemInfo &other) const {
-    if ((memory_type == other.memory_type) && (!is_zero_copy) && (type_val == other.type_val)){
+    if ((memory_type == other.memory_type) && (!is_zero_copy) && (type_val == other.type_val)) {
       if ((offset <= other.offset) && ((offset + size) >= other.offset)) {
         return true;
       }
@@ -86,13 +85,12 @@ struct CleanMemInfo {
     }
     return false;
   }
-  int64_t offset = -1; // 要清理的逻辑地址
-  int64_t size = 0; // 要清理的内存大小， 如果是零拷贝则32字节对齐，其他512字节对齐
-  uint32_t memory_type = RT_MEMORY_HBM; // 内存类型，默认hbm，也有p2p
+  int64_t offset = -1;                   // 要清理的逻辑地址
+  int64_t size = 0;                      // 要清理的内存大小， 如果是零拷贝则32字节对齐，其他512字节对齐
+  uint32_t memory_type = RT_MEMORY_HBM;  // 内存类型，默认hbm，也有p2p
   CleanDataTypeValue type_val{static_cast<int32_t>(ge::DT_FLOAT), 0, 0.0};
-  bool is_zero_copy = false; // 是否是零拷贝，零拷贝的不能合并，因为多个用户输入地址可能不连续
+  bool is_zero_copy = false;  // 是否是零拷贝，零拷贝的不能合并，因为多个用户输入地址可能不连续
 };
-
 
 // 需要atomic清零的算子，可能会通过属性指定初始值和数据类型，目前仅对输出和workspace设置属性，不包含输入的
 class AtomicNodeCleanTypeVals {
@@ -101,6 +99,7 @@ class AtomicNodeCleanTypeVals {
   // 获取下一个属性，注意调用顺序，先输出，后workspace，输入不能调用
   ge::Status GetNextAttr(CleanDataTypeValue &type_value);
   std::string ToStr() const;
+
  private:
   std::vector<int32_t> data_types_;
   std::vector<int64_t> int_vals_;
@@ -130,9 +129,9 @@ struct MemsetNodeAddrAndAttr {
 
 inline bool IsFloatType(const ge::DataType dt) {
   return (dt == ge::DT_FLOAT) || (dt == ge::DT_FLOAT16) || (dt == ge::DT_DOUBLE) || (dt == ge::DT_BF16) ||
-         (dt == ge::DT_HIFLOAT8) || (dt == ge::DT_HIFLOAT4) || (dt == ge::DT_FLOAT8_E5M2) || (dt == ge::DT_FLOAT8_E4M3FN) ||
-         (dt == ge::DT_FLOAT8_E8M0) || (dt == ge::DT_FLOAT6_E3M2) || (dt == ge::DT_FLOAT6_E2M3) ||
-         (dt == ge::DT_FLOAT4_E2M1) || (dt == ge::DT_FLOAT4_E1M2);
+         (dt == ge::DT_HIFLOAT8) || (dt == ge::DT_HIFLOAT4) || (dt == ge::DT_FLOAT8_E5M2) ||
+         (dt == ge::DT_FLOAT8_E4M3FN) || (dt == ge::DT_FLOAT8_E8M0) || (dt == ge::DT_FLOAT6_E3M2) ||
+         (dt == ge::DT_FLOAT6_E2M3) || (dt == ge::DT_FLOAT4_E2M1) || (dt == ge::DT_FLOAT4_E1M2);
 }
 
 using MemoryOffsetMap = std::map<int64_t, MemoryOffset>;  // key: MemoryOffset::mem_type_
@@ -168,12 +167,10 @@ using BlockMemAssignerPtr = std::shared_ptr<BlockMemAssigner>;
 using HybridMemAssignerPtr = std::shared_ptr<HybridMemAssigner>;
 using GraphMemSplitterPtr = std::shared_ptr<GraphMemSplitter>;
 
-
 class GraphMemoryAssigner {
  public:
   explicit GraphMemoryAssigner(ComputeGraphPtr compute_graph)
-      : compute_graph_(std::move(compute_graph)),
-        mem_assigner_(nullptr), graph_mem_splitter_(nullptr) {}
+      : compute_graph_(std::move(compute_graph)), mem_assigner_(nullptr), graph_mem_splitter_(nullptr) {}
 
   GraphMemoryAssigner(const GraphMemoryAssigner &) = delete;
 
@@ -209,8 +206,7 @@ class GraphMemoryAssigner {
 
   void RecordSubsequentReuseNodeInfo(const MemoryBlock *const memory_block,
                                      const std::vector<MemReuseInfo> &parent_mem_resue_info,
-                                     std::vector<MemReuseInfo> &total_child_mem_resue_info,
-                                     uint32_t depth = 0U) const;
+                                     std::vector<MemReuseInfo> &total_child_mem_resue_info, uint32_t depth = 0U) const;
 
   Status SetInputOffset() const;
 
@@ -242,8 +238,7 @@ class GraphMemoryAssigner {
   /// @param node
   /// @return true:supported; false:not supported
   static bool CheckInputIsSupportAtomic(const Node *node);
-  Status CollectAtomicNodeCleanMemInfos(const NodePtr &memset_node,
-                                        std::set<CleanMemInfo> &clean_mem_infos) const;
+  Status CollectAtomicNodeCleanMemInfos(const NodePtr &memset_node, std::set<CleanMemInfo> &clean_mem_infos) const;
   Status GetMemType(const Node *const node, const IOType &io_type, const uint32_t index, uint32_t &mem_type) const;
   Status GetInputCleanMemInfos(const NodePtr &node, std::set<CleanMemInfo> &clean_mem_infos) const;
   Status GetOutputCleanMemInfos(const NodePtr &node, AtomicNodeCleanTypeVals &type_vals,
@@ -256,6 +251,7 @@ class GraphMemoryAssigner {
   std::map<int64_t, int64_t> GetSplitOffsetSize() const;
   std::vector<CleanMemInfo> MergeCleanMemInfos(const std::set<CleanMemInfo> &clean_mem_infos,
                                                const std::map<int64_t, int64_t> &split_offset_to_size) const;
+
  private:
   Status AssignReferenceMemory(const NodePtr &node) const;
 
@@ -266,16 +262,14 @@ class GraphMemoryAssigner {
   Status TryGetNodeRefIndexes(const NodePtr &node, std::map<int32_t, int32_t> &out2ins) const;
 
   bool IsAssignContinuousInputMemoryDirectly(const NodePtr &input_continuous_node,
-                                                            std::map<NodePtr, uint32_t> &node_2_continuous_type) const;
+                                             std::map<NodePtr, uint32_t> &node_2_continuous_type) const;
 
   Status FilterAtomicNodes(std::map<std::string, std::map<NodePtr, std::vector<NodePtr>>> &atomic_nodes);
 
   Status SetMemOffset(const NodePtr &node, const InDataAnchorPtr &in_data_anchor, bool reverse_refresh,
                       int64_t &mem_offset) const;
 
-  Status AssignContinuousInputMemory(const NodePtr &node,
-                                     uint32_t continuous_type,
-                                     bool reverse_refresh = false);
+  Status AssignContinuousInputMemory(const NodePtr &node, uint32_t continuous_type, bool reverse_refresh = false);
 
   Status AssignContinuousOutputMemory(const NodePtr &node, int64_t memory_type, uint32_t continuous_type) const;
 
@@ -325,31 +319,24 @@ class GraphMemoryAssigner {
 
   bool IsOutputVisitedByMultiStream(const NodePtr &peer_out_node, int64_t out_anchor_index) const;
 
-  void UpdatePrevNodeInputDesc(const NodePtr &prev_node,
-                               const std::vector<int64_t> &prev_node_input_index_vec,
+  void UpdatePrevNodeInputDesc(const NodePtr &prev_node, const std::vector<int64_t> &prev_node_input_index_vec,
                                int64_t distance) const;
 
   void UpdateCurNodeInputDesc(const NodePtr &cur_node, int64_t cur_node_input_index, int64_t distance) const;
 
-  void CheckNeedCalcDistAndUpdateVisitInfo(const NodePtr &peer_out_node,
-                                           const OutDataAnchorPtr &peer_out_anchor,
-                                           size_t matched_mem_offset,
-                                           std::map<size_t, std::pair<NodePtr,
-                                                                      std::vector<int64_t>>> &mem_block_visit_info,
-                                           bool &is_need_calc_distance) const;
+  void CheckNeedCalcDistAndUpdateVisitInfo(
+      const NodePtr &peer_out_node, const OutDataAnchorPtr &peer_out_anchor, size_t matched_mem_offset,
+      std::map<size_t, std::pair<NodePtr, std::vector<int64_t>>> &mem_block_visit_info,
+      bool &is_need_calc_distance) const;
 
   void CalcDistanceAndUpdateDesc(const std::map<std::string, int64_t> &node_index_in_stream,
-                                 const InDataAnchorPtr &in_data_anchor,
-                                 size_t matched_mem_offset,
-                                 const NodePtr &node,
+                                 const InDataAnchorPtr &in_data_anchor, size_t matched_mem_offset, const NodePtr &node,
                                  std::map<size_t, std::pair<NodePtr, std::vector<int64_t>>> &mem_block_visit_info,
                                  bool &is_need_skip) const;
 
-  void DeleteVisitInfoWhenLifecycleEnded(const NodePtr &node,
-                                         const InDataAnchorPtr &in_data_anchor,
-                                         size_t matched_mem_offset,
-                                         std::map<size_t, std::pair<NodePtr,
-                                         std::vector<int64_t>>> &mem_block_visit_info) const;
+  void DeleteVisitInfoWhenLifecycleEnded(
+      const NodePtr &node, const InDataAnchorPtr &in_data_anchor, size_t matched_mem_offset,
+      std::map<size_t, std::pair<NodePtr, std::vector<int64_t>>> &mem_block_visit_info) const;
 
   void MarkNodeDistanceAttr(const NodePtr &node,
                             std::map<size_t, std::pair<NodePtr, std::vector<int64_t>>> &mem_block_visit_info,

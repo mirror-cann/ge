@@ -52,7 +52,8 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
   virtual HcclResult CheckSupportedOP(const std::string &sCollectiveType) const;
   virtual HcclResult CalcOpRunningParam(ge::Node &node, bool uknownShapeGraph);
   virtual HcclResult SetOpOutputMemSize(ge::Node &node, const std::string &sCollectiveType);
-  virtual HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp);
+  virtual HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize,
+                                           const ge::GeTensorDesc &desc_temp);
   virtual HcclResult SetOpMemAttr(ge::Node &node, const std::string &sCollectiveType, const u64 &opMemSize);
   HcclResult HcomGraphOptimizeInitialize(const map<std::string, std::string> &options,
                                          ge::OptimizeUtility *const optimizeUtility);
@@ -68,12 +69,11 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
   HcclResult SetHcomOpAttrs(ge::OpDescPtr &opDescPtr);
   HcclResult SetHcomOpFormat(ge::OpDescPtr &opDescPtr);
   HcclResult SetHcomOpParallelLabel(ge::Node &node, std::string groupLabel);
-  HcclResult MemOutputForOpDesc(const ge::OpDescPtr &op, const std::string &sCollectiveType,
-                                u32 i, int64_t &memSize);
-  HcclResult GetMemOutPutForCountCalc(const ge::OpDescPtr &op, const std::string &sCollectiveType,
-                                      u32 dataTypeSize, u64& count);
+  HcclResult MemOutputForOpDesc(const ge::OpDescPtr &op, const std::string &sCollectiveType, u32 i, int64_t &memSize);
+  HcclResult GetMemOutPutForCountCalc(const ge::OpDescPtr &op, const std::string &sCollectiveType, u32 dataTypeSize,
+                                      u64 &count);
   HcclResult HcomGetAccuracyCountFromOpDesc(const ge::OpDescPtr &op, const std::string &sCollectiveType,
-                                            HcclDataType dataType, u64 &count, u32 rankSize);                                      
+                                            HcclDataType dataType, u64 &count, u32 rankSize);
   HcclResult GetCountFromOpDesc(const ge::OpDescPtr &op, const std::string &sCollectiveType, HcclDataType dataType,
                                 u64 &count);
   HcclResult GetCommFromOpDesc(const ge::OpDescPtr &op, int64_t &hcomComm, std::string &sGroup);
@@ -85,17 +85,18 @@ class HcomGraphOptimizer : public ge::GraphOptimizer {
                             std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
                             std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls,
                             std::vector<u32> &curRanks, std::string &rankTableStr, std::string &rankTableM);
-  HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam, std::string &sCollectiveType,
-                            std::vector<int64_t> &sendCounts, std::vector<int64_t> &sendDispls,
-                            std::vector<int64_t> &recvCounts, std::vector<int64_t> &recvDispls);
+  HcclResult SetHcclOpParam(const ge::Node &node, HcomOpParam *hcomOpParam, OpParamGraphModePtr opParam,
+                            std::string &sCollectiveType, std::vector<int64_t> &sendCounts,
+                            std::vector<int64_t> &sendDispls, std::vector<int64_t> &recvCounts,
+                            std::vector<int64_t> &recvDispls);
   HcclResult GetAivParam(const ge::Node &node, std::string &sCollectiveType, u32 &aivCoreLimit) const;
   HcclResult SetOpWorkerSpaceForKnowShape(ge::Node &node, u64 &opMemSize);
   HcclResult GetOriginalGraphShapeTypeFromDesc(const ge::OpDescPtr &op, u32 &shapeType);
   HcclResult CheckForceUnknown(const ge::Node &node, u32 &taskNum);
-  HcclResult CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType,
-                                     u32 &streamNum, u64 &opMemSize, u32 &taskNum, u32 &aivCoreNum);
-  HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType,
-                                          u32 &streamNum, u64 opMemSize);
+  HcclResult CalcOpRunningResources(const ge::Node &node, std::string &sCollectiveType, u32 &streamNum, u64 &opMemSize,
+                                    u32 &taskNum, u32 &aivCoreNum);
+  HcclResult SetOpRunningParamAttributes(ge::Node &node, const std::string &sCollectiveType, u32 &streamNum,
+                                         u64 opMemSize);
   bool TryGetOpDesc(const ge::NodePtr &nodePtr, ge::OpDescPtr &opDescPtr) const;
 
   bool IsSubgraphMultiBatch(ge::ComputeGraph &graph);

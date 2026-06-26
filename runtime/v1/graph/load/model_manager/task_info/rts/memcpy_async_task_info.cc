@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,36 +37,37 @@ Status MemcpyAsyncTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *co
     return INTERNAL_ERROR;
   }
   op_desc_ = op_desc;
-  GE_ASSERT_TRUE((!(iow_addrs.input_logic_addrs.empty())),
-                 "[Check][Param] Op:%s, input logic addr list is empty.", op_desc->GetName().c_str());
+  GE_ASSERT_TRUE((!(iow_addrs.input_logic_addrs.empty())), "[Check][Param] Op:%s, input logic addr list is empty.",
+                 op_desc->GetName().c_str());
 
-  GE_ASSERT_TRUE((!(iow_addrs.output_logic_addrs.empty())),
-                 "[Check][Param] Op:%s, output logic addr list is empty.", op_desc->GetName().c_str());
+  GE_ASSERT_TRUE((!(iow_addrs.output_logic_addrs.empty())), "[Check][Param] Op:%s, output logic addr list is empty.",
+                 op_desc->GetName().c_str());
 
-  const auto args_placement = ((args_mem_type_ & RT_MEMORY_TS) == 0U)
-      ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
+  const auto args_placement =
+      ((args_mem_type_ & RT_MEMORY_TS) == 0U) ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
   // todo: 对于model with queue的场景, memcpy链接到了model io后，不能支持零拷贝，不能把自身转换成二级指针拷贝
   // 原因：model with queue的场景，memcpy链接到了model io后，如果支持零拷贝，他的零拷贝动作是device aicpu来完成的
   // memcpy把自己转换成二级指针拷贝后的args 是ts内存，device aicpu没有访问ts内存的权限，无法完成两拷贝刷新args的动作
-  if (((iow_addrs.input_logic_addrs[0].support_refresh) || (iow_addrs.output_logic_addrs[0].support_refresh)
-      || davinci_model->GetPhysicalMemoryRefreshable()) &&
+  if (((iow_addrs.input_logic_addrs[0].support_refresh) || (iow_addrs.output_logic_addrs[0].support_refresh) ||
+       davinci_model->GetPhysicalMemoryRefreshable()) &&
       (!((davinci_model_->IsArgsUpdateByDeviceAicpu()) && (args_placement == ArgsPlacement::kArgsPlacementTs)))) {
     GE_ASSERT_TRUE((args[static_cast<size_t>(args_placement)].dev_addr != 0U),
-                   "[Check][Param] Op:%s, args_placement:%d, dev addr is nullptr.",
-                   op_desc->GetName().c_str(), args_placement);
+                   "[Check][Param] Op:%s, args_placement:%d, dev addr is nullptr.", op_desc->GetName().c_str(),
+                   args_placement);
     src_ = PtrToPtr<void, uint8_t>(ValueToPtr(args[static_cast<size_t>(args_placement)].dev_addr));
     dst_ = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(src_) + sizeof(void *)));
     kind_ = RT_MEMCPY_ADDR_DEVICE_TO_DEVICE;
     GE_CHK_STATUS_RET(SetIoAddrs(iow_addrs), "[Set][Addrs] failed, op:%s", op_desc->GetName().c_str());
     const auto addrs = VPtrToValue(io_addrs_);
-    GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), addrs,
-        io_addr_mem_types_, {op_desc->GetName(), op_desc->GetType()}));
+    GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), addrs, io_addr_mem_types_,
+                                                  {op_desc->GetName(), op_desc->GetType()}));
     davinci_model_->SetZeroCopyAddr(op_desc, addrs, io_addrs_.data(), static_cast<uintptr_t>(PtrToValue(src_)),
                                     (sizeof(void *) * 2U), 0U, {});
 
     GELOGI("MemcpyAsyncTaskInfo Init Success, op name %s, src:%p, dst:%p, args_placement:%d, max:%" PRIu64
-           ", count:%" PRIu64 ".logic stream id: %u, stream: %p.", op_desc->GetName().c_str(), src_, dst_,
-           static_cast<int32_t>(args_placement), dst_max_, count_, task_def.stream_id(), stream_);
+           ", count:%" PRIu64 ".logic stream id: %u, stream: %p.",
+           op_desc->GetName().c_str(), src_, dst_, static_cast<int32_t>(args_placement), dst_max_, count_,
+           task_def.stream_id(), stream_);
     return SUCCESS;
   }
 
@@ -79,9 +80,10 @@ Status MemcpyAsyncTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *co
   GE_ASSERT_SUCCESS(davinci_model_->DisableZeroCopy(src_));
   GE_ASSERT_SUCCESS(davinci_model_->DisableZeroCopy(dst_));
 
-  GELOGI("MemcpyAsyncTaskInfo Init Success, op name %s, logic[0x%" PRIx64 ", 0x%" PRIx64 "], src:%p, dst:%p, max:%" PRIu64
-         ", count:%" PRIu64 ", logic stream id: %u, stream: %p.", op_desc->GetName().c_str(), memcpy_async.src(),
-         memcpy_async.dst(), src_, dst_, dst_max_, count_, task_def.stream_id(), stream_);
+  GELOGI("MemcpyAsyncTaskInfo Init Success, op name %s, logic[0x%" PRIx64 ", 0x%" PRIx64
+         "], src:%p, dst:%p, max:%" PRIu64 ", count:%" PRIu64 ", logic stream id: %u, stream: %p.",
+         op_desc->GetName().c_str(), memcpy_async.src(), memcpy_async.dst(), src_, dst_, dst_max_, count_,
+         task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -96,8 +98,7 @@ Status MemcpyAsyncTaskInfo::Distribute() {
   memcpy_info.destMax = dst_max_;
   memcpy_info.src = src_;
   memcpy_info.cnt = count_;
-  const rtError_t rt_ret = ge::rtMemcpyAsyncWithCfg(memcpy_info, static_cast<rtMemcpyKind_t>(kind_),
-                                                    stream_, qosCfg_);
+  const rtError_t rt_ret = ge::rtMemcpyAsyncWithCfg(memcpy_info, static_cast<rtMemcpyKind_t>(kind_), stream_, qosCfg_);
   if (rt_ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "Call rtMemcpyAsyncWithCfg failed, size:%" PRIu64 ", ret:%d", dst_max_, rt_ret);
     GELOGE(RT_FAILED, "[Call][rtMemcpyAsyncWithCfg] failed, size:%" PRIu64 ", ret:%d", dst_max_, rt_ret);
@@ -105,7 +106,7 @@ Status MemcpyAsyncTaskInfo::Distribute() {
   }
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
   }
   is_support_redistribute_ = true;
   GELOGI("MemcpyAsyncTaskInfo Distribute Success, stream: %p.", stream_);
@@ -121,11 +122,9 @@ Status MemcpyAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, Dav
   uint8_t *src = nullptr;
   uint8_t *dst = nullptr;
   const Status ret1 = ModelUtils::GetRtAddress(davinci_model->GetRuntimeParam(),
-                                               static_cast<uintptr_t>(memcpy_async.src()),
-                                               src, logical_src_mem_type_);
+                                               static_cast<uintptr_t>(memcpy_async.src()), src, logical_src_mem_type_);
   const Status ret2 = ModelUtils::GetRtAddress(davinci_model->GetRuntimeParam(),
-                                               static_cast<uintptr_t>(memcpy_async.dst()),
-                                               dst, logical_dst_mem_type_);
+                                               static_cast<uintptr_t>(memcpy_async.dst()), dst, logical_dst_mem_type_);
   if ((ret1 != SUCCESS) || (ret2 != SUCCESS)) {
     return PARAM_INVALID;
   }
@@ -147,11 +146,11 @@ Status MemcpyAsyncTaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, Dav
 
   constexpr uint32_t args_size = static_cast<uint32_t>(sizeof(void *) * 2U);
   args_mem_type_ = rtGetTsMemType(MEM_REQUEST_FEATURE_DEFAULT, args_size);
-  pls_ = ((args_mem_type_ & RT_MEMORY_TS) == 0U)
-      ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
+  pls_ = ((args_mem_type_ & RT_MEMORY_TS) == 0U) ? ArgsPlacement::kArgsPlacementHbm : ArgsPlacement::kArgsPlacementTs;
   task_run_param.args_descs.push_back({static_cast<int64_t>(args_size), pls_});
 
-  GELOGI("op_desc:%s, src:%p, src_mem_type:0x%" PRIx64 ", dst:%p, dst_mem_type:0x%" PRIx64 ", "
+  GELOGI("op_desc:%s, src:%p, src_mem_type:0x%" PRIx64 ", dst:%p, dst_mem_type:0x%" PRIx64
+         ", "
          "args_mem_type:0x%x, args_placement:%d",
          op_desc->GetName().c_str(), src, logical_src_mem_type_, dst, logical_dst_mem_type_, args_mem_type_,
          static_cast<int32_t>(pls_));
@@ -169,8 +168,7 @@ Status MemcpyAsyncTaskInfo::SetIoAddrs(const IowAddrs &iow_addrs) {
   return SUCCESS;
 }
 
-Status MemcpyAsyncTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                                           void *const host_args,
+Status MemcpyAsyncTaskInfo::UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                                            const size_t host_args_max_len) {
   GELOGI("MemcpyAsyncTaskInfo::UpdateArgs in.");
   GE_ASSERT_SUCCESS(args_io_addrs_updater_.SetArgIoAddrs(active_mem_base_addr, host_args, host_args_max_len));

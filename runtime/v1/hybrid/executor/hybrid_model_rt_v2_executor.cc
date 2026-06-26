@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -124,10 +124,9 @@ Status EnsureModelVarMemoryMalloced(const GeRootModelPtr &model, const std::shar
   }
   GELOGI("[Init] Variable mem auto malloc, no need to malloc var max size mem.");
   const auto page_size = VarManager::IsVariableUse1gHugePage() ? kDrv1GPageSize : kDrvPageSize;
-  auto allocator =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(session_id, device_id,
-                                                                                       RT_MEMORY_HBM, page_size);
-  (void) var_manager->InitExpandableMemoryAllocator(allocator);
+  auto allocator = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      session_id, device_id, RT_MEMORY_HBM, page_size);
+  (void)var_manager->InitExpandableMemoryAllocator(allocator);
   return SUCCESS;
 }
 
@@ -135,10 +134,10 @@ ge::Status DoRtStreamSyncWithTimeout(aclrtStream stream) {
   auto timeout = ge::GetContext().StreamSyncTimeout();
   auto rt_ret = aclrtSynchronizeStreamWithTimeout(stream, timeout);
   if (rt_ret == ACL_ERROR_RT_STREAM_SYNC_TIMEOUT) {
-    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.", timeout,
-           rt_ret);
+    GELOGE(rt_ret, "[Invoke][aclrtSynchronizeStreamWithTimeout] failed, stream synchronize timeout:%d, ret:%d.",
+           timeout, rt_ret);
     REPORT_INNER_ERR_MSG("E19999", "aclrtSynchronizeStreamWithTimeout failed, stream synchronize timeout:%d, ret:%d.",
-                      timeout, rt_ret);
+                         timeout, rt_ret);
     return ge::FAILED;
   } else if (rt_ret == ACL_ERROR_RT_END_OF_SEQUENCE) {
     GELOGD("SyncStream return END_OF_SEQUENCE");
@@ -239,8 +238,7 @@ Status GraphVarVisitor::AssembleVariables(const std::vector<ge::NodePtr> &variab
   return ge::SUCCESS;
 }
 
-void *GraphVarVisitor::GetOrCreateVarMem(const string &var_name,
-                                         const OpDescPtr &var_desc,
+void *GraphVarVisitor::GetOrCreateVarMem(const string &var_name, const OpDescPtr &var_desc,
                                          const rtMemType_t memory_type) const {
   const GeTensorDesc &output_tensor = var_desc->GetOutputDesc(0U);
   if (session_var_manager_->IsVarExist(var_name, output_tensor)) {
@@ -344,15 +342,13 @@ Status GraphVarVisitor::CopySharedConstant(const std::shared_ptr<ge::VarManager>
                                            const std::vector<SharedConstantCopyHelper> &helpers) const {
   // every thread needs to aclrtSetDevice
   GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-      GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
-  });
+  GE_MAKE_GUARD(reset_device, [device_id]() { GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id))); });
 
   for (const auto &helper : helpers) {
     if (!var_manager->CheckAndSetVarLoaded(helper.op_desc, device_id)) {
       GELOGD("Copy constant %s size %ld to device addr %p", helper.op_desc->GetNamePtr(), helper.size, helper.addr);
       GE_ASSERT_RT_OK(aclrtMemcpy(helper.addr, helper.size, helper.weight->GetData().data(),
-          helper.weight->GetData().size(), ACL_MEMCPY_HOST_TO_DEVICE));
+                                  helper.weight->GetData().size(), ACL_MEMCPY_HOST_TO_DEVICE));
     } else {
       GELOGD("Constant %s size %ld has been loaded to device addr %p, no need to reload.", helper.op_desc->GetNamePtr(),
              helper.size, helper.addr);
@@ -417,7 +413,7 @@ Status GraphVarVisitor::AssembleHostSharedConstants(const vector<ge::NodePtr> &s
     // todo ATTR_VARIABLE_PLACEMENT属性和Host exec flag option语义重复了，最好归一
     // HostExecFlag若为true，ATTR_VARIABLE_PLACEMENT属性一定为host
     // 如编译时只判断Host exec flag，加载时将flag转换为var/constantop上的属性
-    (void) AttrUtils::SetStr(node->GetOpDesc(), ATTR_VARIABLE_PLACEMENT, "host");
+    (void)AttrUtils::SetStr(node->GetOpDesc(), ATTR_VARIABLE_PLACEMENT, "host");
     GELOGD("After assemble type %s, name %s, %s", node->GetType().c_str(), node->GetName().c_str(),
            var_instance.DebugString().c_str());
   }
@@ -497,8 +493,8 @@ Status GraphVarVisitor::PreLoadFileConstant(const ge::OpDescPtr &op_desc, const 
   int64_t weight_size = 0;
   GE_ASSERT_GRAPH_SUCCESS(TensorUtils::GetTensorSizeInBytes(var_instance.desc, weight_size),
                           "Failed to get file constant size by tensor desc.");
-  GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] cannot be larger than mem size[%ld].",
-                 weight_size, var_instance.size);
+  GE_ASSERT_TRUE(weight_size <= var_instance.size, "Weight size[%ld] cannot be larger than mem size[%ld].", weight_size,
+                 var_instance.size);
   helper.file_length = (length == 0U ? static_cast<size_t>(weight_size) : length);
   helper.left_size = static_cast<size_t>(var_instance.size);
   GELOGD("Finish to prepare for loading file constant for %s.", op_desc->GetNamePtr());
@@ -510,9 +506,7 @@ Status GraphVarVisitor::LoadFileConstantToDevice(const ExternalWeightManagerPtr 
                                                  std::vector<H2DCopyHelper> &node_infos) const {
   // every thread needs to aclrtSetDevice
   GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(device_id)));
-  GE_MAKE_GUARD(reset_device, [device_id]() {
-    GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id)));
-  });
+  GE_MAKE_GUARD(reset_device, [device_id]() { GE_CHK_RT(aclrtResetDevice(static_cast<int32_t>(device_id))); });
 
   for (auto &helper : node_infos) {
     // different graphs' nodes may use same files
@@ -628,8 +622,7 @@ Status GraphVarVisitor::GetVarShapeAndMemory(const std::string &id, gert::Storag
 }
 
 HybridModelRtV2Executor::HybridModelRtV2Executor(HybridModel *const model, uint32_t device_id, const aclrtStream stream)
-    : HybridModelExecutor(model, device_id, stream), num_inputs_(0U), num_outputs_(0U) {
-}
+    : HybridModelExecutor(model, device_id, stream), num_inputs_(0U), num_outputs_(0U) {}
 
 Status HybridModelRtV2Executor::RunCtx::Init(HybridModel *model) {
   GE_TIMESTAMP_START(RunCtxInit);
@@ -675,14 +668,16 @@ Status HybridModelRtV2Executor::RunCtx::Init(HybridModel *model) {
   enable_input_batch_cpy_ = (enable_input_batch_cpy_str == "1");
 
   bool need_set_stream_core_limits = false;
-  ge::AttrUtils::GetBool(model->ge_root_model_->GetRootGraph(), "need_set_stream_core_limits", need_set_stream_core_limits);
+  ge::AttrUtils::GetBool(model->ge_root_model_->GetRootGraph(), "need_set_stream_core_limits",
+                         need_set_stream_core_limits);
   if (need_set_stream_core_limits) {
     ParserContextOption(AICORE_NUM, aicore_num_str_);
     ParserContextOption(kVectorcoreNum, vectorcore_num_str_);
   }
 
-  GELOGI("Get npu iterations per loop [%s] and will loop %zu for graph [%s], input_batch_cpy_:%d.", iterations_per_loop.c_str(),
-         iterations_per_loop_, graph_name_.c_str(), static_cast<int32_t>(enable_input_batch_cpy_));
+  GELOGI("Get npu iterations per loop [%s] and will loop %zu for graph [%s], input_batch_cpy_:%d.",
+         iterations_per_loop.c_str(), iterations_per_loop_, graph_name_.c_str(),
+         static_cast<int32_t>(enable_input_batch_cpy_));
   GE_TIMESTAMP_EVENT_END(RunCtxInit, "RunCtxInit::ALL");
   return ge::SUCCESS;
 }
@@ -764,13 +759,12 @@ Status HybridModelRtV2Executor::LoadGuardFunc(const ge::ComputeGraphPtr &graph) 
   }
   GELOGI("Start load guard check func");
   if (guard_check_info_.guard_so_fd == -1) {
-    guard_check_info_.guard_so_fd =
-        static_cast<int32_t>(syscall(__NR_memfd_create, kGuardCheckSoName.c_str(), 0));
+    guard_check_info_.guard_so_fd = static_cast<int32_t>(syscall(__NR_memfd_create, kGuardCheckSoName.c_str(), 0));
   }
-  const auto write_count = mmWrite(guard_check_info_.guard_so_fd,
-      const_cast<char_t *>(buffer->c_str()), buffer->size());
-  GE_ASSERT_TRUE(((write_count != EN_INVALID_PARAM) && (write_count != EN_ERROR)),
-      "Write data failed, errno: %lld", write_count);
+  const auto write_count =
+      mmWrite(guard_check_info_.guard_so_fd, const_cast<char_t *>(buffer->c_str()), buffer->size());
+  GE_ASSERT_TRUE(((write_count != EN_INVALID_PARAM) && (write_count != EN_ERROR)), "Write data failed, errno: %lld",
+                 write_count);
   (void)lseek(static_cast<int32_t>(guard_check_info_.guard_so_fd), 0, SEEK_SET);
   std::string so_path = "/proc/self/fd/" + std::to_string(guard_check_info_.guard_so_fd);
   // 通过/proc访问文件描述符对应的"文件"
@@ -788,8 +782,8 @@ Status HybridModelRtV2Executor::CheckGuard() {
   }
   GELOGI("Start Check guard");
   char_t reason[kMaxStringSize];
-  GE_ASSERT_TRUE(guard_check_info_.guard_check_func(rt_inputs_.data(), rt_inputs_.size(),
-      reason, kMaxStringSize), reason);
+  GE_ASSERT_TRUE(guard_check_info_.guard_check_func(rt_inputs_.data(), rt_inputs_.size(), reason, kMaxStringSize),
+                 reason);
   return SUCCESS;
 }
 
@@ -807,8 +801,8 @@ Status HybridModelRtV2Executor::Init(CallbackManager *const callback_manager) {
   return ge::SUCCESS;
 }
 
-Status HybridModelRtV2Executor::InitModelIdentity(
-    const std::shared_ptr<ge::GeRootModel> &ge_root_model, const ge::ComputeGraphPtr &root_graph) {
+Status HybridModelRtV2Executor::InitModelIdentity(const std::shared_ptr<ge::GeRootModel> &ge_root_model,
+                                                  const ge::ComputeGraphPtr &root_graph) {
   name_ = root_graph->GetName();
   model_id_ = model_->GetModelId();
   ge_root_model->SetCurModelId(model_id_);
@@ -820,10 +814,8 @@ Status HybridModelRtV2Executor::InitModelIdentity(
   return ge::SUCCESS;
 }
 
-Status HybridModelRtV2Executor::InitExecutorAndProfiler(
-    const std::shared_ptr<ge::GeRootModel> &ge_root_model) {
-  executor_ =
-      gert::RtV2ExecutorFactory::Create(ge_root_model, run_ctx_.dev_resource_allocator_, &run_ctx_.session_);
+Status HybridModelRtV2Executor::InitExecutorAndProfiler(const std::shared_ptr<ge::GeRootModel> &ge_root_model) {
+  executor_ = gert::RtV2ExecutorFactory::Create(ge_root_model, run_ctx_.dev_resource_allocator_, &run_ctx_.session_);
   GE_ASSERT_NOTNULL(executor_, "Failed create rt2 executor for model %s", name_.c_str());
   profiler_collector_ =
       std::unique_ptr<ProfilerCollector>(new (std::nothrow) ProfilerCollector(model_id_, run_ctx_.graph_id_));
@@ -917,8 +909,7 @@ Status HybridModelRtV2Executor::ExecuteOnlineModel(const std::vector<gert::Tenso
   return execute_status;
 }
 
-Status HybridModelRtV2Executor::HandleResult(const Status exec_ret,
-                                             const uint32_t data_id,
+Status HybridModelRtV2Executor::HandleResult(const Status exec_ret, const uint32_t data_id,
                                              HybridModelExecutor::CtrlArgs &ctrl_args,
                                              std::vector<gert::Tensor> &outputs,
                                              std::shared_ptr<ModelListener> listener) const {
@@ -969,7 +960,7 @@ Status HybridModelRtV2Executor::AllocatorRecycle(const aclrtStream stream) const
     auto *allocator =
         allocators->GetAllocator(gert::kOnDeviceHbm, static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
     if (allocator != nullptr) {
-      auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer*>(allocator);
+      auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer *>(allocator);
       if (mem_synchronizer != nullptr) {
         GELOGI("caching memory allocator recycle. graph %s, stream: %p", name_.c_str(), stream);
         mem_synchronizer->Recycle();
@@ -985,7 +976,7 @@ Status HybridModelRtV2Executor::PrepareInputData(InputData &current_data,
     GELOGE(PARAM_INVALID, "[Check][Size]Input size mismatches, Input desc size %zu and input size %zu are not same",
            args.input_desc.size(), args.inputs.size());
     REPORT_INNER_ERR_MSG("E19999", "Input size mismatches, Input desc size %zu and input size %zu are not same.",
-                       args.input_desc.size(), args.inputs.size());
+                         args.input_desc.size(), args.inputs.size());
     return PARAM_INVALID;
   }
 
@@ -1014,7 +1005,7 @@ Status HybridModelRtV2Executor::PostProcResult(std::vector<GeTensor> &outputs) c
     auto &rt_output = rt_outputs_[i];
     GELOGI("  Output %zu %s", i, DebugString(*rt_output).c_str());
     auto placement = (gert::TensorPlacementUtils::IsOnDevice(rt_output->GetPlacement())) ? Placement::kPlacementDevice
-                                                                                   : Placement::kPlacementHost;
+                                                                                         : Placement::kPlacementHost;
     auto &desc = output_descs_[i];
     // output with string datatype will get -1 * shapeSize
     size_t buffer_size = 0UL;
@@ -1027,13 +1018,13 @@ Status HybridModelRtV2Executor::PostProcResult(std::vector<GeTensor> &outputs) c
     GE_ASSERT_NOTNULL(output_holder);
     output_holder->ShareFrom(rt_output->MutableTensorData());
     const auto deleter = [output_holder](uint8_t *data) {
-      (void) data;
+      (void)data;
       output_holder->Free();
     };
     GE_ASSERT_GRAPH_SUCCESS(
         outputs[i].MutableData().SetData(ge::PtrToPtr<void, uint8_t>(rt_output->GetAddr()), buffer_size, deleter));
-    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu",
-           i, static_cast<int32_t>(desc->GetDataType()), buffer_size);
+    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu", i,
+           static_cast<int32_t>(desc->GetDataType()), buffer_size);
     RtShapeAsGeShape(rt_output->GetStorageShape(), outputs[i].MutableTensorDesc().MutableShape());
     RtShapeAsGeShape(rt_output->GetOriginShape(), outputs[i].MutableTensorDesc().MutableOriginShape());
     outputs[i].MutableTensorDesc().SetFormat(rt_output->GetStorageFormat());
@@ -1044,19 +1035,20 @@ Status HybridModelRtV2Executor::PostProcResult(std::vector<GeTensor> &outputs) c
   return ge::SUCCESS;
 }
 
-static Status InputTensorValidate(const std::vector<gert::Tensor> &inputs, size_t inputs_num,
-                                  bool host_exec_flag, uint8_t logLevel) {
+static Status InputTensorValidate(const std::vector<gert::Tensor> &inputs, size_t inputs_num, bool host_exec_flag,
+                                  uint8_t logLevel) {
   GE_ASSERT_EQ(inputs.size(), inputs_num);
   for (size_t i = 0U; i < inputs_num; ++i) {
     size_t size = inputs[i].GetSize();
-    auto address = reinterpret_cast<const void*>(inputs[i].GetAddr());
+    auto address = reinterpret_cast<const void *>(inputs[i].GetAddr());
     if (host_exec_flag) {
       GE_ASSERT_EQ(inputs[i].GetPlacement(), gert::kOnHost);
     } else if (gert::TensorPlacementUtils::IsOnDevice(inputs[i].GetPlacement())) {
       if (logLevel <= DLOG_DEBUG) {
         GELOGD(
-            "input[%zu] addres = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
-            "aclrtmemcpy", i, address, size, inputs[i].GetPlacement());
+            "input[%zu] address = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
+            "aclrtmemcpy",
+            i, address, size, inputs[i].GetPlacement());
       }
     } else {
       GE_ASSERT(gert::TensorPlacementUtils::IsOnHostNotFollowing(inputs[i].GetPlacement()),
@@ -1074,7 +1066,8 @@ Status HybridModelRtV2Executor::TryUpdateStreamCoreLimits(const aclrtStream stre
   int32_t aicore_num = -1;
   int32_t vectorcore_num = -1;
   if (!run_ctx_.aicore_num_str_.empty()) {
-    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), run_ctx_.aicore_num_str_, 0, INT32_MAX, aicore_num));
+    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM),
+                                                            run_ctx_.aicore_num_str_, 0, INT32_MAX, aicore_num));
     if (aicore_num > 0) {
       GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_CUBE_CORE, static_cast<uint32_t>(aicore_num)));
       update_stream_core_num = true;
@@ -1082,7 +1075,8 @@ Status HybridModelRtV2Executor::TryUpdateStreamCoreLimits(const aclrtStream stre
   }
 
   if (!run_ctx_.vectorcore_num_str_.empty()) {
-    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(kVectorcoreNum), run_ctx_.vectorcore_num_str_, 0, INT32_MAX, vectorcore_num));
+    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(
+        ge::GetContext().GetReadableName(kVectorcoreNum), run_ctx_.vectorcore_num_str_, 0, INT32_MAX, vectorcore_num));
     if (vectorcore_num > 0) {
       GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_VECTOR_CORE, static_cast<uint32_t>(vectorcore_num)));
       update_stream_core_num = true;
@@ -1091,8 +1085,8 @@ Status HybridModelRtV2Executor::TryUpdateStreamCoreLimits(const aclrtStream stre
 
   if (update_stream_core_num) {
     GE_CHK_ACL_RET(aclrtUseStreamResInCurrentThread(stream));
-    GELOGI("Bind stream resource limit in caller thread success, configured(cube=%d, vector=%d).",
-           aicore_num, vectorcore_num);
+    GELOGI("Bind stream resource limit in caller thread success, configured(cube=%d, vector=%d).", aicore_num,
+           vectorcore_num);
   }
 
   return SUCCESS;
@@ -1121,10 +1115,9 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<gert::T
   model_args.external_stream_allocator = &(run_ctx_.dev_resource_allocator_.stream_allocator);
   model_args.external_event_allocator = &(run_ctx_.dev_resource_allocator_.event_allocator);
   model_args.external_notify_allocator = &(run_ctx_.dev_resource_allocator_.notify_allocator);
-  const auto config =
-      gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
+  const auto config = gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
   for (size_t i = 0U; i < num_inputs_; i++) {
-    rt_inputs_[i] = const_cast<gert::Tensor*>(&inputs[i]);
+    rt_inputs_[i] = const_cast<gert::Tensor *>(&inputs[i]);
   }
 
   GE_ASSERT_SUCCESS(CheckInputIsOnDevice());
@@ -1190,19 +1183,20 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<GeTenso
     }
     if (logLevel_ <= DLOG_INFO) {
       GELOGI("input %zu has placement %s, and executor expect placement %s", i,
-            DebugString(inputs[i].GetTensorDesc().GetPlacement()).c_str(),
-            DebugString(rt_input->GetPlacement()).c_str());
+             DebugString(inputs[i].GetTensorDesc().GetPlacement()).c_str(),
+             DebugString(rt_input->GetPlacement()).c_str());
     }
 
     size_t size = inputs[i].GetData().size();
-    auto address = reinterpret_cast<const void*>(inputs[i].GetData().data());
+    auto address = reinterpret_cast<const void *>(inputs[i].GetData().data());
 
     if (run_ctx_.host_exec_flag_) {
       rt_input->MutableTensorData().SetPlacement(gert::kOnHost);
     } else if (gert::TensorPlacementUtils::IsOnDevice(rt_input->GetPlacement())) {
       GELOGD(
-          "input[%zu] addres = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
-          "aclrtmemcpy", i, address, size, rt_input->GetPlacement());
+          "input[%zu] address = %p, size = %zu, placement = %u, which is on device, no need do alloc memory and "
+          "aclrtmemcpy",
+          i, address, size, rt_input->GetPlacement());
     } else {
       GE_ASSERT(gert::TensorPlacementUtils::IsOnHostNotFollowing(rt_input->GetPlacement()),
                 "Input %zu has unexpected placement %d", i, rt_input->GetPlacement());
@@ -1231,8 +1225,8 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<GeTenso
       }
 
       if (logLevel_ <= DLOG_DEBUG) {
-        GELOGD("The user did specify output memory when index = %zu, address = %p, size = %zu, placement = %d",
-              i, address, size, static_cast<int32_t>(rt_outputs_[i]->GetPlacement()));
+        GELOGD("The user did specify output memory when index = %zu, address = %p, size = %zu, placement = %d", i,
+               address, size, static_cast<int32_t>(rt_outputs_[i]->GetPlacement()));
       }
       GE_ASSERT_GRAPH_SUCCESS(rt_outputs_[i]->MutableTensorData().SetAddr(address, nullptr));
       rt_outputs_[i]->MutableTensorData().SetSize(size);
@@ -1249,8 +1243,7 @@ Status HybridModelRtV2Executor::ExecuteWithStreamAsync(const std::vector<GeTenso
   model_args.external_stream_allocator = &(run_ctx_.dev_resource_allocator_.stream_allocator);
   model_args.external_event_allocator = &(run_ctx_.dev_resource_allocator_.event_allocator);
   model_args.external_notify_allocator = &(run_ctx_.dev_resource_allocator_.notify_allocator);
-  const auto config =
-      gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
+  const auto config = gert::RtV2ExecutorInterface::RunConfig(run_ctx_.iterations_per_loop_, profiler_collector);
 
   TryUpdateStreamCoreLimits(model_args.stream);
 
@@ -1294,9 +1287,9 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
   auto *allocator =
       allocators->GetAllocator(gert::kOnDeviceHbm, static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
   GE_ASSERT_NOTNULL(allocator, "Failed get scalable allocator");
-  auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer*>(allocator);
+  auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer *>(allocator);
   std::vector<MemBlock *> input_mem_block;
-  auto free_mem_block_callback = [&input_mem_block] () {
+  auto free_mem_block_callback = [&input_mem_block]() {
     for (auto &mem_block : input_mem_block) {
       mem_block->Free();
     }
@@ -1334,11 +1327,12 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
           input_mem_block.emplace_back(mem_block_to_keep);
           continue;
         }
-        MemcpyParam memcpy_param {input->GetAddr(), data_size, input_data.blobs[i].data, input_data.blobs[i].length, idx++};
+        MemcpyParam memcpy_param{input->GetAddr(), data_size, input_data.blobs[i].data, input_data.blobs[i].length,
+                                 idx++};
         TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
       } else {
-        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(allocator, input_data.blobs[i].data,
-                                                                       input_data.blobs[i].length, *input, mem_block_to_keep));
+        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
+            allocator, input_data.blobs[i].data, input_data.blobs[i].length, *input, mem_block_to_keep));
         GE_ASSERT_NOTNULL(mem_block_to_keep);
       }
       input_mem_block.emplace_back(mem_block_to_keep);
@@ -1354,8 +1348,8 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
   if (!args.outputs.empty()) {
     GE_ASSERT_EQ(args.outputs.size(), rt_outputs_.size());
     for (size_t i = 0UL; i < num_outputs_; ++i) {
-      const auto placement = (args.outputs[i].GetMemType() == MemStorageType::HOST_DDR) ?
-                             gert::kOnHost : gert::kOnDeviceHbm;
+      const auto placement =
+          (args.outputs[i].GetMemType() == MemStorageType::HOST_DDR) ? gert::kOnHost : gert::kOnDeviceHbm;
       rt_outputs_[i]->SetData(gert::TensorData(const_cast<gert::TensorAddress>(args.outputs[i].GetData()), nullptr,
                                                args.outputs[i].GetSize(), placement));
     }
@@ -1401,8 +1395,8 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
   for (size_t i = 0U; i < num_outputs_; ++i) {
     auto &output = rt_outputs_[i];
     GELOGI("  Output %zu %s", i, DebugString(*output).c_str());
-    auto placement = gert::TensorPlacementUtils::IsOnDevice(output->GetPlacement()) ? MemStorageType::HBM
-                                                                                    : MemStorageType::HOST_DDR;
+    auto placement =
+        gert::TensorPlacementUtils::IsOnDevice(output->GetPlacement()) ? MemStorageType::HBM : MemStorageType::HOST_DDR;
     auto &desc = output_descs_[i];
     // output with string datatype will get -1*shapeSize
     size_t buffer_size = 0UL;
@@ -1411,8 +1405,8 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
     } else {
       buffer_size = GetSizeInBytes(output->GetShapeSize(), desc->GetDataType());
     }
-    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu",
-           i, static_cast<int32_t>(desc->GetDataType()), buffer_size);
+    GELOGI("Output index %zu data type is %d. Get or calculate buffer size %zu", i,
+           static_cast<int32_t>(desc->GetDataType()), buffer_size);
 
     args.outputs.emplace_back(output->GetAddr(), buffer_size, placement);
     RtShapeAsGeShape(output->GetStorageShape(), desc->MutableShape());
@@ -1431,7 +1425,7 @@ Status HybridModelRtV2Executor::Execute(const InputData &input_data, ExecuteArgs
  * 输出由执行器申请，保存在outputs，一般是device内存，后续需要调用CopyOutputs拷贝到host上，返回给用户
  */
 Status HybridModelRtV2Executor::Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) {
+                                        CtrlArgs &ctrl_args) {
   gert::ModelExecuteArg model_args;
   model_args.stream = ctrl_args.stream != nullptr ? ctrl_args.stream : stream_;
   GELOGI("Start execute hybrid model v2 executor of graph %s, stream: %p", name_.c_str(), model_args.stream);
@@ -1440,9 +1434,9 @@ Status HybridModelRtV2Executor::Execute(const std::vector<gert::Tensor> &inputs,
   auto *allocator =
       allocators->GetAllocator(gert::kOnDeviceHbm, static_cast<size_t>(gert::AllocatorUsage::kAllocNodeOutput));
   GE_ASSERT_NOTNULL(allocator, "Failed get scalable allocator");
-  auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer*>(allocator);
+  auto mem_synchronizer = dynamic_cast<gert::memory::MemSynchronizer *>(allocator);
   std::vector<MemBlock *> input_mem_block;
-  auto free_mem_block_callback = [&input_mem_block] () {
+  auto free_mem_block_callback = [&input_mem_block]() {
     for (auto &mem_block : input_mem_block) {
       mem_block->Free();
     }
@@ -1468,31 +1462,32 @@ Status HybridModelRtV2Executor::Execute(const std::vector<gert::Tensor> &inputs,
     if (run_ctx_.host_exec_flag_) {
       GE_ASSERT_TRUE(arg_input.GetPlacement() == gert::TensorPlacement::kOnHost,
                      "host exec, but ref_input[%zu] is on device", i);
-      ref_input->SetData(gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr,
-        arg_input.GetSize(), gert::kOnHost));
+      ref_input->SetData(
+          gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnHost));
     } else if (arg_input.GetPlacement() == gert::TensorPlacement::kOnDeviceHbm) {
       GELOGD("Construct RT2 ref_input index[%u], placement: %u, no need to execute aclrtMemcpy.", i,
              gert::TensorPlacement::kOnDeviceHbm);
-      ref_input->SetData(gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr,
-        arg_input.GetSize(), gert::kOnDeviceHbm));
+      ref_input->SetData(
+          gert::TensorData(const_cast<void *>(arg_input.GetAddr()), nullptr, arg_input.GetSize(), gert::kOnDeviceHbm));
     } else {
       MemBlock *mem_block_to_keep = nullptr;
       memcpy_batch_params_.device_id = cur_device_id;
       if (run_ctx_.enable_input_batch_cpy_) {
         const auto src_tensor_length = arg_input.GetSize();
         size_t data_size = 0U;
-        GE_ASSERT_SUCCESS(TensorTransUtils::AllocDeviceMemory(allocator, src_tensor_length, *ref_input, mem_block_to_keep, data_size));
+        GE_ASSERT_SUCCESS(TensorTransUtils::AllocDeviceMemory(allocator, src_tensor_length, *ref_input,
+                                                              mem_block_to_keep, data_size));
         if (src_tensor_length == 0) {
           GELOGD("Skip ref_input[%zu] with length %zu, no need to execute aclrtMemcpy.", i, arg_input.GetSize());
           input_mem_block.emplace_back(mem_block_to_keep);
           continue;
         }
-        MemcpyParam memcpy_param {ref_input->GetAddr(), data_size, const_cast<void *>(arg_input.GetAddr()),
-                              src_tensor_length, idx++};
+        MemcpyParam memcpy_param{ref_input->GetAddr(), data_size, const_cast<void *>(arg_input.GetAddr()),
+                                 src_tensor_length, idx++};
         TensorTransUtils::AddMemcpyBatchParam(memcpy_param, memcpy_batch_params_);
       } else {
-        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(allocator, arg_input.GetAddr(),
-            arg_input.GetSize(), *ref_input, mem_block_to_keep));
+        GE_ASSERT_SUCCESS(TensorTransUtils::HostTensorToDeviceGertTensor(
+            allocator, arg_input.GetAddr(), arg_input.GetSize(), *ref_input, mem_block_to_keep));
         GE_ASSERT_NOTNULL(mem_block_to_keep);
       }
 

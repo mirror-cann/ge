@@ -21,7 +21,7 @@ int64_t GetOpIndexKernel(const domi::TaskDef &task_def) {
 }
 
 int64_t GetOpIndexDefault(const domi::TaskDef &task_def) {
-  (void) task_def;
+  (void)task_def;
   return -1;
 }
 
@@ -45,7 +45,8 @@ const TypeToEngineNameToGetOpIndexFunc kTaskTypeToEngineNameToGetOpIndexFunc = {
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_EVENT_WAIT), {kPreEngineDefault, &GetOpIndexDefault}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_SWITCH), {kPreEngineDefault, &GetOpIndexDefault}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_ACTIVE), {kPreEngineDefault, &GetOpIndexDefault}},
-    {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX), {kPreEngineNanoAiCore, &GetOpIndexSwitchByIndex}},
+    {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX),
+     {kPreEngineNanoAiCore, &GetOpIndexSwitchByIndex}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO), {kPreEngineNanoAiCore, GetOpIndexLabelGoto}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SET), {kPreEngineDefault, &GetOpIndexDefault}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_LABEL_SWITCH), {kPreEngineDefault, &GetOpIndexDefault}},
@@ -55,7 +56,7 @@ const TypeToEngineNameToGetOpIndexFunc kTaskTypeToEngineNameToGetOpIndexFunc = {
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FUSION_START), {kPreEngineDefault, &GetOpIndexDefault}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FUSION_END), {kPreEngineDefault, &GetOpIndexDefault}},
     {static_cast<uint32_t>(ModelTaskType::MODEL_TASK_END_GRAPH), {kPreEngineDefault, &GetOpIndexDefault}}};
-}
+}  // namespace
 void PreDavinciModel::Assign(const GeModelPtr &ge_model) {
   ge_model_ = ge_model;
 }
@@ -85,17 +86,17 @@ Status PreDavinciModel::Init() {
   return SUCCESS;
 }
 
-void LogSegmentedMessage(const std::string& message, const std::string& prefix = "") {
-    const size_t max_log_string_len = 800U;
-    size_t index = 0U;
+void LogSegmentedMessage(const std::string &message, const std::string &prefix = "") {
+  const size_t max_log_string_len = 800U;
+  size_t index = 0U;
 
-    std::string full_message = prefix + message;
+  std::string full_message = prefix + message;
 
-    while (index < full_message.length()) {
-        std::string segment = full_message.substr(index, max_log_string_len);
-        GELOGE(FAILED, "%s", segment.c_str());
-        index += max_log_string_len;
-    }
+  while (index < full_message.length()) {
+    std::string segment = full_message.substr(index, max_log_string_len);
+    GELOGE(FAILED, "%s", segment.c_str());
+    index += max_log_string_len;
+  }
 }
 
 Status PreDavinciModel::DoTaskSink(const EngineType engine_type) {
@@ -185,10 +186,12 @@ Status PreDavinciModel::GetEngineNameAndOpDesc(const EngineType engine_type, con
     GELOGD("GetEngineName engine_type:%u, task_type:%u, kernel_type:%u.", engine_type, task_type, kernel_type);
     switch (engine_type) {
       case EngineType::kDefaultEngine:
-        ret = GetEngineNameAndOpDescByType(kernel_type, kKernelTypeToEngineNameToGetOpIndexFunc, task_def, engine_name, op_desc);
+        ret = GetEngineNameAndOpDescByType(kernel_type, kKernelTypeToEngineNameToGetOpIndexFunc, task_def, engine_name,
+                                           op_desc);
         break;
       case EngineType::kNanoEngine:
-        ret = GetEngineNameAndOpDescByType(kernel_type, kKernelTypeToNanoEngineNameToGetOpIndexFunc, task_def, engine_name, op_desc);
+        ret = GetEngineNameAndOpDescByType(kernel_type, kKernelTypeToNanoEngineNameToGetOpIndexFunc, task_def,
+                                           engine_name, op_desc);
         break;
       default:
         GELOGE(FAILED, "there are unsupported engine_type in the model, engine_type:%u, kernel_type:%u.", engine_type,
@@ -200,7 +203,8 @@ Status PreDavinciModel::GetEngineNameAndOpDesc(const EngineType engine_type, con
     switch (engine_type) {
       case EngineType::kDefaultEngine:
       case EngineType::kNanoEngine:
-        ret = GetEngineNameAndOpDescByType(task_type, kTaskTypeToEngineNameToGetOpIndexFunc, task_def, engine_name, op_desc);
+        ret = GetEngineNameAndOpDescByType(task_type, kTaskTypeToEngineNameToGetOpIndexFunc, task_def, engine_name,
+                                           op_desc);
         break;
       default:
         GELOGE(FAILED, "there are unsupported engine_type in the model, engine_type:%u, task_type:%u.", engine_type,
@@ -217,11 +221,9 @@ Status PreDavinciModel::GetEngineNameAndOpDesc(const EngineType engine_type, con
   return SUCCESS;
 }
 
-Status PreDavinciModel::GetEngineNameAndOpDescByType(const uint32_t type,
-                                                     const TypeToEngineNameToGetOpIndexFunc &type_to_engine_name_to_get_op_index_func,
-                                                     const domi::TaskDef &task_def,
-                                                     std::string &engine_name,
-                                                     OpDescPtr &op_desc) const {
+Status PreDavinciModel::GetEngineNameAndOpDescByType(
+    const uint32_t type, const TypeToEngineNameToGetOpIndexFunc &type_to_engine_name_to_get_op_index_func,
+    const domi::TaskDef &task_def, std::string &engine_name, OpDescPtr &op_desc) const {
   const auto it = type_to_engine_name_to_get_op_index_func.find(type);
   if (it == type_to_engine_name_to_get_op_index_func.end()) {
     GELOGE(FAILED, "[Call][GetEngineNameAndOpDescByType] failed find engine name from type:%u.", type);
@@ -230,7 +232,7 @@ Status PreDavinciModel::GetEngineNameAndOpDescByType(const uint32_t type,
 
   engine_name = it->second.first;
   op_desc = nullptr;
-  int64_t op_index =  it->second.second(task_def);
+  int64_t op_index = it->second.second(task_def);
   if (op_index != -1) {
     op_desc = GetOpByIndex(static_cast<uint32_t>(op_index));
     GE_ASSERT_NOTNULL(op_desc, "[Call][GetOpByIndex] get op fail, op index is %u", op_index);

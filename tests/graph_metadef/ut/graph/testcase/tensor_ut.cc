@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,10 +96,7 @@ TEST_F(TensorUT, Construct1_General) {
             t2.impl_->tensor_def_.GetProtoMsg()->data().data());
 }
 TEST_F(TensorUT, Construct2_CopyDesc) {
-  EXPECT_NO_THROW(
-    GeTensorDesc desc;
-    GeTensor t1(desc);
-  );
+  EXPECT_NO_THROW(GeTensorDesc desc; GeTensor t1(desc););
 }
 TEST_F(TensorUT, Construct3_ExceptionalScenes) {
   GeIrProtoHelper<ge::proto::TensorDef> helper;
@@ -420,7 +417,6 @@ TEST_F(TensorUT, GeTensorSerializeUtils_Dtype) {
   EXPECT_EQ(dtype, ge::DT_DUAL);
 }
 
-
 TEST_F(TensorUT, GeTensorSerializeUtils_GeTensor) {
   GeShape shape({1, 2, 3, 4});
   GeTensorDesc desc(shape, FORMAT_NC1HWC0, DT_FLOAT16);
@@ -538,13 +534,13 @@ TEST_F(AscendStringUT, EmptyValueCompare) {
 TEST_F(TensorUT, TensorUtils_GetSteExtMeta) {
   GeTensorDesc desc;
 
-#define TEST_EXT_META_INNER(NAME, TYPE, V, V1)                                                                         \
-  do {                                                                                                                 \
-    TYPE v = V;                                                                                                        \
-    TYPE v1 = V1;                                                                                                      \
-    TensorUtils::Set##NAME(desc, v);                                                                                   \
-    TensorUtils::Get##NAME(desc, v1);                                                                                  \
-    EXPECT_EQ(v, v1);                                                                                                  \
+#define TEST_EXT_META_INNER(NAME, TYPE, V, V1) \
+  do {                                         \
+    TYPE v = V;                                \
+    TYPE v1 = V1;                              \
+    TensorUtils::Set##NAME(desc, v);           \
+    TensorUtils::Get##NAME(desc, v1);          \
+    EXPECT_EQ(v, v1);                          \
   } while (false)
 
 #define TEST_EXT_META_INT64(NAME) TEST_EXT_META_INNER(NAME, int64_t, 0, -1);
@@ -611,7 +607,7 @@ TEST_F(TensorUT, Tensor_SetData) {
   EXPECT_EQ(t4.SetData(str2), GRAPH_SUCCESS);
 
   Tensor t5;
-  const char * str3[3] = {"123", "456", "789"};
+  const char *str3[3] = {"123", "456", "789"};
   std::vector<AscendString> vec_asc_str;
   for (uint8_t i = 0; i < 3; ++i) {
     vec_asc_str.push_back(AscendString(str3[i]));
@@ -627,12 +623,12 @@ TEST_F(TensorUT, Shape_SetDim) {
   EXPECT_EQ(shape1.SetDim(idx, value), GRAPH_FAILED);
 
   std::vector<int64_t> dims;
-  for(int64_t i = 0; i < 3; i++) {
+  for (int64_t i = 0; i < 3; i++) {
     dims.push_back(i);
   }
 
   Shape shape2(dims);
-   EXPECT_EQ(shape2.SetDim(idx, value), GRAPH_SUCCESS);
+  EXPECT_EQ(shape2.SetDim(idx, value), GRAPH_SUCCESS);
 }
 
 TEST_F(TensorUT, TensorDesc_Construct1) {
@@ -667,11 +663,8 @@ TEST_F(TensorUT, TensorDesc_GetSetShape) {
 }
 
 TEST_F(TensorUT, TensorDesc_SetDataType) {
-  EXPECT_NO_THROW(
-    std::vector<int64_t> shape{3};
-    TensorDesc tensor_desc1(Shape(shape), FORMAT_ND, DT_UINT8);
-    tensor_desc1.SetDataType(DT_UINT16);
-  );
+  EXPECT_NO_THROW(std::vector<int64_t> shape{3}; TensorDesc tensor_desc1(Shape(shape), FORMAT_ND, DT_UINT8);
+                  tensor_desc1.SetDataType(DT_UINT16););
 }
 
 TEST_F(TensorUT, TensorDesc_GetSetName) {
@@ -683,7 +676,6 @@ TEST_F(TensorUT, TensorDesc_GetSetName) {
   tensor_desc1.GetName(name);
   EXPECT_EQ(name, AscendString("abc"));
 }
-
 
 TEST_F(TensorUT, TensorDesc_get_set_expand_dims_rule) {
   TensorDesc td;
@@ -724,11 +716,11 @@ TEST_F(TensorUT, Tensor_AsGeTensorImpl) {
   auto ret = t1.SetTensorDesc(tensor_desc1);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 
-  const GeTensor* gt_impl = TensorAdapter::AsBareGeTensorPtr(t1);
+  const GeTensor *gt_impl = TensorAdapter::AsBareGeTensorPtr(t1);
   EXPECT_NE(gt_impl, nullptr);
-  
+
   t1.impl = nullptr;
-  const GeTensor* gt_impl_2 = TensorAdapter::AsBareGeTensorPtr(t1);
+  const GeTensor *gt_impl_2 = TensorAdapter::AsBareGeTensorPtr(t1);
   EXPECT_EQ(gt_impl_2, nullptr);
 }
 

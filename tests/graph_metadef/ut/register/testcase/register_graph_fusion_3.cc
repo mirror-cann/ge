@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,7 +59,7 @@ static const string OP_TYPE_NETOUTPUT = "NetOutput";
 vector<FusionPattern *> SwapMergeCastFusionTestPass3::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("SwapMergeCastFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("SwapMergeCastFusionPattern");
 
   pattern->AddOpDesc(PATTERN_MERGE, {OP_TYPE_MERGE})
       .AddOpDesc(PATTERN_CAST, {OP_TYPE_CAST})
@@ -116,11 +116,8 @@ Status SwapMergeCastFusionTestPass3::Fusion(ge::ComputeGraph &graph, Mapping &ma
     }                                                   \
   } while (0)
 
-
-Status
-SwapMergeCastFusionTestPass3::AddCastNodeBeforeMergeNode(const ge::NodePtr &merge_node,
-                                                        ge::OpDescPtr &cast_op_desc,
-                                                        ge::ComputeGraph &graph) {
+Status SwapMergeCastFusionTestPass3::AddCastNodeBeforeMergeNode(const ge::NodePtr &merge_node,
+                                                                ge::OpDescPtr &cast_op_desc, ge::ComputeGraph &graph) {
   ge::OpDescPtr merge_op_desc = merge_node->GetOpDesc();
   ge::DataType cast_out_d_type = cast_op_desc->MutableOutputDesc(0)->GetDataType();
   merge_op_desc->MutableOutputDesc(0)->SetDataType(cast_out_d_type);
@@ -180,7 +177,7 @@ SwapMergeCastFusionTestPass3::AddCastNodeBeforeMergeNode(const ge::NodePtr &merg
 }
 
 Status SwapMergeCastFusionTestPass3::RelinkMergeNode(const ge::NodePtr &merge_node, const ge::NodePtr &cast_node,
-                                                    const ge::NodePtr &netout_node) {
+                                                     const ge::NodePtr &netout_node) {
   ge::InDataAnchorPtr netout_in_data_anchor = cast_node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0);
   cast_node->GetInDataAnchor(0)->UnlinkAll();
   cast_node->GetOutDataAnchor(0)->UnlinkAll();
@@ -217,8 +214,8 @@ Status SwapMergeCastFusionTestPass3::RelinkMergeNode(const ge::NodePtr &merge_no
   return SUCCESS;
 }
 
-Status SwapMergeCastFusionTestPass3::VerifyNodes(const ge::NodePtr &merge_node,
-                                                ge::NodePtr &cast_node, ge::NodePtr &netout_node) const {
+Status SwapMergeCastFusionTestPass3::VerifyNodes(const ge::NodePtr &merge_node, ge::NodePtr &cast_node,
+                                                 ge::NodePtr &netout_node) const {
   UT_CHECK(merge_node == nullptr, GE_LOGE("[GraphOpt][SwapMrgCastFus][VerifyNd] Merge node is nullptr."),
            return PARAM_INVALID);
 
@@ -255,12 +252,9 @@ using namespace fe;
 
 class UTESTGraphFusionPass3 : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-
-  }
+  void TearDown() {}
 
  protected:
   static ComputeGraphPtr CreateSwapMergeCastGraph1() {
@@ -273,7 +267,7 @@ class UTESTGraphFusionPass3 : public testing::Test {
     ge::OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
     ge::OpDescPtr op_desc_other = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -419,7 +413,7 @@ class UTESTGraphFusionPass3 : public testing::Test {
     ge::OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
     ge::OpDescPtr op_desc_other = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -518,7 +512,7 @@ class UTESTGraphFusionPass3 : public testing::Test {
 
     ge::OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -612,8 +606,7 @@ class UTESTGraphFusionPass3 : public testing::Test {
 
     ge::NodePtr node_netoutput = graph->AddNode(op_desc_netoutput);
 
-    std::shared_ptr<fe::NodeMapInfo> node_map_info =
-        std::make_shared<NodeMapInfo>();
+    std::shared_ptr<fe::NodeMapInfo> node_map_info = std::make_shared<NodeMapInfo>();
     node_map_info->node_type_map = std::make_shared<NodeTypeMap>();
 
     std::map<std::string, ge::NodePtr> map_relu;
@@ -709,7 +702,6 @@ TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_2) {
   pass.SetName("test");
   status = pass.Run(*graph);
 
-
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
 
@@ -745,7 +737,6 @@ TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_5) {
 
   pass.SetName("test");
   status = pass.Run(*graph);
-
 
   EXPECT_EQ(fe::SUCCESS, status);
   vector<int64_t> dim_a = {8, 4, 16, 16};
@@ -786,7 +777,6 @@ TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_5) {
   }
 }
 
-
 TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_6) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph6();
 
@@ -796,7 +786,6 @@ TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_6) {
 
   pass.SetName("test");
   status = pass.Run(*graph);
-
 
   EXPECT_EQ(fe::SUCCESS, status);
   vector<int64_t> dim_a = {8, 4, 16, 16};
@@ -836,4 +825,4 @@ TEST_F(UTESTGraphFusionPass3, UTESTGraphFusionPass3_6) {
     }
   }
 }
-}
+}  // namespace fe

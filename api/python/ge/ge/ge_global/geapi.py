@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -18,13 +18,13 @@ import ctypes
 from ge._capi.pygeapi_wrapper import geapi_lib
 from ge.error import raise_ge_error
 
-class GeApi:
 
+class GeApi:
     def __init__(self):
         pass
+
     @classmethod
     def ge_initialize(cls, config: dict) -> None:
-
         """Initialize GE, prepare for execution
 
         Args:
@@ -45,7 +45,8 @@ class GeApi:
         ret = geapi_lib.GeApiWrapper_GEInitialize(
             ctypes.cast(c_array_key, ctypes.POINTER(ctypes.c_char_p)),
             ctypes.cast(c_array_value, ctypes.POINTER(ctypes.c_char_p)),
-            len(keys))
+            len(keys),
+        )
         if ret != 0:
             raise_ge_error("GEInitialize", ret)
         return ret
@@ -62,16 +63,16 @@ class GeApi:
 
     def _python_list_to_c_array(self, python_list: list):
         """
-            Convert python list to c array
+        Convert python list to c array
 
-            Parameters:
-                python_list: python list.
+        Parameters:
+            python_list: python list.
 
-            Returns:
-                c_array: c array.
+        Returns:
+            c_array: c array.
         """
         size = len(python_list)
         c_array = (ctypes.c_char_p * size)()
-        for i , item in enumerate(python_list):
-            c_array[i] = item.encode('utf-8')
+        for i, item in enumerate(python_list):
+            c_array[i] = item.encode("utf-8")
         return c_array

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@
 
 namespace gert {
 class OpJsonBinHandler {
-public:
+ public:
   OpJsonBinHandler() = default;
   virtual ~OpJsonBinHandler() {
     std::unique_lock lock(bin_mutex_);
@@ -37,7 +37,8 @@ public:
   }
 
   static bool IsSupportBinHandle();
-private:
+
+ private:
   mutable std::shared_mutex bin_mutex_{};
   rtBinHandle bin_handle_ = nullptr;
 
@@ -46,7 +47,7 @@ private:
 };
 
 class OpDataBinHandler {
-public:
+ public:
   OpDataBinHandler() = default;
   virtual ~OpDataBinHandler() {
     std::unique_lock lock(bin_mutex_);
@@ -59,31 +60,31 @@ public:
     return bin_handle_;
   }
 
-private:
+ private:
   mutable std::shared_mutex bin_mutex_{};
   rtBinHandle bin_handle_ = nullptr;
 };
 
 class TfJsonBinHandler : public OpJsonBinHandler {
-public:
+ public:
   static TfJsonBinHandler &Instance();
 };
 
 class AicpuJsonBinHandler : public OpJsonBinHandler {
-public:
+ public:
   static AicpuJsonBinHandler &Instance();
 };
 
 using OpDataBinHandlerPtr = std::shared_ptr<OpDataBinHandler>;
 
 class CustBinHandlerManager {
-public:
+ public:
   static CustBinHandlerManager &Instance();
   ge::graphStatus LoadAndGetBinHandle(const std::string &so_name, const ge::OpKernelBinPtr &kernel_bin,
                                       rtBinHandle &handle);
   ge::graphStatus GetBinHandle(const std::string &so_name, rtBinHandle &handle);
 
-private:
+ private:
   CustBinHandlerManager() = default;
   ~CustBinHandlerManager() = default;
 
@@ -101,6 +102,6 @@ private:
   std::unordered_map<uintptr_t, std::unordered_map<std::string, OpDataBinHandlerPtr>> bin_manager_ = {};
   std::unordered_map<std::string, ge::OpKernelBinPtr> kernel_manager_ = {};
 };
-} // namespace gert
+}  // namespace gert
 
-#endif // AIR_CXX_RUNTIME_V2_KERNEL_LAUNCH_KERNEL_AICPU_BIN_HANDLER_H_
+#endif  // AIR_CXX_RUNTIME_V2_KERNEL_LAUNCH_KERNEL_AICPU_BIN_HANDLER_H_

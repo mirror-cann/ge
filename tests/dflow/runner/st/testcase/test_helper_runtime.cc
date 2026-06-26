@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -114,60 +114,60 @@ using namespace ge;
 using namespace gert;
 
 namespace {
-  int32_t AicpuLoadModelWithQStub(void *ptr) {
-    (void) ptr;
-    return 0;
-  }
-
-  int32_t AICPUModelDestroyStub(uint32_t modelId) {
-    (void) modelId;
-    return 0;
-  }
-
-  int32_t InitCpuSchedulerStub(const CpuSchedInitParam *const initParam) {
-    (void) initParam;
-    return 0;
-  }
-
-  int32_t AicpuLoadModelStub(void *ptr) {
-    (void) ptr;
-    return 0;
-  }
-
-  int32_t AICPUModelStopStub(const ReDeployConfig *const reDeployConfig) {
-    (void) reDeployConfig;
-    return 0;
-  }
-
-  int32_t AICPUModelClearInputAndRestartStub(const ReDeployConfig *const reDeployConfig) {
-    (void) reDeployConfig;
-    return 0;
-  }
-
-  int32_t AICPUModelCheckKernelSupportedStub(const CheckKernelSupportedConfig * const cfgPtr) {
-    *(reinterpret_cast<int32_t *>(reinterpret_cast<uintptr_t>(cfgPtr->checkResultAddr))) = 0;
-    return 0;
-  }
-
-  int32_t AICPUModelProcessDataExceptionStub(const DataFlowExceptionNotify *const notify) {
-    (void)notify;
-    return 0;
-  }
-
-  int32_t DestroyHccl() {
-    return 0;
-  }
-
-  uint32_t TsdGetProcStatusExited(const uint32_t device_id, ProcStatusParam *status, uint32_t num) {
-    for (uint32_t i = 0; i < num; ++i) {
-      status[i].curStat = SUB_PROCESS_STATUS_EXITED;
-    }
-    return 0U;
-  }
-  uint32_t TsdGetProcStatusFailed(const uint32_t device_id, ProcStatusParam *status, uint32_t num) {
-    return 100U;
-  }
+int32_t AicpuLoadModelWithQStub(void *ptr) {
+  (void)ptr;
+  return 0;
 }
+
+int32_t AICPUModelDestroyStub(uint32_t modelId) {
+  (void)modelId;
+  return 0;
+}
+
+int32_t InitCpuSchedulerStub(const CpuSchedInitParam *const initParam) {
+  (void)initParam;
+  return 0;
+}
+
+int32_t AicpuLoadModelStub(void *ptr) {
+  (void)ptr;
+  return 0;
+}
+
+int32_t AICPUModelStopStub(const ReDeployConfig *const reDeployConfig) {
+  (void)reDeployConfig;
+  return 0;
+}
+
+int32_t AICPUModelClearInputAndRestartStub(const ReDeployConfig *const reDeployConfig) {
+  (void)reDeployConfig;
+  return 0;
+}
+
+int32_t AICPUModelCheckKernelSupportedStub(const CheckKernelSupportedConfig *const cfgPtr) {
+  *(reinterpret_cast<int32_t *>(reinterpret_cast<uintptr_t>(cfgPtr->checkResultAddr))) = 0;
+  return 0;
+}
+
+int32_t AICPUModelProcessDataExceptionStub(const DataFlowExceptionNotify *const notify) {
+  (void)notify;
+  return 0;
+}
+
+int32_t DestroyHccl() {
+  return 0;
+}
+
+uint32_t TsdGetProcStatusExited(const uint32_t device_id, ProcStatusParam *status, uint32_t num) {
+  for (uint32_t i = 0; i < num; ++i) {
+    status[i].curStat = SUB_PROCESS_STATUS_EXITED;
+  }
+  return 0U;
+}
+uint32_t TsdGetProcStatusFailed(const uint32_t device_id, ProcStatusParam *status, uint32_t num) {
+  return 100U;
+}
+}  // namespace
 
 vector<int8_t> placeholder(224U * 224U * sizeof(int64_t) * 10);
 bool enqueue_dequeue_error_flag = false;
@@ -207,7 +207,8 @@ class MockRuntime : public RuntimeStub {
     mbuf_tensor_desc.data_addr = static_cast<int64_t>(reinterpret_cast<intptr_t>(outBuf->buffInfo->addr));
     if (memcpy_s(outBuf->buffInfo->addr, sizeof(RuntimeTensorDesc), &mbuf_tensor_desc, sizeof(RuntimeTensorDesc)) !=
         EOK) {
-      printf("Failed to copy mbuf data, dst size:%zu, src size:%zu\n", outBuf->buffInfo->len, sizeof(RuntimeTensorDesc));
+      printf("Failed to copy mbuf data, dst size:%zu, src size:%zu\n", outBuf->buffInfo->len,
+             sizeof(RuntimeTensorDesc));
       return -1;
     }
     return 0;
@@ -262,10 +263,7 @@ class MockRuntime : public RuntimeStub {
     return 0;
   }
 
-  rtError_t rtEschedWaitEvent(int32_t device_id,
-                              uint32_t group_id,
-                              uint32_t thread_id,
-                              int32_t timeout,
+  rtError_t rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                               rtEschedEventSummary_t *event) override {
     event->subeventId = 0;
     return RT_ERROR_NONE;
@@ -283,8 +281,8 @@ class ModelHandleMock2 : public ExecutorContext::ModelHandle {
 
   MOCK_METHOD1(ClearModel, Status(const int32_t));
   MOCK_METHOD2(ExceptionNotify, Status(uint32_t, uint64_t));
-  MOCK_METHOD2(GetModelRuntimeIdOrHandle, Status(std::vector<uint32_t> &,
-    std::vector<ExecutorContext::ModelHandle *> &));
+  MOCK_METHOD2(GetModelRuntimeIdOrHandle,
+               Status(std::vector<uint32_t> &, std::vector<ExecutorContext::ModelHandle *> &));
 };
 
 class RuntimeMock : public RuntimeStub {
@@ -300,7 +298,7 @@ class AclRuntimeMock : public AclRuntimeStub {
     return 10;
   }
 };
-}
+}  // namespace
 
 class GrpcServer {
   class MockDeployerMessageClient : public DeployerMessageClient {
@@ -325,7 +323,8 @@ class GrpcServer {
       return MakeShared<MockDeployerMessageClient>(0);
     }
 
-    Status ProcessDeployRequest(const deployer::DeployerRequest &request, deployer::DeployerResponse &response) override {
+    Status ProcessDeployRequest(const deployer::DeployerRequest &request,
+                                deployer::DeployerResponse &response) override {
       GE_CHK_STATUS_RET_NOLOG(DeployerServiceImpl::GetInstance().Process(context_, request, response));
       return SUCCESS;
     }
@@ -383,13 +382,16 @@ class GrpcServer {
 class MockDynamicModelExecutor : public DynamicModelExecutor {
  public:
   MockDynamicModelExecutor(bool is_host, int32_t load_mode) : DynamicModelExecutor(is_host), load_mode_(load_mode) {}
-  void SetIsHost(const bool is_host) { is_host_ = is_host; }
+  void SetIsHost(const bool is_host) {
+    is_host_ = is_host;
+  }
+
  protected:
   Status DoLoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph) override {
     if (load_mode_ == kLoadSyncEventModel) {
       return SUCCESS;
     }
-    (void) DynamicModelExecutor::DoLoadModel(model_data, root_graph);
+    (void)DynamicModelExecutor::DoLoadModel(model_data, root_graph);
     model_id_ = 2;
     aicpu_model_id_ = 1021;
     auto hybrid_model = std::make_shared<hybrid::HybridDavinciModel>();
@@ -398,13 +400,14 @@ class MockDynamicModelExecutor : public DynamicModelExecutor {
   }
 
   Status DoExecuteModel(const std::vector<DataBuffer> &inputs, std::vector<DataBuffer> &outputs) override {
-    (void) DynamicModelExecutor::DoExecuteModel(inputs, outputs);
+    (void)DynamicModelExecutor::DoExecuteModel(inputs, outputs);
     output_tensor_descs_.resize(1);
     std::vector<int64_t> dims{1, 8};
     output_tensor_descs_[0].SetShape(GeShape(dims));
     output_tensor_descs_[0].SetOriginShape(GeShape(dims));
     return SUCCESS;
   }
+
  private:
   int32_t load_mode_{};
 };
@@ -413,7 +416,7 @@ class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
  public:
   explicit MockProxyDynamicModelExecutor() : ProxyDynamicModelExecutor() {};
   Status DoExecuteModel(const std::vector<DataBuffer> &inputs, std::vector<DataBuffer> &outputs) override {
-    (void) DynamicModelExecutor::DoExecuteModel(inputs, outputs);
+    (void)DynamicModelExecutor::DoExecuteModel(inputs, outputs);
     DataBuffer &data_buffer = outputs[0];
     if (data_buffer.data == nullptr) {
       data_buffer.data = output_buffer_;
@@ -428,14 +431,16 @@ class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
     return SUCCESS;
   }
 
-  void UnloadModel() {  
-    (void) DynamicModelExecutor::UnloadModel();
+  void UnloadModel() {
+    (void)DynamicModelExecutor::UnloadModel();
     ModelManager::GetInstance().DeleteModel(model_id_);
   }
+
  private:
   void Dispatcher() override {
     return;
   }
+
  private:
   uint8_t output_buffer_[8];
 };
@@ -443,15 +448,17 @@ class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
 class MockModelHandle : public ExecutorContext::ModelHandle {
  public:
   MockModelHandle(int32_t load_mode) : ModelHandle(), load_mode_(load_mode) {}
+
  protected:
   unique_ptr<DynamicModelExecutor> CreateDynamicModelExecutor(bool is_host) override {
-    (void) ModelHandle::CreateDynamicModelExecutor(is_host);
+    (void)ModelHandle::CreateDynamicModelExecutor(is_host);
     return MakeUnique<MockDynamicModelExecutor>(is_host, load_mode_);
   }
 
   unique_ptr<ProxyDynamicModelExecutor> CreateProxyDynamicModelExecutor() override {
     return MakeUnique<MockProxyDynamicModelExecutor>();
   }
+
  private:
   int32_t load_mode_{};
 };
@@ -460,6 +467,7 @@ class MockExecutorContext : public ExecutorContext {
  public:
   MockExecutorContext() : ExecutorContext() {}
   MockExecutorContext(int32_t load_mode) : ExecutorContext(), load_mode_(load_mode) {}
+
  protected:
   ExecutorContext::ModelHandle *GetOrCreateModelHandle(uint32_t root_model_id, uint32_t model_id) override {
     std::lock_guard<std::mutex> lk(mu_);
@@ -490,7 +498,8 @@ class MockExecutorMessageClient : public ExecutorMessageClient {
     event_handler_.context_ = MakeUnique<MockExecutorContext>();
     event_handler_.context_->SetBaseDir(base_dir);
   }
-  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp, int64_t timeout) override {
+  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp,
+                     int64_t timeout) override {
     event_handler_.HandleEvent(const_cast<deployer::ExecutorRequest &>(request), resp);
     WaitResponse(resp, -1);
     return SUCCESS;
@@ -530,7 +539,7 @@ class MockHostCpuExecutorClient : public BuiltinExecutorClient {
  protected:
   Status ForAndInit(int32_t device_id, std::unique_ptr<ExecutorMessageClient> &executor_process) override {
     executor_process = MakeUnique<MockExecutorMessageClient>();
-    std::map<std::string, std::string> options {
+    std::map<std::string, std::string> options{
         {"ge.exec.placement", "HOST"},
     };
     ge::GetThreadLocalContext().SetGlobalOption(options);
@@ -543,10 +552,8 @@ class MockUdfExecutorClient : public UdfExecutorClient {
   explicit MockUdfExecutorClient(int32_t device_id) : UdfExecutorClient(device_id) {}
 
  protected:
-  Status LoadProcess(
-      const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
-      const std::string &msg_file_path,
-      const std::string &group_name) {
+  Status LoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
+                     const std::string &msg_file_path, const std::string &group_name) {
     return SUCCESS;
   }
 };
@@ -590,28 +597,28 @@ class MockMmpa2 : public MockMmpa {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
     if (std::string(file_name) == "libaicpu_scheduler.so") {
-      return (void *) 0x12345678;
+      return (void *)0x12345678;
     }
     return MockMmpa::DlOpen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "AicpuLoadModelWithQ") {
-      return (void *) &AicpuLoadModelWithQStub;
+      return (void *)&AicpuLoadModelWithQStub;
     } else if (std::string(func_name) == "AICPUModelDestroy") {
-      return (void *) &AICPUModelDestroyStub;
+      return (void *)&AICPUModelDestroyStub;
     } else if (std::string(func_name) == "InitCpuScheduler") {
-      return (void *) &InitCpuSchedulerStub;
+      return (void *)&InitCpuSchedulerStub;
     } else if (std::string(func_name) == "AicpuLoadModel") {
-      return (void *) &AicpuLoadModelStub;
+      return (void *)&AicpuLoadModelStub;
     } else if (std::string(func_name) == "AICPUModelStop") {
-      return (void *) &AICPUModelStopStub;
+      return (void *)&AICPUModelStopStub;
     } else if (std::string(func_name) == "AICPUModelClearInputAndRestart") {
-      return (void *) &AICPUModelClearInputAndRestartStub;
+      return (void *)&AICPUModelClearInputAndRestartStub;
     } else if (std::string(func_name) == "TsdCapabilityGet") {
-      return (void *) &TsdCapabilityGet;
+      return (void *)&TsdCapabilityGet;
     } else if (std::string(func_name) == "CheckKernelSupported") {
-      return (void *) &AICPUModelCheckKernelSupportedStub;
+      return (void *)&AICPUModelCheckKernelSupportedStub;
     } else if (std::string(func_name) == "AICPUModelProcessDataException") {
       return (void *)&AICPUModelProcessDataExceptionStub;
     }
@@ -620,14 +627,14 @@ class MockMmpa2 : public MockMmpa {
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 0;
     }
     return MockMmpa::DlClose(handle);
   }
 };
 
-class MockRuntimeForClient: public RuntimeStub {
+class MockRuntimeForClient : public RuntimeStub {
  public:
   rtError_t rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf) override {
     return 0;
@@ -688,28 +695,28 @@ class MockMmpaUdfClient : public ge::MmpaStubApiGe {
   void *DlSym(void *handle, const char *func_name) override {
     std::cout << "func name:" << func_name << " begin to stub\n";
     if (std::string(func_name) == "TsdGetProcListStatus") {
-      return (void *) &TsdGetProcListStatus;
+      return (void *)&TsdGetProcListStatus;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdCapabilityGet") {
-      return (void *) &TsdCapabilityGet;
+      return (void *)&TsdCapabilityGet;
     }
     std::cout << "func name:" << func_name << " not stub\n";
-    return (void *) 0xFFFFFFFF;
+    return (void *)0xFFFFFFFF;
   }
 
   void *DlOpen(const char *fileName, int32_t mode) override {
     std::cout << "dlopen stub file name = " << fileName << std::endl;
     if (std::string(fileName) == "libtsdclient.so") {
-      return (void *) 0xFFFFFFFF;
+      return (void *)0xFFFFFFFF;
     }
     return dlopen(fileName, mode);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0xFFFFFFFF) {
+    if (handle == (void *)0xFFFFFFFF) {
       return 0;
     }
     return dlclose(handle);
@@ -718,8 +725,7 @@ class MockMmpaUdfClient : public ge::MmpaStubApiGe {
 
 class ModelDeployerMock : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     deploy_result.input_queue_attrs = {{1, 0, 0}, {2, 0, 0}, {3, 0, 0}};
     deploy_result.output_queue_attrs = {{4, 0, 0}};
     deploy_result.dev_abnormal_callback = []() -> Status { return SUCCESS; };
@@ -745,13 +751,12 @@ class ModelDeployerMock : public ModelDeployer {
 class MockRemoteDeployer : public RemoteDeployer {
  public:
   explicit MockRemoteDeployer(const NodeConfig &node_config) : RemoteDeployer(node_config) {}
-  MOCK_METHOD2(Process, Status(deployer::DeployerRequest & , deployer::DeployerResponse & ));
+  MOCK_METHOD2(Process, Status(deployer::DeployerRequest &, deployer::DeployerResponse &));
 };
 
 class ModelDeployerMock2 : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     deploy_result.input_queue_attrs = {};
     deploy_result.output_queue_attrs = {{1, 0, 0}};
     deploy_result.dev_abnormal_callback = []() -> Status { return SUCCESS; };
@@ -771,8 +776,7 @@ class ModelDeployerMock2 : public ModelDeployer {
     resources.device_info_map_[0][0][CPU] = &cpu_device;
     resources.device_info_map_[1][0][NPU] = &npu_device;
 
-    auto &remote_device =
-        reinterpret_cast<MockRemoteDeployer &>(*deployer_proxy.deployers_[1]);
+    auto &remote_device = reinterpret_cast<MockRemoteDeployer &>(*deployer_proxy.deployers_[1]);
     EXPECT_CALL(remote_device, Process).WillRepeatedly(Return(SUCCESS));
 
     EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
@@ -812,10 +816,10 @@ class ModelDeployerMock2 : public ModelDeployer {
     return SUCCESS;
   }
 
-
   Status Undeploy(uint32_t model_id) override {
     return SUCCESS;
   }
+
  public:
   MasterModelDeployer master_deployer_;
 };
@@ -870,9 +874,7 @@ class ExecutionRuntimeHeterogeneousMock2 : public ExecutionRuntime {
 
 class ExchangeServiceMock : public ExchangeService {
  public:
-  Status CreateQueue(int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     return 0;
   }
@@ -907,8 +909,8 @@ class ExchangeServiceMock : public ExchangeService {
   }
   MOCK_METHOD4(DequeueMbuf, Status(int32_t, uint32_t, rtMbufPtr_t *, int32_t));
   MOCK_METHOD5(Dequeue, Status(int32_t, uint32_t, void *, size_t, ControlInfo &));
-  MOCK_METHOD5(Enqueue, Status(const int32_t, const uint32_t, const size_t,
-      const ExchangeService::FillFunc &, const ExchangeService::ControlInfo &));
+  MOCK_METHOD5(Enqueue, Status(const int32_t, const uint32_t, const size_t, const ExchangeService::FillFunc &,
+                               const ExchangeService::ControlInfo &));
   uint32_t dequeue_tonsor_result = FAILED;
 };
 
@@ -938,7 +940,7 @@ class ExecutionRuntimeHeterogeneousMock4 : public ExecutionRuntime {
     GE_CHK_STATUS_RET_NOLOG(Configurations::GetInstance().InitInformation());
     GE_CHK_STATUS_RET_NOLOG(SubprocessManager::GetInstance().Initialize());
     GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufInit());
-    (void) MemoryGroupManager::GetInstance().Initialize(Configurations::GetInstance().GetLocalNode());
+    (void)MemoryGroupManager::GetInstance().Initialize(Configurations::GetInstance().GetLocalNode());
     GE_CHK_STATUS_RET(HeterogeneousExchangeService::GetInstance().Initialize(0), "Failed to init model deployer");
     GE_CHK_STATUS_RET(model_deployer_.Initialize(options), "Failed to init model deployer");
     GE_CHK_STATUS_RET(NumaConfigManager::InitNumaConfig(), "Failed to init numa config");
@@ -1019,10 +1021,10 @@ cp ./temp_udf_st/build/_test/X86/release/func_pp1_release.tar.gz ./temp_udf_st/b
       unsetenv("LD_PRELOAD");
     }
     st_dir_path = PathUtils::Join({EnvPath().GetAirBasePath(), "/tests/dflow/runner/st/"});
-    hybrid::NodeExecutorManager::GetInstance().
-        engine_mapping_.emplace("AiCoreLib", hybrid::NodeExecutorManager::ExecutorType::AICORE);
-    hybrid::NodeExecutorManager::GetInstance().
-        engine_mapping_.emplace("AicpuLib", hybrid::NodeExecutorManager::ExecutorType::AICPU_CUSTOM);
+    hybrid::NodeExecutorManager::GetInstance().engine_mapping_.emplace(
+        "AiCoreLib", hybrid::NodeExecutorManager::ExecutorType::AICORE);
+    hybrid::NodeExecutorManager::GetInstance().engine_mapping_.emplace(
+        "AicpuLib", hybrid::NodeExecutorManager::ExecutorType::AICPU_CUSTOM);
     MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
 
     PneExecutorClientCreatorRegistrar<MockPneExecutorClient> npu_registrar(PNE_ID_NPU);
@@ -1068,19 +1070,22 @@ cp ./temp_udf_st/build/_test/X86/release/func_pp1_release.tar.gz ./temp_udf_st/b
     json_file << npu_compiler_json << std::endl;
   }
 
-  ComputeGraphPtr BuildDynamicRootGraph(const std::vector<int64_t> &shape, bool add_align_attr = false, 
-                                                bool with_attr = true, bool with_file_constant = false) {
+  ComputeGraphPtr BuildDynamicRootGraph(const std::vector<int64_t> &shape, bool add_align_attr = false,
+                                        bool with_attr = true, bool with_file_constant = false) {
     vector<std::string> engine_list = {"AIcoreEngine"};
     ComputeGraphPtr root_graph = nullptr;
     auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 0);
     auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, shape);
     if (with_file_constant) {
-      (void) system("echo 1 > hello.bin");
-      auto neg = OP_CFG(FILECONSTANT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape)
-                          .Attr(ATTR_NAME_INDEX, 0)
-                          .Attr(ATTR_NAME_LOCATION, "hello.bin")
-                          .Attr(ATTR_NAME_OFFSET, 0)
-                          .Attr(ATTR_NAME_LENGTH, 2);
+      (void)system("echo 1 > hello.bin");
+      auto neg = OP_CFG(FILECONSTANT)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                     .Attr(ATTR_NAME_INDEX, 0)
+                     .Attr(ATTR_NAME_LOCATION, "hello.bin")
+                     .Attr(ATTR_NAME_OFFSET, 0)
+                     .Attr(ATTR_NAME_LENGTH, 2);
       DEF_GRAPH(graph) {
         CHAIN(NODE("Node_data_1", data)->EDGE(0, 0)->NODE("Neg", neg)->NODE("Node_output_1", netoutput));
       };
@@ -1118,62 +1123,61 @@ cp ./temp_udf_st/build/_test/X86/release/func_pp1_release.tar.gz ./temp_udf_st/b
   std::string env;
 };
 namespace {
-  PneModelPtr BuildPneModel(ComputeGraphPtr root_graph) {
-    GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-    EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
-    auto ge_model = MakeShared<ge::GeModel>();
-    auto model_task_def = MakeShared<domi::ModelTaskDef>();
-    model_task_def->set_version("test_v100_r001");
-    ge_model->SetModelTaskDef(model_task_def);
-    ge_model->SetName(root_graph->GetName());
-    ge_model->SetGraph(root_graph);
-    ge_root_model->SetModelName(root_graph->GetName());	
-    ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
-    bool is_unknown_shape = false;
-    auto ret = ge_root_model->CheckIsUnknownShape(is_unknown_shape);
-    EXPECT_EQ(ret, SUCCESS);
-    ModelBufferData model_buffer_data{};
-    const auto model_save_helper =
-        ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
-    EXPECT_NE(model_save_helper, nullptr);
-    model_save_helper->SetSaveMode(false);
-    ret = model_save_helper->SaveToOmRootModel(ge_root_model, "NoUse", model_buffer_data, is_unknown_shape);
-    EXPECT_EQ(ret, SUCCESS);
-    ModelData model_data{};
-    model_data.model_data = model_buffer_data.data.get();
-    model_data.model_len = model_buffer_data.length;
-    PneModelPtr pne_model = FlowModelHelper::ToPneModel(model_data, root_graph);
-    return pne_model;
-  }
-
-  ComputeGraphPtr BuildTwoInputDynamicRootGraph(const std::vector<int64_t> &shape, bool add_align_attr = false) {
-    vector<std::string> engine_list = {"AIcoreEngine"};
-    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 0);
-    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 1);
-    auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 2);
-    auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, shape);
-    DEF_GRAPH(graph) {
-      CHAIN(NODE("Node_data_1", data0)->EDGE(0, 0)->NODE("Neg", neg)->NODE("Node_output_1", netoutput));
-      CHAIN(NODE("Node_data_2", data1)->EDGE(0, 1)->NODE("Neg", neg));
-    };
-    auto root_graph = ToComputeGraph(graph);
-    auto output_node = root_graph->FindNode("Node_output_1");
-    output_node->GetOpDesc()->SetSrcIndex({2});
-    output_node->GetOpDesc()->SetSrcName({"neg"});
-    if (add_align_attr) {
-      auto data_node = root_graph->FindNode("Node_data_1");
-      NamedAttrs align_attr;
-      AttrUtils::SetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_INTERVAL, 10U);
-      AttrUtils::SetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_OFFSET, 5U);
-      AttrUtils::SetNamedAttrs(data_node->GetOpDesc(), ATTR_NAME_INPUTS_ALIGN_ATTR, align_attr);
-    }
-    auto netoutput_node = root_graph->FindNode("Node_output_1");
-    const auto &tensor_desc = netoutput_node->GetOpDesc()->MutableInputDesc(0U);
-    AttrUtils::SetInt(*tensor_desc, "_graph_output_max_size", 8);
-    root_graph->TopologicalSorting();
-    return root_graph;
-  }
+PneModelPtr BuildPneModel(ComputeGraphPtr root_graph) {
+  GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
+  EXPECT_EQ(ge_root_model->Initialize(root_graph), SUCCESS);
+  auto ge_model = MakeShared<ge::GeModel>();
+  auto model_task_def = MakeShared<domi::ModelTaskDef>();
+  model_task_def->set_version("test_v100_r001");
+  ge_model->SetModelTaskDef(model_task_def);
+  ge_model->SetName(root_graph->GetName());
+  ge_model->SetGraph(root_graph);
+  ge_root_model->SetModelName(root_graph->GetName());
+  ge_root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), ge_model);
+  bool is_unknown_shape = false;
+  auto ret = ge_root_model->CheckIsUnknownShape(is_unknown_shape);
+  EXPECT_EQ(ret, SUCCESS);
+  ModelBufferData model_buffer_data{};
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  EXPECT_NE(model_save_helper, nullptr);
+  model_save_helper->SetSaveMode(false);
+  ret = model_save_helper->SaveToOmRootModel(ge_root_model, "NoUse", model_buffer_data, is_unknown_shape);
+  EXPECT_EQ(ret, SUCCESS);
+  ModelData model_data{};
+  model_data.model_data = model_buffer_data.data.get();
+  model_data.model_len = model_buffer_data.length;
+  PneModelPtr pne_model = FlowModelHelper::ToPneModel(model_data, root_graph);
+  return pne_model;
 }
+
+ComputeGraphPtr BuildTwoInputDynamicRootGraph(const std::vector<int64_t> &shape, bool add_align_attr = false) {
+  vector<std::string> engine_list = {"AIcoreEngine"};
+  auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 0);
+  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 1);
+  auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 2);
+  auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, shape);
+  DEF_GRAPH(graph) {
+    CHAIN(NODE("Node_data_1", data0)->EDGE(0, 0)->NODE("Neg", neg)->NODE("Node_output_1", netoutput));
+    CHAIN(NODE("Node_data_2", data1)->EDGE(0, 1)->NODE("Neg", neg));
+  };
+  auto root_graph = ToComputeGraph(graph);
+  auto output_node = root_graph->FindNode("Node_output_1");
+  output_node->GetOpDesc()->SetSrcIndex({2});
+  output_node->GetOpDesc()->SetSrcName({"neg"});
+  if (add_align_attr) {
+    auto data_node = root_graph->FindNode("Node_data_1");
+    NamedAttrs align_attr;
+    AttrUtils::SetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_INTERVAL, 10U);
+    AttrUtils::SetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_OFFSET, 5U);
+    AttrUtils::SetNamedAttrs(data_node->GetOpDesc(), ATTR_NAME_INPUTS_ALIGN_ATTR, align_attr);
+  }
+  auto netoutput_node = root_graph->FindNode("Node_output_1");
+  const auto &tensor_desc = netoutput_node->GetOpDesc()->MutableInputDesc(0U);
+  AttrUtils::SetInt(*tensor_desc, "_graph_output_max_size", 8);
+  root_graph->TopologicalSorting();
+  return root_graph;
+}
+}  // namespace
 
 static void StartServer(ge::GrpcServer &grpc_server) {
   auto res = grpc_server.Run();
@@ -1185,14 +1189,11 @@ static void StartServer(ge::GrpcServer &grpc_server) {
 
 class MockRuntimeForSharedContent : public RuntimeStub {
  public:
-  rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output) {
+  rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
     return 1;
   }
 
-  rtError_t rtEschedWaitEvent(int32_t device_id,
-                              uint32_t group_id,
-                              uint32_t thread_id,
-                              int32_t timeout,
+  rtError_t rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                               rtEschedEventSummary_t *event) override {
     event->subeventId = 0;
     return RT_ERROR_NONE;
@@ -1335,8 +1336,8 @@ TEST_F(STEST_helper_runtime, ExecutorProcessFinalize) {
 
 TEST_F(STEST_helper_runtime, TestDeployModel) {
   RuntimeStub::SetInstance(std::make_shared<MockRuntime>());
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &MockInitializeHeterogeneousRuntime;
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&MockInitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -1382,22 +1383,24 @@ TEST_F(STEST_helper_runtime, TestDeployModel) {
 }
 
 TEST_F(STEST_helper_runtime, TestDeployModelWithFileConstant) {
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &MockInitializeHeterogeneousRuntime;
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&MockInitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
   std::vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> shape = {2, 2, 2, 2};
-  auto file_const_op = OP_CFG(FILECONSTANT).Attr("shape", shape).Attr("dtype", DT_FLOAT).Attr("file_id",
-                                                                                              "vector_search_bucker_value_bin");
+  auto file_const_op = OP_CFG(FILECONSTANT)
+                           .Attr("shape", shape)
+                           .Attr("dtype", DT_FLOAT)
+                           .Attr("file_id", "vector_search_bucker_value_bin");
 
   int64_t dims_size = 1;
   vector<int64_t> data_vec = {2, 2, 2, 2};
   for_each(data_vec.begin(), data_vec.end(), [&](int64_t &data) { dims_size *= data; });
   vector<float> data_value_vec(dims_size, 1);
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_FLOAT);
-  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *) data_value_vec.data(),
+  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
                                                        data_value_vec.size() * sizeof(float));
   std::cout << "davinci_model_execute_with_file_constant" << data_value_vec.size() << std::endl;
   auto const_op = OP_CFG(CONSTANT).Weight(data_tensor);
@@ -1411,7 +1414,7 @@ TEST_F(STEST_helper_runtime, TestDeployModelWithFileConstant) {
 
   {
     size_t file_const_size = 64;
-    float *float_buf = (float *) malloc(file_const_size);
+    float *float_buf = (float *)malloc(file_const_size);
     if (float_buf == nullptr) {
       return;
     }
@@ -1420,7 +1423,7 @@ TEST_F(STEST_helper_runtime, TestDeployModelWithFileConstant) {
       free(float_buf);
       return;
     }
-    out1.write((char *) float_buf, file_const_size);
+    out1.write((char *)float_buf, file_const_size);
     out1.close();
     free(float_buf);
   }
@@ -1442,13 +1445,13 @@ TEST_F(STEST_helper_runtime, TestDeployModelWithFileConstant) {
   std::vector<Tensor> input_tensors;
   ret = session.BuildGraph(1, input_tensors);
   ASSERT_EQ(ret, SUCCESS);
-  (void) remove("test_copy_one_weight.bin");
+  (void)remove("test_copy_one_weight.bin");
 }
 
 TEST_F(STEST_helper_runtime, TestDeployModelNoTiling) {
   RuntimeStub::SetInstance(std::make_shared<MockRuntime>());
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &MockInitializeHeterogeneousRuntime;
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&MockInitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -1582,8 +1585,7 @@ class CallbackManager {
 
 class MockRuntime2 : public MockRuntimeForClient {
  public:
-  rtError_t rtRegTaskFailCallbackByModule(const char *moduleName,
-                                          rtTaskFailCallback callback) override {
+  rtError_t rtRegTaskFailCallbackByModule(const char *moduleName, rtTaskFailCallback callback) override {
     CallbackManager::GetInstance().Register(moduleName, callback);
     return RT_ERROR_NONE;
   }
@@ -1591,10 +1593,7 @@ class MockRuntime2 : public MockRuntimeForClient {
 
 class MockRuntime3 : public RuntimeStub {
  public:
-  rtError_t rtEschedWaitEvent(int32_t device_id,
-                              uint32_t group_id,
-                              uint32_t thread_id,
-                              int32_t timeout,
+  rtError_t rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                               rtEschedEventSummary_t *event) override {
     event->subeventId = 0;
     return RT_ERROR_NONE;
@@ -1608,8 +1607,7 @@ class MockRuntimeUDF : public MockRuntimeForClient {
     response_.set_error_message("success !!");
   }
   rtError_t rtMemQueueDeQueueBuff(int32_t device, uint32_t qid, rtMemQueueBuff_t *outBuf, int32_t timeout) {
-    if (memcpy_s(outBuf->buffInfo->addr, response_.ByteSizeLong(), &response_, response_.ByteSizeLong()) !=
-        EOK) {
+    if (memcpy_s(outBuf->buffInfo->addr, response_.ByteSizeLong(), &response_, response_.ByteSizeLong()) != EOK) {
       printf("Failed to copy mbuf data \n");
       return -1;
     }
@@ -1637,44 +1635,41 @@ class MockRuntimeUDF : public MockRuntimeForClient {
 };
 
 int32_t AicpuLoadModelWithQStub(void *ptr) {
-  (void) ptr;
+  (void)ptr;
   return 0;
 }
 
 int32_t AicpuLoadModel(void *ptr) {
-  (void) ptr;
+  (void)ptr;
   return 0;
 }
 
 int32_t AICPUModelDestroyStub(uint32_t modelId) {
-  (void) modelId;
+  (void)modelId;
   return 0;
 }
 
 int32_t StopCPUSchedulerStub(const uint32_t deviceId, const pid_t hostPid) {
-  (void) deviceId;
-  (void) hostPid;
+  (void)deviceId;
+  (void)hostPid;
   return 0;
 }
 
 int32_t InitCpuSchedulerStub(const CpuSchedInitParam *const initParam) {
-  (void) initParam;
+  (void)initParam;
   return 0;
 }
-
 
 class MockMmpaForHeterogeneousRuntime : public MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) {
     std::cout << "dlopen stub file name = " << file_name << std::endl;
-    if (std::string(file_name) == "libmodel_deployer.so" ||
-        std::string(file_name) == "libaicpu_scheduler.so" ||
-        std::string(file_name) == "libhost_aicpu_scheduler.so" ||
-        std::string(file_name) == "libtsdclient.so" ||
+    if (std::string(file_name) == "libmodel_deployer.so" || std::string(file_name) == "libaicpu_scheduler.so" ||
+        std::string(file_name) == "libhost_aicpu_scheduler.so" || std::string(file_name) == "libtsdclient.so" ||
         std::string(file_name) == "libdataflow_auth.so") {
-      return (void *) 0x8888;
+      return (void *)0x8888;
     } else if (std::string(file_name).find("libhcom_graph_adaptor.so") != std::string::npos ||
-        std::string(file_name).find("libhccl.so") != std::string::npos) {
+               std::string(file_name).find("libhccl.so") != std::string::npos) {
       return mock_handle;
     }
     return dlopen(file_name, mode);
@@ -1682,57 +1677,57 @@ class MockMmpaForHeterogeneousRuntime : public MmpaStubApiGe {
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     } else if (std::string(func_name) == "AicpuLoadModelWithQ") {
-      return (void *) &AicpuLoadModelWithQStub;
+      return (void *)&AicpuLoadModelWithQStub;
     } else if (std::string(func_name) == "AICPUModelDestroy") {
-      return (void *) &AICPUModelDestroyStub;
+      return (void *)&AICPUModelDestroyStub;
     } else if (std::string(func_name) == "InitCpuScheduler") {
-      return (void *) &InitCpuSchedulerStub;
+      return (void *)&InitCpuSchedulerStub;
     } else if (std::string(func_name) == "AicpuLoadModel") {
-      return (void *) &AicpuLoadModel;
+      return (void *)&AicpuLoadModel;
     } else if (std::string(func_name) == "StopCPUScheduler") {
-      return (void *) &StopCPUSchedulerStub;
+      return (void *)&StopCPUSchedulerStub;
     } else if (std::string(func_name) == "TsdFileLoad") {
-      return (void *) &TsdFileLoad;
+      return (void *)&TsdFileLoad;
     } else if (std::string(func_name) == "TsdFileUnLoad") {
-      return (void *) &TsdFileUnLoad;
+      return (void *)&TsdFileUnLoad;
     } else if (std::string(func_name) == "TsdGetProcListStatus") {
       return tsd_get_proc_status_func_;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdCapabilityGet") {
-      return (void *) &TsdCapabilityGet;
+      return (void *)&TsdCapabilityGet;
     } else if (std::string(func_name) == "TsdInitFlowGw") {
-      return (void *) &TsdInitFlowGw;
+      return (void *)&TsdInitFlowGw;
     } else if (std::string(func_name) == "NewSignResult") {
-      return (void *) &NewSignResult;
+      return (void *)&NewSignResult;
     } else if (std::string(func_name) == "DeleteSignResult") {
-      return (void *) &DeleteSignResult;
+      return (void *)&DeleteSignResult;
     } else if (std::string(func_name) == "GetSignLength") {
-      return (void *) &GetSignLength;
+      return (void *)&GetSignLength;
     } else if (std::string(func_name) == "GetSignData") {
-      return (void *) &GetSignData;
+      return (void *)&GetSignData;
     } else if (std::string(func_name) == "DataFlowAuthMasterInit") {
-      return (void *) &DataFlowAuthMasterInit;
+      return (void *)&DataFlowAuthMasterInit;
     } else if (std::string(func_name) == "DataFlowAuthSign") {
-      return (void *) &DataFlowAuthSign;
+      return (void *)&DataFlowAuthSign;
     } else if (std::string(func_name) == "DataFlowAuthVerify") {
-      return (void *) &DataFlowAuthVerify;
+      return (void *)&DataFlowAuthVerify;
     } else if (std::string(func_name) == "CheckKernelSupported") {
-      return (void *) &AICPUModelCheckKernelSupportedStub;
+      return (void *)&AICPUModelCheckKernelSupportedStub;
     } else if (std::string(func_name) == "HcomDestroy") {
-      return (void *) &DestroyHccl;
+      return (void *)&DestroyHccl;
     } else if (std::string(func_name) == "AICPUModelProcessDataException") {
-      return (void *) &AICPUModelProcessDataExceptionStub;
+      return (void *)&AICPUModelProcessDataExceptionStub;
     }
     return dlsym(handle, func_name);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 0;
     }
     return dlclose(handle);
@@ -1766,34 +1761,17 @@ class MockMmpaForHeterogeneousRuntime : public MmpaStubApiGe {
 
 Graph BuildGraph() {
   DEF_GRAPH(graph_def) {
-    auto arg_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto neg_1 = OP_CFG(NEG)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto neg_1 = OP_CFG(NEG).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    CHAIN(NODE("arg_0", arg_0)
-              ->NODE("neg_1", neg_1)
-              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("arg_0", arg_0)->NODE("neg_1", neg_1)->NODE("Node_Output", net_output));
 
-    CHAIN(NODE("var", var)
-              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("var", var)->NODE("Node_Output", net_output));
   };
 
   auto graph = ToGeGraph(graph_def);
@@ -1804,26 +1782,14 @@ Graph BuildHostCpuDynamicGraph() {
   auto shape = std::vector<int64_t>{-1};
   auto shape1 = std::vector<int64_t>{16};
   DEF_GRAPH(graph_def) {
-     auto arg_0 = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_INDEX, 0)
-         .TensorDesc(FORMAT_ND, DT_INT32, shape);
+    auto arg_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape);
 
-     auto neg_1 = OP_CFG(SQRT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, shape);
+    auto neg_1 = OP_CFG(SQRT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape);
 
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, shape1);
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape1);
 
-     CHAIN(NODE("arg_0", arg_0)
-               ->NODE("neg_1", neg_1)
-               ->NODE("Node_Output", net_output));
-   };
+    CHAIN(NODE("arg_0", arg_0)->NODE("neg_1", neg_1)->NODE("Node_Output", net_output));
+  };
 
   auto graph = ToGeGraph(graph_def);
   return graph;
@@ -1866,21 +1832,11 @@ Graph BuildUdfGraph(const std::string &name, const std::string &udf_config_file)
 Graph BuildSimpleGraph() {
   std::vector<int64_t> shape = {1};
   DEF_GRAPH(simple_graph) {
-    auto data1 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("data1");
-    auto data2 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_INT32, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("data2");
-    auto add = OP_CFG(ADD)
-        .TensorDesc(FORMAT_ND, DT_INT32, shape)
-        .Build("add");
+    auto data1 =
+        OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
+    auto data2 =
+        OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data2");
+    auto add = OP_CFG(ADD).TensorDesc(FORMAT_ND, DT_INT32, shape).Build("add");
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(add)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(add));
   };
@@ -2093,7 +2049,7 @@ TEST_F(STEST_helper_runtime, TestDeployUdfModelOnServer) {
   tensor.SetData(buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
 
@@ -2180,7 +2136,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnServer) {
   tensor.SetData(buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2193,7 +2149,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnServer) {
   unsetenv("RESOURCE_CONFIG_PATH");
   remove(udf_config_file);
   remove(deploy_info_path);
-    system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
+  system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
 }
 
 TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnServerWithHostFlowgw) {
@@ -2271,7 +2227,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnServerWithHostFlowgw) 
   host->SetSupportHcom(false);
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2315,9 +2271,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnDiffServerWithHostFlow
   // 0. start server
   EXPECT_EQ(Configurations::GetInstance().InitInformation(), SUCCESS);
   ge::GrpcServer grpc_server;
-  std::thread server_thread = std::thread([&]() {
-    StartServer(grpc_server);
-  });
+  std::thread server_thread = std::thread([&]() { StartServer(grpc_server); });
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   Configurations::GetInstance().Finalize();
@@ -2380,7 +2334,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeavyLoadUdfModelOnDiffServerWithHostFlow
   host->SetSupportHcom(false);
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2496,7 +2450,7 @@ TEST_F(STEST_helper_runtime, TestDeployUdfModelsOnServerWithHostFlowgw) {
   host->SetSupportHcom(false);
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2510,7 +2464,7 @@ TEST_F(STEST_helper_runtime, TestDeployUdfModelsOnServerWithHostFlowgw) {
   remove(pp0_config_file);
   remove(pp1_config_file);
   remove(deploy_info_path);
-    system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
+  system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
   system("rm -fr ./npu_udf_compile.json");
 }
 
@@ -2609,7 +2563,7 @@ TEST_F(STEST_helper_runtime, TestDeployNpuUdfModelsOnServerWithHostFlowgw) {
   host->SetSupportHcom(false);
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2623,7 +2577,7 @@ TEST_F(STEST_helper_runtime, TestDeployNpuUdfModelsOnServerWithHostFlowgw) {
   remove(pp0_config_file);
   remove(pp1_config_file);
   remove(deploy_info_path);
-    system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
+  system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
   system("rm -fr ./npu_udf_compile.json");
 }
 
@@ -2702,7 +2656,7 @@ TEST_F(STEST_helper_runtime, TestDeployUdfModelWriteTarSuccessByMultiTimes) {
   tensor.SetData(buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -2712,7 +2666,7 @@ TEST_F(STEST_helper_runtime, TestDeployUdfModelWriteTarSuccessByMultiTimes) {
   RuntimeStub::Reset();
 
   remove(udf_config_file);
-    system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
+  system("rm -fr `ls ./temp_udf_st/* | grep -v build`");
 }
 
 TEST_F(STEST_helper_runtime, TestHeterogeneousInitInvalid) {
@@ -2789,7 +2743,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeterogeneousModelFusionInput) {
   tensor2.SetData(buffer2, sizeof(buffer2));
 
   std::vector<Tensor> inputs{tensor1, tensor2};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
 
   std::vector<Tensor> output_tensors;
@@ -3026,7 +2980,7 @@ TEST_F(STEST_helper_runtime, TestDeployHostCpuDynamicModel) {
   rtMbufFree(input_mbuf);
 }
 
-void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
+void DeleteLines(const char *real_path, const std::vector<int> &lineNumbers) {
   std::ifstream inputFile(real_path);
   if (!inputFile.is_open()) {
     std::cerr << "Failed to open input file: " << real_path << std::endl;
@@ -3045,14 +2999,14 @@ void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
     std::cerr << "Failed to open output file: " << ss.str() << std::endl;
     return;
   }
-  for (const auto& line : fileContent) {
+  for (const auto &line : fileContent) {
     outputFile << line << std::endl;
   }
   outputFile.close();
 
   std::vector<std::string> newContent;
   int lineNumber = 1;
-  for (const auto& line : fileContent) {
+  for (const auto &line : fileContent) {
     if (std::find(lineNumbers.begin(), lineNumbers.end(), lineNumber) == lineNumbers.end()) {
       newContent.push_back(line);
     }
@@ -3063,26 +3017,25 @@ void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
     std::cerr << "Failed to open input file: " << real_path << std::endl;
     return;
   }
-  for (const auto& line : newContent) {
+  for (const auto &line : newContent) {
     inputFile2 << line << std::endl;
   }
   inputFile2.close();
 }
 
-void CreateRedeployFile(const char* real_path) {
+void CreateRedeployFile(const char *real_path) {
   std::string parent_path = real_path;
   parent_path = parent_path.substr(0, parent_path.find_last_of("/\\") + 1);
   std::ofstream redeploy_file(parent_path + "redeploy");
   if (redeploy_file.is_open()) {
     std::cout << "redeploy file " << parent_path << " created!" << std::endl;
     redeploy_file.close();
-  }
-  else {
+  } else {
     std::cerr << "Error creating redeploy file!" << std::endl;
   }
 }
 
-void RestoreFile(const char* path) {
+void RestoreFile(const char *path) {
   std::string str_path(path);
   size_t pos = str_path.find_last_of("/\\");
   if (pos == std::string::npos) {
@@ -3104,9 +3057,8 @@ TEST_F(STEST_helper_runtime, TestDeployHeterogeneousModelMaintenanceCfg) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
   RuntimeStub::SetInstance(std::make_shared<MockRuntime>());
   // init log/dump/profiling cfg
-  std::map<std::string, std::string> kLogEnvs =
-      {{"ASCEND_GLOBAL_LOG_LEVEL", "1"}, {"ASCEND_GLOBAL_EVENT_ENABLE", "1"},
-       {"ASCEND_HOST_LOG_FILE_NUM", "1"}};
+  std::map<std::string, std::string> kLogEnvs = {
+      {"ASCEND_GLOBAL_LOG_LEVEL", "1"}, {"ASCEND_GLOBAL_EVENT_ENABLE", "1"}, {"ASCEND_HOST_LOG_FILE_NUM", "1"}};
 
   setenv("ASCEND_GLOBAL_LOG_LEVEL", kLogEnvs["ASCEND_GLOBAL_LOG_LEVEL"].c_str(), 1);
   setenv("ASCEND_GLOBAL_EVENT_ENABLE", kLogEnvs["ASCEND_GLOBAL_EVENT_ENABLE"].c_str(), 1);
@@ -3121,9 +3073,7 @@ TEST_F(STEST_helper_runtime, TestDeployHeterogeneousModelMaintenanceCfg) {
   setenv("RESOURCE_CONFIG_PATH", real_path.c_str(), 1);
   EXPECT_EQ(Configurations::GetInstance().InitInformation(), SUCCESS);
   ge::GrpcServer grpc_server;
-  std::thread server_thread = std::thread([&]() {
-    StartServer(grpc_server);
-  });
+  std::thread server_thread = std::thread([&]() { StartServer(grpc_server); });
   std::this_thread::sleep_for(std::chrono::seconds(1));
   DeployerProxy::GetInstance().deployers_.clear();
   ResourceManager::GetInstance().Finalize();
@@ -3190,7 +3140,7 @@ TEST_F(STEST_helper_runtime, TestDeployServerModel) {
   tensor.SetData(buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{tensor};
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   mock_handle = nullptr;
   dflow::DFlowFinalize();
@@ -3204,7 +3154,7 @@ TEST_F(STEST_helper_runtime, TestDeployServerModel) {
 TEST_F(STEST_helper_runtime, TestGetNodeStat) {
   RuntimeStub::SetInstance(std::make_shared<MockRuntime>());
   std::unique_ptr<Deployer> deployer = nullptr;
-  deployer.reset((Deployer*)(new LocalDeployer()));
+  deployer.reset((Deployer *)(new LocalDeployer()));
   DeployerProxy::GetInstance().deployers_.emplace_back(std::move(deployer));
   EXPECT_EQ(DeployerProxy::GetInstance().GetNodeStat(), ge::SUCCESS);
   RuntimeStub::Reset();
@@ -3219,7 +3169,7 @@ TEST_F(STEST_helper_runtime, TestGetDeviceAbnormalCode) {
   CallbackManager::GetInstance().Call("deployer_dev_abnormal", &excpt_info);
 
   std::unique_ptr<Deployer> deployer = nullptr;
-  deployer.reset((Deployer*)(new LocalDeployer()));
+  deployer.reset((Deployer *)(new LocalDeployer()));
   DeployerProxy::GetInstance().deployers_.emplace_back(std::move(deployer));
   DeployerProxy::GetInstance().GetNodeStat();
   EXPECT_EQ(DeployerProxy::GetInstance().GetDeviceAbnormalCode(), ACL_ERROR_RT_DEVICE_OOM);
@@ -3232,7 +3182,7 @@ TEST_F(STEST_helper_runtime, ProcessHeartBeat01) {
   bult_exe_client->sub_proc_stat_ = ProcStatus::STOPPED;
   bult_exe_client->heartbeat_listening_ = true;
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
-  exe_client.reset((PneExecutorClient*)bult_exe_client);
+  exe_client.reset((PneExecutorClient *)bult_exe_client);
   DeployContext context;
   ExecutorManager::ExecutorKey key = {0, 0, 0, "NPU", "", 666};
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
@@ -3289,7 +3239,7 @@ TEST_F(STEST_helper_runtime, ProcessHeartBeat01) {
   bult_exe_client2->sub_proc_stat_ = ProcStatus::EXITED;
   bult_exe_client2->heartbeat_listening_ = true;
   std::unique_ptr<PneExecutorClient> exe_client2 = nullptr;
-  exe_client2.reset((PneExecutorClient*)bult_exe_client2);
+  exe_client2.reset((PneExecutorClient *)bult_exe_client2);
   context.executor_manager_.executor_clients_[key] = std::move(exe_client2);
   // context.dgw_client_.dgw_status_map_[0] = ProcStatus::EXITED;
   printf("ProcessHeartBeat01 start Process 2\n");
@@ -3313,7 +3263,7 @@ TEST_F(STEST_helper_runtime, ProcessHeartBeat03) {
   bult_exe_client->sub_proc_stat_ = ProcStatus::EXITED;
   bult_exe_client->heartbeat_listening_ = true;
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
-  exe_client.reset((PneExecutorClient*)bult_exe_client);
+  exe_client.reset((PneExecutorClient *)bult_exe_client);
   DeployContext context;
   ExecutorManager::ExecutorKey key = {0, 0, 0, "NPU", "", 666};
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
@@ -3398,7 +3348,7 @@ TEST_F(STEST_helper_runtime, AddAbnormalSubmodelInstance) {
     uint32_t i = 0U;
     for (auto &submodel_instance : submodel_instances.second.submodel_instance_name()) {
       printf("add abnormal submodel instance abnormal submodel_instance_name is %s, i=%u\n",
-          submodel_instance.first.c_str(), i);
+             submodel_instance.first.c_str(), i);
       EXPECT_EQ(submodel_instance.first, "model1");
       i++;
     }
@@ -3439,6 +3389,7 @@ TEST_F(STEST_helper_runtime, TestProcManager) {
   class MockWaitPid : public MockMmpa {
    private:
     std::function<int32_t(mmProcess, INT32 *, INT32)> m_waitPid = nullptr;
+
    public:
     void SetMockFunc(std::function<int32_t(mmProcess, INT32 *, INT32)> mock_func) {
       m_waitPid = mock_func;
@@ -3463,14 +3414,12 @@ TEST_F(STEST_helper_runtime, TestProcManager) {
   setenv("RESOURCE_CONFIG_PATH", real_path.c_str(), 1);
   auto mock = std::make_shared<MockWaitPid>();
   mock->SetMockFunc([](mmProcess pid, INT32 *status, INT32 options) -> int32_t {
-      *status = 0x7f;
-      return 3;
+    *status = 0x7f;
+    return 3;
   });
   MmpaStub::GetInstance().SetImpl(mock);
   ProcStatus status_result = ProcStatus::NORMAL;
-  std::function<void(const ProcStatus &)> func = [&](const ProcStatus &status) {
-    status_result = status;
-  };
+  std::function<void(const ProcStatus &)> func = [&](const ProcStatus &status) { status_result = status; };
   pid_t pid = getpid();
   SubprocessManager::GetInstance().RegExcptHandleCallback(pid, func);
   EXPECT_EQ(SubprocessManager::GetInstance().Initialize(), SUCCESS);
@@ -3496,9 +3445,7 @@ TEST_F(STEST_helper_runtime, TestProcManager) {
   SubprocessManager::GetInstance().Finalize();
   SubprocessManager::GetInstance().UnRegExcptHandleCallback(pid);
 
-  mock->SetMockFunc([](mmProcess pid, INT32 *status, INT32 options) -> int32_t {
-    return -1;
-  });
+  mock->SetMockFunc([](mmProcess pid, INT32 *status, INT32 options) -> int32_t { return -1; });
   MmpaStub::GetInstance().SetImpl(mock);
   SubprocessManager::GetInstance().RegExcptHandleCallback(pid, func);
   EXPECT_EQ(SubprocessManager::GetInstance().Initialize(), SUCCESS);
@@ -3511,7 +3458,7 @@ TEST_F(STEST_helper_runtime, TestProcManager) {
 }
 
 TEST_F(STEST_helper_runtime, TestHeterogeneousRegCallback) {
-  mock_handle = (void *) 0xffffffff;
+  mock_handle = (void *)0xffffffff;
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
   auto mock_runtime = std::make_shared<MockRuntime2>();
   RuntimeStub::SetInstance(mock_runtime);
@@ -3522,12 +3469,8 @@ TEST_F(STEST_helper_runtime, TestHeterogeneousRegCallback) {
   const std::string process_name = "npu_executor";
   const std::string without_model_executor = std::to_string(false);
   const char_t *argv[] = {
-      process_name.c_str(),
-      "BufferGroupName",
-      queue_id.c_str(),
-      device_id.c_str(),
-      event_group_id.c_str(),
-      without_model_executor.c_str(),
+      process_name.c_str(), "BufferGroupName",      queue_id.c_str(),
+      device_id.c_str(),    event_group_id.c_str(), without_model_executor.c_str(),
   };
   EXPECT_EQ(engine_daemon.InitializeWithArgs(6, (char **)argv), SUCCESS);
   rtExceptionInfo exceptionInfo;
@@ -3566,7 +3509,7 @@ TEST_F(STEST_helper_runtime, TestEngineDaemon) {
    private:
     MbufStub mbuf_stub_;
   };
-  mock_handle = (void *) 0xffffffff;
+  mock_handle = (void *)0xffffffff;
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
   auto mock_runtime = std::make_shared<MockDaemonRuntime>();
   RuntimeStub::SetInstance(mock_runtime);
@@ -3576,14 +3519,8 @@ TEST_F(STEST_helper_runtime, TestEngineDaemon) {
   auto event_group_id = std::to_string(1);
   const std::string process_name = "npu_executor";
   const char_t *argv[] = {
-      process_name.c_str(),
-      "BufferGroupName",
-      queue_id.c_str(),
-      device_id.c_str(),
-      event_group_id.c_str(),
-      "--base_dir=./",
-      "--device_id=0",
-      "--msg_queue_device_id=0",
+      process_name.c_str(),   "BufferGroupName", queue_id.c_str(), device_id.c_str(),
+      event_group_id.c_str(), "--base_dir=./",   "--device_id=0",  "--msg_queue_device_id=0",
   };
   EXPECT_EQ(engine_daemon.InitializeWithArgs(8, (char **)argv), SUCCESS);
   std::thread loop_thread = std::thread([&]() { engine_daemon.LoopEvents(); });
@@ -3602,7 +3539,7 @@ TEST_F(STEST_helper_runtime, TestInitProfilingFromOption) {
   options["PROFILING_DEVICE_CONFIG_DATA"] = "test1";
   options["PROFILING_IS_EXECUTE_ON"] = "1";
 
-  const char_t * const kEnvValue = "MS_PROF_INIT_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_INIT_FAIL";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -3673,9 +3610,7 @@ TEST_F(STEST_helper_runtime, TestDeployWithFlowOnServerWithSharedContent) {
   std::vector<std::string> engine_list = {"AIcoreEngine"};
 
   ge::GrpcServer grpc_server;
-  std::thread server_thread = std::thread([&]() {
-    StartServer(grpc_server);
-  });
+  std::thread server_thread = std::thread([&]() { StartServer(grpc_server); });
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 0, 0), SUCCESS);
@@ -3718,8 +3653,7 @@ TEST_F(STEST_helper_runtime, TestDeployWithFlowOnServerWithSharedContent) {
 TEST_F(STEST_helper_runtime, TestDeployWithFlowOnServer) {
   class MockRuntimeForServer : public MockRuntime {
    public:
-    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-    {
+    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
       return 1;
     }
   };
@@ -3730,7 +3664,7 @@ TEST_F(STEST_helper_runtime, TestDeployWithFlowOnServer) {
   RuntimeStub::SetInstance(std::make_shared<MockRuntimeForServer>());
   std::map<std::string, std::string> options;
   EXPECT_EQ(InitializeHeterogeneousRuntime(options), SUCCESS);
-  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize","123456789"}});
+  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize", "123456789"}});
 
   std::vector<std::string> engine_list = {"AIcoreEngine"};
   auto add_1 = OP_CFG(ADD);
@@ -3816,10 +3750,9 @@ TEST_F(STEST_helper_runtime, TestEnqueueAndDequeueSuccess) {
   rtMbufGetBuffAddr(m_buf, &data);
 
   RuntimeTensorDesc runtime_tensor_desc;
-  const std::vector<ExchangeService::BuffInfo> buffs{
-      {.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
-      {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
-      {.addr = nullptr, .len = 0}};
+  const std::vector<ExchangeService::BuffInfo> buffs{{.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
+                                                     {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
+                                                     {.addr = nullptr, .len = 0}};
   ASSERT_EQ(exchange_service.Enqueue(0, queue_id, buffs, control_info), SUCCESS);
   // 避免直接使用私有成员，此处queue_id不应复用
   exchange_service.AddClientQueue(client_queue_id);
@@ -3833,8 +3766,7 @@ TEST_F(STEST_helper_runtime, TestEnqueueAndDequeueSuccess) {
   rtMbufPtr_t temp_mbuf = nullptr;
   int cleanup_count = 0;
   const int max_cleanup = 10;
-  while (cleanup_count < max_cleanup &&
-         exchange_service.DequeueMbuf(0, client_queue_id, &temp_mbuf, 10) == SUCCESS) {
+  while (cleanup_count < max_cleanup && exchange_service.DequeueMbuf(0, client_queue_id, &temp_mbuf, 10) == SUCCESS) {
     rtMbufFree(temp_mbuf);
     temp_mbuf = nullptr;
     cleanup_count++;
@@ -3940,18 +3872,18 @@ TEST_F(STEST_helper_runtime, TransModelDataToComputeGraph) {
   ge_model->SetModelTaskDef(model_task_def);
   ge_model->SetName("graph");
   ge_model->SetGraph(root_graph);
-  ge_root_model->SetModelName("graph");	
-  ge_root_model->SetSubgraphInstanceNameToModel("graph", ge_model);	
+  ge_root_model->SetModelName("graph");
+  ge_root_model->SetSubgraphInstanceNameToModel("graph", ge_model);
   bool is_unknown_shape = false;
   EXPECT_EQ(ge_root_model->CheckIsUnknownShape(is_unknown_shape), ge::SUCCESS);
   ModelBufferData model_buffer_data{};
-  const auto model_save_helper =
-    ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   model_save_helper->SetSaveMode(false);
-  EXPECT_EQ(model_save_helper->SaveToOmRootModel(ge_root_model, "graph", model_buffer_data, is_unknown_shape), ge::SUCCESS);
+  EXPECT_EQ(model_save_helper->SaveToOmRootModel(ge_root_model, "graph", model_buffer_data, is_unknown_shape),
+            ge::SUCCESS);
   ModelData model_data{};
   model_data.model_data = model_buffer_data.data.get();
-	model_data.model_len = model_buffer_data.length;
+  model_data.model_len = model_buffer_data.length;
 
   ComputeGraphPtr test_compute_graph;
   EXPECT_EQ(FlowModelOmLoader::TransModelDataToComputeGraph(model_data, test_compute_graph), ge::SUCCESS);
@@ -3960,8 +3892,8 @@ TEST_F(STEST_helper_runtime, TransModelDataToComputeGraph) {
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Success) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildDynamicRootGraph({-1}, true, true, true);
   // init request
@@ -4028,8 +3960,7 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Success) {
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -4051,8 +3982,8 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Success) {
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Without_Max_attr_Success) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildDynamicRootGraph({-1}, true, false, true);
   // init request
@@ -4119,8 +4050,7 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Without_Max_attr_Succ
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -4141,8 +4071,8 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_Execute_Without_Max_attr_Succ
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModel_with_retcode) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildDynamicRootGraph({-1}, true);
   // init request
@@ -4203,8 +4133,7 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_with_retcode) {
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
 
   void *head_buf = nullptr;
@@ -4235,8 +4164,8 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_with_retcode) {
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModel_null_data_flag) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildDynamicRootGraph({-1}, true);
   // init request
@@ -4297,8 +4226,7 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_null_data_flag) {
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
 
   void *head_buf = nullptr;
@@ -4331,13 +4259,11 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_null_data_flag) {
 TEST_F(STEST_helper_runtime, TestDynamicModel_WithInputAlign_Execute_Success) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpaForHeterogeneousRuntime>());
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
   map<std::string, std::string> new_option;
   new_option["ge.exec.placement"] = "HOST";
   GetThreadLocalContext().SetSessionOption(new_option);
-  mock_handle = (void *) 0x12345678;
+  mock_handle = (void *)0x12345678;
 
   auto root_graph = BuildTwoInputDynamicRootGraph({-1}, false);
   // init request
@@ -4400,8 +4326,8 @@ TEST_F(STEST_helper_runtime, TestDynamicModel_WithInputAlign_Execute_Success) {
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModel_WithInputAlign_Execute_Success) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildTwoInputDynamicRootGraph({-1}, false);
   // init request
@@ -4475,11 +4401,11 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_WithInputAlign_Execute_Succes
   void *input_buffer = nullptr;
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
-  memcpy(reinterpret_cast<void * >(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc)),
+  memcpy(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc)),
          &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc) * 2);
+  void *output_buffer =
+      reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc) * 2);
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -4500,8 +4426,8 @@ TEST_F(STEST_helper_runtime, TestProxyDynamicModel_WithInputAlign_Execute_Succes
 }
 
 TEST_F(STEST_helper_runtime, TestProxyDynamicModelWithDummy_Execute_Success) {
-  mock_handle = (void *) 0x12345678;
-  mock_method = (void *) &MockHcomDestroy;
+  mock_handle = (void *)0x12345678;
+  mock_method = (void *)&MockHcomDestroy;
 
   auto root_graph = BuildDynamicRootGraph({-1}, true);
   // init request
@@ -4591,8 +4517,8 @@ TEST_F(STEST_helper_runtime, TestEventHandlerClearModel) {
   uint32_t modelId = 0U;
   ModelHandleMock2 *modelHandleMockPtr = new ModelHandleMock2();
   handler.context_->model_handles_[rootModelId].emplace(modelId, modelHandleMockPtr);
-  auto &modelHandle = *reinterpret_cast<ModelHandleMock2 *>(
-    handler.context_->model_handles_[rootModelId][modelId].get());
+  auto &modelHandle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[rootModelId][modelId].get());
 
   deployer::ExecutorRequest request;
   deployer::ExecutorResponse response;
@@ -4603,58 +4529,51 @@ TEST_F(STEST_helper_runtime, TestEventHandlerClearModel) {
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  auto mock_get_clear_model_handle =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+  auto mock_get_clear_model_handle = [&modelHandle](
+                                         std::vector<uint32_t> &davinci_model_runtime_ids,
+                                         std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
   clear_model_request->set_clear_msg_type(2);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
   auto mock_get_clear_model_handle2 =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+      [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
+                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     dynamic_model_handles.emplace_back(&modelHandle);
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
   clear_model_request->set_clear_msg_type(2);
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(SUCCESS));
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Return(FAILED));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle2));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle2));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
@@ -4665,28 +4584,25 @@ TEST_F(STEST_helper_runtime, TestEventHandlerClearModel) {
   auto alc_runtime_stub = std::make_shared<AclRuntimeMock>();
   AclRuntimeStub::SetInstance(alc_runtime_stub);
 
-  auto mock_get_clear_model_handle3 =
-    [](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+  auto mock_get_clear_model_handle3 = [](std::vector<uint32_t> &davinci_model_runtime_ids,
+                                         std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     davinci_model_runtime_ids.emplace_back(0U);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle3));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle3));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
   auto mock_get_clear_model_handle4 =
-    [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
-      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+      [&modelHandle](std::vector<uint32_t> &davinci_model_runtime_ids,
+                     std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
     davinci_model_runtime_ids.emplace_back(0U);
     dynamic_model_handles.emplace_back(&modelHandle);
     return SUCCESS;
   };
-  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-    testing::Invoke(mock_get_clear_model_handle4));
+  EXPECT_CALL(modelHandle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle4));
   EXPECT_CALL(modelHandle, ClearModel).WillRepeatedly(testing::Return(FAILED));
   clear_model_request->set_clear_msg_type(1);
   handler.HandleEvent(request, response);
@@ -4698,14 +4614,12 @@ TEST_F(STEST_helper_runtime, TestEventHandlerClearModel) {
   auto model_handle = MakeShared<ExecutorContext::ModelHandle>();
   std::vector<uint32_t> davinci_model_runtime_ids;
   std::vector<ExecutorContext::ModelHandle *> dynamic_model_handles;
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), FAILED);
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), FAILED);
 
   model_handle->dynamic_model_executor_ = model_handle->CreateProxyDynamicModelExecutor();
   EXPECT_NE(model_handle->dynamic_model_executor_.get(), nullptr);
   model_handle->is_dynamic_proxy_controlled_ = true;
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), SUCCESS);
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), SUCCESS);
   EXPECT_EQ(dynamic_model_handles.size(), 1U);
   EXPECT_EQ(davinci_model_runtime_ids.size(), 1U);
 
@@ -4717,8 +4631,7 @@ TEST_F(STEST_helper_runtime, TestEventHandlerClearModel) {
   ModelManager::GetInstance().InsertModel(davinci_model_id, shared_model);
   dynamic_model_handles.clear();
   davinci_model_runtime_ids.clear();
-  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids,
-    dynamic_model_handles), SUCCESS);
+  EXPECT_EQ(model_handle->GetModelRuntimeIdOrHandle(davinci_model_runtime_ids, dynamic_model_handles), SUCCESS);
   EXPECT_EQ(dynamic_model_handles.size(), 0U);
   EXPECT_EQ(davinci_model_runtime_ids.size(), 1U);
 
@@ -4736,10 +4649,10 @@ TEST_F(STEST_helper_runtime, TestExceptionNotify) {
   ModelHandleMock2 *invoke_model_handle_mock_ptr = new ModelHandleMock2();
   handler.context_->model_handles_[root_model_id].emplace(model_id, model_handle_mock_ptr);
   handler.context_->model_handles_[root_model_id].emplace(invoke_model_id, invoke_model_handle_mock_ptr);
-  auto &model_handle = *reinterpret_cast<ModelHandleMock2 *>(
-      handler.context_->model_handles_[root_model_id][model_id].get());
-  auto &invoke_model_handle = *reinterpret_cast<ModelHandleMock2 *>(
-      handler.context_->model_handles_[root_model_id][invoke_model_id].get());
+  auto &model_handle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[root_model_id][model_id].get());
+  auto &invoke_model_handle =
+      *reinterpret_cast<ModelHandleMock2 *>(handler.context_->model_handles_[root_model_id][invoke_model_id].get());
   invoke_model_handle.is_invoked_nn_ = true;
 
   deployer::ExecutorRequest request;
@@ -4758,25 +4671,22 @@ TEST_F(STEST_helper_runtime, TestExceptionNotify) {
 
   exception_notify_request->set_root_model_id(root_model_id);
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(SUCCESS));
-  auto mock_get_model_handle2 =
-      [&model_handle](std::vector<uint32_t> &davinci_model_runtime_ids,
-                      std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        dynamic_model_handles.emplace_back(&model_handle);
-        dynamic_model_handles.emplace_back(&model_handle);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_model_handle2));
+  auto mock_get_model_handle2 = [&model_handle](
+                                    std::vector<uint32_t> &davinci_model_runtime_ids,
+                                    std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
+    dynamic_model_handles.emplace_back(&model_handle);
+    dynamic_model_handles.emplace_back(&model_handle);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_model_handle2));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Return(FAILED));
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Return(FAILED));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_model_handle2));
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_model_handle2));
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(FAILED));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), FAILED);
@@ -4786,23 +4696,21 @@ TEST_F(STEST_helper_runtime, TestExceptionNotify) {
   auto mock_get_clear_model_handle3 =
       [&model_handle](std::vector<uint32_t> &davinci_model_runtime_ids,
                       std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        davinci_model_runtime_ids.emplace_back(0U);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_clear_model_handle3));
+    davinci_model_runtime_ids.emplace_back(0U);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle3));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
 
   auto mock_get_clear_model_handle4 =
       [&model_handle](std::vector<uint32_t> &davinci_model_runtime_ids,
                       std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles) -> Status {
-        davinci_model_runtime_ids.emplace_back(0U);
-        dynamic_model_handles.emplace_back(&model_handle);
-        return SUCCESS;
-      };
-  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(
-      testing::Invoke(mock_get_clear_model_handle4));
+    davinci_model_runtime_ids.emplace_back(0U);
+    dynamic_model_handles.emplace_back(&model_handle);
+    return SUCCESS;
+  };
+  EXPECT_CALL(model_handle, GetModelRuntimeIdOrHandle).WillRepeatedly(testing::Invoke(mock_get_clear_model_handle4));
   EXPECT_CALL(model_handle, ExceptionNotify).WillRepeatedly(testing::Return(SUCCESS));
   handler.HandleEvent(request, response);
   EXPECT_EQ(response.error_code(), SUCCESS);
@@ -4821,13 +4729,12 @@ TEST_F(STEST_helper_runtime, TestExceptionNotify) {
 TEST_F(STEST_helper_runtime, TestDynamicModelClearModel) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa2>());
   auto dynamic_model_executor = std::make_shared<DynamicModelExecutor>(false);
-  dynamic_model_executor->aicpu_handle_ = (void *) 0x12345678;
-  std::thread thread_run([&dynamic_model_executor]() {
-    dynamic_model_executor->Run();
-  });
+  dynamic_model_executor->aicpu_handle_ = (void *)0x12345678;
+  std::thread thread_run([&dynamic_model_executor]() { dynamic_model_executor->Run(); });
   EXPECT_EQ(dynamic_model_executor->ClearModel(1), SUCCESS);
   EXPECT_EQ(dynamic_model_executor->ClearModel(2), SUCCESS);
-  const DynamicModelExecutor::ModelExecuteParam eof_param {.callback = nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
+  const DynamicModelExecutor::ModelExecuteParam eof_param{
+      .callback = nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
   dynamic_model_executor->task_queue_.Push(eof_param);
   thread_run.join();
   dynamic_model_executor->aicpu_handle_ = nullptr;
@@ -4847,8 +4754,7 @@ TEST_F(STEST_helper_runtime, TestCreateFakeAicpuModelAndStreamSuccess) {
 TEST_F(STEST_helper_runtime, TestDynamicSchedDeployWithFlowOnServer) {
   class MockRuntimeForServer : public MockRuntime {
    public:
-    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-    {
+    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
       return 1;
     }
   };
@@ -4868,7 +4774,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedDeployWithFlowOnServer) {
   ge::AclRuntimeStub::SetInstance(mock_runtime);
   std::map<std::string, std::string> options;
   EXPECT_EQ(InitializeHeterogeneousRuntime(options), SUCCESS);
-  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize","123456789"}});
+  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize", "123456789"}});
 
   std::vector<std::string> engine_list = {"AIcoreEngine"};
   auto add_1 = OP_CFG(ADD);
@@ -4918,8 +4824,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedDeployWithFlowOnServer) {
 TEST_F(STEST_helper_runtime, TestRedeployWithMulModelInstanceOnServer) {
   class MockRuntimeForServer : public MockRuntime {
    public:
-    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-    {
+    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
       return 1;
     }
   };
@@ -4934,7 +4839,7 @@ TEST_F(STEST_helper_runtime, TestRedeployWithMulModelInstanceOnServer) {
   EXPECT_EQ(heterogeneous_runtime->Initialize(options), SUCCESS);
   ge::ExecutionRuntime::SetExecutionRuntime(heterogeneous_runtime);
   auto runtime_execution = (ExecutionRuntimeHeterogeneousMock4 *)ExecutionRuntime::GetInstance();
-  auto &exchange_service = (ExchangeServiceMock &) runtime_execution->GetExchangeService();
+  auto &exchange_service = (ExchangeServiceMock &)runtime_execution->GetExchangeService();
   exchange_service.dequeue_tonsor_result = ACL_ERROR_RT_QUEUE_EMPTY;
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
@@ -5002,8 +4907,7 @@ TEST_F(STEST_helper_runtime, TestRedeployWithMulModelInstanceOnServer) {
 TEST_F(STEST_helper_runtime, TestRedeployWithProcessAbnormal) {
   class MockRuntimeForServer : public MockRuntime {
    public:
-    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-    {
+    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
       return 1;
     }
   };
@@ -5018,13 +4922,13 @@ TEST_F(STEST_helper_runtime, TestRedeployWithProcessAbnormal) {
   EXPECT_EQ(heterogeneous_runtime->Initialize(options), SUCCESS);
   ge::ExecutionRuntime::SetExecutionRuntime(heterogeneous_runtime);
   auto runtime_execution = (ExecutionRuntimeHeterogeneousMock4 *)ExecutionRuntime::GetInstance();
-  auto &exchange_service = (ExchangeServiceMock &) runtime_execution->GetExchangeService();
+  auto &exchange_service = (ExchangeServiceMock &)runtime_execution->GetExchangeService();
   exchange_service.dequeue_tonsor_result = ACL_ERROR_RT_QUEUE_EMPTY;
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
   EXPECT_CALL(exchange_service, Enqueue).WillRepeatedly(Return(SUCCESS));
 
-  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize","123456789"}});
+  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize", "123456789"}});
 
   std::vector<std::string> engine_list = {"AIcoreEngine"};
   auto add_1 = OP_CFG(ADD);
@@ -5071,7 +4975,8 @@ TEST_F(STEST_helper_runtime, TestRedeployWithProcessAbnormal) {
     deploy_context.AddAbnormalSubmodelInstanceName(2, "model2");
     deploy_context.AddAbnormalSubmodelInstanceName(3, "model3");
     NodeConfig node_config;
-    deploy_context.AddAbnormalNodeConfig(node_config);;
+    deploy_context.AddAbnormalNodeConfig(node_config);
+    ;
     DeployPlan::DeviceInfo device_info(1, 0, 0);
     deploy_context.AddAbnormalDeviceInfo(device_info);
   }
@@ -5092,8 +4997,7 @@ TEST_F(STEST_helper_runtime, TestRedeployWithProcessAbnormal) {
 TEST_F(STEST_helper_runtime, TestRedeployWithOneModelInstanceOnServer) {
   class MockRuntimeForServer : public MockRuntime {
    public:
-    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t * const input, rtMemGrpQueryOutput_t *output)
-    {
+    rtError_t rtMemGrpQuery(rtMemGrpQueryInput_t *const input, rtMemGrpQueryOutput_t *output) {
       return 1;
     }
   };
@@ -5108,13 +5012,13 @@ TEST_F(STEST_helper_runtime, TestRedeployWithOneModelInstanceOnServer) {
   EXPECT_EQ(heterogeneous_runtime->Initialize(options), SUCCESS);
   ge::ExecutionRuntime::SetExecutionRuntime(heterogeneous_runtime);
   auto runtime_execution = (ExecutionRuntimeHeterogeneousMock4 *)ExecutionRuntime::GetInstance();
-  auto &exchange_service = (ExchangeServiceMock &) runtime_execution->GetExchangeService();
+  auto &exchange_service = (ExchangeServiceMock &)runtime_execution->GetExchangeService();
   exchange_service.dequeue_tonsor_result = ACL_ERROR_RT_QUEUE_EMPTY;
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
   EXPECT_CALL(exchange_service, Dequeue).WillRepeatedly(Return(ACL_ERROR_RT_QUEUE_EMPTY));
   EXPECT_CALL(exchange_service, Enqueue).WillRepeatedly(Return(SUCCESS));
 
-  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize","123456789"}});
+  ge::GetThreadLocalContext().SetSessionOption({{"ge.flowGraphMemMaxSize", "123456789"}});
 
   std::vector<std::string> engine_list = {"AIcoreEngine"};
   auto add_1 = OP_CFG(ADD);
@@ -5173,8 +5077,7 @@ TEST_F(STEST_helper_runtime, TestRedeployWithOneModelInstanceOnServer) {
 
 uint32_t g_sched_cnt_ = 0;
 bool g_is_dynamic_sched_ = false;
-Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
-                                   rtMbufPtr_t *m_buf, int32_t timeout) {
+Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) {
   if (!g_is_dynamic_sched_) {
     return SUCCESS;
   }
@@ -5226,8 +5129,9 @@ Status DynamicSchedDequeueMbufStub(int32_t device_id, uint32_t queue_id,
 }
 
 bool g_dynamic_sched_by_cache_ = false;
-Status DynamicSchedEnqueueStub(int32_t device_id, uint32_t queue_id, size_t size, const ExchangeService::FillFunc &fill_func,
-                   const ExchangeService::ControlInfo &control_info) {
+Status DynamicSchedEnqueueStub(int32_t device_id, uint32_t queue_id, size_t size,
+                               const ExchangeService::FillFunc &fill_func,
+                               const ExchangeService::ControlInfo &control_info) {
   DT_ALLOW_LEAKS_GUARD(DynamicSchedEnqueueStub);
   if (queue_id == 101) {
     rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -5242,9 +5146,9 @@ Status DynamicSchedEnqueueStub(int32_t device_id, uint32_t queue_id, size_t size
     {
       const auto &queue_infos = flowgw_response.queue_infos(0);
       if (g_dynamic_sched_by_cache_) {
-        EXPECT_EQ(queue_infos.choose_logic_id(), 1); // cache记录为transid=102，index=1；
+        EXPECT_EQ(queue_infos.choose_logic_id(), 1);  // cache记录为transid=102，index=1；
       } else {
-        EXPECT_EQ(queue_infos.choose_logic_id(), 2); // 遍历选路索引从小到大，当优先级一样时，选择最大的index
+        EXPECT_EQ(queue_infos.choose_logic_id(), 2);  // 遍历选路索引从小到大，当优先级一样时，选择最大的index
       }
     }
     g_sched_cnt_++;
@@ -5297,8 +5201,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexBySched) {
   executor->sched_input_queue_attrs_[0].global_logic_id = 1;
   executor->sched_output_queue_attrs_.push_back(queue_attr3);
   executor->sched_output_queue_attrs_[0].queue_id = 102;
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -5306,17 +5209,13 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexBySched) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {1, {route1, route2, route3}};
-  executor->model_index_info_ = {{1, {{1,
-      {index_info, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{1, {route1, route2, route3}};
+  executor->model_index_info_ = {{1, {{1, {index_info, {{1, group_info}}}}}}};
   executor->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     executor->cached_trans_ids_[i] = {0};
   }
-  executor->routelabel_cache_info_ = {
-      {{1, 0}, {{9, std::make_pair(10, "")}}}
-  };
+  executor->routelabel_cache_info_ = {{{1, 0}, {{9, std::make_pair(10, "")}}}};
   HeterogeneousModelExecutor::QueueStatus status;
   status.queue_depth = 0;
   status.device_id = 0;
@@ -5324,7 +5223,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexBySched) {
   executor->queue_status_info_[1].first = status;
   executor->queue_status_info_[1].second = 0;
   auto runtime_execution = (ExecutionRuntimeHeterogeneousMock3 *)ExecutionRuntime::GetInstance();
-  auto &exchange_service = (ExchangeServiceMock &) runtime_execution->GetExchangeService();
+  auto &exchange_service = (ExchangeServiceMock &)runtime_execution->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_CALL(exchange_service, Enqueue).WillRepeatedly(testing::Invoke(DynamicSchedEnqueueStub));
   ASSERT_EQ(executor->Initialize(), SUCCESS);
@@ -5400,8 +5299,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexByCache) {
   executor->sched_input_queue_attrs_[0].global_logic_id = 1;
   executor->sched_output_queue_attrs_.push_back(queue_attr3);
   executor->sched_output_queue_attrs_[0].queue_id = 102;
-  DeployPlan::DeviceInfo device_info =
-      DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
+  DeployPlan::DeviceInfo device_info = DeployPlan::DeviceInfo(static_cast<int32_t>(CPU), 0, 0);
   DeployPlan::ExtendedIndexInfo index_info;
   index_info.device_info = device_info;
   index_info.submodel_instance_name = "model1";
@@ -5409,20 +5307,16 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexByCache) {
   DeployPlan::DynamicGroupRouteInfo route1 = {0, 0, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route2 = {1, 1, index_info, false};
   DeployPlan::DynamicGroupRouteInfo route3 = {2, 2, index_info, false};
-  DeployPlan::DstGroupInfo group_info {3, {route1, route2, route3}};
-  executor->model_index_info_ = {{1, {{1,
-      {index_info, {{1, group_info}}}
-  }}}};
+  DeployPlan::DstGroupInfo group_info{3, {route1, route2, route3}};
+  executor->model_index_info_ = {{1, {{1, {index_info, {{1, group_info}}}}}}};
   executor->datagw_request_bindings_ = {{1, 102}};
   for (size_t i = 1; i <= 1025; ++i) {
     executor->cached_trans_ids_[i] = {0};
   }
-  executor->routelabel_cache_info_ = {
-    {{102, 0}, {{3, std::make_pair(1, "")}}},
-    {{1, 0}, {{9, std::make_pair(10, "")}}}
-  };
+  executor->routelabel_cache_info_ = {{{102, 0}, {{3, std::make_pair(1, "")}}},
+                                      {{1, 0}, {{9, std::make_pair(10, "")}}}};
   auto runtime_execution = (ExecutionRuntimeHeterogeneousMock3 *)ExecutionRuntime::GetInstance();
-  auto &exchange_service = (ExchangeServiceMock &) runtime_execution->GetExchangeService();
+  auto &exchange_service = (ExchangeServiceMock &)runtime_execution->GetExchangeService();
   EXPECT_CALL(exchange_service, DequeueMbuf).WillRepeatedly(testing::Invoke(DynamicSchedDequeueMbufStub));
   EXPECT_CALL(exchange_service, Enqueue).WillRepeatedly(testing::Invoke(DynamicSchedEnqueueStub));
   ASSERT_EQ(executor->Initialize(), SUCCESS);
@@ -5451,9 +5345,7 @@ TEST_F(STEST_helper_runtime, TestDynamicSchedFindGroupIndexByCache) {
 
 TEST_F(STEST_helper_runtime, TestHostCpuEngineModel_Execute_Success) {
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
   map<std::string, std::string> new_option;
   new_option["ge.exec.placement"] = "HOST";
   GetThreadLocalContext().SetSessionOption(new_option);
@@ -5578,7 +5470,8 @@ TEST_F(STEST_helper_runtime, UpdateAbnormalInstanceInTrimmingModel) {
   auto output_node = graph->FindNode("Node_Output");
   output_node->GetOpDesc()->SetSrcIndex({0});
   output_node->GetOpDesc()->SetSrcName({"add_2"});
-  auto flow_model = MakeShared<FlowModel>(graph);;
+  auto flow_model = MakeShared<FlowModel>(graph);
+  ;
   auto graph_model = BuildPneModel(graph);
   graph_model->SetLogicDeviceId("0:0:0");
   flow_model->AddSubModel(graph_model);
@@ -5644,7 +5537,7 @@ TEST_F(STEST_helper_runtime, TestPrepareMsgMbuf_Success) {
 }
 
 class TestPeekFailedMockRuntime : public RuntimeStub {
-public:
+ public:
   rtError_t rtMemQueuePeek(int32_t device, uint32_t qid, size_t *bufLen, int32_t timeout) override {
     *bufLen = 0;
     return ACL_ERROR_RT_PARAM_INVALID;
@@ -5865,8 +5758,7 @@ TEST_F(STEST_helper_runtime, run_exception) {
   EXPECT_EQ(flowgw_client.Initialize(), SUCCESS);
   flowgw_client.SetExceptionFlag();
   const std::set<uint32_t> model_ids;
-  EXPECT_EQ(flowgw_client.ClearFlowgwModelData(model_ids, 1),
-      SUCCESS);
+  EXPECT_EQ(flowgw_client.ClearFlowgwModelData(model_ids, 1), SUCCESS);
   flowgw_client.Finalize();
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,8 @@ GeTensorDescPtr MutableOutTensorDescWithConsumer(const NodePtr &node) {
   GE_ASSERT_NOTNULL(end_out_data_anchor);
   return op_desc->MutableOutputDesc(end_out_data_anchor->GetIdx());
 }
-} // namespace
-Status CastRemovePass:: Run(NodePtr &node) {
+}  // namespace
+Status CastRemovePass::Run(NodePtr &node) {
   if (node == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Param node is nullptr, check invalid");
     GELOGE(PARAM_INVALID, "[Check][Param] Param [node] must not be null.");
@@ -51,9 +51,10 @@ Status CastRemovePass:: Run(NodePtr &node) {
   }
 
   if (IsRedundantCastNode(node)) {
-    GE_CHK_STATUS_RET(IsolateAndDeleteNode(node, {0}), "Failed to remove redundant Cast node:%s", node->GetName().c_str());
+    GE_CHK_STATUS_RET(IsolateAndDeleteNode(node, {0}), "Failed to remove redundant Cast node:%s",
+                      node->GetName().c_str());
     GELOGI("Successfully remove redundant Cast node %s, datatype %s.", node->GetName().c_str(),
-      TypeUtils::DataTypeToSerialString(node->GetOpDesc()->GetInputDesc(0).GetDataType()).c_str());
+           TypeUtils::DataTypeToSerialString(node->GetOpDesc()->GetInputDesc(0).GetDataType()).c_str());
     return SUCCESS;
   }
 
@@ -129,8 +130,8 @@ Status CastRemovePass::RemoveCast(DataType &type, std::vector<NodePtr> &nodes_to
       GELOGI("CastRemovePass, remove Cast %s.", node->GetName().c_str());
       cast_name = node->GetName();
       if (IsolateAndDeleteNode(node, {0}) != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed",
-                          node->GetName().c_str(), node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed", node->GetName().c_str(),
+                             node->GetType().c_str());
         GELOGE(FAILED, "[IsolateAndDelete][Node] %s failed.", node->GetName().c_str());
         return FAILED;
       }
@@ -173,8 +174,7 @@ NodePtr CastRemovePass::GetTheEndNode(NodePtr begin_node, std::vector<NodePtr> &
     GE_ASSERT_NOTNULL(out_data_anchor);
     auto peer_in_anchor = out_data_anchor->GetFirstPeerAnchor();
     GE_ASSERT_NOTNULL(peer_in_anchor);
-    if (!TransOpUtil::IsTransOp(out_node) ||
-        TransOpUtil::GetTransOpDataIndex(out_node) != peer_in_anchor->GetIdx()) {
+    if (!TransOpUtil::IsTransOp(out_node) || TransOpUtil::GetTransOpDataIndex(out_node) != peer_in_anchor->GetIdx()) {
       return begin_node;  // when seen not trans op
     }
     begin_node = out_node;

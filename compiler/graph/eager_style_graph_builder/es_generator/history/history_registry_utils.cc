@@ -65,8 +65,8 @@ bool ValidateReleaseDateFormat(const std::string &date) {
   return true;
 }
 
-bool ValidateRequireString(const nlohmann::json &j, const std::string &field,
-                           std::string &error_msg, const std::string &prefix) {
+bool ValidateRequireString(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                           const std::string &prefix) {
   if (!j.contains(field) || !j[field].is_string()) {
     error_msg = prefix + field + " is required and must be a string";
     return false;
@@ -74,8 +74,8 @@ bool ValidateRequireString(const nlohmann::json &j, const std::string &field,
   return true;
 }
 
-bool ValidateRequireArray(const nlohmann::json &j, const std::string &field,
-                          std::string &error_msg, const std::string &prefix) {
+bool ValidateRequireArray(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                          const std::string &prefix) {
   if (!j.contains(field) || !j[field].is_array()) {
     error_msg = prefix + field + " is required and must be an array";
     return false;
@@ -83,8 +83,8 @@ bool ValidateRequireArray(const nlohmann::json &j, const std::string &field,
   return true;
 }
 
-bool ValidateOptionalString(const nlohmann::json &j, const std::string &field,
-                            std::string &error_msg, const std::string &prefix) {
+bool ValidateOptionalString(const nlohmann::json &j, const std::string &field, std::string &error_msg,
+                            const std::string &prefix) {
   if (j.contains(field) && !j[field].is_string()) {
     error_msg = prefix + field + " must be a string";
     return false;

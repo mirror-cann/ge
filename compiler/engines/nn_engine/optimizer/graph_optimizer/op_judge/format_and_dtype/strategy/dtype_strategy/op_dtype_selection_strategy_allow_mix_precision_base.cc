@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ bool OpDtypeSelectionStrategyAllowMixPrecisionBase::IsOpFp16Bf16Fp32Cast(const g
     if (ret == SUCCESS && precision_policy != BLACK) {
       auto father_output_desc = cur_op_desc_ptr->GetOutputDescPtr(father_out_anchor_index);
       auto father_input_desc = cur_op_desc_ptr->GetInputDescPtr(0);
-      if(father_input_desc == nullptr || father_output_desc == nullptr) {
+      if (father_input_desc == nullptr || father_output_desc == nullptr) {
         return false;
       }
       ge::DataType fahter_out_dtype = father_output_desc->GetDataType();
@@ -85,8 +85,8 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::GetOpPrecisionPolicy(const
   FE_CHECK_NOTNULL(op_kernel_info_ptr);
   FE_CHECK_NOTNULL(node);
   precision_policy = op_kernel_info_ptr->GetPrecisionPolicy();
-  precision_policy = Configuration::Instance(engine_name_).GetPrecisionPolicy(op_kernel_info_ptr->GetOpType(),
-                                                                              precision_policy);
+  precision_policy =
+      Configuration::Instance(engine_name_).GetPrecisionPolicy(op_kernel_info_ptr->GetOpType(), precision_policy);
   return SUCCESS;
 }
 
@@ -105,8 +105,7 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInWhiteList(Format
             cur_op_desc_ptr->GetName().c_str());
     FE_LOGD("Try to match original data type %u.", origin_dtype);
     DefaultSelector default_select_mode(
-        new (std::nothrow) OpDtypeSelectionStrategyDefaultMode(format_dtype_querier_ptr_,
-                                                               op_dtype_rise_matcher_ptr_));
+        new (std::nothrow) OpDtypeSelectionStrategyDefaultMode(format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr_));
     if (default_select_mode == nullptr) {
       return FAILED;
     }
@@ -116,8 +115,7 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInWhiteList(Format
      * pick the higher precision version. */
     vector<ge::DataType> input_or_output_dtype_vec;
     if (format_dtype_querier_ptr_->GetSupportDataTypes(basic_info.op_kernel_info_ptr, basic_info.tensor_kernel_info_ptr,
-                                                       basic_info.node,
-                                                       input_or_output_dtype_vec) != SUCCESS) {
+                                                       basic_info.node, input_or_output_dtype_vec) != SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][DtypeJdg][MixedPrecision%s][Op %s type %s] Failed to obtain supported data_types.",
                       mix_precision_type_.c_str(), cur_op_desc_ptr->GetName().c_str(),
                       cur_op_desc_ptr->GetType().c_str());
@@ -140,8 +138,7 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInWhiteList(Format
 Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInBlackList(FormatDtypeSelectionBasicInfo &basic_info,
                                                                           ForbiddenDtype forbidden_dtype) const {
   DefaultSelector default_select_mode(
-      new (std::nothrow) OpDtypeSelectionStrategyDefaultMode(format_dtype_querier_ptr_,
-                                                             op_dtype_rise_matcher_ptr_));
+      new (std::nothrow) OpDtypeSelectionStrategyDefaultMode(format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr_));
   if (default_select_mode == nullptr) {
     return FAILED;
   }
@@ -161,10 +158,9 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInBlackList(Format
   return ret;
 }
 
-void OpDtypeSelectionStrategyAllowMixPrecisionBase::MatchForGray(const string &cur_op_desc_type,
-    const string &cur_op_desc_name, const vector<ge::DataType> &op_kernel_dtype_vec,
-    ge::DataType father_output_dtype, const FormatDtypeSelectionBasicInfo& basic_info,
-    ForbiddenDtype forbidden_dtype) {
+void OpDtypeSelectionStrategyAllowMixPrecisionBase::MatchForGray(
+    const string &cur_op_desc_type, const string &cur_op_desc_name, const vector<ge::DataType> &op_kernel_dtype_vec,
+    ge::DataType father_output_dtype, const FormatDtypeSelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype) {
   FE_LOGD("Op[name=%s,type=%s]: match father dtype, the expected dtype is [%u].", cur_op_desc_name.c_str(),
           cur_op_desc_type.c_str(), father_output_dtype);
   Status match_father_dtype_res = op_dtype_rise_matcher_ptr_->Match(op_kernel_dtype_vec, father_output_dtype,
@@ -174,7 +170,7 @@ void OpDtypeSelectionStrategyAllowMixPrecisionBase::MatchForGray(const string &c
     match_father_dtype_res = op_dtype_reduce_matcher_ptr_->Match(op_kernel_dtype_vec, father_output_dtype,
                                                                  basic_info.matched_index_vec, forbidden_dtype);
     // if father is fp32 ,but op is not supported. if father is bf16, but op is also unsuppor float or bf16;
-    // so we have no choosen, need todo nothing
+    // so we have no chosen, need todo nothing
   }
   if (match_father_dtype_res == SUCCESS) {
     FE_LOGD("Op[name=%s,type=%s]: match the father dtype success, some matched dtypes in op kernel have been found.",
@@ -182,8 +178,8 @@ void OpDtypeSelectionStrategyAllowMixPrecisionBase::MatchForGray(const string &c
     FE_LOGD("The size of dtype is [%zu], the size of matched index is [%zu].", op_kernel_dtype_vec.size(),
             basic_info.matched_index_vec.size());
   } else {
-    FE_LOGD("Op[name=%s,type=%s]: No match found for dtype %u, matchedIndexVec remains unchanged.", cur_op_desc_name.c_str(),
-            cur_op_desc_type.c_str(), father_output_dtype);
+    FE_LOGD("Op[name=%s,type=%s]: No match found for dtype %u, matchedIndexVec remains unchanged.",
+            cur_op_desc_name.c_str(), cur_op_desc_type.c_str(), father_output_dtype);
   }
 }
 
@@ -201,8 +197,10 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionBase::RunForOpInGrayList(FormatD
   /* 1. If the node is Gray list does not have predecessors, we just match the
    * dtype with its original dtype. */
   if (has_no_father) {
-    FE_LOGD("Node[%s, %s]: Operation does not have a parent node on input[%u] by mix[%s]. Matched with its original data type.",
-            cur_op_desc_name.c_str(), cur_op_desc_type.c_str(), basic_info.index, mix_precision_type_.c_str());
+    FE_LOGD(
+        "Node[%s, %s]: Operation does not have a parent node on input[%u] by mix[%s]. Matched with its original data "
+        "type.",
+        cur_op_desc_name.c_str(), cur_op_desc_type.c_str(), basic_info.index, mix_precision_type_.c_str());
     if (data_type_ == ge::DT_BF16) {
       AllowFp32ToBf16Selector allow_fp32_to_bf16_selector(new (std::nothrow) OpDtypeSelectionStrategyAllowFp32ToBf16(
           format_dtype_querier_ptr_, op_dtype_rise_matcher_ptr_, op_dtype_reduce_matcher_ptr_));

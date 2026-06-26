@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,6 @@
 #include "deploy/deployer/deployer_service_impl.h"
 #include "common/config/configurations.h"
 #include "macro_utils/dt_public_unscope.h"
-
 
 using namespace std;
 namespace ge {
@@ -50,8 +49,7 @@ TEST_F(DeployerServiceImplTest, ProcessFuncIsNull) {
 }
 
 TEST_F(DeployerServiceImplTest, Process) {
-  auto process_func = [](DeployContext &context,
-                         const deployer::DeployerRequest &request,
+  auto process_func = [](DeployContext &context, const deployer::DeployerRequest &request,
                          deployer::DeployerResponse &response) {
     response.set_error_code(666);
     response.set_error_message("ErrorMessage");
@@ -370,7 +368,7 @@ TEST_F(DeployerServiceImplTest, ClearModelRunningData_Succ) {
   auto model_data_clear_req = request.mutable_model_data_clear();
   std::vector<uint32_t> model_ids = {2};
   model_data_clear_req->mutable_root_model_ids()->Add(model_ids.begin(), model_ids.end());
-  
+
   auto exception_devices = model_data_clear_req->add_exception_dev_info();
   exception_devices->set_device_id(1);
   exception_devices->set_device_type(1);
@@ -423,4 +421,4 @@ TEST_F(DeployerServiceImplTest, UpdateProfInfo) {
   DeployerServiceImpl::UpdateProfilingInfoProcess(context, request, response);
   EXPECT_EQ(response.error_code(), FAILED);
 }
-}
+}  // namespace ge

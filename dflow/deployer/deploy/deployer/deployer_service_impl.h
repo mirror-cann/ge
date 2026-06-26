@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,7 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return  SUCCESS or FAILED
    */
-  Status Process(DeployContext &context,
-                 const deployer::DeployerRequest &request,
+  Status Process(DeployContext &context, const deployer::DeployerRequest &request,
                  deployer::DeployerResponse &response);
 
   /*
@@ -43,26 +42,23 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return  SUCCESS or FAILED
    */
-  using ProcessFunc = std::function<void(DeployContext &context,
-                                         const deployer::DeployerRequest &request,
+  using ProcessFunc = std::function<void(DeployContext &context, const deployer::DeployerRequest &request,
                                          deployer::DeployerResponse &response)>;
 
   /*
-  *  @ingroup ge
-  *  @brief   register deployer server api
-  *  @param   [in]  DeployerRequestType
-  *  @param   [in]  const ProcessFunc &
-  *  @return: None
+   *  @ingroup ge
+   *  @brief   register deployer server api
+   *  @param   [in]  DeployerRequestType
+   *  @param   [in]  const ProcessFunc &
+   *  @return: None
    *
-  */
+   */
   void RegisterReqProcessor(deployer::DeployerRequestType type, const ProcessFunc &fn);
 
-  static void UpdateDeployPlanProcess(DeployContext &context,
-                                      const deployer::DeployerRequest &request,
+  static void UpdateDeployPlanProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                       deployer::DeployerResponse &response);
 
-  static void FlowRoutePlanProcess(DeployContext &context,
-                                   const deployer::DeployerRequest &request,
+  static void FlowRoutePlanProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                    deployer::DeployerResponse &response);
 
   /*
@@ -73,8 +69,7 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return: None
    */
-  static void DownloadDevMaintenanceCfgProcess(DeployContext &context,
-                                               const deployer::DeployerRequest &request,
+  static void DownloadDevMaintenanceCfgProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                deployer::DeployerResponse &response);
   /*
    *  @ingroup ge
@@ -84,8 +79,7 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return: None
    */
-  static void DownloadModelProcess(DeployContext &context,
-                                   const deployer::DeployerRequest &request,
+  static void DownloadModelProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                    deployer::DeployerResponse &response);
 
   /*
@@ -96,8 +90,7 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return: None
    */
-  static void LoadModelProcess(DeployContext &context,
-                               const deployer::DeployerRequest &request,
+  static void LoadModelProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                deployer::DeployerResponse &response);
 
   /*
@@ -108,40 +101,32 @@ class DeployerServiceImpl {
    *  @param   [out] response       service response
    *  @return: None
    */
-  static void UnloadModelProcess(DeployContext &context,
-                                 const deployer::DeployerRequest &request,
+  static void UnloadModelProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                  deployer::DeployerResponse &response);
 
-  static void MultiVarManagerInfoProcess(DeployContext &context,
-                                         const deployer::DeployerRequest &request,
+  static void MultiVarManagerInfoProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                          deployer::DeployerResponse &response);
 
-  static void SharedContentProcess(DeployContext &context,
-                                   const deployer::DeployerRequest &request,
+  static void SharedContentProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                    deployer::DeployerResponse &response);
 
-  static void TransferFileProcess(DeployContext &context,
-                                  const deployer::DeployerRequest &request,
+  static void TransferFileProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                   deployer::DeployerResponse &response);
 
   static void InitProcessResourceProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                          deployer::DeployerResponse &response);
 
-  static void HeartbeatProcess(DeployContext &context,
-                               const deployer::DeployerRequest &request,
+  static void HeartbeatProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                deployer::DeployerResponse &response);
 
-  static void DataGwSchedInfo(DeployContext &context,
-                              const deployer::DeployerRequest &request,
+  static void DataGwSchedInfo(DeployContext &context, const deployer::DeployerRequest &request,
                               deployer::DeployerResponse &response);
-  static void ClearModelRunningData(DeployContext &context,
-                                    const deployer::DeployerRequest &request,
+  static void ClearModelRunningData(DeployContext &context, const deployer::DeployerRequest &request,
                                     deployer::DeployerResponse &response);
   static void DataFlowExceptionNotifyProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                              deployer::DeployerResponse &response);
 
-  static void UpdateProfilingInfoProcess(DeployContext &context,
-                                         const deployer::DeployerRequest &request,
+  static void UpdateProfilingInfoProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                          deployer::DeployerResponse &response);
 
  private:

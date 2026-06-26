@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,9 +45,9 @@ vector<FusionPattern *> SwapMergeCastFusionPass::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
   FusionPattern *pattern = new (std::nothrow) FusionPattern("SwapMergeCastFusionPattern");
-   FE_CHECK(pattern == nullptr,
-            REPORT_FE_ERROR("[GraphOpt][SwapMrgCastFus][DefPtn] Failed to create a new pattern object."),
-            return patterns);
+  FE_CHECK(pattern == nullptr,
+           REPORT_FE_ERROR("[GraphOpt][SwapMrgCastFus][DefPtn] Failed to create a new pattern object."),
+           return patterns);
 
   pattern->AddOpDesc(PATTERN_MERGE, {OP_TYPE_MERGE})
       .AddOpDesc(PATTERN_CAST, {OP_TYPE_CAST})
@@ -188,16 +188,17 @@ Status SwapMergeCastFusionPass::RelinkMergeNode(const ge::NodePtr &merge_node, c
   }
 
   if (GraphUtils::AddEdge(merge_node->GetOutDataAnchor(0), netout_in_data_anchor) != GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][SwapMrgCastFus][RelkMrgNd] Failed to link the output data anchor of the merge node [%s].",
-                    merge_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][SwapMrgCastFus][RelkMrgNd] Failed to link the output data anchor of the merge node [%s].",
+        merge_node->GetName().c_str());
     return FAILED;
   }
 
   return SUCCESS;
 }
 
-Status SwapMergeCastFusionPass::VerifyNodes(const ge::NodePtr &merge_node,
-                                            ge::NodePtr &cast_node, ge::NodePtr &netout_node) const {
+Status SwapMergeCastFusionPass::VerifyNodes(const ge::NodePtr &merge_node, ge::NodePtr &cast_node,
+                                            ge::NodePtr &netout_node) const {
   FE_CHECK(merge_node == nullptr, REPORT_FE_ERROR("[GraphOpt][SwapMrgCastFus][VerifyNd] Merge node is nullptr."),
            return PARAM_INVALID);
 
@@ -230,6 +231,5 @@ Status SwapMergeCastFusionPass::VerifyNodes(const ge::NodePtr &merge_node,
   return SUCCESS;
 }
 
-REG_PASS(SWAPMERGECAST_PASS_NAME, SECOND_ROUND_BUILT_IN_GRAPH_PASS,
-         SwapMergeCastFusionPass, FE_PASS);
+REG_PASS(SWAPMERGECAST_PASS_NAME, SECOND_ROUND_BUILT_IN_GRAPH_PASS, SwapMergeCastFusionPass, FE_PASS);
 }  // namespace fe

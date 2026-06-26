@@ -21,8 +21,7 @@ typedef Status (*CAC_NOTIFY_DEVICE_FUNC)(uint32_t chipId, uint32_t deviceId);
 typedef bool (*CAC_PROF_GET_ENABLE_FUNC)(void);
 typedef Status (*LOAD_POST_PROCESS_FUNC)(uint32_t modelId, char *om, uint64_t *stepIdAddr, void *dbgHandle);
 typedef void *(*CAC_CREATE_DBG_HANDLE_FUNC)(void);
-typedef Status (*CAC_PRE_DUMP_FUNC)(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName,
-                                    void *dbgHandle);
+typedef Status (*CAC_PRE_DUMP_FUNC)(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName, void *dbgHandle);
 typedef void (*CAC_FREE_LOAD_DUMP_INFO_FUNC)(void *dbgHandle);
 typedef void (*CAC_STEPID_CONUTER_FUNC)(void *dbgHandle);
 
@@ -88,10 +87,8 @@ Status LoadModelPostProcess(uint32_t modelId, char *modelName, uint64_t *stepIdA
   return (load_post_process_func != NULL) ? load_post_process_func(modelId, modelName, stepIdAddr, dbgHandle) : SUCCESS;
 }
 
-Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName,
-                           void *dbgHandle) {
-  return cac_pre_dump_func != NULL ?
-    cac_pre_dump_func(mdlLoad, taskDescSize, modelName, dbgHandle) : SUCCESS;
+Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName, void *dbgHandle) {
+  return cac_pre_dump_func != NULL ? cac_pre_dump_func(mdlLoad, taskDescSize, modelName, dbgHandle) : SUCCESS;
 }
 
 void StepIdConuterPlus(void *dbgHandle) {

@@ -82,20 +82,22 @@ Status ProgramGenerator::GenerateInterfaceHeader(Om2CodePrinter &code_printer) {
       ast_.StablePart(StablePartId::kInterfaceMacros),
       ast_.StablePart(StablePartId::kInterfacePointerHelpers),
       ast_.StablePart(StablePartId::kInterfaceDumpApis),
-      ast_.Namespace("om2", {
-          ast_.Field("constexpr int32_t", "INPUT_NUM", static_cast<int>(codegen_model_.model_io.input_count)),
-          ast_.Field("constexpr int32_t", "OUTPUT_NUM", static_cast<int>(codegen_model_.model_io.output_count)),
-          interface_handler.BuildOm2ModelHandleAlias(),
-          interface_handler.BuildBinDataInfoStruct(),
-          interface_handler.BuildAicpuParamHeadStruct(),
-          interface_handler.BuildAicpuSessionInfoStruct(),
-          interface_handler.BuildArgsInfoStruct(),
-          interface_handler.BuildTfAiCpuExInfoStruct(),
-          ast_.StablePart(StablePartId::kScopeGuard, StablePartPlacement::kNamespace),
-          interface_handler.BuildOm2ArgsTableClass(),
-          ast_.StablePart(StablePartId::kOpDefStructs, StablePartPlacement::kNamespace),
-          interface_handler.BuildOm2ModelClass(codegen_model_),
-      }),
+      ast_.Namespace(
+          "om2",
+          {
+              ast_.Field("constexpr int32_t", "INPUT_NUM", static_cast<int>(codegen_model_.model_io.input_count)),
+              ast_.Field("constexpr int32_t", "OUTPUT_NUM", static_cast<int>(codegen_model_.model_io.output_count)),
+              interface_handler.BuildOm2ModelHandleAlias(),
+              interface_handler.BuildBinDataInfoStruct(),
+              interface_handler.BuildAicpuParamHeadStruct(),
+              interface_handler.BuildAicpuSessionInfoStruct(),
+              interface_handler.BuildArgsInfoStruct(),
+              interface_handler.BuildTfAiCpuExInfoStruct(),
+              ast_.StablePart(StablePartId::kScopeGuard, StablePartPlacement::kNamespace),
+              interface_handler.BuildOm2ArgsTableClass(),
+              ast_.StablePart(StablePartId::kOpDefStructs, StablePartPlacement::kNamespace),
+              interface_handler.BuildOm2ModelClass(codegen_model_),
+          }),
       ast_.ExternBlock("C", external_api_decls),
   });
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kInterfaceHeaderFile, translation_unit, code_printer));
@@ -131,15 +133,16 @@ Status ProgramGenerator::GenerateArgsManagerSource(Om2CodePrinter &code_printer)
   auto *translation_unit = ast_.File({
       ast_.Include(codegen_model_.model_name + "_interface.h"),
       ast_.Space(),
-      ast_.Namespace("om2", {
-          args_manager_handler.BuildInitMethod(codegen_model_),
-          args_manager_handler.BuildDestructor(),
-          args_manager_handler.BuildGetArgsInfoMethod(),
-          args_manager_handler.BuildGetDevArgAddrMethod(),
-          args_manager_handler.BuildGetHostArgAddrMethod(),
-          args_manager_handler.BuildUpdateHostArgsMethod(),
-          args_manager_handler.BuildCopyArgsToDeviceMethod(),
-      }),
+      ast_.Namespace("om2",
+                     {
+                         args_manager_handler.BuildInitMethod(codegen_model_),
+                         args_manager_handler.BuildDestructor(),
+                         args_manager_handler.BuildGetArgsInfoMethod(),
+                         args_manager_handler.BuildGetDevArgAddrMethod(),
+                         args_manager_handler.BuildGetHostArgAddrMethod(),
+                         args_manager_handler.BuildUpdateHostArgsMethod(),
+                         args_manager_handler.BuildCopyArgsToDeviceMethod(),
+                     }),
   });
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kArgsManagerFile, translation_unit, code_printer));
   GELOGD("[OM2] Args Manager source file code is generated.");
@@ -163,10 +166,11 @@ Status ProgramGenerator::GenerateKernelRegSource(Om2CodePrinter &code_printer) {
   };
   auto *translation_unit = ast_.File({
       ast_.Include(codegen_model_.model_name + "_interface.h"),
-      ast_.Namespace("om2", {
-          ast_.Namespace("", anonymous_items),
-          kernel_reg_handler.BuildRegisterKernels(codegen_model_),
-      }),
+      ast_.Namespace("om2",
+                     {
+                         ast_.Namespace("", anonymous_items),
+                         kernel_reg_handler.BuildRegisterKernels(codegen_model_),
+                     }),
   });
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kKernelRegistryFile, translation_unit, code_printer));
   GELOGD("[OM2] Kernel Reg source file code is generated.");
@@ -176,19 +180,20 @@ Status ProgramGenerator::GenerateKernelRegSource(Om2CodePrinter &code_printer) {
 Status ProgramGenerator::GenerateLoadAndRunSource(Om2CodePrinter &code_printer) {
   LoadAndRunFileCodeGenerator load_and_run_handler(ast_);
   auto anonymous_items = load_and_run_handler.BuildAnonymousNamespaceItems(codegen_model_, task_code_builder_list_);
-  (void)anonymous_items.insert(anonymous_items.begin(), ast_.StablePart(StablePartId::kLoadAndRunDumpHelpers,
-                                                                  StablePartPlacement::kNamespace));
+  (void)anonymous_items.insert(anonymous_items.begin(),
+                               ast_.StablePart(StablePartId::kLoadAndRunDumpHelpers, StablePartPlacement::kNamespace));
   anonymous_items.push_back(load_and_run_handler.BuildOpDefTable(codegen_model_, task_code_builder_list_));
   auto *translation_unit = ast_.File({
       ast_.Include(codegen_model_.model_name + "_interface.h"),
       ast_.Space(),
-      ast_.Namespace("om2", {
-          ast_.Namespace("", anonymous_items),
-          load_and_run_handler.BuildGetRtModelHandleMethod(),
-          load_and_run_handler.BuildLoadMethod(codegen_model_, task_code_builder_list_),
-          load_and_run_handler.BuildRunAsyncMethod(codegen_model_),
-          load_and_run_handler.BuildRunMethod(codegen_model_),
-      }),
+      ast_.Namespace("om2",
+                     {
+                         ast_.Namespace("", anonymous_items),
+                         load_and_run_handler.BuildGetRtModelHandleMethod(),
+                         load_and_run_handler.BuildLoadMethod(codegen_model_, task_code_builder_list_),
+                         load_and_run_handler.BuildRunAsyncMethod(codegen_model_),
+                         load_and_run_handler.BuildRunMethod(codegen_model_),
+                     }),
       ast_.StablePart(StablePartId::kLoadAndRunExternalApis),
   });
   GE_ASSERT_SUCCESS(EmitFile(GeneratedFileIndex::kLoadingAndRunningFile, translation_unit, code_printer));
@@ -208,8 +213,9 @@ endif
 CXX ?= c++
 
 TARGET := lib)" + lib_name + R"(.so
-SRC_FILES := )" + model_name + R"(_resources.cpp )" + model_name + R"(_kernel_reg.cpp )" + model_name +
-                                     R"(_load_and_run.cpp )" + model_name + R"(_args_manager.cpp
+SRC_FILES := )" + model_name + R"(_resources.cpp )" +
+                                   model_name + R"(_kernel_reg.cpp )" + model_name + R"(_load_and_run.cpp )" +
+                                   model_name + R"(_args_manager.cpp
 
 ifndef CPPFLAGS
 CPPFLAGS := \

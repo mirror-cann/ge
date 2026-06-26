@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,13 +27,14 @@
 
 namespace gert {
 namespace {
-void DependShapeRangeCallback(const bg::ValueHolderPtr &ext_info, const bg::ValueHolderPtr& launch_holder,
+void DependShapeRangeCallback(const bg::ValueHolderPtr &ext_info, const bg::ValueHolderPtr &launch_holder,
                               const bg::ValueHolderPtr &stream, std::vector<bg::ValueHolderPtr> &output_shapes,
                               const std::string &engine_name) {
   auto sync_stream = bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {stream});
   const size_t output_num = output_shapes.size();
   auto engine_name_holder = bg::ValueHolder::CreateConst(engine_name.c_str(), engine_name.size() + 1, true);
-  auto ext_output_shapes = bg::ValueHolder::CreateDataOutput("GetExtOutputShapes", {ext_info, engine_name_holder}, output_num);
+  auto ext_output_shapes =
+      bg::ValueHolder::CreateDataOutput("GetExtOutputShapes", {ext_info, engine_name_holder}, output_num);
 
   bg::ValueHolder::AddDependency(launch_holder, sync_stream);
   for (auto shape : ext_output_shapes) {
@@ -42,13 +43,13 @@ void DependShapeRangeCallback(const bg::ValueHolderPtr &ext_info, const bg::Valu
   output_shapes = ext_output_shapes;
 }
 
-void DependShapeRangeHostCpuCallback(const bg::ValueHolderPtr &ext_info, const bg::ValueHolderPtr& launch_holder,
+void DependShapeRangeHostCpuCallback(const bg::ValueHolderPtr &ext_info, const bg::ValueHolderPtr &launch_holder,
                                      std::vector<bg::ValueHolderPtr> &output_shapes) {
   const size_t output_num = output_shapes.size();
   const std::string host_engine_name = ge::kEngineNameHostCpu;
   auto engine_name_holder = bg::ValueHolder::CreateConst(host_engine_name.c_str(), host_engine_name.size() + 1, true);
-  auto ext_output_shapes = bg::ValueHolder::CreateDataOutput("GetExtOutputShapes",
-      {ext_info, engine_name_holder}, output_num);
+  auto ext_output_shapes =
+      bg::ValueHolder::CreateDataOutput("GetExtOutputShapes", {ext_info, engine_name_holder}, output_num);
 
   for (auto shape : ext_output_shapes) {
     bg::ValueHolder::AddDependency(launch_holder, shape);
@@ -57,8 +58,7 @@ void DependShapeRangeHostCpuCallback(const bg::ValueHolderPtr &ext_info, const b
 }
 
 std::vector<bg::DevMemValueHolderPtr> AllocMemcpyInput(const size_t output_num, LoweringGlobalData &global_data) {
-  auto vec = bg::FrameSelector::OnInitRoot([&output_num, &global_data]()
-      -> std::vector<bg::ValueHolderPtr> {
+  auto vec = bg::FrameSelector::OnInitRoot([&output_num, &global_data]() -> std::vector<bg::ValueHolderPtr> {
     std::vector<bg::ValueHolderPtr> res;
     // copy task need copy output_data and output_shape, max len is 2 * output_num
     const size_t copy_buf_len = output_num * 2U * sizeof(void *);
@@ -83,11 +83,9 @@ std::vector<bg::DevMemValueHolderPtr> AllocMemcpyInput(const size_t output_num, 
   return memcpy_input;
 }
 
-bg::ValueHolderPtr PrepareCopyInputs(const ge::NodePtr &node,
-                                     const bg::ValueHolderPtr &ordered_holder,
+bg::ValueHolderPtr PrepareCopyInputs(const ge::NodePtr &node, const bg::ValueHolderPtr &ordered_holder,
                                      const std::vector<bg::DevMemValueHolderPtr> &memcpy_input,
-                                     LoweringGlobalData &global_data,
-                                     NodeOutput &node_output) {
+                                     LoweringGlobalData &global_data, NodeOutput &node_output) {
   auto output_num = node->GetAllOutDataAnchorsSize();
   auto host_summary = bg::GetHostSummary(node_output.addrs);
   auto data_sizes = bg::GetSummaryDataSizes(host_summary);
@@ -104,7 +102,7 @@ bg::ValueHolderPtr PrepareCopyInputs(const ge::NodePtr &node,
   inputs.insert(inputs.cend(), node_output.addrs.cbegin(), node_output.addrs.cend());
   inputs.insert(inputs.cend(), shape_buffer.cbegin(), shape_buffer.cend());
   inputs.emplace_back(global_data.GetStream());
-  auto prepare_copy_inputs =  bg::ValueHolder::CreateVoid<bg::ValueHolder>("PrepareCopyInputs", inputs);
+  auto prepare_copy_inputs = bg::ValueHolder::CreateVoid<bg::ValueHolder>("PrepareCopyInputs", inputs);
 
   for (auto &summary : host_summary) {
     bg::ValueHolder::AddDependency(ordered_holder, summary);
@@ -118,8 +116,7 @@ ge::Status AddDataNodeForMemCpy(ge::ComputeGraphPtr &graph, ge::NodePtr &memcpy_
   // add data node for output
   auto ret = ge::SUCCESS;
   for (size_t i = 0U; i < input_size; ++i) {
-    auto data_op_desc =
-        std::make_shared<ge::OpDesc>(memcpy_node->GetName() + "_Data_" + std::to_string(i + 1), "Data");
+    auto data_op_desc = std::make_shared<ge::OpDesc>(memcpy_node->GetName() + "_Data_" + std::to_string(i + 1), "Data");
     GE_CHECK_NOTNULL(data_op_desc);
     if (data_op_desc->AddOutputDesc(ge::GeTensorDesc()) != ge::SUCCESS) {
       GELOGE(ge::FAILED, "data_op_desc add input desc failed, i = %zu", i);
@@ -138,10 +135,9 @@ ge::Status AddDataNodeForMemCpy(ge::ComputeGraphPtr &graph, ge::NodePtr &memcpy_
 }
 
 ge::NodePtr BuildMemCpyTaskNode(ge::ComputeGraphPtr &graph, const ge::NodePtr &origin_node, uint32_t input_size) {
-  GELOGD("Generate cc/tf memcpy logic for node %s type %s.",
-         origin_node->GetName().c_str(), origin_node->GetType().c_str());
-  ge::OpDescPtr memcpy_op_desc =
-      std::make_shared<ge::OpDesc>(origin_node->GetName() + "_FakeMemCpy", "MemCopy");
+  GELOGD("Generate cc/tf memcpy logic for node %s type %s.", origin_node->GetName().c_str(),
+         origin_node->GetType().c_str());
+  ge::OpDescPtr memcpy_op_desc = std::make_shared<ge::OpDesc>(origin_node->GetName() + "_FakeMemCpy", "MemCopy");
   if (memcpy_op_desc != nullptr) {
     for (uint32_t i = 0; i < input_size; ++i) {
       memcpy_op_desc->AppendIrInput("input" + std::to_string(i + 1), ge::kIrInputRequired);
@@ -166,8 +162,8 @@ ge::NodePtr BuildMemCpyTaskNode(ge::ComputeGraphPtr &graph, const ge::NodePtr &o
   return nullptr;
 }
 
-void LaunchTfMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_holder,
-                        LoweringGlobalData &global_data, NodeOutput &node_output) {
+void LaunchTfMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr &ordered_holder, LoweringGlobalData &global_data,
+                        NodeOutput &node_output) {
   auto compile_result = global_data.FindCompiledResult(node);
   auto &task_def = compile_result->task_defs.back();
   auto &kernel_ex_def = task_def.kernel_ex();
@@ -183,7 +179,7 @@ void LaunchTfMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
 
   auto tf_memcpy_node = BuildMemCpyTaskNode(tmp_graph, node, outputs_num);
   if (tf_memcpy_node == nullptr) {
-    GELOGE(ge::PARAM_INVALID, "build tf memcpy task node failed, tf 4th memcpy doest not finished yet.");
+    GELOGE(ge::PARAM_INVALID, "build tf memcpy task node failed, tf 4th memcpy does not finished yet.");
     return;
   }
   // Return value of this function will be implicitly used.
@@ -202,7 +198,8 @@ void LaunchTfMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
   auto prepare_copy_inputs = PrepareCopyInputs(node, ordered_holder, memcpy_input, global_data, node_output);
 
   // launch & sync
-  auto launch_tf_holder = bg::AicpuTfLaunchKernel(aicpu_tf_args.args_handler, global_data.GetStream(), rts_args.bin_handle, node);
+  auto launch_tf_holder =
+      bg::AicpuTfLaunchKernel(aicpu_tf_args.args_handler, global_data.GetStream(), rts_args.bin_handle, node);
   auto sync_stream = bg::ValueHolder::CreateSingleDataOutput("SyncStream", {global_data.GetStream()});
 
   SetReleaseAfter(memcpy_input, launch_tf_holder);
@@ -217,8 +214,8 @@ void LaunchTfMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
   }
 }
 
-void LaunchCCMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_holder,
-                        LoweringGlobalData &global_data, NodeOutput &node_output) {
+void LaunchCCMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr &ordered_holder, LoweringGlobalData &global_data,
+                        NodeOutput &node_output) {
   auto compile_result = global_data.FindCompiledResult(node);
   if (compile_result == nullptr) {
     GELOGE(ge::PARAM_INVALID, "get compile result failed");
@@ -238,7 +235,7 @@ void LaunchCCMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
 
   auto cc_memcpy_node = BuildMemCpyTaskNode(tmp_graph, node, outputs_num);
   if (cc_memcpy_node == nullptr) {
-    GELOGE(ge::PARAM_INVALID, "build cc memcpy task node failed, cc 4th memcpy doest not finished yet.");
+    GELOGE(ge::PARAM_INVALID, "build cc memcpy task node failed, cc 4th memcpy does not finished yet.");
     return;
   }
   // Return value of this function will be implicitly used.
@@ -257,9 +254,9 @@ void LaunchCCMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
   // launch & sync
   size_t block_dim = 1U;
   auto block_dim_holder = bg::ValueHolder::CreateConst(&block_dim, sizeof(block_dim));
-  auto launch_cc_holder = bg::AicpuCCLaunchKernel(aicpu_cc_args.args_handler, global_data.GetStream(), block_dim_holder,
-                                                  kernel_def, node->GetOpDesc(), aicpu_cc_args.ext_info_handler,
-                                                  rts_args.bin_handle, node);
+  auto launch_cc_holder =
+      bg::AicpuCCLaunchKernel(aicpu_cc_args.args_handler, global_data.GetStream(), block_dim_holder, kernel_def,
+                              node->GetOpDesc(), aicpu_cc_args.ext_info_handler, rts_args.bin_handle, node);
   auto sync_stream = bg::ValueHolder::CreateSingleDataOutput("SyncStream", {global_data.GetStream()});
 
   SetReleaseAfter(memcpy_input, launch_cc_holder);
@@ -273,7 +270,7 @@ void LaunchCCMemcpyTask(const ge::NodePtr &node, bg::ValueHolderPtr& ordered_hol
     ordered_holder = shape;
   }
 }
-} // namespace
+}  // namespace
 bg::ValueHolderPtr GetStepId(LoweringGlobalData &global_data) {
   if (AicpuResourceManager::GetInstance().IsSingleOp()) {
     // must set node on init graph
@@ -286,10 +283,10 @@ bg::ValueHolderPtr GetStepId(LoweringGlobalData &global_data) {
 
   auto builder = [&global_data]() -> bg::ValueHolderPtr {
     auto step_id_holders = bg::FrameSelector::OnInitRoot([]() -> std::vector<bg::ValueHolderPtr> {
-      return bg::ValueHolder::CreateDataOutput("CreateStepId", {}, 2U); // device & host step_id
+      return bg::ValueHolder::CreateDataOutput("CreateStepId", {}, 2U);  // device & host step_id
     });
 
-    bg::FrameSelector::OnMainRootLast([&step_id_holders, &global_data] () -> bg::ValueHolderPtr {
+    bg::FrameSelector::OnMainRootLast([&step_id_holders, &global_data]() -> bg::ValueHolderPtr {
       // step id作为全局资源，需要保证读写step id时都在同一条流上，所以将其固定在stream 0上
       step_id_holders.emplace_back(global_data.GetStreamById(0));
       return bg::ValueHolder::CreateVoid<bg::ValueHolder>("IncreaseStepId", step_id_holders);
@@ -316,8 +313,7 @@ NodeOutput GetOutputShapeAndAddr(const ge::NodePtr &node, const std::vector<bg::
   NodeOutput res;
   int32_t unknown_shape_type_val = 0;
   (void)ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
-  if ((bg::IsAicpuUnknownShape(node)) &&
-      (unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE))) {
+  if ((bg::IsAicpuUnknownShape(node)) && (unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE))) {
     auto output_num = node->GetAllOutDataAnchorsSize();
     auto summary_len = sizeof(aicpu::FWKAdapter::ResultSummary);
     auto len_holder = bg::ValueHolder::CreateConst(&summary_len, sizeof(summary_len));
@@ -330,32 +326,29 @@ NodeOutput GetOutputShapeAndAddr(const ge::NodePtr &node, const std::vector<bg::
     auto output_sizes = bg::CalcTensorSize(node, res.shapes);
     auto memory = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, input_addrs, global_data);
     res.addrs.insert(res.addrs.begin(), memory.begin(), memory.end());
- }
+  }
   return res;
 }
 
 void AicpuCallback(const ge::NodePtr &node, const bg::ValueHolderPtr &ext_info, bg::ValueHolderPtr &launch_holder,
                    LoweringGlobalData &global_data, NodeOutput &node_output) {
   int32_t unknown_shape_type_val = 0;
-  (void) ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
-  if ((unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_SHAPE_RANGE)) &&
-      bg::IsAicpuOutputUnknownShape(node)) {
-    GELOGI("Op %s type %s is 3th op. engine:%s", node->GetName().c_str(),
-        ge::NodeUtils::GetNodeType(node).c_str(), node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
+  (void)ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  if ((unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_SHAPE_RANGE)) && bg::IsAicpuOutputUnknownShape(node)) {
+    GELOGI("Op %s type %s is 3th op. engine:%s", node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(),
+           node->GetOpDescBarePtr()->GetOpKernelLibName().c_str());
     if (node->GetOpDescBarePtr()->GetOpKernelLibName() == ge::kEngineNameHostCpu) {
       DependShapeRangeHostCpuCallback(ext_info, launch_holder, node_output.shapes);
       return;
     }
-    DependShapeRangeCallback(ext_info, launch_holder, global_data.GetStream(),
-        node_output.shapes, node->GetOpDescBarePtr()->GetOpKernelLibName());
-  } else if ((unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE)) &&
-             bg::IsAicpuUnknownShape(node)) {
+    DependShapeRangeCallback(ext_info, launch_holder, global_data.GetStream(), node_output.shapes,
+                             node->GetOpDescBarePtr()->GetOpKernelLibName());
+  } else if ((unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE)) && bg::IsAicpuUnknownShape(node)) {
     auto sync_stream = bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {global_data.GetStream()});
     bg::ValueHolder::AddDependency(launch_holder, sync_stream);
     launch_holder = sync_stream;
     if (node->GetOpDescBarePtr()->GetOpKernelLibName() == ge::kEngineNameAiCpuTf) {
-      GELOGI("Op %s type %s is 4th tf op.",
-          node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());
+      GELOGI("Op %s type %s is 4th tf op.", node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());
       return LaunchTfMemcpyTask(node, launch_holder, global_data, node_output);
     } else if (node->GetOpDescBarePtr()->GetOpKernelLibName() == ge::kEngineNameAiCpu) {
       GELOGI("Op %s type %s is 4th cc op.", node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());

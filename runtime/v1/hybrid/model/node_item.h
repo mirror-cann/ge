@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -106,7 +106,7 @@ struct NodeItem : NodeShapeInfer {
     return is_ffts_sub_node_;
   }
 
-  bool IsInputEnterFeedNode(const NodePtr &node) const ;
+  bool IsInputEnterFeedNode(const NodePtr &node) const;
 
   void SetToDynamic();
 
@@ -145,15 +145,15 @@ struct NodeItem : NodeShapeInfer {
   bool is_ffts_sub_node_ = false;
   int64_t frame_index_ = -1;
   int64_t parent_frame_ = -1;
-  std::set<const NodeItem *> root_ctrl_;  // Recv ctrl from root node
-  std::map<const NodeItem *, std::set<int32_t>> root_data_;  // Recv data from root node
-  std::set<const NodeItem *> enter_ctrl_; // Recv ctrl from Enter node
-  std::map<const NodeItem *, std::set<int32_t>> enter_data_; // Recv data from Enter node
-  std::set<const NodeItem *> data_send_;  // Send data notify to
-  std::map<const NodeItem *, int32_t> data_recv_;  // Recv data notify from
-  std::set<const NodeItem *> ctrl_send_;  // Send ctrl notify to
-  std::set<const NodeItem *> ctrl_recv_;  // Recv ctrl notify from
-  std::vector<std::set<const NodeItem *>> switch_groups_;  // Send ctrl notify to
+  std::set<const NodeItem *> root_ctrl_;                      // Recv ctrl from root node
+  std::map<const NodeItem *, std::set<int32_t>> root_data_;   // Recv data from root node
+  std::set<const NodeItem *> enter_ctrl_;                     // Recv ctrl from Enter node
+  std::map<const NodeItem *, std::set<int32_t>> enter_data_;  // Recv data from Enter node
+  std::set<const NodeItem *> data_send_;                      // Send data notify to
+  std::map<const NodeItem *, int32_t> data_recv_;             // Recv data notify from
+  std::set<const NodeItem *> ctrl_send_;                      // Send ctrl notify to
+  std::set<const NodeItem *> ctrl_recv_;                      // Recv ctrl notify from
+  std::vector<std::set<const NodeItem *>> switch_groups_;     // Send ctrl notify to
 
   std::shared_ptr<NodeTask> kernel_task;
   std::unique_ptr<FusedSubgraph> fused_subgraph;
@@ -185,4 +185,4 @@ struct NodeItem : NodeShapeInfer {
 }  // namespace hybrid
 }  // namespace ge
 
-#endif // GE_HYBRID_MODEL_NODE_ITEM_H_
+#endif  // GE_HYBRID_MODEL_NODE_ITEM_H_

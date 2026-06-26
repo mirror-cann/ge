@@ -223,4 +223,3 @@ uint8_t cscInputBiasR0, uint8_t cscInputBiasR1, uint8_t cscInputBiasR2)
 ## 约束说明<a name="section72671611204610"></a>
 
 如果通过[aclmdlSetAIPPInputFormat](aclmdlSetAIPPInputFormat.md)接口设置的原始图像格式为YUV400，则不支持通过本接口设置色域转换参数。
-

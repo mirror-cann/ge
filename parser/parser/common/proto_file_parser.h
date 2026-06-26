@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,28 +17,26 @@
 
 namespace ge {
 class ProtoFileParser {
-public:
-  ProtoFileParser(){};
+ public:
+  ProtoFileParser() {};
   explicit ProtoFileParser(const char *dest_path) : fusion_proto_path(dest_path) {}
   ~ProtoFileParser();
-  Status CombineProtoFile(const char *caffe_proto_file, const char *custom_proto_file,
-                          std::string &dest_proto_file);
+  Status CombineProtoFile(const char *caffe_proto_file, const char *custom_proto_file, std::string &dest_proto_file);
   Status CombineProtoFileMultiCustomProto(const char *caffe_proto_file, const char *custom_proto_paths,
                                           std::string &dest_proto_file);
   std::string GetFusionProtoFile();
-private:
+
+ private:
   void ResetParserStatus(bool reset_fusion_proto);
   std::string ResetFusionProtoPath();
   void SetFusionProtoPath(const std::string &path);
   Status CreatProtoFile();
   Status ParseProtoFile(const std::string &proto_file,
-                        std::map<int, std::pair<std::string, std::string> > &identifier_op_map,
-                        std::map<std::string, std::pair<int, std::string> > &op_identifier_map) const;
-  Status WriteCaffeProtoFile(const char *custom_proto_file, std::ifstream &read_caffe,
-                             std::ofstream &write_tmp) const;
+                        std::map<int, std::pair<std::string, std::string>> &identifier_op_map,
+                        std::map<std::string, std::pair<int, std::string>> &op_identifier_map) const;
+  Status WriteCaffeProtoFile(const char *custom_proto_file, std::ifstream &read_caffe, std::ofstream &write_tmp) const;
   Status WriteProtoFile(const char *caffe_proto_file, const char *custom_proto_file);
-  static Status FindConflictLine(const char *proto_file, int identifier,
-                          std::string &dest_line);
+  static Status FindConflictLine(const char *proto_file, int identifier, std::string &dest_line);
   Status AddCustomAndConflictLayer(const char *custom_proto_file, std::ofstream &write_tmp) const;
   static Status AddCustomAndConflictMessage(const char *custom_proto_file, std::ofstream &write_tmp);
   void CheckConflictOp(const char *caffe_proto_file, const char *custom_proto_file,

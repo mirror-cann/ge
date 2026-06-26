@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -230,7 +230,8 @@ class StestHybridRt2PipelineExecutor : public testing::Test {
  * 2.用与模拟网络计算的FakeCollectAllInputs算子，该算子将每次执行的输入append到一个全局队列中，并输出输入的值，用于观测多Step时每个Step的输入
  * 3.用于存储Stage输入的全局变量global_vs（string:vector<int>），记录Stage名称与输入序列的映射关系
  * 测试步骤
- * 1.构造一张包含2个Stage（PartitionedCall）的计算图，Stage 1的子图包含一个FakeGetNext算子，Stage2的子图包含一个FakeCollectAllInputs算子
+ * 1.构造一张包含2个Stage（PartitionedCall）的计算图，Stage
+ * 1的子图包含一个FakeGetNext算子，Stage2的子图包含一个FakeCollectAllInputs算子
  * 2.在用例范围内，对FakeGetNext和FakeCollectAllInputs进行Kernel注册，Kernel计算逻辑与预置条件中的描述一致
  * 3.为计算图创建一个RT2 PipeLine执行器
  * 4.构造网络输入，即FakeGetNext的base输入，用例设置base=2，因此FakeGetNext的输出依次为2，3，4，...，经过Stage2的FakeCollectAllInputs计算后，
@@ -391,19 +392,19 @@ TEST_F(StestHybridRt2PipelineExecutor, test_2stage_pipeline_100_steps) {
 
 /**
  * 用例描述：测试Stage1对2场景流水100次执行，验证输出Tensor的值符合预期 & Stage每个Step的输出符合预期
-*                      ┌──────────────────────┐
-*                      │ FakeCollectAllInputs │
-* ┌──────────────┐     └───────────┬──────────┘
-* │  FakeGetNext │                 │
-* └──────┬───────┘         ┌───────┴───────┐
-*        │           ┌─────►    Stage_2    │
-*  ┌─────┴─────┐     │     └───────────────┘
-*  │  Stage_1  ├─────┤     ┌───────────────┐
-*  └───────────┘     └─────►    Stage_3    │
-*                          └───────┬───────┘
-*                       ┌──────────┴───────────┐
-*                       │ FakeCollectAllInputs │
-*                       └──────────────────────┘
+ *                      ┌──────────────────────┐
+ *                      │ FakeCollectAllInputs │
+ * ┌──────────────┐     └───────────┬──────────┘
+ * │  FakeGetNext │                 │
+ * └──────┬───────┘         ┌───────┴───────┐
+ *        │           ┌─────►    Stage_2    │
+ *  ┌─────┴─────┐     │     └───────────────┘
+ *  │  Stage_1  ├─────┤     ┌───────────────┐
+ *  └───────────┘     └─────►    Stage_3    │
+ *                          └───────┬───────┘
+ *                       ┌──────────┴───────────┐
+ *                       │ FakeCollectAllInputs │
+ *                       └──────────────────────┘
  * 预置条件：
  * 1.用于模拟GetNext的FakeGetNext算子，该算子接收一个输入base，并输出base+0,base+1...的数据，即第N次调用，输出base+(N-1)
  * 2.用与模拟网络计算的FakeCollectAllInputs算子，该算子将每次执行的输入append到一个全局队列中，并输出输入的值，用于观测多Step时每个Step的输入
@@ -457,9 +458,9 @@ TEST_F(StestHybridRt2PipelineExecutor, test_1to2_stage_pipeline_100_steps) {
   int32_t result[2] = {0, 0};
   std::shared_ptr<ModelListener> listener = std::make_shared<Listener>(
       [&](uint32_t model_id, uint32_t data_index, uint32_t result_code, std::vector<gert::Tensor> &outputs) {
-          for (size_t i = 0U; i < outputs.size(); i++) {
-            result[i] = *static_cast<int32_t *>(outputs[i].GetAddr());
-          }
+        for (size_t i = 0U; i < outputs.size(); i++) {
+          result[i] = *static_cast<int32_t *>(outputs[i].GetAddr());
+        }
         reached = true;
       });
 
@@ -614,14 +615,10 @@ TEST_F(StestHybridRt2PipelineExecutor, test_2to1_stage_pipeline_100_steps) {
 }
 
 /**
- * 用例描述：测试两个串联Stage流水100次执行，同时存在Stage0的输出  同时给到多个Stage1的输入，验证输出Tensor的值符合预期 & Stage每个Step的输出符合预期
- * ┌──────────────┐     ┌──────────────────────┐
- * │  FakeGetNext │     │ FakeCollectAllInputs │
- * └──────┬───────┘     └───────────┬──────────┘
- *  ┌─────┴─────┐   ┌──────►┌───────┴───────┐
- *  │  Stage_1  ├───├──────►    Stage_2     │
- *  └───────────┘   └──────►└───────────────┘
- * 预置条件：
+ * 用例描述：测试两个串联Stage流水100次执行，同时存在Stage0的输出  同时给到多个Stage1的输入，验证输出Tensor的值符合预期
+ * & Stage每个Step的输出符合预期 ┌──────────────┐     ┌──────────────────────┐ │  FakeGetNext │     │
+ * FakeCollectAllInputs │ └──────┬───────┘     └───────────┬──────────┘ ┌─────┴─────┐   ┌──────►┌───────┴───────┐ │
+ * Stage_1  ├───├──────►    Stage_2     │ └───────────┘   └──────►└───────────────┘ 预置条件：
  * 1.用于模拟GetNext的FakeGetNext算子，该算子接收一个输入base，并输出base+0,base+1...的数据，即第N次调用，输出base+(N-1)
  * 2.用与模拟网络计算的FakeCollectAllInputs算子，该算子将每次执行的输入append到一个全局队列中，并输出输入的值，用于观测多Step时每个Step的输入
  * 3.用于存储Stage输入的全局变量global_vs（string:vector<int>），记录Stage名称与输入序列的映射关系

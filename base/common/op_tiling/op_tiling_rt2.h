@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ using OutputsConvertorFun = std::function<ge::graphStatus(gert::KernelContext *k
 using ParseContextHolderPtr = std::shared_ptr<gert::KernelContextHolder>;
 bool EnableRt2Tiling(const ge::OpDescPtr &op_desc);
 bool EnableAtomicRt2Tiling(const ge::OpDescPtr &op_desc);
-ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t * const compile_info,
+ge::graphStatus RtParseAndTiling(const ge::Operator &op, const char_t *const compile_info,
                                  const fe::PlatFormInfos &platform_infos, const OutputsConvertorFun &callback,
                                  const gert::OpImplSpaceRegistryV2Ptr &space_registry);
 ge::graphStatus AutofuseNodeWithMatmulTiling(const ge::Operator &op, const fe::PlatFormInfos &ge_platform_infos,
@@ -36,8 +36,7 @@ ge::graphStatus AicoreRtParseAndTiling(const ge::Operator &op, const fe::PlatFor
 ge::graphStatus AtomicRtParseAndTiling(const ge::Operator &op, const fe::PlatFormInfos &platform_infos,
                                        OpRunInfoV2 &run_info);
 ge::graphStatus SoftSyncOpRtParseAndTiling(const ge::Operator &op, fe::PlatFormInfos &platform_infos,
-                                           OpRunInfoV2 &run_info,
-                                           const gert::OpImplSpaceRegistryV2Ptr &space_registry);
+                                           OpRunInfoV2 &run_info, const gert::OpImplSpaceRegistryV2Ptr &space_registry);
 ge::graphStatus FftsRtParseAndTiling(const ge::Operator &op, const fe::PlatFormInfos &platform_infos,
                                      std::vector<OpRunInfoV2> &op_run_infos);
 ge::graphStatus GetDeterministicLevel(int32_t &deterministic_level);

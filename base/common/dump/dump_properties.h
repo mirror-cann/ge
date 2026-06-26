@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,27 +31,11 @@ struct ModelOpBlacklist {
   std::map<std::string, OpBlacklist> dump_opname_blacklist;
 };
 
-enum class StepCheckErrorCode : uint32_t {
-  kNoError,
-  kTooManySets,
-  kIncorrectFormat,
-  kReverseStep
-};
+enum class StepCheckErrorCode : uint32_t { kNoError, kTooManySets, kIncorrectFormat, kReverseStep };
 
-enum class DumpProcState : int32_t {
-  kInit = 0,
-  kStart = 1,
-  kStop = 2,
-  kError = 3,
-  kEnd = 4
-};
+enum class DumpProcState : int32_t { kInit = 0, kStart = 1, kStop = 2, kError = 3, kEnd = 4 };
 
-enum class DumpProcEvent : int32_t {
-  kRangeStart = 0,
-  kRangeEnd = 1,
-  kOutOfRange = 2,
-  kEnd = 3
-};
+enum class DumpProcEvent : int32_t { kRangeStart = 0, kRangeEnd = 1, kOutOfRange = 2, kEnd = 3 };
 
 class DumpProperties {
  public:
@@ -61,7 +45,7 @@ class DumpProperties {
 
   DumpProperties(const DumpProperties &dump);
 
-  DumpProperties &operator=(const DumpProperties &dump) & ;
+  DumpProperties &operator=(const DumpProperties &dump) &;
 
   Status InitByOptions();
 
@@ -108,9 +92,9 @@ class DumpProperties {
   const std::string &GetDumpData() const;
 
   const std::map<std::string, ModelOpBlacklist> &GetModelDumpBlacklistMap() const;
-  void SetModelDumpBlacklistMap(const std::map<std::string, ModelOpBlacklist>& new_map);
+  void SetModelDumpBlacklistMap(const std::map<std::string, ModelOpBlacklist> &new_map);
 
-  void SetModelBlacklist(const std::string& model_name, const ModelOpBlacklist& blacklist);
+  void SetModelBlacklist(const std::string &model_name, const ModelOpBlacklist &blacklist);
 
   const std::string &GetEnableDump() const {
     return enable_dump_;
@@ -150,16 +134,18 @@ class DumpProperties {
 
   void SetOpDebugMode(const uint32_t op_debug_mode);
 
-  uint32_t GetOpDebugMode() const { return op_debug_mode_; }
+  uint32_t GetOpDebugMode() const {
+    return op_debug_mode_;
+  }
 
   void SetOpDumpRange(const std::string &model, const std::vector<std::pair<std::string, std::string>> &op_ranges);
 
   size_t GetDumpOpRangeSize(const std::string &model, const std::string &om_name) const;
 
   Status SetDumpFsmState(const std::string &model, const std::string &om_name, const std::string &op_name,
-                         std::vector<DumpProcState> &dump_fsm_state,
-                         std::unordered_set<std::string> &dump_op_in_range,
+                         std::vector<DumpProcState> &dump_fsm_state, std::unordered_set<std::string> &dump_op_in_range,
                          const bool is_update_dump_op_range = true) const;
+
  private:
   void CopyFrom(const DumpProperties &other);
 
@@ -206,6 +192,6 @@ class DumpProperties {
   uint32_t op_debug_mode_ = 0U;
   std::map<std::string, std::vector<std::pair<std::string, std::string>>> model_dump_op_ranges_map_;
 };
-}
+}  // namespace ge
 
-#endif // GE_COMMON_DUMP_DUMP_PROPERTIES_H_
+#endif  // GE_COMMON_DUMP_DUMP_PROPERTIES_H_

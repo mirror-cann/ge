@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ std::vector<size_t> init_func_vec;
 const std::string custom_op_name = "libcust_opapi.so";
 const std::string tmp_test_lib_dir = "./test_op_lib_register/";
 
-uint32_t FakeFunc(ge::AscendString& path) {
+uint32_t FakeFunc(ge::AscendString &path) {
   init_func_vec.emplace_back(g_lib_register_cnt);
   path = AscendString(to_string(g_lib_register_cnt).c_str());
   ++g_lib_register_cnt;
@@ -57,13 +57,13 @@ class MockMmpaForOpLib : public ge::MmpaStubApiGe {
  public:
   void *DlOpen(const char *fileName, int32_t mode) override {
     auto tmp_register = ge::OpLibRegister(fileName).RegOpLibInit(FakeFunc);
-    return (void *) fileName;
+    return (void *)fileName;
   }
   int32_t DlClose(void *handle) override {
     return 0L;
   }
 };
-}
+}  // namespace
 
 class OpLibRegisterUT : public testing::Test {
  protected:
@@ -177,4 +177,4 @@ TEST_F(OpLibRegisterUT, register_coexistence_env) {
   DelVendorSoDir(old_dir);
   DelVendorSoDir(vendor_2_dir);
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,23 +69,22 @@ Status CheckJsonValid(const nlohmann::json &j, const string &input_or_output_key
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 FormatDtypeOpCustomizeSelector::FormatDtypeOpCustomizeSelector(const std::string &engine_name)
-  : FormatDtypeSelectorBase(), engine_name_(engine_name) {}
+    : FormatDtypeSelectorBase(), engine_name_(engine_name) {}
 
 FormatDtypeOpCustomizeSelector::~FormatDtypeOpCustomizeSelector() {}
 
 Status FormatDtypeOpCustomizeSelector::GetAllSupportFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                               const ge::NodePtr &node,
-                                               const bool &is_dynamic_check,
-                                               map<string, vector<ge::Format>> &format_map) {
+                                                           const ge::NodePtr &node, const bool &is_dynamic_check,
+                                                           map<string, vector<ge::Format>> &format_map) {
   Status status = GetAllFormatsFromOpDesc(node->GetOpDesc(), format_map);
   if (status != SUCCESS) {
     HeavyFormatInfo heavy_format_info;
     FormatDtypeInfo format_dtype_info;
-    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-        format_dtype_info) != SUCCESS) {
+    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_info) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to GetDynamicFormatAndDtype.",
                       node->GetNamePtr(), node->GetTypePtr());
       return FAILED;
@@ -98,8 +97,7 @@ Status FormatDtypeOpCustomizeSelector::GetAllSupportFormat(const OpKernelInfoPtr
 }
 
 Status FormatDtypeOpCustomizeSelector::GetSupportFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                             const ge::NodePtr &node,
-                                                             const bool &is_dynamic_check,
+                                                             const ge::NodePtr &node, const bool &is_dynamic_check,
                                                              FormatDtypeInfo &format_dtype_info) {
   auto op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
@@ -114,8 +112,8 @@ Status FormatDtypeOpCustomizeSelector::GetSupportFormatDtype(const OpKernelInfoP
   // 2. if failed, GetDynamicFormatDtype
   if (get_format_status != SUCCESS || get_data_type_status != SUCCESS || get_subformat_status != SUCCESS) {
     HeavyFormatInfo heavy_format_info;
-    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-                              format_dtype_info) != SUCCESS) {
+    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_info) !=
+        SUCCESS) {
       FE_LOGW("[GraphOpt][Setcheck][GetSptFmtDty][op: %s, type: %s] Failed to retrieve dynamic format and data type.",
               op_name.c_str(), op_type.c_str());
       return FAILED;
@@ -151,12 +149,9 @@ Status FormatDtypeOpCustomizeSelector::GetSupportFormats(const OpKernelInfoPtr &
   return SUCCESS;
 }
 
-Status FormatDtypeOpCustomizeSelector::GetSupportFormatSubFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                                 const InputOrOutputInfoPtr &input_or_output_info_ptr,
-                                                                 const ge::NodePtr &node,
-                                                                 vector<ge::Format> &format_res,
-                                                                 vector<uint32_t> &sub_format_res,
-                                                                 uint32_t sub_format) {
+Status FormatDtypeOpCustomizeSelector::GetSupportFormatSubFormat(
+    const OpKernelInfoPtr &op_kernel_info_ptr, const InputOrOutputInfoPtr &input_or_output_info_ptr,
+    const ge::NodePtr &node, vector<ge::Format> &format_res, vector<uint32_t> &sub_format_res, uint32_t sub_format) {
   (void)op_kernel_info_ptr;
   (void)sub_format;
   auto op_desc = node->GetOpDesc();
@@ -203,9 +198,10 @@ Status FormatDtypeOpCustomizeSelector::GetSupportDataTypes(const OpKernelInfoPtr
   return SUCCESS;
 }
 
-Status FormatDtypeOpCustomizeSelector::GetDynamicFormatDtype(
-    const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node, const bool &is_dynamic_check,
-    const HeavyFormatInfo &heavy_format_info, FormatDtypeInfo &format_dtype_info, uint32_t sub_format) {
+Status FormatDtypeOpCustomizeSelector::GetDynamicFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
+                                                             const ge::NodePtr &node, const bool &is_dynamic_check,
+                                                             const HeavyFormatInfo &heavy_format_info,
+                                                             FormatDtypeInfo &format_dtype_info, uint32_t sub_format) {
   (void)sub_format;
   FE_CHECK_NOTNULL(op_kernel_info_ptr);
   auto op_desc = node->GetOpDesc();
@@ -234,8 +230,8 @@ Status FormatDtypeOpCustomizeSelector::GetDynamicFormatDtype(
     return FAILED;
   }
   if (op_format_dtype_str.empty()) {
-    FE_LOGW("[GraphOpt][Setcheck][GetDymcFmtDty][op %s, type %s] The op_format_dtype_str is empty.",
-            op_name.c_str(), op_type.c_str());
+    FE_LOGW("[GraphOpt][Setcheck][GetDymcFmtDty][op %s, type %s] The op_format_dtype_str is empty.", op_name.c_str(),
+            op_type.c_str());
     return FAILED;
   }
 
@@ -258,8 +254,10 @@ Status FormatDtypeOpCustomizeSelector::GetFallbackFlags(const OpKernelInfoPtr &o
   (void)is_dynamic_check;
   Status status = GetAllFallbackFromOpDesc(node->GetOpDesc(), fallback_res);
   if (status != SUCCESS) {
-    FE_LOGW("[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to obtain fallback flags from select_format result.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGW(
+        "[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to obtain fallback flags from select_format "
+        "result.",
+        node->GetNamePtr(), node->GetTypePtr());
   }
   return SUCCESS;
 }
@@ -279,16 +277,15 @@ Status FormatDtypeOpCustomizeSelector::GetFallbackFlags(const OpKernelInfoPtr &o
  * }
  */
 Status FormatDtypeOpCustomizeSelector::ParseFallbackJsonInfo(const ge::NodePtr &node, bool is_dynamic_check,
-    const nlohmann::json &fallback_json, FormatDtypeInfo &format_dtype_info) const {
+                                                             const nlohmann::json &fallback_json,
+                                                             FormatDtypeInfo &format_dtype_info) const {
   string enable_str;
   if (is_dynamic_check && fallback_json.find(STR_UNKNOWN_SHAPE_ENABLE) != fallback_json.end()) {
     enable_str = static_cast<string>(fallback_json.at(STR_UNKNOWN_SHAPE_ENABLE));
-    FE_LOGD("Op[name:%s,type:%s] has unknown shape fallback config.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGD("Op[name:%s,type:%s] has unknown shape fallback config.", node->GetNamePtr(), node->GetTypePtr());
   } else if (fallback_json.find(STR_ENABLE) != fallback_json.end()) {
     enable_str = static_cast<string>(fallback_json.at(STR_ENABLE));
-    FE_LOGD("Op[name:%s,type:%s] has fallback config.",
-            node->GetNamePtr(), node->GetTypePtr());
+    FE_LOGD("Op[name:%s,type:%s] has fallback config.", node->GetNamePtr(), node->GetTypePtr());
   } else {
     REPORT_FE_ERROR("[SelectFormat][ParseJsonStr] parse json fallback failed, 'enable' is required key!");
     return FAILED;
@@ -309,7 +306,7 @@ Status FormatDtypeOpCustomizeSelector::ParseFallbackJsonInfo(const ge::NodePtr &
 }
 
 Status FormatDtypeOpCustomizeSelector::ParseJsonStr(const ge::NodePtr &node, const string &json_str,
-    const bool &is_dynamic_check, FormatDtypeInfo &format_dtype_info) {
+                                                    const bool &is_dynamic_check, FormatDtypeInfo &format_dtype_info) {
   try {
     auto op_desc = node->GetOpDesc();
     const nlohmann::json &j = nlohmann::json::parse(json_str);
@@ -352,7 +349,8 @@ Status FormatDtypeOpCustomizeSelector::ParseJsonStr(const ge::NodePtr &node, con
       vector<uint32_t> sub_format_vec;
       vector<ge::DataType> data_type_vec;
       if (ConvertFormatDtype(format_vec_str, sub_format_vec_str, data_type_vec_str,
-          format_size_of_first_input_or_output, format_vec, sub_format_vec, data_type_vec) != SUCCESS) {
+                             format_size_of_first_input_or_output, format_vec, sub_format_vec,
+                             data_type_vec) != SUCCESS) {
         REPORT_FE_ERROR("[GenFormat][ParseFmtJson][Op %s], tensor_name %s: failed to convert from JSON [%s].",
                         op_desc->GetName().c_str(), name_key.c_str(), json_str.c_str());
         return FAILED;
@@ -363,19 +361,16 @@ Status FormatDtypeOpCustomizeSelector::ParseJsonStr(const ge::NodePtr &node, con
     }
     return SUCCESS;
   } catch (std::exception &e) {
-    REPORT_FE_ERROR("[GraphOpt][ParseFmtJson][Exception] The JSON string is %s and the error reason is %s", json_str.c_str(),
-                    e.what());
+    REPORT_FE_ERROR("[GraphOpt][ParseFmtJson][Exception] The JSON string is %s and the error reason is %s",
+                    json_str.c_str(), e.what());
     return FAILED;
   }
 }
 
-Status FormatDtypeOpCustomizeSelector::ConvertFormatDtype(const string &format_vec_str,
-                                                          const string &sub_format_vec_str,
-                                                          const string &data_type_vec_str,
-                                                          uint32_t &format_size_of_first_input_or_output,
-                                                          vector<ge::Format> &format_vec,
-                                                          vector<uint32_t> &sub_format_vec,
-                                                          vector<ge::DataType> &data_type_vec) {
+Status FormatDtypeOpCustomizeSelector::ConvertFormatDtype(
+    const string &format_vec_str, const string &sub_format_vec_str, const string &data_type_vec_str,
+    uint32_t &format_size_of_first_input_or_output, vector<ge::Format> &format_vec, vector<uint32_t> &sub_format_vec,
+    vector<ge::DataType> &data_type_vec) {
   vector<string> format_str_vec = StringUtils::Split(format_vec_str, ",");
   vector<string> sub_format_str_vec = StringUtils::Split(sub_format_vec_str, ",");
   vector<string> data_type_str_vec = StringUtils::Split(data_type_vec_str, ",");
@@ -395,8 +390,8 @@ Status FormatDtypeOpCustomizeSelector::ConvertFormatDtype(const string &format_v
     format_size_of_first_input_or_output = format_size;
   }
   if (format_size != format_size_of_first_input_or_output) {
-    REPORT_FE_ERROR("[GraphOpt][SetFmt][ConvertFmt]: format size %u is invalid; it should be within the range of %u.", format_size,
-                    format_size_of_first_input_or_output);
+    REPORT_FE_ERROR("[GraphOpt][SetFmt][ConvertFmt]: format size %u is invalid; it should be within the range of %u.",
+                    format_size, format_size_of_first_input_or_output);
     return FAILED;
   }
 

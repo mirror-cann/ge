@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,19 +82,19 @@ void CheckGuardCodegen(ComputeGraphPtr &compute_graph) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
-  gert::Tensor tensor0 = {{{1000, 1000, 1, 1000}, {3, 1000, 1, 1000}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT,                              // data type
+  void *func = dlsym(handle, "GuardCheckFunc");
+  gert::Tensor tensor0 = {{{1000, 1000, 1, 1000}, {3, 1000, 1, 1000}},  // shape
+                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},   // format
+                          gert::kOnDeviceHbm,                           // placement
+                          ge::DT_FLOAT,                                 // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{1000, 1, 1000, 1000}, {3, 1, 1000, 1000}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT,                              // data type
+  gert::Tensor tensor1 = {{{1000, 1, 1000, 1000}, {3, 1, 1000, 1000}},  // shape
+                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},   // format
+                          gert::kOnDeviceHbm,                           // placement
+                          ge::DT_FLOAT,                                 // data type
                           (void *)0x0};
   std::vector<gert::Tensor *> inputs;
   inputs.emplace_back(&tensor0);
@@ -113,7 +113,7 @@ void CheckGuardCodegen(ComputeGraphPtr &compute_graph) {
   close(so_fd);
   dlclose(handle);
 }
-}
+}  // namespace
 class SymbolicInfoPostProcessorST : public testing::Test {
  public:
   void SetUp() override {
@@ -142,8 +142,10 @@ class SymbolicInfoPostProcessorST : public testing::Test {
       setenv("LD_PRELOAD", env.c_str(), 1);
     }
   }
+
  protected:
   EsCGraphBuilder *graph_{nullptr};
+
  private:
   char old_opp_path_env_[MMPA_MAX_PATH] = {'\0'};
   char old_ld_path_env_[MMPA_MAX_PATH] = {'\0'};
@@ -151,37 +153,37 @@ class SymbolicInfoPostProcessorST : public testing::Test {
 };
 REG_OP(FooTestGuard)
     .INPUT(x1, TensorType::NumberType())
-        .INPUT(x2, TensorType::NumberType())
-        .OUTPUT(y, TensorType::NumberType())
-        .OP_END_FACTORY_REG(FooTestGuard);
+    .INPUT(x2, TensorType::NumberType())
+    .OUTPUT(y, TensorType::NumberType())
+    .OP_END_FACTORY_REG(FooTestGuard);
 
 TEST_F(SymbolicInfoPostProcessorST, run_test) {
   auto data1 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .InCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("data1");
+                   .Attr(ATTR_NAME_INDEX, 0)
+                   .InCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .Build("data1");
   auto data2 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .InCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("data2");
+                   .Attr(ATTR_NAME_INDEX, 1)
+                   .InCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .Build("data2");
   auto foo1 = OP_CFG("FooTestGuard")
-      .InCnt(2)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("foo1");
+                  .InCnt(2)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .Build("foo1");
 
   DEF_GRAPH(g_test_guard) {
-                            CHAIN(NODE(data1)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
-                            CHAIN(NODE(data2)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
-                          };
+    CHAIN(NODE(data1)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE(data2)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
+  };
   auto compute_graph = ToComputeGraph(g_test_guard);
   GeShape shape1({3, 4, 1, 7});
   GeTensor ge_tensor1;
@@ -210,4 +212,4 @@ TEST_F(SymbolicInfoPostProcessorST, run_test) {
   (void)AttrUtils::GetInt(compute_graph, "_all_symbol_num", all_sym_num);
   ASSERT_EQ(all_sym_num, 8);
 }
-}
+}  // namespace ge

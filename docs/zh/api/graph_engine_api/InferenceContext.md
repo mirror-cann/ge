@@ -1,34 +1,33 @@
 # InferenceContext<a name="ZH-CN_TOPIC_0000002499520422"></a>
 
--   **[简介](简介-59.md)**  
+-   **[简介](简介-59.md)**
 
--   **[InferenceContext构造函数和析构函数](InferenceContext构造函数和析构函数.md)**  
+-   **[InferenceContext构造函数和析构函数](InferenceContext构造函数和析构函数.md)**
 
--   **[SetInputHandleShapesAndTypes](SetInputHandleShapesAndTypes.md)**  
+-   **[SetInputHandleShapesAndTypes](SetInputHandleShapesAndTypes.md)**
 
--   **[SetOutputHandleShapesAndTypes](SetOutputHandleShapesAndTypes.md)**  
+-   **[SetOutputHandleShapesAndTypes](SetOutputHandleShapesAndTypes.md)**
 
--   **[GetInputHandleShapesAndTypes](GetInputHandleShapesAndTypes.md)**  
+-   **[GetInputHandleShapesAndTypes](GetInputHandleShapesAndTypes.md)**
 
--   **[GetOutputHandleShapesAndTypes](GetOutputHandleShapesAndTypes.md)**  
+-   **[GetOutputHandleShapesAndTypes](GetOutputHandleShapesAndTypes.md)**
 
--   **[SetMarks](SetMarks.md)**  
+-   **[SetMarks](SetMarks.md)**
 
--   **[GetMarks](GetMarks.md)**  
+-   **[GetMarks](GetMarks.md)**
 
--   **[Create](Create.md)**  
+-   **[Create](Create.md)**
 
--   **[GetResourceContext](GetResourceContext.md)**  
+-   **[GetResourceContext](GetResourceContext.md)**
 
--   **[SetResourceContext](SetResourceContext.md)**  
+-   **[SetResourceContext](SetResourceContext.md)**
 
--   **[RegisterReliedOnResourceKey](RegisterReliedOnResourceKey.md)**  
+-   **[RegisterReliedOnResourceKey](RegisterReliedOnResourceKey.md)**
 
--   **[AddChangedResourceKey](AddChangedResourceKey.md)**  
+-   **[AddChangedResourceKey](AddChangedResourceKey.md)**
 
--   **[GetReliedOnResourceKeys](GetReliedOnResourceKeys.md)**  
+-   **[GetReliedOnResourceKeys](GetReliedOnResourceKeys.md)**
 
--   **[GetChangedResourceKeys](GetChangedResourceKeys.md)**  
+-   **[GetChangedResourceKeys](GetChangedResourceKeys.md)**
 
--   **[ClearChangedResourceKeys](ClearChangedResourceKeys.md)**  
-
+-   **[ClearChangedResourceKeys](ClearChangedResourceKeys.md)**

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,8 +43,8 @@ const char_t *const kVendors = "vendors";
 const char_t *const kOpMasterDeviceLib = "/op_impl/ai_core/tbe/op_master_device/lib/";
 LowerResult LoweringFoo(const ge::NodePtr &node, const LowerInput &lower_input) {
   auto rt_session = bg::GetRtSession(*lower_input.global_data);
-  auto ret = bg::DevMemValueHolder::CreateSingleDataOutput("GetTestSessionId", {rt_session},
-                                                           node->GetOpDesc()->GetStreamId());
+  auto ret =
+      bg::DevMemValueHolder::CreateSingleDataOutput("GetTestSessionId", {rt_session}, node->GetOpDesc()->GetStreamId());
   LowerResult result;
   result.out_shapes.push_back(lower_input.input_shapes[0]);
   result.out_addrs.push_back(ret);
@@ -53,7 +53,7 @@ LowerResult LoweringFoo(const ge::NodePtr &node, const LowerInput &lower_input) 
 
 ge::graphStatus GetTestSessionId(KernelContext *context) {
   auto rt_session = context->GetInputValue<RtSession *>(0);
-  //auto session_id = context->GetOutputPointer<uint64_t>(0);
+  // auto session_id = context->GetOutputPointer<uint64_t>(0);
   //*session_id = rt_session->GetSessionId();
 
   auto session_id_holder = context->GetOutputPointer<GertTensorData>(0);
@@ -70,9 +70,9 @@ ge::graphStatus CreateGetSessionIdTensorDataAtHost(const ge::FastNode *node, Ker
   auto out_data = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[malloc_buffer_size]);
   GE_ASSERT_NOTNULL(out_data);
   new (out_data.get())
-    GertTensorData(out_data.get() + sizeof(GertTensorData), malloc_buffer_size - sizeof(TensorData), kOnHost, -1);
-  //auto tensor = new (std::nothrow) TensorData();
-  //tensor->SetPlacement(kOnHost);
+      GertTensorData(out_data.get() + sizeof(GertTensorData), malloc_buffer_size - sizeof(TensorData), kOnHost, -1);
+  // auto tensor = new (std::nothrow) TensorData();
+  // tensor->SetPlacement(kOnHost);
   session_id_chain->SetWithDefaultDeleter<uint8_t[]>(out_data.release());
   return ge::GRAPH_SUCCESS;
 }
@@ -135,8 +135,7 @@ static void ConstructOpMasterDeviceSo(
   system(("touch " + vendor_config).c_str());
   system(("echo " + vendor_names + " > " + vendor_config).c_str());
 }
-} // namespace
-
+}  // namespace
 
 class ExecutorUnitTest : public bg::BgTest {
   void SetUp() override {
@@ -150,7 +149,7 @@ class ExecutorUnitTest : public bg::BgTest {
   void TearDown() override {
     bg::BgTest::TearDown();
     unsetenv("ASCEND_OPP_PATH");
-   }
+  }
 };
 
 TEST_F(ExecutorUnitTest, CheckParam_Failed_WhenIoNumsError) {
@@ -330,8 +329,8 @@ TEST_F(ExecutorUnitTest, test_load_const_data_run_success) {
   auto model_desc_holder = ModelDescHolderFaker().Build();
   // 3.将计算图lowering成执行图
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "ExecutorBuilder_FooGetSessionExeGraph");
 
@@ -384,9 +383,9 @@ TEST_F(ExecutorUnitTest, TestAippSetAndGetSuccess) {
   ge::AttrUtils::SetStr(op_desc, ge::ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
   ge::AttrUtils::SetStr(op_desc, ge::ATTR_DATA_AIPP_DATA_NAME_MAP, "aippData1");
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName:100:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName:100:3:1,2,8"};
   ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:100:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:100:3:1,2,8"};
   ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_AIPP_OUTPUTS, outputs);
 
   GeModelBuilder builder(graph);
@@ -423,7 +422,7 @@ TEST_F(ExecutorUnitTest, TestAippSetAndGetSuccess) {
   ASSERT_EQ(input_dims[0].name, "TensorName");
   ASSERT_EQ(input_dims[0].size, 100);
   ASSERT_EQ(input_dims[0].dim_num, 3);
-  std::vector<int64_t> verify_vec{1,2,8};
+  std::vector<int64_t> verify_vec{1, 2, 8};
   ASSERT_EQ(input_dims[0].dims, verify_vec);
 
   ASSERT_EQ(output_dims.size(), 1);
@@ -466,7 +465,7 @@ TEST_F(ExecutorUnitTest, TestAippShapeV2SetAndGetSuccess_When_Set_ATTR_NAME_INPU
   auto aippData1 = graph->FindNode("aippData1");
   auto op_desc = aippData1->GetOpDesc();
 
-  const std::vector<int64_t> input_dims {1, 2, 3, 4};
+  const std::vector<int64_t> input_dims{1, 2, 3, 4};
   ge::GeTensorDesc tensor_desc(ge::GeShape(input_dims), ge::FORMAT_NCHW, ge::DT_FLOAT);
   ge::TensorUtils::SetSize(tensor_desc, 24);
   op_desc->AddInputDesc(tensor_desc);
@@ -500,8 +499,8 @@ TEST_F(ExecutorUnitTest, TestAippShapeV2SetAndGetSuccess_When_Set_ATTR_DYNAMIC_A
   auto aippData1 = graph->FindNode("aippData1");
   auto op_desc = aippData1->GetOpDesc();
 
-  const std::vector<int64_t> input_dims {-1, -1, -1, -1};
-  const std::vector<std::pair<int64_t, int64_t>> input_ranges {{1, -1}, {1, -1}, {1, -1}, {1, -1}};
+  const std::vector<int64_t> input_dims{-1, -1, -1, -1};
+  const std::vector<std::pair<int64_t, int64_t>> input_ranges{{1, -1}, {1, -1}, {1, -1}, {1, -1}};
 
   ge::GeTensorDesc tensor_desc(ge::GeShape(input_dims), ge::FORMAT_NCHW, ge::DT_FLOAT);
   tensor_desc.SetShapeRange(input_ranges);
@@ -533,7 +532,7 @@ TEST_F(ExecutorUnitTest, TestAippShapeV2SetAndGetSuccess_When_No_Set_Any_ATTR) {
   auto aippData1 = graph->FindNode("aippData1");
   auto op_desc = aippData1->GetOpDesc();
 
-  const std::vector<int64_t> input_dims {1, 2, 3, 4};
+  const std::vector<int64_t> input_dims{1, 2, 3, 4};
 
   ge::GeTensorDesc tensor_desc(ge::GeShape(input_dims), ge::FORMAT_NCHW, ge::DT_FLOAT);
   op_desc->AddInputDesc(tensor_desc);
@@ -554,7 +553,7 @@ TEST_F(ExecutorUnitTest, TestAippShapeV2SetAndGetSuccess_When_No_Set_Any_ATTR) {
   EXPECT_EQ(stream_executor->GetModelDesc().GetInputDesc(0)->GetAippShape(), tmp_shape);
 }
 
-TEST_F(ExecutorUnitTest, MultiThreadExecutor_TaskSchedulerByKernel_Success){
+TEST_F(ExecutorUnitTest, MultiThreadExecutor_TaskSchedulerByKernel_Success) {
   auto exe_graph_with_root_model = BuildExeGraphFromSingleNode();
   auto exe_graph = exe_graph_with_root_model.exe_graph;
 
@@ -621,10 +620,9 @@ TEST_F(ExecutorUnitTest, test_ExecuteSync_with_rtStreamSynchronize_timeout_run_f
       FakeValue<Tensor>(Tensor{{{256}, {256}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, 0});
   auto input2 = FakeValue<uint64_t>(0);
 
-  ASSERT_NE(
-      model_executor->ExecuteSync(std::vector<Tensor *>({input0.holder.get(), input1.holder.get()}).data(),
-                              2, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_NE(model_executor->ExecuteSync(std::vector<Tensor *>({input0.holder.get(), input1.holder.get()}).data(), 2,
+                                        reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   unsetenv(kTimeoutEnvPath);
 }
@@ -699,12 +697,12 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithOnlyExternalStreamAllocato
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Add"})
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .FakeTbeBin({"Relu"})
-      .BuildGeRootModel();
+                           .SetRootModelEventNum(event_num)
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Add"})
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .FakeTbeBin({"Relu"})
+                           .BuildGeRootModel();
 
   GertRuntimeStub rts_stub;
   {
@@ -728,7 +726,7 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithOnlyExternalStreamAllocato
     ModelExecuteArg arg;
     arg.stream = stream;
     arg.external_stream_allocator = &stream_allocator;
-    arg.external_event_allocator = nullptr; // event allocator not come with stream allocator
+    arg.external_event_allocator = nullptr;  // event allocator not come with stream allocator
 
     auto outputs = FakeTensors({2048}, 1);
     auto inputs = FakeTensors({2048}, 2);
@@ -739,7 +737,7 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithOnlyExternalStreamAllocato
 }
 
 TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mismatch) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::GraphDynamicAndStaticGraphWithVariables(stream_num, event_num);
@@ -749,7 +747,7 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mism
   auto relu = graph->FindFirstNodeMatchType("Relu");
   ASSERT_NE(relu, nullptr);
 
-  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Relu", [](ge::Operator &op) {return ge::GRAPH_SUCCESS;});
+  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Relu", [](ge::Operator &op) { return ge::GRAPH_SUCCESS; });
   AddCompileResult(relu, false);
   relu->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   relu->GetOpDesc()->SetOpEngineName(ge::kEngineNameAiCore);
@@ -757,12 +755,12 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mism
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("TransData", AiCoreTaskDefFaker("TransDataStubName"))
-      .FakeTbeBin({"TransData"})
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubName"))
-      .FakeTbeBin({"Relu"})
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .FakeTbeBin({"TransData"})
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubName"))
+                           .FakeTbeBin({"Relu"})
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   auto model_data = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
   GertStreamStub rts_stub;
@@ -786,7 +784,7 @@ TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithVariableGraph_session_mism
 }
 
 TEST_F(ExecutorUnitTest, LoadExecutorFromModelDataWithRollbackSingleStream) {
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);

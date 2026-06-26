@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,7 +72,7 @@ const std::string ATTR_NAME_OWNER_GRAPH_IS_UNKNOWN = "OwnerGraphIsUnknown";
 
 const std::string ATTR_NAME_TBE_KERNEL_SIZE = "_tbeKernelSize";
 
-const std::string  ATTR_NAME_ALIAS_ENGINE_NAME = "_alias_engine_name";
+const std::string ATTR_NAME_ALIAS_ENGINE_NAME = "_alias_engine_name";
 /* This is not same with the attr engine type.
  * It reveals the op is cube operator or vector operator(implementation related).
  * Firstly, it will be set by op information library and secondly
@@ -221,11 +221,11 @@ constexpr char const *kPartSrcGraph = "part_src_graph";
 
 constexpr char kAttrIntercoreSync[] = "_inter_core_sync";
 
-constexpr char const * kMixEnhancedKernel = "_mix_with_enhanced_kernel";
+constexpr char const *kMixEnhancedKernel = "_mix_with_enhanced_kernel";
 
-constexpr char const * kMixIsAiv= "_mix_is_aiv";
+constexpr char const *kMixIsAiv = "_mix_is_aiv";
 
-constexpr char const * kFftsplusTask = "_is_fftsplus_task";
+constexpr char const *kFftsplusTask = "_is_fftsplus_task";
 
 extern const std::string kKernelName;
 
@@ -284,5 +284,5 @@ extern const std::string kOpDfxOptions;
 extern const std::string kOpDfxBufferSize;
 
 const uint32_t DEFAULT_OP_IMPL_MAIN_VERSION = 1;
-} // namespace fe
+}  // namespace fe
 #endif  // FUSION_ENGINE_INC_COMMON_AICORE_UTIL_ATTR_DEFINE_H_

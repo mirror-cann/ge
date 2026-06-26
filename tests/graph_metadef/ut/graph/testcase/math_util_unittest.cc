@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,6 @@ TEST_F(MathUtilUT, AddOverflow_NotOverflow) {
   EXPECT_EQ(ret, 0xFFFFFFFFFFFFFFFF);
 }
 TEST_F(MathUtilUT, AddOverflow_Overflow) {
-
   size_t i = 0xFFFFFFFFFFFFFFFF;
   size_t j = 1;
   size_t ret;
@@ -240,7 +239,7 @@ TEST_F(MathUtilUT, RoundUpOverflow_NotOverflow_Inplace) {
   EXPECT_TRUE(value == 2048);
 
   value = 32;
-  EXPECT_FALSE(RoundUpOverflow(value,value, value));
+  EXPECT_FALSE(RoundUpOverflow(value, value, value));
   EXPECT_TRUE(value == 32);
 }
 TEST_F(MathUtilUT, RoundUpOverflow_Failed_MultipleOfZero) {

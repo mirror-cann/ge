@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ class FormatDtypeOpKernelSelector : public FormatDtypeSelectorBase {
                                const bool &is_dynamic_check, const HeavyFormatInfo &heavy_format_info,
                                FormatDtypeInfo &format_dtype_info, uint32_t sub_format) override;
 
-  Status GetFallbackFlags(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
-                          bool is_dynamic_check, std::vector<bool> &fallback_res) override;
+  Status GetFallbackFlags(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node, bool is_dynamic_check,
+                          std::vector<bool> &fallback_res) override;
 };
 }  // namespace fe
 #endif  // FUSION_ENGINE_OPTIMIZER_FORMAT_SELECTOR_OP_KERNEL_FORMAT_DTYPE_OP_KERNEL_SELECTOR_H_

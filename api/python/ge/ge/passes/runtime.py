@@ -25,16 +25,18 @@ from pathlib import Path
 from types import ModuleType
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from ._artifact_utils import BRIDGE_ABI_VERSION
-from ._artifact_utils import PythonPassArtifact
-from ._artifact_utils import NATIVE_MODULE_NAME
-from ._artifact_utils import artifacts_root
-from ._artifact_utils import current_platform_tag
-from ._artifact_utils import current_python_tag
-from ._artifact_utils import find_prebuilt_artifact
-from ._artifact_utils import iter_artifacts
-from ._artifact_utils import load_artifact_from_dir
-from ._artifact_utils import load_native_module
+from ._artifact_utils import (
+    BRIDGE_ABI_VERSION,
+    NATIVE_MODULE_NAME,
+    PythonPassArtifact,
+    artifacts_root,
+    current_platform_tag,
+    current_python_tag,
+    find_prebuilt_artifact,
+    iter_artifacts,
+    load_artifact_from_dir,
+    load_native_module,
+)
 
 _FALLBACK_RESOURCES_MODULE = "_sources.py"
 _MATERIALIZED_CODEGEN_DIR = "fallback_sources"
@@ -75,6 +77,7 @@ def _fallback_artifact_dir() -> Path:
 def _query_current_python_build_info() -> Optional[PythonBuildInfo]:
     try:
         import pybind11
+
         pybind_include = Path(pybind11.get_include())
         if not pybind_include.is_dir():
             pybind_include = None
@@ -94,10 +97,7 @@ def _query_current_python_build_info() -> Optional[PythonBuildInfo]:
     for candidate in candidates:
         if candidate and candidate not in seen:
             seen.append(candidate)
-    matches = [
-        Path(libdir) / item for item in seen
-        if libdir and (Path(libdir) / item).exists()
-    ]
+    matches = [Path(libdir) / item for item in seen if libdir and (Path(libdir) / item).exists()]
     shared = next((item for item in matches if ".so" in item.name), None)
     library = shared or (matches[0] if matches else None)
 
@@ -259,8 +259,13 @@ def _resolve_build_config(config: dict, python_info: PythonBuildInfo, fallback_r
 
 
 def _run_command(command: List[str]) -> None:
-    completed = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               check=False)
+    completed = subprocess.run(
+        command,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
     if completed.returncode != 0:
         raise RuntimeError("Command failed: {}\n{}".format(" ".join(command), completed.stdout))
 
@@ -292,8 +297,9 @@ def _target_link_args(target_config: dict) -> List[str]:
     return link_args
 
 
-def _compile_target_objects(target_name: str, target_config: dict,
-                            build_inputs: _BuildInputs, work_dir: Path) -> List[Path]:
+def _compile_target_objects(
+    target_name: str, target_config: dict, build_inputs: _BuildInputs, work_dir: Path
+) -> List[Path]:
     compiler = os.environ.get("CXX") or "c++"
     obj_dir = work_dir / f"{target_name}_obj"
     obj_dir.mkdir(parents=True, exist_ok=True)
@@ -405,8 +411,7 @@ def _format_missing_artifact_error(load_errors: List[str]) -> str:
     python_tag = current_python_tag()
     platform_tag = current_platform_tag()
     discovered_artifacts = sorted(
-        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.bridge_abi}"
-        for artifact in iter_artifacts()
+        f"{artifact.python_tag}-{artifact.platform_tag}-abi{artifact.bridge_abi}" for artifact in iter_artifacts()
     )
     discovered_text = ", ".join(discovered_artifacts) if discovered_artifacts else "none"
     expected_wheel = f"ge_py_pass_bridge-*-{python_tag}-{python_tag}-*.whl"

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@
 namespace ge {
 namespace {
 constexpr int32_t kTimeout = 3000;
-constexpr uint64_t kNpuMaxGroupMemSize = 35337011UL;  // 33.7 * 1024 * 1024 KB
+constexpr uint64_t kNpuMaxGroupMemSize = 35337011UL;                        // 33.7 * 1024 * 1024 KB
 constexpr uint64_t kDefaultRemoteGroupCacheAllocSize = 10 * 1024 * 1024UL;  // 10 * 1024 * 1024 KB
 constexpr uint32_t kAddGroupTimeout = 10000;
 }  // namespace
@@ -68,9 +68,7 @@ Status MemoryGroupManager::MemGrpAddProc(const std::string &group_name, const pi
 Status MemoryGroupManager::MemGroupInit(const NodeConfig &node_config, const std::string &group_name) {
   for (const auto &device_config : node_config.device_list) {
     if (device_config.device_type == CPU) {
-      GE_CHK_STATUS_RET(MemGroupInit(group_name),
-                        "Memory group init failed, group name = %s.",
-                        group_name.c_str());
+      GE_CHK_STATUS_RET(MemGroupInit(group_name), "Memory group init failed, group name = %s.", group_name.c_str());
     }
   }
   return SUCCESS;
@@ -84,7 +82,7 @@ void MemoryGroupManager::SetDefaultRemoteGroupCacheConfig() {
 
 Status MemoryGroupManager::ParseRemoteGroupCacheConfig(const std::string &remote_group_cache_config) {
   constexpr int64_t kUpperLimit = 256 * 1024 * 1024 * 1024L;  // byte
-  constexpr int64_t kLowerLimit = 1024L;  // byte
+  constexpr int64_t kLowerLimit = 1024L;                      // byte
   constexpr uint32_t kBitShift1024 = 10U;
   std::vector<std::pair<uint64_t, uint32_t>> remote_group_cache_pool_list;
   std::vector<std::string> pool_config_list = StringUtils::Split(remote_group_cache_config, ',');
@@ -105,8 +103,8 @@ Status MemoryGroupManager::ParseRemoteGroupCacheConfig(const std::string &remote
       GE_CHK_BOOL_RET_STATUS(pool_alloc_limit <= pool_size, PARAM_INVALID,
                              "pool alloc limit[%d] must less than pool size[%ld]", pool_alloc_limit, pool_size);
       GE_CHK_BOOL_RET_STATUS((pool_alloc_limit == 0) || (pool_alloc_limit >= kLowerLimit), FAILED,
-                             "The value pool alloc limit[%d] in %s is must be 0 or great or equal %ld.", pool_alloc_limit,
-                             OPTION_FLOW_GRAPH_MEMORY_MAX_SIZE, kLowerLimit);
+                             "The value pool alloc limit[%d] in %s is must be 0 or great or equal %ld.",
+                             pool_alloc_limit, OPTION_FLOW_GRAPH_MEMORY_MAX_SIZE, kLowerLimit);
     } else {
       GE_CHK_STATUS_RET(ConvertToInt64(pool_config, pool_size),
                         "parse pool_size[%s] failed, remote_group_cache_config=%s.", pool_config.c_str(),
@@ -119,7 +117,8 @@ Status MemoryGroupManager::ParseRemoteGroupCacheConfig(const std::string &remote
     GE_CHK_STATUS_RET(CheckUint64AddOverflow(group_size, static_cast<uint64_t>(pool_size)),
                       "[Check][Param] group_size:%lu add pool_size %ld is overflow", group_size, pool_size);
     group_size += static_cast<uint64_t>(pool_size);
-    remote_group_cache_pool_list.emplace_back(static_cast<uint64_t>(pool_size), static_cast<uint64_t>(pool_alloc_limit));
+    remote_group_cache_pool_list.emplace_back(static_cast<uint64_t>(pool_size),
+                                              static_cast<uint64_t>(pool_alloc_limit));
   }
   GE_CHK_BOOL_RET_STATUS((group_size <= static_cast<uint64_t>(kUpperLimit)), FAILED,
                          "The sum of pool_size=[%lu] over limit value %ld.", group_size, kUpperLimit);
@@ -158,8 +157,8 @@ Status MemoryGroupManager::Initialize(const NodeConfig &node_config) {
     return SUCCESS;
   }
 
-  GE_CHK_STATUS_RET(MemGroupInit(node_config, qs_mem_group_name_),
-                    "Failed to init group, group name = %s.", qs_mem_group_name_.c_str());
+  GE_CHK_STATUS_RET(MemGroupInit(node_config, qs_mem_group_name_), "Failed to init group, group name = %s.",
+                    qs_mem_group_name_.c_str());
   return SUCCESS;
 }
 
@@ -220,8 +219,7 @@ std::mutex &MemoryGroupManager::GetDeviceMutex(int32_t device_id) {
   return device_mutexs_[device_id];
 }
 
-Status MemoryGroupManager::RemoteMemGroupInit(int32_t device_id,
-                                              const std::string &group_name) {
+Status MemoryGroupManager::RemoteMemGroupInit(int32_t device_id, const std::string &group_name) {
   std::unique_lock<std::mutex> guard(GetDeviceMutex(device_id));
   {
     std::unique_lock<std::mutex> lk(mutex_);
@@ -235,12 +233,11 @@ Status MemoryGroupManager::RemoteMemGroupInit(int32_t device_id,
   std::vector<std::pair<uint64_t, uint32_t>> remote_group_cache_pool_list(remote_group_cache_pool_list_);
   group_cache_lk.unlock();
 
-  GE_CHK_STATUS_RET(
-      ProxyEventManager::CreateGroup(device_id, group_name, remote_group_cache_alloc_size,
-                                     remote_group_cache_pool_list),
-      "Failed to create remote group, device_id = %d, group name = %s, "
-      "pre alloc size = %lu kb, cache pool size = %zu.",
-      device_id, group_name.c_str(), remote_group_cache_alloc_size, remote_group_cache_pool_list.size());
+  GE_CHK_STATUS_RET(ProxyEventManager::CreateGroup(device_id, group_name, remote_group_cache_alloc_size,
+                                                   remote_group_cache_pool_list),
+                    "Failed to create remote group, device_id = %d, group name = %s, "
+                    "pre alloc size = %lu kb, cache pool size = %zu.",
+                    device_id, group_name.c_str(), remote_group_cache_alloc_size, remote_group_cache_pool_list.size());
 
   std::unique_lock<std::mutex> lk(mutex_);
   inited_groups_.emplace(group_name);
@@ -248,18 +245,14 @@ Status MemoryGroupManager::RemoteMemGroupInit(int32_t device_id,
   return SUCCESS;
 }
 
-Status MemoryGroupManager::RemoteMemGrpAddProc(int32_t device_id,
-                                               const std::string &group_name,
-                                               const pid_t pid,
-                                               bool is_admin,
-                                               bool is_alloc) {
+Status MemoryGroupManager::RemoteMemGrpAddProc(int32_t device_id, const std::string &group_name, const pid_t pid,
+                                               bool is_admin, bool is_alloc) {
   GELOGI("Remote group cache alloc size is %lu kb.", remote_group_cache_alloc_size_);
   GE_CHK_STATUS_RET(RemoteMemGroupInit(device_id, group_name),
                     "Remote memory group init failed, group name = %s, device_id = %d, alloc_size is = %lu kb.",
                     group_name.c_str(), device_id, remote_group_cache_alloc_size_);
   GE_CHK_STATUS_RET(ProxyEventManager::AddGroup(device_id, group_name, pid, is_admin, is_alloc),
-                    "Failed to add remote group, device_id = %d, group name = %s.",
-                    device_id, group_name.c_str());
+                    "Failed to add remote group, device_id = %d, group name = %s.", device_id, group_name.c_str());
   return SUCCESS;
 }
 

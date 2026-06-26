@@ -118,12 +118,17 @@ class ScopedEnvVar {
   std::string old_value_;
 };
 
-std::string MakeManifest(const std::string &python_tag, const std::string &platform_tag,
-                         const uint32_t bridge_abi) {
+std::string MakeManifest(const std::string &python_tag, const std::string &platform_tag, const uint32_t bridge_abi) {
   return "{\n"
-         "  \"python_tag\": \"" + python_tag + "\",\n"
-         "  \"platform\": \"" + platform_tag + "\",\n"
-         "  \"bridge_abi\": " + std::to_string(bridge_abi) + ",\n"
+         "  \"python_tag\": \"" +
+         python_tag +
+         "\",\n"
+         "  \"platform\": \"" +
+         platform_tag +
+         "\",\n"
+         "  \"bridge_abi\": " +
+         std::to_string(bridge_abi) +
+         ",\n"
          "  \"artifacts\": {\n"
          "    \"bridge\": \"libge_python_pass_bridge.so\",\n"
          "    \"native\": \"_ge_pass_native.so\"\n"
@@ -131,13 +136,12 @@ std::string MakeManifest(const std::string &python_tag, const std::string &platf
          "}\n";
 }
 
-void PrepareArtifactSet(ScopedTempTree &tree, const std::string &artifact_dir,
-                        const std::string &python_tag, const uint32_t bridge_abi) {
+void PrepareArtifactSet(ScopedTempTree &tree, const std::string &artifact_dir, const std::string &python_tag,
+                        const uint32_t bridge_abi) {
   const auto platform_tag = selector::CurrentPlatformTag();
   tree.WriteFile(selector::JoinPath(artifact_dir, "libge_python_pass_bridge.so"), "bridge");
   tree.WriteFile(selector::JoinPath(artifact_dir, "_ge_pass_native.so"), "native");
-  tree.WriteFile(selector::JoinPath(artifact_dir, "manifest.json"),
-                 MakeManifest(python_tag, platform_tag, bridge_abi));
+  tree.WriteFile(selector::JoinPath(artifact_dir, "manifest.json"), MakeManifest(python_tag, platform_tag, bridge_abi));
 }
 
 struct FakeBridgeLoadState {
@@ -216,15 +220,11 @@ loader_helper::BridgeLoadDependencies MakeFakeBridgeLoadDependencies() {
 }
 
 void ResetFakeBridgeLoadState() {
-  g_fake_state = FakeBridgeLoadState {};
+  g_fake_state = FakeBridgeLoadState{};
   g_fake_state.real_path = "/tmp/libge_python_pass_bridge.so";
   g_fake_state.loaded_key.python_tag = "cp313";
   g_fake_state.api = PythonFusionPassBridgeApi{
-      1U,
-      &FakeSetArtifactConfig,
-      &FakeRegisterPasses,
-      &FakeResetBridgeState,
-      &FakeShutdownBridge,
+      1U, &FakeSetArtifactConfig, &FakeRegisterPasses, &FakeResetBridgeState, &FakeShutdownBridge,
   };
   g_fake_state.api_to_return = &g_fake_state.api;
 }
@@ -298,7 +298,7 @@ TEST(PythonPassArtifactSelectorTest, LoadArtifactManifestRejectsBrokenManifest) 
   tree.WriteFile("missing_fields/manifest.json", "{\"python_tag\":\"cp313\"}");
   tree.WriteFile("bad_artifacts/manifest.json",
                  "{\"python_tag\":\"cp313\",\"platform\":\"" + selector::CurrentPlatformTag() +
-                 "\",\"bridge_abi\":1,\"artifacts\":{\"bridge\":\"libge_python_pass_bridge.so\"}}");
+                     "\",\"bridge_abi\":1,\"artifacts\":{\"bridge\":\"libge_python_pass_bridge.so\"}}");
   tree.WriteFile("missing_native/libge_python_pass_bridge.so", "bridge");
   tree.WriteFile("missing_native/manifest.json", MakeManifest("cp313", selector::CurrentPlatformTag(), 1U));
 
@@ -344,8 +344,8 @@ TEST(PythonPassArtifactSelectorTest, BuildGePackageDirCandidatesUsesPythonPathFa
   ScopedTempTree tree;
   ASSERT_FALSE(tree.Root().empty());
   tree.MakeDir("py/site-packages/ge");
-  const std::string python_path = tree.Path("missing") + ":" + tree.Path("py/site-packages") + ":" +
-                                  tree.Path("py/site-packages/ge");
+  const std::string python_path =
+      tree.Path("missing") + ":" + tree.Path("py/site-packages") + ":" + tree.Path("py/site-packages/ge");
   const ScopedEnvVar scoped_python_path(selector::kPythonPathEnvName, python_path);
 
   const auto dirs = selector::BuildGePackageDirCandidates("");
@@ -365,8 +365,8 @@ TEST(PythonPassArtifactSelectorTest, BuildPrebuiltBridgeLibraryCandidatesReturns
 
   selector::PythonRuntimeKey runtime_key;
   runtime_key.python_tag = "cp313";
-  const auto candidates = selector::BuildPrebuiltBridgeLibraryCandidates(
-      runtime_key, tree.Path("run/lib64/ge_compiler.so"), 1U);
+  const auto candidates =
+      selector::BuildPrebuiltBridgeLibraryCandidates(runtime_key, tree.Path("run/lib64/ge_compiler.so"), 1U);
 
   ASSERT_EQ(candidates.size(), 1U);
   EXPECT_EQ(selector::BaseName(candidates[0].bridge_path), "libge_python_pass_bridge.so");
@@ -384,8 +384,8 @@ TEST(PythonPassArtifactSelectorTest, BuildPrebuiltBridgeLibraryCandidatesSkipsIn
 
   selector::PythonRuntimeKey runtime_key;
   runtime_key.python_tag = "cp313";
-  const auto candidates = selector::BuildPrebuiltBridgeLibraryCandidates(
-      runtime_key, tree.Path("run/lib64/ge_compiler.so"), 1U);
+  const auto candidates =
+      selector::BuildPrebuiltBridgeLibraryCandidates(runtime_key, tree.Path("run/lib64/ge_compiler.so"), 1U);
   EXPECT_TRUE(candidates.empty());
 }
 
@@ -445,8 +445,7 @@ TEST(PythonPassBridgeLoaderHelperTest, BridgeLoadStatusToStringCoversAllStatuses
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kSuccess), "success");
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kInvalidDependency),
                "invalid dependency");
-  EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kInvalidPath),
-               "invalid path");
+  EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kInvalidPath), "invalid path");
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kOpenFailed), "open failed");
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kRuntimeMismatch),
                "runtime mismatch");
@@ -455,8 +454,7 @@ TEST(PythonPassBridgeLoaderHelperTest, BridgeLoadStatusToStringCoversAllStatuses
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kInvalidApi), "invalid api");
   EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(loader_helper::BridgeLoadStatus::kSetArtifactConfigFailed),
                "set artifact config failed");
-  EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(static_cast<loader_helper::BridgeLoadStatus>(999)),
-               "unknown");
+  EXPECT_STREQ(loader_helper::BridgeLoadStatusToString(static_cast<loader_helper::BridgeLoadStatus>(999)), "unknown");
 }
 
 TEST(PythonPassBridgeLoaderHelperTest, RuntimeKeyCompatibilityAllowsUnknownAndRejectsMismatch) {
@@ -503,8 +501,8 @@ TEST(PythonPassBridgeLoaderHelperTest, TryLoadBridgeCandidateSucceedsAndSetsArti
   expected_key.python_tag = "cp313";
   loader_helper::LoadedBridgeCandidate loaded_bridge;
 
-  const auto status = loader_helper::TryLoadBridgeCandidate(
-      expected_key, MakeBridgeCandidate(), MakeFakeBridgeLoadDependencies(), loaded_bridge);
+  const auto status = loader_helper::TryLoadBridgeCandidate(expected_key, MakeBridgeCandidate(),
+                                                            MakeFakeBridgeLoadDependencies(), loaded_bridge);
 
   EXPECT_EQ(status, loader_helper::BridgeLoadStatus::kSuccess);
   EXPECT_EQ(loaded_bridge.handle, static_cast<void *>(&g_fake_handle));
@@ -530,46 +528,46 @@ TEST(PythonPassBridgeLoaderHelperTest, TryLoadBridgeCandidateCoversFailureStatus
 
   ResetFakeBridgeLoadState();
   g_fake_state.real_path.clear();
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kInvalidPath);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kInvalidPath);
   EXPECT_EQ(g_fake_state.close_count, 0);
 
   ResetFakeBridgeLoadState();
   g_fake_state.open_succeeds = false;
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kOpenFailed);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kOpenFailed);
   EXPECT_EQ(g_fake_state.close_count, 0);
 
   ResetFakeBridgeLoadState();
   g_fake_state.loaded_key.python_tag = "cp312";
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kRuntimeMismatch);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kRuntimeMismatch);
   EXPECT_EQ(g_fake_state.close_count, 1);
 
   ResetFakeBridgeLoadState();
   g_fake_state.symbol_exists = false;
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kMissingApiSymbol);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kMissingApiSymbol);
   EXPECT_EQ(g_fake_state.close_count, 1);
 
   ResetFakeBridgeLoadState();
   auto invalid_api = g_fake_state.api;
   invalid_api.shutdown_bridge = nullptr;
   g_fake_state.api_to_return = &invalid_api;
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kInvalidApi);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kInvalidApi);
   EXPECT_EQ(g_fake_state.close_count, 1);
 
   ResetFakeBridgeLoadState();
   g_fake_state.set_config_status = FAILED;
-  EXPECT_EQ(loader_helper::TryLoadBridgeCandidate(
-                expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
-            loader_helper::BridgeLoadStatus::kSetArtifactConfigFailed);
+  EXPECT_EQ(
+      loader_helper::TryLoadBridgeCandidate(expected_key, candidate, MakeFakeBridgeLoadDependencies(), loaded_bridge),
+      loader_helper::BridgeLoadStatus::kSetArtifactConfigFailed);
   EXPECT_EQ(g_fake_state.close_count, 1);
 }
 

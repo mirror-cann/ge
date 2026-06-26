@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ using namespace gert;
 
 namespace optiling {
 namespace {
-static string parse_int(const std::string& data) {
+static string parse_int(const std::string &data) {
   string result;
   int64_t tmp = 0;
   for (size_t i = 0; i < data.length(); i += sizeof(int64_t)) {
@@ -47,17 +47,18 @@ static string parse_int(const std::string& data) {
   }
   return result;
 }
-}
+}  // namespace
 class CompileInfoJson : public CompileInfoBase {
-public:
+ public:
   CompileInfoJson(const std::string &json) : json_str_(json) {}
   ~CompileInfoJson() {}
-private:
+
+ private:
   std::string json_str_;
 };
 
 class RegisterOpTilingRT2UT : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -85,7 +86,7 @@ struct DynamicAtomicAddrCleanParam {
   uint32_t core_num = 0;
   uint32_t ub_size = 0;
   std::vector<int64_t> clean_workspace_size;  // write input to tiling data
-  std::vector<int64_t> clean_output_size; // write input to tiling data
+  std::vector<int64_t> clean_output_size;     // write input to tiling data
 };
 ge::graphStatus DummyTiling(TilingContext *tiling_context) {
   auto compile_info = reinterpret_cast<const DummyCompileInfo *>(tiling_context->GetCompileInfo());
@@ -182,9 +183,7 @@ class OpImplGuard {
   OpImplGuard &operator=(const OpImplGuard &) = delete;
 
   OpImplGuard(OpImplGuard &&other) noexcept
-      : op_impl_func_(other.op_impl_func_),
-        saved_func_(other.saved_func_),
-        need_restore_(other.need_restore_) {
+      : op_impl_func_(other.op_impl_func_), saved_func_(other.saved_func_), need_restore_(other.need_restore_) {
     other.op_impl_func_ = nullptr;
     other.need_restore_ = false;
   }
@@ -207,8 +206,8 @@ class OpImplGuard {
 
 OpImplGuard RegisterCubeTiling(const std::string &node_type) {
   OpImplGuard guard(node_type);
-  auto op_impl_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(
-      node_type.c_str());
+  auto op_impl_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type.c_str());
   op_impl_func->tiling = CubeTilingForAutofuse;
   op_impl_func->tiling_parse = TilingParseForAdd;
   op_impl_func->compile_info_creator = CreateCompileInfo;
@@ -247,7 +246,7 @@ ge::graphStatus DummyTilingForDynamicAtomicAddrClean(TilingContext *context) {
   }
 
   auto atomic_clean_context = reinterpret_cast<AtomicCleanTilingContext *>(context);
-   // write workspace
+  // write workspace
   size_t *workspace_size = context->GetWorkspaceSizes(6);
   *workspace_size = compile_info->core_num;
   *(workspace_size + 1) = compile_info->ub_size;
@@ -315,7 +314,7 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingSuccessTwice) {
   ret = AicoreRtParseAndTiling(op, platform_infos, run_info2);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(tiling_parse_count, 1U);
-   // check tiling output
+  // check tiling output
   EXPECT_EQ(run_info2.GetTilingKey(), 123);
   EXPECT_EQ(run_info2.GetBlockDim(), 456);
   EXPECT_EQ(run_info2.GetClearAtomic(), true);
@@ -709,7 +708,6 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingMemCheckInstanceFormatSuccess)
   EXPECT_EQ(memcheck_info_str, "0 24 24 24 24 24 24 24 24 0 1 2 112 ");
 }
 
-
 TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingMemCheckDynamicOutputDescSuccess) {
   SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
   auto graph = ShareGraph::BatchSingleGraph();
@@ -763,7 +761,6 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingMemCheckHiddenInputSuccess) {
   EXPECT_EQ(memcheck_info_str, "0 208 32 112 24 24 0 1 2 88 ");
 }
 
-
 TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingDfxInstanceFormatSuccess) {
   SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
   auto graph = ShareGraph::BatchSingleGraph();
@@ -791,7 +788,8 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingDfxInstanceFormatSuccess) {
   std::vector<int64_t> args_size_list;
   std::vector<ArgsIndexToIoIndex> args_index_to_io_index;
 
-  ret = TilingDfx::GetArgsSizeWithArgsFormat(batch_node->GetOpDesc(), arg_descs, args_size_list, args_index_to_io_index);
+  ret =
+      TilingDfx::GetArgsSizeWithArgsFormat(batch_node->GetOpDesc(), arg_descs, args_size_list, args_index_to_io_index);
   EXPECT_EQ(ret, ge::SUCCESS);
 
   std::vector<int64_t> args_size_list_expect(8, 0);
@@ -800,10 +798,9 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingDfxInstanceFormatSuccess) {
     EXPECT_EQ(args_size_list[i], args_size_list_expect[i]);
   }
 
-  std::vector<ArgsIndexToIoIndex> args_index_to_io_index_expect =
-  {{ArgsRole::kInput, 0, 0}, {ArgsRole::kInput, 1, 0}, {ArgsRole::kInput, 2, 0},
-   {ArgsRole::kInput, 3, 0}, {ArgsRole::kOutput, 4, 0}, {ArgsRole::kOutput, 5, 0},
-   {ArgsRole::kOutput, 6, 1}, {ArgsRole::kOutput, 7, 2}};
+  std::vector<ArgsIndexToIoIndex> args_index_to_io_index_expect = {
+      {ArgsRole::kInput, 0, 0},  {ArgsRole::kInput, 1, 0},  {ArgsRole::kInput, 2, 0},  {ArgsRole::kInput, 3, 0},
+      {ArgsRole::kOutput, 4, 0}, {ArgsRole::kOutput, 5, 0}, {ArgsRole::kOutput, 6, 1}, {ArgsRole::kOutput, 7, 2}};
 
   EXPECT_EQ(args_index_to_io_index.size(), args_index_to_io_index_expect.size());
   for (size_t i = 0U; i < args_index_to_io_index.size(); i++) {
@@ -814,9 +811,9 @@ TEST_F(RegisterOpTilingRT2UT, AicoreParseAndTilingDfxInstanceFormatSuccess) {
 }
 
 TEST_F(RegisterOpTilingRT2UT, AicoreWithAtomicParseAndTilingSuccess) {
-  typedef void* (*CreateCompileInfo)();
+  typedef void *(*CreateCompileInfo)();
   typedef void (*DeleteCompileInfo)(void *obj);
-  CreateCompileInfo create_compile_info = []() -> void *{
+  CreateCompileInfo create_compile_info = []() -> void * {
     auto info = new DynamicAtomicAddrCleanCompileInfo();
     info->core_num = 8;
     info->ub_size = 131072;
@@ -842,10 +839,10 @@ TEST_F(RegisterOpTilingRT2UT, AicoreWithAtomicParseAndTilingSuccess) {
 
   auto graph = ShareGraph::BuildAtomicAicoreGraph();
   auto trans1_node = graph->FindNode("trans1");
-  trans1_node->GetOpDesc()->SetWorkspaceBytes({256,1,2}); // simulate trans1 node finished tiling
+  trans1_node->GetOpDesc()->SetWorkspaceBytes({256, 1, 2});  // simulate trans1 node finished tiling
   (void)ge::AttrUtils::SetListInt(trans1_node->GetOpDesc(), "tbe_op_atomic_dtypes", {0});
   ge::TensorUtils::SetSize(*trans1_node->GetOpDesc()->MutableOutputDesc(0), 128);
-  std::map<int64_t, int64_t> index_2_workspace_size = {{0,5}};
+  std::map<int64_t, int64_t> index_2_workspace_size = {{0, 5}};
   std::map<string, std::map<int64_t, int64_t>> atomic_workspace_info = {{"trans1", index_2_workspace_size}};
   trans1_node->GetOpDesc()->SetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
 
@@ -867,12 +864,12 @@ TEST_F(RegisterOpTilingRT2UT, AicoreWithAtomicParseAndTilingSuccess) {
 TEST_F(RegisterOpTilingRT2UT, AicoreWithMemsetParseAndTilingSuccess) {
   SpaceRegistryFaker::UpdateOpImplToDefaultSpaceRegistry();
   // mock dynamic atomic clean tiling func
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MemSet")->tiling
-      = DummyTilingForDynamicAtomicAddrClean;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MemSet")->tiling =
+      DummyTilingForDynamicAtomicAddrClean;
 
   auto graph = ShareGraph::BuildMemSetAicoreGraph();
   auto memset_node = graph->FindNode("memset");
-  memset_node->GetOpDesc()->SetWorkspaceBytes({256, 32}); // simulate trans1 node finished tiling
+  memset_node->GetOpDesc()->SetWorkspaceBytes({256, 32});  // simulate trans1 node finished tiling
 
   utils::OpRunInfo run_info;
   fe::PlatFormInfos platform_infos;
@@ -893,7 +890,7 @@ TEST_F(RegisterOpTilingRT2UT, FftsRtParseAndTilingSuccess) {
   vector<vector<int64_t>> vec_2;
   vec_2.push_back(vec_1);
   vec_2.push_back(vec_1);
-  std::vector<uint32_t> input_tensor_indexes = {0,1};
+  std::vector<uint32_t> input_tensor_indexes = {0, 1};
   std::vector<uint32_t> output_tensor_indexes = {0};
   slice_info_ptr->parallel_window_size = 2;
   slice_info_ptr->slice_instance_num = 2;
@@ -905,7 +902,7 @@ TEST_F(RegisterOpTilingRT2UT, FftsRtParseAndTilingSuccess) {
   slice_info_ptr->output_tensor_indexes = output_tensor_indexes;
 
   (void)op_desc->SetExtAttr(ffts::kAttrSgtStructInfoDy, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   std::vector<OpRunInfoV2> op_run_infos;
   fe::PlatFormInfos platform_infos;
   // without compile info json, tiling return failed
@@ -942,7 +939,7 @@ TEST_F(RegisterOpTilingRT2UT, OpFftsPlusCalculate_2) {
   slice_info_ptr->input_tensor_indexes.push_back(0);
   slice_info_ptr->output_tensor_indexes.push_back(0);
   (void)op_desc->SetExtAttr(ffts::kAttrSgtStructInfoDy, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddOutputDesc("y", tensor_desc);
@@ -976,7 +973,7 @@ TEST_F(RegisterOpTilingRT2UT, SoftSyncOpRtParseAndTiling) {
   slice_info_ptr->input_tensor_indexes.push_back(0);
   slice_info_ptr->output_tensor_indexes.push_back(0);
   (void)op_desc->SetExtAttr(ffts::kAttrSgtStructInfoDy, slice_info_ptr);
-  GeShape shape({4,1,3,4,16});
+  GeShape shape({4, 1, 3, 4, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddOutputDesc("y", tensor_desc);
@@ -1001,4 +998,4 @@ TEST_F(RegisterOpTilingRT2UT, SoftSyncOpRtParseAndTiling) {
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
   EXPECT_EQ(run_info.GetLocalMemorySize(), 0U);
 }
-} // namespace optiling
+}  // namespace optiling

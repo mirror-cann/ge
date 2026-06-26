@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,8 @@ Status SharedMemAllocator::Allocate(SharedMemInfo &mem_info) {
   int32_t fd = -1;
   void *ptr = nullptr;
   void *dev_ptr = nullptr;
-  const aclError acl_ret = AclrtMallocHostSharedMemory(mem_info.shm_name.c_str(), mem_info.mem_size, &fd, &ptr, &dev_ptr);
+  const aclError acl_ret =
+      AclrtMallocHostSharedMemory(mem_info.shm_name.c_str(), mem_info.mem_size, &fd, &ptr, &dev_ptr);
   if (acl_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call AclrtMallocHostSharedMemory fail, ret:%d", acl_ret);
     GELOGE(RT_FAILED, "[Call][AclrtMallocHostSharedMemory] failed, devid:[%u], ret:%d.", device_id, acl_ret);
@@ -53,7 +54,7 @@ Status SharedMemAllocator::Allocate(SharedMemInfo &mem_info) {
 Status SharedMemAllocator::DeAllocate(const SharedMemInfo &mem_info) {
   GELOGD("SharedMemAllocator::DeAllocate");
   const aclError acl_ret = AclrtFreeHostSharedMemory(mem_info.shm_name.c_str(), mem_info.mem_size, mem_info.fd,
-                                                      mem_info.host_aligned_ptr->MutableGet());
+                                                     mem_info.host_aligned_ptr->MutableGet());
   if (acl_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call AclrtFreeHostSharedMemory fail, ret:%d", acl_ret);
     GELOGE(RT_FAILED, "[Call][AclrtFreeHostSharedMemory] failed, ret:%d.", acl_ret);

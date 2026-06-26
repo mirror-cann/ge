@@ -90,4 +90,3 @@ graphStatus GetOutputIndexByName(const AscendString &name, int32_t &index)
 ## 约束说明<a name="section54933586496"></a>
 
 无
-

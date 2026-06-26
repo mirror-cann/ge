@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,12 +33,10 @@ gert::Allocators *ScalableAllocatorManager::GetAllocator(const std::string &grap
   }
   GE_ASSERT_NOTNULL(device_allocator);
 
-  std::shared_ptr<ge::Allocator> host_allocator(
-      gert::AllocatorFactory::Create(graph_name, gert::kOnHost).release());
+  std::shared_ptr<ge::Allocator> host_allocator(gert::AllocatorFactory::Create(graph_name, gert::kOnHost).release());
   GE_ASSERT_NOTNULL(host_allocator);
 
-  std::shared_ptr<ge::Allocator> p2p_device_allocator(
-      gert::AllocatorFactory::Create(gert::kOnDeviceP2p).release());
+  std::shared_ptr<ge::Allocator> p2p_device_allocator(gert::AllocatorFactory::Create(gert::kOnDeviceP2p).release());
   GE_ASSERT_NOTNULL(p2p_device_allocator);
 
   // create a new allocator
@@ -53,4 +51,4 @@ gert::Allocators *ScalableAllocatorManager::GetAllocator(const std::string &grap
   allocators_[stream] = allocators;
   return allocators.get();
 }
-} // ge namespace
+}  // namespace ge

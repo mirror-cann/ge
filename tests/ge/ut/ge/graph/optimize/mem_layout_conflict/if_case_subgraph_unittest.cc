@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,7 @@ void AddParentIndexForSubGraphNetoutput(ComputeGraphPtr &root_graph) {
  *       netoutput
  *
  * subgraph x
- * +----------------------+ 
+ * +----------------------+
  * | datax_1--netoutputx |
  * | datax_2             |
  * | datax_3             |
@@ -55,44 +55,49 @@ void AddParentIndexForSubGraphNetoutput(ComputeGraphPtr &root_graph) {
  *
  */
 TEST_F(UtestMemLayoutConflictIfCaseSubgraph, CaseSubGraph_EachInsertIdentity_Success) {
-
   const auto data1_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data1_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data1_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph1) {
-                        CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data1_2", data1_2));
-                        CHAIN(NODE("data1_3", data1_3));
-                      };
+    CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data1_2", data1_2));
+    CHAIN(NODE("data1_3", data1_3));
+  };
   const auto data2_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data2_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data2_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph2) {
-                        CHAIN(NODE("data2_1", data2_1));
-                        CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data2_3", data2_3));
-                      };
+    CHAIN(NODE("data2_1", data2_1));
+    CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data2_3", data2_3));
+  };
   const auto data3_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data3_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data3_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph3) {
-                        CHAIN(NODE("data3_1", data3_1));
-                        CHAIN(NODE("data3_2", data3_2));
-                        CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3_1", data3_1));
+    CHAIN(NODE("data3_2", data3_2));
+    CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("case", CASE, subgraph1, subgraph2, subgraph3)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
-                  CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", CASE, subgraph1, subgraph2, subgraph3)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
+    CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case", CASE, subgraph1, subgraph2, subgraph3));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
 
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1"}, {"netoutput2"}, {"netoutput3"}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1"}, {"netoutput2"}, {"netoutput3"}}),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -106,7 +111,7 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, CaseSubGraph_EachInsertIdentity_Suc
  *       netoutput
  *
  * subgraph x
- * +----------------------+ 
+ * +----------------------+
  * | datax_1--netoutputx |
  * | datax_2             |
  * | datax_3             |
@@ -114,44 +119,49 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, CaseSubGraph_EachInsertIdentity_Suc
  *
  */
 TEST_F(UtestMemLayoutConflictIfCaseSubgraph, StatelessCase_EachInsertIdentity_Success) {
-
   const auto data1_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data1_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data1_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph1) {
-                        CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
-                        CHAIN(NODE("data1_2", data1_2));
-                        CHAIN(NODE("data1_3", data1_3));
-                      };
+    CHAIN(NODE("data1_1", data1_1)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data1_2", data1_2));
+    CHAIN(NODE("data1_3", data1_3));
+  };
   const auto data2_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data2_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data2_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph2) {
-                        CHAIN(NODE("data2_1", data2_1));
-                        CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
-                        CHAIN(NODE("data2_3", data2_3));
-                      };
+    CHAIN(NODE("data2_1", data2_1));
+    CHAIN(NODE("data2_2", data2_2)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("data2_3", data2_3));
+  };
   const auto data3_1 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data3_2 = OP_CFG(DATA).ParentNodeIndex(1);
   const auto data3_3 = OP_CFG(DATA).ParentNodeIndex(2);
   DEF_GRAPH(subgraph3) {
-                        CHAIN(NODE("data3_1", data3_1));
-                        CHAIN(NODE("data3_2", data3_2));
-                        CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
-                      };
+    CHAIN(NODE("data3_1", data3_1));
+    CHAIN(NODE("data3_2", data3_2));
+    CHAIN(NODE("data3_3", data3_3)->NODE("netoutput3", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("case", STATELESSCASE, subgraph1, subgraph2, subgraph3)
-                            ->EDGE(0, 0)->NODE("op3", ADD)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case"));
-                  CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case"));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("case", STATELESSCASE, subgraph1, subgraph2, subgraph3)
+              ->EDGE(0, 0)
+              ->NODE("op3", ADD)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("case"));
+    CHAIN(NODE("data3", DATA)->EDGE(0, 2)->NODE("case"));
+  };
   auto graph = ToComputeGraph(g1);
   AddParentIndexForSubGraphNetoutput(graph);
 
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1"}, {"netoutput2"}, {"netoutput3"}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1"}, {"netoutput2"}, {"netoutput3"}}),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -181,26 +191,34 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, IfSubGraph_DataNetoutputNotInSameGr
   const auto data4 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data3 = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
-                   };
+    CHAIN(NODE("data4", data4)->NODE("netoutput2", NETOUTPUT));
+  };
   DEF_GRAPH(then_) {
-                  CHAIN(NODE("data3", data3)->NODE("cast", CAST)->NODE("partitioned_call1", PARTITIONEDCALL, sub_1)->NODE("netoutput1", NETOUTPUT));
-                };
+    CHAIN(NODE("data3", data3)
+              ->NODE("cast", CAST)
+              ->NODE("partitioned_call1", PARTITIONEDCALL, sub_1)
+              ->NODE("netoutput1", NETOUTPUT));
+  };
 
   const auto data6 = OP_CFG(DATA).ParentNodeIndex(0);
   const auto data5 = OP_CFG(DATA).ParentNodeIndex(1);
   DEF_GRAPH(sub_2) {
-                     CHAIN(NODE("data6", data6)->NODE("netoutput4", NETOUTPUT));
-                   };
+    CHAIN(NODE("data6", data6)->NODE("netoutput4", NETOUTPUT));
+  };
   DEF_GRAPH(else_) {
-                  CHAIN(NODE("data5", data5)->NODE("partitioned_call2", PARTITIONEDCALL, sub_2)->NODE("netoutput3", NETOUTPUT));
-                };
+    CHAIN(NODE("data5", data5)->NODE("partitioned_call2", PARTITIONEDCALL, sub_2)->NODE("netoutput3", NETOUTPUT));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("if", IF, then_, else_)
-                            ->EDGE(0, 0)->NODE("op", CAST)->EDGE(0, 0)->NODE("netoutput0", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if"));
-                };
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("if", IF, then_, else_)
+              ->EDGE(0, 0)
+              ->NODE("op", CAST)
+              ->EDGE(0, 0)
+              ->NODE("netoutput0", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("if"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto partitioned_call1_graph = ToComputeGraph(sub_1);
@@ -227,7 +245,7 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, IfSubGraph_DataNetoutputNotInSameGr
 }
 
 /*
- *  unknow sub graph
+ *  unknown sub graph
  *     data
  *      |                  know sub graph
  *   partitioned_call1   +-----------------+
@@ -273,7 +291,7 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, IfSingleOutMultiRefToNetoutput_Chec
   auto root_graph = MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(root_graph), GRAPH_SUCCESS);
-  
+
   auto then = root_graph->GetSubgraph("then");
   auto netoutput1 = then->FindNode("netoutput1");
 
@@ -309,7 +327,7 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, IfSingleOutMultiRefToNetoutputWithP
   auto root_graph = MemConflictShareGraph::BuildIfSingleOutMultiRefToNetoutputSubGraphWithPartitionedCall();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(root_graph), GRAPH_SUCCESS);
-  
+
   auto then = root_graph->GetSubgraph("then");
   auto netoutput1 = then->FindNode("netoutput1");
 
@@ -317,4 +335,4 @@ TEST_F(UtestMemLayoutConflictIfCaseSubgraph, IfSingleOutMultiRefToNetoutputWithP
   auto peer_node = in_anchor->GetPeerOutAnchor()->GetOwnerNode();
   ASSERT_EQ(peer_node->GetType(), IDENTITY);
 }
-}
+}  // namespace ge

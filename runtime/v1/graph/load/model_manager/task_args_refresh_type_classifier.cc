@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,7 +46,7 @@ class LogHelper {
   static char_t GetIndexTypeStr(TaskArgsRefreshTypeClassifier::IndexType it) {
     // 内部函数，it不可能越界
     static constexpr std::array<char_t, static_cast<size_t>(TaskArgsRefreshTypeClassifier::kEnd) + 1U> strs{'i', 'o',
-                                                                                                              'w', 'u'};
+                                                                                                            'w', 'u'};
     return strs[static_cast<size_t>(it)];
   }
 
@@ -59,11 +59,11 @@ class LogHelper {
 // 相关的临时变量太多了，没办法新增个类来处理
 class OneTaskRefreshTypeClassifier {
  public:
-  OneTaskRefreshTypeClassifier(const TaskArgsRefreshTypeClassifier &classifer, size_t task_index, bool need_log,
+  OneTaskRefreshTypeClassifier(const TaskArgsRefreshTypeClassifier &classifier, size_t task_index, bool need_log,
                                uint64_t &task_refresh_type,
                                std::vector<TaskArgsRefreshTypeClassifier::TaskFixedAddr> &fixed_addrs,
                                bool is_physical_memory_refreshable = false)
-      : classifer_(classifer),
+      : classifer_(classifier),
         task_index_(task_index),
         need_log_(need_log),
         task_refresh_type_(task_refresh_type),
@@ -211,8 +211,8 @@ class FixedAddrInferrer {
 
   static Status FindPeersByGraph(const NodePtr &node, const TaskArgsRefreshTypeClassifier::TaskFixedAddr &addr_desc,
                                  std::vector<FixedAddrPeerNodeDesc> &peers) {
-    GELOGI("find peers by graph for node %s iow_index_type %d(%s) iow_index %zu",
-           node->GetName().c_str(), static_cast<int32_t>(addr_desc.iow_index_type),
+    GELOGI("find peers by graph for node %s iow_index_type %d(%s) iow_index %zu", node->GetName().c_str(),
+           static_cast<int32_t>(addr_desc.iow_index_type),
            TaskArgsRefreshTypeClassifier::GetIndexTypeStr(addr_desc.iow_index_type), addr_desc.iow_index);
 
     GE_ASSERT_TRUE(IntegerChecker<int32_t>::Compat(addr_desc.iow_index));
@@ -294,9 +294,9 @@ uint64_t TaskArgsRefreshTypeClassifier::GetRefreshTypeByLogicalAddr(const AddrDe
        */
       return kRefreshByModelIo;
     case MemoryAppType::kMemoryTypeFeatureMap:
-    // todo: fmtype 是否需要刷新，不单单取决于is_fm_refresh_enable_， 还取决于placement（TS或hbm），
-    // 未来logic_addrs_to_memory_app_type_不仅要带app type 还要带placement，这样才能准确判断是否需要刷新
-    // 当前的处理也不会导致bug，即使因为需要刷新而被判断为fixed地址也仅仅多浪费一段fixed内存
+      // todo: fmtype 是否需要刷新，不单单取决于is_fm_refresh_enable_， 还取决于placement（TS或hbm），
+      // 未来logic_addrs_to_memory_app_type_不仅要带app type 还要带placement，这样才能准确判断是否需要刷新
+      // 当前的处理也不会导致bug，即使因为需要刷新而被判断为fixed地址也仅仅多浪费一段fixed内存
       return is_fm_refresh_enable_ ? kRefreshByFm : 0UL;
     case MemoryAppType::kMemoryTypeFix:
       return 0UL;

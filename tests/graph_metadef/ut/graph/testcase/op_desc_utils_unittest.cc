@@ -35,7 +35,6 @@ class UtestOpDescUtils : public testing::Test {
   void TearDown() {}
 };
 
-
 namespace {
 ///     Data    const1
 ///        \  /
@@ -71,7 +70,7 @@ ComputeGraphPtr BuildGraph2() {
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_INT32);
   GeTensorPtr tensor0 = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   AttrUtils::SetBool(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_CONST, true);
-  AttrUtils::SetListInt(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT_INDICES, {0,1});
+  AttrUtils::SetListInt(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT_INDICES, {0, 1});
   AttrUtils::SetListTensor(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT, {tensor0, tensor0});
   OpDescUtils::SetWeights(const1, {tensor0});
 
@@ -97,7 +96,7 @@ ComputeGraphPtr BuildGraph3() {
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_INT32);
   GeTensorPtr tensor0 = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   AttrUtils::SetBool(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_CONST, true);
-  AttrUtils::SetListInt(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT_INDICES, {0,1});
+  AttrUtils::SetListInt(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT_INDICES, {0, 1});
   AttrUtils::SetListTensor(addn->GetOpDesc(), ATTR_NAME_POTENTIAL_WEIGHT, {tensor0, tensor0});
   OpDescUtils::SetWeights(const1, {tensor0});
 
@@ -120,8 +119,7 @@ ComputeGraphPtr BuildGraph4(size_t dynamic_input_num, bool has_optional_input) {
 
   auto data2 = builder.AddNode("a", "Data", 1, 1);
   auto data4 = builder.AddNode("b", "Data", 1, 1);
-  auto dynamic_op_ut = builder.AddNode("dynamic_op_ut", "DynamicOpUt",
-                                       2 + dynamic_input_num + optional_input_num, 1);
+  auto dynamic_op_ut = builder.AddNode("dynamic_op_ut", "DynamicOpUt", 2 + dynamic_input_num + optional_input_num, 1);
 
   size_t dst_index = 0;
   // dynamic input
@@ -172,8 +170,7 @@ ComputeGraphPtr BuildGraph6(size_t dynamic_output_num) {
   ut::GraphBuilder builder = ut::GraphBuilder("graph");
   auto data0 = builder.AddNode("a", "Data", 1, 1);
   auto data1 = builder.AddNode("b", "Data", 1, 1);
-  auto dynamic_op_ut = builder.AddNode("dynamic_op_ut", "DynamicOpUt",
-                                       2, 1 + dynamic_output_num + 1);
+  auto dynamic_op_ut = builder.AddNode("dynamic_op_ut", "DynamicOpUt", 2, 1 + dynamic_output_num + 1);
 
   size_t dst_index = 0;
   builder.AddDataEdge(data0, 0, dynamic_op_ut, dst_index++);
@@ -189,7 +186,7 @@ ComputeGraphPtr BuildGraph6(size_t dynamic_output_num) {
   op_desc->AppendIrOutput("z", kIrOutputRequired);
   return graph;
 }
-}
+}  // namespace
 TEST_F(UtestOpDescUtils, SetWeight) {
   auto graph = BuildGraph1();
 
@@ -333,7 +330,7 @@ TEST_F(UtestOpDescUtils, GetInputConstDataByIndex_01) {
 
   ASSERT_TRUE(ge_tensor_res != nullptr);
   const TensorData tmp(ge_tensor_res->GetData());
-  const uint8_t* res_buf = tmp.GetData();
+  const uint8_t *res_buf = tmp.GetData();
   ASSERT_EQ(res_buf[0], 23);
   ASSERT_EQ(res_buf[10], 32);
 }
@@ -371,12 +368,12 @@ TEST_F(UtestOpDescUtils, GetInputConstDataByIndex_02) {
   ASSERT_TRUE(ge_tensor_res != nullptr);
   ASSERT_TRUE(ge_tensor_res2 == nullptr);
   const TensorData tmp(ge_tensor_res->GetData());
-  const uint8_t* res_buf = tmp.GetData();
+  const uint8_t *res_buf = tmp.GetData();
   ASSERT_EQ(res_buf[0], 23);
   ASSERT_EQ(res_buf[10], 32);
 }
 
-// for partiton graph get const
+// for partition graph get const
 TEST_F(UtestOpDescUtils, GetInputConstDataByIndex_03) {
   ut::GraphBuilder builder = ut::GraphBuilder("partiton_graph0");
   auto pld = builder.AddNode(PLACEHOLDER, PLACEHOLDER, 0, 1);
@@ -432,7 +429,6 @@ TEST_F(UtestOpDescUtils, DefaultInferFormat) {
   auto output_desc = op_desc->MutableOutputDesc(0);
   EXPECT_EQ(output_desc->GetFormat(), FORMAT_ND);
 }
-
 
 TEST_F(UtestOpDescUtils, OpDescBuilder) {
   OpDescBuilder builder("name", "type");
@@ -651,7 +647,6 @@ TEST_F(UtestOpDescUtils, IsNonConstInput) {
   auto attr_node = builder.AddNode("Attr", "Attr", 2, 2);
   EXPECT_EQ(OpDescUtils::IsNonConstInput(attr_node, 1), false);
 
-
   EXPECT_EQ(NodeUtils::SetAllAnchorStatus(*attr_node), GRAPH_SUCCESS);
   EXPECT_EQ(OpDescUtils::IsNonConstInput(attr_node, 1), false);
 
@@ -852,7 +847,6 @@ TEST_F(UtestOpDescUtils, CopyOpdesc) {
   EXPECT_EQ(new_input_size, std::vector<int64_t>({12}));
 }
 
-
 TEST_F(UtestOpDescUtils, CopyOpdesc2) {
   GeTensorDesc td = StandardTd_5d_1_1_224_224();
 
@@ -907,15 +901,15 @@ TEST_F(UtestOpDescUtils, CloneOpdesc) {
 
 REG_OP(DynamicOpUt)
     .DYNAMIC_INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .INPUT(a, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .INPUT(b, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
-        .ATTR(transpose_x1, Bool, false)
-        .ATTR(transpose_x2, Bool, false)
-        .OP_END_FACTORY_REG(DynamicOpUt)
+    .INPUT(a, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .INPUT(b, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
+    .ATTR(transpose_x1, Bool, false)
+    .ATTR(transpose_x2, Bool, false)
+    .OP_END_FACTORY_REG(DynamicOpUt)
 
-TEST_F(UtestOpDescUtils, GetInputIrIndexes2InstanceIndexesPairMap_NullOpDescFailed) {
+        TEST_F(UtestOpDescUtils, GetInputIrIndexes2InstanceIndexesPairMap_NullOpDescFailed) {
   auto ir_index_to_instance_index_pair_map = OpDescUtils::GetInputIrIndexes2InstanceIndexesPairMap(nullptr);
   ASSERT_TRUE(ir_index_to_instance_index_pair_map.empty());
 }
@@ -976,7 +970,7 @@ TEST_F(UtestOpDescUtils, GetInputIrIndexes2InstanceIndexesPairMap_DynamicInputNa
   name_index.clear();
 
   name_index["x0"] = index++;
-  name_index["x2"] = index++; // error name
+  name_index["x2"] = index++;  // error name
 
   name_index["a"] = index++;
   if (optional_input_num == 1) {
@@ -1047,7 +1041,7 @@ TEST_F(UtestOpDescUtils, GetInputIrIndexeByInstanceIndexe_DynamicNameNotmatch_Fa
   name_index.clear();
 
   name_index["x0"] = index++;
-  name_index["x2"] = index++; // error name
+  name_index["x2"] = index++;  // error name
 
   name_index["a"] = index++;
   if (optional_input_num == 1) {
@@ -1072,7 +1066,7 @@ TEST_F(UtestOpDescUtils, GetInputIrIndexeByInstanceIndexe_ActualInputsIsMoreThan
   name_index.clear();
 
   name_index["x0"] = index++;
-  name_index["x1"] = index++; // error name
+  name_index["x1"] = index++;  // error name
 
   name_index["a"] = index++;
   if (optional_input_num == 1) {
@@ -1108,8 +1102,8 @@ void GetOutputIrIndexCheck(size_t dynamic_output_num) {
 
   index = 0U;
   std::map<size_t, size_t> expect_instance_index_to_ir_index_map;
-  expect_instance_index_to_ir_index_map[index++] = 0; // x
-  for (size_t i = 0U; i < dynamic_output_num; ++i) { // y
+  expect_instance_index_to_ir_index_map[index++] = 0;  // x
+  for (size_t i = 0U; i < dynamic_output_num; ++i) {   // y
     expect_instance_index_to_ir_index_map[index++] = 1;
   }
   expect_instance_index_to_ir_index_map[index++] = 2;
@@ -1184,14 +1178,14 @@ TEST_F(UtestOpDescUtils, GetOutputIrIndexeByInstanceIndexe_UnknownOutputIrType_F
   auto graph = BuildGraph4(2, false);
   auto dynamic_op_ut_node = graph->FindNode("dynamic_op_ut");
   auto op_desc = dynamic_op_ut_node->GetOpDesc();
-  op_desc->AppendIrOutput("y", kIrOutputTypeEnd);// invalid IrType
+  op_desc->AppendIrOutput("y", kIrOutputTypeEnd);  // invalid IrType
 
   auto ir_index_to_instance_index_pair_map = OpDescUtils::GetOutputIrIndexes2InstanceIndexesPairMap(op_desc);
   ASSERT_TRUE(ir_index_to_instance_index_pair_map.empty());
 }
 
-#define CHECK_IR_RANGE(Idx, Start, Num)                                                                                \
-  EXPECT_EQ(ir_ranges[Idx].first, Start);                                                                              \
+#define CHECK_IR_RANGE(Idx, Start, Num)   \
+  EXPECT_EQ(ir_ranges[Idx].first, Start); \
   EXPECT_EQ(ir_ranges[Idx].second, Num)
 
 REG_OP(DescUtilTestDynamicFirst)
@@ -1218,7 +1212,7 @@ TEST_F(UtestOpDescUtils, get_input_desc_range_for_dynamic_first_ir_desc_end) {
 }
 TEST_F(UtestOpDescUtils, get_input_desc_range_for_dynamic_first_ir_desc_begin) {
   auto op = op::DescUtilTestDynamicFirst();
-  op.create_dynamic_input_input0(2, false); // Dynamic desc出现在头部
+  op.create_dynamic_input_input0(2, false);  // Dynamic desc出现在头部
   auto desc = OpDescUtils::GetOpDescFromOperator(op);
   auto ir_ranges = OpDescUtils::GetInputIrIndexes2InstanceIndexesPairMap(desc);
 
@@ -1272,7 +1266,7 @@ TEST_F(UtestOpDescUtils, get_input_desc_range_for_mulit_dynamic) {
 
 TEST_F(UtestOpDescUtils, get_input_desc_range_for_mulit_dynamic_mis_order) {
   auto op = op::DescUtilTestMultiDynamic();
-  op.create_dynamic_input_input1(2); // 首先创建input2
+  op.create_dynamic_input_input1(2);  // 首先创建input2
   op.create_dynamic_input_input0(2);
   auto desc = OpDescUtils::GetOpDescFromOperator(op);
   auto ir_ranges = OpDescUtils::GetInputIrIndexes2InstanceIndexesPairMap(desc);
@@ -1478,19 +1472,19 @@ TEST_F(UtestOpDescUtils, get_promote_input_list_none_output) {
 }
 
 TEST_F(UtestOpDescUtils, CreateConstOpWithOutCopy) {
-  ge::GeTensorDesc ge_tensor(GeShape({8,8,8}), FORMAT_ND, DT_FLOAT16);
+  ge::GeTensorDesc ge_tensor(GeShape({8, 8, 8}), FORMAT_ND, DT_FLOAT16);
   ge_tensor.SetName("test");
   ge::GeTensorPtr const_tensor_ptr = ge::MakeShared<ge::GeTensor>(ge_tensor);
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOpZeroCopy(const_tensor_ptr);
   ge::Operator const_op = ge::OpDescUtils::CreateOperatorFromOpDesc(const_op_desc);
-  (void) const_op.SetInput("test", const_op);
+  (void)const_op.SetInput("test", const_op);
   ConstGeTensorPtr weight;
   EXPECT_TRUE(ConstantUtils::GetWeight(const_op_desc, 0UL, weight) == true);
   EXPECT_TRUE(weight->GetData().GetData() == const_tensor_ptr->GetData().GetData());
 }
 
 TEST_F(UtestOpDescUtils, CreateConstOpWithCopy) {
-  ge::GeTensorDesc ge_tensor(GeShape({8,8,8}), FORMAT_ND, DT_FLOAT16);
+  ge::GeTensorDesc ge_tensor(GeShape({8, 8, 8}), FORMAT_ND, DT_FLOAT16);
   ge_tensor.SetName("test");
   ge::GeTensorPtr const_tensor_ptr = ge::MakeShared<ge::GeTensor>(ge_tensor);
   constexpr int32_t kAlignedSize = 256;
@@ -1498,7 +1492,7 @@ TEST_F(UtestOpDescUtils, CreateConstOpWithCopy) {
   const_tensor_ptr->SetData(aligned_ptr, 256);
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOp(const_tensor_ptr);
   ge::Operator const_op = ge::OpDescUtils::CreateOperatorFromOpDesc(const_op_desc);
-  (void) const_op.SetInput("test", const_op);
+  (void)const_op.SetInput("test", const_op);
   ConstGeTensorPtr weight;
   EXPECT_TRUE(ConstantUtils::GetWeight(const_op_desc, 0UL, weight) == true);
   EXPECT_TRUE(weight->GetData().GetData() != const_tensor_ptr->GetData().GetData());

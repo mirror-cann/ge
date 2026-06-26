@@ -1,58 +1,57 @@
 # CompliantNodeBuilder<a name="ZH-CN_TOPIC_0000002519135173"></a>
 
--   **[简介](简介-18.md)**  
+-   **[简介](简介-18.md)**
 
--   **[CompliantNodeBuilder构造函数](CompliantNodeBuilder构造函数.md)**  
+-   **[CompliantNodeBuilder构造函数](CompliantNodeBuilder构造函数.md)**
 
--   **[Build](Build.md)**  
+-   **[Build](Build.md)**
 
--   **[IrDefAttrs](IrDefAttrs.md)**  
+-   **[IrDefAttrs](IrDefAttrs.md)**
 
--   **[IrDefInputs](IrDefInputs.md)**  
+-   **[IrDefInputs](IrDefInputs.md)**
 
--   **[IrDefOutputs](IrDefOutputs.md)**  
+-   **[IrDefOutputs](IrDefOutputs.md)**
 
--   **[InstanceDynamicInputNum](InstanceDynamicInputNum.md)**  
+-   **[InstanceDynamicInputNum](InstanceDynamicInputNum.md)**
 
--   **[InstanceDynamicOutputNum](InstanceDynamicOutputNum.md)**  
+-   **[InstanceDynamicOutputNum](InstanceDynamicOutputNum.md)**
 
--   **[InstanceOutputDataType](InstanceOutputDataType.md)**  
+-   **[InstanceOutputDataType](InstanceOutputDataType.md)**
 
--   **[InstanceOutputShape](InstanceOutputShape.md)**  
+-   **[InstanceOutputShape](InstanceOutputShape.md)**
 
--   **[InstanceOutputOriginShape](InstanceOutputOriginShape.md)**  
+-   **[InstanceOutputOriginShape](InstanceOutputOriginShape.md)**
 
--   **[InstanceOutputStorageShape](InstanceOutputStorageShape.md)**  
+-   **[InstanceOutputStorageShape](InstanceOutputStorageShape.md)**
 
--   **[InstanceOutputFormat](InstanceOutputFormat.md)**  
+-   **[InstanceOutputFormat](InstanceOutputFormat.md)**
 
--   **[InstanceOutputOriginFormat](InstanceOutputOriginFormat.md)**  
+-   **[InstanceOutputOriginFormat](InstanceOutputOriginFormat.md)**
 
--   **[InstanceOutputStorageFormat](InstanceOutputStorageFormat.md)**  
+-   **[InstanceOutputStorageFormat](InstanceOutputStorageFormat.md)**
 
--   **[Name](Name.md)**  
+-   **[Name](Name.md)**
 
--   **[OpType](OpType.md)**  
+-   **[OpType](OpType.md)**
 
--   **[AnyTypeOperator](AnyTypeOperator.md)**  
+-   **[AnyTypeOperator](AnyTypeOperator.md)**
 
--   **[AddEdgeAndUpdatePeerDesc](AddEdgeAndUpdatePeerDesc.md)**  
+-   **[AddEdgeAndUpdatePeerDesc](AddEdgeAndUpdatePeerDesc.md)**
 
--   **[CreateFrom](CreateFrom.md)**  
+-   **[CreateFrom](CreateFrom.md)**
 
--   **[CreateFromIfNotEqual](CreateFromIfNotEqual.md)**  
+-   **[CreateFromIfNotEqual](CreateFromIfNotEqual.md)**
 
--   **[ValuesEqual](ValuesEqual.md)**  
+-   **[ValuesEqual](ValuesEqual.md)**
 
--   **[IrAttrType](IrAttrType.md)**  
+-   **[IrAttrType](IrAttrType.md)**
 
--   **[IrInputType](IrInputType.md)**  
+-   **[IrInputType](IrInputType.md)**
 
--   **[IrOutputType](IrOutputType.md)**  
+-   **[IrOutputType](IrOutputType.md)**
 
--   **[IrAttrDef](IrAttrDef.md)**  
+-   **[IrAttrDef](IrAttrDef.md)**
 
--   **[IrInputDef](IrInputDef.md)**  
+-   **[IrInputDef](IrInputDef.md)**
 
--   **[IrOutputDef](IrOutputDef.md)**  
-
+-   **[IrOutputDef](IrOutputDef.md)**

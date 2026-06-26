@@ -23,7 +23,7 @@ auto Normalize = [](const std::string &code) {
   str.erase(std::remove_if(str.begin(), str.end(), ::isspace), str.end());
   return str;
 };
-}
+}  // namespace
 class GenPyImplLLT : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -1220,7 +1220,6 @@ def phony_2opi1i_1o(x1: Union[TensorHolder, TensorLike], x2: Union[TensorHolder,
   EXPECT_EQ(Normalize(py_content.str()), Normalize(expected_py_content))
       << "Generated python wrapper content does not match expected content";
 }
-
 
 TEST_F(GenPyImplLLT, Phony_opt_attrsOpPythonGeneration) {
   std::string expected_py_content = R"(

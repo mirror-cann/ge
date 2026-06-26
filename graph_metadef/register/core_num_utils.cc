@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,10 +43,13 @@ graphStatus ConvertStrToInt32(const std::string &str, int32_t &val) {
   return GRAPH_SUCCESS;
 }
 
-graphStatus ReportParamError(const std::string &param_name, const std::string &param_value_str, const std::string &reason) {
-  (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                            std::vector<const char *>({param_name.c_str(), param_value_str.c_str(), reason.c_str()}));
-  GELOGE(PARAM_INVALID, "Value %s for parameter %s is invalid. Reason: %s", param_value_str.c_str(), param_name.c_str(), reason.c_str());
+graphStatus ReportParamError(const std::string &param_name, const std::string &param_value_str,
+                             const std::string &reason) {
+  (void)REPORT_PREDEFINED_ERR_MSG(
+      "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+      std::vector<const char *>({param_name.c_str(), param_value_str.c_str(), reason.c_str()}));
+  GELOGE(PARAM_INVALID, "Value %s for parameter %s is invalid. Reason: %s", param_value_str.c_str(), param_name.c_str(),
+         reason.c_str());
   return PARAM_INVALID;
 }
 }  // namespace
@@ -60,7 +63,8 @@ graphStatus CoreNumUtils::ParseAicoreNumFromOption(std::map<std::string, std::st
     return GRAPH_SUCCESS;
   }
   if (aicore_num_option_str.find('|') == std::string::npos) {
-    GELOGW("Invalid format for ge.aicoreNum: %s. Expected format: aicore_num|vectorcore_num.", aicore_num_option_str.c_str());
+    GELOGW("Invalid format for ge.aicoreNum: %s. Expected format: aicore_num|vectorcore_num.",
+           aicore_num_option_str.c_str());
     return GRAPH_SUCCESS;
   }
   GELOGI("origin ge.aicoreNum in options, value: %s.", aicore_num_option_str.c_str());
@@ -73,8 +77,8 @@ graphStatus CoreNumUtils::ParseAicoreNumFromOption(std::map<std::string, std::st
   return GRAPH_SUCCESS;
 }
 
-graphStatus CoreNumUtils::ParseAndValidateCoreNum(const std::string &param_name, const std::string &param_value_str, int32_t min_value,
-                             int32_t max_value, int32_t &parsed_value) {
+graphStatus CoreNumUtils::ParseAndValidateCoreNum(const std::string &param_name, const std::string &param_value_str,
+                                                  int32_t min_value, int32_t max_value, int32_t &parsed_value) {
   if (ConvertStrToInt32(param_value_str, parsed_value) != GRAPH_SUCCESS) {
     return ReportParamError(param_name, param_value_str, "It is not integer.");
   }
@@ -92,20 +96,22 @@ graphStatus CoreNumUtils::ParseAndValidateCoreNum(const std::string &param_name,
   }
 
   GELOGD("Parse and validate core num success, param_name: %s, param_value_str: %s, parsed_value: %d",
-       param_name.c_str(), param_value_str.c_str(), parsed_value);
+         param_name.c_str(), param_value_str.c_str(), parsed_value);
   return GRAPH_SUCCESS;
 }
 
 graphStatus CoreNumUtils::GetGeDefaultPlatformInfo(const std::string &soc_version, fe::PlatformInfo &platform_info) {
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().InitializePlatformInfo() == 0U, "Initialize platform info failed.");
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().InitializePlatformInfo() == 0U,
+                 "Initialize platform info failed.");
 
   fe::OptionalInfo optional_info;
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetPlatformInfo(soc_version, platform_info, optional_info) == 0U, "Unable to get platform info.");
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetPlatformInfo(soc_version, platform_info, optional_info) == 0U,
+                 "Unable to get platform info.");
   return GRAPH_SUCCESS;
 }
 
 graphStatus CoreNumUtils::ValidateCoreNumWithOpDesc(const fe::PlatformInfo &platform_info,
-                                                     const ge::OpDescPtr &op_desc) {
+                                                    const ge::OpDescPtr &op_desc) {
   GE_ASSERT_NOTNULL(op_desc);
 
   std::string aicore_num_str;
@@ -114,10 +120,11 @@ graphStatus CoreNumUtils::ValidateCoreNumWithOpDesc(const fe::PlatformInfo &plat
       return ReportParamError(kAiCoreNumOp, "<non-string>", "It is not string.");
     }
     GELOGD("Validate %s for op[%s], value: %s, platform ai_core_cnt: %d.", kAiCoreNumOp.c_str(),
-           op_desc->GetName().c_str(), aicore_num_str.c_str(), static_cast<int32_t>(platform_info.soc_info.ai_core_cnt));
+           op_desc->GetName().c_str(), aicore_num_str.c_str(),
+           static_cast<int32_t>(platform_info.soc_info.ai_core_cnt));
     int32_t op_core_num = -1;
-    GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(
-        kAiCoreNumOp, aicore_num_str, 0, static_cast<int32_t>(platform_info.soc_info.ai_core_cnt), op_core_num));
+    GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(kAiCoreNumOp, aicore_num_str, 0,
+                                              static_cast<int32_t>(platform_info.soc_info.ai_core_cnt), op_core_num));
   }
 
   std::string vector_core_num_str;
@@ -130,7 +137,8 @@ graphStatus CoreNumUtils::ValidateCoreNumWithOpDesc(const fe::PlatformInfo &plat
            static_cast<int32_t>(platform_info.soc_info.vector_core_cnt));
     int32_t op_core_num = -1;
     GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(kVectorCoreNumOp, vector_core_num_str, 0,
-                                              static_cast<int32_t>(platform_info.soc_info.vector_core_cnt), op_core_num));
+                                              static_cast<int32_t>(platform_info.soc_info.vector_core_cnt),
+                                              op_core_num));
   }
 
   return GRAPH_SUCCESS;
@@ -156,10 +164,12 @@ graphStatus CoreNumUtils::ValidateCoreNumWithGraph(const ge::ComputeGraphPtr &co
       GE_ASSERT_TRUE(!soc_version.empty(), "SOC_VERSION is not set before validating op core num.");
       GE_ASSERT_SUCCESS(GetGeDefaultPlatformInfo(soc_version, platform_info));
       is_platform_info_initialized = true;
-      GELOGD("Init platform info for core num validation, graph: %s, soc_version: %s, ai_core_cnt: %d, "
-             "vector_core_cnt: %d.", compute_graph->GetName().c_str(), soc_version.c_str(),
-             static_cast<int32_t>(platform_info.soc_info.ai_core_cnt),
-             static_cast<int32_t>(platform_info.soc_info.vector_core_cnt));
+      GELOGD(
+          "Init platform info for core num validation, graph: %s, soc_version: %s, ai_core_cnt: %d, "
+          "vector_core_cnt: %d.",
+          compute_graph->GetName().c_str(), soc_version.c_str(),
+          static_cast<int32_t>(platform_info.soc_info.ai_core_cnt),
+          static_cast<int32_t>(platform_info.soc_info.vector_core_cnt));
     }
     GE_ASSERT_SUCCESS(ValidateCoreNumWithOpDesc(platform_info, op_desc));
     ++validated_op_count;
@@ -171,8 +181,9 @@ graphStatus CoreNumUtils::ValidateCoreNumWithGraph(const ge::ComputeGraphPtr &co
   return GRAPH_SUCCESS;
 }
 
-graphStatus CoreNumUtils::UpdateCoreCountWithOpDesc(const std::string &param_name, const std::string &op_core_num_str, int32_t soc_core_num,
-                                          const std::string &res_key, std::map<std::string, std::string> &res) {
+graphStatus CoreNumUtils::UpdateCoreCountWithOpDesc(const std::string &param_name, const std::string &op_core_num_str,
+                                                    int32_t soc_core_num, const std::string &res_key,
+                                                    std::map<std::string, std::string> &res) {
   int32_t op_core_num = -1;
   GE_ASSERT_SUCCESS(ParseAndValidateCoreNum(param_name, op_core_num_str, 0, soc_core_num, op_core_num));
   if (op_core_num > 0) {
@@ -183,8 +194,9 @@ graphStatus CoreNumUtils::UpdateCoreCountWithOpDesc(const std::string &param_nam
   return GRAPH_SUCCESS;
 }
 
-graphStatus CoreNumUtils::UpdatePlatformInfosWithOpDesc(const fe::PlatformInfo &platform_info, const ge::OpDescPtr &op_desc,
-                                         fe::PlatFormInfos &platform_infos, bool &is_op_core_num_set) {
+graphStatus CoreNumUtils::UpdatePlatformInfosWithOpDesc(const fe::PlatformInfo &platform_info,
+                                                        const ge::OpDescPtr &op_desc, fe::PlatFormInfos &platform_infos,
+                                                        bool &is_op_core_num_set) {
   std::map<std::string, std::string> res;
   (void)platform_infos.GetPlatformResWithLock("SoCInfo", res);
 
@@ -200,8 +212,9 @@ graphStatus CoreNumUtils::UpdatePlatformInfosWithOpDesc(const fe::PlatformInfo &
   std::string vector_core_num_str;
   if (ge::AttrUtils::GetStr(op_desc, kVectorCoreNumOp, vector_core_num_str)) {
     GELOGD("Attr: %s exists in op_desc, opName: %s", kVectorCoreNumOp.c_str(), op_desc->GetName().c_str());
-    GE_ASSERT_SUCCESS(UpdateCoreCountWithOpDesc(
-        kVectorCoreNumOp, vector_core_num_str, static_cast<int32_t>(platform_info.soc_info.vector_core_cnt), kVectorCoreCntIni, res));
+    GE_ASSERT_SUCCESS(UpdateCoreCountWithOpDesc(kVectorCoreNumOp, vector_core_num_str,
+                                                static_cast<int32_t>(platform_info.soc_info.vector_core_cnt),
+                                                kVectorCoreCntIni, res));
     is_op_core_num_set = true;
   }
 

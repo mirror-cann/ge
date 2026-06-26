@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ class STEST_stridedread_optimize : public testing::Test {
   void SetUp() {}
   void TearDown() {}
 
-  void InitGraph1(ComputeGraphPtr& graph) {
+  void InitGraph1(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -87,12 +87,10 @@ class STEST_stridedread_optimize : public testing::Test {
     NodePtr conv1_node = graph->AddNode(conv1);
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr split_node = graph->AddNode(split);
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv1_node->GetInDataAnchor(0));
   }
-  void InitGraph2(ComputeGraphPtr& graph) {
+  void InitGraph2(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -133,7 +131,6 @@ class STEST_stridedread_optimize : public testing::Test {
     conv1->AddInputDesc(out_desc3);
     conv2->AddInputDesc(out_desc3);
 
-
     // create nodes
     NodePtr data_node = graph->AddNode(data);
     NodePtr conv1_node = graph->AddNode(conv1);
@@ -141,18 +138,13 @@ class STEST_stridedread_optimize : public testing::Test {
     NodePtr split_node = graph->AddNode(split);
     NodePtr sr1_node = graph->AddNode(sr1);
     NodePtr sr2_node = graph->AddNode(sr2);
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            sr1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            sr2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(sr1_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(sr2_node->GetOutDataAnchor(0),
-                            conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), sr1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), sr2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(sr1_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(sr2_node->GetOutDataAnchor(0), conv2_node->GetInDataAnchor(0));
   }
-  void InitGraph3(ComputeGraphPtr& graph) {
+  void InitGraph3(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -184,10 +176,8 @@ class STEST_stridedread_optimize : public testing::Test {
     NodePtr conv1_node = graph->AddNode(conv1);
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr split_node = graph->AddNode(split);
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), conv1_node->GetInDataAnchor(0));
   }
 };
 
@@ -223,4 +213,4 @@ TEST_F(STEST_stridedread_optimize, stridedread_optimize_03) {
   (void)ge::AttrUtils::GetBool(concat_node->GetOpDesc(), ATTR_NAME_NOTASK, attr_notask);
   EXPECT_EQ(attr_notask, false);
 }
-}
+}  // namespace fe

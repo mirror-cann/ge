@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,7 +83,7 @@ class DumpChecker {
     load_op_mapping_infos_.clear();
     unload_op_mapping_infos_.clear();
     GELOGI("Clear OpMappingInfo success, loadMap size: %u, unloadMap size: %u", load_op_mapping_infos_.size(),
-      unload_op_mapping_infos_.size());
+           unload_op_mapping_infos_.size());
   }
 
   uint32_t GetOpMappingInfoTaskSize(const std::string op_name) {
@@ -105,7 +105,7 @@ class DumpChecker {
   std::string GetModelName(const std::string op_name) {
     OpMappingInfo op_mapping_info;
     if ((GetOpMappingInfoByOpName(op_name, op_mapping_info) == ge::SUCCESS) &&
-      (op_mapping_info.model_name_param_case() == kModelName)) {
+        (op_mapping_info.model_name_param_case() == kModelName)) {
       return op_mapping_info.model_name();
     }
     return std::string();
@@ -114,7 +114,7 @@ class DumpChecker {
   uint32_t GetModelId(const std::string op_name) {
     OpMappingInfo op_mapping_info;
     if ((GetOpMappingInfoByOpName(op_name, op_mapping_info) == ge::SUCCESS) &&
-      (op_mapping_info.model_id_param_case() == kModelId)) {
+        (op_mapping_info.model_id_param_case() == kModelId)) {
       return op_mapping_info.model_id();
     }
     return UINT32_MAX;
@@ -263,7 +263,7 @@ class DumpChecker {
   uint64_t GetTaskContextInputAddr(const std::string op_name, const int32_t context_id, const int32_t input_id) {
     DumpTask task;
     if ((GetDumpTaskByOpName(op_name, task) == ge::SUCCESS) && (context_id < task.context().size()) &&
-      (input_id < task.context(context_id).input().size())) {
+        (input_id < task.context(context_id).input().size())) {
       return task.context(context_id).input(input_id).address();
     }
     return UINT64_MAX;
@@ -272,7 +272,7 @@ class DumpChecker {
   uint64_t GetTaskContextOutputAddr(const std::string op_name, const int32_t context_id, const int32_t output_id) {
     DumpTask task;
     if ((GetDumpTaskByOpName(op_name, task) == ge::SUCCESS) && (context_id < task.context().size()) &&
-      (output_id < task.context(context_id).output().size())) {
+        (output_id < task.context(context_id).output().size())) {
       return task.context(context_id).output(output_id).address();
     }
     return UINT64_MAX;
@@ -300,15 +300,15 @@ class DumpChecker {
     OpMappingInfo op_mapping_info;
     GE_ASSERT_TRUE(op_mapping_info.ParseFromString(proto_info));
     for (int32_t id = 0; id < op_mapping_info.task_size(); id++) {
-      if ((op_mapping_info.task(id).stream_id() > UINT16_MAX) ||
-         (op_mapping_info.task(id).task_id() > UINT16_MAX)) {
+      if ((op_mapping_info.task(id).stream_id() > UINT16_MAX) || (op_mapping_info.task(id).task_id() > UINT16_MAX)) {
         GELOGE(FAILED, "[CheckStreamIdAndTaskId] failed, stream_id: %u task_id: %u",
-          op_mapping_info.task(id).stream_id(), op_mapping_info.task(id).task_id());
+               op_mapping_info.task(id).stream_id(), op_mapping_info.task(id).task_id());
         return PARAM_INVALID;
       }
     }
     return ge::SUCCESS;
   }
+
  private:
   bool IsOpMappingInfoClearByModelId(OpMappingInfo &op_mapping_info) {
     // 判断上层有没有传递model_id
@@ -317,11 +317,11 @@ class DumpChecker {
     }
     for (auto &unload_op_mapping_info : unload_op_mapping_infos_) {
       if ((unload_op_mapping_info.model_id_param_case() != 0) &&
-        (op_mapping_info.model_id() == unload_op_mapping_info.model_id())) {
-          GELOGI("Model: %s OpMappingInfo clear by model id: %u success.", op_mapping_info.model_name(),
-            op_mapping_info.model_id());
-          return true;
-        }
+          (op_mapping_info.model_id() == unload_op_mapping_info.model_id())) {
+        GELOGI("Model: %s OpMappingInfo clear by model id: %u success.", op_mapping_info.model_name(),
+               op_mapping_info.model_id());
+        return true;
+      }
     }
     return false;
   }
@@ -335,8 +335,8 @@ class DumpChecker {
         }
       }
     }
-    GELOGE(FAILED, "[CheckDumpTaskClear] failed, op: %s, stream_id: %u, task_id: %u",
-      task.op().op_name().c_str(), task.stream_id(), task.task_id());
+    GELOGE(FAILED, "[CheckDumpTaskClear] failed, op: %s, stream_id: %u, task_id: %u", task.op().op_name().c_str(),
+           task.stream_id(), task.task_id());
     return false;
   }
 

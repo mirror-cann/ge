@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,7 +79,7 @@ TEST_F(GeRunningEvnFakerTest, test_install_engine_with_default_info_store) {
 TEST_F(GeRunningEvnFakerTest, test_install_engine_with_info_store_name) {
   GeRunningEnvFaker ge_env;
   ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("AiCoreLib2"))
-    .Install(FakeOp(SWITCH).InfoStoreAndBuilder("AiCoreLib2"));
+      .Install(FakeOp(SWITCH).InfoStoreAndBuilder("AiCoreLib2"));
 
   ASSERT_EQ(kernel_manager.GetAllOpsKernelInfoStores().size(), 2);
   ASSERT_EQ(builder_manager.GetAllOpsKernelBuilders().size(), 2);
@@ -111,14 +111,16 @@ TEST_F(GeRunningEvnFakerTest, test_install_custom_kernel_info_store_success) {
   struct FakeKernelBuilder : FakeOpsKernelInfoStore {
     FakeKernelBuilder(const std::string &kernel_lib_name) : FakeOpsKernelInfoStore(kernel_lib_name) {}
 
-    bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override { return FAILED; }
+    bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
+      return FAILED;
+    }
   };
 
   GeRunningEnvFaker ge_env;
   auto ai_core_kernel = FakeEngine("DNN_HCCL").KernelInfoStore(std::make_shared<FakeKernelBuilder>("AiCoreLib2"));
   ge_env.Reset().Install(ai_core_kernel);
 
-  ASSERT_EQ(kernel_manager.GetAllOpsKernelInfoStores().size(),2);
+  ASSERT_EQ(kernel_manager.GetAllOpsKernelInfoStores().size(), 2);
   ASSERT_EQ(builder_manager.GetAllOpsKernelBuilders().size(), 2);
   ASSERT_EQ(kernel_manager.GetAllOpsKernelInfo().size(), 0);
 }

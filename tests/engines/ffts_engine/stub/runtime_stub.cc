@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,41 +23,41 @@ std::string g_runtime_stub_mock = "";
 char g_soc_version[50] = {0};
 #define ADD_STUB_RETURN_VALUE(FUNC, TYPE) std::vector<TYPE> g_Stub_##FUNC##_RETURN
 
-#define GET_STUB_RETURN_VALUE(FUNC, TYPE, DEFAULT) ({   \
-  TYPE result = DEFAULT;                                \
-  if (!g_Stub_##FUNC##_RETURN.empty()) {                \
-    result = g_Stub_##FUNC##_RETURN.back();             \
-    g_Stub_##FUNC##_RETURN.pop_back();                  \
-  }                                                     \
-  result;                                               \
-})
+#define GET_STUB_RETURN_VALUE(FUNC, TYPE, DEFAULT) \
+  ({                                               \
+    TYPE result = DEFAULT;                         \
+    if (!g_Stub_##FUNC##_RETURN.empty()) {         \
+      result = g_Stub_##FUNC##_RETURN.back();      \
+      g_Stub_##FUNC##_RETURN.pop_back();           \
+    }                                              \
+    result;                                        \
+  })
 
-#define DEL_STUB_RETURN_VALUE(FUNC, TYPE)           \
-do {                                                \
-  extern std::vector<TYPE> g_Stub_##FUNC##_RETURN;  \
-  g_Stub_##FUNC##_RETURN.clear();                   \
-} while (0)
-
+#define DEL_STUB_RETURN_VALUE(FUNC, TYPE)            \
+  do {                                               \
+    extern std::vector<TYPE> g_Stub_##FUNC##_RETURN; \
+    g_Stub_##FUNC##_RETURN.clear();                  \
+  } while (0)
 
 #define ADD_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME) std::vector<TYPE> g_Stub_##FUNC##_OUT_##NAME
 
-#define GET_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, DEFAULT) ({ \
-  TYPE value;                                                 \
-  if (!g_Stub_##FUNC##_OUT_##NAME.empty()) {                  \
-    value = g_Stub_##FUNC##_OUT_##NAME.back();                \
-    g_Stub_##FUNC##_OUT_##NAME.pop_back();                    \
-  } else {                                                    \
-    value = DEFAULT;                                          \
-  }                                                           \
-  value;                                                      \
-})
+#define GET_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, DEFAULT) \
+  ({                                                       \
+    TYPE value;                                            \
+    if (!g_Stub_##FUNC##_OUT_##NAME.empty()) {             \
+      value = g_Stub_##FUNC##_OUT_##NAME.back();           \
+      g_Stub_##FUNC##_OUT_##NAME.pop_back();               \
+    } else {                                               \
+      value = DEFAULT;                                     \
+    }                                                      \
+    value;                                                 \
+  })
 
-#define DEL_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME)       \
-do {                                                    \
-  extern std::vector<TYPE> g_Stub_##FUNC##_OUT_##NAME;  \
-  g_Stub_##FUNC##_OUT_##NAME.clear();                   \
-} while (0)
-
+#define DEL_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME)        \
+  do {                                                   \
+    extern std::vector<TYPE> g_Stub_##FUNC##_OUT_##NAME; \
+    g_Stub_##FUNC##_OUT_##NAME.clear();                  \
+  } while (0)
 
 namespace ge {
 namespace {
@@ -69,7 +69,7 @@ struct MbufStub {
     }
   }
   ~MbufStub() {
-    delete []buffer;
+    delete[] buffer;
   }
   uint8_t *buffer = nullptr;
   uint64_t length = 0;
@@ -79,9 +79,9 @@ std::map<int32_t, std::map<uint32_t, std::queue<void *>>> mem_queues_;
 }  // namespace
 
 std::shared_ptr<RuntimeStub> RuntimeStub::instance_;
-RuntimeStub* RuntimeStub::fake_instance_;
+RuntimeStub *RuntimeStub::fake_instance_;
 RuntimeStub *RuntimeStub::GetInstance() {
-  if(fake_instance_ != nullptr){
+  if (fake_instance_ != nullptr) {
     return fake_instance_;
   }
   if (instance_ == nullptr) {
@@ -90,16 +90,16 @@ RuntimeStub *RuntimeStub::GetInstance() {
   return instance_.get();
 }
 
-void RuntimeStub::Install(RuntimeStub* instance){
+void RuntimeStub::Install(RuntimeStub *instance) {
   fake_instance_ = instance;
 }
 
-void RuntimeStub::UnInstall(RuntimeStub*){
+void RuntimeStub::UnInstall(RuntimeStub *) {
   fake_instance_ = nullptr;
 }
 
 rtError_t RuntimeStub::rtMemcpy(void *dst, uint64_t dest_max, const void *src, uint64_t count, rtMemcpyKind_t kind) {
-  const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS";
+  const char *const kEnvRecordPath = "CONSTANT_FOLDING_PASS";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
   if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
@@ -130,7 +130,7 @@ rtError_t RuntimeStub::rtMemcpyAsyncWithoutCheckKind(void *dst, uint64_t dest_ma
 }
 
 rtError_t RuntimeStub::rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type) {
-  const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_2";
+  const char *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_2";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
   if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
@@ -155,7 +155,7 @@ rtError_t RuntimeStub::rtMalloc(void **dev_ptr, uint64_t size, rtMemType_t type)
 }
 
 rtError_t RuntimeStub::rtMallocV2(void **dev_ptr, uint64_t size, rtMemType_t type, uint16_t moduleId) {
-  const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_2";
+  const char *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_2";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
   if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
@@ -187,21 +187,17 @@ rtError_t RuntimeStub::rtMallocV2(void **dev_ptr, uint64_t size, rtMemType_t typ
 }
 
 rtError_t RuntimeStub::rtFree(void *dev_ptr) {
-  delete[](uint8_t *) dev_ptr;
+  delete[] (uint8_t *)dev_ptr;
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtEschedWaitEvent(int32_t device_id,
-                                         uint32_t group_id,
-                                         uint32_t thread_id,
-                                         int32_t timeout,
+rtError_t RuntimeStub::rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                                          rtEschedEventSummary_t *event) {
   return RT_ERROR_NONE;
 }
 
-rtError_t RuntimeStub::rtRegTaskFailCallbackByModule(const char *moduleName,
-                                                     rtTaskFailCallback callback) {
-  return  RT_ERROR_NONE;
+rtError_t RuntimeStub::rtRegTaskFailCallbackByModule(const char *moduleName, rtTaskFailCallback callback) {
+  return RT_ERROR_NONE;
 }
 
 rtError_t RuntimeStub::rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf) {
@@ -228,14 +224,14 @@ rtError_t RuntimeStub::rtMemQueueEnQueue(int32_t dev_id, uint32_t qid, void *mem
   return 0;
 }
 
-rtError_t RuntimeStub::rtCpuKernelLaunch(const void *so_name, const void *kernel_name, uint32_t block_dim, const void *args,
-                                         uint32_t args_size, rtSmDesc_t *sm_desc, rtStream_t stream) {
+rtError_t RuntimeStub::rtCpuKernelLaunch(const void *so_name, const void *kernel_name, uint32_t block_dim,
+                                         const void *args, uint32_t args_size, rtSmDesc_t *sm_desc, rtStream_t stream) {
   if (std::string(__FUNCTION__) == g_runtime_stub_mock) {
     return -1;
   }
   return RT_ERROR_NONE;
 }
-}
+}  // namespace ge
 
 #ifdef __cplusplus
 extern "C" {
@@ -259,7 +255,7 @@ rtError_t rtGetDevice(int32_t *device) {
   }
   *device = 0;
   return RT_ERROR_NONE;
-  //return GET_STUB_RETURN_VALUE(rtGetDevice, rtError_t, RT_ERROR_NONE);
+  // return GET_STUB_RETURN_VALUE(rtGetDevice, rtError_t, RT_ERROR_NONE);
 }
 
 ADD_STUB_RETURN_VALUE(rtGetDeviceCapability, rtError_t);
@@ -302,9 +298,8 @@ rtError_t rtQueryFunctionRegistered(const char *stub_name) {
   return GET_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, RT_ERROR_NONE);
 }
 
-rtError_t rtCtxSetCurrent(rtContext_t ctx)
-{
-  const char * const kEnvRecordPath = "SET_TRANS_VAR_DATA";
+rtError_t rtCtxSetCurrent(rtContext_t ctx) {
+  const char *const kEnvRecordPath = "SET_TRANS_VAR_DATA";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
 
@@ -314,7 +309,7 @@ rtError_t rtCtxSetCurrent(rtContext_t ctx)
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t * const streamCount) {
+rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t *const streamCount) {
   (void)streamType;
   if (streamCount != nullptr) {
     *streamCount = 2048;
@@ -322,7 +317,7 @@ rtError_t rtGetAvailStreamNum(const uint32_t streamType, uint32_t * const stream
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetAvailEventNum(uint32_t * const eventCount) {
+rtError_t rtGetAvailEventNum(uint32_t *const eventCount) {
   if (eventCount != nullptr) {
     *eventCount = 2048;
   }
@@ -343,7 +338,9 @@ rtError_t rtCtxGetCurrent(rtContext_t *ctx) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxSetDryRun(rtContext_t ctx, rtDryRunFlag_t enable, uint32_t flag) { return RT_ERROR_NONE; }
+rtError_t rtCtxSetDryRun(rtContext_t ctx, rtDryRunFlag_t enable, uint32_t flag) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtEventGetTimeStamp(uint64_t *time, rtEvent_t event) {
   *time = 12345;
@@ -354,12 +351,16 @@ rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) {
   return rtEventCreate(event);
 }
 
-rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 
-rtError_t rtEventSynchronize(rtEvent_t event) { return RT_ERROR_NONE; }
+rtError_t rtEventSynchronize(rtEvent_t event) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtEventDestroy(rtEvent_t event) {
-  delete[](int *) event;
+  delete[] (int *)event;
   return RT_ERROR_NONE;
 }
 
@@ -393,7 +394,7 @@ rtError_t rtMallocHostV2(void **host_ptr, uint64_t size, uint16_t module) {
 }
 
 rtError_t rtFreeHost(void *host_ptr) {
-  delete[](uint8_t *) host_ptr;
+  delete[] (uint8_t *)host_ptr;
   return RT_ERROR_NONE;
 }
 
@@ -404,12 +405,18 @@ rtError_t rtStreamDestroy(rtStream_t stream) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtSetDie(int32_t die) { return RT_ERROR_NONE; }
-rtError_t rtSetDevice(int32_t device) { return RT_ERROR_NONE; }
-rtError_t rtSetDeviceV2(int32_t device, rtDeviceMode deviceMode) { return RT_ERROR_NONE; }
+rtError_t rtSetDie(int32_t die) {
+  return RT_ERROR_NONE;
+}
+rtError_t rtSetDevice(int32_t device) {
+  return RT_ERROR_NONE;
+}
+rtError_t rtSetDeviceV2(int32_t device, rtDeviceMode deviceMode) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtStreamSynchronize(rtStream_t stream) {
-  const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
+  const char *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
   if (std::string(&record_path[0]).find("mock_fail") != std::string::npos) {
@@ -450,7 +457,9 @@ rtError_t rtGetDeviceCount(int32_t *count) {
   return ge::RuntimeStub::GetInstance()->rtGetDeviceCount(count);
 }
 
-rtError_t rtDeviceReset(int32_t device) { return RT_ERROR_NONE; }
+rtError_t rtDeviceReset(int32_t device) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtEventElapsedTime(float *time, rtEvent_t start, rtEvent_t end) {
   *time = 10.0f;
@@ -476,13 +485,16 @@ rtError_t rtRegisterAllKernel(const rtDevBinary_t *bin, void **handle) {
   return ge::RuntimeStub::GetInstance()->rtRegisterAllKernel(bin, handle);
 }
 
-rtError_t rtKernelConfigTransArg(const void *ptr, uint64_t size, uint32_t flag, void **arg) { return RT_ERROR_NONE; }
+rtError_t rtKernelConfigTransArg(const void *ptr, uint64_t size, uint32_t flag, void **arg) {
+  return RT_ERROR_NONE;
+}
 rtError_t rtKernelLaunchWithHandle(void *handle, const uint64_t tilingkey, uint32_t blockDim, rtArgsEx_t *args,
                                    rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
   if (blockDim == 99) {
     return -1;
   }
-  return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithHandle(handle, tilingkey, blockDim, args, smDesc, stream, kernelInfo);
+  return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithHandle(handle, tilingkey, blockDim, args, smDesc, stream,
+                                                                  kernelInfo);
 }
 
 rtError_t rtKernelLaunch(const void *stub_func, uint32_t block_dim, void *args, uint32_t args_size, rtSmDesc_t *sm_desc,
@@ -493,43 +505,60 @@ rtError_t rtKernelLaunch(const void *stub_func, uint32_t block_dim, void *args, 
   return ge::RuntimeStub::GetInstance()->rtKernelLaunch(stub_func, block_dim, args, args_size, sm_desc, stream);
 }
 
-rtError_t rtKernelLaunchWithFlag(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                                 rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag) {
+rtError_t rtKernelLaunchWithFlag(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
+                                 rtStream_t stream, uint32_t flag) {
   return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlag(stubFunc, blockDim, argsInfo, smDesc, stream, flag);
 }
 
-rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                                   rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags,
-                                   const rtTaskCfgInfo_t *cfgInfo) {
-  return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlagV2(
-      stubFunc, blockDim, argsInfo, smDesc, stm, flags, cfgInfo);
+rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
+                                   rtStream_t stm, uint32_t flags, const rtTaskCfgInfo_t *cfgInfo) {
+  return ge::RuntimeStub::GetInstance()->rtKernelLaunchWithFlagV2(stubFunc, blockDim, argsInfo, smDesc, stm, flags,
+                                                                  cfgInfo);
 }
 rtError_t rtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
                                       const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) {
   return ge::RuntimeStub::GetInstance()->rtKernelGetAddrAndPrefCntV2(handle, tilingKey, stubFunc, flag, kernelInfo);
 }
-rtError_t rtSetupArgument(const void *arg, uint32_t size, uint32_t offset) { return RT_ERROR_NONE; }
-rtError_t rtLaunch(const void *stub_func) { return RT_ERROR_NONE; }
-rtError_t rtDevBinaryUnRegister(void *handle) { return RT_ERROR_NONE; }
-rtError_t rtConfigureCall(uint32_t num_blocks, rtSmDesc_t *sm_desc, rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtSetupArgument(const void *arg, uint32_t size, uint32_t offset) {
+  return RT_ERROR_NONE;
+}
+rtError_t rtLaunch(const void *stub_func) {
+  return RT_ERROR_NONE;
+}
+rtError_t rtDevBinaryUnRegister(void *handle) {
+  return RT_ERROR_NONE;
+}
+rtError_t rtConfigureCall(uint32_t num_blocks, rtSmDesc_t *sm_desc, rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 
-rtError_t rtSetProfDir(char *prof_dir) { return RT_ERROR_NONE; }
+rtError_t rtSetProfDir(char *prof_dir) {
+  return RT_ERROR_NONE;
+}
 
-rtError_t rtAiCoreMemorySizes(rtAiCoreMemorySize_t *aicore_memory_size) { return RT_ERROR_NONE; }
+rtError_t rtAiCoreMemorySizes(rtAiCoreMemorySize_t *aicore_memory_size) {
+  return RT_ERROR_NONE;
+}
 
-rtError_t rtMemAdvise(void *ptr, uint64_t size, uint32_t advise) { return RT_ERROR_NONE; }
+rtError_t rtMemAdvise(void *ptr, uint64_t size, uint32_t advise) {
+  return RT_ERROR_NONE;
+}
 
 /// @ingroup rt_kernel
 /// @brief start fusion kernels.
 /// @param [in] stream   stream for fusion kernels
 /// @return RT_ERROR_NONE for ok, errno for failed
-rtError_t rtKernelFusionStart(rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtKernelFusionStart(rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 
 /// @ingroup rt_kernel
 /// @brief end fusion kernels.
 /// @param [in] stream   stream for fusion kernels
 /// @return RT_ERROR_NONE for ok, errno for failed
-rtError_t rtKernelFusionEnd(rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtKernelFusionEnd(rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 rtError_t rtMemGetInfo(size_t *free, size_t *total) {
   *free = 16UL * 1024UL * 1024UL * 1024UL;
   *total = 32UL * 1024UL * 1024UL * 1024UL;
@@ -558,7 +587,9 @@ rtError_t rtMetadataRegister(void *handle, const char *meta_data) {
   }
   return RT_ERROR_NONE;
 }
-rtError_t rtSetTaskGenCallback(rtTaskGenCallback callback) { return RT_ERROR_NONE; }
+rtError_t rtSetTaskGenCallback(rtTaskGenCallback callback) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtGetDeviceInfo(uint32_t device_id, int32_t module_type, int32_t info_type, int64_t *val) {
   *val = 8;
@@ -573,10 +604,12 @@ rtError_t rtGetAddrByFun(const void *stubFunc, void **addr) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) { return RT_ERROR_NONE; }
+rtError_t rtCtxCreate(rtContext_t *ctx, uint32_t flags, int32_t device) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtKernelLaunchEx(void *args, uint32_t args_size, uint32_t flags, rtStream_t stream_) {
-  const char * const kEnvRecordPath = "CONSTANT_FOLDING_PASS_6";
+  const char *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_6";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
 
@@ -608,7 +641,9 @@ rtError_t rtProfilerStop(uint64_t profConfig, int32_t numsDev, uint32_t *deviceL
   return RT_ERROR_NONE;
 }
 
-rtError_t rtCtxDestroy(rtContext_t ctx) { return RT_ERROR_NONE; }
+rtError_t rtCtxDestroy(rtContext_t ctx) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtProfilerStart(uint64_t profConfig, int32_t numsDev, uint32_t *deviceList) {
   return RT_ERROR_NONE;
@@ -634,7 +669,9 @@ rtError_t rtLabelDestroy(rtLabel_t label) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtLabelSet(rtLabel_t label, rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtLabelSet(rtLabel_t label, rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtLabelSwitchByIndex(void *ptr, uint32_t max, void *labelInfoPtr, rtStream_t stream) {
   return RT_ERROR_NONE;
@@ -658,7 +695,9 @@ rtError_t rtProfilerTraceEx(uint64_t id, uint64_t modelId, uint16_t tagId, rtStr
   return GET_STUB_RETURN_VALUE(rtProfilerTraceEx, rtError_t, RT_ERROR_NONE);
 }
 
-rtError_t rtMemSetRC(const void *dev_ptr, uint64_t size, uint32_t read_count) { return RT_ERROR_NONE; }
+rtError_t rtMemSetRC(const void *dev_ptr, uint64_t size, uint32_t read_count) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtStreamSwitchN(void *ptr, uint32_t size, void *valuePtr, rtStream_t *trueStreamPtr, uint32_t elementSize,
                           rtStream_t stream, rtSwitchDataType_t dataType) {
@@ -670,9 +709,13 @@ rtError_t rtStreamSwitchEx(void *ptr, rtCondition_t condition, void *value_ptr, 
   return RT_ERROR_NONE;
 }
 
-rtError_t rtStreamActive(rtStream_t active_stream, rtStream_t stream) { return RT_ERROR_NONE; }
+rtError_t rtStreamActive(rtStream_t active_stream, rtStream_t stream) {
+  return RT_ERROR_NONE;
+}
 
-rtError_t rtDatadumpInfoLoad(const void *dump_info, uint32_t length) { return RT_ERROR_NONE; }
+rtError_t rtDatadumpInfoLoad(const void *dump_info, uint32_t length) {
+  return RT_ERROR_NONE;
+}
 
 rtError_t rtCpuKernelLaunchWithFlag(const void *so_name, const void *kernel_name, uint32_t core_dim,
                                     const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream_, uint32_t flags) {
@@ -680,14 +723,12 @@ rtError_t rtCpuKernelLaunchWithFlag(const void *so_name, const void *kernel_name
                                                                    stream_, flags);
 }
 
-rtError_t rtSetSocVersion(const char *version)
-{
+rtError_t rtSetSocVersion(const char *version) {
   strncpy_s(g_soc_version, 50, version, strlen(version));
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetSocVersion(char *version, const uint32_t maxLen)
-{
+rtError_t rtGetSocVersion(char *version, const uint32_t maxLen) {
   if (strlen(g_soc_version) == 0) {
     strncpy_s(version, maxLen, g_soc_version, strlen(g_soc_version));
   } else {
@@ -696,62 +737,51 @@ rtError_t rtGetSocVersion(char *version, const uint32_t maxLen)
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetAiCoreCount(uint32_t *aiCoreCnt)
-{
+rtError_t rtGetAiCoreCount(uint32_t *aiCoreCnt) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetAiCpuCount(uint32_t *aiCpuCnt)
-{
+rtError_t rtGetAiCpuCount(uint32_t *aiCpuCnt) {
   return RT_ERROR_NONE;
 }
 
-RTS_API rtError_t rtSetOpWaitTimeOut(uint32_t timeout)
-{
+RTS_API rtError_t rtSetOpWaitTimeOut(uint32_t timeout) {
   return RT_ERROR_NONE;
 }
 
-RTS_API rtError_t rtSetOpExecuteTimeOut(uint32_t timeout)
-{
+RTS_API rtError_t rtSetOpExecuteTimeOut(uint32_t timeout) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtSetTaskFailCallback(rtTaskFailCallback callback)
-{
+rtError_t rtSetTaskFailCallback(rtTaskFailCallback callback) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtMallocHostSharedMemory(rtMallocHostSharedMemoryIn *in,
-                                   rtMallocHostSharedMemoryOut *out)
-{
+rtError_t rtMallocHostSharedMemory(rtMallocHostSharedMemoryIn *in, rtMallocHostSharedMemoryOut *out) {
   out->ptr = new uint8_t[in->size];
   out->devPtr = new uint8_t[in->size];
   return RT_ERROR_NONE;
 }
 
-rtError_t rtFreeHostSharedMemory(rtFreeHostSharedMemoryIn *in)
-{
-  delete[] (uint8_t*)in->ptr;
-  delete[] (uint8_t*)in->devPtr;
+rtError_t rtFreeHostSharedMemory(rtFreeHostSharedMemoryIn *in) {
+  delete[] (uint8_t *)in->ptr;
+  delete[] (uint8_t *)in->devPtr;
   return RT_ERROR_NONE;
 }
 
 ADD_STUB_RETURN_VALUE(rtGetAicpuDeploy, rtError_t);
 ADD_STUB_OUTBOUND_VALUE(rtGetAicpuDeploy, rtAicpuDeployType_t, value);
-rtError_t rtGetAicpuDeploy(rtAicpuDeployType_t *deplyType)
-{
+rtError_t rtGetAicpuDeploy(rtAicpuDeployType_t *deplyType) {
   *deplyType = GET_STUB_OUTBOUND_VALUE(rtGetAicpuDeploy, rtAicpuDeployType_t, value, AICPU_DEPLOY_CROSS_PROCESS);
   return GET_STUB_RETURN_VALUE(rtGetAicpuDeploy, rtError_t, RT_ERROR_NONE);
 }
 
-rtError_t rtSetCtxINFMode(bool mode)
-{
+rtError_t rtSetCtxINFMode(bool mode) {
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *value)
-{
-  const char * const kEnvRecordPath = "SET_CAPA_VALUE";
+rtError_t rtGetRtCapability(rtFeatureType_t featureType, int32_t featureInfo, int64_t *value) {
+  const char *const kEnvRecordPath = "SET_CAPA_VALUE";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
 
@@ -766,22 +796,21 @@ uint32_t rtGetTsMemType(rtMemRequestFeature_t featureType, uint32_t memSize) {
   return RT_MEMORY_HBM;
 }
 
-rtError_t rtGetMaxStreamAndTask(uint32_t streamType, uint32_t *maxStrCount, uint32_t *maxTaskCount)
-{
+rtError_t rtGetMaxStreamAndTask(uint32_t streamType, uint32_t *maxStrCount, uint32_t *maxTaskCount) {
   *maxStrCount = 1024;
   *maxTaskCount = 1024;
   return RT_ERROR_NONE;
 }
 
-rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId)
-{
+rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId) {
   if (*taskId == 999 || *streamId == 999) {
     return -1;
   }
   return RT_ERROR_NONE;
 }
 
-rtError_t rtDebugRegisterForStream(rtStream_t stream, uint32_t flag, const void *addr, uint32_t *streamId, uint32_t *taskId) {
+rtError_t rtDebugRegisterForStream(rtStream_t stream, uint32_t flag, const void *addr, uint32_t *streamId,
+                                   uint32_t *taskId) {
   return RT_ERROR_NONE;
 }
 
@@ -803,8 +832,7 @@ rtError_t rtKernelLaunchFwk(const char *opName, void *args, uint32_t argSize, ui
 }
 
 rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t blockDim,
-                                      const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
-                                      uint32_t flags) {
+                                      const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flags) {
   return ge::RuntimeStub::GetInstance()->rtAicpuKernelLaunchWithFlag(launchNames, blockDim, args, smDesc, stream,
                                                                      flags);
 }
@@ -835,7 +863,7 @@ rtError_t rtGetC2cCtrlAddr(uint64_t *addr, uint32_t *len) {
 }
 
 rtError_t rtGetDevMsg(rtGetDevMsgType_t getMsgType, rtGetMsgCallback callback) {
-  const char * const kEnvRecordPath = "NPU_COLLECT_PATH";
+  const char *const kEnvRecordPath = "NPU_COLLECT_PATH";
   char record_path[MMPA_MAX_PATH] = {};
   (void)mmGetEnv(kEnvRecordPath, &record_path[0], static_cast<uint32_t>(MMPA_MAX_PATH));
 
@@ -956,18 +984,12 @@ rtError_t rtEschedCreateGrp(int32_t devId, uint32_t grpId, rtGroupType_t type) {
   return 0;
 }
 
-rtError_t rtEschedWaitEvent(int32_t devId,
-                            uint32_t grpId,
-                            uint32_t threadId,
-                            int32_t timeout,
+rtError_t rtEschedWaitEvent(int32_t devId, uint32_t grpId, uint32_t threadId, int32_t timeout,
                             rtEschedEventSummary_t *event) {
   return ge::RuntimeStub::GetInstance()->rtEschedWaitEvent(devId, grpId, threadId, timeout, event);
 }
 
-rtError_t rtEschedSubscribeEvent(int32_t devId,
-                                 uint32_t grpId,
-                                 uint32_t threadId,
-                                 uint64_t eventBitmap) {
+rtError_t rtEschedSubscribeEvent(int32_t devId, uint32_t grpId, uint32_t threadId, uint64_t eventBitmap) {
   return 0;
 }
 
@@ -1005,19 +1027,19 @@ rtError_t rtCtxGetOverflowAddr(void **overflowAddr) {
   *overflowAddr = (void *)0x1;
   return RT_ERROR_NONE;
 }
-rtError_t rtGetTaskBufferLen(const rtTaskBuffType_t type, uint32_t * const bufferLen) {
+rtError_t rtGetTaskBufferLen(const rtTaskBuffType_t type, uint32_t *const bufferLen) {
   (void)type;
   *bufferLen = 1U;
   return 0;
 }
 
-rtError_t rtTaskBuild(const rtTaskInput_t * const taskInput, uint32_t* taskLen) {
+rtError_t rtTaskBuild(const rtTaskInput_t *const taskInput, uint32_t *taskLen) {
   (void)taskInput;
   *taskLen = 1U;
   return 0;
 }
 
-RTS_API rtError_t rtGetKernelBin(const char_t * const binFileName, char_t **const buffer, uint32_t *length) {
+RTS_API rtError_t rtGetKernelBin(const char_t *const binFileName, char_t **const buffer, uint32_t *length) {
   (void)binFileName;
   std::vector<uint8_t> buff(64, 'A');
   *buffer = (char_t *)buff.data();
@@ -1025,18 +1047,18 @@ RTS_API rtError_t rtGetKernelBin(const char_t * const binFileName, char_t **cons
   return 0;
 }
 
-RTS_API rtError_t rtFreeKernelBin(char_t * const buffer) {
+RTS_API rtError_t rtFreeKernelBin(char_t *const buffer) {
   (void)buffer;
   return 0;
 }
 
-RTS_API rtError_t rtGetElfOffset(void * const elfData, const uint32_t elfLen, uint32_t* offset) {
+RTS_API rtError_t rtGetElfOffset(void *const elfData, const uint32_t elfLen, uint32_t *offset) {
   (void)elfData;
   (void)elfLen;
   (void)offset;
   return 0;
 }
-}
+}  // namespace ge
 #ifdef __cplusplus
 }
 #endif

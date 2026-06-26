@@ -204,11 +204,7 @@ TEST_F(StreamMergerTest, RoutesWithEmptyEntries) {
  * 验证复杂的多跳路由模式正确处理
  */
 TEST_F(StreamMergerTest, ComplexRoutePattern) {
-  std::vector<std::vector<int32_t>> logical_routes = {
-    {0, 1, 2},
-    {3, 4, 5},
-    {6, 7, 8}
-  };
+  std::vector<std::vector<int32_t>> logical_routes = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
   std::vector<int32_t> logical_to_physical;
 
   AddNodes(9);
@@ -750,7 +746,7 @@ TEST_F(StreamMergerTest, Merge_LargeScaleNodes_LoadBalance) {
 
   std::vector<std::vector<int32_t>> logical_routes;
   for (int i = 0; i < node_count; i += 5) {
-    logical_routes.push_back({i, i+1, i+2, i+3, i+4});
+    logical_routes.push_back({i, i + 1, i + 2, i + 3, i + 4});
   }
 
   std::vector<int32_t> logical_to_physical;
@@ -783,7 +779,7 @@ TEST_F(StreamMergerTest, Merge_LargeScaleNodes_MainStream) {
 
   std::vector<std::vector<int32_t>> logical_routes;
   for (int i = 0; i < node_count; i += 5) {
-    logical_routes.push_back({i, i+1, i+2, i+3, i+4});
+    logical_routes.push_back({i, i + 1, i + 2, i + 3, i + 4});
   }
 
   std::vector<int32_t> logical_to_physical;
@@ -1033,7 +1029,7 @@ TEST_F(StreamMergerTest, Merge_LongChainRoute) {
     auto node = dag_->AddNode("node" + std::to_string(i), "Op");
     node->SetTopoId(i);
     if (i > 0) {
-      dag_->AddEdge(dag_->GetAllNodes()[i-1], 0, node, 0);
+      dag_->AddEdge(dag_->GetAllNodes()[i - 1], 0, node, 0);
     }
   }
 
@@ -1118,11 +1114,11 @@ TEST_F(StreamMergerTest, Merge_MultipleNetOutputNodes) {
 /**
  * 场景 43: BuildUnitsByEarliestLevel interaction 比较
  * 验证同一 earliest_level 多个单元按 interaction 排序（覆盖行 441）
- * 
+ *
  * DAG 结构：
  *   n0 (level 0) → n2 (level 1), n4 (level 1)  [Route A 有 2 个后继]
  *   n1 (level 0) → n3 (level 1)                 [Route C 有 1 个后继]
- * 
+ *
  * earliest_level=0 组: Route A (interaction=2), Route C (interaction=1)
  * 排序时 size 相同，interaction 不同，触发 interaction 比较
  */
@@ -1149,11 +1145,11 @@ TEST_F(StreamMergerTest, Merge_UnitSortByInteraction_LoadBalance) {
   dag_->AddEdge(n4, 0, n5, 0);
 
   std::vector<std::vector<int32_t>> logical_routes = {
-    {0},        // Route A: {n0}, earliest_level=0, interaction=2 (后继 Route B, Route E)
-    {2, 5},     // Route B: {n2, n5}, earliest_level=1
-    {1},        // Route C: {n1}, earliest_level=0, interaction=1 (后继 Route D)
-    {3},        // Route D: {n3}, earliest_level=1
-    {4}         // Route E: {n4}, earliest_level=1
+      {0},     // Route A: {n0}, earliest_level=0, interaction=2 (后继 Route B, Route E)
+      {2, 5},  // Route B: {n2, n5}, earliest_level=1
+      {1},     // Route C: {n1}, earliest_level=0, interaction=1 (后继 Route D)
+      {3},     // Route D: {n3}, earliest_level=1
+      {4}      // Route E: {n4}, earliest_level=1
   };
 
   std::vector<int32_t> logical_to_physical;
@@ -1171,15 +1167,15 @@ TEST_F(StreamMergerTest, Merge_UnitSortByInteraction_LoadBalance) {
 /**
  * 场景 44: BuildUnitsByEarliestLevel peak_level_load 比较
  * 验证同一 earliest_level 多个单元按 peak_level_load 排序（覆盖行 444）
- * 
+ *
  * DAG 结构：
  *   n0 (level 0) → n3 (level 1)  [Route A: 2节点, n0(level0)+n3(level1), peak=1]
  *   n1 → n2 (level 0→1→2)        [Route C: 3节点链, peak=3, 但取前2节点最早level=0]
- * 
+ *
  * 简化设计：构造 size 相等的两个 Route
  *   Route A: {n0, n3} size=2, peak_level_load 取各 level 最大节点数 = 1
  *   Route C: {n1, n2} size=2, peak_level_load = 2 (n1,n2都在level 0)
- * 
+ *
  * earliest_level=0 组: Route A (peak=1), Route C (peak=2)
  * 排序时 size 相同(=2)，interaction 相同(无跨流边)，peak_level_load 不同
  */
@@ -1204,9 +1200,9 @@ TEST_F(StreamMergerTest, Merge_UnitSortByPeakLevelLoad_LoadBalance) {
   dag_->AddEdge(n2, 0, n4, 0);
 
   std::vector<std::vector<int32_t>> logical_routes = {
-    {0, 3},  // Route A: {n0, n3}, size=2
-    {1, 2},  // Route C: {n1, n2}, size=2
-    {4}      // Route B: {n4} - NetOutput单独成流
+      {0, 3},  // Route A: {n0, n3}, size=2
+      {1, 2},  // Route C: {n1, n2}, size=2
+      {4}      // Route B: {n4} - NetOutput单独成流
   };
 
   std::vector<int32_t> logical_to_physical;

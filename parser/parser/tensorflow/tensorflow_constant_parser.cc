@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,8 +24,8 @@
 #include "register/tensor_assign.h"
 #include "register/register_utils.h"
 
-using domi::tensorflow::NodeDef;
 using domi::TENSORFLOW;
+using domi::tensorflow::NodeDef;
 using ge::parser::CONSTANTOP;
 
 namespace ge {
@@ -53,9 +53,8 @@ Status TensorFlowConstantParser::ParseValue(const domi::tensorflow::NodeDef *nod
   GE_CHECK_NOTNULL(opDesc);
   domi::tensorflow::AttrValue attr_value;
   // Check that the attribute value must exist and get the value of value
-  GE_CHK_BOOL_RET_STATUS(TensorFlowUtil::FindAttrValue(node, TENSORFLOW_ATTR_VALUE, attr_value),
-                         domi::FAILED, "nodeDef %s Attr %s does not exist.", node->name().c_str(),
-                         TENSORFLOW_ATTR_VALUE.c_str());
+  GE_CHK_BOOL_RET_STATUS(TensorFlowUtil::FindAttrValue(node, TENSORFLOW_ATTR_VALUE, attr_value), domi::FAILED,
+                         "nodeDef %s Attr %s does not exist.", node->name().c_str(), TENSORFLOW_ATTR_VALUE.c_str());
   // Check that the value attribute must be tensor
   GE_RETURN_WITH_LOG_IF_ERROR(TensorFlowUtil::CheckAttrHasType(attr_value, TENSORFLOW_ATTR_TYPE_TENSOR),
                               "check Attr %s failed", TENSORFLOW_ATTR_VALUE.c_str());
@@ -86,8 +85,7 @@ Status TensorFlowConstantParser::ParseParams(const Message *op_src, ge::OpDescPt
   GE_CHECK_NOTNULL(node);
   GELOGD("TF op node name = %s, op type= %s, parse params", node->name().c_str(), node->op().c_str());
   ge::Operator org_op = ge::OpDescUtils::CreateOperatorFromOpDesc(op_dest);
-  GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, org_op),
-                    "[Call][AutoMapping] failed.");
+  GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, org_op), "[Call][AutoMapping] failed.");
   ConstantOperator op;
   op.Name(node->name());
 

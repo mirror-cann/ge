@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -86,18 +86,17 @@ Status UpdateInputsBufferAddr(const StreamResource *const stream_resource, const
     if (size <= 0U) {
       continue;
     }
-    GELOGD("Do h2d for %zu input, dst size is %zu, src length is %" PRIu64 ".",
-        input_index, size, update_buffers[input_index].length);
+    GELOGD("Do h2d for %zu input, dst size is %zu, src length is %" PRIu64 ".", input_index, size,
+           update_buffers[input_index].length);
     GE_CHK_ACL_RET(aclrtMemcpyAsync(dst_addr, size, update_buffers[input_index].data,
-        update_buffers[input_index].length, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
+                                    update_buffers[input_index].length, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
     update_buffers[input_index].data = dst_addr;
     dst_addr = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(dst_addr) + size));
   }
   return SUCCESS;
 }
 
-Status InitHybridModelArgs(const std::vector<DataBuffer> &input_buffers,
-                           const std::vector<DataBuffer> &output_buffers,
+Status InitHybridModelArgs(const std::vector<DataBuffer> &input_buffers, const std::vector<DataBuffer> &output_buffers,
                            const std::vector<GeTensorDesc> &inputs_desc,
                            hybrid::HybridModelExecutor::ExecuteArgs &args) {
   RT2_PROFILING_SCOPE(gert::profiling::kUnknownName, gert::profiling::kInitHybridExecuteArgs);
@@ -141,8 +140,8 @@ bool CheckHostMemInputsLen(const std::vector<DataBuffer> &input_buffers,
     }
   }
   if ((total_size > kMaxHostMemInputLen) || (total_size == 0U)) {
-    GELOGD("no optimization, the total host memory length is %zu, valid length range is (0, %zu].",
-           total_size, kMaxHostMemInputLen);
+    GELOGD("no optimization, the total host memory length is %zu, valid length range is (0, %zu].", total_size,
+           kMaxHostMemInputLen);
     return false;
   }
   return true;
@@ -178,8 +177,7 @@ bool CheckIsSupportHostMemOpt(const std::unique_ptr<hybrid::HybridModel> &hybrid
 }
 
 void SetNeedHostMemOpt(const std::unique_ptr<hybrid::HybridModel> &hybrid_model,
-                       const std::vector<NodePtr> &node_with_hostmem,
-                       const std::vector<std::unique_ptr<OpTask>> &tasks,
+                       const std::vector<NodePtr> &node_with_hostmem, const std::vector<std::unique_ptr<OpTask>> &tasks,
                        const bool flag) {
   if (hybrid_model != nullptr) {
     hybrid_model->SetNeedHostMemOpt(node_with_hostmem, flag);
@@ -198,7 +196,7 @@ bool CheckHostMemInputOpt(const std::vector<DataBuffer> &input_buffers,
     return false;
   }
 
-  const std::function<void()> callback = [&hybrid_model, &node_with_hostmem, &tasks] () {
+  const std::function<void()> callback = [&hybrid_model, &node_with_hostmem, &tasks]() {
     SetNeedHostMemOpt(hybrid_model, node_with_hostmem, tasks, false);
   };
   GE_DISMISSABLE_GUARD(set_host_mem_input_opt_false, callback);
@@ -244,8 +242,7 @@ DynamicSingleOp::~DynamicSingleOp() {
 
 Status DynamicSingleOp::ExecuteAsync(const std::vector<GeTensorDesc> &input_desc,
                                      const std::vector<DataBuffer> &input_buffers,
-                                     std::vector<GeTensorDesc> &output_desc,
-                                     std::vector<DataBuffer> &output_buffers) {
+                                     std::vector<GeTensorDesc> &output_desc, std::vector<DataBuffer> &output_buffers) {
   GE_CHECK_NOTNULL(impl_, ", Create DynamicSingleOp failed.");
   return impl_->ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers);
 }
@@ -261,25 +258,27 @@ SingleOpImpl::SingleOpImpl(StreamResource *const stream_res, std::mutex *const s
 Status SingleOpImpl::ValidateArgs(const std::vector<DataBuffer> &inputs, const std::vector<DataBuffer> &outputs) {
   const auto num_inputs = inputs.size();
   if (num_inputs != input_sizes_.size()) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-           "[Check][Param:inputs]Input num mismatch. model expect %zu, but given %zu",
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param:inputs]Input num mismatch. model expect %zu, but given %zu",
            input_addr_list_.size(), inputs.size());
     REPORT_PREDEFINED_ERR_MSG("E10401", std::vector<const char *>({"expect_num", "input_num"}),
-        std::vector<const char *>({std::to_string(input_addr_list_.size()).c_str(), std::to_string(num_inputs).c_str()}));
+                              std::vector<const char *>({std::to_string(input_addr_list_.size()).c_str(),
+                                                         std::to_string(num_inputs).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 
   for (size_t i = 0U; i < num_inputs; ++i) {
     // preventing from read out of bound
     const size_t aligned_size = GetAlignedSizeFromDataBuffer(inputs[i].length);
-    GELOGI("Input [%zu], aligned_size:%zu, inputs.length:%" PRIu64 ", input_sizes_:%zu",
-           i, aligned_size, inputs[i].length, input_sizes_[i]);
+    GELOGI("Input [%zu], aligned_size:%zu, inputs.length:%" PRIu64 ", input_sizes_:%zu", i, aligned_size,
+           inputs[i].length, input_sizes_[i]);
     if (aligned_size < input_sizes_[i]) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-             "[Check][Param:inputs]Input size mismatch. index = %zu, model expect %zu, but given %zu(after align)",
-             i, input_sizes_[i], aligned_size);
-      REPORT_PREDEFINED_ERR_MSG("E10402", std::vector<const char *>({"index", "expect_size", "input_size"}),
-          std::vector<const char *>({std::to_string(i).c_str(), std::to_string(input_sizes_[i]).c_str(), std::to_string(aligned_size).c_str()}));
+             "[Check][Param:inputs]Input size mismatch. index = %zu, model expect %zu, but given %zu(after align)", i,
+             input_sizes_[i], aligned_size);
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10402", std::vector<const char *>({"index", "expect_size", "input_size"}),
+          std::vector<const char *>({std::to_string(i).c_str(), std::to_string(input_sizes_[i]).c_str(),
+                                     std::to_string(aligned_size).c_str()}));
       return ACL_ERROR_GE_PARAM_INVALID;
     }
   }
@@ -289,21 +288,24 @@ Status SingleOpImpl::ValidateArgs(const std::vector<DataBuffer> &inputs, const s
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param:outputs]output num mismatch. model expect %zu, but given %zu",
            output_sizes_.size(), outputs.size());
     REPORT_PREDEFINED_ERR_MSG("E10403", std::vector<const char *>({"expect_num", "input_num"}),
-        std::vector<const char *>({std::to_string(output_sizes_.size()).c_str(), std::to_string(outputs.size()).c_str()}));
+                              std::vector<const char *>({std::to_string(output_sizes_.size()).c_str(),
+                                                         std::to_string(outputs.size()).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 
   for (size_t i = 0U; i < num_outputs; ++i) {
     // preventing from write out of bound
     const size_t aligned_size = GetAlignedSizeFromDataBuffer(outputs[i].length);
-    GELOGI("Output [%zu], aligned_size:%zu, outputs.length:%" PRIu64 ", output_sizes_:%zu",
-           i, aligned_size, outputs[i].length, output_sizes_[i]);
+    GELOGI("Output [%zu], aligned_size:%zu, outputs.length:%" PRIu64 ", output_sizes_:%zu", i, aligned_size,
+           outputs[i].length, output_sizes_[i]);
     if (aligned_size < output_sizes_[i]) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-             "[Check][Param:outputs]Output size mismatch. index = %zu, model expect %zu, but given %zu(after align)",
-             i, output_sizes_[i], aligned_size);
-      REPORT_PREDEFINED_ERR_MSG("E10404", std::vector<const char *>({"index", "expect_size", "input_size"}),
-          std::vector<const char *>({std::to_string(i).c_str(), std::to_string(output_sizes_[i]).c_str(), std::to_string(aligned_size).c_str()}));
+             "[Check][Param:outputs]Output size mismatch. index = %zu, model expect %zu, but given %zu(after align)", i,
+             output_sizes_[i], aligned_size);
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10404", std::vector<const char *>({"index", "expect_size", "input_size"}),
+          std::vector<const char *>({std::to_string(i).c_str(), std::to_string(output_sizes_[i]).c_str(),
+                                     std::to_string(aligned_size).c_str()}));
       return ACL_ERROR_GE_PARAM_INVALID;
     }
   }
@@ -360,7 +362,7 @@ Status SingleOpImpl::ExecuteAsync(const std::vector<DataBuffer> &inputs, const s
 
   GE_CHECK_NOTNULL(stream_resource_);
   GE_ASSERT_SUCCESS(MallocOnExecute());
-  GE_MAKE_GUARD(mem_guard, [&]()->void{FreeAllocatedMem();});
+  GE_MAKE_GUARD(mem_guard, [&]() -> void { FreeAllocatedMem(); });
 
   std::vector<std::pair<size_t, uint64_t>> inputs_size;
   GE_CHK_STATUS_RET_NOLOG(CalInputsHostMemSize(inputs, inputs_size));
@@ -378,7 +380,7 @@ Status SingleOpImpl::ExecuteAsync(const std::vector<DataBuffer> &inputs, const s
     for (auto &task : tasks_) {
       const auto new_address = BuildTaskUtils::GetAddresses(task->GetOpdesc(), *model_param_);
       GE_CHK_STATUS_RET(task->UpdateArgTable(*model_param_), "[Update][ArgTable] failed, single op:%s.",
-          task->GetOpdesc()->GetName().c_str());
+                        task->GetOpdesc()->GetName().c_str());
     }
   }
   ret = UpdateArgs(update_buffers, outputs);
@@ -392,8 +394,7 @@ Status SingleOpImpl::ExecuteAsync(const std::vector<DataBuffer> &inputs, const s
     uint64_t launch_begin_time;
     (void)task->PreProcess(launch_begin_time);
     ret = task->LaunchKernel(stream_);
-    GELOGD("[DEBUG_TASK_INFO : Static Task] %s %s",
-           task->GetTaskName().c_str(),
+    GELOGD("[DEBUG_TASK_INFO : Static Task] %s %s", task->GetTaskName().c_str(),
            BuildTaskUtils::GetTaskInfo(task->GetOpdesc(), inputs, outputs).c_str());
     if (ret != SUCCESS) {
       return ret;
@@ -423,7 +424,7 @@ void SingleOpImpl::FreeAllocatedMem() {
   if (allocated_mem_ != nullptr) {
     const std::string model_name = tasks_.empty() ? "" : "Graph_" + tasks_.front()->GetModelName();
     (void)gert::GlobalProfilingWrapper::RecordAndReportFreeTaskMemoryInfo(allocated_mem_->GetAddr(),
-        allocated_mem_->GetSize(), model_name);
+                                                                          allocated_mem_->GetSize(), model_name);
     allocated_mem_->Free();
     allocated_mem_ = nullptr;
   }
@@ -437,8 +438,8 @@ Status SingleOpImpl::MallocOnExecute() {
     const auto mem = stream_resource_->MallocMemory(kPurpose, alloc_size, false, allocated_mem_);
     GE_ASSERT_NOTNULL(mem);
     const std::string model_name = tasks_.empty() ? "" : "Graph_" + tasks_.front()->GetModelName();
-    GE_ASSERT_SUCCESS(gert::GlobalProfilingWrapper::RecordAndReportMallocTaskMemoryInfo(allocated_mem_->GetAddr(),
-        allocated_mem_->GetSize(), model_name));
+    GE_ASSERT_SUCCESS(gert::GlobalProfilingWrapper::RecordAndReportMallocTaskMemoryInfo(
+        allocated_mem_->GetAddr(), allocated_mem_->GetSize(), model_name));
   }
   return SUCCESS;
 }
@@ -453,34 +454,38 @@ Status DynamicSingleOpImpl::ValidateParams(const std::vector<GeTensorDesc> &inpu
                                            const std::vector<DataBuffer> &outputs) const {
   if (inputs.size() != input_desc.size()) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-        "[Check][Param:inputs]Input number mismatches input desc number. Input num = %zu, input desc num = %zu",
-        inputs.size(), input_desc.size());
-    REPORT_PREDEFINED_ERR_MSG("E10405", std::vector<const char *>({"input_num", "input_desc_num"}),
+           "[Check][Param:inputs]Input number mismatches input desc number. Input num = %zu, input desc num = %zu",
+           inputs.size(), input_desc.size());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10405", std::vector<const char *>({"input_num", "input_desc_num"}),
         std::vector<const char *>({std::to_string(inputs.size()).c_str(), std::to_string(input_desc.size()).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 
   if (outputs.size() != output_desc.size()) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-        "[Check][Param:outputs]Output number mismatches output desc number. Output num = %zu, output desc num = %zu",
-        outputs.size(), output_desc.size());
+           "[Check][Param:outputs]Output number mismatches output desc number. Output num = %zu, output desc num = %zu",
+           outputs.size(), output_desc.size());
     REPORT_PREDEFINED_ERR_MSG("E10406", std::vector<const char *>({"out_num", "out_desc_num"}),
-        std::vector<const char *>({std::to_string(outputs.size()).c_str(), std::to_string(output_desc.size()).c_str()}));
+                              std::vector<const char *>({std::to_string(outputs.size()).c_str(),
+                                                         std::to_string(output_desc.size()).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 
   if (input_desc.size() != num_inputs_) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param:input_desc]Input number mismatches. expect %zu, but given %zu",
-        num_inputs_, input_desc.size());
-    REPORT_PREDEFINED_ERR_MSG("E10401", std::vector<const char *>({"expect_num", "input_num"}),
+           num_inputs_, input_desc.size());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10401", std::vector<const char *>({"expect_num", "input_num"}),
         std::vector<const char *>({std::to_string(num_inputs_).c_str(), std::to_string(input_desc.size()).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
 
   if (output_desc.size() != num_outputs_) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param:output_desc]Output number mismatches. expect %zu, but given %zu",
-        num_outputs_, output_desc.size());
-    REPORT_PREDEFINED_ERR_MSG("E10403", std::vector<const char *>({"expect_num", "input_num"}),
+           num_outputs_, output_desc.size());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10403", std::vector<const char *>({"expect_num", "input_num"}),
         std::vector<const char *>({std::to_string(num_outputs_).c_str(), std::to_string(output_desc.size()).c_str()}));
     return ACL_ERROR_GE_PARAM_INVALID;
   }
@@ -508,7 +513,7 @@ Status DynamicSingleOpImpl::SetHostTensorValue(const std::vector<std::pair<size_
            input_buffers[input_index].length);
     if (ge_tensor->SetData(PtrToPtr<void, uint8_t>(input_buffers[input_index].data),
                            static_cast<size_t>(input_buffers[input_index].length),
-                           [](const uint8_t *const point){ (void)point; }) != SUCCESS) {
+                           [](const uint8_t *const point) { (void)point; }) != SUCCESS) {
       GELOGE(INTERNAL_ERROR, "[Set][Data]Failed to set data of ge tensor.");
       return INTERNAL_ERROR;
     }
@@ -531,8 +536,10 @@ Status DynamicSingleOpImpl::SetHostTensorValue(const std::vector<GeTensorDesc> &
   for (const auto &iter : hostmem_node_id_map_) {
     const size_t index = static_cast<size_t>(iter.first);
     if ((index >= input_desc.size()) || (index >= input_buffers.size())) {
-      GELOGE(INTERNAL_ERROR, "[Check][Size]Index %zu should smaller then input desc size %zu "
-             "and input buffers size %zu.", index, input_desc.size(), input_buffers.size());
+      GELOGE(INTERNAL_ERROR,
+             "[Check][Size]Index %zu should smaller then input desc size %zu "
+             "and input buffers size %zu.",
+             index, input_desc.size(), input_buffers.size());
       return INTERNAL_ERROR;
     }
     const auto ge_tensor_desc = input_desc[index];
@@ -574,9 +581,9 @@ Status DynamicSingleOpImpl::ExecuteAsync(const std::vector<GeTensorDesc> &input_
   GE_CHK_STATUS_RET_NOLOG(CalInputsHostMemSize(input_buffers, inputs_size));
   std::vector<DataBuffer> update_buffers = input_buffers;
   const std::lock_guard<std::mutex> lk(*stream_mutex_);
-  const bool need_host_mem_opt = inputs_size.empty() ? false :  CheckHostMemInputOptimization(input_buffers);
+  const bool need_host_mem_opt = inputs_size.empty() ? false : CheckHostMemInputOptimization(input_buffers);
   if ((!inputs_size.empty()) && (!need_host_mem_opt)) {
-    StreamResource *const stream_resource  = SingleOpManager::GetInstance().GetResource(resource_id_, stream_);
+    StreamResource *const stream_resource = SingleOpManager::GetInstance().GetResource(resource_id_, stream_);
     GE_CHK_STATUS_RET_NOLOG(UpdateInputsBufferAddr(stream_resource, stream_, inputs_size, update_buffers));
   }
 

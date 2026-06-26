@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,8 @@ enum class ConcecutivePrinciple {
 };
 
 /** @brief class of inserting all necessary trans-nodes into graph
-* by specific strategy according to the format and data type
-* @version 1.0 */
+ * by specific strategy according to the format and data type
+ * @version 1.0 */
 class TransNodeInsertion {
  public:
   explicit TransNodeInsertion(FEOpsKernelInfoStorePtr fe_ops_store_ptr);
@@ -99,8 +99,8 @@ class TransNodeInsertion {
   void SetTransInfoForInsertionModeEnd();
 
   Status FillTransInfo(const ge::InDataAnchorPtr &dst_anchor, const ge::OutDataAnchorPtr &src_anchor,
-                     const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
-                     ConcecutivePrinciple &use_concecutive_principle);
+                       const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
+                       ConcecutivePrinciple &use_concecutive_principle);
 
   static Status InsertCastGeneralCase(const TransInfoPtr trans_info_ptr, const uint32_t front_strategy_vector_index,
                                       const uint32_t end_strategy_vector_index,

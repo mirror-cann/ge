@@ -27,7 +27,7 @@ struct EsCTensorHolder {
 ```python
 class GraphBuilder:
     _handle: EsCGraphBuilderPtr  # C object pointer (does not own)
-    
+
 class TensorHolder:
     _handle: EsCTensorHolderPtr  # C object pointer (does not own)
     _builder: GraphBuilder        # Strong reference, owns
@@ -57,7 +57,7 @@ t = create_tensor()
 # Current design (TensorHolder holds GraphBuilder):
 # - builder Python object is GC, but because t._builder holds reference, won't actually destruct
 # - underlying C++ objects remain valid
-# - t._handle still valid 
+# - t._handle still valid
 ```
 
 ## Potential Problem Analysis
@@ -70,7 +70,7 @@ t = create_tensor()
 class GraphBuilder:
     def __init__(self):
         self._tensors = []  # If saved tensor list
-    
+
     def create_const_float(self, value):
         tensor = TensorHolder._create_from(handle, self)
         self._tensors.append(tensor)  # ⚠️ Circular reference!
@@ -100,7 +100,7 @@ class GraphBuilder:
 import weakrefclass GraphBuilder:
     def __init__(self):
         self._tensors = []  # Save weak references
-    
+
     def create_const_float(self, value):
         tensor = TensorHolder._create_from(handle, self)
         self._tensors.append(weakref.ref(tensor))  # Weak reference
@@ -185,11 +185,11 @@ result = builder2_some_op(tensor1)  # tensor1 belongs to builder1
 def add(self, other: 'TensorHolder') -> 'TensorHolder':
     if not isinstance(other, TensorHolder):
         raise TypeError("Operand must be a TensorHolder")
-    
+
     # Check if from same builder
     if self._builder is not other._builder:
         raise ValueError("Cannot operate on tensors from different GraphBuilders")
-    
+
     # ... subsequent logic
 ```
 
@@ -238,15 +238,15 @@ std::unique_ptr<ge::Graph> BuildGraphAndReset() {
 class GraphBuilder:
     def __init__(self):
         self._is_built = False
-    
+
     def build_and_reset(self):
         if self._is_built:
             raise RuntimeError("GraphBuilder has already been built")
-        
+
         graph_ptr = esb_lib.EsBuildGraphAndReset(self._handle)
         self._is_built = True  # Mark as built
         return Graph._create_from(graph_ptr)
-    
+
     def create_const_float(self, value):
         if self._is_built:
             raise RuntimeError("Cannot create tensors after graph has been built")
@@ -302,7 +302,7 @@ C++ side implementation:
 ```cpp
 Esphony_IfOutput Esphony_If(..., EsCGraph *then_branch, ...) {
     auto &builder = ...->GetOwnerBuilder();
-    
+
     // AddResource takes ownership of then_branch
     auto then_ptr = builder.AddResource(
         std::unique_ptr<ge::Graph>(then_branch)  // C++ takes ownership
@@ -375,15 +375,15 @@ class Graph:
         self._handle = create_graph(...)
         self._owns_handle = True   # ✅ Ownership mark
         self._owner = None         # ✅ Ownership taker reference
-    
+
     def __del__(self):
         # ✅ Decide whether to release based on ownership mark
         if self._owns_handle:
             destroy_graph(self._handle)
-    
+
     def _transfer_ownership_when_pass_as_subgraph(self, new_owner: GraphBuilder):
         """Transfer ownership to C++ side
-        
+
         Args:
             new_owner: GraphBuilder that takes ownership,
                       keeps reference to prevent it being GC prematurely
@@ -398,7 +398,7 @@ class Graph:
 // py_generator_utils.h - GenSubgraphConversion()
 static void GenSubgraphConversion(...) {
     // Generate: subgraph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
-    ss << subgraph_name << "._transfer_ownership_when_pass_as_subgraph(" 
+    ss << subgraph_name << "._transfer_ownership_when_pass_as_subgraph("
        << "owner_graph_builder" << ")\n";
 }
 ```
@@ -407,11 +407,11 @@ Generated Python code:
 ```python
 def If(..., then_graph, else_graph, ...):
     owner_graph_builder = ...
-    
+
     # ✅ Auto-generated: Transfer ownership
     then_graph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
     else_graph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
-    
+
     result = c_lib.EsphonyIf(...)
     return result
 ```

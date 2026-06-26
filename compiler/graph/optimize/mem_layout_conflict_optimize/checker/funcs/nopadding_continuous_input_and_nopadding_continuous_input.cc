@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,7 @@ Status NoPaddingContinuousInputAndNoPaddingContinuousInputChecker(CheckFuncConte
   bool has_conflict = false;
   GE_ASSERT_SUCCESS(MemLayoutConflictUtil::IsNoPaddingContinuousNodeConflict(context, has_conflict));
   if (!has_conflict) {
-    GELOGI("[MemConflict] [%s, %s] not conflict",
-           CheckerLog::ToStr(context.type_a[context.type_a_index]).c_str(),
+    GELOGI("[MemConflict] [%s, %s] not conflict", CheckerLog::ToStr(context.type_a[context.type_a_index]).c_str(),
            CheckerLog::ToStr(context.type_b[context.type_b_index]).c_str());
     return SUCCESS;
   }
@@ -44,9 +43,11 @@ Status NoPaddingContinuousInputAndNoPaddingContinuousInputChecker(CheckFuncConte
       // 一个节点的某个输出同时给多个需要连续输入的节点，除第一个外，连续输入节点对应的in_data_anchor需要插入identity
       if (need_continuous_node_cnt > 1U) {
         context.result.insert(peer_in_data_anchor);
-        GELOGI("[MemConflict][Conflict] %s connect to multi nodes that need nopadding continuous inputs,"
-               " need to insert identity before %s, first: %s", CheckerLog::ToStr(out_data_anchor).c_str(),
-               CheckerLog::ToStr(peer_in_data_anchor).c_str(), CheckerLog::ToStr(first_anchor).c_str());
+        GELOGI(
+            "[MemConflict][Conflict] %s connect to multi nodes that need nopadding continuous inputs,"
+            " need to insert identity before %s, first: %s",
+            CheckerLog::ToStr(out_data_anchor).c_str(), CheckerLog::ToStr(peer_in_data_anchor).c_str(),
+            CheckerLog::ToStr(first_anchor).c_str());
       }
     }
   }
@@ -54,5 +55,6 @@ Status NoPaddingContinuousInputAndNoPaddingContinuousInputChecker(CheckFuncConte
 }
 
 REGISTER_FUNC(ANCHOR_ATTR_NOPADDING_CONTINUOUS_INPUT, ANCHOR_ATTR_NOPADDING_CONTINUOUS_INPUT,
-              NoPaddingContinuousInputAndNoPaddingContinuousInputChecker).CallAsSymbol();
+              NoPaddingContinuousInputAndNoPaddingContinuousInputChecker)
+    .CallAsSymbol();
 }  // namespace ge

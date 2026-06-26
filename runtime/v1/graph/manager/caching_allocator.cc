@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,11 +25,11 @@ namespace {
 // The memory size calculated is 64 bits larger than the memory pool gear after byte alignment and byte filling
 // adjust gear of memory pool by adding addition 512 offset
 constexpr size_t bin_ranges[kNumBins] = {kRoundBlockSize * kKByteSize,
-                                         kBinSizeUnit8 * kMByteSize + kRoundBlockSize,
-                                         kBinSizeUnit32 * kMByteSize + kRoundBlockSize,
-                                         kBinSizeUnit128 * kMByteSize + kRoundBlockSize,
-                                         kBinSizeUnit256 * kMByteSize + kRoundBlockSize,
-                                         kBinSizeUnit512 * kMByteSize + kRoundBlockSize,
+                                         kBinSizeUnit8 *kMByteSize + kRoundBlockSize,
+                                         kBinSizeUnit32 *kMByteSize + kRoundBlockSize,
+                                         kBinSizeUnit128 *kMByteSize + kRoundBlockSize,
+                                         kBinSizeUnit256 *kMByteSize + kRoundBlockSize,
+                                         kBinSizeUnit512 *kMByteSize + kRoundBlockSize,
                                          kGByteSize};
 
 bool BlockComparator(const Block *const left, const Block *const right) {
@@ -98,7 +98,7 @@ void IncreaseCount(std::map<size_t, size_t> &count, size_t size) {
   const auto it = count.find(size);
   if (it == count.end()) {
     (void)count.emplace(size, 1);
-  } else  {
+  } else {
     if (CheckSizeTAddOverflow(it->second, 1) == SUCCESS) {
       it->second++;
     }
@@ -112,11 +112,9 @@ void PrintCount(const std::map<size_t, size_t> &count, const std::string &name, 
     GELOGD("    |- block[size:%11zu count:%11zu].", it.first, it.second);
   }
 }
-}
+}  // namespace
 
-CachingAllocator::CachingAllocator(const rtMemType_t memory_type)
-    : memory_type_(memory_type) {
-}
+CachingAllocator::CachingAllocator(const rtMemType_t memory_type) : memory_type_(memory_type) {}
 
 Status CachingAllocator::Initialize(const uint32_t device_id) {
   // when redo Initialize free old memory
@@ -206,7 +204,7 @@ void CachingAllocator::FreeBlock(Block *const block) const {
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
   block->allocated = false;
   auto &bin = *block->bin;
-  const std::vector<Block *> merge_blocks {block->prev, block->next};
+  const std::vector<Block *> merge_blocks{block->prev, block->next};
   for (Block *const merge_block : merge_blocks) {
     MergeBlocks(block, merge_block, bin);
   }
@@ -368,8 +366,7 @@ size_t CachingAllocator::FreeCachedBlocks() {
     while (it != pool->cend()) {
       const Block *const block = *it;
       // free block memory that has not been split
-      if ((block != nullptr) && (block->ptr != nullptr) &&
-          (block->prev == nullptr) && (block->next == nullptr) &&
+      if ((block != nullptr) && (block->ptr != nullptr) && (block->prev == nullptr) && (block->next == nullptr) &&
           (memory_allocator_->FreeMemory(block->ptr) == ge::SUCCESS)) {
         const auto itcount = malloced_memory_.find(block->size);
         free_cached_memory_size += block->size;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,15 +67,15 @@ class MockRuntime : public RuntimeStub {
 };
 
 class MockAclRuntime : public AclRuntimeStub {
-public:
-  aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-      aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
+ public:
+  aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream,
+                                         aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
+                                         aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) {
     return -1;
   }
 
-  aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream) {
+  aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize,
+                               aclrtLaunchKernelCfg *cfg, aclrtStream stream) {
     return -1;
   }
 };
@@ -108,6 +108,7 @@ class ExternalAllocatorUtStub : public Allocator {
   uint64_t GetAdviseCnt() {
     return advise_cnt;
   }
+
  private:
   uint64_t mem = 0;
   MemBlock *block_{nullptr};
@@ -172,7 +173,7 @@ static void ConstructOpMasterDeviceSo(const std::string &opp_path, const size_t 
   system(("touch " + vendor_config).c_str());
   system(("echo " + vendor_names + " > " + vendor_config).c_str());
 }
-}
+}  // namespace
 
 class UtestModelManagerModelManager : public testing::Test {
  protected:
@@ -215,7 +216,7 @@ void GenUnencryptModelData(ModelData &data) {
   data.model_data = new uint8_t[data.model_len];
   memset(data.model_data, 0, data.model_len);
 
-  ModelFileHeader *header = (ModelFileHeader *) data.model_data;
+  ModelFileHeader *header = (ModelFileHeader *)data.model_data;
   header->magic = MODEL_FILE_MAGIC_NUM;
   header->version = MODEL_VERSION;
   header->is_encrypt = ModelEncryptType::UNENCRYPTED;
@@ -235,8 +236,8 @@ void SetPartitionTables(ModelData &data, const std::vector<PartitionInfo> &parti
   uint8_t *model_data = reinterpret_cast<uint8_t *>(data.model_data);
   uint64_t mem_offset = sizeof(ModelFileHeader);
   for (uint32_t i = 0; i < model_num; ++i) {
-
-    TinyModelPartitionTable *tiny_partition_table = reinterpret_cast<TinyModelPartitionTable *>(model_data + mem_offset);
+    TinyModelPartitionTable *tiny_partition_table =
+        reinterpret_cast<TinyModelPartitionTable *>(model_data + mem_offset);
     tiny_partition_table->num = partition_infos[i].partition_num;
     mem_offset += sizeof(TinyModelPartitionTable) + sizeof(TinyModelPartitionMemInfo) * tiny_partition_table->num;
 
@@ -269,7 +270,7 @@ void SetPartitionTables(ModelData &data, const std::vector<PartitionInfo> &parti
     }
   }
   EXPECT_TRUE(mem_offset < model_len);
-  ModelFileHeader *header = new(data.model_data) ModelFileHeader;
+  ModelFileHeader *header = new (data.model_data) ModelFileHeader;
   header->length = mem_offset - sizeof(ModelFileHeader);
   header->model_num = model_num;
   header->version = ge::MODEL_VERSION;
@@ -294,8 +295,10 @@ void LoadStandardModelData(ModelData &data, const uint64_t model_len = 1024, con
 class DModelListener : public ModelListener {
  public:
   DModelListener() {};
-  uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index,
-                         uint32_t resultCode, std::vector<gert::Tensor> &outputs) { return 0; }
+  uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t resultCode,
+                         std::vector<gert::Tensor> &outputs) {
+    return 0;
+  }
 };
 
 class StubExecutor : public Executor {
@@ -313,24 +316,22 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-   Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id,
-                   const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
-     return SUCCESS;
-   }
+  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id, const std::vector<gert::Tensor> &inputs,
+                  std::vector<gert::Tensor> &outputs) override {
+    return SUCCESS;
+  }
 
   Status RunGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, const rtStream_t stream,
                             const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs) override {
     return SUCCESS;
   }
 
-  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                               rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
-                               std::vector<gert::Tensor> &outputs) override {
+  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, rtStream_t const stream,
+                                const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
-  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
-                            AscendString &json_result) override {
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result) override {
     (void)model_id;
     (void)graph_id;
     (void)flags;
@@ -345,8 +346,8 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa,
-                    const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
+  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                    std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
     return SUCCESS;
   }
   uintptr_t mem_base_;
@@ -375,7 +376,7 @@ TEST_F(UtestModelManagerModelManager, case_load_model_len_too_short) {
   ModelManager mm;
   ModelData data;
   data.model_len = 10;
-  data.model_data = (void *) &data;
+  data.model_data = (void *)&data;
   uint32_t model_id = 1;
   const ModelParam param;
   EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
@@ -390,7 +391,7 @@ TEST_F(UtestModelManagerModelManager, case_load_model_len_not_match) {
   uint32_t model_id = 1;
   const ModelParam param;
   EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), ACL_ERROR_GE_PARAM_INVALID);
-  delete[](uint8_t *) data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 
 TEST_F(UtestModelManagerModelManager, case_load_model_encypt_not_match) {
@@ -401,20 +402,20 @@ TEST_F(UtestModelManagerModelManager, case_load_model_encypt_not_match) {
   uint32_t model_id = 1;
   const ModelParam param;
   EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), ACL_ERROR_GE_PARAM_INVALID);
-  delete[](uint8_t *) data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 
 TEST_F(UtestModelManagerModelManager, case_load_model_encypt_type_unsupported) {
   ModelManager mm;
   ModelData data;
   GenUnencryptModelData(data);
-  ModelFileHeader *header = (ModelFileHeader *) data.model_data;
+  ModelFileHeader *header = (ModelFileHeader *)data.model_data;
   header->is_encrypt = 255;
   uint32_t model_id = 1;
   // Error for: LoadModelPartitionTable: Invalid partition_table->num:0
   const ModelParam param;
   EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), ACL_ERROR_GE_PARAM_INVALID);
-  delete[](uint8_t *) data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 
 TEST_F(UtestModelManagerModelManager, case_load_model_data_success) {
@@ -430,7 +431,7 @@ TEST_F(UtestModelManagerModelManager, case_load_model_data_success) {
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   }
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 
 TEST_F(UtestModelManagerModelManager, case_load_model_data_with_rtsession_success) {
@@ -448,9 +449,8 @@ TEST_F(UtestModelManagerModelManager, case_load_model_data_with_rtsession_succes
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id, &rt_session), SUCCESS);
   }
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
-
 
 TEST_F(UtestModelManagerModelManager, load_unknown_shape_model_data_success) {
   ModelData data;
@@ -496,7 +496,7 @@ TEST_F(UtestModelManagerModelManager, load_unknown_shape_model_data_success) {
     EXPECT_FALSE(loader.model_contexts_.empty());
   }
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 
 TEST_F(UtestModelManagerModelManager, test_launch_kernel_cust_aicpu_resource_id_not_found) {
@@ -517,7 +517,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_kernel_cust_aicpu) {
   EXPECT_EQ(mm.LaunchKernelCustAicpuSo("empty_cust_aicpu"), SUCCESS);
 
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
+  uintptr_t resource_id = 1;  // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("deleteCustOp", std::move(kernel_bin)));
@@ -532,7 +532,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_kernel_cust_aicpu) {
 TEST_F(UtestModelManagerModelManager, test_cust_aicpu_repeated_launch) {
   ModelManager mm;
   // deleteCustOp after Launch will deleted.
-  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub
+  uintptr_t resource_id = 1;  // for aclrtGetCurrentContext stub
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
   auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("op", std::move(kernel_bin)));
@@ -608,7 +608,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_NE(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_4_8_1);
   EXPECT_NE(cust_platform_infos_addr_4_8_1, cust_platform_infos_addr_global_0);
 
-  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub.
+  uintptr_t resource_id = 1;  // for aclrtGetCurrentContext stub.
   std::string so_name = "b.so";
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
@@ -619,7 +619,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_EQ(mm.GetPlatformInfosSoName(so_name), SUCCESS);
   EXPECT_EQ(mm.cust_aicpu_so_[resource_id].size(), 2UL);
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, "", std::move(so_bin), so_name.length());
   mm.cust_op_master_so_names_to_bin_[so_name] = op_so_bin;
   EXPECT_EQ(mm.cust_op_master_so_names_to_bin_.size(), 1UL);
@@ -632,7 +632,8 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   op_desc_ptr3->SetName("Variable3");
   ge::NodePtr variable_node3 = graph->AddNode(op_desc_ptr3);
   void *cust_platform_infos_addr_global_1 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_global_1, variable_node3), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_global_1, variable_node3),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr4 = std::make_shared<ge::OpDesc>();
   op_desc_ptr4->SetName("Variable4");
@@ -640,7 +641,8 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   AttrUtils::SetStr(op_desc_ptr4, "_op_vectorcore_num", "4");
   ge::NodePtr variable_node4 = graph->AddNode(op_desc_ptr4);
   void *cust_platform_infos_addr_2_4_3 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_4_3, variable_node4), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_4_3, variable_node4),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr5 = std::make_shared<ge::OpDesc>();
   op_desc_ptr5->SetName("Variable5");
@@ -648,14 +650,16 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   AttrUtils::SetStr(op_desc_ptr5, "_op_vectorcore_num", "8");
   ge::NodePtr variable_node5 = graph->AddNode(op_desc_ptr5);
   void *cust_platform_infos_addr_4_8_2 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_4_8_2, variable_node5), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_4_8_2, variable_node5),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr7 = std::make_shared<ge::OpDesc>();
   op_desc_ptr7->SetName("Variable6");
   AttrUtils::SetStr(op_desc_ptr7, "_op_aicore_num", "2");
   ge::NodePtr variable_node7 = graph->AddNode(op_desc_ptr7);
   void *cust_platform_infos_addr_2_null_1 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_null_1, variable_node7), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_null_1, variable_node7),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   EXPECT_EQ(cust_platform_infos_addr_global_0, cust_platform_infos_addr_global_1);
   EXPECT_EQ(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_2_4_3);
@@ -727,7 +731,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_NE(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_4_8_1);
   EXPECT_NE(cust_platform_infos_addr_4_8_1, cust_platform_infos_addr_global_0);
 
-  uintptr_t resource_id = 1;    // for aclrtGetCurrentContext stub.
+  uintptr_t resource_id = 1;  // for aclrtGetCurrentContext stub.
   std::string so_name = "b.so";
   std::vector<char> kernel_bin(256);
   auto &cust_resource_001 = mm.cust_aicpu_so_[resource_id];
@@ -738,7 +742,7 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   EXPECT_EQ(mm.GetPlatformInfosSoName(so_name), SUCCESS);
   EXPECT_EQ(mm.cust_aicpu_so_[resource_id].size(), 2UL);
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, "", std::move(so_bin), so_name.length());
   mm.cust_op_master_so_names_to_bin_[so_name] = op_so_bin;
   EXPECT_EQ(mm.cust_op_master_so_names_to_bin_.size(), 1UL);
@@ -751,7 +755,8 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   op_desc_ptr3->SetName("Variable3");
   ge::NodePtr variable_node3 = graph->AddNode(op_desc_ptr3);
   void *cust_platform_infos_addr_global_1 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_global_1, variable_node3), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_global_1, variable_node3),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr4 = std::make_shared<ge::OpDesc>();
   op_desc_ptr4->SetName("Variable4");
@@ -759,7 +764,8 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   AttrUtils::SetStr(op_desc_ptr4, "_op_vectorcore_num", "4");
   ge::NodePtr variable_node4 = graph->AddNode(op_desc_ptr4);
   void *cust_platform_infos_addr_2_4_3 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_4_3, variable_node4), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_4_3, variable_node4),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr5 = std::make_shared<ge::OpDesc>();
   op_desc_ptr5->SetName("Variable5");
@@ -767,14 +773,16 @@ TEST_F(UtestModelManagerModelManager, test_launch_custom_aicpu_platform_infos_fr
   AttrUtils::SetStr(op_desc_ptr5, "_op_vectorcore_num", "8");
   ge::NodePtr variable_node5 = graph->AddNode(op_desc_ptr5);
   void *cust_platform_infos_addr_4_8_2 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_4_8_2, variable_node5), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_4_8_2, variable_node5),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   ge::OpDescPtr op_desc_ptr7 = std::make_shared<ge::OpDesc>();
   op_desc_ptr7->SetName("Variable6");
   AttrUtils::SetStr(op_desc_ptr7, "_op_aicore_num", "2");
   ge::NodePtr variable_node7 = graph->AddNode(op_desc_ptr7);
   void *cust_platform_infos_addr_2_null_1 = nullptr;
-  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_null_1, variable_node7), SUCCESS);  // 命中cust_platform_infos_addr_缓存
+  EXPECT_EQ(model.LoadCustPlatformInfos(cust_platform_infos_addr_2_null_1, variable_node7),
+            SUCCESS);  // 命中cust_platform_infos_addr_缓存
 
   EXPECT_EQ(cust_platform_infos_addr_global_0, cust_platform_infos_addr_global_1);
   EXPECT_EQ(cust_platform_infos_addr_2_4_1, cust_platform_infos_addr_2_4_3);
@@ -822,8 +830,8 @@ TEST_F(UtestModelManagerModelManager, test_builtin_aicpu_repeated_launch) {
   uintptr_t resource_id = 1;
   std::vector<char> kernel_bin(256);
   auto &builtin_resource_001 = mm.builtin_aicpu_so_[resource_id];
-  auto tbe_kernel = std::shared_ptr<OpKernelBin>(new OpKernelBin("Ascendxxxx-v7.5-libopmaster.so",
-                                                 std::move(kernel_bin)));
+  auto tbe_kernel =
+      std::shared_ptr<OpKernelBin>(new OpKernelBin("Ascendxxxx-v7.5-libopmaster.so", std::move(kernel_bin)));
   builtin_resource_001["so"] = {tbe_kernel, 0UL};
 
   EXPECT_EQ(mm.builtin_aicpu_so_[resource_id].size(), 1UL);
@@ -865,13 +873,14 @@ TEST_F(UtestModelManagerModelManager, test_load_model_online) {
   ge_model->SetModelTaskDef(model_def);
   const auto graph_node2 = MakeShared<GraphNode>(graph->GetGraphID());
   ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-  ge_root_model->SetIsSpecificStream(true); // For not start DavinciModel thread.
+  ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
   graph_node2->SetGeRootModel(ge_root_model);
   graph_node2->SetLoadFlag(true);
   graph_node2->SetAsync(true);
   graph_node2->GetFrozenInputIndex().insert(0);
   uint64_t mem = 0UL;
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
   EXPECT_EQ(mm.LoadModelOnline(model_id, ge_root_model, graph_node2, device_id), SUCCESS);
   ge::ProfilingProperties::Instance().CleanSubscribeInfo();
 }
@@ -884,8 +893,8 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOnline_DumpGeGraphEnabled
   auto graph_options = old_graph_options;
   graph_options["ge.exec.placement"] = "DEVICE";
   GetThreadLocalContext().SetGraphOption(graph_options);
-  const auto ret_oo = GetThreadLocalContext().GetOo().Initialize(
-      GetThreadLocalContext().GetAllOptions(), OptionRegistry::GetInstance().GetRegisteredOptTable());
+  const auto ret_oo = GetThreadLocalContext().GetOo().Initialize(GetThreadLocalContext().GetAllOptions(),
+                                                                 OptionRegistry::GetInstance().GetRegisteredOptTable());
   ASSERT_EQ(ret_oo, GRAPH_SUCCESS);
 
   uint32_t model_id = INVALID_MODEL_ID;  // Use INVALID_MODEL_ID to avoid conflicts with previous tests
@@ -938,7 +947,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphEnable
   EXPECT_FALSE(g_acl_stub_debug_json_last_file_path.empty());
   EXPECT_NE(g_acl_stub_debug_json_last_file_path.find("debug_graph_"), std::string::npos);
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   unsetenv("DUMP_GE_GRAPH");
   g_acl_stub_debug_json_last_file_path.clear();
 }
@@ -958,7 +967,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_DumpGeGraphZeroNo
 
   EXPECT_TRUE(g_acl_stub_debug_json_last_file_path.empty());
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   unsetenv("DUMP_GE_GRAPH");
   g_acl_stub_debug_json_last_file_path.clear();
 }
@@ -976,7 +985,7 @@ TEST_F(UtestModelManagerModelManager, AutoDumpDebugJsonOffline_FailSoftWhenDumpF
     EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   }
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   unsetenv("DUMP_GE_GRAPH");
   g_acl_stub_mock.clear();
 }
@@ -1085,9 +1094,10 @@ TEST_F(UtestModelManagerModelManager, test_execute_model1_davincimodel) {
   std::vector<gert::Tensor> gert_input_tensor;
   std::vector<gert::Tensor> gert_output_tensor;
   EXPECT_TRUE(ModelManager::GetInstance().GetModel(davinci_model_id) != nullptr);
-  
+
   shared_model->args_manager_.AllocKernelLaunchArgsHostMem(shared_model->GetLogicalMemAllocation().size());
-  auto ret = ModelManager::GetInstance().ExecuteModelWithStream(davinci_model_id, stream, async_mode, gert_input_tensor, gert_output_tensor);
+  auto ret = ModelManager::GetInstance().ExecuteModelWithStream(davinci_model_id, stream, async_mode, gert_input_tensor,
+                                                                gert_output_tensor);
   EXPECT_EQ(ret, SUCCESS);
   ModelManager::GetInstance().model_map_.clear();
 }
@@ -1116,8 +1126,7 @@ TEST_F(UtestModelManagerModelManager, TestLoadModelWithInputOutputFailed) {
   input_queue_ids[0] = 0;
   std::vector<uint32_t> output_queue_ids(1);
   input_queue_ids[0] = 0;
-  ASSERT_EQ(model_manager.LoadModelWithQ(model_id, data, {input_queue_ids, output_queue_ids, {}}),
-    INTERNAL_ERROR);
+  ASSERT_EQ(model_manager.LoadModelWithQ(model_id, data, {input_queue_ids, output_queue_ids, {}}), INTERNAL_ERROR);
 }
 
 TEST_F(UtestModelManagerModelManager, TestLoadModelWithQueueParamFromGeRootModelFailed) {
@@ -1139,11 +1148,13 @@ TEST_F(UtestModelManagerModelManager, TestLoadModelWithQueueParamFromGeRootModel
 
   // GeModel is null
   root_model->SetSubgraphInstanceNameToModel(root_graph->GetName(), nullptr);
-  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, false), PARAM_INVALID);  // GeModel is null
+  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, false),
+            PARAM_INVALID);  // GeModel is null
 
   root_model->subgraph_instance_name_to_model_[root_graph->GetName()] = std::make_shared<GeModel>();
   // incorrect queue size
-  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, false), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);
+  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, false),
+            ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);
   ASSERT_EQ(model_manager.model_map_.count(model_id), 0);
 
   // init davinci model failed, model's graph is nullptr
@@ -1169,7 +1180,8 @@ TEST_F(UtestModelManagerModelManager, TestLoadModelWithQueueParamNeedUpdateSessi
   model_queue_param.need_report_status = true;
   root_model->subgraph_instance_name_to_model_[root_graph->GetName()] = std::make_shared<GeModel>();
   // test with need_update_session_id true
-  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, true), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);
+  ASSERT_EQ(model_manager.LoadModelWithQueueParam(model_id, root_model, model_queue_param, 0, true),
+            ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);
   ASSERT_EQ(model_manager.model_map_.count(model_id), 0);
 }
 
@@ -1181,7 +1193,7 @@ TEST_F(UtestModelManagerModelManager, Cal_follow_stream_sum) {
 
 TEST_F(UtestModelManagerModelManager, record_ts_snapshot_success) {
   const std::string kTriggerFile = "exec_record_trigger";
-  const char_t * const kEnvRecordPath = "NPU_COLLECT_PATH";
+  const char_t *const kEnvRecordPath = "NPU_COLLECT_PATH";
   const std::string kRecordFilePrefix = "exec_record_";
 
   // 设置环境变量
@@ -1214,7 +1226,7 @@ TEST_F(UtestModelManagerModelManager, record_ts_snapshot_success) {
 
 TEST_F(UtestModelManagerModelManager, record_ts_snapshot_fail) {
   const std::string kTriggerFile = "exec_record_trigger";
-  const char_t * const kEnvRecordPath = "NPU_COLLECT_PATH";
+  const char_t *const kEnvRecordPath = "NPU_COLLECT_PATH";
   const std::string kRecordFilePrefix = "exec_record_";
 
   // 设置环境变量
@@ -1415,16 +1427,15 @@ TEST_F(UtestModelManagerModelManager, test_execute_model2) {
   const std::vector<GeTensor> input_tensor = {};
   const std::vector<GeTensor> output_tensor = {};
 
-  mm.ExecuteModel(model_id, stream, async_mode, input_data, input_desc, output_data,
-                  output_desc, input_tensor, output_tensor);
+  mm.ExecuteModel(model_id, stream, async_mode, input_data, input_desc, output_data, output_desc, input_tensor,
+                  output_tensor);
 
   std::vector<gert::Tensor> gert_input_tensor;
   std::vector<gert::Tensor> gert_output_tensor;
   gert_input_tensor.resize(1);
   gert_output_tensor.resize(1);
   GraphNodePtr graph_node = MakeShared<GraphNode>(0);
-  mm.ExecuteModelWithStreamAsync(model_id, graph_node, gert_input_tensor,
-    gert_output_tensor, stream);
+  mm.ExecuteModelWithStreamAsync(model_id, graph_node, gert_input_tensor, gert_output_tensor, stream);
 }
 
 TEST_F(UtestModelManagerModelManager, test_ExternalAllocatorMalloc) {
@@ -1433,7 +1444,7 @@ TEST_F(UtestModelManagerModelManager, test_ExternalAllocatorMalloc) {
   GraphId graph_id = 1;
   ModelManager mm;
   const uint32_t model_id = 1;
-  rtStream_t stream = (void*)0x111;
+  rtStream_t stream = (void *)0x111;
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
   EXPECT_EQ(ExternalAllocatorManager::GetExternalAllocator(stream), external_allocator);
 
@@ -1478,7 +1489,7 @@ TEST_F(UtestModelManagerModelManager, LoadCustAicpuSoAndUpdateSoName_Success) {
   std::string so_name;
   so_name.append("/opp/vendors/test/").append(kOpMasterDeviceLib).append("libcust_opmaster.so");
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, "", std::move(so_bin), so_name.length());
   ModelManager mm;
   mm.cust_op_master_so_names_to_unique_name_[uniq_so_name] = uniq_so_name;
@@ -1494,7 +1505,7 @@ TEST_F(UtestModelManagerModelManager, LoadBuiltinAicpuSoAndUpdateSoName_Success)
   std::string so_name;
   so_name.append("/opp/built-in/").append(kOpMasterDeviceLib).append(uniq_so_name);
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, "", std::move(so_bin), so_name.length());
   ModelManager mm;
   mm.built_in_op_master_so_names_to_bin_[uniq_so_name] = op_so_bin;
@@ -1512,7 +1523,7 @@ TEST_F(UtestModelManagerModelManager, testGetModelMemAndWeightSize) {
   size_t weight_size;
 
   auto ret = mm.GetModelMemAndWeightSize(data, mem_size, weight_size);
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -1524,7 +1535,7 @@ TEST_F(UtestModelManagerModelManager, test_DynamicModel_GetModelMemAndWeightSize
   size_t mem_size = 0U;
   size_t weight_size = 0U;
   auto ret = ModelManager::GetModelMemAndWeightSize(data, mem_size, weight_size);
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   EXPECT_TRUE(mem_size == 0U);
   EXPECT_EQ(weight_size, 15U);
   EXPECT_EQ(ret, SUCCESS);
@@ -1539,7 +1550,7 @@ TEST_F(UtestModelManagerModelManager, test_DynamicModel_GetModelMemAndWeightSize
   size_t mem_size = 0U;
   size_t weight_size = 0U;
   auto ret = ModelManager::GetModelMemAndWeightSize(data, mem_size, weight_size);
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
 }
 // partition数量为1，为仿真模式的模型，从加载的om_laod_helper中读取失败
@@ -1551,7 +1562,7 @@ TEST_F(UtestModelManagerModelManager, test_SimulatedStaticModel_Failed) {
   size_t mem_size = 0U;
   size_t weight_size = 0U;
   auto ret = ModelManager::GetModelMemAndWeightSize(data, mem_size, weight_size);
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
   EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
 }
 
@@ -1620,7 +1631,7 @@ TEST_F(UtestModelManagerModelManager, testParserPara) {
 
   auto ret = mm.HandleDumpCommand(command);
   EXPECT_EQ(ret, SUCCESS);
- }
+}
 
 TEST_F(UtestModelManagerModelManager, HandleProfStartCommand_Invalid) {
   ModelManager mm;
@@ -1646,7 +1657,7 @@ TEST_F(UtestModelManagerModelManager, HandleProfStartCommand_Invalid) {
   ret = mm.HandleProfStopCommand(cmd);
   EXPECT_EQ(ret, FAILED);
 
-  for(uint32_t i = 0; i < 1001; i++) {
+  for (uint32_t i = 0; i < 1001; i++) {
     cmd.cmd_params.push_back(string("m"));
     cmd.cmd_params.push_back(to_string(model_id));
   }
@@ -1670,7 +1681,6 @@ TEST_F(UtestModelManagerModelManager, TestLoadModelWithoutQ) {
   AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   ASSERT_EQ(model_manager.LoadModelWithoutQ(model_id, root_model, 0), UNSUPPORTED);
   AttrUtils::SetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, false);
-
 
   ASSERT_EQ(model_manager.LoadModelWithoutQ(model_id, root_model, 0), INTERNAL_ERROR);
 
@@ -1723,7 +1733,7 @@ TEST_F(UtestModelManagerModelManager, over_flow_dump_flag_check) {
   EXPECT_EQ(mm.LoadModelOffline(data, param, model_id), SUCCESS);
   EXPECT_TRUE(mm.GetModel(model_id)->GetDumpProperties().IsOpDebugOpen());
 
-  delete [] (uint8_t *)data.model_data;
+  delete[] (uint8_t *)data.model_data;
 }
 ge::ComputeGraphPtr CreateGraphWithConstOutput() {
   ge::ut::GraphBuilder builder("graph");
@@ -1764,10 +1774,10 @@ void CreateSummaryCompiledModel(GraphNodePtr &graph_node, GeModelPtr &ge_model, 
   uint64_t mem = 0UL;
   std::vector<std::vector<int64_t>> sub_mem_infos;
   std::vector<int64_t> sub_mem_offset;
-  sub_mem_offset.emplace_back(0x2U);// mem_type RT_MEMORY_HBM 0x2U
-  sub_mem_offset.emplace_back((int64_t)(&mem));// mem_offset_base
-  sub_mem_offset.emplace_back(sizeof(mem)); // mem_size
-  sub_mem_offset.emplace_back(1UL); // is_fixed_addr_prior
+  sub_mem_offset.emplace_back(0x2U);             // mem_type RT_MEMORY_HBM 0x2U
+  sub_mem_offset.emplace_back((int64_t)(&mem));  // mem_offset_base
+  sub_mem_offset.emplace_back(sizeof(mem));      // mem_size
+  sub_mem_offset.emplace_back(1UL);              // is_fixed_addr_prior
   sub_mem_infos.emplace_back(sub_mem_offset);
   AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_infos);
 
@@ -1805,7 +1815,8 @@ TEST_F(UtestModelManagerModelManager, MallocOutputsMemory_AppRefreshable) {
   std::vector<gert::Tensor> outputs_empty;
   uint32_t model_id = 1;
   aclrtStream stream = reinterpret_cast<aclrtStream>(1);
-  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty), SUCCESS);
+  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty),
+            SUCCESS);
 }
 
 TEST_F(UtestModelManagerModelManager, MallocConstMemory_AppRefreshable) {
@@ -1867,7 +1878,8 @@ TEST_F(UtestModelManagerModelManager, MallocFeatureMemory_fixed_mem_has_been_set
   EXPECT_TRUE(ModelManager::GetInstance().GetModel(model_id) != nullptr);
 
   uint64_t mem = 0UL;
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), SUCCESS);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            SUCCESS);
 
   EXPECT_EQ(MallocFeatureMemory(graph_id, model_id, graph_node, external_allocator), SUCCESS);
   dynamic_cast<ExternalAllocatorUtStub *>(external_allocator.get())->GetBlockAddr()->Free();
@@ -2131,14 +2143,13 @@ TEST_F(UtestModelManagerModelManager, MallocFeatureMemory_with_FeatureMemoryBase
   ModelManager::GetInstance().model_map_.clear();
 }
 
-
 TEST_F(UtestModelManagerModelManager, test_execute_model3) {
   std::shared_ptr<Allocator> external_allocator = MakeShared<ExternalAllocatorUtStub>();
   auto hybrid_model = std::make_shared<hybrid::HybridDavinciModel>();
   GraphNodePtr graph_node = MakeShared<GraphNode>(0);
   ModelManager mm;
   const uint32_t model_id = 1;
-  rtStream_t stream = (void*)0x111;
+  rtStream_t stream = (void *)0x111;
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
   InputData input_data;
   OutputData output_data;
@@ -2152,16 +2163,15 @@ TEST_F(UtestModelManagerModelManager, test_execute_model3) {
   graph_node->SetFeatureBaseRefreshable(true);
   graph_node->SetAppRefreshFeatureMemoryFlag();
 
-  EXPECT_NE(mm.ExecuteModelWithStreamAsync(model_id, graph_node, input_tensor,
-    output_tensor, stream), SUCCESS);
+  EXPECT_NE(mm.ExecuteModelWithStreamAsync(model_id, graph_node, input_tensor, output_tensor, stream), SUCCESS);
 
   std::vector<gert::Tensor> gert_input_tensor;
   std::vector<gert::Tensor> gert_output_tensor;
   gert_input_tensor.resize(1);
   gert_output_tensor.resize(1);
 
-  EXPECT_NE(mm.ExecuteModelWithStreamAsync(model_id, graph_node, gert_input_tensor,
-    gert_output_tensor, stream), SUCCESS);
+  EXPECT_NE(mm.ExecuteModelWithStreamAsync(model_id, graph_node, gert_input_tensor, gert_output_tensor, stream),
+            SUCCESS);
   ExternalAllocatorManager::DeleteExternalAllocator(stream);
 }
 
@@ -2170,7 +2180,6 @@ TEST_F(UtestModelManagerModelManager, CalcTensorSizeByShape_string) {
   std::vector<int64_t> shape = {1, 1, 224, 224};
   GeShape ge_shape(shape);
   size_t ret_tensor_size;
-
 
   EXPECT_EQ(CalcTensorSizeByShape(ge_shape, ge::DT_STRING, ret_tensor_size), SUCCESS);
 }
@@ -2220,7 +2229,7 @@ TEST_F(UtestModelManagerModelManager, MallocOutputsMemory_success) {
   EXPECT_NE(outputs[0].GetData().GetSize(), 0);
 
   uint8_t mem = 0;
-  const AlignedPtr::Deleter deleter = [](const uint8_t *const ptr){ (void)ptr; };
+  const AlignedPtr::Deleter deleter = [](const uint8_t *const ptr) { (void)ptr; };
   outputs[0].SetData(static_cast<uint8_t *>(&mem), 10, deleter);
   EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs), SUCCESS);
   EXPECT_EQ(outputs[0].GetData().GetSize(), 10);
@@ -2268,11 +2277,11 @@ TEST_F(UtestModelManagerModelManager, MallocOutputsMemory_success_with_gertTenso
   std::vector<gert::Tensor> outputs;
   outputs.resize(1);
   std::vector<uint8_t> output_data_1(96, 0xFF);
-  outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                             gert::kOnDeviceHbm,                                // placement
-                             ge::DT_FLOAT,                              // data type
-                             (void *) output_data_1.data()};
+  outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                gert::kOnDeviceHbm,                          // placement
+                ge::DT_FLOAT,                                // data type
+                (void *)output_data_1.data()};
 
   uint32_t model_id = 1;
   aclrtStream stream = reinterpret_cast<aclrtStream>(1);
@@ -2281,10 +2290,12 @@ TEST_F(UtestModelManagerModelManager, MallocOutputsMemory_success_with_gertTenso
   EXPECT_EQ(outputs[0].GetSize(), 96);
   std::vector<gert::Tensor> outputs_empty;
   outputs_empty.resize(1);
-  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty), SUCCESS);
+  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty),
+            SUCCESS);
   EXPECT_EQ(outputs[0].GetSize(), 96);
   graph_node->SetAppRefreshFeatureMemoryFlag();
-  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty), SUCCESS);
+  EXPECT_EQ(ModelManager::GetInstance().MallocOutputsMemory(graph_id, graph_node, model_id, stream, outputs_empty),
+            SUCCESS);
   ExternalAllocatorManager::DeleteExternalAllocator(stream);
 }
 
@@ -2313,12 +2324,12 @@ TEST_F(UtestModelManagerModelManager, MallocOutputsMemory_outputs_empty_success_
 }
 
 TEST_F(UtestModelManagerModelManager, test_CreateGertTensor) {
-  unique_ptr<uint8_t[]> data_buf(new(std::nothrow) uint8_t[512]);
-  gert::Tensor input_tensor = {{{1, 1, 1, 128}, {1, 1, 1, 128}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) data_buf.get()};
+  unique_ptr<uint8_t[]> data_buf(new (std::nothrow) uint8_t[512]);
+  gert::Tensor input_tensor = {{{1, 1, 1, 128}, {1, 1, 1, 128}},            // shape
+                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                               gert::kOnDeviceHbm,                          // placement
+                               ge::DT_FLOAT16,                              // data type
+                               (void *)data_buf.get()};
   GeTensorDescPtr tensor_desc = make_shared<GeTensorDesc>(GeShape({1, 16, 16, 3}));
   GraphManager graph_manager;
   tensor_desc->SetOriginFormat(ge::FORMAT_NCHW);
@@ -2472,7 +2483,7 @@ TEST_F(UtestModelManagerModelManager, LaunchKernelCustAicpuSo_AclrtMalloc_Succes
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
     aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
-      static void* mock_addr = reinterpret_cast<void*>(0x6000);
+      static void *mock_addr = reinterpret_cast<void *>(0x6000);
       *devPtr = mock_addr;
       return ACL_SUCCESS;
     }
@@ -2504,7 +2515,7 @@ TEST_F(UtestModelManagerModelManager, LaunchKernelBuiltinAicpuSo_AclrtMalloc_Suc
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
     aclError aclrtMalloc(void **devPtr, size_t size, aclrtMemMallocPolicy policy) override {
-      static void* mock_addr = reinterpret_cast<void*>(0x8000);
+      static void *mock_addr = reinterpret_cast<void *>(0x8000);
       *devPtr = mock_addr;
       return ACL_SUCCESS;
     }
@@ -2530,8 +2541,7 @@ TEST_F(UtestModelManagerModelManager, LaunchKernelBuiltinAicpuSo_AclrtMalloc_Suc
 
 TEST_F(UtestModelManagerModelManager, ReadDumpDebugJsonFile_RealPath_failed) {
   std::string json_result;
-  EXPECT_EQ(ModelManager::GetInstance().ReadDumpDebugJsonFile("/nonexistent_dir/deadbeef.json", json_result),
-            FAILED);
+  EXPECT_EQ(ModelManager::GetInstance().ReadDumpDebugJsonFile("/nonexistent_dir/deadbeef.json", json_result), FAILED);
   EXPECT_TRUE(json_result.empty());
 }
 
@@ -2572,7 +2582,6 @@ TEST_F(UtestModelManagerModelManager, GetOutputAllocator_external_allocator_foun
   EXPECT_EQ(allocator_ptr, external_allocator.get());
   ExternalAllocatorManager::DeleteExternalAllocator(stream);
 }
-
 
 TEST_F(UtestModelManagerModelManager, DeleteModel_erases_model_built_allocator) {
   ModelManager mm;

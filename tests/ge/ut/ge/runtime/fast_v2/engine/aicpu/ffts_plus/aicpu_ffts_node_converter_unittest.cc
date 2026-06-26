@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,10 +39,10 @@
 using namespace ge;
 namespace gert {
 namespace {
-  const std::string kEngineNameAicpuFfts = "ffts_plus_aicpu_ascend";
-  const std::string kEngineNameAicputfFfts = "ffts_plus_aicpu_tf";
-  const std::string kFFTSAiCoreLowerFunc = "ffts_ai_core_lower_func";
-}
+const std::string kEngineNameAicpuFfts = "ffts_plus_aicpu_ascend";
+const std::string kEngineNameAicputfFfts = "ffts_plus_aicpu_tf";
+const std::string kFFTSAiCoreLowerFunc = "ffts_ai_core_lower_func";
+}  // namespace
 
 class AicpuFFTSNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {};
 /***********************************************************************************************************************
@@ -57,10 +57,10 @@ class AicpuFFTSNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {};
  *          |                                                  |
  *          |                                                  |
  *          |                                              NetOutput
- *          |                                                 
- *          |                                                
- *      NetOutput                                             
- *                                                           
+ *          |
+ *          |
+ *      NetOutput
+ *
  **********************************************************************************************************************/
 static void BuildFftsPlusGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &ffts_plus_graph,
                                TBEKernelStore *kernel_store = nullptr) {
@@ -73,7 +73,8 @@ static void BuildFftsPlusGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &fft
   root_graph->SetGraphUnknownFlag(true);
   SetUnknownOpKernel(root_graph, mem_offset, true);
 
-  AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH, "ffts_plus");
+  AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH,
+                    "ffts_plus");
   auto data_0_desc = root_graph->FindNode("_arg_0")->GetOpDesc();
   AttrUtils::SetInt(data_0_desc, "index", 0);
   AttrUtils::SetInt(root_graph->FindNode("_arg_1")->GetOpDesc(), "index", 1);
@@ -146,7 +147,7 @@ TEST_F(AicpuFFTSNodeConverterUT, CalcAICpuCCArgsMemAbnormal) {
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCpu.c_str());
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -163,7 +164,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_EQ(ret, ge::GRAPH_FAILED);
   (void)ge::AttrUtils::SetStr(add_op_desc, "_aicpu_ffts_args", "aicpu_args");
   ret = CalcAICpuCCArgsMem(graph->FindNode("add1"), &global_data, total_size, pre_data_size, pre_data_ptr);
-  ASSERT_EQ(ret, ge::GRAPH_FAILED); 
+  ASSERT_EQ(ret, ge::GRAPH_FAILED);
   (void)ge::AttrUtils::SetStr(add_op_desc, "_aicpu_ffts_ext_info", "aicpu_ext_info");
   ret = CalcAICpuCCArgsMem(graph->FindNode("add1"), &global_data, total_size, pre_data_size, pre_data_ptr);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
@@ -174,7 +175,7 @@ TEST_F(AicpuFFTSNodeConverterUT, CalcAICpuTfArgsMemSuccess) {
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCpu.c_str());
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -201,7 +202,7 @@ TEST_F(AicpuFFTSNodeConverterUT, CalcAICpuTfArgsMemAbnormal) {
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCpu.c_str());
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -218,7 +219,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_EQ(ret, ge::GRAPH_FAILED);
   (void)ge::AttrUtils::SetStr(add_op_desc, "_aicpu_ffts_args", "aicpu_args");
   ret = CalcAICpuTfArgsMem(graph->FindNode("add1"), &global_data, total_size, pre_data_size, pre_data_ptr);
-  ASSERT_EQ(ret, ge::GRAPH_FAILED); 
+  ASSERT_EQ(ret, ge::GRAPH_FAILED);
   (void)ge::AttrUtils::SetStr(add_op_desc, "_aicpu_ffts_ext_info", "aicpu_ext_info");
   ret = CalcAICpuTfArgsMem(graph->FindNode("add1"), &global_data, total_size, pre_data_size, pre_data_ptr);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
@@ -230,7 +231,7 @@ void TestAicpuFFTSConvertNoRefNode(std::string node_type, LowerResult &add_ret) 
   TBEKernelStore tbe_kernel_store;
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -295,7 +296,7 @@ void TestAicpuFFTSConvertWithRefNode(std::string node_type, LowerResult &add_ret
   TBEKernelStore tbe_kernel_store;
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();

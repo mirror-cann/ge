@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -666,21 +666,18 @@ constexpr uint64_t kRtMemoryUB = (1ULL << 15U);
 
 constexpr uint32_t PLATFORM_VERSION_LEN = 20U;
 
-enum class OsCpuInfoCheckTyep :uint8_t {
-  NO_CHECK,
-  NEED_CHECK
-};
+enum class OsCpuInfoCheckTyep : uint8_t { NO_CHECK, NEED_CHECK };
 
 // Definition of the file header of the model file
 struct ModelFileHeader {
-  uint32_t magic = MODEL_FILE_MAGIC_NUM;               // magic number of DOMI
-  uint32_t headsize = MODEL_FILE_HEAD_LEN;             // length of the model header. The value is fixed at 256
-  uint32_t version = MODEL_VERSION;                    // version 1.0
+  uint32_t magic = MODEL_FILE_MAGIC_NUM;                // magic number of DOMI
+  uint32_t headsize = MODEL_FILE_HEAD_LEN;              // length of the model header. The value is fixed at 256
+  uint32_t version = MODEL_VERSION;                     // version 1.0
   uint8_t checksum[MODEL_FILE_CHECKSUM_LENGTH] = {0U};  // signature
   uint32_t length = 0U;  // Ciphertext length. In the non-encryption model, the length is the plaintext length.
   // whether encrypted 0:not encrypt, 1:encrypt
   uint8_t is_encrypt = static_cast<uint8_t>(ModelEncryptType::UNENCRYPTED);
-  uint8_t is_checksum = static_cast<uint8_t>(ModelCheckType::CHECK);            // whether to check the checksum
+  uint8_t is_checksum = static_cast<uint8_t>(ModelCheckType::CHECK);  // whether to check the checksum
   uint8_t modeltype = 0U;                                  // 0:IR model 1:standard model 2:OM Tiny model 3:flow model
   uint8_t genmode = 0U;                                    // 0：offline generate 1：online generate
   uint8_t name[MODEL_NAME_LENGTH] = {0U};                  // Model name, which contains 32 characters
@@ -693,7 +690,7 @@ struct ModelFileHeader {
   uint8_t padd[3] = {0};  // For initializing aligned memory
   uint64_t model_length = 0UL;
   uint8_t need_check_os_cpu_info = static_cast<uint8_t>(OsCpuInfoCheckTyep::NO_CHECK);
-  uint8_t is_unknow_model = 0U;  // 0:static model 1:dynamic model
+  uint8_t is_unknow_model = 0U;                         // 0:static model 1:dynamic model
   uint8_t reserved[MODEL_FILE_RESERVED_LENGTH] = {0U};  // Reserved field 62
 };
 
@@ -729,9 +726,9 @@ enum ModelPartitionType {
 // Custom kernel item header for CUSTOM_OPS partition
 // GE 解析此 header 用于路由，但不解析 kernel_bin 的内容
 struct CustomKernelItemHeader {
-  uint32_t magic;        // 0x4B43534B ("KCSK" = Kernel Custom SerializedKernel)
-  uint32_t name_len;     // kernel_name 长度（字节）
-  uint32_t bin_len;      // kernel_bin 长度（字节）
+  uint32_t magic;     // 0x4B43534B ("KCSK" = Kernel Custom SerializedKernel)
+  uint32_t name_len;  // kernel_name 长度（字节）
+  uint32_t bin_len;   // kernel_bin 长度（字节）
 };
 
 constexpr uint32_t kCustomKernelItemMagic = 0x4B43534BU;  // "KCSK"
@@ -794,15 +791,9 @@ typedef enum tagDomiActivationMode {
   DOMI_ACTIVATION_RESERVED
 } domiActivationMode_t;
 
-enum class MemorySizeCalcType {
-  NORMAL = 0,
-  ALWAYS_EMPTY
-};
+enum class MemorySizeCalcType { NORMAL = 0, ALWAYS_EMPTY };
 
-enum AicpuWorkSpaceType {
-  CUST_LOG = 0,
-  INVALID_TYPE
-};
+enum AicpuWorkSpaceType { CUST_LOG = 0, INVALID_TYPE };
 }  // namespace ge
 
 namespace domi {

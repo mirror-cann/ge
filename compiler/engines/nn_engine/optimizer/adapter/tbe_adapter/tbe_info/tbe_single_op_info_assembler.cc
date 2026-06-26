@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,8 +54,8 @@ static Status ParseInputInfoFromOp(const ge::Node *node, const ge::OpDescPtr &op
 
   FE_LOGD("The size of node[Name:%s,Type:%s] parsed input info struct is %zu", op_desc_ptr->GetName().c_str(),
           op_desc_ptr->GetType().c_str(), op_input_tensor_struct.size());
-  bool has_dynamic_input_attr = op_desc_ptr->HasAttr(ge::ATTR_NAME_DYNAMIC_INPUT_START) &&
-                                op_desc_ptr->HasAttr(ge::ATTR_NAME_DYNAMIC_INPUT_END);
+  bool has_dynamic_input_attr =
+      op_desc_ptr->HasAttr(ge::ATTR_NAME_DYNAMIC_INPUT_START) && op_desc_ptr->HasAttr(ge::ATTR_NAME_DYNAMIC_INPUT_END);
   if (has_dynamic_input_attr) {
     vector<uint32_t> dynamic_input_start_idx;
     vector<uint32_t> dynamic_input_end_idx;
@@ -170,8 +170,8 @@ static Status ParseOutputInfoFromOp(const ge::Node *node, const ge::OpDescPtr &o
             op_desc_ptr->GetType().c_str(), op_output_tensor_info.index, op_output_tensor_info.op_param_type);
     op_output_tensor_struct.push_back(op_output_tensor_info);
   }
-  bool has_dynamic_output_attr = op_desc_ptr->HasAttr("_dynamic_output_index_start") &&
-                                 op_desc_ptr->HasAttr("_dynamic_output_index_end");
+  bool has_dynamic_output_attr =
+      op_desc_ptr->HasAttr("_dynamic_output_index_start") && op_desc_ptr->HasAttr("_dynamic_output_index_end");
   if (has_dynamic_output_attr) {
     vector<uint32_t> dynamic_output_start_idx;
     vector<uint32_t> dynamic_output_end_idx;
@@ -349,8 +349,9 @@ Status TbeSingleOpInfoAssembler::AssembleSingleTbeInfo(ge::Node *node, te::TbeOp
     return FAILED;
   }
   if (FeedInputInfoToSingleTbeInfo(op_desc_ptr, op_input_tensor_struct, tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][AssmSingleTbeInfo] Failed to feed input info to single TBE info for node [%s].",
-                    op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][AssmSingleTbeInfo] Failed to feed input info to single TBE info for node [%s].",
+        op_desc_ptr->GetName().c_str());
     return FAILED;
   }
   vector<OpTensorStruct> op_output_tensor_struct;
@@ -360,8 +361,9 @@ Status TbeSingleOpInfoAssembler::AssembleSingleTbeInfo(ge::Node *node, te::TbeOp
     return FAILED;
   }
   if (FeedOutputInfoToSingleTbeInfo(op_desc_ptr, op_output_tensor_struct, tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][AssmSingleTbeInfo] Failed to execute FeedOutputInfoToSingleTbeInfo for node [%s].",
-                    op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][Compile][AssmSingleTbeInfo] Failed to execute FeedOutputInfoToSingleTbeInfo for node [%s].",
+        op_desc_ptr->GetName().c_str());
     return FAILED;
   }
   if (op_desc_ptr->HasAttr(ge::ATTR_NAME_UNREGST_ATTRLIST)) {

@@ -110,7 +110,7 @@ GE-PY 模块包含以下核心组件：
 
 ### 自定义pass
 
-- [x] [***April 2026***] 开发态主链已完成 `FusionBasePass`  `PatternFusionPass` `DecomposePass` 
+- [x] [***April 2026***] 开发态主链已完成 `FusionBasePass`  `PatternFusionPass` `DecomposePass`
 - [x] [***May 2026***] 预制版本、多版本 native artifact 补齐
 - [x] [***June 2026***] fallback codegen 能力补齐
 

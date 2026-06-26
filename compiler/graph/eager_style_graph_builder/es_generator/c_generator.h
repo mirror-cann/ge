@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,11 +19,11 @@
 #include "generator_interface.h"
 
 namespace {
-inline constexpr const char *const kIndentTwo = "  ";       // 4个空格
-inline constexpr const char *const kIndentFour = "    ";       // 4个空格
-inline constexpr const char *const kIndentSix = "      ";      // 6个空格
-inline constexpr const char *const kIndentEight = "        ";  // 8个空格
-inline constexpr const char *const kIndentTen = "          ";  // 10个空格
+inline constexpr const char *const kIndentTwo = "  ";               // 4个空格
+inline constexpr const char *const kIndentFour = "    ";            // 4个空格
+inline constexpr const char *const kIndentSix = "      ";           // 6个空格
+inline constexpr const char *const kIndentEight = "        ";       // 8个空格
+inline constexpr const char *const kIndentTen = "          ";       // 10个空格
 inline constexpr const char *const kIndentTwelve = "            ";  // 12个空格
 
 enum class AssertType {
@@ -151,7 +151,7 @@ class CGenerator : public ICodeGenerator {
 
  private:
   class IndexCalculator {
-  public:
+   public:
     std::string Index() {
       std::stringstream index;
       index << index_++;
@@ -177,7 +177,8 @@ class CGenerator : public ICodeGenerator {
       }
       return index.str();
     }
-  private:
+
+   private:
     int32_t index_ = 0;
     std::unordered_set<std::string> dynamic_num_names_set_;
     std::vector<std::string> dynamic_num_names_;
@@ -188,13 +189,13 @@ class CGenerator : public ICodeGenerator {
 
     // 生成头文件头部（版权信息、保护宏、包含文件等）
     GenPerOpHHead(op->GetType(), h_stream);
-    
+
     // 生成输出结构体定义（如果需要）
     GenOutputStructIfNeeded(op, h_stream);
 
     // 生成函数注释（如果需要）
     GenCommentsIfNeeded(op, h_stream);
-    
+
     // 生成完整函数声明
     auto declare = GenDeclaration(op, ir_and_dts);
     h_stream << declare << ";" << std::endl;
@@ -331,8 +332,8 @@ class CGenerator : public ICodeGenerator {
   static void GenPerOpCcTail(std::stringstream &ss) {
     ss << "#ifdef __cplusplus\n}\n#endif\n";
   }
-  static void GenAssertCheck(std::stringstream &css, const std::string exp,
-                             const AssertType assert_type, const std::string &indent = kIndentTwo) {
+  static void GenAssertCheck(std::stringstream &css, const std::string exp, const AssertType assert_type,
+                             const std::string &indent = kIndentTwo) {
     switch (assert_type) {
       case AssertType::Es_NOTNULL:
         css << indent << "ES_ASSERT_NOTNULL(" << exp << ");" << std::endl;
@@ -371,7 +372,7 @@ class CGenerator : public ICodeGenerator {
   }
   static std::string GetSubgraphDeclaration(const OpDescPtr &op) {
     std::stringstream ss;
-    for (const auto& ir_subgraph: op->GetOrderedSubgraphIrNames()) {
+    for (const auto &ir_subgraph : op->GetOrderedSubgraphIrNames()) {
       ss << ", ";
       if (ir_subgraph.second == kStatic) {
         ss << "EsCGraph *" << SubgraphName(ir_subgraph.first);
@@ -397,7 +398,7 @@ class CGenerator : public ICodeGenerator {
       case OutputType::kOneOutput:
         ss << "EsCTensorHolder *";
         break;
-      case OutputType::kDynamicOutput: // 与Multioutput逻辑一致
+      case OutputType::kDynamicOutput:  // 与Multioutput逻辑一致
       case OutputType::kMultiOutput:
         ss << OutputStructName(op) << ' ';
         break;
@@ -424,7 +425,7 @@ class CGenerator : public ICodeGenerator {
     } else if (IsOpInputsAllOptional(op->GetIrInputs())) {  // all optional
       ss << ", EsCGraphBuilder *owner_graph_builder";
     }
-    for (const auto& dynamic_output_size: GenDynamicOutputSizeParam(op)) {
+    for (const auto &dynamic_output_size : GenDynamicOutputSizeParam(op)) {
       ss << ", " << dynamic_output_size;
     }
 
@@ -445,12 +446,10 @@ class CGenerator : public ICodeGenerator {
   static std::string GetAttrDeclaration(const OpDescPtr &op, const IrAttrInfo &attr) {
     if (attr.type_info.is_list_type) {
       if (IsListListIntType(attr)) {
-        return attr.type_info.c_api_type + AttrName(attr.name, op) + ", int64_t " +
-               AttrName(attr.name, op) + "_num" + ", const int64_t *" +
-               AttrName(attr.name, op) + "_inner_num";
+        return attr.type_info.c_api_type + AttrName(attr.name, op) + ", int64_t " + AttrName(attr.name, op) + "_num" +
+               ", const int64_t *" + AttrName(attr.name, op) + "_inner_num";
       } else {
-        return attr.type_info.c_api_type + AttrName(attr.name, op) + ", int64_t " +
-               AttrName(attr.name, op) + "_num";
+        return attr.type_info.c_api_type + AttrName(attr.name, op) + ", int64_t " + AttrName(attr.name, op) + "_num";
       }
     } else {
       return attr.type_info.c_api_type + AttrName(attr.name, op);
@@ -503,17 +502,19 @@ class CGenerator : public ICodeGenerator {
       if (in.second == kIrInputRequired || in.second == kIrInputOptional) {
         css << InName(in.first);
       } else if (in.second == kIrInputDynamic) {
-        css << "std::vector<EsCTensorHolder *>(" << InName(in.first) << ", "
-            << InName(in.first) << " + " << InName(in.first) << "_num)";
+        css << "std::vector<EsCTensorHolder *>(" << InName(in.first) << ", " << InName(in.first) << " + "
+            << InName(in.first) << "_num)";
       }
     }
     if (IsOpInputsAllOptional(op->GetIrInputs())) {
       css << ", owner_graph_builder";
     }
     css << ");" << std::endl;
-    GenAssertCheck(css, "owner_builder, "
-                        "\"Failed to resolve owner builder: please ensure at least one input tensor "
-                        "or an explicit owner_graph_builder is provided when supported.\"", AssertType::Es_NOTNULL);
+    GenAssertCheck(css,
+                   "owner_builder, "
+                   "\"Failed to resolve owner builder: please ensure at least one input tensor "
+                   "or an explicit owner_graph_builder is provided when supported.\"",
+                   AssertType::Es_NOTNULL);
     css << "  auto &builder = *owner_builder;" << std::endl;
     css << "  auto ge_graph = builder.GetGraph();" << std::endl;
     css << std::endl;
@@ -554,32 +555,36 @@ class CGenerator : public ICodeGenerator {
     } else if (strcmp(attr.type_info.c_api_type, "C_DataType ") == 0) {
       ss << "static_cast<ge::DataType>(" << AttrName(attr.name, op) << ")";
     } else if (strcmp(attr.type_info.c_api_type, "EsCTensor *") == 0) {
-      ss << "*" << GetStoredAttrTensorName(op, attr.name); // 需要解引用
+      ss << "*" << GetStoredAttrTensorName(op, attr.name);  // 需要解引用
     } else if (strcmp(attr.type_info.c_api_type, "const int64_t *") == 0) {
       ss << "std::vector<int64_t>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + "
          << AttrName(attr.name, op) << "_num)";
     } else if (strcmp(attr.type_info.c_api_type, "const float *") == 0) {
-      ss << "std::vector<float>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + " << AttrName(attr.name, op)
-         << "_num)";
+      ss << "std::vector<float>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + "
+         << AttrName(attr.name, op) << "_num)";
     } else if (strcmp(attr.type_info.c_api_type, "const bool *") == 0) {
-      ss << "std::vector<bool>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + " << AttrName(attr.name, op)
-         << "_num)";
+      ss << "std::vector<bool>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + "
+         << AttrName(attr.name, op) << "_num)";
     } else if (strcmp(attr.type_info.c_api_type, "const C_DataType *") == 0) {
       ss << "std::vector<ge::DataType>([](const C_DataType *es_type_list, int64_t es_type_list_size) {" << " ";
       ss << "std::vector<ge::DataType> ge_type_list(es_type_list_size);" << " ";
-      ss << "std::transform(es_type_list, es_type_list + es_type_list_size, ge_type_list.begin(), [](C_DataType es_type) {" << " ";
+      ss << "std::transform(es_type_list, es_type_list + es_type_list_size, ge_type_list.begin(), [](C_DataType "
+            "es_type) {"
+         << " ";
       ss << "return static_cast<ge::DataType>(es_type);});" << " ";
       ss << "return ge_type_list;" << " ";
       ss << "}(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << "_num))";
     } else if (IsListListIntType(attr)) {
-      ss << "std::vector<std::vector<int64_t>>([](const int64_t** data, int64_t size, const int64_t *inner_sizes) {" << " ";
+      ss << "std::vector<std::vector<int64_t>>([](const int64_t** data, int64_t size, const int64_t *inner_sizes) {"
+         << " ";
       ss << "std::vector<std::vector<int64_t>> ret;" << " ";
       ss << "for (int64_t i = 0; i < size; i++) ret.emplace_back(data[i], data[i] + inner_sizes[i]);" << " ";
       ss << "return ret;" << " ";
-      ss << "} (" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << "_num, " << AttrName(attr.name, op) << "_inner_num))";
+      ss << "} (" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << "_num, " << AttrName(attr.name, op)
+         << "_inner_num))";
     } else if (strcmp(attr.type_info.c_api_type, "const char **") == 0) {
-      ss << "std::vector<ge::AscendString>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + " << AttrName(attr.name, op)
-         << "_num)";
+      ss << "std::vector<ge::AscendString>(" << AttrName(attr.name, op) << ", " << AttrName(attr.name, op) << " + "
+         << AttrName(attr.name, op) << "_num)";
     } else {
       // 这里已经在代码生成的过程中了，出现不支持，只能中止当前op的代码生成
       // 在前面的流程中，应该已经完成了对不支持的类型的检查，抛出了NotSupportException
@@ -624,9 +629,11 @@ class CGenerator : public ICodeGenerator {
     } else if (strcmp(c_api_type, "bool ") == 0) {
       ss << "ge::es::CreateFromIfNotEqual(" << param_name << ", static_cast<bool>(" << default_value_str << "))";
     } else if (strcmp(c_api_type, "C_DataType ") == 0) {
-      ss << "ge::es::CreateFromIfNotEqual(static_cast<ge::DataType>(" << param_name << "), " << default_value_str << ")";
+      ss << "ge::es::CreateFromIfNotEqual(static_cast<ge::DataType>(" << param_name << "), " << default_value_str
+         << ")";
     } else if (strcmp(c_api_type, "const char *") == 0) {
-      ss << "ge::es::CreateFromIfNotEqual(ge::AscendString(" << param_name << "), ge::AscendString(" << default_value_str << "))";
+      ss << "ge::es::CreateFromIfNotEqual(ge::AscendString(" << param_name << "), ge::AscendString("
+         << default_value_str << "))";
     }
     // 简单列表类型
     else if (strcmp(c_api_type, "const int64_t *") == 0) {
@@ -636,8 +643,8 @@ class CGenerator : public ICodeGenerator {
       ss << "ge::es::CreateFromIfNotEqual(std::vector<float>(" << param_name << ", " << param_name << " + "
          << param_name << "_num), std::vector<float>" << default_value_str << ")";
     } else if (strcmp(c_api_type, "const bool *") == 0) {
-      ss << "ge::es::CreateFromIfNotEqual(std::vector<bool>(" << param_name << ", " << param_name << " + "
-         << param_name << "_num), std::vector<bool>" << default_value_str << ")";
+      ss << "ge::es::CreateFromIfNotEqual(std::vector<bool>(" << param_name << ", " << param_name << " + " << param_name
+         << "_num), std::vector<bool>" << default_value_str << ")";
     } else if (strcmp(c_api_type, "const char **") == 0) {
       ss << "ge::es::CreateFromIfNotEqual(std::vector<ge::AscendString>(" << param_name << ", " << param_name << " + "
          << param_name << "_num), std::vector<ge::AscendString>" << default_value_str << ")";
@@ -653,7 +660,7 @@ class CGenerator : public ICodeGenerator {
          << "), std::vector<std::vector<int64_t>>" << default_value_str << ")";
     } else if (strcmp(c_api_type, "EsCTensor *") == 0) {
       // Tensor 类型无法判等，因此一直设置
-      ss << "ge::es::CreateFrom(*" << GetStoredAttrTensorName(op, attr.name) <<")";
+      ss << "ge::es::CreateFrom(*" << GetStoredAttrTensorName(op, attr.name) << ")";
     } else {
       throw std::runtime_error(std::string("Unsupported optional attr type for default value comparison: ") +
                                attr.type_info.av_type + ", " + attr.type_info.c_api_type);
@@ -661,31 +668,36 @@ class CGenerator : public ICodeGenerator {
     return ss.str();
   }
 
-  static void GenSubgraphCheckAndStore(std::stringstream &css, const std::string& subgraph_name,
+  static void GenSubgraphCheckAndStore(std::stringstream &css, const std::string &subgraph_name,
                                        const std::string &input_num, const std::string &output_num,
                                        const bool subgraph_compare_output_num = true,
                                        const std::string &indent = kIndentTwo) {
     css << indent << "auto " << subgraph_name << "_node_type = ge::AscendString();" << std::endl;
     css << indent << "int net_output_num_of_" << subgraph_name << " = 0;" << std::endl;
     css << indent << "std::unordered_set<int64_t> " << subgraph_name << "_data_indexes;" << std::endl;
-    css << indent << "" << subgraph_name << "_data_indexes.reserve("<< input_num <<");" << std::endl;
+    css << indent << "" << subgraph_name << "_data_indexes.reserve(" << input_num << ");" << std::endl;
     css << indent << "for (auto &sub_graph_node : input_subgraph->GetDirectNode()) {" << std::endl;
-    GenAssertCheck(css, "sub_graph_node.GetType(" + subgraph_name + "_node_type)", AssertType::Es_GRAPH_SUCCESS, indent + kIndentTwo);
+    GenAssertCheck(css, "sub_graph_node.GetType(" + subgraph_name + "_node_type)", AssertType::Es_GRAPH_SUCCESS,
+                   indent + kIndentTwo);
     css << indent << "  if (" << subgraph_name << "_node_type != \"Data\") {" << std::endl;
     css << indent << "    if (" << subgraph_name << "_node_type == \"NetOutput\") {" << std::endl;
     GenAssertCheck(css, "net_output_num_of_" + subgraph_name + " <= 1", AssertType::Es_TRUE, indent + kIndentSix);
-    css << indent << "      net_output_num_of_" << subgraph_name <<"++;" << std::endl;
-    GenAssertCheck(css, "ge::IntegerChecker<int32_t>::Compat(" + output_num + ")", AssertType::Es_TRUE, indent + kIndentSix);
+    css << indent << "      net_output_num_of_" << subgraph_name << "++;" << std::endl;
+    GenAssertCheck(css, "ge::IntegerChecker<int32_t>::Compat(" + output_num + ")", AssertType::Es_TRUE,
+                   indent + kIndentSix);
     if (subgraph_compare_output_num) {
       css << indent << "      auto subgraph_output_cnt = sub_graph_node.GetInputsSize();" << std::endl;
-      GenAssertCheck(css, "static_cast<int64_t>(subgraph_output_cnt)  == " + output_num, AssertType::Es_TRUE, indent + kIndentEight);
+      GenAssertCheck(css, "static_cast<int64_t>(subgraph_output_cnt)  == " + output_num, AssertType::Es_TRUE,
+                     indent + kIndentEight);
     }
     css << indent << "    }" << std::endl;
     css << indent << "    continue;" << std::endl;
     css << indent << "  }" << std::endl;
     css << indent << "  int64_t index_value;" << std::endl;
-    GenAssertCheck(css, "sub_graph_node.GetAttr(\"index\", index_value)", AssertType::Es_GRAPH_SUCCESS, indent + kIndentTwo);
-    GenAssertCheck(css, subgraph_name + "_data_indexes.insert(index_value).second", AssertType::Es_TRUE, indent + kIndentTwo);
+    GenAssertCheck(css, "sub_graph_node.GetAttr(\"index\", index_value)", AssertType::Es_GRAPH_SUCCESS,
+                   indent + kIndentTwo);
+    GenAssertCheck(css, subgraph_name + "_data_indexes.insert(index_value).second", AssertType::Es_TRUE,
+                   indent + kIndentTwo);
     GenAssertCheck(css, "index_value < " + input_num, AssertType::Es_TRUE, indent + kIndentTwo);
     css << indent << "}" << std::endl;
     GenAssertCheck(css, "net_output_num_of_" + subgraph_name + " == 1", AssertType::Es_TRUE, indent);
@@ -695,15 +707,15 @@ class CGenerator : public ICodeGenerator {
     std::string input_num;
     std::string output_num;
 
-    for (const auto &ir_in: op->GetIrInputs()) {
-      if (ir_in.second == kIrInputDynamic) { // 获取第一个动态输入的个数
+    for (const auto &ir_in : op->GetIrInputs()) {
+      if (ir_in.second == kIrInputDynamic) {  // 获取第一个动态输入的个数
         input_num = InName(ir_in.first) + "_num";
         break;
       }
     }
 
-    for (const auto &ir_out: op->GetIrOutputs()) {
-      if (ir_out.second == kIrOutputDynamic) { // 获取第一个动态输出的个数
+    for (const auto &ir_out : op->GetIrOutputs()) {
+      if (ir_out.second == kIrOutputDynamic) {  // 获取第一个动态输出的个数
         output_num = OutName(ir_out.first, op) + "_num";
         break;
       }
@@ -722,11 +734,12 @@ class CGenerator : public ICodeGenerator {
         subgraph_compare_output_num = true;
       }
       if (ir_subgraph.second == kStatic) {
-        css << "  input_subgraph = static_cast<ge::Graph *>(static_cast<void *>(" << SubgraphName(ir_subgraph.first) << "));" << std::endl;
+        css << "  input_subgraph = static_cast<ge::Graph *>(static_cast<void *>(" << SubgraphName(ir_subgraph.first)
+            << "));" << std::endl;
         GenSubgraphCheckAndStore(css, SubgraphName(ir_subgraph.first), input_num, output_num,
                                  subgraph_compare_output_num, kIndentTwo);
-        css << "  auto " << SubgraphName(ir_subgraph.first) << "_ptr = builder.AddResource(std::unique_ptr<ge::Graph>(input_subgraph));"
-            << std::endl;
+        css << "  auto " << SubgraphName(ir_subgraph.first)
+            << "_ptr = builder.AddResource(std::unique_ptr<ge::Graph>(input_subgraph));" << std::endl;
         css << std::endl;
       } else {
         css << "  std::vector<ge::Graph> " << DynamicSubgraphVectorName(ir_subgraph.first) << ";" << std::endl;
@@ -774,14 +787,10 @@ class CGenerator : public ICodeGenerator {
   }
   static void GenNodeConstruction(const OpDescPtr &op, const std::vector<IrAttrInfo> &ir_and_dts,
                                   std::stringstream &css) {
-    css << "  // NOTE: IrDefInputs/IrDefOutputs/IrDefAttrs are not ABI-safe across different compilers."
-        << std::endl;
-    css << "  // The V2 ABI-safe interfaces (IrDefInputsV2/IrDefOutputsV2/IrDefAttrsV2) exist but are"
-        << std::endl;
-    css << "  // not used here due to backward compatibility requirements with older GE versions."
-        << std::endl;
-    css << "  // This will be replaced with V2 interfaces after the compatibility period ends."
-        << std::endl;
+    css << "  // NOTE: IrDefInputs/IrDefOutputs/IrDefAttrs are not ABI-safe across different compilers." << std::endl;
+    css << "  // The V2 ABI-safe interfaces (IrDefInputsV2/IrDefOutputsV2/IrDefAttrsV2) exist but are" << std::endl;
+    css << "  // not used here due to backward compatibility requirements with older GE versions." << std::endl;
+    css << "  // This will be replaced with V2 interfaces after the compatibility period ends." << std::endl;
     css << "  auto node = ge::es::CompliantNodeBuilder(ge_graph).OpType(\"" << op->GetType() << "\")" << std::endl;
     css << "      .Name( builder.GenerateNodeName(\"" << op->GetType() << "\").GetString())" << std::endl;
     css << "      .IrDefInputs({" << std::endl;
@@ -844,15 +853,17 @@ class CGenerator : public ICodeGenerator {
   }
   static void GenAddSubgraphIfNeeded(const OpDescPtr &op, std::stringstream &css) {
     bool has_subgraph = false;
-    for (const auto& ir_subgraph: op->GetOrderedSubgraphIrNames()) {
+    for (const auto &ir_subgraph : op->GetOrderedSubgraphIrNames()) {
       if (!has_subgraph) {
         has_subgraph = true;
         css << std::endl;
       }
       if (ir_subgraph.second == kStatic) {
-        css << "  node.SetSubgraph(\"" << SubgraphName(ir_subgraph.first) << "\", *"<< SubgraphName(ir_subgraph.first) <<"_ptr);" << std::endl;
+        css << "  node.SetSubgraph(\"" << SubgraphName(ir_subgraph.first) << "\", *" << SubgraphName(ir_subgraph.first)
+            << "_ptr);" << std::endl;
       } else {
-        css << "  node.SetSubgraphs(\"" << SubgraphName(ir_subgraph.first) << "\", "<< DynamicSubgraphVectorName(ir_subgraph.first) <<");" << std::endl;
+        css << "  node.SetSubgraphs(\"" << SubgraphName(ir_subgraph.first) << "\", "
+            << DynamicSubgraphVectorName(ir_subgraph.first) << ");" << std::endl;
       }
     }
     if (has_subgraph) {
@@ -902,7 +913,7 @@ class CGenerator : public ICodeGenerator {
         break;
       default:
         break;
-      }
+    }
   }
 
  private:

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,9 +53,8 @@ class CpuOptimizer : public Optimizer {
    * @param all_op_info, map stored all aicpu ops information
    * @return result is success or not
    */
-  ge::Status OptimizeFusedGraph(
-      ge::ComputeGraph &graph,
-      const std::map<std::string, OpFullInfo> &all_op_info) const override;
+  ge::Status OptimizeFusedGraph(ge::ComputeGraph &graph,
+                                const std::map<std::string, OpFullInfo> &all_op_info) const override;
 
   /**
    * init optimizer
@@ -75,10 +74,8 @@ class CpuOptimizer : public Optimizer {
    * @param exist_graph_id exist graph id
    * @return bool flag
    */
-  bool PackageBinFile(ge::OpDescPtr op_desc_ptr,
-                      const std::string &bin_folder_path,
-                      const OpFullInfo &op_full_info, uint32_t graph_id,
-                      bool exist_graph_id) const;
+  bool PackageBinFile(ge::OpDescPtr op_desc_ptr, const std::string &bin_folder_path, const OpFullInfo &op_full_info,
+                      uint32_t graph_id, bool exist_graph_id) const;
 
   /**
    * Get custom aicpu kernel so path
@@ -105,8 +102,7 @@ class CpuOptimizer : public Optimizer {
    * @param file_path file path
    * @return true or false
    */
-  bool CheckSoNeedLoadInModel(const OpFullInfo &op_full_info,
-                              std::string &file_path, const std::string op_type) const;
+  bool CheckSoNeedLoadInModel(const OpFullInfo &op_full_info, std::string &file_path, const std::string op_type) const;
 
   /**
    * Get bin file name
@@ -116,18 +112,14 @@ class CpuOptimizer : public Optimizer {
    * @param graph_id graph id
    * @return result is success or not
    */
-  ge::Status GetBinFileName(const OpFullInfo &op_full_info,
-                            const std::string &bin_folder_path,
+  ge::Status GetBinFileName(const OpFullInfo &op_full_info, const std::string &bin_folder_path,
                             std::string &bin_file_name) const;
 
-  ge::Status SetCustKernelBinFile(
-      ge::OpDescPtr op_desc_ptr,
-      const std::map<std::string, OpFullInfo> &all_op_info, uint32_t graph_id,
-      bool exist_graph_id) const;
+  ge::Status SetCustKernelBinFile(ge::OpDescPtr op_desc_ptr, const std::map<std::string, OpFullInfo> &all_op_info,
+                                  uint32_t graph_id, bool exist_graph_id) const;
 
   void SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, const std::string &op_type,
-                              const OpFullInfo &op_full_info,
-                              const std::string &kernel_lib_name) const;
+                              const OpFullInfo &op_full_info, const std::string &kernel_lib_name) const;
 
   ge::Status BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node, const ge::OpDescPtr &op_desc_ptr,
                                           bool &is_ffts_plus) const;

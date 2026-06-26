@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -85,7 +85,7 @@ const string kx86OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64
 const string kaarch64OpsProtoPath = "/op_proto/lib/linux/aarch64/";
 const string kaarch64OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64/";
 
-void *mock_host_cpu_handle = (void *) 0x12345678;
+void *mock_host_cpu_handle = (void *)0x12345678;
 optiling::OpRunInfoV2 tiling_run_info_;
 bool tiling_result_ = true;
 
@@ -95,20 +95,20 @@ struct DummyCompileInfo {
   std::vector<int64_t> c;
 };
 
-template<typename T, typename std::enable_if<(!std::is_array<T>::value), int>::type = 0>
+template <typename T, typename std::enable_if<(!std::is_array<T>::value), int>::type = 0>
 static void *CreateCompileInfo() {
   return new T();
 }
-template<typename T>
+template <typename T>
 static void DeleteCompileInfo(void *const obj) {
   delete reinterpret_cast<T *>(obj);
 }
 
 auto infer_fun = [](Operator &op) -> graphStatus {
-      auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-      *op_desc->MutableOutputDesc(0) = *op_desc->GetInputDescPtr(0);
-      return GRAPH_SUCCESS;
-    };
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  *op_desc->MutableOutputDesc(0) = *op_desc->GetInputDescPtr(0);
+  return GRAPH_SUCCESS;
+};
 
 uint32_t RunHostCpuForAssign(void *args) {
   auto *arg_base = reinterpret_cast<uint8_t *>(args);
@@ -121,20 +121,21 @@ uint32_t RunHostCpuForAssign(void *args) {
 
 class MockRuntime : public RuntimeStub {
  public:
-  MOCK_METHOD7(rtKernelLaunchWithFlagV2, int32_t(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-      rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo));
+  MOCK_METHOD7(rtKernelLaunchWithFlagV2,
+               int32_t(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
+                       rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo));
 };
 
 class MockMemcpy : public RuntimeStub {
  public:
-  MOCK_METHOD5(rtMemcpy, int32_t(void * , uint64_t, const void *, uint64_t, rtMemcpyKind_t));
+  MOCK_METHOD5(rtMemcpy, int32_t(void *, uint64_t, const void *, uint64_t, rtMemcpyKind_t));
 };
 
 class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "RunHostCpuKernel") {
-      return (void *) &RunHostCpuForAssign;
+      return (void *)&RunHostCpuForAssign;
     }
     return dlsym(handle, func_name);
   }
@@ -163,14 +164,13 @@ class MockMalloc : public RuntimeStub {
   uint64_t total_malloc_size = 0;
 };
 
-struct GeneralizedShapeInfo
-{
+struct GeneralizedShapeInfo {
   GeShape shape;
   std::vector<std::pair<int64_t, int64_t>> shape_range;
 };
 
 struct FakeFuzzCompilerOpsKernelInfoStore : public FakeOpsKernelInfoStore {
- FakeFuzzCompilerOpsKernelInfoStore(const std::string &kernel_lib_name) : FakeOpsKernelInfoStore(kernel_lib_name) {}
+  FakeFuzzCompilerOpsKernelInfoStore(const std::string &kernel_lib_name) : FakeOpsKernelInfoStore(kernel_lib_name) {}
   uint32_t GetNodeFuzzCompileCount(const std::string &node_name) {
     return node_name_2_comile_hits_[node_name];
   }
@@ -207,12 +207,13 @@ struct FakeFuzzCompilerOpsKernelInfoStore : public FakeOpsKernelInfoStore {
     }
     return SUCCESS;
   }
-  private:
-   std::map<std::string, uint32_t> node_name_2_comile_hits_;
+
+ private:
+  std::map<std::string, uint32_t> node_name_2_comile_hits_;
 };
 
 class FakeFuzzCompileOptimizer : public FakeGraphOptimizer {
-  public:
+ public:
   void SetGeneralizedInfoToNode(const std::string &node_name, const GeneralizedShapeInfo &shape_info) {
     node_2_shape_info_[node_name] = shape_info;
   }
@@ -227,7 +228,7 @@ class FakeFuzzCompileOptimizer : public FakeGraphOptimizer {
     if (build_mode != "shape_generalized") {
       return SUCCESS;
     }
-    // set generlized shape to nodes on graph, current only support graph without subgraph
+    // set generalized shape to nodes on graph, current only support graph without subgraph
     for (const auto &node : graph.GetDirectNode()) {
       const auto node_name = node->GetName();
       auto iter = node_2_shape_info_.find(node_name);
@@ -254,41 +255,42 @@ class FakeFuzzCompileOptimizer : public FakeGraphOptimizer {
     return SUCCESS;
   }
 
-  private:
+ private:
   std::map<string, GeneralizedShapeInfo> node_2_shape_info_;
 };
 
 void FakeFuzzCompileEngine() {
   auto fuzz_compile_optimzer = MakeShared<FakeFuzzCompileOptimizer>();
   GeneralizedShapeInfo shape_info;
-  shape_info.shape = GeShape({2,-1,-1,2});
-  shape_info.shape_range = {{2,2},{1,20},{1,20},{2,2}};
+  shape_info.shape = GeShape({2, -1, -1, 2});
+  shape_info.shape_range = {{2, 2}, {1, 20}, {1, 20}, {2, 2}};
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("data1", shape_info);
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("data2", shape_info);
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("conv2d", shape_info);
   auto fuzz_compile_ops_kernel_store = MakeShared<FakeFuzzCompilerOpsKernelInfoStore>("AIcoreEngine");
-  GeRunningEnvFaker().Reset()
-        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
-        .Install(FakeEngine(kEngineNameAiCpuTf).KernelInfoStore(kEngineNameAiCpuTf))
-        .Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE"))
-        .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
-        .Install(FakeEngine("AIcoreEngine")
-                     .KernelInfoStore(fuzz_compile_ops_kernel_store)
-                     .GraphOptimizer("FuzzOptimizer", fuzz_compile_optimzer))
-        .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
-        .Install(FakeOp(RELU).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+  GeRunningEnvFaker()
+      .Reset()
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
+      .Install(FakeEngine(kEngineNameAiCpuTf).KernelInfoStore(kEngineNameAiCpuTf))
+      .Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE"))
+      .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine")
+                   .KernelInfoStore(fuzz_compile_ops_kernel_store)
+                   .GraphOptimizer("FuzzOptimizer", fuzz_compile_optimzer))
+      .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
 }
 
 void FakeFuzzCompileEngineForUbFusion() {
   auto fuzz_compile_optimzer = MakeShared<FakeFuzzCompileOptimizer>();
   GeneralizedShapeInfo shape_info;
-  shape_info.shape = GeShape({2,-1,-1,2});
-  shape_info.shape_range = {{2,2},{1,20},{1,20},{2,2}};
+  shape_info.shape = GeShape({2, -1, -1, 2});
+  shape_info.shape_range = {{2, 2}, {1, 20}, {1, 20}, {2, 2}};
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("data1", shape_info);
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("conv2d", shape_info);
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("relu", shape_info);
@@ -297,53 +299,46 @@ void FakeFuzzCompileEngineForUbFusion() {
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("fused_conv2d", shape_info);
   fuzz_compile_optimzer->SetGeneralizedInfoToNode("netoutput", shape_info);
   auto fuzz_compile_ops_kernel_store = MakeShared<FakeFuzzCompilerOpsKernelInfoStore>("AIcoreEngine");
-  GeRunningEnvFaker().Reset()
-        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-        .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
-        .Install(FakeEngine(kEngineNameAiCpuTf).KernelInfoStore(kEngineNameAiCpuTf))
-        .Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE"))
-        .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
-        .Install(FakeEngine("AIcoreEngine")
-                     .KernelInfoStore(fuzz_compile_ops_kernel_store)
-                     .GraphOptimizer("FuzzOptimizer", fuzz_compile_optimzer))
-        .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
-        .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(RELU).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
-        .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp("_RetVal").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+  GeRunningEnvFaker()
+      .Reset()
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+      .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
+      .Install(FakeEngine(kEngineNameAiCpuTf).KernelInfoStore(kEngineNameAiCpuTf))
+      .Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE"))
+      .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine")
+                   .KernelInfoStore(fuzz_compile_ops_kernel_store)
+                   .GraphOptimizer("FuzzOptimizer", fuzz_compile_optimzer))
+      .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
+      .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("_RetVal").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
 }
 
 Graph BuildFuzzCompileUnknownRankGraph() {
   std::vector<int64_t> shape = {-2};  // NCHW
 
-  auto data1 = OP_CFG(DATA)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .Build("data1");
+  auto data1 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data1");
 
-  vector<int64_t> test_int64_list_attr = {1,2,3};
+  vector<int64_t> test_int64_list_attr = {1, 2, 3};
   auto conv2d = OP_CFG(CONV2D)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr("data_format", "NHWC")  // attr on operator
-        .Attr("dilations", test_int64_list_attr)
-        .Attr("groups", (int32_t)1)
-        .Attr("offset_x", (int32_t)1)
-        .Build("conv2d");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr("data_format", "NHWC")  // attr on operator
+                    .Attr("dilations", test_int64_list_attr)
+                    .Attr("groups", (int32_t)1)
+                    .Attr("offset_x", (int32_t)1)
+                    .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
   conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
-  auto netoutput = OP_CFG(NETOUTPUT)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("netoutput");
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("netoutput");
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->NODE(conv2d)->NODE(netoutput));
@@ -352,43 +347,66 @@ Graph BuildFuzzCompileUnknownRankGraph() {
 }
 
 Graph BuildFuzzCompileOriginGraphWithUBfusion() {
-  std::vector<int64_t> shape = {2,2,3,2};  // NCHW
-  std::vector<int64_t> unknown_shape = {2,2,-1,2};  // NCHW
+  std::vector<int64_t> shape = {2, 2, 3, 2};           // NCHW
+  std::vector<int64_t> unknown_shape = {2, 2, -1, 2};  // NCHW
 
-  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr("OwnerGraphIsUnknown", true).Build("data1");
+  auto data1 = OP_CFG(DATA)
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr("OwnerGraphIsUnknown", true)
+                   .Build("data1");
 
-  vector<int64_t> test_int64_list_attr = {1,2,3};
-  vector<int32_t> test_int32_list_attr = {1,2,3};
-  vector<uint32_t> test_uint32_list_attr = {1,2,3};
-  auto conv2d = OP_CFG(CONV2D).TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1).OutCnt(1).Attr("string_attr", "test").Attr("int32_attr", (int32_t)1).Attr("uint32_attr", (uint32_t)1)
-        .Attr("test_int64_list_attr", test_int64_list_attr).Attr("test_int32_list_attr", test_int32_list_attr)
-        .Attr("test_uint32_list_attr", test_uint32_list_attr).Attr("data_format", "NHWC")  // attr on operator
-        .Attr("dilations", test_int64_list_attr).Attr("groups", (int32_t)1).Attr("offset_x", (int32_t)1)
-        .Build("conv2d");
+  vector<int64_t> test_int64_list_attr = {1, 2, 3};
+  vector<int32_t> test_int32_list_attr = {1, 2, 3};
+  vector<uint32_t> test_uint32_list_attr = {1, 2, 3};
+  auto conv2d = OP_CFG(CONV2D)
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr("string_attr", "test")
+                    .Attr("int32_attr", (int32_t)1)
+                    .Attr("uint32_attr", (uint32_t)1)
+                    .Attr("test_int64_list_attr", test_int64_list_attr)
+                    .Attr("test_int32_list_attr", test_int32_list_attr)
+                    .Attr("test_uint32_list_attr", test_uint32_list_attr)
+                    .Attr("data_format", "NHWC")  // attr on operator
+                    .Attr("dilations", test_int64_list_attr)
+                    .Attr("groups", (int32_t)1)
+                    .Attr("offset_x", (int32_t)1)
+                    .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
   conv2d->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
-  auto relu = OP_CFG(RELU).TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1).OutCnt(1).Build("relu");
+  auto relu = OP_CFG(RELU).TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape).InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpEngineName("AIcoreEngine");
   relu->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that? // fe should insure kernel lib name
 
-  auto netoutput_sub = OP_CFG("_RetVal").TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build("netoutput_sub");
+  auto netoutput_sub = OP_CFG("_RetVal")
+                           .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Build("netoutput_sub");
 
   DEF_GRAPH(fuse_origin_graph) {
     CHAIN(NODE(data1)->NODE(conv2d)->NODE(relu)->NODE(netoutput_sub));
   };
 
-  auto data_a = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_a");
+  auto data_a =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_a");
 
-  auto conv2d_fused = OP_CFG(CONV2D).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1).OutCnt(1).Attr("data_format", "NHWC")  // attr on operator
-        .Attr("dilations", test_int64_list_attr).Attr("groups", (int32_t)1).Attr("offset_x", (int32_t)1)
-        .Attr("_original_fusion_graph", fuse_origin_graph).Build("conv2d_fused");
+  auto conv2d_fused = OP_CFG(CONV2D)
+                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .Attr("data_format", "NHWC")  // attr on operator
+                          .Attr("dilations", test_int64_list_attr)
+                          .Attr("groups", (int32_t)1)
+                          .Attr("offset_x", (int32_t)1)
+                          .Attr("_original_fusion_graph", fuse_origin_graph)
+                          .Build("conv2d_fused");
   conv2d_fused->SetOpEngineName("AIcoreEngine");
   conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
@@ -454,7 +472,7 @@ void InitGeLib() {
 
   instance_ptr->DNNEngineManagerObj().schedulers_["aaaaa"] = scheduler_conf;
 }
-}
+}  // namespace
 struct V4CompileInfo : public optiling::CompileInfoBase {
   int64_t a;
   int64_t b;
@@ -489,37 +507,37 @@ class DynamicGraphTest : public testing::Test {
     std::string opp_path = "./";
     std::string opp_version = "version.info";
     setenv("ASCEND_OPP_PATH", opp_path.c_str(), 1);
-    (void) system(("touch " + opp_version).c_str());
-    (void) system(("echo 'Version=3.20.T100.0.B356' > " + opp_version).c_str());
+    (void)system(("touch " + opp_version).c_str());
+    (void)system(("echo 'Version=3.20.T100.0.B356' > " + opp_version).c_str());
 
     std::string path_vendors = opp_path + "vendors";
     std::string path_config = path_vendors + "/config.ini";
-    (void) system(("mkdir -p " + path_vendors).c_str());
-    (void) system(("echo 'load_priority=customize' > " + path_config).c_str());
+    (void)system(("mkdir -p " + path_vendors).c_str());
+    (void)system(("echo 'load_priority=customize' > " + path_config).c_str());
 
     std::string inner_x86_proto_path = opp_path + kInner + kx86OpsProtoPath;
     (void)system(("mkdir -p " + inner_x86_proto_path).c_str());
     inner_x86_proto_path += kOpsProto;
-    (void) system(("touch " + inner_x86_proto_path).c_str());
-    (void) system(("echo 'ops proto x86 ' > " + inner_x86_proto_path).c_str());
+    (void)system(("touch " + inner_x86_proto_path).c_str());
+    (void)system(("echo 'ops proto x86 ' > " + inner_x86_proto_path).c_str());
 
     std::string inner_aarch64_proto_path = opp_path + kInner + kaarch64OpsProtoPath;
-    (void) system(("mkdir -p " + inner_aarch64_proto_path).c_str());
+    (void)system(("mkdir -p " + inner_aarch64_proto_path).c_str());
     inner_aarch64_proto_path += kOpsProto;
-    (void) system(("touch " + inner_aarch64_proto_path).c_str());
-    (void) system(("echo 'ops proto aarch64 ' > " + inner_aarch64_proto_path).c_str());
+    (void)system(("touch " + inner_aarch64_proto_path).c_str());
+    (void)system(("echo 'ops proto aarch64 ' > " + inner_aarch64_proto_path).c_str());
 
     std::string inner_x86_tiling_path = opp_path + kInner + kx86OpMasterPath;
-    (void) system(("mkdir -p " + inner_x86_tiling_path).c_str());
+    (void)system(("mkdir -p " + inner_x86_tiling_path).c_str());
     inner_x86_tiling_path += kOpMaster;
-    (void) system(("touch " + inner_x86_tiling_path).c_str());
-    (void) system(("echo 'op tiling_x86 ' > " + inner_x86_tiling_path).c_str());
+    (void)system(("touch " + inner_x86_tiling_path).c_str());
+    (void)system(("echo 'op tiling_x86 ' > " + inner_x86_tiling_path).c_str());
 
     std::string inner_aarch64_tiling_path = opp_path + kInner + kaarch64OpMasterPath;
-    (void) system(("mkdir -p " + inner_aarch64_tiling_path).c_str());
+    (void)system(("mkdir -p " + inner_aarch64_tiling_path).c_str());
     inner_aarch64_tiling_path += kOpMaster;
-    (void) system(("touch " + inner_aarch64_tiling_path).c_str());
-    (void) system(("echo 'op tiling aarch_64 ' > " + inner_aarch64_tiling_path).c_str());
+    (void)system(("touch " + inner_aarch64_tiling_path).c_str());
+    (void)system(("echo 'op tiling aarch_64 ' > " + inner_aarch64_tiling_path).c_str());
 
     tiling_result_ = true;
     tiling_run_info_ = optiling::OpRunInfoV2{};
@@ -595,29 +613,28 @@ class DynamicGraphTest : public testing::Test {
         .Install(FakeOp(STREAMMERGE).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"))
         .Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"))
         .Install(FakeOp(NEXTITERATION).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"))
-	.Install(FakeOp(NPUGETFLOATSTATUS).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE").InferShape(infer_fun))
+        .Install(FakeOp(NPUGETFLOATSTATUS).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE").InferShape(infer_fun))
         .Install(FakeOp(NPUCLEARFLOATSTATUS).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE").InferShape(infer_fun))
         .Install(FakeOp(EXIT).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"));
 
-    optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op,
-                                            const optiling::OpCompileInfoV2 &compile_info,
+    optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op, const optiling::OpCompileInfoV2 &compile_info,
                                             optiling::OpRunInfoV2 &run_info) -> bool {
       run_info.SetWorkspaces({1024});
       return true;
     };
-    graphStatus (*tiling_parse_func_rt2)(::gert::TilingParseContext *)  =
+    graphStatus (*tiling_parse_func_rt2)(::gert::TilingParseContext *) =
         [](gert::TilingParseContext *parse_context) -> graphStatus { return GRAPH_SUCCESS; };
 
     gert::OpImplKernelRegistry::TilingKernelFunc tilingfun_rt2 =
         [](gert::TilingContext *tiling_context) -> graphStatus {
       size_t *workspace_size = tiling_context->GetWorkspaceSizes(1);
-      *workspace_size=1024;
+      *workspace_size = 1024;
       return ge::GRAPH_SUCCESS;
     };
 
     optiling::OpTilingFuncV2 mock_tiling_func = [&](const ge::Operator &op,
-                                                       const optiling::OpCompileInfoV2 &compile_info,
-                                                       optiling::OpRunInfoV2 &run_info) -> bool {
+                                                    const optiling::OpCompileInfoV2 &compile_info,
+                                                    optiling::OpRunInfoV2 &run_info) -> bool {
       run_info = tiling_run_info_;
       return tiling_result_;
     };
@@ -655,9 +672,9 @@ class DynamicGraphTest : public testing::Test {
     ReInitGe();
     char runtime2_env[MMPA_MAX_PATH] = {'1'};
     mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
-    (void) system("rm -rf ./version.info");
-    (void) system("rm -rf ./vendors");
-    (void) system("rm -rf ./built-in");
+    (void)system("rm -rf ./version.info");
+    (void)system("rm -rf ./vendors");
+    (void)system("rm -rf ./built-in");
     unsetenv("ASCEND_OPP_PATH");
     unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
   }
@@ -731,27 +748,13 @@ Status SkipGenerateTask(const Node &node, RunContext &context, std::vector<domi:
 
 Graph BuildDynamicInputGraph() {
   DEF_GRAPH(dynamic_graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    auto data_1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    auto add = OP_CFG("MyAdd")
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto add = OP_CFG("MyAdd").InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
     CHAIN(NODE("_arg_0", data_0)->NODE("add", add)->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_1", data_1)->NODE("add", add));
@@ -762,57 +765,28 @@ Graph BuildDynamicInputGraph() {
 
 Graph BuildDynamicInputGraphForRtV2() {
   DEF_GRAPH(graph_def) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto shape_op = OP_CFG(SHAPE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {1});
+    auto shape_op = OP_CFG(SHAPE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("data", data)
-              ->NODE("shape", shape_op)
-              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("data", data)->NODE("shape", shape_op)->NODE("Node_Output", net_output));
   };
   return ToGeGraph(graph_def);
 }
 
 Graph BuildControlOpIfGraph() {
   DEF_GRAPH(then_branch) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("then_arg_0", data)->NODE("then_Node_Output", net_output));
   };
 
   DEF_GRAPH(else_branch) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("else_arg_0", data)->NODE("Unique", unique_op)->NODE("else_Node_Output", net_output));
   };
 
@@ -820,23 +794,11 @@ Graph BuildControlOpIfGraph() {
   auto else_graph = ToComputeGraph(else_branch);
 
   DEF_GRAPH(if_graph) {
-    auto pred_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto pred_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto value_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto value_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto if_op = OP_CFG(IF)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Build("if");
+    auto if_op = OP_CFG(IF).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16}).Build("if");
 
     if_op->MutableOutputDesc(0)->SetShape(GeShape({-1}));
     if_op->RegisterSubgraphIrName("then_branch", SubgraphType::kStatic);
@@ -846,10 +808,7 @@ Graph BuildControlOpIfGraph() {
     if_op->AddSubgraphName(else_graph->GetName());
     if_op->SetSubgraphInstanceName(1, else_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("arg_pred", pred_data)->NODE(if_op)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", value_data)->NODE(if_op));
@@ -869,30 +828,16 @@ Graph BuildControlOpIfGraph() {
 
 Graph BuildType2AndGeLocal() {
   DEF_GRAPH(graph_def) {
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fake_type2_op");
+    auto fake_type2_op =
+        OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fake_type2_op");
 
-    auto shape_op = OP_CFG(SHAPE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto shape_op = OP_CFG(SHAPE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto cast_op = OP_CFG(CAST)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto cast_op = OP_CFG(CAST).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("var", var)
               ->NODE(fake_type2_op)
@@ -964,9 +909,7 @@ void BuildAndExecDynamicOfflineModel() {
   ge_executor.Finalize();
 }
 
-Status RunGraphAsync(Session &session,
-                     uint32_t graph_id,
-                     const std::vector<Tensor> &inputs,
+Status RunGraphAsync(Session &session, uint32_t graph_id, const std::vector<Tensor> &inputs,
                      std::vector<Tensor> &outputs) {
   std::mutex mu;
   std::condition_variable cv;
@@ -992,9 +935,7 @@ Status RunGraphAsync(Session &session,
   }
   return ret;
 }
-Status RunGraphAsync(GeSession &session,
-                     uint32_t graph_id,
-                     const std::vector<gert::Tensor> &inputs,
+Status RunGraphAsync(GeSession &session, uint32_t graph_id, const std::vector<gert::Tensor> &inputs,
                      std::vector<gert::Tensor> &outputs) {
   std::mutex mu;
   std::condition_variable cv;
@@ -1020,10 +961,8 @@ Status RunGraphAsync(GeSession &session,
   }
   return ret;
 }
-void ExecuteDynamicOnlineGraph(Graph &graph,
-                               const std::map<std::string, std::string> &session_options = {},
-                               const std::map<std::string, std::string> &graph_options = {},
-                               bool is_train = false) {
+void ExecuteDynamicOnlineGraph(Graph &graph, const std::map<std::string, std::string> &session_options = {},
+                               const std::map<std::string, std::string> &graph_options = {}, bool is_train = false) {
   auto options = session_options;
   if (is_train) {
     options[OPTION_GRAPH_RUN_MODE] = "1";  // train
@@ -1044,34 +983,23 @@ void ExecuteDynamicOnlineGraph(Graph &graph,
   DumpManager::GetInstance().RemoveDumpProperties(0);
 }
 
-void EXPECT_ExecuteDynamicOnlineInfer(Graph &graph,
-                                      const std::map<std::string, std::string> &session_options = {},
+void EXPECT_ExecuteDynamicOnlineInfer(Graph &graph, const std::map<std::string, std::string> &session_options = {},
                                       const std::map<std::string, std::string> &graph_options = {}) {
   return ExecuteDynamicOnlineGraph(graph, session_options, graph_options, false);
 }
 
-void EXPECT_ExecuteDynamicOnlineTrain(Graph &graph,
-                                      const std::map<std::string, std::string> &session_options = {},
+void EXPECT_ExecuteDynamicOnlineTrain(Graph &graph, const std::map<std::string, std::string> &session_options = {},
                                       const std::map<std::string, std::string> &graph_options = {}) {
   return ExecuteDynamicOnlineGraph(graph, session_options, graph_options, true);
 }
 
 void BuildAndExecDynamicOnlineModel() {
   DEF_GRAPH(graph_def) {
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("var", var)->NODE("unique", unique_op)->NODE("Node_Output", net_output));
   };
@@ -1082,20 +1010,11 @@ void BuildAndExecDynamicOnlineModel() {
 
 void BuildAndExecDynamicOnlineModelExp(Status status) {
   DEF_GRAPH(graph_def) {
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("var", var)->NODE("unique", unique_op)->NODE("Node_Output", net_output));
   };
@@ -1159,25 +1078,25 @@ void LoadDynamicGraph(ModelBufferData &model_buffer_data, uint32_t &model_id) {
   EXPECT_EQ(ge_executor.LoadModelFromData(model_id, model_data, nullptr, 0, nullptr, 0), SUCCESS);
 }
 namespace {
-  Status DynamicGraphWithAicpuPass(const ConstGraphPtr &graph, StreamPassContext &context) {
-    AscendString graph_name;
-    graph->GetName(graph_name);
-    if (graph_name != "DynamicGraphWithAicpu") {
-      return SUCCESS;
-    }
-    std::cout << "before current max stream id is "<< context.GetCurrMaxStreamId()<< std::endl;
-    for (auto n : graph->GetDirectNode()) {
-      AscendString name;
-      n.GetName(name);
-      if (name != "unique") {
-        continue;
-      }
-      context.SetStreamId(n, context.AllocateNextStreamId());
-    }
-    std::cout << "after current max stream id is "<< context.GetCurrMaxStreamId()<< std::endl;
+Status DynamicGraphWithAicpuPass(const ConstGraphPtr &graph, StreamPassContext &context) {
+  AscendString graph_name;
+  graph->GetName(graph_name);
+  if (graph_name != "DynamicGraphWithAicpu") {
     return SUCCESS;
   }
-} // namespace
+  std::cout << "before current max stream id is " << context.GetCurrMaxStreamId() << std::endl;
+  for (auto n : graph->GetDirectNode()) {
+    AscendString name;
+    n.GetName(name);
+    if (name != "unique") {
+      continue;
+    }
+    context.SetStreamId(n, context.AllocateNextStreamId());
+  }
+  std::cout << "after current max stream id is " << context.GetCurrMaxStreamId() << std::endl;
+  return SUCCESS;
+}
+}  // namespace
 
 /**
  *
@@ -1201,44 +1120,37 @@ Graph BuildDynamicGraphWithAicpu() {
   tensor_1.SetData(std::move(string_buffer));
 
   DEF_GRAPH(dynamic_graph) {
-    auto var_0 = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto var_0 = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto const_0 = OP_CFG(CONSTANTOP)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_INDEX, 0)
+                       .Attr(ATTR_NAME_WEIGHTS, tensor)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {});
 
     auto const_1 = OP_CFG(CONSTANTOP)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor_1)
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_STRING, {});
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_WEIGHTS, tensor_1)
+                       .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                       .TensorDesc(FORMAT_ND, DT_STRING, {});
 
-    auto neg = OP_CFG(NEG)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+    auto neg = OP_CFG(NEG).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16}).Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
     auto unique_op = OP_CFG("FakeUnique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_INSERT_BP_PROFILILNG_TASK, true)
-        .Attr(ATTR_NAME_INSERT_FP_PROFILILNG_TASK, true)
-        .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
+                         .InCnt(1)
+                         .OutCnt(2)
+                         .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                         .Attr(ATTR_NAME_INSERT_BP_PROFILILNG_TASK, true)
+                         .Attr(ATTR_NAME_INSERT_FP_PROFILILNG_TASK, true)
+                         .Attr(ATTR_NAME_STREAM_LABEL, "aaa");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    CHAIN(NODE("_arg_0", var_0)->EDGE(0, 0)->NODE("neg", neg)->NODE("unique", unique_op)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", var_0)
+              ->EDGE(0, 0)
+              ->NODE("neg", neg)
+              ->NODE("unique", unique_op)
+              ->NODE("Node_Output", net_output));
     CHAIN(NODE("getnext", GETNEXT)->EDGE(0, 1)->NODE("neg"));
     CHAIN(NODE("const_0", const_0)->NODE("Node_Output", net_output));
     CHAIN(NODE("const_1", const_1)->NODE("Node_Output", net_output));
@@ -1269,12 +1181,10 @@ TEST_F(DynamicGraphTest, TestDynamicOfflineModel_multi_thread) {
 
   GeExecutor ge_executor;
   ge_executor.Initialize({});
-  auto future1 = std::async(std::launch::async, [&ge_executor, model_id] () {
-      ExecDynamicOfflineModel(ge_executor, model_id);
-  });
-  auto future2 = std::async(std::launch::async, [&ge_executor, model_id2] () {
-      ExecDynamicOfflineModel(ge_executor, model_id2);
-  });
+  auto future1 =
+      std::async(std::launch::async, [&ge_executor, model_id]() { ExecDynamicOfflineModel(ge_executor, model_id); });
+  auto future2 =
+      std::async(std::launch::async, [&ge_executor, model_id2]() { ExecDynamicOfflineModel(ge_executor, model_id2); });
   future1.wait();
   future2.wait();
   future1.get();
@@ -1362,14 +1272,13 @@ TEST_F(DynamicGraphTest, TestDynamicOfflineModel_aicore_with_atomic_workspace_on
   MockForGenerateTask("AIcoreEngine", func);
   tiling_run_info_.SetWorkspaces({256});
 
-  gert::KernelRegistry::KernelFunc tiling_parse_func_rt2 =
-      [](gert::KernelContext *parse_context) -> graphStatus { return GRAPH_SUCCESS; };
-
-  typedef void* (*CreateCompileInfo)();
-  typedef void (*DeleteCompileInfo)(void *obj);
-  CreateCompileInfo create_compile_info = []() -> void *{
-    return new int64_t();
+  gert::KernelRegistry::KernelFunc tiling_parse_func_rt2 = [](gert::KernelContext *parse_context) -> graphStatus {
+    return GRAPH_SUCCESS;
   };
+
+  typedef void *(*CreateCompileInfo)();
+  typedef void (*DeleteCompileInfo)(void *obj);
+  CreateCompileInfo create_compile_info = []() -> void * { return new int64_t(); };
   DeleteCompileInfo delete_compile_info = [](void *obj) -> void {
     if (obj != nullptr) {
       delete (int64_t *)obj;
@@ -1440,26 +1349,13 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineInfer) {
   MockForGenerateTask("AIcoreEngine", GenerateTaskForStaticAicore);
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpuDependRange);
   DEF_GRAPH(dynamic_graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG(NEG)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG(NEG).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
     CHAIN(NODE("_arg_0", data_0)->NODE("neg", neg)->NODE("unique", unique_op)->NODE("Node_Output", net_output));
   };
@@ -1481,21 +1377,17 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineInfer) {
 TEST_F(DynamicGraphTest, TestDynamicOnlineInferWithType3Aicore) {
   MockForGenerateTask("AIcoreEngine", GenerateTaskForStaticAicore);
   DEF_GRAPH(dynamic_graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto unique_op = OP_CFG("UniqueV2")
-        .InCnt(1)
-        .OutCnt(2)
-        .Attr(ATTR_NAME_UNKNOWN_SHAPE_TYPE, 3)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Build("unique");
+                         .InCnt(1)
+                         .OutCnt(2)
+                         .Attr(ATTR_NAME_UNKNOWN_SHAPE_TYPE, 3)
+                         .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                         .Build("unique");
 
-    auto func = [](const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                   rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) -> int {
+    auto func = [](const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                   uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) -> int {
       uintptr_t shape_buffer_addr = reinterpret_cast<uintptr_t *>(argsInfo->args)[3];
       auto shape_buffer = reinterpret_cast<uint32_t *>(shape_buffer_addr);
       shape_buffer[0] = 1;  // 1-dim
@@ -1510,10 +1402,7 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineInferWithType3Aicore) {
     unique_op->MutableOutputDesc(1)->SetDataType(DT_INT32);
     unique_op->MutableOutputDesc(1)->SetShape({});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
     CHAIN(NODE("_arg_0", data_0)->NODE(unique_op)->NODE("Node_Output", net_output));
   };
@@ -1545,8 +1434,8 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineTraining) {
 TEST_F(DynamicGraphTest, TestDynamicOnlineTraining_WithCustomPass) {
   setenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM", "1", 0);
   REGISTER_CUSTOM_PASS("DynamicGraphWithAicpuPass")
-   .CustomAllocateStreamPassFn(DynamicGraphWithAicpuPass)
-   .Stage(CustomPassStage::kAfterAssignLogicStream);
+      .CustomAllocateStreamPassFn(DynamicGraphWithAicpuPass)
+      .Stage(CustomPassStage::kAfterAssignLogicStream);
 
   MockForGenerateTask("AIcoreEngine", GenerateTaskForStaticAicore);
   MockForGenerateTask("DNN_VM_AICPU", GenerateTaskForAicpuDependRange);
@@ -1643,11 +1532,7 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineTrainingWithNpuGetFloatStatus) {
   tensor_1.SetData(std::move(string_buffer));
 
   DEF_GRAPH(dynamic_graph) {
-    auto data_0 = OP_CFG(DATA)
-	    .InCnt(1)
-	    .OutCnt(1)
-	    .Attr(ATTR_NAME_INDEX, 0)
-	    .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
     auto npu_get_float_status = OP_CFG("NPUGetFloatStatus")
                                     .InCnt(1)
@@ -1656,16 +1541,20 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineTrainingWithNpuGetFloatStatus) {
                                     .Build("npu_get_float_status");
 
     auto npu_clear_float_status = OP_CFG("NPUClearFloatStatus")
-                                    .InCnt(1)
-                                    .OutCnt(1)
-                                    .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1})
-                                    .Build("npu_clear_float_status");
+                                      .InCnt(1)
+                                      .OutCnt(1)
+                                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1})
+                                      .Build("npu_clear_float_status");
 
     auto add = OP_CFG("MyAdd").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
     auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    CHAIN(NODE("_arg_0", data_0)->NODE(npu_get_float_status)->NODE(npu_clear_float_status)->NODE("add", add)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data_0)
+              ->NODE(npu_get_float_status)
+              ->NODE(npu_clear_float_status)
+              ->NODE("add", add)
+              ->NODE("Node_Output", net_output));
   };
 
   Graph graph = ToGeGraph(dynamic_graph);
@@ -1696,22 +1585,19 @@ TEST_F(DynamicGraphTest, TestDynamicOnlineTrainingWithNpuGetFloatStatus) {
 TEST_F(DynamicGraphTest, TestDynamicTraining_String_Type) {
   DEF_GRAPH(dynamic_graph) {
     auto data_0 = OP_CFG(DATA)
-    .InCnt(1)
-    .OutCnt(1)
-    .Attr(ATTR_NAME_INDEX, 0)
-    .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-    .TensorDesc(FORMAT_ND, DT_STRING, {1});
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_INDEX, 0)
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                      .TensorDesc(FORMAT_ND, DT_STRING, {1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-    .InCnt(1)
-    .OutCnt(1)
-    .TensorDesc(FORMAT_ND, DT_STRING, {1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_STRING, {1});
 
     CHAIN(NODE("_arg_0", data_0)->NODE("Node_Output", net_output));
   };
 
- Graph graph = ToGeGraph(dynamic_graph);
- EXPECT_ExecuteDynamicOnlineTrain(graph);
+  Graph graph = ToGeGraph(dynamic_graph);
+  EXPECT_ExecuteDynamicOnlineTrain(graph);
 }
 
 TEST_F(DynamicGraphTest, TestControlOp_If) {
@@ -1732,50 +1618,26 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
   MockForGenerateTask("AIcoreEngine", GenerateTaskForStaticAicore);
 
   DEF_GRAPH(cond) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {});
     CHAIN(NODE("cond_data", cond_data)->NODE("cond_Node_Output", net_output));
   };
 
   GeTensor zero_tensor(GeTensorDesc(GeShape(std::vector<int64_t>{}), FORMAT_ND, DT_INT32));
   zero_tensor.SetData(std::vector<uint8_t>{0, 0, 0, 0});
   DEF_GRAPH(body) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto value_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto value_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto const_data = OP_CFG(CONSTANT)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {})
-        .Attr(ATTR_NAME_WEIGHTS, zero_tensor);
+    auto const_data =
+        OP_CFG(CONSTANT).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {}).Attr(ATTR_NAME_WEIGHTS, zero_tensor);
 
-    auto mul = OP_CFG(MUL)
-        .InCnt(2)
-        .OutCnt(1)
-        .Attr("op_para_size", 1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto mul = OP_CFG(MUL).InCnt(2).OutCnt(1).Attr("op_para_size", 1).TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Build("body_Node_Output");
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16}).Build("body_Node_Output");
 
     net_output->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({})));
     net_output->MutableOutputDesc(0)->SetDataType(DT_INT32);
@@ -1788,28 +1650,13 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
   auto body_graph = ToComputeGraph(body);
 
   DEF_GRAPH(while_graph) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto value_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto value_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto while_op = OP_CFG(WHILE)
-        .InCnt(2)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Build("while_op");
+    auto while_op = OP_CFG(WHILE).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("while_op");
 
     while_op->MutableInputDesc(0)->SetShape(GeShape(std::vector<int64_t>({})));
     while_op->MutableInputDesc(0)->SetDataType(DT_INT32);
@@ -1823,14 +1670,14 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
     while_op->AddSubgraphName(body_graph->GetName());
     while_op->SetSubgraphInstanceName(1, body_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("arg_cond", cond_data)->NODE(while_op));
-    CHAIN(NODE("arg_value", value_data)->NODE("unique", unique_op)->NODE(while_op)->EDGE(1, 0)->NODE("Node_Output",
-                                                                                                     net_output));
+    CHAIN(NODE("arg_value", value_data)
+              ->NODE("unique", unique_op)
+              ->NODE(while_op)
+              ->EDGE(1, 0)
+              ->NODE("Node_Output", net_output));
   };
 
   auto root_graph = ToComputeGraph(while_graph);
@@ -1845,8 +1692,8 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
 
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(root_graph);
 
-  auto mul_kernel = [](const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                       rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) -> int {
+  auto mul_kernel = [](const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
+                       rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) -> int {
     auto io_addrs = reinterpret_cast<uintptr_t *>(argsInfo->args);
     auto *input_0 = reinterpret_cast<int32_t *>(io_addrs[0]);
     auto *input_1 = reinterpret_cast<int32_t *>(io_addrs[1]);
@@ -1867,7 +1714,7 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
   Shape shape_cond(std::vector<int64_t>{});
   Tensor cond_tensor(TensorDesc(shape_cond, FORMAT_ND, DT_INT32));
   int32_t value = 1;
-  cond_tensor.SetData((uint8_t *) &value, sizeof(value));
+  cond_tensor.SetData((uint8_t *)&value, sizeof(value));
 
   uint8_t value_buffer[16 * 4];
   Shape shape_value(std::vector<int64_t>({16}));
@@ -1879,7 +1726,7 @@ TEST_F(DynamicGraphTest, TestControlOp_While) {
   // cond->body->cond
   EXPECT_EQ(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   value = 0;
-  cond_tensor.SetData((uint8_t *) &value, sizeof(value));
+  cond_tensor.SetData((uint8_t *)&value, sizeof(value));
   // cond
   inputs = {cond_tensor, value_tensor};
   EXPECT_EQ(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
@@ -1892,30 +1739,21 @@ TEST_F(DynamicGraphTest, TestHostCpu) {
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   int32_t value = 666;
-  tensor.SetData((uint8_t *) &value, sizeof(value));
+  tensor.SetData((uint8_t *)&value, sizeof(value));
   DEF_GRAPH(host_cpu_graph) {
-    auto var_0 = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto var_0 =
+        OP_CFG(VARIABLE).InCnt(1).OutCnt(1).Attr(ATTR_VARIABLE_PLACEMENT, "host").TensorDesc(FORMAT_ND, DT_INT32, {});
 
     auto const_0 = OP_CFG(CONSTANTOP)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_WEIGHTS, tensor)
+                       .Attr(ATTR_VARIABLE_PLACEMENT, "host")
+                       .TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto assign = OP_CFG(ASSIGN)
-        .InCnt(2)
-        .OutCnt(1)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto assign =
+        OP_CFG(ASSIGN).InCnt(2).OutCnt(1).Attr(ATTR_VARIABLE_PLACEMENT, "host").TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {});
 
     CHAIN(NODE("_arg_0", var_0)->NODE("assign", assign)->NODE("Node_Output", net_output));
     CHAIN(NODE("const_0", const_0)->NODE("assign", assign));
@@ -1953,30 +1791,24 @@ TEST_F(DynamicGraphTest, TestDtResourceHostCpu) {
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   int32_t value = 666;
-  tensor.SetData((uint8_t *) &value, sizeof(value));
+  tensor.SetData((uint8_t *)&value, sizeof(value));
   DEF_GRAPH(host_cpu_graph) {
     auto var_0 = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_RESOURCE, {});
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_VARIABLE_PLACEMENT, "host")
+                     .TensorDesc(FORMAT_ND, DT_RESOURCE, {});
 
     auto const_0 = OP_CFG(CONSTANTOP)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+                       .OutCnt(1)
+                       .Attr(ATTR_NAME_WEIGHTS, tensor)
+                       .Attr(ATTR_VARIABLE_PLACEMENT, "host")
+                       .TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto assign = OP_CFG(ASSIGN)
-        .InCnt(2)
-        .OutCnt(1)
-        .Attr(ATTR_VARIABLE_PLACEMENT, "host")
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto assign =
+        OP_CFG(ASSIGN).InCnt(2).OutCnt(1).Attr(ATTR_VARIABLE_PLACEMENT, "host").TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {});
 
     CHAIN(NODE("_arg_0", var_0)->NODE("assign", assign)->NODE("Node_Output", net_output));
     CHAIN(NODE("const_0", const_0)->NODE("assign", assign));
@@ -2013,60 +1845,32 @@ TEST_F(DynamicGraphTest, TestCaseOpAndPartitionedCallExecutor) {
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpuDependRange);
   MockForGenerateTask("AIcoreEngine", GenerateTaskForTaskWithHandle);
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_0) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
     CHAIN(NODE("branch_0_arg_0", data)->NODE("branch_0_Node_Output", net_output));
   };
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
     CHAIN(NODE("branch_1_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_1_Node_Output", net_output));
   };
 
@@ -2079,28 +1883,14 @@ TEST_F(DynamicGraphTest, TestCaseOpAndPartitionedCallExecutor) {
   sub_graph->SetParentGraph(sub_graph_b1);
 
   DEF_GRAPH(case_graph) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto case_op = OP_CFG(CASE)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-        .Build("case_op");
+    auto case_op = OP_CFG(CASE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("case_op");
 
     case_op->RegisterSubgraphIrName("branches", SubgraphType::kDynamic);
     case_op->AddSubgraphName(sub_graph_b0->GetName());
@@ -2108,10 +1898,7 @@ TEST_F(DynamicGraphTest, TestCaseOpAndPartitionedCallExecutor) {
     case_op->AddSubgraphName(sub_graph_b1->GetName());
     case_op->SetSubgraphInstanceName(1, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(case_op)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(case_op));
@@ -2141,13 +1928,13 @@ TEST_F(DynamicGraphTest, TestCaseOpAndPartitionedCallExecutor) {
   int32_t branch = 0;
   TensorDesc tensor_desc_index(shape_index);
   Tensor input_0(tensor_desc_index);
-  input_0.SetData((uint8_t *) &branch, sizeof(branch));
+  input_0.SetData((uint8_t *)&branch, sizeof(branch));
 
   Shape shape_value(std::vector<int64_t>({16}));
   TensorDesc tensor_desc_value(shape_value);
   Tensor input_1(tensor_desc_value);
   uint8_t buffer[16 * sizeof(float)];
-  input_1.SetData((uint8_t *) &buffer, sizeof(buffer));
+  input_1.SetData((uint8_t *)&buffer, sizeof(buffer));
 
   // taking branch 0
   std::vector<Tensor> inputs{input_0, input_1};
@@ -2156,7 +1943,7 @@ TEST_F(DynamicGraphTest, TestCaseOpAndPartitionedCallExecutor) {
 
   // taking branch 1
   branch = 1;
-  inputs[0].SetData((uint8_t *) &branch, sizeof(branch));
+  inputs[0].SetData((uint8_t *)&branch, sizeof(branch));
   outputs.clear();
   EXPECT_EQ(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   // cover muting workspace count
@@ -2171,47 +1958,26 @@ TEST_F(DynamicGraphTest, TestSubGraphHostCpuNode) {
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpuDependRange);
   MockForGenerateTask("AIcoreEngine", GenerateTaskForTaskWithHandle);
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -2221,40 +1987,24 @@ TEST_F(DynamicGraphTest, TestSubGraphHostCpuNode) {
   EXPECT_TRUE(partitioned_call_node != nullptr);
   sub_graph->SetParentNode(partitioned_call_node);
   sub_graph->SetParentGraph(sub_graph_b1);
-auto myneg_op = sub_graph->FindFirstNodeMatchType("MyNeg");
+  auto myneg_op = sub_graph->FindFirstNodeMatchType("MyNeg");
   myneg_op->GetOpDesc()->SetOpEngineName("DNN_VM_HOST_CPU");
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -2280,13 +2030,13 @@ auto myneg_op = sub_graph->FindFirstNodeMatchType("MyNeg");
   TensorDesc tensor_desc_index(shape_index);
   Tensor input_0(tensor_desc_index);
   uint8_t buffer0[16 * sizeof(float)];
-  input_0.SetData((uint8_t *) &buffer0, sizeof(buffer0));
+  input_0.SetData((uint8_t *)&buffer0, sizeof(buffer0));
 
   Shape shape_value(std::vector<int64_t>({16}));
   TensorDesc tensor_desc_value(shape_value);
   Tensor input_1(tensor_desc_value);
   uint8_t buffer[16 * sizeof(float)];
-  input_1.SetData((uint8_t *) &buffer, sizeof(buffer));
+  input_1.SetData((uint8_t *)&buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{input_0, input_1};
   std::vector<Tensor> outputs;
@@ -2300,47 +2050,26 @@ TEST_F(DynamicGraphTest, TestSubGraphForceUnKnownShape) {
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpuDependRange);
   MockForGenerateTask("AIcoreEngine", GenerateTaskForTaskWithHandle);
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -2354,36 +2083,20 @@ TEST_F(DynamicGraphTest, TestSubGraphForceUnKnownShape) {
   AttrUtils::SetBool(myneg_op->GetOpDesc(), ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -2411,13 +2124,13 @@ TEST_F(DynamicGraphTest, TestSubGraphForceUnKnownShape) {
   TensorDesc tensor_desc_index(shape_index);
   Tensor input_0(tensor_desc_index);
   uint8_t buffer0[16 * sizeof(float)];
-  input_0.SetData((uint8_t *) &buffer0, sizeof(buffer0));
+  input_0.SetData((uint8_t *)&buffer0, sizeof(buffer0));
 
   Shape shape_value(std::vector<int64_t>({16}));
   TensorDesc tensor_desc_value(shape_value);
   Tensor input_1(tensor_desc_value);
   uint8_t buffer[16 * sizeof(float)];
-  input_1.SetData((uint8_t *) &buffer, sizeof(buffer));
+  input_1.SetData((uint8_t *)&buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{input_0, input_1};
   std::vector<Tensor> outputs;
@@ -2431,47 +2144,26 @@ TEST_F(DynamicGraphTest, TestSingleOpWithSubGraph) {
   MockForGenerateTask("aicpu_ascend_kernel", GenerateTaskForAicpuDependRange);
   MockForGenerateTask("AIcoreEngine", GenerateTaskForTaskWithHandle);
   DEF_GRAPH(partitioned_call) {
-    auto cond_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto cond_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto neg = OP_CFG("MyNeg")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto neg = OP_CFG("MyNeg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output",
-                                                                           net_output));
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    CHAIN(NODE("partitioned_call_data", cond_data)->NODE("neg", neg)->NODE("partitioned_call_Node_Output", net_output));
   };
   auto sub_graph = ToComputeGraph(partitioned_call);
 
   DEF_GRAPH(branch_1) {
-    auto data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto partitioned_call_op = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op");
+    auto partitioned_call_op =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op");
 
     partitioned_call_op->RegisterSubgraphIrName("f", SubgraphType::kStatic);
     partitioned_call_op->AddSubgraphName(sub_graph->GetName());
     partitioned_call_op->SetSubgraphInstanceName(0, sub_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("branch_0_arg_0", data)->NODE(partitioned_call_op)->NODE("branch_0_Node_Output", net_output));
   };
 
@@ -2484,36 +2176,20 @@ TEST_F(DynamicGraphTest, TestSingleOpWithSubGraph) {
   auto myneg_op = sub_graph->FindFirstNodeMatchType("MyNeg");
 
   DEF_GRAPH(graph1) {
-    auto arg_branch_index = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto arg_branch_index =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    auto arg_value = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto arg_value = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto unique_op = OP_CFG("Unique")
-        .InCnt(1)
-        .OutCnt(2)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto partitioned_call_op2 = OP_CFG(PARTITIONEDCALL)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("partitioned_call_op2");
+    auto partitioned_call_op2 =
+        OP_CFG(PARTITIONEDCALL).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("partitioned_call_op2");
 
     partitioned_call_op2->AddSubgraphName(sub_graph_b1->GetName());
     partitioned_call_op2->SetSubgraphInstanceName(0, sub_graph_b1->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     CHAIN(NODE("arg_branch_index", arg_branch_index)->NODE(partitioned_call_op2)->NODE("Node_Output", net_output));
     CHAIN(NODE("arg_value", arg_value)->NODE("unique_op", unique_op)->NODE(partitioned_call_op2));
@@ -2540,13 +2216,13 @@ TEST_F(DynamicGraphTest, TestSingleOpWithSubGraph) {
   TensorDesc tensor_desc_index(shape_index);
   Tensor input_0(tensor_desc_index);
   uint8_t buffer0[16 * sizeof(float)];
-  input_0.SetData((uint8_t *) &buffer0, sizeof(buffer0));
+  input_0.SetData((uint8_t *)&buffer0, sizeof(buffer0));
 
   Shape shape_value(std::vector<int64_t>({16}));
   TensorDesc tensor_desc_value(shape_value);
   Tensor input_1(tensor_desc_value);
   uint8_t buffer[16 * sizeof(float)];
-  input_1.SetData((uint8_t *) &buffer, sizeof(buffer));
+  input_1.SetData((uint8_t *)&buffer, sizeof(buffer));
 
   std::vector<Tensor> inputs{input_0, input_1};
   std::vector<Tensor> outputs;
@@ -2558,7 +2234,8 @@ TEST_F(DynamicGraphTest, TestSingleOpWithSubGraph) {
 TEST_F(DynamicGraphTest, TestAicpuKernels) {
   class MockAclMemcpy : public AclRuntimeStub {
    public:
-    // MOCK_METHOD5(aclrtMemcpy, int32_t(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind));
+    // MOCK_METHOD5(aclrtMemcpy, int32_t(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind
+    // kind));
     aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) {
       if (count == 0) {
         return RT_ERROR_NONE;
@@ -2576,72 +2253,72 @@ TEST_F(DynamicGraphTest, TestAicpuKernels) {
   auto acl_runtime_stub = std::make_shared<MockAclMemcpy>();
   AclRuntimeStub::SetInstance(acl_runtime_stub);
 
-  auto generate_aicpu_type_4_kernels =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(4));
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(0));
-        AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
-        return SUCCESS;
-      };
+  auto generate_aicpu_type_4_kernels = [](const Node &node, RunContext &context,
+                                          std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(4));
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(0));
+    AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_ascend_kernel", generate_aicpu_type_4_kernels);
   BuildAndExecDynamicOnlineModel();
 
-  auto generate_tf_type_4_kernels =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(4));
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(0));
-        AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
-        return SUCCESS;
-      };
+  auto generate_tf_type_4_kernels = [](const Node &node, RunContext &context,
+                                       std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(4));
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(0));
+    AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_tf_kernel", generate_tf_type_4_kernels);
   BuildAndExecDynamicOnlineModel();
 
-  auto generate_aicpu_type_3_kernel =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(3));
-        return SUCCESS;
-      };
+  auto generate_aicpu_type_3_kernel = [](const Node &node, RunContext &context,
+                                         std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(3));
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_ascend_kernel", generate_aicpu_type_3_kernel);
   BuildAndExecDynamicOnlineModel();
 
-  auto generate_tf_type_3_kernel =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
-        return SUCCESS;
-      };
+  auto generate_tf_type_3_kernel = [](const Node &node, RunContext &context,
+                                      std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_tf_kernel", generate_tf_type_3_kernel);
   BuildAndExecDynamicOnlineModel();
 
-  auto generate_aicpu_type_3_kernel_blocking =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(3));
-        AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
-        AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
-        AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_BLOCKDIM_INDEX, 1);
-        return SUCCESS;
-      };
+  auto generate_aicpu_type_3_kernel_blocking = [](const Node &node, RunContext &context,
+                                                  std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildAicpuTask(3));
+    AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
+    AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
+    AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_BLOCKDIM_INDEX, 1);
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_ascend_kernel", generate_aicpu_type_3_kernel_blocking);
   BuildAndExecDynamicOnlineModel();
 
-  auto generate_tf_type_3_kernel_blocking =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
-        AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
-        AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
-        AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_BLOCKDIM_INDEX, 1);
-        return SUCCESS;
-      };
+  auto generate_tf_type_3_kernel_blocking = [](const Node &node, RunContext &context,
+                                               std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
+    AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
+    AttrUtils::SetBool(node.GetOpDesc(), ATTR_NAME_IS_BLOCKING_OP, true);
+    AttrUtils::SetInt(node.GetOpDesc(), ATTR_NAME_BLOCKDIM_INDEX, 1);
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_tf_kernel", generate_tf_type_3_kernel_blocking);
   BuildAndExecDynamicOnlineModel();
 
   const char_t *const kEnvOverFlowPath = "ACL_ERROR_RT_OVER_FLOW_ST";
   char_t over_flow_path[MMPA_MAX_PATH] = "over_st_flow";
   mmSetEnv(kEnvOverFlowPath, &over_flow_path[0U], MMPA_MAX_PATH);
-  auto generate_tf_type_3_kernel_check_overflow =
-      [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-        tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
-        return SUCCESS;
-      };
+  auto generate_tf_type_3_kernel_check_overflow = [](const Node &node, RunContext &context,
+                                                     std::vector<domi::TaskDef> &tasks) -> Status {
+    tasks.emplace_back(AicpuTaskDefBuilder(node).BuildTfTask(3));
+    return SUCCESS;
+  };
   MockForGenerateTask("aicpu_tf_kernel", generate_tf_type_3_kernel_check_overflow);
   BuildAndExecDynamicOnlineModelExp(SUCCESS);
   unsetenv(kEnvOverFlowPath);
@@ -2654,7 +2331,8 @@ TEST_F(DynamicGraphTest, TesthostAicpuKernels) {
   const uint32_t topic_type_flag = RT_KERNEL_HOST_ONLY;
   class MockAclMemcpy : public AclRuntimeStub {
    public:
-    // MOCK_METHOD5(aclrtMemcpy, int32_t(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind));
+    // MOCK_METHOD5(aclrtMemcpy, int32_t(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind
+    // kind));
     aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) {
       if (count == 0) {
         return RT_ERROR_NONE;
@@ -2740,30 +2418,16 @@ TEST_F(DynamicGraphTest, TestType2AndGeLocal) {
   TestRuntimeV2Compile(graph1);
 
   DEF_GRAPH(graph_def) {
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fake_type2_op");
+    auto fake_type2_op =
+        OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fake_type2_op");
 
-    auto shape_op = OP_CFG(SHAPE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {1});
+    auto shape_op = OP_CFG(SHAPE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("var", var)
-              ->NODE(fake_type2_op)
-              ->NODE("shape", shape_op)
-              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("var", var)->NODE(fake_type2_op)->NODE("shape", shape_op)->NODE("Node_Output", net_output));
   };
 
   auto graph = ToGeGraph(graph_def);
@@ -2773,44 +2437,27 @@ TEST_F(DynamicGraphTest, TestType2AndGeLocal) {
 
 TEST_F(DynamicGraphTest, TestInferShapeForSubgraph) {
   DEF_GRAPH(fused_subgraph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto data_0 =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Build("fake_type2_op");
+    auto fake_type2_op =
+        OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Build("fake_type2_op");
 
     fake_type2_op->SetOpInferDepends({"__input0"});
     fake_type2_op->SetOpEngineName("AIcoreEngine");
     fake_type2_op->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
 
-    auto ret_val = OP_CFG("_RetVal")
-        .InCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto ret_val =
+        OP_CFG("_RetVal").InCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
     CHAIN(NODE("_arg_0", data_0)->NODE(fake_type2_op)->NODE("ret_val", ret_val));
   };
 
   DEF_GRAPH(dynamic_graph) {
-    auto data_0 = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op = OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("_arg_0", data_0)->NODE("fused_op", fake_type2_op)->NODE("Node_Output", net_output));
   };
@@ -2832,7 +2479,7 @@ TEST_F(DynamicGraphTest, TestDynamicInput) {
   options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   options["ge.compile_dynamic_mode"] = "1";
   std::map<AscendString, AscendString> graph_options;
@@ -2879,7 +2526,7 @@ TEST_F(DynamicGraphTest, TestDynamicInput_fail) {
   options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   options[JIT_COMPILE.c_str()] = "1";
   std::map<AscendString, AscendString> graph_options;
@@ -2939,7 +2586,7 @@ TEST_F(DynamicGraphTest, TestDynamicInputWithKnownNodeFirstStrategy) {
   options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   std::map<AscendString, AscendString> graph_options;
 
@@ -2988,7 +2635,7 @@ TEST_F(DynamicGraphTest, TestRunGraphAsyncRuntime2) {
   std::map<AscendString, AscendString> options;
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   std::map<AscendString, AscendString> graph_options;
 
@@ -3018,7 +2665,7 @@ TEST_F(DynamicGraphTest, TestRunGraphRuntime2) {
   std::map<AscendString, AscendString> options;
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   std::map<AscendString, AscendString> graph_options;
 
   graph_options[OPTION_EXEC_DYNAMIC_EXECUTE_MODE] = "dynamic_execute";
@@ -3041,26 +2688,13 @@ TEST_F(DynamicGraphTest, TestRunGraphRuntime2) {
 
 TEST_F(DynamicGraphTest, TestLazyRecompile) {
   DEF_GRAPH(graph_def) {
-    auto var = OP_CFG(VARIABLE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto var = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op = OP_CFG("FakeType2Op").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
+    auto shape_op = OP_CFG(SHAPE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1});
 
-    auto shape_op = OP_CFG(SHAPE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {1});
-
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("var", var)
               ->NODE("fake_type2_op", fake_type2_op)
@@ -3091,21 +2725,18 @@ TEST_F(DynamicGraphTest, TestOptimizeDependenciesForConstantInputs) {
   // 1. const in known-shaped subgraph (after partitioning)
   DEF_GRAPH(graph_def) {
     auto const_op = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, TensorAdapter::AsGeTensor(CreateTensor({16})))
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr(ATTR_NAME_WEIGHTS, TensorAdapter::AsGeTensor(CreateTensor({16})))
+                        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+                             .InCnt(1)
+                             .OutCnt(1)
+                             .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                             .TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("const_op", const_op)->NODE("fake_type2_op", fake_type2_op)->NODE("Node_Output", net_output));
   };
@@ -3115,22 +2746,19 @@ TEST_F(DynamicGraphTest, TestOptimizeDependenciesForConstantInputs) {
   // 2. const in root graph
   DEF_GRAPH(graph_def2) {
     auto const_op = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, TensorAdapter::AsGeTensor(CreateTensor({16})))
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr(ATTR_NAME_WEIGHTS, TensorAdapter::AsGeTensor(CreateTensor({16})))
+                        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto fake_type2_op = OP_CFG("FakeType2Op")
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+                             .InCnt(1)
+                             .OutCnt(1)
+                             .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                             .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("const_op", const_op)->NODE("fake_type2_op", fake_type2_op)->NODE("Node_Output", net_output));
   };
@@ -3163,7 +2791,8 @@ TEST_F(DynamicGraphTest, BasicV1LoopDynamicExecSucc) {
  * 3、为FE的执行时泛化编译接口FuzzComile打桩
  *
  * 执行用例：
- * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape range。表示开启模糊编译
+ * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape
+ * range。表示开启模糊编译
  *    开启ge.shape_generalized_build_mode为shape_generalized，模拟adapter在训练时开启模糊编译传入的option
  * 2、session add准备工作中构造的动态图
  * 3、执行RunGraphAsync，给定input shape.  [2,2,100,2]
@@ -3179,7 +2808,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel) {
   options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
 
   std::map<AscendString, AscendString> graph_options;
@@ -3191,7 +2820,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel) {
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
   std::vector<Tensor> inputs;
-  inputs.emplace_back(CreateTensor({2,2,100,2}));
+  inputs.emplace_back(CreateTensor({2, 2, 100, 2}));
   std::vector<Tensor> outputs;
   EXPECT_EQ(RunGraphAsync(session, graph_id, inputs, outputs), SUCCESS);
 
@@ -3200,7 +2829,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel) {
   auto iter = kernel_manager.GetAllOpsKernelInfoStores().find("AIcoreEngine");
   auto fuzz_compile_store = dynamic_cast<FakeFuzzCompilerOpsKernelInfoStore *>(iter->second.get());
   auto fuzz_compile_counts = fuzz_compile_store->GetNodeFuzzCompileCount("conv2d");
-  EXPECT_EQ(fuzz_compile_counts, 1); // input shape is out of fuzz range, so conv2d will fuzz_compile once
+  EXPECT_EQ(fuzz_compile_counts, 1);  // input shape is out of fuzz range, so conv2d will fuzz_compile once
   session.RemoveGraph(graph_id);
 }
 
@@ -3212,7 +2841,8 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel) {
  * 3、为FE的执行时泛化编译接口FuzzComile打桩
  *
  * 执行用例：
- * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape range。表示开启模糊编译
+ * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape
+ * range。表示开启模糊编译
  *    开启ge.shape_generalized_build_mode为shape_generalized，模拟adapter在训练时开启模糊编译传入的option
  * 2、session add准备工作中构造的动态图
  * 3、执行RunGraphAsync，给定input shape.  [2,2,100,2]
@@ -3228,7 +2858,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel_GertTensor)
   session_options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   session_options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   session_options[OPTION_EXEC_DUMP_PATH] = "./";
-  session_options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  session_options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   session_options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
 
   std::map<AscendString, AscendString> graph_options;
@@ -3240,7 +2870,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel_GertTensor)
   EXPECT_EQ(session.AddGraph(graph_id, graph, graph_options), SUCCESS);
 
   std::vector<Tensor> inputs;
-  inputs.emplace_back(CreateTensor({2,2,100,2}));
+  inputs.emplace_back(CreateTensor({2, 2, 100, 2}));
   std::vector<gert::Tensor> gert_inputs;
   TensorTransUtils::Tensors2GertTensors(inputs, gert_inputs);
 
@@ -3252,7 +2882,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel_GertTensor)
   auto iter = kernel_manager.GetAllOpsKernelInfoStores().find("AIcoreEngine");
   auto fuzz_compile_store = dynamic_cast<FakeFuzzCompilerOpsKernelInfoStore *>(iter->second.get());
   auto fuzz_compile_counts = fuzz_compile_store->GetNodeFuzzCompileCount("conv2d");
-  EXPECT_EQ(fuzz_compile_counts, 1); // input shape is out of fuzz range, so conv2d will fuzz_compile once
+  EXPECT_EQ(fuzz_compile_counts, 1);  // input shape is out of fuzz range, so conv2d will fuzz_compile once
   session.RemoveGraph(graph_id);
 }
 
@@ -3266,7 +2896,8 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUnknownRankLoadWithOutKernel_GertTensor)
  * 4、为FE的执行时泛化编译接口FuzzComile打桩，泛化编译ub融合算子泛化失败
  *
  * 执行用例：
- * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape range。表示开启模糊编译
+ * 1、session配置graph option, 开启OPTION_EXEC_DYNAMIC_EXECUTE_MODE为dynamic_execute，不配置shape
+ * range。表示开启模糊编译
  *    开启ge.shape_generalized_build_mode为shape_generalized，模拟adapter在训练时开启模糊编译传入的option
  * 2、session add准备工作中构造的静态图
  * 3、执行buildgraph。此时会触发fe的fuzz函数桩。
@@ -3285,7 +2916,7 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUBfusionExecuteSwitchToOriginGraphExecut
   options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
 
   std::map<AscendString, AscendString> graph_options;
@@ -3297,8 +2928,8 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUBfusionExecuteSwitchToOriginGraphExecut
   EXPECT_EQ(session.AddGraph(graph_id, graph_with_ubfusion, graph_options), SUCCESS);
 
   std::vector<Tensor> inputs;
-  inputs.emplace_back(CreateTensor({2,20,300,2})); // range out of fuzz result
-  inputs.emplace_back(CreateTensor({2,20,300,2}));
+  inputs.emplace_back(CreateTensor({2, 20, 300, 2}));  // range out of fuzz result
+  inputs.emplace_back(CreateTensor({2, 20, 300, 2}));
   std::vector<Tensor> outputs;
 
   EXPECT_EQ(RunGraphAsync(session, graph_id, inputs, outputs), SUCCESS);
@@ -3308,11 +2939,12 @@ TEST_F(DynamicGraphTest, TestFuzzCompileUBfusionExecuteSwitchToOriginGraphExecut
   auto iter = kernel_manager.GetAllOpsKernelInfoStores().find("AIcoreEngine");
   auto fuzz_compile_store = dynamic_cast<FakeFuzzCompilerOpsKernelInfoStore *>(iter->second.get());
   auto fuzz_compile_counts = fuzz_compile_store->GetNodeFuzzCompileCount("conv2d_fused");
-  EXPECT_EQ(fuzz_compile_counts, 1); // input shape is out of fuzz range, so conv2d_fused will fuzz_compile once
+  EXPECT_EQ(fuzz_compile_counts, 1);  // input shape is out of fuzz range, so conv2d_fused will fuzz_compile once
   auto conv2d_in_sub_fuzz_compile_counts = fuzz_compile_store->GetNodeFuzzCompileCount("conv2d");
   EXPECT_EQ(conv2d_in_sub_fuzz_compile_counts, 1);
   auto relu_in_sub_fuzz_compile_counts = fuzz_compile_store->GetNodeFuzzCompileCount("relu");
-  EXPECT_EQ(relu_in_sub_fuzz_compile_counts, 1); //fuse node fuzz failed, switch to origin graph execution, so relu will fuzz once
+  EXPECT_EQ(relu_in_sub_fuzz_compile_counts,
+            1);  // fuse node fuzz failed, switch to origin graph execution, so relu will fuzz once
   session.RemoveGraph(graph_id);
 }
 
@@ -3340,7 +2972,7 @@ REG_OP(TestAllAttr)
     .ATTR(test_name_attr, NamedAttrs, var_name_attr)
     .OP_END_FACTORY_REG(TestAllAttr)
 
-TEST_F(DynamicGraphTest, TestCcmAllAttr) {
+        TEST_F(DynamicGraphTest, TestCcmAllAttr) {
   std::vector<int64_t> shape{1, 2};
   auto graph = std::make_shared<ComputeGraph>("fake_graph");
   auto tensor_desc = std::make_shared<GeTensorDesc>(GeShape(shape));
@@ -3362,13 +2994,13 @@ TEST_F(DynamicGraphTest, TestCcmAllAttr) {
   AttrUtils::SetListDataType(op_desc, "test_list_dt", val_list_dt);
   std::vector<bool> val_list_bool{true};
   AttrUtils::SetListBool(op_desc, "test_list_bool", val_list_bool);
-  std::vector<int64_t> val_list_int{1,2};
+  std::vector<int64_t> val_list_int{1, 2};
   AttrUtils::SetListInt(op_desc, "test_list_int", val_list_int);
   std::vector<float> val_list_float{1.0, 2.0};
   AttrUtils::SetListFloat(op_desc, "test_list_float", val_list_float);
   std::vector<std::string> val_list_string{"1", "2"};
   AttrUtils::SetListStr(op_desc, "test_list_string", val_list_string);
-  std::vector<std::vector<int64_t>> val_list_list_int{{1,2}};
+  std::vector<std::vector<int64_t>> val_list_list_int{{1, 2}};
   AttrUtils::SetListListInt(op_desc, "test_list_list_int", val_list_list_int);
   NamedAttrs name_attr;
   AttrUtils::SetNamedAttrs(op_desc, "test_name_attr", name_attr);
@@ -3389,15 +3021,14 @@ TEST_F(DynamicGraphTest, TestNotSupportDynamicShape) {
   DEF_GRAPH(dynamic_graph) {
     auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-                  .Build("not_support_dynamic_shape");
+    auto relu =
+        OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16}).Build("not_support_dynamic_shape");
 
     auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1});
 
-    CHAIN(NODE("_arg_0", data_0)->NODE(relu)->NODE("unique", unique_op)
-          ->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data_0)->NODE(relu)->NODE("unique", unique_op)->NODE("Node_Output", net_output));
   };
 
   Graph graph = ToGeGraph(dynamic_graph);
@@ -3426,8 +3057,8 @@ UINT32 StubTilingParse4ST(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreator4ST() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreator4ST() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -3516,7 +3147,7 @@ TEST_F(DynamicGraphTest, ProfilingReport_ReportValidModelId_OnModelLoad) {
   auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type == ge::InfoType::kEvent) {
       auto prof_event = reinterpret_cast<MsprofEvent *>(data);
-      if (prof_event->type == static_cast<uint32_t>(gert::GeProfInfoType::kModelLoad)){
+      if (prof_event->type == static_cast<uint32_t>(gert::GeProfInfoType::kModelLoad)) {
         EXPECT_NE(prof_event->itemId, std::numeric_limits<uint32_t>::max());
       }
     }

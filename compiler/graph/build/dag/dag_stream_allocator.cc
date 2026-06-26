@@ -51,9 +51,8 @@ void SortByTopoId(std::vector<DAGNodePtr> &nodes) {
   });
 }
 
-void BuildNodeIdMaps(DAGGraph &graph,
-                      std::map<int32_t, std::shared_ptr<DAGNode>> &id_to_node,
-                      std::map<std::shared_ptr<DAGNode>, int32_t> &node_to_id) {
+void BuildNodeIdMaps(DAGGraph &graph, std::map<int32_t, std::shared_ptr<DAGNode>> &id_to_node,
+                     std::map<std::shared_ptr<DAGNode>, int32_t> &node_to_id) {
   auto all_nodes = graph.GetAllNodes();
   int32_t id = 1;
   for (auto &node : all_nodes) {
@@ -62,8 +61,8 @@ void BuildNodeIdMaps(DAGGraph &graph,
   }
 }
 
-void BuildHopcroftKarpGraph(const std::map<std::shared_ptr<DAGNode>, int32_t> &node_to_id,
-                             HopcroftKarp &hk, int32_t node_num) {
+void BuildHopcroftKarpGraph(const std::map<std::shared_ptr<DAGNode>, int32_t> &node_to_id, HopcroftKarp &hk,
+                            int32_t node_num) {
   for (const auto &entry : node_to_id) {
     const auto &src = entry.first;
     int32_t u = entry.second;
@@ -77,8 +76,7 @@ void BuildHopcroftKarpGraph(const std::map<std::shared_ptr<DAGNode>, int32_t> &n
   }
 }
 
-std::vector<std::vector<int32_t>> ConvertRoutesToIndexRoutes(
-    const std::vector<std::vector<int32_t>> &routes) {
+std::vector<std::vector<int32_t>> ConvertRoutesToIndexRoutes(const std::vector<std::vector<int32_t>> &routes) {
   std::vector<std::vector<int32_t>> index_routes;
   for (auto &route : routes) {
     std::vector<int32_t> converted_route;
@@ -90,10 +88,8 @@ std::vector<std::vector<int32_t>> ConvertRoutesToIndexRoutes(
   return index_routes;
 }
 
-void AssignStreamIds(const std::vector<std::vector<int32_t>> &routes,
-                     const std::vector<int32_t> &logical_to_physical,
-                     const std::map<int32_t, std::shared_ptr<DAGNode>> &id_to_node,
-                     StreamAllocConfig &config) {
+void AssignStreamIds(const std::vector<std::vector<int32_t>> &routes, const std::vector<int32_t> &logical_to_physical,
+                     const std::map<int32_t, std::shared_ptr<DAGNode>> &id_to_node, StreamAllocConfig &config) {
   for (size_t logical_stream_idx = 0; logical_stream_idx < routes.size(); ++logical_stream_idx) {
     int32_t physical_stream_idx = logical_to_physical[logical_stream_idx];
     int64_t new_stream_id = config.base_stream_id + physical_stream_idx;
@@ -107,8 +103,8 @@ void AssignStreamIds(const std::vector<std::vector<int32_t>> &routes,
         node->SetStreamId(new_stream_id);
       }
     }
-    MINIDAG_LOG_DEBUG("logical stream %zu merged to physical stream %d, set as %ld, nodes: %s",
-           logical_stream_idx, physical_stream_idx, new_stream_id, node_ids_str.c_str());
+    MINIDAG_LOG_DEBUG("logical stream %zu merged to physical stream %d, set as %ld, nodes: %s", logical_stream_idx,
+                      physical_stream_idx, new_stream_id, node_ids_str.c_str());
   }
 
   int32_t max_stream = 0;
@@ -118,8 +114,7 @@ void AssignStreamIds(const std::vector<std::vector<int32_t>> &routes,
   config.required_streams = max_stream;
 }
 
-graphStatus AddResidualEdge(DAGGraph &residual_graph, const DAGNodePtr &src_node,
-                            const DAGNodePtr &dst_node,
+graphStatus AddResidualEdge(DAGGraph &residual_graph, const DAGNodePtr &src_node, const DAGNodePtr &dst_node,
                             std::set<std::pair<std::string, std::string>> &added_edges) {
   MINIDAG_ASSERT_NOTNULL(src_node, "Add residual edge failed: src node is null.");
   MINIDAG_ASSERT_NOTNULL(dst_node, "Add residual edge failed: dst node is null.");
@@ -150,8 +145,8 @@ graphStatus AddResidualEdgesFromNode(DAGGraph &residual_graph, const DAGNodePtr 
 
   std::queue<DAGNodePtr> pending_serial_nodes;
   std::set<std::string> visited_serial_nodes;
-  auto handle_dst_node = [&residual_graph, &src_node, &added_edges, &pending_serial_nodes, &visited_serial_nodes](
-                             const DAGNodePtr &dst_node) {
+  auto handle_dst_node = [&residual_graph, &src_node, &added_edges, &pending_serial_nodes,
+                          &visited_serial_nodes](const DAGNodePtr &dst_node) {
     if (dst_node == nullptr) {
       return graphStatus::SUCCESS;
     }
@@ -175,8 +170,7 @@ graphStatus AddResidualEdgesFromNode(DAGGraph &residual_graph, const DAGNodePtr 
     MINIDAG_ASSERT_NOTNULL(serial_node, "Pending serial node is null.");
     for (const auto &edge : serial_node->GetOutputEdges()) {
       auto ret = handle_dst_node(edge->GetDstNode());
-      MINIDAG_ASSERT_SUCCESS(ret, "Add residual edge through serial node %s failed.",
-                             serial_node->GetName().c_str());
+      MINIDAG_ASSERT_SUCCESS(ret, "Add residual edge through serial node %s failed.", serial_node->GetName().c_str());
     }
   }
   return graphStatus::SUCCESS;
@@ -216,8 +210,8 @@ graphStatus SplitSerialGraph(DAGGraph &graph, SerialGraphSplit &split) {
     }
 
     auto residual_node = split.residual_graph->AddNode(node->GetName(), node->GetType());
-    MINIDAG_ASSERT_NOTNULL(residual_node, "Add residual node failed: %s, type: %s.",
-                           node->GetName().c_str(), node->GetType().c_str());
+    MINIDAG_ASSERT_NOTNULL(residual_node, "Add residual node failed: %s, type: %s.", node->GetName().c_str(),
+                           node->GetType().c_str());
     residual_node->SetTopoId(node->GetTopoId());
     residual_node->SetCost(node->GetCost());
   }
@@ -260,8 +254,8 @@ void AssignSerialStreamIds(const SerialGraphSplit &split, const int64_t first_se
       node->SetStreamId(serial_stream_id);
       node_ids_str += (std::to_string(node->GetTopoId()) + " ");
     }
-    MINIDAG_LOG_DEBUG("serial label %s set as stream %ld, nodes: %s",
-                      label.c_str(), serial_stream_id, node_ids_str.c_str());
+    MINIDAG_LOG_DEBUG("serial label %s set as stream %ld, nodes: %s", label.c_str(), serial_stream_id,
+                      node_ids_str.c_str());
   }
 }
 
@@ -282,8 +276,8 @@ graphStatus ByPathCoverCore(DAGGraph &graph, StreamAllocConfig &config) {
   auto index_routes = ConvertRoutesToIndexRoutes(routes);
 
   StreamMergeOptions options;
-  options.physical_stream_limit = (config.max_stream_id >= 0)
-                                   ? static_cast<int32_t>(config.max_stream_id + 1) : kDefaultMaxPhysicalStreams;
+  options.physical_stream_limit =
+      (config.max_stream_id >= 0) ? static_cast<int32_t>(config.max_stream_id + 1) : kDefaultMaxPhysicalStreams;
   options.strategy = config.merge_strategy;
   StreamMerger merger(options);
   std::vector<int32_t> logical_to_physical;
@@ -291,8 +285,7 @@ graphStatus ByPathCoverCore(DAGGraph &graph, StreamAllocConfig &config) {
                          "StreamMerger failed, ByPathCover abort.");
 
   AssignStreamIds(routes, logical_to_physical, id_to_node, config);
-  MINIDAG_LOG_INFO("Logical stream num:%zu, merged physical stream num:%ld",
-         routes.size(), config.required_streams);
+  MINIDAG_LOG_INFO("Logical stream num:%zu, merged physical stream num:%ld", routes.size(), config.required_streams);
   return graphStatus::SUCCESS;
 }
 
@@ -307,8 +300,7 @@ graphStatus ByPathCoverWithStatus(DAGGraph &graph, StreamAllocConfig &config) {
   CopyResidualStreamIdsToOriginal(*split.residual_graph, graph);
 
   AssignSerialStreamIds(split, config.base_stream_id + residual_config.required_streams);
-  config.required_streams = residual_config.required_streams +
-                            static_cast<int64_t>(split.serial_label_order.size());
+  config.required_streams = residual_config.required_streams + static_cast<int64_t>(split.serial_label_order.size());
   MINIDAG_LOG_INFO("ByPathCover with residual graph done: residual_nodes=%zu, serial_labels=%zu, required_streams=%ld",
                    split.residual_graph->GetNodeCount(), split.serial_label_order.size(), config.required_streams);
   return graphStatus::SUCCESS;
@@ -317,8 +309,7 @@ graphStatus ByPathCoverWithStatus(DAGGraph &graph, StreamAllocConfig &config) {
 
 void DagStreamAllocator::ByPathCover(DAGGraph &graph, StreamAllocConfig &config) {
   MINIDAG_LOG_INFO("ByPathCover start: graph=%s, nodes=%zu, max_stream_id=%ld, base_stream_id=%ld",
-                   graph.GetName().c_str(), graph.GetNodeCount(),
-                   config.max_stream_id, config.base_stream_id);
+                   graph.GetName().c_str(), graph.GetNodeCount(), config.max_stream_id, config.base_stream_id);
 
   const auto ret = ByPathCoverWithStatus(graph, config);
   if (ret != graphStatus::SUCCESS) {

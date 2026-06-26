@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,11 +77,9 @@ void TransNodeUnsqueezeV2Generator::GetNewShapeRange(vector<std::pair<int64_t, i
 
 Status TransNodeUnsqueezeV2Generator::SetAttr(const ge::OpDescPtr &op_desc_ptr) const {
   int64_t reshape_type_mask = 0;
-  if (!transformer::ExpandDimension::GenerateReshapeType(trans_info_ptr_->src_out_original_format,
-                                                         trans_info_ptr_->src_out_primary_format,
-                                                         trans_info_ptr_->src_out_original_shape.GetDimNum(),
-                                                         trans_info_ptr_->dst_reshape_type,
-                                                         reshape_type_mask)) {
+  if (!transformer::ExpandDimension::GenerateReshapeType(
+          trans_info_ptr_->src_out_original_format, trans_info_ptr_->src_out_primary_format,
+          trans_info_ptr_->src_out_original_shape.GetDimNum(), trans_info_ptr_->dst_reshape_type, reshape_type_mask)) {
     REPORT_FE_ERROR("[GraphOpt][Trans][Unsqueeze] Op[name=%s,type=%s]: generate reshape type mask failed.",
                     op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return FAILED;
@@ -96,7 +94,8 @@ Status TransNodeUnsqueezeV2Generator::SetAttr(const ge::OpDescPtr &op_desc_ptr) 
   }
 
   if (!ge::AttrUtils::SetListInt(op_desc_ptr, AXIS_ATTR_NAME, axis)) {
-    REPORT_FE_ERROR("[GraphOpt][Trans][Unsqueeze] Failed to set unsqueeze op [%s] axis!", op_desc_ptr->GetName().c_str());
+    REPORT_FE_ERROR("[GraphOpt][Trans][Unsqueeze] Failed to set unsqueeze op [%s] axis!",
+                    op_desc_ptr->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;

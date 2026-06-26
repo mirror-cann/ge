@@ -71,4 +71,3 @@ IMPLEMT_VERIFIER(op_name, func_name)
 ## 约束说明<a name="zh-cn_topic_0000001265084818_section65498832"></a>
 
 无
-

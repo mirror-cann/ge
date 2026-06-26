@@ -31,7 +31,8 @@ Graph = graph_module.Graph
 
 def _write_python_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.passes import FusionBasePass, PassStage, register_fusion_pass
         from ge.graph import Graph
 
@@ -44,7 +45,10 @@ def _write_python_pass_module(dir_path: Path, module_name: str, pass_name: str) 
                 assert isinstance(graph, Graph)
                 self.counter += 1
                 return self.counter
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
@@ -76,7 +80,10 @@ def test_load_pass_plugins_from_env_directory(tmp_path, monkeypatch):
     modules = bootstrap.load_pass_plugins()
 
     assert len(modules) == 2
-    assert sorted(item.pass_name for item in passes.get_registered_passes()) == ["EnvDirPassA", "EnvDirPassB"]
+    assert sorted(item.pass_name for item in passes.get_registered_passes()) == [
+        "EnvDirPassA",
+        "EnvDirPassB",
+    ]
 
 
 def test_bridge_create_run_destroy_holder_from_env(tmp_path, monkeypatch):
@@ -96,9 +103,7 @@ def test_bridge_create_run_destroy_holder_from_env(tmp_path, monkeypatch):
     first_graph = Graph("g1")
     second_graph = Graph("g2")
     assert bridge.run_fusion_base_pass(first_instance_id, graph=first_graph, context=None) == 1
-    assert bridge.run_fusion_base_pass(first_instance_id,
-                                       graph=first_graph,
-                                       context=None) == 2
+    assert bridge.run_fusion_base_pass(first_instance_id, graph=first_graph, context=None) == 2
     assert bridge.run_fusion_base_pass(second_instance_id, graph=second_graph, context=None) == 1
     assert bridge.destroy_pass_holder(first_instance_id)
     assert bridge.destroy_pass_holder(second_instance_id)

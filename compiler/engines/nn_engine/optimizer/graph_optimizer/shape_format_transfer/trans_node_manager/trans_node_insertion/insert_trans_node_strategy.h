@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 #include "graph/node.h"
 
 namespace fe {
-const uint64_t kStrategyIdExtDeft = 0x00000; /* 0000 00 00 */
+const uint64_t kStrategyIdExtDeft = 0x00000;  /* 0000 00 00 */
 const uint64_t kStrategyIdExtThree = 0x30000; /* 0011[C==1 && N==groups && groups > 1] 00 00 */
 
 struct TransferInfo {
@@ -50,7 +50,6 @@ struct TransferInfo {
 
   string src_reshape_type;
   string dst_reshape_type;
-
 
   /* if dst_in_format is RNN-related format, need to use hidden_size and input_size to
    * calc new shape */
@@ -94,7 +93,7 @@ using TransInfoPtr = std::shared_ptr<TransInfo>;
  *   high 4bits[extra_val]: res[2 bits] C==1[1 bit] N==groups[1 bit]
  *            media 8bits[src_format]:
  *                         low 8bits[dst_format]:
-*/
+ */
 inline uint64_t CalcStrategyId(const ge::Format &src_format, const ge::Format &dst_format, const uint64_t extra_val) {
   return ((static_cast<uint64_t>(src_format)) << static_cast<uint32_t>(BitShift::BIT_SHIFT_8)) |
          (static_cast<uint64_t>(dst_format)) | extra_val;
@@ -104,7 +103,7 @@ inline uint64_t CalcStrategyId(const ge::Format &src_format, const ge::Format &d
  * 16bits:     00000000  00000000
  *      high 8bits[src_format]:
  *                    low 8bits[dst_format]:
-*/
+ */
 inline uint64_t CalcBaseStrategyId(const ge::Format &src_format, const ge::Format &dst_format) {
   return ((static_cast<uint64_t>(src_format)) << static_cast<uint32_t>(BitShift::BIT_SHIFT_8)) |
          (static_cast<uint64_t>(dst_format));
@@ -149,8 +148,7 @@ inline Status CheckNCHWFzTrans(const TransInfoPtr &trans_info_ptr) {
     return FAILED;
   }
 
-  if (trans_info_ptr->src_out_data_type != ge::DT_FLOAT16 &&
-      trans_info_ptr->src_out_data_type != ge::DT_FLOAT &&
+  if (trans_info_ptr->src_out_data_type != ge::DT_FLOAT16 && trans_info_ptr->src_out_data_type != ge::DT_FLOAT &&
       trans_info_ptr->src_out_data_type != ge::DT_BF16) {
     FE_LOGD("Data type is %s.", DTypeToStr(trans_info_ptr->src_out_data_type).c_str());
     return FAILED;
@@ -164,20 +162,19 @@ inline Status CheckNCHWFzTrans(const TransInfoPtr &trans_info_ptr) {
   int32_t dim_vec_size = static_cast<int32_t>(dim_vec.size());
   int32_t index_c = GetAxisIndexByFormat(trans_info_ptr->dst_in_original_format, C_AXIS_NAME);
   if (index_c < 0 || index_c >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get C index[%d] of format [%s].",
-        index_c, ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get C index[%d] of format [%s].", index_c,
+                    ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
     return FAILED;
   }
 
   int32_t index_n = GetAxisIndexByFormat(trans_info_ptr->dst_in_original_format, N_AXIS_NAME);
   if (index_n < 0 || index_n >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get N index[%d] of format [%s].",
-        index_n, ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckNCHWFzTrans] Cannot get N index[%d] of format [%s].", index_n,
+                    ge::TypeUtils::FormatToSerialString(trans_info_ptr->dst_in_original_format).c_str());
     return FAILED;
   }
 
-  FE_LOGD("C value is %ld, N value is %ld, dst in sub format is %ld.",
-      dim_vec[index_c], dim_vec[index_n], groups);
+  FE_LOGD("C value is %ld, N value is %ld, dst in sub format is %ld.", dim_vec[index_c], dim_vec[index_n], groups);
 
   if (dim_vec[index_c] == 1 && dim_vec[index_n] == groups) {
     return SUCCESS;
@@ -207,20 +204,19 @@ inline Status CheckFzNCHWTrans(const TransInfoPtr &trans_info_ptr) {
   int32_t dim_vec_size = static_cast<int32_t>(dim_vec.size());
   int32_t index_c = GetAxisIndexByFormat(trans_info_ptr->src_out_original_format, C_AXIS_NAME);
   if (index_c < 0 || index_c >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get C index[%d] of format [%s].",
-        index_c, ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get C index[%d] of format [%s].", index_c,
+                    ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
     return FAILED;
   }
 
   int32_t index_n = GetAxisIndexByFormat(trans_info_ptr->src_out_original_format, N_AXIS_NAME);
   if (index_n < 0 || index_n >= dim_vec_size) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get N index[%d] of format [%s].",
-        index_n, ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
+    REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][CheckFzNCHWTrans] Cannot get N index[%d] of format [%s].", index_n,
+                    ge::TypeUtils::FormatToSerialString(trans_info_ptr->src_out_original_format).c_str());
     return FAILED;
   }
 
-  FE_LOGD("C value is %ld, N value is %ld, src out sub format is %ld.",
-      dim_vec[index_c], dim_vec[index_n], groups);
+  FE_LOGD("C value is %ld, N value is %ld, src out sub format is %ld.", dim_vec[index_c], dim_vec[index_n], groups);
 
   if (dim_vec[index_c] == 1 && dim_vec[index_n] == groups) {
     return SUCCESS;
@@ -231,19 +227,18 @@ inline Status CheckFzNCHWTrans(const TransInfoPtr &trans_info_ptr) {
 const strategy_extra_val_map kStrategyExtraValMap = {
     /* NCHW to Fractal_Z */
     {CalcBaseStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z),
-        {{kStrategyIdExtThree, std::make_shared<CheckExtValCondFunc>(CheckNCHWFzTrans)}}},
+     {{kStrategyIdExtThree, std::make_shared<CheckExtValCondFunc>(CheckNCHWFzTrans)}}},
     /* Fractal_Z to NCHW */
     {CalcBaseStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NCHW),
-        {{kStrategyIdExtThree, std::make_shared<CheckExtValCondFunc>(CheckFzNCHWTrans)}}}
-};
+     {{kStrategyIdExtThree, std::make_shared<CheckExtValCondFunc>(CheckFzNCHWTrans)}}}};
 
 inline uint64_t CalcStrategyIdExtraVal(const TransInfoPtr &trans_info_ptr) {
-  uint64_t strategy_ext_id = CalcBaseStrategyId(trans_info_ptr->src_out_primary_format,
-                                                trans_info_ptr->dst_in_primary_format);
+  uint64_t strategy_ext_id =
+      CalcBaseStrategyId(trans_info_ptr->src_out_primary_format, trans_info_ptr->dst_in_primary_format);
   auto strategy_ext = kStrategyExtraValMap.find(strategy_ext_id);
   if (strategy_ext == kStrategyExtraValMap.end()) {
-    FE_LOGD("No strategy extra value, src format %u, dst format %u.",
-        trans_info_ptr->src_out_primary_format, trans_info_ptr->dst_in_primary_format);
+    FE_LOGD("No strategy extra value, src format %u, dst format %u.", trans_info_ptr->src_out_primary_format,
+            trans_info_ptr->dst_in_primary_format);
     return kStrategyIdExtDeft;
   }
 
@@ -292,19 +287,23 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     /* NCHW to C1HWC0 */
     {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_C1HWC0, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* NCHW to Fractal_Z */
-    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NCHW to Fractal_Z_WINO */
     {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_WINO, kStrategyIdExtDeft),
-                    {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* Fractal_Z_WINO to Fractal_Z */
     {CalcStrategyId(ge::FORMAT_FRACTAL_Z_WINO, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
-                    {TRANSDATA_INDEX, RESHAPE_INDEX}},
+     {TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NCHW to Fractal_Z, NCHW to HWCN first, then to Fractal_Z */
-    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z, kStrategyIdExtThree), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z, kStrategyIdExtThree),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NCHW to NC1HWC0_C04 */
-    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* NCHW to Fractal_Z_C04 */
-    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NCHW to C1HWNCoC0 */
     {CalcStrategyId(ge::FORMAT_NCHW, ge::FORMAT_C1HWNCoC0, kStrategyIdExtDeft), {TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* NCHW to FRACTAL_NZ */
@@ -322,29 +321,36 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* NHWC to Fractal_Z, NHWC to NCHW then to Fractal_Z,
      * Dtype does ot Change */
-    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NHWC to NC1HWC0_C04 */
-    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* NHWC to Fractal_Z_C04 */
-    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NHWC to C1HWNCoC0 */
     {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_C1HWNCoC0, kStrategyIdExtDeft), {TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* NHWC to FRACTAL_NZ */
     {CalcStrategyId(ge::FORMAT_NHWC, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {REFORMAT_INEDX, TRANSDATA_INDEX}},
 
     /* HWCN to NC1HWC0 */
-    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* HWCN to C1HWC0 */
     {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_C1HWC0, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* HWCN to Fractal_Z */
-    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* HWCN to Fractal_Z_WINO */
     {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z_WINO, kStrategyIdExtDeft),
-                    {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* HWCN to NC1HWC0_C04 */
-    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX}},
     /* HWCN to Fractal_Z_C04 */
-    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* HWCN to HWCN */
     {CalcStrategyId(ge::FORMAT_HWCN, ge::FORMAT_HWCN, kStrategyIdExtDeft), {}},
     /* HWCN to C1HWNCoC0 */
@@ -363,12 +369,14 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     /* NC1HWC0 to NHWC */
     {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_NHWC, kStrategyIdExtDeft), {TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* NC1HWC0 to HWCN, to NCHW then to HWCN */
-    {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_HWCN, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_HWCN, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     /* NC1HWC0 to NC1HWC0 */
     {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft), {}},
     /* NC1HWC0 to Fractal_Z,
      * to NCHW first, then to Fractal_Z */
-    {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSDATA_INDEX, RESHAPE_INDEX}},
     /* NC1HWC0 to FRACTAL_NZ,
      * to NCHW first, then to FRACTAL_NZ */
     {CalcStrategyId(ge::FORMAT_NC1HWC0, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSDATA_INDEX}},
@@ -385,17 +393,22 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     {CalcStrategyId(ge::FORMAT_NC1HWC0_C04, ge::FORMAT_NC1HWC0_C04, kStrategyIdExtDeft), {}},
 
     /* Fractal_Z to HWCN */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_HWCN, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_HWCN, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z to NCHW */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NCHW, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NCHW, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z to NCHW, Fractal_Z to HWCN first, then to NCHW */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NCHW, kStrategyIdExtThree), {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NCHW, kStrategyIdExtThree),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z to NHWC, Fractal_Z to NCHW first,
      * then to NHWC */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NHWC, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NHWC, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z to CHWN, Fractal_Z to NCHW first,
      * then to CHWN Dtype does ot Change */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_CHWN, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_CHWN, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z to Fractal_Z */
     {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {RESHAPE_INDEX}},
     /* Fractal_Z to NC1HWC0,
@@ -403,17 +416,21 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSDATA_INDEX}},
     /* Fractal_Z to FRACTAL_NZ,
      * to NCHW first, then to FRACTAL_NZ */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSDATA_INDEX}},
     /* Fractal_Z to Fractal_Z_WINO */
     {CalcStrategyId(ge::FORMAT_FRACTAL_Z, ge::FORMAT_FRACTAL_Z_WINO, kStrategyIdExtDeft),
-                    {RESHAPE_INDEX, TRANSDATA_INDEX}},
+     {RESHAPE_INDEX, TRANSDATA_INDEX}},
 
     /* Fractal_Z_C04 to NCHW */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_NCHW, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_NCHW, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z_C04 to NHWC */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_NHWC, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_NHWC, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z_C04 to HWCN */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_HWCN, kStrategyIdExtDeft), {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_HWCN, kStrategyIdExtDeft),
+     {RESHAPE_INDEX, TRANSDATA_INDEX, SQUEEZE_V2_INDEX}},
     /* Fractal_Z_C04 to Fractal_Z_C04 */
     {CalcStrategyId(ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_FRACTAL_Z_C04, kStrategyIdExtDeft), {RESHAPE_INDEX}},
 
@@ -427,7 +444,8 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     {CalcStrategyId(ge::FORMAT_C1HWNCoC0, ge::FORMAT_NHWC, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSPOSE_INDEX}},
     /* C1HWNCoC0 to FRACTAL_NZ,
      * to NCHW first, then to FRACTAL_NZ */
-    {CalcStrategyId(ge::FORMAT_C1HWNCoC0, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_C1HWNCoC0, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSDATA_INDEX}},
 
     /* CHWN to NCHW */
     {CalcStrategyId(ge::FORMAT_CHWN, ge::FORMAT_NCHW, kStrategyIdExtDeft), {TRANSPOSE_INDEX}},
@@ -506,13 +524,16 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
 
     /* FRACTAL_NZ to FRACTAL_Z
      * to original format first, then to FRACTAL_Z */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_Z, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* FRACTAL_NZ to NC1HWC0
      * to original format first, then to NC1HWC0 */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_NC1HWC0, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* FRACTAL_NZ to C1HWNCoC0
      * to original format first, then to HWCN, then to C1HWNCoC0 */
-    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_C1HWNCoC0, kStrategyIdExtDeft), {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
+    {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_C1HWNCoC0, kStrategyIdExtDeft),
+     {TRANSDATA_INDEX, TRANSPOSE_INDEX, TRANSDATA_INDEX}},
     /* FRACTAL_NZ to FRACTAL_NZ */
     {CalcStrategyId(ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {}},
 
@@ -524,11 +545,14 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     // NCDHW -> NCDHW
     {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_NCDHW, kStrategyIdExtDeft), {}},
     // NCDHW -> NDHWC
-    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_NDHWC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_NDHWC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // NCDHW -> DHWCN
-    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_DHWCN, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_DHWCN, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // NCDHW -> DHWNC
-    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_DHWNC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_DHWNC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // NCDHW -> FORMAT_FRACTAL_NZ
     {CalcStrategyId(ge::FORMAT_NCDHW, ge::FORMAT_FRACTAL_NZ, kStrategyIdExtDeft), {REFORMAT_INEDX, TRANSDATA_INDEX}},
 
@@ -542,11 +566,14 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     // NDHWC -> NDHWC
     {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_NDHWC, kStrategyIdExtDeft), {}},
     // NDHWC -> NCDHW
-    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_NCDHW, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_NCDHW, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // NDHWC -> DHWCN
-    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_DHWCN, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_DHWCN, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // NDHWC -> DHWNC
-    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_DHWNC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_NDHWC, ge::FORMAT_DHWNC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
 
     /*************************************NDC1HWC0*************************************/
     // NDC1HWC0 -> NDHWC
@@ -562,11 +589,14 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     // DHWCN -> DHWCN
     {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_DHWCN, kStrategyIdExtDeft), {}},
     // DHWCN -> NCDHW
-    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_NCDHW, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_NCDHW, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // DHWCN -> NDHWC
-    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_NDHWC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_NDHWC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // DHWCN -> DHWNC
-    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_DHWNC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWCN, ge::FORMAT_DHWNC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
 
     /*************************************DHWNC*************************************/
     // DHWNC -> FORMAT_FRACTAL_Z_3D_TRANSPOSE
@@ -574,11 +604,14 @@ const strategy_id_map STRATEGY_CONSECUTIVE_PRINCIPLE = {
     // DHWNC -> DHWNC
     {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_DHWNC, kStrategyIdExtDeft), {}},
     // DHWNC -> NCDHW
-    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_NCDHW, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_NCDHW, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // DHWNC -> DHWCN
-    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_NDHWC, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_NDHWC, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
     // DHWNC -> DHWCN
-    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, kStrategyIdExtDeft), {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
+    {CalcStrategyId(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, kStrategyIdExtDeft),
+     {UNSQUEEZE_V2_INDEX, TRANSPOSE_INDEX, SQUEEZE_V2_INDEX}},
 
     /*************************************FRACTAL_Z_3D*************************************/
     // FRACTAL_Z_3D -> NDHWC

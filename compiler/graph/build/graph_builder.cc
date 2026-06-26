@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,11 +51,7 @@ const int64_t kProfilingGetNextStartLogid = 20000;
 const uint32_t kSubgraphIndexOfPartitionedCall = 0U;
 constexpr const ge::char_t *kConstLifecycleGraph = "graph";
 constexpr const ge::char_t *kConstLifecycleSession = "session";
-enum class NodeType : uint32_t {
-  kSubgraphData = 0U,
-  kSubgraphNode = 1U,
-  kOthers = 2U
-};
+enum class NodeType : uint32_t { kSubgraphData = 0U, kSubgraphNode = 1U, kOthers = 2U };
 
 bool IsInRange(const int64_t val, const int64_t left, const int64_t right) {
   if ((val >= left) && (val < right)) {
@@ -100,10 +96,9 @@ static Status HandleSubgraphNode(NodePtr &src_node, OutDataAnchorPtr &src_out_an
 static Status HandleSubgraphDataNode(NodePtr &src_node, OutDataAnchorPtr &src_out_anchor) {
   uint32_t index = 0;
   if (!AttrUtils::GetInt(src_node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, index)) {
-    REPORT_INNER_ERR_MSG("E19999", "get attr:%s failed from node:%s",
-                       ATTR_NAME_PARENT_NODE_INDEX.c_str(), src_node->GetName().c_str());
-    GELOGE(FAILED, "[Get][Attr] %s failed, node:%s.", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-           src_node->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "get attr:%s failed from node:%s", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+                         src_node->GetName().c_str());
+    GELOGE(FAILED, "[Get][Attr] %s failed, node:%s.", ATTR_NAME_PARENT_NODE_INDEX.c_str(), src_node->GetName().c_str());
     return FAILED;
   }
   const NodePtr &parent_node = src_node->GetOwnerComputeGraph()->GetParentNode();
@@ -118,7 +113,8 @@ static Status HandleSubgraphDataNode(NodePtr &src_node, OutDataAnchorPtr &src_ou
   return SUCCESS;
 }
 
-static void ConvertOpType(const ge::ComputeGraphPtr &compute_graph, const std::string &old_type, const std::string &new_type) {
+static void ConvertOpType(const ge::ComputeGraphPtr &compute_graph, const std::string &old_type,
+                          const std::string &new_type) {
   for (const auto &node : compute_graph->GetAllNodes()) {
     auto op_desc = node->GetOpDesc();
     if (op_desc->GetType() == old_type) {
@@ -187,8 +183,7 @@ Status GraphBuilder::CalcOpParam(const ge::ComputeGraphPtr &graph) {
   GE_CHECK_NOTNULL(graph);
   auto instance_ptr = ge::GELib::GetInstance();
   if (instance_ptr == nullptr || !instance_ptr->InitFlag()) {
-    REPORT_INNER_ERR_MSG("E19999", "check gelib instance null, graph:%s",
-                       graph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "check gelib instance null, graph:%s", graph->GetName().c_str());
     GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Check][GELib] GraphBuilder: GE has not initialized, graph:%s",
            graph->GetName().c_str());
     return GE_CLI_GE_NOT_INITIALIZED;
@@ -202,8 +197,8 @@ Status GraphBuilder::CalcOpParam(const ge::ComputeGraphPtr &graph) {
       (void)instance_ptr->DNNEngineManagerObj().GetDNNEngineName(node_ptr);
       kernel_lib_name = node_ptr->GetOpDesc()->GetOpKernelLibName();
       if (kernel_lib_name.empty()) {
-        REPORT_INNER_ERR_MSG("E19999", "op kernel lib is empty in node:%s(%s)",
-                           node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "op kernel lib is empty in node:%s(%s)", node_ptr->GetName().c_str(),
+                             node_ptr->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Get][KernelLibName] of node:%s(%s) failed.", node_ptr->GetName().c_str(),
                node_ptr->GetType().c_str());
         return INTERNAL_ERROR;
@@ -212,16 +207,16 @@ Status GraphBuilder::CalcOpParam(const ge::ComputeGraphPtr &graph) {
 
     auto ret = SetInputSize(node_ptr);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Set node:%s(%s) inputDesc size failed",
-                        node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Set node:%s(%s) inputDesc size failed", node_ptr->GetName().c_str(),
+                           node_ptr->GetType().c_str());
       GELOGE(ret, "[Set][InputSize] to node:%s failed.", node_ptr->GetName().c_str());
       return ret;
     }
 
     ret = OpsKernelBuilderManager::Instance().CalcOpRunningParam(*node_ptr);
     if (ret != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Call Calculate op:%s(%s) running param failed",
-                        node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Call Calculate op:%s(%s) running param failed", node_ptr->GetName().c_str(),
+                           node_ptr->GetType().c_str());
       GELOGE(ret, "[Call][Calculate] op running param failed, node name is %s", node_ptr->GetName().c_str());
       return ret;
     }
@@ -300,9 +295,9 @@ Status GraphBuilder::Build(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_
   // To be compatible with the old process, do not verify the return value temporarily.
   (void)AttrUtils::GetBool(comp_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_dynamic_shape);
   if (is_dynamic_shape || comp_graph->GetGraphUnknownFlag()) {
-    GE_CHK_STATUS_RET(
-        BuildForDynamicShapeGraph(comp_graph, ge_root_model_ptr, ge_model_ptr, session_id, true),
-        "[Build][DynamicShapeGraph] failed, graph:%s, session id:%" PRIu64 ".", comp_graph->GetName().c_str(), session_id);
+    GE_CHK_STATUS_RET(BuildForDynamicShapeGraph(comp_graph, ge_root_model_ptr, ge_model_ptr, session_id, true),
+                      "[Build][DynamicShapeGraph] failed, graph:%s, session id:%" PRIu64 ".",
+                      comp_graph->GetName().c_str(), session_id);
     GE_ASSERT_SUCCESS(ge_root_model_ptr->Initialize(comp_graph));
   } else {
     GE_CHK_STATUS_RET(BuildForKnownShapeGraph(comp_graph, ge_model_ptr, session_id, true),
@@ -316,9 +311,8 @@ Status GraphBuilder::Build(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_
   return SUCCESS;
 }
 
-Status GraphBuilder::BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph,
-                                             GeModelPtr &ge_model_ptr, const uint64_t session_id,
-                                             const bool has_assigned_var_mem) {
+Status GraphBuilder::BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph, GeModelPtr &ge_model_ptr,
+                                             const uint64_t session_id, const bool has_assigned_var_mem) {
   GELOGI("Begin to build known shape graph[%s].", comp_graph->GetName().c_str());
   Status ret = SecondPartition(comp_graph);
   GE_CHK_STATUS_RET(ret, "[Call][SecondPartition] for Graph[%s] failed.", comp_graph->GetName().c_str());
@@ -327,8 +321,7 @@ Status GraphBuilder::BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph,
   GE_TRACE_START(BuildSubgraph);
   ge::ModelBuilder builder(session_id, comp_graph, subgraph_map, stream_max_parallel_num_, hcom_parallel_, build_mode_);
   GE_TRACE_START(PreBuildModel);
-  GE_CHK_STATUS_RET(builder.PreBuildModel(), "[PreBuild][Model] failed, Graph[%s].",
-                    comp_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(builder.PreBuildModel(), "[PreBuild][Model] failed, Graph[%s].", comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(PreBuildModel, "GraphBuilder::PreBuildModel");
 
   GE_TRACE_START(CalcOpParam);
@@ -361,16 +354,16 @@ Status GraphBuilder::BuildForKnownShapeGraph(ComputeGraphPtr &comp_graph,
   GE_COMPILE_TRACE_TIMESTAMP_END(BuildModelDefForStream, "GraphBuilder::BuildModelDefForStream");
 
   GE_TRACE_START(ReGetTaskInfo);
-  GE_ASSERT_SUCCESS(ReGetTaskInfo(comp_graph, session_id, *model_ptr),
-                    "ReGetTaskInfo fail, Graph[%s].", comp_graph->GetName().c_str());
+  GE_ASSERT_SUCCESS(ReGetTaskInfo(comp_graph, session_id, *model_ptr), "ReGetTaskInfo fail, Graph[%s].",
+                    comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(ReGetTaskInfo, "GraphBuilder::ReGetTaskInfo");
 
   ge_model_ptr = MakeShared<ge::GeModel>();
   if (ge_model_ptr == nullptr) {
     return MEMALLOC_FAILED;
   }
-  GE_CHK_STATUS_RET(builder.SaveDataToModel(*model_ptr, *ge_model_ptr),
-                    "[Save][Data] ToModel fail, Graph[%s].", comp_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(builder.SaveDataToModel(*model_ptr, *ge_model_ptr), "[Save][Data] ToModel fail, Graph[%s].",
+                    comp_graph->GetName().c_str());
   GELOGD("Success to build graph[%s] model.", comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(BuildSubgraph, "GraphBuilder::Build");
   return SUCCESS;
@@ -381,8 +374,8 @@ Status GraphBuilder::ReGetTaskInfo(const ComputeGraphPtr &comp_graph, uint64_t s
   GE_ASSERT_NOTNULL(task_generator);
   GE_ASSERT_SUCCESS(task_generator->ReGetTaskInfo(comp_graph), "Graph %s second gen task failed",
                     comp_graph->GetName().c_str());
-  GE_ASSERT_SUCCESS(task_generator->GenModelTaskDef(comp_graph, session_id, model),
-                    "Graph %s gen ModelDef failed", comp_graph->GetName().c_str());
+  GE_ASSERT_SUCCESS(task_generator->GenModelTaskDef(comp_graph, session_id, model), "Graph %s gen ModelDef failed",
+                    comp_graph->GetName().c_str());
   return SUCCESS;
 }
 
@@ -414,15 +407,15 @@ Status GraphBuilder::SetConstantInputOffset(const ComputeGraphPtr &comp_graph) c
 
       std::vector<GeTensorPtr> weights = OpDescUtils::MutableWeights(peer_node);
       if (weights.empty()) {
-        REPORT_INNER_ERR_MSG("E19999", "check weights size of node %s(%s) is empty",
-                           node->GetName().c_str(), node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "check weights size of node %s(%s) is empty", node->GetName().c_str(),
+                             node->GetType().c_str());
         GELOGE(FAILED, "[Check][Param] weights size of node %s is empty", node->GetName().c_str());
         return FAILED;
       }
       GeTensorPtr weight = weights[0];
       GE_CHECK_NOTNULL(weight);
       int64_t input_offset = 0;
-      (void) TensorUtils::GetDataOffset(weight->MutableTensorDesc(), input_offset);
+      (void)TensorUtils::GetDataOffset(weight->MutableTensorDesc(), input_offset);
       // valid_input_index must smaller than num_inputs
       input_offsets[valid_input_index] = input_offset;
       GELOGD("[%s] input[%u] is const, offset = %ld", node->GetName().c_str(), valid_input_index, input_offset);
@@ -459,8 +452,8 @@ Status GraphBuilder::BuildForUnknownShapeGraph(ComputeGraphPtr &comp_graph, GeMo
   GE_COMPILE_TRACE_TIMESTAMP_END(CalcOpParam, "GraphBuilder::CalcOpParam");
 
   GE_TRACE_START(SetConstantInputOffset);
-  GE_CHK_STATUS_RET(SetConstantInputOffset(comp_graph),
-                    "[Set][Offset] Graph[%s] failed to set constant input offset.", comp_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(SetConstantInputOffset(comp_graph), "[Set][Offset] Graph[%s] failed to set constant input offset.",
+                    comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(SetConstantInputOffset, "GraphBuilder::SetConstantInputOffset");
   GE_TRACE_START(MergeWeights);
   GE_CHK_STATUS_RET(builder.MergeWeights(), "[Merge][Weights] failed for Graph[%s].", comp_graph->GetName().c_str());
@@ -480,14 +473,14 @@ Status GraphBuilder::BuildForUnknownShapeGraph(ComputeGraphPtr &comp_graph, GeMo
   GE_COMPILE_TRACE_TIMESTAMP_END(GetTaskInfo, "GraphBuilder::GetTaskInfo");
 
   GE_TRACE_START(ReGetTaskInfo);
-  GE_ASSERT_SUCCESS(ReGetTaskInfo(comp_graph, session_id, *model_ptr),
-                    "[Get][ReGetTaskInfo] fail, Graph[%s].", comp_graph->GetName().c_str());
+  GE_ASSERT_SUCCESS(ReGetTaskInfo(comp_graph, session_id, *model_ptr), "[Get][ReGetTaskInfo] fail, Graph[%s].",
+                    comp_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(ReGetTaskInfo, "GraphBuilder::ReGetTaskInfo");
 
   ge_model_ptr = MakeShared<ge::GeModel>();
   GE_CHK_BOOL_RET_STATUS(ge_model_ptr != nullptr, MEMALLOC_FAILED, "[Make][GeModel] nullptr failed");
-  GE_CHK_STATUS_RET(builder.SaveDataToModel(*model_ptr, *ge_model_ptr),
-                    "[Save][Data] ToModel fail, Graph[%s].", comp_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(builder.SaveDataToModel(*model_ptr, *ge_model_ptr), "[Save][Data] ToModel fail, Graph[%s].",
+                    comp_graph->GetName().c_str());
   GELOGD("Success to build graph[%s] model.", comp_graph->GetName().c_str());
   return SUCCESS;
 }
@@ -536,8 +529,10 @@ Status GraphBuilder::MarkFpBpProfilingTaskAttr(ComputeGraphPtr &com_graph) const
         GELOGI("The all reduce node of dynamic graph is %s, idx %ld", op_desc->GetName().c_str(), node_index);
         (void)ge::AttrUtils::SetBool(op_desc, ATTR_NAME_INSERT_BP_PROFILILNG_TASK, true);
         GE_IF_BOOL_EXEC(TypeUtilsInner::CheckUint64MulOverflow(i, kProfilingArStep),
-                        REPORT_INNER_ERR_MSG("E19999", "Multiply result is out of range when calc profiling ar log id "
-                                           "for node:%s(%s)", op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                        REPORT_INNER_ERR_MSG("E19999",
+                                             "Multiply result is out of range when calc profiling ar log id "
+                                             "for node:%s(%s)",
+                                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
                         GELOGE(FAILED, "[Check][Param] Multiply result is out of range, node:%s(%s)",
                                op_desc->GetName().c_str(), op_desc->GetType().c_str());
                         return FAILED);
@@ -547,8 +542,8 @@ Status GraphBuilder::MarkFpBpProfilingTaskAttr(ComputeGraphPtr &com_graph) const
         break;
       }
     }
-    GE_ASSERT_SUCCESS(CalcLogIdAndSetAttr(op_desc, profiling_point.get_next_node_index,
-        node_index, kProfilingGetNextStartLogid));
+    GE_ASSERT_SUCCESS(
+        CalcLogIdAndSetAttr(op_desc, profiling_point.get_next_node_index, node_index, kProfilingGetNextStartLogid));
     if (profiling_point.end_index.find(node_index) != profiling_point.end_index.end()) {
       GELOGI("The end node of dynamic graph is %s, idx %ld", op_desc->GetName().c_str(), node_index);
       (void)ge::AttrUtils::SetBool(op_desc, ATTR_NAME_INSERT_END_PROFILILNG_TASK, true);
@@ -571,9 +566,9 @@ bool GraphBuilder::IsDataDirectConnNetoutput(ComputeGraphPtr &comp_graph) {
   return ((nodes.size() == 2U) && (nodes.at(0)->GetType() == "Data") && (nodes.at(1)->GetType() == "NetOutput"));
 }
 
-Status GraphBuilder::BuildForDynamicShapeGraph(ComputeGraphPtr &comp_graph,
-                                               GeRootModelPtr &ge_root_model_ptr, GeModelPtr &ge_model_ptr,
-                                               const uint64_t session_id, const bool has_assigned_var_mem) {
+Status GraphBuilder::BuildForDynamicShapeGraph(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_model_ptr,
+                                               GeModelPtr &ge_model_ptr, const uint64_t session_id,
+                                               const bool has_assigned_var_mem) {
   GELOGI("Start to build BuildForDynamicShape for dynamic shape.");
   // Update Root Graph Data size
 
@@ -649,13 +644,13 @@ Status GraphBuilder::AssignAttachedResourceForAllDynamicGraph(const ComputeGraph
   return SUCCESS;
 }
 
-Status GraphBuilder::BuildForUnknownShapeAllGraphs(ComputeGraphPtr &comp_graph,
-                                                   GeRootModelPtr &ge_root_model_ptr, GeModelPtr &ge_model_ptr,
-                                                   const uint64_t session_id, const bool has_assigned_var_mem) {
+Status GraphBuilder::BuildForUnknownShapeAllGraphs(ComputeGraphPtr &comp_graph, GeRootModelPtr &ge_root_model_ptr,
+                                                   GeModelPtr &ge_model_ptr, const uint64_t session_id,
+                                                   const bool has_assigned_var_mem) {
   auto all_graphs = comp_graph->GetAllSubgraphs();
   bool is_partitioned = false;
   // is_partitioned in singleop and helper hostcpu scenes is false
-  (void) AttrUtils::GetBool(comp_graph,  ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_partitioned);
+  (void)AttrUtils::GetBool(comp_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_partitioned);
   if ((!gert::GraphUnfolder::IsGraphNeedUnfold(comp_graph)) || (!is_partitioned) ||
       IsDataDirectConnNetoutput(comp_graph)) {
     all_graphs.insert(all_graphs.cbegin(), comp_graph);
@@ -682,9 +677,8 @@ Status GraphBuilder::BuildForUnknownShapeAllGraphs(ComputeGraphPtr &comp_graph,
       for (const auto &node : sub_graph->GetAllNodes()) {
         for (const auto &sub_graph_name : node->GetOpDesc()->GetSubgraphInstanceNames()) {
           auto sub_sub_graph = comp_graph->GetSubgraph(sub_graph_name);
-          GE_CHK_STATUS_RET(sub_graph->AddSubgraph(sub_sub_graph),
-                            "[Add][SubGraph] %s to known graph:%s failed.", sub_sub_graph->GetName().c_str(),
-                            sub_graph->GetName().c_str());
+          GE_CHK_STATUS_RET(sub_graph->AddSubgraph(sub_sub_graph), "[Add][SubGraph] %s to known graph:%s failed.",
+                            sub_sub_graph->GetName().c_str(), sub_graph->GetName().c_str());
         }
       }
       // known shape build flow
@@ -749,15 +743,16 @@ Status GraphBuilder::GetCurrentRunContext(const ge::ModelBuilder &builder, const
                                           ComputeGraphPtr &comp_graph, uint64_t session_id) {
   int64_t memory_size = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_MEMORY_SIZE, memory_size),
-                 "[Get][Attr] memory size fail, graph:%s, session id:%" PRIu64 ".", comp_graph->GetName().c_str(), session_id);
+                 "[Get][Attr] memory size fail, graph:%s, session id:%" PRIu64 ".", comp_graph->GetName().c_str(),
+                 session_id);
 
   int64_t p2p_memory_size = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_P2P_MEMORY_SIZE, p2p_memory_size),
                  "[Get][Attr] %s fail in model", ATTR_MODEL_P2P_MEMORY_SIZE.c_str());
 
   int64_t weight_size = 0;
-  GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_WEIGHT_SIZE, weight_size),
-                 "[Get][Attr] %s fail in model", ATTR_MODEL_WEIGHT_SIZE.c_str());
+  GE_ASSERT_TRUE(AttrUtils::GetInt(model_ptr, ATTR_MODEL_WEIGHT_SIZE, weight_size), "[Get][Attr] %s fail in model",
+                 ATTR_MODEL_WEIGHT_SIZE.c_str());
   int64_t host_memory_size = 0;
   (void)AttrUtils::GetInt(model_ptr, MODEL_ATTR_HOST_MEMORY_SIZE, host_memory_size);
   int64_t host_svm_size = 0;
@@ -796,8 +791,8 @@ Status GraphBuilder::GetCurrentRunContext(const ge::ModelBuilder &builder, const
 }
 
 Status GraphBuilder::GetTaskInfo(const ge::ModelBuilder &builder, const ModelPtr &model_ptr,
-                                      ComputeGraphPtr &comp_graph, Graph2SubGraphInfoList &subgraph_map,
-                                      uint64_t session_id) {
+                                 ComputeGraphPtr &comp_graph, Graph2SubGraphInfoList &subgraph_map,
+                                 uint64_t session_id) {
   GE_CHECK_NOTNULL(model_ptr);
   GE_CHECK_NOTNULL(comp_graph);
   GE_ASSERT_SUCCESS(GetCurrentRunContext(builder, model_ptr, comp_graph, session_id));
@@ -845,8 +840,8 @@ Status GraphBuilder::UpdateMemAfterAppendWs(const ModelPtr &model_ptr,
     for (auto &node : it->second) {
       auto cur_ws_vec = node->GetOpDesc()->GetWorkspace();
       auto cur_ws_size_vec = node->GetOpDesc()->GetWorkspaceBytes();
-      GELOGI("current %s has ws %s, ws_size %s", node->GetNamePtr(),
-             ToString(cur_ws_vec).c_str(), ToString(cur_ws_size_vec).c_str());
+      GELOGI("current %s has ws %s, ws_size %s", node->GetNamePtr(), ToString(cur_ws_vec).c_str(),
+             ToString(cur_ws_size_vec).c_str());
       std::vector<int64_t> cur_append_ws_vec;
       GE_ASSERT_TRUE(AttrUtils::GetListInt(node->GetOpDesc(), "_append_ws", cur_append_ws_vec));
       const size_t append_ws_start_id = cur_ws_vec.size();
@@ -858,8 +853,8 @@ Status GraphBuilder::UpdateMemAfterAppendWs(const ModelPtr &model_ptr,
       }
       node->GetOpDesc()->SetWorkspace(cur_ws_vec);
       node->GetOpDesc()->SetWorkspaceBytes(cur_ws_size_vec);
-      GELOGI("refresh %s ws %s, ws_size %s, append_ws_start_id %zu", node->GetNamePtr(),
-             ToString(cur_ws_vec).c_str(), ToString(cur_ws_size_vec).c_str(), append_ws_start_id);
+      GELOGI("refresh %s ws %s, ws_size %s, append_ws_start_id %zu", node->GetNamePtr(), ToString(cur_ws_vec).c_str(),
+             ToString(cur_ws_size_vec).c_str(), append_ws_start_id);
     }
     cur_memory_size += cur_max;
     last_append_ws_size += cur_max;
@@ -884,7 +879,8 @@ Status GraphBuilder::UpdateMemAfterAppendWs(const ModelPtr &model_ptr,
 }
 
 Status GraphBuilder::RefreshNodeOffsetAfterAppendWs(const Node *node, const int64_t origin_memory_size,
-    const int64_t zero_copy_size, const int64_t last_append_ws_size, bool &need_refresh) const {
+                                                    const int64_t zero_copy_size, const int64_t last_append_ws_size,
+                                                    bool &need_refresh) const {
   const int64_t left = origin_memory_size - zero_copy_size;
   const int64_t right = origin_memory_size;
   bool need_ignore_type = OpTypeUtils::IsVariableNode(node->GetType()) || OpTypeUtils::IsConstNode(node->GetType());
@@ -893,8 +889,8 @@ Status GraphBuilder::RefreshNodeOffsetAfterAppendWs(const Node *node, const int6
     auto cur_ws_vec = node->GetOpDesc()->GetWorkspace();
     std::vector<int64_t> cur_append_ws_vec;
     (void)AttrUtils::GetListInt(node->GetOpDesc(), "_append_ws", cur_append_ws_vec);
-    GE_ASSERT_TRUE(cur_ws_vec.size() >= cur_append_ws_vec.size(),
-                   "%zu vs %zu", cur_ws_vec.size(), cur_append_ws_vec.size());
+    GE_ASSERT_TRUE(cur_ws_vec.size() >= cur_append_ws_vec.size(), "%zu vs %zu", cur_ws_vec.size(),
+                   cur_append_ws_vec.size());
     // need to ignore append ws
     const size_t up_limit = cur_ws_vec.size() - cur_append_ws_vec.size();
     bool need_update_ws = false;
@@ -943,15 +939,14 @@ Status GraphBuilder::RefreshNodeOffsetAfterAppendWs(const Node *node, const int6
   return SUCCESS;
 }
 
-Status GraphBuilder::RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_graph,
-                                                const int64_t origin_memory_size, const int64_t zero_copy_size,
-                                                const int64_t last_append_ws_size,
+Status GraphBuilder::RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_graph, const int64_t origin_memory_size,
+                                                const int64_t zero_copy_size, const int64_t last_append_ws_size,
                                                 std::vector<Node *> &refresh_nodes) const {
   for (auto &node : comp_graph->GetAllNodesPtr()) {
     bool need_refresh = false;
     if (node->GetType() != "SuperKernel") {
-      GE_ASSERT_SUCCESS(RefreshNodeOffsetAfterAppendWs(node, origin_memory_size, zero_copy_size,
-                                                       last_append_ws_size, need_refresh));
+      GE_ASSERT_SUCCESS(
+          RefreshNodeOffsetAfterAppendWs(node, origin_memory_size, zero_copy_size, last_append_ws_size, need_refresh));
       if (need_refresh) {
         refresh_nodes.emplace_back(node);
       }
@@ -963,8 +958,8 @@ Status GraphBuilder::RefreshOffsetAfterAppendWs(const ComputeGraphPtr &comp_grap
       if (sub_graph != nullptr) {
         for (auto &sub_node : sub_graph->GetAllNodesPtr()) {
           GE_ASSERT_NOTNULL(sub_node);
-          GE_ASSERT_SUCCESS(RefreshNodeOffsetAfterAppendWs(sub_node, origin_memory_size,
-              zero_copy_size, last_append_ws_size, need_refresh));
+          GE_ASSERT_SUCCESS(RefreshNodeOffsetAfterAppendWs(sub_node, origin_memory_size, zero_copy_size,
+                                                           last_append_ws_size, need_refresh));
         }
       }
     }
@@ -1008,8 +1003,8 @@ Status GraphBuilder::ProcessAppendWs(const ModelPtr &model_ptr, const ComputeGra
   GE_ASSERT_TRUE(origin_memory_size >= zero_copy_size, "%ld vs %ld", origin_memory_size, zero_copy_size);
   int64_t last_append_ws_size = 0;
   GE_ASSERT_SUCCESS(UpdateMemAfterAppendWs(model_ptr, append_ws_stm_max, append_ws_stm_nodes, last_append_ws_size));
-  GE_ASSERT_SUCCESS(RefreshOffsetAfterAppendWs(comp_graph, origin_memory_size, zero_copy_size,
-                                               last_append_ws_size, refresh_nodes));
+  GE_ASSERT_SUCCESS(
+      RefreshOffsetAfterAppendWs(comp_graph, origin_memory_size, zero_copy_size, last_append_ws_size, refresh_nodes));
   return SUCCESS;
 }
 
@@ -1051,7 +1046,7 @@ Status GraphBuilder::SetInputSize(const ge::NodePtr &node_ptr) {
 
     auto input_desc = node_op_desc->MutableInputDesc(in_data_anchor->GetIdx());
     GE_CHECK_NOTNULL(input_desc);
-    (void) ge::TensorUtils::SetSize(*input_desc, size);
+    (void)ge::TensorUtils::SetSize(*input_desc, size);
     GELOGD("%s input desc, dim_size: %zu, mem_size: %ld, format: %s, type: %s.", node_ptr->GetName().c_str(),
            input_desc->GetShape().GetDimNum(), size, TypeUtils::FormatToSerialString(input_desc->GetFormat()).c_str(),
            TypeUtils::DataTypeToSerialString(input_desc->GetDataType()).c_str());
@@ -1060,18 +1055,20 @@ Status GraphBuilder::SetInputSize(const ge::NodePtr &node_ptr) {
     int64_t tensor_size_attr;
     if (AttrUtils::GetInt(output_desc, ATTR_NAME_SPECIAL_OUTPUT_SIZE, tensor_size_attr) && (tensor_size_attr > 0)) {
       GE_IF_BOOL_EXEC(!AttrUtils::SetInt(*input_desc, ATTR_NAME_SPECIAL_OUTPUT_SIZE, tensor_size_attr),
-                      GELOGW("Set size attr failed!"); continue);
+                      GELOGW("Set size attr failed!");
+                      continue);
       GELOGD("node[%s] [%d]th output has special size[%ld], and update to node[%s] [%d]th input",
-             src_op->GetName().c_str(), peer_out_anchor->GetIdx(), tensor_size_attr,
-             node_op_desc->GetName().c_str(), in_data_anchor->GetIdx());
+             src_op->GetName().c_str(), peer_out_anchor->GetIdx(), tensor_size_attr, node_op_desc->GetName().c_str(),
+             in_data_anchor->GetIdx());
     }
     // data->node; update data's output
     if (AttrUtils::GetInt(input_desc, ATTR_NAME_SPECIAL_INPUT_SIZE, tensor_size_attr) && (tensor_size_attr > 0)) {
       GE_IF_BOOL_EXEC(!AttrUtils::SetInt(*output_desc, ATTR_NAME_SPECIAL_INPUT_SIZE, tensor_size_attr),
-                      GELOGW("Set size attr failed!"); continue);
+                      GELOGW("Set size attr failed!");
+                      continue);
       GELOGD("node[%s] [%d]th output update special size[%ld] according to node[%s] [%d]th input",
-             src_op->GetName().c_str(), peer_out_anchor->GetIdx(), tensor_size_attr,
-             node_op_desc->GetName().c_str(), in_data_anchor->GetIdx());
+             src_op->GetName().c_str(), peer_out_anchor->GetIdx(), tensor_size_attr, node_op_desc->GetName().c_str(),
+             in_data_anchor->GetIdx());
     }
   }
 
@@ -1100,7 +1097,7 @@ Status GraphBuilder::UpdateDataInputSize(const ge::NodePtr &node_ptr) const {
     ge::graphStatus graph_status = TensorUtils::GetTensorSizeInBytes(output_desc, real_dim_size);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed for op:%s(%s) index:0",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
       GELOGE(FAILED, "[Get][TensorSize] in bytes failed, op:%s.", op_desc->GetName().c_str());
       return FAILED;
     }
@@ -1134,7 +1131,7 @@ Status GraphBuilder::CalcDynShapeRootGraphDataSize(const ge::OpDescPtr &op_desc)
     ge::graphStatus graph_status = TensorUtils::GetTensorSizeInBytes(output_desc, real_dim_size);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed for op:%s(%s) index:0 ",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
       GELOGE(FAILED, "[Get][TensorSize] in bytes failed, op:%s.", op_desc->GetName().c_str());
       return FAILED;
     }
@@ -1143,7 +1140,7 @@ Status GraphBuilder::CalcDynShapeRootGraphDataSize(const ge::OpDescPtr &op_desc)
     GELOGI("Update dynamic shape graph data output size to [%ld].", real_dim_size);
     if (op_desc->UpdateOutputDesc(0, output_desc) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Update output desc size failed for op:%s(%s) index:0 ",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
       GELOGE(FAILED, "[Update][OutputDesc] for dynamic shape graph data failed, op:%s.", op_desc->GetName().c_str());
       return FAILED;
     }
@@ -1187,17 +1184,15 @@ Status GraphBuilder::AddOutputMemTypeForNode(const NodePtr &node) const {
     while (true) {
       const auto &src_desc = src_node->GetOpDesc();
       GE_IF_BOOL_EXEC(src_desc == nullptr, continue);
-      GELOGD("[%s:%u] set attr output_memory_type %d", src_desc->GetName().c_str(), src_out_anchor->GetIdx(),
-             mem_type);
+      GELOGD("[%s:%u] set attr output_memory_type %d", src_desc->GetName().c_str(), src_out_anchor->GetIdx(), mem_type);
       const bool ret =
           AttrUtils::SetInt(src_desc->MutableOutputDesc(src_out_anchor->GetIdx()), ATTR_OUTPUT_MEMORY_TYPE, mem_type);
-      GE_ASSERT_TRUE(ret, "Set Attr:%s for node:%s(%s) out_index:%d failed",
-                     ATTR_OUTPUT_MEMORY_TYPE.c_str(), src_desc->GetName().c_str(), src_desc->GetType().c_str(),
-                     src_out_anchor->GetIdx());
+      GE_ASSERT_TRUE(ret, "Set Attr:%s for node:%s(%s) out_index:%d failed", ATTR_OUTPUT_MEMORY_TYPE.c_str(),
+                     src_desc->GetName().c_str(), src_desc->GetType().c_str(), src_out_anchor->GetIdx());
       switch (TransferNodeType(src_node)) {
         case NodeType::kSubgraphNode:
-          GE_CHK_STATUS_RET(HandleSubgraphNode(src_node, src_out_anchor),
-                            "[Handle][Node] %s in subgraph failed", src_node->GetName().c_str());
+          GE_CHK_STATUS_RET(HandleSubgraphNode(src_node, src_out_anchor), "[Handle][Node] %s in subgraph failed",
+                            src_node->GetName().c_str());
           break;
         case NodeType::kSubgraphData:
           GE_CHK_STATUS_RET(HandleSubgraphDataNode(src_node, src_out_anchor),

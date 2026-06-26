@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,70 +24,64 @@
 #include "common/configuration.h"
 
 namespace fe {
-using std::string;
 using ge::GeAttrValue;
+using std::string;
 namespace {
 const std::string kStageInitOpKernel = "[InitOpInfoLib][InitOpKernel]";
-const std::map<std::string, ge::GeAttrValue::ValueType> kAttrTypeMap {
-        {STR_INT, ge::GeAttrValue::VT_INT},
-        {STR_FLOAT, ge::GeAttrValue::VT_FLOAT},
-        {STR_BOOL, ge::GeAttrValue::VT_BOOL},
-        {STR_STR, ge::GeAttrValue::VT_STRING},
-        {STR_LIST_INT, ge::GeAttrValue::VT_LIST_INT},
-        {STR_LIST_FLOAT, ge::GeAttrValue::VT_LIST_FLOAT},
-        {STR_LIST_BOOL, ge::GeAttrValue::VT_LIST_BOOL},
-        {STR_LIST_STR, ge::GeAttrValue::VT_LIST_STRING},
-        {STR_LIST_LIST_INT, ge::GeAttrValue::VT_LIST_LIST_INT}};
+const std::map<std::string, ge::GeAttrValue::ValueType> kAttrTypeMap{
+    {STR_INT, ge::GeAttrValue::VT_INT},
+    {STR_FLOAT, ge::GeAttrValue::VT_FLOAT},
+    {STR_BOOL, ge::GeAttrValue::VT_BOOL},
+    {STR_STR, ge::GeAttrValue::VT_STRING},
+    {STR_LIST_INT, ge::GeAttrValue::VT_LIST_INT},
+    {STR_LIST_FLOAT, ge::GeAttrValue::VT_LIST_FLOAT},
+    {STR_LIST_BOOL, ge::GeAttrValue::VT_LIST_BOOL},
+    {STR_LIST_STR, ge::GeAttrValue::VT_LIST_STRING},
+    {STR_LIST_LIST_INT, ge::GeAttrValue::VT_LIST_LIST_INT}};
 
 // tuple<bool, string, string> default value, item_name, item_key
-const std::map<OP_KERNEL_FLAG, std::tuple<bool, string, string>> kOpkernelFlagMap {
-        {OP_KERNEL_FLAG::NeedCheckSupport, {false, kStrNeedCheckSupport, STR_FLAG}},
-        {OP_KERNEL_FLAG::DynamicFormat, {false, kStrDynamicFormat, STR_FLAG}},
-        {OP_KERNEL_FLAG::HeavyOp, {false, STR_HEAVY_OP, STR_FLAG}},
-        {OP_KERNEL_FLAG::SoftSyncOp, {false, kSoftSync, STR_FLAG}},
-        {OP_KERNEL_FLAG::SupportDynamicShape, {false, kStrDynamicShapeSupport, STR_FLAG}},
-        {OP_KERNEL_FLAG::InputMemContinues, {false, kStrInputMemContinues, STR_FLAG}},
-        {OP_KERNEL_FLAG::OutputMemContinues, {false, kStrOutputMemContinues, STR_FLAG}}
-};
+const std::map<OP_KERNEL_FLAG, std::tuple<bool, string, string>> kOpkernelFlagMap{
+    {OP_KERNEL_FLAG::NeedCheckSupport, {false, kStrNeedCheckSupport, STR_FLAG}},
+    {OP_KERNEL_FLAG::DynamicFormat, {false, kStrDynamicFormat, STR_FLAG}},
+    {OP_KERNEL_FLAG::HeavyOp, {false, STR_HEAVY_OP, STR_FLAG}},
+    {OP_KERNEL_FLAG::SoftSyncOp, {false, kSoftSync, STR_FLAG}},
+    {OP_KERNEL_FLAG::SupportDynamicShape, {false, kStrDynamicShapeSupport, STR_FLAG}},
+    {OP_KERNEL_FLAG::InputMemContinues, {false, kStrInputMemContinues, STR_FLAG}},
+    {OP_KERNEL_FLAG::OutputMemContinues, {false, kStrOutputMemContinues, STR_FLAG}}};
 
 // tuple<int64_t, string, string, map<string, int64_t>> default value, item_name, item_key, str_item_map
-const std::map<OP_KERNEL_PARAM, std::tuple<int64_t, string, string, std::map<string, int64_t>>> kOpkernelParamMap {
-        {OP_KERNEL_PARAM::OpPattern,
-         {static_cast<int64_t>(OP_PATTERN_OP_KERNEL), STR_OP, STR_PATTERN, kOpPatternMap}},
-        {OP_KERNEL_PARAM::PrecisionPolicy,
-         {static_cast<int64_t>(GRAY), STR_PRECISION_POLICY, STR_FLAG, kStrPrecisionPolicyMap}},
-        {OP_KERNEL_PARAM::OpSlicePattern,
-         {static_cast<int64_t>(PATTERN_RESERVED), STR_SLICE_PATTERN, STR_VALUE, kStrSlicePatternMap}},
-        {OP_KERNEL_PARAM::JitCompileType,
-         {static_cast<int64_t>(JitCompile::DEFAULT), kStrJitCompile, STR_FLAG, kStrJitCompileMap}},
-        {OP_KERNEL_PARAM::RangeLimitType,
-         {static_cast<int64_t>(RangeLimitType::DEFAULT), kStrRangeLimit, STR_VALUE, kStrRangeLimitTypeMap}},
-        {OP_KERNEL_PARAM::DynamicRankType,
-         {static_cast<int64_t>(DynamicRankType::NOT_SUPPORT), kStrDynamicRankSupport, STR_FLAG,
-          kStrDynamicRankTypeMap}},
-        {OP_KERNEL_PARAM::DynamicCompileStatic,
-         {static_cast<int64_t>(DynamicCompileStatic::NOT_SUPPORT), kStrDynamicCompileStatic, STR_FLAG,
-          kStrDynamicCompileStaticMap}},
-        {OP_KERNEL_PARAM::AclnnSupportType,
-         {static_cast<int64_t>(AclnnSupportType::DEFAULT), kAclnnSupport, STR_VALUE,
-          kAclnnSupportStrParamToEnumMap}},
-        {OP_KERNEL_PARAM::MultiKernelSupportType,
-         {static_cast<int64_t>(MultiKernelSupportType::DEFAULT), kMultiKernelSupportDynamicGraph, STR_VALUE,
-          kMultiKernelSupportStrParamToEnumMap}},
-        {OP_KERNEL_PARAM::EnableVectorCore,
-         {static_cast<int64_t>(VectorCoreType::DEFAULT), kStrEnableVectorCore, STR_FLAG,
-          kEnableVectorCoreStrParamToEnumMap}}
-};
+const std::map<OP_KERNEL_PARAM, std::tuple<int64_t, string, string, std::map<string, int64_t>>> kOpkernelParamMap{
+    {OP_KERNEL_PARAM::OpPattern, {static_cast<int64_t>(OP_PATTERN_OP_KERNEL), STR_OP, STR_PATTERN, kOpPatternMap}},
+    {OP_KERNEL_PARAM::PrecisionPolicy,
+     {static_cast<int64_t>(GRAY), STR_PRECISION_POLICY, STR_FLAG, kStrPrecisionPolicyMap}},
+    {OP_KERNEL_PARAM::OpSlicePattern,
+     {static_cast<int64_t>(PATTERN_RESERVED), STR_SLICE_PATTERN, STR_VALUE, kStrSlicePatternMap}},
+    {OP_KERNEL_PARAM::JitCompileType,
+     {static_cast<int64_t>(JitCompile::DEFAULT), kStrJitCompile, STR_FLAG, kStrJitCompileMap}},
+    {OP_KERNEL_PARAM::RangeLimitType,
+     {static_cast<int64_t>(RangeLimitType::DEFAULT), kStrRangeLimit, STR_VALUE, kStrRangeLimitTypeMap}},
+    {OP_KERNEL_PARAM::DynamicRankType,
+     {static_cast<int64_t>(DynamicRankType::NOT_SUPPORT), kStrDynamicRankSupport, STR_FLAG, kStrDynamicRankTypeMap}},
+    {OP_KERNEL_PARAM::DynamicCompileStatic,
+     {static_cast<int64_t>(DynamicCompileStatic::NOT_SUPPORT), kStrDynamicCompileStatic, STR_FLAG,
+      kStrDynamicCompileStaticMap}},
+    {OP_KERNEL_PARAM::AclnnSupportType,
+     {static_cast<int64_t>(AclnnSupportType::DEFAULT), kAclnnSupport, STR_VALUE, kAclnnSupportStrParamToEnumMap}},
+    {OP_KERNEL_PARAM::MultiKernelSupportType,
+     {static_cast<int64_t>(MultiKernelSupportType::DEFAULT), kMultiKernelSupportDynamicGraph, STR_VALUE,
+      kMultiKernelSupportStrParamToEnumMap}},
+    {OP_KERNEL_PARAM::EnableVectorCore,
+     {static_cast<int64_t>(VectorCoreType::DEFAULT), kStrEnableVectorCore, STR_FLAG,
+      kEnableVectorCoreStrParamToEnumMap}}};
 
 // tuple<bool, string, string> need_split, item_name, item_key
-const std::map<OP_KERNEL_STR_PARAM, std::tuple<string, string>> kOpkernelStrParamMap {
-        {OP_KERNEL_STR_PARAM::OpImpPath, {STR_IMP_PATH, STR_PATH}},
-        {OP_KERNEL_STR_PARAM::CoreType, {kCoreType, STR_VALUE}},
-        {OP_KERNEL_STR_PARAM::OpImplSwitch, {kStrOpImplSwitch, STR_VALUE}},
-        {OP_KERNEL_STR_PARAM::PrebuildPattern, {kStrPrebuildPattern, STR_VALUE}},
-        {OP_KERNEL_STR_PARAM::PromoteType, {kStrPromoteType, STR_VALUE}}
-};
-}
+const std::map<OP_KERNEL_STR_PARAM, std::tuple<string, string>> kOpkernelStrParamMap{
+    {OP_KERNEL_STR_PARAM::OpImpPath, {STR_IMP_PATH, STR_PATH}},
+    {OP_KERNEL_STR_PARAM::CoreType, {kCoreType, STR_VALUE}},
+    {OP_KERNEL_STR_PARAM::OpImplSwitch, {kStrOpImplSwitch, STR_VALUE}},
+    {OP_KERNEL_STR_PARAM::PrebuildPattern, {kStrPrebuildPattern, STR_VALUE}},
+    {OP_KERNEL_STR_PARAM::PromoteType, {kStrPromoteType, STR_VALUE}}};
+}  // namespace
 
 OpKernelInfoConstructor::OpKernelInfoConstructor() {}
 
@@ -120,22 +114,21 @@ Status OpKernelInfoConstructor::ParseBasicParameter(const OpContent &op_content,
   // if dynamicFormat is true, op pattern should be op customize
   if (op_kernel_info->op_flag_vec_[static_cast<size_t>(OP_KERNEL_FLAG::DynamicFormat)]) {
     op_kernel_info->op_param_vec_[static_cast<size_t>(OP_KERNEL_PARAM::OpPattern)] =
-            static_cast<int64_t>(OP_PATTERN_OP_CUSTOMIZE);
+        static_cast<int64_t>(OP_PATTERN_OP_CUSTOMIZE);
   }
 
   for (const auto &str_param_item : kOpkernelStrParamMap) {
     std::string str_value;
     std::vector<std::string> str_value_vec;
-    Status status = InitOpStrItem(std::get<0>(str_param_item.second), std::get<1>(str_param_item.second),
-                                  op_content, str_value);
+    Status status =
+        InitOpStrItem(std::get<0>(str_param_item.second), std::get<1>(str_param_item.second), op_content, str_value);
     if (status != SUCCESS) {
       return status;
     }
     op_kernel_info->op_str_param_vec_[static_cast<size_t>(str_param_item.first)] = str_value;
     StringUtils::SplitWithTrim(str_value, ',', str_value_vec);
-    FE_LOGD("%s of operation type [%s] is [%s], vector is [%s].",
-            (std::get<0>(str_param_item.second)).c_str(), op_kernel_info->GetOpType().c_str(),
-            str_value.c_str(), StringVecToString(str_value_vec).c_str());
+    FE_LOGD("%s of operation type [%s] is [%s], vector is [%s].", (std::get<0>(str_param_item.second)).c_str(),
+            op_kernel_info->GetOpType().c_str(), str_value.c_str(), StringVecToString(str_value_vec).c_str());
     op_kernel_info->op_str_param_2_vec_[static_cast<size_t>(str_param_item.first)] = str_value_vec;
   }
   ParsePromoteStr(op_kernel_info);
@@ -158,8 +151,7 @@ void OpKernelInfoConstructor::ParseOpOutputInplaceAbility(const OpContent &op_co
 
 void OpKernelInfoConstructor::ParsePromoteStr(OpKernelInfoPtr op_kernel_info) const {
   PromoteTypeVal promote_type_val;
-  std::string promote_str =
-      op_kernel_info->op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::PromoteType)];
+  std::string promote_str = op_kernel_info->op_str_param_vec_[static_cast<size_t>(OP_KERNEL_STR_PARAM::PromoteType)];
   if (promote_str.empty()) {
     return;
   }
@@ -189,8 +181,7 @@ void OpKernelInfoConstructor::ParsePromoteStr(OpKernelInfoPtr op_kernel_info) co
     }
     promote_type_val.promote_val.emplace_back(promote_item);
     FE_LOGD("Parse promoteType value of operation type [%s] is [%s], vector is [%s].",
-            op_kernel_info->GetOpType().c_str(),
-            promote_str.c_str(), StringVecToString(promote_item).c_str());
+            op_kernel_info->GetOpType().c_str(), promote_str.c_str(), StringVecToString(promote_item).c_str());
   }
   if (promote_type_val.promote_val.empty()) {
     promote_type_val.promote_flag = false;
@@ -202,8 +193,7 @@ void OpKernelInfoConstructor::ParsePromoteStr(OpKernelInfoPtr op_kernel_info) co
 
 Status OpKernelInfoConstructor::InitializeOpKernelInfo(const std::string &engine_name, const OpContent &op_content,
                                                        OpKernelInfoPtr op_kernel_info) {
-  FE_CHECK(op_kernel_info == nullptr,
-           FE_LOGW("OpKernelInfo is a null pointer in the InitializeOpKernelInfo function!"),
+  FE_CHECK(op_kernel_info == nullptr, FE_LOGW("OpKernelInfo is a null pointer in the InitializeOpKernelInfo function!"),
            return SUCCESS);
 
   if (op_kernel_info->init_flag_) {
@@ -238,13 +228,15 @@ Status OpKernelInfoConstructor::InitializeOpKernelInfo(const std::string &engine
 
   // parse the attr_info
   if (InitAttrValue(op_content, op_kernel_info) != SUCCESS) {
-    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to initialize AttrValue for Op %s.", op_kernel_info->op_type_.c_str());
+    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to initialize AttrValue for Op %s.",
+                    op_kernel_info->op_type_.c_str());
     return FAILED;
   }
 
   // parse OpInfo
   if (InitOpInfo(engine_name, op_content, op_kernel_info) != SUCCESS) {
-    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to initialize OpInfo for Op %s.", op_kernel_info->op_type_.c_str());
+    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to initialize OpInfo for Op %s.",
+                    op_kernel_info->op_type_.c_str());
     return FAILED;
   }
   if (InitFallback(op_content, op_kernel_info) != SUCCESS) {
@@ -263,8 +255,9 @@ Status OpKernelInfoConstructor::CheckFormatAgnosticOp(OpKernelInfoPtr op_kernel_
   std::vector<InputOrOutputInfoPtr> input_infos = op_kernel_info->input_infos_;
   std::vector<InputOrOutputInfoPtr> output_infos = op_kernel_info->output_infos_;
   if (input_infos.size() != 1 || output_infos.size() != 1) {
-    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Node[%s]: input_infos size %zu or output_infos size %zu is not equal to 1.",
-                    op_kernel_info->op_type_.c_str(), input_infos.size(), output_infos.size());
+    REPORT_FE_ERROR(
+        "[InitOpInfoLib][InitOpKernel] Node[%s]: input_infos size %zu or output_infos size %zu is not equal to 1.",
+        op_kernel_info->op_type_.c_str(), input_infos.size(), output_infos.size());
     return FAILED;
   }
   return SUCCESS;
@@ -286,8 +279,8 @@ void OpKernelInfoConstructor::ParserReferTensorNameVec(OpKernelInfoPtr op_kernel
     }
   }
   if (!op_kernel_info->refer_tensor_name_vec_.empty()) {
-    FE_LOGD("Node[%s]: referenced tensor is [%s].",
-            op_kernel_info->GetOpType().c_str(), StringVecToString(op_kernel_info->refer_tensor_name_vec_).c_str());
+    FE_LOGD("Node[%s]: referenced tensor is [%s].", op_kernel_info->GetOpType().c_str(),
+            StringVecToString(op_kernel_info->refer_tensor_name_vec_).c_str());
   }
 }
 
@@ -298,7 +291,7 @@ Status OpKernelInfoConstructor::FinalizeOpKernelInfo(OpKernelInfoPtr op_kernel_i
   }
 
   op_kernel_info->op_type_ = "";
-  /* The following two loop can be ommited because when a vector
+  /* The following two loop can be omitted because when a vector
    * is cleared, the shared pointers in this vector will automatically
    * destroy themselves. */
   for (size_t i = 0; i < op_kernel_info->input_infos_.size(); i++) {
@@ -332,7 +325,7 @@ void GetIntputAndOutputFlag(const OpContent &op_content, vector<string> &input_v
       input_vec.push_back(content.first);
       input_found = true;
     }
-    if (CheckInputSubStr(content.first, STR_OUTPUT_LOWERCASE)||
+    if (CheckInputSubStr(content.first, STR_OUTPUT_LOWERCASE) ||
         CheckInputSubStr(content.first, STR_OUTPUT_FIRST_LETTER_UPPERCASE)) {
       output_vec.push_back(content.first);
       output_found = true;
@@ -354,17 +347,17 @@ void AllErase(ContainerOfContainerPtr &containers, ContainerOfIter &iters) {
   }
 }
 
-bool RemoveHeavyFormatSupportWhenC0Change(vector<vector<ge::DataType> *>& all_support_dtypes,
-                                          vector<vector<ge::Format> *>& all_support_format) {
+bool RemoveHeavyFormatSupportWhenC0Change(vector<vector<ge::DataType> *> &all_support_dtypes,
+                                          vector<vector<ge::Format> *> &all_support_format) {
   vector<vector<ge::DataType>::iterator> all_support_dtypes_iters;
   vector<vector<ge::Format>::iterator> all_support_format_iters;
 
-  for (auto &supported_dtypes: all_support_dtypes) {
-      all_support_dtypes_iters.emplace_back(supported_dtypes->begin());
+  for (auto &supported_dtypes : all_support_dtypes) {
+    all_support_dtypes_iters.emplace_back(supported_dtypes->begin());
   }
 
-  for (auto &supported_formats: all_support_format) {
-      all_support_format_iters.emplace_back(supported_formats->begin());
+  for (auto &supported_formats : all_support_format) {
+    all_support_format_iters.emplace_back(supported_formats->begin());
   }
 
   bool do_remove = false;
@@ -406,7 +399,7 @@ bool RemoveHeavyFormatSupportWhenC0Change(vector<vector<ge::DataType> *>& all_su
 }
 
 bool OpKernelInfoConstructor::RemoveUnknownShapeAndShapeHeavyFormatSupportWhenC0Change(
-    vector<InputOrOutputInfoPtr>& inputs, vector<InputOrOutputInfoPtr>& outputs) const {
+    vector<InputOrOutputInfoPtr> &inputs, vector<InputOrOutputInfoPtr> &outputs) const {
   vector<vector<ge::DataType> *> all_support_dtypes;
   vector<vector<ge::Format> *> all_support_format;
 
@@ -429,21 +422,21 @@ bool OpKernelInfoConstructor::RemoveUnknownShapeAndShapeHeavyFormatSupportWhenC0
     }
   }
 
-  bool is_remove_unknown_shape = RemoveHeavyFormatSupportWhenC0Change(all_support_unknown_shape_dtypes,
-                                                                      all_support_unknown_shape_format);
+  bool is_remove_unknown_shape =
+      RemoveHeavyFormatSupportWhenC0Change(all_support_unknown_shape_dtypes, all_support_unknown_shape_format);
   return is_remove || is_remove_unknown_shape;
 }
 
-void OpKernelInfoConstructor::LogSupportFormatAndType(const char* message, OpKernelInfoPtr op_kernel_info) {
-    for (auto &input: op_kernel_info->input_infos_) {
-          FE_LOGD("[%s] format %s.", message, GetStrByFormatVec(input->supported_formats_).c_str());
-          FE_LOGD("[%s] dtype %s.", message, GetStrByDataTypeVec(input->supported_dtypes_).c_str());
-    }
+void OpKernelInfoConstructor::LogSupportFormatAndType(const char *message, OpKernelInfoPtr op_kernel_info) {
+  for (auto &input : op_kernel_info->input_infos_) {
+    FE_LOGD("[%s] format %s.", message, GetStrByFormatVec(input->supported_formats_).c_str());
+    FE_LOGD("[%s] dtype %s.", message, GetStrByDataTypeVec(input->supported_dtypes_).c_str());
+  }
 
-    for (auto &output: op_kernel_info->output_infos_) {
-          FE_LOGD("[%s] format %s.", message, GetStrByFormatVec(output->supported_formats_).c_str());
-          FE_LOGD("[%s] dtype %s.", message, GetStrByDataTypeVec(output->supported_dtypes_).c_str());
-    }
+  for (auto &output : op_kernel_info->output_infos_) {
+    FE_LOGD("[%s] format %s.", message, GetStrByFormatVec(output->supported_formats_).c_str());
+    FE_LOGD("[%s] dtype %s.", message, GetStrByDataTypeVec(output->supported_dtypes_).c_str());
+  }
 }
 
 Status OpKernelInfoConstructor::ParseInputAndOutputFromOpContent(const OpContent &op_content,
@@ -471,7 +464,8 @@ Status OpKernelInfoConstructor::ParseInputAndOutputFromOpContent(const OpContent
     string input_name;
     if (GetStrFromOpContent(op_content, input_index, STR_NAME, input_name) != SUCCESS) {
       REPORT_FE_ERROR(
-          "[InitOpInfoLib][InitOpKernel] Failed to get InputName %s for op %s, the name of input %u for op %s does not exist.",
+          "[InitOpInfoLib][InitOpKernel] Failed to get InputName %s for op %s, the name of input %u for op %s does not "
+          "exist.",
           input_index.c_str(), op_kernel_info->op_type_.c_str(), input_idx, op_content.op_type_.c_str());
       return FAILED;
     }
@@ -497,8 +491,8 @@ Status OpKernelInfoConstructor::ParseInputAndOutputFromOpContent(const OpContent
     }
     string output_name;
     if (GetStrFromOpContent(op_content, output_index, STR_NAME, output_name) != SUCCESS) {
-      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Op %s get OutputName %s failed.",
-                      op_kernel_info->op_type_.c_str(), output_index.c_str());
+      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Op %s get OutputName %s failed.", op_kernel_info->op_type_.c_str(),
+                      output_index.c_str());
       return FAILED;
     }
     InputOrOutputInfoPtr output_info_ptr = nullptr;
@@ -516,18 +510,17 @@ Status OpKernelInfoConstructor::ParseInputAndOutputFromOpContent(const OpContent
     op_kernel_info->output_infos_.push_back(output_info_ptr);
   }
   if (op_kernel_info->GetOpPattern() == OP_PATTERN_FORMAT_AGNOSTIC) {
-      bool is_remove = RemoveUnknownShapeAndShapeHeavyFormatSupportWhenC0Change(op_kernel_info->input_infos_,
-          op_kernel_info->output_infos_);
-      if (is_remove) {
-          LogSupportFormatAndType("After remove heavy format change C0 size.", op_kernel_info);
-      }
+    bool is_remove = RemoveUnknownShapeAndShapeHeavyFormatSupportWhenC0Change(op_kernel_info->input_infos_,
+                                                                              op_kernel_info->output_infos_);
+    if (is_remove) {
+      LogSupportFormatAndType("After remove heavy format change C0 size.", op_kernel_info);
+    }
   }
   return SUCCESS;
 }
 
 Status OpKernelInfoConstructor::InitFormatAndDtypeForSingleInputAndOutput(
-    OpPattern op_pattren, const map<string, string> &map_info,
-    const InputOrOutputInfoPtr &input_or_output_info,
+    OpPattern op_pattren, const map<string, string> &map_info, const InputOrOutputInfoPtr &input_or_output_info,
     OpKernelInfoPtr op_kernel_info, uint32_t &dtype_and_format_size_of_first_input) {
   string format_str;
   string unknown_format_str;
@@ -541,12 +534,13 @@ Status OpKernelInfoConstructor::InitFormatAndDtypeForSingleInputAndOutput(
   if (init_by_op_kernel) {
     if (format_stat == SUCCESS &&
         InitDtypeAndFormat(map_info, input_or_output_info, dtype_and_format_size_of_first_input) != SUCCESS) {
-      REPORT_FE_ERROR("%s Node[%s]: failed to initialize data type and format. Input or output is %s.", kStageInitOpKernel.c_str(),
-                      op_type.c_str(), unique_name.c_str());
+      REPORT_FE_ERROR("%s Node[%s]: failed to initialize data type and format. Input or output is %s.",
+                      kStageInitOpKernel.c_str(), op_type.c_str(), unique_name.c_str());
       return FAILED;
     }
-    if (unknown_format_stat == SUCCESS && InitDtypeByPattern(map_info, input_or_output_info,
-        dtype_and_format_size_of_first_input, op_pattren) != SUCCESS) {
+    if (unknown_format_stat == SUCCESS &&
+        InitDtypeByPattern(map_info, input_or_output_info, dtype_and_format_size_of_first_input, op_pattren) !=
+            SUCCESS) {
       REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Node[%s]: failed to init dtypes. Input or output is %s.",
                       op_type.c_str(), unique_name.c_str());
       return FAILED;
@@ -560,8 +554,10 @@ Status OpKernelInfoConstructor::InitFormatAndDtypeForSingleInputAndOutput(
     FE_LOGD("Node[%s]: the dynamic_format.flag is true. No need to init dtype or format. Input or output is %s.",
             op_type.c_str(), unique_name.c_str());
   } else if (op_pattren == OP_PATTERN_FORMAT_AGNOSTIC) {
-    FE_LOGD("Node[%s]: The operation pattern is format-agnostic. It needs to initialize the data type and all formats. The input or output is %s.",
-            op_type.c_str(), unique_name.c_str());
+    FE_LOGD(
+        "Node[%s]: The operation pattern is format-agnostic. It needs to initialize the data type and all formats. The "
+        "input or output is %s.",
+        op_type.c_str(), unique_name.c_str());
     if (InitDtypeAndAllFormat(map_info, input_or_output_info, dtype_and_format_size_of_first_input, op_kernel_info) !=
         SUCCESS) {
       REPORT_FE_ERROR("%s Node[%s]: failed to init dtype and all formats. Input or output is %s.",
@@ -593,8 +589,8 @@ Status OpKernelInfoConstructor::InitializeInputAndOutput(OpPattern op_pattren, c
   SetUniqueName(input_or_output_info);
 
   // 2. init formats and dtypes
-  if (InitFormatAndDtypeForSingleInputAndOutput(op_pattren, map_info, input_or_output_info,
-                                                op_kernel_info, dtype_and_format_size_of_first_input) != SUCCESS) {
+  if (InitFormatAndDtypeForSingleInputAndOutput(op_pattren, map_info, input_or_output_info, op_kernel_info,
+                                                dtype_and_format_size_of_first_input) != SUCCESS) {
     return FAILED;
   }
   // 3. init param_type
@@ -619,17 +615,16 @@ Status OpKernelInfoConstructor::InitializeInputAndOutput(OpPattern op_pattren, c
   // 5. init reshape_type
   string reshape_type_str;
   if (GetStrFromMap(map_info, STR_RESHAPE_TYPE, reshape_type_str) == SUCCESS) {
-    FE_LOGD("Node[%s], Tensor[%u, %s]: reshape type is %s. The is_input_ flag value is %u.",
-        op_type.c_str(), index, input_or_output_info->name_.c_str(), reshape_type_str.c_str(),
-        input_or_output_info->is_input_);
+    FE_LOGD("Node[%s], Tensor[%u, %s]: reshape type is %s. The is_input_ flag value is %u.", op_type.c_str(), index,
+            input_or_output_info->name_.c_str(), reshape_type_str.c_str(), input_or_output_info->is_input_);
     input_or_output_info->reshape_type_ = reshape_type_str;
   }
 
   // 6. init const_value_depend
   string const_value_depend_str;
   if (GetStrFromMap(map_info, STR_CONST_VALUE_DEPEND, const_value_depend_str) == SUCCESS) {
-    FE_LOGD("Node[%s], Tensor[%u, %s]: It has a constant value dependency on %s.",
-            op_type.c_str(), index, input_or_output_info->name_.c_str(), const_value_depend_str.c_str());
+    FE_LOGD("Node[%s], Tensor[%u, %s]: It has a constant value dependency on %s.", op_type.c_str(), index,
+            input_or_output_info->name_.c_str(), const_value_depend_str.c_str());
     // const depend param is optional
     auto const_depend_iter = kConstValueDependMap.find(StringUtils::Trim(const_value_depend_str));
     if (const_depend_iter != kConstValueDependMap.end()) {
@@ -668,8 +663,9 @@ Status ConvertStr2VecNumber(const string &attr_str, vector<T> &temp_plate_vec) {
     } else if (std::is_same<bool, DT>::value) {
       attr_elem = StringUtils::MatchString(kStrTrue, el);
     } else {
-      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Attribute %s is invalid. The attribute type is not one of int or bool.",
-                      attr_str.c_str());
+      REPORT_FE_ERROR(
+          "[InitOpInfoLib][InitOpKernel] Attribute %s is invalid. The attribute type is not one of int or bool.",
+          attr_str.c_str());
       return OP_STORE_STRING_CONVERT_FAILED;
     }
     temp_plate_vec.push_back(attr_elem);
@@ -777,7 +773,7 @@ Status OpKernelInfoConstructor::InitDtypeAndAllFormat(const map<string, string> 
   // 1. check th dtype size of inputs or outputs should be the same as
   // the size of the first input or output
   if (dtype_of_first_input == INVALID_DTYPE_AND_FORMAT_SIZE) {
-    dtype_of_first_input = static_cast<uint32_t >(dtype_size);
+    dtype_of_first_input = static_cast<uint32_t>(dtype_size);
   }
   if (dtype_size != dtype_of_first_input) {
     REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Tensor[%u, %s]: the dtype size %zu does not match %u.",
@@ -805,14 +801,15 @@ Status OpKernelInfoConstructor::InitDtypeAndAllFormat(const map<string, string> 
     REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to GenerateUnionFormatDtype");
     return FAILED;
   }
-  input_or_output_info->supported_formats_.insert(input_or_output_info->supported_formats_.cend(),
-                                                  new_formats.cbegin(), new_formats.cend());
+  input_or_output_info->supported_formats_.insert(input_or_output_info->supported_formats_.cend(), new_formats.cbegin(),
+                                                  new_formats.cend());
   input_or_output_info->supported_dtypes_.insert(input_or_output_info->supported_dtypes_.cend(),
                                                  new_data_types.cbegin(), new_data_types.cend());
   input_or_output_info->supported_sub_formats_.emplace_back(SUPPORT_ALL_SUB_FORMAT);
   // unknown shape format and dtype
   if (op_kernel_info->IsSupportDynamicShape()) {
-    FE_LOGD("Node [%s]: It supports an unknown shape. Set its format and data type.", op_kernel_info->GetOpType().c_str());
+    FE_LOGD("Node [%s]: It supports an unknown shape. Set its format and data type.",
+            op_kernel_info->GetOpType().c_str());
     input_or_output_info->supported_unknown_shape_formats_.insert(
         input_or_output_info->supported_unknown_shape_formats_.cend(), new_formats.cbegin(), new_formats.cend());
     input_or_output_info->supported_unknown_shape_dtypes_.insert(
@@ -825,7 +822,7 @@ Status OpKernelInfoConstructor::InitDtypeAndAllFormat(const map<string, string> 
 
 Status OpKernelInfoConstructor::InitFallback(const OpContent &op_content, const OpKernelInfoPtr &op_kernel_info) const {
   if (ParseFallbackFlags(op_content, STR_UNKNOWN_SHAPE_ENABLE,
-      op_kernel_info->fallback_flags_.unknown_shape_fallbacks) != SUCCESS) {
+                         op_kernel_info->fallback_flags_.unknown_shape_fallbacks) != SUCCESS) {
     return FAILED;
   }
   if (ParseFallbackFlags(op_content, STR_ENABLE, op_kernel_info->fallback_flags_.fallbacks) != SUCCESS) {
@@ -847,8 +844,9 @@ Status OpKernelInfoConstructor::ParseFallbackFlags(const OpContent &op_content, 
   for (size_t i = 0; i < fallback_size; ++i) {
     bool fallback_flag;
     if (String2Bool(fallback_str_vec[i], fallback_flag) != SUCCESS) {
-      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] String2Bool conversion of %s failed. The fallback_flag value is invalid!",
-                      fallback_str_vec[i].c_str());
+      REPORT_FE_ERROR(
+          "[InitOpInfoLib][InitOpKernel] String2Bool conversion of %s failed. The fallback_flag value is invalid!",
+          fallback_str_vec[i].c_str());
       return FAILED;
     }
     fallback_flags.emplace_back(fallback_flag);
@@ -879,7 +877,8 @@ Status OpKernelInfoConstructor::InitDtypeAndFormat(const map<string, string> &ma
   size_t dtype_size = dtype_str_vec.size();
   if (dtype_size != format_size) {
     REPORT_FE_ERROR(
-        "[GraphOpt][InitDtypeAndFormat][InitDtypeAndFormat] The format size [%zu] and dtype size [%zu] are inconsistent!",
+        "[GraphOpt][InitDtypeAndFormat][InitDtypeAndFormat] The format size [%zu] and dtype size [%zu] are "
+        "inconsistent!",
         format_size, dtype_size);
     return FAILED;
   }
@@ -899,8 +898,8 @@ Status OpKernelInfoConstructor::InitDtypeAndFormat(const map<string, string> &ma
   for (size_t i = 0; i < format_size; i++) {
     ge::Format format = ge::TypeUtils::SerialStringToFormat(StringUtils::Trim(format_str_vec[i]));
     if (format == ge::FORMAT_RESERVED) {
-      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert format %zu from string %s to enum.",
-                      i, format_str_vec[i].c_str());
+      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert format %zu from string %s to enum.", i,
+                      format_str_vec[i].c_str());
       return FAILED;
     }
     input_or_output_info->supported_formats_.push_back(format);
@@ -957,7 +956,7 @@ Status OpKernelInfoConstructor::InitUnknownFormatAndDtype(const map<string, stri
   size_t dtype_size = dtype_str_vec.size();
   if (dtype_size != format_size) {
     REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Inconsistent format size [%zu] and data type size [%zu]!",
-        format_size, dtype_size);
+                    format_size, dtype_size);
     return FAILED;
   }
   /* The Following dtype size and format size of inputs or outputs should be the
@@ -979,8 +978,8 @@ Status OpKernelInfoConstructor::InitUnknownFormatAndDtype(const map<string, stri
       continue;
     }
     if (format == ge::FORMAT_RESERVED) {
-      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert format %zu from string %s to enum.",
-                      i, format_str_vec[i].c_str());
+      REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert format %zu from string %s to enum.", i,
+                      format_str_vec[i].c_str());
       return FAILED;
     }
     input_or_output_info->supported_unknown_shape_formats_.push_back(format);
@@ -1007,7 +1006,7 @@ Status OpKernelInfoConstructor::GetStrFromMap(const map<string, string> &map_inf
 template <typename T>
 Status OpKernelInfoConstructor::ConvertListListAttrValue(const OpContent &op_content, const std::string &attr_name,
                                                          const std::string &key_name,
-                                                         vector<vector<vector<T>>> &list_list_attr_vec) const{
+                                                         vector<vector<vector<T>>> &list_list_attr_vec) const {
   string value;
   Status status = GetStrFromOpContent(op_content, attr_name, key_name, value);
   if (status != SUCCESS) {
@@ -1016,7 +1015,8 @@ Status OpKernelInfoConstructor::ConvertListListAttrValue(const OpContent &op_con
                       op_content.op_type_.c_str(), attr_name.c_str(), key_name.c_str());
       return FAILED;
     } else {
-      FE_LOGD("Getting attribute %s for [%s:%s] was not successfully.", op_content.op_type_.c_str(), attr_name.c_str(), key_name.c_str());
+      FE_LOGD("Getting attribute %s for [%s:%s] was not successfully.", op_content.op_type_.c_str(), attr_name.c_str(),
+              key_name.c_str());
       return NOT_CHANGED;
     }
   }
@@ -1073,7 +1073,8 @@ Status OpKernelInfoConstructor::ConvertListAttrValue(const OpContent &op_content
                       op_content.op_type_.c_str(), attr_name.c_str(), key_name.c_str());
       return FAILED;
     } else {
-      FE_LOGD("Getting attribute %s for [%s:%s] was not successfully.", op_content.op_type_.c_str(), attr_name.c_str(), key_name.c_str());
+      FE_LOGD("Getting attribute %s for [%s:%s] was not successfully.", op_content.op_type_.c_str(), attr_name.c_str(),
+              key_name.c_str());
       return NOT_CHANGED;
     }
   }
@@ -1159,8 +1160,8 @@ Status OpKernelInfoConstructor::InitAttrTemplate(const OpContent &op_content, co
     return FAILED;
   }
   if (ConvertStr2VecNumber(template_str, template_vec) != SUCCESS) {
-    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert Op %s to int %s.",
-                    op_content.op_type_.c_str(), template_str.c_str());
+    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert Op %s to int %s.", op_content.op_type_.c_str(),
+                    template_str.c_str());
     return FAILED;
   }
 
@@ -1178,8 +1179,8 @@ Status OpKernelInfoConstructor::InitAttrListTemplate(const OpContent &op_content
   vector<vector<T>> list_attr_vec;
   vector<GeAttrValue> attr_value_vec;
   if (FillUpListAttrValue<T>(op_content, attr_and_prefix, list_attr_vec, attr_info) != SUCCESS) {
-    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert Op %s to ListInt %s.",
-                    op_content.op_type_.c_str(), attr_and_prefix.c_str());
+    REPORT_FE_ERROR("[InitOpInfoLib][InitOpKernel] Failed to convert Op %s to ListInt %s.", op_content.op_type_.c_str(),
+                    attr_and_prefix.c_str());
     return FAILED;
   }
   for (auto &el : list_attr_vec) {
@@ -1286,7 +1287,9 @@ Status OpKernelInfoConstructor::InitAttrValue(const OpContent &op_content, OpKer
       return FAILED;
     }
     if (GetStrFromOpContent(op_content, attr_name, STR_PARAM_TYPE, param_type_str) != SUCCESS) {
-      FE_LOGD("OpKernelInfoConstructor::InitAttrValue, Op %s get %s.param_type_str unsuccess, check the ops_kernel_info.",
+      FE_LOGD(
+          "OpKernelInfoConstructor::InitAttrValue, Op %s get %s.param_type_str unsuccessful, check the "
+          "ops_kernel_info.",
           op_content.op_type_.c_str(), attr_name.c_str());
       continue;
     }
@@ -1303,8 +1306,7 @@ Status OpKernelInfoConstructor::InitAttrValue(const OpContent &op_content, OpKer
       new_attr_info->is_required_ = false;
     }
 
-    std::map<std::string, ge::GeAttrValue::ValueType>::const_iterator find_attr_type =
-            kAttrTypeMap.find(attr_type_str);
+    std::map<std::string, ge::GeAttrValue::ValueType>::const_iterator find_attr_type = kAttrTypeMap.find(attr_type_str);
     if (find_attr_type == kAttrTypeMap.end()) {
       FE_LOGW("Attr type [%s] of Attr [%s] is invalid for op [%s].", attr_type_str.c_str(), attr_name.c_str(),
               op_content.op_type_.c_str());
@@ -1324,8 +1326,8 @@ Status OpKernelInfoConstructor::InitAttrValue(const OpContent &op_content, OpKer
   return SUCCESS;
 }
 
-Status OpKernelInfoConstructor::GetStrFromOpContent(const OpContent &op_content, const string &key1,
-                                                    const string &key2, string &value) const {
+Status OpKernelInfoConstructor::GetStrFromOpContent(const OpContent &op_content, const string &key1, const string &key2,
+                                                    string &value) const {
   vector<string> attr_vec;
   auto key1_pos = op_content.map_kernel_info_.find(key1);
   if (op_content.map_kernel_info_.end() == key1_pos) {
@@ -1371,7 +1373,8 @@ Status OpKernelInfoConstructor::InitOpStrItem(const std::string &item_name, cons
       }
     }
     value = item_value_str;
-    FE_LOGD("The [%s] for operation [%s] is [%s].", item_name.c_str(), op_content.op_type_.c_str(), item_value_str.c_str());
+    FE_LOGD("The [%s] for operation [%s] is [%s].", item_name.c_str(), op_content.op_type_.c_str(),
+            item_value_str.c_str());
   }
   return SUCCESS;
 }
@@ -1392,8 +1395,8 @@ Status OpKernelInfoConstructor::InitOpItemValueByMaping(const std::string &item_
       return PARAM_INVALID;
     }
     value = iter->second;
-    FE_LOGD("The [%s][%s] of op [%s] is [%s].",
-            item_name.c_str(), item_key.c_str(), op_content.op_type_.c_str(), item_value_str.c_str());
+    FE_LOGD("The [%s][%s] of op [%s] is [%s].", item_name.c_str(), item_key.c_str(), op_content.op_type_.c_str(),
+            item_value_str.c_str());
   }
   return SUCCESS;
 }

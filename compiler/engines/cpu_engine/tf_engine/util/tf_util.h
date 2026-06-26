@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -97,11 +97,8 @@ ge::Status CalcWorkspaceSize(const ge::Node &node, int64_t &workspace_size);
  * @param func_def_lib_size the size of function def library
  * @return status whether operation successful
  */
-ge::Status ParseNodeDefAndFuncDef(const ge::Node &node,
-                                  ge::Buffer &node_def_bytes,
-                                  ge::Buffer &func_def_lib_bytes,
-                                  int64_t &node_def_size,
-                                  int64_t &func_def_lib_size);
+ge::Status ParseNodeDefAndFuncDef(const ge::Node &node, ge::Buffer &node_def_bytes, ge::Buffer &func_def_lib_bytes,
+                                  int64_t &node_def_size, int64_t &func_def_lib_size);
 
 /**
  * Build the kernelRunParam
@@ -111,8 +108,7 @@ ge::Status ParseNodeDefAndFuncDef(const ge::Node &node,
  * @param skip_dim_check
  * @return status whether operation successful
  */
-ge::Status BuildKernelRunParam(const ge::OpDesc &op_desc,
-                               ::aicpu::FWKAdapter::KernelRunParam &kernel_run_param,
+ge::Status BuildKernelRunParam(const ge::OpDesc &op_desc, ::aicpu::FWKAdapter::KernelRunParam &kernel_run_param,
                                bool skip_dim_check = false);
 
 /**
@@ -125,10 +121,8 @@ ge::Status BuildKernelRunParam(const ge::OpDesc &op_desc,
  * @return status whether operation successful
  */
 aicpu::State SetTensorDataInfo(const ge::GeTensorDesc &ge_tensor_desc,
-                               ::aicpu::FWKAdapter::TensorDataInfo &tensor_data_info,
-                               bool is_ref = false,
-                               bool skip_dim_check = false,
-                               bool is_output = false);
+                               ::aicpu::FWKAdapter::TensorDataInfo &tensor_data_info, bool is_ref = false,
+                               bool skip_dim_check = false, bool is_output = false);
 /**
  * Calc the running size of Operator,then GE will alloc the memsize from runtime
  * The size is consist of the part as follow:
@@ -145,4 +139,4 @@ ge::Status InsertTfNodeDefToOp(const ge::OpDescPtr &op_desc_ptr, domi::tensorflo
 ge::Status SerializeKernelRunParamToBuffer(const FWKAdapter::KernelRunParam &kernel_run_param, const string &op_name,
                                            ge::Buffer &buffer);
 }  // namespace aicpu
-#endif // TF_UTIL_H_
+#endif  // TF_UTIL_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ ge::Status GetDevBinFromOpDesc(const OpDesc &op_desc, const TBEKernelPtr &tbe_ke
     GELOGE(PARAM_INVALID, "[Check][JsonStr]Attr:%s in op:%s(%s), value:%s check invalid", TVM_ATTR_NAME_MAGIC.c_str(),
            op_desc.GetName().c_str(), op_desc.GetType().c_str(), json_string->c_str());
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s in op:%s(%s), value:%s check invalid", TVM_ATTR_NAME_MAGIC.c_str(),
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str(), json_string->c_str());
+                         op_desc.GetName().c_str(), op_desc.GetType().c_str(), json_string->c_str());
     return PARAM_INVALID;
   }
   binary.version = 0U;
@@ -47,7 +47,7 @@ ge::Status GetDevBinFromOpDesc(const OpDesc &op_desc, const TBEKernelPtr &tbe_ke
   GELOGI("TBE: binary.length: %lu", binary.length);
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 Status BinRegisterUtils::RegisterBin(const OpDesc &op_desc, const std::string &stub_name,
                                      const AttrNameOfBinOnOp &attr_names, void *&stub_func) {
@@ -55,7 +55,7 @@ Status BinRegisterUtils::RegisterBin(const OpDesc &op_desc, const std::string &s
   if (rt_ret != RT_ERROR_NONE) {
     const auto op_desc_ptr = MakeShared<OpDesc>(op_desc);
     GE_CHECK_NOTNULL(op_desc_ptr);
-    
+
     TBEHandleStore &kernel_store = TBEHandleStore::GetInstance();
     void *bin_handle = nullptr;
     if (!kernel_store.FindTBEHandle(stub_name.c_str(), bin_handle)) {
@@ -63,7 +63,7 @@ Status BinRegisterUtils::RegisterBin(const OpDesc &op_desc, const std::string &s
       const auto tbe_kernel = op_desc_ptr->TryGetExtAttr(attr_names.kTbeKernel, TBEKernelPtr());
       if (tbe_kernel == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "%s(%s) can't find tvm bin file!", op_desc_ptr->GetName().c_str(),
-                           op_desc_ptr->GetType().c_str());
+                             op_desc_ptr->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[TryGet][ExtAttr]TBE: %s(%s) can't find tvm bin file!", op_desc_ptr->GetName().c_str(),
                op_desc_ptr->GetType().c_str());
         return INTERNAL_ERROR;
@@ -86,7 +86,8 @@ Status BinRegisterUtils::RegisterBin(const OpDesc &op_desc, const std::string &s
     GE_IF_BOOL_EXEC(AttrUtils::GetStr(op_desc_ptr, key_for_kernel_name, attr_names.kKernelNameSuffix, kernel_name),
                     GELOGI("Get original type of kernel_name"));
     GELOGI("TBE: binfile_key=%s, kernel_name=%s", stub_name.c_str(), kernel_name.c_str());
-    GE_CHK_RT_RET(rtFunctionRegister(bin_handle, stub_name.c_str(), stub_name.c_str(), kernel_name.c_str(), FUNC_MODE_NORMAL));
+    GE_CHK_RT_RET(
+        rtFunctionRegister(bin_handle, stub_name.c_str(), stub_name.c_str(), kernel_name.c_str(), FUNC_MODE_NORMAL));
   }
   (void)KernelBinRegistry::GetInstance().GetUnique(stub_name);
   GE_CHK_RT_RET(rtGetFunctionByName(stub_name.c_str(), &stub_func));
@@ -100,7 +101,7 @@ Status BinRegisterUtils::RegisterBinWithHandle(const OpDesc &op_desc, const Attr
     GELOGE(INTERNAL_ERROR, "[Invoke][TryGetExtAttr]TBE: %s(%s) can't find tvm bin file!", op_desc.GetName().c_str(),
            op_desc.GetType().c_str());
     REPORT_INNER_ERR_MSG("E19999", "TBE: %s(%s) can't find tvm bin file.", op_desc.GetName().c_str(),
-                      op_desc.GetType().c_str());
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 

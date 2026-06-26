@@ -17,18 +17,20 @@ Status NotifyWaitTaskCodeBuilder::Contribute(TaskSemanticContributeContext &cont
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
   notify_id_ = context.task_def.notify_id();
-  GE_ASSERT_TRUE(notify_id_ < context.runtime->notify_num,
-                 "[OM2][Check][Param] notify list size:%u, cur:%u!", context.runtime->notify_num, notify_id_);
+  GE_ASSERT_TRUE(notify_id_ < context.runtime->notify_num, "[OM2][Check][Param] notify list size:%u, cur:%u!",
+                 context.runtime->notify_num, notify_id_);
   return SUCCESS;
 }
 
 Status NotifyWaitTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(ChkStatus(ast_.Call("KernelNotifyWaitDistribute", {
-      ast_.Str(header_.op_name),
-      notify_list_[static_cast<int32_t>(notify_id_)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-  })));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ChkStatus(ast_.Call("KernelNotifyWaitDistribute", {
+                                                            ast_.Str(header_.op_name),
+                                                            notify_list_[static_cast<int32_t>(notify_id_)],
+                                                            stream_list_[static_cast<int32_t>(header_.stream_id)],
+                                                        })));
   return SUCCESS;
 }
 
@@ -36,11 +38,12 @@ Status NotifyWaitTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &item
   auto op_name = ast_.Var("const char_t *const", "op_name");
   auto notify = ast_.Var("aclrtNotify", "notify");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelNotifyWaitDistribute", {op_name, notify, stream}, "aclError", {
-      ChkRt(RtSetTaskTag(op_name)),
-      ChkStatus(AclrtWaitAndResetNotify(notify, stream, "UINT32_MAX")),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelNotifyWaitDistribute", {op_name, notify, stream}, "aclError",
+                                      {
+                                          ChkRt(RtSetTaskTag(op_name)),
+                                          ChkStatus(AclrtWaitAndResetNotify(notify, stream, "UINT32_MAX")),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

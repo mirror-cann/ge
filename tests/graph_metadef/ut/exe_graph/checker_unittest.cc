@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,7 +13,7 @@
 #include "rt_external_base.h"
 #include "hyper_status.h"
 namespace {
-template<typename T>
+template <typename T>
 T JustReturn(T val) {
   return val;
 }
@@ -120,35 +120,35 @@ bool BoolFuncUseHyperStatus(gert::HyperStatus val) {
 int64_t g_a = 0xff;
 void *PointerFuncUseStatus(ge::graphStatus val) {
   GE_ASSERT_SUCCESS(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseBool(bool val) {
   GE_ASSERT_TRUE(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUsePointer(void *val) {
   GE_ASSERT_NOTNULL(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseUniquePtr(const std::unique_ptr<uint8_t[]> &val) {
   GE_ASSERT_NOTNULL(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseSharedPtr(const std::shared_ptr<uint8_t[]> &val) {
   GE_ASSERT_NOTNULL(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseEOK(int val) {
   GE_ASSERT_EOK(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseRt(int32_t val) {
   GE_ASSERT_RT_OK(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 void *PointerFuncUseHyperStatus(gert::HyperStatus val) {
   GE_ASSERT_HYPER_SUCCESS(val);
-  return (void*)&g_a;
+  return (void *)&g_a;
 }
 }  // namespace
 class CheckerUT : public testing::Test {};
@@ -272,7 +272,7 @@ TEST_F(CheckerUT, ReturnInFunc) {
   ASSERT_EQ(StatusFuncUseRtFunc(RT_ERROR_NONE), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(CheckerUT, MicroTest) { // Keep this the last case!!!
+TEST_F(CheckerUT, MicroTest) {  // Keep this the last case!!!
   std::string error_msg;
 #ifdef GELOGE
 #undef GELOGE
@@ -290,7 +290,10 @@ TEST_F(CheckerUT, MicroTest) { // Keep this the last case!!!
   [&error_msg]() { GE_ASSERT_NOTNULL(nullptr, "%s error", "Nullptr"); }();
   EXPECT_EQ(error_msg, "Nullptr error");
 
-  [&error_msg]()->bool { GE_ASSERT_EQ(0, 1); return true;}();
+  [&error_msg]() -> bool {
+    GE_ASSERT_EQ(0, 1);
+    return true;
+  }();
   EXPECT_EQ(error_msg, "Assert (0 == 1) failed, expect 1 actual 0");
 #undef GELOGE
 }

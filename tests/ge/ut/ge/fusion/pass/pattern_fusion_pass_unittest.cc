@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ GraphUniqPtr BuildReluReplacementWithStubInfer() {
   const auto stub_infer_func = [](Operator &op) {
     auto out_desc = op.GetOutputDesc(0);
     out_desc.SetShape(op.GetInputDesc(0).GetShape());
-    op.UpdateOutputDesc((int) 0, out_desc);
+    op.UpdateOutputDesc((int)0, out_desc);
     return GRAPH_SUCCESS;
   };
   for (const auto &node : GraphUtilsEx::GetComputeGraph(*replacement_graph)->GetDirectNode()) {
@@ -103,7 +103,7 @@ bool VerifyReplacedTopologyAndShape(const ComputeGraphPtr &graph) {
   }
   return found_transdata_4;
 }
-} // namespace
+}  // namespace
 
 class UtestPatternFusionPass : public testing::Test {
  public:
@@ -350,14 +350,16 @@ TEST_F(UtestPatternFusionPass, CycleMakerPass_NotChange) {
   auto abs1 = EsAbs(relu);
   auto relu1 = EsRelu(data1);
   auto add = EsAdd(abs1, relu1);
-  GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs->GetProducer())->GetOutControlAnchor(), NodeAdapter::GNode2Node(relu1->GetProducer())->GetInControlAnchor());
-  GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu1->GetProducer())->GetOutControlAnchor(), NodeAdapter::GNode2Node(abs1->GetProducer())->GetInControlAnchor());
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(relu1->GetProducer())->GetInControlAnchor());
+  GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu1->GetProducer())->GetOutControlAnchor(),
+                      NodeAdapter::GNode2Node(abs1->GetProducer())->GetInControlAnchor());
   esb_target_graph->SetGraphOutput(add, 0);
   auto target_graph = std::make_shared<Graph>(*target_graph_builder.BuildAndReset());
 
   class CycleMakerPass : public PatternFusionPass {
    public:
-    //CycleMakerPass() : PatternFusionPass() {}
+    // CycleMakerPass() : PatternFusionPass() {}
    protected:
     std::vector<PatternUniqPtr> Patterns() override {
       std::vector<PatternUniqPtr> patterns;
@@ -646,7 +648,9 @@ TEST_F(UtestPatternFusionPass, CycleGuard_DebugLevel_DetectsCyclicGraph) {
   // 其它用例（否则会误触它们的 cycle guard 造成连锁失败）。
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 1);
   struct DlogLevelGuard {
-    ~DlogLevelGuard() { dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0); }
+    ~DlogLevelGuard() {
+      dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
+    }
   } dlog_level_guard;
 
   class TransDataToReluPass : public PatternFusionPass {

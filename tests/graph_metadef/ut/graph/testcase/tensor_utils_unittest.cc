@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,11 +22,9 @@ namespace ge {
 
 class ge_test_tensor_utils : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(ge_test_tensor_utils, shape) {
@@ -100,8 +98,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_failed_datatype_notsupport) {
   DataType data_type = DT_UNDEFINED;
 
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -112,8 +109,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_failed_format_notsupport) {
   DataType data_type = DT_FLOAT16;
 
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_NE(ret, GRAPH_SUCCESS);
 }
 
@@ -124,12 +120,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NCHW_shape_not_4) {
   Format format = FORMAT_NCHW;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -140,12 +135,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NCHW_SUCCESS) {
   Format format = FORMAT_NCHW;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -157,12 +151,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NHWC_shape_not_4) {
   Format format = FORMAT_NHWC;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -173,12 +166,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NHWC_SUCCESS) {
   Format format = FORMAT_NHWC;
   DataType data_type = DT_FLOAT;
   int64_t expect_mem_size = sizeof(float);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -189,8 +181,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_ND_FAILED_overflow_with_type) {
   Format format = FORMAT_ND;
   DataType data_type = DT_UINT64;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -200,8 +191,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_ND_FAILED_overflow) {
   Format format = FORMAT_ND;
   DataType data_type = DT_UINT64;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_NE(ret, GRAPH_SUCCESS);
 }
 
@@ -211,8 +201,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_DT_STRING_FAILED_overflow) {
   Format format = FORMAT_ND;
   DataType data_type = DT_STRING;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_NE(ret, GRAPH_SUCCESS);
 }
 
@@ -222,12 +211,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_ND_SUCCESS) {
   Format format = FORMAT_ND;
   DataType data_type = DT_UINT64;
   int64_t expect_mem_size = sizeof(uint64_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -238,12 +226,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_MD_SUCCESS) {
   Format format = FORMAT_MD;
   DataType data_type = DT_UINT32;
   int64_t expect_mem_size = sizeof(uint32_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -254,12 +241,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NC1HWC0_SUCCESS_NONEEDPAD) {
   Format format = FORMAT_NC1HWC0;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -270,12 +256,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_NC1HWC0_SUCCESS_5D) {
   Format format = FORMAT_NC1HWC0;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -287,8 +272,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_ND_SUCCESS_size_0) {
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = 0;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_TRUE(mem_size == expect_mem_size);
 }
@@ -300,8 +284,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_ND_SUCCESS_size_unknown) {
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = -1;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -312,12 +295,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_C1HWNCoC0_SUCCESS) {
   Format format = FORMAT_C1HWNCoC0;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   EXPECT_EQ(mem_size, expect_mem_size);
 }
@@ -329,8 +311,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_CCE_FractalZ_shape_error) {
   Format format = FORMAT_FRACTAL_Z;
   DataType data_type = DT_UINT8;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   unsetenv("PARSER_PRIORITY");
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
@@ -342,12 +323,11 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_CCE_FractalZ_SUCCESS) {
   Format format = FORMAT_FRACTAL_Z;
   DataType data_type = DT_FLOAT16;
   int64_t expect_mem_size = sizeof(uint16_t);
-  for (int64_t dim:dims) {
+  for (int64_t dim : dims) {
     expect_mem_size *= dim;
   }
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   unsetenv("PARSER_PRIORITY");
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
@@ -359,17 +339,16 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSize_TBE_FractalZ_OverFlow_FAIL) {
   DataType data_type = DT_FLOAT16;
 
   int64_t mem_size = 0;
-  graphStatus ret =
-    TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
-  //cout<<"mem_size:"<<mem_size<<endl;
-  //cout<<" aa:" << aa <<endl;
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  // cout<<"mem_size:"<<mem_size<<endl;
+  // cout<<" aa:" << aa <<endl;
   EXPECT_NE(ret, GRAPH_SUCCESS);
 }
 
 TEST_F(ge_test_tensor_utils, GetTensorMemorySizeInBytes_SUCCESS) {
   GeTensorDesc tensorDesc;
   int64_t size;
-//  MOCKER(TensorUtils::GetTensorSizeInBytes).stubs().will(returnValue(GRAPH_SUCCESS));
+  //  MOCKER(TensorUtils::GetTensorSizeInBytes).stubs().will(returnValue(GRAPH_SUCCESS));
   graphStatus ret = TensorUtils::GetTensorMemorySizeInBytes(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
@@ -381,7 +360,7 @@ TEST_F(ge_test_tensor_utils, GetTensorMemorySizeInBytes_FAILED) {
   DataType data_type = DT_MAX;
   GeTensorDesc tensorDesc(ge_shape, format, data_type);
   int64_t size;
-//  MOCKER(TensorUtils::GetTensorSizeInBytes).stubs().will(returnValue(GRAPH_FAILED));
+  //  MOCKER(TensorUtils::GetTensorSizeInBytes).stubs().will(returnValue(GRAPH_FAILED));
   graphStatus ret = TensorUtils::GetTensorMemorySizeInBytes(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
@@ -389,7 +368,7 @@ TEST_F(ge_test_tensor_utils, GetTensorMemorySizeInBytes_FAILED) {
 TEST_F(ge_test_tensor_utils, GetTensorSizeInBytes_SUCCESS) {
   GeTensorDesc tensorDesc;
   int64_t size;
-//  MOCKER(TensorUtils::CalcTensorMemSize).stubs().with(any(),any(),any(),outBound(memSize)).will(returnValue(GRAPH_SUCCESS));
+  //  MOCKER(TensorUtils::CalcTensorMemSize).stubs().with(any(),any(),any(),outBound(memSize)).will(returnValue(GRAPH_SUCCESS));
   graphStatus ret = TensorUtils::GetTensorSizeInBytes(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
@@ -397,7 +376,7 @@ TEST_F(ge_test_tensor_utils, GetTensorSizeInBytes_SUCCESS) {
 TEST_F(ge_test_tensor_utils, GetTensorSizeInBytes_FAILED) {
   GeTensorDesc tensorDesc;
   int64_t size;
-//  MOCKER(TensorUtils::CalcTensorMemSize).stubs().will(returnValue(GRAPH_FAILED));
+  //  MOCKER(TensorUtils::CalcTensorMemSize).stubs().will(returnValue(GRAPH_FAILED));
   graphStatus ret = TensorUtils::GetTensorSizeInBytes(tensorDesc, size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
@@ -417,8 +396,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeFilterHwckTest) {
   Format format = FORMAT_FILTER_HWCK;
   DataType data_type = DT_STRING;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -428,8 +406,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeFractalZnRnn) {
   Format format = FORMAT_FRACTAL_ZN_RNN;
   DataType data_type = DT_STRING;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -439,8 +416,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeFractalZWino) {
   Format format = FORMAT_FRACTAL_Z_WINO;
   DataType data_type = DT_STRING;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -448,8 +424,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeShapeRangeIsNull) {
   vector<int64_t> dims({2, 3, 4, 5, 6, 7, 8});
   GeShape ge_shape(dims);
   std::vector<std::pair<int64_t, int64_t>> shape_range;
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -458,8 +433,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeFailTest) {
   GeShape ge_shape(dims);
   std::vector<std::pair<int64_t, int64_t>> shape_range;
   shape_range.push_back(std::make_pair<int64_t, int64_t>(1, 1));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -471,8 +445,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeLeftRangeLessThan0) {
   shape_range.push_back(std::make_pair<int64_t, int64_t>(2, 2));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(3, 3));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(4, 4));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -482,8 +455,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeCurDimIsUnknownDim) {
   std::vector<std::pair<int64_t, int64_t>> shape_range;
   shape_range.push_back(std::make_pair<int64_t, int64_t>(1, 1));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(2, 2));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -493,8 +465,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeCurDimLessThanLeftRange) {
   std::vector<std::pair<int64_t, int64_t>> shape_range;
   shape_range.push_back(std::make_pair<int64_t, int64_t>(3, 3));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(4, 4));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -504,8 +475,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeRightRangeLessThan0) {
   std::vector<std::pair<int64_t, int64_t>> shape_range;
   shape_range.push_back(std::make_pair<int64_t, int64_t>(3, -3));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(4, -4));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -515,8 +485,7 @@ TEST_F(ge_test_tensor_utils, CheckShapeByShapeRangeCurDimGreaterThanRightRange) 
   std::vector<std::pair<int64_t, int64_t>> shape_range;
   shape_range.push_back(std::make_pair<int64_t, int64_t>(3, 3));
   shape_range.push_back(std::make_pair<int64_t, int64_t>(4, 4));
-  graphStatus ret =
-      TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
+  graphStatus ret = TensorUtils::CheckShapeByShapeRange(ge_shape, shape_range);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -525,8 +494,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeForNoTilingSuccess) {
   Format format = FORMAT_NCHW;
   DataType data_type = DT_STRING;
   int64_t mem_size = 0;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -537,8 +505,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeForNoTilingDimsSizeIs0) {
   DataType data_type = DT_FLOAT;
   int64_t mem_size = 0;
   GeTensorDesc tensor(ge_shape, format, data_type);
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -549,8 +516,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeForNoTilingFail) {
   DataType data_type = DT_MAX;
   int64_t mem_size = 0;
   GeTensorDesc tensor(ge_shape);
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -564,8 +530,7 @@ TEST_F(ge_test_tensor_utils, GetMaxShapeDimsFromNoTilingTensorFail) {
   std::vector<int64_t> max_shape_list;
   max_shape_list.push_back(1);
   AttrUtils::SetListInt(tensor, ATTR_NAME_TENSOR_MAX_SHAPE, max_shape_list);
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
@@ -580,8 +545,7 @@ TEST_F(ge_test_tensor_utils, GetMaxShapeDimsFromNoTilingTensorSuccess) {
   max_shape_list.push_back(1);
   max_shape_list.push_back(2);
   AttrUtils::SetListInt(tensor, ATTR_NAME_TENSOR_MAX_SHAPE, max_shape_list);
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -596,8 +560,7 @@ TEST_F(ge_test_tensor_utils, GetMaxShapeDimsFromNoTilingTensorGetShapeRangeFail)
   std::vector<std::vector<int64_t>> range;
   range.push_back(std::vector<int64_t>(1));
   AttrUtils::SetListListInt(tensor, "shape_range", range);
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSizeForNoTiling(tensor, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
@@ -615,8 +578,7 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeDataTypeIsDtStringRef) {
   Format format = FORMAT_MAX;
   DataType data_type = DT_STRING_REF;
   int64_t mem_size;
-  graphStatus ret =
-      TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
+  graphStatus ret = TensorUtils::CalcTensorMemSize(ge_shape, format, data_type, mem_size);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
 
@@ -665,4 +627,4 @@ TEST_F(ge_test_tensor_utils, CalcTensorMemSizeC1HWC0) {
   EXPECT_EQ(mem_size, 1 * 2 * 3 * 4 * 1);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
 }
-}
+}  // namespace ge

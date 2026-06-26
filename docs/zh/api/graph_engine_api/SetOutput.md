@@ -97,4 +97,3 @@ EsTensorHolder add = data0 + data1;
 // 4. 设置图输出，add为第0个输出tensor
 builder.SetOutput(add, 0);
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,7 @@ class AutofuserTest : public testing::Test {
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("graph"));
     RegisterAllOpCreator();
   }
-  void TearDown() override {
-  }
+  void TearDown() override {}
   std::unique_ptr<es::Graph> es_graph_;
 
   static ComputeGraphPtr CreateGraphEleAndEle() {
@@ -375,9 +374,8 @@ TEST_F(AutofuserTest, SubgraphFusionOrder) {
   }
   ASSERT_NE(sub1_number, -1) << "sub1 should have AscBackend node";
   ASSERT_NE(sub2_number, -1) << "sub2 should have AscBackend node";
-  ASSERT_LT(sub2_number, sub1_number) << "sub2's autofuse number (" << sub2_number
-                                       << ") should be less than sub1's (" << sub1_number
-                                       << ") when traversing from back to front";
+  ASSERT_LT(sub2_number, sub1_number) << "sub2's autofuse number (" << sub2_number << ") should be less than sub1's ("
+                                      << sub1_number << ") when traversing from back to front";
 }
 
 TEST_F(AutofuserTest, CastCastRemoveOk) {

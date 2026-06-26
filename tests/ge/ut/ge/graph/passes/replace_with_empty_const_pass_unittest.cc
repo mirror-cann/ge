@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,11 +41,11 @@ ut::GraphBuilder Graph1Builder() {
   auto cast1 = builder.AddNode("cast1", "Cast", 1, 1);
   auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 0);
 
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  GeTensorDesc empty_tensor(GeShape({1,0,8,8}),FORMAT_NCHW);
-  cast1->GetOpDesc()->UpdateOutputDesc(0,empty_tensor);
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}), FORMAT_NCHW);
+  cast1->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
 
   builder.AddDataEdge(data1, 0, add1, 0);
   builder.AddDataEdge(const1, 0, add1, 1);
@@ -72,10 +72,10 @@ ut::GraphBuilder Graph2Builder() {
   auto switch1 = builder.AddNode("switch1", "Switch", 2, 1);
   auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 0);
 
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}),FORMAT_NCHW));
-  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}),FORMAT_NCHW);
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}), FORMAT_NCHW);
   switch1->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
 
   builder.AddDataEdge(data1, 0, add1, 0);
@@ -100,7 +100,7 @@ ut::GraphBuilder Graph3Builder() {
   (void)AttrUtils::SetBool(identity->GetOpDesc(), ATTR_NAME_IS_INSERTED_BY_GE, true);
   auto const_node = builder.AddNode("const", "Const", 0, 1);
 
-  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}),FORMAT_NCHW);
+  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}), FORMAT_NCHW);
   switch1->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
   identity->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
   (void)AttrUtils::SetBool(identity->GetOpDesc(), ATTR_NO_NEED_CONSTANT_FOLDING, true);
@@ -127,11 +127,11 @@ ut::GraphBuilder Graph4Builder() {
   auto cast1 = builder.AddNode("cast1", "Cast", 1, 1);
   auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 0);
 
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  cast1->GetOpDesc()->UpdateOutputDesc(0,GeTensorDesc(GeShape({1,1,8,8}),FORMAT_NCHW));
-  GeTensorDesc empty_tensor_desc(GeShape({1,0,8,8}),FORMAT_NCHW);
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddInputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  add1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  cast1->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape({1, 1, 8, 8}), FORMAT_NCHW));
+  GeTensorDesc empty_tensor_desc(GeShape({1, 0, 8, 8}), FORMAT_NCHW);
   GeTensorPtr empty_tensor = std::make_shared<GeTensor>(empty_tensor_desc);
   ConstantUtils::MarkPotentialConst(cast1->GetOpDesc(), {0}, {empty_tensor});
   AttrUtils::SetStr(cast1->GetOpDesc(), "_source_pass_of_potential_const", "ReplaceWithEmptyConstPass");
@@ -144,7 +144,7 @@ ut::GraphBuilder Graph4Builder() {
 }
 
 /**
- *              switch 
+ *              switch
  *                |
  *              identity(empty)
  *                |.
@@ -156,7 +156,7 @@ ut::GraphBuilder Graph5Builder() {
   auto identity = builder.AddNode("identity", "Identity", 1, 1);
   auto cast_node = builder.AddNode("cast", "Cast", 1, 1);
 
-  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}),FORMAT_NCHW);
+  GeTensorDesc empty_tensor(GeShape({1, 0, 8, 8}), FORMAT_NCHW);
   switch_node->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
   identity->GetOpDesc()->UpdateOutputDesc(0, empty_tensor);
 
@@ -172,24 +172,24 @@ TEST_F(UtestReplaceWithEmptyConstPass, replace_whith_empty_const_success) {
   graph->SetSessionID(0);
   ReplaceWithEmptyConstPass replace_with_empty_const_pass;
 
-  EXPECT_EQ(graph->GetDirectNodesSize(),5);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 5);
   // run pass on add1, graph still has 5 nodes
   auto add1 = graph->FindNode("add1");
   Status ret = replace_with_empty_const_pass.Run(add1);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetDirectNodesSize(),5);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 
   // run pass on const1, graph still has 5 nodes
   auto const1 = graph->FindNode("const1");
   ret = replace_with_empty_const_pass.Run(const1);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->GetDirectNodesSize(),5);
+  EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 
   auto cast1 = graph->FindNode("cast1");
   ret = replace_with_empty_const_pass.Run(cast1);
-  EXPECT_EQ(cast1->GetOutAllNodes().size(),0);
+  EXPECT_EQ(cast1->GetOutAllNodes().size(), 0);
   auto conv2d = graph->FindNode("conv2d");
-  EXPECT_EQ(conv2d->GetInDataNodes().at(0)->GetType(),"Const");
+  EXPECT_EQ(conv2d->GetInDataNodes().at(0)->GetType(), "Const");
 }
 
 TEST_F(UtestReplaceWithEmptyConstPass, replace_whith_empty_switch_skip) {

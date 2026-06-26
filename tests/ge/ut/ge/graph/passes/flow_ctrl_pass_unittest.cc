@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,9 @@ class UtestGraphPassesFlowCtrlPass : public testing::Test {
     EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->Init(session_version, session_id, device_id, job_id));
   }
 
-  void TearDown() { VarManagerPool::Instance().Destory(); }
+  void TearDown() {
+    VarManagerPool::Instance().Destory();
+  }
 
  public:
   /// Set up a graph with the following network structure
@@ -92,17 +94,15 @@ class UtestGraphPassesFlowCtrlPass : public testing::Test {
 
   void AddSessionVariables(void) {
     static std::set<std::string> var_list = {
-        NODE_NAME_FLOWCTRL_LOOP_PER_ITER,
-        NODE_NAME_FLOWCTRL_LOOP_COND,
-        NODE_NAME_FLOWCTRL_LOOP_INCREMENT,
-        NODE_NAME_FLOWCTRL_LOOP_RESETVALUE,
-        NODE_NAME_GLOBAL_STEP,
+        NODE_NAME_FLOWCTRL_LOOP_PER_ITER,   NODE_NAME_FLOWCTRL_LOOP_COND, NODE_NAME_FLOWCTRL_LOOP_INCREMENT,
+        NODE_NAME_FLOWCTRL_LOOP_RESETVALUE, NODE_NAME_GLOBAL_STEP,
     };
 
     uint8_t *dev_ptr = nullptr;
     ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_NHWC, ge::DT_UINT64);
     for (std::string var_name : var_list) {
-      EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->SetVarAddr(var_name, tensor_desc, dev_ptr, RT_MEMORY_HBM, nullptr));
+      EXPECT_EQ(SUCCESS,
+                ge::VarManager::Instance(0)->SetVarAddr(var_name, tensor_desc, dev_ptr, RT_MEMORY_HBM, nullptr));
     }
   }
 };
@@ -176,8 +176,8 @@ TEST_F(UtestGraphPassesFlowCtrlPass, add_fpbp_iterator_ctrl_without_var) {
   // must have NODE_NAME_FLOWCTRL_LOOP_PER_ITER
   ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_NHWC, ge::DT_UINT64);
   uint8_t *dev_ptr = nullptr;
-  EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->SetVarAddr(NODE_NAME_FLOWCTRL_LOOP_PER_ITER, tensor_desc,
-                                                                   dev_ptr, RT_MEMORY_HBM, nullptr));
+  EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->SetVarAddr(NODE_NAME_FLOWCTRL_LOOP_PER_ITER, tensor_desc, dev_ptr,
+                                                             RT_MEMORY_HBM, nullptr));
   // not add var
   FlowCtrlPass flow_ctrl_pass;
   Status ret = flow_ctrl_pass.Run(graph);
@@ -291,7 +291,7 @@ TEST_F(UtestGraphPassesFlowCtrlPass, add_fpbp_iterator_ctrl_without_loop_ref_ite
   ge::GeTensorDesc tensor_desc(ge::GeShape({1}), ge::FORMAT_NHWC, ge::DT_UINT64);
   uint8_t *dev_ptr = nullptr;
   for (std::string var_name : var_list) {
-    EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->SetVarAddr(var_name, tensor_desc, dev_ptr, RT_MEMORY_HBM,nullptr));
+    EXPECT_EQ(SUCCESS, ge::VarManager::Instance(0)->SetVarAddr(var_name, tensor_desc, dev_ptr, RT_MEMORY_HBM, nullptr));
   }
   FlowCtrlPass flow_ctrl_pass;
   NodePtr pre_node = graph->FindNode("NetOutput");
@@ -401,7 +401,8 @@ TEST_F(UtestGraphPassesFlowCtrlPass, insert_assign_op_value_node_no_outanchor) {
 }
 
 TEST_F(UtestGraphPassesFlowCtrlPass, create_iter_ctrl_false_branch_insert_assign_op_failed) {
-  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("Test_CreateIterCtrlFalseBranch_InsertAssignOp_FAILED");
+  ge::ComputeGraphPtr graph =
+      std::make_shared<ge::ComputeGraph>("Test_CreateIterCtrlFalseBranch_InsertAssignOp_FAILED");
 
   FlowCtrlPass flow_ctrl_pass;
   GeTensorDesc tmp_geT_tensor_desc;

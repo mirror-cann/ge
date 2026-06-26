@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,14 +49,14 @@ void AddNodeInputProperty(const ComputeGraphPtr &compute_graph) {
     std::vector<std::string> input_name_list;
     std::vector<int64_t> src_index_list;
     GE_IF_BOOL_EXEC(
-      in_control_anchor != nullptr, std::string src_name_temp; for (auto &out_control_anchor
-                                                               : in_control_anchor->GetPeerOutControlAnchors()) {
-        GE_IF_BOOL_EXEC(out_control_anchor == nullptr, GELOGW("out_control_anchor is nullptr!"); continue);
-        ge::NodePtr src_node = out_control_anchor->GetOwnerNode();
-        GE_IF_BOOL_EXEC(src_node == nullptr, GELOGW("src_node is nullptr!"); continue);
-        src_name_temp = src_name_temp == "" ? src_node->GetName() : src_name_temp + ":" + src_node->GetName();
-      } GE_IF_BOOL_EXEC(src_name_temp != "", src_name_list.emplace_back(src_name_temp);
-                        node_op_desc->SetSrcName(src_name_list);))
+        in_control_anchor != nullptr, std::string src_name_temp;
+        for (auto &out_control_anchor : in_control_anchor->GetPeerOutControlAnchors()) {
+          GE_IF_BOOL_EXEC(out_control_anchor == nullptr, GELOGW("out_control_anchor is nullptr!"); continue);
+          ge::NodePtr src_node = out_control_anchor->GetOwnerNode();
+          GE_IF_BOOL_EXEC(src_node == nullptr, GELOGW("src_node is nullptr!"); continue);
+          src_name_temp = src_name_temp == "" ? src_node->GetName() : src_name_temp + ":" + src_node->GetName();
+        } GE_IF_BOOL_EXEC(src_name_temp != "", src_name_list.emplace_back(src_name_temp);
+                          node_op_desc->SetSrcName(src_name_list);))
 
     for (auto &in_data_anchor : node->GetAllInDataAnchors()) {
       GE_IF_BOOL_EXEC(in_data_anchor == nullptr, continue);
@@ -72,10 +72,9 @@ void AddNodeInputProperty(const ComputeGraphPtr &compute_graph) {
       node_op_desc->SetSrcIndex(src_index_list);
       GE_IF_BOOL_EXEC(!(node_op_desc->GetType() == NETOUTPUT && GetLocalOmgContext().type == domi::TENSORFLOW),
                       ge::NodePtr peer_owner_node = peer_out_anchor->GetOwnerNode();
-                      GE_IF_BOOL_EXEC(peer_owner_node == nullptr, continue);
-                      input_name_list.emplace_back(
-                        peer_owner_node->GetName() +
-                        (peer_out_anchor->GetIdx() == 0 ? "" : ": " + to_string(peer_out_anchor->GetIdx())));
+                      GE_IF_BOOL_EXEC(peer_owner_node == nullptr, continue); input_name_list.emplace_back(
+                          peer_owner_node->GetName() +
+                          (peer_out_anchor->GetIdx() == 0 ? "" : ": " + to_string(peer_out_anchor->GetIdx())));
                       node_op_desc->SetInputName(input_name_list);)
     }
   }
@@ -98,17 +97,18 @@ Status GraphOptimize::OptimizeSubGraph(ComputeGraphPtr &compute_graph, const std
       return SUCCESS;
     }
 
-    if (build_mode_ == BUILD_MODE_TUNING && (build_step_ == BUILD_STEP_AFTER_UB_MATCH
-      || build_step_ == BUILD_STEP_AFTER_MERGE)) {
+    if (build_mode_ == BUILD_MODE_TUNING &&
+        (build_step_ == BUILD_STEP_AFTER_UB_MATCH || build_step_ == BUILD_STEP_AFTER_MERGE)) {
       for (auto iter = graph_optimizer.begin(); iter != graph_optimizer.end(); ++iter) {
         TraceOwnerGuard guard("GE", "OptimizeFusedGraphAfterGraphSlice", compute_graph->GetName());
         Status ret = (*iter)->OptimizeFusedGraphAfterGraphSlice(*(compute_graph));
         if (ret != SUCCESS) {
-          REPORT_INNER_ERR_MSG("E19999", "Call OptimizeFusedGraphAfterGraphSlice failed, ret:%u, engine_name:%s, "
-                             "graph_name:%s", ret, engine_name.c_str(),
-                             compute_graph->GetName().c_str());
-          GELOGE(ret, "[Call][OptimizeFusedGraphAfterGraphSlice] failed, ret:%u, engine_name:%s, graph_name:%s",
-                 ret, engine_name.c_str(), compute_graph->GetName().c_str());
+          REPORT_INNER_ERR_MSG("E19999",
+                               "Call OptimizeFusedGraphAfterGraphSlice failed, ret:%u, engine_name:%s, "
+                               "graph_name:%s",
+                               ret, engine_name.c_str(), compute_graph->GetName().c_str());
+          GELOGE(ret, "[Call][OptimizeFusedGraphAfterGraphSlice] failed, ret:%u, engine_name:%s, graph_name:%s", ret,
+                 engine_name.c_str(), compute_graph->GetName().c_str());
           return ret;
         }
       }
@@ -119,11 +119,12 @@ Status GraphOptimize::OptimizeSubGraph(ComputeGraphPtr &compute_graph, const std
       TraceOwnerGuard guard("GE", "OptimizeFusedGraph", compute_graph->GetName());
       Status ret = (*iter)->OptimizeFusedGraph(*(compute_graph));
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeFusedGraph failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, engine_name.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Optimize][FusedGraph] failed, ret:%u, engine_name:%s, graph_name:%s",
-               ret, engine_name.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeFusedGraph failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, engine_name.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Optimize][FusedGraph] failed, ret:%u, engine_name:%s, graph_name:%s", ret, engine_name.c_str(),
+               compute_graph->GetName().c_str());
         return ret;
       }
     }
@@ -143,8 +144,9 @@ Status GraphOptimize::OptimizeGraphInit(const ComputeGraphPtr &compute_graph) co
   }
   // init process for optimize graph every time because options may different in different build process
   // 当前引擎获取编译option是在OptimizeGraphPrepare接口中获取，该接口默认会过滤vector engine。
-  // 当前出现问题场景是子图优化阶段因为算子融合直接选择了vector engine的场景，出现了vector engine获取不到编译option导致问题。
-  // 当前决策新增OptimizeGraphInit接口，该接口不会过滤引擎，全部调用.这样获取到build option操作就从OptimizeGraphPrepare剥离。
+  // 当前出现问题场景是子图优化阶段因为算子融合直接选择了vector engine的场景，出现了vector
+  // engine获取不到编译option导致问题。 当前决策新增OptimizeGraphInit接口，该接口不会过滤引擎，全部调用.这样获取到build
+  // option操作就从OptimizeGraphPrepare剥离。
   auto graph_optimizer = instance_ptr->OpsKernelManagerObj().GetAllGraphOptimizerObjsByPriority();
   GELOGD("OptimizeGraphInit by opskernel, num of graph_optimizer is %zu.", graph_optimizer.size());
 
@@ -167,8 +169,8 @@ Status GraphOptimize::FinalizeSessionInfo(const ComputeGraphPtr &compute_graph) 
   for (auto &iter : graph_optimizer) {
     Status ret = (iter.second)->FinalizeSessionInfo(*compute_graph);
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Optimize][FinalizeSessionInfo] failed, ret:%u, engine_name:%s, graph_name:%s",
-             ret, iter.first.c_str(), compute_graph->GetName().c_str());
+      GELOGE(ret, "[Optimize][FinalizeSessionInfo] failed, ret:%u, engine_name:%s, graph_name:%s", ret,
+             iter.first.c_str(), compute_graph->GetName().c_str());
       return ret;
     }
   }
@@ -188,20 +190,23 @@ Status GraphOptimize::OptimizeOriginalGraph(const ComputeGraphPtr &compute_graph
       }
       ret = (iter->second)->OptimizeOriginalGraph(*compute_graph);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeOriginalGraph failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, iter->first.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Optimize][OriginalGraph] failed, ret:%u, engine_name:%s, graph_name:%s",
-               ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeOriginalGraph failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Optimize][OriginalGraph] failed, ret:%u, engine_name:%s, graph_name:%s", ret, iter->first.c_str(),
+               compute_graph->GetName().c_str());
         return ret;
       }
     }
   }
   fusion::FusionPassExecutor fusion_pass_executor;
   GE_TRACE_START(RunCustomPassAfterBuiltinFusionPass);
-  GE_ASSERT_SUCCESS(fusion_pass_executor.RunPassesWithLegacyCustom(compute_graph, CustomPassStage::kAfterBuiltinFusionPass),
-                    "Run after built-in fusion pass for graph [%s] failed.", compute_graph->GetName().c_str());
-  GE_COMPILE_TRACE_TIMESTAMP_END(RunCustomPassAfterBuiltinFusionPass, "GraphManager::RunCustomPassAfterBuiltinFusionPass");
+  GE_ASSERT_SUCCESS(
+      fusion_pass_executor.RunPassesWithLegacyCustom(compute_graph, CustomPassStage::kAfterBuiltinFusionPass),
+      "Run after built-in fusion pass for graph [%s] failed.", compute_graph->GetName().c_str());
+  GE_COMPILE_TRACE_TIMESTAMP_END(RunCustomPassAfterBuiltinFusionPass,
+                                 "GraphManager::RunCustomPassAfterBuiltinFusionPass");
   GE_DUMP(compute_graph, "RunCustomPassAfterBuiltinFusionPass");
   return ret;
 }
@@ -228,7 +233,7 @@ Status GraphOptimize::GetValidGraphOptimizer(
   return SUCCESS;
 }
 
-Status GraphOptimize::OptimizeAfterGraphNormalization(const ComputeGraphPtr& compute_graph) const {
+Status GraphOptimize::OptimizeAfterGraphNormalization(const ComputeGraphPtr &compute_graph) const {
   GE_CHECK_NOTNULL(compute_graph);
 
   std::vector<std::pair<std::string, GraphOptimizerPtr>> graph_optimizer;
@@ -242,9 +247,9 @@ Status GraphOptimize::OptimizeAfterGraphNormalization(const ComputeGraphPtr& com
     ret = (iter->second)->OptimizeAfterGraphNormalization(compute_graph);
     if (ret != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Call OptimizeAfterGraphNormalization failed, engine_name:%s, graph_name:%s",
-                         iter->first.c_str(), compute_graph->GetName().c_str());
-      GELOGE(ret, "[Call][OptimizeAfterGraphNormalization] failed, engine_name:%s, graph_name:%s",
-             iter->first.c_str(), compute_graph->GetName().c_str());
+                           iter->first.c_str(), compute_graph->GetName().c_str());
+      GELOGE(ret, "[Call][OptimizeAfterGraphNormalization] failed, engine_name:%s, graph_name:%s", iter->first.c_str(),
+             compute_graph->GetName().c_str());
       return ret;
     }
   }
@@ -269,11 +274,12 @@ Status GraphOptimize::OptimizeOriginalGraphJudgePrecisionInsert(const ComputeGra
              compute_graph->GetName().c_str());
       ret = (iter->second)->OptimizeOriginalGraphJudgeInsert(*compute_graph);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeOriginalGraphJudgeInsert failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, iter->first.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Call][OptimizeOriginalGraphJudgeInsert] failed, ret:%u, engine_name:%s, graph_name:%s",
-               ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeOriginalGraphJudgeInsert failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Call][OptimizeOriginalGraphJudgeInsert] failed, ret:%u, engine_name:%s, graph_name:%s", ret,
+               iter->first.c_str(), compute_graph->GetName().c_str());
         return ret;
       }
     }
@@ -296,8 +302,8 @@ Status GraphOptimize::OptimizeOriginalGraphJudgeFormatInsert(const ComputeGraphP
       GELOGD("Begin to refine running format by engine %s for graph %s", iter->first.c_str(),
              compute_graph->GetName().c_str());
       GE_ASSERT_SUCCESS((iter->second)->OptimizeOriginalGraphJudgeFormatInsert(*compute_graph),
-          "Call OptimizeOriginalGraphJudgeFormatInsert failed, engine_name:%s, graph_name:%s",
-          iter->first.c_str(), compute_graph->GetName().c_str());
+                        "Call OptimizeOriginalGraphJudgeFormatInsert failed, engine_name:%s, graph_name:%s",
+                        iter->first.c_str(), compute_graph->GetName().c_str());
     }
   }
   return ret;
@@ -311,11 +317,12 @@ Status GraphOptimize::OptimizeOriginalGraphForQuantize(const ComputeGraphPtr &co
     for (auto iter = graph_optimizer.begin(); iter != graph_optimizer.end(); ++iter) {
       ret = iter->second->OptimizeGraphPrepare(*compute_graph);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeGraphPrepare failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, iter->first.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Call][OptimizeGraphPrepare] failed, ret:%u, engine_name:%s, graph_name:%s",
-               ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeGraphPrepare failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Call][OptimizeGraphPrepare] failed, ret:%u, engine_name:%s, graph_name:%s", ret,
+               iter->first.c_str(), compute_graph->GetName().c_str());
         return ret;
       }
     }
@@ -350,11 +357,12 @@ Status GraphOptimize::OptimizeGraphBeforeBuild(const ComputeGraphPtr &compute_gr
     for (auto iter = graph_optimizer.begin(); iter != graph_optimizer.end(); ++iter) {
       ret = iter->second->OptimizeGraphBeforeBuild(*compute_graph);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeGraphBeforeBuild failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, iter->first.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Call][OptimizeGraphBeforeBuild] failed, ret:%u, engine_name:%s, graph_name:%s",
-               ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeGraphBeforeBuild failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Call][OptimizeGraphBeforeBuild] failed, ret:%u, engine_name:%s, graph_name:%s", ret,
+               iter->first.c_str(), compute_graph->GetName().c_str());
         return ret;
       }
     }
@@ -377,8 +385,10 @@ Status GraphOptimize::OptimizeAfterStage1(const ComputeGraphPtr &compute_graph) 
       GELOGI("Begin to optimize graph after stage1 by engine %s.", iter->first.c_str());
       ret = (iter->second)->OptimizeAfterStage1(*compute_graph);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeAfterStage1 failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s.", ret, iter->first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeAfterStage1 failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s.",
+                             ret, iter->first.c_str(), compute_graph->GetName().c_str());
         GELOGE(ret, "[OptimizeAfterStage1]: graph optimize failed, ret:%u.", ret);
         return ret;
       }
@@ -390,7 +400,7 @@ Status GraphOptimize::OptimizeAfterStage1(const ComputeGraphPtr &compute_graph) 
 Status GraphOptimize::SetOptions(const ge::GraphManagerOptions &options) {
   if (options.framework_type >= static_cast<int32_t>(domi::FrameworkType::FRAMEWORK_RESERVED)) {
     REPORT_PREDEFINED_ERR_MSG("E10041", std::vector<const char_t *>({"parameter"}),
-                       std::vector<const char_t *>({"options.framework_type"}));
+                              std::vector<const char_t *>({"options.framework_type"}));
     GELOGE(GE_GRAPH_OPTIONS_INVALID, "Optimize Type %d invalid.", options.framework_type);
     return GE_GRAPH_OPTIONS_INVALID;
   }
@@ -413,14 +423,14 @@ bool GraphOptimize::IsExclude(const std::string &engine_name) const {
 void GraphOptimize::TranFrameOp(const ComputeGraphPtr &compute_graph) const {
   GE_CHECK_NOTNULL_JUST_RETURN(compute_graph);
   std::vector<std::string> local_framework_op_vec = {
-    "TensorDataset", "QueueDataset", "DeviceQueueDataset", "ParallelMapDataset", "BatchDatasetV2",
-    "IteratorV2",    "MakeIterator", "IteratorGetNext",    "FilterDataset",      "MapAndBatchDatasetV2"};
+      "TensorDataset", "QueueDataset", "DeviceQueueDataset", "ParallelMapDataset", "BatchDatasetV2",
+      "IteratorV2",    "MakeIterator", "IteratorGetNext",    "FilterDataset",      "MapAndBatchDatasetV2"};
   for (auto &nodePtr : compute_graph->GetAllNodes()) {
     OpDescPtr op = nodePtr->GetOpDesc();
     GE_IF_BOOL_EXEC(op == nullptr, GELOGW("op is nullptr!"); continue);
     // fwkop black-white sheet
     std::vector<std::string>::iterator iter =
-      std::find(local_framework_op_vec.begin(), local_framework_op_vec.end(), op->GetType());
+        std::find(local_framework_op_vec.begin(), local_framework_op_vec.end(), op->GetType());
     if (iter != local_framework_op_vec.end()) {
       // set - original_type
       if (!AttrUtils::SetStr(op, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, op->GetType())) {
@@ -451,20 +461,20 @@ Status GraphOptimize::IdentifyReference(const ComputeGraphPtr &compute_graph) co
           continue;
         }
         input_desc->SetRefPortByIndex({name_index.second});
-        GELOGI("SetRefPort: set op[%s] input desc[%u-%s] ref.",
-               op_desc->GetName().c_str(), name_index.second, name_index.first.c_str());
+        GELOGI("SetRefPort: set op[%s] input desc[%u-%s] ref.", op_desc->GetName().c_str(), name_index.second,
+               name_index.first.c_str());
         auto output_desc = op_desc->GetOutputDesc(static_cast<uint32_t>(out_index));
         output_desc.SetRefPortByIndex({name_index.second});
         op_desc->UpdateOutputDesc(static_cast<uint32_t>(out_index), output_desc);
-        GELOGI("SetRefPort: set op[%s] output desc[%u-%s] ref.",
-               op_desc->GetName().c_str(), out_index, name_index.first.c_str());
+        GELOGI("SetRefPort: set op[%s] output desc[%u-%s] ref.", op_desc->GetName().c_str(), out_index,
+               name_index.first.c_str());
         is_ref = true;
       }
     }
     if (is_ref) {
       AttrUtils::SetBool(op_desc, ATTR_NAME_REFERENCE, is_ref);
-      GELOGI("param [node] %s is reference node, set attribute %s to be true.",
-             node->GetName().c_str(), ATTR_NAME_REFERENCE.c_str());
+      GELOGI("param [node] %s is reference node, set attribute %s to be true.", node->GetName().c_str(),
+             ATTR_NAME_REFERENCE.c_str());
     }
   }
   return SUCCESS;
@@ -479,11 +489,12 @@ Status GraphOptimize::OptimizeWholeGraph(const ComputeGraphPtr &compute_graph) c
       ret = iter.second->OptimizeWholeGraph(*compute_graph);
       GE_DUMP(compute_graph, "OptimizeWholeGraph" + iter.first);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Call OptimizeWholeGraph failed, ret:%u, engine_name:%s, "
-                           "graph_name:%s", ret, iter.first.c_str(),
-                           compute_graph->GetName().c_str());
-        GELOGE(ret, "[Call][OptimizeWholeGraph] failed, ret:%d, engine_name:%s, graph_name:%s",
-               ret, iter.first.c_str(), compute_graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "Call OptimizeWholeGraph failed, ret:%u, engine_name:%s, "
+                             "graph_name:%s",
+                             ret, iter.first.c_str(), compute_graph->GetName().c_str());
+        GELOGE(ret, "[Call][OptimizeWholeGraph] failed, ret:%d, engine_name:%s, graph_name:%s", ret, iter.first.c_str(),
+               compute_graph->GetName().c_str());
         return ret;
       }
     }
@@ -506,8 +517,8 @@ Status GraphOptimize::OptimizeSubgraphProc(ComputeGraph &graph, const bool is_pr
     } else {
       ret = iter.second->OptimizeSubgraphPostProc(graph);
     }
-    GE_ASSERT_SUCCESS(ret, "Subgraph %s proc failed, ret:%d, engine_name:%s, graph_name:%s",
-                      proc_str.c_str(), ret, iter.first.c_str(), graph.GetName().c_str());
+    GE_ASSERT_SUCCESS(ret, "Subgraph %s proc failed, ret:%d, engine_name:%s, graph_name:%s", proc_str.c_str(), ret,
+                      iter.first.c_str(), graph.GetName().c_str());
   }
   return ret;
 }

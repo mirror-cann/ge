@@ -49,33 +49,42 @@ class TestShape:
         assert shape.is_unknown_shape() is False
 
     @staticmethod
-    @pytest.mark.parametrize("shape, expected_size", [
-        ([2, 3, 4], 24),
-        ([1], 1),
-        ([0, 3], 0),
-        ([2, -1, 4], -1),
-        ([-2], -1),
-    ])
+    @pytest.mark.parametrize(
+        "shape, expected_size",
+        [
+            ([2, 3, 4], 24),
+            ([1], 1),
+            ([0, 3], 0),
+            ([2, -1, 4], -1),
+            ([-2], -1),
+        ],
+    )
     def test_get_shape_size(shape, expected_size):
         """测试 Shape 元素数量计算"""
         assert Shape(shape).get_shape_size() == expected_size
 
     @staticmethod
-    @pytest.mark.parametrize("shape, expected", [
-        ([2, 3, 4], False),
-        ([2, -1, 4], True),
-        ([-2], True),
-    ])
+    @pytest.mark.parametrize(
+        "shape, expected",
+        [
+            ([2, 3, 4], False),
+            ([2, -1, 4], True),
+            ([-2], True),
+        ],
+    )
     def test_is_unknown_shape(shape, expected):
         """测试未知 Shape 判断"""
         assert Shape(shape).is_unknown_shape() is expected
 
     @staticmethod
-    @pytest.mark.parametrize("shape", [
-        "invalid",
-        [1, "invalid"],
-        [1.0, 2.0],
-    ])
+    @pytest.mark.parametrize(
+        "shape",
+        [
+            "invalid",
+            [1, "invalid"],
+            [1.0, 2.0],
+        ],
+    )
     def test_shape_invalid(shape):
         """测试 Shape 参数校验"""
         with pytest.raises(TypeError, match="dims must be a list of integers"):
@@ -126,11 +135,14 @@ class TestTensorDesc:
         assert desc.origin_format == Format.FORMAT_NHWC
 
     @staticmethod
-    @pytest.mark.parametrize("shape", [
-        "invalid",
-        [1, "invalid"],
-        [1.0, 2.0],
-    ])
+    @pytest.mark.parametrize(
+        "shape",
+        [
+            "invalid",
+            [1, "invalid"],
+            [1.0, 2.0],
+        ],
+    )
     def test_set_shape_invalid(shape):
         """测试 TensorDesc shape 参数校验"""
         desc = TensorDesc()

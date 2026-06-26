@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@ namespace fe {
 using std::vector;
 using IndexNameMap = std::map<uint32_t, std::string>;
 
-Status ReadJsonObject(const std::string& file, nlohmann::json& json_obj);
+Status ReadJsonObject(const std::string &file, nlohmann::json &json_obj);
 std::string GetJsonObjectType(const nlohmann::json &json_object);
 
 /*
@@ -41,10 +41,10 @@ bool CmpInputsNum(std::string input1, std::string input2);
  */
 bool CmpOutputsNum(std::string output1, std::string output2);
 
-bool CheckInputSubStr(const std::string& op_desc_input_name, const std::string& info_input_name);
+bool CheckInputSubStr(const std::string &op_desc_input_name, const std::string &info_input_name);
 
-Status GenerateUnionFormatAndDtype(const vector<ge::Format>& old_formats, const vector<ge::DataType>& old_data_types,
-                                   vector<ge::Format>& new_formats, vector<ge::DataType>& new_data_types);
+Status GenerateUnionFormatAndDtype(const vector<ge::Format> &old_formats, const vector<ge::DataType> &old_data_types,
+                                   vector<ge::Format> &new_formats, vector<ge::DataType> &new_data_types);
 
 std::string StringVecToString(const std::vector<std::string> &str_vec);
 }  // namespace fe

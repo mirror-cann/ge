@@ -19,11 +19,7 @@
 
 namespace minidag {
 
-enum class StreamMergeStrategy {
-  kLoadBalance = 0,
-  kMainStream = 1,
-  kWeightedLoadBalance = 2
-};
+enum class StreamMergeStrategy { kLoadBalance = 0, kMainStream = 1, kWeightedLoadBalance = 2 };
 
 struct StreamMergeOptions {
   StreamMergeStrategy strategy = StreamMergeStrategy::kMainStream;
@@ -47,8 +43,7 @@ class StreamMerger {
   explicit StreamMerger(const StreamMergeOptions &options = StreamMergeOptions());
   ~StreamMerger() = default;
 
-  graphStatus Merge(const DAGGraph &dag,
-                    const std::vector<std::vector<int32_t>> &logical_stream_routes,
+  graphStatus Merge(const DAGGraph &dag, const std::vector<std::vector<int32_t>> &logical_stream_routes,
                     std::vector<int32_t> &logical_to_physical_stream) const;
 
  private:

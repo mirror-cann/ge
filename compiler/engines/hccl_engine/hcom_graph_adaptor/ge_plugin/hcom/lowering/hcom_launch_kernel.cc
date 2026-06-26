@@ -752,12 +752,14 @@ HcclResult HcomLaunchAllToAllKernel(const HcomOpInputStruct *inputStruct, std::v
   CHK_RET(HcomGetRankSize(launchArgs.opAttr.group, &rankSize));
   uint64_t sendCount = (rankSize != 0) ? (inputStruct->sendCount / rankSize) : inputStruct->sendCount;
   uint64_t recvCount = (rankSize != 0) ? (inputStruct->recvCount / rankSize) : inputStruct->recvCount;
-  HCCL_INFO("HcomLaunchAllToAllKernel: rankSize[%u], sendCount[%llu], recvCount[%llu], input sendCount[%llu], input recvCount[%llu]",
-    rankSize, sendCount, recvCount, inputStruct->sendCount, inputStruct->recvCount);
+  HCCL_INFO(
+      "HcomLaunchAllToAllKernel: rankSize[%u], sendCount[%llu], recvCount[%llu], input sendCount[%llu], input "
+      "recvCount[%llu]",
+      rankSize, sendCount, recvCount, inputStruct->sendCount, inputStruct->recvCount);
   HcclComm hcclComm = inputStruct->hcclComm;
   CHK_RET(HcomSetAivCoreLimit(launchArgs.opAttr.group, launchArgs.opAttr.aivCoreLimit));
-  CHK_RET(HcceAlltoAll(inputAddrs[0], sendCount, launchArgs.opAttr.dataType, outputAddrs[0],
-                       recvCount, launchArgs.opAttr.dataType, hcclComm, launchArgs.stream));
+  CHK_RET(HcceAlltoAll(inputAddrs[0], sendCount, launchArgs.opAttr.dataType, outputAddrs[0], recvCount,
+                       launchArgs.opAttr.dataType, hcclComm, launchArgs.stream));
   return HCCL_SUCCESS;
 }
 

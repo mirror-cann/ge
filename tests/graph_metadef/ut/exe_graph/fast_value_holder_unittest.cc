@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,11 +39,10 @@ size_t GetComputeNodeIndex(const ge::FastNode *node) {
   }
   return static_cast<size_t>(index);
 }
-}
+}  // namespace
 class FastValueHolderUt : public BgTest {
  public:
-  ge::ExecuteGraph *FindFirstSubgraphForNodeType(const ge::ExecuteGraph *root_graph,
-                                                 const std::string &node_type) {
+  ge::ExecuteGraph *FindFirstSubgraphForNodeType(const ge::ExecuteGraph *root_graph, const std::string &node_type) {
     for (const auto &subgraph : root_graph->GetAllSubgraphs()) {
       auto parent_node = subgraph->GetParentNodeBarePtr();
       if (parent_node->GetType() == node_type) {
@@ -502,13 +501,11 @@ TEST_F(FastValueHolderUt, AddDependencyOk) {
 
   ASSERT_EQ(data1->GetFastNode()->GetOutControlNodes().size(), 1);
   ASSERT_EQ(data2->GetFastNode()->GetInControlNodes().size(), 1);
-  EXPECT_EQ(data1->GetFastNode()->GetOutControlNodes()[0],
-            data2->GetFastNode());
+  EXPECT_EQ(data1->GetFastNode()->GetOutControlNodes()[0], data2->GetFastNode());
 
   ASSERT_EQ(node1->GetFastNode()->GetOutControlNodes().size(), 1);
   ASSERT_EQ(node2->GetFastNode()->GetInControlNodes().size(), 1);
-  EXPECT_EQ(node1->GetFastNode()->GetOutControlNodes()[0],
-            node2->GetFastNode());
+  EXPECT_EQ(node1->GetFastNode()->GetOutControlNodes()[0], node2->GetFastNode());
 
   auto data3 = ValueHolder::CreateFeed(2);
   ASSERT_NE(data3, nullptr);
@@ -564,25 +561,23 @@ TEST_F(FastValueHolderUt, CurrentNodeOk) {
   ASSERT_NE(holder, nullptr);
 
   int64_t compute_node_index_none;
-  ASSERT_FALSE(ge::AttrUtils::GetInt(shape1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
-  ASSERT_FALSE(ge::AttrUtils::GetInt(shape2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
-  ASSERT_FALSE(ge::AttrUtils::GetInt(json1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(shape1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(shape2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(json1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
 
   int64_t compute_node_index_shape, compute_node_index_compile_ifo, compute_node_index_tiling_ret,
       compute_node_index_holder;
-  ASSERT_TRUE(ge::AttrUtils::GetInt(shape->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    compute_node_index_shape));
   ASSERT_TRUE(
-      ge::AttrUtils::GetInt(compile_info->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                            compute_node_index_compile_ifo));
+      ge::AttrUtils::GetInt(shape->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_shape));
+  ASSERT_TRUE(ge::AttrUtils::GetInt(compile_info->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
+                                    compute_node_index_compile_ifo));
+  ASSERT_TRUE(ge::AttrUtils::GetInt(tiling_ret->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
+                                    compute_node_index_tiling_ret));
   ASSERT_TRUE(
-      ge::AttrUtils::GetInt(tiling_ret->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                            compute_node_index_tiling_ret));
-  ASSERT_TRUE(ge::AttrUtils::GetInt(holder->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    compute_node_index_holder));
+      ge::AttrUtils::GetInt(holder->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_holder));
   EXPECT_EQ(compute_node_index_shape, compute_node_index_compile_ifo);
   EXPECT_EQ(compute_node_index_shape, compute_node_index_tiling_ret);
   EXPECT_EQ(compute_node_index_shape, compute_node_index_holder);
@@ -722,30 +717,28 @@ TEST_F(FastValueHolderUt, ScopedCurrentNodeOk) {
   ASSERT_NE(holder2, nullptr);
 
   int64_t compute_node_index_none;
-  ASSERT_FALSE(ge::AttrUtils::GetInt(shape1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
-  ASSERT_FALSE(ge::AttrUtils::GetInt(shape2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
-  ASSERT_FALSE(ge::AttrUtils::GetInt(json1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                     compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(shape1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(shape2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
+  ASSERT_FALSE(
+      ge::AttrUtils::GetInt(json1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compute_node_index_none));
 
   int64_t shape_index, compile_info1_index, tiling_ret1_index, holder1_index, compile_info2_index, tiling_ret2_index,
       holder2_index;
   ASSERT_TRUE(ge::AttrUtils::GetInt(shape->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", shape_index));
 
-  ASSERT_TRUE(ge::AttrUtils::GetInt(compile_info1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    compile_info1_index));
-  ASSERT_TRUE(ge::AttrUtils::GetInt(tiling_ret1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    tiling_ret1_index));
-  ASSERT_TRUE(ge::AttrUtils::GetInt(holder1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    holder1_index));
+  ASSERT_TRUE(
+      ge::AttrUtils::GetInt(compile_info1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compile_info1_index));
+  ASSERT_TRUE(
+      ge::AttrUtils::GetInt(tiling_ret1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", tiling_ret1_index));
+  ASSERT_TRUE(ge::AttrUtils::GetInt(holder1->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", holder1_index));
 
-  ASSERT_TRUE(ge::AttrUtils::GetInt(compile_info2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    compile_info2_index));
-  ASSERT_TRUE(ge::AttrUtils::GetInt(tiling_ret2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    tiling_ret2_index));
-  ASSERT_TRUE(ge::AttrUtils::GetInt(holder2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex",
-                                    holder2_index));
+  ASSERT_TRUE(
+      ge::AttrUtils::GetInt(compile_info2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", compile_info2_index));
+  ASSERT_TRUE(
+      ge::AttrUtils::GetInt(tiling_ret2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", tiling_ret2_index));
+  ASSERT_TRUE(ge::AttrUtils::GetInt(holder2->GetFastNode()->GetOpDescBarePtr(), "ComputeNodeIndex", holder2_index));
 
   EXPECT_EQ(shape_index, compile_info2_index);
   EXPECT_EQ(shape_index, tiling_ret2_index);
@@ -987,14 +980,14 @@ TEST_F(FastValueHolderUt, Guarder_AddDependencyAutomately_ConnectDataEdgeToResou
   EXPECT_EQ(guarder_type, "DestroyAllocator");
 }
 /*
-*     NetOutput
-*        |
-*      Bar -c-> foo0_guarder
-*      / \    /
-* data1   foo0
-*          |
-*        data0
-*/
+ *     NetOutput
+ *        |
+ *      Bar -c-> foo0_guarder
+ *      / \    /
+ * data1   foo0
+ *          |
+ *        data0
+ */
 TEST_F(FastValueHolderUt, Guarder_AddDependencyFromTheSameLevelNode_ConnectFromSrcToSubgraphNodes) {
   auto data0 = ValueHolder::CreateFeed(0);
   auto foo0 = ValueHolder::CreateSingleDataOutput("Foo", {data0});
@@ -1211,8 +1204,7 @@ TEST_F(FastValueHolderUt, AppendOutputOk) {
   EXPECT_EQ(bar->GetFastNode()->GetDataInNum(), 5);
   for (int i = 0; i < 5; ++i) {
     EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src_output, i);
-    EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src,
-              foo->GetFastNode());
+    EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src, foo->GetFastNode());
   }
 }
 TEST_F(FastValueHolderUt, AppendOutputToNodeWithOutputs) {
@@ -1228,8 +1220,7 @@ TEST_F(FastValueHolderUt, AppendOutputToNodeWithOutputs) {
   EXPECT_EQ(bar->GetFastNode()->GetDataInNum(), 5);
   for (int i = 0; i < 5; ++i) {
     EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src_output, i + 3);
-    EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src,
-              foo->GetFastNode());
+    EXPECT_EQ(bar->GetFastNode()->GetInDataEdgeByIndex(i)->src, foo->GetFastNode());
   }
 }
 TEST_F(FastValueHolderUt, AppendInputInOneGraphOk) {
@@ -1298,7 +1289,7 @@ TEST_F(FastValueHolderUt, AppendInputWithMulitSubgraph_Ok) {
   const auto &if_holder = ValueHolder::CreateVoid<bg::ValueHolder>("If", {});
   ASSERT_NE(if_holder, nullptr);
   const auto &if_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(ValueHolder::GetCurrentFrame()->GetExecuteGraph().get(), "If");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(ValueHolder::GetCurrentFrame()->GetExecuteGraph().get(), "If");
   ASSERT_NE(if_node, nullptr);
 
   ValueHolder::PushGraphFrame(if_holder, "then");
@@ -1351,7 +1342,8 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_CreateInnerData_ParentGraph) {
   auto subgraph_name = foo_node->GetOpDescBarePtr()->GetSubgraphInstanceName(0);
   auto subgraph = graph->GetSubGraph(subgraph_name);
   ASSERT_NE(subgraph, nullptr);
-  auto ret = gert::ExeGraphSummaryChecker(subgraph).StrictAllNodeTypes({{"InnerData", 2}, {"SubFoo", 1}, {"InnerNetOutput", 1}});
+  auto ret = gert::ExeGraphSummaryChecker(subgraph).StrictAllNodeTypes(
+      {{"InnerData", 2}, {"SubFoo", 1}, {"InnerNetOutput", 1}});
   EXPECT_EQ(ret, "success") << ret;
 
   auto sub_foo_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(subgraph, "SubFoo");
@@ -1374,7 +1366,7 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_InnerDataWithGuarderOutside) {
   ASSERT_NE(subgraph, nullptr);
   auto innerdata_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(subgraph, "InnerData");
   std::string guarder_type_outside;
-  (void) ge::AttrUtils::GetStr(innerdata_node->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
+  (void)ge::AttrUtils::GetStr(innerdata_node->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
   EXPECT_EQ(!guarder_type_outside.empty(), true);
   EXPECT_EQ(guarder_type_outside, "FreeMemory");
 
@@ -1405,7 +1397,7 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_InnerDataWithGuarderOutside_In_Sub
 
   auto innerdata_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(sub_sub_graph, "InnerData");
   std::string guarder_type_outside;
-  (void) ge::AttrUtils::GetStr(innerdata_node->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
+  (void)ge::AttrUtils::GetStr(innerdata_node->GetOpDescBarePtr(), kNodeWithGuarderOutside, guarder_type_outside);
   EXPECT_EQ(!guarder_type_outside.empty(), true);
   EXPECT_EQ(guarder_type_outside, "FreeFftsMem");
 
@@ -1463,7 +1455,7 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_CreateInnerDataRecursively_Ancesto
   EXPECT_EQ(ExeGraphSummaryChecker(graph).StrictDirectNodeTypes({{"Data", 4}, {"Foo", 1}}), "success");
   EXPECT_EQ(graph->GetAllSubgraphs().size(), 2);
   auto foo_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph, "Foo");
-  
+
   ASSERT_NE(foo_node, nullptr);
   EXPECT_EQ(FastNodeTopoChecker(foo_node).StrictConnectFrom({data0, data1, data3, data2}), "success");
   StrictSubgraphs(foo_node, {"Foo"});
@@ -1472,12 +1464,13 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_CreateInnerDataRecursively_Ancesto
   ASSERT_NE(foo_graph, nullptr);
 
   // Check elements on foo graph
-  ASSERT_EQ(ExeGraphSummaryChecker(foo_graph).StrictDirectNodeTypes({{"InnerData", 3}, {"SubFoo", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(foo_graph).StrictDirectNodeTypes({{"InnerData", 3}, {"SubFoo", 1}, {"InnerNetOutput", 1}}),
+      "success");
   auto sub_foo_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(foo_graph, "SubFoo");
   ASSERT_NE(sub_foo_node, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(sub_foo_node).StrictConnectFrom({{"InnerData"}, {"InnerData"}, {"InnerData"}}),
-                                                                      "success");
+            "success");
   ASSERT_EQ(FastNodeTopoChecker(sub_foo_node).StrictConnectTo(0, {{"InnerNetOutput"}}), "success");
   StrictSubgraphs(sub_foo_node, {"Foo"});
   auto subfoo_graph = graph->GetSubGraph(sub_foo_node->GetOpDescBarePtr()->GetSubgraphInstanceName(0));
@@ -1553,7 +1546,7 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_DeDuplicate_SameSrc) {
   auto sub_foo_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(graph, "SubFoo")[0];
   ASSERT_NE(sub_foo_node, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(sub_foo_node).StrictConnectFrom({{"InnerData"}, {"InnerData"}, {"InnerData"}}),
-                                                                      "success");
+            "success");
   auto sub_foo_graph = FindFirstSubgraphForNodeType(graph, "SubFoo");
   ASSERT_NE(sub_foo_graph, nullptr);
   auto sub2_foo2_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(sub_foo_graph, "Sub2Foo2");
@@ -1567,8 +1560,7 @@ TEST_F(FastValueHolderUt, ConnectFromAncestor_DeDuplicate_SameSrc) {
   ConnectFromOuter(sub2_foo4_node, 0, FindData(graph, 3), 0);
 
   auto inner_data_from_3 = sub2_foo2_node->GetInDataEdgeByIndex(0)->src;
-  ASSERT_EQ(FastNodeTopoChecker(inner_data_from_3).StrictConnectTo(0, {sub2_foo2_node, sub2_foo4_node}),
-                                                                       "success");
+  ASSERT_EQ(FastNodeTopoChecker(inner_data_from_3).StrictConnectTo(0, {sub2_foo2_node, sub2_foo4_node}), "success");
 }
 TEST_F(FastValueHolderUt, PopFrame_CreateControlEdge_Targets) {
   auto data0 = ValueHolder::CreateFeed(0);
@@ -1623,7 +1615,8 @@ TEST_F(FastValueHolderUt, PopFrame_CreateInnerNetOuptut_PopSubgraph) {
   auto graph = frame->GetExecuteGraph().get();
   ASSERT_NE(graph, nullptr);
   ASSERT_EQ(ExeGraphSummaryChecker(graph).StrictAllNodeTypes(
-    {{"InnerData", 2}, {"Bar1", 1}, {"Bar2", 1}, {"InnerNetOutput", 1}}), "success");
+                {{"InnerData", 2}, {"Bar1", 1}, {"Bar2", 1}, {"InnerNetOutput", 1}}),
+            "success");
   auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(graph, "InnerNetOutput");
 
   ASSERT_NE(netoutput, nullptr);
@@ -1674,8 +1667,9 @@ TEST_F(FastValueHolderUt, PopFrame_CraeteInnerData_OutputsUseParentHolder) {
 
   auto foo4_graph = FindFirstSubgraphForNodeType(graph, "Foo4");
   ASSERT_NE(foo4_graph, nullptr);
-  ASSERT_EQ(ExeGraphSummaryChecker(foo4_graph).StrictAllNodeTypes({{"InnerData", 3}, {"Foo5", 1}, {"InnerNetOutput", 1}}),
-            "success");
+  ASSERT_EQ(
+      ExeGraphSummaryChecker(foo4_graph).StrictAllNodeTypes({{"InnerData", 3}, {"Foo5", 1}, {"InnerNetOutput", 1}}),
+      "success");
   auto netoutput = ge::ExecuteGraphUtils::FindFirstNodeMatchType(foo4_graph, "InnerNetOutput");
   ASSERT_EQ(FastNodeTopoChecker(netoutput).StrictConnectFrom({{"InnerData"}, {"InnerData"}, {"Foo5"}}), "success");
   ConnectFromOuter(netoutput, 0, FindData(graph, 0), 0);

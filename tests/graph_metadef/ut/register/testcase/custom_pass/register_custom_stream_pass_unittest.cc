@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@
 #include "graph/common/share_graph.h"
 
 namespace ge {
-class UtestRegisterStreamPass : public testing::Test { 
+class UtestRegisterStreamPass : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
@@ -97,7 +97,8 @@ TEST_F(UtestRegisterStreamPass, AsssignStreamIdByTopoIdPass_SUCCESS) {
   // init stream pass context
   StreamPassContext custom_pass_context(-1);
 
-  EXPECT_EQ(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_EQ(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterAssignLogicStream);
 
   // check stream id is equal with topo id
@@ -128,7 +129,8 @@ TEST_F(UtestRegisterStreamPass, AssignNewStreamIdPass_SUCCESS) {
   // init stream pass context
   StreamPassContext custom_pass_context(0);
 
-  EXPECT_EQ(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_EQ(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterAssignLogicStream);
 
   size_t expect_stream_id = 1;
@@ -162,7 +164,8 @@ TEST_F(UtestRegisterStreamPass, AsssignStreamIdByTopoIdPass_PassRunFailed_Failed
     custom_pass_context.SetStreamId(node, 0u);
   }
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   auto error_msg = custom_pass_context.GetErrorMessage().GetString();
   EXPECT_STREQ(error_msg, "graph name is invalid");
 }
@@ -170,7 +173,8 @@ TEST_F(UtestRegisterStreamPass, AsssignStreamIdByTopoIdPass_PassRunFailed_Failed
 TEST_F(UtestRegisterStreamPass, AssignStreamIdOutOfRangePass_PassRunFailed_Failed) {
   int64_t default_stream_id = 0u;
   PassRegistrationData pass_reg_data("custom_pass");
-  pass_reg_data.CustomAllocateStreamPassFn(AssignStreamIdOutOfRangePass).Stage(CustomPassStage::kAfterAssignLogicStream);
+  pass_reg_data.CustomAllocateStreamPassFn(AssignStreamIdOutOfRangePass)
+      .Stage(CustomPassStage::kAfterAssignLogicStream);
   CustomPassHelper::Instance().Unload();
   CustomPassHelper::Instance().Insert(pass_reg_data);
 
@@ -190,14 +194,16 @@ TEST_F(UtestRegisterStreamPass, AssignStreamIdOutOfRangePass_PassRunFailed_Faile
     custom_pass_context.SetStreamId(node, 0u);
   }
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   auto error_msg = custom_pass_context.GetErrorMessage().GetString();
   EXPECT_STREQ(error_msg, "Failed to set stream id for node");
 }
 TEST_F(UtestRegisterStreamPass, AssignStreamIdOutOfRange2Pass_PassRunFailed_Failed) {
   int64_t default_stream_id = 0u;
   PassRegistrationData pass_reg_data("custom_pass");
-  pass_reg_data.CustomAllocateStreamPassFn(AssignStreamIdOutOfRange2Pass).Stage(CustomPassStage::kAfterAssignLogicStream);
+  pass_reg_data.CustomAllocateStreamPassFn(AssignStreamIdOutOfRange2Pass)
+      .Stage(CustomPassStage::kAfterAssignLogicStream);
   CustomPassHelper::Instance().Unload();
   CustomPassHelper::Instance().Insert(pass_reg_data);
 
@@ -217,7 +223,8 @@ TEST_F(UtestRegisterStreamPass, AssignStreamIdOutOfRange2Pass_PassRunFailed_Fail
     custom_pass_context.SetStreamId(node, 0u);
   }
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   auto error_msg = custom_pass_context.GetErrorMessage().GetString();
   EXPECT_STREQ(error_msg, "Failed to set stream id for node");
 }
@@ -240,7 +247,8 @@ TEST_F(UtestRegisterStreamPass, RegNormalGraphPass_RegFailed_Failed) {
     custom_pass_context.SetStreamId(node, 0u);
   }
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph_ptr, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
 }
 TEST_F(UtestRegisterStreamPass, StreamPassContext_ImplNull_GetStreamId_failed) {
   auto compute_graph = SharedGraph<ComputeGraphPtr, ut::GraphBuilder>::BuildGraphWithControlEdge();
@@ -256,4 +264,4 @@ TEST_F(UtestRegisterStreamPass, StreamPassContext_ImplNull_GetStreamId_failed) {
     EXPECT_EQ(custom_pass_context.GetStreamId(node), INVALID_STREAM_ID);
   }
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@
 namespace {
 constexpr uint32_t kKernelItemMagic = 0x5D776EFDU;
 constexpr size_t kAlignBy4B = 4U;
-}
+}  // namespace
 
 namespace ge {
 void KernelStore::AddKernel(const KernelBinPtr &kernel) {
@@ -40,10 +40,11 @@ bool KernelStore::Build() {
     buffer_.resize(total_len);
   } catch (std::bad_alloc &e) {
     GELOGE(ge::MEMALLOC_FAILED, "All build memory failed, memory size %zu", total_len);
-    GELOGE(ge::MEMALLOC_FAILED, "[Malloc][Memmory]Resize buffer failed, memory size %zu, "
-           "exception %s", total_len, e.what());
-    REPORT_INNER_ERR_MSG("E19999", "Resize buffer failed, memory size %zu, exception %s",
-                      total_len, e.what());
+    GELOGE(ge::MEMALLOC_FAILED,
+           "[Malloc][Memory]Resize buffer failed, memory size %zu, "
+           "exception %s",
+           total_len, e.what());
+    REPORT_INNER_ERR_MSG("E19999", "Resize buffer failed, memory size %zu, exception %s", total_len, e.what());
     return false;
   }
 
@@ -58,7 +59,8 @@ bool KernelStore::Build() {
 
     GELOGD("get kernel bin name %s, addr %p, size %zu, remain_len %zu", kernel->GetName().c_str(), kernel->GetBinData(),
            kernel->GetBinDataSize(), remain_len);
-    GE_ASSERT_SUCCESS(GeMemcpy(next_buffer, remain_len, PtrToPtr<KernelStoreItemHead, uint8_t>(&kernel_head), sizeof(kernel_head)));
+    GE_ASSERT_SUCCESS(
+        GeMemcpy(next_buffer, remain_len, PtrToPtr<KernelStoreItemHead, uint8_t>(&kernel_head), sizeof(kernel_head)));
 
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + sizeof(kernel_head)));
     GE_ASSERT_SUCCESS(GeMemcpy(next_buffer, remain_len - sizeof(kernel_head),
@@ -67,8 +69,8 @@ bool KernelStore::Build() {
 
     next_buffer =
         PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + static_cast<size_t>(kernel_head.name_len)));
-    GE_ASSERT_SUCCESS(GeMemcpy(next_buffer, remain_len - sizeof(kernel_head) - kernel_head.name_len, kernel->GetBinData(),
-                               static_cast<size_t>(kernel_head.bin_len)));
+    GE_ASSERT_SUCCESS(GeMemcpy(next_buffer, remain_len - sizeof(kernel_head) - kernel_head.name_len,
+                               kernel->GetBinData(), static_cast<size_t>(kernel_head.bin_len)));
 
     next_buffer =
         PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + static_cast<size_t>(kernel_head.bin_len)));
@@ -89,7 +91,7 @@ bool KernelStore::PreBuild() {
 
   pre_buffer_.resize(buff_size);
 
-  uint8_t * const buffer = pre_buffer_.data();
+  uint8_t *const buffer = pre_buffer_.data();
   uint32_t buff_offset = 0U;
   size_t remain_len = buff_size;
   for (const auto &item : kernels_) {
@@ -102,8 +104,9 @@ bool KernelStore::PreBuild() {
     GE_ASSERT_EOK(mem_ret, "[PreBuild][memcpy] failed");
     // get bin data offset in kernel
     uint32_t bin_data_offset = 0U;
-    GE_ASSERT_SUCCESS(Elf::GetElfOffset(const_cast<uint8_t *>(kernel->GetBinData()), static_cast<uint32_t>(bin_len),
-        bin_data_offset), "[PreBuild][GetElfOffset] failed get bin data offset");
+    GE_ASSERT_SUCCESS(
+        Elf::GetElfOffset(const_cast<uint8_t *>(kernel->GetBinData()), static_cast<uint32_t>(bin_len), bin_data_offset),
+        "[PreBuild][GetElfOffset] failed get bin data offset");
 
     // calc kernel bin data offset in buff
     const uint32_t total_offset = buff_offset + bin_data_offset;

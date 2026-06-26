@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -188,7 +188,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_then_malloc
       return ACL_SUCCESS;
     }
     aclError aclrtFree(void *dev_ptr) override {
-      delete[](uint8_t *) dev_ptr;
+      delete[] (uint8_t *)dev_ptr;
       return ACL_SUCCESS;
     }
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
@@ -229,7 +229,7 @@ TEST_F(CacheMemoryAllocatorTest, test_allocate_mem_block_try_recycle_other_then_
       return ACL_SUCCESS;
     }
     aclError aclrtFree(void *dev_ptr) override {
-      delete[](uint8_t *) dev_ptr;
+      delete[] (uint8_t *)dev_ptr;
       return ACL_SUCCESS;
     }
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {

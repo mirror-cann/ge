@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -103,8 +103,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
    * @param[in|out] OpImplType: the implement type of this Op;
    * @return: SUCCESS/FAILED
    */
-  Status QueryHighPrioOpImplType(const ge::NodePtr &node, OpImplType &impl_type,
-                                 OpKernelInfoPtr &op_kernel_ptr) const;
+  Status QueryHighPrioOpImplType(const ge::NodePtr &node, OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) const;
 
   Status GetAllSubOpsStore(std::map<std::string, SubOpsStorePtr> &all_sub_store_ptr) const;
 
@@ -124,7 +123,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
   bool CheckSupportedBase(const ge::NodePtr &node, std::string &un_supported_reason, CheckSupportMode mode,
                           bool real_query = false) const;
 
-  const std::string& GetFEOpsKernelInfoStoreName() const;
+  const std::string &GetFEOpsKernelInfoStoreName() const;
 
   Status MultipleOpMergeFusionGraph(vector<ge::NodePtr> &node_vec, vector<ge::NodePtr> &atomic_node_vec,
                                     const bool is_fuzz_build);
@@ -167,6 +166,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
   SubOpsStorePtr GetSubOpsStore(const OpImplType &impe_type) const;
 
   Status SetMemSetOpWorkspaceInfo(ge::OpDescPtr &op_desc, bool &atomic_node_flag) const;
+
  private:
   bool init_flag_;
 
@@ -213,15 +213,13 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
 
   Status GetAllAtomicCleanNode(ge::NodePtr &node_ptr, vector<ge::NodePtr> &atomic_node_vec) const;
 
-  Status CompileAndSetKernelNameForMemSet(const vector<ge::NodePtr> &node_vec,
-                                               vector<ge::NodePtr> &memset_nodes);
+  Status CompileAndSetKernelNameForMemSet(const vector<ge::NodePtr> &node_vec, vector<ge::NodePtr> &memset_nodes);
 
   std::vector<uint32_t> CompileGetAtomicOutput(const ge::OpDescPtr &op_desc_ptr) const;
 
   Status SetAtomicOpAttr(ge::OpDescPtr &op_desc, bool &atomic_node_flag) const;
-  
-  Status CompileSetAtomicMemSetWorkSpace(ge::NodePtr &node_ptr,
-                                         MemsetWorkspaceInfo &memset_workspace_info) const;
+
+  Status CompileSetAtomicMemSetWorkSpace(ge::NodePtr &node_ptr, MemsetWorkspaceInfo &memset_workspace_info) const;
 
   bool CheckCustomOp(const ge::NodePtr &node, const FEOpsStoreInfo &ops_store) const;
 
@@ -241,7 +239,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
                         std::ostringstream &reason_oss) const;
 
   Status GetOpKernel(const std::string &op_type, const FEOpsStoreInfo &ops_store, OpKernelInfoPtr &op_kernel_ptr,
-      std::ostringstream &reason_oss, uint64_t &not_support_reason_id) const;
+                     std::ostringstream &reason_oss, uint64_t &not_support_reason_id) const;
 
   Status SetCutSupportedInfo(const ge::NodePtr &node) override;
 
@@ -258,8 +256,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
   void UpdateNodeShapeAndRange(const ge::NodePtr &node_ptr) const;
   void UpdateTensorShapeAndRange(const ge::OpDescPtr &op_desc, const ge::GeTensorDescPtr &tensor_desc) const;
   void BackupGraphParentNodeAndIndex(const ge::ComputeGraphPtr &graph, FusionParenNodeAndIndex &node_map) const;
-  void RollbackGraphParentNodeAndIndex(const ge::ComputeGraphPtr &graph,
-                                       const FusionParenNodeAndIndex &node_map) const;
+  void RollbackGraphParentNodeAndIndex(const ge::ComputeGraphPtr &graph, const FusionParenNodeAndIndex &node_map) const;
   Status CompareTensorDescAndSubgraphData(const ge::ComputeGraphPtr &graph, const ge::NodePtr &node_ptr,
                                           const bool is_to_subgraph) const;
   Status CompileSubGraph(const ge::ComputeGraphPtr &graph);
@@ -269,7 +266,7 @@ class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore, public std::enable_s
   void SetConstValueAttr(ge::ConstNodePtr &const_node_ptr, const ge::OpDescPtr &op_desc_ptr) const;
   Status CompileOpTiling(const ge::NodePtr &node) const;
   Status SetWorkSpaceForAtomicMemSet(const MemsetWorkspaceInfo &memset_workspace_info, const ge::NodePtr &node,
-      const ge::ComputeGraphPtr &tmp_graph, vector<ge::NodePtr> &memset_nodes) const;
+                                     const ge::ComputeGraphPtr &tmp_graph, vector<ge::NodePtr> &memset_nodes) const;
 };
 using FEOpsKernelInfoStorePtr = std::shared_ptr<FEOpsKernelInfoStore>;
 }  // namespace fe

@@ -110,4 +110,3 @@ aclopHandle **handle)
 ## 约束说明<a name="section43601434131114"></a>
 
 对于算子有constant输入的场景，如果未调用[aclSetTensorConst](aclSetTensorConst.md)接口设置constant输入，则需调用[aclSetTensorPlaceMent](aclSetTensorPlaceMent.md)设置TensorDesc的placement属性，将memType设置为Host内存。
-

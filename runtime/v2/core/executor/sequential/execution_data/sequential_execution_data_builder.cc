@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,8 @@
 
 namespace gert {
 namespace {
-void PushToReadyQueue(ge::FastNode *const node, std::map<int64_t,
-                      std::queue<ge::FastNode *>> &priorities_to_ready_nodes,
+void PushToReadyQueue(ge::FastNode *const node,
+                      std::map<int64_t, std::queue<ge::FastNode *>> &priorities_to_ready_nodes,
                       std::unordered_set<ge::FastNode *> &seen_nodes) {
   if (seen_nodes.insert(node).second) {
     int64_t priority = std::numeric_limits<int64_t>::max();
@@ -37,7 +37,8 @@ ge::FastNode *PopFromReadyQueue(std::map<int64_t, std::queue<ge::FastNode *>> &p
   }
   return node;
 }
-ge::graphStatus InitAllKernelFunctions(const std::vector<std::pair<ge::FastNode *, Node *>> &graph_nodes_to_executor_node) {
+ge::graphStatus InitAllKernelFunctions(
+    const std::vector<std::pair<ge::FastNode *, Node *>> &graph_nodes_to_executor_node) {
   for (const auto &graph_node_to_exe_node : graph_nodes_to_executor_node) {
     auto &org_node = graph_node_to_exe_node.first;
     auto &exe_node = graph_node_to_exe_node.second;
@@ -99,8 +100,8 @@ ResourceGuardPtr SequentialExecutionDataBuilder::Build() {
   GE_ASSERT_NOTNULL(execution_data);
 
   GraphNode graph_nodes;
-  GE_ASSERT_SUCCESS(Build(reinterpret_cast<SequentialExecutionData *>(execution_data.get()), resource_guard.get(),
-                          graph_nodes));
+  GE_ASSERT_SUCCESS(
+      Build(reinterpret_cast<SequentialExecutionData *>(execution_data.get()), resource_guard.get(), graph_nodes));
 
   resource_guard->ResetExecutionData(std::move(execution_data));
   GE_ASSERT_SUCCESS(CreateKernelOutputs(GetOrderedGraphToExeNodes()));
@@ -109,8 +110,7 @@ ResourceGuardPtr SequentialExecutionDataBuilder::Build() {
 
 ge::graphStatus SequentialExecutionDataBuilder::Build(SequentialExecutionData *execution_data,
                                                       ResourceGuard *resource_guard, GraphNode &graph_nodes) {
-  GE_ASSERT_GRAPH_SUCCESS(
-      AllocGraphAsyncValues(GetExecutorBuilder().GetExeGraph()->GetAllNodes(), graph_async_value_));
+  GE_ASSERT_GRAPH_SUCCESS(AllocGraphAsyncValues(GetExecutorBuilder().GetExeGraph()->GetAllNodes(), graph_async_value_));
   const auto topo_resource_guard = reinterpret_cast<TopologicalResourceGuard *>(resource_guard);
   topo_resource_guard->ResetAnyValue(std::move(graph_async_value_.values_guarder), graph_async_value_.total_num);
 
@@ -252,7 +252,7 @@ ge::graphStatus SequentialExecutionDataBuilder::InitAllKernelExtendInfos(
 }
 ge::graphStatus SequentialExecutionDataBuilder::CreateExecutionData(GraphNode &graph_node,
                                                                     SequentialExecutionData *execution_data,
-                                                                    ResourceGuard *resource_guard) const{
+                                                                    ResourceGuard *resource_guard) const {
   const auto topo_resource_guard = static_cast<TopologicalResourceGuard *>(resource_guard);
   execution_data->node_num = graph_node.nodes.size();
   execution_data->nodes = static_cast<Node **>(topo_resource_guard->ResetNodesArray(CreateCArray(graph_node.nodes)));
@@ -275,8 +275,8 @@ ge::graphStatus SequentialExecutionDataBuilder::CreateExecutionData(GraphNode &g
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus SequentialExecutionDataBuilder::AllocGraphAsyncValues(
-    const std::vector<ge::FastNode *> &graph_nodes, GraphAsyncValue &graph_async_value) {
+ge::graphStatus SequentialExecutionDataBuilder::AllocGraphAsyncValues(const std::vector<ge::FastNode *> &graph_nodes,
+                                                                      GraphAsyncValue &graph_async_value) {
   // todo
   //
   // alloc节点在Init图中，其输出被main图中的节点引用，而alloc节点与被其引用的节点之间没有数据边连接，所以在root图上看不到这个chain

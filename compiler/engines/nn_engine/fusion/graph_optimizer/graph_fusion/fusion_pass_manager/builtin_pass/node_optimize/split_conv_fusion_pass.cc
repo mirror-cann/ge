@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,9 @@ vector<string> SplitConvFusionPass::GetNodeTypes() {
   return result;
 }
 
-string SplitConvFusionPass::GetPatternName() { return "SplitConvFusionPass"; }
+string SplitConvFusionPass::GetPatternName() {
+  return "SplitConvFusionPass";
+}
 
 Status SplitConvFusionPass::DoFusion(ge::ComputeGraph &graph, ge::NodePtr &split_node,
                                      vector<ge::NodePtr> &fusion_nodes) {
@@ -77,9 +79,9 @@ Status SplitConvFusionPass::DoFusion(ge::ComputeGraph &graph, ge::NodePtr &split
       FE_CHECK_NOTNULL(split_node->GetOpDesc()->MutableInputDesc(0));
       if (strided_read_node->GetOpDesc()->GetType() == STRIDEDREAD &&
           split_node->GetOpDesc()->MutableInputDesc(0)->MutableShape().GetDimNum() < TWO_DIM_NUM) {
-          REPORT_FE_ERROR("[GraphOpt][SplitConvFus][DoFus] split %s's input dim number is less than 2.",
-                          split_node->GetName().c_str());
-          return FAILED;
+        REPORT_FE_ERROR("[GraphOpt][SplitConvFus][DoFus] split %s's input dim number is less than 2.",
+                        split_node->GetName().c_str());
+        return FAILED;
       }
       FE_CHECK_NOTNULL(split_node->GetOpDesc()->MutableInputDesc(0));
       auto split_input_shape = split_node->GetOpDesc()->MutableInputDesc(0)->MutableShape();
@@ -143,7 +145,7 @@ Status SplitConvFusionPass::FusionSplit(ge::ComputeGraph &graph, ge::NodePtr &sp
         InsertNode(split_node->GetOutDataAnchor(i), conv2d_node->GetInDataAnchor(0), strided_read_node);
       }
     }
-    
+
     auto output_desc = split_node->GetOpDesc()->MutableOutputDesc(i);
     if (output_desc == nullptr) {
       continue;
@@ -163,6 +165,5 @@ Status SplitConvFusionPass::FusionSplit(ge::ComputeGraph &graph, ge::NodePtr &sp
   return SUCCESS;
 }
 
-REG_PASS("SplitConvFusionPass", BUILT_IN_GRAPH_PASS,
-         SplitConvFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS("SplitConvFusionPass", BUILT_IN_GRAPH_PASS, SplitConvFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

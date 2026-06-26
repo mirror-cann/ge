@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ namespace {
 constexpr int64_t WEIGHT_INDEX_SHAPE = 4;
 constexpr int64_t WEIGHT_SPECIAL_DIVISION = 2;
 constexpr uint8_t ENABLE_SPARSITY = 1;
-}
+}  // namespace
 
 bool ReadWeightConfig() {
   FE_LOGD("Begin to read weight config from platform info.");
@@ -36,8 +36,7 @@ bool ReadWeightConfig() {
   FE_LOGD("ReadWeightConfig platform sparsity flag = %u.", platform_info.ai_core_spec.sparsity);
   if (platform_info.ai_core_spec.sparsity == ENABLE_SPARSITY) {
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 }
@@ -52,12 +51,10 @@ WEIGHCOMPRESSINNERFLAG JudgeIsSparsityFlag() {
   return WEIGHCOMPRESSINNERFLAG::DISABLE_COMPRESS_FLAG;
 }
 
-ge::GeShape ReshapeConvWeight(const ge::GeShape &src_shape,
-                              const ge::Format &src_format) {
+ge::GeShape ReshapeConvWeight(const ge::GeShape &src_shape, const ge::Format &src_format) {
   std::string reshape_type = "";
   ge::GeShape dst_shape;
-  ExpandDimension(src_format, src_format,
-                  reshape_type, src_shape, dst_shape);
+  ExpandDimension(src_format, src_format, reshape_type, src_shape, dst_shape);
   if (src_shape.GetDimNum() != dst_shape.GetDimNum()) {
     FE_LOGD("Cube weight tensor needs reshaping.");
     return dst_shape;
@@ -65,12 +62,9 @@ ge::GeShape ReshapeConvWeight(const ge::GeShape &src_shape,
   return src_shape;
 }
 
-Status TranseWeight2SparsityFZShapeAndFormat(const ge::OpDescPtr &conv_desc,
-                                             const ge::GeShape &src_shape,
-                                             const ge::Format &src_format,
-                                             const ge::DataType &src_type,
-                                             ge::GeShape &dst_shape,
-                                             const std::pair<bool, bool> &flag) {
+Status TranseWeight2SparsityFZShapeAndFormat(const ge::OpDescPtr &conv_desc, const ge::GeShape &src_shape,
+                                             const ge::Format &src_format, const ge::DataType &src_type,
+                                             ge::GeShape &dst_shape, const std::pair<bool, bool> &flag) {
   bool need_divisonc0 = flag.first;
   bool origin_fzflag = flag.second;
   std::vector<int64_t> nd_value;
@@ -81,9 +75,8 @@ Status TranseWeight2SparsityFZShapeAndFormat(const ge::OpDescPtr &conv_desc,
     axis_value.push_back(1);
   }
   auto reshape_src_shape = ReshapeConvWeight(src_shape, src_format);
-  Status status = AxisUtil::GetAxisValueByOriginFormat(src_format,
-                                                       reshape_src_shape.GetDims(), c0,
-                                                       axis_value, nd_value);
+  Status status =
+      AxisUtil::GetAxisValueByOriginFormat(src_format, reshape_src_shape.GetDims(), c0, axis_value, nd_value);
   if (status != SUCCESS) {
     return status;
   }
@@ -115,15 +108,13 @@ Status TranseWeight2SparsityFZShapeAndFormat(const ge::OpDescPtr &conv_desc,
 
 Status SetSparsityCompressWeightShape(const ge::OpDescPtr &conv_desc, const ge::GeTensorDescPtr &tensor_desc_ptr,
                                       const std::pair<bool, bool> &flag) {
-   // copy the weight tensor desc
+  // copy the weight tensor desc
   ge::GeShape dst_shape;
   ge::GeTensorDescPtr src_weight_tensor_desc = conv_desc->MutableInputDesc(TENSOR_INDEX_FILTER_COMPRESS);
   FE_CHECK(src_weight_tensor_desc == nullptr, FE_LOGW("Null pointer is unexpected."), return FAILED);
   Status status = TranseWeight2SparsityFZShapeAndFormat(conv_desc, src_weight_tensor_desc->GetOriginShape(),
                                                         src_weight_tensor_desc->GetOriginFormat(),
-                                                        src_weight_tensor_desc->GetOriginDataType(),
-                                                        dst_shape,
-                                                        flag);
+                                                        src_weight_tensor_desc->GetOriginDataType(), dst_shape, flag);
   if (status != SUCCESS) {
     return FAILED;
   }
@@ -142,14 +133,12 @@ Status SetSparsityCompressWeightShape(const ge::OpDescPtr &conv_desc, const ge::
 
 Status RefreshConvShapeForSpasity(const ge::OpDescPtr &conv_desc) {
   ge::GeTensorDescPtr conv2d_compress_weight_desc = conv_desc->MutableInputDesc(TENSOR_INDEX_FILTER_COMPRESS);
-  Status status = SetSparsityCompressWeightShape(conv_desc, conv2d_compress_weight_desc,
-                                                 std::make_pair(false, false));
+  Status status = SetSparsityCompressWeightShape(conv_desc, conv2d_compress_weight_desc, std::make_pair(false, false));
   if (status != SUCCESS) {
     return status;
   }
   ge::GeTensorDescPtr conv2d_compress_index_desc = conv_desc->MutableInputDesc(TENSOR_INDEX_COMPRESS_INDEX);
-  status = SetSparsityCompressWeightShape(conv_desc, conv2d_compress_index_desc,
-                                          std::make_pair(true, false));
+  status = SetSparsityCompressWeightShape(conv_desc, conv2d_compress_index_desc, std::make_pair(true, false));
   return status;
 }
 
@@ -157,9 +146,8 @@ Status RefreshCompressShapeForSpasity(const ge::OpDescPtr &conv_desc, const ge::
   FE_CHECK_NOTNULL(compress_opdesc);
   (void)ge::AttrUtils::SetStr(compress_opdesc, ATTR_NAME_COMPRESS_TYPE_FLAG, kWeightSparseFourToTwo);
   ge::GeTensorDescPtr compress_weight_desc = compress_opdesc->MutableInputDesc("weight");
-  Status status = SetSparsityCompressWeightShape(conv_desc, compress_weight_desc,
-                                                 std::make_pair(false, true));
+  Status status = SetSparsityCompressWeightShape(conv_desc, compress_weight_desc, std::make_pair(false, true));
 
   return status;
 }
-}
+}  // namespace fe

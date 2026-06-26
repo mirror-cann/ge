@@ -59,30 +59,30 @@ uint64_t GetWorkspaceMemTypeByPriority(const bool is_p2p_memory, const bool is_l
 }
 
 Status GetMaxVarMemSize(const RuntimeParam &runtime_param, uint64_t &max_var_mem_size) {
-    const auto var_manager = VarManager::Instance(runtime_param.session_id);
-    GE_CHECK_NOTNULL(var_manager);
-    max_var_mem_size = static_cast<uint64_t>(var_manager->GetVarMemSize(RT_MEMORY_HBM)) + \
-                       static_cast<uint64_t>(var_manager->GetVarConstPlaceHolderMemSize(RT_MEMORY_HBM));
-    max_var_mem_size = (max_var_mem_size == 0LU) ? kMemoryVarAddressSize : max_var_mem_size;
-    GELOGI("GetMaxVarMemSize max_var_mem_size = %" PRIu64 ".", max_var_mem_size);
-    return SUCCESS;
+  const auto var_manager = VarManager::Instance(runtime_param.session_id);
+  GE_CHECK_NOTNULL(var_manager);
+  max_var_mem_size = static_cast<uint64_t>(var_manager->GetVarMemSize(RT_MEMORY_HBM)) +
+                     static_cast<uint64_t>(var_manager->GetVarConstPlaceHolderMemSize(RT_MEMORY_HBM));
+  max_var_mem_size = (max_var_mem_size == 0LU) ? kMemoryVarAddressSize : max_var_mem_size;
+  GELOGI("GetMaxVarMemSize max_var_mem_size = %" PRIu64 ".", max_var_mem_size);
+  return SUCCESS;
 }
 
 size_t GetVarConstPlaceHolderMemSize(const RuntimeParam &runtime_param) {
-    size_t var_cph_mem_size = 0L;
-    const auto var_manager = VarManager::Instance(runtime_param.session_id);
-    if (var_manager != nullptr) {
-        var_cph_mem_size = static_cast<size_t>(var_manager->GetVarConstPlaceHolderMemSize(RT_MEMORY_HBM));
-    }
-    GELOGI("GetVarConstPlaceHolderMemSize var_cph_mem_size = %zu.", var_cph_mem_size);
-    return var_cph_mem_size;
+  size_t var_cph_mem_size = 0L;
+  const auto var_manager = VarManager::Instance(runtime_param.session_id);
+  if (var_manager != nullptr) {
+    var_cph_mem_size = static_cast<size_t>(var_manager->GetVarConstPlaceHolderMemSize(RT_MEMORY_HBM));
+  }
+  GELOGI("GetVarConstPlaceHolderMemSize var_cph_mem_size = %zu.", var_cph_mem_size);
+  return var_cph_mem_size;
 }
 
 void FreeP2pMem(const uint32_t device_id, RuntimeParam &runtime_param,
                 std::pair<const uint64_t, MemInfo> &mem_type_info) {
   const auto memory_type = static_cast<rtMemType_t>(mem_type_info.first & kMemoryTypeMask);
-  if ((mem_type_info.second.memory_base != nullptr)
-      && (mem_type_info.second.memory_base != PtrToPtr<void, uint8_t>(ValueToPtr(runtime_param.p2p_fixed_mem_base)))) {
+  if ((mem_type_info.second.memory_base != nullptr) &&
+      (mem_type_info.second.memory_base != PtrToPtr<void, uint8_t>(ValueToPtr(runtime_param.p2p_fixed_mem_base)))) {
     auto &mem_instance = MemManager::Instance().MemInstance(memory_type);
     GE_CHK_STATUS(mem_instance.FreeMemory(mem_type_info.second.memory_base, device_id), "failed to free memory");
     mem_type_info.second.memory_base = nullptr;
@@ -104,7 +104,8 @@ void GetSpecificSoBins(const ge::GeRootModelPtr &root_model, const SoBinType so_
   std::stable_partition(so_list.begin(), so_list.end(), [](const OpSoBinPtr &so_bin) {
     const std::string so_bin_name = so_bin->GetSoName();
     return so_bin_name.size() < std::strlen(kLegacySoSuffix) ||
-           so_bin_name.compare((so_bin_name.size() - std::strlen(kLegacySoSuffix)), std::strlen(kLegacySoSuffix), kLegacySoSuffix) != 0;
+           so_bin_name.compare((so_bin_name.size() - std::strlen(kLegacySoSuffix)), std::strlen(kLegacySoSuffix),
+                               kLegacySoSuffix) != 0;
   });
 }
 }  // namespace
@@ -117,11 +118,14 @@ bool ModelUtils::ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64_t 
   }
   const int64_t mem_range = offset + size;
   if (total_size < static_cast<uint64_t>(mem_range)) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) memory out of range, offset:%" PRId64 ", size:"
-                       "%" PRId64 ", exceed total size:%" PRIu64 ".", op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str(), offset, size, total_size);
-    GELOGE(OUT_OF_MEMORY, "[Check][Param]Node:%s(%s) memory out of range, offset:%" PRId64
-           ", size:%" PRId64 ", exceed total size:%" PRIu64 ".",
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Node:%s(%s) memory out of range, offset:%" PRId64
+                         ", size:"
+                         "%" PRId64 ", exceed total size:%" PRIu64 ".",
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
+    GELOGE(OUT_OF_MEMORY,
+           "[Check][Param]Node:%s(%s) memory out of range, offset:%" PRId64 ", size:%" PRId64
+           ", exceed total size:%" PRIu64 ".",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
     return false;
   }
@@ -144,11 +148,8 @@ Status ModelUtils::CreateOmOppDir(std::string &opp_dir) {
   if (opp_dir.back() != '/') {
     opp_dir += '/';
   }
-  opp_dir += ".ascend_temp/.om_exe_data/"
-      + std::to_string(mmGetPid())
-      + "_" + std::to_string(mmGetTid())
-      + "_" + std::to_string(load_so_count++)
-      + "/";
+  opp_dir += ".ascend_temp/.om_exe_data/" + std::to_string(mmGetPid()) + "_" + std::to_string(mmGetTid()) + "_" +
+             std::to_string(load_so_count++) + "/";
   GELOGD("opp_dir is %s", opp_dir.c_str());
 
   GE_ASSERT_TRUE(mmAccess2(opp_dir.c_str(), M_F_OK) != EN_OK);
@@ -183,7 +184,6 @@ ge::graphStatus ModelUtils::SaveToFile(const std::shared_ptr<ge::OpSoBin> &so_bi
   return ge::GRAPH_SUCCESS;
 }
 
-
 ///
 /// @ingroup ge
 /// @brief Get input size.
@@ -202,10 +202,9 @@ std::vector<int64_t> ModelUtils::GetInputSize(const ConstOpDescPtr &op_desc) {
     }
 
     int64_t tensor_size = 0;
-    GE_IF_BOOL_EXEC(
-      TensorUtils::GetSize(*tensor_desc, tensor_size) != GRAPH_SUCCESS,
-      GELOGI("Tensor has no size, op: %s, input index: %zu", op_desc->GetName().c_str(), i);
-      continue);
+    GE_IF_BOOL_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size) != GRAPH_SUCCESS,
+                    GELOGI("Tensor has no size, op: %s, input index: %zu", op_desc->GetName().c_str(), i);
+                    continue);
 
     GELOGI("GetInputSize op:[%s], index:[%zu], size:[%" PRId64 "]", op_desc->GetName().c_str(), i, tensor_size);
     v_input_size.push_back(tensor_size);
@@ -244,10 +243,9 @@ std::vector<int64_t> ModelUtils::GetOutputSize(const ConstOpDescPtr &op_desc) {
     }
 
     int64_t tensor_size = 0;
-    GE_IF_BOOL_EXEC(
-      TensorUtils::GetSize(*tensor_desc, tensor_size) != GRAPH_SUCCESS,
-      GELOGI("Tensor has no size, op: %s, output index: %zu", op_desc->GetName().c_str(), i);
-      continue);
+    GE_IF_BOOL_EXEC(TensorUtils::GetSize(*tensor_desc, tensor_size) != GRAPH_SUCCESS,
+                    GELOGI("Tensor has no size, op: %s, output index: %zu", op_desc->GetName().c_str(), i);
+                    continue);
 
     GELOGD("GetOutputSize op:[%s], index:[%zu], size:[%" PRId64 "]", op_desc->GetName().c_str(), i, tensor_size);
     v_output_size.push_back(tensor_size);
@@ -463,12 +461,11 @@ std::vector<void *> ModelUtils::GetInputAddrs(const RuntimeParam &model_param, c
 }
 
 std::vector<void *> ModelUtils::GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                              std::vector<uint64_t> &mem_type,
-                                              const bool has_optional_addr) {
+                                              std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   GELOGD("Start GetInputAddrs: op_name[%s].", op_desc->GetName().c_str());
   auto v_input_addr = GetInputDataAddrs(model_param, op_desc, mem_type, has_optional_addr);
-  if (GetInputOutputDescAddrs(
-    model_param, op_desc, op_desc->GetAllInputsDescPtr(), mem_type, v_input_addr) != SUCCESS) {
+  if (GetInputOutputDescAddrs(model_param, op_desc, op_desc->GetAllInputsDescPtr(), mem_type, v_input_addr) !=
+      SUCCESS) {
     GELOGE(PARAM_INVALID, "[Check] GetInputOutputDescAddrs failed: op_name[%s]", op_desc->GetName().c_str());
     return {};
   }
@@ -487,8 +484,7 @@ std::vector<uint64_t> ModelUtils::GetInputAddrsValue(const RuntimeParam &model_p
 }
 
 std::vector<uint64_t> ModelUtils::GetInputAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                     std::vector<uint64_t> &mem_type,
-                                                     const bool has_optional_addr) {
+                                                     std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   GELOGD("Start GetInputAddrsValue: op_name[%s]", op_desc->GetName().c_str());
   return VPtrToValue(GetInputAddrs(model_param, op_desc, mem_type, has_optional_addr));
 }
@@ -518,7 +514,7 @@ Status ModelUtils::RefreshAddressByMemType(const RuntimeParam &model_param, cons
       break;
     }
     case RT_MEMORY_HBM:
-    case RT_MEMORY_L2: // l2 also malloc hbm for datadump
+    case RT_MEMORY_L2:  // l2 also malloc hbm for datadump
     case RT_MEMORY_DEFAULT:
       // size can be 0 and need update addr for input and output
       if ((node_mem_info.size_ <= 0) && (node_mem_info.io_type_ == kWorkSpace)) {
@@ -548,8 +544,7 @@ std::vector<uint64_t> ModelUtils::GetInputDataAddrsValue(const RuntimeParam &mod
   return GetInputDataAddrsValue(model_param, op_desc, mem_type);
 }
 
-std::vector<uint64_t> ModelUtils::GetInputDataAddrsValue(const RuntimeParam &model_param,
-                                                         const ConstOpDescPtr &op_desc,
+std::vector<uint64_t> ModelUtils::GetInputDataAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
                                                          std::vector<uint64_t> &mem_type,
                                                          const bool has_optional_addr) {
   return VPtrToValue(GetInputDataAddrs(model_param, op_desc, mem_type, has_optional_addr));
@@ -566,8 +561,7 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
 }
 
 std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                  std::vector<uint64_t> &mem_type,
-                                                  const bool has_optional_addr) {
+                                                  std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   std::vector<void *> v_input_data_addr;  // init as:buf_base + op_def_->input(i));
   GE_CHECK_NOTNULL_EXEC(op_desc, return v_input_data_addr);
   const uint64_t session_id = model_param.session_id;
@@ -584,11 +578,11 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
   const bool check_failed = has_mem_type_attr && (v_memory_type.size() != inputs_size);
   if (check_failed) {
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s, memory_type.size:%zu != input_desc.size:%zu, op:%s(%s), check invalid",
-                       ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size,
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s, memory_type.size:%zu != input_desc.size:%zu, op:%s(%s)",
-           ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size,
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+           ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size, op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return v_input_data_addr;
   }
 
@@ -600,8 +594,8 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
         v_input_data_addr.push_back(nullptr);
         mem_type.push_back(kFixMemType);
       }
-      GELOGI(
-        "Op: %s, Index: %zu, has no input, is optional holder: %d", op_desc->GetName().c_str(), i, has_optional_addr);
+      GELOGI("Op: %s, Index: %zu, has no input, is optional holder: %d", op_desc->GetName().c_str(), i,
+             has_optional_addr);
       continue;
     }
 
@@ -621,7 +615,7 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
       v_input_data_addr.push_back(weight_addr);
       mem_type.push_back(kWeightMemType);
       GELOGI("[IMAS]GetInputDataAddrs graph_%u type[C] name[%s] input[%zu] size[%" PRId64 "] memaddr[%p]",
-        model_param.graph_id, op_desc->GetName().c_str(), i, weight_size, weight_addr);
+             model_param.graph_id, op_desc->GetName().c_str(), i, weight_size, weight_addr);
       non_const_index++;
       continue;
     }
@@ -644,16 +638,16 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
     if (is_check_var_manager && (VarManager::Instance(session_id)->IsVarAddr(input_offset - inner_offset))) {
       void *variable_addr = nullptr;
       if (CheckInt64AddOverflow(tensor_size, inner_offset) != SUCCESS) {
-          return {};
+        return {};
       }
       if (GetVarAddr(model_param, input_offset - inner_offset, variable_addr) != SUCCESS) {
-          return {};
+        return {};
       }
       variable_addr = ValueToPtr(PtrToValue(variable_addr) + static_cast<uint64_t>(inner_offset));
       v_input_data_addr.push_back(variable_addr);
       mem_type.push_back(kVarMemType);
-      GELOGI("[IMAS]GetInputDataAddrs graph_%u type[V] name[%s] input[%zu] memaddr[%p]",
-             model_param.graph_id, op_desc->GetName().c_str(), i, variable_addr);
+      GELOGI("[IMAS]GetInputDataAddrs graph_%u type[V] name[%s] input[%zu] memaddr[%p]", model_param.graph_id,
+             op_desc->GetName().c_str(), i, variable_addr);
       continue;
     }
 
@@ -669,8 +663,7 @@ std::vector<void *> ModelUtils::GetInputDataAddrs(const RuntimeParam &model_para
     const NodeMemInfo node_mem_info{memory_type, op_desc, i, "input", tensor_size, input_offset};
     void *mem_addr = nullptr;
     if (RefreshAddressByMemType(model_param, node_mem_info, mem_addr) != SUCCESS) {
-      GELOGE(FAILED, "[IMAS]get failed for graph_%u %s", model_param.graph_id,
-             node_mem_info.ToString().c_str());
+      GELOGE(FAILED, "[IMAS]get failed for graph_%u %s", model_param.graph_id, node_mem_info.ToString().c_str());
       return {};
     }
     GELOGI("[IMAS]graph_%u %s memaddr[%p]", model_param.graph_id, node_mem_info.ToString().c_str(), mem_addr);
@@ -706,14 +699,17 @@ Status ModelUtils::GetVarAddr(const RuntimeParam &model_param, const int64_t off
       GE_CHECK_NOTNULL(var_manager);
       uint8_t *var_logic_addr = nullptr;
       var_logic_addr = PtrToPtr<void, uint8_t>(ValueToPtr(static_cast<uint64_t>(offset)));
-      var_addr = var_manager->GetVarMemoryAddr(model_param.graph_name, var_logic_addr,
-                                               RT_MEMORY_HBM, model_param.device_id);
+      var_addr =
+          var_manager->GetVarMemoryAddr(model_param.graph_name, var_logic_addr, RT_MEMORY_HBM, model_param.device_id);
       GE_CHK_BOOL_RET_STATUS(var_addr != nullptr, INTERNAL_ERROR, "[Get][VarAddr] failed.");
       break;
     }
     default: {
-      REPORT_INNER_ERR_MSG("E19999", "Get mem_type:%u for offset:%" PRId64 " is unsupported, "
-		         "check invalid", mem_type, offset);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Get mem_type:%u for offset:%" PRId64
+                           " is unsupported, "
+                           "check invalid",
+                           mem_type, offset);
       GELOGE(PARAM_INVALID, "[Check][Param] Get mem_type:%d for offset:%" PRId64 " is unsupported, check invalid",
              mem_type, offset);
       ret = PARAM_INVALID;
@@ -729,18 +725,17 @@ Status ModelUtils::GetVarAddr(const RuntimeParam &model_param, const int64_t off
 /// @brief Get output address.
 /// @return std::vector<void*>
 ///
-std::vector<void *> ModelUtils::GetOutputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc)  {
+std::vector<void *> ModelUtils::GetOutputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc) {
   std::vector<uint64_t> mem_type;
   return GetOutputAddrs(model_param, op_desc, mem_type);
 }
 
 std::vector<void *> ModelUtils::GetOutputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                               std::vector<uint64_t> &mem_type,
-                                               const bool has_optional_addr) {
+                                               std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   GELOGD("Start GetOutputAddrs: op_name[%s].", op_desc->GetName().c_str());
   auto v_output_addr = GetOutputDataAddrs(model_param, op_desc, mem_type, has_optional_addr);
-  if (GetInputOutputDescAddrs(
-    model_param, op_desc, op_desc->GetAllOutputsDescPtr(), mem_type, v_output_addr) != SUCCESS) {
+  if (GetInputOutputDescAddrs(model_param, op_desc, op_desc->GetAllOutputsDescPtr(), mem_type, v_output_addr) !=
+      SUCCESS) {
     GELOGE(PARAM_INVALID, "[Check] GetInputOutputDescAddrs failed: op_name[%s]", op_desc->GetName().c_str());
     return {};
   }
@@ -758,8 +753,7 @@ std::vector<uint64_t> ModelUtils::GetOutputAddrsValue(const RuntimeParam &model_
 }
 
 std::vector<uint64_t> ModelUtils::GetOutputAddrsValue(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                      std::vector<uint64_t> &mem_type,
-                                                      const bool has_optional_addr) {
+                                                      std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   GELOGD("Start GetOutputAddrsValue: op_name[%s].", op_desc->GetName().c_str());
   return VPtrToValue(GetOutputAddrs(model_param, op_desc, mem_type, has_optional_addr));
 }
@@ -791,8 +785,7 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
 }
 
 std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                   std::vector<uint64_t> &mem_type,
-                                                   const bool has_optional_addr) {
+                                                   std::vector<uint64_t> &mem_type, const bool has_optional_addr) {
   std::vector<void *> v_output_data_addr;  // init as:buf_base + op_def_->output(i)
   GE_CHECK_NOTNULL_EXEC(op_desc, return v_output_data_addr);
   GELOGD("Start GetOutputDataAddrs: op_name[%s]", op_desc->GetName().c_str());
@@ -808,11 +801,11 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
   const bool has_mem_type_attr = AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_memory_type);
   if (has_mem_type_attr && (v_memory_type.size() != outputs_size)) {
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s), check invalid",
-                       ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s)",
-           ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+           ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size, op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return v_output_data_addr;
   }
 
@@ -822,8 +815,8 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
     if (iter != model_param.fileconstant_addr_mapping.end()) {
       v_output_data_addr.push_back(reinterpret_cast<void *>(iter->second));
       mem_type.push_back(kConstantMemType);
-      GELOGI("Find mapping existed. index:%zu key offset:%" PRId64 ", dev addr:%" PRIx64,
-             i, v_output_offset[i], iter->second);
+      GELOGI("Find mapping existed. index:%zu key offset:%" PRId64 ", dev addr:%" PRIx64, i, v_output_offset[i],
+             iter->second);
       continue;
     }
 
@@ -838,8 +831,8 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
         v_output_data_addr.push_back(nullptr);
         mem_type.push_back(kFixMemType);
       }
-      GELOGD("%s is an optional output, has option addr:%d.",
-        op_desc->GetName().c_str(), static_cast<int32_t>(has_optional_addr));
+      GELOGD("%s is an optional output, has option addr:%d.", op_desc->GetName().c_str(),
+             static_cast<int32_t>(has_optional_addr));
       continue;
     }
     // var addr
@@ -851,16 +844,16 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
     if (is_check_var_manager && (VarManager::Instance(session_id)->IsVarAddr(v_output_offset[i] - inner_offset))) {
       void *variable_addr = nullptr;
       if (CheckInt64AddOverflow(tensor_size, inner_offset) != SUCCESS) {
-          return {};
+        return {};
       }
       if (GetVarAddr(model_param, v_output_offset[i] - inner_offset, variable_addr) != SUCCESS) {
-          return {};
+        return {};
       }
       variable_addr = ValueToPtr(PtrToValue(variable_addr) + static_cast<uint64_t>(inner_offset));
       v_output_data_addr.push_back(variable_addr);
       mem_type.push_back(kVarMemType);
-      GELOGI("[IMAS]graph_%u type[V] name[%s] output[%zu] memaddr[%p]",
-              model_param.graph_id, op_desc->GetName().c_str(), i, variable_addr);
+      GELOGI("[IMAS]graph_%u type[V] name[%s] output[%zu] memaddr[%p]", model_param.graph_id,
+             op_desc->GetName().c_str(), i, variable_addr);
       continue;
     }
 
@@ -876,8 +869,7 @@ std::vector<void *> ModelUtils::GetOutputDataAddrs(const RuntimeParam &model_par
     const NodeMemInfo node_mem_info{memory_type, op_desc, i, "output", tensor_size, v_output_offset[i]};
     void *mem_addr = nullptr;
     if (RefreshAddressByMemType(model_param, node_mem_info, mem_addr) != SUCCESS) {
-      GELOGE(FAILED, "[IMAS]get failed for graph_%u %s", model_param.graph_id,
-             node_mem_info.ToString().c_str());
+      GELOGE(FAILED, "[IMAS]get failed for graph_%u %s", model_param.graph_id, node_mem_info.ToString().c_str());
       return {};
     }
     GELOGI("[IMAS]graph_%u %s memaddr[%p]", model_param.graph_id, node_mem_info.ToString().c_str(), mem_addr);
@@ -922,18 +914,17 @@ static Status FillSinkTensorDesc(RuntimeTensorDesc &sink_tensor_desc, const GeTe
 ///
 Status ModelUtils::GetInputOutputDescAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
                                            const OpDesc::Vistor<GeTensorDescPtr> &tensor_desc_visitor,
-                                           const std::vector<uint64_t> &mem_type,
-                                           std::vector<void *> &v_addrs) {
+                                           const std::vector<uint64_t> &mem_type, std::vector<void *> &v_addrs) {
   std::vector<int64_t> v_data_mem_type;
-  (void) AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_data_mem_type);
+  (void)AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_data_mem_type);
   size_t tensor_cnt = 0UL;
   size_t desc_idx = 0UL;
   for (const auto &tensor_desc : tensor_desc_visitor) {
     size_t cur_desc_idx = desc_idx++;  // desc 侧索引，每次迭代必增
 
     // 跳过可选输入/输出占位条目，对齐 addr 侧索引与 desc 侧遍历
-    while ((tensor_cnt < v_addrs.size()) && (tensor_cnt < mem_type.size()) &&
-           (mem_type[tensor_cnt] == kFixMemType) && (v_addrs[tensor_cnt] == nullptr)) {
+    while ((tensor_cnt < v_addrs.size()) && (tensor_cnt < mem_type.size()) && (mem_type[tensor_cnt] == kFixMemType) &&
+           (v_addrs[tensor_cnt] == nullptr)) {
       tensor_cnt++;
     }
 
@@ -1031,11 +1022,11 @@ std::vector<void *> ModelUtils::GetWorkspaceDataAddrs(const RuntimeParam &model_
   if ((has_mem_type_attr && (v_memory_type.size() != v_workspace_offset.size())) ||
       (has_mem_type_workspace && (workspace_memory_type.size() != v_workspace_offset.size()))) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
-                       "same, op:%s(%s), check invalid",
-                       TVM_ATTR_NAME_WORKSPACE_TYPE.c_str(), v_memory_type.size(),
-                       ATTR_NAME_WORKSPACE_TYPE_LIST.c_str(), workspace_memory_type.size(), v_workspace_offset.size(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         "Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
+                         "same, op:%s(%s), check invalid",
+                         TVM_ATTR_NAME_WORKSPACE_TYPE.c_str(), v_memory_type.size(),
+                         ATTR_NAME_WORKSPACE_TYPE_LIST.c_str(), workspace_memory_type.size(), v_workspace_offset.size(),
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID,
            "[Check][Param] Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
            "same, op:%s(%s), check invalid",
@@ -1045,16 +1036,16 @@ std::vector<void *> ModelUtils::GetWorkspaceDataAddrs(const RuntimeParam &model_
     return v_workspace_data_addr;
   }
   std::vector<int32_t> workspace_no_reuse_scope;
-  const bool has_workspace_no_reuse_scope = AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE,
-                                                                  workspace_no_reuse_scope);
+  const bool has_workspace_no_reuse_scope =
+      AttrUtils::GetListInt(op_desc, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
   v_workspace_data_addr.reserve(v_workspace_bytes.size());
   for (size_t i = 0U; i < v_workspace_bytes.size(); ++i) {
     // Temporary solution, the aicpu workspace of multiple images cannot be shared.
     const bool aicpu_work_space = (has_workspace_reuse && (i < workspace_reuse_flag.size()) &&
-        (!workspace_reuse_flag[i]) && (!model_param.is_single_op));
+                                   (!workspace_reuse_flag[i]) && (!model_param.is_single_op));
     if (aicpu_work_space) {
-      void *const mem_addr = model_param.aicpu_mem_mall->Acquire(v_workspace_offset[i],
-                                                                 static_cast<uint64_t>(v_workspace_bytes[i]));
+      void *const mem_addr =
+          model_param.aicpu_mem_mall->Acquire(v_workspace_offset[i], static_cast<uint64_t>(v_workspace_bytes[i]));
       v_workspace_data_addr.push_back(mem_addr);
       mem_type.push_back(kAicpuMemMallMemType);
       GELOGI("[IMAS]graph_%u type[F] name[%s] aicpu workspace[%zu] offset[%" PRId64 "] bytes[%" PRId64 "] memaddr[%p]",
@@ -1063,13 +1054,13 @@ std::vector<void *> ModelUtils::GetWorkspaceDataAddrs(const RuntimeParam &model_
       continue;
     }
     const bool session_scope_memory = (has_workspace_no_reuse_scope) && (i < workspace_no_reuse_scope.size()) &&
-        (workspace_no_reuse_scope[i] == kSessionNoReuse);
+                                      (workspace_no_reuse_scope[i] == kSessionNoReuse);
     const bool is_p2p_memory =
         has_mem_type_workspace && (static_cast<uint64_t>(workspace_memory_type[i]) == RT_MEMORY_P2P_DDR);
     const bool is_l1_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == RT_MEMORY_L1);
     const bool is_ub_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == kRtMemoryUB);
-    const uint64_t memory_type = GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory,
-                                                               session_scope_memory);
+    const uint64_t memory_type =
+        GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory);
     const NodeMemInfo node_mem_info{memory_type, op_desc, i, kWorkSpace, v_workspace_bytes[i], v_workspace_offset[i]};
     void *mem_addr = nullptr;
     if (RefreshAddressByMemType(model_param, node_mem_info, mem_addr) != SUCCESS) {
@@ -1089,7 +1080,7 @@ std::vector<void *> ModelUtils::GetWorkspaceDataAddrs(const RuntimeParam &model_
 /// @brief Get runtime memory address.
 /// @return Status
 ///
-Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic_addr, uint8_t *&mem_addr)  {
+Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic_addr, uint8_t *&mem_addr) {
   uint64_t mem_type = kFixMemType;
   return GetRtAddress(param, logic_addr, mem_addr, mem_type);
 }
@@ -1115,14 +1106,15 @@ Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic
     mem_type = kWeightMemType;
     runtime_base_addr = ValueToPtr(param.weight_base - param.logic_weight_base);
     max_logic_offset = param.logic_weight_base + param.weight_size;
-    GELOGI("The logic addr:0x%" PRIx64 " is weight address, base:0x%" PRIx64 ", size:%" PRIu64 ", mem_type:%" PRIu64 ".",
-      logic_addr, param.logic_weight_base, param.weight_size, mem_type);
-  } else if (is_check_var_manager && (param.logic_var_base <= logic_addr)
-             && (logic_addr < (param.logic_var_base + max_var_mem_size))) {
+    GELOGI("The logic addr:0x%" PRIx64 " is weight address, base:0x%" PRIx64 ", size:%" PRIu64 ", mem_type:%" PRIu64
+           ".",
+           logic_addr, param.logic_weight_base, param.weight_size, mem_type);
+  } else if (is_check_var_manager && (param.logic_var_base <= logic_addr) &&
+             (logic_addr < (param.logic_var_base + max_var_mem_size))) {
     const auto &iter = param.fileconstant_addr_mapping.find(static_cast<int64_t>(logic_addr));
     if (iter != param.fileconstant_addr_mapping.cend()) {
-      GELOGI("Find mapping existed, logic_addr:%" PRId64 ", dev_addr:0x%" PRIx64,
-        static_cast<int64_t>(logic_addr), iter->second);
+      GELOGI("Find mapping existed, logic_addr:%" PRId64 ", dev_addr:0x%" PRIx64, static_cast<int64_t>(logic_addr),
+             iter->second);
       mem_addr = PtrToPtr<void, uint8_t>(ValueToPtr(iter->second));
       GE_CHECK_NOTNULL(mem_addr);
       mem_type = kConstantMemType;
@@ -1147,8 +1139,9 @@ Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic
       if ((logic_begin <= logic_addr) && (logic_addr < logic_begin + static_cast<uint64_t>(mem_info.memory_size))) {
         mem_addr = mem_info.memory_base + (logic_addr - logic_begin);
         mem_type = mem_info.memory_type;
-        GELOGI("The logic addr:0x%" PRIx64 " matches type [%" PRIu64 "] address, logic base:0x%" PRIx64 ", size:%" PRIu64
-          ", mem_addr:%p", logic_addr, mem_type, logic_begin, mem_info.memory_size, mem_addr);
+        GELOGI("The logic addr:0x%" PRIx64 " matches type [%" PRIu64 "] address, logic base:0x%" PRIx64
+               ", size:%" PRIu64 ", mem_addr:%p",
+               logic_addr, mem_type, logic_begin, mem_info.memory_size, mem_addr);
         return SUCCESS;
       }
     }
@@ -1157,13 +1150,14 @@ Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic
     GELOGE(PARAM_INVALID, "[Check][Param] The logic addr:0x%" PRIx64 " is abnormal", logic_addr);
     return PARAM_INVALID;
   } else {
-    GELOGW("The logic addr is:0x%" PRIx64 ", base:0x%" PRIx64 ", size:%" PRIu64,
-      logic_addr, param.logic_var_base, param.var_size);
+    GELOGW("The logic addr is:0x%" PRIx64 ", base:0x%" PRIx64 ", size:%" PRIu64, logic_addr, param.logic_var_base,
+           param.var_size);
   }
 
   mem_addr = PtrAdd<uint8_t>(static_cast<uint8_t *>(runtime_base_addr), static_cast<size_t>(max_logic_offset),
                              static_cast<size_t>(logic_addr));
-  GELOGI("The logic addr:0x%" PRIx64 " matches type [%" PRIu64 "] address, mem_addr:%p", logic_addr, mem_type, mem_addr);
+  GELOGI("The logic addr:0x%" PRIx64 " matches type [%" PRIu64 "] address, mem_addr:%p", logic_addr, mem_type,
+         mem_addr);
   return SUCCESS;
 }
 
@@ -1174,8 +1168,8 @@ Status ModelUtils::GetRtAddress(const RuntimeParam &param, const uintptr_t logic
 ///
 Status ModelUtils::SetDevice(const uint32_t device_id) {
   GE_ASSERT_TRUE(device_id != kInvalidDeviceId);
-  GE_ASSERT_RT_OK(aclrtSetDevice(static_cast<int32_t>(device_id)),
-      "Call aclrtSetDevice failed, device_id:%u", device_id);
+  GE_ASSERT_RT_OK(aclrtSetDevice(static_cast<int32_t>(device_id)), "Call aclrtSetDevice failed, device_id:%u",
+                  device_id);
   return SUCCESS;
 }
 
@@ -1219,20 +1213,20 @@ Status ModelUtils::CalculateAicpuBlockingEventNum(const GeModelPtr &ge_model, ui
 }
 
 Status ModelUtils::CalculateHcclGroupOrderedEventNum(const GeModelPtr &ge_model,
-  uint32_t &hccl_group_ordered_event_num) {
+                                                     uint32_t &hccl_group_ordered_event_num) {
   const auto &model_def = ge_model->GetModelTaskDefPtr();
   GE_CHECK_NOTNULL(model_def);
   const auto compute_graph = ge_model->GetGraph().get();
   GE_CHECK_NOTNULL(compute_graph);
 
-  std::unordered_set<std::string > hccl_group_id_set;
+  std::unordered_set<std::string> hccl_group_id_set;
   for (const auto &node : compute_graph->GetAllNodes()) {
     OpDescPtr op_desc = node->GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
 
     std::vector<std::string> hccl_group_id_list;
     const bool has_gropu_id_list = (AttrUtils::GetListStr(op_desc, ATTR_NAME_HCCL_GROUP_ID_LIST, hccl_group_id_list) &&
-      !hccl_group_id_list.empty());
+                                    !hccl_group_id_list.empty());
     if (has_gropu_id_list) {
       for (const auto &group_id : hccl_group_id_list) {
         GELOGI("Get op:%s attribute(hccl_group_id_list) group id:%s", op_desc->GetName().c_str(), group_id.c_str());
@@ -1264,8 +1258,7 @@ Status ModelUtils::CalculateFollowStream(const GeModelPtr &ge_model, uint64_t &h
     if (static_cast<ModelTaskType>(task.type()) == ModelTaskType::MODEL_TASK_HCCL) {
       auto const &hccl_def = task.kernel_hccl();
       const auto it = op_list.find(hccl_def.op_index());
-      GE_CHK_BOOL_RET_STATUS(it != op_list.end(), FAILED, "Failed to find op index %u in op list",
-                             hccl_def.op_index());
+      GE_CHK_BOOL_RET_STATUS(it != op_list.end(), FAILED, "Failed to find op index %u in op list", hccl_def.op_index());
       const OpDescPtr hccl_op_desc = it->second;
       int64_t main_stream_id = hccl_op_desc->GetStreamId();
       int64_t follow_stream_num = 0;
@@ -1350,8 +1343,8 @@ Status ModelUtils::InitRuntimeParams(const GeModelPtr &ge_model, RuntimeParam &r
 
   // 外部传入fix mem base时，fix地址优先功能生效
   bool is_fixed_prior_fm = (runtime_param.fixed_mem_base != 0U);
-  GELOGD("runtime_param.fixed_mem_base:0x%" PRIx64 ", is_fixed_prior_fm:%d",
-    runtime_param.fixed_mem_base, is_fixed_prior_fm);
+  GELOGD("runtime_param.fixed_mem_base:0x%" PRIx64 ", is_fixed_prior_fm:%d", runtime_param.fixed_mem_base,
+         is_fixed_prior_fm);
 
   int64_t total_hbm_size = 0;
   const auto &memory_info_vec = GetAllMemoryTypeSize(ge_model);
@@ -1451,7 +1444,7 @@ Status ModelUtils::MallocExMem(const uint32_t device_id, RuntimeParam &runtime_p
     }
     const bool sessoion_scope = ((kSessionScopeMemoryMask & it.first) == kSessionScopeMemoryMask);
     rtMemType_t memory_type = static_cast<rtMemType_t>(it.first & kMemoryTypeMask);
-    const rtMemType_t  mem_type_from_infos = static_cast<rtMemType_t>(it.second.memory_type);
+    const rtMemType_t mem_type_from_infos = static_cast<rtMemType_t>(it.second.memory_type);
     if (mem_type_from_infos == RT_MEMORY_HOST) {
       memory_type = mem_type_from_infos;
       it.second.memory_base = PtrToPtr<void, uint8_t>(MemManager::Instance().HostMemInstance().Malloc(mem_size));
@@ -1489,8 +1482,8 @@ Status ModelUtils::MallocExMem(const uint32_t device_id, RuntimeParam &runtime_p
   return SUCCESS;
 }
 
-void ModelUtils::FreeExMem(const uint32_t device_id, RuntimeParam &runtime_param,
-                           const uint64_t session_id, const bool is_online) {
+void ModelUtils::FreeExMem(const uint32_t device_id, RuntimeParam &runtime_param, const uint64_t session_id,
+                           const bool is_online) {
   for (auto &it : runtime_param.memory_infos) {
     if ((kSessionScopeMemoryMask & it.first) == kSessionScopeMemoryMask) {
       if ((!is_online) && (it.second.memory_base != nullptr)) {
@@ -1534,15 +1527,14 @@ bool ModelUtils::IsSuppoprtAddrRefreshable(const uint64_t mem_type) {
 void ModelUtils::GetAddrRefreshableFlagsByMemTypes(const std::vector<uint64_t> &mem_types,
                                                    std::vector<uint8_t> &flags) {
   for (const auto &mem_type : mem_types) {
-      const bool refresh = IsSuppoprtAddrRefreshable(mem_type);
-      flags.push_back(refresh ? 1U : 0U);
+    const bool refresh = IsSuppoprtAddrRefreshable(mem_type);
+    flags.push_back(refresh ? 1U : 0U);
   }
 }
 
 bool ModelUtils::IsFeatureMapOrModelIoType(const uint64_t mem_type) {
-  return ((mem_type == kFmMemType) ||
-          (mem_type == static_cast<uint64_t>(RT_MEMORY_HBM)) || (mem_type == static_cast<uint64_t>(RT_MEMORY_L2)) ||
-          (mem_type == static_cast<uint64_t>(RT_MEMORY_DEFAULT)));
+  return ((mem_type == kFmMemType) || (mem_type == static_cast<uint64_t>(RT_MEMORY_HBM)) ||
+          (mem_type == static_cast<uint64_t>(RT_MEMORY_L2)) || (mem_type == static_cast<uint64_t>(RT_MEMORY_DEFAULT)));
 }
 
 Status ModelUtils::GetSpaceRegistries(const ge::GeRootModelPtr &root_model,
@@ -1562,7 +1554,7 @@ Status ModelUtils::GetSpaceRegistries(const ge::GeRootModelPtr &root_model,
       GELOGD("find so in om vendor path %s", so_within_om->GetVendorName().c_str());
       bool found = false;
       for (const auto &vendor_path_2_version : kVersion2VendorPath) {
-        if (vendor_name.find(vendor_path_2_version.second)  != std::string::npos) {
+        if (vendor_name.find(vendor_path_2_version.second) != std::string::npos) {
           GELOGI("Add opp version:[%zu] so from root model!", vendor_path_2_version.first);
           version_2_so_lists[vendor_path_2_version.first].emplace_back(so_within_om);
           found = true;
@@ -1585,7 +1577,7 @@ Status ModelUtils::GetSpaceRegistries(const ge::GeRootModelPtr &root_model,
         std::vector<std::string> opp_dir_list;
         // 在出作用域，析构opp_dir_list时一并删除创建的临时so目录
         GE_MAKE_GUARD(clear_tmp_opp_dir_list, [&opp_dir_list]() -> void {
-          for (const auto& opp_dir : opp_dir_list) {
+          for (const auto &opp_dir : opp_dir_list) {
             GELOGD("clear_tmp_opp_dir_list opp dir: %s", opp_dir.c_str());
             (void)RmOmOppDir(opp_dir);
           }
@@ -1598,8 +1590,8 @@ Status ModelUtils::GetSpaceRegistries(const ge::GeRootModelPtr &root_model,
           opp_dir_list.emplace_back(opp_dir);
           const auto &so_path = opp_dir + so_bin->GetSoName();
           GE_ASSERT_GRAPH_SUCCESS(SaveToFile(so_bin, so_path));
-          opp_so_desc_list.emplace_back(gert::OppSoDesc(std::vector<ge::AscendString>{ge::AscendString(so_path.c_str())},
-                                                        so_bin->GetSoName().c_str()));
+          opp_so_desc_list.emplace_back(gert::OppSoDesc(
+              std::vector<ge::AscendString>{ge::AscendString(so_path.c_str())}, so_bin->GetSoName().c_str()));
         }
         // 因子包中nn对common_legacy有依赖，需先全部落盘再加载
         for (const auto &opp_so_desc : opp_so_desc_list) {
@@ -1607,7 +1599,7 @@ Status ModelUtils::GetSpaceRegistries(const ge::GeRootModelPtr &root_model,
           const auto is_opp_depend_common_so = opp_so_desc.GetPackageName().Find("libophost_comm_legacy.so");
           // 正式方案需由aoe整改，当前规避方案由GE跳过加载
           if (is_opp_depend_common_so != std::string::npos) {
-            GELOGD("AddSoToRegistry skiped, the specify so: libophost_comm_legacy.so");
+            GELOGD("AddSoToRegistry skipped, the specify so: libophost_comm_legacy.so");
             continue;
           }
           GE_ASSERT_GRAPH_SUCCESS(space_registry->AddSoToRegistry(opp_so_desc));
@@ -1687,8 +1679,7 @@ Status ModelUtils::GetOpMasterDevice(const uint32_t &model_id, const ge::GeRootM
       }
       const auto &cust_key = GetOpMasterDeviceKey(model_id, path + "/" + name);
       cust_so_bins.emplace(cust_key, op_so_bin);
-      GELOGI("[OpMasterDevice][Custom]Get so [%s]->[%s] in model [%u].",
-          name.c_str(), cust_key.c_str(), model_id);
+      GELOGI("[OpMasterDevice][Custom]Get so [%s]->[%s] in model [%u].", name.c_str(), cust_key.c_str(), model_id);
     }
   } else {
     GE_ASSERT_SUCCESS(GetOpMasterDeviceFromOppPackage(model_id, built_in_so_bins, cust_so_bins));
@@ -1726,8 +1717,7 @@ Status ModelUtils::GetOpMasterDeviceFromOppPackage(const uint32_t &model_id,
       }
       const auto &cust_key = GetOpMasterDeviceKey(model_id, file);
       cust_so_bins.emplace(cust_key, proto_bin);
-      GELOGI("[OpMasterDevice][Custom] Get so [%s]->[%s] from opp path.",
-          so_name.c_str(), cust_key.c_str());
+      GELOGI("[OpMasterDevice][Custom] Get so [%s]->[%s] from opp path.", so_name.c_str(), cust_key.c_str());
     }
   }
   return SUCCESS;

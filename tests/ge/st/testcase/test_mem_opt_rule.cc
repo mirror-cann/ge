@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,27 +56,11 @@ namespace {
 ComputeGraphPtr CaseGraphWithRwConflict() {
   auto main_graph = []() {
     DEF_GRAPH(g) {
-      auto index = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_INT32, {1})
-         .Build("index");
-      auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("data");
-      auto case_node = OP_CFG(CASE)
-         .InCnt(2)
-         .OutCnt(2)
-         .Build("case");
-      auto var_node = OP_CFG(VARIABLE)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32})
-         .Build("variable");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(3)
-         .OutCnt(1);
+      auto index = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1}).Build("index");
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).Build("data");
+      auto case_node = OP_CFG(CASE).InCnt(2).OutCnt(2).Build("case");
+      auto var_node = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32}).Build("variable");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(3).OutCnt(1);
       CHAIN(NODE(index)->NODE(case_node)->NODE("NetOutput", net_output));
       CHAIN(NODE(case_node)->EDGE(1, 1)->NODE("NetOutput", net_output));
       CHAIN(NODE(data)->EDGE(0, 1)->NODE(case_node));
@@ -90,30 +74,18 @@ ComputeGraphPtr CaseGraphWithRwConflict() {
 
   auto case1_graph = []() {
     DEF_GRAPH(g) {
-      auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32})
-         .Build("data_case1");
-      auto mul = OP_CFG(MUL)
-         .InCnt(2)
-         .OutCnt(1)
-         .Build("mul_case1");
-      auto add = OP_CFG(ADD)
-         .InCnt(2)
-         .OutCnt(1)
-         .Build("add_case1");
-     std::vector<int64_t> shape = {32, 32};
-     auto data_tensor = GenerateTensor(shape);
-     auto const_node = OP_CFG(CONSTANT)
-         .InCnt(1)
-         .OutCnt(1)
-         .Weight(data_tensor)
-         .TensorDesc(FORMAT_ND, DT_INT32, shape)
-         .Build("constant_case1");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(2)
-         .OutCnt(1);
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32}).Build("data_case1");
+      auto mul = OP_CFG(MUL).InCnt(2).OutCnt(1).Build("mul_case1");
+      auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_case1");
+      std::vector<int64_t> shape = {32, 32};
+      auto data_tensor = GenerateTensor(shape);
+      auto const_node = OP_CFG(CONSTANT)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Weight(data_tensor)
+                            .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                            .Build("constant_case1");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1);
       CHAIN(NODE(data)->EDGE(0, 0)->NODE(mul)->EDGE(0, 0)->NODE("NetOutput_case1", net_output));
       CHAIN(NODE(data)->EDGE(0, 0)->NODE(add)->EDGE(0, 1)->NODE("NetOutput_case1", net_output));
       CHAIN(NODE(mul)->EDGE(0, 1)->NODE(add));
@@ -131,30 +103,15 @@ ComputeGraphPtr CaseGraphWithRwConflict() {
 
   auto case2_graph = []() {
     DEF_GRAPH(g) {
-      auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32})
-         .Build("data_case2");
-      auto assign = OP_CFG(ASSIGN)
-         .InCnt(2)
-         .OutCnt(1)
-         .Build("assign_case2");
-      auto var_node = OP_CFG(VARIABLE)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("var1_case2");
-      auto cast = OP_CFG(CAST)
-         .InCnt(1)
-         .OutCnt(1)
-         .Build("var1_case2");
-      auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(2)
-         .OutCnt(1);
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {32, 32}).Build("data_case2");
+      auto assign = OP_CFG(ASSIGN).InCnt(2).OutCnt(1).Build("assign_case2");
+      auto var_node = OP_CFG(VARIABLE).InCnt(1).OutCnt(1).Build("var1_case2");
+      auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).Build("var1_case2");
+      auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1);
       CHAIN(NODE(data)->EDGE(0, 1)->NODE(assign)->EDGE(0, 0)->NODE("netOutput_case2", net_output));
       CHAIN(NODE(var_node)->EDGE(0, 0)->NODE(assign));
       CHAIN(NODE(data)->EDGE(0, 0)->NODE(cast)->EDGE(0, 1)->NODE("netOutput_case2", net_output));
-      };
+    };
     return ToComputeGraph(g);
   }();
   case2_graph->SetName("case2_graph");
@@ -226,7 +183,12 @@ ComputeGraphPtr GraphWithSubgraphAndFIFORwConflict() {
       auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1}).Build("data_case1");
       std::vector<int64_t> shape = {1};
       auto data_tensor = GenerateTensor(shape);
-      auto const_node = OP_CFG(CONSTANT).InCnt(1).OutCnt(1).Weight(data_tensor).TensorDesc(FORMAT_ND, DT_INT32, {1}).Build("const_case1");
+      auto const_node = OP_CFG(CONSTANT)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Weight(data_tensor)
+                            .TensorDesc(FORMAT_ND, DT_INT32, {1})
+                            .Build("const_case1");
       auto foo = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("foo_case1");
       auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1);
       auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).Build("cast_case1");
@@ -238,7 +200,8 @@ ComputeGraphPtr GraphWithSubgraphAndFIFORwConflict() {
   case1_graph->SetName("case1_graph");
   ge::AttrUtils::SetInt(case1_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(case1_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetInt(case1_graph->FindFirstNodeMatchType("ReLU")->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
+  ge::AttrUtils::SetInt(case1_graph->FindFirstNodeMatchType("ReLU")->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_SPECIAL_INPUT_SIZE, 1);
   auto net_out_op_desc = case1_graph->FindFirstNodeMatchType("NetOutput")->GetOpDesc();
   ge::AttrUtils::SetInt(net_out_op_desc->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   ge::AttrUtils::SetInt(net_out_op_desc->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
@@ -250,7 +213,12 @@ ComputeGraphPtr GraphWithSubgraphAndFIFORwConflict() {
       auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1);
       std::vector<int64_t> shape = {1};
       auto data_tensor = GenerateTensor(shape);
-      auto const_node = OP_CFG(CONSTANT).InCnt(1).OutCnt(1).Weight(data_tensor).TensorDesc(FORMAT_ND, DT_INT32, {1}).Build("const_case2");
+      auto const_node = OP_CFG(CONSTANT)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Weight(data_tensor)
+                            .TensorDesc(FORMAT_ND, DT_INT32, {1})
+                            .Build("const_case2");
       auto cast = OP_CFG(CAST).InCnt(1).OutCnt(1).Build("cast_case2");
       CHAIN(NODE(data)->EDGE(0, 0)->NODE(add)->NODE("NetOutput_case2", net_output));
       CHAIN(NODE(const_node)->EDGE(0, 1)->NODE(add));
@@ -302,13 +270,14 @@ ComputeGraphPtr GraphWithSubgraphAndFIFORwConflict() {
   return main_graph;
 }
 
-}
+}  // namespace
 
 /**
  * 用例描述：case子图场景下，存在读写冲突时，需要插入identity节点
  *
  * 预置条件：
- * 1. fake一个case字图，分支1的第0个输出写输出，另一个分支2的第0个输出存在读，不同分支存在读写冲突，但是操作的却是同一块内存。
+ * 1.
+ * fake一个case字图，分支1的第0个输出写输出，另一个分支2的第0个输出存在读，不同分支存在读写冲突，但是操作的却是同一块内存。
  *
  * 测试步骤：
  * 1. 按照预制条件构造好case子图。
@@ -337,7 +306,7 @@ ComputeGraphPtr GraphWithSubgraphAndFIFORwConflict() {
  *            /     \            |     |c                    |  |       \    LabelSet    |  |
  *           /       \           |    Data                   |  |        +------Data-----+  |
  *      pred(Data)  input(Data)  +---------------------------+  +----------------------------+
-*/
+ */
 TEST_F(STestMemOptRuleTest, test_case_RW_conflict) {
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
   auto compute_graph = CaseGraphWithRwConflict();
@@ -389,13 +358,13 @@ TEST_F(STestMemOptRuleTest, test_case_RW_conflict) {
  *    |
  *  allreduce (_input_mutable)
  *
-*/
+ */
 TEST_F(STestMemOptRuleTest, TestImutableInput_NoSubgraph_CheckInsertIdentity) {
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
   auto allreduce = OP_CFG(HCOMALLREDUCE).Attr("_input_mutable", true);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("var", VARIABLE)->NODE("allreduce", allreduce)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("var", VARIABLE)->NODE("allreduce", allreduce)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph = ToGeGraph(g1);
   map<AscendString, AscendString> options;
   options[OPTION_FEATURE_BASE_REFRESHABLE] = "0";
@@ -426,7 +395,7 @@ TEST_F(STestMemOptRuleTest, TestFIFORwConflictWithoutSubgraph) {
   };
   auto computeGraph1 = ToComputeGraph(g1);
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(computeGraph1);
-  int64_t special_size = 64; // random value for test
+  int64_t special_size = 64;  // random value for test
   auto foo_desc = computeGraph1->FindFirstNodeMatchType("ReLU")->GetOpDesc();
   ge::AttrUtils::SetInt(foo_desc->MutableInputDesc(0), ATTR_NAME_SPECIAL_INPUT_SIZE, special_size);
   map<AscendString, AscendString> options;

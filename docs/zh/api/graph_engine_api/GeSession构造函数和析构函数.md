@@ -68,4 +68,3 @@ explicit GeSession(const std::map<AscendString, AscendString> &options)
 ## 约束说明<a name="zh-cn_topic_0204328224_zh-cn_topic_0182636384_section62768825"></a>
 
 GeSession暂不支持并发执行，同时GeSession会独占资源，多个GeSession同时创建时，GeSession可能因为资源不足而创建失败。
-

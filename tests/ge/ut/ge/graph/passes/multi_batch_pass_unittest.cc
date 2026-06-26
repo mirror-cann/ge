@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,8 @@ class UtestMultiBatchPass : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
-public:
+
+ public:
   void make_graph_no_switch_n(ComputeGraphPtr graph) {
     GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
     auto var_desc = std::make_shared<OpDesc>("var", VARIABLEV2);
@@ -63,7 +64,7 @@ public:
     std::vector<int64_t> shape_batch_1 = {1, 1};
     AttrUtils::SetListInt(output_desc_batch_1, ATTR_NAME_SWITCHN_PRED_VALUE, shape_batch_1);
     AttrUtils::SetListInt(output_desc_batch_1, ATTR_NAME_COMBINED_DYNAMIC_DIMS, shape_batch_1);
-    GeTensorDesc output_desc_batch_2= scalar_tensor;
+    GeTensorDesc output_desc_batch_2 = scalar_tensor;
     std::vector<int64_t> shape_batch_2 = {2, 2};
     AttrUtils::SetListInt(output_desc_batch_2, ATTR_NAME_SWITCHN_PRED_VALUE, shape_batch_2);
     AttrUtils::SetListInt(output_desc_batch_2, ATTR_NAME_COMBINED_DYNAMIC_DIMS, shape_batch_2);
@@ -128,12 +129,14 @@ public:
     auto merge_node = graph->AddNode(merge_desc);
 
     (void)GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), switch_n_node_1->GetInDataAnchor(SWITCH_DATA_INPUT));
-    (void)GraphUtils::AddEdge(pred_value_node->GetOutDataAnchor(0), switch_n_node_1->GetInDataAnchor(SWITCH_PRED_INPUT));
+    (void)GraphUtils::AddEdge(pred_value_node->GetOutDataAnchor(0),
+                              switch_n_node_1->GetInDataAnchor(SWITCH_PRED_INPUT));
     (void)GraphUtils::AddEdge(switch_n_node_1->GetOutDataAnchor(0), add_node_1->GetInDataAnchor(0));
     (void)GraphUtils::AddEdge(switch_n_node_1->GetOutDataAnchor(1), add_node_2->GetInDataAnchor(0));
 
     (void)GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), switch_n_node_2->GetInDataAnchor(SWITCH_DATA_INPUT));
-    (void)GraphUtils::AddEdge(pred_value_node->GetOutDataAnchor(0), switch_n_node_2->GetInDataAnchor(SWITCH_PRED_INPUT));
+    (void)GraphUtils::AddEdge(pred_value_node->GetOutDataAnchor(0),
+                              switch_n_node_2->GetInDataAnchor(SWITCH_PRED_INPUT));
     (void)GraphUtils::AddEdge(switch_n_node_2->GetOutDataAnchor(0), add_node_1->GetInDataAnchor(1));
     (void)GraphUtils::AddEdge(switch_n_node_2->GetOutDataAnchor(1), add_node_2->GetInDataAnchor(1));
 
@@ -177,13 +180,13 @@ public:
   }
 
   /*
-  *   do_mask1       do_mask2    do_mask3       do_mask4     do_mask5      do_mask6
-  *      \| \          / |/        |/ \          /  |/         \| \          / |/
-  *       \  \        /  |         |   \        /   |           |  \        /  |
-  *        \  genmask1   |         |    genmask2    |           |   genmask3   |
-  *         \     | |    |         |      |  |      |           |     | |     /
-  *          ----------------------const1 and const2--------------------------
-  */
+   *   do_mask1       do_mask2    do_mask3       do_mask4     do_mask5      do_mask6
+   *      \| \          / |/        |/ \          /  |/         \| \          / |/
+   *       \  \        /  |         |   \        /   |           |  \        /  |
+   *        \  genmask1   |         |    genmask2    |           |   genmask3   |
+   *         \     | |    |         |      |  |      |           |     | |     /
+   *          ----------------------const1 and const2--------------------------
+   */
   ComputeGraphPtr MakeGraphWithGenMask() {
     ut::GraphBuilder builder = ut::GraphBuilder("g1");
     auto const1 = builder.AddNode("const1", "Const", 0, 1);
@@ -259,7 +262,6 @@ TEST_F(UtestMultiBatchPass, Run0) {
   MultiBatchPass multiBatchPass;
   retStatus = multiBatchPass.Run(subGraph);
   EXPECT_EQ(retStatus, SUCCESS);
-
 }
 
 TEST_F(UtestMultiBatchPass, no_switch_n_success) {
@@ -267,12 +269,11 @@ TEST_F(UtestMultiBatchPass, no_switch_n_success) {
   make_graph_no_switch_n(graph);
 
   MultiBatchPass multi_batch_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"multi_batch_pass", &multi_batch_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"multi_batch_pass", &multi_batch_pass}};
   EXPECT_EQ(multi_batch_pass.Run(graph), domi::SUCCESS);
 }
 
-TEST_F(UtestMultiBatchPass, SetCaseLabel)
-{
+TEST_F(UtestMultiBatchPass, SetCaseLabel) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   make_graph_two_switch_n(graph);
   ge::OpDescPtr op = CreateOpDesc("While", WHILE, 2, 1);
@@ -294,8 +295,7 @@ TEST_F(UtestMultiBatchPass, SetCaseLabel)
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(UtestMultiBatchPass, skip_subgraph)
-{
+TEST_F(UtestMultiBatchPass, skip_subgraph) {
   ComputeGraphPtr root_graph = std::make_shared<ComputeGraph>("root_graph");
   make_a_simple_graph(root_graph);
 

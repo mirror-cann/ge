@@ -16,7 +16,15 @@ from __future__ import annotations
 
 from ge.es import GraphBuilder, TensorHolder
 from ge.graph import Graph, Node
-from ge.passes import FusionBasePass, PassStage, register_fusion_pass, SubgraphBoundary, SubgraphInput, SubgraphOutput, SubgraphRewriter
+from ge.passes import (
+    FusionBasePass,
+    PassStage,
+    SubgraphBoundary,
+    SubgraphInput,
+    SubgraphOutput,
+    SubgraphRewriter,
+    register_fusion_pass,
+)
 
 try:
     from ge.es.math import ConcatV2

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,10 +23,8 @@ const uint32_t kFzDimN1 = 1;
 const uint32_t kFzDimN0 = 2;
 const uint32_t kFzDimK0 = 3;
 
-Status ConvEstimator::GetConvCycle(PlatFormInfos &platform_info,
-                                   const std::vector<int64_t> &weight_shape,
-                                   const std::vector<int64_t> &fm_shape,
-                                   uint64_t &cycle) {
+Status ConvEstimator::GetConvCycle(PlatFormInfos &platform_info, const std::vector<int64_t> &weight_shape,
+                                   const std::vector<int64_t> &fm_shape, uint64_t &cycle) {
   uint64_t cube_m_size = BasicEstimator::GetUintParam(platform_info, kAiCoreSpecLbl, kCubeMSizeKey);
   uint64_t cube_n_size = BasicEstimator::GetUintParam(platform_info, kAiCoreSpecLbl, kCubeNSizeKey);
 
@@ -53,15 +51,17 @@ Status ConvEstimator::GetConvCycle(PlatFormInfos &platform_info,
   auto batch = static_cast<uint64_t>(fm_shape[NCHW_DIM_N]);
   auto cube_k = static_cast<uint64_t>(weight_shape[kFzDimK1]);
   cycle = cube_m * cube_k * cube_n * batch;
-  FE_LOGD("Conv batch[%lu], cube_m[%lu], cube_k[%lu], cube_n[%lu], cycle is %lu.",
-          batch, cube_m, cube_k, cube_n, cycle);
+  FE_LOGD("Conv batch[%lu], cube_m[%lu], cube_k[%lu], cube_n[%lu], cycle is %lu.", batch, cube_m, cube_k, cube_n,
+          cycle);
   return SUCCESS;
 }
 
-Status ConvEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDesc &op_desc,
-                                   uint64_t &exec_time) {
+Status ConvEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDesc &op_desc, uint64_t &exec_time) {
   auto weight = op_desc.MutableInputDesc(kWeightIndex);
-  if (weight == nullptr) { FE_LOGD("weight is nullptr."); return FAILED; }
+  if (weight == nullptr) {
+    FE_LOGD("weight is nullptr.");
+    return FAILED;
+  }
   auto weight_format = static_cast<ge::Format>(ge::GetPrimaryFormat(weight->GetFormat()));
   if (weight_format != ge::FORMAT_FRACTAL_Z) {
     FE_LOGD("Do not support weight format %d of node %s.", weight_format, op_desc.GetName().c_str());
@@ -69,7 +69,10 @@ Status ConvEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDes
   }
 
   auto fm = op_desc.MutableInputDesc(kFmIndex);
-  if (fm == nullptr) { FE_LOGD("fm is nullptr."); return FAILED; }
+  if (fm == nullptr) {
+    FE_LOGD("fm is nullptr.");
+    return FAILED;
+  }
   ge::Format fm_format = fm->GetFormat();
   const ge::GeShape &fm_shape = fm->GetShape();
 
@@ -107,8 +110,7 @@ Status ConvEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDes
   }
 
   uint64_t vec_cycle = 0;
-  if (VectorEstimator::GetVecCycle(platform_info, op_desc, vec_cycle) != SUCCESS ||
-      vec_cycle == 0) {
+  if (VectorEstimator::GetVecCycle(platform_info, op_desc, vec_cycle) != SUCCESS || vec_cycle == 0) {
     return FAILED;
   }
 
@@ -117,4 +119,4 @@ Status ConvEstimator::EstimateTime(PlatFormInfos &platform_info, const ge::OpDes
   exec_time = BasicEstimator::CalcTimeByCycle(platform_info, cycle);
   return SUCCESS;
 }
-}
+}  // namespace fe

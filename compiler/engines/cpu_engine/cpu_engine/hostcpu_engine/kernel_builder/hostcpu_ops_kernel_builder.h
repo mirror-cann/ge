@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ class HostCpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * Initialize related resources of the aicpu kernelinfo store
    * @return status whether this operation success
    */
-  ge::Status Initialize(
-      const std::map<std::string, std::string> &options) override;
+  ge::Status Initialize(const std::map<std::string, std::string> &options) override;
 
   /**
    * Release related resources of the aicpu kernelinfo store
@@ -60,26 +59,22 @@ class HostCpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param runContext Run context from Ge
    * @return task memsize in node
    */
-  ge::Status GenerateTask(const ge::Node &ge_node, ge::RunContext &context,
-                          std::vector<domi::TaskDef> &tasks) override;
+  ge::Status GenerateTask(const ge::Node &ge_node, ge::RunContext &context, std::vector<domi::TaskDef> &tasks) override;
 
   ge::Status UpdateTask(const ge::Node &node, std::vector<domi::TaskDef> &tasks) override;
 
   // Copy prohibited
-  HostCpuOpsKernelBuilder(const HostCpuOpsKernelBuilder
-                          &hostcpu_ops_kernel_builder) = delete;
+  HostCpuOpsKernelBuilder(const HostCpuOpsKernelBuilder &hostcpu_ops_kernel_builder) = delete;
 
   // Move prohibited
-  HostCpuOpsKernelBuilder(const HostCpuOpsKernelBuilder
-                          &&hostcpu_ops_kernel_builder) = delete;
+  HostCpuOpsKernelBuilder(const HostCpuOpsKernelBuilder &&hostcpu_ops_kernel_builder) = delete;
 
   // Copy prohibited
-  HostCpuOpsKernelBuilder &operator=(
-      const HostCpuOpsKernelBuilder &hostcpu_ops_kernel_builder) = delete;
+  HostCpuOpsKernelBuilder &operator=(const HostCpuOpsKernelBuilder &hostcpu_ops_kernel_builder) = delete;
 
   // Move prohibited
-  HostCpuOpsKernelBuilder &operator=(
-      HostCpuOpsKernelBuilder &&hostcpu_ops_kernel_builder) = delete;
+  HostCpuOpsKernelBuilder &operator=(HostCpuOpsKernelBuilder &&hostcpu_ops_kernel_builder) = delete;
+
  private:
   std::string engine_name_;
 

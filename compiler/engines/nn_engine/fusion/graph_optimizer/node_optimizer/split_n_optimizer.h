@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@
 
 namespace fe {
 /** @brief provide two interface: 1. optimize original graph 2. optimize fused
-* sub graph */
+ * sub graph */
 class SplitNOptimizer {
  public:
   /**
@@ -40,8 +40,8 @@ class SplitNOptimizer {
  private:
   bool NeedSkip(const ge::NodePtr &node, const ge::OpDescPtr &op_desc) const;
   void GetRealSplitDimFromOriginalFormatToFormat(const ge::OpDescPtr &op_desc, int64_t &split_dim) const;
-  static bool InvalidNodeType(const string& node_type);
-  static bool InvalidNodeAttr(const ge::OpDescPtr& node_desc);
+  static bool InvalidNodeType(const string &node_type);
+  static bool InvalidNodeAttr(const ge::OpDescPtr &node_desc);
 };
 }  // namespace fe
 #endif  // FUSION_ENGINE_FUSION_GRAPH_OPTIMIZER_NODE_OPTIMIZER_SPLIT_N_OPTIMIZER_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,11 +22,11 @@ class FusingNode;
 using FusingNodePtr = std::shared_ptr<FusingNode>;
 
 struct FusionStatistics {
-  size_t min_scale;          // AscBackend节点最小规模（asc子图内节点数)
-  size_t max_scale;          // AscBackend节点最大规模（asc子图内节点数)
-  float_t average_scale;     // AscBackend节点平均规模（asc子图内节点数)
-  size_t nodes_size;         // 整图上节点数
-  Expression rw_memory_size; // 整图读写内存大小
+  size_t min_scale;           // AscBackend节点最小规模（asc子图内节点数)
+  size_t max_scale;           // AscBackend节点最大规模（asc子图内节点数)
+  float_t average_scale;      // AscBackend节点平均规模（asc子图内节点数)
+  size_t nodes_size;          // 整图上节点数
+  Expression rw_memory_size;  // 整图读写内存大小
 };
 
 // 保存可以融合的节点对，并缓存融合后节省的内存大小和邻近性信息，减少重复运算提升性能
@@ -199,11 +199,11 @@ class FusionStrategySolver {
 
   NodePairList GetPossibleFusions(const uint32_t round, const ComputeGraphPtr &graph, std::vector<FusingNodePtr> &nodes,
                                   const FusingNodes &fusing_nodes,
-                                  std::set<std::pair<FusingNode*, FusingNode*>> &can_not_fuse_nodes) const;
+                                  std::set<std::pair<FusingNode *, FusingNode *>> &can_not_fuse_nodes) const;
   NodePairList GetPossibleFusionsWithPrioritySort(const uint32_t round, const ComputeGraphPtr &graph,
-                                                     const NodePairList &possible_fusions) const;
+                                                  const NodePairList &possible_fusions) const;
   bool CanFuse(const ComputeGraphPtr &graph, const FusingNodePtr &node1, const FusingNodePtr &node2,
-               std::set<std::pair<FusingNode*, FusingNode*>> &can_not_fuse_nodes) const;
+               std::set<std::pair<FusingNode *, FusingNode *>> &can_not_fuse_nodes) const;
   bool WillFusionCreateCycle(const CycleDetectorSharedPtr &cycle_detector, const FusingNodePtr &node1,
                              const FusingNodePtr &node2) const;
   FusingNodePtr FuseNode(const ComputeGraphPtr &graph, const FusingNodePtr &node1, const FusingNodePtr &node2,
@@ -220,8 +220,8 @@ class FusionStrategySolver {
     GELOGI("found %d possible fusions.", possible_fusions.size());
     if (IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
       for (const auto &pair : possible_fusions) {
-        GELOGI("[%s,%s] memory_score:%s proximity_score:%ld", pair.first->GetNamePtr(),
-               pair.second->GetNamePtr(), pair.memory_score.Str().get(), pair.proximity_score);
+        GELOGI("[%s,%s] memory_score:%s proximity_score:%ld", pair.first->GetNamePtr(), pair.second->GetNamePtr(),
+               pair.memory_score.Str().get(), pair.proximity_score);
       }
     }
     return SUCCESS;

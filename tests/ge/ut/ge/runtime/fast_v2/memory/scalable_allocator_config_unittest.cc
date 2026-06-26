@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,16 +32,16 @@ class MockRuntime : public ge::RuntimeStub {
   }
 };
 class MockAclRuntime : public ge::AclRuntimeStub {
-public:
+ public:
   aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
     *free_size = 64UL * 1024UL * 1024UL;
     *total = 56UL * 1024UL * 1024UL * 1024UL;
     return ACL_SUCCESS;
   }
 };
-}
+}  // namespace
 
- struct ScaleAllocatorConfigTest : public memory::MemSynchronizer, public testing::Test {
+struct ScaleAllocatorConfigTest : public memory::MemSynchronizer, public testing::Test {
   void SetUp() {
     auto mock_runtime = std::make_shared<MockRuntime>();
     auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
@@ -54,16 +54,17 @@ public:
     config->span_layer_lift_max = span_layer_lift_max;
     config->unsplitable_size_threshold = unsplitable_size_threshold;
     config->uncacheable_size_threshold = uncacheable_size_threshold;
-    //allocator.reset(new ScalableAllocator{span_allocator_, device_allocator, *config});
+    // allocator.reset(new ScalableAllocator{span_allocator_, device_allocator, *config});
     caching_allocator.reset(new memory::CachingMemAllocator{0, kOnDeviceHbm, *config});
     ge::RuntimeStub::Reset();
     ge::AclRuntimeStub::Reset();
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
 
-  ge::Status Synchronize() const { return ge::SUCCESS; }
+  ge::Status Synchronize() const {
+    return ge::SUCCESS;
+  }
 
   void Recycle() {};
 
@@ -72,7 +73,7 @@ public:
   size_t span_layer_lift_max = 2;
   MemSize unsplitable_size_threshold = 1_GB;
   MemSize uncacheable_size_threshold = 2_GB - 1_MB;
-  MemSize pageSize{(MemSize) 1 << page_idem_num};
+  MemSize pageSize{(MemSize)1 << page_idem_num};
 
   size_t unsplitableLayerId{SpanLayerId_GetIdFromSize(unsplitable_size_threshold, page_idem_num)};
   size_t unCacheableLayerId{SpanLayerId_GetIdFromSize(uncacheable_size_threshold, page_idem_num)};

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,9 +12,10 @@
 
 namespace fe {
 AutoBufferFusionPassRunner::AutoBufferFusionPassRunner(const std::string &pass_name,
-    BufferFusionPassBase *(*create_fn)(), const FusionCycleDetectorPtr &cycle_detector,
-    const OpStoreAdapterBasePtr &op_store_adapter_ptr) :
-          BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector, op_store_adapter_ptr) {}
+                                                       BufferFusionPassBase *(*create_fn)(),
+                                                       const FusionCycleDetectorPtr &cycle_detector,
+                                                       const OpStoreAdapterBasePtr &op_store_adapter_ptr)
+    : BaseBufferFusionPassRunner(pass_name, create_fn, cycle_detector, op_store_adapter_ptr) {}
 AutoBufferFusionPassRunner::~AutoBufferFusionPassRunner() {}
 
 Status AutoBufferFusionPassRunner::MatchEachPattern(const ge::ComputeGraph &graph, BufferFusionPattern &pattern,
@@ -42,8 +43,8 @@ Status AutoBufferFusionPassRunner::MatchEachPattern(const ge::ComputeGraph &grap
     std::vector<ge::NodePtr> fusion_nodes;
     Status status = GetFusionNodesByMapping(node, mapping, fusion_nodes);
     if (status != SUCCESS && status != NOT_CHANGED) {
-      FE_LOGW("Failed to get fusion nodes for pass[%s] and pattern[%s].",
-              GetPassName().c_str(), pattern.GetName().c_str());
+      FE_LOGW("Failed to get fusion nodes for pass[%s] and pattern[%s].", GetPassName().c_str(),
+              pattern.GetName().c_str());
       return status;
     }
     if (fusion_nodes.empty() || fusion_nodes.size() == 1) {
@@ -98,7 +99,7 @@ void AutoBufferFusionPassRunner::MatchPatternFromNode(const ge::NodePtr &node, c
   // check loop and matched nodes
   matched_nodes.push_back(node);  // add node to matched nodes first
   if (!CheckLoopForMatchedNodes(node, matched_nodes)) {
-    matched_nodes.pop_back(); // remove the node which may make a loop
+    matched_nodes.pop_back();  // remove the node which may make a loop
     FE_LOGD("Loop verification of node [%s, %s] did not pass.", node->GetName().c_str(), node->GetType().c_str());
     return;
   }
@@ -184,8 +185,9 @@ bool AutoBufferFusionPassRunner::CheckLoopForMatchedNodes(const ge::NodePtr &nod
   return !GetFusionCycleDetectorPtr()->CycleDetection(*graph_ptr, matched_nodes);
 }
 
-const BufferFusionOpDesc* AutoBufferFusionPassRunner::GetMainPatternDesc(const BufferFusionPattern &pattern,
-    const std::vector<const BufferFusionOpDesc*> &exclude_desc_vec, bool &need_check_next) {
+const BufferFusionOpDesc *AutoBufferFusionPassRunner::GetMainPatternDesc(
+    const BufferFusionPattern &pattern, const std::vector<const BufferFusionOpDesc *> &exclude_desc_vec,
+    bool &need_check_next) {
   BufferFusionOpDesc *main_op_desc = nullptr;
   bool is_at_least_one = false;
   for (BufferFusionOpDesc *op_desc : pattern.GetOpDescs()) {
@@ -213,7 +215,7 @@ const BufferFusionOpDesc* AutoBufferFusionPassRunner::GetMainPatternDesc(const B
 
 void AutoBufferFusionPassRunner::GetMainPatternNodes(const BufferFusionPattern &pattern, const ge::ComputeGraph &graph,
                                                      std::vector<ge::NodePtr> &main_nodes) const {
-  std::vector<const BufferFusionOpDesc*> exclude_desc_vec;
+  std::vector<const BufferFusionOpDesc *> exclude_desc_vec;
   bool need_check_next = false;
   const BufferFusionOpDesc *main_op_desc = GetMainPatternDesc(pattern, exclude_desc_vec, need_check_next);
   while (main_op_desc != nullptr) {
@@ -242,8 +244,10 @@ bool AutoBufferFusionPassRunner::VerifyMinCountForMatchedNodes(const BufferFusio
     }
     auto iter = mapping.find(op_desc);
     if (iter == mapping.end()) {
-      FE_LOGD("The minimum repeat count of descriptor [%s] and pattern [%s] is [%ld], but the node for this opdesc does not match.",
-              op_desc->desc_name.c_str(), pattern.GetName().c_str(), op_desc->repeate_min);
+      FE_LOGD(
+          "The minimum repeat count of descriptor [%s] and pattern [%s] is [%ld], but the node for this opdesc does "
+          "not match.",
+          op_desc->desc_name.c_str(), pattern.GetName().c_str(), op_desc->repeate_min);
       return false;
     }
     if (static_cast<int64_t>(iter->second.size()) < op_desc->repeate_min) {
@@ -262,4 +266,4 @@ bool AutoBufferFusionPassRunner::IsNodeFusible(const ge::NodePtr &node) const {
   // check is dynamic impl, the template for
   return IsOpDynamicImpl(node->GetOpDesc());
 }
-}
+}  // namespace fe

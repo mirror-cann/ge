@@ -58,4 +58,3 @@ aclmdlAIPP *aclmdlCreateAIPP(uint64_t batchSize)
 ## 返回值说明<a name="section1677884712157"></a>
 
 返回aclmdlAIPP类型的指针。
-

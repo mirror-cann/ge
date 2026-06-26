@@ -203,7 +203,8 @@ ge::Status ResolveFileConstWeightDir(const ge::ModelData &model_data, std::strin
   weight_dir.clear();
   if (!model_data.weight_path.empty()) {
     const auto real_weight_path = ge::om2::RealPath(model_data.weight_path.c_str());
-    GE_ASSERT_TRUE(!real_weight_path.empty(), "[OM2][Check] Failed to resolve weight path: [%s].", model_data.weight_path.c_str());
+    GE_ASSERT_TRUE(!real_weight_path.empty(), "[OM2][Check] Failed to resolve weight path: [%s].",
+                   model_data.weight_path.c_str());
     weight_dir = real_weight_path + "/";
     return ge::SUCCESS;
   }
@@ -220,7 +221,8 @@ ge::Status ResolveFileConstWeightDir(const ge::ModelData &model_data, std::strin
   return ge::SUCCESS;
 }
 
-ge::Status ResolveFileConstFilePath(const std::string &weight_dir, const std::string &file_name, std::string &file_path) {
+ge::Status ResolveFileConstFilePath(const std::string &weight_dir, const std::string &file_name,
+                                    std::string &file_path) {
   GE_ASSERT_TRUE(!weight_dir.empty(), "[OM2][Check] weight_dir is empty.");
   GE_ASSERT_TRUE(!file_name.empty(), "[OM2][Check] file_name is empty.");
   file_path = weight_dir;
@@ -243,8 +245,7 @@ ge::Status PrepareCombinedConsts(const std::vector<Om2ConstItem> &const_items, c
   const auto &combined_file_name = const_items.front().file_name;
   for (const auto &const_item : const_items) {
     GE_ASSERT_TRUE(const_item.type == "COMBINED", "[OM2][Check] PrepareCombinedConsts only supports COMBINED.");
-    GE_ASSERT_TRUE(const_item.file_name == combined_file_name,
-                   "[OM2][Check] Combined consts must use the same file.");
+    GE_ASSERT_TRUE(const_item.file_name == combined_file_name, "[OM2][Check] Combined consts must use the same file.");
   }
 
   void *base_addr = nullptr;
@@ -276,7 +277,8 @@ ge::Status PrepareIndividualConst(const Om2ConstItem &const_item, const FileCons
   return ge::SUCCESS;
 }
 
-ge::Status LoadIndividualConstToAddr(const Om2ConstItem &const_item, const FileConstContext &ctx, void *const const_addr) {
+ge::Status LoadIndividualConstToAddr(const Om2ConstItem &const_item, const FileConstContext &ctx,
+                                     void *const const_addr) {
   GE_ASSERT_TRUE(const_item.type == "INDIVIDUAL", "[OM2][Check] LoadIndividualConstToAddr only supports INDIVIDUAL.");
   std::string file_path;
   GE_ASSERT_SUCCESS(ResolveFileConstFilePath(ctx.weight_dir, const_item.file_name, file_path));
@@ -307,9 +309,7 @@ ge::Status LoadUniqueIndividualConsts(const std::map<std::string, const Om2Const
         GELOGE(ge::FAILED, "[OM2][SetDevice] aclrtSetDevice failed, device_id=%d, ret=%u", device_id, set_device_ret);
         return ge::FAILED;
       }
-      GE_MAKE_GUARD(reset_device, [device_id]() {
-        GE_CHK_RT(aclrtResetDevice(device_id));
-      });
+      GE_MAKE_GUARD(reset_device, [device_id]() { GE_CHK_RT(aclrtResetDevice(device_id)); });
       void *const_addr = nullptr;
       if (const_item->size == 0U) {
         return ge::SUCCESS;
@@ -357,8 +357,8 @@ ge::Status PrepareIndividualConsts(const std::vector<Om2ConstItem> &const_items,
         iter->second = &const_item;
       }
       void *const_addr = nullptr;
-      GE_ASSERT_SUCCESS(var_manager->GetOrCreateVarAddr(key, static_cast<uint32_t>(device_id), const_item.size,
-                                                       const_addr));
+      GE_ASSERT_SUCCESS(
+          var_manager->GetOrCreateVarAddr(key, static_cast<uint32_t>(device_id), const_item.size, const_addr));
       constants[const_item.index] = const_addr;
     }
   }

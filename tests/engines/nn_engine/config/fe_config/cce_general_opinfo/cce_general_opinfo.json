@@ -11,20 +11,20 @@
         },
         "Input0": {
             "name": "x",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "int8,int8,bool,bool,float16,float16,float16,float16,float16,float16,float32,float16,uint8,bool,float32,float16,uint8,bool,float32",
             "format": "NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NHWC,NHWC,NHWC,NHWC,NCHW,NCHW,NCHW,NHWC"
         },
         "output0": {
             "name": "y",
-            "paramType": "required",        
+            "paramType": "required",
             "dtype": "int8,int8,bool,bool,float16,float32,uint8,float16,float32,uint8,float32,float16,uint8,bool,float32,float16,uint8,bool,float16",
             "format": "NCHW,NHWC,NCHW,NHWC,NHWC,NHWC,NHWC,NCHW,NCHW,NCHW,NHWC,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0"
          },
         "kernel_name": {
             "prefix": ""
         }
-    },   
+    },
     "Transpose":{
         "compute":{
             "cost":"10"
@@ -193,25 +193,25 @@
         },
         "Input0": {
             "name": "x",
-            "paramType": "required", 
+            "paramType": "required",
             "dtype": "float16, float16, int8, int8",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0"
         },
         "Input1": {
             "name": "w",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "float16, float16, int8, int8",
             "format": "FRACTAL_Z, FRACTAL_Z_C04, FRACTAL_Z, FRACTAL_Z_C04"
         },
         "Input2": {
             "name": "b",
-            "paramType": "optional",           
+            "paramType": "optional",
             "dtype": "float16, float16, int8, int8",
             "format": "MD, MD, MD, MD"
         },
         "output0": {
             "name": "y",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "float16, float16, int8, int8",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0"
         },
@@ -345,13 +345,13 @@
         },
         "Input0": {
             "name": "dy",
-            "paramType": "required",        
+            "paramType": "required",
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "db",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "float32",
             "format": "NC1HWC0"
         },
@@ -499,19 +499,19 @@
         },
         "Input0": {
             "name": "dy",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "Input1": {
             "name": "x",
-            "paramType": "required",          
+            "paramType": "required",
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "dx",
-            "paramType": "required",          
+            "paramType": "required",
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -563,13 +563,13 @@
         },
         "Input0": {
             "name": "x",
-            "paramType": "required",           
+            "paramType": "required",
             "dtype": "float16, int8, float16, int8",
             "format": "NC1HWC0, NC1HWC0, MD, MD"
         },
         "output0": {
             "name": "y",
-            "paramType": "required",          
+            "paramType": "required",
             "dtype": "float16, int8, float16, int8",
             "format": "NC1HWC0, NC1HWC0, MD, MD"
         },
@@ -591,7 +591,7 @@
             "name": "logits",
 
             "paramType": "required",
-            
+
             "dtype": "float16,float16,float16,float16,float16,float16,float16,float16",
             "format": "ND,ND,ND,ND,ND,ND,ND,ND"
         },
@@ -599,7 +599,7 @@
             "name": "label",
 
             "paramType": "required",
-            
+
             "dtype": "float16,int32,int32,int32,float16,int32,int32,int32",
             "format": "NC1HWC0,NHWC,NCHW,NC1HWC0,NC1HWC0,NHWC,NCHW,NC1HWC0"
         },
@@ -607,7 +607,7 @@
             "name": "y0",
 
             "paramType": "required",
-            
+
             "dtype": "float16,float16,float16,float16,float32,float32,float32,float32",
             "format": "ND,ND,ND,ND,ND,ND,ND,ND"
         },
@@ -638,7 +638,7 @@
             "paramType":"required",
             "dtype":"float16",
             "format":"FRACTAL_Z"
-        }, 
+        },
         "output0":{
             "name":"dx",
 
@@ -663,21 +663,21 @@
         "Input0":{
             "name":"dx",
 
-            "paramType":"required",          
+            "paramType":"required",
             "dtype":"float16",
             "format":"NC1HWC0"
         },
         "Input1":{
             "name":"dy",
 
-            "paramType":"required",         
+            "paramType":"required",
             "dtype":"float16",
             "format":"NC1HWC0"
-        }, 
+        },
         "output0":{
             "name":"dw",
 
-            "paramType":"required",          
+            "paramType":"required",
             "dtype":"float32",
             "format":"FRACTAL_Z"
         },
@@ -699,7 +699,7 @@
             "name":"x",
 
             "paramType":"required",
-           
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -727,7 +727,7 @@
             "name":"x",
 
             "paramType":"required",
-          
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -735,7 +735,7 @@
             "name":"y",
 
             "paramType":"required",
-           
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -757,7 +757,7 @@
             "name":"x1",
 
             "paramType":"required",
-            
+
             "dtype":"float16,float32,float16",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -765,7 +765,7 @@
             "name":"x2",
 
             "paramType":"optional",
-         
+
             "dtype":"float16,float32,int32",
             "format":"NC1HWC0,NC1HWC0,NHWC"
         },
@@ -773,7 +773,7 @@
             "name":"y",
 
             "paramType":"required",
-        
+
             "dtype":"float16,float32,float16",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -795,7 +795,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, uint8, uint8, float16, float16, float16",
             "format": "NC1HWC0, MD, NC1HWC0, MD, NCHW, NCHW, NC1HWC0"
         },
@@ -803,7 +803,7 @@
             "name": "w",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, uint8, uint8, float16, float16, float16",
             "format": "NC1HWC0, MD, NC1HWC0, MD, NCHW, NCHW, NC1HWC0"
         },
@@ -811,14 +811,14 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, uint8, uint8, float16, float16, float16",
             "format": "NC1HWC0, MD, NC1HWC0, MD, NCHW, NC1HWC0, NCHW"
         },
         "kernel_name": {
             "prefix": ""
         }
-    }, 
+    },
     "AssignAdd": {
         "compute": {
             "cost": "10"
@@ -833,7 +833,7 @@
             "name": "a",
 
             "paramType": "required",
-            
+
             "dtype": "float32,float32,float32,int64,int64,int64",
             "format": "NC1HWC0,NHWC,NCHW,NC1HWC0,NHWC,NCHW"
         },
@@ -841,7 +841,7 @@
             "name": "b",
 
             "paramType": "required",
-            
+
             "dtype": "float32,float32,float32,int64,int64,int64",
             "format": "NC1HWC0,NHWC,NCHW,NC1HWC0,NHWC,NCHW"
         },
@@ -849,7 +849,7 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float32,float32,float32,int64,int64,int64",
             "format": "NC1HWC0,NHWC,NCHW,NC1HWC0,NHWC,NCHW"
         },
@@ -871,7 +871,7 @@
             "name": "xDiff",
 
             "paramType": "required",
-            
+
             "dtype": "float32",
             "format": "NHWC"
         },
@@ -879,7 +879,7 @@
             "name": "dy",
 
             "paramType": "required",
-            
+
             "dtype": "float32",
             "format": "NHWC"
         },
@@ -887,7 +887,7 @@
             "name": "dx",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NHWC"
         },
@@ -908,21 +908,21 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16,float16",
             "format": "NC1HWC0,NC1HWC0"
         },
         "output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16,float16",
             "format": "NC1HWC0,NC1HWC0"
         },
         "output1": {
             "name": "z",
             "paramType": "required",
-            
+
             "dtype": "float16,int64",
             "format": "NC1KHKWHWC0,NHWC"
         },
@@ -944,7 +944,7 @@
             "name": "logits",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NHWC"
         },
@@ -952,7 +952,7 @@
             "name": "labels",
 
             "paramType": "required",
-            
+
             "dtype": "int32",
             "format": "NHWC"
         },
@@ -960,7 +960,7 @@
             "name": "weight",
 
             "paramType": "optional",
-            
+
             "dtype": "float32",
             "format": "NHWC"
         },
@@ -968,7 +968,7 @@
             "name": "softmaxRes",
 
             "paramType": "required",
-            
+
             "dtype": "float32",
             "format": "NHWC"
         },
@@ -976,7 +976,7 @@
             "name": "loss",
 
             "paramType": "required",
-            
+
             "dtype": "float32",
             "format": "NHWC"
         },
@@ -998,7 +998,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float32, float16, double, bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0"
         },
@@ -1006,7 +1006,7 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float32, float16, double, bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0"
         },
@@ -1028,7 +1028,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1036,7 +1036,7 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1058,7 +1058,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, float16, float16, float16, float32, float32, float32, float32, float32, int32, int32, int32, int32, int32",
             "format": "NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z"
         },
@@ -1066,7 +1066,7 @@
             "name": "indices",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, float16, float16, float16, float32, float32, float32, float32, float32, int32, int32, int32, int32, int32",
             "format": "NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z"
         },
@@ -1074,7 +1074,7 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float16, float16, float16, float16, float16, float32, float32, float32, float32, float32, int32, int32, int32, int32, int32",
             "format": "NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z, NCHW, NHWC, HWCN, NC1HWC0, FRACTAL_Z"
         },
@@ -1096,7 +1096,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float32, float16, float32, float16",
             "format": "NC1HWC0, NC1HWC0, MD, MD"
         },
@@ -1104,7 +1104,7 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float32, float16, float32, float16",
             "format": "NC1HWC0, NC1HWC0, MD, MD"
         },
@@ -1112,7 +1112,7 @@
             "name": "output",
 
             "paramType": "required",
-            
+
             "dtype": "float32, float16, float32, float16",
             "format": "NC1HWC0, NC1HWC0, MD, MD"
         },
@@ -1134,7 +1134,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float, float16, double, bool, int8, uint8, int16, uint16, int32, int64, float, float16, double, bool, int8, uint8, int16, uint16, int32, int64",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, MD, MD, MD, MD, MD, MD, MD, MD, MD, MD"
         },
@@ -1142,14 +1142,14 @@
             "name": "y",
 
             "paramType": "required",
-            
+
             "dtype": "float, float16, double, bool, int8, uint8, int16, uint16, int32, int64, float, float16, double, bool, int8, uint8, int16, uint16, int32, int64",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, MD, MD, MD, MD, MD, MD, MD, MD, MD, MD"
         },
         "kernel_name": {
             "prefix": ""
         }
-    }, 
+    },
     "ReduceAll": {
         "compute": {
             "cost": "10"
@@ -1172,14 +1172,14 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "output",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1200,21 +1200,21 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "Input1": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "output",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1235,21 +1235,21 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float, float16, double, bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64",
             "format": "ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND"
         },
         "Input1": {
             "name": "w",
             "paramType": "required",
-            
+
             "dtype": "float, float16, double, bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64",
             "format": "ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND"
         },
         "output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float, float16, double, bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64",
             "format": "ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND, ND"
         },
@@ -1270,14 +1270,14 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1298,14 +1298,14 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -1326,21 +1326,21 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16, float32, double, int32, float16, float32, double, int32",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, MD, MD, MD, MD"
         },
         "Input1": {
             "name": "y",
             "paramType": "optional",
-            
+
             "dtype": "float16, float32, double, int32, float16, float32, double, int32",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, MD, MD, MD, MD"
         },
         "output0": {
             "name": "z",
             "paramType": "required",
-            
+
             "dtype": "float16, float32, double, int32, float16, float32, double, int32",
             "format": "NC1HWC0, NC1HWC0, NC1HWC0, NC1HWC0, MD, MD, MD, MD"
         },
@@ -1361,21 +1361,21 @@
         "Input0": {
             "name": "x",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "Input1": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "output",
             "paramType": "required",
-            
+
             "dtype": "bool",
             "format": "NC1HWC0"
         },
@@ -1397,7 +1397,7 @@
             "name":"predictions_data_addr",
 
             "paramType":"required",
-          
+
             "dtype":"float16",
             "format":"NHWC"
         },
@@ -1405,7 +1405,7 @@
             "name":"labels_data_addr",
 
             "paramType":"required",
-           
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1413,7 +1413,7 @@
             "name":"weights_data_addr",
 
             "paramType":"optional",
-           
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1421,7 +1421,7 @@
             "name":"loss_data_addr",
 
             "paramType":"required",
-          
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1429,7 +1429,7 @@
             "name":"diff_data_addr",
 
             "paramType":"required",
-           
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1451,7 +1451,7 @@
             "name":"x",
 
             "paramType":"required",
-           
+
             "dtype":"float16,float16",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -1459,7 +1459,7 @@
             "name":"weight",
 
             "paramType":"required",
-           
+
             "dtype":"float16,uint8",
             "format":"FRACTAL_Z,FRACTAL_Z"
         },
@@ -1467,7 +1467,7 @@
             "name":"bias",
 
             "paramType":"optional",
-       
+
             "dtype":"float16,float16",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -1475,7 +1475,7 @@
             "name":"y",
 
             "paramType":"required",
-      
+
             "dtype":"float16,uint8",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -1497,7 +1497,7 @@
             "name":"x",
 
             "paramType":"dynamic",
-         
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1505,7 +1505,7 @@
             "name":"y",
 
             "paramType":"required",
-           
+
             "dtype":"float16",
             "format":"NHWC"
         },
@@ -1527,7 +1527,7 @@
             "name":"x",
 
             "paramType":"required",
-          
+
             "dtype":"float16,int32,int64",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -1535,7 +1535,7 @@
             "name":"indices",
 
             "paramType":"required",
-            
+
             "dtype":"int32,int32,int32",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -1543,7 +1543,7 @@
             "name":"y",
 
             "paramType":"required",
-          
+
             "dtype":"float16,int32,int64",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -1565,7 +1565,7 @@
             "name":"softmax",
 
             "paramType":"required",
-         
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1580,7 +1580,7 @@
             "name":"mul",
 
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1588,7 +1588,7 @@
             "name":"sum",
 
             "paramType":"optional",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -1596,7 +1596,7 @@
             "name":"y",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NHWC"
         },
@@ -1618,7 +1618,7 @@
             "name":"x",
 
             "paramType":"required",
-            
+
             "dtype":"float16,float16",
             "format":"ND,ND"
         },
@@ -1626,7 +1626,7 @@
             "name":"input",
 
             "paramType":"required",
-            
+
             "dtype":"float16,float16",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -1634,7 +1634,7 @@
             "name":"argmask",
 
             "paramType":"required",
-            
+
             "dtype":"float16,int64",
             "format":"ND,ND"
         },
@@ -1642,7 +1642,7 @@
             "name":"y",
 
             "paramType":"required",
-            
+
             "dtype":"float16,float16",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -1664,7 +1664,7 @@
             "name":"x",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"ND"
         },
@@ -1672,7 +1672,7 @@
             "name":"input",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1680,7 +1680,7 @@
             "name":"y",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1702,7 +1702,7 @@
             "name":"x",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1710,7 +1710,7 @@
             "name":"scale",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1718,7 +1718,7 @@
             "name":"bias",
 
             "paramType":"optional",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1726,7 +1726,7 @@
             "name":"output",
 
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1747,21 +1747,21 @@
         "Input0": {
             "name": "x0",
             "paramType": "required",
-            
+
             "dtype": "float32,int64 ,float32,int64,float32,int64",
             "format": "NC1HWC0,NC1HWC0,NHWC,NHWC,NCHW,NCHW"
         },
         "Input1": {
             "name": "x1",
             "paramType": "required",
-            
+
             "dtype": "float32,int64,float32,int64,float32,int64",
             "format": "NC1HWC0,NC1HWC0,NHWC,NHWC,NCHW,NCHW"
         },
         "Output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float32,int64,float32,int64,float32,int64",
             "format": "NC1HWC0,NC1HWC0,NHWC,NHWC,NCHW,NCHW"
         },
@@ -1782,14 +1782,14 @@
         "Input0":{
             "name":"x",
             "paramType":"required",
-            
+
             "dtype":"float16,float32,int8,int16,int32",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0"
-        }, 
+        },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16,float32,int8,int16,int32",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0"
         },
@@ -1810,14 +1810,14 @@
         "Input0":{
             "name":"x",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
-        }, 
+        },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1838,14 +1838,14 @@
         "Input0":{
             "name":"x",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1866,14 +1866,14 @@
         "Input0":{
             "name":"x",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1894,14 +1894,14 @@
         "Input0":{
             "name":"x",
             "paramType":"dynamic",
-            
+
             "dtype":"float16,float32,float16,float32,float16,float32,float16,float32,float16,float32",
             "format":"NC1HWC0,NC1HWC0,NCHW,NCHW,NHWC,NHWC,HWCN,HWCN,FRACTAL_Z,FRACTAL_Z"
         },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16,float32,float16,float32,float16,float32,float16,float32,float16,float32",
             "format":"NC1HWC0,NC1HWC0,NCHW,NCHW,NHWC,NHWC,HWCN,HWCN,FRACTAL_Z,FRACTAL_Z"
         },
@@ -1922,14 +1922,14 @@
         "Input0":{
             "name":"x",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NHWC"
         },
         "output0":{
             "name":"y",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
@@ -1950,42 +1950,42 @@
         "Input0":{
             "name":"realx",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "Input1":{
             "name":"realy",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"ND"
         },
         "Input2":{
             "name":"mulx",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "Input3":{
             "name":"mul3x",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "output0":{
             "name":"mul3y",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "output1":{
             "name":"tiley",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -2006,56 +2006,56 @@
         "Input0":{
             "name":"x1",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
         "Input1":{
             "name":"x2",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
         "Input2":{
             "name":"x3",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
         "Input3":{
             "name":"x4",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
         "Input4":{
             "name":"x5",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
         "output0":{
             "name":"y1",
             "paramType":"required",
-            
+
             "dtype":"float16",
             "format":"NC1HWC0"
         },
         "output1":{
             "name":"y2",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
         "output2":{
             "name":"y3",
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NC1HWC0"
         },
@@ -2076,79 +2076,79 @@
         "Input0":{
             "name":"x1",
             "paramType":"required",
-            
+
             "dtype":"float16,float16",
             "format":"NC1HWC0,NC1HWC0"
         },
         "Input1":{
             "name":"x2",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "Input2":{
             "name":"x3",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "Input3":{
             "name":"x4",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "Input4":{
             "name":"x5",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "output0":{
             "name":"y1",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "output1":{
             "name":"y2",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "output2":{
             "name":"y3",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "output3":{
             "name":"y4",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
         "output4":{
             "name":"y5",
-            
+
             "paramType":"optional",
-         
+
             "dtype":"float16,float32",
             "format":"NC1HWC0,NC1HWC0"
         },
@@ -2170,7 +2170,7 @@
             "name": "params",
 
             "paramType": "required",
-            
+
             "dtype": "float32,float32",
             "format": "NHWC,NHWC"
         },
@@ -2178,7 +2178,7 @@
             "name": "indices",
 
             "paramType": "required",
-            
+
             "dtype": "int64,int64",
             "format": "NHWC,NHWC"
         },
@@ -2186,7 +2186,7 @@
             "name": "axis",
 
             "paramType": "optional",
-            
+
             "dtype": "int32,int64",
             "format": "ND,ND"
         },
@@ -2194,7 +2194,7 @@
             "name": "output",
 
             "paramType": "required",
-            
+
             "dtype": "float32,float32",
             "format": "NHWC,NHWC"
         },
@@ -2214,17 +2214,17 @@
         },
         "Input0":{
             "name":"x",
-            
+
             "paramType":"required",
-            
+
             "dtype":"float32,float32,float32,float16,float16,float16,int32,int32,int32",
             "format":"NCHW,NHWC,NC1HWC0,NCHW,NHWC,NC1HWC0,NCHW,NHWC,NC1HWC0"
         },
         "output0":{
             "name":"y",
-            
+
             "paramType":"required",
-            
+
             "dtype":"float32,float32,float32,float16,float16,float16,int32,int32,int32",
             "format":"NCHW,NHWC,NC1HWC0,NCHW,NHWC,NC1HWC0,NCHW,NHWC,NC1HWC0"
         },
@@ -2244,41 +2244,41 @@
         },
         "Input0":{
             "name":"x1",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "Input1":{
             "name":"x2",
-            
+
             "paramType":"required",
-         
+
             "dtype":"int32",
             "format":"NHWC"
         },
         "Input2":{
             "name":"x3",
-            
+
             "paramType":"required",
-         
+
             "dtype":"int32",
             "format":"NHWC"
         },
         "Input3":{
             "name":"x4",
-            
+
             "paramType":"required",
-         
+
             "dtype":"int32",
             "format":"NHWC"
         },
         "output0":{
             "name":"y",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -2298,33 +2298,33 @@
         },
         "Input0":{
             "name":"x1",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float16,float16,float16,float16",
             "format":"NC1HWC0,NC1HWC0,C1HWNC0,C1HWNC0"
         },
         "Input1":{
             "name":"x2",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float16,float16,float16,float16",
             "format":"FRACTAL_Z,FRACTAL_Z,FRACTAL_Z,FRACTAL_Z"
         },
         "Input2":{
             "name":"x3",
-            
+
             "paramType":"optional",
-            
+
             "dtype":"float32,int32,float32,int32",
             "format":"NC1HWC0,NC1HWC0,C1HWNC0,C1HWNC0"
         },
         "output0":{
             "name":"y",
-            
+
             "paramType":"required",
-            
+
             "dtype":"float16,float16,float16,float16",
             "format":"NC1HWC0,NC1HWC0,C1HWNC0,C1HWNC0"
         },
@@ -2344,33 +2344,33 @@
         },
         "Input0":{
             "name":"x1",
-            
+
             "paramType":"required",
-         
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "Input1":{
             "name":"x2",
-            
+
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "Input2":{
             "name":"x3",
-            
+
             "paramType":"optional",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
         "output0":{
             "name":"y",
-            
+
             "paramType":"required",
-            
+
             "dtype":"float32",
             "format":"NHWC"
         },
@@ -2390,17 +2390,17 @@
         },
         "Input0":{
             "name":"x",
-            
+
             "paramType":"required",
-         
+
             "dtype":"uint8,bool,float16,float16,float16,uint8,bool,float16,float16,float16,float32,uint8,bool,float16,uint8,bool,float16,float32,float32",
             "format":"NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NCHW,NCHW,NCHW,NHWC,NHWC,NHWC,NHWC,HWCN"
         },
         "output0":{
             "name":"y",
-            
+
             "paramType":"required",
-         
+
             "dtype":"uint8,bool,float16,float32,uint8,uint8,bool,float16,float32,uint8,float32,uint8,bool,float16,uint8,bool,float16,float16,float16",
             "format":"NCHW,NCHW,NCHW,NCHW,NCHW,NHWC,NHWC,NHWC,NHWC,NHWC,NHWC,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,NC1HWC0,FRACTAL_Z,HWCN"
         },
@@ -2430,21 +2430,21 @@
                 "name": "x",
                 "dtype": "float,int32",
                 "paramType": "dynamic",
-                
+
 
                 "format": "ND,ND"
         },
         "output0": {
                 "name": "z",
                 "paramType": "required",
-                
+
                 "dtype": "float,int32",
                 "format": "ND,ND"
         },
         "kernel_name": {
                 "prefix": "fusion_op"
         }
-    },    
+    },
     "FullConnection": {
         "compute": {
             "cost": "10"
@@ -2459,7 +2459,7 @@
             "name": "x",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
@@ -2467,21 +2467,21 @@
             "name": "w",
 
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "Input2": {
             "name": "b",
             "paramType": "optional",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },
         "output0": {
             "name": "y",
             "paramType": "required",
-            
+
             "dtype": "float16",
             "format": "NC1HWC0"
         },

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,8 +43,7 @@ uint32_t FusionStrategy::GetMaxFusionNodeInputSize(const NodePtr &node1, const N
   return config.max_input_nums_after_fuse;
 }
 
-bool FusionStrategy::OnlyVerticalMapping(const NodePtr &node1, const NodePtr &node2,
-                                         const NodeFuseInfo &fuse_info) {
+bool FusionStrategy::OnlyVerticalMapping(const NodePtr &node1, const NodePtr &node2, const NodeFuseInfo &fuse_info) {
   bool is_both_horizontal_and_vertical =
       !fuse_info.GetNode1ToNode2LinkMap().empty() && !fuse_info.GetSameInputMap().empty();
   std::string is_both_horizontal_and_vertical_str = is_both_horizontal_and_vertical ? "true" : "false";
@@ -54,9 +53,8 @@ bool FusionStrategy::OnlyVerticalMapping(const NodePtr &node1, const NodePtr &no
   return is_both_horizontal_and_vertical;
 }
 
-bool FusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePtr &node2,
-                                        const AxisPairSet &node1_map, const AxisPairSet &node2_map,
-                                        const NodeFuseInfo &node_fuse_info) {
+bool FusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePtr &node2, const AxisPairSet &node1_map,
+                                        const AxisPairSet &node2_map, const NodeFuseInfo &node_fuse_info) {
   (void)node1_map;
   (void)node2_map;
   (void)node_fuse_info;

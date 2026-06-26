@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,79 +51,80 @@ class MemLayoutConflictTest : public testing::Test {
   std::map<std::string, std::string> global_options_;
   std::map<std::string, std::string> graph_options_;
   std::map<std::string, std::string> session_options_;
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
 };
 
 namespace ge {
 REG_OP(TensorMove)
     .INPUT(x, TensorType({DT_DOUBLE, DT_FLOAT16, DT_FLOAT, DT_INT32, DT_UINT32, DT_INT16, DT_UINT16, DT_INT8, DT_UINT8,
-                          DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_COMPLEX32, DT_COMPLEX64}))
+                          DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN,
+                          DT_COMPLEX32, DT_COMPLEX64}))
     .OUTPUT(y, TensorType({DT_DOUBLE, DT_FLOAT16, DT_FLOAT, DT_INT32, DT_UINT32, DT_INT16, DT_UINT16, DT_INT8, DT_UINT8,
-                           DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_COMPLEX32, DT_COMPLEX64}))
+                           DT_UINT64, DT_INT64, DT_BOOL, DT_BF16, DT_HIFLOAT8, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN,
+                           DT_COMPLEX32, DT_COMPLEX64}))
     .OP_END_FACTORY_REG(TensorMove)
 
-/*
- *             data1    data2                                            data11   partitioned_call1 ┌──────────┐
- *                │       │                                                │         │              │constant1 │
- *                │       │                                                │         │              │    │     │
- *                │       │                                                │         │              │    │     │
- *          ┌─────┴──┐ ┌──┘                                         ┌──────┴───┐ ┌───┘              │netoutput5│
- *          │        │ │                                            │          │ │                  └──────────┘
- *          │        │ │                                            │          │ │
- * partitioned_call2 If1                                           swt         If2
- * ┌───────────┐      │  then_subgraph1     else_subgraph1          │           │   then_subgraph2     else_subgraph2
- * │ data12    │      │ ┌─────────────┐   ┌─────────────┐           │           │  ┌─────────────┐   ┌─────────────┐
- * │   ┼       │      │ │ data3  data4│   │ data5  data6│           │           │  │ data7  data8│   │ data9 data10│
- * │ netoutput6│      │ │   │         │   │          │  │           │           │  │   │         │   │          │  │
- * └───┬───────┘      │ │   └──┬      │   │       ┬──┘  │           │           │  │   └──┬      │   │       ┬──┘  │
- *     │              │ │      │      │   │       │     │           │           │  │      │      │   │       │     │
- *     │              │ │   netoutput1│   │  netoutput2 │           │           │  │   netoutput3│   │  netoutput4 │
- *     │              │ └─────────────┘   └─────────────┘           │          op4 └─────────────┘   └─────────────┘
- *     │             op3                                            │           |
- *     │              │                                             │           │
- *     │              │                                             │           │
- *     │              └─────────────────────────────┐ ┌─────────────┘           │
- *     │                                            │ │                         │
- *     └──────────────────────────────────────────┐ │ │                         │
- *                                                │ │ │  +──────────────────────┘
- *                                                │ │ │  │
- *                                                netoutput8
- *
- *
- *                                        data2                              data11             partitioned_call1 ┌──────────┐
- *               data1                      │                                  │                   │              │constant1 │
- *                  │                       │                                  │                   │              │    │     │
- *                  │                       │                                  │                   │              │    │     │
- *                  │                    ┌──┘                           ───────┴───┐           ┌───┘              │netoutput5│
- *            ┌─────┴────┐               │                           identity      │           │                  └──────────┘
- *            │          │ctrl           │                              ┼          │ctrl       │
- *            │          │         then_sub1(partitioned_call)         swt      const      then_sub2(partitioned_call)
- *   partitioned_call2   const          │  then_sub1rsubgraph           │                     │   then_subgraph2
- *   ┌───────────┐                      │ ┌─────────────┐               │                     │  ┌─────────────┐
- *   │ data12    │                      │ │ data3  data4│               │                     │  │ data7  data8│
- *   │   ┼       │                      │ │   │     │   │               │                     │  │   │      │  │
- *   │ netoutput6│                      │ │   └─┐ ┌─┘   │               │                     │  │   └─┐ ┌──┘  │
- *   └────┬──────┘                      │ │     │ │ctrl │               │                     │  │     │ │ctrl │
- *        │                             │ │   netoutput1│              identity               │  │   netoutput3│
- *        │                             │ └─────────────┘               │                    op4 └─────────────┘
- *        │                            op3                              │                     │
- *        │                             │                               │                     │
- *        │                             └─────────────────────────────┐ │                     │
- *        │                                                           │ │                     │
- *        └─────────────────────────────────────────────────────────┐ │ │                     │
- *                                                                  │ │ │  ├──────────────────┘
- *                                                                  │ │ │  │
- *                                                                  netoutput8
- *
- * 用例场景：本用例意图测试内存类型冲突功能，
- * 构造用户输入与用户输入/用户输入与不可遍地址输入/用户输入与不可支持地址刷新算子/用户输入与用户输出等多种冲突的图
- * 步骤：
- * step 1. 构造一张用户输入与多种不同类型内存的冲突场景的图
- * 期望：构图成功
- * step 2. 执行图编译
- * 期望： 图编译返回成功，校验identity插入位置
- */
-TEST_F(MemLayoutConflictTest, UserInputAndUserInputAndConstantAndUserOutAndNotRefreshableInput_InsertIdentity_Success) {
+    /*
+     *             data1    data2                                            data11   partitioned_call1 ┌──────────┐
+     *                │       │                                                │         │              │constant1 │
+     *                │       │                                                │         │              │    │     │
+     *                │       │                                                │         │              │    │     │
+     *          ┌─────┴──┐ ┌──┘                                         ┌──────┴───┐ ┌───┘              │netoutput5│
+     *          │        │ │                                            │          │ │                  └──────────┘
+     *          │        │ │                                            │          │ │
+     * partitioned_call2 If1                                           swt         If2
+     * ┌───────────┐      │  then_subgraph1     else_subgraph1          │           │   then_subgraph2 else_subgraph2 │
+     * data12    │      │ ┌─────────────┐   ┌─────────────┐           │           │  ┌─────────────┐   ┌─────────────┐
+     * │   ┼       │      │ │ data3  data4│   │ data5  data6│           │           │  │ data7  data8│   │ data9 data10│
+     * │ netoutput6│      │ │   │         │   │          │  │           │           │  │   │         │   │          │  │
+     * └───┬───────┘      │ │   └──┬      │   │       ┬──┘  │           │           │  │   └──┬      │   │       ┬──┘  │
+     *     │              │ │      │      │   │       │     │           │           │  │      │      │   │       │     │
+     *     │              │ │   netoutput1│   │  netoutput2 │           │           │  │   netoutput3│   │  netoutput4 │
+     *     │              │ └─────────────┘   └─────────────┘           │          op4 └─────────────┘   └─────────────┘
+     *     │             op3                                            │           |
+     *     │              │                                             │           │
+     *     │              │                                             │           │
+     *     │              └─────────────────────────────┐ ┌─────────────┘           │
+     *     │                                            │ │                         │
+     *     └──────────────────────────────────────────┐ │ │                         │
+     *                                                │ │ │  +──────────────────────┘
+     *                                                │ │ │  │
+     *                                                netoutput8
+     *
+     *
+     *                                        data2                              data11             partitioned_call1
+     * ┌──────────┐ data1                      │                                  │                   │ │constant1 │ │
+     * │                                  │                   │              │    │     │ │                       │ │ │
+     * │    │     │ │                    ┌──┘                           ───────┴───┐           ┌───┘ │netoutput5│
+     *            ┌─────┴────┐               │                           identity      │           │ └──────────┘ │
+     * │ctrl           │                              ┼          │ctrl       │ │          │ then_sub1(partitioned_call)
+     * swt      const      then_sub2(partitioned_call) partitioned_call2   const          │  then_sub1rsubgraph │ │
+     * then_subgraph2 ┌───────────┐                      │ ┌─────────────┐               │                     │
+     * ┌─────────────┐ │ data12    │                      │ │ data3  data4│               │                     │  │
+     * data7  data8│ │   ┼       │                      │ │   │     │   │               │                     │  │   │
+     * │  │ │ netoutput6│                      │ │   └─┐ ┌─┘   │               │                     │  │   └─┐ ┌──┘  │
+     *   └────┬──────┘                      │ │     │ │ctrl │               │                     │  │     │ │ctrl │
+     *        │                             │ │   netoutput1│              identity               │  │   netoutput3│
+     *        │                             │ └─────────────┘               │                    op4 └─────────────┘
+     *        │                            op3                              │                     │
+     *        │                             │                               │                     │
+     *        │                             └─────────────────────────────┐ │                     │
+     *        │                                                           │ │                     │
+     *        └─────────────────────────────────────────────────────────┐ │ │                     │
+     *                                                                  │ │ │  ├──────────────────┘
+     *                                                                  │ │ │  │
+     *                                                                  netoutput8
+     *
+     * 用例场景：本用例意图测试内存类型冲突功能，
+     * 构造用户输入与用户输入/用户输入与不可遍地址输入/用户输入与不可支持地址刷新算子/用户输入与用户输出等多种冲突的图
+     * 步骤：
+     * step 1. 构造一张用户输入与多种不同类型内存的冲突场景的图
+     * 期望：构图成功
+     * step 2. 执行图编译
+     * 期望： 图编译返回成功，校验identity插入位置
+     */
+    TEST_F(MemLayoutConflictTest,
+           UserInputAndUserInputAndConstantAndUserOutAndNotRefreshableInput_InsertIdentity_Success) {
   gert::GertRuntimeStub runtime_stub;
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto root_graph = MemConflictShareGraph::BuildUserInAndOtherConflictTypeGraph();
@@ -375,7 +376,6 @@ TEST_F(MemLayoutConflictTest, ConstantConnectUserOutput_InsertIdentity_ExecuteSu
   };
 }
 
-
 /*
  *      op1                      partitioned_call2    op3         op4
  *       │                          ┌───────────┐      │           │
@@ -434,7 +434,6 @@ TEST_F(MemLayoutConflictTest,
     EXPECT_EQ(name_to_node["netoutput"]->GetInDataAnchor(5)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     EXPECT_NE(name_to_node["netoutput"]->GetInDataAnchor(6)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     EXPECT_EQ(name_to_node["netoutput"]->GetInDataAnchor(7)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-
   };
 }
 
@@ -545,8 +544,7 @@ TEST_F(MemLayoutConflictTest, ImmutableOutAndOtherType_InsertIdentity_Success) {
  * step 2. 执行图编译
  * 期望： 图编译返回成功，校验dsa输入前插入identity
  */
-TEST_F(MemLayoutConflictTest,
-       NotSupportRefreshInputAndRtsSpecialInputOutputAndNormalOut_InsertIdentity_Success) {
+TEST_F(MemLayoutConflictTest, NotSupportRefreshInputAndRtsSpecialInputOutputAndNormalOut_InsertIdentity_Success) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto root_graph = MemConflictShareGraph::BuildNotSupportRefreshInputAndOtherConflictTypeGraph();
 
@@ -570,8 +568,7 @@ TEST_F(MemLayoutConflictTest,
   };
 }
 
-TEST_F(MemLayoutConflictTest,
-       RtsSpecialInputAndRtsSpecialInputOutputAndNormalOut_InsertIdentity_Success) {
+TEST_F(MemLayoutConflictTest, RtsSpecialInputAndRtsSpecialInputOutputAndNormalOut_InsertIdentity_Success) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto root_graph = MemConflictShareGraph::BuildRtsSpecialInAndOtherTypeGraph();
 
@@ -606,8 +603,7 @@ TEST_F(MemLayoutConflictTest,
  *                 |   netoutput1 |  |   netoutput1 |
  *                 +--------------+  +--------------+
  */
-TEST_F(MemLayoutConflictTest,
-       NotSupportRefreshOutAndRtsSpecailIOAndNormalOut_InsertIdentity_Success) {
+TEST_F(MemLayoutConflictTest, NotSupportRefreshOutAndRtsSpecailIOAndNormalOut_InsertIdentity_Success) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto root_graph = MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecailIOAndNormalOutGraph();
 
@@ -628,8 +624,10 @@ TEST_F(MemLayoutConflictTest,
     EXPECT_EQ(name_to_node["swt1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), "MemcpyAsync");
 
     ASSERT_NE(name_to_node["netoutput1"], nullptr);
-    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), "Identity");
-    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), "Identity");
+    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              "Identity");
+    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              "Identity");
   };
 }
 
@@ -799,9 +797,11 @@ TEST_F(MemLayoutConflictTest, WhileBodyDataMulMulNetoutput) {
       name_to_node[node->GetName()] = node;
     }
     ASSERT_NE(name_to_node["while_mul1"], nullptr);
-    EXPECT_EQ(name_to_node["while_mul1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), "Identity");
+    EXPECT_EQ(name_to_node["while_mul1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              "Identity");
     ASSERT_NE(name_to_node["netoutput1"], nullptr);
-    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), "Identity");
+    EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              "Identity");
   };
 }
 
@@ -847,12 +847,16 @@ TEST_F(MemLayoutConflictTest, WhileBodyDataToNetoutputExchange) {
     EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     // TODO: subgraph pass 删除后：
     // ASSERT_NE(name_to_node["netoutput1"], nullptr);
-    // EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-    // EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-    // auto out_identityn_name = name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName();
+    // EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+    // IDENTITY);
+    // EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+    // IDENTITY); auto out_identityn_name =
+    // name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName();
     // ASSERT_NE(name_to_node[out_identityn_name], nullptr);
-    // EXPECT_EQ(name_to_node[out_identityn_name]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-    // EXPECT_EQ(name_to_node[out_identityn_name]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
+    // EXPECT_EQ(name_to_node[out_identityn_name]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+    // IDENTITY);
+    // EXPECT_EQ(name_to_node[out_identityn_name]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+    // IDENTITY);
   };
 }
 
@@ -884,8 +888,7 @@ TEST_F(MemLayoutConflictTest, NotSupportRefreshInAndRtsSpecailIn_InsertIdentity_
   EXPECT_EQ(identity_nodes.size(), 0U);
 }
 
-TEST_F(MemLayoutConflictTest,
-       NotSupportRefreshInAndRtsSpecailIn_InsertIdentityWhenFeatureMapRefreshable_Success) {
+TEST_F(MemLayoutConflictTest, NotSupportRefreshInAndRtsSpecailIn_InsertIdentityWhenFeatureMapRefreshable_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshInAndRtsSpecialInGraph();
   MemLayoutConflictOptimizer mem_check_pass;
 
@@ -906,8 +909,7 @@ TEST_F(MemLayoutConflictTest,
   EXPECT_EQ(identity_nodes.size(), 1U);
 }
 
-TEST_F(MemLayoutConflictTest,
-       NotSupportRefreshOutAndRtsSpecailIn_InsertIdentityWhenFeatureMapRefreshable_Success) {
+TEST_F(MemLayoutConflictTest, NotSupportRefreshOutAndRtsSpecailIn_InsertIdentityWhenFeatureMapRefreshable_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshOutAndRtsSpecialInGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   auto old_graph_options_ = GetThreadLocalContext().GetAllGraphOptions();
@@ -928,8 +930,7 @@ TEST_F(MemLayoutConflictTest,
   EXPECT_EQ(identity_nodes.size(), 1U);
 }
 
-TEST_F(MemLayoutConflictTest,
-       NotSupportRefreshOutAndNormalOut_InsertIdentityWhenFeatureMapRefreshable_Success) {
+TEST_F(MemLayoutConflictTest, NotSupportRefreshOutAndNormalOut_InsertIdentityWhenFeatureMapRefreshable_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshOutAndNormalOutGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   auto old_graph_options_ = GetThreadLocalContext().GetAllGraphOptions();
@@ -1337,11 +1338,12 @@ TEST_F(MemLayoutConflictTest, ConstInSubgraphConnectToNetoutput_NotInsertIdentit
     ASSERT_NE(name_to_node["netoutput1"], nullptr);
     EXPECT_EQ(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     // 将已有pass归一后
-    //EXPECT_NE(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
+    // EXPECT_NE(name_to_node["netoutput1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+    // IDENTITY);
   };
 }
 /*
-*        input             input
+ *        input             input
  *          |                 |
  *        cast0             cast0
  *          |\                |\
@@ -1510,7 +1512,7 @@ TEST_F(MemLayoutConflictTest, UserInOutAndNoPaddingContinuousInOut_InsertIdentit
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
   auto graph = MemConflictShareGraph::BuildUserInOutConnectNoPaddingContinuousInAndOutGraph();
   std::map<AscendString, AscendString> options = {
-    { OPTION_BUILD_GRAPH_MODE, "offline" },
+      {OPTION_BUILD_GRAPH_MODE, "offline"},
   };
 
   Session session(options);
@@ -1527,9 +1529,12 @@ TEST_F(MemLayoutConflictTest, UserInOutAndNoPaddingContinuousInOut_InsertIdentit
       name_to_node[node->GetName()] = node;
     }
     ASSERT_NE(name_to_node["phonyconcat1"], nullptr);
-    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
-    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(2)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
+    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              IDENTITY);
+    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              IDENTITY);
+    EXPECT_EQ(name_to_node["phonyconcat1"]->GetInDataAnchor(2)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              IDENTITY);
     EXPECT_EQ(name_to_node["netoutput"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     EXPECT_EQ(name_to_node["phonysplit"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
     EXPECT_NE(name_to_node["assign"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
@@ -1706,7 +1711,7 @@ TEST_F(MemLayoutConflictTest, ImmutableOutAndNoPaddingAndContinuousByRef_InsertI
  *                            identity |  identity
  *                                \    |    /
  *                                 netoutput
-       *
+ *
  * 用例场景：地址不可刷新算子输入与连续输入场景
  * 步骤：
  * step 1. 按照用例场景构图
@@ -1767,7 +1772,7 @@ TEST_F(MemLayoutConflictTest, NotSupportRefreshInputAndContinuousInput_InsertIde
  *                               concat3
  *                                  |
  *                               netoutput
-* 用例场景：连续输入与连续输入在同一个符号内的两个场景构成一个图
+ * 用例场景：连续输入与连续输入在同一个符号内的两个场景构成一个图
  * 步骤：
  * step 1. 按照用例场景构图
  * 期望：构图成功
@@ -1825,7 +1830,7 @@ TEST_F(MemLayoutConflictTest, ContinuousInAndContinuousIn_InsertIdentity) {
  *                               concat3
  *                                  |
  *                               netoutput
-* 用例场景：连续输入与NoPadding连续输入在同一个符号内的两个场景构成一个图
+ * 用例场景：连续输入与NoPadding连续输入在同一个符号内的两个场景构成一个图
  * 步骤：
  * step 1. 按照用例场景构图
  * 期望：构图成功
@@ -2309,7 +2314,8 @@ TEST_F(MemLayoutConflictTest, ImmutableOutAndRtsSpecailInByAssign_Insert_SUCCESS
     EXPECT_EQ(identity_cnt, 1U);
     ASSERT_NE(name_to_node["hcombroadcast"], nullptr);
     ASSERT_NE(name_to_node["hcombroadcast"]->GetInDataAnchor(0), nullptr);
-    EXPECT_EQ(name_to_node["hcombroadcast"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
+    EXPECT_EQ(name_to_node["hcombroadcast"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              IDENTITY);
   };
 }
 /*
@@ -2395,10 +2401,14 @@ TEST_F(MemLayoutConflictTest, NoPaddingContinuousInAndNoPaddingContinuousOutConn
     }
     EXPECT_EQ(identity_cnt, 2U);
     bool check_success = false;
-    if ((name_to_node["phony_concat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-        || (name_to_node["phony_concat1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-        ||(name_to_node["phony_concat2"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-        || (name_to_node["phony_concat2"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)) {
+    if ((name_to_node["phony_concat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() ==
+         IDENTITY) ||
+        (name_to_node["phony_concat1"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() ==
+         IDENTITY) ||
+        (name_to_node["phony_concat2"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() ==
+         IDENTITY) ||
+        (name_to_node["phony_concat2"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() ==
+         IDENTITY)) {
       check_success = true;
     }
     EXPECT_TRUE(check_success);
@@ -2464,7 +2474,8 @@ TEST_F(MemLayoutConflictTest, ImmutableOutAnRtsSpecailOutContinuousInOutByAssign
       }
     }
     EXPECT_EQ(identity_cnt, 1U);
-    EXPECT_EQ(name_to_node["hcombroadcast"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(), IDENTITY);
+    EXPECT_EQ(name_to_node["hcombroadcast"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType(),
+              IDENTITY);
   };
 }
 /*
@@ -2526,7 +2537,8 @@ TEST_F(MemLayoutConflictTest, UserOutAndRtsSpecialIn_Insert_SUCCESS) {
  */
 TEST_F(MemLayoutConflictTest, NoPaddingContinuousInWithParialSameInputs_Insert_SUCCESS) {
   DUMP_GRAPH_WHEN("PreRunAfterMemConflictProc");
-  auto graph = MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph();
+  auto graph =
+      MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph();
   map<AscendString, AscendString> options;
   Session session(options);
   session.AddGraph(4, GraphUtilsEx::CreateGraphFromComputeGraph(graph), options);
@@ -2547,10 +2559,10 @@ TEST_F(MemLayoutConflictTest, NoPaddingContinuousInWithParialSameInputs_Insert_S
     }
     EXPECT_EQ(identity_cnt, 2U);
     bool check_pass = false;
-    if (name_to_node["phony_concat2"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY
-        || name_to_node["phony_concat2"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY
-        || name_to_node["phony_concat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY
-        || name_to_node["phony_concat1"]->GetInDataAnchor(3)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) {
+    if (name_to_node["phony_concat2"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY ||
+        name_to_node["phony_concat2"]->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY ||
+        name_to_node["phony_concat1"]->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY ||
+        name_to_node["phony_concat1"]->GetInDataAnchor(3)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) {
       check_pass = true;
     }
     EXPECT_TRUE(check_pass);
@@ -2563,47 +2575,45 @@ REG_OP(Data)
     .ATTR(index, Int, 0)
     .OP_END_FACTORY_REG(Data)
 
-REG_OP(Cast)
-  .INPUT(x, TensorType::BasicType())
-  .OUTPUT(y, TensorType::BasicType())
-  .REQUIRED_ATTR(dst_type, Int)
-  .OP_END_FACTORY_REG(Cast)
+        REG_OP(Cast)
+    .INPUT(x, TensorType::BasicType())
+    .OUTPUT(y, TensorType::BasicType())
+    .REQUIRED_ATTR(dst_type, Int)
+    .OP_END_FACTORY_REG(Cast)
 
-REG_OP(Split)
+        REG_OP(Split)
     .INPUT(split_dim, TensorType({DT_INT32}))
     .INPUT(x, TensorType::BasicType())
     .DYNAMIC_OUTPUT(y, TensorType::BasicType())
     .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(Split)
 
-REG_OP(Relu)
-    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                          DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                          DT_UINT8, DT_UINT16, DT_QINT8}))
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                            DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                            DT_UINT8, DT_UINT16, DT_QINT8}))
+        REG_OP(Relu)
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_QINT8}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_QINT8}))
     .OP_END_FACTORY_REG(Relu)
 
-/*
-                    ┌────────┐  (0,2)
-                    │   b    │ ──────────────────────────┐
-                    └────────┘                           │
-                      ∧                                  │
-                      │ (1,0)                            │
-                      │                                  ∨
-┌────────┐  (0,0)   ┌────────┐  (0,0)   ┌───┐  (0,1)   ┌───────────┐
-│ split1 │ ───────> │ split2 │ ───────> │ a │ ───────> │ netoutput │
-└────────┘          └────────┘          └───┘          └───────────┘
-  │                                                      ∧
-  │ (1,0)                                                │
-  ∨                                                      │
-┌────────┐  (0,0)                                        │
-│   c    │ ──────────────────────────────────────────────┘
-└────────┘
-* a是inplace算子，split2是输出连续，这样会导致用户输出复用split2的输出，导致内存冲突
-*/
-TEST_F(MemLayoutConflictTest, Inplace_Continous_input_conflict) {
+    /*
+                        ┌────────┐  (0,2)
+                        │   b    │ ──────────────────────────┐
+                        └────────┘                           │
+                          ∧                                  │
+                          │ (1,0)                            │
+                          │                                  ∨
+    ┌────────┐  (0,0)   ┌────────┐  (0,0)   ┌───┐  (0,1)   ┌───────────┐
+    │ split1 │ ───────> │ split2 │ ───────> │ a │ ───────> │ netoutput │
+    └────────┘          └────────┘          └───┘          └───────────┘
+      │                                                      ∧
+      │ (1,0)                                                │
+      ∨                                                      │
+    ┌────────┐  (0,0)                                        │
+    │   c    │ ──────────────────────────────────────────────┘
+    └────────┘
+    * a是inplace算子，split2是输出连续，这样会导致用户输出复用split2的输出，导致内存冲突
+    */
+    TEST_F(MemLayoutConflictTest, Inplace_Continous_input_conflict) {
   auto graph = ge::MemConflictShareGraph::BuildContinuousOutGraph();
   auto node = graph->FindNode("a");
   auto op_desc = node->GetOpDesc();
@@ -2730,4 +2740,4 @@ TEST_F(MemLayoutConflictTest, RefdataAndRtsSpecialOut_InsertIdentity_Success) {
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

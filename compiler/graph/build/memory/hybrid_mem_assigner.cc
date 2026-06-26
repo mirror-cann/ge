@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,8 @@
 #include "graph/ge_context.h"
 
 namespace ge {
-static bool CompareMemorySize(const std::pair<std::string, std::pair<std::unique_ptr<BlockMemAssigner>, size_t>> &left,
+static bool CompareMemorySize(
+    const std::pair<std::string, std::pair<std::unique_ptr<BlockMemAssigner>, size_t>> &left,
     const std::pair<std::string, std::pair<std::unique_ptr<BlockMemAssigner>, size_t>> &right) {
   return left.second.second < right.second.second;
 }
@@ -82,7 +83,7 @@ Status HybridMemAssigner::Assign() {
   const bool memory_priority_mode = binary_assigner->IsMemoryPriorityMode();
   binary_assigner->SetReuseStrategy(ReuseStrategy(false, true, false, memory_priority_mode));
 
-  std::future<void> reuse_checker_init_future = std::async(std::launch::async, [this] () { (void)ReuseCheckerInit(); });
+  std::future<void> reuse_checker_init_future = std::async(std::launch::async, [this]() { (void)ReuseCheckerInit(); });
   memory_assigners.emplace_back(std::make_pair("binary-block", std::make_pair(std::move(binary_assigner), 0U)));
 
   auto max_assigner = MakeUnique<MaxBlockMemAssigner>(mem_assist_info_);
@@ -119,9 +120,9 @@ Status HybridMemAssigner::Assign() {
   ThreadPool executor("ge_asignmem", memory_assigners.size(), false);
   std::vector<std::future<Status>> vector_future;
   for (auto &memory_assigner : memory_assigners) {
-    std::future<Status> f = executor.commit(HybridMemAssigner::AssignMemory, memory_assigner.second.first.get(),
-                                            std::ref(memory_assigner.second.second),
-                                            std::cref(GetThreadLocalContext()));
+    std::future<Status> f =
+        executor.commit(HybridMemAssigner::AssignMemory, memory_assigner.second.first.get(),
+                        std::ref(memory_assigner.second.second), std::cref(GetThreadLocalContext()));
     if (f.valid()) {
       vector_future.emplace_back(std::move(f));
     }

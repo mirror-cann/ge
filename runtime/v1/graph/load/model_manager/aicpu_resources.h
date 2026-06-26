@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,14 +37,10 @@ class AiCpuResources {
   static const std::string &ResourceTypeQueue();
   static const std::string &ResourceTypeChannel();
   static const std::string &ResourceTypeVdecChannel();
-  Status AllocateChannelResource(const OpDescPtr &op_desc,
-                                 const int32_t rt_stream_id);
-  Status AllocateQueueResource(const OpDescPtr &op_desc,
-                               const NamedAttrs &resource_attr,
-                               int32_t &input_idx,
+  Status AllocateChannelResource(const OpDescPtr &op_desc, const int32_t rt_stream_id);
+  Status AllocateQueueResource(const OpDescPtr &op_desc, const NamedAttrs &resource_attr, int32_t &input_idx,
                                uint32_t &queue_id);
-  Status AllocateVdecChannelResource(const OpDescPtr &op_desc,
-                                     const int32_t rt_stream_id);
+  Status AllocateVdecChannelResource(const OpDescPtr &op_desc, const int32_t rt_stream_id);
   Status GetOrCreateQueue(const std::string &queue_name, const uint32_t queue_depth, uint32_t &queue_id);
   void ReleaseResources();
 
@@ -76,9 +72,7 @@ class AiCpuResources {
   static Status CreateQueue(const std::string &name, const uint32_t depth, uint32_t &queue_id);
   static Status DestroyQueue(const uint32_t queue_id);
 
-  static Status BuildCreateQueueTask(const uintptr_t queue_id_dev,
-                                     const std::string &name,
-                                     const uint32_t depth,
+  static Status BuildCreateQueueTask(const uintptr_t queue_id_dev, const std::string &name, const uint32_t depth,
                                      std::vector<uint8_t> &task_args);
   static Status BuildDestroyQueueTask(const uint32_t queue_id, std::vector<uint8_t> &task_args);
 
@@ -95,8 +89,7 @@ class AiCpuResources {
   static Status BuildModelConfigTask(const AiCpuModelConfig &config, std::vector<uint8_t> &task_args);
   static Status BuildModelShapeConfigTask(const AiCpuModelShapeConfig &config, std::vector<uint8_t> &task_args);
 
-  static Status ExecuteKernel(const char_t *const so_name,
-                              const std::string &kernel_name,
+  static Status ExecuteKernel(const char_t *const so_name, const std::string &kernel_name,
                               const std::vector<uint8_t> &task_args);
   static Status ExecuteKernel(const std::string &kernel_name, const std::vector<uint8_t> &task_args);
 

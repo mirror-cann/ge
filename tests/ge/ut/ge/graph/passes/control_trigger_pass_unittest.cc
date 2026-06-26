@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -178,7 +178,8 @@ void make_control_trigger_node(ComputeGraphPtr &graph, NodePtr &control_trigger_
   (void)GraphUtils::AddEdge(identity_1_node->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
 }
 
-void make_graph_cond_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node, NodePtr &switch_node) {
+void make_graph_cond_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node,
+                            NodePtr &switch_node) {
   GeTensorDesc bool_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
   GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
 
@@ -545,7 +546,8 @@ void make_graph_nested_cond_branch_1(ComputeGraphPtr &graph, NodePtr &control_tr
   (void)GraphUtils::AddEdge(less_node->GetOutDataAnchor(0), switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
 
   (void)GraphUtils::AddEdge(z_node->GetOutDataAnchor(0), in_switch_node->GetInDataAnchor(SWITCH_DATA_INPUT));
-  (void)GraphUtils::AddEdge(switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), in_switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
+  (void)GraphUtils::AddEdge(switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT),
+                            in_switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
 
   (void)GraphUtils::AddEdge(in_switch_node->GetOutDataAnchor(SWITCH_FALSE_OUTPUT), merge_node->GetInDataAnchor(0));
   (void)GraphUtils::AddEdge(in_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), merge_node->GetInDataAnchor(1));
@@ -605,7 +607,8 @@ void make_graph_nested_cond_branch_2(ComputeGraphPtr &graph, NodePtr &control_tr
   (void)GraphUtils::AddEdge(less_node->GetOutDataAnchor(0), out_switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
 
   (void)GraphUtils::AddEdge(z_node->GetOutDataAnchor(0), switch_node->GetInDataAnchor(SWITCH_DATA_INPUT));
-  (void)GraphUtils::AddEdge(out_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
+  (void)GraphUtils::AddEdge(out_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT),
+                            switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
 
   (void)GraphUtils::AddEdge(switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), identity_t_node->GetInDataAnchor(0));
 
@@ -681,7 +684,8 @@ void make_graph_cascade_cond_branch(ComputeGraphPtr &graph, NodePtr &control_tri
   (void)GraphUtils::AddEdge(identity_t_node->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
 }
 
-void make_graph_loop_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node, NodePtr &switch_node) {
+void make_graph_loop_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node,
+                            NodePtr &switch_node) {
   GeTensorDesc bool_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
   GeTensorDesc int_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
   GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -752,7 +756,8 @@ void make_graph_loop_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &c
   }
 }
 
-void make_graph_nested_loop_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node, NodePtr &switch_node) {
+void make_graph_nested_loop_branch(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node,
+                                   NodePtr &switch_node) {
   GeTensorDesc bool_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
   GeTensorDesc int_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
   GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -844,14 +849,18 @@ void make_graph_nested_loop_branch(ComputeGraphPtr &graph, bool branch_flag, Nod
   (void)GraphUtils::AddEdge(x_node->GetOutDataAnchor(0), out_merge_x_node->GetInDataAnchor(0));
   (void)GraphUtils::AddEdge(out_merge_x_node->GetOutDataAnchor(0), out_pred_node->GetInDataAnchor(0));
   (void)GraphUtils::AddEdge(out_pred_node->GetOutDataAnchor(0), out_switch_x_node->GetInDataAnchor(SWITCH_PRED_INPUT));
-  (void)GraphUtils::AddEdge(out_merge_x_node->GetOutDataAnchor(0), out_switch_x_node->GetInDataAnchor(SWITCH_DATA_INPUT));
+  (void)GraphUtils::AddEdge(out_merge_x_node->GetOutDataAnchor(0),
+                            out_switch_x_node->GetInDataAnchor(SWITCH_DATA_INPUT));
 
   (void)GraphUtils::AddEdge(y_node->GetOutDataAnchor(0), out_merge_y_node->GetInDataAnchor(0));
   (void)GraphUtils::AddEdge(out_pred_node->GetOutDataAnchor(0), out_switch_y_node->GetInDataAnchor(SWITCH_PRED_INPUT));
-  (void)GraphUtils::AddEdge(out_merge_y_node->GetOutDataAnchor(0), out_switch_y_node->GetInDataAnchor(SWITCH_DATA_INPUT));
+  (void)GraphUtils::AddEdge(out_merge_y_node->GetOutDataAnchor(0),
+                            out_switch_y_node->GetInDataAnchor(SWITCH_DATA_INPUT));
 
-  (void)GraphUtils::AddEdge(out_switch_x_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), in_merge_x_node->GetInDataAnchor(0));
-  (void)GraphUtils::AddEdge(out_switch_y_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), in_merge_y_node->GetInDataAnchor(0));
+  (void)GraphUtils::AddEdge(out_switch_x_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT),
+                            in_merge_x_node->GetInDataAnchor(0));
+  (void)GraphUtils::AddEdge(out_switch_y_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT),
+                            in_merge_y_node->GetInDataAnchor(0));
 
   (void)GraphUtils::AddEdge(in_merge_x_node->GetOutDataAnchor(0), in_pred_node->GetInDataAnchor(0));
 
@@ -934,7 +943,8 @@ void make_graph_loop_cond_out(ComputeGraphPtr &graph, NodePtr &control_trigger_n
   (void)GraphUtils::AddEdge(merge_y_node->GetOutDataAnchor(0), loop_switch_node->GetInDataAnchor(SWITCH_DATA_INPUT));
 
   (void)GraphUtils::AddEdge(x_node->GetOutDataAnchor(0), cond_switch_node->GetInDataAnchor(SWITCH_PRED_INPUT));
-  (void)GraphUtils::AddEdge(loop_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), cond_switch_node->GetInDataAnchor(SWITCH_DATA_INPUT));
+  (void)GraphUtils::AddEdge(loop_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT),
+                            cond_switch_node->GetInDataAnchor(SWITCH_DATA_INPUT));
 
   (void)GraphUtils::AddEdge(cond_switch_node->GetOutDataAnchor(SWITCH_FALSE_OUTPUT), merge_node->GetInDataAnchor(0));
   (void)GraphUtils::AddEdge(cond_switch_node->GetOutDataAnchor(SWITCH_TRUE_OUTPUT), merge_node->GetInDataAnchor(1));
@@ -942,7 +952,8 @@ void make_graph_loop_cond_out(ComputeGraphPtr &graph, NodePtr &control_trigger_n
   (void)GraphUtils::AddEdge(merge_node->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
 }
 
-void make_graph_loop_cond(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node, NodePtr &switch_node) {
+void make_graph_loop_cond(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node,
+                          NodePtr &switch_node) {
   GeTensorDesc bool_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
   GeTensorDesc int_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
   GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -1013,7 +1024,8 @@ void make_graph_loop_cond(ComputeGraphPtr &graph, bool branch_flag, NodePtr &con
   (void)GraphUtils::AddEdge(identity_node->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
 }
 
-void make_graph_cond_loop(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node, NodePtr &switch_node) {
+void make_graph_cond_loop(ComputeGraphPtr &graph, bool branch_flag, NodePtr &control_trigger_node,
+                          NodePtr &switch_node) {
   GeTensorDesc bool_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_BOOL);
   GeTensorDesc int_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
   GeTensorDesc scalar_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_FLOAT);
@@ -1141,10 +1153,7 @@ void make_graph_multi_branch(ComputeGraphPtr &graph) {
   (void)GraphUtils::AddEdge(identity_node1->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
   (void)GraphUtils::AddEdge(identity_node2->GetOutControlAnchor(), control_trigger_node->GetInControlAnchor());
 }
-}
-
-
-
+}  // namespace
 
 TEST_F(UtestControlTriggerPass, Run0) {
   Status retStatus;
@@ -1191,7 +1200,7 @@ TEST_F(UtestControlTriggerPass, HandleDynamicCtrlEdges) {
 
   NodePtr find_switch_node = nullptr;
   bool branch_flag = false;
-    EXPECT_EQ(ctrlTriggerPass.FindSwitchNode(in_ctrl_node, find_switch_node, branch_flag), domi::SUCCESS);
+  EXPECT_EQ(ctrlTriggerPass.FindSwitchNode(in_ctrl_node, find_switch_node, branch_flag), domi::SUCCESS);
 
   // bool branch_flag = false;
   retStatus = ctrlTriggerPass.InsertOppositeBranch(graph, control_trigger_node, in_ctrl_node, find_switch_node, false);
@@ -1234,7 +1243,7 @@ ComputeGraphPtr BuildWrongGraph1() {
 
   builder.AddDataEdge(data1, 0, add, 0);
   builder.AddDataEdge(data2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
 
@@ -1259,7 +1268,7 @@ TEST_F(UtestControlTriggerPass, FindPredInput) {
   auto switch_n_desc = std::make_shared<OpDesc>("switch_n", SWITCHN);
   switch_n_desc->AddInputDesc(int64_tensor);
   switch_n_desc->AddInputDesc(int64_tensor);
-  auto switch_n_node = graph->AddNode(switch_n_desc); 
+  auto switch_n_node = graph->AddNode(switch_n_desc);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B1", "B");
   dst_op->AddInputDesc(int64_tensor);
@@ -1269,7 +1278,6 @@ TEST_F(UtestControlTriggerPass, FindPredInput) {
   GraphUtils::AddEdge(switch_n_node->GetOutDataAnchor(0), dst_node1->GetInDataAnchor(0));
 
   retStatus = ctrlTriggerPass.FindPredInput(switch_n_node);
-
 }
 
 TEST_F(UtestControlTriggerPass, GetInNodes) {
@@ -1670,7 +1678,6 @@ TEST_F(UtestControlTriggerPass, FindSwitchNode_loop_cond_out) {
   EXPECT_EQ(find_switch_node == nullptr, true);
   EXPECT_TRUE(branch_flag == false);
 }
-
 
 TEST_F(UtestControlTriggerPass, FindSwitchNode_loop_t_cond) {
   GetLocalOmgContext().out_nodes_map.clear();

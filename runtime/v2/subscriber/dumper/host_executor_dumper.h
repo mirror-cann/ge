@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,14 +41,14 @@ class HostExecutorDumper : public ExecutorDumper {
   void ParseDumpStep();
   bool IsInDumpStep(const int64_t step_id, const std::string &dump_step);
 
-private:
+ private:
   ge::Status OnUpdateDumpUnitForHostDump(const Node &node);
   void SetOpDescInfo(NodeDumpUnit &dump_unit, ge::OpDescPtr &op_desc, ge::OpDescInfo &op_desc_info,
                      const std::vector<uintptr_t> &input_addrs, const std::vector<uintptr_t> &output_addrs) const;
   ge::Status GetDumpAddrFromChainAddrOnHost(const NodeDumpUnit &dump_unit, bool is_input,
                                             std::vector<uintptr_t> &dump_addrs) const;
 
-private:
+ private:
   std::shared_ptr<const SubscriberExtendInfo> extend_info_{nullptr};
   std::vector<std::pair<int64_t, int64_t>> step_range_;
   std::set<int64_t> step_set_;

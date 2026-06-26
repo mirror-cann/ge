@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 #include "lowering_utils.h"
 
 namespace ge {
-const std::vector<std::string> reduce_types = {"ReduceMean", "ReduceMax", "ReduceMin", "ReduceSum", "ReduceProd",
+const std::vector<std::string> reduce_types = {"ReduceMean",  "ReduceMax",  "ReduceMin",  "ReduceSum",  "ReduceProd",
                                                "ReduceMeanD", "ReduceMaxD", "ReduceMinD", "ReduceSumD", "ReduceProdD"};
 constexpr LoweringConfig kLoweringConfig;
 
@@ -36,7 +36,8 @@ class LoweringManager {
   static graphStatus LoweringGraph(const ComputeGraphPtr &graph, const LoweringConfig &config = kLoweringConfig);
 
   static graphStatus FusedLoopToAscBackendOp(const ComputeGraphPtr &graph,
-                                             const AscBackendFuseConfig &config = kAscBackendFuseConfig, CounterPtr counter = nullptr);
+                                             const AscBackendFuseConfig &config = kAscBackendFuseConfig,
+                                             CounterPtr counter = nullptr);
 
   static graphStatus GetFusedOriginComputeGraph(const AutoFuseAttrs &attrs, const NodePtr &node);
 
@@ -53,12 +54,12 @@ class LoweringManager {
 
   static graphStatus PostPrecessAfterLoweringNode(const NodePtr &node, const LoweringConfig &config);
 
-  static OpDescPtr BuildOpDescForKernelBox(loop::KernelBox &kernel_box, std::vector<const ge::OutDataAnchor *> &origin_inputs, 
-                                           CounterPtr counter);
+  static OpDescPtr BuildOpDescForKernelBox(loop::KernelBox &kernel_box,
+                                           std::vector<const ge::OutDataAnchor *> &origin_inputs, CounterPtr counter);
 
   static graphStatus FusedSubgraphLoopToAscBackendOp(
-    const ComputeGraphPtr &graph, const AscBackendFuseConfig &config,
-    std::map<const ge::OutDataAnchor *, ge::OutDataAnchor *> &ascend_out_to_asc_out, CounterPtr counter);
+      const ComputeGraphPtr &graph, const AscBackendFuseConfig &config,
+      std::map<const ge::OutDataAnchor *, ge::OutDataAnchor *> &ascend_out_to_asc_out, CounterPtr counter);
 
   std::map<std::string, std::function<graphStatus(const NodePtr &)>> lowerings_;
 };

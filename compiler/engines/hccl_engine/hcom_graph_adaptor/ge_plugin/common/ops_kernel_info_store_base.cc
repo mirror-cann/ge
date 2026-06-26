@@ -161,19 +161,19 @@ HcclResult HCCLOpsKernelInfoStore::GetReduceTypeFromTaskInfo(const ge::GETaskKer
   return HCCL_SUCCESS;
 }
 
-
 HcclResult HCCLOpsKernelInfoStore::GetStreamsFromTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo,
-                                                            std::vector<rtStream_t> &streams) const {
+                                                          std::vector<rtStream_t> &streams) const {
   streams = hcclInfo.hcclStreamList;
   HCCL_INFO("get streams len[%llu] from task info success.", hcclInfo.hcclStreamList.size());
   return HCCL_SUCCESS;
 }
 
-HcclResult HCCLOpsKernelInfoStore::GetWorkSpaceTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo,
-                                                            void **workSpace, uint64_t &memSize) const {
+HcclResult HCCLOpsKernelInfoStore::GetWorkSpaceTaskInfo(const ge::GETaskKernelHcclInfo &hcclInfo, void **workSpace,
+                                                        uint64_t &memSize) const {
   *workSpace = hcclInfo.workSpaceAddr;
   memSize = hcclInfo.workSpaceMemSize;
-  HCCL_INFO("get input address[0x%016llx] len[%llu] from task info success.", (uintptr_t)hcclInfo.workSpaceAddr, hcclInfo.workSpaceMemSize);
+  HCCL_INFO("get input address[0x%016llx] len[%llu] from task info success.", (uintptr_t)hcclInfo.workSpaceAddr,
+            hcclInfo.workSpaceMemSize);
   return HCCL_SUCCESS;
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,8 @@ namespace {
 void TestDoProf1() {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kCannHost});
   auto executor = BuildExecutorFromSingleNodeForDump();
-  auto host_profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
+  auto host_profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
   auto fake_node = FakeNodeHelper::FakeNode("test", "test", 10000);
   host_profiler->DoProf(kExecuteStart, &fake_node.node);
   host_profiler->DoProf(kExecuteEnd, &fake_node.node);
@@ -31,11 +32,12 @@ void TestDoProf1() {
 void TestDoProf2() {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kCannHost});
   auto executor = BuildExecutorFromSingleNodeForDump();
-  auto host_profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
+  auto host_profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
   auto &host_sch_info = host_profiler->GetHostSchData();
   auto fake_node_id = 0;
-  for (size_t i = 0; i<host_sch_info.size(); ++i) {
-    if(host_sch_info[i].itemId != 0) {
+  for (size_t i = 0; i < host_sch_info.size(); ++i) {
+    if (host_sch_info[i].itemId != 0) {
       fake_node_id = i;
       break;
     }
@@ -44,13 +46,14 @@ void TestDoProf2() {
   host_profiler->DoProf(kExecuteStart, &fake_node.node);
   host_profiler->DoProf(kExecuteEnd, &fake_node.node);
 }
-}
+}  // namespace
 class CannHostProfilerUT : public bg::BgTest {};
 
 TEST_F(CannHostProfilerUT, Init_InitHostSchData_WhenConstruct) {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kCannHost});
-  auto executor =  BuildExecutorFromSingleNodeForDump();
-  auto host_profiler = executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
+  auto executor = BuildExecutorFromSingleNodeForDump();
+  auto host_profiler =
+      executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler);
   EXPECT_TRUE(host_profiler->IsHostProfInited());
   EXPECT_FALSE(host_profiler->GetHostSchData().empty());
 }
@@ -98,4 +101,4 @@ TEST_F(CannHostProfilerUT, DoInit_RecordUnknownName_WithEmptyComputeNodeInfo) {
     }
   }
 }
-}
+}  // namespace gert

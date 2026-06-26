@@ -57,4 +57,3 @@ const char *aclGetTensorDescName(aclTensorDesc *desc)
 ## 返回值说明<a name="section21631444261"></a>
 
 返回TensorDesc的名称。
-

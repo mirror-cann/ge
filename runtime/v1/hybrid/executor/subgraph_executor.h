@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,8 +44,7 @@ class SubgraphExecutor : SubgraphContext, ShapeInferenceEngine {
    * @param input_desc      input tensor descriptions
    * @return SUCCESS on success, error code otherwise
    */
-  Status ExecuteAsync(const std::vector<TensorValue> &inputs,
-                      const std::vector<ConstGeTensorDescPtr> &input_desc);
+  Status ExecuteAsync(const std::vector<TensorValue> &inputs, const std::vector<ConstGeTensorDescPtr> &input_desc);
 
   /**
    * Execute subgraph async, output tensor address(not data) and output tensor descriptions are
@@ -54,8 +53,7 @@ class SubgraphExecutor : SubgraphContext, ShapeInferenceEngine {
    * @param input_desc      input tensor descriptions
    * @return SUCCESS on success, error code otherwise
    */
-  Status ExecuteAsync(const std::vector<TensorValue> &inputs,
-                      const std::vector<ConstGeTensorDescPtr> &input_desc,
+  Status ExecuteAsync(const std::vector<TensorValue> &inputs, const std::vector<ConstGeTensorDescPtr> &input_desc,
                       const std::vector<TensorValue> &outputs);
 
   /**
@@ -96,7 +94,9 @@ class SubgraphExecutor : SubgraphContext, ShapeInferenceEngine {
   Status ScheduleTasks(const int32_t group = -1);
   Status PrepareNodes(const int32_t group = -1);
 
-  virtual Status PreRunSubgraph() { return SUCCESS; }
+  virtual Status PreRunSubgraph() {
+    return SUCCESS;
+  }
   virtual Status InitCallback(NodeState *const node_state, std::function<void()> &callback,
                               const std::shared_ptr<ScopeGuard> tensor_guard = nullptr);
   virtual Status PrepareNode(const NodeItem &node_item);
@@ -125,10 +125,10 @@ class SubgraphExecutor : SubgraphContext, ShapeInferenceEngine {
   BlockingQueue<NodeState *> ready_queue_;
   ShapeInferenceEngine *shape_inference_engine_ = nullptr;
 
-  std::mutex mu_; // Guard for prepare_queues_.
+  std::mutex mu_;  // Guard for prepare_queues_.
   std::map<int32_t, BlockingQueue<const NodeItem *>> prepare_queues_;
   friend class FftsPlusSubgraphExecutor;
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_EXECUTOR_EXECUTOR_SUBGRAPH_EXECUTOR_H_
+#endif  // GE_HYBRID_EXECUTOR_EXECUTOR_SUBGRAPH_EXECUTOR_H_

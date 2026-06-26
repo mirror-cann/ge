@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+/* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -53,15 +53,16 @@ bool IsSourceNodeSpecial(const NodePtr &node) {
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(node->GetOpDesc());
   const auto &node_type = node->GetType();
-  if (OpTypeUtils::IsVariableNode(node_type) || OpTypeUtils::IsVarLikeNode(node_type) || OpTypeUtils::IsConstNode(node_type)) {
+  if (OpTypeUtils::IsVariableNode(node_type) || OpTypeUtils::IsVarLikeNode(node_type) ||
+      OpTypeUtils::IsConstNode(node_type)) {
     GELOGI("Node %s of type %s is special node", node->GetName().c_str(), node_type.c_str());
     return true;
   }
 
   const auto ref_origin_name = AttrUtils::GetStr(node->GetOpDesc(), ge::REF_VAR_SRC_VAR_NAME);
   if (ref_origin_name != nullptr && !ref_origin_name->empty()) {
-    GELOGI("Node %s of type %s is special node because it has ref var src name: %s",
-           node->GetName().c_str(), node_type.c_str(), ref_origin_name->c_str());
+    GELOGI("Node %s of type %s is special node because it has ref var src name: %s", node->GetName().c_str(),
+           node_type.c_str(), ref_origin_name->c_str());
     return true;
   }
   return false;
@@ -77,7 +78,8 @@ bool IsSourceNodeSpecial(const NodePtr &node) {
  * @return Status         SUCCESS: 成功跳出子图并定位到父节点
  *                        FAILED:  获取父节点失败
  */
-Status JumpOutFromSubDataToTraceSource(const NodePtr &cur_node, std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &source_path,
+Status JumpOutFromSubDataToTraceSource(const NodePtr &cur_node,
+                                       std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &source_path,
                                        InDataAnchorPtr &cur_in_anchor) {
   // 获取 Wrapper 节点的输入锚点 (也就是这一层子图的“入口”)
   const auto parent_in_anchor = NodeUtils::GetParentInDataAnchor(cur_node);
@@ -90,13 +92,14 @@ Status JumpOutFromSubDataToTraceSource(const NodePtr &cur_node, std::vector<std:
   source_path.emplace_back(parent_node->shared_from_this(), nullptr);
   cur_in_anchor = parent_in_anchor;
 
-  GELOGI("Jump out of subgraph from DATA %s to parent node %s input index %d.",
-         cur_node->GetName().c_str(), parent_node->GetName().c_str(), cur_in_anchor->GetIdx());
+  GELOGI("Jump out of subgraph from DATA %s to parent node %s input index %d.", cur_node->GetName().c_str(),
+         parent_node->GetName().c_str(), cur_in_anchor->GetIdx());
   return SUCCESS;
 }
 
 /**
- * @brief 根据 ATTR_NAME_PARENT_NODE_INDEX 属性找到映射到当前 PCall 输出端口的输入分支，并将追踪状态更新为子图内部的生产者节点
+ * @brief 根据 ATTR_NAME_PARENT_NODE_INDEX 属性找到映射到当前 PCall
+ * 输出端口的输入分支，并将追踪状态更新为子图内部的生产者节点
  *
  * @param cur_node        [IN/OUT] 当前节点。输入时为 PartitionedCall 节点，成功后更新为子图内部的生产者节点
  * @param cur_out_idx     [IN/OUT] 当前输出索引。输入时为 PCall 的输出索引，成功后更新为子图内部节点的输出索引
@@ -129,11 +132,14 @@ Status JumpInPartitionedCallToTraceSource(const NodePtr &cur_node, int32_t &cur_
       source_path.emplace_back(sub_graph_netoutput, in_data_anchor->GetPeerOutAnchor());
 
       GELOGI("Jump into subgraph %s, from PartitionedCall node %s to sub netoutput node %s index %d",
-             sub_graph->GetName().c_str(), cur_node->GetName().c_str(), sub_graph_netoutput->GetName().c_str(), in_data_anchor_idx);
+             sub_graph->GetName().c_str(), cur_node->GetName().c_str(), sub_graph_netoutput->GetName().c_str(),
+             in_data_anchor_idx);
       return SUCCESS;
     }
   }
-  GELOGE(FAILED, "Cannot find corresponding sub netoutput and parent node index mapping in subgraph %s for PartitionedCall node %s output index %d",
+  GELOGE(FAILED,
+         "Cannot find corresponding sub netoutput and parent node index mapping in subgraph %s for PartitionedCall "
+         "node %s output index %d",
          sub_graph->GetName().c_str(), cur_node->GetName().c_str(), cur_out_idx);
   return FAILED;
 }
@@ -162,8 +168,8 @@ void LogTraceRealSourcePath(const NodePtr &start_node, int32_t index,
 }
 
 std::string BuildControlEdgeDesc(const NodePtr &from_node, const NodePtr &to_node) {
-  return from_node->GetName() + "(type " + from_node->GetType() + ") -> " +
-         to_node->GetName() + "(type " + to_node->GetType() + ")";
+  return from_node->GetName() + "(type " + from_node->GetType() + ") -> " + to_node->GetName() + "(type " +
+         to_node->GetType() + ")";
 }
 
 std::string JoinControlEdgeDescs(const std::vector<std::string> &control_edge_descs) {
@@ -204,13 +210,15 @@ std::string JoinControlEdgeDescs(const std::vector<std::string> &control_edge_de
  *
  * @param start_node          [IN]  回溯的起始节点。
  * @param index               [IN]  起始节点的输入锚点索引
- * @param source_path         [OUT] 路径记录容器。函数会将从起点到源头过程中经过的所有节点和对应输出锚点加到此列表中（不包含当前TenosrMove节点）
+ * @param source_path         [OUT]
+ * 路径记录容器。函数会将从起点到源头过程中经过的所有节点和对应输出锚点加到此列表中（不包含当前TenosrMove节点）
  *
  * @return Status
  * - SUCCESS: 追踪流程正常结束（无论是否找到有效源头，包括遇到控制流算子终止的情况）。
  * - FAILED:  追踪过程中发生错误（如断图、子图映射关系丢失、无法获取锚点等）。
  */
-Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &source_path) {
+Status TraceRealSourceNode(const NodePtr &start_node, int32_t index,
+                           std::vector<std::pair<NodePtr, OutDataAnchorPtr>> &source_path) {
   InDataAnchorPtr cur_in_anchor = start_node->GetInDataAnchor(index);
   while (cur_in_anchor != nullptr) {
     NodePtr cur_node;
@@ -219,7 +227,8 @@ Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector
 
     peer_out_anchor = cur_in_anchor->GetPeerOutAnchor();
     if (peer_out_anchor == nullptr) {
-      GELOGI("Input anchor index %d of node %s has no peer output anchor.", cur_in_anchor->GetIdx(), start_node->GetName().c_str());
+      GELOGI("Input anchor index %d of node %s has no peer output anchor.", cur_in_anchor->GetIdx(),
+             start_node->GetName().c_str());
       return SUCCESS;
     }
     cur_node = peer_out_anchor->GetOwnerNode();
@@ -268,7 +277,8 @@ Status TraceRealSourceNode(const NodePtr &start_node, int32_t index, std::vector
  * @return true 存在其他输出复用了同一个输入
  * @return false 不存在其他输出复用了同一个输入
  */
-bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchorPtr &current_out_anchor, const std::string &tensor_move_name) {
+bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchorPtr &current_out_anchor,
+                                        const std::string &tensor_move_name) {
   int32_t reuse_in_index = -1;
   // 1. 如果当前 Anchor 本身不是引用输入，直接返回false
   if (!GraphUtils::IsRefFromInput(current_out_anchor, reuse_in_index)) {
@@ -284,13 +294,13 @@ bool HasMultipleOutputsSharingSameInput(const NodePtr &node, const OutDataAnchor
 
     // 3. 检查旁路是否引用了同一个输入，且该旁路有下游节点连接
     int32_t tmp_reuse_in_index = -1;
-    if (GraphUtils::IsRefFromInput(tmp_out_anchor, tmp_reuse_in_index) &&
-        (tmp_reuse_in_index == reuse_in_index) && !tmp_out_anchor->GetPeerInDataAnchorsPtr().empty()) {
-      GELOGI("Node %s(type %s) has multiple outputs (Out:%d and Out:%d) sharing input:%d, "
-             "and both are connected. Cannot delete tensor move %s.",
-             node->GetName().c_str(), node->GetType().c_str(),
-             current_out_anchor->GetIdx(), tmp_out_anchor->GetIdx(),
-             reuse_in_index, tensor_move_name.c_str());
+    if (GraphUtils::IsRefFromInput(tmp_out_anchor, tmp_reuse_in_index) && (tmp_reuse_in_index == reuse_in_index) &&
+        !tmp_out_anchor->GetPeerInDataAnchorsPtr().empty()) {
+      GELOGI(
+          "Node %s(type %s) has multiple outputs (Out:%d and Out:%d) sharing input:%d, "
+          "and both are connected. Cannot delete tensor move %s.",
+          node->GetName().c_str(), node->GetType().c_str(), current_out_anchor->GetIdx(), tmp_out_anchor->GetIdx(),
+          reuse_in_index, tensor_move_name.c_str());
       return true;
     }
   }
@@ -350,20 +360,21 @@ bool IsSiblingConsumerDeletable(const NodePtr &tensor_move_node, const InDataAnc
            sibling_node->GetName().c_str(), tensor_move_node->GetName().c_str());
     return false;
   }
-  if ((sibling_node->GetType() == NETOUTPUT) ||
-      NodeUtils::IsWrapperNode(sibling_node)) {
-    GELOGI("Sibling consumer %s(type %s) is NetOutput/control-flow/subgraph wrapper, not supported by "
-           "multi-consumer delete rule of tensor move %s.",
-           sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), tensor_move_node->GetName().c_str());
+  if ((sibling_node->GetType() == NETOUTPUT) || NodeUtils::IsWrapperNode(sibling_node)) {
+    GELOGI(
+        "Sibling consumer %s(type %s) is NetOutput/control-flow/subgraph wrapper, not supported by "
+        "multi-consumer delete rule of tensor move %s.",
+        sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), tensor_move_node->GetName().c_str());
     return false;
   }
 
   const auto sibling_input_idx = sibling_in_anchor->GetIdx();
   if (HasRefOutputFromInput(sibling_node, sibling_input_idx)) {
-    GELOGI("Sibling consumer %s(type %s) reuses input %d on output (source memory reaches its "
-           "downstream), keep tensor move %s.",
-           sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), sibling_input_idx,
-           tensor_move_node->GetName().c_str());
+    GELOGI(
+        "Sibling consumer %s(type %s) reuses input %d on output (source memory reaches its "
+        "downstream), keep tensor move %s.",
+        sibling_node->GetName().c_str(), sibling_node->GetType().c_str(), sibling_input_idx,
+        tensor_move_node->GetName().c_str());
     return false;
   }
   return true;
@@ -400,8 +411,8 @@ bool WouldTMSuccessorsOverwriteSource(const TensorMoveDeleteContext &ctx) {
       continue;
     }
     if (WillNodeOverwriteSourceMemory(succ, succ_in->GetIdx())) {
-      GELOGI("TM %s successor %s(in:%d) overwrites source memory, cannot delete.",
-             tm->GetName().c_str(), succ->GetName().c_str(), succ_in->GetIdx());
+      GELOGI("TM %s successor %s(in:%d) overwrites source memory, cannot delete.", tm->GetName().c_str(),
+             succ->GetName().c_str(), succ_in->GetIdx());
       return true;
     }
   }
@@ -539,20 +550,19 @@ bool CanDeleteWhenSiblingOverwritesSource(const NodePtr &tensor_move_node, const
     return false;
   }
   if (WillNodeOverwriteSourceMemory(tensor_move_succ, tm_succ_input_idx)) {
-    GELOGI("Keep TM %s: sibling %s and successor %s both overwrite source memory.",
-           tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
-           tensor_move_succ->GetName().c_str());
+    GELOGI("Keep TM %s: sibling %s and successor %s both overwrite source memory.", tensor_move_node->GetName().c_str(),
+           sibling_node->GetName().c_str(), tensor_move_succ->GetName().c_str());
     return false;
   }
   if (HasDirectControlOrdering(tensor_move_succ, sibling_node)) {
     GELOGI("Delete TM %s: sibling %s overwrites source, existing ctrl %s -> %s ensures read-before-write.",
-           tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
-           tensor_move_succ->GetName().c_str(), sibling_node->GetName().c_str());
+           tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(), tensor_move_succ->GetName().c_str(),
+           sibling_node->GetName().c_str());
     return true;
   }
   GELOGI("Keep TM %s: sibling %s overwrites source, no ctrl %s -> %s for read-before-write.",
-         tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
-         tensor_move_succ->GetName().c_str(), sibling_node->GetName().c_str());
+         tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(), tensor_move_succ->GetName().c_str(),
+         sibling_node->GetName().c_str());
   return false;
 }
 
@@ -565,7 +575,7 @@ bool CanDeleteWhenSiblingOverwritesSource(const NodePtr &tensor_move_node, const
  * @return true 该 sibling 结构上允许删除 TM；false 必须保留 TM
  */
 bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InDataAnchor *sibling_in_anchor,
-                                    const OutDataAnchorPtr &tensor_move_out_anchor, TensorMoveDeleteContext &ctx) {
+                                   const OutDataAnchorPtr &tensor_move_out_anchor, TensorMoveDeleteContext &ctx) {
   if (!IsSiblingConsumerDeletable(tensor_move_node, sibling_in_anchor)) {
     return false;
   }
@@ -580,8 +590,7 @@ bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InData
     const auto tm_succ_input_idx = tensor_move_succ_in_anchor->GetIdx();
 
     if (sibling_overwrites_source) {
-      if (!CanDeleteWhenSiblingOverwritesSource(tensor_move_node, sibling_node, tensor_move_succ,
-                                                tm_succ_input_idx)) {
+      if (!CanDeleteWhenSiblingOverwritesSource(tensor_move_node, sibling_node, tensor_move_succ, tm_succ_input_idx)) {
         return false;
       }
       continue;
@@ -589,15 +598,13 @@ bool CheckSiblingAgainstSuccessors(const NodePtr &tensor_move_node, const InData
 
     if (!WillNodeOverwriteSourceMemory(tensor_move_succ, tm_succ_input_idx)) {
       GELOGI("Delete TM %s: sibling %s and successor %s both pure-read source, no ctrl edge needed.",
-             tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
-             tensor_move_succ->GetName().c_str());
+             tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(), tensor_move_succ->GetName().c_str());
       continue;
     }
 
     if (WouldCreateControlCycle(sibling_node, tensor_move_succ)) {
-      GELOGI("Keep TM %s: adding ctrl %s -> %s would create a cycle.",
-             tensor_move_node->GetName().c_str(), sibling_node->GetName().c_str(),
-             tensor_move_succ->GetName().c_str());
+      GELOGI("Keep TM %s: adding ctrl %s -> %s would create a cycle.", tensor_move_node->GetName().c_str(),
+             sibling_node->GetName().c_str(), tensor_move_succ->GetName().c_str());
       return false;
     }
     AddPendingControlEdge(sibling_node, tensor_move_succ, ctx);
@@ -685,8 +692,11 @@ bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node,
     // 单输出多引用
     if (out_data_anchor->GetPeerInDataAnchorsPtr().size() > 1U) {
       if (!TryHandleBasicMultiRefBranch(tensor_move_node, out_data_anchor, ctx)) {
-        GELOGI("Out data anchor %d of node %s(type %s) has multiple peer input data anchors, cannot delete tensor move %s.",
-               out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(), tensor_move_node->GetName().c_str());
+        GELOGI(
+            "Out data anchor %d of node %s(type %s) has multiple peer input data anchors, cannot delete tensor move "
+            "%s.",
+            out_data_anchor->GetIdx(), node->GetName().c_str(), node->GetType().c_str(),
+            tensor_move_node->GetName().c_str());
         return false;
       }
     }
@@ -695,7 +705,6 @@ bool IsSourceNodeWithSinglePath(const NodePtr &tensor_move_node,
          tensor_move_node->GetName().c_str(), path_to_source_node.back().first->GetName().c_str());
   return true;
 }
-
 
 /**
  * @brief 检查当前源输入节点索引是否在允许的内存复用配置中
@@ -712,8 +721,10 @@ bool IsMemoryReuseAllowed(int32_t src_out_idx, const std::string &node_name) {
 
     for (const auto &pair : io_same_addr_pairs) {
       if (pair.first == static_cast<size_t>(src_out_idx)) {
-        GELOGI("Memory reuse check passed: input index %d found in ge.exec.outputReuseInputMemIndexes config %s for node %s.",
-               src_out_idx, output_reuse_input_config.c_str(), node_name.c_str());
+        GELOGI(
+            "Memory reuse check passed: input index %d found in ge.exec.outputReuseInputMemIndexes config %s for node "
+            "%s.",
+            src_out_idx, output_reuse_input_config.c_str(), node_name.c_str());
         return true;
       }
     }
@@ -735,7 +746,7 @@ bool IsMemoryReuseAllowed(int32_t src_out_idx, const std::string &node_name) {
       }
       if (index == src_out_idx) {
         GELOGI("Memory reuse check passed: input index %d found in ge.exec.inputReuseMemIndexes config %s for node %s.",
-                src_out_idx, input_reuse_config.c_str(), node_name.c_str());
+               src_out_idx, input_reuse_config.c_str(), node_name.c_str());
         return true;
       }
     }
@@ -748,8 +759,7 @@ bool IsMemoryReuseAllowed(int32_t src_out_idx, const std::string &node_name) {
 
 bool HasReservedAttr(const NodePtr &node) {
   bool reserved = false;
-  AttrUtils::GetBool(node->GetOpDesc(),
-                     ATTR_NAME_CANNOT_BE_DELETED, reserved);
+  AttrUtils::GetBool(node->GetOpDesc(), ATTR_NAME_CANNOT_BE_DELETED, reserved);
   if (reserved) {
     GELOGI("TensorMove %s reserved by attr %s.", node->GetName().c_str(), ATTR_NAME_CANNOT_BE_DELETED.c_str());
     return true;
@@ -762,15 +772,15 @@ bool HasReservedAttr(const NodePtr &node) {
 }
 
 /**
-* @brief 判断 TensorMove 后继链路是否安全（允许删除 TensorMove 的前提条件）
-*
-* 逐个检查 TensorMove 输出锚点的所有直接后继节点，要求全部满足：
-*   1. 不是 RefOp（输出不复用来自 TensorMove 的那个输入）
-*   2. 不是 NetOutput
-*   3. 不是 wrapper 算子（PARTITIONEDCALL/STATEFULPARTITIONEDCALL 或多分支控制流算子）
-*
-* @return true 所有后继都安全；false 存在不安全的后继
-*/
+ * @brief 判断 TensorMove 后继链路是否安全（允许删除 TensorMove 的前提条件）
+ *
+ * 逐个检查 TensorMove 输出锚点的所有直接后继节点，要求全部满足：
+ *   1. 不是 RefOp（输出不复用来自 TensorMove 的那个输入）
+ *   2. 不是 NetOutput
+ *   3. 不是 wrapper 算子（PARTITIONEDCALL/STATEFULPARTITIONEDCALL 或多分支控制流算子）
+ *
+ * @return true 所有后继都安全；false 存在不安全的后继
+ */
 
 bool IsSuccessorSafeAfterTensorMove(const NodePtr &tensor_move_node) {
   GE_ASSERT_NOTNULL(tensor_move_node);
@@ -786,14 +796,14 @@ bool IsSuccessorSafeAfterTensorMove(const NodePtr &tensor_move_node) {
     GE_ASSERT_NOTNULL(succ_node);
     const auto &succ_type = succ_node->GetType();
     if (HasRefOutputFromInput(succ_node, peer_in_anchor->GetIdx())) {
-      GELOGI("Successor %s(type %s) of TensorMove %s is a RefOp, cannot delete.",
-             succ_node->GetName().c_str(), succ_type.c_str(), tensor_move_node->GetName().c_str());
+      GELOGI("Successor %s(type %s) of TensorMove %s is a RefOp, cannot delete.", succ_node->GetName().c_str(),
+             succ_type.c_str(), tensor_move_node->GetName().c_str());
       return false;
     }
 
     if (succ_type == NETOUTPUT) {
-      GELOGI("Successor %s(type %s) of TensorMove %s is NetOutput, cannot delete.",
-             succ_node->GetName().c_str(), succ_type.c_str(), tensor_move_node->GetName().c_str());
+      GELOGI("Successor %s(type %s) of TensorMove %s is NetOutput, cannot delete.", succ_node->GetName().c_str(),
+             succ_type.c_str(), tensor_move_node->GetName().c_str());
       return false;
     }
     if (NodeUtils::IsWrapperNode(succ_node)) {
@@ -823,9 +833,10 @@ DeleteRule CheckPathToSourceNodeValid = [](const TensorMoveDeleteContext &ctx) {
   if (IsSourceNodeSpecial(source_node)) {
     // TM后继节点是Netoutput或者带有子图时，保守处理，不删除TM
     if (!IsSuccessorSafeAfterTensorMove(ctx.tensor_move)) {
-      GELOGI("Source node %s of TensorMove %s is special node and directly connected,"
-             " but successor is unsafe, cannot delete.",
-             source_node->GetName().c_str(), ctx.tensor_move->GetName().c_str());
+      GELOGI(
+          "Source node %s of TensorMove %s is special node and directly connected,"
+          " but successor is unsafe, cannot delete.",
+          source_node->GetName().c_str(), ctx.tensor_move->GetName().c_str());
       return false;
     }
     if (!WouldTMSuccessorsOverwriteSource(ctx)) {
@@ -849,7 +860,8 @@ DeleteRule CheckSourceNodeReuse = [](const TensorMoveDeleteContext &ctx) {
 
   uint64_t input_index;
   if (!AttrUtils::GetInt(src_node->GetOpDesc(), ATTR_NAME_INDEX, input_index)) {
-    GELOGI("Node %s(type %s) does not have attr %s, cannot delete.", src_node->GetName().c_str(), src_node->GetType().c_str(), ATTR_NAME_INDEX.c_str());
+    GELOGI("Node %s(type %s) does not have attr %s, cannot delete.", src_node->GetName().c_str(),
+           src_node->GetType().c_str(), ATTR_NAME_INDEX.c_str());
     return false;
   }
 
@@ -885,12 +897,10 @@ DeleteRule CheckRWConflictOnDelete = [](const TensorMoveDeleteContext &ctx) {
     if (tm_succ == nullptr) {
       continue;
     }
-    if (WouldDeleteTensorMoveCauseRWConflict(
-            src_node, src_out_idx, tm_succ,
-            static_cast<uint32_t>(succ_in->GetIdx()))) {
-      GELOGI("Keep TM %s: RW conflict between %s(out:%u) and %s(in:%d).",
-             tm->GetName().c_str(), src_node->GetName().c_str(), src_out_idx,
-             tm_succ->GetName().c_str(), succ_in->GetIdx());
+    if (WouldDeleteTensorMoveCauseRWConflict(src_node, src_out_idx, tm_succ,
+                                             static_cast<uint32_t>(succ_in->GetIdx()))) {
+      GELOGI("Keep TM %s: RW conflict between %s(out:%u) and %s(in:%d).", tm->GetName().c_str(),
+             src_node->GetName().c_str(), src_out_idx, tm_succ->GetName().c_str(), succ_in->GetIdx());
       return false;
     }
   }
@@ -922,23 +932,23 @@ DeleteRule CheckMemLayoutConflictOnDelete = [](const TensorMoveDeleteContext &ct
 
   AnchorToSymbol tmp_anchor_to_symbol;
   SymbolToAnchors tmp_symbol_to_anchors;
-  MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(in_iter->second, out_iter->second,
-      *ctx.anchor_to_symbol, *ctx.symbol_to_anchors,
-      tmp_anchor_to_symbol, tmp_symbol_to_anchors);
+  MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(in_iter->second, out_iter->second, *ctx.anchor_to_symbol,
+                                                        *ctx.symbol_to_anchors, tmp_anchor_to_symbol,
+                                                        tmp_symbol_to_anchors);
 
   auto graph = tm->GetOwnerComputeGraph();
   if (graph == nullptr) {
     return false;
   }
   bool has_conflict = false;
-  if (MemLayoutConflictUtil::IsGraphExistMemConflictSymbol(
-          graph, tmp_anchor_to_symbol, tmp_symbol_to_anchors, has_conflict) != SUCCESS) {
+  if (MemLayoutConflictUtil::IsGraphExistMemConflictSymbol(graph, tmp_anchor_to_symbol, tmp_symbol_to_anchors,
+                                                           has_conflict) != SUCCESS) {
     GELOGW("IsGraphExistMemConflictSymbol failed for TM %s, conservatively keep.", tm->GetName().c_str());
     return false;
   }
   if (has_conflict) {
-    GELOGI("Keep TM %s: mem layout conflict after merging symbols %s and %s.",
-           tm->GetName().c_str(), in_iter->second.c_str(), out_iter->second.c_str());
+    GELOGI("Keep TM %s: mem layout conflict after merging symbols %s and %s.", tm->GetName().c_str(),
+           in_iter->second.c_str(), out_iter->second.c_str());
     return false;
   }
   return true;
@@ -984,11 +994,10 @@ void LogTensorMoveDeleted(const NodePtr &node,
  * @return SUCCESS 全部处理完毕；FAILED 中途遇到 null 锚点或 AddEdge 失败，日志已由本函数打印，
  *                 回滚由调用方负责。
  */
-Status ApplyPendingControlEdges(
-    const NodePtr &tensor_move_node,
-    const std::vector<std::pair<NodePtr, NodePtr>> &pending_edges,
-    std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> &added_edges,
-    std::vector<std::string> &added_edge_descs) {
+Status ApplyPendingControlEdges(const NodePtr &tensor_move_node,
+                                const std::vector<std::pair<NodePtr, NodePtr>> &pending_edges,
+                                std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> &added_edges,
+                                std::vector<std::string> &added_edge_descs) {
   added_edges.reserve(pending_edges.size());
   added_edge_descs.reserve(pending_edges.size());
   for (const auto &pending_edge : pending_edges) {
@@ -1000,8 +1009,8 @@ Status ApplyPendingControlEdges(
     const auto out_ctrl_anchor = from_node->GetOutControlAnchor();
     const auto in_ctrl_anchor = to_node->GetInControlAnchor();
     if ((out_ctrl_anchor == nullptr) || (in_ctrl_anchor == nullptr)) {
-      GELOGW("Control anchor is null when deleting tensor move %s: %s -> %s.",
-             tensor_move_node->GetName().c_str(), from_node->GetName().c_str(), to_node->GetName().c_str());
+      GELOGW("Control anchor is null when deleting tensor move %s: %s -> %s.", tensor_move_node->GetName().c_str(),
+             from_node->GetName().c_str(), to_node->GetName().c_str());
       return FAILED;
     }
     if (out_ctrl_anchor->IsLinkedWith(in_ctrl_anchor)) {
@@ -1021,8 +1030,7 @@ Status ApplyPendingControlEdges(
 
 Status TensorMoveDeletePass::Init(const ComputeGraphPtr &compute_graph) {
   GE_CHECK_NOTNULL(compute_graph);
-  GE_CHK_STATUS(compute_graph->TopologicalSorting(),
-                "TopologicalSorting failed before building symbol table.");
+  GE_CHK_STATUS(compute_graph->TopologicalSorting(), "TopologicalSorting failed before building symbol table.");
   GE_CHK_STATUS(GraphUtils::GetRefMapping(compute_graph, symbol_to_anchors_, anchor_to_symbol_),
                 "GetRefMapping failed.");
   has_symbol_table_ = true;
@@ -1043,10 +1051,10 @@ void MergeTensorMoveSymbolAfterDelete(const NodePtr &node, const bool has_symbol
   const auto out_iter = anchor_to_symbol.find(out_io_key);
   const auto input_symbol = (in_iter == anchor_to_symbol.end()) ? std::string() : in_iter->second;
   const auto output_symbol = (out_iter == anchor_to_symbol.end()) ? std::string() : out_iter->second;
-  if ((in_iter != anchor_to_symbol.end()) && (out_iter != anchor_to_symbol.end())
-      && (in_iter->second != out_iter->second)) {
-    GELOGI("Delete TM %s: merge symbol %s into %s.", node->GetName().c_str(),
-           out_iter->second.c_str(), in_iter->second.c_str());
+  if ((in_iter != anchor_to_symbol.end()) && (out_iter != anchor_to_symbol.end()) &&
+      (in_iter->second != out_iter->second)) {
+    GELOGI("Delete TM %s: merge symbol %s into %s.", node->GetName().c_str(), out_iter->second.c_str(),
+           in_iter->second.c_str());
     for (auto &node_index_io : symbol_to_anchors[output_symbol]) {
       anchor_to_symbol[node_index_io.ToString()] = input_symbol;
     }
@@ -1056,14 +1064,16 @@ void MergeTensorMoveSymbolAfterDelete(const NodePtr &node, const bool has_symbol
     symbol_to_anchors.erase(output_symbol);
   }
   auto &anchors = symbol_to_anchors[input_symbol];
-  anchors.erase(std::remove_if(anchors.begin(), anchors.end(), [&in_io_key, &out_io_key](const NodeIndexIO &node_index_io) {
-    const auto &anchor_key = node_index_io.ToString();
-    return (anchor_key == in_io_key) || (anchor_key == out_io_key);
-  }), anchors.end());
+  anchors.erase(std::remove_if(anchors.begin(), anchors.end(),
+                               [&in_io_key, &out_io_key](const NodeIndexIO &node_index_io) {
+                                 const auto &anchor_key = node_index_io.ToString();
+                                 return (anchor_key == in_io_key) || (anchor_key == out_io_key);
+                               }),
+                anchors.end());
   anchor_to_symbol.erase(in_io_key);
   anchor_to_symbol.erase(out_io_key);
 }
-}
+}  // namespace
 
 Status TensorMoveDeletePass::Run(NodePtr &node) {
   GE_CHECK_NOTNULL(node);
@@ -1079,13 +1089,8 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
   GE_ASSERT(!ctx.path_to_source_node.empty());
   GE_ASSERT_NOTNULL(ctx.path_to_source_node.back().first);
 
-  std::vector<DeleteRule> rules = {
-    CheckPathToSourceNodeValid,
-    CheckSourceNodeReuse,
-    CheckSinglePath,
-    CheckRWConflictOnDelete,
-    CheckMemLayoutConflictOnDelete
-  };
+  std::vector<DeleteRule> rules = {CheckPathToSourceNodeValid, CheckSourceNodeReuse, CheckSinglePath,
+                                   CheckRWConflictOnDelete, CheckMemLayoutConflictOnDelete};
 
   for (const auto &rule : rules) {
     if (!rule(ctx)) {
@@ -1096,8 +1101,8 @@ Status TensorMoveDeletePass::Run(NodePtr &node) {
 
   std::vector<std::pair<OutControlAnchorPtr, InControlAnchorPtr>> added_control_edges;
   std::vector<std::string> added_control_edge_descs;
-  if (ApplyPendingControlEdges(node, ctx.pending_control_edges,
-                               added_control_edges, added_control_edge_descs) != SUCCESS) {
+  if (ApplyPendingControlEdges(node, ctx.pending_control_edges, added_control_edges, added_control_edge_descs) !=
+      SUCCESS) {
     RollbackAddedControlEdges(added_control_edges);
     return SUCCESS;
   }

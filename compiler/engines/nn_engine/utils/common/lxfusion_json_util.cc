@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,9 +28,9 @@ const std::string RtSmDesc_Data = "data";
 const std::string RtSmDesc_Size = "size";
 const std::string RtSmDesc_Remap = "remap";
 const std::string RtSmDesc_L2InMain = "l2_in_main";
-}
+}  // namespace
 
-void from_json(const nlohmann::json& json_value, rtSmData_t& rtSmData) {
+void from_json(const nlohmann::json &json_value, rtSmData_t &rtSmData) {
   json_value.at(RtSmData_L2MirrorAddr).get_to(rtSmData.L2_mirror_addr);
   json_value.at(RtSmData_L2DataSectionSize).get_to(rtSmData.L2_data_section_size);
   json_value.at(RtSmData_L2Preload).get_to(rtSmData.L2_preload);
@@ -41,7 +41,7 @@ void from_json(const nlohmann::json& json_value, rtSmData_t& rtSmData) {
   json_value.at(RtSmData_L2LoadToDDR).get_to(rtSmData.L2_load_to_ddr);
 }
 
-void from_json(const nlohmann::json& json_value, rtSmDesc_t& rtSmDesc) {
+void from_json(const nlohmann::json &json_value, rtSmDesc_t &rtSmDesc) {
   for (size_t i = 0; i < json_value[RtSmDesc_Data].size(); ++i) {
     json_value[RtSmDesc_Data][i].get_to(rtSmDesc.data[i]);
   }
@@ -52,7 +52,7 @@ void from_json(const nlohmann::json& json_value, rtSmDesc_t& rtSmDesc) {
   json_value.at(RtSmDesc_L2InMain).get_to(rtSmDesc.l2_in_main);
 }
 
-void to_json(nlohmann::json& json_value, const rtSmData_t& rtSmData) {
+void to_json(nlohmann::json &json_value, const rtSmData_t &rtSmData) {
   json_value = nlohmann::json{{RtSmData_L2MirrorAddr, rtSmData.L2_mirror_addr},
                               {RtSmData_L2DataSectionSize, rtSmData.L2_data_section_size},
                               {RtSmData_L2Preload, rtSmData.L2_preload},
@@ -63,7 +63,7 @@ void to_json(nlohmann::json& json_value, const rtSmData_t& rtSmData) {
                               {RtSmData_L2LoadToDDR, rtSmData.L2_load_to_ddr}};
 }
 
-void to_json(nlohmann::json& json_value, const rtSmDesc_t& rtSmDesc) {
+void to_json(nlohmann::json &json_value, const rtSmDesc_t &rtSmDesc) {
   json_value = nlohmann::json{{RtSmDesc_Data, rtSmDesc.data},
                               {RtSmDesc_Size, rtSmDesc.size},
                               {RtSmDesc_Remap, rtSmDesc.remap},
@@ -131,9 +131,9 @@ const std::string OpCalcInfo_SplitMaps = "splitMaps";
 const std::string OpCalcInfo_ReduceMaps = "reduceMaps";
 const std::string OpCalcInfo_L1FusionEnable = "l1FusionEnable";
 const std::string OpCalcInfo_MinTbeL1Space = "minTbeL1Space";
-}
+}  // namespace
 
-void from_json(const nlohmann::json& json_value, ToOpStruct_t& op_struct) {
+void from_json(const nlohmann::json &json_value, ToOpStruct_t &op_struct) {
   json_value.at(ToOpStruct_OpL1Space).get_to(op_struct.op_l1_space);
   json_value.at(ToOpStruct_OpL1FusionType).get_to(op_struct.op_l1_fusion_type);
   json_value.at(ToOpStruct_OpL1WorkspaceFlag).get_to(op_struct.op_l1_workspace_flag);
@@ -146,7 +146,7 @@ void from_json(const nlohmann::json& json_value, ToOpStruct_t& op_struct) {
   json_value.at(ToOpStruct_SplitIndex).get_to(op_struct.split_index);
 }
 
-void to_json(nlohmann::json& json_value, const ToOpStruct_t& op_struct) {
+void to_json(nlohmann::json &json_value, const ToOpStruct_t &op_struct) {
   json_value = nlohmann::json{{ToOpStruct_OpL1Space, op_struct.op_l1_space},
                               {ToOpStruct_OpL1FusionType, op_struct.op_l1_fusion_type},
                               {ToOpStruct_OpL1WorkspaceFlag, op_struct.op_l1_workspace_flag},
@@ -159,13 +159,13 @@ void to_json(nlohmann::json& json_value, const ToOpStruct_t& op_struct) {
                               {ToOpStruct_SplitIndex, op_struct.split_index}};
 }
 
-void from_json(const nlohmann::json& json_value, L2FusionData_t& l2_fusion_data) {
+void from_json(const nlohmann::json &json_value, L2FusionData_t &l2_fusion_data) {
   json_value.at(L2FusionData_L2Index).get_to(l2_fusion_data.l2Index);
   json_value.at(L2FusionData_L2Addr).get_to(l2_fusion_data.l2Addr);
   json_value.at(L2FusionData_L2PageNum).get_to(l2_fusion_data.l2PageNum);
 }
 
-void from_json(const nlohmann::json& json_value, fe_sm_desc_t& fe_sm_desc) {
+void from_json(const nlohmann::json &json_value, fe_sm_desc_t &fe_sm_desc) {
   json_value.at(FeSmDesc_L2Ctrl).get_to(fe_sm_desc.l2ctrl);
   for (size_t i = 0; i < json_value[FeSmDesc_NodeName].size(); ++i) {
     json_value[FeSmDesc_NodeName][i].get_to(fe_sm_desc.node_name[i]);
@@ -175,7 +175,7 @@ void from_json(const nlohmann::json& json_value, fe_sm_desc_t& fe_sm_desc) {
   }
 }
 
-void from_json(const nlohmann::json& json_value, TaskL2FusionInfo_t& task_l2_fusion_info) {
+void from_json(const nlohmann::json &json_value, TaskL2FusionInfo_t &task_l2_fusion_info) {
   json_value.at(TaskL2FusionInfo_NodeName).get_to(task_l2_fusion_info.node_name);
   json_value.at(TaskL2FusionInfo_L2Info).get_to(task_l2_fusion_info.l2_info);
   json_value.at(TaskL2FusionInfo_Input).get_to(task_l2_fusion_info.input);
@@ -183,19 +183,19 @@ void from_json(const nlohmann::json& json_value, TaskL2FusionInfo_t& task_l2_fus
   json_value.at(TaskL2FusionInfo_IsUsed).get_to(task_l2_fusion_info.is_used);
 }
 
-void to_json(nlohmann::json& json_value, const L2FusionData_t& l2_fusion_data) {
+void to_json(nlohmann::json &json_value, const L2FusionData_t &l2_fusion_data) {
   json_value = nlohmann::json{{L2FusionData_L2Index, l2_fusion_data.l2Index},
                               {L2FusionData_L2Addr, l2_fusion_data.l2Addr},
                               {L2FusionData_L2PageNum, l2_fusion_data.l2PageNum}};
 }
 
-void to_json(nlohmann::json& json_value, const fe_sm_desc_t& fe_sm_desc) {
+void to_json(nlohmann::json &json_value, const fe_sm_desc_t &fe_sm_desc) {
   json_value = nlohmann::json{{FeSmDesc_L2Ctrl, fe_sm_desc.l2ctrl},
                               {FeSmDesc_NodeName, fe_sm_desc.node_name},
                               {FeSmDesc_OutputIndex, fe_sm_desc.output_index}};
 }
 
-void to_json(nlohmann::json& json_value, const TaskL2FusionInfo_t& task_l2_fusion_info) {
+void to_json(nlohmann::json &json_value, const TaskL2FusionInfo_t &task_l2_fusion_info) {
   json_value = nlohmann::json{{TaskL2FusionInfo_NodeName, task_l2_fusion_info.node_name},
                               {TaskL2FusionInfo_L2Info, task_l2_fusion_info.l2_info},
                               {TaskL2FusionInfo_Input, task_l2_fusion_info.input},
@@ -203,7 +203,7 @@ void to_json(nlohmann::json& json_value, const TaskL2FusionInfo_t& task_l2_fusio
                               {TaskL2FusionInfo_IsUsed, task_l2_fusion_info.is_used}};
 }
 
-void from_json(const nlohmann::json& json_value, InputSplitInfo& input_split_info) {
+void from_json(const nlohmann::json &json_value, InputSplitInfo &input_split_info) {
   if (input_split_info.IsPtrNull()) {
     if (!input_split_info.Initialize()) {
       return;
@@ -219,7 +219,7 @@ void from_json(const nlohmann::json& json_value, InputSplitInfo& input_split_inf
   input_split_info.SetTailOverLap(tail_over_lap);
 }
 
-void from_json(const nlohmann::json& json_value, OutputSplitInfo& output_split_info) {
+void from_json(const nlohmann::json &json_value, OutputSplitInfo &output_split_info) {
   if (output_split_info.IsPtrNull()) {
     if (!output_split_info.Initialize()) {
       return;
@@ -231,7 +231,7 @@ void from_json(const nlohmann::json& json_value, OutputSplitInfo& output_split_i
   output_split_info.SetAxis(axis);
 }
 
-void from_json(const nlohmann::json& json_value, AxisSplitMap& axis_split_map) {
+void from_json(const nlohmann::json &json_value, AxisSplitMap &axis_split_map) {
   if (axis_split_map.IsPtrNull()) {
     if (!axis_split_map.Initialize()) {
       return;
@@ -243,7 +243,7 @@ void from_json(const nlohmann::json& json_value, AxisSplitMap& axis_split_map) {
   axis_split_map.SetOutputSplitInfos(output_list);
 }
 
-void from_json(const nlohmann::json& json_value, InputReduceInfo& input_reduce_info) {
+void from_json(const nlohmann::json &json_value, InputReduceInfo &input_reduce_info) {
   if (input_reduce_info.IsPtrNull()) {
     if (!input_reduce_info.Initialize()) {
       return;
@@ -255,7 +255,7 @@ void from_json(const nlohmann::json& json_value, InputReduceInfo& input_reduce_i
   input_reduce_info.SetAxis(axis);
 }
 
-void from_json(const nlohmann::json& json_value, OutputReduceInfo& output_reduce_info) {
+void from_json(const nlohmann::json &json_value, OutputReduceInfo &output_reduce_info) {
   if (output_reduce_info.IsPtrNull()) {
     if (!output_reduce_info.Initialize()) {
       return;
@@ -269,7 +269,7 @@ void from_json(const nlohmann::json& json_value, OutputReduceInfo& output_reduce
   output_reduce_info.SetIsAtomic(is_atomic);
 }
 
-void from_json(const nlohmann::json& json_value, AxisReduceMap& axis_reduce_map) {
+void from_json(const nlohmann::json &json_value, AxisReduceMap &axis_reduce_map) {
   if (axis_reduce_map.IsPtrNull()) {
     if (!axis_reduce_map.Initialize()) {
       return;
@@ -281,7 +281,7 @@ void from_json(const nlohmann::json& json_value, AxisReduceMap& axis_reduce_map)
   axis_reduce_map.SetOutputReduceInfos(output_list);
 }
 
-void from_json(const nlohmann::json& json_value, OpCalcInfo& op_calc_info) {
+void from_json(const nlohmann::json &json_value, OpCalcInfo &op_calc_info) {
   if (op_calc_info.IsPtrNull()) {
     if (!op_calc_info.Initialize()) {
       return;
@@ -297,44 +297,44 @@ void from_json(const nlohmann::json& json_value, OpCalcInfo& op_calc_info) {
   op_calc_info.SetMinTbeL1Space(min_tbe_l1_space);
 }
 
-void to_json(nlohmann::json& json_value, const InputSplitInfo& input_split_info) {
+void to_json(nlohmann::json &json_value, const InputSplitInfo &input_split_info) {
   json_value = nlohmann::json{{InputSplitInfo_Idx, input_split_info.GetIndex()},
-                             {InputSplitInfo_Axis, input_split_info.GetAxis()},
-                             {InputSplitInfo_HeadOverLap, input_split_info.GetHeadOverLap()},
-                             {InputSplitInfo_TailOverLap, input_split_info.GetTailOverLap()}};
+                              {InputSplitInfo_Axis, input_split_info.GetAxis()},
+                              {InputSplitInfo_HeadOverLap, input_split_info.GetHeadOverLap()},
+                              {InputSplitInfo_TailOverLap, input_split_info.GetTailOverLap()}};
 }
 
-void to_json(nlohmann::json& json_value, const OutputSplitInfo& output_split_info) {
+void to_json(nlohmann::json &json_value, const OutputSplitInfo &output_split_info) {
   json_value = nlohmann::json{{OutputSplitInfo_Idx, output_split_info.GetIndex()},
-                             {OutputSplitInfo_Axis, output_split_info.GetAxis()}};
+                              {OutputSplitInfo_Axis, output_split_info.GetAxis()}};
 }
 
-void to_json(nlohmann::json& json_value, const AxisSplitMap& axis_split_map) {
+void to_json(nlohmann::json &json_value, const AxisSplitMap &axis_split_map) {
   json_value = nlohmann::json{{AxisSplitMap_InputList, axis_split_map.GetInputSplitInfoVec()},
-                             {AxisSplitMap_OutputList, axis_split_map.GetOutputSplitInfoVec()}};
+                              {AxisSplitMap_OutputList, axis_split_map.GetOutputSplitInfoVec()}};
 }
 
-void to_json(nlohmann::json& json_value, const InputReduceInfo& input_reduce_info) {
+void to_json(nlohmann::json &json_value, const InputReduceInfo &input_reduce_info) {
   json_value = nlohmann::json{{InputReduceInfo_Idx, input_reduce_info.GetIndex()},
-                             {InputReduceInfo_Axis, input_reduce_info.GetAxis()}};
+                              {InputReduceInfo_Axis, input_reduce_info.GetAxis()}};
 }
 
-void to_json(nlohmann::json& json_value, const OutputReduceInfo& output_reduce_info) {
+void to_json(nlohmann::json &json_value, const OutputReduceInfo &output_reduce_info) {
   json_value = nlohmann::json{{OutputReduceInfo_Idx, output_reduce_info.GetIndex()},
-                             {OutputReduceInfo_ReduceType, output_reduce_info.GetReduceType()},
-                             {OutputReduceInfo_IsAtomic, output_reduce_info.GetIsAtomic()}};
+                              {OutputReduceInfo_ReduceType, output_reduce_info.GetReduceType()},
+                              {OutputReduceInfo_IsAtomic, output_reduce_info.GetIsAtomic()}};
 }
 
-void to_json(nlohmann::json& json_value, const AxisReduceMap& axis_reduce_map) {
+void to_json(nlohmann::json &json_value, const AxisReduceMap &axis_reduce_map) {
   json_value = nlohmann::json{{AxisReduceMap_InputList, axis_reduce_map.GetInputReduceInfoVec()},
-                             {AxisReduceMap_OutputList, axis_reduce_map.GetOutputReduceInfoVec()}};
+                              {AxisReduceMap_OutputList, axis_reduce_map.GetOutputReduceInfoVec()}};
 }
 
-void to_json(nlohmann::json& json_value, const OpCalcInfo& op_calc_info) {
+void to_json(nlohmann::json &json_value, const OpCalcInfo &op_calc_info) {
   json_value = nlohmann::json{{OpCalcInfo_SplitMaps, op_calc_info.GetAxisSplitMapVec()},
-                             {OpCalcInfo_ReduceMaps, op_calc_info.GetAxisReduceMapVec()},
-                             {OpCalcInfo_L1FusionEnable, op_calc_info.GetL1FusionEnable()},
-                             {OpCalcInfo_MinTbeL1Space, op_calc_info.GetMinTbeL1Space()}};
+                              {OpCalcInfo_ReduceMaps, op_calc_info.GetAxisReduceMapVec()},
+                              {OpCalcInfo_L1FusionEnable, op_calc_info.GetL1FusionEnable()},
+                              {OpCalcInfo_MinTbeL1Space, op_calc_info.GetMinTbeL1Space()}};
 }
 
 Status GetL1InfoFromJson(ge::OpDescPtr op_desc_ptr) {
@@ -433,8 +433,8 @@ Status GetTaskL2FusionInfoFromJson(ge::OpDescPtr op_desc_ptr) {
   return SUCCESS;
 }
 
-Status ReadGraphInfoFromJson(ge::ComputeGraph& graph) {
-  for (auto& node : graph.GetAllNodes()) {
+Status ReadGraphInfoFromJson(ge::ComputeGraph &graph) {
+  for (auto &node : graph.GetAllNodes()) {
     if (node == nullptr) {
       FE_LOGW("Input node is null.");
       continue;
@@ -466,8 +466,8 @@ Status ReadGraphInfoFromJson(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status WriteGraphInfoToJson(ge::ComputeGraph& graph) {
-  for (auto& node : graph.GetAllNodes()) {
+Status WriteGraphInfoToJson(ge::ComputeGraph &graph) {
+  for (auto &node : graph.GetAllNodes()) {
     if (node == nullptr) {
       FE_LOGW("Input node is null.");
       continue;
@@ -517,7 +517,7 @@ Status WriteGraphInfoToJson(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status ReadOpSliceInfoFromJson(ge::ComputeGraph& graph) {
+Status ReadOpSliceInfoFromJson(ge::ComputeGraph &graph) {
   for (auto &node : graph.GetAllNodes()) {
     if (node == nullptr) {
       FE_LOGW("Input node is null.");
@@ -530,7 +530,7 @@ Status ReadOpSliceInfoFromJson(ge::ComputeGraph& graph) {
     }
     for (auto &slice_mode : SLICE_INFO_MODE) {
       std::string str_op_slice_info;
-      (void) ge::AttrUtils::GetStr(op_desc_ptr, slice_mode, str_op_slice_info);
+      (void)ge::AttrUtils::GetStr(op_desc_ptr, slice_mode, str_op_slice_info);
       if (str_op_slice_info.empty()) {
         FE_LOGD("Slice info of op[%s] is empty.", node->GetName().c_str());
       } else {
@@ -547,7 +547,7 @@ Status ReadOpSliceInfoFromJson(ge::ComputeGraph& graph) {
               return FAILED;
             }
             op_slice_info_json.at(slice_mode).get_to(*op_calc_info_ptr);
-            (void) op_desc_ptr->SetExtAttr(slice_mode, op_calc_info_ptr);
+            (void)op_desc_ptr->SetExtAttr(slice_mode, op_calc_info_ptr);
             FE_LOGD("Get slice info of op[%s] successfully.", node->GetName().c_str());
           }
         } catch (...) {
@@ -560,7 +560,7 @@ Status ReadOpSliceInfoFromJson(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status WriteOpSliceInfoToJson(ge::ComputeGraph& graph) {
+Status WriteOpSliceInfoToJson(ge::ComputeGraph &graph) {
   for (auto &node : graph.GetAllNodes()) {
     if (node == nullptr) {
       FE_LOGW("Input node is null.");
@@ -577,7 +577,7 @@ Status WriteOpSliceInfoToJson(ge::ComputeGraph& graph) {
       if (op_calc_info_ptr != nullptr) {
         nlohmann::json op_calc_info_json = nlohmann::json{{slice_mode, *op_calc_info_ptr}};
         std::string str_op_slice_info = op_calc_info_json.dump();
-        (void) ge::AttrUtils::SetStr(op_desc_ptr, slice_mode, str_op_slice_info);
+        (void)ge::AttrUtils::SetStr(op_desc_ptr, slice_mode, str_op_slice_info);
         FE_LOGD("Set slice info of op[%s] successfully.", node->GetName().c_str());
         // save file
         FE_LOGD("Operation calculation information is: %s.", str_op_slice_info.c_str());
@@ -589,22 +589,19 @@ Status WriteOpSliceInfoToJson(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-void SetOpSliceInfoToJson(fe::OpCalcInfo &op_calc_info,
-                          std::string &op_calc_info_str) {
+void SetOpSliceInfoToJson(fe::OpCalcInfo &op_calc_info, std::string &op_calc_info_str) {
   nlohmann::json l1_info_json = nlohmann::json{{fe::OP_SLICE_INFO, op_calc_info}};
   op_calc_info_str = l1_info_json.dump();
   FE_LOGD("Setting op_slice_info to %s.", op_calc_info_str.c_str());
 }
 
-void SetFusionOpSliceInfoToJson(fe::OpCalcInfo &op_calc_info,
-                                std::string &op_calc_info_str) {
+void SetFusionOpSliceInfoToJson(fe::OpCalcInfo &op_calc_info, std::string &op_calc_info_str) {
   nlohmann::json l1_info_json = nlohmann::json{{fe::FUSION_OP_SLICE_INFO, op_calc_info}};
   op_calc_info_str = l1_info_json.dump();
   FE_LOGI("Setting op_slice_info to %s.", op_calc_info_str.c_str());
 }
 
-void GetOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info,
-                            std::string &op_calc_info_str) {
+void GetOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info, std::string &op_calc_info_str) {
   try {
     nlohmann::json op_calc_info_json = nlohmann::json::parse(op_calc_info_str);
     op_calc_info_json.at(fe::OP_SLICE_INFO).get_to(op_calc_info);
@@ -615,8 +612,7 @@ void GetOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info,
   }
 }
 
-void GetFusionOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info,
-                                  std::string &op_calc_info_str) {
+void GetFusionOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info, std::string &op_calc_info_str) {
   try {
     nlohmann::json op_calc_info_json = nlohmann::json::parse(op_calc_info_str);
     op_calc_info_json.at(fe::FUSION_OP_SLICE_INFO).get_to(op_calc_info);
@@ -627,14 +623,15 @@ void GetFusionOpSliceInfoFromJson(fe::OpCalcInfo &op_calc_info,
   }
 }
 
-void GetL2ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l2_info_ptr) {
+void GetL2ToOpStructFromJson(ge::OpDescPtr &op_desc_ptr, ToOpStructPtr &l2_info_ptr) {
   // set l2 info
   fe::ToOpStructPtr extra_l2_info_ptr = nullptr;
   std::string str_l2_info;
   extra_l2_info_ptr = op_desc_ptr->TryGetExtAttr(fe::ATTR_NAME_L2_FUSION_EXTEND_PTR, extra_l2_info_ptr);
   if (extra_l2_info_ptr == nullptr) {
     (void)ge::AttrUtils::GetStr(op_desc_ptr, L2_FUSION_TO_OP_STRUCT, str_l2_info);
-    FE_LOGD("Successfully retrieved L2 info [%s] for operation [%s].", str_l2_info.c_str(), op_desc_ptr->GetName().c_str());
+    FE_LOGD("Successfully retrieved L2 info [%s] for operation [%s].", str_l2_info.c_str(),
+            op_desc_ptr->GetName().c_str());
     if (str_l2_info.empty()) {
       FE_LOGD("L2 info is empty.");
       l2_info_ptr = extra_l2_info_ptr;
@@ -649,8 +646,8 @@ void GetL2ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l2_info_
           (void)op_desc_ptr->SetExtAttr(fe::ATTR_NAME_L2_FUSION_EXTEND_PTR, l2_info_ptr);
         }
       } catch (...) {
-      FE_LOGW("Failed to parse JSON string, please check the input string.");
-      return;
+        FE_LOGW("Failed to parse JSON string, please check the input string.");
+        return;
       }
     }
   } else {
@@ -659,7 +656,7 @@ void GetL2ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l2_info_
   }
 }
 
-void GetL1ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l1_info_ptr) {
+void GetL1ToOpStructFromJson(ge::OpDescPtr &op_desc_ptr, ToOpStructPtr &l1_info_ptr) {
   // set l2 info
   std::string str_l1_info;
   fe::ToOpStructPtr extra_l1_info_ptr = nullptr;
@@ -681,8 +678,8 @@ void GetL1ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l1_info_
           (void)op_desc_ptr->SetExtAttr(ge::ATTR_NAME_L1_FUSION_EXTEND_PTR, l1_info_ptr);
         }
       } catch (...) {
-      FE_LOGW("Failed to parse JSON string, please check the input string.");
-      return;
+        FE_LOGW("Failed to parse JSON string, please check the input string.");
+        return;
       }
     }
   } else {
@@ -691,8 +688,8 @@ void GetL1ToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& l1_info_
   }
 }
 
-void GetStridedToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& strided_info_ptr,
-                                  const string& pointer_key, const string& json_key) {
+void GetStridedToOpStructFromJson(ge::OpDescPtr &op_desc_ptr, ToOpStructPtr &strided_info_ptr,
+                                  const string &pointer_key, const string &json_key) {
   // set strided info
   std::string str_strided_info;
   fe::ToOpStructPtr extra_strided_info_ptr = nullptr;
@@ -714,8 +711,8 @@ void GetStridedToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& str
           (void)op_desc_ptr->SetExtAttr(pointer_key, strided_info_ptr);
         }
       } catch (...) {
-      FE_LOGW("Failed to parse JSON string, please check the input string.");
-      return;
+        FE_LOGW("Failed to parse JSON string, please check the input string.");
+        return;
       }
     }
   } else {
@@ -724,14 +721,15 @@ void GetStridedToOpStructFromJson(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& str
   }
 }
 
-L2FusionInfoPtr GetL2FusionInfoFromJson(ge::OpDescPtr& op_desc_ptr) {
+L2FusionInfoPtr GetL2FusionInfoFromJson(ge::OpDescPtr &op_desc_ptr) {
   // set l2 info
   std::string str_l2_info;
   L2FusionInfoPtr l2_fusion_info_ptr = nullptr;
   l2_fusion_info_ptr = op_desc_ptr->TryGetExtAttr(fe::ATTR_NAME_TASK_L2_FUSION_INFO_EXTEND_PTR, l2_fusion_info_ptr);
   if (l2_fusion_info_ptr == nullptr) {
     (void)ge::AttrUtils::GetStr(op_desc_ptr, TASK_L2_FUSION_INFO, str_l2_info);
-    FE_LOGD("Successfully retrieved L2 fusion task info %s for operation [%s].", str_l2_info.c_str(), op_desc_ptr->GetName().c_str());
+    FE_LOGD("Successfully retrieved L2 fusion task info %s for operation [%s].", str_l2_info.c_str(),
+            op_desc_ptr->GetName().c_str());
     if (str_l2_info.empty()) {
       FE_LOGD("L2 fusion task info is empty.");
     } else {
@@ -759,7 +757,7 @@ L2FusionInfoPtr GetL2FusionInfoFromJson(ge::OpDescPtr& op_desc_ptr) {
   return l2_fusion_info_ptr;
 }
 
-void SetL2FusionInfoToNode(ge::OpDescPtr& op_desc_ptr, L2FusionInfoPtr& l2_fusion_info_ptr) {
+void SetL2FusionInfoToNode(ge::OpDescPtr &op_desc_ptr, L2FusionInfoPtr &l2_fusion_info_ptr) {
   // set l2 info
   std::string str_l2_info;
   (void)op_desc_ptr->SetExtAttr(fe::ATTR_NAME_TASK_L2_FUSION_INFO_EXTEND_PTR, l2_fusion_info_ptr);
@@ -767,14 +765,15 @@ void SetL2FusionInfoToNode(ge::OpDescPtr& op_desc_ptr, L2FusionInfoPtr& l2_fusio
     nlohmann::json task_l2_fusion_info_json = nlohmann::json{{TASK_L2_FUSION_INFO, *l2_fusion_info_ptr}};
     str_l2_info = task_l2_fusion_info_json.dump();
     (void)ge::AttrUtils::SetStr(op_desc_ptr, TASK_L2_FUSION_INFO, str_l2_info);
-    FE_LOGD("Successfully set L2 fusion task info %s for operation [%s].", str_l2_info.c_str(), op_desc_ptr->GetName().c_str());
+    FE_LOGD("Successfully set L2 fusion task info %s for operation [%s].", str_l2_info.c_str(),
+            op_desc_ptr->GetName().c_str());
   } else {
     FE_LOGW("L2FusionTaskInfoPtr is NULL.");
   }
 }
 
-void SetStridedInfoToNode(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& strided_info_ptr,
-                          const string& pointer_key, const string& json_key) {
+void SetStridedInfoToNode(ge::OpDescPtr &op_desc_ptr, ToOpStructPtr &strided_info_ptr, const string &pointer_key,
+                          const string &json_key) {
   // set stride info
   std::string str_strided_info;
   (void)op_desc_ptr->SetExtAttr(pointer_key, strided_info_ptr);
@@ -787,4 +786,4 @@ void SetStridedInfoToNode(ge::OpDescPtr& op_desc_ptr, ToOpStructPtr& strided_inf
     FE_LOGW("strided_info_ptr is nullptr.");
   }
 }
-}
+}  // namespace fe

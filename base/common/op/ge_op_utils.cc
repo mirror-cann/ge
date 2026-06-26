@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,19 +49,18 @@
 
 // Transform aippparams (with repeated decoration) and attrdefmap
 #define AIPP_CONVERT_LIST_FORMAT(KEY, KEY_TYPE, REQUIRED, ATTR_TYPE, PROTO_TYPE) \
-  do {                                                               \
-    if (REQUIRED) {                                                  \
-      KEY_TYPE KEY;                                                  \
-      AIPP_GET_ATTR_VALUE(KEY, ATTR_TYPE)                            \
-      aipp_params.add_##KEY(static_cast<PROTO_TYPE>(KEY));           \
-    }                                                                \
+  do {                                                                           \
+    if (REQUIRED) {                                                              \
+      KEY_TYPE KEY;                                                              \
+      AIPP_GET_ATTR_VALUE(KEY, ATTR_TYPE)                                        \
+      aipp_params.add_##KEY(static_cast<PROTO_TYPE>(KEY));                       \
+    }                                                                            \
   } while (false)
 
 #define AIPP_CONVERT_LIST_INT(KEY, REQUIRED, PROTO_TYPE) \
   AIPP_CONVERT_LIST_FORMAT(KEY, int64_t, REQUIRED, GeAttrValue::INT, PROTO_TYPE)
 
-#define AIPP_CONVERT_LIST_BOOL(KEY, REQUIRED) \
-  AIPP_CONVERT_LIST_FORMAT(KEY, bool, REQUIRED, GeAttrValue::BOOL, bool)
+#define AIPP_CONVERT_LIST_BOOL(KEY, REQUIRED) AIPP_CONVERT_LIST_FORMAT(KEY, bool, REQUIRED, GeAttrValue::BOOL, bool)
 
 #define AIPP_CONVERT_LIST_FLOAT(KEY, REQUIRED) \
   AIPP_CONVERT_LIST_FORMAT(KEY, float32_t, REQUIRED, GeAttrValue::FLOAT, float32_t)
@@ -100,8 +99,7 @@ const uint32_t FOR_DATA_INPUT = 3U;
 
 const int32_t NORMAL_TENSOR_SIZE = 4;
 
-Status OpUtils::ConvertAippParams(const GeAttrValue::NamedAttrs &aipp_attr,
-                                  domi::AippOpParams &aipp_params) {
+Status OpUtils::ConvertAippParams(const GeAttrValue::NamedAttrs &aipp_attr, domi::AippOpParams &aipp_params) {
   AIPP_CONVERT_FORMAT_EX(aipp_mode, domi::AippOpParams::AippMode, int64_t, GeAttrValue::INT);
   AIPP_CONVERT_INT(related_input_rank, uint32_t);
 
@@ -204,12 +202,10 @@ Status OpUtils::SetDataByDataType(const size_t out_size, const std::vector<char_
 
 template <typename T>
 Status OpUtils::SetOutputSliceDataByDataType(void *const data, const int64_t data_size,
-                                             const std::vector<int64_t> &input_dims,
-                                             const std::vector<int64_t> &begin,
-                                             const std::vector<int64_t> &output_dims,
-                                             GeTensor *const output,
+                                             const std::vector<int64_t> &input_dims, const std::vector<int64_t> &begin,
+                                             const std::vector<int64_t> &output_dims, GeTensor *const output,
                                              const std::vector<int64_t> &stride) {
-  std::vector<char_t*> chunk_input;
+  std::vector<char_t *> chunk_input;
   std::vector<char_t *> chunk_output;
   chunk_input.push_back(reinterpret_cast<char_t *>(data));
   int64_t chunk_size = data_size;
@@ -308,7 +304,7 @@ Status OpUtils::GetShapeDataFromConstTensor(const ConstGeTensorPtr &tensor, cons
     GELOGE(PARAM_INVALID, "[Check][Param]The dimension of the input tensor shape cannot be more than 1, it is %zu",
            tensor->GetTensorDesc().GetShape().GetDims().size());
     REPORT_INNER_ERR_MSG("E19999", "The dimension of the input tensor shape %zu invalid, more than 1",
-                      tensor->GetTensorDesc().GetShape().GetDims().size());
+                         tensor->GetTensorDesc().GetShape().GetDims().size());
     return PARAM_INVALID;
   }
 
@@ -330,7 +326,7 @@ Status OpUtils::GetShapeDataFromConstTensor(const ConstGeTensorPtr &tensor, cons
     GELOGE(PARAM_INVALID, "[Check][DataType]Invalid, type only can be DT_INT32 or DT_INT64, type is %s",
            TypeUtils::DataTypeToSerialString(type).c_str());
     REPORT_INNER_ERR_MSG("E19999", "Data type %s check invalid, only can be DT_INT32 or DT_INT64",
-                       TypeUtils::DataTypeToSerialString(type).c_str());
+                         TypeUtils::DataTypeToSerialString(type).c_str());
     return PARAM_INVALID;
   }
 

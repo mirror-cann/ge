@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ class GraphCommImpl;
 using GraphCommImplPtr = std::unique_ptr<GraphCommImpl>;
 
 class GraphComm {
-public:
+ public:
   explicit GraphComm(const string &engine_name);
   GraphComm(const string &engine_name, std::shared_ptr<std::mutex> &lock_ptr);
   virtual ~GraphComm();
@@ -39,13 +39,10 @@ public:
   Status GetscopeNodeMap(const ge::ComputeGraph &graph, ScopeNodeMap &fusion_map);
 
   void GetEdgeNode(const vector<FusionDataFlow> &fus_input_edge_list,
-                   const vector<FusionDataFlow> &fus_output_edge_list,
-                   vector<ge::NodePtr> &edge_nodes) const;
+                   const vector<FusionDataFlow> &fus_output_edge_list, vector<ge::NodePtr> &edge_nodes) const;
   Status CopyFusionOpNodes(const vector<FusionDataFlow> &fus_input_edge_list,
-                           const vector<FusionDataFlow> &fus_output_edge_list,
-                           const vector<ge::NodePtr> &fus_nodelist,
-                           const ge::OpDescPtr &fusion_op_desc,
-                           const ge::ComputeGraphPtr &fusion_graph) const;
+                           const vector<FusionDataFlow> &fus_output_edge_list, const vector<ge::NodePtr> &fus_nodelist,
+                           const ge::OpDescPtr &fusion_op_desc, const ge::ComputeGraphPtr &fusion_graph) const;
 
   Status CopyFusionOpEdges(const ge::ComputeGraph &orig_graph, const ge::ComputeGraphPtr &fusion_graph);
 
@@ -53,8 +50,7 @@ public:
                             std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>> &fusion_op_anchors_map,
                             ge::kFusionDataFlowVec_t &fus_dataflow_list, const int &map_type);
 
-  Status GetFusionNodeEdgeList(std::vector<ge::NodePtr> &fus_nodelist,
-                               const std::unordered_set<ge::NodePtr> &node_set,
+  Status GetFusionNodeEdgeList(std::vector<ge::NodePtr> &fus_nodelist, const std::unordered_set<ge::NodePtr> &node_set,
                                std::vector<FusionDataFlow> &fus_input_edge_list,
                                std::vector<FusionDataFlow> &fus_output_edge_list);
   void ClearFusionSrc();
@@ -64,21 +60,17 @@ public:
   void AddFusionOutputSrc(const uint32_t &src_op_id, const ge::AnchorPtr &src_anchor, const int32_t &fusion_src_index,
                           const std::pair<string, ge::AnchorPtr> &node_dataindex_pair);
 
-  void AddFusionInputSrc(const uint32_t &src_op_id,
-                         const ge::AnchorPtr &src_anchor,
-                         const int32_t &fusion_dst_index,
+  void AddFusionInputSrc(const uint32_t &src_op_id, const ge::AnchorPtr &src_anchor, const int32_t &fusion_dst_index,
                          const std::pair<string, ge::AnchorPtr> &node_dataindex_pair);
 
   void SaveFusionDst(const uint32_t &dst_op_id, const ge::AnchorPtr &dst_anchor);
 
-  bool IsFusionDstExist(const uint32_t &dst_op_id,
-                        const ge::AnchorPtr &dst_anchor);
+  bool IsFusionDstExist(const uint32_t &dst_op_id, const ge::AnchorPtr &dst_anchor);
 
-  bool GetFusionSrc(const uint32_t &src_op_id, const ge::AnchorPtr &src_anchor,
-                    int32_t &fusion_src_index, int32_t &fusion_dst_index);
+  bool GetFusionSrc(const uint32_t &src_op_id, const ge::AnchorPtr &src_anchor, int32_t &fusion_src_index,
+                    int32_t &fusion_dst_index);
 
-  Status GetFusionNodeCtrlEdgeList(vector<ge::NodePtr> &fus_nodelist,
-                                   const std::unordered_set<ge::NodePtr> &node_set,
+  Status GetFusionNodeCtrlEdgeList(vector<ge::NodePtr> &fus_nodelist, const std::unordered_set<ge::NodePtr> &node_set,
                                    vector<FusionDataFlow> &fus_input_ctrl_edge_list,
                                    vector<FusionDataFlow> &fus_output_ctrl_edge_list);
 
@@ -90,8 +82,7 @@ public:
                                    const std::vector<FusionDataFlow> &fus_input_edge_list,
                                    const std::vector<FusionDataFlow> &fus_output_edge_list);
 
-  Status MergeFusionNodeCtrlEdgeList(const ge::NodePtr &fus_node,
-                                     const vector<ge::NodePtr> &fus_nodelist,
+  Status MergeFusionNodeCtrlEdgeList(const ge::NodePtr &fus_node, const vector<ge::NodePtr> &fus_nodelist,
                                      const vector<FusionDataFlow> &fus_input_ctrl_edge_list,
                                      const vector<FusionDataFlow> &fus_output_ctrl_edge_list);
 
@@ -113,12 +104,10 @@ public:
   Status EstablishConnection(const ge::NodePtr &node, const std::unordered_set<std::string> &node_name_set,
                              ge::CompleteGraphBuilder &builder) const;
 
-  Status ConnectionSubGraphToRootGraph(const ge::ComputeGraphPtr &sub_graph,
-                                       ge::ComputeGraphPtr &root_graph,
+  Status ConnectionSubGraphToRootGraph(const ge::ComputeGraphPtr &sub_graph, ge::ComputeGraphPtr &root_graph,
                                        std::shared_ptr<std::mutex> &graph_common_lock_ptr);
 
-  Status CreateFunctionOpSubGraph(const ge::NodePtr &function_node,
-                                  std::vector<ge::NodePtr> &node_vec,
+  Status CreateFunctionOpSubGraph(const ge::NodePtr &function_node, std::vector<ge::NodePtr> &node_vec,
                                   vector<fe::FusionDataFlow> &input_edge_list,
                                   vector<fe::FusionDataFlow> &output_edge_list,
                                   vector<fe::FusionDataFlow> &output_ctrl_edge_list);
@@ -127,10 +116,11 @@ public:
 
   string GetEngineName();
 
-  Status ConvertFixpipePartitionCalledOp(ge::ComputeGraph& graph, const AICoreMode &ai_core_mode);
-  Status UnfoldFuncOp(ge::ComputeGraph& graph);
+  Status ConvertFixpipePartitionCalledOp(ge::ComputeGraph &graph, const AICoreMode &ai_core_mode);
+  Status UnfoldFuncOp(ge::ComputeGraph &graph);
   bool IsTuningMode() const;
-private:
+
+ private:
   Status MergeFusionNodeInputEdgeList(const ge::NodePtr &fus_node, const std::vector<ge::NodePtr> &fus_nodelist,
                                       const std::vector<FusionDataFlow> &fus_input_edge_list);
 
@@ -140,27 +130,24 @@ private:
   Status MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
                                        const std::vector<FusionDataFlow> &fus_output_edge_list);
 
-  Status CopyOutDataEdges(const ge::NodePtr &src_node,
-                          const ge::NodePtr &node,
+  Status CopyOutDataEdges(const ge::NodePtr &src_node, const ge::NodePtr &node,
                           const ge::ComputeGraphPtr &fusion_graph);
 
-  Status CopyControlEdges(const ge::NodePtr &src_node,
-                          const ge::NodePtr &node,
+  Status CopyControlEdges(const ge::NodePtr &src_node, const ge::NodePtr &node,
                           const ge::ComputeGraphPtr &fusion_graph);
 
-  void CommonCollectFixpipeRelativeNodes(const ge::NodePtr &node,
-                                         std::vector<ge::NodePtr> &fixpipe_nodes) const;
+  void CommonCollectFixpipeRelativeNodes(const ge::NodePtr &node, std::vector<ge::NodePtr> &fixpipe_nodes) const;
 
   void UnlinkOldEdges(const vector<FusionDataFlow> &fus_output_edge_list);
 
   uint64_t GetAtomicId() const;
 
-  Status SetFixpipeToFuncOp(ge::ComputeGraph& graph, const AICoreMode &ai_core_mode);
+  Status SetFixpipeToFuncOp(ge::ComputeGraph &graph, const AICoreMode &ai_core_mode);
 
   void CollectSwitchMergeNodes(const ge::NodePtr &cube_node, std::vector<ge::NodePtr> &fixpipe_nodes) const;
 
   void CollectSwitchInMaxDeepth(const ge::NodePtr &cur_node, std::vector<ge::NodePtr> &to_fold_nodes,
-    uint8_t cur_deepth, uint8_t &switch_deepth, bool &exist_switch) const;
+                                uint8_t cur_deepth, uint8_t &switch_deepth, bool &exist_switch) const;
 
   void CollectFixpipe(const ge::NodePtr &cube_node, std::vector<ge::NodePtr> &fixpipe_nodes) const;
 
@@ -181,5 +168,5 @@ private:
 };
 
 using GraphCommPtr = std::shared_ptr<GraphComm>;
-} // namespace fe
+}  // namespace fe
 #endif  // FUSION_ENGINE_INC_COMMON_GRAPH_COMMON_H_

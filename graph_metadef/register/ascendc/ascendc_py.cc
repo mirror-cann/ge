@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ void CopyConstDataWithFloat16(const nlohmann::json &json_array, std::vector<uint
   value = std::vector<uint8_t>(pv_begin, pv_end);
 }
 
-template<typename T>
+template <typename T>
 void GetConstDataPointer(const nlohmann::json &json_array, std::vector<uint8_t> &const_value) {
   std::vector<T> value = json_array.get<std::vector<T>>();
   uint8_t *pv_begin = reinterpret_cast<uint8_t *>(value.data());
@@ -148,7 +148,7 @@ void ParseConstShapeDescV2(const nlohmann::json &shape_json, ge::Operator &op_pa
   ge::GeTensorPtr const_tensor_ptr = ge::MakeShared<ge::GeTensor>(const_tensor);
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOpZeroCopy(const_tensor_ptr);
   ge::Operator const_op = ge::OpDescUtils::CreateOperatorFromOpDesc(const_op_desc);
-  (void) op_para.SetInput(name.c_str(), const_op);
+  (void)op_para.SetInput(name.c_str(), const_op);
 }
 
 void ParseShapeDescV2(const nlohmann::json &shape, ge::OpDescPtr &op_desc, const bool is_input) {
@@ -212,15 +212,15 @@ void ParseConstTensorListV2(const nlohmann::json &shape_list, ge::Operator &oper
   }
 }
 
-template<typename T>
+template <typename T>
 void ParseAndSetAttrValue(ge::Operator &op, const nlohmann::json &attr, const std::string &attr_name) {
   T attr_value = attr["value"].get<T>();
-  (void) op.SetAttr(attr_name.c_str(), attr_value);
+  (void)op.SetAttr(attr_name.c_str(), attr_value);
 }
-template<typename T>
+template <typename T>
 void ParseAndSetAttrListValue(ge::Operator &op, const nlohmann::json &attr, const std::string &attr_name) {
   std::vector<T> attr_value = attr["value"].get<std::vector<T>>();
-  (void) op.SetAttr(attr_name.c_str(), attr_value);
+  (void)op.SetAttr(attr_name.c_str(), attr_value);
 }
 
 void ParseAndSetAttrListListValue(ge::Operator &op, const nlohmann::json &attr, const std::string &attr_name) {
@@ -236,12 +236,12 @@ void ParseAndSetAttrListListValue(ge::Operator &op, const nlohmann::json &attr, 
     temp_int64_vec.clear();
   }
 
-  (void) op.SetAttr(attr_name.c_str(), attr_value_int64);
+  (void)op.SetAttr(attr_name.c_str(), attr_value_int64);
 }
 
 void ParseAndSetAttrListListInt64Value(ge::Operator &op, const nlohmann::json &attr, const std::string &attr_name) {
   const std::vector<std::vector<int64_t>> attr_value_int64 = attr["value"].get<std::vector<std::vector<int64_t>>>();
-  (void) op.SetAttr(attr_name.c_str(), attr_value_int64);
+  (void)op.SetAttr(attr_name.c_str(), attr_value_int64);
 }
 
 using ParseAndSetAttrValueFunc = std::function<void(ge::Operator &, const nlohmann::json &, const std::string &)>;
@@ -396,8 +396,8 @@ extern "C" int32_t AscendCPyInterfaceGeneralized(const char *optype, const char 
     ParseInputsAndOutputs(inputs, outputs, op_desc_ptr, operator_params, const_values);
     CheckAndSetAttr(attrs, operator_params);
   } catch (...) {
-    GELOGE(ge::GRAPH_FAILED, "Failed to parse json in AscendCPyInterfaceGeneralized. %s, %s, %s",
-           inputs, outputs, attrs);
+    GELOGE(ge::GRAPH_FAILED, "Failed to parse json in AscendCPyInterfaceGeneralized. %s, %s, %s", inputs, outputs,
+           attrs);
     return 0;
   }
   ge::AscendString generalize_config_str(generalize_config);
@@ -406,7 +406,7 @@ extern "C" int32_t AscendCPyInterfaceGeneralized(const char *optype, const char 
     const ge::graphStatus rc = (generalize_func)(operator_params, generalize_config_str, result);
     GELOGI("generalize_func return rc = %d, optype = %s, generalize_config = %s", rc, optype, generalize_config);
     if (rc != ge::GRAPH_SUCCESS) {
-      GELOGE(ge::GRAPH_FAILED,  "call generalize_func failed. optype = %s, generalize_config = %s", optype,
+      GELOGE(ge::GRAPH_FAILED, "call generalize_func failed. optype = %s, generalize_config = %s", optype,
              generalize_config);
       return 0;
     }

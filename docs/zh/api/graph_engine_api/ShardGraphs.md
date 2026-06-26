@@ -94,4 +94,3 @@ Graph first_graph("first_graph");
 Graph second_graph("second_graph");
 session.ShardGraphs();
 ```
-

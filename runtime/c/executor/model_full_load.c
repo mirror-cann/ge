@@ -36,8 +36,7 @@ Status LoadOfflineModelFromFile(const char *modelPath, ModelData *modelData) {
   (void)lseek(fd, 0, SEEK_SET);
 
   if (sizeof(ModelFileHeader) >= len) {
-    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "file head size[%zu] larger than file len[%zu]",
-           sizeof(ModelFileHeader), len);
+    GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "file head size[%zu] larger than file len[%zu]", sizeof(ModelFileHeader), len);
     close(fd);
     return ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID;
   }

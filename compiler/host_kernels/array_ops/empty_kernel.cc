@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,12 +36,11 @@ Status EmptyKernel::EmptyCheck(const OpDescPtr &op_desc_ptr, const std::vector<C
     return PARAM_INVALID;
   }
   // check input size
-  bool size_check =
-      ((op_desc_ptr->GetAllInputsSize() != kEmptyInputsSize) || (input.size() != kEmptyInputsSize) ||
-       (op_desc_ptr->GetAllOutputsDescSize() != kEmptyOutputsSize));
+  bool size_check = ((op_desc_ptr->GetAllInputsSize() != kEmptyInputsSize) || (input.size() != kEmptyInputsSize) ||
+                     (op_desc_ptr->GetAllOutputsDescSize() != kEmptyOutputsSize));
   if (size_check) {
-    GELOGW("Input/Output size error. InDesc size:%zu, OutDesc size:%zu, in size:%zu ",
-           op_desc_ptr->GetAllInputsSize(), op_desc_ptr->GetAllOutputsDescSize(), input.size());
+    GELOGW("Input/Output size error. InDesc size:%zu, OutDesc size:%zu, in size:%zu ", op_desc_ptr->GetAllInputsSize(),
+           op_desc_ptr->GetAllOutputsDescSize(), input.size());
     return PARAM_INVALID;
   }
 
@@ -52,8 +51,7 @@ Status EmptyKernel::EmptyCheck(const OpDescPtr &op_desc_ptr, const std::vector<C
   ConstGeTensorPtr shape = input.at(kEmptyFirstInput);
   // Check if the dimension is 1-D
   if (shape->GetTensorDesc().GetShape().GetDimNum() > kShapeMaxDims) {
-    GELOGW("Check if the dimension is 1-D failed, dims:%zu",
-           shape->GetTensorDesc().GetShape().GetDimNum());
+    GELOGW("Check if the dimension is 1-D failed, dims:%zu", shape->GetTensorDesc().GetShape().GetDimNum());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -98,8 +96,8 @@ Status EmptyKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<Const
   ret = PARAM_INVALID;
   uint64_t data = 0;
   switch (data_type) {
-#define CASE(dtype, type)                                                \
-  case dtype:                                                            \
+#define CASE(dtype, type)                                                             \
+  case dtype:                                                                         \
     ret = KernelUtils::GenData(total_data_size, static_cast<type>(data), output_ptr); \
     break
     CASE(DT_FLOAT, float);

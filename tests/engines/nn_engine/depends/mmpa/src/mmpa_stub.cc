@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,15 +16,14 @@
 #include <atomic>
 
 namespace {
-  std::atomic<bool> g_program_exiting{false};
-  struct ExitGuard {
-    ~ExitGuard() {
-        g_program_exiting.store(true, std::memory_order_relaxed);
-    }
-  };
-  static ExitGuard g_exit_guard; // 静态对象，其析构函数会设置退出标志
-}
-
+std::atomic<bool> g_program_exiting{false};
+struct ExitGuard {
+  ~ExitGuard() {
+    g_program_exiting.store(true, std::memory_order_relaxed);
+  }
+};
+static ExitGuard g_exit_guard;  // 静态对象，其析构函数会设置退出标志
+}  // namespace
 
 #ifdef __cplusplus
 extern "C" {
@@ -234,8 +233,7 @@ INT32 mmGetFileSize(const CHAR *file_name, ULONGLONG *length) {
   return EN_OK;
 }
 
-INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc,  mmSort sort)
-{
+INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc, mmSort sort) {
   if ((path == NULL) || (entryList == NULL)) {
     return EN_INVALID_PARAM;
   }
@@ -246,8 +244,7 @@ INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc,  m
   return count;
 }
 
-VOID mmScandirFree(mmDirent **entryList, INT32 count)
-{
+VOID mmScandirFree(mmDirent **entryList, INT32 count) {
   if (entryList == NULL) {
     return;
   }
@@ -261,8 +258,7 @@ VOID mmScandirFree(mmDirent **entryList, INT32 count)
   free(entryList);
 }
 
-INT32 mmAccess2(const CHAR *pathName, INT32 mode)
-{
+INT32 mmAccess2(const CHAR *pathName, INT32 mode) {
   if (pathName == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -273,13 +269,11 @@ INT32 mmAccess2(const CHAR *pathName, INT32 mode)
   return EN_OK;
 }
 
-INT32 mmGetTimeOfDay(mmTimeval *timeVal, mmTimezone *timeZone)
-{
+INT32 mmGetTimeOfDay(mmTimeval *timeVal, mmTimezone *timeZone) {
   return 0;
 }
 
-INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen)
-{
+INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) {
   if (path == nullptr || realPath == nullptr || realPathLen < MMPA_MAX_PATH) {
     return EN_INVALID_PARAM;
   }
@@ -291,18 +285,17 @@ INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen)
   }
 
   if (g_program_exiting.load(std::memory_order_relaxed)) {
-      return EN_ERROR;
-    }
-    auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
-    auto impl = weak_impl.lock();
-    if (!impl) {
-      return EN_ERROR;
-    }
-    return impl->RealPath(path, realPath, realPathLen);
+    return EN_ERROR;
+  }
+  auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
+  auto impl = weak_impl.lock();
+  if (!impl) {
+    return EN_ERROR;
+  }
+  return impl->RealPath(path, realPath, realPathLen);
 }
 
-INT32 mmRWLockInit(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockInit(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -315,8 +308,7 @@ INT32 mmRWLockInit(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockRDLock(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockRDLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -329,8 +321,7 @@ INT32 mmRWLockRDLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockWRLock(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockWRLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -343,8 +334,7 @@ INT32 mmRWLockWRLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRDLockUnLock(mmRWLock_t *rwLock)
-{
+INT32 mmRDLockUnLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -357,8 +347,7 @@ INT32 mmRDLockUnLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmWRLockUnLock(mmRWLock_t *rwLock)
-{
+INT32 mmWRLockUnLock(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -371,8 +360,7 @@ INT32 mmWRLockUnLock(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmRWLockDestroy(mmRWLock_t *rwLock)
-{
+INT32 mmRWLockDestroy(mmRWLock_t *rwLock) {
   if (rwLock == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -385,27 +373,24 @@ INT32 mmRWLockDestroy(mmRWLock_t *rwLock)
   return EN_OK;
 }
 
-INT32 mmGetErrorCode()
-{
+INT32 mmGetErrorCode() {
   return 0;
 }
 
-INT32 mmIsDir(const CHAR *fileName)
-{
+INT32 mmIsDir(const CHAR *fileName) {
   if (fileName == nullptr) {
     return EN_ERR;
   }
 
-  DIR *pDir = opendir (fileName);
+  DIR *pDir = opendir(fileName);
   if (pDir != nullptr) {
-    (void) closedir (pDir);
+    (void)closedir(pDir);
     return EN_OK;
   }
   return EN_ERR;
 }
 
-INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len)
-{
+INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len) {
   const char *env = getenv(name);
   if (env == nullptr) {
     return EN_ERROR;
@@ -421,7 +406,7 @@ CHAR *mmDlerror() {
 
 INT32 mmDladdr(VOID *addr, mmDlInfo *info) {
   if (g_program_exiting.load(std::memory_order_relaxed)) {
-      return -1;
+    return -1;
   }
   auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
   auto impl = weak_impl.lock();
@@ -453,7 +438,7 @@ INT32 mmDlclose(VOID *handle) {
   if (libcce_name.data() == handle) {
     return 0;
   }
-  if (handle == nullptr){
+  if (handle == nullptr) {
     return 1;
   }
   if (handle == (void *)0x8888) {
@@ -462,7 +447,7 @@ INT32 mmDlclose(VOID *handle) {
 
   // 首先检查退出标志
   if (g_program_exiting.load(std::memory_order_relaxed)) {
-    return 0; // 程序正在退出，安全跳过
+    return 0;  // 程序正在退出，安全跳过
   }
   auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
   auto impl = weak_impl.lock();
@@ -474,7 +459,7 @@ INT32 mmDlclose(VOID *handle) {
 
 VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
   if (g_program_exiting.load(std::memory_order_relaxed)) {
- 	     return nullptr;
+    return nullptr;
   }
   auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
   auto impl = weak_impl.lock();
@@ -484,23 +469,19 @@ VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
   return impl->DlSym(handle, funcName);
 }
 
-INT32 mmGetPid()
-{
+INT32 mmGetPid() {
   return (INT32)getpid();
 }
 
-INT32 mmSetCurrentThreadName(const CHAR *name)
-{
+INT32 mmSetCurrentThreadName(const CHAR *name) {
   return EN_OK;
 }
 
-INT32 mmGetCwd(CHAR *buffer, INT32 maxLen)
-{
+INT32 mmGetCwd(CHAR *buffer, INT32 maxLen) {
   return EN_OK;
 }
 
-CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size)
-{
+CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size) {
   if ((buf == NULL) || (size <= 0)) {
     return NULL;
   }
@@ -566,7 +547,7 @@ INT32 mmSetEnv(const CHAR *name, const CHAR *value, INT32 overwrite) {
 
 INT32 mmWaitPid(mmProcess pid, INT32 *status, INT32 options) {
   if (g_program_exiting.load(std::memory_order_relaxed)) {
- 	  return EN_ERROR;
+    return EN_ERROR;
   }
   auto weak_impl = fe::MmpaStub::GetInstance().GetImplWeakPtr();
   auto impl = weak_impl.lock();
@@ -581,16 +562,16 @@ INT32 mmWaitPid(mmProcess pid, INT32 *status, INT32 options) {
 
 namespace fe {
 std::string GetCurpath() {
-    Dl_info dl_info;
-    if (dladdr((void*) GetCurpath, &dl_info) == 0) {
-        return "";
-    } else {
-        std::string so_path = dl_info.dli_fname;
-        char resoved_path[4096] = {0x00};
-        realpath(so_path.c_str(), resoved_path);
-        so_path = resoved_path;
-        std::string real_dir_file_path = so_path.substr(0, so_path.rfind('/') + 1);
-        return real_dir_file_path;
-    }
+  Dl_info dl_info;
+  if (dladdr((void *)GetCurpath, &dl_info) == 0) {
+    return "";
+  } else {
+    std::string so_path = dl_info.dli_fname;
+    char resoved_path[4096] = {0x00};
+    realpath(so_path.c_str(), resoved_path);
+    so_path = resoved_path;
+    std::string real_dir_file_path = so_path.substr(0, so_path.rfind('/') + 1);
+    return real_dir_file_path;
+  }
 }
-}
+}  // namespace fe

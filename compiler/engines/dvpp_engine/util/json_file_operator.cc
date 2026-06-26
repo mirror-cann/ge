@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,20 +17,18 @@
 #include "util/util.h"
 
 namespace dvpp {
-bool JsonFileOperator::ReadJsonFile(const std::string& file_path_new,
-    const std::string& file_path, nlohmann::json& json_file) {
+bool JsonFileOperator::ReadJsonFile(const std::string &file_path_new, const std::string &file_path,
+                                    nlohmann::json &json_file) {
   std::ifstream ifs(file_path_new);
-  DVPP_CHECK_IF_THEN_DO(!ifs.is_open(),
-      DVPP_ENGINE_LOG_WARNING("can not open [%s]", file_path_new.c_str());
-      ifs.open(file_path);
-      DVPP_CHECK_IF_THEN_DO(!ifs.is_open(),
-          DVPP_REPORT_INNER_ERR_MSG("open [%s] failed", file_path.c_str());
-          return false));
+  DVPP_CHECK_IF_THEN_DO(
+      !ifs.is_open(), DVPP_ENGINE_LOG_WARNING("can not open [%s]", file_path_new.c_str()); ifs.open(file_path);
+      DVPP_CHECK_IF_THEN_DO(!ifs.is_open(), DVPP_REPORT_INNER_ERR_MSG("open [%s] failed", file_path.c_str());
+                            return false));
 
   try {
     ifs >> json_file;
     ifs.close();
-  } catch (const nlohmann::json::exception& e) {
+  } catch (const nlohmann::json::exception &e) {
     DVPP_CHECK_IF_THEN_DO(ifs.is_open(), ifs.close());
     DVPP_REPORT_INNER_ERR_MSG("error msg is [%s]", e.what());
     return false;
@@ -39,7 +37,7 @@ bool JsonFileOperator::ReadJsonFile(const std::string& file_path_new,
   return ConvertJsonFormat(json_file);
 }
 
-bool JsonFileOperator::ConvertJsonFormat(nlohmann::json& json_file) {
+bool JsonFileOperator::ConvertJsonFormat(nlohmann::json &json_file) {
   nlohmann::json dvpp_ops = nlohmann::json::array();
   for (auto iter = json_file.cbegin(); iter != json_file.cend(); ++iter) {
     nlohmann::json dvpp_op = iter.value();
@@ -132,82 +130,72 @@ bool JsonFileOperator::ConvertJsonFormat(nlohmann::json& json_file) {
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatString(
-    nlohmann::json& dvpp_op, const std::string& key) {
+bool JsonFileOperator::ConvertJsonFormatString(nlohmann::json &dvpp_op, const std::string &key) {
   std::string op_name = dvpp_op[kJsonDvppOpName];
   auto json_str = dvpp_op[kJsonDvppOpInfo][key];
   DVPP_CHECK_IF_THEN_DO(json_str.empty(),
-      dvpp_op[kJsonDvppOpInfo][key] = "";
-      return true); // 内容为空不能报错，可能是没有该属性
+                        dvpp_op[kJsonDvppOpInfo][key] = "";
+                        return true);  // 内容为空不能报错，可能是没有该属性
 
   dvpp_op[kJsonDvppOpInfo][key] = json_str.get<std::string>();
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatInt32(
-    nlohmann::json& dvpp_op, const std::string& key) {
+bool JsonFileOperator::ConvertJsonFormatInt32(nlohmann::json &dvpp_op, const std::string &key) {
   std::string op_name = dvpp_op[kJsonDvppOpName];
   auto json_str = dvpp_op[kJsonDvppOpInfo][key];
-  DVPP_CHECK_IF_THEN_DO(json_str.empty(),
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty",
-                              op_name.c_str(), key.c_str());
-      return false);
+  DVPP_CHECK_IF_THEN_DO(
+      json_str.empty(), DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty", op_name.c_str(), key.c_str()); return false);
 
   std::string value_str = json_str.get<std::string>();
   int32_t value = 0;
   auto error_code = StringToNum(value_str, value);
   DVPP_CHECK_IF_THEN_DO(error_code != DvppErrorCode::kSuccess,
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to int failed",
-          op_name.c_str(), key.c_str(), value_str.c_str());
-      return false);
+                        DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to int failed", op_name.c_str(), key.c_str(),
+                                                  value_str.c_str());
+                        return false);
 
   dvpp_op[kJsonDvppOpInfo][key] = value;
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatInt64(
-    nlohmann::json& dvpp_op, const std::string& key) {
+bool JsonFileOperator::ConvertJsonFormatInt64(nlohmann::json &dvpp_op, const std::string &key) {
   std::string op_name = dvpp_op[kJsonDvppOpName];
   auto json_str = dvpp_op[kJsonDvppOpInfo][key];
-  DVPP_CHECK_IF_THEN_DO(json_str.empty(),
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty",
-                              op_name.c_str(), key.c_str());
-      return false);
+  DVPP_CHECK_IF_THEN_DO(
+      json_str.empty(), DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty", op_name.c_str(), key.c_str()); return false);
 
   std::string value_str = json_str.get<std::string>();
   int64_t value = 0;
   auto error_code = StringToNum(value_str, value);
   DVPP_CHECK_IF_THEN_DO(error_code != DvppErrorCode::kSuccess,
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to int failed",
-          op_name.c_str(), key.c_str(), value_str.c_str());
-      return false);
+                        DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to int failed", op_name.c_str(), key.c_str(),
+                                                  value_str.c_str());
+                        return false);
 
   dvpp_op[kJsonDvppOpInfo][key] = value;
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatBool(
-    nlohmann::json& dvpp_op, const std::string& key) {
+bool JsonFileOperator::ConvertJsonFormatBool(nlohmann::json &dvpp_op, const std::string &key) {
   std::string op_name = dvpp_op[kJsonDvppOpName];
   auto json_str = dvpp_op[kJsonDvppOpInfo][key];
-  DVPP_CHECK_IF_THEN_DO(json_str.empty(),
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty",
-                            op_name.c_str(), key.c_str());
-      return false);
+  DVPP_CHECK_IF_THEN_DO(
+      json_str.empty(), DVPP_REPORT_INNER_ERR_MSG("op[%s]: %s is empty", op_name.c_str(), key.c_str()); return false);
 
   std::string value_str = json_str.get<std::string>();
   bool value = false;
   auto error_code = StringToBool(value_str, value);
   DVPP_CHECK_IF_THEN_DO(error_code != DvppErrorCode::kSuccess,
-      DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to bool failed",
-          op_name.c_str(), key.c_str(), value_str.c_str());
-      return false);
+                        DVPP_REPORT_INNER_ERR_MSG("op[%s]: convert %s[%s] to bool failed", op_name.c_str(), key.c_str(),
+                                                  value_str.c_str());
+                        return false);
 
   dvpp_op[kJsonDvppOpInfo][key] = value;
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatInputOutput(nlohmann::json& dvpp_op) {
+bool JsonFileOperator::ConvertJsonFormatInputOutput(nlohmann::json &dvpp_op) {
   nlohmann::json inputs;
   nlohmann::json outputs;
 
@@ -219,10 +207,8 @@ bool JsonFileOperator::ConvertJsonFormatInputOutput(nlohmann::json& dvpp_op) {
       continue;
     }
 
-    if ((strncmp(key.c_str(), kJsonStrInput.c_str(),
-                 kJsonStrInput.size()) != 0) &&
-        (strncmp(key.c_str(), kJsonStrOutput.c_str(),
-                 kJsonStrOutput.size()) != 0)) {
+    if ((strncmp(key.c_str(), kJsonStrInput.c_str(), kJsonStrInput.size()) != 0) &&
+        (strncmp(key.c_str(), kJsonStrOutput.c_str(), kJsonStrOutput.size()) != 0)) {
       continue;
     }
 
@@ -251,8 +237,7 @@ bool JsonFileOperator::ConvertJsonFormatInputOutput(nlohmann::json& dvpp_op) {
     in_out_info[kJsonInOutInfoDataType] = type;
     in_out_info[kJsonInOutInfoDataFormat] = format;
 
-    if (strncmp(key.c_str(), kJsonStrInput.c_str(),
-                kJsonStrInput.size()) == 0) {
+    if (strncmp(key.c_str(), kJsonStrInput.c_str(), kJsonStrInput.size()) == 0) {
       inputs[key] = in_out_info;
     } else {
       outputs[key] = in_out_info;
@@ -265,7 +250,7 @@ bool JsonFileOperator::ConvertJsonFormatInputOutput(nlohmann::json& dvpp_op) {
   return true;
 }
 
-bool JsonFileOperator::ConvertJsonFormatAttr(nlohmann::json& dvpp_op) {
+bool JsonFileOperator::ConvertJsonFormatAttr(nlohmann::json &dvpp_op) {
   nlohmann::json attrs;
 
   for (auto iter = dvpp_op.cbegin(); iter != dvpp_op.cend(); ++iter) {
@@ -300,9 +285,9 @@ bool JsonFileOperator::ConvertJsonFormatAttr(nlohmann::json& dvpp_op) {
   return true;
 }
 
-void JsonFileOperator::PrintJsonFileContext(nlohmann::json& json_file) {
+void JsonFileOperator::PrintJsonFileContext(nlohmann::json &json_file) {
   DVPP_ENGINE_LOG_DEBUG("print json file context start");
-  nlohmann::json& dvpp_ops = json_file[kJsonDvppOpsInfoLibOps];
+  nlohmann::json &dvpp_ops = json_file[kJsonDvppOpsInfoLibOps];
   uint32_t index = 0;
   for (auto iter = dvpp_ops.begin(); iter != dvpp_ops.end(); ++iter) {
     nlohmann::json dvpp_op = iter.value();
@@ -318,19 +303,15 @@ void JsonFileOperator::PrintJsonFileContext(nlohmann::json& json_file) {
     int32_t temp_int32 = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoComputeCost];
     DVPP_ENGINE_LOG_DEBUG("computeCost[%d]", temp_int32);
 
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagPartial] == true,
-        DVPP_ENGINE_LOG_DEBUG("flagPartial[true]"));
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagPartial] == false,
-        DVPP_ENGINE_LOG_DEBUG("flagPartial[false]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagPartial] == true,
+                          DVPP_ENGINE_LOG_DEBUG("flagPartial[true]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagPartial] == false,
+                          DVPP_ENGINE_LOG_DEBUG("flagPartial[false]"));
 
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagAsync] == true,
-        DVPP_ENGINE_LOG_DEBUG("flagAsync[true]"));
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagAsync] == false,
-        DVPP_ENGINE_LOG_DEBUG("flagAsync[false]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagAsync] == true,
+                          DVPP_ENGINE_LOG_DEBUG("flagAsync[true]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFlagAsync] == false,
+                          DVPP_ENGINE_LOG_DEBUG("flagAsync[false]"));
 
     temp_str = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoKernelSo];
     DVPP_ENGINE_LOG_DEBUG("kernelSo[%s]", temp_str.c_str());
@@ -338,12 +319,10 @@ void JsonFileOperator::PrintJsonFileContext(nlohmann::json& json_file) {
     temp_str = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoFunctionName];
     DVPP_ENGINE_LOG_DEBUG("functionName[%s]", temp_str.c_str());
 
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoUserDefined] == true,
-        DVPP_ENGINE_LOG_DEBUG("userDefined[true]"));
-    DVPP_CHECK_IF_THEN_DO(
-        dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoUserDefined] == false,
-        DVPP_ENGINE_LOG_DEBUG("userDefined[false]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoUserDefined] == true,
+                          DVPP_ENGINE_LOG_DEBUG("userDefined[true]"));
+    DVPP_CHECK_IF_THEN_DO(dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoUserDefined] == false,
+                          DVPP_ENGINE_LOG_DEBUG("userDefined[false]"));
 
     temp_int32 = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoWorkspaceSize];
     DVPP_ENGINE_LOG_DEBUG("workspaceSize[%d]", temp_int32);
@@ -385,8 +364,8 @@ void JsonFileOperator::PrintJsonFileContext(nlohmann::json& json_file) {
   DVPP_ENGINE_LOG_DEBUG("print json file context success");
 }
 
-void JsonFileOperator::PrintDvppOpInfoInputOutput(nlohmann::json& dvpp_op) {
-  nlohmann::json& inputs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoInputs];
+void JsonFileOperator::PrintDvppOpInfoInputOutput(nlohmann::json &dvpp_op) {
+  nlohmann::json &inputs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoInputs];
   for (auto iter = inputs.begin(); iter != inputs.end(); ++iter) {
     DVPP_ENGINE_LOG_DEBUG("input[%s]", iter.key().c_str());
     nlohmann::json input = iter.value();
@@ -398,7 +377,7 @@ void JsonFileOperator::PrintDvppOpInfoInputOutput(nlohmann::json& dvpp_op) {
     DVPP_ENGINE_LOG_DEBUG("format[%s]", data_format.c_str());
   }
 
-  nlohmann::json& outputs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoOutputs];
+  nlohmann::json &outputs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoOutputs];
   for (auto iter = outputs.begin(); iter != outputs.end(); ++iter) {
     DVPP_ENGINE_LOG_DEBUG("output[%s]", iter.key().c_str());
     nlohmann::json output = iter.value();
@@ -411,8 +390,8 @@ void JsonFileOperator::PrintDvppOpInfoInputOutput(nlohmann::json& dvpp_op) {
   }
 }
 
-void JsonFileOperator::PrintDvppOpInfoAttr(nlohmann::json& dvpp_op) {
-  nlohmann::json& attrs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoAttrs];
+void JsonFileOperator::PrintDvppOpInfoAttr(nlohmann::json &dvpp_op) {
+  nlohmann::json &attrs = dvpp_op[kJsonDvppOpInfo][kJsonDvppOpInfoAttrs];
   for (auto iter = attrs.begin(); iter != attrs.end(); ++iter) {
     DVPP_ENGINE_LOG_DEBUG("attr[%s]", iter.key().c_str());
     nlohmann::json attr = iter.value();
@@ -424,26 +403,24 @@ void JsonFileOperator::PrintDvppOpInfoAttr(nlohmann::json& dvpp_op) {
 }
 
 template <typename T>
-inline void Assignment(
-    const nlohmann::json& json_file, const std::string& key, T& variable) {
+inline void Assignment(const nlohmann::json &json_file, const std::string &key, T &variable) {
   auto iter = json_file.find(key);
   if (iter != json_file.end()) {
     variable = iter.value().get<T>();
   }
 }
 
-void from_json(const nlohmann::json& json_file,
-               DvppOpsInfoLib& dvpp_ops_info_lib) {
+void from_json(const nlohmann::json &json_file, DvppOpsInfoLib &dvpp_ops_info_lib) {
   Assignment(json_file, kJsonDvppOpsInfoLibName, dvpp_ops_info_lib.name);
   Assignment(json_file, kJsonDvppOpsInfoLibOps, dvpp_ops_info_lib.ops);
 }
 
-void from_json(const nlohmann::json& json_file, DvppOp& dvpp_op) {
+void from_json(const nlohmann::json &json_file, DvppOp &dvpp_op) {
   Assignment(json_file, kJsonDvppOpName, dvpp_op.name);
   Assignment(json_file, kJsonDvppOpInfo, dvpp_op.info);
 }
 
-void from_json(const nlohmann::json& json_file, DvppOpInfo& dvpp_op_info) {
+void from_json(const nlohmann::json &json_file, DvppOpInfo &dvpp_op_info) {
   dvpp_op_info.engine = "";
   Assignment(json_file, kJsonDvppOpInfoEngine, dvpp_op_info.engine);
 
@@ -469,8 +446,7 @@ void from_json(const nlohmann::json& json_file, DvppOpInfo& dvpp_op_info) {
   Assignment(json_file, kJsonDvppOpInfoUserDefined, dvpp_op_info.userDefined);
 
   dvpp_op_info.workspaceSize = 0;
-  Assignment(json_file, kJsonDvppOpInfoWorkspaceSize,
-             dvpp_op_info.workspaceSize);
+  Assignment(json_file, kJsonDvppOpInfoWorkspaceSize, dvpp_op_info.workspaceSize);
 
   dvpp_op_info.resource = "";
   Assignment(json_file, kJsonDvppOpInfoResource, dvpp_op_info.resource);
@@ -558,4 +534,4 @@ void from_json(const nlohmann::json& json_file, DvppOpInfo& dvpp_op_info) {
     }
   }
 }
-} // namespace dvpp
+}  // namespace dvpp

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,9 +16,9 @@
 #include "common/util/tiling_utils.h"
 
 namespace optiling {
-template<typename T>
+template <typename T>
 class AttrDataImpl : public AttrData {
-public:
+ public:
   explicit AttrDataImpl(std::vector<T> &value) : data_value_(std::move(value)) {}
   ~AttrDataImpl() override {}
   size_t GetSize() const override {
@@ -32,7 +32,7 @@ public:
     }
   }
 
-private:
+ private:
   std::vector<T> data_value_;
 };
 
@@ -53,47 +53,33 @@ enum class AttrDataType {
   LIST_LIST_INT32
 };
 
-static const std::map<std::string, AttrDataType> kAttrDataTypeMap {
-  {"bool", AttrDataType::BOOL},
-  {"str", AttrDataType::STRING},
-  {"string", AttrDataType::STRING},
-  {"int", AttrDataType::INT32},
-  {"int32", AttrDataType::INT32},
-  {"uint", AttrDataType::UINT32},
-  {"uint32", AttrDataType::UINT32},
-  {"float", AttrDataType::FLOAT32},
-  {"float32", AttrDataType::FLOAT32},
-  {"float16", AttrDataType::FLOAT16},
-  {"bfloat16", AttrDataType::BFLOAT16},
-  {"list_int", AttrDataType::LIST_INT32},
-  {"list_int32", AttrDataType::LIST_INT32},
-  {"list_uint", AttrDataType::LIST_UINT32},
-  {"list_uint32", AttrDataType::LIST_UINT32},
-  {"list_float16", AttrDataType::LIST_FLOAT16},
-  {"list_float", AttrDataType::LIST_FLOAT32},
-  {"list_float32", AttrDataType::LIST_FLOAT32}
-};
+static const std::map<std::string, AttrDataType> kAttrDataTypeMap{{"bool", AttrDataType::BOOL},
+                                                                  {"str", AttrDataType::STRING},
+                                                                  {"string", AttrDataType::STRING},
+                                                                  {"int", AttrDataType::INT32},
+                                                                  {"int32", AttrDataType::INT32},
+                                                                  {"uint", AttrDataType::UINT32},
+                                                                  {"uint32", AttrDataType::UINT32},
+                                                                  {"float", AttrDataType::FLOAT32},
+                                                                  {"float32", AttrDataType::FLOAT32},
+                                                                  {"float16", AttrDataType::FLOAT16},
+                                                                  {"bfloat16", AttrDataType::BFLOAT16},
+                                                                  {"list_int", AttrDataType::LIST_INT32},
+                                                                  {"list_int32", AttrDataType::LIST_INT32},
+                                                                  {"list_uint", AttrDataType::LIST_UINT32},
+                                                                  {"list_uint32", AttrDataType::LIST_UINT32},
+                                                                  {"list_float16", AttrDataType::LIST_FLOAT16},
+                                                                  {"list_float", AttrDataType::LIST_FLOAT32},
+                                                                  {"list_float32", AttrDataType::LIST_FLOAT32}};
 
-static const std::vector<AttrDataType> kValidSrcDTypeList {
-  AttrDataType::BOOL,
-  AttrDataType::STRING,
-  AttrDataType::INT32,
-  AttrDataType::FLOAT32,
-  AttrDataType::LIST_INT32,
-  AttrDataType::LIST_FLOAT32
-};
+static const std::vector<AttrDataType> kValidSrcDTypeList{AttrDataType::BOOL,       AttrDataType::STRING,
+                                                          AttrDataType::INT32,      AttrDataType::FLOAT32,
+                                                          AttrDataType::LIST_INT32, AttrDataType::LIST_FLOAT32};
 
-static const std::vector<AttrDataType> kValidDstDTypeList {
-  AttrDataType::UINT32,
-  AttrDataType::INT32,
-  AttrDataType::FLOAT32,
-  AttrDataType::FLOAT16,
-  AttrDataType::BFLOAT16,
-  AttrDataType::LIST_INT32,
-  AttrDataType::LIST_UINT32,
-  AttrDataType::LIST_FLOAT16,
-  AttrDataType::LIST_FLOAT32
-};
+static const std::vector<AttrDataType> kValidDstDTypeList{
+    AttrDataType::UINT32,      AttrDataType::INT32,        AttrDataType::FLOAT32,
+    AttrDataType::FLOAT16,     AttrDataType::BFLOAT16,     AttrDataType::LIST_INT32,
+    AttrDataType::LIST_UINT32, AttrDataType::LIST_FLOAT16, AttrDataType::LIST_FLOAT32};
 
 static const uint32_t kBitsOfByte = 8;
 
@@ -109,10 +95,10 @@ class AttrDataManager;
 using GetOpAttrValueFunc = std::function<AttrDataPtr(AttrDataManager *, const ge::Operator &, const char *)>;
 
 class AttrDataManager {
-public:
+ public:
   AttrDataManager(const AttrDataManager &) = delete;
   AttrDataManager &operator=(const AttrDataManager &) = delete;
-  static AttrDataManager& Instance() {
+  static AttrDataManager &Instance() {
     static AttrDataManager attr_data_manager;
     return attr_data_manager;
   }
@@ -133,10 +119,10 @@ public:
     return iter->second(this, op, attr_name);
   }
 
-private:
+ private:
   AttrDataManager() {}
   ~AttrDataManager() {}
-  template<typename T, bool IsList = false, typename std::enable_if<!IsList, bool>::type = true>
+  template <typename T, bool IsList = false, typename std::enable_if<!IsList, bool>::type = true>
   AttrDataPtr GetAttrValue(const ge::Operator &op, const char *attr_name) const {
     T attr_value;
     if (op.GetAttr(attr_name, attr_value) != ge::GRAPH_SUCCESS) {
@@ -150,7 +136,7 @@ private:
     return attr_data_ptr;
   }
 
-  template<typename T, bool IsList = false, typename std::enable_if<IsList, bool>::type = true>
+  template <typename T, bool IsList = false, typename std::enable_if<IsList, bool>::type = true>
   AttrDataPtr GetAttrValue(const ge::Operator &op, const char *attr_name) const {
     std::vector<T> attr_vec;
     if (op.GetAttr(attr_name, attr_vec) != ge::GRAPH_SUCCESS) {
@@ -334,21 +320,16 @@ const std::map<uint32_t, GetOpAttrValueFunc> AttrDataManager::attr_func_ = {
     {GenerateAttrFuncKey(AttrDataType::LIST_INT32), &AttrDataManager::GetAttrValue<int32_t, true>},
     {GenerateAttrFuncKey(AttrDataType::LIST_FLOAT32), &AttrDataManager::GetAttrValue<float, true>},
     {GenerateAttrFuncKey(AttrDataType::STRING), &AttrDataManager::GetStrAttrValue},
-    {GenerateAttrFuncKey(AttrDataType::INT32, AttrDataType::UINT32),
-     &AttrDataManager::GetIntAttrValueAndToUint},
+    {GenerateAttrFuncKey(AttrDataType::INT32, AttrDataType::UINT32), &AttrDataManager::GetIntAttrValueAndToUint},
     {GenerateAttrFuncKey(AttrDataType::LIST_INT32, AttrDataType::LIST_UINT32),
      &AttrDataManager::GetListIntAttrValueAndToListUint},
-    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::FLOAT16),
-     &AttrDataManager::GetFloatAttrValueAndToFp16},
-    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::BFLOAT16),
-     &AttrDataManager::GetFloatAttrValueAndToBf16},
+    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::FLOAT16), &AttrDataManager::GetFloatAttrValueAndToFp16},
+    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::BFLOAT16), &AttrDataManager::GetFloatAttrValueAndToBf16},
     {GenerateAttrFuncKey(AttrDataType::LIST_FLOAT32, AttrDataType::LIST_FLOAT16),
      &AttrDataManager::GetListFloatAttrValueAndToListFp16},
-    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::INT32),
-     &AttrDataManager::GetFloatAttrValueAndToInt},
+    {GenerateAttrFuncKey(AttrDataType::FLOAT32, AttrDataType::INT32), &AttrDataManager::GetFloatAttrValueAndToInt},
     {GenerateAttrFuncKey(AttrDataType::LIST_FLOAT32, AttrDataType::LIST_INT32),
-     &AttrDataManager::GetListFloatAttrValueAndToListInt}
-};
+     &AttrDataManager::GetListFloatAttrValueAndToListInt}};
 
 ge::graphStatus GetOperatorAttrValue(const ge::Operator &op, const char *attr_name, const char *attr_dtype,
                                      AttrDataPtr &attr_data_ptr, const char *target_dtype) {
@@ -361,8 +342,8 @@ ge::graphStatus GetOperatorAttrValue(const ge::Operator &op, const char *attr_na
     return ge::GRAPH_FAILED;
   }
 
-  GELOGD("Begin to retrieve attribute [%s] of data type [%s] from op [%s, %s].",
-         attr_name, attr_dtype, op_name.GetString(), op_type.GetString());
+  GELOGD("Begin to retrieve attribute [%s] of data type [%s] from op [%s, %s].", attr_name, attr_dtype,
+         op_name.GetString(), op_type.GetString());
   const std::string attr_dtype_str = attr_dtype;
   auto iter = kAttrDataTypeMap.find(attr_dtype_str);
   if (iter == kAttrDataTypeMap.end()) {
@@ -376,8 +357,8 @@ ge::graphStatus GetOperatorAttrValue(const ge::Operator &op, const char *attr_na
   }
   AttrDataType dst_dtype = src_dtype;
   if (target_dtype != nullptr) {
-    GELOGD("Attempting to retrieve attribute [%s] and transform its value from [%s] to [%s].",
-           attr_name, attr_dtype, target_dtype);
+    GELOGD("Attempting to retrieve attribute [%s] and transform its value from [%s] to [%s].", attr_name, attr_dtype,
+           target_dtype);
     const std::string target_dtype_str = target_dtype;
     iter = kAttrDataTypeMap.find(target_dtype_str);
     if (iter == kAttrDataTypeMap.end()) {
@@ -391,15 +372,14 @@ ge::graphStatus GetOperatorAttrValue(const ge::Operator &op, const char *attr_na
         return ge::GRAPH_FAILED;
       }
       if (!AttrDataManager::Instance().VerifyAttrDtype(src_dtype, dst_dtype)) {
-        GELOGW("Get attr[%s] and transform from [%s] to [%s] is not supported.",
-               attr_name, attr_dtype, target_dtype);
+        GELOGW("Get attr[%s] and transform from [%s] to [%s] is not supported.", attr_name, attr_dtype, target_dtype);
         return ge::GRAPH_FAILED;
       }
     }
   }
   attr_data_ptr = AttrDataManager::Instance().GetOpAttrValue(op, attr_name, src_dtype, dst_dtype);
-  GELOGD("Finished getting attr [%s] of data type [%s] from op [%s, %s].",
-         attr_name, attr_dtype, op_name.GetString(), op_type.GetString());
+  GELOGD("Finished getting attr [%s] of data type [%s] from op [%s, %s].", attr_name, attr_dtype, op_name.GetString(),
+         op_type.GetString());
   return attr_data_ptr == nullptr ? ge::GRAPH_FAILED : ge::GRAPH_SUCCESS;
 }
 }  // namespace optiling

@@ -10,10 +10,11 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 """Python PatternFusionPass aligned with C++ FuseMatMulAndAddPass (capture tensor sample)."""
+
 from __future__ import annotations
+
 from ge.es.graph_builder import GraphBuilder
 from ge.graph.types import DataType
-from ge.graph.node import Node
 from ge.passes import (
     PassStage,
     PatternFusionPass,
@@ -23,10 +24,10 @@ from ge.passes import (
 )
 
 try:
-    from ge.es.math import Add, GEMM, MatMul
+    from ge.es.math import GEMM, Add, MatMul
 except ImportError:
     try:
-        from ge.es.all import Add, GEMM, MatMul
+        from ge.es.all import GEMM, Add, MatMul
     except ImportError:
         MatMul = None
         Add = None
@@ -63,7 +64,6 @@ def _require_es_apis() -> None:
     stage=PassStage.BEFORE_INFER_SHAPE,
 )
 class PythonFuseMatMulAndAddCaptureTensorPass(PatternFusionPass):
-
     def patterns(self):
         print("Define pattern for FuseMatMulAndAddPass in capture tensor sample")
         _require_es_apis()

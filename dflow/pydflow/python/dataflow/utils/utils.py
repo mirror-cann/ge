@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,12 +13,13 @@
 __all__ = ["assert_args_type"]
 
 import inspect
-from inspect import signature
 from functools import wraps
-from typing import Dict, Union, List, Tuple, Optional
+from inspect import signature
+from typing import Dict, List, Union
+
+import dataflow.dflow_wrapper as dwrapper
 from dataflow.flow_func import flow_func as ff
 from dataflow.utils.msg_type_register import msg_type_register
-import dataflow.dflow_wrapper as dwrapper
 
 _global_type_checker_functions = {}
 
@@ -33,9 +34,7 @@ class DfException(Exception):
     def __init__(self, obj, error_code: int = None):
         super().__init__()
         self.message = obj
-        self.error_code = (
-            error_code if error_code is not None else dwrapper.PARAM_INVALID
-        )
+        self.error_code = error_code if error_code is not None else dwrapper.PARAM_INVALID
 
     def __str__(self):
         return f"DfException:{self.error_code}:{self.message}"
@@ -57,9 +56,7 @@ def _is_instance(value, dtype):
     if isinstance(dtype, type):
         if not isinstance(value, dtype):
             return False
-    elif hasattr(dtype, "__origin__") and (
-            dtype.__origin__ in _global_type_checker_functions
-    ):
+    elif hasattr(dtype, "__origin__") and (dtype.__origin__ in _global_type_checker_functions):
         return _global_type_checker_functions[dtype.__origin__](value, dtype)
     else:
         raise TypeError(f"The type {value} check of data {dtype} is not supported")
@@ -71,9 +68,7 @@ def _check_dict_key_value_type(arg, dtype):
         return False
     dict_key_value_type = dtype.__args__
     for key, value in arg.items():
-        if not _is_instance(key, dict_key_value_type[0]) or not _is_instance(
-                value, dict_key_value_type[1]
-        ):
+        if not _is_instance(key, dict_key_value_type[0]) or not _is_instance(value, dict_key_value_type[1]):
             return False
     return True
 
@@ -185,9 +180,7 @@ def convert_flow_msg_to_object(flow_msg):
     if int(flow_msg.get_msg_type()) == int(ff.MSG_TYPE_TENSOR_DATA):
         return flow_msg.get_tensor()
     elif get_msg_type_register().registered(flow_msg.get_msg_type()):
-        deserialize_func = get_msg_type_register().get_deserialize_func(
-            flow_msg.get_msg_type()
-        )
+        deserialize_func = get_msg_type_register().get_deserialize_func(flow_msg.get_msg_type())
         obj = deserialize_func(flow_msg.get_raw_data())
         return obj
     else:

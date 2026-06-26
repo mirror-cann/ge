@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,7 @@ typedef struct {
 static aclError CheckMdlExecPtrAttr(const void *const attrValue, const size_t valueSize) {
   (void)attrValue;
   if (valueSize != sizeof(void *)) {
-    ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu",
-        valueSize, sizeof(void *));
+    ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu", valueSize, sizeof(void *));
     return ACL_ERROR_INVALID_PARAM;
   }
   return ACL_SUCCESS;
@@ -40,8 +39,7 @@ static aclError CheckMdlExecPtrAttr(const void *const attrValue, const size_t va
 static aclError CheckMdlExecSizeAttr(const void *const attrValue, const size_t valueSize) {
   (void)attrValue;
   if (valueSize != sizeof(size_t)) {
-    ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu",
-        valueSize, sizeof(size_t));
+    ACL_LOG_INNER_ERROR("valueSize[%zu] is invalid, it should be %zu", valueSize, sizeof(size_t));
     return ACL_ERROR_INVALID_PARAM;
   }
   return ACL_SUCCESS;
@@ -88,18 +86,17 @@ static aclError SetMdlExeTimeOutSize(aclmdlExecConfigHandle *const handle, const
 }
 
 static SetMdlExecConfigParamFuncMap g_setMdlExecConfigMap[ACL_MDL_MEC_TIMETHR_SIZET + 1] = {
-  {ACL_MDL_STREAM_SYNC_TIMEOUT, {NULL, NULL}},
-  {ACL_MDL_EVENT_SYNC_TIMEOUT, {NULL, NULL}},
-  {ACL_MDL_WORK_ADDR_PTR, {&CheckMdlExecPtrAttr, &SetMdlExecWorkSpacePtr}},
-  {ACL_MDL_WORK_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecWorkSize}},
-  {ACL_MDL_MPAIMID_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecMpamIdSize}},
-  {ACL_MDL_AICQOS_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecAicQosSize}},
-  {ACL_MDL_AICOST_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecAicOstSize}},
-  {ACL_MDL_MEC_TIMETHR_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExeTimeOutSize}}
-};
+    {ACL_MDL_STREAM_SYNC_TIMEOUT, {NULL, NULL}},
+    {ACL_MDL_EVENT_SYNC_TIMEOUT, {NULL, NULL}},
+    {ACL_MDL_WORK_ADDR_PTR, {&CheckMdlExecPtrAttr, &SetMdlExecWorkSpacePtr}},
+    {ACL_MDL_WORK_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecWorkSize}},
+    {ACL_MDL_MPAIMID_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecMpamIdSize}},
+    {ACL_MDL_AICQOS_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecAicQosSize}},
+    {ACL_MDL_AICOST_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExecAicOstSize}},
+    {ACL_MDL_MEC_TIMETHR_SIZET, {&CheckMdlExecSizeAttr, &SetMdlExeTimeOutSize}}};
 
-aclError aclmdlSetExecConfigOpt(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr,
-    const void *attrValue, size_t valueSize) {
+aclError aclmdlSetExecConfigOpt(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr, const void *attrValue,
+                                size_t valueSize) {
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(handle);
   ACL_REQUIRES_NOT_NULL_WITH_INPUT_REPORT(attrValue);
   SetMdlExecConfigParamFunc paramFunc;

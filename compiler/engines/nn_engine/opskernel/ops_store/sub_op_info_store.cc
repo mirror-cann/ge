@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,8 @@ Status SubOpInfoStore::Initialize(const std::string &engine_name) {
     return OP_STORE_CFG_NAME_EMPTY;
   }
   if (ops_store_info_.cfg_file_path.empty()) {
-    FE_LOGW("The configuration file path for the op information library [%s] is empty.", ops_store_info_.fe_ops_store_name.c_str());
+    FE_LOGW("The configuration file path for the op information library [%s] is empty.",
+            ops_store_info_.fe_ops_store_name.c_str());
     return OP_STORE_CFG_FILE_EMPTY;
   }
 
@@ -60,13 +61,12 @@ Status SubOpInfoStore::Initialize(const std::string &engine_name) {
   if (ret_value != SUCCESS) {
     return ret_value;
   }
-  FE_LOGI("Size of sub ops store %s is %zu.",
-          ops_store_info_.fe_ops_store_name.c_str(), op_kernel_info_map_.size());
+  FE_LOGI("Size of sub ops store %s is %zu.", ops_store_info_.fe_ops_store_name.c_str(), op_kernel_info_map_.size());
   FE_LOGI("Initialize %s SubOpsStore finished.", ops_store_info_.fe_ops_store_name.c_str());
   return SUCCESS;
 }
 
-void SubOpInfoStore::SplitOpStoreJson(const std::string& json_file_path, std::string& ops_path_name_prefix) {
+void SubOpInfoStore::SplitOpStoreJson(const std::string &json_file_path, std::string &ops_path_name_prefix) {
   size_t last_under_score = json_file_path.find_last_of('-');
   if (last_under_score == std::string::npos) {
     return;
@@ -111,8 +111,8 @@ Status SubOpInfoStore::LoadOpInfo(const string &real_path) {
 
   auto CompareByLength = [](const std::string &a, const std::string &b) {
     // 先读全量，再读分包
-    if (a.find("legacy") != std::string::npos) return true; 
-    if (b.find("legacy") != std::string::npos) return false; 
+    if (a.find("legacy") != std::string::npos) return true;
+    if (b.find("legacy") != std::string::npos) return false;
     return a.length() < b.length();
   };
 
@@ -141,8 +141,9 @@ Status SubOpInfoStore::LoadOpJsonFile(const std::string &json_file_path) {
   SplitOpStoreJson(json_file_path, ops_path_name_prefix);
   try {
     if (!op_json_file.is_object()) {
-      REPORT_FE_ERROR("[GraphOpt][Init][LoadOpJsonFile] The top level of the JSON file should be an object, but it is actually %s.",
-                      GetJsonObjectType(op_json_file).c_str());
+      REPORT_FE_ERROR(
+          "[GraphOpt][Init][LoadOpJsonFile] The top level of the JSON file should be an object, but it is actually %s.",
+          GetJsonObjectType(op_json_file).c_str());
       return OP_SUB_STORE_ILLEGAL_JSON;
     }
     for (auto &elem : op_json_file.items()) {
@@ -154,15 +155,19 @@ Status SubOpInfoStore::LoadOpJsonFile(const std::string &json_file_path) {
       op_content.op_type_ = op_type;
       op_content.ops_path_name_prefix_ = ops_path_name_prefix;
       if (!op_json_file[op_type].is_object()) {
-        REPORT_FE_ERROR("[GraphOpt][Init][LoadOpJsonFile] The second level of the JSON file should be an object, but it is actually %s.",
-                        GetJsonObjectType(op_json_file[op_type]).c_str());
+        REPORT_FE_ERROR(
+            "[GraphOpt][Init][LoadOpJsonFile] The second level of the JSON file should be an object, but it is "
+            "actually %s.",
+            GetJsonObjectType(op_json_file[op_type]).c_str());
         return OP_SUB_STORE_ILLEGAL_JSON;
       }
       for (auto &elem_out : op_json_file[op_type].items()) {
-        map <string, string> map_temp;
+        map<string, string> map_temp;
         if (!op_json_file[op_type][elem_out.key()].is_object()) {
-          REPORT_FE_ERROR("[GraphOpt][Init][LoadOpJsonFile] The third level of the JSON file should be an object, but it is actually %s.",
-                          GetJsonObjectType(op_json_file[op_type][elem_out.key()]).c_str());
+          REPORT_FE_ERROR(
+              "[GraphOpt][Init][LoadOpJsonFile] The third level of the JSON file should be an object, but it is "
+              "actually %s.",
+              GetJsonObjectType(op_json_file[op_type][elem_out.key()]).c_str());
           return OP_SUB_STORE_ILLEGAL_JSON;
         }
         for (auto &elem_inner : op_json_file[op_type][elem_out.key()].items()) {
@@ -193,7 +198,8 @@ Status SubOpInfoStore::ConstructOpKernelInfo(const std::string &engine_name) {
     /* Here shared ptr and map/vector will destruct automatically, so not necessary
        to run final for those op_kernel_info which fails to initialize. */
     if (op_kernel_info_constructor.InitializeOpKernelInfo(engine_name, op.second, op_kernel_info_ptr) != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][Init][ConstructOpKernelInfo] OpKernelInfo %s initialization failed.", op.first.c_str());
+      REPORT_FE_ERROR("[GraphOpt][Init][ConstructOpKernelInfo] OpKernelInfo %s initialization failed.",
+                      op.first.c_str());
       return FAILED;
     }
 
@@ -209,8 +215,7 @@ Status SubOpInfoStore::Finalize() {
   OpKernelInfoConstructor op_kernel_info_constructor;
   for (auto &el : this->op_kernel_info_map_) {
     if (el.second == nullptr) {
-      FE_LOGW("OpKernelInfo pointer[%s] in op_kernel_info_map_ should not be nullptr.",
-              el.first.c_str());
+      FE_LOGW("OpKernelInfo pointer[%s] in op_kernel_info_map_ should not be nullptr.", el.first.c_str());
       continue;
     }
     op_kernel_info_constructor.FinalizeOpKernelInfo(el.second);
@@ -220,7 +225,7 @@ Status SubOpInfoStore::Finalize() {
   return SUCCESS;
 }
 
-const std::map<std::string, OpKernelInfoPtr>& SubOpInfoStore::GetAllOpKernels() {
+const std::map<std::string, OpKernelInfoPtr> &SubOpInfoStore::GetAllOpKernels() {
   return this->op_kernel_info_map_;
 }
 
@@ -228,8 +233,8 @@ OpKernelInfoPtr SubOpInfoStore::GetOpKernelByOpType(const std::string &op_type) 
   std::map<std::string, OpKernelInfoPtr>::const_iterator iter = op_kernel_info_map_.find(op_type);
   FE_LOGD("Size of all kernels is %zu bytes.", op_kernel_info_map_.size());
   if (iter == op_kernel_info_map_.end()) {
-    FE_LOGD("Operation type [%s] does not exist in the operation information library [%s].",
-            op_type.c_str(), this->ops_store_info_.fe_ops_store_name.c_str());
+    FE_LOGD("Operation type [%s] does not exist in the operation information library [%s].", op_type.c_str(),
+            this->ops_store_info_.fe_ops_store_name.c_str());
     return nullptr;
   }
   return iter->second;
@@ -238,8 +243,8 @@ OpKernelInfoPtr SubOpInfoStore::GetOpKernelByOpType(const std::string &op_type) 
 Status SubOpInfoStore::GetOpContentByOpType(const std::string &op_type, OpContent &op_content) const {
   auto iter = op_content_map_.find(op_type);
   if (iter == op_content_map_.end()) {
-    FE_LOGD("Op Type[%s] is not found in op information library[%s].",
-            op_type.c_str(), this->ops_store_info_.fe_ops_store_name.c_str());
+    FE_LOGD("Op Type[%s] is not found in op information library[%s].", op_type.c_str(),
+            this->ops_store_info_.fe_ops_store_name.c_str());
     return FAILED;
   }
   op_content = iter->second;
@@ -255,11 +260,11 @@ Status SubOpInfoStore::SetOpContent(const OpContent &op_content) {
   return SUCCESS;
 }
 
-const std::string& SubOpInfoStore::GetOpsStoreName() const {
+const std::string &SubOpInfoStore::GetOpsStoreName() const {
   return this->ops_store_info_.fe_ops_store_name;
 }
 
-const OpImplType& SubOpInfoStore::GetOpImplType() const {
+const OpImplType &SubOpInfoStore::GetOpImplType() const {
   return this->ops_store_info_.op_impl_type;
 }
 

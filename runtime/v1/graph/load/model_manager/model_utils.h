@@ -36,8 +36,7 @@ enum IowMemoryType : uint64_t {
 class ModelUtils {
  public:
   struct NodeMemInfo {
-    NodeMemInfo(const uint64_t mem_type, const ConstOpDescPtr &op_desc,
-                const size_t index, const std::string &io_type,
+    NodeMemInfo(const uint64_t mem_type, const ConstOpDescPtr &op_desc, const size_t index, const std::string &io_type,
                 const int64_t size, const int64_t logical_offset)
         : mem_type_(mem_type),
           op_desc_(op_desc),
@@ -122,8 +121,7 @@ class ModelUtils {
   /// @return std::vector<void*>
   static std::vector<void *> GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetInputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                           std::vector<uint64_t> &mem_type,
-                                           const bool has_optional_addr = false);
+                                           std::vector<uint64_t> &mem_type, const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get input address value.
@@ -138,8 +136,7 @@ class ModelUtils {
   /// @return std::vector<void*>
   static std::vector<void *> GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetInputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                               std::vector<uint64_t> &mem_type,
-                                               const bool has_optional_addr = false);
+                                               std::vector<uint64_t> &mem_type, const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get input data address value.
@@ -154,8 +151,7 @@ class ModelUtils {
   /// @return std::vector<void*>
   static std::vector<void *> GetOutputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetOutputAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                            std::vector<uint64_t> &mem_type,
-                                            const bool has_optional_addr = false);
+                                            std::vector<uint64_t> &mem_type, const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get output address value.
@@ -170,8 +166,7 @@ class ModelUtils {
   /// @return std::vector<void*>
   static std::vector<void *> GetOutputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc);
   static std::vector<void *> GetOutputDataAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
-                                                std::vector<uint64_t> &mem_type,
-                                                const bool has_optional_addr = false);
+                                                std::vector<uint64_t> &mem_type, const bool has_optional_addr = false);
 
   /// @ingroup ge
   /// @brief Get output data address value.
@@ -185,8 +180,7 @@ class ModelUtils {
   /// @return Status
   static Status GetInputOutputDescAddrs(const RuntimeParam &model_param, const ConstOpDescPtr &op_desc,
                                         const OpDesc::Vistor<GeTensorDescPtr> &tensor_desc_visitor,
-                                        const std::vector<uint64_t> &mem_type,
-                                        std::vector<void *> &v_addrs);
+                                        const std::vector<uint64_t> &mem_type, std::vector<void *> &v_addrs);
 
   /// @ingroup ge
   /// @brief Get workspace data address.
@@ -249,8 +243,8 @@ class ModelUtils {
   static Status GetHbmFeatureMapMemInfo(const GeModelPtr &ge_model, std::vector<MemInfo> &all_mem_info,
                                         bool get_zero_copy = false);
   static Status MallocExMem(const uint32_t device_id, RuntimeParam &runtime_param);
-  static void FreeExMem(const uint32_t device_id, RuntimeParam &runtime_param,
-                        const uint64_t session_id = 0UL, const bool is_online = true);
+  static void FreeExMem(const uint32_t device_id, RuntimeParam &runtime_param, const uint64_t session_id = 0UL,
+                        const bool is_online = true);
   static bool IsSuppoprtAddrRefreshable(const uint64_t mem_types);
   static void GetAddrRefreshableFlagsByMemTypes(const std::vector<uint64_t> &mem_types, std::vector<uint8_t> &flags);
   static bool IsFeatureMapOrModelIoType(const uint64_t mem_type);

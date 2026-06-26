@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,8 @@ TEST_F(UtestBlockTypeListTest, NodeMemAttrConflictRegister_NotConflict) {
 }
 
 TEST_F(UtestBlockTypeListTest, NodeMemAttrConflictRegister_NotConflict2) {
-  EXPECT_FALSE(NodeMemAttrConflictRegister::HasConflict(NodeMemAttr::kConcentrateAtomic, NodeMemAttr::kConcentrateAtomic));
+  EXPECT_FALSE(
+      NodeMemAttrConflictRegister::HasConflict(NodeMemAttr::kConcentrateAtomic, NodeMemAttr::kConcentrateAtomic));
 }
 
 //     const
@@ -181,4 +182,4 @@ TEST_F(UtestBlockTypeListTest, BlockTypeList_CheckConflict) {
   EXPECT_STREQ(data_type.ToString().c_str(), "");
   EXPECT_FALSE(data_type.IsConflictWithBlock(atomic_clean_type));
 }
-} // namespace ge
+}  // namespace ge

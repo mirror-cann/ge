@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -106,8 +106,10 @@ class UtestDim1TransposeToSqueezePass : public Test {
   }
 
   template <typename inner_data_type, DataType data_type, typename inner_dim_type, DataType dim_type>
-  ComputeGraphPtr BuildGraphForDifferentFormat(std::vector<int64_t> &data_vec, std::vector<inner_dim_type> &dim_value_vec,
-                             std::vector<int64_t> &result_vec, const string &transpose_type, const bool isSymbol) {
+  ComputeGraphPtr BuildGraphForDifferentFormat(std::vector<int64_t> &data_vec,
+                                               std::vector<inner_dim_type> &dim_value_vec,
+                                               std::vector<int64_t> &result_vec, const string &transpose_type,
+                                               const bool isSymbol) {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
 
     // add data node
@@ -176,7 +178,7 @@ class UtestDim1TransposeToSqueezePass : public Test {
 
   template <typename inner_data_type, DataType data_type, typename inner_dim_type, DataType dim_type>
   void EXPECT_TestTransposeReplaceFailed(std::vector<int64_t> &data_vec, std::vector<inner_dim_type> &dim_value_vec,
-                                          std::vector<int64_t> &result_vec) {
+                                         std::vector<int64_t> &result_vec) {
     ComputeGraphPtr graph = BuildGraph<inner_data_type, data_type, inner_dim_type, dim_type>(
         data_vec, dim_value_vec, result_vec, TRANSPOSE, false);
     GE_DUMP(graph, "Before RemoveConstInput");
@@ -287,8 +289,8 @@ class UtestDim1TransposeToSqueezePass : public Test {
 
   template <typename inner_data_type, DataType data_type, typename inner_dim_type, DataType dim_type>
   void EXPECT_TestTransposeInsertedByFeNotTrigger(std::vector<int64_t> &data_vec,
-                                                std::vector<inner_dim_type> &dim_value_vec,
-                                                std::vector<int64_t> &result_vec) {
+                                                  std::vector<inner_dim_type> &dim_value_vec,
+                                                  std::vector<int64_t> &result_vec) {
     ComputeGraphPtr graph = BuildGraphForDifferentFormat<inner_data_type, data_type, inner_dim_type, dim_type>(
         data_vec, dim_value_vec, result_vec, TRANSPOSE, true);
     auto op_node = graph->FindNode("Transpose");
@@ -369,5 +371,6 @@ TEST_F(UtestDim1TransposeToSqueezePass, replace_transpse_inserted_by_fe_not_trig
   std::vector<int64_t> data_vec = {1, 16, 32, 64};
   std::vector<int32_t> dim_value_vec = {2, 1, 0, 3};
   std::vector<int64_t> result_vec = {32, 16, 1, 64};
-  EXPECT_TestTransposeInsertedByFeNotTrigger<uint64_t, DT_UINT64, int32_t, DT_INT32>(data_vec, dim_value_vec, result_vec);
+  EXPECT_TestTransposeInsertedByFeNotTrigger<uint64_t, DT_UINT64, int32_t, DT_INT32>(data_vec, dim_value_vec,
+                                                                                     result_vec);
 }

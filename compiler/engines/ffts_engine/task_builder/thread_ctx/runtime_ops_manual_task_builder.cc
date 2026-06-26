@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ Status RuntimeOpsTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsP
   vector<FftsPlusComCtx_t> sub_ffts_plus_context;
   GenFftsPlusTaskCommonInfo(node, sub_ffts_plus_context);
 
-  FftsPlusCtxDefPtr ctx_def_ptr =  nullptr;
+  FftsPlusCtxDefPtr ctx_def_ptr = nullptr;
   ctx_def_ptr = op_desc->TryGetExtAttr("FFTS_PLUS_TASK_DEF", ctx_def_ptr);
   FFTS_CHECK_NOTNULL(ctx_def_ptr);
   domi::FftsPlusCtxDef *ffts_plus_ctx_def = ffts_plus_task_def->add_ffts_plus_ctx();
@@ -77,15 +77,15 @@ Status RuntimeOpsTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsP
       break;
   }
   if (status != SUCCESS) {
-    FFTS_LOGE("GenContextTaskDef failed. Op[%s, optype[%s]]",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    FFTS_LOGE("GenContextTaskDef failed. Op[%s, optype[%s]]", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return status;
   }
   return SUCCESS;
 }
 
 Status RuntimeOpsTaskBuilder::FillLabelContext(const ge::OpDescPtr &op_desc, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
-    vector<FftsPlusComCtx_t> &sub_ffts_plus_context, size_t thread_id) const {
+                                               vector<FftsPlusComCtx_t> &sub_ffts_plus_context,
+                                               size_t thread_id) const {
   if (sub_ffts_plus_context.empty()) {
     return FAILED;
   }
@@ -102,15 +102,15 @@ Status RuntimeOpsTaskBuilder::FillLabelContext(const ge::OpDescPtr &op_desc, dom
     (void)ge::AttrUtils::SetListInt(op_desc, kSuccList, sub_ffts_plus_context[0].succ_list);
     for (uint32_t i = 0; i < sub_ffts_plus_context[0].succ_list.size(); i++) {
       label_ctx_def->add_successor_list(sub_ffts_plus_context[0].succ_list[i]);
-      FFTS_LOGD("FillLabelContext succ_list[%u] has occurred",
-                sub_ffts_plus_context[0].succ_list[i]);
+      FFTS_LOGD("FillLabelContext succ_list[%u] has occurred", sub_ffts_plus_context[0].succ_list[i]);
     }
   }
   return SUCCESS;
 }
 
 Status RuntimeOpsTaskBuilder::FillSdmaContext(const ge::OpDescPtr &op_desc, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
-    FftsPlusCtxDefPtr &ctx_def_ptr, vector<FftsPlusComCtx_t> &sub_ffts_plus_context, size_t thread_id) const {
+                                              FftsPlusCtxDefPtr &ctx_def_ptr,
+                                              vector<FftsPlusComCtx_t> &sub_ffts_plus_context, size_t thread_id) const {
   if (sub_ffts_plus_context.empty()) {
     return FAILED;
   }
@@ -129,7 +129,7 @@ Status RuntimeOpsTaskBuilder::FillSdmaContext(const ge::OpDescPtr &op_desc, domi
   sdma_ctx_def->set_successor_num(0);
   FFTS_LOGD("Fill Sdma context with size: %zu", sub_ffts_plus_context.size());
   sdma_ctx_def->set_thread_id(thread_id);
-  if (sub_ffts_plus_context.size() == 1) { // manual
+  if (sub_ffts_plus_context.size() == 1) {  // manual
     sdma_ctx_def->set_aten(0);
     sdma_ctx_def->set_atm(0);
     (void)ge::AttrUtils::SetListInt(op_desc, kSuccList, sub_ffts_plus_context[0].succ_list);
@@ -163,9 +163,10 @@ Status RuntimeOpsTaskBuilder::FillSdmaContextData(const domi::FftsPlusSdmaCtxDef
   return SUCCESS;
 }
 
-
 Status RuntimeOpsTaskBuilder::FillCaseSwitchContext(const ge::NodePtr &node, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
-    FftsPlusCtxDefPtr &ctx_def_ptr, vector<FftsPlusComCtx_t> &sub_ffts_plus_context, size_t thread_id) const {
+                                                    FftsPlusCtxDefPtr &ctx_def_ptr,
+                                                    vector<FftsPlusComCtx_t> &sub_ffts_plus_context,
+                                                    size_t thread_id) const {
   auto op_desc = node->GetOpDesc();
   if (sub_ffts_plus_context.empty()) {
     return FAILED;
@@ -178,11 +179,11 @@ Status RuntimeOpsTaskBuilder::FillCaseSwitchContext(const ge::NodePtr &node, dom
   FFTS_CHECK_NOTNULL(case_switch_ctx_def);
   Status status = FillCaseSwitchContextData(case_switch_ctx_def_ptr, case_switch_ctx_def);
   if (status != SUCCESS) {
-    FFTS_LOGE("FillCaseSwitchContextData failed. Op[%s, optype[%s]]",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    FFTS_LOGE("FillCaseSwitchContextData failed. Op[%s, optype[%s]]", op_desc->GetName().c_str(),
+              op_desc->GetType().c_str());
     return status;
   }
-  
+
   FFTS_LOGD("FillCaseSwitchContext pred_cnt[%u], successnum[%u]", sub_ffts_plus_context[0].pred_cnt,
             sub_ffts_plus_context[0].successorNum);
   case_switch_ctx_def->set_pred_cnt(sub_ffts_plus_context[thread_id].pred_cnt);
@@ -222,8 +223,7 @@ Status RuntimeOpsTaskBuilder::FillCaseSwitchContextData(const domi::FftsPlusCase
   case_switch_ctx_def->set_ar_prot(case_switch_ctx_def_ptr->ar_prot());
   case_switch_ctx_def->set_va(case_switch_ctx_def_ptr->va());
   case_switch_ctx_def->set_load_addr0_base(case_switch_ctx_def_ptr->load_addr0_base());
-  FFTS_LOGD("FillCaseSwitchContext load_addr0_base[%llu].",
-            case_switch_ctx_def_ptr->load_addr0_base());
+  FFTS_LOGD("FillCaseSwitchContext load_addr0_base[%llu].", case_switch_ctx_def_ptr->load_addr0_base());
   case_switch_ctx_def->set_ld0_en(case_switch_ctx_def_ptr->ld0_en());
   case_switch_ctx_def->set_load_addr0_offset(case_switch_ctx_def_ptr->load_addr0_offset());
   case_switch_ctx_def->set_load_addr1_base(case_switch_ctx_def_ptr->load_addr1_base());
@@ -233,7 +233,9 @@ Status RuntimeOpsTaskBuilder::FillCaseSwitchContextData(const domi::FftsPlusCase
 }
 
 Status RuntimeOpsTaskBuilder::FillCondSwitchContext(const ge::NodePtr &node, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
-    FftsPlusCtxDefPtr &ctx_def_ptr, vector<FftsPlusComCtx_t> &sub_ffts_plus_context, size_t thread_id) const {
+                                                    FftsPlusCtxDefPtr &ctx_def_ptr,
+                                                    vector<FftsPlusComCtx_t> &sub_ffts_plus_context,
+                                                    size_t thread_id) const {
   auto op_desc = node->GetOpDesc();
   if (sub_ffts_plus_context.empty()) {
     return FAILED;
@@ -246,11 +248,11 @@ Status RuntimeOpsTaskBuilder::FillCondSwitchContext(const ge::NodePtr &node, dom
   FFTS_CHECK_NOTNULL(cond_switch_ctx_def);
   Status status = FillCondSwitchContextData(cond_switch_ctx_def_ptr, cond_switch_ctx_def);
   if (status != SUCCESS) {
-    FFTS_LOGE("FillCondSwitchContextData failed. Op[%s, optype[%s]]",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    FFTS_LOGE("FillCondSwitchContextData failed. Op[%s, optype[%s]]", op_desc->GetName().c_str(),
+              op_desc->GetType().c_str());
     return status;
   }
-  
+
   FFTS_LOGD("FillCondSwitchContext pred_cnt[%u], success_num[%u]", sub_ffts_plus_context[0].pred_cnt,
             sub_ffts_plus_context[0].successorNum);
   cond_switch_ctx_def->set_pred_cnt(sub_ffts_plus_context[0].pred_cnt);
@@ -297,7 +299,7 @@ Status RuntimeOpsTaskBuilder::GetSwitchInputDataAddr(const ge::NodePtr &node, ui
   if (contextptr == nullptr) {
     FFTS_LOGD("RuntimeOpsTaskBuilder contextPtr is null.");
     return FAILED;
-} else {
+  } else {
     FFTS_LOGD("RuntimeOpsTaskBuilder: contextptr is not null, weightbase = %p, datamembase = %p.",
               contextptr->weightMemBase, contextptr->dataMemBase);
   }
@@ -315,12 +317,12 @@ Status RuntimeOpsTaskBuilder::GetSwitchInputDataAddr(const ge::NodePtr &node, ui
     return FAILED;
   }
   if (ge::AnchorUtils::GetStatus(anchor) == ge::ANCHOR_SUSPEND) {
-      FFTS_LOGD("Node[type=%s,name=%s]: status is suspend.", op_type.c_str(), op_name.c_str());
-      return FAILED;
+    FFTS_LOGD("Node[type=%s,name=%s]: status is suspend.", op_type.c_str(), op_name.c_str());
+    return FAILED;
   }
   if (op_desc->GetInputOffset().size() == 0) {
-    FFTS_LOGD("Node[type=%s, name=%s]: Status is suspended. GetInputOffset size = 0.",
-              op_type.c_str(), op_name.c_str());
+    FFTS_LOGD("Node[type=%s, name=%s]: Status is suspended. GetInputOffset size = 0.", op_type.c_str(),
+              op_name.c_str());
     return FAILED;
   }
   const uint64_t virtual_addr_offset = op_desc->GetInputOffset().at(0);

@@ -37,11 +37,11 @@ const std::string ATTR_NAME_RECV_ATTR_NOTIFY_ID = "notify_id";
 
 // 芯片版本列表
 constexpr const char_t *kSocType[] = {
-  "15", // CHIP_DAVID
-  "16", // CHIP_CLOUD_V5
-  "17", // CHIP_MC62XX
-  "18", // CHIP_MC32XX
-  "19"  // CHIP_ASCEND_350
+    "15",  // CHIP_DAVID
+    "16",  // CHIP_CLOUD_V5
+    "17",  // CHIP_MC62XX
+    "18",  // CHIP_MC32XX
+    "19"   // CHIP_ASCEND_350
 };
 
 inline bool IsStarsV2Series(const char_t *type) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,43 +42,19 @@ using namespace ffts;
 
 class STEST_ArgsFormat : public testing::Test {
  protected:
-
   void SetUp() {
-    FEOpsStoreInfo TIK_CUSTOM_OPINFO_STUB  = {
-        1,
-        "tik-custom",
-        EN_IMPL_CUSTOM_TIK,
-        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tik_custom_opinfo",
-        ""
-    };
+    FEOpsStoreInfo TIK_CUSTOM_OPINFO_STUB = {
+        1, "tik-custom", EN_IMPL_CUSTOM_TIK,
+        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tik_custom_opinfo", ""};
     FEOpsStoreInfo TBE_CUSTOM_OPINFO_STUB = {
-        2,
-        "tbe-custom",
-        EN_IMPL_CUSTOM_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tbe_custom_opinfo",
-        ""
-    };
-    FEOpsStoreInfo TIK_OPINFO_STUB = {
-        5,
-        "tik-builtin",
-        EN_IMPL_HW_TIK,
-        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tik_opinfo",
-        ""
-    };
-    FEOpsStoreInfo TBE_OPINFO_STUB = {
-        6,
-        "tbe-builtin",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tbe_opinfo",
-        ""
-    };
-    FEOpsStoreInfo RL_OPINFO_STUB = {
-        7,
-        "rl-builtin",
-        EN_IMPL_RL,
-        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/rl_opinfo",
-        ""
-    };
+        2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tbe_custom_opinfo", ""};
+    FEOpsStoreInfo TIK_OPINFO_STUB = {5, "tik-builtin", EN_IMPL_HW_TIK,
+                                      GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tik_opinfo", ""};
+    FEOpsStoreInfo TBE_OPINFO_STUB = {6, "tbe-builtin", EN_IMPL_HW_TBE,
+                                      GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/tbe_opinfo", ""};
+    FEOpsStoreInfo RL_OPINFO_STUB = {7, "rl-builtin", EN_IMPL_RL,
+                                     GetCodeDir() + "/tests/engines/nn_engine/st/stub/fe_config/rl_opinfo", ""};
     std::vector<FEOpsStoreInfo> cfg_info_in_l2;
     cfg_info_in_l2.push_back(TIK_CUSTOM_OPINFO_STUB);
     cfg_info_in_l2.push_back(TBE_CUSTOM_OPINFO_STUB);
@@ -90,22 +66,20 @@ class STEST_ArgsFormat : public testing::Test {
     OpsKernelManager::Instance(fe::AI_CORE_NAME).Initialize();
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
-TEST_F(STEST_ArgsFormat, args_by_instance_test1)
-{
+TEST_F(STEST_ArgsFormat, args_by_instance_test1) {
   FeTestOpDescBuilder builder;
   builder.SetName("test_tvm");
   builder.SetType("addn");
   builder.SetInputs({1, 2, 3, 4});
   builder.SetOutputs({1});
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
-  builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+  builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT);
   auto node = builder.Finish();
   auto op_desc = node->GetOpDesc();
   ArgsFormatConstructor args_construct(op_desc, false);
@@ -115,18 +89,17 @@ TEST_F(STEST_ArgsFormat, args_by_instance_test1)
   EXPECT_STREQ(args_format_str.c_str(), "{i_instance0*}{i_instance1*}{i_instance2*}{i_instance3*}{o_instance0*}");
 }
 
-TEST_F(STEST_ArgsFormat, dynamic_args_test)
-{
+TEST_F(STEST_ArgsFormat, dynamic_args_test) {
   FeTestOpDescBuilder builder;
   builder.SetName("test_tvm");
   builder.SetType("addn");
   builder.SetInputs({1, 2, 3, 4});
   builder.SetOutputs({1});
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x1");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "w0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
-  builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "y0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x1");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "w0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
+  builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "y0");
   auto node = builder.Finish();
   auto op_desc = node->GetOpDesc();
 
@@ -144,7 +117,7 @@ TEST_F(STEST_ArgsFormat, dynamic_args_test)
   (void)ge::AttrUtils::SetStr(op_desc, fe::kAttrDynamicParamMode, fe::kFoldedWithDesc);
 
   auto pure_op_desc = node->GetOpDescBarePtr();
-  pure_op_desc->AppendIrInput("x", ge::kIrInputDynamic); // not equal with ops kernel
+  pure_op_desc->AppendIrInput("x", ge::kIrInputDynamic);  // not equal with ops kernel
   pure_op_desc->AppendIrInput("w", ge::kIrInputDynamic);
   pure_op_desc->AppendIrInput("b", ge::kIrInputRequired);
   pure_op_desc->AppendIrOutput("y", ge::kIrOutputRequired);
@@ -161,18 +134,17 @@ TEST_F(STEST_ArgsFormat, dynamic_args_test)
   EXPECT_STREQ(args_format_str.c_str(), "{i_desc0}{i_desc1}{i2*}{o0*}");
 }
 
-TEST_F(STEST_ArgsFormat, option_and_dynamic_args_test)
-{
+TEST_F(STEST_ArgsFormat, option_and_dynamic_args_test) {
   FeTestOpDescBuilder builder;
   builder.SetName("test_tvm");
   builder.SetType("addn");
   builder.SetInputs({1, 2, 3, 4});
   builder.SetOutputs({1});
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "y0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "z0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "h0");
-  builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "o0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "x0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "y0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "z0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "h0");
+  builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "o0");
   auto node = builder.Finish();
   auto op_desc = node->GetOpDesc();
 
@@ -200,7 +172,6 @@ TEST_F(STEST_ArgsFormat, option_and_dynamic_args_test)
   auto ret = args_construct.ConstructNodeArgsDesc();
   EXPECT_NE(ret, fe::SUCCESS);
 
-
   input_name_list = {"x", "y", "z", "h"};
   (void)ge::AttrUtils::SetListStr(op_desc, kInputNameList, input_name_list);
   ArgsFormatConstructor args_construct1(op_desc, false);
@@ -218,21 +189,20 @@ TEST_F(STEST_ArgsFormat, option_and_dynamic_args_test)
   EXPECT_NE(ret, fe::SUCCESS);
 }
 
-TEST_F(STEST_ArgsFormat, IFA_append_by_ops_kernel_test)
-{
+TEST_F(STEST_ArgsFormat, IFA_append_by_ops_kernel_test) {
   FeTestOpDescBuilder builder;
   builder.SetName("test_tvm");
   builder.SetType("IncreFlashAttention");
   builder.SetInputs({1, 2, 3, 6});
   builder.SetOutputs({1});
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "a");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "c");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "a");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "b0");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "c");
   // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "d");
   // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "e");
-  builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "f");
+  builder.AddInputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "f");
   // builder.AddInputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "g");
-  builder.AddOutputDesc({1,1,1,1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "out");
+  builder.AddOutputDesc({1, 1, 1, 1}, ge::FORMAT_NCHW, ge::DT_FLOAT, 0, "out");
   auto node = builder.Finish();
   auto op_desc = node->GetOpDesc();
   (void)ge::AttrUtils::SetInt(op_desc, kOpKernelAllInputSize, 7);
@@ -324,7 +294,7 @@ TEST_F(STEST_ArgsFormat, MC2_opt_output_test) {
   // tbe always empty option output
   auto output_desc_ptr = op_desc->MutableOutputDesc(1);
   (void)ge::AttrUtils::SetInt(output_desc_ptr, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE,
-  static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
+                              static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
   ArgsFormatConstructor args_construct1(op_desc, false);
   ret = args_construct1.ConstructNodeArgsDesc();
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -349,7 +319,8 @@ TEST_F(STEST_ArgsFormat, MC2_opt_output_test) {
   ret = args_construct3.ConstructNodeArgsDesc();
   EXPECT_EQ(ret, fe::SUCCESS);
   args_format_str = args_construct3.GetArgsFormatString();
-  EXPECT_STREQ(args_format_str.c_str(), "{i_instance0*}{i_instance1*}{i_instance2*}{i_instance3*}{o_instance0*}{o_instance1*}");
+  EXPECT_STREQ(args_format_str.c_str(),
+               "{i_instance0*}{i_instance1*}{i_instance2*}{i_instance3*}{o_instance0*}{o_instance1*}");
 }
 
 TEST_F(STEST_ArgsFormat, MC2_opt_output_place_test) {
@@ -399,7 +370,7 @@ TEST_F(STEST_ArgsFormat, MC2_opt_output_place_test) {
   (void)ge::AttrUtils::SetStr(op_desc, fe::kAttrOptionalOutputMode, fe::kGenPlaceholder);
   auto output_desc_ptr = op_desc->MutableOutputDesc(1);
   (void)ge::AttrUtils::SetInt(output_desc_ptr, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE,
-  static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
+                              static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
   ArgsFormatConstructor args_construct1(op_desc, false);
   ret = args_construct1.ConstructNodeArgsDesc();
   EXPECT_EQ(ret, fe::SUCCESS);

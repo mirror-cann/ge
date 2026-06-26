@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Huawei Technologies Co., Ltd.
-* This file is a part of the CANN Open Software.
+ * This file is a part of the CANN Open Software.
  * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
@@ -128,19 +128,19 @@ class AclRuntimeStubImpl : public ge::AclRuntimeStub {
   aclError aclmdlRIExecuteAsync(aclmdlRI modelRI, aclrtStream stream) override;
 
   aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle) override;
-  aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options,
-      aclrtBinHandle *binHandle) override;
-  aclError aclrtBinaryLoadFromData(const void *data, size_t length,
-      const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle) override;
-  aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream) override;
-  aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName,
-      const char *kernelName, aclrtFuncHandle *funcHandle) override;
+  aclError aclrtBinaryLoadFromFile(const char *binPath, aclrtBinaryLoadOptions *options,
+                                   aclrtBinHandle *binHandle) override;
+  aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBinaryLoadOptions *options,
+                                   aclrtBinHandle *binHandle) override;
+  aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData, size_t argsSize,
+                               aclrtLaunchKernelCfg *cfg, aclrtStream stream) override;
+  aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName, const char *kernelName,
+                                aclrtFuncHandle *funcHandle) override;
   aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
-      aclrtFuncHandle *funcHandle) override;
-  aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-      aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) override;
+                                  aclrtFuncHandle *funcHandle) override;
+  aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream,
+                                         aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
+                                         aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum) override;
 
   aclError aclrtTaskUpdateAsync(aclrtStream taskStream, uint32_t taskId, aclrtTaskUpdateInfo *info,
                                 aclrtStream execStream);

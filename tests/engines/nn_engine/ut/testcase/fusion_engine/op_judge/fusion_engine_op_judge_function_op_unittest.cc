@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,14 +42,16 @@ using OpFormatMatcherPtr = std::shared_ptr<OpFormatMatcher>;
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
 class UTEST_fusion_engine_op_judge_function_op : public testing::Test {
-protected:
+ protected:
   void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
 
-    FEOpsStoreInfo tbe_custom {6, "tbe-custom", EN_IMPL_HW_TBE,
-                              GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-                              ""};
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
 
     store_info.emplace_back(tbe_custom);
@@ -60,16 +62,14 @@ protected:
     fe_ops_kernel_info_store_ptr_->Initialize(options);
 
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
-    op_impl_type_judge_ptr_ =
-        std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
+    op_impl_type_judge_ptr_ = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, fe_ops_kernel_info_store_ptr_);
     op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(AI_CORE_NAME, reflection_builder_ptr_);
     op_format_dtype_judge_ptr_->Initialize();
   }
 
   void TearDown() {}
 
-  static fe::Status AddSubgraphInstance(ge::NodePtr funtion_node_ptr,
-                                        const int &sub_index,
+  static fe::Status AddSubgraphInstance(ge::NodePtr funtion_node_ptr, const int &sub_index,
                                         const std::string &sub_name) {
     FE_CHECK_NOTNULL(funtion_node_ptr);
     FE_CHECK_NOTNULL(funtion_node_ptr->GetOpDesc());
@@ -87,25 +87,18 @@ protected:
    */
   static ge::ComputeGraphPtr BuildIfSubGraph(const std::string &name) {
     ut::ComputeGraphBuilder builder(name);
-    auto data1 = builder.AddNode(name + "data1", fe::DATA, 1, 1, ge::FORMAT_ND,
-                                 ge::DT_FLOAT);
-    auto data2 = builder.AddNode(name + "data2", fe::DATA, 1, 1, ge::FORMAT_ND,
-                                 ge::DT_FLOAT);
-    auto add = builder.AddNode(name + "add1", "Add", 2, 1, ge::FORMAT_ND,
-                               ge::DT_FLOAT);
-    auto add123 = builder.AddNode(name + "add2", "Add123", 2, 1, ge::FORMAT_ND,
-                                  ge::DT_FLOAT);
-    auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 2, 2,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data1 = builder.AddNode(name + "data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data2 = builder.AddNode(name + "data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto add = builder.AddNode(name + "add1", "Add", 2, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto add123 = builder.AddNode(name + "add2", "Add123", 2, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 2, 2, ge::FORMAT_ND, ge::DT_FLOAT);
 
-    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
+    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
+    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(2));
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX,
+                          static_cast<int>(0));
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX,
                           static_cast<int>(1));
-    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
-                          static_cast<int>(2));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(0));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
 
     builder.AddDataEdge(data1, 0, add, 0);
     builder.AddDataEdge(data2, 0, add, 1);
@@ -125,24 +118,17 @@ protected:
    */
   static ge::ComputeGraphPtr BuildContainIfSubGraph(ComputeGraphPtr main_graph, const std::string &name) {
     ut::ComputeGraphBuilder builder(name);
-    auto condition = builder.AddNode(name + "condition", fe::CONSTANT, 0, 1,
-                                 ge::FORMAT_ND, ge::DT_FLOAT);
-    auto data1 = builder.AddNode(name + "data1", fe::DATA, 1, 1, ge::FORMAT_ND,
-                                 ge::DT_FLOAT);
-    auto data2 = builder.AddNode(name + "data2", fe::DATA, 1, 1, ge::FORMAT_ND,
-                                 ge::DT_FLOAT);
-    auto if2 =
-        builder.AddNode(name + "if2", "If", 3, 2, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 2, 2,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
-    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
+    auto condition = builder.AddNode(name + "condition", fe::CONSTANT, 0, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data1 = builder.AddNode(name + "data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data2 = builder.AddNode(name + "data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto if2 = builder.AddNode(name + "if2", "If", 3, 2, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 2, 2, ge::FORMAT_ND, ge::DT_FLOAT);
+    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
+    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(2));
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX,
+                          static_cast<int>(0));
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX,
                           static_cast<int>(1));
-    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
-                          static_cast<int>(2));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(0));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
 
     builder.AddDataEdge(condition, 0, if2, 0);
     builder.AddDataEdge(data1, 0, if2, 1);
@@ -156,10 +142,8 @@ protected:
     return sub_graph;
   }
 
-  static void AddIfSubGraph(ge::ComputeGraphPtr main_graph,
-                            ge::ComputeGraphPtr parent_graph,
-                            const std::string &fuction_name,
-                            const vector<std::string> &sub_names) {
+  static void AddIfSubGraph(ge::ComputeGraphPtr main_graph, ge::ComputeGraphPtr parent_graph,
+                            const std::string &fuction_name, const vector<std::string> &sub_names) {
     ge::NodePtr funtion_node_ptr = parent_graph->FindNode(fuction_name);
     for (int i = 0; i != sub_names.size(); ++i) {
       string sub_name = sub_names[i];
@@ -182,20 +166,14 @@ protected:
    */
   static ge::ComputeGraphPtr BuildMainGraphWithIf() {
     ut::ComputeGraphBuilder builder("main_graph");
-    auto data1 =
-        builder.AddNode("data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto data2 =
-        builder.AddNode("data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto condition = builder.AddNode("condition", fe::CONSTANT, 0, 1,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
-    auto square =
-        builder.AddNode("square", "Square", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto square123 = builder.AddNode("square123", "Square123", 1, 1,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data1 = builder.AddNode("data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data2 = builder.AddNode("data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto condition = builder.AddNode("condition", fe::CONSTANT, 0, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto square = builder.AddNode("square", "Square", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto square123 = builder.AddNode("square123", "Square123", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
 
     auto if1 = builder.AddNode("if", "If", 3, 2, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto netoutput1 = builder.AddNode("netoutput", fe::NETOUTPUT, 2, 2,
-                                      ge::FORMAT_ND, ge::DT_FLOAT);
+    auto netoutput1 = builder.AddNode("netoutput", fe::NETOUTPUT, 2, 2, ge::FORMAT_ND, ge::DT_FLOAT);
 
     builder.AddDataEdge(condition, 0, if1, 0);
     builder.AddDataEdge(data1, 0, square, 0);
@@ -223,20 +201,14 @@ protected:
    */
   static ge::ComputeGraphPtr BuildMainGraphWithIfContainIf() {
     ut::ComputeGraphBuilder builder("main_graph");
-    auto condition1 = builder.AddNode("condition1", fe::CONSTANT, 0, 1,
-                                      ge::FORMAT_ND, ge::DT_FLOAT);
-    auto data1 =
-        builder.AddNode("data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto data2 =
-        builder.AddNode("data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto square =
-        builder.AddNode("square", "Square", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto square123 = builder.AddNode("square123", "Square123", 1, 1,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
+    auto condition1 = builder.AddNode("condition1", fe::CONSTANT, 0, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data1 = builder.AddNode("data1", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto data2 = builder.AddNode("data2", fe::DATA, 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto square = builder.AddNode("square", "Square", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
+    auto square123 = builder.AddNode("square123", "Square123", 1, 1, ge::FORMAT_ND, ge::DT_FLOAT);
 
     auto if1 = builder.AddNode("if1", "If", 3, 2, ge::FORMAT_ND, ge::DT_FLOAT);
-    auto netoutput = builder.AddNode("netoutput", "netoutput", 2, 2,
-                                     ge::FORMAT_ND, ge::DT_FLOAT);
+    auto netoutput = builder.AddNode("netoutput", "netoutput", 2, 2, ge::FORMAT_ND, ge::DT_FLOAT);
 
     builder.AddDataEdge(condition1, 0, if1, 0);
     builder.AddDataEdge(data1, 0, square, 0);
@@ -280,10 +252,8 @@ protected:
     auto greater = builder.AddNode(name + "greater", "Greater123", 2, 1);
     auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 1, 1);
 
-    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
-                          static_cast<int>(1));
-    ge::AttrUtils::SetInt(data3->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
-                          static_cast<int>(2));
+    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
+    ge::AttrUtils::SetInt(data3->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(2));
 
     builder.AddDataEdge(const1, 0, add, 0);
     builder.AddDataEdge(data3, 0, add, 1);
@@ -311,22 +281,18 @@ protected:
 
     auto add = builder.AddNode(name + "add", "Add", 2, 1);
     auto relu = builder.AddNode(name + "relu", "Relu123", 1, 1);
-    auto memcpy_async =
-        builder.AddNode(name + "memcpyAsync", "MemcpyAsync", 1, 1);
+    auto memcpy_async = builder.AddNode(name + "memcpyAsync", "MemcpyAsync", 1, 1);
     auto netoutput = builder.AddNode(name + "netoutput", fe::NETOUTPUT, 3, 3);
 
-    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
+    ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(0));
+    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
+    ge::AttrUtils::SetInt(data3->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(2));
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX,
                           static_cast<int>(0));
-    ge::AttrUtils::SetInt(data2->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), ge::ATTR_NAME_PARENT_NODE_INDEX,
                           static_cast<int>(1));
-    ge::AttrUtils::SetInt(data3->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,
+    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(2), ge::ATTR_NAME_PARENT_NODE_INDEX,
                           static_cast<int>(2));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(0));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(1));
-    ge::AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(2),
-                          ge::ATTR_NAME_PARENT_NODE_INDEX, static_cast<int>(2));
 
     builder.AddDataEdge(data1, 0, add, 0);
     builder.AddDataEdge(const1, 0, add, 1);
@@ -417,24 +383,20 @@ protected:
 
     // if.data1
     auto if_data1_input_desc = if_op_desc->GetInputDesc(1);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if_data1_input_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if_data1_input_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if_data1_input_desc.GetDataType(), if_data1_dtype);
 
     // if.data2
     auto if_data2_input_desc = if_op_desc->GetInputDesc(2);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if_data2_input_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if_data2_input_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if_data2_input_desc.GetDataType(), if_data2_dtype);
 
     // if.netoutput
     auto if_output_desc0 = if_op_desc->GetOutputDesc(0);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if_output_desc0, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if_output_desc0, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if_output_desc0.GetDataType(), if_output0_dtype);
     auto if_output_desc1 = if_op_desc->GetOutputDesc(1);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if_output_desc1, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if_output_desc1, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if_output_desc1.GetDataType(), if_output1_dtype);
 
     // subgraph
@@ -445,8 +407,7 @@ protected:
       FE_CHECK_NOTNULL(data1);
       FE_CHECK_NOTNULL(data1->GetOpDesc());
       auto data1_output_desc = data1->GetOpDesc()->GetOutputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(data1_output_desc.GetDataType(), if_data1_dtype);
 
       // data2
@@ -454,9 +415,7 @@ protected:
       FE_CHECK_NOTNULL(data2);
       FE_CHECK_NOTNULL(data2->GetOpDesc());
       auto data2_output_desc = data2->GetOpDesc()->GetOutputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(data2_output_desc,
-                                       ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(data2_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(data2_output_desc.GetDataType(), if_data2_dtype);
 
       // netoutput
@@ -465,12 +424,10 @@ protected:
       auto net_output_op_desc = netoutput->GetOpDesc();
       FE_CHECK_NOTNULL(net_output_op_desc);
       auto netoutput0 = net_output_op_desc->GetInputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(netoutput0,ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(netoutput0, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(netoutput0.GetDataType(), if_output0_dtype);
-      auto netoutput1 =net_output_op_desc->GetInputDesc(1);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(netoutput1,ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      auto netoutput1 = net_output_op_desc->GetInputDesc(1);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(netoutput1, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(netoutput1.GetDataType(), if_output1_dtype);
     }
     return fe::SUCCESS;
@@ -544,7 +501,7 @@ protected:
 
     auto cond_netoutput2 = cond_netoutput_opdesc->GetInputDesc(2);
     EXPECT_EQ(ge::AttrUtils::HasAttr(cond_netoutput2, ATTR_NAME_DTYPE_IS_UPDATED), !is_updated);
-    EXPECT_EQ(cond_netoutput2.GetDataType(),DT_FLOAT);
+    EXPECT_EQ(cond_netoutput2.GetDataType(), DT_FLOAT);
 
     // body subgraph
     auto body_subgraph = main_graph->GetSubgraph("sub2");
@@ -609,24 +566,20 @@ protected:
 
     // if1.data1
     auto if1_data1_input_desc = if1_op_desc->GetInputDesc(1);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_data1_input_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_data1_input_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_data1_input_desc.GetDataType(), if_data1_dtype);
 
     // if1.data2
     auto if1_data2_input_desc = if1_op_desc->GetInputDesc(2);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_data2_input_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_data2_input_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_data2_input_desc.GetDataType(), if_data2_dtype);
 
     // if1.netoutput
     auto if1_output_desc0 = if1_op_desc->GetOutputDesc(0);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_output_desc0, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_output_desc0, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_output_desc0.GetDataType(), if_output0_dtype);
     auto if1_output_desc1 = if1_op_desc->GetOutputDesc(1);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_output_desc1, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_output_desc1, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_output_desc1.GetDataType(), if_output1_dtype);
 
     // if1_sub1
@@ -637,8 +590,7 @@ protected:
     FE_CHECK_NOTNULL(if1_sub1_data1);
     FE_CHECK_NOTNULL(if1_sub1_data1->GetOpDesc());
     auto if1_sub1_data1_output_desc = if1_sub1_data1->GetOpDesc()->GetOutputDesc(0);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_sub1_data1_output_desc.GetDataType(), if_data1_dtype);
 
     // if1_sub1.data2
@@ -646,9 +598,7 @@ protected:
     FE_CHECK_NOTNULL(if1_sub1_data2);
     FE_CHECK_NOTNULL(if1_sub1_data2->GetOpDesc());
     auto if1_sub1_data2_output_desc = if1_sub1_data2->GetOpDesc()->GetOutputDesc(0);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_data2_output_desc,
-                                     ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_data2_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_sub1_data2_output_desc.GetDataType(), if_data2_dtype);
 
     // if1_sub1.netoutput
@@ -657,20 +607,18 @@ protected:
     auto if1_sub1_net_output_op_desc = if1_sub1_netoutput->GetOpDesc();
     FE_CHECK_NOTNULL(if1_sub1_net_output_op_desc);
     auto if1_sub1_netoutput0 = if1_sub1_net_output_op_desc->GetInputDesc(0);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_netoutput0,ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_netoutput0, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_sub1_netoutput0.GetDataType(), if_output0_dtype);
     auto if1_sub1_netoutput1 = if1_sub1_net_output_op_desc->GetInputDesc(1);
-    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_netoutput1,ATTR_NAME_DTYPE_IS_UPDATED),
-              is_updated);
+    EXPECT_EQ(ge::AttrUtils::HasAttr(if1_sub1_netoutput1, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
     EXPECT_EQ(if1_sub1_netoutput1.GetDataType(), if_output1_dtype);
 
     auto if1_sub2 = main_graph->GetSubgraph("if1_sub2");
     vector<ge::ComputeGraphPtr> all_subgraphs;
     all_subgraphs.push_back(if1_sub2);
-    auto if1_sub1_if2 = if1_sub1->FindNode(if1_sub1->GetName()+"if2");
+    auto if1_sub1_if2 = if1_sub1->FindNode(if1_sub1->GetName() + "if2");
     FE_CHECK_NOTNULL(if1_sub1_if2);
-    for(auto& subgraph:if1_sub1->GetAllSubgraphs()){
+    for (auto &subgraph : if1_sub1->GetAllSubgraphs()) {
       all_subgraphs.push_back(subgraph);
     }
 
@@ -681,8 +629,7 @@ protected:
       FE_CHECK_NOTNULL(sub_data1);
       FE_CHECK_NOTNULL(sub_data1->GetOpDesc());
       auto sub_data1_output_desc = sub_data1->GetOpDesc()->GetOutputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_data1_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(sub_data1_output_desc.GetDataType(), if_data1_dtype);
 
       // data2
@@ -690,9 +637,7 @@ protected:
       FE_CHECK_NOTNULL(sub_data2);
       FE_CHECK_NOTNULL(sub_data2->GetOpDesc());
       auto sub_data2_output_desc = sub_data2->GetOpDesc()->GetOutputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_data2_output_desc,
-                                       ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_data2_output_desc, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(sub_data2_output_desc.GetDataType(), if_data2_dtype);
 
       // netoutput
@@ -701,12 +646,10 @@ protected:
       auto sub_net_output_op_desc = sub_netoutput->GetOpDesc();
       FE_CHECK_NOTNULL(sub_net_output_op_desc);
       auto sub_netoutput0 = sub_net_output_op_desc->GetInputDesc(0);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_netoutput0,ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_netoutput0, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(sub_netoutput0.GetDataType(), if_output0_dtype);
       auto sub_netoutput1 = sub_net_output_op_desc->GetInputDesc(1);
-      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_netoutput1,ATTR_NAME_DTYPE_IS_UPDATED),
-                is_updated);
+      EXPECT_EQ(ge::AttrUtils::HasAttr(sub_netoutput1, ATTR_NAME_DTYPE_IS_UPDATED), is_updated);
       EXPECT_EQ(sub_netoutput1.GetDataType(), if_output1_dtype);
     }
     return fe::SUCCESS;

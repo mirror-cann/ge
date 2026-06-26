@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,24 +35,23 @@ constexpr int32_t kFileSizeOutLimitedOrOpenFailed = -1;
 /// The maximum length of the file.
 constexpr int32_t kMaxBuffSize = 256;
 constexpr size_t kMaxErrorStrLength = 128U;
-const std::string kPathValidReason =
-    "The path can only contain 'a-z' 'A-Z' '0-9' '-' '.' '_' and Chinese characters.";
+const std::string kPathValidReason = "The path can only contain 'a-z' 'A-Z' '0-9' '-' '.' '_' and Chinese characters.";
 constexpr uint32_t kChineseCodePointStart = 0x4E00U;
 constexpr uint32_t kChineseCodePointEnd = 0x9FA5U;
 
 void PathValidErrReport(const std::string &file_path, const std::string &atc_param, const std::string &reason) {
   if (!atc_param.empty()) {
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                              std::vector<const char *>({atc_param.c_str(), file_path.c_str(), reason.c_str()}));
+                                    std::vector<const char *>({atc_param.c_str(), file_path.c_str(), reason.c_str()}));
   } else {
     (void)REPORT_PREDEFINED_ERR_MSG("E13026", std::vector<const char *>({"pathname", "reason"}),
-                              std::vector<const char *>({file_path.c_str(), reason.c_str()}));
+                                    std::vector<const char *>({file_path.c_str(), reason.c_str()}));
   }
 }
 
 bool IsAllowedAsciiPathChar(const unsigned char ch) {
-  return (((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z')) ||
-          ((ch >= '0') && (ch <= '9')) || (ch == '.') || (ch == '/') || (ch == '_') || (ch == '-'));
+  return (((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z')) || ((ch >= '0') && (ch <= '9')) || (ch == '.') ||
+          (ch == '/') || (ch == '_') || (ch == '-'));
 }
 
 bool IsUtf8ContinuationByte(const unsigned char ch) {
@@ -179,7 +178,7 @@ bool ReadBytesFromBinaryFile(const char_t *const file_name, char_t **const buffe
   if (!file.is_open()) {
     GELOGE(ge::FAILED, "[Read][File]Failed, file %s", file_name);
     (void)REPORT_PREDEFINED_ERR_MSG("E13003", std::vector<const char *>({"file", "errmsg"}),
-                              std::vector<const char *>({file_name, "check the file path and permissions"}));
+                                    std::vector<const char *>({file_name, "check the file path and permissions"}));
     return false;
   }
 
@@ -191,7 +190,7 @@ bool ReadBytesFromBinaryFile(const char_t *const file_name, char_t **const buffe
   }
 
   (void)file.seekg(0, std::ios::beg);
-  
+
   *buffer = new (std::nothrow) char[static_cast<size_t>(length)]();
   if (*buffer == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to allocate buffer, size=%zu.", static_cast<size_t>(length));
@@ -214,7 +213,7 @@ std::string CurrentTimeInStr() {
     const std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
     GELOGE(ge::FAILED, "[Check][Param]Localtime incorrect, errmsg %s", err_msg);
     (void)REPORT_PREDEFINED_ERR_MSG("E10063", std::vector<const char *>({"interface", "reason"}),
-                              std::vector<const char *>({"localtime", reason.c_str()}));
+                                    std::vector<const char *>({"localtime", reason.c_str()}));
     return "";
   }
 
@@ -264,13 +263,14 @@ bool CheckInputPathValid(const std::string &file_path, const std::string &atc_pa
     if (!atc_param.empty()) {
       std::string para = atc_param;
       RemoveDoubleHyphen(para);
-      (void)REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char *>({"parameter"}), std::vector<const char *>({para.c_str()}));
+      (void)REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char *>({"parameter"}),
+                                      std::vector<const char *>({para.c_str()}));
     } else {
       char_t err_buf[kMaxErrorStrLength + 1U] = {};
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
       std::string reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
       (void)REPORT_PREDEFINED_ERR_MSG("E13000", std::vector<const char *>({"path", "errmsg"}),
-                                std::vector<const char *>({file_path.c_str(), reason.c_str()}));
+                                      std::vector<const char *>({file_path.c_str(), reason.c_str()}));
     }
     GELOGW("Input parameter %s is empty.", file_path.c_str());
     return false;
@@ -314,10 +314,11 @@ bool CheckOutputPathValid(const std::string &file_path, const std::string &atc_p
   // The specified path is empty
   if (file_path.empty()) {
     if (!atc_param.empty()) {
-      (void)REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char_t *>({"parameter"}), std::vector<const char_t *>({atc_param.c_str()}));
+      (void)REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char_t *>({"parameter"}),
+                                      std::vector<const char_t *>({atc_param.c_str()}));
     } else {
       (void)REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
-                                std::vector<const char *>({"file_path"}));
+                                      std::vector<const char *>({"file_path"}));
     }
     GELOGW("Input parameter's value is empty.");
     return false;
@@ -346,7 +347,7 @@ bool CheckOutputPathValid(const std::string &file_path, const std::string &atc_p
   if (!real_path.empty()) {
     // File is not readable or writable
     if (mmAccess2(real_path.c_str(),
-        static_cast<int32_t>(static_cast<uint32_t>(M_W_OK) | static_cast<uint32_t>(M_F_OK))) != EN_OK) {
+                  static_cast<int32_t>(static_cast<uint32_t>(M_W_OK) | static_cast<uint32_t>(M_F_OK))) != EN_OK) {
       char_t err_buf[kMaxErrorStrLength + 1U] = {};
       const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
       const auto reason = FormatErrnoReason(mmGetErrorCode(), err_msg);
@@ -458,11 +459,11 @@ Status ConvertToInt64(const std::string &str, int64_t &val) {
     val = std::stoll(str);
   } catch (std::invalid_argument &) {
     GELOGE(FAILED, "[Parse][Param]Failed, digit str:%s is invalid", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
     return FAILED;
   } catch (std::out_of_range &) {
     GELOGE(FAILED, "[Parse][Param]Failed, digit str:%s cannot change to int", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to int", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to int", str.c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -473,11 +474,11 @@ Status ConvertToUint64(const std::string &str, uint64_t &val) {
     val = std::stoull(str);
   } catch (std::invalid_argument &) {
     GELOGE(FAILED, "[Parse][Param]Failed, digit str:%s is invalid", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
     return FAILED;
   } catch (std::out_of_range &) {
     GELOGE(FAILED, "[Parse][Param]Failed, digit str:%s cannot change to uint64 result of out of range", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to uint64", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to uint64", str.c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -536,10 +537,11 @@ void ParseOutputReuseInputMemIndexes(const std::string &reuse_indexes_str,
     const std::string input_idx_str = pair_str.substr(0, comma_pos);
     const std::string output_idx_str = pair_str.substr(comma_pos + 1);
     // 4. 校验负数
-    if (input_idx_str.find('-') != std::string::npos ||
-        output_idx_str.find('-') != std::string::npos) {
-      GELOGW("[Parse][Option] Invalid negative index in ge.exec.outputReuseInputMemIndexes: '%s'. "
-             "Indexes must be non-negative.", reuse_indexes_str.c_str());
+    if (input_idx_str.find('-') != std::string::npos || output_idx_str.find('-') != std::string::npos) {
+      GELOGW(
+          "[Parse][Option] Invalid negative index in ge.exec.outputReuseInputMemIndexes: '%s'. "
+          "Indexes must be non-negative.",
+          reuse_indexes_str.c_str());
       continue;
     }
     try {
@@ -547,15 +549,17 @@ void ParseOutputReuseInputMemIndexes(const std::string &reuse_indexes_str,
       const size_t output_idx = static_cast<size_t>(std::stoul(output_idx_str));
       io_same_addr_pairs.emplace_back(input_idx, output_idx);
     } catch (...) {
-      GELOGW("[Parse][Option] Invalid index in ge.exec.outputReuseInputMemIndexes: '%s'. "
-             "Indexes must be non-negative integers.", reuse_indexes_str.c_str());
+      GELOGW(
+          "[Parse][Option] Invalid index in ge.exec.outputReuseInputMemIndexes: '%s'. "
+          "Indexes must be non-negative integers.",
+          reuse_indexes_str.c_str());
     }
   }
 }
 
 Status CheckIoReuseAddrPairs(const std::vector<std::pair<size_t, size_t>> &io_same_addr_pairs,
-                             const AddrGetter& get_input_addr, size_t input_num,
-                             const AddrGetter& get_output_addr, size_t output_num) {
+                             const AddrGetter &get_input_addr, size_t input_num, const AddrGetter &get_output_addr,
+                             size_t output_num) {
   GELOGD("Start to check io reuse addr pairs, io_same_addr_pairs count: %zu, input num: %zu, output num: %zu",
          io_same_addr_pairs.size(), input_num, output_num);
   for (const auto &pair : io_same_addr_pairs) {
@@ -563,13 +567,15 @@ Status CheckIoReuseAddrPairs(const std::vector<std::pair<size_t, size_t>> &io_sa
     const size_t output_idx = pair.second;
 
     if (input_idx >= input_num) {
-      GELOGE(ge::PARAM_INVALID, "[Check][Param] Input index %zu out of range, input_num is %zu, addr reuse check not pass",
-             input_idx, input_num);
+      GELOGE(ge::PARAM_INVALID,
+             "[Check][Param] Input index %zu out of range, input_num is %zu, addr reuse check not pass", input_idx,
+             input_num);
       return ge::PARAM_INVALID;
     }
     if (output_idx >= output_num) {
-      GELOGE(ge::PARAM_INVALID, "[Check][Param] Output index %zu out of range, output_num is %zu, addr reuse check not pass",
-             output_idx, output_num);
+      GELOGE(ge::PARAM_INVALID,
+             "[Check][Param] Output index %zu out of range, output_num is %zu, addr reuse check not pass", output_idx,
+             output_num);
       return ge::PARAM_INVALID;
     }
 
@@ -577,7 +583,8 @@ Status CheckIoReuseAddrPairs(const std::vector<std::pair<size_t, size_t>> &io_sa
     const void *output_addr = get_output_addr(output_idx);
 
     if (output_addr != input_addr) {
-      GELOGE(ge::PARAM_INVALID, "[Check][Param] Output[%zu] address(%p) must be same as Input[%zu] address(%p) because the option "
+      GELOGE(ge::PARAM_INVALID,
+             "[Check][Param] Output[%zu] address(%p) must be same as Input[%zu] address(%p) because the option "
              "'ge.exec.outputReuseInputMemIndexes' is set with value containing '%zu,%zu', addr reuse check not pass",
              output_idx, output_addr, input_idx, input_addr, input_idx, output_idx);
       return ge::PARAM_INVALID;
@@ -588,32 +595,30 @@ Status CheckIoReuseAddrPairs(const std::vector<std::pair<size_t, size_t>> &io_sa
   return SUCCESS;
 }
 
-void PrintOptionsWithLengthLimit(const std::map<AscendString, AscendString> &options, 
-                                 const std::string &prefix,
+void PrintOptionsWithLengthLimit(const std::map<AscendString, AscendString> &options, const std::string &prefix,
                                  const size_t max_line_length) {
   std::map<std::string, std::string> str_options;
-  
+
   for (auto &option_item : options) {
     if (option_item.first.GetLength() == 0) {
       GELOGW("Option key is empty, skipping this option.");
       continue;
     }
-    
+
     const std::string &key = option_item.first.GetString();
     const std::string &val = option_item.second.GetString();
     str_options[key] = val;
   }
-  
+
   PrintOptionsWithLengthLimit(str_options, prefix, max_line_length);
 }
- 
-void PrintOptionsWithLengthLimit(const std::map<std::string, std::string> &options, 
-                                 const std::string &prefix,
+
+void PrintOptionsWithLengthLimit(const std::map<std::string, std::string> &options, const std::string &prefix,
                                  const size_t max_line_length) {
   for (const auto &item : options) {
     const std::string &key = item.first;
     const std::string &value = item.second;
-    
+
     if (value.length() > max_line_length) {
       GELOGI("[option]%s: %s, value: [%s].", prefix.c_str(), key.c_str(), value.substr(0, max_line_length).c_str());
       for (size_t i = max_line_length; i < value.length(); i += max_line_length) {

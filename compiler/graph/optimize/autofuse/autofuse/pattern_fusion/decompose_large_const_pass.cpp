@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ constexpr const char_t *kFuseTypeExtern = "extern";
 bool CheckDstFuseTypes(const NodePtr &node) {
   std::vector<std::string> dst_fuse_types;
   for (const auto &dst_node : node->GetOutDataNodes()) {
-    (void) LoweringManager::Lowering(dst_node);
+    (void)LoweringManager::Lowering(dst_node);
     const auto node_out_anchor = dst_node->GetOutDataAnchor(0);
     const auto node_kernel_box = loop::GetKernelBox(node_out_anchor);
     const auto &fuse_type = FuseTypeToString(node_kernel_box.Type());

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@
 namespace ge {
 class HeterogeneousExecutionRuntime : public ExecutionRuntime {
  public:
-  static HeterogeneousExecutionRuntime& GetInstance() {
+  static HeterogeneousExecutionRuntime &GetInstance() {
     static HeterogeneousExecutionRuntime instance;
     return instance;
   }
@@ -33,6 +33,7 @@ class HeterogeneousExecutionRuntime : public ExecutionRuntime {
   ExchangeService &GetExchangeService() override;
   const std::string &GetCompileHostResourceType() const override;
   const std::map<std::string, std::string> &GetCompileDeviceInfo() const override;
+
  private:
   void RollbackInit() const;
   Status InitializeInner(const std::map<std::string, std::string> &options);
@@ -51,7 +52,7 @@ Status HeterogeneousExecutionRuntime::InitializeInner(const std::map<std::string
   GE_CHK_STATUS_RET_NOLOG(Configurations::GetInstance().InitInformation());
   GE_CHK_STATUS_RET_NOLOG(SubprocessManager::GetInstance().Initialize());
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufInit());
-  (void) MemoryGroupManager::GetInstance().Initialize(Configurations::GetInstance().GetLocalNode());
+  (void)MemoryGroupManager::GetInstance().Initialize(Configurations::GetInstance().GetLocalNode());
   GE_CHK_STATUS_RET(HeterogeneousExchangeService::GetInstance().Initialize(0), "Failed to init model deployer");
   GE_CHK_STATUS_RET(model_deployer_.Initialize(options), "Failed to init model deployer");
   GE_CHK_STATUS_RET(NumaConfigManager::InitNumaConfig(), "Failed to init numa config");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,23 +42,16 @@ const std::string kOpsCpuPathPrefix = "opp/built-in/";
 const std::string kOpsCpuPathPrefixOld = "/ops/built-in/";
 const std::string kCustAicpuPathPrefix = "vendors/config.ini";
 const std::string kCustAicpuPathPrefixOld = "ops/vendors/";
-constexpr const char *kCustKernelSoPathBasedOnEnv =
-    "op_impl/custom/cpu/aicpu_kernel/custom_impl/";
-constexpr const char *kLibCpuKernelsSoPathBasedOnEnv =
-    "opp/op_impl/built-in/aicpu/aicpu_kernel/lib/";
-constexpr const char *kCustKernelSoPathNew =
-    "/op_impl/cpu/aicpu_kernel/impl/";
-constexpr const char *kLibCpuKernelsSoPathBasedOnEnvNew =
-    "opp/built-in/op_impl/aicpu/aicpu_kernel/lib/";
+constexpr const char *kCustKernelSoPathBasedOnEnv = "op_impl/custom/cpu/aicpu_kernel/custom_impl/";
+constexpr const char *kLibCpuKernelsSoPathBasedOnEnv = "opp/op_impl/built-in/aicpu/aicpu_kernel/lib/";
+constexpr const char *kCustKernelSoPathNew = "/op_impl/cpu/aicpu_kernel/impl/";
+constexpr const char *kLibCpuKernelsSoPathBasedOnEnvNew = "opp/built-in/op_impl/aicpu/aicpu_kernel/lib/";
 constexpr const char *kLibCpuKernelsSoName = "libcpu_kernels.so";
 constexpr const char *kLibAicpuKernelsSoName = "libaicpu_kernels.so";
 constexpr const char *kLibPtKernelsSoName = "libpt_kernels.so";
-constexpr const char *kCustomKernelSoRelativePath =
-    "/ops/op_impl/custom/cpu/aicpu_kernel/custom_impl/";
-constexpr const char *kCpuKernelsSoRelativePath =
-    "/ops/op_impl/built-in/aicpu/aicpu_kernel/lib/";
-constexpr const char *kCpuKernelsSoRelativePathNew =
-    "op_impl/aicpu/aicpu_kernel/lib/";
+constexpr const char *kCustomKernelSoRelativePath = "/ops/op_impl/custom/cpu/aicpu_kernel/custom_impl/";
+constexpr const char *kCpuKernelsSoRelativePath = "/ops/op_impl/built-in/aicpu/aicpu_kernel/lib/";
+constexpr const char *kCpuKernelsSoRelativePathNew = "op_impl/aicpu/aicpu_kernel/lib/";
 constexpr const char *kAscendAicpuPathEnvName = "ASCEND_AICPU_PATH";
 // load libcpu_kernels.so in model
 constexpr uint64_t kLoadTypeForCpuKernelsInModel = 1;
@@ -94,8 +87,7 @@ ge::Status CpuOptimizer::Initialize() {
   Optimizer::InitOpCheckMode();
 
   std::string soc_version;
-  if (ge::GetContext().GetOption(ge::SOC_VERSION, soc_version) ==
-      ge::GRAPH_SUCCESS) {
+  if (ge::GetContext().GetOption(ge::SOC_VERSION, soc_version) == ge::GRAPH_SUCCESS) {
     AICPUE_LOGI("Get soc version [%s] success.", soc_version.c_str());
   } else {
     AICPUE_LOG_RUN_INFO("Get soc version abnormal. Please check!");
@@ -105,8 +97,7 @@ ge::Status CpuOptimizer::Initialize() {
   return ge::SUCCESS;
 }
 
-void CpuOptimizer::CheckAndSetSocVersion(
-    const std::string &soc_version_from_ge) const {
+void CpuOptimizer::CheckAndSetSocVersion(const std::string &soc_version_from_ge) const {
   if (soc_version_from_ge.find("Ascend310P") == 0) {
     g_soc_version = "Ascend310P";
   } else if (soc_version_from_ge.find("Ascend310") == 0) {
@@ -116,18 +107,15 @@ void CpuOptimizer::CheckAndSetSocVersion(
   } else if (soc_version_from_ge.find("Ascend710") == 0) {
     g_soc_version = "Ascend710";
   } else {
-    AICPUE_LOG_RUN_INFO("Check soc version [%s] abnormal, Please check!",
-                        soc_version_from_ge.c_str());
+    AICPUE_LOG_RUN_INFO("Check soc version [%s] abnormal, Please check!", soc_version_from_ge.c_str());
   }
 }
 
-void CpuOptimizer::SetCustUserInfos(map<std::string, std::string> info)
-{
+void CpuOptimizer::SetCustUserInfos(map<std::string, std::string> info) {
   cust_user_infos_ = info;
 }
 
-void CpuOptimizer::GetCustUserInfos(map<std::string, std::string> &info) const
-{
+void CpuOptimizer::GetCustUserInfos(map<std::string, std::string> &info) const {
   const std::lock_guard<std::mutex> lock(g_cust_mutex);
   info = cust_user_infos_;
 }
@@ -182,8 +170,7 @@ ge::Status CpuOptimizer::OptimizeOriginalGraph(ge::ComputeGraph &graph,
 }
 
 void CpuOptimizer::SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, const std::string &op_type,
-                                          const OpFullInfo &op_full_info,
-                                          const std::string &kernel_lib_name) const {
+                                          const OpFullInfo &op_full_info, const std::string &kernel_lib_name) const {
   std::string kernel_so = op_full_info.kernelSo;
   std::string func_name = op_full_info.functionName;
   bool async_flag = op_full_info.flagAsync;
@@ -195,8 +182,8 @@ void CpuOptimizer::SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, cons
   bool fused_optional_input_placeholder = op_full_info.optionalInputPlaceholder;
   if (fused_optional_input_placeholder) {
     (void)ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, fused_optional_input_placeholder);
-    AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.",
-                kOptionalInputPlaceholder.c_str(), op_desc_ptr->GetName().c_str());
+    AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.", kOptionalInputPlaceholder.c_str(),
+                op_desc_ptr->GetName().c_str());
   }
   bool user_defined = op_full_info.userDefined;
   if (kernel_lib_name != kHostCpuKernelInfoChoice) {
@@ -219,8 +206,7 @@ void CpuOptimizer::SetFusedOpInfoToOpDesc(const ge::OpDescPtr &op_desc_ptr, cons
   return;
 }
 
-ge::Status CpuOptimizer::BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node,
-                                                      const ge::OpDescPtr &op_desc_ptr,
+ge::Status CpuOptimizer::BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node, const ge::OpDescPtr &op_desc_ptr,
                                                       bool &is_ffts_plus) const {
   FftsPlusInfo ffts_info;
   if (GetAicpuFftsPlusInfo(op_desc_ptr, ffts_info) == ge::SUCCESS) {
@@ -242,8 +228,8 @@ ge::Status CpuOptimizer::BuildAndSetFusedAicpuNodeDef(const ge::NodePtr &node,
   return ge::SUCCESS;
 }
 
-ge::Status CpuOptimizer::OptimizeFusedGraph(
-    ge::ComputeGraph &graph, const std::map<string, OpFullInfo> &all_op_info) const {
+ge::Status CpuOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph,
+                                            const std::map<string, OpFullInfo> &all_op_info) const {
   ge::TraceManager::GetInstance().SetTraceOwner(kModuleName, kTraceCpuFusedOptimizer, graph.GetName());
   uint32_t graph_id = 0;
   bool exist_graph_id = true;
@@ -259,29 +245,26 @@ ge::Status CpuOptimizer::OptimizeFusedGraph(
     AICPU_CHECK_NOTNULL(op_desc_ptr)
     std::string op_type = op_desc_ptr->GetType();
     AICPU_IF_BOOL_EXEC(((op_type == kPlaceholderOpType) || (op_type == kEndOpType)),
-        AICPUE_LOGD("Current op type is [%s]. Don't need to fuse.", op_type.c_str());
-        continue)
+                       AICPUE_LOGD("Current op type is [%s]. Don't need to fuse.", op_type.c_str());
+                       continue)
     // if op type is framework_op, get original op
     AICPU_IF_BOOL_EXEC((op_type == kFrameworkOp), AICPU_CHECK_RES(GetFrameworkOpType(op_desc_ptr, op_type)))
 
     // now only fuse aicpu op
-    std::string kernel_lib_name =
-        GetKernelLibNameByOpType(op_type, all_op_info);
-    if ((kernel_lib_name != kAicpuKernelInfoChoice) &&
-        (kernel_lib_name != kCustAicpuKernelInfoChoice) &&
+    std::string kernel_lib_name = GetKernelLibNameByOpType(op_type, all_op_info);
+    if ((kernel_lib_name != kAicpuKernelInfoChoice) && (kernel_lib_name != kCustAicpuKernelInfoChoice) &&
         (kernel_lib_name != kHostCpuKernelInfoChoice)) {
       continue;
     }
     auto iter = all_op_info.find(op_type);
     AICPU_IF_BOOL_EXEC(iter == all_op_info.end(),
-                       AICPU_REPORT_INNER_ERR_MSG("Can't find op type[%s] in op info store, op[%s].",
-                           op_type.c_str(), node->GetName().c_str());
+                       AICPU_REPORT_INNER_ERR_MSG("Can't find op type[%s] in op info store, op[%s].", op_type.c_str(),
+                                                  node->GetName().c_str());
                        return ErrorCode::CREATE_NODEDEF_FAILED)
     OpFullInfo op_full_info = iter->second;
     SetFusedOpInfoToOpDesc(op_desc_ptr, op_type, op_full_info, kernel_lib_name);
-    AICPU_CHECK_RES_WITH_LOG(
-        CheckAndSetUnknowType(op_desc_ptr, all_op_info),
-        "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
+    AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(op_desc_ptr, all_op_info),
+                             "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
     if (kernel_lib_name != kHostCpuKernelInfoChoice) {
       AICPU_CHECK_RES(SetCustKernelBinFile(op_desc_ptr, all_op_info, graph_id, exist_graph_id))
     }
@@ -298,18 +281,16 @@ ge::Status CpuOptimizer::OptimizeFusedGraph(
   return ge::SUCCESS;
 }
 
-ge::Status CpuOptimizer::SetCustKernelBinFile(
-    ge::OpDescPtr op_desc_ptr,
-    const std::map<std::string, OpFullInfo> &all_op_info, uint32_t graph_id,
-    bool exist_graph_id) const {
+ge::Status CpuOptimizer::SetCustKernelBinFile(ge::OpDescPtr op_desc_ptr,
+                                              const std::map<std::string, OpFullInfo> &all_op_info, uint32_t graph_id,
+                                              bool exist_graph_id) const {
   const std::string op_type = op_desc_ptr->GetType();
   OpFullInfo op_full_info;
   auto iter = all_op_info.find(op_type);
-  AICPU_IF_BOOL_EXEC(
-      iter == all_op_info.end(),
-      AICPU_REPORT_INNER_ERR_MSG("cannot find op type[%s] for op[%s].",
-                               op_type.c_str(), op_desc_ptr->GetName().c_str());
-      return ErrorCode::NONE_KERNELINFOSTORE)
+  AICPU_IF_BOOL_EXEC(iter == all_op_info.end(),
+                     AICPU_REPORT_INNER_ERR_MSG("cannot find op type[%s] for op[%s].", op_type.c_str(),
+                                                op_desc_ptr->GetName().c_str());
+                     return ErrorCode::NONE_KERNELINFOSTORE)
   op_full_info = iter->second;
 
   std::string cust_kernel_so_real_path;
@@ -317,16 +298,12 @@ ge::Status CpuOptimizer::SetCustKernelBinFile(
     return ge::SUCCESS;
   }
   AICPUE_LOGI("cust so real path is %s.", cust_kernel_so_real_path.c_str());
+  AICPU_IF_BOOL_EXEC(cust_kernel_so_real_path.empty(),
+                     AICPU_REPORT_INNER_ERR_MSG("Get cust kernel so real path failed.");
+                     return ErrorCode::STR_IS_EMPTY);
   AICPU_IF_BOOL_EXEC(
-      cust_kernel_so_real_path.empty(),
-      AICPU_REPORT_INNER_ERR_MSG("Get cust kernel so real path failed.");
-      return ErrorCode::STR_IS_EMPTY);
-  AICPU_IF_BOOL_EXEC(
-      (!PackageBinFile(op_desc_ptr, cust_kernel_so_real_path, op_full_info,
-                       graph_id, exist_graph_id)),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call PackageBinFile function failed, op[%s].",
-          op_desc_ptr->GetName().c_str());
+      (!PackageBinFile(op_desc_ptr, cust_kernel_so_real_path, op_full_info, graph_id, exist_graph_id)),
+      AICPU_REPORT_INNER_ERR_MSG("Call PackageBinFile function failed, op[%s].", op_desc_ptr->GetName().c_str());
       return ErrorCode::PACKAGE_BIN_FILE);
   return ge::SUCCESS;
 }
@@ -340,8 +317,7 @@ bool CpuOptimizer::isVendorCustPathEmpty(const std::string &path) const {
   struct dirent *entry = nullptr;
   while ((entry = readdir(dir)) != nullptr) {
     if (entry->d_name[0] == '.' &&
-       (entry->d_name[1] == '\0' ||
-       (entry->d_name[1] == '.' && entry->d_name[DOT_THIRD_CHAR_NUM] == '\0'))) {
+        (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[DOT_THIRD_CHAR_NUM] == '\0'))) {
       continue;
     }
     (void)closedir(dir);
@@ -395,14 +371,14 @@ const string CpuOptimizer::GetCustKernelSoPath(const std::string op_type) const 
       }
     }
   }
-  
+
   AICPUE_LOGI("after all path check cust so real path is %s.", cust_kernel_so_real_path.c_str());
   return cust_kernel_so_real_path;
 }
 
 const std::string CpuOptimizer::GetCpuKernelSoPath() const {
   std::string cpu_kernel_so_real_path;
-  const char* path_env = nullptr;
+  const char *path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_AICPU_PATH, path_env);
   if (path_env != nullptr) {
     std::string path = std::string(path_env);
@@ -433,27 +409,21 @@ const std::string CpuOptimizer::GetCpuKernelSoPath() const {
   return cpu_kernel_so_real_path;
 }
 
-bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr,
-                                  const std::string &bin_folder_path,
-                                  const OpFullInfo &op_full_info,
-                                  uint32_t graph_id,
-                                  bool exist_graph_id) const {
+bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr, const std::string &bin_folder_path,
+                                  const OpFullInfo &op_full_info, uint32_t graph_id, bool exist_graph_id) const {
   std::string bin_file_name;
   AICPUE_LOGI("Save so name [%s] and graph id [%u] success.", bin_file_name.c_str(), graph_id);
-  if (GetBinFileName(op_full_info, bin_folder_path, bin_file_name) !=
-      ge::SUCCESS) {
+  if (GetBinFileName(op_full_info, bin_folder_path, bin_file_name) != ge::SUCCESS) {
     AICPU_REPORT_INNER_ERR_MSG("Call GetBinFileName failed.");
     return false;
   }
 
   if (exist_graph_id) {
     std::lock_guard<std::mutex> so_in_graph_set_mutex(g_so_in_graph_set_mutex);
-    std::pair<uint32_t, std::string> pair =
-        std::make_pair(graph_id, bin_file_name);
+    std::pair<uint32_t, std::string> pair = std::make_pair(graph_id, bin_file_name);
     auto iter = g_so_in_graph_set.find(pair);
     if (iter != g_so_in_graph_set.end()) {
-      AICPUE_LOGI("So [%s] already exists in current sub graph [%u].",
-                  bin_file_name.c_str(), graph_id);
+      AICPUE_LOGI("So [%s] already exists in current sub graph [%u].", bin_file_name.c_str(), graph_id);
       // kernel_so need refresh to real name for libcpu_kernels_${version}.so
       (void)ge::AttrUtils::SetStr(op_desc_ptr, "kernelSo", bin_file_name);
       (void)ge::AttrUtils::SetBool(op_desc_ptr, kCustAicpuFlag, true);
@@ -464,12 +434,11 @@ bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr,
   }
 
   std::string bin_file_path = bin_folder_path;
-  AICPU_IF_BOOL_EXEC(
-      (bin_file_name.empty() || bin_file_path.empty()),
-      AICPU_REPORT_INNER_ERR_MSG("bin file name[%s] or bin file path[%s] is "
-                               "empty. please check json file.",
-                               bin_file_name.c_str(), bin_file_path.c_str());
-      return false);
+  AICPU_IF_BOOL_EXEC((bin_file_name.empty() || bin_file_path.empty()),
+                     AICPU_REPORT_INNER_ERR_MSG("bin file name[%s] or bin file path[%s] is "
+                                                "empty. please check json file.",
+                                                bin_file_name.c_str(), bin_file_path.c_str());
+                     return false);
 
   if (bin_file_path[bin_file_path.size() - 1] != '/') {
     bin_file_path.append("/");
@@ -489,14 +458,10 @@ bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr,
 
   std::string key = op_desc_ptr->GetName();
 
-  ge::OpKernelBinPtr cust_aicpu_kernel_ptr =
-      std::make_shared<ge::OpKernelBin>(key, move(buffer));
-  AICPU_IF_BOOL_EXEC(
-      cust_aicpu_kernel_ptr == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("Create OpKernelBin object failed.");
-      return false);
-  op_desc_ptr->SetExtAttr(ge::OP_EXTATTR_CUSTAICPU_KERNEL,
-                          cust_aicpu_kernel_ptr);
+  ge::OpKernelBinPtr cust_aicpu_kernel_ptr = std::make_shared<ge::OpKernelBin>(key, move(buffer));
+  AICPU_IF_BOOL_EXEC(cust_aicpu_kernel_ptr == nullptr, AICPU_REPORT_INNER_ERR_MSG("Create OpKernelBin object failed.");
+                     return false);
+  op_desc_ptr->SetExtAttr(ge::OP_EXTATTR_CUSTAICPU_KERNEL, cust_aicpu_kernel_ptr);
   // kernel_so need refresh to real name for libcpu_kernels_${version}.so
   (void)ge::AttrUtils::SetStr(op_desc_ptr, "kernelSo", bin_file_name);
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kCustAicpuFlag, true);
@@ -508,8 +473,7 @@ bool CpuOptimizer::PackageBinFile(ge::OpDescPtr op_desc_ptr,
 void CpuOptimizer::InitLoadCpuKernelsType() {
   // get load_type_for_cpu_kernels from config file.
   std::string load_type_for_cpu_kernels;
-  if (ConfigFile::GetInstance().GetValue(kLoadCpuKernelsInModel,
-                                         load_type_for_cpu_kernels)) {
+  if (ConfigFile::GetInstance().GetValue(kLoadCpuKernelsInModel, load_type_for_cpu_kernels)) {
     uint64_t result = kDefaultLoadTypeForCpuKernels;
     if (StringToNum(load_type_for_cpu_kernels, result).state != ge::SUCCESS) {
       AICPUE_LOGW(
@@ -520,26 +484,22 @@ void CpuOptimizer::InitLoadCpuKernelsType() {
     }
     // if load_type_for_cpu_kernels from config file is not 0 or 1, print
     // warning log.
-    if ((result != kLoadTypeForCpuKernelsInModel) &&
-        (result != kLoadTypeForCpuKernelsInPkg)) {
-      AICPUE_LOGW("load_type_for_cpu_kernels is [%s], default value is [%lu].",
-                  load_type_for_cpu_kernels.c_str(),
+    if ((result != kLoadTypeForCpuKernelsInModel) && (result != kLoadTypeForCpuKernelsInPkg)) {
+      AICPUE_LOGW("load_type_for_cpu_kernels is [%s], default value is [%lu].", load_type_for_cpu_kernels.c_str(),
                   kDefaultLoadTypeForCpuKernels);
       return;
     }
     load_type_for_cpu_kernels_ = result;
     return;
   }
-  AICPUE_LOGW(
-      "Get OpFusionMinNum from config file failed. default value is 2.");
+  AICPUE_LOGW("Get OpFusionMinNum from config file failed. default value is 2.");
 }
 
-bool CpuOptimizer::CheckSoNeedLoadInModel(const OpFullInfo &op_full_info,
-                                          std::string &file_path, const std::string op_type) const {
+bool CpuOptimizer::CheckSoNeedLoadInModel(const OpFullInfo &op_full_info, std::string &file_path,
+                                          const std::string op_type) const {
   // only user defined kernels and libcpu_kernels.so and libpt_kernels.so
   // perhaps load in model
-  if ((!op_full_info.userDefined) &&
-      (op_full_info.kernelSo != kLibCpuKernelsSoName) &&
+  if ((!op_full_info.userDefined) && (op_full_info.kernelSo != kLibCpuKernelsSoName) &&
       (op_full_info.kernelSo != kLibPtKernelsSoName)) {
     return false;
   }
@@ -559,8 +519,7 @@ bool CpuOptimizer::CheckSoNeedLoadInModel(const OpFullInfo &op_full_info,
   return true;
 }
 
-ge::Status CpuOptimizer::GetBinFileName(const OpFullInfo &op_full_info,
-                                        const std::string &bin_folder_path,
+ge::Status CpuOptimizer::GetBinFileName(const OpFullInfo &op_full_info, const std::string &bin_folder_path,
                                         std::string &bin_file_name) const {
   // get so name for user defined kernels from json config file
   std::string kernel_so = op_full_info.kernelSo;
@@ -569,31 +528,26 @@ ge::Status CpuOptimizer::GetBinFileName(const OpFullInfo &op_full_info,
     return ge::SUCCESS;
   }
 
-  std::lock_guard<std::mutex> so_with_version_map_lock(
-      g_so_with_version_map_mutex);
+  std::lock_guard<std::mutex> so_with_version_map_lock(g_so_with_version_map_mutex);
   auto iter = g_so_with_version_map.find(kernel_so);
   if (iter != g_so_with_version_map.end()) {
     bin_file_name = iter->second;
-    AICPUE_LOGI("Kernel so name [%s] has been searched, real bin file name is [%s]",
-                kernel_so.c_str(), bin_file_name.c_str());
+    AICPUE_LOGI("Kernel so name [%s] has been searched, real bin file name is [%s]", kernel_so.c_str(),
+                bin_file_name.c_str());
     return ge::SUCCESS;
   }
 
   // realpath
   std::string folder_path = RealPath(bin_folder_path);
-  AICPU_IF_BOOL_EXEC(
-      folder_path.empty(),
-      AICPU_REPORT_INNER_ERR_MSG("Get realpath[%s] failed, [%s]",
-                               bin_folder_path.data(), strerror(errno));
-      return GET_BIN_FILE_NAME_FAILED)
+  AICPU_IF_BOOL_EXEC(folder_path.empty(), AICPU_REPORT_INNER_ERR_MSG("Get realpath[%s] failed, [%s]",
+                                                                     bin_folder_path.data(), strerror(errno));
+                     return GET_BIN_FILE_NAME_FAILED)
 
   // open dir
   DIR *dir;
   dir = opendir(folder_path.c_str());
-  AICPU_IF_BOOL_EXEC(
-      dir == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("Open dir[%s] failed.", folder_path.c_str());
-      return GET_BIN_FILE_NAME_FAILED)
+  AICPU_IF_BOOL_EXEC(dir == nullptr, AICPU_REPORT_INNER_ERR_MSG("Open dir[%s] failed.", folder_path.c_str());
+                     return GET_BIN_FILE_NAME_FAILED)
   uint32_t so_count = 0;
   dirent *direntp = nullptr;
   // max search 1024 files to prevent dead circulation
@@ -611,11 +565,8 @@ ge::Status CpuOptimizer::GetBinFileName(const OpFullInfo &op_full_info,
     AICPUE_LOGI(
         "file_name is [%s], file_name length is [%zu], d_name is [%s], d_reclen is "
         "[%u].",
-        file_name.c_str(), file_name.length(), direntp->d_name,
-        direntp->d_reclen);
-    std::string pattern = (kernel_so == kLibPtKernelsSoName)
-                              ? kPatternForPtKernelsSo
-                              : kPatternForCpuKernelsSo;
+        file_name.c_str(), file_name.length(), direntp->d_name, direntp->d_reclen);
+    std::string pattern = (kernel_so == kLibPtKernelsSoName) ? kPatternForPtKernelsSo : kPatternForCpuKernelsSo;
     if (!ValidateStr(file_name, pattern)) {
       continue;
     }
@@ -623,28 +574,24 @@ ge::Status CpuOptimizer::GetBinFileName(const OpFullInfo &op_full_info,
     bin_file_name = file_name;
     so_count++;
     // check so count: only one is allowed.
-    AICPU_IF_BOOL_EXEC(
-        so_count > 1, (void)closedir(dir); AICPU_REPORT_INNER_ERR_MSG(
-            "multi cpu kernels so exist in dir path[%s].", folder_path.c_str());
-        return MULTI_CPU_KERNELS_SO_EXIST)
+    AICPU_IF_BOOL_EXEC(so_count > 1, (void)closedir(dir);
+                       AICPU_REPORT_INNER_ERR_MSG("multi cpu kernels so exist in dir path[%s].", folder_path.c_str());
+                       return MULTI_CPU_KERNELS_SO_EXIST)
   }
 
   // check libcpu_kernels.so exist
-  AICPU_IF_BOOL_EXEC(
-      so_count == 0, (void)closedir(dir); AICPU_REPORT_INNER_ERR_MSG(
-          "no cpu kernels so exist in dir path[%s].", folder_path.c_str());
-      return NO_CPU_KERNELS_SO_EXIST)
+  AICPU_IF_BOOL_EXEC(so_count == 0, (void)closedir(dir);
+                     AICPU_REPORT_INNER_ERR_MSG("no cpu kernels so exist in dir path[%s].", folder_path.c_str());
+                     return NO_CPU_KERNELS_SO_EXIST)
 
   // record bin_file_name
   g_so_with_version_map[kernel_so] = bin_file_name;
-  AICPUE_LOGI("Kernel so is [%s], bin file name is [%s].", kernel_so.c_str(),
-              bin_file_name.c_str());
+  AICPUE_LOGI("Kernel so is [%s], bin file name is [%s].", kernel_so.c_str(), bin_file_name.c_str());
   ;
 
   // close dir: 0 success
   if (closedir(dir) != 0) {
-    AICPUE_LOGW("close dir failed, errno: [%s], dir path: [%s].", strerror(errno),
-                folder_path.c_str());
+    AICPUE_LOGW("close dir failed, errno: [%s], dir path: [%s].", strerror(errno), folder_path.c_str());
   }
   return ge::SUCCESS;
 }

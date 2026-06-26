@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,21 +21,21 @@ namespace gert {
 namespace {
 const std::vector<std::vector<int64_t>> kAxes{{1, 2}, {0, 1}};
 const std::string kKernelName = "GatherShapesKernel";
-}
+}  // namespace
 struct GatherShapesKernelUt : public testing::Test {
   KernelRegistry &registry = KernelRegistry::GetInstance();
 };
 
 TEST_F(GatherShapesKernelUt, GatherShapesKernelInt64Ok) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,-1}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, -1}, {10, 20, 30}};
   Shape kOutputData{-1, 20};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
-                  {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
+                                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -58,15 +58,15 @@ TEST_F(GatherShapesKernelUt, GatherShapesKernelInt64Ok) {
 }
 
 TEST_F(GatherShapesKernelUt, GatherShapesKernelInt32Ok) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   Shape kOutputData{30, 20};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
-                  {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT32)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
+                                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT32)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -89,14 +89,14 @@ TEST_F(GatherShapesKernelUt, GatherShapesKernelInt32Ok) {
 }
 
 TEST_F(GatherShapesKernelUt, GatherShapesKernelFloatNotSupportFailed) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
-                  {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_FLOAT)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)},
+                                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_FLOAT)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -109,13 +109,13 @@ TEST_F(GatherShapesKernelUt, GatherShapesKernelFloatNotSupportFailed) {
 }
 
 TEST_F(GatherShapesKernelUt, IrInputAxesLostFailed) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -129,13 +129,13 @@ TEST_F(GatherShapesKernelUt, IrInputAxesLostFailed) {
 }
 
 TEST_F(GatherShapesKernelUt, IrInputDTypeLostFailed) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(kAxes)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -149,16 +149,16 @@ TEST_F(GatherShapesKernelUt, IrInputDTypeLostFailed) {
 }
 
 TEST_F(GatherShapesKernelUt, AxesInputIndexOutOfBoundsFailed) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   Shape kOutputData{30, 20};
   const std::vector<std::vector<int64_t>> axes{{3, 2}, {0, 1}};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes)},
-                  {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes)},
+                                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);
@@ -172,16 +172,16 @@ TEST_F(GatherShapesKernelUt, AxesInputIndexOutOfBoundsFailed) {
 }
 
 TEST_F(GatherShapesKernelUt, AxesDimIndexOutOfBoundsFailed) {
-  StorageShape shape = {{10,20,30}, {10,20,30}};
-  StorageShape shape2 = {{10,20,30}, {10,20,30}};
+  StorageShape shape = {{10, 20, 30}, {10, 20, 30}};
+  StorageShape shape2 = {{10, 20, 30}, {10, 20, 30}};
   Shape kOutputData{30, 20};
   const std::vector<std::vector<int64_t>> axes{{1, 2}, {0, 3}};
   auto context_holder = KernelRunContextFaker()
-      .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
-      .Inputs({&shape, &shape2})
-      .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes)},
-                  {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
-      .Build();
+                            .KernelIONum(2U, static_cast<size_t>(kernel::GatherShapesKernelOutputs::kEnd))
+                            .Inputs({&shape, &shape2})
+                            .NodeAttrs({{"axes", ge::AnyValue::CreateFrom<std::vector<std::vector<int64_t>>>(axes)},
+                                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT64)}})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kKernelName);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,6 @@
 #include "../utils/buffer_pool_graph_builder.h"
 #include "graph/passes/feature/buffer_pool_memory_pass.h"
 #include "framework/memory/memory_assigner.h"
-
 
 namespace ge {
 class UtestBufferPoolMemoryPass : public testing::Test {
@@ -57,7 +56,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -66,7 +65,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;1");
   }
@@ -75,7 +74,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;2");
   }
@@ -84,7 +83,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add4;3");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add2;0");
@@ -97,7 +96,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;0");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add3;1");
@@ -131,7 +130,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_graph_with_multi_buffer_poo
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -140,7 +139,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_graph_with_multi_buffer_poo
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;3");
   }
@@ -149,7 +148,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_graph_with_multi_buffer_poo
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;1");
   }
@@ -158,7 +157,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_graph_with_multi_buffer_poo
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add4;2");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add3;0");
@@ -171,7 +170,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_graph_with_multi_buffer_poo
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;4");
   }
@@ -190,7 +189,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_contain_one_node_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -199,7 +198,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_contain_one_node_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;1");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add1;2");
@@ -212,7 +211,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_contain_one_node_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;2");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add2;0");
@@ -225,7 +224,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_contain_one_node_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add4;0");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add3;1");
@@ -238,7 +237,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_contain_one_node_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;1");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add4;2");
@@ -261,7 +260,7 @@ TEST_F(UtestBufferPoolMemoryPass, calc_node_with_multi_buffer_pool_input_success
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 0);
   }
 
@@ -269,7 +268,7 @@ TEST_F(UtestBufferPoolMemoryPass, calc_node_with_multi_buffer_pool_input_success
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -278,7 +277,7 @@ TEST_F(UtestBufferPoolMemoryPass, calc_node_with_multi_buffer_pool_input_success
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 0);
   }
 
@@ -286,7 +285,7 @@ TEST_F(UtestBufferPoolMemoryPass, calc_node_with_multi_buffer_pool_input_success
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;1");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add1;2");
@@ -299,7 +298,7 @@ TEST_F(UtestBufferPoolMemoryPass, calc_node_with_multi_buffer_pool_input_success
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;2");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add2;0");
@@ -328,7 +327,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_success_test
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -337,7 +336,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_success_test
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;1");
   }
@@ -346,7 +345,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_success_test
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;2");
   }
@@ -355,7 +354,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_success_test
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add4;3");
     auto in_ctrl_nodes = prefetch->GetInControlNodes();
@@ -366,7 +365,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_success_test
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;4");
     auto in_ctrl_nodes = prefetch->GetInControlNodes();
@@ -394,7 +393,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_with_inner_d
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add1;0");
   }
@@ -403,7 +402,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_with_inner_d
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add2;1");
   }
@@ -412,7 +411,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_with_inner_d
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add3;2");
   }
@@ -421,7 +420,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_with_inner_d
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;add4;3");
     auto in_ctrl_nodes = prefetch->GetInControlNodes();
@@ -433,7 +432,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_in_different_subgraph_with_inner_d
     std::vector<std::string> event_info;
     auto prefetch = all_nodes.at("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;4");
     EXPECT_EQ(event_info.at(1), "RecvFrom;add3;0");
@@ -456,7 +455,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_with_batch_label_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("batch_label_256/prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;batch_label_256/add1;4");
   }
@@ -465,7 +464,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_with_batch_label_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("batch_label_256/prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;batch_label_256/add2;5");
   }
@@ -474,7 +473,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_with_batch_label_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("batch_label_256/prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;batch_label_256/add3;6");
   }
@@ -483,7 +482,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_with_batch_label_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("batch_label_256/prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;batch_label_256/add4;7");
     EXPECT_EQ(event_info.at(1), "RecvFrom;batch_label_256/add2;4");
@@ -496,7 +495,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_with_batch_label_success_test) {
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("batch_label_256/prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;batch_label_256/add5;4");
     EXPECT_EQ(event_info.at(1), "RecvFrom;batch_label_256/add3;5");
@@ -519,7 +518,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_node_has_multi_output_success_test
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch1");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;prefetch1_memcpy_async;0");
   }
@@ -528,7 +527,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_node_has_multi_output_success_test
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;prefetch2_memcpy_async;1");
   }
@@ -537,7 +536,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_node_has_multi_output_success_test
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 1);
     EXPECT_EQ(event_info.at(0), "SendTo;prefetch3_memcpy_async;2");
   }
@@ -546,7 +545,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_node_has_multi_output_success_test
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;prefetch4_memcpy_async;3");
     EXPECT_EQ(event_info.at(1), "RecvFrom;prefetch2_memcpy_async;0");
@@ -559,7 +558,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_node_has_multi_output_success_test
     std::vector<std::string> event_info;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", event_info);
     EXPECT_EQ(event_info.size(), 2);
     EXPECT_EQ(event_info.at(0), "SendTo;add5;0");
     EXPECT_EQ(event_info.at(1), "RecvFrom;prefetch3_memcpy_async;1");
@@ -575,7 +574,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_has_different_size_fail_test) {
   const int64_t dummy_size = 256;
   auto prefetch = graph->FindNode("prefetch3");
   EXPECT_NE(prefetch, nullptr);
-  (void) AttrUtils::SetInt(prefetch->GetOpDesc(), "_buffer_pool_size", dummy_size);
+  (void)AttrUtils::SetInt(prefetch->GetOpDesc(), "_buffer_pool_size", dummy_size);
 
   BufferPoolMemoryPass buffer_pool_mem_pass;
   Status ret = buffer_pool_mem_pass.Run(graph);
@@ -650,7 +649,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test_multi_prefetch
     std::vector<std::string> evt_info_list;
     auto prefetch = graph->FindNode("prefetch2");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
     EXPECT_EQ(evt_info_list.size(), 1);
     EXPECT_EQ(evt_info_list.at(0), "SendTo;add1;0");
   }
@@ -659,7 +658,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test_multi_prefetch
     std::vector<std::string> evt_info_list;
     auto prefetch = graph->FindNode("prefetch3");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
     EXPECT_EQ(evt_info_list.size(), 1);
     EXPECT_EQ(evt_info_list.at(0), "RecvFrom;add1;1");
   }
@@ -668,7 +667,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test_multi_prefetch
     std::vector<std::string> evt_info_list;
     auto prefetch = graph->FindNode("prefetch4");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
     EXPECT_EQ(evt_info_list.size(), 1);
     EXPECT_EQ(evt_info_list.at(0), "SendTo;add2;1");
   }
@@ -677,7 +676,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test_multi_prefetch
     std::vector<std::string> evt_info_list;
     auto prefetch = graph->FindNode("prefetch5");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
     EXPECT_EQ(evt_info_list.size(), 1);
     EXPECT_EQ(evt_info_list.at(0), "RecvFrom;add2;0");
   }
@@ -686,7 +685,7 @@ TEST_F(UtestBufferPoolMemoryPass, buffer_pool_normal_success_test_multi_prefetch
     std::vector<std::string> evt_info_list;
     auto prefetch = graph->FindNode("prefetch6");
     EXPECT_NE(prefetch, nullptr);
-    (void) AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
+    (void)AttrUtils::GetListStr(prefetch->GetOpDesc(), "_event_multiplexing", evt_info_list);
     EXPECT_EQ(evt_info_list.size(), 1);
     EXPECT_EQ(evt_info_list.at(0), "SendTo;add3;0");
   }

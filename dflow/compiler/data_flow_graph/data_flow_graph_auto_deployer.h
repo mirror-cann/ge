@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,8 +15,7 @@
 #include "dflow/compiler/data_flow_graph/compile_config_json.h"
 
 namespace ge {
-using AutoDeployFunc = Status (*)(const std::map<std::string, std::string> &,
-                                  const ComputeGraphPtr &);
+using AutoDeployFunc = Status (*)(const std::map<std::string, std::string> &, const ComputeGraphPtr &);
 
 class DataFlowGraphAutoDeployer {
  public:
@@ -24,16 +23,16 @@ class DataFlowGraphAutoDeployer {
   static Status UpdateFlowFuncDeployInfo(const DataFlowGraph &data_flow_graph);
 
  private:
-  static Status GetConfigDeployInfo(std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-    std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg,
-    bool &dynamic_schedule_enable,
-    std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
-    const std::string &deploy_info_str);
+  static Status GetConfigDeployInfo(
+      std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
+      std::map<std::string, std::pair<uint32_t, uint32_t>> &device_id_to_mem_cfg, bool &dynamic_schedule_enable,
+      std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
+      const std::string &deploy_info_str);
   static Status GetDeployLogicDeviceForInvoke(
-    std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-    std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
-    const std::vector<CompileConfigJson::InvokeDeployInfo> &invoke_deploy_infos,
-    const std::string &flow_node_name, const bool dynamic_schedule_enable);
+      std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
+      std::map<std::string, std::vector<std::pair<std::string, std::string>>> &invoke_deploy_map,
+      const std::vector<CompileConfigJson::InvokeDeployInfo> &invoke_deploy_infos, const std::string &flow_node_name,
+      const bool dynamic_schedule_enable);
   static Status GetDeployLogicDeviceFromBatchInfo(
       std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
       std::set<std::string> &logic_device_ids,
@@ -72,9 +71,10 @@ class DataFlowGraphAutoDeployer {
                                     std::string &resolved_redundant_logic_device_id_list, bool &is_expand);
   static Status GetNodeDeployName(const DataFlowGraph &data_flow_graph, const OpDescPtr &op_desc,
                                   std::string &node_deploy_name, int32_t depth);
-  static Status GetInvokeDeployInfos(const std::vector<std::pair<std::string, std::string>> &invoke_names,
-                    const std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
-                    std::vector<std::string> &invoke_deploy_infos);
+  static Status GetInvokeDeployInfos(
+      const std::vector<std::pair<std::string, std::string>> &invoke_names,
+      const std::map<std::string, std::pair<std::string, std::string>> &deploy_logic_device_map,
+      std::vector<std::string> &invoke_deploy_infos);
   static Status HandleInvokedSubgraph(const ComputeGraphPtr &subgraph, const size_t logic_dev_num,
                                       const std::string &subgraph_deploy_info, bool is_redundant,
                                       std::string &assign_logic_device_id);

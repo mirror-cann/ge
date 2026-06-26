@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,8 +13,8 @@
 """
 related classes of tbe register:
 """
-from enum import Enum
-from enum import IntEnum
+
+from enum import Enum, IntEnum
 
 
 # register function is executed at which stage
@@ -23,6 +23,7 @@ class InvokeStage(Enum):
     """
     function executed stage
     """
+
     STAGE_BUILD = 0
 
 
@@ -31,6 +32,7 @@ class Priority(IntEnum):
     """
     function executed priority
     """
+
     HIGH = 0
     NORMAL = 1
     LOW = 2
@@ -41,6 +43,7 @@ class FusionPassItem(object):
     """
     UB fusion pass
     """
+
     def __init__(self, func_name, stage, priority, func):
         self._func_name = func_name
         self._stage = stage
@@ -231,6 +234,7 @@ class Operator(object):
     """
     op info
     """
+
     def __init__(self, pattern, func):
         self._pattern = pattern
         self._func = func
@@ -252,6 +256,7 @@ class OpClassify(object):
     """
     op classify_func object
     """
+
     def __init__(self, key, support_type, func):
         self._key = key
         self._type = support_type
@@ -380,19 +385,29 @@ class TensorInfo(object):
 
     def display(self, is_input=False):
         import tbe.common.utils.log as logger
+
         prefix = "Input" if is_input else "Output"
         logger.debug("[%s] info: id[%s]", prefix, self._id)
-        logger.debug("Data type[%s], format[%s], shape[%s], range[%s]", self._dtype, self._format,
-                     TensorInfo.get_shape_str(self._shape), TensorInfo.get_range_str(self._range))
-        logger.debug("Origin data type[%s], origin format[%s], origin shape[%s], origin range[%s]",
-                     self._ori_dtype, self._ori_format,
-                     TensorInfo.get_shape_str(self._ori_shape), TensorInfo.get_range_str(self._ori_range))
+        logger.debug(
+            "Data type[%s], format[%s], shape[%s], range[%s]",
+            self._dtype,
+            self._format,
+            TensorInfo.get_shape_str(self._shape),
+            TensorInfo.get_range_str(self._range),
+        )
+        logger.debug(
+            "Origin data type[%s], origin format[%s], origin shape[%s], origin range[%s]",
+            self._ori_dtype,
+            self._ori_format,
+            TensorInfo.get_shape_str(self._ori_shape),
+            TensorInfo.get_range_str(self._ori_range),
+        )
 
 
 class InputInfo(object):
     def __init__(self):
-        self._edge_id = None # peer output id
-        self._edge_type = None # Data, Operator
+        self._edge_id = None  # peer output id
+        self._edge_type = None  # Data, Operator
         self._edge_list = []
         self._param_name = None
 
@@ -407,7 +422,8 @@ class InputInfo(object):
 
     def display(self):
         import tbe.common.utils.log as logger
-        logger.debug("Input info: edge id[%s], edge type[%s]." , self._edge_id, self._edge_type)
+
+        logger.debug("Input info: edge id[%s], edge type[%s].", self._edge_id, self._edge_type)
 
 
 class AttrInfo(object):
@@ -427,7 +443,13 @@ class AttrInfo(object):
 
     def display(self):
         import tbe.common.utils.log as logger
-        logger.debug("Attr info: name[%s], data type[%s], value[%s]." , self._name, self._dtype, self._value)
+
+        logger.debug(
+            "Attr info: name[%s], data type[%s], value[%s].",
+            self._name,
+            self._dtype,
+            self._value,
+        )
 
 
 class OpInfo(object):
@@ -484,8 +506,14 @@ class OpInfo(object):
 
     def display(self):
         import tbe.common.utils.log as logger
-        logger.debug("Op info: id[%s], type[%s], pattern[%s], impl mode[%s]",
-                     self._id, self._op_type, self._pattern, self._impl_mode)
+
+        logger.debug(
+            "Op info: id[%s], type[%s], pattern[%s], impl mode[%s]",
+            self._id,
+            self._op_type,
+            self._pattern,
+            self._impl_mode,
+        )
         if self._input_list is not None and len(self._input_list) > 0:
             for input_info in self._input_list:
                 input_info.display()
@@ -543,6 +571,7 @@ class GraphInfo(object):
 
     def display(self):
         import tbe.common.utils.log as logger
+
         logger.debug("Graph info: is dynamic shape[%s]", self._is_dynamic_shape)
         if self._input_list is not None and len(self._input_list) > 0:
             for input_info in self._input_list:

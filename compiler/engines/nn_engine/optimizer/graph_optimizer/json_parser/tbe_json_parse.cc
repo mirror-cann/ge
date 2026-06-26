@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,13 +33,11 @@
 namespace fe {
 namespace {
 const std::string kStageParseTvmMgc = "[SubGraphOpt][ParseJson][ParseTvmMgc]";
-const std::unordered_map<std::string, std::string> kCoreTypeMapping {
-    {VECTOR_CORE_TYPE, kCoreTypeAIV},
-    {CUBE_CORE_TYPE, kCoreTypeAIC},
-    {AI_CORE_TYPE, kCoreTypeAIC},
-    {kCoreTypeMixVectorCore, kCoreTypeMixVectorCore},
-    {kCoreTypeMixAICore, kCoreTypeMixAICore}
-};
+const std::unordered_map<std::string, std::string> kCoreTypeMapping{{VECTOR_CORE_TYPE, kCoreTypeAIV},
+                                                                    {CUBE_CORE_TYPE, kCoreTypeAIC},
+                                                                    {AI_CORE_TYPE, kCoreTypeAIC},
+                                                                    {kCoreTypeMixVectorCore, kCoreTypeMixVectorCore},
+                                                                    {kCoreTypeMixAICore, kCoreTypeMixAICore}};
 const std::string kShortSocA2 = "Ascend910B";
 constexpr char const *kMemoryCheckKey = "oom";
 
@@ -48,7 +46,7 @@ bool IsThirdClassOp(const ge::OpDescPtr &op_desc) {
     return false;
   }
   int32_t unknown_shape_type_val = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  (void)ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
   return static_cast<ge::UnknowShapeOpType>(unknown_shape_type_val) == ge::DEPEND_SHAPE_RANGE;
 }
 
@@ -58,7 +56,8 @@ bool IsCustomGenTaskOp(const ge::OpDescPtr &op_desc) {
   }
   if (PlatformUtils::Instance().GetShortSocVersion() != kShortSocA2 &&
       (OpExtGenTaskRegistry::GetInstance().GetExtTaskType(op_desc->GetType()) == ExtTaskType::kAicoreTask)) {
-    FE_LOGI("Op[%s,%s] would generate an aicore taskdef instead of ffts+.", op_desc->GetNamePtr(), op_desc->GetTypePtr());
+    FE_LOGI("Op[%s,%s] would generate an aicore taskdef instead of ffts+.", op_desc->GetNamePtr(),
+            op_desc->GetTypePtr());
     return false;
   }
   // 这些算子自行定义了gentask方法，依赖ffts+流程，注册关键字IMPL_OP_CT
@@ -69,24 +68,26 @@ bool IsCustomGenTaskOp(const ge::OpDescPtr &op_desc) {
   if (space_registry != nullptr) {
     auto space_registry_func = space_registry->GetOpImpl(op_desc->GetType().c_str());
     has_space_registry_func = space_registry_func != nullptr && space_registry_func->gen_task != nullptr;
-    if (has_space_registry_func) { impl_version = space_registry_func->version; }
+    if (has_space_registry_func) {
+      impl_version = space_registry_func->version;
+    }
   }
   if (has_space_registry_func && impl_version > DEFAULT_OP_IMPL_MAIN_VERSION) {
-    FE_LOGI("Op[%s,%s]IMPL version = %zu, would generate aicore taskdef",
-            op_desc->GetNamePtr(), op_desc->GetTypePtr(), impl_version);
+    FE_LOGI("Op[%s,%s]IMPL version = %zu, would generate aicore taskdef", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+            impl_version);
     return false;
   }
   auto register_func = OpExtGenTaskRegistry::GetInstance().FindRegisterFunc(op_desc->GetType());
-  if(has_space_registry_func == false && register_func == nullptr) {
+  if (has_space_registry_func == false && register_func == nullptr) {
     return false;
   }
   FE_LOGI("Op[%s,%s] is a custom gen task op, space_registry[%d] register_func[%d], using ffts+", op_desc->GetNamePtr(),
           op_desc->GetTypePtr(), has_space_registry_func, register_func != nullptr);
   return true;
 }
-} // namespace
+}  // namespace
 
-TbeJsonFileParse::TbeJsonFileParse(ge::Node& node) : node_(node), op_desc_(node.GetOpDesc()) {
+TbeJsonFileParse::TbeJsonFileParse(ge::Node &node) : node_(node), op_desc_(node.GetOpDesc()) {
   json_parser_impl_ = std::unique_ptr<TbeJsonFileParseImpl>(new (std::nothrow) TbeJsonFileParseImpl());
   ffts_related_thread_nodes_ =
       op_desc_->TryGetExtAttr<std::shared_ptr<std::vector<ge::NodePtr>>>(kAttrRelatedThreadsNodes, nullptr);
@@ -162,8 +163,8 @@ bool TbeJsonFileParse::ClearRelatedNodesStr([[maybe_unused]] const string &attr_
   return ret;
 }
 
-bool TbeJsonFileParse::SetRelatedNodesStrPrefixWithOpName(const string &prefix,
-                                                          const string &attr_name, const string &value) {
+bool TbeJsonFileParse::SetRelatedNodesStrPrefixWithOpName(const string &prefix, const string &attr_name,
+                                                          const string &value) {
   bool ret = ge::AttrUtils::SetStr(op_desc_, prefix + op_desc_->GetName() + attr_name, value);
   if (ffts_related_thread_nodes_ != nullptr) {
     for (auto &ele : *ffts_related_thread_nodes_) {
@@ -183,8 +184,7 @@ bool TbeJsonFileParse::SetRelatedNodesBytes(const string &attr_name, const ge::B
   return ret;
 }
 
-bool TbeJsonFileParse::SetRelatedNodesListDataType(const string &attr_name,
-                                                   const std::vector<ge::DataType> &value) {
+bool TbeJsonFileParse::SetRelatedNodesListDataType(const string &attr_name, const std::vector<ge::DataType> &value) {
   bool ret = ge::AttrUtils::SetListDataType(op_desc_, attr_name, value);
   if (ffts_related_thread_nodes_ != nullptr) {
     for (auto &ele : *ffts_related_thread_nodes_) {
@@ -268,14 +268,14 @@ Status TbeJsonFileParse::ParseScheduleMode() {
   int64_t schedule_mode = 0;
   (void)json_parser_impl_->ParseJsonAttr(false, kKeyScheduleMode, static_cast<int64_t>(0), schedule_mode);
   if (schedule_mode < 0 || schedule_mode > UINT32_MAX) {
-    REPORT_FE_ERROR("Schedule mode [%ld] from op [%s, %s]'s json is invalid.",
-                    schedule_mode, op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    REPORT_FE_ERROR("Schedule mode [%ld] from op [%s, %s]'s json is invalid.", schedule_mode, op_desc_->GetNamePtr(),
+                    op_desc_->GetTypePtr());
     return FAILED;
   }
   if (schedule_mode > 0) {
     (void)SetRelatedNodesInt(kAttrScheduleMode, schedule_mode);
-    FE_LOGD("Set schedule mode attr[%ld] for op[%s, %s].",
-            schedule_mode, op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    FE_LOGD("Set schedule mode attr[%ld] for op[%s, %s].", schedule_mode, op_desc_->GetNamePtr(),
+            op_desc_->GetTypePtr());
   }
   return SUCCESS;
 }
@@ -290,8 +290,9 @@ Status TbeJsonFileParse::ParseBatchBindOnly() {
 
   FE_LOGD("Op[%s], Parsing batch_bind_only[%d].", op_desc_->GetName().c_str(), batch_bind_only);
   if (!SetRelatedNodesBool(ge::ATTR_N_BATCH_SPILT, batch_bind_only)) {
-    REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseBtcBindOnly] Failed to set attribute _is_n_batch_split for node [%s].",
-                    op_desc_->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ParseJson][ParseBtcBindOnly] Failed to set attribute _is_n_batch_split for node [%s].",
+        op_desc_->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -345,7 +346,7 @@ void TbeJsonFileParse::ProcMixCoreType() {
   }
   bool is_mix_aic = true;
   if ((cube_ratio_ == 0) || (vector_ratio_ != 0 && cube_ratio_ > vector_ratio_)) {
-    (void)SetRelatedNodesBool(kMixIsAiv, true); // for mix profiling
+    (void)SetRelatedNodesBool(kMixIsAiv, true);  // for mix profiling
     is_mix_aic = false;
   }
   if (PlatformUtils::Instance().GetFftsMode() != FFTS_MODE_FFTS_PLUS) {
@@ -356,10 +357,10 @@ void TbeJsonFileParse::ProcMixCoreType() {
   bool ffts_node = false;
   (void)ge::AttrUtils::GetBool(op_desc_, kTypeFFTSPlus, ffts_node);
   if (!ffts_node && !IsCustomGenTaskOp(op_desc_) && !CheckTilingSink(node_)) {
-    (void)SetRelatedNodesBool(kFftsplusTask, true); // for mix profiling
+    (void)SetRelatedNodesBool(kFftsplusTask, true);  // for mix profiling
     FE_LOGI("Op[%s] has core_type as MIX, is_mix_aic[%d], platform supports ffts+, using aicore",
             op_desc_->GetNamePtr(), is_mix_aic);
-    return; // return core_type=MIX
+    return;  // return core_type=MIX
   }
   attr_prefix_ = kTbeMixEnhancedPrefix;
   (void)SetRelatedNodesListStr(kKernelNamesPrefix, {kTbeMixEnhancedPrefix});
@@ -373,8 +374,8 @@ void TbeJsonFileParse::ProcMixCoreType() {
   if (!ffts_node) {
     (void)SetRelatedNodesStr(ATTR_NAME_ALIAS_ENGINE_NAME, "ffts_plus");
   }
-  FE_LOGI("Op[%s] has core_type as MIX, is_mix_aic[%d], platform supports ffts+, using ffts+",
-          op_desc_->GetNamePtr(), is_mix_aic);
+  FE_LOGI("Op[%s] has core_type as MIX, is_mix_aic[%d], platform supports ffts+, using ffts+", op_desc_->GetNamePtr(),
+          is_mix_aic);
   return;
 }
 
@@ -420,12 +421,12 @@ Status TbeJsonFileParse::ParseTvmTaskRatio() {
     }
     if (!tiling_ratio.tiling_key_vec.empty()) {
       ge::GeAttrValue::NAMED_ATTRS tiling_with_ratio;
-      tiling_with_ratio.SetAttr(kDynRatioTiling, ge::GeAttrValue::CreateFrom<std::vector<std::string>>(
-          tiling_ratio.tiling_key_vec));
-      tiling_with_ratio.SetAttr(kDynRatioCRatio, ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(
-          tiling_ratio.c_ratio_vec));
-      tiling_with_ratio.SetAttr(kDynRatioVRatio, ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(
-          tiling_ratio.v_ratio_vec));
+      tiling_with_ratio.SetAttr(kDynRatioTiling,
+                                ge::GeAttrValue::CreateFrom<std::vector<std::string>>(tiling_ratio.tiling_key_vec));
+      tiling_with_ratio.SetAttr(kDynRatioCRatio,
+                                ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(tiling_ratio.c_ratio_vec));
+      tiling_with_ratio.SetAttr(kDynRatioVRatio,
+                                ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(tiling_ratio.v_ratio_vec));
       (void)ge::AttrUtils::SetNamedAttrs(op_desc_, kDynRatioAttr, tiling_with_ratio);
     }
     return SUCCESS;
@@ -452,8 +453,9 @@ Status TbeJsonFileParse::ParseTvmModeInArgsFirstField() {
 
   FE_LOGD("Op[%s] Parse modeInArgsFirstField[%u].", op_desc_->GetName().c_str(), mode);
   if (!SetRelatedNodesInt(kModeInArgsFirstField, mode)) {
-    REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseTvmModeInArgs] Failed to set attribute modeInArgsFirstField for node [%s].",
-                    op_desc_->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ParseJson][ParseTvmModeInArgs] Failed to set attribute modeInArgsFirstField for node [%s].",
+        op_desc_->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -513,9 +515,9 @@ Status TbeJsonFileParse::ParseTvmParameters() {
   std::vector<int64_t> parameters_index;
   AtomicInitInfo atomic_init_info;
   if (json_parser_impl_->ParseTvmParameters(parameters_index, atomic_init_info) == FAILED) {
-  REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseTvmParm] Failed to get parameters for node [%s].",
-                  op_desc_->GetName().c_str());
-  return FAILED;
+    REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseTvmParm] Failed to get parameters for node [%s].",
+                    op_desc_->GetName().c_str());
+    return FAILED;
   }
 
   if (parameters_index.empty()) {
@@ -539,12 +541,9 @@ Status TbeJsonFileParse::ParseTvmWspMode() {
   return SUCCESS;
 }
 
-void TbeJsonFileParse::GetWorkspaceAtomicFlagAndOutputIndexFlag(const std::vector<int64_t> &parameters_index,
-                                                                const NodeBaseInfo &node_info,
-                                                                std::vector<int64_t> &output_index,
-                                                                std::vector<int64_t> &workspace_index,
-                                                                bool &workspace_atomic_flag,
-                                                                bool &output_index_flag) const {
+void TbeJsonFileParse::GetWorkspaceAtomicFlagAndOutputIndexFlag(
+    const std::vector<int64_t> &parameters_index, const NodeBaseInfo &node_info, std::vector<int64_t> &output_index,
+    std::vector<int64_t> &workspace_index, bool &workspace_atomic_flag, bool &output_index_flag) const {
   bool is_third_op = IsThirdClassOp(op_desc_);
   FE_LOGD("Op[%s] third_op_flag: %d.", op_desc_->GetName().c_str(), is_third_op);
   size_t parameters_index_size = parameters_index.size();
@@ -582,7 +581,7 @@ Status TbeJsonFileParse::SetAtomicInfo(std::vector<int64_t> &parameters_index, A
   node_base_info.output_num = op_desc_->GetOutputsSize();
   node_base_info.offset_index = 0;
   uint32_t mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc_, kModeInArgsFirstField, mode);
+  (void)ge::AttrUtils::GetInt(op_desc_, kModeInArgsFirstField, mode);
   bool inter_core_sync = false;
   (void)ge::AttrUtils::GetBool(op_desc_, kAttrIntercoreSync, inter_core_sync);
   if (mode == 1 || inter_core_sync) {
@@ -682,9 +681,10 @@ Status TbeJsonFileParse::ParseGlobleWorkspaceStatus() {
   KeyGlobalWorkspaceSpecWorkspace global_work_space = {0, 0};
   Status ret = json_parser_impl_->ParseGlobleWorkspaceStatus(global_work_space);
   if (ret == FAILED) {
-    REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseGlobleWorkspaceStatus] "
-                    "get globleworkspace_status for node[%s] failed.",
-                    op_desc_->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ParseJson][ParseGlobleWorkspaceStatus] "
+        "get globleworkspace_status for node[%s] failed.",
+        op_desc_->GetName().c_str());
     return FAILED;
   }
   if (ret == NOT_CHANGED) {
@@ -693,8 +693,8 @@ Status TbeJsonFileParse::ParseGlobleWorkspaceStatus() {
   if (!ge::AttrUtils::HasAttr(graph, kGlobalworkspaceBytes)) {
     (void)ge::AttrUtils::SetInt(graph, kGlobalworkspaceBytes, global_work_space.size);
     FE_LOGD("[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] graph[%s] op[%s] set [%s:%ld] successfully",
-            graph->GetName().c_str(), op_desc_->GetName().c_str(),
-            kGlobalworkspaceBytes.c_str(), global_work_space.size);
+            graph->GetName().c_str(), op_desc_->GetName().c_str(), kGlobalworkspaceBytes.c_str(),
+            global_work_space.size);
   }
   if (!ge::AttrUtils::HasAttr(graph, kKeyGlobalWorkspace)) {
     (void)ge::AttrUtils::SetInt(graph, kKeyGlobalWorkspace, 0);
@@ -702,9 +702,10 @@ Status TbeJsonFileParse::ParseGlobleWorkspaceStatus() {
   SetRelatedNodesStr(kGlobalWorkspaceRef, kKeyGlobalWorkspace);
   SetRelatedNodesInt(kGlobalworkspaceType, global_work_space.type);
   SetRelatedNodesInt(kGlobalworkspaceSize, global_work_space.size);
-  FE_LOGD("[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] Set attr globalworkspace_type[%ld], "
-          "globalworkspace_size[%ld] for op[%s].", global_work_space.type, global_work_space.size,
-          op_desc_->GetName().c_str());
+  FE_LOGD(
+      "[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] Set attr globalworkspace_type[%ld], "
+      "globalworkspace_size[%ld] for op[%s].",
+      global_work_space.type, global_work_space.size, op_desc_->GetName().c_str());
   return SUCCESS;
 }
 
@@ -727,13 +728,14 @@ Status TbeJsonFileParse::ParseOptionalInputMode() {
   if (opt_input_mode == kGenPlaceholder) {
     int64_t imply_type = -1;
     if (!ge::AttrUtils::GetInt(op_desc_, FE_IMPLY_TYPE, imply_type)) {
-      REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseOptionalInputMode] Op[name=%s, type=%s] failed to get op implementation type.",
-                      op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][ParseJson][ParseOptionalInputMode] Op[name=%s, type=%s] failed to get op implementation type.",
+          op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
       return FAILED;
     }
     OpImplType op_impl_type = static_cast<OpImplType>(imply_type);
     OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(node_.GetOpDesc()->GetOpEngineName())
-        .GetOpKernelInfoByOpType(op_impl_type, node_.GetType());
+                                             .GetOpKernelInfoByOpType(op_impl_type, node_.GetType());
     if (op_kernel_info_ptr == nullptr) {
       REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseOptionalInputMode] Op[name=%s,type=%s] get kernel info failed.",
                       op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
@@ -741,8 +743,8 @@ Status TbeJsonFileParse::ParseOptionalInputMode() {
     }
     size_t all_input_size = op_kernel_info_ptr->GetAllInputInfo().size();
     SetRelatedNodesInt(kOpKernelAllInputSize, all_input_size);
-    FE_LOGD("Op[name=%s, type=%s]: set all in size[%zu].", op_desc_->GetName().c_str(),
-            op_desc_->GetType().c_str(), all_input_size);
+    FE_LOGD("Op[name=%s, type=%s]: set all in size[%zu].", op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
+            all_input_size);
   }
   return SUCCESS;
 }
@@ -752,7 +754,8 @@ Status TbeJsonFileParse::ParseOptionalOutputMode() {
     return SUCCESS;
   }
   string opt_output_mode;
-  if (json_parser_impl_->ParseJsonAttr(false, kKeyOptionalOutputMode, string(kNoPlaceholder), opt_output_mode) == FAILED) {
+  if (json_parser_impl_->ParseJsonAttr(false, kKeyOptionalOutputMode, string(kNoPlaceholder), opt_output_mode) ==
+      FAILED) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseOptionalOutputMode]Failed to parse optionalOutputMode for op[%s:%s]",
                     op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
     return FAILED;
@@ -776,7 +779,7 @@ Status TbeJsonFileParse::ParseOptionalOutputMode() {
   }
   OpImplType op_impl_type = static_cast<OpImplType>(imply_type);
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(node_.GetOpDesc()->GetOpEngineName())
-      .GetOpKernelInfoByOpType(op_impl_type, node_.GetType());
+                                           .GetOpKernelInfoByOpType(op_impl_type, node_.GetType());
   if (op_kernel_info_ptr == nullptr) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseOptionalOutputMode] Failed to get kernel info for Op [%s:%s].",
                     op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
@@ -834,7 +837,7 @@ Status TbeJsonFileParse::ParseOpKBHitrate() {
 }
 
 Status TbeJsonFileParse::ParseTvmKernelName() {
-  // maste json donot have attr kernel name
+  // maste json do not have attr kernel name
   std::string kernel_name;
   if (json_parser_impl_->ParseJsonAttr(false, kKeyKernelName, kernel_name, kernel_name) == FAILED) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseTvmKernNm] get attr kernel name for node[%s] failed.",
@@ -854,8 +857,8 @@ Status TbeJsonFileParse::ParseTvmKernelName() {
 
 Status TbeJsonFileParse::ParseConvCompressParameters() {
   std::vector<int64_t> compress_param_vec;
-  if (json_parser_impl_->ParseJsonAttr(false, kKeyCompressParameters, compress_param_vec,
-                                       compress_param_vec) == FAILED) {
+  if (json_parser_impl_->ParseJsonAttr(false, kKeyCompressParameters, compress_param_vec, compress_param_vec) ==
+      FAILED) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseTvmKernNm] get the compress_parameters for node[%s] failed.",
                     op_desc_->GetName().c_str());
     return FAILED;
@@ -953,14 +956,12 @@ Status TbeJsonFileParse::PackageTvmBinFile() {
   }
 
   SetRelatedNodesExtAttr(GetAttrPrefix() + ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-  (void)SetRelatedNodesStr(GetAttrPrefix() + ge::ATTR_NAME_TBE_KERNEL_NAME,
-                           tbe_kernel_ptr->GetName());
+  (void)SetRelatedNodesStr(GetAttrPrefix() + ge::ATTR_NAME_TBE_KERNEL_NAME, tbe_kernel_ptr->GetName());
   if (FEContextUtils::IsOpTuneMode()) {
     FE_LOGI("Tuning mode, need save bytes bin.");
     ge::Buffer tbe_kernel_buffer(tbe_kernel_ptr->GetBinDataSize());
     tbe_kernel_buffer = ge::Buffer::CopyFrom(tbe_kernel_ptr->GetBinData(), tbe_kernel_ptr->GetBinDataSize());
-    (void)SetRelatedNodesBytes(GetAttrPrefix() + ge::ATTR_NAME_TBE_KERNEL_BUFFER,
-                               tbe_kernel_buffer);
+    (void)SetRelatedNodesBytes(GetAttrPrefix() + ge::ATTR_NAME_TBE_KERNEL_BUFFER, tbe_kernel_buffer);
   }
   size_t tbe_kernel_size = tbe_kernel_ptr->GetBinDataSize();
   (void)SetRelatedNodesInt(GetAttrPrefix() + ATTR_NAME_TBE_KERNEL_SIZE, tbe_kernel_size);
@@ -1024,7 +1025,7 @@ bool TbeJsonFileParse::IsModelBinaryReuse(const CompileResultInfo &compile_resul
   return ret;
 }
 
-const std::string& TbeJsonFileParse::GetAttrPrefix() const {
+const std::string &TbeJsonFileParse::GetAttrPrefix() const {
   return attr_prefix_;
 }
 
@@ -1032,8 +1033,8 @@ Status TbeJsonFileParse::PackageTvmJsonInfo(const CompileResultInfo &compile_res
   FE_LOGD("Start to parse op_json_file %s for node [%s, %s].", compile_result.json_file_path.c_str(),
           op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
   FE_CHECK_NOTNULL(json_parser_impl_);
-  Status status = json_parser_impl_->Initialize(compile_result.json_file_path,
-                                                compile_result.json_ptr, compile_result.bin_ptr);
+  Status status =
+      json_parser_impl_->Initialize(compile_result.json_file_path, compile_result.json_ptr, compile_result.bin_ptr);
   if (status != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][InitialJsonParserImpl] Initialization failed for node [%s, %s].",
                     op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
@@ -1079,7 +1080,7 @@ bool TbeJsonFileParse::ParseAndSetTilingData(const std::string &tiling_data_str,
     FE_LOGE("Decode hex str[%s] failed.", tiling_data_str.c_str());
     return false;
   }
-  char* char_array = reinterpret_cast<char*>(byte_array.data());
+  char *char_array = reinterpret_cast<char *>(byte_array.data());
   size_t data_size = byte_array.size();
   tiling_info->AddTilingData(reinterpret_cast<ge::char_t *>(char_array), data_size);
   return true;
@@ -1116,9 +1117,8 @@ Status TbeJsonFileParse::ParseAndSetTilingInfo() {
   (void)ge::AttrUtils::SetInt(op_desc_, kAicpuBlockDim, run_info->GetAicpuBlockDim());
   (void)ge::AttrUtils::SetInt(op_desc_, kAttrScheduleMode, run_info->GetScheduleMode());
   (void)ge::AttrUtils::SetInt(op_desc_, kLocalMemorySize, run_info->GetLocalMemorySize());
-  FE_LOGD("Set attr block dim[%u], aicpu blockdim[%u] and schedule mode[%u] for op[%s, %s].",
-          run_info->GetBlockDim(), run_info->GetAicpuBlockDim(), run_info->GetScheduleMode(),
-          op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+  FE_LOGD("Set attr block dim[%u], aicpu blockdim[%u] and schedule mode[%u] for op[%s, %s].", run_info->GetBlockDim(),
+          run_info->GetAicpuBlockDim(), run_info->GetScheduleMode(), op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
   FE_LOGI("Node [%s, %s] set tiling info success.", op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
   return SUCCESS;
 }
@@ -1131,20 +1131,20 @@ Status TbeJsonFileParse::ParseFatbinInfo() {
   }
   std::string op_type = op_desc_->GetType();
   if (TileFwkOpInfo::Instance().CheckFatbinInfo(op_type)) {
-    FE_LOGD("Node[%s, %s]: hit fatbin info cache, no need to parse fatbin.",
-            op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    FE_LOGD("Node[%s, %s]: hit fatbin info cache, no need to parse fatbin.", op_desc_->GetNamePtr(),
+            op_desc_->GetTypePtr());
     return SUCCESS;
   }
   ge::OpKernelBinPtr fatbin = nullptr;
   fatbin = op_desc_->TryGetExtAttr<ge::OpKernelBinPtr>(GetAttrPrefix() + ge::OP_EXTATTR_NAME_TBE_KERNEL, fatbin);
   FE_CHECK_NOTNULL(fatbin);
   FatbinKernelInfoMap fatbin_kernel_info_map;
-  if (json_parser_impl_->ParseFatbin(fatbin, fatbin_kernel_info_map)  == FAILED) {
+  if (json_parser_impl_->ParseFatbin(fatbin, fatbin_kernel_info_map) == FAILED) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseFatbinInfo] parse fatbin for node[%s] failed.",
                     op_desc_->GetName().c_str());
     return FAILED;
   }
-  if (json_parser_impl_->ParseFatbinJson(fatbin_kernel_info_map)  == FAILED) {
+  if (json_parser_impl_->ParseFatbinJson(fatbin_kernel_info_map) == FAILED) {
     REPORT_FE_ERROR("[SubGraphOpt][ParseJson][ParseFatbinInfo] parse fatbin json for node[%s] failed.",
                     op_desc_->GetName().c_str());
     return FAILED;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,37 +16,37 @@
 namespace fe {
 
 /* args list for error message */
-const std::string PARAMETER0          = "parameter0";
-const std::string PARAMETER1          = "parameter1";
-const std::string PARAMETER2          = "parameter2";
-const std::string EM_VALUE          = "value";
-const std::string EM_OPTION         = "option";
-const std::string EM_AICORE_NUM     = "ai_core_num";
-const std::string EM_NEW_OP         = "new_op";
-const std::string EM_SRC_OP         = "src_op";
-const std::string EM_SRC_FORMAT     = "src_format";
-const std::string EM_DEST_OP        = "dest_op";
-const std::string EM_DEST_FORMAT    = "dest_format";
-const std::string EM_GRAPH_NAME     = "graph_name";
-const std::string EM_FILE           = "file";
-const std::string EM_ERROR_MSG      = "errmsg";
-const std::string EM_PARAM          = "parameter";
-const std::string EM_OP_NAME        = "op_name";
-const std::string EM_OP_TYPE        = "op_type";
-const std::string EM_GRAPH_ID       = "graph_id";
-const std::string EM_THREAD_ID      = "thread_id";
-const std::string EM_TASK_ID        = "task_id";
-const std::string EM_PASS_NAME      = "pass_name";
-const std::string EM_PASS_TYPE      = "pass_type";
+const std::string PARAMETER0 = "parameter0";
+const std::string PARAMETER1 = "parameter1";
+const std::string PARAMETER2 = "parameter2";
+const std::string EM_VALUE = "value";
+const std::string EM_OPTION = "option";
+const std::string EM_AICORE_NUM = "ai_core_num";
+const std::string EM_NEW_OP = "new_op";
+const std::string EM_SRC_OP = "src_op";
+const std::string EM_SRC_FORMAT = "src_format";
+const std::string EM_DEST_OP = "dest_op";
+const std::string EM_DEST_FORMAT = "dest_format";
+const std::string EM_GRAPH_NAME = "graph_name";
+const std::string EM_FILE = "file";
+const std::string EM_ERROR_MSG = "errmsg";
+const std::string EM_PARAM = "parameter";
+const std::string EM_OP_NAME = "op_name";
+const std::string EM_OP_TYPE = "op_type";
+const std::string EM_GRAPH_ID = "graph_id";
+const std::string EM_THREAD_ID = "thread_id";
+const std::string EM_TASK_ID = "task_id";
+const std::string EM_PASS_NAME = "pass_name";
+const std::string EM_PASS_TYPE = "pass_type";
 const std::string EM_ATTR_OR_PATTERN_NAME = "attr_or_pattern_name";
 const std::string EM_OPS_STORE_NAME = "ops_store_name";
 const std::string EM_CORRECT_VALUE = "correct_value";
 const std::string EM_INDEX = "correct_value";
 const std::string EM_COMMON_ERROR = "common_error";
-const std::string EM_ORIGIN_DTYPE     = "origin_dtype";
-const std::string EM_ENV              = "env";
-const std::string EM_SITUATION        = "situation";
-const std::string EM_REASON           = "reason";
+const std::string EM_ORIGIN_DTYPE = "origin_dtype";
+const std::string EM_ENV = "env";
+const std::string EM_SITUATION = "situation";
+const std::string EM_REASON = "reason";
 
 /* Input parameter[--%s]'s value is empty!
  * parameter
@@ -138,6 +138,6 @@ const std::string EM_INVALID_FORMAT_IN_JSON = "E2101D";
 const std::string EM_INVALID_DTYPE_IN_JSON = "E2101E";
 
 const std::string EM_ORIGINAL_DATATYPE_IS_NOT_SUPPORTED = "E21020";
-}
+}  // namespace fe
 
 #endif  // FUSION_ENGINE_INC_COMMON_FE_ERROR_CODE_H_

@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
-*/
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -199,8 +199,7 @@ static int GenPreName(char *midStr, size_t midLen, bool isIn, char *name) {
   if (ret != EOK) {
     return ret;
   }
-  ret = strcpy_s(name + ACL_MODEL_PRE_LEN + midLen, tmpLen - midLen,
-                 isIn ? TENSOR_INPUT_STR : TENSOR_OUTPUT_STR);
+  ret = strcpy_s(name + ACL_MODEL_PRE_LEN + midLen, tmpLen - midLen, isIn ? TENSOR_INPUT_STR : TENSOR_OUTPUT_STR);
   if (ret != EOK) {
     return ret;
   }
@@ -222,8 +221,8 @@ static int GenPreName(char *midStr, size_t midLen, bool isIn, char *name) {
  * @retval Success return ACL_SUCCESS
  * @retval Failure return ACL_ERROR_FAILURE
  */
-static aclError GetTensorDescNameToDims(const aclmdlDesc *modelDesc, char *realName,
-                                        bool isIn, const size_t index, aclmdlIODims *const dims) {
+static aclError GetTensorDescNameToDims(const aclmdlDesc *modelDesc, char *realName, bool isIn, const size_t index,
+                                        aclmdlIODims *const dims) {
   if ((strlen(realName) + 1U) > ACL_MAX_TENSOR_NAME_LEN) {
     // Use convertName because realName is too long.
     char midStr[MIDMAX];
@@ -437,8 +436,7 @@ aclError aclmdlGetDescFromFile(aclmdlDesc *modelDesc, const char *modelPath) {
   return result;
 }
 
-aclError aclmdlGetDescFromMem(aclmdlDesc *modelDesc, const void *model,
-                              size_t modelSize) {
+aclError aclmdlGetDescFromMem(aclmdlDesc *modelDesc, const void *model, size_t modelSize) {
   if (modelDesc == NULL || model == NULL) {
     ACL_LOG_ERROR("modelDesc/model must not be NULL");
     return ACL_ERROR_INVALID_PARAM;
@@ -470,7 +468,7 @@ size_t aclmdlGetNumOutputs(aclmdlDesc *modelDesc) {
   return VectorSize(&modelDesc->outputDesc);
 }
 
-__attribute__ ((noinline)) static aclmdlTensorDesc *mdlGetTensorDesc(const aclmdlDesc *mdlDesc, size_t idx, bool isIn) {
+__attribute__((noinline)) static aclmdlTensorDesc *mdlGetTensorDesc(const aclmdlDesc *mdlDesc, size_t idx, bool isIn) {
   Vector desc = isIn ? mdlDesc->inputDesc : mdlDesc->outputDesc;
   aclmdlTensorDesc *tensorDesc = (aclmdlTensorDesc *)VectorAt(&desc, idx);
   if (tensorDesc == NULL) {
@@ -516,13 +514,13 @@ const char *aclmdlGetTensorRealName(const aclmdlDesc *modelDesc, const char *nam
   // when the name from user can be found in the modelDesc tensor name, direct return this name.
   const char *realTensorName = GetRealTensorName(modelDesc, name);
   if (realTensorName != NULL) {
-      return realTensorName;
+    return realTensorName;
   }
 
   // check if name like acl_modelId_${id}_input_${index}_${random string} format.
   realTensorName = TransTensorNameToReal(modelDesc, name);
   if (realTensorName != NULL) {
-      return realTensorName;
+    return realTensorName;
   }
 
   ACL_LOG_INNER_ERROR("Name[%s] is invalid", name);

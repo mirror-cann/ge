@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,14 +67,14 @@ class SubprocessManagerTest : public testing::Test {
 };
 
 TEST_F(SubprocessManagerTest, UtSubProcessManager_01) {
-    std::function<void(const ProcStatus &)> func = [](const ProcStatus &status) {};
-    pid_t pid = getpid();
-    MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-    SubprocessManager::GetInstance().RegExcptHandleCallback(pid, func);
-    EXPECT_EQ(SubprocessManager::GetInstance().Initialize(), SUCCESS);
-    usleep(10);  // 0.01ms, Wait for RunThread.
-    SubprocessManager::GetInstance().Finalize();
-    SubprocessManager::GetInstance().UnRegExcptHandleCallback(pid);
+  std::function<void(const ProcStatus &)> func = [](const ProcStatus &status) {};
+  pid_t pid = getpid();
+  MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
+  SubprocessManager::GetInstance().RegExcptHandleCallback(pid, func);
+  EXPECT_EQ(SubprocessManager::GetInstance().Initialize(), SUCCESS);
+  usleep(10);  // 0.01ms, Wait for RunThread.
+  SubprocessManager::GetInstance().Finalize();
+  SubprocessManager::GetInstance().UnRegExcptHandleCallback(pid);
 }
 TEST_F(SubprocessManagerTest, UtSubProcessManagerWaitpidRet0) {
   std::function<void(const ProcStatus &)> func = [](const ProcStatus &status) {};
@@ -119,10 +119,7 @@ TEST_F(SubprocessManagerTest, UtSubProcessManagerWaitpidStop) {
   SubprocessManager::GetInstance().Initialize();
   // 等待回调
   std::unique_lock<std::mutex> lock(mt);
-  condition.wait_for(lock, std::chrono::seconds(1),
-                     [&callback_finish]() {
-                       return callback_finish;
-                     });
+  condition.wait_for(lock, std::chrono::seconds(1), [&callback_finish]() { return callback_finish; });
 
   SubprocessManager::GetInstance().run_flag_.store(false);
   if (SubprocessManager::GetInstance().watch_sub_proc_thread_.joinable()) {
@@ -152,10 +149,7 @@ TEST_F(SubprocessManagerTest, UtSubProcessManagerWaitpidExit) {
 
   // 等待回调
   std::unique_lock<std::mutex> lock(mt);
-  condition.wait_for(lock, std::chrono::seconds(1),
-                     [&callback_finish]() {
-                       return callback_finish;
-                     });
+  condition.wait_for(lock, std::chrono::seconds(1), [&callback_finish]() { return callback_finish; });
   SubprocessManager::GetInstance().run_flag_.store(false);
   if (SubprocessManager::GetInstance().watch_sub_proc_thread_.joinable()) {
     SubprocessManager::GetInstance().watch_sub_proc_thread_.join();
@@ -166,9 +160,7 @@ TEST_F(SubprocessManagerTest, UtSubProcessManagerWaitpidExit) {
 
 TEST_F(SubprocessManagerTest, UtSubProcessManagerWaitpidContinue) {
   ProcStatus status_result = ProcStatus::NORMAL;
-  std::function<void(const ProcStatus &)> func = [&](const ProcStatus &status) {
-    status_result = status;
-  };
+  std::function<void(const ProcStatus &)> func = [&](const ProcStatus &status) { status_result = status; };
   pid_t pid = getpid();
   g_waitpid_ret = 3;
   g_waitpid_status = 0xffff;
@@ -209,7 +201,7 @@ TEST_F(SubprocessManagerTest, UtGetFlowGwBinDir) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(flowgw_bin_dir.empty(), true);
   class MockMmpaInner : public ge::MmpaStubApiGe {
-  public:
+   public:
     int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
       (void)strncpy_s(realPath, realPathLen, path, strlen(path));
       return EN_OK;

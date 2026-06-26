@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ ge::Status GetDeviceTotalMemorySize(size_t &total_mem_size) {
   (void)free_mem;
   return ge::SUCCESS;
 }
-}
+}  // namespace
 
 ScalableConfig::ScalableConfig() {
   size_t total_mem_size = 0U;
@@ -64,7 +64,7 @@ ScalableConfig::ScalableConfig() {
         } else {
           page_mem_size_total_threshold = static_cast<uint64_t>(config_value);
           GELOGI("page_mem_size_total_threshold is set to %lu, as option[%s]=%s(GB)", page_mem_size_total_threshold,
-                  kOptionMemoryPoolThreshold, option_value.c_str());
+                 kOptionMemoryPoolThreshold, option_value.c_str());
         }
       }
     }
@@ -76,4 +76,4 @@ ScalableConfig::ScalableConfig() {
             total_mem_size, page_mem_size_total_threshold, uncacheable_size_threshold);
   }
 }
-}
+}  // namespace gert

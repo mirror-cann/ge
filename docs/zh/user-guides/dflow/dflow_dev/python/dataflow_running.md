@@ -11,7 +11,7 @@
 
 通过注解构图并执行的流程如下所示。
 
-**图1**  通过注解构图并执行  
+**图1**  通过注解构图并执行
 ![](figures/通过注解构图并执行.png "通过注解构图并执行")
 
 示例代码如下。
@@ -55,7 +55,7 @@ dag.feed({data0:np.array([[1, 2]], dtype=np.int32), data1:np.array([[2, 3]], dty
 print("dataflow fetch result:", dag.fetch())
 # 打印：dataflow fetch result: ([array([[3, 5]], dtype=int32)], 0)
 
-# 释放系统资源 
+# 释放系统资源
 df.finalize()
 ```
 
@@ -63,7 +63,7 @@ df.finalize()
 
 通过API构图并执行的流程如下所示。
 
-**图1**  通过FlowNode构图并执行  
+**图1**  通过FlowNode构图并执行
 ![](figures/通过FlowNode构图并执行.png "通过FlowNode构图并执行")
 
 示例代码如下。完整示例代码请参考[sample\_base](https://gitcode.com/cann/ge/blob/master/examples/dflow/python/sample_base.py)。
@@ -102,6 +102,6 @@ dag.feed_data({data0:np.array([[1, 2]], dtype=np.int32), data1:np.array([[2, 3]]
 # 调用FlowGraph.fetch_data获取输出
 print("dataflow fetch result:", dag.fetch_data())
 
-# 释放系统资源 
+# 释放系统资源
 df.finalize()
 ```

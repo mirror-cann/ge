@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ class NetworkLstmpST : public testing::Test {
   }
 
  protected:
-  //GeModel must not be destructed, it's weight data will be use in Init Graph when sink weight.
+  // GeModel must not be destructed, it's weight data will be use in Init Graph when sink weight.
   ge::GeRootModelPtr ge_root_model_;
   ge::GeRootModelPtr ge_root_model2_;
 };
@@ -138,7 +138,8 @@ TEST_F(NetworkLstmpST, Lstmp_LaunchArgCorrect) {
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
   // CheckRtsLaunchParas
-  auto dynmic_automic_launch_args = runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(DynamicAtomicStubName);// 不需要修改么？
+  auto dynmic_automic_launch_args =
+      runtime_stub.GetRtsRuntimeStub().PopLaunchArgsByStubName(DynamicAtomicStubName);  // 不需要修改么？
   ASSERT_NE(dynmic_automic_launch_args, nullptr);
   ASSERT_EQ(dynmic_automic_launch_args->GetStream(), stream);
   ASSERT_EQ(dynmic_automic_launch_args->GetArgsEx()->argsSize, 88);

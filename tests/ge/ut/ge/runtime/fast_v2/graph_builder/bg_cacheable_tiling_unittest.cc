@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -972,11 +972,15 @@ TEST_F(BgCacheableTilingUT, BgAtomicTiling_TopoCorrect) {
   }
   auto tiling_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "Tiling");
   ASSERT_NE(tiling_node, nullptr);
-      ASSERT_EQ(FastNodeTopoChecker(tiling_node)
-                    .StrictConnectFrom(
-                        {ws_size, output_0_size, output_1_size, {"TilingParse"}, {"PrepareTilingFwkData"},
-                         {"InnerData"}, {"InnerData"}}),
-                "success");
+  ASSERT_EQ(FastNodeTopoChecker(tiling_node)
+                .StrictConnectFrom({ws_size,
+                                    output_0_size,
+                                    output_1_size,
+                                    {"TilingParse"},
+                                    {"PrepareTilingFwkData"},
+                                    {"InnerData"},
+                                    {"InnerData"}}),
+            "success");
   auto tiling_parse_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "TilingParse");
   ASSERT_NE(tiling_parse_node, nullptr);
   ASSERT_EQ(FastNodeTopoChecker(tiling_parse_node).StrictConnectFrom({{"Const"}, {"InnerData"}, {"Const"}, {"Const"}}),

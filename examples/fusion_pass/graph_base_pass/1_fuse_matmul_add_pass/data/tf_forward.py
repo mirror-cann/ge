@@ -6,31 +6,30 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 
-import tensorflow as tf
-import npu_bridge
-from tensorflow.core.protobuf.rewriter_config_pb2 import RewriterConfig
 import numpy as np
+import tensorflow as tf
+from tensorflow.core.protobuf.rewriter_config_pb2 import RewriterConfig
 
 
 def generate_tf_graph():
-    a = tf.compat.v1.placeholder(tf.float32, shape=[2, 3], name='a')
-    b = tf.compat.v1.placeholder(tf.float32, shape=[3, 2], name='b')
+    a = tf.compat.v1.placeholder(tf.float32, shape=[2, 3], name="a")
+    b = tf.compat.v1.placeholder(tf.float32, shape=[3, 2], name="b")
     matmul = tf.linalg.matmul(a, b, name="matmul")
-    c = tf.compat.v1.placeholder(tf.float32, shape=[2, 2], name='c')
+    c = tf.compat.v1.placeholder(tf.float32, shape=[2, 2], name="c")
     add = tf.add(matmul, c, name="add")
     return tf.compat.v1.get_default_graph()
 
 
 def NetworkRun():
     graph = generate_tf_graph()
-    input_a = graph.get_tensor_by_name('a:0')
-    input_b = graph.get_tensor_by_name('b:0')
-    input_c = graph.get_tensor_by_name('c:0')
-    output_nodes = graph.get_tensor_by_name('add:0')
+    input_a = graph.get_tensor_by_name("a:0")
+    input_b = graph.get_tensor_by_name("b:0")
+    input_c = graph.get_tensor_by_name("c:0")
+    output_nodes = graph.get_tensor_by_name("add:0")
     a = np.array([[1.0, 2, 3], [4, 5, 6]])
     b = np.array([[1.0, 2], [3, 4], [5, 6]])
     c = np.array([[1.0, 1], [1, 1]])
-    
+
     # 适配npu
     config = tf.compat.v1.ConfigProto()
     custom_op = config.graph_options.rewrite_options.custom_optimizers.add()
@@ -51,7 +50,8 @@ def NetworkRun():
 
     with tf.compat.v1.Session(config=config, graph=graph) as sess:
         out = sess.run(output_nodes, feed_dict={input_a: a, input_b: b, input_c: c})
-        print('---out---\n', out)
+        print("---out---\n", out)
+
 
 if __name__ == "__main__":
     NetworkRun()

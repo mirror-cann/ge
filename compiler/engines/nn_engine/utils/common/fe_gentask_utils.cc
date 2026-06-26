@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,22 +23,21 @@
 #include "common/aicore_util_constants.h"
 
 namespace fe {
-namespace
-{
+namespace {
 const std::string TILING_SINK_OP = "_tiling_sink_op";
-constexpr const char* kShortSocVersionAscend310P = "Ascend310P";
+constexpr const char *kShortSocVersionAscend310P = "Ascend310P";
 const int64_t LOC_EVENT = 2;
 
 const std::unordered_set<int64_t> BUILT_IN_IMPLY_TYPE{
-  EN_IMPL_HW_CONSTANT_CCE, EN_IMPL_HW_GENERAL_CCE, EN_IMPL_HW_TIK, EN_IMPL_HW_TBE,
-  EN_IMPL_RL, EN_IMPL_PLUGIN_TBE, EN_IMPL_VECTOR_CORE_HW_TBE
-};
+    EN_IMPL_HW_CONSTANT_CCE, EN_IMPL_HW_GENERAL_CCE,    EN_IMPL_HW_TIK, EN_IMPL_HW_TBE, EN_IMPL_RL,
+    EN_IMPL_PLUGIN_TBE,      EN_IMPL_VECTOR_CORE_HW_TBE};
 
-const std::set<aclrtModelTaskType_t> op_task_list = {ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL, ACL_RT_MODEL_TASK_FFTS_PLUS_TASK,
-                                                     ACL_RT_MODEL_TASK_ALL_KERNEL, ACL_RT_MODEL_TASK_KERNEL};
+const std::set<aclrtModelTaskType_t> op_task_list = {ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL,
+                                                     ACL_RT_MODEL_TASK_FFTS_PLUS_TASK, ACL_RT_MODEL_TASK_ALL_KERNEL,
+                                                     ACL_RT_MODEL_TASK_KERNEL};
 
 Status GetExecuteMode(const ge::Node &node, gert::ExecuteMode &exe_mode) {
-  const  auto own_graph = node.GetOwnerComputeGraph();
+  const auto own_graph = node.GetOwnerComputeGraph();
   FE_CHECK_NOTNULL(own_graph);
   if (own_graph->GetGraphUnknownFlag()) {
     exe_mode = gert::ExecuteMode::kDynamicExecute;
@@ -58,12 +57,12 @@ bool GetOppSoFilePath(const ge::OpDescPtr op_desc, const std::string &opp_path, 
   } else {
     so_name = "Ascend-v" + fuzzy_str + "-libopmaster.so";
   }
-  auto fuzzyMatch = [] (const std::string& str, const std::string& re_str) -> bool {
+  auto fuzzyMatch = [](const std::string &str, const std::string &re_str) -> bool {
     std::regex re(re_str);
     bool res = false;
     try {
       res = std::regex_match(str, re);
-    } catch (std::regex_error& e) {
+    } catch (std::regex_error &e) {
       FE_LOGD("Regex match error %s", e.what());
     }
     return res;
@@ -88,8 +87,8 @@ bool GetOppSoFilePath(const ge::OpDescPtr op_desc, const std::string &opp_path, 
   FE_LOGD("Finished finding files in directory %s", dir_path.c_str());
   closedir(dir);
   if (file_name != so_name) {
-    FE_LOGD("Failed to get file name from directory [%s], file name is [%s], so name is [%s].",
-            dir_path.c_str(), file_name.c_str(), so_name.c_str());
+    FE_LOGD("Failed to get file name from directory [%s], file name is [%s], so name is [%s].", dir_path.c_str(),
+            file_name.c_str(), so_name.c_str());
     return false;
   }
   so_path = dir_path + so_name;
@@ -121,8 +120,8 @@ Status GetSoPath(const ge::Node &node, std::string &so_path) {
         FE_LOGD("The versions of CANN and OPPKernel are different.");
       } else {
         if (!GetOppSoFilePath(op_desc, opp_path, so_path)) {
-          FE_LOGE("Node[%s, %s]'s So path:%s does not exist", op_desc->GetNamePtr(),
-                  op_desc->GetTypePtr(), so_path.c_str());
+          FE_LOGE("Node[%s, %s]'s So path:%s does not exist", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
+                  so_path.c_str());
           return FAILED;
         }
       }
@@ -146,15 +145,13 @@ Status GetSoPath(const ge::Node &node, std::string &so_path) {
 
 bool FeedParamDefInfo(const ge::Node &node, ParamDef &param) {
   FE_CHECK(strcpy_s(param.kernelName, sizeof(param.kernelName), "RunAicpuRpcSrvLaunch") != 0,
-           FE_LOGI("Node[%s, %s]: unable to copy kernel name", node.GetNamePtr(), node.GetTypePtr()),
-           return false);
+           FE_LOGI("Node[%s, %s]: unable to copy kernel name", node.GetNamePtr(), node.GetTypePtr()), return false);
   std::string so_path;
   FE_CHECK(GetSoPath(node, so_path) != SUCCESS,
-          FE_LOGI("Node [%s, %s] unable to get the So path successfully", node.GetNamePtr(), node.GetTypePtr()),
-          return false);
+           FE_LOGI("Node [%s, %s] unable to get the So path successfully", node.GetNamePtr(), node.GetTypePtr()),
+           return false);
   FE_CHECK(strcpy_s(param.soName, sizeof(param.soName), so_path.c_str()) != 0,
-          FE_LOGI("Node [%s, %s] unable to copy the so path", node.GetNamePtr(), node.GetTypePtr()),
-          return false);
+           FE_LOGI("Node [%s, %s] unable to copy the so path", node.GetNamePtr(), node.GetTypePtr()), return false);
   param.is_custom = IsCustomiseOp(*(node.GetOpDesc()));
   std::string ops_path_name_prefix;
   param.is_prefix_ops_path = IsPrefixOpsPath(*(node.GetOpDesc()), ops_path_name_prefix);
@@ -164,11 +161,12 @@ bool FeedParamDefInfo(const ge::Node &node, ParamDef &param) {
   return true;
 }
 
-Status CreateTilingTask(const gert::ExeResGenerationContext* context, const ParamDef &param,
-                          domi::TaskDef &aicpu_task) {
+Status CreateTilingTask(const gert::ExeResGenerationContext *context, const ParamDef &param,
+                        domi::TaskDef &aicpu_task) {
   const vector<gert::StreamInfo> stream_v = context->GetAttachedStreamInfos();
-  FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
-           context->GetNodeType()), return FAILED);
+  FE_CHECK(stream_v.size() != 1,
+           FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(), context->GetNodeType()),
+           return FAILED);
   const int64_t stream_id = stream_v[0].stream_id;
   aicpu_task.set_type(ACL_RT_MODEL_TASK_PREPROCESS_KERNEL);
   aicpu_task.set_stream_id(stream_id);
@@ -182,8 +180,8 @@ Status CreateTilingTask(const gert::ExeResGenerationContext* context, const Para
   kernel_def->set_kernel_name(param.kernelName);
 
   auto mutable_context = kernel_def->mutable_context();
-  auto kernel_type = (param.is_custom || param.is_prefix_ops_path) ?
-                      ge::ccKernelType::CUST_AI_CPU : ge::ccKernelType::AI_CPU;
+  auto kernel_type =
+      (param.is_custom || param.is_prefix_ops_path) ? ge::ccKernelType::CUST_AI_CPU : ge::ccKernelType::AI_CPU;
   mutable_context->set_kernel_type(static_cast<uint32_t>(kernel_type));
   mutable_context->set_op_index(context->GetOpId());
 
@@ -205,10 +203,11 @@ Status CreateTilingTask(const gert::ExeResGenerationContext* context, const Para
   return SUCCESS;
 }
 
-Status CreateRefreshTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status CreateRefreshTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   const vector<gert::StreamInfo> stream_v = context->GetAttachedStreamInfos();
-  FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
-           context->GetNodeType()), return FAILED);
+  FE_CHECK(stream_v.size() != 1,
+           FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(), context->GetNodeType()),
+           return FAILED);
   const int64_t stream_id = stream_v[0].stream_id;
   task.set_type(ACL_RT_MODEL_TASK_UPDATE);
   task.set_stream_id(stream_id);
@@ -223,10 +222,11 @@ Status CreateRefreshTask(const gert::ExeResGenerationContext* context, domi::Tas
   return SUCCESS;
 }
 
-Status CreateRecordTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status CreateRecordTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   std::vector<gert::SyncResInfo> sync_res_info_v = context->GetSyncResInfos();
-  FE_CHECK(sync_res_info_v.size() != 1, FE_LOGE("Node[%s, %s]: sync_res_info_v size is not 1", context->GetNodeName(),
-           context->GetNodeType()), return FAILED);
+  FE_CHECK(sync_res_info_v.size() != 1,
+           FE_LOGE("Node[%s, %s]: sync_res_info_v size is not 1", context->GetNodeName(), context->GetNodeType()),
+           return FAILED);
   int32_t event_id = sync_res_info_v[0].sync_res_id;
   task.mutable_event_ex()->set_op_index(context->GetOpId());
   task.set_event_id(event_id);
@@ -234,17 +234,19 @@ Status CreateRecordTask(const gert::ExeResGenerationContext* context, domi::Task
   task.set_type(ACL_RT_MODEL_TASK_EVENT_RECORD);
 
   const vector<gert::StreamInfo> stream_v = context->GetAttachedStreamInfos();
-  FE_CHECK(stream_v.size() != 1, FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(),
-           context->GetNodeType()), return FAILED);
+  FE_CHECK(stream_v.size() != 1,
+           FE_LOGE("Node[%s, %s] stream_v size is not equal to 1", context->GetNodeName(), context->GetNodeType()),
+           return FAILED);
   const int64_t stream_id = stream_v[0].stream_id;
   task.set_stream_id(stream_id);
   return SUCCESS;
 }
 
-Status CreateWaitTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status CreateWaitTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   std::vector<gert::SyncResInfo> sync_res_info_v = context->GetSyncResInfos();
-  FE_CHECK(sync_res_info_v.size() != 1, FE_LOGE("Node[%s, %s] sync_res_info_v size is not 1", context->GetNodeName(),
-           context->GetNodeType()), return FAILED);
+  FE_CHECK(sync_res_info_v.size() != 1,
+           FE_LOGE("Node[%s, %s] sync_res_info_v size is not 1", context->GetNodeName(), context->GetNodeType()),
+           return FAILED);
   int32_t event_id = sync_res_info_v[0].sync_res_id;
   task.mutable_event_ex()->set_op_index(context->GetOpId());
   task.set_event_id(event_id);
@@ -256,14 +258,14 @@ Status CreateWaitTask(const gert::ExeResGenerationContext* context, domi::TaskDe
   return SUCCESS;
 }
 
-Status CreateNopTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status CreateNopTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   task.set_type(ACL_RT_MODEL_TASK_NOP);
   const int64_t stream_id = context->GetStreamId();
   task.set_stream_id(stream_id);
   return SUCCESS;
 }
 
-Status GenerateTaskForTilingSink(const ge::Node &node, const gert::ExeResGenerationContext* context,
+Status GenerateTaskForTilingSink(const ge::Node &node, const gert::ExeResGenerationContext *context,
                                  std::vector<domi::TaskDef> &task_defs) {
   ParamDef param;
   if (!FeedParamDefInfo(node, param)) {
@@ -272,7 +274,7 @@ Status GenerateTaskForTilingSink(const ge::Node &node, const gert::ExeResGenerat
   return GenerateTaskForSinkOp(context, param, task_defs);
 }
 
-Status ProcessFftsPlusTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status ProcessFftsPlusTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   auto op_name = context->GetNodeName();
   auto op_type = context->GetNodeType();
   auto mixl2_task_def = task.mutable_ffts_plus_task();
@@ -285,8 +287,7 @@ Status ProcessFftsPlusTask(const gert::ExeResGenerationContext* context, domi::T
     }
   }
   FE_CHECK(mix_ctx_idx == ctx_num,
-           FE_LOGE("Node[%s, %s]No valid mixl2 context in %d context(s)", op_name, op_type, ctx_num),
-           return FAILED);
+           FE_LOGE("Node[%s, %s]No valid mixl2 context in %d context(s)", op_name, op_type, ctx_num), return FAILED);
   // get insert pos
   auto mixl2_task_ctx = mixl2_task_def->mutable_ffts_plus_ctx(mix_ctx_idx)->mutable_mix_aic_aiv_ctx();
   std::vector<ge::ArgDesc> arg_descs;
@@ -299,14 +300,15 @@ Status ProcessFftsPlusTask(const gert::ExeResGenerationContext* context, domi::T
     if (arg_descs[insert_idx].addr_type == ge::AddrType::WORKSPACE) {
       if ((static_cast<size_t>(insert_idx) != arg_descs.size() - 1) &&
           (arg_descs[insert_idx + 1].addr_type == ge::AddrType::TILING_FFTS ||
-          arg_descs[insert_idx].addr_type == ge::AddrType::TILING)) {
+           arg_descs[insert_idx].addr_type == ge::AddrType::TILING)) {
         arg_descs[insert_idx + 1].addr_type = ge::AddrType::TILING_CONTEXT;
         arg_descs[insert_idx + 1].ir_idx = static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA);
       } else {
         // 插入一个新的
         FE_LOGD("Node [%s, %s] inserted new after workspace", op_name, op_type);
-        arg_descs.insert(arg_descs.begin() + insert_idx + 1,
-          {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
+        arg_descs.insert(
+            arg_descs.begin() + insert_idx + 1,
+            {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
         // 刷新args size
         mixl2_task_ctx->add_task_addr(0x0);
         mixl2_task_def->set_addr_size(mixl2_task_def->addr_size() + 1);
@@ -325,7 +327,7 @@ Status ProcessFftsPlusTask(const gert::ExeResGenerationContext* context, domi::T
   return SUCCESS;
 }
 
-Status ProcessMixAicoreTask(const gert::ExeResGenerationContext* context, domi::TaskDef &task) {
+Status ProcessMixAicoreTask(const gert::ExeResGenerationContext *context, domi::TaskDef &task) {
   auto op_name = context->GetNodeName();
   auto op_type = context->GetNodeType();
   auto task_def = task.mutable_kernel_with_handle();
@@ -340,14 +342,15 @@ Status ProcessMixAicoreTask(const gert::ExeResGenerationContext* context, domi::
     if (arg_descs[insert_idx].addr_type == ge::AddrType::WORKSPACE) {
       if ((static_cast<size_t>(insert_idx) != arg_descs.size() - 1) &&
           (arg_descs[insert_idx + 1].addr_type == ge::AddrType::TILING_FFTS ||
-          arg_descs[insert_idx].addr_type == ge::AddrType::TILING)) {
+           arg_descs[insert_idx].addr_type == ge::AddrType::TILING)) {
         arg_descs[insert_idx + 1].addr_type = ge::AddrType::TILING_CONTEXT;
         arg_descs[insert_idx + 1].ir_idx = static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA);
       } else {
         // 插入一个新的
         FE_LOGD("Node [%s, %s] inserted into new workspace.", op_name, op_type);
-        arg_descs.insert(arg_descs.begin() + insert_idx + 1,
-          {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
+        arg_descs.insert(
+            arg_descs.begin() + insert_idx + 1,
+            {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
       }
       break;
     }
@@ -356,24 +359,25 @@ Status ProcessMixAicoreTask(const gert::ExeResGenerationContext* context, domi::
       return FAILED;
     }
   }
-  FE_LOGD("Node[%s, %s] Origin format is %s, insert position is %ld", op_name, op_type, args_format.c_str(), insert_idx);
+  FE_LOGD("Node[%s, %s] Origin format is %s, insert position is %ld", op_name, op_type, args_format.c_str(),
+          insert_idx);
   // set args into task
   const std::string new_args_format = ge::ArgsFormatDescUtils::Serialize(arg_descs);
   task_ctx->set_args_format(new_args_format);
   return SUCCESS;
 }
 
-Status PreProcessTasks(const gert::ExeResGenerationContext* context, std::vector<domi::TaskDef> &tasks, size_t &i) {
+Status PreProcessTasks(const gert::ExeResGenerationContext *context, std::vector<domi::TaskDef> &tasks, size_t &i) {
   auto op_name = context->GetNodeName();
   auto op_type = context->GetNodeType();
   for (; i < tasks.size(); ++i) {
     if (tasks[i].type() == ACL_RT_MODEL_TASK_FFTS_PLUS_TASK) {
       if (ProcessFftsPlusTask(context, tasks[i]) == FAILED) return FAILED;
-      break; // 找到当前aicoretask，直接break
+      break;  // 找到当前aicoretask，直接break
     }
     if (tasks[i].type() == ACL_RT_MODEL_TASK_ALL_KERNEL || tasks[i].type() == ACL_RT_MODEL_TASK_VECTOR_ALL_KERNEL) {
       if (ProcessMixAicoreTask(context, tasks[i]) == FAILED) return FAILED;
-      break; // 找到当前aicoretask，直接break
+      break;  // 找到当前aicoretask，直接break
     }
   }
   if (i == tasks.size()) {
@@ -382,7 +386,7 @@ Status PreProcessTasks(const gert::ExeResGenerationContext* context, std::vector
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 bool CheckTilingSink(const ge::Node &node) {
   gert::ExecuteMode exe_mode;
@@ -408,13 +412,12 @@ bool CheckTilingSink(const ge::Node &node) {
   return true;
 }
 
-ge::Status CreateTilingTaskSuperKernel(const gert::ExeResGenerationContext* context,
-    domi::TaskDef &aicpu_task, const ParamDef &param) {
-  FE_CHECK(CreateTilingTask(context, param, aicpu_task) != SUCCESS,
-           FE_LOGE("Creat tiling task failed."), return FAILED);
+ge::Status CreateTilingTaskSuperKernel(const gert::ExeResGenerationContext *context, domi::TaskDef &aicpu_task,
+                                       const ParamDef &param) {
+  FE_CHECK(CreateTilingTask(context, param, aicpu_task) != SUCCESS, FE_LOGE("Creat tiling task failed."),
+           return FAILED);
   std::vector<gert::SyncResInfo> sync_res_info_v = context->GetSyncResInfos();
-  FE_CHECK(sync_res_info_v.size() != 1,
-           FE_LOGE("stream_v size is not equal to 1"), return FAILED);
+  FE_CHECK(sync_res_info_v.size() != 1, FE_LOGE("stream_v size is not equal to 1"), return FAILED);
   int32_t event_id = sync_res_info_v[0].sync_res_id;
   ge::ArgsFormatDescUtils args_des_util;
   vector<ge::ArgDesc> arg_descs;
@@ -428,13 +431,12 @@ ge::Status CreateTilingTaskSuperKernel(const gert::ExeResGenerationContext* cont
   FE_LOGD("format is %s", args_format.c_str());
   return SUCCESS;
 }
- 
-ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext* context,
-                                   std::vector<domi::TaskDef> &tasks, const ParamDef &param) {
+
+ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext *context, std::vector<domi::TaskDef> &tasks,
+                                   const ParamDef &param) {
   FE_LOGD("Start to generate super kernel task for FIA.");
   const std::vector<gert::SyncResInfo> &sync_res_info_v = context->GetSyncResInfos();
-  FE_CHECK(sync_res_info_v.size() != 1,
-           FE_LOGE("stream_v size is not equal to 1"), return FAILED);
+  FE_CHECK(sync_res_info_v.size() != 1, FE_LOGE("stream_v size is not equal to 1"), return FAILED);
   int32_t eventId = sync_res_info_v[0].sync_res_id;
   int64_t index = -1L;
   // find aicore task
@@ -444,61 +446,53 @@ ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext* context,
       break;
     }
   }
-  FE_CHECK(index < 0,
-           FE_LOGE("FIA failed to find aicore task."),
-           return FAILED);
+  FE_CHECK(index < 0, FE_LOGE("FIA failed to find aicore task."), return FAILED);
   FE_LOGD("FIA aicore index: %ld.", index);
   // get aicore context
   domi::KernelContext *kernel_context;
   if (tasks[index].type() == ACL_RT_MODEL_TASK_KERNEL) {
     auto kernel_def = tasks[index].mutable_kernel();
-    FE_CHECK(kernel_def == nullptr,
-             FE_LOGE("kernel_def for aicore task is nullptr."),
-             return FAILED);
+    FE_CHECK(kernel_def == nullptr, FE_LOGE("kernel_def for aicore task is nullptr."), return FAILED);
     kernel_context = kernel_def->mutable_context();
   } else if (tasks[index].type() == ACL_RT_MODEL_TASK_ALL_KERNEL) {
     auto kernelWithHandle = tasks[index].mutable_kernel_with_handle();
-    FE_CHECK(kernelWithHandle == nullptr,
-             FE_LOGE("The kernel_def for the aicore task is nullptr."),
-             return FAILED);
+    FE_CHECK(kernelWithHandle == nullptr, FE_LOGE("The kernel_def for the aicore task is nullptr."), return FAILED);
     kernel_context = kernelWithHandle->mutable_context();
   } else {
     FE_LOGE("Invalid task type [%d].", tasks[index].type());
     return FAILED;
   }
-  FE_CHECK(kernel_context == nullptr,
-           FE_LOGE("Kernel context for aicore task is nullptr."),
-           return FAILED);
+  FE_CHECK(kernel_context == nullptr, FE_LOGE("Kernel context for aicore task is nullptr."), return FAILED);
   const std::string argsFormat = kernel_context->args_format();
   std::vector<ge::ArgDesc> argDescs;
   FE_CHECK(ge::ArgsFormatDescUtils::Parse(argsFormat, argDescs) != SUCCESS || argDescs.empty(),
-           FE_LOGE("Failed to parse, argsFormat:[%s]", argsFormat.c_str()),
-           return FAILED);
+           FE_LOGE("Failed to parse, argsFormat:[%s]", argsFormat.c_str()), return FAILED);
   int64_t argIndex = static_cast<int64_t>(argDescs.size()) - 1;
   for (; argIndex >= 0; argIndex--) {
     if (argDescs[argIndex].addr_type == ge::AddrType::WORKSPACE) {
       if ((static_cast<size_t>(argIndex) != argDescs.size() - 1) &&
           (argDescs[argIndex + 1].addr_type == ge::AddrType::TILING_FFTS ||
-          argDescs[argIndex + 1].addr_type == ge::AddrType::TILING)) {
+           argDescs[argIndex + 1].addr_type == ge::AddrType::TILING)) {
         argDescs[argIndex + 1].addr_type = ge::AddrType::TILING_CONTEXT;
         argDescs[argIndex + 1].ir_idx = static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA);
       } else {
         FE_LOGD("insert new after workspace");
-        argDescs.insert(argDescs.begin() + argIndex + 1,
-          {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
+        argDescs.insert(
+            argDescs.begin() + argIndex + 1,
+            {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_DATA), false, {0}});
       }
       // order:tiling_data / tiling_key / block_dim / event_addr
-      argDescs.insert(argDescs.begin() + argIndex + LOC_EVENT,
-        {ge::AddrType::EVENT_ADDR, eventId, false, {0}});
-      argDescs.insert(argDescs.begin() + argIndex + LOC_EVENT,
-        {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::BLOCK_DIM), false, {0}});
-      argDescs.insert(argDescs.begin() + argIndex + LOC_EVENT,
-        {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_KEY), false, {0}});
+      argDescs.insert(argDescs.begin() + argIndex + LOC_EVENT, {ge::AddrType::EVENT_ADDR, eventId, false, {0}});
+      argDescs.insert(
+          argDescs.begin() + argIndex + LOC_EVENT,
+          {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::BLOCK_DIM), false, {0}});
+      argDescs.insert(
+          argDescs.begin() + argIndex + LOC_EVENT,
+          {ge::AddrType::TILING_CONTEXT, static_cast<int32_t>(ge::TilingContextSubType::TILING_KEY), false, {0}});
       break;
     }
     if (argIndex == 0) {
-      FE_LOGE("Origin format is %s, find workspace fail",
-              argsFormat.c_str());
+      FE_LOGE("Origin format is %s, find workspace fail", argsFormat.c_str());
       return FAILED;
     }
   }
@@ -507,16 +501,15 @@ ge::Status GenerateTaskSuperKernel(const gert::ExeResGenerationContext* context,
   const std::string newArgsFormat = ge::ArgsFormatDescUtils::Serialize(argDescs);
   kernel_context->set_args_format(newArgsFormat);
   FE_LOGD("new format is %s, insertion position is %ld.", newArgsFormat.c_str(), argIndex);
- 
+
   domi::TaskDef tilingTask;
-  FE_CHECK(CreateTilingTaskSuperKernel(context, tilingTask, param) != SUCCESS,
-            FE_LOGE("create tiling task failed"),
-            return FAILED);
+  FE_CHECK(CreateTilingTaskSuperKernel(context, tilingTask, param) != SUCCESS, FE_LOGE("create tiling task failed"),
+           return FAILED);
   tasks.insert(tasks.begin() + index, tilingTask);
   return SUCCESS;
 }
 
-Status GenerateTaskForSinkOp(const gert::ExeResGenerationContext* context, const ParamDef &param,
+Status GenerateTaskForSinkOp(const gert::ExeResGenerationContext *context, const ParamDef &param,
                              std::vector<domi::TaskDef> &tasks) {
   auto op_name = context->GetNodeName();
   auto op_type = context->GetNodeType();
@@ -560,10 +553,11 @@ Status GenerateTaskForSinkOp(const gert::ExeResGenerationContext* context, const
   platform_infos.GetPlatformResWithLock("SoCInfo", "prefetch_num", nop_num_str);
   uint32_t nop_num = atoi(nop_num_str.c_str());
   // 910b应该为8，310p应该为5
-  FE_LOGD("Node [%s, %s] finished generating tasks for the tiling sink, with prefetch_num=%u.", op_name, op_type, nop_num);
+  FE_LOGD("Node [%s, %s] finished generating tasks for the tiling sink, with prefetch_num=%u.", op_name, op_type,
+          nop_num);
 
   // 硬件预取指令与notify有时间差，根据GE经验插入空task
-  for(uint32_t j = 0; j < nop_num; ++j) {
+  for (uint32_t j = 0; j < nop_num; ++j) {
     tasks.insert(tasks.begin() + i, nop_task);
   }
   tasks.insert(tasks.begin() + i, wait_task);
@@ -592,11 +586,11 @@ bool IsPrefixOpsPath(const ge::OpDesc &op_desc, std::string &ops_path_name_prefi
     size_t pos = ops_path_name_prefix.find("_");
     if (pos != string::npos) {
       ops_path_name_prefix = ops_path_name_prefix.substr(static_cast<size_t>(pos + 1));
-      FE_LOGD("Node[%s, %s] after substr, ops_path_name_prefix:[%s]",
-      op_desc.GetNamePtr(), op_desc.GetTypePtr(), ops_path_name_prefix.c_str());
+      FE_LOGD("Node[%s, %s] after substr, ops_path_name_prefix:[%s]", op_desc.GetNamePtr(), op_desc.GetTypePtr(),
+              ops_path_name_prefix.c_str());
     } else {
-      FE_LOGW("Node[%s, %s] ops_path_name_prefix:[%s] is not in the expected format",
-      ops_path_name_prefix.c_str(), op_desc.GetNamePtr(), op_desc.GetTypePtr());
+      FE_LOGW("Node[%s, %s] ops_path_name_prefix:[%s] is not in the expected format", ops_path_name_prefix.c_str(),
+              op_desc.GetNamePtr(), op_desc.GetTypePtr());
     }
   }
   return ret;
@@ -605,7 +599,7 @@ bool IsPrefixOpsPath(const ge::OpDesc &op_desc, std::string &ops_path_name_prefi
 Status GenerateOpExtTask(const ge::Node &node, const bool is_tiling_sink, std::vector<domi::TaskDef> &task_defs,
                          bool &reg_flag) {
   gert::ExeResGenerationCtxBuilder exe_ctx_builder;
-  auto res_ptr_holder = exe_ctx_builder.CreateOpExeContext(const_cast<ge::Node&>(node));
+  auto res_ptr_holder = exe_ctx_builder.CreateOpExeContext(const_cast<ge::Node &>(node));
   FE_CHECK_NOTNULL(res_ptr_holder);
   auto op_exe_res_ctx = reinterpret_cast<gert::ExeResGenerationContext *>(res_ptr_holder->context_);
   if (is_tiling_sink) {
@@ -624,8 +618,8 @@ Status GenerateOpExtTask(const ge::Node &node, const bool is_tiling_sink, std::v
     return SUCCESS;
   }
   reg_flag = true;
-  FE_LOGD("Node[%s][%s] find new gen task func with ori task size:%zu, reg_flag:%d",
-          node.GetNamePtr(), node.GetTypePtr(), task_defs.size(), reg_flag);
+  FE_LOGD("Node[%s][%s] find new gen task func with ori task size:%zu, reg_flag:%d", node.GetNamePtr(),
+          node.GetTypePtr(), task_defs.size(), reg_flag);
   std::vector<std::vector<uint8_t>> serialize_tasks;
   std::vector<int> op_task_defs;
   int index = 0;
@@ -659,8 +653,8 @@ Status GenerateOpExtTask(const ge::Node &node, const bool is_tiling_sink, std::v
 
   for (const auto &serialize_task : serialize_tasks) {
     domi::TaskDef task;
-    FE_CHECK(task.ParseFromArray(serialize_task.data(), serialize_task.size()) != true,
-             FE_LOGE("Parse pb failed."), return FAILED);
+    FE_CHECK(task.ParseFromArray(serialize_task.data(), serialize_task.size()) != true, FE_LOGE("Parse pb failed."),
+             return FAILED);
     FE_LOGD("After gen task emplace type:%u.", task.type());
     task_defs.emplace_back(std::move(task));
   }
@@ -674,4 +668,4 @@ Status GenerateOpExtTask(const ge::Node &node, const bool is_tiling_sink, std::v
   }
   return SUCCESS;
 }
-} // namespace fe
+}  // namespace fe

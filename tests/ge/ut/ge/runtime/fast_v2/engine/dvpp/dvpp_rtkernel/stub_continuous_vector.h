@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,12 +47,12 @@ class ContinuousVector {
     return elements;
   }
 
-  template<typename T>
+  template <typename T>
   static std::unique_ptr<uint8_t[]> Create(size_t capacity, size_t &total_size) {
-      return nullptr;
+    return nullptr;
   }
 
-  template<typename T>
+  template <typename T>
   static std::unique_ptr<uint8_t[]> Create(const size_t capacity) {
     size_t total_size;
     return Create<T>(capacity, total_size);
@@ -61,7 +61,7 @@ class ContinuousVector {
  private:
   size_t capacity_;
   size_t size_;
-  uint8_t reserved_[40]; // Reserved field, 32+8, do not directly use when only 8-byte left
+  uint8_t reserved_[40];  // Reserved field, 32+8, do not directly use when only 8-byte left
   uint8_t elements[8];
 };
 
@@ -72,7 +72,6 @@ class ContinuousVector {
  */
 class ContinuousVectorVector {
  public:
-
   const ContinuousVector *Get(const size_t index) const {
     return nullptr;
   }
@@ -88,6 +87,6 @@ class ContinuousVectorVector {
   size_t offset_[1U];
 };
 
-} // namespace gert
+}  // namespace gert
 
-#endif // STUB_EXE_GRAPH_RUNTIME_CONTINUOUS_VECTOR_H_
+#endif  // STUB_EXE_GRAPH_RUNTIME_CONTINUOUS_VECTOR_H_

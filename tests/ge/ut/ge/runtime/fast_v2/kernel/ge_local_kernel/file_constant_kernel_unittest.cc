@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include <gtest/gtest.h>
-#include<fstream>
+#include <fstream>
 #include "graph_metadef/graph/utils/file_utils.h"
 #include "mmpa/src/mmpa_stub.h"
 #include "faker/kernel_run_context_facker.h"
@@ -66,7 +66,7 @@ struct FileConstantKernelUt : public testing::Test {
           output_size_(100U),
           file_constant_weight_dir_(file_constant_weight_dir),
           file_name_(file_name) {}
-    RtSession* rt_session_;
+    RtSession *rt_session_;
     std::string var_id_;
     memory::CachingMemAllocator allocator_;
     rtStream_t stream_;
@@ -120,7 +120,7 @@ struct FileConstantKernelUt : public testing::Test {
         EXPECT_EQ(td->GetPlacement(), kOnDeviceHbm);
         ASSERT_TRUE(td->GetSize() >= kernel_fake_inputs.output_size_);
         for (size_t i = 0U; i < kernel_fake_inputs.output_size_ / sizeof(int32_t); ++i) {
-           EXPECT_EQ(static_cast<int32_t *>(td->GetAddr())[i], i);
+          EXPECT_EQ(static_cast<int32_t *>(td->GetAddr())[i], i);
         }
       }
     }
@@ -142,19 +142,18 @@ struct FileConstantKernelUt : public testing::Test {
     // fake attr param
     int64_t offset = 0;
     int64_t length = 0;
-    auto context_holder =
-        KernelRunContextFaker()
-            .KernelIONum(static_cast<size_t>(kernel::FileConstantKernelInputIdx::kEnd),
-                         static_cast<size_t>(kernel::FileConstantKernelOutputIdx::kEnd))
-            .Inputs({mem_addr, static_cast<void *>(&mem_size)})
-            .NodeAttrs({{"file_path", ge::AnyValue::CreateFrom<std::string>(attr_file_path)},
-                        {"file_id", ge::AnyValue::CreateFrom<std::string>("")},
-                        {"shape", ge::AnyValue::CreateFrom<std::vector<int64_t>>({5, 5})},
-                        {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT32)},
-                        {"offset", ge::AnyValue::CreateFrom<int64_t>(offset)},
-                        {"length", ge::AnyValue::CreateFrom<int64_t>(length)},
-                        {"location", ge::AnyValue::CreateFrom<std::string>(location)}})
-            .Build();
+    auto context_holder = KernelRunContextFaker()
+                              .KernelIONum(static_cast<size_t>(kernel::FileConstantKernelInputIdx::kEnd),
+                                           static_cast<size_t>(kernel::FileConstantKernelOutputIdx::kEnd))
+                              .Inputs({mem_addr, static_cast<void *>(&mem_size)})
+                              .NodeAttrs({{"file_path", ge::AnyValue::CreateFrom<std::string>(attr_file_path)},
+                                          {"file_id", ge::AnyValue::CreateFrom<std::string>("")},
+                                          {"shape", ge::AnyValue::CreateFrom<std::vector<int64_t>>({5, 5})},
+                                          {"dtype", ge::AnyValue::CreateFrom<int64_t>(ge::DataType::DT_INT32)},
+                                          {"offset", ge::AnyValue::CreateFrom<int64_t>(offset)},
+                                          {"length", ge::AnyValue::CreateFrom<int64_t>(length)},
+                                          {"location", ge::AnyValue::CreateFrom<std::string>(location)}})
+                              .Build();
     auto context = context_holder.GetContext<KernelContext>();
     auto funcs = registry.FindKernelFuncs("FileConstantUserMemKernel");
     ASSERT_NE(funcs, nullptr);
@@ -168,7 +167,7 @@ struct FileConstantKernelUt : public testing::Test {
         EXPECT_EQ(td->GetPlacement(), kOnDeviceHbm);
         ASSERT_TRUE(td->GetSize() >= kernel_fake_inputs.output_size_);
         for (size_t i = 0U; i < kernel_fake_inputs.output_size_ / sizeof(int32_t); ++i) {
-           EXPECT_EQ(static_cast<int32_t *>(td->GetAddr())[i], i);
+          EXPECT_EQ(static_cast<int32_t *>(td->GetAddr())[i], i);
         }
       }
     }
@@ -200,7 +199,7 @@ TEST_F(FileConstantKernelUt, FileConstantKernel_WeightLoadSuccessWithVarManager)
   // fake var mgr
   UtestRt2VarManager var_mgr;
   string var_id("file_constant_node_0");
-  StorageShape ss{{5,5}, {5,5}};
+  StorageShape ss{{5, 5}, {5, 5}};
   std::unique_ptr<int32_t[]> magic_addr(new int32_t[25U]);
   for (size_t i = 0U; i < 25U; ++i) {
     magic_addr[i] = i;
@@ -286,7 +285,7 @@ TEST_F(FileConstantKernelUt, FileConstantKernel_UserMem) {
     user_mem[i] = i;
   }
   const ge::graphStatus expected_exc_status = ge::GRAPH_SUCCESS;
-  TestFileConstantUserMemKernel(attr_file_path, file_name, 2, expected_exc_status, kernel_fake_inputs,
-                                &user_mem, mem_size * sizeof(int32_t));
+  TestFileConstantUserMemKernel(attr_file_path, file_name, 2, expected_exc_status, kernel_fake_inputs, &user_mem,
+                                mem_size * sizeof(int32_t));
 }
 }  // namespace gert

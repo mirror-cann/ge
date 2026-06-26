@@ -78,4 +78,3 @@ graphStatus类型：数据类型转换成功，返回GRAPH\_SUCCESS， 否则，
 ## 约束说明<a name="section2021419196520"></a>
 
 无。
-

@@ -61,8 +61,9 @@ extern "C" CUSTOM_OP_PULL_REGISTRY_EXPORT size_t GetRegisteredCustomOpCreatorNum
   return ge::GetCustomOpLocalCreators().size();
 }
 
-extern "C" CUSTOM_OP_PULL_REGISTRY_EXPORT int32_t GetRegisteredCustomOpCreators(
-    ge::CustomOpTypeToCreator *creators, const size_t creator_num, const size_t creator_struct_size) {
+extern "C" CUSTOM_OP_PULL_REGISTRY_EXPORT int32_t GetRegisteredCustomOpCreators(ge::CustomOpTypeToCreator *creators,
+                                                                                const size_t creator_num,
+                                                                                const size_t creator_struct_size) {
   const std::lock_guard<std::mutex> lock(ge::GetCustomOpLocalCreatorMutex());
   const auto &local_creators = ge::GetCustomOpLocalCreators();
   if ((creator_num < local_creators.size()) || ((creator_num > 0U) && (creators == nullptr)) ||

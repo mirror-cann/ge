@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -123,9 +123,9 @@ struct NodeInfo {
   bool is_input_of_curr_node;
   vector<IndexNameMap> tensor_map; /* the first map is for input and the second is for output */
   NodeInfo(ge::NodePtr node, NodeInfoPtr last_node_info_param, ge::Format heavy_format_param, int32_t sub_format_param,
-           int32_t c0_format_param,
-           PropagationInfo &propagation_info_param, int32_t anchor_index_of_curr_node_param = 0,
-           bool is_input_of_curr_node_param = true, bool is_sub_graph_data_or_nt_opt_param = false)
+           int32_t c0_format_param, PropagationInfo &propagation_info_param,
+           int32_t anchor_index_of_curr_node_param = 0, bool is_input_of_curr_node_param = true,
+           bool is_sub_graph_data_or_nt_opt_param = false)
       : current_node(std::move(node)),
         current_node_op_kernel_ptr(nullptr),
         format_selection(FormatSelectionType::FORMAT_AGNOSTIC_BOTTOM),
@@ -177,8 +177,8 @@ struct FormatAndDataTypeInfo {
         is_forward(is_forward_param),
         is_sub_graph_data_or_nt_opt(false),
         format_selection_type(format_selection_type_param),
-        only_to_paired_input_or_output((format_selection_type ==
-        FormatSelectionType::FORMAT_AGNOSTIC_FOR_PAIRED_INPUT_AND_OUTPUT)) {
+        only_to_paired_input_or_output(
+            (format_selection_type == FormatSelectionType::FORMAT_AGNOSTIC_FOR_PAIRED_INPUT_AND_OUTPUT)) {
     propagation_info.reshape_type = propagation_info_param.reshape_type;
     propagation_info.group = propagation_info_param.group;
     propagation_info.heavy_format = propagation_info_param.heavy_format;
@@ -190,7 +190,7 @@ struct FormatAndDataTypeInfo {
 using TensorInfoPtr = std::shared_ptr<FormatAndDataTypeInfo>;
 
 /** @brief First select qualified format index by the current data type of each
-* input and out put. */
+ * input and out put. */
 class HeavyFormatSelector {
  public:
   using PreciseDtypeMatcherPtr = std::shared_ptr<OpDtypePreciseMatcher>;
@@ -213,18 +213,20 @@ class HeavyFormatSelector {
    * Other heavy format : 200
    * Same as the tensor's original format(ND included) : 100
    * Other format: 1 */
-  Status GetMostSuitableFormatIndex(const fe::OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node,
-                                    const HeavyFormatInfo& heavy_format_info,
-                                    const std::vector<IndexNameMap>& tensor_map, int32_t& most_suitable_index);
+  Status GetMostSuitableFormatIndex(const fe::OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node,
+                                    const HeavyFormatInfo &heavy_format_info,
+                                    const std::vector<IndexNameMap> &tensor_map, int32_t &most_suitable_index);
 
   static bool IsHeavyFormatConsistentWithOriFormat(const ge::GeTensorDescPtr &current_tensor,
-      const ge::Format &heavy_format, const ge::DataType &dst_dtype, const ge::OpDescPtr &op_desc_ptr);
+                                                   const ge::Format &heavy_format, const ge::DataType &dst_dtype,
+                                                   const ge::OpDescPtr &op_desc_ptr);
+
  private:
   /* For specifc input or output (which the heavy format is distributed from),
    * we need to ensure its format is exactly the same as the heavy format.
    * So we first select the format index which qualify this requirement. */
-  Status SelectQualifiedFormat(const OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node,
-                               const HeavyFormatInfo& heavy_format_info, const std::vector<IndexNameMap>& tensor_map);
+  Status SelectQualifiedFormat(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node,
+                               const HeavyFormatInfo &heavy_format_info, const std::vector<IndexNameMap> &tensor_map);
 
   /* Get the initial heavy format index by the heavy format and the
    * corresponding input's kernel info. If and only if the format of
@@ -232,23 +234,22 @@ class HeavyFormatSelector {
    * the data type of the input's or output's kernel is exactly as same as the
    * current tensor's data type, we will push it to the matched_index_
    * */
-  Status SearchHeavyFormatInKernel(const OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node,
-                                   const HeavyFormatInfo& heavy_format_info);
+  Status SearchHeavyFormatInKernel(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node,
+                                   const HeavyFormatInfo &heavy_format_info);
 
   /* When doing distribution, we should ensure the data type which selected by
    * opjudge will not change because the precision is much more important
    * than the format. So the data types of the heavy format in the ops kernel
    * should be exactly the same as current ones */
-  Status MatchDtypeForAllInputAndOutput(const OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node);
+  Status MatchDtypeForAllInputAndOutput(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node);
 
-  Status CalcFormatScore(const ge::OpDesc::Vistor<ge::GeTensorDescPtr>& all_tensors,
-                         const fe::OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr &node,
-                         uint32_t kernel_format_index, const HeavyFormatInfo& heavy_format_info,
-                         InputOrOutputIndex in_or_out, uint64_t& score);
+  Status CalcFormatScore(const ge::OpDesc::Vistor<ge::GeTensorDescPtr> &all_tensors,
+                         const fe::OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
+                         uint32_t kernel_format_index, const HeavyFormatInfo &heavy_format_info,
+                         InputOrOutputIndex in_or_out, uint64_t &score);
 
-  Status Match(const OpKernelInfoPtr& op_kernel_info_ptr,
-               const ge::NodePtr &node, const ge::OpDesc::Vistor<ge::GeTensorDescPtr>& all_tensors,
-               InputOrOutputIndex in_or_out);
+  Status Match(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
+               const ge::OpDesc::Vistor<ge::GeTensorDescPtr> &all_tensors, InputOrOutputIndex in_or_out);
 
   static bool IsDtypeSensitiveOpForHeavyFormatConsistentWithOriFormat(const ge::OpDescPtr &op_desc_ptr);
 
@@ -261,8 +262,8 @@ class HeavyFormatSelector {
   std::vector<uint32_t> matched_index_;
 };
 
-Status GetInputAndOutputIndexNameMap(const OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node,
-                                     std::vector<IndexNameMap>& tensor_map);
+Status GetInputAndOutputIndexNameMap(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node,
+                                     std::vector<IndexNameMap> &tensor_map);
 }  // namespace fe
 
 #endif  // FUSION_ENGINE_OPTIMIZER_GRAPH_OPTIMIZER_HEAVY_FORMAT_PROPAGATION_HEAVY_FORMAT_SELECTOR_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,15 +38,10 @@ struct SubkernelInfo {
 
 using FatbinKernelInfoMap = std::map<uint64_t, SubkernelInfo>;
 
-enum class KernelContextType : uint64_t {
-  OpBinary = 0,
-  Kernel,
-  Bottom
-};
+enum class KernelContextType : uint64_t { OpBinary = 0, Kernel, Bottom };
 
 #pragma pack(8)
-struct KernelHeader
-{
+struct KernelHeader {
   size_t dataOffset[static_cast<size_t>(KernelContextType::Bottom)];
   size_t dataSize[static_cast<size_t>(KernelContextType::Bottom)];
 };
@@ -56,17 +51,16 @@ class TileFwkOpInfo {
  public:
   TileFwkOpInfo(const TileFwkOpInfo &) = delete;
   TileFwkOpInfo &operator=(const TileFwkOpInfo &) = delete;
-  static TileFwkOpInfo& Instance();
+  static TileFwkOpInfo &Instance();
 
   bool CheckFatbinInfo(const std::string &op_type) const;
 
-  Status GetFatbinInfo(const std::string &op_type, const uint64_t &config_key,
-                       SubkernelInfo &subkernel_info) const;
+  Status GetFatbinInfo(const std::string &op_type, const uint64_t &config_key, SubkernelInfo &subkernel_info) const;
 
   void SetFatbinInfo(const std::string &op_type, const FatbinKernelInfoMap &fatbin_kernel_info_map);
 
   bool GetTileFwkOpFlag(const std::string &op_type, bool &tile_fwk_op_flag) const;
-  
+
   void SetTileFwkOpFlag(const std::string &op_type, const bool &tile_fwk_op_flag);
 
  private:

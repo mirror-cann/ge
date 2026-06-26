@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,9 +47,7 @@ class STEST_st_check_graph_cycle : public testing::Test {
     graph_comm_ptr_->Initialize();
   }
 
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
   void SetPattern(ge::OpDescPtr opdef, string optype) {
     auto key_pattern = "_pattern";
     ge::AttrUtils::SetStr(opdef, key_pattern, optype);
@@ -65,8 +63,8 @@ class STEST_st_check_graph_cycle : public testing::Test {
     OpDescPtr addn = std::make_shared<OpDesc>("addn", "AddN");
     OpDescPtr elemwise = std::make_shared<OpDesc>("elem", "Eltwise");
     OpDescPtr relu = std::make_shared<OpDesc>("relu", "ReLU");
-    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1","ReLU");
-    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2","ReLU");
+    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "ReLU");
+    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "ReLU");
     SetPattern(addn, "ElemWise");
     SetPattern(elemwise, "ElemWise");
 
@@ -107,7 +105,7 @@ class STEST_st_check_graph_cycle : public testing::Test {
     NodePtr relu1_node = graph->AddNode(relu1);
     NodePtr relu2_node = graph->AddNode(relu2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(addn_node->GetName(), std::move(buffer));
     addn_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
 
@@ -128,8 +126,8 @@ class STEST_st_check_graph_cycle : public testing::Test {
     OpDescPtr addn = std::make_shared<OpDesc>("addn", "AddN");
     OpDescPtr elemwise = std::make_shared<OpDesc>("elem", "Eltwise");
     OpDescPtr relu = std::make_shared<OpDesc>("relu", "ReLU");
-    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1","ReLU");
-    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2","ReLU");
+    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "ReLU");
+    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "ReLU");
     SetPattern(addn, "ElemWise");
     SetPattern(elemwise, "ElemWise");
 
@@ -168,7 +166,7 @@ class STEST_st_check_graph_cycle : public testing::Test {
     NodePtr relu1_node = graph->AddNode(relu1);
     NodePtr relu2_node = graph->AddNode(relu2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(addn_node->GetName(), std::move(buffer));
     addn_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
 
@@ -202,7 +200,7 @@ class STEST_st_check_graph_cycle : public testing::Test {
         .SetInputs({"a"})
         .AddOpDesc("c", "TestC", 0, 0)
         .AddOpDesc("netout", "NetOutput", 0, 0)
-//        .SetInput("c:-1", "a:-1")
+        //        .SetInput("c:-1", "a:-1")
         .SetInput("netout:-1", "b:-1")
         .SetInput("c:-1", "b:-1");
   }
@@ -242,21 +240,19 @@ class STEST_st_check_graph_cycle : public testing::Test {
         node_vec.emplace_back(node);
       }
     }
-//    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
+    //    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
     ge::NodePtr node = graph_comm_ptr_->TransSingleSubGraph(*(graph.get()), node_vec);
-//    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
+    //    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
     int i = 0;
     for (const auto &sub_graph_func : (graph)->GetAllSubgraphs()) {
       const auto sub_graph_func_name = std::string("test") + std::string("_sub_graph_") + std::to_string(i++);
-//      ge::GraphUtils::DumpGEGraphToOnnx(*sub_graph_func, sub_graph_func_name);
+      //      ge::GraphUtils::DumpGEGraphToOnnx(*sub_graph_func, sub_graph_func_name);
     }
 
     EXPECT_EQ(graph->TopologicalSorting(), fe::SUCCESS);
     EXPECT_NE(node, nullptr);
     (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kInFixpipeSubGraph, true);
-    const auto &filter = [](const ge::ComputeGraphPtr &graph_ptr) {
-      return true;
-    };
+    const auto &filter = [](const ge::ComputeGraphPtr &graph_ptr) { return true; };
     auto sub_graphs = graph->GetAllSubgraphs();
     for (const auto &sub_graph : sub_graphs) {
       if (sub_graph == nullptr || sub_graph->GetParentNode() == nullptr) {
@@ -271,7 +267,7 @@ class STEST_st_check_graph_cycle : public testing::Test {
       }
     }
 
-//    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after2");
+    //    ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after2");
     EXPECT_EQ(graph->TopologicalSorting(), fe::SUCCESS);
   }
 };
@@ -303,7 +299,9 @@ TEST_F(STEST_st_check_graph_cycle, check_graph_cycle_yes) {
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   bool ret = false;
   if (config.IsEnableNetworkAnalysis()) {
@@ -324,7 +322,9 @@ TEST_F(STEST_st_check_graph_cycle, check_graph_cycle_no) {
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   bool ret = true;
   if (config.IsEnableNetworkAnalysis()) {
@@ -366,15 +366,11 @@ TEST_F(STEST_st_check_graph_cycle, report_cycle_after_pass_fusion) {
   config.Initialize(options);
   auto create_func = []() -> ::fe::GraphPass * { return new (std::nothrow) ConvWeightCompressFusionPass(); };
   FusionPassRegistry::PassDesc pass_desc = {0, create_func};
-  FusionPassOrRule pass_or_rule("ConcatQuantFusionPass",
-                               0, PASS_METHOD,
-                               BUILT_IN_PASS_PRIORITY_MIN,
-                               pass_desc);
+  FusionPassOrRule pass_or_rule("ConcatQuantFusionPass", 0, PASS_METHOD, BUILT_IN_PASS_PRIORITY_MIN, pass_desc);
   graphFusion.ReportAfterCheckGraphCycle(*graph_out, pass_or_rule);
 }
 
-TEST_F(STEST_st_check_graph_cycle, only_control_edges_case)
-{
+TEST_F(STEST_st_check_graph_cycle, only_control_edges_case) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphOnlyControlEdge(graph);
   RunAndCheck(graph);
@@ -392,8 +388,7 @@ TEST_F(STEST_st_check_graph_cycle, only_control_edges_case)
   EXPECT_EQ(count, 2);
 }
 
-TEST_F(STEST_st_check_graph_cycle, two_control_edges_to_outer_nodes)
-{
+TEST_F(STEST_st_check_graph_cycle, two_control_edges_to_outer_nodes) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphTwoControlEdgesToOuterNodes(graph);
   RunAndCheck(graph);
@@ -415,9 +410,7 @@ TEST_F(STEST_st_check_graph_cycle, two_control_edges_to_outer_nodes)
   EXPECT_EQ(count, 3);
 }
 
-
-TEST_F(STEST_st_check_graph_cycle, input_contain_both_data_and_control_edges_case)
-{
+TEST_F(STEST_st_check_graph_cycle, input_contain_both_data_and_control_edges_case) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphContainsControlEdge(graph);
   RunAndCheck(graph);
@@ -438,8 +431,7 @@ TEST_F(STEST_st_check_graph_cycle, input_contain_both_data_and_control_edges_cas
   EXPECT_EQ(count, 3);
 }
 
-TEST_F(STEST_st_check_graph_cycle, data_edges_case)
-{
+TEST_F(STEST_st_check_graph_cycle, data_edges_case) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphDataEdge(graph);
   RunAndCheck(graph);

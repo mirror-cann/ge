@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,11 +43,9 @@ bool CheckMultiRef(const ge::InDataAnchorPtr &input_anchor) {
   }
   return peer_out_anchor->GetPeerInDataAnchors().size() > 1;
 }
-} // namespace
+}  // namespace
 
-ConcatCOptimizeFusionPass::ConcatCOptimizeFusionPass()
-    : concat_dim_(-1),
-      real_concat_dim_(-1) {}
+ConcatCOptimizeFusionPass::ConcatCOptimizeFusionPass() : concat_dim_(-1), real_concat_dim_(-1) {}
 
 ConcatCOptimizeFusionPass::~ConcatCOptimizeFusionPass() {}
 
@@ -63,8 +61,7 @@ vector<FusionPattern *> ConcatCOptimizeFusionPass::DefinePatterns() {
   FusionPattern *pattern = new (std::nothrow) FusionPattern("ConcatCOptimizeFusionPass");
   FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatCOptFus][DfnPtn] Failed to create a new object."),
            return patterns);
-  pattern->AddOpDesc(kPatternConcat, {CONCATD, CONCATV2D})
-      .SetOutput(kPatternConcat);
+  pattern->AddOpDesc(kPatternConcat, {CONCATD, CONCATV2D}).SetOutput(kPatternConcat);
   patterns.push_back(pattern);
   return patterns;
 }
@@ -79,8 +76,7 @@ vector<FusionPattern *> ConcatCOptimizeFusionPass::DefineInnerPatterns() {
   FusionPattern *pattern1 = new (std::nothrow) FusionPattern("ConcatCOptimizeFusionPass1");
   FE_CHECK(pattern1 == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatCOptFus][DfnPtn] Failed to create a new object."),
            return patterns);
-  pattern1->AddOpDesc(kPatternConv, {CONV2D, kConv2DTranspose, kConv2DTransposeD, OP_FIXPIPE})
-      .SetOutput(kPatternConv);
+  pattern1->AddOpDesc(kPatternConv, {CONV2D, kConv2DTranspose, kConv2DTransposeD, OP_FIXPIPE}).SetOutput(kPatternConv);
   patterns.push_back(pattern1);
 
   /*
@@ -121,8 +117,7 @@ vector<FusionPattern *> ConcatCOptimizeFusionPass::DefineInnerPatterns() {
   return patterns;
 }
 
-Status ConcatCOptimizeFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
-                                          vector<ge::NodePtr> &fusion_nodes) {
+Status ConcatCOptimizeFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping, vector<ge::NodePtr> &fusion_nodes) {
   (void)fusion_nodes;
   ge::NodePtr concat_node = GetNodeFromMapping(kPatternConcat, mapping);
   FE_CHECK(concat_node == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatCOptFus][Fus] Concat node is nullptr."),
@@ -216,7 +211,7 @@ bool ConcatCOptimizeFusionPass::CheckIsValidNode(const ge::NodePtr &node) {
   }
 
   if (!CheckOutput(node)) {
-      FE_LOGD("Node[%s]: output check is invalid, which cannot do c-axis optimize.", op_name.c_str());
+    FE_LOGD("Node[%s]: output check is invalid, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
 
@@ -226,7 +221,7 @@ bool ConcatCOptimizeFusionPass::CheckIsValidNode(const ge::NodePtr &node) {
   }
 
   if (!CheckPeerNodeCanReUsed(node)) {
-      FE_LOGD("Node[%s]: peer nodes cannot be reused, which cannot do c-axis optimize.", op_name.c_str());
+    FE_LOGD("Node[%s]: peer nodes cannot be reused, which cannot do c-axis optimize.", op_name.c_str());
     return false;
   }
   return true;
@@ -241,8 +236,8 @@ bool ConcatCOptimizeFusionPass::CheckConcatFormat(const ge::OpDescPtr &op_desc) 
     }
     if (ge::GetPrimaryFormat(input_desc->GetFormat()) != ge::FORMAT_NC1HWC0) {
       is_input_nc1hwc0_format = false;
-      FE_LOGD("The input%zu's format is %d, which is not equal to NC1HWC0.",
-              i, static_cast<int>(ge::GetPrimaryFormat(input_desc->GetFormat())));
+      FE_LOGD("The input%zu's format is %d, which is not equal to NC1HWC0.", i,
+              static_cast<int>(ge::GetPrimaryFormat(input_desc->GetFormat())));
       break;
     }
   }
@@ -299,7 +294,7 @@ bool ConcatCOptimizeFusionPass::CheckConcatDim(const ge::OpDescPtr &op_desc,
     return false;
   }
   if (static_cast<size_t>(concat_dim_) >= axis_index_mapping.src_to_dst_transfer_dims.size() ||
-    axis_index_mapping.src_to_dst_transfer_dims[concat_dim_].empty()) {
+      axis_index_mapping.src_to_dst_transfer_dims[concat_dim_].empty()) {
     FE_LOGW("Concat_dim %lld is out of range or its mapping is empty.", concat_dim_);
     return false;
   }
@@ -316,8 +311,8 @@ bool ConcatCOptimizeFusionPass::CheckConcatDimAlignment(const ge::OpDescPtr &op_
     return false;
   }
   if (aligned_shape.GetDimNum() != align_shape_info.src_shape.GetDimNum()) {
-      FE_LOGW("Node[%s]: aligned shape size %zu is invalid.", op_desc->GetName().c_str(), aligned_shape.GetDimNum());
-      return false;
+    FE_LOGW("Node[%s]: aligned shape size %zu is invalid.", op_desc->GetName().c_str(), aligned_shape.GetDimNum());
+    return false;
   }
   if (static_cast<size_t>(concat_dim_) >= align_shape_info.src_shape.GetDimNum()) {
     FE_LOGW("Node[%s]: concat dim %lld exceeds the dimension of origin shape.", op_desc->GetName().c_str(),
@@ -359,13 +354,12 @@ bool ConcatCOptimizeFusionPass::CheckIs32Align(const ge::NodePtr &concat_node) c
     int32_t flag = 1;
     ge::GeTensorDesc tensor_desc = concat_node->GetOpDesc()->GetInputDesc(i);
     if (CalcTensorSize(tensor_desc, tensor_size, flag) != fe::SUCCESS) {
-      FE_LOGD("Cannot calculate input tensor size, %s cannot optimize.",
-          concat_node->GetName().c_str());
+      FE_LOGD("Cannot calculate input tensor size, %s cannot optimize.", concat_node->GetName().c_str());
       return false;
     }
     if (tensor_size % kAlignNum != 0) {
       FE_LOGD("Input tensor size of concat cannot be divided by 32, %s cannot optimize.",
-          concat_node->GetName().c_str());
+              concat_node->GetName().c_str());
       return false;
     }
   }
@@ -373,18 +367,18 @@ bool ConcatCOptimizeFusionPass::CheckIs32Align(const ge::NodePtr &concat_node) c
 }
 
 void ConcatCOptimizeFusionPass::GetFirstOutAnchorNotInDeleteList(const ge::InDataAnchorPtr &input_anchor,
-                                                        ge::OutDataAnchorPtr &src_anchor,
-                                                        int current_deep) const {
+                                                                 ge::OutDataAnchorPtr &src_anchor,
+                                                                 int current_deep) const {
   if (current_deep >= kMaxDeepth) {
     return;
   }
   auto peer_out_anchor = input_anchor->GetPeerOutAnchor();
   if (peer_out_anchor == nullptr) {
-      return;
+    return;
   }
   auto peer_node = peer_out_anchor->GetOwnerNode();
   if (peer_node == nullptr) {
-      return;
+    return;
   }
   if (kGeDeleteOpType.count(peer_node->GetType()) != 0) {
     auto in_anchor = peer_node->GetInDataAnchor(0);
@@ -464,11 +458,10 @@ bool ConcatCOptimizeFusionPass::CheckOutput(const ge::NodePtr &concat_node) cons
       (void)ge::AttrUtils::GetBool(next_node_desc, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
                                    no_padding_continuous_input);
       (void)ge::AttrUtils::GetBool(next_node_desc, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continous_input);
-      is_virtual_op = no_task || output_reuse_input || no_padding_continuous_input || \
-                      is_continous_input || (!output_index.empty());
+      is_virtual_op =
+          no_task || output_reuse_input || no_padding_continuous_input || is_continous_input || (!output_index.empty());
       if (is_virtual_op) {
-        FE_LOGD("Next node %s is invalid, %s cannot optimize.", next_node_name.c_str(),
-                concat_node->GetName().c_str());
+        FE_LOGD("Next node %s is invalid, %s cannot optimize.", next_node_name.c_str(), concat_node->GetName().c_str());
         return false;
       }
     }
@@ -484,8 +477,8 @@ bool ConcatCOptimizeFusionPass::CheckPeerNodeCanReUsed(const ge::NodePtr &concat
       bool can_reused = true;
       (void)ge::AttrUtils::GetBool(src_node_op_desc, kCanReusedForConcatCOptimize, can_reused);
       if (!can_reused) {
-        FE_LOGD("Concat [%s] peer node [%s] cannot reused, cannot set no task flag.",
-                node_name.c_str(), src_node->GetName().c_str());
+        FE_LOGD("Concat [%s] peer node [%s] cannot reused, cannot set no task flag.", node_name.c_str(),
+                src_node->GetName().c_str());
         return false;
       }
     }
@@ -495,7 +488,7 @@ bool ConcatCOptimizeFusionPass::CheckPeerNodeCanReUsed(const ge::NodePtr &concat
 }
 
 bool ConcatCOptimizeFusionPass::IsPreNodeAttrValid(const ge::OpDescPtr &pre_node_desc, bool &fusion_virtual_op_flag,
-                                          const string &node_name) const {
+                                                   const string &node_name) const {
   string pre_node_name = pre_node_desc->GetName();
   bool is_continous_input = false;
   bool is_continous_output = false;
@@ -577,7 +570,7 @@ void ConcatCOptimizeFusionPass::SetPeerNodeWhetherCanReUsed(const ge::NodePtr &c
 }
 
 void ConcatCOptimizeFusionPass::CheckAndSetAttrForConcat(const ge::NodePtr &node, const ge::OpDescPtr &op_desc,
-                                                bool &concat_c_optimize_flag) const {
+                                                         bool &concat_c_optimize_flag) const {
   if (!concat_c_optimize_flag) {
     FE_LOGD("Cur concat node[%s] cannot do optimize, no need to check and set attr.", op_desc->GetName().c_str());
     return;
@@ -635,8 +628,8 @@ bool ConcatCOptimizeFusionPass::CheckStrideWriteBlock32Align(const ge::GeTensorD
   return tensor_size % kAlignNum == 0;
 }
 
-void ConcatCOptimizeFusionPass::CalSliceOffset(const std::vector<int64_t> &output_shape,
-                                      ge::DataType data_type, int64_t &output_offset_buff) const {
+void ConcatCOptimizeFusionPass::CalSliceOffset(const std::vector<int64_t> &output_shape, ge::DataType data_type,
+                                               int64_t &output_offset_buff) const {
   int64_t shape_size = static_cast<int64_t>(output_shape.size());
   if (shape_size < real_concat_dim_ + 1) {
     FE_LOGE("Invalid output_shape size[%zu], concat_dim[%lld].", shape_size, real_concat_dim_);
@@ -659,14 +652,14 @@ void ConcatCOptimizeFusionPass::CalSliceOffset(const std::vector<int64_t> &outpu
   return;
 }
 
-Status ConcatCOptimizeFusionPass::FeedToOpStructInfo(ge::OpDescPtr& op_desc, const size_t &idx,
-                                            const std::vector<int64_t> &concat_out_shape,
-                                            const bool &is_last_input) const {
+Status ConcatCOptimizeFusionPass::FeedToOpStructInfo(ge::OpDescPtr &op_desc, const size_t &idx,
+                                                     const std::vector<int64_t> &concat_out_shape,
+                                                     const bool &is_last_input) const {
   ge::GeTensorDescPtr tensor_desc = op_desc->MutableOutputDesc(idx);
   FE_CHECK_NOTNULL(tensor_desc);
   if (!CheckStrideWriteBlock32Align(tensor_desc)) {
-      FE_LOGD("Concat input node:[%s], strideWrite block is not 32 alignment.", op_desc->GetName().c_str());
-      return fe::FAILED;
+    FE_LOGD("Concat input node:[%s], strideWrite block is not 32 alignment.", op_desc->GetName().c_str());
+    return fe::FAILED;
   }
 
   size_t out_size = op_desc->GetOutputsSize();
@@ -694,8 +687,8 @@ Status ConcatCOptimizeFusionPass::FeedToOpStructInfo(ge::OpDescPtr& op_desc, con
   outputs_offset[idx] = output_offset_buff;
 
   (void)ge::AttrUtils::SetListInt(op_desc, kOutputOffsetForBufferFusion, outputs_offset);
-  FE_LOGD("Op[%s] set attr _output_offet_for_buffer_fusion[%ld] successfully.",
-          op_desc->GetName().c_str(), output_offset_buff);
+  FE_LOGD("Op[%s] set attr _output_offet_for_buffer_fusion[%ld] successfully.", op_desc->GetName().c_str(),
+          output_offset_buff);
 
   output_i[idx] = 0;
   op_desc->SetOutputOffset(output_i);
@@ -747,6 +740,5 @@ Status ConcatCOptimizeFusionPass::SetStrideWriteInfoForInputs(const ge::NodePtr 
   FE_LOGD("Concat node[%s] set strideWrite info successfully", node_name.c_str());
   return fe::SUCCESS;
 }
-REG_PASS("ConcatCOptimize", BUILT_IN_AFTER_BUFFER_OPTIMIZE,
-         ConcatCOptimizeFusionPass, FE_PASS);
-}
+REG_PASS("ConcatCOptimize", BUILT_IN_AFTER_BUFFER_OPTIMIZE, ConcatCOptimizeFusionPass, FE_PASS);
+}  // namespace fe

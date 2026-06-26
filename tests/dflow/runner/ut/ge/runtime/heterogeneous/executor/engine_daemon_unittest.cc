@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,49 +31,49 @@ namespace ge {
 namespace {
 class MockRuntime : public RuntimeStub {
  public:
-  MOCK_METHOD5(rtEschedWaitEvent, int32_t(int32_t, uint32_t, uint32_t, int32_t, rtEschedEventSummary_t * ));
+  MOCK_METHOD5(rtEschedWaitEvent, int32_t(int32_t, uint32_t, uint32_t, int32_t, rtEschedEventSummary_t *));
 };
 
 int32_t AicpuLoadModelWithQStub(void *ptr) {
-  (void) ptr;
+  (void)ptr;
   return 0;
 }
 
 int32_t AICPUModelDestroyStub(uint32_t modelId) {
-  (void) modelId;
+  (void)modelId;
   return 0;
 }
 
 int32_t InitCpuSchedulerStub(const CpuSchedInitParam *const initParam) {
-  (void) initParam;
+  (void)initParam;
   return 0;
 }
 
 int32_t StopCPUSchedulerStub(const uint32_t deviceId, const pid_t hostPid) {
-  (void) deviceId;
-  (void) hostPid;
+  (void)deviceId;
+  (void)hostPid;
   return 0;
 }
 
 int32_t HcclRegisterGlobalMemoryStub(void *addr, uint64_t size) {
-  (void) addr;
-  (void) size;
+  (void)addr;
+  (void)size;
   return 0;
 }
 
 int32_t HcclUnregisterGlobalMemoryStub(void *addr) {
-  (void) addr;
+  (void)addr;
   return 0;
 }
 
 int32_t HcclRegisterGlobalMemoryStub1(void *addr, uint64_t size) {
-  (void) addr;
-  (void) size;
+  (void)addr;
+  (void)size;
   return 1;
 }
 
 int32_t HcclUnregisterGlobalMemoryStub1(void *addr) {
-  (void) addr;
+  (void)addr;
   return 1;
 }
 
@@ -81,30 +81,30 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) {
     if (std::string(file_name) == "libaicpu_scheduler.so" || std::string(file_name) == "libhccd.so") {
-      return (void *) 0x12345678;
+      return (void *)0x12345678;
     }
     return dlopen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "AicpuLoadModelWithQ") {
-      return (void *) &AicpuLoadModelWithQStub;
+      return (void *)&AicpuLoadModelWithQStub;
     } else if (std::string(func_name) == "AICPUModelDestroy") {
-      return (void *) &AICPUModelDestroyStub;
+      return (void *)&AICPUModelDestroyStub;
     } else if (std::string(func_name) == "InitCpuScheduler") {
-      return (void *) &InitCpuSchedulerStub;
+      return (void *)&InitCpuSchedulerStub;
     } else if (std::string(func_name) == "HcclRegisterGlobalMemory") {
-      return (void *) &HcclRegisterGlobalMemoryStub;
+      return (void *)&HcclRegisterGlobalMemoryStub;
     } else if (std::string(func_name) == "HcclUnregisterGlobalMemory") {
-      return (void *) &HcclUnregisterGlobalMemoryStub;
+      return (void *)&HcclUnregisterGlobalMemoryStub;
     } else if (std::string(func_name) == "StopCPUScheduler") {
-      return (void *) &StopCPUSchedulerStub;
+      return (void *)&StopCPUSchedulerStub;
     }
     return dlsym(handle, func_name);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 0;
     }
     return dlclose(handle);
@@ -115,24 +115,24 @@ class MockMmpa1 : public MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) {
     if (std::string(file_name) == "libhccd.so") {
-      return (void *) 0x12345678;
+      return (void *)0x12345678;
     }
     return dlopen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "HcclRegisterGlobalMemory") {
-      return (void *) &HcclRegisterGlobalMemoryStub1;
+      return (void *)&HcclRegisterGlobalMemoryStub1;
     } else if (std::string(func_name) == "HcclUnregisterGlobalMemory") {
-      return (void *) &HcclUnregisterGlobalMemoryStub1;
+      return (void *)&HcclUnregisterGlobalMemoryStub1;
     } else if (std::string(func_name) == "StopCPUScheduler") {
-      return (void *) &StopCPUSchedulerStub;
+      return (void *)&StopCPUSchedulerStub;
     }
     return dlsym(handle, func_name);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 0;
     }
     return dlclose(handle);
@@ -143,22 +143,22 @@ class MockMmpa2 : public MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) {
     if (std::string(file_name) == "libhccd.so") {
-      return (void *) 0x12345678;
+      return (void *)0x12345678;
     }
     return dlopen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "HcclUnregisterGlobalMemory") {
-      return (void *) &HcclUnregisterGlobalMemoryStub1;
+      return (void *)&HcclUnregisterGlobalMemoryStub1;
     } else if (std::string(func_name) == "StopCPUScheduler") {
-      return (void *) &StopCPUSchedulerStub;
+      return (void *)&StopCPUSchedulerStub;
     }
     return dlsym(handle, func_name);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x12345678) {
+    if (handle == (void *)0x12345678) {
       return 1;
     }
     return dlclose(handle);
@@ -203,8 +203,7 @@ class MockRuntime2 : public RuntimeStub {
     std::vector<uint8_t> buffer;
   };
 
-  rtError_t rtRegTaskFailCallbackByModule(const char *moduleName,
-                                          rtTaskFailCallback callback) override {
+  rtError_t rtRegTaskFailCallbackByModule(const char *moduleName, rtTaskFailCallback callback) override {
     CallbackManager::GetInstance().Register(moduleName, callback);
     return RT_ERROR_NONE;
   }
@@ -256,8 +255,7 @@ class MockRuntime2 : public RuntimeStub {
 }  // namespace
 class EngineDaemonTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
+  void SetUp() override {}
   void TearDown() override {
     HeterogeneousExchangeService::GetInstance().Finalize();
     RuntimeStub::Reset();
@@ -273,14 +271,8 @@ TEST_F(EngineDaemonTest, TestEngineDaemon) {
   auto event_group_id = std::to_string(1);
   const std::string process_name = "npu_executor";
   const char_t *argv[] = {
-      process_name.c_str(),
-      "BufferGroupName",
-      queue_id.c_str(),
-      device_id.c_str(),
-      event_group_id.c_str(),
-      "--base_dir=./",
-      "--device_id=0",
-      "--msg_queue_device_id=0",
+      process_name.c_str(),   "BufferGroupName", queue_id.c_str(), device_id.c_str(),
+      event_group_id.c_str(), "--base_dir=./",   "--device_id=0",  "--msg_queue_device_id=0",
   };
   EXPECT_EQ(engine_daemon.InitializeWithArgs(8, (char **)argv), SUCCESS);
   std::thread loop_thread = std::thread([&]() { engine_daemon.LoopEvents(); });
@@ -303,7 +295,7 @@ TEST_F(EngineDaemonTest, TestInitProfilingFromOption) {
   ret = engine_daemon.InitProfilingFromOption(options);
   EXPECT_EQ(ret, SUCCESS);
 
-  const char_t * const kEnvValue = "MS_PROF_INIT_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_INIT_FAIL";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -361,12 +353,8 @@ TEST_F(EngineDaemonTest, TestEngineDaemonRegCallback) {
   const std::string process_name = "npu_executor";
   const std::string without_model_executor = std::to_string(false);
   const char_t *argv[] = {
-      process_name.c_str(),
-      "BufferGroupName",
-      queue_id.c_str(),
-      device_id.c_str(),
-      event_group_id.c_str(),
-      without_model_executor.c_str(),
+      process_name.c_str(), "BufferGroupName",      queue_id.c_str(),
+      device_id.c_str(),    event_group_id.c_str(), without_model_executor.c_str(),
   };
   EXPECT_EQ(engine_daemon.InitializeWithArgs(6, (char **)argv), SUCCESS);
   rtExceptionInfo exceptionInfo;
@@ -390,5 +378,3 @@ TEST_F(EngineDaemonTest, TestEngineDaemonHost) {
   GetThreadLocalContext() = back_up_context;
 }
 }  // namespace ge
-
-

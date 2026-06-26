@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,18 +51,14 @@ const int32_t kNHWCDimOfC = 3;
 }  // namespace
 
 namespace aicpu {
-Status Optimizer::GetFrameworkOpType(const OpDescPtr &op_desc_ptr,
-                                     string &op_type) const {
+Status Optimizer::GetFrameworkOpType(const OpDescPtr &op_desc_ptr, string &op_type) const {
   // op_desc_ptr already check not null
   const string *original_type = AttrUtils::GetStr(op_desc_ptr, kOriginalType);
-  CHECK_RES_BOOL((original_type != nullptr),
-      ErrorCode::GET_ATTR_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetStr failed to get attr[%s], op[%s].",
-          kOriginalType.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL((original_type != nullptr), ErrorCode::GET_ATTR_FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetStr failed to get attr[%s], op[%s].",
+                                            kOriginalType.c_str(), op_desc_ptr->GetName().c_str()))
   if (original_type->empty()) {
-    AICPU_REPORT_INNER_ERR_MSG("Attr[%s] is empty, op[%s].", kOriginalType.c_str(),
-        op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Attr[%s] is empty, op[%s].", kOriginalType.c_str(), op_desc_ptr->GetName().c_str());
     return STR_IS_EMPTY;
   }
   ge::OpDescUtilsEx::SetType(const_cast<OpDescPtr &>(op_desc_ptr), *original_type);
@@ -70,11 +66,10 @@ Status Optimizer::GetFrameworkOpType(const OpDescPtr &op_desc_ptr,
   return SUCCESS;
 }
 
-void Optimizer::GetTfOpFussionOoLevel() {                                   
+void Optimizer::GetTfOpFussionOoLevel() {
   std::string opt_value;
   auto status = GetThreadLocalContext().GetOo().GetValue(kTfOpFussion, opt_value);
-  AICPUE_LOGI("Get option[%s], opt_value[%s], status[%u].",
-               kTfOpFussion.c_str(), opt_value.c_str(), status);
+  AICPUE_LOGI("Get option[%s], opt_value[%s], status[%u].", kTfOpFussion.c_str(), opt_value.c_str(), status);
   if (opt_value == "false") {
     AICPUE_LOGI("Tf op fussion may be disable in current level.");
     is_tf_op_fussion_oo_enable_ = false;
@@ -90,8 +85,7 @@ void Optimizer::InitOpCheckMode() {
   if (ConfigFile::GetInstance().GetValue(kOpCheckMode, op_check_mode)) {
     uint64_t result = kOpCheckModeOff;
     if (StringToNum(op_check_mode, result).state != ge::SUCCESS) {
-      AICPUE_LOGW("Tran op_check_mode [%s] to integer failed. default value is 0.",
-                  op_check_mode.c_str());
+      AICPUE_LOGW("Tran op_check_mode [%s] to integer failed. default value is 0.", op_check_mode.c_str());
       return;
     }
     if (result == kOpCheckModeOn) {
@@ -105,22 +99,21 @@ void Optimizer::InitOpCheckMode() {
   AICPUE_LOGW("Get [op_check_mode] from config file failed. op check mode is off.");
 }
 
-ge::Status Optimizer::InitSlicePattern(const std::string &slice,
-                                       const ge::NodePtr &node) const {
+ge::Status Optimizer::InitSlicePattern(const std::string &slice, const ge::NodePtr &node) const {
   if (slice == "") {
     return SUCCESS;
   }
-  const std::map<std::string, fe::SlicePattern> str_slice_pattern_map {
-        {"elemwise", fe::ELEMENT_WISE},
-        {"elemwiseBroadcast", fe::ELEMENT_WISE_BROADCAST},
-        {"broadcast", fe::BROADCAST},
-        {"slidingWindow", fe::SLIDING_WINDOW},
-        {"slidingWindowDeconv", fe::SLIDING_WINDOW_DECONV},
-        {"cubeMatmul", fe::CUBE_MATMUL},
-        {"reduce", fe::SLICE_PATTERN_REDUCE},
-        {"resize", fe::SLICE_PATTERN_RESIZE},
-        {"scatter", fe::SLICE_PATTERN_SCATTER},
-        {"segment", fe::SLICE_PATTERN_SEGMENT},
+  const std::map<std::string, fe::SlicePattern> str_slice_pattern_map{
+      {"elemwise", fe::ELEMENT_WISE},
+      {"elemwiseBroadcast", fe::ELEMENT_WISE_BROADCAST},
+      {"broadcast", fe::BROADCAST},
+      {"slidingWindow", fe::SLIDING_WINDOW},
+      {"slidingWindowDeconv", fe::SLIDING_WINDOW_DECONV},
+      {"cubeMatmul", fe::CUBE_MATMUL},
+      {"reduce", fe::SLICE_PATTERN_REDUCE},
+      {"resize", fe::SLICE_PATTERN_RESIZE},
+      {"scatter", fe::SLICE_PATTERN_SCATTER},
+      {"segment", fe::SLICE_PATTERN_SEGMENT},
   };
   AICPUE_LOGD("op[%s], slice[%s]", node->GetName().c_str(), slice.c_str());
   auto iter = str_slice_pattern_map.find(slice);
@@ -130,26 +123,22 @@ ge::Status Optimizer::InitSlicePattern(const std::string &slice,
   }
   Status state = fe::OpSliceUtil::SetOpSliceInfo(node, iter->second, kAicpuSupportStrideWrite);
   if (state != SUCCESS) {
-    AICPU_REPORT_INNER_ERR_MSG("op[%s] SetOpSliceInfo[%s] fail[%u]",
-                            node->GetName().c_str(), slice.c_str(), state);
+    AICPU_REPORT_INNER_ERR_MSG("op[%s] SetOpSliceInfo[%s] fail[%u]", node->GetName().c_str(), slice.c_str(), state);
     return state;
   }
   return SUCCESS;
 }
 
-Status Optimizer::OptimizeOriginalGraphJudgeInsert(
-    const ComputeGraph &graph,
-    const map<string, OpFullInfo> &all_op_info) const {
+Status Optimizer::OptimizeOriginalGraphJudgeInsert(const ComputeGraph &graph,
+                                                   const map<string, OpFullInfo> &all_op_info) const {
   for (const NodePtr &curr_node : graph.GetAllNodes()) {
     AICPU_CHECK_NOTNULL(curr_node)
     OpDescPtr curr_op_desc_ptr = curr_node->GetOpDesc();
     AICPU_CHECK_NOTNULL(curr_op_desc_ptr)
     string op_type = curr_op_desc_ptr->GetType();
     // if op type is placeholder or function_op or framework_op, skip it
-    if (op_type == kPlaceHolderOpType || op_type == kFunctionOp ||
-        op_type == kFrameworkOp) {
-      AICPUE_LOGD("Current op type is [%s]. Don't need to set format.",
-                  op_type.c_str());
+    if (op_type == kPlaceHolderOpType || op_type == kFunctionOp || op_type == kFrameworkOp) {
+      AICPUE_LOGD("Current op type is [%s]. Don't need to set format.", op_type.c_str());
       continue;
     }
 
@@ -167,21 +156,17 @@ Status Optimizer::OptimizeOriginalGraphJudgeInsert(
       if (format_agnostic) {
         const string name = "_format_agnostic";
         bool b_ret = AttrUtils::SetInt(curr_op_desc_ptr, name, kFormatAgnostic);
-        AICPU_IF_BOOL_EXEC(
-            !(b_ret),
-            AICPU_REPORT_INNER_ERR_MSG(
-                "Call ge::AttrUtils::SetInt failed to set attr[%s], op[%s]",
-                name.c_str(), curr_op_desc_ptr->GetName().c_str());
-            return FAILED)
+        AICPU_IF_BOOL_EXEC(!(b_ret),
+                           AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetInt failed to set attr[%s], op[%s]",
+                                                      name.c_str(), curr_op_desc_ptr->GetName().c_str());
+                           return FAILED)
       } else {
-        AICPU_CHECK_RES_WITH_LOG(
-            UpdateInputFormatAndShape(op_info, curr_op_desc_ptr),
-            "Call UpdateInputFormatAndShape function failed, op[%s].",
-            curr_op_desc_ptr->GetType().c_str())
-        AICPU_CHECK_RES_WITH_LOG(
-            UpdateOutputFormatAndShape(op_info, curr_op_desc_ptr),
-            "Call UpdateOutputFormatAndShape function failed, op[%s].",
-            curr_op_desc_ptr->GetType().c_str())
+        AICPU_CHECK_RES_WITH_LOG(UpdateInputFormatAndShape(op_info, curr_op_desc_ptr),
+                                 "Call UpdateInputFormatAndShape function failed, op[%s].",
+                                 curr_op_desc_ptr->GetType().c_str())
+        AICPU_CHECK_RES_WITH_LOG(UpdateOutputFormatAndShape(op_info, curr_op_desc_ptr),
+                                 "Call UpdateOutputFormatAndShape function failed, op[%s].",
+                                 curr_op_desc_ptr->GetType().c_str())
       }
       ge::Status ret = InitSlicePattern(op_info.slicePattern, curr_node);
       if (ret != SUCCESS) {
@@ -192,8 +177,7 @@ Status Optimizer::OptimizeOriginalGraphJudgeInsert(
   return SUCCESS;
 }
 
-Status Optimizer::UpdateInputFormatAndShape(const OpFullInfo &op_info,
-                                            const OpDescPtr &op_desc_ptr) const {
+Status Optimizer::UpdateInputFormatAndShape(const OpFullInfo &op_info, const OpDescPtr &op_desc_ptr) const {
   uint32_t index = 0;
   for (GeTensorDescPtr input_desc_ptr : op_desc_ptr->GetAllInputsDescPtr()) {
     ge::Format src_format = input_desc_ptr->GetFormat();
@@ -209,16 +193,15 @@ Status Optimizer::UpdateInputFormatAndShape(const OpFullInfo &op_info,
     if ((dst_format == ge::FORMAT_NHWC) || (dst_format == ge::FORMAT_NCHW)) {
       (void)UpdateTensorDesc((*input_desc_ptr), src_format, dst_format);
       AICPU_CHECK_RES_WITH_LOG(op_desc_ptr->UpdateInputDesc(index, (*input_desc_ptr)),
-          "Call UpdateInputDesc failed to update input[%u] desc, op[%s].",
-          index, op_desc_ptr->GetName().c_str())
+                               "Call UpdateInputDesc failed to update input[%u] desc, op[%s].", index,
+                               op_desc_ptr->GetName().c_str())
     }
     index++;
   }
   return SUCCESS;
 }
 
-void Optimizer::UpdateTensorDesc(GeTensorDesc &tensor_desc,
-                                 const ge::Format &src_format,
+void Optimizer::UpdateTensorDesc(GeTensorDesc &tensor_desc, const ge::Format &src_format,
                                  const ge::Format &dst_format) const {
   if (src_format != dst_format) {
     AICPUE_LOGD("update src_format[%s] to dst_format[%s]", ge::TypeUtils::FormatToSerialString(src_format).c_str(),
@@ -269,8 +252,7 @@ void Optimizer::UpdateTensorDesc(GeTensorDesc &tensor_desc,
   }
 }
 
-Status Optimizer::UpdateOutputFormatAndShape(const OpFullInfo &op_info,
-                                             const OpDescPtr &op_desc_ptr) const {
+Status Optimizer::UpdateOutputFormatAndShape(const OpFullInfo &op_info, const OpDescPtr &op_desc_ptr) const {
   uint32_t index = 0;
   for (GeTensorDescPtr output_desc_ptr : op_desc_ptr->GetAllOutputsDescPtr()) {
     ge::Format src_format = output_desc_ptr->GetFormat();
@@ -286,16 +268,15 @@ Status Optimizer::UpdateOutputFormatAndShape(const OpFullInfo &op_info,
     if ((dst_format == ge::FORMAT_NHWC) || (dst_format == ge::FORMAT_NCHW)) {
       (void)UpdateTensorDesc((*output_desc_ptr), src_format, dst_format);
       AICPU_CHECK_RES_WITH_LOG(op_desc_ptr->UpdateOutputDesc(index, (*output_desc_ptr)),
-          "Call UpdateOutputDesc failed to update output[%u] desc, op[%s].",
-          index, op_desc_ptr->GetName().c_str())
+                               "Call UpdateOutputDesc failed to update output[%u] desc, op[%s].", index,
+                               op_desc_ptr->GetName().c_str())
     }
     index++;
   }
   return SUCCESS;
 }
 
-void Optimizer::GetFormat(const map<string, string> &formats,
-                          const string &format_name, ge::Format &format) const {
+void Optimizer::GetFormat(const map<string, string> &formats, const string &format_name, ge::Format &format) const {
   auto iter = formats.find(format_name);
   if (iter != formats.end()) {
     string formatStr = iter->second;
@@ -312,7 +293,9 @@ void Optimizer::GetFormat(const map<string, string> &formats,
 }
 
 REG_OPTION(kTfOpFussion)
-  .LEVELS(ge::OoLevel::kO0)
-  .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"}, {ge::OoLevel::kO1, "false"},
-                   {ge::OoLevel::kO2, "true"}, {ge::OoLevel::kO3, "true"}});
+    .LEVELS(ge::OoLevel::kO0)
+    .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"},
+                     {ge::OoLevel::kO1, "false"},
+                     {ge::OoLevel::kO2, "true"},
+                     {ge::OoLevel::kO3, "true"}});
 }  // namespace aicpu

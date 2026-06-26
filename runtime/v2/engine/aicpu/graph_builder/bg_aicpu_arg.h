@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,9 +35,9 @@ struct RtsArgs {
 };
 
 AicpuArgs BuildHostCCAicpuArg(const ge::NodePtr node, const domi::KernelDef &kernel_def, const size_t io_num,
-                              ValueHolderPtr& session_id);
+                              ValueHolderPtr &session_id);
 AicpuArgs BuildCCAicpuArg(const ge::NodePtr node, const domi::KernelDef &kernel_def, const size_t io_num,
-                          ValueHolderPtr& session_id, const bool &is_memcpy_task);
+                          ValueHolderPtr &session_id, const bool &is_memcpy_task);
 AicpuArgs BuildTfAicpuArg(const ge::NodePtr node, const TfArgsInfo &tf_args_info, const bool &is_memcpy_task);
 
 ValueHolderPtr CalcBlockDim(const ge::OpDescPtr &op_desc, const std::vector<ValueHolderPtr> &input_shapes);
@@ -57,11 +57,9 @@ inline bool IsAicpuOutputUnknownShape(const ge::NodePtr &node) {
   return forced_unknown || IsOutputUnkownShape(node->GetOpDesc());
 }
 
-
 RtsArgs BuildTfArgsBinHandle(const ge::NodePtr node);
 
-
 RtsArgs BuildCCArgsBinHandle(const ge::NodePtr node);
-} // bg
-} // gert
-#endif // AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_AICPU_ARG_H_
+}  // namespace bg
+}  // namespace gert
+#endif  // AIR_CXX_RUNTIME_V2_GRAPH_BUILDER_BG_AICPU_ARG_H_

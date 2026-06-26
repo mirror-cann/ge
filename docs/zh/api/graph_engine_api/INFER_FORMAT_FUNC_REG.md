@@ -80,4 +80,3 @@ __INFER_FORMAT_FUNC_REG_IMPL__(op_name, INFER_FORMAT_FUNC(op_name, x), __COUNTER
 ```
 INFER_FORMAT_FUNC_REG(Transpose, TransposeInferFormat);
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -204,9 +204,9 @@ message BatchNormOpParams {
 
     float alpha = 2;
     float beta = 3;
-    double epsilon = 4;//optinal,[default = 1e-5]
-    bool use_global_stats = 5; //optinal,by default true,testing mode
-    float  moving_average_fraction = 6; //optinal,[default = .999];
+    double epsilon = 4;//optional,[default = 1e-5]
+    bool use_global_stats = 5; //optional,by default true,testing mode
+    float  moving_average_fraction = 6; //optional,[default = .999];
 
     WeightDef estimated_mean = 7;
     WeightDef estimated_variance = 8;
@@ -337,7 +337,7 @@ enum DeviceType {
 message AllOffsetQuantizeInfo {
 	float scale  = 1;
 	int32 offset = 2;
-} 
+}
 
 message TensorDescriptor {
     int32 format = 1;
@@ -392,4 +392,3 @@ message NamedAttrs {
   string name = 1;
   map<string, AttrDef> attr = 2;
 }
-

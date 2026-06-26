@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,8 @@ using ge::OpDesc;
 
 namespace fe {
 const string ORIGINAL_NODES = "original_nodes";
-const std::string  MIX_AIC_PREFIX = "_mix_aic";
-const std::string  MIX_AIV_PREFIX = "_mix_aiv";
+const std::string MIX_AIC_PREFIX = "_mix_aic";
+const std::string MIX_AIV_PREFIX = "_mix_aiv";
 const std::string kStageSetFusionOp = "[SubGraphOpt][MergeFusionNode][SetFusionOp]";
 inline int64_t GetImplyTypeToFusionOp(vector<ge::NodePtr> &fus_nodelist) {
   int64_t imply_type = -1;
@@ -69,17 +69,16 @@ namespace {
 inline void SetGroupId(const ge::OpDescPtr &fus_opdef, const uint32_t &parallel_group_id) {
   uint32_t tmp_parallel_group_id = 0;
   if (!ge::AttrUtils::GetInt(fus_opdef, ge::ATTR_NAME_PARALLEL_GROUP_ID, tmp_parallel_group_id)) {
-      (void)ge::AttrUtils::SetInt(fus_opdef, ge::ATTR_NAME_PARALLEL_GROUP_ID, parallel_group_id);
+    (void)ge::AttrUtils::SetInt(fus_opdef, ge::ATTR_NAME_PARALLEL_GROUP_ID, parallel_group_id);
   }
 }
 
 inline void GetGroupId(const ge::NodePtr &node, uint32_t &parallel_group_id) {
   if (ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_NAME_PARALLEL_GROUP_ID, parallel_group_id)) {
-    FE_LOGD("Node[%s, %s] has _parallel_group_id which is %u.", node->GetName().c_str(),
-        node->GetType().c_str(), parallel_group_id);
+    FE_LOGD("Node[%s, %s] has _parallel_group_id which is %u.", node->GetName().c_str(), node->GetType().c_str(),
+            parallel_group_id);
   } else {
-    FE_LOGD("Node[%s, %s] without parallel_group_id attr.", node->GetName().c_str(),
-        node->GetType().c_str());
+    FE_LOGD("Node[%s, %s] without parallel_group_id attr.", node->GetName().c_str(), node->GetType().c_str());
   }
 }
 
@@ -126,14 +125,14 @@ void DfsFindSingleOpOuterInput(const ge::InDataAnchorPtr &anchor, const std::set
 void DfsFindOuterInput(const int64_t &indx, const ge::NodePtr &node, const std::set<ge::NodePtr> &fus_node_set,
                        vector<ge::ConstGeTensorDescPtr> &inplace_tensor,
                        vector<vector<ge::ConstGeTensorDescPtr>> &output_place) {
-  FE_CHECK(node->GetInDataAnchor(indx) == nullptr, FE_LOGW("Node [%s] without input index[%lld]",
-          node->GetName().c_str(), indx), return);
+  FE_CHECK(node->GetInDataAnchor(indx) == nullptr,
+           FE_LOGW("Node [%s] without input index[%lld]", node->GetName().c_str(), indx), return);
   auto peer_out_anchor = node->GetInDataAnchor(indx)->GetPeerOutAnchor();
-  FE_CHECK(peer_out_anchor == nullptr, FE_LOGW("Node [%s] anchor[%lld] without peerOut anchor",
-          node->GetName().c_str(), indx), return);
+  FE_CHECK(peer_out_anchor == nullptr,
+           FE_LOGW("Node [%s] anchor[%lld] without peerOut anchor", node->GetName().c_str(), indx), return);
   auto src_node = peer_out_anchor->GetOwnerNode();
   uint32_t src_idx = peer_out_anchor->GetIdx();
-  // First Finded the outer input
+  // First Found the outer input
   if (fus_node_set.count(src_node) == 0) {
     FE_LOGD("Found outer input node [%s].", src_node->GetName().c_str());
     ge::ConstGeTensorDescPtr src_tenor_ptr = node->GetOpDesc()->GetInputDescPtr(indx);
@@ -145,8 +144,8 @@ void DfsFindOuterInput(const int64_t &indx, const ge::NodePtr &node, const std::
   // judge tbe src_node with outputInplace
   vector<vector<int64_t>> inplace;
   ge::AttrUtils::GetListListInt(src_node->GetOpDesc(), kAttrOutputInplaceAbility, inplace);
-  FE_CHECK(inplace.size() == 0, FE_LOGD("The src node: %s without %s.",
-           src_node->GetName().c_str(), kAttrOutputInplaceAbility), return);
+  FE_CHECK(inplace.size() == 0,
+           FE_LOGD("The src node: %s without %s.", src_node->GetName().c_str(), kAttrOutputInplaceAbility), return);
   ge::OpDescPtr op_desc_ptr = src_node->GetOpDesc();
   PrintOutputInplace(op_desc_ptr, inplace);
   // Traverse src node inplace Info
@@ -155,7 +154,7 @@ void DfsFindOuterInput(const int64_t &indx, const ge::NodePtr &node, const std::
       auto inAnchor = src_node->GetInDataAnchor(indx_list[1]);
       // anchor
       if (inAnchor == nullptr) {
-        FE_LOGW("Node[%s] inAnchor is nullptr, input indx[%lld] is invalid.", src_node->GetNamePtr(), indx_list[1]);
+        FE_LOGW("Node[%s] inAnchor is nullptr, input index[%lld] is invalid.", src_node->GetNamePtr(), indx_list[1]);
         continue;
       }
       DfsFindSingleOpOuterInput(inAnchor, fus_node_set, src_node, inplace_tensor, output_place);
@@ -164,8 +163,8 @@ void DfsFindOuterInput(const int64_t &indx, const ge::NodePtr &node, const std::
 }
 
 void FindFusionNodesOuterOutput(const ge::OutDataAnchorPtr &anchor, const ge::NodePtr &node,
-                                       const std::set<ge::NodePtr> &fus_node_set,
-                                       vector<vector<ge::ConstGeTensorDescPtr>> &output_place) {
+                                const std::set<ge::NodePtr> &fus_node_set,
+                                vector<vector<ge::ConstGeTensorDescPtr>> &output_place) {
   vector<vector<int64_t>> inplace;
   ge::AttrUtils::GetListListInt(node->GetOpDesc(), kAttrOutputInplaceAbility, inplace);
   // To judge the current node with output inplace ability
@@ -175,7 +174,7 @@ void FindFusionNodesOuterOutput(const ge::OutDataAnchorPtr &anchor, const ge::No
   auto peer_in_anchors = anchor->GetPeerInDataAnchors();
   for (auto peer_in_anchor : peer_in_anchors) {
     ge::NodePtr peer_in_node = peer_in_anchor->GetOwnerNode();
-    // Finded  outer output
+    // Found  outer output
     if (fus_node_set.count(peer_in_node) == 0) {
       // Dfx to print the iplace info
       ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
@@ -185,10 +184,10 @@ void FindFusionNodesOuterOutput(const ge::OutDataAnchorPtr &anchor, const ge::No
       for (auto indx_list : inplace) {
         // current output anchor satisfies tbe outputInplace output
         if (static_cast<uint32_t>(indx_list[0]) == idx) {
-          // Save the outer ouput tensorptr, for fusionOp index map
+          // Save the outer output tensorptr, for fusionOp index map
           ge::ConstGeTensorDescPtr dst_tenor_ptr = node->GetOpDesc()->GetOutputDescPtr(idx);
           vector<ge::ConstGeTensorDescPtr> inplace_tensor = {dst_tenor_ptr};
-          // To find outer input from curren node
+          // To find outer input from current node
           DfsFindOuterInput(indx_list[1], node, fus_node_set, inplace_tensor, output_place);
         }
       }
@@ -256,18 +255,17 @@ inline void SetNewStrVecAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, 
   for (const ge::NodePtr &node : fus_nodelist) {
     string node_str;
     if (ge::AttrUtils::GetStr(node->GetOpDesc(), attr_name, node_str)) {
-      FE_LOGD("Get fusion op %s attr %s from node %s, value is %s.", fus_opdef->GetName().c_str(),
-              attr_name.c_str(), node->GetOpDesc()->GetName().c_str(), node_str.c_str());
+      FE_LOGD("Get fusion op %s attr %s from node %s, value is %s.", fus_opdef->GetName().c_str(), attr_name.c_str(),
+              node->GetOpDesc()->GetName().c_str(), node_str.c_str());
       str_vec_val.emplace_back(node_str);
     }
   }
   (void)ge::AttrUtils::SetListStr(fus_opdef, attr_name, str_vec_val);
-  FE_LOGD("Set fusion op %s attr %s with vector size %zu.", fus_opdef->GetName().c_str(),
-          attr_name.c_str(), str_vec_val.size());
+  FE_LOGD("Set fusion op %s attr %s with vector size %zu.", fus_opdef->GetName().c_str(), attr_name.c_str(),
+          str_vec_val.size());
 }
 
-inline void SetListListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                           const ge::OpDescPtr &fus_opdef,
+inline void SetListListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                            const string &attr_name) {
   vector<vector<int64_t>> int_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -278,8 +276,7 @@ inline void SetListListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodeli
   }
 }
 
-inline void SetListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                       const ge::OpDescPtr &fus_opdef,
+inline void SetListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                        const string &attr_name) {
   vector<int64_t> int_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -290,8 +287,7 @@ inline void SetListInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetListInt32AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                       const ge::OpDescPtr &fus_opdef,
+inline void SetListInt32AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                        const string &attr_name) {
   vector<int32_t> int_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -302,8 +298,7 @@ inline void SetListInt32AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetListFloatAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                       const ge::OpDescPtr &fus_opdef,
+inline void SetListFloatAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                        const string &attr_name) {
   vector<float> int_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -325,8 +320,7 @@ inline void SetInt64AttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, cons
   }
 }
 
-inline void SetListBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                       const ge::OpDescPtr &fus_opdef,
+inline void SetListBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                        const string &attr_name) {
   vector<ge::Buffer> byte_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -337,8 +331,7 @@ inline void SetListBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                   const ge::OpDescPtr &fus_opdef,
+inline void SetBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                    const string &attr_name) {
   ge::Buffer int_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -350,8 +343,7 @@ inline void SetBytesAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetListBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                      const ge::OpDescPtr &fus_opdef,
+inline void SetListBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                       const string &attr_name) {
   vector<bool> bool_val;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -362,8 +354,7 @@ inline void SetListBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                  const ge::OpDescPtr &fus_opdef,
+inline void SetBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                   const string &attr_name) {
   bool bool_val = false;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -374,24 +365,23 @@ inline void SetBoolAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetStrPathToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                 const ge::OpDescPtr &fus_opdef,
+inline void SetStrPathToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
                                  const string &path_name) {
-    string path_str;
-    for (const ge::NodePtr &node : fus_nodelist) {
-        if (node->GetOpDesc() == nullptr) {
-          break;
-        }
-        path_str = node->GetOpDesc()->TryGetExtAttr(path_name, string(""));
-        if (path_str.empty()) {
-            fus_opdef->SetExtAttr(path_name, path_str);
-            break;
-        }
+  string path_str;
+  for (const ge::NodePtr &node : fus_nodelist) {
+    if (node->GetOpDesc() == nullptr) {
+      break;
     }
+    path_str = node->GetOpDesc()->TryGetExtAttr(path_name, string(""));
+    if (path_str.empty()) {
+      fus_opdef->SetExtAttr(path_name, path_str);
+      break;
+    }
+  }
 }
 
-inline void SetMemAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                 const ge::OpDescPtr &fus_opdef, const string &attr_name) {
+inline void SetMemAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef,
+                                 const string &attr_name) {
   bool bool_val = false;
   for (const ge::NodePtr &node : fus_nodelist) {
     if (ge::AttrUtils::GetBool(node->GetOpDesc(), attr_name, bool_val) && bool_val) {
@@ -401,8 +391,7 @@ inline void SetMemAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
   }
 }
 
-inline void SetKernelNameToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                    const ge::OpDescPtr &fus_opdef) {
+inline void SetKernelNameToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef) {
   string kernel_name;
   for (const ge::NodePtr &node : fus_nodelist) {
     bool is_mix = false;
@@ -443,8 +432,7 @@ inline void SetMultiKernelThreadKernelNameToFusionOp(const vector<ge::NodePtr> &
   }
 }
 
-inline void SetL1FusionSubGraphNoToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                            const ge::OpDescPtr &fus_opdef) {
+inline void SetL1FusionSubGraphNoToFusionOp(const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fus_opdef) {
   string attr_name_l1_fusion_sub_graph_no = "_L1_fusion_sub_graph_no";
   string str_value;
   for (const ge::NodePtr &node : fus_nodelist) {
@@ -493,8 +481,7 @@ inline void SetBoolAttrToFusionOp(const ge::NodePtr &node_ptr, const ge::OpDescP
   }
 }
 
-inline void SetStrAttrToFusionOp(const ge::NodePtr &node_ptr, const ge::OpDescPtr &fus_opdef,
-                                 const string &attr_name) {
+inline void SetStrAttrToFusionOp(const ge::NodePtr &node_ptr, const ge::OpDescPtr &fus_opdef, const string &attr_name) {
   string str_val;
   if (ge::AttrUtils::GetStr(node_ptr->GetOpDesc(), attr_name, str_val)) {
     (void)ge::AttrUtils::SetStr(fus_opdef, attr_name, str_val);
@@ -593,20 +580,19 @@ inline void SetSgtCoreTypeToFusionOp(const vector<ge::NodePtr> &fus_nodelist, co
 }
 
 Status SetTbeKernelBin(const ge::OpDescPtr &fus_opdef, const ge::NodePtr node, const string &attr_name,
-                       const string &key_name)
-{
+                       const string &key_name) {
   FE_LOGD("Set kernel bin of node:%s, attr:%s, key_name:%s.", node->GetName().c_str(), attr_name.c_str(),
           key_name.c_str());
-  ge::OpKernelBinPtr tbe_kernel_ptr_old =
-      node->GetOpDesc()->TryGetExtAttr(attr_name, ge::OpKernelBinPtr());
+  ge::OpKernelBinPtr tbe_kernel_ptr_old = node->GetOpDesc()->TryGetExtAttr(attr_name, ge::OpKernelBinPtr());
   FE_CHECK(tbe_kernel_ptr_old == nullptr,
            REPORT_FE_ERROR("[MergeFusionNode][SetTbeKernelBin] Op[%s]: the tbe_kernel_ptr_old is nullptr.",
-                           node->GetName().c_str()), return FAILED);
+                           node->GetName().c_str()),
+           return FAILED);
   auto buffer_size = tbe_kernel_ptr_old->GetBinDataSize();
   std::vector<char> buffer_vec(tbe_kernel_ptr_old->GetBinData(), tbe_kernel_ptr_old->GetBinData() + buffer_size);
   ge::OpKernelBinPtr tbe_kernel_ptr_fused = nullptr;
-  FE_MAKE_SHARED(tbe_kernel_ptr_fused =
-                     std::make_shared<ge::OpKernelBin>(key_name, std::move(buffer_vec)), return FAILED);
+  FE_MAKE_SHARED(tbe_kernel_ptr_fused = std::make_shared<ge::OpKernelBin>(key_name, std::move(buffer_vec)),
+                 return FAILED);
   if (tbe_kernel_ptr_fused) {
     fus_opdef->SetExtAttr(attr_name, tbe_kernel_ptr_fused);
   }
@@ -614,8 +600,7 @@ Status SetTbeKernelBin(const ge::OpDescPtr &fus_opdef, const ge::NodePtr node, c
 }
 
 Status SetNormalFusionOpAttr(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr &fus_opdef,
-                             const ge::NodePtr first_node)
-{
+                             const ge::NodePtr first_node) {
   FE_LOGD("Set normal fusion node attribute.");
   std::string kernel_name;
   ge::AttrUtils::GetStr(first_node->GetOpDesc(), kKernelName, kernel_name);
@@ -637,8 +622,7 @@ Status SetNormalFusionOpAttr(const vector<ge::NodePtr> &fus_nodelist, ge::OpDesc
 }
 
 Status SetMixFusionOpAttr(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr &fus_opdef,
-                          const ge::NodePtr first_node)
-{
+                          const ge::NodePtr first_node) {
   FE_LOGD("Set mix fusion node attribute.");
   SetInt64AttrToFusionOp(fus_nodelist, fus_opdef, MIX_AIC_PREFIX + ATTR_NAME_TBE_KERNEL_SIZE);
   SetInt64AttrToFusionOp(fus_nodelist, fus_opdef, MIX_AIV_PREFIX + ATTR_NAME_TBE_KERNEL_SIZE);
@@ -685,7 +669,7 @@ Status SetMixFusionOpAttr(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 ge::OpDescPtr FusionOpComm::CreateFusionOp(vector<ge::NodePtr> &fus_nodelist, const string &engine_name) {
   if (fus_nodelist.empty()) {
@@ -695,10 +679,12 @@ ge::OpDescPtr FusionOpComm::CreateFusionOp(vector<ge::NodePtr> &fus_nodelist, co
 
   ge::NodePtr first_node = fus_nodelist[0];
   FE_CHECK(first_node == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CrtFusOp] CreateFusionOp returned nullptr pointer."), return nullptr);
+           REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CrtFusOp] CreateFusionOp returned nullptr pointer."),
+           return nullptr);
   ge::OpDescPtr fus_opdef = std::shared_ptr<OpDesc>(new (std::nothrow) OpDesc());
   FE_CHECK(fus_opdef == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CrtFusOp] CreateFusionOp returned nullptr pointer."), return nullptr);
+           REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CrtFusOp] CreateFusionOp returned nullptr pointer."),
+           return nullptr);
 
   std::string fusion_node_name;
   fusion_node_name.clear();
@@ -724,8 +710,9 @@ ge::OpDescPtr FusionOpComm::CreateFusionOp(vector<ge::NodePtr> &fus_nodelist, co
   // copy pass_name
   string pass_name;
   if (ge::AttrUtils::GetStr(first_op_desc, kPassNameUbAttr, pass_name)) {
-    bool set_failed = (GraphPassUtil::StoreAndUpdataOriginFusionPassName(fus_opdef, fus_nodelist, pass_name) !=
-        SUCCESS) || (!ge::AttrUtils::SetStr(fus_opdef, kPassNameUbAttr, pass_name));
+    bool set_failed =
+        (GraphPassUtil::StoreAndUpdataOriginFusionPassName(fus_opdef, fus_nodelist, pass_name) != SUCCESS) ||
+        (!ge::AttrUtils::SetStr(fus_opdef, kPassNameUbAttr, pass_name));
     if (set_failed) {
       REPORT_FE_ERROR("[SubGraphOpt][PostProcess][CrtFusOp] Op[%s, optype[%s]]: Failed to set the attribute %s.",
                       first_op_desc->GetName().c_str(), first_op_desc->GetType().c_str(), kPassNameUbAttr.c_str());
@@ -787,7 +774,7 @@ how to get the fusion op inplace info:
     2) traverse dequant1's all data anchor and to find satisfies its'  inplace output idx
     3) to find the dequant1, inplace input idex (0, 1), whose src node is {dequant, data3}
     4) to judge {dequant, data3} node is outer input node?
-    5) dequant is not outer input node, continue to find outer input node if dequant with inplace[travese]
+    5) dequant is not outer input node, continue to find outer input node if dequant with inplace[traverse]
        data3 is outer input node, save the tensor ptr
     repeat 2) -> 5) to find all out input [data1, data2, data3]
     and final the fusion op inplace is {{0,1},{0,2},{0,3}}
@@ -811,10 +798,8 @@ bool FusionOpComm::GetOutputInplaceAbilityAttrs(const vector<ge::NodePtr> &fus_n
   return output_place.size() > 0;
 }
 
-ge::OpDescPtr FusionOpComm::SetMultiKernelTBEFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                                      ge::OpDescPtr &fus_opdef,
-                                                      const string &engine_name,
-                                                      const string &pass_name) {
+ge::OpDescPtr FusionOpComm::SetMultiKernelTBEFusionOp(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr &fus_opdef,
+                                                      const string &engine_name, const string &pass_name) {
   if (fus_nodelist.empty()) {
     FE_LOGE("fusNodelist is empty.");
     return nullptr;
@@ -822,8 +807,8 @@ ge::OpDescPtr FusionOpComm::SetMultiKernelTBEFusionOp(const vector<ge::NodePtr> 
   ge::NodePtr first_node = fus_nodelist[0];
   for (const auto &node : fus_nodelist) {
     if (node->GetOpDesc()->HasAttr(ge::TVM_ATTR_NAME_THREAD_MAGIC)) {
-      FE_LOGD("Op[%s, %s] has attr TVM_ATTR_NAME_THREAD_MAGIC.",
-              node->GetOpDesc()->GetName().c_str(),  node->GetOpDesc()->GetType().c_str());
+      FE_LOGD("Op[%s, %s] has attr TVM_ATTR_NAME_THREAD_MAGIC.", node->GetOpDesc()->GetName().c_str(),
+              node->GetOpDesc()->GetType().c_str());
       first_node = node;
       break;
     }
@@ -935,7 +920,7 @@ ge::OpDescPtr FusionOpComm::SetMultiKernelTBEFusionOp(const vector<ge::NodePtr> 
                                  tbe_kernel_ptr_vec[i]->GetBinData() + buffer_size);
     ge::OpKernelBinPtr tbe_kernel_ptr_fused = nullptr;
     FE_MAKE_SHARED(tbe_kernel_ptr_fused = std::make_shared<ge::OpKernelBin>(kernel_name_vec[i], std::move(buffer_vec)),
-                  return nullptr);
+                   return nullptr);
     list_buffer_vec.emplace_back(tbe_kernel_ptr_fused);
   }
   if (!list_buffer_vec.empty()) {
@@ -957,20 +942,20 @@ Status FusionOpComm::CopyFusionScopeAttr(const ge::OpDescPtr &src_op_desc, ge::O
   int64_t scope_id = 0;
   bool is_l1_fusion = false;
   if (!GetFusionScopeAttr(src_op_desc, scope_id, is_l1_fusion)) {
-    FE_LOGE("Failed to get scope attr from node[%s, %s].",
-            src_op_desc->GetName().c_str(), src_op_desc->GetType().c_str());
+    FE_LOGE("Failed to get scope attr from node[%s, %s].", src_op_desc->GetName().c_str(),
+            src_op_desc->GetType().c_str());
     return FAILED;
   }
   if (is_l1_fusion) {
     if (!ge::AttrUtils::SetInt(dst_op_desc, L1_SCOPE_ID_ATTR, scope_id)) {
-      FE_LOGE("Failed to set fusion scope attr[%s] for Op[%s, %s].",
-              L1_SCOPE_ID_ATTR.c_str(), dst_op_desc->GetName().c_str(), dst_op_desc->GetType().c_str());
+      FE_LOGE("Failed to set fusion scope attr[%s] for Op[%s, %s].", L1_SCOPE_ID_ATTR.c_str(),
+              dst_op_desc->GetName().c_str(), dst_op_desc->GetType().c_str());
       return FAILED;
     }
   } else {
     if (!ge::AttrUtils::SetInt(dst_op_desc, SCOPE_ID_ATTR, scope_id)) {
-      FE_LOGE("Failed to set fusion scope attr[%s] for Op[%s, %s].",
-              SCOPE_ID_ATTR.c_str(), dst_op_desc->GetName().c_str(), dst_op_desc->GetType().c_str());
+      FE_LOGE("Failed to set fusion scope attr[%s] for Op[%s, %s].", SCOPE_ID_ATTR.c_str(),
+              dst_op_desc->GetName().c_str(), dst_op_desc->GetType().c_str());
       return FAILED;
     }
   }
@@ -980,10 +965,8 @@ Status FusionOpComm::CopyFusionScopeAttr(const ge::OpDescPtr &src_op_desc, ge::O
   return SUCCESS;
 }
 
-ge::OpDescPtr FusionOpComm::SetTBEFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                           ge::OpDescPtr &fus_opdef,
-                                           const string &engine_name,
-                                           const string &pass_name) {
+ge::OpDescPtr FusionOpComm::SetTBEFusionOp(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr &fus_opdef,
+                                           const string &engine_name, const string &pass_name) {
   if (fus_nodelist.empty()) {
     REPORT_FE_ERROR("[SubGraphOpt][PostProcess][SetTBEFusOp] fusNodelist is empty.");
     return nullptr;
@@ -991,8 +974,8 @@ ge::OpDescPtr FusionOpComm::SetTBEFusionOp(const vector<ge::NodePtr> &fus_nodeli
   ge::NodePtr first_node = fus_nodelist[0];
   for (const auto &node : fus_nodelist) {
     if (node->GetOpDesc()->HasAttr(ge::TVM_ATTR_NAME_MAGIC)) {
-      FE_LOGD("Op[%s, %s] has attr TVM_ATTR_NAME_MAGIC.",
-              node->GetOpDesc()->GetName().c_str(),  node->GetOpDesc()->GetType().c_str());
+      FE_LOGD("Op[%s, %s] has attr TVM_ATTR_NAME_MAGIC.", node->GetOpDesc()->GetName().c_str(),
+              node->GetOpDesc()->GetType().c_str());
       first_node = node;
       break;
     }
@@ -1111,8 +1094,8 @@ ge::OpDescPtr FusionOpComm::SetTBEFusionOp(const vector<ge::NodePtr> &fus_nodeli
   return fus_opdef;
 }
 
-void FusionOpComm::SetDataDumpAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist,
-                                             ge::OpDescPtr &fus_opdef, const string& pass_name) {
+void FusionOpComm::SetDataDumpAttrToFusionOp(const vector<ge::NodePtr> &fus_nodelist, ge::OpDescPtr &fus_opdef,
+                                             const string &pass_name) {
   std::vector<ge::NodePtr> original_nodes;
   for (ge::NodePtr node : fus_nodelist) {
     original_nodes.push_back(node);

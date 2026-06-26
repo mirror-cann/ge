@@ -52,7 +52,7 @@ void DestroyModelDesc(GeModelDesc *modelDesc);
 GeModelDesc *GetModelDescRef(uint32_t modelId);
 Status DelModelDescRef(uint32_t modelId);
 void ReleaseModelDescRef(GeModelDesc *modelDesc);
-void* FuncNull(RefObj *refObj);
+void *FuncNull(RefObj *refObj);
 #ifdef __cplusplus
 }
 #endif

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,8 @@ Status TensorFlowMergeParser::ParseParams(const Message *op_src, ge::OpDescPtr &
   // add dynamic input
   const graphStatus ret = op_desc->AddDynamicInputDesc("x", input_tensor_num);
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add Dynamic InputDesc name:x to node:%s(%s) failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add Dynamic InputDesc name:x to node:%s(%s) failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
     GELOGE(FAILED, "Add dynamic input:x for node:%s failed.", op_desc->GetName().c_str());
     return FAILED;
   }
@@ -46,4 +46,4 @@ Status TensorFlowMergeParser::ParseParams(const Message *op_src, ge::OpDescPtr &
 }
 
 REGISTER_OP_PARSER_CREATOR(TENSORFLOW, MERGE, TensorFlowMergeParser);
-}
+}  // namespace ge

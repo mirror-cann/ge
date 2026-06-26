@@ -96,8 +96,8 @@ bool operator<(const LiteScore &lhs, const LiteScore &rhs) {
 class StreamMergeSolver {
  public:
   // 构造流合并求解器，按逻辑流路由将节点分配到物理流
-  StreamMergeSolver(const DAGGraph& dag, const std::vector<std::vector<int32_t>> &logical_stream_routes,
-                      const StreamMergeOptions &options)
+  StreamMergeSolver(const DAGGraph &dag, const std::vector<std::vector<int32_t>> &logical_stream_routes,
+                    const StreamMergeOptions &options)
       : dag_(dag), logical_stream_routes_(logical_stream_routes), options_(options) {}
 
   graphStatus Solve(std::vector<int32_t> &logical_to_physical_stream) {
@@ -143,7 +143,7 @@ class StreamMergeSolver {
       std::vector<int32_t> recent_unit_ids;
       for (const auto unit_id : level_iter->second) {
         const auto candidate_flows = LoadBalanceCandidateFlows(unit_id, level, assignment, stream_sizes,
-                                                             stream_level_loads, active_stream_count, true);
+                                                               stream_level_loads, active_stream_count, true);
         if (candidate_flows.empty()) {
           MINIDAG_LOG_ERROR("No candidate physical stream for unit %d.", unit_id);
           return graphStatus::FAILED;
@@ -162,13 +162,13 @@ class StreamMergeSolver {
           }
         }
         active_stream_count = ApplyUnitToLoadBalanceStream(unit_id, best_stream, assignment, stream_sizes,
-                                                         stream_level_loads, active_stream_count);
+                                                           stream_level_loads, active_stream_count);
         recent_unit_ids.emplace_back(unit_id);
       }
 
       if ((options_.repair_moves > 0) && (!recent_unit_ids.empty())) {
         RepairLoadBalanceRecentUnits(level, recent_unit_ids, assignment, stream_sizes, stream_level_loads,
-                                   active_stream_count);
+                                     active_stream_count);
       }
     }
 
@@ -196,20 +196,19 @@ class StreamMergeSolver {
         }
 
         int32_t best_stream = candidate_flows.front();
-        auto best_score = EvaluateConcurrentScore(unit_id, best_stream, level, assignment, stream_level_loads,
-                                                  active_stream_count);
+        auto best_score =
+            EvaluateConcurrentScore(unit_id, best_stream, level, assignment, stream_level_loads, active_stream_count);
         for (size_t idx = 1UL; idx < candidate_flows.size(); ++idx) {
           const auto candidate_stream = candidate_flows[idx];
-          const auto score =
-              EvaluateConcurrentScore(unit_id, candidate_stream, level, assignment, stream_level_loads,
-                                      active_stream_count);
+          const auto score = EvaluateConcurrentScore(unit_id, candidate_stream, level, assignment, stream_level_loads,
+                                                     active_stream_count);
           if (score < best_score) {
             best_score = score;
             best_stream = candidate_stream;
           }
         }
-        active_stream_count = ApplyUnitToMainStream(unit_id, best_stream, assignment, stream_level_loads,
-                                                         active_stream_count);
+        active_stream_count =
+            ApplyUnitToMainStream(unit_id, best_stream, assignment, stream_level_loads, active_stream_count);
         recent_unit_ids.emplace_back(unit_id);
       }
 
@@ -234,9 +233,9 @@ class StreamMergeSolver {
       topo_nodes_.emplace_back(all_nodes[idx]);
     }
     std::stable_sort(topo_nodes_.begin(), topo_nodes_.end(),
-      [](const std::shared_ptr<DAGNode> &lhs, const std::shared_ptr<DAGNode> &rhs) {
-        return lhs->GetTopoId() < rhs->GetTopoId();
-      });
+                     [](const std::shared_ptr<DAGNode> &lhs, const std::shared_ptr<DAGNode> &rhs) {
+                       return lhs->GetTopoId() < rhs->GetTopoId();
+                     });
 
     // 建立节点名称到索引的映射，用于快速查找前驱/后继
     node_name_to_index_.clear();
@@ -328,7 +327,7 @@ class StreamMergeSolver {
       }
       if (node_to_unit_[node_index] != -1) {
         MINIDAG_LOG_ERROR("Node %s appears in more than one logical stream.",
-                         topo_nodes_[node_index]->GetName().c_str());
+                          topo_nodes_[node_index]->GetName().c_str());
         return graphStatus::FAILED;
       }
       node_to_unit_[node_index] = static_cast<int32_t>(route_id);
@@ -339,9 +338,8 @@ class StreamMergeSolver {
       MINIDAG_LOG_ERROR("Logical stream %zu should not be empty.", route_id);
       return graphStatus::FAILED;
     }
-    std::sort(node_indices.begin(), node_indices.end(), [this](const int32_t lhs, const int32_t rhs) {
-      return topo_position_[lhs] < topo_position_[rhs];
-    });
+    std::sort(node_indices.begin(), node_indices.end(),
+              [this](const int32_t lhs, const int32_t rhs) { return topo_position_[lhs] < topo_position_[rhs]; });
 
     std::vector<int32_t> level_hist(static_cast<size_t>(max_level_ + 1), 0);
     int32_t earliest_level = max_level_;
@@ -366,8 +364,7 @@ class StreamMergeSolver {
   graphStatus ValidateAllNodesAssigned() const {
     for (size_t node_index = 0UL; node_index < node_to_unit_.size(); ++node_index) {
       if (node_to_unit_[node_index] < 0) {
-        MINIDAG_LOG_ERROR("Node %s is not assigned to any logical stream.",
-                         topo_nodes_[node_index]->GetName().c_str());
+        MINIDAG_LOG_ERROR("Node %s is not assigned to any logical stream.", topo_nodes_[node_index]->GetName().c_str());
         return graphStatus::FAILED;
       }
     }
@@ -501,7 +498,7 @@ class StreamMergeSolver {
   }
 
   int32_t ParallelConflictValue(const std::vector<int32_t> &unit_hist, const std::vector<int32_t> &stream_hist,
-                                 const int32_t start_level) const {
+                                const int32_t start_level) const {
     int32_t conflict = 0;
     const auto end_level = WindowEnd(start_level);
     for (int32_t level = start_level; level <= end_level; ++level) {
@@ -510,9 +507,8 @@ class StreamMergeSolver {
     return conflict;
   }
 
-  std::vector<int32_t> DeduplicateCandidates(std::vector<int32_t> &candidates,
-                                              const int32_t active_stream_count,
-                                              const bool include_new_flow) const {
+  std::vector<int32_t> DeduplicateCandidates(std::vector<int32_t> &candidates, const int32_t active_stream_count,
+                                             const bool include_new_flow) const {
     if (include_new_flow && (active_stream_count < options_.physical_stream_limit)) {
       candidates.emplace_back(active_stream_count);
     }
@@ -544,11 +540,10 @@ class StreamMergeSolver {
   }
 
   std::vector<int32_t> LoadBalanceCandidateFlows(const int32_t unit_id, const int32_t level,
-                                                const std::vector<int32_t> &assignment,
-                                                const std::vector<int32_t> &stream_sizes,
-                                                const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                                const int32_t active_stream_count,
-                                                const bool include_new_flow) const {
+                                                 const std::vector<int32_t> &assignment,
+                                                 const std::vector<int32_t> &stream_sizes,
+                                                 const std::vector<std::vector<int32_t>> &stream_level_loads,
+                                                 const int32_t active_stream_count, const bool include_new_flow) const {
     std::vector<int32_t> candidates;
     AddAdjacentFlowCandidatesWithSize(candidates, unit_id, assignment, stream_sizes);
     AddLightStreamCandidates(candidates, level, stream_sizes, stream_level_loads, active_stream_count);
@@ -556,7 +551,7 @@ class StreamMergeSolver {
   }
 
   int32_t CalcEventLocal(const int32_t unit_id, const int32_t candidate_stream,
-                          const std::vector<int32_t> &assignment) const {
+                         const std::vector<int32_t> &assignment) const {
     int32_t event_local = 0;
     for (const auto &pred_edge : unit_pred_edges_[unit_id]) {
       const auto neighbor_stream = assignment[pred_edge.first];
@@ -573,9 +568,8 @@ class StreamMergeSolver {
     return event_local;
   }
 
-  void AddMainStreamCandidate(std::vector<int32_t> &candidates,
-                               const int32_t active_stream_count,
-                               const bool include_new_flow) const {
+  void AddMainStreamCandidate(std::vector<int32_t> &candidates, const int32_t active_stream_count,
+                              const bool include_new_flow) const {
     if (active_stream_count > options_.main_stream) {
       candidates.emplace_back(options_.main_stream);
     } else if (include_new_flow && (active_stream_count == 0)) {
@@ -583,13 +577,14 @@ class StreamMergeSolver {
     }
   }
 
-  void AddAdjacentFlowCandidates(std::vector<int32_t> &candidates,
-                                  const int32_t unit_id,
-                                  const std::vector<int32_t> &assignment) const {
+  void AddAdjacentFlowCandidates(std::vector<int32_t> &candidates, const int32_t unit_id,
+                                 const std::vector<int32_t> &assignment) const {
     const auto adjacent_flow_weights = AdjacentAssignedFlows(unit_id, assignment);
     std::vector<std::pair<int32_t, int32_t>> weighted_flows(adjacent_flow_weights.begin(), adjacent_flow_weights.end());
     std::sort(weighted_flows.begin(), weighted_flows.end(), [](const auto &lhs, const auto &rhs) {
-      if (lhs.second != rhs.second) { return lhs.second > rhs.second; }
+      if (lhs.second != rhs.second) {
+        return lhs.second > rhs.second;
+      }
       return lhs.first < rhs.first;
     });
     for (const auto &flow_and_weight : weighted_flows) {
@@ -597,62 +592,67 @@ class StreamMergeSolver {
     }
   }
 
-  void AddLowConflictCandidates(std::vector<int32_t> &candidates,
-                                 const int32_t unit_id,
-                                 const int32_t level,
-                                 const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                 const int32_t active_stream_count) const {
+  void AddLowConflictCandidates(std::vector<int32_t> &candidates, const int32_t unit_id, const int32_t level,
+                                const std::vector<std::vector<int32_t>> &stream_level_loads,
+                                const int32_t active_stream_count) const {
     std::vector<std::pair<int32_t, int32_t>> low_conflict_flows;
     low_conflict_flows.reserve(static_cast<size_t>(active_stream_count));
     const auto &unit_hist = unit_profiles_[unit_id].level_hist;
     for (int32_t physical_stream = 0; physical_stream < active_stream_count; ++physical_stream) {
-      low_conflict_flows.emplace_back(
-          ParallelConflictValue(unit_hist, stream_level_loads[physical_stream], level), physical_stream);
+      low_conflict_flows.emplace_back(ParallelConflictValue(unit_hist, stream_level_loads[physical_stream], level),
+                                      physical_stream);
     }
     std::sort(low_conflict_flows.begin(), low_conflict_flows.end(), [](const auto &lhs, const auto &rhs) {
-      if (lhs.first != rhs.first) { return lhs.first < rhs.first; }
+      if (lhs.first != rhs.first) {
+        return lhs.first < rhs.first;
+      }
       return lhs.second < rhs.second;
     });
-    for (int32_t idx = 0; (idx < options_.low_conflict_limit) && (idx < static_cast<int32_t>(low_conflict_flows.size()));
-         ++idx) {
+    for (int32_t idx = 0;
+         (idx < options_.low_conflict_limit) && (idx < static_cast<int32_t>(low_conflict_flows.size())); ++idx) {
       candidates.emplace_back(low_conflict_flows[idx].second);
     }
   }
 
-  void AddAdjacentFlowCandidatesWithSize(std::vector<int32_t> &candidates,
-                                          const int32_t unit_id,
-                                          const std::vector<int32_t> &assignment,
-                                          const std::vector<int32_t> &stream_sizes) const {
+  void AddAdjacentFlowCandidatesWithSize(std::vector<int32_t> &candidates, const int32_t unit_id,
+                                         const std::vector<int32_t> &assignment,
+                                         const std::vector<int32_t> &stream_sizes) const {
     const auto adjacent_flow_weights = AdjacentAssignedFlows(unit_id, assignment);
     std::vector<std::pair<int32_t, int32_t>> weighted_flows(adjacent_flow_weights.begin(), adjacent_flow_weights.end());
-    std::sort(weighted_flows.begin(), weighted_flows.end(),
-              [&stream_sizes](const auto &lhs, const auto &rhs) {
-                if (lhs.second != rhs.second) { return lhs.second > rhs.second; }
-                const auto lhs_size = stream_sizes[lhs.first];
-                const auto rhs_size = stream_sizes[rhs.first];
-                if (lhs_size != rhs_size) { return lhs_size < rhs_size; }
-                return lhs.first < rhs.first;
-              });
+    std::sort(weighted_flows.begin(), weighted_flows.end(), [&stream_sizes](const auto &lhs, const auto &rhs) {
+      if (lhs.second != rhs.second) {
+        return lhs.second > rhs.second;
+      }
+      const auto lhs_size = stream_sizes[lhs.first];
+      const auto rhs_size = stream_sizes[rhs.first];
+      if (lhs_size != rhs_size) {
+        return lhs_size < rhs_size;
+      }
+      return lhs.first < rhs.first;
+    });
     for (const auto &flow_and_weight : weighted_flows) {
       candidates.emplace_back(flow_and_weight.first);
     }
   }
 
-  void AddLightStreamCandidates(std::vector<int32_t> &candidates,
-                                 const int32_t level,
-                                 const std::vector<int32_t> &stream_sizes,
-                                 const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                 const int32_t active_stream_count) const {
+  void AddLightStreamCandidates(std::vector<int32_t> &candidates, const int32_t level,
+                                const std::vector<int32_t> &stream_sizes,
+                                const std::vector<std::vector<int32_t>> &stream_level_loads,
+                                const int32_t active_stream_count) const {
     std::vector<std::pair<std::pair<int32_t, int32_t>, int32_t>> light_flows;
     light_flows.reserve(static_cast<size_t>(active_stream_count));
     for (int32_t physical_stream = 0; physical_stream < active_stream_count; ++physical_stream) {
-      light_flows.emplace_back(std::make_pair(StreamWindowLoad(stream_level_loads, physical_stream, level),
-                                               stream_sizes[physical_stream]),
-                               physical_stream);
+      light_flows.emplace_back(
+          std::make_pair(StreamWindowLoad(stream_level_loads, physical_stream, level), stream_sizes[physical_stream]),
+          physical_stream);
     }
     std::sort(light_flows.begin(), light_flows.end(), [](const auto &lhs, const auto &rhs) {
-      if (lhs.first.first != rhs.first.first) { return lhs.first.first < rhs.first.first; }
-      if (lhs.first.second != rhs.first.second) { return lhs.first.second < rhs.first.second; }
+      if (lhs.first.first != rhs.first.first) {
+        return lhs.first.first < rhs.first.first;
+      }
+      if (lhs.first.second != rhs.first.second) {
+        return lhs.first.second < rhs.first.second;
+      }
       return lhs.second < rhs.second;
     });
     for (int32_t idx = 0; (idx < options_.light_stream_limit) && (idx < static_cast<int32_t>(light_flows.size()));
@@ -664,8 +664,7 @@ class StreamMergeSolver {
   std::vector<int32_t> MainStreamCandidateFlows(const int32_t unit_id, const int32_t level,
                                                 const std::vector<int32_t> &assignment,
                                                 const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                                const int32_t active_stream_count,
-                                                const bool include_new_flow) const {
+                                                const int32_t active_stream_count, const bool include_new_flow) const {
     if (MustAssignToMainStream(unit_id, level)) {
       return {options_.main_stream};
     }
@@ -676,10 +675,10 @@ class StreamMergeSolver {
     return DeduplicateCandidates(candidates, active_stream_count, include_new_flow);
   }
 
-LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_stream, const int32_t level,
-                                 const std::vector<int32_t> &assignment, const std::vector<int32_t> &stream_sizes,
-                                 const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                 const int32_t active_stream_count) const {
+  LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_stream, const int32_t level,
+                              const std::vector<int32_t> &assignment, const std::vector<int32_t> &stream_sizes,
+                              const std::vector<std::vector<int32_t>> &stream_level_loads,
+                              const int32_t active_stream_count) const {
     LiteScore score;
     const auto &unit = unit_profiles_[unit_id];
     const bool opens_new_stream = (candidate_stream == active_stream_count);
@@ -722,10 +721,10 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
     return score;
   }
 
-  ConcurrentScore EvaluateConcurrentScore(const int32_t unit_id, const int32_t candidate_stream,
-                                            const int32_t level, const std::vector<int32_t> &assignment,
-                                            const std::vector<std::vector<int32_t>> &stream_level_loads,
-                                            const int32_t active_stream_count) const {
+  ConcurrentScore EvaluateConcurrentScore(const int32_t unit_id, const int32_t candidate_stream, const int32_t level,
+                                          const std::vector<int32_t> &assignment,
+                                          const std::vector<std::vector<int32_t>> &stream_level_loads,
+                                          const int32_t active_stream_count) const {
     ConcurrentScore score;
     const bool opens_new_stream = (candidate_stream == active_stream_count);
     score.event_local = CalcEventLocal(unit_id, candidate_stream, assignment);
@@ -743,9 +742,9 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
   }
 
   int32_t ApplyUnitToLoadBalanceStream(const int32_t unit_id, const int32_t candidate_stream,
-                                     std::vector<int32_t> &assignment, std::vector<int32_t> &stream_sizes,
-                                     std::vector<std::vector<int32_t>> &stream_level_loads,
-                                     int32_t active_stream_count) const {
+                                       std::vector<int32_t> &assignment, std::vector<int32_t> &stream_sizes,
+                                       std::vector<std::vector<int32_t>> &stream_level_loads,
+                                       int32_t active_stream_count) const {
     if (candidate_stream == active_stream_count) {
       stream_sizes.emplace_back(0);
       stream_level_loads.emplace_back(static_cast<size_t>(max_level_ + 1), 0);
@@ -762,10 +761,9 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
     return active_stream_count;
   }
 
-  int32_t ApplyUnitToMainStream(const int32_t unit_id, const int32_t candidate_stream,
-                                     std::vector<int32_t> &assignment,
-                                     std::vector<std::vector<int32_t>> &stream_level_loads,
-                                     int32_t active_stream_count) const {
+  int32_t ApplyUnitToMainStream(const int32_t unit_id, const int32_t candidate_stream, std::vector<int32_t> &assignment,
+                                std::vector<std::vector<int32_t>> &stream_level_loads,
+                                int32_t active_stream_count) const {
     if (candidate_stream == active_stream_count) {
       stream_level_loads.emplace_back(static_cast<size_t>(max_level_ + 1), 0);
       ++active_stream_count;
@@ -781,8 +779,8 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
   }
 
   int32_t RemoveUnitFromLoadBalanceStream(const int32_t unit_id, std::vector<int32_t> &assignment,
-                                        std::vector<int32_t> &stream_sizes,
-                                        std::vector<std::vector<int32_t>> &stream_level_loads) const {
+                                          std::vector<int32_t> &stream_sizes,
+                                          std::vector<std::vector<int32_t>> &stream_level_loads) const {
     const auto physical_stream = assignment[unit_id];
     if (physical_stream < 0) {
       MINIDAG_LOG_ERROR("Try to remove unassigned unit %d.", unit_id);
@@ -801,7 +799,7 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
   }
 
   int32_t RemoveUnitFromMainStream(const int32_t unit_id, std::vector<int32_t> &assignment,
-                                        std::vector<std::vector<int32_t>> &stream_level_loads) const {
+                                   std::vector<std::vector<int32_t>> &stream_level_loads) const {
     const auto physical_stream = assignment[unit_id];
     if (physical_stream < 0) {
       MINIDAG_LOG_ERROR("Try to remove unassigned unit %d.", unit_id);
@@ -819,9 +817,9 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
   }
 
   void RepairLoadBalanceRecentUnits(const int32_t level, const std::vector<int32_t> &recent_unit_ids,
-                                  std::vector<int32_t> &assignment, std::vector<int32_t> &stream_sizes,
-                                  std::vector<std::vector<int32_t>> &stream_level_loads,
-                                  const int32_t active_stream_count) const {
+                                    std::vector<int32_t> &assignment, std::vector<int32_t> &stream_sizes,
+                                    std::vector<std::vector<int32_t>> &stream_level_loads,
+                                    const int32_t active_stream_count) const {
     int32_t move_count = 0;
     while (move_count < options_.repair_moves) {
       BestRepairMove best_move;
@@ -832,7 +830,7 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
                                                      stream_level_loads, active_stream_count);
 
         auto candidate_flows = LoadBalanceCandidateFlows(unit_id, level, assignment, stream_sizes, stream_level_loads,
-                                                       active_stream_count, false);
+                                                         active_stream_count, false);
         if (std::find(candidate_flows.begin(), candidate_flows.end(), current_stream) == candidate_flows.end()) {
           candidate_flows.emplace_back(current_stream);
         }
@@ -849,7 +847,7 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
           }
         }
         (void)ApplyUnitToLoadBalanceStream(unit_id, current_stream, assignment, stream_sizes, stream_level_loads,
-                                         active_stream_count);
+                                           active_stream_count);
 
         const auto improvement = current_score.total - best_score.total;
         if ((best_candidate != current_stream) && (improvement > kMergeImproveEps) &&
@@ -863,15 +861,15 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
       }
       (void)RemoveUnitFromLoadBalanceStream(best_move.unit_id, assignment, stream_sizes, stream_level_loads);
       (void)ApplyUnitToLoadBalanceStream(best_move.unit_id, best_move.to_stream, assignment, stream_sizes,
-                                       stream_level_loads, active_stream_count);
+                                         stream_level_loads, active_stream_count);
       ++move_count;
     }
   }
 
   void RepairMainStreamRecentUnits(const int32_t level, const std::vector<int32_t> &recent_unit_ids,
-                                  std::vector<int32_t> &assignment,
-                                  std::vector<std::vector<int32_t>> &stream_level_loads,
-                                  const int32_t active_stream_count) const {
+                                   std::vector<int32_t> &assignment,
+                                   std::vector<std::vector<int32_t>> &stream_level_loads,
+                                   const int32_t active_stream_count) const {
     int32_t move_count = 0;
     while (move_count < options_.repair_moves) {
       BestRepairMove best_move;
@@ -880,8 +878,8 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
           continue;
         }
         const auto current_stream = RemoveUnitFromMainStream(unit_id, assignment, stream_level_loads);
-        const auto current_score =
-            EvaluateConcurrentScore(unit_id, current_stream, level, assignment, stream_level_loads, active_stream_count);
+        const auto current_score = EvaluateConcurrentScore(unit_id, current_stream, level, assignment,
+                                                           stream_level_loads, active_stream_count);
 
         auto candidate_flows =
             MainStreamCandidateFlows(unit_id, level, assignment, stream_level_loads, active_stream_count, false);
@@ -890,12 +888,11 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
         }
 
         int32_t best_candidate = current_stream;
-        auto best_score =
-            EvaluateConcurrentScore(unit_id, current_stream, level, assignment, stream_level_loads, active_stream_count);
+        auto best_score = EvaluateConcurrentScore(unit_id, current_stream, level, assignment, stream_level_loads,
+                                                  active_stream_count);
         for (const auto candidate_stream : candidate_flows) {
-          const auto score =
-              EvaluateConcurrentScore(unit_id, candidate_stream, level, assignment, stream_level_loads,
-                                      active_stream_count);
+          const auto score = EvaluateConcurrentScore(unit_id, candidate_stream, level, assignment, stream_level_loads,
+                                                     active_stream_count);
           if (score < best_score) {
             best_score = score;
             best_candidate = candidate_stream;
@@ -915,7 +912,7 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
       }
       (void)RemoveUnitFromMainStream(best_move.unit_id, assignment, stream_level_loads);
       (void)ApplyUnitToMainStream(best_move.unit_id, best_move.to_stream, assignment, stream_level_loads,
-                                       active_stream_count);
+                                  active_stream_count);
       ++move_count;
     }
   }
@@ -948,7 +945,7 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
     return compact_assignment;
   }
 
-  const DAGGraph& dag_;
+  const DAGGraph &dag_;
   const std::vector<std::vector<int32_t>> &logical_stream_routes_;
   const StreamMergeOptions &options_;
 
@@ -975,9 +972,8 @@ LiteScore EvaluateLiteScore(const int32_t unit_id, const int32_t candidate_strea
 
 StreamMerger::StreamMerger(const StreamMergeOptions &options) : options_(options) {}
 
-graphStatus StreamMerger::Merge(const DAGGraph& dag,
-                                   const std::vector<std::vector<int32_t>> &logical_stream_routes,
-                                   std::vector<int32_t> &logical_to_physical_stream) const {
+graphStatus StreamMerger::Merge(const DAGGraph &dag, const std::vector<std::vector<int32_t>> &logical_stream_routes,
+                                std::vector<int32_t> &logical_to_physical_stream) const {
   logical_to_physical_stream.clear();
   if (options_.physical_stream_limit <= 0) {
     MINIDAG_LOG_ERROR("Merge physical stream limit must be greater than 0.");

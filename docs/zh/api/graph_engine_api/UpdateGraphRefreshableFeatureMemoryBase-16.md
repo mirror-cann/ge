@@ -107,4 +107,3 @@ Status UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const void *co
 -   若使用了本接口，又配置了[RegisterExternalAllocator](RegisterExternalAllocator-8.md)接口，则RegisterExternalAllocator接口不生效。
 -   如果通过[SetGraphConstMemoryBase](SetGraphConstMemoryBase-13.md)或SetGraphFixedFeatureMemoryBaseWithType接口将内存类型为MEMORY\_TYPE\_DEFAULT的Fixed内存地址设置为nullptr，size设置为0，表示关闭Fixed内存功能，该场景下无法再调用本接口。
 -   不能与[UpdateGraphFeatureMemoryBase](UpdateGraphFeatureMemoryBase-15.md)同时使用。
-

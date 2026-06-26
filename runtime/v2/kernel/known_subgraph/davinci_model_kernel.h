@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,12 +15,8 @@
 #include <cstddef>
 namespace gert {
 namespace kernel {
-constexpr size_t kMaxFileNameLen = 255U; // linux file max len
-enum class MemoryBaseType {
-  kMemoryBaseTypeWeight,
-  kMemoryBaseTypeFileConstant,
-  kMemoryBaseTypeEnd
-};
+constexpr size_t kMaxFileNameLen = 255U;  // linux file max len
+enum class MemoryBaseType { kMemoryBaseTypeWeight, kMemoryBaseTypeFileConstant, kMemoryBaseTypeEnd };
 
 struct MemoryBaseTypeOffset {
   MemoryBaseType base_type;
@@ -28,16 +24,9 @@ struct MemoryBaseTypeOffset {
   uint64_t size;
 };
 
-enum class InputsCommon {
-  kDavinciModel,
-  kInputsCommonEnd
-};
+enum class InputsCommon { kDavinciModel, kInputsCommonEnd };
 
-enum class InputsSpecial {
-  kDavinciModel,
-  kStreamId,
-  kInputsCommonEnd
-};
+enum class InputsSpecial { kDavinciModel, kStreamId, kInputsCommonEnd };
 
 enum class ModelExecute {
   kStream = static_cast<int32_t>(InputsCommon::kInputsCommonEnd),
@@ -80,6 +69,6 @@ struct FileConstantNameAndMem {
 };
 
 bool IsNeedMallocFixedMemoryOnInitGraph(const void *fixed_feature_mem, const size_t fixed_size);
-} // namespace kernel
-} // namespace gert
+}  // namespace kernel
+}  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_KERNEL_KNOWN_SUBGRAPH_DAVINCI_MODEL_KERNEL_H

@@ -276,7 +276,7 @@ TEST_F(DAGGraphTest, NodeCostSetGet) {
   auto node = graph_->AddNode("node1", "Conv");
   ASSERT_NE(node, nullptr);
 
-  const auto& default_cost = node->GetCost();
+  const auto &default_cost = node->GetCost();
   EXPECT_EQ(default_cost.execution_time, -1.0);
   EXPECT_EQ(default_cost.memory_usage, 0);
 
@@ -285,7 +285,7 @@ TEST_F(DAGGraphTest, NodeCostSetGet) {
   cost.memory_usage = 2048;
   node->SetCost(cost);
 
-  const auto& retrieved_cost = node->GetCost();
+  const auto &retrieved_cost = node->GetCost();
   EXPECT_EQ(retrieved_cost.execution_time, 100.5);
   EXPECT_EQ(retrieved_cost.memory_usage, 2048);
 

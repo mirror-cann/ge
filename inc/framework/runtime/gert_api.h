@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,6 +28,7 @@ class VISIBILITY_EXPORT AllocatorFactory {
   // 根据placement创建allocator
   static std::unique_ptr<ge::Allocator> Create(const std::string &graph_name, const TensorPlacement &placement);
   static std::unique_ptr<ge::Allocator> Create(const TensorPlacement &placement);
+
  private:
   AllocatorFactory() = default;
 };
@@ -59,20 +60,16 @@ std::unique_ptr<ModelV2Executor> LoadExecutorFromModelDataWithRtSession(const ge
 
 VISIBILITY_EXPORT
 std::unique_ptr<ModelV2Executor> LoadExecutorFromModelData(const ge::ModelData &model_data,
-                                                           const LoadExecutorArgs &args,
-                                                           ge::graphStatus &error_code);
+                                                           const LoadExecutorArgs &args, ge::graphStatus &error_code);
 VISIBILITY_EXPORT
 std::unique_ptr<ModelV2Executor> LoadExecutorFromModelData(const ge::ModelData &model_data,
                                                            const ExecutorOption &executor_option,
                                                            ge::graphStatus &error_code);
 
 VISIBILITY_EXPORT
-std::unique_ptr<ModelV2Executor> LoadExecutorFromModelData(const ge::ModelData &model_data,
-                                                           const ExecutorOption &executor_option,
-                                                           StreamAllocator *const stream_allocator,
-                                                           EventAllocator *const event_allocator,
-                                                           NotifyAllocator *const notify_allocator,
-                                                           ge::graphStatus &error_code);
+std::unique_ptr<ModelV2Executor> LoadExecutorFromModelData(
+    const ge::ModelData &model_data, const ExecutorOption &executor_option, StreamAllocator *const stream_allocator,
+    EventAllocator *const event_allocator, NotifyAllocator *const notify_allocator, ge::graphStatus &error_code);
 
 VISIBILITY_EXPORT
 std::unique_ptr<StreamExecutor> LoadStreamExecutorFromModelData(const ge::ModelData &model_data, const void *weight_ptr,
@@ -111,6 +108,6 @@ VISIBILITY_EXPORT
 ge::graphStatus LoadDataFromFile(const ge::char_t *model_path, ge::ModelData &model_data);
 
 VISIBILITY_EXPORT
-std::unique_ptr<ge::Allocator> CreateExternalAllocator(const ge::AllocatorDesc * const allocatorDesc);
+std::unique_ptr<ge::Allocator> CreateExternalAllocator(const ge::AllocatorDesc *const allocatorDesc);
 }  // namespace gert
 #endif  // AIR_CXX_INC_FRAMEWORK_RUNTIME_GERT_API_H_

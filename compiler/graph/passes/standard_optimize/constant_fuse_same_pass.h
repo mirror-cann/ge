@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ struct SameConstKey {
   std::vector<int64_t> shape;
 
  public:
-  bool operator< (const SameConstKey &key) const {
+  bool operator<(const SameConstKey &key) const {
     if (data_size != key.data_size) {
       return data_size < key.data_size;
     }
@@ -62,11 +62,9 @@ class ConstantFuseSamePass : public GraphPass {
   Status Run(ge::ComputeGraphPtr graph) override;
 
  private:
-  void GetFuseConstNodes(ComputeGraphPtr &graph,
-      std::map<SameConstKey, std::vector<NodePtr>> &fuse_nodes) const;
+  void GetFuseConstNodes(ComputeGraphPtr &graph, std::map<SameConstKey, std::vector<NodePtr>> &fuse_nodes) const;
   Status MoveOutDataEdges(NodePtr &src_node, NodePtr &dst_node) const;
-  Status FuseConstNodes(ComputeGraphPtr &graph,
-      std::map<SameConstKey, std::vector<NodePtr>> &fuse_nodes) const;
+  Status FuseConstNodes(ComputeGraphPtr &graph, std::map<SameConstKey, std::vector<NodePtr>> &fuse_nodes) const;
 };
-} // namespace ge
-#endif // GE_GRAPH_PASSES_CONSTANT_FUSE_SAME_PASS_H_
+}  // namespace ge
+#endif  // GE_GRAPH_PASSES_CONSTANT_FUSE_SAME_PASS_H_

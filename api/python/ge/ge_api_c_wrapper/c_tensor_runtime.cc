@@ -88,9 +88,7 @@ graphStatus GeApiWrapper_Tensor_ToHost(EsCTensor *tensor) {
     return GRAPH_FAILED;
   }
 
-  const auto ret = ts->SetData(host_data, size, [](uint8_t *ptr) {
-    delete[] ptr;
-  });
+  const auto ret = ts->SetData(host_data, size, [](uint8_t *ptr) { delete[] ptr; });
   if (ret != GRAPH_SUCCESS) {
     delete[] host_data;
     return ret;

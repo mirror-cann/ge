@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,7 @@ HcclOfflineOptionBuilder &HcclOfflineOptionBuilder::Instance() {
   return hccl_offline_option_builder;
 }
 
-Status HcclOfflineOptionBuilder::Initialize(const std::string &soc_version,
-                                            const std::string &logic_topo_config,
+Status HcclOfflineOptionBuilder::Initialize(const std::string &soc_version, const std::string &logic_topo_config,
                                             const std::string &hccl_sub_comm_config) {
   if (inited_) {
     GELOGI("Hccl offline option builder has already been initialized. Skip initial again.");
@@ -35,7 +34,8 @@ Status HcclOfflineOptionBuilder::Initialize(const std::string &soc_version,
     GELOGI("cluster_config and hccl_sub_comm_config are both empty, skip parse config.");
     return SUCCESS;
   }
-  // 如果logic_topo_config为空但是hccl_sub_comm_config不为空，则认为当前离线模型包含hcom算子，但是缺少cluster config，需要报错。
+  // 如果logic_topo_config为空但是hccl_sub_comm_config不为空，则认为当前离线模型包含hcom算子，但是缺少cluster
+  // config，需要报错。
   if (logic_topo_config.empty() && !hccl_sub_comm_config.empty()) {
     GELOGE(FAILED, "missing parameter: cluster_config.");
     REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
@@ -59,7 +59,8 @@ Status HcclOfflineOptionBuilder::Initialize(const std::string &soc_version,
     GELOGW("Parameter hccl_sub_comm_config is empty.");
   } else {
     hccl_sub_comm_config_path_ = RealPath(hccl_sub_comm_config.c_str());
-    GE_ASSERT_TRUE(!hccl_sub_comm_config_path_.empty(), "sub communication config[%s] is invalid", hccl_sub_comm_config.c_str());
+    GE_ASSERT_TRUE(!hccl_sub_comm_config_path_.empty(), "sub communication config[%s] is invalid",
+                   hccl_sub_comm_config.c_str());
   }
 
   GE_ASSERT_SUCCESS(ParseLogicNumaConfig(), "Parse Logic NumaConfig failed");
@@ -93,24 +94,18 @@ Status HcclOfflineOptionBuilder::ParseLogicNumaConfig() {
     auto json_obj = js.find("RankTable");
     if (json_obj == js.end()) {
       GELOGE(FAILED, "The field 'RankTable' is missing in JSON config file[%s].", logic_topo_config_path_.c_str());
-      REPORT_PREDEFINED_ERR_MSG("E10032",
-                          std::vector<const char *>({"file_name", "reason"}),
-                          std::vector<const char *>({
-                              logic_topo_config_path_.c_str(),
-                              "The field 'RankTable' is missing in JSON file"
-                          }));
+      REPORT_PREDEFINED_ERR_MSG("E10032", std::vector<const char *>({"file_name", "reason"}),
+                                std::vector<const char *>({logic_topo_config_path_.c_str(),
+                                                           "The field 'RankTable' is missing in JSON file"}));
       return FAILED;
     }
     logic_rank_table_ = json_obj->dump();
     json_obj = js.find("HcclCommConfig");
     if (json_obj == js.end()) {
       GELOGE(FAILED, "The field 'HcclCommConfig' is missing in JSON config file[%s].", logic_topo_config_path_.c_str());
-      REPORT_PREDEFINED_ERR_MSG("E10032",
-                          std::vector<const char *>({"file_name", "reason"}),
-                          std::vector<const char *>({
-                              logic_topo_config_path_.c_str(),
-                              "The field 'HcclCommConfig' is missing in JSON file"
-                          }));
+      REPORT_PREDEFINED_ERR_MSG("E10032", std::vector<const char *>({"file_name", "reason"}),
+                                std::vector<const char *>({logic_topo_config_path_.c_str(),
+                                                           "The field 'HcclCommConfig' is missing in JSON file"}));
       return FAILED;
     }
     hccl_comm_config_ = json_obj->dump();
@@ -139,4 +134,4 @@ Status HcclOfflineOptionBuilder::ParseHcclSubCommConfig() {
   }
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

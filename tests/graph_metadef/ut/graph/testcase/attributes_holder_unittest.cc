@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@ namespace ge {
 namespace {
 
 class SubAttrStore : public AttrStore {
-public:
+ public:
   bool SetAnyValueByName(const std::string &name, const AnyValue &value);
   SubAttrStore &operator=(const SubAttrStore &other) {
     if (this == &other) {
@@ -29,24 +29,22 @@ public:
     CopyAttrStoreAllMembers(other);
     return *this;
   }
-
 };
 
 class SubAttrHolder : public AttrHolder {
-public:
+ public:
   SubAttrHolder();
   virtual ~SubAttrHolder() = default;
 
-
-protected:
+ protected:
   ProtoAttrMap &MutableAttrMap() override;
   ConstProtoAttrMap &GetAttrMap() const override;
 
-public:
+ public:
   SubAttrStore attrs_;
 };
 
-SubAttrHolder::SubAttrHolder(){
+SubAttrHolder::SubAttrHolder() {
   attrs_ = SubAttrStore();
 }
 
@@ -58,38 +56,29 @@ ConstProtoAttrMap &SubAttrHolder::GetAttrMap() const {
   return attrs_;
 }
 
-}
+}  // namespace
 
-void oper(AnyValue::OperateType ot, const AnyValue *av, void *out){
+void oper(AnyValue::OperateType ot, const AnyValue *av, void *out) {
   return;
 }
 
 class AttrHolderUt : public testing::Test {};
 
 TEST_F(AttrHolderUt, All) {
-  EXPECT_NO_THROW(
-    GeIrProtoHelper<proto::TensorDescriptor> helper1;
-    helper1.InitDefault();
+  EXPECT_NO_THROW(GeIrProtoHelper<proto::TensorDescriptor> helper1; helper1.InitDefault();
 
-    GeIrProtoHelper<proto::ShapeDef> helper2;
-    helper2.InitDefault();
+                  GeIrProtoHelper<proto::ShapeDef> helper2; helper2.InitDefault();
 
-    GeIrProtoHelper<proto::NamedAttrs> helper3;
-    helper3.InitDefault();
+                  GeIrProtoHelper<proto::NamedAttrs> helper3; helper3.InitDefault();
 
-    GeIrProtoHelper<proto::ModelDef> helper4;
-    helper4.InitDefault();
+                  GeIrProtoHelper<proto::ModelDef> helper4; helper4.InitDefault();
 
-    GeIrProtoHelper<proto::OpDef> helper5;
-    helper5.InitDefault();
+                  GeIrProtoHelper<proto::OpDef> helper5; helper5.InitDefault();
 
-    GeIrProtoHelper<proto::GraphDef> helper6;
-    helper6.InitDefault();
-  );
+                  GeIrProtoHelper<proto::GraphDef> helper6; helper6.InitDefault(););
 }
 
 TEST_F(AttrHolderUt, Plus) {
-
   SubAttrHolder sub_attr_hodler = SubAttrHolder();
   AnyValue av = AnyValue::CreateFrom<int>(1);
   av.operate_ = oper;
@@ -119,7 +108,7 @@ TEST_F(AttrHolderUt, ExtAttrGetWrongType) {
 }
 TEST_F(AttrHolderUt, ExtAttrGetClassSuccess) {
   SubAttrHolder holder;
-  std::vector<int64_t> data = {1,2,10,20,100,200,1000,2000};
+  std::vector<int64_t> data = {1, 2, 10, 20, 100, 200, 1000, 2000};
   EXPECT_EQ(holder.GetExtAttr<std::vector<int64_t>>("TestName"), nullptr);
   holder.SetExtAttr<std::vector<int64_t>>("TestName", data);
   auto pd = holder.GetExtAttr<std::vector<int64_t>>("TestName");
@@ -129,7 +118,7 @@ TEST_F(AttrHolderUt, ExtAttrGetClassSuccess) {
 
 TEST_F(AttrHolderUt, ExtAttrGetSameAddress) {
   SubAttrHolder holder;
-  std::vector<int64_t> data = {1,2,10,20,100,200,1000,2000};
+  std::vector<int64_t> data = {1, 2, 10, 20, 100, 200, 1000, 2000};
   holder.SetExtAttr<std::vector<int64_t>>("TestName", data);
   auto pd = holder.GetExtAttr<std::vector<int64_t>>("TestName");
   ASSERT_NE(pd, nullptr);
@@ -140,11 +129,10 @@ TEST_F(AttrHolderUt, ExtAttrGetSameAddress) {
   EXPECT_TRUE(pd == pd2);
 }
 
-
 TEST_F(AttrHolderUt, ExtAttrTryGetSuccess) {
   SubAttrHolder holder;
-  std::vector<int64_t> data1 = {1,2,10,20,100,200,1000,2000};
-  std::vector<int64_t> data2 = {1,2,10,20,100,200,1000,2000, 10000, 20000};
+  std::vector<int64_t> data1 = {1, 2, 10, 20, 100, 200, 1000, 2000};
+  std::vector<int64_t> data2 = {1, 2, 10, 20, 100, 200, 1000, 2000, 10000, 20000};
 
   std::vector<int64_t> ret_data = holder.TryGetExtAttr("TestName", data1);
   EXPECT_EQ(ret_data, data1);

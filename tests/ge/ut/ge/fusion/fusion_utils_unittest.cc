@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ std::string GetCodeDir() {
   getcwd(current_path, MMPA_MAX_PATH);
   return current_path;
 }
-}
+}  // namespace
 class UtestFusionUtils : public testing::Test {
  protected:
   void SetUp() {
@@ -41,6 +41,7 @@ class UtestFusionUtils : public testing::Test {
   void TearDown() {
     GetThreadLocalContext().SetGlobalOption(global_options_bak_);
   }
+
  private:
   std::map<std::string, std::string> global_options_bak_;
 };
@@ -58,7 +59,8 @@ TEST_F(UtestFusionUtils, GetFusionSwitchFilePathFromOption) {
 TEST_F(UtestFusionUtils, ParseFusionSwitch) {
   // No option config
   EXPECT_TRUE(FusionUtils::ParseFusionSwitch().empty());
-  std::string json_str = "{\n"
+  std::string json_str =
+      "{\n"
       "      \"Switch\": {\n"
       "          \"GraphFusion\": {\n"
       "            \"CUSTOM_PASS1\" : \"off\",\n"
@@ -88,7 +90,7 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_NullMatchResult_ReturnFalse) {
 
 TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_LinearGraphNoCycle_ReturnFalse) {
   using namespace ge::es;
-  
+
   auto graph_builder = EsGraphBuilder("linear_graph");
   auto esb_graph = graph_builder.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
@@ -96,9 +98,9 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_LinearGraphNoCycle_ReturnFalse) {
   auto add = EsAdd(data, const_data);
   auto relu = EsRelu(add);
   esb_graph->SetGraphOutput(relu, 0);
-  
+
   auto graph = std::make_shared<Graph>(*graph_builder.BuildAndReset());
-  
+
   auto pattern_builder = EsGraphBuilder("pattern");
   auto pattern_esb = pattern_builder.GetCGraphBuilder();
   auto p_data = EsCreateGraphInput(pattern_esb, 0);
@@ -106,10 +108,10 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_LinearGraphNoCycle_ReturnFalse) {
   auto p_add = EsAdd(p_data, p_const);
   auto p_relu = EsRelu(p_add);
   pattern_esb->SetGraphOutput(p_relu, 0);
-  
+
   auto pattern = std::make_unique<Pattern>(std::move(*pattern_builder.BuildAndReset()));
   PatternMatcher matcher(std::move(pattern), graph);
-  
+
   auto match_result = matcher.MatchNext();
   ASSERT_NE(match_result, nullptr);
   EXPECT_FALSE(FusionUtils::WillCauseCycleIfFuse(match_result));
@@ -117,10 +119,10 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_LinearGraphNoCycle_ReturnFalse) {
 
 TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_GraphWithControlEdgeCycle_ReturnTrue) {
   using namespace ge::es;
-  
+
   auto graph_builder = EsGraphBuilder("cycle_graph");
   auto esb_graph = graph_builder.GetCGraphBuilder();
-  
+
   auto data0 = EsCreateGraphInput(esb_graph, 0);
   auto data1 = EsCreateGraphInput(esb_graph, 1);
   auto abs = EsAbs(data0);
@@ -128,15 +130,15 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_GraphWithControlEdgeCycle_ReturnTr
   auto abs1 = EsAbs(relu);
   auto relu1 = EsRelu(data1);
   auto add = EsAdd(abs1, relu1);
-  
+
   GraphUtils::AddEdge(NodeAdapter::GNode2Node(abs->GetProducer())->GetOutControlAnchor(),
                       NodeAdapter::GNode2Node(relu1->GetProducer())->GetInControlAnchor());
   GraphUtils::AddEdge(NodeAdapter::GNode2Node(relu1->GetProducer())->GetOutControlAnchor(),
                       NodeAdapter::GNode2Node(abs1->GetProducer())->GetInControlAnchor());
-  
+
   esb_graph->SetGraphOutput(add, 0);
   auto graph = std::make_shared<Graph>(*graph_builder.BuildAndReset());
-  
+
   auto pattern_builder = EsGraphBuilder("pattern");
   auto pattern_esb = pattern_builder.GetCGraphBuilder();
   auto p_data = EsCreateGraphInput(pattern_esb, 0);
@@ -144,14 +146,13 @@ TEST_F(UtestFusionUtils, WillCauseCycleIfFuse_GraphWithControlEdgeCycle_ReturnTr
   auto p_relu = EsRelu(p_abs);
   auto p_abs1 = EsAbs(p_relu);
   pattern_esb->SetGraphOutput(p_abs1, 0);
-  
+
   auto pattern = std::make_unique<Pattern>(std::move(*pattern_builder.BuildAndReset()));
   PatternMatcher matcher(std::move(pattern), graph);
-  
+
   auto match_result = matcher.MatchNext();
   ASSERT_NE(match_result, nullptr);
   EXPECT_TRUE(FusionUtils::WillCauseCycleIfFuse(match_result));
 }
-} // namespace fusion
-} // namespace ge
-
+}  // namespace fusion
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,14 +45,16 @@ Status FuzzyGeneralize::CheckAndUpdateLimitedNodes(const OpStoreAdapterPtr &op_s
   Status ret;
   bool is_supported = true;
   NodeGeneralInfoPtr node_info_ptr;
-  FE_LOGD("[GraphOpt][Prepare][CheckAndUpdateLimitedNodes] Begin to check and update limited nodes; the number of nodes is %zu.",
-          limited_nodes.size());
+  FE_LOGD(
+      "[GraphOpt][Prepare][CheckAndUpdateLimitedNodes] Begin to check and update limited nodes; the number of nodes is "
+      "%zu.",
+      limited_nodes.size());
 
   for (const auto &limited_node : limited_nodes) {
     std::vector<size_t> upper_limited_input_indexs;
     std::vector<size_t> lower_limited_input_indexs;
-    FE_LOGD("[GraphOpt][Prepare][CheckAndUpdateLimitedNodes] Current node: [%s, %s].",
-            limited_node->GetName().c_str(), limited_node->GetType().c_str());
+    FE_LOGD("[GraphOpt][Prepare][CheckAndUpdateLimitedNodes] Current node: [%s, %s].", limited_node->GetName().c_str(),
+            limited_node->GetType().c_str());
     Status result = LimitNode(limited_node);
     if (result == FAILED) {
       continue;
@@ -84,8 +86,7 @@ Status FuzzyGeneralize::CheckAndUpdateLimitedNodes(const OpStoreAdapterPtr &op_s
                 limited_node->GetName().c_str());
         return FAILED;
       }
-      FE_LOGD("[GraphOpt][Prepare][Generalize] Node[%s], downgrades successfully.",
-              limited_node->GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][Generalize] Node[%s], downgrades successfully.", limited_node->GetName().c_str());
       if (!is_range_out) {
         return SUCCESS;
       }
@@ -117,16 +118,14 @@ Status FuzzyGeneralize::SingleOpDowngrades(const ge::NodePtr &external_node, con
     std::string op_name = external_node->GetName();
     auto iter_decent = decent_times_count_.find(op_name);
     if (iter_decent == decent_times_count_.end()) {
-      FE_LOGW("[GraphOpt][Prepare][SingleOpDowngrades] Unable to find expected info for node[%s].",
-              op_name.c_str());
+      FE_LOGW("[GraphOpt][Prepare][SingleOpDowngrades] Unable to find expected info for node[%s].", op_name.c_str());
       return FAILED;
     }
     if (iter_decent->second >= MAX_DECENT_TIMES) {
       is_range_out = true;
     } else {
       if (RangeDecent(external_node, iter_decent->second) != SUCCESS) {
-        FE_LOGW(
-            "[GraphOpt][Prepare][SingleOpDowngrades] Node[%s]: fail to make range-decent.", op_name.c_str());
+        FE_LOGW("[GraphOpt][Prepare][SingleOpDowngrades] Node[%s]: fail to make range-decent.", op_name.c_str());
         return FAILED;
       }
     }
@@ -141,8 +140,9 @@ Status FuzzyGeneralize::Downgrades(const ge::NodePtr &cur_node, const bool &is_u
                                    const std::vector<size_t> &limited_input_indexs, bool &is_range_out) {
   std::map<ge::NodePtr, NodeGeneralInfoPtr>::const_iterator iter_node = node_info_map_.find(cur_node);
   if (iter_node == node_info_map_.end()) {
-    FE_LOGW("[GraphOpt][Prepare][Downgrades] Node[%s], could not find cur_node in node_info_map, generalization failed.",
-            cur_node->GetName().c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][Downgrades] Node[%s], could not find cur_node in node_info_map, generalization failed.",
+        cur_node->GetName().c_str());
     return FAILED;
   }
   bool all_input_nodes_static = true;
@@ -181,8 +181,7 @@ Status FuzzyGeneralize::Downgrades(const ge::NodePtr &cur_node, const bool &is_u
 
 Status FuzzyGeneralize::InputNodeDowngrades(const ge::NodePtr &cur_node,
                                             const std::vector<size_t> &upper_limited_input_indexs,
-                                            const std::vector<size_t> &lower_limited_input_indexs,
-                                            bool &is_range_out) {
+                                            const std::vector<size_t> &lower_limited_input_indexs, bool &is_range_out) {
   bool is_upper_limited = true;
   if (!upper_limited_input_indexs.empty()) {
     if (Downgrades(cur_node, is_upper_limited, upper_limited_input_indexs, is_range_out) != SUCCESS) {
@@ -203,7 +202,8 @@ Status FuzzyGeneralize::InputNodeDowngrades(const ge::NodePtr &cur_node,
 }
 
 void FuzzyGeneralize::UpdateOpAttrs(const ge::GeTensorDescPtr &cur_tensor_desc,
-    const ge::GeTensorDescPtr &ori_tensor_desc, const ge::OpDescPtr &op_desc_ptr, bool is_input) const {
+                                    const ge::GeTensorDescPtr &ori_tensor_desc, const ge::OpDescPtr &op_desc_ptr,
+                                    bool is_input) const {
   // delete const value
   if (is_input) {
     if (ge::AttrUtils::HasAttr(ori_tensor_desc, ge::ATTR_NAME_VALUE) &&
@@ -221,8 +221,7 @@ void FuzzyGeneralize::UpdateOpAttrs(const ge::GeTensorDescPtr &cur_tensor_desc,
   }
 
   // set op generalized flag
-  if (cur_tensor_desc->GetOriginShape().IsUnknownShape() &&
-      !ori_tensor_desc->GetOriginShape().IsUnknownShape()) {
+  if (cur_tensor_desc->GetOriginShape().IsUnknownShape() && !ori_tensor_desc->GetOriginShape().IsUnknownShape()) {
     FE_LOGD("[GraphOpt][Prepare][Generalize] node[%s] has generalized.", op_desc_ptr->GetName().c_str());
     (void)ge::AttrUtils::SetBool(op_desc_ptr, "_is_op_generalized", true);
   }
@@ -236,14 +235,15 @@ bool FuzzyGeneralize::IsOpDescExtInputOutputTensor(const ge::OpDescPtr &opdesc, 
   }
 }
 
-Status FuzzyGeneralize::UpdateDynamicShapeToNewInputNode(const std::unordered_set<ge::NodePtr> &external_input_nodes,
-                                                         const std::map<std::string, ge::NodePtr> &new_input_nodes)
-                                                         const {
+Status FuzzyGeneralize::UpdateDynamicShapeToNewInputNode(
+    const std::unordered_set<ge::NodePtr> &external_input_nodes,
+    const std::map<std::string, ge::NodePtr> &new_input_nodes) const {
   for (const ge::NodePtr &input_node : external_input_nodes) {
     auto iter = new_input_nodes.find(input_node->GetName());
     if (iter == new_input_nodes.end()) {
-      FE_LOGW("[GraphOpt][Prepare][Generalize] Node [%s], unable to locate this node on ori_graph; generalization failed.",
-              input_node->GetName().c_str());
+      FE_LOGW(
+          "[GraphOpt][Prepare][Generalize] Node [%s], unable to locate this node on ori_graph; generalization failed.",
+          input_node->GetName().c_str());
       return FAILED;
     }
 
@@ -256,9 +256,9 @@ Status FuzzyGeneralize::UpdateDynamicShapeToNewInputNode(const std::unordered_se
     }
 
     bool exist_input_desc = IsOpDescExtInputOutputTensor(input_node->GetOpDesc(), true) &&
-        IsOpDescExtInputOutputTensor(iter->second->GetOpDesc(), true);
+                            IsOpDescExtInputOutputTensor(iter->second->GetOpDesc(), true);
     bool exist_output_desc = IsOpDescExtInputOutputTensor(input_node->GetOpDesc(), false) &&
-        IsOpDescExtInputOutputTensor(iter->second->GetOpDesc(), false);
+                             IsOpDescExtInputOutputTensor(iter->second->GetOpDesc(), false);
     if (exist_input_desc) {
       ge::GeTensorDescPtr cur_input_tensor_desc = input_node->GetOpDesc()->MutableInputDesc(0);
       ge::GeTensorDescPtr ori_input_tensor_desc = iter->second->GetOpDesc()->MutableInputDesc(0);
@@ -294,8 +294,9 @@ Status FuzzyGeneralize::UpdateDynamicShapeToNewBakGraph(const ge::ComputeGraph &
 
   Status ret = UpdateDynamicShapeToNewInputNode(external_input_nodes_, new_inputs_node);
   if (ret != SUCCESS) {
-    FE_LOGW("[GraphOpt][Prepare][Generalize] Failed to UpdateDynamicShapeToNewInputNode for Graph[%s] on new backup graph.",
-            graph.GetName().c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][Generalize] Failed to UpdateDynamicShapeToNewInputNode for Graph[%s] on new backup graph.",
+        graph.GetName().c_str());
     return FAILED;
   }
 
@@ -306,8 +307,8 @@ Status FuzzyGeneralize::GetReshapeTypeByOpStore(const ge::NodePtr &node, const s
                                                 std::string &reshape_type) const {
   auto iter_node_info = node_info_map_.find(node);
   if (iter_node_info == node_info_map_.end()) {
-    FE_LOGW("[GraphOpt][Prepare][Generalize] Unable to locate node [%s, %s] within node_info_map._.", node->GetName().c_str(),
-            node->GetType().c_str());
+    FE_LOGW("[GraphOpt][Prepare][Generalize] Unable to locate node [%s, %s] within node_info_map._.",
+            node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
 
@@ -323,8 +324,8 @@ Status FuzzyGeneralize::GetReshapeTypeByOpStore(const ge::NodePtr &node, const s
   InputOrOutputInfoPtr input_info;
   (void)op_kernel->GetInputInfoByName(input_name, input_info);
   if (input_info == nullptr) {
-    FE_LOGD("[GraphOpt][Prepare][Generalize] The input_info for the input name [%s] of node [%s] is null.", input_name.c_str(),
-            node->GetName().c_str());
+    FE_LOGD("[GraphOpt][Prepare][Generalize] The input_info for the input name [%s] of node [%s] is null.",
+            input_name.c_str(), node->GetName().c_str());
     return FAILED;
   }
 
@@ -341,16 +342,16 @@ Status FuzzyGeneralize::GetReshapeType(const ge::Format &origin_format, ge::GeSh
   if (origin_format == ge::FORMAT_ND) {
     Status ret = GetReshapeTypeByOpStore(first_node, input_name, reshape_type);
     if (ret != SUCCESS) {
-      FE_LOGW("[GraphOpt][Prepare][Generalize] Failed to obtain the reshape type for input op [%s] of node [%s].", input_name.c_str(),
-              op_name.c_str());
+      FE_LOGW("[GraphOpt][Prepare][Generalize] Failed to obtain the reshape type for input op [%s] of node [%s].",
+              input_name.c_str(), op_name.c_str());
       return FAILED;
     }
   } else {
     if (ori_shape.GetDims().size() < DIM_DEFAULT_SIZE) {
       std::string reshape_type_temp;
       if (GetReshapeTypeByOpStore(first_node, input_name, reshape_type_temp) != SUCCESS) {
-        FE_LOGW("[GraphOpt][Prepare][Generalize] Failed to get reshape type for input[%s] of node[%s].", input_name.c_str(),
-                op_name.c_str());
+        FE_LOGW("[GraphOpt][Prepare][Generalize] Failed to get reshape type for input[%s] of node[%s].",
+                input_name.c_str(), op_name.c_str());
         return FAILED;
       }
       FE_LOGD("[GraphOpt][Prepare][Generalize] Node[%s] reshape_type from opStore is: %s.", op_name.c_str(),
@@ -372,8 +373,8 @@ Status FuzzyGeneralize::GetReshapeType(const ge::Format &origin_format, ge::GeSh
 }
 
 Status FuzzyGeneralize::CorrectCAxisByOriginalFormat(const ge::Format &origin_format, const ge::NodePtr &input_node,
-                                                     const ge::NodePtr &first_node, const std::string &input_name)
-                                                     const {
+                                                     const ge::NodePtr &first_node,
+                                                     const std::string &input_name) const {
   auto iter_input = original_input_nodes_.find(input_node->GetName());
   if (iter_input == original_input_nodes_.end()) {
     FE_LOGW("[GraphOpt][Prepare][Generalize] cannot find node[%s] in original_input_nodes.", input_node->GetNamePtr());
@@ -403,9 +404,10 @@ Status FuzzyGeneralize::CorrectCAxisByOriginalFormat(const ge::Format &origin_fo
     std::vector<std::pair<int64_t, int64_t>> range;
     (void)tensor_desc->GetOriginShapeRange(range);
     ge::GeShape shape = tensor_desc->GetOriginShape();
-    FE_LOGD("[GraphOpt][Prepare][Generalize] Before correcting C axis, c_idx[%zu], ori_shape[%s], shape[%s], range[%s].",
-            c_idx, ShapeToString(ori_shape.GetDims()).c_str(), ShapeToString(shape.GetDims()).c_str(),
-            RangeToString(range).c_str());
+    FE_LOGD(
+        "[GraphOpt][Prepare][Generalize] Before correcting C axis, c_idx[%zu], ori_shape[%s], shape[%s], range[%s].",
+        c_idx, ShapeToString(ori_shape.GetDims()).c_str(), ShapeToString(shape.GetDims()).c_str(),
+        RangeToString(range).c_str());
     if (c_idx >= range.size()) {
       FE_LOGW("[GraphOpt][Prepare][Generalize] Param invalid, c idx is %zu, but range size is %zu.", c_idx,
               range.size());
@@ -490,7 +492,8 @@ Status FuzzyGeneralize::CAxisCorrection() const {
     ret = CorrectInputNodeCAxisByFirstNode(input_node);
     if (ret != SUCCESS) {
       FE_LOGW(
-          "[GraphOpt][Prepare][Generalize] Node [%s] CorrectInputNodeCAxisByFirstNode unsuccessful, generalization failed.",
+          "[GraphOpt][Prepare][Generalize] Node [%s] CorrectInputNodeCAxisByFirstNode unsuccessful, generalization "
+          "failed.",
           input_node->GetName().c_str());
       return FAILED;
     }
@@ -529,17 +532,14 @@ Status FuzzyGeneralize::UpdateDynamicShapeToFirstNode(const ge::NodePtr &ori_inp
 bool FuzzyGeneralize::IsAllUnknownDimNum(const ge::GeShape &shape) {
   const auto &shape_dims = shape.GetDims();
   return std::all_of(shape_dims.begin(), shape_dims.end(),
-      [](const int64_t &shape_dim_num) {
-          return (shape_dim_num == -1);
-      });
+                     [](const int64_t &shape_dim_num) { return (shape_dim_num == -1); });
 }
 
 bool FuzzyGeneralize::IsAllUnknownDim(const std::vector<std::pair<int64_t, int64_t>> &range) {
   const std::pair<int64_t, int64_t> std_unknown_dim(1, -1);
-  return std::all_of(range.begin(), range.end(),
-      [&std_unknown_dim](const std::pair<int64_t, int64_t> &range_dim) {
-          return (range_dim == std_unknown_dim);
-      });
+  return std::all_of(range.begin(), range.end(), [&std_unknown_dim](const std::pair<int64_t, int64_t> &range_dim) {
+    return (range_dim == std_unknown_dim);
+  });
 }
 
 bool FuzzyGeneralize::IsAllUnKnownShapeAndRange(const ge::GeTensorDescPtr &output_tensor_desc) {
@@ -580,8 +580,10 @@ void FuzzyGeneralize::GeneralizeNodeToUnknownDim(const ge::NodePtr &single_node)
 Status FuzzyGeneralize::DoFurtherGeneralize(const std::string &graph_name) const {
   FE_LOGD("[GraphOpt][Prepare][DoFurtherGeneralize] Start to do further generalize for graph %s.", graph_name.c_str());
   if (!is_single_op_graph_) {
-    FE_LOGD("[GraphOpt][Prepare][DoFurtherGeneralize] Graph[%s]: no need to perform further generalization for the single op scenario.",
-            graph_name.c_str());
+    FE_LOGD(
+        "[GraphOpt][Prepare][DoFurtherGeneralize] Graph[%s]: no need to perform further generalization for the single "
+        "op scenario.",
+        graph_name.c_str());
     return SUCCESS;
   }
 
@@ -597,15 +599,19 @@ Status FuzzyGeneralize::DoFurtherGeneralize(const std::string &graph_name) const
   BinaryKernelInfo &bin_kernel_info = BinaryKernelInfo::Instance();
   FE_CHECK_NOTNULL(single_node);
   if (!bin_kernel_info.IsBinSupportDynamicRank(single_node->GetType())) {
-    FE_LOGD("[GraphOpt][Prepare][DoFurtherGeneralize] Current op [%s] does not support dynamic rank in the binary information storage.",
-            single_node->GetName().c_str());
+    FE_LOGD(
+        "[GraphOpt][Prepare][DoFurtherGeneralize] Current op [%s] does not support dynamic rank in the binary "
+        "information storage.",
+        single_node->GetName().c_str());
     return SUCCESS;
   }
 
   for (auto &input_desc : single_node->GetOpDesc()->GetAllInputsDescPtr()) {
     if (!IsAllUnKnownShapeAndRange(input_desc)) {
-      FE_LOGD("[GraphOpt][Prepare][DoFurtherGeneralize] Input shape or range for single node [%s] is not entirely unknown dimensions.",
-              single_node->GetName().c_str());
+      FE_LOGD(
+          "[GraphOpt][Prepare][DoFurtherGeneralize] Input shape or range for single node [%s] is not entirely unknown "
+          "dimensions.",
+          single_node->GetName().c_str());
       return SUCCESS;
     }
   }
@@ -638,8 +644,10 @@ Status FuzzyGeneralize::UpdateDynamicShapeToOriginalGraph(const ge::ComputeGraph
 
   ret = UpdateDynamicShapeToNewInputNode(external_input_nodes_, original_input_nodes_);
   if (ret != SUCCESS) {
-    FE_LOGW("[GraphOpt][Prepare][Generalize] Graph[%s] failed to update DynamicShape to original graph, generalization not successfully.",
-            graph.GetName().c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][Generalize] Graph[%s] failed to update DynamicShape to original graph, generalization not "
+        "successfully.",
+        graph.GetName().c_str());
     return FAILED;
   }
 
@@ -683,8 +691,9 @@ Status FuzzyGeneralize::GraphDynamicShapeInfer(const OpStoreAdapterPtr &op_store
       }
 
       if (UpdateDynamicShapeToNewBakGraph(*new_graph_bak) != SUCCESS) {
-        FE_LOGW("[GraphOpt][Prepare][GraphDynamicShapeInfer] Failed to update dynamic shape to original for graph [%s].",
-                graph_name.c_str());
+        FE_LOGW(
+            "[GraphOpt][Prepare][GraphDynamicShapeInfer] Failed to update dynamic shape to original for graph [%s].",
+            graph_name.c_str());
         return FAILED;
       }
 
@@ -710,7 +719,7 @@ Status FuzzyGeneralize::GraphDynamicShapeInfer(const OpStoreAdapterPtr &op_store
       return FAILED;
     }
 
-    // fater infer shape, call tbe generalize func to check the validity of shape and range for limited nodes
+    // faster infer shape, call tbe generalize func to check the validity of shape and range for limited nodes
     ret = CheckAndUpdateLimitedNodes(op_store_adapter, limited_range_nodes_, generalize_flag);
     if (ret != SUCCESS) {
       FE_LOGW("[GraphOpt][Prepare][GraphDynamicShapeInfer] Graph [%s] limited nodes check failed.", graph_name.c_str());
@@ -723,7 +732,8 @@ Status FuzzyGeneralize::GraphDynamicShapeInfer(const OpStoreAdapterPtr &op_store
   if (!generalize_flag) {
     if (UpdateDynamicShapeToOriginalGraph(*ori_graph) != SUCCESS) {
       FE_LOGW(
-          "[GraphOpt][Prepare][UpdateDynamicShapeToOriginalGraph] Graph[%s]: unable to update dynamic shape to original.",
+          "[GraphOpt][Prepare][UpdateDynamicShapeToOriginalGraph] Graph[%s]: unable to update dynamic shape to "
+          "original.",
           graph_name.c_str());
       return FAILED;
     }
@@ -735,8 +745,10 @@ Status FuzzyGeneralize::GraphDynamicShapeInfer(const OpStoreAdapterPtr &op_store
 
 Status FuzzyGeneralize::InitOriginalGraphInfos(const ge::ComputeGraph &graph) {
   if (external_input_nodes_.empty()) {
-    FE_LOGW("[GraphOpt][Prepare][InitOriginalGraphInfos] external_input_nodes_ is null, generalization for graph [%s] failed.",
-            graph.GetName().c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][InitOriginalGraphInfos] external_input_nodes_ is null, generalization for graph [%s] "
+        "failed.",
+        graph.GetName().c_str());
     return FAILED;
   }
 
@@ -749,8 +761,8 @@ Status FuzzyGeneralize::InitOriginalGraphInfos(const ge::ComputeGraph &graph) {
   for (const auto &cur_node : graph.GetDirectNode()) {
     FE_LOGD("[GraphOpt][Prepare][InitOriginalGraphInfos] Graph[%s] Initializing original graph info, node[%s, %s].",
             graph.GetName().c_str(), cur_node->GetName().c_str(), cur_node->GetType().c_str());
-    bool node_can_be_generalized = (CheckIsExternalNode(cur_node) &&
-                                    !CheckOpConstOrVariableInOriGraph(cur_node->GetOpDesc()));
+    bool node_can_be_generalized =
+        (CheckIsExternalNode(cur_node) && !CheckOpConstOrVariableInOriGraph(cur_node->GetOpDesc()));
     if (node_can_be_generalized) {
       original_input_nodes_.emplace(std::make_pair(cur_node->GetName(), cur_node));
     }
@@ -769,8 +781,8 @@ Status FuzzyGeneralize::GeneralizeGraph(ge::ComputeGraph &graph) {
   FE_MAKE_SHARED(new_graph_bak = std::make_shared<ge::ComputeGraph>(graph_bak_name), return FAILED);
 
   (void)ge::AttrUtils::GetBool(tmp_graph_ptr, ge::ATTR_SINGLE_OP_SCENE, is_single_op_graph_);
-  FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] Cur graph[%s] is single_op_scene_flag[%d].",
-          graph_name.c_str(), is_single_op_graph_);
+  FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] Cur graph[%s] is single_op_scene_flag[%d].", graph_name.c_str(),
+          is_single_op_graph_);
 
   if (ge::GraphUtils::CopyComputeGraph(tmp_graph_ptr, new_graph_bak) != ge::GRAPH_SUCCESS) {
     FE_LOGW("[GraphOpt][Generalize][GeneralizeGraph] Failed to copy graph by ge, generalizing graph [%s] failed.",
@@ -786,16 +798,17 @@ Status FuzzyGeneralize::GeneralizeGraph(ge::ComputeGraph &graph) {
   }
   Status ret = optimize_utility_->InferShape(new_graph_bak);
   if (ret != SUCCESS) {
-    FE_LOGW(
-        "[GraphOpt][Generalize][GeneralizeGraph] Failed to infer static shape for Graph[%s] by GE.",
-        graph_name.c_str());
+    FE_LOGW("[GraphOpt][Generalize][GeneralizeGraph] Failed to infer static shape for Graph[%s] by GE.",
+            graph_name.c_str());
     return FAILED;
   }
   const std::string &engine_name = ops_kernel_info_store_ptr_->GetFEOpsKernelInfoStoreName();
   OpStoreAdapterPtr op_store_adapter = nullptr;
   if (OpStoreAdapterManager::Instance(engine_name).GetOpStoreAdapter(EN_IMPL_HW_TBE, op_store_adapter) != SUCCESS) {
-    FE_LOGW("[GraphOpt][Prepare][GetOpStoreAdapter] Failed to get op_store_adapter, causing graph [%s] generalization failure.",
-            graph_name.c_str());
+    FE_LOGW(
+        "[GraphOpt][Prepare][GetOpStoreAdapter] Failed to get op_store_adapter, causing graph [%s] generalization "
+        "failure.",
+        graph_name.c_str());
     return FAILED;
   }
   FE_CHECK_NOTNULL(op_store_adapter);
@@ -817,9 +830,8 @@ Status FuzzyGeneralize::GeneralizeGraph(ge::ComputeGraph &graph) {
   // initialize range_decent infos for input nodes
   ret = InitOriginalGraphInfos(graph);
   if (ret != SUCCESS) {
-    FE_LOGW(
-        "[GraphOpt][Prepare][InitOriginalGraphInfos] Graph[%s]: fail to initialize range_decent infos.",
-        graph_name.c_str());
+    FE_LOGW("[GraphOpt][Prepare][InitOriginalGraphInfos] Graph[%s]: fail to initialize range_decent infos.",
+            graph_name.c_str());
     return FAILED;
   }
   FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] Init range_decent infos with graph[%s] successfully.",
@@ -830,8 +842,8 @@ Status FuzzyGeneralize::GeneralizeGraph(ge::ComputeGraph &graph) {
                  return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   GraphType graph_type = {is_range_limited_graph_, is_single_op_graph_};
   // all input_nodes generalize
-  InputNodeGeneralize input_node_generalize(external_input_nodes_, graph_type, node_info_map_,
-                                            op_store_adapter, fusion_attr_mgr);
+  InputNodeGeneralize input_node_generalize(external_input_nodes_, graph_type, node_info_map_, op_store_adapter,
+                                            fusion_attr_mgr);
   ret = input_node_generalize.GeneralizeAllInputNodesInGraph();
   if (ret != SUCCESS) {
     FE_LOGW("[GraphOpt][Prepare][GeneralizeGraph] Failed to generalize input nodes, graph [%s] generalization failed.",
@@ -854,15 +866,14 @@ Status FuzzyGeneralize::GeneralizeGraph(ge::ComputeGraph &graph) {
     ret = GraphDynamicShapeInfer(op_store_adapter, new_graph_bak, tmp_graph_ptr);
     if (ret != SUCCESS) {
       FE_LOGW(
-          "[GraphOpt][Prepare][GraphDynamicShapeInfer] Failed to perform dynamic shape inference, graph [%s] generalization failed.",
+          "[GraphOpt][Prepare][GraphDynamicShapeInfer] Failed to perform dynamic shape inference, graph [%s] "
+          "generalization failed.",
           graph_name.c_str());
       return FAILED;
     }
-    FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] graph[%s] dynamic shape infer successfully.",
-            graph_bak_name.c_str());
+    FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] graph[%s] dynamic shape infer successfully.", graph_bak_name.c_str());
   }
-  FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] graph[%s] generalize successfully.",
-          graph_name.c_str());
+  FE_LOGD("[GraphOpt][Prepare][GeneralizeGraph] graph[%s] generalize successfully.", graph_name.c_str());
   return SUCCESS;
 }
 
@@ -907,7 +918,7 @@ Status FuzzyGeneralize::RangeDecent(const ge::NodePtr &external_node, uint32_t &
   }
   const ge::OpDescPtr ori_op_desc = iter_input->second->GetOpDesc();
 
-  if (decent_times == 1) {  // The first time to decend shape-range, we need calculate decent-steps.
+  if (decent_times == 1) {  // The first time to descend shape-range, we need calculate decent-steps.
     if (CalDecentSteps(external_node, ori_op_desc) != SUCCESS) {
       FE_LOGW("[GraphOpt][Prepare][RangeDecent] Node [%s] failed in CalDecentSteps.", op_name.c_str());
       return FAILED;
@@ -999,13 +1010,15 @@ Status FuzzyGeneralize::FeedInputsRootSet(const ge::NodePtr &node_ptr, const Nod
     }
 
     if (node_ptr->GetOpDesc() == nullptr) {
-      FE_LOGD("[GraphOpt][Prepare][FeedInputsRootSet] The opdesc of node [%s] is a nullptr.", peer_node->GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][FeedInputsRootSet] The opdesc of node [%s] is a nullptr.",
+              peer_node->GetName().c_str());
       continue;
     }
 
     ge::GeTensorDescPtr cur_input = node_ptr->GetOpDesc()->MutableInputDesc(input_data_anchor->GetIdx());
     if (cur_input == nullptr) {
-      FE_LOGD("[GraphOpt][Prepare][FeedInputsRootSet] Null pointer encountered! Node: [%s].", peer_node->GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][FeedInputsRootSet] Null pointer encountered! Node: [%s].",
+              peer_node->GetName().c_str());
       continue;
     }
     node_info_ptr->inputs_root_map.insert(std::make_pair(cur_input, peer_node_info->disjoint_root_set));
@@ -1013,8 +1026,7 @@ Status FuzzyGeneralize::FeedInputsRootSet(const ge::NodePtr &node_ptr, const Nod
   return SUCCESS;
 }
 
-Status FuzzyGeneralize::GetCurNodeInfo(const ge::NodePtr &node,
-                                       const OpStoreAdapterPtr &op_store_adapter,
+Status FuzzyGeneralize::GetCurNodeInfo(const ge::NodePtr &node, const OpStoreAdapterPtr &op_store_adapter,
                                        NodeGeneralInfoPtr &node_info_ptr) {
   FE_LOGD("[GraphOpt][Prepare][GetCurNodeInfo] Begin to feed node_info for current node[%s].", node->GetName().c_str());
   CheckIsSubGraphNode(node, node_info_ptr);
@@ -1036,8 +1048,7 @@ Status FuzzyGeneralize::GetCurNodeInfo(const ge::NodePtr &node,
 }
 
 Status FuzzyGeneralize::GetRangeLimitValue(const OpStoreAdapterPtr &op_store_adapter,
-                                           const NodeGeneralInfoPtr &node_info_ptr,
-                                           const ge::NodePtr &node) {
+                                           const NodeGeneralInfoPtr &node_info_ptr, const ge::NodePtr &node) {
   Status ret = op_store_adapter->GetRangeLimit(node_info_ptr, node);
   if (ret == SUCCESS && node_info_ptr->is_limited_range) {
     limited_range_nodes_.emplace_back(node);
@@ -1046,8 +1057,7 @@ Status FuzzyGeneralize::GetRangeLimitValue(const OpStoreAdapterPtr &op_store_ada
   return SUCCESS;
 }
 
-Status FuzzyGeneralize::GraphPreprocessing(const ge::ComputeGraph &graph,
-                                           const OpStoreAdapterPtr &op_store_adapter) {
+Status FuzzyGeneralize::GraphPreprocessing(const ge::ComputeGraph &graph, const OpStoreAdapterPtr &op_store_adapter) {
   node_info_map_.clear();
   external_input_nodes_.clear();
   limited_range_nodes_.clear();
@@ -1057,8 +1067,7 @@ Status FuzzyGeneralize::GraphPreprocessing(const ge::ComputeGraph &graph,
     NodeGeneralInfoPtr node_info_ptr = nullptr;
     node_ptr->GetOpDesc()->DelAttr(ATTR_NAME_UNKNOWN_SHAPE);
     FE_MAKE_SHARED(node_info_ptr = std::make_shared<NodeGeneralInfo>(node_info), return FAILED);
-    FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Ready to process current node[%s].",
-            node_ptr->GetName().c_str());
+    FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Ready to process current node[%s].", node_ptr->GetName().c_str());
 
     if (CheckIsExternalNode(node_ptr)) {
       node_info_ptr->disjoint_root_set.emplace(node_ptr);
@@ -1072,15 +1081,15 @@ Status FuzzyGeneralize::GraphPreprocessing(const ge::ComputeGraph &graph,
     }
 
     if (GetCurNodeInfo(node_ptr, op_store_adapter, node_info_ptr) != SUCCESS) {
-      FE_LOGW(
-          "[GraphOpt][Prepare][GraphPreprocessing] Failed to get current node [%s] info for graph [%s].",
-          node_ptr->GetName().c_str(), graph.GetName().c_str());
+      FE_LOGW("[GraphOpt][Prepare][GraphPreprocessing] Failed to get current node [%s] info for graph [%s].",
+              node_ptr->GetName().c_str(), graph.GetName().c_str());
       return FAILED;
     }
 
     if (node_info_ptr->is_found_in_opstore && !node_info_ptr->is_support_dynamic_shape) {
       is_need_generalize_graph_ = false;
-      FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Graph[%s] does not need to be generalized.", graph.GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Graph[%s] does not need to be generalized.",
+              graph.GetName().c_str());
       return SUCCESS;
     }
 
@@ -1096,8 +1105,7 @@ Status FuzzyGeneralize::GraphPreprocessing(const ge::ComputeGraph &graph,
             node_ptr->GetName().c_str());
     if (!is_range_limited_graph_ && node_info_ptr->is_limited_range) {
       is_range_limited_graph_ = true;
-      FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Graph [%s] is a range-limited graph.",
-              graph.GetName().c_str());
+      FE_LOGD("[GraphOpt][Prepare][GraphPreprocessing] Graph [%s] is a range-limited graph.", graph.GetName().c_str());
     }
   }
   return SUCCESS;

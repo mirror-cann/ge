@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -147,7 +147,7 @@ ge::graphStatus GetConv2DWShapeDim(const gert::InferSymbolShapeContext *context,
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus CheckGroupsAndOutChannel(const Expression& out_channel, const Expression& groups) {
+ge::graphStatus CheckGroupsAndOutChannel(const Expression &out_channel, const Expression &groups) {
   // 分组卷积的拓扑约束：
   // 输出通道会按 groups 划分到各组，要求每组通道数一致，
   // 因此必须满足 out_channel % groups == 0。
@@ -405,7 +405,8 @@ ge::graphStatus InferConv2DPadsWithPadding(const size_t pad_size, const Conv2DIn
     SetAllPadsZero(conv2d_attrs);
     return ge::GRAPH_SUCCESS;
   }
-  GELOGE(PARAM_INVALID, "padding should be EXPLICIT/SPECIFIC or SAME/SAME_UPPER/SAME_LOWER or VALID, but the actual is: %s.",
+  GELOGE(PARAM_INVALID,
+         "padding should be EXPLICIT/SPECIFIC or SAME/SAME_UPPER/SAME_LOWER or VALID, but the actual is: %s.",
          padding_mode.c_str());
   return ge::PARAM_INVALID;
 }
@@ -432,8 +433,8 @@ ge::graphStatus GetConv2DPads(const gert::InferSymbolShapeContext *context, cons
     GE_ASSERT_NOTNULL(padding_ptr);
     const auto *node_type = context->GetNodeType();
     const bool is_conv2dv2 = (node_type != nullptr) && (std::string(node_type) == "Conv2DV2");
-    GE_ASSERT_GRAPH_SUCCESS(InferConv2DPadsWithPadding(pads_size, x_shapes, w_shapes, padding_ptr, is_conv2dv2,
-                                                       conv2d_attrs));
+    GE_ASSERT_GRAPH_SUCCESS(
+        InferConv2DPadsWithPadding(pads_size, x_shapes, w_shapes, padding_ptr, is_conv2dv2, conv2d_attrs));
   }
   // >>> start: cut off right/bottom pad when output size is 1
   CutPads(x_shapes, w_shapes, conv2d_attrs);
@@ -449,8 +450,8 @@ ge::graphStatus CheckConv2DInputWithPad(const Expression &ih_pad, const Expressi
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus SetConv2DYShape(gert::InferSymbolShapeContext *context, const Expression& in, const Expression& kn,
-                                const Expression& oh, const Expression& ow) {
+ge::graphStatus SetConv2DYShape(gert::InferSymbolShapeContext *context, const Expression &in, const Expression &kn,
+                                const Expression &oh, const Expression &ow) {
   gert::SymbolShape *y_shape = context->GetOutputSymbolShape(kYIdxConv2d);
   GE_CHECK_NOTNULL(y_shape);
   y_shape->Clear();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,17 +22,17 @@ FMK_FUNC_HOST_VISIBILITY CustomParserAdapterRegistry *CustomParserAdapterRegistr
 FMK_FUNC_HOST_VISIBILITY void CustomParserAdapterRegistry::Register(const domi::FrameworkType framework,
                                                                     CustomParserAdapterRegistry::CREATOR_FUN fun) {
   if (funcs_.find(framework) != funcs_.end()) {
-    GELOGW("Framework type %s has already registed.", TypeUtilsInner::FmkTypeToSerialString(framework).c_str());
+    GELOGW("Framework type %s has already registered.", TypeUtilsInner::FmkTypeToSerialString(framework).c_str());
     return;
   }
   funcs_[framework] = fun;
   GELOGI("Register %s custom parser adapter success.", TypeUtilsInner::FmkTypeToSerialString(framework).c_str());
   return;
 }
-FMK_FUNC_HOST_VISIBILITY CustomParserAdapterRegistry::CREATOR_FUN
-CustomParserAdapterRegistry::GetCreateFunc(const domi::FrameworkType framework) {
+FMK_FUNC_HOST_VISIBILITY CustomParserAdapterRegistry::CREATOR_FUN CustomParserAdapterRegistry::GetCreateFunc(
+    const domi::FrameworkType framework) {
   if (funcs_.find(framework) == funcs_.end()) {
-    GELOGW("Framework type %s has not registed.", TypeUtilsInner::FmkTypeToSerialString(framework).c_str());
+    GELOGW("Framework type %s has not registered.", TypeUtilsInner::FmkTypeToSerialString(framework).c_str());
     return nullptr;
   }
   return funcs_[framework];

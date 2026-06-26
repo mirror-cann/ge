@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,11 +31,10 @@ class CompileNodesPass : public GraphPass {
   graphStatus Run(ComputeGraphPtr graph) override;
 
  private:
-  graphStatus GetSupportedKernel(const NodePtr &node,
-                                 const std::shared_ptr<GELib> instance,
+  graphStatus GetSupportedKernel(const NodePtr &node, const std::shared_ptr<GELib> instance,
                                  std::string &kernel_lib_name) const;
   bool CheckAccuracySupport(const OpsKernelInfoStorePtr &kernel_info, const std::shared_ptr<GELib> instance,
-                            const NodePtr &node, std::string& unsupported_reason) const;
+                            const NodePtr &node, std::string &unsupported_reason) const;
   graphStatus CompileNodes(const std::shared_ptr<GELib> instance,
                            std::unordered_map<std::string, std::vector<NodePtr>> &kernel_to_compile_nodes) const;
 };

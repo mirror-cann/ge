@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,12 +53,12 @@ class ExecuteGraphBuilder {
     graph_ = std::make_shared<ExecuteGraph>(name);
   }
   FastNode *AddNode(const std::string &name, const std::string &type, int in_cnt, int out_cnt,
-                     Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
-                     std::vector<int64_t> shape = {1, 1, 224, 224});
+                    Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
+                    std::vector<int64_t> shape = {1, 1, 224, 224});
 
   FastNode *AddNode(const std::string &name, const std::string &type, std::initializer_list<std::string> input_names,
-                     std::initializer_list<std::string> output_names, Format format = FORMAT_NCHW,
-                     DataType data_type = DT_FLOAT, std::vector<int64_t> shape = {1, 1, 224, 224});
+                    std::initializer_list<std::string> output_names, Format format = FORMAT_NCHW,
+                    DataType data_type = DT_FLOAT, std::vector<int64_t> shape = {1, 1, 224, 224});
   FastEdge *AddDataEdge(FastNode *src_node, int src_idx, FastNode *dst_node, int dst_idx);
   FastEdge *AddControlEdge(FastNode *src_node, FastNode *dst_node);
   std::shared_ptr<ExecuteGraph> GetGraph() {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,8 +83,8 @@ TEST_F(UtestHcomTopoInfo, SetAndGetAndUnsetGroupOrderedStreamWithDeviceId) {
   const std::string group0 = "group0";
   const std::string group1 = "group1";
   const std::string group = "group";
-  void *stream0= (void *)1;
-  void *stream1= (void *)2;
+  void *stream0 = (void *)1;
+  void *stream1 = (void *)2;
   void *stream = nullptr;
   int32_t device0 = 0;
   int32_t device1 = 1;
@@ -136,4 +136,4 @@ TEST_F(UtestHcomTopoInfo, GetGroupLocalWindowSize) {
   EXPECT_EQ(local_window_size, static_cast<uint64_t>(209715200));
 }
 
-}
+}  // namespace ge

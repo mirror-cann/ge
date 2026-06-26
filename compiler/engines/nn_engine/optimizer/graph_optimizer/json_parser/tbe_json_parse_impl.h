@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,13 +26,8 @@ namespace fe {
 using JsonExpcetion = nlohmann::json::exception;
 
 const std::vector<std::string> kBinaryMagicTypesVec = {
-    "RT_DEV_BINARY_MAGIC_ELF_AICPU",
-    "RT_DEV_BINARY_MAGIC_ELF",
-    "RT_DEV_BINARY_MAGIC_ELF_AIVEC",
-    "RT_DEV_BINARY_MAGIC_ELF_AICUBE",
-    "FFTS_BINARY_MAGIC_ELF_MIX_AIC",
-    "FFTS_BINARY_MAGIC_ELF_MIX_AIV"
-};
+    "RT_DEV_BINARY_MAGIC_ELF_AICPU",  "RT_DEV_BINARY_MAGIC_ELF",       "RT_DEV_BINARY_MAGIC_ELF_AIVEC",
+    "RT_DEV_BINARY_MAGIC_ELF_AICUBE", "FFTS_BINARY_MAGIC_ELF_MIX_AIC", "FFTS_BINARY_MAGIC_ELF_MIX_AIV"};
 
 using KeyJsonList = struct SJsonList {
   std::string coreType;
@@ -94,7 +89,7 @@ constexpr char kKeyKernelList[] = "kernelList";
 constexpr char kKeyKernelName[] = "kernelName";
 constexpr char kKeyGlobalWorkspace[] = "globalworkspace_spec_workspace";
 constexpr char kKeyWorkSpace[] = "workspace";
-constexpr char kKeyKBHit[] = "KBHit";   // knowledge bank
+constexpr char kKeyKBHit[] = "KBHit";  // knowledge bank
 constexpr char kKeyBinFileSuffix[] = "binFileSuffix";
 constexpr char kKeyBinFileName[] = "binFileName";
 constexpr char kKeyHeadFileSuffix[] = "headerFileSuffix";
@@ -130,12 +125,12 @@ class TbeJsonFileParseImpl {
   ~TbeJsonFileParseImpl() {};
 
   /*
-  *  @ingroup fe
-  *  @brief   package the json info together
-  *  @param   [in]  info
-  *  @param   [out] tvm_file_path_
-  *  @return  SUCCESS or FAILED
-  */
+   *  @ingroup fe
+   *  @brief   package the json info together
+   *  @param   [in]  info
+   *  @param   [out] tvm_file_path_
+   *  @return  SUCCESS or FAILED
+   */
   Status Initialize(const std::string &json_file_path);
 
   Status Initialize(const std::string &json_file_path, const TbeJsonPtr &json_ptr, const ge::OpKernelBinPtr &bin_ptr);
@@ -148,19 +143,19 @@ class TbeJsonFileParseImpl {
   }
 
   template <typename T>
-  Status ParseJsonAttr(const nlohmann::json &json_value, const bool is_force_need,
-                       const std::string &key, const T &default_value, T &value) const {
-  if (json_value.find(key) == json_value.end()) {
-    if (is_force_need) {
-       FE_LOGE("attr [%s] is necessary, but not found", key.c_str());
-       return FAILED;
-     } else {
-       value = default_value;
-       return SUCCESS;
-     }
+  Status ParseJsonAttr(const nlohmann::json &json_value, const bool is_force_need, const std::string &key,
+                       const T &default_value, T &value) const {
+    if (json_value.find(key) == json_value.end()) {
+      if (is_force_need) {
+        FE_LOGE("attr [%s] is necessary, but not found", key.c_str());
+        return FAILED;
+      } else {
+        value = default_value;
+        return SUCCESS;
+      }
     }
 
-   try {
+    try {
       value = json_value.at(key).get<T>();
     } catch (JsonExpcetion &e) {
       FE_LOGE("get attr[%s] failed, exception[%s]", key.c_str(), e.what());
@@ -176,21 +171,21 @@ class TbeJsonFileParseImpl {
   }
 
   /*
-  *  @ingroup fe
-  *  @brief   reading binary files
-  *  @param   [in]  file_name(or path)
-  *  @param   [out] buffer
-  *  @return  SUCCESS or FAILED
-  */
-  Status ReadBytesFromBinaryFile(const std::string& file_name, std::vector<char>& buffer) const;
+   *  @ingroup fe
+   *  @brief   reading binary files
+   *  @param   [in]  file_name(or path)
+   *  @param   [out] buffer
+   *  @return  SUCCESS or FAILED
+   */
+  Status ReadBytesFromBinaryFile(const std::string &file_name, std::vector<char> &buffer) const;
 
   /*
-  *  @ingroup fe
-  *  @brief  joint the path of bin file, if success, renew the op_desc.name
-  *  @param   [in] handle
-  *  @param   [out] op_desc_->name
-  *  @return  SUCCESS or FAILED
-  */
+   *  @ingroup fe
+   *  @brief  joint the path of bin file, if success, renew the op_desc.name
+   *  @param   [in] handle
+   *  @param   [out] op_desc_->name
+   *  @return  SUCCESS or FAILED
+   */
   Status PackageTvmBinFile(std::vector<char> &buffer) const;
 
   /*
@@ -203,32 +198,32 @@ class TbeJsonFileParseImpl {
   Status ParseHeadFilePath(std::string &head_file_path) const;
 
   /*
-  *  @ingroup fe
-  *  @brief  parse the workspace info in handle
-  *  @param   [in] handle
-  *  @param   [out] op_desc_, tvm_workspace_sizes_
-  *  set workspace according to block_dim info in handle
-  *  @return SUCCESS or FAILED
-  */
+   *  @ingroup fe
+   *  @brief  parse the workspace info in handle
+   *  @param   [in] handle
+   *  @param   [out] op_desc_, tvm_workspace_sizes_
+   *  set workspace according to block_dim info in handle
+   *  @return SUCCESS or FAILED
+   */
   Status ParseTvmWorkSpace(std::vector<int64_t> &tvm_workspace_sizes, std::vector<int64_t> &tvm_workspace_types) const;
 
   /*
-  *  @ingroup fe
-  *  @brief  parse the parameters info in handle
-  *  @param   [in] handle
-  *  @param   [out] op_desc_, set output according to output info in handle
-  *  @param   [out] op_desc_, set dtype_list and init_values_list according to parameters info in handle
-  *  @return SUCCESS or FAILED
-  */
+   *  @ingroup fe
+   *  @brief  parse the parameters info in handle
+   *  @param   [in] handle
+   *  @param   [out] op_desc_, set output according to output info in handle
+   *  @param   [out] op_desc_, set dtype_list and init_values_list according to parameters info in handle
+   *  @return SUCCESS or FAILED
+   */
   Status ParseTvmParameters(std::vector<int64_t> &parameters_index, AtomicInitInfo &atomic_init_info);
 
   /*
-  *  @ingroup fe
-  *  @brief  parse the meta_data info in handle
-  *  @param   [in] handle
-  *  @param   [out] op_desc_, set meta_data according to meta_data info in handle
-  *  @return SUCCESS or FAILED
-  */
+   *  @ingroup fe
+   *  @brief  parse the meta_data info in handle
+   *  @param   [in] handle
+   *  @param   [out] op_desc_, set meta_data according to meta_data info in handle
+   *  @return SUCCESS or FAILED
+   */
   Status ParseTvmMetaData(std::string &meta_data) const;
 
   Status ParseOpDfxOptions(std::vector<std::string> &opt_list, int64_t &buffer_size) const;
@@ -256,7 +251,7 @@ class TbeJsonFileParseImpl {
 
   ge::OpKernelBinPtr GetOpKernelBinPtr() const;
 
-  const std::string& GetTvmDirPath() const;
+  const std::string &GetTvmDirPath() const;
 
   Status ParseRunInfo(OpTilingInfo &run_info, bool &has_run_info) const;
 

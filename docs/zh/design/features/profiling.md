@@ -70,38 +70,38 @@ graph TB
         A[用户代码] --> B[ACL API]
         A --> C[GE API]
     end
-    
+
     subgraph "API 层 Profiling"
         B --> D[AclProfilingReporter]
         C --> E[GraphProfilingReporter]
         D --> F[MsprofReportApi]
         E --> F
     end
-    
+
     subgraph "Host 层 Profiling"
         G[ProfilingProperties] --> H[GlobalProfilingWrapper]
         H --> I[GlobalProfiler]
         I --> J[ScopeProfiler RAII]
     end
-    
+
     subgraph "编译层 Profiling"
         K[ProfilingTaskUtils] --> L[插入 ProfilerTrace Task]
         L --> M[domi::TaskDef]
     end
-    
+
     subgraph "Runtime V1 (Hybrid)"
         N[HybridProfiler] --> O[CannTracingProfiler]
         O --> P[ProfilerCollector]
         P --> Q[RecordStart/RecordEnd]
     end
-    
+
     subgraph "Runtime V2 (Model Executor)"
         R[CannProfilerV2] --> S[CannHostProfiler]
         R --> T[GeHostProfiler]
         R --> U[CannMemoryProfiler]
         R --> V[BaseExecutorProfiler]
     end
-    
+
     subgraph "统一上报层"
         F --> W[msprof 库]
         Q --> W
@@ -110,12 +110,12 @@ graph TB
         U --> W
         M --> W
     end
-    
+
     subgraph "分析工具"
         W --> X[MSProfiler 工具]
         X --> Y[可视化分析]
     end
-    
+
     style A fill:#e1f5fe
     style W fill:#fff3e0
     style X fill:#e8f5e9
@@ -334,26 +334,26 @@ sequenceDiagram
     GE->>Msprof: MsprofInit()
     GE->>Msprof: MsprofRegisterCallback(GE, ProfCtrlHandle)
     GE-->>API: SUCCESS
-    
+
     Note over User,Compiler: 编译阶段
     User->>GE: BuildGraph / AddGraph
     GE->>Compiler: ProfilingTaskUtils::FindProfilingTaskIndex()
     Compiler->>Compiler: 查找 FP/BP 点
     Compiler->>Compiler: 插入 ProfilerTrace Task
     Compiler-->>GE: 编译完成（含 profiling tasks）
-    
+
     Note over User,Device: 执行阶段 - API层
     User->>API: aclmdlExecute()
     API->>API: ACL_PROFILING_REG 记录开始时间
     API->>GE: 执行模型
     API->>API: ~AclProfilingReporter 记录结束时间
     API->>Msprof: MsprofReportApi()
-    
+
     Note over User,Device: 执行阶段 - Host层
     GE->>GE: PROFILING_SCOPE(InferShape)
     GE->>GE: ScopeProfiler RAII 记录耗时
     GE->>GE: GlobalProfiler::Record()
-    
+
     Note over User,Device: 执行阶段 - Runtime V2
     GE->>Runtime: CannProfilerV2::OnExecuteEvent(kExecuteStart)
     Runtime->>Runtime: RecordLaunchBeginTime()
@@ -363,11 +363,11 @@ sequenceDiagram
     Runtime->>Msprof: MsprofReportApi()
     Runtime->>Msprof: MsprofReportCompactInfo()
     Runtime->>Msprof: MsprofReportAdditionalInfo()
-    
+
     Note over User,Device: 执行阶段 - Device层
     Device->>Device: 执行 ProfilerTrace Task
     Device->>Msprof: 上报时间戳（FP/BP/AR/IterEnd）
-    
+
     Note over User,Tool: 结束阶段
     User->>API: aclgrphProfStop()
     API->>GE: ProfilingManager::ProfStopProfiling()

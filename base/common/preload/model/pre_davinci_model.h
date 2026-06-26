@@ -34,13 +34,12 @@ class PreDavinciModel {
   void DoReset() const;
 
  private:
-  Status GetEngineNameAndOpDesc(const EngineType engine_type, const domi::TaskDef &task_def,
-                                std::string &engine_name, OpDescPtr &op_desc) const;
+  Status GetEngineNameAndOpDesc(const EngineType engine_type, const domi::TaskDef &task_def, std::string &engine_name,
+                                OpDescPtr &op_desc) const;
   Status GetEngineNameAndOpDescByType(const uint32_t type,
-                                           const TypeToEngineNameToGetOpIndexFunc &type_to_engine_name_to_get_op_index_func,
-                                           const domi::TaskDef &task_def,
-                                           std::string &engine_name,
-                                           OpDescPtr &op_desc) const;
+                                      const TypeToEngineNameToGetOpIndexFunc &type_to_engine_name_to_get_op_index_func,
+                                      const domi::TaskDef &task_def, std::string &engine_name,
+                                      OpDescPtr &op_desc) const;
   std::string PrintTaskDef(const domi::TaskDef &task_def) const;
 
  protected:

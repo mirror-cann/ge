@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,11 +27,11 @@
 #include "toolchain/prof_api.h"
 #include <securec.h>
 using namespace testing;
-using ::testing::Return;
-using ::testing::Eq;
-using ::testing::NotNull;
-using ::testing::Invoke;
 using ::testing::_;
+using ::testing::Eq;
+using ::testing::Invoke;
+using ::testing::NotNull;
+using ::testing::Return;
 using namespace ge;
 
 class DbgLiteOSTest : public testing::Test {
@@ -39,7 +39,7 @@ class DbgLiteOSTest : public testing::Test {
   void SetUp() {
     ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillByDefault(Invoke(mmMalloc_Normal_Invoke));
     ON_CALL(MmpaStubMock::GetInstance(), mmTellFile(_)).WillByDefault(Invoke(mmTellFile_Normal_Invoke));
-    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
+    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
   }
   void TearDown() {
     Mock::VerifyAndClearExpectations(&MmpaStubMock::GetInstance());
@@ -116,20 +116,20 @@ TEST_F(DbgLiteOSTest, profiling_static_unnormal) {
 
 TEST_F(DbgLiteOSTest, profiling_static_normal) {
   char buf[80];
-  getcwd(buf,sizeof(buf));
+  getcwd(buf, sizeof(buf));
   printf("current working directory: %s\n", buf);
   fflush(stdout);
 
   std::string str = buf;
 
-	std::cout << str << std::endl;
+  std::cout << str << std::endl;
   std::cerr << str << std::endl;
 
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -154,10 +154,10 @@ TEST_F(DbgLiteOSTest, profiling_static_normal) {
 }
 
 TEST_F(DbgLiteOSTest, profiling_static_callback_unnormal) {
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(-1));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(-1));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_NE(ret, SUCCESS);
@@ -182,11 +182,11 @@ TEST_F(DbgLiteOSTest, profiling_static_callback_unnormal) {
 }
 
 TEST_F(DbgLiteOSTest, profiling_static_init_unnormal) {
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_,_,_)).Times(1).WillOnce(Return(-1));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_, _, _)).Times(1).WillOnce(Return(-1));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_NE(ret, SUCCESS);
@@ -211,11 +211,11 @@ TEST_F(DbgLiteOSTest, profiling_static_init_unnormal) {
 }
 
 TEST_F(DbgLiteOSTest, profiling_static_report_unnormal) {
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(-1));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(-1));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -240,11 +240,11 @@ TEST_F(DbgLiteOSTest, profiling_static_report_unnormal) {
 }
 
 TEST_F(DbgLiteOSTest, profiling_static_setdevice_unnormal) {
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(-1));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(-1));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_EQ(ret, SUCCESS);
@@ -269,11 +269,11 @@ TEST_F(DbgLiteOSTest, profiling_static_setdevice_unnormal) {
 }
 
 TEST_F(DbgLiteOSTest, profiling_static_finalize_unnormal) {
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofRegisterCallback(_, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofInit(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofReportAdditionalInfo(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   EXPECT_CALL(DbgStubMock::GetInstance(), MsprofFinalize()).Times(1).WillOnce(Return(-1));
-  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_,_,_)).Times(1).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(DbgStubMock::GetInstance(), MsprofNotifySetDevice(_, _, _)).Times(1).WillOnce(Return(SUCCESS));
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
   Status ret = DbgProfInit(filePath);
   ASSERT_EQ(ret, SUCCESS);

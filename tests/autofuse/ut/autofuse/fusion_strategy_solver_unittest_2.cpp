@@ -77,16 +77,14 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   x1.attr.sched.loop_axis = axes.loop_axis;
   *x1.y.axis = axis_ids;
   *x1.y.repeats = {axes.A, axes.B, axes.C, axes.D, axes.E};
-  *x1.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
-                   axes.D * axes.E, axes.E, axes.ONE};
+  *x1.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E, axes.D * axes.E, axes.E, axes.ONE};
 
   af::ascir_op::Load x1Local("load_reshape");
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = axis_ids;
   *x1Local.y.axis = axis_ids;
   *x1Local.y.repeats = {axes.A, axes.B, axes.C, axes.D, axes.E};
-  *x1Local.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
-                        axes.D * axes.E, axes.E, axes.ONE};
+  *x1Local.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E, axes.D * axes.E, axes.E, axes.ONE};
 
   af::ascir_op::Store x_store("store_reshape");
   x_store.x = x1Local.y;
@@ -94,8 +92,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   x_store.attr.sched.loop_axis = axes.loop_axis;
   *x_store.y.axis = axis_ids;
   *x_store.y.repeats = {axes.A, axes.B, axes.C, axes.D, axes.E};
-  *x_store.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
-                        axes.D * axes.E, axes.E, axes.ONE};
+  *x_store.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E, axes.D * axes.E, axes.E, axes.ONE};
 
   af::ascir_op::Output x_out("out_reshape");
   x_out.x = x_store.y;
@@ -103,8 +100,7 @@ static std::shared_ptr<ge::AscGraph> CreateReshapeAscGraph(ge::AscGraph &graph) 
   x_out.attr.sched.loop_axis = axes.loop_axis;
   *x_out.y.axis = axis_ids;
   *x_out.y.repeats = {axes.A, axes.B, axes.C, axes.D, axes.E};
-  *x_out.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E,
-                      axes.D * axes.E, axes.E, axes.ONE};
+  *x_out.y.strides = {axes.B * axes.C * axes.D * axes.E, axes.C * axes.D * axes.E, axes.D * axes.E, axes.E, axes.ONE};
 
   auto x_out_node = graph.FindNode("out_reshape");
   auto compute_graph = x_out_node->GetOwnerComputeGraph();
@@ -218,14 +214,30 @@ TEST_F(UtestFusionStrategySolverReshape, Not_Fuse_Reshape_And_Reshape) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto reshape1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reshape1");
-  auto reshape2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reshape2");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto reshape1 = OP_CFG(kAscBackendType)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("Reshape1");
+  auto reshape2 = OP_CFG(kAscBackendType)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("Reshape2");
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data)->EDGE(0, 0)->NODE(reshape1)->EDGE(0, 0)->NODE(reshape2)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
+    CHAIN(NODE(data)->EDGE(0, 0)->NODE(reshape1)->EDGE(0, 0)->NODE(reshape2)->EDGE(0, 0)->NODE("NetOutput",
+                                                                                               kNetOutputType));
   };
   auto graph = ToComputeGraph(g1);
   for (const auto &node : graph->GetAllNodes()) {
@@ -255,12 +267,27 @@ TEST_F(UtestFusionStrategySolverReshape, Fuse_Reshape_And_Pointwise) {
     }
   };
 
-  auto data = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("data");
-  auto reshape = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("Reshape");
-  auto a = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-      .OutNames({"y"}).Build("A");
+  auto data = OP_CFG("Data")
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                  .InCnt(0)
+                  .OutCnt(1)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("data");
+  auto reshape = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("Reshape");
+  auto a = OP_CFG(kAscBackendType)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("A");
   DEF_GRAPH(g1) {
     CHAIN(NODE(data)->EDGE(0, 0)->NODE(reshape)->EDGE(0, 0)->NODE(a)->EDGE(0, 0)->NODE("NetOutput", kNetOutputType));
   };
@@ -276,4 +303,4 @@ TEST_F(UtestFusionStrategySolverReshape, Fuse_Reshape_And_Pointwise) {
   EXPECT_EQ(pre_nodes_size - 1, post_nodes_size);
 }
 
-} // namespace ge
+}  // namespace ge

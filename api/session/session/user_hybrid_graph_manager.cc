@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,24 +17,24 @@
 
 namespace ge {
 namespace {
-  const std::string kEnableExternalWeight = "1";
-  const std::string kEnableAllowMultiParaCompile = "1";
-  void SetDefaultExternalWeightAndMultiParaCompile(const uint32_t user_graph_id, const std::map<std::string, std::string> &origin_options,
-                                std::map<std::string, std::string> &options_out) {
-    std::string external_weight_val;
-    (void)GetContext().GetOption(EXTERNAL_WEIGHT, external_weight_val);
-    GELOGI("get external weight %s in context", external_weight_val.c_str());
-    options_out = origin_options;
-    auto it = options_out.find(EXTERNAL_WEIGHT);
-    const bool has_set_external_weight =
-        !external_weight_val.empty() || (it != options_out.end() && !it->second.empty());
-    if (!has_set_external_weight) {
-      GELOGI("set default external weight in hybrid mode in graph %u", user_graph_id);
-      options_out[EXTERNAL_WEIGHT] = kEnableExternalWeight;
-    }
-    // 需要多线程并发编译多张图，ge.AllowMultiGraphParallelCompile 必须为 true
-    options_out[OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE] = kEnableAllowMultiParaCompile;
+const std::string kEnableExternalWeight = "1";
+const std::string kEnableAllowMultiParaCompile = "1";
+void SetDefaultExternalWeightAndMultiParaCompile(const uint32_t user_graph_id,
+                                                 const std::map<std::string, std::string> &origin_options,
+                                                 std::map<std::string, std::string> &options_out) {
+  std::string external_weight_val;
+  (void)GetContext().GetOption(EXTERNAL_WEIGHT, external_weight_val);
+  GELOGI("get external weight %s in context", external_weight_val.c_str());
+  options_out = origin_options;
+  auto it = options_out.find(EXTERNAL_WEIGHT);
+  const bool has_set_external_weight = !external_weight_val.empty() || (it != options_out.end() && !it->second.empty());
+  if (!has_set_external_weight) {
+    GELOGI("set default external weight in hybrid mode in graph %u", user_graph_id);
+    options_out[EXTERNAL_WEIGHT] = kEnableExternalWeight;
   }
+  // 需要多线程并发编译多张图，ge.AllowMultiGraphParallelCompile 必须为 true
+  options_out[OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE] = kEnableAllowMultiParaCompile;
+}
 
 void SetDynamicShapeOptions(const std::map<std::string, std::string> &origin_options,
                             std::map<std::string, std::string> &options_out) {
@@ -49,7 +49,7 @@ void SetDynamicShapeOptions(const std::map<std::string, std::string> &origin_opt
     it->second = it->second + "_dynamic_shape";
   }
 }
-}
+}  // namespace
 void UserHybridGraphManager::SetDynamicGraphId(const uint32_t user_graph_id) {
   const std::lock_guard<std::mutex> locker(dynamic_graph_id_mu_);
   const auto it = dynamic_graph_id_map_.find(user_graph_id);
@@ -57,8 +57,8 @@ void UserHybridGraphManager::SetDynamicGraphId(const uint32_t user_graph_id) {
   const uint32_t dynamic_shape_graph_id = inner_graph_id_cnt_++;
   if (it == dynamic_graph_id_map_.end()) {
     dynamic_graph_id_map_[user_graph_id] = std::make_pair(dynamic_gear_graph_id, dynamic_shape_graph_id);
-    GELOGI("set user graph id %u map, inner dynamic gear graph id %u, dynamic shape graph id %u",
-           user_graph_id, dynamic_gear_graph_id, dynamic_shape_graph_id);
+    GELOGI("set user graph id %u map, inner dynamic gear graph id %u, dynamic shape graph id %u", user_graph_id,
+           dynamic_gear_graph_id, dynamic_shape_graph_id);
   }
 }
 
@@ -91,11 +91,12 @@ Status UserHybridGraphManager::AddGraph(uint32_t user_graph_id, const Graph &gra
     return user_graph_manager_.AddGraph(user_graph_id, graph, options);
   }
   if (EnableSliceSchedule()) {
-    REPORT_PREDEFINED_ERR_MSG(
-        "E10003", std::vector<const char *>({"parameter", "value", "reason"}),
-        std::vector<const char *>({"experimental_enable_jit_executor_v2", "true",
-            "experimental_enable_jit_executor_v2 and compile_hybrid_mode feature cannot be enabled at the same time."}));
-    GELOGE(PARAM_INVALID, "experimental_enable_jit_executor_v2 and compile_hybrid_mode feature cannot be enabled at the same time.");
+    REPORT_PREDEFINED_ERR_MSG("E10003", std::vector<const char *>({"parameter", "value", "reason"}),
+                              std::vector<const char *>({"experimental_enable_jit_executor_v2", "true",
+                                                         "experimental_enable_jit_executor_v2 and compile_hybrid_mode "
+                                                         "feature cannot be enabled at the same time."}));
+    GELOGE(PARAM_INVALID,
+           "experimental_enable_jit_executor_v2 and compile_hybrid_mode feature cannot be enabled at the same time.");
     return PARAM_INVALID;
   }
   AscendString graph_name;
@@ -143,7 +144,8 @@ Status UserHybridGraphManager::RecordDynamicGearInfo(const uint32_t graph_id) {
   return SUCCESS;
 }
 
-void UserHybridGraphManager::SetDynamicGearInfo(const uint32_t graph_id, const HybridDynamicDimsInfo &dynamic_dims_info) {
+void UserHybridGraphManager::SetDynamicGearInfo(const uint32_t graph_id,
+                                                const HybridDynamicDimsInfo &dynamic_dims_info) {
   const std::lock_guard<std::mutex> locker(dynamic_dims_info_mu_);
   const auto it = dynamic_dims_info_map_.find(graph_id);
   if (it == dynamic_dims_info_map_.end()) {
@@ -152,7 +154,7 @@ void UserHybridGraphManager::SetDynamicGearInfo(const uint32_t graph_id, const H
 }
 
 Status UserHybridGraphManager::BuildGraph(uint32_t user_graph_id, const std::vector<GeTensor> &inputs,
-    uint64_t session_id) {
+                                          uint64_t session_id) {
   uint32_t dynamic_gear_graph_id = 0;
   uint32_t dynamic_shape_graph_id = 0;
   if (!TryGetDynamicGraphId(user_graph_id, dynamic_gear_graph_id, dynamic_shape_graph_id)) {
@@ -190,22 +192,24 @@ Status UserHybridGraphManager::GetDynamicGearInfo(const uint32_t graph_id, Hybri
 }
 
 Status UserHybridGraphManager::SelectExecuteGraph(const uint32_t dynamic_gear_graph_id,
-    const uint32_t dynamic_shape_graph_id, const std::vector<gert::Tensor> &inputs, uint32_t &select_graph_id) {
+                                                  const uint32_t dynamic_shape_graph_id,
+                                                  const std::vector<gert::Tensor> &inputs, uint32_t &select_graph_id) {
   select_graph_id = dynamic_shape_graph_id;
   HybridDynamicDimsInfo dynamic_dims_info;
-  GE_ASSERT_SUCCESS(GetDynamicGearInfo(dynamic_gear_graph_id, dynamic_dims_info),
-    "cannot get %u dynamic dims", dynamic_gear_graph_id);
+  GE_ASSERT_SUCCESS(GetDynamicGearInfo(dynamic_gear_graph_id, dynamic_dims_info), "cannot get %u dynamic dims",
+                    dynamic_gear_graph_id);
   std::vector<std::vector<int64_t>> cur_shapes;
   for (size_t i = 0U; i < inputs.size(); ++i) {
     const auto &input_shape = inputs[i].GetStorageShape();
     auto cur_shape = TensorTransUtils::GetDimsFromGertShape(input_shape);
     GELOGI("get graph id %u current index %zu, input shape is %s", dynamic_gear_graph_id, i,
-      ToString(cur_shape).c_str());
+           ToString(cur_shape).c_str());
     cur_shapes.emplace_back(std::move(cur_shape));
   }
 
   GE_ASSERT_TRUE(cur_shapes.size() == dynamic_dims_info.user_input_dims.size(),
-      "current shape %zu is not equal dynamic dims %zu", cur_shapes.size(), dynamic_dims_info.user_input_dims.size());
+                 "current shape %zu is not equal dynamic dims %zu", cur_shapes.size(),
+                 dynamic_dims_info.user_input_dims.size());
   std::vector<int64_t> cur_dynamic_dims;
   const auto &user_input_dims = dynamic_dims_info.user_input_dims;
   for (size_t i = 0UL; i < user_input_dims.size(); ++i) {
@@ -226,15 +230,17 @@ Status UserHybridGraphManager::SelectExecuteGraph(const uint32_t dynamic_gear_gr
     }
   }
   if (select_graph_id == dynamic_gear_graph_id) {
-    GELOGI("find dynamic dims %s matched, execute dynamic gear graph %u", ToString(cur_dynamic_dims).c_str(), dynamic_gear_graph_id);
+    GELOGI("find dynamic dims %s matched, execute dynamic gear graph %u", ToString(cur_dynamic_dims).c_str(),
+           dynamic_gear_graph_id);
   } else {
-    GELOGI("find dynamic dims %s not matched, execute dynamic shape graph %u", ToString(cur_dynamic_dims).c_str(), dynamic_shape_graph_id);
+    GELOGI("find dynamic dims %s not matched, execute dynamic shape graph %u", ToString(cur_dynamic_dims).c_str(),
+           dynamic_shape_graph_id);
   }
   return SUCCESS;
 }
 
 Status UserHybridGraphManager::RunGraphAsync(uint32_t user_graph_id, std::vector<gert::Tensor> &&inputs,
-    uint64_t session_id, const RunAsyncCallbackV2 &callback) {
+                                             uint64_t session_id, const RunAsyncCallbackV2 &callback) {
   uint32_t dynamic_gear_graph_id = 0;
   uint32_t dynamic_shape_graph_id = 0;
   if (!TryGetDynamicGraphId(user_graph_id, dynamic_gear_graph_id, dynamic_shape_graph_id)) {
@@ -308,4 +314,4 @@ Status UserHybridGraphManager::Finalize() {
   }
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

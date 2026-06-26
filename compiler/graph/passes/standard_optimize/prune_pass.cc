@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ bool IsTargetRefNode(const NodePtr &node) {
   }
   return false;
 }
-} // namespace
+}  // namespace
 Status PrunePass::Run(ge::ComputeGraphPtr graph) {
   if (graph == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Param graph is nullptr, check invalid");
@@ -89,8 +89,8 @@ Status PrunePass::Run(ge::ComputeGraphPtr graph) {
       Status status = ge::GraphUtils::AddEdge(node_ptr->GetOutControlAnchor(), out_nodes[0]->GetInControlAnchor());
       if (status != ge::SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add control edge between op:%s(%s) and op:%s(%s) failed",
-                          node_ptr->GetName().c_str(), node_ptr->GetType().c_str(),
-                          out_nodes[0]->GetName().c_str(), out_nodes[0]->GetType().c_str());
+                             node_ptr->GetName().c_str(), node_ptr->GetType().c_str(), out_nodes[0]->GetName().c_str(),
+                             out_nodes[0]->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[add][ControlEdge] failed between DATA node[%s] and NETOUTPUT node[%s]!",
                node_ptr->GetName().c_str(), out_nodes[0]->GetName().c_str());
         return INTERNAL_ERROR;

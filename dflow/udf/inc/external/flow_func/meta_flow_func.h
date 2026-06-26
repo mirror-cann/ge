@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,42 +19,41 @@
 
 namespace FlowFunc {
 class FLOW_FUNC_VISIBILITY MetaFlowFunc {
-public:
-    MetaFlowFunc() = default;
+ public:
+  MetaFlowFunc() = default;
 
-    virtual ~MetaFlowFunc() = default;
+  virtual ~MetaFlowFunc() = default;
 
-    /**
-     * set context.
-     * it will be call before Init.
-     * @param metaContext context.
-     */
-    void SetContext(MetaContext *metaContext)
-    {
-        context_ = metaContext;
-    }
+  /**
+   * set context.
+   * it will be call before Init.
+   * @param metaContext context.
+   */
+  void SetContext(MetaContext *metaContext) {
+    context_ = metaContext;
+  }
 
-    /**
-     * @brief Flow func init.
-     * only call once.
-     * @return 0:success, other: failed.
-     */
-    virtual int32_t Init() = 0;
+  /**
+   * @brief Flow func init.
+   * only call once.
+   * @return 0:success, other: failed.
+   */
+  virtual int32_t Init() = 0;
 
-    /**
-     * @brief flow func proc func.
-     * @param inputMsgs input msgs
-     * @return FLOW_FUNC_SUCCESS:success, other: failed.
-     * If an unrecoverable exception occurs, return error.
-     * others can call SetRetCode to out tensor, than return success.
-     * if return success, schedule will be break.
-     */
-    virtual int32_t Proc(const std::vector<std::shared_ptr<FlowMsg>> &inputMsgs) = 0;
+  /**
+   * @brief flow func proc func.
+   * @param inputMsgs input msgs
+   * @return FLOW_FUNC_SUCCESS:success, other: failed.
+   * If an unrecoverable exception occurs, return error.
+   * others can call SetRetCode to out tensor, than return success.
+   * if return success, schedule will be break.
+   */
+  virtual int32_t Proc(const std::vector<std::shared_ptr<FlowMsg>> &inputMsgs) = 0;
 
-    virtual int32_t ResetFlowFuncState();
+  virtual int32_t ResetFlowFuncState();
 
-protected:
-    MetaContext *context_ = nullptr;
+ protected:
+  MetaContext *context_ = nullptr;
 };
 
 using FLOW_FUNC_CREATOR_FUNC = std::function<std::shared_ptr<MetaFlowFunc>(void)>;
@@ -67,15 +66,14 @@ using FLOW_FUNC_CREATOR_FUNC = std::function<std::shared_ptr<MetaFlowFunc>(void)
  */
 FLOW_FUNC_VISIBILITY bool RegisterFlowFunc(const char *flowFuncName, const FLOW_FUNC_CREATOR_FUNC &func) noexcept;
 
-#define REGISTER_FLOW_FUNC_IMPL(name, ctr, clazz)                   \
-    static std::shared_ptr<FlowFunc::MetaFlowFunc> Creator_##clazz##ctr##_FlowFunc() \
-    {                                                               \
-        return std::make_shared<clazz>();                           \
-    }                                                               \
-    static bool g_##clazz##ctr##_FlowFuncCreator __attribute__((unused)) = \
-        FlowFunc::RegisterFlowFunc(name, Creator_##clazz##ctr##_FlowFunc)
+#define REGISTER_FLOW_FUNC_IMPL(name, ctr, clazz)                                    \
+  static std::shared_ptr<FlowFunc::MetaFlowFunc> Creator_##clazz##ctr##_FlowFunc() { \
+    return std::make_shared<clazz>();                                                \
+  }                                                                                  \
+  static bool g_##clazz##ctr##_FlowFuncCreator __attribute__((unused)) =             \
+      FlowFunc::RegisterFlowFunc(name, Creator_##clazz##ctr##_FlowFunc)
 
 #define REGISTER_FLOW_FUNC_INNER(name, ctr, clazz) REGISTER_FLOW_FUNC_IMPL(name, ctr, clazz)
 #define REGISTER_FLOW_FUNC(name, clazz) REGISTER_FLOW_FUNC_INNER(name, __COUNTER__, clazz)
 }  // namespace FlowFunc
-#endif // FLOW_FUNC_META_FLOW_FUNC_H
+#endif  // FLOW_FUNC_META_FLOW_FUNC_H

@@ -29,7 +29,7 @@ class OverflowDumpImpl {
   bool IsOpDebugEnabled() const;
   uint32_t GetOpDebugTaskId() const;
   uint32_t GetOpDebugStreamId() const;
-  void* GetOpDebugAddr() const;  // 返回 p2p 地址
+  void *GetOpDebugAddr() const;  // 返回 p2p 地址
 
   void Clear();
 
@@ -39,8 +39,8 @@ class OverflowDumpImpl {
   bool is_op_debug_enabled_ = false;
   uint32_t op_debug_task_id_ = 0U;
   uint32_t op_debug_stream_id_ = 0U;
-  void* op_debug_addr_ = nullptr;
-  void* p2p_debug_addr_ = nullptr;
+  void *op_debug_addr_ = nullptr;
+  void *p2p_debug_addr_ = nullptr;
 };
 
 }  // namespace dump

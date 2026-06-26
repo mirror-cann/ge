@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,29 +15,29 @@
 namespace gert {
 class OpExecutePrepareContextUT : public testing::Test {};
 TEST_F(OpExecutePrepareContextUT, GetInputOutputTest) {
-  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
+  gert::Tensor in_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},   // shape
                               {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, {}},  // format
-                              kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
+                              kOnDeviceHbm,                               // placement
+                              ge::DT_FLOAT16,                             // data type
                               (void *)0x12345};
-  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_2 = {{{2, 2, 3, 8}, {2, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x234565};
-  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_3 = {{{3, 2, 3, 8}, {3, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                               kOnDeviceHbm,                                // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x45678};
-  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_4 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnHost,                                // placement
+                              kOnHost,                                     // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x12345};
-  gert::Tensor in_tensor_5 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},    // shape
+  gert::Tensor in_tensor_5 = {{{4, 2, 3, 8}, {4, 2, 3, 8}},                // shape
                               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnHost,                                // placement
+                              kOnHost,                                     // placement
                               ge::DT_FLOAT16,                              // data type
                               (void *)0x123345};
   gert::Tensor out_tensor_1 = {{{8, 3, 224, 224}, {8, 1, 224, 224, 16}},    // shape
@@ -141,14 +141,13 @@ TEST_F(OpExecutePrepareContextUT, GetInputOutputTest) {
   EXPECT_EQ(context->GetDeterministic(), true);
   EXPECT_EQ(context->GetPrecisionMode(), execute_option.precision_mode);
 
-  size_t kernel_out_start_num = 5 + 3 + 2; // 5 input tensor, 3 output tensor, 2 append input
+  size_t kernel_out_start_num = 5 + 3 + 2;  // 5 input tensor, 3 output tensor, 2 append input
   auto set_status = context->SetOpApiParamsWithDefaultDeleter<DummyOpApiParams>(param);
   ASSERT_EQ(set_status, ge::GRAPH_SUCCESS);
   set_status = context->SetOpApiParams(param2, nullptr);
   ASSERT_EQ(set_status, ge::GRAPH_FAILED);
-  set_status = context->SetOpApiParams(param2, [](void * const data) {
-    delete reinterpret_cast<DummyOpApiParams *>(data);
-  });
+  set_status =
+      context->SetOpApiParams(param2, [](void *const data) { delete reinterpret_cast<DummyOpApiParams *>(data); });
   ASSERT_EQ(set_status, ge::GRAPH_SUCCESS);
 
   context->SetWorkspaceSizes({64U, 128U, 256U});
@@ -165,4 +164,4 @@ TEST_F(OpExecutePrepareContextUT, GetInputOutputTest) {
   EXPECT_EQ(ws_size_vec->GetSize(), 1);
   EXPECT_EQ(ws_size_vec->GetData()[0], 0U);
 }
-}
+}  // namespace gert

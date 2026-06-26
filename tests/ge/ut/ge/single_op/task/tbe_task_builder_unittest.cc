@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ using namespace hybrid;
 
 class UtestTbeTaskBuilder : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
   void TearDown() {
     TBEHandleStore::GetInstance().bin_key_to_handle_.clear();
   }
@@ -47,10 +46,10 @@ class UtestTbeTaskBuilder : public testing::Test {
 TEST_F(UtestTbeTaskBuilder, test_KernelHolder_construct) {
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelHolder holder((const char_t*)stub_func, kernel_bin);
+  KernelHolder holder((const char_t *)stub_func, kernel_bin);
   holder.bin_handle_ = malloc(1);
   EXPECT_EQ(holder.stub_func_, stub_func);
-  free((void*)holder.bin_handle_);
+  free((void *)holder.bin_handle_);
 }
 
 TEST_F(UtestTbeTaskBuilder, test_KernelBinRegistry_GetUnique) {
@@ -64,8 +63,8 @@ TEST_F(UtestTbeTaskBuilder, test_KernelBinRegistry_GetStubFunc) {
   EXPECT_EQ(KernelBinRegistry::GetInstance().GetStubFunc("test"), nullptr);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("test",
-      std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "test", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
   EXPECT_EQ(KernelBinRegistry::GetInstance().GetStubFunc("test"), stub_func);
 }
 
@@ -140,12 +139,12 @@ TEST_F(UtestTbeTaskBuilder, test_TbeTaskBuilder) {
   task.max_tiling_size_ = 0;
   param.graph_is_dynamic = true;
   int64_t buffer = 4;
-  task.overflow_addr_ =  &buffer;
+  task.overflow_addr_ = &buffer;
   task.has_overflow_attr_ = true;
 
   EXPECT_NE(builder.SetKernelArgs(task, param, op_desc), SUCCESS);  // ??
 
-  (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_kernelname", "ZZZZ");     // ??
+  (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_kernelname", "ZZZZ");  // ??
   EXPECT_EQ(builder.RegisterKernelWithHandle(param), ACL_ERROR_GE_INTERNAL_ERROR);
 }
 
@@ -163,8 +162,8 @@ UINT32 StubTilingParseSingleopMix(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreatorSingleopMix() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreatorSingleopMix() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -215,7 +214,7 @@ void TestMixL2TaskBuilder(std::function<void(MixL2OpTask &)> extend_check_func =
   op_desc->SetExtAttr(std::string("_mix_aic") + OP_EXTATTR_NAME_TBE_KERNEL, conv_kernel);
   AttrUtils::SetStr(op_desc, "_mix_aic" + op_desc->GetName() + "_kernelname", "MATMUL");
 
-  (void) AttrUtils::SetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, std::string("MIX_AIC"));
+  (void)AttrUtils::SetStr(op_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, std::string("MIX_AIC"));
   AttrUtils::SetStr(op_desc, std::string("_mix_aic") + ATTR_NAME_TBE_KERNEL_NAME, "MATMUL");
 
   MixL2TaskBuilder builder(model_name, node, task_def);

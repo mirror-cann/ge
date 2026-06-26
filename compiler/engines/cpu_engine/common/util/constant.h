@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,20 +40,15 @@ const std::string kAttrNameUnknownShape = "_aicpu_unknown_shape";
 const std::string kAttrNameInputOutputDtString = "_aicpu_input_output_dtstring";
 
 // Path based on aicpu_engine directory
-const std::string kConfigFilePath =
-    "/usr/local/HiAI/runtime/lib64/plugin/opskernel/config/init.conf";
+const std::string kConfigFilePath = "/usr/local/HiAI/runtime/lib64/plugin/opskernel/config/init.conf";
 
-const std::string kTfOpsFileBasedOnEnvPath =
-    "/built-in/op_impl/aicpu/tf_kernel/config/tf_kernel.json";
+const std::string kTfOpsFileBasedOnEnvPath = "/built-in/op_impl/aicpu/tf_kernel/config/tf_kernel.json";
 
-const std::string kTfOpsFileBasedOnEnvPathOld =
-    "/op_impl/built-in/aicpu/tf_kernel/config/tf_kernel.json";
+const std::string kTfOpsFileBasedOnEnvPathOld = "/op_impl/built-in/aicpu/tf_kernel/config/tf_kernel.json";
 
-const std::string kTfOpsFileRelativePath =
-    "/built-in/op_impl/aicpu/tf_kernel/config/tf_kernel.json";
+const std::string kTfOpsFileRelativePath = "/built-in/op_impl/aicpu/tf_kernel/config/tf_kernel.json";
 
-const std::string kTfOpsFileRelativePathOld =
-    "/ops/op_impl/built-in/aicpu/tf_kernel/config/tf_kernel.json";
+const std::string kTfOpsFileRelativePathOld = "/ops/op_impl/built-in/aicpu/tf_kernel/config/tf_kernel.json";
 
 const std::string kOpsInfoJsonOld = "/framework/built-in/tensorflow/npu_supported_ops.json";
 const std::string kOpsInfoJson = "/built-in/framework/tensorflow/npu_supported_ops.json";
@@ -64,29 +59,23 @@ const std::string kOpsJsonRelativePath = "/built-in/framework/tensorflow/npu_sup
 const std::string kHostCpuOpsFileRelativePathOld =
     "/ops/op_impl/built-in/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
 
-const std::string kHostCpuOpsFileBasedOnEnvPathOld =
-    "/op_impl/built-in/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
+const std::string kHostCpuOpsFileBasedOnEnvPathOld = "/op_impl/built-in/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
 
 const std::string kHostCpuOpsFileRelativePath = "/built-in/op_impl/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
 
-const std::string kHostCpuOpsFileBasedOnEnvPath =
-    "/built-in/op_impl/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
+const std::string kHostCpuOpsFileBasedOnEnvPath = "/built-in/op_impl/aicpu/aicpu_kernel/config/host_cpu_kernel.json";
 
 const std::string kCceOpsFilePath =
     "/usr/local/HiAI/runtime/ops/op_impl/built-in/aicpu/"
     "cce_kernel/config/cce_kernel.json";
 
-const std::string kAicpuOpsFileBasedOnEnvPathOld =
-    "/op_impl/built-in/aicpu/aicpu_kernel/config/aicpu_kernel.json";
+const std::string kAicpuOpsFileBasedOnEnvPathOld = "/op_impl/built-in/aicpu/aicpu_kernel/config/aicpu_kernel.json";
 
-const std::string kAicpuOpsFileBasedOnEnvPath =
-    "/built-in/op_impl/aicpu/aicpu_kernel/config/aicpu_kernel.json";
+const std::string kAicpuOpsFileBasedOnEnvPath = "/built-in/op_impl/aicpu/aicpu_kernel/config/aicpu_kernel.json";
 
-const std::string kAicpuOpsFileRelativePath =
-    "/built-in/op_impl/aicpu/aicpu_kernel/config/aicpu_kernel.json";
+const std::string kAicpuOpsFileRelativePath = "/built-in/op_impl/aicpu/aicpu_kernel/config/aicpu_kernel.json";
 
-const std::string kAicpuOpsFileRelativePathOld =
-    "/ops/op_impl/built-in/aicpu/aicpu_kernel/config/aicpu_kernel.json";
+const std::string kAicpuOpsFileRelativePathOld = "/ops/op_impl/built-in/aicpu/aicpu_kernel/config/aicpu_kernel.json";
 
 const std::string kIr2TfFilePath =
     "/usr/local/HiAI/runtime/lib64/plugin/opskernel/config/"
@@ -96,19 +85,15 @@ const std::string kIr2TfFileRelativePath = "config/ir2tf_op_mapping_lib.json";
 
 const std::string kAiCpuOpsParallelRuleFileRelativePath = "plugin/opskernel/config/aicpu_ops_parallel_rule.json";
 
-const std::string kDvppKernelFilePath =
-    "/usr/local/HiAI/runtime/lib64/plugin/opskernel/libdvpp_kernels.so";
+const std::string kDvppKernelFilePath = "/usr/local/HiAI/runtime/lib64/plugin/opskernel/libdvpp_kernels.so";
 
-const std::string kAicpuCustOpsFileRelativePathOld =
-    "/ops/op_impl/custom/cpu/config/cust_aicpu_kernel.json";
+const std::string kAicpuCustOpsFileRelativePathOld = "/ops/op_impl/custom/cpu/config/cust_aicpu_kernel.json";
 
-const std::string kAicpuCustOpsFilePath =
-    "/op_impl/cpu/config/cust_aicpu_kernel.json";
+const std::string kAicpuCustOpsFilePath = "/op_impl/cpu/config/cust_aicpu_kernel.json";
 
 const std::string kAicpuBuiltInCustOpsFilePath = "builtin_cust_aicpu.json";
 
-const std::string kAicpuCustOpsFileBasedOnEnvPathOld =
-    "/op_impl/custom/cpu/config/cust_aicpu_kernel.json";
+const std::string kAicpuCustOpsFileBasedOnEnvPathOld = "/op_impl/custom/cpu/config/cust_aicpu_kernel.json";
 
 const std::string kAicpuCustPathPrefix = "/vendors";
 

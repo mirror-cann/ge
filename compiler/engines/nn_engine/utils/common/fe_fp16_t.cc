@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,7 @@ int16_t GetManBitLength(uint16_t man) {
   return len;
 }
 
-void ExtractFP16(const uint16_t& val, uint16_t &s, int16_t &e, uint16_t &m) {
+void ExtractFP16(const uint16_t &val, uint16_t &s, int16_t &e, uint16_t &m) {
   // 1.Extract
   s = FP16_EXTRAC_SIGN(val);
   e = FP16_EXTRAC_EXP(val);
@@ -90,7 +90,7 @@ static bool IsRoundOne(uint64_t man, uint16_t truncLen) {
  * @brief   normalize fp16_t value
  * @return
  */
-static void Fp16Normalize(int16_t& exp, uint16_t& man) {
+static void Fp16Normalize(int16_t &exp, uint16_t &man) {
   if (exp >= FP16_MAX_EXP) {
     exp = FP16_MAX_EXP - 1;
     man = FP16_MAX_MAN;
@@ -106,7 +106,7 @@ static void Fp16Normalize(int16_t& exp, uint16_t& man) {
  * @brief   Convert fp16_t to float/fp32
  * @return  Return float/fp32 value of fpVal which is the value of fp16_t object
  */
-static float Fp16ToFloat(const uint16_t& fpVal) {
+static float Fp16ToFloat(const uint16_t &fpVal) {
   float ret;
   uint16_t hfSign, hfMan;
   int16_t hfExp;
@@ -152,7 +152,7 @@ static uint16_t GetUint16ValByMan(uint16_t sRet, const uint64_t &longIntM, const
  * @brief   Convert fp16_t to int16_t
  * @return  Return int16_t value of fpVal which is the value of fp16_t object
  */
-static int16_t Fp16ToInt16(const uint16_t& fpVal) {
+static int16_t Fp16ToInt16(const uint16_t &fpVal) {
   int16_t ret;
   uint16_t retV, sRet, hfE, hfM;
   sRet = FP16_EXTRAC_SIGN(fpVal);
@@ -202,7 +202,7 @@ static int16_t Fp16ToInt16(const uint16_t& fpVal) {
  * @brief   Convert fp16_t to uint16_t
  * @return  Return uint16_t value of fpVal which is the value of fp16_t object
  */
-static uint16_t Fp16ToUInt16(const uint16_t& fpVal) {
+static uint16_t Fp16ToUInt16(const uint16_t &fpVal) {
   uint16_t ret, sRet, mRet = 0;
   uint16_t hfE, hfM;
   sRet = FP16_EXTRAC_SIGN(fpVal);
@@ -239,7 +239,7 @@ static uint16_t Fp16ToUInt16(const uint16_t& fpVal) {
   return ret;
 }
 
-fp16_t& fp16_t::operator=(const float& fVal) {
+fp16_t &fp16_t::operator=(const float &fVal) {
   uint16_t sRet, mRet;
   int16_t eRet;
   uint32_t eF, mF;
@@ -247,8 +247,8 @@ fp16_t& fp16_t::operator=(const float& fVal) {
   uint32_t mLenDelta;
 
   sRet = static_cast<uint16_t>((ui32V & FP32_SIGN_MASK) >> FP32_SIGN_INDEX);  // 4Byte->2Byte
-  eF = (ui32V & FP32_EXP_MASK) >> FP32_MAN_LEN;                    // 8 bit exponent
-  mF = (ui32V & FP32_MAN_MASK);                                    // 23 bit mantissa dont't need to care about denormal
+  eF = (ui32V & FP32_EXP_MASK) >> FP32_MAN_LEN;                               // 8 bit exponent
+  mF = (ui32V & FP32_MAN_MASK);  // 23 bit mantissa don't need to care about denormal
   mLenDelta = FP32_MAN_LEN - FP16_MAN_LEN;
 
   bool needRound = false;
@@ -291,7 +291,7 @@ fp16_t& fp16_t::operator=(const float& fVal) {
   return *this;
 }
 
-fp16_t& fp16_t::operator=(const uint16_t& uiVal) {
+fp16_t &fp16_t::operator=(const uint16_t &uiVal) {
   if (uiVal == 0) {
     val = 0;
   } else {

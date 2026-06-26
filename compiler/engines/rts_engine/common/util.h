@@ -29,4 +29,3 @@ ge::Status IsSupportFftsPlus(bool &isSupportFlag);
 }  // namespace runtime
 }  // namespace cce
 #endif
-

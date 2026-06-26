@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,16 +38,16 @@ constexpr int gather_mode_two = 2;
 constexpr int gather_data_num_two = 2;
 constexpr int gather_data_num_three = 3;
 constexpr int len_of_num_to_str = 20;
-const std::vector<std::string> kControlOpTypes = {"If", "Case", "While", "Switch", "RefSwitch", "Merge", "RefMerge",
-                                                  "Enter", "RefEnter", "NextIteration", "RefNextIteration",
-                                                  "Exit", "RefExit", "StreamActive", "StreamSwitch", "StreamMerge", "LoopCond"};
+const std::vector<std::string> kControlOpTypes = {
+    "If",       "Case",         "While",        "Switch",        "RefSwitch",        "Merge",
+    "RefMerge", "Enter",        "RefEnter",     "NextIteration", "RefNextIteration", "Exit",
+    "RefExit",  "StreamActive", "StreamSwitch", "StreamMerge",   "LoopCond"};
 
 // 检查是否因为尾轴太小而跳过lowering
 // 返回true表示应该跳过，false表示继续lowering
-static bool ShouldSkipLoweringForSmallLastAxis(const NodePtr &node,
-                                              const std::vector<Expression> &src_dims,
-                                              const std::vector<size_t> &reduce_axes_u,
-                                              const InDataAnchorPtr &reduce_anchor) {
+static bool ShouldSkipLoweringForSmallLastAxis(const NodePtr &node, const std::vector<Expression> &src_dims,
+                                               const std::vector<size_t> &reduce_axes_u,
+                                               const InDataAnchorPtr &reduce_anchor) {
   // 输入tensor的dim>1
   if (src_dims.size() <= 1) {
     return false;
@@ -57,8 +57,10 @@ static bool ShouldSkipLoweringForSmallLastAxis(const NodePtr &node,
   const size_t second_last_axis_idx = src_dims.size() - 2;
 
   // 检查尾轴和倒数第二个轴是否不同（即是否在reduce_axes中只有一个）
-  bool last_axis_in_reduce = std::find(reduce_axes_u.begin(), reduce_axes_u.end(), last_axis_idx) != reduce_axes_u.end();
-  bool second_last_axis_in_reduce = std::find(reduce_axes_u.begin(), reduce_axes_u.end(), second_last_axis_idx) != reduce_axes_u.end();
+  bool last_axis_in_reduce =
+      std::find(reduce_axes_u.begin(), reduce_axes_u.end(), last_axis_idx) != reduce_axes_u.end();
+  bool second_last_axis_in_reduce =
+      std::find(reduce_axes_u.begin(), reduce_axes_u.end(), second_last_axis_idx) != reduce_axes_u.end();
   // 当尾轴和倒数第二个轴不同时
   if (last_axis_in_reduce != second_last_axis_in_reduce) {
     // 获取尾轴的大小
@@ -83,8 +85,8 @@ static bool ShouldSkipLoweringForSmallLastAxis(const NodePtr &node,
 
     // 判断尾轴大小乘以dtypesize < 64时，返回true（跳过lowering）
     if (last_axis_size > 0 && (static_cast<size_t>(last_axis_size) * dtype_size < 64ULL)) {
-      GELOGI("Skip lowering node %s, as: Last axis size[%ld] * dtype_size[%zu] < 64.",
-               node->GetNamePtr(), last_axis_size, dtype_size);
+      GELOGI("Skip lowering node %s, as: Last axis size[%ld] * dtype_size[%zu] < 64.", node->GetNamePtr(),
+             last_axis_size, dtype_size);
       return true;
     }
   }
@@ -107,33 +109,11 @@ constexpr double pow_base_two = 2.0;
 constexpr size_t kMaxConcatDynInputNum = 32UL;
 constexpr size_t kTileToConcatMaxMultiple = 6UL;
 using Permutation = std::vector<int64_t>;
-const std::set<Permutation> SUPPORTED_TWO_PERMS = {
-    {1,0}
-};
-const std::set<Permutation> SUPPORTED_THREE_PERMS = {
-    {0,2,1},
-    {1,0,2},
-    {1,2,0},
-    {2,0,1},
-    {2,1,0}
-};
+const std::set<Permutation> SUPPORTED_TWO_PERMS = {{1, 0}};
+const std::set<Permutation> SUPPORTED_THREE_PERMS = {{0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}};
 const std::set<Permutation> SUPPORTED_FOUR_PERMS = {
-    {0,1,3,2},
-    {0,2,1,3},
-    {0,2,3,1},
-    {0,3,1,2},
-    {0,3,2,1},
-    {1,0,2,3},
-    {1,2,0,3},
-    {1,2,3,0},
-    {2,0,1,3},
-    {2,1,0,3},
-    {2,3,0,1},
-    {2,3,1,0},
-    {3,0,1,2},
-    {3,1,2,0},
-    {3,2,0,1}
-};
+    {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 2, 3, 1}, {0, 3, 1, 2}, {0, 3, 2, 1}, {1, 0, 2, 3}, {1, 2, 0, 3}, {1, 2, 3, 0},
+    {2, 0, 1, 3}, {2, 1, 0, 3}, {2, 3, 0, 1}, {2, 3, 1, 0}, {3, 0, 1, 2}, {3, 1, 2, 0}, {3, 2, 0, 1}};
 
 graphStatus CollectConcatInputs(const NodePtr &node, int64_t concat_dim_tensor_index, int64_t concat_dim,
                                 std::vector<InDataAnchorPtr> &inputs, size_t &dyn_input_num) {
@@ -145,8 +125,8 @@ graphStatus CollectConcatInputs(const NodePtr &node, int64_t concat_dim_tensor_i
       continue;
     }
     std::vector<Expression> input_dims;
-    LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(in_anchor, input_dims) == GRAPH_SUCCESS,
-      node, "Failed to get input symbol shape.");
+    LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(in_anchor, input_dims) == GRAPH_SUCCESS, node,
+                                "Failed to get input symbol shape.");
     for (int64_t i = concat_dim; i < static_cast<int64_t>(input_dims.size()); ++i) {
       if (!input_dims[i].IsConstExpr()) {
         GELOGD("%s inputs[%d] is dynamic: %s", node->GetNamePtr(), in_anchor->GetIdx(),
@@ -187,19 +167,18 @@ graphStatus ConcatToBroadcast(const NodePtr &node) {
   GE_ASSERT_NOTNULL(x_anchor);
   auto x = loop::Load(x_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), x_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), x_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   std::vector<Expression> output_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-output symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-output symbol shape.");
   indices.emplace_back(output_dims);
   indices.emplace_back(x_dims);
   loop::Index broadcast;
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS,
-    node, "Failed to imply input broadcast");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS, node, "Failed to imply input broadcast");
   loop::Store(node->GetOutDataAnchor(0), loop::Broadcast(x, x_dims, broadcast));
   GELOGD("concat node: %s lowered to broadcast", node->GetNamePtr());
-  (void) AttrUtils::SetBool(node->GetOpDesc(), "_disable_lifting", true);
+  (void)AttrUtils::SetBool(node->GetOpDesc(), "_disable_lifting", true);
   return GRAPH_SUCCESS;
 }
 
@@ -215,15 +194,13 @@ graphStatus ParseConcatDim(const NodePtr &node, int64_t &concat_dim, int64_t &co
     const std::vector<int64_t> dims = concat_dim_tensor.GetTensorDesc().GetShape().GetDims();
     LOWERING_WARN_RECORD_REASON(dims.empty() || (dims.size() == 1U && dims[0] == 1U), node,
                                 "Concat dim must be a scalar or [1]");
-    LOWERING_WARN_RECORD_REASON(concat_dim_tensor.GetData() != nullptr, node,
-                                "Concat_dim_tensor is null");
+    LOWERING_WARN_RECORD_REASON(concat_dim_tensor.GetData() != nullptr, node, "Concat_dim_tensor is null");
 
     const ge::DataType tensor_dtype = concat_dim_tensor.GetTensorDesc().GetDataType();
     if (tensor_dtype == ge::DT_INT32) {
       concat_dim = *reinterpret_cast<const int32_t *>(concat_dim_tensor.GetData());
     } else {
-      LOWERING_WARN_RECORD_REASON(tensor_dtype == ge::DT_INT64, node,
-                                  "Concat dim tensor type must be int32 or int64");
+      LOWERING_WARN_RECORD_REASON(tensor_dtype == ge::DT_INT64, node, "Concat dim tensor type must be int32 or int64");
       concat_dim = *reinterpret_cast<const int64_t *>(concat_dim_tensor.GetData());
     }
   }
@@ -237,13 +214,13 @@ graphStatus LowerConcat(const NodePtr &node) {
   int64_t concat_dim_tensor_index = -1L;
   GE_WARN_ASSERT(ParseConcatDim(node, concat_dim, concat_dim_tensor_index) == GRAPH_SUCCESS);
   std::vector<Expression> output_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get output symbol");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get output symbol");
   concat_dim = concat_dim < 0 ? concat_dim + static_cast<int64_t>(output_dims.size()) : concat_dim;
-  LOWERING_WARN_RECORD_REASON(concat_dim >= 0 && concat_dim < static_cast<int64_t>(output_dims.size()),
-                              node, "Concat dim %ld must in dim range [0, %zu)", concat_dim, output_dims.size());
+  LOWERING_WARN_RECORD_REASON(concat_dim >= 0 && concat_dim < static_cast<int64_t>(output_dims.size()), node,
+                              "Concat dim %ld must in dim range [0, %zu)", concat_dim, output_dims.size());
   LOWERING_WARN_RECORD_REASON(output_dims[concat_dim].FreeSymbols().size() <= kMaxFreeSymbols, node,
-                              "Output concat dim has too many free symbols: %zu, exceeds max value: %zu",	 
+                              "Output concat dim has too many free symbols: %zu, exceeds max value: %zu",
                               output_dims[concat_dim].FreeSymbols().size(), kMaxFreeSymbols);
 
   std::vector<InDataAnchorPtr> inputs;
@@ -251,7 +228,7 @@ graphStatus LowerConcat(const NodePtr &node) {
   // CollectConcatInputs 内部已经调用宏，打印原因
   GE_WARN_ASSERT_GRAPH_SUCCESS(CollectConcatInputs(node, concat_dim_tensor_index, concat_dim, inputs, dyn_input_num));
   if (inputs.size() == 1UL) {
-    (void) loop::Store(node->GetOutDataAnchor(0), loop::Load(inputs[0]));
+    (void)loop::Store(node->GetOutDataAnchor(0), loop::Load(inputs[0]));
     return GRAPH_SUCCESS;
   }
   const auto backend_spec = optimize::BackendSpec::GetInstance();
@@ -263,8 +240,8 @@ graphStatus LowerConcat(const NodePtr &node) {
   }
   // 每个动态shape的输入会单独分组，太多会导致编译时间过长，函数栈过大等问题，性能大概率也不好
   LOWERING_WARN_RECORD_REASON(
-    (dyn_input_num <= kMaxConcatDynInputNum) || (inputs.size() > backend_spec->concat_max_input_num), node,
-    "too many dynamic inputs: %zu, exceeds max value: %zu", dyn_input_num, kMaxConcatDynInputNum);
+      (dyn_input_num <= kMaxConcatDynInputNum) || (inputs.size() > backend_spec->concat_max_input_num), node,
+      "too many dynamic inputs: %zu, exceeds max value: %zu", dyn_input_num, kMaxConcatDynInputNum);
   loop::StoreConcat(node->GetOutDataAnchor(0), inputs, static_cast<size_t>(concat_dim));
   return GRAPH_SUCCESS;
 }
@@ -302,11 +279,12 @@ graphStatus GetMultiples(const NodePtr &node, std::vector<int64_t> &multiples) {
 }
 
 bool CanLoweringToBrc(const loop::Index &in_dims, const std::vector<int64_t> &multiples, size_t new_axis_count,
-                         std::vector<loop::BroadcastOp::DimKind> &brc_status, std::deque<size_t> &concat_dims) {
+                      std::vector<loop::BroadcastOp::DimKind> &brc_status, std::deque<size_t> &concat_dims) {
   bool can_lowering_to_brc = true;
   for (auto i = 0U; i < in_dims.size(); i++) {
     auto m_index = i + new_axis_count;
-    GE_WARN_ASSERT(m_index < multiples.size(), "multiples index (%zu) out of range (size=%zu)", m_index,	multiples.size());
+    GE_WARN_ASSERT(m_index < multiples.size(), "multiples index (%zu) out of range (size=%zu)", m_index,
+                   multiples.size());
     if (multiples[m_index] != 1) {
       concat_dims.emplace_front(i);
       can_lowering_to_brc =
@@ -339,12 +317,12 @@ graphStatus LowerTile(const NodePtr &node) {
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto input_src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(input_src);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_src, in_dims) == GRAPH_SUCCESS, node, "Failed to get input shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_src, in_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get input shape");
 
   // 3. 如果in_dims长度小，则需要从前往后补轴
   LOWERING_WARN_RECORD_REASON(multiples.size() >= in_dims.size(), node,
-                              "Not support multiples.size=%zu < in_dims.size=%zu",
-                              multiples.size(), in_dims.size());
+                              "Not support multiples.size=%zu < in_dims.size=%zu", multiples.size(), in_dims.size());
   auto new_axis_count = multiples.size() - in_dims.size();
   std::vector<loop::BroadcastOp::DimKind> brc_status{new_axis_count, loop::BroadcastOp::DimKind::NEW_AXIS};
   std::deque<size_t> concat_dims;
@@ -370,14 +348,13 @@ graphStatus LowerTile(const NodePtr &node) {
   GE_ASSERT_NOTNULL(in_anchor);
   auto dim = concat_dims[0];
   LOWERING_WARN_RECORD_REASON(dim + new_axis_count < multiples.size(), node,
-                              "multiples index (%zu) out of range (size=%zu)",
-                              dim + new_axis_count, multiples.size());
+                              "multiples index (%zu) out of range (size=%zu)", dim + new_axis_count, multiples.size());
   auto multiple = multiples[dim + new_axis_count];
   auto has_dyn_dim = std::any_of(in_dims.cbegin() + dim, in_dims.cend(),
                                  [](const ge::Expression &dim) -> bool { return (!dim.IsConstExpr()); });
-  LOWERING_WARN_RECORD_REASON(
-    ((!has_dyn_dim) || (static_cast<size_t>(multiple) <= kTileToConcatMaxMultiple)), node,
-    "Too many dynamic inputs: %ld, exceeds max value: %zu", multiple, kTileToConcatMaxMultiple);
+  LOWERING_WARN_RECORD_REASON(((!has_dyn_dim) || (static_cast<size_t>(multiple) <= kTileToConcatMaxMultiple)), node,
+                              "Too many dynamic inputs: %ld, exceeds max value: %zu", multiple,
+                              kTileToConcatMaxMultiple);
   vector<InDataAnchorPtr> inputs(multiple, in_anchor);
   loop::StoreConcat(output_anchor, inputs, dim);
   return GRAPH_SUCCESS;
@@ -393,11 +370,12 @@ graphStatus BroadCastByInDataAnchors(const NodePtr &node, const vector<InDataAnc
     auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
     GE_ASSERT_NOTNULL(desc);
     auto sym_attr = desc->GetAttrsGroup<SymbolicDescAttr>();
-    LOWERING_WARN_RECORD_REASON(sym_attr != nullptr, in_anchor->GetOwnerNode(),
-                                "No symbolic desc attr for node %s", in_anchor->GetOwnerNode()->GetName().c_str());
+    LOWERING_WARN_RECORD_REASON(sym_attr != nullptr, in_anchor->GetOwnerNode(), "No symbolic desc attr for node %s",
+                                in_anchor->GetOwnerNode()->GetName().c_str());
     indices.emplace_back(sym_attr->symbolic_tensor.GetOriginSymbolShape().GetDims());
   }
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS, node, "Failed to imply broadcast input");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS, node,
+                              "Failed to imply broadcast input");
   return GRAPH_SUCCESS;
 }
 
@@ -411,27 +389,42 @@ loop::LoopVar ScalarBroadcast2Size(const std::string &face, ge::DataType dtype, 
 
 using TensorValue = std::variant<float, int8_t, int32_t, uint8_t, int16_t, uint16_t, uint32_t>;
 template <typename Func>
-string ProcessScalarTensor(const vector<ge::Tensor> &tensors, Func&& func) {
+string ProcessScalarTensor(const vector<ge::Tensor> &tensors, Func &&func) {
   GE_ASSERT(!tensors.empty());
   vector<TensorValue> scalar_tensors;
   const ge::DataType dtype = tensors[0].GetDataType();
   for (auto &tensor : tensors) {
     GE_ASSERT(tensor.GetDataType() == dtype);
-    const void* data = tensor.GetData();
+    const void *data = tensor.GetData();
     switch (dtype) {
       case ge::DT_FLOAT16: {
-        const auto raw = *reinterpret_cast<const uint16_t*>(data);
+        const auto raw = *reinterpret_cast<const uint16_t *>(data);
         scalar_tensors.emplace_back(ge::fp16_t(raw).ToFloat());
         break;
       }
-      case ge::DT_FLOAT:   scalar_tensors.emplace_back(*reinterpret_cast<const float*>(data)); break;
-      case ge::DT_INT8:    scalar_tensors.emplace_back(*reinterpret_cast<const int8_t*>(data)); break;
-      case ge::DT_INT32:   scalar_tensors.emplace_back(*reinterpret_cast<const int32_t*>(data)); break;
-      case ge::DT_UINT8:   scalar_tensors.emplace_back(*reinterpret_cast<const uint8_t*>(data)); break;
-      case ge::DT_INT16:   scalar_tensors.emplace_back(*reinterpret_cast<const int16_t*>(data)); break;
-      case ge::DT_UINT16:  scalar_tensors.emplace_back(*reinterpret_cast<const uint16_t*>(data)); break;
-      case ge::DT_UINT32:  scalar_tensors.emplace_back(*reinterpret_cast<const uint32_t*>(data)); break;
-      default: return "";
+      case ge::DT_FLOAT:
+        scalar_tensors.emplace_back(*reinterpret_cast<const float *>(data));
+        break;
+      case ge::DT_INT8:
+        scalar_tensors.emplace_back(*reinterpret_cast<const int8_t *>(data));
+        break;
+      case ge::DT_INT32:
+        scalar_tensors.emplace_back(*reinterpret_cast<const int32_t *>(data));
+        break;
+      case ge::DT_UINT8:
+        scalar_tensors.emplace_back(*reinterpret_cast<const uint8_t *>(data));
+        break;
+      case ge::DT_INT16:
+        scalar_tensors.emplace_back(*reinterpret_cast<const int16_t *>(data));
+        break;
+      case ge::DT_UINT16:
+        scalar_tensors.emplace_back(*reinterpret_cast<const uint16_t *>(data));
+        break;
+      case ge::DT_UINT32:
+        scalar_tensors.emplace_back(*reinterpret_cast<const uint32_t *>(data));
+        break;
+      default:
+        return "";
     }
   }
   return func(scalar_tensors);
@@ -444,24 +437,23 @@ bool IsClose(float a, float b, float rel_tol = 1e-08, float abs_tol = 0.0) {
 template <typename T>
 std::string ToPrecString(T x, int prec = 3) {
   std::ostringstream oss;
-  oss.precision(prec);            // 设置小数点后位数
-  oss  << std::fixed << x;
+  oss.precision(prec);  // 设置小数点后位数
+  oss << std::fixed << x;
   return oss.str();
 }
 
 //  x <= 0 输出 0; x > 0 输出 1;
-loop::LoopVar CalculateOneOrZero(const loop::LoopVar &input, DataType dtype, const std::vector<loop::BroadcastOp::DimKind> &status) {
+loop::LoopVar CalculateOneOrZero(const loop::LoopVar &input, DataType dtype,
+                                 const std::vector<loop::BroadcastOp::DimKind> &status) {
   auto help_min = input;
   auto help_rec_one = input;
   auto help_rec_sec = input;
   if (dtype == DT_FLOAT) {
-    help_min = loop::Scalar(
-        ToPrecString(std::pow(pow_base_two, fp32_help_min_exponent), help_min_precision), dtype);
+    help_min = loop::Scalar(ToPrecString(std::pow(pow_base_two, fp32_help_min_exponent), help_min_precision), dtype);
     help_rec_one = loop::Scalar(ToPrecString(std::pow(pow_base_two, fp32_help_rec_one_exponent)), dtype);
     help_rec_sec = loop::Scalar(ToPrecString(std::pow(pow_base_two, fp32_help_rec_sec_exponent)), dtype);
   } else if (dtype == DT_FLOAT16) {
-    help_min = loop::Scalar(
-        ToPrecString(std::pow(pow_base_two, fp16_help_min_exponent), help_min_precision), dtype);
+    help_min = loop::Scalar(ToPrecString(std::pow(pow_base_two, fp16_help_min_exponent), help_min_precision), dtype);
     help_rec_one = loop::Scalar(ToPrecString(std::pow(pow_base_two, fp16_help_rec_one_exponent)), dtype);
     help_rec_sec = help_rec_one;
   } else if (dtype == DT_INT32) {
@@ -485,7 +477,8 @@ loop::LoopVar CalculateOneOrZero(const loop::LoopVar &input, DataType dtype, con
   return result;
 }
 
-graphStatus ParseSplitNodeAndValidate(const NodePtr &split_node, InDataAnchorPtr &in_data_anchor, int64_t &split_dim, vector<ge::Expression> &x_dims) {
+graphStatus ParseSplitNodeAndValidate(const NodePtr &split_node, InDataAnchorPtr &in_data_anchor, int64_t &split_dim,
+                                      vector<ge::Expression> &x_dims) {
   const auto desc = split_node->GetOpDesc();
   GE_ASSERT_NOTNULL(desc);
   int32_t input_idx = desc->GetInputIndexByName("x");
@@ -497,12 +490,13 @@ graphStatus ParseSplitNodeAndValidate(const NodePtr &split_node, InDataAnchorPtr
   GE_ASSERT_TRUE(!x_dims.empty());
   vector<int64_t> split_dim_list = {};
   LOWERING_WARN_RECORD_REASON(
-    AutofuseUtils::GetListIntByInputOrAttr(split_node, split_dim_list, "split_dim", "split_dim") == GRAPH_SUCCESS,
-    split_node, "Failed to get split_dim by input or attr");
+      AutofuseUtils::GetListIntByInputOrAttr(split_node, split_dim_list, "split_dim", "split_dim") == GRAPH_SUCCESS,
+      split_node, "Failed to get split_dim by input or attr");
   GE_ASSERT_TRUE(!split_dim_list.empty());
   split_dim = split_dim_list[0];
-  GE_ASSERT_TRUE((split_dim < static_cast<int64_t>(x_dims.size())) && (split_dim >= -static_cast<int64_t>(x_dims.size())),
-                 "Split dim %ld must in rank range[-%zu, %zu).", split_dim, x_dims.size(), x_dims.size());
+  GE_ASSERT_TRUE(
+      (split_dim < static_cast<int64_t>(x_dims.size())) && (split_dim >= -static_cast<int64_t>(x_dims.size())),
+      "Split dim %ld must in rank range[-%zu, %zu).", split_dim, x_dims.size(), x_dims.size());
   if (split_dim < 0) {
     split_dim += static_cast<int64_t>(x_dims.size());
   }
@@ -514,15 +508,15 @@ graphStatus ParseSplitNodeAndValidate(const NodePtr &split_node, InDataAnchorPtr
 graphStatus ComputeSplitSplits(const NodePtr &node, const Expression &x_dim, vector<Expression> &size_splits) {
   vector<int64_t> num_split_list = {};
   LOWERING_WARN_RECORD_REASON(
-    AutofuseUtils::GetListIntByInputOrAttr(node, num_split_list, "num_split", "num_split") == GRAPH_SUCCESS,
-    node, "Failed to get num_split.");
+      AutofuseUtils::GetListIntByInputOrAttr(node, num_split_list, "num_split", "num_split") == GRAPH_SUCCESS, node,
+      "Failed to get num_split.");
   LOWERING_WARN_RECORD_REASON(!num_split_list.empty(), node, "num_split_list is empty");
 
   vector<int64_t> size_splits_list = {};
   if (node->GetType() == AF_SPLITVD || node->GetType() == AF_SPLITV) {
     LOWERING_WARN_RECORD_REASON(
-      AutofuseUtils::GetListIntByInputOrAttr(node, size_splits_list, "size_splits", "size_splits") == GRAPH_SUCCESS,
-      node, "Failed to get size_splits .");
+        AutofuseUtils::GetListIntByInputOrAttr(node, size_splits_list, "size_splits", "size_splits") == GRAPH_SUCCESS,
+        node, "Failed to get size_splits .");
     LOWERING_WARN_RECORD_REASON(!size_splits_list.empty(), node, "size_splits_list is empty");
     for (size_t i = 0U; i < size_splits_list.size(); ++i) {
       size_splits.push_back(Symbol(size_splits_list[i]));
@@ -549,8 +543,8 @@ bool CheckEndDimHasOne(const NodePtr &node) {
   return false;
 }
 
-graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expression> &x_dims,
-                                     int64_t &split_dim, const InDataAnchorPtr &x_anchor) {
+graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expression> &x_dims, int64_t &split_dim,
+                                      const InDataAnchorPtr &x_anchor) {
   GELOGI("Start lowering split node %s as StridedSlices", node->GetName().c_str());
   vector<Expression> start;
   vector<Expression> stride;
@@ -587,7 +581,7 @@ graphStatus LowerSplitToStridedSlices(const NodePtr &node, const vector<Expressi
 
 bool InputIsConditionNode(const NodePtr &node) {
   bool node_peerin_node_is_branch = false;
-  for (auto in_node : node->GetInNodesPtr()) {  
+  for (auto in_node : node->GetInNodesPtr()) {
     GE_ASSERT_NOTNULL(in_node);
     if (find(kControlOpTypes.begin(), kControlOpTypes.end(), in_node->GetType()) != kControlOpTypes.end()) {
       node_peerin_node_is_branch = true;
@@ -598,14 +592,18 @@ bool InputIsConditionNode(const NodePtr &node) {
   return node_peerin_node_is_branch;
 }
 
-graphStatus LowerSplitToNormalSplit(const NodePtr &node, std::vector<ge::Expression> &x_dims, int64_t split_dim, const InDataAnchorPtr &x_anchor) {
+graphStatus LowerSplitToNormalSplit(const NodePtr &node, std::vector<ge::Expression> &x_dims, int64_t split_dim,
+                                    const InDataAnchorPtr &x_anchor) {
   GELOGI("Start lowering split node %s as normal split.", node->GetNamePtr());
   LOWERING_WARN_RECORD_REASON(!InputIsConditionNode(node), node, "Input is condition node.");
-  LOWERING_WARN_RECORD_REASON((node->GetAllOutDataAnchorsSize() < loop::StoreSplitOp::kSplitCanFuseMaxOutput),
-                              node, "Split node outdata anchors size exceed kSplitCanFuseMaxOutput %zu", loop::StoreSplitOp::kSplitCanFuseMaxOutput);
-  if ((x_dims.size() != 1U) && (static_cast<uint32_t>(split_dim) == (x_dims.size() - 1))
-      && (CheckEndDimHasOne(node) == true) && (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput)) {
-    LOWERING_WARN_RECORD_REASON(false, node, "Split node meet (1) x_dims size is not 1,(2) end dim has one,"
+  LOWERING_WARN_RECORD_REASON((node->GetAllOutDataAnchorsSize() < loop::StoreSplitOp::kSplitCanFuseMaxOutput), node,
+                              "Split node outdata anchors size exceed kSplitCanFuseMaxOutput %zu",
+                              loop::StoreSplitOp::kSplitCanFuseMaxOutput);
+  if ((x_dims.size() != 1U) && (static_cast<uint32_t>(split_dim) == (x_dims.size() - 1)) &&
+      (CheckEndDimHasOne(node) == true) &&
+      (node->GetAllOutDataAnchorsSize() > loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput)) {
+    LOWERING_WARN_RECORD_REASON(false, node,
+                                "Split node meet (1) x_dims size is not 1,(2) end dim has one,"
                                 "(3) node outdata anchors size exceed kSplitCanLowerEndDimMaxOutput %zu",
                                 loop::StoreSplitOp::kSplitCanLowerEndDimMaxOutput);
   }
@@ -620,7 +618,6 @@ graphStatus LowerSplitToNormalSplit(const NodePtr &node, std::vector<ge::Express
   return GRAPH_SUCCESS;
 }
 }  // namespace
-
 
 graphStatus Broadcast(const std::vector<loop::Index> &indices, loop::Index &broadcasted) {
   GE_ASSERT(!indices.empty());
@@ -734,7 +731,7 @@ graphStatus LowerReduction(const NodePtr &node, loop::ReduceType reduce_type) {
   const auto out_anchor = node->GetOutDataAnchor(0);
   std::vector<Expression> dst_dims;
   LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(out_anchor, dst_dims) == GRAPH_SUCCESS, node,
-                              "Output %s has no sym shape",	loop::BufferName(out_anchor).c_str());
+                              "Output %s has no sym shape", loop::BufferName(out_anchor).c_str());
   vector<size_t> reduce_axes_u;
   for (auto reduce_dim : reduce_axes) {
     if (reduce_dim < 0) {
@@ -742,17 +739,16 @@ graphStatus LowerReduction(const NodePtr &node, loop::ReduceType reduce_type) {
                                   "Reduce axis %ld over rank %zu", reduce_dim, src_dims.size());
       reduce_dim += static_cast<int64_t>(src_dims.size());
     }
-    LOWERING_WARN_RECORD_REASON(
-      reduce_dim >= 0 && static_cast<size_t>(reduce_dim) < src_dims.size(), node,
-      "Reduce axis %ld must >=0 and within rank %zu", reduce_dim, src_dims.size());
+    LOWERING_WARN_RECORD_REASON(reduce_dim >= 0 && static_cast<size_t>(reduce_dim) < src_dims.size(), node,
+                                "Reduce axis %ld must >=0 and within rank %zu", reduce_dim, src_dims.size());
     reduce_axes_u.emplace_back(static_cast<size_t>(reduce_dim));
   }
 
   // 检查是否需要跳过lowering：当输入tensor的dim>1，并且尾轴和倒数第二个轴不同时为A轴或者R轴
   // 判断尾轴大小乘以dtypesize < 64时，返回true（跳过lowering）
   // 调用函数内未调用记录宏，故此处需要
-  LOWERING_WARN_RECORD_REASON(
-    !ShouldSkipLoweringForSmallLastAxis(node, src_dims, reduce_axes_u, reduce_anchor), node, "Last axis is too small");
+  LOWERING_WARN_RECORD_REASON(!ShouldSkipLoweringForSmallLastAxis(node, src_dims, reduce_axes_u, reduce_anchor), node,
+                              "Last axis is too small");
 
   (void)loop::StoreReduction(reduce_type, out_anchor, loop::Load(reduce_anchor), src_dims, reduce_axes_u);
   return GRAPH_SUCCESS;
@@ -762,12 +758,13 @@ graphStatus LowerSlice(const NodePtr &node) {
   const auto x_anchor = node->GetInDataAnchor(0);
   GE_ASSERT_NOTNULL(x_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS, node, "Failed to get 0-th input symbol");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0-th input symbol");
   GE_ASSERT(!x_dims.empty());
   vector<int64_t> offsets = {};
   LOWERING_WARN_RECORD_REASON(
-    AutofuseUtils::GetListIntByInputOrAttr(node, offsets, "offsets", "offsets") == GRAPH_SUCCESS,
-    node, "Failed to get offsets.");
+      AutofuseUtils::GetListIntByInputOrAttr(node, offsets, "offsets", "offsets") == GRAPH_SUCCESS, node,
+      "Failed to get offsets.");
   LOWERING_WARN_RECORD_REASON(!offsets.empty(), node, "Offset is empty.");
   vector<Expression> start;
   vector<Expression> stride;
@@ -790,7 +787,7 @@ graphStatus ConvertToDirectLoad(const NodePtr &node) {
   auto x = loop::Load(x_anchor);
   loop::Store(node->GetOutDataAnchor(0), x);
   GELOGI("Stridedslice node: %s lowered to direct load store", node->GetNamePtr());
-  (void) AttrUtils::SetBool(node->GetOpDesc(), "_disable_lifting", true);
+  (void)AttrUtils::SetBool(node->GetOpDesc(), "_disable_lifting", true);
   return GRAPH_SUCCESS;
 }
 
@@ -818,20 +815,24 @@ graphStatus LowerStridedSlice(const NodePtr &node) {
   const auto x_anchor = node->GetInDataAnchor(0);
   GE_ASSERT_NOTNULL(x_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS, node, "Failed to get 0th-input symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape");
   GE_ASSERT(!x_dims.empty());
   bool is_redundant_node = IsRedundantNode(node, x_dims);
   if (is_redundant_node) {
-    LOWERING_WARN_RECORD_REASON(ConvertToDirectLoad(node) == GRAPH_SUCCESS, node, "Failed to convert to direct load when this node is redundant.");
+    LOWERING_WARN_RECORD_REASON(ConvertToDirectLoad(node) == GRAPH_SUCCESS, node,
+                                "Failed to convert to direct load when this node is redundant.");
     return GRAPH_SUCCESS;
   }
   vector<int64_t> begin_list = {};
   vector<int64_t> stride_list = {};
-  LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, begin_list, "begin", "begin") == GRAPH_SUCCESS,
-                              node, "Failed to get begin.");
+  LOWERING_WARN_RECORD_REASON(
+      AutofuseUtils::GetListIntByInputOrAttr(node, begin_list, "begin", "begin") == GRAPH_SUCCESS, node,
+      "Failed to get begin.");
   GE_ASSERT(!begin_list.empty());
-  LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, stride_list, "strides", "strides") == GRAPH_SUCCESS,
-                              node, "Failed to get strides.");
+  LOWERING_WARN_RECORD_REASON(
+      AutofuseUtils::GetListIntByInputOrAttr(node, stride_list, "strides", "strides") == GRAPH_SUCCESS, node,
+      "Failed to get strides.");
   GE_ASSERT(!stride_list.empty());
   StridedSliceMaskAttr mask_attr;
   StrdedSliceIndexInputs index_input;
@@ -843,17 +844,16 @@ graphStatus LowerStridedSlice(const NodePtr &node) {
 
   auto stride_list_end_index = stride_list.size() - 1;
   LOWERING_WARN_RECORD_REASON(stride_list[stride_list_end_index] == 1, node,
-                              "The end stride is %ld, it must be equal to one.",
-                              stride_list[stride_list_end_index]);
+                              "The end stride is %ld, it must be equal to one.", stride_list[stride_list_end_index]);
 
   for (size_t i = 0; i < begin_list.size(); ++i) {
     LOWERING_WARN_RECORD_REASON(stride_list[i] >= 0, node,
-      "The value stride is %ld, it must be greater than or equal to zero.",	stride_list[i]);
+                                "The value stride is %ld, it must be greater than or equal to zero.", stride_list[i]);
     index_input.start_indexes.push_back(begin_list[i] >= 0 ? Symbol(begin_list[i]) : Symbol(begin_list[i]) + x_dims[i]);
     index_input.strides_indexes.push_back(Symbol(stride_list[i]));
   }
   LOWERING_WARN_RECORD_REASON(InferShapeStridedSlice(x_dims, mask_attr, index_input) == GRAPH_SUCCESS, node,
-    "Failed to InferShapeStridedSlice, please see stridedslice.cpp log");
+                              "Failed to InferShapeStridedSlice, please see stridedslice.cpp log");
   string not_lowering_reason;
   auto stride_slice = loop::StoreStridedSlice(node->GetOutDataAnchor(0), x_anchor, index_input.start_indexes,
                                               index_input.strides_indexes, x_dims, not_lowering_reason);
@@ -866,7 +866,8 @@ graphStatus LowerSplit(const NodePtr &node) {
   int64_t split_dim = 0L;
   InDataAnchorPtr x_anchor;
   vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON(ParseSplitNodeAndValidate(node, x_anchor, split_dim, x_dims) == GRAPH_SUCCESS, node, "Faile to ParseSplitNodeAndValidate");
+  LOWERING_WARN_RECORD_REASON(ParseSplitNodeAndValidate(node, x_anchor, split_dim, x_dims) == GRAPH_SUCCESS, node,
+                              "Faile to ParseSplitNodeAndValidate");
   const auto backend_spec = optimize::BackendSpec::GetInstance();
   if (split_dim < 0) {
     split_dim += static_cast<int64_t>(x_dims.size());
@@ -887,8 +888,9 @@ graphStatus LowerGather(const NodePtr &node) {
   ge::AttrUtils::GetInt(gather_op_desc, "_op_impl_mode_enum", op_impl_mode);
   ge::AttrUtils::GetInt(gather_op_desc, "batch_dims", batch_dims);
   ge::AttrUtils::GetBool(gather_op_desc, "negative_index_support", negative_index_support);
-  LOWERING_WARN_RECORD_REASON(negative_index_support == false || op_impl_mode != gather_mode_two,
-    node, "Gather with negative_index_support must be in high_precision mode, not high_performance mode");
+  LOWERING_WARN_RECORD_REASON(
+      negative_index_support == false || op_impl_mode != gather_mode_two, node,
+      "Gather with negative_index_support must be in high_precision mode, not high_performance mode");
   LOWERING_WARN_RECORD_REASON(op_impl_mode != gather_mode_two, node, "Gather is in high_performance mode");
   LOWERING_WARN_RECORD_REASON(batch_dims == 0, node, "Batch dims is not 0");
   std::vector<Expression> dims;
@@ -901,35 +903,40 @@ graphStatus LowerGather(const NodePtr &node) {
   }
 
   if (input_nums == gather_data_num_two) {  // lowering for Gather
-    auto loop_var = loop::GatherLoad(node->GetOutDataAnchor(0), node->GetInDataAnchor(0), node->GetInDataAnchor(1), 0, negative_index_support);
+    auto loop_var = loop::GatherLoad(node->GetOutDataAnchor(0), node->GetInDataAnchor(0), node->GetInDataAnchor(1), 0,
+                                     negative_index_support);
     (void)loop::Store(node->GetOutDataAnchor(0), loop_var).Realize();
   } else if (input_nums == gather_data_num_three) {  // lowering for GatherV2
     auto node_axis = node->GetInDataAnchor(2)->GetPeerOutAnchor();
     auto node_type = node_axis->GetOwnerNode()->GetOpDesc()->GetType();
-    LOWERING_WARN_RECORD_REASON(((node_axis != nullptr) && (OpTypeUtils::IsConstNode(node_type))), node, "Axis is not a CONSTANT input");
+    LOWERING_WARN_RECORD_REASON(((node_axis != nullptr) && (OpTypeUtils::IsConstNode(node_type))), node,
+                                "Axis is not a CONSTANT input");
 
     vector<int64_t> axis = {};
-    LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, axis, "axis", "axis") == GRAPH_SUCCESS, node, "Get axis failed");
+    LOWERING_WARN_RECORD_REASON(AutofuseUtils::GetListIntByInputOrAttr(node, axis, "axis", "axis") == GRAPH_SUCCESS,
+                                node, "Get axis failed");
     LOWERING_WARN_RECORD_REASON(!axis.empty(), node, "Axis is empty.");
 
     std::vector<Expression> params_dims;
-    LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), params_dims) == GRAPH_SUCCESS, node, "Failed to get 0-th input symbol");
+    LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), params_dims) == GRAPH_SUCCESS, node,
+                                "Failed to get 0-th input symbol");
     axis[0] = axis[0] < 0 ? axis[0] + static_cast<int64_t>(params_dims.size()) : axis[0];
     LOWERING_WARN_RECORD_REASON(axis[0] >= 0 && axis[0] < static_cast<int64_t>(params_dims.size()), node,
-      "Axis %ld must in dim range [0, %zu)", axis[0], params_dims.size());
+                                "Axis %ld must in dim range [0, %zu)", axis[0], params_dims.size());
     const auto backend_spec = optimize::BackendSpec::GetInstance();
     GE_CHECK_NOTNULL(backend_spec);
-    LOWERING_WARN_RECORD_REASON(backend_spec->gather_spec.enable_non_tail_gather || axis[0] + 1 == static_cast<int64_t>(params_dims.size()),
-      node, "Is not last dim gather");
-    auto loop_var =
-        loop::GatherLoad(node->GetOutDataAnchor(0), node->GetInDataAnchor(0), node->GetInDataAnchor(1), axis[0], negative_index_support);       
+    LOWERING_WARN_RECORD_REASON(
+        backend_spec->gather_spec.enable_non_tail_gather || axis[0] + 1 == static_cast<int64_t>(params_dims.size()),
+        node, "Is not last dim gather");
+    auto loop_var = loop::GatherLoad(node->GetOutDataAnchor(0), node->GetInDataAnchor(0), node->GetInDataAnchor(1),
+                                     axis[0], negative_index_support);
     (void)loop::Store(node->GetOutDataAnchor(0), loop_var).Realize();
   }
   return GRAPH_SUCCESS;
 }
 
 bool IsPermSupported(const Permutation &perm, uint32_t transpose_mode) {
-  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) { // 1:非normal模式
+  if (transpose_mode == static_cast<uint32_t>(optimize::TransposeMode::TRANSPOSE_MODE_UNNORMAL)) {  // 1:非normal模式
     // 先直接判断是否小于等于5维，后续添加合轴后的维度判断
     return perm.size() <= transpose_five_perms;
   }
@@ -949,8 +956,8 @@ graphStatus GetTransposePerms(const NodePtr &node, std::vector<int64_t> &perm) {
   if (!AttrUtils::GetListInt(node->GetOpDesc(), "perm", perm)) {
     const auto op = ge::OpDescUtils::CreateOperatorFromNode(node);
     ge::Tensor perm_tensor;
-    LOWERING_WARN_RECORD_REASON(op.GetInputConstData("perm", perm_tensor) == ge::SUCCESS,
-      node, "Failed to get perm dim");
+    LOWERING_WARN_RECORD_REASON(op.GetInputConstData("perm", perm_tensor) == ge::SUCCESS, node,
+                                "Failed to get perm dim");
 
     const std::vector<int64_t> dims = perm_tensor.GetTensorDesc().GetShape().GetDims();
     LOWERING_WARN_RECORD_REASON(dims.size() == 1U, node, "Perm dims(%zu) is not 1.", dims.size());
@@ -972,12 +979,12 @@ graphStatus GetTransposePerms(const NodePtr &node, std::vector<int64_t> &perm) {
   return GRAPH_SUCCESS;
 }
 
-
 graphStatus LowerTranspose(const NodePtr &node) {
-  //暂时添加环境变量控制是否启用
-  LOWERING_WARN_RECORD_REASON(ge::AutoFuseConfig::LoweringConfig().experimental_lowering_transpose,
-    node, "Transpose pass is not on, you can enable it by setting AUTOFUSE_FLAGS=\"--autofuse_enable_pass=transpose\""
-          " and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=transpose\"");
+  // 暂时添加环境变量控制是否启用
+  LOWERING_WARN_RECORD_REASON(
+      ge::AutoFuseConfig::LoweringConfig().experimental_lowering_transpose, node,
+      "Transpose pass is not on, you can enable it by setting AUTOFUSE_FLAGS=\"--autofuse_enable_pass=transpose\""
+      " and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=transpose\"");
 
   const auto x_anchor = node->GetInDataAnchor(0);
   GE_ASSERT_NOTNULL(x_anchor);
@@ -986,12 +993,12 @@ graphStatus LowerTranspose(const NodePtr &node) {
     loop::GetKernelBox(src).Realize();
   }
   std::vector<ge::Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
   const ge::DataType input_dtype = desc->GetDataType();
-  LOWERING_WARN_RECORD_REASON(((input_dtype == DT_FLOAT16) || (input_dtype == DT_FLOAT)),
- 	                            node, "Input dtype is not float32 or float16, skip lowering");
+  LOWERING_WARN_RECORD_REASON(((input_dtype == DT_FLOAT16) || (input_dtype == DT_FLOAT)), node,
+                              "Input dtype is not float32 or float16, skip lowering");
 
   auto x = loop::Load(node->GetInDataAnchor(0));
   std::vector<int64_t> perm;
@@ -1004,8 +1011,8 @@ graphStatus LowerTranspose(const NodePtr &node) {
   const auto backend_spec = optimize::BackendSpec::GetInstance();
   GE_CHECK_NOTNULL(backend_spec);
   uint32_t transpose_mode = backend_spec->transpose_mode;
-  LOWERING_WARN_RECORD_REASON(IsPermSupported(perm, transpose_mode) == true,
-    node, "Dims or perm is not supported, not lowering");
+  LOWERING_WARN_RECORD_REASON(IsPermSupported(perm, transpose_mode) == true, node,
+                              "Dims or perm is not supported, not lowering");
   x = loop::Transpose(x, dims, perm);
   loop::Store(node->GetOutDataAnchor(0), x).Realize();
   return GRAPH_SUCCESS;
@@ -1017,34 +1024,34 @@ graphStatus TryLowerBatchMatMulToVector(const NodePtr &node, const MatMulAttr &m
   GE_ASSERT_NOTNULL(x_anchor);
   GE_ASSERT_NOTNULL(y_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS), node, "Failed to get 0-th input symbol");
+  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS), node,
+                              "Failed to get 0-th input symbol");
   LOWERING_WARN_RECORD_REASON((x_dims.size() == 3U), node, "BatchMatMulV2 input x must be 3D");
   std::vector<ge::Expression> y_dims;
-  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(y_anchor, y_dims) == GRAPH_SUCCESS), node, "Failed to get 1-th input symbol");
+  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(y_anchor, y_dims) == GRAPH_SUCCESS), node,
+                              "Failed to get 1-th input symbol");
   LOWERING_WARN_RECORD_REASON((y_dims.size() == 3U), node, "BatchMatMulV2 input y must be 3D");
-  LOWERING_WARN_RECORD_REASON((node->GetInDataNodesAndAnchors().size() == 2U),
-    node, "Has optional inputs when trying to lowering to reduce.");
+  LOWERING_WARN_RECORD_REASON((node->GetInDataNodesAndAnchors().size() == 2U), node,
+                              "Has optional inputs when trying to lowering to reduce.");
 
   bool transpose_a = matmul_attr.adj_x1 || matmul_attr.transpose_x1;
   bool transpose_b = matmul_attr.adj_x2 || matmul_attr.transpose_x2;
-  LOWERING_WARN_RECORD_REASON(!transpose_a, node,
-    "Input x1 transposed when trying to lowering to reduce.");
+  LOWERING_WARN_RECORD_REASON(!transpose_a, node, "Input x1 transposed when trying to lowering to reduce.");
   int32_t offset = static_cast<int32_t>(matmul_attr.offset_x);
-  LOWERING_WARN_RECORD_REASON((offset == 0), node,
-    "Offset %d not 0 when trying to lowering to reduce.", offset);
+  LOWERING_WARN_RECORD_REASON((offset == 0), node, "Offset %d not 0 when trying to lowering to reduce.", offset);
   y_dims = transpose_b ? std::vector<ge::Expression>{y_dims[0], y_dims[2], y_dims[1]} : y_dims;
   const auto &batch_size = x_dims[0];
   const auto &m_size = x_dims[1];
   const auto &k_size = y_dims[1];
   const auto &n_size = y_dims[2];
-  LOWERING_WARN_RECORD_REASON(EXPECT_SYMBOL_EQ(Symbol(1), n_size),
-    node, "n %s is not 1 when trying to lowering to reduce.", n_size.Str().get());
+  LOWERING_WARN_RECORD_REASON(EXPECT_SYMBOL_EQ(Symbol(1), n_size), node,
+                              "n %s is not 1 when trying to lowering to reduce.", n_size.Str().get());
   int64_t const_k = 0U;
-  LOWERING_WARN_RECORD_REASON(k_size.GetConstValue(const_k),
-    node, "k %s not const when trying to lowering to reduce.", k_size.Str().get());
+  LOWERING_WARN_RECORD_REASON(k_size.GetConstValue(const_k), node, "k %s not const when trying to lowering to reduce.",
+                              k_size.Str().get());
   const int64_t max_k = AutoFuseConfig::LoweringConfig().max_k_for_vectorize_mm;
-  LOWERING_WARN_RECORD_REASON((const_k <= max_k), node,
-    "k %ld > %ld when trying to lowering to reduce.", const_k, max_k);
+  LOWERING_WARN_RECORD_REASON((const_k <= max_k), node, "k %ld > %ld when trying to lowering to reduce.", const_k,
+                              max_k);
 
   // [BS, M, K] * [BS, K, 1] -> [BS, M, 1]
   auto x = loop::Load(x_anchor);
@@ -1068,15 +1075,15 @@ graphStatus TryLowerMatMulToVector(const NodePtr &node, const MatMulAttr &matmul
   GE_ASSERT_NOTNULL(x_anchor);
   GE_ASSERT_NOTNULL(y_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS),
-    node, "Failed to get 0-th input symbol");
+  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(x_anchor, x_dims) == GRAPH_SUCCESS), node,
+                              "Failed to get 0-th input symbol");
   LOWERING_WARN_RECORD_REASON((x_dims.size() == 2U), node, "MatMulV2 input x must be 2D");
   std::vector<ge::Expression> y_dims;
-  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(y_anchor, y_dims) == GRAPH_SUCCESS),
-    node, "Failed to get 1-th input symbol");
+  LOWERING_WARN_RECORD_REASON((loop::GetBufferShape(y_anchor, y_dims) == GRAPH_SUCCESS), node,
+                              "Failed to get 1-th input symbol");
   LOWERING_WARN_RECORD_REASON((y_dims.size() == 2U), node, "MatMulV2 input y must be 2D");
-  LOWERING_WARN_RECORD_REASON((node->GetInDataNodesAndAnchors().size() == 2U),
-    node, "Has optional inputs when trying to lowering to reduce.");
+  LOWERING_WARN_RECORD_REASON((node->GetInDataNodesAndAnchors().size() == 2U), node,
+                              "Has optional inputs when trying to lowering to reduce.");
 
   bool transpose_a = matmul_attr.adj_x1 || matmul_attr.transpose_x1;
   bool transpose_b = matmul_attr.adj_x2 || matmul_attr.transpose_x2;
@@ -1088,13 +1095,13 @@ graphStatus TryLowerMatMulToVector(const NodePtr &node, const MatMulAttr &matmul
   const auto &k_size = y_dims[0];
   const auto &n_size = y_dims[1];
   LOWERING_WARN_RECORD_REASON(EXPECT_SYMBOL_EQ(Symbol(1), n_size), node,
-    "n %s is not 1 when trying to lowering to reduce.", n_size.Str().get());
+                              "n %s is not 1 when trying to lowering to reduce.", n_size.Str().get());
   int64_t const_k = 0U;
-  LOWERING_WARN_RECORD_REASON(k_size.GetConstValue(const_k), node,
-    "k %s not const when trying to lowering to reduce.", k_size.Str().get());
+  LOWERING_WARN_RECORD_REASON(k_size.GetConstValue(const_k), node, "k %s not const when trying to lowering to reduce.",
+                              k_size.Str().get());
   const int64_t max_k = AutoFuseConfig::LoweringConfig().max_k_for_vectorize_mm;
-  LOWERING_WARN_RECORD_REASON((const_k <= max_k),
-    node, "k %ld > %ld when trying to lowering to reduce.", const_k, max_k);
+  LOWERING_WARN_RECORD_REASON((const_k <= max_k), node, "k %ld > %ld when trying to lowering to reduce.", const_k,
+                              max_k);
 
   // [M, K] * [K, 1] -> [M, 1]
   auto x = loop::Load(x_anchor);
@@ -1107,8 +1114,7 @@ graphStatus TryLowerMatMulToVector(const NodePtr &node, const MatMulAttr &matmul
     loop::Store(node->GetOutDataAnchor(0), z);
     return GRAPH_SUCCESS;
   }
-  loop::StoreReduction(loop::ReduceType::SUM, node->GetOutDataAnchor(0), z, {m_size, k_size},
-                       {1});  // [M, K] -> [M, 1]
+  loop::StoreReduction(loop::ReduceType::SUM, node->GetOutDataAnchor(0), z, {m_size, k_size}, {1});  // [M, K] -> [M, 1]
   return GRAPH_SUCCESS;
 }
 
@@ -1205,7 +1211,8 @@ graphStatus GetConv2DDims(const NodePtr &node, const ge::InDataAnchorPtr &x_anch
   std::vector<Expression> x_dims;
   std::vector<Expression> w_dims;
   auto ret = loop::GetBufferShape(x_anchor, x_dims);
-  LOWERING_WARN_RECORD_REASON(ret == GRAPH_SUCCESS, node, "Failed to get input x shape for node %s", node->GetNamePtr());
+  LOWERING_WARN_RECORD_REASON(ret == GRAPH_SUCCESS, node, "Failed to get input x shape for node %s",
+                              node->GetNamePtr());
   LOWERING_WARN_RECORD_REASON(x_dims.size() == 4U, node, "Conv2D input x must be 4D for node %s", node->GetNamePtr());
 
   ret = loop::GetBufferShape(w_anchor, w_dims);
@@ -1268,19 +1275,13 @@ graphStatus LowerConv2D(const NodePtr &node) {
 
   auto inputs = CollectConv2DInputs(node);
 
-  GELOGI("Conv2D lowering: output_dtype=%s, strides=[%s], pads=[%s], dilations=[%s], "
-         "groups=%ld, data_format=%s, offset_x=%ld, pad_mode=%s, enable_hf32=%d, has_bias=%d, has_offset_w=%d",
-         TypeUtils::DataTypeToSerialString(conv2d_attr.output_dtype).c_str(),
-         loop::StrJoin(conv2d_attr.strides).c_str(),
-         loop::StrJoin(conv2d_attr.pads).c_str(),
-         loop::StrJoin(conv2d_attr.dilations).c_str(),
-         conv2d_attr.groups,
-         conv2d_attr.data_format.c_str(),
-         conv2d_attr.offset_x,
-         conv2d_attr.pad_mode.c_str(),
-         conv2d_attr.enable_hf32,
-         conv2d_attr.has_bias,
-         conv2d_attr.has_offset_w);
+  GELOGI(
+      "Conv2D lowering: output_dtype=%s, strides=[%s], pads=[%s], dilations=[%s], "
+      "groups=%ld, data_format=%s, offset_x=%ld, pad_mode=%s, enable_hf32=%d, has_bias=%d, has_offset_w=%d",
+      TypeUtils::DataTypeToSerialString(conv2d_attr.output_dtype).c_str(), loop::StrJoin(conv2d_attr.strides).c_str(),
+      loop::StrJoin(conv2d_attr.pads).c_str(), loop::StrJoin(conv2d_attr.dilations).c_str(), conv2d_attr.groups,
+      conv2d_attr.data_format.c_str(), conv2d_attr.offset_x, conv2d_attr.pad_mode.c_str(), conv2d_attr.enable_hf32,
+      conv2d_attr.has_bias, conv2d_attr.has_offset_w);
 
   auto kernel_box = loop::StoreConv2D(node->GetOutDataAnchor(0), inputs, conv2d_attr);
   return GRAPH_SUCCESS;
@@ -1386,12 +1387,12 @@ REGISTER_LOWERING(ClipByValue) {
   std::vector<Expression> input_tensor_dims;
   std::vector<Expression> clip_value_min_dims;
   std::vector<Expression> clip_value_max_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_tensor, input_tensor_dims) == GRAPH_SUCCESS,
-    node, "Failed to get input_tensor symbol shape.");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(clip_value_min, clip_value_min_dims) == GRAPH_SUCCESS,
-    node, "Failed to get clip_value_min shape.");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(clip_value_max, clip_value_max_dims) == GRAPH_SUCCESS,
-    node, "Failed to get clip_value_max shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_tensor, input_tensor_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get input_tensor symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(clip_value_min, clip_value_min_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get clip_value_min shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(clip_value_max, clip_value_max_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get clip_value_max shape.");
 
   auto UnsqueezeToMatchRank = [&](loop::LoopVar tensor, std::vector<Expression> &dims) {
     if (dims.size() < input_tensor_dims.size()) {
@@ -1427,8 +1428,7 @@ REGISTER_LOWERING(BiasAdd) {
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get 0th-input shape.");
   std::string data_format;
   GE_ASSERT(AttrUtils::GetStr(node->GetOpDesc(), "data_format", data_format));
 
@@ -1457,8 +1457,9 @@ REGISTER_LOWERING(ZerosLike) {
   LOWERING_WARN_RECORD_REASON(node->GetOutNodesSize() == 1U, node, "Node single out anchor has multi-reference");
   auto after_node = node->GetOutNodes().at(0);
   GE_ASSERT_NOTNULL(after_node);
-  LOWERING_WARN_RECORD_REASON(find(reduce_types.begin(), reduce_types.end(), after_node->GetType()) == reduce_types.end(),
-    node, "After node is reduce type, fuse them is meaningless");
+  LOWERING_WARN_RECORD_REASON(
+      find(reduce_types.begin(), reduce_types.end(), after_node->GetType()) == reduce_types.end(), node,
+      "After node is reduce type, fuse them is meaningless");
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
@@ -1468,8 +1469,7 @@ REGISTER_LOWERING(ZerosLike) {
   GE_ASSERT_NOTNULL(desc);
   auto dtype = desc->GetDataType();
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get input shape.");
 
   loop::LoopVar scalar_var = loop::Scalar("0", dtype);
   std::vector<loop::BroadcastOp::DimKind> status(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
@@ -1499,20 +1499,21 @@ REGISTER_LOWERING(SigmoidGrad) {
 REGISTER_LOWERING(Fill) {
   auto after_node = node->GetOutNodes().at(0);
   GE_ASSERT_NOTNULL(after_node);
-  LOWERING_WARN_RECORD_REASON(find(reduce_types.begin(), reduce_types.end(), after_node->GetType()) == reduce_types.end(),
-    node, "After node is reduce type, fuse them is meaningless");
+  LOWERING_WARN_RECORD_REASON(
+      find(reduce_types.begin(), reduce_types.end(), after_node->GetType()) == reduce_types.end(), node,
+      "After node is reduce type, fuse them is meaningless");
   std::vector<loop::Index> indices;
   std::vector<Expression> src_dims;
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(1));
   auto src = node->GetInDataAnchor(1)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, src_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 1-input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, src_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 1-input shape.");
   indices.emplace_back(src_dims);
 
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), dims) == GRAPH_SUCCESS,
-    node, "Failed to get output shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), dims) == GRAPH_SUCCESS, node,
+                              "Failed to get output shape.");
   indices.emplace_back(dims);
   loop::Index broadcast;
   LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS, node, "Failed to do broadcast.");
@@ -1533,8 +1534,8 @@ REGISTER_LOWERING(AddN) {
     LOWERING_WARN_RECORD_REASON(sym_attr != nullptr, node, "No symbolic desc attr.");
     indices.emplace_back(sym_attr->symbolic_tensor.GetOriginSymbolShape().GetDims());
   }
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS,
-    node, "Failed to imply input broadcast");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS, node,
+                              "Failed to imply input broadcast");
 
   auto sum = loop::Broadcast(loop::Load(node->GetInDataAnchor(0)), indices[0], broadcasted);
   for (size_t i = 1U; i < node->GetAllInDataAnchorsSize(); i++) {
@@ -1563,8 +1564,7 @@ REGISTER_LOWERING(Cast) {
   auto x = loop::Load(node->GetInDataAnchor(0));
   int32_t data_type = 0;
   GE_ASSERT_TRUE(ge::AttrUtils::GetInt(node->GetOpDesc(), "dst_type", data_type));
-  LOWERING_WARN_RECORD_REASON(static_cast<ge::DataType>(data_type) != ge::DT_BOOL,
-    node, "Dst type no support bool.");
+  LOWERING_WARN_RECORD_REASON(static_cast<ge::DataType>(data_type) != ge::DT_BOOL, node, "Dst type no support bool.");
   loop::Store(node->GetOutDataAnchor(0), loop::Cast(x, static_cast<ge::DataType>(data_type)));
   return GRAPH_SUCCESS;
 }
@@ -1574,8 +1574,7 @@ REGISTER_LOWERING(BiasAddGrad) {
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get 0th-input shape.");
   std::string data_format;
   GE_ASSERT(AttrUtils::GetStr(node->GetOpDesc(), "data_format", data_format));
   size_t offset = 0U;
@@ -1609,18 +1608,17 @@ REGISTER_LOWERING(BroadcastTo) {
   auto x = loop::Load(x_anchor);
   auto shape = loop::Load(shape_anchor);
   std::vector<ge::Expression> x_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), x_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0-th input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), x_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0-th input symbol shape.");
 
   std::vector<Expression> output_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0-th output symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0-th output symbol shape.");
   indices.emplace_back(output_dims);
   indices.emplace_back(x_dims);
 
   loop::Index broadcast;
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS, 
-                              node, "Failed to imply input broadcast");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS, node, "Failed to imply input broadcast");
   loop::Store(node->GetOutDataAnchor(0), loop::Broadcast(x, x_dims, broadcast));
   return GRAPH_SUCCESS;
 }
@@ -1636,12 +1634,12 @@ REGISTER_LOWERING(LayerNormBetaGammaBackpropV2) {
   std::vector<ge::Expression> res_for_gamma_dims;
   auto src_dy = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src_dy);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src_dy, dy_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src_dy, dy_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   auto src_res_for_gamma = node->GetInDataAnchor(1)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src_res_for_gamma);
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src_res_for_gamma, res_for_gamma_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 1th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src_res_for_gamma, res_for_gamma_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 1th-input symbol shape.");
   indices.emplace_back(dy_dims);
   indices.emplace_back(res_for_gamma_dims);
   loop::Index mul_shape;
@@ -1676,13 +1674,14 @@ REGISTER_LOWERING(ReluGrad) {
   auto features = loop::Load(node->GetInDataAnchor(1));
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
-  LOWERING_WARN_RECORD_REASON((src != nullptr) && (src->GetOwnerNode() != nullptr) && (src->GetOwnerNode()->GetOpDesc() != nullptr),
-    node, "0th-input is null");
+  LOWERING_WARN_RECORD_REASON(
+      (src != nullptr) && (src->GetOwnerNode() != nullptr) && (src->GetOwnerNode()->GetOpDesc() != nullptr), node,
+      "0th-input is null");
   auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
   GE_ASSERT_NOTNULL(desc);
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   GE_ASSERT_NOTNULL(desc);
   auto dtype = desc->GetDataType();
   std::vector<loop::BroadcastOp::DimKind> status(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
@@ -1720,8 +1719,8 @@ REGISTER_LOWERING(RsqrtGrad) {
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   GE_ASSERT_NOTNULL(src);
   GE_ASSERT_NOTNULL(src->GetOwnerNode());
   GE_ASSERT_NOTNULL(src->GetOwnerNode()->GetOpDesc());
@@ -1744,8 +1743,8 @@ REGISTER_LOWERING(Muls) {
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
   vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
   LOWERING_WARN_RECORD_REASON(desc != nullptr, node, "Input opdesc is nullptr.");
   auto dtype = desc->GetDataType();
@@ -1775,8 +1774,7 @@ REGISTER_LOWERING(SquareSumV1) {
 
   auto pow = loop::Mul(x_anchor, x_anchor);
   std::vector<ge::Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get input shape.");
   int32_t dim_num = dims.size();
   std::vector<size_t> reduce_axis;
 
@@ -1807,8 +1805,8 @@ REGISTER_LOWERING(Squeeze) {
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   std::vector<ge::Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   if (vec_axes.empty()) {
     for (size_t i = 0UL; i < dims.size(); i++) {
       if (EXPECT_SYMBOL_EQ(Symbol(1), dims[i])) {
@@ -1819,8 +1817,8 @@ REGISTER_LOWERING(Squeeze) {
   for (auto &vec_axe : vec_axes) {
     if (vec_axe < 0) {
       vec_axe += static_cast<int64_t>(dims.size());
-      LOWERING_WARN_RECORD_REASON(vec_axe >= 0 && static_cast<size_t>(vec_axe) < dims.size(),
-        node, "Squeeze axis %ld must >= 0 and within rank %zu", vec_axe, dims.size());
+      LOWERING_WARN_RECORD_REASON(vec_axe >= 0 && static_cast<size_t>(vec_axe) < dims.size(), node,
+                                  "Squeeze axis %ld must >= 0 and within rank %zu", vec_axe, dims.size());
     }
   }
   sort(vec_axes.begin(), vec_axes.end());
@@ -1844,8 +1842,8 @@ REGISTER_LOWERING(DivNoNan) {
   auto dtype = desc->GetDataType();
   loop::LoopVar scalar_var = loop::Scalar("0", dtype);
   vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 1th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 1th-input symbol shape.");
   std::vector<loop::BroadcastOp::DimKind> status(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
   status.resize(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
   auto scalar_zero = loop::Broadcast(scalar_var, status);
@@ -1877,7 +1875,8 @@ REGISTER_LOWERING(LeakyReluGrad) {
   }
   GE_WARN_ASSERT_GRAPH_SUCCESS(BroadCastByInDataAnchors(node, indata_anchors_var, indices_var, broadcasted_var));
   auto gradients = loop::Broadcast(loop::Load(node->GetInDataAnchor(0)), indices_var[0], broadcasted_var);
-  auto features = loop::Broadcast(loop::Load(node->GetInDataAnchor(1)), indices_var[1], broadcasted_var);;
+  auto features = loop::Broadcast(loop::Load(node->GetInDataAnchor(1)), indices_var[1], broadcasted_var);
+  ;
 
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   LOWERING_WARN_RECORD_REASON(src != nullptr, node, "Input anchor is nullptr.");
@@ -1909,8 +1908,8 @@ REGISTER_LOWERING(Log) {
   GE_ASSERT_NOTNULL(desc);
   auto dtype = desc->GetDataType();
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   std::vector<loop::BroadcastOp::DimKind> status(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
   status.resize(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
 
@@ -1957,19 +1956,20 @@ REGISTER_LOWERING(Pack) {
   int64_t axis = 0;
   GE_ASSERT_TRUE(AttrUtils::GetInt(op_desc, "axis", axis), "Failed to get attr axis");
   vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetInDataAnchor(0), dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   const auto dim_num = static_cast<int64_t>(dims.size());
 
   // 1. dim_num = 0, 实际为首轴concat，暂不支持
   LOWERING_WARN_RECORD_REASON(dim_num > 0, node, "Scalar input is not supported now");
   // 2. 非尾轴concat，支持
   // 3. 尾轴concat，输入个数<=kMaxInputForPackTailDim可以走优化后的kernel，支持，大于则不支持
-  LOWERING_WARN_RECORD_REASON(((axis != -1) && (axis < dim_num)) ||
-                              (node->GetAllInDataAnchorsSize() <= kMaxInputForPackTailDim), node,
-                              "Pack on the last axis and num_inputs(%u) > %u is not supported yet,"
-                              "input_shape = %s, axis = %ld", node->GetAllInDataAnchorsSize(), kMaxInputForPackTailDim,
-                              op_desc->GetInputDesc(0U).GetShape().ToString().c_str(), axis);
+  LOWERING_WARN_RECORD_REASON(
+      ((axis != -1) && (axis < dim_num)) || (node->GetAllInDataAnchorsSize() <= kMaxInputForPackTailDim), node,
+      "Pack on the last axis and num_inputs(%u) > %u is not supported yet,"
+      "input_shape = %s, axis = %ld",
+      node->GetAllInDataAnchorsSize(), kMaxInputForPackTailDim, op_desc->GetInputDesc(0U).GetShape().ToString().c_str(),
+      axis);
   std::vector<InDataAnchorPtr> inputs;
   for (const auto &in_anchor : node->GetAllInDataAnchors()) {
     GE_ASSERT_NOTNULL(in_anchor);
@@ -1978,7 +1978,7 @@ REGISTER_LOWERING(Pack) {
   if (inputs.size() == 1UL) {
     auto x = loop::Load(inputs[0]);
     x = loop::Unsqueeze(x, axis);
-    (void) loop::Store(node->GetOutDataAnchor(0), x);
+    (void)loop::Store(node->GetOutDataAnchor(0), x);
     return GRAPH_SUCCESS;
   }
   loop::StorePack(node->GetOutDataAnchor(0), inputs, axis);
@@ -1992,19 +1992,18 @@ REGISTER_LOWERING(Reshape) {
   int64_t num_axes = -1L;
   GE_WARN_ASSERT(AttrUtils::GetInt(op_desc, "axis", axis), "Failed to get attr axis");
   GE_WARN_ASSERT(AttrUtils::GetInt(op_desc, "num_axes", num_axes), "Failed to get attr num_axes");
-  LOWERING_WARN_RECORD_REASON(axis == 0 && num_axes == -1L,
-                              node, "Attr axis must be 0 and num_axes must be -1");
+  LOWERING_WARN_RECORD_REASON(axis == 0 && num_axes == -1L, node, "Attr axis must be 0 and num_axes must be -1");
   GE_ASSERT_NOTNULL(node->GetInDataAnchor(0));
   auto src = node->GetInDataAnchor(0)->GetPeerOutAnchor();
   GE_ASSERT_NOTNULL(src);
   auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
   GE_ASSERT_NOTNULL(desc);
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-input symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape");
   std::vector<Expression> output_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-output symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(node->GetOutDataAnchor(0), output_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-output symbol shape.");
   size_t short_idx = 0U;
   std::vector<size_t> mul_idx;
   bool need_realize = false;
@@ -2027,8 +2026,7 @@ REGISTER_LOWERING(ExpandDims) {
   auto x = loop::Load(node->GetInDataAnchor(0));
   const auto op = ge::OpDescUtils::CreateOperatorFromNode(node);
   ge::Tensor axis_tensor;
-  LOWERING_WARN_RECORD_REASON(op.GetInputConstData("axis", axis_tensor) == ge::SUCCESS,
-                              node, "Input is dynamic axis");
+  LOWERING_WARN_RECORD_REASON(op.GetInputConstData("axis", axis_tensor) == ge::SUCCESS, node, "Input is dynamic axis");
 
   int64_t dim = 0;
   const std::vector<int64_t> dims = axis_tensor.GetTensorDesc().GetShape().GetDims();
@@ -2076,12 +2074,12 @@ REGISTER_LOWERING(Select) {
   std::vector<Expression> cond_dims;
   std::vector<Expression> input0_dims;
   std::vector<Expression> input1_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(cond, cond_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-input symbol shape.");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input0, input0_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 1th-input symbol shape.");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input1, input1_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get 2th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(cond, cond_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input0, input0_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 1th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input1, input1_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 2th-input symbol shape.");
 
   auto cond_tensor = loop::Load(node->GetInDataAnchor(0));
   if (cond_dims.size() == 1 && input0_dims.size() > 1 && cond_dims[0] == input0_dims[0]) {
@@ -2123,7 +2121,8 @@ REGISTER_LOWERING(ApplyAdagradD) {
     vector<InDataAnchorPtr> indata_anchors_accum;
     indata_anchors_accum.emplace_back(node->GetInDataAnchor(1));
     indata_anchors_accum.emplace_back(node->GetInDataAnchor(3));
-    GE_WARN_ASSERT_GRAPH_SUCCESS(BroadCastByInDataAnchors(node, indata_anchors_accum, indices_accum, broadcasted_accum));
+    GE_WARN_ASSERT_GRAPH_SUCCESS(
+        BroadCastByInDataAnchors(node, indata_anchors_accum, indices_accum, broadcasted_accum));
     accum = loop::Add(loop::Broadcast(accum, indices_accum[0], broadcasted_accum),
                       loop::Broadcast(loop::Mul(grad, grad), indices_accum[1], broadcasted_accum));
     loop::Store(node->GetOutDataAnchor(1), accum);
@@ -2194,8 +2193,8 @@ graphStatus CalculateApplyAdamDScalarStr(const NodePtr &node, string &sub_beta1,
             GELOGW("ApplyAdamD beta1_power must not be equal to 1");
             return "";
           }
-          tensor_type result =
-              static_cast<tensor_type>(lr * (std::sqrt(static_cast<tensor_type>(1) - beta2_power)) / (static_cast<tensor_type>(1) - beta1_power));
+          tensor_type result = static_cast<tensor_type>(lr * (std::sqrt(static_cast<tensor_type>(1) - beta2_power)) /
+                                                        (static_cast<tensor_type>(1) - beta1_power));
           return FloatToStringWithPrecision(result);
         },
         scalar_tensors[0], scalar_tensors[1], scalar_tensors[beta2_power_idx]);
@@ -2210,14 +2209,13 @@ REGISTER_LOWERING(ApplyAdamD) {
   LOWERING_WARN_RECORD_REASON(desc != nullptr, node, "Input opdesc is nullptr.");
   auto dtype = desc->GetDataType();
   std::vector<ge::Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-                              node, "Failed to get input shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get input shape.");
   string sub_beta1_str, sub_beta2_str, lr_str;
   LOWERING_WARN_RECORD_REASON(CalculateApplyAdamDScalarStr(node, sub_beta1_str, sub_beta2_str, lr_str) == GRAPH_SUCCESS,
                               node, "Failed to calculate applyAdamD scalar str.");
   ;
-  LOWERING_WARN_RECORD_REASON(!sub_beta1_str.empty() && !sub_beta2_str.empty() && !lr_str.empty(),
-                              node, "Some scalar input is empty.");
+  LOWERING_WARN_RECORD_REASON(!sub_beta1_str.empty() && !sub_beta2_str.empty() && !lr_str.empty(), node,
+                              "Some scalar input is empty.");
 
   std::vector<loop::BroadcastOp::DimKind> status(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
   status.resize(dims.size(), loop::BroadcastOp::DimKind::NEW_AXIS);
@@ -2277,8 +2275,8 @@ REGISTER_LOWERING(Elu) {
   GE_ASSERT_NOTNULL(desc);
   const auto dtype = desc->GetDataType();
   std::vector<Expression> dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
   const auto x = loop::Load(node->GetInDataAnchor(0));
   float alpha = 1.0f;
   float scale = 1.0f;
@@ -2337,10 +2335,10 @@ REGISTER_LOWERING(EluGrad) {
 
   std::vector<Expression> grads_dims;
   std::vector<Expression> activate_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(grads, grads_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 0th-input symbol shape.");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(activate, activate_dims) == GRAPH_SUCCESS,
-    node, "Failed to get 1th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(grads, grads_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape.");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(activate, activate_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get 1th-input symbol shape.");
   loop::Index broadcast;
   std::vector<loop::Index> indices;
   indices.emplace_back(grads_dims);
@@ -2385,16 +2383,15 @@ REGISTER_LOWERING(TanhGrad) {
 
   std::vector<Expression> y_dims;
   std::vector<Expression> dy_dims;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_y, y_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get input_y symbol shape");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_dy, dy_dims) == GRAPH_SUCCESS,
-                              node, "Failed to get input_dy symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_y, y_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get input_y symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input_dy, dy_dims) == GRAPH_SUCCESS, node,
+                              "Failed to get input_dy symbol shape");
   loop::Index broadcast;
   std::vector<loop::Index> indices;
   indices.emplace_back(y_dims);
   indices.emplace_back(dy_dims);
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS,
-                              node, "Failed to imply input broadcast");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcast) == GRAPH_SUCCESS, node, "Failed to imply input broadcast");
   const auto y = loop::Broadcast(loop::Load(node->GetInDataAnchor(0)), indices[0], broadcast);
   const auto dy = loop::Broadcast(loop::Load(node->GetInDataAnchor(1)), indices[1], broadcast);
   const auto dims_size = std::max(y_dims.size(), dy_dims.size());
@@ -2421,19 +2418,19 @@ REGISTER_LOWERING(FusedMulAddN) {
   std::vector<Expression> input0_exp;
   std::vector<Expression> input1_exp;
   std::vector<Expression> input2_exp;
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input0, input0_exp) == GRAPH_SUCCESS,
-                              node, "Failed to get 0th-input symbol shape");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input1, input1_exp) == GRAPH_SUCCESS,
-                              node, "Failed to get 1th-input symbol shape");
-  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input2, input2_exp) == GRAPH_SUCCESS,
-                              node, "Failed to get 2th-input symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input0, input0_exp) == GRAPH_SUCCESS, node,
+                              "Failed to get 0th-input symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input1, input1_exp) == GRAPH_SUCCESS, node,
+                              "Failed to get 1th-input symbol shape");
+  LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(input2, input2_exp) == GRAPH_SUCCESS, node,
+                              "Failed to get 2th-input symbol shape");
   loop::Index broadcasted;
   std::vector<loop::Index> indices;
   indices.emplace_back(input0_exp);
   indices.emplace_back(input1_exp);
   indices.emplace_back(input2_exp);
-  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS,
-                              node, "Failed to imply input broadcast");
+  LOWERING_WARN_RECORD_REASON(Broadcast(indices, broadcasted) == GRAPH_SUCCESS, node,
+                              "Failed to imply input broadcast");
   auto x1 = loop::Broadcast(loop::Load(node->GetInDataAnchor(0)), indices[0], broadcasted);
   auto x2 = loop::Broadcast(loop::Load(node->GetInDataAnchor(1)), indices[1], broadcasted);
   auto x3 = loop::Broadcast(loop::Load(node->GetInDataAnchor(2)), indices[2], broadcasted);
@@ -2471,7 +2468,8 @@ REGISTER_LOWERING(L2Loss) {
 
 REGISTER_LOWERING(BNInferenceD) {
   LOWERING_WARN_RECORD_REASON((node->GetInDataAnchor(0) != nullptr && node->GetInDataAnchor(1) != nullptr &&
-                              node->GetInDataAnchor(2) != nullptr), node, "Exist one input is nullptr");
+                               node->GetInDataAnchor(2) != nullptr),
+                              node, "Exist one input is nullptr");
   bool exist_scale = node->GetInDataAnchor(3) != nullptr && node->GetInDataAnchor(3)->GetPeerOutAnchor() != nullptr;
   bool exist_b = node->GetInDataAnchor(4) != nullptr && node->GetInDataAnchor(4)->GetPeerOutAnchor() != nullptr;
 
@@ -2501,7 +2499,8 @@ REGISTER_LOWERING(BNInferenceD) {
     vector<InDataAnchorPtr> indata_anchors_var = {node->GetInDataAnchor(0), node->GetInDataAnchor(1),
                                                   node->GetInDataAnchor(2)};
     GE_WARN_ASSERT_GRAPH_SUCCESS(BroadCastByInDataAnchors(node, indata_anchors_var, indices_var, broadcasted_var));
-    LOWERING_WARN_RECORD_REASON((indices_var.size() == 3), node, "No exist_scale and not_exist_b, indices_var size is not 3");
+    LOWERING_WARN_RECORD_REASON((indices_var.size() == 3), node,
+                                "No exist_scale and not_exist_b, indices_var size is not 3");
     auto mean = loop::Broadcast(loop::Load(node->GetInDataAnchor(1)), indices_var[1], broadcasted_var);
     auto variance = loop::Broadcast(loop::Load(node->GetInDataAnchor(2)), indices_var[2], broadcasted_var);
     loop::Store(node->GetOutDataAnchor(0), loop::Mul(variance, loop::Add(x, mean)));
@@ -2538,7 +2537,8 @@ REGISTER_LOWERING(Log1p) {
   auto desc = src->GetOwnerNode()->GetOpDesc()->GetOutputDescPtr(src->GetIdx());
   GE_ASSERT_NOTNULL(desc);
   auto dtype = desc->GetDataType();
-  LOWERING_WARN_RECORD_REASON((dtype == DT_FLOAT) || (dtype == DT_FLOAT16), node, "Dtype only support FLOAT16 and FLOAT.");
+  LOWERING_WARN_RECORD_REASON((dtype == DT_FLOAT) || (dtype == DT_FLOAT16), node,
+                              "Dtype only support FLOAT16 and FLOAT.");
   std::vector<Expression> dims;
   LOWERING_WARN_RECORD_REASON(loop::GetBufferShape(src, dims) == GRAPH_SUCCESS, node, "Failed to get input shape.");
   auto x = loop::Load(node->GetInDataAnchor(0));
@@ -2555,4 +2555,4 @@ REGISTER_LOWERING(Log1p) {
   loop::Store(node->GetOutDataAnchor(0), output);
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace ge

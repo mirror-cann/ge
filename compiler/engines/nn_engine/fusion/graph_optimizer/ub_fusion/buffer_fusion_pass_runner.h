@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ struct MatchResult {
    * !!!!ATTENTION: matched_nodes will not include TBE_PATTERN_OP_TYPE_ANY
    * and TBE_PATTERN_OUTPUT_NODE. Those op descs can be matched multiple times.
    */
-  std::unordered_map<ge::NodePtr, BufferFusionOpDesc*> matched_nodes;
+  std::unordered_map<ge::NodePtr, BufferFusionOpDesc *> matched_nodes;
 
   /*                                ------> temp ------>
    *                               /                    \
@@ -53,16 +53,15 @@ struct MatchResult {
   MatchResult() {}
 
   MatchResult(BufferFusionMapping &mapping_param,
-              std::unordered_map<ge::NodePtr, BufferFusionOpDesc*> &matched_nodes_param,
-              std::vector<ge::NodePtr> &cycle_related_nodes_param,
-              std::vector<uint32_t> &cycle_pos_param) {
+              std::unordered_map<ge::NodePtr, BufferFusionOpDesc *> &matched_nodes_param,
+              std::vector<ge::NodePtr> &cycle_related_nodes_param, std::vector<uint32_t> &cycle_pos_param) {
     mapping = mapping_param;
     matched_nodes = matched_nodes_param;
     nodes_lead_to_cycle = cycle_related_nodes_param;
     cycle_pos = cycle_pos_param;
   }
 
-  MatchResult& operator=(const MatchResult &m_rs_param) {
+  MatchResult &operator=(const MatchResult &m_rs_param) {
     if (this == &m_rs_param) {
       return *this;
     }
@@ -80,7 +79,7 @@ struct MatchResult {
     *this = m_rs_param;
   }
 
-  MatchResult& operator=(MatchResult &&m_rs_param) noexcept {
+  MatchResult &operator=(MatchResult &&m_rs_param) noexcept {
     if (this == &m_rs_param) {
       return *this;
     }
@@ -106,15 +105,14 @@ struct MatchState {
   MatchResult m_rs;
   MatchState() {}
 
-  MatchState(std::vector<BufferFusionOpDesc *> &queue_descs_param,
-             std::vector<ge::NodePtr> &queue_nodes_param,
+  MatchState(std::vector<BufferFusionOpDesc *> &queue_descs_param, std::vector<ge::NodePtr> &queue_nodes_param,
              MatchResult &m_result_param) {
     queue_descs = queue_descs_param;
     queue_nodes = queue_nodes_param;
     m_rs = m_result_param;
   }
 
-  MatchState& operator=(const MatchState &ms_param) {
+  MatchState &operator=(const MatchState &ms_param) {
     if (this == &ms_param) {
       return *this;
     }
@@ -131,7 +129,7 @@ struct MatchState {
     *this = ms_param;
   }
 
-  MatchState& operator=(MatchState &&ms_param) noexcept {
+  MatchState &operator=(MatchState &&ms_param) noexcept {
     if (this == &ms_param) {
       return *this;
     }
@@ -217,101 +215,96 @@ struct MatchInfo {
    * following vector is the same of attribute ops_ in pattern. */
   std::vector<int64_t> repetitive_times;
 
-  MatchInfo(const ge::NodePtr &head_node_param,
-            BufferFusionOpDesc *head_desc_param,
-            const BufferFusionMapping &mapping_param,
-            BufferFusionPattern *pattern_param)
-              :saved_count(0),
-               head_desc(head_desc_param),
-               head_node(head_node_param),
-               pattern(pattern_param) {
-  for (const auto desc : pattern->GetOpDescs()) {
-    if (desc != nullptr) {
-      repetitive_times.emplace_back(desc->repeate_curr);
+  MatchInfo(const ge::NodePtr &head_node_param, BufferFusionOpDesc *head_desc_param,
+            const BufferFusionMapping &mapping_param, BufferFusionPattern *pattern_param)
+      : saved_count(0), head_desc(head_desc_param), head_node(head_node_param), pattern(pattern_param) {
+    for (const auto desc : pattern->GetOpDescs()) {
+      if (desc != nullptr) {
+        repetitive_times.emplace_back(desc->repeate_curr);
+      }
     }
+    m_st.m_rs.mapping = mapping_param;
+    longest_m_rs.mapping = mapping_param;
   }
-  m_st.m_rs.mapping = mapping_param;
-  longest_m_rs.mapping = mapping_param;
-}
 
-MatchInfo& operator=(const MatchInfo &m_info_param) {
-  if (this == &m_info_param) {
+  MatchInfo &operator=(const MatchInfo &m_info_param) {
+    if (this == &m_info_param) {
+      return *this;
+    }
+    saved_m_st = m_info_param.saved_m_st;
+
+    saved_count = m_info_param.saved_count;
+
+    m_st = m_info_param.m_st;
+    longest_m_rs = m_info_param.longest_m_rs;
+
+    matched_output_nodes = m_info_param.matched_output_nodes;
+    black_list = m_info_param.black_list;
+    head_desc = m_info_param.head_desc;
+    head_node = m_info_param.head_node;
+
+    pattern = m_info_param.pattern;
+    repetitive_times = m_info_param.repetitive_times;
     return *this;
   }
-  saved_m_st = m_info_param.saved_m_st;
 
-  saved_count = m_info_param.saved_count;
-
-  m_st = m_info_param.m_st;
-  longest_m_rs = m_info_param.longest_m_rs;
-
-  matched_output_nodes = m_info_param.matched_output_nodes;
-  black_list = m_info_param.black_list;
-  head_desc = m_info_param.head_desc;
-  head_node = m_info_param.head_node;
-
-  pattern = m_info_param.pattern;
-  repetitive_times = m_info_param.repetitive_times;
-  return *this;
-}
-
-MatchInfo(const MatchInfo &m_info_param) {
-  if (this == &m_info_param) {
-    return;
+  MatchInfo(const MatchInfo &m_info_param) {
+    if (this == &m_info_param) {
+      return;
+    }
+    *this = m_info_param;
   }
-  *this = m_info_param;
-}
 
-MatchInfo(MatchInfo &m_info_param) {
-  if (this == &m_info_param) {
-    return;
+  MatchInfo(MatchInfo &m_info_param) {
+    if (this == &m_info_param) {
+      return;
+    }
+    *this = m_info_param;
   }
-  *this = m_info_param;
-}
 
-MatchInfo(MatchInfo &&m_info_param)  noexcept {
-  saved_m_st = std::move(m_info_param.saved_m_st);
-  saved_count =  m_info_param.saved_count;
+  MatchInfo(MatchInfo &&m_info_param) noexcept {
+    saved_m_st = std::move(m_info_param.saved_m_st);
+    saved_count = m_info_param.saved_count;
 
-  m_st = std::move(m_info_param.m_st);
-  longest_m_rs = std::move(m_info_param.longest_m_rs);
+    m_st = std::move(m_info_param.m_st);
+    longest_m_rs = std::move(m_info_param.longest_m_rs);
 
-  matched_output_nodes =  std::move(m_info_param.matched_output_nodes);
-  black_list =  std::move(m_info_param.black_list);
-  head_desc =  m_info_param.head_desc;
-  m_info_param.head_desc = nullptr;
-  head_node = std::move(m_info_param.head_node);
+    matched_output_nodes = std::move(m_info_param.matched_output_nodes);
+    black_list = std::move(m_info_param.black_list);
+    head_desc = m_info_param.head_desc;
+    m_info_param.head_desc = nullptr;
+    head_node = std::move(m_info_param.head_node);
 
-  pattern =  m_info_param.pattern;
-  m_info_param.pattern = nullptr;
-  repetitive_times =  std::move(m_info_param.repetitive_times);
-}
+    pattern = m_info_param.pattern;
+    m_info_param.pattern = nullptr;
+    repetitive_times = std::move(m_info_param.repetitive_times);
+  }
 
-void UpdateRepTimes() {
-  repetitive_times.clear();
-  for (const auto desc : pattern->GetOpDescs()) {
-    if (desc != nullptr) {
-      repetitive_times.emplace_back(desc->repeate_curr);
+  void UpdateRepTimes() {
+    repetitive_times.clear();
+    for (const auto desc : pattern->GetOpDescs()) {
+      if (desc != nullptr) {
+        repetitive_times.emplace_back(desc->repeate_curr);
+      }
     }
   }
-}
 
-Status RestoreRepTimes() {
-  const auto op_descs = pattern->GetOpDescs();
-  if (repetitive_times.size() != op_descs.size()) {
-    REPORT_FE_ERROR("[SubGraphOpt][UB][RestoreRepTimes] rep times %zu and op descs size %zu is not same.",
-                    repetitive_times.size(), op_descs.size());
-    return FAILED;
-  }
-
-  for (size_t i = 0; i < op_descs.size(); i++) {
-    auto &desc = op_descs[i];
-    if (desc != nullptr) {
-      desc->repeate_curr = repetitive_times[i];
+  Status RestoreRepTimes() {
+    const auto op_descs = pattern->GetOpDescs();
+    if (repetitive_times.size() != op_descs.size()) {
+      REPORT_FE_ERROR("[SubGraphOpt][UB][RestoreRepTimes] rep times %zu and op descs size %zu is not same.",
+                      repetitive_times.size(), op_descs.size());
+      return FAILED;
     }
+
+    for (size_t i = 0; i < op_descs.size(); i++) {
+      auto &desc = op_descs[i];
+      if (desc != nullptr) {
+        desc->repeate_curr = repetitive_times[i];
+      }
+    }
+    return SUCCESS;
   }
-  return SUCCESS;
-}
 };
 using MatchInfoPair = std::pair<vector<ge::NodePtr>, MatchInfo>;
 using MatchInfoStack = std::vector<MatchInfoPair>;
@@ -386,10 +379,8 @@ class BufferFusionPassRunner : public BaseBufferFusionPassRunner {
    * @param [in] usage: record whether desc has beed matched
    * @return BufferFusionOpDesc*: matched desc ptr
    */
-  BufferFusionOpDesc *GetMatchedNormalDesc(
-      const ge::NodePtr &node, const std::vector<BufferFusionOpDesc *> &descs,
-      std::map<BufferFusionOpDesc *, bool> &usage,
-      MatchInfo &m_info);
+  BufferFusionOpDesc *GetMatchedNormalDesc(const ge::NodePtr &node, const std::vector<BufferFusionOpDesc *> &descs,
+                                           std::map<BufferFusionOpDesc *, bool> &usage, MatchInfo &m_info);
 
   /* Temp means: Detection is executed during the breath first matching process.
    *
@@ -418,8 +409,7 @@ class BufferFusionPassRunner : public BaseBufferFusionPassRunner {
    * we will back track to the state of (X1, X2, A) and mark C as a black-list
    * node which will not be ignored when temp cycle is detected. That means,
    * we will not match C and consider X1, X2, A is the longgest match. */
-  bool TempCycleDetection(const ge::NodePtr &out_node, bool &is_stacked, MatchInfo &m_info,
-                          MatchInfoPair &m_info_pair,
+  bool TempCycleDetection(const ge::NodePtr &out_node, bool &is_stacked, MatchInfo &m_info, MatchInfoPair &m_info_pair,
                           MatchInfoStack &m_info_stack);
 
   /* Final means: Detection is executed when all possible nodes are matched.
@@ -430,33 +420,29 @@ class BufferFusionPassRunner : public BaseBufferFusionPassRunner {
    * we will back track to last available match information and do breath first
    * matching without specific "cyclic" node which is marked at the previous
    * matching. */
-  void BreathFirstMatch(MatchInfo &m_info,
-                        MatchInfoStack &m_info_stack);
+  void BreathFirstMatch(MatchInfo &m_info, MatchInfoStack &m_info_stack);
 
-  void CheckMatchingResult(BufferFusionMapping &longest_mapping,
-                           MatchInfo &m_info, bool &is_matched) const;
+  void CheckMatchingResult(BufferFusionMapping &longest_mapping, MatchInfo &m_info, bool &is_matched) const;
 
   Status MatchFusionPattern(MatchInfo &m_info, BufferFusionMapping &longest_mapping);
 
   bool IsSgtInfoConsistant(const ge::NodePtr &consumer, const ge::NodePtr &producer) const;
 
   void MatchFollowingNodes(ge::NodePtr node, std::vector<BufferFusionOpDesc *> &out_descs,
-                           std::map<BufferFusionOpDesc *, bool> &usage_flags, MatchInfo& m_info,
+                           std::map<BufferFusionOpDesc *, bool> &usage_flags, MatchInfo &m_info,
                            MatchInfoStack &m_info_stack);
 
-  void RecoverMappingAndQueue(MatchInfo &m_info, bool match_error,
-                              size_t &longest_num) const;
+  void RecoverMappingAndQueue(MatchInfo &m_info, bool match_error, size_t &longest_num) const;
 
-  bool CompareMappings(const MatchResult &curr_m_rs, MatchResult &longest_m_rs,
-                       size_t &longest_num) const;
+  bool CompareMappings(const MatchResult &curr_m_rs, MatchResult &longest_m_rs, size_t &longest_num) const;
 
   bool CheckLoopForward(const BufferFusionMapping &mapping, const ge::NodePtr &target_node,
                         ge::NodePtr &node_lead_to_cycle);
 
   bool IsOptionalOutput(const BufferFusionOpDesc *desc) const;
 
-  bool SkipNodeForNormalDesc(BufferFusionOpDesc *out_desc, ge::NodePtr node,
-                             MatchInfo& m_info, const int32_t pattern_type_index) const;
+  bool SkipNodeForNormalDesc(BufferFusionOpDesc *out_desc, ge::NodePtr node, MatchInfo &m_info,
+                             const int32_t pattern_type_index) const;
 
   bool SkipNodeBeforeMatch(const ge::NodePtr &node, size_t curr_node_num, size_t curr_desc_num,
                            const BufferFusionOpDesc *op_desc, bool get_output_result) const;
@@ -482,8 +468,7 @@ class BufferFusionPassRunner : public BaseBufferFusionPassRunner {
 
   bool CheckAttrMatch(BufferFusionMapping &mapping) const;
 
-  Status MatchFromHead(const ge::NodePtr &head_node, BufferFusionPattern &pattern,
-                       BufferFusionMapping &mapping);
+  Status MatchFromHead(const ge::NodePtr &head_node, BufferFusionPattern &pattern, BufferFusionMapping &mapping);
 
   void InitRepeatCurr(const std::vector<BufferFusionOpDesc *> &ops) const;
 

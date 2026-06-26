@@ -10,9 +10,9 @@
 
 ```
 ├── src
-│   ├──modify_conv_data_format_pass.cpp                 // pass实现文件 
+│   ├──modify_conv_data_format_pass.cpp                 // pass实现文件
 ├── CMakeLists.txt                                      // 编译脚本
-├── data         
+├── data
 |   ├──torch_gen_onnx.py                                // torch脚本用于导出onnx
 |   ├──torch_forward.py                                 // torch脚本用于在线推理
 |—— gen_es_api
@@ -125,7 +125,7 @@
     - 进入data目录执行.py文件进行在线推理（在线推理请确保已安装torch_npu插件）：
        ```
        python torch_forward.py
-       ```  
+       ```
     - 日志中出现如下打印：
       ```
       ConvTransFormatPass is starting

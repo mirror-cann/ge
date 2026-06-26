@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,11 +13,11 @@
 #include "register/op_binary_resource_manager.h"
 
 class OpBinaryResourceManagerUT : public testing::Test {
-protected:
-    void SetUp() {}
-    void TearDown() {}
+ protected:
+  void SetUp() {}
+  void TearDown() {}
 
-    nnopbase::OpBinaryResourceManager &manager = nnopbase::OpBinaryResourceManager::GetInstance();
+  nnopbase::OpBinaryResourceManager &manager = nnopbase::OpBinaryResourceManager::GetInstance();
 };
 
 TEST_F(OpBinaryResourceManagerUT, SaveFunc) {
@@ -27,55 +27,58 @@ TEST_F(OpBinaryResourceManagerUT, SaveFunc) {
   EXPECT_EQ(manager.resourceHandle_["AddTik2"][0], &i);
 }
 
-std::string AddTik2Json = "{"
-                          "  \"binList\": ["
-                          "    {"
-                          "      \"simplifiedKey\": ["
-                          "        \"AddTik2/d=0,p=0/1,2/1,2/1,2\","
-                          "        \"AddTik2/d=1,p=0/1,2/1,2/1,2\""
-                          "      ],"
-                          "      \"binInfo\": {"
-                          "        \"jsonFilePath\": \"ascend910/add_tik2/Add_Tik2_01.json\""
-                          "      }"
-                          "    },"
-                          "    {"
-                          "      \"simplifiedKey\": ["
-                          "        \"AddTik2/d=0,p=0/1,2/0,2/0,2\","
-                          "        \"AddTik2/d=1,p=0/1,2/0,2/0,2\""
-                          "      ],"
-                          "      \"binInfo\": {"
-                          "        \"jsonFilePath\": \"ascend910/add_tik2/Add_Tik2_02.json\""
-                          "      }"
-                          "    }"
-                          "  ]"
-                          "}";
-std::string AddTik201Json = "{"
-                            "  \"filePath\": \"ascend910/add_tik2/Add_Tik2_01.json\","
-                            "  \"supportInfo\": {"
-                            "    \"simplifiedKey\": ["
-                            "      \"AddTik2/d=0,p=0/1,2/1,2/1,2\","
-                            "      \"AddTik2/d=1,p=0/1,2/1,2/1,2\""
-                            "    ]"
-                            "  }"
-                            "}";
+std::string AddTik2Json =
+    "{"
+    "  \"binList\": ["
+    "    {"
+    "      \"simplifiedKey\": ["
+    "        \"AddTik2/d=0,p=0/1,2/1,2/1,2\","
+    "        \"AddTik2/d=1,p=0/1,2/1,2/1,2\""
+    "      ],"
+    "      \"binInfo\": {"
+    "        \"jsonFilePath\": \"ascend910/add_tik2/Add_Tik2_01.json\""
+    "      }"
+    "    },"
+    "    {"
+    "      \"simplifiedKey\": ["
+    "        \"AddTik2/d=0,p=0/1,2/0,2/0,2\","
+    "        \"AddTik2/d=1,p=0/1,2/0,2/0,2\""
+    "      ],"
+    "      \"binInfo\": {"
+    "        \"jsonFilePath\": \"ascend910/add_tik2/Add_Tik2_02.json\""
+    "      }"
+    "    }"
+    "  ]"
+    "}";
+std::string AddTik201Json =
+    "{"
+    "  \"filePath\": \"ascend910/add_tik2/Add_Tik2_01.json\","
+    "  \"supportInfo\": {"
+    "    \"simplifiedKey\": ["
+    "      \"AddTik2/d=0,p=0/1,2/1,2/1,2\","
+    "      \"AddTik2/d=1,p=0/1,2/1,2/1,2\""
+    "    ]"
+    "  }"
+    "}";
 std::string AddTik201Bin = "01";
-std::string AddTik202Json = "{"
-                            "  \"filePath\": \"ascend910/add_tik2/Add_Tik2_02.json\","
-                            "  \"supportInfo\": {"
-                            "    \"simplifiedKey\": ["
-                            "      \"AddTik2/d=0,p=0/1,2/0,2/0,2\","
-                            "      \"AddTik2/d=1,p=0/1,2/0,2/0,2\""
-                            "    ]"
-                            "  }"
-                            "}";
+std::string AddTik202Json =
+    "{"
+    "  \"filePath\": \"ascend910/add_tik2/Add_Tik2_02.json\","
+    "  \"supportInfo\": {"
+    "    \"simplifiedKey\": ["
+    "      \"AddTik2/d=0,p=0/1,2/0,2/0,2\","
+    "      \"AddTik2/d=1,p=0/1,2/0,2/0,2\""
+    "    ]"
+    "  }"
+    "}";
 std::string AddTik202Bin = "02";
 
-std::vector<std::tuple<const uint8_t*, const uint8_t*>> addTik2OpBinary(
-  {{(const uint8_t*)AddTik2Json.c_str(), (const uint8_t*)AddTik2Json.c_str() + AddTik2Json.size()},
-   {(const uint8_t*)AddTik201Json.c_str(), (const uint8_t*)AddTik201Json.c_str() + AddTik201Json.size()},
-   {(const uint8_t*)AddTik201Bin.c_str(), (const uint8_t*)AddTik201Bin.c_str() + AddTik201Bin.size()},
-   {(const uint8_t*)AddTik202Json.c_str(), (const uint8_t*)AddTik202Json.c_str() + AddTik202Json.size()},
-   {(const uint8_t*)AddTik202Bin.c_str(), (const uint8_t*)AddTik202Bin.c_str() + AddTik202Bin.size()}});
+std::vector<std::tuple<const uint8_t *, const uint8_t *>> addTik2OpBinary(
+    {{(const uint8_t *)AddTik2Json.c_str(), (const uint8_t *)AddTik2Json.c_str() + AddTik2Json.size()},
+     {(const uint8_t *)AddTik201Json.c_str(), (const uint8_t *)AddTik201Json.c_str() + AddTik201Json.size()},
+     {(const uint8_t *)AddTik201Bin.c_str(), (const uint8_t *)AddTik201Bin.c_str() + AddTik201Bin.size()},
+     {(const uint8_t *)AddTik202Json.c_str(), (const uint8_t *)AddTik202Json.c_str() + AddTik202Json.size()},
+     {(const uint8_t *)AddTik202Bin.c_str(), (const uint8_t *)AddTik202Bin.c_str() + AddTik202Bin.size()}});
 
 TEST_F(OpBinaryResourceManagerUT, SaveBinary) {
   EXPECT_EQ(manager.AddBinary("AddTik2", addTik2OpBinary), ge::GRAPH_SUCCESS);
@@ -91,7 +94,7 @@ TEST_F(OpBinaryResourceManagerUT, SaveBinary) {
   auto bin = std::get<1U>(binIter->second);
   auto filePath = binJson["filePath"].get<std::string>();
   EXPECT_EQ(filePath, "ascend910/add_tik2/Add_Tik2_01.json");
-  EXPECT_EQ(bin.content, (const uint8_t*)AddTik201Bin.c_str());
+  EXPECT_EQ(bin.content, (const uint8_t *)AddTik201Bin.c_str());
   EXPECT_EQ(bin.len, AddTik201Bin.size());
 
   EXPECT_EQ(manager.keyToPath_["AddTik2/d=0,p=0/1,2/1,2/1,2"], "ascend910/add_tik2/Add_Tik2_01.json");
@@ -123,7 +126,7 @@ TEST_F(OpBinaryResourceManagerUT, KeyToBinary) {
   auto bin = std::get<1U>(binInfo);
   auto filePath = binJson["filePath"].get<std::string>();
   EXPECT_EQ(filePath, "ascend910/add_tik2/Add_Tik2_01.json");
-  EXPECT_EQ(bin.content, (const uint8_t*)AddTik201Bin.c_str());
+  EXPECT_EQ(bin.content, (const uint8_t *)AddTik201Bin.c_str());
   EXPECT_EQ(bin.len, AddTik201Bin.size());
 
   EXPECT_EQ(manager.GetOpBinaryDescByKey("AddTik2/d=1,p=0/1,2/0,2/0,2", binInfo), ge::GRAPH_SUCCESS);
@@ -131,7 +134,7 @@ TEST_F(OpBinaryResourceManagerUT, KeyToBinary) {
   bin = std::get<1U>(binInfo);
   filePath = binJson["filePath"].get<std::string>();
   EXPECT_EQ(filePath, "ascend910/add_tik2/Add_Tik2_02.json");
-  EXPECT_EQ(bin.content, (const uint8_t*)AddTik202Bin.c_str());
+  EXPECT_EQ(bin.content, (const uint8_t *)AddTik202Bin.c_str());
   EXPECT_EQ(bin.len, AddTik202Bin.size());
 }
 
@@ -142,7 +145,7 @@ TEST_F(OpBinaryResourceManagerUT, PathToBinary) {
   auto bin = std::get<1U>(binInfo);
   auto filePath = binJson["filePath"].get<std::string>();
   EXPECT_EQ(filePath, "ascend910/add_tik2/Add_Tik2_01.json");
-  EXPECT_EQ(bin.content, (const uint8_t*)AddTik201Bin.c_str());
+  EXPECT_EQ(bin.content, (const uint8_t *)AddTik201Bin.c_str());
   EXPECT_EQ(bin.len, AddTik201Bin.size());
 
   EXPECT_EQ(manager.GetOpBinaryDescByPath("ascend910/add_tik2/Add_Tik2_02.json", binInfo), ge::GRAPH_SUCCESS);
@@ -150,7 +153,7 @@ TEST_F(OpBinaryResourceManagerUT, PathToBinary) {
   bin = std::get<1U>(binInfo);
   filePath = binJson["filePath"].get<std::string>();
   EXPECT_EQ(filePath, "ascend910/add_tik2/Add_Tik2_02.json");
-  EXPECT_EQ(bin.content, (const uint8_t*)AddTik202Bin.c_str());
+  EXPECT_EQ(bin.content, (const uint8_t *)AddTik202Bin.c_str());
   EXPECT_EQ(bin.len, AddTik202Bin.size());
 }
 
@@ -174,8 +177,8 @@ TEST_F(OpBinaryResourceManagerUT, BinaryAllDesc) {
 }
 
 std::string AddTik2KbRuntime = "1234";
-std::vector<std::tuple<const uint8_t*, const uint8_t*>> addTik2RuntimeKb(
-  {{(const uint8_t*)AddTik2KbRuntime.c_str(), (const uint8_t*)AddTik2KbRuntime.c_str() + AddTik2KbRuntime.size()}});
+std::vector<std::tuple<const uint8_t *, const uint8_t *>> addTik2RuntimeKb(
+    {{(const uint8_t *)AddTik2KbRuntime.c_str(), (const uint8_t *)AddTik2KbRuntime.c_str() + AddTik2KbRuntime.size()}});
 
 TEST_F(OpBinaryResourceManagerUT, RuntimeKB) {
   EXPECT_EQ(manager.AddRuntimeKB("AddTik2", addTik2RuntimeKb), ge::GRAPH_SUCCESS);
@@ -189,7 +192,7 @@ TEST_F(OpBinaryResourceManagerUT, RuntimeKB) {
 
 TEST_F(OpBinaryResourceManagerUT, Error) {
   nlohmann::json binDesc;
-  EXPECT_EQ(manager.GetOpBinaryDesc("AddTik2Invalid",binDesc), ge::GRAPH_PARAM_INVALID);
+  EXPECT_EQ(manager.GetOpBinaryDesc("AddTik2Invalid", binDesc), ge::GRAPH_PARAM_INVALID);
 
   std::tuple<nlohmann::json, nnopbase::Binary> binInfo;
   EXPECT_EQ(manager.GetOpBinaryDescByPath("AddTik2Invalid", binInfo), ge::GRAPH_PARAM_INVALID);

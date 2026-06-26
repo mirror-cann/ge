@@ -760,8 +760,8 @@ class Om2ModelExecutorUt : public testing::Test {
       RunCommandOrAssert(cmake_build_cmd);
       ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
 
-      WriteBinaryFile(archive_constant_path, std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
-                                                                  9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
+      WriteBinaryFile(archive_constant_path,
+                      std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
       WriteTextFile(archive_constant_cfg_path, MakeConstantsConfigJson());
 
       ZipArchiveWriter zip_writer(om2_file_path_);
@@ -770,15 +770,22 @@ class Om2ModelExecutorUt : public testing::Test {
       const auto model_meta = MakeModelMetaJson();
       ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
       ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                       PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                       PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
       ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
       ASSERT_TRUE(zip_writer.WriteFile("data/constants/constant_0", archive_constant_path, false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_0_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(
+          zip_writer.WriteFile("data/constants/model_0_constants_config.json", archive_constant_cfg_path, false));
       ASSERT_TRUE(zip_writer.SaveModelDataToFile());
       ASSERT_EQ(mmAccess2(om2_file_path_.c_str(), M_F_OK), EOK);
     });
@@ -817,14 +824,21 @@ class Om2ModelExecutorUt : public testing::Test {
       const auto model_meta = MakeModelMetaJson();
       ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
       ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                       PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                       PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
       ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_1_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(
+          zip_writer.WriteFile("data/constants/model_1_constants_config.json", archive_constant_cfg_path, false));
       ASSERT_TRUE(zip_writer.SaveModelDataToFile());
       ASSERT_EQ(mmAccess2(om2_fileconst_file_path_.c_str(), M_F_OK), EOK);
     });
@@ -863,14 +877,21 @@ class Om2ModelExecutorUt : public testing::Test {
       const auto model_meta = MakeModelMetaJson();
       ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
       ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                       PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                       PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
       ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_2_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(
+          zip_writer.WriteFile("data/constants/model_2_constants_config.json", archive_constant_cfg_path, false));
       ASSERT_TRUE(zip_writer.SaveModelDataToFile());
       ASSERT_EQ(mmAccess2(om2_combined_file_path_.c_str(), M_F_OK), EOK);
     });
@@ -902,8 +923,8 @@ class Om2ModelExecutorUt : public testing::Test {
       RunCommandOrAssert(cmake_build_cmd);
       ASSERT_EQ(mmAccess2(so_path.c_str(), M_F_OK), EOK);
 
-      WriteBinaryFile(archive_constant_path, std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
-                                                                  9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
+      WriteBinaryFile(archive_constant_path,
+                      std::vector<uint8_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 16U});
       WriteTextFile(archive_constant_cfg_path, MakeMixedConstantsConfigJson());
       WriteBinaryFile(individual_path, {61U, 62U, 63U, 64U});
       WriteBinaryFile(combined_path, {71U, 72U, 73U, 74U});
@@ -914,15 +935,22 @@ class Om2ModelExecutorUt : public testing::Test {
       const auto model_meta = MakeModelMetaJson();
       ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
       ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                       PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                       PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+      ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                       PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
       ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
       ASSERT_TRUE(zip_writer.WriteFile("data/constants/constant_0", archive_constant_path, false));
-      ASSERT_TRUE(zip_writer.WriteFile("data/constants/model_3_constants_config.json", archive_constant_cfg_path, false));
+      ASSERT_TRUE(
+          zip_writer.WriteFile("data/constants/model_3_constants_config.json", archive_constant_cfg_path, false));
       ASSERT_TRUE(zip_writer.SaveModelDataToFile());
       ASSERT_EQ(mmAccess2(om2_mixed_file_path_.c_str(), M_F_OK), EOK);
     });
@@ -1516,7 +1544,7 @@ TEST_F(Om2ModelExecutorUt, IsOm2Model_Ok_FromFileMultiScene) {
   // invalid_magic
   const std::string test_file_invalid = PathUtils::Join({test_work_dir_, "invalid_magic.om2"});
   WriteBinaryFile(test_file, {0x00, 0x00, 0x00, 0x00});
-  
+
   is_support = false;
   EXPECT_EQ(gert::IsOm2Model(test_file.c_str(), is_support), SUCCESS);
   EXPECT_FALSE(is_support);
@@ -1532,15 +1560,16 @@ TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_from_file_ok) {
 }
 
 TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_external_only_with_zero_internal_weight_size_ok) {
-  const std::string om2_file_path = PathUtils::Join({test_work_dir_, "external_only_with_zero_internal_weight_size.om2"});
+  const std::string om2_file_path =
+      PathUtils::Join({test_work_dir_, "external_only_with_zero_internal_weight_size.om2"});
   ZipArchiveWriter zip_writer(om2_file_path);
   ASSERT_TRUE(zip_writer.IsMemFileOpened());
   const auto manifest = MakeManifestJson();
   const auto constants_config = MakeIndividualConstantsConfigJsonWithZeroInternalWeightSize();
   const auto model_meta = MakeModelMetaJson();
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
-  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json",
-                                    constants_config.data(), constants_config.size(), false));
+  ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_0_constants_config.json", constants_config.data(),
+                                    constants_config.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
   ASSERT_TRUE(zip_writer.SaveModelDataToFile());
 
@@ -1556,7 +1585,8 @@ TEST_F(Om2ModelExecutorUt, get_mem_and_weight_size_from_mem_ok) {
   size_t work_size = 0U;
   size_t weight_size = 0U;
   EXPECT_EQ(gert::GetOm2MemAndWeightSize(model_data_holder.model_data.model_data,
-                                         model_data_holder.model_data.model_len, work_size, weight_size), SUCCESS);
+                                         model_data_holder.model_data.model_len, work_size, weight_size),
+            SUCCESS);
   EXPECT_EQ(work_size, 2048U);
   EXPECT_EQ(weight_size, 16U);
 }
@@ -1635,12 +1665,18 @@ TEST_F(Om2ModelExecutorUt, GetOpAttr_ValidOpAttrJson_ReturnsParsedMap) {
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                   PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                   PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
   ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
   ASSERT_TRUE(zip_writer.SaveModelDataToFile());
 
@@ -1704,12 +1740,18 @@ TEST_F(Om2ModelExecutorUt, GetOpAttr_EmptyOpAttrJson_ReturnsEmptyMap) {
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                   PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                   PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
   ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
   ASSERT_TRUE(zip_writer.SaveModelDataToFile());
 
@@ -1783,12 +1825,18 @@ TEST_F(Om2ModelExecutorUt, GetOpAttr_InvalidOpAttrJson_ReturnsEmptyMap) {
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                   PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                   PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
   ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
   ASSERT_TRUE(zip_writer.SaveModelDataToFile());
 
@@ -1845,12 +1893,18 @@ TEST_F(Om2ModelExecutorUt, ParseOpAttrJsonToMapInternal_MultipleAttrs_ParsesAllA
   ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/model_meta.json", model_meta.data(), model_meta.size(), false));
   ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/debug/op_attr.json", op_attr.data(), op_attr.size(), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt", PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h", PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp", PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp", PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp", PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
-  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp", PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/CMakeLists.txt",
+                                   PathUtils::Join({runtime_dir, "CMakeLists.txt"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_interface.h",
+                                   PathUtils::Join({runtime_dir, "g1_interface.h"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_resources.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_resources.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_kernel_reg.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_kernel_reg.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_args_manager.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_args_manager.cpp"}), false));
+  ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/g1_load_and_run.cpp",
+                                   PathUtils::Join({runtime_dir, "g1_load_and_run.cpp"}), false));
   ASSERT_TRUE(zip_writer.WriteFile("data/model_0/runtime/libg1_om2.so", so_path, false));
   ASSERT_TRUE(zip_writer.SaveModelDataToFile());
 
@@ -1894,7 +1948,7 @@ TEST_F(Om2ModelExecutorUt, GetOpAttr_BeforeLoad_ReturnsError) {
   // 未加载模型前调用GetOpAttr应该返回错误
   auto executor = std::make_unique<gert::Om2ModelExecutor>();
 
-  std::map<std::string, std::map<std::string, std::string>>op_attr_map;
+  std::map<std::string, std::map<std::string, std::string>> op_attr_map;
   ge::Status status = executor->GetOpAttr(op_attr_map);
   // 未初始化，应该返回错误
   EXPECT_NE(status, SUCCESS);
@@ -2142,8 +2196,7 @@ TEST_F(Om2ModelExecutorUt, SetDynamicSize_EmptyBatchNum_ReturnsError) {
 }
 
 // 辅助 lambda：创建并加载包含动态 batch 信息的模型
-static bool LoadDynamicBatchModel(const std::string &test_work_dir,
-                                  const std::string &om2_suffix,
+static bool LoadDynamicBatchModel(const std::string &test_work_dir, const std::string &om2_suffix,
                                   gert::Om2ModelExecutor &executor) {
   const std::string so_path = PathUtils::Join({test_work_dir, "fake_runtime/libg1_om2.so"});
   const std::string om2_path = PathUtils::Join({test_work_dir, "dynamic_batch_" + om2_suffix + ".om2"});
@@ -2209,7 +2262,7 @@ TEST_F(Om2ModelExecutorUt, SetDynamicSize_AllValidGears_Success) {
   std::vector<std::vector<uint64_t>> valid_gears = {{1}, {2}, {4}, {8}};
   int32_t dynamic_type = 1;  // DYNAMIC_BATCH
 
-  for (const auto& gear : valid_gears) {
+  for (const auto &gear : valid_gears) {
     ge::Status status = executor.SetDynamicSize(gear, dynamic_type);
     EXPECT_EQ(status, SUCCESS) << "Failed for gear size " << gear[0];
 
@@ -2231,7 +2284,7 @@ TEST_F(Om2ModelExecutorUt, SetDynamicSize_InvalidGears_AllFail) {
   std::vector<std::vector<uint64_t>> invalid_gears = {{3}, {5}, {6}, {7}, {9}, {10}};
   int32_t dynamic_type = 1;  // DYNAMIC_BATCH
 
-  for (const auto& gear : invalid_gears) {
+  for (const auto &gear : invalid_gears) {
     ge::Status status = executor.SetDynamicSize(gear, dynamic_type);
     EXPECT_NE(status, SUCCESS) << "Should fail for invalid gear size " << gear[0];
   }

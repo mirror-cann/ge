@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,10 +34,9 @@ class UtestFoldingKernelSqueezeV3Kernel : public testing::Test {
   void TearDown() {}
 };
 
-namespace{
+namespace {
 
 void TestValidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_vec) {
-
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
 
   ge::OpDescPtr data_op_desc = std::make_shared<ge::OpDesc>("data", CONSTANTOP);
@@ -46,7 +45,7 @@ void TestValidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_vec
   vector<int8_t> data_value_vec(dims_size, 2);
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, ge::DT_INT8);
   auto data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
-                                                       data_value_vec.size() * sizeof(int8_t));
+                                                data_value_vec.size() * sizeof(int8_t));
   OpDescUtils::SetWeights(data_op_desc, data_tensor);
   data_op_desc->AddOutputDesc(data_tensor_desc);
   NodePtr data_node = graph->AddNode(data_op_desc);
@@ -56,7 +55,7 @@ void TestValidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_vec
   ge::OpDescPtr dim_op_desc = std::make_shared<ge::OpDesc>("axes", CONSTANTOP);
   GeTensorDesc dim_tensor_desc(ge::GeShape(), FORMAT_NCHW, ge::DT_INT8);
   auto dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_value_vec.data(),
-                                                      dim_value_vec.size() * sizeof(int8_t));
+                                               dim_value_vec.size() * sizeof(int8_t));
   OpDescUtils::SetWeights(dim_op_desc, dim_tensor);
   dim_op_desc->AddOutputDesc(dim_tensor_desc);
   NodePtr dim_node = graph->AddNode(dim_op_desc);
@@ -100,7 +99,7 @@ void TestInvalidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_v
   vector<int8_t> data_value_vec(dims_size, 2);
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, ge::DT_INT8);
   auto data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
-                                                       data_value_vec.size() * sizeof(int8_t));
+                                                data_value_vec.size() * sizeof(int8_t));
   OpDescUtils::SetWeights(data_op_desc, data_tensor);
   data_op_desc->AddOutputDesc(data_tensor_desc);
   NodePtr data_node = graph->AddNode(data_op_desc);
@@ -110,7 +109,7 @@ void TestInvalidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_v
   ge::OpDescPtr dim_op_desc = std::make_shared<ge::OpDesc>("axes", CONSTANTOP);
   GeTensorDesc dim_tensor_desc(ge::GeShape(), FORMAT_NCHW, ge::DT_INT8);
   auto dim_tensor = std::make_shared<GeTensor>(dim_tensor_desc, (uint8_t *)dim_value_vec.data(),
-                                                      dim_value_vec.size() * sizeof(int8_t));
+                                               dim_value_vec.size() * sizeof(int8_t));
   OpDescUtils::SetWeights(dim_op_desc, dim_tensor);
   dim_op_desc->AddOutputDesc(dim_tensor_desc);
   NodePtr dim_node = graph->AddNode(dim_op_desc);
@@ -129,7 +128,6 @@ void TestInvalidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_v
   status = kernel->Compute(node_ptr);
   EXPECT_EQ(ge::NOT_CHANGED, status);
 
-
   std::vector<GeTensorPtr> v_output;
   std::vector<ConstGeTensorPtr> input = {data_tensor, dim_tensor};
   status = kernel->Compute(node_ptr->GetOpDesc(), input, v_output);
@@ -145,7 +143,7 @@ void TestInvalidSqueezeV3(vector<int64_t> &data_vec, vector<int8_t> &dim_value_v
   status = kernel->Compute(node_ptr->GetOpDesc(), input_2, v_output);
   EXPECT_EQ(ge::PARAM_INVALID, status);
 }
-} //namespace
+}  // namespace
 
 TEST_F(UtestFoldingKernelSqueezeV3Kernel, ValidFoldingTest) {
   vector<int64_t> data_vec = {1, 2, 3};

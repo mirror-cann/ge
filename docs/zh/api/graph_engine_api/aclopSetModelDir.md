@@ -84,4 +84,3 @@ aclError aclopSetModelDir(const char *modelDir)
     </tr>
     </tbody>
     </table>
-

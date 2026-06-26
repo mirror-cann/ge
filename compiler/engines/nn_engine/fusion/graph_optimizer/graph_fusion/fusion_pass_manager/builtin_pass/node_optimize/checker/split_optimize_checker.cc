@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,9 +30,7 @@ bool SplitOptimizeChecker::IsDimCAligned(const ge::NodePtr &node_ptr) const {
     int dim_c = 0;
     Status status = GetDimC(tensor_desc, dim_c);
     if (status != SUCCESS) {
-      FE_LOGD(
-          "Node[%s]: get the dim C of the input [%zu] unsuccessfully.",
-          node_name.c_str(), i);
+      FE_LOGD("Node[%s]: get the dim C of the input [%zu] unsuccessfully.", node_name.c_str(), i);
       return false;
     }
     ge::NodePtr split_next_node = nullptr;
@@ -43,8 +41,8 @@ bool SplitOptimizeChecker::IsDimCAligned(const ge::NodePtr &node_ptr) const {
       ge::InDataAnchorPtr in_data_anchor_ptr = peer_in_data_anchors.at(0);
       if (in_data_anchor_ptr != nullptr && in_data_anchor_ptr->GetOwnerNode()->GetType() == QUANT) {
         auto quant_node = in_data_anchor_ptr->GetOwnerNode();
-        FE_CHECK(quant_node == nullptr || quant_node->GetOpDesc()== nullptr,
-          FE_LOGD("Get quant op desc unsuccessful."), return FAILED);
+        FE_CHECK(quant_node == nullptr || quant_node->GetOpDesc() == nullptr,
+                 FE_LOGD("Get quant op desc unsuccessful."), return FAILED);
         quant_data_type = quant_node->GetOpDesc()->GetOutputDesc(0).GetDataType();
       }
     }

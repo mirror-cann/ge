@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,36 +31,34 @@ Status KernelInfo::Initialize([[maybe_unused]] const map<string, string> &option
   AICPU_CHECK_RES(Finalize());
   // read kernel info json file
   if (!ReadOpInfoFromJsonFile()) {
-    AICPU_REPORT_INNER_ERR_MSG(
-        "Call ReadOpInfoFromJsonFile to read kernel info from json file failed.");
+    AICPU_REPORT_INNER_ERR_MSG("Call ReadOpInfoFromJsonFile to read kernel info from json file failed.");
     return LOAD_CONFIG_JSON_FILE_FAILED;
   }
 
   if (has_cust_op_) {
-      return GetCustOpInfo();
+    return GetCustOpInfo();
   }
 
-  AICPU_IF_BOOL_EXEC(
-      ((op_info_json_file_.find(kKernelConfigOpInfos) == op_info_json_file_.end()) ||
-       (op_info_json_file_.find(kKernelConfigLibName) == op_info_json_file_.end())),
-      AICPUE_LOGW("Json file does not have op_infos or lib_name."); return SUCCESS);
+  AICPU_IF_BOOL_EXEC(((op_info_json_file_.find(kKernelConfigOpInfos) == op_info_json_file_.end()) ||
+                      (op_info_json_file_.find(kKernelConfigLibName) == op_info_json_file_.end())),
+                     AICPUE_LOGW("Json file does not have op_infos or lib_name.");
+                     return SUCCESS);
   try {
     OpInfoDescs info_desc = op_info_json_file_;
     AICPUE_LOGI("Read json file, op size is: %lu.", info_desc.opInfos.size());
     return FillOpInfos(info_desc);
   } catch (const nlohmann::json::exception &e) {
-    AICPU_REPORT_INNER_ERR_MSG("Parse json file[%s] failed, %s.",
-        op_info_json_file_.dump().c_str(), e.what());
+    AICPU_REPORT_INNER_ERR_MSG("Parse json file[%s] failed, %s.", op_info_json_file_.dump().c_str(), e.what());
     return LOAD_CONFIG_JSON_FILE_FAILED;
   }
 }
 
 Status KernelInfo::GetCustOpInfo() {
   for (auto itor = custop_info_json_file_.cbegin(); itor != custop_info_json_file_.cend(); ++itor) {
-    AICPU_IF_BOOL_EXEC(
-        ((itor->second.find(kKernelConfigOpInfos) == itor->second.end()) ||
-        (itor->second.find(kKernelConfigLibName) == itor->second.end())),
-        AICPUE_LOGW("Json file does not have op_infos or lib_name."); return SUCCESS);
+    AICPU_IF_BOOL_EXEC(((itor->second.find(kKernelConfigOpInfos) == itor->second.end()) ||
+                        (itor->second.find(kKernelConfigLibName) == itor->second.end())),
+                       AICPUE_LOGW("Json file does not have op_infos or lib_name.");
+                       return SUCCESS);
     try {
       OpInfoDescs info_desc = itor->second;
       FillCustOpInfos(itor->first, info_desc);
@@ -80,23 +78,22 @@ ge::Status KernelInfo::Finalize() {
 }
 
 Status KernelInfo::FillCustOpInfos(string user_name, OpInfoDescs &info_desc) {
-    const std::lock_guard<std::mutex> lock(g_cust_mutex);
-    for (const auto &op_desc : info_desc.opInfos) {
-      AICPU_IF_BOOL_EXEC(op_desc.opName.empty(), continue)
+  const std::lock_guard<std::mutex> lock(g_cust_mutex);
+  for (const auto &op_desc : info_desc.opInfos) {
+    AICPU_IF_BOOL_EXEC(op_desc.opName.empty(), continue)
 
-      if (infos_.find(op_desc.opName) != infos_.end()) {
-        AICPUE_LOGW(
-            "[%s] of user[%s] is repeated, discard according to the priority configured in the config.ini",
-            op_desc.opName.c_str(), user_name.c_str());
-      } else {
-        auto ret = infos_.emplace(pair<string, aicpu::OpFullInfo>(op_desc.opName, op_desc.opInfo));
-        if (!ret.second) {
-          AICPUE_LOGE("Insert a pair of op[%s] and OpInfo failed.", op_desc.opName.c_str());
-        }
-        cust_user_infos_.emplace(pair<string, string>(op_desc.opName, user_name));
-        AICPUE_LOGI("Read cust json file, op_name: %s.", op_desc.opName.c_str());
+    if (infos_.find(op_desc.opName) != infos_.end()) {
+      AICPUE_LOGW("[%s] of user[%s] is repeated, discard according to the priority configured in the config.ini",
+                  op_desc.opName.c_str(), user_name.c_str());
+    } else {
+      auto ret = infos_.emplace(pair<string, aicpu::OpFullInfo>(op_desc.opName, op_desc.opInfo));
+      if (!ret.second) {
+        AICPUE_LOGE("Insert a pair of op[%s] and OpInfo failed.", op_desc.opName.c_str());
       }
-      AICPUE_LOGI("cust_user_infos_.size() =  %zu.", cust_user_infos_.size());
+      cust_user_infos_.emplace(pair<string, string>(op_desc.opName, user_name));
+      AICPUE_LOGI("Read cust json file, op_name: %s.", op_desc.opName.c_str());
+    }
+    AICPUE_LOGI("cust_user_infos_.size() =  %zu.", cust_user_infos_.size());
   }
   return SUCCESS;
 }
@@ -110,11 +107,9 @@ Status KernelInfo::FillOpInfos(OpInfoDescs &info_desc) {
   for (const auto &op_desc : info_desc.opInfos) {
     AICPU_IF_BOOL_EXEC(op_desc.opName.empty(), continue)
 
-    auto ret = infos_.emplace(
-        pair<string, aicpu::OpFullInfo>(op_desc.opName, op_desc.opInfo));
+    auto ret = infos_.emplace(pair<string, aicpu::OpFullInfo>(op_desc.opName, op_desc.opInfo));
     if (!ret.second) {
-      AICPUE_LOGW("Insert a pair of op[%s] and OpInfo failed.",
-                  op_desc.opName.c_str());
+      AICPUE_LOGW("Insert a pair of op[%s] and OpInfo failed.", op_desc.opName.c_str());
     }
     AICPUE_LOGD("Read json file, op_name: %s.", op_desc.opName.c_str());
   }
@@ -126,9 +121,8 @@ const string KernelInfo::GetOpsPath(const void *instance) const {
   string real_file_path;
   string path_base = GetSoPath(instance) + "../../../..";
   AICPU_IF_BOOL_EXEC(realpath(path_base.c_str(), resoved_path) == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("realpath [%s] failed, %s.",
-          path_base.c_str(), strerror(errno));
-      return real_file_path);
+                     AICPU_REPORT_INNER_ERR_MSG("realpath [%s] failed, %s.", path_base.c_str(), strerror(errno));
+                     return real_file_path);
   real_file_path = resoved_path;
   return real_file_path;
 }
@@ -162,7 +156,8 @@ Status KernelInfo::CompileOp(ge::NodePtr &node) {
   std::string kernel_lib_name = GetKernelLibNameByOpType(op_type, all_op_info);
   auto iter = all_op_info.find(op_type);
   if (iter == all_op_info.end()) {
-    AICPU_REPORT_INNER_ERR_MSG("Can't find op type[%s] in KernelInfo, op[%s].", op_type.c_str(), node->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Can't find op type[%s] in KernelInfo, op[%s].", op_type.c_str(),
+                               node->GetName().c_str());
     return ErrorCode::CREATE_NODEDEF_FAILED;
   }
 
@@ -177,12 +172,13 @@ Status KernelInfo::CompileOp(ge::NodePtr &node) {
   int block_dim_index = op_full_info.blockDimByIndex;
   bool optional_input_placeholder = op_full_info.optionalInputPlaceholder;
   if (optional_input_placeholder) {
-      (void)ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
-      AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.", kOptionalInputPlaceholder.c_str(), op_desc_ptr->GetName().c_str());
+    (void)ge::AttrUtils::SetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
+    AICPUE_LOGI("Success to set attr[%s] for node[%s] to true.", kOptionalInputPlaceholder.c_str(),
+                op_desc_ptr->GetName().c_str());
   }
   if (kernel_lib_name != kHostCpuKernelInfoChoice) {
-      (void)ge::AttrUtils::SetStr(op_desc_ptr, kKernelSo, kernel_so);
-      (void)ge::AttrUtils::SetStr(op_desc_ptr, kFuncName, func_name);
+    (void)ge::AttrUtils::SetStr(op_desc_ptr, kKernelSo, kernel_so);
+    (void)ge::AttrUtils::SetStr(op_desc_ptr, kFuncName, func_name);
   }
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kAsyncFlag, async_flag);
   (void)ge::AttrUtils::SetInt(op_desc_ptr, kWorkspaceSize, workspace_size);
@@ -193,7 +189,8 @@ Status KernelInfo::CompileOp(ge::NodePtr &node) {
   (void)ge::AttrUtils::SetBool(op_desc_ptr, kSupportBlockDim, support_block_flag);
   (void)ge::AttrUtils::SetInt(op_desc_ptr, kBlockDimByIndex, block_dim_index);
 
-  AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(op_desc_ptr, all_op_info), "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
+  AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(op_desc_ptr, all_op_info),
+                           "Call CheckAndSetUnknowType function failed. op[%s].", node->GetName().c_str())
 
   aicpuops::NodeDef node_def;
   Status status = BuildAicpuNodeDef(op_desc_ptr, node_def);

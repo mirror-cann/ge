@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,7 +48,7 @@ int32_t TransGeWorkspaceType(int32_t type) {
   }
   return res_type;
 }
-} // namespace
+}  // namespace
 
 void from_json(const nlohmann::json &json_value, KeyJsonList &json_list) {
   json_value.at("coreType").get_to(json_list.coreType);
@@ -140,8 +140,9 @@ Status TbeJsonFileParseImpl::ParseTvmWorkSpace(vector<int64_t> &tvm_workspace_si
     }
 
     for (int32_t index = 0; index < workspace.num; ++index) {
-      tvm_workspace_sizes.emplace_back(workspace.size[index] == UNKNOWN_WORK_SPACE_SIZE ?
-                                       workspace.size[index] : (workspace.size[index] + DATA_MEMORY_ALIGN_SIZE));
+      tvm_workspace_sizes.emplace_back(workspace.size[index] == UNKNOWN_WORK_SPACE_SIZE
+                                           ? workspace.size[index]
+                                           : (workspace.size[index] + DATA_MEMORY_ALIGN_SIZE));
     }
 
     if (ParseJsonAttr(j_workspace.value(), false, "type", workspace.type, workspace.type) == SUCCESS) {
@@ -165,8 +166,7 @@ Status TbeJsonFileParseImpl::ParseTvmWorkSpace(vector<int64_t> &tvm_workspace_si
   return SUCCESS;
 }
 Status TbeJsonFileParseImpl::ParseTvmParameters(std::vector<int64_t> &parameters_index,
-                                                AtomicInitInfo &atomic_init_info)
-{
+                                                AtomicInitInfo &atomic_init_info) {
   if (json_handle_.find(kKeyParameters) == json_handle_.end()) {
     return SUCCESS;
   }
@@ -216,12 +216,12 @@ Status TbeJsonFileParseImpl::ParseTvmParameters(std::vector<int64_t> &parameters
 }
 
 /*
-*  @ingroup fe
-*  @brief  parse the meta_data info in handle
-*  @param   [in] handle
-*  @param   [out] op_desc_, set meta_data according to meta_data info in handle
-*  @return SUCCESS or FAILED
-*/
+ *  @ingroup fe
+ *  @brief  parse the meta_data info in handle
+ *  @param   [in] handle
+ *  @param   [out] op_desc_, set meta_data according to meta_data info in handle
+ *  @return SUCCESS or FAILED
+ */
 Status TbeJsonFileParseImpl::ParseTvmMetaData(std::string &meta_data) const {
   // 1. get bin_file_suffix
   std::string binfile_suffix;
@@ -245,7 +245,7 @@ Status TbeJsonFileParseImpl::ParseTvmMetaData(std::string &meta_data) const {
     return FAILED;
   }
 
-  // sha256, set sha256 to be null string when it is not specifed in json file
+  // sha256, set sha256 to be null string when it is not specified in json file
   std::string sha256;
   if (ParseJsonAttr(false, kKeySha256, sha256, sha256) == FAILED) {
     return FAILED;
@@ -286,14 +286,14 @@ Status TbeJsonFileParseImpl::ParseGlobleWorkspaceStatus(KeyGlobalWorkspaceSpecWo
     if (ParseJsonAttr(j_global_work.value(), true, "size", global_work_space.size, global_work_space.size) != SUCCESS) {
       return FAILED;
     }
-    if (ParseJsonAttr(j_global_work.value(), false, "type", global_work_space.type,
-                      global_work_space.type) != SUCCESS) {
+    if (ParseJsonAttr(j_global_work.value(), false, "type", global_work_space.type, global_work_space.type) !=
+        SUCCESS) {
       FE_LOGD("[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] Get 'type' from json data.");
       return FAILED;
     }
   } catch (const JsonExpcetion &e) {
-    FE_LOGE("[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] get the %s failed, exception:%s",
-            kKeyGlobalWorkspace, e.what());
+    FE_LOGE("[SubGraphOpt][Compile][ParseGlobalWorkspaceStatus] get the %s failed, exception:%s", kKeyGlobalWorkspace,
+            e.what());
     return FAILED;
   }
   return SUCCESS;
@@ -352,12 +352,12 @@ Status TbeJsonFileParseImpl::ParseTvmJsonList(std::vector<KeyJsonList> &json_lis
 }
 
 /*
-*  @ingroup fe
-*  @brief   package the json info together
-*  @param   [in]  info
-*  @param   [out] tvm_file_path_
-*  @return  SUCCESS or FAILED
-*/
+ *  @ingroup fe
+ *  @brief   package the json info together
+ *  @param   [in]  info
+ *  @param   [out] tvm_file_path_
+ *  @return  SUCCESS or FAILED
+ */
 Status TbeJsonFileParseImpl::Initialize(const std::string &json_file_path) {
   FE_LOGD("Start to parse op_json_file %s.", json_file_path.c_str());
   if (ReadJsonFile(json_file_path, json_handle_) != SUCCESS) {
@@ -368,8 +368,8 @@ Status TbeJsonFileParseImpl::Initialize(const std::string &json_file_path) {
   return SUCCESS;
 }
 
-Status TbeJsonFileParseImpl::Initialize(const std::string &json_file_path,
-                                        const TbeJsonPtr &json_ptr, const ge::OpKernelBinPtr &bin_ptr) {
+Status TbeJsonFileParseImpl::Initialize(const std::string &json_file_path, const TbeJsonPtr &json_ptr,
+                                        const ge::OpKernelBinPtr &bin_ptr) {
   FE_LOGD("Begin initializing JSON file parsing implementation, JSON file path is [%s].", json_file_path.c_str());
   if (json_file_path.empty()) {
     FE_LOGE("JSON file path is empty.");
@@ -453,13 +453,13 @@ Status TbeJsonFileParseImpl::ParseOpDfxOptions(std::vector<std::string> &opt_lis
 }
 
 /*
-*  @ingroup fe
-*  @brief   reading binary files
-*  @param   [in]  file_name(or path), buffer, length
-*  @param   [out] length
-*  @return  SUCCESS or FAILED
-*/
-Status TbeJsonFileParseImpl::ReadBytesFromBinaryFile(const string& file_name, std::vector<char>& buffer) const {
+ *  @ingroup fe
+ *  @brief   reading binary files
+ *  @param   [in]  file_name(or path), buffer, length
+ *  @param   [out] length
+ *  @return  SUCCESS or FAILED
+ */
+Status TbeJsonFileParseImpl::ReadBytesFromBinaryFile(const string &file_name, std::vector<char> &buffer) const {
   if ((file_name.empty())) {
     FE_LOGE("incorrect parameter: file path is null");
     return FAILED;
@@ -496,7 +496,7 @@ Status TbeJsonFileParseImpl::ReadBytesFromBinaryFile(const string& file_name, st
     FE_LOGD("Release lock file(%s).", real_path.c_str());
     if_stream.close();
     FE_LOGD("Read size: %ld bytes.", size);
-  } catch (const ifstream::failure& e) {
+  } catch (const ifstream::failure &e) {
     FE_LOGE("Failed to read file %s. Exception: %s", file_name.c_str(), e.what());
     if_stream.close();
     return FAILED;
@@ -508,7 +508,7 @@ ge::OpKernelBinPtr TbeJsonFileParseImpl::GetOpKernelBinPtr() const {
   return op_kernel_bin_;
 }
 
-const std::string& TbeJsonFileParseImpl::GetTvmDirPath() const {
+const std::string &TbeJsonFileParseImpl::GetTvmDirPath() const {
   return tvm_dir_path_;
 }
 
@@ -526,7 +526,8 @@ Status TbeJsonFileParseImpl::ParseRunInfo(OpTilingInfo &run_info, bool &has_run_
       FE_LOGE("parse block_dim failed.");
       return FAILED;
     }
-    if (ParseJsonAttr(j_runinfo.value(), false, "aicpu_block_dim", run_info.aicpu_block_dim, run_info.aicpu_block_dim) != SUCCESS) {
+    if (ParseJsonAttr(j_runinfo.value(), false, "aicpu_block_dim", run_info.aicpu_block_dim,
+                      run_info.aicpu_block_dim) != SUCCESS) {
       FE_LOGE("parse aicpu_block_dim failed.");
       return FAILED;
     }
@@ -535,14 +536,17 @@ Status TbeJsonFileParseImpl::ParseRunInfo(OpTilingInfo &run_info, bool &has_run_
       REPORT_FE_ERROR("Failed to parse workspaces.");
       return FAILED;
     }
-    if (ParseJsonAttr(j_runinfo.value(), true, "clear_atomic", run_info.clear_atomic, run_info.clear_atomic) != SUCCESS) {
+    if (ParseJsonAttr(j_runinfo.value(), true, "clear_atomic", run_info.clear_atomic, run_info.clear_atomic) !=
+        SUCCESS) {
       return FAILED;
     }
-    if (ParseJsonAttr(j_runinfo.value(), true, "local_memory_size", run_info.local_memory_size, run_info.local_memory_size) != SUCCESS) {
+    if (ParseJsonAttr(j_runinfo.value(), true, "local_memory_size", run_info.local_memory_size,
+                      run_info.local_memory_size) != SUCCESS) {
       FE_LOGE("Failed to parse local_memory_size.");
       return FAILED;
     }
-    if (ParseJsonAttr(j_runinfo.value(), true, "schedule_mode", run_info.schedule_mode, run_info.schedule_mode) != SUCCESS) {
+    if (ParseJsonAttr(j_runinfo.value(), true, "schedule_mode", run_info.schedule_mode, run_info.schedule_mode) !=
+        SUCCESS) {
       FE_LOGE("Failed to parse schedule_mode.");
       return FAILED;
     }
@@ -554,7 +558,8 @@ Status TbeJsonFileParseImpl::ParseRunInfo(OpTilingInfo &run_info, bool &has_run_
       FE_LOGE("parse tiling_key failed.");
       return FAILED;
     }
-    if (ParseJsonAttr(j_runinfo.value(), true, "tiling_data", run_info.tiling_data_str, run_info.tiling_data_str) != SUCCESS) {
+    if (ParseJsonAttr(j_runinfo.value(), true, "tiling_data", run_info.tiling_data_str, run_info.tiling_data_str) !=
+        SUCCESS) {
       FE_LOGE("parse tiling_data failed.");
       return FAILED;
     }
@@ -571,7 +576,7 @@ Status TbeJsonFileParseImpl::ParseRunInfo(OpTilingInfo &run_info, bool &has_run_
 
 Status TbeJsonFileParseImpl::ParseFatbin(const ge::OpKernelBinPtr &fatbin,
                                          FatbinKernelInfoMap &fatbin_kernel_info_map) const {
-  const uint8_t* fatbin_ptr = fatbin->GetBinData();
+  const uint8_t *fatbin_ptr = fatbin->GetBinData();
   FE_LOGD("Fatbin data size is %zu.", fatbin->GetBinDataSize());
   // get fatbin header info
   uint64_t tiling_key_num = 0;
@@ -582,13 +587,13 @@ Status TbeJsonFileParseImpl::ParseFatbin(const ge::OpKernelBinPtr &fatbin,
   FE_LOGD("Tiling key num is %lu.", tiling_key_num);
   FatbinHeaderInfo fatbin_header_info(tiling_key_num);
   if (memcpy_s(fatbin_header_info.tilingKeyList.data(), sizeof(uint64_t) * tiling_key_num,
-      fatbin_ptr + sizeof(uint64_t), sizeof(uint64_t) * tiling_key_num) != EOK) {
+               fatbin_ptr + sizeof(uint64_t), sizeof(uint64_t) * tiling_key_num) != EOK) {
     FE_LOGE("Failed to get tiling key list.");
     return FAILED;
   }
   if (memcpy_s(fatbin_header_info.binOffsets.data(), sizeof(size_t) * tiling_key_num,
-      fatbin_ptr + sizeof(uint64_t) + sizeof(uint64_t) * tiling_key_num,
-      sizeof(size_t) * tiling_key_num) != EOK) {
+               fatbin_ptr + sizeof(uint64_t) + sizeof(uint64_t) * tiling_key_num,
+               sizeof(size_t) * tiling_key_num) != EOK) {
     FE_LOGE("Failed to get bin offset list.");
     return FAILED;
   }
@@ -609,8 +614,8 @@ Status TbeJsonFileParseImpl::ParseFatbin(const ge::OpKernelBinPtr &fatbin,
     std::vector<char> subkernel(fatbin_ptr + fatbin_header_info.binOffsets[i],
                                 fatbin_ptr + fatbin_header_info.binOffsets[i] + subkernel_bin_size);
     SubkernelInfo subkernel_info;
-    FE_MAKE_SHARED(subkernel_info.subkernel_ptr =
-        std::make_shared<ge::OpKernelBin>("tmp", std::move(subkernel)), return FAILED);
+    FE_MAKE_SHARED(subkernel_info.subkernel_ptr = std::make_shared<ge::OpKernelBin>("tmp", std::move(subkernel)),
+                   return FAILED);
     fatbin_kernel_info_map.emplace(fatbin_header_info.tilingKeyList[i], subkernel_info);
   }
   if (fatbin_kernel_info_map.empty()) {

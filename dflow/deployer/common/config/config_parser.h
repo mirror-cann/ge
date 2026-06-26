@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,18 +35,15 @@ class ConfigParser {
 
   static Status InitDeployerConfig(const std::vector<ClusterConfig> &clusters,
                                    const std::vector<NodeDefConfig> &node_defs,
-                                   const std::vector<ItemDefConfig> &item_defs,
-                                   DeployerConfig &deployer_config);
+                                   const std::vector<ItemDefConfig> &item_defs, DeployerConfig &deployer_config);
 
   static Status InitAllNodeConfig(const std::vector<ClusterConfig> &clusters,
                                   const std::vector<NodeDefConfig> &node_defs,
-                                  const std::vector<ItemDefConfig> &item_defs,
-                                  std::vector<NodeConfig> &node_configs);
+                                  const std::vector<ItemDefConfig> &item_defs, std::vector<NodeConfig> &node_configs);
 
   static Status ParseTopologyLinks(const nlohmann::json &json_link, LinkPair &link_pair);
 
-  static Status ParseClusterNode(const nlohmann::json &json_cluster_node,
-                                 const int32_t local_node_id,
+  static Status ParseClusterNode(const nlohmann::json &json_cluster_node, const int32_t local_node_id,
                                  ClusterNode &cluster_node);
 
   static Status ParseNodesTopology(const nlohmann::json &json_topology, NodesTopology &nodes_topology);

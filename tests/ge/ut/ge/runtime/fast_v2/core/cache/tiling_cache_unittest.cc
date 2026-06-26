@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -113,7 +113,7 @@ TEST_F(TilingCacheUt, TilingCache_Ok_InvalidCacheKey) {
 TEST_F(TilingCacheUt, TilingCache_Fail_CacheLenExceeds) {
   HashBuffer hash_buf;
   for (size_t i = 0; i < kMaxHashBufSize; ++i) {
-    hash_buf.AddParamToBuf({1,2,3,4});
+    hash_buf.AddParamToBuf({1, 2, 3, 4});
   }
   EXPECT_EQ(hash_buf.GetTilingCacheKey().len, kInvalidHashBufOffset);
   EXPECT_EQ(hash_buf.GetTilingCacheKey().IsValid(), false);
@@ -139,12 +139,12 @@ TEST_F(TilingCacheUt, TilingCache_Ok_MultipleHashBufferInstance) {
   auto mem_block = allocator->Malloc(1 * 2 * 3 * 4 * 2);
   Tensor tensor = {{{1, 2, 3, 4}, {1, 2, 3, 4}}, {}, kOnHost, {}, const_cast<void *>(mem_block->GetAddr())};
 
-  hash_buf_ok.AddParamToBuf({1,2,3,4});
+  hash_buf_ok.AddParamToBuf({1, 2, 3, 4});
   hash_buf_ok.AddParamToBuf(tensor);
   const auto key_ok_expected = hash_buf_ok.GetTilingCacheKey();
   EXPECT_EQ(key_ok_expected.IsValid(), true);
   // 第二个实例无法增加参数, 不影响第一个实例使用
-  hash_buf_other.AddParamToBuf({1,2,3,4});
+  hash_buf_other.AddParamToBuf({1, 2, 3, 4});
   hash_buf_other.AddParamToBuf(tensor);
   const auto key_other = hash_buf_other.GetTilingCacheKey();
   EXPECT_EQ(key_other.IsValid(), false);
@@ -192,18 +192,14 @@ TEST_F(TilingCacheUt, TilingCache_Ok_CheckDataDependentOperator) {
   bg::ValueHolder::PushGraphFrame();
 
   auto ub_graph = std::make_shared<ge::ComputeGraph>("ub_graph");
-  auto data0 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data0", "Data")
-                   .IoNum(0, 1)
-                   .Build();
+  auto data0 = ComputeNodeFaker(ub_graph).NameAndType("Data0", "Data").IoNum(0, 1).Build();
 
   std::vector<std::string> inputNames;
   inputNames.reserve(3);
   for (int i = 0; i < 3; i++) {
     inputNames.emplace_back("x" + std::to_string(i));
   }
-  auto ddit02 =
-      ComputeNodeFaker(ub_graph).NameAndType("Test", "DDIT02").IoNum(3, 1).InputNames(inputNames).Build();
+  auto ddit02 = ComputeNodeFaker(ub_graph).NameAndType("Test", "DDIT02").IoNum(3, 1).InputNames(inputNames).Build();
   ddit02->GetOpDesc()->SetOpInferDepends({"x0", "x3"});
 
   for (int i = 0; i < 3; i++) {
@@ -217,7 +213,8 @@ TEST_F(TilingCacheUt, TilingCache_Ok_CheckDataDependentOperator) {
   EXPECT_EQ(TilingCacheUtils::IsOpSupportTilingCache(ddit02, global_data, data_dependency), true);
   EXPECT_EQ(data_dependency, 5U);
 
-  while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+  while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+  }
 }
 
 TEST_F(TilingCacheUt, TilingCache_Ok_CheckDataDependentOperatorOutOfRange) {
@@ -249,4 +246,4 @@ TEST_F(TilingCacheUt, TilingCache_Ok_CheckDataDependentOperatorOutOfRange) {
   while (bg::ValueHolder::PopGraphFrame() != nullptr) {
   }
 }
-}
+}  // namespace gert

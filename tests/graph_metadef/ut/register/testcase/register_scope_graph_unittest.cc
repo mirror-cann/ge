@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,20 +24,20 @@ class UtestScopeGraph : public testing::Test {
 };
 
 /*    --- sub0, sub1 only for UT test ---
-*        placeholder0  placeholder1
-*          |       /\  /\       |
-*          |      /  \/  \      |
-*          |     /   /\   \     |
-*          |     |  /  \  |     |
-*          |     add0   mul0    |
-*          |      /\    c/|\    |
-*          |     / sub0 / | \   |
-*            mul1 ---- /  |   add1
-*              \          |     |\
-*               \ ----  add2    | sub1
-*                         |     |
-*                    retval0 retval1
-*/
+ *        placeholder0  placeholder1
+ *          |       /\  /\       |
+ *          |      /  \/  \      |
+ *          |     /   /\   \     |
+ *          |     |  /  \  |     |
+ *          |     add0   mul0    |
+ *          |      /\    c/|\    |
+ *          |     / sub0 / | \   |
+ *            mul1 ---- /  |   add1
+ *              \          |     |\
+ *               \ ----  add2    | sub1
+ *                         |     |
+ *                    retval0 retval1
+ */
 
 void CreateGraphDef(domi::tensorflow::GraphDef &graph_def) {
   // 1. add node
@@ -192,7 +192,7 @@ TEST_F(UtestScopeGraph, test_build_scope_graph_failed) {
   ASSERT_EQ(ret, SUCCESS);
   auto &impl = scope_graph->impl_;
 
-  // 1. input name is invalied
+  // 1. input name is invalid
   add0->set_input(0, "placeholder0:invalid:input");
   impl->BuildScopeGraph(&graph_def);
   auto nodes_map = impl->GetNodesMap();
@@ -589,14 +589,14 @@ TEST_F(UtestFusionScope, FusionScopesResultCheckInnerNodesInfo) {
   EXPECT_EQ(fusion_rlt->CheckInnerNodesInfo(), ge::GRAPH_SUCCESS);
 
   FusionInnerNodesInfo nodes_info = fusion_rlt->impl_->GetInnerNodesInfo();
-  //check
+  // check
   EXPECT_EQ(nodes_info.size(), 1U);
 
-  const auto name =  std::get<0>(nodes_info[0U]); 
-  const auto type =  std::get<1>(nodes_info[0U]); 
-  const auto inputs =  std::get<2>(nodes_info[0U]); 
-  const auto outputs =  std::get<3>(nodes_info[0U]); 
-  const auto op =  std::get<4>(nodes_info[0U]); 
+  const auto name = std::get<0>(nodes_info[0U]);
+  const auto type = std::get<1>(nodes_info[0U]);
+  const auto inputs = std::get<2>(nodes_info[0U]);
+  const auto outputs = std::get<3>(nodes_info[0U]);
+  const auto op = std::get<4>(nodes_info[0U]);
 
   EXPECT_EQ(name, "CheckInnerNodesInfo/InnerNodeName");
   EXPECT_EQ(type, "InnerNodeType");
@@ -629,7 +629,7 @@ TEST_F(UtestFusionScope, InnerNodeInit) {
 
   std::string InnerNodeInfoStr;
   AscendString InnerNodeInfoAscendStr;
-  //name
+  // name
   InnerNode1.GetName();
   graphStatus status = InnerNode1.GetName(InnerNodeInfoAscendStr);
   ASSERT_EQ(status, GRAPH_SUCCESS);

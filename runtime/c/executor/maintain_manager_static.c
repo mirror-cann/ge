@@ -36,8 +36,7 @@ Status LoadModelPostProcess(uint32_t modelId, char *modelName, uint64_t *stepIdA
   return DbgLoadModelPostProcess(modelId, modelName, stepIdAddr, dbgHandle);
 }
 
-Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName,
-                           void *dbgHandle) {
+Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName, void *dbgHandle) {
   return DbgDumpPreProcess(mdlLoad, taskDescSize, modelName, dbgHandle);
 }
 

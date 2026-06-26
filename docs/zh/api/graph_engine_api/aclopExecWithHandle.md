@@ -106,4 +106,3 @@ aclrtStream stream)
 
 -   多线程场景下，不支持调用本接口时指定同一个Stream或使用默认Stream，否则可能任务执行异常。
 -   执行有可选输入的算子时，如果可选输入不使用，则需按此种方式创建aclDataBuffer类型的数据：aclCreateDataBuffer\(nullptr, 0\)，同时aclDataBuffer中的数据不需要释放，因为是空指针。
-

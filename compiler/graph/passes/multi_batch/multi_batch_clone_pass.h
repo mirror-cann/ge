@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -123,7 +123,8 @@ class MultiBatchClonePass : public GraphPass {
 
   void GetDataNodes(std::vector<NodePtr> &data_nodes) const;
 
-  int32_t FindIndexForInputDims(const std::string &node_name,
+  int32_t FindIndexForInputDims(
+      const std::string &node_name,
       const std::vector<std::pair<std::string, std::vector<int64_t>>> &data_name_and_shape) const;
   /// @ingroup ge
   /// @brief Create nodes for root graph.
@@ -132,10 +133,8 @@ class MultiBatchClonePass : public GraphPass {
   Status CreateOriGraph(const ComputeGraphPtr &graph);
   Status NormalizeDataType(const NodePtr &node) const;
   void SetIndexListAndOriginShape(const OpDescPtr &data_desc);
-  void GetUnknownDimIndex(const std::vector<int64_t> &shape,
-                          std::vector<int32_t> &unknown_dim_index);
-  NodePtr CreateDataNode(const ComputeGraphPtr &graph, const OutDataAnchorPtr &out_data_anchor,
-                         size_t data_index);
+  void GetUnknownDimIndex(const std::vector<int64_t> &shape, std::vector<int32_t> &unknown_dim_index);
+  NodePtr CreateDataNode(const ComputeGraphPtr &graph, const OutDataAnchorPtr &out_data_anchor, size_t data_index);
 
   static void RenameAndAddRecursiveSubgraphs(const ComputeGraphPtr &graph, const ComputeGraphPtr &batch_graph,
                                              const std::string &suffix);

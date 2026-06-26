@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -98,7 +98,7 @@ struct FakeGraphItem : GraphItem {
 
 class DModelListener : public ModelListener {
  public:
-  DModelListener(){};
+  DModelListener() {};
   uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t resultCode,
                          std::vector<gert::Tensor> &outputs) {
     return 0;
@@ -109,7 +109,7 @@ class DModelListener : public ModelListener {
 
 TEST_F(UtestGeHybrid, aicore_op_task_init_success) {
   // build aicore task
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   domi::TaskDef task_def;
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   domi::KernelDefWithHandle *kernel_with_handle = task_def.mutable_kernel_with_handle();
@@ -121,7 +121,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success) {
   kernel_with_handle->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_with_handle->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 
@@ -146,7 +146,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success) {
 
 TEST_F(UtestGeHybrid, aicore_op_task_init_success2) {
   // build aicore task
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   aicore_task->is_single_op_ = true;
   domi::TaskDef task_def;
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
@@ -157,7 +157,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success2) {
   kernel->set_args(args.data(), 64);
   domi::KernelContext *context = kernel->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 
@@ -181,7 +181,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_init_success2) {
 }
 
 TEST_F(UtestGeHybrid, task_update_tiling_info) {
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   auto graph = make_shared<ComputeGraph>("graph");
   OpDescPtr op_desc = CreateOpDesc("Add", "Add");
   ge::AttrUtils::SetStr(op_desc, "compile_info_key", "key");
@@ -195,9 +195,8 @@ TEST_F(UtestGeHybrid, task_update_tiling_info) {
   node_item->input_start = 0;
   node_item->output_start = 0;
 
-  //OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {return true;};
-  //REGISTER_OP_TILING_UNIQ_V2(Add, op_tiling_func, 1);
-  //OpTilingRegistryInterf_V2("Add", op_tiling_func);
+  // OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {return
+  // true;}; REGISTER_OP_TILING_UNIQ_V2(Add, op_tiling_func, 1); OpTilingRegistryInterf_V2("Add", op_tiling_func);
   gert::OpImplKernelRegistry::TilingKernelFunc op_tiling_func = [](gert::TilingContext *tiling_context) -> graphStatus {
     // simulate op write tiling info
     tiling_context->SetTilingKey(1);
@@ -206,7 +205,7 @@ TEST_F(UtestGeHybrid, task_update_tiling_info) {
     tiling_context->SetTilingCond(3);
     return ge::GRAPH_SUCCESS;
   };
-  auto tiling_parse_func = [](gert::TilingParseContext *parse_context) -> graphStatus {return GRAPH_SUCCESS;};
+  auto tiling_parse_func = [](gert::TilingParseContext *parse_context) -> graphStatus { return GRAPH_SUCCESS; };
 
   IMPL_OP(Add).TilingParse<DummyCompileInfo>(tiling_parse_func).Tiling(op_tiling_func);
 
@@ -232,7 +231,7 @@ TEST_F(UtestGeHybrid, index_taskdefs_failed) {
   GeModelPtr ge_model = make_shared<GeModel>();
   ge_model->SetModelTaskDef(model_task_def_ptr);
 
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
   kernel_with_handle->set_original_kernel_key("");
@@ -243,7 +242,7 @@ TEST_F(UtestGeHybrid, index_taskdefs_failed) {
   kernel_with_handle->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_with_handle->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 
@@ -385,7 +384,7 @@ TEST_F(UtestGeHybrid, init_weight_success) {
   GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_NCHW, DT_INT32);
   (void)TensorUtils::SetRealDimCnt(tensor_desc_0, dims_vec_0.size());
   ConstGeTensorPtr constTensor_0 =
-    std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)&data_vec_0[0], data_vec_0.size() * sizeof(int32_t));
+      std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)&data_vec_0[0], data_vec_0.size() * sizeof(int32_t));
   AttrUtils::SetTensor(const_op_desc, ge::ATTR_NAME_WEIGHTS, constTensor_0);
   const_op_desc->AddOutputDesc(tensor_desc_0);
   NodePtr const_node = sub_graph->AddNode(const_op_desc);
@@ -394,13 +393,13 @@ TEST_F(UtestGeHybrid, init_weight_success) {
   GeRootModelPtr ge_root_model = make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   GeModelPtr ge_sub_model = make_shared<GeModel>();
-  //Buffer weight_buffer = Buffer(128,0);
-  //ge_sub_model->SetWeight(weight_buffer);
-  ge_root_model->SetSubgraphInstanceNameToModel("sub",ge_sub_model);
+  // Buffer weight_buffer = Buffer(128,0);
+  // ge_sub_model->SetWeight(weight_buffer);
+  ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
   HybridModel hybrid_model(ge_root_model);
   HybridModelBuilder hybrid_model_builder(hybrid_model);
   auto ret = hybrid_model_builder.InitWeights();
-  ASSERT_EQ(ret,SUCCESS);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 TEST_F(UtestGeHybrid, hybrid_model_executor) {
@@ -627,7 +626,7 @@ TEST_F(UtestGeHybrid, TestTaskContext) {
 }
 
 TEST_F(UtestGeHybrid, hybrid_model_executor_update_args) {
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
 
   auto graph = make_shared<ComputeGraph>("graph");
   OpDescPtr op_desc = CreateOpDesc("Add", "Add");
@@ -669,7 +668,7 @@ TEST_F(UtestGeHybrid, hybrid_model_executor_update_args) {
 TEST_F(UtestGeHybrid, hybrid_model_executor_check_shape) {
   HybridModelExecutor::ExecuteArgs args;
   GeTensorDescPtr ge_tensor = make_shared<GeTensorDesc>(GeTensorDesc());
-  vector<int64_t> dim = {2 , 3};
+  vector<int64_t> dim = {2, 3};
   ge_tensor->SetShape(GeShape(dim));
   args.input_desc.push_back(ge_tensor);
 
@@ -677,8 +676,8 @@ TEST_F(UtestGeHybrid, hybrid_model_executor_check_shape) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("God");
   OpDescPtr op_desc = std::make_shared<OpDesc>("data", DATA);
   GeTensorDesc tensor_desc(GeShape({2, 3}));
-  std::vector<std::pair<int64_t, int64_t>> shape_range({std::pair<int64_t, int64_t>(1, 3),
-                                                       std::pair<int64_t, int64_t>(2, 4)});
+  std::vector<std::pair<int64_t, int64_t>> shape_range(
+      {std::pair<int64_t, int64_t>(1, 3), std::pair<int64_t, int64_t>(2, 4)});
   tensor_desc.SetShapeRange(shape_range);
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
@@ -700,7 +699,7 @@ TEST_F(UtestGeHybrid, hybrid_model_executor_check_shape) {
 
   HybridModelExecutor::ExecuteArgs args2;
   GeTensorDescPtr ge_tensor2 = make_shared<GeTensorDesc>(GeTensorDesc());
-  vector<int64_t> dim2 = {-1 , 3};
+  vector<int64_t> dim2 = {-1, 3};
   ge_tensor2->SetShape(GeShape(dim2));
   args2.input_desc.push_back(ge_tensor2);
 
@@ -788,14 +787,14 @@ TEST_F(UtestGeHybrid, TestOptimizeDependenciesForConstInputs) {
 }
 
 TEST_F(UtestGeHybrid, test_key_for_kernel_bin) {
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   OpDesc op_desc("Sum", "Sum");
   EXPECT_EQ(aicore_task->GetKeyForTbeKernel(), OP_EXTATTR_NAME_TBE_KERNEL);
   EXPECT_EQ(aicore_task->GetKeyForTvmMagic(), TVM_ATTR_NAME_MAGIC);
   EXPECT_EQ(aicore_task->GetKeyForTvmMetaData(), TVM_ATTR_NAME_METADATA);
   EXPECT_EQ(aicore_task->GetKeyForKernelName(op_desc), "Sum_kernelname");
 
-  auto atomic_task = std::unique_ptr<hybrid::AtomicAddrCleanOpTask>(new(std::nothrow)hybrid::AtomicAddrCleanOpTask());
+  auto atomic_task = std::unique_ptr<hybrid::AtomicAddrCleanOpTask>(new (std::nothrow) hybrid::AtomicAddrCleanOpTask());
   EXPECT_EQ(atomic_task->GetKeyForTbeKernel(), EXT_ATTR_ATOMIC_TBE_KERNEL);
   EXPECT_EQ(atomic_task->GetKeyForTvmMagic(), ATOMIC_ATTR_TVM_MAGIC);
   EXPECT_EQ(atomic_task->GetKeyForTvmMetaData(), ATOMIC_ATTR_TVM_METADATA);
@@ -803,11 +802,11 @@ TEST_F(UtestGeHybrid, test_key_for_kernel_bin) {
 }
 
 TEST_F(UtestGeHybrid, test_op_type) {
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   aicore_task->op_type_ = "Add";
   EXPECT_EQ(aicore_task->GetOpType(), "Add");
 
-  auto atomic_task = std::unique_ptr<hybrid::AtomicAddrCleanOpTask>(new(std::nothrow)hybrid::AtomicAddrCleanOpTask());
+  auto atomic_task = std::unique_ptr<hybrid::AtomicAddrCleanOpTask>(new (std::nothrow) hybrid::AtomicAddrCleanOpTask());
   EXPECT_EQ(atomic_task->GetOpType(), "DynamicAtomicAddrClean");
 }
 
@@ -886,7 +885,7 @@ TEST_F(UtestGeHybrid, TestParseDependenciesSkipHostData) {
   auto tensor = std::make_shared<GeTensor>();
   GeTensorDesc tensor_desc;
   AttrUtils::SetTensor(tensor_desc, "_value", tensor);
-  AttrUtils::SetInt(tensor_desc, "_mem_type", 1); // skip d2h
+  AttrUtils::SetInt(tensor_desc, "_mem_type", 1);  // skip d2h
   data_desc->AddInputDesc(tensor_desc);
   std::set<NodePtr> dependent_for_shape_inference;
   ASSERT_EQ(builder.ParseDependencies(*node_item, dependent_for_shape_inference), SUCCESS);
@@ -925,7 +924,7 @@ TEST_F(UtestGeHybrid, TestParseDependenciesSuccess) {
   auto tensor = std::make_shared<GeTensor>();
   GeTensorDesc tensor_desc;
   AttrUtils::SetTensor(tensor_desc, "_value", tensor);
-  AttrUtils::SetInt(tensor_desc, "_mem_type", 0); // need d2h
+  AttrUtils::SetInt(tensor_desc, "_mem_type", 0);  // need d2h
   data_desc->AddInputDesc(tensor_desc);
   std::set<NodePtr> dependent_for_shape_inference;
   ASSERT_EQ(builder.ParseDependencies(*node_item, dependent_for_shape_inference), SUCCESS);
@@ -959,19 +958,20 @@ TEST_F(UtestGeHybrid, TestParseDependenciesSuccessRT2) {
   NodeItem::Create(data, node_item2);
   model.node_items_.emplace(data, std::move(node_item2));
 
-  IMPL_OP(Relu).InputsDataDependency({0}); // rt2 way
+  IMPL_OP(Relu).InputsDataDependency({0});  // rt2 way
   auto data_desc = data->GetOpDesc();
   auto tensor = std::make_shared<GeTensor>();
   GeTensorDesc tensor_desc;
   AttrUtils::SetTensor(tensor_desc, "_value", tensor);
-  AttrUtils::SetInt(tensor_desc, "_mem_type", 0); // need d2h
+  AttrUtils::SetInt(tensor_desc, "_mem_type", 0);  // need d2h
   data_desc->AddInputDesc(tensor_desc);
   std::set<NodePtr> dependent_for_shape_inference;
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry(true);
 
   ASSERT_EQ(builder.ParseDependencies(*node_item, dependent_for_shape_inference), SUCCESS);
   EXPECT_EQ(dependent_for_shape_inference.empty(), false);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("Relu")->inputs_dependency = 0;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("Relu")->inputs_dependency =
+      0;
 }
 
 TEST_F(UtestGeHybrid, TestTaskExecuteAsync) {
@@ -1057,7 +1057,7 @@ TEST_F(UtestGeHybrid, TestHybridModelCheckHostMemOpt) {
   std::vector<std::unique_ptr<AiCoreOpTask>> tasks_list;
   tasks_list.emplace_back(std::move(aicore_op_task));
   (hybrid_model.node_items_[node])->kernel_task.reset(new (std::nothrow) AiCoreNodeTask(std::move(tasks_list)));
-  //hybrid_model.node_items_.emplace(node, std::move(node_item));
+  // hybrid_model.node_items_.emplace(node, std::move(node_item));
   ASSERT_EQ(hybrid_model.CheckHostMemInputOptimization(node_with_hostmem), false);
 }
 
@@ -1150,7 +1150,7 @@ TEST_F(UtestGeHybrid, test_dynamic_singleop_CheckHostMemInputOptimization) {
 TEST_F(UtestGeHybrid, aicore_op_task_update_args_wit_host_input) {
   constexpr char const *kAttrSupportDynamicShape = "support_dynamicshape";
   constexpr char const *kAttrOpParamSize = "op_para_size";
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   auto graph = make_shared<ComputeGraph>("graph");
   OpDescPtr op_desc = CreateOpDesc("Add", "Add");
   GeShape shape({2, 16});
@@ -1172,7 +1172,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_update_args_wit_host_input) {
   auto node_state = subgraph_context.GetNodeState(graph_item.GetNodeItem());
   auto task_context = node_state->GetTaskContext();
   task_context->workspaces_.clear();
-  //task_context->node_item_- = &node_item;
+  // task_context->node_item_- = &node_item;
 
   TensorValue host_input(buffer, buffer_size);
   task_context->inputs_start_ = &host_input;
@@ -1188,7 +1188,7 @@ TEST_F(UtestGeHybrid, aicore_op_task_update_args_wit_host_input) {
   aicore_task->args_ = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof(uintptr_t) * 2]);
   EXPECT_EQ(task_context->NumInputs(), 1);
   EXPECT_EQ(aicore_task->UpdateArgs(*task_context), SUCCESS);
-  delete[] reinterpret_cast<uint8_t*>(buffer);
+  delete[] reinterpret_cast<uint8_t *>(buffer);
 }
 
 TEST_F(UtestGeHybrid, TestHybridDavinciModelMethods) {
@@ -1239,4 +1239,4 @@ TEST_F(UtestGeHybrid, index_taskdefs_no_task) {
 
   ASSERT_EQ(hybrid_model_builder.IndexTaskDefs(graph, ge_model), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

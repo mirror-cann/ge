@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,14 +44,15 @@ Status BinaryGraphBuilder::CopySubgraph(const ComputeGraphPtr &graph, const std:
     const auto &subgraph_names = node->GetOpDesc()->GetSubgraphInstanceNames();
     for (const auto &subgraph_name : subgraph_names) {
       const auto &src_subgraph = node->GetOwnerComputeGraph()->GetSubgraph(subgraph_name);
-      GE_ASSERT_NOTNULL(src_subgraph, "node:%s subgraph is null, subgraph name:%s", node->GetName().c_str(), subgraph_name.c_str());
+      GE_ASSERT_NOTNULL(src_subgraph, "node:%s subgraph is null, subgraph name:%s", node->GetName().c_str(),
+                        subgraph_name.c_str());
       auto dst_subgraph = ComGraphMakeShared<ComputeGraph>(src_subgraph->GetName());
       GE_ASSERT_NOTNULL(dst_subgraph);
       dst_subgraph->SetParentGraph(graph);
       std::map<ConstNodePtr, NodePtr> old_2_new_node;
       std::map<ConstOpDescPtr, OpDescPtr> old_2_new_op_desc;
-      GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(src_subgraph, dst_subgraph, old_2_new_node, old_2_new_op_desc, 0), "copy %s of node:%s fail",
-                        src_subgraph->GetName().c_str(), node->GetName().c_str());
+      GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(src_subgraph, dst_subgraph, old_2_new_node, old_2_new_op_desc, 0),
+                        "copy %s of node:%s fail", src_subgraph->GetName().c_str(), node->GetName().c_str());
       (void)graph->AddSubGraph(dst_subgraph);
       const auto &new_node = graph->FindNode(node->GetName());
       GE_ASSERT_NOTNULL(new_node, "node:%s does not exist", node->GetName().c_str());
@@ -88,13 +89,13 @@ Status BinaryGraphBuilder::GetIONodeMapping(BinaryGraphIOLinkage &io_link) const
     for (const auto &out_data_anchor : node->GetAllOutDataAnchors()) {
       peer_data.clear();
       const auto &peer_in_anchors = out_data_anchor->GetPeerInDataAnchorsPtr();
-      (void)std::for_each(peer_in_anchors.begin(), peer_in_anchors.end(),
-                          [io_link, &peer_data](const InDataAnchor *peer_in_anchor) {
-                            if (std::count(io_link.infered_nodes.begin(), io_link.infered_nodes.end(),
-                                peer_in_anchor->GetOwnerNode()) == 0) {
-                              peer_data.emplace_back(peer_in_anchor->GetOwnerNode()->GetName(), peer_in_anchor->GetIdx());
-                            }
-                          });
+      (void)std::for_each(
+          peer_in_anchors.begin(), peer_in_anchors.end(), [io_link, &peer_data](const InDataAnchor *peer_in_anchor) {
+            if (std::count(io_link.infered_nodes.begin(), io_link.infered_nodes.end(),
+                           peer_in_anchor->GetOwnerNode()) == 0) {
+              peer_data.emplace_back(peer_in_anchor->GetOwnerNode()->GetName(), peer_in_anchor->GetIdx());
+            }
+          });
       GE_ASSERT_TRUE(CheckPeerNodeIsValid(peer_data, io_link.uninfer_nodes),
                      "GetIONodeMapping failed! peer node is not in remaining graph");
       if (!peer_data.empty()) {
@@ -118,8 +119,7 @@ Status BinaryGraphBuilder::GetIOIdxMapping(BinaryGraphIOLinkage &io_link) const 
   for (const auto &in_data_anchor : netout_node->GetAllInDataAnchorsPtr()) {
     const auto out_idx = in_data_anchor->GetIdx();
     auto out_data_anchor = in_data_anchor->GetPeerOutAnchor();
-    GE_ASSERT_NOTNULL(out_data_anchor, 
-                      "GetIOIdxMapping failed! netout's idx:%d out_data_anchor is null", out_idx);
+    GE_ASSERT_NOTNULL(out_data_anchor, "GetIOIdxMapping failed! netout's idx:%d out_data_anchor is null", out_idx);
     auto out_node_name = out_data_anchor->GetOwnerNode()->GetName();
     const auto out_node_idx = out_data_anchor->GetIdx();
     GE_ASSERT_SUCCESS(FindIOIdxMappingAndSet(io_link, out_node_name, out_node_idx, out_idx));
@@ -135,13 +135,16 @@ Status BinaryGraphBuilder::FindIOIdxMappingAndSet(BinaryGraphIOLinkage &io_link,
                  "FindIOIdxMappingAndSet failed! out_node_name:%s does not exist", out_node_name.c_str());
   auto peer_data = out_to_in_idx->second.find(static_cast<uint32_t>(out_node_idx));
   GE_ASSERT_TRUE((peer_data != out_to_in_idx->second.end()),
-                 "FindIOIdxMappingAndSet failed! out_node_name:%s idx:%d does not exist", out_node_name.c_str(), out_node_idx);
+                 "FindIOIdxMappingAndSet failed! out_node_name:%s idx:%d does not exist", out_node_name.c_str(),
+                 out_node_idx);
   for (const auto &in_data_pair : peer_data->second) {
     auto node = io_link.remaining_graph->FindNode(in_data_pair.first);
-    GE_ASSERT_NOTNULL(node, "FindIOIdxMappingAndSet failed! remaining garph node:%s does not exist", in_data_pair.first.c_str());
-    GE_ASSERT_NOTNULL(node->GetInDataAnchor(static_cast<int32_t>(in_data_pair.second)), "node:%s in data anchor null", in_data_pair.first.c_str());
+    GE_ASSERT_NOTNULL(node, "FindIOIdxMappingAndSet failed! remaining graph node:%s does not exist",
+                      in_data_pair.first.c_str());
+    GE_ASSERT_NOTNULL(node->GetInDataAnchor(static_cast<int32_t>(in_data_pair.second)), "node:%s in data anchor null",
+                      in_data_pair.first.c_str());
     auto in_data_anchor = node->GetInDataAnchor(static_cast<int32_t>(in_data_pair.second))->GetPeerOutAnchor();
-    GE_ASSERT_NOTNULL(in_data_anchor, "FindIOIdxMappingAndSet failed! remaining garph node:%s has no in data",
+    GE_ASSERT_NOTNULL(in_data_anchor, "FindIOIdxMappingAndSet failed! remaining graph node:%s has no in data",
                       in_data_pair.first.c_str());
 
     auto in_data_node = in_data_anchor->GetOwnerNode();
@@ -165,11 +168,9 @@ Status BinaryGraphBuilder::FindIOIdxMappingAndSet(BinaryGraphIOLinkage &io_link,
 bool BinaryGraphBuilder::CheckPeerNodeIsValid(const std::list<std::pair<std::string, uint32_t>> &peer_data,
                                               const std::vector<NodePtr> &peer_nodes) const {
   for (const auto &pair_node : peer_data) {
-    auto it = std::find_if(peer_nodes.begin(), peer_nodes.end(), [pair_node](const NodePtr &node) {
-      return pair_node.first == node->GetName();
-    });
-    GE_ASSERT_TRUE((it != peer_nodes.end()), "Invalid peer node:%s is not in remaining graph",
-                   pair_node.first.c_str());
+    auto it = std::find_if(peer_nodes.begin(), peer_nodes.end(),
+                           [pair_node](const NodePtr &node) { return pair_node.first == node->GetName(); });
+    GE_ASSERT_TRUE((it != peer_nodes.end()), "Invalid peer node:%s is not in remaining graph", pair_node.first.c_str());
   }
   return true;
 }
@@ -182,7 +183,8 @@ Status BinaryGraphBuilder::ReplaceInputNode(BinaryGraphIOLinkage &io_link) const
   for (const auto &io_pair : io_link.out_idx_2_in_idxs) {
     GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_pair.first)));
     GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_pair.first))->GetPeerOutAnchor());
-    auto out_node = netout_node->GetInDataAnchor(static_cast<int32_t>(io_pair.first))->GetPeerOutAnchor()->GetOwnerNode();
+    auto out_node =
+        netout_node->GetInDataAnchor(static_cast<int32_t>(io_pair.first))->GetPeerOutAnchor()->GetOwnerNode();
     if (IsReplaceNode(out_node)) {
       auto dst_node = io_link.remaining_graph->FindNode(out_node->GetName());
       if (dst_node == nullptr) {
@@ -223,7 +225,8 @@ OpDescPtr BinaryGraphBuilder::MakeNetOutputDesc(const BinaryGraphIOLinkage &io_l
   GE_ASSERT_NOTNULL(netout_node);
   for (const auto &in_data_anchor : netout_node->GetAllInDataAnchorsPtr()) {
     auto peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
-    GE_ASSERT_NOTNULL(peer_out_anchor, "GetPeerOutAnchor failed! out_node_idx:%d does not exist", in_data_anchor->GetIdx());
+    GE_ASSERT_NOTNULL(peer_out_anchor, "GetPeerOutAnchor failed! out_node_idx:%d does not exist",
+                      in_data_anchor->GetIdx());
     auto out_node = peer_out_anchor->GetOwnerNode();
     GE_ASSERT_NOTNULL(out_node, "GetOwnerNode failed! out_node_idx:%d does not exist", in_data_anchor->GetIdx());
     GE_ASSERT_NOTNULL(out_node->GetOpDesc());
@@ -238,16 +241,16 @@ OpDescPtr BinaryGraphBuilder::MakeNetOutputDesc(const BinaryGraphIOLinkage &io_l
   return net_output_desc;
 }
 
-Status BinaryGraphBuilder::AddNetOutputNodeWithLink(const BinaryGraphIOLinkage &io_link,
-                                                    const OpDescPtr &net_output_desc,
-                                                    const std::vector<OutDataAnchorPtr> &peer_out_data_anchors,
-                                                    const std::vector<OutControlAnchorPtr> &peer_out_ctrl_anchors) const {
+Status BinaryGraphBuilder::AddNetOutputNodeWithLink(
+    const BinaryGraphIOLinkage &io_link, const OpDescPtr &net_output_desc,
+    const std::vector<OutDataAnchorPtr> &peer_out_data_anchors,
+    const std::vector<OutControlAnchorPtr> &peer_out_ctrl_anchors) const {
   const NodePtr net_output = io_link.sliced_graph->AddNode(net_output_desc);
   GE_ASSERT_NOTNULL(net_output);
   io_link.sliced_graph->SetNetOutputNode(net_output);
   for (size_t i = 0U; i < peer_out_data_anchors.size(); i++) {
-    GE_ASSERT_SUCCESS(GraphUtils::AddEdge(peer_out_data_anchors[i],
-                      net_output->GetInDataAnchor(static_cast<int32_t>(i))));
+    GE_ASSERT_SUCCESS(
+        GraphUtils::AddEdge(peer_out_data_anchors[i], net_output->GetInDataAnchor(static_cast<int32_t>(i))));
   }
   for (size_t i = 0U; i < peer_out_ctrl_anchors.size(); i++) {
     GE_ASSERT_SUCCESS(GraphUtils::AddEdge(peer_out_ctrl_anchors[i], net_output->GetInControlAnchor()));
@@ -292,10 +295,13 @@ Status BinaryGraphBuilder::MergeSameInputNode(BinaryGraphIOLinkage &io_link) con
 Status BinaryGraphBuilder::ReplaceNode(const NodePtr &src_node, const NodePtr &dst_node, ComputeGraphPtr graph) const {
   GE_ASSERT_NOTNULL(src_node->GetOutDataAnchor(0));
   auto peer_node_anchors = src_node->GetOutDataAnchor(0)->GetPeerInDataAnchors();
-  GE_ASSERT_SUCCESS(GraphUtils::ReplaceEdgeSrc(src_node->GetOutDataAnchor(0), peer_node_anchors.at(0), dst_node->GetOutDataAnchor(0)),
-                    "ReplaceNode failed! ReplaceEdgeSrc failed, src:%s dst:%s", src_node->GetName().c_str(), dst_node->GetName().c_str());
+  GE_ASSERT_SUCCESS(
+      GraphUtils::ReplaceEdgeSrc(src_node->GetOutDataAnchor(0), peer_node_anchors.at(0), dst_node->GetOutDataAnchor(0)),
+      "ReplaceNode failed! ReplaceEdgeSrc failed, src:%s dst:%s", src_node->GetName().c_str(),
+      dst_node->GetName().c_str());
   GE_ASSERT_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(graph, src_node),
-                    "ReplaceNode failed! RemoveNodeWithoutRelink failed graph:%s, node:%s", graph->GetName().c_str(), src_node->GetName().c_str());
+                    "ReplaceNode failed! RemoveNodeWithoutRelink failed graph:%s, node:%s", graph->GetName().c_str(),
+                    src_node->GetName().c_str());
   return GRAPH_SUCCESS;
 }
 
@@ -331,23 +337,33 @@ Status BinaryGraphBuilder::DebugIOMapping(const BinaryGraphIOLinkage &io_link) c
   for (const auto &io_idx_pair : io_link.out_idx_2_in_idxs) {
     GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first)));
     GE_ASSERT_NOTNULL(netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor());
-    auto out_name = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor()->GetOwnerNode()->GetName();
-    const auto out_idx = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor()->GetIdx();
+    auto out_name = netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))
+                        ->GetPeerOutAnchor()
+                        ->GetOwnerNode()
+                        ->GetName();
+    const auto out_idx =
+        netout_node->GetInDataAnchor(static_cast<int32_t>(io_idx_pair.first))->GetPeerOutAnchor()->GetIdx();
     GE_ASSERT_NOTNULL(in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0));
-    auto in_name = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName();
-    const auto in_idx = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetIdx();
+    auto in_name = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))
+                       ->GetOutDataAnchor(0)
+                       ->GetPeerInDataAnchors()
+                       .at(0)
+                       ->GetOwnerNode()
+                       ->GetName();
+    const auto in_idx = in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))
+                            ->GetOutDataAnchor(0)
+                            ->GetPeerInDataAnchors()
+                            .at(0)
+                            ->GetIdx();
     int64_t in_idx_attr;
-    (void)AttrUtils::GetInt(in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOpDesc(), ATTR_NAME_INDEX, in_idx_attr);
+    (void)AttrUtils::GetInt(in_data_nodes.at(static_cast<size_t>(io_idx_pair.second))->GetOpDesc(), ATTR_NAME_INDEX,
+                            in_idx_attr);
 
     std::stringstream info;
-    info << "out_name:" << out_name 
-         << ", out_idx:" << out_idx 
-         << ", netout_idx:" << io_idx_pair.first 
-         << ", in_name:" << in_name 
-         << ", in_idx:" << in_idx 
-         << ", data_idx:" << io_idx_pair.second
+    info << "out_name:" << out_name << ", out_idx:" << out_idx << ", netout_idx:" << io_idx_pair.first
+         << ", in_name:" << in_name << ", in_idx:" << in_idx << ", data_idx:" << io_idx_pair.second
          << ", data_idx_attr:" << in_idx_attr;
-  GELOGI("GetIOIdxMapping:%s", info.str().c_str());
+    GELOGI("GetIOIdxMapping:%s", info.str().c_str());
   }
   return GRAPH_SUCCESS;
 }

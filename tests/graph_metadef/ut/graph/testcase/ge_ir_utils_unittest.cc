@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -319,7 +319,9 @@
 //     if (attr.name().find("input_desc_0") == 0U) {
 //       tensor_structured_show = true;
 //       const std::string kExpected = R"PROTO(name: "input_desc_0"
-// s: "{\"attr_groups\":\"attr_group_def {\\n  shape_env_attr_group {\\n    shape_setting {\\n    }\\n  }\\n}\\nattr_group_def {\\n  tensor_attr_group {\\n  }\\n}\\n\",\"cmps_size\":0,\"cmps_tab\":\"\",\"cmps_tab_offset\":0,\"data_offset\":0,\"device_type\":\"NPU\",\"dtype\":\"DT_FLOAT\",\"input_tensor\":0,\"layout\":\"NCHW\",\"origin_dtype\":\"DT_FLOAT\",\"origin_layout\":\"NCHW\",\"origin_shape\":[1,1,224,224],\"output_tensor\":0,\"real_dim_cnt\":0,\"reuse_input\":0,\"shape\":[1,1,224,224],\"size\":0,\"weight_size\":0}"
+// s: "{\"attr_groups\":\"attr_group_def {\\n  shape_env_attr_group {\\n    shape_setting {\\n    }\\n
+// }\\n}\\nattr_group_def {\\n  tensor_attr_group {\\n
+// }\\n}\\n\",\"cmps_size\":0,\"cmps_tab\":\"\",\"cmps_tab_offset\":0,\"data_offset\":0,\"device_type\":\"NPU\",\"dtype\":\"DT_FLOAT\",\"input_tensor\":0,\"layout\":\"NCHW\",\"origin_dtype\":\"DT_FLOAT\",\"origin_layout\":\"NCHW\",\"origin_shape\":[1,1,224,224],\"output_tensor\":0,\"real_dim_cnt\":0,\"reuse_input\":0,\"shape\":[1,1,224,224],\"size\":0,\"weight_size\":0}"
 // type: STRING
 // )PROTO";
 //       EXPECT_EQ(attr.DebugString(), kExpected);
@@ -327,7 +329,9 @@
 //     if (attr.name() == "input_desc_1") {
 //       tensor_structured_show = true;
 //       const std::string kExpected = R"PROTO(name: "input_desc_1"
-// s: "{\"attr_groups\":\"attr_group_def {\\n  shape_env_attr_group {\\n    shape_setting {\\n    }\\n  }\\n}\\n\",\"cmps_size\":0,\"cmps_tab\":\"\",\"cmps_tab_offset\":0,\"data_offset\":0,\"device_type\":\"NPU\",\"dtype\":\"DT_FLOAT\",\"input_tensor\":0,\"layout\":\"NCHW\",\"normal_attr\":\"s: \\\"for_test\\\"\\n\",\"origin_dtype\":\"DT_FLOAT\",\"origin_layout\":\"NCHW\",\"origin_shape\":[1,1,224,224],\"output_tensor\":0,\"real_dim_cnt\":0,\"reuse_input\":0,\"shape\":[1,1,224,224],\"size\":0,\"weight_size\":0}"
+// s: "{\"attr_groups\":\"attr_group_def {\\n  shape_env_attr_group {\\n    shape_setting {\\n    }\\n
+// }\\n}\\n\",\"cmps_size\":0,\"cmps_tab\":\"\",\"cmps_tab_offset\":0,\"data_offset\":0,\"device_type\":\"NPU\",\"dtype\":\"DT_FLOAT\",\"input_tensor\":0,\"layout\":\"NCHW\",\"normal_attr\":\"s:
+// \\\"for_test\\\"\\n\",\"origin_dtype\":\"DT_FLOAT\",\"origin_layout\":\"NCHW\",\"origin_shape\":[1,1,224,224],\"output_tensor\":0,\"real_dim_cnt\":0,\"reuse_input\":0,\"shape\":[1,1,224,224],\"size\":0,\"weight_size\":0}"
 // type: STRING
 // )PROTO";
 //       EXPECT_EQ(attr.DebugString(), kExpected);

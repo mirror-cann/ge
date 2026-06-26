@@ -47,7 +47,8 @@ bool HasAnyControlEdges(const NodePtr &node) {
 }
 }  // namespace
 
-graphStatus ConcatSliceSimplificationPass::Run(const ComputeGraphPtr &graph, const GraphPasses &graph_passes, bool &changed) {
+graphStatus ConcatSliceSimplificationPass::Run(const ComputeGraphPtr &graph, const GraphPasses &graph_passes,
+                                               bool &changed) {
   for (const auto &node : graph->GetAllNodes()) {
     if (IsSlice(node) && IsFromConcat(node)) {
       (void)HandleSlice(node);
@@ -55,10 +56,10 @@ graphStatus ConcatSliceSimplificationPass::Run(const ComputeGraphPtr &graph, con
       // do nothing
     }
   }
-  if (need_prune_  && (graph_passes.prune_graph_func != nullptr)) {
-      (void)graph_passes.prune_graph_func(graph);
-      GE_ASSERT_GRAPH_SUCCESS(graph->TopologicalSorting());
-      changed = true;
+  if (need_prune_ && (graph_passes.prune_graph_func != nullptr)) {
+    (void)graph_passes.prune_graph_func(graph);
+    GE_ASSERT_GRAPH_SUCCESS(graph->TopologicalSorting());
+    changed = true;
   }
   if (need_constant_folding_ && (graph_passes.constant_folding_func != nullptr)) {
     for (auto &node : graph->GetAllNodes()) {
@@ -99,7 +100,8 @@ graphStatus ConcatSliceSimplificationPass::HandleSlice(const NodePtr &node) {
   const std::string new_name = node->GetName() + "_by_ConcatSliceSimplificationPass";
   auto new_slice_node = AddNewSliceNode(node->GetOwnerComputeGraph(), new_name, offsets, sizes);
   GE_ASSERT_NOTNULL(new_slice_node);
-  GE_ASSERT_GRAPH_SUCCESS(new_slice_node->GetOpDesc()->UpdateInputDesc(0, src_node->GetOpDesc()->GetOutputDesc(src_node_out_anchor->GetIdx())));
+  GE_ASSERT_GRAPH_SUCCESS(new_slice_node->GetOpDesc()->UpdateInputDesc(
+      0, src_node->GetOpDesc()->GetOutputDesc(src_node_out_anchor->GetIdx())));
   GE_ASSERT_GRAPH_SUCCESS(new_slice_node->GetOpDesc()->UpdateOutputDesc(0, node->GetOpDesc()->GetOutputDesc(0)));
   GE_ASSERT_GRAPH_SUCCESS(GraphUtils::ReplaceNodesOutDataAnchors({new_slice_node}, {node}, {0}));
   NodeUtils::UnlinkAll(*node);
@@ -109,8 +111,9 @@ graphStatus ConcatSliceSimplificationPass::HandleSlice(const NodePtr &node) {
   return GRAPH_SUCCESS;
 }
 
-bool ConcatSliceSimplificationPass::FindInput(const NodePtr &concat_node, size_t concat_dim, const std::vector<int64_t> &sizes,
-                                              std::vector<int64_t> &offsets, size_t &input_index) {
+bool ConcatSliceSimplificationPass::FindInput(const NodePtr &concat_node, size_t concat_dim,
+                                              const std::vector<int64_t> &sizes, std::vector<int64_t> &offsets,
+                                              size_t &input_index) {
   size_t num_inputs;
   const auto &concat_op_desc = concat_node->GetOpDesc();
   GE_ASSERT_NOTNULL(concat_op_desc);

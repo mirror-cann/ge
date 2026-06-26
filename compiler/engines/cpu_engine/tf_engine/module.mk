@@ -167,7 +167,7 @@ LOCAL_CFLAGS += -DAICPU_PLUGIN -std=c++11 -Wno-deprecated-declarations -Dgoogle=
 LOCAL_UNINSTALLABLE_MODULE := false
 LOCAL_LDFLAGS += -lrt -ldl
 
-LOCAL_STATIC_LIBRARIES := 
+LOCAL_STATIC_LIBRARIES :=
 
 LOCAL_SHARED_LIBRARIES := libaicpu_builder_common \
                           libregister \

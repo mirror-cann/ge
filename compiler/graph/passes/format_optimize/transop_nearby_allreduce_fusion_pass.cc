@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,18 +61,16 @@ bool TransOpNearbyAllreduceFusionPass::IsSymmetricTransOps(const NodePtr &node1,
   GE_CHECK_NOTNULL_EXEC(node2_output_desc, return false);
 
   // two symmetric trans ops should have symmetric input/output datatype
-  GELOGD("format: nod1_input=%d, nod1_output=%d, nod2_input=%d, nod2_output=%d",
-         node1_input_desc->GetFormat(), node1_output_desc->GetFormat(), node2_input_desc->GetFormat(),
-         node2_output_desc->GetFormat());
+  GELOGD("format: nod1_input=%d, nod1_output=%d, nod2_input=%d, nod2_output=%d", node1_input_desc->GetFormat(),
+         node1_output_desc->GetFormat(), node2_input_desc->GetFormat(), node2_output_desc->GetFormat());
   if (node1_input_desc->GetFormat() != node2_output_desc->GetFormat() ||
       node1_output_desc->GetFormat() != node2_input_desc->GetFormat()) {
     return false;
   }
 
   // two symmetric trans ops should have symmetric input/output format
-  GELOGD("datatype: nod1_input=%d, nod1_output=%d, nod2_input=%d, nod2_output=%d",
-         node1_input_desc->GetDataType(), node1_output_desc->GetDataType(), node2_input_desc->GetDataType(),
-         node2_output_desc->GetDataType());
+  GELOGD("datatype: nod1_input=%d, nod1_output=%d, nod2_input=%d, nod2_output=%d", node1_input_desc->GetDataType(),
+         node1_output_desc->GetDataType(), node2_input_desc->GetDataType(), node2_output_desc->GetDataType());
   if (node1_input_desc->GetDataType() != node2_output_desc->GetDataType() ||
       node1_output_desc->GetDataType() != node2_input_desc->GetDataType()) {
     return false;
@@ -94,9 +92,11 @@ Status TransOpNearbyAllreduceFusionPass::RemoveNearbyPairedTransOps(const NodePt
   auto in_data_anchors = node->GetAllInDataAnchors();
   auto out_data_anchors = node->GetAllOutDataAnchors();
   if (in_data_anchors.size() != out_data_anchors.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "In data anchors size:%zu not equal to out data anchors size:%zu in node:%s(%s), "
-                       "check invalid", in_data_anchors.size(), out_data_anchors.size(),
-                       node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "In data anchors size:%zu not equal to out data anchors size:%zu in node:%s(%s), "
+                         "check invalid",
+                         in_data_anchors.size(), out_data_anchors.size(), node->GetName().c_str(),
+                         node->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] in and out data anchor size are not equal, node=%s, in_size=%zu, out_size=%zu",
            node->GetName().c_str(), in_data_anchors.size(), out_data_anchors.size());
     return FAILED;
@@ -134,15 +134,15 @@ Status TransOpNearbyAllreduceFusionPass::RemoveNearbyPairedTransOps(const NodePt
 
     GELOGI("in_node=%s, out_node=%s", in_node->GetName().c_str(), out_node->GetName().c_str());
     if (!IsSymmetricTransOps(in_node, out_node)) {
-      GELOGD("ignore asymmetric transop %s and %s for node %s",
-             in_node->GetName().c_str(), out_node->GetName().c_str(), node->GetName().c_str());
+      GELOGD("ignore asymmetric transop %s and %s for node %s", in_node->GetName().c_str(), out_node->GetName().c_str(),
+             node->GetName().c_str());
       continue;
     }
 
     // delete in_node
     if (IsolateAndDeleteNode(in_node, {0}) != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed",
-                        in_node->GetName().c_str(), in_node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed", in_node->GetName().c_str(),
+                           in_node->GetType().c_str());
       GELOGE(FAILED, "[Remove][Node] %s failed", in_node->GetName().c_str());
       return FAILED;
     }
@@ -150,8 +150,8 @@ Status TransOpNearbyAllreduceFusionPass::RemoveNearbyPairedTransOps(const NodePt
 
     // delete out_node
     if (IsolateAndDeleteNode(out_node, {0}) != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed",
-                        out_node->GetName().c_str(), out_node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Isolate and delete node:%s(%s) failed", out_node->GetName().c_str(),
+                           out_node->GetType().c_str());
       GELOGE(FAILED, "[Remove][Node] %s failed", out_node->GetName().c_str());
       return FAILED;
     }
@@ -164,19 +164,19 @@ Status TransOpNearbyAllreduceFusionPass::RemoveNearbyPairedTransOps(const NodePt
     auto input_desc = in_node->GetOpDesc()->GetInputDesc(0);
     auto output_desc = out_node->GetOpDesc()->GetOutputDesc(0);
     if (node->GetOpDesc()->UpdateInputDesc(static_cast<uint32_t>(i), input_desc) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Update input:%zu desc in op:%s(%s) failed",
-                        i, node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(FAILED, "[Update][InputDesc] in op:%s(%s) failed, input index:%zu",
-             node->GetName().c_str(), node->GetType().c_str(), i);
+      REPORT_INNER_ERR_MSG("E19999", "Update input:%zu desc in op:%s(%s) failed", i, node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(FAILED, "[Update][InputDesc] in op:%s(%s) failed, input index:%zu", node->GetName().c_str(),
+             node->GetType().c_str(), i);
     }
     if (node->GetOpDesc()->UpdateOutputDesc(static_cast<uint32_t>(i), output_desc) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Update output:%zu desc in op:%s(%s) failed",
-                        i, node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(FAILED, "[Update][OutputDesc] in op:%s(%s) failed, input index:%zu",
-             node->GetName().c_str(), node->GetType().c_str(), i);
+      REPORT_INNER_ERR_MSG("E19999", "Update output:%zu desc in op:%s(%s) failed", i, node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(FAILED, "[Update][OutputDesc] in op:%s(%s) failed, input index:%zu", node->GetName().c_str(),
+             node->GetType().c_str(), i);
     }
-    GELOGI("successfully remove paired transop (%s and %s) for node %s",
-           in_node->GetName().c_str(), out_node->GetName().c_str(), node->GetName().c_str());
+    GELOGI("successfully remove paired transop (%s and %s) for node %s", in_node->GetName().c_str(),
+           out_node->GetName().c_str(), node->GetName().c_str());
   }
   GELOGI("successfully remove %zu pair of transops in total for node %s", removed_node_count, node->GetName().c_str());
   return SUCCESS;

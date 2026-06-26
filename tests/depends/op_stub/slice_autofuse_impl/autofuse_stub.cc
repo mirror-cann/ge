@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ uint32_t TilingFunc(TilingSymbolEvalContext *context) {
   int64_t data3 = 3L;
   (*tiling_data_ptr)->Append(data3);
 
-  auto input_data_num =  kernel_context->GetInputValue<size_t>(0);
+  auto input_data_num = kernel_context->GetInputValue<size_t>(0);
   auto tiling_parser = kernel_context->GetInputValue<AfTilingParseData *>(input_data_num + 1);
   auto block_dim = tiling_parser->aiv_num;
 
@@ -64,7 +64,9 @@ uint32_t TilingFunc(TilingSymbolEvalContext *context) {
   return 0;
 }
 
-size_t GetTilingDataSize() { return 128; }
+size_t GetTilingDataSize() {
+  return 128;
+}
 
 graphStatus InferShape(InferShapeContext *context) {
   auto extend_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
@@ -144,8 +146,7 @@ graphStatus TilingParse(SymbolTilingParseContext *context) {
   return GRAPH_SUCCESS;
 }
 
-graphStatus DfxInputSymbolInfo(TilingSymbolEvalContext *context, char *out_symbol_info, size_t size)
-{
+graphStatus DfxInputSymbolInfo(TilingSymbolEvalContext *context, char *out_symbol_info, size_t size) {
   if (out_symbol_info == nullptr || size == 0) {
     return GRAPH_SUCCESS;
   }

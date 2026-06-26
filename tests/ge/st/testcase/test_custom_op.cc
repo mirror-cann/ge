@@ -50,9 +50,7 @@
 namespace ge {
 using namespace gert;
 namespace {
-Status GenerateTaskForCustomOp(const Node &node,
-                               RunContext &run_context,
-                               std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForCustomOp(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   (void)node;
   (void)run_context;
   domi::TaskDef task_def = {};
@@ -66,9 +64,7 @@ Status GenerateTaskForCustomOp(const Node &node,
   return SUCCESS;
 }
 
-Status GenerateTaskForMemCopyAync(const Node &node,
-                                  RunContext &run_context,
-                                  std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForMemCopyAync(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if ((node.GetType() != MEMCPYASYNC) && (node.GetType() != IDENTITY)) {
     return SUCCESS;
   }
@@ -77,16 +73,16 @@ Status GenerateTaskForMemCopyAync(const Node &node,
   auto kernel_def = task_def.mutable_memcpy_async();
   kernel_def->set_op_index(node.GetOpDesc()->GetId());
   kernel_def->set_kind(RT_MEMCPY_ADDR_DEVICE_TO_DEVICE);
-  uint8_t *membase =  run_context.dataMemBase;
+  uint8_t *membase = run_context.dataMemBase;
   kernel_def->set_src((uintptr_t)membase + node.GetOpDesc()->GetInputOffset()[0]);
   kernel_def->set_dst((uintptr_t)membase + node.GetOpDesc()->GetOutputOffset()[0]);
   tasks.emplace_back(task_def);
   return SUCCESS;
 }
-void ConstructCustomInputOutputTensor(size_t input_num, size_t output_num,
-                                      std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs) {
+void ConstructCustomInputOutputTensor(size_t input_num, size_t output_num, std::vector<ge::Tensor> &inputs,
+                                      std::vector<ge::Tensor> &outputs) {
   for (size_t i = 0; i < input_num; i++) {
-    std::vector<float32_t> input_data(2 * 2 * 2 , 0);
+    std::vector<float32_t> input_data(2 * 2 * 2, 0);
     TensorDesc desc(Shape({2, 2, 2}));
     ge::Tensor input_tensor{desc};
     input_tensor.SetData(reinterpret_cast<uint8_t *>(input_data.data()), input_data.size() * sizeof(float32_t));
@@ -143,10 +139,10 @@ void MockGenerateTask() {
 }
 void *output_addr = nullptr;
 void **args_table = nullptr;
-}
+}  // namespace
 
 class CustomOpRefreshTest : public testing::Test {
-protected:
+ protected:
   void SetUp() {
     ModelManager::GetInstance().ClearAicpuSo();
     MockGenerateTask();
@@ -158,7 +154,7 @@ protected:
 };
 
 class TestBaseCustomOp : public EagerExecuteOp {
-public:
+ public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     auto input_tensor0 = ctx->GetInputTensor(0);
     GE_ASSERT_NOTNULL(input_tensor0);
@@ -177,12 +173,13 @@ public:
     GE_ASSERT_TRUE(input_shape2.GetDimNum() == 3);
     GE_ASSERT_TRUE(input_shape2.GetDim(0) == 2);
 
-    // allocator 申请workspace有问题，taskinfo传入的是MemoryBlockManager但是在eager_op_execution_context里是按照GertAllocator来使用的
+    // allocator
+    // 申请workspace有问题，taskinfo传入的是MemoryBlockManager但是在eager_op_execution_context里是按照GertAllocator来使用的
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
 
-    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2 ,2}, {2, 2, 2}),
-        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
+                                                 gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
     auto output_shape = output_tensor->GetShape().GetStorageShape();
     GE_ASSERT_TRUE(output_shape.GetDimNum() == 3);
@@ -191,14 +188,14 @@ public:
     GE_ASSERT_NOTNULL(output_addr);
 
     rtSetTaskTag("custom_op");
-    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
-    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
-    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
-    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
-    args_table[0] = static_cast<void*>(input_0);
-    args_table[1] = static_cast<void*>(input_1);
-    args_table[2] = static_cast<void*>(input_2);
-    args_table[3] = static_cast<void*>(output_0);
+    void *input_0 = const_cast<void *>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void *>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void *>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void *>(ctx->GetOutputTensor(0)->GetAddr());
+    args_table[0] = static_cast<void *>(input_0);
+    args_table[1] = static_cast<void *>(input_1);
+    args_table[2] = static_cast<void *>(input_2);
+    args_table[3] = static_cast<void *>(output_0);
 
     aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
     return SUCCESS;
@@ -206,7 +203,7 @@ public:
 };
 
 class TestCompileOutputCustomOp : public EagerExecuteOp, public CompilableOp {
-public:
+ public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     return SUCCESS;
   }
@@ -258,7 +255,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_data) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -266,7 +263,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_data) {
 
   gert::GertRuntimeStub runtime_stub;
   std::unique_ptr<ArgsChecker> args_checker;
-  args_table = new void*[4];
+  args_table = new void *[4];
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -275,9 +272,8 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_data) {
   auto compute_graph = ShareGraph::BuildOnlyCustomOpKnowShapeGraph();
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOp>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "CustomOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOp>(); });
 
   const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
     const auto input_shape = context->GetInputShape(0U);
@@ -348,7 +344,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_data) {
   EXPECT_EQ(SUCCESS, args_checker->TaskIoAddressesAreCorrect());
   EXPECT_EQ(SUCCESS, args_checker->CheckNodesArgsNotUpdated({"custom_op"}));
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -387,7 +383,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -395,7 +391,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add) {
 
   gert::GertRuntimeStub runtime_stub;
   std::unique_ptr<ArgsChecker> args_checker;
-  args_table = new void*[4];
+  args_table = new void *[4];
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -404,11 +400,10 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add) {
   auto compute_graph = ShareGraph::BuildCustomOpWithAddKnowShapeGraph();
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOp>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "CustomOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOp>(); });
 
- const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
     const auto input_shape = context->GetInputShape(0U);
     auto output = context->GetOutputShape(0);
     for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
@@ -477,7 +472,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add) {
   EXPECT_EQ(SUCCESS, args_checker->TaskIoAddressesAreCorrect());
   EXPECT_EQ(SUCCESS, args_checker->CheckNodesArgsNotUpdated({"custom_op"}));
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -516,7 +511,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add_and_fm_re
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -524,7 +519,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add_and_fm_re
 
   gert::GertRuntimeStub runtime_stub;
   std::unique_ptr<ArgsChecker> args_checker;
-  args_table = new void*[4];
+  args_table = new void *[4];
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -534,11 +529,10 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add_and_fm_re
   auto compute_graph = ShareGraph::BuildCustomOpWithAddKnowShapeGraph();
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOp>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "CustomOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOp>(); });
 
- const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
+  const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
     const auto input_shape = context->GetInputShape(0U);
     auto output = context->GetOutputShape(0);
     for (size_t dim = 0UL; dim < input_shape->GetDimNum(); dim++) {
@@ -607,7 +601,7 @@ TEST_F(CustomOpRefreshTest, model_execute_ok_with_customop_link_to_add_and_fm_re
   EXPECT_EQ(SUCCESS, args_checker->TaskIoAddressesAreCorrect());
   EXPECT_EQ(SUCCESS, args_checker->CheckNodesArgsNotUpdated({"custom_op"}));
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -643,9 +637,10 @@ TEST_F(CustomOpRefreshTest, custom_op_compile_context_construct_outputs_success)
   ASSERT_EQ(op_desc->AddOutputDesc("dy1", dynamic_output_desc1), GRAPH_SUCCESS);
 
   ASSERT_NE(graph->AddNode(op_desc), nullptr);
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type, []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestCompileOutputCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(
+      CustomOpFactory::RegisterCustomOpCreator(
+          op_type, []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestCompileOutputCustomOp>(); }),
+      GRAPH_SUCCESS);
 
   CustomGraphOptimizer optimizer;
   ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), GRAPH_SUCCESS);
@@ -673,8 +668,8 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
 
-    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2 ,2}, {2, 2, 2}),
-        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+    auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
+                                                 gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
     auto output_shape = output_tensor->GetShape().GetStorageShape();
     GE_ASSERT_TRUE(output_shape.GetDimNum() == 3);
@@ -683,14 +678,14 @@ class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
     GE_ASSERT_NOTNULL(output_addr);
 
     rtSetTaskTag("custom_op");
-    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
-    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
-    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
-    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
-    args_table[0] = static_cast<void*>(input_0);
-    args_table[1] = static_cast<void*>(input_1);
-    args_table[2] = static_cast<void*>(input_2);
-    args_table[3] = static_cast<void*>(output_0);
+    void *input_0 = const_cast<void *>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void *>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void *>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void *>(ctx->GetOutputTensor(0)->GetAddr());
+    args_table[0] = static_cast<void *>(input_0);
+    args_table[1] = static_cast<void *>(input_1);
+    args_table[2] = static_cast<void *>(input_2);
+    args_table[3] = static_cast<void *>(output_0);
 
     aclrtLaunchKernelWithHostArgs(nullptr, 0, nullptr, nullptr, &args_table[0], 32, nullptr, 0);
     return SUCCESS;
@@ -729,7 +724,7 @@ TEST_F(CustomOpRefreshTest, args_updater_end_to_end_with_fm_refresh) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -737,7 +732,7 @@ TEST_F(CustomOpRefreshTest, args_updater_end_to_end_with_fm_refresh) {
 
   gert::GertRuntimeStub runtime_stub;
   std::unique_ptr<ArgsChecker> args_checker;
-  args_table = new void*[4];
+  args_table = new void *[4];
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -749,9 +744,8 @@ TEST_F(CustomOpRefreshTest, args_updater_end_to_end_with_fm_refresh) {
   custom_op_node->GetOpDesc()->SetType("ArgsUpdaterOp");
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestArgsUpdaterCustomOp>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "ArgsUpdaterOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestArgsUpdaterCustomOp>(); });
 
   const auto infer_shape_func = [](gert::InferShapeContext *context) -> graphStatus {
     const auto input_shape = context->GetInputShape(0U);
@@ -823,7 +817,7 @@ TEST_F(CustomOpRefreshTest, args_updater_end_to_end_with_fm_refresh) {
 
   EXPECT_TRUE(CustomOpFactory::IsAddressRefreshable(AscendString("ArgsUpdaterOp")));
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -842,20 +836,16 @@ class TestArgsUpdaterWithMallocCustomOp : public ArgsUpdater, public EagerExecut
     GE_ASSERT_NOTNULL(input_tensor2);
 
     auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
-        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+                                                 gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
 
-    void *input_0 = const_cast<void*>(input_tensor0->GetAddr());
-    void *input_1 = const_cast<void*>(input_tensor1->GetAddr());
-    void *input_2 = const_cast<void*>(input_tensor2->GetAddr());
-    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    void *input_0 = const_cast<void *>(input_tensor0->GetAddr());
+    void *input_1 = const_cast<void *>(input_tensor1->GetAddr());
+    void *input_2 = const_cast<void *>(input_tensor2->GetAddr());
+    void *output_0 = const_cast<void *>(ctx->GetOutputTensor(0)->GetAddr());
 
-    uint64_t host_args[4] = {
-      reinterpret_cast<uint64_t>(input_0),
-      reinterpret_cast<uint64_t>(input_1),
-      reinterpret_cast<uint64_t>(input_2),
-      reinterpret_cast<uint64_t>(output_0)
-    };
+    uint64_t host_args[4] = {reinterpret_cast<uint64_t>(input_0), reinterpret_cast<uint64_t>(input_1),
+                             reinterpret_cast<uint64_t>(input_2), reinterpret_cast<uint64_t>(output_0)};
 
     auto *dev_args = ctx->MallocReadOnlyDevArgs(host_args, sizeof(host_args));
     GE_ASSERT_NOTNULL(dev_args);
@@ -876,9 +866,9 @@ class TestArgsUpdaterWithMallocCustomOp : public ArgsUpdater, public EagerExecut
     auto *output_tensor = ctx->GetOutputTensor(0);
     auto *host_args = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0);
 
-    if (host_args != nullptr && host_args->args_size >= sizeof(uint64_t) * 4 &&
-        input_tensor != nullptr && output_tensor != nullptr) {
-      auto *args = static_cast<uint64_t*>(host_args->args_data);
+    if (host_args != nullptr && host_args->args_size >= sizeof(uint64_t) * 4 && input_tensor != nullptr &&
+        output_tensor != nullptr) {
+      auto *args = static_cast<uint64_t *>(host_args->args_data);
       args[0] = reinterpret_cast<uint64_t>(input_tensor->GetData<void>());
       args[3] = reinterpret_cast<uint64_t>(output_tensor->GetData<void>());
     }
@@ -894,7 +884,7 @@ class TestArgsUpdaterMultiAllocCustomOp : public ArgsUpdater, public EagerExecut
 
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
-        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+                                                 gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
 
     for (int i = 0; i < 5; i++) {
@@ -904,10 +894,10 @@ class TestArgsUpdaterMultiAllocCustomOp : public ArgsUpdater, public EagerExecut
     }
 
     rtSetTaskTag("custom_op");
-    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
-    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
-    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
-    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    void *input_0 = const_cast<void *>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void *>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void *>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void *>(ctx->GetOutputTensor(0)->GetAddr());
     args_table[0] = input_0;
     args_table[1] = input_1;
     args_table[2] = input_2;
@@ -929,7 +919,7 @@ class TestEagerOnlyWithMallocCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     auto output_tensor = ctx->MallocOutputTensor(0, gert::StorageShape({2, 2, 2}, {2, 2, 2}),
-        gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+                                                 gert::StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
 
     uint64_t host_args[4] = {0xAAAA, 0xBBBB, 0xCCCC, 0xDDDD};
@@ -937,10 +927,10 @@ class TestEagerOnlyWithMallocCustomOp : public EagerExecuteOp {
     GE_ASSERT_NOTNULL(dev_args);
 
     rtSetTaskTag("custom_op");
-    void *input_0 = const_cast<void*>(ctx->GetInputTensor(0)->GetAddr());
-    void *input_1 = const_cast<void*>(ctx->GetInputTensor(1)->GetAddr());
-    void *input_2 = const_cast<void*>(ctx->GetInputTensor(2)->GetAddr());
-    void *output_0 = const_cast<void*>(ctx->GetOutputTensor(0)->GetAddr());
+    void *input_0 = const_cast<void *>(ctx->GetInputTensor(0)->GetAddr());
+    void *input_1 = const_cast<void *>(ctx->GetInputTensor(1)->GetAddr());
+    void *input_2 = const_cast<void *>(ctx->GetInputTensor(2)->GetAddr());
+    void *output_0 = const_cast<void *>(ctx->GetOutputTensor(0)->GetAddr());
     args_table[0] = input_0;
     args_table[1] = input_1;
     args_table[2] = input_2;
@@ -976,14 +966,14 @@ TEST_F(CustomOpRefreshTest, args_updater_lifecycle_with_malloc_and_two_rounds) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
 
   gert::GertRuntimeStub runtime_stub;
-  args_table = new void*[4];
+  args_table = new void *[4];
   TestArgsUpdaterWithMallocCustomOp::update_host_args_count_ = 0;
 
   std::map<AscendString, AscendString> options;
@@ -996,7 +986,7 @@ TEST_F(CustomOpRefreshTest, args_updater_lifecycle_with_malloc_and_two_rounds) {
   custom_op_node->GetOpDesc()->SetType("ArgsUpdaterLifecycleOp");
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterLifecycleOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterLifecycleOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterWithMallocCustomOp>();
   });
 
@@ -1061,7 +1051,7 @@ TEST_F(CustomOpRefreshTest, args_updater_lifecycle_with_malloc_and_two_rounds) {
 
   EXPECT_GT(TestArgsUpdaterWithMallocCustomOp::update_host_args_count_, 0);
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -1092,14 +1082,14 @@ TEST_F(CustomOpRefreshTest, args_updater_reserved_exhausted_fallback_to_extra_po
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
 
   gert::GertRuntimeStub runtime_stub;
-  args_table = new void*[4];
+  args_table = new void *[4];
   TestArgsUpdaterMultiAllocCustomOp::update_host_args_count_ = 0;
 
   std::map<AscendString, AscendString> options;
@@ -1112,7 +1102,7 @@ TEST_F(CustomOpRefreshTest, args_updater_reserved_exhausted_fallback_to_extra_po
   custom_op_node->GetOpDesc()->SetType("MultiAllocOp");
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("MultiAllocOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("MultiAllocOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterMultiAllocCustomOp>();
   });
 
@@ -1177,7 +1167,7 @@ TEST_F(CustomOpRefreshTest, args_updater_reserved_exhausted_fallback_to_extra_po
 
   EXPECT_GT(TestArgsUpdaterMultiAllocCustomOp::update_host_args_count_, 0);
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
@@ -1208,14 +1198,14 @@ TEST_F(CustomOpRefreshTest, eager_only_op_with_malloc_read_only_dev_args) {
   MockForGenerateTask("RTSLib", GenerateTaskForMemCopyAync);
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
 
   gert::GertRuntimeStub runtime_stub;
-  args_table = new void*[4];
+  args_table = new void *[4];
 
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -1226,7 +1216,7 @@ TEST_F(CustomOpRefreshTest, eager_only_op_with_malloc_read_only_dev_args) {
   custom_op_node->GetOpDesc()->SetType("EagerOnlyMallocOp");
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
-  CustomOpFactory::RegisterCustomOpCreator("EagerOnlyMallocOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("EagerOnlyMallocOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestEagerOnlyWithMallocCustomOp>();
   });
 
@@ -1285,10 +1275,10 @@ TEST_F(CustomOpRefreshTest, eager_only_op_with_malloc_read_only_dev_args) {
 
   EXPECT_FALSE(CustomOpFactory::IsAddressRefreshable(AscendString("EagerOnlyMallocOp")));
 
-  delete [] args_table;
+  delete[] args_table;
   runtime_stub.Clear();
   mmSetEnv(kEnvValue, "", 1);
   ReInitGe();
 }
 
-}
+}  // namespace ge

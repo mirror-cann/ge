@@ -36,8 +36,9 @@ Status GetDataNumber(const GeTensorDesc &out_desc, uint64_t &data_num) {
       return INTERNAL_ERROR;
     }
     int64_t max_range_size = 1;
-    for (const auto& item : range) {
-      // 暂时不支持shape range unknown的三类算子的host计算，因为三类算子的输出shape在计算后才确定，这里不知道分配多大的tensor size。
+    for (const auto &item : range) {
+      // 暂时不支持shape range
+      // unknown的三类算子的host计算，因为三类算子的输出shape在计算后才确定，这里不知道分配多大的tensor size。
       if (item.second == UNKNOWN_DIM) {
         GELOGW("[Check][Param] Get negative shape range -1.");
         return NOT_CHANGED;
@@ -87,7 +88,7 @@ Status CreateOutputByDataType(const ConstOpDescPtr &op_desc, const GeTensorDesc 
   (void)named_outputs.emplace(tensor_name, tensor);
   return ret;
 }
-}
+}  // namespace
 
 HostCpuEngine &HostCpuEngine::GetInstance() {
   static HostCpuEngine instance;
@@ -97,8 +98,8 @@ HostCpuEngine &HostCpuEngine::GetInstance() {
 ge::Status HostCpuEngine::Initialize(const std::string &path_base) {
   const std::lock_guard<std::mutex> lock(mu_);
   if (initialized_) {
-      GELOGI("HostCpuEngine is already initialized");
-      return SUCCESS;
+    GELOGI("HostCpuEngine is already initialized");
+    return SUCCESS;
   }
   std::string lib_dir;
   GE_CHK_STATUS_RET_NOLOG(PluginManager::GetConstantFoldingOpsPath(path_base, lib_dir));
@@ -139,13 +140,12 @@ void HostCpuEngine::Finalize() const {
   GELOGI("start HostCpuEngine::Finalize");
 }
 
-Status HostCpuEngine::PrepareInputs(const ge::ConstOpDescPtr &op_desc,
-                                    const std::vector<ConstGeTensorPtr> &inputs,
+Status HostCpuEngine::PrepareInputs(const ge::ConstOpDescPtr &op_desc, const std::vector<ConstGeTensorPtr> &inputs,
                                     std::map<std::string, const Tensor> &named_inputs) {
   const auto num_inputs = op_desc->GetInputsSize();
   if (num_inputs != inputs.size()) {
     REPORT_INNER_ERR_MSG("E19999", "Mismatching input sizes. op_desc:%s(%s) has %zu input(s), but given %zu",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(), num_inputs, inputs.size());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), num_inputs, inputs.size());
     GELOGE(PARAM_INVALID, "[Check][Param] Mismatching input sizes. op_desc:%s(%s) has %zu input(s), but given %zu",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), num_inputs, inputs.size());
     return PARAM_INVALID;
@@ -158,28 +158,28 @@ Status HostCpuEngine::PrepareInputs(const ge::ConstOpDescPtr &op_desc,
     auto tensor_name = op_desc->GetInputNameByIndex(static_cast<uint32_t>(i));
     GE_RETURN_WITH_LOG_IF_TRUE(tensor_name.empty(), "[Get][InputName] failed. node = %s, index = %zu",
                                op_desc->GetName().c_str(), i);
-    GELOGD("Successfully inserted input tensor. node = %s, index = %zu, input name = %s",
-           op_desc->GetName().c_str(), i, tensor_name.c_str());
+    GELOGD("Successfully inserted input tensor. node = %s, index = %zu, input name = %s", op_desc->GetName().c_str(), i,
+           tensor_name.c_str());
     (void)named_inputs.emplace(tensor_name, tensor);
   }
 
   return SUCCESS;
 }
 
-Status HostCpuEngine::PrepareOutputs(const ge::ConstOpDescPtr &op_desc,
-                                     std::vector<GeTensorPtr> &outputs,
+Status HostCpuEngine::PrepareOutputs(const ge::ConstOpDescPtr &op_desc, std::vector<GeTensorPtr> &outputs,
                                      std::map<std::string, Tensor> &named_outputs) {
   if ((!outputs.empty()) && (outputs.size() != op_desc->GetOutputsSize())) {
-    GELOGW("size of outputs not match, size of outputs = %zu, exactly output_num=%zu.",
-           outputs.size(), op_desc->GetOutputsSize());
+    GELOGW("size of outputs not match, size of outputs = %zu, exactly output_num=%zu.", outputs.size(),
+           op_desc->GetOutputsSize());
     outputs.clear();
   }
 
   Status ret = SUCCESS;
-  const std::set<DataType> output_data_type_set = {DT_BOOL,  DT_INT8,   DT_INT16,  DT_INT32,     DT_INT64,
-                                                   DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64,    DT_FLOAT16,
-                                                   DT_FLOAT, DT_DOUBLE, DT_INT4,   DT_COMPLEX64, DT_COMPLEX128, DT_HIFLOAT8, DT_HIFLOAT4, 
-                                                   DT_FLOAT8_E4M3FN, DT_FLOAT8_E5M2, DT_FLOAT4_E2M1, DT_FLOAT4_E1M2, DT_FLOAT8_E8M0};
+  const std::set<DataType> output_data_type_set = {
+      DT_BOOL,        DT_INT8,        DT_INT16,       DT_INT32,      DT_INT64,    DT_UINT8,
+      DT_UINT16,      DT_UINT32,      DT_UINT64,      DT_FLOAT16,    DT_FLOAT,    DT_DOUBLE,
+      DT_INT4,        DT_COMPLEX64,   DT_COMPLEX128,  DT_HIFLOAT8,   DT_HIFLOAT4, DT_FLOAT8_E4M3FN,
+      DT_FLOAT8_E5M2, DT_FLOAT4_E2M1, DT_FLOAT4_E1M2, DT_FLOAT8_E8M0};
   for (size_t i = 0U; i < op_desc->GetOutputsSize(); ++i) {
     const auto &out_desc = op_desc->GetOutputDesc(static_cast<uint32_t>(i));
     const std::set<DataType>::const_iterator &output_data_type_iter = output_data_type_set.find(out_desc.GetDataType());
@@ -230,17 +230,17 @@ Status HostCpuEngine::Run(const NodePtr &node, HostCpuOp &kernel, const std::vec
   for (size_t i = 0U; i < op_desc->GetOutputsSize(); i++) {
     const auto tensor_name = op_desc->GetOutputNameByIndex(static_cast<uint32_t>(i));
     if (tensor_name.empty()) {
-      REPORT_INNER_ERR_MSG("E19999", "GetOutputNameByIndex failed, node = %s, index = %zu",
-                         op_desc->GetName().c_str(), i);
+      REPORT_INNER_ERR_MSG("E19999", "GetOutputNameByIndex failed, node = %s, index = %zu", op_desc->GetName().c_str(),
+                           i);
       GELOGE(INTERNAL_ERROR, "[Get][OutputName] failed. node = %s, index = %zu", op_desc->GetName().c_str(), i);
       return INTERNAL_ERROR;
     }
     const auto iter = named_outputs.find(tensor_name);
     if (iter == named_outputs.end()) {
-       REPORT_INNER_ERR_MSG("E19999", "get output tensor failed, node = %s, index = %zu, tensor_name = %s",
-                          op_desc->GetName().c_str(), i, tensor_name.c_str());
-       GELOGE(INTERNAL_ERROR, "[Get][OutputTensor] failed. node = %s, index = %zu, tensor_name = %s",
-              op_desc->GetName().c_str(), i, tensor_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "get output tensor failed, node = %s, index = %zu, tensor_name = %s",
+                           op_desc->GetName().c_str(), i, tensor_name.c_str());
+      GELOGE(INTERNAL_ERROR, "[Get][OutputTensor] failed. node = %s, index = %zu, tensor_name = %s",
+             op_desc->GetName().c_str(), i, tensor_name.c_str());
       return INTERNAL_ERROR;
     }
     auto ge_tensor = MakeShared<GeTensor>(TensorAdapter::AsGeTensor(iter->second));
@@ -252,15 +252,17 @@ Status HostCpuEngine::Run(const NodePtr &node, HostCpuOp &kernel, const std::vec
   return SUCCESS;
 }
 
-void* HostCpuEngine::DlopenLib(const std::string &lib_path) const {
-   GELOGI("To invoke dlopen on lib: %s", lib_path.c_str());
-   constexpr uint32_t open_flag = static_cast<uint32_t>(MMPA_RTLD_NOW) | static_cast<uint32_t>(MMPA_RTLD_GLOBAL);
-   auto handle = mmDlopen(lib_path.c_str(), static_cast<int32_t>(open_flag));
-   if (handle == nullptr) {
-     const char_t *error = mmDlerror();
-     error = (error == nullptr) ? "" : error;
-     GELOGW("[Invoke][DlOpen] failed. path = %s, error = %s. It does not affect subsequenet processing and "
-            "can proceed in non-foldable mode", lib_path.c_str(), error);
+void *HostCpuEngine::DlopenLib(const std::string &lib_path) const {
+  GELOGI("To invoke dlopen on lib: %s", lib_path.c_str());
+  constexpr uint32_t open_flag = static_cast<uint32_t>(MMPA_RTLD_NOW) | static_cast<uint32_t>(MMPA_RTLD_GLOBAL);
+  auto handle = mmDlopen(lib_path.c_str(), static_cast<int32_t>(open_flag));
+  if (handle == nullptr) {
+    const char_t *error = mmDlerror();
+    error = (error == nullptr) ? "" : error;
+    GELOGW(
+        "[Invoke][DlOpen] failed. path = %s, error = %s. It does not affect subsequenet processing and "
+        "can proceed in non-foldable mode",
+        lib_path.c_str(), error);
   }
   return handle;
 }
@@ -271,8 +273,7 @@ Status HostCpuEngine::InvokeLibInitialize(void *handle, const std::string &lib_p
   if (initialize == nullptr) {
     const char_t *reason = mmDlerror();
     reason = (reason == nullptr) ? "" : reason;
-    GELOGW("[Find][Initialize] symbol not found in lib: %s, reason = %s",
-           lib_path.c_str(), reason);
+    GELOGW("[Find][Initialize] symbol not found in lib: %s, reason = %s", lib_path.c_str(), reason);
     return INTERNAL_ERROR;
   }
   GELOGI("Invoke function Initialize in lib: %s", lib_path.c_str());
@@ -309,4 +310,4 @@ Status HostCpuEngine::GetEngineRealPath(std::string &path) {
   path = real_path;
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

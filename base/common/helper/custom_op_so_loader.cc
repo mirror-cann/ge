@@ -96,8 +96,7 @@ class PendingSoResource {
 };
 
 std::string CalculateBinHash(const uint8_t *data, const size_t data_len) {
-  const size_t hash_val = std::hash<std::string>{}(
-      std::string(reinterpret_cast<const char *>(data), data_len));
+  const size_t hash_val = std::hash<std::string>{}(std::string(reinterpret_cast<const char *>(data), data_len));
   std::ostringstream oss;
   oss << std::hex << std::setfill('0') << std::setw(sizeof(size_t) * 2) << hash_val;
   return oss.str();
@@ -116,7 +115,7 @@ int32_t CreateMemFdBySyscall(const std::string &name) {
 ReleaseOpsRegInfoFunc GetReleaseOpsRegInfoFunc() {
   return reinterpret_cast<ReleaseOpsRegInfoFunc>(mmDlsym(RTLD_DEFAULT, kReleaseOpsRegInfoSymbol));
 }
-}
+}  // namespace
 
 CustomOpSoLoader::CustomOpSoLoader() = default;
 
@@ -130,13 +129,13 @@ CustomOpSoHandle::CustomOpSoHandle(std::string fingerprint_key, void *handle, st
 
 CustomOpSoHandle::~CustomOpSoHandle() {
   if ((handle_ != nullptr) && (mmDlclose(handle_) != 0)) {
-    GELOGW("[CustomOpSoLoader] dlclose custom op so[%s] fingerprint[%s] failed, errmsg:%s",
-           so_name_.c_str(), fingerprint_key_.c_str(), mmDlerror());
+    GELOGW("[CustomOpSoLoader] dlclose custom op so[%s] fingerprint[%s] failed, errmsg:%s", so_name_.c_str(),
+           fingerprint_key_.c_str(), mmDlerror());
   }
   handle_ = nullptr;
   if ((mem_fd_ != kInvalidFd) && (mmClose(mem_fd_) != EN_OK)) {
-    GELOGW("[CustomOpSoLoader] close mem fd for custom op so[%s] fingerprint[%s] failed, errno:%d",
-           so_name_.c_str(), fingerprint_key_.c_str(), errno);
+    GELOGW("[CustomOpSoLoader] close mem fd for custom op so[%s] fingerprint[%s] failed, errno:%d", so_name_.c_str(),
+           fingerprint_key_.c_str(), errno);
   }
   mem_fd_ = kInvalidFd;
 }
@@ -193,30 +192,25 @@ Status CustomOpSoLoader::GetSoKey(const OpSoBinPtr &op_so_bin, std::string &so_k
   return SUCCESS;
 }
 
-Status CustomOpSoLoader::CalculateSoBinFingerprint(const OpSoBinPtr &op_so_bin,
-                                                   std::string &fingerprint_key) const {
+Status CustomOpSoLoader::CalculateSoBinFingerprint(const OpSoBinPtr &op_so_bin, std::string &fingerprint_key) const {
   GE_ASSERT_NOTNULL(op_so_bin);
   GE_ASSERT_TRUE(op_so_bin->GetBinData() != nullptr, "so[%s] bin data is null.", op_so_bin->GetSoName().c_str());
   GE_ASSERT_TRUE(op_so_bin->GetBinDataSize() > 0U, "so[%s] bin data size is zero.", op_so_bin->GetSoName().c_str());
 
   const auto *bin_data = op_so_bin->GetBinData();
   fingerprint_key = CalculateBinHash(bin_data, op_so_bin->GetBinDataSize());
-  GE_ASSERT_TRUE(!fingerprint_key.empty(),
-                 "so[%s] fingerprint hash is empty.",
-                 op_so_bin->GetSoName().c_str());
+  GE_ASSERT_TRUE(!fingerprint_key.empty(), "so[%s] fingerprint hash is empty.", op_so_bin->GetSoName().c_str());
   return SUCCESS;
 }
 
 Status CustomOpSoLoader::CreateSoMemFd(const std::string &so_key, int32_t &mem_fd) const {
   GE_ASSERT_TRUE(!so_key.empty(), "custom op so key is empty.");
   const int32_t fd = CreateMemFdBySyscall(so_key);
-  GE_ASSERT_TRUE(fd != kInvalidFd,
-                 "[CustomOpSoLoader] create memfd for custom op so[%s] failed, errno:%d, %s",
+  GE_ASSERT_TRUE(fd != kInvalidFd, "[CustomOpSoLoader] create memfd for custom op so[%s] failed, errno:%d, %s",
                  so_key.c_str(), errno, kNoDiskFallbackHint);
   const std::string proc_fd_path = std::string(kProcFdPrefix) + std::to_string(fd);
   if (mmAccess2(proc_fd_path.c_str(), M_R_OK) != EN_OK) {
-    GELOGE(FAILED,
-           "[CustomOpSoLoader] proc fd path[%s] is not readable for custom op so[%s], errno:%d, %s",
+    GELOGE(FAILED, "[CustomOpSoLoader] proc fd path[%s] is not readable for custom op so[%s], errno:%d, %s",
            proc_fd_path.c_str(), so_key.c_str(), errno, kNoDiskFallbackHint);
     (void)mmClose(fd);
     return FAILED;
@@ -235,8 +229,7 @@ Status CustomOpSoLoader::WriteSoBinToFd(const OpSoBinPtr &op_so_bin, const int32
   const size_t bin_size = static_cast<size_t>(op_so_bin->GetBinDataSize());
   while (written_len < bin_size) {
     const ssize_t current_write_len = write(mem_fd, bin_data + written_len, bin_size - written_len);
-    GE_ASSERT_TRUE(current_write_len > 0,
-                   "[CustomOpSoLoader] write memfd for custom op so[%s] failed, errno:%d",
+    GE_ASSERT_TRUE(current_write_len > 0, "[CustomOpSoLoader] write memfd for custom op so[%s] failed, errno:%d",
                    op_so_bin->GetSoName().c_str(), errno);
     written_len += static_cast<size_t>(current_write_len);
   }
@@ -245,8 +238,8 @@ Status CustomOpSoLoader::WriteSoBinToFd(const OpSoBinPtr &op_so_bin, const int32
                  "[CustomOpSoLoader] memfd size[%jd] does not match declared so[%s] bin size[%zu].",
                  static_cast<intmax_t>(actual_fd_size), op_so_bin->GetSoName().c_str(), bin_size);
   GE_ASSERT_TRUE(lseek(mem_fd, 0, SEEK_SET) != -1,
-                 "[CustomOpSoLoader] reset memfd for custom op so[%s] failed, errno:%d",
-                 op_so_bin->GetSoName().c_str(), errno);
+                 "[CustomOpSoLoader] reset memfd for custom op so[%s] failed, errno:%d", op_so_bin->GetSoName().c_str(),
+                 errno);
   return SUCCESS;
 }
 

@@ -105,7 +105,7 @@ Status AiCoreOpTask::UpdateOutputsShape(const TaskContext &context) const {
   GE_CHECK_NOTNULL(host_shape_buffer_);
   GE_CHK_RT_RET(rtMemcpy(host_shape_buffer_.get(), shape_buffer_->GetSize(), shape_buffer_->GetData(),
                          shape_buffer_->GetSize(), RT_MEMCPY_DEVICE_TO_HOST));
-  const auto outputs_shape = reinterpret_cast<uint32_t(*)[kShapeBufferNum]>(host_shape_buffer_.get());
+  const auto outputs_shape = reinterpret_cast<uint32_t (*)[kShapeBufferNum]>(host_shape_buffer_.get());
   const int32_t num_outputs = context.NumOutputs();
   for (int32_t i = 0; i < num_outputs; ++i) {
     if (outputs_shape[i][0] != 0U) {
@@ -134,18 +134,19 @@ Status AiCoreOpTask::UpdateShapeToOutputDesc(const TaskContext &context, const G
   const auto origin_format = output_desc->GetOriginFormat();
   const auto format = output_desc->GetFormat();
   if (origin_format != format) {
-    GELOGE(PARAM_INVALID, "Node[%s] output[%d] origin_format[%s] != foramt[%s], is not supported.", context.GetNodeName(),
-           output_index, GetFormatName(origin_format), GetFormatName(format));
+    GELOGE(PARAM_INVALID, "Node[%s] output[%d] origin_format[%s] != format[%s], is not supported.",
+           context.GetNodeName(), output_index, GetFormatName(origin_format), GetFormatName(format));
     return PARAM_INVALID;
   }
   const auto &shape_old = output_desc->GetShape();
   const auto &origin_shape_old = output_desc->GetOriginShape();
   const auto node_state = context.GetNodeState();
   GE_CHECK_NOTNULL(node_state);
-  GELOGD("Node[%s] try to update output[%d] shape from [%s] to [%s], origin_shape "
-         "from [%s] to [%s].",
-         context.GetNodeName(), output_index, shape_old.ToString().c_str(), shape.ToString().c_str(),
-         origin_shape_old.ToString().c_str(), shape.ToString().c_str());
+  GELOGD(
+      "Node[%s] try to update output[%d] shape from [%s] to [%s], origin_shape "
+      "from [%s] to [%s].",
+      context.GetNodeName(), output_index, shape_old.ToString().c_str(), shape.ToString().c_str(),
+      origin_shape_old.ToString().c_str(), shape.ToString().c_str());
   GE_CHK_STATUS_RET(node_state->UpdateOutputShapes(output_index, shape, shape),
                     "Node[%s] try to update output[%d] shape from [%s] to [%s], origin_shape "
                     "from [%s] to [%s] failed.",
@@ -164,8 +165,8 @@ Status AiCoreOpTask::InitWithKernelDef(const OpDesc &op_desc, const domi::TaskDe
     GELOGE(INTERNAL_ERROR, "[Check][Size]args size:%zu of kernel_def is smaller than args_size_:%u, op:%s op_type:%s",
            kernel_def.args().size(), args_size_without_tiling_, op_desc.GetName().c_str(), op_desc.GetType().c_str());
     REPORT_INNER_ERR_MSG("E19999", "args size:%zu of kernel_def is smaller than args_size_:%u op:%s op_type:%s.",
-                       kernel_def.args().size(), args_size_without_tiling_, op_desc.GetName().c_str(),
-                       op_desc.GetType().c_str());
+                         kernel_def.args().size(), args_size_without_tiling_, op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -177,7 +178,7 @@ Status AiCoreOpTask::InitWithKernelDef(const OpDesc &op_desc, const domi::TaskDe
     GE_CHK_STATUS_RET(CheckUint32AddOverflow(args_size_, static_cast<uint32_t>(kMaxHostMemInputLen)),
                       "arg size is beyond the UINT32_MAX.");
     args_size_ += static_cast<uint32_t>(kMaxHostMemInputLen);
-    GELOGD("[%s] has host memory input, args size is extened %zu, args_size_ = %u, host_mem_input_data_offset = %zu",
+    GELOGD("[%s] has host memory input, args size is extended %zu, args_size_ = %u, host_mem_input_data_offset = %zu",
            GetName().c_str(), kMaxHostMemInputLen, args_size_, host_mem_input_data_offset_);
   }
   block_dim_ = kernel_def.block_dim();
@@ -187,40 +188,44 @@ Status AiCoreOpTask::InitWithKernelDef(const OpDesc &op_desc, const domi::TaskDe
   const errno_t err = memcpy_s(args_.get(), static_cast<size_t>(args_size_), kernel_def.args().data(),
                                static_cast<size_t>(args_size_without_tiling_));
   if (err != EOK) {
-    GELOGE(INTERNAL_ERROR, "[Update][Date]AiCoreTask memcpy args failed, op:%s op_type:%s.",
-           op_desc.GetName().c_str(), op_desc.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "AiCoreTask memcpy args failed, op:%s op_type:%s.",
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Update][Date]AiCoreTask memcpy args failed, op:%s op_type:%s.", op_desc.GetName().c_str(),
+           op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "AiCoreTask memcpy args failed, op:%s op_type:%s.", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   if (context.args_offset().size() < sizeof(uint16_t)) {
-    GELOGE(INTERNAL_ERROR, "[Check][Size]Invalid args_offset,"
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Size]Invalid args_offset,"
            "size:%zu is smaller than size of uint16_t, op:%s op_type:%s",
            context.args_offset().size(), op_desc.GetName().c_str(), op_desc.GetType().c_str());
     REPORT_INNER_ERR_MSG("E19999", "Invalid args_offset, size:%zu is smaller than size of uint16_t, op:%s op_type:%s",
-                       context.args_offset().size(), op_desc.GetName().c_str(), op_desc.GetType().c_str());
+                         context.args_offset().size(), op_desc.GetName().c_str(), op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   const auto *const args_offset_buffer = PtrToPtr<const char_t, const uint16_t>(context.args_offset().data());
   offset_ = *args_offset_buffer;
   if (offset_ > args_size_without_tiling_) {
-    GELOGE(INTERNAL_ERROR, "[Check][Offset][%s] Arg offset out of range. offset = %u,"
-           "arg size = %u , op:%s op_type:%s", GetName().c_str(), offset_, args_size_without_tiling_,
-           op_desc.GetName().c_str(), op_desc.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "[%s] Arg offset out of range. offset = %u, arg size = %u"
-                       "op:%s op_type:%s", GetName().c_str(), offset_, args_size_without_tiling_,
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Offset][%s] Arg offset out of range. offset = %u,"
+           "arg size = %u , op:%s op_type:%s",
+           GetName().c_str(), offset_, args_size_without_tiling_, op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[%s] Arg offset out of range. offset = %u, arg size = %u"
+                         "op:%s op_type:%s",
+                         GetName().c_str(), offset_, args_size_without_tiling_, op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   arg_base_ = PtrToPtr<uint8_t, uintptr_t>(&args_[static_cast<size_t>(offset_)]);
   max_arg_count_ = static_cast<uint32_t>(static_cast<size_t>(args_size_without_tiling_ - offset_) / sizeof(void *));
-  GELOGD("[%s] Done setting kernel args successfully. stub_func = %s, block_dim = %d,"
-         "arg base = %p, arg size = %u",
-         op_desc.GetName().c_str(),  stub_name_.c_str(),
-         block_dim_, arg_base_, args_size_without_tiling_);
+  GELOGD(
+      "[%s] Done setting kernel args successfully. stub_func = %s, block_dim = %d,"
+      "arg base = %p, arg size = %u",
+      op_desc.GetName().c_str(), stub_name_.c_str(), block_dim_, arg_base_, args_size_without_tiling_);
   return SUCCESS;
 }
 
@@ -235,8 +240,8 @@ Status AiCoreOpTask::InitWithKernelDefWithHandle(const OpDesc &op_desc, const do
            kernel_with_handle.args().size(), args_size_without_tiling_, op_desc.GetName().c_str(),
            op_desc.GetType().c_str());
     REPORT_INNER_ERR_MSG("E19999", "args size:%zu of kernel_def is smaller than args_size_:%u. op:%s op_type:%s",
-                       kernel_with_handle.args().size(), args_size_without_tiling_,
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+                         kernel_with_handle.args().size(), args_size_without_tiling_, op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -245,7 +250,7 @@ Status AiCoreOpTask::InitWithKernelDefWithHandle(const OpDesc &op_desc, const do
   if (ExecutorUtils::HasHostMemInput(MakeShared<OpDesc>(op_desc))) {
     host_mem_input_data_offset_ = static_cast<size_t>(args_size_);
     GE_ASSERT_TRUE(!ge::AddOverflow(args_size_, static_cast<uint32_t>(kMaxHostMemInputLen), args_size_));
-    GELOGD("[%s] has host memory input, args size is extened %zu, args_size_ = %u, host_mem_input_data_offset = %zu",
+    GELOGD("[%s] has host memory input, args size is extended %zu, args_size_ = %u, host_mem_input_data_offset = %zu",
            GetName().c_str(), kMaxHostMemInputLen, args_size_, host_mem_input_data_offset_);
   }
   // malloc args memory
@@ -254,32 +259,37 @@ Status AiCoreOpTask::InitWithKernelDefWithHandle(const OpDesc &op_desc, const do
   const errno_t err = memcpy_s(args_.get(), static_cast<size_t>(args_size_), kernel_with_handle.args().data(),
                                static_cast<size_t>(args_size_without_tiling_));
   if (err != EOK) {
-    GELOGE(INTERNAL_ERROR, "[Update][Date]AiCoreTask memcpy args failed. op:%s op_type:%s",
-           op_desc.GetName().c_str(), op_desc.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "AiCoreTask memcpy args failed. op:%s op_type:%s",
-                      op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Update][Date]AiCoreTask memcpy args failed. op:%s op_type:%s", op_desc.GetName().c_str(),
+           op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "AiCoreTask memcpy args failed. op:%s op_type:%s", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   if (context.args_offset().size() < sizeof(uint16_t)) {
-    GELOGE(INTERNAL_ERROR, "[Check][Size]Invalid args_offset, size:%zu is smaller"
-           "than size of uint16_t. op:%s op_type:%s", context.args_offset().size(),
-           op_desc.GetName().c_str(), op_desc.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Invalid args_offset, size:%zu is smaller"
-                       "than size of uint16_t. op:%s op_type:%s", context.args_offset().size(),
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Size]Invalid args_offset, size:%zu is smaller"
+           "than size of uint16_t. op:%s op_type:%s",
+           context.args_offset().size(), op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Invalid args_offset, size:%zu is smaller"
+                         "than size of uint16_t. op:%s op_type:%s",
+                         context.args_offset().size(), op_desc.GetName().c_str(), op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
   const auto *const args_offset_buffer = PtrToPtr<const char_t, const uint16_t>(context.args_offset().data());
   offset_ = *args_offset_buffer;
   if (offset_ > args_size_without_tiling_) {
-    GELOGE(INTERNAL_ERROR, "[Check][Offset][%s] Arg offset out of range. offset = %u, arg size = %u"
-           "op:%s op_type:%s", GetName().c_str(), offset_, args_size_without_tiling_,
-           op_desc.GetName().c_str(), op_desc.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "[%s] Arg offset out of range. offset = %u, arg size = %u"
-                       "op:%s op_type:%s", GetName().c_str(), offset_, args_size_without_tiling_,
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Offset][%s] Arg offset out of range. offset = %u, arg size = %u"
+           "op:%s op_type:%s",
+           GetName().c_str(), offset_, args_size_without_tiling_, op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[%s] Arg offset out of range. offset = %u, arg size = %u"
+                         "op:%s op_type:%s",
+                         GetName().c_str(), offset_, args_size_without_tiling_, op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -289,11 +299,11 @@ Status AiCoreOpTask::InitWithKernelDefWithHandle(const OpDesc &op_desc, const do
 }
 
 Status AiCoreOpTask::InitWithTaskDef(const NodePtr &node, const domi::TaskDef &task_def) {
-  const auto op_desc = *(node->GetOpDesc()); // checked not null outside
+  const auto op_desc = *(node->GetOpDesc());  // checked not null outside
   const auto rt_ret = ValidateTaskDef(task_def);
   if (rt_ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "op:%s(op_type:%s) failed to validate task def:%s",
-                      op_desc.GetName().c_str(), op_desc.GetType().c_str(), task_def.DebugString().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "op:%s(op_type:%s) failed to validate task def:%s", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str(), task_def.DebugString().c_str());
     GELOGE(rt_ret, "[Invoke][ValidateTaskDef]failed for op:%s(op_type:%s) to validate task def:%s",
            op_desc.GetName().c_str(), op_desc.GetType().c_str(), task_def.DebugString().c_str());
     return rt_ret;
@@ -340,18 +350,17 @@ Status AiCoreOpTask::AddCompileCacheItem(const KernelLaunchBinType bin_type, con
 Status AiCoreOpTask::ValidateTaskDef(const domi::TaskDef &task_def) {
   const auto task_type = static_cast<ModelTaskType>(task_def.type());
   if ((task_type != ModelTaskType::MODEL_TASK_KERNEL) && (task_type != ModelTaskType::MODEL_TASK_ALL_KERNEL)) {
-    GELOGE(INTERNAL_ERROR,
-           "[Check][TaskType]Invalid task type (%d) in AiCore CreateTask.", static_cast<int32_t>(task_type));
+    GELOGE(INTERNAL_ERROR, "[Check][TaskType]Invalid task type (%d) in AiCore CreateTask.",
+           static_cast<int32_t>(task_type));
     return INTERNAL_ERROR;
   }
-  const auto &context = (task_type == ModelTaskType::MODEL_TASK_KERNEL) ? task_def.kernel().context() :
-      task_def.kernel_with_handle().context();
+  const auto &context = (task_type == ModelTaskType::MODEL_TASK_KERNEL) ? task_def.kernel().context()
+                                                                        : task_def.kernel_with_handle().context();
   const auto kernel_type = static_cast<ccKernelType>(context.kernel_type());
   if (kernel_type != ccKernelType::TE) {
-    GELOGE(INTERNAL_ERROR,
-           "[Check][TaskType]Invalid kernel type(%d) in AiCore TaskDef.", static_cast<int32_t>(kernel_type));
-    REPORT_INNER_ERR_MSG("E19999", "Invalid kernel type(%d) in AiCore TaskDef.",
-                       static_cast<int32_t>(kernel_type));
+    GELOGE(INTERNAL_ERROR, "[Check][TaskType]Invalid kernel type(%d) in AiCore TaskDef.",
+           static_cast<int32_t>(kernel_type));
+    REPORT_INNER_ERR_MSG("E19999", "Invalid kernel type(%d) in AiCore TaskDef.", static_cast<int32_t>(kernel_type));
     return INTERNAL_ERROR;
   }
 
@@ -387,8 +396,8 @@ Status AiCoreOpTask::UpdateTilingInfo(const TaskContext &context) {
   if (tiling_info_->GetAllTilingData().tellp() > 0) {
     GELOGD("[%s] Need to copy tiling data for task: [%s].", node->GetName().c_str(), stub_name_.c_str());
     const std::string tiling_data = tiling_info_->GetAllTilingData().str();
-    if (memcpy_s(tiling_data_addr, static_cast<size_t>(max_tiling_size_), tiling_data.data(),
-                 tiling_data.size()) != EOK) {
+    if (memcpy_s(tiling_data_addr, static_cast<size_t>(max_tiling_size_), tiling_data.data(), tiling_data.size()) !=
+        EOK) {
       GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Update][Args]failed, dst length is %u, src length is %zu.",
              max_tiling_size_, tiling_data.size());
       REPORT_INNER_ERR_MSG("E19999", "update kernel args failed of %s.", context.GetNodeName());
@@ -489,7 +498,7 @@ Status AiCoreOpTask::UpdateHostMemInputArgs(const TaskContext &task_context) {
   GE_CHK_RT_RET(ExecutorUtils::UpdateHostMemInputArgs(task_context, PtrToPtr<uintptr_t, uint64_t>(arg_base_),
                                                       args_size_, host_mem_input_data_offset_, host_inputs));
 
-  host_inputs_info_ = MakeUnique<rtHostInputInfo_t []>(host_inputs.size());
+  host_inputs_info_ = MakeUnique<rtHostInputInfo_t[]>(host_inputs.size());
   GE_CHECK_NOTNULL(host_inputs_info_);
   size_t idx = 0UL;
   for (const auto &host_input : host_inputs) {
@@ -508,14 +517,12 @@ Status AiCoreOpTask::UpdateArgBase(const TaskContext &task_context, uint32_t &in
     arg_base_[index] = PtrToValue(input->GetData());
     index++;
   }
-  GE_CHK_STATUS_RET(UpdateHostMemInputArgs(task_context), "[Update][HostMemInputArgs] failed.") ;
+  GE_CHK_STATUS_RET(UpdateHostMemInputArgs(task_context), "[Update][HostMemInputArgs] failed.");
   for (int32_t i = 0; i < task_context.NumOutputs(); ++i) {
     const auto output = task_context.GetOutput(i);
     GE_CHECK_NOTNULL(output);
-    if (find(output_indices_to_skip_.begin(), output_indices_to_skip_.end(), i) !=
-        output_indices_to_skip_.end()) {
-      GELOGD("Node:%s output[%d] is an optional, the address don't need to be saved.",
-             task_context.GetNodeName(), i);
+    if (find(output_indices_to_skip_.begin(), output_indices_to_skip_.end(), i) != output_indices_to_skip_.end()) {
+      GELOGD("Node:%s output[%d] is an optional, the address don't need to be saved.", task_context.GetNodeName(), i);
       continue;
     }
     arg_base_[index] = PtrToValue(output->GetData());
@@ -549,22 +556,22 @@ Status AiCoreOpTask::ExpandArgsByLength(const size_t length, const std::string &
   std::unique_ptr<uint8_t[]> new_args = MakeUnique<uint8_t[]>(length);
   GE_CHECK_NOTNULL(new_args);
   if (memcpy_s(new_args.get(), length, args_.get(), static_cast<size_t>(args_size_)) != EOK) {
-    GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Update][Args]failed, dst length is %zu, src length is %u.",
-           length, args_size_);
+    GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Update][Args]failed, dst length is %zu, src length is %u.", length,
+           args_size_);
     REPORT_INNER_ERR_MSG("E19999", "update kernel args failed of %s.", name.c_str());
     return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
   }
   args_ = std::move(new_args);
   args_size_ = static_cast<uint32_t>(length);
-  arg_base_  = PtrToPtr<uint8_t, uintptr_t>(&args_[static_cast<size_t>(offset_)]);
+  arg_base_ = PtrToPtr<uint8_t, uintptr_t>(&args_[static_cast<size_t>(offset_)]);
   args_ex_.args = args_.get();
 
   return SUCCESS;
 }
 
 Status AiCoreOpTask::UpdateArgs(TaskContext &task_context) {
-  const int32_t input_output_ws_num = task_context.NumInputs() + task_context.NumOutputs() +
-      task_context.NumWorkspaces();
+  const int32_t input_output_ws_num =
+      task_context.NumInputs() + task_context.NumOutputs() + task_context.NumWorkspaces();
   size_t expected_arg_count = static_cast<size_t>(input_output_ws_num) - output_indices_to_skip_.size();
   if (need_tiling_) {
     ++expected_arg_count;
@@ -582,8 +589,8 @@ Status AiCoreOpTask::UpdateArgs(TaskContext &task_context) {
     GELOGD("Need to reset size of args_ from %u to %zu.", max_arg_count_, expected_arg_count);
     const size_t host_mem_ext_size = need_tiling_ ? kMaxHostMemInputLen : 0U;
     const auto length = (expected_arg_count * sizeof(uintptr_t)) + offset_ + max_tiling_size_ + host_mem_ext_size;
-    GE_CHK_STATUS_RET(ExpandArgsByLength(length, task_context.GetNodeItem().NodeName()),
-                      "Expand args of %s failed.", task_context.GetNodeName());
+    GE_CHK_STATUS_RET(ExpandArgsByLength(length, task_context.GetNodeItem().NodeName()), "Expand args of %s failed.",
+                      task_context.GetNodeName());
     max_arg_count_ = static_cast<uint32_t>(expected_arg_count);
     args_ex_.argsSize = args_size_;
   }
@@ -596,8 +603,8 @@ Status AiCoreOpTask::UpdateArgs(TaskContext &task_context) {
     void *const arg_tiling_data = ValueToPtr(PtrToValue(arg_base_) + (ptr_size * expected_arg_count));
     void *const arg_tiling_old = ValueToPtr(PtrToValue(arg_base_) + (ptr_size * tiling_data_idx_));
 
-    if (memmove_s(arg_tiling_data, static_cast<size_t>(max_tiling_size_),
-                  arg_tiling_old, static_cast<size_t>(max_tiling_size_)) != EOK) {
+    if (memmove_s(arg_tiling_data, static_cast<size_t>(max_tiling_size_), arg_tiling_old,
+                  static_cast<size_t>(max_tiling_size_)) != EOK) {
       GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Update][Args]failed of node %s.", task_context.GetNodeName());
       REPORT_INNER_ERR_MSG("E19999", "update kernel args failed of node %s.", task_context.GetNodeName());
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
@@ -657,10 +664,10 @@ Status AiCoreOpTask::InitTilingInfo(const OpDesc &op_desc, bool is_updating) {
   (void)AttrUtils::GetInt(op_desc, GetKeyForOpParamSize(), max_size);
   GELOGD("Got op param size by key: %s, ret = %ld", GetKeyForOpParamSize().c_str(), max_size);
   if (max_size < 0) {
-    GELOGE(PARAM_INVALID, "[Check][Size][%s(%s)] Invalid op_param_size: %ld.",
-           op_desc.GetName().c_str(), op_desc.GetType().c_str(), max_size);
-    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Invalid op_param_size: %" PRId64 ".",
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str(), max_size);
+    GELOGE(PARAM_INVALID, "[Check][Size][%s(%s)] Invalid op_param_size: %ld.", op_desc.GetName().c_str(),
+           op_desc.GetType().c_str(), max_size);
+    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Invalid op_param_size: %" PRId64 ".", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str(), max_size);
     return PARAM_INVALID;
   }
   args_ex_.argsSize -= max_tiling_size_;
@@ -729,16 +736,14 @@ Status AtomicAddrCleanOpTask::InitAtomicAddrCleanIndices(const OpDesc &op_desc) 
   GELOGD("[%s] Start to setup AtomicAddrClean task.", op_desc.GetName().c_str());
   std::vector<int64_t> atomic_output_indices;
   (void)ge::AttrUtils::GetListInt(op_desc, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
-  std::map<std::string, std::map<int64_t, int64_t>> workspace_info; // op_name, ws_index, ws_offset
+  std::map<std::string, std::map<int64_t, int64_t>> workspace_info;  // op_name, ws_index, ws_offset
   workspace_info = op_desc.TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info);
   if (atomic_output_indices.empty() && workspace_info.empty()) {
-    GELOGE(INTERNAL_ERROR,
-           "[Check][Size] [%s(%s)] Get %s and get %s failed. check invalid",
-           op_desc.GetName().c_str(), op_desc.GetType().c_str(), ATOMIC_ATTR_OUTPUT_INDEX.c_str(),
-           EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str());
-    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Get %s and get %s failed. check invalid",
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str(), ATOMIC_ATTR_OUTPUT_INDEX.c_str(),
-                       EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str());
+    GELOGE(INTERNAL_ERROR, "[Check][Size] [%s(%s)] Get %s and get %s failed. check invalid", op_desc.GetName().c_str(),
+           op_desc.GetType().c_str(), ATOMIC_ATTR_OUTPUT_INDEX.c_str(), EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Get %s and get %s failed. check invalid", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str(), ATOMIC_ATTR_OUTPUT_INDEX.c_str(),
+                         EXT_ATTR_ATOMIC_WORKSPACE_INFO.c_str());
     return INTERNAL_ERROR;
   }
 
@@ -768,10 +773,12 @@ Status AtomicAddrCleanOpTask::InitAtomicAddrCleanIndices(const OpDesc &op_desc) 
   }
 
   if (arg_count > max_arg_count_) {
-    GELOGE(INTERNAL_ERROR, "[Check][arg_count][%s] Invalid arg memory, max arg count = %u,"
-           "but expect = %zu", GetName().c_str(), max_arg_count_, arg_count);
-    REPORT_INNER_ERR_MSG("E19999", "[%s] Invalid arg memory, max arg count = %u, but expect = %zu",
-                       GetName().c_str(), max_arg_count_, arg_count);
+    GELOGE(INTERNAL_ERROR,
+           "[Check][arg_count][%s] Invalid arg memory, max arg count = %u,"
+           "but expect = %zu",
+           GetName().c_str(), max_arg_count_, arg_count);
+    REPORT_INNER_ERR_MSG("E19999", "[%s] Invalid arg memory, max arg count = %u, but expect = %zu", GetName().c_str(),
+                         max_arg_count_, arg_count);
     return INTERNAL_ERROR;
   }
 
@@ -811,9 +818,8 @@ Status AtomicAddrCleanOpTask::CalcTilingInfo(const NodePtr &node, const Operator
     GELOGD("[%s] Start to invoke OpAtomicCalculate on rt1.", node->GetName().c_str());
     ret = optiling::OpAtomicCalculateV2(*node, *tiling_info_);
   }
-  GE_CHK_STATUS_RET(ret,
-                    "[Invoke][OpAtomicCalculate]Failed calc tiling data of node %s(%s).",
-                    node->GetName().c_str(), node->GetType().c_str());
+  GE_CHK_STATUS_RET(ret, "[Invoke][OpAtomicCalculate]Failed calc tiling data of node %s(%s).", node->GetName().c_str(),
+                    node->GetType().c_str());
   GELOGD("[%s] Done invoking OpAtomicCalculate successfully.", node->GetName().c_str());
   return SUCCESS;
 }

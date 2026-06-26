@@ -119,8 +119,8 @@ static Status GetModelFifoSize(const ModelData *modelData, size_t *fifoSize) {
   return ret;
 }
 
-static Status GetModelAllPartitionSize(const ModelData *modelData,
-                                      uint32_t partitionNum, GePartitionSize *mdlPartitionSize) {
+static Status GetModelAllPartitionSize(const ModelData *modelData, uint32_t partitionNum,
+                                       GePartitionSize *mdlPartitionSize) {
   size_t offset = sizeof(ModelFileHeader) + sizeof(ModelPartitionTable);
   size_t base_offset = offset + partitionNum * sizeof(ModelPartitionMemInfo);
   uint64_t validLen = modelData->modelLen - base_offset;
@@ -128,8 +128,7 @@ static Status GetModelAllPartitionSize(const ModelData *modelData,
   for (uint32_t i = 0; i < partitionNum; i++) {
     ModelPartitionMemInfo *partitionMemInfo = (ModelPartitionMemInfo *)((uint8_t *)modelData->modelData + offset);
     if ((partitionMemInfo->mem_size == 0) || (partitionMemInfo->mem_offset + partitionMemInfo->mem_size > validLen)) {
-      GELOGE(ACL_ERROR_GE_INTERNAL_ERROR,
-             "partition type %d, mem_size is %zu offset is %zu, model_len is %zu, invalid",
+      GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "partition type %d, mem_size is %zu offset is %zu, model_len is %zu, invalid",
              partitionMemInfo->type, (size_t)partitionMemInfo->mem_size, (size_t)partitionMemInfo->mem_offset,
              (size_t)modelData->modelLen);
       return ACL_ERROR_GE_INTERNAL_ERROR;
@@ -182,4 +181,3 @@ Status GetModelPartitionSize(const ModelData *modelData, GePartitionSize *mdlPar
   }
   return ret;
 }
-

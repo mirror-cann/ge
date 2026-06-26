@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,29 +59,59 @@ class SubGraphInfo {
 
   ~SubGraphInfo();
 
-  void SetSubGraph(const ComputeGraphPtr &sub_graph_ptr) { subgraph_ptr_ = sub_graph_ptr; }
-  ComputeGraphPtr GetSubGraph() const { return subgraph_ptr_; }
+  void SetSubGraph(const ComputeGraphPtr &sub_graph_ptr) {
+    subgraph_ptr_ = sub_graph_ptr;
+  }
+  ComputeGraphPtr GetSubGraph() const {
+    return subgraph_ptr_;
+  }
 
-  void SetEngineName(const std::string &engine_name) { engine_name_ = engine_name; }
-  const std::string &GetEngineName() const { return engine_name_; }
+  void SetEngineName(const std::string &engine_name) {
+    engine_name_ = engine_name;
+  }
+  const std::string &GetEngineName() const {
+    return engine_name_;
+  }
 
-  void SetInputFlag(const vector_bit_t &input_flag) { input_flag_ = input_flag; }
+  void SetInputFlag(const vector_bit_t &input_flag) {
+    input_flag_ = input_flag;
+  }
 
-  void SetOutputFlag(const vector_bit_t &output_flag) { output_flag_ = output_flag; }
+  void SetOutputFlag(const vector_bit_t &output_flag) {
+    output_flag_ = output_flag;
+  }
 
-  void SetOutputContext(const std::string &output) { output_names_ = output; }
+  void SetOutputContext(const std::string &output) {
+    output_names_ = output;
+  }
 
-  void SetStreamLabel(const std::string &stream_label) { stream_label_ = stream_label; }
-  const std::string &GetStreamLabel() const { return stream_label_; }
+  void SetStreamLabel(const std::string &stream_label) {
+    stream_label_ = stream_label;
+  }
+  const std::string &GetStreamLabel() const {
+    return stream_label_;
+  }
 
-  void SetUserStreamLabel(const std::string &user_stream_label) { user_stream_label_ = user_stream_label; }
-  const std::string &GetUserStreamLabel() const { return user_stream_label_; }
+  void SetUserStreamLabel(const std::string &user_stream_label) {
+    user_stream_label_ = user_stream_label;
+  }
+  const std::string &GetUserStreamLabel() const {
+    return user_stream_label_;
+  }
 
-  void SetEnd2PldMap(const std::unordered_map<ge::NodePtr, ge::NodePtr> &end_map) { end_to_pld_ = end_map; }
-  const std::unordered_map<ge::NodePtr, ge::NodePtr> &GetEnd2PldMap() const { return end_to_pld_; }
+  void SetEnd2PldMap(const std::unordered_map<ge::NodePtr, ge::NodePtr> &end_map) {
+    end_to_pld_ = end_map;
+  }
+  const std::unordered_map<ge::NodePtr, ge::NodePtr> &GetEnd2PldMap() const {
+    return end_to_pld_;
+  }
 
-  void SetPld2EndMap(const std::unordered_map<ge::NodePtr, ge::NodePtr> &pld_map) { pld_to_end_ = pld_map; }
-  const std::unordered_map<ge::NodePtr, ge::NodePtr> &GetPld2EndMap() const { return pld_to_end_; }
+  void SetPld2EndMap(const std::unordered_map<ge::NodePtr, ge::NodePtr> &pld_map) {
+    pld_to_end_ = pld_map;
+  }
+  const std::unordered_map<ge::NodePtr, ge::NodePtr> &GetPld2EndMap() const {
+    return pld_to_end_;
+  }
 
  private:
   ComputeGraphPtr subgraph_ptr_;
@@ -112,88 +142,160 @@ class RunAsyncListener : public ModelListener {
   // callback
   Status OnComputeDone(const uint32_t model_id, const uint32_t data_index, const uint32_t result_code,
                        std::vector<gert::Tensor> &outputs) override;
+
  private:
   BlockingQueue<RunAsyncCallback> sem_;
   BlockingQueue<RunAsyncCallbackV2> sem_v2_;
 };
 
-enum class RunGraphMode : uint32_t {
-  kRunGraph,
-  kRunGraphAsync,
-  kRunGraphWithStreamAsync,
-  kRunGraphModeEnd
-};
+enum class RunGraphMode : uint32_t { kRunGraph, kRunGraphAsync, kRunGraphWithStreamAsync, kRunGraphModeEnd };
 
 const char_t *GetRunGraphModeStr(RunGraphMode mode);
 
-using InputMemoryBaseInfo = std::pair<const void *, size_t>; // <mem_base, mem_size>
+using InputMemoryBaseInfo = std::pair<const void *, size_t>;  // <mem_base, mem_size>
 // single graph node info
 class GraphNode {
  public:
   explicit GraphNode(const GraphId graph_id);
   ~GraphNode();
 
-  GraphId GetGraphId() const { return graph_id_; }
+  GraphId GetGraphId() const {
+    return graph_id_;
+  }
 
-  ConstGraphPtr GetGraph() const { return graph_; }
-  void SetGraph(const GraphPtr &graph) { graph_ = graph; }
+  ConstGraphPtr GetGraph() const {
+    return graph_;
+  }
+  void SetGraph(const GraphPtr &graph) {
+    graph_ = graph;
+  }
 
-  ComputeGraphPtr GetComputeGraph() const { return compute_graph_; }
-  void SetComputeGraph(const ComputeGraphPtr &compute_graph) { compute_graph_ = compute_graph; }
+  ComputeGraphPtr GetComputeGraph() const {
+    return compute_graph_;
+  }
+  void SetComputeGraph(const ComputeGraphPtr &compute_graph) {
+    compute_graph_ = compute_graph;
+  }
 
   // True for active states (compiling/loading/running), otherwise false.
-  bool GetRunFlag() const { return run_flag_; }
-  void SetRunFlag(const bool flag) { run_flag_ = flag; }
+  bool GetRunFlag() const {
+    return run_flag_;
+  }
+  void SetRunFlag(const bool flag) {
+    run_flag_ = flag;
+  }
 
-  void SetOmeContext(const OmeContext &context) { context_ = context; }
-  const OmeContext &GetOmeContext() const { return context_; }
+  void SetOmeContext(const OmeContext &context) {
+    context_ = context;
+  }
+  const OmeContext &GetOmeContext() const {
+    return context_;
+  }
 
-  bool IsAsync() const { return async_; }
-  void SetAsync(const bool flag) { async_ = flag; }
+  bool IsAsync() const {
+    return async_;
+  }
+  void SetAsync(const bool flag) {
+    async_ = flag;
+  }
 
-  bool GetCompiledFlag() const { return compiled_flag_; }
-  void SetCompiledFlag(const bool flag) { compiled_flag_ = flag; }
-  bool GetBuildFlag() const { return build_flag_; } // CompileGraph/BuildGraph both set build_flag_ true
-  void SetBuildFlag(const bool buildFlag) { build_flag_ = buildFlag; }
-  bool GetLoadFlag() const { return load_flag_; }
-  RunGraphMode GetRunGraphMode() const { return run_graph_mode_; }
-  void SetRunGraphMode(RunGraphMode mode) { run_graph_mode_ = mode; }
+  bool GetCompiledFlag() const {
+    return compiled_flag_;
+  }
+  void SetCompiledFlag(const bool flag) {
+    compiled_flag_ = flag;
+  }
+  bool GetBuildFlag() const {
+    return build_flag_;
+  }  // CompileGraph/BuildGraph both set build_flag_ true
+  void SetBuildFlag(const bool buildFlag) {
+    build_flag_ = buildFlag;
+  }
+  bool GetLoadFlag() const {
+    return load_flag_;
+  }
+  RunGraphMode GetRunGraphMode() const {
+    return run_graph_mode_;
+  }
+  void SetRunGraphMode(RunGraphMode mode) {
+    run_graph_mode_ = mode;
+  }
   // allow repeatively load graph owns same graph id
-  void UpdateLoadFlag() { load_flag_ = ((load_count_ == 0U) || (load_record_ >= max_load_record_)); }
-  void SetLoadFlag(const bool load_flag) { load_flag_ = load_flag; }
-  void SetIsSpecificStream(const bool specific_stream) { is_specific_stream_ = specific_stream; }
-  bool IsSpecificStream() const { return is_specific_stream_; }
-  void SetGeRootModel(const GeRootModelPtr &ge_root_model) { ge_root_model_ = ge_root_model; }
-  GeRootModelPtr GetGeRootModel() const { return ge_root_model_; }
-  const std::map<std::string, std::string>& GetOptions() const { return options_; }
-  std::map<std::string, std::string>& GetMutableOptions() { return options_; }
-  void SetOptions(const std::map<std::string, std::string> &options) { options_ = options; }
+  void UpdateLoadFlag() {
+    load_flag_ = ((load_count_ == 0U) || (load_record_ >= max_load_record_));
+  }
+  void SetLoadFlag(const bool load_flag) {
+    load_flag_ = load_flag;
+  }
+  void SetIsSpecificStream(const bool specific_stream) {
+    is_specific_stream_ = specific_stream;
+  }
+  bool IsSpecificStream() const {
+    return is_specific_stream_;
+  }
+  void SetGeRootModel(const GeRootModelPtr &ge_root_model) {
+    ge_root_model_ = ge_root_model;
+  }
+  GeRootModelPtr GetGeRootModel() const {
+    return ge_root_model_;
+  }
+  const std::map<std::string, std::string> &GetOptions() const {
+    return options_;
+  }
+  std::map<std::string, std::string> &GetMutableOptions() {
+    return options_;
+  }
+  void SetOptions(const std::map<std::string, std::string> &options) {
+    options_ = options;
+  }
   void Lock();
   void Unlock();
 
-  void SetSemSize(const uint32_t size) { sem_.SetMaxSize(size); }
+  void SetSemSize(const uint32_t size) {
+    sem_.SetMaxSize(size);
+  }
 
-  void SetLoadCount(const uint32_t count) { load_count_ = count; }
-  uint32_t GetLoadRecord() const { return load_record_; }
-  void SetLoadRecord(const uint32_t record) { load_record_ = record; }
+  void SetLoadCount(const uint32_t count) {
+    load_count_ = count;
+  }
+  uint32_t GetLoadRecord() const {
+    return load_record_;
+  }
+  void SetLoadRecord(const uint32_t record) {
+    load_record_ = record;
+  }
   void IncreaseLoadCount();
   void SetLoaded();
-  void SetFeatureBaseRefreshable(const bool refreshable) { is_feature_base_refreshable_ = refreshable; }
-  bool IsFeatureBaseRefreshable() const { return is_feature_base_refreshable_; }
-  void SetConstMemoryBase(const void * const memory, const size_t size) {
+  void SetFeatureBaseRefreshable(const bool refreshable) {
+    is_feature_base_refreshable_ = refreshable;
+  }
+  bool IsFeatureBaseRefreshable() const {
+    return is_feature_base_refreshable_;
+  }
+  void SetConstMemoryBase(const void *const memory, const size_t size) {
     const_mem_ = std::make_pair(memory, size);
   }
-  const InputMemoryBaseInfo &GetConstMemoryBase() const { return const_mem_; }
-  void SetFeatureMemoryBase(const void * const memory, const size_t size) {
+  const InputMemoryBaseInfo &GetConstMemoryBase() const {
+    return const_mem_;
+  }
+  void SetFeatureMemoryBase(const void *const memory, const size_t size) {
     feature_mem_ = std::make_pair(memory, size);
   }
-  const InputMemoryBaseInfo &GetFeatureMemoryBase() const { return feature_mem_; }
-  void SetRefreshableFeatureMemoryBase(const void * const memory, const size_t size) {
+  const InputMemoryBaseInfo &GetFeatureMemoryBase() const {
+    return feature_mem_;
+  }
+  void SetRefreshableFeatureMemoryBase(const void *const memory, const size_t size) {
     refreshable_feature_mem_ = std::make_pair(memory, size);
   }
-  const InputMemoryBaseInfo &GetRefreshableFeatureMemoryBase() const { return refreshable_feature_mem_; }
-  CompiledGraphSummaryPtr GetCompiledGraphSummary() const { return compiled_summary_; }
-  void SaveCompiledGraphSummary(const CompiledGraphSummaryPtr &summary) { compiled_summary_ = summary; }
+  const InputMemoryBaseInfo &GetRefreshableFeatureMemoryBase() const {
+    return refreshable_feature_mem_;
+  }
+  CompiledGraphSummaryPtr GetCompiledGraphSummary() const {
+    return compiled_summary_;
+  }
+  void SaveCompiledGraphSummary(const CompiledGraphSummaryPtr &summary) {
+    compiled_summary_ = summary;
+  }
   void SetAppRefreshConstMemoryFlag() {
     app_refresh_const_memory_flag_ = true;
   }
@@ -218,8 +320,12 @@ class GraphNode {
   MemBlock *GetFeatureMemBlock() {
     return feature_mem_block_;
   }
-  void SetNetOutputNode(const NodePtr &net_output_node) { net_output_node_ = net_output_node; }
-  NodePtr GetNetOutputNode() const { return net_output_node_; }
+  void SetNetOutputNode(const NodePtr &net_output_node) {
+    net_output_node_ = net_output_node;
+  }
+  NodePtr GetNetOutputNode() const {
+    return net_output_node_;
+  }
 
   void SetTensorSize(size_t tensor_size) {
     (void)tensor_sizes_.emplace_back(tensor_size);
@@ -267,14 +373,15 @@ class GraphNode {
     return group_2_communication_nodes_;
   }
 
-  std::mutex &GetRunMutex(){
+  std::mutex &GetRunMutex() {
     return run_mutex_;
   }
 
   std::shared_ptr<GraphNode> Fork(uint32_t forked_graph_id);
+
  private:
   GraphId graph_id_;
-  GraphId origin_graph_id_{INVALID_GRAPH_ID}; // 本graph是fork出来的，其原始id在此记录
+  GraphId origin_graph_id_{INVALID_GRAPH_ID};  // 本graph是fork出来的，其原始id在此记录
   std::map<std::string, std::string> options_;
   bool run_flag_{false};
   std::vector<SubGraphInfoPtr> subgraph_ptr_list_;
@@ -322,7 +429,7 @@ class GraphNode {
   bool is_saved_net_output_tensor_info_flag_{false};
   std::vector<GeTensorDescPtr> ge_tensor_descs_;
   std::unordered_set<uint32_t> frozen_input_indexes_;
-  std::map<uint32_t, std::pair<uint64_t, uint64_t>> frozen_index_to_node_info_; // input_index-<addr,len>
+  std::map<uint32_t, std::pair<uint64_t, uint64_t>> frozen_index_to_node_info_;  // input_index-<addr,len>
   std::map<std::string, std::vector<std::string>> group_2_communication_nodes_;
   std::mutex run_mutex_;
 };

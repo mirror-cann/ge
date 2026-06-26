@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,11 +51,11 @@ class STEST_split_c_to_n_optimize : public testing::Test {
   const int NCHW_DIM_H = 14;
   const int NCHW_DIM_W = 12;
 
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
-  void InitGraph1(ComputeGraphPtr& graph) {
-    //format连续
+  void InitGraph1(ComputeGraphPtr &graph) {
+    // format连续
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -102,7 +102,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -112,16 +111,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph2(ComputeGraphPtr& graph) {
-    //ND->NZ
+  void InitGraph2(ComputeGraphPtr &graph) {
+    // ND->NZ
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -167,7 +164,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -177,16 +173,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph3(ComputeGraphPtr& graph) {
-    //ND->NZ origin shape < 4
+  void InitGraph3(ComputeGraphPtr &graph) {
+    // ND->NZ origin shape < 4
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -232,7 +226,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -242,16 +235,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph4(ComputeGraphPtr& graph) {
-    //NCHW->5HD
+  void InitGraph4(ComputeGraphPtr &graph) {
+    // NCHW->5HD
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -298,7 +289,6 @@ protected:
     split->AddOutputDesc(out_desc5);
     split->AddOutputDesc(out_desc5);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -308,16 +298,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph5(ComputeGraphPtr& graph) {
-    //NCHW->5HD Not meet condition_nchw_to_nc1hwc0
+  void InitGraph5(ComputeGraphPtr &graph) {
+    // NCHW->5HD Not meet condition_nchw_to_nc1hwc0
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -364,7 +352,6 @@ protected:
     split->AddOutputDesc(out_desc5);
     split->AddOutputDesc(out_desc5);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -374,16 +361,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph6(ComputeGraphPtr& graph) {
-    //IsDynamicGraph
+  void InitGraph6(ComputeGraphPtr &graph) {
+    // IsDynamicGraph
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -429,7 +414,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -439,16 +423,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim = -2)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph7(ComputeGraphPtr& graph) {
-    //asix N != 1
+  void InitGraph7(ComputeGraphPtr &graph) {
+    // asix N != 1
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -494,7 +476,6 @@ protected:
     split->AddOutputDesc(out_desc5);
     split->AddOutputDesc(out_desc5);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -504,15 +485,13 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-    void InitGraph8(ComputeGraphPtr& graph) {
+  void InitGraph8(ComputeGraphPtr &graph) {
     OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
@@ -562,7 +541,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr relu_node = graph->AddNode(relu);
     NodePtr quant1_node = graph->AddNode(quant1);
@@ -575,17 +553,14 @@ protected:
      * AcscendQuant   AcscendQuant (split_dim=1)
      *
      */
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
     graph->SetGraphUnknownFlag(true);
   }
 
-  void InitGraph9(ComputeGraphPtr& graph) {
-    //out_node has invalid node attr
+  void InitGraph9(ComputeGraphPtr &graph) {
+    // out_node has invalid node attr
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -630,7 +605,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -640,16 +614,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph10(ComputeGraphPtr& graph) {
-    //valid input
+  void InitGraph10(ComputeGraphPtr &graph) {
+    // valid input
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -699,13 +671,12 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
     NodePtr split_node = graph->AddNode(split);
     NodePtr data_node = graph->AddNode(data);
-    /*          
+    /*
      *
      *        data
      *          |
@@ -713,18 +684,15 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph11(ComputeGraphPtr& graph) {
-    //format连续 ori_shape size < 2
+  void InitGraph11(ComputeGraphPtr &graph) {
+    // format连续 ori_shape size < 2
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -771,7 +739,6 @@ protected:
     split->AddOutputDesc(out_desc5);
     split->AddOutputDesc(out_desc5);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -781,17 +748,15 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-  void InitGraph12(ComputeGraphPtr& graph) {
-    //split node has been set no_task attr
-    //format连续
+  void InitGraph12(ComputeGraphPtr &graph) {
+    // split node has been set no_task attr
+    // format连续
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -839,7 +804,6 @@ protected:
     split->AddOutputDesc(out_desc3);
     split->AddOutputDesc(out_desc4);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -849,16 +813,14 @@ protected:
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 
-void InitGraph13(ComputeGraphPtr& graph) {
-    //NCHW->5HD
+  void InitGraph13(ComputeGraphPtr &graph) {
+    // NCHW->5HD
     OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", QUANT);
     OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", QUANT);
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
@@ -906,7 +868,6 @@ void InitGraph13(ComputeGraphPtr& graph) {
     split->AddOutputDesc(out_desc5);
     split->AddOutputDesc(out_desc5);
 
-
     // create nodes
     NodePtr quant1_node = graph->AddNode(quant1);
     NodePtr quant2_node = graph->AddNode(quant2);
@@ -916,12 +877,10 @@ void InitGraph13(ComputeGraphPtr& graph) {
      *       /     \
      *     /         \
      * AcscendQuant   AcscendQuant (split_dim=1)
-     *          
+     *
      */
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
   }
 };
 
@@ -1111,4 +1070,4 @@ TEST_F(STEST_split_c_to_n_optimize, split_c_to_n_no_task_fail_009) {
   (void)ge::AttrUtils::GetBool(split_node->GetOpDesc(), ATTR_NAME_NOTASK, attr_notask);
   EXPECT_EQ(attr_notask, false);
 }
-}
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,29 +21,22 @@
 #include "memory_pool.h"
 
 namespace gert {
-enum GeLogLevel : int32_t {
-  kDebug = 0,
-  kInfo = 1,
-  kWarn = 2,
-  kError = 3,
-  kNull = 4,
-  kEvent = 10
-};
-#define LOG_BY_TYPE(type, fmt, ...)                           \
-  do {                                                        \
-    if (type == GeLogLevel::kInfo) {          \
-      dlog_info(GE_MODULE_NAME, "%lu %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), __FUNCTION__, ##__VA_ARGS__);  \
-    } else if (type == GeLogLevel::kError) {  \
-      GELOGE(ge::FAILED, fmt, ##__VA_ARGS__);                 \
-    } else if (type == GeLogLevel::kEvent){   \
-      GEEVENT(fmt, ##__VA_ARGS__);                            \
-    } else {}                                                 \
+enum GeLogLevel : int32_t { kDebug = 0, kInfo = 1, kWarn = 2, kError = 3, kNull = 4, kEvent = 10 };
+#define LOG_BY_TYPE(type, fmt, ...)                                                                               \
+  do {                                                                                                            \
+    if (type == GeLogLevel::kInfo) {                                                                              \
+      dlog_info(GE_MODULE_NAME, "%lu %s %s:" fmt, GeLog::GetTid(), GetId().c_str(), __FUNCTION__, ##__VA_ARGS__); \
+    } else if (type == GeLogLevel::kError) {                                                                      \
+      GELOGE(ge::FAILED, fmt, ##__VA_ARGS__);                                                                     \
+    } else if (type == GeLogLevel::kEvent) {                                                                      \
+      GEEVENT(fmt, ##__VA_ARGS__);                                                                                \
+    } else {                                                                                                      \
+    }                                                                                                             \
   } while (false)
 class VISIBILITY_EXPORT ScalableAllocator : public MemoryPool {
  public:
   explicit ScalableAllocator(SpanAllocator &span_allocator, DeviceMemAllocator &device_allocator,
-                             const ScalableConfig &cfg = ScalableConfig(),
-                             const std::string &graph_name = "");
+                             const ScalableConfig &cfg = ScalableConfig(), const std::string &graph_name = "");
   ~ScalableAllocator() override;
 
   PageSpan *Alloc(ge::Allocator &allocator, const MemSize size) override;
@@ -68,7 +61,9 @@ class VISIBILITY_EXPORT ScalableAllocator : public MemoryPool {
   MemSize GetOccupiedMemSize() const;
 
   size_t GetRecycleCount() const;
-  const ScalableConfig &GetScalableConfig() const { return config_; }
+  const ScalableConfig &GetScalableConfig() const {
+    return config_;
+  }
   const std::string &GetId() const override;
   size_t GetAllocatorId() const;
   const std::string GetStatics() const;
@@ -80,8 +75,9 @@ class VISIBILITY_EXPORT ScalableAllocator : public MemoryPool {
                                const size_t size);
   virtual bool IsThresholdExceeded(const MemSize size) const;
   virtual PageSpan *FetchNewSpan(ge::Allocator &allocator, const MemSize size, const PageLen page_len);
-  virtual PageSpan *SplitSpan(ge::Allocator &allocator, const SpanLayerId fix_layer_id,
-                              const SpanLayerId fit_layer_id, PageSpan *const span, const MemSize size);
+  virtual PageSpan *SplitSpan(ge::Allocator &allocator, const SpanLayerId fix_layer_id, const SpanLayerId fit_layer_id,
+                              PageSpan *const span, const MemSize size);
+
  private:
   PageSpan *FetchLayerSpan(const SpanLayerId layer_id);
   PageSpan *FetchSplitedSpan(ge::Allocator &allocator, const SpanLayerId fix_layer_id, const SpanLayerId fit_layer_id,
@@ -145,6 +141,6 @@ class VISIBILITY_EXPORT ScalableAllocator : public MemoryPool {
   size_t new_va_size_{0U};
   bool is_fix_sized_{false};
 };
-}
+}  // namespace gert
 
 #endif

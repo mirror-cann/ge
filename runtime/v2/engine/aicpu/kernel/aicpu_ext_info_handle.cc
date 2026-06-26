@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,19 +45,9 @@ enum class ExtInfoHandler {
   kEventId
 };
 
-enum class UpdateExtInfo {
-  kExtInfoHandler,
-  kInputNum,
-  kOutputNum,
-  kStream,
-  kCommonEnd
-};
+enum class UpdateExtInfo { kExtInfoHandler, kInputNum, kOutputNum, kStream, kCommonEnd };
 
-enum class GetExtInfo {
-  kExtInfoHandler,
-  kEngineName,
-  kCommonEnd
-};
+enum class GetExtInfo { kExtInfoHandler, kEngineName, kCommonEnd };
 
 void ShapeToStringStream(std::stringstream &ss, const Shape &shape) {
   ss << " [";
@@ -105,13 +95,12 @@ std::vector<std::string> PrintExtOutputShapes(const KernelContext *context) {
 
 // if dim count is not reach kMaxShapeDims(8), use INT64_MIN to mark dim end.
 constexpr int64_t kDimEndFlag = std::numeric_limits<int64_t>::min();
-const std::map<int32_t, int32_t> kTopicTypeToRtsFlagMap {
-  {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY), 0},
-  {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST), RT_KERNEL_DEVICE_FIRST},
-  {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY), RT_KERNEL_HOST_ONLY},
-  {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST), RT_KERNEL_HOST_FIRST}
-};
-} // namespace
+const std::map<int32_t, int32_t> kTopicTypeToRtsFlagMap{
+    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY), 0},
+    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST), RT_KERNEL_DEVICE_FIRST},
+    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY), RT_KERNEL_HOST_ONLY},
+    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST), RT_KERNEL_HOST_FIRST}};
+}  // namespace
 
 ge::Status AicpuExtInfoHandler::Parse(const std::string &ext_info, uint8_t *host_addr, void *device_addr) {
   GELOGI("Node[%s] parse ext info start.", node_name_.c_str());
@@ -168,8 +157,8 @@ ge::Status AicpuExtInfoHandler::Parse(const std::string &ext_info, uint8_t *host
         GE_CHK_STATUS_RET(ParseExtWorkSpaceInfo(aicpu_ext_info), "[Parse][ExtWorkSpaceInfo] failed.");
         break;
       default:
-        GELOGD("Node[%s] ignore infoType=%d, infoLen=%u.",
-               node_name_.c_str(), aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
+        GELOGD("Node[%s] ignore infoType=%d, infoLen=%u.", node_name_.c_str(), aicpu_ext_info.infoType,
+               aicpu_ext_info.infoLen);
         break;
     }
     offset += sizeof(AicpuExtInfo);
@@ -204,13 +193,14 @@ ge::Status AicpuExtInfoHandler::ParseExtShapeType(AicpuExtInfo &aicpu_ext_info) 
 }
 
 ge::Status AicpuExtInfoHandler::ParseExtInputShape(AicpuExtInfo &aicpu_ext_info) {
-  GELOGD("Node[%s] parse ext input shape success infoLen=%u, input_num=%u.", node_name_.c_str(), aicpu_ext_info.infoLen, input_num_);
+  GELOGD("Node[%s] parse ext input shape success infoLen=%u, input_num=%u.", node_name_.c_str(), aicpu_ext_info.infoLen,
+         input_num_);
   GE_ASSERT_TRUE(aicpu_ext_info.infoLen == (input_num_ * sizeof(AicpuShapeAndType)));
   const auto input = ge::PtrToPtr<char, AicpuShapeAndType>(aicpu_ext_info.infoMsg);
 
   for (uint32_t index = 0U; index < input_num_; ++index) {
-    input_shape_and_type_.emplace_back(ge::PtrAdd<AicpuShapeAndType>(input, static_cast<size_t>(input_num_),
-                                                                     static_cast<size_t>(index)));
+    input_shape_and_type_.emplace_back(
+        ge::PtrAdd<AicpuShapeAndType>(input, static_cast<size_t>(input_num_), static_cast<size_t>(index)));
   }
   GELOGI("Node[%s] parse ext input shape success infoLen=%u.", node_name_.c_str(), aicpu_ext_info.infoLen);
   return ge::SUCCESS;
@@ -221,8 +211,8 @@ ge::Status AicpuExtInfoHandler::ParseExtOutputShape(AicpuExtInfo &aicpu_ext_info
   const auto output = ge::PtrToPtr<char, AicpuShapeAndType>(aicpu_ext_info.infoMsg);
 
   for (uint32_t index = 0U; index < output_num_; ++index) {
-    output_shape_and_type_.emplace_back(ge::PtrAdd<AicpuShapeAndType>(output, static_cast<size_t>(output_num_),
-                                                                      static_cast<size_t>(index)));
+    output_shape_and_type_.emplace_back(
+        ge::PtrAdd<AicpuShapeAndType>(output, static_cast<size_t>(output_num_), static_cast<size_t>(index)));
   }
   GELOGI("Node[%s] parse ext output shape success infoLen=%u.", node_name_.c_str(), aicpu_ext_info.infoLen);
   return ge::SUCCESS;
@@ -254,16 +244,16 @@ ge::Status AicpuExtInfoHandler::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info) 
   GE_ASSERT_NOTNULL(aicpu_ext_info.infoMsg);
   const int32_t type = *(ge::PtrToPtr<char, int32_t>(aicpu_ext_info.infoMsg));
   /*
-  * Use the 5th and 6th bits of `type` indicate the value of topic_type.
-  * xxxxxxxx xxxxxxxx xxxxxxxx xx00xxxx: DEVICE_ONLY
-  * xxxxxxxx xxxxxxxx xxxxxxxx xx01xxxx: DEVICE_FIRST
-  * xxxxxxxx xxxxxxxx xxxxxxxx xx10xxxx: HOST_ONLY
-  * xxxxxxxx xxxxxxxx xxxxxxxx xx11xxxx: HOST_FIRST
-  * Use the 9th-11th bits of `type` indicate the value of qos. 12th indicate qos on/off
-  * xxxxxxxx xxxxxxxx xxxx0000 xxxxxxxx: qos off
-  * xxxxxxxx xxxxxxxx xxxx1000 xxxxxxxx: qos on, level=0(min level)
-  * xxxxxxxx xxxxxxxx xxxx1111 xxxxxxxx: qos on, level=7(max level)
-  */
+   * Use the 5th and 6th bits of `type` indicate the value of topic_type.
+   * xxxxxxxx xxxxxxxx xxxxxxxx xx00xxxx: DEVICE_ONLY
+   * xxxxxxxx xxxxxxxx xxxxxxxx xx01xxxx: DEVICE_FIRST
+   * xxxxxxxx xxxxxxxx xxxxxxxx xx10xxxx: HOST_ONLY
+   * xxxxxxxx xxxxxxxx xxxxxxxx xx11xxxx: HOST_FIRST
+   * Use the 9th-11th bits of `type` indicate the value of qos. 12th indicate qos on/off
+   * xxxxxxxx xxxxxxxx xxxx0000 xxxxxxxx: qos off
+   * xxxxxxxx xxxxxxxx xxxx1000 xxxxxxxx: qos on, level=0(min level)
+   * xxxxxxxx xxxxxxxx xxxx1111 xxxxxxxx: qos on, level=7(max level)
+   */
   deploy_type_flag_ = TopicTypeToRtsFlag(type);
   GE_ASSERT_TRUE(deploy_type_flag_ != -1);
   qos_level_flag_ = (static_cast<uint32_t>(type) & 0xf00U);
@@ -359,8 +349,8 @@ ge::Status AicpuExtInfoHandler::UpdateShape(const Shape &shape, AicpuShapeAndTyp
 ge::Status AicpuExtInfoHandler::CopyH2D(const rtStream_t stream) {
   if ((unknown_type_ == ge::DEPEND_SHAPE_RANGE) && (ext_info_len_ > 0) && (device_ext_info_ != nullptr)) {
     GE_ASSERT_NOTNULL(ext_info_);
-    GE_ASSERT_RT_OK(rtMemcpyAsync(device_ext_info_, ext_info_len_, ext_info_, ext_info_len_,
-                                  RT_MEMCPY_HOST_TO_DEVICE_EX, stream));
+    GE_ASSERT_RT_OK(
+        rtMemcpyAsync(device_ext_info_, ext_info_len_, ext_info_, ext_info_len_, RT_MEMCPY_HOST_TO_DEVICE_EX, stream));
   }
   return ge::SUCCESS;
 }
@@ -407,8 +397,7 @@ void AicpuExtInfoHandler::GetShapeAndType(const AicpuShapeAndType &shape_and_typ
 }
 
 int32_t AicpuExtInfoHandler::TopicTypeToRtsFlag(const int32_t topic_type) {
-  const auto it = kTopicTypeToRtsFlagMap.find(
-      static_cast<int32_t>(((static_cast<uint32_t>(topic_type)) & 0x30U) >> 4));
+  const auto it = kTopicTypeToRtsFlagMap.find(static_cast<int32_t>(((static_cast<uint32_t>(topic_type)) & 0x30U) >> 4));
   if (it != kTopicTypeToRtsFlagMap.end()) {
     return it->second;
   }
@@ -441,7 +430,7 @@ ge::graphStatus BuildExtInfoHandle(KernelContext *context) {
 }
 
 ge::graphStatus CreateOutputsForExtHandle(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto node_name = context->GetInputValue<char *>(static_cast<size_t>(ExtInfoHandler::kNodeName));
   auto input_num = context->GetInputValue<size_t>(static_cast<size_t>(ExtInfoHandler::kInputNum));
   auto output_num = context->GetInputValue<size_t>(static_cast<size_t>(ExtInfoHandler::kOutputNum));
@@ -487,8 +476,7 @@ ge::graphStatus CreateOutputsForExtOutputShapes(const ge::FastNode *node, Kernel
   (void)node;
   auto extend_context = reinterpret_cast<ExtendedKernelContext *>(context);
   GE_ASSERT_NOTNULL(extend_context);
-  auto engine_name =
-      context->GetInputValue<char_t *>(static_cast<size_t>(GetExtInfo::kEngineName));
+  auto engine_name = context->GetInputValue<char_t *>(static_cast<size_t>(GetExtInfo::kEngineName));
   GE_ASSERT_NOTNULL(engine_name);
   GELOGI("Get engine name: %s", engine_name);
   for (size_t index = 0U; index < context->GetOutputNum(); index++) {
@@ -499,14 +487,12 @@ ge::graphStatus CreateOutputsForExtOutputShapes(const ge::FastNode *node, Kernel
       // hostcpu引擎创建此kernel传入的是输入shape
       auto input_desc = extend_context->GetInputDesc(index);
       GE_ASSERT_NOTNULL(input_desc);
-      shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-          input_desc->GetFormat(), input_desc->GetDataType());
+      shape_tensor = new (std::nothrow) Tensor(StorageShape(), input_desc->GetFormat(), input_desc->GetDataType());
     } else {
       // cpu和tf引擎创建此kernel传入的是输出shape
       auto output_desc = extend_context->GetOutputDesc(index);
       GE_ASSERT_NOTNULL(output_desc);
-      shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-          output_desc->GetFormat(), output_desc->GetDataType());
+      shape_tensor = new (std::nothrow) Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType());
     }
     GE_ASSERT_NOTNULL(shape_tensor);
     chain->SetWithDefaultDeleter(shape_tensor);
@@ -523,7 +509,7 @@ ge::graphStatus UpdateExtWorkSpaceInfo(KernelContext *context) {
     workspace_addr = ge::PtrToValue(tensor_data->GetAddr());
   }
 
-  auto ext_handle = context->GetInputValue<gert::AicpuExtInfoHandler *>(2U); // 2 is for the third input
+  auto ext_handle = context->GetInputValue<gert::AicpuExtInfoHandler *>(2U);  // 2 is for the third input
   GE_ASSERT_NOTNULL(ext_handle);
   ext_handle->UpdateWorkSpaceInfo(*workspace_size, workspace_addr);
   return ge::GRAPH_SUCCESS;
@@ -564,12 +550,13 @@ ge::graphStatus ExceptionDumpFillWorkSpace(const KernelContext *context,
   exception_dump_wrapper.AddWorkspace(workspace_addr, workspace_bytes);
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(UpdateExtWorkSpaceInfo).RunFunc(UpdateExtWorkSpaceInfo).DataDumpInfoFiller(DataDumpFillWorkSpace)
+REGISTER_KERNEL(UpdateExtWorkSpaceInfo)
+    .RunFunc(UpdateExtWorkSpaceInfo)
+    .DataDumpInfoFiller(DataDumpFillWorkSpace)
     .ExceptionDumpInfoFiller(ExceptionDumpFillWorkSpace);
 
 ge::graphStatus GetExtOutputShapes(KernelContext *context) {
-  auto ext_handle =
-      context->MutableInputPointer<AicpuExtInfoHandler>(static_cast<size_t>(GetExtInfo::kExtInfoHandler));
+  auto ext_handle = context->MutableInputPointer<AicpuExtInfoHandler>(static_cast<size_t>(GetExtInfo::kExtInfoHandler));
   GE_ASSERT_NOTNULL(ext_handle);
 
   GE_ASSERT_SUCCESS(ext_handle->CopyOutputShapeForThirdOp());
@@ -582,6 +569,8 @@ ge::graphStatus GetExtOutputShapes(KernelContext *context) {
   }
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(GetExtOutputShapes).RunFunc(GetExtOutputShapes).OutputsCreator(CreateOutputsForExtOutputShapes)
+REGISTER_KERNEL(GetExtOutputShapes)
+    .RunFunc(GetExtOutputShapes)
+    .OutputsCreator(CreateOutputsForExtOutputShapes)
     .TracePrinter(PrintExtOutputShapes);
 }  // namespace gert

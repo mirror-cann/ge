@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ const std::string kOpParamSize = "op_para_size";
 const std::string kAtomicOpParamSize = "atomic_op_para_size";
 const std::string kTbeCoreTypeMixAic = "MIX_AIC";
 const std::string kTbeCoreTypeMixAiv = "MIX_AIV";
-const std::set<std::string> kTbeCoreTypeMix = { "MIX_AIC", "MIX_AIV", "MIX"};
+const std::set<std::string> kTbeCoreTypeMix = {"MIX_AIC", "MIX_AIV", "MIX"};
 constexpr size_t kBufAlignedBytes = 128UL;
 std::mutex g_reg_mutex;
 }  // namespace
@@ -68,10 +68,10 @@ Status TbeTaskBuilder::DoRegisterBinary(const OpKernelBin &kernel_bin, void **co
     ret = rtDevBinaryRegister(&binary, bin_handle);
   }
   if (ret != RT_ERROR_NONE) {
-    GELOGE(FAILED, "[DoRegister][Binary] failed, bin key = %s, core_type = %" PRId64 ", rt ret = %d", stub_name_.c_str(),
-        param.core_type, static_cast<int32_t>(ret));
+    GELOGE(FAILED, "[DoRegister][Binary] failed, bin key = %s, core_type = %" PRId64 ", rt ret = %d",
+           stub_name_.c_str(), param.core_type, static_cast<int32_t>(ret));
     REPORT_INNER_ERR_MSG("E19999", "DoRegisterBinary failed, bin key = %s, core_type = %" PRId64 ", rt ret = %d",
-        stub_name_.c_str(), param.core_type, static_cast<int32_t>(ret));
+                         stub_name_.c_str(), param.core_type, static_cast<int32_t>(ret));
     return FAILED;
   }
 
@@ -80,7 +80,7 @@ Status TbeTaskBuilder::DoRegisterBinary(const OpKernelBin &kernel_bin, void **co
 
 Status TbeTaskBuilder::DoRegisterMeta(void *const bin_handle) const {
   std::string meta_data;
-  const std::string* meta_data_ptr = AttrUtils::GetStr(op_desc_, GetKeyForTvmMetaData());
+  const std::string *meta_data_ptr = AttrUtils::GetStr(op_desc_, GetKeyForTvmMetaData());
   if (meta_data_ptr != nullptr) {
     meta_data = *meta_data_ptr;
   }
@@ -89,9 +89,9 @@ Status TbeTaskBuilder::DoRegisterMeta(void *const bin_handle) const {
     const auto rt_ret = rtMetadataRegister(bin_handle, meta_data.c_str());
     if (rt_ret != RT_ERROR_NONE) {
       GELOGE(FAILED, "[Invoke][rtMetadataRegister] failed. bin key = %s, meta_data = %s, rt ret = %d",
-          stub_name_.c_str(), meta_data.c_str(), rt_ret);
+             stub_name_.c_str(), meta_data.c_str(), rt_ret);
       REPORT_INNER_ERR_MSG("E19999", "rtMetadataRegister failed, bin key = %s, meta_data = %s, rt ret = %d",
-          stub_name_.c_str(), meta_data.c_str(), rt_ret);
+                           stub_name_.c_str(), meta_data.c_str(), rt_ret);
       return FAILED;
     }
   }
@@ -103,10 +103,10 @@ Status TbeTaskBuilder::DoRegisterFunction(void *const bin_handle, const char_t *
                                           const char_t *const kernel_name) {
   const auto rt_ret = rtFunctionRegister(bin_handle, stub_name, stub_name, kernel_name, FUNC_MODE_NORMAL);
   if (rt_ret != RT_ERROR_NONE) {
-    GELOGE(FAILED, "[Invoke][rtFunctionRegister] failed. bin key = %s, kernel name = %s, rt ret = %d",
-        stub_name, kernel_name, static_cast<int32_t>(rt_ret));
-    REPORT_INNER_ERR_MSG("E19999", "rtFunctionRegister failed. bin key = %s, kernel name = %s, rt ret = %d",
-        stub_name, kernel_name, static_cast<int32_t>(rt_ret));
+    GELOGE(FAILED, "[Invoke][rtFunctionRegister] failed. bin key = %s, kernel name = %s, rt ret = %d", stub_name,
+           kernel_name, static_cast<int32_t>(rt_ret));
+    REPORT_INNER_ERR_MSG("E19999", "rtFunctionRegister failed. bin key = %s, kernel name = %s, rt ret = %d", stub_name,
+                         kernel_name, static_cast<int32_t>(rt_ret));
     return static_cast<uint32_t>(rt_ret);
   }
 
@@ -163,9 +163,9 @@ Status TbeTaskBuilder::RegisterKernel(TbeOpTask &task, const SingleOpModelParam 
     const auto tbe_kernel = GetTbeKernel(op_desc_);
     if (tbe_kernel == nullptr) {
       GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "[Get][TbeKernel] fail for OP EXT ATTR NAME TBE_KERNEL not found. op = %s",
-          op_desc_->GetName().c_str());
+             op_desc_->GetName().c_str());
       REPORT_INNER_ERR_MSG("E19999", "GetTbeKernel fail for OP EXT ATTR NAME TBE_KERNEL not found. op = %s",
-          op_desc_->GetName().c_str());
+                           op_desc_->GetName().c_str());
       return ACL_ERROR_GE_INTERNAL_ERROR;
     }
 
@@ -202,9 +202,9 @@ Status TbeTaskBuilder::RegisterKernelWithHandle(const SingleOpModelParam &param)
   const auto tbe_kernel = GetTbeKernel(op_desc_);
   if (tbe_kernel == nullptr) {
     GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "[Get][TbeKernel] fail for OP EXT ATTR NAME TBE_KERNEL not found. op = %s",
-        op_desc_->GetName().c_str());
+           op_desc_->GetName().c_str());
     REPORT_INNER_ERR_MSG("E19999", "GetTbeKernel fail for OP EXT ATTR NAME TBE_KERNEL not found. op = %s",
-        op_desc_->GetName().c_str());
+                         op_desc_->GetName().c_str());
     return ACL_ERROR_GE_INTERNAL_ERROR;
   }
   void *bin_handle = nullptr;
@@ -288,16 +288,15 @@ Status TbeTaskBuilder::SetKernelArgs(TbeOpTask &task, const SingleOpModelParam &
   REQUIRE_COMPAT_UINT16(arg_size);
   args = MakeUnique<uint8_t[]>(arg_size);
   GE_CHECK_NOTNULL(args);
-  GE_CHK_ACL_RET(aclrtMemcpy(args.get(), arg_size, kernel_def_args, kernel_def_arg_size,
-      ACL_MEMCPY_HOST_TO_HOST));
+  GE_CHK_ACL_RET(aclrtMemcpy(args.get(), arg_size, kernel_def_args, kernel_def_arg_size, ACL_MEMCPY_HOST_TO_HOST));
   if (task.has_overflow_attr_) {
     GE_CHECK_GE(kernel_def_arg_size, sizeof(void *));
     const size_t argsize_idx_with_overflow = kernel_def_arg_size - sizeof(void *);
     GE_CHK_ACL_RET(aclrtMemcpy(args.get() + argsize_idx_with_overflow, sizeof(void *), &(task.overflow_addr_),
-        sizeof(void *), ACL_MEMCPY_HOST_TO_HOST));
+                               sizeof(void *), ACL_MEMCPY_HOST_TO_HOST));
   }
-  const domi::KernelContext &context = (task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL) ?
-                                       kernel_def_with_handle_.context() : kernel_def_.context();
+  const domi::KernelContext &context =
+      (task_type == ModelTaskType::MODEL_TASK_ALL_KERNEL) ? kernel_def_with_handle_.context() : kernel_def_.context();
   const auto *const args_offset_tmp = PtrToPtr<const char_t, const uint16_t>(context.args_offset().data());
   uint16_t offset = *args_offset_tmp;
   GE_CHECK_GE(arg_size, offset + task.ffts_addr_num_ * sizeof(uint64_t));
@@ -305,8 +304,8 @@ Status TbeTaskBuilder::SetKernelArgs(TbeOpTask &task, const SingleOpModelParam &
   if (task.ffts_addr_num_ == 1UL) {
     void *mode_addr_ptr = nullptr;
     GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
-    GE_CHK_ACL_RET(aclrtMemcpy(args.get() + offset, sizeof(uint64_t), &mode_addr_ptr,
-                              sizeof(uint64_t), ACL_MEMCPY_HOST_TO_HOST));
+    GE_CHK_ACL_RET(
+        aclrtMemcpy(args.get() + offset, sizeof(uint64_t), &mode_addr_ptr, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_HOST));
     offset += sizeof(uint64_t);
   }
 
@@ -381,10 +380,10 @@ Status TbeTaskBuilder::InitTilingInfo(TbeOpTask &task) {
   (void)AttrUtils::GetInt(op_desc_, GetKeyForOpParamSize(), max_size);
   GELOGD("Got op param size by key: %s, ret = %" PRId64, GetKeyForOpParamSize().c_str(), max_size);
   if (max_size < 0) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Get][Int] %s Invalid op_param_size: %" PRId64 ".",
-        op_desc_->GetName().c_str(), max_size);
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Get][Int] %s Invalid op_param_size: %" PRId64 ".", op_desc_->GetName().c_str(),
+           max_size);
     REPORT_INNER_ERR_MSG("E19999", "AttrUtils::GetInt failed, %s Invalid op_param_size: %" PRId64 ".",
-        op_desc_->GetName().c_str(), max_size);
+                         op_desc_->GetName().c_str(), max_size);
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   GE_CHECK_LE(max_size, static_cast<int64_t>(UINT32_MAX));
@@ -403,12 +402,10 @@ Status TbeTaskBuilder::GetMagic(uint32_t &magic) const {
   } else if (json_string == "RT_DEV_BINARY_MAGIC_ELF_AICUBE") {
     magic = RT_DEV_BINARY_MAGIC_ELF_AICUBE;
   } else {
-    REPORT_INNER_ERR_MSG("E19999", "Attr:%s in op:%s(%s), value:%s check invalid",
-                       TVM_ATTR_NAME_MAGIC.c_str(), op_desc_->GetName().c_str(),
-                       op_desc_->GetType().c_str(), json_string.c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s in op:%s(%s), value:%s check invalid",
-           TVM_ATTR_NAME_MAGIC.c_str(), op_desc_->GetName().c_str(),
-           op_desc_->GetType().c_str(), json_string.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Attr:%s in op:%s(%s), value:%s check invalid", TVM_ATTR_NAME_MAGIC.c_str(),
+                         op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), json_string.c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s in op:%s(%s), value:%s check invalid", TVM_ATTR_NAME_MAGIC.c_str(),
+           op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), json_string.c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -442,7 +439,7 @@ void AtomicAddrCleanTaskBuilder::GetKernelName(const OpDescPtr &op_desc, std::st
   (void)AttrUtils::GetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", "_atomic_kernelname", kernel_name);
 }
 
-TBEKernelPtr AtomicAddrCleanTaskBuilder::GetTbeKernel(const OpDescPtr &op_desc)  const {
+TBEKernelPtr AtomicAddrCleanTaskBuilder::GetTbeKernel(const OpDescPtr &op_desc) const {
   return op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_TBE_KERNEL, TBEKernelPtr());
 }
 
@@ -507,13 +504,14 @@ Status MixL2TaskBuilder::BuildMixL2Task(MixL2OpTask &task, SingleOpModelParam &p
   task.args_addr_base_idx_ = addr_base + task.mode_addr_cnt_;
   const size_t addr_len = kernel_def_arg_size - task.mode_addr_cnt_ * sizeof(uintptr_t);
   task.args_addr_cnt_ = addr_len / sizeof(uintptr_t);
-  GELOGD("Node: %s, input num: %zu, output num: %zu, workspace num: %zu, is_dynamic: %d, kernel_def_arg_size: %zu, "
-         "len: %zu, max tiling size: %u, args size: %zu, host args size: %zu, addr_base: %zu, mode_addr_cnt: %zu, "
-         "args_addr_base_idx: %zu, addr_len: %zu, args_addr_cnt: %zu, tiling data size: %zu.",
-         op_desc_->GetName().c_str(), task.input_num_, task.output_num_, op_desc_->GetWorkspaceBytes().size(),
-         static_cast<int32_t>(is_dynamic), kernel_def_arg_size, len, task.max_tiling_size_, task.arg_size_,
-         task.host_args_.size(), addr_base, task.mode_addr_cnt_, task.args_addr_base_idx_, addr_len,
-         task.args_addr_cnt_, tiling_data_size_);
+  GELOGD(
+      "Node: %s, input num: %zu, output num: %zu, workspace num: %zu, is_dynamic: %d, kernel_def_arg_size: %zu, "
+      "len: %zu, max tiling size: %u, args size: %zu, host args size: %zu, addr_base: %zu, mode_addr_cnt: %zu, "
+      "args_addr_base_idx: %zu, addr_len: %zu, args_addr_cnt: %zu, tiling data size: %zu.",
+      op_desc_->GetName().c_str(), task.input_num_, task.output_num_, op_desc_->GetWorkspaceBytes().size(),
+      static_cast<int32_t>(is_dynamic), kernel_def_arg_size, len, task.max_tiling_size_, task.arg_size_,
+      task.host_args_.size(), addr_base, task.mode_addr_cnt_, task.args_addr_base_idx_, addr_len, task.args_addr_cnt_,
+      tiling_data_size_);
 
   // Init IO/workspace addr
   GE_CHK_STATUS_RET(InitKernelArgs(&task.host_args_[task.args_addr_base_idx_], addr_len, param));
@@ -533,7 +531,7 @@ Status MixL2TaskBuilder::InitTilingDataAddrToArgs(MixL2OpTask &task) const {
                                  static_cast<size_t>(op_desc_->GetAllOutputsDescSize());
   GE_CHECK_GE(task.host_args_.size(), (task.args_addr_base_idx_ + tiling_data_idx + 1U));
   GE_CHK_ACL_RET(aclrtMemcpy(&task.host_args_[task.args_addr_base_idx_ + tiling_data_idx], sizeof(uintptr_t),
-      &tiling_data_addr_, sizeof(uintptr_t), ACL_MEMCPY_HOST_TO_HOST));
+                             &tiling_data_addr_, sizeof(uintptr_t), ACL_MEMCPY_HOST_TO_HOST));
   GELOGI("Init tiling data addr of %s, tiling_data_idx: %zu.", op_desc_->GetName().c_str(), tiling_data_idx);
   return SUCCESS;
 }
@@ -542,7 +540,7 @@ Status MixL2TaskBuilder::InitMixKernelArgs(MixL2OpTask &task, const size_t addr_
                                            SingleOpModelParam &param) {
   // Register kernel
   std::string core_type;
-  const std::string* core_type_ptr = AttrUtils::GetStr(op_desc_, ATTR_NAME_CUBE_VECTOR_CORE_TYPE);
+  const std::string *core_type_ptr = AttrUtils::GetStr(op_desc_, ATTR_NAME_CUBE_VECTOR_CORE_TYPE);
   if (core_type_ptr != nullptr) {
     core_type = *core_type_ptr;
   }
@@ -559,7 +557,7 @@ Status MixL2TaskBuilder::InitMixKernelArgs(MixL2OpTask &task, const size_t addr_
   FftsPlusProtoTransfer transfer(args_base, &helper, param.runtime_param, task.ext_args_);
   // Add handle
   transfer.SetFindNodeHandle([this](const uint32_t idx_object) -> OpDescPtr {
-    (void) idx_object;
+    (void)idx_object;
     return op_desc_;
   });
   GE_CHK_STATUS_RET(HandleSoftSyncOp(task, param), "Handle soft sync op %s failed.", task.op_desc_->GetName().c_str());
@@ -579,11 +577,10 @@ Status MixL2TaskBuilder::InitMixKernelArgs(MixL2OpTask &task, const size_t addr_
   });
 
   transfer.SetSaveL0DumpInfoHandle([&task](const std::vector<uint64_t> &l0_dump_list) {
-      task.l0_dump_list_.insert(task.l0_dump_list_.end(), l0_dump_list.begin(), l0_dump_list.end());
+    task.l0_dump_list_.insert(task.l0_dump_list_.end(), l0_dump_list.begin(), l0_dump_list.end());
   });
 
-  GE_CHK_STATUS_RET(transfer.Transfer(op_desc_, ffts_plus_task_def_, task.ffts_plus_task_info_),
-                    "Do transfer filed.");
+  GE_CHK_STATUS_RET(transfer.Transfer(op_desc_, ffts_plus_task_def_, task.ffts_plus_task_info_), "Do transfer filed.");
   task.io_addrs_from_taskdef_ = helper.GetIoAddr();
   task.mode_addr_idx_ = helper.GetModeAddrIdx();
   GE_ASSERT_SUCCESS(helper.AssembleTilingData());
@@ -603,10 +600,9 @@ Status MixL2TaskBuilder::HandleSoftSyncOp(MixL2OpTask &task, SingleOpModelParam 
   const auto run_info = MakeShared<optiling::utils::OpRunInfo>(0, false, 0);
   GE_CHECK_NOTNULL(run_info);
   GE_ASSERT_TRUE(static_cast<size_t>(task.op_desc_->GetOppImplVersion()) < param.space_registries_->size());
-  GE_CHK_STATUS_RET(
-      optiling::SoftSyncOpRtParseAndTiling(
-          *task.op_, param.platform_infos, *run_info,
-          param.space_registries_->at(static_cast<size_t>(task.op_desc_->GetOppImplVersion()))),
+  GE_CHK_STATUS_RET(optiling::SoftSyncOpRtParseAndTiling(
+                        *task.op_, param.platform_infos, *run_info,
+                        param.space_registries_->at(static_cast<size_t>(task.op_desc_->GetOppImplVersion()))),
                     "Recall tiling for soft sync op: %s failed.", op_desc_->GetName().c_str());
   if (task.op_desc_->SetExtAttr(ATTR_NAME_OP_RUN_INFO, run_info)) {
     GELOGI("Success to set extra attr: %s to %s.", ATTR_NAME_OP_RUN_INFO.c_str(), task.op_desc_->GetName().c_str());

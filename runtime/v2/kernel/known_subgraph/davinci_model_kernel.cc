@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -138,7 +138,7 @@ ge::Status GetValidFrozenIndicies(const std::string &frozen_inputs, const ge::Co
                                   std::set<uint32_t> &input_index_set,
                                   std::unordered_set<uint32_t> &valid_frozen_index_set) {
   if (frozen_inputs.empty()) {
-    GELOGD("Frozen inputs option is empty. Skip to set frozen inputs fro static model.");
+    GELOGD("Frozen inputs option is empty. Skip to set frozen inputs for static model.");
     return ge::SUCCESS;
   }
   // Parse frozen inputs option
@@ -175,7 +175,7 @@ ge::Status GetValidFrozenIndicies(const std::string &frozen_inputs, const ge::Co
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace
 bool IsNeedMallocFixedMemoryOnInitGraph(const void *fixed_feature_mem, const size_t fixed_size) {
   // 用户如果通过这个option设置了fixed内存，也不需要GE申请了
   std::string is_addr_fixed_opt;
@@ -191,8 +191,8 @@ bool IsNeedMallocFixedMemoryOnInitGraph(const void *fixed_feature_mem, const siz
  * 如果传递给davinci model的是正常的地址，使用这个地址, 如果设置了nullptr地址，davinci model中会再申请地址
  */
 ge::graphStatus InitParam(KernelContext *context, ge::ModelParam &param) {
-  const auto weight_tensor = context->GetInputPointer<GertTensorData>(
-      static_cast<size_t>(DavinciModelCreateInput::kAssignMem));
+  const auto weight_tensor =
+      context->GetInputPointer<GertTensorData>(static_cast<size_t>(DavinciModelCreateInput::kAssignMem));
   GE_ASSERT_NOTNULL(weight_tensor, "There is no weight info.");
 
   param.weight_base = ge::PtrToValue(weight_tensor->GetAddr());
@@ -207,8 +207,8 @@ ge::graphStatus InitParam(KernelContext *context, ge::ModelParam &param) {
 
   // 是否使用init graph中的内存申请，可以搜索MallocFixedFeatureMemIfNeed日志
   if (IsNeedMallocFixedMemoryOnInitGraph(ge::ValueToPtr(fixed_mem_addr), fixed_mem_size)) {
-    const auto tensor_data = context->GetInputPointer<TensorData>(
-        static_cast<size_t>(DavinciModelCreateInput::kFixedMemTensorFromInit));
+    const auto tensor_data =
+        context->GetInputPointer<TensorData>(static_cast<size_t>(DavinciModelCreateInput::kFixedMemTensorFromInit));
     GE_ASSERT_NOTNULL(tensor_data, "get hbm fixed_feautre_memory tensor data failed.");
     GE_ASSERT_NOTNULL(tensor_data->GetAddr(), "get hbm fixed_feautre_memory addr failed.");
     param.fixed_mem_base = ge::PtrToValue(tensor_data->GetAddr());
@@ -224,15 +224,15 @@ ge::graphStatus InitParam(KernelContext *context, ge::ModelParam &param) {
 
   // 是否使用init graph中的内存申请，可以搜索MallocFixedFeatureMemIfNeed日志
   if (IsNeedMallocFixedMemoryOnInitGraph(ge::ValueToPtr(p2p_fixed_mem_addr), p2p_fixed_mem_size)) {
-    const auto tensor_data = context->GetInputPointer<TensorData>(
-        static_cast<size_t>(DavinciModelCreateInput::kP2pFixedMemTensorFromInit));
+    const auto tensor_data =
+        context->GetInputPointer<TensorData>(static_cast<size_t>(DavinciModelCreateInput::kP2pFixedMemTensorFromInit));
     GE_ASSERT_NOTNULL(tensor_data, "get p2p fixed_feautre_memory tensor data failed.");
     GE_ASSERT_NOTNULL(tensor_data->GetAddr(), "get p2p fixed_feautre_memory addr failed.");
     param.p2p_fixed_mem_base = ge::PtrToValue(tensor_data->GetAddr());
     param.p2p_fixed_mem_size = tensor_data->GetSize();
   }
-  KERNEL_TRACE("[MEM] fixed_feature_memory hbm_addr %p, hbm_size %zu, p2p_addr %p, p2p_size %zu",
-               param.fixed_mem_base, param.fixed_mem_size, param.p2p_fixed_mem_base, param.p2p_fixed_mem_size);
+  KERNEL_TRACE("[MEM] fixed_feature_memory hbm_addr %p, hbm_size %zu, p2p_addr %p, p2p_size %zu", param.fixed_mem_base,
+               param.fixed_mem_size, param.p2p_fixed_mem_base, param.p2p_fixed_mem_size);
   return ge::SUCCESS;
 }
 
@@ -247,7 +247,7 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
   GE_CHECK_NOTNULL(davinci_model_ptr);
   GE_ASSERT_SUCCESS(InitDavinciModelCommon(context, ge_model, *davinci_model_ptr));
   const auto custom_op_registry =
-    context->GetInputValue<ge::CustomOpRegistry *>(static_cast<size_t>(DavinciModelCreateInput::kCustomOpRegistry));
+      context->GetInputValue<ge::CustomOpRegistry *>(static_cast<size_t>(DavinciModelCreateInput::kCustomOpRegistry));
   davinci_model_ptr->SetCustomOpRegistryRaw(custom_op_registry);
 
   const auto &file_constant_names_and_mems =
@@ -260,8 +260,8 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
     const FileConstantNameAndMem *const item = &file_constant_names_and_mems_ptr[i];
     GE_ASSERT_NOTNULL(item);
     davinci_model_ptr->SetFileConstantDeviceMem(std::string(item->name), item->mem, item->size);
-    KERNEL_TRACE("FileConstant use user device memory. file name: %s, addr: %p, size: %zu",
-                 item->name, item->mem, item->size);
+    KERNEL_TRACE("FileConstant use user device memory. file name: %s, addr: %p, size: %zu", item->name, item->mem,
+                 item->size);
   }
 
   auto ret = davinci_model_ptr->InitVariableMem();
@@ -272,13 +272,13 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
   SetInferDumpPropertiesIfNeed(*davinci_model_ptr);
   ge::ModelParam param{};
   GE_ASSERT_SUCCESS(InitParam(context, param));
-  const auto frozen_indices_holder = context->GetInputPointer<ge::char_t *>(
-      static_cast<size_t>(DavinciModelCreateInput::kFrozenInputIndicies));
+  const auto frozen_indices_holder =
+      context->GetInputPointer<ge::char_t *>(static_cast<size_t>(DavinciModelCreateInput::kFrozenInputIndicies));
   GE_ASSERT_NOTNULL(frozen_indices_holder);
   std::string frozen_inputs(*frozen_indices_holder);
   std::unordered_set<uint32_t> valid_frozen_inputs;
   GE_ASSERT_SUCCESS(GetValidFrozenIndicies(frozen_inputs, ge_model->GetGraph(), input_index_set, valid_frozen_inputs),
-                    "Get valid frozen indicies failed");
+                    "Get valid frozen indices failed");
   davinci_model_ptr->SetNoFrozenInputIndexes(valid_frozen_inputs);
   ret = davinci_model_ptr->Init(param);
   GE_ASSERT_SUCCESS(ret, "davinci model init failed");
@@ -290,8 +290,7 @@ ge::graphStatus DavinciModelCreate(KernelContext *context) {
   return ge::SUCCESS;
 }
 
-ge::graphStatus UpdateMemBase(ge::DavinciModel &davinci_model,
-                              std::vector<uint64_t> &workspaces_memory_type,
+ge::graphStatus UpdateMemBase(ge::DavinciModel &davinci_model, std::vector<uint64_t> &workspaces_memory_type,
                               std::vector<void *> &workspaces) {
   std::vector<uint8_t *> hbm_fm_mem_bases;
   for (size_t i = 0U; i < workspaces_memory_type.size(); ++i) {
@@ -312,8 +311,8 @@ ge::graphStatus UpdateMemBase(ge::DavinciModel &davinci_model,
 
 ge::graphStatus DavinciModelUpdateArgs(KernelContext *context) {
   GE_CHECK_NOTNULL(context);
-  auto davinci_model = context->MutableInputPointer<ge::DavinciModel>(
-      static_cast<int32_t>(InputsCommon::kDavinciModel));
+  auto davinci_model =
+      context->MutableInputPointer<ge::DavinciModel>(static_cast<int32_t>(InputsCommon::kDavinciModel));
   GE_CHECK_NOTNULL(davinci_model);
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(ModelExecute::kStream));
   GE_CHECK_NOTNULL(stream);
@@ -330,8 +329,8 @@ ge::graphStatus DavinciModelUpdateArgs(KernelContext *context) {
 
   std::vector<uint64_t> v_inputs(*input_num);
   for (size_t i = 0UL; i < *input_num; ++i) {
-    const auto gtd = context->GetInputValue<gert::GertTensorData *>(
-        static_cast<int32_t>(ModelExecute::kModelExecuteEnd) + i);
+    const auto gtd =
+        context->GetInputValue<gert::GertTensorData *>(static_cast<int32_t>(ModelExecute::kModelExecuteEnd) + i);
     GE_CHECK_NOTNULL(gtd);
     v_inputs[i] = ge::PtrToValue(gtd->GetAddr());
   }
@@ -352,8 +351,8 @@ ge::graphStatus DavinciModelUpdateArgs(KernelContext *context) {
 
 ge::graphStatus ConstructOutputData(const KernelContext *context, ge::OutputData &output_data) {
   GE_CHECK_NOTNULL(context);
-  auto davinci_model = context->MutableInputPointer<ge::DavinciModel>(
-      static_cast<int32_t>(InputsCommon::kDavinciModel));
+  auto davinci_model =
+      context->MutableInputPointer<ge::DavinciModel>(static_cast<int32_t>(InputsCommon::kDavinciModel));
   GE_CHECK_NOTNULL(davinci_model);
 
   const auto input_num = context->GetInputPointer<size_t>(static_cast<int32_t>(ModelExecute::kInputNum));
@@ -366,8 +365,8 @@ ge::graphStatus ConstructOutputData(const KernelContext *context, ge::OutputData
     const auto gtd = context->GetInputValue<gert::GertTensorData *>(
         static_cast<int32_t>(ModelExecute::kModelExecuteEnd) + *input_num + i);
     GE_CHECK_NOTNULL(gtd);
-    const auto placement = TensorPlacementUtils::IsOnDevice(gtd->GetPlacement()) ? ge::Placement::kPlacementDevice :
-                           ge::Placement::kPlacementHost;
+    const auto placement = TensorPlacementUtils::IsOnDevice(gtd->GetPlacement()) ? ge::Placement::kPlacementDevice
+                                                                                 : ge::Placement::kPlacementHost;
     ge::DataBuffer data_buffer{gtd->GetAddr(), gtd->GetSize(), false, placement};
     output_data.blobs[i] = std::move(data_buffer);
   }
@@ -376,8 +375,8 @@ ge::graphStatus ConstructOutputData(const KernelContext *context, ge::OutputData
 
 ge::graphStatus DavinciModelUpdateWorkspaces(KernelContext *context) {
   GE_CHECK_NOTNULL(context);
-  auto davinci_model = context->MutableInputPointer<ge::DavinciModel>(
-      static_cast<int32_t>(InputsCommon::kDavinciModel));
+  auto davinci_model =
+      context->MutableInputPointer<ge::DavinciModel>(static_cast<int32_t>(InputsCommon::kDavinciModel));
   GE_CHECK_NOTNULL(davinci_model);
   const auto workspace_num = context->GetInputPointer<size_t>(static_cast<int32_t>(UpdateWorkspaces::kWorkspacesNum));
   GE_CHECK_NOTNULL(workspace_num);
@@ -385,8 +384,8 @@ ge::graphStatus DavinciModelUpdateWorkspaces(KernelContext *context) {
   std::vector<uint64_t> types;
   std::vector<void *> addresses;
   for (size_t i = 0U; i < *workspace_num;) {
-    const auto memory_type = context->GetInputPointer<uint64_t>(
-        static_cast<int32_t>(UpdateWorkspaces::kWorkspaceMemory) + (i++));
+    const auto memory_type =
+        context->GetInputPointer<uint64_t>(static_cast<int32_t>(UpdateWorkspaces::kWorkspaceMemory) + (i++));
     const auto gtd = context->GetInputValue<gert::GertTensorData *>(
         static_cast<int32_t>(UpdateWorkspaces::kWorkspaceMemory) + (i++));
     GE_CHECK_NOTNULL(memory_type);
@@ -411,8 +410,8 @@ ge::graphStatus DavinciModelExecute(KernelContext *context) {
     return ge::GRAPH_FAILED;
   }
 
-  auto davinci_model = context->MutableInputPointer<ge::DavinciModel>(
-      static_cast<int32_t>(InputsCommon::kDavinciModel));
+  auto davinci_model =
+      context->MutableInputPointer<ge::DavinciModel>(static_cast<int32_t>(InputsCommon::kDavinciModel));
   GE_CHECK_NOTNULL(davinci_model);
   auto stream = context->GetInputValue<void *>(static_cast<int32_t>(ModelExecute::kStream));
   GE_CHECK_NOTNULL(stream);
@@ -446,8 +445,8 @@ ge::graphStatus CreateGetRunAddressOutputs(const ge::FastNode *node, KernelConte
 ge::graphStatus GetRunAddress(KernelContext *context) {
   GE_CHECK_NOTNULL(context);
 
-  const auto davinci_model = context->MutableInputPointer<ge::DavinciModel>(
-      static_cast<int32_t>(InputsSpecial::kDavinciModel));
+  const auto davinci_model =
+      context->MutableInputPointer<ge::DavinciModel>(static_cast<int32_t>(InputsSpecial::kDavinciModel));
   auto stream_id = context->GetInputPointer<int64_t>(static_cast<size_t>(InputsSpecial::kStreamId));
   GE_ASSERT_NOTNULL(stream_id);
   GE_CHECK_NOTNULL(davinci_model);
@@ -508,5 +507,5 @@ REGISTER_KERNEL(DavinciModelGetRunAddress)
     .RunFunc(GetRunAddress)
     .OutputsCreator(CreateGetRunAddressOutputs)
     .TracePrinter(PrintGetRunAddress);
-} // namespace kernel
-} // namespace gert
+}  // namespace kernel
+}  // namespace gert

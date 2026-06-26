@@ -65,4 +65,3 @@ aclError aclmdlSetAIPPInputFormat(aclmdlAIPP *aippParmsSet, aclAippInputFormat i
 ## 返回值说明<a name="section16656141073717"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

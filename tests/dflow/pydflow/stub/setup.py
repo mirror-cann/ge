@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -13,9 +13,9 @@
 __version__ = "0.0.1"
 
 import os
-from setuptools import setup
-from setuptools import find_packages
+
 from pybind11.setup_helpers import Pybind11Extension, build_ext
+from setuptools import find_packages, setup
 
 workspace_base_dir = os.getenv("WORKSPACE_BASE_DIR")
 ascend_install_path = os.getenv("ASCEND_INSTALL_PATH")
@@ -34,7 +34,7 @@ ext_modules = [
             workspace_base_dir + "/../../inc/parser/external",
             ascend_install_path + "/include",
             ascend_install_path + "/include/external",
-            ascend_install_path + "/pkg_inc/base"
+            ascend_install_path + "/pkg_inc/base",
         ],
     ),
     Pybind11Extension(
@@ -45,7 +45,7 @@ ext_modules = [
             workspace_base_dir + "/wrapper",
             workspace_base_dir + "/../../inc/graph_metadef",
             workspace_base_dir + "/../../inc/graph_metadef/external",
-            ascend_install_path + "/include"
+            ascend_install_path + "/include",
         ],
     ),
     Pybind11Extension(
@@ -61,7 +61,7 @@ ext_modules = [
             workspace_base_dir + "/../../inc/graph_metadef",
             workspace_base_dir + "/../../inc/graph_metadef/external",
             ascend_install_path + "/pkg_inc/base",
-            ascend_install_path + "/include"
+            ascend_install_path + "/include",
         ],
     ),
 ]

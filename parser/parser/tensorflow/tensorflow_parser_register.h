@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,9 @@ class PARSER_FUNC_VISIBILITY TensorflowFinalizeable {
 
 class PARSER_FUNC_VISIBILITY TensorflowReceiver {
  public:
- explicit TensorflowReceiver(const TensorflowFinalizeable &f) noexcept { f.Finalize(); }
+  explicit TensorflowReceiver(const TensorflowFinalizeable &f) noexcept {
+    f.Finalize();
+  }
   ~TensorflowReceiver() {}
 };
 
@@ -55,7 +57,7 @@ class PARSER_FUNC_VISIBILITY TensorflowParserBuilder : public TensorflowWeightPa
  public:
   using ParseParamsFn = std::function<domi::Status(const domi::tensorflow::NodeDef *, Param *)>;
 
-  explicit TensorflowParserBuilder(const std::string &davinci_optype)  noexcept : davinci_optype_(davinci_optype) {}
+  explicit TensorflowParserBuilder(const std::string &davinci_optype) noexcept : davinci_optype_(davinci_optype) {}
 
   ~TensorflowParserBuilder() override {}
 
@@ -70,8 +72,9 @@ class PARSER_FUNC_VISIBILITY TensorflowParserBuilder : public TensorflowWeightPa
       GELOGE(FAILED, "Op parser adapter is null.");
     }
     // register to OpParserFactory
-    OpParserRegisterar registerar __attribute__((unused)) = OpParserRegisterar(
-      domi::TENSORFLOW, davinci_optype_, [op_parser_adapter] { return std::shared_ptr<OpParser>(op_parser_adapter); });
+    OpParserRegisterar registerar __attribute__((unused)) =
+        OpParserRegisterar(domi::TENSORFLOW, davinci_optype_,
+                           [op_parser_adapter] { return std::shared_ptr<OpParser>(op_parser_adapter); });
     return true;
   }
 
@@ -89,7 +92,8 @@ class PARSER_FUNC_VISIBILITY TensorflowOpParserAdapter : public TensorFlowOpPars
 
  public:
   explicit TensorflowOpParserAdapter(TensorflowParserBuilder<Param> builder) {
-    parse_params_fn_ = builder.parse_params_fn_; }
+    parse_params_fn_ = builder.parse_params_fn_;
+  }
 
   ~TensorflowOpParserAdapter() override {}
 
@@ -102,8 +106,7 @@ class PARSER_FUNC_VISIBILITY TensorflowOpParserAdapter : public TensorFlowOpPars
       return domi::FAILED;
     }
     ge::Operator op = ge::OpDescUtils::CreateOperatorFromOpDesc(op_dest);
-    GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, op),
-                      "[Call][AutoMapping] failed.");
+    GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, op), "[Call][AutoMapping] failed.");
     op.BreakConnect();
     GE_RETURN_IF_ERROR(parse_params_fn_(node, param.get()));
     param.get()->Name(node->name());
@@ -123,7 +126,7 @@ class PARSER_FUNC_VISIBILITY TensorflowOpParserAdapter : public TensorFlowOpPars
 #define DOMI_REGISTER_TENSORFLOW_PARSER_UNIQ_HELPER(ctr, name, param_clazz, func) \
   DOMI_REGISTER_TENSORFLOW_PARSER_UNIQ(ctr, name, param_clazz, func)
 #define DOMI_REGISTER_TENSORFLOW_PARSER_UNIQ(ctr, name, param_clazz, func) \
-  const TensorflowReceiver register_tensorflow_parser##ctr( \
+  const TensorflowReceiver register_tensorflow_parser##ctr(                \
       tensorflow_parser::TensorflowParserBuilder<param_clazz>(name).SetParseParamsFn(func))
 }  // namespace ge
 

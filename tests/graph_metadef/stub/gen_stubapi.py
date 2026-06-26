@@ -11,10 +11,10 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
+import logging
 import os
 import re
 import sys
-import logging
 
 """
     generate stub func body by return type
@@ -148,12 +148,10 @@ RETURN_STATEMENTS = {
     "OpImplRegister& OpImplRegister": "    return PrivateAttrImpl(private_attr, ge::AnyValue());",
     "OpImplKernelRegistry::OpImplFunctions& OpImplRegistry::": "return types_to_impl_[op_type];",
     "OpImplRegistry::PrivateAttrList& OpImplRegistry::": (
-        "    static OpImplRegistry::PrivateAttrList emptyPrivateAttr;\n"
-        "    return emptyPrivateAttr;"
+        "    static OpImplRegistry::PrivateAttrList emptyPrivateAttr;\n    return emptyPrivateAttr;"
     ),
     "OpImplKernelRegistry::PrivateAttrList& OpImplSpaceRegistry::": (
-        "    static OpImplKernelRegistry::PrivateAttrList emptyPrivateAttr;\n"
-        "    return emptyPrivateAttr;"
+        "    static OpImplKernelRegistry::PrivateAttrList emptyPrivateAttr;\n    return emptyPrivateAttr;"
     ),
     "std::map<OpImplRegistry::OpType, OpImplRegistry::OpImplFunctions>&": "    return types_to_impl_;",
     "OpImplRegister& OpImplRegister::": "    return *this;",
@@ -163,23 +161,17 @@ RETURN_STATEMENTS = {
     "OpImplRegistryHolderPtr": "    return nullptr;",
     "GetHiddenAddr": "    return nullptr;",
     "std::map<ge::AscendString, TuningTilingDefConstructor>&": (
-        "    static std::map<ge::AscendString, "
-        "TuningTilingDefConstructor> instance;\n"
-        "    return instance;"
+        "    static std::map<ge::AscendString, TuningTilingDefConstructor> instance;\n    return instance;"
     ),
     "std::shared_ptr<TuningTilingDef>": "    return nullptr;",
     "OpBankKeyConvertFun&": "    return convert_func_;",
     "OpBankParseFun&": "    return parse_func_;",
     "OpBankLoadFun&": "    return load_func_;",
     "std::unordered_map<ge::AscendString, OpBankKeyFuncInfoV2>&": (
-        "    static std::unordered_map<ge::AscendString, "
-        "OpBankKeyFuncInfoV2> op_func_mapV2;\n"
-        "    return op_func_mapV2;"
+        "    static std::unordered_map<ge::AscendString, OpBankKeyFuncInfoV2> op_func_mapV2;\n    return op_func_mapV2;"
     ),
     "std::unordered_map<ge::AscendString, OpBankKeyFuncInfo>&": (
-        "    static std::unordered_map<ge::AscendString, "
-        "OpBankKeyFuncInfo> op_func_map;"
-        "    return op_func_map;"
+        "    static std::unordered_map<ge::AscendString, OpBankKeyFuncInfo> op_func_map;    return op_func_map;"
     ),
     "OpBankLoadFunV2&": "    return load_funcV2_;",
     "OpBankParseFunV2&": "    return parse_funcV2_;",
@@ -191,20 +183,15 @@ RETURN_STATEMENTS = {
     "ByteBuffer&": "    return buf;",
     "ByteBuffer& OpRunInfo::": "    static ByteBuffer byte_buffer;\n    return byte_buffer;",
     "std::unordered_map<std::string, OpTilingFunc>& OpTilingRegistryInterf::": (
-        "    static std::unordered_map<std::string, OpTilingFunc> interf;\n"
-        "    return interf;"
+        "    static std::unordered_map<std::string, OpTilingFunc> interf;\n    return interf;"
     ),
     "std::unordered_map<std::string, OpTilingFuncInfo>& OpTilingFuncRegistry::": (
-        "    static std::unordered_map<std::string, "
-        "OpTilingFuncInfo> op_func_map;\n"
-        "    return op_func_map;"
+        "    static std::unordered_map<std::string, OpTilingFuncInfo> op_func_map;\n    return op_func_map;"
     ),
     "void* OpRunInfo::": "    return nullptr;",
     "ge::AscendString& OpCompileInfo::": "  static ge::AscendString compile_info;\n  return compile_info;",
     "std::unordered_map<std::string, OpTilingFuncV2>& OpTilingRegistryInterf_V2::": (
-        "    static std::unordered_map<std::string, "
-        "OpTilingFuncV2> interf;\n"
-        "    return interf;"
+        "    static std::unordered_map<std::string, OpTilingFuncV2> interf;\n    return interf;"
     ),
     "OpTilingFunc& OpTilingFuncInfo::": "    return this->tiling_func_;",
     "OpTilingFuncV2& OpTilingFuncInfo::": "    return this->tiling_func_v2_;",
@@ -226,8 +213,7 @@ RETURN_STATEMENTS = {
     "Promote& Promote::": "    return *this;",
     "Promote& PromoteImpl::": "    return obj;",
     "std::pair<GNodePtr, int32_t> GNode::": (
-        "    const std::pair<GNodePtr, int32_t> gnode_idx = "
-        "{nullptr, 0xFF};\n    return gnode_idx;"
+        "    const std::pair<GNodePtr, int32_t> gnode_idx = {nullptr, 0xFF};\n    return gnode_idx;"
     ),
     "std::vector<int64_t>& OpRunInfo::": "    static std::vector<int64_t> vec;\n    return vec;",
     "std::vector<const char *>": "    return {};",
@@ -265,8 +251,7 @@ RETURN_STATEMENTS = {
     "RuntimeAttrs*": "    return nullptr;",
     "DeviceTilingContextBuilder& DeviceTilingContextBuilder::": "    return *this;",
     "KernelContextHolder KernelRunContextBuilder::": (
-        "static KernelContextHolder default_holder;\n"
-        "    return std::move(default_holder);"
+        "static KernelContextHolder default_holder;\n    return std::move(default_holder);"
     ),
     "ge::NodePtr KernelRunContextBuilder::": "    return nullptr;",
     "OpDescPtr": "    return nullptr;",
@@ -334,16 +319,13 @@ RETURN_STATEMENTS = {
         "    static gert::OpImplRegisterV2::TilingKernelFunc func;\n    return func;"
     ),
     "gert::OpImplRegisterV2::InferShapeKernelFunc& OpDef::": (
-        "    static gert::OpImplRegisterV2::InferShapeKernelFunc "
-        "func;\n    return func;"
+        "    static gert::OpImplRegisterV2::InferShapeKernelFunc func;\n    return func;"
     ),
     "gert::OpImplRegisterV2::InferShapeRangeKernelFunc& OpDef::": (
-        "    static gert::OpImplRegisterV2::InferShapeRangeKernelFunc "
-        "func;\n    return func;"
+        "    static gert::OpImplRegisterV2::InferShapeRangeKernelFunc func;\n    return func;"
     ),
     "gert::OpImplRegisterV2::InferDataTypeKernelFunc& OpDef::": (
-        "    static gert::OpImplRegisterV2::InferDataTypeKernelFunc "
-        "func;\n    return func;"
+        "    static gert::OpImplRegisterV2::InferDataTypeKernelFunc func;\n    return func;"
     ),
     "std::vector<ge::AscendString>& OpDef::": "    static std::vector<ge::AscendString> vec;\n    return vec;",
     "std::map<ge::AscendString, OpDef::PortFollowInfo> OpDef::": "    return {};",
@@ -356,8 +338,7 @@ RETURN_STATEMENTS = {
         "    static OpImplRegisterV2::PrivateAttrList list;\n    return list;"
     ),
     "std::map<OpImplRegisterV2::OpType, OpImplRegistry::OpImplFunctionsV2>& OpImplRegistry::": (
-        "    static std::map<OpImplRegisterV2::OpType, "
-        "OpImplRegistry::OpImplFunctionsV2> m;\n    return m;"
+        "    static std::map<OpImplRegisterV2::OpType, OpImplRegistry::OpImplFunctionsV2> m;\n    return m;"
     ),
     "OpImplKernelRegistry::OpImplFunctionsV2* OpImplSpaceRegistry::": "    return nullptr;",
     "OpImplRegisterV2::PrivateAttrList& OpImplSpaceRegistry::": (
@@ -523,8 +504,7 @@ pattern_template_end = re.compile(r">\s*$")
 pattern_namespace = re.compile(r"namespace.*{")
 # class : which can handle classA a and {not on the same line, but if found ';' after class,then don't deal with
 pattern_class = re.compile(
-    r"^\s*(class|struct)\s+((?:%s|%s)\s+)?([a-zA-Z0-9_\-]+<?)(?!.*;)"
-    % (GE_ATTR, VISIBILITY_ATTR)
+    r"^\s*(class|struct)\s+((?:%s|%s)\s+)?([a-zA-Z0-9_\-]+<?)(?!.*;)" % (GE_ATTR, VISIBILITY_ATTR)
 )
 # pattern for function body start and end
 pattern_start = re.compile("(?!namespace|class).+{")
@@ -574,7 +554,7 @@ class H2CC(object):
         :param shared_includes_content:
         """
         self.input_file = input_file
-        file_dir = output_file[0:output_file.rindex("/")]
+        file_dir = output_file[0 : output_file.rindex("/")]
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         self.output_file = output_file
@@ -601,16 +581,16 @@ class H2CC(object):
 
     def just_skip(self):
         # skip blank line or comment
-        if pattern_blank_line.search(
+        if pattern_blank_line.search(self.input_content[self.line_index]) or pattern_comment.search(
             self.input_content[self.line_index]
-        ) or pattern_comment.search(self.input_content[self.line_index]):
+        ):
             self.line_index += 1
             return "continue"
         # skip comment /* */
         elif pattern_comment_2_start.search(self.input_content[self.line_index]):
-            while self.line_index < len(
-                self.input_content
-            ) and not pattern_comment_2_end.search(self.input_content[self.line_index]):
+            while self.line_index < len(self.input_content) and not pattern_comment_2_end.search(
+                self.input_content[self.line_index]
+            ):
                 self.line_index += 1
             self.line_index += 1
             return "continue"
@@ -620,30 +600,26 @@ class H2CC(object):
             return "continue"
         # skip define
         elif pattern_define.search(self.input_content[self.line_index]):
-            while pattern_blank_line.search(
+            while pattern_blank_line.search(self.input_content[self.line_index]) or pattern_define_return.search(
                 self.input_content[self.line_index]
-            ) or pattern_define_return.search(self.input_content[self.line_index]):
+            ):
                 self.line_index += 1
             self.line_index += 1
             return "continue"
         # skip using
         elif pattern_using.search(self.input_content[self.line_index]):
-            while pattern_blank_line.search(
+            while pattern_blank_line.search(self.input_content[self.line_index]) or not pattern_using_return.search(
                 self.input_content[self.line_index]
-            ) or not pattern_using_return.search(self.input_content[self.line_index]):
+            ):
                 self.line_index += 1
             self.line_index += 1
             return "continue"
         # skip extern const|constexpr type VARIABLE;
-        elif re.compile(r"^.*\b(constexpr|const)\b.*(?= = ).*;$").search(
-            self.input_content[self.line_index]
-        ):
+        elif re.compile(r"^.*\b(constexpr|const)\b.*(?= = ).*;$").search(self.input_content[self.line_index]):
             self.line_index += 1
             return "continue"
         # static_assert
-        elif re.compile(r"^\s*static_assert").search(
-            self.input_content[self.line_index]
-        ):
+        elif re.compile(r"^\s*static_assert").search(self.input_content[self.line_index]):
             self.line_index += 1
             return "continue"
         # skip virtual function
@@ -759,13 +735,13 @@ class H2CC(object):
         result = []
         depth = 0
         for char in line:
-            if char == '<':
+            if char == "<":
                 depth += 1
-            elif char == '>':
+            elif char == ">":
                 depth -= 1
             elif depth == 0:
                 result.append(char)
-        return ''.join(result)
+        return "".join(result)
 
     def handle_func(self, line):
         # determine which cases are not possible for a function
@@ -777,7 +753,7 @@ class H2CC(object):
         # skip member variable declarations with template types containing parentheses
         # e.g. std::array<void *, static_cast<size_t>(...)> var_name_;
         stripped_line = H2CC._remove_template_content(line)
-        if '(' not in stripped_line:
+        if "(" not in stripped_line:
             self.line_index += 1
             return "continue", line, None
 
@@ -793,9 +769,7 @@ class H2CC(object):
             line += break_line
 
             while self.line_index < len(self.input_content):
-                if re.search(r"\)", break_line) and not re.search(
-                    r"std::function<.+?> &input,", break_line
-                ):
+                if re.search(r"\)", break_line) and not re.search(r"std::function<.+?> &input,", break_line):
                     break
                 self.line_index += 1
                 break_line = self.input_content[self.line_index]
@@ -882,7 +856,7 @@ class H2CC(object):
                 elif line[ii] == ">":
                     fit -= 1
                 if fit == 0:
-                    class_name += line[k + 1:ii + 1]
+                    class_name += line[k + 1 : ii + 1]
                     break
         logging.info("class_name[%s]", class_name)
         self.stack_class.append(class_name)
@@ -919,12 +893,10 @@ class H2CC(object):
                 "OpImplSpaceRegistryV2",
             ]:
                 return "pass"
-            context = (
-                "class %s {\n"
-                "  public:\n"
-                "    %s() = default;\n"
-                "    ~%s() = default;\n"
-                "};\n\n" % (class_name, class_name, class_name)
+            context = "class %s {\n  public:\n    %s() = default;\n    ~%s() = default;\n};\n\n" % (
+                class_name,
+                class_name,
+                class_name,
             )
             self.output_fd.write(context)
             return "continue"
@@ -985,23 +957,17 @@ class H2CC(object):
 
         if self.stack_template[-1] != "":
             if not (re.search(r"<\s*>", self.stack_template[-1])):
-                template_line = re.sub(
-                    r"^\s*template", "template", self.stack_template[-1]
-                )
+                template_line = re.sub(r"^\s*template", "template", self.stack_template[-1])
                 if not (re.search(r"<.*>", self.stack_class[-1])):
                     # for x we get like template<class T, typename U> -> <T,U>
-                    x = re.sub(
-                        r"template\s*<", "<", template_line
-                    )  # remove template -> <class T, typename U>
+                    x = re.sub(r"template\s*<", "<", template_line)  # remove template -> <class T, typename U>
                     x = re.sub(r"\n", "", x)
                     x = re.sub(r"\s*=.*,", ",", x)
                     x = re.sub(r"\s*=.*>", ">", x)
                     x = x.rstrip()  # remove \n
 
                     # remove class,typename ->  <T, U>
-                    x = re.sub(
-                        r"(class|typename)\s+|(<class>|<typename>\s*class)", "", x
-                    )
+                    x = re.sub(r"(class|typename)\s+|(<class>|<typename>\s*class)", "", x)
                     x = re.sub(r"<\s+", "<", x)
                     x = re.sub(r"\s+>", ">", x)
                     x = re.sub(r"\s+,", ",", x)
@@ -1033,9 +999,7 @@ class H2CC(object):
         func_name = re.search(r"^.*\)", line, re.MULTILINE | re.DOTALL).group()
         line = re.sub(r"\b(KernelInfo)\b", r"KernelRegistry::\1", line)
         line = re.sub(r"\b(KernelFuncs)\b", r"KernelRegistry::\1", line)
-        line = re.sub(
-            r"(?<!::)\b(OpImplFunctions)\b", r"OpImplKernelRegistry::\1", line
-        )
+        line = re.sub(r"(?<!::)\b(OpImplFunctions)\b", r"OpImplKernelRegistry::\1", line)
         line = re.sub(r"(?<!::)\b(OpType)\b", r"OpImplKernelRegistry::\1", line)
         line = re.sub(
             r"\b(PrivateAttrList &OpImplKernelRegistry::)",
@@ -1100,9 +1064,7 @@ class H2CC(object):
             *m.group("ret_type", "class_name", "func_name"),
         )
 
-        type_cls_func_name = "%s %s::%s" % m.group(
-            "ret_type", "class_name", "func_name"
-        )
+        type_cls_func_name = "%s %s::%s" % m.group("ret_type", "class_name", "func_name")
         if type_cls_func_name in RETURN_STATEMENTS:
             logging.info("type_cls_func_name:[%s] matched!", type_cls_func_name)
             return RETURN_STATEMENTS[type_cls_func_name]
@@ -1185,13 +1147,10 @@ class H2CC(object):
                     return_type = all_items[start]
                 if return_type.startswith(("std::map", "std::set", "std::vector")):
                     # return_type = "std::map"
-                    return_type = return_type[0:return_type.index("<")]
+                    return_type = return_type[0 : return_type.index("<")]
                 if (
                     return_type.endswith("*")
-                    or (
-                        len(all_items) > start + 1
-                        and all_items[start + 1].startswith("*")
-                    )
+                    or (len(all_items) > start + 1 and all_items[start + 1].startswith("*"))
                     or return_type.startswith("std::unique_ptr")
                     or return_type.startswith("std::shared_ptr")
                 ):
@@ -1228,9 +1187,7 @@ def collect_header_files(inc_file):
     ]
     for inc_dir in inc_dirs:
         if inc_file.find(inc_dir) != -1:
-            include_str = '#include "{}"\n'.format(
-                inc_file[inc_file.index(inc_dir) + len(inc_dir):]
-            )
+            include_str = '#include "{}"\n'.format(inc_file[inc_file.index(inc_dir) + len(inc_dir) :])
             shared_includes_content.append(include_str)
             break
     else:
@@ -1277,7 +1234,7 @@ def generate_stub_file(inc_file, out_cc_dir):
     cc_file = re.sub(r"([^/]+)\.h$", r"stub_\1.cc", inc_file)
     h_2_cc = H2CC(
         inc_file,
-        out_cc_dir + cc_file[cc_file.rindex("/") + 1:],
+        out_cc_dir + cc_file[cc_file.rindex("/") + 1 :],
         shared_includes_content,
     )
     h_2_cc.h2cc()
@@ -1293,9 +1250,7 @@ def gen_code(inc_files, out_cc_dir):
         out_cc_dir += "/"
     for inc_file in inc_files:
         if not os.path.isabs(inc_file):
-            logging.warning(
-                "inc_file:[%s] not absolute path, and will be ignored.", inc_file
-            )
+            logging.warning("inc_file:[%s] not absolute path, and will be ignored.", inc_file)
             continue
         generate_stub_file(inc_file, out_cc_dir)
 

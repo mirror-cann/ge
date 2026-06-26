@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,9 +42,9 @@ std::vector<std::pair<NodePtr, InDataAnchorPtr>> GetOutDataNodesByIndex(const No
   auto out_anchor = node->GetOutDataAnchor(index);
   if (out_anchor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d out data anchor, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str(), index);
-    GELOGE(PARAM_INVALID, "[Get][OutDataNodes] of index %d from node %s failed, the anchor does not exist",
-           index, node->GetName().c_str());
+                         node->GetName().c_str(), node->GetType().c_str(), index);
+    GELOGE(PARAM_INVALID, "[Get][OutDataNodes] of index %d from node %s failed, the anchor does not exist", index,
+           node->GetName().c_str());
     return {};
   }
   std::vector<std::pair<NodePtr, InDataAnchorPtr>> nodes_and_anchors;
@@ -82,7 +82,7 @@ NodePtr AddIdentityAfterNode(const NodePtr &node, int32_t index) {
   auto tensor = node_desc->GetOutputDescPtr(index);
   if (tensor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d output tensor, check invalid",
-                       node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
+                         node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
     GELOGE(INTERNAL_ERROR, "[Get][OutputDescPtr] failed, Node:%s(%s) has no index:%d output tensor",
            node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
     return nullptr;
@@ -90,7 +90,7 @@ NodePtr AddIdentityAfterNode(const NodePtr &node, int32_t index) {
   auto anchor = node->GetOutDataAnchor(index);
   if (anchor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d out data anchor, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str(), index);
+                         node->GetName().c_str(), node->GetType().c_str(), index);
     GELOGE(OUT_OF_MEMORY, "[Get][OutDataAnchor] failed, Node:%s(%s) has no index:%d out data anchor",
            node->GetName().c_str(), node->GetType().c_str(), index);
     return nullptr;
@@ -108,8 +108,8 @@ NodePtr AddIdentityAfterNode(const NodePtr &node, int32_t index) {
   NodePtr identity = node->GetOwnerComputeGraph()->InsertNode(node, identity_opdesc);
   if (ret1 != GRAPH_SUCCESS || ret2 != GRAPH_SUCCESS || identity == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
-                      identity_opdesc->GetName().c_str(), identity_opdesc->GetType().c_str(),
-                      node->GetOwnerComputeGraph()->GetName().c_str());
+                         identity_opdesc->GetName().c_str(), identity_opdesc->GetType().c_str(),
+                         node->GetOwnerComputeGraph()->GetName().c_str());
     GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
            identity_opdesc->GetName().c_str(), identity_opdesc->GetType().c_str(),
            node->GetOwnerComputeGraph()->GetName().c_str());
@@ -132,15 +132,15 @@ NodePtr AddMemcpyBeforeNode(const NodePtr &node, int32_t index) {
   auto tensor = node_desc->GetInputDescPtr(index);
   if (tensor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d input tensor, check invalid",
-                       node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
+                         node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
     GELOGE(INTERNAL_ERROR, "[Get][InputDescPtr] failed, Node:%s(%s) has no index:%d input tensor",
            node_desc->GetName().c_str(), node_desc->GetType().c_str(), index);
     return nullptr;
   }
   auto anchor = node->GetInDataAnchor(index);
   if (anchor == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d in data anchor, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str(), index);
+    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d in data anchor, check invalid", node->GetName().c_str(),
+                         node->GetType().c_str(), index);
     GELOGE(INTERNAL_ERROR, "[Get][InDataAnchor] failed, Node:%s(%s) has no index:%d in data anchor",
            node->GetName().c_str(), node->GetType().c_str(), index);
     return nullptr;
@@ -157,8 +157,8 @@ NodePtr AddMemcpyBeforeNode(const NodePtr &node, int32_t index) {
   auto memcpy_node = node->GetOwnerComputeGraph()->AddNode(memcpy_opdesc);
   if (ret1 != GRAPH_SUCCESS || ret2 != GRAPH_SUCCESS || memcpy_node == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
-                      memcpy_opdesc->GetName().c_str(), memcpy_opdesc->GetType().c_str(),
-                      node->GetOwnerComputeGraph()->GetName().c_str());
+                         memcpy_opdesc->GetName().c_str(), memcpy_opdesc->GetType().c_str(),
+                         node->GetOwnerComputeGraph()->GetName().c_str());
     GELOGE(OUT_OF_MEMORY, "[Check][Param] Add input output desc to op:%s(%s) failed or add it to graph:%s failed",
            memcpy_opdesc->GetName().c_str(), memcpy_opdesc->GetType().c_str(),
            node->GetOwnerComputeGraph()->GetName().c_str());

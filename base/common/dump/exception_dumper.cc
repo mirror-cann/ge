@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -122,8 +122,8 @@ static void SetDumpDataForSgtInfo(const ge::OpDescInfo &op_desc_info, toolkit::d
   }
 }
 
-static void SetDumpData(const ge::OpDescInfo &op_desc_info, toolkit::dump::DumpData &dump_data,
-                        const bool is_exception, const ge::DumpProperties &dump_properties) {
+static void SetDumpData(const ge::OpDescInfo &op_desc_info, toolkit::dump::DumpData &dump_data, const bool is_exception,
+                        const ge::DumpProperties &dump_properties) {
   dump_data.set_version("2.0");
   dump_data.set_dump_time(GetNowTime());
   dump_data.set_op_name(op_desc_info.op_name);
@@ -134,7 +134,7 @@ static void SetDumpData(const ge::OpDescInfo &op_desc_info, toolkit::dump::DumpD
       }
       toolkit::dump::OpInput input;
       input.set_data_type(
-        static_cast<toolkit::dump::OutputDataType>(ge::DataTypeUtil::GetIrDataType(op_desc_info.input_data_type[i])));
+          static_cast<toolkit::dump::OutputDataType>(ge::DataTypeUtil::GetIrDataType(op_desc_info.input_data_type[i])));
       input.set_format(static_cast<toolkit::dump::OutputFormat>(op_desc_info.input_format[i]));
       for (const int64_t dim : op_desc_info.input_shape[i]) {
         input.mutable_shape()->add_dim(static_cast<uint64_t>(dim));
@@ -151,7 +151,7 @@ static void SetDumpData(const ge::OpDescInfo &op_desc_info, toolkit::dump::DumpD
       }
       toolkit::dump::OpOutput output;
       output.set_data_type(static_cast<toolkit::dump::OutputDataType>(
-                           ge::DataTypeUtil::GetIrDataType(op_desc_info.output_data_type[j])));
+          ge::DataTypeUtil::GetIrDataType(op_desc_info.output_data_type[j])));
       output.set_format(static_cast<toolkit::dump::OutputFormat>(op_desc_info.output_format[j]));
       for (const int64_t dim : op_desc_info.output_shape[j]) {
         output.mutable_shape()->add_dim(static_cast<uint64_t>(dim));
@@ -164,8 +164,8 @@ static void SetDumpData(const ge::OpDescInfo &op_desc_info, toolkit::dump::DumpD
   SetDumpDataForSgtInfo(op_desc_info, dump_data);
 }
 
-static void *GetArgsAddrByIOIndex(const std::map<uint64_t, uint64_t> &relevant_offset,
-                                     std::vector<void *> &host_addr, const size_t io_idx) {
+static void *GetArgsAddrByIOIndex(const std::map<uint64_t, uint64_t> &relevant_offset, std::vector<void *> &host_addr,
+                                  const size_t io_idx) {
   void *target_addr = host_addr[io_idx];
   if (!relevant_offset.empty()) {
     auto iter = relevant_offset.find(io_idx);
@@ -349,11 +349,11 @@ void ExceptionDumper::SaveDumpOpInfoLocal(const OpDescPtr &op, const ExtraOpInfo
   op_desc_info.cust_to_relevant_offset_ = extra_op_info.cust_to_relevant_offset_;
 
   GELOGI(
-    "[Save][OpExceptionInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, context_id: %u, thread_id: %u, "
-    "args: %#lx, args_size: %zu, tiling_key: %u, is_host_args:%d.",
-    op_desc_info.op_name.c_str(), op_desc_info.id.device_id, op_desc_info.id.stream_id, op_desc_info.id.task_id,
-    op_desc_info.id.context_id, op_desc_info.id.thread_id, static_cast<uint64_t>(op_desc_info.args),
-    op_desc_info.args_size, op_desc_info.tiling_key, static_cast<int32_t>(op_desc_info.is_host_args));
+      "[Save][OpExceptionInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, context_id: %u, thread_id: %u, "
+      "args: %#lx, args_size: %zu, tiling_key: %u, is_host_args:%d.",
+      op_desc_info.op_name.c_str(), op_desc_info.id.device_id, op_desc_info.id.stream_id, op_desc_info.id.task_id,
+      op_desc_info.id.context_id, op_desc_info.id.thread_id, static_cast<uint64_t>(op_desc_info.args),
+      op_desc_info.args_size, op_desc_info.tiling_key, static_cast<int32_t>(op_desc_info.is_host_args));
 
   const std::lock_guard<std::mutex> lock(mutex_);
   ++op_desc_info_idx_;
@@ -406,31 +406,31 @@ void ExceptionDumper::SaveOpInfoToAdump(const OpDescPtr &op, const ExtraOpInfo &
 
   AdumpOpInfoBuilder builder(op->GetName(), op->GetType(), is_dynamic);
   builder.Task(static_cast<uint32_t>(id.device_id), id.stream_id, id.task_id, context_id)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_BLOCK_DIM, std::to_string(block_dim))
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_KEY, tiling_key)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_DATA, extra_op_info.tiling_data)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_IMPLY_TYPE, std::to_string(imply_type))
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_ALL_ATTRS, AttrUtils::GetAllAttrsStr(op))
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_IS_HOST_ARGS, extra_op_info.is_host_args ? "true" : "false")
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_NODE_INFO, extra_op_info.node_info)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_DEV_FUNC, dev_func)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_TVM_MAGIC, tvm_magic)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_OP_FILE_PATH, op_file_path)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_KERNEL_INFO, kernal_info)
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_BYTES, ToString(workspace_sizes).c_str())
-    .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_ADDRS, ToString(workspace_addrs).c_str())
-    .TersorInfo(input_tensor_infos)
-    .TersorInfo(output_tensor_infos)
-    .TersorInfo(workspace_tensor_infos)
-    .DeviceInfo(Adx::DEVICE_INFO_NAME_ARGS, reinterpret_cast<void *>(extra_op_info.args), extra_op_info.args_size);
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_BLOCK_DIM, std::to_string(block_dim))
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_KEY, tiling_key)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_TILING_DATA, extra_op_info.tiling_data)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_IMPLY_TYPE, std::to_string(imply_type))
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_ALL_ATTRS, AttrUtils::GetAllAttrsStr(op))
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_IS_HOST_ARGS, extra_op_info.is_host_args ? "true" : "false")
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_NODE_INFO, extra_op_info.node_info)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_DEV_FUNC, dev_func)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_TVM_MAGIC, tvm_magic)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_OP_FILE_PATH, op_file_path)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_KERNEL_INFO, kernal_info)
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_BYTES, ToString(workspace_sizes).c_str())
+      .AdditionInfo(Adx::DUMP_ADDITIONAL_WORKSPACE_ADDRS, ToString(workspace_addrs).c_str())
+      .TersorInfo(input_tensor_infos)
+      .TersorInfo(output_tensor_infos)
+      .TersorInfo(workspace_tensor_infos)
+      .DeviceInfo(Adx::DEVICE_INFO_NAME_ARGS, reinterpret_cast<void *>(extra_op_info.args), extra_op_info.args_size);
 
   const Adx::OperatorInfoV2 &info = builder.Build();
   GELOGI(
-    "[Add][OpExceptionInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, context_id: %u, thread_id: %u, "
-    "args: %#lx, args_size: %zu, tiling_key: %u, is_host_args:%d, tensor num: %zu, dynamic %d.",
-    op->GetName().c_str(), id.device_id, id.stream_id, id.task_id, id.context_id, id.thread_id, extra_op_info.args,
-    extra_op_info.args_size, extra_op_info.tiling_key, extra_op_info.is_host_args, info.tensorInfos.size(),
-    is_dynamic);
+      "[Add][OpExceptionInfo] op[%s] dev_id: %u, stream_id: %u, task_id: %u, context_id: %u, thread_id: %u, "
+      "args: %#lx, args_size: %zu, tiling_key: %u, is_host_args:%d, tensor num: %zu, dynamic %d.",
+      op->GetName().c_str(), id.device_id, id.stream_id, id.task_id, id.context_id, id.thread_id, extra_op_info.args,
+      extra_op_info.args_size, extra_op_info.tiling_key, extra_op_info.is_host_args, info.tensorInfos.size(),
+      is_dynamic);
 
   const auto adx_ret = Adx::AdumpAddExceptionOperatorInfoV2(info);
   if (adx_ret != Adx::ADUMP_SUCCESS) {
@@ -530,17 +530,17 @@ void ExceptionDumper::LogExceptionArgs(const OpDescInfo &op_desc_info) const {
     return;
   }
   uint8_t *host_addr = nullptr;
-  aclError ret = ge::AclrtMallocHost(PtrToPtr<uint8_t *, void *>(&host_addr), op_desc_info.args_size, GE_MODULE_NAME_U16);
+  aclError ret =
+      ge::AclrtMallocHost(PtrToPtr<uint8_t *, void *>(&host_addr), op_desc_info.args_size, GE_MODULE_NAME_U16);
   if (ret != ACL_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Call AclrtMallocHost failed, size:%zu, ret:%d", op_desc_info.args_size,
-                      ret);
+    REPORT_INNER_ERR_MSG("E19999", "Call AclrtMallocHost failed, size:%zu, ret:%d", op_desc_info.args_size, ret);
     GELOGE(FAILED, "[Call][RtMallocHost] failed, size:%zu, ret:%d", op_desc_info.args_size, ret);
     return;
   }
   GE_MAKE_GUARD_RTMEM(host_addr);
-  ret = aclrtMemcpy(host_addr, static_cast<uint64_t>(op_desc_info.args_size),
-      reinterpret_cast<void *>(op_desc_info.args), static_cast<uint64_t>(op_desc_info.args_size),
-      ACL_MEMCPY_DEVICE_TO_HOST);
+  ret =
+      aclrtMemcpy(host_addr, static_cast<uint64_t>(op_desc_info.args_size), reinterpret_cast<void *>(op_desc_info.args),
+                  static_cast<uint64_t>(op_desc_info.args_size), ACL_MEMCPY_DEVICE_TO_HOST);
   if (ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtMemcpy failed, size:%zu, ret:%d", op_desc_info.args_size, ret);
     GELOGE(FAILED, "[Call][aclrtMemcpy] failed, size:%zu, ret:%d", op_desc_info.args_size, ret);
@@ -646,12 +646,12 @@ Status ExceptionDumper::DumpNodeInfo(const OpDescInfo &op_desc_info, const std::
   std::string op_type = op_desc_info.op_type;
   ReplaceStringElem(op_name);
   ReplaceStringElem(op_type);
-  std::string dump_file_path = file_path + op_type + "." + op_name + "." +
-    std::to_string(op_desc_info.id.task_id) + "." + std::to_string(now_time);
+  std::string dump_file_path = file_path + op_type + "." + op_name + "." + std::to_string(op_desc_info.id.task_id) +
+                               "." + std::to_string(now_time);
   if (is_ffts_plus) {
-    const std::string ffts_suffix = "." + std::to_string(toolkit::aicpu::dump::Task::FFTSPLUS) +
-                                    "." + std::to_string(op_desc_info.id.context_id) +
-                                    "." + std::to_string(op_desc_info.id.thread_id);
+    const std::string ffts_suffix = "." + std::to_string(toolkit::aicpu::dump::Task::FFTSPLUS) + "." +
+                                    std::to_string(op_desc_info.id.context_id) + "." +
+                                    std::to_string(op_desc_info.id.thread_id);
     (void)dump_file_path.append(ffts_suffix);
   }
 
@@ -689,8 +689,8 @@ Status ExceptionDumper::DumpNodeInfo(const OpDescInfo &op_desc_info, const std::
 
 void ExceptionDumper::RefreshAddrs(OpDescInfo &op_desc_info) const {
   if (op_desc_info.args == 0U) {
-    GELOGI("op:%s(%s) store args is empty, skip refresh addr",
-           op_desc_info.op_name.c_str(), op_desc_info.op_type.c_str());
+    GELOGI("op:%s(%s) store args is empty, skip refresh addr", op_desc_info.op_name.c_str(),
+           op_desc_info.op_type.c_str());
     return;
   }
 
@@ -704,8 +704,8 @@ void ExceptionDumper::RefreshAddrs(OpDescInfo &op_desc_info) const {
   const size_t output_num = op_desc_info.output_addrs.size();
   const size_t target_size = (input_num + output_num) * sizeof(void *);
   std::vector<void *> host_addr(input_num + output_num);
-  const auto rt_ret = aclrtMemcpy(host_addr.data(), target_size,
-      ValueToPtr(static_cast<uint64_t>(op_desc_info.args)), target_size, ACL_MEMCPY_DEVICE_TO_HOST);
+  const auto rt_ret = aclrtMemcpy(host_addr.data(), target_size, ValueToPtr(static_cast<uint64_t>(op_desc_info.args)),
+                                  target_size, ACL_MEMCPY_DEVICE_TO_HOST);
   if (rt_ret != ACL_SUCCESS) {
     GELOGI("op:%s(%s) can't aclrtMemcpy to host, store args:%zu, memcpy size:%zu, skip refresh addr",
            op_desc_info.op_name.c_str(), op_desc_info.op_type.c_str(), op_desc_info.args, target_size);
@@ -729,9 +729,10 @@ void ExceptionDumper::RefreshAddrs(OpDescInfo &op_desc_info) const {
 
 bool ExceptionDumper::GetOpDescInfo(const OpDescInfoId &op_id, OpDescInfo &op_desc_info) {
   const std::lock_guard<std::mutex> lock(mutex_);
-  GELOGI("[Get][OpDescInfo] There are %zu op info saved, target stream_id:%u, task_id:%u, context_id:%u, thread_id:%u, "
-         "dev_id: %u.", op_desc_info_.size(), op_id.stream_id, op_id.task_id, op_id.context_id, op_id.thread_id,
-         op_id.device_id);
+  GELOGI(
+      "[Get][OpDescInfo] There are %zu op info saved, target stream_id:%u, task_id:%u, context_id:%u, thread_id:%u, "
+      "dev_id: %u.",
+      op_desc_info_.size(), op_id.stream_id, op_id.task_id, op_id.context_id, op_id.thread_id, op_id.device_id);
   for (auto &dump_op_info : op_desc_info_) {
     if (((dump_op_info.id.task_id == op_id.task_id) || (dump_op_info.id.task_id == UINT32_MAX)) &&
         ((dump_op_info.id.stream_id == op_id.stream_id) || (dump_op_info.id.stream_id == UINT32_MAX)) &&

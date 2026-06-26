@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,9 +18,7 @@ MockFFTSPlusOpsKernelBuilder::MockFFTSPlusOpsKernelBuilder() {
   fftsplus_ops_kernel_build_ptr_ = std::make_shared<FFTSPlusOpsKernelBuilder>();
 }
 
-MockFFTSPlusOpsKernelBuilder::~MockFFTSPlusOpsKernelBuilder() {
-
-}
+MockFFTSPlusOpsKernelBuilder::~MockFFTSPlusOpsKernelBuilder() {}
 
 Status MockFFTSPlusOpsKernelBuilder::Initialize(const std::map<std::string, std::string> &options) {
   return fftsplus_ops_kernel_build_ptr_->Initialize(options);
@@ -34,10 +32,8 @@ Status MockFFTSPlusOpsKernelBuilder::CalcOpRunningParam(ge::Node &node) {
   return fftsplus_ops_kernel_build_ptr_->CalcOpRunningParam(node);
 }
 
-
-
-Status MockFFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node,
-                                                  ge::RunContext &context, std::vector<domi::TaskDef> &task_defs) {
+Status MockFFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node, ge::RunContext &context,
+                                                  std::vector<domi::TaskDef> &task_defs) {
   FE_LOGD("MockFFTSPlusOpsKernelBuilder.GenerateTask begin");
   Status ret = fftsplus_ops_kernel_build_ptr_->GenerateTask(node, context, task_defs);
   if (task_defs.empty()) {
@@ -56,16 +52,16 @@ Status MockFFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node,
     domi::FftsPlusCtxDef *ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(i);
     uint32_t type = ffts_plus_ctx->context_type();
     switch (type) {
-    case RT_CTX_TYPE_FLUSH_DATA:
+      case RT_CTX_TYPE_FLUSH_DATA:
         ++prefetch_count;
         break;
-    case RT_CTX_TYPE_INVALIDATE_DATA:
+      case RT_CTX_TYPE_INVALIDATE_DATA:
         ++invalid_count;
         break;
-    case RT_CTX_TYPE_WRITEBACK_DATA:
+      case RT_CTX_TYPE_WRITEBACK_DATA:
         ++writeback_count;
         break;
-    default:
+      default:
         break;
     }
   }
@@ -86,4 +82,4 @@ Status MockFFTSPlusOpsKernelBuilder::GenerateTask(const ge::Node &node,
   return ret;
 }
 
-} // namespace
+}  // namespace ffts

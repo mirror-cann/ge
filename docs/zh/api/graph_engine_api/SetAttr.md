@@ -106,4 +106,3 @@
 EsGraphBuilder builder("test_graph");
 builder.SetAttr("int64_attr", static_cast<int64_t>(10))
 ```
-

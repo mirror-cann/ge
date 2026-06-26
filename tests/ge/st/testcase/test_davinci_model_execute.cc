@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,28 +77,28 @@ using namespace testing;
 using namespace gert;
 
 namespace {
-  HcclResult InitializeHeterogeneousRuntime(const std::string &group, void *tilingData, void *ccuTaskGroup) {
-    return HCCL_SUCCESS;
-  }
-  struct AdumpCallRecord {
-    int call_count = 0;
-    std::string op_type;
-    std::string op_name;
-    std::vector<Adx::TensorInfo> tensors;
-    rtStream_t stream;
-    Adx::DumpCfg cfg;
-  } g_adump_record;
-
-  void ResetAdumpRecord() {
-    g_adump_record = AdumpCallRecord{};
-  }
-  int64_t g_overflow_capability = 0;
-  int64_t g_persistent_capability = 0;
+HcclResult InitializeHeterogeneousRuntime(const std::string &group, void *tilingData, void *ccuTaskGroup) {
+  return HCCL_SUCCESS;
 }
+struct AdumpCallRecord {
+  int call_count = 0;
+  std::string op_type;
+  std::string op_name;
+  std::vector<Adx::TensorInfo> tensors;
+  rtStream_t stream;
+  Adx::DumpCfg cfg;
+} g_adump_record;
 
-int32_t Adx::AdumpDumpTensorWithCfg(const std::string& op_type, const std::string& op_name,
-                                        const std::vector<Adx::TensorInfo>& tensors,
-                                        rtStream_t stream, const Adx::DumpCfg& cfg) {
+void ResetAdumpRecord() {
+  g_adump_record = AdumpCallRecord{};
+}
+int64_t g_overflow_capability = 0;
+int64_t g_persistent_capability = 0;
+}  // namespace
+
+int32_t Adx::AdumpDumpTensorWithCfg(const std::string &op_type, const std::string &op_name,
+                                    const std::vector<Adx::TensorInfo> &tensors, rtStream_t stream,
+                                    const Adx::DumpCfg &cfg) {
   g_adump_record.call_count++;
   g_adump_record.op_type = op_type;
   g_adump_record.op_name = op_name;
@@ -139,7 +139,7 @@ static void DisableOverflowAndPersistent() {
 }
 
 namespace ge {
-namespace{
+namespace {
 void MockGenerateTask() {
   auto aicore_func = [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
     auto op_desc = node.GetOpDesc();
@@ -176,7 +176,7 @@ void MockGenerateTask() {
   MockForGenerateTask("AiCoreLib", aicore_func);
   MockForGenerateTask("RTSLib", rts_func);
 }
-}
+}  // namespace
 void SetGeModelAttrs(const GeModelPtr &ge_model, bool set_sub_mem_infos = false) {
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 10240));
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1));
@@ -303,12 +303,10 @@ static ge::OpDescPtr CreateOpDesc(string name = "", string type = "") {
   return op_desc;
 }
 
-static OpDescPtr CreateOpDesc(const std::string &name,
-                              const std::string &type,
-                              uint32_t input_num,
+static OpDescPtr CreateOpDesc(const std::string &name, const std::string &type, uint32_t input_num,
                               uint32_t output_num) {
   GeTensorDesc int32_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
-  OpDescPtr op_desc = shared_ptr<OpDesc>(new(std::nothrow) OpDesc(name, type));
+  OpDescPtr op_desc = shared_ptr<OpDesc>(new (std::nothrow) OpDesc(name, type));
   if (op_desc == nullptr) {
     return nullptr;
   }
@@ -362,7 +360,7 @@ struct AddCompileInfo {
   int64_t b;
 };
 
-void* CompileInfoCreator() {
+void *CompileInfoCreator() {
   return new AddCompileInfo;
 }
 
@@ -423,7 +421,7 @@ void ConstructTilingSinkGeModel(const std::vector<std::pair<ccKernelType, const 
   // Data
   GeTensorDesc tensor_desc(GeShape({4}), FORMAT_ND, DT_FLOAT);
   int64_t offset = 64L;
-  const auto &data = root_graph->FindNode("_arg_0" );
+  const auto &data = root_graph->FindNode("_arg_0");
   EXPECT_NE(data, nullptr);
   data->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
   data->GetOpDesc()->SetOutputOffset({offset});
@@ -446,7 +444,8 @@ void ConstructTilingSinkGeModel(const std::vector<std::pair<ccKernelType, const 
 
   if (has_args_format) {
     auto &space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-    auto funcs = space_registry->CreateOrGetOpImpl("Ifa_Test");;
+    auto funcs = space_registry->CreateOrGetOpImpl("Ifa_Test");
+    ;
     funcs->tiling = StubTiling;
     funcs->tiling_parse = StubTilingParse;
     funcs->compile_info_creator = CompileInfoCreator;
@@ -462,7 +461,6 @@ void ConstructTilingSinkGeModel(const std::vector<std::pair<ccKernelType, const 
     (void)AttrUtils::SetStr(ifa->GetOpDesc(), ATTR_NAME_TBE_KERNEL_NAME, test_kernel->GetName());
     ifa->GetOpDesc()->SetExtAttr(test_kernel->GetName(), test_kernel);
     ifa->GetOpDesc()->AppendIrInput("query", IrInputType::kIrInputRequired);
-
 
     // aicpu kernel
     auto &aicpu_task = *model_task_def->add_task();
@@ -525,7 +523,7 @@ TEST_F(DavinciModelTest, hccl_dump) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -599,7 +597,7 @@ TEST_F(DavinciModelTest, hccl_dump_on_watcher_model) {
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("output");
   dump_properties.AddPropertyValue(DUMP_LAYER_OP_MODEL, {"HcomAllreduce"});
-  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"cond/add","add_n"});
+  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"cond/add", "add_n"});
   DumpManager::GetInstance().RemoveDumpProperties(session_id);
   DumpManager::GetInstance().AddDumpProperties(session_id, dump_properties);
 
@@ -608,7 +606,7 @@ TEST_F(DavinciModelTest, hccl_dump_on_watcher_model) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -687,7 +685,7 @@ TEST_F(DavinciModelTest, sdma_dump) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -763,7 +761,7 @@ TEST_F(DavinciModelTest, sample_davinci_model_static_memory_no_tiling) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -821,7 +819,10 @@ TEST_F(DavinciModelTest, sample_davinci_model_static_memory_no_tiling) {
 
 static void BuildAddGraph(ComputeGraphPtr &graph, const std::string &file_constant_name, const bool is_unknown) {
   std::vector<int64_t> shape = {2, 2, 2, 2};
-  auto file_const_op = OP_CFG(FILECONSTANT).Attr("shape", shape).Attr("dtype", DT_FLOAT).Attr("file_id", "vector_search_bucker_value_bin");
+  auto file_const_op = OP_CFG(FILECONSTANT)
+                           .Attr("shape", shape)
+                           .Attr("dtype", DT_FLOAT)
+                           .Attr("file_id", "vector_search_bucker_value_bin");
 
   int64_t dims_size = 1;
   vector<int64_t> data_vec = {2, 2, 2, 2};
@@ -829,7 +830,7 @@ static void BuildAddGraph(ComputeGraphPtr &graph, const std::string &file_consta
   vector<float> data_value_vec(dims_size, 1);
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_FLOAT);
   GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
-                                                  data_value_vec.size() * sizeof(float));
+                                                       data_value_vec.size() * sizeof(float));
   std::cout << "davinci_model_execute_with_file_constant" << data_value_vec.size() << std::endl;
   auto const_op = OP_CFG(CONSTANT).Weight(data_tensor);
   auto add = OP_CFG(ADD).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
@@ -909,7 +910,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_file_constant) {
     auto runtime_stub = MockForKernelLaunchExFailed();
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -920,8 +921,10 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_file_constant) {
 
     std::map<std::string, std::string> config;
     std::string a = "ge.exec.value_bins";
-    std::string b = "{\"value_bins\":[{\"value_bin_id\":\"vector_search_bucker_value_bin\", \"value_bin_file\":\"./test_copy_one_weight.bin\"}]}";
-    config.insert(std::pair<std::string, std::string>(a,b));
+    std::string b =
+        "{\"value_bins\":[{\"value_bin_id\":\"vector_search_bucker_value_bin\", "
+        "\"value_bin_file\":\"./test_copy_one_weight.bin\"}]}";
+    config.insert(std::pair<std::string, std::string>(a, b));
     GetThreadLocalContext().SetGraphOption(config);
 
     ModelExecutor model_executor;
@@ -938,10 +941,15 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_file_constant) {
 }
 
 static void BuildAddGraph_ConstPlaceHolder(ComputeGraphPtr &graph) {
-  vector<int64_t > shape({1, 2, 3});
+  vector<int64_t> shape({1, 2, 3});
   DataType data_type = DT_FLOAT;
-  auto const_place_holder = OP_CFG(CONSTPLACEHOLDER).Attr("origin_shape", shape).Attr("storage_shape", shape).\
-                            Attr("dtype", data_type).Attr("size", 24L).Attr("placement", 1L).Attr("addr", 20000L);
+  auto const_place_holder = OP_CFG(CONSTPLACEHOLDER)
+                                .Attr("origin_shape", shape)
+                                .Attr("storage_shape", shape)
+                                .Attr("dtype", data_type)
+                                .Attr("size", 24L)
+                                .Attr("placement", 1L)
+                                .Attr("addr", 20000L);
 
   int64_t dims_size = 1;
   vector<int64_t> data_vec = {1, 2, 3};
@@ -955,10 +963,10 @@ static void BuildAddGraph_ConstPlaceHolder(ComputeGraphPtr &graph) {
   auto add = OP_CFG(ADD).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
   auto output = OP_CFG(NETOUTPUT);
   DEF_GRAPH(g1) {
-                    CHAIN(NODE("constplaceholdertest", const_place_holder)->EDGE(0, 0)->NODE("add", add));
-                    CHAIN(NODE("const_op", const_op)->EDGE(0, 1)->NODE("add", add));
-                    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE(NODE_NAME_NET_OUTPUT, output));
-                };
+    CHAIN(NODE("constplaceholdertest", const_place_holder)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("const_op", const_op)->EDGE(0, 1)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE(NODE_NAME_NET_OUTPUT, output));
+  };
 
   graph = ToComputeGraph(g1);
   uint32_t mem_offset = 0;
@@ -966,36 +974,36 @@ static void BuildAddGraph_ConstPlaceHolder(ComputeGraphPtr &graph) {
 }
 
 TEST_F(DavinciModelTest, davinci_model_execute_with_const_placeholder) {
-    ComputeGraphPtr graph;
-    BuildAddGraph_ConstPlaceHolder(graph);
-    GeModelPtr ge_model;
-    BuildAddGraphModel(graph, ge_model);
-    EXPECT_NE(ge_model, nullptr);
-    {
-        // Test LoadModelOnline
-        auto runtime_stub = MockForKernelLaunchExFailed();
-        GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
-  ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
+  ComputeGraphPtr graph;
+  BuildAddGraph_ConstPlaceHolder(graph);
+  GeModelPtr ge_model;
+  BuildAddGraphModel(graph, ge_model);
+  EXPECT_NE(ge_model, nullptr);
+  {
+    // Test LoadModelOnline
+    auto runtime_stub = MockForKernelLaunchExFailed();
+    GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
+    ge_root_model->Initialize(graph);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
-        GraphId graph_id = 1001;
-        GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-        graph_node->SetGeRootModel(ge_root_model);
-        graph_node->SetLoadFlag(true);
-        graph_node->SetAsync(true);
+    GraphId graph_id = 1001;
+    GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
+    graph_node->SetGeRootModel(ge_root_model);
+    graph_node->SetLoadFlag(true);
+    graph_node->SetAsync(true);
 
-        ModelExecutor model_executor;
-        EXPECT_EQ(model_executor.Initialize({}, 0), SUCCESS);
-        ModelManager::GetInstance().sess_id_to_device_ids_[0] = {0};
-        model_executor.StartRunThread();
-        EXPECT_EQ(model_executor.Initialize({{"ge.variableMemoryMaxSize", "12800"}}, 0), SUCCESS);
-        EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
-        EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
-        EXPECT_EQ(model_executor.Finalize(), SUCCESS);
-        runtime_stub->Reset();
-    }
+    ModelExecutor model_executor;
+    EXPECT_EQ(model_executor.Initialize({}, 0), SUCCESS);
+    ModelManager::GetInstance().sess_id_to_device_ids_[0] = {0};
+    model_executor.StartRunThread();
+    EXPECT_EQ(model_executor.Initialize({{"ge.variableMemoryMaxSize", "12800"}}, 0), SUCCESS);
+    EXPECT_EQ(model_executor.LoadGraph(ge_root_model, graph_node), SUCCESS);
+    EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
+    EXPECT_EQ(model_executor.Finalize(), SUCCESS);
+    runtime_stub->Reset();
+  }
 }
 
 TEST_F(DavinciModelTest, davinci_model_execute_with_file_constant_failed) {
@@ -1008,8 +1016,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_file_constant_failed) {
   {
     auto runtime_stub = MockForKernelLaunchExFailed();
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->Initialize(graph);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -1183,8 +1191,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -1209,7 +1217,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
@@ -1223,8 +1230,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
   {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->Initialize(graph);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -1252,8 +1259,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
 
   // Test LoadModelWithQ
   {
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
+    const std::vector<uint32_t> output_queue_ids{1002U};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
     GeExecutor ge_executor;
@@ -1264,9 +1271,9 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
 
   // Test LoadModelWithQueueParam
   {
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
     QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> output_queue_ids{1002U};
     QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
     uint32_t model_id = 0;
     ModelQueueParam model_queue_param{};
@@ -1286,8 +1293,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
 
   // Test LoadModelWithQ dummy
   {
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
-    const std::vector<uint32_t> output_queue_ids{ UINT32_MAX };
+    const std::vector<uint32_t> input_queue_ids{1001U};
+    const std::vector<uint32_t> output_queue_ids{UINT32_MAX};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
     GeExecutor ge_executor;
@@ -1311,8 +1318,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
     EXPECT_EQ(model_helper2.SaveToOmModel(ge_model, "file_name_prefix", model_buffer2), SUCCESS);
     const ModelData model_data2{model_buffer2.data.get(), static_cast<uint32_t>(model_buffer2.length), 0, "", ""};
 
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
+    const std::vector<uint32_t> output_queue_ids{1002U};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
     GeExecutor ge_executor;
@@ -1325,9 +1332,9 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_with_sub_mem) {
   {
     ModelHelper model_helper3;
     EXPECT_EQ(model_helper3.LoadModel(model_data), SUCCESS);
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
     QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> output_queue_ids{1002U};
     QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
@@ -1389,7 +1396,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_input_align_attrs) {
         op_desc->SetOutputOffset({2048});
         op_desc->SetWorkspace({});
         op_desc->SetWorkspaceBytes({});
-      }  else if (op_desc->GetType() == ADD) {
+      } else if (op_desc->GetType() == ADD) {
         op_desc->SetOpKernelLibName("AIcoreEngine");
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateInputDesc(1, tensor1);
@@ -1403,8 +1410,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_input_align_attrs) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor2);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -1431,7 +1438,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_input_align_attrs) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
@@ -1453,10 +1459,10 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_input_align_attrs) {
   {
     ModelHelper model_helper3;
     EXPECT_EQ(model_helper3.LoadModel(model_data), SUCCESS);
-    const std::vector<uint32_t> input_queue_ids{ 1001U, 1003U };
+    const std::vector<uint32_t> input_queue_ids{1001U, 1003U};
     QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
     QueueAttrs in_queue_1 = {.queue_id = 1003U, .device_type = NPU, .device_id = 0};
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> output_queue_ids{1002U};
     QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
@@ -1469,9 +1475,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_input_align_attrs) {
     model_queue_param.output_queues_attrs = {out_queue_0};
     model_queue_param.is_dynamic_sched = true;
     model_queue_param.need_report_status = true;
-    model_queue_param.input_align_attrs = {.align_max_cache_num = 4,
-                                           .align_timeout = 200,
-                                           .drop_when_not_align = true};
+    model_queue_param.input_align_attrs = {.align_max_cache_num = 4, .align_timeout = 200, .drop_when_not_align = true};
     DumpProperties dump_properties;
     dump_properties.enable_dump_ = "1";
     dump_properties.dump_step_ = "0|2-4|6";
@@ -1493,7 +1497,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_datadump_on_watcher_model_success
   auto &model_mgr = ModelManager::GetInstance();
   model_mgr.model_map_.clear();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
   GetContext().SetSessionId(10086);
 
@@ -1506,7 +1510,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_datadump_on_watcher_model_success
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("output");
   dump_properties.AddPropertyValue(DUMP_LAYER_OP_MODEL, {"Less", "cond/pow"});
-  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"cond/add","add_n"});
+  dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"cond/add", "add_n"});
   DumpManager::GetInstance().RemoveDumpProperties(10086);
   DumpManager::GetInstance().AddDumpProperties(10086, dump_properties);
 
@@ -1547,7 +1551,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
         op_desc->SetWorkspace({});
         op_desc->SetWorkspaceBytes({});
       } else if (op_desc->GetType() == ADD) {
-        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");//aicpu_ascend_kernel AIcoreEngine
+        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");  // aicpu_ascend_kernel AIcoreEngine
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({0, 2048});
@@ -1570,8 +1574,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -1582,10 +1586,10 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
   auto data2 = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-          CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("add", add));
-          CHAIN(NODE("data", data2)->EDGE(0, 0)->NODE("hcom_reduce", hcom_reduce));
-          CHAIN(NODE("hcom_reduce", hcom_reduce)->EDGE(0, 1)->NODE("add", add));
-          CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+    CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("data", data2)->EDGE(0, 0)->NODE("hcom_reduce", hcom_reduce));
+    CHAIN(NODE("hcom_reduce", hcom_reduce)->EDGE(0, 1)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -1602,7 +1606,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
@@ -1616,13 +1619,14 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
 
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->Initialize(graph);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
     GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
 
@@ -1634,7 +1638,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok) {
     EXPECT_EQ(model_executor.Finalize(), SUCCESS);
   }
 }
-
 
 TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
   const auto SetUnknownOpKernelForNoTiling = [](const ComputeGraph::Vistor<NodePtr> &all_nodes) {
@@ -1660,7 +1663,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
         op_desc->SetWorkspace({});
         op_desc->SetWorkspaceBytes({});
       } else if (op_desc->GetType() == ADD) {
-        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");//aicpu_ascend_kernel AIcoreEngine
+        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");  // aicpu_ascend_kernel AIcoreEngine
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({0, 2048});
@@ -1683,8 +1686,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -1695,10 +1698,10 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
   auto data2 = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-          CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("add", add));
-          CHAIN(NODE("data", data2)->EDGE(0, 0)->NODE("hcom_reduce", hcom_reduce));
-          CHAIN(NODE("hcom_reduce", hcom_reduce)->EDGE(0, 1)->NODE("add", add));
-          CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+    CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("data", data2)->EDGE(0, 0)->NODE("hcom_reduce", hcom_reduce));
+    CHAIN(NODE("hcom_reduce", hcom_reduce)->EDGE(0, 1)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -1715,12 +1718,11 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   const uint64_t session_id = graph->GetSessionID();
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   // model.om_name_ = "test";
-  std::vector<std::pair<std::string, std::string>> op_ranges = {{"add", "add"}, {"hcom_reduce","add"}};
+  std::vector<std::pair<std::string, std::string>> op_ranges = {{"add", "add"}, {"hcom_reduce", "add"}};
   dump_properties.SetOpDumpRange("", op_ranges);
   dump_properties.SetOpDumpRange("test", op_ranges);
   DumpManager::GetInstance().RemoveDumpProperties(session_id);
@@ -1735,7 +1737,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_dumpok_with_op_range) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -1777,7 +1779,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
         op_desc->SetWorkspace({});
         op_desc->SetWorkspaceBytes({});
       } else if (op_desc->GetType() == ADD) {
-        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");//aicpu_ascend_kernel AIcoreEngine
+        op_desc->SetOpKernelLibName("aicpu_ascend_kernel");  // aicpu_ascend_kernel AIcoreEngine
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({0, 2048});
@@ -1790,8 +1792,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -1804,9 +1806,9 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
   auto data = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", data)->EDGE(0, 0)->NODE("add", add));
-                  CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
-                };
+    CHAIN(NODE("data", data)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+  };
 
   auto graph = ToComputeGraph(g1);
   SetUnknownOpKernelForNoTiling(graph->GetAllNodes());
@@ -1822,7 +1824,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
   ge_model->SetModelTaskDef(model_task_def);
@@ -1832,7 +1833,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -1856,7 +1857,11 @@ TEST_F(DavinciModelTest, davinci_model_execute_exception_dumpok) {
 TEST_F(DavinciModelTest, davinci_model_execute_control_output) {
   std::vector<int64_t> shape = {16};
   DEF_GRAPH(assert_graph) {
-    auto assert = OP_CFG(ASSERT).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF").TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).Build("assert");
+    auto assert = OP_CFG(ASSERT)
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                      .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                      .InCnt(1)
+                      .Build("assert");
     auto data1 =
         OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
     data1->SetOutputOffset({0});
@@ -1873,7 +1878,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_control_output) {
   InitKernelTaskDef_TE(graph, *model_task_def, "assert", tbe_kernel_store);
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
-
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
@@ -1923,7 +1927,7 @@ UINT32 StubTilingParse1(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreator1() {
+void *CompileInfoCreator1() {
   return new AddCompileInfo;
 }
 
@@ -1997,7 +2001,6 @@ void TestDavinciModelExecuteWithSoftSyncOp(bool is_exception_dump_enabled = fals
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
 
-
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
   ge_model->SetModelTaskDef(model_task_def);
@@ -2057,8 +2060,11 @@ TEST_F(DavinciModelTest, DavinciModelExecute_SaveExceptionDump_WithSoftSyncOp) {
 TEST_F(DavinciModelTest, davinci_model_execute_static_shape_reuse_binary) {
   std::vector<int64_t> shape = {16};
   DEF_GRAPH(relu_graph) {
-    auto relu = OP_CFG(RELU).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF").TensorDesc(FORMAT_ND, DT_INT32, shape)
-        .InCnt(1).Build("relu");
+    auto relu = OP_CFG(RELU)
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                    .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                    .InCnt(1)
+                    .Build("relu");
     auto data1 =
         OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
     data1->SetOutputOffset({0});
@@ -2100,7 +2106,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_reuse_binary) {
   InitKernelWithHandleTaskDef_TE(graph, *model_task_def, "relu", tbe_kernel_store);
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
-
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
@@ -2168,7 +2173,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_ifa_memcheck) {
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
 
-
   auto &task_def = *(model_task_def->mutable_task(0));
   auto &kernel_def = *task_def.mutable_kernel_with_handle();
   auto &context = *kernel_def.mutable_context();
@@ -2203,7 +2207,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_ifa_memcheck) {
   runtime_stub->Reset();
 }
 
-
 TEST_F(DavinciModelTest, davinci_model_execute_static_shape_ifa_memcheck_args_list_is_null) {
   auto graph = ShareGraph::IFASingleGraph();
   EXPECT_NE(graph, nullptr);
@@ -2233,7 +2236,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_ifa_memcheck_args_li
   InitKernelWithHandleTaskDef_TE(graph, *model_task_def, "IncreFlashAttention", tbe_kernel_store);
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
-
 
   auto &task_def = *(model_task_def->mutable_task(0));
   auto &kernel_def = *task_def.mutable_kernel_with_handle();
@@ -2306,7 +2308,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_batch_memcheck) {
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
 
-
   auto &task_def = *(model_task_def->mutable_task(0));
   auto &kernel_def = *task_def.mutable_kernel_with_handle();
   auto &context = *kernel_def.mutable_context();
@@ -2373,7 +2374,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_batch_memcheck_no_ar
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
 
-
   auto &task_def = *(model_task_def->mutable_task(0));
   auto &kernel_def = *task_def.mutable_kernel_with_handle();
   auto &context = *kernel_def.mutable_context();
@@ -2410,14 +2410,17 @@ TEST_F(DavinciModelTest, davinci_model_execute_static_shape_batch_memcheck_no_ar
 TEST_F(DavinciModelTest, davinci_model_execute_with_attached_vector_core) {
   std::vector<int64_t> shape = {16};
   DEF_GRAPH(relu_graph) {
-                          auto relu = OP_CFG(RELU).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF").TensorDesc(FORMAT_ND, DT_INT32, shape)
-                              .InCnt(1).Build("relu");
-                          auto data1 =
-                              OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
-                          data1->SetOutputOffset({0});
+    auto relu = OP_CFG(RELU)
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                    .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                    .InCnt(1)
+                    .Build("relu");
+    auto data1 =
+        OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
+    data1->SetOutputOffset({0});
 
-                          CHAIN(NODE(data1)->EDGE(0, 0)->NODE(relu)->NODE("noop", NOOP));
-                        };
+    CHAIN(NODE(data1)->EDGE(0, 0)->NODE(relu)->NODE("noop", NOOP));
+  };
 
   auto graph = ToComputeGraph(relu_graph);
   EXPECT_NE(graph, nullptr);
@@ -2454,7 +2457,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_attached_vector_core) {
   InitKernelWithHandleTaskDef_Attached(graph, *model_task_def, "relu", tbe_kernel_store);
   InitEventTaskDef(graph, *model_task_def);
   InitFusionTaskDef(graph, *model_task_def);
-
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
@@ -2523,8 +2525,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_atomic_clean_task) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -2563,7 +2565,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_atomic_clean_task) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -2591,8 +2593,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_atomic_clean_task) {
 
   // Test LoadModelWithQ
   {
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
+    const std::vector<uint32_t> output_queue_ids{1002U};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
     GeExecutor ge_executor;
@@ -2647,7 +2649,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_aicpu_deploy_host) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -2700,7 +2702,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_with_aicpu_queue) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -2736,7 +2738,7 @@ TEST_F(DavinciModelTest, sample_davinci_model_execute_reuse_zero_copy_memory) {
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
   GetThreadLocalContext().SetGraphOption(
-    std::map<std::string, std::string>{{OPTION_EXEC_REUSE_ZERO_COPY_MEMORY, "1"}, {"ge.exec.hostInputIndexes", "0"}});
+      std::map<std::string, std::string>{{OPTION_EXEC_REUSE_ZERO_COPY_MEMORY, "1"}, {"ge.exec.hostInputIndexes", "0"}});
   GetThreadLocalContext().SetSessionOption(std::map<std::string, std::string>{{"ge.exec.overflow", "1"}});
   GetThreadLocalContext().SetSessionOption(std::map<std::string, std::string>{{"ge.graphLevelSat", "1"}});
 
@@ -2760,7 +2762,7 @@ TEST_F(DavinciModelTest, sample_davinci_model_execute_reuse_zero_copy_memory) {
   (void)VarManagerPool::Instance().GetVarManager(graph->GetSessionID())->FreeVarMemory();
 
   GetThreadLocalContext().SetGraphOption(
-    std::map<std::string, std::string>{{OPTION_EXEC_REUSE_ZERO_COPY_MEMORY, ""}, {"ge.exec.hostInputIndexes", ""}});
+      std::map<std::string, std::string>{{OPTION_EXEC_REUSE_ZERO_COPY_MEMORY, ""}, {"ge.exec.hostInputIndexes", ""}});
 }
 
 TEST_F(DavinciModelTest, sample_davinci_model_execute_cmo_offset_invalid) {
@@ -3041,8 +3043,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_without_q) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -3054,8 +3056,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_without_q) {
   auto add = OP_CFG(ADD).Attr(ATTR_NAME_OP_NO_TILING, true).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-      CHAIN(NODE("const1", const1)->EDGE(0, 0)->NODE("add", add));
-      CHAIN(NODE("data", DATA)->EDGE(0, 1)->NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+    CHAIN(NODE("const1", const1)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("data", DATA)->EDGE(0, 1)->NODE("add", add)->EDGE(0, 0)->NODE("output", output));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -3071,7 +3073,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_without_q) {
   InitFusionTaskDef(graph, *model_task_def);
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
-
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
@@ -3097,7 +3098,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_without_q) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     GeExecutor ge_executor;
     uint32_t model_id = 0;
     EXPECT_NE(ge_executor.LoadModelWithoutQ(model_id, ge_root_model), SUCCESS);
@@ -3107,7 +3108,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_no_tiling_without_q) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -3151,7 +3152,7 @@ TEST_F(DavinciModelTest, sdma_dump_with_qos) {
     const auto ge_root_model = MakeShared<GeRootModel>();
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
     graph_node->IncreaseLoadCount();
@@ -3238,8 +3239,8 @@ TEST_F(DavinciModelTest, davinci_model_with_non_zero_cpy_inpouts) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -3263,7 +3264,6 @@ TEST_F(DavinciModelTest, davinci_model_with_non_zero_cpy_inpouts) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
@@ -3277,8 +3277,8 @@ TEST_F(DavinciModelTest, davinci_model_with_non_zero_cpy_inpouts) {
   {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
-  ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->Initialize(graph);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -3307,9 +3307,9 @@ TEST_F(DavinciModelTest, davinci_model_with_non_zero_cpy_inpouts) {
   {
     ModelHelper model_helper3;
     EXPECT_EQ(model_helper3.LoadModel(model_data), SUCCESS);
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
     QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> output_queue_ids{1002U};
     QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
@@ -3492,8 +3492,8 @@ TEST_F(DavinciModelTest, davinci_model_error_tracking_test) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -3517,7 +3517,6 @@ TEST_F(DavinciModelTest, davinci_model_error_tracking_test) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   DumpProperties dump_properties;
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
@@ -3532,7 +3531,7 @@ TEST_F(DavinciModelTest, davinci_model_error_tracking_test) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -3564,9 +3563,9 @@ TEST_F(DavinciModelTest, davinci_model_error_tracking_test) {
   {
     ModelHelper model_helper3;
     EXPECT_EQ(model_helper3.LoadModel(model_data), SUCCESS);
-    const std::vector<uint32_t> input_queue_ids{ 1001U };
+    const std::vector<uint32_t> input_queue_ids{1001U};
     QueueAttrs in_queue_0 = {.queue_id = 1001U, .device_type = NPU, .device_id = 0};
-    const std::vector<uint32_t> output_queue_ids{ 1002U };
+    const std::vector<uint32_t> output_queue_ids{1002U};
     QueueAttrs out_queue_0 = {.queue_id = 1002U, .device_type = NPU, .device_id = 0};
     ge::ExecutionRuntimeUtils::EnableInHeterogeneousExecutor();
     uint32_t model_id = 0;
@@ -3636,7 +3635,6 @@ TEST_F(DavinciModelTest, update_task_id_model_not_found) {
 
   auto &task_map = ErrorTracking::GetInstance().graph_task_to_op_info_[model_id];
   size_t initial_size = task_map.size();
-
 
   ErrorTracking::GetInstance().UpdateTaskId(old_task_id, new_task_id, stream_id, null_model_id);
 
@@ -3755,7 +3753,7 @@ TEST_F(DavinciModelTest, GetEventIdForBlockingAicpuOp_fail) {
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_success) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -3781,7 +3779,6 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_su
   EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), SUCCESS);
   EXPECT_EQ(model_mgr.model_map_.size(), 1);
 
-
   EXPECT_EQ(model_executor.UnloadGraph(flow_root_model_2, graph_id_2), SUCCESS);
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
   GetThreadLocalContext().SetGraphOption({});
@@ -3802,7 +3799,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_su
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_failed) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -3847,7 +3844,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_stream_resource_fa
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_success) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -3862,9 +3859,9 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_suc
   AttrUtils::SetListStr(no->GetOpDesc(), "_hccl_group_id_list", {"group0", "group1"});
   const auto &ni = compute_graph->FindNode("cond/sub");
   AttrUtils::SetListStr(ni->GetOpDesc(), "_hccl_group_id_list", {"group1", "group2"});
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void*)1), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void*)2), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void*)3), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void *)1), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void *)2), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void *)3), GRAPH_SUCCESS);
 
   EXPECT_TRUE(AttrUtils::SetInt(ge_model_1, ATTR_MODEL_EVENT_NUM, 32));
   EXPECT_EQ(model_executor.LoadGraph(flow_root_model_1, graph_node_1), SUCCESS);
@@ -3879,7 +3876,8 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_suc
 
   uint32_t event_num_dev_avail;
   (void)aclrtGetEventAvailNum(&event_num_dev_avail);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_EVENT_NUM, event_num_dev_avail + 32 + 2)); // 32：model event 2：kfc stream event
+  EXPECT_TRUE(AttrUtils::SetInt(ge_model_2, ATTR_MODEL_EVENT_NUM,
+                                event_num_dev_avail + 32 + 2));  // 32：model event 2：kfc stream event
   EXPECT_EQ(model_executor.LoadGraph(flow_root_model_2, graph_node_2), SUCCESS);
   EXPECT_EQ(model_mgr.model_map_.size(), 1);
 
@@ -3906,7 +3904,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_suc
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_failed) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -3953,7 +3951,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_event_resource_fai
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_multi_model_stream_resource_success) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -4012,7 +4010,7 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_multi_model_stream
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_model_stream_resource_and_reload_model_success) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
   GraphId graph_id_1 = 1;
@@ -4063,10 +4061,10 @@ TEST_F(DavinciModelTest, davinci_model_load_check_and_release_model_stream_resou
 TEST_F(DavinciModelTest, davinci_model_load_check_and_release_model_stream_resource_which_has_hccl_task_failed) {
   auto &model_mgr = ModelManager::GetInstance();
   ModelExecutor model_executor;
-  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS); // fixed sessionid
+  EXPECT_EQ(model_executor.Initialize({}, 10086), SUCCESS);  // fixed sessionid
   model_executor.StartRunThread();
 
- // 构造包含hccl task的model1
+  // 构造包含hccl task的model1
   GraphId graph_id_1 = 1;
   GraphNodePtr graph_node_1;
   GeModelPtr ge_model_1;
@@ -4140,8 +4138,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
         op_desc->SetOpKernelLibName("ops_kernel_info_hccl");
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
-        (void) AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
-        (void) AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
+        (void)AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
+        (void)AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
         (void)ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
         std::vector<NamedAttrs> attached_stream_infos;
         NamedAttrs attrs0;
@@ -4160,7 +4158,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
         op_desc->SetOpKernelLibName("ops_kernel_info_hccl");
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
-        (void) AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
+        (void)AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
         (void)ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
         AttrUtils::SetBool(op_desc, "_is_unknown_shape", true);
         int32_t root_id = 0;
@@ -4174,7 +4172,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
         op_desc->UpdateInputDesc(0, tensor0);
         op_desc->UpdateInputDesc(1, tensor0);
         op_desc->UpdateOutputDesc(0, tensor1);
-        (void) AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
+        (void)AttrUtils::SetStr(op_desc, HCOM_ATTR_REDUCE_TYPE, "sum");
         (void)ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
         int32_t root_id = 0;
         ge::AttrUtils::SetInt(op_desc, HCOM_ATTR_ROOT_RANK, root_id);
@@ -4186,8 +4184,8 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -4199,11 +4197,11 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
   auto data2 = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-          CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("hcom_allgather", hcom_allgather));
-          CHAIN(NODE("data", data2)->EDGE(0, 1)->NODE("hcom_allgather", hcom_allgather));
-          CHAIN(NODE("hcom_allgather", hcom_allgather)->EDGE(0, 0)->NODE("hcom_allreduce", hcom_allreduce));
-          CHAIN(NODE("hcom_allreduce", hcom_allreduce)->EDGE(0, 0)->NODE("hcom_reducescatter", hcom_reducescatter));
-          CHAIN(NODE("hcom_reducescatter", hcom_reducescatter)->EDGE(0, 0)->NODE("output", output));
+    CHAIN(NODE("data", data1)->EDGE(0, 0)->NODE("hcom_allgather", hcom_allgather));
+    CHAIN(NODE("data", data2)->EDGE(0, 1)->NODE("hcom_allgather", hcom_allgather));
+    CHAIN(NODE("hcom_allgather", hcom_allgather)->EDGE(0, 0)->NODE("hcom_allreduce", hcom_allreduce));
+    CHAIN(NODE("hcom_allreduce", hcom_allreduce)->EDGE(0, 0)->NODE("hcom_reducescatter", hcom_reducescatter));
+    CHAIN(NODE("hcom_reducescatter", hcom_reducescatter)->EDGE(0, 0)->NODE("output", output));
   };
 
   auto graph = ToComputeGraph(g1);
@@ -4222,7 +4220,6 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
 
-
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(graph);
   ge_model->SetModelTaskDef(model_task_def);
@@ -4232,7 +4229,7 @@ TEST_F(DavinciModelTest, davinci_model_execute_hcom_continuous_input) {
   {
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -4288,8 +4285,8 @@ TEST_F(DavinciModelTest, DavinciModelExecute_LiteException_Ok) {
         op_desc->SetOpKernelLibName("DNN_VM_GE_LOCAL_OP_STORE");
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -4298,9 +4295,9 @@ TEST_F(DavinciModelTest, DavinciModelExecute_LiteException_Ok) {
   auto data = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", data)->EDGE(0, 0)->NODE("add", add));
-                  CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
-                };
+    CHAIN(NODE("data", data)->EDGE(0, 0)->NODE("add", add));
+    CHAIN(NODE("add", add)->EDGE(0, 0)->NODE("output", output));
+  };
   auto graph = ToComputeGraph(g1);
   SetUnknownOpKernelForNoTiling(graph->GetDirectNode());
   EXPECT_NE(graph, nullptr);
@@ -4312,7 +4309,6 @@ TEST_F(DavinciModelTest, DavinciModelExecute_LiteException_Ok) {
   InitFusionTaskDef(graph, *model_task_def);
   InitEndGraphDef(graph, *model_task_def, "output");
   InitProfilerTaskDef(graph, *model_task_def);
-
 
   DumpManager::GetInstance().Init({{"ge.exec.enable_exception_dump", "2"}});
   DumpProperties dump_properties;
@@ -4331,7 +4327,7 @@ TEST_F(DavinciModelTest, DavinciModelExecute_LiteException_Ok) {
     // Test LoadModelOnline
     GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
 
     GraphId graph_id = 1001;
@@ -4408,7 +4404,7 @@ TEST_F(DavinciModelTest, sample_davinci_model_end_sequence) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -4483,13 +4479,13 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
     auto data_7 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 7);  // sub node 2 input 3
 
     auto node_1 = OP_CFG("node_1")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     auto node_2 = OP_CFG("HcomAllReduce")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
 
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("node_1", node_1));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("node_1", node_1));
@@ -4580,7 +4576,7 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
     op_desc_2->UpdateInputDesc(1, desc);
 
     op_desc_2->SetSrcName({"node_1", "node_1"});
-    op_desc_2->SetSrcIndex({0}); // 内部连边的配置么？
+    op_desc_2->SetSrcIndex({0});  // 内部连边的配置么？
     op_desc_2->UpdateInputDesc(2, desc);
 
     op_desc_2->AddDynamicInputDescByIndex("z", 1, 3);
@@ -4631,9 +4627,9 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
     auto data_7 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 6);
 
     auto skt_node = OP_CFG("super_kernel")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
 
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("super_kernel", skt_node));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("super_kernel", skt_node));
@@ -4729,9 +4725,11 @@ TEST_F(DavinciModelTest, super_kernel_graph_load_and_success) {
   aicore_context.set_kernel_type(static_cast<int32_t>(ge::ccKernelType::TE));
   aicore_context.set_op_id(super_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(super_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn20ffts_addr}{skn20event_addr123*}"
-                                 "{skn20i_desc0}{skn20i1}{skn20i_instance3}{skn20o_desc0}{skn20o_instance2}{skn20ws*}{skn20hi.hcom0*}"
-                                 "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}{skn20tiling_context.block_dim}{ws0}{overflow_addr}");
+  aicore_context.set_args_format(
+      "{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn20ffts_addr}{skn20event_addr123*}"
+      "{skn20i_desc0}{skn20i1}{skn20i_instance3}{skn20o_desc0}{skn20o_instance2}{skn20ws*}{skn20hi.hcom0*}"
+      "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}{"
+      "skn20tiling_context.block_dim}{ws0}{overflow_addr}");
   aicore_context.set_args_count(14);
   uint16_t args_offset = 0;
   aicore_context.set_args_offset(&args_offset, sizeof(uint16_t));
@@ -5097,7 +5095,8 @@ TEST_F(DavinciModelTest, ifa_aicore_with_tiling_sink_graph_load_and_launch_cust_
   aicore_context.set_kernel_type(static_cast<int32_t>(ccKernelType::TE));
   aicore_context.set_op_id(ifa_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(ifa_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{i0}{i_desc1}{i_desc2}{i4}{o_desc0}{ws0}{ws*}{tiling_context.tiling_data}{event_addr123*}");
+  aicore_context.set_args_format(
+      "{i0}{i_desc1}{i_desc2}{i4}{o_desc0}{ws0}{ws*}{tiling_context.tiling_data}{event_addr123*}");
   aicore_context.set_args_count(10);
   aicore_kernel->set_args_size(264);
   string args(256, '1');
@@ -5287,7 +5286,8 @@ TEST_F(DavinciModelTest, ifa_aicore_with_tiling_sink_graph_load_and_launch_cust_
   aicore_context.set_kernel_type(static_cast<int32_t>(ccKernelType::TE));
   aicore_context.set_op_id(ifa_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(ifa_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{i0}{i_desc1}{i_desc2}{i4}{o_desc0}{ws0}{ws*}{tiling_context.tiling_data}{event_addr123*}");
+  aicore_context.set_args_format(
+      "{i0}{i_desc1}{i_desc2}{i4}{o_desc0}{ws0}{ws*}{tiling_context.tiling_data}{event_addr123*}");
   aicore_context.set_args_count(10);
   aicore_kernel->set_args_size(264);
   string args(256, '1');
@@ -5467,7 +5467,8 @@ TEST_F(DavinciModelTest, ifa_aicore_with_tiling_sink_graph_load_and_success_with
   aicore_context.set_kernel_type(static_cast<int32_t>(ccKernelType::TE));
   aicore_context.set_op_id(ifa_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(ifa_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{i_instance0}{i_instance1}{i_instance2}{i_desc2}{}{o_instance0}{o_instance1}{ws0}{tiling_context.tiling_data}");
+  aicore_context.set_args_format(
+      "{i_instance0}{i_instance1}{i_instance2}{i_desc2}{}{o_instance0}{o_instance1}{ws0}{tiling_context.tiling_data}");
   aicore_context.set_args_count(9);
   aicore_kernel->set_args_size(256);
   string args(256, '1');
@@ -5519,7 +5520,6 @@ TEST_F(DavinciModelTest, ifa_aicore_with_tiling_sink_graph_load_and_success_with
   RuntimeStub::Reset();
 }
 
-
 TEST_F(DavinciModelTest, sample_davinci_model_execute_fail) {
   uint32_t mem_offset = 0U;
   ComputeGraphPtr graph;
@@ -5542,7 +5542,7 @@ TEST_F(DavinciModelTest, sample_davinci_model_execute_fail) {
     // Test LoadModelOnline: RunAsyncListener
     const auto ge_root_model = MakeShared<GeRootModel>();
     ge_root_model->Initialize(graph);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     graph_node->SetGeRootModel(ge_root_model);
@@ -5610,7 +5610,7 @@ TEST_F(DavinciModelTest, init_space_registry_with_upgraded_so) {
   std::string so_name("libopsproto_rt.so");
   std::string vendor_name("/opp_latest/built-in/op_proto/lib");
   auto so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   auto op_so_bin = std::make_shared<OpSoBin>(so_name, vendor_name, std::move(so_bin), so_name.length());
   kernels.emplace_back(op_so_bin);
 
@@ -5618,12 +5618,12 @@ TEST_F(DavinciModelTest, init_space_registry_with_upgraded_so) {
   std::string cust_vendor_name("/custom/op_impl/ai_core/tbe/op_tiling/lib");
   auto cust_so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[cust_so_name.length()]);
   (void)memcpy_s(cust_so_bin.get(), cust_so_name.length(), cust_so_name.data(), cust_so_name.length());
-  auto cust_op_so_bin = std::make_shared<OpSoBin>(cust_so_name, cust_vendor_name,
-                                                  std::move(cust_so_bin), cust_so_name.length());
+  auto cust_op_so_bin =
+      std::make_shared<OpSoBin>(cust_so_name, cust_vendor_name, std::move(cust_so_bin), cust_so_name.length());
   kernels.emplace_back(cust_op_so_bin);
 
   ge_root_model->op_so_store_.kernels_ = std::move(kernels);
-  (void) model.InitSpaceRegistry(ge_root_model);
+  (void)model.InitSpaceRegistry(ge_root_model);
   // EXPECT_NE(model.InitSpaceRegistry(ge_root_model), SUCCESS);
   EXPECT_NE(model.GetSpaceRegistries(), nullptr);
 }
@@ -5646,7 +5646,7 @@ TEST_F(DavinciModelTest, CalculateUpdateModelParamTiling_test) {
   EXPECT_EQ(tiling.lastTileNum, 1);
   EXPECT_EQ(block_dim, 4);
   index_len = 128 * 1024;
-  mam.CalculateUpdateModelParamTiling(active_base_len, index_len, block_dim,tiling);
+  mam.CalculateUpdateModelParamTiling(active_base_len, index_len, block_dim, tiling);
   EXPECT_EQ(tiling.totalActiveBaseTblCnt, 1024);
   EXPECT_EQ(tiling.blockCnt, 2368);
   EXPECT_EQ(tiling.tileCnt, 2368);
@@ -5664,7 +5664,7 @@ TEST_F(DavinciModelTest, TilingSink_From_OppPackage_Success) {
   mmSetEnv(kEnvName, opp_path.c_str(), 1);
   ConstructOpMasterDeviceSo(opp_path, 1, 2, true, kernel_type_so_names);
 
-  GeModelPtr  ge_model = nullptr;
+  GeModelPtr ge_model = nullptr;
   ComputeGraphPtr root_graph = nullptr;
   ConstructTilingSinkGeModel(kernel_type_so_names, ge_model, root_graph);
   EXPECT_NE(ge_model, nullptr);
@@ -5704,7 +5704,7 @@ TEST_F(DavinciModelTest, TilingSink_From_Model_Success) {
   mmSetEnv(kEnvName, opp_path.c_str(), 1);
   ConstructOpMasterDeviceSo(opp_path, 1, 2, true, kernel_type_so_names);
 
-  GeModelPtr  ge_model = nullptr;
+  GeModelPtr ge_model = nullptr;
   ComputeGraphPtr root_graph = nullptr;
   ConstructTilingSinkGeModel(kernel_type_so_names, ge_model, root_graph);
   EXPECT_NE(ge_model, nullptr);
@@ -5756,7 +5756,7 @@ TEST_F(DavinciModelTest, TilingSink_From_Model_Failed) {
   mmSetEnv(kEnvName, opp_path.c_str(), 1);
   ConstructOpMasterDeviceSo(opp_path, 1, 2, true, kernel_type_so_names);
 
-  GeModelPtr  ge_model = nullptr;
+  GeModelPtr ge_model = nullptr;
   ComputeGraphPtr root_graph = nullptr;
   ConstructTilingSinkGeModel(kernel_type_so_names, ge_model, root_graph, true);
   EXPECT_NE(ge_model, nullptr);
@@ -5809,7 +5809,7 @@ TEST_F(DavinciModelTest, FileConstant_Success_UserSetDeviceMem) {
   mmSetEnv(kEnvName, opp_path.c_str(), 1);
   ConstructOpMasterDeviceSo(opp_path, 1, 2, true, kernel_type_so_names);
 
-  GeModelPtr  ge_model = nullptr;
+  GeModelPtr ge_model = nullptr;
   ComputeGraphPtr root_graph = nullptr;
   ConstructTilingSinkGeModel(kernel_type_so_names, ge_model, root_graph, true);
   EXPECT_NE(ge_model, nullptr);
@@ -6078,7 +6078,6 @@ TEST_F(DavinciModelTest, mc2_with_fusion_task_graph_load_and_success) {
   op_desc->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, test_kernel);
   TBEHandleStore::GetInstance().StoreTBEHandle(kernel_handle_name, nullptr, nullptr);
 
-
   auto run_info = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
   run_info->AddTilingData("11111111");
   run_info->SetTilingKey(0x1234);
@@ -6090,25 +6089,26 @@ TEST_F(DavinciModelTest, mc2_with_fusion_task_graph_load_and_success) {
   auto &fusion_task = *model_task_def->add_task();
   fusion_task.set_type(static_cast<int32_t>(ge::ModelTaskType::MODEL_TASK_FUSION_KERNEL));
   auto fusion = fusion_task.mutable_fusion_task();
-  fusion->set_args_format("{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}");
+  fusion->set_args_format(
+      "{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}");
   fusion->set_op_index(op_desc->GetId());
   fusion->set_kfc_args_format_offset(12);
 
   // 1.1 AICORE 子任务
-  auto* sub1 = fusion->add_fusion_sub_task_info();
+  auto *sub1 = fusion->add_fusion_sub_task_info();
   sub1->set_type(domi::FusionSubTaskInfo::AICORE);
-  auto* aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
+  auto *aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
 
   // 1.1.1 KernelContext
-  auto* ctx = aicore->mutable_context();
+  auto *ctx = aicore->mutable_context();
   ctx->set_kernel_type(11);
 
   // 1.1.2 args 二进制
   aicore->set_is_all_kernel(true);
 
   // 1.1.3 LaunchConfig → LaunchAttribute
-  auto* cfg = aicore->mutable_config();
-  auto* attr = cfg->add_launch_attribute();
+  auto *cfg = aicore->mutable_config();
+  auto *attr = cfg->add_launch_attribute();
   attr->set_id(domi::LaunchAttribute::BLOCKDIM);
   attr->mutable_value()->set_block_dim(256);
 
@@ -6121,7 +6121,7 @@ TEST_F(DavinciModelTest, mc2_with_fusion_task_graph_load_and_success) {
   attr->mutable_value()->set_schem_model(1);
 
   // 1.2 CCU 子任务
-  auto* sub3 = fusion->add_fusion_sub_task_info();
+  auto *sub3 = fusion->add_fusion_sub_task_info();
   sub3->set_type(domi::FusionSubTaskInfo::CCU);
   sub3->mutable_task()->mutable_ccu_task_group()->add_group("group");
 
@@ -6390,7 +6390,7 @@ TEST_F(DavinciModelTest, CheckIoReuseAddrs_GeTensor_SameAddress_Success) {
 
   GeTensor tensor;
   std::vector<uint8_t> dummy_data(128, 0xAB);
-  tensor.SetData(dummy_data); // 内部分配内存
+  tensor.SetData(dummy_data);  // 内部分配内存
 
   std::vector<GeTensor> input_tensors = {tensor};
   std::vector<GeTensor> output_tensors = {tensor};
@@ -6428,11 +6428,11 @@ TEST_F(DavinciModelTest, CheckIoReuseAddrs_GeTensor_DiffAddress_Fail) {
 
   GeTensor input_tensor;
   std::vector<uint8_t> data_in(128, 0xAA);
-  input_tensor.SetData(data_in); // 分配内存地址 A
+  input_tensor.SetData(data_in);  // 分配内存地址 A
 
   GeTensor output_tensor;
   std::vector<uint8_t> data_out(128, 0xBB);
-  output_tensor.SetData(data_out); // 分配内存地址 B
+  output_tensor.SetData(data_out);  // 分配内存地址 B
 
   std::vector<GeTensor> input_tensors = {input_tensor};
   std::vector<GeTensor> output_tensors = {output_tensor};
@@ -6467,10 +6467,10 @@ TEST_F(DavinciModelTest, CheckIoReuseAddrs_GertTensor_DiffAddress_Fail) {
   EXPECT_EQ(model.Init(), SUCCESS);
 
   std::vector<gert::Tensor> input_tensors(1);
-  input_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void*>(0xAAAA), nullptr);
+  input_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void *>(0xAAAA), nullptr);
 
   std::vector<gert::Tensor> output_tensors(1);
-  output_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void*>(0xBBBB), nullptr); // 地址不同
+  output_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void *>(0xBBBB), nullptr);  // 地址不同
 
   std::vector<DataBuffer> empty_blobs;
 
@@ -6505,13 +6505,13 @@ TEST_F(DavinciModelTest, CheckIoReuseAddrs_GertTensor_SameAddress_Success) {
   EXPECT_EQ(model.Init(), SUCCESS);
 
   // 2. 构造 gert::Tensor
-  void* shared_addr = reinterpret_cast<void*>(0xCCCC);
+  void *shared_addr = reinterpret_cast<void *>(0xCCCC);
 
   std::vector<gert::Tensor> input_tensors(1);
   input_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr);
 
   std::vector<gert::Tensor> output_tensors(1);
-  output_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr); // 地址一致
+  output_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr);  // 地址一致
 
   std::vector<DataBuffer> empty_blobs;
 
@@ -6586,7 +6586,7 @@ TEST_F(DavinciModelTest, Adump_Enable_Success) {
   EXPECT_EQ(g_adump_record.call_count, 0);
   // 可选：检查调用的 op 名称是否包含 "add"
   EXPECT_FALSE(g_adump_record.op_name.find("add") != std::string::npos ||
-              g_adump_record.op_name.find("force_dump") != std::string::npos);
+               g_adump_record.op_name.find("force_dump") != std::string::npos);
 
   // 卸载模型
   EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph->GetGraphID()), SUCCESS);
@@ -6666,8 +6666,8 @@ TEST_F(DavinciModelTest, Adump_OverflowNotSupported_Direct) {
 
 TEST_F(DavinciModelTest, Adump_OverflowNotSupported_NotCalled) {
   ResetAdumpRecord();
-  g_overflow_capability = 0;      // overflow 不支持
-  g_persistent_capability = 1;    // persistent 支持
+  g_overflow_capability = 0;    // overflow 不支持
+  g_persistent_capability = 1;  // persistent 支持
 
   uint32_t mem_offset = 0U;
   ComputeGraphPtr graph;
@@ -6781,11 +6781,11 @@ TEST_F(DavinciModelTest, Adump_InputOutputBlacklist) {
   // 创建 OpDesc，添加输入和输出
   OpDescPtr op_desc = CreateOpDesc("conv", "conv");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->AddInputDesc(tensor);  // 两个输入
   op_desc->AddOutputDesc(tensor);
-  op_desc->AddOutputDesc(tensor); // 两个输出
+  op_desc->AddOutputDesc(tensor);  // 两个输出
 
   // 构造 InnerDumpInfo
   DataDumper::InnerDumpInfo dump_info;
@@ -6803,18 +6803,18 @@ TEST_F(DavinciModelTest, Adump_InputOutputBlacklist) {
 
   // 验证调用记录
   EXPECT_EQ(g_adump_record.call_count, 1);
-  const auto& tensors = g_adump_record.tensors;
+  const auto &tensors = g_adump_record.tensors;
   // 输入：索引1保留，输出：索引0保留，共2个张量
   EXPECT_EQ(tensors.size(), 2);
   // 验证类型和偏移
   bool has_input = false, has_output = false;
-  for (const auto& t : tensors) {
+  for (const auto &t : tensors) {
     if (t.type == Adx::TensorType::INPUT) {
       has_input = true;
-      EXPECT_EQ(t.argsOffSet, 1); // 输入索引1的偏移应为1
+      EXPECT_EQ(t.argsOffSet, 1);  // 输入索引1的偏移应为1
     } else if (t.type == Adx::TensorType::OUTPUT) {
       has_output = true;
-      EXPECT_EQ(t.argsOffSet, 2); // 输出索引0，偏移 = 输入个数(2) + 输出索引(0) = 2
+      EXPECT_EQ(t.argsOffSet, 2);  // 输出索引0，偏移 = 输入个数(2) + 输出索引(0) = 2
     }
   }
   EXPECT_TRUE(has_input && has_output);
@@ -6832,27 +6832,27 @@ TEST_F(DavinciModelTest, Adump_Workspace) {
 
   OpDescPtr op_desc = CreateOpDesc("test", "Test");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->AddOutputDesc(tensor);
   op_desc->SetWorkspaceBytes({64, 128});
   // 设置工作空间地址（先保存任务，再设置地址）
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x1234);
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, true, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, true, fake_stream);
   std::vector<uint64_t> space_addrs = {0x3000U, 0x4000U};
   dumper.SetWorkSpaceAddr(op_desc, space_addrs);
 
   ResetAdumpRecord();
-  const auto& dump_info = dumper.op_list_.back();
+  const auto &dump_info = dumper.op_list_.back();
   Status ret = dumper.DumpOpWithAdump(dump_info);
   EXPECT_EQ(ret, SUCCESS);
 
   EXPECT_EQ(g_adump_record.call_count, 1);
-  const auto& tensors = g_adump_record.tensors;
+  const auto &tensors = g_adump_record.tensors;
   // 应包含输入、输出、两个工作空间
   EXPECT_EQ(tensors.size(), 4);
   int workspace_count = 0;
-  for (const auto& t : tensors) {
+  for (const auto &t : tensors) {
     if (t.type == Adx::TensorType::WORKSPACE) workspace_count++;
   }
   EXPECT_EQ(workspace_count, 2);
@@ -6870,7 +6870,7 @@ TEST_F(DavinciModelTest, Adump_RawAddressMode) {
 
   OpDescPtr op_desc = CreateOpDesc("raw_op", "Raw");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->AddOutputDesc(tensor);
 
@@ -6878,7 +6878,7 @@ TEST_F(DavinciModelTest, Adump_RawAddressMode) {
   DataDumper::InnerDumpInfo dump_info;
   dump_info.op = op_desc;
   dump_info.is_raw_address = true;
-  dump_info.address = {0x1000, 0x2000}; // 输入地址，输出地址
+  dump_info.address = {0x1000, 0x2000};  // 输入地址，输出地址
   dump_info.stream = reinterpret_cast<rtStream_t>(0x5678);
   dump_info.is_op_debug = false;
   dump_info.cust_to_relevant_offset_ = {};
@@ -6888,7 +6888,7 @@ TEST_F(DavinciModelTest, Adump_RawAddressMode) {
   EXPECT_EQ(ret, SUCCESS);
 
   EXPECT_EQ(g_adump_record.call_count, 1);
-  const auto& tensors = g_adump_record.tensors;
+  const auto &tensors = g_adump_record.tensors;
   // 输入+输出
   EXPECT_EQ(tensors.size(), 2);
   EXPECT_EQ(tensors[0].type, Adx::TensorType::INPUT);
@@ -6909,7 +6909,7 @@ TEST_F(DavinciModelTest, Adump_PrintTask) {
 
   OpDescPtr op_desc = CreateOpDesc("print_op", "Print");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   op_desc->AddInputDesc(tensor);
   op_desc->SetWorkspaceBytes({64});
 
@@ -6946,7 +6946,7 @@ TEST_F(DavinciModelTest, Adump_InputNode) {
   // 构造输入映射：模拟一个 Data 节点连接到当前节点
   OpDescPtr data_op = CreateOpDesc("data", "Data");
   GeTensorDesc tensor(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
-  TensorUtils::SetSize(tensor, 1*2*3*4*sizeof(float));
+  TensorUtils::SetSize(tensor, 1 * 2 * 3 * 4 * sizeof(float));
   data_op->AddOutputDesc(tensor);
 
   OpDescPtr op_desc = CreateOpDesc("conv", "conv");
@@ -6956,13 +6956,12 @@ TEST_F(DavinciModelTest, Adump_InputNode) {
   // 由于 SaveDumpInput 需要 Node，我们可以构造一个简单的 Node 对象
   auto node = std::make_shared<Node>(op_desc, nullptr);
   auto input_node = std::make_shared<Node>(data_op, nullptr);
-  dumper.input_map_.insert({op_desc->GetName(),
-                            {data_op, 0, 0}});  // 输入节点 data_op，输入索引0，输出索引0
+  dumper.input_map_.insert({op_desc->GetName(), {data_op, 0, 0}});  // 输入节点 data_op，输入索引0，输出索引0
 
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x2222);
   // 保存主任务，内部会处理输入节点
   ResetAdumpRecord();
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   // 验证 Adump 被调用（主算子一次，输入节点一次，共两次）
   EXPECT_EQ(g_adump_record.call_count, 1);
@@ -7001,7 +7000,7 @@ TEST_F(DavinciModelTest, Adump_InputNodeOutputUseInputAnchorOffset) {
 
   rtStream_t fake_stream = reinterpret_cast<rtStream_t>(0x3333);
   ResetAdumpRecord();
-  dumper.SaveDumpTask({0,0,0,0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
+  dumper.SaveDumpTask({0, 0, 0, 0}, op_desc, 0x1000, {}, {}, ModelTaskType::MODEL_TASK_KERNEL, false, fake_stream);
 
   EXPECT_EQ(g_adump_record.call_count, 2);
   EXPECT_EQ(g_adump_record.op_name, "data");
@@ -7110,13 +7109,13 @@ TEST_F(DavinciModelTest, DavinciModelExecute_SubgraphDump_Blacklist_RootGraph) {
   // ========== 构建根图 ==========
   // data_0 节点：先清空偏移量，再添加描述符和正确偏移量
   auto data_0 = CreateOpDesc("data_0", DATA);
-  data_0->SetOutputOffset({});      // 清空默认的 {100,200}
-  data_0->SetInputOffset({});       // 清空默认的 {100,200}
+  data_0->SetOutputOffset({});  // 清空默认的 {100,200}
+  data_0->SetInputOffset({});   // 清空默认的 {100,200}
   GeTensorDesc tensor(GeShape(kTensorDim), FORMAT_ND, DT_FLOAT);
   TensorUtils::SetSize(tensor, kSizePerTensor);
   data_0->AddOutputDesc(tensor);
-  data_0->SetOutputOffset({0});     // 输出偏移量
-  data_0->AddInputDesc(tensor);     // 添加虚拟输入描述符，避免 InitInputDescInfo 空指针
+  data_0->SetOutputOffset({0});  // 输出偏移量
+  data_0->AddInputDesc(tensor);  // 添加虚拟输入描述符，避免 InitInputDescInfo 空指针
 
   // conv_0 节点
   auto conv_0 = CreateOpDesc("conv_0", CONV2D);
@@ -7247,4 +7246,4 @@ TEST_F(DavinciModelTest, DavinciModelExecute_SubgraphDump_Blacklist_RootGraph) {
 
   DumpManager::GetInstance().RemoveDumpProperties(session_id);
 }
-} // namespace ge
+}  // namespace ge

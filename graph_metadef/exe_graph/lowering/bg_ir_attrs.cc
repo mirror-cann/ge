@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,7 +66,7 @@ bool AppendTensorAttr(const ge::AnyValue &attr, std::vector<std::vector<uint8_t>
   if (copy_len != 0U) {
     GE_CHECK_GE(val->GetData().size(), total_size - sizeof(Tensor));
     const auto ret_copy = ge::GeMemcpy(tensor->GetData<uint8_t>(), total_size - sizeof(Tensor),
-        val->GetData().GetData(), total_size - sizeof(Tensor));
+                                       val->GetData().GetData(), total_size - sizeof(Tensor));
     GE_ASSERT_TRUE((ret_copy == ge::SUCCESS), "memcpy_s failed, copy size is %zu", (total_size - sizeof(Tensor)));
   }
 
@@ -96,8 +96,8 @@ bool GetAllIrAttrs(const ge::NodePtr &node, std::vector<std::vector<uint8_t>> &r
     const std::map<std::string, ge::AnyValue>::const_iterator &iter = all_attrs.find(attr_name);
     if (iter == all_attrs.cend()) {
       runtime_attrs.clear();
-      GELOGI("Cannot find the IR attr %s from node %s(%s), clear all attrs",
-             attr_name.c_str(), node->GetNamePtr(), node->GetTypePtr());
+      GELOGI("Cannot find the IR attr %s from node %s(%s), clear all attrs", attr_name.c_str(), node->GetNamePtr(),
+             node->GetTypePtr());
       return true;
     }
     GE_ASSERT_TRUE(AppendAttrTensor(iter->second, runtime_attrs));
@@ -110,8 +110,7 @@ std::unique_ptr<uint8_t[]> CreateAttrBuffer(const ge::NodePtr &node, size_t &siz
 }
 
 std::unique_ptr<uint8_t[]> CreateAttrBuffer(const ge::NodePtr &node,
-                                            const std::vector<ge::AnyValue> &runtime_attrs_list,
-                                            size_t &size) {
+                                            const std::vector<ge::AnyValue> &runtime_attrs_list, size_t &size) {
   std::vector<std::vector<uint8_t>> runtime_attrs;
   GE_ASSERT_TRUE(GetAllIrAttrs(node, runtime_attrs));
   for (auto &runtime_attr : runtime_attrs_list) {

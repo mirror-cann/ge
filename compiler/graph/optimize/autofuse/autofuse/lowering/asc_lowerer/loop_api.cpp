@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -119,10 +119,10 @@ KernelBox SetLoopKernel(const ge::OutDataAnchorPtr &dst, const LoopVar &result) 
   }
   if (meta->type == FuseType::kSplit && !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_split) {
     GELOGI(
-      "Drop lower result %s of %s as disabled, you can enable it by setting "
-      "AUTOFUSE_FLAGS=\"--autofuse_enable_pass=split\""
-      "and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=split\"",
-           result.Readable().c_str(), BufferName(dst).c_str());
+        "Drop lower result %s of %s as disabled, you can enable it by setting "
+        "AUTOFUSE_FLAGS=\"--autofuse_enable_pass=split\""
+        "and unsetting AUTOFUSE_FLAGS=\"--autofuse_disable_pass=split\"",
+        result.Readable().c_str(), BufferName(dst).c_str());
     meta->type = FuseType::kExtern;
   }
   if (meta->type == FuseType::kSliceSplit && !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_slice) {
@@ -191,11 +191,12 @@ graphStatus GetScalarFromInput(const ge::InDataAnchorPtr &src, ge::loop::LoopVar
   } else if (dtype == ge::DT_UINT16) {
     uint16_t tensor_val = *reinterpret_cast<const uint16_t *>(val_tensor.GetData());
     value = loop::Scalar(to_string(tensor_val), dtype);
-  }else if (dtype == ge::DT_UINT32) {
+  } else if (dtype == ge::DT_UINT32) {
     uint32_t tensor_val = *reinterpret_cast<const uint32_t *>(val_tensor.GetData());
     value = loop::Scalar(to_string(tensor_val), dtype);
   } else {
-    GE_WARN_ASSERT(dtype == ge::DT_FLOAT16, "Const Scalar only support {DT_FLOAT, DT_INT8, DT_INT32, DT_UINT8, DT_INT16, DT_UINT16, DT_UINT32}");
+    GE_WARN_ASSERT(dtype == ge::DT_FLOAT16,
+                   "Const Scalar only support {DT_FLOAT, DT_INT8, DT_INT32, DT_UINT8, DT_INT16, DT_UINT16, DT_UINT32}");
     GELOGW("Unable to tran not support DT_FLOAT16");
     return GRAPH_FAILED;
   }
@@ -217,11 +218,11 @@ LoopVar Load(const ge::InDataAnchorPtr &src) {
 }
 
 LoopVar GatherLoad(const ge::OutDataAnchorPtr &dst, const ge::InDataAnchorPtr &params,
-    const ge::InDataAnchorPtr &indices, int64_t axis, bool negative_index_support) {
+                   const ge::InDataAnchorPtr &indices, int64_t axis, bool negative_index_support) {
   std::vector<Expression> dims;
-  GE_WARN_ASSERT(GetBufferShape(dst, dims) == GRAPH_SUCCESS,
-    "Drop lower result of %s as it has no sym shape", BufferName(dst).c_str());
-  
+  GE_WARN_ASSERT(GetBufferShape(dst, dims) == GRAPH_SUCCESS, "Drop lower result of %s as it has no sym shape",
+                 BufferName(dst).c_str());
+
   std::vector<GatherInput> inputs;
   std::vector<std::vector<Expression>> input_dims;
   inputs.emplace_back(GatherInput{params, {}});
@@ -231,17 +232,18 @@ LoopVar GatherLoad(const ge::OutDataAnchorPtr &dst, const ge::InDataAnchorPtr &p
   std::vector<ge::OutDataAnchorPtr> outputs;
   for (size_t i = 0U; i < inputs.size(); i++) {
     GE_WARN_ASSERT(inputs[i].input_anchor != nullptr && inputs[i].input_anchor->GetPeerOutAnchor() != nullptr,
-      "Drop lower result of %s as input %zu is nullptr", BufferName(dst).c_str(), i);
+                   "Drop lower result of %s as input %zu is nullptr", BufferName(dst).c_str(), i);
 
     outputs.emplace_back(inputs[i].input_anchor->GetPeerOutAnchor());
 
     const auto buffer = inputs[i].input_anchor->GetPeerOutAnchor().get();
     GE_WARN_ASSERT(GetBufferShape(buffer, inputs[i].input_dim) == GRAPH_SUCCESS,
-      "Drop lower result of %s as input %s has no sym shape", BufferName(dst).c_str(),
-      BufferName(buffer).c_str());
+                   "Drop lower result of %s as input %s has no sym shape", BufferName(dst).c_str(),
+                   BufferName(buffer).c_str());
   }
   GE_WARN_ASSERT(outputs.size() == inputs.size());
-  auto loop_var = LoopVar(std::make_shared<LoadGatherOp>(dst.get(), outputs, inputs, dims, axis, negative_index_support));
+  auto loop_var =
+      LoopVar(std::make_shared<LoadGatherOp>(dst.get(), outputs, inputs, dims, axis, negative_index_support));
   return loop_var;
 }
 
@@ -296,10 +298,10 @@ KernelBox StoreReduction(ReduceType type, const ge::OutDataAnchorPtr &dst, const
     }
     GELOGI("Optimize reduce %s to squeeze as not keep dim", node->GetName().c_str());
     auto ordered_reduced_axis = reduced_axis;
-    sort( ordered_reduced_axis.begin(),  ordered_reduced_axis.end());
+    sort(ordered_reduced_axis.begin(), ordered_reduced_axis.end());
     auto x = src;
-    for (size_t i = 0; i <  ordered_reduced_axis.size(); ++i) {
-      x = loop::Squeeze(x, static_cast<int64_t>( ordered_reduced_axis[i] - i));
+    for (size_t i = 0; i < ordered_reduced_axis.size(); ++i) {
+      x = loop::Squeeze(x, static_cast<int64_t>(ordered_reduced_axis[i] - i));
     }
     return loop::Store(dst, x);
   }
@@ -372,7 +374,7 @@ KernelBox StorePack(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDat
   return SetLoopKernel(dst, loop_var).Realize();
 }
 
-bool IsNumber(const std::string& s) {
+bool IsNumber(const std::string &s) {
   std::regex pattern(
       "^("
       // 十进制数字
@@ -389,8 +391,7 @@ bool IsNumber(const std::string& s) {
       "|"
       // 纯十六进制（无前缀）
       "[0-9a-fA-F]+"
-      ")$"
-  );
+      ")$");
   return std::regex_match(s, pattern);
 }
 
@@ -421,7 +422,7 @@ LoopVar Broadcast(const LoopVar &op, std::vector<Expression> src, std::vector<Ex
     // [s0]，s1和s0会guard相等，此时判断s0和s1相等要返回true
     if (EXPECT_SYMBOL_EQ(src_p[i], dst_p[i])) {
       status.push_back(BroadcastOp::DimKind::NORMAL);
-    } else if (EXPECT_SYMBOL_EQ(src_p[i], Symbol(1))){
+    } else if (EXPECT_SYMBOL_EQ(src_p[i], Symbol(1))) {
       status.push_back(BroadcastOp::DimKind::BROADCAST);
     } else {
       GELOGW("Failed broadcast %s to %s", src_p[i].Str().get(), dst_p[i].Str().get());
@@ -514,11 +515,9 @@ bool IsSameBatchSize(const std::vector<std::vector<Expression>> &input_dims) {
 }
 
 namespace {
-bool ValidateAndLoadInputs(const ge::OutDataAnchorPtr &dst,
-                          const std::vector<ge::InDataAnchorPtr> &inputs,
-                          std::vector<LoopOpPtr> &input_buffers,
-                          std::vector<std::vector<Expression>> &input_dims,
-                          size_t &max_dim) {
+bool ValidateAndLoadInputs(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
+                           std::vector<LoopOpPtr> &input_buffers, std::vector<std::vector<Expression>> &input_dims,
+                           size_t &max_dim) {
   input_dims.resize(inputs.size());
   max_dim = 0U;
   for (size_t i = 0U; i < inputs.size(); i++) {
@@ -635,7 +634,8 @@ LoopVar Unsqueeze(const LoopVar &op, int64_t dim) {
   return LoopVar(std::make_shared<UnsqueezeOp>(op.Op(), dim));
 }
 
-bool CheckAndGetDims(const std::vector<Expression> &long_dims, const std::vector<Expression> &short_dims, std::vector<int64_t> &dims) {
+bool CheckAndGetDims(const std::vector<Expression> &long_dims, const std::vector<Expression> &short_dims,
+                     std::vector<int64_t> &dims) {
   std::vector<bool> is_exist(long_dims.size(), false);
   size_t dims_idx = 0U;
   for (const auto &short_dim : short_dims) {
@@ -672,8 +672,7 @@ bool CheckAndGetDims(const std::vector<Expression> &long_dims, const std::vector
 // 新增支持 [A*B, C]->[A,B,C]/[A,B,C]->[A*B,C]
 LoopVar Reshape(const LoopVar &op, const std::vector<Expression> &src_dims, const std::vector<Expression> &dst_dims) {
   std::vector<int64_t> dims_new;
-  GE_WARN_ASSERT(src_dims.size() != dst_dims.size(),
-               "Input dims size equal than output dims");
+  GE_WARN_ASSERT(src_dims.size() != dst_dims.size(), "Input dims size equal than output dims");
   LoopVar reshape = op;
   size_t short_idx = 0U;
   std::vector<size_t> mul_idx;
@@ -705,8 +704,7 @@ LoopVar Reshape(const LoopVar &op, const std::vector<Expression> &src_dims, cons
   return LoopVar();
 }
 
-bool IsInvalidTranspose(const std::vector<ge::Expression> &dims,
-                        const std::vector<int64_t> &perm,
+bool IsInvalidTranspose(const std::vector<ge::Expression> &dims, const std::vector<int64_t> &perm,
                         std::vector<int64_t> &squeeze_axis) {
   GE_ASSERT_TRUE(dims.size() == perm.size(), "dims and perm dimensions are not equal.");
   // 1.过滤掉dim为1的轴
@@ -716,7 +714,7 @@ bool IsInvalidTranspose(const std::vector<ge::Expression> &dims,
     auto in_dim_hint = -1;
     GE_ASSERT_TRUE(dims[i].GetHint(in_dim_hint), "Failed to get int value, expr = %s",
                    ge::SymbolicUtils::ToString(dims[i]).c_str());
-    if (in_dim_hint != 1){
+    if (in_dim_hint != 1) {
       filtered_input_axis.push_back(i);
     } else {
       squeeze_axis.push_back(static_cast<int64_t>(i));
@@ -734,10 +732,10 @@ bool IsInvalidTranspose(const std::vector<ge::Expression> &dims,
                  "After filtering out dim1 axes, input and output dimensions are not equal.");
   for (size_t i = 0U; i < filtered_input_axis.size(); ++i) {
     if (filtered_input_axis[i] != filtered_output_axis[i]) {
-      return false; // 有效的转置
+      return false;  // 有效的转置
     }
   }
-  return true; // 无效的转置，可以用squeeze优化
+  return true;  // 无效的转置，可以用squeeze优化
 }
 
 LoopVar Transpose(const LoopVar &op, const std::vector<ge::Expression> &dims, const std::vector<int64_t> &perm) {
@@ -767,7 +765,8 @@ LoopVar LoadSeed(const std::string &name, const LoopVar &offset) {
     return ss.str();
   };
   std::vector<LoopOpPtr> inputs = {offset.Op()};
-  return LoopVar(std::make_shared<PointwiseOp>(kernel, std::move(inputs), "ops.LoadSeed", std::move(readable), UnimplementInferDatatype));
+  return LoopVar(std::make_shared<PointwiseOp>(kernel, std::move(inputs), "ops.LoadSeed", std::move(readable),
+                                               UnimplementInferDatatype));
 }
 
 LoopVar ReduceThenBroadcast(ReduceType type, const LoopVar &op, int64_t dim) {
@@ -867,7 +866,8 @@ LoopVar StoreStridedSlice(const OutDataAnchorPtr &dst, const InDataAnchorPtr &sr
   return LoopVar(std::make_shared<StoreStridedSliceOp>(dst, Load(src).Op(), config, output_dims, input_dims));
 }
 
-std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs, const InDataAnchorPtr &src, size_t split_dim, string &not_lowering_reason) {
+std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs, const InDataAnchorPtr &src,
+                                size_t split_dim, string &not_lowering_reason) {
   if (src->GetPeerOutAnchor() != nullptr) {
     auto kernel_box = loop::GetKernelBox(src->GetPeerOutAnchor());
     GELOGI("kernel box name: %s", kernel_box.Name().c_str());
@@ -903,10 +903,16 @@ std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs, co
   GELOGI("soc_version: %s", soc_version);
   size_t idx = 0U;
   std::vector<LoopVar> ret;
-  auto src_op=Load(src).Op();
-  for (auto output: outputs) {
+  auto src_op = Load(src).Op();
+  for (auto output : outputs) {
     StoreSplitOp::StoreSplitDescBuilder builder;
-    auto desc = builder.Output(output).SrcOp(src_op).InputDims(input_dims).OutputDims(output_dims).SplitDim(split_dim).Index(idx++).Build();
+    auto desc = builder.Output(output)
+                    .SrcOp(src_op)
+                    .InputDims(input_dims)
+                    .OutputDims(output_dims)
+                    .SplitDim(split_dim)
+                    .Index(idx++)
+                    .Build();
     auto op = std::make_shared<StoreSplitOp>(desc);
     auto loop_var = LoopVar(op);
     ret.emplace_back(loop_var);

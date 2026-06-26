@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,8 +66,7 @@ std::string GetStrTaskIdByMap(const std::map<uint64_t, int64_t> &task_scope_id_m
 
 void PrintOutputInplace(const ge::OpDescPtr &opdesc, const vector<vector<int64_t>> &inplace);
 
-void GetIrIdexInstance(const ge::OpDescPtr &opdesc, 
-                       std::map<size_t, std::pair<size_t, size_t>> &input_ir_real_index,
+void GetIrIdexInstance(const ge::OpDescPtr &opdesc, std::map<size_t, std::pair<size_t, size_t>> &input_ir_real_index,
                        std::map<size_t, std::pair<size_t, size_t>> &output_ir_real_index);
 
 Status TransDtypeToString(const ge::DataType &dtype, string &dtype_string);
@@ -75,7 +74,7 @@ Status TransDtypeToString(const ge::DataType &dtype, string &dtype_string);
 Status TransStringToDtype(const string &dtype_str, ge::DataType &dtype);
 
 template <typename T, typename... Args>
-static inline std::shared_ptr<T> FeComGraphMakeShared(Args &&... args) {
+static inline std::shared_ptr<T> FeComGraphMakeShared(Args &&...args) {
   using T_nc = typename std::remove_const<T>::type;
   std::shared_ptr<T> ret(new (std::nothrow) T_nc(std::forward<Args>(args)...));
   return ret;
@@ -94,40 +93,40 @@ static inline std::shared_ptr<T> FeComGraphMakeShared(Args &&... args) {
 
 // Print the log of time cost of stage to info.
 #define FE_TIMECOST_END_LOGI(stage, stage_name)                                         \
-  do {                                                                                     \
+  do {                                                                                  \
     int64_t end_usec_##stage = GetMicroSecondTime();                                    \
     FE_LOGI("[FE_PERFORMANCE]The time cost of %s is [%ld] micro second.", (stage_name), \
             (end_usec_##stage - start_usec_##stage));                                   \
   } while (false)
 
-#define RUN_AND_DUMP_WITH_TIMESTAMP_NAME(var_name, prefix, name, func, ...)              \
-  do {                                                                                   \
-    FE_TIMECOST_START(var_name);                                                         \
-    const auto ret_inner_macro = (func)(__VA_ARGS__);                                    \
-    FE_TIMECOST_END(var_name, #prefix "::" #func);                                       \
-    if (ret_inner_macro != SUCCESS) {                                                    \
-      FE_LOGE("[Process][" #prefix "_" #func "] failed");                                \
-      FE_DUMP(graph, name "_Failed");                                                    \
-      return ret_inner_macro;                                                            \
-    };                                                                                   \
-    FE_DUMP(graph, name);                                                                \
+#define RUN_AND_DUMP_WITH_TIMESTAMP_NAME(var_name, prefix, name, func, ...) \
+  do {                                                                      \
+    FE_TIMECOST_START(var_name);                                            \
+    const auto ret_inner_macro = (func)(__VA_ARGS__);                       \
+    FE_TIMECOST_END(var_name, #prefix "::" #func);                          \
+    if (ret_inner_macro != SUCCESS) {                                       \
+      FE_LOGE("[Process][" #prefix "_" #func "] failed");                   \
+      FE_DUMP(graph, name "_Failed");                                       \
+      return ret_inner_macro;                                               \
+    };                                                                      \
+    FE_DUMP(graph, name);                                                   \
   } while (false)
 
-#define RUN_WITH_TIMESTAMP_NAME(var_name, prefix, func, ...)                             \
-  do {                                                                                   \
-    FE_TIMECOST_START(var_name);                                                         \
-    const auto ret_inner_macro = (func)(__VA_ARGS__);                                    \
-    FE_TIMECOST_END(var_name, #prefix "::" #func);                                       \
-    if (ret_inner_macro != SUCCESS) {                                                    \
-      FE_LOGE("[Process][" #prefix "_" #func "] failed");                                \
-      return ret_inner_macro;                                                            \
-    }                                                                                    \
+#define RUN_WITH_TIMESTAMP_NAME(var_name, prefix, func, ...) \
+  do {                                                       \
+    FE_TIMECOST_START(var_name);                             \
+    const auto ret_inner_macro = (func)(__VA_ARGS__);        \
+    FE_TIMECOST_END(var_name, #prefix "::" #func);           \
+    if (ret_inner_macro != SUCCESS) {                        \
+      FE_LOGE("[Process][" #prefix "_" #func "] failed");    \
+      return ret_inner_macro;                                \
+    }                                                        \
   } while (false)
 
-#define FE_DUMP(graph, name)                                                             \
-  do {                                                                                   \
-    FeGraphUtils::DumpGraphAndOnnx(graph, name);                                         \
-    FeGraphUtils::DumpSubGraphAndOnnx(graph, name "_Subgraph");                          \
+#define FE_DUMP(graph, name)                                    \
+  do {                                                          \
+    FeGraphUtils::DumpGraphAndOnnx(graph, name);                \
+    FeGraphUtils::DumpSubGraphAndOnnx(graph, name "_Subgraph"); \
   } while (false)
 
 #define JOIN_NAME_INNER(a, b) a##b

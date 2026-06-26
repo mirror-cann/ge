@@ -20,8 +20,7 @@ struct PythonPassDescriptor;
 struct PythonFusionPassCallbacks;
 
 struct PythonFusionPassRegistrar {
-  bool (*register_pass)(const PythonPassDescriptor *pass_desc,
-                        const PythonFusionPassCallbacks *callbacks);
+  bool (*register_pass)(const PythonPassDescriptor *pass_desc, const PythonFusionPassCallbacks *callbacks);
 };
 
 struct PythonFusionPassBridgeArtifactConfig {
@@ -42,7 +41,7 @@ constexpr const char *kPythonFusionPassBridgeGetApiSymbol = "GeGetPythonFusionPa
 }  // namespace fusion
 }  // namespace ge
 
-extern "C" __attribute__((visibility("default")))
-const ge::fusion::PythonFusionPassBridgeApi *GeGetPythonFusionPassBridgeApi();
+extern "C" __attribute__((visibility("default"))) const ge::fusion::PythonFusionPassBridgeApi *
+GeGetPythonFusionPassBridgeApi();
 
 #endif  // CANN_GRAPH_ENGINE_PYTHON_PASS_BRIDGE_C_API_H

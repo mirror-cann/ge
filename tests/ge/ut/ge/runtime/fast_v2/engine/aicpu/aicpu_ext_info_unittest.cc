@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,8 @@ TEST_F(AicpuExtInfoUT, test_parse_and_update) {
   alloc_handle_context.value_holder[7].Set(device_args_addr.get(), nullptr);
   alloc_handle_context.value_holder[8].Set(reinterpret_cast<void *>(session_id), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->run_func(alloc_handle_context), ge::GRAPH_SUCCESS);
 
   auto ext_handle = alloc_handle_context.GetContext<KernelContext>()->GetOutputPointer<AicpuExtInfoHandler>(0U);
@@ -88,7 +89,8 @@ TEST_F(AicpuExtInfoUT, test_parse_and_update) {
   get_ext_output_shapes_ctx.value_holder[2].Set(reinterpret_cast<void *>(output_num), nullptr);
   StorageShape storage_shape;
   get_ext_output_shapes_ctx.value_holder[3].Set(&storage_shape, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->outputs_creator(nullptr, get_ext_output_shapes_ctx), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->outputs_creator(nullptr, get_ext_output_shapes_ctx),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->run_func(get_ext_output_shapes_ctx), ge::GRAPH_SUCCESS);
   ret = registry.FindKernelFuncs("GetExtOutputShapes")->trace_printer(get_ext_output_shapes_ctx);
   EXPECT_FALSE(ret.empty());
@@ -117,7 +119,8 @@ TEST_F(AicpuExtInfoUT, test_parse_and_update_worksapce_info) {
   alloc_handle_context.value_holder[7].Set(device_args_addr.get(), nullptr);
   alloc_handle_context.value_holder[8].Set(reinterpret_cast<void *>(session_id), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->run_func(alloc_handle_context), ge::GRAPH_SUCCESS);
 
   auto ext_handle = alloc_handle_context.GetContext<KernelContext>()->GetOutputPointer<AicpuExtInfoHandler>(0U);
@@ -169,7 +172,8 @@ TEST_F(AicpuExtInfoUT, test_cpy_host_cpu_output_shape) {
   alloc_handle_context.value_holder[7].Set(device_args_addr, nullptr);
   alloc_handle_context.value_holder[8].Set(reinterpret_cast<void *>(session_id), nullptr);
 
-  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->outputs_creator(nullptr, alloc_handle_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("BuildExtInfoHandle")->run_func(alloc_handle_context), ge::GRAPH_SUCCESS);
 
   auto ext_handle = alloc_handle_context.GetContext<KernelContext>()->GetOutputPointer<AicpuExtInfoHandler>(0U);
@@ -182,7 +186,8 @@ TEST_F(AicpuExtInfoUT, test_cpy_host_cpu_output_shape) {
   get_ext_output_shapes_ctx.value_holder[2].Set(reinterpret_cast<void *>(output_num), nullptr);
   StorageShape storage_shape;
   get_ext_output_shapes_ctx.value_holder[3].Set(&storage_shape, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->outputs_creator(nullptr, get_ext_output_shapes_ctx), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->outputs_creator(nullptr, get_ext_output_shapes_ctx),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("GetExtOutputShapes")->run_func(get_ext_output_shapes_ctx), ge::GRAPH_SUCCESS);
   alloc_handle_context.FreeValue(8);
 }
@@ -220,16 +225,24 @@ TEST_F(AicpuExtInfoUT, test_FillWorkSpace) {
 
   NodeDumpUnit dump_unit;
   gert::ExecutorDataDumpInfoWrapper wrapper(&dump_unit);
-  ASSERT_NE(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->data_dump_info_filler(update_workspace_info_ctx, wrapper), ge::GRAPH_SUCCESS);
+  ASSERT_NE(
+      registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->data_dump_info_filler(update_workspace_info_ctx, wrapper),
+      ge::GRAPH_SUCCESS);
 
   ExceptionDumpUint exception_dump_unit;
   ExecutorExceptionDumpInfoWrapper exception_wrapper(&exception_dump_unit);
-  ASSERT_NE(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->exception_dump_info_filler(update_workspace_info_ctx, exception_wrapper), ge::GRAPH_SUCCESS);
+  ASSERT_NE(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")
+                ->exception_dump_info_filler(update_workspace_info_ctx, exception_wrapper),
+            ge::GRAPH_SUCCESS);
 
   update_workspace_info_ctx.value_holder[1].Set(&temp_buffer, nullptr);
-  ASSERT_EQ(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->data_dump_info_filler(update_workspace_info_ctx, wrapper), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(
+      registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->data_dump_info_filler(update_workspace_info_ctx, wrapper),
+      ge::GRAPH_SUCCESS);
 
-  ASSERT_EQ(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")->exception_dump_info_filler(update_workspace_info_ctx, exception_wrapper), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("UpdateExtWorkSpaceInfo")
+                ->exception_dump_info_filler(update_workspace_info_ctx, exception_wrapper),
+            ge::GRAPH_SUCCESS);
 }
 
 }  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,8 +69,7 @@ ge::graphStatus FftsRtParseAndTiling(const ge::Operator &op, const fe::PlatFormI
 namespace utils {
 ByteBuffer tiling_data_;
 
-OpRunInfo::OpRunInfo() {
-}
+OpRunInfo::OpRunInfo() {}
 
 OpRunInfo::OpRunInfo(const uint32_t &block_dim, const bool &clear_atomic, const uint64_t &tiling_key) {
   (void)block_dim;
@@ -130,10 +129,9 @@ void OpRunInfo::AddTilingData(const ge::char_t *value, const size_t size) {
   (void)size;
 }
 
-void OpRunInfo::AlignOffsetWith64() {
-}
+void OpRunInfo::AlignOffsetWith64() {}
 
-void* OpRunInfo::GetAddrBase(uint64_t& max_size) const {
+void *OpRunInfo::GetAddrBase(uint64_t &max_size) const {
   (void)max_size;
   return nullptr;
 }
@@ -168,8 +166,7 @@ uint64_t OpRunInfo::GetTilingKey() const {
   return 0U;
 }
 
-void OpRunInfo::ResetWorkspace() {
-}
+void OpRunInfo::ResetWorkspace() {}
 
 void OpRunInfo::ResetAddrBase(void *const addr_base, const uint64_t max_size) {
   (void)addr_base;
@@ -183,5 +180,5 @@ void OpRunInfo::SetTilingCond(const int32_t tiling_cond) {
 int32_t OpRunInfo::GetTilingCond() const {
   return 0;
 }
-}
+}  // namespace utils
 }  // namespace optiling

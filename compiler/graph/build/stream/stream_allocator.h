@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,7 @@
 #include "graph/utils/node_utils.h"
 
 namespace ge {
-enum class EventType : std::uint32_t
-{
+enum class EventType : std::uint32_t {
   kEvent,
   kNotify,
 };
@@ -95,11 +94,12 @@ class StreamAllocator {
 
   Status InsertSyncNodesByLogicStream(int64_t &stream_num, int64_t &event_num, int64_t &notify_num);
 
-  Status SplitStreamAndRefreshTaskDef(
-      std::unordered_map<int64_t , std::vector<domi::TaskDef>> &node_id_2_node_tasks, int64_t &stream_num,
-      int64_t &event_num, int64_t &notify_num);
+  Status SplitStreamAndRefreshTaskDef(std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_2_node_tasks,
+                                      int64_t &stream_num, int64_t &event_num, int64_t &notify_num);
 
-  const std::vector<int64_t> &GetHugeStreams() const { return huge_streams_; }
+  const std::vector<int64_t> &GetHugeStreams() const {
+    return huge_streams_;
+  }
   const std::vector<uint32_t> &GetNotifyTypes() const {
     return notify_types_;
   }
@@ -121,8 +121,8 @@ class StreamAllocator {
   Status InsertSyncEvents(const EventType insert_event_type);
   Status InsertSyncEventsWithAttachedStream(const EventType insert_event_type);
   Status InsertOneEventInTwoNodes(const EventType insert_event_type, const NodePtr &cur_node, const NodePtr &next_node);
-  Status InsertOneEventInTwoNodesWithAttachedStream(const EventType insert_event_type,
-                                                    const NodePtr &src_node, const NodePtr &dst_node);
+  Status InsertOneEventInTwoNodesWithAttachedStream(const EventType insert_event_type, const NodePtr &src_node,
+                                                    const NodePtr &dst_node);
   Status InsertEventsForSubgraph(const EventType insert_event_type);
 
   void BuildEventReuseMap(const EventType event_type, const std::vector<uint32_t> &events,
@@ -162,9 +162,9 @@ class StreamAllocator {
                                  const std::vector<std::set<int64_t>> &split_streams = {});
   Status CheckStreamActived() const;
 
-  Status ReuseEvent(bool send_to,
-    const std::unordered_map<std::string, ge::NodePtr> &name_to_node_map,
-    const std::unordered_map<ge::NodePtr, std::vector<std::pair<std::string, uint32_t>>> &node_to_event_id);
+  Status ReuseEvent(
+      bool send_to, const std::unordered_map<std::string, ge::NodePtr> &name_to_node_map,
+      const std::unordered_map<ge::NodePtr, std::vector<std::pair<std::string, uint32_t>>> &node_to_event_id);
   Status RefreshEventsAndNotifiesWithReuse();
   // is_reuse_event = true means reuse for event, false means reuse for notify
   Status ReuseEventForMultiDims(const EventType event_type,
@@ -231,7 +231,7 @@ class StreamAllocator {
   ComputeGraphPtr whole_graph_;
   const Graph2SubGraphInfoList &subgraphs_;
 
-  int64_t stream_num_{0}; // main_stream_num + attach_stream_num
+  int64_t stream_num_{0};  // main_stream_num + attach_stream_num
   int64_t main_stream_num_{0};
   uint32_t notify_num_{0};
   std::vector<uint32_t> notify_types_;
@@ -277,8 +277,8 @@ class StreamAllocator {
 
   // send events and recv events for node with attached stream, split stream use
   // node may have multi attached stream(SuperKernel)
-  Node2AttachedStreamId2EventId  attached_node_to_stream_id_to_send_event_id_;
-  Node2AttachedStreamId2EventId  attached_node_to_stream_id_to_recv_event_id_;
+  Node2AttachedStreamId2EventId attached_node_to_stream_id_to_send_event_id_;
+  Node2AttachedStreamId2EventId attached_node_to_stream_id_to_recv_event_id_;
 };
 }  // namespace ge
 #endif  // GE_GRAPH_BUILD_STREAM_STREAM_ALLOCATOR_H_

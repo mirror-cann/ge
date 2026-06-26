@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,9 +46,7 @@ class AippOp : public BaseInsertOp {
   Status GetTargetPosition(ComputeGraphPtr graph, NodePtr &target_input,
                            std::vector<std::pair<OutDataAnchorPtr, InDataAnchorPtr>> &target_edges) override;
 
-  Status InsertAippToGraph(ComputeGraphPtr &graph,
-                           std::string &aippConfigPath,
-                           const uint32_t index) override ;
+  Status InsertAippToGraph(ComputeGraphPtr &graph, std::string &aippConfigPath, const uint32_t index) override;
 
   domi::AippOpParams::AippMode GetAippMode() override;
 
@@ -56,17 +54,17 @@ class AippOp : public BaseInsertOp {
   AippOp &operator=(const AippOp &aipp_op);
   AippOp(const AippOp &aipp_op);
   std::string ConvertParamToJson() const;
-  void SetVarReciChn(nlohmann::json& cfg_json) const;
+  void SetVarReciChn(nlohmann::json &cfg_json) const;
   void SetInputFormat(nlohmann::json &cfg_json) const;
   void SetAippMode(nlohmann::json &cfg_json) const;
-  void SetChnData(nlohmann::json& cfg_json) const;
-  void SetPaddingData(nlohmann::json& cfg_json) const;
-  void SetResizeData(nlohmann::json& cfg_json) const;
-  void SetCropData(nlohmann::json& cfg_json) const;
-  void SetOtherStaticData(nlohmann::json& cfg_json) const;
+  void SetChnData(nlohmann::json &cfg_json) const;
+  void SetPaddingData(nlohmann::json &cfg_json) const;
+  void SetResizeData(nlohmann::json &cfg_json) const;
+  void SetCropData(nlohmann::json &cfg_json) const;
+  void SetOtherStaticData(nlohmann::json &cfg_json) const;
   void SetMatrix(nlohmann::json &cfg_json) const;
-  void SetInputBias(nlohmann::json& cfg_json) const;
-  void SetOutputBias(nlohmann::json& cfg_json) const;
+  void SetInputBias(nlohmann::json &cfg_json) const;
+  void SetOutputBias(nlohmann::json &cfg_json) const;
   void ConvertParamToAttr(NamedAttrs &aipp_attrs);
   void SetCscDefaultValue();
   void SetDtcDefaultValue();
@@ -80,8 +78,7 @@ class AippOp : public BaseInsertOp {
   Status GetAndCheckTarget(const ComputeGraphPtr &graph, int32_t rank, NodePtr &target,
                            std::set<uint32_t> &edge_indexes);
   Status GetStaticTargetNode(NodePtr &data_node, NodePtr &target);
-  NodePtr CreateAipp(const OutDataAnchorPtr &out_anchor, const uint32_t index,
-                     const InDataAnchorPtr &in_anchor);
+  NodePtr CreateAipp(const OutDataAnchorPtr &out_anchor, const uint32_t index, const InDataAnchorPtr &in_anchor);
   Status CreateAippData(const NodePtr &aipp_node);
   Status AddNodeToGraph(const NodePtr &aipp_node, int64_t max_dynamic_aipp_size);
   Status AddAippAttrbutes(const OpDescPtr &op_desc, const uint32_t &index);
@@ -96,4 +93,3 @@ class AippOp : public BaseInsertOp {
 }  // namespace ge
 
 #endif  // GE_GRAPH_PREPROCESS_INSERT_OP_GE_AIPP_OP_H_
-

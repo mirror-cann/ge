@@ -24,10 +24,10 @@ namespace minidag {
 
 inline uint64_t GetTid() {
 #ifdef __GNUC__
-    thread_local static uint64_t tid = static_cast<uint64_t>(syscall(__NR_gettid));
-    return tid;
+  thread_local static uint64_t tid = static_cast<uint64_t>(syscall(__NR_gettid));
+  return tid;
 #else
-    return 0U;
+  return 0U;
 #endif
 }
 
@@ -36,15 +36,15 @@ constexpr int32_t kModuleId = static_cast<int32_t>(GE);
 }  // namespace minidag
 
 #define MINIDAG_LOG_DEBUG(fmt, ...) \
-    dlog_debug(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
+  dlog_debug(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
 #define MINIDAG_LOG_INFO(fmt, ...) \
-    dlog_info(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
+  dlog_info(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
 #define MINIDAG_LOG_WARN(fmt, ...) \
-    dlog_warn(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
+  dlog_warn(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
 #define MINIDAG_LOG_ERROR(fmt, ...) \
-    dlog_error(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
+  dlog_error(minidag::kModuleId, "%" PRIu64 " %s:" fmt, minidag::GetTid(), __FUNCTION__, ##__VA_ARGS__)
 
 #endif  // GE_GRAPH_BUILD_DAG_MINIDAG_DAG_LOG_H_

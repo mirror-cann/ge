@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,20 +33,19 @@
 using namespace ge;
 using namespace fe;
 
-
 class RefreshCubeC0FusionPassUnitTest : public testing::Test {
  protected:
   OpsKernelInfoStorePtr ops_kernel_info_store_ptr_;
   void SetUp() {
-    FEOpsStoreInfo tbe_custom {
-            2,
-            "tbe-custom",
-            EN_IMPL_CUSTOM_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv_format",
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv_format",
-            false,
-            false,
-            false};
+    FEOpsStoreInfo tbe_custom{
+        2,
+        "tbe-custom",
+        EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv_format",
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/conv_format",
+        false,
+        false,
+        false};
 
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -59,27 +58,24 @@ class RefreshCubeC0FusionPassUnitTest : public testing::Test {
     FEOpsKernelInfoStorePtr fe_ops_kernel_store_ptr = std::make_shared<FEOpsKernelInfoStore>();
     fe_ops_kernel_store_ptr->map_all_sub_store_info_.emplace("tbe-custom", sub_ops_store_ptr);
     ops_kernel_info_store_ptr_ = fe_ops_kernel_store_ptr;
-    REGISTER_PASS("RefreshCubeC0FusionPass", BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS,
-                  RefreshCubeC0FusionPass);
+    REGISTER_PASS("RefreshCubeC0FusionPass", BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, RefreshCubeC0FusionPass);
   }
-  void TearDown() {
-  }
+  void TearDown() {}
 
  protected:
-  static ComputeGraphPtr CreateConvGraph()
-  {
+  static ComputeGraphPtr CreateConvGraph() {
     OpDescPtr op_desc_conv = std::make_shared<OpDesc>("conv", "Conv2D");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_nchw = {1, 32, 8, 8};
     GeShape shape_nchw(dim_nchw);
     vector<int64_t> dim_5hd = {1, 2, 8, 8, 16};
     GeShape shape_5hd(dim_5hd);
     vector<int64_t> dim_hwcn = {8, 8, 16, 3};
     GeShape shape_hwcn(dim_hwcn);
-    vector<int64_t> dim_fz = {64, 1, 16, 16 };
+    vector<int64_t> dim_fz = {64, 1, 16, 16};
     GeShape shape_fz(dim_fz);
-    vector<int64_t> dim_nd = {8, 8, 16, 16 };
+    vector<int64_t> dim_nd = {8, 8, 16, 16};
     GeShape shape_nd(dim_nd);
 
     GeTensorDesc tensor_desc_a(shape_5hd, FORMAT_NC1HWC0, DT_FLOAT);
@@ -108,20 +104,19 @@ class RefreshCubeC0FusionPassUnitTest : public testing::Test {
     NodePtr node_conv = graph->AddNode(op_desc_conv);
     return graph;
   }
-  static ComputeGraphPtr CreateConvGraph_1()
-  {
+  static ComputeGraphPtr CreateConvGraph_1() {
     OpDescPtr op_desc_conv = std::make_shared<OpDesc>("conv", "Conv2D");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_nchw = {1, 32, 8, 8};
     GeShape shape_nchw(dim_nchw);
     vector<int64_t> dim_5hd = {1, 2, 8, 8, 16};
     GeShape shape_5hd(dim_5hd);
     vector<int64_t> dim_hwcn = {8, 8, 16, 3};
     GeShape shape_hwcn(dim_hwcn);
-    vector<int64_t> dim_fz = {64, 1, 16, 16 };
+    vector<int64_t> dim_fz = {64, 1, 16, 16};
     GeShape shape_fz(dim_fz);
-    vector<int64_t> dim_nd = {8, 8, 16, 16 };
+    vector<int64_t> dim_nd = {8, 8, 16, 16};
     GeShape shape_nd(dim_nd);
 
     GeTensorDesc tensor_desc_a(shape_5hd, FORMAT_NC1HWC0, DT_FLOAT);
@@ -155,13 +150,13 @@ class RefreshCubeC0FusionPassUnitTest : public testing::Test {
 TEST_F(RefreshCubeC0FusionPassUnitTest, refresh_cube_c0_01) {
   ComputeGraphPtr graph = CreateConvGraph();
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS);
   auto iter = create_fns.find("RefreshCubeC0FusionPass");
   Status status = fe::FAILED;
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph, ops_kernel_info_store_ptr_);
@@ -173,7 +168,8 @@ TEST_F(RefreshCubeC0FusionPassUnitTest, refresh_cube_c0_01) {
   for (NodePtr node : graph->GetDirectNode()) {
     OpDescPtr op_desc = node->GetOpDesc();
     if (op_desc->GetType() == "Conv2D") {
-      EXPECT_EQ(static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc->GetInputDescPtr(0)->GetFormat())), FORMAT_NC1HWC0);
+      EXPECT_EQ(static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc->GetInputDescPtr(0)->GetFormat())),
+                FORMAT_NC1HWC0);
       EXPECT_EQ(ge::GetC0Value(op_desc->GetInputDescPtr(0)->GetFormat()), 8);
       EXPECT_EQ(op_desc->GetInputDescPtr(0)->GetShape().GetDims(), dim_exp);
     }
@@ -183,13 +179,13 @@ TEST_F(RefreshCubeC0FusionPassUnitTest, refresh_cube_c0_01) {
 TEST_F(RefreshCubeC0FusionPassUnitTest, refresh_cube_c0_02) {
   ComputeGraphPtr graph = CreateConvGraph_1();
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS);
   auto iter = create_fns.find("RefreshCubeC0FusionPass");
   Status status = fe::FAILED;
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph, ops_kernel_info_store_ptr_);
@@ -197,4 +193,3 @@ TEST_F(RefreshCubeC0FusionPassUnitTest, refresh_cube_c0_02) {
   }
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
-

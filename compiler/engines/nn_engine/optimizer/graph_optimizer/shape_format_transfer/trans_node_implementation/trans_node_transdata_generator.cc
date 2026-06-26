@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,7 @@ bool IsNeedToUpdateOutputShapeByOriginalShape(TransInfoPtr trans_info_ptr) {
     return true;
   }
 }
-} // namespace
+}  // namespace
 
 TransNodeTransdataGenerator::TransNodeTransdataGenerator(FEOpsKernelInfoStorePtr fe_ops_store_ptr,
                                                          TransInfoPtr trans_info_ptr)
@@ -75,12 +75,12 @@ Status TransNodeTransdataGenerator::AddTransNode(ge::ComputeGraph &fused_graph, 
     out_format_new_node = trans_data->second;
     out_sub_format = 0;
   } else if (trans_info_ptr->src_out_primary_format == ge::FORMAT_FRACTAL_NZ) {
-    /* To ensure that Format Nz will only be tranformed to
+    /* To ensure that Format Nz will only be transformed to
      * its original format */
     /* For Nz to NCHW or NHWC or HWCN, we set the output
      * format as ND, to let the trans-nodes support more scenario and
      * let two trans-nodes of ND->Nz and Nz->ND merge themselves.
-     * Because NHWC->NZ and NZ->HWCN will not merge automatically althought
+     * Because NHWC->NZ and NZ->HWCN will not merge automatically although
      * their shape is the same */
     out_format_new_node = ge::FORMAT_ND;
     out_sub_format = 0;
@@ -88,7 +88,7 @@ Status TransNodeTransdataGenerator::AddTransNode(ge::ComputeGraph &fused_graph, 
     /* For NCHW or NHWC or HWCN to Nz, we set the input format of trans-nodes
      * as ND, to let the trans-nodes support more scenario and
      * let two trans-nodes of ND->Nz and Nz->ND merge themselves.
-     * Because NHWC->NZ and NZ->HWCN will not merge automatically althought
+     * Because NHWC->NZ and NZ->HWCN will not merge automatically although
      * their shape is the same */
     trans_info_ptr->src_out_primary_format = ge::FORMAT_ND;
   } else if (trans_info_ptr->src_out_primary_format == ge::FORMAT_C1HWNCoC0) {
@@ -131,11 +131,9 @@ Status TransNodeTransdataGenerator::GetShapeOfTransdata(const ge::OpDescPtr op_d
                                    trans_info_ptr_->state_size};
   int32_t c0_bit = GetC0BitValFromC0(trans_info_ptr_->src_out_c0_format);
   ge::Format c0_format = static_cast<ge::Format>(ge::GetFormatFromC0(trans_info_ptr_->src_out_primary_format, c0_bit));
-  ShapeAndFormat input_shape_and_format_info = {temp_src_out_shape, new_in_shape, temp_src_out_format,
-                                                c0_format,
-                                                trans_info_ptr_->src_out_data_type,
-                                                group_value,
-                                                extra_attr};
+  ShapeAndFormat input_shape_and_format_info = {
+      temp_src_out_shape, new_in_shape, temp_src_out_format, c0_format, trans_info_ptr_->src_out_data_type,
+      group_value,        extra_attr};
   (void)GetShapeAccordingToFormat(input_shape_and_format_info);
   if (UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr)) {
     new_in_range = trans_info_ptr_->src_out_range;
@@ -145,8 +143,7 @@ Status TransNodeTransdataGenerator::GetShapeOfTransdata(const ge::OpDescPtr op_d
    * If source node's original shape is 5D, than we just
    * use formula {C = C1 * C0, N,H,W remain the same as 5D} to get the new 4D
    * shape */
-  if (IsNeedToUpdateOutputShapeByOriginalShape(trans_info_ptr_) &&
-      !trans_info_ptr_->src_out_shape.IsUnknownDimNum()) {
+  if (IsNeedToUpdateOutputShapeByOriginalShape(trans_info_ptr_) && !trans_info_ptr_->src_out_shape.IsUnknownDimNum()) {
     /* Update output shape of transdata based on original shape and
      * original format of its father node */
     temp_src_out_shape = trans_info_ptr_->src_out_original_shape;
@@ -161,8 +158,8 @@ Status TransNodeTransdataGenerator::GetShapeOfTransdata(const ge::OpDescPtr op_d
   int64_t dst_group_value = trans_info_ptr_->dst_in_sub_format;
   c0_bit = GetC0BitValFromC0(trans_info_ptr_->dst_in_c0_format);
   c0_format = static_cast<ge::Format>(ge::GetFormatFromC0(output_format, c0_bit));
-  ShapeAndFormat output_shape_and_format_info = {temp_src_out_shape, new_out_shape, temp_src_out_format, c0_format,
-                                                 output_dtype,       dst_group_value,     extra_attr};
+  ShapeAndFormat output_shape_and_format_info = {temp_src_out_shape, new_out_shape,   temp_src_out_format, c0_format,
+                                                 output_dtype,       dst_group_value, extra_attr};
   (void)GetShapeAccordingToFormat(output_shape_and_format_info);
   if (UnknownShapeUtils::IsUnknownShapeOp(*op_desc_ptr)) {
     new_out_range = trans_info_ptr_->dst_in_range;
@@ -183,8 +180,8 @@ void TransNodeTransdataGenerator::SetAttr(const TransInfoPtr &trans_info_ptr, co
   // src
   if ((std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(),
                  trans_info_ptr->src_out_primary_format) != FE_GROUP_RELA_FORMAT_VECTOR.end()) ||
-      (std::find(FE_C04_FORMAT_VECTOR.begin(), FE_C04_FORMAT_VECTOR.end(),
-                 trans_info_ptr->src_out_primary_format) != FE_C04_FORMAT_VECTOR.end())) {
+      (std::find(FE_C04_FORMAT_VECTOR.begin(), FE_C04_FORMAT_VECTOR.end(), trans_info_ptr->src_out_primary_format) !=
+       FE_C04_FORMAT_VECTOR.end())) {
     FE_LOGD("Transdata[%s]: src_out_primary_format=%s, src_out_sub_format=%d.", op_desc_ptr->GetName().c_str(),
             FormatToStr(trans_info_ptr->src_out_primary_format).c_str(), trans_info_ptr->src_out_sub_format);
     FE_LOGD("Transdata[%s]: dst_out_primary_format=%s, dst_out_sub_format=%d.", op_desc_ptr->GetName().c_str(),
@@ -232,8 +229,8 @@ Status TransNodeTransdataGenerator::AddAndSetTensor(const ge::GeShape &shape, co
                                                     ge::OpDescPtr &op_desc_ptr) {
   int32_t input_c0_bit = GetC0BitValFromC0(trans_info_ptr_->src_out_c0_format);
   (void)ge::AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_INPUT_SRC_FORMAT_INT, static_cast<int64_t>(input_c0_bit));
-  ge::Format input_format = static_cast<ge::Format>(ge::GetFormatFromSubAndC0(trans_info_ptr_->src_out_primary_format,
-      trans_info_ptr_->src_out_sub_format, input_c0_bit));
+  ge::Format input_format = static_cast<ge::Format>(ge::GetFormatFromSubAndC0(
+      trans_info_ptr_->src_out_primary_format, trans_info_ptr_->src_out_sub_format, input_c0_bit));
   ge::GeTensorDesc input =
       ge::GeTensorDesc(trans_info_ptr_->src_out_shape, input_format, trans_info_ptr_->src_out_data_type);
   if (op_desc_ptr->AddInputDesc(TRANSDATA_INPUT_NAME, input) != SUCCESS) {
@@ -243,8 +240,8 @@ Status TransNodeTransdataGenerator::AddAndSetTensor(const ge::GeShape &shape, co
 
   int32_t output_c0_bit = GetC0BitValFromC0(trans_info_ptr_->dst_in_c0_format);
   (void)ge::AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_OUTPUT_SRC_FORMAT_INT, static_cast<int64_t>(output_c0_bit));
-  ge::Format output_format = static_cast<ge::Format>(ge::GetFormatFromSubAndC0(
-      primary_format, sub_format, output_c0_bit));
+  ge::Format output_format =
+      static_cast<ge::Format>(ge::GetFormatFromSubAndC0(primary_format, sub_format, output_c0_bit));
   if (op_desc_ptr->AddOutputDesc(TRANSDATA_OUTPUT_NAME, ge::GeTensorDesc(shape, output_format, dtype)) != SUCCESS) {
     FE_LOGD("CreateTransdataOp: op [Transdata]: unable to add output desc.");
     return FAILED;
@@ -272,7 +269,7 @@ Status TransNodeTransdataGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, 
   /*  If we can not find specific transdata, we just skip this operation
    * and keep running. */
   /* There are no trans-op for FRACTAL_Z_3D and FORMAT_FRACTAL_Z_3D_TRANSPOSE,
-   * so if we encouter them, we just skip the check accuracy support and
+   * so if we encounter them, we just skip the check accuracy support and
    * still insert that kind of TransData into the graph and GE will then
    * fuse them will const node. */
   bool always_insert_flag = trans_info_ptr->src_out_primary_format == ge::FORMAT_FRACTAL_NZ ||
@@ -317,22 +314,18 @@ Status TransNodeTransdataGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, 
   auto output_desc_ptr = op_desc_ptr->MutableOutputDesc(0);
   FE_CHECK_NOTNULL(output_desc_ptr);
   int64_t input_reshape_type_mask = 0;
-  if (!transformer::ExpandDimension::GenerateReshapeType(input_desc_ptr->GetOriginFormat(),
-                                                         input_desc_ptr->GetFormat(),
+  if (!transformer::ExpandDimension::GenerateReshapeType(input_desc_ptr->GetOriginFormat(), input_desc_ptr->GetFormat(),
                                                          input_desc_ptr->GetOriginShape().GetDimNum(),
-                                                         trans_info_ptr->src_reshape_type,
-                                                         input_reshape_type_mask)) {
+                                                         trans_info_ptr->src_reshape_type, input_reshape_type_mask)) {
     REPORT_FE_ERROR("%s Node[%s, %s]: failed to generate reshape type mask for input.", kStageAddOpAndNd.c_str(),
                     op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return FAILED;
   }
   (void)ge::AttrUtils::SetInt(input_desc_ptr, ge::ATTR_NAME_RESHAPE_TYPE_MASK, input_reshape_type_mask);
   int64_t output_reshape_type_mask = 0;
-  if (!transformer::ExpandDimension::GenerateReshapeType(output_desc_ptr->GetOriginFormat(),
-                                                         output_desc_ptr->GetFormat(),
-                                                         output_desc_ptr->GetOriginShape().GetDimNum(),
-                                                         trans_info_ptr->src_reshape_type,
-                                                         output_reshape_type_mask)) {
+  if (!transformer::ExpandDimension::GenerateReshapeType(
+          output_desc_ptr->GetOriginFormat(), output_desc_ptr->GetFormat(),
+          output_desc_ptr->GetOriginShape().GetDimNum(), trans_info_ptr->src_reshape_type, output_reshape_type_mask)) {
     REPORT_FE_ERROR("%s Node[%s, %s]: failed to generate reshape type mask for output.", kStageAddOpAndNd.c_str(),
                     op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return FAILED;

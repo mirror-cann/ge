@@ -105,7 +105,7 @@ Assume CANN package installation directory is INSTALL_PATH, e.g., `/home/HwHiAiU
     - Install es_all.whl
 
       ```python
-      pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/ 
+      pip install --force-reinstall --upgrade --target ${ASCEND_PATH}/python/site-packages/
       ${BUILD_PATH}/es_output/whl/es_all-*****.whl
       ```
 
@@ -148,7 +148,7 @@ Assume CANN package installation directory is INSTALL_PATH, e.g., `/home/HwHiAiU
 
        ```python
        python torch_forward.py
-       ```  
+       ```
 
     - Following log appears:
 

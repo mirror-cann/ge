@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -132,7 +132,8 @@ except ImportError as e:
 # 获取生成产物C实现的so句柄
 )";
     ss << "try:" << std::endl;
-    ss << "    esb_generated_lib = get_generated_lib(\"lib" << PyGenConstants::kPerOpFilePrefix << module_name << ".so\")" << std::endl;
+    ss << "    esb_generated_lib = get_generated_lib(\"lib" << PyGenConstants::kPerOpFilePrefix << module_name
+       << ".so\")" << std::endl;
     ss << "except RuntimeError:" << std::endl;
     ss << "    esb_generated_lib = get_generated_lib(\"lib" << module_name << ".so\")" << std::endl;
   }
@@ -160,13 +161,13 @@ except ImportError as e:
     auto &ir_outputs = op->GetIrOutputs();
     for (const auto &out : ir_outputs) {
       if (out.second == kIrOutputDynamic) {
-        ss << "        (\"" << OutName(out.first, op, GenLanType::GenPy) << "\", ctypes.POINTER(" << PyGenConstants::kTensorHolderPtrType
-           << ")),  # EsCTensorHolder指针数组" << std::endl;
+        ss << "        (\"" << OutName(out.first, op, GenLanType::GenPy) << "\", ctypes.POINTER("
+           << PyGenConstants::kTensorHolderPtrType << ")),  # EsCTensorHolder指针数组" << std::endl;
         ss << "        (\"" << OutName(out.first, op, GenLanType::GenPy) << "_num\", " << PyGenConstants::kCtypesInt64
            << "),  # 动态输出数量" << std::endl;
       } else {
-        ss << "        (\"" << OutName(out.first, op, GenLanType::GenPy) << "\", " << PyGenConstants::kTensorHolderPtrType
-           << "),  # EsCTensorHolder指针" << std::endl;
+        ss << "        (\"" << OutName(out.first, op, GenLanType::GenPy) << "\", "
+           << PyGenConstants::kTensorHolderPtrType << "),  # EsCTensorHolder指针" << std::endl;
       }
     }
 
@@ -187,7 +188,8 @@ except ImportError as e:
 
     auto &ir_outputs = op->GetIrOutputs();
     for (const auto &out : ir_outputs) {
-      ss << "        self." << OutName(out.first, op, GenLanType::GenPy) << " = " << OutName(out.first, op, GenLanType::GenPy) << std::endl;
+      ss << "        self." << OutName(out.first, op, GenLanType::GenPy) << " = "
+         << OutName(out.first, op, GenLanType::GenPy) << std::endl;
     }
 
     ss << std::endl;
@@ -270,7 +272,7 @@ except ImportError as e:
           arg_types.push_back("ctypes.POINTER(" + base_type + ")");
           arg_types.emplace_back(PyGenConstants::kCtypesInt64);  // 列表类型需要额外的计数参数
         }
-      } else if(std::strcmp(attr.type_info.c_api_type, "EsCTensor *") == 0) {
+      } else if (std::strcmp(attr.type_info.c_api_type, "EsCTensor *") == 0) {
         // EsCTensor
         arg_types.emplace_back(PyGenConstants::kEsCTensorPtrType);
       } else {
@@ -301,9 +303,8 @@ except ImportError as e:
   static void GenFunctionParameters(const OpDescPtr &op, std::stringstream &ss) {
     const auto dv = PythonValueHelper(op);
     bool first = true;
-    const std::string type_annotation = InputHandler::SupportTensorLike(op)
-                                        ? InputHandler::GetTensorTypeUnion()
-                                        : PyGenConstants::kTensorHolderType;
+    const std::string type_annotation =
+        InputHandler::SupportTensorLike(op) ? InputHandler::GetTensorTypeUnion() : PyGenConstants::kTensorHolderType;
 
     // 处理输入参数
     for (const auto &in : op->GetIrInputs()) {
@@ -328,8 +329,8 @@ except ImportError as e:
       ss << PyGenConstants::kOwnerGraphBuilder << ": " << PyGenConstants::kGraphBuilderType;
     } else if (IsOpInputsAllOptional(op->GetIrInputs())) {  // 如果都是可选输入则添加owner_builder可选参数
       if (dv.IsAnyInputHasDefault()) {
-        ss << ", " << PyGenConstants::kOwnerBuilder << ": Optional[" << PyGenConstants::kGraphBuilderType << "] = "
-           << PyGenConstants::kNoneValue;
+        ss << ", " << PyGenConstants::kOwnerBuilder << ": Optional[" << PyGenConstants::kGraphBuilderType
+           << "] = " << PyGenConstants::kNoneValue;
       } else {
         ss << ", " << PyGenConstants::kOwnerBuilder << ": " << PyGenConstants::kGraphBuilderType;
       }
@@ -401,7 +402,8 @@ except ImportError as e:
   static void GenDynamicOutputParameterDocs(const OpDescPtr &op, std::stringstream &ss) {
     for (const auto &out : op->GetIrOutputs()) {
       if (out.second == kIrOutputDynamic) {
-        ss << "        " << OutName(out.first, op, GenLanType::GenPy) << "_num: int - number of dynamic outputs" << std::endl;
+        ss << "        " << OutName(out.first, op, GenLanType::GenPy) << "_num: int - number of dynamic outputs"
+           << std::endl;
       }
     }
   }
@@ -413,7 +415,8 @@ except ImportError as e:
   static void GenAttributeParameterDocs(const OpDescPtr &op, std::stringstream &ss) {
     auto ir_and_dts = GetAllIrAttrsNamesAndTypeInOrder(op);
     for (const auto &attr : ir_and_dts) {
-      ss << "        " << AttrName(attr.name, op, GenLanType::GenPy) << ": " << PythonTypeMapper::GetTypeDescription(attr.type_info);
+      ss << "        " << AttrName(attr.name, op, GenLanType::GenPy) << ": "
+         << PythonTypeMapper::GetTypeDescription(attr.type_info);
       if (!attr.is_required) {
         ss << " (optional)";
       }
@@ -498,9 +501,11 @@ except ImportError as e:
     for (const auto &in : op->GetIrInputs()) {
       if (in.second == kIrInputDynamic) {
         ss << "    # 转换动态输入" << std::endl;
-        ss << "    " << InName(in.first, GenLanType::GenPy) << "_ptrs = [t._handle for t in " << InName(in.first, GenLanType::GenPy) << "]" << std::endl;
-        ss << "    " << InName(in.first, GenLanType::GenPy) << "_array = (" << PyGenConstants::kTensorHolderPtrType << " * len("
-           << InName(in.first, GenLanType::GenPy) << "))(*" << InName(in.first, GenLanType::GenPy) << "_ptrs)" << std::endl;
+        ss << "    " << InName(in.first, GenLanType::GenPy) << "_ptrs = [t._handle for t in "
+           << InName(in.first, GenLanType::GenPy) << "]" << std::endl;
+        ss << "    " << InName(in.first, GenLanType::GenPy) << "_array = (" << PyGenConstants::kTensorHolderPtrType
+           << " * len(" << InName(in.first, GenLanType::GenPy) << "))(*" << InName(in.first, GenLanType::GenPy)
+           << "_ptrs)" << std::endl;
         ss << std::endl;
       }
     }
@@ -511,13 +516,13 @@ except ImportError as e:
   }
 
   static void GenTensorAttrConversion(const OpDescPtr &op, std::stringstream &ss) {
-     // 函数内部需要完成转属性Tensor所有权到C++侧owner, 并保持对python侧owner的引用
-    for (const auto &ir_attr: GetAllIrAttrsNamesAndTypeInOrder(op)) {
+    // 函数内部需要完成转属性Tensor所有权到C++侧owner, 并保持对python侧owner的引用
+    for (const auto &ir_attr : GetAllIrAttrsNamesAndTypeInOrder(op)) {
       if (std::strcmp(ir_attr.type_info.c_api_type, "EsCTensor *") == 0) {
-          ss << "    # 转移Tensor所有权到C++侧，并保持对owner的引用" << std::endl;
-          ss << "    " <<  ir_attr.name << "._transfer_ownership_when_pass_as_attr("
-              << PyGenConstants::kOwnerGraphBuilder << ")" << std::endl;
-          ss << std::endl;
+        ss << "    # 转移Tensor所有权到C++侧，并保持对owner的引用" << std::endl;
+        ss << "    " << ir_attr.name << "._transfer_ownership_when_pass_as_attr(" << PyGenConstants::kOwnerGraphBuilder
+           << ")" << std::endl;
+        ss << std::endl;
       }
     }
   }
@@ -536,11 +541,10 @@ except ImportError as e:
       const std::string bytes_var = "_bytes_" + attr_name;
       const std::string c_var = "_c_" + attr_name;
       // bytes 列表
-      ss << "    " << bytes_var << " = [s.encode('utf-8') if isinstance(s, str) else s for s in "
-         << attr_name << "]" << std::endl;
-      // char** 数组
-      ss << "    " << c_var << " = (ctypes.c_char_p * len(" << bytes_var << "))(*" << bytes_var << ")"
+      ss << "    " << bytes_var << " = [s.encode('utf-8') if isinstance(s, str) else s for s in " << attr_name << "]"
          << std::endl;
+      // char** 数组
+      ss << "    " << c_var << " = (ctypes.c_char_p * len(" << bytes_var << "))(*" << bytes_var << ")" << std::endl;
     }
     if (!first) ss << std::endl;
   }
@@ -556,16 +560,16 @@ except ImportError as e:
       if (first) ss << "    # 转换二维列表属性" << std::endl;
       first = false;
       const std::string attr_name = AttrName(attr.name, op, GenLanType::GenPy);
-      const std::string rows_var  = "_row_arrays_" + attr_name;
-      const std::string pp_var    = "_pp_" + attr_name;
+      const std::string rows_var = "_row_arrays_" + attr_name;
+      const std::string pp_var = "_pp_" + attr_name;
       const std::string inner_var = "_inner_num_" + attr_name;
       // 行数组
       ss << "    " << rows_var << " = [(" << PyGenConstants::kCtypesInt64 << " * len(inner_list))"
          << "(*[int(v) for v in inner_list])" << " for inner_list in " << attr_name << "]" << std::endl;
       // 指针数组
       ss << "    " << pp_var << " = (ctypes.POINTER(" << PyGenConstants::kCtypesInt64 << ") * len(" << attr_name << "))"
-         << "(*[ctypes.cast(arr, ctypes.POINTER(" << PyGenConstants::kCtypesInt64 << ")) for arr in "
-         << rows_var << "])" << std::endl;
+         << "(*[ctypes.cast(arr, ctypes.POINTER(" << PyGenConstants::kCtypesInt64 << ")) for arr in " << rows_var
+         << "])" << std::endl;
       // 每行长度数组
       ss << "    " << inner_var << " = (ctypes.c_int64 * len(" << attr_name << "))"
          << "(*[len(inner_list) for inner_list in " << attr_name << "])" << std::endl;
@@ -592,7 +596,8 @@ except ImportError as e:
       if (in.second == kIrInputRequired) {
         ss << InName(in.first, GenLanType::GenPy) << "._handle";
       } else if (in.second == kIrInputOptional) {
-        ss << "(" << InName(in.first, GenLanType::GenPy) << "._handle if " << InName(in.first, GenLanType::GenPy) << " is not None else None)";
+        ss << "(" << InName(in.first, GenLanType::GenPy) << "._handle if " << InName(in.first, GenLanType::GenPy)
+           << " is not None else None)";
       } else {
         ss << InName(in.first, GenLanType::GenPy) << "_array, len(" << InName(in.first, GenLanType::GenPy) << ")";
       }
@@ -645,8 +650,8 @@ except ImportError as e:
       ss << "(" << PythonTypeMapper::GetCtypesType(attr.type_info) << " * len(" << attr_name << "))"
          << "(*[dt.value for dt in " << attr_name << "]), len(" << attr_name << ")";
     } else {
-      ss << "(" << PythonTypeMapper::GetCtypesType(attr.type_info) << " * len(" << attr_name << "))(*"
-         << attr_name << "), len(" << attr_name << ")";
+      ss << "(" << PythonTypeMapper::GetCtypesType(attr.type_info) << " * len(" << attr_name << "))(*" << attr_name
+         << "), len(" << attr_name << ")";
     }
   }
 
@@ -687,8 +692,9 @@ except ImportError as e:
     // 先创建各个输出tensor
     auto &ir_outputs = op->GetIrOutputs();
     for (const auto &out : ir_outputs) {
-      ss << "    " << OutName(out.first, op, GenLanType::GenPy) << " = " << PyGenConstants::kTensorHolderType << "._create_from(_result."
-         << OutName(out.first, op, GenLanType::GenPy) << ", " << PyGenConstants::kOwnerGraphBuilder << ")" << std::endl;
+      ss << "    " << OutName(out.first, op, GenLanType::GenPy) << " = " << PyGenConstants::kTensorHolderType
+         << "._create_from(_result." << OutName(out.first, op, GenLanType::GenPy) << ", "
+         << PyGenConstants::kOwnerGraphBuilder << ")" << std::endl;
     }
 
     // 对第一个输出添加apply逻辑
@@ -702,7 +708,8 @@ except ImportError as e:
     // 构造并返回输出结构体
     ss << "    return " << NameGenerator::PyOutputStructName(op) << "(" << std::endl;
     for (const auto &out : ir_outputs) {
-      ss << "        " << OutName(out.first, op, GenLanType::GenPy) << "=" << OutName(out.first, op, GenLanType::GenPy) << "," << std::endl;
+      ss << "        " << OutName(out.first, op, GenLanType::GenPy) << "=" << OutName(out.first, op, GenLanType::GenPy)
+         << "," << std::endl;
     }
     ss << "    )" << std::endl;
   }

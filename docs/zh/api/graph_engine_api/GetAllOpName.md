@@ -94,4 +94,3 @@ graphStatus GetAllOpName(std::vector<AscendString> &names) const
 ## 约束说明<a name="section1625682141119"></a>
 
 此接口为非必需接口，与[AddOp](AddOp.md)搭配使用。
-

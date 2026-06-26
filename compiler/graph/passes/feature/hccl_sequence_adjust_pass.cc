@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,7 +72,7 @@ bool HcclSequenceAdjustPass::HasRelationPath(const NodePtr &second_hccl, const N
 }
 
 Status HcclSequenceAdjustPass::RebuildHcclControlRelation(const ComputeGraphPtr &graph) const {
-  GELOGD("Start to rebulid hccl control relation of graph: %s.", graph->GetName().c_str());
+  GELOGD("Start to rebuild hccl control relation of graph: %s.", graph->GetName().c_str());
 
   NodePtr last_hccl = nullptr;
   NodePtr second_hccl = nullptr;
@@ -105,11 +105,11 @@ Status HcclSequenceAdjustPass::RebuildHcclControlRelation(const ComputeGraphPtr 
   GE_CHECK_NOTNULL(out_ctrl_anchor);
   const auto &in_ctrl_anchor = second_hccl->GetInControlAnchor();
   GE_CHECK_NOTNULL(in_ctrl_anchor);
-  GE_CHK_STATUS_RET(out_ctrl_anchor->LinkTo(in_ctrl_anchor),
-                    "Add link from %s to %s failed.", last_hccl->GetName().c_str(), second_hccl->GetName().c_str());
+  GE_CHK_STATUS_RET(out_ctrl_anchor->LinkTo(in_ctrl_anchor), "Add link from %s to %s failed.",
+                    last_hccl->GetName().c_str(), second_hccl->GetName().c_str());
   GELOGD("Add control edge from %s to %s.", last_hccl->GetName().c_str(), second_hccl->GetName().c_str());
 
-  GELOGD("Success to rebulid hccl control relation of graph: %s.", graph->GetName().c_str());
+  GELOGD("Success to rebuild hccl control relation of graph: %s.", graph->GetName().c_str());
   return SUCCESS;
 }
 

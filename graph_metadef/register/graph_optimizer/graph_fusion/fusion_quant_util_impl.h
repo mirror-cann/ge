@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -99,7 +99,7 @@ const int32_t DHWNC_DIM_H = 1;
 const int32_t DHWNC_DIM_W = 2;
 const int32_t DHWNC_DIM_N = 3;
 const int32_t DHWNC_DIM_C = 4;
-}
+}  // namespace
 
 using TensorPtr = std::shared_ptr<ge::GeTensor>;
 
@@ -109,10 +109,10 @@ class QuantUtilImpl {
   static Status BiasOptimizeByEdge(ge::NodePtr &quant_node, BiasOptimizeEdges &param,
                                    std::vector<ge::NodePtr> &fusion_nodes);
   static Status BiasOptimizeByEdge(const QuantParam &quant_param, BiasOptimizeEdges &param,
-                                   std::vector<ge::NodePtr> &fusion_nodes,
-                                   WeightMode cube_type = WeightMode::RESERVED);
+                                   std::vector<ge::NodePtr> &fusion_nodes, WeightMode cube_type = WeightMode::RESERVED);
   static Status InsertFixpipeDequantScaleConvert(ge::InDataAnchorPtr deq_scale, std::vector<ge::NodePtr> &fusion_nodes);
-  static Status InsertFixpipeDequantScaleConvert(const ge::InDataAnchorPtr &deq_scale, ge::InDataAnchorPtr &quant_offset,
+  static Status InsertFixpipeDequantScaleConvert(const ge::InDataAnchorPtr &deq_scale,
+                                                 ge::InDataAnchorPtr &quant_offset,
                                                  std::vector<ge::NodePtr> &fusion_nodes);
   static Status InsertQuantScaleConvert(ge::InDataAnchorPtr &quant_scale, ge::InDataAnchorPtr &quant_offset,
                                         std::vector<ge::NodePtr> &fusion_nodes);

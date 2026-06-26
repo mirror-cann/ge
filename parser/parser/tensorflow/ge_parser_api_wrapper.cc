@@ -35,10 +35,9 @@ extern "C" {
 PARSER_FUNC_VISIBILITY
 ge::Status GeApiWrapper_ParseProtoWithSubgraph(const std::vector<ge::AscendString> &partitioned_serialized,
                                                const std::map<ge::AscendString, ge::AscendString> &const_value_map,
-                                               domi::GetGraphCallbackV3 callback,
-                                               ge::ComputeGraphPtr &graph) {
+                                               domi::GetGraphCallbackV3 callback, ge::ComputeGraphPtr &graph) {
   std::shared_ptr<domi::ModelParser> model_parser =
-    domi::ModelParserFactory::Instance()->CreateModelParser(domi::FrameworkType::TENSORFLOW);
+      domi::ModelParserFactory::Instance()->CreateModelParser(domi::FrameworkType::TENSORFLOW);
   GE_ASSERT_NOTNULL(model_parser, "create model parser failed!");
   return model_parser->ParseProtoWithSubgraph(partitioned_serialized, const_value_map, callback, graph);
 }
@@ -46,7 +45,7 @@ ge::Status GeApiWrapper_ParseProtoWithSubgraph(const std::vector<ge::AscendStrin
 PARSER_FUNC_VISIBILITY
 ge::Status GeApiWrapper_GetGeDataTypeByTFType(const uint32_t type, ge::DataType &data_type) {
   std::shared_ptr<domi::ModelParser> model_parser =
-    domi::ModelParserFactory::Instance()->CreateModelParser(domi::FrameworkType::TENSORFLOW);
+      domi::ModelParserFactory::Instance()->CreateModelParser(domi::FrameworkType::TENSORFLOW);
   data_type = ge::DT_UNDEFINED;
   GE_ASSERT_NOTNULL(model_parser, "create model parser failed!");
   data_type = model_parser->ConvertToGeDataType(type);
@@ -59,7 +58,7 @@ ge::Status GeApiWrapper_ParserFinalize() {
 }
 
 PARSER_FUNC_VISIBILITY
-ge::Status GeApiWrapper_ParserInitialize(const std::map<ge::AscendString, ge::AscendString>& options) {
+ge::Status GeApiWrapper_ParserInitialize(const std::map<ge::AscendString, ge::AscendString> &options) {
   return ge::ParserInitialize(options);
 }
 

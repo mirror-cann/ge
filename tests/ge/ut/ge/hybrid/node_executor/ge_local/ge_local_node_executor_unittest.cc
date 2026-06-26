@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ const char *Shape = "Shape";
 class UtestGeLocalNodeExecutor : public testing::Test {
  protected:
   void SetUp() {}
-  void TearDown() { }
+  void TearDown() {}
 };
 
 TEST_F(UtestGeLocalNodeExecutor, test_no_op_task) {
@@ -125,13 +125,16 @@ TEST_F(UtestGeLocalNodeExecutor, test_reshape_failed) {
   ASSERT_EQ(task->UpdateArgs(*node_state->GetTaskContext()), SUCCESS);
   ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), nullptr), GRAPH_PARAM_INVALID);
 
-  ASSERT_EQ((dynamic_cast<RefInputTask *>(task.get()))->RefByOrder(std::vector<uint32_t>({}), *node_state->GetTaskContext()), INTERNAL_ERROR);
-  ASSERT_EQ((dynamic_cast<RefInputTask *>(task.get()))->RefByOrder(std::vector<uint32_t>({0}), *node_state->GetTaskContext()), SUCCESS);
+  ASSERT_EQ(
+      (dynamic_cast<RefInputTask *>(task.get()))->RefByOrder(std::vector<uint32_t>({}), *node_state->GetTaskContext()),
+      INTERNAL_ERROR);
+  ASSERT_EQ(
+      (dynamic_cast<RefInputTask *>(task.get()))->RefByOrder(std::vector<uint32_t>({0}), *node_state->GetTaskContext()),
+      SUCCESS);
 
   // type not match
   //(dynamic_cast<RefInputTask *>(task.get()))->node_type_ = "MATMUL";
-  //ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), nullptr), UNSUPPORTED);
-
+  // ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), nullptr), UNSUPPORTED);
 
   // const_cast<NodeItem *>(node_state->GetTaskContext()->node_item_)->num_outputs = 10;
   // node_state->GetTaskContext()->outputs_start_ = new TensorValue();
@@ -140,8 +143,7 @@ TEST_F(UtestGeLocalNodeExecutor, test_reshape_failed) {
   // ASSERT_EQ((dynamic_cast<RefInputTask *>(task.get()))->RefOneByOne(*node_state->GetTaskContext()), INTERNAL_ERROR);
 }
 
-static void MakeHybridModel(std::unique_ptr<HybridModel> &hybrid_model,
-                            GraphItem &graph_item,
+static void MakeHybridModel(std::unique_ptr<HybridModel> &hybrid_model, GraphItem &graph_item,
                             std::unordered_map<std::string, NodePtr> &all_nodes,
                             std::unordered_map<std::string, NodeItem *> &all_node_items) {
   int32_t max_size = 1;
@@ -150,9 +152,8 @@ static void MakeHybridModel(std::unique_ptr<HybridModel> &hybrid_model,
       std::make_shared<GeTensor>(tensor_desc, reinterpret_cast<uint8_t *>(&max_size), sizeof(int32_t));
 
   const auto const_op = OP_CFG(CONSTANT).OutCnt(1).Weight(const_tensor);
-  const auto stack = OP_CFG(STACK).InCnt(1).OutCnt(1)
-                                  .Attr(ATTR_NAME_DATA_FLOW_HANDLE, 1)
-                                  .Attr(ATTR_NAME_DATA_FLOW_MAX_SIZE, 1);
+  const auto stack =
+      OP_CFG(STACK).InCnt(1).OutCnt(1).Attr(ATTR_NAME_DATA_FLOW_HANDLE, 1).Attr(ATTR_NAME_DATA_FLOW_MAX_SIZE, 1);
   const auto stack_push = OP_CFG(STACKPUSH).InCnt(2).OutCnt(1).Attr(ATTR_NAME_DATA_FLOW_HANDLE, 1);
   const auto stack_pop = OP_CFG(STACKPOP).InCnt(1).OutCnt(1).Attr(ATTR_NAME_DATA_FLOW_HANDLE, 1);
   const auto stack_close = OP_CFG(STACKCLOSE).InCnt(1).Attr(ATTR_NAME_DATA_FLOW_HANDLE, 1);
@@ -175,7 +176,7 @@ static void MakeHybridModel(std::unique_ptr<HybridModel> &hybrid_model,
   EXPECT_EQ(ge_root_model->Initialize(compute_graph), SUCCESS);
   ge_root_model->SetModelName("test_name");
   ge_root_model->SetSubgraphInstanceNameToModel("sub", ge_sub_model);
-  std::unique_ptr<HybridModel> hybrid_model_instance(new(std::nothrow)HybridModel(ge_root_model));
+  std::unique_ptr<HybridModel> hybrid_model_instance(new (std::nothrow) HybridModel(ge_root_model));
 
   const auto const_node = compute_graph->FindNode("const");
   const auto stack_node = compute_graph->FindNode("stack");
@@ -229,8 +230,8 @@ TEST_F(UtestGeLocalNodeExecutor, test_dynamic_stack_task) {
   EXPECT_EQ(graph_context.res_manager.data_flow_resources_.size(), 1);
   EXPECT_EQ(graph_context.res_manager.data_flow_kernels_.size(), 4);
 
-  auto load_and_run_op = [&](const std::string &node_name,
-      const TensorValue *const input = nullptr, TensorValue *const output = nullptr) -> Status {
+  auto load_and_run_op = [&](const std::string &node_name, const TensorValue *const input = nullptr,
+                             TensorValue *const output = nullptr) -> Status {
     auto node_state = subgraph_context.GetNodeState(all_node_items[node_name]);
     if (node_state == nullptr) {
       return FAILED;
@@ -286,7 +287,7 @@ TEST_F(UtestGeLocalNodeExecutor, test_dynamic_stack_task) {
 
 class TestShapeKernel : public Kernel {
  public:
-  Status Compute(const NodePtr& node, std::vector<GeTensorPtr>& v_output) const override {
+  Status Compute(const NodePtr &node, std::vector<GeTensorPtr> &v_output) const override {
     if (node->GetName() == "test_fail") {
       return FAILED;
     }
@@ -302,7 +303,6 @@ class TestShapeKernel : public Kernel {
   }
 };
 REGISTER_COMPUTE_NODE_KERNEL(Shape, TestShapeKernel);
-
 
 TEST_F(UtestGeLocalNodeExecutor, test_DependInputShapeTask) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -355,18 +355,21 @@ TEST_F(UtestGeLocalNodeExecutor, test_DependInputShapeTask) {
   ASSERT_NE(task->ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
 
   std::vector<GeTensorPtr> outputs = {std::make_shared<GeTensor>()};
-  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())->CopyDataToOutput(
-      1, outputs, SHAPE, *node_state->GetTaskContext()), SUCCESS);
+  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())
+                ->CopyDataToOutput(1, outputs, SHAPE, *node_state->GetTaskContext()),
+            SUCCESS);
 
   uint8_t *t1 = new uint8_t[100];
   outputs[0]->MutableData().SetData(t1, 100);
-  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())->CopyDataToOutput(
-      1, outputs, SHAPE, *node_state->GetTaskContext()), INTERNAL_ERROR);
+  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())
+                ->CopyDataToOutput(1, outputs, SHAPE, *node_state->GetTaskContext()),
+            INTERNAL_ERROR);
 
   uint8_t *t2 = new uint8_t[1];
   outputs[0]->MutableData().SetData(t2, 1);
-  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())->CopyDataToOutput(
-     1, outputs, SHAPE, *node_state->GetTaskContext()), SUCCESS);    // ??
+  ASSERT_EQ(dynamic_cast<DependInputShapeTask *>(task.get())
+                ->CopyDataToOutput(1, outputs, SHAPE, *node_state->GetTaskContext()),
+            SUCCESS);  // ??
 
   auto op_desc = node->GetOpDesc();
   ge::OpDescUtilsEx::SetType(op_desc, RESHAPE);
@@ -381,11 +384,11 @@ TEST_F(UtestGeLocalNodeExecutor, test_DependInputShapeTask) {
   ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), done), INTERNAL_ERROR);
   ASSERT_EQ(graph_context.callback_manager->Destroy(), SUCCESS);
   const_cast<NodeItem *>(node_state->GetTaskContext()->node_item_)->num_outputs = 1;
-  delete[] (uint8_t*)t1;
-  delete[] (uint8_t*)t2;
-  delete[] (uint8_t*)test1;
+  delete[] (uint8_t *)t1;
+  delete[] (uint8_t *)t2;
+  delete[] (uint8_t *)test1;
   node_state->GetTaskContext()->outputs_start_->ref_buffer_ = nullptr;
-  delete[] (TensorValue*)(node_state->GetTaskContext()->outputs_start_);
+  delete[] (TensorValue *)(node_state->GetTaskContext()->outputs_start_);
   node_state->GetTaskContext()->outputs_start_ = nullptr;
 }
 
@@ -466,7 +469,7 @@ TEST_F(UtestGeLocalNodeExecutor, test_DataFlowNodeTask_Fail) {
   NodeTaskPtr task = nullptr;
   GeLocalNodeExecutor node_executor;
   hybrid_model.constant_tensors_.clear();
-  ASSERT_NE(node_executor.LoadTask(hybrid_model, node, task), SUCCESS);   //??
+  ASSERT_NE(node_executor.LoadTask(hybrid_model, node, task), SUCCESS);  //??
   ASSERT_NE(task, nullptr);
   ASSERT_EQ(dynamic_cast<DataFlowNodeTask *>(task.get())->InitTaskBasicInfo(node), INTERNAL_ERROR);
 
@@ -474,4 +477,4 @@ TEST_F(UtestGeLocalNodeExecutor, test_DataFlowNodeTask_Fail) {
   ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), done), INTERNAL_ERROR);
 }
 
-} // namespace ge
+}  // namespace ge

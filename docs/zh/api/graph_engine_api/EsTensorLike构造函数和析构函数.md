@@ -99,4 +99,3 @@ EsTensorLike(const std::vector<float> &values)
 EsTensorHolder tensor = builder->CreateScalar(int64_t(1, 2, 3));
 EsTensorLike tensor_like(tensor);
 ```
-

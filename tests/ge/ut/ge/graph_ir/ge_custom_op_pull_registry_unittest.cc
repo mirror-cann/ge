@@ -81,9 +81,8 @@ TEST(UtestCustomOpPullRegistry, nested_offline_guards_keep_suppress_until_outer_
 TEST(UtestCustomOpPullRegistry, offline_guard_is_thread_local) {
   ScopedOfflineCustomOpSoLoadGuard guard;
   bool is_loading_in_another_thread = true;
-  std::thread query_thread([&is_loading_in_another_thread]() {
-    is_loading_in_another_thread = IsOfflineCustomOpSoLoading();
-  });
+  std::thread query_thread(
+      [&is_loading_in_another_thread]() { is_loading_in_another_thread = IsOfflineCustomOpSoLoading(); });
   query_thread.join();
 
   EXPECT_EQ(true, IsOfflineCustomOpSoLoading());

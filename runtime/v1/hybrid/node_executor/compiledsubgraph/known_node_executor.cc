@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@ namespace hybrid {
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::COMPILED_SUBGRAPH, KnownNodeExecutor);
 
 Status KnownNodeTask::ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) {
-  RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(),
-                         "[KnownNodeTaskExecuteAsync] Start");
+  RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[KnownNodeTaskExecuteAsync] Start");
   GELOGD("[%s] KnownNodeTask::ExecuteAsync in, model id: %u.", context.GetNodeName(), davinci_model_->Id());
   if (davinci_model_->GetTaskList().empty()) {
     GELOGW("KnownNodeExecutor::ExecuteAsync davinci model has no taskinfo.");
@@ -37,10 +36,7 @@ Status KnownNodeTask::ExecuteAsync(TaskContext &context, const std::function<voi
       for (int32_t i = 0; i < context.NumInputs(); ++i) {
         const auto tensor = context.MutableInput(i);
         GE_CHECK_NOTNULL(tensor);
-        GE_CHK_STATUS_RET(context.SetOutput(i, *tensor),
-                          "[%s] Failed to set output[%d]",
-                          context.GetNodeName(),
-                          i);
+        GE_CHK_STATUS_RET(context.SetOutput(i, *tensor), "[%s] Failed to set output[%d]", context.GetNodeName(), i);
       }
     }
 
@@ -51,11 +47,8 @@ Status KnownNodeTask::ExecuteAsync(TaskContext &context, const std::function<voi
   rtError_t rt_ret;
   RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[KnownNodertModelExecute] Start");
   rt_ret = aclmdlRIExecuteAsync(davinci_model_->GetRtModelHandle(), context.GetStream());
-  GE_IF_BOOL_EXEC(rt_ret != RT_ERROR_NONE,
-                  REPORT_INNER_ERR_MSG("E19999", "aclmdlRIExecuteAsync error, ret:%d", rt_ret);
-                  GELOGE(FAILED, "[Invoke][aclmdlRIExecuteAsync] error, ret:%d", rt_ret);
-                  return FAILED;
-                 );
+  GE_IF_BOOL_EXEC(rt_ret != RT_ERROR_NONE, REPORT_INNER_ERR_MSG("E19999", "aclmdlRIExecuteAsync error, ret:%d", rt_ret);
+                  GELOGE(FAILED, "[Invoke][aclmdlRIExecuteAsync] error, ret:%d", rt_ret); return FAILED;);
   RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(), "[KnownNodertModelExecute] End");
 
   GE_CHK_STATUS_RET_NOLOG(context.RegisterCallback(done_callback));
@@ -89,8 +82,8 @@ Status KnownNodeTask::UpdateArgs(TaskContext &context) {
   auto v_outputs = VPtrToValue(outputs);
   GE_CHK_STATUS_RET(davinci_model_->InitModelStream(context.GetStream()), "[Init][ModelStream] failed");
   GE_CHK_STATUS_RET(davinci_model_->UpdateKnownNodeArgs(v_inputs, v_outputs),
-                    "[Update][KnownNodeArgs] failed for %s(%s).",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+                    "[Update][KnownNodeArgs] failed for %s(%s).", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
   GELOGD("[%s] KnownNodeExecutor::UpdateArgs success, task_size = %zu", context.GetNodeName(),
          davinci_model_->GetTaskList().size());
   return SUCCESS;
@@ -98,13 +91,13 @@ Status KnownNodeTask::UpdateArgs(TaskContext &context) {
 
 Status KnownNodeTask::Init(TaskContext &context) {
   // allocate output mem
-  GE_CHK_STATUS_RET(context.AllocateOutputs(), "[Allocate][Outputs] failed for %s(%s).",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+  GE_CHK_STATUS_RET(context.AllocateOutputs(), "[Allocate][Outputs] failed for %s(%s).", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
 
   int64_t total_useful_size = 0;
   GE_CHK_STATUS_RET(davinci_model_->GetTotalMemSizeExcludeZeroCopy(total_useful_size),
-                    "[Get][TotalMemSizeExcludeZeroCopy] failed, node:%s(%s).",
-                    context.GetNodeName(), context.GetNodeItem().NodeType().c_str());
+                    "[Get][TotalMemSizeExcludeZeroCopy] failed, node:%s(%s).", context.GetNodeName(),
+                    context.GetNodeItem().NodeType().c_str());
   if (total_useful_size != 0) {
     RECORD_EXECUTION_EVENT(context.GetExecutionContext(), context.GetNodeName(),
                            "[KnownNodeTask_AllocateWorkspace] Start");
@@ -122,8 +115,8 @@ Status KnownNodeTask::Init(TaskContext &context) {
     }
     // update mem base
     davinci_model_->UpdateHbmFmMemBases(hbm_fm_mem_bases);
-    GELOGI("KnownNodeTask::Init mem base is %lx, size %ld.",
-           davinci_model_->GetRuntimeParam().mem_base, total_useful_size);
+    GELOGI("KnownNodeTask::Init mem base is %lx, size %ld.", davinci_model_->GetRuntimeParam().mem_base,
+           total_useful_size);
   }
   if (!davinci_model_->GetRuntimeParam().memory_infos.empty()) {
     GE_CHK_STATUS_RET(davinci_model_->MallocExMem(), "[Malloc][ExMem] failed, node:%s(%s).", context.GetNodeName(),
@@ -168,7 +161,7 @@ Status KnownNodeTask::InitDavinciModel(const HybridModel &model, const TensorBuf
 }
 
 Status KnownNodeTask::DoInitDavinciModel(const uintptr_t weight, const size_t weight_size) {
-  const ModelParam param {0, 0U, 0U, weight, weight_size};
+  const ModelParam param{0, 0U, 0U, weight, weight_size};
   return davinci_model_->Init(param);
 }
 
@@ -209,16 +202,15 @@ Status KnownNodeExecutor::SetDaviciModel(const HybridModel &model, const NodePtr
   return SUCCESS;
 }
 
-Status KnownNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node,
-                                   shared_ptr<NodeTask> &task) const {
+Status KnownNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node, shared_ptr<NodeTask> &task) const {
   GELOGI("[%s] KnownNodeExecutor::LoadTask in.", node->GetName().c_str());
   GE_CHECK_NOTNULL(node);
 
   GeModelPtr ge_model;
   ComputeGraphPtr compute_graph;
   GE_CHK_STATUS_RET(GetModelAndGraph(model, node, ge_model, compute_graph),
-                    "[Get][ModelAndGraph][%s(%s)] Failed to get model and graph",
-                    node->GetName().c_str(), node->GetType().c_str());
+                    "[Get][ModelAndGraph][%s(%s)] Failed to get model and graph", node->GetName().c_str(),
+                    node->GetType().c_str());
   const auto node_item = model.MutableNodeItem(node);
   GE_CHECK_NOTNULL(node_item);
   GE_CHK_STATUS_RET_NOLOG(ParseAttrForAllocatingOutputs(*node_item, *compute_graph));
@@ -276,11 +268,8 @@ Status KnownNodeExecutor::ParseAttrForAllocatingOutputs(NodeItem &node_item, con
     GE_CHECK_NOTNULL(op_desc);
     const auto src_op_type = src_node->GetType();
     auto output_index = in_data_anchor->GetIdx();
-    GELOGD("Node %s, output %d, src node = %s, src node type = %s",
-           node_item.NodeName().c_str(),
-           output_index,
-           src_node->GetName().c_str(),
-           src_op_type.c_str());
+    GELOGD("Node %s, output %d, src node = %s, src node type = %s", node_item.NodeName().c_str(), output_index,
+           src_node->GetName().c_str(), src_op_type.c_str());
     // parse reuse outputs
     std::string input_key = std::to_string(op_desc->GetId()) + "_" + std::to_string(out_data_anchor->GetIdx());
     const std::map<std::string, int32_t>::const_iterator it = connected_inputs.find(input_key);
@@ -288,10 +277,7 @@ Status KnownNodeExecutor::ParseAttrForAllocatingOutputs(NodeItem &node_item, con
       (void)connected_inputs.emplace(input_key, output_index);
     } else {
       GELOGD("[%s] output [%d] reuse output [%d] input node = %s, idx = %d.", node_item.NodeName().c_str(),
-             output_index,
-             it->second,
-             src_node->GetName().c_str(),
-             out_data_anchor->GetIdx());
+             output_index, it->second, src_node->GetName().c_str(), out_data_anchor->GetIdx());
       (void)node_item.reuse_outputs.emplace(output_index, it->second);
     }
 
@@ -303,9 +289,7 @@ Status KnownNodeExecutor::ParseAttrForAllocatingOutputs(NodeItem &node_item, con
     }
     if (constant_like_task_ops.count(src_op_type) > 0U) {
       (void)node_item.ref_outputs.emplace(output_index, src_node);
-      GELOGD("[%s] output[%d] ref to node [%s]",
-             node_item.NodeName().c_str(),
-             output_index,
+      GELOGD("[%s] output[%d] ref to node [%s]", node_item.NodeName().c_str(), output_index,
              src_node->GetName().c_str());
     }
   }
@@ -334,16 +318,15 @@ Status KnownNodeExecutor::GetDataNodes(const ComputeGraph &graph, std::map<NodeP
   return SUCCESS;
 }
 
-Status KnownNodeExecutor::GetModelAndGraph(const HybridModel &model, const NodePtr &node,
-                                           GeModelPtr &ge_model,
+Status KnownNodeExecutor::GetModelAndGraph(const HybridModel &model, const NodePtr &node, GeModelPtr &ge_model,
                                            ComputeGraphPtr &graph) {
   ge_model = model.GetGeModel(node);
   GE_CHECK_NOTNULL(ge_model);
   const auto &root_graph = model.GetRootGraph();
   GE_CHECK_NOTNULL(root_graph);
   const auto compute_graph = ge_model->GetGraph();
-  GE_CHECK_NOTNULL(compute_graph, ", [Get][Name] of subgraph failed, node:%s(%s)",
-                   node->GetName().c_str(), node->GetType().c_str());
+  GE_CHECK_NOTNULL(compute_graph, ", [Get][Name] of subgraph failed, node:%s(%s)", node->GetName().c_str(),
+                   node->GetType().c_str());
   graph = root_graph->GetSubgraph(compute_graph->GetName());
   GE_CHECK_NOTNULL(graph);
   return SUCCESS;

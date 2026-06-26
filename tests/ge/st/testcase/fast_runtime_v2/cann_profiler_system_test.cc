@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,8 +53,8 @@
 
 namespace gert {
 class CannProfilerST : public bg::BgTest {
-  void SetUp() override {
-  }
+  void SetUp() override {}
+
  public:
   static void BuildExecutorInner(std::unique_ptr<ModelV2Executor> &model_executor, const LoweringOption &option) {
     auto graph = ShareGraph::BuildSingleNodeGraph();
@@ -81,8 +81,9 @@ class CannProfilerST : public bg::BgTest {
     auto graph = ShareGraph::BuildTwoAddNodeGraph();
     graph->TopologicalSorting();
     GeModelBuilder builder(graph);
-    auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).
-        AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
+    auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                             .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                             .BuildGeRootModel();
     ModelConverter::Args args(option, nullptr, nullptr, nullptr, nullptr);
     auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, args);
     ASSERT_NE(exe_graph, nullptr);
@@ -102,16 +103,18 @@ class CannProfilerST : public bg::BgTest {
   static void BuildFftsPlusGraph(ge::ComputeGraphPtr &root_graph, ge::ComputeGraphPtr &ffts_plus_graph) {
     uint32_t mem_offset = 0U;
     DEF_GRAPH(g1) {
-                    CHAIN(NODE("_arg_0", ge::DATA)->NODE("PartitionedCall_0", ge::PARTITIONEDCALL)->NODE("Node_Output", ge::NETOUTPUT));
-                    CHAIN(NODE("_arg_1", ge::DATA)->NODE("PartitionedCall_0"));
-                    CHAIN(NODE("_arg_2", ge::DATA)->NODE("PartitionedCall_0"));
-                    CHAIN(NODE("shape", ge::CONSTANT)->NODE("PartitionedCall_0"));
-                  };
+      CHAIN(
+          NODE("_arg_0", ge::DATA)->NODE("PartitionedCall_0", ge::PARTITIONEDCALL)->NODE("Node_Output", ge::NETOUTPUT));
+      CHAIN(NODE("_arg_1", ge::DATA)->NODE("PartitionedCall_0"));
+      CHAIN(NODE("_arg_2", ge::DATA)->NODE("PartitionedCall_0"));
+      CHAIN(NODE("shape", ge::CONSTANT)->NODE("PartitionedCall_0"));
+    };
     root_graph = ge::ToComputeGraph(g1);
     root_graph->SetGraphUnknownFlag(true);
     SetUnknownOpKernel(root_graph, mem_offset, true);
 
-    ge::AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH, "ffts_plus");
+    ge::AttrUtils::SetStr(root_graph->FindNode("PartitionedCall_0")->GetOpDesc(), ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH,
+                          "ffts_plus");
     auto data_0_desc = root_graph->FindNode("_arg_0")->GetOpDesc();
     ge::AttrUtils::SetInt(data_0_desc, "index", 0);
     ge::AttrUtils::SetInt(root_graph->FindNode("_arg_1")->GetOpDesc(), "index", 1);
@@ -132,41 +135,44 @@ class CannProfilerST : public bg::BgTest {
     ge::AttrUtils::SetTensor(shape_const->GetOpDesc(), "value", x_reshape_const_tensor);
 
     DEF_GRAPH(g2) {
-                    auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-                    auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-                    auto data_2 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2);
-                    auto data_3 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 3);
-                    auto conv_0 = OP_CFG("CONV2D_T")
+      auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+      auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+      auto data_2 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2);
+      auto data_3 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 3);
+      auto conv_0 = OP_CFG("CONV2D_T")
                         .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
                         .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeAIV)
                         .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                    auto add_0 = OP_CFG("ADD_T").Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+      auto add_0 = OP_CFG("ADD_T")
+                       .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                       .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeAIV);
+      auto reduce_0 = OP_CFG("REDUCE_T")
+                          .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                          .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixAIV);
+      auto relu_0 = OP_CFG("RELU_T")
+                        .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
                         .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeAIV);
-                    auto reduce_0 = OP_CFG("REDUCE_T").Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                        .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeMixAIV);
-                    auto relu_0 = OP_CFG("RELU_T").Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                        .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, kCoreTypeAIV);
-                    auto reshape_0 = OP_CFG("Reshape").Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE");
-                    auto identity_0 = OP_CFG("Identity").Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_RTS_FFTS_PLUS_OP_STORE");
+      auto reshape_0 = OP_CFG("Reshape").Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE");
+      auto identity_0 = OP_CFG("Identity").Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_RTS_FFTS_PLUS_OP_STORE");
 
-                    CHAIN(NODE("sgt_graph/_arg_0", data_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/Conv2D", conv_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/Add", add_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/ReduceMean", reduce_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/Relu", relu_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/identity", identity_0)
-                              ->EDGE(0, 0)
-                              ->NODE("sgt_graph/Node_Output", ge::NETOUTPUT));
-                    CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
-                    CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 0)->NODE("sgt_graph/Reshape", reshape_0));
-                    CHAIN(NODE("sgt_graph/_arg_3", data_3)->EDGE(0, 1)->NODE("sgt_graph/Reshape", reshape_0));
-                    CHAIN(NODE("sgt_graph/Reshape", reshape_0)->EDGE(0, 1)->NODE("sgt_graph/Add", add_0));
-                  };
+      CHAIN(NODE("sgt_graph/_arg_0", data_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/Conv2D", conv_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/Add", add_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/ReduceMean", reduce_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/Relu", relu_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/identity", identity_0)
+                ->EDGE(0, 0)
+                ->NODE("sgt_graph/Node_Output", ge::NETOUTPUT));
+      CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
+      CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 0)->NODE("sgt_graph/Reshape", reshape_0));
+      CHAIN(NODE("sgt_graph/_arg_3", data_3)->EDGE(0, 1)->NODE("sgt_graph/Reshape", reshape_0));
+      CHAIN(NODE("sgt_graph/Reshape", reshape_0)->EDGE(0, 1)->NODE("sgt_graph/Add", add_0));
+    };
     ffts_plus_graph = ge::ToComputeGraph(g2);
     auto conv2d_desc = ffts_plus_graph->FindNode("sgt_graph/Conv2D")->GetOpDesc();
     auto add_desc = ffts_plus_graph->FindNode("sgt_graph/Add")->GetOpDesc();
@@ -256,7 +262,6 @@ class CannProfilerST : public bg::BgTest {
     name_index["x"] = 0;
     name_index["shape"] = 1;
 
-
     identity_desc->SetOpEngineName("DNN_VM_RTS_FFTS_PLUS");
     identity_desc->SetOpKernelLibName("DNN_VM_RTS_FFTS_PLUS_OP_STORE");
     identity_desc->AppendIrInput("x", ge::kIrInputRequired);
@@ -290,7 +295,8 @@ class CannProfilerST : public bg::BgTest {
     auto input_shape_1 = *context->GetInputShape(1);
     auto output_shape = context->GetOutputShape(0);
     if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
-      GELOGE(ge::PARAM_INVALID, "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+      GELOGE(ge::PARAM_INVALID,
+             "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
              context->GetNodeName(), input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     }
     output_shape->SetDimNum(input_shape_0.GetDimNum());
@@ -345,7 +351,8 @@ class CannProfilerST : public bg::BgTest {
     uint32_t need_mode = 1U;
     (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kNeedModeAddr, need_mode);
     std::string json_str =
-        "{\"dependencies\":[],\"thread_scopeId\":200,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_scope\":"
+        "{\"dependencies\":[],\"thread_scopeId\":200,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_"
+        "scope\":"
         "0,"
         "\"is_input_node_of_thread_scope\":false,\"is_output_node_of_thread_scope\":false,\"threadMode\":false,\"slice_"
         "instance_num\":0,\"parallel_window_size\":0,\"thread_id\":\"thread_x\",\"oriInputTensorShape\":[],"
@@ -383,7 +390,7 @@ class CannProfilerST : public bg::BgTest {
     label_def.set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_LABEL));
     std::vector<int32_t> all_ctx_id_vec = {7};
     (void)ge::AttrUtils::SetListInt(ffts_plus_graph, "_all_ctx_id_list", all_ctx_id_vec);
-    domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+    domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
     ffts_plus_sqe->set_ready_context_num(8);
     ffts_plus_sqe->set_total_context_num(8);
 
@@ -430,14 +437,15 @@ class CannProfilerST : public bg::BgTest {
     std::vector<Tensor *> outputs{output.GetTensor()};
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     bg::BufferPool buffer_pool;
     bg::BufferPool dfx_extend_infos;
     size_t buffer_size;
     const auto compute_graph =
-      exe_graph->TryGetExtAttr("_compute_graph", std::make_shared<ge::ComputeGraph>("Invalid"));
+        exe_graph->TryGetExtAttr("_compute_graph", std::make_shared<ge::ComputeGraph>("Invalid"));
 
     const auto &nodes = compute_graph->GetAllNodes();
     for (size_t i = 0UL; i < nodes.size() - 1; ++i) {
@@ -462,15 +470,15 @@ class CannProfilerST : public bg::BgTest {
       (void)ge::AttrUtils::SetInt(op_desc, "_data_prof_typewrite back_idx", 1);
     }
 
-  //最后一个节点，不设CMO属性
-  const auto &node_last = nodes.at(nodes.size() - 1);
-  const auto &op_desc_last = node_last->GetOpDesc();
-  (void)ge::AttrUtils::SetStr(op_desc_last, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "1");
-  (void)ge::AttrUtils::SetInt(op_desc_last, "_ffts_prof_ctx_type", 1);
-  std::vector<uint32_t> ctx_ids;
-  ctx_ids.push_back(0);
-  (void)ge::AttrUtils::SetListInt(op_desc_last, "_context_id_list", ctx_ids);
-  (void)ge::AttrUtils::SetInt(op_desc_last, "_op_impl_mode_enum", 0x40);
+    // 最后一个节点，不设CMO属性
+    const auto &node_last = nodes.at(nodes.size() - 1);
+    const auto &op_desc_last = node_last->GetOpDesc();
+    (void)ge::AttrUtils::SetStr(op_desc_last, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "1");
+    (void)ge::AttrUtils::SetInt(op_desc_last, "_ffts_prof_ctx_type", 1);
+    std::vector<uint32_t> ctx_ids;
+    ctx_ids.push_back(0);
+    (void)ge::AttrUtils::SetListInt(op_desc_last, "_context_id_list", ctx_ids);
+    (void)ge::AttrUtils::SetInt(op_desc_last, "_op_impl_mode_enum", 0x40);
 
     auto frame = bg::ValueHolder::GetCurrentFrame();
     ExeGraphSerializer(*frame).SetComputeGraph(compute_graph).SerializeDfxExtendInfo(dfx_extend_infos, buffer_pool);
@@ -480,8 +488,12 @@ class CannProfilerST : public bg::BgTest {
     buffer = buffer_pool.Serialize(buffer_size);
     ge::AttrUtils::SetZeroCopyBytes(exe_graph, "buffer", ge::Buffer::CopyFrom(buffer.get(), buffer_size));
 
-    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2), nullptr);
-    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()), ge::GRAPH_SUCCESS);
+    ASSERT_NE(
+        model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
+        nullptr);
+    ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
+                                      outputs.size()),
+              ge::GRAPH_SUCCESS);
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
     aclrtDestroyStream(stream);
   }
@@ -490,7 +502,7 @@ class CannProfilerST : public bg::BgTest {
     auto compute_graph = ShareGraph::BuildSingleNodeGraph();
     auto node = compute_graph->FindNode("add1");
     auto op_desc = node->GetOpDesc();
-    const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+    const std::vector<uint32_t> input_dims{1, 2, 3, 4};
     ge::AttrUtils::SetListInt(op_desc, kContextIdList, input_dims);
     ge::AttrUtils::SetStr(op_desc, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "xxx");
     ge::AttrUtils::SetInt(op_desc, "_ffts_prof_ctx_type", RT_CTX_TYPE_AICORE);
@@ -586,46 +598,45 @@ class CannProfilerST : public bg::BgTest {
 
   static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &node, bool single) {
     DEF_GRAPH(fused_graph) {
-                             auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-                             auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-                             auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
-                                 .Attr(ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
+      auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+      auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+      auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP)
+                           .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Attr(ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
 
-                             auto conv = OP_CFG("CONV2D_T")
-                                 .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                                 .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-                                 .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                             auto sqrt = OP_CFG("SQRT_T")
-                                 .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                                 .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                                 .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                             CHAIN(NODE("_arg_in_0", data_0)
-                                       ->EDGE(0, 0)
-                                       ->NODE("conv2d", conv)
-                                       ->EDGE(0, 0)
-                                       ->NODE("sqrt", sqrt)
-                                       ->EDGE(0, 0)
-                                       ->NODE("retVal", ret_val_0));
-                             CHAIN(NODE("_arg_in_1", data_1)
-                                       ->EDGE(0, 1)
-                                       ->NODE("conv2d", conv));
-                           };
+      auto conv = OP_CFG("CONV2D_T")
+                      .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                      .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+      auto sqrt = OP_CFG("SQRT_T")
+                      .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                      .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+      CHAIN(NODE("_arg_in_0", data_0)
+                ->EDGE(0, 0)
+                ->NODE("conv2d", conv)
+                ->EDGE(0, 0)
+                ->NODE("sqrt", sqrt)
+                ->EDGE(0, 0)
+                ->NODE("retVal", ret_val_0));
+      CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
+    };
     auto origin_fused_graph = ge::ToComputeGraph(fused_graph);
 
     DEF_GRAPH(g1) {
-                    auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-                    auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-                    auto fused_conv = OP_CFG("CONV2D_T")
-                        .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                        .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-                        .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                    CHAIN(NODE("_arg_0", data_0)
-                              ->EDGE(0, 0)
-                              ->NODE("Conv2D_Sqrt", fused_conv)
-                              ->EDGE(0, 0)
-                              ->NODE("Node_Output", ge::NETOUTPUT));
-                    CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("Conv2D_Sqrt", fused_conv));
-                  };
+      auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+      auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+      auto fused_conv = OP_CFG("CONV2D_T")
+                            .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                            .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                            .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+      CHAIN(NODE("_arg_0", data_0)
+                ->EDGE(0, 0)
+                ->NODE("Conv2D_Sqrt", fused_conv)
+                ->EDGE(0, 0)
+                ->NODE("Node_Output", ge::NETOUTPUT));
+      CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("Conv2D_Sqrt", fused_conv));
+    };
     uint32_t mem_offset = 0U;
     root_graph = ge::ToComputeGraph(g1);
     root_graph->SetGraphUnknownFlag(true);
@@ -640,7 +651,7 @@ class CannProfilerST : public bg::BgTest {
     (void)ge::AttrUtils::SetStr(conv2d_desc, ge::kAttrCalcArgsSizeFunc, ge::kFFTSMixL2CalcFunc);
     (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
 
-    vector<int64_t> workspace_bytes = { 200, 300, 400};
+    vector<int64_t> workspace_bytes = {200, 300, 400};
     conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
     string compile_info_key = "compile_info_key";
@@ -703,13 +714,17 @@ class CannProfilerST : public bg::BgTest {
     FakeTensors outputs = FakeTensors({4, 4, 4, 4}, 1);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ess->Clear();
-    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2), nullptr);
+    ASSERT_NE(
+        model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
+        nullptr);
     ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
-                                      outputs.GetTensorList(), outputs.size()), ge::GRAPH_SUCCESS);
+                                      outputs.GetTensorList(), outputs.size()),
+              ge::GRAPH_SUCCESS);
     ess->PrintExecutionSummary();
 
     EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CONV2D_T", "FFTSUpdateMixL2Args"), 1);
@@ -734,7 +749,8 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_NE(
@@ -754,12 +770,13 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-    ASSERT_NE(
-        model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler),
-        nullptr);
+    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(
+                  BuiltInSubscriberType::kCannHostProfiler),
+              nullptr);
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
@@ -769,11 +786,16 @@ class CannProfilerST : public bg::BgTest {
 
   static void TestProfilingHost() {
     auto model_executor = BuildExecutor();
-    auto execution_data = reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+    auto execution_data =
+        reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
     for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
-      std::string kernel_type = reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)->GetKernelType();
+      std::string kernel_type =
+          reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)
+              ->GetKernelType();
       if (kernel_type == "LaunchKernelWithHandle") {
-        const_cast<KernelExtendInfo *>(reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info))->SetKernelType("AicpuHostCompute");
+        const_cast<KernelExtendInfo *>(
+            reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info))
+            ->SetKernelType("AicpuHostCompute");
       }
     }
     EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
@@ -781,16 +803,18 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-    ASSERT_NE(
-        model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler),
-        nullptr);
+    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(
+                  BuiltInSubscriberType::kCannHostProfiler),
+              nullptr);
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
                                       reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
-    auto profiler = model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+    auto profiler = model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(
+        BuiltInSubscriberType::kCannProfilerV2);
     EXPECT_EQ(profiler->InitForCannDevice(execution_data), ge::SUCCESS);
     MsprofApi fake_api;
     profiler->InitLaunchApi(12345, "AicpuHostCompute", fake_api);
@@ -806,12 +830,13 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-    ASSERT_NE(
-        model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler),
-        nullptr);
+    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(
+                  BuiltInSubscriberType::kCannHostProfiler),
+              nullptr);
 
     // turn on prof and execute
     ge::diagnoseSwitch::EnableProfiling({ProfilingType::kMemory});
@@ -831,12 +856,13 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-    ASSERT_NE(
-        model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(BuiltInSubscriberType::kCannHostProfiler),
-        nullptr);
+    ASSERT_NE(model_executor->GetSubscribers().GetBuiltInSubscriber<CannHostProfiler>(
+                  BuiltInSubscriberType::kCannHostProfiler),
+              nullptr);
 
     // turn on prof and execute
     ge::diagnoseSwitch::EnableProfiling({ProfilingType::kMemory});
@@ -856,7 +882,8 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_NE(
         model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
@@ -875,7 +902,8 @@ class CannProfilerST : public bg::BgTest {
     auto inputs = FakeTensors({2048}, 2);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     ASSERT_NE(
         model_executor->GetSubscribers().GetBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2),
@@ -919,7 +947,7 @@ class CannProfilerST : public bg::BgTest {
     additional_data_def->set_data_type(data_type);
     additional_data_def->add_context_id(0);
 
-    domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+    domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
     ffts_plus_sqe->set_ready_context_num(1);
     ffts_plus_sqe->set_total_context_num(2);
 
@@ -964,7 +992,7 @@ class CannProfilerST : public bg::BgTest {
     auto graph = ShareGraph::BuildWithKnownSubgraph();
     graph->TopologicalSorting();
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto faker = GlobalDataFaker(root_model);
+    auto faker = GlobalDataFaker(root_model);
     GertRuntimeStub fakeRuntime;
     auto global_data = faker.FakeWithoutHandleAiCore("Conv2d", false).Build();
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
@@ -981,7 +1009,8 @@ class CannProfilerST : public bg::BgTest {
     auto outputs = FakeTensors({2, 2}, 3);
     auto inputs = FakeTensors({2, 2}, 1, mem_block.get());
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
@@ -994,7 +1023,7 @@ class CannProfilerST : public bg::BgTest {
     ge::diagnoseSwitch::EnableProfiling({ProfilingType::kCannHost, ProfilingType::kTaskTime, ProfilingType::kDevice});
     gert::GlobalProfilingWrapper::GetInstance()->IncreaseProfCount();
     ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-                                  reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+                                      reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
               ge::GRAPH_SUCCESS);
     ge::diagnoseSwitch::DisableProfiling();
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
@@ -1046,19 +1075,19 @@ TEST_F(CannProfilerST, CannHostProfiling_ReportApi_EnableAlwaysZeroCopy) {
   ge::EXPECT_DefaultProfilingTestWithExpectedCallTimes(CannProfilerST::TestProfilingWhenZeroCpy1, 18, 0, 0, 0);
 }
 /**
-* 用例描述：单算子用例执行时打开profiling的task_time和host profiling开关，统计上报信息数量
-*
-* 预置条件:
-* 1.构造单算子执行器
-*
-* 测试步骤：
-* 1. 使能cann profiling的task_time开关
-* 2. 构造单算子执行器执行
-*
-* 预期结果：
-* 1. 执行成功
-* 2. 校验profiling上报的api、info、compact info数量符合预期
-*/
+ * 用例描述：单算子用例执行时打开profiling的task_time和host profiling开关，统计上报信息数量
+ *
+ * 预置条件:
+ * 1.构造单算子执行器
+ *
+ * 测试步骤：
+ * 1. 使能cann profiling的task_time开关
+ * 2. 构造单算子执行器执行
+ *
+ * 预期结果：
+ * 1. 执行成功
+ * 2. 校验profiling上报的api、info、compact info数量符合预期
+ */
 TEST_F(CannProfilerST, CannProfiling_HostAndDevice_Normal) {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kCannHost, ProfilingType::kTaskTime});
   ge::EXPECT_DefaultProfilingTestWithExpectedCallTimes(CannProfilerST::TestProfiling, 2, 0, 0, 0);
@@ -1075,8 +1104,8 @@ TEST_F(CannProfilerST, InitCannProfilingV1_Ok) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
@@ -1090,9 +1119,9 @@ TEST_F(CannProfilerST, InitCannProfilingV1_Ok) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size()),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(
+      executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size()),
+      ge::GRAPH_SUCCESS);
   ASSERT_EQ(executor->UnLoad(), ge::GRAPH_SUCCESS);
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice});
   aclrtDestroyStream(stream);

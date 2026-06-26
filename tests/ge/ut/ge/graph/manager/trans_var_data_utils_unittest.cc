@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,15 +35,15 @@ class UtestTransVarDataTest : public testing::Test {
 namespace ut {
 class GraphBuilder {
  public:
-  explicit GraphBuilder(const std::string &name) { graph_ = std::make_shared<ComputeGraph>(name); }
+  explicit GraphBuilder(const std::string &name) {
+    graph_ = std::make_shared<ComputeGraph>(name);
+  }
   NodePtr AddNode(const std::string &name, const std::string &type, int in_cnt, int out_cnt,
                   Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
                   std::vector<int64_t> shape = {1, 1, 224, 224});
-  NodePtr AddNode(const std::string &name, const std::string &type,
-                  std::initializer_list<std::string> input_names,
-                  std::initializer_list<std::string> output_names,
-                  Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
-                  std::vector<int64_t> shape = {1, 1, 224, 224});
+  NodePtr AddNode(const std::string &name, const std::string &type, std::initializer_list<std::string> input_names,
+                  std::initializer_list<std::string> output_names, Format format = FORMAT_NCHW,
+                  DataType data_type = DT_FLOAT, std::vector<int64_t> shape = {1, 1, 224, 224});
   void AddDataEdge(const NodePtr &src_node, int src_idx, const NodePtr &dst_node, int dst_idx);
   void AddControlEdge(const NodePtr &src_node, const NodePtr &dst_node);
   ComputeGraphPtr GetGraph() {
@@ -74,7 +74,7 @@ TEST_F(UtestTransVarDataTest, CopyVarData) {
   auto node_0 = UtAddNode(graph, "data1", VARIABLE, 1, 1);
   auto node_1 = UtAddNode(graph, "data2", VARIABLE, 1, 1);
   node_0->GetInDataAnchor(0)->LinkFrom(node_1->GetOutDataAnchor(0));
-  std::vector<NodePtr> variable_nodes { node_0, node_1 };
+  std::vector<NodePtr> variable_nodes{node_0, node_1};
 
   auto device_id = GetContext().DeviceId();
   uint64_t session_id = 1;
@@ -89,13 +89,12 @@ TEST_F(UtestTransVarDataTest, TransAllVarData) {
   auto node_0 = UtAddNode(graph, "data1", VARIABLE, 1, 1);
   auto node_1 = UtAddNode(graph, "data2", VARIABLE, 1, 1);
   node_0->GetInDataAnchor(0)->LinkFrom(node_1->GetOutDataAnchor(0));
-  std::vector<NodePtr> variable_nodes { node_0, node_1 };
+  std::vector<NodePtr> variable_nodes{node_0, node_1};
   uint64_t session_id = 1;
   uint32_t graph_id = 1;
   uint32_t device_id = 1;
   EXPECT_EQ(TransVarDataUtils::TransAllVarData(variable_nodes, session_id, graph_id, device_id), INTERNAL_ERROR);
 }
-
 
 TEST_F(UtestTransVarDataTest, TransAllVarData_WithSkipNode) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph");
@@ -103,7 +102,7 @@ TEST_F(UtestTransVarDataTest, TransAllVarData_WithSkipNode) {
   auto node_0 = UtAddNode(graph, "data1", VARIABLE, 1, 1);
   auto node_1 = UtAddNode(graph, "data2", VARIABLE, 1, 1);
   node_0->GetInDataAnchor(0)->LinkFrom(node_1->GetOutDataAnchor(0));
-  std::vector<NodePtr> variable_nodes { node_0, node_1 };
+  std::vector<NodePtr> variable_nodes{node_0, node_1};
 
   uint64_t session_id = 1;
   uint32_t graph_id = 1;
@@ -142,17 +141,16 @@ TEST_F(UtestTransVarDataTest, TransAllVarData_WithSkipNode) {
   VarManager::Instance(session_id)->FreeVarMemory();
 }
 
-TEST_F(UtestTransVarDataTest, CopyVarData_failed)
-{
+TEST_F(UtestTransVarDataTest, CopyVarData_failed) {
   ComputeGraphPtr graph = BuildGraphTransVarData();
   OpDescPtr op_desc = make_shared<OpDesc>("Variable", "Variable");
-  GeTensorDesc dims_tensor_desc(GeShape({1,1,1,1}), FORMAT_NCHW, DT_FLOAT16);
-  GeTensorDesc dims_tensor_desc_in(GeShape({1,1,1,1}), FORMAT_NCHW, DT_FLOAT16);
+  GeTensorDesc dims_tensor_desc(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT16);
+  GeTensorDesc dims_tensor_desc_in(GeShape({1, 1, 1, 1}), FORMAT_NCHW, DT_FLOAT16);
   op_desc->AddInputDesc(dims_tensor_desc_in);
   op_desc->AddOutputDesc(dims_tensor_desc);
 
   NodePtr src_node = graph->AddNode(op_desc);
-  std::vector<NodePtr> variable_nodes { src_node };
+  std::vector<NodePtr> variable_nodes{src_node};
   (void)AttrUtils::SetStr(src_node->GetOpDesc(), "_copy_from_var_node", "addn");
   (void)AttrUtils::SetBool(src_node->GetOpDesc(), "_copy_value", false);
 
@@ -173,7 +171,7 @@ TEST_F(UtestTransVarDataTest, TransAllVarData_failed) {
   uint32_t graph_id = 1;
   uint32_t device_id = 1;
 
-  const char_t * const kEnvValue = "SET_TRANS_VAR_DATA";
+  const char_t *const kEnvValue = "SET_TRANS_VAR_DATA";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -181,7 +179,7 @@ TEST_F(UtestTransVarDataTest, TransAllVarData_failed) {
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
 
   class MockAclRuntimeStub : public AclRuntimeStub {
-  public:
+   public:
     aclError aclrtSetCurrentContext(aclrtContext context) override {
       return -1;
     }
@@ -196,4 +194,4 @@ TEST_F(UtestTransVarDataTest, TransAllVarData_failed) {
   ge::AclRuntimeStub::Reset();
 }
 
-} // namespace ge
+}  // namespace ge

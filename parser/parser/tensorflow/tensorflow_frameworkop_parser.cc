@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,9 +17,9 @@
 #include "parser/tensorflow/tensorflow_parser_register.h"
 #include "proto/tensorflow/tensor_shape.pb.h"
 
-using domi::tensorflow::TensorShapeProto;
-using domi::tensorflow::AttrValue;
 using domi::TENSORFLOW;
+using domi::tensorflow::AttrValue;
+using domi::tensorflow::TensorShapeProto;
 using ge::parser::FRAMEWORKOP;
 
 namespace ge {
@@ -71,7 +71,7 @@ Status ParseParams(const Message *op_src, FrameworkOpOperator *op) {
   } else {
     GE_CHK_BOOL_EXEC(type == "_Retval",
                      REPORT_INNER_ERR_MSG("E19999", "In NodeDef:%s Attr:opdef does not exist, check invalid",
-                                        pkg_node->name().c_str());
+                                          pkg_node->name().c_str());
                      GE_DELETE_NEW_SINGLE(pkg_node);
                      return PARAM_INVALID, "In NodeDef %s Attr opdef does not exist.", pkg_node->name().c_str());
   }
@@ -94,11 +94,10 @@ Status ParseParams(const Message *op_src, FrameworkOpOperator *op) {
   // Serialize nodedef into string and package as a whole
   string serialized_node;
   GE_IF_BOOL_EXEC(!pkg_node->SerializeToString(&serialized_node),
-                  REPORT_INNER_ERR_MSG("E19999", "Trans NodeDef:%s(%s) to string failed",
-                                    pkg_node->name().c_str(), pkg_node->op().c_str());
+                  REPORT_INNER_ERR_MSG("E19999", "Trans NodeDef:%s(%s) to string failed", pkg_node->name().c_str(),
+                                       pkg_node->op().c_str());
                   GELOGE(PARAM_INVALID, "In FrameworkOp trans NodeDef to string failed.");
-                  GE_DELETE_NEW_SINGLE(pkg_node);
-                  return PARAM_INVALID);
+                  GE_DELETE_NEW_SINGLE(pkg_node); return PARAM_INVALID);
 
   op->NodeDefPkg(serialized_node);
 

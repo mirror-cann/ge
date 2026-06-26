@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,12 +40,15 @@ Status ContinuousOutputNodeChecker(const NodeCheckerParam &param) {
       continue;
     }
     if (expect_offset != offset) {
-      REPORT_INNER_ERR_MSG("E19999", "continuous output node memory check failed. node: %s, out_index: %d,"
-          " offset: %" PRId64 ", expect_offset: %" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), out_index,
-          offset, expect_offset);
-      GELOGE(FAILED, "continuous output node memory check failed. node: %s, out_index: %d, offset: %" PRId64 ", "
-          "expect_offset: %" PRId64 "", NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset,
-          expect_offset);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "continuous output node memory check failed. node: %s, out_index: %d,"
+                           " offset: %" PRId64 ", expect_offset: %" PRId64 "",
+                           NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset, expect_offset);
+      GELOGE(FAILED,
+             "continuous output node memory check failed. node: %s, out_index: %d, offset: %" PRId64
+             ", "
+             "expect_offset: %" PRId64 "",
+             NodeCheckerUtils::NodeName(param.node).c_str(), out_index, offset, expect_offset);
       GE_ASSERT_SUCCESS(NodeCheckerUtils::ErrorLogAllOutputs(param));
       return FAILED;
     }

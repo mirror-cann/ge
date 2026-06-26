@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ ge::Allocator *Allocators::GetAllocator(const TensorPlacement &placement, const 
   if ((placement < kTensorPlacementEnd) && (usage < static_cast<size_t>(AllocatorUsage::kEnd))) {
     return allocators[static_cast<size_t>(placement)][usage].get();
   } else {
-    GELOGE(ge::FAILED, "unsupport placement %d or unsupport usage %zu", placement, usage);
+    GELOGE(ge::FAILED, "unsupported placement %d or unsupported usage %zu", placement, usage);
     return nullptr;
   }
 }
@@ -32,11 +32,10 @@ ge::graphStatus Allocators::SetAllocator(const TensorPlacement &placement, const
     }
     return ge::SUCCESS;
   } else {
-    GELOGE(ge::FAILED,
-           "Unsupportd placement %zu or unsupportd usage %zu, Only support placemen[%zu~%zu)",
+    GELOGE(ge::FAILED, "Unsupportd placement %zu or unsupportd usage %zu, Only support placemen[%zu~%zu)",
            static_cast<size_t>(placement), usage, static_cast<size_t>(kOnDeviceHbm),
            static_cast<size_t>(AllocatorUsage::kEnd));
     return ge::FAILED;
   }
 }
-} // namespace gert
+}  // namespace gert

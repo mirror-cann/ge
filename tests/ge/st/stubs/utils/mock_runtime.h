@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,11 +30,11 @@ class MockRuntime : public RuntimeStub {
   MOCK_METHOD7(rtCpuKernelLaunchWithFlag,
                int32_t(const void *so_name, const void *kernel_name, uint32_t core_dim, const rtArgsEx_t *args,
                        rtSmDesc_t *smDesc, rtStream_t stream_, uint32_t flags));
-  MOCK_METHOD6(rtAicpuKernelLaunchWithFlag, int32_t(const rtKernelLaunchNames_t *, uint32_t,
-                                                    const rtArgsEx_t *, rtSmDesc_t *, rtStream_t, uint32_t));
+  MOCK_METHOD6(rtAicpuKernelLaunchWithFlag, int32_t(const rtKernelLaunchNames_t *, uint32_t, const rtArgsEx_t *,
+                                                    rtSmDesc_t *, rtStream_t, uint32_t));
 
-  MOCK_METHOD7(rtKernelLaunchWithHandle, int32_t(void *, const uint64_t, uint32_t, rtArgsEx_t *,
-                                                 rtSmDesc_t *, rtStream_t, const void *));
+  MOCK_METHOD7(rtKernelLaunchWithHandle,
+               int32_t(void *, const uint64_t, uint32_t, rtArgsEx_t *, rtSmDesc_t *, rtStream_t, const void *));
 
   MOCK_METHOD5(rtMemcpy, int32_t(void *, uint64_t, const void *, uint64_t, rtMemcpyKind_t));
   MOCK_METHOD5(rtKernelGetAddrAndPrefCntV2, int32_t(void *handle, const uint64_t tilingKey, const void *const stubFunc,
@@ -51,5 +51,5 @@ rtError_t MockRtMemcpy(void *dst, uint64_t dest_max, const void *src, uint64_t c
 rtError_t MockRtKernelGetAddrAndPrefCntV2(void *handle, const uint64_t tilingKey, const void *const stubFunc,
                                           const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
 constexpr uint8_t kHostMemInputValue = 110U;
-}
+}  // namespace ge
 #endif  // AIR_TESTS_ST_STUBS_UTILS_MOCK_RUNTIME_H_
